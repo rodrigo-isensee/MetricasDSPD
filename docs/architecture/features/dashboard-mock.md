@@ -2,8 +2,10 @@
 
 - Data: 2026-10-09 · Pedido: `docs/pedidos/001-dashboard-mock.md`
 - Especificação de UX (em paralelo): `docs/ux/dashboard-metricas.md`
-- Stack: ADR `docs/architecture/adr/0001-stack-front-dashboard-mock.md`
+- Stack: ADR `docs/architecture/adr/0001-stack-front-dashboard-mock.md` (parcialmente substituída pela 0002)
+- (rev. 3) Monorepo e pacotes compartilhados: ADR `docs/architecture/adr/0002-monorepo-pacotes-compartilhados.md` · Orçamento de performance: ADR `docs/architecture/adr/0003-orcamento-de-performance.md`
 - Revisão 2 (2026-10-09): alinhado às decisões J1 (janela de 12 semanas em todas as granularidades) e J2 (sustentação em horas úteis, inclusive P1) do tech lead e às lacunas L11 e L13 da spec de UX revisão 2. Trechos alterados marcados "(rev. 2)".
+- Revisão 3 (2026-10-09): decisões D1, D2, D3 e D6 da ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`. `contracts/`, `lib/metrics/` e `mock/` saem de `web/` para pacotes do monorepo depois do review/QA da fase A e antes da fase B. Os caminhos `web/src/...` citados nas seções 3 a 6 valem até a extração; o mapeamento está na seção 2. Trechos alterados marcados "(rev. 3)".
 
 ## 1. Resumo
 SPA em `web/` que gera, no navegador e de forma determinística, uma base fictícia no formato do modelo analítico (briefing 4.5) e de chamados do Acelerato (3.2/3.4), calcula as métricas do núcleo com uma biblioteca única (T2.5) e as exibe por trás de uma interface de fonte de dados que amanhã será implementada por HTTP. Não há back-end nem endpoints nesta etapa.
@@ -21,9 +23,29 @@ flowchart LR
   hooks --> ui[features/* e components/charts]
 ```
 
-Regra estrutural: a UI só conhece `FonteMetricas` e os DTOs de `contracts/`. Ela nunca importa `mock/` nem `lib/metrics/` (garantido por lint, ver ADR 0001).
+Regra estrutural: a UI só conhece `FonteMetricas` e os DTOs de `contracts/`. Ela nunca importa `mock/` nem `lib/metrics/` (garantido por lint, ver ADR 0001; (rev. 3) após a extração, por fronteira de pacote, ADR 0002).
 
 ## 2. Estrutura de pastas
+
+### 2.1 (rev. 3) Estrutura após a extração (ADR 0002)
+```
+/
+  package.json (workspaces) · package-lock.json · tsconfig.base.json · eslint.config.js · .prettierrc
+  packages/
+    contratos/  @metricas-dspd/contratos   src/ = antigo web/src/contracts (comum, filtros, metricas, schemas)
+    metricas/   @metricas-dspd/metricas    src/ = antigo web/src/lib/metrics
+                exports: "." (calcularMetrica, calcularVisaoGeral, slug) · "./core" · "./businessmap" · "./acelerato"
+    mock/       @metricas-dspd/mock        src/ = antigo web/src/mock (CRITERIOS_MOCK em arquivo neutro, fora de businessmap/)
+  web/          @metricas-dspd/web         src/: main.tsx, app/, data/ (permanece), content/, features/, components/, styles/
+  e2e/          @metricas-dspd/e2e         Playwright + axe + projeto perf (ADR 0003)
+  server/       @metricas-dspd/server      criado no pedido 002 (feature/arquitetura-mysql)
+```
+- Dependências: `contratos ← metricas ← mock`; `web` usa `contratos` em todo lugar e `metricas`/`mock` só em `web/src/data/mock/**`, por `import()` dinâmico.
+- Pacotes como TS-fonte (exports para `.ts`), sem build próprio; `@/` só existe dentro de `web/`.
+- Calendário (expediente e feriados) entra como parâmetro no contexto das métricas; `CALENDARIO_PADRAO` é o padrão provisório usado pelo mock (P2).
+- Procedimento e critério da extração (mesmo número de testes e mesmo hash da base mock): ADR 0002, "Procedimento da extração".
+
+### 2.2 Estrutura da fase A (antes da extração)
 
 ```
 web/
@@ -223,12 +245,12 @@ interface FonteMetricas {
 - Todo resultado carrega `base: { n, janela, descricao }` e `marcacoes: MarcacaoCriterio[]` quando for série.
 - Filtros: `FiltrosFluxo = { equipe?, tipo?, sistema?, periodo }` e `FiltrosSustentacao = { equipe?, prioridade?, periodo }` são tipos distintos; o TypeScript impede pedir uma métrica S* com filtros de fluxo.
 - (rev. 2, L13; spec 6.6) Simulação de estados pelo parâmetro de URL `mock`, implementada **na `MockFonteMetricas`** (decorador sobre `obter`), nunca nos componentes: `carregando` (promessa que não resolve), `erro` (erro de painel), `vazio`, `erro:{id}` (o cartão falha em toda tentativa) e `erro-uma-vez:{id}` (falha só na primeira chamada daquele id; o "Tentar de novo" resolve normalmente). `{id}` aceita lista por vírgula; ids inexistentes e valores inválidos são ignorados sem aviso. O controle de "já falhou uma vez" é estado da instância da fonte, por id, e zera ao recarregar a página. `HttpFonteMetricas` ignora o parâmetro. Propagação na navegação e em "Copiar link" segue a spec 6.6 (responsabilidade do `useFiltros`/links, não da fonte).
-- Ao migrar: a biblioteca vai para `packages/shared` ou `server/`; `contracts/` vira `packages/shared`; os painéis não mudam.
+- ~~Ao migrar: a biblioteca vai para `packages/shared` ou `server/`; `contracts/` vira `packages/shared`; os painéis não mudam.~~ (rev. 3) A biblioteca vai para `packages/metricas` e `contracts/` para `packages/contratos` já no 001 (ADR 0002); no 002 o servidor usa os mesmos pacotes e os painéis não mudam.
 
 ## 6. Estratégia de testes
 - **Biblioteca (`lib/metrics/core`)**: testes de tabela com casos de borda documentados no próprio teste: início/fim fora do expediente, atravessando almoço, fim de semana e feriado, intervalo nulo, `fim < início` (erro), modo corrido; percentil com n = 1, 19, 20, valores repetidos e conferência contra valores de referência de `PERCENTILE.INC`; borda da janela (dia 84 dentro, 85 fora); marcação de critério ao cruzar a data. Propriedades com fast-check: `p50 ≤ p85 ≤ p95`, `min ≤ p ≤ max`, `n < 20 ⇒ insuficiente`, horas úteis aditivas em intervalos contíguos.
 - **Métricas**: fixtures pequenas montadas à mão com builders (`umCard().iniciadoEm(...).entregueEm(...)`), não com o gerador. Uma regra de 4.2 por teste (descarte, reabertura, bug na janela de 30 dias, subtarefa, fila no WIP).
-- **Gerador**: determinismo (mesma semente ⇒ mesmo hash da base; semente diferente ⇒ hash diferente); invariantes (integridade de `card_pai`, ordem dos marcos, coerência transição × marcos, nada depois de `hoje`, arquivados presentes, prioridade = matriz salvo ajuste justificado, `status_sla_r` só em concluídos, nenhum chamado fora da população 3.2); existência de classes com < 20 itens; (rev. 2, L11/J1) no consolidado padrão, ao menos um tipo do filtro do Operacional com < 20 e outros com ≥ 20, frentes na janela ≥ 20 e projetos na janela < 20; (rev. 2, J2) durações de chamados P1 coerentes com o calendário de expediente; orçamento de tempo (geração completa < 1 s no CI, limite folgado).
+- **Gerador**: determinismo (mesma semente ⇒ mesmo hash da base; semente diferente ⇒ hash diferente); invariantes (integridade de `card_pai`, ordem dos marcos, coerência transição × marcos, nada depois de `hoje`, arquivados presentes, prioridade = matriz salvo ajuste justificado, `status_sla_r` só em concluídos, nenhum chamado fora da população 3.2); existência de classes com < 20 itens; (rev. 2, L11/J1) no consolidado padrão, ao menos um tipo do filtro do Operacional com < 20 e outros com ≥ 20, frentes na janela ≥ 20 e projetos na janela < 20; (rev. 2, J2) durações de chamados P1 coerentes com o calendário de expediente; orçamento de tempo ((rev. 3) geração completa < 1,5 s no CI, ADR 0003 item C2; testes de tempo por métrica e por painel conforme C3/C4).
 - **Fonte mock**: cada `obter` devolve DTO válido pelo schema zod. (rev. 2) Toda amostra usa a janela de `JANELA_POR_GRANULARIDADE`; `erro:{id}` falha em chamadas repetidas e `erro-uma-vez:{id}` falha na primeira e resolve na segunda; valores inválidos de `mock` não alteram o resultado.
 - **UI (Testing Library)**: estados de cada cartão, tabela alternativa, filtros ↔ URL (ida e volta, valor inválido normalizado).
 - Todos os testes com `TZ=UTC` e `hoje` fixo. E2E e axe ficam com o `qa-engineer`.
@@ -252,13 +274,14 @@ interface FonteMetricas {
 Paralelismo: 2 e 3 juntos; 4 e 5 juntos; 6 e 7 juntos; 9 e 10 podem começar logo após 3, com fonte falsa simples. O `qa-engineer` pode montar `e2e/` (Playwright + axe) a partir da tarefa 9.
 
 ## 8. Riscos e pontos de atenção
-- **Desempenho do gerador**: ~70 mil linhas no total; meta < 300 ms em máquina comum. Gerar uma vez e memoizar; se passar de 500 ms, mover geração e cálculo para Web Worker (a interface já é assíncrona, sem impacto nos painéis). Séries com janela móvel: pré-ordenar por data de conclusão e usar busca binária para recortar janelas.
-- **Bundle**: gerador e biblioteca em chunk carregado por `import()` dinâmico; rotas lazy; Recharts importado só em `components/charts`. Orçamento: chunk inicial < 200 KB gz.
+- **Desempenho do gerador e do cálculo**: (rev. 3) orçamento em ADR 0003 (geração + contexto < 500 ms; métrica < 50 ms p95 inclusive a frio; painel < 300 ms). Medido em 2026-10-09: geração + contexto 309–422 ms (ok); O1 a frio 554 ms e `VISAO_GERAL` 655 ms (fora). Remédio (D6): WIP diário por varredura única memoizada no contexto, memoização de resultados por `(MetricaId, filtros)` com a Visão geral composta a partir deles, laço no lugar de `Math.min(...array)`; Web Worker atrás da `MockFonteMetricas` se ainda ficar fora. Séries com janela móvel: pré-ordenar por data de conclusão e usar busca binária para recortar janelas.
+- **Bundle**: gerador e biblioteca em chunk carregado por `import()` dinâmico; rotas lazy; Recharts importado só em `components/charts`. Orçamento: chunk inicial < 200 KB gz; (rev. 3) gráficos e mock em chunks próprios, limites em ADR 0003 (F6–F9).
 - **Fuso e calendário**: qualquer uso de getters locais de `Date` na lógica quebra o cálculo em outra máquina; mitigado por lint e testes com `TZ=UTC`.
 - **Percentis em filtros estreitos**: combinar filtros reduz `n` e aciona "amostra insuficiente" com frequência; é o comportamento correto, a UX precisa tratar como estado normal.
 - **Dados fictícios lidos como reais**: aviso permanente ligado a `fonte.tipo === 'mock'`; nomes de equipes e pessoas claramente fictícios.
 - **Uso individual**: `responsaveis`/`usuario` existem só por fidelidade ao 4.5; nenhuma função agrega por pessoa e nenhum DTO expõe pessoa. Revisão de código deve barrar.
-- **Cálculo no front é transitório**: manter `lib/metrics` sem dependências de UI para a migração ao servidor.
+- **Cálculo no front é transitório**: manter `lib/metrics` sem dependências de UI para a migração ao servidor. (rev. 3) Garantido pela extração para `packages/metricas` (sem `DOM` no `lib` do tsconfig, sem React, lint por pacote).
+- (rev. 3) **Cruzamento BM → AC no mock**: `mock/acelerato/gerador.ts` importa `CRITERIOS_MOCK` de `mock/businessmap/catalogos.ts`; mover para arquivo neutro antes da extração (ADR 0002, passo 2), sem alterar o hash da base.
 - **Extensões ao modelo 4.5** (seção 9) precisam ser confirmadas antes da T2.4 real.
 
 ## 9. Perguntas em aberto (escolhas provisórias, valem só para o mock)

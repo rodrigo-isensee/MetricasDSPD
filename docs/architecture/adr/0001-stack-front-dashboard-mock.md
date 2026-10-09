@@ -1,7 +1,8 @@
 # 0001 - Stack do front-end do dashboard de métricas (etapa mock)
-- Status: aceita
-- Data: 2026-10-09
+- Status: aceita, parcialmente substituída pela 0002
+- Data: 2026-10-09 · Revisão: 2026-10-09 (ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`, D2)
 - Pedido: `docs/pedidos/001-dashboard-mock.md` · Plano técnico: `docs/architecture/features/dashboard-mock.md`
+- Substituído pela ADR `0002-monorepo-pacotes-compartilhados.md`: a linha "Pacotes" (sem workspaces), a linha "Regras de lint arquiteturais" (regras por caminho viram fronteiras de pacote) e o risco "Cálculo no navegador é transitório" (a migração da biblioteca deixou de ser risco e virou decisão). Os trechos estão marcados "[substituído pela 0002]". O restante da stack continua valendo. Orçamento de performance: ADR `0003-orcamento-de-performance.md`.
 
 ## Contexto
 O pedido 001 constrói os painéis (Visão geral, FL1, FL2, FL3, Sustentação, Espera invisível) só em `web/`, com dados fictícios gerados no navegador, para validar a experiência. Forças:
@@ -10,13 +11,13 @@ O pedido 001 constrói os painéis (Visão geral, FL1, FL2, FL3, Sustentação, 
 - WCAG 2.2 AA, tema claro e escuro, responsivo, teclado.
 - Filtros na URL (link compartilhável).
 - Cálculo determinístico e testável (biblioteca única, T2.5), sem dependência do fuso do navegador.
-- Critério de pronto: `npm install && npm run dev` em `web/`; lint, type-check, unitários e E2E passando.
+- Critério de pronto: `npm install && npm run dev` em `web/` (após a extração da 0002: na raiz do repositório); lint, type-check, unitários e E2E passando.
 
 ## Decisão
 | Tema | Escolha |
 |---|---|
 | Runtime / build | Node 24 LTS, **Vite** (versão estável corrente), **React 19**, **TypeScript `strict: true`** + `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
-| Pacotes | `web/` e `e2e/` como pacotes npm independentes (sem workspaces nesta etapa); versões fixadas no `package-lock.json` |
+| Pacotes | ~~`web/` e `e2e/` como pacotes npm independentes (sem workspaces nesta etapa); versões fixadas no `package-lock.json`~~ **[substituído pela 0002]**: npm workspaces na raiz (`packages/contratos`, `packages/metricas`, `packages/mock`, `web/`, `server/`, `e2e/`), escopo `@metricas-dspd/*`, um `package-lock.json` na raiz |
 | Gráficos | **Recharts 3** (SVG), encapsulado em `web/src/components/charts/`; nenhum painel importa Recharts diretamente |
 | Alternativa textual dos gráficos | Todo gráfico tem tabela de dados equivalente (botão "Ver dados em tabela") e resumo textual em `figcaption`; é o mecanismo principal de acessibilidade, não o SVG |
 | Roteamento | **React Router 7** em modo biblioteca (`createBrowserRouter`), rotas com `lazy` por painel |
@@ -29,7 +30,7 @@ O pedido 001 constrói os painéis (Visão geral, FL1, FL2, FL3, Sustentação, 
 | Testes unitários | **Vitest** + **Testing Library** + jsdom; **fast-check** para propriedades da biblioteca de cálculo. Script de teste roda com `TZ=UTC` para provar que nada depende do fuso da máquina |
 | E2E e acessibilidade | **Playwright** + **@axe-core/playwright** em `e2e/`, contra `vite preview` (`webServer` do Playwright); Chromium obrigatório, Firefox e WebKit opcionais |
 | Lint / formatação | **ESLint 9** (flat config) + `typescript-eslint` (`strictTypeChecked`) + `eslint-plugin-react-hooks` + `eslint-plugin-jsx-a11y` + **Prettier** |
-| Regras de lint arquiteturais | `no-restricted-imports`: `features/**` e `components/**` não importam `lib/metrics` nem `mock`; `lib/metrics/businessmap` e `lib/metrics/acelerato` não se importam; `no-restricted-properties`/`no-restricted-globals`: `Math.random`, `Date.now`, `new Date()` sem argumento proibidos em `mock/` e `lib/metrics/` |
+| Regras de lint arquiteturais | `no-restricted-imports`: `features/**` e `components/**` não importam `lib/metrics` nem `mock`; `lib/metrics/businessmap` e `lib/metrics/acelerato` não se importam; `no-restricted-properties`/`no-restricted-globals`: `Math.random`, `Date.now`, `new Date()` sem argumento proibidos em `mock/` e `lib/metrics/`. **[substituído pela 0002]** Válidas por caminho até a extração; depois viram fronteiras de pacote (`eslint.config.js` na raiz com blocos por pacote, tabela "Fronteiras garantidas por lint" da 0002) |
 | Scripts em `web/` | `dev`, `build`, `preview`, `lint`, `typecheck` (`tsc -b`), `test`, `test:watch`, `check` (lint + typecheck + test) |
 
 ## Alternativas consideradas
@@ -67,4 +68,4 @@ O pedido 001 constrói os painéis (Visão geral, FL1, FL2, FL3, Sustentação, 
   - Recharts em jsdom precisa de `ResizeObserver` simulado e dimensões fixas nos testes; testar o conteúdo pela tabela alternativa e não pelo SVG.
   - Acessibilidade do SVG do Recharts é limitada; por isso a tabela alternativa é obrigatória e coberta pelo axe e pelos E2E.
   - Se o volume de pontos crescer (dados reais), avaliar amostragem no servidor ou troca de dispersões para canvas; a encapsulação em `components/charts/` limita o impacto.
-  - Cálculo no navegador é transitório: a biblioteca em `lib/metrics` é TypeScript puro, sem React/DOM, para migrar para `packages/shared` ou `server/` quando houver back-end (ver plano técnico).
+  - ~~Cálculo no navegador é transitório: a biblioteca em `lib/metrics` é TypeScript puro, sem React/DOM, para migrar para `packages/shared` ou `server/` quando houver back-end (ver plano técnico).~~ **[substituído pela 0002]** Deixou de ser risco: a biblioteca vai para `packages/metricas` (com `contracts` em `packages/contratos` e o gerador em `packages/mock`), extraída depois do review/QA da fase A e antes da fase B, e é usada pelo web (mock) e pelo servidor (002).
