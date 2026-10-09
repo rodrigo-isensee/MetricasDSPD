@@ -1,7 +1,28 @@
 # Dashboard de métricas ágeis do DSPD (versão com dados fictícios)
 
-Especificação de UX · versão 1 · 2026-10-09 · autor: `ux-designer`
+Especificação de UX · versão 2 (revisão 2) · 2026-10-09 · autor: `ux-designer`
 Pedido de origem: `docs/pedidos/001-dashboard-mock.md`. Fonte das regras: `CLAUDE.md` e `docs/briefing-execucao-metricas.md` (em conflito, vale o briefing).
+
+## Revisão 2 — mudanças
+A numeração dos critérios de aceite foi preservada: os critérios 6, 24, 25, 26, 31, 52, 55, 62, 66, 72, 78 e 94 foram editados no lugar; os critérios 105 a 111 são novos e estão no fim da seção 10. Mudanças marcadas com "(rev. 2)" no texto.
+
+**Decisões do tech lead**
+- **J1, janela única de 12 semanas.** Percentis usam 12 semanas em todas as granularidades (story, frente, projeto, chamado). Some o "12 meses (provisória)". A janela é um parâmetro único no código; a pergunta 2 segue aberta. "Amostra insuficiente" em E1, EI-FL3 e, possivelmente, T7 e EI-FL2 é estado normal, com texto próprio (nova seção 6.3.1). Alterados: 4.0.3, 2.2, T7, E1, EI, 7.3, 9.2, critérios 52, 55, 78, pergunta 2.
+- **J2, sustentação em horas úteis.** Todas as prioridades (inclusive P1) em horas úteis; dia útil = 8 horas úteis (seg a sex, 8h às 12h e 13h às 17h, feriados nacionais, fuso -03:00). Exibição: horas úteis em P1 a P3, dias úteis em P4 e P5, sem minutos e sem horas corridas; EI da Sustentação em horas úteis. Alterados: 4.0.4, S1, S4, EI, 7.3, critérios 62 e 72, perguntas 11 e 15.
+
+**Lacunas do QA** (L1 e L2 correspondem a J1 e J2)
+- L3: domínio fechado de S6 corrigido para os cinco valores do briefing 3.4 (S6, critério 66).
+- L4: O12 passa a ficar só na seção "Compromissos" da cadência semanal; âncoras das seções definidas (3.3, critério 31).
+- L5: convenção de `data-testid` completada: `BLOQUEADOS`, `EI-{NIVEL}`, `{nivel}`, slugs, chave do tema, nome do seletor de tema (seção 10, abertura).
+- L6: aviso de consolidação sempre que o resultado soma 2 ou mais equipes, inclusive "Todas" (2.1, critério 25).
+- L7 e L8: parâmetro não aplicável ao painel é ignorado em silêncio e removido da URL, mas fica guardado na sessão e volta ao navegar (2.5, 2.6, critérios 6 e 24, critério 107).
+- L9: tabela 2.2 cobre EI por nível, "Bloqueados agora" e S1 a S7.
+- L10: T5 sem ranking: ordem por volume de demanda, selo só em sistemas (T5, critério 108).
+- L12: T4 usa a soma de chegadas e saídas da classe, sem interrogação (T4, pergunta 20).
+- L13: parâmetro `mock` completamente definido (6.6, critério 109).
+- L14: texto explícito de que Incidente e Requisição do BusinessMap não têm relação com chamados do Acelerato (2.1, 7.5).
+- L15: início do histórico no período personalizado vem da fonte de dados (2.3, critério 26).
+- L11: requisito do mock registrado em 9.2. L16: critério de axe confirmado (critério 94, com relato das violações moderadas e leves, critério 111).
 
 ## Objetivo
 Entregar painéis que pessoas não técnicas em métricas de fluxo (gerente, coordenadores, times) consigam ler sem treinamento: cada gráfico responde a uma pergunta escrita na tela, mostra de quantos itens vem o número, diz como ler e o que fazer, e nunca expõe pessoas. A versão usa dados fictícios para validar a experiência com as áreas antes da coleta real.
@@ -36,7 +57,7 @@ Desktop é o contexto principal; tablet e celular são para consulta (tudo preci
 - Há uma **data de corte** fixa do mock (a "data de hoje" do gerador), exibida como "Dados até DD/MM/AAAA". Toda janela é calculada a partir dela. O gerador produz 12+ meses de histórico antes dela.
 - Os nomes de equipes, sistemas, projetos, frentes e cards são fictícios e **sem nomes de pessoas**. O campo `responsaveis` do modelo existe no mock, mas **nenhuma tela o lê**.
 - Portal em português do Brasil (`lang="pt-BR"`), números `1.234,5`, datas `DD/MM/AAAA`, fuso `America/Sao_Paulo`.
-- Dia útil e expediente vêm da biblioteca de cálculo; a interface só rotula a unidade ("dias úteis", "horas úteis"). Ver pergunta em aberto 15.
+- Dia útil e expediente vêm da biblioteca de cálculo; a interface só rotula a unidade ("dias úteis", "horas úteis"). (rev. 2) Calendário do plano técnico: expediente de segunda a sexta, das 8h às 12h e das 13h às 17h; feriados nacionais; fuso -03:00; **1 dia útil = 8 horas úteis**. Valores provisórios; ver pergunta em aberto 15.
 - As metas citadas vêm do briefing (seção 6); nenhum valor de exemplo do briefing é usado como baseline.
 
 ## Decisões de UX registradas
@@ -72,7 +93,7 @@ Desktop é o contexto principal; tablet e celular são para consulta (tudo preci
 | Ajuda | `/ajuda` | n/a | Todos | Como ler, regras de uso, glossário e mudanças de critério |
 | Não encontrada | qualquer outra | n/a | n/a | Página 404 com link para a Visão geral |
 
-Âncoras: cada cartão tem `id` estável em minúsculas (`#o2`, `#t9`, `#s1`, `#ei`), usado pelos atalhos "Ir para" e pela Visão geral. Abrir uma URL com âncora rola até o cartão e coloca o foco no título do cartão.
+Âncoras: cada cartão tem `id` estável em minúsculas (`#o2`, `#t9`, `#s1`, `#ei-fl1`), usado pelos atalhos "Ir para" e pela Visão geral. (rev. 2, L5) Ids: o código em minúsculas; "Bloqueados agora" é `#bloqueados`; os cartões de Espera invisível são `#ei-fl1`, `#ei-fl2`, `#ei-fl3` e `#ei-sust` (um por nível, o mesmo id em `/espera-invisivel` e no painel do nível). Abrir uma URL com âncora rola até o cartão e coloca o foco no título do cartão.
 
 ### 1.2 Navegação global
 ```
@@ -87,7 +108,7 @@ Desktop é o contexto principal; tablet e celular são para consulta (tudo preci
 - <1024px: botão "Menu" abre uma gaveta (diálogo com foco preso, Esc fecha, foco volta ao botão).
 - O selo "Dados fictícios", o seletor de tema e "Ajuda" ficam sempre visíveis no cabeçalho, nesta ordem e neste lugar em todas as telas (WCAG 3.2.6).
 - Rodapé: "Dados fictícios gerados para validar a experiência. Nenhum número representa a operação real. Dados até DD/MM/AAAA." + links para Ajuda e Regras de uso.
-- Os links de navegação entre painéis de fluxo (Operacional, Tático, Estratégico, Espera invisível) **carregam os filtros de fluxo** da URL atual; o link para Sustentação e para a Visão geral é sempre limpo.
+- Os links de navegação entre painéis de fluxo (Operacional, Tático, Estratégico, Espera invisível) **carregam os filtros de fluxo** (equipe, tipo, sistema, período); o link para Sustentação e para a Visão geral é sempre limpo. (rev. 2, L7) Os links são montados a partir dos **filtros de fluxo da sessão** (guardados em memória, não em `localStorage`), e não só da URL do painel de origem; ver 2.6.
 - Para quem pergunta "qual reunião?": a Visão geral traz o bloco "Por reunião" com atalhos (1.4).
 
 ### 1.3 Cabeçalho de cada painel
@@ -101,7 +122,7 @@ O trabalho está fluindo? Para times · diária e semanal           [Copiar link
 
 ### 1.4 Jornadas principais
 1. **Daily do time (15 min):** abre `/operacional` (cadência diária por padrão) → lê a faixa "Pede atenção" → olha "Itens para olhar primeiro" (O2) → "Bloqueados agora" → O1 → decide quem destrava o quê. Alternativo: filtra pela equipe antes de projetar a tela; copia o link para fixar a visão.
-2. **Revisão de fluxo semanal:** `/operacional?cadencia=semanal` → O3 ("o que mudou na nossa distribuição de tempo?") → O4 → O9 → O10 → O7 → O12 → O15 → O18.
+2. **Revisão de fluxo semanal:** `/operacional?cadencia=semanal` → O3 ("o que mudou na nossa distribuição de tempo?") → O9 → O4 → O12 → O10 → O7 → O15 → O18 (a ordem da tela, 3.3).
 3. **Reunião de serviço e reposição (quinzenal):** `/tatico` → seções na ordem T2, T1, T5 (cumprindo o publicado) e T4, T3 (o que entra/sai) e T9, T7 (projetos).
 4. **Revisão de portfólio mensal e estratégica trimestral:** `/estrategico` → E1, E2, E3.
 5. **Sustentação semanal:** `/sustentacao` → S2 e S1 (prazos) → S3 → S4 → S5, S6, S7.
@@ -137,8 +158,8 @@ Bloco "Por reunião" (Visão geral), usando as perguntas da T6.1:
 Regras:
 - **Estratégico não tem filtro de equipe nem de tipo.** Projetos atravessam equipes e a granularidade é projeto. A barra mostra um ícone "i" com a explicação: "O nível estratégico olha projetos, que envolvem várias equipes. Por isso não há filtro por equipe."
 - "Iniciativa" não aparece na lista de tipos dos filtros de FL1/FL2 (é tipo de projeto, FL3). Ver pergunta 9.
-- Tipos de sustentação (Incidente, Requisição) no fluxo são cards do **BusinessMap**. O filtro de tipo traz a dica: "Aqui são cards do BusinessMap. Chamados do Acelerato estão no painel Sustentação."
-- **Equipe é recorte, nunca comparação:** com 2 ou mais equipes selecionadas os números são consolidados; nenhum gráfico, tabela, legenda ou tooltip usa equipe como série, cor, faceta ou coluna. Ao escolher 2+ equipes aparece o texto fixo: "Resultado consolidado de N equipes. O sistema não compara equipes."
+- Tipos de sustentação (Incidente, Requisição) no fluxo são cards do **BusinessMap**. O filtro de tipo traz a dica: "Aqui são cards do BusinessMap. Chamados do Acelerato estão no painel Sustentação." (rev. 2, L14) **Incidente e Requisição do BusinessMap são só tipos de card do fluxo; não têm relação com os chamados do Acelerato.** Os dois sistemas nunca se cruzam; um número de um não explica nem completa o do outro. A dica do filtro e o glossário da Ajuda (7.5) dizem isso.
+- **Equipe é recorte, nunca comparação:** com 2 ou mais equipes no resultado os números são consolidados; nenhum gráfico, tabela, legenda ou tooltip usa equipe como série, cor, faceta ou coluna. (rev. 2, L6) O texto fixo "Resultado consolidado de N equipes. O sistema não compara equipes." aparece **sempre que o resultado soma 2 ou mais equipes**: seleção de 2 ou mais, "Todas" (padrão) e todas marcadas, com N igual ao número real de equipes somadas (ex.: 6 no fluxo, 3 em `/sustentacao`). Com uma só equipe o texto não aparece. Fica numa linha logo abaixo da barra de filtros (`aviso-consolidado`). No Estratégico não aparece (não há filtro de equipe); em `/espera-invisivel` vale para os três primeiros blocos e o bloco de Sustentação traz o seu próprio, com as equipes SSSC.
 - Selecionar todos os valores equivale a "Todos" (a URL omite o parâmetro).
 - Sustentação nunca tem gráfico por equipe SSSC; o filtro só recorta. Prioridade é dimensão legítima (S1, S2, S3).
 
@@ -149,7 +170,7 @@ Regras:
 |---|---|---|---|---|
 | O1 | sim | sim | sim | série + ref |
 | O2 | sim | sim | sim | ref (retrato) + janela (percentis) |
-| Bloqueados agora | sim | sim | sim | ref |
+| Bloqueados agora | sim | sim | sim | ref (retrato na data final do período; não usa janela nem série) |
 | O3 | sim | sim | sim | janela (pontos e percentis) + série (evolução do P85) |
 | O4 | sim | sim | sim | série + janela (faixa) |
 | O7 | sim | sim | sim | série (mínimo 6 meses) |
@@ -163,9 +184,16 @@ Regras:
 | T5 | sim | sim | **não** (sistema é a dimensão); recorte por área também é dimensão | janela / série |
 | T7 | sim | **não** | sim | ref + janela |
 | T9 | sim | **não** | sim | ref |
-| E1, E2, E3 | **não** | **não** | sim | série / janela de 12 meses |
-| EI | conforme o nível | conforme o nível | sim | janela |
-| S1 a S7 | equipe SSSC | n/a | n/a | prioridade (S1, S2, S3, S4, S5, S6, S7), período |
+| E1 | **não** | **não** | sim | série (pontos no período) + janela de 12 semanas (percentis) |
+| E2, E3 | **não** | **não** | sim | série (trimestres) / retrato (E3) |
+| EI-FL1 (Operacional semanal e `/espera-invisivel`, bloco 1) | sim | sim | sim | janela de 12 semanas (índice) + série mensal (evolução) |
+| EI-FL2 (Tático e bloco 2) | sim | **não** (tipos são de story) | sim | janela de 12 semanas + série mensal |
+| EI-FL3 (Estratégico e bloco 3) | **não** | **não** | sim | janela de 12 semanas + série mensal |
+| EI-SUST (Sustentação e bloco 4) | equipe SSSC | n/a | n/a | janela de 12 semanas + série mensal; **Prioridade não afeta** (chip "Não afetado por: Prioridade"); filtros próprios da sustentação |
+| S1 a S3 | equipe SSSC (recorte) | n/a | n/a | **Prioridade é dimensão** (limita as linhas/segmentos); período = série |
+| S4 a S7 | equipe SSSC (recorte) | n/a | n/a | Prioridade recorta os chamados; período = série |
+
+(rev. 2, L9) Colunas E, T, S e P valem para os filtros do fluxo; nas linhas de Sustentação "E" é a equipe SSSC e "P" é o período. Em EI o período escolhido define a série mensal; o índice sempre usa a janela de 12 semanas até o fim do período (J1). Na Visão geral não há filtros: nenhum chip de filtro aparece.
 
 Quando um filtro ativo **não** atua em um cartão, o rodapé do cartão mostra o chip "Não afetado por: Tipo de demanda" (texto + ícone). Quando atua, mostra "Filtros aplicados: Equipe Protheus · Sistema Fluig".
 
@@ -174,7 +202,8 @@ Opções (rádio, uma por vez): `Últimas 4 semanas` · `Últimas 12 semanas` ·
 - Todos os períodos terminam na data de corte, exceto o personalizado.
 - **Janela dos percentis:** sempre 12 semanas (84 dias corridos) terminando no último dia do período, independentemente de o período ser menor ou maior. Quando o período difere de 12 semanas, os cartões de percentil mostram o selo "Janela fixa: 12 semanas" com tooltip "Os percentis usam sempre as últimas 12 semanas do período escolhido." Ver pergunta 14.
 - Semana = segunda a domingo. A semana (ou o mês) corrente é "em andamento": desenhada com padrão listrado e rótulo, fora de estatísticas.
-- Validação do personalizado: "De" ≤ "Até"; "Até" ≤ data de corte; "De" ≥ início do histórico; intervalo mínimo de 7 dias. Erros em texto junto dos campos (3.3.1) e `aria-describedby`; o botão "Aplicar período" fica ativo, mas o aplicar com erro mantém o período anterior.
+- (rev. 2) **No Estratégico só valem `Últimos 6 meses` e `Últimos 12 meses`** (projetos e trimestres não cabem em 4 ou 12 semanas); as demais opções não aparecem nesse painel. Um `periodo` de outro painel que o Estratégico não aceita é tratado como não aplicável (2.6).
+- Validação do personalizado: "De" ≤ "Até"; "Até" ≤ data de corte; "De" ≥ início do histórico; intervalo mínimo de 7 dias. (rev. 2, L15) **O início do histórico vem da fonte de dados** (menor data com dados da fonte do painel: BusinessMap no fluxo, Acelerato na Sustentação, entregue pela camada de dados junto das opções de filtro); a interface nunca escreve essa data no código. A data "01/08/2025" abaixo é só exemplo. Erros em texto junto dos campos (3.3.1) e `aria-describedby`; o botão "Aplicar período" fica ativo, mas o aplicar com erro mantém o período anterior.
 - Mensagens: "A data inicial precisa ser anterior à data final.", "A data final não pode passar de 09/10/2026 (data dos dados).", "Há dados a partir de 01/08/2025. Escolha uma data a partir dela.", "Escolha um intervalo de pelo menos 7 dias."
 
 ### 2.4 Comportamento
@@ -201,11 +230,29 @@ Só valores fora do padrão entram na URL. Vários valores separados por vírgul
 | `s3` | `abs` (padrão) ou `prop` | Sustentação |
 | `s5`, `s6` | `distribuicao` (padrão) ou `evolucao` | Sustentação |
 
-Padrão do período: `12s` no Operacional e no Tático; `12m` no Estratégico; `6m` na Sustentação. Exemplo: `/operacional?cadencia=semanal&equipe=protheus,fluig&tipo=melhoria&o3=melhoria`.
+Padrão do período: `12s` no Operacional e no Tático; `12m` no Estratégico; `6m` na Sustentação. Exemplo: `/operacional?cadencia=semanal&equipe=erp-protheus,fluig&tipo=melhoria&o3=melhoria`.
 O alternador "Ver como tabela" não vai para a URL.
+
+(rev. 2, L5) **Slugs do mock** (minúsculas, sem acento, hífen; a lista real vem da fonte de dados e o front não os fixa no código):
+- Equipes do fluxo: `erp-protheus`, `fluig`, `senior`, `marketing-vendas`, `dados`, `plataforma-5g`. Rótulos: ERP Protheus, Fluig, Senior, Marketing e Vendas, Dados, Plataforma 5G.
+- Sistemas: `protheus`, `fluig`, `senior`, `crm`, `site-marketing`, `data-lake`, `core-5g`, `portal-cliente`.
+- Equipes SSSC (Sustentação): `totvs`, `senior`, `fluig`.
+- Os valores `{nivel}` dos testids de Espera invisível: `fl1`, `fl2`, `fl3`, `sust`.
 
 ### 2.6 URL inválida
 Valor desconhecido (equipe removida, tipo mal escrito, data inválida) é **ignorado**, o resto da URL vale, e aparece um aviso no topo do painel (`role="status"`): "Alguns filtros do link não existem e foram ignorados: equipe "xyz". [Entendi]". A URL é corrigida com `replaceState`.
+
+### 2.6.1 Parâmetro conhecido, mas não aplicável ao painel (rev. 2, L7 e L8)
+Há dois casos diferentes, tratados de forma diferente:
+| Caso | Exemplo | Comportamento |
+|---|---|---|
+| **Inválido**: o valor não existe | `equipe=xyz`; `equipe=totvs` no fluxo; `equipe=erp-protheus` em `/sustentacao` | Ignorado, com o aviso de 2.6 e URL corrigida. |
+| **Não aplicável**: o parâmetro existe no sistema, mas o painel não o usa | `equipe=` e `tipo=` no Estratégico; `periodo=4s` no Estratégico; `prioridade=` em qualquer painel de fluxo; `tipo=`, `sistema=` ou `s3=` em `/sustentacao`; `cadencia=` fora do Operacional; seletor local (`o3=`, `t1=`...) em outro painel | **Ignorado em silêncio** (sem aviso de erro) e **removido da URL do painel de destino** com `replaceState`; o painel não mostra chip nem filtro para ele. |
+
+Regra de memória (só para os filtros de fluxo `equipe`, `tipo`, `sistema`, `periodo`): o front guarda em memória da sessão (não em `localStorage`; recarregar a página zera) os últimos valores de filtros de fluxo escolhidos ou recebidos por URL. Os links entre painéis de fluxo são montados com esses valores. Assim, quem vai do Operacional (com `equipe=fluig`) ao Estratégico e volta encontra `equipe=fluig` de novo; no Estratégico a URL fica limpa dos parâmetros que ele não usa. Se o usuário muda um filtro de fluxo no Estratégico (`sistema`, `periodo`), o valor novo atualiza a memória. `prioridade` e os filtros da Sustentação **não** entram nessa memória (D2: a Sustentação é independente).
+- Quando o Estratégico tem na memória valores de `equipe` ou `tipo`, mostra sob a barra de filtros, com o ícone "i", o texto: "Equipe e Tipo de demanda não se aplicam ao nível estratégico. Seus filtros foram guardados e voltam quando você abrir outro painel de fluxo." (`aviso-filtros-nao-aplicaveis`). Sem valores guardados, o texto não aparece.
+- `periodo` explícito vindo do Operacional ou do Tático vale no Estratégico só se for `6m` ou `12m`; os demais (`4s`, `12s`, `custom`) ficam guardados e o Estratégico usa o padrão `12m`. Ao voltar ao fluxo, o período guardado volta junto. `periodo` ausente na URL significa "padrão de cada painel" (12s no fluxo, 12m no Estratégico) e não é propagado.
+- Um link compartilhado que abre o Estratégico com `equipe=` ou `tipo=` segue a mesma regra: parâmetros ignorados e removidos, sem aviso de erro e sem chip, e guardados na memória daquela sessão.
 
 ---
 
@@ -216,7 +263,7 @@ Grade de 12 colunas, espaçamento em múltiplos de 4px, largura máxima do conte
 ### 3.1 Visão geral (`/`)
 ```
 Visão geral                                         Dados até 09/10/2026
-Consolidado de todas as equipes · últimas 12 semanas (sem filtros nesta tela)
+Consolidado de todas as equipes (o sistema não compara equipes) · últimas 12 semanas (sem filtros nesta tela)
 
 O QUE PEDE ATENÇÃO AGORA                                         (lista, até 6 itens)
  [!] Operacional  3 itens acima do P95 de idade (O2)           [Ver O2]
@@ -244,6 +291,7 @@ Regras:
 - O bloco de atenção lista só violações de metas numéricas do briefing: O2 (itens > P95), O1 (aderência < 90% dos dias), O12 (vencidos por causa interna > 0), T2 (< 85% por classe), T4 (razão fora de 0,9 a 1,0), T3 (desvio > 10 p.p.), T9 (projetos com escopo adicionado), E2 (evolução vinculada < 60%), E3 (iniciativas sem resultado declarado), S2 (< 90% por prioridade), S1 (mediana acima do alvo). Cada item leva ao cartão. Ordem: Operacional, Tático, Estratégico, Sustentação; dentro do nível, na ordem da lista. Máximo 6 itens com "Ver todos os alertas (N)" que expande.
 - Cada cartão de nível mostra no máximo 3 indicadores, cada um com número, unidade, base ("em 62 itens") e ícone de status; o selo de status do cartão é "Atenção" se algum indicador viola a meta, "Dentro da meta" se todos os que têm meta estão dentro, "Amostra insuficiente" se todos estão insuficientes.
 - Se um indicador está com amostra insuficiente, o texto é "Amostra insuficiente (12 de 20 itens mínimos)" no lugar do número.
+- (rev. 2, J1) Com a janela de 12 semanas, a linha de Estratégico (e talvez a de Tático) do bloco de Espera invisível aparece como "Amostra insuficiente (7 de 20 projetos)" em vez de números. Isso é normal e igual ao que o painel do nível mostra (6.3.1).
 - O bloco de Espera invisível mostra cada nível como linha própria com as duas medianas e o índice; Sustentação aparece separada por um divisor com a legenda "Fonte diferente (Acelerato). Não comparável com os níveis acima."
 - Dados da Visão geral são calculados com a mesma biblioteca e os mesmos padrões dos painéis (Equipe: todas; Período: 12 semanas; para Estratégico: 12 meses; Sustentação: 6 meses). A tela informa isso na linha de recorte.
 
@@ -271,13 +319,13 @@ Cadência: ( ) Diária  (•) Semanal       Pergunta: "O que mudou na nossa dist
 Ir para: Tempo · Fluxo · Compromissos · Backlog · Qualidade
 PEDE ATENÇÃO NA SEMANA   [P85 subiu ...] [N itens do backlog > 180 dias ↓O10] [Vencidos por causa interna ↓O12]
 
-TEMPO     O3 Tempo de ciclo (12)  ·  O9 Os três relógios (12)  ·  Espera invisível do nível (12, compacto)
-FLUXO     O4 Vazão semanal (6)  +  O12 Acordos e vencidos (6)   [seção "Compromissos" abriga O12]
-BACKLOG   O10 Envelhecimento do backlog (12)  ·  O7 Entrada × saída por tipo (12, leitura mensal)
-QUALIDADE O15 Onde os bugs são encontrados (6)  +  O18 Entregas com e sem bug (6)
+TEMPO         O3 Tempo de ciclo (12)  ·  O9 Os três relógios (12)  ·  Espera invisível do nível (12, compacto)
+FLUXO         O4 Vazão semanal (12)
+COMPROMISSOS  O12 Acordos e vencidos (12)
+BACKLOG       O10 Envelhecimento do backlog (12)  ·  O7 Entrada × saída por tipo (12, leitura mensal)
+QUALIDADE     O15 Onde os bugs são encontrados (6)  +  O18 Entregas com e sem bug (6)
 ```
-Ordem real de leitura: O3, O9, EI, O4, O12, O10, O7, O15, O18. As âncoras "Ir para" apontam para o primeiro cartão de cada seção.
-O12 fica na seção "Compromissos" (nome do grupo no atalho) logo após O4.
+(rev. 2, L4) Cinco seções, cada uma com `h2` e id próprio: `#tempo`, `#fluxo`, `#compromissos`, `#backlog`, `#qualidade`. O atalho "Ir para" leva ao `h2` da seção e coloca o foco nele (não no primeiro cartão). **O12 pertence só à seção "Compromissos"**, que vem logo depois de "Fluxo" (O4); ele não aparece dentro de "Fluxo". Ordem real de leitura e de DOM: O3, O9, EI-FL1, O4, O12, O10, O7, O15, O18.
 
 ### 3.4 Tático (`/tatico`)
 Seções por ritual (perguntas da T6.1):
@@ -360,13 +408,14 @@ O limite é por classe/série mostrada (por tipo, por prioridade, por classe de 
 | Granularidade | Janela padrão de percentis |
 |---|---|
 | Demanda/story (FL1, T1, T2, T4, T5, EI-FL1) | 12 semanas |
-| Frente (T7, EI-FL2) | **12 meses** (provisório) |
-| Projeto (E1, E2, EI-FL3) | **12 meses** (provisório) |
+| Frente (T7, EI-FL2) | 12 semanas |
+| Projeto (E1, EI-FL3) | 12 semanas |
 | Chamado (S1 a S7, EI-Sust) | 12 semanas |
-Quando a janela é provisória, o selo diz "Janela: 12 meses (provisória)". Ver pergunta 2. Story, frente e projeto nunca dividem histograma, percentil, eixo ou tabela de estatística.
+(rev. 2, J1) **A janela é de 12 semanas para todas as granularidades**, como no briefing. Não existe mais selo "provisória". A janela é um parâmetro único no código e os textos de janela ("últimas 12 semanas") são gerados a partir dele, nunca escritos à mão; a pergunta 2 segue aberta com o usuário. Consequência aceita: com 12 semanas, projetos (E1, EI-FL3) quase sempre e frentes (T7, EI-FL2) às vezes ficam abaixo de 20 itens e mostram "Amostra insuficiente"; isso é **estado normal**, explicado em 6.3.1 (e não erro, nem motivo para mudar a regra). Pontos individuais, contagens e censos continuam à mostra (4.0.2). Story, frente e projeto nunca dividem histograma, percentil, eixo ou tabela de estatística. E2 e E3 (por trimestre e censo) não usam percentil e não são afetados.
 
 ### 4.0.4 Regras de legenda e unidade
-- Tempo: "dias úteis" (FL1 a FL3). Na sustentação, "horas úteis" para P1 a P3 e "dias úteis" para P4 e P5 (ver pergunta 11 sobre P1 e plantão); toda unidade escrita no eixo e no valor.
+- Tempo: "dias úteis" (FL1 a FL3); toda unidade escrita no eixo e no valor.
+- (rev. 2, J2) **Sustentação: tudo é medido em horas úteis, para todas as prioridades, inclusive P1** (calendário de 2.1: 1 dia útil = 8 horas úteis). Unidade de exibição: **P1, P2 e P3 em "h úteis"; P4 e P5 em "dias úteis"** (a unidade é fixa por prioridade, não muda conforme o valor). **Sem minutos e sem horas corridas** em nenhum lugar da Sustentação. Formato: vírgula decimal, até 2 casas em horas e até 1 casa em dias, sem zeros sobrando (15 min = "0,25 h úteis"; 4 h úteis em P4 = "0,5 dia útil"); "dia útil" no singular até 1,0 e "dias úteis" acima. Fora de S1 (S4, Espera invisível da sustentação), onde não há prioridade, a unidade é "h úteis", sem conversão para dias. Pergunta 11 sobre P1 em plantão segue aberta.
 - Percentis sempre escritos assim: "50% em até X", "85% em até Y", "95% em até Z" e, abreviado em eixos, "P50, P85, P95". A mediana (P50) sempre aparece junto de P85 e P95.
 - Metas: texto "Meta: ...". Status só quando D10 permitir.
 - Nenhum cartão mostra "média" sozinha. Quando a média aparece (O4, T4), vem com a faixa e a mediana.
@@ -535,7 +584,7 @@ Quando a janela é provisória, o selo diz "Janela: 12 meses (provisória)". Ver
 - **Gráfico:** tabela por classe e, para a classe escolhida, linha dupla "Chegada" (tracejada) e "Vazão" (sólida) por semana nas 12 semanas, com a área entre as linhas preenchida (padrão quando a chegada supera a vazão). **Sempre por classe**; não existe visão agregada (o agregado esconde o problema). Tabela: Classe · Chegada por semana (faixa e mediana) · Vazão por semana (faixa e mediana) · Razão chegada/vazão · Backlog · Semanas para zerar.
 - **Eixos:** x = semanas; y = itens por semana.
 - **Segmentação:** classe de serviço (seletor local `t4=`).
-- **Estatística:** razão = chegada ÷ vazão; se a vazão ≤ chegada o texto é "A fila cresce: chegam mais itens do que saem" (não se mostra "semanas para zerar"); senão "semanas para zerar = backlog ÷ (vazão − chegada)". Média semanal só junto da faixa e da mediana. Exige ≥ 20 itens (chegadas + saídas? ver pergunta 20) por classe.
+- **Estatística:** razão = chegada ÷ vazão; se a vazão ≤ chegada o texto é "A fila cresce: chegam mais itens do que saem" (não se mostra "semanas para zerar"); senão "semanas para zerar = backlog ÷ (vazão − chegada)". Média semanal só junto da faixa e da mediana. (rev. 2, L12) **Regra dos 20 itens em T4:** a classe só publica razão, faixa, mediana, "semanas para zerar" e a linha dupla quando a **soma de chegadas e saídas da classe nas 12 semanas** é ≥ 20. Abaixo disso mostra a tabela só com as contagens ("Chegadas: 9 · Saídas: 7 · 16 de 20 itens mínimos") e a contagem de backlog. Em ambos os casos a base mostra chegadas e saídas separadas. Provisório: ver pergunta 20.
 - **Meta:** "Razão entre 0,9 e 1,0 no acumulado do trimestre" (status por classe).
 - **Leitura:** "Padrão: chegam 11 itens por semana e saem 8. A fila cresceu 36 itens em 12 semanas e nenhuma melhoria de produtividade a estabiliza: a decisão é sobre entrada, capacidade ou escopo."
 - **Nota:** *O que é:* chegada de pedidos contra a vazão. *Como se calcula:* contagem semanal por classe de entradas (criação) e saídas (entrega); saldo = vazão − chegada. *Como ler:* enquanto a linha de chegada estiver acima da de vazão, nenhuma melhoria de produtividade estabiliza o prazo. *Meta:* razão entre 0,9 e 1,0. *Cuidados:* calcule por classe; leia junto do lead time (T1).
@@ -543,7 +592,7 @@ Quando a janela é provisória, o selo diz "Janela: 12 meses (provisória)". Ver
 
 ### T5 · Demanda de falha (demanda, por sistema e por área)
 - **Pergunta:** Quanto do nosso trabalho existe só porque algo antes não foi feito certo?
-- **Gráfico:** barras horizontais 100% empilhadas por sistema (e, na aba "Por área", por área solicitante): segmentos "Demanda de valor" e as cinco origens de falha (Erro em entrega anterior, Configuração incorreta, Falta de treinamento do usuário, Informação não repassada, Processo manual que deveria estar automatizado), ordenado pela parcela de falha. Apenas sistemas/áreas com ≥ 20 itens aparecem no gráfico; os demais ficam numa lista "Sem amostra suficiente" com a base ("Fluig: 11 de 20 itens mínimos").
+- **Gráfico:** barras horizontais 100% empilhadas por sistema (e, na aba "Por área", por área solicitante): segmentos "Demanda de valor" e as cinco origens de falha (Erro em entrega anterior, Configuração incorreta, Falta de treinamento do usuário, Informação não repassada, Processo manual que deveria estar automatizado). (rev. 2, L10) **Ordem neutra: por volume total de itens da barra, do maior para o menor, com desempate alfabético**, nas duas abas. Justificativa: o volume mostra onde a base é mais sólida e não atribui mérito nem culpa; ordenar pela parcela de falha transformaria o gráfico em ranking de áreas. Rótulo fixo sob o título: "Ordem por volume de demanda. Não é um ranking." Na aba "Por área" acrescenta-se: "A parcela de falha vem de processos e entregas anteriores, não das áreas." Na aba "Por sistema", os dois sistemas com maior parcela de falha recebem o selo "Foco da meta" (ícone + texto) porque a meta é sobre sistemas; na aba "Por área" **não há selo, destaque, cor ou ordenação por falha**. Apenas sistemas/áreas com ≥ 20 itens aparecem no gráfico; os demais ficam numa lista "Sem amostra suficiente" com a base ("Fluig: 11 de 20 itens mínimos").
 - **Eixos:** x = % da demanda (0 a 100); y = sistemas ou áreas.
 - **Segmentação:** seletor local "Por sistema | Por área" (`t5=sistema|area`). O filtro Sistema não se aplica (é a dimensão).
 - **Meta:** "−15% ao semestre nos dois sistemas mais afetados" (variação mostrada só com as duas janelas ≥ 20 itens).
@@ -556,7 +605,7 @@ Quando a janela é provisória, o selo diz "Janela: 12 meses (provisória)". Ver
 - **Gráfico:** (a) KPIs: "Frentes em andamento", "Projetos com frentes ao mesmo tempo" e limite de frentes simultâneas; (b) barras por projeto com o número de frentes abertas (ordenadas decrescente); (c) pontos de idade das frentes abertas, com linhas P50/P85/P95 do tempo de ciclo de frentes; (d) histograma do tempo de ciclo das frentes concluídas (só granularidade frente).
 - **Ordem de leitura:** (a), (b), (c), (d), conforme a proposta: WIP por projeto, depois envelhecimento, depois tempo de ciclo.
 - **Eixos:** (c) x = projeto, y = dias úteis; (d) x = faixas de dias úteis, y = frentes.
-- **Base:** "11 frentes abertas em 4 projetos · referência: 27 frentes concluídas em 12 meses". Percentis e histograma somem abaixo de 20 frentes concluídas; (a), (b) e a lista permanecem.
+- **Base:** "11 frentes abertas em 4 projetos · referência: 27 frentes concluídas nas últimas 12 semanas" (rev. 2, J1). Percentis e histograma somem abaixo de 20 frentes concluídas **na janela de 12 semanas** (com filtros estreitos isso é comum e é estado normal, 6.3.1); (a), (b) e a lista permanecem.
 - **Meta:** "Limite explícito de frentes" (status se houver limite).
 - **Leitura:** "4 projetos têm frentes em andamento ao mesmo tempo (11 abertas). As 2 mais antigas estão acima do P85. Fechar essas antes de abrir novas reduz o tempo das demais."
 - **Nota:** *O que é:* WIP, envelhecimento e tempo de ciclo de features e pacotes. *Como se calcula:* mesmas definições do nível operacional, na granularidade de frente (feature e pacote contam igual). *Como ler:* um time pode ter WIP baixo de stories e estar dividido entre seis frentes. *Meta:* limite explícito. *Cuidados:* frente que não cabe em 1 ou 2 sprints precisa ser quebrada; **granularidade de frente nunca entra no histograma de story**.
@@ -582,9 +631,10 @@ Quando a janela é provisória, o selo diz "Janela: 12 meses (provisória)". Ver
 - **Gráfico:** (a) dispersão: cada ponto é um projeto concluído; x = trimestre de conclusão, y = lead time em dias úteis, com as linhas de mediana e P85 da janela; (b) barras horizontais "Antes do início" e "Execução" (medianas) com o texto "Fração antes do início: 40%".
 - **Por quê:** a dispersão importa mais que a mediana (define se uma data pode ser prometida); a decomposição diz se o problema é de decisão ou execução.
 - **Eixos:** x = trimestres, y = dias úteis (rótulo auxiliar "≈ 4,5 meses" na mediana).
-- **Base:** "23 projetos concluídos em 12 meses (janela provisória)". Percentis e fração somem com < 20 projetos; os pontos permanecem.
-- **Meta:** "−25% da mediana ao ano" (variação mostrada só se as duas janelas tiverem ≥ 20 projetos).
-- **Leitura:** "A mediana do lead time dos projetos é 98 dias úteis. 40% desse tempo passa antes de o trabalho começar: a conversa é de priorização e governança, não de capacidade técnica."
+- **Base:** (rev. 2, J1) "Pontos: 23 projetos concluídos em 12 meses · Percentis: 7 de 20 projetos mínimos nas últimas 12 semanas". Os pontos mostram o período escolhido; mediana, P85 e fração "antes do início" usam só a janela de 12 semanas e somem com < 20 projetos (o esperado na maior parte do tempo; texto de 6.3.1). Os pontos e a contagem permanecem.
+- **Meta:** "−25% da mediana ao ano" (variação mostrada só se as duas janelas tiverem ≥ 20 projetos; com a janela de 12 semanas aparece, em geral, "Comparação indisponível: amostra insuficiente em uma das janelas.").
+- **Leitura (amostra insuficiente, rev. 2):** "Foram concluídos 7 projetos nas últimas 12 semanas. Abaixo de 20 não publicamos mediana nem P85; cada projeto aparece como ponto."
+- **Leitura (com amostra):** "A mediana do lead time dos projetos é 98 dias úteis. 40% desse tempo passa antes de o trabalho começar: a conversa é de priorização e governança, não de capacidade técnica."
 - **Nota:** *O que é:* tempo da aprovação na comissão até a entrega. *Como se calcula:* criação do card do projeto → entrega, em dias úteis, decomposto em antes e depois do início. *Como ler:* mais da metade antes do início aponta para priorização, não para execução. *Meta:* −25% da mediana ao ano. *Cuidados:* o tempo do TAP anterior à aprovação está fora do escopo; poucos projetos por ano tornam a amostra pequena.
 - **Dados:** `dim_card` (tipo projeto, criado_em, iniciado_em, concluido_em).
 
@@ -616,13 +666,21 @@ Todos os cartões levam o selo de fonte "Acelerato" e o selo de granularidade "C
 
 ### S1 · Primeiro atendimento e restauração, por prioridade
 - **Pergunta:** Quanto tempo levamos para tocar no chamado e para restaurar o serviço, em cada prioridade?
-- **Gráfico:** duas linhas de gráficos de barras horizontais (MTTA e MTTR), uma barra por prioridade P1 a P5; cada barra mostra o tempo **como proporção do alvo da própria prioridade** (100% = alvo), com marcadores de P50 e P85 e rótulo do valor real em unidade própria ("22 min", "3 h úteis"). Normalizar permite comparar prioridades com prazos muito diferentes sem misturá-las: o alvo de cada uma está escrito ao lado ("alvo: 15 min"). Tabela abaixo: Prioridade · Alvo · Mediana · P85 · P95 · Média · Base.
-- **Eixos:** x = tempo realizado ÷ alvo (0% a 300%+, com marcador de 100%); y = prioridades. Alvos da matriz: primeiro atendimento P1 15 min, P2 30 min, P3 2 h úteis, P4 4 h úteis, P5 1 dia útil; restauração P1 4 h, P2 8 h úteis, P3 2 dias úteis, P4 5 dias úteis, P5 10 dias úteis.
+- **Gráfico:** duas linhas de gráficos de barras horizontais (MTTA e MTTR), uma barra por prioridade P1 a P5; cada barra mostra o tempo **como proporção do alvo da própria prioridade** (100% = alvo), com marcadores de P50 e P85 e rótulo do valor real na unidade da prioridade (rev. 2, J2: "0,37 h úteis" em P1; "3 h úteis" em P3; "1,5 dia útil" em P4; nunca minutos nem horas corridas). Normalizar permite comparar prioridades com prazos muito diferentes sem misturá-las: o alvo de cada uma está escrito ao lado ("alvo: 0,25 h úteis"). Tabela abaixo: Prioridade · Alvo · Mediana · P85 · P95 · Média · Base.
+- **Eixos:** x = tempo realizado ÷ alvo (0% a 300%+, com marcador de 100%); y = prioridades. Alvos da matriz (rev. 2, J2: todos em horas úteis; 1 dia útil = 8 h úteis; exibidos na unidade da prioridade):
+| Prioridade | Primeiro atendimento | Restauração |
+|---|---|---|
+| P1 | 0,25 h úteis (15 min no briefing) | 4 h úteis |
+| P2 | 0,5 h úteis (30 min no briefing) | 8 h úteis |
+| P3 | 2 h úteis | 16 h úteis (2 dias úteis no briefing) |
+| P4 | 0,5 dia útil (4 h úteis) | 5 dias úteis (40 h úteis) |
+| P5 | 1 dia útil (8 h úteis) | 10 dias úteis (80 h úteis) |
+Os valores entre parênteses são só conversão para o leitor desta spec; a tela mostra apenas a unidade da coluna da prioridade. A normalização do eixo (tempo ÷ alvo, ambos em horas úteis) não muda. Os alvos de P1 e P2 em "tempo corrido" no briefing passam a ser lidos como horas úteis por decisão do tech lead; ver pergunta 11.
 - **Segmentação:** sempre por prioridade, **nunca agregado**. Filtro Prioridade limita as linhas mostradas.
 - **Base:** "P2 · 41 chamados fechados no período; 3 com exceção de registro posterior (fora)". Prioridade < 20 chamados: linha com "Amostra insuficiente (12 de 20 itens mínimos)" e sem barra.
 - **Meta:** alvos da matriz (status por prioridade: "Mediana dentro do alvo" / "Mediana acima do alvo").
 - **Leitura:** "P2: metade dos chamados restaura em até 7 h úteis (alvo: 8 h úteis); 85% em até 14 h úteis."
-- **Nota:** *O que é:* tempo até o primeiro atendimento (MTTA) e até a restauração validada (MTTR). *Como se calcula:* tempo útil pelo calendário de expediente; no MTTR, as pendências são descontadas do relógio de resolução; exceções de registro posterior saem desta apuração. *Como ler:* cada barra é comparada ao alvo da sua prioridade. *Meta:* os prazos da matriz Impacto × Urgência. *Cuidados:* o pedido de informação ao solicitante, sendo o primeiro comentário, já marca o primeiro atendimento; use mediana e P85 (a média aparece só na tabela, nunca sozinha). Ver pergunta 11.
+- **Nota:** *O que é:* tempo até o primeiro atendimento (MTTA) e até a restauração validada (MTTR). *Como se calcula:* tempo útil pelo calendário de expediente; no MTTR, as pendências são descontadas do relógio de resolução; exceções de registro posterior saem desta apuração. *Como ler:* cada barra é comparada ao alvo da sua prioridade. *Meta:* os prazos da matriz Impacto × Urgência. *Cuidados:* o pedido de informação ao solicitante, sendo o primeiro comentário, já marca o primeiro atendimento; use mediana e P85 (a média aparece só na tabela, nunca sozinha). Todas as prioridades, inclusive P1, são medidas em horas úteis (dia útil = 8 horas úteis). Ver pergunta 11.
 - **Dados:** chamados fechados (prioridade, aberto_em, primeiro_atendimento_em, restaurado_em, tempo em pendência, flag de exceção de registro posterior, equipe).
 
 ### S2 · Aderência ao SLA, por prioridade
@@ -647,7 +705,7 @@ Todos os cartões levam o selo de fonte "Acelerato" e o selo de granularidade "C
 
 ### S4 · Onde o chamado foi resolvido
 - **Pergunta:** Quanto do volume o primeiro nível resolve sozinho, e quanto chega ao especialista?
-- **Gráfico:** (a) barras horizontais com o volume resolvido em N1, N2, N3 e Fornecedor, **cor única neutra** (sem verde/vermelho; o briefing não define meta); (b) tabela "Etapa · Tempo mediano · P85" para as etapas de atendimento. Texto fixo "Leia ao lado de S1 (tempo) e da reabertura; sem meta isolada."
+- **Gráfico:** (a) barras horizontais com o volume resolvido em N1, N2, N3 e Fornecedor, **cor única neutra** (sem verde/vermelho; o briefing não define meta); (b) tabela "Etapa · Tempo mediano · P85" para as etapas de atendimento, em "h úteis" (rev. 2, J2; sem prioridade na linha, então sem dias úteis). Texto fixo "Leia ao lado de S1 (tempo) e da reabertura; sem meta isolada."
 - **Eixos:** x = chamados resolvidos; y = níveis.
 - **Base:** "480 chamados fechados". Tempos somem por nível < 20 chamados.
 - **Meta:** "Sem meta isolada" (texto fixo).
@@ -666,7 +724,7 @@ Todos os cartões levam o selo de fonte "Acelerato" e o selo de granularidade "C
 
 ### S6 · Motivos de encerramento
 - **Pergunta:** Como os chamados terminam: resolvidos de verdade, contornados ou nem eram incidente?
-- **Gráfico:** barras horizontais com os cinco valores (Resolução definitiva, Contorno aplicado, Reclassificado, não é incidente, Encerrado sem retorno, Duplicado), com destaque numérico "Taxa de contorno: 22%". Alternador `s6=distribuicao|evolucao`.
+- **Gráfico:** barras horizontais com os **cinco valores do domínio fechado do campo "Motivo de encerramento"** (rev. 2, L3; briefing 3.4): "Resolução definitiva", "Contorno aplicado", "Reclassificado, não é incidente", "Encerrado sem retorno" e "Duplicado". A vírgula em "Reclassificado, não é incidente" faz parte do rótulo: é **um** valor, não dois; o gráfico tem exatamente 5 barras e a tabela equivalente exatamente 5 linhas, mesmo com contagem zero. Destaque numérico "Taxa de contorno: 22%". Alternador `s6=distribuicao|evolucao`.
 - **Base:** "480 chamados encerrados". Taxa e percentuais somem < 20.
 - **Meta:** "Acompanhamento contínuo da taxa de contorno" (texto).
 - **Leitura:** "22% dos encerramentos foram por contorno: a causa raiz continua viva e cada um é candidato a Registro de Problema."
@@ -697,11 +755,12 @@ Todos os cartões levam o selo de fonte "Acelerato" e o selo de granularidade "C
 | FL2 | frente | criação da frente → disponível para uso | compromisso da frente → disponível para uso |
 | FL3 | projeto | aprovação na comissão (criação do card) → entrega | início → entrega |
 | Sustentação | chamado | tempo de vida do chamado fechado (soma dos cinco totalizadores) | tempo "em atendimento" |
-- **Cálculo:** `(visão_cliente − visão_time) ÷ visão_cliente` sobre as **medianas** da mesma janela e dos mesmos itens. Cada nível usa a janela da seção 4.0.3.
+- **Cálculo:** `(visão_cliente − visão_time) ÷ visão_cliente` sobre as **medianas** da mesma janela e dos mesmos itens. Cada nível usa a janela da seção 4.0.3 (rev. 2, J1: 12 semanas em todos). **Unidade:** FL1 a FL3 em dias úteis; **Sustentação em horas úteis** (J2, "h úteis", sem minutos, sem horas corridas e sem conversão para dias; o índice é adimensional). Com a janela de 12 semanas, EI-FL3 (projetos) quase sempre e EI-FL2 (frentes) às vezes ficam em "Amostra insuficiente (7 de 20 projetos)": estado normal (6.3.1), igual no cartão do nível, em `/espera-invisivel` e na Visão geral, sem número parcial.
 - **Base:** por nível: "FL1: 87 demandas · 12 semanas". Se **qualquer** das duas visões tiver < 20 itens, **nenhuma** é publicada (nunca uma visão isolada) e o bloco mostra "Amostra insuficiente (12 de 20 itens mínimos)".
 - **Leitura:** "O cliente espera 45 dias úteis (mediana); o time tem o pedido por 18. 60% do tempo do solicitante acontece fora da nossa gestão. Acima de 50% a discussão é de fila, não de produtividade da equipe."
 - **Meta:** "Reduzir; acima de 50% a discussão é de fila" (selo "Acima de 50%" com ícone e texto quando aplicável; não é meta numérica de aprovação, então não usa Dentro/Fora da meta).
 - **Nota:** *O que é:* a fração do tempo do cliente fora da gestão do time. *Como se calcula:* a fórmula acima, por nível. *Como ler:* os dois números são verdadeiros e medem coisas diferentes; o valor está na distância entre eles; a visão do cliente é a que vai para fora, a do time é a que orienta a melhoria interna. *Meta:* reduzir. *Cuidados:* só é comparável se os marcos estiverem registrados com disciplina; se o card nascer só quando o trabalho começa, a visão do cliente não existe e o índice dá zero quando deveria ser o mais alto. Em Sustentação, a leitura é diferente (tempo de vida inclui esperas do solicitante e de outros times) e vem de **outra fonte**: **não compare** com os níveis do BusinessMap.
+- **Identificação (rev. 2, L5):** um cartão por nível, código `EI-FL1`, `EI-FL2`, `EI-FL3`, `EI-SUST`; id de âncora `ei-fl1`, `ei-fl2`, `ei-fl3`, `ei-sust`; testids `metrica-EI-FL1`..., `ei-cliente-fl1`, `ei-time-fl1`, `ei-indice-fl1`... (valores de `{nivel}`: `fl1`, `fl2`, `fl3`, `sust`). Em cada painel de nível há apenas o cartão do seu nível; em `/espera-invisivel` há os quatro.
 - **Onde aparece:** seção "Espera invisível do nível" (cartão compacto: par de barras + índice + link "Ver evolução") em Operacional (semanal), Tático, Estratégico e Sustentação; página `/espera-invisivel` com os quatro blocos completos; resumo na Visão geral (três números por nível: cliente, time, índice).
 - **Dados:** os mesmos de O9, T1, E1 e do tempo de vida e totalizadores do Acelerato.
 
@@ -764,6 +823,18 @@ Todos os cartões levam o selo de fonte "Acelerato" e o selo de granularidade "C
 - O selo `BadgeBase` fica na variante `insuficiente`; o rótulo da aba/linha repete "(amostra insuficiente)".
 - Em tabelas, a célula mostra "—" + `<abbr>`/texto "amostra insuficiente"; nunca célula em branco.
 
+### 6.3.1 Amostra insuficiente em frentes e projetos: estado normal (rev. 2, J1)
+Vale para E1, T7 (percentis e histograma), EI-FL2, EI-FL3 e a linha correspondente da Visão geral. Com a janela de 12 semanas, poucos projetos (e às vezes poucas frentes) terminam, então este estado é **esperado**, não falha. Regras de apresentação:
+- Visual neutro e informativo: ícone "i" (não o triângulo de alerta), sem cor de erro, sem `role="alert"`; selo de base `insuficiente`; a barra `role="meter"` continua.
+- Texto fixo (variante `lenta` do `AmostraInsuficiente`), no lugar do "Para chegar a 20, tente…":
+  - Título: "Amostra insuficiente"
+  - Linha 1: "Foram concluídos {n} {projetos|frentes} nas últimas 12 semanas ({n} de 20 itens mínimos)."
+  - Linha 2: "Isso é esperado: {projetos terminam em poucas unidades por trimestre|frentes terminam em número menor que stories}, então em 12 semanas é comum ficar abaixo de 20. Só publicamos percentis com pelo menos 20 itens, para não mostrar uma precisão que os dados não sustentam."
+  - Linha 3: "Cada {projeto|frente} concluído aparece como ponto e a contagem está acima."
+- Não sugere aumentar a janela, trocar o período nem mudar a regra; a janela de percentis é a mesma em todos os níveis. A sugestão "Remover filtro {nome}" só aparece se houver filtro ativo que reduza a amostra.
+- Na Visão geral, o indicador mostra "Amostra insuficiente ({n} de 20 projetos)" e o status do cartão do nível segue a regra de 3.1 (não conta como "Atenção").
+- Pontos, listas, contagens e censos (T9, E3) permanecem sempre visíveis.
+
 ### 6.4 Erro
 - Por cartão: ícone, título "Não foi possível carregar este gráfico", texto "Tivemos um problema ao ler os dados. Seus filtros foram mantidos." e botão "Tentar de novo". Região `role="alert"` na primeira ocorrência da página; as demais são `role="status"` para não interromper.
 - Erro em um cartão não bloqueia os outros nem a navegação.
@@ -777,7 +848,17 @@ Todos os cartões levam o selo de fonte "Acelerato" e o selo de granularidade "C
 - "Sem permissão": não se aplica nesta etapa (sem login).
 
 ### 6.6 Estados simulados (para validação e testes)
-O parâmetro oculto `mock` na URL força estados: `?mock=carregando`, `?mock=erro`, `?mock=vazio` e `?mock=erro:o3` (um cartão). Não aparece na interface; fica documentado no README. Serve para a validação com as áreas e para o QA.
+O parâmetro oculto `mock` na URL força estados. Não aparece na interface (nem em chips, nem em avisos); fica documentado no README. Serve para a validação com as áreas e para o QA. (rev. 2, L13) Definição completa:
+| Valor | Efeito |
+|---|---|
+| `mock=carregando` | Todos os cartões do painel ficam no esqueleto **indefinidamente** (sem tempo limite nem retorno por si só). O esqueleto segue a regra de 6.1 (aparece após 150 ms). |
+| `mock=erro` | Erro de painel (6.4). |
+| `mock=vazio` | Todos os cartões do painel no estado vazio (6.2). |
+| `mock=erro:{id}` | Só o cartão indicado mostra o erro de cartão; **falha em todas as tentativas** ("Tentar de novo" repete e falha de novo). Aceita lista separada por vírgula: `mock=erro:o3,t1`. |
+| `mock=erro-uma-vez:{id}` | Só o cartão indicado falha na primeira carga; "Tentar de novo" carrega com sucesso. Serve para testar a recuperação. Lista por vírgula também. |
+- **Ids válidos** (os mesmos ids de âncora, minúsculas): `o1`, `o2`, `o3`, `o4`, `o7`, `o9`, `o10`, `o12`, `o15`, `o18`, `t1`, `t2`, `t3`, `t4`, `t5`, `t7`, `t9`, `e1`, `e2`, `e3`, `s1` a `s7`, `bloqueados`, `ei-fl1`, `ei-fl2`, `ei-fl3`, `ei-sust`; na Visão geral também `atencao`, `nivel-operacional`, `nivel-tatico`, `nivel-estrategico`, `nivel-sustentacao`. Id que não existe na página aberta é ignorado em silêncio.
+- **Persistência:** `mock` vale só para a página cuja URL o contém. Mudar filtros nessa página mantém o `mock` na URL (a página continua simulando o estado). Os links de navegação entre painéis **não** propagam `mock`, e "Copiar link" **não** o inclui. Valor inválido (`?mock=xyz`) é ignorado, sem aviso.
+- `mock` não participa de 2.6: nunca gera o aviso de filtros ignorados.
 
 ---
 
@@ -806,7 +887,9 @@ O parâmetro oculto `mock` na URL força estados: `?mock=carregando`, `?mock=err
 | Botões | Limpar filtros · Limpar · Fechar · Aplicar período · Ver resultados · Filtros ({n}) |
 | Chip | "{Filtro}: {valor}" com botão "Remover filtro {Filtro}: {valor}" |
 | Período | Últimas 4 semanas · Últimas 12 semanas · Últimos 6 meses · Últimos 12 meses · Personalizado · De · Até |
-| Equipe múltipla | Resultado consolidado de {n} equipes. O sistema não compara equipes. |
+| Equipe múltipla | Resultado consolidado de {n} equipes. O sistema não compara equipes. (sempre que {n} ≥ 2, inclusive em "Todas") |
+| Filtros não aplicáveis (Estratégico) | Equipe e Tipo de demanda não se aplicam ao nível estratégico. Seus filtros foram guardados e voltam quando você abrir outro painel de fluxo. |
+| Tema (nome acessível) | Tema · opções: Claro, Escuro, Sistema |
 | Estratégico | O nível estratégico olha projetos, que envolvem várias equipes. Por isso não há filtro por equipe. |
 | Tipo | Aqui são cards do BusinessMap. Chamados do Acelerato estão no painel Sustentação. |
 | Cartão | Filtros aplicados: {lista} · Não afetado por: {lista} |
@@ -822,9 +905,11 @@ O parâmetro oculto `mock` na URL força estados: `?mock=carregando`, `?mock=err
 | Seções da nota | O que é · Como se calcula · Como ler · Meta · Cuidados e limites · Nesta tela |
 | Base | Base: {n} {itens} · {janela} |
 | Base insuficiente | Amostra insuficiente: {n} de 20 itens mínimos |
-| Janela | Janela: últimas 12 semanas ({data} a {data}) · Janela: 12 meses (provisória) |
+| Janela | Janela: últimas 12 semanas ({data} a {data}) em todas as granularidades (rev. 2, J1: não existe "Janela: 12 meses (provisória)") |
+| Amostra insuficiente em projetos/frentes | Ver texto fixo em 6.3.1 |
+| T5 | Ordem por volume de demanda. Não é um ranking. · A parcela de falha vem de processos e entregas anteriores, não das áreas. |
 | Em andamento | Semana em andamento · Mês em andamento · Em apuração até {data} |
-| Percentis | 50% em até {x} dias úteis · 85% em até {y} dias úteis · 95% em até {z} dias úteis |
+| Percentis | 50% em até {x} dias úteis · 85% em até {y} dias úteis · 95% em até {z} dias úteis. Sustentação (rev. 2, J2): "50% em até {x} h úteis" (P1 a P3, S4, EI-SUST) ou "{x} dias úteis" (P4 e P5); nunca minutos nem horas corridas |
 | Mudança de critério | Mudança de critério em {data}: {descrição} · Esta série atravessa uma mudança de critério. Não compare antes e depois diretamente. |
 | Meta | Meta: {texto} · Status: Dentro da meta · Fora da meta · Sem meta numérica · Sem referência |
 | Retratos | Itens para olhar primeiro · Bloqueados agora · Sem mover há · Bloqueado há |
@@ -849,8 +934,8 @@ O parâmetro oculto `mock` na URL força estados: `?mock=carregando`, `?mock=err
 ### 7.5 Ajuda (`/ajuda`), estrutura e texto-base
 1. **Como ler os painéis:** "Cada gráfico responde a uma pergunta. Procure primeiro a faixa 'Pede atenção'. Cada cartão mostra de quantos itens vem o número e traz uma nota com o cálculo."
 2. **Regras de uso (âncora `#regras`):** "Nenhuma métrica deste sistema serve para avaliar pessoas. Não há visão por pessoa, ranking, meta individual nem comparação entre equipes. Os filtros por equipe recortam; não comparam."
-3. **Como lemos os números:** percentis 50/85/95, janela de 12 semanas, mínimo de 20 itens, dias úteis, média nunca sozinha.
-4. **Fontes:** BusinessMap (fluxo de projeto) e Acelerato (sustentação) nunca se misturam.
+3. **Como lemos os números:** percentis 50/85/95, janela de 12 semanas, mínimo de 20 itens, dias úteis (na Sustentação, horas úteis; 1 dia útil = 8 horas úteis), média nunca sozinha.
+4. **Fontes:** BusinessMap (fluxo de projeto) e Acelerato (sustentação) nunca se misturam. (rev. 2, L14) "Incidente" e "Requisição" no fluxo são tipos de card do BusinessMap; não têm relação com os chamados do Acelerato, que só aparecem na Sustentação.
 5. **Glossário:** WIP, cycle time, lead time do cliente e da equipe, SLE, SLA, MTTA, MTTR, aging, vazão, espera invisível, contenção, escape, densidade, objetivo estratégico, frente, projeto.
 6. **Mudanças de critério (âncora `#criterios`):** tabela Data · O que mudou · Onde afeta. Dados do mock: 02/03/2026 "Marco de entrada passou a ser a criação do card na chegada do pedido" (afeta O7, O9, O10, T1, EI); 01/06/2026 "Novas etapas do Acelerato em produção e mapeamento dos totalizadores revisado" (afeta S1 a S7 e EI de sustentação). Valores fictícios.
 7. **Sobre os dados:** "Dados fictícios gerados com semente fixa. Data de referência: {data}."
@@ -866,7 +951,7 @@ O parâmetro oculto `mock` na URL força estados: `?mock=carregando`, `?mock=err
 - Âncora de cartão: o foco vai para o título do cartão.
 
 ### 8.2 Tema claro e escuro
-- Preferência: Sistema (padrão), Claro, Escuro; guardada em `localStorage`; sem flash ao carregar (aplicar antes da pintura).
+- Preferência: Sistema (padrão), Claro, Escuro; guardada em `localStorage` na chave `metricas-dspd:tema` com os valores `claro`, `escuro` ou `sistema` (chave ausente = sistema); sem flash ao carregar (aplicar antes da pintura). (rev. 2, L5) O seletor é um grupo `role="radiogroup"` com nome acessível "Tema" e três opções com rótulo visível ou nome acessível "Claro", "Escuro" e "Sistema" (`data-testid="seletor-tema"`).
 - Tokens semânticos (o front implementa por variáveis CSS; valores são ponto de partida e **precisam ser validados** com axe e medidor de contraste):
 
 | Token | Claro | Escuro | Uso |
@@ -946,7 +1031,10 @@ O front consome tudo por uma única camada de cálculo (biblioteca compartilhada
 - 12 meses ou mais de histórico antes da data de corte; hierarquia projeto → frente → story com vínculos; 6 ou mais equipes e 5 ou mais sistemas (Protheus, Fluig, Senior, marketing, 5G...).
 - Caudas longas no tempo de ciclo; bloqueios com todos os motivos do domínio; bugs em todas as fases e causas; itens acima do P95 hoje; backlog com itens de mais de 180 dias; acordos vencidos com as quatro responsabilidades (inclusive "não classificado").
 - **Classes com menos de 20 itens em pelo menos:** um tipo no FL1 (para O3, O9), uma classe de serviço no Tático (T1, T2, T4), um sistema/área em T5, a prioridade P1 na Sustentação (S1, S2), e o recorte de uma única equipe pequena. E também classes com mais de 20.
-- Pelo menos 1 projeto com escopo adicionado; pelo menos 2 iniciativas sem ficha de resultado; frentes concluídas em 12 meses com 20 ou mais itens no total mas menos de 20 em filtros estreitos.
+- (rev. 2, L11) **Com os filtros padrão (consolidado de todas as equipes, 12 semanas), o Operacional precisa ter pelo menos um tipo de demanda com menos de 20 itens concluídos na janela** (ex.: Dívida técnica ou Defeito em produção), além de tipos com 20 ou mais. Não basta a classe pequena existir só em filtro de uma equipe. "Iniciativa" não é opção do filtro de tipo (pergunta 9) e não serve para isso.
+- Pelo menos 1 projeto com escopo adicionado; pelo menos 2 iniciativas sem ficha de resultado.
+- (rev. 2, J1) Com a janela de 12 semanas: projetos concluídos na janela ficam abaixo de 20 (E1 e EI-FL3 em "Amostra insuficiente" é o esperado); frentes concluídas na janela devem ser 20 ou mais no consolidado padrão (T7 publica) e menos de 20 em filtros estreitos; EI-FL2 pode cair em insuficiente. O gerador deve conservar projetos concluídos em 12 meses (pontos de E1) mesmo que a janela tenha poucos.
+- (rev. 2, J2) Chamados do mock com durações em horas úteis do calendário de 2.1, incluindo P1.
 - Pelo menos 2 mudanças de critério (7.5, item 6) dentro do histórico.
 - Dados de sustentação em população separada, sem relação com cards do BusinessMap.
 - Nenhum nome de pessoa em lugar nenhum.
@@ -957,13 +1045,23 @@ O front consome tudo por uma única camada de cálculo (biblioteca compartilhada
 
 Convenção de identificadores para teste (`data-testid`): `painel-{slug}`, `filtro-{equipe|tipo|sistema|periodo|prioridade}`, `chip-filtro-{nome}`, `limpar-filtros`, `copiar-link`, `metrica-{codigo}` (ex.: `metrica-O2`), `base-{codigo}`, `nota-{codigo}`, `tabela-{codigo}`, `amostra-insuficiente-{codigo}`, `estado-vazio-{codigo}`, `estado-erro-{codigo}`, `estado-carregando-{codigo}`, `marcador-criterio`, `aviso-dados-ficticios`, `ei-cliente-{nivel}`, `ei-time-{nivel}`, `ei-indice-{nivel}`, `seletor-local-{codigo}`, `seletor-cadencia`.
 
+(rev. 2, L5) Complemento da convenção:
+- `{codigo}` é o código do cartão em maiúsculas: `O1`..`S7`, `BLOQUEADOS` ("Bloqueados agora": `metrica-BLOQUEADOS`, `base-BLOQUEADOS`, `tabela-BLOQUEADOS`, `estado-vazio-BLOQUEADOS`) e `EI-FL1`, `EI-FL2`, `EI-FL3`, `EI-SUST` (cartões de Espera invisível: `metrica-EI-FL1`, `base-EI-FL1`, `amostra-insuficiente-EI-FL1`...).
+- `{nivel}` nos testids `ei-*` é minúsculo: `fl1`, `fl2`, `fl3`, `sust` (ex.: `ei-indice-fl2`). Em `/espera-invisivel` existe um de cada, os quatro; nos painéis de nível, só o do seu nível.
+- `{slug}` de `painel-{slug}`: `visao-geral`, `operacional`, `tatico`, `estrategico`, `sustentacao`, `espera-invisivel`, `ajuda`. Visão geral: `nivel-{operacional|tatico|estrategico|sustentacao}`, `faixa-atencao` (também nos painéis), `ei-resumo`.
+- Avisos: `aviso-consolidado`, `aviso-filtros-invalidos`, `aviso-filtros-nao-aplicaveis`, `aviso-criterio`.
+- Ids de âncora: ver 1.1 (cartões) e 3.3 (`tempo`, `fluxo`, `compromissos`, `backlog`, `qualidade`).
+- Slugs de equipes, sistemas e equipes SSSC: seção 2.5.
+- Tema: chave de `localStorage` `metricas-dspd:tema` (`claro`, `escuro`, `sistema`); seletor com nome acessível "Tema" (`seletor-tema`), opções "Claro", "Escuro", "Sistema" (8.2).
+- Estado simulado `mock`: seção 6.6.
+
 ### Navegação e estrutura
 1. `/` abre a Visão geral e é a entrada do sistema; `npm run dev` leva a ela.
 2. A navegação tem exatamente os destinos Visão geral, Operacional, Tático, Estratégico, Sustentação e Espera invisível, nesta ordem, e o item da rota atual tem `aria-current="page"`.
 3. As rotas `/operacional`, `/tatico`, `/estrategico`, `/sustentacao`, `/espera-invisivel` e `/ajuda` existem; uma rota desconhecida mostra a página 404 com link para `/`.
 4. Cada rota tem um único `h1` e um `<title>` terminado em "Métricas DSPD · Dados fictícios"; ao trocar de rota o foco vai para o `h1`.
 5. O link "Pular para o conteúdo" é o primeiro elemento focável e move o foco para o `main`.
-6. Os links de navegação entre painéis de fluxo preservam `equipe`, `tipo`, `sistema` e `periodo`; os links para `/sustentacao` e `/` não carregam filtros.
+6. Os links de navegação entre painéis de fluxo carregam `equipe`, `tipo`, `sistema` e `periodo` guardados na sessão (2.6.1); cada painel remove da URL o que não se aplica a ele (Estratégico: `equipe`, `tipo` e `periodo` diferente de `6m`/`12m`) e os valores voltam ao retornar a um painel de fluxo; os links para `/sustentacao` e `/` não carregam filtros.
 7. Cada cartão de métrica tem `id` igual ao código em minúsculas; abrir `/tatico#t9` rola até o cartão e foca o título dele.
 
 ### Aviso de dados fictícios
@@ -987,16 +1085,16 @@ Convenção de identificadores para teste (`data-testid`): `painel-{slug}`, `fil
 21. Filtros ativos aparecem como chips com botão de remover acessível ("Remover filtro Equipe: Protheus"); remover um chip remove só aquele filtro.
 22. "Limpar filtros" só aparece com filtro fora do padrão, restaura todos os padrões do painel (inclusive o período) e anuncia "Filtros limpos."
 23. O filtro de sustentação não é herdado pelo fluxo, nem o contrário.
-24. Uma URL com valor de filtro inválido ignora só o valor inválido, mostra o aviso "Alguns filtros do link não existem e foram ignorados" e corrige a URL.
-25. Com 2 ou mais equipes selecionadas aparece "Resultado consolidado de N equipes. O sistema não compara equipes." e nenhum gráfico, tabela, legenda ou tooltip usa equipe como série, cor, faceta ou coluna.
-26. O período personalizado valida: "De" anterior a "Até"; "Até" não posterior à data de corte; intervalo mínimo de 7 dias; as mensagens de erro ficam junto dos campos e são lidas por leitor de tela.
+24. Uma URL com valor de filtro inválido ignora só o valor inválido, mostra o aviso "Alguns filtros do link não existem e foram ignorados" e corrige a URL. Parâmetro conhecido mas não aplicável ao painel (2.6.1) é removido da URL em silêncio, sem esse aviso.
+25. Sempre que o resultado soma 2 ou mais equipes (2 ou mais marcadas, "Todas" ou todas marcadas) aparece "Resultado consolidado de N equipes. O sistema não compara equipes." com N real e `aviso-consolidado`; com 1 equipe e no Estratégico não aparece; nenhum gráfico, tabela, legenda ou tooltip usa equipe como série, cor, faceta ou coluna.
+26. O período personalizado valida: "De" anterior a "Até"; "Até" não posterior à data de corte; "De" não anterior ao início do histórico **informado pela fonte de dados** (a data da mensagem vem da fonte, não do código); intervalo mínimo de 7 dias; as mensagens de erro ficam junto dos campos e são lidas por leitor de tela.
 27. Cada cartão afetado lista "Filtros aplicados" e cada cartão não afetado mostra "Não afetado por: {filtro}" conforme a tabela 2.2.
 28. Em <768 px os filtros ficam numa folha acionada por "Filtros ({n})" e a página continua utilizável; em ≥768 px a barra permanece visível ao rolar e não cobre o foco do teclado.
 29. O parâmetro `periodo` muda a janela da série; os percentis seguem usando 12 semanas até o fim do período e o selo "Janela fixa: 12 semanas" aparece quando o período difere de 12 semanas.
 
 ### Operacional
 30. `/operacional` abre na cadência Diária; a ordem dos blocos é O2, Bloqueados agora, O1; a pergunta "Qual item mais velho não andou desde ontem?" está visível.
-31. O seletor de cadência alterna para Semanal, atualiza `cadencia=semanal` na URL e exibe, nesta ordem, O3, O9, Espera invisível, O4, O12, O10, O7, O15, O18.
+31. O seletor de cadência alterna para Semanal, atualiza `cadencia=semanal` na URL e exibe, nesta ordem, O3, O9, Espera invisível (EI-FL1), O4, O12, O10, O7, O15, O18, agrupados nas seções Tempo (O3, O9, EI-FL1), Fluxo (O4), Compromissos (O12), Backlog (O10, O7) e Qualidade (O15, O18); o atalho "Ir para" tem esses cinco nomes e leva ao `h2` da seção (`#tempo`, `#fluxo`, `#compromissos`, `#backlog`, `#qualidade`); O12 não aparece dentro de Fluxo.
 32. A faixa "Pede atenção" lista, quando aplicável: itens acima do P95 (O2), aderência de WIP abaixo de 90% (O1), itens > 180 dias no backlog (O10), vencidos por causa interna (O12); cada item leva a seu cartão.
 33. O2 mostra a lista "Itens para olhar primeiro" com Card, Tipo, Etapa, Idade (dias úteis) e "Sem mover há" e **nenhuma coluna de pessoa**; as linhas de P50, P85 e P95 aparecem só se o tipo tem 20 ou mais itens concluídos na janela.
 34. "Bloqueados agora" lista motivo (domínio fechado) e "Bloqueado há"; sem responsável; com zero bloqueados mostra "Nenhum item bloqueado hoje."
@@ -1019,12 +1117,12 @@ Convenção de identificadores para teste (`data-testid`): `painel-{slug}`, `fil
 49. T3 mostra "Acordado" × "Realizado" por natureza e o desvio em pontos percentuais, com o selo quando maior que 10.
 50. T4 só existe por classe; quando a chegada supera a vazão mostra "A fila cresce..." em vez de "semanas para zerar".
 51. T5 oculta sistemas ou áreas com menos de 20 itens do gráfico e os lista em "Sem amostra suficiente" com a base.
-52. T7 não mistura frente com story; mostra frentes por projeto e, com menos de 20 frentes concluídas, oculta percentis e histograma.
+52. T7 não mistura frente com story; mostra frentes por projeto e, com menos de 20 frentes concluídas **nas últimas 12 semanas**, oculta percentis e histograma (estado normal, texto de 6.3.1).
 53. T9 mostra, na mesma linha, "k de n frentes (x%)" e o crescimento do escopo; não existe campo ou controle para informar avanço manualmente.
 
 ### Estratégico
 54. `/estrategico` mostra E1, E2 e E3 e o cartão de Espera invisível do nível; não mostra filtros de Equipe nem de Tipo.
-55. E1 mostra um ponto por projeto concluído; com menos de 20 projetos oculta mediana, P85 e fração "antes do início" e mantém os pontos.
+55. E1 mostra um ponto por projeto concluído no período; com menos de 20 projetos concluídos **nas últimas 12 semanas** oculta mediana, P85 e fração "antes do início", mantém os pontos e mostra o texto de 6.3.1 (visual informativo, não de erro).
 56. E2 mostra a faixa "Fora de objetivo" com destaque e o KPI de evolução vinculada com meta de 60%.
 57. E3 mostra iniciativas sem ficha primeiro, com o selo "Sem resultado declarado", e o contador "k de n".
 
@@ -1033,11 +1131,11 @@ Convenção de identificadores para teste (`data-testid`): `painel-{slug}`, `fil
 59. Nenhuma tela da Sustentação mostra dados do BusinessMap, e nenhuma tela do fluxo mostra chamados do Acelerato.
 60. Não existe filtro, coluna, gráfico ou ranking por agente ou por pessoa em nenhuma tela.
 61. S1 e S2 são sempre por prioridade (P1 a P5), nunca agregados; a prioridade com menos de 20 chamados mostra "Amostra insuficiente" e o "k de n".
-62. S1 mostra o alvo de cada prioridade, o valor real com unidade escrita e a tabela com mediana, P85 e P95.
+62. S1 mostra o alvo de cada prioridade, o valor real com unidade escrita e a tabela com mediana, P85 e P95; as unidades são "h úteis" em P1, P2 e P3 e "dias úteis" em P4 e P5 (alvos da tabela de S1: P1 0,25 e 4 h úteis; P2 0,5 e 8; P3 2 e 16; P4 0,5 dia útil e 5 dias úteis; P5 1 dia útil e 10 dias úteis).
 63. S2 mostra duas colunas por prioridade (primeiro atendimento e restauração) e a linha de 90%.
 64. S3 alterna entre "Absoluto" e "Proporção" (`s3=` na URL) e mostra o ajuste manual do mês na tabela/tooltip.
 65. S4 usa uma única cor neutra e o texto "sem meta isolada".
-66. S5 e S6 mostram exatamente os cinco valores do domínio fechado cada; S6 mostra a taxa de contorno.
+66. S5 e S6 mostram exatamente os cinco valores do domínio fechado cada (barras e linhas da tabela, mesmo com zero); os de S6 são "Resolução definitiva", "Contorno aplicado", "Reclassificado, não é incidente", "Encerrado sem retorno" e "Duplicado"; S6 mostra a taxa de contorno.
 67. S7 mostra reclassificação de prioridade e de tipo em blocos separados, nunca somados.
 
 ### Espera invisível
@@ -1047,13 +1145,13 @@ Convenção de identificadores para teste (`data-testid`): `painel-{slug}`, `fil
 71. A Espera invisível aparece também em Operacional (semanal), Tático, Estratégico e Sustentação, como cartão compacto.
 
 ### Regras de cálculo e metodologia
-72. Todo tempo é exibido em dias úteis (ou horas úteis na sustentação) com a unidade escrita.
+72. Todo tempo é exibido com a unidade escrita: dias úteis no fluxo (FL1 a FL3); na Sustentação, horas úteis em P1 a P3, S4 e EI-SUST e dias úteis em P4 e P5; nunca minutos nem horas corridas (dia útil = 8 horas úteis).
 73. Todo cartão com percentil mostra P50, P85 e P95 juntos; nenhum cartão mostra média sem faixa e mediana.
 74. Todo cartão tem o `BadgeBase` visível com o número de itens e a janela; nenhum número sem base.
 75. Qualquer estatística com menos de 20 itens não é renderizada; o painel exibe "Amostra insuficiente" com "n de 20 itens mínimos" e a barra de progresso `role="meter"`.
 76. Pelo menos uma classe publicada e uma classe insuficiente existem na mesma tela do Operacional, do Tático e da Sustentação com os dados do mock.
 77. Story, frente e projeto nunca compartilham histograma, percentil ou eixo; cada cartão traz o chip de granularidade.
-78. Percentis usam a janela de 12 semanas até o fim do período (12 meses provisórios para frentes e projetos, com selo "provisória").
+78. Percentis usam a janela de 12 semanas até o fim do período em **todas** as granularidades (story, frente, projeto, chamado); não existe selo nem texto "12 meses (provisória)"; a janela vem de um parâmetro único. E1, EI-FL3 e, possivelmente, T7 e EI-FL2 podem aparecer como "Amostra insuficiente", sem tratamento de erro (6.3.1).
 79. Séries que cruzam a data de uma mudança de critério mostram o `marcador-criterio` com a data e o `AvisoCriterio`; cartões de percentil cuja janela cruza a data mostram o aviso da janela.
 80. Nenhum número vem escrito no componente: alterar a semente ou o gerador altera os números na tela (verificável por teste unitário e por E2E com dois conjuntos de dados).
 
@@ -1077,7 +1175,7 @@ Convenção de identificadores para teste (`data-testid`): `painel-{slug}`, `fil
 93. Só existem as métricas do núcleo (O1, O2, O3, O4, O7, O9, O10, O12, O15, O18, T1, T2, T3, T4, T5, T7, T9, E1, E2, E3, S1 a S7, EI) e o bloco "Bloqueados agora"; não há cartões para métricas fora do núcleo.
 
 ### Acessibilidade
-94. Todas as telas passam em axe sem violações sérias ou críticas nos temas claro e escuro.
+94. Todas as telas passam em axe com **zero violações sérias ou críticas** nos temas claro e escuro. Violações moderadas e menores são relatadas pelo QA e corrigidas quando viável; não bloqueiam a entrega, mas cada uma não corrigida precisa de justificativa registrada (critério 111).
 95. O contraste de texto é ≥ 4,5:1 e de elementos de interface e marcas de gráfico é ≥ 3:1, nos dois temas.
 96. Todo o sistema é operável só por teclado; o foco é sempre visível (contorno de 2 px), a ordem de foco é a ordem visual e o elemento focado nunca fica coberto pela barra sticky.
 97. Todo gráfico tem `figure`, `figcaption`, frase de leitura e o botão "Ver como tabela" que mostra uma tabela equivalente com `caption` e `th scope`.
@@ -1089,6 +1187,15 @@ Convenção de identificadores para teste (`data-testid`): `painel-{slug}`, `fil
 103. O tema (claro/escuro/sistema) persiste entre recargas e não pisca ao carregar.
 104. Os breakpoints 640, 768, 1024 e 1280 px produzem os layouts da seção 8.6, e a ordem do DOM permanece igual em todas as larguras.
 
+### Revisão 2
+105. (J1) Amostra insuficiente em E1, T7, EI-FL2 e EI-FL3 usa o texto de 6.3.1 (visual informativo, sem `role="alert"`, sem sugerir mudar janela ou regra) e é idêntica no painel do nível, em `/espera-invisivel` e na Visão geral; não existe o selo "Janela: 12 meses (provisória)" em nenhuma tela.
+106. (J2) Nenhuma tela da Sustentação mostra minutos ("min") nem horas corridas; S1 usa "h úteis" em P1 a P3 e "dias úteis" em P4 e P5, e S4 e EI-SUST usam "h úteis"; os alvos de S1 são os da tabela do cartão.
+107. (L7, L8) Abrir o Estratégico com `equipe=` ou `tipo=` (por link ou por navegação) não quebra a página, não mostra chip nem aviso de erro e remove os parâmetros da URL; `aviso-filtros-nao-aplicaveis` aparece só quando há valores guardados; ao voltar ao Operacional ou ao Tático por link de navegação os valores reaparecem. `prioridade=` e `cadencia=` fora de seus painéis são removidos em silêncio.
+108. (L10) T5 ordena por volume de demanda (desempate alfabético) nas duas abas, mostra "Ordem por volume de demanda. Não é um ranking." e na aba "Por área" não tem selo, destaque nem ordenação por parcela de falha; o selo "Foco da meta" só existe em "Por sistema".
+109. (L13) `mock` segue a tabela de 6.6: `carregando` não termina; `erro:{id}` falha em toda tentativa e `erro-uma-vez:{id}` recupera na segunda; ids inexistentes e valores inválidos são ignorados sem aviso; `mock` não é propagado pelos links de navegação nem por "Copiar link", mas permanece ao mudar filtros na mesma página.
+110. (L4, L5) Os ids e testids de 1.1, 3.3 e da convenção de abertura desta seção existem (`BLOQUEADOS`, `EI-FL1` a `EI-SUST`, `{nivel}` em `fl1|fl2|fl3|sust`, seções `tempo|fluxo|compromissos|backlog|qualidade`, `seletor-tema`, chave `metricas-dspd:tema`).
+111. (L16) O relatório de acessibilidade lista as violações moderadas e menores do axe por tela e tema; cada uma é corrigida ou tem justificativa registrada.
+
 ---
 
 ## 11. Perguntas em aberto
@@ -1098,7 +1205,7 @@ Dúvidas de regra de negócio que o briefing não resolve. Cada uma tem a **apre
 | # | Pergunta | Apresentação provisória |
 |---|---|---|
 | 1 | **Espera invisível: quatro níveis e marcos.** O briefing (T3.4) diz "quatro níveis", a proposta descreve três. Qual é o quarto (Sustentação)? E quais marcos formam a visão do cliente e do time em FL2, FL3 e Sustentação? Em FL1 o "time" é o lead time da equipe (compromisso → entrega) ou o cycle time? | Quatro níveis (FL1, FL2, FL3 e Sustentação, esta em bloco separado de fonte diferente). Marcos da tabela da seção EI (FL1: lead time do cliente × da equipe). |
-| 2 | **Janela de 12 semanas para frentes e projetos.** Em 12 semanas há poucas frentes e quase nenhum projeto concluído; a regra de 20 itens faria FL2 e FL3 ficarem sempre insuficientes. Qual janela usar nessas granularidades? | 12 meses móveis, com mínimo de 20 itens, selo "provisória". |
+| 2 | **Janela de 12 semanas para frentes e projetos.** Em 12 semanas há poucas frentes e quase nenhum projeto concluído; a regra de 20 itens faria FL2 e FL3 ficarem quase sempre insuficientes. Qual janela usar nessas granularidades? | (rev. 2, J1) 12 semanas em todas as granularidades, como no briefing; a janela é parâmetro único no código. E1, EI-FL3 e, às vezes, T7 e EI-FL2 aparecem como "Amostra insuficiente" e a tela explica por quê (6.3.1). Pergunta segue aberta. |
 | 3 | **Alcance da regra dos 20 itens.** Vale só para percentis ou também para taxas e histogramas? Pontos individuais e contagens podem ser mostrados com menos de 20? | Percentis, mediana, média, faixas, histogramas e taxas somem; pontos, listas e contagens permanecem (4.0.2). |
 | 4 | **Bloqueios na cadência diária.** A cadência diária inclui "bloqueios", mas "bloqueios por causa" está fora do núcleo. O que entra? | Só a lista "Bloqueados agora" (sem agregação por causa), ligada ao O1/O2. |
 | 5 | **O10: definição das visões e "decisão".** O que distingue o backlog "do cliente" do "da equipe" nos dados, e onde se registra a decisão de manter ou encerrar item > 180 dias? | Cliente = itens com área solicitante externa ao DSPD; time = todos os registrados; a "decisão" não é medida nesta etapa (só a contagem de itens > 180 dias). |
@@ -1107,13 +1214,13 @@ Dúvidas de regra de negócio que o briefing não resolve. Cada uma tem a **apre
 | 8 | **T3: natureza e acordo.** Como os tipos se agrupam em Sustentação, Evolução, Projetos e Dívida técnica? De onde vem o "acordado"? A medida de capacidade é itens ou tempo? | Sustentação = Incidente, Requisição e Defeito em produção; Evolução = Melhoria; Projetos = itens com projeto pai; Dívida técnica = Dívida técnica; acordo como configuração fictícia; itens por padrão com alternador de tempo. |
 | 9 | **Classe de serviço × tipo no nível tático; "Iniciativa" no filtro.** T1, T2 e T4 usam classe de serviço (Urgente, Prazo fixo, Padrão, Intangível) ou tipo? Iniciativa aparece no filtro de tipo em FL1 e FL2? | Classe de serviço em T1, T2, T4; "Iniciativa" fica só no FL3 (não aparece no filtro de tipo). |
 | 10 | **E2: unidade de capacidade e categorias.** Capacidade = itens entregues? "Evolução" no denominador da meta de 60% inclui quais tipos? | Itens entregues agrupados pelo objetivo do projeto de origem; evolução = Melhoria e Iniciativa; categorias "Obrigação legal", "Manutenção" e "Fora de objetivo" explícitas. |
-| 11 | **S1: média × mediana e plantão.** MTTA e MTTR são médias por definição; o briefing proíbe média sozinha. P1 (alvos em "h" corridas) é medida em horas corridas por regime de plantão? | Mediana e P85 em destaque, média só na tabela; P1 em horas corridas (marcado na nota), P2 a P5 em horas e dias úteis. |
+| 11 | **S1: média × mediana e plantão.** MTTA e MTTR são médias por definição; o briefing proíbe média sozinha. P1 (alvos de 15 min e 4 h no briefing) é medida em horas corridas por regime de plantão? | Mediana e P85 em destaque, média só na tabela. (rev. 2, J2) Todas as prioridades, inclusive P1, em horas úteis (dia útil = 8 h úteis); exibição em h úteis em P1 a P3 e dias úteis em P4 e P5, sem minutos e sem horas corridas. A pergunta, se P1 de plantão deveria ser corrido, segue aberta para o usuário. |
 | 12 | **EI de sustentação.** A definição de visão do cliente (tempo de vida) e do time ("em atendimento") é válida? | Provisória, com aviso "não comparável com o BusinessMap". |
 | 13 | **Faixas dos histogramas por classe.** O briefing dá as faixas curtas para classes rápidas; quais para classes lentas (Melhoria, Dívida técnica) e para frentes? | Rápidas: 0-1, 2-3, 4-5, 6-10, 11-20, +20; lentas: 0-5, 6-10, 11-20, 21-40, 41-80, +80; frentes: 0-10, 11-20, 21-40, 41-80, 81-160, +160. |
 | 14 | **Período × janela de percentis.** O período escolhido recorta a janela de 12 semanas ou define só a série? | Janela fixa de 12 semanas até o fim do período; período define a série (2.3). |
-| 15 | **Dia útil e expediente.** Quantas horas tem o dia útil, quais feriados, e as horas úteis do Acelerato usam o mesmo calendário? | A biblioteca de cálculo decide; a interface só rotula a unidade. Registrar em ADR. |
+| 15 | **Dia útil e expediente.** Quantas horas tem o dia útil, quais feriados, e as horas úteis do Acelerato usam o mesmo calendário? | A biblioteca de cálculo decide; a interface só rotula a unidade. (rev. 2) Provisório do plano técnico: segunda a sexta, 8h às 12h e 13h às 17h, feriados nacionais, fuso -03:00, 1 dia útil = 8 h úteis, o mesmo calendário no Acelerato. Registrar em ADR. |
 | 16 | **Censos fora da regra dos 20 itens.** Avanço por projeto (T9) e ficha por iniciativa (E3) são census de uma entidade e escapam da regra? | Sim, com "k de n" sempre visível. |
 | 17 | **Filtro por agente na Sustentação (T5.1 do briefing).** O briefing lista "agente" entre os filtros compartilhados. | Não implementado (risco de avaliação individual); recusa registrada, a confirmar. |
-| 18 | **Rótulos de natureza dos chamados.** Cards de Incidente e Requisição no BusinessMap e chamados do Acelerato podem confundir quem lê. | Selo de fonte e dica no filtro Tipo (2.1); a confirmar se os nomes bastam. |
+| 18 | **Rótulos de natureza dos chamados.** Cards de Incidente e Requisição no BusinessMap e chamados do Acelerato podem confundir quem lê. | Selo de fonte e dica no filtro Tipo (2.1); (rev. 2, L14) texto explícito de que Incidente e Requisição do BusinessMap não têm relação com chamados do Acelerato (2.1 e Ajuda); a confirmar se os nomes bastam. |
 | 19 | **Meta e status de "Frentes simultâneas" (T7).** O limite de frentes por equipe e por projeto existe no mock? | Existe um limite por fluxo, como configuração fictícia. |
-| 20 | **Variação contra a referência (O3, E1, T5).** Com que janela se calcula "−20% no semestre", "−25% ao ano", "−15% ao semestre"? E em T4 a regra dos 20 itens conta chegadas, saídas ou ambas? | Janela atual contra a janela equivalente 6 meses (O3, T5) ou 12 meses (E1) antes; ambas com ≥ 20 itens, senão "Comparação indisponível". T4: ≥ 20 itens na soma de chegadas e saídas da classe. |
+| 20 | **Variação contra a referência (O3, E1, T5).** Com que janela se calcula "−20% no semestre", "−25% ao ano", "−15% ao semestre"? E em T4 a regra dos 20 itens conta chegadas, saídas ou ambas? | Janela atual de 12 semanas contra a janela equivalente 6 meses (O3, T5) ou 12 meses (E1) antes; ambas com ≥ 20 itens, senão "Comparação indisponível". T4 (rev. 2, L12): ≥ 20 itens na **soma de chegadas e saídas** da classe nas 12 semanas; alternativa mais conservadora a decidir com o usuário: exigir 20 em cada uma. |
