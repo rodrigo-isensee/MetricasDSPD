@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Briefing de execução — Sistema de métricas (BusinessMap e Acelerato)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0F2436; --ink-2:#22415A; --paper:#FFFFFF; --mist:#EDF1F4; --line:#D2DCE3;
+    --fl1:#12776A; --fl2:#2B62A8; --fl3:#5B3E8C; --sus:#0F2436; --signal:#B87514; --alert:#A33B2B;
+    --text:#16222C; --muted:#5A6B78;
+    --cond:"IBM Plex Sans Condensed","Helvetica Neue",Arial,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+    --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--mist);color:var(--text);font-family:var(--serif);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4,.cond{font-family:var(--cond);font-weight:600;letter-spacing:-0.01em}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 26px}
+  .sheet{background:var(--paper)}
+
+  header.hero{background:var(--ink);color:#E9F0F5;padding:48px 0 40px}
+  .kicker{font-family:var(--cond);font-size:13.5px;color:#8FB0C6;margin:0 0 12px;letter-spacing:.04em;text-transform:uppercase}
+  header.hero h1{font-size:clamp(30px,4.6vw,48px);line-height:1.06;margin:0 0 16px;font-weight:700;max-width:20ch;color:#fff}
+  header.hero p.lead{font-size:18px;line-height:1.58;max-width:66ch;color:#C9DAE6;margin:0 0 26px}
+  .meta{display:flex;flex-wrap:wrap;gap:24px;border-top:1px solid #2A4B66;padding:16px 0 0;font-family:var(--cond);font-size:13.5px;color:#8FB0C6}
+  .meta b{display:block;color:#fff;font-weight:600;font-size:14.5px}
+
+  nav.rail{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:saturate(140%) blur(6px)}
+  nav.rail ul{display:flex;list-style:none;margin:0;padding:0;overflow-x:auto}
+  nav.rail a{display:block;font-family:var(--cond);font-size:14px;text-decoration:none;color:var(--ink-2);padding:12px 14px;white-space:nowrap;border-bottom:3px solid transparent}
+  nav.rail a:hover{border-bottom-color:var(--line);background:#F7FAFC}
+
+  section{padding:48px 0}
+  section.sheet{border-top:1px solid var(--line)}
+  h2{font-size:clamp(23px,3vw,31px);margin:0 0 6px;line-height:1.15}
+  h2 .num{font-family:var(--mono);font-size:.55em;color:var(--muted);margin-right:10px;vertical-align:3px}
+  h3{font-size:19.5px;margin:32px 0 6px}
+  h4{font-size:17px;margin:22px 0 4px}
+  p{max-width:74ch}
+  .label{font-family:var(--cond);font-size:12.5px;color:var(--muted);margin:0 0 3px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+  .box{background:#F4F8FA;border:1px solid var(--line);padding:14px 16px;margin:13px 0}
+  .box p{margin:0;max-width:72ch} .box p + p{margin-top:8px}
+  .warn{border-left:3px solid var(--signal);background:#FCF7EE;border-top:1px solid #EFE0C4;border-right:1px solid #EFE0C4;border-bottom:1px solid #EFE0C4}
+  .stop{border-left:3px solid var(--alert);background:#FBEFEE;border-top:1px solid #EBD0CC;border-right:1px solid #EBD0CC;border-bottom:1px solid #EBD0CC}
+  code,.mono{font-family:var(--mono);font-size:.88em;background:#EDF3F6;padding:1px 5px;border-radius:2px}
+  pre{font-family:var(--mono);font-size:13px;line-height:1.65;background:#0F2436;color:#CFE3F0;padding:14px 16px;overflow-x:auto;margin:14px 0;white-space:pre-wrap}
+  pre .c{color:#8FB0C6}
+  ul.tight{margin:8px 0 14px;padding-left:20px;max-width:74ch}
+  ul.tight li{margin-bottom:6px}
+
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:16px}
+  th,td{text-align:left;padding:9px 12px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--cond);font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+  td.id{font-family:var(--mono);font-size:12.5px;white-space:nowrap;font-weight:500}
+  td.a{color:var(--fl1)} td.b{color:var(--fl2)} td.c{color:var(--fl3)} td.s{color:var(--sus)}
+
+  .task{border-left:3px solid var(--line);padding:16px 0 4px 18px;margin:22px 0}
+  .task.ws1{border-left-color:var(--fl1)} .task.ws2{border-left-color:var(--fl2)}
+  .task.ws3{border-left-color:var(--fl3)} .task.ws4{border-left-color:var(--signal)}
+  .task.ws5{border-left-color:var(--alert)} .task.ws6{border-left-color:var(--ink)}
+  .task h4{margin:0 0 6px;font-size:17.5px}
+  .task h4 .tid{font-family:var(--mono);font-size:13px;color:var(--muted);margin-right:9px}
+  .task dl{margin:10px 0 0;display:grid;grid-template-columns:118px 1fr;gap:4px 14px;max-width:80ch}
+  .task dt{font-family:var(--cond);font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;padding-top:3px}
+  .task dd{margin:0;font-size:15.5px}
+  .task dd ul{margin:0;padding-left:18px}
+  .task dd li{margin-bottom:4px}
+  .dep{font-family:var(--mono);font-size:12.5px}
+
+  .wsband{color:#fff;padding:22px 0 20px;margin-top:0}
+  .wsband h3{color:#fff;margin:0 0 4px;font-size:22px}
+  .wsband p{color:rgba(255,255,255,.88);margin:0;max-width:72ch;font-size:15.5px}
+  .b1{background:var(--fl1)} .b2{background:var(--fl2)} .b3{background:var(--fl3)}
+  .b4{background:var(--signal)} .b5{background:var(--alert)} .b6{background:var(--ink)}
+
+  footer{background:#14293D;color:#9FBDD0;padding:34px 0 54px;font-family:var(--cond);font-size:14px}
+  footer p{max-width:70ch;color:#C9DAE6}
+
+  @media (max-width:820px){ .task dl{grid-template-columns:1fr;gap:2px} .task dt{padding-top:10px} }
+  @media print{ body{background:#fff;font-size:10.8pt} nav.rail{display:none} .task{break-inside:avoid} pre{background:#F0F4F7;color:#16222C;border:1px solid #D2DCE3} }
+  :focus-visible{outline:3px solid var(--fl2);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">Briefing de execução · repasse para agentes · versão 1</p>
+    <h1>Sistema de métricas: contexto, especificação e tarefas</h1>
+    <p class="lead">Documento autocontido. Reúne todo o contexto necessário, as regras de cálculo, o catálogo completo de métricas e a lista de tarefas com critério de pronto, para que a implementação possa ser executada sem acesso à discussão que originou a proposta.</p>
+    <div class="meta">
+      <div><b>Domínios</b>Fluxo de projeto (BusinessMap) e sustentação (Acelerato)</div>
+      <div><b>Métricas especificadas</b>44 + 1 transversal</div>
+      <div><b>Frentes</b>6 · tarefas 32</div>
+      <div><b>Pré-requisito crítico</b>Configuração antes de coleta</div>
+    </div>
+  </div>
+</header>
+
+<nav class="rail" aria-label="Seções">
+  <div class="wrap">
+    <ul>
+      <li><a href="#uso">Como usar</a></li>
+      <li><a href="#contexto">Contexto</a></li>
+      <li><a href="#estrutura">Estrutura</a></li>
+      <li><a href="#fontes">Fontes de dados</a></li>
+      <li><a href="#regras">Regras de cálculo</a></li>
+      <li><a href="#frentes">Frentes e tarefas</a></li>
+      <li><a href="#catalogo">Catálogo de métricas</a></li>
+      <li><a href="#restricoes">Restrições</a></li>
+      <li><a href="#entregaveis">Entregáveis</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- 0 -->
+<section class="sheet" id="uso">
+  <div class="wrap">
+    <h2><span class="num">00</span>Como usar este documento</h2>
+    <p>Este briefing é a fonte da verdade para a implementação. Quem executar deve ler as seções 1 a 4 antes de iniciar qualquer tarefa, porque elas contêm decisões já tomadas que não devem ser reabertas durante a execução.</p>
+    <ul class="tight">
+      <li><strong>Ordem obrigatória.</strong> Configuração (WS1 e WS4) precede coleta (WS2 e WS5), que precede painel (WS3). Construir painel sobre dado não calibrado gera indicador que será descartado.</li>
+      <li><strong>Cada tarefa tem critério de pronto.</strong> Não considerar concluída sem atendê-lo integralmente. Quando o critério citar um número mínimo de registros ou dias, ele é condição, não sugestão.</li>
+      <li><strong>Dúvida de regra de negócio não se resolve por inferência.</strong> As seções 4 e 7 contêm as regras invioláveis; o que não estiver lá e for ambíguo deve ser devolvido como pergunta, não decidido no código.</li>
+      <li><strong>Dados de exemplo neste documento são ilustrativos.</strong> Nenhum número citado como exemplo deve ser usado como baseline, meta ou valor esperado.</li>
+    </ul>
+    <div class="box stop"><p><strong>Restrição que não se negocia:</strong> nenhuma métrica deste conjunto pode ser usada, exposta ou modelada para avaliação de desempenho individual. A seção 7 detalha. Implementações que facilitem esse uso — ranking individual como visão principal, metas por pessoa, comparação entre times — devem ser recusadas e sinalizadas.</p></div>
+  </div>
+</section>
+
+<!-- 1 -->
+<section class="sheet" id="contexto">
+  <div class="wrap">
+    <h2><span class="num">01</span>Contexto</h2>
+    <p>Departamento de Desenvolvimento de Sistemas e Plataformas Digitais, responsável por ERP e sistemas corporativos (Protheus/TOTVS, Fluig, Senior), sistemas de marketing, vendas e operações, ciência de dados e plataforma 5G. A operação se divide em dois domínios com ferramentas, populações e relógios distintos.</p>
+    <table>
+      <thead><tr><th>Domínio</th><th>Ferramenta</th><th>Unidade</th><th>Natureza</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Fluxo de projeto</strong></td><td>BusinessMap (Kanban)</td><td>Card: projeto, frente, story</td><td>Trabalho planejado, com hierarquia e sprints</td></tr>
+        <tr><td><strong>Sustentação</strong></td><td>Acelerato (ITSM)</td><td>Chamado: incidente e requisição</td><td>Atendimento reativo, com prioridade e SLA contratado</td></tr>
+      </tbody>
+    </table>
+    <div class="box"><p><strong>Os dois domínios não se misturam em nenhum cálculo.</strong> Nenhum histograma, percentil, média ou previsão pode combinar cards do BusinessMap com chamados do Acelerato. São populações diferentes e o número resultante não descreveria nenhuma das duas.</p></div>
+
+    <h3>Modelo conceitual: três níveis de voo</h3>
+    <p>As métricas são organizadas em três altitudes, no modelo Flight Levels, com a sustentação como fluxo paralelo. Cada nível corresponde a um quadro real e a uma granularidade real de card.</p>
+    <table>
+      <thead><tr><th>Nível</th><th>Quadro</th><th>Card</th><th>Decide</th><th>Cadência</th></tr></thead>
+      <tbody>
+        <tr><td class="c"><strong>FL3 · Estratégico</strong></td><td>Gerente</td><td>Projeto</td><td>Portfólio, objetivos, resultado</td><td>Mensal e trimestral</td></tr>
+        <tr><td class="b"><strong>FL2 · Tático</strong></td><td>Coordenadores</td><td>Feature ou pacote, em sprints</td><td>Coordenação, compromissos, dependências</td><td>Quinzenal e mensal</td></tr>
+        <tr><td class="a"><strong>FL1 · Operacional</strong></td><td>Times</td><td>User story, tarefa, demanda</td><td>Fluxo diário do trabalho</td><td>Diária e semanal</td></tr>
+        <tr><td class="s"><strong>Sustentação</strong></td><td>Acelerato</td><td>Chamado</td><td>Atendimento e restauração de serviço</td><td>Semanal e mensal</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Origem dos projetos</h3>
+    <p>Um projeto nasce no processo de TAP (Termo de Abertura de Projeto), onde as áreas registram as informações. O TAP vai a uma comissão. <strong>Aprovado na comissão, é criado o card de projeto no quadro do gerente</strong> — e é esse o marco de entrada do relógio estratégico. O tempo do processo de TAP anterior à aprovação está fora do escopo desta implementação.</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="sheet" id="estrutura">
+  <div class="wrap">
+    <h2><span class="num">02</span>Estrutura de quadros e hierarquia de cards</h2>
+    <pre><span class="c"># hierarquia no BusinessMap</span>
+Projeto            quadro do gerente          aprovado na comissão
+  └─ Feature | Pacote   quadros dos coordenadores   organizados em sprints
+       └─ User story | Tarefa   quadros dos times
+
+<span class="c"># feature e pacote ocupam o MESMO nível — para medição contam igual</span>
+<span class="c"># sustentação e demanda não planejada convivem nos quadros dos times, sem pai</span></pre>
+    <ul class="tight">
+      <li><strong>O vínculo pai/filho é o que viabiliza toda a consolidação.</strong> Card filho sem pai é invisível no nível acima e representa capacidade consumida que não aparece em lugar nenhum. Tratar vínculo faltante como defeito de dado, não como higiene opcional.</li>
+      <li><strong>Exceção legítima ao vínculo:</strong> tipos de sustentação e demanda não planejada, que não pertencem a projeto. Precisam ser identificáveis por tipo de card para que o consumo fora de projeto seja mensurável.</li>
+      <li><strong>Se um pacote agrupar features em algum quadro</strong>, isso cria um quarto nível. Nesse caso é preciso escolher qual dos dois é a unidade de avanço do projeto, sob pena de contagem dupla. Devolver como pergunta se a situação for encontrada.</li>
+      <li><strong>Granularidade esperada:</strong> projeto em meses, feature ou pacote em uma a duas sprints, user story em poucos dias. Cada granularidade tem distribuição própria e nunca entra no mesmo histograma das outras.</li>
+      <li><strong>Definição de frente concluída:</strong> todas as stories filhas entregues e a capacidade disponível para uso — não "desenvolvimento terminado".</li>
+      <li><strong>Avanço de projeto nunca é declarado manualmente</strong>, sempre calculado por frentes filhas concluídas sobre o total.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="sheet" id="fontes">
+  <div class="wrap">
+    <h2><span class="num">03</span>Fontes de dados</h2>
+
+    <h3>3.1 BusinessMap</h3>
+    <p>API REST v2 no subdomínio da organização, autenticação por apikey em header. A especificação OpenAPI completa está disponível no próprio subdomínio e <strong>deve ser consultada antes de escrever o coletor</strong> — os nomes exatos de recursos e campos variam por versão e não devem ser assumidos a partir deste documento.</p>
+    <table>
+      <thead><tr><th>Recurso</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td class="id">/api/v2/cards</td><td>Cards com filtros por quadro, tipo e período; base da dim_card</td></tr>
+        <tr><td class="id">/cards/{id}/revisions</td><td>Histórico de alterações; base da fato_transicao</td></tr>
+        <tr><td class="id">/cards/{id}/children · /childGraph</td><td>Vínculos pai/filho entre projeto, frente e story</td></tr>
+        <tr><td class="id">/customFields</td><td>Definição e valores dos campos customizados</td></tr>
+        <tr><td class="id">/boards/{id}/columns</td><td>Estrutura do workflow, para classificar fila × execução</td></tr>
+        <tr><td class="id">comentários · tempo apontado · bloqueios</td><td>Primeiro toque, estoque parado, fato_bloqueio</td></tr>
+        <tr><td class="id">Business Rules → webhook</td><td>Evento de mudança de coluna em tempo real, em paralelo à coleta por API</td></tr>
+      </tbody>
+    </table>
+    <div class="box warn"><p><strong>Card arquivado ou excluído sai das consultas padrão.</strong> Se a base analítica guardar apenas o estado atual, perdem-se as demandas canceladas, que são uma das medidas de desperdício mais reveladoras. A carga precisa ser incremental e nunca sobrescrever histórico.</p></div>
+
+    <h3>3.2 Acelerato</h3>
+    <p>Base MySQL <code>acelerato_dev_corporativo</code>, leitura direta. População do painel atual, que deve ser mantida como recorte padrão:</p>
+    <pre><span class="c"># população DSPD-SSSC</span>
+organizacao = 'DSPD Sustentação'
+tipo        = 'DSPD - SSSC'
+equipes     IN ('SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG')
+excluido    = false
+
+<span class="c"># fechados (apuração de SLA)</span>
+status = 'Concluído' AND data_finalizado IS NOT NULL
+status_sla_r = 'REALIZADO_NO_PRAZO'          <span class="c">→ dentro</span>
+status_sla_r = 'REALIZADO_APOS_VENCIMENTO'   <span class="c">→ fora</span>
+
+<span class="c"># abertos</span>
+data_finalizado IS NULL                       <span class="c">→ somente leitura</span>
+
+<span class="c"># decomposição de tempo por etapa</span>
+VIEW_ESTATISTICAS_ETAPAS_2                    <span class="c">→ apenas chamados fechados</span></pre>
+    <p>A view de etapas classifica o tempo em cinco totalizadores: sem atendimento, em atendimento, espera combinada (data acordada), espera do solicitante e espera de outros times. Requisição e incidente usam conjuntos de etapas diferentes por baixo — e a fila antiga tem nomes próprios — mas cada etapa é mapeada ao totalizador equivalente antes da soma. <strong>Esse mapeamento precisa ser preservado e revisado quando as novas etapas entrarem.</strong></p>
+
+    <h3>3.3 Estado atual da sustentação</h3>
+    <p>Existe um painel em operação (DSPD-SSSC) com quatro abas: SLA e performance, Abertos, Reincidência e Aging. Ele cobre aderência ao SLA, fotografia dos abertos, reincidência e decomposição do tempo. As métricas S1 a S12 deste briefing <strong>são novas e dependem da parametrização descrita em 3.4</strong>; não existem na base hoje.</p>
+    <div class="box"><p><strong>Limitações conhecidas do painel atual, a preservar na documentação de qualquer indicador derivado:</strong> a reincidência está subestimada porque o campo de recorrência é pouco preenchido e, ausente, conta como não reincidente; o aging considera apenas chamados fechados, o que torna a média conservadora; a projeção de SLA do mês é simulação, não previsão.</p></div>
+
+    <h3>3.4 Parametrização do Acelerato — dependência bloqueante</h3>
+    <p>Existe uma solicitação de mudança que traduz o PROC 30.000.010 em etapas, transições, campos e gatilhos. Dez das doze métricas de sustentação dependem dela estar em produção.</p>
+    <h4>Etapas (11)</h4>
+    <table>
+      <thead><tr><th>Etapa</th><th>Responsável</th><th>SLA</th><th>Origem no PROC</th></tr></thead>
+      <tbody>
+        <tr><td class="id">Novo</td><td>N1</td><td>corre</td><td>1 — Identificar e registrar</td></tr>
+        <tr><td class="id">Em triagem</td><td>N1</td><td>corre</td><td>2 e 3 — Categorizar e priorizar</td></tr>
+        <tr><td class="id">Em diagnóstico</td><td>N1</td><td>corre</td><td>7 — Diagnóstico inicial</td></tr>
+        <tr><td class="id">Em atendimento N1</td><td>N1</td><td>corre</td><td>8 — Resolução ou contorno</td></tr>
+        <tr><td class="id">Aguardando atribuição</td><td>Fila</td><td>corre</td><td>9 e exceção 4.1.2</td></tr>
+        <tr><td class="id">Em atendimento N2</td><td>N2</td><td>corre</td><td>10 — Atuação técnica</td></tr>
+        <tr><td class="id">Em atendimento N3</td><td>N3 / Especializado</td><td>corre</td><td>10 e papel do N3</td></tr>
+        <tr><td class="id">Pendente</td><td>Responsável pelo chamado</td><td><strong>pausa</strong></td><td>Exceções 4.1.1 e 4.1.3</td></tr>
+        <tr><td class="id">Aguardando validação</td><td>Solicitante</td><td><strong>pausa</strong></td><td>12 — Validar restabelecimento</td></tr>
+        <tr><td class="id">Encerrado</td><td>Responsável pelo chamado</td><td>parado</td><td>15 — Encerrar incidente</td></tr>
+        <tr><td class="id">Arquivar</td><td>—</td><td>parado</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="box stop"><p><strong>Transição mais fácil de esquecer e mais crítica para as métricas:</strong> <code>Aguardando validação → Em diagnóstico</code>. Sem ela, o atendente abre chamado novo quando o solicitante informa que não resolveu, e a taxa de reabertura fica artificialmente baixa — o indicador melhora exatamente quando a qualidade piora. Validar explicitamente antes de apurar S8.</p>
+    <p>Regra correlata: <strong>escalação não reinicia SLA.</strong> O prazo é do chamado, não do nível. Nenhum gatilho de mudança de etapa pode tocar no relógio.</p></div>
+    <h4>Campos personalizados (9)</h4>
+    <table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Domínio</th><th>Obrigatório em</th></tr></thead>
+      <tbody>
+        <tr><td class="id">Impacto</td><td>Lista</td><td>Alto · Médio · Baixo</td><td>Em triagem</td></tr>
+        <tr><td class="id">Urgência</td><td>Lista</td><td>Alta · Média · Baixa</td><td>Em triagem</td></tr>
+        <tr><td class="id">Prioridade ajustada manualmente</td><td>Sim/Não + texto</td><td>Justificativa obrigatória quando Sim</td><td>Reclassificação</td></tr>
+        <tr><td class="id">Motivo da escalação</td><td>Lista</td><td>Sem conhecimento técnico no N1 · Sem solução ou contorno conhecido · Risco de estouro de SLA · Múltiplos sistemas ou dependências · Necessidade de atuação especializada</td><td>Saída de Em diagnóstico</td></tr>
+        <tr><td class="id">Motivo de pendência</td><td>Lista</td><td>Aguardando fornecedor · Aguardando solicitante · Aguardando área vinculada · Aguardando janela de mudança</td><td>Entrada em Pendente</td></tr>
+        <tr><td class="id">Previsão de retorno</td><td>Data</td><td>—</td><td>Entrada em Pendente</td></tr>
+        <tr><td class="id">Motivo de encerramento</td><td>Lista</td><td>Resolução definitiva · Contorno aplicado · Reclassificado, não é incidente · Encerrado sem retorno · Duplicado</td><td>Encerramento</td></tr>
+        <tr><td class="id">Avaliação de Problema</td><td>Lista + texto</td><td>Aberto · Não aplicável, com justificativa</td><td>Encerramento</td></tr>
+        <tr><td class="id">Exceção de SLA por registro posterior</td><td>Sim/Não</td><td>—</td><td>Registro</td></tr>
+        <tr><td class="id">Incidente crítico coordenado</td><td>Sim/Não</td><td>Automático em P1, editável para P2</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <h4>Matriz de prioridade (Impacto × Urgência)</h4>
+    <pre>                Urgência Alta   Média   Baixa
+Impacto Alto         P1       P2      P3
+Impacto Médio        P2       P3      P4
+Impacto Baixo        P3       P4      P5
+
+<span class="c"># prazos por prioridade — primeiro atendimento / restauração</span>
+P1  15 min  / 4 h            P4  4 h úteis / 5 dias úteis
+P2  30 min  / 8 h úteis      P5  1 dia útil / 10 dias úteis
+P3  2 h úteis / 2 dias úteis</pre>
+    <h4>O que não é nativo na ferramenta</h4>
+    <p>Gatilhos do Acelerato leem apenas caixa de entrada, categoria, organização e etapa — <strong>não leem campo personalizado nem prioridade</strong>. Ações de workflow são as únicas que enxergam tempo decorrido. Fica para automação externa: cálculo da matriz de prioridade, marcação de crítico coordenado em P1, aceite em 15 minutos após escalação, vencimento da previsão de retorno e cadência de comunicação por prioridade.</p>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="sheet" id="regras">
+  <div class="wrap">
+    <h2><span class="num">04</span>Regras de cálculo invioláveis</h2>
+    <p>Decisões já tomadas. Alterar qualquer uma delas invalida a série histórica e exige registro da data da mudança no painel.</p>
+
+    <h3>4.1 Marcos temporais do fluxo de projeto</h3>
+    <table>
+      <thead><tr><th>Marco</th><th>Evento</th><th>Alimenta</th></tr></thead>
+      <tbody>
+        <tr><td class="id">entrada</td><td>Criação do card, no momento em que o pedido chega — não quando o trabalho começa</td><td>Lead time do cliente, backlog aging, entrada × saída</td></tr>
+        <tr><td class="id">compromisso</td><td>Entrada na coluna de priorizado/comprometido</td><td>Lead time da equipe</td></tr>
+        <tr><td class="id">inicio</td><td>Primeira entrada em coluna de execução</td><td>Cycle time, tamanho, aging WIP</td></tr>
+        <tr><td class="id">entrega</td><td>Disponível em produção para o usuário</td><td>Todas as métricas de tempo e vazão</td></tr>
+        <tr><td class="id">aceite</td><td>Confirmação do solicitante</td><td>Medido à parte — não entra no lead time do cliente</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.2 Convenções de cálculo</h3>
+    <pre><span class="c"># tempo</span>
+unidade          horas/dias ÚTEIS, calendário de expediente
+                 exceção explícita apenas para classes em regime de plantão
+
+<span class="c"># distribuições</span>
+janela           móvel de 12 semanas
+mínimo           20 itens concluídos na classe — abaixo disso NÃO publicar
+estatística      percentis 50/85/95 — média nunca sozinha
+segmentação      sempre por tipo de demanda e por granularidade
+
+<span class="c"># contagem</span>
+unidade          demanda entregável ao solicitante
+subtarefa        NÃO conta como item na vazão
+reaberto         reabre o original, tempo volta a contar
+                 + card de defeito vinculado para contagem de qualidade
+descartado       sai do cálculo de tempo de ciclo
+                 entra na taxa de descarte com o tempo já consumido
+teste/rascunho   quadro separado, fora de qualquer cálculo
+
+<span class="c"># bug</span>
+janela de atribuição   bug vinculado até 30 dias após a entrega conta para o
+                       mês daquela entrega; depois disso entra como defeito
+                       em produção do mês corrente
+
+<span class="c"># colunas</span>
+fila             nome inicia por "Aguardando" ou "Pronto para"
+execução         nome da atividade
+bloqueio         marcado no card, NÃO move o card de coluna
+fila             conta dentro do limite de WIP</pre>
+
+    <h3>4.3 Taxonomia de tipos de card</h3>
+    <table>
+      <thead><tr><th>Tipo</th><th>Definição</th><th>Natureza</th></tr></thead>
+      <tbody>
+        <tr><td class="id">Incidente</td><td>Indisponibilidade ou erro em produção afetando a operação agora</td><td>Sustentação</td></tr>
+        <tr><td class="id">Requisição</td><td>Pedido padronizado e previsível: acesso, cadastro, relatório, parametrização simples</td><td>Sustentação</td></tr>
+        <tr><td class="id">Melhoria</td><td>Mudança em sistema existente que agrega capacidade nova</td><td>Evolução</td></tr>
+        <tr><td class="id">Iniciativa</td><td>Conjunto de entregas com objetivo e resultado declarados</td><td>Evolução</td></tr>
+        <tr><td class="id">Bug interno</td><td>Erro encontrado antes de chegar ao usuário: desenvolvimento, revisão, teste ou homologação</td><td>Qualidade — sem meta de volume</td></tr>
+        <tr><td class="id">Defeito em produção</td><td>Erro em algo já entregue, encontrado pelo usuário ou pela operação</td><td>Qualidade</td></tr>
+        <tr><td class="id">Dívida técnica</td><td>Trabalho sem valor visível ao usuário que reduz risco, custo ou esforço futuro</td><td>Evolução</td></tr>
+      </tbody>
+    </table>
+    <p>Regra de desempate: um card tem um tipo só, e na dúvida vale <em>o motivo pelo qual o trabalho existe</em>, não a atividade executada.</p>
+
+    <h3>4.4 Campos customizados exigidos no BusinessMap</h3>
+    <table>
+      <thead><tr><th>Campo</th><th>Formato</th><th>Preenchido em</th><th>Habilita</th></tr></thead>
+      <tbody>
+        <tr><td class="id">area_solicitante</td><td>Lista fechada</td><td>Abertura</td><td>O14, T3, qualidade da entrada</td></tr>
+        <tr><td class="id">sistema_afetado</td><td>Lista fechada</td><td>Abertura</td><td>Custo por sistema, concentração</td></tr>
+        <tr><td class="id">origem_demanda</td><td>Lista fechada</td><td>Triagem</td><td>T5 demanda de falha</td></tr>
+        <tr><td class="id">fornecedor</td><td>Lista fechada</td><td>Ao bloquear</td><td>SLA real de terceiros</td></tr>
+        <tr><td class="id">data_acordada</td><td>Data</td><td>No compromisso</td><td>O12 acordos × vencidos</td></tr>
+        <tr><td class="id">responsabilidade_atraso</td><td>Interno / Solicitante / Terceiro</td><td>No vencimento, nunca depois</td><td>O12</td></tr>
+        <tr><td class="id">tamanho_declarado</td><td>P / M / G</td><td>Refinamento</td><td>O8, política de quebra</td></tr>
+        <tr><td class="id">objetivo_estrategico</td><td>Lista fechada</td><td>Aprovação da iniciativa</td><td>E2</td></tr>
+        <tr><td class="id">fase_deteccao</td><td>Lista fechada</td><td>Abertura do bug</td><td>O15 contenção e escape</td></tr>
+        <tr><td class="id">severidade</td><td>Crítica/Alta/Média/Baixa</td><td>Abertura do bug</td><td>O16</td></tr>
+        <tr><td class="id">causa_raiz</td><td>Lista fechada</td><td>Fechamento do bug</td><td>O17</td></tr>
+        <tr><td class="id">origem_bug</td><td>Vínculo com story ou frente</td><td>Abertura do bug</td><td>O17, O18 densidade</td></tr>
+      </tbody>
+    </table>
+    <p class="label" style="margin-top:14px">Domínios fechados</p>
+    <ul class="tight">
+      <li><strong>Motivos de bloqueio:</strong> Aguardando fornecedor · Aguardando validação do negócio · Aguardando ambiente ou infraestrutura · Dependência de outra demanda · Falta de informação no chamado · Janela de mudança · Aguardando licença ou contrato</li>
+      <li><strong>Fase de detecção do bug:</strong> Desenvolvimento · Revisão de código · Teste interno · Homologação do negócio · Produção</li>
+      <li><strong>Causa raiz do bug:</strong> Requisito ausente ou ambíguo · Regra de negócio não mapeada · Erro de implementação · Regressão · Integração com terceiro · Ambiente e massa de teste · Configuração e parametrização</li>
+      <li><strong>Origem da demanda (demanda de falha):</strong> erro em entrega anterior · configuração incorreta · falta de treinamento do usuário · informação não repassada · processo manual que deveria estar automatizado</li>
+    </ul>
+    <div class="box"><p><strong>Princípio de design dos campos:</strong> nenhum campo obrigatório sem métrica que dependa dele. Campo que ninguém lê é atrito na abertura e acaba preenchido com qualquer coisa — pior do que não existir.</p></div>
+
+    <h3>4.5 Modelo de dados analítico</h3>
+    <pre><span class="c"># três tabelas sustentam todas as métricas do BusinessMap</span>
+
+dim_card        1 linha por card
+  card_id · tipo · classe_servico · sistema · area_solicitante · fornecedor
+  objetivo_estrategico · card_pai · criado_em · comprometido_em · iniciado_em
+  concluido_em · arquivado_em · motivo_descarte · responsaveis · tamanho_declarado
+
+fato_transicao  1 linha por movimentação
+  card_id · coluna_origem · coluna_destino · tipo_coluna(fila|execucao)
+  usuario · timestamp · direcao(avanco|retorno)
+
+fato_bloqueio   1 linha por bloqueio
+  card_id · motivo · coluna_em_que_bloqueou · fornecedor
+  inicio · fim · duracao_horas_uteis</pre>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="sheet" id="frentes">
+  <div class="wrap">
+    <h2><span class="num">05</span>Frentes de trabalho e tarefas</h2>
+    <p>Seis frentes, 32 tarefas. Cada tarefa traz objetivo, passos, critério de pronto e dependências. As dependências usam os identificadores das próprias tarefas.</p>
+  </div>
+
+  <div class="wsband b1"><div class="wrap"><h3>WS1 · Configuração do BusinessMap</h3><p>Precede tudo. Sem isso, qualquer coleta produz indicador que será descartado na primeira revisão.</p></div></div>
+  <div class="wrap">
+
+    <div class="task ws1">
+      <h4><span class="tid">T1.1</span>Classificar e renomear colunas em fila e execução</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Tornar possível medir espera separadamente de trabalho efetivo, em todos os quadros.</dd>
+        <dt>Passos</dt><dd><ul><li>Inventariar todas as colunas de todos os quadros (gerente, coordenadores, times).</li><li>Classificar cada coluna como fila ou execução.</li><li>Renomear as de fila para começarem com "Aguardando" ou "Pronto para".</li><li>Garantir que nenhuma coluna de fila esteja fora do limite de WIP.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>100% das colunas classificadas, mapa de equivalência entre quadros documentado e nenhuma coluna de fila fora do limite.</dd>
+        <dt>Depende de</dt><dd class="dep">—</dd>
+      </dl>
+    </div>
+
+    <div class="task ws1">
+      <h4><span class="tid">T1.2</span>Padronizar tipos de card entre quadros</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Garantir que o mesmo tipo signifique a mesma coisa em todos os quadros, viabilizando consolidação.</dd>
+        <dt>Passos</dt><dd><ul><li>Aplicar a taxonomia da seção 4.3 em todos os quadros.</li><li>Mapear os tipos existentes para os novos e migrar o histórico quando possível.</li><li>Registrar os casos em que a migração não é possível, para exclusão das séries anteriores.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Todos os quadros usam a mesma lista de tipos e existe tabela de-para do histórico.</dd>
+        <dt>Depende de</dt><dd class="dep">—</dd>
+      </dl>
+    </div>
+
+    <div class="task ws1">
+      <h4><span class="tid">T1.3</span>Criar campos customizados e domínios fechados</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Habilitar as métricas que dependem de dimensão, não apenas de tempo.</dd>
+        <dt>Passos</dt><dd><ul><li>Criar os 12 campos da seção 4.4 com os formatos e domínios especificados.</li><li>Configurar obrigatoriedade na etapa indicada, não na criação do card.</li><li>Criar as quatro listas fechadas de domínio.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Campos criados, domínios populados e obrigatoriedade testada em um card de cada tipo.</dd>
+        <dt>Depende de</dt><dd class="dep">T1.2</dd>
+      </dl>
+    </div>
+
+    <div class="task ws1">
+      <h4><span class="tid">T1.4</span>Definir e aplicar limites de WIP</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Tornar o limite visível e mensurável por coluna e por fluxo.</dd>
+        <dt>Passos</dt><dd><ul><li>Acordar limite por coluna e por fluxo com cada equipe.</li><li>Configurar no editor de workflow e verificar a sinalização de estouro.</li><li>Incluir limite de frentes simultâneas por equipe e por projeto nos quadros dos coordenadores.</li><li>Incluir limite de bugs abertos por equipe.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Limites configurados em todos os quadros e data de revisão trimestral agendada.</dd>
+        <dt>Depende de</dt><dd class="dep">T1.1</dd>
+      </dl>
+    </div>
+
+    <div class="task ws1">
+      <h4><span class="tid">T1.5</span>Corrigir o marco de entrada da demanda</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Fazer o card nascer na chegada do pedido, não no início do trabalho.</dd>
+        <dt>Passos</dt><dd><ul><li>Mapear por onde as demandas chegam hoje em cada equipe.</li><li>Ajustar o ponto de criação do card e orientar quem recebe.</li><li>Criar coluna de entrada/backlog onde não existir.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Em amostra de 20 cards recentes, a data de criação corresponde à chegada do pedido e não ao início da execução.</dd>
+        <dt>Depende de</dt><dd class="dep">T1.1</dd>
+      </dl>
+      <div class="box warn"><p>Sem esta tarefa não existem as métricas O9 (três relógios), O10 (backlog aging), T1 (lead time ponta a ponta) e o indicador transversal de espera invisível. É a tarefa de maior alcance da WS1.</p></div>
+    </div>
+
+    <div class="task ws1">
+      <h4><span class="tid">T1.6</span>Auditar e corrigir vínculos pai/filho</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Eliminar capacidade invisível no nível de portfólio.</dd>
+        <dt>Passos</dt><dd><ul><li>Gerar relatório de cards filhos sem pai, por quadro, excluindo tipos de sustentação.</li><li>Corrigir os vínculos faltantes com os coordenadores.</li><li>Instituir a lista de exceções com revisão semanal.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Relatório de órfãos gerado, vínculos corrigidos e rotina de revisão semanal ativa.</dd>
+        <dt>Depende de</dt><dd class="dep">T1.2</dd>
+      </dl>
+    </div>
+
+    <div class="task ws1">
+      <h4><span class="tid">T1.7</span>Marcar escopo adicionado após o início</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Tornar o crescimento de escopo mensurável em vez de percebido.</dd>
+        <dt>Passos</dt><dd><ul><li>Definir a marcação de frentes criadas após o início da execução do projeto pai.</li><li>Aplicar retroativamente onde a data de criação permitir inferir.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Métrica T9 pode distinguir escopo original de escopo adicionado em todos os projetos ativos.</dd>
+        <dt>Depende de</dt><dd class="dep">T1.6</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="wsband b2"><div class="wrap"><h3>WS2 · Extração e base analítica</h3><p>Coletor, modelo de dados e biblioteca de cálculo. O que o módulo de Analytics não entrega sai daqui.</p></div></div>
+  <div class="wrap">
+
+    <div class="task ws2">
+      <h4><span class="tid">T2.1</span>Levantar a especificação da API e mapear campos</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Evitar coletor escrito sobre nomes de campo presumidos.</dd>
+        <dt>Passos</dt><dd><ul><li>Obter a especificação OpenAPI do subdomínio.</li><li>Mapear cada campo do modelo da seção 4.5 ao campo correspondente na API.</li><li>Registrar os campos que não existem e precisam vir de revisions ou de webhook.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Tabela de-para completa publicada, com lacunas identificadas.</dd>
+        <dt>Depende de</dt><dd class="dep">T1.3</dd>
+      </dl>
+    </div>
+
+    <div class="task ws2">
+      <h4><span class="tid">T2.2</span>Implementar coleta incremental agendada</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Guardar os eventos fora do BusinessMap, de forma incremental e não destrutiva.</dd>
+        <dt>Passos</dt><dd><ul><li>Coletor diário de cards, revisões, vínculos, campos customizados e bloqueios.</li><li>Carga incremental com chave natural; nunca sobrescrever histórico.</li><li>Preservar cards arquivados e excluídos.</li><li>Log de execução com contagem de registros e falhas.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Sete execuções consecutivas sem falha, com reconciliação de contagem contra a ferramenta e cards arquivados presentes na base.</dd>
+        <dt>Depende de</dt><dd class="dep">T2.1</dd>
+      </dl>
+    </div>
+
+    <div class="task ws2">
+      <h4><span class="tid">T2.3</span>Capturar transições por webhook</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Registrar mudanças de coluna no instante em que ocorrem, sem depender de varredura.</dd>
+        <dt>Passos</dt><dd><ul><li>Criar Business Rule de mudança de coluna chamando serviço web.</li><li>Receber, normalizar e gravar o evento em fato_transicao.</li><li>Rodar em paralelo à coleta por API e reconciliar divergências.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Divergência entre webhook e API abaixo de 1% em uma semana de operação paralela.</dd>
+        <dt>Depende de</dt><dd class="dep">T2.2</dd>
+      </dl>
+    </div>
+
+    <div class="task ws2">
+      <h4><span class="tid">T2.4</span>Construir a base analítica</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Materializar dim_card, fato_transicao e fato_bloqueio conforme a seção 4.5.</dd>
+        <dt>Passos</dt><dd><ul><li>Criar as três tabelas com os campos especificados.</li><li>Derivar os marcos temporais da seção 4.1 a partir das transições.</li><li>Classificar cada transição em avanço ou retorno e cada coluna em fila ou execução.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Para 20 cards sorteados, os quatro marcos derivados conferem com a inspeção manual do histórico.</dd>
+        <dt>Depende de</dt><dd class="dep">T2.2 · T1.1</dd>
+      </dl>
+    </div>
+
+    <div class="task ws2">
+      <h4><span class="tid">T2.5</span>Biblioteca de cálculo compartilhada</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Garantir que todas as métricas usem a mesma definição de tempo e de percentil.</dd>
+        <dt>Passos</dt><dd><ul><li>Função de horas úteis com calendário de expediente e feriados.</li><li>Função de percentil com janela móvel de 12 semanas e mínimo de 20 itens.</li><li>Simulação de Monte Carlo parametrizável por filtro de classe, sistema e período.</li><li>Teste unitário para cada função, com casos de borda documentados.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Testes passando e nenhuma métrica implementada com cálculo próprio de tempo ou percentil.</dd>
+        <dt>Depende de</dt><dd class="dep">T2.4</dd>
+      </dl>
+    </div>
+
+    <div class="task ws2">
+      <h4><span class="tid">T2.6</span>Controle de versão de critérios</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Impedir que mudança silenciosa de definição apareça como melhoria de indicador.</dd>
+        <dt>Passos</dt><dd><ul><li>Registrar data e descrição de cada mudança de critério de cálculo.</li><li>Exibir a marcação no painel e alertar quando a comparação atravessar a data.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Qualquer gráfico que cruze uma data de mudança exibe a marcação automaticamente.</dd>
+        <dt>Depende de</dt><dd class="dep">T2.5</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="wsband b3"><div class="wrap"><h3>WS3 · Painéis do fluxo de projeto</h3><p>Um painel por nível de voo, mais o indicador transversal. Especificação das métricas na seção 6.</p></div></div>
+  <div class="wrap">
+
+    <div class="task ws3">
+      <h4><span class="tid">T3.1</span>Painel operacional (FL1)</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Entregar as 18 métricas O1 a O18 em visão de equipe, para uso diário e semanal.</dd>
+        <dt>Passos</dt><dd><ul><li>Implementar o núcleo primeiro: O1, O2, O3, O4, O7, O9, O10, O12, O15, O18.</li><li>Filtros por equipe, tipo de demanda, sistema e período.</li><li>Visões default por cadência: diária (O2, bloqueios, O1) e semanal (O3, O4, O6).</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Núcleo disponível, cada métrica reconciliada contra o Analytics nativo onde houver equivalente, divergências explicadas por escrito.</dd>
+        <dt>Depende de</dt><dd class="dep">T2.5</dd>
+      </dl>
+    </div>
+
+    <div class="task ws3">
+      <h4><span class="tid">T3.2</span>Painel tático (FL2)</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Entregar T1 a T9, incluindo fluxo de frentes e avanço real de projeto.</dd>
+        <dt>Passos</dt><dd><ul><li>Implementar o núcleo: T1, T2, T3, T4, T5, T7, T9.</li><li>Consolidar por projeto a partir dos vínculos pai/filho.</li><li>Incluir o Monte Carlo segmentado (T6) usando a função da T2.5.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Avanço de projeto calculado exclusivamente por frentes filhas concluídas, com crescimento de escopo ao lado.</dd>
+        <dt>Depende de</dt><dd class="dep">T3.1 · T1.6 · T1.7</dd>
+      </dl>
+    </div>
+
+    <div class="task ws3">
+      <h4><span class="tid">T3.3</span>Painel estratégico (FL3)</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Entregar E1 a E5 em visão de portfólio, para revisão mensal e trimestral.</dd>
+        <dt>Passos</dt><dd><ul><li>Implementar E1, E2, E3 como núcleo.</li><li>E5 reutilizando a simulação, agora sobre vazão de frentes.</li><li>Ficha de resultado esperado por iniciativa, preenchida antes do início (E3).</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Todo projeto ativo tem objetivo estratégico associado ou está explicitamente classificado como manutenção ou obrigação legal.</dd>
+        <dt>Depende de</dt><dd class="dep">T3.2</dd>
+      </dl>
+    </div>
+
+    <div class="task ws3">
+      <h4><span class="tid">T3.4</span>Indicador transversal de espera invisível</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Expor, em cada nível, a fração do tempo do cliente que não estava sob gestão da equipe.</dd>
+        <dt>Passos</dt><dd><ul><li>Calcular <code>(visao_cliente - visao_time) / visao_cliente</code> sobre as medianas, por nível.</li><li>Apresentar as duas visões sempre lado a lado, nunca isoladas.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Indicador disponível nos quatro níveis e nenhuma visão publicada isoladamente.</dd>
+        <dt>Depende de</dt><dd class="dep">T3.1 · T1.5</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="wsband b4"><div class="wrap"><h3>WS4 · Parametrização do Acelerato</h3><p>Dependência externa. Acompanhamento e validação, não implementação de métrica.</p></div></div>
+  <div class="wrap">
+
+    <div class="task ws4">
+      <h4><span class="tid">T4.1</span>Acompanhar a entrada em produção das etapas e campos</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Garantir que a solicitação de mudança seja implementada como especificada.</dd>
+        <dt>Passos</dt><dd><ul><li>Conferir as 11 etapas, o comportamento de SLA de cada uma e as transições permitidas.</li><li>Conferir os 9 campos com formatos, domínios e obrigatoriedade.</li><li>Replicar a configuração de workflow para cada equipe com fluxo distinto.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Chamado de teste percorre todos os caminhos previstos, incluindo pendência, escalação e validação.</dd>
+        <dt>Depende de</dt><dd class="dep">—</dd>
+      </dl>
+    </div>
+
+    <div class="task ws4">
+      <h4><span class="tid">T4.2</span>Validar a transição de retomada</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Impedir que a taxa de reabertura seja medida artificialmente baixa.</dd>
+        <dt>Passos</dt><dd><ul><li>Verificar que <code>Aguardando validação → Em diagnóstico</code> está liberada.</li><li>Testar o caminho completo: restauração, validação negada, retomada.</li><li>Orientar os atendentes a não abrir chamado novo nesse cenário.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Transição liberada, testada e orientação comunicada às equipes.</dd>
+        <dt>Depende de</dt><dd class="dep">T4.1</dd>
+      </dl>
+    </div>
+
+    <div class="task ws4">
+      <h4><span class="tid">T4.3</span>Implementar as automações externas</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Cobrir o que os gatilhos nativos não alcançam.</dd>
+        <dt>Passos</dt><dd><ul><li>Cálculo da matriz Impacto × Urgência, com reclassificação manual prevalecendo sobre o cálculo.</li><li>Marcação de crítico coordenado em P1.</li><li>Alerta de aceite não realizado em 15 minutos após escalação.</li><li>Alerta de vencimento da previsão de retorno.</li><li>Cadência de comunicação por prioridade.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Cada automação testada e com registro no chamado, sem tocar no relógio de SLA.</dd>
+        <dt>Depende de</dt><dd class="dep">T4.1</dd>
+      </dl>
+    </div>
+
+    <div class="task ws4">
+      <h4><span class="tid">T4.4</span>Revisar o mapeamento de etapas da view de aging</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Manter a decomposição em cinco totalizadores válida após a mudança de etapas.</dd>
+        <dt>Passos</dt><dd><ul><li>Mapear cada etapa nova ao totalizador equivalente.</li><li>Verificar continuidade da série histórica e registrar a data da mudança.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Totalizadores somam o tempo de vida completo e a quebra de série está documentada.</dd>
+        <dt>Depende de</dt><dd class="dep">T4.1</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="wsband b5"><div class="wrap"><h3>WS5 · Painéis de sustentação</h3><p>Doze métricas sobre a base do Acelerato. Dez delas só existem após a WS4.</p></div></div>
+  <div class="wrap">
+
+    <div class="task ws5">
+      <h4><span class="tid">T5.1</span>Camada de consultas base</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Padronizar o recorte da população e evitar divergência entre indicadores.</dd>
+        <dt>Passos</dt><dd><ul><li>Views com o recorte DSPD-SSSC da seção 3.2.</li><li>Segregar sempre os casos de exceção de SLA por registro posterior.</li><li>Expor os filtros compartilhados: equipe, agente, período.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Contagem de fechados e de abertos reconcilia com o painel atual dentro de 1%.</dd>
+        <dt>Depende de</dt><dd class="dep">—</dd>
+      </dl>
+    </div>
+
+    <div class="task ws5">
+      <h4><span class="tid">T5.2</span>Métricas de tempo e aderência (S1, S2, S9, S10)</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>MTTA, MTTR, aderência por prioridade, tempo em pendência e fila de atribuição.</dd>
+        <dt>Passos</dt><dd><ul><li>Apurar por prioridade, nunca agregado.</li><li>Separar o prazo de primeiro atendimento do de restauração.</li><li>Documentar no painel que o valor é tempo útil com pendências descontadas do relógio de resolução.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Indicadores disponíveis por prioridade, com exceções segregadas e nota metodológica visível.</dd>
+        <dt>Depende de</dt><dd class="dep">T5.1 · T4.1</dd>
+      </dl>
+    </div>
+
+    <div class="task ws5">
+      <h4><span class="tid">T5.3</span>Métricas de carga (S3, S4, S12)</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Volume por prioridade, resolução por nível e volume por sistema.</dd>
+        <dt>Passos</dt><dd><ul><li>S3 em volume absoluto e em proporção, por mês.</li><li>S4 a partir da etapa de atendimento, que é a fonte da verdade do nível — não da atribuição de time.</li><li>S12 com destaque dos recorrentes.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Soma das faixas de prioridade confere com o total de chamados do período.</dd>
+        <dt>Depende de</dt><dd class="dep">T5.1 · T4.1</dd>
+      </dl>
+    </div>
+
+    <div class="task ws5">
+      <h4><span class="tid">T5.4</span>Métricas de qualidade (S5, S6, S7, S8, S11)</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Motivos de escalação e encerramento, reclassificação, reabertura e avaliação de Problema.</dd>
+        <dt>Passos</dt><dd><ul><li>Distribuições sobre os domínios fechados dos campos.</li><li>S7 separando reclassificação de prioridade de reclassificação de tipo.</li><li>S11 com aderência e taxa de conversão em Registro de Problema.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Métricas disponíveis e taxa de reabertura validada contra a transição de retomada (T4.2).</dd>
+        <dt>Depende de</dt><dd class="dep">T5.1 · T4.2</dd>
+      </dl>
+    </div>
+
+    <div class="task ws5">
+      <h4><span class="tid">T5.5</span>Rotina de agrupamento das justificativas de reclassificação</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Chegar a um domínio fechado de motivos de reclassificação a partir do texto livre.</dd>
+        <dt>Passos</dt><dd><ul><li>Extrair trimestralmente as justificativas do campo livre.</li><li>Agrupar manualmente na primeira rodada e identificar padrões recorrentes.</li><li>Propor lista fechada quando os agrupamentos estabilizarem.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Primeira rodada de agrupamento concluída e proposta de domínio apresentada.</dd>
+        <dt>Depende de</dt><dd class="dep">T5.4</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="wsband b6"><div class="wrap"><h3>WS6 · Governança</h3><p>Métrica sem reunião correspondente não gera decisão e não sobrevive ao segundo mês.</p></div></div>
+  <div class="wrap">
+
+    <div class="task ws6">
+      <h4><span class="tid">T6.1</span>Instituir os rituais e suas pautas</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Amarrar cada métrica a uma reunião com dono e pergunta fixa de abertura.</dd>
+        <dt>Passos</dt><dd><ul><li>Daily de fluxo (15 min): O2, bloqueios, O1 — "qual item mais velho não andou desde ontem?"</li><li>Revisão de fluxo semanal (30 min): O3, O4, O5, O6 e, mensalmente, O7 — "o que mudou na nossa distribuição de tempo?"</li><li>Reunião de serviço quinzenal (45 min): T1, T2, T5 — "estamos cumprindo o que publicamos?"</li><li>Reposição e priorização quinzenal: T3, T4 — "o que entra, e o que sai da fila para isso caber?"</li><li>Revisão de portfólio mensal: E1, E4 — "estamos terminando ou só começando?"</li><li>Revisão estratégica trimestral: E2, E3 — "o que entregamos mudou algum número do negócio?"</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Rituais agendados com participantes definidos e responsável por levar o dado.</dd>
+        <dt>Depende de</dt><dd class="dep">T3.1</dd>
+      </dl>
+    </div>
+
+    <div class="task ws6">
+      <h4><span class="tid">T6.2</span>Calcular e publicar os SLE</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Substituir negociação de prazo item a item por compromisso por classe de serviço.</dd>
+        <dt>Passos</dt><dd><ul><li>Aguardar 60 dias de dados limpos após a WS1.</li><li>Calcular o percentil 85 por classe, com mínimo de 20 itens.</li><li>Publicar às áreas junto com o lead time ponta a ponta e a relação demanda × capacidade.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>SLE publicado por classe, com a base amostral declarada ao lado de cada número.</dd>
+        <dt>Depende de</dt><dd class="dep">T3.1 · 60 dias após T1.5</dd>
+      </dl>
+    </div>
+
+    <div class="task ws6">
+      <h4><span class="tid">T6.3</span>Comunicar o limite de uso das métricas</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Garantir registro honesto, condição sem a qual todo o resto perde sentido.</dd>
+        <dt>Passos</dt><dd><ul><li>Comunicar às equipes, antes da publicação do primeiro painel, que nenhuma métrica será usada em avaliação individual.</li><li>Explicitar, no caso dos bugs, que o que se cobra é a taxa de escape e não o volume de bugs internos.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Comunicação feita e registrada antes de qualquer painel ir ao ar.</dd>
+        <dt>Depende de</dt><dd class="dep">—</dd>
+      </dl>
+    </div>
+
+    <div class="task ws6">
+      <h4><span class="tid">T6.4</span>Rotinas de higiene recorrentes</h4>
+      <dl>
+        <dt>Objetivo</dt><dd>Impedir degradação silenciosa da qualidade do dado.</dd>
+        <dt>Passos</dt><dd><ul><li>Revisão mensal do backlog: item acima de 180 dias recebe decisão de manter ou encerrar, com motivo.</li><li>Revisão semanal da lista de cards filhos sem pai.</li><li>Revisão trimestral das listas fechadas: motivo frequente em "outros" vira categoria; categoria sem uso há dois trimestres sai.</li><li>Revisão trimestral dos limites de WIP.</li></ul></dd>
+        <dt>Pronto quando</dt><dd>Rotinas agendadas com responsável nomeado.</dd>
+        <dt>Depende de</dt><dd class="dep">T1.6</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="sheet" id="catalogo">
+  <div class="wrap">
+    <h2><span class="num">06</span>Catálogo de métricas</h2>
+    <p>Especificação de cada métrica: cálculo resumido, origem do dado e meta. Métricas marcadas com <strong>•</strong> compõem o núcleo de adoção imediata; as demais ficam catalogadas e são implementadas sob demanda.</p>
+
+    <h3>FL1 · Operacional — 18 métricas</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Métrica</th><th>Cálculo</th><th>Exige</th><th>Meta</th></tr></thead>
+      <tbody>
+        <tr><td class="id a">O1 •</td><td>WIP e aderência ao limite</td><td>Itens em execução por coluna e no fluxo, contra o limite acordado; bloqueados contam como WIP</td><td>T1.1, T1.4</td><td>Dentro do limite em 90% dos dias</td></tr>
+        <tr><td class="id a">O2 •</td><td>Idade do trabalho em progresso</td><td>Dias desde o início, por card aberto, posicionado na etapa e comparado aos percentis históricos</td><td>T2.4</td><td>Nenhum item acima do P95 sem plano</td></tr>
+        <tr><td class="id a">O3 •</td><td>Tempo de ciclo e SLE</td><td>Distribuição início→entrega por percentis 50/85/95, segmentada por tipo</td><td>T2.5</td><td>Reduzir o P85 em 20% no semestre</td></tr>
+        <tr><td class="id a">O4 •</td><td>Vazão</td><td>Itens concluídos por semana; acompanhar faixa, não só média</td><td>T2.4</td><td>Reduzir a amplitude da variação</td></tr>
+        <tr><td class="id a">O5</td><td>Eficiência de fluxo</td><td>Tempo em execução ÷ tempo de ciclo total, descontando fila e bloqueio</td><td>T1.1</td><td>+10 pontos em dois trimestres</td></tr>
+        <tr><td class="id a">O6</td><td>Índice de previsibilidade</td><td><code>P85 ÷ P50</code> do lead time, por classe, janela de 12 semanas</td><td>T2.5</td><td>Abaixo de 2,5</td></tr>
+        <tr><td class="id a">O7 •</td><td>Entrada × saída por tipo</td><td>Cards criados e concluídos por mês, empilhados por tipo; saldo mensal e acumulado</td><td>T1.2, T1.5</td><td>Saída ≥ entrada por tipo no trimestre</td></tr>
+        <tr><td class="id a">O8</td><td>Tamanho das demandas</td><td>Mediana, média e % acima do P85 do tempo em execução; comparar com tamanho declarado</td><td>T1.3</td><td>Reduzir a cauda acima do P85</td></tr>
+        <tr><td class="id a">O9 •</td><td>Três relógios</td><td>Lead time do cliente (entrada→entrega), da equipe (compromisso→entrega) e cycle time (início→entrega)</td><td>T1.5</td><td>Reduzir a distância entre cliente e cycle</td></tr>
+        <tr><td class="id a">O10 •</td><td>Envelhecimento do backlog</td><td>Idade dos itens não iniciados, por faixa e por tipo; visões de equipe e de cliente</td><td>T1.5</td><td>Nenhum item &gt;180d sem decisão</td></tr>
+        <tr><td class="id a">O11</td><td>Composição do backlog</td><td>Itens em definição × prontos para execução, por mês e por tipo</td><td>T1.1</td><td>Backlog pronto em poucas semanas de vazão</td></tr>
+        <tr><td class="id a">O12 •</td><td>Acordos × vencidos</td><td>Compromissos com data acordada, vencidos e % — separado por responsabilidade do atraso</td><td>T1.3</td><td>Zero vencidos por causa interna</td></tr>
+        <tr><td class="id a">O13</td><td>Vazão de defeitos</td><td>Volume mensal de defeitos, absoluto e como % da vazão total</td><td>T1.2</td><td>Reduzir defeitos em produção</td></tr>
+        <tr><td class="id a">O14</td><td>Origem da demanda</td><td>Ranking de áreas, clientes ou sistemas por volume, decomposto por tipo</td><td>T1.3</td><td>Revisar os 3 maiores geradores de correção</td></tr>
+        <tr><td class="id a">O15 •</td><td>Contenção de bugs</td><td>Distribuição por fase de detecção; taxa de contenção (antes da homologação) e taxa de escape (produção)</td><td>T1.3</td><td>Elevar contenção, reduzir escape</td></tr>
+        <tr><td class="id a">O16</td><td>Estoque e idade de bugs</td><td>Entrada × correção, abertos por severidade, idade dos mais antigos, densidade por entrega</td><td>T1.3, T1.4</td><td>Estoque estável ou decrescente</td></tr>
+        <tr><td class="id a">O17</td><td>Causa raiz e concentração</td><td>Distribuição por causa raiz e por módulo ou sistema de origem</td><td>T1.3</td><td>3 maiores causas com ação trimestral</td></tr>
+        <tr><td class="id a">O18 •</td><td>Vazão com e sem bug</td><td>Cards entregues sem nenhum bug vinculado × com ao menos um; densidade geral e entre os afetados</td><td>T1.3</td><td>Elevar a taxa de entrega limpa</td></tr>
+      </tbody>
+    </table>
+
+    <h3>FL2 · Tático — 9 métricas</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Métrica</th><th>Cálculo</th><th>Exige</th><th>Meta</th></tr></thead>
+      <tbody>
+        <tr><td class="id b">T1 •</td><td>Lead time ponta a ponta</td><td>Entrada→entrega, decomposto em fila, espera, execução e homologação</td><td>T1.5</td><td>Publicar por classe e reduzir a fila</td></tr>
+        <tr><td class="id b">T2 •</td><td>Aderência ao SLE</td><td>% entregue dentro do SLE publicado, com a etapa em que o tempo foi perdido</td><td>T6.2</td><td>85% por classe</td></tr>
+        <tr><td class="id b">T3 •</td><td>Alocação por classe</td><td>Distribuição da capacidade entre sustentação, evolução, projetos e dívida técnica; acordado × realizado</td><td>T1.2</td><td>Desvio máximo de 10 pontos</td></tr>
+        <tr><td class="id b">T4 •</td><td>Demanda × capacidade</td><td>Chegada × vazão; <code>semanas_para_zerar = backlog ÷ (vazao - chegada)</code> por classe</td><td>T1.5</td><td>Razão entre 0,9 e 1,0</td></tr>
+        <tr><td class="id b">T5 •</td><td>Demanda de falha</td><td>% da demanda originada por falha anterior, por sistema e por área</td><td>T1.3</td><td>−15% ao semestre nos 2 piores</td></tr>
+        <tr><td class="id b">T6</td><td>Previsão probabilística</td><td>Monte Carlo sobre vazão histórica filtrável; devolver P50, P85 e P95</td><td>T2.5</td><td>Compromisso externo sempre no P85</td></tr>
+        <tr><td class="id b">T7 •</td><td>Fluxo de frentes</td><td>WIP, tempo de ciclo e envelhecimento de features e pacotes; frentes simultâneas por projeto</td><td>T1.6</td><td>Limite explícito de frentes</td></tr>
+        <tr><td class="id b">T8</td><td>Sprint</td><td>% do comprometido entregue, carry-over e entrada não planejada</td><td>T1.2</td><td>Reduzir a entrada não planejada</td></tr>
+        <tr><td class="id b">T9 •</td><td>Avanço real e escopo</td><td>Frentes concluídas ÷ total, calculado pelos filhos; e frentes adicionadas após o início</td><td>T1.6, T1.7</td><td>Avanço sempre calculado, nunca declarado</td></tr>
+      </tbody>
+    </table>
+
+    <h3>FL3 · Estratégico — 5 métricas</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Métrica</th><th>Cálculo</th><th>Exige</th><th>Meta</th></tr></thead>
+      <tbody>
+        <tr><td class="id c">E1 •</td><td>Lead time de projetos</td><td>Aprovação na comissão→entrega, decomposto entre antes e depois do início</td><td>T1.6</td><td>−25% da mediana ao ano</td></tr>
+        <tr><td class="id c">E2 •</td><td>Capacidade por objetivo</td><td>% da capacidade entregue por objetivo estratégico, com faixa de obrigação legal e de fora de objetivo</td><td>T1.3</td><td>≥60% da evolução vinculada</td></tr>
+        <tr><td class="id c">E3 •</td><td>Entrega × resultado</td><td>Ganho medido ÷ ganho previsto por iniciativa, declarado antes do início</td><td>Ficha de resultado</td><td>100% com resultado declarado</td></tr>
+        <tr><td class="id c">E4</td><td>Iniciadas × concluídas</td><td>Projetos iniciados e concluídos por trimestre, acumulado em aberto; e proporção manter × evoluir</td><td>T1.6</td><td>Concluir mais que iniciar em 2 trimestres</td></tr>
+        <tr><td class="id c">E5</td><td>Previsão de término</td><td>Monte Carlo sobre vazão de frentes; apresentar sempre ao lado do crescimento de escopo</td><td>T2.5, T1.7</td><td>Data comunicada no P85</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Transversal</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Métrica</th><th>Cálculo</th><th>Exige</th><th>Meta</th></tr></thead>
+      <tbody>
+        <tr><td class="id">EI •</td><td>Espera invisível</td><td><code>(visao_cliente − visao_time) ÷ visao_cliente</code> sobre medianas, calculado nos quatro níveis</td><td>T1.5</td><td>Reduzir; acima de 50% a discussão é de fila</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Sustentação · Acelerato — 12 métricas</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Métrica</th><th>Cálculo</th><th>Exige</th><th>Meta</th></tr></thead>
+      <tbody>
+        <tr><td class="id s">S1 •</td><td>MTTA e MTTR por prioridade</td><td>Abertura→primeiro atendimento e abertura→restauração validada, contra o alvo da matriz; exceções segregadas</td><td>T4.1</td><td>Matriz de prioridade vigente</td></tr>
+        <tr><td class="id s">S2 •</td><td>Aderência ao SLA por prioridade</td><td>% dentro do prazo, separando primeiro atendimento de restauração, por faixa P1–P5</td><td>T4.1</td><td>Acima de 90%</td></tr>
+        <tr><td class="id s">S3 •</td><td>Volume mensal por prioridade</td><td>Contagem por faixa, em absoluto e em proporção; cruzar com S7</td><td>T4.1</td><td>Proporção de P1/P2 estável</td></tr>
+        <tr><td class="id s">S4 •</td><td>Resolução por nível</td><td>Volume resolvido em N1, N2, N3 e fornecedor; tempo médio em cada etapa</td><td>T4.1</td><td>Sem meta isolada</td></tr>
+        <tr><td class="id s">S5 •</td><td>Motivos da escalação</td><td>Distribuição sobre os 5 valores do domínio fechado</td><td>T4.1</td><td>Reduzir escalação por falta de conhecimento</td></tr>
+        <tr><td class="id s">S6 •</td><td>Motivos de encerramento</td><td>Distribuição sobre os 5 valores, com destaque para a taxa de contorno</td><td>T4.1</td><td>Acompanhamento contínuo</td></tr>
+        <tr><td class="id s">S7 •</td><td>Reclassificação</td><td>Ajustes manuais de prioridade e encerramentos como "não é incidente", medidos separadamente</td><td>T4.1</td><td>Sempre justificada; reduzir a de tipo</td></tr>
+        <tr><td class="id s">S8</td><td>Taxa de reabertura</td><td>% de incidentes reabertos por reincidência do mesmo sintoma em curto intervalo</td><td>T4.2</td><td>Inferior a 5%</td></tr>
+        <tr><td class="id s">S9</td><td>Tempo em pendência</td><td>Tempo pausado por motivo e cumprimento da previsão de retorno</td><td>T4.1</td><td>Previsão cumprida</td></tr>
+        <tr><td class="id s">S10</td><td>Fila de atribuição</td><td>Distribuição do tempo entre escalação e aceite, contra o limite de 15 minutos</td><td>T4.1</td><td>Aceite em 15 min</td></tr>
+        <tr><td class="id s">S11</td><td>Avaliação de Problema</td><td>% de P1, P2 e encerrados por contorno com avaliação registrada; e taxa de conversão em Registro de Problema</td><td>T4.1</td><td>100% de avaliação registrada</td></tr>
+        <tr><td class="id s">S12</td><td>Volume por sistema</td><td>Distribuição por categoria ou sistema, com recorrentes destacados; e % com registro posterior</td><td>T4.1</td><td>Tendência de redução do registro posterior</td></tr>
+      </tbody>
+    </table>
+    <div class="box"><p><strong>Lacuna conhecida:</strong> a sustentação não tem métrica de valor ou de percepção. A pesquisa trimestral de <em>fit for purpose</em> com os gestores das áreas atendidas é a candidata natural a preencher esse espaço e não está especificada neste briefing.</p></div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="sheet" id="restricoes">
+  <div class="wrap">
+    <h2><span class="num">07</span>Restrições e armadilhas</h2>
+
+    <h3>7.1 Métricas proibidas</h3>
+    <p>Não implementar, não expor e não derivar. Se alguma dessas aparecer como requisito durante a execução, recusar e sinalizar.</p>
+    <ul class="tight">
+      <li><strong>Produtividade individual</strong> (cards por pessoa) como visão principal ou como meta.</li>
+      <li><strong>Velocidade em pontos como meta.</strong> Pontos são inflacionáveis; a meta é atingida inflacionando a estimativa.</li>
+      <li><strong>Comparação entre times.</strong> Contextos e granularidades diferentes tornam a comparação sem significado.</li>
+      <li><strong>Percentual de conclusão de tarefa.</strong> Item 90% pronto entrega zero valor.</li>
+      <li><strong>Média de tempo de ciclo isolada</strong>, sem percentis ao lado.</li>
+      <li><strong>Horas apontadas</strong> como proxy de esforço entregue.</li>
+    </ul>
+
+    <h3>7.2 Metas que não devem ser criadas</h3>
+    <table>
+      <thead><tr><th>Não criar meta de</th><th>Porque</th><th>Medir no lugar</th></tr></thead>
+      <tbody>
+        <tr><td>Volume de bugs internos</td><td>Cobrado o volume, a equipe para de registrar; o indicador melhora e a qualidade piora</td><td>Taxa de escape (O15)</td></tr>
+        <tr><td>Taxa de resolução no N1</td><td>Induz a segurar chamado que deveria escalar; o custo reaparece no MTTR</td><td>S4 lido ao lado de S1 e S8</td></tr>
+        <tr><td>Aderência de sprint em 100%</td><td>Atingida comprometendo menos, não entregando mais</td><td>Entrada não planejada (T8)</td></tr>
+        <tr><td>Tamanho médio isolado</td><td>Melhora fatiando cards artificialmente</td><td>O8 ao lado de O4 e O3</td></tr>
+      </tbody>
+    </table>
+
+    <h3>7.3 Armadilhas de implementação</h3>
+    <ul class="tight">
+      <li><strong>Coluna de espera fora do limite de WIP.</strong> O indicador melhora e a entrega piora. Toda fila conta como WIP.</li>
+      <li><strong>Motivo em campo de texto livre.</strong> Inviabiliza agrupamento. Domínio fechado sempre, com revisão trimestral.</li>
+      <li><strong>Classificação retroativa de responsabilidade.</strong> O campo de responsabilidade do atraso é preenchido no vencimento, não depois — classificado depois, vira narrativa.</li>
+      <li><strong>Percentil sobre amostra pequena.</strong> Abaixo de 20 itens o número existe mas não se publica.</li>
+      <li><strong>Mistura de granularidades.</strong> Story, frente e projeto nunca no mesmo histograma.</li>
+      <li><strong>Histórico descartado.</strong> Card arquivado nunca é excluído da base analítica.</li>
+      <li><strong>Faixas largas de histograma.</strong> Para classes rápidas, faixas de 0–10 dias agrupam quase tudo numa barra e a distribuição desaparece.</li>
+      <li><strong>Janela de atribuição de bug ausente.</strong> Sem o corte de 30 dias, nenhum mês fecha e a série muda sozinha toda semana.</li>
+    </ul>
+
+    <h3>7.4 Período de calibração</h3>
+    <div class="box warn"><p>Os primeiros 30 a 60 dias de dados após as mudanças de configuração servem para <strong>calibrar, não para cobrar</strong>. Percentis calculados sobre histórico inconsistente produzem compromissos que não se sustentam, e o primeiro SLE publicado sobre base suja compromete a credibilidade de todo o conjunto.</p></div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="sheet" id="entregaveis">
+  <div class="wrap">
+    <h2><span class="num">08</span>Entregáveis esperados</h2>
+    <table>
+      <thead><tr><th>Entregável</th><th>Frente</th><th>Formato</th></tr></thead>
+      <tbody>
+        <tr><td>Inventário de colunas classificadas e mapa de equivalência entre quadros</td><td class="id">WS1</td><td>Planilha ou documento</td></tr>
+        <tr><td>Tabela de-para dos tipos de card, com histórico migrado</td><td class="id">WS1</td><td>Planilha + execução na ferramenta</td></tr>
+        <tr><td>Campos e domínios configurados</td><td class="id">WS1</td><td>Configuração na ferramenta + print de evidência</td></tr>
+        <tr><td>Relatório de cards filhos sem pai</td><td class="id">WS1</td><td>Consulta recorrente</td></tr>
+        <tr><td>Tabela de-para API ↔ modelo de dados</td><td class="id">WS2</td><td>Documento técnico</td></tr>
+        <tr><td>Coletor agendado com log de execução</td><td class="id">WS2</td><td>Código versionado</td></tr>
+        <tr><td>Base analítica com as três tabelas</td><td class="id">WS2</td><td>Esquema + carga histórica</td></tr>
+        <tr><td>Biblioteca de cálculo com testes</td><td class="id">WS2</td><td>Código versionado</td></tr>
+        <tr><td>Painéis FL1, FL2 e FL3</td><td class="id">WS3</td><td>Painel com filtros e visões por cadência</td></tr>
+        <tr><td>Nota de reconciliação contra o Analytics nativo</td><td class="id">WS3</td><td>Documento curto por métrica divergente</td></tr>
+        <tr><td>Evidência de teste da parametrização do Acelerato</td><td class="id">WS4</td><td>Roteiro de teste executado</td></tr>
+        <tr><td>Automações externas implementadas</td><td class="id">WS4</td><td>Código ou fluxo versionado</td></tr>
+        <tr><td>Camada de consultas e painel de sustentação</td><td class="id">WS5</td><td>Views SQL + painel</td></tr>
+        <tr><td>Proposta de domínio fechado de motivos de reclassificação</td><td class="id">WS5</td><td>Documento curto</td></tr>
+        <tr><td>Calendário de rituais com donos</td><td class="id">WS6</td><td>Agenda + pauta padrão</td></tr>
+        <tr><td>SLE publicado por classe de serviço</td><td class="id">WS6</td><td>Comunicado às áreas</td></tr>
+        <tr><td>Comunicado do limite de uso das métricas</td><td class="id">WS6</td><td>Comunicado às equipes</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Sequência recomendada</h3>
+    <pre>Semanas 1–2    WS1 completa · T4.1 iniciada · T6.3
+Semanas 3–8    WS2 (T2.1 a T2.5) · calibração, sem publicar indicador
+               T3.1 em construção com o núcleo operacional
+Semanas 9–12   T6.2 (SLE) · T3.1 publicado · T6.1 rituais iniciados
+               WS4 concluída · WS5 iniciada
+Mês 4 em diante WS3 completa (T3.2, T3.3, T3.4) · WS5 concluída
+               T6.4 rotinas de higiene em operação</pre>
+
+    <h3>Antes de concluir qualquer frente</h3>
+    <ul class="tight">
+      <li>Nenhuma métrica publicada com base amostral abaixo do mínimo, sem a base declarada ao lado.</li>
+      <li>Nenhuma visão individual como tela principal de qualquer painel.</li>
+      <li>Toda divergência contra a ferramenta de origem explicada por escrito, não ajustada no cálculo.</li>
+      <li>Toda decisão de regra de negócio tomada durante a execução registrada e devolvida para validação.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Briefing de execução derivado da proposta de métricas ágeis do departamento. Os valores numéricos citados como exemplo são ilustrativos e não servem de baseline. Qualquer alteração às regras da seção 4 exige registro de data e invalida a comparação histórica que atravesse essa data.</p>
+    <p style="margin-top:16px;color:#8FB0C6">Fontes de referência: PROC 30.000.010 Gestão de Incidentes de Sistemas · anexo de parametrização do Acelerato · painel DSPD-SSSC em operação · documentação da API e do módulo de Analytics do BusinessMap.</p>
+  </div>
+</footer>
+
+</body>
+</html>
