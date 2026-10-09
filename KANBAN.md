@@ -57,12 +57,12 @@
 | K-028 | [bug] UX fase A: 8 altos (A1 a A8: aviso de consolidação, parâmetros e sessão, períodos do Estratégico, remover filtro, janela do O4, variante lenta, cabeçalho, período em andamento) | 001 | react-frontend | 2026-10-09 | 2026-10-09 20:22 | origem: UX; pai: K-004, K-022; severidade: alto; parecer: docs/reviews/001-fase-a-ux.md A1 a A8 + docs/reviews/001-fase-a-ux-adendo.md v1-A4, v1-A6, v1-A7; voltas: 0 |
 | K-029 | [ajuste] UX fase A: médios M1 a M10 e baixos B1 a B8 | 001 | react-frontend | 2026-10-09 | 2026-10-09 20:22 | origem: UX; pai: K-004, K-022; severidade: médio; parecer: docs/reviews/001-fase-a-ux.md M1 a M10, B1 a B8 (o parecer conta 10 médios e 8 baixos) + adendo v1-M (7 médios); voltas: 0 |
 | K-031 | Spec da matriz `REGRAS_METRICA` (insumo de K-030) | 001 | software-architect | 2026-10-09 | 2026-10-09 20:53 | Doc em `docs/architecture/`; libera K-030 |
-| K-032 | Aceitação dos cartões B (K-023..K-026) | 001 | qa-engineer | 2026-10-09 | 2026-10-09 20:53 | Critérios e roteiros em `docs/qa/aceitacao/` |
-| K-033 | Rascunho do contrato da API (002) | 002 | node-backend | 2026-10-09 | 2026-10-09 20:53 | Worktree 002; só documento em `docs/api/` |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-032 | Aceitação dos cartões B (K-023..K-026) | 001 | qa-engineer | 2026-10-09 | 2026-10-09 20:57 | 6 arquivos de aceitação (commit 9dcc9c8) |
+| K-033 | Rascunho do contrato da API (002) | 002 | node-backend | 2026-10-09 | 2026-10-09 20:57 | Rascunho entregue (worktree d93de3d). Decisão frescor no corpo × cabeçalho fica para o discovery K-034 |
 
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
