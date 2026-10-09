@@ -1,7 +1,7 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-09 19:15 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
-> WIP: Empatizar 0/2 · Idear 0/2 · Pronto para fazer 3/5 · Em andamento 3/3 · Code review 0/2 · QA 0/2 · Aguardando validação 0/2 · Bloqueados: 0 (auditoria K-021 em 2026-10-09: limites revisados, ver `docs/kanban/melhorias.md`)
+> Atualizado em: 2026-10-09 19:40 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
+> WIP: Empatizar 0/2 · Idear 0/2 · Pronto para fazer 3/5 · Em andamento 1/3 · Code review 2/2 · QA 0/2 · Aguardando validação 0/2 · Bloqueados: 0 (auditoria K-021 em 2026-10-09: limites revisados, ver `docs/kanban/melhorias.md`)
 > Item mais antigo em andamento: K-004 (desde 2026-10-09 17:58)
 > Pedido 001 sem validações intermediárias (pedido 005): o upstream usa a especificação de UX existente; a única validação do usuário é o PR final.
 
@@ -51,12 +51,12 @@
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-004 | Front fase A1: scaffold, biblioteca de cálculo e gerador mock (com testes) | 001 | react-frontend | 2026-10-09 | 2026-10-09 17:58 | Ajustes D6 da ata a aplicar na entrega |
-| K-018 | ADR do orçamento de performance + ADR 0002 do monorepo (D1, D2) | 003 | software-architect | 2026-10-09 | 2026-10-09 19:15 | — |
-| K-015 | Práticas de engenharia (`docs/engineering/praticas.md`) | 002 | tech-lead + software-architect | 2026-10-09 | 2026-10-09 19:15 | Antes da fase B (D9) |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-018 | ADR 0003 (orçamento de performance) + ADR 0002 (monorepo) + ADR 0001 e plano rev. 3 | 003 | software-architect → tech-lead | 2026-10-09 | 2026-10-09 19:40 | Documentação: revisão cruzada, sem QA |
+| K-015 | Práticas de engenharia (`docs/engineering/praticas.md`) | 002 | tech-lead → software-architect | 2026-10-09 | 2026-10-09 19:40 | Commit e8ca91a; conferir com ADR 0002/0003 |
 
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
