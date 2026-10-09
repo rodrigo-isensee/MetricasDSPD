@@ -87,7 +87,7 @@ Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras
 3. Dentro do orçamento de performance.
 4. Parecer **aprovado** do tech-lead em `docs/reviews/<pedido>-<etapa>.md`.
 5. Parecer do QA (e da UX, quando houver tela) sem bloqueio aberto.
-6. Commit feito pelo tech-lead.
+6. Commits do autor na `develop` revisados e integrados pelo tech-lead na `feature/dashboard-mock` (seção 9).
 
 ## 8. Code review
 Ordem para o 001 (D8): fase A em 4 blocos (cálculo e contratos, com rigor máximo contra o briefing; mock; dados; componentes e acessibilidade) → um review por cartão da fase B → review final da branch.
@@ -107,9 +107,16 @@ Checklist:
 Parecer: **aprovado** ou **ajustes necessários**, cada item com `arquivo:linha · problema · sugestão · severidade (bloqueia / recomendado)`. Correção de lógica volta ao autor; o tech-lead só faz ajuste trivial de formatação.
 
 ## 9. Git, commits e PR
-- **Autores não commitam** (D8): o agente entrega, o tech-lead revisa e commita.
+- **Branch de desenvolvimento** (decisão do usuário, substitui a regra "autores não commitam" da D8):
+  - `develop` sai da `feature/dashboard-mock` e é onde os devs (`react-frontend`, `node-backend`) commitam, no diretório principal do repositório.
+  - Commits pequenos, um por mudança coerente, em Conventional Commits em português, referenciando o cartão no corpo (`Cartão: K-0xx`). `npm run check` verde antes de **cada** commit (até a extração, em `web/`; depois, na raiz). Mensagem termina com as linhas de atribuição da sessão (`Co-Authored-By:` e `Claude-Session:`).
+  - Devs não fazem merge, rebase, reset, amend de commit já revisado nem push; não tocam em outras branches.
+  - Docs de UX e de QA (`docs/ux/`, `docs/qa/`, `e2e/`): o próprio autor (`ux-designer`, `qa-engineer`) commita na `develop`, com escopo `ux`, `qa` ou `e2e`. Docs de arquitetura do 002: o `software-architect` commita na `feature/arquitetura-mysql`, no worktree `../MetricasDSPD-002`. Pareceres (`docs/reviews/`), `KANBAN.md`, `docs/engineering/` e arquivos de agentes/skills: commitados pelo tech-lead (ou pelo Jarvis, no caso do quadro e da configuração do time).
+  - Review por cartão: o tech-lead revisa o intervalo de commits do cartão (`git log`/`git diff <base>..<último commit do cartão>`) e registra o parecer em `docs/reviews/`. Ajuste de lógica volta ao autor como commit novo `fix(...)` na `develop` (nunca reescrita de histórico).
+  - Integração: somente após code review **e** QA aprovados, o tech-lead faz, na `feature/dashboard-mock`, `git merge --no-ff <último commit aprovado da develop>` com mensagem `chore(integracao): integra K-0xx da develop` + linhas de atribuição. **Decisão: sempre `--no-ff`**, para que cada integração marque no histórico o conjunto revisado e aprovado (fácil de localizar e de reverter com `git revert -m 1`). Nunca se integra commit ainda não aprovado; se a `develop` tiver commits à frente, integra-se só até o último aprovado.
+  - A `feature/dashboard-mock` é a branch que vira PR para a `main`; a `develop` nunca vira PR. Depois de cada integração, a `develop` segue de onde está (já contém tudo o que foi integrado).
 - A `main` é do usuário: nenhum agente faz commit, merge, rebase, reset ou push nela; hook `pre-push` em `.githooks/` (`git config core.hooksPath .githooks`); `--no-verify` proibido.
-- Branches a partir da base certa: `feature/`, `fix/`, `docs/`, `chore/`, `refactor/` + slug. Encadeamento atual (D4): `feature/dashboard-mock` (PR 1, todo o 001 + monorepo) → `feature/arquitetura-mysql` (PR 2, criada após a extração, em `git worktree` separado).
+- Branches a partir da base certa: `feature/`, `fix/`, `docs/`, `chore/`, `refactor/` + slug. Encadeamento atual (D4): `feature/dashboard-mock` (PR 1, todo o 001 + monorepo) → `feature/arquitetura-mysql` (PR 2, em `git worktree` separado em `../MetricasDSPD-002`, criada já a partir do mesmo HEAD para os docs de arquitetura; a extração para pacotes (D3) entra nela depois via `git merge` da `feature/dashboard-mock`).
 - Conventional Commits em português: `tipo(escopo): descrição no imperativo`, tipos `feat, fix, docs, test, refactor, perf, chore, ci`. Escopos usuais: `metricas`, `mock`, `dados`, `ui`, `painel-<nome>`, `contratos`, `server`, `db`, `e2e`, `kanban`, `arquitetura`, `ux`, `engenharia`.
 - Um commit por mudança coerente; cada commit compila e passa nos testes.
 - Extração para pacotes (D3): segue o "Procedimento da extração" do [ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md). Linha de base (número de testes e hash da base mock) anotada na mensagem; correção do cruzamento `CRITERIOS_MOCK` em commit próprio antes; depois um commit mecânico único (`git mv` + imports + configs), sem mudança de lógica, de nome nem de teste. Aceite: mesmo número de testes e mesmo hash; se o hash mudar, o commit é desfeito e investigado, nunca se ajusta o hash esperado.
