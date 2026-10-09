@@ -2,7 +2,170 @@
 
 Links: especificação de UX `docs/ux/dashboard-metricas.md` (seção 10 = critérios de aceite C1 a C104) · plano técnico `docs/architecture/features/dashboard-mock.md` · ADR `docs/architecture/adr/0001-stack-front-dashboard-mock.md` · pedido `docs/pedidos/001-dashboard-mock.md` · regras invioláveis `CLAUDE.md`. Não há contrato de API (só front-end; a "API" é a interface `FonteMetricas` em `web/src/contracts`).
 
-Versão 1 · 2026-10-09 · autor: `qa-engineer` · status: plano (nada executado; o app ainda não existe).
+Versão 2 (ver "Revisão 2 — mudanças" abaixo) · 2026-10-09 · autor: `qa-engineer` · status: plano; ferramentas de medição prontas; nenhum E2E de tela executado (o app está na fase A).
+
+## Revisão 2 — mudanças
+
+Versão 2 · 2026-10-09 · autor: `qa-engineer` · cobre a spec rev. 2 (critérios C1 a C111), a ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md` (D1 a D15), os ADRs 0002 (monorepo) e 0003 (orçamento de performance) e `docs/engineering/praticas.md`. Onde esta seção diverge do restante do documento, **esta seção vale**. O restante (seções 1 a 12) segue como a versão 1, com as substituições listadas em R2.2.
+
+### R2.1 Resumo
+- QA entra **por cartão** da fase B (D11, D12): a matriz R2.5 diz exatamente o que o Jarvis aciona em cada cartão. Cada acionamento roda os casos específicos do cartão + o **portão transversal G** (16 casos) na rota do cartão.
+- Performance deixa de ser "plano" e vira suíte executável: casos PERF-01 a PERF-16 (R2.6), com os itens que bloqueiam a entrega marcados.
+- Extração para pacotes (D3): casos EXT-01 a EXT-08 (R2.7), incluindo a igualdade do hash da base mock.
+- Regra BM x AC: casos FRONT-01 a FRONT-06 (R2.8). **Achado imediato:** `web/src/mock/acelerato/gerador.ts:31` importa `../businessmap/catalogos` (bug `docs/qa/bugs/001-gerador-acelerato-importa-businessmap.md`).
+- Casos novos: 8 de funcionalidade (NAV-13, FIL-23, FIL-24, TAT-15, EST-07, SUS-18, ST-14, A11Y-20), mais PERF, EXT e FRONT à parte. Casos substituídos: FIL-21 (por FIL-23) e INV-09 (por TAT-15). Casos reescritos: 15 (R2.2); FIL-21 e INV-09 ficam no texto da v1 só como histórico e não são executados.
+- Total de casos do plano após a rev. 2: 207 da v1 -> 213 de funcionalidade (+8 novos, -2 substituídos) + 16 PERF + 8 EXT + 6 FRONT = **243**.
+
+### R2.2 Critérios novos (105 a 111) e editados, e os casos que os cobrem
+| Crit. | Mudança na spec rev. 2 | Caso (novo ou reescrito) | Nível | Prio |
+|---|---|---|---|---|
+| 6 | Links entre painéis usam filtros de fluxo **da sessão** (memória, não `localStorage`); Estratégico remove `equipe`, `tipo` e `periodo` fora de `6m`/`12m`; voltar ao fluxo restaura | **NAV-06 (reescrito):** Operacional `equipe=fluig&tipo=melhoria&periodo=4s` -> Estratégico (URL limpa dos três) -> Operacional (`equipe`, `tipo`, `periodo` voltam); `/sustentacao` e `/` saem limpos; recarregar zera a memória; `localStorage` não guarda filtros | E2E | P1 |
+| 24 | Inválido avisa; **não aplicável** é removido em silêncio | **FIL-09 (reescrito)** só o inválido (`equipe=xyz`, `equipe=totvs` no fluxo, `equipe=erp-protheus` em `/sustentacao`) + **FIL-24 (novo):** não aplicável (`tipo=` em `/sustentacao`, `s3=` no fluxo, `cadencia=` fora do Operacional, `o3=` em outro painel, `prioridade=` no fluxo) some da URL via `replaceState`, sem `aviso-filtros-invalidos` e sem nova entrada de histórico | E2E+U | P1 |
+| 25 | Aviso de consolidação sempre que o resultado soma 2 ou mais equipes (inclui "Todas" e todas marcadas), com N real (6 no fluxo, 3 na Sustentação); não aparece com 1 equipe nem no Estratégico | **FIL-10 (reescrito):** N confere com `opcoesFiltro`; casos 0 filtro (N=6), 2 marcadas, todas marcadas, 1 (ausente), Estratégico (ausente), `/sustentacao` (N=3 e N=1), `/espera-invisivel` (3 blocos de fluxo + bloco próprio da Sustentação) | E2E | P1 |
+| 26 | Início do histórico vem da fonte | **FIL-11 (reescrito):** o limite inferior e a data da mensagem são lidos de `opcoesFiltro` (via UI e `useOpcoesFiltro`), nunca fixos no teste; a mensagem "Há dados a partir de {data}" traz a data da fonte; fronteiras (início-1, início, intervalo de 6 e 7 dias, `ate` = corte e corte+1) | E2E+U | P1 |
+| 31 | 5 seções com `h2` e id (`tempo`, `fluxo`, `compromissos`, `backlog`, `qualidade`); "Ir para" leva ao `h2` e foca nele; O12 só em Compromissos; EI-FL1 na seção Tempo | **OP-02 e OP-22 (reescritos):** ordem de DOM O3, O9, EI-FL1, O4, O12, O10, O7, O15, O18; O12 fora de Fluxo; foco no `h2` | E2E | P1 |
+| 52 | T7 publica percentis só com 20+ frentes **na janela de 12 semanas** | **TAT-09 (reescrito):** consolidado padrão publica (mock garante 20+ frentes, GER-05); filtro estreito cai em 6.3.1 | E2E+U | P1 |
+| 55 | E1 com menos de 20 projetos nas últimas 12 semanas: texto 6.3.1, pontos mantidos | **EST-02 (reescrito)**, ver EST-07 | E2E+U | P1 |
+| 62 | S1 em "h úteis" (P1 a P3) e "dias úteis" (P4, P5); alvos da tabela do cartão (P1 0,25 e 4 h; P2 0,5 e 8; P3 2 e 16; P4 0,5 e 5 dias; P5 1 e 10 dias) | **SUS-05 (reescrito)**: unidade fixa por prioridade, formato (vírgula, até 2 casas em horas, 1 em dias, "dia útil" singular até 1,0) | E2E+U | P1 |
+| 66 | S6 = exatamente os 5 valores do briefing 3.4 | **SUS-09 (reescrito):** conjunto exato lido do domínio de `contratos/comum` (`MOTIVOS_ENCERRAMENTO`), 5 valores, rótulos e ordem | E2E | P1 |
+| 72 | Unidades: dias úteis no fluxo; h úteis (P1-P3, S4, EI-SUST) e dias úteis (P4, P5) na Sustentação; nunca minutos nem horas corridas | **CALC-01 e SUS-14 (reescritos)** + SUS-18 | E2E | P1 |
+| 78 | Janela de 12 semanas em todas as granularidades; sem "12 meses (provisória)" | **CALC-07 (reescrito)** + EST-07 | E2E+U | P1 |
+| 94 | axe: zero sérias/críticas bloqueiam; moderadas e leves são relatadas | **A11Y-01 a A11Y-04 (reescritos)** + A11Y-20 | A11Y | P1 |
+| 105 | Texto 6.3.1 em E1, T7, EI-FL2, EI-FL3 (e Visão geral), visual informativo, sem `role="alert"`; idêntico no painel, em `/espera-invisivel` e na Visão geral; sem "provisória" | **EST-07 (novo):** compara o texto dos 3 lugares; verifica ícone "i" (não triângulo), `role="meter"` presente, ausência de `role="alert"`, ausência de sugestão de mudar janela/período, linhas 1 a 3 com `{n}` e `{projetos\|frentes}` corretos; "Remover filtro" só com filtro ativo; Visão geral mostra "Amostra insuficiente ({n} de 20 projetos)" e não conta como "Atenção"; `grep` do DOM por "provisória" nas 8 rotas | E2E | P1 |
+| 106 | Sustentação sem "min" nem horas corridas | **SUS-18 (novo):** varredura regex de `\bmin\b\|minutos?\|horas corridas\|h corridas` em `/sustentacao`, EI-SUST em `/espera-invisivel` e Visão geral (bloco Sustentação), + unidades por cartão (S1 P1-P3 "h úteis", P4-P5 "dias úteis"; S4 e EI-SUST "h úteis"); alvos de S1 iguais à tabela do cartão | E2E | P1 |
+| 107 | Estratégico com `equipe=`/`tipo=`: sem quebrar, sem chip, sem aviso de erro, URL limpa, `aviso-filtros-nao-aplicaveis` só com valores guardados; ao voltar, valores reaparecem; `prioridade=` e `cadencia=` fora de seus painéis removidos em silêncio | **FIL-23 (novo, substitui FIL-21):** (a) link direto com `equipe=fluig&tipo=melhoria` -> sem aviso de erro, URL limpa, aviso "não aplicam" aparece (valores guardados por link compartilhado); (b) abrir o Estratégico sem passar pelo fluxo e sem valores -> sem o aviso; (c) ida e volta preserva; (d) `periodo=4s` vindo do Operacional -> Estratégico usa 12m e a volta restaura 4s; `periodo=6m` vale | E2E | P1 |
+| 108 | T5 ordena por volume (desempate alfabético) em ambas as abas; texto "Ordem por volume de demanda. Não é um ranking."; "Por área" sem selo, destaque nem ordem por parcela de falha; "Foco da meta" só em "Por sistema" | **TAT-15 (novo, substitui INV-09):** ordem das linhas = ordem decrescente do volume lido da tabela; empate alfabético; texto exato; "Por área" sem `Foco da meta` | E2E | P1 |
+| 109 | `mock=` conforme 6.6 | **ST-14 (novo)**, tabela abaixo; ST-12 e ST-03 ajustados (erro do cartão falha em toda tentativa) | E2E | P1 |
+| 110 | testids, ids e chaves da convenção L5 existem | **NAV-13 (novo)**, lista abaixo | E2E | P1 |
+| 111 | Relatório de axe com violações moderadas/leves por tela e tema; cada uma corrigida ou justificada | **A11Y-20 (novo):** o spec de axe grava `e2e/test-results/axe-relatorio.json` (tela, tema, id, impacto, nós) e anexa ao relatório; o QA copia as informativas para `docs/qa/` com status (corrigida/justificada). Falha se existir informativa sem registro de justificativa em `docs/qa/axe-justificativas.md` | A11Y | P2 |
+
+**ST-14 (mock, critério 109)** — um teste por linha da tabela 6.6, todos por URL:
+| Subcaso | Verificação |
+|---|---|
+| `mock=carregando` | todos os cartões em `estado-carregando-*`; permanecem assim depois de aguardar um período sem polling (o teste espera um evento de rede ocioso, não tempo) e após mudar filtro; esqueleto só após 150 ms (caso de componente com relógio falso, ST-11) |
+| `mock=erro` | erro de painel (ST-04) |
+| `mock=vazio` | todos os cartões em `estado-vazio-*` e aviso único no topo |
+| `mock=erro:o3` e lista `erro:o3,t1` | só os cartões da lista falham; "Tentar de novo" falha de novo em todas as tentativas (3 tentativas) |
+| `mock=erro-uma-vez:o3` | falha na primeira carga; "Tentar de novo" recupera; lista por vírgula; recarregar a página falha de novo (estado é por carga) |
+| ids inexistentes (`erro:zzz`, `erro:s1` em `/operacional`) e `mock=xyz` | ignorados sem aviso, sem `aviso-filtros-invalidos`, sem erro no console |
+| Persistência | mudar filtro com `mock` na URL mantém `mock`; links da navegação e "Copiar link" **não** o incluem; `mock` nunca aparece em chips/avisos |
+| Ids válidos da Visão geral | `erro:atencao`, `erro:nivel-tatico`... afetam só o bloco |
+| Domínio de ids | cada id de `IDS_MOCK` (`e2e/fixtures/constantes.ts`) provoca erro no cartão de mesmo código na rota correta (parametrizado) |
+
+**NAV-13 (critério 110):** existem `metrica-BLOQUEADOS`, `base-BLOQUEADOS`, `tabela-BLOQUEADOS` e `estado-vazio-BLOQUEADOS` (quando vazio); `metrica-EI-FL1` a `EI-SUST` com `base-*` e `amostra-insuficiente-*` quando aplicável; `ei-cliente-{fl1|fl2|fl3|sust}`, `ei-time-*`, `ei-indice-*` com os 4 níveis em `/espera-invisivel` e só o do nível nos painéis; `painel-{slug}` dos 7 slugs; `nivel-{operacional|tatico|estrategico|sustentacao}`, `faixa-atencao`, `ei-resumo`; `aviso-consolidado`, `aviso-filtros-invalidos`, `aviso-filtros-nao-aplicaveis`, `aviso-criterio`; âncoras `#bloqueados`, `#ei-fl1` a `#ei-sust`, `#tempo` a `#qualidade` rolam e focam; `seletor-tema` com nome acessível "Tema" e opções Claro/Escuro/Sistema; `localStorage['metricas-dspd:tema']` recebe `claro|escuro|sistema`.
+
+**FIL-12 (ajuste L9):** tabela 2.2 completa, incluindo EI por nível (EI-FL2 "não afetado por Tipo"; EI-FL3 "não afetado por Equipe e Tipo"; EI-SUST "Não afetado por: Prioridade"), BLOQUEADOS e S1 a S7 (equipe SSSC recorta; Prioridade é dimensão em S1 a S3). Parametrizado a partir de uma tabela de fixture `e2e/fixtures/aplicabilidade.ts` (a ser escrita junto do cartão K-006, derivada da tabela 2.2).
+
+### R2.3 Lacunas L1 a L16 (resolução na spec rev. 2)
+| # | Resolução na spec rev. 2 | Efeito no plano | Estado |
+|---|---|---|---|
+| L1 | J1: 12 semanas em tudo; seção 6.3.1 | CALC-07, EST-02, TAT-09, EI-01, EI-06, VG-05 reescritos; E1/EI-FL3 em "insuficiente" é **esperado**; caminho feliz de E1 só por unitário com fixture de 20 projetos | fechada (pergunta 2 segue com o usuário) |
+| L2 | J2: horas úteis; 8 h = 1 dia útil; exibição por prioridade | SUS-05, SUS-13, SUS-14, CALC-01, SUS-18 | fechada (pergunta 11, P1 em plantão, segue com o usuário) |
+| L3 | S6 = 5 valores do briefing 3.4 | SUS-09 lê do domínio | fechada |
+| L4 | O12 só em Compromissos; 5 seções com `h2` e id | OP-02, OP-22 | fechada |
+| L5 | Convenção completa (spec 10) | NAV-13; constantes em `e2e/fixtures/constantes.ts` e page objects `e2e/pages/` | fechada |
+| L6 | Aviso de consolidação com 2+ equipes, inclusive "Todas" | FIL-10 | fechada |
+| L7 | Memória de sessão dos filtros de fluxo; Estratégico remove o não aplicável | NAV-06, FIL-23 (FIL-21 removido) | fechada |
+| L8 | Não aplicável = silencioso | FIL-24, FIL-23 | fechada |
+| L9 | Tabela 2.2 cobre EI, BLOQUEADOS, S1-S7 | FIL-12 | fechada |
+| L10 | T5 sem ranking | TAT-15 (INV-09 removido) | fechada |
+| L11 | Requisito 9.2: tipo < 20 no consolidado padrão (12 semanas) | GER-05 (U) e CALC-05 (E2E) viram pré-requisito do cartão K-006; se GER-05 falhar, bug do gerador, não da UI | fechada na spec; **depende de verificação no gerador** |
+| L12 | T4: soma de chegadas e saídas | TAT-07 | fechada (alternativa conservadora segue como pergunta 20) |
+| L13 | `mock` definido (6.6) | ST-14, ST-03, ST-09, ST-12 | fechada |
+| L14 | Texto de que Incidente/Requisição do BM não têm relação com chamados do Acelerato | INV-11 + FIL-20 verificam o texto da dica e do glossário da `/ajuda` | fechada |
+| L15 | Início do histórico vem da fonte | FIL-11 | fechada |
+| L16 | axe: sérias/críticas bloqueiam; demais relatadas | A11Y-01 a A11Y-04, A11Y-20 | fechada |
+
+### R2.4 Outros ajustes
+- **Estados e atributos para medição e teste (R2.9):** o plano passa a exigir `data-estado` em cada `metrica-*`.
+- **ST-01 (rev.):** CLS do esqueleto medido por PERF-02, não por contagem manual. **ST-03 (rev.):** use `erro-uma-vez:o3` para provar a recuperação e `erro:o3` para provar que a falha persiste.
+- **CALC-14 / CALC-13:** continuam; o hash da base também é conferido em `TZ=UTC` e `Asia/Tokyo` (EXT-06).
+- **A11Y-01 e INV-01..05 rodam por cartão (portão G),** na rota do cartão e nos dois temas; a rodada completa das 9 telas x 2 temas é o portão final.
+- **Marcador de critério (CALC-08):** parametrizado por métrica na rota do cartão; 02/03/2026 para fluxo e 01/06/2026 para Sustentação.
+
+### R2.5 Matriz: cartão da fase B -> casos (quando o Jarvis aciona o QA)
+**Portão G (16 casos, rodar em toda rota de cartão, nos 2 temas):** CALC-01, CALC-02, CALC-03, CALC-04, INV-01, INV-02, INV-03, INV-04, INV-05, A11Y-01 (rota x 2 temas), A11Y-08, A11Y-09, A11Y-16, NOTA-01, NOTA-02, NOTA-03. Mais, em todo cartão: `npm run check`, `npm run build`, `npm run size` (PERF-06/08/09) e `npm run fronteiras` (FRONT-01..04) como pré-condição.
+
+| Cartão | Escopo | Casos específicos do cartão (E2E/A11Y; unitários ficam com o `react-frontend`) | Nº específicos | + G | Total |
+|---|---|---|---|---|---|
+| **K-022** shell e filtros | cabeçalho, navegação, rotas, 404, tema, `/ajuda`, barra de filtros, URL, `?mock=` | NAV-01..05, NAV-07..13 (12, sem NAV-06 completo), AVI-01..05, FIL-01..20 (20), FIL-22, FIL-24, ST-04, ST-10, ST-12, ST-13, ST-14 (parte `carregando`/`erro`/`vazio`/inválido com placeholders), A11Y-05, A11Y-06, A11Y-07, A11Y-10, A11Y-12, A11Y-13, A11Y-14, A11Y-15, A11Y-17, A11Y-19, RESP-01, RESP-02, RESP-03, RESP-05, RESP-08, BLD-01, BLD-02, BLD-03, PERF-01 (smoke de LCP em `/`), PERF-06 | 12+5+22+7+10+5+3+2 = **66** | G não se aplica (sem cartões); roda A11Y-01 só em shell/404/`/ajuda` | **66** |
+| **K-006** FL1 diário (O2, BLOQUEADOS, O1) | O1 a O4 do diário e bloqueados | OP-01, OP-03, OP-04, OP-05, OP-06, OP-07, OP-08, OP-09, OP-21, OP-24, ST-01, ST-02, ST-03, ST-05, ST-06, FIL-10, FIL-12, CALC-05 (Operacional), CALC-17, NAV-06 (fluxo), NAV-07 (`#o2`, `#bloqueados`), PERF-04/05 (troca de filtro no diário) | **22** | 16 | **38** |
+| **K-023** FL1 restante (semanal: O3, O9, EI-FL1, O4, O12, O10, O7, O15, O18) | semanal inteira | OP-02, OP-10..OP-20 (11), OP-22, OP-23, EI-04 (FL1), EI-01 (parte FL1), EI-07 (FL1), CALC-05, CALC-06, CALC-08, FIL-12, FIL-14, ST-03 (`erro:o3`), ST-09 (parte), PERF-02/04/05/15 na rota semanal, PERF-08 | **27** | 16 | **43** |
+| **K-007** FL2 (T1 a T5, T7, T9, EI-FL2) | Tático | TAT-01..06, TAT-08, TAT-09, TAT-10, TAT-15 (10), EI-04 (FL2), EI-06 (FL2), EI-07 (FL2), CALC-05 (Tático), CALC-06, CALC-07, CALC-08, FIL-12, ST-09 (parte), PERF-04/05/02 | **20** | 16 | **36** |
+| **K-024** FL3 (E1 a E3, EI-FL3) | Estratégico | EST-01..05, EST-07 (6), EI-04 (FL3), EI-06 (FL3), EI-07 (FL3), CALC-07, FIL-23, NAV-06 (ida e volta ao Estratégico, completo), FIL-12, ST-09 (parte), PERF-02 | **14** | 16 | **30** |
+| **K-008** Sustentação (S1 a S7, EI-SUST) | Acelerato | SUS-01, SUS-02, SUS-04..SUS-11 (8), SUS-14, SUS-16, SUS-17, SUS-18, FIL-08, FIL-12, INV-06, INV-11, EI-04 (SUST), CALC-05 (Sustentação), CALC-08 (01/06/2026), ST-09 (parte), FRONT-01..06 (revalidar), PERF-02/04/05 | **26** | 16 | **42** |
+| **K-025** Espera invisível (`/espera-invisivel`, EI compacto) | EI nos 4 níveis | EI-01, EI-02, EI-03, EI-05, EI-06, EI-07, EI-08, EI-09, EST-07 (comparação painel x `/espera-invisivel`), CALC-06 (4 granularidades separadas), FIL-12 (EI), FIL-10 (blocos), ST-09 (`erro:ei-*`) | **13** | 16 | **29** |
+| **K-026** Visão geral | `/` | VG-01, VG-02, VG-03, VG-05, VG-06, VG-07, VG-10, VG-11, EST-07 (Visão geral), FIL-... ST-09 (`erro:atencao`, `erro:nivel-*`), AVI (`/`), PERF-01 (F1 completo em `/`) | **12** | 16 | **28** |
+| **Portão final** (após K-026) | tudo junto | XBR-01, A11Y-01 (18 execuções), A11Y-02, A11Y-03, A11Y-04, A11Y-11, A11Y-18, A11Y-20, RESP-04, RESP-06, RESP-07, CALC-09 (build `dist-alt`), CALC-14, ST-07, ST-08, ST-09 (completo), INV-07, INV-08, NAV-12, PERF-01..16 completos, EXT-02..07 (revalidação), FRONT-01..06 | **19 + PERF 16 + FRONT 6** | — | **41** |
+
+Contagem por cartão = casos que o QA executa naquele acionamento (soma específicos + portão G). Não somar o total das linhas: casos que repetem entre cartões (por exemplo FIL-12, ST-09, PERF-04/05) são contados em cada um onde são executados. Casos únicos do plano: 243 (R2.1). Os unitários (CALC-10 a CALC-16, GER-01 a GER-09, TAT-07, TAT-11 a TAT-14, SUS-03, SUS-12, SUS-13, SUS-15 etc.) continuam do `react-frontend` e são exigidos como pré-condição de cada cartão (regra 7 da seção 7: um teste de fixture por regra do briefing 4.2).
+
+**Dependências de dados por cartão:** K-006 exige GER-05 (a) e (i) (tipo < 20 no consolidado padrão, itens acima do P95 hoje); K-007 exige (b) e (c) e frentes >= 20 na janela; K-024 exige (f), (g) e projetos concluídos < 20 na janela de 12 semanas com pelo menos 12 meses de projetos; K-008 exige (d), (h) e chamados em horas úteis.
+
+### R2.6 Performance (ADR 0003): casos e o que bloqueia
+Ferramentas prontas em `e2e/`: `npm run size` (F6 a F9), `npm run test:perf` (F1 a F5, C5, C6), `npm run lighthouse` (F10), e `npm run perf:tudo`. O QA registra os números reais (mediana, p95, primeira medição a frio, máquina e versões) em `docs/qa/` e na ata do checkpoint.
+
+| ID | Item ADR 0003 | O que mede | Orçamento | Bloqueia a entrega | Como | Quando |
+|---|---|---|---|---|---|---|
+| PERF-01 | F1 | LCP em `/`, carga fria, desktop 1366x768, 20 repetições (p95) | < 2,0 s | **sim** | `perf/perf.spec.ts` + `perf/lcp.ts` | smoke em K-022; completo na pré-entrega |
+| PERF-02 | F2 | CLS nas 6 rotas | < 0,1 | **sim** | `perf/lcp.ts` (`layout-shift`) | cada cartão (na rota dele) |
+| PERF-03 | F3 | INP das interações de filtro, abas, "Ver como tabela" | < 200 ms | **sim** | `PerformanceObserver('event')` | pré-entrega |
+| PERF-04 | F4 | Troca de filtro: resposta visual, **com** latência do mock ligada, p95 de 20 | < 100 ms | **sim** | `perf/troca-filtro.ts` (`performance.mark`) | cada cartão |
+| PERF-05 | F5 | Troca de filtro: painel inteiro atualizado, **sem** latência simulada, p95 de 20 | < 500 ms | **sim** | idem; exige o modo sem latência (R2.9) | cada cartão |
+| PERF-06 | F6 | JS inicial gzip | < 200 KB | **sim** | `npm run size` | **todo cartão e todo PR** |
+| PERF-07 | F7 | Chunk de cada rota (sem gráficos nem mock) gzip | < 60 KB | não (alerta) | `npm run size` | cada cartão |
+| PERF-08 | F8 | Chunk de gráficos gzip, só em rotas com gráfico | < 130 KB | **sim** | `npm run size` | **todo cartão** |
+| PERF-09 | F9 | Chunk mock + biblioteca fora do inicial (`import()` dinâmico) e tamanho | fora do inicial; < 120 KB | **sim** (fora do inicial); tamanho alerta | `npm run size` (`F9-inicial`) | **todo cartão** |
+| PERF-10 | F10 | Lighthouse desktop, 6 rotas, mediana de 3 execuções | Performance >= 90 e Acessibilidade >= 95 | **sim** | `npm run lighthouse` | pré-entrega (e smoke em K-026) |
+| PERF-11 | C1 | Geração da base + contexto, Node | < 500 ms | **sim** | reexecução do QA da medição da ata (`hash-base-mock` imprime `geracaoMs`; contexto pelo teste de tempo do pacote) | fase A (remedição de D6), extração |
+| PERF-12 | C3 | Cálculo de uma métrica, filtros padrão, **inclusive a frio**, p95 | < 50 ms | **sim** | teste de tempo do pacote métricas (QA lê o valor impresso e repete 20x) | fase A (remedição de D6), cada cartão novo |
+| PERF-13 | C4 | Painel inteiro incluindo `VISAO_GERAL` | < 300 ms | **sim** | idem | fase A (remedição), K-026 |
+| PERF-14 | C5 | Heap JS após abrir todos os painéis | < 150 MB | não (alerta) | `perf.spec.ts` (CDP `JSHeapUsedSize`) | pré-entrega |
+| PERF-15 | C6 | Tarefa longa única na thread principal | < 200 ms | **sim**, via F3/F5 | `PerformanceObserver('longtask')` | cada cartão |
+| PERF-16 | alerta | LCP e INP com CPU 4x mais lenta | sem limite bloqueante | não (alerta) | `Emulation.setCPUThrottlingRate` | pré-entrega |
+
+Regras de medição: build de produção (`vite build` + `vite preview`), Chromium do Playwright, cache limpo na carga fria, p95 com 20 repetições e a primeira medição (a frio) entra na amostra e é reportada à parte; filtros padrão e o pior filtro (período máximo); no CI usar os limites folgados dos testes do pacote (3x) e verificar o valor do orçamento na máquina de referência. Item que bloqueia e está fora vira bug de severidade alta para o `react-frontend` (ou exceção registrada na ADR 0003 com prazo, aprovada por arquiteto e tech-lead).
+
+### R2.7 Extração para pacotes (D3 / ADR 0002): hash antes e depois
+| ID | Cenário | Como | Prio |
+|---|---|---|---|
+| EXT-01 | **Linha de base** com a fase A aprovada: registrar hash da base, número de testes e bundle | `npm run hash-base -- --salvar ../docs/qa/evidencias/hash-base-aprovada.json`; `npm test` em `web/` (contar testes); `npm run size` | P1 |
+| EXT-02 | **Depois do commit mecânico**: mesmo hash (base, BM e AC) e mesma semente/contagens | `npm run hash-base -- --comparar ../docs/qa/evidencias/hash-base-aprovada.json` (o script acha `packages/mock/src` sozinho); qualquer diferença reprova e a extração é desfeita, **nunca** se ajusta o hash | P1 |
+| EXT-03 | Mesmo número de testes unitários e todos verdes (raiz, todos os workspaces) | `npm run check` na raiz; comparar contagem com EXT-01 | P1 |
+| EXT-04 | Fronteiras por pacote (lint) e verificação independente | `npm run fronteiras`; mais um teste negativo (arquivo temporário que viola cada regra do ADR 0002 deve falhar o lint) fora do repositório | P1 |
+| EXT-05 | Bundle depois da extração: F6, F8, F9 (gerador e biblioteca continuam fora do inicial; `sideEffects: false`) | `npm run build` + `npm run size` comparado ao EXT-01 (variação do inicial < 5%) | P1 |
+| EXT-06 | Hash independente de fuso | `TZ=UTC` e `TZ=Asia/Tokyo` dão o mesmo hash (antes e depois) | P2 |
+| EXT-07 | Correção prévia de `CRITERIOS_MOCK` (passo 2 do ADR, commit separado) não muda dados | hash antes e depois do commit separado idênticos; FRONT-01 passa a verde | P1 |
+| EXT-08 | Memoização de D6 não muda resultado | hash da base idêntico e testes de métrica iguais antes e depois das otimizações; PERF-12/13 reexecutados | P1 |
+
+A linha de base provisória (fase A em curso, **não** é a base aprovada): semente 20261009, `hashBase 924448d4`, `hashBusinessMap f780e90f`, `hashAcelerato 0113e077`, 5.788 cards, 6.062 chamados, geração 151 ms. Está salva em `docs/qa/evidencias/hash-base-fase-a.json`; a base aprovada deve ser regravada com `--salvar` quando o tech-lead aprovar a fase A.
+
+### R2.8 Regra BM x AC (inclusive o gerador)
+| ID | Cenário | Como | Prio |
+|---|---|---|---|
+| FRONT-01 | **O gerador do Acelerato não importa nada do BusinessMap** (nem catálogos, nem constantes, nem tipos), por caminho relativo, alias ou pacote; idem no sentido contrário | `npm run fronteiras` (lê imports estáticos, dinâmicos e `export from` de `mock/acelerato` e `mock/businessmap`) | P1 |
+| FRONT-02 | `metricas/businessmap` e `metricas/acelerato` não se importam (nem por `@metricas-dspd/metricas/<outro>`) | idem | P1 |
+| FRONT-03 | Painel não calcula: `web/src` (fora de `data/mock`) não importa `metricas` nem `mock` | idem | P1 |
+| FRONT-04 | `Math.random`, `Date.now`, `new Date()` sem argumento e getters locais fora de `metricas` e `mock` | idem | P2 |
+| FRONT-05 | Independência dos sub-geradores: mudar volume do Acelerato não altera o hash do BusinessMap e vice-versa; nenhum ID/campo compartilhado entre as bases | `npm run hash-base` com configuração alterada (executado via teste GER-01 do `react-frontend`; QA confere a existência e roda a variação de volume) | P1 |
+| FRONT-06 | Nenhum cálculo, histograma, percentil ou previsão mistura as fontes (E2E: INV-06, SUS-02) e a Visão geral/EI mostram blocos separados com a fonte de cada um | E2E | P1 |
+
+Estado hoje: FRONT-01 **reprova** (`web/src/mock/acelerato/gerador.ts:31`, bug 001); FRONT-02 a FRONT-04 passam.
+
+### R2.9 Contrato de DOM e de build a combinar com o `react-frontend` (pendências)
+1. `data-estado` em cada `metrica-*` com os valores `carregando | atualizando | pronto | vazio | insuficiente | erro` (ADR 0003, "Como cada item é medido"); hoje o app só tem `aria-busy` no esqueleto. O helper `perf/troca-filtro.ts` cai para `aria-busy` e para a mudança do texto do `main`, mas sem `data-estado` não distingue "atualizando" de "pronto" com precisão.
+2. Modo **sem latência simulada** da fonte mock (opção do construtor ou variável de build); o teste lê o nome do parâmetro na variável `PERF_QUERY_SEM_LATENCIA` (por exemplo `latencia=0`).
+3. `data-testid` de `filtro-{equipe|tipo|sistema|periodo|prioridade}` e `seletor-tema` (a spec manda; hoje só `barra-filtros`, `limpar-filtros`, `abrir-filtros` existem).
+4. Manifest do Vite (`build.manifest: true`) é opcional; o script de tamanho classifica por análise do `index.html` e dos imports estáticos.
+5. `eslint.config.js` e build verdes (D6) para o portão de entrada de K-022.
+
+### R2.10 Automação entregue nesta etapa (em `e2e/`, sem testes de tela ainda)
+- `perf/lcp.ts` (LCP, CLS, tarefas longas e INP por `PerformanceObserver`, carga fria em contexto novo, CPU 4x), `perf/troca-filtro.ts` (marcas `filtro-clique`, `filtro-resposta-visual`, `painel-atualizado`), `perf/estatistica.ts` (mediana, p95), `perf/perf.spec.ts` (projeto `perf`).
+- `scripts/tamanho-bundle.mjs` (gzip por chunk lendo `web/dist`, Node puro), `scripts/hash-base-mock.mjs` (hash antes/depois da extração), `scripts/verificar-fronteiras.mjs` (BM x AC e fronteiras), `scripts/lighthouse.sh` + `lighthouse/lighthouserc.cjs` (Lighthouse CI, 6 rotas, desktop).
+- `pages/` (`PainelPage`, `BarraFiltros`, `CartaoMetrica`, `Cabecalho`) e `fixtures/base.ts` (axe com separação entre bloqueantes e informativas, coleta de erros de console), `fixtures/constantes.ts` (testids, ids de `mock`, slugs, orçamento).
+- Ambiente: o Chromium do Playwright precisa de `libnspr4`, `libnss3` e `libasound2`; sem sudo, extrair os `.deb` e usar `LD_LIBRARY_PATH` (ver seção 12) ou rodar `sudo npx playwright install-deps chromium`.
+
+---
 
 ## 1. Escopo
 
@@ -439,4 +602,18 @@ Cada item precisa de decisão antes de o caso respectivo ser fechado. Destino su
 | L16 | Critério C94 fala "sem violações sérias ou críticas"; a skill do QA também. Violações moderadas/leves seriam só relatadas; confirmar que o time aceita | A11Y-01 a A11Y-04 |
 
 ## 12. Resultado da execução
-Não executado: o app (`web/`) ainda não existe. Esta seção será preenchida com data, ambiente (commit, navegador), aprovados/falhos por prioridade e links para `docs/qa/bugs/`.
+**Nenhum E2E de tela foi executado** (o app está na fase A, sem shell completo nem painéis). Registro das verificações feitas em 2026-10-09 ao preparar a rev. 2, na máquina de desenvolvimento (WSL2, Node v24.21.0):
+
+| Verificação | Resultado |
+|---|---|
+| `npm install` em `e2e/` | ok (Playwright 1.64.0, axe-core/playwright 4.13.0, TypeScript 5.9.3, `@lhci/cli` 0.15.x) |
+| `npx playwright install chromium` | baixado (Chromium 156.0.8078.4, headless shell v1248) |
+| Lançar o Chromium | **falha** sem as bibliotecas do sistema `libnspr4`, `libnss3`, `libasound2` (sem sudo). Contorno validado: baixar os `.deb` (`apt-get download libnspr4 libnss3 libasound2t64`), extrair com `dpkg -x` num diretório local e exportar `LD_LIBRARY_PATH=<dir>/usr/lib/x86_64-linux-gnu`; com isso o Chromium abre. Solução definitiva: `sudo npx playwright install-deps chromium` |
+| `tsc --noEmit` em `e2e/` | ok |
+| `playwright test --list` | ok (9 testes do projeto `perf` carregam; config com `E2E_SEM_ALT=1` dispensa o segundo servidor) |
+| `npm run size` contra o `web/dist` existente (build de 19:04, fase A incompleta) | F6 JS inicial 171,54 KB gzip (< 200: ok); F8 chunk com gráficos 107,4 KB (< 130: ok); F9 mock + biblioteca 25,63 KB, fora do inicial (ok); F7 todas as rotas < 1 KB (placeholders). Valores provisórios: os painéis ainda não existem |
+| `npm run fronteiras` | **falha**: `web/src/mock/acelerato/gerador.ts` importa `../businessmap/catalogos` (bug 001); sem outras violações |
+| `npm run hash-base` | ok: `hashBase 924448d4`, BM `f780e90f`, AC `0113e077`, 5.788 cards, 6.062 chamados, geração 151 ms; repetição idêntica |
+| Lighthouse, PERF-01 a PERF-05, PERF-14 a PERF-16 | não executados (dependem do app) |
+
+Bugs abertos: `docs/qa/bugs/001-gerador-acelerato-importa-businessmap.md` (média, `react-frontend`).
