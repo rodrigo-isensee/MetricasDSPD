@@ -1,7 +1,7 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-09 20:22 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
-> WIP: Empatizar 0/2 · Idear 0/2 · Pronto para fazer 2/5 · Em andamento 3/3 (3 cartões de bug) · Code review 0/2 · QA 0/2 · Aguardando validação 0/2 · Bloqueados: 2 (pais K-004 e K-022 aguardando bugs; fora do WIP por exceção) (auditoria K-021 em 2026-10-09: limites revisados, ver `docs/kanban/melhorias.md`)
+> Atualizado em: 2026-10-09 20:53 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
+> WIP: Empatizar 1/2 · Idear 0/2 · Pronto para fazer 2/5 · Em andamento 1 por agente: react-frontend 3 (lote de retrabalho, exceção), software-architect 1, qa-engineer 1, node-backend 1 · Code review 0/2 · QA 0/2 · Aguardando validação 0/2 · Bloqueados: 2 (pais K-004 e K-022 aguardando bugs; fora do WIP por exceção) (auditoria K-021 em 2026-10-09: limites revisados, ver `docs/kanban/melhorias.md`)
 > Item mais antigo em andamento: K-004 (pai, bloqueado aguardando bugs; cycle time corrido desde 2026-10-09 17:58). Retrabalho aberto: K-027, K-028, K-029 (40 achados: 14 do code review, 26 da UX)
 > Pedido 001 sem validações intermediárias (pedido 005): o upstream usa a especificação de UX existente; a única validação do usuário é o PR final.
 
@@ -20,11 +20,14 @@
 | K-009 | QA: automação E2E + axe, suíte completa e parecer em `docs/qa/` | 001 | qa-engineer | 2026-10-09 | 2026-10-09 | Começa por painel, conforme cada cartão B chega ao QA |
 | K-010 | Revisão de UX da interface implementada | 001 | ux-designer | 2026-10-09 | 2026-10-09 | Após QA dos painéis |
 | K-011 | Pré-entrega, envio da branch e descrição do PR | 001 | tech-lead | 2026-10-09 | 2026-10-09 | Após parecer do QA |
+| K-035 | Discovery: métricas fora do núcleo | 006 | ux-designer | 2026-10-09 | 2026-10-09 20:53 | Upstream; entra em Empatizar quando houver vaga |
+| K-036 | Discovery: lacuna de valor na sustentação | 006 | ux-designer | 2026-10-09 | 2026-10-09 20:53 | Upstream; entra em Empatizar quando houver vaga |
 | K-017 | Migrações iniciais e seed MySQL com os dados mockados | 002 | node-backend | 2026-10-09 | 2026-10-09 | Após K-014 |
 
 ## Empatizar e definir (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-034 | Discovery: integração real (BusinessMap e Acelerato) | 006 | ux-designer | 2026-10-09 | 2026-10-09 20:53 | Viabilidade pelo software-architect em seguida |
 
 ## Idear e prototipar (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -43,15 +46,19 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-030 | Portão automático (`npm run pronto`), matriz `REGRAS_METRICA`, testes de propriedade e orçamento de performance no check | 001 | react-frontend (spec da matriz: software-architect) | 2026-10-09 | 2026-10-09 20:46 | Primeiro cartão da fase B (M-004, M-005); após K-027/K-028 |
 | K-014 | Arquitetura completa: overview, data-model, ADRs, roadmap | 002 | software-architect + tech-lead | 2026-10-09 | 2026-10-09 | Após K-016, em `feature/arquitetura-mysql` (worktree) — D4 |
 | K-016 | Monorepo: ADR 0002 + extração para `packages/` | 002 | software-architect (ADR) + react-frontend (extração) | 2026-10-09 | 2026-10-09 | D2/D3 da ata: ADR escrita junto com K-018; extração após review e QA da fase A |
 
-## Em andamento (WIP 3)
+## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-027 | [bug] Code review fase A: 10 bloqueantes + 4 recomendados (EI por tipo/prioridade, fronteira BM x AC e lint, spread min/max, orçamento de performance, latência mock D7, testes) | 001 | react-frontend | 2026-10-09 | 2026-10-09 20:22 | origem: code review; pai: K-004, K-022; severidade: bloqueante; parecer: docs/reviews/001-fase-a.md (versão final: 14 bloqueantes, 19 recomendados; inclui arquivado≠descartado, T5 ordem neutra, testes de ~20 métricas, lint de charts); decisões Q1–Q6 em docs/alinhamentos/2026-10-09-decisoes-review-fase-a.md; inclui bug QA docs/qa/bugs/001 (mesmo achado do CRITERIOS_MOCK); voltas: 0 |
 | K-028 | [bug] UX fase A: 8 altos (A1 a A8: aviso de consolidação, parâmetros e sessão, períodos do Estratégico, remover filtro, janela do O4, variante lenta, cabeçalho, período em andamento) | 001 | react-frontend | 2026-10-09 | 2026-10-09 20:22 | origem: UX; pai: K-004, K-022; severidade: alto; parecer: docs/reviews/001-fase-a-ux.md A1 a A8 + docs/reviews/001-fase-a-ux-adendo.md v1-A4, v1-A6, v1-A7; voltas: 0 |
 | K-029 | [ajuste] UX fase A: médios M1 a M10 e baixos B1 a B8 | 001 | react-frontend | 2026-10-09 | 2026-10-09 20:22 | origem: UX; pai: K-004, K-022; severidade: médio; parecer: docs/reviews/001-fase-a-ux.md M1 a M10, B1 a B8 (o parecer conta 10 médios e 8 baixos) + adendo v1-M (7 médios); voltas: 0 |
+| K-031 | Spec da matriz `REGRAS_METRICA` (insumo de K-030) | 001 | software-architect | 2026-10-09 | 2026-10-09 20:53 | Doc em `docs/architecture/`; libera K-030 |
+| K-032 | Aceitação dos cartões B (K-023..K-026) | 001 | qa-engineer | 2026-10-09 | 2026-10-09 20:53 | Critérios e roteiros em `docs/qa/aceitacao/` |
+| K-033 | Rascunho do contrato da API (002) | 002 | node-backend | 2026-10-09 | 2026-10-09 20:53 | Worktree 002; só documento em `docs/api/` |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -96,11 +103,14 @@ Cartões de processo e reuniões não contam no WIP do fluxo de entrega nem em l
 | K-019 | Popular o quadro e o histórico | 004 | jarvis | Feito 2026-10-09 18:50 | — |
 | K-020 | Commit dos arquivos de time e dos pedidos 002–005 | 005 | tech-lead | Feito 2026-10-09 | 6b2b3eb, 9f11794, 43cb7ad, afb6382 |
 | K-021 | Auditoria do quadro e limites de WIP iniciais | 004 | agile-coach | Feito 2026-10-09 | Mudanças no histórico e em `melhorias.md` |
+| K-037 | Pedido 006: paralelismo e discovery adiantado | 006 | jarvis | Em curso desde 2026-10-09 20:53 | `docs/pedidos/006-*.md`; gera K-034..K-036 |
+| K-038 | Reunião de melhoria nº 1 (fase A) | 006 | jarvis | Feito 2026-10-09 | Ata `docs/alinhamentos/2026-10-09-melhoria-01-fase-a.md`; M-004..M-012; branch `develop` e worktree 002 (84d8f14); gerou K-030 |
 
 ## Políticas locais (acrescentadas na auditoria K-021)
 - **Entrada é o backlog:** cartão com dependência aberta de outro cartão fica em Entrada; só entra em "Pronto para fazer" o que pode ser puxado agora (a espera por ata de reunião em andamento é a única exceção, e deve constar em Obs.).
 - **Code review, QA e revisão de UX são colunas, não cartões:** não criar cartão para revisar outro cartão. K-009, K-010 e K-011 são trabalho próprio (automação E2E, revisão de UX, pré-entrega) e não duplicam as colunas.
-- **Um cartão em "Em andamento" por agente**, salvo reunião.
+- **Um cartão em "Em andamento" por agente**, salvo reunião e o lote de retrabalho do mesmo autor (K-027..K-029, ver política de bugs). Ver pedido 006.
+- **Reunião de melhoria a cada entrega (M-011):** ao fim de cada entrega ao usuário, o Jarvis convoca reunião de melhoria e registra ata e experimentos em `melhorias.md`.
 - **Tamanho:** um cartão por conjunto coeso de métricas ou por uma entrega revisável de uma vez; se o review não cabe numa sessão, dividir.
 - **Aguardando sua validação:** limite 2 (para o PR não acumular; o usuário é a vaga limitante).
 
