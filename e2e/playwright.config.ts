@@ -25,7 +25,9 @@ export default defineConfig({
       reuseExistingServer: !CI,
       timeout: 180_000,
     },
-    {
+    ...(process.env.E2E_SEM_ALT
+      ? []
+      : [{
       // semente alternativa: o diretório de saída é separado para não sobrescrever o build padrão
       command:
         `VITE_MOCK_SEMENTE=7 npm --prefix ../web exec -- vite build --outDir dist-alt --emptyOutDir && ` +
@@ -33,13 +35,22 @@ export default defineConfig({
       url: `http://localhost:${PORTA_ALT}`,
       reuseExistingServer: !CI,
       timeout: 180_000,
-    },
+    }]),
   ],
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
       testIgnore: /semente-alt\.spec\.ts/,
+    },
+    {
+      // Medição de performance (ADR 0003): desktop 1366x768, build de produção. Rode com `npm run test:perf`.
+      name: 'perf',
+      testDir: './perf',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 768 }, trace: 'off', screenshot: 'off' },
+      fullyParallel: false,
+      workers: 1,
+      timeout: 120_000,
     },
     {
       name: 'chromium-semente-alt',

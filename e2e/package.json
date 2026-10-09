@@ -9,10 +9,17 @@
     "test:chromium": "playwright test --project=chromium --project=chromium-semente-alt",
     "test:smoke": "playwright test --grep @smoke",
     "report": "playwright show-report",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:perf": "playwright test --project=perf",
+    "size": "node scripts/tamanho-bundle.mjs",
+    "lighthouse": "bash scripts/lighthouse.sh",
+    "hash-base": "node scripts/hash-base-mock.mjs",
+    "fronteiras": "node scripts/verificar-fronteiras.mjs",
+    "perf:tudo": "npm run size && npm run test:perf && npm run lighthouse"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.50.0",
     "@types/node": "^22.0.0",
     "typescript": "^5.6.0"
