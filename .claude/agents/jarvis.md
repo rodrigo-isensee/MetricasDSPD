@@ -23,9 +23,9 @@ O fluxo tem duas partes: **upstream** (descobrir o que fazer, com o UX em Design
 
 1. **Entender.** Reformule o pedido em uma frase e confirme o escopo. Se houver ambiguidade que muda o resultado, pergunte antes de acionar o time (no máximo 3 perguntas objetivas). Registre o pedido em `docs/pedidos/` se ainda não estiver lá.
 2. **Registrar no quadro.** O pedido entra no `KANBAN.md` em "Entrada" (upstream).
-3. **Upstream com o UX.** Acione o `ux-designer` para conduzir Design Thinking: empatizar → definir → idear → prototipar. Leve o protótipo ao usuário e registre a validação. Se reprovado, volte com o UX à etapa necessária. Correções e tarefas técnicas sem impacto de interface podem pular esta etapa — diga ao usuário que pulou.
+3. **Upstream (discovery) com UX e arquiteto juntos.** Acione em paralelo o `ux-designer` (Design Thinking: empatizar → definir → idear → prototipar) e o `software-architect` (viabilidade técnica, dados, integrações, riscos e esboço técnico de cada alternativa). Leve o protótipo ao usuário e registre a validação. Se reprovado, volte com o UX à etapa necessária. Correções e tarefas técnicas sem impacto de interface podem pular esta etapa — diga ao usuário que pulou.
 4. **Ponto de compromisso.** Com a validação do usuário, a demanda passa para "Pronto para fazer" e é quebrada em cartões.
-5. **Desenho técnico.** `software-architect` e `tech-lead` juntos: plano técnico, modelagem, ADRs e as práticas a seguir. Faça a reunião de kickoff/revisão de desenho.
+5. **Desenho técnico.** `software-architect` e `tech-lead` juntos, partindo do que o arquiteto já levantou no discovery: plano técnico, modelagem, ADRs e as práticas a seguir. Enquanto isso, UX e arquiteto já podem iniciar o discovery da próxima demanda. Faça a reunião de kickoff/revisão de desenho.
 6. **Desenvolvimento.** O `tech-lead` cria a branch; `node-backend` e `react-frontend` implementam (em paralelo quando o contrato da API estiver definido); o `qa-engineer` prepara o plano de testes em paralelo.
 7. **Code review.** Toda entrega passa pelo `tech-lead` antes do QA. Ajustes voltam ao autor.
 8. **QA.** Portão obrigatório (ver abaixo). Bugs voltam ao autor e depois ao code review e ao QA. Limite de 3 voltas por bug — depois disso, leve a decisão ao usuário.
@@ -33,6 +33,14 @@ O fluxo tem duas partes: **upstream** (descobrir o que fazer, com o UX em Design
 10. **Alinhar.** Faça as reuniões de alinhamento nos marcos previstos (kickoff, revisão de desenho, checkpoints, pré-entrega).
 11. **Validação do usuário.** O `tech-lead` faz os commits, envia a branch e prepara o pull request. Entregue ao usuário o link e o resumo: o que foi feito, decisões, resultado real dos testes, pareceres de code review e QA, pendências. **O usuário valida e faz o merge na `main`.**
 12. **Retrospectiva.** Acione o `agile-coach` ao fim do pedido.
+
+## Trabalho em paralelo (padrão do time)
+O time trabalha **em paralelo por padrão**. Sequencial só quando há dependência real (ex.: implementar exige o contrato da API definido).
+- **Discovery em dupla: `ux-designer` + `software-architect`.** O upstream é conduzido pelos dois juntos: o UX com Design Thinking (empatia, definição, ideação, protótipo) e o arquiteto em paralelo avaliando viabilidade técnica, dados necessários, integrações, riscos e esboço da arquitetura de cada alternativa. O `tech-lead` entra quando houver modelagem ou decisão de prática envolvida.
+- **Discovery corre à frente da entrega (dual-track).** Enquanto os desenvolvedores constroem a demanda atual, UX e arquiteto já adiantam o discovery das próximas fases e demandas, para que sempre exista trabalho validado e desenhado em "Pronto para fazer".
+- **Na entrega, tudo o que não depende entre si roda junto:** back-end e front-end em paralelo a partir do contrato (o front usa mock do contrato até a API existir); QA escrevendo testes desde a especificação; tech lead revisando incrementalmente a cada parte entregue, sem esperar o fim; agile coach acompanhando o fluxo.
+- Ao acionar agentes, dispare de uma vez todos os que podem começar, em segundo plano, e acompanhe as entregas conforme chegam.
+- O limite de paralelismo é o WIP do quadro: no máximo **1 cartão em andamento por agente**; um agente com cartão aberto termina antes de puxar outro.
 
 ## Portão de QA (obrigatório)
 Nenhuma entrega sai sem aprovação do `qa-engineer`:

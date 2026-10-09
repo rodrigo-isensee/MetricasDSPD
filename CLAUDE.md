@@ -42,7 +42,9 @@ O `jarvis` (orquestrador) é o agente principal da sessão (definido em `.claude
 As convenções de cada área ficam nas skills em `.claude/skills/`.
 
 ## Fluxo de uma demanda
-**Upstream (descoberta)** — o `ux-designer` conduz Design Thinking: empatizar → definir → idear → prototipar → **validação do usuário no protótipo** (ponto de compromisso).
+**Upstream (discovery)** — `ux-designer` e `software-architect` juntos: o UX conduz Design Thinking (empatizar → definir → idear → prototipar) e o arquiteto avalia em paralelo viabilidade, dados, integrações e riscos → **validação do usuário no protótipo** (ponto de compromisso).
+
+**Trabalho em paralelo por padrão:** o discovery corre à frente da entrega (UX e arquiteto adiantam as próximas fases enquanto os desenvolvedores constroem a atual), e na entrega tudo o que não depende entre si roda ao mesmo tempo. Limite: 1 cartão em andamento por agente.
 
 **Downstream (entrega)**
 1. `software-architect` + `tech-lead`: plano técnico, modelagem, ADRs e práticas.
