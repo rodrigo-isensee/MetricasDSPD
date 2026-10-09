@@ -1,35 +1,38 @@
 # Práticas de engenharia — MetricasDSPD
 
-Versão 1 · 2026-10-09 · Mantido por tech-lead + software-architect (K-015, decisão D9 da ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`).
+Versão 2 · 2026-10-09 (alinhada às ADRs 0002 e 0003) · Mantido por tech-lead + software-architect (K-015, decisão D9 da ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`).
 Base: skill `.claude/skills/engineering-practices/SKILL.md`. Este arquivo prevalece sobre a skill; decisões estruturais ficam em ADR (`docs/architecture/adr/`). Divergência entre tech-lead e arquiteto vira ADR com as duas posições.
 
 Regras marcadas **[lint]** ou **[CI]** são verificadas por máquina; as demais, no code review.
 
 ## 1. Estrutura e fronteiras
-Estrutura alvo (D2, ADR 0002): monorepo com npm workspaces, escopo `@metricas-dspd/*`, pacotes como TS-fonte.
+Estrutura alvo (D2): monorepo com npm workspaces, escopo `@metricas-dspd/*`, pacotes como TS-fonte (sem build próprio), grafo `contratos ← metricas ← mock`. Fonte da verdade: [ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md) (seções "Estrutura" e "Fronteiras garantidas por lint"); a tabela abaixo é o resumo para o dia a dia.
 
 | Pacote | Conteúdo | Pode importar |
 |---|---|---|
-| `packages/contratos` | DTOs, filtros, schemas zod, interface de resultado | nada do projeto |
-| `packages/metricas` (`/core`, `/businessmap`, `/acelerato`) | toda a lógica de cálculo (T2.5) | `contratos`; `businessmap` e `acelerato` só importam `core` |
-| `packages/mock` | gerador determinístico das bases fictícias | `contratos` |
-| `server/` | API, coletor, migrações | `contratos`, `metricas` |
-| `web/` | telas | `contratos`; `data/` também `metricas` e `mock` |
-| `e2e/` | Playwright + axe | nada de código de produção |
+| `@metricas-dspd/contratos` (`packages/contratos`) | DTOs, filtros, `MetricaId`, domínios fechados, schemas zod | só `zod` (nada do projeto, sem React/DOM) |
+| `@metricas-dspd/metricas` (`packages/metricas`; exports `.`, `./core`, `./businessmap`, `./acelerato`) | toda a lógica de cálculo (T2.5) | `contratos`. Dentro do pacote: `core` não importa ninguém do pacote; `businessmap` e `acelerato` importam só `core`; a raiz `.` (orquestração) importa os dois domínios |
+| `@metricas-dspd/mock` (`packages/mock`) | gerador determinístico das bases fictícias | `contratos`, `metricas`; `mock/businessmap` e `mock/acelerato` não se importam |
+| `@metricas-dspd/web` (`web/`) | SPA | `contratos`; `metricas` e `mock` **só** em `web/src/data/mock/**` e só por `import()` dinâmico (`import type` permitido) |
+| `@metricas-dspd/server` (`server/`, pedido 002) | API, coletores, migrações, seed | `contratos`, `metricas`; `mock` só no seed e nos testes de paridade |
+| `@metricas-dspd/e2e` (`e2e/`) | Playwright + axe + projeto `perf` | nenhum pacote interno (testa pela UI) |
 
-Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras valem dentro de `web/src/` (`contracts/`, `lib/metrics/`, `mock/`, `data/`).
+Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras valem por caminho dentro de `web/src/` (`contracts/`, `lib/metrics/`, `mock/`, `data/`), com as regras de lint do [ADR 0001](../architecture/adr/0001-stack-front-dashboard-mock.md).
 
-- **[lint]** `businessmap` e `acelerato` não se importam, nem por caminho relativo. BusinessMap e Acelerato nunca se misturam em cálculo, histograma, percentil ou previsão.
-- **[lint]** Painéis e componentes (`features/**`, `components/**`) não importam `lib/metrics`/`@metricas-dspd/metricas` nem `mock`. **Painel não calcula.**
+- **[lint]** `businessmap` e `acelerato` não se importam, nem por caminho relativo nem por subpath, na `metricas` e na `mock`. BusinessMap e Acelerato nunca se misturam em cálculo, histograma, percentil ou previsão.
+- **Orquestração na raiz de `metricas`** (`calcularMetrica`, `calcularVisaoGeral`, `slug`) é o único código que conhece os dois domínios. Pode despachar por `MetricaId` e compor resultados já calculados em blocos separados, cada um com sua `fonte`. Não pode criar amostra, concatenar valores, calcular estatística nem derivar indicador a partir de dados das duas fontes juntas. Verificado no review (o lint não cobre o conteúdo das funções).
+- **[lint]** Painéis e componentes (todo `web/src/**` fora de `data/mock/**`) não importam `@metricas-dspd/metricas` nem `@metricas-dspd/mock` (antes da extração: `lib/metrics` e `mock`). **Painel não calcula.**
+- **[lint]** Entre pacotes, import sempre pelo nome (`@metricas-dspd/metricas/core`), nunca por caminho relativo (`../../packages/...`). O alias `@/` existe só dentro de `web/`; dentro de um pacote, imports relativos.
 - **`FonteMetricas` é a única entrada de dados dos painéis.** Tela usa `useMetrica`/`useOpcoesFiltro`; trocar `MockFonteMetricas` por `HttpFonteMetricas` não pode exigir mudança em painel.
 - **[lint]** Recharts só é importado em `components/charts/`.
 - Todo cálculo de tempo, percentil, janela e Monte Carlo passa pela biblioteca `core`. Métrica com cálculo próprio de qualquer um deles é bloqueio no review.
 - Contorno de regra de lint (`eslint-disable`) só com comentário explicando o motivo e aprovação no review; nunca para as regras de fronteira.
 
 ## 2. Código
-- TypeScript `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` (ADR 0001). Sem `any` (use `unknown` + zod); `@ts-expect-error` só com comentário; `@ts-ignore` proibido.
-- **Tempo e aleatoriedade injetados [lint].** Em `metricas` e `mock` são proibidos `new Date()` sem argumento, `Date.now` e `Math.random`. A data de referência ("agora"/`hoje`) entra por parâmetro; aleatoriedade, por gerador com semente. Instantes em epoch ms; calendário (expediente, feriados, `-03:00`) só em `core`.
-- Funções pequenas, um propósito; sem abreviação obscura. Em listas grandes, laço em vez de `Math.min(...array)`/`Math.max(...array)` (estouro de pilha; D6).
+- TypeScript pelo `tsconfig.base.json` da raiz (ADR 0002): `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `isolatedModules`, `erasableSyntaxOnly` (**sem `enum` nem `namespace`**: use objeto `as const` + união). Pacotes compartilhados sem `DOM` no `lib`. Sem `any` (use `unknown` + zod); `@ts-expect-error` só com comentário; `@ts-ignore` proibido.
+- **Tempo e aleatoriedade injetados [lint].** Em `metricas` e `mock` são proibidos `new Date()` sem argumento, `Date.now`, `Math.random` e getters locais de `Date` (`getHours`, `getDay`...). A data de referência ("agora"/`hoje`) entra por parâmetro; aleatoriedade, por gerador com semente. Instantes em epoch ms.
+- **Calendário como parâmetro.** Expediente, feriados e `-03:00` vivem só em `core`; toda função de cálculo de tempo (`horasUteisEntre`, `somarHorasUteis`, `diasUteis`, janela) recebe o `Calendario` explícito, levado no contexto das métricas. `CALENDARIO_PADRAO` é padrão provisório (P2) usado pelo mock; nenhuma métrica o usa implicitamente.
+- Funções pequenas, um propósito; sem abreviação obscura. **[lint]** `Math.min(...x)`/`Math.max(...x)` com spread proibidos em todos os pacotes: use laço (estouro de pilha e custo; D6, ADR 0003).
 - **Nomes de domínio em português**, alinhados ao briefing e ao catálogo (`chamado`, `cartao`, `frente`, `janela`, `amostra`, `percentil`, `tempoCiclo`, `horasUteis`). Identificadores sem acento. Termos técnicos consagrados podem ficar em inglês (`hook`, `provider`, `schema`). IDs de métrica iguais ao catálogo (`O1`, `T7`, `S3`).
 - Erros explícitos: sem `catch` vazio; erro de domínio tipado; log com contexto. Sem `console.log` esquecido, sem código morto, sem TODO sem cartão no `KANBAN.md`.
 - Dependência nova só com motivo (tamanho, manutenção, licença), registrado na descrição do PR e checado contra o orçamento de bundle.
@@ -54,13 +57,15 @@ Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras
 - Determinismo: testes rodam com `TZ=UTC`, data de referência fixa e semente fixa. Gerador: mesma semente ⇒ mesmo hash da base.
 - Todo bug corrigido ganha teste que falha antes e passa depois.
 - Componentes testados pela tabela alternativa e pelo texto, não pelo SVG.
-- Testes de tempo (performance) com limite folgado e explícito; a medição fina é do QA.
+- Testes de tempo (performance) com limite folgado e explícito, valor real impresso; a medição fina é do QA. Limites de CI do [ADR 0003](../architecture/adr/0003-orcamento-de-performance.md): gerador < 1,5 s (C2); métrica < 150 ms inclusive a frio e painel < 900 ms (3× C3/C4).
+- Memoização e otimização não mudam resultado: testes de métrica e hash da base mock continuam iguais; chave de cache inclui todos os filtros normalizados (inclusive período).
 
 ## 5. Acessibilidade e performance (front)
 - **Todo gráfico tem alternativa em tabela** ("Ver dados em tabela") e resumo em `figcaption`. Gráfico novo entra em `components/charts/` já com a tabela.
 - WCAG 2.2 AA: semântica, foco visível, teclado, contraste nos dois temas; axe sem violações nos E2E.
-- **Orçamento de performance:** o da ADR 0003 (`docs/architecture/adr/0003-*`, K-018, D1). Até ela ser aceita, valem os números propostos na ata: chunk inicial < 200 KB gz por rota, cálculo por métrica < 50 ms p95, painel < 300 ms, LCP < 2,0 s desktop, resposta a filtro < 100 ms. Estourar o orçamento bloqueia o review; mudar o orçamento exige alterar o ADR.
-- Rotas `lazy`; gerador mock e biblioteca em chunk por `import()` dinâmico.
+- **Orçamento de performance:** [ADR 0003](../architecture/adr/0003-orcamento-de-performance.md) (K-018, D1), que é a fonte da verdade. Os que mais aparecem no review: bundle JS inicial < 200 KB gz (F6); chunk de rota < 60 KB gz (F7, alerta); gráficos < 130 KB gz só nas rotas com gráfico (F8); mock + biblioteca fora do inicial (F9); LCP < 2,0 s desktop (F1); resposta visual ao filtro < 100 ms e painel atualizado < 500 ms (F4, F5); geração + contexto < 500 ms (C1); métrica < 50 ms p95 inclusive a frio (C3); painel < 300 ms (C4); API p95 < 300 ms e consultas MySQL p95 < 500 ms sem full scan nas fatos (A1, M1, M2, no 002).
+- Item que "bloqueia" fora do orçamento bloqueia o review e o PR. Exceção só registrada na ADR 0003 (item, valor medido, motivo, remédio, prazo), aprovada por arquiteto e tech-lead e comunicada ao usuário. Mudar o orçamento exige alterar a ADR.
+- Rotas `lazy`; gerador mock e biblioteca em chunk por `import()` dinâmico, pacotes com `"sideEffects": false`; Recharts só no chunk de gráficos.
 
 ## 6. Modelagem MySQL (rascunho — revisar no 002 com o arquiteto, D13)
 - MySQL 8, InnoDB, `utf8mb4` / `utf8mb4_0900_ai_ci`, `snake_case`.
@@ -77,7 +82,7 @@ Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras
 - Credenciais só em `.env` (nunca versionado); usuário do MySQL do Acelerato somente leitura.
 
 ## 7. Definição de pronto (por cartão)
-1. `npm run check` verde (lint + typecheck + test) e `npm run build` verde, no pacote afetado.
+1. `npm run check` verde (lint + typecheck + test) e `npm run build` verde: até a extração, em `web/`; depois, na raiz (todos os workspaces). Bundle (F6, F8, F9) e testes de tempo (C2, C3, C4) dentro dos limites de CI.
 2. Testes cobrindo o comportamento novo e as bordas da seção 4.
 3. Dentro do orçamento de performance.
 4. Parecer **aprovado** do tech-lead em `docs/reviews/<pedido>-<etapa>.md`.
@@ -106,7 +111,8 @@ Parecer: **aprovado** ou **ajustes necessários**, cada item com `arquivo:linha 
 - A `main` é do usuário: nenhum agente faz commit, merge, rebase, reset ou push nela; hook `pre-push` em `.githooks/` (`git config core.hooksPath .githooks`); `--no-verify` proibido.
 - Branches a partir da base certa: `feature/`, `fix/`, `docs/`, `chore/`, `refactor/` + slug. Encadeamento atual (D4): `feature/dashboard-mock` (PR 1, todo o 001 + monorepo) → `feature/arquitetura-mysql` (PR 2, criada após a extração, em `git worktree` separado).
 - Conventional Commits em português: `tipo(escopo): descrição no imperativo`, tipos `feat, fix, docs, test, refactor, perf, chore, ci`. Escopos usuais: `metricas`, `mock`, `dados`, `ui`, `painel-<nome>`, `contratos`, `server`, `db`, `e2e`, `kanban`, `arquitetura`, `ux`, `engenharia`.
-- Um commit por mudança coerente; cada commit compila e passa nos testes. Extração para pacotes (D3) é commit mecânico separado (`git mv` + imports), sem mudança de lógica: mesmos testes verdes e mesmo hash da base mock.
+- Um commit por mudança coerente; cada commit compila e passa nos testes.
+- Extração para pacotes (D3): segue o "Procedimento da extração" do [ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md). Linha de base (número de testes e hash da base mock) anotada na mensagem; correção do cruzamento `CRITERIOS_MOCK` em commit próprio antes; depois um commit mecânico único (`git mv` + imports + configs), sem mudança de lógica, de nome nem de teste. Aceite: mesmo número de testes e mesmo hash; se o hash mudar, o commit é desfeito e investigado, nunca se ajusta o hash esperado.
 - Antes de commitar: `git status` e `git diff --staged`. Nunca versionar `.env`, `node_modules`, `dist`, relatórios de teste.
 - Atualizar a branch: `git fetch` + `git merge origin/main` na própria branch.
 - Descrição do PR: objetivo e pedido · o que mudou · decisões e ADRs · como testar · parecer do QA · parecer do code review · riscos e pendências.
@@ -117,7 +123,8 @@ Ordem, falhando no primeiro erro, por workspace afetado:
 2. `typecheck`
 3. `test` (`TZ=UTC`)
 4. `build`
-5. `size-limit` (orçamento de bundle por rota, ADR 0003)
+5. `size` (orçamento de bundle F6–F9 do ADR 0003: `size-limit` ou script de gzip sobre `dist/assets`)
 6. E2E Playwright + axe (projeto `mock`; no 002 também o projeto `api` contra MySQL 8 em container, com teste de paridade mock × seed — D15)
+7. Lighthouse CI desktop (F10: Performance ≥ 90, Acessibilidade ≥ 95) e projeto `perf` do Playwright (F1–F5, C5, C6) na pré-entrega
 
-Até o CI existir, o autor roda 1 a 4 localmente (`npm run check && npm run build`) e o QA roda 5 e 6.
+Até o CI existir, o autor roda 1 a 5 localmente (`npm run check && npm run build && npm run size`) e o QA roda 6 e 7 na máquina de referência.
