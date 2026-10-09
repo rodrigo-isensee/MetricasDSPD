@@ -3,6 +3,7 @@
 - Data: 2026-10-09 · Pedido: `docs/pedidos/001-dashboard-mock.md`
 - Especificação de UX (em paralelo): `docs/ux/dashboard-metricas.md`
 - Stack: ADR `docs/architecture/adr/0001-stack-front-dashboard-mock.md`
+- Revisão 2 (2026-10-09): alinhado às decisões J1 (janela de 12 semanas em todas as granularidades) e J2 (sustentação em horas úteis, inclusive P1) do tech lead e às lacunas L11 e L13 da spec de UX revisão 2. Trechos alterados marcados "(rev. 2)".
 
 ## 1. Resumo
 SPA em `web/` que gera, no navegador e de forma determinística, uma base fictícia no formato do modelo analítico (briefing 4.5) e de chamados do Acelerato (3.2/3.4), calcula as métricas do núcleo com uma biblioteca única (T2.5) e as exibe por trás de uma interface de fonte de dados que amanhã será implementada por HTTP. Não há back-end nem endpoints nesta etapa.
@@ -69,7 +70,7 @@ e2e/                        # Playwright + axe (responsabilidade do qa-engineer)
 - PRNG `mulberry32(semente)` em `mock/prng.ts`; um sub-gerador derivado por domínio e por equipe (`derivar(semente, 'acelerato')`), para que mudar o volume de um domínio não altere os dados do outro.
 - `config.ts`: `{ semente: 20261009, hoje: '2026-10-09T18:00:00-03:00', mesesHistorico: 18, volumes }`. Sobrescrevível por `VITE_MOCK_SEMENTE` e `VITE_MOCK_HOJE`, e por parâmetro direto de `gerarBaseMock(config)` nos testes.
 - Proibido `Math.random`, `Date.now` e `new Date()` sem argumento em `mock/` e `lib/metrics/` (lint). "Hoje" é sempre um parâmetro.
-- Distribuições em `distribuicoes.ts`: `lognormal(mediana, sigma)`, `poisson(lambda)`, `bernoulli(p)`, `escolhaPonderada(pesos)`. Durações são geradas em horas úteis e convertidas em instantes pelo calendário da biblioteca (mesmo calendário do cálculo).
+- Distribuições em `distribuicoes.ts`: `lognormal(mediana, sigma)`, `poisson(lambda)`, `bernoulli(p)`, `escolhaPonderada(pesos)`. Durações são geradas em horas úteis e convertidas em instantes pelo calendário da biblioteca (mesmo calendário do cálculo). (rev. 2, J2) Vale para os dois domínios: chamados do Acelerato, de todas as prioridades inclusive P1, também usam o calendário de expediente.
 
 ### 3.2 BusinessMap - tipos (espelham 4.5)
 Campos de 4.5 sem alteração; extensões marcadas `// extensão 4.4/4.5` e listadas na seção 9.
@@ -124,6 +125,8 @@ Regras de geração:
 - `data_acordada` em ~30% dos compromissos, parte vencida com `responsabilidade_atraso`.
 - ~3% de stories de projeto sem `card_pai` (defeito de dado, visível como tal).
 - Classes pequenas deliberadas: "Dívida técnica" na equipe Plataforma 5G e "Iniciativa" em Senior ficam com < 20 concluídos em 12 semanas; projetos ficam naturalmente abaixo de 20 na janela.
+- (rev. 2, L11; spec 9.2) **No consolidado com filtros padrão** (todas as equipes, 12 semanas até `hoje`), o Operacional precisa ter pelo menos um tipo de demanda **disponível no filtro de tipo** com < 20 itens concluídos na janela (ex.: "Dívida técnica" ou "Defeito em produção"), ao lado de tipos com ≥ 20. Não basta a classe pequena existir só no filtro de uma equipe, e "Iniciativa" não conta (não é opção do filtro de tipo). O volume desse tipo é calibrado no total, não por equipe.
+- (rev. 2, J1; spec 9.2) Com a janela de 12 semanas: projetos concluídos na janela < 20 (E1 e EI-FL3 insuficientes, esperado); frentes concluídas na janela ≥ 20 no consolidado padrão (T7 publica) e < 20 em filtros estreitos. O gerador mantém projetos concluídos ao longo de 12+ meses, pois os pontos de E1 usam o período escolhido.
 - Nunca gerar pacote agrupando features (quarto nível, seção 02).
 
 ### 3.4 Acelerato - tipos (separados, sem nenhum tipo em comum com o BusinessMap além de primitivos)
@@ -153,7 +156,7 @@ interface EtapaChamado { chamado_id: string; etapa: EtapaAcelerato; entrada: num
 - Prioridade sempre derivada da matriz Impacto × Urgência (3.4), exceto nos ~4% com ajuste manual (com justificativa).
 - `incidente_critico_coordenado` = true em todo P1 e em parte dos P2.
 - Volume: ~6.000 chamados em 18 meses, distribuição P1 1%, P2 6%, P3 30%, P4 43%, P5 20% (P1 fica com < 20 na janela, exercitando a regra).
-- Tempos lognormais por prioridade, calibrados para aderência entre 80% e 95%; `status_sla_r` só é preenchido quando `status = 'Concluído'` e `data_finalizado` não nulo. Chamados abertos com `data_finalizado` nulo.
+- Tempos lognormais por prioridade, em horas úteis para todas as prioridades, inclusive P1 (rev. 2, J2), calibrados para aderência entre 80% e 95%; `status_sla_r` só é preenchido quando `status = 'Concluído'` e `data_finalizado` não nulo. Chamados abertos com `data_finalizado` nulo.
 - Escalação não reinicia relógio (o gerador nunca reseta prazo ao mudar de nível).
 - Mapeamento etapa → totalizador (sem atendimento, em atendimento, espera combinada, espera do solicitante, espera de outros times) em `lib/metrics/acelerato/totalizadores.ts`.
 
@@ -161,9 +164,18 @@ interface EtapaChamado { chamado_id: string; etapa: EtapaAcelerato; entrada: num
 TypeScript puro, sem React, sem DOM, sem fuso do sistema. Toda métrica do núcleo é uma função `(base, filtros, contexto) => DTO`; nenhum componente calcula.
 
 ### 4.1 Núcleo (`core/`)
-- **Calendário** (`calendario.ts`): `horasUteisEntre(inicio, fim, cal)`, `somarHorasUteis(inicio, horas, cal)`, `diasUteis(horas) = horas / cal.horasPorDia`. `Calendario = { modo: 'expediente' | 'corrido', turnos, feriados, offsetMinutos: -180 }`. Modo `corrido` cobre a exceção de plantão de 4.2 (P1 da matriz é em horas corridas). Expediente e feriados provisórios (P2).
+- **Calendário** (`calendario.ts`): `horasUteisEntre(inicio, fim, cal)`, `somarHorasUteis(inicio, horas, cal)`, `diasUteis(horas) = horas / cal.horasPorDia`. `Calendario = { modo: 'expediente' | 'corrido', turnos, feriados, offsetMinutos: -180 }`. Expediente e feriados provisórios (P2).
+  - (rev. 2, J2) Todo cálculo de sustentação (S1 a S7 e EI-SUST), em todas as prioridades inclusive P1, usa o calendário de expediente: dia útil = 8 h úteis (seg–sex, 08:00–12:00 e 13:00–17:00, feriados nacionais, −03:00). O modo `corrido` continua existindo e testado na biblioteca para a exceção de plantão de 4.2, mas **não é ligado ao P1** nem a nenhuma métrica nesta etapa. A escolha do calendário por prioridade fica num ponto único (`CALENDARIO_POR_PRIORIDADE` em `acelerato/sla.ts`, hoje expediente para P1–P5), para trocar em uma linha se a pergunta P7 for respondida de outro jeito. Exibição (unidades h úteis/dias úteis por prioridade) é da UI, conforme a spec.
 - **Percentil** (`percentil.ts`): interpolação linear entre ordens, `h = (n−1)·p` (tipo 7 de Hyndman-Fan, igual a `PERCENTILE.INC` do Excel/Power BI e ao padrão do NumPy). Provisório, P1. Registrado como critério v1.
 - **Janela** (`janela.ts`): 12 semanas = 84 dias corridos terminando em `referencia` (inclusive), filtrando pela data de conclusão. Séries semanais recalculam a janela para cada fim de semana (semana segunda a domingo).
+  - (rev. 2, J1) A janela de percentis é de 12 semanas em **todas** as granularidades, parametrizada numa constante única:
+    ```ts
+    // core/janela.ts — único lugar onde a janela é definida (critério v1, T2.6)
+    export const JANELA_POR_GRANULARIDADE = {
+      story: { semanas: 12 }, frente: { semanas: 12 }, projeto: { semanas: 12 }, chamado: { semanas: 12 },
+    } as const satisfies Record<'story' | 'frente' | 'projeto' | 'chamado', { semanas: number }>;
+    ```
+    Nenhuma métrica recebe ou define janela própria; o construtor de `Amostra` obtém a janela a partir da classe. Se o usuário decidir diferente (pergunta P3), a troca é de uma linha e deve ser registrada como nova versão de critério em `criterios.ts` (marcação nos gráficos). Não existe janela "12 meses (provisória)". E1, EI-FL3 e, às vezes, T7 e EI-FL2 em "insuficiente" são estado normal (spec 6.3.1).
 - **Amostra e domínio** (`amostra.ts`):
   ```ts
   type Dominio = 'businessmap' | 'acelerato';
@@ -210,13 +222,14 @@ interface FonteMetricas {
 - `useMetrica(id, filtros)` = `useQuery({ queryKey: ['metrica', id, filtros], ... })`; cada cartão de métrica tem seus próprios estados (carregando, erro, vazio, insuficiente, ok).
 - Todo resultado carrega `base: { n, janela, descricao }` e `marcacoes: MarcacaoCriterio[]` quando for série.
 - Filtros: `FiltrosFluxo = { equipe?, tipo?, sistema?, periodo }` e `FiltrosSustentacao = { equipe?, prioridade?, periodo }` são tipos distintos; o TypeScript impede pedir uma métrica S* com filtros de fluxo.
+- (rev. 2, L13; spec 6.6) Simulação de estados pelo parâmetro de URL `mock`, implementada **na `MockFonteMetricas`** (decorador sobre `obter`), nunca nos componentes: `carregando` (promessa que não resolve), `erro` (erro de painel), `vazio`, `erro:{id}` (o cartão falha em toda tentativa) e `erro-uma-vez:{id}` (falha só na primeira chamada daquele id; o "Tentar de novo" resolve normalmente). `{id}` aceita lista por vírgula; ids inexistentes e valores inválidos são ignorados sem aviso. O controle de "já falhou uma vez" é estado da instância da fonte, por id, e zera ao recarregar a página. `HttpFonteMetricas` ignora o parâmetro. Propagação na navegação e em "Copiar link" segue a spec 6.6 (responsabilidade do `useFiltros`/links, não da fonte).
 - Ao migrar: a biblioteca vai para `packages/shared` ou `server/`; `contracts/` vira `packages/shared`; os painéis não mudam.
 
 ## 6. Estratégia de testes
 - **Biblioteca (`lib/metrics/core`)**: testes de tabela com casos de borda documentados no próprio teste: início/fim fora do expediente, atravessando almoço, fim de semana e feriado, intervalo nulo, `fim < início` (erro), modo corrido; percentil com n = 1, 19, 20, valores repetidos e conferência contra valores de referência de `PERCENTILE.INC`; borda da janela (dia 84 dentro, 85 fora); marcação de critério ao cruzar a data. Propriedades com fast-check: `p50 ≤ p85 ≤ p95`, `min ≤ p ≤ max`, `n < 20 ⇒ insuficiente`, horas úteis aditivas em intervalos contíguos.
 - **Métricas**: fixtures pequenas montadas à mão com builders (`umCard().iniciadoEm(...).entregueEm(...)`), não com o gerador. Uma regra de 4.2 por teste (descarte, reabertura, bug na janela de 30 dias, subtarefa, fila no WIP).
-- **Gerador**: determinismo (mesma semente ⇒ mesmo hash da base; semente diferente ⇒ hash diferente); invariantes (integridade de `card_pai`, ordem dos marcos, coerência transição × marcos, nada depois de `hoje`, arquivados presentes, prioridade = matriz salvo ajuste justificado, `status_sla_r` só em concluídos, nenhum chamado fora da população 3.2); existência de classes com < 20 itens; orçamento de tempo (geração completa < 1 s no CI, limite folgado).
-- **Fonte mock**: cada `obter` devolve DTO válido pelo schema zod.
+- **Gerador**: determinismo (mesma semente ⇒ mesmo hash da base; semente diferente ⇒ hash diferente); invariantes (integridade de `card_pai`, ordem dos marcos, coerência transição × marcos, nada depois de `hoje`, arquivados presentes, prioridade = matriz salvo ajuste justificado, `status_sla_r` só em concluídos, nenhum chamado fora da população 3.2); existência de classes com < 20 itens; (rev. 2, L11/J1) no consolidado padrão, ao menos um tipo do filtro do Operacional com < 20 e outros com ≥ 20, frentes na janela ≥ 20 e projetos na janela < 20; (rev. 2, J2) durações de chamados P1 coerentes com o calendário de expediente; orçamento de tempo (geração completa < 1 s no CI, limite folgado).
+- **Fonte mock**: cada `obter` devolve DTO válido pelo schema zod. (rev. 2) Toda amostra usa a janela de `JANELA_POR_GRANULARIDADE`; `erro:{id}` falha em chamadas repetidas e `erro-uma-vez:{id}` falha na primeira e resolve na segunda; valores inválidos de `mock` não alteram o resultado.
 - **UI (Testing Library)**: estados de cada cartão, tabela alternativa, filtros ↔ URL (ida e volta, valor inválido normalizado).
 - Todos os testes com `TZ=UTC` e `hoje` fixo. E2E e axe ficam com o `qa-engineer`.
 
@@ -253,11 +266,11 @@ Paralelismo: 2 e 3 juntos; 4 e 5 juntos; 6 e 7 juntos; 9 e 10 podem começar log
 |---|---|---|
 | P1 | Método de percentil não definido no briefing | Interpolação linear tipo 7 (`PERCENTILE.INC`) |
 | P2 | Expediente e calendário de feriados (nacional? estadual SC? municipal?) | Seg–sex, 08:00–12:00 e 13:00–17:00 (8 h/dia), feriados nacionais 2025–2026, fuso −03:00 |
-| P3 | Janela de 12 semanas e mínimo de 20 valem também para projetos (E1) e frentes (T7)? Projetos quase nunca terão 20 concluídos em 12 semanas | Aplica a regra como escrita: E1 aparece como "amostra insuficiente" |
-| P4 | Na Espera invisível, a "visão do time" é compromisso→entrega ou início→entrega? E na sustentação, quais são as duas visões? | Fluxo: cliente = entrada→entrega, time = compromisso→entrega. Sustentação: cliente = abertura→restauração em tempo corrido; time = mesmo intervalo descontando etapas que pausam SLA (Pendente, Aguardando validação) |
+| P3 | Janela de 12 semanas e mínimo de 20 valem também para projetos (E1) e frentes (T7)? Projetos quase nunca terão 20 concluídos em 12 semanas | (rev. 2, J1) 12 semanas em todas as granularidades (story, frente, projeto, chamado), via `JANELA_POR_GRANULARIDADE`; E1, EI-FL3 e às vezes T7 e EI-FL2 aparecem como "amostra insuficiente". Pergunta segue aberta (spec, pergunta 2) |
+| P4 | Na Espera invisível, a "visão do time" é compromisso→entrega ou início→entrega? E na sustentação, quais são as duas visões? | Fluxo: cliente = entrada→entrega, time = compromisso→entrega. Sustentação: cliente = abertura→restauração; time = mesmo intervalo descontando etapas que pausam SLA (Pendente, Aguardando validação); (rev. 2, J2) ambas em horas úteis |
 | P5 | Existe campo de SLA de primeiro atendimento no Acelerato (S2 separa primeiro atendimento de restauração) e `status_sla_r` é o da restauração? | Mock cria `status_sla_pa` (nome hipotético) e trata `status_sla_r` como restauração |
 | P6 | S1 cita MTTA/MTTR (médias), mas a regra proíbe média sozinha | Exibir P50/P85/P95 com média ao lado, mínimo de 20 por prioridade |
-| P7 | P1 em horas corridas (15 min / 4 h, sem "úteis") e P2–P5 em horas úteis? | Sim: P1 em modo corrido, demais em expediente |
+| P7 | P1 em horas corridas (15 min / 4 h, sem "úteis", plantão) e P2–P5 em horas úteis? | (rev. 2, J2) Todas as prioridades, inclusive P1, em horas úteis (dia útil = 8 h úteis, calendário de P2); EI-SUST também. Modo `corrido` existe na lib, mas não é ligado ao P1; troca em `CALENDARIO_POR_PRIORIDADE`. Pergunta sobre plantão do P1 segue aberta (spec, perguntas 11 e 15) |
 | P8 | Classes de alocação do T3 (sustentação, evolução, projetos, dívida técnica): mapeamento a partir do tipo e do vínculo com projeto, e valores acordados | Incidente/Requisição sem pai = sustentação; Melhoria/Iniciativa sem pai = evolução; qualquer card com projeto acima = projetos; Dívida técnica = dívida. Acordado fictício: 30/25/35/10 |
 | P9 | Valores de `classe_servico` | Apenas "Padrão" e "Data fixa" |
 | P10 | Reaberto "tempo volta a contar": o intervalo em que o card esteve entregue conta? | Não conta: soma início→1ª entrega + reabertura→entrega final |
