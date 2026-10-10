@@ -15,7 +15,7 @@ import { fmtData, fmtNumero } from '@/lib/formatar'
 import { GraficoBase } from './GraficoBase'
 import { Legenda, type ItemLegenda } from './Legenda'
 import { PadroesSvg } from './PadroesSvg'
-import { EIXO, corNaPosicao, rotuloEixoY, corSerie, uidSvg, type IndiceCor } from './tema'
+import { EIXO, corNaPosicao, idPadrao, rotuloEixoY, corSerie, uidSvg, type IndiceCor } from './tema'
 import { TooltipTema } from './TooltipTema'
 
 export interface SerieLinha {
@@ -33,6 +33,10 @@ export interface FaixaEntre {
   ate: string
   rotulo: string
   cor?: IndiceCor
+  /** Preenche com padrão (nunca só cor, critério 98) em vez de cor translúcida. */
+  padrao?: 'listras' | 'hachura' | 'pontos' | 'cruzado'
+  /** Só a parte em que `ate` passa de `de` (ex.: WIP acima do limite). */
+  somenteAcima?: boolean
 }
 
 export interface PontoSerie {
@@ -88,7 +92,12 @@ export function SerieLinhas({
     faixas.forEach((f, i) => {
       const a = p.valores[f.de]
       const b = p.valores[f.ate]
-      linha[`__faixa${i}`] = a != null && b != null ? [Math.min(a, b), Math.max(a, b)] : null
+      linha[`__faixa${i}`] =
+        a != null && b != null
+          ? f.somenteAcima
+            ? [a, Math.max(a, b)]
+            : [Math.min(a, b), Math.max(a, b)]
+          : null
     })
     return linha
   })
@@ -116,7 +125,7 @@ export function SerieLinhas({
     ...faixas.map((f, i) => ({
       rotulo: f.rotulo,
       cor: f.cor ?? corNaPosicao(cfg.length + i),
-      padrao: 'listras' as const,
+      padrao: f.padrao ?? ('listras' as const),
     })),
   ]
   const direita = cfg.some((s) => s.eixoDireito)
@@ -189,8 +198,12 @@ export function SerieLinhas({
               dataKey={`__faixa${i}`}
               name={f.rotulo}
               stroke="none"
-              fill={corSerie(f.cor ?? corNaPosicao(cfg.length + i))}
-              fillOpacity={0.18}
+              fill={
+                f.padrao
+                  ? `url(#${idPadrao(f.padrao, f.cor ?? corNaPosicao(cfg.length + i), uid)})`
+                  : corSerie(f.cor ?? corNaPosicao(cfg.length + i))
+              }
+              fillOpacity={f.padrao ? 0.9 : 0.18}
               isAnimationActive={false}
               connectNulls={false}
               legendType="none"

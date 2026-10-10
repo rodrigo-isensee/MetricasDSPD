@@ -8,7 +8,7 @@ import { propsCartao } from '@/features/painel/propsCartao'
 
 const SITUACAO = { cresce: 'A fila cresce', estavel: 'Estável', diminui: 'A fila diminui' } as const
 
-/** O7: entrada x saída por tipo, um pequeno múltiplo por tipo (escala própria). R9: `saldoAcumulado` NÃO é exibido até a UX definir o cálculo. */
+/** O7: entrada x saída por tipo, um pequeno múltiplo por tipo (escala própria). Saldo acumulado conforme a decisão F4 (calculado na biblioteca). */
 export function CartaoO7({ filtros }: { filtros: FiltrosFluxo }) {
   const q = useMetrica('O7', filtros)
   const d = q.dados
@@ -16,7 +16,8 @@ export function CartaoO7({ filtros }: { filtros: FiltrosFluxo }) {
   // O cartão mostra no mínimo 6 meses; avisa quando o período escolhido é menor.
   const curto =
     p.tipo === '4s' || p.tipo === '12s' || (p.tipo === 'custom' && diffDias(p.de, p.ate) < 180)
-  const ordenado = d ? [...d.porTipo].sort((a, b) => b.saldoPeriodo - a.saldoPeriodo) : []
+  // A ordem (saldo acumulado decrescente, F4) vem da biblioteca.
+  const ordenado = d?.porTipo ?? []
   const acima = ordenado.filter((t) => t.entradaAcimaDaSaidaNoTrimestre)
   const leitura = d
     ? `Entraram ${fmtInteiro(d.totais.entrou)} e saíram ${fmtInteiro(d.totais.saiu)} cards em ${fmtInteiro(d.mesesExibidos)} meses.${acima.length ? ` Entrada acima da saída no trimestre: ${acima.map((t) => t.tipo).join(', ')}.` : ' Nenhum tipo tem entrada acima da saída no trimestre.'}`
@@ -42,6 +43,7 @@ export function CartaoO7({ filtros }: { filtros: FiltrosFluxo }) {
               { chave: 'entrou', titulo: 'Entrou', alinhar: 'direita' },
               { chave: 'saiu', titulo: 'Saiu', alinhar: 'direita' },
               { chave: 'saldo', titulo: 'Saldo do período', alinhar: 'direita' },
+              { chave: 'acumulado', titulo: 'Saldo acumulado', alinhar: 'direita' },
               { chave: 'situacao', titulo: 'Situação' },
             ]}
             linhas={ordenado.map((t) => ({
@@ -49,6 +51,7 @@ export function CartaoO7({ filtros }: { filtros: FiltrosFluxo }) {
               entrou: fmtInteiro(t.entrou),
               saiu: fmtInteiro(t.saiu),
               saldo: `${t.saldoPeriodo > 0 ? '+' : ''}${fmtInteiro(t.saldoPeriodo)}`,
+              acumulado: `${t.saldoAcumulado > 0 ? '+' : ''}${fmtInteiro(t.saldoAcumulado)}`,
               situacao: (
                 <span className="inline-flex flex-wrap items-center gap-2">
                   {SITUACAO[t.situacao]}

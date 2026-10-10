@@ -182,6 +182,7 @@ export const resultadoO7 = z.object({
       entrou: z.number(),
       saiu: z.number(),
       saldoPeriodo: z.number(),
+      /** F4: soma semanal de (chegadas - saídas) no período filtrado; ordena a tabela. */
       saldoAcumulado: z.number(),
       situacao: saldoSituacao,
       /** Saldo acumulado positivo no trimestre (selo "Entrada acima da saída"). */

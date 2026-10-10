@@ -226,3 +226,17 @@ describe('Visão geral: alerta O10_BACKLOG_180 (F3)', () => {
     expect(g.alertas.some((a) => a.codigo === 'O10_BACKLOG_180')).toBe(acima > 0)
   })
 })
+
+describe('O7: saldo acumulado (F4)', () => {
+  it('é a soma semanal de chegadas menos saídas no período filtrado e ordena a tabela', () => {
+    const bm = businessmap.criarContextoBM(base.bm, base.config.hoje, cal)
+    const f = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } }
+    const r = businessmap.calcularO7(bm, f)
+    const acum = r.porTipo.map((t) => t.saldoAcumulado)
+    expect(acum).toEqual([...acum].sort((a, b) => b - a))
+    // período de 12 semanas dentro da janela mínima de 6 meses: o acumulado cobre só o período filtrado
+    for (const t of r.porTipo)
+      expect(Math.abs(t.saldoAcumulado)).toBeLessThanOrEqual(t.entrou + t.saiu)
+    expect(r.porTipo.some((t) => t.saldoAcumulado !== t.saldoPeriodo)).toBe(true)
+  })
+})

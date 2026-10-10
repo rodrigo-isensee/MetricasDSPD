@@ -104,6 +104,16 @@ export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
               { chave: 'wip', rotulo: 'WIP total', cor: 1, traco: 'solido' },
               { chave: 'limite', rotulo: 'Limite', cor: 7, traco: 'tracejado' },
             ]}
+            faixas={[
+              {
+                de: 'limite',
+                ate: 'wip',
+                rotulo: 'WIP acima do limite',
+                cor: 2,
+                padrao: 'hachura',
+                somenteAcima: true,
+              },
+            ]}
             marcacoes={d.criterios.serie}
           />
           <p className="text-sm text-texto-2">

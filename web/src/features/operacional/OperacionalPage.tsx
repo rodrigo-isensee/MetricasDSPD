@@ -4,7 +4,7 @@ import { FaixaAtencao, Secao, SeletorCadencia, type ItemAtencao } from '@/compon
 import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
-import { fmtInteiro, plural } from '@/lib/formatar'
+import { fmtInteiro, fmtPct, plural } from '@/lib/formatar'
 import { CartaoEIFL1 } from '@/features/espera-invisivel/components/CartaoEI'
 import { CartaoBloqueados } from './components/CartaoBloqueados'
 import { CartaoO1 } from './components/CartaoO1'
@@ -57,9 +57,23 @@ function AtencaoDiaria({ filtros }: { filtros: FiltrosFluxo }) {
 
 /** Itens da faixa "Pede atenção na semana": backlog parado há mais de 180 dias (O10) e vencidos por causa interna (O12). */
 function AtencaoSemanal({ filtros }: { filtros: FiltrosFluxo }) {
+  const o3 = useMetrica('O3', filtros).dados
   const o10 = useMetrica('O10', filtros).dados
   const o12 = useMetrica('O12', filtros).dados
   const itens: ItemAtencao[] = []
+  // A decisão "subiu" vem do DTO (variação publicada só com 20 itens ou mais nas duas janelas).
+  const subiu = (o3?.classes ?? []).filter(
+    (c) => c.variacaoP85.status === 'ok' && (c.variacaoP85.variacaoPct ?? 0) > 0,
+  )
+  if (subiu.length > 0)
+    itens.push({
+      id: 'o3',
+      codigo: 'O3',
+      para: '#o3',
+      texto: `P85 do tempo de ciclo subiu: ${subiu
+        .map((c) => `${c.tipo} (+${fmtPct(c.variacaoP85.variacaoPct ?? 0, 0)})`)
+        .join(', ')}`,
+    })
   if (o10 && o10.acimaDe180.time > 0)
     itens.push({
       id: 'o10',

@@ -96,6 +96,8 @@ describe('O1 WIP e limite (A1, A2)', () => {
       'Hoje há 4 itens em progresso para um limite de 3 (1 acima), 1 deles bloqueado',
     )
     expect(within(el).getByText('Fora da meta')).toBeInTheDocument()
+    // a área acima do limite é hachurada e tem legenda própria (nunca só cor)
+    expect(within(el).getAllByText('WIP acima do limite').length).toBeGreaterThan(0)
     await userEvent.click(within(el).getByRole('button', { name: 'Ver como tabela' }))
     const tab = within(el).getAllByRole('table')[0] as HTMLElement
     expect(tab).toHaveTextContent('Fila · Aguardando QA')

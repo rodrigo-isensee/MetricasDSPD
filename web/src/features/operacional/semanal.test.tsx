@@ -57,12 +57,12 @@ describe('O7 entrada x saída (A1 a A5, R9)', () => {
     saida: s,
     saldoAcumulado: 0,
   })
-  const tipo = (t: string, entrou: number, saiu: number, acima: boolean) => ({
+  const tipo = (t: string, entrou: number, saiu: number, acima: boolean, acum = 0) => ({
     tipo: t,
     entrou,
     saiu,
     saldoPeriodo: entrou - saiu,
-    saldoAcumulado: 999,
+    saldoAcumulado: acum,
     situacao: acima ? 'cresce' : 'estavel',
     entradaAcimaDaSaidaNoTrimestre: acima,
     meses: [mes('2026-08', 3, 2), mes('2026-09', 2, 1), mes('2026-10', 1, 0, true)],
@@ -72,9 +72,9 @@ describe('O7 entrada x saída (A1 a A5, R9)', () => {
     base: { n: 8, unidade: 'cards', janela: J },
     mesesExibidos: 6,
     totais: { entrou: 8, saiu: 3 },
-    porTipo: [tipo('Melhoria', 5, 3, true), tipo('Incidente', 3, 3, false)],
+    porTipo: [tipo('Melhoria', 5, 3, true, 7), tipo('Incidente', 3, 3, false, 1)],
   }
-  it('saldo +2 com selo em texto, um múltiplo por tipo com escala própria, aviso de 6 meses, sem saldo acumulado', async () => {
+  it('saldo +2 com selo em texto, um múltiplo por tipo com escala própria, aviso de 6 meses, saldo acumulado (F4) na ordem da biblioteca', async () => {
     renderizarApp(`${URL}&periodo=4s`, new FonteFixa({ O7: dto }))
     const el = await cartao('O7')
     const resumo = within(el).getByTestId('tabela-O7-resumo')
@@ -84,8 +84,11 @@ describe('O7 entrada x saída (A1 a A5, R9)', () => {
       'Este gráfico mostra no mínimo 6 meses.',
     )
     expect(within(el).getAllByText('(escala própria)')).toHaveLength(2)
-    expect(within(el).queryByRole('columnheader', { name: /acumulado/i })).toBeNull()
-    expect(el).not.toHaveTextContent('999')
+    expect(within(el).getByRole('columnheader', { name: /Saldo acumulado/i })).toBeInTheDocument()
+    const linhas = within(resumo).getAllByRole('row').slice(1)
+    expect(linhas[0]).toHaveTextContent('Melhoria')
+    expect(linhas[0]).toHaveTextContent('+7')
+    expect(linhas[1]).toHaveTextContent('Incidente')
   })
 })
 
@@ -336,5 +339,41 @@ describe('T-PROIB / T-T5 no Operacional semanal', () => {
     // A nota da espera invisível proíbe o ranking por escrito ("Nunca compare ... como ranking").
     const texto = document.body.textContent.replace(/Nunca compare[^.]*ranking\./i, '')
     expect(texto).not.toMatch(/respons[aá]vel por|assignee|ranking|% de conclus[aã]o/i)
+  })
+})
+
+describe('Faixa "Pede atenção na semana": P85 subiu', () => {
+  const variacao = (status: 'ok' | 'indisponivel', pct: number | null) => ({
+    status,
+    atual: pct === null ? null : 10,
+    anterior: pct === null ? null : 9,
+    variacaoPct: pct,
+    janelaAnterior: J,
+  })
+  const classe = (tipo: string, v: ReturnType<typeof variacao>) => ({
+    tipo,
+    n: 30,
+    estatistica: insuf(30),
+    pontos: [],
+    serieP85: [],
+    variacaoP85: v,
+  })
+  it('aponta o tipo cujo P85 subiu (variação publicada) com link ao O3; sem variação publicada, nada', async () => {
+    const dto = {
+      ...COMUM,
+      janelaPercentis: JANELA,
+      classes: [
+        classe('Melhoria', variacao('ok', 8)),
+        classe('Incidente', variacao('indisponivel', null)),
+        classe('Requisição', variacao('ok', -5)),
+      ],
+    }
+    renderizarApp(URL, new FonteFixa({ O3: dto }))
+    const faixa = await screen.findByTestId('faixa-atencao')
+    const link = await within(faixa).findByRole('link', { name: /P85 do tempo de ciclo subiu/ })
+    expect(link).toHaveTextContent('Melhoria (+8%)')
+    expect(link).not.toHaveTextContent('Incidente')
+    expect(link).not.toHaveTextContent('Requisição')
+    expect(link.getAttribute('href')).toBe('#o3')
   })
 })
