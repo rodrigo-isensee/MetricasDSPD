@@ -250,7 +250,7 @@ export function DialogoExportar({ base, itens, mock, carregando = false, gerar, 
                 ref={baixar}
                 href={estado.url}
                 download={estado.nome}
-                className="alvo inline-flex items-center justify-center rounded-md border border-transparent bg-acento px-3 py-1.5 text-sm font-medium text-acento-texto hover:opacity-90"
+                className="alvo inline-flex items-center justify-center rounded-md border border-transparent bg-acento px-3 py-1.5 text-sm font-medium text-acento-texto hover:underline"
               >
                 Baixar
               </a>
