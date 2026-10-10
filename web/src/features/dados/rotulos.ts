@@ -20,3 +20,9 @@ export const ROTULO_EFEITO: Record<EventoColeta['efeito'], string> = {
   'parcial-aplicada': 'Itens lidos mantidos; o restante fica para a próxima coleta',
   'anteriores-mantidos': 'Painéis continuam com os dados da coleta anterior',
 }
+
+/** 45000 -> "45 s"; 240000 -> "4 min". */
+export function fmtDuracao(ms: number): string {
+  const s = Math.round(ms / 1000)
+  return s < 60 ? `${s} s` : `${Math.round(s / 60)} min`
+}
