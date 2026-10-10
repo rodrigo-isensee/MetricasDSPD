@@ -163,7 +163,7 @@ describe('Erros de rota', () => {
     const original = window.location
     Object.defineProperty(window, 'location', {
       configurable: true,
-      value: { ...original, reload: recarregar },
+      value: Object.create(original, { reload: { value: recarregar } }) as Location,
     })
     try {
       montar('/quebra', [quebra(new Error('chunk falhou'))])
@@ -246,7 +246,7 @@ describe('tema', () => {
     }
   }
 
-  it('"sistema" acompanha o esquema do sistema operacional e reage à mudança', async () => {
+  it('"sistema" acompanha o esquema do sistema operacional e reage à mudança', () => {
     const m = stubMedia(true)
     const { unmount } = render(
       <Provedores fonte={fonteDeTeste}>

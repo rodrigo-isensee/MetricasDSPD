@@ -25,7 +25,12 @@ describe('preverTermino', () => {
     expect(r).toMatchObject({
       status: 'ok',
       n: 40,
-      valor: { periodos: { p50: 5, p85: 5, p95: 5 }, granularidade: 'dia', itens: 10, simulacoes: 200 },
+      valor: {
+        periodos: { p50: 5, p85: 5, p95: 5 },
+        granularidade: 'dia',
+        itens: 10,
+        simulacoes: 200,
+      },
     })
   })
 
@@ -38,7 +43,9 @@ describe('preverTermino', () => {
   })
 
   it('exatamente 20 itens já publica', () => {
-    expect(preverTermino(amostra([10, 10]), 5, 'semana', { prng: criarPrng(1), simulacoes: 10 }).status).toBe('ok')
+    expect(
+      preverTermino(amostra([10, 10]), 5, 'semana', { prng: criarPrng(1), simulacoes: 10 }).status,
+    ).toBe('ok')
   })
 
   it('usa 10 mil simulações por padrão', () => {
@@ -63,7 +70,10 @@ describe('preverTermino', () => {
   it('mantém o domínio fora do resultado: amostras de domínios distintos não se combinam', () => {
     const o = { prng: criarPrng(3), simulacoes: 50 }
     const bm = preverTermino(constante(2), 10, 'dia', o)
-    const ac = preverTermino(amostra(Array<number>(20).fill(2), 'acelerato'), 10, 'dia', { ...o, prng: criarPrng(3) })
+    const ac = preverTermino(amostra(Array<number>(20).fill(2), 'acelerato'), 10, 'dia', {
+      ...o,
+      prng: criarPrng(3),
+    })
     expect(ac).toEqual(bm)
   })
 })
@@ -74,7 +84,12 @@ describe('preverItens', () => {
     expect(r).toMatchObject({
       status: 'ok',
       n: 40,
-      valor: { itens: { p50: 12, p85: 12, p95: 12 }, periodos: 6, granularidade: 'dia', simulacoes: 100 },
+      valor: {
+        itens: { p50: 12, p85: 12, p95: 12 },
+        periodos: 6,
+        granularidade: 'dia',
+        simulacoes: 100,
+      },
     })
   })
 
@@ -86,8 +101,13 @@ describe('preverItens', () => {
   })
 
   it('P85 é conservador: abaixo da mediana quando há variação', () => {
-    const r = preverItens(amostra([0, 1, 2, 3, 4, 5, 6, 7]), 8, 'dia', { prng: criarPrng(5), simulacoes: 2000 })
-    expect(r.status === 'ok' && r.valor.itens.p85).toBeLessThan(r.status === 'ok' ? r.valor.itens.p50 : 0)
+    const r = preverItens(amostra([0, 1, 2, 3, 4, 5, 6, 7]), 8, 'dia', {
+      prng: criarPrng(5),
+      simulacoes: 2000,
+    })
+    expect(r.status === 'ok' && r.valor.itens.p85).toBeLessThan(
+      r.status === 'ok' ? r.valor.itens.p50 : 0,
+    )
   })
 
   it('rejeita períodos inválidos', () => {
@@ -96,9 +116,9 @@ describe('preverItens', () => {
 })
 
 describe('propriedades', () => {
-  const vazao = fc.array(fc.integer({ min: 0, max: 8 }), { minLength: 5, maxLength: 40 }).filter(
-    (v) => v.reduce((s, x) => s + x, 0) >= 20,
-  )
+  const vazao = fc
+    .array(fc.integer({ min: 0, max: 8 }), { minLength: 5, maxLength: 40 })
+    .filter((v) => v.reduce((s, x) => s + x, 0) >= 20)
 
   it('percentis monotônicos e determinismo pela semente', () => {
     fc.assert(

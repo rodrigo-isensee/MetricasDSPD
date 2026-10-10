@@ -69,7 +69,8 @@ function validar(a: Amostra, simulacoes: number): number {
   inteiroPositivo(simulacoes, 'simulacoes')
   let total = 0
   for (const v of a.valores) {
-    if (!Number.isInteger(v) || v < 0) throw new RangeError('vazao: itens por período devem ser inteiros >= 0')
+    if (!Number.isInteger(v) || v < 0)
+      throw new RangeError('vazao: itens por período devem ser inteiros >= 0')
     total += v
   }
   return total

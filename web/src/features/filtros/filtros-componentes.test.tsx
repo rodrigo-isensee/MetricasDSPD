@@ -188,7 +188,7 @@ describe('FiltroPeriodo', () => {
     expect(onChange).toHaveBeenCalledWith({ tipo: '4s' }, false)
   })
 
-  it('painel sem personalizado (Estratégico) oferece só os períodos permitidos', async () => {
+  it('painel sem personalizado (Estratégico) oferece só os períodos permitidos', () => {
     render(
       <FiltroPeriodo
         variante="lista"

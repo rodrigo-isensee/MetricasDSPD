@@ -160,9 +160,7 @@ describe('CabecalhoPainel', () => {
     })
     render(<CabecalhoPainel {...props} />)
     await userEvent.click(screen.getByTestId('copiar-link'))
-    const campo = (await screen.findByLabelText(
-      'Copie o endereço desta visão:',
-    )) as HTMLInputElement
+    const campo = await screen.findByLabelText<HTMLInputElement>('Copie o endereço desta visão:')
     expect(campo).toHaveAttribute('readonly')
     await waitFor(() => expect(campo.selectionEnd).toBeGreaterThan(0))
     await userEvent.click(screen.getByTestId('copiar-link'))
@@ -661,7 +659,7 @@ describe('CartaoMetrica: atualização, janela fixa e rodapé', () => {
           { id: 'm1', data: '2026-06-01', descricao: 'Novo critério' },
           { id: 'm2', data: '2026-08-01', descricao: 'Outro critério' },
         ],
-      } as never,
+      },
       selos: <span>selo extra</span>,
       acoes: <button>ação extra</button>,
     })

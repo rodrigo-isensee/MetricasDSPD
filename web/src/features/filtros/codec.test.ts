@@ -118,7 +118,7 @@ describe('escrita do fluxo e memória', () => {
     tipo: ['Melhoria'],
     sistema: ['s1'],
     periodo: { tipo: 'custom', de: '2026-03-01', ate: '2026-04-01' },
-  } as FiltrosFluxo
+  }
 
   it('escreve o personalizado com De/Até e o período comum sem eles', () => {
     const p = escreverFluxo(P(''), f, '12s')

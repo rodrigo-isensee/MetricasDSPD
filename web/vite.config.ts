@@ -45,6 +45,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text-summary', 'json-summary', 'html'],
       reportsDirectory: './coverage',
+      thresholds: { lines: 100, functions: 100, branches: 100, statements: 100 },
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.test.{ts,tsx}',

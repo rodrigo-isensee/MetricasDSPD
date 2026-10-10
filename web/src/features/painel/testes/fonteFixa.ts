@@ -45,7 +45,7 @@ export class FonteAjustada extends MockFonteMetricas {
     const copia = structuredClone(r)
     // O ajuste só muda a cópia no lugar; o valor que ele devolver é ignorado.
     ajustar(copia as never)
-    return copia as ResultadoDe<K>
+    return copia
   }
 }
 
