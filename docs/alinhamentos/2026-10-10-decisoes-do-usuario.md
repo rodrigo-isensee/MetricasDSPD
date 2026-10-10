@@ -47,3 +47,6 @@ O usuário decidiu **trocar o banco para PostgreSQL**, seguindo a stack técnica
 | Tolerância do "Atrasado" | **0 h confirmada** |
 | Nomes de pessoas | **Também nas tabelas analíticas** (como no modelo 4.5 do briefing: `responsaveis`, `usuario`). Garantia de "nenhuma visão individual": o usuário de banco da API não lê essas colunas; nenhuma view, rota, DTO ou tela agrega ou exibe por pessoa |
 | Custo | **Nenhum gasto no momento**: tudo roda localmente com Docker Compose (Postgres + API Fastify + web); CI no GitHub Actions (gratuito, repo público). Implantação em nuvem (AWS/ECS/Lambda ou servidor da Unifique) **adiada**, não descartada; a API sai como imagem de contêiner para ser portátil |
+
+## 9. Pedido 007 — P-1 conjuntos por papel (2026-10-10 15:16)
+**Todos começam vendo todas as métricas.** Os conjuntos por papel (time = Operacional; coordenador = Operacional + Tático; gerente = Tático + Estratégico) viram **atalho opcional** no perfil ("Aplicar sugestão do meu papel"), não o padrão inicial. Ajusta a decisão 1 do §6.
