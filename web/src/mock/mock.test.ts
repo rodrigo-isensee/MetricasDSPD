@@ -4,6 +4,7 @@ import {
   acelerato,
   businessmap,
   diaLocal,
+  ehDiaUtil,
   horasUteisEntre,
   CALENDARIO_PADRAO as cal,
 } from '@/lib/metrics'
@@ -44,8 +45,8 @@ describe('determinismo', () => {
       [base, '2026-10-09'],
       [custom, '2026-05-15'],
     ] as const) {
-      const bm = businessmap.criarContextoBM(b.bm, b.config.hoje)
-      const ac = acelerato.criarContextoAC(b.ac, b.config.hoje)
+      const bm = businessmap.criarContextoBM(b.bm, b.config.hoje, cal)
+      const ac = acelerato.criarContextoAC(b.ac, b.config.hoje, cal)
       expect(bm.hojeIso).toBe(ac.hojeIso)
       expect(bm.hojeIso).toBe(esperado)
       expect(bm.hoje).toBe(ac.hoje)
@@ -82,7 +83,7 @@ describe('invariantes do BusinessMap', () => {
   })
 
   it('marcos em ordem, nada depois de hoje, e coerentes com as transições', () => {
-    const idx = businessmap.indexarBM(base.bm)
+    const idx = businessmap.indexarBM(base.bm, cal)
     for (const m of idx.marcos) {
       const c = m.card
       expect(c.criado_em).toBeLessThanOrEqual(hoje)
@@ -136,7 +137,7 @@ describe('invariantes do BusinessMap', () => {
 
 describe('requisitos de UX da seção 9.2', () => {
   const f = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } }
-  const ctx = () => businessmap.criarContextoBM(base.bm, base.config.hoje)
+  const ctx = () => businessmap.criarContextoBM(base.bm, base.config.hoje, cal)
 
   it('há tipo, classe de serviço e sistema com menos de 20 itens, e outros com mais', () => {
     const o3 = businessmap.calcularO3(ctx(), f)
@@ -163,7 +164,7 @@ describe('requisitos de UX da seção 9.2', () => {
   })
 
   it('P1 tem menos de 20 chamados na janela e as demais prioridades têm mais', () => {
-    const c = acelerato.criarContextoAC(base.ac, base.config.hoje)
+    const c = acelerato.criarContextoAC(base.ac, base.config.hoje, cal)
     const s1 = acelerato.calcularS1(c, { equipe: [], prioridade: [], periodo: { tipo: '6m' } })
     expect(s1.prioridades.find((p) => p.prioridade === 'P1')?.restauracao.estatistica.status).toBe(
       'insuficiente',
@@ -199,7 +200,7 @@ describe('invariantes do Acelerato', () => {
     }
   })
   it('etapas em ordem por chamado e a soma dos totalizadores é o tempo de vida (aberto → encerrado)', () => {
-    const idx = acelerato.criarContextoAC(base.ac, base.config.hoje).idx
+    const idx = acelerato.criarContextoAC(base.ac, base.config.hoje, cal).idx
     for (const x of idx.chamados.filter((y) => y.fechado).slice(0, 300)) {
       for (let i = 1; i < x.etapas.length; i++)
         expect(x.etapas[i]?.entrada).toBeGreaterThanOrEqual(x.etapas[i - 1]?.entrada ?? 0)
@@ -208,6 +209,8 @@ describe('invariantes do Acelerato', () => {
     }
   })
   it('dia da abertura cai em dia útil', () => {
-    expect(base.ac.chamados.slice(0, 500).every((c) => diaLocal(c.aberto_em, cal) > 0)).toBe(true)
+    expect(
+      base.ac.chamados.slice(0, 500).every((c) => ehDiaUtil(diaLocal(c.aberto_em, cal), cal)),
+    ).toBe(true)
   })
 })

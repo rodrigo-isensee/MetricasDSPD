@@ -122,7 +122,7 @@ const MULT_TIPO: Record<TipoCard, number> = {
 }
 
 export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
-  const hoje = instanteDeIso(cfg.hoje)
+  const hoje = instanteDeIso(cfg.hoje, cal)
   const hojeDia = diaLocal(hoje, cal)
   const diaInicioHist = somarMeses(hojeDia, -cfg.mesesHistorico)
   const rng = derivar(cfg.semente, 'businessmap')

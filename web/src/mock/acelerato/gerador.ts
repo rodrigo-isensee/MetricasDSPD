@@ -42,7 +42,7 @@ interface Seg {
 }
 
 export function gerarBaseAcelerato(cfg: ConfigMock): BaseAC {
-  const hoje = instanteDeIso(cfg.hoje)
+  const hoje = instanteDeIso(cfg.hoje, cal)
   const hojeDia = diaLocal(hoje, cal)
   const diaIni = somarMeses(hojeDia, -cfg.mesesHistorico)
   const rng = derivar(cfg.semente, 'acelerato')
@@ -233,7 +233,6 @@ export function gerarBaseAcelerato(cfg: ConfigMock): BaseAC {
     }
   }
 
-  // Mantém o horário de leitura coerente: nenhuma etapa fora de ordem por chamado.
   return {
     chamados,
     etapas,

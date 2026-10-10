@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { CALENDARIO_PADRAO } from '@/lib/metrics/core'
 import { METRICA_IDS } from '@/contracts/comum'
 import { METRICAS_SUSTENTACAO } from '@/contracts/metricas'
 import { acelerato, businessmap, calcularMetrica } from '@/lib/metrics'
@@ -11,8 +12,8 @@ const LIMITE_METRICA_MS = 150
 const LIMITE_PAINEL_MS = 900
 const base = gerarBaseMock()
 const ctx = {
-  bm: businessmap.criarContextoBM(base.bm, base.config.hoje),
-  ac: acelerato.criarContextoAC(base.ac, base.config.hoje),
+  bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
+  ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
 }
 const filtros = (id: string) =>
   METRICAS_SUSTENTACAO.includes(id as never)

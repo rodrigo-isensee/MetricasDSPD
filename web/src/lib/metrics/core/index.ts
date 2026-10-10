@@ -1,0 +1,12 @@
+export * from './calendario'
+export * from './percentil'
+export * from './janela'
+// `criarAmostraInterna` fica de fora do índice público: só `amostraBM`/`amostraAC` constroem `Amostra` (review R5).
+export type { Amostra } from './amostra'
+export * from './estatistica'
+export * from './histograma'
+export * from './series'
+export * from './criterios'
+export * from './montecarlo'
+export * from './extremos'
+export * from './espera'
