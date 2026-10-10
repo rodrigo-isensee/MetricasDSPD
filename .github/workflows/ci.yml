@@ -117,6 +117,32 @@ jobs:
         run: bash docker/postgres/init/01-databases-papeis.sh
       - run: pnpm --filter @metricas-dspd/server run test:pg
 
+  openapi:
+    name: openapi
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: docs/api/openapi.json gerado = versionado
+        run: pnpm --filter @metricas-dspd/server run openapi:verificar
+
+  imagem:
+    name: imagem
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build da imagem do servidor (sem publicar)
+        run: docker build -f server/Dockerfile -t metricas-dspd-server .
+
   build:
     name: build
     if: github.event_name != 'schedule'

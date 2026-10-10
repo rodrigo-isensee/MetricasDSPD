@@ -57,3 +57,12 @@ export async function lerVersoes(db: Consultavel, dominio: Dominio, S: Esquemas 
   }
   return [...mapa.values()];
 }
+
+/** Instante em que a última coleta incremental bem-sucedida da fonte terminou (`null` = nunca). */
+export async function lerFimUltimaColetaOk(db: Consultavel, dominio: Dominio, S: Esquemas = esquemasDoAmbiente()): Promise<Date | null> {
+  const r = await db.query<{ finalizado_em: Date }>(
+    `SELECT finalizado_em FROM ${S[FONTE[dominio].chave]}.ctl_coleta
+     WHERE tarefa = 'coleta_incremental' AND status = 'sucesso' AND finalizado_em IS NOT NULL
+     ORDER BY finalizado_em DESC, coleta_id DESC LIMIT 1`);
+  return r.rows[0]?.finalizado_em ?? null;
+}

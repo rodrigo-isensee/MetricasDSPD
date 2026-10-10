@@ -17,14 +17,27 @@
     "seed": "tsx src/plataforma/db/seed-cli.ts",
     "test:pg": "vitest run --project pg",
     "checksums": "tsx src/plataforma/db/checksums-cli.ts",
-    "db:limpar-testes": "tsx src/plataforma/db/limpar-testes-cli.ts"
+    "db:limpar-testes": "tsx src/plataforma/db/limpar-testes-cli.ts",
+    "dev:api": "tsx watch src/entradas/api.ts",
+    "dev:worker": "tsx watch src/entradas/worker.ts",
+    "start:api": "tsx src/entradas/api.ts",
+    "start:worker": "tsx src/entradas/worker.ts",
+    "start:migrar": "tsx src/entradas/migrar.ts",
+    "openapi:gerar": "tsx src/entradas/openapi.ts",
+    "openapi:verificar": "tsx src/entradas/openapi.ts --verificar"
   },
   "dependencies": {
+    "@fastify/swagger": "^9.9.2",
     "@metricas-dspd/contratos": "workspace:*",
     "@metricas-dspd/metricas": "workspace:*",
     "@metricas-dspd/mock": "workspace:*",
+    "fastify": "^5.12.5",
+    "fastify-type-provider-zod": "^7.0.0",
     "node-pg-migrate": "^9.0.0",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -32,7 +45,7 @@
     "@types/pg": "^8.23.1",
     "@vitest/coverage-v8": "^5.0.3",
     "eslint": "^9.39.5",
-    "tsx": "^4.19.0",
+    "openapi-types": "^12.1.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"

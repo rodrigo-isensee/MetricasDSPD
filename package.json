@@ -24,7 +24,12 @@
     "db:migrate": "bash scripts/db.sh migrate",
     "db:seed": "bash scripts/db.sh seed",
     "test:pg": "bash scripts/test-pg.sh",
-    "db:limpar-testes": "bash scripts/db.sh limpar-testes"
+    "db:limpar-testes": "bash scripts/db.sh limpar-testes",
+    "dev:full": "bash scripts/dev.sh",
+    "stack:up": "docker compose up -d --build --wait",
+    "stack:down": "docker compose down",
+    "build:imagem": "docker build -f server/Dockerfile -t metricas-dspd-server .",
+    "openapi:gerar": "pnpm --filter @metricas-dspd/server run openapi:gerar"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

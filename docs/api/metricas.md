@@ -4,6 +4,12 @@
 > Dependência: `web/src/contracts/` ainda não está versionado em nenhuma branch nem existe no worktree 002; o contrato só fecha depois que os contratos do front forem commitados e trazidos para o 002 (pacote compartilhado, praticas.md).
 > Fonte dos tipos: `web/src/contracts/` (DTOs zod, `ContratoMetricas`, `FonteMetricas`). Em caso de divergência, vale o zod do front até a ADR fechar; o back reutiliza os mesmos schemas.
 
+## Saúde e OpenAPI
+- `GET /health/live` (processo no ar, sem banco), `GET /health/ready` e o alias `GET /health` (consultam o banco; 503 `BASE_INDISPONIVEL` se não responde). Fora do prefixo `/api/v1`. Resposta `{ "status": "ok" }`.
+- Todo response leva `x-request-id` (aproveita o enviado se for `[A-Za-z0-9._-]{8,64}`, senão UUID).
+- Contrato gerado: `docs/api/openapi.json` (`pnpm --filter @metricas-dspd/server run openapi:gerar`; o job `openapi` do CI e um teste comparam gerado x versionado). Fonte da verdade das rotas já implementadas: filtros, referência e saúde. `metricas`, `fontes` e o webhook entram no próximo lote.
+- Erros de validação: `details` = `[{ caminho, mensagem }]` (sem o valor recebido). 404 de rota: `ROTA_NAO_ENCONTRADA`.
+
 ## Regras gerais
 - Base `/api/v1`, JSON camelCase, somente leitura (`GET`).
 - Autenticação [ADR]: sem credencial válida -> 401; sem permissão -> 403.
@@ -54,13 +60,15 @@ Formato único: `{ "error": { "code": string, "message": string, "details"?: [] 
 | 500 | `INTERNAL_ERROR` | inesperado, sem detalhes internos |
 
 ## GET /api/v1/filtros/:dominio
-`:dominio` = `businessmap | acelerato`. Resposta 200 = `OpcoesFiltroFluxo` ou `OpcoesFiltroSustentacao` (equipes, tipos/prioridades, sistemas, `historico`). Sem opção de pessoa. Domínio inválido -> 404.
+`:dominio` = `businessmap | acelerato`. Resposta 200 = `OpcoesFiltroFluxo` ou `OpcoesFiltroSustentacao` (equipes, tipos/prioridades, sistemas, `historico`). Sem opção de pessoa. Domínio inválido -> 400 `VALIDATION_ERROR` (mesma regra de `docs/api/fontes.md`). Parâmetro de query qualquer (ex.: `?responsavel=`) -> 400. Cabeçalho `Cache-Control: private, max-age=60`. Implementada (S-07): `server/src/modulos/referencia/`. Resposta validada na saída (fora do schema = 500).
+- `equipes` (BusinessMap): `ref_quadro` vigente, nível `time`, sem quadros de teste; `id` = `slug(equipe)`. `tipos`: lista fixa de `contratos`. `sistemas`: `ref_dominio` campo `sistema` vigente (`id` = `slug(codigo)`, `nome` = rótulo). `historico.inicio` = primeira data (America/Sao_Paulo) de `dim_card.criado_em` (BM) ou `dim_chamado.aberto_em` (AC); base vazia: `inicio = fim`; `fim` = hoje.
+- Sustentação: `equipes` `totvs|senior|fluig`; `prioridades` com `id` minúsculo (`p1`..`p5`, como o mock) e `nome` `P1`..`P5`.
 
 ## GET /api/v1/criterios
 200 = `VersaoCriterio[]` (`id`, `data`, `descricao`, `afeta: MetricaId[]`), todos os domínios, registro T2.6 (mudança com data, marcada nos gráficos).
 
 ## GET /api/v1/referencia
-200 = `{ "dataReferencia": "AAAA-MM-DD", "ultimaColeta": { "businessmap": ISO|null, "acelerato": ISO|null }, "versaoCriterio": string }`. O front decide o aviso de dados defasados; `null` = nunca coletado. Fontes separadas, sem agregação entre elas.
+200 = `{ "dataReferencia": "AAAA-MM-DD", "ultimaColeta": { "businessmap": ISO|null, "acelerato": ISO|null }, "versaoCriterio": string }`. O front decide o aviso de dados defasados; `null` = nunca coletado. Fontes separadas, sem agregação entre elas. Implementada (S-07). `dataReferencia` = data de hoje em America/Sao_Paulo (**provisório, pergunta aberta ao usuário**: hoje ou data da última coleta); `ultimaColeta.<fonte>` = fim da última coleta incremental com `status = sucesso`; `versaoCriterio` = id da versão mais recente já vigente (`ref_versao_criterio`, qualquer fonte), `"0"` se não há. Query de pessoa -> 400.
 
 ## Cache
 - Chave: `métrica + filtros normalizados (listas ordenadas) + dataReferencia + versão de critério`.

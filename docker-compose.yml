@@ -1,4 +1,4 @@
-# Ambiente local de banco (ADR 0014: tudo local, custo zero). Uso: pnpm run db:up | db:down | db:reset | test:pg
+# Ambiente local (ADR 0014: tudo local, custo zero). Uso: docker compose up | pnpm run stack:up | db:up | db:down | db:reset | test:pg
 # Um servidor PostgreSQL 17 com dois databases: `metricas` (desenvolvimento) e `metricas_test` (testes, um conjunto de schemas por execução).
 services:
   postgres:
@@ -24,6 +24,47 @@ services:
       timeout: 3s
       retries: 30
       start_period: 5s
+
+  migrate:
+    build: { context: ., dockerfile: server/Dockerfile }
+    command: ["node", "--import", "tsx", "src/entradas/migrar.ts"]
+    environment:
+      PG_MIGRADOR_URL: postgres://dspd_migrador:${DSPD_PWD_MIGRADOR:-migrador_dev}@postgres:5432/metricas
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  # A api só recebe a credencial dspd_api: nunca a do coletor.
+  api:
+    build: { context: ., dockerfile: server/Dockerfile }
+    environment:
+      PG_API_URL: postgres://dspd_api:${DSPD_PWD_API:-api_dev}@postgres:5432/metricas
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports: ["${API_PORT:-3000}:3000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  # O worker só recebe a credencial dspd_coletor.
+  worker:
+    build: { context: ., dockerfile: server/Dockerfile }
+    command: ["node", "--import", "tsx", "src/entradas/worker.ts"]
+    environment:
+      PG_COLETOR_URL: postgres://dspd_coletor:${DSPD_PWD_COLETOR:-coletor_dev}@postgres:5432/metricas
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  web:
+    build: { context: ., dockerfile: docker/web/Dockerfile }
+    ports: ["${WEB_PORT:-8080}:80"]
+    depends_on:
+      api: { condition: service_healthy }
 
 volumes:
   dspd-pg-data:
