@@ -2,6 +2,7 @@
  * Construtores de fixtures pequenas, montadas à mão, para testar uma regra por vez (não usam o gerador).
  * Só para testes.
  */
+import { ordenarNeutro } from '../core/ordenar'
 import { CALENDARIO_PADRAO } from '../core/calendario'
 import type { TipoCard, Granularidade } from '@metricas-dspd/contratos'
 import { instanteDeIso } from '../core/calendario'
@@ -110,7 +111,10 @@ export function umaBase(especs: EspecCard[], bloqueios: FatoBloqueio[] = []): Ba
   const feitos = especs.map(umCard)
   return {
     cards: feitos.map((x) => x.card),
-    transicoes: feitos.flatMap((x) => x.trs).sort((a, b) => a.timestamp - b.timestamp),
+    transicoes: ordenarNeutro(
+      feitos.flatMap((x) => x.trs),
+      (t) => [t.timestamp],
+    ),
     bloqueios,
     colunas,
     fichas: [],

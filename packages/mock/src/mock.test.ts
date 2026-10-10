@@ -239,4 +239,17 @@ describe('O7: saldo acumulado (F4)', () => {
       expect(Math.abs(t.saldoAcumulado)).toBeLessThanOrEqual(t.entrou + t.saiu)
     expect(r.porTipo.some((t) => t.saldoAcumulado !== t.saldoPeriodo)).toBe(true)
   })
+  it('borda: período de quarta a terça conta a semana parcial do início e nenhum dia após o fim', () => {
+    const bm = businessmap.criarContextoBM(base.bm, base.config.hoje, cal)
+    const iso = (d: Date) => d.toISOString().slice(0, 10)
+    const ini = new Date('2026-03-04T12:00:00Z') // quarta-feira
+    const dias = Array.from({ length: 14 }, (_, k) => iso(new Date(ini.getTime() + k * 86_400_000)))
+    const total = (de: string, ate: string) => {
+      const f = { equipe: [], tipo: [], sistema: [], periodo: { tipo: 'custom' as const, de, ate } }
+      return businessmap.calcularO7(bm, f).porTipo.reduce((s, t) => s + t.saldoAcumulado, 0)
+    }
+    const somaDiaria = dias.reduce((s, d) => s + total(d, d), 0)
+    expect(total(dias[0]!, dias[13]!)).toBe(somaDiaria)
+    expect(total(dias[0]!, dias[6]!) + total(dias[7]!, dias[13]!)).toBe(somaDiaria)
+  })
 })

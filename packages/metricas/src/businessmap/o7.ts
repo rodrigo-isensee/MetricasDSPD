@@ -2,7 +2,7 @@ import type { ResultadoO7 } from '@metricas-dspd/contratos'
 import { TIPOS_CARD } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { diaDeIso, diaLocal, isoDeDia, somarMeses } from '../core/calendario'
-import { mesesEntre, semanasEntre } from '../core/series'
+import { mesesEntre } from '../core/series'
 import { baseAmostral, criterios, periodoDe, selecionar } from './comum'
 import type { ContextoBM } from './indice'
 import { ordenarNeutro } from '../core/ordenar'
@@ -22,12 +22,10 @@ export function calcularO7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO7 {
   const cards = selecionar(ctx, f, 'story', { incluirInativos: true }).filter(
     (m) => !m.card.eh_subtarefa && m.card.excluido_em === null,
   )
-  // F4: saldo acumulado = soma semanal de (chegadas - saídas) por tipo, dentro do período filtrado.
-  const semanas = semanasEntre(
-    diaDeIso(periodoEscolhido.inicio),
-    diaDeIso(periodoEscolhido.fim),
-    ctx.hojeDia,
-  )
+  // F4: saldo acumulado = chegadas - saídas dentro do período filtrado (inclui a semana parcial do início, sem dias após o fim).
+  const iniDia = diaDeIso(periodoEscolhido.inicio)
+  const fimDia = diaDeIso(periodoEscolhido.fim)
+  const dentro = (d: number) => d >= iniDia && d <= fimDia
   const ultimos3 = new Set(meses.slice(-3).map((m) => m.chave))
 
   let entrou = 0
@@ -55,18 +53,9 @@ export function calcularO7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO7 {
     entrou += e
     saiu += s
     const saldo = e - s
-    const saldoAcumulado = semanas.reduce((total, w) => {
-      const chegou = dele.filter((m) => {
-        const d = diaLocal(m.entrada, ctx.cal)
-        return d >= w.inicioDia && d <= w.fimDia
-      }).length
-      const saiuNaSemana = dele.filter((m) => {
-        if (m.entrega === null) return false
-        const d = diaLocal(m.entrega, ctx.cal)
-        return d >= w.inicioDia && d <= w.fimDia
-      }).length
-      return total + (chegou - saiuNaSemana)
-    }, 0)
+    const saldoAcumulado =
+      dele.filter((m) => dentro(diaLocal(m.entrada, ctx.cal))).length -
+      dele.filter((m) => m.entrega !== null && dentro(diaLocal(m.entrega, ctx.cal))).length
     const situacao: 'cresce' | 'estavel' | 'diminui' =
       saldo > Math.max(1, e * TOLERANCIA_ESTAVEL)
         ? 'cresce'
