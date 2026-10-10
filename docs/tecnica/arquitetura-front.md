@@ -1,6 +1,6 @@
 # Arquitetura do front-end (`web/`)
 
-Estado do pedido 001 (dashboard com dados fictícios). Decisões de base: [ADR 0001](../architecture/adr/0001-stack-front-dashboard-mock.md) (stack e fronteira `FonteMetricas`), [ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md) (pacotes e grafo), [ADR 0003](../architecture/adr/0003-orcamento-de-performance.md) (orçamento de performance). O cálculo em si está em [biblioteca-de-calculo.md](biblioteca-de-calculo.md); os dados, em [modelo-de-dados-mock.md](modelo-de-dados-mock.md).
+Estado do pedido 001 (dashboard com dados fictícios) e da integração real (seção 6). Decisões de base: [ADR 0001](../architecture/adr/0001-stack-front-dashboard-mock.md) (stack e fronteira `FonteMetricas`), [ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md) (pacotes e grafo), [ADR 0003](../architecture/adr/0003-orcamento-de-performance.md) (orçamento de performance). O cálculo em si está em [biblioteca-de-calculo.md](biblioteca-de-calculo.md); os dados, em [modelo-de-dados-mock.md](modelo-de-dados-mock.md).
 
 ## 1. C4 nível 3 — componentes do `web/`
 
@@ -177,12 +177,26 @@ export class HttpFonteMetricas implements FonteMetricas {
     return SCHEMAS_RESULTADO[id].parse(await r.json()) // mesmo schema zod que a API usa
   }
   // opcoesFiltro(dominio), criterios(), dataReferencia(): um GET cada
+  // estadoColeta(dominio): GET /api/v1/fontes/:dominio/estado
+  // historicoColetas(dominio, pagina): GET /api/v1/fontes/:dominio/coletas?pagina=
 }
 ```
 
 Passos:
 1. Criar `data/http/` (cai na regra de `data/**`: pode usar `contratos` e `contratos/validacao`, nunca `metricas`/`mock`).
 2. `criarFontePadrao()` escolhe a fonte por variável de ambiente (ex.: `VITE_FONTE=api`); o mock continua disponível para dev e E2E.
-3. Com `tipo: 'api'`, `?mock=` já é ignorado por `useMetrica`. Atenção: o `AvisoDadosFicticios` hoje é renderizado sem condição no `AppShell`, apesar do comentário de `FonteMetricas.tipo`; a troca precisa condicioná-lo a `useFonte().tipo === 'mock'`.
+3. Com `tipo: 'api'`, `?mock=` já é ignorado por `useMetrica`. O `AvisoDadosFicticios`, o texto do rodapé e o sufixo do título só aparecem com `useFonte().tipo === 'mock'` (feito na integração real, D5).
 4. Revisar o `QueryClient` para dados reais (retentativa limitada em erro de rede, `staleTime` amarrado à data de corte da carga): decisão aberta, a registrar em ADR junto com o pedido 002.
 5. Os testes de painel usam `fonteFixa` (`features/painel/testes`) e não mudam; a paridade mock × API fica nos testes de contrato (ver [qualidade-e-testes.md](qualidade-e-testes.md)).
+
+## 6. Coletas, frescor, calibração e `/dados` (integração real, K-034)
+
+Plano: [integracao-real.md](../architecture/features/integracao-real.md); spec: `docs/ux/integracao-real/05-especificacao.md`.
+
+- **Nova fonte na porta única.** `FonteMetricas` ganha `estadoColeta(dominio)` e `historicoColetas(dominio, pagina)` (uma fonte por chamada, nunca somadas). O mock calcula com `gerarColetasMock` (`@metricas-dspd/mock`, fora da `BaseMock`) e `montarEstadoColeta`/`paginarColetas` (`@metricas-dspd/metricas`), sempre pelo mesmo `import()` dinâmico; selo, janela de 60 dias e `metricasEmCalibracao` chegam prontos, a UI só exibe.
+- **Hooks** (`data/useMetrica.ts`): `useEstadoColeta(dominio)` (chave `['coleta', dominio, modo]`, compartilhada por selo, faixa, cartões e `/dados`), `useHistoricoColetas(dominio, pagina)` e `useMetricasEmCalibracao(dominio)`.
+- **`?mock=` novos** (só com fonte mock): `coleta-atrasada:bm|ac`, `coleta-vazia:bm|ac`, `coleta-erro:bm|ac` (afetam só a fonte indicada) e `sem-calibracao`; `carregando` também deixa o estado de coleta carregando. Aplicados em `aplicarSimulacaoEstado`/`aplicarSimulacaoHistorico` (`data/simulacao.ts`).
+- **Selo e faixa nos painéis.** `PainelFluxo`/`PainelSustentacao` recebem `fontes`; o cabeçalho mostra `FrescorFonte` (Atualizado em, `SeloFrescor`, "Entenda" para `/dados?fonte=bm|ac`) e `FaixaCalibracaoFonte`. Visão geral e Espera invisível mostram um selo por fonte, separados. Sem nenhuma coleta ok, o painel de uma fonte mostra `SemDadosDaFonte`.
+- **Calibração nos cartões.** `CalibracaoDasFontes` (dentro do `AppShell`) liga o conjunto de métricas em calibração ao contexto de `components/ui/Calibracao.tsx`. `CartaoMetrica` mostra o selo "Em calibração", `StatusMeta` vira o selo (nunca Dentro/Fora) e `FaixaAtencao` omite essas métricas e avisa. Enquanto o estado de coleta carrega, o cartão fica em carregando e a faixa em "Verificando", para nenhum status aparecer e sumir. Cartões isolados, sem o shell, não têm calibração.
+- **Rota `/dados`** (`features/dados`, lazy; item "Dados e coletas" em `app/rotas.ts`): abas `role="tablist"` com `?fonte=bm|ac` (inválido cai em BusinessMap), um `PainelFonte` por aba com carregando, vazio, erro ("Tentar de novo") e as seções Última coleta, Contagens, Janela de calibração, Falhas recentes, Histórico paginado (20) e Mudanças de critério (filtradas pelas métricas da fonte). Sem cadastro, sem coluna por pessoa, sem autenticação nesta etapa.
+- **Pendências de regra** (a confirmar com o usuário): janela de 60 dias e gatilhos; tolerância do "Atrasado" (provisória, 0 h).

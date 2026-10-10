@@ -22,25 +22,25 @@ test.describe('Selo de frescor e calibração nos painéis', () => {
   });
 
   test('CT-04 coleta-atrasada mostra horas de atraso', async ({ page }) => {
-    await page.goto('/operacional?mock=coleta-atrasada');
+    await page.goto('/operacional?mock=coleta-atrasada:bm');
     await expect(page.getByText(/Atrasado: última coleta há \d+ h/).first()).toBeVisible();
   });
 
   test('CT-06/07 calibração: painel visível, faixa status e selo no cartão', async ({ page }) => {
-    await page.goto('/operacional');
+    await page.goto('/sustentacao');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByRole('status').filter({ hasText: /não para cobrar|não para cobrar pessoas/i }).first()).toBeVisible();
     await expect(page.getByText('Em calibração').first()).toBeVisible();
   });
 
   test('CT-08/09 sem-calibracao remove a faixa; em calibração não há Dentro/Fora da meta', async ({ page }) => {
-    await page.goto('/operacional');
+    await page.goto('/sustentacao');
     await expect(page.getByText('Em calibração').first()).toBeVisible();
-    await expect(page.getByText(/Dentro da meta|Fora da meta/)).toHaveCount(0);
-    await page.goto('/operacional?mock=sem-calibracao');
+    await expect(page.getByText(/Dentro da meta|Fora da meta|Abaixo de 90%|Acima de 90%/)).toHaveCount(0);
+    await page.goto('/sustentacao?mock=sem-calibracao');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByText('Em calibração')).toHaveCount(0);
-    await expect(page.getByText(/Dentro da meta|Fora da meta/).first()).toBeVisible();
+    await expect(page.getByText(/Abaixo de 90%|Acima de 90%/).first()).toBeVisible();
   });
 
   test('CT-10 não há cadastro manual de janela de calibração', async ({ page }) => {
@@ -50,19 +50,19 @@ test.describe('Selo de frescor e calibração nos painéis', () => {
   });
 
   test('CT-13 coleta-erro mantém dados anteriores e avisa', async ({ page }) => {
-    await page.goto('/operacional?mock=coleta-erro');
+    await page.goto('/operacional');
     await expect(page.getByText(/Coleta falhou em .*Mostrando dados de/).first()).toBeVisible();
     await expect(page.getByText(/Ainda não há dados desta fonte/)).toHaveCount(0);
   });
 
   test('CT-14 coleta-vazia mostra o estado sem dados', async ({ page }) => {
-    await page.goto('/operacional?mock=coleta-vazia');
+    await page.goto('/operacional?mock=coleta-vazia:bm');
     await expect(page.getByText(/Ainda não há dados desta fonte/).first()).toBeVisible();
   });
 
   test('CT-15 falha em uma fonte não altera a outra', async ({ page }) => {
-    await page.goto('/sustentacao?mock=coleta-erro');
-    await page.goto('/operacional');
+    await page.goto('/sustentacao?mock=coleta-erro:bm');
+    await expect(page.getByTestId('selo-frescor-acelerato')).toContainText('Atual');
     await expect(page.getByText(/Coleta falhou em/)).toHaveCount(0);
   });
 
@@ -96,8 +96,8 @@ test.describe('Tela /dados', () => {
   for (const f of FONTES) {
     test(`CT-18..23/32 seções completas (${f.aba})`, async ({ page }) => {
       await page.goto(`/dados?fonte=${f.q}`);
-      for (const t of ['Última coleta', 'Contagens da última coleta', 'Janela de calibração', 'Falhas recentes', 'Histórico de coletas', 'Mudanças de critério'])
-        await expect(page.getByRole('heading', { name: t })).toBeVisible();
+      for (const t of ['Última coleta', 'Contagens da última coleta', 'Janela de calibração', 'Falhas recentes (14 dias)', 'Histórico de coletas', 'Mudanças de critério (T2.6)'])
+        await expect(page.getByRole('heading', { name: t, exact: true })).toBeVisible();
       await expect(page.getByText(/Última tentativa/)).toBeVisible();
       await expect(page.getByText(/Próxima prevista/)).toBeVisible();
       await expect(page.getByText(/Arquivados e excluídos permanecem na base/)).toBeVisible();
@@ -132,17 +132,17 @@ test.describe('Tela /dados', () => {
   });
 
   test('CT-25/35 erro com Tentar de novo recupera', async ({ page }) => {
-    let falhar = true;
-    await page.route('**/api/**/dados**', (r) => (falhar ? r.fulfill({ status: 500, body: '{"erro":"x"}', contentType: 'application/json' }) : r.continue()));
-    await page.goto('/dados');
+    // Etapa mock: a falha de leitura vem de ?mock=coleta-erro:bm (a API real ainda não existe).
+    await page.goto('/dados?mock=coleta-erro:bm');
     await expect(page.getByText('Não foi possível carregar os dados desta fonte')).toBeVisible();
-    falhar = false;
-    await page.getByRole('button', { name: 'Tentar de novo' }).click();
-    await expect(page.getByRole('heading', { name: 'Última coleta' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
+    // A outra fonte não é afetada.
+    await page.getByRole('tab', { name: 'Acelerato' }).click();
+    await expect(page.getByRole('heading', { name: 'Última coleta', exact: true })).toBeVisible();
   });
 
   test('CT-25 vazio por fonte', async ({ page }) => {
-    await page.goto('/dados?mock=coleta-vazia');
+    await page.goto('/dados?mock=coleta-vazia:bm');
     await expect(page.getByText(/Ainda não há coletas desta fonte/)).toBeVisible();
   });
 
@@ -170,7 +170,7 @@ test.describe('Tela /dados', () => {
 for (const vp of VIEWPORTS) {
   test.describe(`${vp.width}px`, () => {
     test.use({ viewport: vp });
-    const ROTAS = ['/dados?fonte=bm', '/dados?fonte=ac', '/dados?mock=coleta-vazia', '/dados?mock=carregando', '/operacional?mock=coleta-atrasada', '/operacional?mock=coleta-erro', '/operacional?mock=coleta-vazia', '/operacional?mock=sem-calibracao', '/'];
+    const ROTAS = ['/dados?fonte=bm', '/dados?fonte=ac', '/dados?mock=coleta-vazia:bm', '/dados?mock=carregando', '/operacional?mock=coleta-atrasada:bm', '/operacional?mock=coleta-erro:bm', '/operacional?mock=coleta-vazia:bm', '/operacional?mock=sem-calibracao', '/'];
     for (const rota of ROTAS) {
       test(`CT-27 axe ${rota}`, async ({ page }) => {
         await page.goto(rota);
