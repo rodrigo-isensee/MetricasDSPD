@@ -11,8 +11,10 @@ interface Calibracao {
   metricas: ReadonlySet<string>
   /** false enquanto o estado de coleta carrega: nenhum status de meta aparece antes de saber (CA-05). */
   pronta: boolean
+  /** A leitura do estado de coleta falhou: sem saber se há calibração, o status de meta fica oculto (conservador). */
+  statusOculto?: boolean
 }
-const SEM_CALIBRACAO: Calibracao = { metricas: new Set(), pronta: true }
+const SEM_CALIBRACAO: Calibracao = { metricas: new Set(), pronta: true, statusOculto: false }
 const CalibracaoCtx = createContext<Calibracao>(SEM_CALIBRACAO)
 
 /** O cartão atual está em calibração: o `StatusMeta` dentro dele vira o selo, nunca "Dentro/Fora da meta". */
@@ -21,9 +23,13 @@ const CartaoCalibracaoCtx = createContext(false)
 export function ProvedorCalibracao({
   metricas,
   pronta,
+  statusOculto = false,
   children,
 }: Calibracao & { children: ReactNode }) {
-  const valor = useMemo(() => ({ metricas, pronta }), [metricas, pronta])
+  const valor = useMemo(
+    () => ({ metricas, pronta, statusOculto }),
+    [metricas, pronta, statusOculto],
+  )
   return <CalibracaoCtx.Provider value={valor}>{children}</CalibracaoCtx.Provider>
 }
 
@@ -44,6 +50,8 @@ export function useEmCalibracao(): (codigo: string) => boolean {
   const { metricas } = useContext(CalibracaoCtx)
   return (codigo) => metricas.has(idDeMetrica(codigo))
 }
+
+export const useStatusOculto = (): boolean => !!useContext(CalibracaoCtx).statusOculto
 
 export const useCalibracaoPronta = (): boolean => useContext(CalibracaoCtx).pronta
 
@@ -92,7 +100,7 @@ export function FaixaCalibracao({ fonte, janelas, saibaMais, testid }: FaixaProp
         ajustar o processo, não para cobrar pessoas ou times. Metas não são avaliadas neste período.
       </p>
       <Link to={saibaMais} className="alvo whitespace-nowrap text-acento underline">
-        Saiba mais
+        Saiba mais sobre a calibração
       </Link>
     </div>
   )
