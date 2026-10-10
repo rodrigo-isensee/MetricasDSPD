@@ -4,6 +4,9 @@ import { describe, expect, it } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
 import { fmtTempoPrioridade, fmtHU } from './formatar'
 
+/** A Sustentação está em calibração no cenário padrão (sem Dentro/Fora); estes casos exigem as metas avaliadas. */
+const SEM_CALIBRACAO = '/sustentacao?mock=sem-calibracao'
+
 async function cartao(codigo: string, url = '/sustentacao') {
   const r = renderizarApp(url)
   const el = await screen.findByTestId(`metrica-${codigo}`)
@@ -24,7 +27,7 @@ describe('formatação da Sustentação (J2)', () => {
 
 describe('painel Sustentação', () => {
   it('mostra "Pede atenção na semana" com link para S2 (SUS-01)', async () => {
-    renderizarApp('/sustentacao')
+    renderizarApp('/sustentacao?mock=sem-calibracao')
     const faixa = await screen.findByTestId('faixa-atencao', undefined, { timeout: 8000 })
     expect(faixa).toHaveTextContent('Pede atenção na semana')
     const hrefs = () =>
@@ -50,7 +53,7 @@ describe('painel Sustentação', () => {
   })
 
   it('S1: sempre por prioridade; P1 com amostra insuficiente sem barra; exceções à parte; alvo com status em ícone e texto', async () => {
-    const { el } = await cartao('S1')
+    const { el } = await cartao('S1', SEM_CALIBRACAO)
     const mttr = within(el).getByTestId('s1-mttr')
     expect(within(mttr).getByTestId('s1-insuficiente-mttr-p1')).toHaveTextContent(
       'Amostra insuficiente (9 de 20 itens mínimos)',
@@ -74,7 +77,7 @@ describe('painel Sustentação', () => {
   })
 
   it('S2: primeiro atendimento e restauração separados, com "k de n" e status por célula', async () => {
-    const { el } = await cartao('S2')
+    const { el } = await cartao('S2', SEM_CALIBRACAO)
     const t = within(el).getByTestId('tabela-S2-detalhe')
     const p2 = within(t).getByRole('row', { name: /^P2/ })
     expect(p2).toHaveTextContent('88,9% · 144 de 162')
@@ -200,7 +203,7 @@ describe('faixa "Pede atenção" nos três estados (K-047)', () => {
   })
 
   it('sucesso: mostra os itens e nenhum estado de carregando ou erro', async () => {
-    renderizarApp('/sustentacao')
+    renderizarApp(SEM_CALIBRACAO)
     const faixa = await screen.findByTestId('faixa-atencao')
     await waitFor(() => expect(within(faixa).queryAllByRole('link').length).toBeGreaterThan(0), {
       timeout: 8000,

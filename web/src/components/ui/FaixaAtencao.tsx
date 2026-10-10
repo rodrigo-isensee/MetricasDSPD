@@ -1,5 +1,6 @@
 import { useId, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
+import { useCalibracaoPronta, useEmCalibracao } from './Calibracao'
 import { Icone } from './Icone'
 
 export interface ItemAtencao {
@@ -54,13 +55,21 @@ interface Props {
 export function FaixaAtencao({
   momento = 'agora',
   titulo = TITULOS_FAIXA[momento],
-  itens,
+  itens: itensBrutos,
   vazio = 'Nada pede atenção agora com base nas metas publicadas.',
   maximo,
-  estado = 'ok',
+  estado: estadoDaConsulta = 'ok',
   onTentarDeNovo,
   reserva,
 }: Props) {
+  const emCalibracao = useEmCalibracao()
+  // Antes de saber o que está em calibração nada é afirmado: nem alerta, nem "Nada pede atenção".
+  const calibracaoPronta = useCalibracaoPronta()
+  const estado: EstadoFaixa =
+    estadoDaConsulta === 'ok' && !calibracaoPronta ? 'carregando' : estadoDaConsulta
+  // Métrica em calibração não pede atenção: dados de calibração não são para cobrar (CA-05).
+  const itens = itensBrutos.filter((i) => !emCalibracao(i.codigo ?? i.id))
+  const omitidos = itensBrutos.length - itens.length
   const [todos, setTodos] = useState(false)
   const idLista = useId()
   const reservando = estado === 'carregando' && reserva !== undefined
@@ -135,6 +144,11 @@ export function FaixaAtencao({
             )
           })}
         </ul>
+      )}
+      {estado === 'ok' && omitidos > 0 && (
+        <p className="mt-2 text-xs text-texto-2" data-testid="atencao-omitidos-calibracao">
+          Itens de métricas em calibração não aparecem aqui.
+        </p>
       )}
       {estado === 'ok' && maximo !== undefined && itens.length > maximo && (
         <button

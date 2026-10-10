@@ -118,7 +118,7 @@ describe('S6 e S7', () => {
 describe('Painel Sustentação: faixa "Pede atenção"', () => {
   it('SLA fora da meta em mais de uma prioridade e mediana acima do alvo em uma só: singular e plural', async () => {
     renderizarApp(
-      '/sustentacao',
+      '/sustentacao?mock=sem-calibracao',
       new FonteAjustada({
         S2: (r: {
           prioridades: {
@@ -137,7 +137,7 @@ describe('Painel Sustentação: faixa "Pede atenção"', () => {
 
   it('uma só prioridade com SLA fora da meta (singular) e mediana acima do alvo em várias (plural)', async () => {
     renderizarApp(
-      '/sustentacao',
+      '/sustentacao?mock=sem-calibracao',
       new FonteAjustada({
         S2: (r: {
           prioridades: {

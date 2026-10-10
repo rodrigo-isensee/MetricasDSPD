@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
 import type { Dominio, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta } from '@/data'
+import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
 import { SemDadosDaFonte } from '@/features/coleta/SemDadosDaFonte'
 import { BarraFiltros, useFiltros, type PainelId, type UseFiltros } from '@/features/filtros'
@@ -66,6 +67,9 @@ function Casca({
           }
           {...(base.publico ? { publico: base.publico } : {})}
         />
+        {fontes.map((d) => (
+          <FaixaCalibracaoFonte key={d} dominio={d} />
+        ))}
         {base.extra}
         <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
         {fontes.length === 1 ? (

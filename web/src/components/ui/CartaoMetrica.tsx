@@ -11,6 +11,12 @@ import { fmtData, fmtDataCurta } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
 import { AvisoCriterio } from './AvisoCriterio'
 import { BadgeBase } from './BadgeBase'
+import {
+  ProvedorCartaoCalibracao,
+  SeloCalibracao,
+  useCalibracaoPronta,
+  useEmCalibracao,
+} from './Calibracao'
 import { ChipFiltros, ChipFonte, ChipGranularidade, ChipMeta } from './Chips'
 import { useContextoPainel } from './ContextoPainel'
 import { ALTURAS_ESQUELETO, ALTURAS_ESQUELETO_MOBILE } from './alturasEsqueleto'
@@ -88,9 +94,12 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
   const idNota = useId()
   const { filtrosAtivos, reportarAtualizando } = useContextoPainel()
   const id = p.codigo.toLowerCase()
+  const calibrando = useEmCalibracao()(p.codigo)
+  const calibracaoPronta = useCalibracaoPronta()
   // O tempo mínimo do esqueleto vive aqui, que continua montado quando os dados chegam (6.1).
   const esq = useEsqueleto(p.estado === 'carregando')
-  const estado = esq.mostrar ? 'carregando' : p.estado
+  // Só mostra o cartão quando já se sabe se está em calibração: nenhum Dentro/Fora aparece e some depois (CA-05).
+  const estado = esq.mostrar || (p.estado === 'ok' && !calibracaoPronta) ? 'carregando' : p.estado
   const ok = estado === 'ok'
   const alturaCorpo = p.alturaEsqueleto ?? ALTURAS_ESQUELETO[p.codigo] ?? ALTURA_ESQUELETO_PADRAO
   const alturaMobile = p.alturaEsqueleto ?? ALTURAS_ESQUELETO_MOBILE[p.codigo] ?? alturaCorpo
@@ -188,6 +197,7 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
             />
           )}
           {janelaFixa && <SeloJanela janela={janelaTxt} />}
+          {calibrando && <SeloCalibracao />}
           {p.selos}
         </div>
         <BlocoNota
@@ -236,36 +246,41 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
             codigo: p.codigo,
           }}
         >
-          <div className="mt-1">
-            {p.leitura && (
-              <p
-                id={idLeitura}
-                className={clsx('mt-2 text-sm font-medium', esmaece)}
-                data-testid={`leitura-${p.codigo}`}
-              >
-                {p.leitura}
-              </p>
-            )}
-            {p.criterios && (
-              <div className="mt-2 flex flex-col gap-2">
-                <AvisoCriterio marcacoes={p.criterios.serie} />
-                <AvisoCriterio
-                  marcacoes={p.criterios.janela.filter(
-                    (m) => !p.criterios?.serie.some((s) => s.id === m.id),
-                  )}
-                  tipo="janela"
-                  janela={janelaTxt}
-                />
-              </div>
-            )}
-            <div className={clsx('mt-3', esmaece)}>{p.children}</div>
-          </div>
+          <ProvedorCartaoCalibracao ativo={calibrando}>
+            <div className="mt-1">
+              {p.leitura && (
+                <p
+                  id={idLeitura}
+                  className={clsx('mt-2 text-sm font-medium', esmaece)}
+                  data-testid={`leitura-${p.codigo}`}
+                >
+                  {p.leitura}
+                </p>
+              )}
+              {p.criterios && (
+                <div className="mt-2 flex flex-col gap-2">
+                  <AvisoCriterio marcacoes={p.criterios.serie} />
+                  <AvisoCriterio
+                    marcacoes={p.criterios.janela.filter(
+                      (m) => !p.criterios?.serie.some((s) => s.id === m.id),
+                    )}
+                    tipo="janela"
+                    janela={janelaTxt}
+                  />
+                </div>
+              )}
+              <div className={clsx('mt-3', esmaece)}>{p.children}</div>
+            </div>
+          </ProvedorCartaoCalibracao>
         </ModoTabelaContext.Provider>
       )}
 
       <footer className="mt-3 flex flex-wrap items-center gap-2">
         {p.meta && <ChipMeta>{p.meta}</ChipMeta>}
-        {p.statusMeta && ok && (
+        {calibrando && ok && (
+          <SeloCalibracao texto="Em calibração: sem avaliação de meta" testid="calibracao-meta" />
+        )}
+        {p.statusMeta && ok && !calibrando && (
           <StatusMeta status={p.statusMeta} {...(p.textoStatus ? { texto: p.textoStatus } : {})} />
         )}
         <ChipFonte fonte={p.fonte} />
