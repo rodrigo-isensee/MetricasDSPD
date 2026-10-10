@@ -63,6 +63,10 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
     const rodape = screen.getByTestId('rodape')
     await waitFor(() => expect(rodape).toHaveTextContent('Dados até 09/10/2026'))
     expect(rodape).not.toHaveTextContent('fictícios')
+    const sobre = screen.getByRole('heading', { name: 'Sobre os dados' })
+      .parentElement as HTMLElement
+    expect(sobre).toHaveTextContent('Dados das coletas do BusinessMap e do Acelerato.')
+    expect(sobre).not.toHaveTextContent('fictícios')
     expect(document.title).toBe('Ajuda · Métricas DSPD')
   })
 

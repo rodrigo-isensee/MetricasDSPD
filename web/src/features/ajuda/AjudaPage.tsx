@@ -1,5 +1,5 @@
 import { CabecalhoPainel } from '@/components/ui'
-import { useCriterios, useDataReferencia } from '@/data'
+import { useCriterios, useDataReferencia, useFonte } from '@/data'
 import { JANELA_PERCENTIS_PADRAO } from '@metricas-dspd/contratos'
 import { fmtData, textoJanela } from '@/lib/formatar'
 
@@ -66,6 +66,7 @@ const GLOSSARIO: readonly { termo: string; definicao: string }[] = [
 /** Ajuda: regras de uso, como lemos os números, fontes, glossário e mudanças de critério (#criterios). */
 export default function AjudaPage() {
   const data = useDataReferencia()
+  const ficticios = useFonte().tipo === 'mock'
   const criterios = useCriterios().data ?? []
   return (
     <div className="flex max-w-3xl flex-col gap-6">
@@ -149,8 +150,10 @@ export default function AjudaPage() {
       <section>
         <h2 className="text-lg font-bold">Sobre os dados</h2>
         <p>
-          Dados fictícios gerados com semente fixa. Data de referência: {data ? fmtData(data) : '…'}
-          .
+          {ficticios
+            ? 'Dados fictícios gerados com semente fixa.'
+            : 'Dados das coletas do BusinessMap e do Acelerato.'}{' '}
+          Data de referência: {data ? fmtData(data) : '…'}.
         </p>
       </section>
     </div>
