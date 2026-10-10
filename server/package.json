@@ -13,7 +13,8 @@
     "check": "npm run typecheck && npm run lint && npm run test",
     "migrate": "tsx src/db/cli.ts",
     "pronto": "npm run typecheck && npm run lint && npm test",
-    "seed": "tsx src/db/seed-cli.ts"
+    "seed": "tsx src/db/seed-cli.ts",
+    "grants": "tsx src/db/grants-cli.ts"
   },
   "dependencies": {
     "kysely": "^0.29.6",

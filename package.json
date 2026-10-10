@@ -22,7 +22,13 @@
     "format:check": "prettier --check web packages eslint.config.js tsconfig.base.json package.json",
     "check": "npm run lint && npm run typecheck && npm test && npm run format:check",
     "pronto": "npm run lint && npm run format:check && npm run pronto --workspaces --if-present",
-    "e2e": "npm test -w @metricas-dspd/e2e"
+    "e2e": "npm test -w @metricas-dspd/e2e",
+    "db:up": "docker compose up -d --wait mysql",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && npm run db:up",
+    "db:migrate": "bash scripts/db.sh migrate",
+    "db:seed": "bash scripts/db.sh seed",
+    "test:mysql": "bash scripts/test-mysql.sh"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

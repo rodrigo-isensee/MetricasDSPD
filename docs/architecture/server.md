@@ -71,17 +71,35 @@ flowchart TD
 
 Os usuários são criados pela operação (com senha fora do repositório); `gerarGrants` produz os `GRANT` a aplicar depois das migrações. Credenciais só em `.env`.
 
-## Rodar contra um MySQL 8.4
+## Ambiente local com Docker
 
-```bash
-docker run -d --name mysql-dspd -p 3306:3306 -e MYSQL_ROOT_PASSWORD=senha mysql:8.4
-# .env (nunca versionado)
-MYSQL_MIGRADOR_URL=mysql://root:senha@127.0.0.1:3306
-npm install
-npm run migrate -w @metricas-dspd/server     # cria dspd_bm, dspd_ac, dspd_core
-npm run seed -w @metricas-dspd/server        # opcional, só desenvolvimento
-# testes contra o banco (DESTRUTIVO: recria os três schemas; use banco descartável)
-MYSQL_TEST_URL=mysql://root:senha@127.0.0.1:3306 npm test -w @metricas-dspd/server
+Decisão do usuário (alinhamentos de 2026-10-10): o banco local roda em Docker. Arquivos: `docker-compose.yml`, `.env.example`, `docker/mysql/init/01-schemas-usuarios.sh`, `scripts/db.sh`, `scripts/test-mysql.sh`.
+
+```mermaid
+flowchart LR
+  env[".env (não versionado)"] --> compose["docker-compose.yml"]
+  compose --> dev["mysql :3306 (volume dspd-mysql-data)"]
+  compose -. "perfil test" .-> tst["mysql-test :3307 (tmpfs, descartável)"]
+  init["init/01-schemas-usuarios.sh"] --> dev
+  dev --> mig["db:migrate: migrações + grants.ts"] --> seed["db:seed (mock)"]
+  tst --> t["test:mysql: MYSQL_TEST_URL, roda e derruba"]
 ```
 
-Sem `MYSQL_TEST_URL`, os testes de migração e do seed contra MySQL ficam pulados (pendente de ambiente); os testes estáticos rodam sempre. Nesta entrega o teste contra MySQL não foi executado (sem Docker/MySQL na máquina de desenvolvimento).
+MySQL 8.4, utf8mb4, InnoDB, fuso UTC, healthcheck. O init (só na primeira criação do volume) cria `dspd_bm`, `dspd_ac`, `dspd_core` e os usuários por papel (senhas de `DSPD_PWD_*`); os `GRANT` por tabela vêm de `gerarGrants` e são aplicados ao fim de `db:migrate` (`MYSQL_GRANTS_URL`, conta root local).
+
+| Script | Faz |
+|---|---|
+| `npm run db:up` / `db:down` | sobe (aguarda healthcheck) / derruba, mantendo o volume |
+| `npm run db:reset` | derruba apagando o volume e sobe de novo (reexecuta o init) |
+| `npm run db:migrate` | migrações com `dspd_migrador` e depois os grants |
+| `npm run db:seed` | seed do mock (só desenvolvimento) |
+| `npm run test:mysql` | sobe o `mysql-test`, roda os testes MySQL hoje pulados e derruba |
+
+Primeiro uso: `cp .env.example .env`, ajuste as senhas, `npm run db:up && npm run db:migrate && npm run db:seed`.
+
+### Instalar Docker no WSL2
+1. Opção simples: Docker Desktop no Windows, com "Use the WSL 2 based engine" e a integração ligada para a distro em Settings > Resources > WSL integration.
+2. Sem Desktop: no Ubuntu do WSL2, siga a instalação do Docker Engine pelo repositório apt oficial (docs.docker.com/engine/install/ubuntu), `sudo usermod -aG docker $USER`, reabra o terminal e, se o systemd não estiver ativo, adicione `[boot]\nsystemd=true` em `/etc/wsl.conf` e rode `wsl --shutdown` no Windows.
+3. Confira com `docker compose version` e `docker run --rm hello-world`.
+
+Nesta entrega os testes contra MySQL ainda não foram executados (Docker ausente na máquina); sem `MYSQL_TEST_URL` eles ficam pulados e os estáticos rodam sempre.
