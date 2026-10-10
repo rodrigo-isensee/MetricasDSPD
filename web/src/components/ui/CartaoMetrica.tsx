@@ -153,7 +153,7 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
       aria-busy={estado === 'carregando' || atualizando || undefined}
       data-estado={atualizando ? 'atualizando' : estado}
       className={clsx(
-        'rounded-lg border border-borda bg-superficie text-texto',
+        'self-start rounded-lg border border-borda bg-superficie text-texto',
         p.variante === 'compacto' ? 'p-3' : 'p-4',
         p.className,
       )}
@@ -242,7 +242,7 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
             codigo: p.codigo,
           }}
         >
-          <div className="mt-1" style={{ minHeight: alturaCorpo }}>
+          <div className="mt-1">
             {p.leitura && (
               <p
                 id={idLeitura}
