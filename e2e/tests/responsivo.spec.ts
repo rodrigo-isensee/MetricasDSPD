@@ -60,7 +60,7 @@ test('M6 rótulos do eixo X do O4 a 320 px sem sobreposição e sem rolagem hori
   const caixas = await ticks.evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: e.textContent }; }));
   test.info().annotations.push({ type: 'ticks', description: JSON.stringify(caixas) });
   const ord = caixas.filter((c) => c.r > c.l).sort((a, b) => a.l - b.l);
-  for (let i = 1; i < ord.length; i++) expect(ord[i].l, `${ord[i - 1].t} x ${ord[i].t}`).toBeGreaterThanOrEqual(ord[i - 1].r - 0.5);
+  for (let i = 1; i < ord.length; i++) expect(ord[i]!.l, `${ord[i - 1]!.t} x ${ord[i]!.t}`).toBeGreaterThanOrEqual(ord[i - 1]!.r - 0.5);
   const sobra = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(sobra).toBeLessThanOrEqual(0);
 });
