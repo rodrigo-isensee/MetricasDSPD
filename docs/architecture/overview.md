@@ -74,9 +74,9 @@ sequenceDiagram
   A->>DB: INSERT stg_webhook_evento (hash único), 202
   W->>DB: abre ctl_coleta, lê marca d'água
   W->>BM: cards, revisions, children, customFields, columns, bloqueios (desde marca − sobreposição)
-  W->>DB: INSERT IGNORE stg_* (payload + hash, pessoas pseudonimizadas)
+  W->>DB: INSERT stg_* se hash difere da última versão do item (1062 = já existente)
   W->>AC: SELECT recorte 3.2 + etapas (lotes, MAX_EXECUTION_TIME)
-  W->>DB: INSERT IGNORE dspd_ac.stg_*
+  W->>DB: INSERT dspd_ac.stg_* (mesma regra)
   W->>DB: normaliza: evt_*, *_versao, fato_transicao (revision e webhook)
   W->>L: marcos (T2.4), horas úteis de bloqueio, com Calendario de dspd_core
   W->>DB: substitui projeções afetadas (dim_card, fato_bloqueio, dim_chamado, fato_etapa_chamado)

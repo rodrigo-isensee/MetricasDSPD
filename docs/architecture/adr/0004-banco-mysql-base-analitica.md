@@ -22,11 +22,11 @@ O solicitante fixou MySQL 8.x. A base guarda eventos imutáveis de duas origens 
 - **Calcular em SQL** (window functions, `PERCENT_RANK`): rápido. Contras: segunda implementação de percentil e tempo útil, viola T2.5; método de percentil do MySQL difere do da biblioteca. Descartado.
 
 ## Consequências
-- Mais fácil: operação conhecida pela infra; grants por schema reforçam BM × AC e "API não vê staging"; reprocessar coleta é seguro (chaves `UNIQUE` + `INSERT IGNORE`/`ON DUPLICATE KEY UPDATE` sem efeito).
+- Mais fácil: operação conhecida pela infra; grants por schema reforçam BM × AC e "API não vê staging"; reprocessar coleta é seguro (chaves `UNIQUE` + `INSERT` normal, tratando só o erro 1062 `ER_DUP_ENTRY` como "já existente"). **Proibidos** `INSERT IGNORE` (rebaixa truncamento, valor inválido e FK a aviso, anulando o `sql_mode` estrito) e `ON DUPLICATE KEY UPDATE` (exige UPDATE, que o coletor não tem no staging nem nos eventos); regra verificada por lint/grep no CI.
 - Mais difícil (o que o MySQL não tem e como compensamos):
   | Falta no MySQL | Compensação |
   |---|---|
-  | Índice parcial | Coluna gerada (`IF(cond, 1, NULL)`) + índice/UNIQUE sobre ela (ex.: "uma só versão vigente por card") |
+  | Índice parcial | Coluna gerada (`IF(cond, 1, NULL)`) + índice/UNIQUE sobre ela (ex.: "uma só vigência aberta por chave em `ref_*`": `aberta = IF(vigente_ate IS NULL, 1, NULL)`, UNIQUE (chave, `aberta`)) |
   | `TIMESTAMPTZ` | `DATETIME(3)` sempre UTC, fuso da sessão fixo em `+00:00`, driver com `timezone: 'Z'` |
   | DDL transacional | Uma mudança por migração; migração com `down` testada no CI; falha no meio exige `down` manual (runbook) |
   | Schemas = databases | Conexão sem database padrão; toda consulta qualifica `dspd_bm.tabela` |

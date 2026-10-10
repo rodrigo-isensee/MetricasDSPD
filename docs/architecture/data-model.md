@@ -12,10 +12,10 @@
 | Staging (registro de origem) | `stg_` | payload original + hash + metadados de coleta | **só INSERT** (grant) | não: é a fonte da verdade fora da ferramenta |
 | Eventos / histórico | `evt_`, `dim_*_versao`, `fato_transicao` | eventos normalizados e versões SCD2 | **só INSERT** (grant) | sim, a partir do staging |
 | Projeções | `dim_card`, `fato_bloqueio`, `dim_chamado`, `fato_etapa_chamado` | estado atual e intervalos, na forma do briefing 4.5 | substituição por entidade afetada, em transação | sim, a partir de eventos + referência |
-| Referência | `ref_` | colunas, domínios fechados, calendário, critérios, alvos | só INSERT de nova vigência (fechar vigência = única UPDATE, no campo `vigente_ate`) | arquivo versionado no repositório (`ref:sync`) |
+| Referência | `ref_` | colunas, domínios fechados, calendário, critérios, alvos | só INSERT de nova vigência; fechar vigência = única UPDATE, por grant de coluna `UPDATE (vigente_ate)` (§8) | arquivo versionado no repositório (`ref:sync`) |
 | Controle | `ctl_` | log de coleta, marca d'água, falhas, reconciliação, automações | INSERT; UPDATE só de status/fim da própria execução | não |
 
-"Nunca sobrescrever histórico" é garantido no staging e nos eventos por privilégio, não por convenção. Projeções podem ser refeitas inteiras (tabela nova + `RENAME TABLE` atômico) quando um critério muda (T2.6).
+"Nunca sobrescrever histórico" é garantido no staging e nos eventos por privilégio, não por convenção. Projeções podem ser refeitas inteiras (tabela nova + `RENAME TABLE` atômico) quando um critério muda (T2.6). Por isso nenhuma FK física aponta para projeção (§2).
 
 Fluxo: `stg_*` → normalizador (TS) → `evt_*`/`fato_transicao`/`*_versao` → projetor (TS, usa `@metricas-dspd/metricas` para marcos e horas úteis) → projeções → API carrega o contexto.
 
@@ -24,8 +24,9 @@ Fluxo: `stg_*` → normalizador (TS) → `evt_*`/`fato_transicao`/`*_versao` →
 - Rastreabilidade em **toda** linha de staging, evento e projeção: `sistema_origem` (constante por schema, coluna `CHECK`), `id_origem` (chave natural na ferramenta), `coletado_em`, `coleta_id` (FK `ctl_coleta`). Projeções guardam `atualizado_por_coleta_id`.
 - Chave natural da origem: `VARCHAR(32) CHARACTER SET ascii` (prov., confirmar tipo no T2.1).
 - PK substituta `BIGINT UNSIGNED AUTO_INCREMENT` (`*_sk`) onde a natural não é única (versões, eventos).
-- Hash de payload: `payload_sha256 BINARY(32)` = SHA-256 do JSON canônico (chaves ordenadas).
-- Toda FK indexada. Nenhuma FK cruza `dspd_bm` × `dspd_ac`.
+- Hash de payload: `payload_sha256 BINARY(32)` = SHA-256 do JSON canônico (chaves ordenadas) **já pseudonimizado** (o que é gravado). A chave HMAC da pseudonimização não roda sem migração planejada (rotação mudaria todos os hashes e duplicaria o staging).
+- **FK física só para `ctl_coleta` e entre tabelas imutáveis** (staging, eventos, versões). Evento, versão e staging **nunca** têm FK física para projeção (`dim_card`, `fato_bloqueio`, `dim_chamado`, `fato_etapa_chamado`) nem para `ref_*` com vigência na PK: a dependência é lógica (`card_id`, `chamado_id`, `coluna_id`), com índice, e verificada pela reconciliação. Motivos: o evento pode chegar antes da projeção do card; o rebuild por tabela nova + `RENAME TABLE` levaria as FKs dos filhos junto com a tabela renomeada; FK bloquearia a substituição da projeção. No ER, relações lógicas aparecem pontilhadas (`..`).
+- Toda FK e toda chave lógica indexadas. Nenhuma FK nem chave lógica cruza `dspd_bm` × `dspd_ac`.
 
 ## 3. Schema `dspd_bm` (BusinessMap)
 
@@ -33,16 +34,16 @@ Fluxo: `stg_*` → normalizador (TS) → `evt_*`/`fato_transicao`/`*_versao` →
 erDiagram
   ctl_coleta ||--o{ stg_card : coleta_id
   ctl_coleta ||--o{ stg_revision : coleta_id
-  stg_webhook_evento ||--o| stg_webhook_processamento : webhook_sk
+  stg_webhook_evento ||--o{ stg_webhook_processamento : "webhook_sk (1 tentativa por coleta)"
   ctl_coleta ||--o{ stg_webhook_processamento : coleta_id
-  stg_card ||--o{ dim_card_versao : origem
-  dim_card_versao }o--|| dim_card : "card_id (projeção da vigente)"
-  dim_card ||--o{ fato_transicao : card_id
-  dim_card ||--o{ evt_bloqueio : card_id
-  evt_bloqueio ||--|| fato_bloqueio : "inicio+fim"
-  dim_card ||--o{ dim_card : card_pai
-  ref_quadro ||--o{ ref_coluna : quadro_id
-  ref_coluna ||--o{ fato_transicao : "coluna_destino_id"
+  stg_card ||--o{ dim_card_versao : stg_card_sk
+  dim_card_versao }o..|| dim_card : "card_id lógico (projeção da vigente)"
+  dim_card ||..o{ fato_transicao : "card_id lógico"
+  dim_card ||..o{ evt_bloqueio : "card_id lógico"
+  evt_bloqueio }|..|| fato_bloqueio : "inicio e fim, lógico"
+  dim_card ||..o{ dim_card : "card_pai lógico"
+  ref_quadro ||..o{ ref_coluna : "quadro_id lógico"
+  ref_coluna ||..o{ fato_transicao : "quadro_id + coluna_destino_id lógico, vigente no instante"
   fato_transicao ||--o| rec_transicao_par : "webhook x revision"
   ctl_coleta ||--o{ ctl_coleta_contagem : coleta_id
   ctl_coleta ||--o{ ctl_coleta_falha : coleta_id
@@ -51,24 +52,26 @@ erDiagram
 ### 3.1 Staging
 | Tabela | Chave natural / UNIQUE | Campos além do padrão |
 |---|---|---|
-| `stg_card` | (`id_origem`, `payload_sha256`) | `payload JSON`, `quadro_id`, `arquivado`, `excluido_detectado` |
+| `stg_card` | (`id_origem`, `anterior_sk`) | `payload JSON`, `quadro_id`, `arquivado`, `excluido_detectado` |
 | `stg_revision` | (`card_id`, `revision_id`) (prov.: chave da revision no T2.1) | `payload JSON` |
-| `stg_vinculo` | (`pai_id`, `filho_id`, `payload_sha256`) | `payload JSON` |
-| `stg_custom_field` | (`id_origem`, `payload_sha256`) | definição + valores |
-| `stg_coluna` | (`quadro_id`, `id_origem`, `payload_sha256`) | estrutura do workflow |
-| `stg_bloqueio` | (`card_id`, `id_origem`, `payload_sha256`) | `payload JSON` |
-| `stg_webhook_evento` | (`payload_sha256`) | `recebido_em`, `payload JSON` |
-| `stg_webhook_processamento` | (`webhook_sk`) | `coleta_id`, `resultado` (processado/ignorado/erro); separada para o staging continuar só-INSERT |
+| `stg_vinculo` | (`pai_id`, `filho_id`, `anterior_sk`) | `payload JSON` |
+| `stg_custom_field` | (`id_origem`, `anterior_sk`) | definição + valores |
+| `stg_coluna` | (`quadro_id`, `id_origem`, `anterior_sk`) | estrutura do workflow |
+| `stg_bloqueio` | (`card_id`, `id_origem`, `anterior_sk`) | `payload JSON` |
+| `stg_webhook_evento` | (`payload_sha256`) | `recebido_em`, `payload JSON` (cada entrega é um evento; reentrega idêntica = mesma linha) |
+| `stg_webhook_processamento` | (`webhook_sk`, `coleta_id`) | `resultado ENUM('processado','ignorado','erro')`, `erro`; uma linha por tentativa; separada para o staging continuar só-INSERT. Webhook "processado" = existe linha com `resultado = 'processado'`; pendentes = sem essa linha (com ou sem tentativa de `erro`), reprocessados na coleta seguinte |
 | `stg_card_presenca` | (`varredura_id`, `id_origem`) | resultado da varredura completa semanal; card ausente → `evt_card` tipo `excluido_detectado` |
 
-Recoleta do mesmo conteúdo não gera linha (mesmo hash); conteúdo novo gera linha nova. Nada é atualizado.
+**Deduplicação contra a última versão do item, não contra todas.** Cada tabela versionada de staging tem `stg_sk` (PK), `payload_sha256` e `anterior_sk BIGINT UNSIGNED NOT NULL` (`stg_sk` da versão anterior do mesmo item; `0` na primeira, porque UNIQUE no MySQL aceita vários `NULL`), com UNIQUE (chave do item, `anterior_sk`) e índice (chave do item, `stg_sk`). O coletor lê a última versão (`stg_sk`, `payload_sha256`) do item: hash igual → `ja_existentes`, nada gravado; hash diferente → `INSERT` com `anterior_sk` = último `stg_sk`. O UNIQUE garante cadeia linear: duas gravações concorrentes sobre a mesma versão anterior → a segunda recebe 1062, relê e reavalia. Assim A → B → A gera três linhas (a reversão não é perdida) e a recoleta de A sem mudança não gera nenhuma. Teste de borda obrigatório no K-017: A → B → A, recoleta idêntica e concorrência.
+
+Escrita sempre com `INSERT` normal; só o erro 1062 (`ER_DUP_ENTRY`) é "já existente"; qualquer outro erro é falha do item (`ctl_coleta_falha`). `INSERT IGNORE` e `ON DUPLICATE KEY UPDATE` proibidos (ADR 0004). Nada é atualizado.
 
 ### 3.2 Eventos e histórico
 | Tabela | Grão | Chave natural (UNIQUE) | Campos |
 |---|---|---|---|
 | `dim_card_versao` (SCD2) | 1 versão por mudança de atributo | (`card_id`, `vigente_de`) | todos os atributos de `DimCard` exceto marcos, `vigente_de`, `stg_card_sk` |
 | `evt_card` | ciclo de vida | (`card_id`, `tipo`, `ocorrido_em`) | `tipo ENUM('criado','arquivado','desarquivado','excluido_detectado','restaurado')` |
-| `fato_transicao` | 1 linha por movimentação (4.5) | (`card_id`, `ocorrido_em`, `coluna_destino_id`, `fonte`) | `coluna_origem_id`, `coluna_destino_id`, `tipo_coluna ENUM('fila','execucao')`, `direcao ENUM('avanco','retorno')`, `fonte ENUM('revision','webhook')`, `id_origem` (revision ou hash do webhook) |
+| `fato_transicao` | 1 linha por movimentação (4.5) | (`fonte`, `id_origem`); índice (`card_id`, `ocorrido_em`) | `quadro_id` (prov.: dispensável se `coluna_id` for global no T2.1), `coluna_origem_id`, `coluna_destino_id`, `tipo_coluna ENUM('fila','execucao')`, `direcao ENUM('avanco','retorno')`, `fonte ENUM('revision','webhook')`, `id_origem` (revision ou hash do webhook) |
 | `rec_transicao_par` | casamento webhook × revision | (`transicao_webhook_sk`) UNIQUE, (`transicao_revision_sk`) UNIQUE | `delta_ms`, `casado_em` |
 | `evt_bloqueio` | início e fim de bloqueio | (`card_id`, `id_origem`, `tipo ENUM('inicio','fim')`) | `motivo_codigo`, `coluna_id`, `fornecedor_codigo`, `ocorrido_em` |
 
@@ -99,18 +102,18 @@ Marcos (`comprometido_em`, `iniciado_em`, `concluido_em`) derivados das transiç
 erDiagram
   ctl_coleta ||--o{ stg_chamado : coleta_id
   ctl_coleta ||--o{ stg_etapa : coleta_id
-  stg_chamado ||--o{ dim_chamado_versao : origem
-  dim_chamado_versao }o--|| dim_chamado : "projeção da vigente"
-  dim_chamado ||--o{ evt_etapa_chamado : chamado_id
-  evt_etapa_chamado ||--o{ fato_etapa_chamado : "entrada/saida"
-  ref_etapa_totalizador ||--o{ fato_etapa_chamado : etapa
-  ctl_automacao }o--|| dim_chamado : chamado_id
+  stg_chamado ||--o{ dim_chamado_versao : stg_chamado_sk
+  dim_chamado_versao }o..|| dim_chamado : "chamado_id lógico (projeção da vigente)"
+  dim_chamado ||..o{ evt_etapa_chamado : "chamado_id lógico"
+  evt_etapa_chamado }|..|| fato_etapa_chamado : "entrada e saida, lógico"
+  ref_etapa_totalizador ||..o{ fato_etapa_chamado : "etapa lógico, vigente no instante"
+  ctl_automacao }o..|| dim_chamado : "chamado_id lógico"
 ```
 
 | Tabela | Grão | Chave natural (UNIQUE) | Notas |
 |---|---|---|---|
-| `stg_chamado` | linha lida do Acelerato | (`id_origem`, `payload_sha256`) | lido com o recorte 3.2 **e** chamados que saíram do recorte (para não perder mudança de equipe/exclusão) |
-| `stg_etapa` | linha da tabela/view de etapas | (`chamado_id`, `id_origem`, `payload_sha256`) | `VIEW_ESTATISTICAS_ETAPAS_2` cobre só fechados; abertos precisam da tabela de histórico de etapas (pergunta I-4b) |
+| `stg_chamado` | linha lida do Acelerato | (`id_origem`, `anterior_sk`), dedup contra a última versão (§3.1) | lido com o recorte 3.2 **e** chamados que saíram do recorte (para não perder mudança de equipe/exclusão) |
+| `stg_etapa` | linha da tabela/view de etapas | (`chamado_id`, `id_origem`, `anterior_sk`) | `VIEW_ESTATISTICAS_ETAPAS_2` cobre só fechados; abertos precisam da tabela de histórico de etapas (pergunta I-4b) |
 | `dim_chamado_versao` (SCD2) | versão por mudança | (`chamado_id`, `vigente_de`) | atributos de `Chamado` |
 | `evt_etapa_chamado` | entrada em etapa | (`chamado_id`, `etapa`, `entrada_em`) | `motivo_pendencia` |
 | `dim_chamado` | 1 por chamado (inclui `excluido = true`, filtrado na view) | `chamado_id` | forma de `Chamado`; `justificativa_ajuste` **não** entra (§9) |
@@ -118,7 +121,7 @@ erDiagram
 | `ref_etapa_totalizador` | etapa → um dos 5 totalizadores (3.2, T4.4) | (`natureza`, `etapa_origem`, `vigente_de`) | requisição, incidente e fila antiga mapeados separadamente |
 | `ref_dominio` | domínios 3.4 | (`campo`, `codigo`, `vigente_de`) | `motivo_escalacao`, `motivo_pendencia`, `motivo_encerramento`, `avaliacao_problema`, `impacto`, `urgencia`, `prioridade`, `etapa`, `equipe` |
 | `ref_alvo_prioridade` | prazos P1–P5 | (`prioridade`, `vigente_de`) | `AlvoPrioridade` |
-| `ctl_automacao` | ação da T4.3 | (`chamado_id`, `regra`, `momento_gatilho`) | `acao`, `modo ENUM('simulacao','ativo')`, `resultado`, `registrado_no_chamado` |
+| `ctl_automacao` | ação da T4.3 | (`chamado_id`, `regra`, `momento_gatilho`, `tentativa`) | `acao`, `modo ENUM('simulacao','ativo')`, `resultado`, `registrado_no_chamado`; resultado conhecido depois = nova linha (tentativa), sem UPDATE |
 
 Views do recorte (T5.1), sobre a nossa cópia, nunca no banco do Acelerato:
 - `vw_populacao_sssc`: `organizacao = 'DSPD Sustentação' AND tipo = 'DSPD - SSSC' AND equipe IN (...) AND excluido = false` (valores vêm de `ref_dominio`, não fixos na view).
@@ -147,7 +150,7 @@ A biblioteca recebe o `Calendario` montado a partir dessas tabelas (ADR 0002); n
 | `ctl_coleta` | `coleta_id` PK, `tarefa` (`coleta_incremental`, `varredura`, `webhook`, `projecao`, `reconciliacao`), `iniciado_em`, `finalizado_em`, `status ENUM('em_andamento','sucesso','parcial','falha')`, `marca_dagua_de`, `marca_dagua_ate`, `sobreposicao_s`, `versao_coletor` (SHA), `parametros JSON`, `erro_resumo` |
 | `ctl_coleta_contagem` | (`coleta_id`, `entidade`) PK, `lidos`, `inseridos`, `ja_existentes`, `falhas` |
 | `ctl_coleta_falha` | `falha_sk`, `coleta_id`, `entidade`, `id_origem`, `tentativas`, `erro` (sem payload, sem dado pessoal) |
-| `ctl_marca_dagua` | view: último `marca_dagua_ate` com `status = 'sucesso'` por (`tarefa`, `entidade`) |
+| `vw_marca_dagua` | view: último `marca_dagua_ate` com `status = 'sucesso'` por (`tarefa`, `entidade`) |
 | `ctl_reconciliacao` | (`dia`, `entidade`, `tipo`) PK, `contagem_ferramenta`, `contagem_base`, `divergencia_pct` (critérios de pronto de T2.2, T2.3, T5.1) |
 
 Próxima execução lê a partir de `marca_dagua_ate − sobreposicao_s`; a idempotência do staging torna a sobreposição segura. `X-Ultima-Coleta` da API = `finalizado_em` da última `sucesso` de `coleta_incremental` do domínio.
@@ -178,7 +181,8 @@ O servidor carrega o contexto por domínio (recorte do histórico necessário) e
 | Usuário | `dspd_bm` / `dspd_ac` | `dspd_core` | Acelerato |
 |---|---|---|---|
 | `dspd_migrador` | DDL (só no job de deploy) | DDL | — |
-| `dspd_coletor` | INSERT/SELECT em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; INSERT/UPDATE/DELETE em projeções e `ctl_` | SELECT; INSERT em `ref_` via `ref:sync` | — |
+| `dspd_coletor` | INSERT/SELECT em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; INSERT/UPDATE/DELETE em projeções e `ctl_`; SELECT em `ref_` | SELECT | — |
+| `dspd_ref` (só o `ref:sync`) | INSERT/SELECT em `ref_` + `UPDATE (vigente_ate)` por coluna | idem em `ref_` | — |
 | `dspd_webhook` | INSERT só em `dspd_bm.stg_webhook_evento` | — | — |
 | `dspd_api` | SELECT em projeções, `vw_`, `ref_`, `ctl_`; **sem acesso a `stg_`** | SELECT | — |
 | `dspd_automacao` | `dspd_ac`: INSERT/SELECT em `ctl_automacao` | SELECT | — |

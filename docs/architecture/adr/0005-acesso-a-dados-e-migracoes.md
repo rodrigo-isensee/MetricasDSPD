@@ -1,13 +1,19 @@
 # 0005 - Acesso a dados e migrações: Kysely + SQL versionado
-- Status: aceita
+- Status: aceita (confirmada pelo tech-lead no parecer K-014 r1; de acordo do node-backend pendente)
 - Data: 2026-10-09
 - Origem: ata kickoff 002, D13 (Prisma × Kysely + SQL versionado; posição do node-backend e do tech-lead)
 - Substitui, para este projeto, "Prisma como ORM" da skill `node-backend`
 
 ## Contexto
-O modelo (data-model) depende de recursos que precisam ser escritos em SQL e revisados como SQL: três schemas na mesma instância, colunas geradas com UNIQUE (substituto de índice parcial), `INSERT IGNORE`/`ON DUPLICATE KEY` para idempotência, views do recorte DSPD-SSSC (T5.1), `CHECK`, grants por papel e, talvez, particionamento. Além disso o coletor lê um banco **que não é nosso** (Acelerato, somente leitura) e que nunca pode receber migração.
+O modelo (data-model) depende de recursos que precisam ser escritos em SQL e revisados como SQL: três schemas na mesma instância, colunas geradas com UNIQUE (substituto de índice parcial), idempotência por `INSERT` + tratamento do erro 1062 (sem `INSERT IGNORE`/`ON DUPLICATE KEY`, ADR 0004), views do recorte DSPD-SSSC (T5.1), `CHECK`, grants por papel e, talvez, particionamento. Além disso o coletor lê um banco **que não é nosso** (Acelerato, somente leitura) e que nunca pode receber migração.
 
-Argumento central (praticas §6, do tech-lead, e D13): o esquema é o artefato revisado ("revisão de modelagem antes da migração"), então a migração tem de ser o SQL que vai rodar, legível no PR; e o acesso precisa ser tipado sem esconder o SQL das consultas de painel, cujo `EXPLAIN` é registrado (ADR 0003, M2). A ata não registra o argumento detalhado do node-backend; se divergir deste, revisar a ADR antes do K-017.
+Argumento central (praticas §6, do tech-lead, e D13): o esquema é o artefato revisado ("revisão de modelagem antes da migração"), então a migração tem de ser o SQL que vai rodar, legível no PR; e o acesso precisa ser tipado sem esconder o SQL das consultas de painel, cujo `EXPLAIN` é registrado (ADR 0003, M2).
+
+### Divergência registrada (D13)
+- **Posição do node-backend (kickoff):** Prisma (Client + Migrate) com migrações em SQL cru editado à mão. Motivo: é o padrão da skill `node-backend` (time já conhece; Client tipado e Migrate prontos) e o SQL cru cobriria o que a DSL não expressa (colunas geradas, views, `CHECK`, grants). A ata não detalha o argumento: este motivo é a leitura do arquiteto, **a confirmar ou corrigir pelo node-backend** junto com o de acordo.
+- **Resposta (tech-lead, parecer `docs/reviews/002-K-014-r1.md`, que confirma Kysely + SQL):** (1) o Prisma Migrate não tem migração `down`, e praticas §6 exige caminho de volta com CI `up` → `down` → `up`; (2) o `multiSchema` do Prisma não cobre MySQL, e o modelo usa três databases na mesma conexão; (3) com SQL cru o Prisma vira só executor de arquivo, sem ganho sobre o `Migrator` do Kysely; (4) as consultas de carga de contexto cairiam em `$queryRaw` sem tipo.
+- **De acordo do node-backend:** pendente; colher antes do K-017. Discordância com argumento novo reabre esta ADR.
+- **A provar no spike do R0:** `kysely-codegen` gerando tipos dos três databases; tabela do `Migrator` em `dspd_core` com conexão sem database padrão. Se falhar, plano B abaixo (SQL puro + dbmate/Flyway).
 
 ## Decisão
 - **Kysely** como query builder tipado, driver `mysql2` (pool, `timezone: 'Z'`, `supportBigNumbers`, `dateStrings: false`).
@@ -18,7 +24,7 @@ Argumento central (praticas §6, do tech-lead, e D13): o esquema é o artefato r
 - Repositórios por módulo convertem linhas em tipos da biblioteca (`DimCard`, `Chamado`...) e instantes `Date` em epoch ms; nenhum tipo do Kysely sai do repositório.
 
 ## Alternativas consideradas
-- **Prisma (Client + Migrate)**: DX excelente, migração gerada do `schema.prisma`. Contras para este caso: o esquema vira DSL e o SQL fica gerado (revisão de modelagem passa a revisar o que a ferramenta decidiu); colunas geradas, views, `CHECK`, grants e particionamento exigem editar o SQL gerado ou ficam fora do modelo; suporte a vários databases MySQL na mesma conexão é limitado (multi-schema não cobre MySQL como cobre PostgreSQL); `INSERT IGNORE`/upsert sem efeito e consultas de carga de contexto acabariam em `$queryRaw` sem tipo; engine binária a mais na imagem. Descartado.
+- **Prisma (Client + Migrate)**: DX excelente, migração gerada do `schema.prisma`. Contras para este caso: o esquema vira DSL e o SQL fica gerado (revisão de modelagem passa a revisar o que a ferramenta decidiu); colunas geradas, views, `CHECK`, grants e particionamento exigem editar o SQL gerado ou ficam fora do modelo; suporte a vários databases MySQL na mesma conexão é limitado (multi-schema não cobre MySQL como cobre PostgreSQL); Migrate sem `down`; consultas de carga de contexto acabariam em `$queryRaw` sem tipo; engine binária a mais na imagem. Descartado.
 - **SQL puro com dbmate/Flyway + `mysql2` sem builder**: migrações idênticas às nossas, sem dependência TS. Contras: consultas sem tipo. Mantido como plano B: se o Kysely atrapalhar, as migrações em SQL já são portáveis.
 - **Drizzle**: tipado e próximo do SQL. Contras: migrações geradas a partir do schema TS (mesmo problema do Prisma, em menor grau), suporte a vários databases MySQL menos maduro; ganho pequeno sobre Kysely.
 - **TypeORM / Sequelize**: ORMs com padrão ativo e mutável, contrários ao append-only. Descartados.
