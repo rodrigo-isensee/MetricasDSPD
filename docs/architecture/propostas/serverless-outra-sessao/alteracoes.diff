@@ -1,0 +1,39 @@
+diff --git a/docs/architecture/adr/0002-monorepo-pacotes-compartilhados.md b/docs/architecture/adr/0002-monorepo-pacotes-compartilhados.md
+index 48f2327..326187a 100644
+--- a/docs/architecture/adr/0002-monorepo-pacotes-compartilhados.md
++++ b/docs/architecture/adr/0002-monorepo-pacotes-compartilhados.md
+@@ -2,6 +2,7 @@
+ - Status: aceita
+ - Data: 2026-10-09
+ - Substitui parcialmente: ADR 0001 (linha "Pacotes", linha "Regras de lint arquiteturais" e o risco de migração da biblioteca)
++- Complementada pela ADR 0004 (2026-10-10): `@metricas-dspd/server` continua **um** workspace, com módulos em pastas (`server/src/modulos/*`) e duas entradas Lambda (`api` e `coleta`)
+ - Origem: ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`, decisões D2 e D3 (com D4 e D5 como contexto)
+ - Pedidos: `docs/pedidos/001-dashboard-mock.md`, `docs/pedidos/002-arquitetura-completa.md`
+ 
+diff --git a/docs/architecture/adr/0003-orcamento-de-performance.md b/docs/architecture/adr/0003-orcamento-de-performance.md
+index 0dbd9be..b2469d2 100644
+--- a/docs/architecture/adr/0003-orcamento-de-performance.md
++++ b/docs/architecture/adr/0003-orcamento-de-performance.md
+@@ -53,7 +53,8 @@ Valores são p95 na máquina de referência, salvo indicação. "Bloqueia" = ite
+ |---|---|---|---|
+ | M1 | Consultas de painel, p95, volume de 2 anos | < 500 ms | sim |
+ | M2 | Todo filtro de painel coberto por índice; `EXPLAIN` das consultas principais registrado em `docs/architecture/` | sem `ALL` (full scan) nas tabelas de fato | sim |
+-| M3 | Leitura no MySQL do Acelerato (somente leitura) por execução | < 60 s, sem travar a origem | sim |
++| M3 | Extração da tabela do Acelerato no Metabase (somente leitura) por execução (ADR 0004; antes: MySQL do Acelerato) | < 60 s, sem travar a origem | sim |
++| S1 | Partida a frio da Lambda `api` (montar `BaseBM`/`BaseAC` e o contexto) (ADR 0004) | < 1,5 s; com ela, a requisição a frio continua dentro de A1 depois do primeiro acesso | sim |
+ 
+ **Coletas (002)**
+ | # | Item | Orçamento | Bloqueia |
+diff --git a/docs/tecnica/README.md b/docs/tecnica/README.md
+index 50b591a..50a63e2 100644
+--- a/docs/tecnica/README.md
++++ b/docs/tecnica/README.md
+@@ -27,6 +27,8 @@ Os diagramas são Mermaid (o GitHub renderiza). Quando uma decisão já está em
+ | [ADR 0001 - Stack do front (etapa mock)](../architecture/adr/0001-stack-front-dashboard-mock.md) | React + Vite + TanStack Query + Recharts; `FonteMetricas` como fronteira |
+ | [ADR 0002 - Monorepo e pacotes compartilhados](../architecture/adr/0002-monorepo-pacotes-compartilhados.md) | `contratos`, `metricas`, `mock`, `web`; grafo e exports |
+ | [ADR 0003 - Orçamento de performance](../architecture/adr/0003-orcamento-de-performance.md) | Metas de bundle, tarefa longa, geração da base |
++| [ADR 0004 - Back-end modular serverless](../architecture/adr/0004-arquitetura-modular-serverless.md) | Um back-end Node com módulos em pastas, duas Lambdas (`api`, `coleta`), Hono + Kysely, AWS, Acelerato via Metabase |
++| [Visão geral (C4 1 e 2)](../architecture/overview.md) | Contexto, containers na AWS, módulos, fluxo da coleta ao cartão, onde cada regra é garantida |
+ | [Plano técnico do dashboard mock](../architecture/features/dashboard-mock.md) | Módulos, contratos, divisão de tarefas do 001 |
+ | [Matriz de regras por métrica (M-005)](../architecture/regras-metricas.md) | Regra de cálculo de cada métrica rastreada ao briefing |
+ 
