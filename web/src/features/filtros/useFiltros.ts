@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
-import type { FiltrosFluxo, FiltrosSustentacao, OpcoesFiltro } from '@/contracts/filtros'
-import { PERIODOS_PADRAO, TIPO_ID } from '@/contracts/filtros'
+import type { FiltrosFluxo, FiltrosSustentacao, OpcoesFiltro } from '@metricas-dspd/contratos'
+import { PERIODOS_PADRAO, TIPO_ID } from '@metricas-dspd/contratos'
 import { useOpcoesFiltro } from '@/data'
 import type { FiltroAtivo } from '@/components/ui'
 import {

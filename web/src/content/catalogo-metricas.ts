@@ -1,4 +1,4 @@
-import type { MetricaId } from '@/contracts/comum'
+import type { MetricaId } from '@metricas-dspd/contratos'
 
 export type PainelDaMetrica =
   'operacional' | 'tatico' | 'estrategico' | 'sustentacao' | 'espera-invisivel'

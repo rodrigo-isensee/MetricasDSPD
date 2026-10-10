@@ -1,6 +1,6 @@
 import { CabecalhoPainel } from '@/components/ui'
 import { useCriterios, useDataReferencia } from '@/data'
-import { JANELA_PERCENTIS_PADRAO } from '@/contracts/comum'
+import { JANELA_PERCENTIS_PADRAO } from '@metricas-dspd/contratos'
 import { fmtData, textoJanela } from '@/lib/formatar'
 
 const GLOSSARIO: readonly { termo: string; definicao: string }[] = [

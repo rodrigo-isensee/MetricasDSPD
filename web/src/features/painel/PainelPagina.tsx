@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
-import type { FiltrosFluxo, FiltrosSustentacao } from '@/contracts/filtros'
+import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { useDataReferencia, useErroDePainelSimulado } from '@/data'
 import { BarraFiltros, useFiltros, type PainelId, type UseFiltros } from '@/features/filtros'
 

@@ -9,7 +9,7 @@ import { ESLint, type Linter } from 'eslint'
 import tseslint from 'typescript-eslint'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-const RAIZ = resolve(import.meta.dirname, '../..')
+const RAIZ = resolve(import.meta.dirname, '../../..')
 let eslint: ESLint
 
 beforeAll(async () => {
@@ -39,98 +39,98 @@ const lint = async (codigo: string, arquivo: string) => {
 const DEVE_FALHAR: [string, string, string, RegExp][] = [
   [
     'import BM -> AC (lib)',
-    'src/lib/metrics/businessmap/x.ts',
+    'packages/metricas/src/businessmap/x.ts',
     "import { calcularS1 } from '../acelerato'\nexport const a = calcularS1",
     /nunca se misturam/,
   ],
   [
     'import AC -> BM (lib)',
-    'src/lib/metrics/acelerato/x.ts',
+    'packages/metricas/src/acelerato/x.ts',
     "import { calcularO3 } from '../businessmap'\nexport const a = calcularO3",
     /nunca se misturam/,
   ],
   [
     'import BM -> AC por alias',
-    'src/lib/metrics/businessmap/x.ts',
-    "import { calcularS1 } from '@/lib/metrics/acelerato'\nexport const a = calcularS1",
+    'packages/metricas/src/businessmap/x.ts',
+    "import { calcularS1 } from '@metricas-dspd/metricas/acelerato'\nexport const a = calcularS1",
     /nunca se misturam/,
   ],
   [
     'import BM -> AC (mock)',
-    'src/mock/businessmap/x.ts',
+    'packages/mock/src/businessmap/x.ts',
     "import { gerar } from '../acelerato'\nexport const a = gerar",
     /nunca se misturam/,
   ],
   [
     'core importa domínio',
-    'src/lib/metrics/core/x.ts',
+    'packages/metricas/src/core/x.ts',
     "import { calcularO3 } from '../businessmap'\nexport const a = calcularO3",
     /core não conhece/,
   ],
   [
     'Math.min com spread (lib)',
-    'src/lib/metrics/businessmap/x.ts',
+    'packages/metricas/src/businessmap/x.ts',
     'export const m = (xs: number[]) => Math.min(...xs)',
     /minimo\(\)\/maximo\(\)/,
   ],
   [
     'Math.max com spread (core)',
-    'src/lib/metrics/core/x.ts',
+    'packages/metricas/src/core/x.ts',
     'export const m = (xs: number[]) => Math.max(...xs)',
     /minimo\(\)\/maximo\(\)/,
   ],
   [
     'Math.min com spread (UI)',
-    'src/features/x/X.tsx',
+    'web/src/features/x/X.tsx',
     'export const m = (xs: number[]) => Math.min(...xs)',
     /minimo\(\)\/maximo\(\)/,
   ],
   [
     'sort direto em métrica BM',
-    'src/lib/metrics/businessmap/x.ts',
+    'packages/metricas/src/businessmap/x.ts',
     'export const o = (xs: number[]) => xs.sort()',
     /ordenarNeutro/,
   ],
   [
     'toSorted em métrica AC',
-    'src/lib/metrics/acelerato/x.ts',
+    'packages/metricas/src/acelerato/x.ts',
     'export const o = (xs: number[]) => xs.toSorted()',
     /ordenarNeutro/,
   ],
   [
     'leitura de motivo_descarte fora de descartado.ts',
-    'src/lib/metrics/businessmap/x.ts',
+    'packages/metricas/src/businessmap/x.ts',
     'export const d = (c: { motivo_descarte: string | null }) => c.motivo_descarte',
     /descartado\(card\)/,
   ],
   [
     'leitura de arquivado_em fora de descartado.ts',
-    'src/lib/metrics/businessmap/x.ts',
+    'packages/metricas/src/businessmap/x.ts',
     'export const d = (c: { arquivado_em: number | null }) => c.arquivado_em',
     /descartado\(card\)/,
   ],
   [
     'criarAmostraInterna fora de amostra.ts',
-    'src/lib/metrics/businessmap/x.ts',
+    'packages/metricas/src/businessmap/x.ts',
     "import { criarAmostraInterna } from '../core/amostra'\nexport const a = criarAmostraInterna",
     /amostraBM\/amostraAC/,
   ],
   [
     'mediana de valores soltos',
-    'src/lib/metrics/acelerato/x.ts',
+    'packages/metricas/src/acelerato/x.ts',
     "import { mediana } from '../core/percentil'\nexport const a = mediana",
     /Amostra/,
   ],
   [
     'Math.random no cálculo',
-    'src/lib/metrics/core/x.ts',
+    'packages/metricas/src/core/x.ts',
     'export const r = () => Math.random()',
     /Math\.random/,
   ],
   [
     'UI importa a biblioteca de métricas',
-    'src/features/x/X.tsx',
-    "import { calcularMetrica } from '@/lib/metrics'\nexport const a = calcularMetrica",
+    'web/src/features/x/X.tsx',
+    "import { calcularMetrica } from '@metricas-dspd/metricas'\nexport const a = calcularMetrica",
     /não calculam/,
   ],
 ]
@@ -147,27 +147,27 @@ describe('lint: fixtures que devem passar (sem falso positivo)', () => {
   const DEVE_PASSAR: [string, string, string][] = [
     [
       'descartado.ts lê motivo_descarte',
-      'src/lib/metrics/businessmap/descartado.ts',
+      'packages/metricas/src/businessmap/descartado.ts',
       'export const d = (c: { motivo_descarte: string | null }) => c.motivo_descarte !== null',
     ],
     [
       'businessmap/amostra.ts importa o core/amostra',
-      'src/lib/metrics/businessmap/amostra.ts',
+      'packages/metricas/src/businessmap/amostra.ts',
       "import { criarAmostraInterna } from '../core/amostra'\nexport const a = criarAmostraInterna",
     ],
     [
       'teste pode ordenar e usar Math.min com spread',
-      'src/lib/metrics/businessmap/x.test.ts',
+      'packages/metricas/src/businessmap/x.test.ts',
       'export const m = (xs: number[]) => [Math.min(...xs)].sort()',
     ],
     [
       'core ordena',
-      'src/lib/metrics/core/x.ts',
+      'packages/metricas/src/core/x.ts',
       'export const o = (xs: number[]) => [...xs].sort()',
     ],
     [
       'BM importa o core',
-      'src/lib/metrics/businessmap/x.ts',
+      'packages/metricas/src/businessmap/x.ts',
       "import { ordenarNeutro } from '../core/ordenar'\nexport const a = ordenarNeutro",
     ],
   ]

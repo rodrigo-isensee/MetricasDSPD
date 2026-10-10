@@ -1,6 +1,6 @@
-import type { Dominio, MetricaId, VersaoCriterio } from '@/contracts/comum'
-import type { OpcoesFiltro } from '@/contracts/filtros'
-import type { ContratoMetricas, ResultadoDe } from '@/contracts/metricas'
+import type { Dominio, MetricaId, VersaoCriterio } from '@metricas-dspd/contratos'
+import type { OpcoesFiltro } from '@metricas-dspd/contratos'
+import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
 
 /**
  * Fronteira entre a interface e os dados. A UI só conhece esta interface e os DTOs de `contracts/`.

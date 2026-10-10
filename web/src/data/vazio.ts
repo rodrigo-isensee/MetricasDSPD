@@ -1,5 +1,5 @@
-import type { MetricaId } from '@/contracts/comum'
-import type { ResultadoDe } from '@/contracts/metricas'
+import type { MetricaId } from '@metricas-dspd/contratos'
+import type { ResultadoDe } from '@metricas-dspd/contratos'
 
 /**
  * Estado "vazio" (nenhum item no recorte). Regra geral: `base.n === 0`. Exceção: O1 tem como base

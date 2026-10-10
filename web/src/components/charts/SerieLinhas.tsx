@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type { MarcacaoCriterio } from '@/contracts/comum'
+import type { MarcacaoCriterio } from '@metricas-dspd/contratos'
 import { fmtData, fmtNumero } from '@/lib/formatar'
 import { GraficoBase } from './GraficoBase'
 import { Legenda, type ItemLegenda } from './Legenda'

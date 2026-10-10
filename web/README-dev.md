@@ -2,16 +2,16 @@
 
 Base pronta: biblioteca de cálculo, gerador de dados fictícios, camada de dados, shell, filtros na URL, componentes e gráficos. **Painéis só consomem `useMetrica` e os componentes**: não calculam nada.
 
-Comandos (em `web/`): `npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run build` · `npm run check` (lint + typecheck + testes + prettier).
+Comandos (na raiz do monorepo): `npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run build` · `npm run check` (lint + typecheck + testes + prettier) · `npm run pronto` (tudo, em todos os workspaces).
 Latência simulada do mock: 150 a 400 ms por chamada (sorteio determinístico); `VITE_MOCK_LATENCIA=0` zera (E2E, medição).
 Parâmetro oculto para validação: `?mock=carregando|erro|vazio|erro:<id>` (ex.: `?mock=erro:o3`); também `erro-uma-vez:<ids>` e listas por vírgula. Só vale com a fonte mock e nunca vai em links.
 
 ## Regras que o lint impõe
 
-- `features/**` e `components/**` **não importam** `lib/metrics` nem `mock/` (só `data/` e `contracts/`).
+- `features/**` e `components/**` **não importam** `@metricas-dspd/metricas` nem `@metricas-dspd/mock` (só `data/` e `@metricas-dspd/contratos`).
 - Recharts só dentro de `components/charts/`.
-- Fronteiras (ADR 0002, `eslint.config.js`): `mock/businessmap` × `mock/acelerato` e `lib/metrics/businessmap` × `acelerato` sem import cruzado; `core` não importa os domínios nem a raiz; os domínios não importam a raiz (`calcular`, `visaoGeral`, `index`); `contracts` só importa `zod`; `data/**` fora de `data/mock` não importa `lib/metrics` nem `mock`, e `data/mock` só por `import()` dinâmico (ou `import type`); `components/charts` repete a regra da UI. `Math.min/max` com spread é proibido (use `minimo`/`maximo`).
-- BusinessMap e Acelerato nunca se importam; `Math.random`, `Date.now` e `new Date()` sem argumento são proibidos em `mock/` e `lib/metrics/`.
+- Fronteiras (ADR 0002, `eslint.config.js`): `packages/mock/src/businessmap` × `acelerato` e `packages/metricas/src/businessmap` × `acelerato` sem import cruzado; `core` não importa os domínios nem a raiz; os domínios não importam a raiz (`calcular`, `visaoGeral`, `index`); `packages/contratos` só importa `zod`; `data/**` fora de `data/mock` não importa `@metricas-dspd/metricas` nem `@metricas-dspd/mock`, e `data/mock` só por `import()` dinâmico (ou `import type`); `components/charts` repete a regra da UI. `Math.min/max` com spread é proibido (use `minimo`/`maximo`).
+- BusinessMap e Acelerato nunca se importam; `Math.random`, `Date.now` e `new Date()` sem argumento são proibidos em `packages/mock` e `packages/metricas`.
 - Nada de pessoa: nenhum DTO traz responsável, agente ou usuário. Equipe nunca vira série, cor, coluna ou legenda.
 
 ## Como criar um painel
@@ -50,13 +50,13 @@ Exemplo completo: `src/features/operacional/` (cartão `components/CartaoO4.tsx`
 
 ## Consumindo dados
 
-`useMetrica(id, filtros)` devolve o DTO já calculado (tipos em `contracts/`, validados por zod nos testes). O TypeScript impede pedir `S*` com filtros de fluxo. `estado`: `carregando | erro | vazio | ok` (`vazio` = `base.n === 0`). Regras de amostra mínima, janelas, percentis e marcações de critério já vêm decididas pela biblioteca; **nunca recalcule na UI**.
+`useMetrica(id, filtros)` devolve o DTO já calculado (tipos em `@metricas-dspd/contratos`, validados por zod nos testes). O TypeScript impede pedir `S*` com filtros de fluxo. `estado`: `carregando | erro | vazio | ok` (`vazio` = `base.n === 0`). Regras de amostra mínima, janelas, percentis e marcações de critério já vêm decididas pela biblioteca; **nunca recalcule na UI**.
 
 - Todo resultado tem `base` (n, unidade, janela) e `criterios` (`serie` e `janela`: mudanças de critério a marcar).
 - Estatísticas de distribuição vêm como `{ status: 'ok', n, valor } | { status: 'insuficiente', n, minimo: 20 }`; taxas como `{ status, k, n, pct? }` (com "k de n" sempre).
 - `statusMeta`: `dentro | fora | sem-referencia` já decidido; mostre com `StatusMeta` (ícone + texto).
 - Tempos: BusinessMap em dias úteis; Sustentação em **horas úteis** (use `fmtHorasUteis`).
-- Janela de percentis: constante única `JANELA_POR_GRANULARIDADE` em `lib/metrics/core/janela.ts` (hoje 12 semanas para tudo). O DTO traz `janelaPercentis`; exiba `SeloJanela` quando o período escolhido difere dela.
+- Janela de percentis: constante única `JANELA_POR_GRANULARIDADE` em `packages/metricas/src/core/janela.ts` (hoje 12 semanas para tudo). O DTO traz `janelaPercentis`; exiba `SeloJanela` quando o período escolhido difere dela.
 - Visão geral: `useMetrica('VISAO_GERAL', {})` devolve alertas e indicadores por nível (códigos em `AlertaCodigo`; o texto de cada alerta é do painel).
 - Espera invisível: `EI_FL1`, `EI_FL2`, `EI_FL3` (fluxo) e `EI_SUST` (Acelerato, bloco separado). Use `ParEspera` (nunca uma barra isolada).
 - Opções de filtro: `useOpcoesFiltro('businessmap' | 'acelerato')`. Mudanças de critério: `useCriterios()`.

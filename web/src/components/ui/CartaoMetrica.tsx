@@ -5,8 +5,8 @@ import {
   type BaseAmostral,
   type CriteriosResultado,
   type Periodo,
-} from '@/contracts/comum'
-import type { FiltroFluxoChave } from '@/contracts/metricas'
+} from '@metricas-dspd/contratos'
+import type { FiltroFluxoChave } from '@metricas-dspd/contratos'
 import { fmtData, fmtDataCurta } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
 import { AvisoCriterio } from './AvisoCriterio'
@@ -20,7 +20,7 @@ import { ModoTabelaContext, type ModoVisual } from './ModoTabela'
 import { BlocoNota, BotaoNota, type TextoNota } from './NotaMetodologica'
 import { SeloJanela } from './SeloJanela'
 import { StatusMeta } from './StatusMeta'
-import type { StatusMeta as Status } from '@/contracts/comum'
+import type { StatusMeta as Status } from '@metricas-dspd/contratos'
 
 export type EstadoCartao = 'carregando' | 'erro' | 'vazio' | 'ok'
 

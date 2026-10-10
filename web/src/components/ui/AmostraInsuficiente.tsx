@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { JANELA_PERCENTIS_PADRAO, MINIMO_AMOSTRA } from '@/contracts/comum'
+import { JANELA_PERCENTIS_PADRAO, MINIMO_AMOSTRA } from '@metricas-dspd/contratos'
 import { fmtInteiro, textoJanela } from '@/lib/formatar'
 import { Botao } from './Botao'
 import { filtrosUnicos, useContextoPainel } from './ContextoPainel'

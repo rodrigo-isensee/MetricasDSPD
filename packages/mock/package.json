@@ -1,0 +1,19 @@
+{
+  "name": "@metricas-dspd/mock",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "TZ=UTC vitest run",
+    "pronto": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@metricas-dspd/contratos": "*",
+    "@metricas-dspd/metricas": "*"
+  }
+}

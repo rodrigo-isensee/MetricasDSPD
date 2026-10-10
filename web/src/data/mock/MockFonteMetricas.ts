@@ -1,18 +1,18 @@
-import type { Dominio, MetricaId, VersaoCriterio } from '@/contracts/comum'
+import type { Dominio, MetricaId, VersaoCriterio } from '@metricas-dspd/contratos'
 import {
   EQUIPES_SUSTENTACAO_ID,
   NOME_EQUIPE_SUSTENTACAO,
   TIPO_ID,
   type OpcoesFiltro,
-} from '@/contracts/filtros'
-import type { ContratoMetricas, ResultadoDe } from '@/contracts/metricas'
-import { TIPOS_FILTRO, PRIORIDADES } from '@/contracts/comum'
+} from '@metricas-dspd/contratos'
+import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
+import { TIPOS_FILTRO, PRIORIDADES } from '@metricas-dspd/contratos'
 import type { FonteMetricas } from '../FonteMetricas'
 
 type Carregado = {
-  ctx: import('@/lib/metrics').ContextosMetricas
-  lib: typeof import('@/lib/metrics')
-  base: import('@/mock').BaseMock
+  ctx: import('@metricas-dspd/metricas').ContextosMetricas
+  lib: typeof import('@metricas-dspd/metricas')
+  base: import('@metricas-dspd/mock').BaseMock
   /** Sorteio da latência: derivado da semente, determinístico. */
   sorteio: () => number
 }
@@ -45,7 +45,10 @@ export class MockFonteMetricas implements FonteMetricas {
 
   private carregar(): Promise<Carregado> {
     this.carregado ??= (async () => {
-      const [mock, lib] = await Promise.all([import('@/mock'), import('@/lib/metrics')])
+      const [mock, lib] = await Promise.all([
+        import('@metricas-dspd/mock'),
+        import('@metricas-dspd/metricas'),
+      ])
       const parcial: { semente?: number; hoje?: string } = {}
       if (this.opcoes.semente !== undefined) parcial.semente = this.opcoes.semente
       if (this.opcoes.hoje !== undefined) parcial.hoje = this.opcoes.hoje

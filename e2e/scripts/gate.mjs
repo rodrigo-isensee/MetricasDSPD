@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Gate do autor: fronteiras + hash da base mock (vs fase A) + tamanho do bundle. Node puro.
-// Pré-requisito: cd web && npm run check && npm run build. Uso: cd e2e && npm run gate
+// Pré-requisito: na raiz, npm run pronto (ou npm run check e npm run build). Uso: cd e2e && npm run gate
 import { spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

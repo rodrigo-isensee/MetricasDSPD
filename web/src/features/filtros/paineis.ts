@@ -1,4 +1,4 @@
-import type { PeriodoPadrao } from '@/contracts/filtros'
+import type { PeriodoPadrao } from '@metricas-dspd/contratos'
 
 export type PainelId = 'operacional' | 'tatico' | 'estrategico' | 'espera-invisivel' | 'sustentacao'
 export type DominioFiltros = 'fluxo' | 'sustentacao'

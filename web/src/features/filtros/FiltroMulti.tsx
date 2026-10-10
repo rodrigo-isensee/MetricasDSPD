@@ -1,7 +1,7 @@
 import { Popover } from 'radix-ui'
 import { useId, useRef, type ReactNode } from 'react'
 import { Botao, Icone } from '@/components/ui'
-import type { OpcaoFiltro } from '@/contracts/filtros'
+import type { OpcaoFiltro } from '@metricas-dspd/contratos'
 
 interface Props {
   /** Usado no data-testid (`filtro-equipe`). */

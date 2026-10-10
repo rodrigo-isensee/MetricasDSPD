@@ -1,0 +1,19 @@
+{
+  "name": "@metricas-dspd/contratos",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./validacao": "./src/validacao.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "TZ=UTC vitest run --passWithNoTests",
+    "pronto": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
+}

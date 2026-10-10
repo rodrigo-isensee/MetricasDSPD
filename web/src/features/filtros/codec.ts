@@ -1,4 +1,4 @@
-import { PRIORIDADES, TIPOS_FILTRO, type Prioridade } from '@/contracts/comum'
+import { PRIORIDADES, TIPOS_FILTRO, type Prioridade } from '@metricas-dspd/contratos'
 import {
   EQUIPES_SUSTENTACAO_ID,
   PERIODOS_PADRAO,
@@ -9,7 +9,7 @@ import {
   type OpcoesFiltro,
   type PeriodoPadrao,
   type TipoFiltro,
-} from '@/contracts/filtros'
+} from '@metricas-dspd/contratos'
 import { dataValida } from '@/lib/formatar'
 import { validarPeriodoCustom } from './periodo'
 
