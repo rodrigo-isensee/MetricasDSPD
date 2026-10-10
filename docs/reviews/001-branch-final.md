@@ -46,3 +46,13 @@ Portões no HEAD: `typecheck` (inclui e2e) ok, `lint` ok, testes unitários ok (
 Próximo passo: fechar os bloqueantes 1 e 2, r2 do K-048 só com o delta, parecer final do QA. Depois disso, a branch está pronta para o PR.
 
 Parecer fechado: 2026-10-10
+
+## r2 (delta)
+- Bloqueante 1: **fechado** pelo K-049 (735c710) e pelo K-050 (13d35e6); ver `docs/reviews/001-K-049-050-r1.md`.
+- Bloqueante 2: **fechado** pelo adendo da ADR 0002 (8a88f83).
+- Higiene: `dist-*/` no `.gitignore` (735c710) fecha a recomendação sobre `web/dist-alt/`.
+- Cobertura: a linha "K-048 (45049ff) · ajustes" passa a **aprovado** via 001-K-049-050-r1; K-049 e K-050 aprovados no mesmo parecer.
+
+**Parecer r2: aprovado.** A branch está liberada para o PR, **condicionada ao parecer final do QA** (revalidação do bug 008 a 375 px e do K-049).
+
+Parecer r2 fechado: 2026-10-10 02:42
