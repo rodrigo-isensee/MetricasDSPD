@@ -1,4 +1,5 @@
 import {
+  METRICAS_SUSTENTACAO,
   cartoesDoPainel,
   type CartaoId,
   type Dominio,
@@ -123,6 +124,31 @@ export function filtrosDoNivel(
     equipe: config.filtros.includes('equipe') ? f.equipe : [],
     tipo: config.filtros.includes('tipo') ? f.tipo : [],
   }
+}
+
+/**
+ * Filtros de uma métrica: os do nível dela. A Espera invisível tem um segundo conjunto, os da Sustentação
+ * (prefixo `sust_`), que nunca vêm do fluxo.
+ */
+export function filtrosDoItem(
+  item: Pick<ItemExportavel, 'nivel' | 'metrica'>,
+  pathname: string,
+  params: URLSearchParams,
+  memoria: Memoria,
+  opcoes: OpcoesFiltro | undefined,
+): FiltrosFluxo | FiltrosSustentacao {
+  if (item.nivel === 'espera-invisivel' && METRICAS_SUSTENTACAO.includes(item.metrica)) {
+    const config = PAINEIS.sustentacao
+    const aqui = pathname === '/espera-invisivel'
+    return lerSustentacao(
+      aqui ? params : new URLSearchParams(),
+      opcoes,
+      config.periodoPadrao,
+      'sust_',
+      { periodos: config.periodos, personalizado: config.personalizado },
+    ).filtros
+  }
+  return filtrosDoNivel(item.nivel, pathname, params, memoria, opcoes)
 }
 
 /** Seleção inicial do "Exportar" do painel: tudo que está visível, até o limite. */

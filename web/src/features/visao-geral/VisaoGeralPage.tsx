@@ -14,6 +14,7 @@ import {
 import type { ResultadoVisaoGeral } from '@metricas-dspd/contratos'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
+import { BotaoExportar } from '@/features/exportar'
 import { useDataReferencia, useErroDePainelSimulado, useMetrica, useModoMock } from '@/data'
 import { fmtData, fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import {
@@ -216,6 +217,10 @@ export default function VisaoGeralPage() {
           Preferências
         </Link>
       </p>
+      <div className="flex flex-wrap items-center gap-2" data-testid="barra-exportar">
+        <BotaoExportar base="visao-geral" />
+        <BotaoExportar base="personalizada" />
+      </div>
       {pronta && (
         <>
           <FaixaCalibracaoFonte dominio="businessmap" />

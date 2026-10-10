@@ -17,7 +17,7 @@ const linhas = arquivos.map((f) => {
   let tipo = 'rota'
   if (iniciais.has(f)) tipo = 'inicial'
   else if (/^graficos-/.test(f)) tipo = 'graficos'
-  else if (/^exportar-pdf-/.test(f)) tipo = 'exportar'
+  else if (/^(exportar-pdf|desenhista)-/.test(f)) tipo = 'exportar'
   // Dependências opcionais do jsPDF (html(), SVG): nunca pedidas pelo app; só informativas.
   else if (/^(purify\.es|html2canvas|index\.es)-/.test(f)) tipo = 'opcional'
   else if (/^(mock|metrics)-/.test(f) || /gerarBaseMock|mulberry32/.test(codigo)) tipo = 'mock'

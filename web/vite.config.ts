@@ -18,14 +18,15 @@ export default defineConfig({
           groups: [
             {
               name: 'react',
-              test: /node_modules[\\/](react|react-dom|scheduler|clsx)[\\/]/,
+              test: /node_modules[\\/](react|react-dom|scheduler|clsx)[\\/]|vite[\\/]preload-helper/,
               priority: 20,
             },
-            // F11 (ADR 0003): geração do PDF (jsPDF + desenhista; sem svg2pdf, que estourou o orçamento (tabela no lugar do gráfico)), só sob demanda.
+            // F11 (ADR 0003): jsPDF em chunk próprio, só sob demanda (sem svg2pdf, que estourou o orçamento).
+            // O helper de preload fica no chunk inicial: sem isso o rolldown o coloca aqui e o jsPDF vira dependência estática.
             {
               name: 'exportar-pdf',
               priority: 15,
-              test: /node_modules[\\/](jspdf|fflate|fast-png|iobuffer|svg-pathdata)[\\/]|features[\\/]exportar[\\/]desenhista/,
+              test: /node_modules[\\/](jspdf|fflate|fast-png|iobuffer|svg-pathdata)[\\/]/,
             },
             {
               name: 'graficos',

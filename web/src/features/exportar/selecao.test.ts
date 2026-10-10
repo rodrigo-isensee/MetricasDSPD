@@ -4,6 +4,7 @@ import {
   NIVEIS,
   dominioDoNivel,
   escopoDoArquivo,
+  filtrosDoItem,
   filtrosDoNivel,
   itensDoNivel,
   rotuloDoEscopo,
@@ -101,6 +102,31 @@ describe('filtrosDoNivel', () => {
       undefined,
     )
     expect(f).toMatchObject({ equipe: [], tipo: [], periodo: { tipo: '12m' } })
+  })
+})
+
+describe('filtrosDoItem', () => {
+  it('a EI-SUST usa os filtros da Sustentação (prefixo sust_), nunca os do fluxo', () => {
+    const url = new URLSearchParams('periodo=4s&sust_periodo=12m&sust_prioridade=p1')
+    const item = { nivel: 'espera-invisivel', metrica: 'EI_SUST' } as const
+    expect(filtrosDoItem(item, '/espera-invisivel', url, {}, undefined)).toMatchObject({
+      periodo: { tipo: '12m' },
+      prioridade: ['P1'],
+    })
+    expect(filtrosDoItem(item, '/operacional', url, {}, undefined)).toMatchObject({
+      periodo: { tipo: '6m' },
+      prioridade: [],
+    })
+  })
+  it('as demais métricas seguem o filtro do nível', () => {
+    const f = filtrosDoItem(
+      { nivel: 'espera-invisivel', metrica: 'EI_FL1' },
+      '/espera-invisivel',
+      new URLSearchParams('periodo=4s'),
+      {},
+      undefined,
+    )
+    expect(f.periodo).toEqual({ tipo: '4s' })
   })
 })
 

@@ -10,6 +10,8 @@ import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta, useModoMoc
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
 import { SemDadosDaFonte } from '@/features/coleta/SemDadosDaFonte'
+import { BotaoExportar } from '@/features/exportar'
+import type { NivelExportacao } from '@/features/exportar/selecao'
 import { BarraFiltros, useFiltros, type PainelId, type UseFiltros } from '@/features/filtros'
 import {
   BotaoMetricas,
@@ -52,6 +54,7 @@ function Recorte({
 }
 
 function Casca({
+  painelDoCorpo,
   uso,
   base,
   fonte,
@@ -60,6 +63,8 @@ function Casca({
   preferencias,
   children,
 }: {
+  /** Nível do botão "Exportar" (o mesmo id do painel). */
+  painelDoCorpo: NivelExportacao
   /** Painel com cartões ocultáveis (pedido 007); a Espera invisível não tem. */
   preferencias?: PainelComCartoes
   /** Fontes que o painel usa: o selo de cada uma aparece no cabeçalho, sempre separado. */
@@ -118,11 +123,11 @@ function Casca({
                 <FaixaCalibracaoFonte key={d} dominio={d} />
               ))}
               {base.extra}
-              {preferencias && (
-                <div>
-                  <BotaoMetricas />
-                </div>
-              )}
+              <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
+                {preferencias && <BotaoMetricas />}
+                <BotaoExportar base={painelDoCorpo} />
+                <BotaoExportar base="personalizada" />
+              </div>
               <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
               <FaixaOcultas />
               <PainelOcultoVazio />
@@ -159,6 +164,7 @@ export function PainelFluxo({
   const uso = useFiltros(painel)
   return (
     <Casca
+      painelDoCorpo={painel}
       uso={uso}
       base={base}
       fonte={fonte}
@@ -181,6 +187,7 @@ export function PainelSustentacao({
   const uso = useFiltros('sustentacao')
   return (
     <Casca
+      painelDoCorpo="sustentacao"
       uso={uso}
       base={base}
       fonte="Acelerato"
