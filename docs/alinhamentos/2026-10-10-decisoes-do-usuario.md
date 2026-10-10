@@ -39,3 +39,11 @@ O usuário delegou ao time a decisão do que é melhor para a entrega.
 
 ## 7. Banco de dados (2026-10-10 14:56)
 O usuário decidiu **trocar o banco para PostgreSQL**, seguindo a stack técnica que ele enviou (Fastify 5, `pg` puro sem ORM/query builder, node-pg-migrate, outbox transacional no Postgres por polling sem BullMQ, Zod 4, fastify-type-provider-zod 7 + @fastify/swagger 9, Pino, Vitest sem Testcontainers, Postgres do Docker Compose com um schema por execução de teste, pnpm). Substitui a decisão anterior de MySQL (ADR 0004).
+
+## 8. Confirmações e infraestrutura (2026-10-10 15:14)
+| Tema | Decisão do usuário |
+|---|---|
+| Janela de calibração | **60 dias confirmados** (deixa de ser provisória) |
+| Tolerância do "Atrasado" | **0 h confirmada** |
+| Nomes de pessoas | **Também nas tabelas analíticas** (como no modelo 4.5 do briefing: `responsaveis`, `usuario`). Garantia de "nenhuma visão individual": o usuário de banco da API não lê essas colunas; nenhuma view, rota, DTO ou tela agrega ou exibe por pessoa |
+| Custo | **Nenhum gasto no momento**: tudo roda localmente com Docker Compose (Postgres + API Fastify + web); CI no GitHub Actions (gratuito, repo público). Implantação em nuvem (AWS/ECS/Lambda ou servidor da Unifique) **adiada**, não descartada; a API sai como imagem de contêiner para ser portátil |
