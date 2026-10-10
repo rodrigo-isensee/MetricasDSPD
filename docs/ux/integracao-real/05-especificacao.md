@@ -39,7 +39,7 @@ Dados e coletas                                  [aviso] Nenhuma informação po
 + Contagens (última coleta ok) --------------------------------+
 | Cards lidos 1.240 · Novos 18 · Atualizados 61 · Arquivados mantidos 212 · Excluídos mantidos 9 |
 + Calibração ---------------------------------------------------+
-| Janela vigente: 15/09 a 14/11/2026 (definida automaticamente) |
+| Janela vigente: 15/09 a 13/11/2026 (definida automaticamente) |
 + Falhas recentes (14 dias) -------------------------------------+
 | tabela: data, tipo de erro, o que acontece com os dados |
 + Histórico de coletas -----------------------------------------+

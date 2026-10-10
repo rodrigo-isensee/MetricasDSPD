@@ -10,14 +10,20 @@ export function CalibracaoDasFontes({ children }: { children: ReactNode }) {
   const bm = useMetricasEmCalibracao('businessmap')
   const ac = useMetricasEmCalibracao('acelerato')
   const metricas = useMemo(() => new Set<string>([...bm, ...ac]), [bm, ac])
-  const pendenteBm = useEstadoColeta('businessmap').isPending
-  const pendenteAc = useEstadoColeta('acelerato').isPending
+  const estadoBm = useEstadoColeta('businessmap')
+  const estadoAc = useEstadoColeta('acelerato')
+  const pendenteBm = estadoBm.isPending
+  const pendenteAc = estadoAc.isPending
   // `pronta` espera só as fontes que a rota usa (K-061, A4): a Sustentação não espera o BusinessMap.
   const usadas = dominiosDaRota(useLocation().pathname)
   const pendente =
     (usadas.includes('businessmap') && pendenteBm) || (usadas.includes('acelerato') && pendenteAc)
+  // Leitura falhou numa fonte da rota: não dá para saber se está em calibração; oculta o status de meta.
+  const falhou =
+    (usadas.includes('businessmap') && estadoBm.isError) ||
+    (usadas.includes('acelerato') && estadoAc.isError)
   return (
-    <ProvedorCalibracao metricas={metricas} pronta={!pendente}>
+    <ProvedorCalibracao metricas={metricas} pronta={!pendente} statusOculto={falhou}>
       {children}
     </ProvedorCalibracao>
   )

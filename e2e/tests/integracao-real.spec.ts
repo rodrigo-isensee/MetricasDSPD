@@ -101,8 +101,8 @@ test.describe('Tela /dados', () => {
         await expect(page.getByRole('heading', { name: t, exact: true })).toBeVisible();
       await expect(page.getByText(/Última tentativa/)).toBeVisible();
       await expect(page.getByText(/Próxima prevista/)).toBeVisible();
-      await expect(page.getByText(/Arquivados e excluídos permanecem na base/)).toBeVisible();
-      await expect(page.getByText(/Definida automaticamente pelo sistema/)).toBeVisible();
+      await expect(page.getByText(/Arquivados e excluídos: total preservado na base/)).toBeVisible();
+      await expect(page.getByText(/automaticamente pelo sistema/)).toBeVisible();
       for (const t of await page.getByRole('table').all()) await expect(t.getByRole('columnheader').first()).toBeVisible();
       // CT-32: só a fonte selecionada aparece no conteúdo
       const outra = f.q === 'bm' ? 'Acelerato' : 'BusinessMap';
