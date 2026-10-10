@@ -21,7 +21,7 @@ function BlocoMensal({
   complemento?: React.ReactNode
 }) {
   return (
-    <section aria-label={titulo} data-testid={`s7-${id}`} className="flex flex-col gap-2">
+    <section aria-label={titulo} data-testid={`s7-${id}`} className="flex min-w-0 flex-col gap-2">
       <h4 className="text-sm font-semibold">{titulo}</h4>
       <NumeroGrande
         className="w-fit"
@@ -89,7 +89,7 @@ export function CartaoS7({ filtros }: { filtros: FiltrosSustentacao }) {
       className="lg:col-span-12"
     >
       {d && j && (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <BlocoMensal
             id="prioridade"
             titulo="Ajuste manual de prioridade"
