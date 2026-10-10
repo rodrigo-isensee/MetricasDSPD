@@ -36,3 +36,15 @@ export const slug = (s: string): string =>
 export const diaNum = (iso: string): number =>
   Math.floor(Date.parse(`${iso}T00:00:00Z`) / 86_400_000)
 export const isoDoDia = (n: number): string => new Date(n * 86_400_000).toISOString().slice(0, 10)
+
+/** Taxa já decidida pela biblioteca: percentual com 20 itens ou mais, "k de n" abaixo (4.0.2). */
+export function textoTaxa(t: {
+  status: 'ok' | 'insuficiente'
+  k: number
+  n: number
+  pct?: number
+}): string {
+  return t.status === 'ok' && t.pct !== undefined
+    ? `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(t.pct)}%`
+    : `${t.k} de ${t.n}`
+}

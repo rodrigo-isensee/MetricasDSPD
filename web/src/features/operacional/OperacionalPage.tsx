@@ -10,6 +10,12 @@ import { CartaoO1 } from './components/CartaoO1'
 import { CartaoO2 } from './components/CartaoO2'
 import { CartaoO3 } from './components/CartaoO3'
 import { CartaoO4 } from './components/CartaoO4'
+import { CartaoO7 } from './components/CartaoO7'
+import { CartaoO9 } from './components/CartaoO9'
+import { CartaoO10 } from './components/CartaoO10'
+import { CartaoO12 } from './components/CartaoO12'
+import { CartaoO15 } from './components/CartaoO15'
+import { CartaoO18 } from './components/CartaoO18'
 
 const CADENCIAS = ['diaria', 'semanal'] as const
 type Cadencia = (typeof CADENCIAS)[number]
@@ -48,6 +54,36 @@ function AtencaoDiaria({ filtros }: { filtros: FiltrosFluxo }) {
   return <FaixaAtencao momento="hoje" itens={itens} />
 }
 
+/** Itens da faixa "Pede atenção na semana": backlog parado há mais de 180 dias (O10) e vencidos por causa interna (O12). */
+function AtencaoSemanal({ filtros }: { filtros: FiltrosFluxo }) {
+  const o10 = useMetrica('O10', filtros).dados
+  const o12 = useMetrica('O12', filtros).dados
+  const itens: ItemAtencao[] = []
+  if (o10 && o10.acimaDe180.time > 0)
+    itens.push({
+      id: 'o10',
+      codigo: 'O10',
+      para: '#o10',
+      texto: `${fmtInteiro(o10.acimaDe180.time)} ${plural(o10.acimaDe180.time, 'item do backlog com', 'itens do backlog com')} mais de 180 dias`,
+    })
+  if (o12 && o12.vencidosCausaInterna > 0)
+    itens.push({
+      id: 'o12',
+      codigo: 'O12',
+      para: '#o12',
+      texto: `${fmtInteiro(o12.vencidosCausaInterna)} ${plural(o12.vencidosCausaInterna, 'vencido', 'vencidos')} por causa interna`,
+    })
+  return <FaixaAtencao momento="semana" itens={itens} />
+}
+
+const SECOES = [
+  ['tempo', 'Tempo'],
+  ['fluxo', 'Fluxo'],
+  ['compromissos', 'Compromissos'],
+  ['backlog', 'Backlog'],
+  ['qualidade', 'Qualidade'],
+] as const
+
 function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cadencia }) {
   const [params] = useSearchParams()
   if (cadencia === 'diaria') {
@@ -76,11 +112,36 @@ function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cade
   }
   return (
     <>
+      <AtencaoSemanal filtros={filtros} />
+      <nav aria-label="Ir para" className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="text-texto-2">Ir para:</span>
+        {SECOES.map(([id, nome]) => (
+          <a
+            key={id}
+            href={`#${id}`}
+            className="alvo inline-flex items-center text-acento underline"
+          >
+            {nome}
+          </a>
+        ))}
+      </nav>
       <Secao id="tempo" titulo="Tempo">
         <CartaoO3 filtros={filtros} />
+        <CartaoO9 filtros={filtros} />
       </Secao>
       <Secao id="fluxo" titulo="Fluxo">
         <CartaoO4 filtros={filtros} />
+      </Secao>
+      <Secao id="compromissos" titulo="Compromissos">
+        <CartaoO12 filtros={filtros} />
+      </Secao>
+      <Secao id="backlog" titulo="Backlog">
+        <CartaoO10 filtros={filtros} />
+        <CartaoO7 filtros={filtros} />
+      </Secao>
+      <Secao id="qualidade" titulo="Qualidade">
+        <CartaoO15 filtros={filtros} />
+        <CartaoO18 filtros={filtros} />
       </Secao>
     </>
   )

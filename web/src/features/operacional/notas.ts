@@ -56,7 +56,7 @@ export const NOTAS_OPERACIONAL: Record<
     oQueE: 'Cards criados e concluídos por mês e tipo.',
     comoSeCalcula:
       'Entrada = criação do card (chegada do pedido); saída = entrega; saldo = entrada menos saída.',
-    comoLer: 'Observe o saldo acumulado, não o de cada mês.',
+    comoLer: 'Observe o saldo ao longo dos meses, não o de um mês isolado.',
     meta: 'Saída maior ou igual à entrada por tipo no trimestre.',
     cuidados:
       'Mês é um recorte grosseiro (feriados, férias, sazonalidade); dois meses não são tendência.',
