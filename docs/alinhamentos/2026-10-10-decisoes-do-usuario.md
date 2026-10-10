@@ -50,3 +50,12 @@ O usuário decidiu **trocar o banco para PostgreSQL**, seguindo a stack técnica
 
 ## 9. Pedido 007 — P-1 conjuntos por papel (2026-10-10 15:16)
 **Todos começam vendo todas as métricas.** Os conjuntos por papel (time = Operacional; coordenador = Operacional + Tático; gerente = Tático + Estratégico) viram **atalho opcional** no perfil ("Aplicar sugestão do meu papel"), não o padrão inicial. Ajusta a decisão 1 do §6.
+
+## 10. Pedido 008 — exportar métricas (2026-10-10 15:22)
+| # | Decisão do usuário |
+|---|---|
+| D-1 | **Somente PDF** (sem imagem/zip) |
+| D-2 | **Exporta só o que está visível** na tela (métrica oculta não entra) |
+| D-3 | **Visão geral também exporta**, já na primeira versão (BM e AC em blocos separados) |
+| D-4 | **Exportação personalizada**, além do botão por painel: o usuário marca, nível a nível (Operacional, Tático, Estratégico, Sustentação, Espera invisível), as métricas visíveis e sai um PDF só; cada métrica com os próprios filtros e fonte; BM e AC em seções separadas |
+| D-5 | **Não registrar** as exportações |
