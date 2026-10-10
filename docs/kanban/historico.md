@@ -112,3 +112,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-10 10:12 | K-053 | Entrada | Pronto para fazer | [bug] K-017 r1 (docs/reviews/002-K-017-r1.md, b377552): id_origem VARCHAR(32) × hash 64; gravarStgCard com quadro_id/arquivado fixos; + recomendados; node-backend após Docker |
 | 2026-10-10 10:12 | K-054 | Entrada | Em andamento | [bug] Timeouts de 15 s nos testes do web sob carga no npm run pronto; react-frontend |
 | 2026-10-10 10:12 | K-055 | Entrada | Empatizar e definir | Pedido 007 (preferências de métricas): ux-designer começa; software-architect entra após a documentação técnica |
+| 2026-10-10 10:21 | K-055 | Empatizar e definir | Validação do usuário | Discovery 007 pronto (docs/ux/preferencias-metricas/); viabilidade técnica do arquiteto pendente |
