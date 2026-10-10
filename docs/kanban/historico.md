@@ -126,3 +126,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-10 14:56 | K-055 | Validação do usuário | Pronto para fazer | Pedido 007 validado pelo usuário (7 decisões em docs/alinhamentos/2026-10-10-decisoes-do-usuario.md §6) |
 | 2026-10-10 14:56 | K-063 | Entrada | Entrada | Pedido 008 (exportar métricas em PDF/imagem) registrado |
 | 2026-10-10 14:56 | — | — | — | Usuário decidiu trocar o banco para PostgreSQL (§7) |
+| 2026-10-10 14:59 | K-064 | Entrada | Entrada | CI no GitHub Actions (6 etapas: rápida, testes 100%, Postgres em contêiner, build+size, E2E+axe, perf/Lighthouse) + proteção de branch + Dependabot + hook local; decisão do usuário: montar logo após a troca para PostgreSQL/pnpm |
