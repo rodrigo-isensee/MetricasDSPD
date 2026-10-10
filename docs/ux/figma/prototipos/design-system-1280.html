@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Design system 1280 (protótipo)</title>
+<meta name="viewport" content="width=1280">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-texto:#fff;--acento-fundo:#e6effc;--alerta:#b42318;--alerta-fundo:#fdecea;--atencao:#8a5a00;--atencao-fundo:#fff4dc;--ok:#0b6b3a;--ok-fundo:#e3f5ec;--serie-1:#0072b2;--serie-2:#d55e00;--serie-3:#009e73;--serie-4:#7b3fa0;--serie-5:#b87a00;--serie-6:#cc79a7;--serie-7:#5b6477;--rampa-1:#dbe8f7;--rampa-2:#a9c8ec;--rampa-3:#6fa2dc;--rampa-4:#3571bb;--rampa-5:#1d4f94}
+[data-theme=dark]{--fundo:#0f1420;--superficie:#161c2a;--superficie-2:#1e2638;--texto:#e8ecf4;--texto-2:#aab3c5;--borda:#2a3347;--borda-controle:#8590a6;--acento:#6aa8ff;--acento-texto:#0f1420;--acento-fundo:#1c2d4a;--alerta:#ff8a80;--alerta-fundo:#3a1b1b;--atencao:#e0b040;--atencao-fundo:#3a2e0f;--ok:#3ccb9b;--ok-fundo:#0f2f25;--serie-1:#6aa8ff;--serie-2:#ff9a5c;--serie-3:#3ccb9b;--serie-4:#b48cff;--serie-5:#e0b040;--serie-6:#f08cc0;--serie-7:#9aa3b5;--rampa-1:#1c2d4a;--rampa-2:#254271;--rampa-3:#33609f;--rampa-4:#4f86d0;--rampa-5:#86b4f5}
+*{box-sizing:border-box}body{margin:0;width:1280px;background:#f6f7f9;color:#1a1f2b;font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.pn{background:var(--fundo);color:var(--texto);padding:24px;border-bottom:1px solid #d5dae3}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:18px;margin:24px 0 8px}h3{font-size:16px;margin:0}
+.aviso{background:#8a5a00;color:#fff;padding:8px 24px;font-weight:600}
+.g{display:grid;gap:16px}.c4{grid-template-columns:repeat(4,1fr)}.c2{grid-template-columns:repeat(2,1fr)}.c3{grid-template-columns:repeat(3,1fr)}
+.sw{border:1px solid var(--borda);border-radius:8px;overflow:hidden;background:var(--superficie)}.sw i{display:block;height:40px}.sw b,.sw span{display:block;padding:2px 8px;font-size:12px}.sw span{color:var(--texto-2)}
+.cartao{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:16px}
+.cab{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.cod{background:var(--acento-fundo);color:var(--acento);font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px}
+.bt{display:inline-flex;align-items:center;gap:8px;min-height:24px;border:1px solid var(--borda-controle);background:var(--superficie);color:var(--texto);border-radius:6px;padding:6px 12px;font:500 14px inherit;font-family:inherit}
+.bt.p{background:var(--acento);color:var(--acento-texto);border-color:transparent}.bt.f{background:transparent;color:var(--acento);border-color:transparent}.bt.x{font-size:12px}
+.bd{display:inline-flex;gap:4px;border:1px solid var(--borda);background:var(--superficie-2);color:var(--texto-2);border-radius:6px;padding:2px 8px}
+.bd.w{border-color:var(--atencao);background:var(--atencao-fundo);color:var(--atencao)}
+.chip{display:inline-flex;gap:4px;border:1px solid var(--borda);background:var(--superficie-2);color:var(--texto-2);border-radius:9999px;padding:2px 8px}
+.st{display:inline-flex;gap:4px;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}.st.ok{color:var(--ok);background:var(--ok-fundo)}.st.no{color:var(--alerta);background:var(--alerta-fundo)}.st.n{color:var(--texto-2);background:var(--superficie-2)}
+.ins{border:1px solid var(--atencao);background:var(--atencao-fundo);border-radius:6px;padding:12px}.ins.l{border-color:var(--borda);background:var(--superficie-2)}.ins p{margin:4px 0}
+.ins .t{font-weight:600;color:var(--atencao)}.ins.l .t{color:var(--texto)}
+.mt{display:inline-block;width:160px;height:8px;border:1px solid var(--atencao);border-radius:9999px;background:var(--superficie);vertical-align:middle;overflow:hidden}.mt u{display:block;height:100%;width:60%;background:var(--atencao)}.ins.l .mt{border-color:var(--borda-controle)}.ins.l .mt u{background:var(--texto-2)}
+.fa{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:12px}.fa h4{margin:0;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-2)}
+.it{display:inline-flex;gap:8px;border:1px solid var(--borda);background:var(--superficie-2);border-radius:6px;padding:6px 12px;margin:8px 8px 0 0}.it a{color:var(--acento);text-decoration:underline}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--borda)}.tab{padding:6px 12px;border-bottom:2px solid transparent;color:var(--texto-2);margin-bottom:-1px}.tab.a{border-color:var(--acento);background:var(--acento-fundo);color:var(--texto);font-weight:600;border-radius:6px 6px 0 0}
+table{width:100%;border-collapse:collapse}caption{text-align:left;font-size:12px;color:var(--texto-2);padding:8px 12px}th,td{padding:8px 12px;text-align:left}thead{background:var(--superficie-2)}tbody tr{border-top:1px solid var(--borda)}td.r{text-align:right;font-variant-numeric:tabular-nums}
+.reg{border:1px solid var(--borda);border-radius:6px;background:var(--superficie);overflow:hidden}
+.sk{height:96px;border-radius:6px;background:linear-gradient(90deg,var(--superficie-2) 25%,var(--borda) 50%,var(--superficie-2) 75%)}
+.pad{height:32px;border:1px solid var(--borda-controle);border-radius:4px}
+.ficticio{display:inline-flex;gap:4px;border:1px solid var(--atencao);background:var(--atencao-fundo);color:var(--atencao);border-radius:6px;padding:4px 8px;font-weight:600}
+.foco{outline:2px solid var(--acento);outline-offset:2px}.mini{color:var(--texto-2);font-size:12px}
+.fz{display:flex;gap:16px}.fz>div{flex:1}.do{border-left:4px solid var(--ok);padding-left:8px}.dont{border-left:4px solid var(--alerta);padding-left:8px}
+</style></head><body>
+<div class="aviso">Protótipo descartável do design system. Os tokens espelham web/src/styles/tokens.css. Largura 1280.</div>
+<div class="pn" data-theme="light" id="claro">
+<h1>Design system MetricasDSPD (tema claro)</h1><p class="mini">Fonte: docs/ux/design-system.md</p>
+<h2>Cores semânticas</h2>
+<div class="g c4">
+<div class="sw"><i style="background:var(--fundo)"></i><b>--fundo</b><span>#f6f7f9</span></div>
+<div class="sw"><i style="background:var(--superficie)"></i><b>--superficie</b><span>#ffffff</span></div>
+<div class="sw"><i style="background:var(--superficie-2)"></i><b>--superficie-2</b><span>#eef1f6</span></div>
+<div class="sw"><i style="background:var(--texto)"></i><b>--texto</b><span>#1a1f2b, 16:1</span></div>
+<div class="sw"><i style="background:var(--texto-2)"></i><b>--texto-2</b><span>#4a5365, 7,5:1</span></div>
+<div class="sw"><i style="background:var(--borda)"></i><b>--borda</b><span>#d5dae3 (decorativa)</span></div>
+<div class="sw"><i style="background:var(--borda-controle)"></i><b>--borda-controle</b><span>#6b7488, 4,6:1</span></div>
+<div class="sw"><i style="background:var(--acento)"></i><b>--acento</b><span>#1f5fbf, 6,3:1</span></div>
+<div class="sw"><i style="background:var(--acento-fundo)"></i><b>--acento-fundo</b><span>#e6effc</span></div>
+<div class="sw"><i style="background:var(--alerta)"></i><b>--alerta</b><span>#b42318 / fundo #fdecea</span></div>
+<div class="sw"><i style="background:var(--atencao)"></i><b>--atencao</b><span>#8a5a00 / fundo #fff4dc</span></div>
+<div class="sw"><i style="background:var(--ok)"></i><b>--ok</b><span>#0b6b3a / fundo #e3f5ec</span></div>
+</div>
+<h2>Séries e rampa</h2>
+<div class="g" style="grid-template-columns:repeat(12,1fr)">
+<div class="sw"><i style="background:var(--serie-1)"></i><b>s1</b></div><div class="sw"><i style="background:var(--serie-2)"></i><b>s2</b></div><div class="sw"><i style="background:var(--serie-3)"></i><b>s3</b></div><div class="sw"><i style="background:var(--serie-4)"></i><b>s4</b></div><div class="sw"><i style="background:var(--serie-5)"></i><b>s5</b></div><div class="sw"><i style="background:var(--serie-6)"></i><b>s6</b></div><div class="sw"><i style="background:var(--serie-7)"></i><b>s7</b></div>
+<div class="sw"><i style="background:var(--rampa-1)"></i><b>r1</b></div><div class="sw"><i style="background:var(--rampa-2)"></i><b>r2</b></div><div class="sw"><i style="background:var(--rampa-3)"></i><b>r3</b></div><div class="sw"><i style="background:var(--rampa-4)"></i><b>r4</b></div><div class="sw"><i style="background:var(--rampa-5)"></i><b>r5</b></div>
+</div>
+<h2>Padrões além da cor (séries nunca só por cor)</h2>
+<div class="g c4">
+<div class="pad" style="background:repeating-linear-gradient(45deg,var(--serie-1) 0 3px,var(--superficie) 3px 8px)"></div>
+<div class="pad" style="background:radial-gradient(var(--serie-2) 1.8px,transparent 2px) 0 0/8px 8px,var(--superficie)"></div>
+<div class="pad" style="background:repeating-linear-gradient(45deg,var(--serie-3) 0 1.5px,var(--superficie) 1.5px 8px)"></div>
+<div class="pad" style="background:repeating-linear-gradient(45deg,var(--serie-4) 0 1.5px,transparent 1.5px 8px),repeating-linear-gradient(-45deg,var(--serie-4) 0 1.5px,var(--superficie) 1.5px 8px)"></div>
+</div><p class="mini">Listras, pontos, hachura, cruzado. Semana ou mês em andamento: listrado + rótulo.</p>
+<h2>Tipografia, raios, espaço, foco</h2>
+<div class="g c2"><div class="cartao"><div style="font-size:24px;font-weight:700">Título de painel 24/700</div><div style="font-size:18px;font-weight:700">Título de seção 18/700</div><div style="font-size:16px;font-weight:600">Título de cartão 16/600</div><div style="font-weight:500">Frase de leitura 14/500</div><div style="color:var(--texto-2)">Pergunta e legenda 14/400 texto-2</div><div class="mini">Fonte: Inter, fallback do sistema. Números tabulares.</div></div>
+<div class="cartao">Raios: 4, 6, 8, 12, 9999. Espaço: 4, 8, 12, 16, 24. Sombras só em popover (lg) e folha (xl).<br><br><button class="bt foco">Foco visível: 2px acento, offset 2px</button> <span class="mini">Alvo mínimo 24px; 44px abaixo de 768px.</span></div></div>
+<h2>Botão</h2>
+<button class="bt p">Ver resultados</button> <button class="bt">Tentar de novo</button> <button class="bt f">Limpar filtros</button> <button class="bt" style="opacity:.5">Desabilitado</button>
+<h2>CartaoMetrica (anatomia)</h2>
+<div class="cartao" style="max-width:760px">
+<div class="cab"><div><span class="cod">O2</span> <h3 style="display:inline">Tempo de ciclo</h3></div><div><button class="bt x">Como ler e como é calculado</button> <button class="bt x">Ver como tabela</button></div></div>
+<div style="margin-top:4px"><span class="bd">Base: 87 itens concluídos · 18/07 a 09/10/2026</span> <span class="bd">Janela fixa: 12 semanas</span></div>
+<p style="color:var(--texto-2);margin:8px 0 0">Quanto tempo uma demanda leva do início à entrega?</p>
+<p style="font-weight:500;margin:8px 0">O P85 foi de 14 dias úteis; 85% das demandas terminaram em até esse prazo.</p>
+<div style="height:90px;border:1px dashed var(--borda-controle);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--texto-2)">[gráfico ou tabela equivalente]</div>
+<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><span class="chip">Meta: P85 até 15 dias</span><span class="st ok">&#10003; Dentro da meta</span><span class="chip">Fonte: BusinessMap</span><span class="chip">Granularidade: demanda</span><span class="chip">Filtros aplicados: Equipe Alfa</span></div>
+</div>
+<h2>Status de meta</h2>
+<span class="st ok">&#10003; Dentro da meta</span> <span class="st no">&#9650; Fora da meta</span> <span class="st n">i Sem referência</span> <span class="st n">i Sem meta numérica</span>
+<h2>NotaMetodologica (aberta)</h2>
+<div style="border:1px solid var(--borda);background:var(--superficie-2);border-radius:6px;padding:12px;max-width:760px"><b>O que é</b><br><span style="color:var(--texto-2)">Tempo entre início e entrega.</span><br><b>Como se calcula</b><br><span style="color:var(--texto-2)">Dias úteis, percentis 50/85/95, janela de 12 semanas.</span><br><b>Como ler</b> · <b>Meta</b> · <b>Cuidados e limites</b><hr style="border:0;border-top:1px solid var(--borda)"><b>Nesta tela</b><ul style="margin:4px 0;color:var(--texto-2)"><li>Janela: 18/07 a 09/10/2026</li><li>Filtros aplicados: nenhum</li><li>Base amostral: 87 itens</li><li>Estatísticas com menos de 20 itens não são publicadas.</li></ul></div>
+<h2>AmostraInsuficiente</h2>
+<div class="g c2">
+<div class="ins"><p class="t">&#9650; Amostra insuficiente</p><p>Só publicamos percentis com pelo menos 20 itens. Aqui há 12 itens (12 de 20 itens mínimos).</p><p><span class="mt"><u></u></span> <span class="mini">12/20</span></p><p>Para chegar a 20, tente: <button class="bt x">Remover filtro Equipe</button></p></div>
+<div class="ins l"><p class="t">i Amostra insuficiente</p><p>Foram concluídos 7 projetos nas últimas 12 semanas (7 de 20 itens mínimos).</p><p>Isso é esperado: projetos terminam em poucas unidades por trimestre.</p><p><span class="mt"><u style="width:35%"></u></span> <span class="mini">7/20</span></p></div></div>
+<p>Célula de tabela: — amostra insuficiente &nbsp; Aba: <b>P1</b> <span style="color:var(--atencao)">(amostra insuficiente)</span></p>
+<h2>FaixaAtencao</h2>
+<div class="fa" style="max-width:900px"><h4>Pede atenção hoje</h4><span class="it"><span style="color:var(--alerta)">&#9650;</span> 3 cards parados há mais de 5 dias <a href="#">Ver O7</a></span><span class="it"><span style="color:var(--alerta)">&#9650;</span> P85 acima da meta <a href="#">Ver O2</a></span><br><button class="bt f" style="padding:0">Ver todos os alertas (5)</button></div>
+<div class="fa" style="max-width:900px;margin-top:8px"><h4>Pede atenção na semana</h4><p style="color:var(--ok);margin:8px 0 0">&#10003; Nada pede atenção agora com base nas metas publicadas.</p></div>
+<h2>BarraFiltros, abas e chips</h2>
+<div style="border-top:1px solid var(--borda);border-bottom:1px solid var(--borda);padding:8px 0;display:flex;gap:8px;align-items:center"><button class="bt">Equipe: Alfa, Beta</button><button class="bt">Tipo de demanda</button><button class="bt">Sistema</button><button class="bt">Período: Últimas 12 semanas</button><button class="bt f">Limpar filtros</button></div>
+<p class="mini">Resultado consolidado de 2 equipes. O sistema não compara equipes.</p>
+<span class="chip">Equipe: Alfa &times;</span> <span class="chip">Equipe: Beta &times;</span>
+<div class="tabs" style="margin-top:12px;max-width:600px"><span class="tab a">Melhoria (42)</span><span class="tab">Incidente (31)</span><span class="tab">Requisição <span style="color:var(--atencao);font-size:12px">(amostra insuficiente)</span></span></div>
+<h2>TabelaDados + RegiaoRolavel</h2>
+<div class="reg" style="max-width:700px"><table><caption>O2 Tempo de ciclo por tipo (dias úteis)</caption><thead><tr><th>Tipo</th><th class="r">P50</th><th class="r">P85</th><th class="r">P95</th></tr></thead><tbody><tr><th>Melhoria</th><td class="r">6</td><td class="r">14</td><td class="r">21</td></tr><tr><th>Requisição</th><td colspan="3">— amostra insuficiente</td></tr></tbody></table></div>
+<p class="mini">Região com role=region, tabindex=0 e rótulo "Tabela de ..., role para os lados".</p>
+<h2>AvisoDadosFicticios e estados</h2>
+<span class="ficticio">i Dados fictícios</span>
+<div class="g c3" style="margin-top:12px">
+<div class="cartao"><b>Carregando</b><div class="sk" style="margin-top:8px"></div><p class="mini">Altura final reservada; sem salto.</p></div>
+<div class="cartao"><b>Vazio</b><p>Sem dados para estes filtros.</p><button class="bt">Limpar filtros</button></div>
+<div class="cartao"><b style="color:var(--alerta)">&#9650; Erro</b><p>Não foi possível carregar este gráfico. Seus filtros foram mantidos.</p><button class="bt">Tentar de novo</button></div></div>
+<h2>Faça / Não faça</h2>
+<div class="fz"><div class="do"><b>Faça</b><br>Ícone + texto em todo status. Base amostral em todo número. Uma ação primária por seção.</div><div class="dont"><b>Não faça</b><br>Cor sozinha. Ranking ou meta por pessoa. Misturar BusinessMap e Acelerato. Publicar com n &lt; 20.</div></div>
+</div>
+<div class="pn" data-theme="dark" id="escuro">
+<h1>Tema escuro (amostra)</h1>
+<div class="g c4">
+<div class="sw"><i style="background:var(--fundo)"></i><b>--fundo</b><span>#0f1420</span></div>
+<div class="sw"><i style="background:var(--superficie)"></i><b>--superficie</b><span>#161c2a</span></div>
+<div class="sw"><i style="background:var(--texto)"></i><b>--texto</b><span>#e8ecf4</span></div>
+<div class="sw"><i style="background:var(--acento)"></i><b>--acento</b><span>#6aa8ff</span></div>
+<div class="sw"><i style="background:var(--alerta)"></i><b>--alerta</b><span>#ff8a80</span></div>
+<div class="sw"><i style="background:var(--atencao)"></i><b>--atencao</b><span>#e0b040</span></div>
+<div class="sw"><i style="background:var(--ok)"></i><b>--ok</b><span>#3ccb9b</span></div>
+<div class="sw"><i style="background:var(--borda-controle)"></i><b>--borda-controle</b><span>#8590a6</span></div></div>
+<div class="cartao" style="margin-top:16px;max-width:760px"><div class="cab"><div><span class="cod">O2</span> <h3 style="display:inline">Tempo de ciclo</h3></div><button class="bt x">Ver como tabela</button></div>
+<div style="margin-top:4px"><span class="bd">Base: 87 itens concluídos</span> <span class="bd w">&#9650; Amostra insuficiente: 12 de 20 itens mínimos</span></div>
+<p style="margin-top:8px"><span class="st ok">&#10003; Dentro da meta</span> <span class="st no">&#9650; Fora da meta</span> <span class="ficticio">i Dados fictícios</span></p></div>
+</div>
+</body></html>

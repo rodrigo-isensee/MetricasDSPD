@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>/dados 1280 (protótipo)</title>
+<meta name="viewport" content="width=1280">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-fundo:#e6effc;--alerta:#b42318;--alerta-fundo:#fdecea;--atencao:#8a5a00;--atencao-fundo:#fff4dc;--ok:#0b6b3a;--ok-fundo:#e3f5ec}
+*{box-sizing:border-box}body{margin:0;width:1280px;background:var(--fundo);color:var(--texto);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:32px}
+.aviso{background:#8a5a00;color:#fff;padding:8px 24px;font-weight:600}
+main{padding:0 24px}h1{font-size:24px;margin:16px 0 4px}h2{font-size:16px;margin:0 0 8px}.mini{color:var(--texto-2);font-size:12px}
+.nota{display:flex;gap:8px;border:1px solid var(--borda);background:var(--superficie-2);border-radius:6px;padding:8px 12px;margin:8px 0}
+.abas{display:flex;gap:4px;margin:16px 0 8px}.aba{border:1px solid var(--borda-controle);border-radius:6px;padding:8px 16px;background:var(--superficie);min-height:24px}.aba.at{background:var(--acento);color:#fff;border-color:var(--acento);font-weight:600}
+.cartao{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:16px;margin-top:16px}
+.selo{display:inline-flex;gap:4px;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;border:1px solid}
+.s-ok{color:var(--ok);background:var(--ok-fundo);border-color:var(--ok)}.s-atr{color:var(--atencao);background:var(--atencao-fundo);border-color:var(--atencao)}.s-fal{color:var(--alerta);background:var(--alerta-fundo);border-color:var(--alerta)}.s-cal{color:var(--acento);background:var(--acento-fundo);border-color:var(--acento)}
+.g{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.n{font-size:24px;font-weight:700}
+table{width:100%;border-collapse:collapse}caption{text-align:left;font-weight:600;padding-bottom:8px}th,td{padding:8px 12px;text-align:left;vertical-align:top}thead{background:var(--superficie-2)}tbody tr{border-top:1px solid var(--borda)}
+a{color:var(--acento)}.bt{display:inline-flex;min-height:24px;border:1px solid var(--borda-controle);border-radius:6px;padding:4px 12px;background:var(--superficie)}
+</style></head><body>
+<div class="aviso">Protótipo descartável (discovery Integração real, tela /dados). Dados fictícios. Largura 1280.</div>
+<main><h1>Dados e coletas</h1>
+<div class="nota">i Esta tela mostra apenas o estado das coletas. Não há informação por pessoa.</div>
+<div class="abas" role="tablist"><span class="aba at" role="tab" aria-selected="true">BusinessMap</span><span class="aba" role="tab" aria-selected="false">Acelerato</span></div>
+<p class="mini">As fontes nunca são somadas nem comparadas. Veja a aba Acelerato separadamente.</p>
+
+<div class="cartao"><h2>Última coleta</h2><span class="selo s-ok">&#10003; Atual</span> Última coleta ok: 10/10/2026 06:10 · Última tentativa: ok · Próxima prevista: 11/10/2026 06:00</div>
+
+<div class="cartao"><h2>Contagens da última coleta</h2>
+<div class="g"><div><div class="n">1.240</div>cards lidos</div><div><div class="n">18</div>novos</div><div><div class="n">61</div>atualizados</div><div><div class="n">212</div>arquivados mantidos</div><div><div class="n">9</div>excluídos mantidos</div></div>
+<p class="mini">Arquivados e excluídos permanecem na base.</p></div>
+
+<div class="cartao"><h2>Janela de calibração</h2><span class="selo s-cal">i Em calibração</span> 15/09 a 14/11/2026. Definida automaticamente pelo sistema. Dados de calibração servem para ajustar o processo, não para cobrar pessoas ou times.</div>
+
+<div class="cartao"><table><caption>Falhas recentes (14 dias)</caption><thead><tr><th>Data</th><th>Tipo de erro</th><th>O que acontece com os dados</th></tr></thead><tbody>
+<tr><td>09/10/2026 06:00</td><td><span class="selo s-fal">&#9650; Falha</span> Tempo esgotado ao ler a API</td><td>Painéis mostraram dados de 08/10 06:10</td></tr>
+<tr><td>01/10/2026 06:00</td><td><span class="selo s-atr">&#9201; Parcial</span> Limite de requisições</td><td>Itens lidos mantidos; restante na próxima coleta</td></tr></tbody></table></div>
+
+<div class="cartao"><table><caption>Histórico de coletas</caption><thead><tr><th>Data e hora</th><th>Resultado</th><th>Itens lidos</th><th>Duração</th></tr></thead><tbody>
+<tr><td>10/10/2026 06:10</td><td>&#10003; ok</td><td>1.240</td><td>4 min</td></tr>
+<tr><td>09/10/2026 06:00</td><td>&#9650; falha</td><td>0</td><td>2 min</td></tr>
+<tr><td>08/10/2026 06:10</td><td>&#10003; ok</td><td>1.231</td><td>4 min</td></tr></tbody></table>
+<p class="mini">Página 1 de 5 · <span class="bt">Próxima página</span></p></div>
+
+<div class="cartao"><table><caption>Mudanças de critério (T2.6)</caption><thead><tr><th>Data</th><th>Descrição</th><th>Métricas afetadas</th><th></th></tr></thead><tbody>
+<tr><td>02/03/2026</td><td>O início passou a contar da coluna "Em andamento"</td><td>O2, O3</td><td><a href="#">Ver critérios</a></td></tr></tbody></table></div>
+
+<div class="cartao"><h2>Estados</h2><p><b>Vazio:</b> Ainda não há coletas desta fonte. A primeira coleta acontece no próximo ciclo diário.</p><p><b>Erro:</b> &#9650; Não foi possível carregar os dados desta fonte. <span class="bt">Tentar de novo</span></p></div>
+</main></body></html>

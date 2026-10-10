@@ -15,6 +15,7 @@
     "test": "TZ=UTC vitest run",
     "test:watch": "TZ=UTC vitest",
     "check": "npm run typecheck && npm test",
+    "cobertura": "TZ=UTC vitest run --coverage",
     "pronto": "npm run check && npm run build && npm run size"
   },
   "dependencies": {

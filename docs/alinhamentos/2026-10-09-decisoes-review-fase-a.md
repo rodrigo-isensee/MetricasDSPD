@@ -1,6 +1,6 @@
 # Decisões do time sobre as perguntas do code review da fase A (001)
 
-Registrado pelo Jarvis em 2026-10-09 20:27. Pelo pedido 005, dúvidas que iriam ao usuário no 001 são decididas pelo time com a melhor recomendação, registradas e listadas no resumo final. Todas são **provisórias** e reversíveis.
+Registrado pelo Jarvis em 2026-10-09 20:27. Pelo pedido 005, dúvidas que iriam ao usuário no 001 são decididas pelo time com a melhor recomendação, registradas e listadas no resumo final. Todas são reversíveis. **Status: confirmadas pelo usuário em 2026-10-10** (ver `2026-10-10-decisoes-do-usuario.md`).
 
 Origem: `docs/reviews/001-fase-a.md` (perguntas Q1–Q6).
 

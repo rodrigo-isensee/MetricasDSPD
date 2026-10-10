@@ -1,6 +1,6 @@
 # Práticas de engenharia — MetricasDSPD
 
-Versão 2 · 2026-10-09 (alinhada às ADRs 0002 e 0003) · Mantido por tech-lead + software-architect (K-015, decisão D9 da ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`).
+Versão 3 · 2026-10-10 (documentação técnica na definição de pronto; v2 2026-10-09 alinhada às ADRs 0002 e 0003) · Mantido por tech-lead + software-architect (K-015, decisão D9 da ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`).
 Base: skill `.claude/skills/engineering-practices/SKILL.md`. Este arquivo prevalece sobre a skill; decisões estruturais ficam em ADR (`docs/architecture/adr/`). Divergência entre tech-lead e arquiteto vira ADR com as duas posições.
 
 Regras marcadas **[lint]** ou **[CI]** são verificadas por máquina; as demais, no code review.
@@ -88,6 +88,7 @@ Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras
 4. Parecer **aprovado** do tech-lead em `docs/reviews/<pedido>-<etapa>.md`.
 5. Parecer do QA (e da UX, quando houver tela) sem bloqueio aberto.
 6. Commits do autor na `develop` revisados e integrados pelo tech-lead na `feature/dashboard-mock` (seção 9).
+7. **Documentação técnica atualizada na mesma entrega** (pedido do usuário, 2026-10-10): front e biblioteca (`packages/*`, `web/`) em `docs/tecnica/`; back (`server/`) em `docs/architecture/` (plano, modelo de dados, ADR) e `docs/api/` (contrato); documentação de UX (`docs/ux/`) coerente com a tela entregue. Sem a doc, o cartão não passa do code review. Guia de uso: [`guia-do-desenvolvedor.md`](guia-do-desenvolvedor.md).
 
 ## 8. Code review
 Ordem para o 001 (D8): fase A em 4 blocos (cálculo e contratos, com rigor máximo contra o briefing; mock; dados; componentes e acessibilidade) → um review por cartão da fase B → review final da branch.
@@ -102,7 +103,8 @@ Checklist:
 7. Performance: índices, N+1, renderizações, bundle dentro do orçamento?
 8. Testes cobrem o novo e as bordas? Determinísticos?
 9. Acessibilidade: semântica, foco, contraste, tabela alternativa.
-10. Pronto para commit limpo?
+10. Documentação atualizada no mesmo intervalo de commits: `docs/tecnica/` (front/biblioteca), `docs/architecture/` + `docs/api/` (back), `docs/ux/` (tela)? Falta de doc é **bloqueia**.
+11. Pronto para commit limpo?
 
 Parecer: **aprovado** ou **ajustes necessários**, cada item com `arquivo:linha · problema · sugestão · severidade (bloqueia / recomendado)`. Correção de lógica volta ao autor; o tech-lead só faz ajuste trivial de formatação.
 
