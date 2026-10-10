@@ -122,3 +122,7 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-10 10:55 | K-058 | Entrada | Pronto | Reconciliação: documentação técnica do 001 (6428396, 51fdb4c) pronta na develop; segue no PR #2 |
 | 2026-10-10 10:55 | PR #2 | — | Aguardando sua validação | develop → main aberto pelo usuário |
 | 2026-10-10 10:55 | K-055 | Validação do usuário | Validação do usuário | Viabilidade do arquiteto pronta (780290f); aguarda 5 pontos + D-f, D-g |
+| 2026-10-10 11:04 | K-034 | Pronto para fazer | Pronto para fazer | Plano técnico pronto (docs/architecture/features/integracao-real.md): F1–F7 react-frontend após K-056/K-057; B1–B4 node-backend no 002; Q1 QA. Frescor no corpo (EstadoColeta). Pergunta ao usuário: tolerância do 'Atrasado' (provisório 0 h) |
+| 2026-10-10 14:56 | K-055 | Validação do usuário | Pronto para fazer | Pedido 007 validado pelo usuário (7 decisões em docs/alinhamentos/2026-10-10-decisoes-do-usuario.md §6) |
+| 2026-10-10 14:56 | K-063 | Entrada | Entrada | Pedido 008 (exportar métricas em PDF/imagem) registrado |
+| 2026-10-10 14:56 | — | — | — | Usuário decidiu trocar o banco para PostgreSQL (§7) |
