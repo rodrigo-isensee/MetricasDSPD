@@ -1,8 +1,17 @@
 import { APLICABILIDADE_FLUXO } from '@metricas-dspd/contratos'
-import type { BaseAmostral, CriteriosResultado, MetricaId } from '@metricas-dspd/contratos'
+import type {
+  BaseAmostral,
+  CriteriosResultado,
+  FiltroFluxoChave,
+  MetricaId,
+} from '@metricas-dspd/contratos'
 import type { TextoNota } from '@/components/ui'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import type { MetricaQuery } from '@/data'
+
+/** Filtros que atuam na métrica (tabela 2.2); métrica sem aplicabilidade de fluxo declarada: nenhum. */
+export const aplicaveisDe = (id: MetricaId): readonly FiltroFluxoChave[] =>
+  APLICABILIDADE_FLUXO[id] ?? []
 
 /** Props comuns de um cartão do Operacional (nome, pergunta, meta e fonte vêm do catálogo; base e critérios, do DTO). */
 export function propsCartao(
@@ -22,7 +31,7 @@ export function propsCartao(
     meta: m.meta,
     fonte: m.fonte,
     granularidade: m.granularidade,
-    aplicaveis: APLICABILIDADE_FLUXO[id] ?? [],
+    aplicaveis: aplicaveisDe(id),
     onTentarDeNovo: q.recarregar,
     erro: q.erro,
   } as const

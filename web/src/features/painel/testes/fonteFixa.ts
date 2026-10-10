@@ -27,3 +27,32 @@ export const insuf = (n: number) => ({
   minimo: 20 as const,
   janela: J,
 })
+
+/**
+ * Fonte de teste que parte do DTO real calculado pelo mock e aplica um ajuste mínimo por métrica
+ * (sobre uma cópia): permite forçar um ramo de tela sem montar o DTO inteiro à mão.
+ */
+export class FonteAjustada extends MockFonteMetricas {
+  private readonly ajustes: Partial<Record<MetricaId, (r: never) => void>>
+  constructor(ajustes: Partial<Record<MetricaId, (r: never) => void>>) {
+    super({ latenciaMs: 0 })
+    this.ajustes = ajustes
+  }
+  override async obter<K extends MetricaId>(id: K, filtros: FiltrosDe<K>): Promise<ResultadoDe<K>> {
+    const r = await super.obter(id, filtros)
+    const ajustar = this.ajustes[id]
+    if (!ajustar) return r
+    const copia = structuredClone(r)
+    // O ajuste só muda a cópia no lugar; o valor que ele devolver é ignorado.
+    ajustar(copia as never)
+    return copia as ResultadoDe<K>
+  }
+}
+
+export const FILTROS_FLUXO = {
+  equipe: [],
+  tipo: [],
+  sistema: [],
+  periodo: { tipo: '12s' as const },
+}
+export const FILTROS_SUSTENTACAO = { equipe: [], prioridade: [], periodo: { tipo: '6m' as const } }

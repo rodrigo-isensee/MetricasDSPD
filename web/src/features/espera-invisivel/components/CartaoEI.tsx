@@ -16,10 +16,10 @@ import type {
   FiltrosSustentacao,
   ResultadoEI,
 } from '@metricas-dspd/contratos'
-import { APLICABILIDADE_FLUXO } from '@metricas-dspd/contratos'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { useMetrica, type MetricaQuery } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
+import { aplicaveisDe } from '@/features/painel/propsCartao'
 import { fmtInteiro, fmtMes, fmtNumero, fmtPct } from '@/lib/formatar'
 import { NOTAS_EI } from '../notas'
 
@@ -44,7 +44,7 @@ interface Config {
 }
 
 /** Altura reservada do corpo (completo), medida em desktop; evita salto de layout (ADR 0003 F2). */
-const ALTURA_EI: Partial<Record<Nivel, number>> = { FL1: 620, FL2: 570, FL3: 420, SUST: 420 }
+const ALTURA_EI: Record<Nivel, number> = { FL1: 620, FL2: 570, FL3: 420, SUST: 420 }
 
 const CFG: Record<Nivel, Config> = {
   FL1: {
@@ -77,7 +77,7 @@ interface Props {
   /** Compacto (painéis de nível): par e índice da aba escolhida + link "Ver evolução". */
   variante?: 'completo' | 'compacto'
   aplicaveis?: readonly FiltroFluxoChave[]
-  periodo?: FiltrosFluxo['periodo']
+  periodo: FiltrosFluxo['periodo']
   className?: string
 }
 
@@ -211,7 +211,7 @@ export function CartaoEI({
             base: d.base,
             criterios: d.criterios,
             janelaPercentis: d.janelaPercentis,
-            ...(periodo ? { periodo } : {}),
+            periodo,
             baseVariante: d.segmentos.every((s) => s.estatistica.status === 'insuficiente')
               ? ('insuficiente' as const)
               : ('ok' as const),
@@ -226,17 +226,17 @@ export function CartaoEI({
       onTentarDeNovo={q.recarregar}
       erro={q.erro}
       className={className ?? 'lg:col-span-12'}
-      alturaEsqueleto={compacto ? 300 : (ALTURA_EI[nivel] ?? 420)}
+      alturaEsqueleto={compacto ? 300 : ALTURA_EI[nivel]}
     >
       {d && seg && corpo && segmentado ? (
         <SeletorLocal
           codigo={`EI-${nivel}`}
           rotulo={d.segmentoPor === 'prioridade' ? 'Prioridade' : 'Tipo'}
-          valor={seg.chave ?? ''}
+          valor={seg.chave as string}
           onChange={setAba}
           itens={d.segmentos.map((s) => ({
-            valor: s.chave ?? '',
-            rotulo: s.rotulo ?? '',
+            valor: s.chave as string,
+            rotulo: s.rotulo as string,
             contagem: s.n,
             insuficiente: s.estatistica.status === 'insuficiente',
           }))}
@@ -253,12 +253,12 @@ export function CartaoEI({
 export function CartaoEIFL1({
   filtros,
   ...p
-}: { filtros: FiltrosFluxo } & Omit<Props, 'nivel' | 'q'>) {
+}: { filtros: FiltrosFluxo } & Omit<Props, 'nivel' | 'q' | 'periodo' | 'aplicaveis'>) {
   return (
     <CartaoEI
       nivel="FL1"
       q={useMetrica('EI_FL1', filtros)}
-      aplicaveis={APLICABILIDADE_FLUXO.EI_FL1 ?? []}
+      aplicaveis={aplicaveisDe('EI_FL1')}
       periodo={filtros.periodo}
       {...p}
     />
@@ -267,12 +267,12 @@ export function CartaoEIFL1({
 export function CartaoEIFL2({
   filtros,
   ...p
-}: { filtros: FiltrosFluxo } & Omit<Props, 'nivel' | 'q'>) {
+}: { filtros: FiltrosFluxo } & Omit<Props, 'nivel' | 'q' | 'periodo' | 'aplicaveis'>) {
   return (
     <CartaoEI
       nivel="FL2"
       q={useMetrica('EI_FL2', filtros)}
-      aplicaveis={APLICABILIDADE_FLUXO.EI_FL2 ?? []}
+      aplicaveis={aplicaveisDe('EI_FL2')}
       periodo={filtros.periodo}
       {...p}
     />
@@ -281,12 +281,12 @@ export function CartaoEIFL2({
 export function CartaoEIFL3({
   filtros,
   ...p
-}: { filtros: FiltrosFluxo } & Omit<Props, 'nivel' | 'q'>) {
+}: { filtros: FiltrosFluxo } & Omit<Props, 'nivel' | 'q' | 'periodo' | 'aplicaveis'>) {
   return (
     <CartaoEI
       nivel="FL3"
       q={useMetrica('EI_FL3', filtros)}
-      aplicaveis={APLICABILIDADE_FLUXO.EI_FL3 ?? []}
+      aplicaveis={aplicaveisDe('EI_FL3')}
       periodo={filtros.periodo}
       {...p}
     />
@@ -296,7 +296,7 @@ export function CartaoEIFL3({
 export function CartaoEISust({
   filtros,
   ...p
-}: { filtros: FiltrosSustentacao } & Omit<Props, 'nivel' | 'q'>) {
+}: { filtros: FiltrosSustentacao } & Omit<Props, 'nivel' | 'q' | 'periodo' | 'aplicaveis'>) {
   return (
     <CartaoEI nivel="SUST" q={useMetrica('EI_SUST', filtros)} periodo={filtros.periodo} {...p} />
   )

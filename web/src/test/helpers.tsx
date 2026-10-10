@@ -54,3 +54,17 @@ export function renderizarBarra(url: string, fonte: MockFonteMetricas = fonteDeT
   )
   return { ...r, roteador }
 }
+
+/** Um cartão isolado (sem o painel): só a fonte, a URL e os provedores. Muito mais leve que `renderizarApp`. */
+export function renderizarCartao(
+  cartao: React.ReactElement,
+  { url = '/', fonte = fonteDeTeste }: { url?: string; fonte?: MockFonteMetricas } = {},
+) {
+  const roteador = createMemoryRouter([{ path: '*', element: cartao }], { initialEntries: [url] })
+  const r = render(
+    <Provedores fonte={fonte}>
+      <RouterProvider router={roteador} />
+    </Provedores>,
+  )
+  return { ...r, roteador }
+}

@@ -3,10 +3,10 @@ import { AmostraInsuficiente, CartaoMetrica } from '@/components/ui'
 import { Barras, marcaDoTipo } from '@/components/charts'
 import { TIPOS_CARD } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
-import { APLICABILIDADE_FLUXO } from '@metricas-dspd/contratos'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { useMetrica } from '@/data'
 import { fmtDataCurta, fmtInteiro, semanasDoIntervalo, textoJanela } from '@/lib/formatar'
+import { aplicaveisDe } from '@/features/painel/propsCartao'
 import { NOTAS_OPERACIONAL } from '../notas'
 
 /**
@@ -60,7 +60,7 @@ export function CartaoO4({ filtros }: { filtros: FiltrosFluxo }) {
       meta={m.meta}
       fonte={m.fonte}
       granularidade={m.granularidade}
-      aplicaveis={APLICABILIDADE_FLUXO.O4 ?? []}
+      aplicaveis={aplicaveisDe('O4')}
       onTentarDeNovo={q.recarregar}
       erro={q.erro}
       className="lg:col-span-6"

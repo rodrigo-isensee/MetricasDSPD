@@ -89,7 +89,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
             <SeletorLocal
               codigo="t1"
               rotulo="Classe de serviço para o detalhe"
-              valor={slug(atual?.c.classe ?? '')}
+              valor={slug((atual as NonNullable<typeof atual>).c.classe)}
               onChange={setAba}
               itens={publicadas.map(({ c }) => ({
                 valor: slug(c.classe),
@@ -116,7 +116,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
           )}
           <p className="text-sm text-texto-2">
             As medianas dos blocos e a mediana do total são medidas separadas; uma não é a soma da
-            outra. Janela de percentis: {janela ? textoJanela(janela) : ''}.
+            outra. Janela de percentis: {textoJanela(d.janelaPercentis)}.
           </p>
           <p className="text-sm">
             <a className="alvo text-acento underline" href="#t4">

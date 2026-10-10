@@ -92,7 +92,7 @@ function AtencaoSemanal({ filtros }: { filtros: FiltrosFluxo }) {
       codigo: 'O3',
       para: '#o3',
       texto: `P85 do tempo de ciclo subiu: ${subiu
-        .map((c) => `${c.tipo} (+${fmtPct(c.variacaoP85.variacaoPct ?? 0, 0)})`)
+        .map((c) => `${c.tipo} (+${fmtPct(c.variacaoP85.variacaoPct as number, 0)})`)
         .join(', ')}`,
     })
   if (o10 && o10.acimaDe180.time > 0)
