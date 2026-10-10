@@ -276,12 +276,6 @@ export function Barras({
               {...(horizontal ? { x: r.valor } : { y: r.valor, yAxisId: 'esq' })}
               stroke="var(--texto)"
               strokeDasharray={traco(r.traco) ?? '6 4'}
-              label={{
-                value: r.rotulo,
-                fill: 'var(--texto)',
-                fontSize: 11,
-                position: horizontal ? 'top' : 'insideTopRight',
-              }}
             />
           ))}
           {cfg.map((s) => (

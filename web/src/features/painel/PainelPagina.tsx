@@ -63,14 +63,17 @@ function Casca({
 export function PainelFluxo({
   painel,
   children,
+  fonte = 'BusinessMap',
   ...base
 }: Base & {
+  /** Sobrepõe a fonte do cabeçalho (só a Espera invisível, que reúne os dois sistemas em blocos). */
+  fonte?: string
   painel: PainelFluxoId
   children: (filtros: FiltrosFluxo, uso: UseFiltros<FiltrosFluxo>) => ReactNode
 }) {
   const uso = useFiltros(painel)
   return (
-    <Casca uso={uso} base={base} fonte="BusinessMap" estrategico={painel === 'estrategico'}>
+    <Casca uso={uso} base={base} fonte={fonte} estrategico={painel === 'estrategico'}>
       {children(uso.filtros, uso)}
     </Casca>
   )

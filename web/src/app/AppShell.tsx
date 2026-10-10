@@ -101,12 +101,12 @@ export function AppShell() {
             </Link>
             <NavegacaoGlobal />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-3">
             <AvisoDadosFicticios />
             <SeletorTema />
             <Link
               to="/ajuda"
-              className="alvo inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-acento underline"
+              className="alvo hidden items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-acento underline md:inline-flex"
             >
               <Icone nome="livro" /> Ajuda
             </Link>

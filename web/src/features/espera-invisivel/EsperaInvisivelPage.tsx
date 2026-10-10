@@ -22,6 +22,7 @@ export default function EsperaInvisivelPage() {
     <PainelFluxo
       painel="espera-invisivel"
       slug="espera-invisivel"
+      fonte="BusinessMap e Acelerato (blocos separados)"
       titulo="Espera invisível"
       pergunta="Quanto do tempo do solicitante acontece fora da nossa gestão?"
       publico="Para todos."
