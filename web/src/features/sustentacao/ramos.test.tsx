@@ -98,7 +98,7 @@ describe('S6 e S7', () => {
     })
     const el = await pronto('S6')
     expect(within(el).getByTestId('leitura-S6')).toHaveTextContent(
-      /Taxa de contorno indisponível: [\d.]+ de 20 itens mínimos \(3 de/,
+      /Taxa de contorno indisponível: 5 de 20 itens mínimos \(3 de 5 por contorno\)/,
     )
     expect(within(el).getByTestId('s6-taxa-contorno')).toHaveTextContent('—')
   })
