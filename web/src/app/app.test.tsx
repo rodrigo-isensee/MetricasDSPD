@@ -243,7 +243,7 @@ describe('cartão de referência O4 e estados simulados (?mock=)', () => {
     await waitFor(() =>
       expect(within(cartao).getByTestId('base-O4')).toHaveTextContent(/Base: \d+ itens concluídos/),
     )
-    expect(within(cartao).getByTestId('leitura-O4')).toHaveTextContent(
+    expect(await within(cartao).findByTestId('leitura-O4')).toHaveTextContent(
       /a vazão ficou entre \d+ e \d+ itens por semana; a mediana é \d+/,
     )
     await userEvent.click(within(cartao).getByRole('button', { name: 'Ver como tabela' }))
