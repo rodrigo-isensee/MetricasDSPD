@@ -8,6 +8,7 @@
   },
   "workspaces": [
     "packages/*",
+    "server",
     "web",
     "e2e"
   ],
@@ -15,7 +16,7 @@
     "dev": "npm run dev -w @metricas-dspd/web",
     "build": "npm run build -w @metricas-dspd/web",
     "lint": "eslint .",
-    "typecheck": "npm run typecheck -w @metricas-dspd/contratos -w @metricas-dspd/metricas -w @metricas-dspd/mock -w @metricas-dspd/web && npm exec -w e2e -- tsc --noEmit",
+    "typecheck": "npm run typecheck -w @metricas-dspd/contratos -w @metricas-dspd/metricas -w @metricas-dspd/mock -w @metricas-dspd/web -w @metricas-dspd/server && npm exec -w e2e -- tsc --noEmit",
     "test": "npm test --workspaces --if-present",
     "format": "prettier --write web packages eslint.config.js tsconfig.base.json package.json",
     "format:check": "prettier --check web packages eslint.config.js tsconfig.base.json package.json",
