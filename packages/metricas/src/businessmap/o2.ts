@@ -36,7 +36,7 @@ export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
   for (const tipo of TIPOS_CARD) {
     const vals = cards
       .filter((m) => m.card.tipo === tipo && m.cicloHU !== null && dentro(ctx, m.entrega, janela))
-      .map((m) => du(ctx, m.cicloHU ?? 0))
+      .map((m) => du(ctx, m.cicloHU as number))
     concluidos += vals.length
     referenciaPorTipo.set(tipo, percentis(amostraBM('story', vals, janela)))
   }
@@ -67,14 +67,13 @@ export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
       situacao =
         idade > ref.valor.p95 ? 'acima-p95' : idade > ref.valor.p85 ? 'entre-p85-p95' : 'dentro'
     }
-    const semMover =
-      e.ultimaTransicao === null ? 0 : du(ctx, horasUteisEntre(e.ultimaTransicao, t, ctx.cal))
+    const semMover = du(ctx, horasUteisEntre(e.ultimaTransicao as number, t, ctx.cal))
     const motivo = e.bloqueioAberto?.motivo ?? null
     return {
       cardId: m.card.card_id,
       titulo: m.card.titulo,
       tipo: m.card.tipo,
-      etapa: umaEquipe ? (e.coluna ?? '') : e.tipoColuna === 'fila' ? 'Fila' : 'Execução',
+      etapa: umaEquipe ? (e.coluna as string) : e.tipoColuna === 'fila' ? 'Fila' : 'Execução',
       idadeDiasUteis: r2(idade),
       semMoverHaDiasUteis: r2(semMover),
       situacao,

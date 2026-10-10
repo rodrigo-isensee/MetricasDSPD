@@ -32,7 +32,7 @@ export function calcularT3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT3 {
     .filter(ehDemanda)
     .filter((m) => m.cicloHU !== null && dentro(ctx, m.entrega, periodo))
   const totalItens = xs.length
-  const totalHoras = xs.reduce((s, m) => s + (m.cicloHU ?? 0), 0)
+  const totalHoras = xs.reduce((s, m) => s + (m.cicloHU as number), 0)
   const ok = publicavel(totalItens)
   const medida = (q: number, total: number, acordado: number) => {
     const pct = ok && total > 0 ? r2((q / total) * 100) : null
@@ -55,7 +55,7 @@ export function calcularT3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT3 {
         tempo: medida(
           du(
             ctx,
-            dele.reduce((s, m) => s + (m.cicloHU ?? 0), 0),
+            dele.reduce((s, m) => s + (m.cicloHU as number), 0),
           ),
           du(ctx, totalHoras),
           acordado,

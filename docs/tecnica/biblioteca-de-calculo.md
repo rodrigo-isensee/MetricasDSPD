@@ -33,7 +33,6 @@ flowchart TB
     crit["criterios.ts (T2.6)"]
     hist["histograma.ts"]
     esp["espera.ts"]
-    mc["montecarlo.ts (reservado)"]
     reg["regras.ts (REGRAS_METRICA)"]
   end
   calc --> mbm
@@ -137,7 +136,7 @@ interface Amostra<D extends Dominio, G extends string> {
 - `espera.ts`: espera invisível = `(mediana cliente - mediana time) / mediana cliente * 100`, sobre os mesmos itens e a mesma janela; abaixo de 20 nenhuma das duas visões é publicada.
 - `histograma.ts`: faixas inteiras inclusivas sobre `floor(valor)`, presets `rapida`, `lenta`, `frente`, `projeto`, `backlog` (provisórios, P14).
 - `series.ts`: recortes em semanas, meses e trimestres com marca `emAndamento`.
-- `montecarlo.ts`: reservado. Nenhuma métrica desta etapa usa Monte Carlo (T6 e E5 fora); quando existir, recebe PRNG injetado.
+- Monte Carlo: removido em K-056 (stub que só lançava erro, sem uso). Quando T6/E5 entrarem, o módulo nasce com PRNG injetado e testes próprios.
 
 ### 3.10 Contextos e índices
 - `criarContextoBM(base, hoje, cal)` monta `MarcosCard` uma vez por base e calendário: entrada, compromisso, início, entrega vigente (`null` se reaberto), segmentos de execução, `cicloHU` (soma dos segmentos; o intervalo entregue não conta, P10), coluna e papel atuais, bloqueio aberto, projeto e frente de origem.

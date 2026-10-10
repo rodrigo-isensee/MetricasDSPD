@@ -32,8 +32,8 @@ export function calcularE1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE1 {
     (m) => m.entrega !== null && m.inicio !== null,
   )
   const todos = concl.map((m) => {
-    const entrega = m.entrega ?? 0
-    const inicio = m.inicio ?? entrega
+    const entrega = m.entrega as number
+    const inicio = m.inicio as number
     const total = du(ctx, horasUteisEntre(m.entrada, entrega, ctx.cal))
     const antes = du(ctx, horasUteisEntre(m.entrada, inicio, ctx.cal))
     return { m, entrega, total, antes, exec: Math.max(0, total - antes) }

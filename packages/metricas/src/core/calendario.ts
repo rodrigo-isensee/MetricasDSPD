@@ -207,10 +207,6 @@ export function diasUteisNoIntervalo(inicioDia: number, fimDia: number, cal: Cal
   return out
 }
 
-function turnosDoDia(cal: Calendario): readonly Turno[] {
-  return cal.modo === 'corrido' ? [{ inicioMin: 0, fimMin: 24 * 60 }] : cal.turnos
-}
-
 /**
  * Horas úteis entre dois instantes (aditiva em intervalos contíguos).
  * Lança erro se `fim < inicio`. Intervalo nulo devolve 0.
@@ -221,7 +217,7 @@ export function horasUteisEntre(inicio: number, fim: number, cal: Calendario): n
   if (cal.modo === 'corrido') return (fim - inicio) / MS_HORA
   const d0 = diaLocal(inicio, cal)
   const d1 = diaLocal(fim, cal)
-  const turnos = turnosDoDia(cal)
+  const turnos = cal.turnos
   let ms = 0
   for (let d = d0; d <= d1; d++) {
     if (!ehDiaUtil(d, cal)) continue
@@ -239,7 +235,7 @@ export function somarHorasUteis(inicio: number, horas: number, cal: Calendario):
   if (horas < 0) throw new RangeError('somarHorasUteis: horas negativas')
   if (horas === 0) return inicio
   if (cal.modo === 'corrido') return inicio + horas * MS_HORA
-  const turnos = turnosDoDia(cal)
+  const turnos = cal.turnos
   let restante = horas * MS_HORA
   let d = diaLocal(inicio, cal)
   for (let guarda = 0; guarda < 100_000; guarda++, d++) {
@@ -258,9 +254,4 @@ export function somarHorasUteis(inicio: number, horas: number, cal: Calendario):
 
 export function diasUteis(horas: number, cal: Calendario): number {
   return horas / cal.horasPorDia
-}
-
-/** Dias corridos (inteiros) entre duas datas locais. */
-export function diasCorridosEntre(inicio: number, fim: number, cal: Calendario): number {
-  return diaLocal(fim, cal) - diaLocal(inicio, cal)
 }

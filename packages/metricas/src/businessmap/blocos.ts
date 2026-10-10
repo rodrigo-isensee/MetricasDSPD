@@ -1,5 +1,6 @@
 import { horasUteisEntre } from '../core/calendario'
 import type { ContextoBM, MarcosCard } from './indice'
+import type { FatoTransicao } from './modelo'
 import { du } from './comum'
 
 export interface Blocos {
@@ -18,7 +19,7 @@ export interface Blocos {
  */
 export function blocosDe(ctx: ContextoBM, m: MarcosCard): Blocos | null {
   if (m.entrega === null || m.compromisso === null) return null
-  const trs = ctx.idx.transicoesPorCard.get(m.card.card_id) ?? []
+  const trs = ctx.idx.transicoesPorCard.get(m.card.card_id) as FatoTransicao[]
   const bloqueios = ctx.idx.bloqueiosPorCard.get(m.card.card_id) ?? []
   const fila = horasUteisEntre(m.entrada, m.compromisso, ctx.cal)
   let espera = 0

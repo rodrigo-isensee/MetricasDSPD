@@ -42,14 +42,14 @@ export function calcularT2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT2 {
         estouros: { total: 0, porEtapa: ETAPAS.map((etapa) => ({ etapa, contagem: 0 })) },
       }
     }
-    const fora = xs.filter((m) => du(ctx, m.cicloHU ?? 0) > sleDias)
+    const fora = xs.filter((m) => du(ctx, m.cicloHU as number) > sleDias)
     const por = [0, 0, 0, 0]
     for (const m of fora) {
       const b = blocosDe(ctx, m)
       if (!b) continue
       const v = [b.fila, b.espera, b.execucao, b.homologacao]
       const i = v.indexOf(maximo(v))
-      por[i] = (por[i] ?? 0) + 1
+      por[i] = (por[i] as number) + 1
     }
     const t = taxa(xs.length - fora.length, xs.length)
     return {
@@ -65,7 +65,7 @@ export function calcularT2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT2 {
           : ('sem-referencia' as const),
       estouros: {
         total: fora.length,
-        porEtapa: ETAPAS.map((etapa, i) => ({ etapa, contagem: por[i] ?? 0 })),
+        porEtapa: ETAPAS.map((etapa, i) => ({ etapa, contagem: por[i] as number })),
       },
     }
   })

@@ -200,15 +200,13 @@ export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
   })
 
   function emitir(card: DimCard, entradas: readonly Entrada[]): void {
-    const defs = defsDe.get(card.quadro_id) ?? []
-    const def = (c: string) => defs.find((d) => d.coluna === c)
+    const defs = defsDe.get(card.quadro_id) as readonly ColDef[]
     let anterior: string | null = null
     let ultimaEntrega: number | null = null
     let finalEhEntrega = false
     for (const e of entradas) {
       if (e.t > hoje) break
-      const d = def(e.col)
-      if (!d) throw new Error(`coluna desconhecida ${e.col}`)
+      const d = defs.find((x) => x.coluna === e.col) as ColDef
       addTr({
         card_id: card.card_id,
         coluna_origem: anterior,
@@ -216,14 +214,10 @@ export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
         tipo_coluna: d.tipo_coluna,
         usuario: pseudonimo(rng),
         timestamp: e.t,
-        direcao: e.retorno ? 'retorno' : 'avanco',
+        direcao: 'avanco',
       })
       if (d.papel === 'compromisso' && card.comprometido_em === null) card.comprometido_em = e.t
-      if (
-        card.iniciado_em === null &&
-        d.tipo_coluna === 'execucao' &&
-        (d.papel === 'trabalho' || d.papel === 'homologacao')
-      ) {
+      if (card.iniciado_em === null && d.tipo_coluna === 'execucao' && d.papel === 'trabalho') {
         card.iniciado_em = e.t
       }
       finalEhEntrega = d.papel === 'entrega'
@@ -271,10 +265,9 @@ export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
   function criarBloqueios(card: DimCard, p: number): void {
     if (card.iniciado_em === null || card.arquivado_em !== null) return
     const fimAtivo = card.concluido_em ?? hoje
-    if (fimAtivo <= card.iniciado_em) return
-    const emTrans = trPorCard.get(card.card_id) ?? []
+    const emTrans = trPorCard.get(card.card_id) as FatoTransicao[]
     const colunaEm = (t: number): string => {
-      let c = card.coluna_atual ?? ''
+      let c = card.coluna_atual as string
       for (const x of emTrans) {
         if (x.timestamp <= t) c = x.coluna_destino
         else break
@@ -293,10 +286,8 @@ export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
       const durH = lognormal(rngBlq, 8, 0.9)
       let fim: number | null = hU(ini, durH)
       if (fim > fimAtivo) fim = card.concluido_em !== null ? card.concluido_em : null
-      if (fim !== null && fim <= ini) break
       const motivo = escolha(rngBlq, MOTIVOS_BLOQUEIO) as MotivoBloqueio
       const coluna = colunaEm(ini)
-      if (coluna === 'Entregue') break
       bloqueios.push({
         card_id: card.card_id,
         motivo,
@@ -348,7 +339,7 @@ export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
       'Core 5G': 0.12,
       'Portal do cliente': 0.3,
     }
-    if (!bernoulli(r, pf[sistema] ?? 0.1)) return null
+    if (!bernoulli(r, pf[sistema] as number)) return null
     return escolhaPonderada(r, [
       [ORIGENS_DEMANDA[0], 20],
       [ORIGENS_DEMANDA[1], 22],
@@ -433,12 +424,11 @@ export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
       { col: 'Em homologação', t: t1 },
       { col: 'Entregue', t: t2 },
     ]
-    const defs = defsDe.get(card.quadro_id) ?? []
+    const defs = defsDe.get(card.quadro_id) as readonly ColDef[]
     let anterior: string | null = 'Entregue'
     for (const e of entradas) {
       if (e.t > hoje) break
-      const d = defs.find((x) => x.coluna === e.col)
-      if (!d) continue
+      const d = defs.find((x) => x.coluna === e.col) as ColDef
       addTr({
         card_id: card.card_id,
         coluna_origem: anterior,
@@ -472,7 +462,6 @@ export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
   /** Bugs gerados a partir de uma story entregue (O15, O18). */
   function gerarBugs(card: DimCard): void {
     if (card.concluido_em === null || card.iniciado_em === null) return
-    if (card.tipo === 'Bug interno' || card.tipo === 'Defeito em produção') return
     const lambda = bernoulli(rngBug, 0.85) ? (card.tipo === 'Melhoria' ? 0.12 : 0.04) : 1.5
     const n = poisson(rngBug, lambda)
     for (let i = 0; i < n; i++) {

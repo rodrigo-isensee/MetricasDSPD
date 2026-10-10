@@ -17,6 +17,7 @@ import {
 } from './comum'
 import { estadoEm, idadeHUEm } from './estado'
 import type { ContextoBM } from './indice'
+import type { DimCard } from './modelo'
 import { ordenarNeutro } from '../core/ordenar'
 
 /** T7: fluxo de frentes. Granularidade frente: nunca entra em histograma de story. */
@@ -28,7 +29,7 @@ export function calcularT7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT7 {
   const concluidas = frentes.filter((m) => m.cicloHU !== null && dentro(ctx, m.entrega, janela))
   const amostra = amostraBM(
     'frente',
-    concluidas.map((m) => du(ctx, m.cicloHU ?? 0)),
+    concluidas.map((m) => du(ctx, m.cicloHU as number)),
     janela,
   )
   const referencia = percentis(amostra)
@@ -36,7 +37,7 @@ export function calcularT7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT7 {
   const abertas = frentes.filter((m) => estadoEm(ctx, m, t).emWip)
 
   const nomeProjeto = (id: string | null) =>
-    id ? (ctx.idx.porId.get(id)?.titulo ?? id) : 'Sem projeto'
+    id ? (ctx.idx.porId.get(id) as DimCard).titulo : 'Sem projeto'
   const porProj = new Map<string, number>()
   for (const m of abertas) {
     const k = m.projetoId ?? '-'
