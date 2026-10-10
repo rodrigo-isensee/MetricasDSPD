@@ -1,5 +1,6 @@
 # 0008 - Framework e execução do servidor
-- Status: aceita
+- Status: **substituída pela ADR 0013** (2026-10-10): Fastify → **Hono** em Lambda; `worker` e imagem Docker saem. Fastify nunca chegou a ser implementado. **Continuam valendo** pino com `requestId` e redação, cache por chave, esbuild, `/health/live` e `/health/ready`, Vitest (rotas com `app.request()` em vez de `app.inject()`).
+- Status anterior: aceita
 - Data: 2026-10-09
 - Origem: ata kickoff 002, D13 (Fastify recomendado); pendência do runner na ADR 0002
 

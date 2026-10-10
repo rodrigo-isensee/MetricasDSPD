@@ -2,6 +2,7 @@
 - Status: aceita
 - Data: 2026-10-09
 - Substitui parcialmente: ADR 0001 (linha "Pacotes", linha "Regras de lint arquiteturais" e o risco de migração da biblioteca)
+- Complementada pela ADR 0013 (2026-10-10): `@metricas-dspd/server` continua **um** workspace, com módulos em pastas (`server/src/modulos/*`) e duas entradas Lambda (`api` e `coleta`)
 - Origem: ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`, decisões D2 e D3 (com D4 e D5 como contexto)
 - Pedidos: `docs/pedidos/001-dashboard-mock.md`, `docs/pedidos/002-arquitetura-completa.md`
 

@@ -1,5 +1,6 @@
 # 0010 - Implantação, ambientes e CI
-- Status: proposta (hospedagem e runner dependem de I-1, I-9, I-10)
+- Status: **substituída pela ADR 0013** (2026-10-10): hospedagem na AWS (S3 + CloudFront, API Gateway, Lambda, RDS, CDK); saem imagem Docker, nginx, registro e runner interno (I-1, I-9, I-10 deixam de valer). **Continuam valendo** os jobs `check`, `db`, `e2e`, `openapi`, migrações compatíveis com a versão anterior e os alertas.
+- Status anterior: proposta (hospedagem e runner dependiam de I-1, I-9, I-10)
 - Data: 2026-10-09
 - Relacionadas: ADR 0003 (o que bloqueia), ADR 0005 (migrações), ADR 0006 (processos), praticas §7, ata D15
 

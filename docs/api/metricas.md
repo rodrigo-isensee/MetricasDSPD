@@ -1,6 +1,6 @@
 # API de métricas (contrato HTTP)
 
-> **RASCUNHO.** Depende das ADRs do pedido 002 (framework, autenticação). Pontos marcados com [ADR] podem mudar.
+> **RASCUNHO.** Framework decidido: **Hono** na Lambda `api`, com `@hono/zod-validator` e OpenAPI gerado dos schemas zod (ADR 0013, que substitui a ADR 0008). Autenticação ainda depende do SSO (P3; ADR 0009 e ADR 0013 §8). Pontos marcados com [ADR] referem-se à autenticação.
 > Dependência: `web/src/contracts/` ainda não está versionado em nenhuma branch nem existe no worktree 002; o contrato só fecha depois que os contratos do front forem commitados e trazidos para o 002 (pacote compartilhado, praticas.md).
 > Fonte dos tipos: `web/src/contracts/` (DTOs zod, `ContratoMetricas`, `FonteMetricas`). Em caso de divergência, vale o zod do front até a ADR fechar; o back reutiliza os mesmos schemas.
 

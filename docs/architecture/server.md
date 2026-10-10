@@ -1,6 +1,20 @@
 # Servidor (`server/`): módulos, migrações, seed e acesso ao MySQL
 
-Status: K-017 parte 2. Modelo de dados em `data-model.md`; decisões em ADR 0004 (MySQL), 0005 (Kysely + SQL explícito), 0006 (coletas).
+Status: K-017 parte 2. Modelo de dados em `data-model.md`; decisões em ADR 0004 (MySQL), 0005 (Kysely + SQL explícito), 0006 (contrato da coleta) e **0013** (Hono, duas Lambdas, Acelerato via Metabase).
+
+## Estrutura alvo (ADR 0013)
+O que está abaixo (`src/db/`, `src/coletas/`) é o estado atual. A organização alvo, feita nos cartões S-01 a S-10 do `roadmap.md`:
+```
+server/
+  migrations/      (sem mudança)
+  src/
+    app.ts         Hono com as rotas de todos os módulos
+    plataforma/    config (zod), db (Kysely + mysql2), log (pino), erros, auth
+    modulos/       businessmap · acelerato · referencia · metricas · operacao (hoje src/coletas) · preferencias
+    entradas/      lambda-api · lambda-coleta · lambda-migrar · local · coleta-cli
+infra/             AWS CDK, uma stack
+```
+Cada módulo expõe só `index.ts`; `businessmap` grava só em `dspd_bm`, `acelerato` só em `dspd_ac`. Em produção, o banco é RDS MySQL 8.4 privado; as migrações rodam pela Lambda `migrar` no deploy. Localmente nada muda (Docker, abaixo).
 
 ## Módulos
 
@@ -77,7 +91,9 @@ flowchart TD
 | `dspd_ref` | INSERT/SELECT em `ref_` e `UPDATE (vigente_ate)` por coluna |
 | `dspd_webhook` | INSERT só em `dspd_bm.stg_webhook_evento` |
 | `dspd_api` | SELECT em projeções, `vw_`, `ref_`, `ctl_`; sem acesso a `stg_` |
-| `dspd_automacao` | INSERT/SELECT em `dspd_ac.ctl_automacao`; SELECT em `ref_` do core |
+| `dspd_automacao` | INSERT/SELECT em `dspd_ac.ctl_automacao`; SELECT em `ref_` do core (sem uso até a T4.3 voltar, ADR 0013) |
+
+Na AWS (ADR 0013): `api` usa `dspd_api` + `dspd_webhook`; `coleta`, `dspd_coletor`; `migrar`, `dspd_migrador` + `dspd_ref`. Senhas no Secrets Manager.
 
 Os usuários são criados pela operação (com senha fora do repositório); `gerarGrants` produz os `GRANT` a aplicar depois das migrações. Credenciais só em `.env`.
 

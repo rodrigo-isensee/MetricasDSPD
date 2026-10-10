@@ -1,5 +1,5 @@
 # 0007 - Contratos e validação entre front e back
-- Status: aceita
+- Status: aceita. **Parcialmente substituída pela ADR 0013** (2026-10-10): onde se lê "rotas Fastify" e "`@fastify/swagger`", vale Hono com `@hono/zod-validator` e OpenAPI gerado dos mesmos schemas zod. Regras de contrato, formato de erro e paridade não mudam.
 - Data: 2026-10-09
 - Relacionadas: ADR 0001 (zod no front), ADR 0002 (`@metricas-dspd/contratos`), rascunho `docs/api/metricas.md`, `docs/architecture/regras-metricas.md` §4.4
 

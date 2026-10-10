@@ -1,7 +1,8 @@
 # Modelo de dados — base analítica (MySQL 8)
 
 - Status: aprovado (revisão de modelagem K-014 r2); atualizado com o code review 002-K-017-r1 (B1, R1, R2, R4–R6, R8 e §9) e a decisão L-1 do usuário (2026-10-10)
-- Data: 2026-10-09 · Revisão: 2026-10-10 · Decisões: ADR 0004 (MySQL), 0005 (Kysely + SQL), 0006 (coletas)
+- Data: 2026-10-09 · Revisão: 2026-10-10 · Decisões: ADR 0004 (MySQL, no RDS), 0005 (Kysely + SQL), 0006 (contrato de execução da coleta), **0013** (Lambdas, Acelerato via Metabase)
+- **Revisão ADR 0013 (2026-10-10):** a origem do Acelerato passa a ser uma tabela no Metabase lida 1x/dia pela API (não mais o MySQL `acelerato_dev_corporativo`). Muda o §4 (staging AC, ausência) e o §8 (sem `acelerato_leitor`). Schemas, camadas e grants continuam.
 - Forma da camada analítica = tipos de `@metricas-dspd/metricas` (`BaseBM`, `BaseAC`); o mock gera exatamente essa forma (paridade, D15).
 - Colunas marcadas **(prov.)** são extensões ao modelo 4.5 do briefing, provisórias até T2.1 (de-para da API) e à resposta do usuário.
 
@@ -112,8 +113,10 @@ erDiagram
 
 | Tabela | Grão | Chave natural (UNIQUE) | Notas |
 |---|---|---|---|
-| `stg_chamado` | linha lida do Acelerato | (`id_origem`, `anterior_sk`), dedup contra a última versão (§3.1) | lido com o recorte 3.2 **e** chamados que saíram do recorte (para não perder mudança de equipe/exclusão) |
-| `stg_etapa` | linha da tabela/view de etapas | (`chamado_id`, `id_origem`, `anterior_sk`) | `VIEW_ESTATISTICAS_ETAPAS_2` cobre só fechados; abertos precisam da tabela de histórico de etapas (pergunta I-4b) |
+| `stg_chamado` | linha da tabela do Metabase (pergunta salva, ADR 0013 §4) | (`id_origem`, `anterior_sk`), dedup contra a última versão (§3.1) | payload = linha JSON da exportação, validada pelo schema zod da tabela antes de gravar; recorte 3.2 conforme P7 (se a tabela já vier recortada, chamados que saem do recorte aparecem como **ausentes**) |
+| `stg_etapa` | linha de transição de etapa, **se a tabela tiver** (P6) | (`chamado_id`, `id_origem`, `anterior_sk`) | sem histórico de etapas na fonte, a tabela fica vazia e as métricas que dependem dela ficam `pendente-usuario` (nunca inferidas do estado diário) |
+
+**Ausência (ADR 0013):** quando um `id_origem` presente na última versão não vem na extração do dia, grava-se uma nova versão na mesma cadeia com `ausente_na_extracao = 1` (coluna nova, migração a criar, com o mesmo payload da versão anterior; o hash inclui a marca). Nada é apagado; reaparecer gera nova versão com `0`. A projeção trata ausente como fora do recorte, sem inferir exclusão (pergunta P7). `ctl_coleta.parametros` registra o id da pergunta do Metabase e o SHA-256 do SQL versionado em `docs/architecture/fontes/acelerato-metabase.sql` (mudança = `ref_versao_criterio`, T2.6). Marca d'água: se a tabela não tiver coluna de atualização, cada coleta lê a tabela inteira (o staging deduplica pelo hash).
 | `dim_chamado_versao` (SCD2) | versão por mudança | (`chamado_id`, `vigente_de`) | atributos de `Chamado`, **incluindo `organizacao` e `tipo`** (campos do recorte 3.2: mudança de recorte de um chamado fica no histórico); sem índice `DESC` adicional (§3.2) |
 | `evt_etapa_chamado` | entrada em etapa | (`chamado_id`, `etapa`, `entrada_em`) | `motivo_pendencia` |
 | `dim_chamado` | 1 por chamado (inclui `excluido = true`, filtrado na view) | `chamado_id` | forma de `Chamado`; `justificativa_ajuste` **não** entra (§9) |
@@ -186,7 +189,9 @@ O servidor carrega o contexto por domínio (recorte do histórico necessário) e
 | `dspd_webhook` | INSERT só em `dspd_bm.stg_webhook_evento` | — | — |
 | `dspd_api` | SELECT em projeções, `vw_`, `ref_`, `ctl_`; **sem acesso a `stg_`** | SELECT | — |
 | `dspd_automacao` | `dspd_ac`: INSERT/SELECT em `ctl_automacao` | SELECT | — |
-| `acelerato_leitor` (no servidor do Acelerato) | — | — | SELECT só nas tabelas/views lidas; `MAX_EXECUTION_TIME` |
+| ~~`acelerato_leitor`~~ (substituído pela ADR 0013) | — | — | sem acesso ao MySQL do Acelerato; a leitura é pela API do Metabase com chave de usuário só leitura (Secrets Manager) |
+
+Mapeamento para as funções (ADR 0013): Lambda `api` usa `dspd_api` e `dspd_webhook`; Lambda `coleta` usa `dspd_coletor`; Lambda `migrar` usa `dspd_migrador` e `dspd_ref` (`ref:sync`). `dspd_automacao` fica sem uso até a T4.3 voltar.
 
 ## 9. Dados pessoais (LGPD) e "nenhuma visão individual" no modelo
 

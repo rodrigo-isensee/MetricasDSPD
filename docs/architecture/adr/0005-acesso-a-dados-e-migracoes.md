@@ -1,5 +1,5 @@
 # 0005 - Acesso a dados e migrações: Kysely + SQL versionado
-- Status: aceita (confirmada pelo tech-lead no parecer K-014 r1; de acordo do node-backend dado em 2026-10-09)
+- Status: aceita (confirmada pelo tech-lead no parecer K-014 r1; de acordo do node-backend dado em 2026-10-09). **Parcialmente substituída pela ADR 0013** (2026-10-10) só no item "Acelerato": não há conexão MySQL ao Acelerato; a extração é pela API do Metabase, com o formato de cada coluna em schema zod (`server/src/modulos/acelerato/`). Em produção, as migrações rodam pela função `migrar` (RDS privado). O resto continua.
 - Data: 2026-10-09
 - Origem: ata kickoff 002, D13 (Prisma × Kysely + SQL versionado; posição do node-backend e do tech-lead)
 - Substitui, para este projeto, "Prisma como ORM" da skill `node-backend`

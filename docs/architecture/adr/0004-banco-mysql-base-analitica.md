@@ -1,5 +1,5 @@
 # 0004 - MySQL 8 como banco da base analítica
-- Status: aceita (escolha do solicitante, pedido 002; não reabrir)
+- Status: aceita (escolha do solicitante, pedido 002; não reabrir). **Parcialmente substituída pela ADR 0013** (2026-10-10) em dois pontos: (1) o Acelerato deixa de ser lido por MySQL somente leitura e passa a vir de uma tabela no Metabase (API, chave só leitura), então o contexto "o Acelerato já é MySQL" e o usuário `acelerato_leitor` não valem mais; (2) a instância é **RDS MySQL 8.4** na AWS, privada na VPC (responde I-2). Schemas, tipos, privilégios por papel e "o banco seleciona; a biblioteca calcula" continuam.
 - Data: 2026-10-09
 - Origem: `docs/pedidos/002-arquitetura-completa.md` (seção "Banco de dados"); ata kickoff 002, D13
 - Substitui, para este projeto, o padrão "PostgreSQL + Prisma" das skills `software-architecture` e `node-backend`
