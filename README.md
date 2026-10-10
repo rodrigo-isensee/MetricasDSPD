@@ -21,6 +21,10 @@ O banco é PostgreSQL 17 no Docker Compose (custo zero). `cp .env.example .env`,
 - `pnpm run pronto` (raiz): lint, formatação, tipos, testes, build e tamanho do bundle.
 - E2E: `cd e2e && pnpm run chromium:local` (uma vez, baixa o Chromium local) e depois `pnpm test`; `pnpm run gate` para o gate completo.
 
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`): jobs `rapida`, `testes`, `banco`, `build`, `e2e` e `perf`; obrigatórios na `main`. Detalhes e diagrama em [`docs/engineering/guia-do-desenvolvedor.md`](docs/engineering/guia-do-desenvolvedor.md). O hook `pre-push` roda lint e typecheck.
+
 ## Estrutura
 - `web/`: aplicação React (painéis, componentes, camada de dados). Guia: `web/README-dev.md`.
 - `packages/contratos`: tipos e schemas dos resultados. `packages/metricas`: biblioteca de cálculo. `packages/mock`: gerador de dados fictícios.

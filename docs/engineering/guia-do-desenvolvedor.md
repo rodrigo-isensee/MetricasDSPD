@@ -124,6 +124,31 @@ Pré-requisito: a métrica está no catálogo do briefing e tem especificação 
 
 TypeScript estrito sem `enum`, `namespace` nem `any`; tempo e aleatoriedade injetados; zod nas bordas; nomes em português do domínio; Recharts só em `components/charts`; acessibilidade com tabela alternativa em todo gráfico; commits `tipo(escopo): descrição` no imperativo. Lista completa e verificada por lint: `praticas.md` seções 1 a 5.
 
+## CI (GitHub Actions)
+
+Workflow `.github/workflows/ci.yml`; custo zero (repositório público). Os nomes dos jobs são estáveis porque a proteção da `main` os referencia. Execuções antigas da mesma branch são canceladas (`concurrency`).
+
+```mermaid
+flowchart LR
+  push[push em qualquer branch] --> rapida & testes & build
+  push --> filtro --> banco
+  pr[pull_request] --> rapida & testes & build & e2e
+  filtro --> banco
+  pr -->|base main| perf
+  cron[agendado 02h] --> perf
+```
+
+| Job | O que roda | Quando |
+|---|---|---|
+| `rapida` | install `--frozen-lockfile` (cache), lint, format:check, typecheck | push e PR |
+| `testes` | typecheck + cobertura 100% bloqueante (`pnpm run cobertura`, igual ao `pronto` sem build) | push e PR |
+| `banco` | Postgres 17 como service container, `test:pg` com `PG_TESTE_URL` | push e PR, só se mudar `server/`, `packages/`, `scripts/`, `docker/`, lockfile ou o workflow (pulado conta como aprovado) |
+| `build` | build do web, orçamento de tamanho e `pnpm run gate` (fronteiras, hash da base mock) | push e PR |
+| `e2e` | Playwright Chromium (`--with-deps`), inclui axe nos dois temas | só PR (e disparo manual) |
+| `perf` | `test:perf` + Lighthouse | PR para `main`, agendado 1x/noite e disparo manual |
+
+Proteção: `rapida`, `testes`, `banco`, `build` e `e2e` são obrigatórios só na `main`; a `develop` aceita push direto. Dependabot (`.github/dependabot.yml`): npm semanal e Actions mensal, com dev agrupado. Localmente, o hook `pre-push` roda lint e typecheck antes de enviar (e continua bloqueando a `main`). Falha no CI: `gh run view --log-failed`.
+
 ## 9. Solução de problemas
 
 | Sintoma | Causa provável | Solução |

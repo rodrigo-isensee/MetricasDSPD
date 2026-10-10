@@ -6,4 +6,10 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     exit 1
   fi
 done
+
+# Checagem rápida antes de enviar (lint + typecheck); o resto fica com o CI.
+if ! { pnpm run lint && pnpm run typecheck; } >&2; then
+  echo "pre-push: lint/typecheck falharam; corrija antes de enviar." >&2
+  exit 1
+fi
 exit 0

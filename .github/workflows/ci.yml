@@ -1,0 +1,178 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 5 * * *' # 02:00 em Brasília: perf noturno
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: 'true'
+
+jobs:
+  rapida:
+    name: rapida
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run format:check
+      - run: pnpm run typecheck
+
+  testes:
+    name: testes
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Igual ao `pronto` sem o build: typecheck + cobertura 100% bloqueante em cada pacote.
+      - run: pnpm -r --if-present run typecheck
+      - run: pnpm run cobertura
+
+  filtro:
+    name: filtro
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      banco: ${{ steps.f.outputs.banco }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: f
+        with:
+          filters: |
+            banco:
+              - 'server/**'
+              - 'packages/**'
+              - 'scripts/**'
+              - 'docker/**'
+              - 'pnpm-lock.yaml'
+              - '.github/workflows/ci.yml'
+
+  banco:
+    name: banco
+    needs: filtro
+    # Pulado (conta como aprovado) quando nada de server/, packages/ ou migrações mudou.
+    if: needs.filtro.outputs.banco == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: dspd_migrador
+          POSTGRES_PASSWORD: migrador_dev
+          POSTGRES_DB: metricas_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dspd_migrador -d metricas_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      PG_TESTE_URL: postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @metricas-dspd/server run test:pg
+
+  build:
+    name: build
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm --filter @metricas-dspd/web run size
+      - name: Gate (fronteiras BM x AC, hash da base mock, tamanho)
+        run: pnpm run gate
+
+  e2e:
+    name: e2e
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
+      - run: pnpm --filter @metricas-dspd/e2e run test:chromium
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-relatorio
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
+
+  perf:
+    name: perf
+    if: >-
+      github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.base_ref == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
+      - run: pnpm run build
+      - run: pnpm --filter @metricas-dspd/e2e run test:perf
+      - run: pnpm --filter @metricas-dspd/e2e run lighthouse
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-relatorios
+          path: |
+            e2e/lighthouse/relatorios
+            e2e/perf-results
+          retention-days: 7
