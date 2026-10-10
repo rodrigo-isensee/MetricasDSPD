@@ -107,3 +107,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-10 02:58 | K-017 | Entrada | Code review | Parte 1 (migrações, 324b472) entregue; sem review; seed pendente |
 | 2026-10-10 02:58 | K-034 | Validação do usuário | Validação do usuário | Reconciliação: segue aguardando o usuário; K-035/K-036 pausados |
 | 2026-10-10 02:59 | K-010 | Revisão de UX | Aguardando sua validação | UX final aprovado (docs/reviews/001-ux-final.md): altos da B12 resolvidos; 1 médio (rótulos truncados no T7) e 1 baixo (indício de rolagem) abertos, sem bloqueio |
+| 2026-10-10 09:50 | K-001..K-050 (pedido 001) | Aguardando sua validação | Pronto | Usuário mesclou o PR #1 (eff026a); main local sincronizada, develop em ff, feature/dashboard-mock apagada (local e remoto), main integrada na feature/arquitetura-mysql |
