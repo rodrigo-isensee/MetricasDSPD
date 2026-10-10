@@ -51,6 +51,7 @@ Cadências do Operacional: `cadencia=diaria` (padrão) e `semanal`. Abas locais:
 | 31 | Design system | Chrome do app (cabeçalho, navegação, selo) | recorte do topo de `/` | 1280, 375 |
 | 32 | Design system | Folha do design system | `figma/prototipos/design-system-1280.html` e `-375.html` | 1280, 375 |
 | 33 | Discovery | Integração real | `figma/prototipos/integracao-real-1280.html` e `-375.html` | 1280, 375 |
+| 34 | Discovery | Tela /dados (BusinessMap e Acelerato) | `figma/prototipos/dados-1280.html` e `-375.html` | 1280, 375 |
 
 Dica para o item 26 a 28: não há URL fixa; combine filtros até o aviso aparecer e registre a URL usada no nome do frame. Se a base fictícia não gerar o caso, anote no frame "não reproduzível no mock" e use a folha do design system, que mostra as duas variantes.
 

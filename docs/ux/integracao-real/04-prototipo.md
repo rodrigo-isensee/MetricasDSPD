@@ -56,7 +56,7 @@ Selos com ícone + texto; faixa de calibração `role="status"` (não alerta); c
 
 ## Roteiro de validação (para o usuário, quando puder)
 1. Mostre W1 e W6: dá para saber a idade de cada fonte sem clicar? 2. Mostre W2: entende "não cobrar"? Concorda que o painel permaneça visível e sem status de meta? (H3) 3. W5: distingue os quatro casos? 4. Quem define início e fim da calibração e onde isso é registrado? 5. Quer a tela `/dados` já, depois, ou nunca?
-Decisão: (pendente, aguardando o usuário.)
+Decisão: **aprovado com ajustes** em 2026-10-10 (painel sempre visível; janela automática; coleta diária; tela `/dados` desejada). Ver `05-especificacao.md`.
 
 ## Perguntas para o arquiteto
 1. **Frescor:** existe, por fonte, o registro da última coleta bem-sucedida (timestamp) e da última tentativa (com resultado)? Pode vir no mesmo payload dos painéis, sem consulta extra?
