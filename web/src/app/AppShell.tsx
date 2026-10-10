@@ -93,7 +93,10 @@ export function AppShell() {
       >
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2">
           <div className="flex flex-wrap items-center gap-4">
-            <Link to="/" className="text-lg font-bold text-texto">
+            <Link
+              to="/"
+              className="alvo inline-flex items-center whitespace-nowrap text-lg font-bold text-texto"
+            >
               Métricas DSPD
             </Link>
             <NavegacaoGlobal />

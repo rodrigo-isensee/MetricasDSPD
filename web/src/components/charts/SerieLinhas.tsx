@@ -15,7 +15,7 @@ import { fmtData, fmtNumero } from '@/lib/formatar'
 import { GraficoBase } from './GraficoBase'
 import { Legenda, type ItemLegenda } from './Legenda'
 import { PadroesSvg } from './PadroesSvg'
-import { EIXO, corNaPosicao, corSerie, uidSvg, type IndiceCor } from './tema'
+import { EIXO, corNaPosicao, rotuloEixoY, corSerie, uidSvg, type IndiceCor } from './tema'
 import { TooltipTema } from './TooltipTema'
 
 export interface SerieLinha {
@@ -164,7 +164,8 @@ export function SerieLinhas({
             tick={EIXO.tick}
             stroke={EIXO.stroke}
             tickFormatter={formatar}
-            width={48}
+            width={64}
+            label={rotuloEixoY(unidade)}
           />
           {direita && (
             <YAxis
@@ -172,7 +173,8 @@ export function SerieLinhas({
               orientation="right"
               tick={EIXO.tick}
               stroke={EIXO.stroke}
-              width={48}
+              width={64}
+              label={rotuloEixoY(unidadeDireita ?? unidade, 'dir')}
             />
           )}
           <Tooltip

@@ -15,6 +15,14 @@ export const EIXO = {
   grade: 'var(--borda)',
 } as const
 
+/** Rótulo da unidade no eixo Y (R3): vertical, à esquerda ou à direita do eixo. */
+export const rotuloEixoY = (unidade: string, lado: 'esq' | 'dir' = 'esq') => ({
+  value: unidade,
+  angle: lado === 'esq' ? -90 : 90,
+  position: lado === 'esq' ? ('insideLeft' as const) : ('insideRight' as const),
+  style: { fill: 'var(--texto-2)', fontSize: 12, textAnchor: 'middle' as const },
+})
+
 /** Id de padrão SVG. `uid` (de `useId`) evita ids duplicados quando há vários gráficos na página (B7). */
 export const idPadrao = (p: Padrao, cor: IndiceCor, uid = ''): string =>
   `pat${uid ? `-${uid}` : ''}-${p}-${cor}`

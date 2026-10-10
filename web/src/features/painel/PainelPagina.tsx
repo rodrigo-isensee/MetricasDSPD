@@ -15,14 +15,14 @@ interface Base {
 
 type PainelFluxoId = Exclude<PainelId, 'sustentacao'>
 
-function Casca<F>({
+function Casca({
   uso,
   base,
   fonte,
   estrategico,
   children,
 }: {
-  uso: UseFiltros<F>
+  uso: UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
   base: Base
   fonte: string
   estrategico?: boolean
@@ -49,10 +49,7 @@ function Casca<F>({
           {...(base.publico ? { publico: base.publico } : {})}
         />
         {base.extra}
-        <BarraFiltros
-          uso={uso as unknown as Parameters<typeof BarraFiltros>[0]['uso']}
-          {...(estrategico ? { estrategico } : {})}
-        />
+        <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
         {children}
       </div>
     </ProvedorContextoPainel>

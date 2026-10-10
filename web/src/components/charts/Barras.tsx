@@ -20,6 +20,7 @@ import { PadroesSvg } from './PadroesSvg'
 import {
   EIXO,
   PADROES,
+  rotuloEixoY,
   corNaPosicao,
   corSerie,
   preenchimento,
@@ -193,7 +194,18 @@ export function Barras({
           />
           {horizontal ? (
             <>
-              <XAxis type="number" tick={EIXO.tick} stroke={EIXO.stroke} tickFormatter={fmtEixo} />
+              <XAxis
+                type="number"
+                tick={EIXO.tick}
+                stroke={EIXO.stroke}
+                tickFormatter={fmtEixo}
+                label={{
+                  value: modo === 'percentual' ? '%' : unidade,
+                  position: 'insideBottomRight',
+                  offset: -2,
+                  style: { fill: 'var(--texto-2)', fontSize: 12 },
+                }}
+              />
               <YAxis
                 type="category"
                 dataKey="__rotulo"
@@ -218,7 +230,8 @@ export function Barras({
                 tick={EIXO.tick}
                 stroke={EIXO.stroke}
                 tickFormatter={fmtEixo}
-                width={44}
+                width={60}
+                label={rotuloEixoY(modo === 'percentual' ? '%' : unidade)}
               />
               {linha && (
                 <YAxis
@@ -227,7 +240,8 @@ export function Barras({
                   type="number"
                   tick={EIXO.tick}
                   stroke={EIXO.stroke}
-                  width={44}
+                  width={60}
+                  label={rotuloEixoY(linha.unidade ?? unidade, 'dir')}
                   tickFormatter={(v: number) => (linha.formatar ?? formatar)(v)}
                 />
               )}

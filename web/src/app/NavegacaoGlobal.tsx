@@ -16,13 +16,13 @@ function useBusca(): (destino: (typeof DESTINOS)[number]) => string {
   return (d) => {
     const p = new URLSearchParams()
     if (d.fluxo) for (const k of CHAVES_MEMORIA) if (memoria[k]) p.set(k, memoria[k])
-    const s = p.toString()
+    const s = p.toString().replaceAll('%2C', ',')
     return s ? `?${s}` : ''
   }
 }
 
 const cls = ({ isActive }: { isActive: boolean }) =>
-  `alvo inline-flex items-center rounded-md px-3 py-1.5 text-sm hover:bg-superficie-2 ${isActive ? 'font-bold underline decoration-2 underline-offset-4' : 'font-medium'}`
+  `alvo inline-flex items-center whitespace-nowrap rounded-md px-2 py-1.5 text-sm xl:px-3 hover:bg-superficie-2 ${isActive ? 'font-bold underline decoration-2 underline-offset-4' : 'font-medium'}`
 
 export function NavegacaoGlobal() {
   const busca = useBusca()
@@ -30,7 +30,7 @@ export function NavegacaoGlobal() {
   return (
     <>
       <nav aria-label="Navegação principal" className="hidden lg:block">
-        <ul className="m-0 flex list-none flex-wrap items-center gap-1 p-0">
+        <ul className="m-0 flex list-none items-center gap-0.5 p-0 xl:gap-1">
           {DESTINOS.map((d) => (
             <li key={d.to}>
               <NavLink to={{ pathname: d.to, search: busca(d) }} end={d.to === '/'} className={cls}>

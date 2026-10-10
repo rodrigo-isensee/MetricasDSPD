@@ -49,7 +49,9 @@ export function CartaoO4({ filtros }: { filtros: FiltrosFluxo }) {
             base: d.base,
             criterios: d.criterios,
             baseVariante:
-              faixa?.status === 'insuficiente' ? ('insuficiente' as const) : ('ok' as const),
+              faixa?.status === 'insuficiente' && faixa.n > 0
+                ? ('insuficiente' as const)
+                : ('ok' as const),
           }
         : {})}
       {...(leitura ? { leitura } : {})}

@@ -11,7 +11,7 @@ import {
 import { fmtNumero } from '@/lib/formatar'
 import { GraficoBase } from './GraficoBase'
 import { Legenda, type ItemLegenda } from './Legenda'
-import { EIXO } from './tema'
+import { EIXO, rotuloEixoY } from './tema'
 
 export type FormaPonto = 'circulo' | 'losango' | 'triangulo' | 'anel'
 
@@ -183,7 +183,8 @@ export function Dispersao({
             name={rotuloY}
             tick={EIXO.tick}
             stroke={EIXO.stroke}
-            width={44}
+            width={60}
+            label={rotuloEixoY(rotuloY)}
           />
           <Tooltip
             cursor={false}

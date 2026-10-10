@@ -6,10 +6,12 @@ import { useOpcoesFiltro } from '@/data'
 import type { FiltroAtivo } from '@/components/ui'
 import {
   escreverFluxo,
+  colapsarTodos,
   escreverSustentacao,
   lerFluxo,
   lerSustentacao,
   paramsDeFluxo,
+  textoBusca,
 } from './codec'
 import { useMemoriaAtual, useMemoriaFiltros } from './memoria'
 import {
@@ -57,12 +59,22 @@ interface EstadoNav {
 
 function useBase(painel: PainelId, prefixo: string) {
   const config = PAINEIS[painel]
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
   const { data: opcoes } = useOpcoesFiltro(config.dominio === 'fluxo' ? 'businessmap' : 'acelerato')
-  return { config, params, setParams, navigate, location, opcoes: opcoes, prefixo }
+  return { config, params, navigate, location, opcoes: opcoes, prefixo }
 }
+
+const listaDe = (
+  o: OpcoesFiltro,
+  chave: 'equipes' | 'sistemas' | 'tipos',
+): { id: string; nome: string }[] | undefined =>
+  chave === 'equipes'
+    ? o.equipes
+    : o.dominio === 'businessmap' && chave === 'sistemas'
+      ? o.sistemas
+      : undefined
 
 const rotuloDe = (
   opcoes: OpcoesFiltro | undefined,
@@ -74,7 +86,7 @@ const rotuloDe = (
       ? []
       : chave === 'tipos' && opcoes.dominio === 'acelerato'
         ? []
-        : ((opcoes as unknown as Record<string, { id: string; nome: string }[]>)[chave] ?? [])
+        : (listaDe(opcoes, chave) ?? [])
     : []
   return lista.find((x) => x.id === id)?.nome ?? id
 }
@@ -143,7 +155,7 @@ export function useFiltros(
   o: OpcaoHook = {},
 ): UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao> {
   const prefixo = o.prefixo ?? ''
-  const { config, params, setParams, navigate, location, opcoes } = useBase(painel, prefixo)
+  const { config, params, navigate, location, opcoes } = useBase(painel, prefixo)
   const ehSust = config.dominio === 'sustentacao'
   const memoria = useMemoriaFiltros()
   const guardados = useMemoriaAtual()
@@ -236,7 +248,7 @@ export function useFiltros(
   useEffect(() => {
     if (!normalizada) return
     void navigate(
-      { pathname: location.pathname, search: normalizada.p.toString(), hash: location.hash },
+      { pathname: location.pathname, search: textoBusca(normalizada.p), hash: location.hash },
       {
         replace: true,
         state: normalizada.invalidos
@@ -247,7 +259,8 @@ export function useFiltros(
   }, [normalizada, navigate, location.pathname, location.hash, location.state, invalidosAgora])
 
   const aplicar = useCallback(
-    (novo: FiltrosFluxo | FiltrosSustentacao, replace: boolean) => {
+    (bruto: FiltrosFluxo | FiltrosSustentacao, replace: boolean) => {
+      const novo = colapsarTodos(bruto, opcoes, ehSust)
       const p = ehSust
         ? escreverSustentacao(params, novo as FiltrosSustentacao, config.periodoPadrao, prefixo)
         : escreverFluxo(params, novo as FiltrosFluxo, config.periodoPadrao, prefixo)
@@ -265,9 +278,23 @@ export function useFiltros(
           ate: padraoP ? null : txt.ate,
         })
       }
-      setParams(p, { replace })
+      void navigate(
+        { pathname: location.pathname, search: textoBusca(p), hash: location.hash },
+        { replace },
+      )
     },
-    [params, setParams, ehSust, config, prefixo, memorizaFluxo, memoria],
+    [
+      params,
+      navigate,
+      location.pathname,
+      location.hash,
+      opcoes,
+      ehSust,
+      config,
+      prefixo,
+      memorizaFluxo,
+      memoria,
+    ],
   )
 
   const base = leitura.filtros as FiltrosFluxo & FiltrosSustentacao

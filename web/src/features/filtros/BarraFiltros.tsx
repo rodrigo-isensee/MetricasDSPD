@@ -143,7 +143,8 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
   } as Uso
 
   return (
-    <div className="flex flex-col gap-2">
+    // `contents`: a barra sticky precisa do contêiner alto do painel, não deste invólucro (bug 003).
+    <div className="contents">
       <AvisoFiltrosInvalidos invalidos={uso.invalidos} onEntendi={uso.dispensarInvalidos} />
       <div
         ref={barra}

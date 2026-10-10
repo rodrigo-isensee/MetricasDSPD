@@ -7,21 +7,39 @@ import { diasUteisNoIntervalo, instanteDe, isoDeDia } from '@metricas-dspd/metri
 import { estadoEm, serieWip } from '@metricas-dspd/metricas/businessmap'
 import { gerarBaseMock } from '.'
 
-/** Orçamento da ADR 0003: C3 < 50 ms por métrica (p95, inclusive a frio), C4 < 300 ms por painel. CI: 3x (praticas 4). */
+/**
+ * Orçamento da ADR 0003: C3 < 50 ms por métrica, C4 < 300 ms por painel. Limite de CI = 3x (praticas 4).
+ * Estabilidade (K-030 r1, b): a frio = MEDIANA de 5 medições, cada uma com contexto recriado sobre a
+ * mesma base; 2a chamada = mediana das 5; p95 de 20 repetições a quente. O orçamento de 50 ms é
+ * impresso como alerta, sem falhar. O arquivo roda sem paralelismo (vitest.config: fileParallelism false).
+ */
 const LIMITE_METRICA_MS = 150
+const ORCAMENTO_METRICA_MS = 50
 const LIMITE_PAINEL_MS = 900
 const LIMITE_GERADOR_MS = 1500
+const K_FRIO = 5
+const REPETICOES_QUENTE = 20
 const t0Gerador = performance.now()
 const base = gerarBaseMock()
 const msGerador = performance.now() - t0Gerador
-const ctx = {
+const novoContexto = () => ({
   bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
   ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
-}
+})
+const ctx = novoContexto()
 const filtros = (id: string) =>
   METRICAS_SUSTENTACAO.includes(id as never)
     ? { equipe: [], prioridade: [], periodo: { tipo: '12s' as const } }
     : { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } }
+const mediana = (v: number[]): number =>
+  [...v].sort((x, y) => x - y)[Math.floor((v.length - 1) / 2)] ?? 0
+const p95De = (v: number[]): number =>
+  [...v].sort((x, y) => x - y)[Math.ceil(v.length * 0.95) - 1] ?? 0
+const medir = (fn: () => void): number => {
+  const t0 = performance.now()
+  fn()
+  return performance.now() - t0
+}
 
 describe('desempenho (ADR 0003)', () => {
   it('o gerador do mock, na escala padrão, cabe no orçamento', () => {
@@ -29,30 +47,37 @@ describe('desempenho (ADR 0003)', () => {
     expect(msGerador).toBeLessThan(LIMITE_GERADOR_MS)
   })
 
-  it('cada métrica, a frio e p95 de 10 repetições, cabe no orçamento', () => {
+  it('cada métrica cabe no limite de CI: mediana a frio (5 contextos), mediana da 2a chamada e p95 de 20', () => {
     const linhas: string[] = []
     for (const id of METRICA_IDS.filter((m) => m !== 'VISAO_GERAL')) {
-      const ts: number[] = []
-      for (let i = 0; i < 10; i++) {
-        const t0 = performance.now()
-        calcularMetrica(id, filtros(id) as never, ctx)
-        ts.push(performance.now() - t0)
+      const frios: number[] = []
+      const segundas: number[] = []
+      for (let k = 0; k < K_FRIO; k++) {
+        const c = novoContexto()
+        frios.push(medir(() => calcularMetrica(id, filtros(id) as never, c)))
+        segundas.push(medir(() => calcularMetrica(id, filtros(id) as never, c)))
       }
-      const p95 = [...ts].sort((a, b) => a - b)[Math.ceil(ts.length * 0.95) - 1] ?? 0
+      const quentes: number[] = []
+      for (let i = 0; i < REPETICOES_QUENTE; i++)
+        quentes.push(medir(() => calcularMetrica(id, filtros(id) as never, ctx)))
+      const frio = mediana(frios)
+      const segunda = mediana(segundas)
+      const p95 = p95De(quentes)
+      const alerta = Math.max(frio, segunda, p95) >= ORCAMENTO_METRICA_MS ? ' ALERTA>50ms' : ''
       linhas.push(
-        `${id} frio=${ts[0]?.toFixed(0)}ms 2a=${ts[1]?.toFixed(0)}ms p95=${p95.toFixed(0)}ms`,
+        `${id} frio(med)=${frio.toFixed(0)}ms 2a(med)=${segunda.toFixed(0)}ms p95=${p95.toFixed(0)}ms${alerta}`,
       )
-      expect(ts[0] ?? 0, `${id} a frio`).toBeLessThan(LIMITE_METRICA_MS)
-      expect(ts[1] ?? 0, `${id} na 2a chamada`).toBeLessThan(LIMITE_METRICA_MS)
-      expect(p95, `${id} p95`).toBeLessThan(LIMITE_METRICA_MS)
+      expect(frio, `${id} a frio (mediana de ${K_FRIO})`).toBeLessThan(LIMITE_METRICA_MS)
+      expect(segunda, `${id} na 2a chamada (mediana)`).toBeLessThan(LIMITE_METRICA_MS)
+      expect(p95, `${id} p95 de ${REPETICOES_QUENTE}`).toBeLessThan(LIMITE_METRICA_MS)
     }
-    console.info(linhas.join('\n'))
-  }, 60_000)
+    console.info(
+      `orçamento da ADR 0003 (alerta, não falha): ${ORCAMENTO_METRICA_MS} ms\n${linhas.join('\n')}`,
+    )
+  }, 120_000)
 
   it('VISAO_GERAL (painel) cabe no orçamento', () => {
-    const t0 = performance.now()
-    calcularMetrica('VISAO_GERAL', {}, ctx)
-    const ms = performance.now() - t0
+    const ms = medir(() => calcularMetrica('VISAO_GERAL', {}, ctx))
     console.info(`VISAO_GERAL ${ms.toFixed(0)}ms (limite ${LIMITE_PAINEL_MS}ms)`)
     expect(ms).toBeLessThan(LIMITE_PAINEL_MS)
   })

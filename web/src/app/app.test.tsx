@@ -277,6 +277,10 @@ describe('cartão de referência O4 e estados simulados (?mock=)', () => {
     expect(vazio).toHaveTextContent('Nenhum item encontrado')
     expect(within(vazio).getByRole('button', { name: 'Remover filtro Equipe' })).toBeInTheDocument()
     expect(within(vazio).getByRole('button', { name: 'Limpar filtros' })).toBeInTheDocument()
+    // bug 002: vazio (0 itens) não é amostra insuficiente
+    const cartao = screen.getByTestId('metrica-O4')
+    expect(within(cartao).queryByText(/Amostra insuficiente/)).not.toBeInTheDocument()
+    expect(within(cartao).getByTestId('base-O4')).toHaveAttribute('data-variante', 'ok')
   })
 
   it('filtro estreito deixa a vazão abaixo de 20 itens: faixa some e aparece "amostra insuficiente" com a base', async () => {
