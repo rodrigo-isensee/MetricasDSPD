@@ -1,6 +1,7 @@
 # API de métricas (contrato HTTP)
 
 > **RASCUNHO.** Depende das ADRs do pedido 002 (framework, autenticação). Pontos marcados com [ADR] podem mudar.
+> Dependência: `web/src/contracts/` ainda não está versionado em nenhuma branch nem existe no worktree 002; o contrato só fecha depois que os contratos do front forem commitados e trazidos para o 002 (pacote compartilhado, praticas.md).
 > Fonte dos tipos: `web/src/contracts/` (DTOs zod, `ContratoMetricas`, `FonteMetricas`). Em caso de divergência, vale o zod do front até a ADR fechar; o back reutiliza os mesmos schemas.
 
 ## Regras gerais
@@ -9,7 +10,7 @@
 - **Nenhuma rota expõe dado por pessoa** (agente, responsável, autor, ranking, filtro por pessoa). `cardId` e título de card são permitidos; nome de pessoa não. Rotas e parâmetros desse tipo não existem e serão recusados (400).
 - BusinessMap (fluxo) e Acelerato (sustentação) nunca se misturam: o domínio é derivado do `id` da métrica e os filtros são de tipos distintos.
 - Estatísticas com menos de 20 itens vêm como `status: "insuficiente"` sem valor (já no DTO).
-- Datas AAAA-MM-DD (America/Sao_Paulo); tempo em dias úteis.
+- Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
 `:id` é um `MetricaId` (O1, O2, BLOQUEADOS, O3.. E3, S1..S7, EI_FL1..3, EI_SUST, VISAO_GERAL). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
@@ -23,6 +24,7 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
 | Sustentação (S*, EI_SUST) | `equipe` (`totvs,senior,fluig`), `prioridade` (`P1..P5`), `periodo` |
 | VISAO_GERAL | nenhum (padrões de cada painel) |
 
+- Aplicabilidade por métrica no fluxo: fonte é `APLICABILIDADE_FLUXO` (`web/src/contracts/metricas.ts`). Filtro do mesmo domínio não aplicável à métrica (ex.: `tipo` em O12, `equipe` em E1) é aceito e ignorado, sem 400, coerente com "Não afetado por".
 - `periodo`: `4s | 12s | 6m | 12m` (padrão `12s`) ou `custom` com `de` e `ate` (AAAA-MM-DD, dentro de `historico`).
 - Parâmetro de outro domínio (ex.: `sistema` em S1) -> 400 `VALIDATION_ERROR`.
 - `dataReferencia` (opcional, AAAA-MM-DD): recalcula como se fosse essa data de corte; padrão = data de referência atual. Futura -> 400.
