@@ -1,0 +1,98 @@
+{
+ "commit": "567e995",
+ "tags": [
+  "wcag2a",
+  "wcag2aa",
+  "wcag22aa"
+ ],
+ "resultados": {
+  "operacional-diaria 1280 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-diaria 1280 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-diaria 375 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-diaria 375 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-semanal 1280 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-semanal 1280 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-semanal 375 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-semanal 375 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "tatico 1280 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "tatico 1280 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "tatico 375 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "tatico 375 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "estrategico 1280 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "estrategico 1280 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "estrategico 375 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "estrategico 375 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-diaria estado-carregando": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-diaria estado-erro:o2": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-diaria estado-vazio": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "operacional-semanal estado-erro:o3": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "tatico estado-erro:t2": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "estrategico estado-vazio": {
+   "bloqueantes": [],
+   "informativas": []
+  }
+ }
+}

@@ -101,7 +101,7 @@ test.describe('K-025 Espera invisivel', () => {
     const tim = n((await page.getByTestId('ei-time-fl1-incidente').innerText()).match(/[\d.,]+/)![0]);
     const idx = (await page.getByTestId('ei-indice-fl1-incidente').innerText()).match(/(\d+(?:,\d+)?)\s*%/);
     expect(idx, await seg.innerText()).not.toBeNull();
-    expect(Math.abs(((cli - tim) / cli) * 100 - n(idx![1]))).toBeLessThan(1.5);
+    expect(Math.abs(((cli - tim) / cli) * 100 - n(idx![1]!))).toBeLessThan(1.5);
   });
 
   test('EI-09 texto da Sustentacao: nao compare com BusinessMap', async ({ page }) => {
@@ -181,6 +181,7 @@ test.describe('K-026 Visao geral', () => {
     const vg = (await page.getByTestId('indicador-O2').innerText()).match(/\d+(?:,\d+)?/g) ?? [];
     await page.goto('/operacional');
     await expect(page.getByTestId('metrica-O2')).toBeVisible();
+    await expect(page.getByTestId('metrica-O2')).not.toHaveAttribute('aria-busy', 'true');
     const painelTxt = await page.getByTestId('metrica-O2').innerText();
     expect(vg.length).toBeGreaterThan(0);
     expect(painelTxt).toContain(vg[0]);

@@ -3,7 +3,7 @@ import { test, expect } from '../fixtures/base';
 test.use({ viewport: { width: 1280, height: 800 } });
 
 test('ST-01 ?mock=carregando mantém o esqueleto com aria-busy @smoke', async ({ painel }) => {
-  await painel.ir('/operacional', { mock: 'carregando' });
+  await painel.ir('/operacional?cadencia=semanal', { mock: 'carregando' });
   const o4 = painel.cartao('O4');
   await o4.esperarEstado('carregando');
   await expect(o4.raiz).toHaveAttribute('aria-busy', 'true');
@@ -11,7 +11,7 @@ test('ST-01 ?mock=carregando mantém o esqueleto com aria-busy @smoke', async ({
 });
 
 test('ST-03 ?mock=erro:o4 mostra erro só no cartão e a tentativa repetida falha de novo', async ({ painel }) => {
-  await painel.ir('/operacional', { mock: 'erro:o4' });
+  await painel.ir('/operacional?cadencia=semanal', { mock: 'erro:o4' });
   const o4 = painel.cartao('O4');
   await expect(o4.erro).toBeVisible();
   await o4.tentarDeNovo.click();
@@ -20,7 +20,7 @@ test('ST-03 ?mock=erro:o4 mostra erro só no cartão e a tentativa repetida falh
 });
 
 test('ST-03b ?mock=erro-uma-vez:o4 recupera com "Tentar de novo" (v1-A7)', async ({ painel }) => {
-  await painel.ir('/operacional', { mock: 'erro-uma-vez:o4' });
+  await painel.ir('/operacional?cadencia=semanal', { mock: 'erro-uma-vez:o4' });
   const o4 = painel.cartao('O4');
   await expect(o4.erro).toBeVisible();
   await o4.tentarDeNovo.click();
@@ -37,7 +37,7 @@ test('ST-04 ?mock=erro vira erro de painel, com shell preservado e rota para a V
 });
 
 test('ST-05 ?mock=vazio: estado vazio distinto de amostra insuficiente', async ({ painel }) => {
-  await painel.ir('/operacional', { mock: 'vazio' });
+  await painel.ir('/operacional?cadencia=semanal', { mock: 'vazio' });
   const o4 = painel.cartao('O4');
   await o4.esperarEstado('vazio');
   await expect(o4.raiz).toContainText('Nenhum item encontrado');
@@ -45,7 +45,7 @@ test('ST-05 ?mock=vazio: estado vazio distinto de amostra insuficiente', async (
 });
 
 test('ST-05b amostra insuficiente (1 a 19 itens) mostra o estado próprio, com faixa e mediana ocultas', async ({ painel }) => {
-  await painel.ir('/operacional?tipo=divida-tecnica&equipe=plataforma-5g');
+  await painel.ir('/operacional?tipo=divida-tecnica&equipe=plataforma-5g&cadencia=semanal');
   const o4 = painel.cartao('O4');
   await o4.esperarPronto();
   await expect(o4.raiz).toContainText(/Amostra insuficiente: \d+ de 20 itens mínimos/);
@@ -54,7 +54,7 @@ test('ST-05b amostra insuficiente (1 a 19 itens) mostra o estado próprio, com f
 });
 
 test('ST-12 mock inválido é ignorado e não aparece na UI nem nos links', async ({ painel, page }) => {
-  await painel.ir('/operacional', { mock: 'xyz' });
+  await painel.ir('/operacional?cadencia=semanal', { mock: 'xyz' });
   await painel.cartao('O4').esperarEstado('ok');
   await expect(page.getByTestId('aviso-filtros-invalidos')).toHaveCount(0);
   await expect(page.getByTestId('operacional-mock-na-ui')).toHaveCount(0);

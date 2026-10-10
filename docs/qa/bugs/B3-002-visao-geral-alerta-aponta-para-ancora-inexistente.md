@@ -13,3 +13,6 @@ VG-03: todo alerta leva ao cartão de origem existente e visível.
 `/operacional#o12`: nenhum elemento com `id="o12"`. O alerta aparece na Visão geral antes de o cartão existir no painel.
 ## Evidência
 `e2e/tests/b3-sust-ei-vg.spec.ts` > VG-03. O teste deve passar sem alteração quando O12 existir; se o alerta não for esperado antes disso, suprimi-lo.
+
+## Reverificação B12 (567e995): continua aberto
+O12 agora existe (em `/operacional?cadencia=semanal`, `#o12`), mas o alerta da Visão geral continua com href `/operacional#o12`, sem `cadencia=semanal`. O padrão é a diária, que não tem O12, então o VG-03 segue falhando. Correção: o link do alerta O12 (e de qualquer alerta de cartão semanal: O10, O12) deve incluir `?cadencia=semanal`. Responsável: react-frontend (link da faixa da Visão geral).

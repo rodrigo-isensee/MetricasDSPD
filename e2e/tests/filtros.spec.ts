@@ -14,26 +14,26 @@ test('FIL-01/02 filtros por painel e URL limpa no padrão', async ({ painel, pag
 });
 
 test('FIL-03/06/07 marcar atualiza URL, recarregar restaura, chip remove, limpar restaura @smoke', async ({ painel, page }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=semanal');
   const o4 = painel.cartao('O4');
   await o4.esperarPronto();
   const antes = await o4.baseItens();
   await painel.filtros.alternar('equipe', ['ERP Protheus']);
   await expect(page).toHaveURL(/equipe=erp-protheus/);
   await o4.esperarPronto();
-  expect(await o4.baseItens()).not.toBe(antes);
+  await expect.poll(() => o4.baseItens()).not.toBe(antes);
   const filtrado = await o4.baseItens();
   await page.reload();
   await o4.esperarPronto();
-  expect(await o4.baseItens()).toBe(filtrado);
+  await expect.poll(() => o4.baseItens()).toBe(filtrado);
   await expect(painel.filtros.limpar).toBeVisible();
   await painel.filtros.botaoRemover('Equipe: ERP Protheus').click();
   await expect(page).not.toHaveURL(/equipe=/);
   await o4.esperarPronto();
-  expect(await o4.baseItens()).toBe(antes);
+  await expect.poll(() => o4.baseItens()).toBe(antes);
   await painel.filtros.alternar('tipo', ['Incidente']);
   await painel.filtros.limpar.click();
-  expect(painel.filtros.parametros().toString()).toBe('');
+  expect(painel.filtros.parametros().toString()).toBe('cadencia=semanal'); // limpar filtros preserva a cadência (não é filtro)
 });
 
 test('FIL-04 marcar todos os valores remove o parâmetro', async ({ painel, page }) => {
@@ -66,7 +66,7 @@ test('FIL-09 URL inválida ignora só o inválido e avisa', async ({ painel, pag
   await painel.ir('/operacional?equipe=xyz&tipo=foo&periodo=99&cadencia=x');
   await expect(painel.filtros.invalidos).toBeVisible();
   await expect(painel.filtros.invalidos).toContainText('foram ignorados');
-  await painel.cartao('O4').esperarEstado('ok');
+  await painel.cartao('O2').esperarEstado('ok');
   await page.getByRole('button', { name: 'Entendi' }).click();
   await expect(painel.filtros.invalidos).toHaveCount(0);
 });
@@ -82,7 +82,7 @@ test('FIL-10 consolidado com 2 ou mais equipes (inclusive Todas), com N correto'
 });
 
 test('FIL-12 O4 informa os filtros aplicados', async ({ painel }) => {
-  await painel.ir('/operacional?equipe=erp-protheus');
+  await painel.ir('/operacional?equipe=erp-protheus&cadencia=semanal');
   await expect(painel.cartao('O4').raiz).toContainText('Filtros');
 });
 
