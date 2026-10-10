@@ -1,17 +1,17 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-10 09:50 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
-> WIP: Empatizar 0/2 · Idear 0/2 · Validação do usuário 1 (K-034) · Pronto para fazer 0/5 · Em andamento: tech-lead 1 (K-011) · Code review 1/2 (K-017 parte 1) · QA 0/2 · Aguardando sua validação 1 PR (001, 29 cartões; limite conta PRs) · Bloqueados: 0
-> Item mais antigo em andamento: K-011 (pré-entrega do PR 1). Pedido 001 passou no QA final (r3, 2026-10-10 02:56); aguarda sua validação do PR. Retrospectiva: `docs/retrospectivas/2026-10-10-001.md`.
-> Pedido 002: K-014 e K-033 aprovados; K-017 parte 1 (migrações, 324b472) entregue sem review; seed pendente. Pedido 006: K-034 aguarda validação; K-035 e K-036 pausados por decisão do usuário até o fim do 001 (2026-10-09 21:03).
+> Atualizado em: 2026-10-10 10:55 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
+> WIP: Empatizar 0/2 · Idear 0/2 · Validação do usuário 1 (K-055) · Pronto para fazer 1/5 (K-034) · Em andamento: react-frontend 2 (K-056, K-057; 2 instâncias) · Code review 3/2 (K-017, K-053, K-054; K-053 fecha com o pai K-017) · QA 0/2 · Aguardando sua validação 1 PR (#2) · Bloqueados: 1 (K-017, depende do usuário: Docker)
+> Item mais antigo em andamento: K-056/K-057 (10:31). Pedido 001 concluído (PR #1 mesclado, eff026a). Atenção: Code review acima do limite (3/2); K-017 aguarda Docker na máquina para os testes MySQL.
+> Pedido 002 (`feature/arquitetura-mysql`): K-014, K-033 aprovados; K-017 re-review (bugs K-053 corrigidos, 831779d); ambiente Docker pronto (fce13e1); data-model atualizado pelo arquiteto, sem commit. Pedido 006: K-034 validado; K-035/K-036 pausados até o UX ficar livre. Pedido 007: K-055 aguarda validação (5 pontos + D-f, D-g).
 
 # Upstream — descoberta (Design Thinking)
 
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-035 | Discovery: métricas fora do núcleo | 006 | ux-designer | 2026-10-09 | 2026-10-09 20:53 | PAUSADO por decisão do usuário até o fim do 001 (2026-10-09 21:03); entra em Empatizar ao retomar |
-| K-036 | Discovery: lacuna de valor na sustentação | 006 | ux-designer | 2026-10-09 | 2026-10-09 20:53 | PAUSADO por decisão do usuário até o fim do 001 (2026-10-09 21:03) |
+| K-035 | Discovery: métricas fora do núcleo | 006 | ux-designer | 2026-10-09 | 2026-10-09 20:53 | PAUSADO; retoma (entra em Empatizar) quando o UX ficar livre |
+| K-036 | Discovery: lacuna de valor na sustentação | 006 | ux-designer | 2026-10-09 | 2026-10-09 20:53 | PAUSADO; retoma quando o UX ficar livre |
 
 ## Empatizar e definir (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -24,7 +24,7 @@
 ## Validação do usuário
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-034 | Discovery: integração real (BusinessMap e Acelerato) | 006 | ux-designer | 2026-10-09 | 2026-10-09 21:03 | Pronto (ec96623); aguarda sua validação. Viabilidade pelo software-architect depois |
+| K-055 | Preferências de métricas por usuário (discovery) | 007 | ux-designer + software-architect | 2026-10-10 | 2026-10-10 10:21 | Discovery (151954d) e viabilidade (780290f) prontos; aguarda sua validação: 5 pontos + D-f, D-g |
 
 ---
 
@@ -35,15 +35,19 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-034 | Integração real (BusinessMap e Acelerato) e tela /dados | 006 | a definir | 2026-10-09 | 2026-10-10 10:04 | Validado com ajustes (decisões 2026-10-10); spec final e tela /dados em a428edf; implementação futura |
 
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-056 | Cobertura 100% dos pacotes (contratos, metricas, mock) | 001 | react-frontend (instância 1) | 2026-10-10 | 2026-10-10 10:40 | Baseline 1b9b291; QA liga thresholds depois; 2 instâncias do mesmo agente (exceção de paralelismo) |
+| K-057 | Cobertura 100% do web | 001 | react-frontend (instância 2) | 2026-10-10 | 2026-10-10 10:40 | Baseline 1b9b291 (web 91,6/87,1/86,5/89,4) |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-017 | Migrações iniciais (parte 1; seed pendente) | 002 | node-backend | 2026-10-09 | 2026-10-09 21:35 | Entregue em 324b472 (worktree feature/arquitetura-mysql), sem review até agora |
+| K-053 | [bug] K-017 r1 (id_origem, gravarStgCard, recomendados) | 002 | node-backend | 2026-10-10 | 2026-10-10 10:50 | origem code review; pai K-017; parecer docs/reviews/002-K-017-r1.md; corrigido (831779d), em re-review do tech-lead; fecha com o pai |
+| K-054 | [bug] Timeouts dos testes do web sob carga | 001 | react-frontend | 2026-10-10 | 2026-10-10 10:50 | Feito (937efa1), em review do tech-lead |
 
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -62,10 +66,12 @@ PR 1 (pedido 001) mesclado pelo usuário em 2026-10-10 09:50 (eff026a).
 
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| PR #2 | develop → main (docs técnicas do 001, guia do desenvolvedor 659ed9c, DoD com documentação eb4dc4d, UX/Figma 14394f5, spec de integração real a428edf) | 001/006 | usuário | 2026-10-10 | 2026-10-10 | Aberto pelo usuário; aguarda sua validação |
 
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-058 | Documentação técnica do 001 (`docs/tecnica/`, 6428396, 51fdb4c) | 001 | software-architect + tech-lead | 2026-10-10 | 2026-10-10 | Pronto na develop; segue no PR #2 (ID K-058 atribuído nesta atualização) |
 | K-011 | Pré-entrega, envio da branch e descrição do PR | 001 | tech-lead | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
 | K-018 | ADR 0003 + ADR 0002 + ADR 0001 e plano rev. 3 | 003 | software-architect → tech-lead | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
 | K-015 | Práticas de engenharia | 002 | tech-lead → software-architect | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
@@ -105,6 +111,7 @@ PR 1 (pedido 001) mesclado pelo usuário em 2026-10-10 09:50 (eff026a).
 ## Bloqueado
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-017 | Migrações iniciais e seed | 002 | node-backend | 2026-10-09 | 2026-10-10 10:50 | Origem: Code review. Testes MySQL dependem de Docker na máquina (ação do usuário); ambiente pronto em fce13e1; re-review dos bugs K-053 em curso |
 
 ## Processo (pedidos 003–005) — fora do WIP e das métricas de fluxo
 Cartões de processo e reuniões não contam no WIP do fluxo de entrega nem em lead/cycle time; têm um único estado.

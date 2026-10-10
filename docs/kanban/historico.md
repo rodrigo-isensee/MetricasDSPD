@@ -113,3 +113,12 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-10 10:12 | K-054 | Entrada | Em andamento | [bug] Timeouts de 15 s nos testes do web sob carga no npm run pronto; react-frontend |
 | 2026-10-10 10:12 | K-055 | Entrada | Empatizar e definir | Pedido 007 (preferências de métricas): ux-designer começa; software-architect entra após a documentação técnica |
 | 2026-10-10 10:21 | K-055 | Empatizar e definir | Validação do usuário | Discovery 007 pronto (docs/ux/preferencias-metricas/); viabilidade técnica do arquiteto pendente |
+| 2026-10-10 10:31 | K-056, K-057 | Entrada | Pronto para fazer | Cobertura 100% (pedido do usuário): baseline 1b9b291 — contratos 0% linhas, metricas 97,1/95,1/83,7/95,6, mock 99,3/100/93,6/97,4, web 91,6/87,1/86,5/89,4. K-056 pacotes, K-057 web; react-frontend após K-054; depois QA liga thresholds |
+| 2026-10-10 10:55 | K-034 | Validação do usuário | Pronto para fazer | Reconciliação (agile-coach): spec final e tela /dados em a428edf; implementação futura |
+| 2026-10-10 10:55 | K-053 | Pronto para fazer | Code review | Reconciliação: corrigido em 831779d, re-review do tech-lead (pai K-017) |
+| 2026-10-10 10:55 | K-017 | Code review | Bloqueado | Testes MySQL dependem de Docker na máquina (usuário); ambiente pronto em fce13e1 |
+| 2026-10-10 10:55 | K-054 | Em andamento | Code review | Feito em 937efa1 |
+| 2026-10-10 10:55 | K-056, K-057 | Pronto para fazer | Em andamento | Cobertura 100%: react-frontend, 2 instâncias |
+| 2026-10-10 10:55 | K-058 | Entrada | Pronto | Reconciliação: documentação técnica do 001 (6428396, 51fdb4c) pronta na develop; segue no PR #2 |
+| 2026-10-10 10:55 | PR #2 | — | Aguardando sua validação | develop → main aberto pelo usuário |
+| 2026-10-10 10:55 | K-055 | Validação do usuário | Validação do usuário | Viabilidade do arquiteto pronta (780290f); aguarda 5 pontos + D-f, D-g |
