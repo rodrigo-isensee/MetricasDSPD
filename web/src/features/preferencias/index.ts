@@ -1,0 +1,7 @@
+export * from './fonte'
+export * from './ProvedorPreferencias'
+export * from './ProvedorPainelPreferencias'
+export * from './BotaoMetricas'
+export * from './FaixaOcultas'
+export * from './PainelOcultoVazio'
+export * from './SecaoPainel'

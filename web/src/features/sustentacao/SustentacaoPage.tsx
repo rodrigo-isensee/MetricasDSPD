@@ -1,4 +1,5 @@
-import { FaixaAtencao, estadoFaixa, Secao, type ItemAtencao } from '@/components/ui'
+import { FaixaAtencao, estadoFaixa, type ItemAtencao } from '@/components/ui'
+import { SecaoPainel } from '@/features/preferencias'
 import { useMetrica } from '@/data'
 import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { PainelSustentacao } from '@/features/painel/PainelPagina'
@@ -66,26 +67,36 @@ export default function SustentacaoPage() {
             Chamados com exceção de SLA por registro posterior ficam fora destas apurações.
           </p>
           <Atencao filtros={filtros} />
-          <Secao id="prazos" titulo="Prazos" pergunta="Cumprimos o combinado, em cada prioridade?">
+          <SecaoPainel
+            cartoes={['s2', 's1']}
+            id="prazos"
+            titulo="Prazos"
+            pergunta="Cumprimos o combinado, em cada prioridade?"
+          >
             <CartaoS2 filtros={filtros} />
             <CartaoS1 filtros={filtros} />
-          </Secao>
-          <Secao
+          </SecaoPainel>
+          <SecaoPainel
+            cartoes={['s3', 's4']}
             id="volume"
             titulo="Volume e resolução"
             pergunta="Quanto chega e onde é resolvido?"
           >
             <CartaoS3 filtros={filtros} />
             <CartaoS4 filtros={filtros} />
-          </Secao>
-          <Secao id="causas" titulo="Escalação, encerramento e reclassificação">
+          </SecaoPainel>
+          <SecaoPainel
+            cartoes={['s5', 's6', 's7']}
+            id="causas"
+            titulo="Escalação, encerramento e reclassificação"
+          >
             <CartaoS5 filtros={filtros} />
             <CartaoS6 filtros={filtros} />
             <CartaoS7 filtros={filtros} />
-          </Secao>
-          <Secao id="espera" titulo="Espera invisível do nível">
+          </SecaoPainel>
+          <SecaoPainel cartoes={['ei-sust']} id="espera" titulo="Espera invisível do nível">
             <CartaoEISust filtros={filtros} variante="compacto" />
-          </Secao>
+          </SecaoPainel>
         </>
       )}
     </PainelSustentacao>

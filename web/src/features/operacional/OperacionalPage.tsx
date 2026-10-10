@@ -3,12 +3,13 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import {
   FaixaAtencao,
   estadoFaixa,
-  Secao,
   SeletorCadencia,
+  usePreferenciasPainel,
   type ItemAtencao,
 } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
+import { SecaoPainel } from '@/features/preferencias'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import { fmtInteiro, fmtPct, plural } from '@/lib/formatar'
 import { CartaoEIFL1 } from '@/features/espera-invisivel/components/CartaoEI'
@@ -114,15 +115,20 @@ function AtencaoSemanal({ filtros }: { filtros: FiltrosFluxo }) {
 }
 
 const SECOES = [
-  ['tempo', 'Tempo'],
-  ['fluxo', 'Fluxo'],
-  ['compromissos', 'Compromissos'],
-  ['backlog', 'Backlog'],
-  ['qualidade', 'Qualidade'],
+  ['tempo', 'Tempo', ['o3', 'o9', 'ei-fl1']],
+  ['fluxo', 'Fluxo', ['o4']],
+  ['compromissos', 'Compromissos', ['o12']],
+  ['backlog', 'Backlog', ['o10', 'o7']],
+  ['qualidade', 'Qualidade', ['o15', 'o18']],
 ] as const
 
 function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cadencia }) {
   const [params] = useSearchParams()
+  const prefs = usePreferenciasPainel()
+  // "Ir para" só lista seção com alguma métrica visível (CA-12).
+  const secoesVisiveis = SECOES.filter(
+    ([, , ids]) => !prefs || ids.some((c) => !prefs.estaOculto(c)),
+  )
   if (cadencia === 'diaria') {
     // O link nunca carrega o parâmetro oculto `mock` (6.6).
     const p = new URLSearchParams(params)
@@ -131,11 +137,11 @@ function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cade
     return (
       <>
         <AtencaoDiaria filtros={filtros} />
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <SecaoPainel cartoes={['o2', 'bloqueados', 'o1']}>
           <CartaoO2 filtros={filtros} />
           <CartaoBloqueados filtros={filtros} />
           <CartaoO1 filtros={filtros} />
-        </div>
+        </SecaoPainel>
         <p className="text-sm">
           <Link
             to={{ search: p.toString().replaceAll('%2C', ',') }}
@@ -152,7 +158,7 @@ function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cade
       <AtencaoSemanal filtros={filtros} />
       <nav aria-label="Ir para" className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-texto-2">Ir para:</span>
-        {SECOES.map(([id, nome]) => (
+        {secoesVisiveis.map(([id, nome]) => (
           <a
             key={id}
             href={`#${id}`}
@@ -162,25 +168,25 @@ function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cade
           </a>
         ))}
       </nav>
-      <Secao id="tempo" titulo="Tempo">
+      <SecaoPainel cartoes={['o3', 'o9', 'ei-fl1']} id="tempo" titulo="Tempo">
         <CartaoO3 filtros={filtros} />
         <CartaoO9 filtros={filtros} />
         <CartaoEIFL1 filtros={filtros} variante="compacto" />
-      </Secao>
-      <Secao id="fluxo" titulo="Fluxo">
+      </SecaoPainel>
+      <SecaoPainel cartoes={['o4']} id="fluxo" titulo="Fluxo">
         <CartaoO4 filtros={filtros} />
-      </Secao>
-      <Secao id="compromissos" titulo="Compromissos">
+      </SecaoPainel>
+      <SecaoPainel cartoes={['o12']} id="compromissos" titulo="Compromissos">
         <CartaoO12 filtros={filtros} />
-      </Secao>
-      <Secao id="backlog" titulo="Backlog">
+      </SecaoPainel>
+      <SecaoPainel cartoes={['o10', 'o7']} id="backlog" titulo="Backlog">
         <CartaoO10 filtros={filtros} />
         <CartaoO7 filtros={filtros} />
-      </Secao>
-      <Secao id="qualidade" titulo="Qualidade">
+      </SecaoPainel>
+      <SecaoPainel cartoes={['o15', 'o18']} id="qualidade" titulo="Qualidade">
         <CartaoO15 filtros={filtros} />
         <CartaoO18 filtros={filtros} />
-      </Secao>
+      </SecaoPainel>
     </>
   )
 }

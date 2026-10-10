@@ -108,6 +108,12 @@ export function AppShell() {
             <AvisoDadosFicticios />
             <SeletorTema />
             <Link
+              to="/preferencias"
+              className="alvo hidden items-center rounded-md px-2 py-1 text-sm font-medium text-acento underline md:inline-flex"
+            >
+              Preferências
+            </Link>
+            <Link
               to="/ajuda"
               className="alvo hidden items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-acento underline md:inline-flex"
             >

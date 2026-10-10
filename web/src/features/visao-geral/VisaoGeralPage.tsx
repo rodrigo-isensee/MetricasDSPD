@@ -210,6 +210,12 @@ export default function VisaoGeralPage() {
         }
         publico="Consolidado de todas as equipes (o sistema não compara equipes), sem filtros nesta tela."
       />
+      <p className="text-sm text-texto-2" data-testid="preferencias-valem">
+        As preferências de métricas valem para os painéis. Esta tela mostra tudo.{' '}
+        <Link to="/preferencias" className="text-acento underline">
+          Preferências
+        </Link>
+      </p>
       {pronta && (
         <>
           <FaixaCalibracaoFonte dominio="businessmap" />

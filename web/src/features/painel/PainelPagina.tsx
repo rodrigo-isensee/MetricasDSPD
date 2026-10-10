@@ -1,11 +1,23 @@
 import type { ReactNode } from 'react'
 import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
-import type { Dominio, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
+import type {
+  Dominio,
+  FiltrosFluxo,
+  FiltrosSustentacao,
+  PainelComCartoes,
+} from '@metricas-dspd/contratos'
 import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta, useModoMock } from '@/data'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
 import { SemDadosDaFonte } from '@/features/coleta/SemDadosDaFonte'
 import { BarraFiltros, useFiltros, type PainelId, type UseFiltros } from '@/features/filtros'
+import {
+  BotaoMetricas,
+  FaixaOcultas,
+  PainelOcultoVazio,
+  ProvedorPainelPreferencias,
+  usePreferencias,
+} from '@/features/preferencias'
 
 interface Base {
   titulo: string
@@ -24,14 +36,32 @@ function CorpoDaFonte({ dominio, children }: { dominio: Dominio; children: React
   return data?.ultimaOk === null ? <SemDadosDaFonte dominio={dominio} /> : children
 }
 
+/** Liga o recorte de métricas (pedido 007) só nos painéis que têm cartões ocultáveis. */
+function Recorte({
+  painel,
+  children,
+}: {
+  painel?: PainelComCartoes | undefined
+  children: ReactNode
+}) {
+  return painel ? (
+    <ProvedorPainelPreferencias painel={painel}>{children}</ProvedorPainelPreferencias>
+  ) : (
+    children
+  )
+}
+
 function Casca({
   uso,
   base,
   fonte,
   fontes,
   estrategico,
+  preferencias,
   children,
 }: {
+  /** Painel com cartões ocultáveis (pedido 007); a Espera invisível não tem. */
+  preferencias?: PainelComCartoes
   /** Fontes que o painel usa: o selo de cada uma aparece no cabeçalho, sempre separado. */
   fontes: readonly Dominio[]
   uso: UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
@@ -47,9 +77,13 @@ function Casca({
   const pendenteBm = useEstadoColeta('businessmap').isPending
   const pendenteAc = useEstadoColeta('acelerato').isPending
   // `?mock=carregando` quer ver os esqueletos dos cartões (o estado de coleta também nunca resolve nele).
+  // As preferências também são esperadas: o recorte certo aparece de primeira, sem piscar.
+  const preferenciasProntas = usePreferencias().pronto
   const aguardando =
     useModoMock() !== 'carregando' &&
-    ((fontes.includes('businessmap') && pendenteBm) || (fontes.includes('acelerato') && pendenteAc))
+    ((fontes.includes('businessmap') && pendenteBm) ||
+      (fontes.includes('acelerato') && pendenteAc) ||
+      (!!preferencias && !preferenciasProntas))
   // mock=erro (6.6): erro de painel, não de cartão. O shell continua; o painel não carrega.
   if (erroSimulado)
     return <ErroPagina erro="Erro simulado (mock=erro)" onTentarDeNovo={() => undefined} />
@@ -59,39 +93,48 @@ function Casca({
       removerFiltro={uso.remover}
       limparFiltros={uso.limpar}
     >
-      <div className="flex flex-col gap-4">
-        <CabecalhoPainel
-          titulo={base.titulo}
-          pergunta={base.pergunta}
-          dataCorte={dataCorte}
-          fonte={fonte}
-          slug={base.slug}
-          frescor={
-            <div className="flex flex-col gap-1">
+      <Recorte painel={preferencias}>
+        <div className="flex flex-col gap-4">
+          <CabecalhoPainel
+            titulo={base.titulo}
+            pergunta={base.pergunta}
+            dataCorte={dataCorte}
+            fonte={fonte}
+            slug={base.slug}
+            frescor={
+              <div className="flex flex-col gap-1">
+                {fontes.map((d) => (
+                  <FrescorFonte key={d} dominio={d} comNome={fontes.length > 1} />
+                ))}
+              </div>
+            }
+            {...(base.publico ? { publico: base.publico } : {})}
+          />
+          {aguardando ? (
+            <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
+          ) : (
+            <>
               {fontes.map((d) => (
-                <FrescorFonte key={d} dominio={d} comNome={fontes.length > 1} />
+                <FaixaCalibracaoFonte key={d} dominio={d} />
               ))}
-            </div>
-          }
-          {...(base.publico ? { publico: base.publico } : {})}
-        />
-        {aguardando ? (
-          <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
-        ) : (
-          <>
-            {fontes.map((d) => (
-              <FaixaCalibracaoFonte key={d} dominio={d} />
-            ))}
-            {base.extra}
-            <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
-            {fontes.length === 1 ? (
-              <CorpoDaFonte dominio={fontes[0] as Dominio}>{children}</CorpoDaFonte>
-            ) : (
-              children
-            )}
-          </>
-        )}
-      </div>
+              {base.extra}
+              {preferencias && (
+                <div>
+                  <BotaoMetricas />
+                </div>
+              )}
+              <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
+              <FaixaOcultas />
+              <PainelOcultoVazio />
+              {fontes.length === 1 ? (
+                <CorpoDaFonte dominio={fontes[0] as Dominio}>{children}</CorpoDaFonte>
+              ) : (
+                children
+              )}
+            </>
+          )}
+        </div>
+      </Recorte>
     </ProvedorContextoPainel>
   )
 }
@@ -121,6 +164,7 @@ export function PainelFluxo({
       fonte={fonte}
       fontes={fontes}
       estrategico={painel === 'estrategico'}
+      {...(painel !== 'espera-invisivel' ? { preferencias: painel } : {})}
     >
       {children(uso.filtros, uso)}
     </Casca>
@@ -136,7 +180,13 @@ export function PainelSustentacao({
 }) {
   const uso = useFiltros('sustentacao')
   return (
-    <Casca uso={uso} base={base} fonte="Acelerato" fontes={['acelerato']}>
+    <Casca
+      uso={uso}
+      base={base}
+      fonte="Acelerato"
+      fontes={['acelerato']}
+      preferencias="sustentacao"
+    >
       {children(uso.filtros, uso)}
     </Casca>
   )

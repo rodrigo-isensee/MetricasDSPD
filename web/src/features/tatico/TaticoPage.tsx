@@ -1,4 +1,5 @@
-import { FaixaAtencao, estadoFaixa, Secao, type ItemAtencao } from '@/components/ui'
+import { FaixaAtencao, estadoFaixa, type ItemAtencao } from '@/components/ui'
+import { SecaoPainel } from '@/features/preferencias'
 import { useMetrica } from '@/data'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
@@ -73,22 +74,38 @@ export default function TaticoPage() {
       {(filtros) => (
         <>
           <Atencao filtros={filtros} />
-          <Secao id="publicado" titulo="Estamos cumprindo o que publicamos?">
+          <SecaoPainel
+            cartoes={['t2', 't1', 't5']}
+            id="publicado"
+            titulo="Estamos cumprindo o que publicamos?"
+          >
             <CartaoT2 filtros={filtros} />
             <CartaoT1 filtros={filtros} />
             <CartaoT5 filtros={filtros} />
-          </Secao>
-          <Secao id="fila" titulo="O que entra, e o que sai da fila para isso caber?">
+          </SecaoPainel>
+          <SecaoPainel
+            cartoes={['t4', 't3']}
+            id="fila"
+            titulo="O que entra, e o que sai da fila para isso caber?"
+          >
             <CartaoT4 filtros={filtros} />
             <CartaoT3 filtros={filtros} />
-          </Secao>
-          <Secao id="projetos" titulo="Os projetos estão avançando de verdade?">
+          </SecaoPainel>
+          <SecaoPainel
+            cartoes={['t9', 't7']}
+            id="projetos"
+            titulo="Os projetos estão avançando de verdade?"
+          >
             <CartaoT9 filtros={filtros} />
             <CartaoT7 filtros={filtros} />
-          </Secao>
-          <Secao id="espera-invisivel" titulo="Espera invisível do nível">
+          </SecaoPainel>
+          <SecaoPainel
+            cartoes={['ei-fl2']}
+            id="espera-invisivel"
+            titulo="Espera invisível do nível"
+          >
             <CartaoEIFL2 filtros={filtros} variante="compacto" />
-          </Secao>
+          </SecaoPainel>
         </>
       )}
     </PainelFluxo>

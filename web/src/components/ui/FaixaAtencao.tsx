@@ -2,6 +2,7 @@ import { useId, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { useCalibracaoPronta, useEmCalibracao } from './Calibracao'
 import { Icone } from './Icone'
+import { usePreferenciasPainel } from './PreferenciasPainel'
 
 export interface ItemAtencao {
   id: string
@@ -63,6 +64,7 @@ export function FaixaAtencao({
   reserva,
 }: Props) {
   const emCalibracao = useEmCalibracao()
+  const prefs = usePreferenciasPainel()
   // Antes de saber o que está em calibração nada é afirmado: nem alerta, nem "Nada pede atenção".
   const calibracaoPronta = useCalibracaoPronta()
   const estado: EstadoFaixa =
@@ -117,6 +119,31 @@ export function FaixaAtencao({
       ) : (
         <ul id={idLista} className="mt-2 flex flex-wrap gap-2">
           {lista.map((i) => {
+            // Alerta de métrica oculta continua aqui (nunca é filtrado), com selo e volta pontual (CA-8).
+            if (prefs?.estaOculto(i.id)) {
+              const cod = i.codigo ?? i.id.toUpperCase()
+              return (
+                <li key={i.id}>
+                  <span
+                    className="inline-flex flex-wrap items-center gap-2 rounded-md border border-borda bg-superficie-2 px-3 py-1.5 text-sm text-texto"
+                    data-testid={`atencao-oculta-${i.id}`}
+                  >
+                    <Icone nome="alerta" className="size-4 text-alerta" />
+                    <span>{i.texto}</span>
+                    <span className="rounded border border-borda-controle px-1.5 text-xs font-semibold">
+                      métrica oculta
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => prefs.mostrar(i.id)}
+                      className="alvo rounded text-acento underline"
+                    >
+                      Mostrar {cod} nesta visita
+                    </button>
+                  </span>
+                </li>
+              )
+            }
             const interno = i.para.startsWith('#')
             const conteudo = (
               <>

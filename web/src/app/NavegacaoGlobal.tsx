@@ -70,6 +70,15 @@ export function NavegacaoGlobal() {
                   ))}
                   <li>
                     <Link
+                      to="/preferencias"
+                      className="alvo inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium hover:bg-superficie-2"
+                      onClick={() => setAberta(false)}
+                    >
+                      Preferências
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
                       to="/ajuda"
                       className="alvo inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium hover:bg-superficie-2"
                       onClick={() => setAberta(false)}

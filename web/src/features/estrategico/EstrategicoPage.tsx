@@ -1,4 +1,5 @@
-import { FaixaAtencao, estadoFaixa, Secao, type ItemAtencao } from '@/components/ui'
+import { FaixaAtencao, estadoFaixa, type ItemAtencao } from '@/components/ui'
+import { SecaoPainel } from '@/features/preferencias'
 import { useMetrica } from '@/data'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
@@ -45,16 +46,24 @@ export default function EstrategicoPage() {
       {(filtros) => (
         <>
           <Atencao filtros={filtros} />
-          <Secao id="prazo" titulo="Quanto tempo leva decidir e entregar?">
+          <SecaoPainel cartoes={['e1']} id="prazo" titulo="Quanto tempo leva decidir e entregar?">
             <CartaoE1 filtros={filtros} />
-          </Secao>
-          <Secao id="apostas" titulo="As entregas refletem as prioridades e geram resultado?">
+          </SecaoPainel>
+          <SecaoPainel
+            cartoes={['e2', 'e3']}
+            id="apostas"
+            titulo="As entregas refletem as prioridades e geram resultado?"
+          >
             <CartaoE2 filtros={filtros} />
             <CartaoE3 filtros={filtros} />
-          </Secao>
-          <Secao id="espera-invisivel" titulo="Espera invisível do nível">
+          </SecaoPainel>
+          <SecaoPainel
+            cartoes={['ei-fl3']}
+            id="espera-invisivel"
+            titulo="Espera invisível do nível"
+          >
             <CartaoEIFL3 filtros={filtros} variante="compacto" />
-          </Secao>
+          </SecaoPainel>
         </>
       )}
     </PainelFluxo>

@@ -3,6 +3,11 @@ import { useMemo } from 'react'
 import { RouterProvider, type DataRouter } from 'react-router'
 import { FonteMetricasProvider, MockFonteMetricas, type FonteMetricas } from '@/data'
 import { ProvedorMemoriaFiltros } from '@/features/filtros'
+import {
+  LocalStoragePreferencias,
+  ProvedorPreferencias,
+  type FontePreferencias,
+} from '@/features/preferencias'
 import { criarRoteador } from './router'
 import { ProvedorTema } from './tema'
 
@@ -27,17 +32,26 @@ export function criarFontePadrao(): FonteMetricas {
 
 export function Provedores({
   fonte,
+  fontePreferencias,
   children,
 }: {
   fonte: FonteMetricas
+  /** Porta das preferências de métricas; padrão: localStorage do navegador (sem login). */
+  fontePreferencias?: FontePreferencias
   children: React.ReactNode
 }) {
+  const preferencias = useMemo(
+    () => fontePreferencias ?? new LocalStoragePreferencias(),
+    [fontePreferencias],
+  )
   const client = useMemo(() => criarQueryClient(), [])
   return (
     <QueryClientProvider client={client}>
       <FonteMetricasProvider fonte={fonte}>
         <ProvedorTema>
-          <ProvedorMemoriaFiltros>{children}</ProvedorMemoriaFiltros>
+          <ProvedorPreferencias fonte={preferencias}>
+            <ProvedorMemoriaFiltros>{children}</ProvedorMemoriaFiltros>
+          </ProvedorPreferencias>
         </ProvedorTema>
       </FonteMetricasProvider>
     </QueryClientProvider>

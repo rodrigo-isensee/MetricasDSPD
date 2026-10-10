@@ -1,6 +1,6 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
-import { CartaoMetrica, NumeroGrande } from '@/components/ui'
+import { CartaoMetrica, NumeroGrande, useCartaoVisivel } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtDataCurta, fmtInteiro, fmtMes, fmtNumero } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
@@ -8,6 +8,7 @@ import { propsCartao, textoTaxa } from '@/features/painel/propsCartao'
 
 /** O18: entregas com e sem bug. Meses ainda dentro dos 30 dias de vínculo aparecem "em apuração", listrados. */
 export function CartaoO18({ filtros }: { filtros: FiltrosFluxo }) {
+  const o4Visivel = useCartaoVisivel('o4')
   const q = useMetrica('O18', filtros)
   const d = q.dados
   const t = d?.totais
@@ -82,12 +83,14 @@ export function CartaoO18({ filtros }: { filtros: FiltrosFluxo }) {
               formatar: (v) => fmtNumero(v, 2),
             }}
           />
-          <p className="text-sm">
-            Leia junto com a vazão:{' '}
-            <a href="#o4" className="alvo inline-flex items-center text-acento underline">
-              Ver vazão (O4)
-            </a>
-          </p>
+          {o4Visivel && (
+            <p className="text-sm">
+              Leia junto com a vazão:{' '}
+              <a href="#o4" className="alvo inline-flex items-center text-acento underline">
+                Ver vazão (O4)
+              </a>
+            </p>
+          )}
         </div>
       )}
     </CartaoMetrica>
