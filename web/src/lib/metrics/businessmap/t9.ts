@@ -2,6 +2,7 @@ import type { ResultadoT9 } from '@/contracts/metricas'
 import type { FiltrosFluxo } from '@/contracts/filtros'
 import { baseAmostral, criterios, periodoDe, r2, selecionar } from './comum'
 import type { ContextoBM } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 /** T9: avanço real (frentes concluídas ÷ total, pelos filhos) e crescimento de escopo. Censo por projeto. */
 export function calcularT9(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT9 {
@@ -10,7 +11,7 @@ export function calcularT9(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT9 {
     (p) => p.entrega === null && !p.arquivadoSemDesfecho,
   )
   const frentes = selecionar(ctx, f, 'frente', { semTipo: true })
-  const linhas = projetos
+  const linhasBrutas = projetos
     .map((p) => {
       const fs = frentes.filter((m) => m.card.card_pai === p.card.card_id)
       const adicionadas = fs.filter((m) => m.card.adicionado_apos_inicio_pai).length
@@ -31,9 +32,11 @@ export function calcularT9(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT9 {
       }
     })
     .filter((l) => l.totalFrentes > 0)
-    .sort(
-      (a, b) => b.crescimentoEscopoPct - a.crescimentoEscopoPct || b.totalFrentes - a.totalFrentes,
-    )
+  const linhas = ordenarNeutro(linhasBrutas, (l) => [
+    -l.crescimentoEscopoPct,
+    -l.totalFrentes,
+    l.projetoId,
+  ])
   return {
     base: baseAmostral(linhas.length, 'projetos em andamento', null),
     criterios: criterios('T9', periodo, periodo, ctx),

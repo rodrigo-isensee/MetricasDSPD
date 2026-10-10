@@ -5,6 +5,7 @@ import { diaDeIso, diaLocal, isoDeDia, somarMeses } from '../core/calendario'
 import { mesesEntre } from '../core/series'
 import { baseAmostral, criterios, periodoDe, selecionar } from './comum'
 import type { ContextoBM } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 /** Tolerância (fração da entrada) abaixo da qual o saldo é considerado estável. Provisória. */
 const TOLERANCIA_ESTAVEL = 0.1
@@ -25,7 +26,7 @@ export function calcularO7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO7 {
 
   let entrou = 0
   let saiu = 0
-  const porTipo = TIPOS_CARD.map((tipo) => {
+  const porTipoBruto = TIPOS_CARD.map((tipo) => {
     const dele = cards.filter((m) => m.card.tipo === tipo)
     let acum = 0
     let acumTri = 0
@@ -64,9 +65,8 @@ export function calcularO7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO7 {
       entradaAcimaDaSaidaNoTrimestre: acumTri > 0,
       meses: linhas,
     }
-  })
-    .filter((t) => t.entrou > 0 || t.saiu > 0)
-    .sort((a, b) => b.saldoAcumulado - a.saldoAcumulado)
+  }).filter((t) => t.entrou > 0 || t.saiu > 0)
+  const porTipo = ordenarNeutro(porTipoBruto, (t) => [-t.saldoAcumulado, t.tipo])
 
   return {
     base: baseAmostral(entrou, 'cards que entraram', periodo, {

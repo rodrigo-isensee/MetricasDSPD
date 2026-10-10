@@ -1,5 +1,7 @@
 import type { MotivoBloqueio } from '@/contracts/comum'
 import { horasUteisEntre } from '../core/calendario'
+import { ordenarNeutro } from '../core/ordenar'
+import { arquivadoForaDoAbertoEm, fimDeVidaAberta } from './descartado'
 import type { ContextoBM, MarcosCard } from './indice'
 
 export interface EstadoEm {
@@ -38,10 +40,10 @@ export function estadoEm(ctx: ContextoBM, m: MarcosCard, t: number): EstadoEm {
   }
   // Arquivado até t e fora de "entrega" (descartado ou sem desfecho, P1): não é trabalho aberto em t.
   // Entregue e arquivado depois continua entregue; só deixa o aberto por ter sido entregue.
-  const descartado = m.card.arquivado_em !== null && m.card.arquivado_em <= t && papel !== 'entrega'
-  const emWip = iniciado && papel !== 'entrega' && !descartado && m.card.criado_em <= t
+  const foraDoAberto = arquivadoForaDoAbertoEm(m.card, t, papel === 'entrega')
+  const emWip = iniciado && papel !== 'entrega' && !foraDoAberto && m.card.criado_em <= t
   let bloqueio: EstadoEm['bloqueioAberto'] = null
-  if (emWip || (!descartado && papel !== 'entrega')) {
+  if (emWip || (!foraDoAberto && papel !== 'entrega')) {
     for (const b of ctx.idx.bloqueiosPorCard.get(m.card.card_id) ?? []) {
       if (b.inicio <= t && (b.fim === null || b.fim > t)) {
         bloqueio = {
@@ -82,7 +84,7 @@ type Faixa = readonly [number, number]
 /** Faixas em que o card está em progresso (mesma regra de `estadoEm.emWip`, sem varrer instantes). */
 export function faixasWip(ctx: ContextoBM, m: MarcosCard): Faixa[] {
   const trs = ctx.idx.transicoesPorCard.get(m.card.card_id) ?? []
-  const fimVida = m.card.arquivado_em ?? Infinity
+  const fimVida = fimDeVidaAberta(m.card)
   const faixas: Faixa[] = []
   let iniciado = false
   for (let i = 0; i < trs.length; i++) {
@@ -103,9 +105,10 @@ export function faixasWip(ctx: ContextoBM, m: MarcosCard): Faixa[] {
 function faixasBloqueio(ctx: ContextoBM, m: MarcosCard): Faixa[] {
   const bs = ctx.idx.bloqueiosPorCard.get(m.card.card_id)
   if (!bs || bs.length === 0) return []
-  const ord = bs
-    .map((b): [number, number] => [b.inicio, b.fim ?? Infinity])
-    .sort((p, q) => p[0] - q[0])
+  const ord = ordenarNeutro(
+    bs.map((b): [number, number] => [b.inicio, b.fim ?? Infinity]),
+    (p) => [p[0], p[1]],
+  )
   const uniao: [number, number][] = []
   for (const f of ord) {
     const u = uniao[uniao.length - 1]

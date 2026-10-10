@@ -2,12 +2,12 @@ import type { ResultadoO4 } from '@/contracts/metricas'
 import { TIPOS_CARD } from '@/contracts/comum'
 import type { FiltrosFluxo } from '@/contracts/filtros'
 import { diaDeIso, diaLocal } from '../core/calendario'
-import { estatistica } from '../core/estatistica'
+import { estatistica, medianaDe } from '../core/estatistica'
 import { maximo, minimo } from '../core/extremos'
 import { JANELA_POR_GRANULARIDADE, janelaMovelDia } from '../core/janela'
-import { mediana } from '../core/percentil'
 import { semanasEntre } from '../core/series'
 import { baseAmostral, criterios, ehDemanda, periodoDe, selecionar } from './comum'
+import { amostraBM } from './amostra'
 import type { ContextoBM } from './indice'
 
 /** O4: vazão semanal com faixa (mín a máx) e mediana das semanas completas da janela. */
@@ -46,7 +46,7 @@ export function calcularO4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO4 {
   const faixa = estatistica(totalJanela, janela, () => ({
     min: minimo(contagens),
     max: maximo(contagens),
-    mediana: mediana(contagens),
+    mediana: medianaDe(amostraBM('story', contagens, janela)),
   }))
   return {
     base: baseAmostral(totalJanela, 'itens concluídos', janela),

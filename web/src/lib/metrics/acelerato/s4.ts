@@ -1,7 +1,8 @@
 import type { ResultadoS4 } from '@/contracts/metricas'
 import { NIVEIS_RESOLUCAO } from '@/contracts/comum'
 import type { FiltrosSustentacao } from '@/contracts/filtros'
-import { calcularPercentis, estatistica, pctOuNulo } from '../core/estatistica'
+import { percentisDe, estatistica, pctOuNulo } from '../core/estatistica'
+import { amostraAC } from './amostra'
 import {
   baseAmostral,
   criterios,
@@ -40,9 +41,10 @@ export function calcularS4(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS4 
             x.c.nivel_resolucao === nivel &&
             noIntervalo(ctx, x.c.data_finalizado, janela),
         )
+        const classeAC = f.prioridade.length === 1 ? (f.prioridade[0] ?? 'todas') : 'todas'
         const vals = naJanela.map((x) => x.porEtapa.get(ETAPA_DO_NIVEL[nivel]) ?? 0)
         tempoEtapa = estatistica(vals.length, janela, () => {
-          const p = calcularPercentis(vals)
+          const p = percentisDe(amostraAC(classeAC, vals, janela))
           return { p50: r2(p.p50), p85: r2(p.p85), p95: r2(p.p95) }
         })
       }

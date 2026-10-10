@@ -1,9 +1,9 @@
 import type { ResultadoE1 } from '@/contracts/metricas'
 import type { FiltrosFluxo } from '@/contracts/filtros'
 import { diaLocal, horasUteisEntre, isoDeDia, trimestreDeDia } from '../core/calendario'
-import { calcularPercentis, estatistica, publicavel } from '../core/estatistica'
+import { medianaDe, percentisDe, estatistica, publicavel } from '../core/estatistica'
 import { janelaDeslocada } from '../core/janela'
-import { mediana } from '../core/percentil'
+import { amostraBM } from './amostra'
 import {
   baseAmostral,
   criterios,
@@ -38,13 +38,16 @@ export function calcularE1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE1 {
     return { m, entrega, total, antes, exec: Math.max(0, total - antes) }
   })
   const ant = janelaDeslocada(janela, 12)
+  const am = (vs: readonly number[]) => amostraBM('projeto', vs, janela)
   const segmentos = TIPOS_PROJETO.map((tipo) => {
     const itens = todos.filter((i) => i.m.card.tipo === tipo)
     const naJanela = itens.filter((i) => dentro(ctx, i.entrega, janela))
     const noPeriodo = itens.filter((i) => dentro(ctx, i.entrega, periodo))
     const antVals = itens.filter((i) => dentro(ctx, i.entrega, ant)).map((i) => i.total)
-    const atualMed = publicavel(naJanela.length) ? mediana(naJanela.map((i) => i.total)) : null
-    const antMed = publicavel(antVals.length) ? mediana(antVals) : null
+    const atualMed = publicavel(naJanela.length)
+      ? medianaDe(am(naJanela.map((i) => i.total)))
+      : null
+    const antMed = publicavel(antVals.length) ? medianaDe(am(antVals)) : null
     const ok = atualMed !== null && antMed !== null && antMed !== 0
     return {
       chave: slug(tipo),
@@ -58,13 +61,13 @@ export function calcularE1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE1 {
         leadTimeDiasUteis: r2(i.total),
       })),
       estatistica: estatistica(naJanela.length, janela, () => {
-        const p = calcularPercentis(naJanela.map((i) => i.total))
+        const p = percentisDe(am(naJanela.map((i) => i.total)))
         return {
           total: { p50: r2(p.p50), p85: r2(p.p85), p95: r2(p.p95) },
-          medianaAntesDoInicio: r2(mediana(naJanela.map((i) => i.antes))),
-          medianaExecucao: r2(mediana(naJanela.map((i) => i.exec))),
+          medianaAntesDoInicio: r2(medianaDe(am(naJanela.map((i) => i.antes)))),
+          medianaExecucao: r2(medianaDe(am(naJanela.map((i) => i.exec)))),
           fracaoAntesPct: r2(
-            mediana(naJanela.map((i) => (i.total > 0 ? (i.antes / i.total) * 100 : 0))),
+            medianaDe(am(naJanela.map((i) => (i.total > 0 ? (i.antes / i.total) * 100 : 0)))),
           ),
         }
       }),

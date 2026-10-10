@@ -2,17 +2,18 @@ import type { ResultadoO9 } from '@/contracts/metricas'
 import { TIPOS_CARD, type Intervalo } from '@/contracts/comum'
 import type { FiltrosFluxo } from '@/contracts/filtros'
 import { diaDeIso, diaLocal } from '../core/calendario'
-import { calcularPercentis, estatistica, publicavel } from '../core/estatistica'
+import { percentisDe, estatistica, publicavel } from '../core/estatistica'
 import { contarFaixas, FAIXAS } from '../core/histograma'
 import { JANELA_POR_GRANULARIDADE, janelaMovelDia } from '../core/janela'
 import { mesesEntre } from '../core/series'
 import { baseAmostral, criterios, janelaPercentis, periodoDe, r2, selecionar } from './comum'
+import { amostraBM } from './amostra'
 import type { ContextoBM } from './indice'
 import { relogiosDe, type Relogios } from './relogios'
 
 const LENTOS = new Set(['Melhoria', 'Dívida técnica', 'Iniciativa'])
-const doisP = (vs: readonly number[]) => {
-  const p = calcularPercentis(vs)
+const doisP = (vs: readonly number[], j: Intervalo) => {
+  const p = percentisDe(amostraBM('story', vs, j))
   return { p50: r2(p.p50), p85: r2(p.p85) }
 }
 const arred = (p: { p50: number; p85: number; p95: number }) => ({
@@ -44,11 +45,31 @@ export function calcularO9(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO9 {
     total += rs.length
     const faixas = LENTOS.has(tipo) ? FAIXAS.lenta : FAIXAS.rapida
     const relogios = estatistica(rs.length, janela, () => {
-      const cliente = calcularPercentis(rs.map((r) => r.cliente))
-      const ciclo = calcularPercentis(rs.map((r) => r.ciclo))
+      const cliente = percentisDe(
+        amostraBM(
+          'story',
+          rs.map((r) => r.cliente),
+          janela,
+        ),
+      )
+      const ciclo = percentisDe(
+        amostraBM(
+          'story',
+          rs.map((r) => r.ciclo),
+          janela,
+        ),
+      )
       return {
         cliente: arred(cliente),
-        equipe: arred(calcularPercentis(rs.map((r) => r.equipe))),
+        equipe: arred(
+          percentisDe(
+            amostraBM(
+              'story',
+              rs.map((r) => r.equipe),
+              janela,
+            ),
+          ),
+        ),
         ciclo: arred(ciclo),
         distanciaClienteCicloP50: r2(cliente.p50 - ciclo.p50),
       }
@@ -74,9 +95,24 @@ export function calcularO9(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO9 {
       return {
         mes: b.chave,
         n: w.length,
-        cliente: ok ? doisP(w.map((r) => r.cliente)) : null,
-        equipe: ok ? doisP(w.map((r) => r.equipe)) : null,
-        ciclo: ok ? doisP(w.map((r) => r.ciclo)) : null,
+        cliente: ok
+          ? doisP(
+              w.map((r) => r.cliente),
+              j,
+            )
+          : null,
+        equipe: ok
+          ? doisP(
+              w.map((r) => r.equipe),
+              j,
+            )
+          : null,
+        ciclo: ok
+          ? doisP(
+              w.map((r) => r.ciclo),
+              j,
+            )
+          : null,
       }
     })
     return { tipo, n: rs.length, relogios, histogramas, serieMensal }

@@ -8,7 +8,9 @@ import {
 } from '../core/calendario'
 import type { VersaoCriterio } from '../core/criterios'
 import { slug } from '../slug'
+import { arquivadoSemDesfecho, descartado } from './descartado'
 import type { BaseBM, DimCard, DimColuna, FatoBloqueio, FatoTransicao } from './modelo'
+import { ordenarNeutro } from '../core/ordenar'
 
 export interface Segmento {
   ini: number
@@ -81,7 +83,11 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
     if (l) l.push(t)
     else transicoesPorCard.set(t.card_id, [t])
   }
-  for (const l of transicoesPorCard.values()) l.sort((a, b) => a.timestamp - b.timestamp)
+  for (const [id, l] of transicoesPorCard)
+    transicoesPorCard.set(
+      id,
+      ordenarNeutro(l, (t) => [t.timestamp, t.coluna_destino, t.coluna_origem ?? '']),
+    )
   const bloqueiosPorCard = new Map<string, FatoBloqueio[]>()
   for (const b of base.bloqueios) {
     const l = bloqueiosPorCard.get(b.card_id)
@@ -137,10 +143,10 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
       }
     }
     if (aberto) segmentos.push(aberto)
-    const descartado = card.motivo_descarte !== null
-    const ativo = card.excluido_em === null && !card.eh_subtarefa && !descartado
+    const foiDescartado = descartado(card)
+    const ativo = card.excluido_em === null && !card.eh_subtarefa && !foiDescartado
     const entrega = entregue ? (trs[trs.length - 1]?.timestamp ?? null) : null
-    const arquivadoSemDesfecho = card.arquivado_em !== null && !descartado && entrega === null
+    const semDesfecho = arquivadoSemDesfecho(card, entrega !== null)
     const emAndamento = segmentos.length > 0 && segmentos[segmentos.length - 1]?.fim === null
     const cicloHU =
       entrega !== null && !emAndamento
@@ -155,8 +161,8 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
       slugEquipe: slug(card.equipe),
       slugSistema: slug(card.sistema),
       ativo,
-      descartado,
-      arquivadoSemDesfecho,
+      descartado: foiDescartado,
+      arquivadoSemDesfecho: semDesfecho,
       entrada: card.criado_em,
       compromisso: card.comprometido_em,
       inicio: card.iniciado_em,
@@ -186,7 +192,7 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
 }
 
 export function indexarBM(base: BaseBM, cal: Calendario): IndiceBM {
-  const chave = `${cal.modo}|${cal.offsetMinutos}|${cal.horasPorDia}|${JSON.stringify(cal.turnos)}|${[...cal.feriados].sort().join(',')}`
+  const chave = `${cal.modo}|${cal.offsetMinutos}|${cal.horasPorDia}|${JSON.stringify(cal.turnos)}|${ordenarNeutro([...cal.feriados], (x) => [x]).join(',')}`
   let m = cache.get(base)
   if (!m) {
     m = new Map()

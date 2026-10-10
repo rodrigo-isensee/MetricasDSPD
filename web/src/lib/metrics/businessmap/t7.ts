@@ -17,6 +17,7 @@ import {
 } from './comum'
 import { estadoEm, idadeHUEm } from './estado'
 import type { ContextoBM } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 /** T7: fluxo de frentes. Granularidade frente: nunca entra em histograma de story. */
 export function calcularT7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT7 {
@@ -55,15 +56,16 @@ export function calcularT7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT7 {
       limiteFrentes: limite,
       acimaDoLimite: abertas.length > limite,
     },
-    porProjeto: [...porProj.entries()]
-      .map(([id, abertasN]) => ({
+    porProjeto: ordenarNeutro(
+      [...porProj.entries()].map(([id, abertasN]) => ({
         projetoId: id,
         projeto: nomeProjeto(id === '-' ? null : id),
         abertas: abertasN,
-      }))
-      .sort((a, b) => b.abertas - a.abertas),
-    idades: abertas
-      .map((m) => {
+      })),
+      (x) => [-x.abertas, x.projetoId],
+    ),
+    idades: ordenarNeutro(
+      abertas.map((m) => {
         const idade = du(ctx, idadeHUEm(ctx, m, t))
         const situacao: 'acima-p95' | 'entre-p85-p95' | 'dentro' | 'sem-referencia' =
           referencia.status !== 'ok'
@@ -80,8 +82,9 @@ export function calcularT7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT7 {
           idadeDiasUteis: r2(idade),
           situacao,
         }
-      })
-      .sort((a, b) => b.idadeDiasUteis - a.idadeDiasUteis),
+      }),
+      (x) => [-x.idadeDiasUteis, x.cardId],
+    ),
     referencia,
     histograma:
       hist === null

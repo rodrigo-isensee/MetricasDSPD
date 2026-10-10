@@ -1,18 +1,20 @@
 import type { ResultadoT4 } from '@/contracts/metricas'
 import { CLASSES_SERVICO } from '@/contracts/comum'
+import type { Intervalo } from '@/contracts/comum'
 import type { FiltrosFluxo } from '@/contracts/filtros'
 import { diaDeIso, diaLocal } from '../core/calendario'
-import { estatistica } from '../core/estatistica'
+import { estatistica, medianaDe } from '../core/estatistica'
 import { maximo, minimo } from '../core/extremos'
-import { mediana, media } from '../core/percentil'
+import { media } from '../core/percentil'
 import { semanasEntre } from '../core/series'
 import { baseAmostral, criterios, ehDemanda, periodoDe, r2, selecionar } from './comum'
+import { amostraBM } from './amostra'
 import type { ContextoBM } from './indice'
 
-const faixa = (v: readonly number[]) => ({
+const faixa = (v: readonly number[], j: Intervalo) => ({
   min: minimo(v),
   max: maximo(v),
-  mediana: mediana(v),
+  mediana: medianaDe(amostraBM('story', v, j)),
   media: r2(media(v)),
 })
 
@@ -47,8 +49,14 @@ export function calcularT4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT4 {
     const est = estatistica(n, periodo, () => {
       const filaCresce = mediaV <= mediaC
       return {
-        chegada: faixa(completas.map((l) => l.chegada)),
-        vazao: faixa(completas.map((l) => l.vazao)),
+        chegada: faixa(
+          completas.map((l) => l.chegada),
+          periodo,
+        ),
+        vazao: faixa(
+          completas.map((l) => l.vazao),
+          periodo,
+        ),
         razao: somaV === 0 ? null : r2(somaC / somaV),
         backlog,
         semanasParaZerar: filaCresce ? null : r2(backlog / (mediaV - mediaC)),

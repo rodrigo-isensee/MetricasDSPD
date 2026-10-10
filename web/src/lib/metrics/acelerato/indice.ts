@@ -9,6 +9,7 @@ import {
 import type { VersaoCriterio } from '../core/criterios'
 import { TOTALIZADORES, ETAPAS_PAUSA, totalizadorDaEtapa, type Totalizador } from './totalizadores'
 import type { BaseAC, Chamado, EtapaChamado } from './modelo'
+import { ordenarNeutro } from '../core/ordenar'
 
 const SLUG_EQUIPE: Record<Chamado['equipe'], EquipeSustentacaoId> = {
   'SSSC TOTVS': 'totvs',
@@ -59,7 +60,7 @@ function construir(base: BaseAC, cal: Calendario, hoje: number): IndiceAC {
     else porChamado.set(e.chamado_id, [e])
   }
   const chamados = base.chamados.map((c): ChamadoCalc => {
-    const etapas = (porChamado.get(c.chamado_id) ?? []).sort((a, b) => a.entrada - b.entrada)
+    const etapas = ordenarNeutro(porChamado.get(c.chamado_id) ?? [], (e) => [e.entrada, e.etapa])
     const fechado = c.status === 'Concluído' && c.data_finalizado !== null && !c.excluido
     const porTotalizador = Object.fromEntries(TOTALIZADORES.map((t) => [t, 0])) as Record<
       Totalizador,
@@ -104,7 +105,7 @@ function construir(base: BaseAC, cal: Calendario, hoje: number): IndiceAC {
 
 export function criarContextoAC(base: BaseAC, hoje: string, cal: Calendario): ContextoAC {
   const ms = instanteDeIso(hoje, cal)
-  const chave = `${cal.modo}|${cal.offsetMinutos}|${cal.horasPorDia}|${JSON.stringify(cal.turnos)}|${[...cal.feriados].sort().join(',')}|${ms}`
+  const chave = `${cal.modo}|${cal.offsetMinutos}|${cal.horasPorDia}|${JSON.stringify(cal.turnos)}|${ordenarNeutro([...cal.feriados], (x) => [x]).join(',')}|${ms}`
   let m = cache.get(base)
   if (!m) {
     m = new Map()

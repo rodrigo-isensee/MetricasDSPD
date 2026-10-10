@@ -7,47 +7,45 @@ import { somarMeses, isoDeDia } from '../core/calendario'
 import { slug } from '../slug'
 import { baseAmostral, criterios, ehDemanda, periodoDe, r2, selecionar } from './comum'
 import type { ContextoBM, MarcosCard } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 function grupos(xs: readonly MarcosCard[], chave: (m: MarcosCard) => string, janela: Intervalo) {
-  const nomes = [...new Set(xs.map(chave))].sort()
-  return nomes
-    .map((nome) => {
-      const g = xs.filter((m) => chave(m) === nome)
-      const falhas = g.filter((m) => m.card.origem_demanda !== null)
-      const est = estatistica(g.length, janela, () => {
-        const cont = new Map<OrigemDemanda, number>()
-        for (const m of falhas)
-          if (m.card.origem_demanda)
-            cont.set(m.card.origem_demanda, (cont.get(m.card.origem_demanda) ?? 0) + 1)
-        const origens = [
-          {
-            origem: 'Demanda de valor' as const,
-            n: g.length - falhas.length,
-            pct: r2(((g.length - falhas.length) / g.length) * 100),
-          },
-          ...ORIGENS_DEMANDA.map((o) => ({
-            origem: o,
-            n: cont.get(o) ?? 0,
-            pct: r2(((cont.get(o) ?? 0) / g.length) * 100),
-          })),
-        ]
-        const maior = [...ORIGENS_DEMANDA].sort(
-          (a, b) => (cont.get(b) ?? 0) - (cont.get(a) ?? 0),
-        )[0]
-        return {
-          pctFalha: r2((falhas.length / g.length) * 100),
-          origens,
-          origemMaior: falhas.length > 0 && maior ? maior : null,
-        }
-      })
-      return { id: slug(nome), nome, n: g.length, estatistica: est }
+  const nomes = ordenarNeutro([...new Set(xs.map(chave))], (n) => [n])
+  const linhas = nomes.map((nome) => {
+    const g = xs.filter((m) => chave(m) === nome)
+    const falhas = g.filter((m) => m.card.origem_demanda !== null)
+    const est = estatistica(g.length, janela, () => {
+      const cont = new Map<OrigemDemanda, number>()
+      for (const m of falhas)
+        if (m.card.origem_demanda)
+          cont.set(m.card.origem_demanda, (cont.get(m.card.origem_demanda) ?? 0) + 1)
+      const origens = [
+        {
+          origem: 'Demanda de valor' as const,
+          n: g.length - falhas.length,
+          pct: r2(((g.length - falhas.length) / g.length) * 100),
+        },
+        ...ORIGENS_DEMANDA.map((o) => ({
+          origem: o,
+          n: cont.get(o) ?? 0,
+          pct: r2(((cont.get(o) ?? 0) / g.length) * 100),
+        })),
+      ]
+      const maior = ordenarNeutro(ORIGENS_DEMANDA, (o) => [-(cont.get(o) ?? 0)])[0]
+      return {
+        pctFalha: r2((falhas.length / g.length) * 100),
+        origens,
+        origemMaior: falhas.length > 0 && maior ? maior : null,
+      }
     })
-    .sort(ordemNeutra)
+    return { id: slug(nome), nome, n: g.length, estatistica: est }
+  })
+  return ordemNeutra(linhas)
 }
 
-/** Ordem neutra (spec L10): por volume decrescente, desempate alfabético. Nunca pela parcela de falha. */
-const ordemNeutra = (a: { n: number; nome: string }, b: { n: number; nome: string }): number =>
-  b.n - a.n || a.nome.localeCompare(b.nome, 'pt-BR')
+/** Ordem neutra (spec L10): por volume decrescente, desempate pelo nome. Nunca pela parcela de falha. */
+const ordemNeutra = <T extends { n: number; nome: string }>(xs: readonly T[]): T[] =>
+  ordenarNeutro(xs, (x) => [-x.n, x.nome])
 
 /** T5: demanda de falha por sistema e por área. Mostra sistemas e áreas, nunca pessoas ou equipes. */
 export function calcularT5(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT5 {
@@ -70,10 +68,10 @@ export function calcularT5(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT5 {
   // Seleção separada da ordem de exibição: os 2 sistemas com maior parcela de falha, só para a variação.
   const pctDe = (g: (typeof porSistema)[number]): number =>
     g.estatistica.status === 'ok' ? g.estatistica.valor.pctFalha : -1
-  const piores = porSistema
-    .filter((g) => g.estatistica.status === 'ok')
-    .sort((a, b) => pctDe(b) - pctDe(a) || ordemNeutra(a, b))
-    .slice(0, 2)
+  const piores = ordenarNeutro(
+    porSistema.filter((g) => g.estatistica.status === 'ok'),
+    (g) => [-pctDe(g), -g.n, g.nome],
+  ).slice(0, 2)
   const variacaoSemestre = piores.map((g) => {
     const doAnt = ant.filter((m) => m.card.sistema === g.nome)
     const atualPct = g.estatistica.status === 'ok' ? g.estatistica.valor.pctFalha : null

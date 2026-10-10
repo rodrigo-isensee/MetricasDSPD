@@ -53,6 +53,37 @@ const semSpreadEmMinMax = [
   },
 ]
 
+const semSortDireto = [
+  {
+    selector: 'CallExpression[callee.property.name=/^(sort|toSorted)$/]',
+    message:
+      'Ordenação direta é proibida em métrica: use ordenarNeutro (lib/metrics/core/ordenar.ts), cuja última chave é o id.',
+  },
+]
+
+const semLeituraDeArquivamento = [
+  {
+    selector: 'MemberExpression[property.name=/^(motivo_descarte|arquivado_em)$/]',
+    message:
+      'Descarte e arquivamento só são lidos em businessmap/descartado.ts: use descartado(card) (Q6, P1).',
+  },
+]
+
+const MSG_AMOSTRA =
+  'criarAmostraInterna só é importado por businessmap/amostra.ts e acelerato/amostra.ts: use amostraBM/amostraAC.'
+const soAmostraPorDominio = {
+  group: ['**/core/amostra', '@/lib/metrics/core/amostra'],
+  message: MSG_AMOSTRA,
+}
+
+const MSG_PERCENTIL =
+  'Percentil e mediana de valores soltos são proibidos nas métricas: use percentisDe/medianaDe sobre uma Amostra (domínio e classe no tipo).'
+const semPercentilSolto = ['../core/percentil', '@/lib/metrics/core/percentil'].map((name) => ({
+  name,
+  importNames: ['percentil', 'mediana', 'ordenar'],
+  message: MSG_PERCENTIL,
+}))
+
 export default tseslint.config(
   { ignores: ['dist', 'coverage', 'node_modules', '*.config.js', 'scripts'] },
   js.configs.recommended,
@@ -126,8 +157,32 @@ export default tseslint.config(
               message: 'BusinessMap e Acelerato nunca se misturam.',
             },
             relativosRaizDaLib,
+            soAmostraPorDominio,
           ],
-          paths: paraRaizDaLib,
+          paths: [...paraRaizDaLib, ...semPercentilSolto],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/lib/metrics/businessmap/amostra.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '**/acelerato',
+                '**/acelerato/*',
+                '@/lib/metrics/acelerato*',
+                '@/mock/acelerato*',
+              ],
+              message: 'BusinessMap e Acelerato nunca se misturam.',
+            },
+            relativosRaizDaLib,
+          ],
+          paths: [...paraRaizDaLib, ...semPercentilSolto],
         },
       ],
     },
@@ -150,8 +205,32 @@ export default tseslint.config(
               message: 'BusinessMap e Acelerato nunca se misturam.',
             },
             relativosRaizDaLib,
+            soAmostraPorDominio,
           ],
-          paths: paraRaizDaLib,
+          paths: [...paraRaizDaLib, ...semPercentilSolto],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/lib/metrics/acelerato/amostra.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '**/businessmap',
+                '**/businessmap/*',
+                '@/lib/metrics/businessmap*',
+                '@/mock/businessmap*',
+              ],
+              message: 'BusinessMap e Acelerato nunca se misturam.',
+            },
+            relativosRaizDaLib,
+          ],
+          paths: [...paraRaizDaLib, ...semPercentilSolto],
         },
       ],
     },
@@ -192,6 +271,20 @@ export default tseslint.config(
     files: ['src/lib/metrics/**', 'src/mock/**'],
     ignores: ['**/*.test.ts', '**/testing.ts', 'src/mock/mock.test.ts'],
     rules: { 'no-restricted-syntax': ['error', ...proibidoNoCalculo, ...semSpreadEmMinMax] },
+  },
+  // Ordenação e arquivamento (M-005): só pelas funções únicas, nos arquivos de métrica dos dois domínios.
+  {
+    files: ['src/lib/metrics/businessmap/**', 'src/lib/metrics/acelerato/**'],
+    ignores: ['**/*.test.ts', '**/testing.ts', 'src/lib/metrics/businessmap/descartado.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...proibidoNoCalculo,
+        ...semSpreadEmMinMax,
+        ...semSortDireto,
+        ...semLeituraDeArquivamento,
+      ],
+    },
   },
   {
     files: ['src/mock/**'],

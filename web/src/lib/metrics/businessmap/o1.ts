@@ -6,6 +6,7 @@ import { slug } from '../slug'
 import { baseAmostral, criterios, periodoDe, selecionar } from './comum'
 import { estadoEm, serieWip } from './estado'
 import type { ContextoBM } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 /** O1: WIP e aderência ao limite. Fila e bloqueados contam como WIP. */
 export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
@@ -47,21 +48,21 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
     const eq = equipesSel[0]
     if (eq) {
       const quadro = `quadro-${slug(eq.nome)}`
-      porColuna = ctx.idx.base.colunas
-        .filter(
+      porColuna = ordenarNeutro(
+        ctx.idx.base.colunas.filter(
           (c) => c.quadro_id === quadro && (c.papel === 'trabalho' || c.papel === 'homologacao'),
-        )
-        .sort((a, b) => a.ordem - b.ordem)
-        .map((c) => {
-          const aqui = naRef.filter((x) => x.e.coluna === c.coluna)
-          return {
-            coluna: c.coluna,
-            tipoColuna: c.tipo_coluna,
-            itens: aqui.length,
-            bloqueados: aqui.filter((x) => x.e.bloqueioAberto).length,
-            limite: c.limite_wip,
-          }
-        })
+        ),
+        (c) => [c.ordem, c.coluna],
+      ).map((c) => {
+        const aqui = naRef.filter((x) => x.e.coluna === c.coluna)
+        return {
+          coluna: c.coluna,
+          tipoColuna: c.tipo_coluna,
+          itens: aqui.length,
+          bloqueados: aqui.filter((x) => x.e.bloqueioAberto).length,
+          limite: c.limite_wip,
+        }
+      })
     }
   }
   const porTipoColuna = (['fila', 'execucao'] as const).map((tc) => {

@@ -1,8 +1,8 @@
 import type { ResultadoT1 } from '@/contracts/metricas'
 import { CLASSES_SERVICO } from '@/contracts/comum'
 import type { FiltrosFluxo } from '@/contracts/filtros'
-import { calcularPercentis, estatistica } from '../core/estatistica'
-import { mediana } from '../core/percentil'
+import { medianaDe, percentisDe, estatistica } from '../core/estatistica'
+import { amostraBM } from './amostra'
 import {
   baseAmostral,
   criterios,
@@ -24,6 +24,7 @@ export function calcularT1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT1 {
     .filter(ehDemanda)
     .filter((m) => dentro(ctx, m.entrega, janela))
   let total = 0
+  const am = (vs: readonly number[]) => amostraBM('story', vs, janela)
   const classes = CLASSES_SERVICO.map((classe) => {
     const bs = cards
       .filter((m) => m.card.classe_servico === classe)
@@ -34,16 +35,18 @@ export function calcularT1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT1 {
       classe,
       n: bs.length,
       estatistica: estatistica(bs.length, janela, () => {
-        const p = calcularPercentis(bs.map((b) => b.total))
+        const p = percentisDe(am(bs.map((b) => b.total)))
         return {
           blocos: {
-            fila: r2(mediana(bs.map((b) => b.fila))),
-            espera: r2(mediana(bs.map((b) => b.espera))),
-            execucao: r2(mediana(bs.map((b) => b.execucao))),
-            homologacao: r2(mediana(bs.map((b) => b.homologacao))),
+            fila: r2(medianaDe(am(bs.map((b) => b.fila)))),
+            espera: r2(medianaDe(am(bs.map((b) => b.espera)))),
+            execucao: r2(medianaDe(am(bs.map((b) => b.execucao)))),
+            homologacao: r2(medianaDe(am(bs.map((b) => b.homologacao)))),
           },
           total: { p50: r2(p.p50), p85: r2(p.p85), p95: r2(p.p95) },
-          fracaoFilaPct: r2(mediana(bs.map((b) => (b.total > 0 ? (b.fila / b.total) * 100 : 0)))),
+          fracaoFilaPct: r2(
+            medianaDe(am(bs.map((b) => (b.total > 0 ? (b.fila / b.total) * 100 : 0)))),
+          ),
         }
       }),
     }

@@ -2,6 +2,7 @@ import type { ResultadoE3 } from '@/contracts/metricas'
 import type { FiltrosFluxo } from '@/contracts/filtros'
 import { baseAmostral, criterios, periodoDe, r2, selecionar } from './comum'
 import type { ContextoBM } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 /** E3: entrega x resultado por iniciativa. Censo (sem mínimo de 20); iniciativas sem ficha vêm primeiro. */
 export function calcularE3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE3 {
@@ -9,7 +10,7 @@ export function calcularE3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE3 {
   const ini = selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true }).filter(
     (m) => m.card.tipo === 'Iniciativa',
   )
-  const iniciativas = ini.map((m) => {
+  const iniciativasBrutas = ini.map((m) => {
     const ficha = ctx.idx.base.fichas.find((x) => x.card_id === m.card.card_id) ?? null
     return {
       cardId: m.card.card_id,
@@ -32,7 +33,7 @@ export function calcularE3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE3 {
           : null,
     }
   })
-  iniciativas.sort((a, b) => Number(a.ficha !== null) - Number(b.ficha !== null))
+  const iniciativas = ordenarNeutro(iniciativasBrutas, (i) => [Number(i.ficha !== null), i.cardId])
   const com = iniciativas.filter((i) => i.ficha !== null).length
   return {
     base: baseAmostral(iniciativas.length, 'iniciativas', null),

@@ -6,6 +6,7 @@ import { pctOuNulo, taxa } from '../core/estatistica'
 import { mesesEntre } from '../core/series'
 import { baseAmostral, criterios, noIntervalo, periodoDe, r2, selecionarAC } from './comum'
 import type { ContextoAC } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 const p = (k: number, n: number) => {
   const v = pctOuNulo(k, n)
@@ -27,7 +28,7 @@ export function calcularS6(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS6 
   return {
     base: baseAmostral(xs.length, 'chamados encerrados', periodo),
     criterios: criterios('S6', periodo, periodo, ctx),
-    motivos: contagem(xs).sort((a, b) => b.n - a.n),
+    motivos: ordenarNeutro(contagem(xs), (x) => [-x.n, MOTIVOS_ENCERRAMENTO.indexOf(x.motivo)]),
     taxaContorno: taxa(
       xs.filter((x) => x.c.motivo_encerramento === 'Contorno aplicado').length,
       xs.length,

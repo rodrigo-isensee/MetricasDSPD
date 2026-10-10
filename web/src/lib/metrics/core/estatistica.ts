@@ -7,7 +7,7 @@ import {
   type Taxa,
 } from '@/contracts/comum'
 import type { Amostra } from './amostra'
-import { media, ordenar, percentilOrdenado } from './percentil'
+import { media, mediana, ordenar, percentilOrdenado } from './percentil'
 
 export { MINIMO_AMOSTRA }
 
@@ -19,7 +19,7 @@ export function estatistica<T>(n: number, janela: Intervalo, calcular: () => T):
   return { status: 'ok', n, valor: calcular(), janela }
 }
 
-export function calcularPercentis(valores: readonly number[]): Percentis {
+function calcularPercentis(valores: readonly number[]): Percentis {
   const o = ordenar(valores)
   return {
     p50: percentilOrdenado(o, 0.5),
@@ -27,6 +27,15 @@ export function calcularPercentis(valores: readonly number[]): Percentis {
     p95: percentilOrdenado(o, 0.95),
   }
 }
+
+/**
+ * P50/P85/P95 sem a regra de mínimo, para uso DENTRO de uma estatística já protegida por
+ * `estatistica(n, ...)`. Só aceita `Amostra` (domínio e classe no tipo): valores soltos não entram.
+ */
+export const percentisDe = (a: Amostra): Percentis => calcularPercentis(a.valores)
+
+/** Mediana de uma amostra de classe única (mesma regra: só dentro de uma estatística protegida). */
+export const medianaDe = (a: Amostra): number => mediana(a.valores)
 
 /** P50/P85/P95 de uma amostra de classe única, com a regra de mínimo. */
 export function percentis(a: Amostra): Estatistica<Percentis> {

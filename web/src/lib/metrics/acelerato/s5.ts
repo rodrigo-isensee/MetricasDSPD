@@ -6,6 +6,7 @@ import { pctOuNulo } from '../core/estatistica'
 import { mesesEntre } from '../core/series'
 import { baseAmostral, criterios, noIntervalo as noP, periodoDe, r2, selecionarAC } from './comum'
 import type { ContextoAC } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 const p = (k: number, n: number) => {
   const v = pctOuNulo(k, n)
@@ -22,10 +23,13 @@ export function calcularS5(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS5 
   return {
     base: baseAmostral(xs.length, 'chamados escalados', periodo),
     criterios: criterios('S5', periodo, periodo, ctx),
-    motivos: MOTIVOS_ESCALACAO.map((motivo) => {
-      const n = xs.filter((x) => x.c.motivo_escalacao === motivo).length
-      return { motivo, n, pct: p(n, xs.length) }
-    }).sort((a, b) => b.n - a.n),
+    motivos: ordenarNeutro(
+      MOTIVOS_ESCALACAO.map((motivo) => {
+        const n = xs.filter((x) => x.c.motivo_escalacao === motivo).length
+        return { motivo, n, pct: p(n, xs.length) }
+      }),
+      (x) => [-x.n, MOTIVOS_ESCALACAO.indexOf(x.motivo)],
+    ),
     evolucao: meses.map((b) => {
       const doMes = xs.filter((x) => {
         const d = diaLocal(x.c.aberto_em, ctx.cal)

@@ -2,10 +2,12 @@ import type { ResultadoO10 } from '@/contracts/metricas'
 import { TIPOS_CARD, type TipoCard } from '@/contracts/comum'
 import type { FiltrosFluxo } from '@/contracts/filtros'
 import { diaDeIso, diaLocal, fimDoExpediente, isoDeDia } from '../core/calendario'
-import { calcularPercentis, estatistica, publicavel } from '../core/estatistica'
+import { percentisDe, estatistica, publicavel } from '../core/estatistica'
 import { FAIXAS, histogramaEmpilhado } from '../core/histograma'
 import { mesesEntre } from '../core/series'
 import { baseAmostral, criterios, periodoDe, r2, selecionar } from './comum'
+import { amostraBM } from './amostra'
+import { arquivadoAte } from './descartado'
 import { estadoEm } from './estado'
 import type { ContextoBM, MarcosCard } from './indice'
 
@@ -15,7 +17,7 @@ function idadesNaoIniciados(ctx: ContextoBM, cards: readonly MarcosCard[], d: nu
   const out: { idade: number; m: MarcosCard }[] = []
   for (const m of cards) {
     if (m.card.criado_em > t) continue
-    if (m.card.arquivado_em !== null && m.card.arquivado_em <= t) continue
+    if (arquivadoAte(m.card, t)) continue
     if (m.inicio !== null && m.inicio <= t) continue
     if (m.card.excluido_em !== null) continue
     if (estadoEm(ctx, m, t).papel === 'entrega') continue
@@ -55,7 +57,15 @@ export function calcularO10(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO10 {
       serie: meses.map((b) => {
         const xs = idadesNaoIniciados(ctx, dele, Math.min(b.fimDia, ref))
         const ok = publicavel(xs.length)
-        const p = ok ? calcularPercentis(xs.map((x) => x.idade)) : null
+        const p = ok
+          ? percentisDe(
+              amostraBM(
+                'story',
+                xs.map((x) => x.idade),
+                periodo,
+              ),
+            )
+          : null
         return { mes: b.chave, n: xs.length, p50: p ? r2(p.p50) : null, p85: p ? r2(p.p85) : null }
       }),
     }

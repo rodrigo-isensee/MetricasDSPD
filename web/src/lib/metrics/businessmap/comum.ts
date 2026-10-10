@@ -13,6 +13,7 @@ import { criteriosDe } from '../core/criterios'
 import { JANELA_POR_GRANULARIDADE, janelaMovel } from '../core/janela'
 import { resolverPeriodo } from '../core/series'
 import type { ContextoBM, MarcosCard } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 export const GRAN_JANELA = {
   story: 'story',
@@ -51,7 +52,7 @@ export function selecionar(
   const eq = o.semEquipe ? [] : f.equipe
   const si = o.semSistema ? [] : f.sistema
   const ti = o.semTipo ? [] : f.tipo
-  const chave = `${g}|${o.incluirInativos ? 1 : 0}|${[...eq].sort().join(',')}|${[...si].sort().join(',')}|${[...ti].sort().join(',')}`
+  const chave = `${g}|${o.incluirInativos ? 1 : 0}|${ordenarNeutro(eq, (x) => [x]).join(',')}|${ordenarNeutro(si, (x) => [x]).join(',')}|${ordenarNeutro(ti, (x) => [x]).join(',')}`
   let memo = memoSelecao.get(ctx)
   if (!memo) {
     memo = new Map()

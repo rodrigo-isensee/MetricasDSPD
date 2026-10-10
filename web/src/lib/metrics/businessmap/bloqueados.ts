@@ -4,12 +4,13 @@ import { diaDeIso, horasUteisEntre, fimDoExpediente } from '../core/calendario'
 import { baseAmostral, criterios, du, periodoDe, r2, selecionar } from './comum'
 import { estadoEm } from './estado'
 import type { ContextoBM } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 /** "Bloqueados agora": lista ordenada por tempo bloqueado. Contagem pura, sem estatística. Sem coluna de pessoa. */
 export function calcularBloqueados(ctx: ContextoBM, f: FiltrosFluxo): ResultadoBloqueados {
   const periodo = periodoDe(ctx, f)
   const t = Math.min(ctx.hoje, fimDoExpediente(diaDeIso(periodo.fim), ctx.cal))
-  const itens = selecionar(ctx, f, 'story')
+  const itensBrutos = selecionar(ctx, f, 'story')
     .map((m) => ({ m, e: estadoEm(ctx, m, t) }))
     .flatMap(({ m, e }) => {
       const b = e.bloqueioAberto
@@ -26,7 +27,7 @@ export function calcularBloqueados(ctx: ContextoBM, f: FiltrosFluxo): ResultadoB
         },
       ]
     })
-    .sort((a, b) => b.bloqueadoHaDiasUteis - a.bloqueadoHaDiasUteis)
+  const itens = ordenarNeutro(itensBrutos, (x) => [-x.bloqueadoHaDiasUteis, x.cardId])
   return {
     base: baseAmostral(itens.length, 'itens bloqueados', null),
     criterios: criterios('BLOQUEADOS', periodo, periodo, ctx),

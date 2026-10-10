@@ -2,7 +2,7 @@ import type { ResultadoO3 } from '@/contracts/metricas'
 import { TIPOS_CARD, type Intervalo, type Janela, type TipoCard } from '@/contracts/comum'
 import type { FiltrosFluxo } from '@/contracts/filtros'
 import { diaDeIso, diaLocal, isoDeDia } from '../core/calendario'
-import { calcularPercentis, publicavel, resumoComMedia } from '../core/estatistica'
+import { percentisDe, publicavel, resumoComMedia } from '../core/estatistica'
 import { JANELA_POR_GRANULARIDADE, janelaDeslocada, janelaMovelDia } from '../core/janela'
 import { semanasEntre } from '../core/series'
 import { amostraBM } from './amostra'
@@ -30,7 +30,10 @@ export function p85NaJanela(
   j: Intervalo,
 ): { p85: number | null; n: number } {
   const vals = es.filter((e) => noIntervalo(e, j)).map((e) => e.ciclo)
-  return { n: vals.length, p85: publicavel(vals.length) ? calcularPercentis(vals).p85 : null }
+  return {
+    n: vals.length,
+    p85: publicavel(vals.length) ? percentisDe(amostraBM('story', vals, j)).p85 : null,
+  }
 }
 
 /** O3: tempo de ciclo por tipo (uma distribuição por vez, nunca misturadas). */

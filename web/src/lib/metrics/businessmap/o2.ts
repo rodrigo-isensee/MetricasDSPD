@@ -17,6 +17,7 @@ import {
 } from './comum'
 import { estadoEm, idadeHUEm } from './estado'
 import type { ContextoBM } from './indice'
+import { ordenarNeutro } from '../core/ordenar'
 
 /** O2: idade do trabalho em progresso, comparada aos percentis do próprio tipo. */
 export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
@@ -42,14 +43,14 @@ export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
   if (umaEquipe) {
     const eq = ctx.idx.base.config.equipes.find((e) => slug(e.nome) === f.equipe[0])
     if (eq) {
-      etapas = ctx.idx.base.colunas
-        .filter(
+      etapas = ordenarNeutro(
+        ctx.idx.base.colunas.filter(
           (c) =>
             c.quadro_id === `quadro-${slug(eq.nome)}` &&
             (c.papel === 'trabalho' || c.papel === 'homologacao'),
-        )
-        .sort((a, b) => a.ordem - b.ordem)
-        .map((c) => c.coluna)
+        ),
+        (c) => [c.ordem, c.coluna],
+      ).map((c) => c.coluna)
     }
   }
 
@@ -85,9 +86,7 @@ export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
   }).filter((x) => x.abertos > 0 || x.referencia.n > 0)
 
   const comAbertos = tipos.filter((x) => x.abertos > 0)
-  const sugerido = [...comAbertos].sort(
-    (a, b) => b.acimaP85 - a.acimaP85 || b.abertos - a.abertos,
-  )[0]
+  const sugerido = ordenarNeutro(comAbertos, (x) => [-x.acimaP85, -x.abertos, x.tipo])[0]
   const acimaP95 = itens.filter((i) => i.situacao === 'acima-p95').length
   const algumaRef = tipos.some((x) => x.referencia.status === 'ok' && x.abertos > 0)
   return {
