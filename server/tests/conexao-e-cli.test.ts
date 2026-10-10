@@ -12,7 +12,7 @@ vi.mock('../src/db/migracoes.js', () => ({
 vi.mock('kysely', async (orig) => ({
   ...(await orig<typeof import('kysely')>()),
   sql: Object.assign(
-    (_s: TemplateStringsArray) => ({ execute: () => Promise.resolve({ rows: linhas() }) }),
+    () => ({ execute: () => Promise.resolve({ rows: linhas() }) }),
     { raw: (s: string) => ({ execute: () => execute(s) }) },
   ),
 }));
