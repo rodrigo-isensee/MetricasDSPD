@@ -13,6 +13,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
     "test": "TZ=UTC vitest run",
+    "cobertura": "TZ=UTC vitest run --coverage",
     "pronto": "npm run typecheck && npm test"
   },
   "dependencies": {
