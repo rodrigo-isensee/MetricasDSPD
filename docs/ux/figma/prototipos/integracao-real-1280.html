@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Integração real 1280 (protótipo)</title>
+<meta name="viewport" content="width=1280">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-texto:#fff;--acento-fundo:#e6effc;--alerta:#b42318;--alerta-fundo:#fdecea;--atencao:#8a5a00;--atencao-fundo:#fff4dc;--ok:#0b6b3a;--ok-fundo:#e3f5ec;--serie-1:#0072b2}
+*{box-sizing:border-box}body{margin:0;width:1280px;background:var(--fundo);color:var(--texto);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:32px}
+.aviso{background:#8a5a00;color:#fff;padding:8px 24px;font-weight:600}
+.w{padding:0 24px}h1{font-size:24px;margin:16px 24px 0}h2{font-size:18px;margin:32px 0 4px}.mini{color:var(--texto-2);font-size:12px}
+.cab{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border:1px solid var(--borda);background:var(--superficie);border-radius:8px;padding:16px;margin-top:8px}
+.cab h3{margin:0;font-size:24px}
+.selo{display:inline-flex;gap:4px;align-items:center;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;border:1px solid}
+.s-ok{color:var(--ok);background:var(--ok-fundo);border-color:var(--ok)}.s-atr{color:var(--atencao);background:var(--atencao-fundo);border-color:var(--atencao)}.s-fal{color:var(--alerta);background:var(--alerta-fundo);border-color:var(--alerta)}.s-cal{color:var(--acento);background:var(--acento-fundo);border-color:var(--acento)}
+.fx{display:flex;gap:8px;border:1px solid var(--acento);background:var(--acento-fundo);border-radius:6px;padding:12px;margin-top:8px}.fx a{color:var(--acento);text-decoration:underline;white-space:nowrap}
+.cartao{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:16px;margin-top:8px}
+.cod{background:var(--acento-fundo);color:var(--acento);font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px}
+.bd{display:inline-flex;border:1px solid var(--borda);background:var(--superficie-2);color:var(--texto-2);border-radius:6px;padding:2px 8px}
+.chip{display:inline-flex;border:1px solid var(--borda);background:var(--superficie-2);color:var(--texto-2);border-radius:9999px;padding:2px 8px}
+.bt{display:inline-flex;min-height:24px;border:1px solid var(--borda-controle);background:var(--superficie);color:var(--texto);border-radius:6px;padding:6px 12px;font:500 14px inherit;font-family:inherit}
+.g{display:grid;gap:16px;grid-template-columns:repeat(4,1fr)}.g .cartao{margin:0}
+table{width:100%;border-collapse:collapse}th,td{padding:8px 12px;text-align:left;vertical-align:top}thead{background:var(--superficie-2)}tbody tr{border-top:1px solid var(--borda)}
+.graf{position:relative;height:120px;border:1px solid var(--borda);border-radius:6px;background:var(--superficie-2)}
+.mc{position:absolute;top:0;bottom:0;left:62%;border-left:2px dashed var(--texto)}.mc span{position:absolute;top:4px;left:6px;background:var(--superficie);border:1px solid var(--borda-controle);border-radius:4px;padding:0 6px;font-size:12px;white-space:nowrap}
+.bar{position:absolute;bottom:0;width:6%;background:var(--serie-1)}
+.nota{display:flex;gap:8px;border:1px solid var(--borda);background:var(--superficie-2);border-radius:6px;padding:8px 12px;margin-top:8px}
+</style></head><body>
+<div class="aviso">Protótipo descartável (discovery Integração real, alternativa A). Dados fictícios. Largura 1280. Aguarda validação do usuário.</div>
+<h1>Integração real: telas novas</h1>
+
+<div class="w"><h2>W1. Cabeçalho do painel com selo de frescor (três estados)</h2><p class="mini">Ícone + texto, nunca só cor. Os dados continuam visíveis.</p>
+<div class="cab"><div><h3>Operacional</h3><div style="color:var(--texto-2)">O trabalho está fluindo?</div></div><div style="text-align:right">Fonte: BusinessMap · Atualizado em 09/10/2026 06:10 <span class="selo s-ok" aria-label="Fonte BusinessMap, atualizado em 09/10/2026 06:10">&#10003; Atual</span><br><button class="bt" style="margin-top:8px">Copiar link</button></div></div>
+<div class="cab"><div><h3>Operacional</h3></div><div style="text-align:right">Fonte: BusinessMap <span class="selo s-atr">&#9201; Atrasado: última coleta há 26 h</span></div></div>
+<div class="cab"><div><h3>Operacional</h3></div><div style="text-align:right"><span class="selo s-fal">&#9650; Falha</span> Coleta falhou em 09/10 06:00. Mostrando dados de 08/10 06:10. <a href="#" style="color:var(--acento)">Entenda</a></div></div>
+
+<h2>W2. Faixa de calibração e cartão em calibração</h2>
+<div class="fx" role="status"><span>i</span><span>Dados de calibração (BusinessMap, 15/09 a 14/11/2026). Servem para ajustar o processo, não para cobrar pessoas ou times. Metas não são avaliadas neste período.</span><a href="#">Saiba mais</a></div>
+<div class="cartao" style="max-width:760px"><span class="cod">O2</span> <b style="font-size:16px">Tempo de ciclo</b> <span class="selo s-cal">i Em calibração</span><br>
+<span class="bd" style="margin-top:4px">Base: 87 itens concluídos · 18/07 a 09/10/2026</span>
+<p style="font-weight:500">O P85 foi de 14 dias úteis.</p>
+<div class="graf"><div class="bar" style="left:6%;height:30%"></div><div class="bar" style="left:16%;height:60%"></div><div class="bar" style="left:26%;height:85%"></div><div class="bar" style="left:36%;height:50%"></div><div class="bar" style="left:46%;height:25%"></div></div>
+<div style="margin-top:12px"><span class="chip">i Em calibração: sem avaliação de meta</span> <span class="chip">Fonte: BusinessMap</span> <span class="chip">Granularidade: demanda</span></div></div>
+<p class="mini">"Pede atenção" não lista violações de meta de cartões em calibração.</p>
+
+<h2>W3. Dado parcial (cobertura)</h2>
+<div class="cartao" style="max-width:760px"><span class="cod">O3</span> <b style="font-size:16px">Tempo de ciclo</b> <span class="selo s-cal">i Em calibração</span>
+<p><b>Cobertura:</b> 14 de 62 cards com marco de início registrado (23%).</p>
+<div class="nota">i Cards sem o marco não entram. A amostra pode mudar quando a configuração terminar.</div></div>
+
+<h2>W4. Marcação de mudança de critério (T2.6)</h2>
+<div class="cartao" style="max-width:760px"><span class="cod">O2</span> <b style="font-size:16px">Tempo de ciclo</b>
+<div class="nota">&#9650; Mudança de critério em 02/03/2026: o início passou a contar da coluna "Em andamento". Dados antes e depois não são comparáveis. <a href="#" style="color:var(--acento)">Ver critérios</a></div>
+<div class="graf" style="margin-top:8px"><div class="bar" style="left:6%;height:40%"></div><div class="bar" style="left:18%;height:55%"></div><div class="bar" style="left:30%;height:35%"></div><div class="bar" style="left:42%;height:60%"></div><div class="bar" style="left:70%;height:45%"></div><div class="mc"><span>Mudança de critério em 02/03/2026</span></div></div>
+<p class="mini">Data e descrição vêm do registro oficial. Marcador no gráfico e faixa de calibração podem coexistir.</p></div>
+
+<h2>W5. Falha de coleta: quatro situações distintas</h2>
+<table class="cartao" style="width:100%"><thead><tr><th>Situação</th><th>Título</th><th>Texto</th><th>Ação</th></tr></thead><tbody>
+<tr><td>Atrasada ou falhou, com dado anterior</td><td>(cartão normal) + selo W1</td><td>Mostrando dados de 08/10 06:10.</td><td>Link "Entenda"</td></tr>
+<tr><td>Nunca houve coleta ok</td><td><b>Ainda não há dados desta fonte</b></td><td>A primeira coleta do BusinessMap ainda não terminou. Volte mais tarde.</td><td><span class="bt">Voltar à Visão geral</span></td></tr>
+<tr><td>Falha de leitura da API</td><td><b style="color:var(--alerta)">&#9650; Não foi possível carregar este gráfico</b></td><td>Tivemos um problema ao ler os dados. Seus filtros foram mantidos.</td><td><span class="bt">Tentar de novo</span></td></tr>
+<tr><td>Filtro sem dados</td><td><b>Sem dados para estes filtros</b></td><td>Nenhum item atende aos filtros escolhidos.</td><td><span class="bt">Limpar filtros</span></td></tr></tbody></table>
+<p class="mini">A falha do BusinessMap nunca altera os painéis do Acelerato, e vice-versa.</p>
+
+<h2>W6. Visão geral com duas fontes</h2>
+<div class="cartao" style="display:flex;gap:24px;align-items:center">Dados: <span>BusinessMap <span class="selo s-ok">&#10003; Atual 06:10</span></span> <span>Acelerato <span class="selo s-atr">&#9201; Atrasado há 26 h</span></span></div>
+<div class="g" style="margin-top:16px">
+<div class="cartao"><b>Operacional</b><br><span class="selo s-cal">i Em calibração</span><p class="mini">Cartão de nível</p></div>
+<div class="cartao"><b>Tático</b><br><span class="selo s-cal">i Em calibração</span></div>
+<div class="cartao"><b>Estratégico</b><br><span class="selo s-cal">i Em calibração</span></div>
+<div class="cartao"><b>Sustentação</b><br><span class="selo s-atr">&#9201; Atrasado</span></div></div>
+</div></body></html>

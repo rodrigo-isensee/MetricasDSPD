@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Design system 375 (protótipo)</title>
+<meta name="viewport" content="width=375">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-texto:#fff;--acento-fundo:#e6effc;--alerta:#b42318;--alerta-fundo:#fdecea;--atencao:#8a5a00;--atencao-fundo:#fff4dc;--ok:#0b6b3a;--ok-fundo:#e3f5ec;--serie-1:#0072b2;--serie-2:#d55e00;--serie-3:#009e73;--serie-4:#7b3fa0;--serie-5:#b87a00;--serie-6:#cc79a7;--serie-7:#5b6477}
+[data-theme=dark]{--fundo:#0f1420;--superficie:#161c2a;--superficie-2:#1e2638;--texto:#e8ecf4;--texto-2:#aab3c5;--borda:#2a3347;--borda-controle:#8590a6;--acento:#6aa8ff;--acento-texto:#0f1420;--acento-fundo:#1c2d4a;--alerta:#ff8a80;--alerta-fundo:#3a1b1b;--atencao:#e0b040;--atencao-fundo:#3a2e0f;--ok:#3ccb9b;--ok-fundo:#0f2f25;--serie-1:#6aa8ff;--serie-2:#ff9a5c;--serie-3:#3ccb9b;--serie-4:#b48cff;--serie-5:#e0b040;--serie-6:#f08cc0;--serie-7:#9aa3b5}
+*{box-sizing:border-box}body{margin:0;width:375px;background:#f6f7f9;color:#1a1f2b;font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.pn{background:var(--fundo);color:var(--texto);padding:16px;border-bottom:1px solid #d5dae3}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:18px;margin:20px 0 8px}h3{font-size:16px;margin:0}
+.aviso{background:#8a5a00;color:#fff;padding:8px 16px;font-weight:600}
+.g{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}
+.sw{border:1px solid var(--borda);border-radius:8px;overflow:hidden;background:var(--superficie)}.sw i{display:block;height:32px}.sw b,.sw span{display:block;padding:2px 8px;font-size:12px}.sw span{color:var(--texto-2)}
+.cartao{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:16px;margin-bottom:8px}
+.cab{display:flex;flex-direction:column;gap:8px}.cod{background:var(--acento-fundo);color:var(--acento);font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px}
+.bt{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;min-width:44px;border:1px solid var(--borda-controle);background:var(--superficie);color:var(--texto);border-radius:6px;padding:6px 12px;font:500 14px inherit;font-family:inherit}
+.bt.p{background:var(--acento);color:var(--acento-texto);border-color:transparent}.bt.f{background:transparent;color:var(--acento);border-color:transparent}.bt.x{font-size:12px}
+.bd{display:inline-flex;border:1px solid var(--borda);background:var(--superficie-2);color:var(--texto-2);border-radius:6px;padding:2px 8px;margin:2px 0}
+.bd.w{border-color:var(--atencao);background:var(--atencao-fundo);color:var(--atencao)}
+.chip{display:inline-flex;border:1px solid var(--borda);background:var(--superficie-2);color:var(--texto-2);border-radius:9999px;padding:2px 8px;margin:2px 0}
+.st{display:inline-flex;gap:4px;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:600}.st.ok{color:var(--ok);background:var(--ok-fundo)}.st.no{color:var(--alerta);background:var(--alerta-fundo)}.st.n{color:var(--texto-2);background:var(--superficie-2)}
+.ins{border:1px solid var(--atencao);background:var(--atencao-fundo);border-radius:6px;padding:12px;margin-bottom:8px}.ins.l{border-color:var(--borda);background:var(--superficie-2)}.ins p{margin:4px 0}
+.ins .t{font-weight:600;color:var(--atencao)}.ins.l .t{color:var(--texto)}
+.mt{display:inline-block;width:140px;height:8px;border:1px solid var(--atencao);border-radius:9999px;background:var(--superficie);vertical-align:middle;overflow:hidden}.mt u{display:block;height:100%;width:60%;background:var(--atencao)}.ins.l .mt{border-color:var(--borda-controle)}.ins.l .mt u{background:var(--texto-2)}
+.fa{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:12px}.fa h4{margin:0;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-2)}
+.it{display:flex;gap:8px;border:1px solid var(--borda);background:var(--superficie-2);border-radius:6px;padding:10px 12px;margin-top:8px}.it a{color:var(--acento);text-decoration:underline}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--borda);overflow:hidden}.tab{padding:10px 12px;border-bottom:2px solid transparent;color:var(--texto-2);margin-bottom:-1px;white-space:nowrap}.tab.a{border-color:var(--acento);background:var(--acento-fundo);color:var(--texto);font-weight:600}
+table{border-collapse:collapse;min-width:420px}caption{text-align:left;font-size:12px;color:var(--texto-2);padding:8px 12px}th,td{padding:8px 12px;text-align:left}thead{background:var(--superficie-2)}tbody tr{border-top:1px solid var(--borda)}td.r{text-align:right}
+.reg{border:1px solid var(--borda);border-radius:6px;background:var(--superficie);overflow-x:auto}
+.sk{height:96px;border-radius:6px;background:linear-gradient(90deg,var(--superficie-2) 25%,var(--borda) 50%,var(--superficie-2) 75%)}
+.ficticio{display:inline-flex;gap:4px;border:1px solid var(--atencao);background:var(--atencao-fundo);color:var(--atencao);border-radius:6px;padding:4px 8px;font-weight:600}.mini{color:var(--texto-2);font-size:12px}
+.folha{border:1px solid var(--borda-controle);border-radius:12px 12px 0 0;background:var(--superficie);padding:16px;box-shadow:0 -8px 24px rgb(0 0 0/.2)}
+</style></head><body>
+<div class="aviso">Protótipo descartável do design system. Tokens de web/src/styles/tokens.css. Largura 375.</div>
+<div class="pn" data-theme="light">
+<h1>Design system (claro)</h1>
+<h2>Cores</h2>
+<div class="g">
+<div class="sw"><i style="background:var(--fundo)"></i><b>--fundo</b><span>#f6f7f9</span></div>
+<div class="sw"><i style="background:var(--superficie)"></i><b>--superficie</b><span>#ffffff</span></div>
+<div class="sw"><i style="background:var(--superficie-2)"></i><b>--superficie-2</b><span>#eef1f6</span></div>
+<div class="sw"><i style="background:var(--texto)"></i><b>--texto</b><span>#1a1f2b</span></div>
+<div class="sw"><i style="background:var(--texto-2)"></i><b>--texto-2</b><span>#4a5365</span></div>
+<div class="sw"><i style="background:var(--borda-controle)"></i><b>--borda-controle</b><span>#6b7488</span></div>
+<div class="sw"><i style="background:var(--acento)"></i><b>--acento</b><span>#1f5fbf</span></div>
+<div class="sw"><i style="background:var(--alerta)"></i><b>--alerta</b><span>#b42318</span></div>
+<div class="sw"><i style="background:var(--atencao)"></i><b>--atencao</b><span>#8a5a00</span></div>
+<div class="sw"><i style="background:var(--ok)"></i><b>--ok</b><span>#0b6b3a</span></div></div>
+<h2>Séries</h2>
+<div class="g" style="grid-template-columns:repeat(7,1fr)"><div class="sw"><i style="background:var(--serie-1)"></i></div><div class="sw"><i style="background:var(--serie-2)"></i></div><div class="sw"><i style="background:var(--serie-3)"></i></div><div class="sw"><i style="background:var(--serie-4)"></i></div><div class="sw"><i style="background:var(--serie-5)"></i></div><div class="sw"><i style="background:var(--serie-6)"></i></div><div class="sw"><i style="background:var(--serie-7)"></i></div></div>
+<p class="mini">Séries sempre com padrão (listras, pontos, hachura, cruzado), nunca só cor.</p>
+<h2>Botões (alvo 44px)</h2>
+<button class="bt p">Ver resultados</button> <button class="bt">Tentar de novo</button> <button class="bt f">Limpar filtros</button>
+<h2>CartaoMetrica</h2>
+<div class="cartao"><div class="cab"><div><span class="cod">O2</span> <h3 style="display:inline">Tempo de ciclo</h3></div><div><button class="bt x">Como ler e como é calculado</button> <button class="bt x">Ver como tabela</button></div></div>
+<div><span class="bd">Base: 87 itens concluídos · 18/07 a 09/10/2026</span> <span class="bd">Janela fixa: 12 semanas</span></div>
+<p style="color:var(--texto-2)">Quanto tempo uma demanda leva do início à entrega?</p>
+<p style="font-weight:500">O P85 foi de 14 dias úteis.</p>
+<div style="height:80px;border:1px dashed var(--borda-controle);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--texto-2)">[gráfico]</div>
+<div style="margin-top:12px"><span class="chip">Meta: P85 até 15 dias</span> <span class="st ok">&#10003; Dentro da meta</span> <span class="chip">Fonte: BusinessMap</span> <span class="chip">Granularidade: demanda</span></div></div>
+<h2>Status</h2><span class="st ok">&#10003; Dentro</span> <span class="st no">&#9650; Fora</span> <span class="st n">i Sem referência</span>
+<h2>AmostraInsuficiente</h2>
+<div class="ins"><p class="t">&#9650; Amostra insuficiente</p><p>Só publicamos percentis com pelo menos 20 itens. Aqui há 12 itens.</p><p><span class="mt"><u></u></span> <span class="mini">12/20</span></p><button class="bt x">Remover filtro Equipe</button></div>
+<div class="ins l"><p class="t">i Amostra insuficiente</p><p>Foram concluídos 7 projetos nas últimas 12 semanas. Isso é esperado.</p><p><span class="mt"><u style="width:35%"></u></span> <span class="mini">7/20</span></p></div>
+<h2>FaixaAtencao</h2>
+<div class="fa"><h4>Pede atenção hoje</h4><div class="it"><span style="color:var(--alerta)">&#9650;</span><span>3 cards parados há mais de 5 dias <a href="#">Ver O7</a></span></div><div class="it"><span style="color:var(--alerta)">&#9650;</span><span>P85 acima da meta <a href="#">Ver O2</a></span></div></div>
+<h2>Filtros (mobile)</h2>
+<button class="bt">Filtros (2)</button> <span class="chip">Equipe: Alfa &times;</span>
+<div class="folha" style="margin-top:12px"><h3>Filtros</h3><p>Equipe &middot; Tipo de demanda &middot; Sistema &middot; Período</p><button class="bt">Limpar filtros</button> <button class="bt p">Ver resultados</button></div>
+<h2>Abas</h2>
+<div class="tabs"><span class="tab a">Melhoria (42)</span><span class="tab">Incidente (31)</span><span class="tab">Requisição</span></div>
+<h2>Tabela rolável</h2>
+<div class="reg"><table><caption>O2 por tipo (dias úteis)</caption><thead><tr><th>Tipo</th><th class="r">P50</th><th class="r">P85</th><th class="r">P95</th></tr></thead><tbody><tr><th>Melhoria</th><td class="r">6</td><td class="r">14</td><td class="r">21</td></tr><tr><th>Requisição</th><td colspan="3">— amostra insuficiente</td></tr></tbody></table></div>
+<h2>Estados</h2>
+<span class="ficticio">i Dados fictícios</span>
+<div class="cartao" style="margin-top:8px"><b>Carregando</b><div class="sk"></div></div>
+<div class="cartao"><b>Vazio</b><p>Sem dados para estes filtros.</p><button class="bt">Limpar filtros</button></div>
+<div class="cartao"><b style="color:var(--alerta)">&#9650; Erro</b><p>Não foi possível carregar este gráfico. Seus filtros foram mantidos.</p><button class="bt">Tentar de novo</button></div>
+</div>
+<div class="pn" data-theme="dark"><h1>Escuro</h1>
+<div class="cartao"><span class="cod">O2</span> <b>Tempo de ciclo</b><br><span class="bd">Base: 87 itens concluídos</span> <span class="bd w">&#9650; Amostra insuficiente</span><p><span class="st ok">&#10003; Dentro da meta</span> <span class="st no">&#9650; Fora da meta</span></p><span class="ficticio">i Dados fictícios</span></div></div>
+</body></html>
