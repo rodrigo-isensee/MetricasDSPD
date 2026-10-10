@@ -13,6 +13,7 @@ import { medirTrocaFiltro } from './troca-filtro';
 
 const SAIDA = join(process.cwd(), 'perf-results');
 const ARQ = join(SAIDA, 'resultado.json');
+const N_C6 = Number(process.env.PERF_REPETICOES_C6 ?? 5);
 const N = Number(process.env.PERF_REPETICOES ?? ORCAMENTO.repeticoes);
 /** Parâmetro opcional que desliga a latência simulada do mock (F5). Mecanismo a definir pelo react-frontend (ADR 0003). */
 const SEM_LATENCIA = process.env.PERF_QUERY_SEM_LATENCIA ?? ''; // ex.: "latencia=0"
@@ -60,10 +61,19 @@ test.describe('perf', () => {
       await page.waitForLoadState('networkidle');
       await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
       const v = await lerVitais(page);
-      registrar(`F2_C6_${rota}`, v);
-      console.log(`[perf] ${rota}: CLS=${v.cls.toFixed(3)} maiorTarefaLonga=${v.maiorTarefaLongaMs.toFixed(0)} ms`);
+      // C6 é sensível a carga da máquina (uma tarefa isolada pode dobrar): mediana de N cargas, limite inalterado.
+      const longas = [v.maiorTarefaLongaMs];
+      for (let i = 1; i < N_C6; i++) {
+        await page.reload();
+        await painel.esperarCartoesProntos();
+        await page.waitForLoadState('networkidle');
+        longas.push((await lerVitais(page)).maiorTarefaLongaMs);
+      }
+      const c6 = resumir(longas);
+      registrar(`F2_C6_${rota}`, { ...v, c6 });
+      console.log(`[perf] ${rota}: CLS=${v.cls.toFixed(3)} maiorTarefaLonga(mediana de ${c6.n})=${c6.mediana.toFixed(0)} ms (max=${c6.max.toFixed(0)} ms)`);
       expect.soft(v.cls, 'F2 CLS').toBeLessThan(ORCAMENTO.F2_cls);
-      expect.soft(v.maiorTarefaLongaMs, 'C6 tarefa longa').toBeLessThan(ORCAMENTO.C6_tarefaLongaMs);
+      expect.soft(c6.mediana, 'C6 tarefa longa (mediana)').toBeLessThan(ORCAMENTO.C6_tarefaLongaMs);
     });
   }
 

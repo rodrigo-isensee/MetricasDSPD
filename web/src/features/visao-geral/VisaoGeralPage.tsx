@@ -241,7 +241,10 @@ export default function VisaoGeralPage() {
         <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
       )}
       {!aguardando && (q.estado === 'carregando' || (q.estado === 'ok' && !pronta)) && (
-        <EsqueletoCartao codigo="VISAO_GERAL" titulo="Visão geral" altura={320} />
+        // Em tela larga reserva uma tela inteira: o conteúdo real é mais alto e o rodapé, ao descer, não gera CLS.
+        <div className="lg:min-h-screen">
+          <EsqueletoCartao codigo="VISAO_GERAL" titulo="Visão geral" altura={320} />
+        </div>
       )}
       {q.estado === 'erro' && (
         <div

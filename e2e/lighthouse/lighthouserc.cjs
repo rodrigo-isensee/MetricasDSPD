@@ -1,8 +1,10 @@
-// Lighthouse CI (ADR 0003, F10): Performance >= 90 e Acessibilidade >= 95, perfil desktop, as 6 rotas, sobre `vite preview`.
+// Lighthouse CI (ADR 0003, F10): Performance >= 90 e Acessibilidade >= 95, perfil desktop, as 8 rotas, sobre `vite preview`.
 // Uso: `pnpm run lighthouse` (usa scripts/lighthouse.sh: faz build, descobre o Chromium do Playwright e roda o lhci).
 // Chrome: variável CHROME_PATH (o script a preenche com o Chromium do Playwright).
 const PORTA = process.env.LHCI_PORTA || '4175'; // porta própria para não colidir com o preview dos testes (4173/4174)
-const rotas = ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel'];
+const rotas = process.env.LHCI_ROTAS
+  ? process.env.LHCI_ROTAS.split(',')
+  : ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel', '/preferencias', '/dados'];
 
 module.exports = {
   ci: {

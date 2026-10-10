@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Roda o Lighthouse CI nas 6 rotas (F10). Pré-requisito: `pnpm install` em e2e/ e web/ com build recente (`pnpm run build` em web/).
+# Roda o Lighthouse CI nas 8 rotas (LHCI_ROTAS=/,/dados restringe) (F10). Pré-requisito: `pnpm install` em e2e/ e web/ com build recente (`pnpm run build` em web/).
 # O Chromium usado é o do Playwright (mesma versão dos E2E). Resultado: e2e/lighthouse/relatorios/ + código de saída do lhci.
 set -euo pipefail
 cd "$(dirname "$0")/.."
