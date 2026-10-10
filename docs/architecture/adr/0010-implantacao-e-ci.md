@@ -1,5 +1,6 @@
 # 0010 - Implantação, ambientes e CI
 - Status: **substituída pela ADR 0013** (2026-10-10): hospedagem na AWS (S3 + CloudFront, API Gateway, Lambda, RDS, CDK); saem imagem Docker, nginx, registro e runner interno (I-1, I-9, I-10 deixam de valer). **Continuam valendo** os jobs `check`, `db`, `e2e`, `openapi`, migrações compatíveis com a versão anterior e os alertas.
+- **Ajustada pela ADR 0014** (2026-10-10): **pnpm** em todos os jobs (`pnpm/action-setup`, `actions/setup-node` com `cache: pnpm`, `pnpm install --frozen-lockfile` no lugar de `npm ci`); no job `db`, o MySQL vem do **`docker compose --profile test up -d --wait mysql-test`** (o mesmo do local) em vez de `services`, com prefixo de databases por execução; "diff de `tipos.gen.ts`" sai (sem `kysely-codegen`) e entra a verificação de `migrations/checksums.json` e do snapshot de esquema.
 - Status anterior: proposta (hospedagem e runner dependiam de I-1, I-9, I-10)
 - Data: 2026-10-09
 - Relacionadas: ADR 0003 (o que bloqueia), ADR 0005 (migrações), ADR 0006 (processos), praticas §7, ata D15

@@ -1,11 +1,11 @@
 # Visão geral da arquitetura
 
 - Data: 2026-10-09 · Revisão: 2026-10-10 (ADR 0013: serverless na AWS, Acelerato via Metabase) · Pedido 002
-- Decisões: ADR 0001 (front), 0002 (monorepo e pacotes), 0003 (performance), 0004 (MySQL), 0005 (Kysely + SQL), 0007 (contratos), 0009 (autenticação, pendente do SSO), 0011 (pacote de cálculo), 0012 (gráficos), **0013 (back-end modular em duas Lambdas na AWS)**. Substituídas pela 0013: 0006 (processos), 0008 (Fastify), 0010 (implantação).
+- Decisões: ADR 0001 (front), 0002 (monorepo e pacotes), 0003 (performance), 0004 (MySQL), 0005 (SQL explícito), 0007 (contratos), 0009 (autenticação, pendente do SSO), 0011 (pacote de cálculo), 0012 (gráficos), **0013 (back-end modular em duas Lambdas na AWS)**, **0014 (stack: pnpm, Fastify 5, `mysql2` puro, migrador próprio, outbox com polling, Zod 4, OpenAPI, Vitest com prefixo por execução)**. Substituídas pela 0013: 0006 (processos), 0008 (execução), 0010 (implantação).
 - Modelo: `data-model.md` · Servidor: `server.md` · Ordem de implementação: `roadmap.md`
 - Origem da revisão: `propostas/serverless-outra-sessao/` (registro da sessão em que o usuário decidiu)
 
-Resumo: **um back-end Node em TypeScript, com módulos em pastas, publicado em duas Lambdas** (`api` e `coleta`), com RDS MySQL 8.4 e a SPA React no S3 + CloudFront. Os dados vêm do BusinessMap (API e webhook) e do Acelerato (tabela no Metabase), uma vez ao dia. Simplicidade primeiro: sem fila, barramento nem snapshot.
+Resumo: **um back-end Node em TypeScript, com módulos em pastas, publicado em duas Lambdas** (`api` e `coleta`), com RDS MySQL 8.4 e a SPA React no S3 + CloudFront. Os dados vêm do BusinessMap (API e webhook) e do Acelerato (tabela no Metabase), uma vez ao dia. Simplicidade primeiro: sem fila, barramento nem snapshot; eventos só pela outbox transacional no MySQL, lida por polling (ADR 0014).
 
 ## 1. Contexto (C4 nível 1)
 
@@ -35,8 +35,8 @@ flowchart TB
   cf -->|"/*"| s3["S3: SPA React (web/)"]
   cf -->|"/api/*"| gw["API Gateway HTTP<br/>(autenticação conforme P3)"]
   bmext["BusinessMap"] -->|"webhook /webhooks/businessmap"| gw
-  gw --> api["Lambda api<br/>Hono + módulos"]
-  sched["EventBridge Scheduler<br/>bm diário · ac diário · bm varredura semanal"] --> col["Lambda coleta<br/>mesmo código, outra entrada"]
+  gw --> api["Lambda api<br/>Fastify 5 + módulos"]
+  sched["EventBridge Scheduler<br/>bm diário · ac diário · bm varredura semanal · eventos (outbox) 1 min"] --> col["Lambda coleta<br/>mesmo código, outra entrada"]
   pipe["Pipeline de deploy"] -.->|invoca| mig["Lambda migrar<br/>só no deploy"]
   subgraph vpc["VPC"]
     api -->|"dspd_api (SELECT), dspd_webhook (INSERT stg_webhook)"| db[("RDS MySQL 8.4<br/>dspd_bm · dspd_ac · dspd_core")]
@@ -158,7 +158,7 @@ Invariantes do fluxo:
 | Observabilidade | pino JSON com `requestId`/`coleta_id`; `ctl_coleta`; alarmes CloudWatch por fonte | ADR 0013 §6 |
 | Confiabilidade | idempotência, retentativa com backoff, `GET_LOCK`, marca d'água só avança em sucesso, backup do RDS com recuperação pontual | ADR 0006 (contrato), 0013 |
 | Performance | contexto em memória por fonte + cache por chave; índices por filtro; A1–A3, M1–M3, K1–K4, S1 | ADR 0003; data-model §7 |
-| Testabilidade | biblioteca pura, dependências por parâmetro, `app.request()` do Hono, MySQL em container, paridade | ADR 0005, 0007, 0013 |
+| Testabilidade | biblioteca pura, dependências por parâmetro, `app.inject()` do Fastify, MySQL do Docker Compose com databases prefixados por execução, paridade | ADR 0005, 0007, 0013, 0014 |
 
 ## 7. Perguntas abertas
 Infraestrutura da ADR anterior (I-1, I-2, I-8 a I-11, I-14, I-15) foi respondida ou deixou de valer com a AWS. Continuam: I-3 (= P3, SSO), I-5 (BusinessMap: limite de taxa, conta de serviço, segredo do webhook), I-6 (= P4), I-7 (canal de alertas), I-12 (DPO e retenção), I-13 (homologação com dados reais). Novas: P5–P13 da ADR 0013 (Metabase, conta AWS, credenciais, frequência da coleta BM). I-4 e I-4b (MySQL do Acelerato) foram substituídas por P5–P10.

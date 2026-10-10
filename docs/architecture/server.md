@@ -1,15 +1,15 @@
 # Servidor (`server/`): módulos, migrações, seed e acesso ao MySQL
 
-Status: K-017 parte 2. Modelo de dados em `data-model.md`; decisões em ADR 0004 (MySQL), 0005 (Kysely + SQL explícito), 0006 (contrato da coleta) e **0013** (Hono, duas Lambdas, Acelerato via Metabase).
+Status: K-017 parte 2. Modelo de dados em `data-model.md`; decisões em ADR 0004 (MySQL), 0005 (SQL explícito), 0006 (contrato da coleta), 0013 (duas Lambdas, Acelerato via Metabase) e **0014** (stack: pnpm, Fastify 5, `mysql2` puro, migrador próprio, outbox com polling, Zod 4, OpenAPI, Vitest com prefixo por execução).
 
-## Estrutura alvo (ADR 0013)
-O que está abaixo (`src/db/`, `src/coletas/`) é o estado atual. A organização alvo, feita nos cartões S-01 a S-10 do `roadmap.md`:
+## Estrutura alvo (ADRs 0013 e 0014)
+O que está abaixo (`src/db/` com Kysely, `src/coletas/`) é o estado atual. A organização alvo, feita nos cartões S-00 a S-14 do `roadmap.md`:
 ```
 server/
-  migrations/      (sem mudança)
+  migrations/      ddl.up/ddl.down inalterados (sai só o wrapper Kysely) + checksums.json
   src/
-    app.ts         Hono com as rotas de todos os módulos
-    plataforma/    config (zod), db (Kysely + mysql2), log (pino), erros, auth
+    app.ts         buildApp(deps): Fastify 5 + fastify-type-provider-zod com as rotas de todos os módulos
+    plataforma/    config (zod), db (mysql2: pools por papel, emTransacao, mapa S de schemas com prefixo, migrador), eventos (publicarEvento, processarOutbox), log (pino), erros, auth
     modulos/       businessmap · acelerato · referencia · metricas · operacao (hoje src/coletas) · preferencias
     entradas/      lambda-api · lambda-coleta · lambda-migrar · local · coleta-cli
 infra/             AWS CDK, uma stack
@@ -45,13 +45,15 @@ flowchart LR
   col --> ctr
 ```
 
-`dspd_bm` (BusinessMap) e `dspd_ac` (Acelerato) nunca se misturam: nenhuma FK nem consulta cruza os dois. O pacote `@metricas-dspd/server` é workspace da raiz; `npm run pronto` na raiz roda typecheck, lint e testes do server junto com os demais pacotes (o server usa a própria configuração de ESLint).
+`dspd_bm` (BusinessMap) e `dspd_ac` (Acelerato) nunca se misturam: nenhuma FK nem consulta cruza os dois. O pacote `@metricas-dspd/server` é workspace da raiz; `pnpm pronto` na raiz (antes `npm run pronto`; ADR 0014) roda typecheck, lint e testes do server junto com os demais pacotes (o server usa a própria configuração de ESLint).
 
 ### Estado de coleta (`src/coletas/`, integracao-real B1 a B4)
 
 `estadoColeta(db, dominio, agora)` e `historicoColetas(db, dominio, pagina)`: leem `ctl_coleta` + `ctl_coleta_contagem` da fonte (schema fixo por domínio; BM e AC nunca na mesma consulta) e `ref_versao_criterio*`, e entregam a `montarEstadoColeta`/`paginarColetas` (regra única em `packages/metricas`; selo e calibração não são recalculados aqui). `erro_resumo` nunca sai: só a categoria (prefixo `categoria: detalhe`). Convenção com o coletor (002): contagens `arquivado_preservado` e `excluido_preservado` em `ctl_coleta_contagem.lidos`. Contrato HTTP em `docs/api/fontes.md` (sem rotas ainda: o servidor HTTP não existe nesta etapa). Testes: `tests/coletas.test.ts` (SQL compilado com driver falso, 100%) e `tests/coletas.mysql.test.ts` (pulado sem `MYSQL_TEST_URL`).
 
 ## Migrações
+
+> **Alvo (ADR 0014, cartão S-03):** o `Migrator` do Kysely é trocado por um executor próprio sobre `mysql2` (`plataforma/db/migrador.ts`): mesmo registro estático, mesmas listas `ddl.up`/`ddl.down`, mesma tabela `dspd_core.kysely_migration`, lock por `GET_LOCK('dspd:migracao', 30)`, reescrita de `dspd_*.` para o prefixo de teste, checksum do SQL em `migrations/checksums.json`. Comando: `pnpm --filter @metricas-dspd/server migrate up|down|status`. Próxima migração: `0011_core_outbox`. O diagrama abaixo é o estado atual.
 
 ```mermaid
 flowchart TD
@@ -89,8 +91,8 @@ flowchart TD
 | `dspd_migrador` | DDL (só no job de deploy); também usado no seed em desenvolvimento |
 | `dspd_coletor` | INSERT/SELECT em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; INSERT/UPDATE/DELETE nas projeções; SELECT/INSERT em `ctl_` (append-only, inclusive `ctl_automacao`), com `UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo)` em `ctl_coleta` e UPDATE em `ctl_coleta_contagem`; SELECT em `ref_` |
 | `dspd_ref` | INSERT/SELECT em `ref_` e `UPDATE (vigente_ate)` por coluna |
-| `dspd_webhook` | INSERT só em `dspd_bm.stg_webhook_evento` |
-| `dspd_api` | SELECT em projeções, `vw_`, `ref_`, `ctl_`; sem acesso a `stg_` |
+| `dspd_webhook` | INSERT só em `dspd_bm.stg_webhook_evento` e, com a ADR 0014, em `dspd_core.outbox` (mesma transação) |
+| `dspd_api` | SELECT em projeções, `vw_`, `ref_`, `ctl_`; sem acesso a `stg_` nem à `outbox` |
 | `dspd_automacao` | INSERT/SELECT em `dspd_ac.ctl_automacao`; SELECT em `ref_` do core (sem uso até a T4.3 voltar, ADR 0013) |
 
 Na AWS (ADR 0013): `api` usa `dspd_api` + `dspd_webhook`; `coleta`, `dspd_coletor`; `migrar`, `dspd_migrador` + `dspd_ref`. Senhas no Secrets Manager.
@@ -113,15 +115,21 @@ flowchart LR
 
 MySQL 8.4, utf8mb4, InnoDB, fuso UTC, healthcheck. O init (só na primeira criação do volume) cria `dspd_bm`, `dspd_ac`, `dspd_core` e os usuários por papel (senhas de `DSPD_PWD_*`); os `GRANT` por tabela vêm de `gerarGrants` e são aplicados ao fim de `db:migrate` (`MYSQL_GRANTS_URL`, conta root local).
 
+Scripts com pnpm (ADR 0014; hoje ainda `npm run`):
+
 | Script | Faz |
 |---|---|
-| `npm run db:up` / `db:down` | sobe (aguarda healthcheck) / derruba, mantendo o volume |
-| `npm run db:reset` | derruba apagando o volume e sobe de novo (reexecuta o init) |
-| `npm run db:migrate` | migrações com `dspd_migrador` e depois os grants |
-| `npm run db:seed` | seed do mock (só desenvolvimento) |
-| `npm run test:mysql` | sobe o `mysql-test`, roda os testes MySQL hoje pulados e derruba |
+| `pnpm db:up` / `db:down` | sobe (aguarda healthcheck) / derruba, mantendo o volume |
+| `pnpm db:reset` | derruba apagando o volume e sobe de novo (reexecuta o init) |
+| `pnpm db:migrate` | migrações com `dspd_migrador` e depois os grants |
+| `pnpm db:seed` | seed do mock (só desenvolvimento) |
+| `pnpm test:mysql` | sobe o `mysql-test`, roda os testes MySQL num **conjunto de databases por execução** e derruba |
+| `pnpm db:limpar-testes` | apaga sobras `t*_dspd_*` (e usuários de teste) de execuções interrompidas |
 
-Primeiro uso: `cp .env.example .env`, ajuste as senhas, `npm run db:up && npm run db:migrate && npm run db:seed`.
+Primeiro uso: `cp .env.example .env`, ajuste as senhas, `pnpm db:up && pnpm db:migrate && pnpm db:seed`.
+
+### Testes contra MySQL (ADR 0014, sem Testcontainers)
+`globalSetup` do Vitest gera o prefixo `t<6 base36>_`, cria `<p>dspd_bm`, `<p>dspd_ac`, `<p>dspd_core` no `mysql-test` (perfil `test`, :3307), aplica as migrações pelo executor e `gerarGrants(prefixo)` com usuários de teste prefixados; `globalTeardown` apaga (`DSPD_TESTE_MANTER=1` preserva). O código lê os nomes do mapa `S` (`DSPD_SCHEMA_PREFIXO`). Projeto Vitest `mysql` sem paralelismo de arquivos; cada teste cria seus dados. Duas execuções simultâneas não colidem. No CI o job `db` sobe o mesmo compose.
 
 ### Instalar Docker no WSL2
 1. Opção simples: Docker Desktop no Windows, com "Use the WSL 2 based engine" e a integração ligada para a distro em Settings > Resources > WSL integration.

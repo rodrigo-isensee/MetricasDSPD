@@ -1,5 +1,5 @@
 # 0008 - Framework e execução do servidor
-- Status: **substituída pela ADR 0013** (2026-10-10): Fastify → **Hono** em Lambda; `worker` e imagem Docker saem. Fastify nunca chegou a ser implementado. **Continuam valendo** pino com `requestId` e redação, cache por chave, esbuild, `/health/live` e `/health/ready`, Vitest (rotas com `app.request()` em vez de `app.inject()`).
+- Status: **substituída pelas ADRs 0013 e 0014.** A 0013 trocou Fastify por Hono; a **0014** (stack do usuário) volta a **Fastify 5**, com execução na Lambda via `@fastify/aws-lambda` (ou contêiner, P14) e rotas testadas com `app.inject()`. Continuam valendo daqui: plugins e logger pino com `requestId` e redação, cache por chave, esbuild, `/health/live` e `/health/ready`, Vitest. Saem: `worker` e imagem Docker (ADR 0013), e "Testcontainers" (ADR 0014: MySQL do compose com prefixo por execução). O cálculo do §Decisão usa `ctl_coleta` (versão de carga) e, agora, o evento `coleta.concluida` da outbox.
 - Status anterior: aceita
 - Data: 2026-10-09
 - Origem: ata kickoff 002, D13 (Fastify recomendado); pendência do runner na ADR 0002

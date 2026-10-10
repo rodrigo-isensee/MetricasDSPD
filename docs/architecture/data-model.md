@@ -1,7 +1,7 @@
 # Modelo de dados — base analítica (MySQL 8)
 
 - Status: aprovado (revisão de modelagem K-014 r2); atualizado com o code review 002-K-017-r1 (B1, R1, R2, R4–R6, R8 e §9) e a decisão L-1 do usuário (2026-10-10)
-- Data: 2026-10-09 · Revisão: 2026-10-10 · Decisões: ADR 0004 (MySQL, no RDS), 0005 (Kysely + SQL), 0006 (contrato de execução da coleta), **0013** (Lambdas, Acelerato via Metabase)
+- Data: 2026-10-09 · Revisão: 2026-10-10 · Decisões: ADR 0004 (MySQL, no RDS), 0005 (SQL explícito), **0014** (`mysql2` puro, migrador próprio, outbox), 0006 (contrato de execução da coleta), **0013** (Lambdas, Acelerato via Metabase)
 - **Revisão ADR 0013 (2026-10-10):** a origem do Acelerato passa a ser uma tabela no Metabase lida 1x/dia pela API (não mais o MySQL `acelerato_dev_corporativo`). Muda o §4 (staging AC, ausência) e o §8 (sem `acelerato_leitor`). Schemas, camadas e grants continuam.
 - Forma da camada analítica = tipos de `@metricas-dspd/metricas` (`BaseBM`, `BaseAC`); o mock gera exatamente essa forma (paridade, D15).
 - Colunas marcadas **(prov.)** são extensões ao modelo 4.5 do briefing, provisórias até T2.1 (de-para da API) e à resposta do usuário.
@@ -142,7 +142,28 @@ Views do recorte (T5.1), sobre a nossa cópia, nunca no banco do Acelerato:
 | `ref_calendario_aplicacao` | (`dominio`, `classe`, `vigente_de`) | qual calendário vale para cada classe (exceção de plantão, 4.2; pergunta P2/N-6) |
 | `ref_versao_criterio` (T2.6) | `versao_id` | `vigente_desde DATE`, `dominio ENUM('businessmap','acelerato')`, `descricao`, `motivo`, `referencia` (PR/ata), `registrado_em`. Mudança que afeta os dois domínios = duas linhas |
 | `ref_versao_criterio_metrica` | (`versao_id`, `metrica_id`) | quais `MetricaId` são afetadas (alimenta `criterios.serie/janela` nos DTOs) |
-| `kysely_migration`, `kysely_migration_lock` | — | controle do Migrator (ADR 0005) |
+| `kysely_migration` | `name` | controle das migrações; nome histórico mantido, agora usado pelo executor próprio sobre `mysql2` (ADR 0014) |
+| `kysely_migration_lock` | — | sem uso desde a ADR 0014 (lock por `GET_LOCK('dspd:migracao')`); remoção só por migração futura |
+| `outbox` (ADR 0014, migração `0011_core_outbox`) | `evento_sk` | ver abaixo |
+
+### `outbox`: eventos transacionais lidos por polling (ADR 0014)
+Gravada na **mesma transação** da mudança que gera o evento; lida pelo poller da fonte (`FOR UPDATE SKIP LOCKED`). Tabela **operacional**, não histórico: é a única exceção à regra de não apagar (retenção de 30 dias para `processado`).
+
+| Campo | Tipo | Regra |
+|---|---|---|
+| `evento_sk` | `BIGINT UNSIGNED AUTO_INCREMENT` PK | ordem de processamento |
+| `evento_id` | `CHAR(36) CHARACTER SET ascii` UNIQUE | UUID; chave de idempotência do consumidor |
+| `fonte` | `ENUM('businessmap','acelerato')` NOT NULL | o poller sempre filtra por uma fonte; BM e AC nunca no mesmo lote |
+| `tipo` | `VARCHAR(64) ascii` NOT NULL | `bm.webhook.recebido`, `coleta.concluida` (lista fechada no código) |
+| `payload` | `JSON` NOT NULL | só identificadores técnicos (`webhookSk`, `coletaId`, `status`); **nenhum dado pessoal** (teste de LGPD) |
+| `status` | `ENUM('pendente','processando','processado','falha')` NOT NULL DEFAULT `'pendente'` | `falha` após 8 tentativas, com alarme |
+| `tentativas` | `SMALLINT UNSIGNED` NOT NULL DEFAULT 0 | |
+| `criado_em`, `disponivel_em` | `DATETIME(3)` NOT NULL | `disponivel_em` recebe o backoff |
+| `reservado_ate` | `DATETIME(3)` NULL | reserva vencida volta a ser elegível |
+| `processado_em` | `DATETIME(3)` NULL | |
+| `ultimo_erro` | `VARCHAR(500)` NULL | só a categoria, sem payload nem segredo |
+
+Índices: `ix_outbox_fila (fonte, status, disponivel_em, evento_sk)`, `ix_outbox_retencao (status, processado_em)`. Grants: `dspd_webhook` INSERT; `dspd_coletor` SELECT, INSERT, `UPDATE (status, tentativas, disponivel_em, reservado_ate, processado_em, ultimo_erro)`, DELETE; `dspd_api` nenhum. Migração com `down` (`DROP TABLE`), revisão de modelagem antes (praticas §6).
 
 A biblioteca recebe o `Calendario` montado a partir dessas tabelas (ADR 0002); nenhuma função usa o padrão do mock em produção. Critério T2.6: cada mudança de feriado, turno, mapeamento de etapa, classificação de coluna ou regra de métrica entra junto com uma `ref_versao_criterio`; o `ref:sync` recusa mudança de referência sem versão de critério associada.
 

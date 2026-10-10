@@ -1,6 +1,7 @@
 # 0013 - Back-end: monólito modular em Node, publicado como funções serverless na AWS
 - Status: **aceita** (decisões do usuário em 2026-10-10, confirmadas ao Jarvis para reconciliação com a `main`)
 - Data: 2026-10-10
+- **Parcialmente substituída pela ADR 0014** (stack técnica, 2026-10-10): Hono → **Fastify 5** (na Lambda via `@fastify/aws-lambda`, ou contêiner: pergunta P14); Kysely → **`mysql2` puro** com executor de migração próprio; **outbox transacional em `dspd_core.outbox` com polling** (volta, por decisão do usuário; o poller roda na Lambda `coleta`, sem Lambda nova); npm → **pnpm**; testes com prefixo de databases por execução. Forma (módulos, duas Lambdas), Metabase, AWS e fronteiras continuam.
 - Origem: proposta escrita em outra sessão com o usuário, preservada sem alteração em `docs/architecture/propostas/serverless-outra-sessao/` (lá numerada 0004, número que já existia na `main`). Pedidos do usuário, nesta ordem: (1) "arquitetura modular com microsserviços dentro dos módulos, padrão serverless"; (2) "AWS; os dados do Acelerato vêm de uma tabela no Metabase, puxada uma vez ao dia; o SSO será informado"; (3) **"mantenha a arquitetura simples, com o melhor que podemos para Node, mas simples"**. Uma primeira versão (barramento de eventos, outbox, filas, um workspace e uma função por responsabilidade) foi descartada pela instrução (3), antes de qualquer código.
 - Pedido: `docs/pedidos/002-arquitetura-completa.md`
 - **Substitui:** ADR 0006 (processos, agendamento, automações), ADR 0008 (framework e execução), ADR 0010 (implantação e CI), exceto o que está listado em "Continua valendo".
@@ -25,7 +26,7 @@
 | Lambda | Gatilho | Faz | Timeout | Usuário MySQL |
 |---|---|---|---|---|
 | `api` | API Gateway HTTP (`/api/v1/*` e `/webhooks/businessmap`) | métricas, `/fontes`, referência, preferências **e** o webhook do BusinessMap (só valida o segredo, grava `stg_webhook_evento` e responde 202, K4) | 30 s | `dspd_api` + `dspd_webhook` |
-| `coleta` | EventBridge Scheduler: `{ fonte: 'bm' }` e `{ fonte: 'ac' }` diários; `{ fonte: 'bm', tarefa: 'varredura' }` semanal | coleta → normalização → projeção → registro em `ctl_coleta`, **uma fonte por invocação** (falha ou atraso de uma não afeta a outra, CA-10) | 15 min | `dspd_coletor` |
+| `coleta` | EventBridge Scheduler: `{ fonte: 'bm' }` e `{ fonte: 'ac' }` diários; `{ fonte: 'bm', tarefa: 'varredura' }` semanal; `{ fonte, tarefa: 'eventos' }` a cada 1 min (poller da outbox, ADR 0014) | coleta → normalização → projeção → registro em `ctl_coleta`, **uma fonte por invocação** (falha ou atraso de uma não afeta a outra, CA-10) | 15 min | `dspd_coletor` |
 
 - Função operacional, sem gatilho: `migrar`, invocada só pelo pipeline de deploy, com o usuário `dspd_migrador` (o RDS é privado; o runner do GitHub não alcança o banco). Não é um serviço: é o `npm run migrate` empacotado.
 - **Localmente:** um processo Node (`npm run dev -w @metricas-dspd/server`) com o mesmo app HTTP, mais `npm run coleta -w @metricas-dspd/server -- bm|ac`. MySQL 8.4 em Docker (já decidido, `server.md`).
@@ -49,8 +50,8 @@ Estrutura (sem cerimônia):
 server/
   migrations/         migrações Kysely já existentes (0001..), SQL explícito
   src/
-    app.ts            monta o Hono com as rotas de todos os módulos
-    plataforma/       config (env validado com zod), db (Kysely + mysql2), log (pino), erros, auth
+    app.ts            monta o Fastify com as rotas de todos os módulos (ADR 0014)
+    plataforma/       config (env validado com zod), db (mysql2 puro + migrador), eventos (outbox + poller), log (pino), erros, auth
     modulos/<m>/      index.ts · rotas.ts · servico.ts · repositorio.ts · cliente-api.ts (só coleta) · *.test.ts
     entradas/         lambda-api.ts · lambda-coleta.ts · lambda-migrar.ts · local.ts · coleta-cli.ts
 infra/                AWS CDK em TypeScript, uma stack
@@ -61,9 +62,9 @@ infra/                AWS CDK em TypeScript, uma stack
 2. Igual para `{ fonte: 'ac' }` com `acelerato`, lendo o Metabase.
 3. **Versão de carga** = último `coleta_id` com `status = 'sucesso'` do schema da fonte (já existe em `ctl_coleta`; sem tabela nova).
 4. Na `api`, `metricas` monta a base da fonte na primeira requisição, cria o contexto da biblioteca e guarda resultados em memória com chave `(metricaId, filtros normalizados, versão de carga)`. A versão é relida a cada 60 s; mudou, o cache se renova.
-5. O webhook não é processado a cada minuto (como na ADR 0006): a normalização acontece na coleta seguinte, junto da reconciliação (T2.3).
+5. ~~O webhook não é processado a cada minuto: a normalização acontece na coleta seguinte.~~ **Revisto pela ADR 0014:** o webhook grava `stg_webhook_evento` e o evento `bm.webhook.recebido` na outbox na mesma transação; o poller (1 min) normaliza. A reconciliação (T2.3) continua na coleta.
 
-Sem snapshot em S3, fila nem eventos. Se a partida a frio estourar S1: primeiro, concorrência provisionada de 1 na `api`; depois, gravar a base montada como blob.
+Sem snapshot em S3 nem fila; eventos só pela outbox transacional (ADR 0014). Se a partida a frio estourar S1: primeiro, concorrência provisionada de 1 na `api`; depois, gravar a base montada como blob.
 
 ### 4. Acelerato pelo Metabase
 - **API do Metabase** com chave de API (`x-api-key`) de usuário só de leitura, no Secrets Manager (no dev, `.env`). A consulta sai de uma pergunta salva (*card*) com exportação JSON (`POST /api/card/:id/query/json`), sem o limite de 2.000 linhas da consulta interativa.
@@ -72,6 +73,8 @@ Sem snapshot em S3, fila nem eventos. Se a partida a frio estourar S1: primeiro,
 - Pendências P5–P10 abaixo. **Nenhuma métrica de sustentação é implementada sobre suposição.**
 
 ### 5. Escolhas de Node e TypeScript
+> **Revisto pela ADR 0014**, que prevalece: HTTP = Fastify 5 + fastify-type-provider-zod 7; banco = `mysql2` puro + migrador próprio; OpenAPI = `@fastify/swagger` 9; testes de rota com `app.inject()` e MySQL do compose com prefixo por execução; pnpm. As linhas abaixo ficam como registro.
+
 | Tema | Escolha | Por quê |
 |---|---|---|
 | Runtime | Node 24 LTS (`nodejs24.x`, ou a LTS suportada mais recente) | igual ao dev |
@@ -113,7 +116,7 @@ Jobs `check`, `db`, `e2e`, `openapi` da ADR 0010 continuam. `imagem` e o runner 
 ### 8. Autenticação (pendente do SSO, P3)
 O mecanismo fecha quando o SSO for informado. As duas formas cabem na Lambda `api`:
 - **Recomendação da proposta:** OIDC com PKCE no front e JWT validado pelo autorizador do API Gateway (sem estado na API).
-- **ADR 0009:** OIDC no servidor (BFF) com cookie `httpOnly`; com Hono, `hono/cookie` com cookie assinado e cifrado no lugar de `@fastify/secure-session`. Vantagem: o SPA nunca vê token.
+- **ADR 0009:** OIDC no servidor (BFF) com cookie `httpOnly`, assinado e cifrado (`@fastify/secure-session`, de volta com a ADR 0014). Vantagem: o SPA nunca vê token.
 Continua valendo da ADR 0009 em qualquer caso: papel único `leitor`, `sub` só como HMAC, nenhum nome ou e-mail persistido, autenticador falso proibido em produção.
 
 ### 9. Fronteiras garantidas por lint (somam-se às da ADR 0002)
@@ -128,7 +131,7 @@ Continua valendo da ADR 0009 em qualquer caso: papel único `leitor`, `sub` só 
 
 ### Continua valendo
 - **ADR 0004:** MySQL 8.4, três schemas, `DATETIME(3)` UTC, "o banco seleciona, a biblioteca calcula", usuários por papel, proibição de `INSERT IGNORE`/`ON DUPLICATE KEY`.
-- **ADR 0005:** Kysely + migrações em SQL explícito com `down`, `kysely-codegen`, seed.
+- **ADR 0005:** migrações em SQL explícito com `down`, seed (Kysely e `kysely-codegen` saem pela ADR 0014).
 - **ADR 0006:** contrato de execução (marca d'água só avança em sucesso, contagens, `ctl_coleta_falha`, retentativa com backoff e `Retry-After`, timeouts), `GET_LOCK` por fonte, webhook só grava staging com hash único, regras da T4.3 para quando ela voltar.
 - **ADR 0007:** contratos zod únicos, entrada `strict`, saída validada, paridade, `/api/v1`, formato de erro.
 - **ADR 0008:** pino com `requestId` e redação, cache por chave, esbuild, `/health/live` e `/health/ready`, Vitest.
@@ -138,7 +141,7 @@ Continua valendo da ADR 0009 em qualquer caso: papel único `leitor`, `sub` só 
 - **Primeira versão da proposta** (sete workspaces, uma função por responsabilidade, barramento com outbox, filas com DLQ, snapshot em S3): fronteiras fortíssimas, muitas peças para um sistema diário e pequeno. Descartada pela instrução de manter simples. Pode voltar em partes por necessidade concreta (ex.: fila só se a coleta passar de 15 min).
 - **Uma Lambda só:** mais simples, mas o timeout de 15 min valeria para a API e uma coleta disputaria memória e concorrência com quem abre painel.
 - **Contêiner sempre ligado** (ECS Fargate, ou a VM com Docker Compose das ADRs 0006/0010): sem partida a frio nem limite de 15 min; custo fixo e mais rede (balanceador). **Plano B** se a coleta passar de 15 min ou a partida a frio incomodar; muda só `entradas/`.
-- **Fastify** (ADR 0008): mais maduro em servidor longo, mas na Lambda depende de adaptador e tem partida a frio maior. **NestJS:** pesado.
+- **Fastify** (ADR 0008): mais maduro em servidor longo, mas na Lambda depende de adaptador e tem partida a frio maior. **Adotado depois pela ADR 0014** (decisão do usuário), com `@fastify/aws-lambda`. **NestJS:** pesado.
 - **Prefixo por módulo num banco só** (proposta original): equivalente; não adotado porque os três schemas já estão migrados e os grants por schema são mais fortes.
 - **Ler o MySQL do Acelerato direto** (ADRs 0004–0006): substituído pelo Metabase, por decisão do usuário.
 
@@ -165,4 +168,5 @@ Continua valendo da ADR 0009 em qualquer caso: papel único `leitor`, `sub` só 
 | P10 | Datas em UTC ou horário de Brasília? | gravar em UTC; converter na extração |
 | P11 | Conta AWS: já existe? Uma conta por ambiente ou estágios na mesma? Região? Quem administra (IAM, VPC, faturamento)? | contas separadas homologação/produção na organização da Unifique, `sa-east-1` |
 | P12 | Credenciais do Metabase: URL, id da pergunta salva, usuário de serviço só leitura para gerar a chave de API? | usuário de serviço dedicado, acesso só à coleção da pergunta |
+| P14 | Fastify na Lambda (`@fastify/aws-lambda`) ou num contêiner Fargate (um processo com API, poller e agenda)? (ADR 0014) | Lambda: menor mudança e custo ocioso perto de zero; contêiner se a partida a frio (S1) ou os 15 min incomodarem |
 | P13 | Frequência da coleta do BusinessMap: uma vez ao dia basta, ou mantém "a cada 2 h em horário útil" (ADR 0006)? | começar diária (como o Acelerato) e ajustar só a agenda, sem código |
