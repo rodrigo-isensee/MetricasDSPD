@@ -31,13 +31,12 @@ describe('/dados: Última coleta, Contagens e Janela de calibração (cenário p
       'excluídos mantidos',
     ])
       expect(within(dl).getByText(rotulo)).toBeInTheDocument()
-    expect(contagens).toHaveTextContent('Arquivados e excluídos permanecem na base.')
+    expect(contagens).toHaveTextContent('Arquivados e excluídos: total preservado na base')
 
     const janela = await secao('Janela de calibração')
     expect(janela).toHaveTextContent('Nenhuma janela de calibração vigente nesta fonte.')
-    expect(janela).toHaveTextContent(
-      'Definida automaticamente pelo sistema. Dados de calibração servem para ajustar o processo, não para cobrar pessoas ou times.',
-    )
+    expect(janela).toHaveTextContent('Quando houver, ela é definida automaticamente pelo sistema.')
+    expect(janela).not.toHaveTextContent('não para cobrar pessoas ou times')
   })
 
   it('Acelerato: coleta atual, chamados e a janela de 15/09 a 13/11/2026 definida pelo sistema', async () => {
@@ -61,7 +60,9 @@ describe('/dados: Última coleta, Contagens e Janela de calibração (cenário p
 
   it('"Saiba mais" da faixa de calibração leva à janela, com o foco na seção', async () => {
     renderizarApp('/sustentacao')
-    await userEvent.click(await screen.findByRole('link', { name: 'Saiba mais' }))
+    await userEvent.click(
+      await screen.findByRole('link', { name: 'Saiba mais sobre a calibração' }),
+    )
     const titulo = await screen.findByRole('heading', { level: 2, name: 'Janela de calibração' })
     await waitFor(() => expect(titulo).toHaveFocus())
     expect(screen.getByRole('tab', { name: 'Acelerato' })).toHaveAttribute('aria-selected', 'true')
