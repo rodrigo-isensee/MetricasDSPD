@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
 import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
-import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
-import { useDataReferencia, useErroDePainelSimulado } from '@/data'
+import type { Dominio, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
+import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta } from '@/data'
+import { FrescorFonte } from '@/features/coleta/FrescorFonte'
+import { SemDadosDaFonte } from '@/features/coleta/SemDadosDaFonte'
 import { BarraFiltros, useFiltros, type PainelId, type UseFiltros } from '@/features/filtros'
 
 interface Base {
@@ -15,13 +17,22 @@ interface Base {
 
 type PainelFluxoId = Exclude<PainelId, 'sustentacao'>
 
+/** Corpo do painel de UMA fonte: sem nenhuma coleta ok não há o que mostrar (CA-09); nas outras situações os dados anteriores continuam. */
+function CorpoDaFonte({ dominio, children }: { dominio: Dominio; children: ReactNode }) {
+  const { data } = useEstadoColeta(dominio)
+  return data?.ultimaOk === null ? <SemDadosDaFonte dominio={dominio} /> : children
+}
+
 function Casca({
   uso,
   base,
   fonte,
+  fontes,
   estrategico,
   children,
 }: {
+  /** Fontes que o painel usa: o selo de cada uma aparece no cabeçalho, sempre separado. */
+  fontes: readonly Dominio[]
   uso: UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
   base: Base
   fonte: string
@@ -46,11 +57,22 @@ function Casca({
           dataCorte={dataCorte}
           fonte={fonte}
           slug={base.slug}
+          frescor={
+            <div className="flex flex-col gap-1">
+              {fontes.map((d) => (
+                <FrescorFonte key={d} dominio={d} comNome={fontes.length > 1} />
+              ))}
+            </div>
+          }
           {...(base.publico ? { publico: base.publico } : {})}
         />
         {base.extra}
         <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
-        {children}
+        {fontes.length === 1 ? (
+          <CorpoDaFonte dominio={fontes[0] as Dominio}>{children}</CorpoDaFonte>
+        ) : (
+          children
+        )}
       </div>
     </ProvedorContextoPainel>
   )
@@ -64,16 +86,24 @@ export function PainelFluxo({
   painel,
   children,
   fonte = 'BusinessMap',
+  fontes = ['businessmap'],
   ...base
 }: Base & {
   /** Sobrepõe a fonte do cabeçalho (só a Espera invisível, que reúne os dois sistemas em blocos). */
   fonte?: string
+  fontes?: readonly Dominio[]
   painel: PainelFluxoId
   children: (filtros: FiltrosFluxo, uso: UseFiltros<FiltrosFluxo>) => ReactNode
 }) {
   const uso = useFiltros(painel)
   return (
-    <Casca uso={uso} base={base} fonte={fonte} estrategico={painel === 'estrategico'}>
+    <Casca
+      uso={uso}
+      base={base}
+      fonte={fonte}
+      fontes={fontes}
+      estrategico={painel === 'estrategico'}
+    >
       {children(uso.filtros, uso)}
     </Casca>
   )
@@ -88,7 +118,7 @@ export function PainelSustentacao({
 }) {
   const uso = useFiltros('sustentacao')
   return (
-    <Casca uso={uso} base={base} fonte="Acelerato">
+    <Casca uso={uso} base={base} fonte="Acelerato" fontes={['acelerato']}>
       {children(uso.filtros, uso)}
     </Casca>
   )

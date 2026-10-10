@@ -16,6 +16,8 @@ interface Props {
   slug: string
   /** "Copiar link desta visão" (padrão: sim; páginas de texto não têm visão para copiar). */
   copiarLink?: boolean
+  /** Frescor da fonte (selo, "Atualizado em", "Entenda"), abaixo da pergunta central. */
+  frescor?: React.ReactNode
   /** Conteúdo extra no cabeçalho (seletor de cadência, recorte). */
   children?: React.ReactNode
 }
@@ -32,6 +34,7 @@ export function CabecalhoPainel({
   fonte,
   slug,
   copiarLink = true,
+  frescor,
   children,
 }: Props) {
   const [aviso, setAviso] = useState('')
@@ -85,6 +88,7 @@ export function CabecalhoPainel({
           </Botao>
         )}
       </div>
+      {frescor}
       <div role="status" className="min-h-5 text-sm text-ok">
         {aviso}
       </div>

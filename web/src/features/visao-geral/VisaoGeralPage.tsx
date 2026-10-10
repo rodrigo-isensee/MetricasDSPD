@@ -9,6 +9,7 @@ import {
   type ItemAtencao,
 } from '@/components/ui'
 import type { ResultadoVisaoGeral } from '@metricas-dspd/contratos'
+import { FrescorFonte } from '@/features/coleta/FrescorFonte'
 import { useDataReferencia, useErroDePainelSimulado, useMetrica } from '@/data'
 import { fmtData, fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import {
@@ -183,6 +184,12 @@ export default function VisaoGeralPage() {
         dataCorte={data}
         fonte="BusinessMap e Acelerato (blocos separados)"
         slug="visao-geral"
+        frescor={
+          <div className="flex flex-col gap-1" data-testid="frescor-fontes">
+            <FrescorFonte dominio="businessmap" comNome />
+            <FrescorFonte dominio="acelerato" comNome />
+          </div>
+        }
         publico="Consolidado de todas as equipes (o sistema não compara equipes), sem filtros nesta tela."
       />
       {d && (

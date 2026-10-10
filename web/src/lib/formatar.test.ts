@@ -3,6 +3,8 @@ import {
   dataValida,
   diffDias,
   fmtDataCurta,
+  fmtDataHora,
+  fmtDataHoraCurta,
   fmtDiasCorridos,
   fmtDiasUteis,
   fmtHorasUteis,
@@ -17,6 +19,8 @@ import {
 describe('formatação pt-BR', () => {
   it('data, mês, trimestre e porcentagem', () => {
     expect(fmtDataCurta('2026-10-09')).toBe('09/10')
+    expect(fmtDataHora('2026-10-09T06:10:33-03:00')).toBe('09/10/2026 06:10')
+    expect(fmtDataHoraCurta('2026-10-09T06:10:33-03:00')).toBe('09/10 06:10')
     expect(fmtMes('2026-06')).toBe('jun/2026')
     expect(fmtMes('2026-13')).toBe('13/2026')
     expect(fmtTrimestre('2026-T3')).toBe('3º tri/2026')
