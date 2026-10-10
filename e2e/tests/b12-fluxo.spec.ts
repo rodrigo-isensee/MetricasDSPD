@@ -20,7 +20,7 @@ test.describe('K-006 Operacional diário', () => {
     await painel.cadencia.getByText('Semanal', { exact: true }).click();
     await expect(page).toHaveURL(/cadencia=semanal/);
     await painel.esperarCartoesProntos();
-    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O3', 'O9', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18']);
+    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O3', 'O9', 'EI-FL1', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18']);
     await painel.cadencia.getByText('Diária', { exact: true }).click();
     await expect(page).not.toHaveURL(/cadencia=/);
     await expect(painel.cadencia.getByRole('radio', { name: 'Diária' })).toBeFocused();
@@ -30,7 +30,7 @@ test.describe('K-006 Operacional diário', () => {
     await painel.ir('/operacional');
     await painel.esperarCartoesProntos();
     await expect(painel.faixaAtencao).toContainText(/acima do P95/);
-    for (const [nome, id] of [[/Ver O2/, 'o2'], [/Ver Bloqueados/, 'bloqueados'], [/Ver O1/, 'o1']] as const) {
+    for (const [nome, id] of [[/Ver O2/, 'o2'], [/Ver BLOQUEADOS/, 'bloqueados'], [/Ver O1/, 'o1']] as const) {
       const link = painel.faixaAtencao.getByRole('link', { name: nome });
       await expect(link).toHaveAttribute('href', new RegExp(`#${id}$`));
       await expect(page.locator(`#${id}`)).toHaveCount(1);
@@ -245,7 +245,7 @@ test.describe('K-007 Tático', () => {
   test('TAT-01 seções e ordem; faixa Pede atenção', async ({ painel }) => {
     await painel.ir('/tatico');
     await painel.esperarCartoesProntos();
-    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['T2', 'T1', 'T5', 'T4', 'T3', 'T9', 'T7']);
+    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['T2', 'T1', 'T5', 'T4', 'T3', 'T9', 'T7', 'EI-FL2']);
     await expect(painel.faixaAtencao).toBeVisible();
   });
 
@@ -327,7 +327,7 @@ test.describe('K-024 Estratégico', () => {
   test('EST-01 E1, E2, E3, EI e faixa; sem filtros de Equipe e Tipo', async ({ painel }) => {
     await painel.ir('/estrategico');
     await painel.esperarCartoesProntos();
-    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['E1', 'E2', 'E3']);
+    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['E1', 'E2', 'E3', 'EI-FL3']);
     await expect(painel.faixaAtencao).toBeVisible();
     await expect(painel.filtros.botao('equipe')).toHaveCount(0);
     await expect(painel.filtros.botao('tipo')).toHaveCount(0);
