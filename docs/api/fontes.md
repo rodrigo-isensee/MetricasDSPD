@@ -19,6 +19,7 @@ Origem dos dados: `ctl_coleta` / `ctl_coleta_contagem` da fonte (tarefa `coleta_
 - `selo`: `sem-coleta` > `falha` (última tentativa falhou) > `atrasado` (agora > próxima coleta prevista após a última ok + tolerância, provisória 0 h) > `atual`.
 - Calibração: constante `DURACAO_CALIBRACAO_DIAS = 60`, intervalo fechado `[inicio, inicio + 59]`; só janelas vigentes. Provisória até o usuário confirmar.
 - `tipoErro` é categoria (`indisponivel|autenticacao|tempo-esgotado|dados-invalidos|desconhecido`); mensagem, SQL, stack e credencial nunca saem (CA-15).
+- Números: contagens, `duracaoMs` e `total` são inteiros >= 0; `horasDesdeUltimaOk` >= 0 ou `null`; `pagina` inteira >= 1. O schema rejeita negativo e fração.
 - Cache: `Cache-Control: private, max-age=60`. Erros: 400, 500.
 
 ## GET /fontes/:dominio/coletas?pagina=1

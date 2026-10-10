@@ -223,4 +223,15 @@ describe('coletas (integração real)', () => {
     expect(paginaColetasSchema.safeParse(pagina).success).toBe(true)
     expect(paginaColetasSchema.safeParse({ ...pagina, porPagina: 10 }).success).toBe(false)
   })
+
+  it('rejeita contagem, duração, horas, página e total negativos ou fracionados', () => {
+    expect(contagensColetaSchema.safeParse({ ...contagens, lidos: -1 }).success).toBe(false)
+    expect(contagensColetaSchema.safeParse({ ...contagens, novos: 1.5 }).success).toBe(false)
+    expect(eventoColetaSchema.safeParse({ ...evento, duracaoMs: -1 }).success).toBe(false)
+    expect(estadoColetaSchema.safeParse({ ...estado, horasDesdeUltimaOk: -1 }).success).toBe(false)
+    const pagina = { itens: [], pagina: 1, porPagina: POR_PAGINA_COLETAS, total: 0 }
+    expect(paginaColetasSchema.safeParse(pagina).success).toBe(true)
+    expect(paginaColetasSchema.safeParse({ ...pagina, pagina: 0 }).success).toBe(false)
+    expect(paginaColetasSchema.safeParse({ ...pagina, total: 0.5 }).success).toBe(false)
+  })
 })
