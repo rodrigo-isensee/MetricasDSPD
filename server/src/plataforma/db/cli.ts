@@ -1,12 +1,16 @@
-import { conectar, criarMigrator } from './migracoes.js';
+import { migrar, type Direcao } from './migrar.js';
 
-const url = process.env.MYSQL_MIGRADOR_URL;
-if (!url) throw new Error('MYSQL_MIGRADOR_URL ausente (usuário dspd_migrador)');
+// Uso: migrate up | down [N] | redo. Exige PG_MIGRADOR_URL (papel dspd_migrador). Prefixo só de DSPD_SCHEMA_PREFIXO.
+const url = process.env.PG_MIGRADOR_URL;
+if (!url) throw new Error('PG_MIGRADOR_URL ausente (usuário dspd_migrador)');
 const comando = process.argv[2] ?? 'up';
-const db = conectar(url);
-const migrator = criarMigrator(db);
-const { error, results } =
-  comando === 'down' ? await migrator.migrateDown() : await migrator.migrateToLatest();
-for (const r of results ?? []) console.log(`${r.direction} ${r.migrationName}: ${r.status}`);
-await db.destroy();
-if (error) { console.error(error); process.exit(1); }
+const prefixo = process.env.DSPD_SCHEMA_PREFIXO ?? '';
+const log = (m: string): void => console.log(m);
+const passos: { direcao: Direcao; quantas?: number }[] =
+  comando === 'redo' ? [{ direcao: 'down' }, { direcao: 'up' }]
+  : comando === 'down' ? [{ direcao: 'down', quantas: Number(process.argv[3] ?? 1) }]
+  : [{ direcao: 'up' }];
+for (const p of passos) {
+  const r = await migrar(url, { ...p, prefixo, log });
+  console.log(`${p.direcao}: ${r.migracoes.length} migração(ões), ${r.grants} GRANT(s)`);
+}

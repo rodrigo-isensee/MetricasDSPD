@@ -1,31 +1,37 @@
-import type { Kysely } from 'kysely';
-import { executar, stgVersionada, tabela, drop, COLETA_FK, DT, ID, type Ddl } from './_util.js';
+import { migracao } from '../src/plataforma/db/executar.js';
+import {
+  ATRIBUTOS_CHAMADO, COD, COLETA_FK, DT, ID, IDENT, appendOnly, drop, indice, stgVersionada, tabela, type Ddl,
+} from '../src/plataforma/db/ddl.js';
+import type { Esquemas } from '../src/plataforma/db/esquemas.js';
 
 const A = 'acelerato' as const;
-const R = (t: string): string => `${DT('coletado_em')}, coleta_id BIGINT UNSIGNED NOT NULL,
-  KEY ix_${t}_coleta (coleta_id), ${COLETA_FK('dspd_ac', t)}`;
+const EXTRA_STG = ['ausente_na_extracao boolean NOT NULL DEFAULT false'];
 
-export const ddl: Ddl = {
-  up: [
-    stgVersionada(A, 'stg_chamado', ['id_origem']),
-    stgVersionada(A, 'stg_etapa', ['chamado_id', 'id_origem']),
-    tabela(A, 'dim_chamado_versao', `chamado_versao_sk BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  ${ID('chamado_id')}, ${DT('vigente_de')}, stg_chamado_sk BIGINT UNSIGNED NOT NULL,
-  organizacao VARCHAR(80) NULL, tipo VARCHAR(80) NULL,
-  natureza VARCHAR(30) NULL, equipe VARCHAR(60) NULL, prioridade VARCHAR(10) NULL, urgencia VARCHAR(20) NULL,
-  impacto VARCHAR(20) NULL, status VARCHAR(40) NULL, etapa VARCHAR(80) NULL,
-  ${DT('aberto_em', true)}, ${DT('data_finalizado', true)}, status_sla_r VARCHAR(20) NULL,
-  motivo_escalacao VARCHAR(80) NULL, motivo_encerramento VARCHAR(80) NULL, avaliacao_problema VARCHAR(40) NULL,
-  excluido TINYINT(1) NOT NULL DEFAULT 0,
+export const ddl = (S: Esquemas): Ddl => {
+  const s = S.ac;
+  const R = (t: string): string => `${DT('coletado_em')}, coleta_id bigint NOT NULL,
+  ${COLETA_FK(s, t)}`;
+  return {
+    up: [
+      // Ausência na extração (ADR 0013): nova versão na mesma cadeia com a marca; nada é apagado.
+      ...stgVersionada(S, A, 'stg_chamado', ['id_origem'], EXTRA_STG),
+      ...stgVersionada(S, A, 'stg_etapa', ['chamado_id', 'id_origem'], EXTRA_STG),
+      tabela(S, A, 'dim_chamado_versao', `${IDENT('chamado_versao_sk')} PRIMARY KEY,
+  ${ID('chamado_id')}, ${DT('vigente_de')}, stg_chamado_sk bigint NOT NULL,
+  ${ATRIBUTOS_CHAMADO.map(([, def]) => def).join(',\n  ')},
   ${R('dim_chamado_versao')},
-  PRIMARY KEY (chamado_versao_sk), UNIQUE KEY uq_dim_chamado_versao (chamado_id, vigente_de),
-  CONSTRAINT fk_dim_chamado_versao_stg FOREIGN KEY (stg_chamado_sk) REFERENCES dspd_ac.stg_chamado (stg_sk)`),
-    tabela(A, 'evt_etapa_chamado', `evt_sk BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  ${ID('chamado_id')}, etapa VARCHAR(80) NOT NULL, ${DT('entrada_em')}, motivo_pendencia VARCHAR(80) NULL,
+  CONSTRAINT uq_dim_chamado_versao UNIQUE (chamado_id, vigente_de),
+  CONSTRAINT fk_dim_chamado_versao_stg FOREIGN KEY (stg_chamado_sk) REFERENCES ${s}.stg_chamado (stg_sk)`),
+      indice(s, 'ix_dim_chamado_versao_coleta', 'dim_chamado_versao', 'coleta_id'),
+      ...appendOnly(S, s, 'dim_chamado_versao'),
+      tabela(S, A, 'evt_etapa_chamado', `${IDENT('evt_sk')} PRIMARY KEY,
+  ${ID('chamado_id')}, etapa ${COD} NOT NULL, ${DT('entrada_em')}, motivo_pendencia ${COD} NULL,
   ${R('evt_etapa_chamado')},
-  PRIMARY KEY (evt_sk), UNIQUE KEY uq_evt_etapa_chamado (chamado_id, etapa, entrada_em)`),
-  ],
-  down: drop('dspd_ac.evt_etapa_chamado', 'dspd_ac.dim_chamado_versao', 'dspd_ac.stg_etapa', 'dspd_ac.stg_chamado'),
+  CONSTRAINT uq_evt_etapa_chamado UNIQUE (chamado_id, etapa, entrada_em)`),
+      indice(s, 'ix_evt_etapa_chamado_coleta', 'evt_etapa_chamado', 'coleta_id'),
+      ...appendOnly(S, s, 'evt_etapa_chamado'),
+    ],
+    down: drop(`${s}.evt_etapa_chamado`, `${s}.dim_chamado_versao`, `${s}.stg_etapa`, `${s}.stg_chamado`),
+  };
 };
-export const up = (db: Kysely<unknown>) => executar(db, ddl.up);
-export const down = (db: Kysely<unknown>) => executar(db, ddl.down);
+export const { up, down } = migracao(ddl);

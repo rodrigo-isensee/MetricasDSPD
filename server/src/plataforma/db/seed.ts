@@ -1,5 +1,6 @@
-import { sql, type Kysely, type RawBuilder } from 'kysely';
 import { gerarBaseMock, type BaseMock } from '@metricas-dspd/mock';
+import { esquemasDoAmbiente, type Esquemas } from './esquemas.js';
+import { emTransacao, type Consultavel, type PoolLike } from './pool.js';
 
 /**
  * Seed da base analítica a partir do mock compartilhado (`gerarBaseMock`): nenhuma regra é duplicada aqui,
@@ -11,21 +12,20 @@ export const VERSAO_SEED = 'seed-mock';
 export const TAMANHO_LOTE = 500;
 const OFFSET_CIVIL_MS = -3 * 3600_000; // America/Sao_Paulo (ref_calendario.offset_minutos = -180)
 
-type Valor = string | number | null;
+type Valor = string | number | boolean | null;
 export type Linha = Record<string, Valor>;
 export type Tabela = { tabela: string; linhas: Linha[] };
 
-/** epoch ms -> DATETIME(3) em UTC ('AAAA-MM-DD HH:MM:SS.mmm'). */
+/** epoch ms -> timestamptz(3) em UTC ('AAAA-MM-DD HH:MM:SS.mmm'; a sessão é UTC). */
 export const dt = (ms: number): string => new Date(ms).toISOString().slice(0, 23).replace('T', ' ');
 const dtn = (ms: number | null): string | null => (ms === null ? null : dt(ms));
 /** epoch ms -> DATE civil no fuso do calendário. */
 export const dia = (ms: number): string => new Date(ms + OFFSET_CIVIL_MS).toISOString().slice(0, 10);
-const bit = (b: boolean): number => (b ? 1 : 0);
 
 /** Id ASCII estável para colunas do quadro: o nome (com acentos) fica em ref_coluna.nome. */
 const idColuna = (ordem: number): string => `c${ordem}`;
 
-export function mapearBM(base: BaseMock, coletaId: number): Tabela[] {
+export function mapearBM(base: BaseMock, coletaId: number, S: Esquemas = esquemasDoAmbiente()): Tabela[] {
   const { cards, transicoes, bloqueios, colunas } = base.bm;
   const inicio = base.config.hoje; // só para derivar datas; o corte vem da config
   const coletado = dt(new Date(inicio).getTime());
@@ -48,10 +48,10 @@ export function mapearBM(base: BaseMock, coletaId: number): Tabela[] {
     motivo_descarte: c.motivo_descarte, tamanho_declarado: c.tamanho_declarado, titulo: c.titulo,
     granularidade: c.granularidade, equipe: c.equipe, quadro_id: c.quadro_id,
     coluna_atual_id: col(c.quadro_id, c.coluna_atual), excluido_em: dtn(c.excluido_em),
-    eh_subtarefa: bit(c.eh_subtarefa), data_acordada: c.data_acordada === null ? null : dia(c.data_acordada),
+    eh_subtarefa: c.eh_subtarefa, data_acordada: c.data_acordada === null ? null : dia(c.data_acordada),
     responsabilidade_atraso: c.responsabilidade_atraso, origem_demanda: c.origem_demanda,
     fase_deteccao: c.fase_deteccao, severidade: c.severidade, origem_bug: c.origem_bug,
-    adicionado_apos_inicio_pai: bit(c.adicionado_apos_inicio_pai),
+    adicionado_apos_inicio_pai: c.adicionado_apos_inicio_pai,
     coletado_em: coletado, atualizado_por_coleta_id: coletaId,
   }));
 
@@ -82,21 +82,26 @@ export function mapearBM(base: BaseMock, coletaId: number): Tabela[] {
   }));
 
   return [
-    { tabela: 'dspd_bm.dim_card', linhas: dimCard },
-    { tabela: 'dspd_bm.fato_transicao', linhas: fatoTransicao },
-    { tabela: 'dspd_bm.fato_bloqueio', linhas: fatoBloqueio },
-    { tabela: 'dspd_bm.ref_coluna', linhas: refColuna },
+    { tabela: `${S.bm}.dim_card`, linhas: dimCard },
+    { tabela: `${S.bm}.fato_transicao`, linhas: fatoTransicao },
+    { tabela: `${S.bm}.fato_bloqueio`, linhas: fatoBloqueio },
+    { tabela: `${S.bm}.ref_coluna`, linhas: refColuna },
   ];
 }
 
-export function mapearAC(base: BaseMock, coletaId: number): Tabela[] {
+export function mapearAC(base: BaseMock, coletaId: number, S: Esquemas = esquemasDoAmbiente()): Tabela[] {
   const coletado = dt(new Date(base.config.hoje).getTime());
   const dimChamado = base.ac.chamados.map((c): Linha => ({
     chamado_id: c.chamado_id, natureza: c.natureza, equipe: c.equipe, organizacao: c.organizacao,
-    tipo: c.tipo_fila, prioridade: c.prioridade, urgencia: c.urgencia, impacto: c.impacto, status: c.status,
-    aberto_em: dt(c.aberto_em), data_finalizado: dtn(c.data_finalizado), status_sla_r: c.status_sla_r,
-    motivo_escalacao: c.motivo_escalacao, motivo_encerramento: c.motivo_encerramento,
-    avaliacao_problema: c.avaliacao_problema, excluido: bit(c.excluido),
+    tipo: c.tipo_fila, categoria_sistema: c.categoria_sistema, excluido: c.excluido, status: c.status,
+    impacto: c.impacto, urgencia: c.urgencia, prioridade: c.prioridade,
+    prioridade_ajustada_manualmente: c.prioridade_ajustada_manualmente, aberto_em: dt(c.aberto_em),
+    primeiro_atendimento_em: dtn(c.primeiro_atendimento_em), restaurado_em: dtn(c.restaurado_em),
+    data_finalizado: dtn(c.data_finalizado), status_sla_r: c.status_sla_r, status_sla_pa: c.status_sla_pa,
+    motivo_escalacao: c.motivo_escalacao, motivo_pendencia_atual: c.motivo_pendencia_atual,
+    previsao_retorno: dtn(c.previsao_retorno), motivo_encerramento: c.motivo_encerramento,
+    avaliacao_problema: c.avaliacao_problema, excecao_sla_registro_posterior: c.excecao_sla_registro_posterior,
+    incidente_critico_coordenado: c.incidente_critico_coordenado, nivel_resolucao: c.nivel_resolucao,
     coletado_em: coletado, atualizado_por_coleta_id: coletaId,
   }));
   const fatoEtapa = base.ac.etapas.map((e): Linha => ({
@@ -104,8 +109,8 @@ export function mapearAC(base: BaseMock, coletaId: number): Tabela[] {
     motivo_pendencia: e.motivo_pendencia, coletado_em: coletado, atualizado_por_coleta_id: coletaId,
   }));
   return [
-    { tabela: 'dspd_ac.dim_chamado', linhas: dimChamado },
-    { tabela: 'dspd_ac.fato_etapa_chamado', linhas: fatoEtapa },
+    { tabela: `${S.ac}.dim_chamado`, linhas: dimChamado },
+    { tabela: `${S.ac}.fato_etapa_chamado`, linhas: fatoEtapa },
   ];
 }
 
@@ -115,45 +120,59 @@ export function lotes<T>(itens: T[], tamanho = TAMANHO_LOTE): T[][] {
   return out;
 }
 
-/** INSERT parametrizado em lote (valores sempre como parâmetros; nomes vêm do mapeamento, não da entrada). */
-export function insertLote(t: string, linhas: Linha[]): RawBuilder<unknown> {
+/** INSERT parametrizado em lote (valores sempre em $n; nomes vêm do mapeamento, não da entrada). */
+export function insertLote(t: string, linhas: Linha[]): { texto: string; valores: Valor[] } {
   const cols = Object.keys(linhas[0] ?? {});
-  const valores = linhas.map((l) => sql`(${sql.join(cols.map((c) => l[c] ?? null))})`);
-  return sql`INSERT INTO ${sql.raw(t)} (${sql.raw(cols.join(', '))}) VALUES ${sql.join(valores)}`;
+  const valores: Valor[] = [];
+  const grupos = linhas.map((l) => `(${cols.map((c) => { valores.push(l[c] ?? null); return `$${valores.length}`; }).join(', ')})`);
+  return { texto: `INSERT INTO ${t} (${cols.join(', ')}) VALUES ${grupos.join(', ')}`, valores };
 }
 
 export type ResultadoSeed = 'semeado' | 'ja_semeado';
 
-const SCHEMAS = [
-  { schema: 'dspd_bm', mapear: mapearBM },
-  { schema: 'dspd_ac', mapear: mapearAC },
-] as const;
+/** Comparação independente da ordem das chaves (o jsonb reordena). */
+const canonico = (v: unknown): string =>
+  JSON.stringify(v, (_k, x: unknown) =>
+    x !== null && typeof x === 'object' && !Array.isArray(x)
+      ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => (a < b ? -1 : 1)))
+      : x);
 
 /**
  * Idempotente: se já existe a coleta `seed-mock` com a mesma semente, não faz nada; com semente diferente, recusa
- * (nunca sobrescreve histórico; para outra base, use um banco novo). Uma transação por schema (BM e AC não se misturam).
+ * (nunca sobrescreve histórico; para outra base, use um banco novo). Uma transação por schema (BM e AC não se misturam);
+ * `pg_advisory_xact_lock` por schema impede dois seeds simultâneos de gravarem duas vezes.
  */
-export async function semear(db: Kysely<unknown>, base: BaseMock = gerarBaseMock()): Promise<ResultadoSeed> {
-  const parametros = JSON.stringify({ semente: base.config.semente, hoje: base.config.hoje,
-    escala: base.config.escala, mesesHistorico: base.config.mesesHistorico });
+export async function semear(
+  pool: PoolLike, base: BaseMock = gerarBaseMock(), S: Esquemas = esquemasDoAmbiente(),
+): Promise<ResultadoSeed> {
+  const parametros = { semente: base.config.semente, hoje: base.config.hoje,
+    escala: base.config.escala, mesesHistorico: base.config.mesesHistorico };
   const iniciado = dt(new Date(base.config.hoje).getTime());
   let gravou = false;
-  for (const { schema, mapear } of SCHEMAS) {
-    await db.transaction().execute(async (trx) => {
-      const ex = await sql<{ coleta_id: string; parametros: unknown }>`
-        SELECT coleta_id, parametros FROM ${sql.raw(schema)}.ctl_coleta WHERE versao_coletor = ${VERSAO_SEED} LIMIT 1`.execute(trx);
+  const alvos: { schema: string; mapear: (b: BaseMock, c: number, s: Esquemas) => Tabela[] }[] = [
+    { schema: S.bm, mapear: mapearBM },
+    { schema: S.ac, mapear: mapearAC },
+  ];
+  for (const { schema, mapear } of alvos) {
+    await emTransacao(pool, async (trx: Consultavel) => {
+      await trx.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`dspd:seed:${schema}`]);
+      const ex = await trx.query<{ coleta_id: string; parametros: unknown }>(
+        `SELECT coleta_id, parametros FROM ${schema}.ctl_coleta WHERE versao_coletor = $1 LIMIT 1`, [VERSAO_SEED]);
       const atual = ex.rows[0];
       if (atual) {
-        const p = typeof atual.parametros === 'string' ? atual.parametros : JSON.stringify(atual.parametros);
-        if (JSON.stringify(JSON.parse(p)) !== parametros) throw new Error(`${schema} já semeado com outra base; use um banco novo`);
+        if (canonico(atual.parametros) !== canonico(parametros)) throw new Error(`${schema} já semeado com outra base; use um banco novo`);
         return;
       }
-      const r = await sql`INSERT INTO ${sql.raw(schema)}.ctl_coleta
-        (tarefa, iniciado_em, finalizado_em, status, versao_coletor, parametros)
-        VALUES ('projecao', ${iniciado}, ${iniciado}, 'sucesso', ${VERSAO_SEED}, ${parametros})`.execute(trx);
-      const coletaId = Number(r.insertId);
-      for (const { tabela, linhas } of mapear(base, coletaId))
-        for (const lote of lotes(linhas)) await insertLote(tabela, lote).execute(trx);
+      const r = await trx.query<{ coleta_id: string }>(
+        `INSERT INTO ${schema}.ctl_coleta (tarefa, iniciado_em, finalizado_em, status, versao_coletor, parametros)
+         VALUES ('projecao', $1, $1, 'sucesso', $2, $3::jsonb) RETURNING coleta_id`,
+        [iniciado, VERSAO_SEED, JSON.stringify(parametros)]);
+      const coletaId = Number(r.rows[0]!.coleta_id);
+      for (const { tabela, linhas } of mapear(base, coletaId, S))
+        for (const lote of lotes(linhas)) {
+          const q = insertLote(tabela, lote);
+          await trx.query(q.texto, q.valores);
+        }
       gravou = true;
     });
   }

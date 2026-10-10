@@ -1,37 +1,36 @@
-import { sql, type Kysely } from 'kysely';
+import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
+import type { Consultavel } from '../../plataforma/db/pool.js';
 
-const ER_DUP_ENTRY = 1062;
 export type ResultadoStaging = 'inserido' | 'ja_existente';
 
-export const ehDuplicata = (e: unknown): boolean =>
-  typeof e === 'object' && e !== null && (e as { errno?: number }).errno === ER_DUP_ENTRY;
-
 /**
- * Grava uma versão de stg_card (ADR 0004/0005): dedup contra a ÚLTIMA versão; INSERT normal;
- * só o erro 1062 vira "já existente" após reler (cadeia linear por UNIQUE); sem INSERT IGNORE/upsert.
+ * Grava uma versão de stg_card (ADR 0014, data-model §3.1): dedup contra a ÚLTIMA versão; INSERT com
+ * `ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk` (alvo explícito, sem DO UPDATE).
+ * Zero linhas devolvidas = outro coletor gravou sobre a mesma anterior: relê e reavalia (até 5 vezes).
+ * Como ON CONFLICT não gera erro, a transação do chamador não é abortada. Exige READ COMMITTED (padrão),
+ * para que a releitura enxergue o que a outra transação confirmou.
  */
 export type EntradaStgCard = {
   idOrigem: string; payload: unknown; sha256: Buffer; coletaId: number; agora: Date;
   quadroId: string; arquivado: boolean; excluidoDetectado: boolean;
 };
 
-export async function gravarStgCard(db: Kysely<unknown>, entrada: EntradaStgCard): Promise<ResultadoStaging> {
+export async function gravarStgCard(
+  db: Consultavel, entrada: EntradaStgCard, S: Esquemas = esquemasDoAmbiente(),
+): Promise<ResultadoStaging> {
   const { idOrigem, payload, sha256, coletaId, agora, quadroId, arquivado, excluidoDetectado } = entrada;
   for (let tentativa = 0; tentativa < 5; tentativa++) {
-    const r = await sql<{ stg_sk: string; payload_sha256: Buffer }>`
-      SELECT stg_sk, payload_sha256 FROM dspd_bm.stg_card
-      WHERE id_origem = ${idOrigem} ORDER BY stg_sk DESC LIMIT 1`.execute(db);
+    const r = await db.query<{ stg_sk: string; payload_sha256: Buffer }>(
+      `SELECT stg_sk, payload_sha256 FROM ${S.bm}.stg_card WHERE id_origem = $1 ORDER BY stg_sk DESC LIMIT 1`, [idOrigem]);
     const ultima = r.rows[0];
     if (ultima && Buffer.compare(ultima.payload_sha256, sha256) === 0) return 'ja_existente';
-    try {
-      await sql`INSERT INTO dspd_bm.stg_card
-        (id_origem, anterior_sk, payload_sha256, payload, quadro_id, arquivado, excluido_detectado, coletado_em, coleta_id)
-        VALUES (${idOrigem}, ${ultima ? ultima.stg_sk : 0}, ${sha256}, ${JSON.stringify(payload)}, ${quadroId}, ${arquivado ? 1 : 0}, ${excluidoDetectado ? 1 : 0}, ${agora}, ${coletaId})`.execute(db);
-      return 'inserido';
-    } catch (e) {
-      if (!ehDuplicata(e)) throw e;
-      // outro coletor gravou sobre a mesma anterior: relê e reavalia
-    }
+    const ins = await db.query<{ stg_sk: string }>(
+      `INSERT INTO ${S.bm}.stg_card
+         (id_origem, anterior_sk, payload_sha256, payload, quadro_id, arquivado, excluido_detectado, coletado_em, coleta_id)
+       VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7, $8, $9)
+       ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk`,
+      [idOrigem, ultima ? ultima.stg_sk : null, sha256, JSON.stringify(payload), quadroId, arquivado, excluidoDetectado, agora, coletaId]);
+    if (ins.rows.length > 0) return 'inserido';
   }
   throw new Error('conflito persistente na cadeia de stg_card');
 }

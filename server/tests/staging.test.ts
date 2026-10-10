@@ -1,64 +1,58 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { ehDuplicata, gravarStgCard, type EntradaStgCard } from '../src/db/staging.js';
-import { criarDubleDb } from './duble-db.js';
+import { gravarStgCard, type EntradaStgCard } from '../src/modulos/businessmap/staging.js';
+import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
+import { criarDublePg } from './duble-pg.js';
 
 const sha = (s: string): Buffer => createHash('sha256').update(s).digest();
 const entrada = (p: Partial<EntradaStgCard> = {}): EntradaStgCard => ({
   idOrigem: 'c1', payload: { a: 1 }, sha256: sha('x'), coletaId: 7, agora: new Date('2026-10-01T00:00:00Z'),
   quadroId: 'q1', arquivado: false, excluidoDetectado: false, ...p,
 });
-const dup = Object.assign(new Error('dup'), { errno: 1062 });
-
-describe('ehDuplicata', () => {
-  it('só reconhece errno 1062', () => {
-    expect(ehDuplicata(dup)).toBe(true);
-    expect(ehDuplicata({ errno: 1 })).toBe(false);
-    expect(ehDuplicata(null)).toBe(false);
-    expect(ehDuplicata('1062')).toBe(false);
-  });
-});
+const ehSelect = (c: { texto: string }): boolean => c.texto.startsWith('SELECT');
 
 describe('gravarStgCard', () => {
-  it('insere a primeira versão encadeada em 0, com flags', async () => {
-    const { db, chamadas } = criarDubleDb();
-    expect(await gravarStgCard(db, entrada({ arquivado: true, excluidoDetectado: true }))).toBe('inserido');
+  it('primeira versão: anterior_sk nulo, ON CONFLICT com alvo explícito e DO NOTHING, schema qualificado', async () => {
+    const { pool, chamadas } = criarDublePg((c) => (ehSelect(c) ? [] : [{ stg_sk: '1' }]));
+    expect(await gravarStgCard(pool, entrada({ arquivado: true, excluidoDetectado: true }), montarEsquemas('t_'))).toBe('inserido');
     const ins = chamadas[1]!;
-    expect(ins.sql).toContain('INSERT INTO dspd_bm.stg_card');
-    expect(ins.parametros).toContain(0);
-    expect(ins.parametros).toContain('{"a":1}');
-    expect(ins.parametros.filter((p) => p === 1)).toHaveLength(2);
+    expect(ins.texto).toContain('INSERT INTO t_dspd_bm.stg_card');
+    expect(ins.texto).toContain('ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk');
+    expect(ins.texto).not.toMatch(/DO UPDATE/);
+    expect(ins.valores[1]).toBeNull();
+    expect(ins.valores[3]).toBe('{"a":1}');
+    expect(ins.valores.slice(5, 7)).toEqual([true, true]);
   });
-
+  it('schema do ambiente quando não informado', async () => {
+    const { pool, chamadas } = criarDublePg((c) => (ehSelect(c) ? [] : [{ stg_sk: '1' }]));
+    await gravarStgCard(pool, entrada());
+    expect(chamadas[0]!.texto).toContain('dspd_bm.stg_card');
+  });
   it('payload igual à última versão: já existente, sem INSERT', async () => {
-    const { db, chamadas } = criarDubleDb(() => [{ stg_sk: '3', payload_sha256: sha('x') }]);
-    expect(await gravarStgCard(db, entrada())).toBe('ja_existente');
+    const { pool, chamadas } = criarDublePg(() => [{ stg_sk: '3', payload_sha256: sha('x') }]);
+    expect(await gravarStgCard(pool, entrada())).toBe('ja_existente');
     expect(chamadas).toHaveLength(1);
   });
-
   it('payload novo encadeia na última versão', async () => {
-    const { db, chamadas } = criarDubleDb((c) => (c.sql.includes('SELECT') ? [{ stg_sk: '3', payload_sha256: sha('y') }] : []));
-    expect(await gravarStgCard(db, entrada())).toBe('inserido');
-    expect(chamadas[1]!.parametros).toContain('3');
+    const { pool, chamadas } = criarDublePg((c) => (ehSelect(c) ? [{ stg_sk: '3', payload_sha256: sha('y') }] : [{ stg_sk: '4' }]));
+    expect(await gravarStgCard(pool, entrada())).toBe('inserido');
+    expect(chamadas[1]!.valores[1]).toBe('3');
   });
-
-  it('duplicata na corrida: relê e vira já existente', async () => {
+  it('conflito (zero linhas): relê e vira já existente se a outra transação gravou o mesmo conteúdo', async () => {
     let selects = 0;
-    const { db } = criarDubleDb((c) => {
-      if (c.sql.includes('SELECT')) return ++selects === 1 ? [] : [{ stg_sk: '1', payload_sha256: sha('x') }];
-      return dup;
+    const { pool } = criarDublePg((c) => {
+      if (ehSelect(c)) return ++selects === 1 ? [] : [{ stg_sk: '1', payload_sha256: sha('x') }];
+      return [];
     });
-    expect(await gravarStgCard(db, entrada())).toBe('ja_existente');
+    expect(await gravarStgCard(pool, entrada())).toBe('ja_existente');
   });
-
-  it('erro que não é duplicata propaga', async () => {
-    const { db } = criarDubleDb((c) => (c.sql.includes('SELECT') ? [] : new Error('boom')));
-    await expect(gravarStgCard(db, entrada())).rejects.toThrow('boom');
+  it('erro que não é conflito propaga', async () => {
+    const { pool } = criarDublePg((c) => (ehSelect(c) ? [] : new Error('boom')));
+    await expect(gravarStgCard(pool, entrada())).rejects.toThrow('boom');
   });
-
   it('conflito persistente após 5 tentativas falha', async () => {
-    const { db, chamadas } = criarDubleDb((c) => (c.sql.includes('SELECT') ? [] : dup));
-    await expect(gravarStgCard(db, entrada())).rejects.toThrow('conflito persistente');
+    const { pool, chamadas } = criarDublePg(() => []);
+    await expect(gravarStgCard(pool, entrada())).rejects.toThrow('conflito persistente');
     expect(chamadas).toHaveLength(10);
   });
 });

@@ -11,27 +11,30 @@
     "lint": "eslint .",
     "test": "vitest run",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run test",
-    "migrate": "tsx src/db/cli.ts",
-    "pronto": "pnpm run typecheck && pnpm run lint && pnpm test",
+    "migrate": "tsx src/plataforma/db/cli.ts",
+    "pronto": "pnpm run typecheck && pnpm run lint && pnpm run cobertura",
     "cobertura": "vitest run --coverage",
-    "seed": "tsx src/db/seed-cli.ts",
-    "grants": "tsx src/db/grants-cli.ts"
+    "seed": "tsx src/plataforma/db/seed-cli.ts",
+    "test:pg": "vitest run --project pg",
+    "checksums": "tsx src/plataforma/db/checksums-cli.ts",
+    "db:limpar-testes": "tsx src/plataforma/db/limpar-testes-cli.ts"
   },
   "dependencies": {
-    "kysely": "^0.29.6",
-    "mysql2": "^3.11.0",
     "@metricas-dspd/contratos": "workspace:*",
     "@metricas-dspd/metricas": "workspace:*",
-    "@metricas-dspd/mock": "workspace:*"
+    "@metricas-dspd/mock": "workspace:*",
+    "node-pg-migrate": "^9.0.0",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^5.0.3",
+    "@eslint/js": "^9.39.5",
     "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "@vitest/coverage-v8": "^5.0.3",
+    "eslint": "^9.39.5",
     "tsx": "^4.19.0",
     "typescript": "^5.9.3",
-    "vitest": "^5.0.3",
-    "eslint": "^9.39.5",
-    "@eslint/js": "^9.39.5",
-    "typescript-eslint": "^8.71.1"
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
   }
 }
