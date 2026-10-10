@@ -1,6 +1,8 @@
+import { DummyDriver, Kysely, MysqlAdapter, MysqlIntrospector, MysqlQueryCompiler } from 'kysely';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
 import { MIGRACOES } from '../src/db/migracoes.js';
+import { violaLgpd } from '../src/db/lgpd.js';
 import { dia, dt, insertLote, lotes, mapearAC, mapearBM, type Tabela } from '../src/db/seed.js';
 
 const base = gerarBaseMock({ escala: 0.05 });
@@ -36,11 +38,8 @@ describe('seed (análise estática, sem banco)', () => {
     expect(mapearAC(base, 1).every((t) => t.tabela.startsWith('dspd_ac.'))).toBe(true);
   });
   it('nenhuma coluna de pessoa é gravada (data-model §9)', () => {
-    const pessoa = /pessoa|responsav|usuario|user|agente|atendente|solicitante|autor|criador|email|login|assignee|justificativa/i;
     for (const { tabela, linhas } of todas())
-      for (const c of Object.keys(linhas[0] ?? {})) {
-        if (c !== 'area_solicitante') expect(c, tabela).not.toMatch(pessoa); // área organizacional (4.5), não pessoa
-      }
+      for (const c of Object.keys(linhas[0] ?? {})) expect(violaLgpd(tabela, c), `${tabela}.${c}`).toBe(false);
   });
   it('ids ASCII com até 32 caracteres e instantes no formato DATETIME(3)', () => {
     for (const { linhas } of todas())
@@ -52,10 +51,15 @@ describe('seed (análise estática, sem banco)', () => {
   });
   it('lotes respeitam o tamanho e o INSERT é parametrizado (sem valores no texto)', () => {
     expect(lotes([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
-    const c = insertLote('dspd_bm.dim_card', [{ card_id: "x'; DROP TABLE y;--", tipo: null }]).compile({
-      getExecutor: () => ({ transformQuery: (n: unknown) => n, compileQuery: (n: unknown) => n }),
-    } as never) as unknown;
-    expect(c).toBeDefined();
+    const perigo = "x'; DROP TABLE y;--";
+    const db = new Kysely<unknown>({ dialect: {
+      createAdapter: () => new MysqlAdapter(), createDriver: () => new DummyDriver(),
+      createIntrospector: (d) => new MysqlIntrospector(d), createQueryCompiler: () => new MysqlQueryCompiler(),
+    } });
+    const c = insertLote('dspd_bm.dim_card', [{ card_id: perigo, tipo: null }]).compile(db);
+    expect(c.sql).not.toContain(perigo);
+    expect(c.sql).not.toContain('DROP');
+    expect(c.parameters).toContain(perigo);
   });
   it('proíbe INSERT IGNORE/ON DUPLICATE KEY/REPLACE no seed (ADR 0004)', async () => {
     const { readFileSync } = await import('node:fs');

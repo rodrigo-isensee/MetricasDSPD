@@ -63,7 +63,7 @@ flowchart TD
 | Usuário | Pode |
 |---|---|
 | `dspd_migrador` | DDL (só no job de deploy); também usado no seed em desenvolvimento |
-| `dspd_coletor` | INSERT/SELECT em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; INSERT/UPDATE/DELETE nas projeções; INSERT/UPDATE em `ctl_`; SELECT em `ref_` |
+| `dspd_coletor` | INSERT/SELECT em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; INSERT/UPDATE/DELETE nas projeções; SELECT/INSERT em `ctl_` (append-only, inclusive `ctl_automacao`), com `UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo)` em `ctl_coleta` e UPDATE em `ctl_coleta_contagem`; SELECT em `ref_` |
 | `dspd_ref` | INSERT/SELECT em `ref_` e `UPDATE (vigente_ate)` por coluna |
 | `dspd_webhook` | INSERT só em `dspd_bm.stg_webhook_evento` |
 | `dspd_api` | SELECT em projeções, `vw_`, `ref_`, `ctl_`; sem acesso a `stg_` |
@@ -103,3 +103,9 @@ Primeiro uso: `cp .env.example .env`, ajuste as senhas, `npm run db:up && npm ru
 3. Confira com `docker compose version` e `docker run --rm hello-world`.
 
 Nesta entrega os testes contra MySQL ainda não foram executados (Docker ausente na máquina); sem `MYSQL_TEST_URL` eles ficam pulados e os estáticos rodam sempre.
+
+## Regra LGPD de colunas (`src/db/lgpd.ts`)
+Módulo único, usado pelos testes estáticos das migrações e do seed (e pelo de `information_schema` no CI). O nome da coluna é dividido por `_` e falha se algum segmento casar `pessoa|responsav*|usuario*|user*|agente*|atendente*|solicitante*|autor*|criador*|email*|login*|assignee*|justificativa*`. Exceções só por `schema.tabela.coluna` (hoje `dspd_bm.dim_card.area_solicitante` e `dspd_bm.dim_card_versao.area_solicitante`, área organizacional, briefing 4.5). Decisão do usuário: nomes não são pseudonimizados; a garantia é que nenhuma view ou DTO expõe ou agrega por pessoa. O seed não grava responsáveis.
+
+## Staging de card
+`gravarStgCard(db, entrada)` recebe `quadroId`, `arquivado` e `excluidoDetectado` do coletor (nada é fixo em código). `fato_transicao.id_origem` é `VARCHAR(64) ascii` (hash SHA-256 hex do webhook). Removidos: índices `ix_*_versao_vigente` (redundantes com o UNIQUE) e `stg_webhook_evento.coleta_id`; `dim_chamado_versao` ganhou `organizacao` e `tipo`. `dspd_ref` tem `UPDATE (vigente_ate)` também em `dspd_core.ref_calendario_turno` e `ref_calendario_aplicacao`.

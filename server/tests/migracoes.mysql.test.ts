@@ -65,7 +65,7 @@ d('migrações contra MySQL 8', () => {
     });
     const qtd = async (id: string): Promise<number> =>
       Number((await sql<{ n: string }>`SELECT COUNT(*) AS n FROM dspd_bm.stg_card WHERE id_origem = ${id}`.execute(db)).rows[0]!.n);
-    const grava = (id: string, v: string) => gravarStgCard(db, id, { v }, h(v), coleta, new Date());
+    const grava = (id: string, v: string) => gravarStgCard(db, { idOrigem: id, payload: { v }, sha256: h(v), coletaId: coleta, agora: new Date(), quadroId: 'q1', arquivado: false, excluidoDetectado: false });
 
     it('A, B, A gera 3 linhas; recoleta idêntica de A não gera nenhuma', async () => {
       expect(await grava('c1', 'A')).toBe('inserido');

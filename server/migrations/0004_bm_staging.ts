@@ -26,7 +26,7 @@ export const ddl: Ddl = {
     // Entrega do webhook: sem coleta (receptor dspd_webhook só insere aqui); reentrega idêntica = mesma linha.
     tabela(B, 'stg_webhook_evento', `webhook_sk BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   payload_sha256 BINARY(32) NOT NULL, payload JSON NOT NULL,
-  ${DT('recebido_em')}, coleta_id BIGINT UNSIGNED NULL,
+  ${DT('recebido_em')},
   PRIMARY KEY (webhook_sk),
   UNIQUE KEY uq_stg_webhook_evento_hash (payload_sha256),
   KEY ix_stg_webhook_evento_recebido (recebido_em)`),
