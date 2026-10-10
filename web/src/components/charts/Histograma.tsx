@@ -1,6 +1,6 @@
 import type { FaixaHistograma } from '@metricas-dspd/contratos'
 import { Barras, type CategoriaBarra, type SerieBarra } from './Barras'
-import { PADROES, corNaPosicao } from './tema'
+import { PADROES, corNaPosicao, type Padrao } from './tema'
 
 interface Props {
   faixas: readonly FaixaHistograma[]
@@ -31,7 +31,7 @@ export function Histograma({
         chave: c,
         rotulo: c,
         cor: corNaPosicao(i),
-        padrao: PADROES[i % PADROES.length] ?? 'liso',
+        padrao: PADROES[i % PADROES.length] as Padrao,
       }))
     : [{ chave: 'contagem', rotulo: unidadeY, cor: 1 }]
   const categorias: CategoriaBarra[] = faixas.map((f) => ({

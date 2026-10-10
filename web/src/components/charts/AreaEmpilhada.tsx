@@ -57,7 +57,7 @@ export function AreaEmpilhada({
   const cfg = series.map((s, i) => ({
     ...s,
     cor: s.cor ?? corNaPosicao(i),
-    padrao: s.padrao ?? PADROES[(i + 1) % PADROES.length] ?? 'listras',
+    padrao: s.padrao ?? (PADROES[(i + 1) % PADROES.length] as Padrao),
   }))
   const dados = pontos.map((p) => ({ __x: p.x, ...p.valores }))
   const legenda: ItemLegenda[] = cfg.map((s) => ({
