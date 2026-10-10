@@ -1,7 +1,7 @@
 # Plano técnico - Dashboard de métricas com dados mockados
 
 - Data: 2026-10-09 · Pedido: `docs/pedidos/001-dashboard-mock.md`
-- Especificação de UX (em paralelo): `docs/ux/dashboard-metricas.md`
+- Especificação de UX (em paralelo): `docs/ux/dashboard-metricas/especificacao.md`
 - Stack: ADR `docs/architecture/adr/0001-stack-front-dashboard-mock.md` (parcialmente substituída pela 0002)
 - (rev. 3) Monorepo e pacotes compartilhados: ADR `docs/architecture/adr/0002-monorepo-pacotes-compartilhados.md` · Orçamento de performance: ADR `docs/architecture/adr/0003-orcamento-de-performance.md`
 - Revisão 2 (2026-10-09): alinhado às decisões J1 (janela de 12 semanas em todas as granularidades) e J2 (sustentação em horas úteis, inclusive P1) do tech lead e às lacunas L11 e L13 da spec de UX revisão 2. Trechos alterados marcados "(rev. 2)".

@@ -30,8 +30,8 @@ export default defineConfig({
       : [{
       // semente alternativa: o diretório de saída é separado para não sobrescrever o build padrão
       command:
-        `VITE_MOCK_SEMENTE=7 npm --prefix ../web exec -- vite build --outDir dist-alt --emptyOutDir && ` +
-        `npm --prefix ../web exec -- vite preview --outDir dist-alt --port ${PORTA_ALT} --strictPort`,
+        `cd ../web && VITE_MOCK_SEMENTE=7 npx vite build --outDir dist-alt --emptyOutDir && ` +
+        `npx vite preview --outDir dist-alt --port ${PORTA_ALT} --strictPort`,
       url: `http://localhost:${PORTA_ALT}`,
       reuseExistingServer: !CI,
       timeout: 180_000,

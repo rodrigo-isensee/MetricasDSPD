@@ -1,0 +1,200 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Tokens semânticos (spec de UX 8.2). Valores de partida: validar com axe e medidor de contraste. */
+:root {
+  color-scheme: light;
+  --fundo: #f6f7f9;
+  --superficie: #ffffff;
+  --superficie-2: #eef1f6;
+  --texto: #1a1f2b;
+  --texto-2: #4a5365;
+  --borda: #d5dae3;
+  --borda-controle: #6b7488;
+  --acento: #1f5fbf;
+  --acento-texto: #ffffff;
+  --acento-fundo: #e6effc;
+  --alerta: #b42318;
+  --alerta-fundo: #fdecea;
+  --atencao: #8a5a00;
+  --atencao-fundo: #fff4dc;
+  --ok: #0b6b3a;
+  --ok-fundo: #e3f5ec;
+  --serie-1: #0072b2;
+  --serie-2: #d55e00;
+  --serie-3: #009e73;
+  --serie-4: #7b3fa0;
+  --serie-5: #b87a00;
+  --serie-6: #cc79a7;
+  --serie-7: #5b6477;
+  --rampa-1: #dbe8f7;
+  --rampa-2: #a9c8ec;
+  --rampa-3: #6fa2dc;
+  --rampa-4: #3571bb;
+  --rampa-5: #1d4f94;
+  --rampa-1-fg: #1a1f2b;
+  --rampa-2-fg: #1a1f2b;
+  --rampa-3-fg: #1a1f2b;
+  --rampa-4-fg: #ffffff;
+  --rampa-5-fg: #ffffff;
+  --h-cabecalho: 3.5rem;
+  --h-filtros: 0rem;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --fundo: #0f1420;
+  --superficie: #161c2a;
+  --superficie-2: #1e2638;
+  --texto: #e8ecf4;
+  --texto-2: #aab3c5;
+  --borda: #2a3347;
+  --borda-controle: #8590a6;
+  --acento: #6aa8ff;
+  --acento-texto: #0f1420;
+  --acento-fundo: #1c2d4a;
+  --alerta: #ff8a80;
+  --alerta-fundo: #3a1b1b;
+  --atencao: #e0b040;
+  --atencao-fundo: #3a2e0f;
+  --ok: #3ccb9b;
+  --ok-fundo: #0f2f25;
+  --serie-1: #6aa8ff;
+  --serie-2: #ff9a5c;
+  --serie-3: #3ccb9b;
+  --serie-4: #b48cff;
+  --serie-5: #e0b040;
+  --serie-6: #f08cc0;
+  --serie-7: #9aa3b5;
+  --rampa-1: #1c2d4a;
+  --rampa-2: #254271;
+  --rampa-3: #33609f;
+  --rampa-4: #4f86d0;
+  --rampa-5: #86b4f5;
+  --rampa-1-fg: #e8ecf4;
+  --rampa-2-fg: #e8ecf4;
+  --rampa-3-fg: #e8ecf4;
+  --rampa-4-fg: #0f1420;
+  --rampa-5-fg: #0f1420;
+}
+
+@theme inline {
+  --color-fundo: var(--fundo);
+  --color-superficie: var(--superficie);
+  --color-superficie-2: var(--superficie-2);
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-borda: var(--borda);
+  --color-borda-controle: var(--borda-controle);
+  --color-acento: var(--acento);
+  --color-acento-texto: var(--acento-texto);
+  --color-acento-fundo: var(--acento-fundo);
+  --color-alerta: var(--alerta);
+  --color-alerta-fundo: var(--alerta-fundo);
+  --color-atencao: var(--atencao);
+  --color-atencao-fundo: var(--atencao-fundo);
+  --color-ok: var(--ok);
+  --color-ok-fundo: var(--ok-fundo);
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+}
+
+/* --h-cabecalho e --h-filtros são medidos em tempo de execução (useAlturaCss); estes são só o valor inicial.
+   Abaixo de 768 px nada fica fixo: o padding é só uma folga. */
+html {
+  scroll-padding-top: 1rem;
+  font-family: var(--font-sans);
+  background: var(--fundo);
+  color: var(--texto);
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (min-width: 48rem) {
+  html {
+    scroll-padding-top: calc(var(--h-cabecalho) + var(--h-filtros) + 1rem);
+  }
+}
+
+body {
+  min-width: 20rem;
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+/* Foco visível: 2 px, deslocado 2 px, em ambos os temas (WCAG 2.4.7 e 2.4.13). */
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+/* Alvos de toque (WCAG 2.5.8): 24 px em todas as larguras, 44 px abaixo de 768 px. */
+.alvo {
+  min-height: 1.5rem;
+  min-width: 1.5rem;
+}
+@media (max-width: 47.99rem) {
+  .alvo {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
+/* Semana ou mês em andamento: padrão listrado + rótulo (nunca só cor). */
+.listrado {
+  background-image: repeating-linear-gradient(45deg, currentColor 0 2px, transparent 2px 6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes brilho {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.esqueleto {
+  background: linear-gradient(
+    90deg,
+    var(--superficie-2) 25%,
+    var(--borda) 50%,
+    var(--superficie-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: brilho 1.6s linear infinite;
+}
+
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* Região rolável na horizontal: sombras nas bordas indicam que há mais conteúdo (K-046). */
+.rolagem-sombra {
+  background:
+    linear-gradient(to right, var(--superficie) 30%, transparent) left center / 24px 100% no-repeat
+      local,
+    linear-gradient(to left, var(--superficie) 30%, transparent) right center / 24px 100% no-repeat
+      local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.28), transparent) left center / 10px 100%
+      no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.28), transparent) right center / 10px
+      100% no-repeat scroll;
+  background-color: var(--superficie);
+}

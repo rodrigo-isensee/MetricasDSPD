@@ -52,7 +52,9 @@ export class PainelPage {
   /** Aguarda todos os cartões saírem de carregando/atualizando (sem `waitForTimeout`). */
   async esperarCartoesProntos(): Promise<void> {
     const cartoes = this.page.locator('[data-testid^="metrica-"]');
-    await expect(cartoes.first()).toBeVisible();
+    // Fase A: rotas sem cartões (Visão geral e placeholders) só precisam do h1.
+    await expect(cartoes.first().or(this.h1).first()).toBeVisible();
+    if ((await cartoes.count()) === 0) return;
     await expect(this.page.locator('[data-testid^="metrica-"][aria-busy="true"]')).toHaveCount(0);
     await expect(this.page.locator('[data-testid^="estado-carregando-"]')).toHaveCount(0);
   }

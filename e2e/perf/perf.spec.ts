@@ -126,3 +126,22 @@ test.describe('perf', () => {
     test.info().annotations.push({ type: 'alerta-C5', description: mb > ORCAMENTO.C5_heapMB ? `FORA: ${mb.toFixed(1)} MB` : `ok: ${mb.toFixed(1)} MB` });
   });
 });
+
+// K-050 (bug 008): CLS também em mobile 375x812 (grid em coluna única). Describe próprio: uma rota que falha não pula as outras.
+test.describe('perf-375', () => {
+  for (const rota of ROTAS_PAINEL) {
+    test(`F2 CLS a 375x812 em ${rota}`, async ({ page }) => {
+      await page.setViewportSize({ width: 375, height: 812 });
+      await instalarObservadores(page);
+      const painel = new PainelPage(page);
+      await painel.ir(comSemLatencia(rota));
+      await painel.esperarCartoesProntos();
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
+      const v = await lerVitais(page);
+      registrar(`F2_375_${rota}`, v);
+      console.log(`[perf] 375 ${rota}: CLS=${v.cls.toFixed(3)}`);
+      expect.soft(v.cls, 'F2 CLS 375').toBeLessThan(ORCAMENTO.F2_cls);
+    });
+  }
+});

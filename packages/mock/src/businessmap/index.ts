@@ -1,0 +1,1 @@
+export { gerarBaseBusinessMap } from './gerador'

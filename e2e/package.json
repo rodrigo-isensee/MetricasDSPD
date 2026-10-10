@@ -1,5 +1,5 @@
 {
-  "name": "metricas-dspd-e2e",
+  "name": "@metricas-dspd/e2e",
   "private": true,
   "version": "0.1.0",
   "description": "Testes E2E e de acessibilidade do dashboard de métricas (Playwright + axe)",
@@ -14,14 +14,14 @@
     "size": "node scripts/tamanho-bundle.mjs",
     "lighthouse": "bash scripts/lighthouse.sh",
     "hash-base": "node scripts/hash-base-mock.mjs",
+    "gate": "node scripts/gate.mjs",
+    "chromium:local": "bash scripts/setup-chromium-local.sh",
     "fronteiras": "node scripts/verificar-fronteiras.mjs",
     "perf:tudo": "npm run size && npm run test:perf && npm run lighthouse"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
     "@lhci/cli": "^0.15.1",
-    "@playwright/test": "^1.50.0",
-    "@types/node": "^22.0.0",
-    "typescript": "^5.6.0"
+    "@playwright/test": "^1.50.0"
   }
 }

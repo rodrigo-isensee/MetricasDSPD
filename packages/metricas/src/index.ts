@@ -1,0 +1,7 @@
+export * from './core'
+export * as businessmap from './businessmap'
+export * as acelerato from './acelerato'
+export { calcularVisaoGeral } from './visaoGeral'
+export { calcularMetrica, type ContextosMetricas } from './calcular'
+export { slug } from './slug'
+export { minimo, maximo } from './core/extremos'

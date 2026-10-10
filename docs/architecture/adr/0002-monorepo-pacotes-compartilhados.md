@@ -144,3 +144,16 @@ Quando: depois do code review (D8) e do QA da fase A, **antes** da fase B. Execu
   - **Runner do servidor e TS-fonte** (imports sem extensão, sem `enum`) → `erasableSyntaxOnly` desde já; decisão final do runner no ADR do framework da API (002).
   - **Pasta compartilhada entre agentes durante a extração** → a extração acontece com a fase A parada (depois do review/QA) e antes de abrir o worktree do 002 (D4).
   - **Tipos do modelo analítico (`BaseBM`, `BaseAC`) ficam em `metricas`**; se o servidor precisar deles sem a biblioteca, avaliar movê-los para `contratos` no 002.
+
+## Adendo — K-016/K-043 (2026-10-10)
+Origem: `docs/reviews/001-K-016-r1.md`, `001-K-043-r1.md` e `001-branch-final.md` (item 2). Complementa as seções acima; o restante da decisão segue valendo.
+
+### Exceção aceita: `metricas` → `mock` só em teste
+- `@metricas-dspd/metricas` declara `@metricas-dspd/mock` como **devDependency**, usada só em `*.test.ts` (hoje `regras.test.ts` e `regras.property.test.ts`, que verificam regras sobre a base mock inteira). O ciclo `metricas ↔ mock` existe só no grafo de devDependencies; o grafo de produção continua acíclico (`contratos ← metricas ← mock`).
+- Garantia: lint proíbe `@metricas-dspd/mock` em `packages/metricas/**` fora de `*.test.ts`, sem outras brechas em `ignores` (a entrada `**/testing.ts` foi retirada), com fixture nos dois sentidos (deve falhar em código de produção, deve passar em teste) no meta-teste `web/src/test/lint.meta.test.ts`.
+- Condição de remoção: a exceção cai quando esses testes migrarem para `packages/mock/src/` ou para uma suíte de integração fora de `packages/metricas/src` (ex.: `packages/metricas/test-integracao`), ou quando surgir um terceiro uso do mock dentro de `metricas`; nesse momento, mover os testes e retirar a devDependency em vez de ampliar a exceção.
+
+### Desvios aceitos da decisão original
+- **Sem project references:** o `typecheck` da raiz roda `tsc --noEmit -p .` em cada workspace (inclui `e2e`), não `tsc -b`. Mais simples para TS-fonte sem build; references ficam para quando houver build incremental.
+- **Subpath `@metricas-dspd/contratos/validacao`:** a tabela de exports de `contratos` passa a ser `.` e `./validacao`. `./validacao` concentra os schemas zod de runtime (`SCHEMAS_RESULTADO`), separados do `.`, que o front usa quase só para tipos.
+- **Constantes `META_*` em `contratos`** (`packages/contratos/src/metas.ts`, K-042): valores de meta do briefing usados só para desenhar a linha de referência nos gráficos, fonte única para a biblioteca e a UI. Não decidem status: dentro/fora vem sempre do DTO calculado pela biblioteca.
