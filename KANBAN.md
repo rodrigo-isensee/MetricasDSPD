@@ -39,7 +39,6 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-011 | Pré-entrega, envio da branch e descrição do PR | 001 | tech-lead | 2026-10-09 | 2026-10-10 02:56 | QA r3 aprovado; reconciliar com o parecer 001-branch-final r2. Itens abertos no PR: baixos C5, C6, 001, 006 |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -55,8 +54,6 @@ Documentos revisados e aprovados; seguem no PR de cada pedido.
 
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-018 | ADR 0003 + ADR 0002 + ADR 0001 e plano rev. 3 | 003 | software-architect → tech-lead | 2026-10-09 | 2026-10-09 19:02 | Aprovado; adendo da ADR 0002 em 8a88f83; segue no PR 1 |
-| K-015 | Práticas de engenharia | 002 | tech-lead → software-architect | 2026-10-09 | 2026-10-09 19:02 | Aprovado; segue no PR 1 |
 | K-014 | Arquitetura completa: overview, data-model, ADRs | 002 | software-architect + tech-lead | 2026-10-09 | 2026-10-09 21:28 | Aprovado na r2 (7783107), em `feature/arquitetura-mysql`; sem PR ainda |
 | K-033 | Rascunho do contrato da API (002) | 002 | node-backend | 2026-10-09 | 2026-10-09 21:22 | Aprovado na r2 (697802c), mesmo worktree; decisão frescor corpo × cabeçalho depende do K-034 |
 
@@ -65,39 +62,42 @@ PR 1 (pedido 001) mesclado pelo usuário em 2026-10-10 09:50 (eff026a).
 
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-004 | Front fase A1: scaffold, biblioteca de cálculo e gerador mock | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); QA fase A 22:38; QA final r3 aprovado 2026-10-10 02:56; retrabalho K-027..K-029 |
-| K-022 | Front fase A2: shell, filtros, tema e componentes base | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); idem K-004 |
-| K-027 | [bug] Code review fase A (14 bloqueantes) | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); fechado com K-004/K-022; voltas: 1 (queda de API) |
-| K-028 | [bug] UX fase A (8 altos) | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); fechado com K-004/K-022 |
-| K-029 | [ajuste] UX fase A (médios e baixos) | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); fechado com K-004/K-022 |
-| K-030 | Portão `npm run pronto`, matriz REGRAS_METRICA | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); r1 com ajustes, fechados em K-043/K-016; voltas: 1; merge antecipado registrado |
-| K-031 | Spec da matriz REGRAS_METRICA | 001 | software-architect | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); doc usada pelo K-030 |
-| K-016 | Monorepo: extração para `packages/` | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); r1 com 2 bloqueantes, fechados (c410727, 19440cf) |
-| K-032 | Aceitação dos cartões B | 001 | qa-engineer | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); review aprovado (cc0ae07) |
-| K-039 | [bug] QA fase A (médios e baixos) + R3 | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); com K-006 |
-| K-006 | Front B1a: Operacional diário | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); B1 r1 aprovado |
-| K-023 | Front B1b: Operacional semanal | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); B1 r1 aprovado |
-| K-007 | Front B2: Tático | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); B2 r1 aprovado |
-| K-024 | Front B2b: Estratégico | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); B2 r1 aprovado |
-| K-008 | Front B3a: Sustentação | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); B3 r1 aprovado |
-| K-025 | Front B3b: Espera invisível | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); B3 r1 aprovado |
-| K-026 | Front B3c: Visão geral | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); B3 r1 aprovado |
-| K-041 | [ajuste] Fronteiras ESLint ADR 0002 | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); c410727; aprovado em 001-K-043-r1 |
-| K-042 | [ajuste] Integração entre painéis (EI) | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); 8eb5cd3; aprovado em 001-K-043-r1 |
-| K-043 | [ajuste] Rodada consolidada (B3 r1, K-041, K-042, F4) | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); voltas: 2; aprovado em 001-K-044-045-r1 |
-| K-044 | [bug] QA/UX B3 | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); aprovado em 001-K-044-045-r1 |
-| K-045 | [bug] QA B12 e O7 saldo | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); aprovado em 001-K-044-045-r1 |
-| K-046 | [bug] UX B12 (2 altos, 5 médios) | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); aprovado em 001-K-046-r1 |
-| K-047 | [bug] Faixa Pede atenção com carregando/erro | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); aprovado em 001-K-047-048-r1 |
-| K-048 | [bug] QA final: 007 (S7) e 008 (CLS) | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); 007 ok; 008 voltas: 3 (K-048, K-049, K-050) |
-| K-049 | [bug] Reserva de altura só no esqueleto (bloqueante do branch-final) | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); aprovado em 001-K-049-050-r1 |
-| K-050 | [bug] CLS a 375 px (008) | 001 | react-frontend | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); aprovado; QA r3 fecha 008 |
-| K-009 | QA: automação E2E + axe e parecer | 001 | qa-engineer | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); docs/qa/001-dashboard-mock.md r3: APROVADO (188/189, C6 instável isolado ok) |
-| K-010 | Revisão de UX da interface implementada | 001 | ux-designer | 2026-10-09 | 2026-10-10 02:56 | PR 1 (feature/dashboard-mock); revisões B3 e B12 feitas; confirmar com o UX se há revisão final após K-050 |
 
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-011 | Pré-entrega, envio da branch e descrição do PR | 001 | tech-lead | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-018 | ADR 0003 + ADR 0002 + ADR 0001 e plano rev. 3 | 003 | software-architect → tech-lead | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-015 | Práticas de engenharia | 002 | tech-lead → software-architect | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-004 | Front fase A1: scaffold, biblioteca de cálculo e gerador mock | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-022 | Front fase A2: shell, filtros, tema e componentes base | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-027 | [bug] Code review fase A (14 bloqueantes) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-028 | [bug] UX fase A (8 altos) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-029 | [ajuste] UX fase A (médios e baixos) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-030 | Portão `npm run pronto`, matriz REGRAS_METRICA | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-031 | Spec da matriz REGRAS_METRICA | 001 | software-architect | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-016 | Monorepo: extração para `packages/` | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-032 | Aceitação dos cartões B | 001 | qa-engineer | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-039 | [bug] QA fase A (médios e baixos) + R3 | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-006 | Front B1a: Operacional diário | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-023 | Front B1b: Operacional semanal | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-007 | Front B2: Tático | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-024 | Front B2b: Estratégico | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-008 | Front B3a: Sustentação | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-025 | Front B3b: Espera invisível | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-026 | Front B3c: Visão geral | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-041 | [ajuste] Fronteiras ESLint ADR 0002 | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-042 | [ajuste] Integração entre painéis (EI) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-043 | [ajuste] Rodada consolidada (B3 r1, K-041, K-042, F4) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-044 | [bug] QA/UX B3 | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-045 | [bug] QA B12 e O7 saldo | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-046 | [bug] UX B12 (2 altos, 5 médios) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-047 | [bug] Faixa Pede atenção com carregando/erro | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-048 | [bug] QA final: 007 (S7) e 008 (CLS) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-049 | [bug] Reserva de altura só no esqueleto (bloqueante do branch-final) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-050 | [bug] CLS a 375 px (008) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-009 | QA: automação E2E + axe e parecer | 001 | qa-engineer | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
+| K-010 | Revisão de UX da interface implementada | 001 | ux-designer | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
 | K-001 | Especificação de UX do dashboard (rev. 1 e rev. 2) | 001 | ux-designer | 2026-10-09 | 2026-10-09 18:12 | Commits bf0baca, a60a37a |
 | K-002 | ADR 0001 e plano técnico do dashboard mock (rev. 1 e 2) | 001 | software-architect | 2026-10-09 | 2026-10-09 18:13 | Commits f929ed1, fdb3b1d |
 | K-003 | Plano de testes e esqueleto do pacote E2E | 001 | qa-engineer | 2026-10-09 | 2026-10-09 18:03 | Commit c157fdd |
