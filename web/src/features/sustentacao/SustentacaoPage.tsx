@@ -1,5 +1,6 @@
 import { Secao } from '@/components/ui'
 import { PainelSustentacao } from '@/features/painel/PainelPagina'
+import { CartaoEISust } from '@/features/espera-invisivel/components/CartaoEI'
 import { CartaoS1 } from './components/CartaoS1'
 import { CartaoS2 } from './components/CartaoS2'
 import { CartaoS3 } from './components/CartaoS3'
@@ -42,6 +43,9 @@ export default function SustentacaoPage() {
             <CartaoS5 filtros={filtros} />
             <CartaoS6 filtros={filtros} />
             <CartaoS7 filtros={filtros} />
+          </Secao>
+          <Secao id="espera" titulo="Espera invisível do nível">
+            <CartaoEISust filtros={filtros} variante="compacto" />
           </Secao>
         </>
       )}
