@@ -150,4 +150,11 @@ describe('selos nos painéis (sistêmico: fonte mock, hooks e páginas)', () => 
     expect(screen.getByTestId('selo-frescor-businessmap')).toHaveTextContent('Sem coleta')
     expect(screen.queryByTestId('metrica-O2')).not.toBeInTheDocument()
   })
+
+  it('IR-002: falha de leitura do estado de coleta mostra a mensagem neutra e "Tentar de novo" no painel', async () => {
+    renderizarApp('/operacional?mock=coleta-erro:bm')
+    expect(await screen.findByText(/Não foi possível verificar a coleta/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tentar de novo' })).toBeInTheDocument()
+    expect(screen.queryByText(/Verificando a coleta/)).not.toBeInTheDocument()
+  })
 })

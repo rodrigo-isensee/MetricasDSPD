@@ -226,7 +226,7 @@ export default function VisaoGeralPage() {
           {intervalo(d.recortes.estrategico)}; Sustentação em {intervalo(d.recortes.sustentacao)}.
         </p>
       )}
-      {!pronta && (
+      {aguardando && (
         <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
       )}
       {!aguardando && (q.estado === 'carregando' || (q.estado === 'ok' && !pronta)) && (

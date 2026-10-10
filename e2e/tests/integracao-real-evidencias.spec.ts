@@ -5,7 +5,7 @@ import { mkdirSync } from 'node:fs';
 // Q1: axe nos dois temas (incl. /dados) e pacote de evidências para a UX.
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag22aa'];
 const SAIDA = '../docs/qa/evidencias/integracao-real';
-const ROTAS = ['/dados', '/dados?fonte=ac', '/dados?mock=coleta-erro:bm', '/dados?mock=coleta-vazia:ac', '/sustentacao', '/operacional?mock=coleta-atrasada:bm', '/operacional?mock=coleta-erro:bm'];
+const ROTAS = ['/dados', '/dados?fonte=ac', '/dados?mock=coleta-erro:bm', '/dados?mock=coleta-vazia:ac', '/sustentacao', '/operacional?mock=coleta-atrasada:bm', '/operacional?mock=coleta-erro:bm', '/operacional'];
 const TEMAS = ['light', 'dark'] as const;
 
 for (const tema of TEMAS) {
@@ -26,7 +26,7 @@ const SHOTS = [
   { n: 'dados-ac', rota: '/dados?fonte=ac' },
   { n: 'faixa-calibracao', rota: '/sustentacao' },
   { n: 'selo-atrasado', rota: '/operacional?mock=coleta-atrasada:bm' },
-  { n: 'selo-falha', rota: '/operacional?mock=coleta-erro:bm' },
+  { n: 'selo-falha', rota: '/operacional' },
 ];
 const VPS = [
   { v: '1280-claro', w: 1280, tema: 'light' },
@@ -40,5 +40,31 @@ for (const s of SHOTS) for (const vp of VPS) {
     await page.goto(s.rota);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await page.screenshot({ path: `${SAIDA}/${s.n}-${vp.v}.png`, fullPage: false });
+  });
+}
+
+// UX r1 M-1 e M-2: o selo Falha com "Coleta falhou em..." e o aviso de itens omitidos em "Pede atenção".
+for (const vp of VPS) {
+  test(`evidencia M-1 selo falha com aviso de coleta ${vp.v}`, async ({ page }) => {
+    mkdirSync(SAIDA, { recursive: true });
+    await page.setViewportSize({ width: vp.w, height: 900 });
+    await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), vp.tema);
+    await page.goto('/operacional');
+    const aviso = page.getByText(/Coleta falhou em .*Mostrando dados de/);
+    await expect(aviso).toBeVisible();
+    await expect(page.getByText('Falha', { exact: true }).first()).toBeVisible();
+    await aviso.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${SAIDA}/m1-selo-falha-coleta-falhou-${vp.v}.png` });
+  });
+  test(`evidencia M-2 pede atencao com aviso de omitidos ${vp.v}`, async ({ page }) => {
+    mkdirSync(SAIDA, { recursive: true });
+    await page.setViewportSize({ width: vp.w, height: 900 });
+    await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), vp.tema);
+    await page.goto('/sustentacao');
+    const aviso = page.getByTestId('atencao-omitidos-calibracao');
+    await expect(aviso).toBeVisible();
+    await expect(page.getByText(/Verificando o que pede atenção/)).toHaveCount(0);
+    await aviso.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${SAIDA}/m2-pede-atencao-omitidos-${vp.v}.png` });
   });
 }

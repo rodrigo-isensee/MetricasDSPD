@@ -16,7 +16,6 @@ import {
   SeloCalibracao,
   useCalibracaoPronta,
   useEmCalibracao,
-  useStatusOculto,
 } from './Calibracao'
 import { ChipFiltros, ChipFonte, ChipGranularidade, ChipMeta } from './Chips'
 import { useContextoPainel } from './ContextoPainel'
@@ -97,7 +96,6 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
   const id = p.codigo.toLowerCase()
   const calibrando = useEmCalibracao()(p.codigo)
   const calibracaoPronta = useCalibracaoPronta()
-  const statusOculto = useStatusOculto()
   // O tempo mínimo do esqueleto vive aqui, que continua montado quando os dados chegam (6.1).
   const esq = useEsqueleto(p.estado === 'carregando')
   // Só mostra o cartão quando já se sabe se está em calibração: nenhum Dentro/Fora aparece e some depois (CA-05).
@@ -282,7 +280,7 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
         {calibrando && ok && (
           <SeloCalibracao texto="Em calibração: sem avaliação de meta" testid="calibracao-meta" />
         )}
-        {p.statusMeta && ok && !calibrando && !statusOculto && (
+        {p.statusMeta && ok && !calibrando && (
           <StatusMeta status={p.statusMeta} {...(p.textoStatus ? { texto: p.textoStatus } : {})} />
         )}
         <ChipFonte fonte={p.fonte} />
