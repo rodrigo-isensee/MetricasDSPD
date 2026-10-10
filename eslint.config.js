@@ -232,7 +232,7 @@ export default tseslint.config(
   // metricas não importa mock fora de testes; o e2e não importa pacotes internos.
   {
     files: ['packages/metricas/src/**'],
-    ignores: ['**/*.test.ts', '**/testing.ts'],
+    ignores: ['**/*.test.ts'],
     rules: {
       'no-restricted-imports': ['error', { patterns: [semMock, relativoEntrePacotes] }],
     },
@@ -404,13 +404,13 @@ export default tseslint.config(
   },
   {
     files: ['packages/metricas/src/**', 'packages/mock/src/**'],
-    ignores: ['**/*.test.ts', '**/testing.ts', 'packages/mock/src/mock.test.ts'],
+    ignores: ['**/*.test.ts', 'packages/mock/src/mock.test.ts'],
     rules: { 'no-restricted-syntax': ['error', ...proibidoNoCalculo, ...semSpreadEmMinMax] },
   },
   // Ordenação e arquivamento (M-005): só pelas funções únicas, nos arquivos de métrica dos dois domínios.
   {
     files: ['packages/metricas/src/businessmap/**', 'packages/metricas/src/acelerato/**'],
-    ignores: ['**/*.test.ts', '**/testing.ts', 'packages/metricas/src/businessmap/descartado.ts'],
+    ignores: ['**/*.test.ts', 'packages/metricas/src/businessmap/descartado.ts'],
     rules: {
       'no-restricted-syntax': [
         'error',
