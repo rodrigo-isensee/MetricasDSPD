@@ -43,7 +43,7 @@ export function tratarErro(erro: FastifyError, req: FastifyRequest, resposta: Fa
   }
   const status = erro.statusCode ?? 500;
   if (status >= 400 && status < 500) {
-    return resposta.status(status).send(corpo(status === 400 ? 'VALIDATION_ERROR' : 'REQUISICAO_INVALIDA', 'Requisição inválida.'));
+    return resposta.status(status).send(corpo(status === 400 ? 'VALIDATION_ERROR' : status === 413 ? 'PAYLOAD_GRANDE' : 'REQUISICAO_INVALIDA', 'Requisição inválida.'));
   }
   req.log.error({ err: erro }, 'erro inesperado');
   return resposta.status(500).send(corpo('INTERNAL_ERROR', 'Erro interno.'));

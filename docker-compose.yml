@@ -39,6 +39,9 @@ services:
     build: { context: ., dockerfile: server/Dockerfile }
     environment:
       PG_API_URL: postgres://dspd_api:${DSPD_PWD_API:-api_dev}@postgres:5432/metricas
+      # Webhook do BusinessMap (S-12): só liga com WEBHOOK_BM_SEGREDO (>= 16 caracteres) no .env; papel dspd_webhook (só INSERT).
+      PG_WEBHOOK_URL: ${WEBHOOK_BM_SEGREDO:+postgres://dspd_webhook:${DSPD_PWD_WEBHOOK:-webhook_dev}@postgres:5432/metricas}
+      WEBHOOK_BM_SEGREDO: ${WEBHOOK_BM_SEGREDO:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     ports: ["${API_PORT:-3000}:3000"]
     depends_on:

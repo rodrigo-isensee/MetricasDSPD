@@ -36,7 +36,7 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 364;
+const COLUNAS_FORA_STG_ESPERADAS = 368;
 
 describe('migrações (análise estática, sem banco)', () => {
   it('nomes NNNN_descricao, sequenciais, ordenados e iguais aos arquivos do diretório', () => {

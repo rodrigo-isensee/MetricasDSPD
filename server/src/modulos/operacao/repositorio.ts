@@ -66,3 +66,18 @@ export async function lerFimUltimaColetaOk(db: Consultavel, dominio: Dominio, S:
      ORDER BY finalizado_em DESC, coleta_id DESC LIMIT 1`);
   return r.rows[0]?.finalizado_em ?? null;
 }
+
+const TAREFAS_DE_CARGA = ['coleta_incremental', 'varredura', 'projecao'];
+
+/**
+ * Marca d'água da carga de UMA fonte: a última coleta bem-sucedida que gravou projeções (incremental, varredura ou
+ * projeção/seed). `coletaId` identifica a versão de carga (invalida o cache); `finalizadoEm` é a data de referência (S-a).
+ */
+export async function lerMarcaDagua(db: Consultavel, dominio: Dominio, S: Esquemas = esquemasDoAmbiente()): Promise<{ coletaId: string; finalizadoEm: Date } | null> {
+  const r = await db.query<{ coleta_id: string; finalizado_em: Date }>(
+    `SELECT coleta_id, finalizado_em FROM ${S[FONTE[dominio].chave]}.ctl_coleta
+     WHERE tarefa = ANY($1) AND status = 'sucesso' AND finalizado_em IS NOT NULL
+     ORDER BY finalizado_em DESC, coleta_id DESC LIMIT 1`, [TAREFAS_DE_CARGA]);
+  const x = r.rows[0];
+  return x === undefined ? null : { coletaId: String(x.coleta_id), finalizadoEm: x.finalizado_em };
+}

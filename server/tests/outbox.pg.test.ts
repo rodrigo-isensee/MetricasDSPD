@@ -107,7 +107,7 @@ d('outbox e rotas no Postgres', () => {
     }
     const ref = await app.inject('/api/v1/referencia');
     expect(ref.statusCode, ref.body).toBe(200);
-    expect(ref.json().dataReferencia).toBe('2026-10-10');
+    expect(ref.json().dataReferencia).toMatch(/^\d{4}-\d{2}-\d{2}$/); // S-a: data da última coleta bem-sucedida (outros testes criam coletas)
     await expect(api.query(`SELECT 1 FROM ${S.core}.outbox`)).rejects.toMatchObject({ code: '42501' });
   });
 });

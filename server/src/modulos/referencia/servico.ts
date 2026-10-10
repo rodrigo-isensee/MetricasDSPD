@@ -4,7 +4,7 @@ import {
 import { isoLocal, slug } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { ultimaColetaOk } from '../operacao/index.js';
+import { marcaDagua, ultimaColetaOk } from '../operacao/index.js';
 import { lerEquipesBM, lerInicioAC, lerInicioBM, lerSistemasBM, lerVersaoCriterioVigente } from './repositorio.js';
 import type { OpcoesFiltroDto, ReferenciaDto } from './schemas.js';
 
@@ -36,9 +36,14 @@ export async function opcoesFiltro(db: Consultavel, dominio: Dominio, agora: Dat
   };
 }
 
-/** Data de referência, última coleta por fonte (sem agregação entre elas) e versão de critério vigente. */
+/**
+ * Data de referência (S-a: data da última coleta bem-sucedida; a mais recente entre as fontes, ou hoje se nunca houve),
+ * última coleta por fonte (sem agregação entre elas) e versão de critério vigente.
+ */
 export async function referencia(db: Consultavel, agora: Date, S?: Esquemas): Promise<ReferenciaDto> {
-  const dataReferencia = dataCivil(agora);
+  const marcas = [await marcaDagua(db, 'businessmap', S), await marcaDagua(db, 'acelerato', S)];
+  const ultima = Math.max(...marcas.map((m) => m?.finalizadoEm.getTime() ?? -Infinity));
+  const dataReferencia = dataCivil(Number.isFinite(ultima) ? new Date(ultima) : agora);
   return {
     dataReferencia,
     ultimaColeta: {

@@ -74,7 +74,7 @@ describe('referência', () => {
   it('uma data, última coleta por fonte e versão do critério', async () => {
     const { app } = await montar(responder);
     expect((await app.inject('/api/v1/referencia')).json()).toEqual({
-      dataReferencia: '2026-10-10',
+      dataReferencia: '2026-10-09',
       ultimaColeta: { businessmap: '2026-10-09T06:00:00-03:00', acelerato: null },
       versaoCriterio: '7',
     });

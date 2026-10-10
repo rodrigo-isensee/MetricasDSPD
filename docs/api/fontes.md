@@ -30,3 +30,9 @@ Origem dos dados: `ctl_coleta` / `ctl_coleta_contagem` da fonte (tarefa `coleta_
 
 ## Mudança de contrato
 `X-Ultima-Coleta` foi removido de `GET /metricas/:id` (ver `docs/api/metricas.md`): o front lê o frescor de `/fontes/:dominio/estado` (`useEstadoColeta`).
+
+## Implementação (S-11)
+`GET /fontes/:dominio/estado`, `GET /fontes/:dominio/coletas?pagina=` e `GET /criterios` estão em `server/src/modulos/operacao/rotas.ts`, validadas na saída com os schemas `.strict()` de `@metricas-dspd/contratos`. Qualquer outro parâmetro de query (inclusive de pessoa) -> 400.
+
+## POST /webhooks/businessmap (S-12)
+Cabeçalho `x-webhook-secret` (= `WEBHOOK_BM_SEGREDO`, comparação em tempo constante); corpo `application/json` objeto, máximo 256 KB. Sem credencial/segredo configurados a rota não existe. Respostas: `202 { "status": "recebido" }` (também no reenvio idêntico, que não duplica nada), `400 PAYLOAD_INVALIDO`, `401 UNAUTHENTICATED` (checado antes de ler o corpo), `413 PAYLOAD_GRANDE`. Grava `stg_webhook_evento` (hash único do corpo) e o evento `bm.webhook.recebido` na outbox na mesma transação, com o papel `dspd_webhook` (só INSERT). A normalização do evento (consumidor em `businessmap`) depende do formato real do payload e entra com o coletor (WS2). Em uso real exige endereço público (I-5).

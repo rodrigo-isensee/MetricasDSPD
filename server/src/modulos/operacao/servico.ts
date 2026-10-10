@@ -1,4 +1,4 @@
-import type { Dominio, EstadoColeta, PaginaColetas } from '@metricas-dspd/contratos';
+import type { Dominio, EstadoColeta, PaginaColetas, VersaoCriterio } from '@metricas-dspd/contratos';
 import { isoLocal, montarEstadoColeta, paginarColetas } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
@@ -20,4 +20,10 @@ export async function historicoColetas(db: Consultavel, dominio: Dominio, pagina
 export async function ultimaColetaOk(db: Consultavel, dominio: Dominio, S?: Esquemas): Promise<string | null> {
   const fim = await lerFimUltimaColetaOk(db, dominio, S);
   return fim === null ? null : isoLocal(fim.getTime());
+}
+
+/** Versões de critério (T2.6) das duas fontes, cada uma com as suas, em ordem de data (desempate por id). */
+export async function criterios(db: Consultavel, S?: Esquemas): Promise<VersaoCriterio[]> {
+  const todas = [...(await lerVersoes(db, 'businessmap', S)), ...(await lerVersoes(db, 'acelerato', S))];
+  return todas.sort((a, b) => a.data.localeCompare(b.data) || Number(a.id) - Number(b.id));
 }

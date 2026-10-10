@@ -6,6 +6,8 @@ import { z } from 'zod';
  * nunca valores (URLs trazem senha).
  */
 const urlPg = z.string().regex(/^postgres(ql)?:\/\/\S+$/, 'URL postgres inválida');
+/** Variável presente mas vazia (Compose sem o valor) = não definida. */
+const vazioIndefinido = <T extends z.ZodType>(esquema: T) => z.preprocess((v) => (v === '' ? undefined : v), esquema);
 const comum = {
   DSPD_SCHEMA_PREFIXO: z.string().default(''),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
@@ -19,6 +21,13 @@ const esquemaApi = z.object({
   PG_API_URL: urlPg,
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   HOST: z.string().min(1).default('0.0.0.0'),
+  // Webhook do BusinessMap (S-12): as duas variáveis juntas ligam a rota; nenhuma, a rota não existe.
+  PG_WEBHOOK_URL: vazioIndefinido(urlPg.optional()),
+  WEBHOOK_BM_SEGREDO: vazioIndefinido(z.string().min(16, 'segredo curto').optional()),
+}).superRefine((v, ctx) => {
+  if ((v.PG_WEBHOOK_URL === undefined) !== (v.WEBHOOK_BM_SEGREDO === undefined)) {
+    ctx.addIssue({ code: 'custom', path: [v.PG_WEBHOOK_URL === undefined ? 'PG_WEBHOOK_URL' : 'WEBHOOK_BM_SEGREDO'], message: 'defina as duas do webhook ou nenhuma' });
+  }
 });
 const esquemaWorker = z.object({
   ...comum,
