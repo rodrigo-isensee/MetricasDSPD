@@ -1,0 +1,87 @@
+# Servidor (`server/`): módulos, migrações, seed e acesso ao MySQL
+
+Status: K-017 parte 2. Modelo de dados em `data-model.md`; decisões em ADR 0004 (MySQL), 0005 (Kysely + SQL explícito), 0006 (coletas).
+
+## Módulos
+
+```mermaid
+flowchart LR
+  subgraph server["server/ (@metricas-dspd/server)"]
+    cli["src/db/cli.ts<br/>npm run migrate"]
+    mig["src/db/migracoes.ts<br/>conectar + Migrator (Kysely)"]
+    mg["migrations/0001..0010<br/>DDL em SQL explícito (+ _util.ts)"]
+    gr["src/db/grants.ts<br/>GRANT por papel"]
+    stg["src/db/staging.ts<br/>gravarStgCard (dedup pela última versão)"]
+    seed["src/db/seed.ts<br/>mapear + semear"]
+    scli["src/db/seed-cli.ts<br/>npm run seed"]
+  end
+  mock["@metricas-dspd/mock<br/>gerarBaseMock"]
+  db[("MySQL 8.4<br/>dspd_bm, dspd_ac, dspd_core")]
+  cli --> mig --> mg
+  mig --> db
+  gr -. "GRANTs aplicados pela operação" .-> db
+  stg --> db
+  scli --> seed --> mock
+  seed --> db
+```
+
+`dspd_bm` (BusinessMap) e `dspd_ac` (Acelerato) nunca se misturam: nenhuma FK nem consulta cruza os dois. O pacote `@metricas-dspd/server` é workspace da raiz; `npm run pronto` na raiz roda typecheck, lint e testes do server junto com os demais pacotes (o server usa a própria configuração de ESLint).
+
+## Migrações
+
+```mermaid
+flowchart TD
+  A["npm run migrate -w @metricas-dspd/server<br/>(MYSQL_MIGRADOR_URL, usuário dspd_migrador)"] --> B["criarMigrator: tabela de controle<br/>dspd_core.kysely_migration"]
+  B --> C{"Há migração pendente?"}
+  C -- sim --> D["aplica em ordem de nome<br/>0001 schemas, 0002-0003 controle,<br/>0004-0007 BM, 0008-0009 AC, 0010 core"]
+  C -- não --> E["nada a fazer"]
+  D --> F["falha? para e registra<br/>(MySQL não tem DDL transacional)"]
+```
+
+- `npm run migrate` aplica até a última; `npm run migrate -w @metricas-dspd/server -- down` desfaz a última.
+- Migração aplicada nunca é editada: correção vira migração nova (ADR 0005). Cada migração exporta `ddl.up`/`ddl.down` (listas de instruções) para o teste estático.
+
+## Seed (desenvolvimento)
+
+```mermaid
+flowchart TD
+  S["npm run seed -w @metricas-dspd/server"] --> G["gerarBaseMock(semente) do pacote mock"]
+  G --> M["mapearBM / mapearAC<br/>epoch ms -> DATETIME(3) UTC, ids ASCII,<br/>sem responsaveis, usuario, justificativa"]
+  M --> X{"ctl_coleta 'seed-mock'<br/>já existe no schema?"}
+  X -- "mesma semente" --> N["ja_semeado: nada é gravado"]
+  X -- "outra semente" --> R["erro: use um banco novo"]
+  X -- não --> T["transação por schema:<br/>1 ctl_coleta + INSERT em lotes de 500"]
+```
+
+- Grava `dim_card`, `fato_transicao` (`fonte = 'revision'`, `id_origem = seed-N`), `fato_bloqueio`, `ref_coluna` (BM) e `dim_chamado`, `fato_etapa_chamado` (AC). Cards arquivados e excluídos entram como estão.
+- Determinístico: sem relógio; `coletado_em` = "hoje" da configuração do mock; mesma semente gera as mesmas linhas.
+- Nunca apaga nem sobrescreve (sem `INSERT IGNORE`, `ON DUPLICATE KEY`, `DELETE`). `coluna_id` = `c<ordem>` (o nome com acento fica em `ref_coluna.nome`); `data_acordada` usa a data civil em America/Sao_Paulo (-03:00).
+- Fora do seed (o mock não traz a informação; não foi inferida): `ref_quadro` (nível), `ref_dominio`, `ref_alvo_prioridade`, calendário, staging, `*_versao`, `evt_*` e `fato_etapa_chamado.totalizador`. Variáveis: `MYSQL_SEED_URL` (ou `MYSQL_MIGRADOR_URL`) e, opcional, `MOCK_SEMENTE`.
+
+## Usuários e grants por papel (data-model §8; `src/db/grants.ts`)
+
+| Usuário | Pode |
+|---|---|
+| `dspd_migrador` | DDL (só no job de deploy); também usado no seed em desenvolvimento |
+| `dspd_coletor` | INSERT/SELECT em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; INSERT/UPDATE/DELETE nas projeções; INSERT/UPDATE em `ctl_`; SELECT em `ref_` |
+| `dspd_ref` | INSERT/SELECT em `ref_` e `UPDATE (vigente_ate)` por coluna |
+| `dspd_webhook` | INSERT só em `dspd_bm.stg_webhook_evento` |
+| `dspd_api` | SELECT em projeções, `vw_`, `ref_`, `ctl_`; sem acesso a `stg_` |
+| `dspd_automacao` | INSERT/SELECT em `dspd_ac.ctl_automacao`; SELECT em `ref_` do core |
+
+Os usuários são criados pela operação (com senha fora do repositório); `gerarGrants` produz os `GRANT` a aplicar depois das migrações. Credenciais só em `.env`.
+
+## Rodar contra um MySQL 8.4
+
+```bash
+docker run -d --name mysql-dspd -p 3306:3306 -e MYSQL_ROOT_PASSWORD=senha mysql:8.4
+# .env (nunca versionado)
+MYSQL_MIGRADOR_URL=mysql://root:senha@127.0.0.1:3306
+npm install
+npm run migrate -w @metricas-dspd/server     # cria dspd_bm, dspd_ac, dspd_core
+npm run seed -w @metricas-dspd/server        # opcional, só desenvolvimento
+# testes contra o banco (DESTRUTIVO: recria os três schemas; use banco descartável)
+MYSQL_TEST_URL=mysql://root:senha@127.0.0.1:3306 npm test -w @metricas-dspd/server
+```
+
+Sem `MYSQL_TEST_URL`, os testes de migração e do seed contra MySQL ficam pulados (pendente de ambiente); os testes estáticos rodam sempre. Nesta entrega o teste contra MySQL não foi executado (sem Docker/MySQL na máquina de desenvolvimento).
