@@ -13,3 +13,6 @@ Sem rolagem horizontal da página (RESP-01).
 Sobra de 130 px em 375 e 185 px em 320. `section#s7-prioridade`, `h4`, `p[data-testid=s7-justificados]` e a `figure` terminam em x=505 contra 342 do cartão.
 ## Evidência
 `e2e/tests/responsivo.spec.ts` RESP-01 (2 falhas); `docs/qa/evidencias/final/sustentacao-s7-overflow-375.png`.
+
+## Status: FECHADO (revisão 2, develop 84ce0ed)
+RESP-01 em 320 e 375 px passa em /sustentacao; captura `docs/qa/evidencias/final/sustentacao-s7-375-sem-overflow.png`.

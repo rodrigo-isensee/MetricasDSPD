@@ -47,6 +47,7 @@ export class BarraFiltros {
 
   /** Texto do aviso de consolidação como número de equipes, ou null se ausente. */
   async equipesConsolidadas(): Promise<number | null> {
+    await expect(this.page.locator('[aria-busy="true"]')).toHaveCount(0); // espera os cartões carregarem antes de ler o rótulo
     if (!(await this.consolidado.isVisible())) return null;
     const m = (await this.consolidado.innerText()).match(/consolidado de (\d+) equipes/i);
     return m ? Number(m[1]) : null;
