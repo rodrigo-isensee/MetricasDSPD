@@ -40,6 +40,7 @@ const categoria = (e: unknown): string => (e instanceof Error && /^\w{1,60}$/.te
 
 /**
  * Reserva (FOR UPDATE SKIP LOCKED) os eventos da fonte, confirma a reserva e só então chama os consumidores.
+ * Só reserva tipos com consumidor registrado: os demais ficam `pendente`, sem gastar tentativas.
  * Pelo menos uma vez: consumidor é idempotente (chave `eventoId`). Sucesso -> `processado`; erro -> reagenda com
  * backoff; após MAX_TENTATIVAS -> `falha`. Apaga `processado` com mais de RETENCAO_DIAS (única exceção à regra de não apagar).
  */
@@ -48,10 +49,10 @@ export async function processarOutbox(pool: PoolLike, o: OpcoesProcessar): Promi
   const reservados = await emTransacao(pool, async (c) => {
     const r = await c.query<LinhaEvento>(
       `SELECT evento_sk, evento_id, tipo, payload, tentativas FROM ${S.core}.outbox
-       WHERE fonte = $1 AND ((status = 'pendente' AND disponivel_em <= $2)
+       WHERE fonte = $1 AND tipo = ANY($4::text[]) AND ((status = 'pendente' AND disponivel_em <= $2)
                           OR (status = 'processando' AND reservado_ate < $2))
        ORDER BY evento_sk LIMIT $3 FOR UPDATE SKIP LOCKED`,
-      [o.fonte, o.agora, o.limite ?? 20],
+      [o.fonte, o.agora, o.limite ?? 20, o.consumidores.tipos(o.fonte)],
     );
     if (r.rows.length > 0) {
       await c.query(
@@ -66,9 +67,8 @@ export async function processarOutbox(pool: PoolLike, o: OpcoesProcessar): Promi
   const res: ResultadoProcessar = { processados: 0, reagendados: 0, falhas: 0, apagados: 0 };
   for (const e of reservados) {
     const tentativas = e.tentativas + 1;
-    const consumidor = o.consumidores.obter(o.fonte, e.tipo);
+    const consumidor = o.consumidores.obter(o.fonte, e.tipo)!; // o SELECT só traz tipos com consumidor
     try {
-      if (consumidor === undefined) throw Object.assign(new Error('sem consumidor'), { name: 'SemConsumidor' });
       await consumidor({ eventoId: e.evento_id, fonte: o.fonte, tipo: e.tipo, payload: e.payload, tentativas });
       await pool.query(
         `UPDATE ${S.core}.outbox SET status = 'processado', processado_em = $2, reservado_ate = NULL, ultimo_erro = NULL

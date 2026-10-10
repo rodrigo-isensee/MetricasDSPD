@@ -23,6 +23,12 @@ export class RegistroConsumidores {
     return this;
   }
 
+  /** Tipos com consumidor para a fonte: o poller só reserva estes. */
+  tipos(fonte: Fonte): string[] {
+    const pre = `${fonte}|`;
+    return [...this.#mapa.keys()].filter((k) => k.startsWith(pre)).map((k) => k.slice(pre.length));
+  }
+
   obter(fonte: Fonte, tipo: string): Consumidor | undefined {
     return this.#mapa.get(`${fonte}|${tipo}`);
   }

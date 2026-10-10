@@ -98,11 +98,13 @@ describe('outbox (SQL com dublê)', () => {
     await processarOutbox(d.pool, { fonte: 'businessmap', agora: AGORA, consumidores: c2, S });
     expect(d.chamadas.filter((c) => c.texto.includes('SET status = $2')).at(-1)!.valores[3]).toBe('desconhecido');
   });
-  it('sem consumidor: reagenda com categoria SemConsumidor; fila vazia não reserva; delete sem rowCount', async () => {
+  it('só reserva tipos com consumidor (tipos da fonte vão no SELECT); delete sem rowCount; fila vazia não reserva', async () => {
     const d = criarDublePg((c) => (c.texto.includes('SKIP LOCKED') ? [evento(0)] : c.texto.startsWith('DELETE') ? { rows: [], rowCount: undefined as unknown as number } : []));
-    const r = await processarOutbox(d.pool, { fonte: 'businessmap', agora: AGORA, consumidores: new RegistroConsumidores(), S });
-    expect(r).toMatchObject({ reagendados: 1, apagados: 0 });
-    expect(d.chamadas.find((c) => c.texto.includes('SET status = $2'))!.valores[3]).toBe('SemConsumidor');
+    const cons = new RegistroConsumidores().registrar('businessmap', 'bm.x', async () => {}).registrar('acelerato', 'coleta.concluida', async () => {});
+    expect(cons.tipos('businessmap')).toEqual(['bm.x']);
+    const r = await processarOutbox(d.pool, { fonte: 'businessmap', agora: AGORA, consumidores: cons, S });
+    expect(r).toMatchObject({ processados: 1, apagados: 0 });
+    expect(d.chamadas.find((c) => c.texto.includes('SKIP LOCKED'))!.valores[3]).toEqual(['bm.x']);
     const vazio = criarDublePg();
     await processarOutbox(vazio.pool, { fonte: 'acelerato', agora: AGORA, consumidores: new RegistroConsumidores() });
     expect(vazio.chamadas.some((c) => c.texto.includes("'processando', reservado_ate"))).toBe(false);

@@ -1,9 +1,10 @@
 # Ambiente local (ADR 0014: tudo local, custo zero). Uso: docker compose up | pnpm run stack:up | db:up | db:down | db:reset | test:pg
 # Um servidor PostgreSQL 17 com dois databases: `metricas` (desenvolvimento) e `metricas_test` (testes, um conjunto de schemas por execução).
+name: ${COMPOSE_PROJECT_NAME:-metricasdspd}
+
 services:
   postgres:
     image: postgres:17
-    container_name: dspd-postgres
     environment:
       TZ: UTC
       POSTGRES_USER: postgres

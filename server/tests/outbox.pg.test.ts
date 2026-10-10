@@ -76,6 +76,13 @@ d('outbox e rotas no Postgres', () => {
     expect(await status(id2)).toMatchObject({ status: 'processado', tentativas: 2 });
   });
 
+  it('tipo sem consumidor fica pendente, sem gastar tentativas', async () => {
+    const id = await publicarEvento(coletor, { fonte: 'businessmap', tipo: 'bm.webhook.recebido', payload: {} }, S);
+    await processarOutbox(coletor, { fonte: 'businessmap', agora: AGORA, consumidores: new RegistroConsumidores(), S, limite: 500 });
+    const r = await migrador.query(`SELECT status, tentativas FROM ${S.core}.outbox WHERE evento_id = $1`, [id]);
+    expect(r.rows[0]).toMatchObject({ status: 'pendente', tentativas: 0 });
+  });
+
   it('retenção: processado com mais de 30 dias é apagado; recente fica', async () => {
     const a = await publicarEvento(coletor, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: {} }, S);
     const b = await publicarEvento(coletor, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: {} }, S);
