@@ -1,5 +1,25 @@
+import { FaixaAtencao, Secao, type ItemAtencao } from '@/components/ui'
+import { useMetrica } from '@/data'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
-import { PlaceholderPainel } from '@/features/painel/PlaceholderPainel'
+import type { FiltrosFluxo } from '@metricas-dspd/contratos'
+import { CartaoE1 } from './components/CartaoE1'
+import { CartaoE2 } from './components/CartaoE2'
+import { CartaoE3 } from './components/CartaoE3'
+
+function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
+  const e2 = useMetrica('E2', filtros).dados
+  const e3 = useMetrica('E3', filtros).dados
+  const itens: ItemAtencao[] = []
+  if (e3 && e3.semFicha > 0)
+    itens.push({
+      id: 'e3',
+      texto: `${e3.semFicha} ${e3.semFicha === 1 ? 'iniciativa sem resultado declarado' : 'iniciativas sem resultado declarado'}`,
+      para: '#e3',
+    })
+  if (e2?.statusMeta === 'fora')
+    itens.push({ id: 'e2', texto: 'Evolução vinculada a objetivo abaixo da meta', para: '#e2' })
+  return <FaixaAtencao momento="agora" itens={itens} />
+}
 
 export default function EstrategicoPage() {
   return (
@@ -10,7 +30,18 @@ export default function EstrategicoPage() {
       pergunta="Estamos fazendo as apostas certas, e elas estão terminando?"
       publico="Para o gerente · mensal e trimestral."
     >
-      {() => <PlaceholderPainel painel="estrategico" />}
+      {(filtros) => (
+        <>
+          <Atencao filtros={filtros} />
+          <Secao id="prazo" titulo="Quanto tempo leva decidir e entregar?">
+            <CartaoE1 filtros={filtros} />
+          </Secao>
+          <Secao id="apostas" titulo="As entregas refletem as prioridades e geram resultado?">
+            <CartaoE2 filtros={filtros} />
+            <CartaoE3 filtros={filtros} />
+          </Secao>
+        </>
+      )}
     </PainelFluxo>
   )
 }
