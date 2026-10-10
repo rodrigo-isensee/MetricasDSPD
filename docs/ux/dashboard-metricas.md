@@ -3,6 +3,14 @@
 Especificação de UX · versão 2 (revisão 2) · 2026-10-09 · autor: `ux-designer`
 Pedido de origem: `docs/pedidos/001-dashboard-mock.md`. Fonte das regras: `CLAUDE.md` e `docs/briefing-execucao-metricas.md` (em conflito, vale o briefing).
 
+## Revisão 3 (2026-10-09) — mudanças
+Origem: `docs/alinhamentos/2026-10-09-decisoes-review-fase-a.md` e review da fase A. Marcadas com "(rev. 3)". Provisórias e reversíveis.
+- **EI segmentado por tipo** (Q4): EI-FL1 por tipo de demanda e EI-FL3 por tipo de projeto, um tipo por vez (abas), nunca mediana misturada. Cada tipo com < 20 itens mostra "Amostra insuficiente". Ver 4.EI.
+- **EI-SUST por prioridade** (Q2): P1 a P5, uma por vez (abas). Substitui o "Prioridade não afeta".
+- **Q1 decidida:** a Visão geral mostra, por nível, o tipo (ou prioridade) com maior índice entre os que têm amostra, nomeado, com link ao cartão. Ver 3.1.
+- **T5** em ordem neutra por volume (confirmado, sem mudança de regra); **tema** como `select` (M9 aceito).
+- Nova seção "Faça / não faça" (final do documento) e checklist por cartão em `docs/ux/checklist-cartao.md`.
+
 ## Revisão 2 — mudanças
 A numeração dos critérios de aceite foi preservada: os critérios 6, 24, 25, 26, 31, 52, 55, 62, 66, 72, 78 e 94 foram editados no lugar; os critérios 105 a 111 são novos e estão no fim da seção 10. Mudanças marcadas com "(rev. 2)" no texto.
 
@@ -106,6 +114,7 @@ Desktop é o contexto principal; tablet e celular são para consulta (tudo preci
 ```
 - ≥1024px: navegação horizontal; item atual com `aria-current="page"`, sublinhado e peso de fonte maior (não só cor).
 - <1024px: botão "Menu" abre uma gaveta (diálogo com foco preso, Esc fecha, foco volta ao botão).
+- (rev. 3, M9) O seletor de tema é um `select` nativo com label visível "Tema" e opções "Automático (sistema)", "Claro", "Escuro"; muda ao selecionar, sem botão de ciclar.
 - O selo "Dados fictícios", o seletor de tema e "Ajuda" ficam sempre visíveis no cabeçalho, nesta ordem e neste lugar em todas as telas (WCAG 3.2.6).
 - Rodapé: "Dados fictícios gerados para validar a experiência. Nenhum número representa a operação real. Dados até DD/MM/AAAA." + links para Ajuda e Regras de uso.
 - Os links de navegação entre painéis de fluxo (Operacional, Tático, Estratégico, Espera invisível) **carregam os filtros de fluxo** (equipe, tipo, sistema, período); o link para Sustentação e para a Visão geral é sempre limpo. (rev. 2, L7) Os links são montados a partir dos **filtros de fluxo da sessão** (guardados em memória, não em `localStorage`), e não só da URL do painel de origem; ver 2.6.
@@ -186,10 +195,10 @@ Regras:
 | T9 | sim | **não** | sim | ref |
 | E1 | **não** | **não** | sim | série (pontos no período) + janela de 12 semanas (percentis) |
 | E2, E3 | **não** | **não** | sim | série (trimestres) / retrato (E3) |
-| EI-FL1 (Operacional semanal e `/espera-invisivel`, bloco 1) | sim | sim | sim | janela de 12 semanas (índice) + série mensal (evolução) |
+| EI-FL1 (Operacional semanal e `/espera-invisivel`, bloco 1) | sim | **tipo é dimensão (abas, um por vez; rev. 3)** | sim | janela de 12 semanas (índice) + série mensal (evolução) |
 | EI-FL2 (Tático e bloco 2) | sim | **não** (tipos são de story) | sim | janela de 12 semanas + série mensal |
-| EI-FL3 (Estratégico e bloco 3) | **não** | **não** | sim | janela de 12 semanas + série mensal |
-| EI-SUST (Sustentação e bloco 4) | equipe SSSC | n/a | n/a | janela de 12 semanas + série mensal; **Prioridade não afeta** (chip "Não afetado por: Prioridade"); filtros próprios da sustentação |
+| EI-FL3 (Estratégico e bloco 3) | **não** | **tipo de projeto é dimensão (abas; rev. 3)** | sim | janela de 12 semanas + série mensal |
+| EI-SUST (Sustentação e bloco 4) | equipe SSSC | n/a | n/a | janela de 12 semanas + série mensal; **Prioridade é dimensão (rev. 3): abas P1 a P5, uma por vez**; filtros próprios da sustentação |
 | S1 a S3 | equipe SSSC (recorte) | n/a | n/a | **Prioridade é dimensão** (limita as linhas/segmentos); período = série |
 | S4 a S7 | equipe SSSC (recorte) | n/a | n/a | Prioridade recorta os chamados; período = série |
 
@@ -292,7 +301,8 @@ Regras:
 - Cada cartão de nível mostra no máximo 3 indicadores, cada um com número, unidade, base ("em 62 itens") e ícone de status; o selo de status do cartão é "Atenção" se algum indicador viola a meta, "Dentro da meta" se todos os que têm meta estão dentro, "Amostra insuficiente" se todos estão insuficientes.
 - Se um indicador está com amostra insuficiente, o texto é "Amostra insuficiente (12 de 20 itens mínimos)" no lugar do número.
 - (rev. 2, J1) Com a janela de 12 semanas, a linha de Estratégico (e talvez a de Tático) do bloco de Espera invisível aparece como "Amostra insuficiente (7 de 20 projetos)" em vez de números. Isso é normal e igual ao que o painel do nível mostra (6.3.1).
-- O bloco de Espera invisível mostra cada nível como linha própria com as duas medianas e o índice; Sustentação aparece separada por um divisor com a legenda "Fonte diferente (Acelerato). Não comparável com os níveis acima."
+- (rev. 3, Q1) **Espera invisível na Visão geral:** cada nível é uma linha que mostra **um único segmento, nomeado**: o tipo (FL1, FL3) ou a prioridade (Sustentação) de **maior índice entre os que têm amostra ≥ 20**, com cliente, time, índice e base, por exemplo "Incidente: cliente 45, time 18, índice 60% (31 demandas)", mais o link "Ver todos os tipos" para o cartão `#ei-fl1`. Nunca mediana ou índice de tipos misturados. Se nenhum segmento tem amostra, "Amostra insuficiente" (6.3.1). FL2 segue sem segmentação. Segmentos sem amostra não são listados aqui. O destaque descreve fila por tipo, não ranking de pessoas ou equipes.
+- O bloco de Espera invisível mostra cada nível como linha própria com as duas medianas e o índice (rev. 3: do segmento acima); Sustentação aparece separada por um divisor com a legenda "Fonte diferente (Acelerato). Não comparável com os níveis acima."
 - Dados da Visão geral são calculados com a mesma biblioteca e os mesmos padrões dos painéis (Equipe: todas; Período: 12 semanas; para Estratégico: 12 meses; Sustentação: 6 meses). A tela informa isso na linha de recorte.
 
 ### 3.2 Operacional, cadência diária (`/operacional`)
@@ -748,6 +758,7 @@ Os valores entre parênteses são só conversão para o leitor desta spec; a tel
 ### EI · Espera invisível por nível
 - **Pergunta:** Quanto do tempo que o solicitante experimenta acontece fora do período em que estávamos efetivamente trabalhando?
 - **Gráfico (por nível):** (a) **par de barras na mesma escala**: "Visão do cliente" (barra cheia) e "Visão do time" (barra clara), mediana em dias úteis; a faixa entre elas rotulada "Espera invisível: 60%". (b) Evolução mensal: duas linhas (cliente e time) com a faixa entre elas sombreada, e marcadores de mudança de critério. Sempre as duas visões juntas; **não existe versão com uma só**.
+- **(rev. 3) Segmentação, sempre uma classe por vez (abas, `role="tablist"`):** EI-FL1 por tipo (incidente, requisição, melhoria, bug interno, defeito em produção, dívida técnica); EI-FL3 por tipo de projeto (Iniciativa e Melhoria **não** se juntam); EI-SUST por prioridade P1 a P5. EI-FL2 não segmenta. Cada aba aplica sozinha a regra de 20 itens (as duas visões) e mostra "Amostra insuficiente ({n} de 20)" quando não passa; não existe aba "Todos" com mediana misturada. Abas com amostra insuficiente continuam selecionáveis. No mock, EI-FL3 fica em "Amostra insuficiente" por tipo, comportamento correto. Aba na URL: `ei=<valor>`. Os testids ganham o segmento: `ei-indice-fl1-incidente`. O cartão compacto dos painéis mostra a aba escolhida, nomeada no título.
 - **Definição por nível (provisória; ver pergunta 1):**
 | Nível | Granularidade | Visão do cliente | Visão do time |
 |---|---|---|---|
@@ -765,6 +776,22 @@ Os valores entre parênteses são só conversão para o leitor desta spec; a tel
 - **Dados:** os mesmos de O9, T1, E1 e do tempo de vida e totalizadores do Acelerato.
 
 ---
+
+## 4.1 Faça / não faça (rev. 3, padrões que erraram na fase A)
+Checklist marcável por cartão: `docs/ux/checklist-cartao.md`.
+| Faça | Não faça |
+|---|---|
+| Gerar o texto da janela ("12 semanas") do parâmetro único da janela | Escrever "12 semanas" ou "12 meses" fixo no texto |
+| Série distinguida por cor **e** padrão (traço, marcador) | Diferenciar séries só por cor |
+| Alvo clicável ≥ 24×24 px (abas, chips, "Remover filtro", links) | Links e botões de texto pequenos sem área de toque |
+| Unidade no eixo ("dias úteis", "h úteis", "%") | Eixo só com números |
+| Base, meta e rodapé a 14 px ou mais | Letra de 11 a 12 px em base e meta |
+| Cor fixa por tipo/série em todo o sistema; estado (lenta, alerta) por variante com ícone e texto | Reusar a cor de um tipo para outro cartão ou sinalizar estado só por cor |
+| "Remover filtro" que remove de fato e atualiza URL e dados | Chip com botão que não faz nada |
+| Tabela alternativa por cartão e `data-testid` da convenção | Gráfico sem tabela; testid ad hoc |
+| Links internos sem `mock` na URL (usa o parâmetro só onde 6.6 manda) | Propagar `mock` para links de navegação |
+| Uma classe por vez (abas) em EI, T1, T2, T4 | Mediana ou índice de tipos, frentes ou projetos misturados |
+| Ordem neutra por volume em T5 | Ordenar por parcela de falha |
 
 ## 5. Componentes reutilizáveis
 
