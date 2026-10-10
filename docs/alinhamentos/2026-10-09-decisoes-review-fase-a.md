@@ -25,3 +25,4 @@ Origem: `docs/reviews/001-fase-a.md` (perguntas Q1–Q6).
 | F1 | EI-FL1: mostrar aba "Bug interno" (vazia)? | Não. Bug interno não é demanda entregável ao solicitante; fica fora da EI e das abas | Briefing 4.2 (unidade = demanda entregável) |
 | F2 | S5 "Não informado": o que é chamado escalado sem motivo? | Chamado com nível de resolução N2, N3 ou fornecedor e `motivo_escalacao` vazio | Briefing 3.4 (campos de motivo); spec S5 |
 | F3 | Alerta `O10_BACKLOG_180` não é gerado na Visão geral | Gerar: backlog com itens > 180 dias pede atenção | Spec (faixa "Pede atenção"); briefing O10 |
+| F4 | O7 "saldo acumulado" (R9) sem definição | Saldo acumulado = soma de (chegadas − saídas) por tipo, semana a semana, dentro do período filtrado (mostra se a fila cresce). Calculado na biblioteca | Briefing O7 (entrada × saída); spec O7 |
