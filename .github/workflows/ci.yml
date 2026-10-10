@@ -87,15 +87,23 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_USER: dspd_migrador
-          POSTGRES_PASSWORD: migrador_dev
-          POSTGRES_DB: metricas_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_ci
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U dspd_migrador -d metricas_test"
+          --health-cmd "pg_isready -U postgres"
           --health-interval 5s --health-timeout 5s --health-retries 12
     env:
+      PGHOST: 127.0.0.1
+      PGPASSWORD: postgres_ci
+      POSTGRES_USER: postgres
+      DSPD_PWD_MIGRADOR: migrador_dev
+      DSPD_PWD_COLETOR: coletor_dev
+      DSPD_PWD_API: api_dev
+      DSPD_PWD_REF: ref_dev
+      DSPD_PWD_WEBHOOK: webhook_dev
+      DSPD_PWD_AUTOMACAO: automacao_dev
       PG_TESTE_URL: postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas_test
     steps:
       - uses: actions/checkout@v4
@@ -105,6 +113,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Papéis e databases (mesmo script do Compose)
+        run: bash docker/postgres/init/01-databases-papeis.sh
       - run: pnpm --filter @metricas-dspd/server run test:pg
 
   build:
@@ -123,7 +133,7 @@ jobs:
       - run: pnpm run build
       - run: pnpm --filter @metricas-dspd/web run size
       - name: Gate (fronteiras BM x AC, hash da base mock, tamanho)
-        run: pnpm run gate
+        run: pnpm --filter @metricas-dspd/e2e run gate
 
   e2e:
     name: e2e
