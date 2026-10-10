@@ -1,8 +1,9 @@
 import { useMemo, type ReactNode } from 'react'
+import { useLocation } from 'react-router'
 import type { Dominio } from '@metricas-dspd/contratos'
 import { FaixaCalibracao, ProvedorCalibracao } from '@/components/ui'
 import { useEstadoColeta, useMetricasEmCalibracao } from '@/data'
-import { NOME_FONTE, ROTA_DADOS, SIGLA_FONTE } from './fontes'
+import { dominiosDaRota, NOME_FONTE, ROTA_DADOS, SIGLA_FONTE } from './fontes'
 
 /** Liga os cartões e as faixas "Pede atenção" ao estado de calibração das duas fontes (cada id pertence a uma só). */
 export function CalibracaoDasFontes({ children }: { children: ReactNode }) {
@@ -11,7 +12,10 @@ export function CalibracaoDasFontes({ children }: { children: ReactNode }) {
   const metricas = useMemo(() => new Set<string>([...bm, ...ac]), [bm, ac])
   const pendenteBm = useEstadoColeta('businessmap').isPending
   const pendenteAc = useEstadoColeta('acelerato').isPending
-  const pendente = pendenteBm || pendenteAc
+  // `pronta` espera só as fontes que a rota usa (K-061, A4): a Sustentação não espera o BusinessMap.
+  const usadas = dominiosDaRota(useLocation().pathname)
+  const pendente =
+    (usadas.includes('businessmap') && pendenteBm) || (usadas.includes('acelerato') && pendenteAc)
   return (
     <ProvedorCalibracao metricas={metricas} pronta={!pendente}>
       {children}

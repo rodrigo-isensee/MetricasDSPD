@@ -10,6 +10,7 @@ import {
   idDeMetrica,
 } from '@/components/ui'
 import { renderizarApp } from '@/test/helpers'
+import { dominiosDaRota } from './fontes'
 
 const SUST = '/sustentacao'
 
@@ -19,6 +20,15 @@ async function cartao(codigo: string, url: string) {
   await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
   return el
 }
+
+describe('calibração: fontes por rota (A4)', () => {
+  it('a Sustentação espera só o Acelerato; o fluxo só o BusinessMap; Visão geral e Espera invisível as duas', () => {
+    expect(dominiosDaRota('/sustentacao')).toEqual(['acelerato'])
+    expect(dominiosDaRota('/operacional')).toEqual(['businessmap'])
+    expect(dominiosDaRota('/')).toEqual(['businessmap', 'acelerato'])
+    expect(dominiosDaRota('/espera-invisivel')).toEqual(['businessmap', 'acelerato'])
+  })
+})
 
 describe('calibração: componentes', () => {
   it('idDeMetrica normaliza o código do cartão para o id da métrica', () => {
