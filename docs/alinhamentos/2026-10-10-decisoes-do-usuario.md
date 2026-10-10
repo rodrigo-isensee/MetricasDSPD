@@ -66,3 +66,12 @@ O usuário decidiu **trocar o banco para PostgreSQL**, seguindo a stack técnica
 | L-3 | Nomes do Acelerato (solicitante, agente) também no analítico? | **Não** (só os nomes do BusinessMap, como no modelo 4.5). Adicionar a coluna depois é barato; expor dado pessoal já gravado não | LGPD; regra "dúvida de regra não se resolve por inferência" → confirmar com o usuário |
 | T2.3 | Webhook do BusinessMap sem endereço público (tudo local, custo zero) | Pendente até haver endereço público; coleta diária cobre o histórico | Decisão de custo zero (§8) |
 | — | Migrações MySQL já escritas | Reescritas a partir da 0001 em Postgres, sem conversão de dados (nenhum ambiente real usa o MySQL) | ADR 0014 rev. 2 |
+
+## 12. Decisões do Jarvis no server enquanto o usuário está ausente (2026-10-10 17:19)
+| # | Pergunta | Decisão provisória (reversível) | Fundamento |
+|---|---|---|---|
+| S-a | `dataReferencia` da API | **Data da última coleta bem-sucedida da fonte** (as janelas de 12 semanas terminam nela; o painel não muda entre coletas) | Frescor/calibração (integração real); briefing 4.2 |
+| S-b | `versaoCriterio` sem versão registrada | `"0"` | T2.6 |
+| S-c | Equipes e sistemas do BusinessMap | De `ref_quadro` (nível `time`, sem quadros de teste) e `ref_dominio` (`campo='sistema'`); **confirmar com dados reais** do BusinessMap | Briefing 4.3/4.4 |
+| S-d | Ids de prioridade | Minúsculos (`p1`..`p5`), como o mock e o codec da web | Consistência |
+| S-e | Limite de 12 métricas por PDF (008) | Provisório; revisar com uso real | Plano `exportar-metricas.md` |
