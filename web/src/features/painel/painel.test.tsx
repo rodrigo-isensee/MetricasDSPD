@@ -37,3 +37,18 @@ describe('propsCartao e utilitários de cartão', () => {
     expect(textoTaxa({ status: 'insuficiente', k: 3, n: 10 })).toBe('3 de 10')
   })
 })
+
+describe('PainelFluxo sem público informado', () => {
+  it('o cabeçalho mostra só a pergunta', async () => {
+    const { PainelFluxo } = await import('./PainelPagina')
+    const { renderizarCartao } = await import('@/test/helpers')
+    renderizarCartao(
+      <PainelFluxo painel="operacional" titulo="Painel X" pergunta="Pergunta?" slug="x">
+        {() => <p>conteúdo</p>}
+      </PainelFluxo>,
+      { url: '/operacional' },
+    )
+    expect(await screen.findByText('Pergunta?')).toBeInTheDocument()
+    expect(screen.getByText('conteúdo')).toBeInTheDocument()
+  })
+})
