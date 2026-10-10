@@ -1,9 +1,9 @@
 # Visão geral da arquitetura
 
 - Data: 2026-10-09 · Pedido 002 (K-014)
-- Decisões: ADR 0001 (front), 0002 (monorepo e pacotes), 0003 (performance), 0004 (MySQL), 0005 (Kysely + SQL), 0006 (coletas, webhook, automações), 0007 (contratos), 0008 (framework da API), 0009 (autenticação), 0010 (implantação e CI)
+- Decisões: ADR 0001 (front), 0002 (monorepo e pacotes), 0003 (performance), 0004 (MySQL), 0005 (Kysely + SQL), 0006 (coletas, webhook, automações), 0007 (contratos), 0008 (framework da API), 0009 (autenticação), 0010 (implantação e CI), 0011 (pacote de cálculo compartilhado), 0012 (biblioteca de gráficos)
 - Modelo: `data-model.md` · Ordem de implementação: `roadmap.md`
-- Biblioteca de gráficos (Recharts) e pacote de cálculo compartilhado: ADR 0001 e 0002, sem mudança.
+- Pacote de cálculo compartilhado: ADR 0011; biblioteca de gráficos (Recharts): ADR 0012 (consolidam o que estava nas ADRs 0001 a 0003).
 
 ## 1. Contexto (C4 nível 1)
 
