@@ -1,6 +1,6 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-09 20:53 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
+> Atualizado em: 2026-10-09 22:09 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
 > WIP: Empatizar 1/2 · Idear 0/2 · Pronto para fazer 2/5 · Em andamento 1 por agente: react-frontend 3 (lote de retrabalho, exceção), software-architect 1, qa-engineer 1, node-backend 1 · Code review 0/2 · QA 0/2 · Aguardando validação 0/2 · Bloqueados: 2 (pais K-004 e K-022 aguardando bugs; fora do WIP por exceção) (auditoria K-021 em 2026-10-09: limites revisados, ver `docs/kanban/melhorias.md`)
 > Item mais antigo em andamento: K-004 (pai, bloqueado aguardando bugs; cycle time corrido desde 2026-10-09 17:58). Retrabalho aberto: K-027, K-028, K-029 (40 achados: 14 do code review, 26 da UX)
 > Pedido 001 sem validações intermediárias (pedido 005): o upstream usa a especificação de UX existente; a única validação do usuário é o PR final.
