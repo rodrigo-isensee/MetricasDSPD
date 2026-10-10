@@ -1,7 +1,8 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { renderizarApp } from '@/test/helpers'
+import { fonteDeTeste, renderizarApp } from '@/test/helpers'
+import type { FonteMetricas } from '@/data'
 
 const busca = (r: { roteador: { state: { location: { search: string; pathname: string } } } }) =>
   new URLSearchParams(r.roteador.state.location.search)
@@ -48,6 +49,19 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
     const rodape = screen.getByTestId('rodape')
     expect(rodape).toHaveTextContent('Dados fictícios gerados para validar a experiência')
     await waitFor(() => expect(rodape).toHaveTextContent('Dados até 09/10/2026'))
+  })
+
+  it('com fonte real (tipo api) não há aviso, nem texto, nem título de dados fictícios (D5)', async () => {
+    const api = Object.create(fonteDeTeste, {
+      tipo: { value: 'api' },
+    }) as unknown as FonteMetricas
+    renderizarApp('/ajuda', api as never)
+    await screen.findByRole('heading', { level: 1, name: 'Ajuda' })
+    expect(screen.queryByTestId('aviso-dados-ficticios')).not.toBeInTheDocument()
+    const rodape = screen.getByTestId('rodape')
+    await waitFor(() => expect(rodape).toHaveTextContent('Dados até 09/10/2026'))
+    expect(rodape).not.toHaveTextContent('fictícios')
+    expect(document.title).toBe('Ajuda · Métricas DSPD')
   })
 
   it('rota desconhecida mostra 404 com link para a Visão geral', async () => {
