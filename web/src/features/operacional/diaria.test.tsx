@@ -47,7 +47,7 @@ describe('Operacional diária: ordem, pergunta e link', () => {
     const ids = screen
       .getAllByTestId(/^metrica-/)
       .map((e) => e.getAttribute('data-testid')?.replace('metrica-', ''))
-    expect(ids).toEqual(['O2', 'Bloqueados', 'O1'])
+    expect(ids).toEqual(['O2', 'BLOQUEADOS', 'O1'])
     expect(screen.getByTestId('pergunta-cadencia')).toHaveTextContent(
       'Qual item mais velho não andou desde ontem?',
     )
@@ -142,7 +142,7 @@ describe('O2 idade (B1 a B3)', () => {
     await userEvent.click(within(lista).getByRole('button', { name: 'Sem mover há' }))
     expect(within(lista).getAllByRole('row')[1]).toHaveTextContent('A Titulo')
     expect(screen.getByTestId('leitura-O2')).toHaveTextContent(
-      '1 item está acima do P95 do seu tipo. O mais velho tem 21 dias úteis e está em "Fila"',
+      '1 item está acima do P95 do seu tipo. O mais velho entre eles tem 21 dias úteis e está em "Fila"',
     )
   })
   it('B2: com menos de 20 concluídos no tipo, mostra "Amostra insuficiente", sem linhas de percentil, e a lista fica', async () => {
@@ -179,8 +179,8 @@ describe('Bloqueados agora (E1)', () => {
         },
       }),
     )
-    const el = await cartao('Bloqueados')
-    expect(within(el).getByTestId('leitura-Bloqueados')).toHaveTextContent(
+    const el = await cartao('BLOQUEADOS')
+    expect(within(el).getByTestId('leitura-BLOQUEADOS')).toHaveTextContent(
       '2 itens estão bloqueados. O mais antigo está bloqueado há 6 dias úteis por "Aguardando fornecedor"',
     )
     const linhas = within(el).getAllByRole('row').slice(1)

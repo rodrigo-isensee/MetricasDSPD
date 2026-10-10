@@ -9,7 +9,7 @@ test.describe('K-006 Operacional diário', () => {
   test('OP-01 abre na cadência Diária, ordem O2, Bloqueados, O1, link para a semanal', async ({ painel, page }) => {
     await painel.ir('/operacional');
     await painel.esperarCartoesProntos();
-    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O2', 'Bloqueados', 'O1']);
+    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O2', 'BLOQUEADOS', 'O1']);
     await expect(page.getByTestId('pergunta-cadencia')).toContainText('Qual item mais velho não andou desde ontem?');
     await expect(page.getByRole('link', { name: /Ver também a visão semanal/ })).toBeVisible();
     await expect(page.getByTestId('metrica-O4')).toHaveCount(0);
@@ -64,7 +64,7 @@ test.describe('K-006 Operacional diário', () => {
 
   test('OP-05/24 Bloqueados: colunas do domínio, sem responsável, base = linhas, sem agregação por motivo', async ({ painel }) => {
     await painel.ir('/operacional');
-    const b = painel.cartao('Bloqueados');
+    const b = painel.cartao('BLOQUEADOS');
     await b.esperarPronto();
     for (const c of ['Card', 'Tipo', 'Motivo', 'Fornecedor']) await expect(b.raiz.getByRole('columnheader', { name: new RegExp(c) })).toBeVisible();
     const n = await b.raiz.locator('tbody tr').count();
@@ -75,7 +75,7 @@ test.describe('K-006 Operacional diário', () => {
 
   test('OP-06 Bloqueados vazio é estado positivo', async ({ painel }) => {
     await painel.ir('/operacional', { mock: 'vazio' });
-    const b = painel.cartao('Bloqueados');
+    const b = painel.cartao('BLOQUEADOS');
     await b.esperarPronto();
     await expect(b.raiz).toContainText('Nenhum item bloqueado hoje.');
     await expect(b.raiz.getByRole('alert')).toHaveCount(0);
@@ -108,7 +108,7 @@ test.describe('K-006 Operacional diário', () => {
     await painel.ir('/operacional', { mock: 'erro:o2' });
     await expect(painel.cartao('O2').erro).toBeVisible();
     await painel.cartao('O1').esperarEstado('ok');
-    await painel.cartao('Bloqueados').esperarPronto();
+    await painel.cartao('BLOQUEADOS').esperarPronto();
   });
 
   test('NAV-07 âncoras #o2 e #bloqueados existem e levam ao cartão', async ({ painel, page }) => {

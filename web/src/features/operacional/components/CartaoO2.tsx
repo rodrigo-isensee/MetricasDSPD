@@ -35,6 +35,9 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
   const itens = d?.itens ?? []
   const doTipo = itens.filter((i) => i.tipo === tipoSel)
   const mais = [...itens].sort((a, b) => b.idadeDiasUteis - a.idadeDiasUteis)[0]
+  const maisAcima = [...itens]
+    .filter((i) => i.situacao === 'acima-p95')
+    .sort((a, b) => b.idadeDiasUteis - a.idadeDiasUteis)[0]
   const lista = [...itens]
     .sort((a, b) =>
       ordem === 'idade'
@@ -44,8 +47,8 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
     .slice(0, 10)
   const janela = d?.janelaPercentis
   const leitura = d
-    ? d.acimaP95 > 0 && mais
-      ? `${fmtInteiro(d.acimaP95)} ${plural(d.acimaP95, 'item está', 'itens estão')} acima do P95 do seu tipo. O mais velho tem ${fmtDiasUteis(mais.idadeDiasUteis, 0)} e está em "${mais.etapa}".`
+    ? d.acimaP95 > 0 && maisAcima
+      ? `${fmtInteiro(d.acimaP95)} ${plural(d.acimaP95, 'item está', 'itens estão')} acima do P95 do seu tipo. O mais velho entre eles tem ${fmtDiasUteis(maisAcima.idadeDiasUteis, 0)} e está em "${maisAcima.etapa}".`
       : `Nenhum item está acima do P95 do seu tipo.${mais ? ` O mais velho tem ${fmtDiasUteis(mais.idadeDiasUteis, 0)} e está em "${mais.etapa}".` : ''}`
     : undefined
   const forma = (s: (typeof itens)[number]): FormaPonto =>

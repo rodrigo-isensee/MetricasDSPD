@@ -37,7 +37,7 @@ export function CartaoBloqueados({ filtros }: { filtros: FiltrosFluxo }) {
         </p>
       ) : (
         <TabelaDados
-          codigo="Bloqueados"
+          codigo="BLOQUEADOS"
           legenda="Itens bloqueados agora, do mais antigo ao mais novo"
           colunas={[
             { chave: 'card', titulo: 'Card' },

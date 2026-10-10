@@ -41,7 +41,7 @@ function AtencaoDiaria({ filtros }: { filtros: FiltrosFluxo }) {
   if (bl && bl.itens.length > 0)
     itens.push({
       id: 'bloqueados',
-      codigo: 'Bloqueados',
+      codigo: 'BLOQUEADOS',
       para: '#bloqueados',
       texto: `${fmtInteiro(bl.itens.length)} ${plural(bl.itens.length, 'bloqueado', 'bloqueados')}`,
     })
