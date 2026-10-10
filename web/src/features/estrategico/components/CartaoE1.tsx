@@ -30,8 +30,8 @@ export function CartaoE1({ filtros }: { filtros: FiltrosFluxo }) {
       {...(d
         ? {
             base: e?.status === 'insuficiente' ? { ...d.base, n: e.n } : d.base,
-            baseVariante:
-              e?.status === 'insuficiente' ? ('insuficiente' as const) : ('ok' as const),
+            // O selo "Amostra insuficiente" fica só no bloco explicativo e na barra (K-046).
+            baseVariante: 'ok' as const,
             janelaPercentis: d.janelaPercentis,
             periodo: filtros.periodo,
           }

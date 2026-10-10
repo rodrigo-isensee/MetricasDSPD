@@ -1,6 +1,6 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
-import { CartaoMetrica, NumeroGrande, TabelaDados } from '@/components/ui'
+import { CartaoMetrica, NumeroGrande } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { propsCartao } from '@/features/painel/propsCartao'
 import { fmtInteiro, fmtPct, fmtTrimestre } from '@/lib/formatar'
@@ -84,23 +84,6 @@ export function CartaoE2({ filtros }: { filtros: FiltrosFluxo }) {
               ))}
             </ul>
           )}
-          <TabelaDados
-            legenda="Itens entregues por objetivo e trimestre"
-            colunas={[
-              { chave: 'tri', titulo: 'Trimestre' },
-              { chave: 'cat', titulo: 'Categoria' },
-              { chave: 'n', titulo: 'Itens', alinhar: 'direita' },
-              { chave: 'pct', titulo: '%', alinhar: 'direita' },
-            ]}
-            linhas={tri.flatMap((t) =>
-              t.segmentos.map((s) => ({
-                tri: fmtTrimestre(t.trimestre),
-                cat: s.categoria,
-                n: fmtInteiro(s.n),
-                pct: s.pct === null ? '—' : fmtPct(s.pct),
-              })),
-            )}
-          />
         </div>
       )}
     </CartaoMetrica>
