@@ -13,7 +13,7 @@ Visível no GitHub e no editor. Duas partes, separadas pelo **ponto de compromis
 | Coluna | Entra quando | Limite de WIP |
 |---|---|---|
 | **Entrada** | Pedido registrado em `docs/pedidos/` | — |
-| **Empatizar e definir** | UX começou a entender o problema | 2 |
+| **Empatizar e definir** | UX e arquiteto começaram o discovery | 2 |
 | **Idear e prototipar** | Problema definido e aceito | 2 |
 | **Validação do usuário** | Protótipo pronto, aguardando o usuário | — |
 
@@ -24,7 +24,7 @@ Visível no GitHub e no editor. Duas partes, separadas pelo **ponto de compromis
 | Coluna | Entra quando | Limite de WIP |
 |---|---|---|
 | **Pronto para fazer** | Validado, quebrado em cartões, critério de pronto claro | 5 |
-| **Em andamento** | Um agente começou a implementar | 3 |
+| **Em andamento** | Um agente começou a implementar | 1 por agente |
 | **Code review** | Implementação entregue ao `tech-lead` | 2 |
 | **QA** | Code review aprovado | 2 |
 | **Aguardando sua validação** | QA aprovado, branch enviada, PR pronto para o usuário | 2 |

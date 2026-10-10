@@ -1,0 +1,1 @@
+export { gerarBaseAcelerato } from './gerador'

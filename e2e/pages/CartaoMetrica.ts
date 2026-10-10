@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 
 /** Estados do cartão (`data-estado`, contrato proposto ao react-frontend; ver plano rev. 2, R2.7). */
-export type EstadoCartao = 'carregando' | 'atualizando' | 'pronto' | 'vazio' | 'insuficiente' | 'erro';
+export type EstadoCartao = 'carregando' | 'atualizando' | 'ok' | 'pronto' | 'ok' | 'vazio' | 'insuficiente' | 'erro';
 
 /** Um cartão de métrica: `metrica-{codigo}` e filhos pela convenção de testids da spec (seção 10). */
 export class CartaoMetrica {

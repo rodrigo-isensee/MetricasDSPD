@@ -1,0 +1,133 @@
+{
+ "tags": [
+  "wcag2a",
+  "wcag2aa",
+  "wcag22aa"
+ ],
+ "resultados": {
+  "light /": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /operacional": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /operacional?cadencia=semanal": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /tatico": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /estrategico": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /sustentacao": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /espera-invisivel": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /ajuda": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /rota-inexistente": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /operacional?mock=carregando": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /operacional?mock=erro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /operacional?mock=erro:o4": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /operacional?mock=vazio": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /operacional": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /operacional?cadencia=semanal": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /tatico": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /estrategico": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /sustentacao": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /espera-invisivel": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /ajuda": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /rota-inexistente": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /operacional?mock=carregando": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /operacional?mock=erro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /operacional?mock=erro:o4": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /operacional?mock=vazio": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "light /operacional (popover+nota+tabela)": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "dark /operacional (popover+nota+tabela)": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "375px /": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "375px /operacional": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "375px /sustentacao": {
+   "bloqueantes": [],
+   "informativas": []
+  }
+ }
+}
