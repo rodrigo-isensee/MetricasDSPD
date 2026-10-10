@@ -1,5 +1,5 @@
 import type { ResultadoT4 } from '@metricas-dspd/contratos'
-import { CLASSES_SERVICO } from '@metricas-dspd/contratos'
+import { CLASSES_SERVICO, META_RAZAO_MAX, META_RAZAO_MIN } from '@metricas-dspd/contratos'
 import type { Intervalo } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { diaDeIso, diaLocal } from '../core/calendario'
@@ -70,10 +70,15 @@ export function calcularT4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT4 {
       estatistica: est,
       statusMeta:
         est.status === 'ok' && est.valor.razao !== null
-          ? est.valor.razao >= 0.9 && est.valor.razao <= 1.0
+          ? est.valor.razao >= META_RAZAO_MIN && est.valor.razao <= META_RAZAO_MAX
             ? ('dentro' as const)
             : ('fora' as const)
           : ('sem-referencia' as const),
+      totais: {
+        chegadas: linhas.reduce((s, l) => s + l.chegada, 0),
+        saidas: linhas.reduce((s, l) => s + l.vazao, 0),
+        backlog,
+      },
       semanas: linhas,
     }
   })

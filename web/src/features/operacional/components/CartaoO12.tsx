@@ -4,7 +4,7 @@ import { CartaoMetrica, NumeroGrande } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtMes } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
-import { propsCartao, textoTaxa } from '../propsCartao'
+import { propsCartao, textoTaxa } from '@/features/painel/propsCartao'
 
 /** O12: acordos e vencidos por mês, empilhado por responsabilidade do atraso. % só com 20 acordos no mês; abaixo, "k de n". */
 export function CartaoO12({ filtros }: { filtros: FiltrosFluxo }) {

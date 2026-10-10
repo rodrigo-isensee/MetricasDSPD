@@ -3,7 +3,7 @@ import { CartaoMetrica } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
-import { propsCartao } from '../propsCartao'
+import { propsCartao } from '@/features/painel/propsCartao'
 
 const ESTILOS = {
   concluidas: { background: 'var(--serie-1)' },

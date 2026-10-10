@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
-import { COMUM, FonteFixa, J, JANELA, insuf, ok } from './testes/fonteFixa'
+import { COMUM, FonteFixa, J, JANELA, insuf, ok } from '@/features/painel/testes/fonteFixa'
 
 const cartao = async (c: string) => {
   const el = await screen.findByTestId(`metrica-${c}`)

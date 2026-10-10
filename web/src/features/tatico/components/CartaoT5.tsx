@@ -5,7 +5,7 @@ import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros/useParametroLocal'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
-import { propsCartao } from '../propsCartao'
+import { propsCartao } from '@/features/painel/propsCartao'
 
 const ABAS = ['sistema', 'area'] as const
 const SERIES = ['Demanda de valor', ...ORIGENS_DEMANDA]

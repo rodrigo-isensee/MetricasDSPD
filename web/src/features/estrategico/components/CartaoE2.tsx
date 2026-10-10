@@ -2,7 +2,7 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
 import { CartaoMetrica, NumeroGrande, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
-import { propsCartao } from '@/features/tatico/propsCartao'
+import { propsCartao } from '@/features/painel/propsCartao'
 import { fmtInteiro, fmtPct, fmtTrimestre } from '@/lib/formatar'
 import { NOTAS_ESTRATEGICO } from '../notas'
 
@@ -10,7 +10,10 @@ export function CartaoE2({ filtros }: { filtros: FiltrosFluxo }) {
   const q = useMetrica('E2', filtros)
   const d = q.dados
   const tri = d?.trimestres ?? []
-  const publicados = tri.filter((t) => t.evolucaoVinculada.status === 'ok' || t.n >= 20)
+  const publicados = tri.filter(
+    // O limiar de 20 itens é da biblioteca: o trimestre é publicado quando o DTO traz percentuais.
+    (t) => t.evolucaoVinculada.status === 'ok' || t.segmentos.some((s) => s.pct !== null),
+  )
   const ocultos = tri.filter((t) => !publicados.includes(t))
   const nomes = [...new Set(tri.flatMap((t) => t.segmentos.map((s) => s.categoria)))]
   const tipoDe = (c: string) => tri.flatMap((t) => t.segmentos).find((s) => s.categoria === c)?.tipo

@@ -5,6 +5,7 @@ import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import { fmtInteiro, plural } from '@/lib/formatar'
+import { CartaoEIFL1 } from '@/features/espera-invisivel/components/CartaoEI'
 import { CartaoBloqueados } from './components/CartaoBloqueados'
 import { CartaoO1 } from './components/CartaoO1'
 import { CartaoO2 } from './components/CartaoO2'
@@ -128,6 +129,7 @@ function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cade
       <Secao id="tempo" titulo="Tempo">
         <CartaoO3 filtros={filtros} />
         <CartaoO9 filtros={filtros} />
+        <CartaoEIFL1 filtros={filtros} variante="compacto" />
       </Secao>
       <Secao id="fluxo" titulo="Fluxo">
         <CartaoO4 filtros={filtros} />

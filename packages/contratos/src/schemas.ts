@@ -422,6 +422,8 @@ export const resultadoT4 = z.object({
         }),
       ),
       statusMeta: statusMetaSchema,
+      /** Contagens do período (todas as semanas), publicadas mesmo abaixo de 20 itens. */
+      totais: z.object({ chegadas: z.number(), saidas: z.number(), backlog: z.number() }),
       semanas: z.array(
         z.object({
           semana: iso,

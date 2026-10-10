@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { COMUM, FonteFixa, J, JANELA } from '@/features/tatico/testes/fonteFixa'
+import { COMUM, FonteFixa, J, JANELA } from '@/features/painel/testes/fonteFixa'
 import { renderizarApp } from '@/test/helpers'
 
 const cartao = async (c: string) => screen.findByTestId(`metrica-${c}`)
@@ -212,5 +212,17 @@ describe('painel Estratégico (mock)', () => {
     const v = await screen.findByTestId('estado-vazio-E1')
     expect(v).toBeInTheDocument()
     expect(screen.queryByTestId('amostra-insuficiente-E1')).not.toBeInTheDocument()
+  })
+})
+
+describe('Espera invisível do nível (K-042)', () => {
+  it('o Estratégico traz a seção com o cartão compacto EI-FL3', async () => {
+    renderizarApp('/estrategico')
+    const el = await cartao('EI-FL3')
+    const secao = document.getElementById('espera-invisivel') as HTMLElement
+    expect(secao).toContainElement(el)
+    expect(
+      within(secao).getByRole('heading', { level: 2, name: /Espera invisível do nível/ }),
+    ).toBeInTheDocument()
   })
 })

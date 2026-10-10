@@ -4,7 +4,7 @@ import { CartaoMetrica, NumeroGrande } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtDataCurta, fmtInteiro, fmtMes, fmtNumero } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
-import { propsCartao, textoTaxa } from '../propsCartao'
+import { propsCartao, textoTaxa } from '@/features/painel/propsCartao'
 
 /** O18: entregas com e sem bug. Meses ainda dentro dos 30 dias de vínculo aparecem "em apuração", listrados. */
 export function CartaoO18({ filtros }: { filtros: FiltrosFluxo }) {

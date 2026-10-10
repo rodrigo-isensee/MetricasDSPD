@@ -5,7 +5,7 @@ import { AmostraInsuficiente, CartaoMetrica, Dica } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
-import { propsCartao } from '../propsCartao'
+import { propsCartao } from '@/features/painel/propsCartao'
 
 type Contagem = 'itens' | 'tempo'
 
@@ -17,7 +17,7 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
   const med = (n: NonNullable<typeof d>['naturezas'][number]) => n[contagem]
   const maiores = d
     ? [...d.naturezas]
-        .filter((n) => med(n).desvioPP !== null)
+        .filter((n) => med(n).desvioPP !== null && med(n).pct !== null)
         .sort((a, b) => Math.abs(med(b).desvioPP ?? 0) - Math.abs(med(a).desvioPP ?? 0))
         .slice(0, 2)
     : []

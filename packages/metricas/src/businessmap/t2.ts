@@ -1,5 +1,5 @@
 import type { ResultadoT2 } from '@metricas-dspd/contratos'
-import { CLASSES_SERVICO } from '@metricas-dspd/contratos'
+import { CLASSES_SERVICO, META_ADERENCIA_SLE_PCT } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { publicavel, taxa } from '../core/estatistica'
 import { maximo } from '../core/extremos'
@@ -59,7 +59,7 @@ export function calcularT2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT2 {
       dentroDoSle: t,
       statusMeta:
         t.status === 'ok'
-          ? t.pct >= 85
+          ? t.pct >= META_ADERENCIA_SLE_PCT
             ? ('dentro' as const)
             : ('fora' as const)
           : ('sem-referencia' as const),

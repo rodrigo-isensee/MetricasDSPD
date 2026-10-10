@@ -1,5 +1,6 @@
 import type { ResultadoT3 } from '@metricas-dspd/contratos'
 import type { StatusMeta } from '@metricas-dspd/contratos'
+import { META_DESVIO_ALOCACAO_PP } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { publicavel } from '../core/estatistica'
 import { baseAmostral, criterios, dentro, du, ehDemanda, periodoDe, r2, selecionar } from './comum'
@@ -7,7 +8,7 @@ import type { ContextoBM, MarcosCard } from './indice'
 
 type Natureza = 'Sustentação' | 'Evolução' | 'Projetos' | 'Dívida técnica'
 const NATUREZAS: readonly Natureza[] = ['Sustentação', 'Evolução', 'Projetos', 'Dívida técnica']
-const DESVIO_MAXIMO_PP = 10
+const DESVIO_MAXIMO_PP = META_DESVIO_ALOCACAO_PP
 
 /** Mapeamento tipo → natureza (P8 provisório): item com projeto acima = Projetos; senão pelo tipo. */
 export function naturezaDe(m: MarcosCard): Natureza {

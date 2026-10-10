@@ -38,7 +38,11 @@ export function calcularT9(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT9 {
     l.projetoId,
   ])
   return {
-    base: baseAmostral(linhas.length, 'projetos em andamento', null),
+    base: baseAmostral(
+      linhas.reduce((t, l) => t + l.totalFrentes, 0),
+      `frentes (${linhas.reduce((t, l) => t + l.originais, 0)} originais, ${linhas.reduce((t, l) => t + l.adicionadas, 0)} adicionadas)`,
+      null,
+    ),
     criterios: criterios('T9', periodo, periodo, ctx),
     projetos: linhas,
     projetosComEscopoCrescido: linhas.filter((l) => l.adicionadas > 0).length,

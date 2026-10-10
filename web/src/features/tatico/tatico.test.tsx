@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
-import { COMUM, FonteFixa, J, JANELA } from './testes/fonteFixa'
+import { COMUM, FonteFixa, J, JANELA } from '@/features/painel/testes/fonteFixa'
 
 const ok = <T,>(n: number, valor: T) => ({ status: 'ok' as const, n, valor, janela: J })
 const insuf = (n: number) => ({
@@ -158,6 +158,7 @@ const t4 = {
         saldo: -3,
       }),
       statusMeta: 'fora' as const,
+      totais: { chegadas: 132, saidas: 96, backlog: 36 },
       semanas,
     },
     {
@@ -165,6 +166,7 @@ const t4 = {
       n: 16,
       estatistica: insuf(16),
       statusMeta: 'sem-referencia' as const,
+      totais: { chegadas: 9, saidas: 7, backlog: 4 },
       semanas: [{ semana: '2026-09-28', emAndamento: false, chegada: 9, vazao: 7 }],
     },
     {
@@ -180,6 +182,7 @@ const t4 = {
         saldo: 3,
       }),
       statusMeta: 'sem-referencia' as const,
+      totais: { chegadas: 0, saidas: 36, backlog: 0 },
       semanas,
     },
   ],
@@ -367,5 +370,17 @@ describe('painel Tático', () => {
     renderizarApp('/tatico?mock=erro:t2')
     expect(await screen.findByTestId('estado-erro-T2')).toBeInTheDocument()
     expect(await screen.findByTestId('metrica-T1')).toBeInTheDocument()
+  })
+})
+
+describe('Espera invisível do nível (K-042)', () => {
+  it('o Tático traz a seção com o cartão compacto EI-FL2', async () => {
+    renderizarApp('/tatico')
+    const el = await cartao('EI-FL2')
+    const secao = document.getElementById('espera-invisivel') as HTMLElement
+    expect(
+      within(secao).getByRole('heading', { level: 2, name: /Espera invisível do nível/ }),
+    ).toBeInTheDocument()
+    expect(secao).toContainElement(el)
   })
 })

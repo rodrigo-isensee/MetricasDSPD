@@ -10,7 +10,7 @@ import {
 import { useMetrica } from '@/data'
 import { fmtDiasUteis, fmtInteiro } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
-import { propsCartao } from '../propsCartao'
+import { propsCartao } from '@/features/painel/propsCartao'
 
 export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
   const q = useMetrica('T7', filtros)

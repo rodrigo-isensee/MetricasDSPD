@@ -11,7 +11,7 @@ import { useMetrica } from '@/data'
 import { fmtDataCurta, fmtInteiro, fmtNumero } from '@/lib/formatar'
 import { useParametroLocal } from '@/features/filtros/useParametroLocal'
 import { NOTAS_TATICO } from '../notas'
-import { propsCartao, slug } from '../propsCartao'
+import { propsCartao, slug } from '@/features/painel/propsCartao'
 
 const VALORES = CLASSES_SERVICO.map(slug)
 
@@ -30,8 +30,6 @@ export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
         : undefined
   const faixa = (f: { min: number; max: number; mediana: number }) =>
     `${fmtNumero(f.min)} a ${fmtNumero(f.max)} (mediana ${fmtNumero(f.mediana)})`
-  const soma = (c: (typeof classes)[number], k: 'chegada' | 'vazao') =>
-    c.semanas.reduce((s, w) => s + w[k], 0)
   return (
     <CartaoMetrica
       {...propsCartao('T4', q, NOTAS_TATICO.T4)}
@@ -57,8 +55,8 @@ export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
               if (v.status === 'insuficiente')
                 return {
                   classe: c.classe,
-                  chegada: `Chegadas: ${fmtInteiro(soma(c, 'chegada'))}`,
-                  vazao: `Saídas: ${fmtInteiro(soma(c, 'vazao'))}`,
+                  chegada: `Chegadas: ${fmtInteiro(c.totais.chegadas)}`,
+                  vazao: `Saídas: ${fmtInteiro(c.totais.saidas)}`,
                   razao: '—',
                   backlog: '—',
                   zerar: `${fmtInteiro(v.n)} de 20 itens mínimos`,

@@ -3,7 +3,7 @@ import { Barras, Dispersao } from '@/components/charts'
 import { AmostraInsuficiente, CartaoMetrica, NumeroGrande, SeletorLocal } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
-import { propsCartao } from '@/features/tatico/propsCartao'
+import { propsCartao } from '@/features/painel/propsCartao'
 import { fmtDiasUteis, fmtInteiro, fmtPct, fmtTrimestre, textoJanela } from '@/lib/formatar'
 import { NOTAS_ESTRATEGICO } from '../notas'
 

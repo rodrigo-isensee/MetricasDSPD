@@ -2,6 +2,7 @@ import { FaixaAtencao, Secao, type ItemAtencao } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
+import { CartaoEIFL2 } from '@/features/espera-invisivel/components/CartaoEI'
 import { CartaoT1 } from './components/CartaoT1'
 import { CartaoT2 } from './components/CartaoT2'
 import { CartaoT3 } from './components/CartaoT3'
@@ -71,6 +72,9 @@ export default function TaticoPage() {
           <Secao id="projetos" titulo="Os projetos estão avançando de verdade?">
             <CartaoT9 filtros={filtros} />
             <CartaoT7 filtros={filtros} />
+          </Secao>
+          <Secao id="espera-invisivel" titulo="Espera invisível do nível">
+            <CartaoEIFL2 filtros={filtros} variante="compacto" />
           </Secao>
         </>
       )}

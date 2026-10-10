@@ -5,7 +5,15 @@ import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros/useParametroLocal'
 import { fmtDiasUteis, fmtInteiro, fmtPct, textoJanela } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
-import { propsCartao, slug } from '../propsCartao'
+import { propsCartao, slug } from '@/features/painel/propsCartao'
+
+/** Bloco do lead time e a chave correspondente no DTO. */
+const BLOCOS = [
+  ['Fila', 'fila'],
+  ['Espera', 'espera'],
+  ['Execução', 'execucao'],
+  ['Homologação', 'homologacao'],
+] as const
 
 const DONOS = {
   Fila: 'Priorização',
@@ -25,6 +33,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
   )
   const insuficientes = classes.filter((c) => c.estatistica.status === 'insuficiente')
   const sel = publicadas.find((x) => slug(x.c.classe) === aba)
+  const atual = sel ?? publicadas[0]
   const janela = d?.janelaPercentis
   const leitura = sel
     ? `Para a classe ${sel.c.classe}, a mediana do lead time é ${fmtDiasUteis(sel.e.valor.total.p50)}; ${fmtDiasUteis(sel.e.valor.blocos.fila)} de fila (mediana), ${fmtPct(sel.e.valor.fracaoFilaPct)} do tempo antes de a equipe assumir o pedido.`
@@ -80,7 +89,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
             <SeletorLocal
               codigo="t1"
               rotulo="Classe de serviço para o detalhe"
-              valor={sel ? aba : slug(publicadas[0]?.c.classe ?? '')}
+              valor={slug(atual?.c.classe ?? '')}
               onChange={setAba}
               itens={publicadas.map(({ c }) => ({
                 valor: slug(c.classe),
@@ -88,28 +97,19 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
                 contagem: c.n,
               }))}
             >
-              {(sel ?? publicadas[0]) && (
+              {atual && (
                 <TabelaDados
-                  legenda={`Decomposição do lead time, classe ${(sel ?? publicadas[0])?.c.classe ?? ''}`}
+                  legenda={`Decomposição do lead time, classe ${atual.c.classe}`}
                   colunas={[
                     { chave: 'bloco', titulo: 'Bloco' },
                     { chave: 'mediana', titulo: 'Mediana', alinhar: 'direita' },
                     { chave: 'dono', titulo: 'Dono sugerido da ação' },
                   ]}
-                  linhas={(['Fila', 'Espera', 'Execução', 'Homologação'] as const).map((b) => {
-                    const v = (sel ?? publicadas[0])?.e.valor.blocos
-                    const chave =
-                      b === 'Execução'
-                        ? 'execucao'
-                        : b === 'Homologação'
-                          ? 'homologacao'
-                          : b.toLowerCase()
-                    return {
-                      bloco: b,
-                      mediana: v ? fmtDiasUteis(v[chave as keyof typeof v]) : '—',
-                      dono: DONOS[b],
-                    }
-                  })}
+                  linhas={BLOCOS.map(([bloco, chave]) => ({
+                    bloco,
+                    mediana: fmtDiasUteis(atual.e.valor.blocos[chave]),
+                    dono: DONOS[bloco],
+                  }))}
                 />
               )}
             </SeletorLocal>

@@ -4,7 +4,7 @@ import { CartaoMetrica, Icone, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { diffDias, fmtInteiro, fmtMes } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
-import { propsCartao } from '../propsCartao'
+import { propsCartao } from '@/features/painel/propsCartao'
 
 const SITUACAO = { cresce: 'A fila cresce', estavel: 'Estável', diminui: 'A fila diminui' } as const
 

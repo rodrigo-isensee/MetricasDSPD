@@ -1,7 +1,7 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { CartaoMetrica } from '@/components/ui'
 import { useMetrica } from '@/data'
-import { propsCartao } from '@/features/tatico/propsCartao'
+import { propsCartao } from '@/features/painel/propsCartao'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { NOTAS_ESTRATEGICO } from '../notas'
 

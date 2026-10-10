@@ -4,7 +4,7 @@ import { CartaoMetrica, NumeroGrande } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtMes } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
-import { propsCartao, textoTaxa } from '../propsCartao'
+import { propsCartao, textoTaxa } from '@/features/painel/propsCartao'
 
 const GRUPOS = [
   { chave: 'contido', rotulo: 'Contido pela equipe', padrao: 'liso' },

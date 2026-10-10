@@ -2,6 +2,7 @@ import { FaixaAtencao, Secao, type ItemAtencao } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
+import { CartaoEIFL3 } from '@/features/espera-invisivel/components/CartaoEI'
 import { CartaoE1 } from './components/CartaoE1'
 import { CartaoE2 } from './components/CartaoE2'
 import { CartaoE3 } from './components/CartaoE3'
@@ -39,6 +40,9 @@ export default function EstrategicoPage() {
           <Secao id="apostas" titulo="As entregas refletem as prioridades e geram resultado?">
             <CartaoE2 filtros={filtros} />
             <CartaoE3 filtros={filtros} />
+          </Secao>
+          <Secao id="espera-invisivel" titulo="Espera invisível do nível">
+            <CartaoEIFL3 filtros={filtros} variante="compacto" />
           </Secao>
         </>
       )}

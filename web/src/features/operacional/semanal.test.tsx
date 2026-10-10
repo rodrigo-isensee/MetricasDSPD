@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
-import { COMUM, FonteFixa, J, JANELA, insuf, ok } from './testes/fonteFixa'
+import { COMUM, FonteFixa, J, JANELA, insuf, ok } from '@/features/painel/testes/fonteFixa'
 
 const cartao = async (c: string) => {
   const el = await screen.findByTestId(`metrica-${c}`)
@@ -19,13 +19,13 @@ const taxaIns = (k: number, n: number) => ({
 })
 
 describe('Operacional semanal: estrutura', () => {
-  it('seções com h2 e ids, ordem O3, O9, O4, O12, O10, O7, O15, O18; O12 só em Compromissos; "Ir para"', async () => {
+  it('seções com h2 e ids, ordem O3, O9, EI-FL1, O4, O12, O10, O7, O15, O18; O12 só em Compromissos; "Ir para"', async () => {
     renderizarApp(URL)
     await cartao('O3')
     const ordem = screen
       .getAllByTestId(/^metrica-/)
       .map((e) => e.getAttribute('data-testid')?.replace('metrica-', ''))
-    expect(ordem).toEqual(['O3', 'O9', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18'])
+    expect(ordem).toEqual(['O3', 'O9', 'EI-FL1', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18'])
     const secoes: [string, string][] = [
       ['tempo', 'Tempo'],
       ['fluxo', 'Fluxo'],
@@ -333,7 +333,8 @@ describe('T-PROIB / T-T5 no Operacional semanal', () => {
     renderizarApp(URL)
     await cartao('O18')
     await cartao('O7')
-    const texto = document.body.textContent
+    // A nota da espera invisível proíbe o ranking por escrito ("Nunca compare ... como ranking").
+    const texto = document.body.textContent.replace(/Nunca compare[^.]*ranking\./i, '')
     expect(texto).not.toMatch(/respons[aá]vel por|assignee|ranking|% de conclus[aã]o/i)
   })
 })

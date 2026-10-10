@@ -4,7 +4,7 @@ import { CartaoMetrica, NumeroGrande } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtData, fmtDataCurta, fmtInteiro, fmtPct, plural } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
-import { propsCartao } from '../propsCartao'
+import { propsCartao } from '@/features/painel/propsCartao'
 
 /** O1: WIP e limite. A quebra por coluna só existe com uma equipe (porColuna != null); sempre mostra o tempo acima do limite. */
 export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {

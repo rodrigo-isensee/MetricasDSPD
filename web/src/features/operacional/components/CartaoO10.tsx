@@ -5,7 +5,7 @@ import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
 import { fmtData, fmtInteiro, fmtMes, plural } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
-import { propsCartao, slug } from '../propsCartao'
+import { propsCartao, slug } from '@/features/painel/propsCartao'
 
 const VALORES = TIPOS_CARD.map(slug)
 
