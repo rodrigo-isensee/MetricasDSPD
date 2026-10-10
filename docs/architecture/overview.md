@@ -85,7 +85,7 @@ sequenceDiagram
   A->>DB: (se contexto frio) carrega projeções do domínio + ref + critérios
   A->>L: calcularMetrica(O3, contexto, filtros)
   L-->>A: DTO (n < 20 = insuficiente)
-  A-->>F: 200 DTO validado por zod + X-Ultima-Coleta + X-Versao-Criterio
+  A-->>F: 200 DTO validado por zod + X-Versao-Criterio (frescor via GET /fontes/:dominio/estado)
 ```
 
 Invariantes do fluxo:

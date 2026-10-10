@@ -14,7 +14,10 @@ flowchart LR
     stg["src/db/staging.ts<br/>gravarStgCard (dedup pela última versão)"]
     seed["src/db/seed.ts<br/>mapear + semear"]
     scli["src/db/seed-cli.ts<br/>npm run seed"]
+    col["src/coletas/<br/>repositorio (SQL, só leitura) -> eventos (mapeia ctl_coleta) -> servico"]
   end
+  lib["@metricas-dspd/metricas/core<br/>montarEstadoColeta, calibracao (60 dias), frescor"]
+  ctr["@metricas-dspd/contratos<br/>EstadoColeta, EventoColeta (zod .strict)"]
   mock["@metricas-dspd/mock<br/>gerarBaseMock"]
   db[("MySQL 8.4<br/>dspd_bm, dspd_ac, dspd_core")]
   cli --> mig --> mg
@@ -23,9 +26,16 @@ flowchart LR
   stg --> db
   scli --> seed --> mock
   seed --> db
+  col --> db
+  col --> lib
+  col --> ctr
 ```
 
 `dspd_bm` (BusinessMap) e `dspd_ac` (Acelerato) nunca se misturam: nenhuma FK nem consulta cruza os dois. O pacote `@metricas-dspd/server` é workspace da raiz; `npm run pronto` na raiz roda typecheck, lint e testes do server junto com os demais pacotes (o server usa a própria configuração de ESLint).
+
+### Estado de coleta (`src/coletas/`, integracao-real B1 a B4)
+
+`estadoColeta(db, dominio, agora)` e `historicoColetas(db, dominio, pagina)`: leem `ctl_coleta` + `ctl_coleta_contagem` da fonte (schema fixo por domínio; BM e AC nunca na mesma consulta) e `ref_versao_criterio*`, e entregam a `montarEstadoColeta`/`paginarColetas` (regra única em `packages/metricas`; selo e calibração não são recalculados aqui). `erro_resumo` nunca sai: só a categoria (prefixo `categoria: detalhe`). Convenção com o coletor (002): contagens `arquivado_preservado` e `excluido_preservado` em `ctl_coleta_contagem.lidos`. Contrato HTTP em `docs/api/fontes.md` (sem rotas ainda: o servidor HTTP não existe nesta etapa). Testes: `tests/coletas.test.ts` (SQL compilado com driver falso, 100%) e `tests/coletas.mysql.test.ts` (pulado sem `MYSQL_TEST_URL`).
 
 ## Migrações
 

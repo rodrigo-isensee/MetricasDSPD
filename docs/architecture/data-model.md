@@ -153,7 +153,7 @@ A biblioteca recebe o `Calendario` montado a partir dessas tabelas (ADR 0002); n
 | `vw_marca_dagua` | view: último `marca_dagua_ate` com `status = 'sucesso'` por (`tarefa`, `entidade`) |
 | `ctl_reconciliacao` | (`dia`, `entidade`, `tipo`) PK, `contagem_ferramenta`, `contagem_base`, `divergencia_pct` (critérios de pronto de T2.2, T2.3, T5.1) |
 
-Próxima execução lê a partir de `marca_dagua_ate − sobreposicao_s`; a idempotência do staging torna a sobreposição segura. `X-Ultima-Coleta` da API = `finalizado_em` da última `sucesso` de `coleta_incremental` do domínio.
+Próxima execução lê a partir de `marca_dagua_ate − sobreposicao_s`; a idempotência do staging torna a sobreposição segura. O frescor da API sai no corpo de `GET /fontes/:dominio/estado` (`EstadoColeta`, `docs/api/fontes.md`), calculado sobre `coleta_incremental` do domínio; não há cabeçalho `X-Ultima-Coleta`.
 
 ## 7. Índices por filtro de painel
 

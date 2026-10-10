@@ -19,6 +19,8 @@
   "dependencies": {
     "kysely": "^0.29.6",
     "mysql2": "^3.11.0",
+    "@metricas-dspd/contratos": "*",
+    "@metricas-dspd/metricas": "*",
     "@metricas-dspd/mock": "*"
   },
   "devDependencies": {

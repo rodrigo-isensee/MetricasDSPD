@@ -12,7 +12,7 @@ O pedido 002 exige que trocar `MockFonteMetricas` por `HttpFonteMetricas` seja s
 - **Web:** `HttpFonteMetricas` implementa a mesma `FonteMetricas` e valida a resposta com `safeParse`; falha vira estado de erro do cartão, com log no console em dev.
 - **OpenAPI** gerado das rotas (`@fastify/swagger`) e versionado em `docs/api/openapi.json`; CI falha se o gerado divergir do versionado. `docs/api/*.md` continua sendo o contrato legível do node-backend.
 - **Versionamento:** prefixo `/api/v1`; mudança incompatível = `/api/v2` em paralelo. Campo novo opcional não muda versão.
-- **Formato:** JSON camelCase; erro `{ error: { code, message, details? } }`; metadados de frescor e critério nos cabeçalhos definidos no rascunho (`X-Data-Referencia`, `X-Ultima-Coleta`, `X-Versao-Criterio`). Paginação conforme o rascunho (exceção do O2 registrada lá).
+- **Formato:** JSON camelCase; erro `{ error: { code, message, details? } }`; metadados de frescor e critério nos cabeçalhos definidos no rascunho (`X-Data-Referencia`, `X-Versao-Criterio`; `X-Ultima-Coleta` removido, frescor no corpo de `/fontes/:dominio/estado`, plano integracao-real D1). Paginação conforme o rascunho (exceção do O2 registrada lá).
 - **Paridade (D15):** teste que, para cada `MetricaId` e conjunto de filtros de referência, compara o resultado da `MockFonteMetricas` (memória) com o da API sobre o seed no MySQL. Diferença = falha.
 - **Datas no fio:** datas civis `AAAA-MM-DD`; instantes ISO 8601 com `Z`.
 

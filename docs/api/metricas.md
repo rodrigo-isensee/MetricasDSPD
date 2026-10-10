@@ -30,9 +30,8 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
 - `dataReferencia` (opcional, AAAA-MM-DD): recalcula como se fosse essa data de corte; padrão = data de referência atual. Futura -> 400.
 
 ### Resposta 200
-Corpo = `ResultadoDe<id>` (schema em `SCHEMAS_RESULTADO[id]`), sem envelope. Metadados vão em cabeçalhos:
+Corpo = `ResultadoDe<id>` (schema em `SCHEMAS_RESULTADO[id]`), sem envelope. Metadados vão em cabeçalhos (o frescor NÃO: vai no corpo de `GET /api/v1/fontes/:dominio/estado`, ver `docs/api/fontes.md`; decisão D1 de `features/integracao-real.md`):
 - `X-Data-Referencia`: data de corte usada.
-- `X-Ultima-Coleta`: instante ISO 8601 da última coleta bem-sucedida da fonte do domínio (frescor).
 - `X-Versao-Criterio`: id da versão de critério vigente.
 - `Cache-Control: private, max-age=60`, `ETag`.
 
