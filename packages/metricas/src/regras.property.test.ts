@@ -92,7 +92,6 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
       E2: 'primeira chave é objetivo: vínculo por ficha/objetivo, classificador não implementado',
       E3: 'primeira chave é iniciativa: censo por card de projeto (classificador por iniciativa não implementado)',
       S3: 'pct é a participação no total de todas as prioridades, por definição (visão de composição)',
-      S4: 'DIVERGÊNCIA da matriz: hoje agrupa P1 a P5 juntas por nível de resolução (a matriz pede prioridade como classe); decisão pendente, reportada no cartão K-030',
       S5: 'pct é a participação do motivo no total dos motivos, por definição',
       S6: 'pct é a participação do motivo no total dos motivos, por definição',
       S7: 'tipo de reclassificação é evento do chamado (classificador não implementado)',

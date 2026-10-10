@@ -5,6 +5,7 @@ import {
   calcularEIAcelerato,
   calcularS1,
   calcularS2,
+  calcularS4,
   calcularS7,
   criarContextoAC,
   ALVOS_PADRAO,
@@ -176,6 +177,33 @@ describe('Acelerato', () => {
     expect(st['p3']).toBe('ok')
     expect(st['p2']).toBe('insuficiente')
     expect(r.segmentos.find((x) => x.chave === 'p3')?.n).toBe(20)
+  })
+
+  it('S4 é por prioridade e, dentro dela, por nível; célula ou prioridade com menos de 20 não publica (nunca agregada)', () => {
+    const feitos = [
+      ...Array.from({ length: 20 }, (_, i) => chamado(i)),
+      ...Array.from({ length: 12 }, (_, i) =>
+        chamado(100 + i, { prioridade: 'P2', impacto: 'Alto', urgencia: 'Alta' }),
+      ),
+    ]
+    const base = baseDe(0)
+    const ctx = criarContextoAC(
+      { ...base, chamados: feitos.map((x) => x.c), etapas: feitos.flatMap((x) => x.e) },
+      HOJE,
+      CALENDARIO_PADRAO,
+    )
+    const r = calcularS4(ctx, F)
+    expect(r.prioridades.map((p) => p.prioridade)).toEqual(['P1', 'P2', 'P3', 'P4', 'P5'])
+    const p3 = r.prioridades.find((p) => p.prioridade === 'P3')
+    const p2 = r.prioridades.find((p) => p.prioridade === 'P2')
+    expect([p3?.n, p2?.n]).toEqual([20, 12])
+    const n1p3 = p3?.niveis.find((x) => x.nivel === 'N1')
+    expect(n1p3?.pct).toBe(100)
+    expect(n1p3?.tempoEtapa?.status).toBe('ok')
+    const n1p2 = p2?.niveis.find((x) => x.nivel === 'N1')
+    expect(n1p2?.n).toBe(12)
+    expect(n1p2?.pct).toBeNull()
+    expect(n1p2?.tempoEtapa?.status).toBe('insuficiente')
   })
 
   it('mapeia etapas e motivos de pendência aos cinco totalizadores', () => {

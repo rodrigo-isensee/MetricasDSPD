@@ -29,6 +29,8 @@ export function calcularS6(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS6 
     base: baseAmostral(xs.length, 'chamados encerrados', periodo),
     criterios: criterios('S6', periodo, periodo, ctx),
     motivos: ordenarNeutro(contagem(xs), (x) => [-x.n, MOTIVOS_ENCERRAMENTO.indexOf(x.motivo)]),
+    /** Fechados sem motivo de encerramento: "Não informado", nunca inferido nem somado a outro motivo. */
+    naoInformado: xs.filter((x) => x.c.motivo_encerramento === null).length,
     taxaContorno: taxa(
       xs.filter((x) => x.c.motivo_encerramento === 'Contorno aplicado').length,
       xs.length,

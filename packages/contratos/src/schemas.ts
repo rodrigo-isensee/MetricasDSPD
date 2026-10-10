@@ -639,13 +639,22 @@ export const resultadoS3 = z.object({
 
 export const resultadoS4 = z.object({
   ...comum,
-  niveis: z.array(
+  /** Sempre por prioridade (nunca agregado) e, dentro dela, por nível de resolução. */
+  prioridades: z.array(
     z.object({
-      nivel: z.enum(NIVEIS_RESOLUCAO),
+      prioridade,
+      /** Chamados fechados da prioridade no período. */
       n: z.number(),
-      pct: z.number().nullable(),
-      /** Tempo na etapa de atendimento do nível (horas úteis); null para Fornecedor. */
-      tempoEtapa: estatisticaSchema(percentisSchema).nullable(),
+      niveis: z.array(
+        z.object({
+          nivel: z.enum(NIVEIS_RESOLUCAO),
+          n: z.number(),
+          /** % da prioridade; null com menos de 20 chamados na prioridade. */
+          pct: z.number().nullable(),
+          /** Tempo na etapa de atendimento do nível (horas úteis); null para Fornecedor. Mínimo de 20 na célula prioridade x nível. */
+          tempoEtapa: estatisticaSchema(percentisSchema).nullable(),
+        }),
+      ),
     }),
   ),
 })
@@ -668,7 +677,11 @@ const distMotivo = <T extends readonly [string, ...string[]]>(valores: T) =>
     ),
   })
 export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO)
-export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO).extend({ taxaContorno: taxaSchema })
+export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO).extend({
+  /** Chamados fechados sem motivo de encerramento ("Não informado"). */
+  naoInformado: z.number(),
+  taxaContorno: taxaSchema,
+})
 
 const blocoS7 = z.object({
   meses: z.array(
