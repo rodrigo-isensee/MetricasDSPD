@@ -1,6 +1,6 @@
 # API de fontes: estado de coleta, histórico e critérios
 
-Base `/api/v1`. Uma fonte por chamada (`businessmap` ou `acelerato`): nenhuma resposta soma as duas. Tipos e schemas zod `.strict()` em `@metricas-dspd/contratos` (`packages/contratos/src/coletas.ts`); campo extra reprova a validação (nenhum campo de pessoa). Sem autenticação nesta etapa (D6). Erros: formato único de `docs/api/metricas.md`. `:dominio` fora de `businessmap|acelerato` -> 400 `VALIDATION_ERROR`.
+Servidor: Fastify 5 no serviço `api` do Docker Compose (imagem de contêiner, `listen`; nuvem adiada), sobre PostgreSQL com o papel `dspd_api` (SELECT por coluna, sem colunas de pessoa), entrada e saída validadas com fastify-type-provider-zod 7 e OpenAPI por `@fastify/swagger` 9 (ADR 0014). Base `/api/v1`. Uma fonte por chamada (`businessmap` ou `acelerato`): nenhuma resposta soma as duas. Tipos e schemas zod `.strict()` em `@metricas-dspd/contratos` (`packages/contratos/src/coletas.ts`); campo extra reprova a validação (nenhum campo de pessoa). Sem autenticação nesta etapa (D6). Erros: formato único de `docs/api/metricas.md`. `:dominio` fora de `businessmap|acelerato` -> 400 `VALIDATION_ERROR`.
 
 Origem dos dados: `ctl_coleta` / `ctl_coleta_contagem` da fonte (tarefa `coleta_incremental`, sem `em_andamento`) e `ref_versao_criterio*` (`server/src/coletas/`). Selo, janelas de calibração e `metricasEmCalibracao` são calculados em `packages/metricas/core` (`montarEstadoColeta`), nunca na rota.
 

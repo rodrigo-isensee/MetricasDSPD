@@ -27,6 +27,10 @@ Os diagramas são Mermaid (o GitHub renderiza). Quando uma decisão já está em
 | [ADR 0001 - Stack do front (etapa mock)](../architecture/adr/0001-stack-front-dashboard-mock.md) | React + Vite + TanStack Query + Recharts; `FonteMetricas` como fronteira |
 | [ADR 0002 - Monorepo e pacotes compartilhados](../architecture/adr/0002-monorepo-pacotes-compartilhados.md) | `contratos`, `metricas`, `mock`, `web`; grafo e exports |
 | [ADR 0003 - Orçamento de performance](../architecture/adr/0003-orcamento-de-performance.md) | Metas de bundle, tarefa longa, geração da base |
+| [ADRs 0004 a 0012](../architecture/adr/) | MySQL, Kysely, coletas, contratos, framework, autenticação, implantação, pacote de cálculo, gráficos (0006, 0008 e 0010 substituídas pela 0013) |
+| [ADR 0013 - Back-end modular serverless](../architecture/adr/0013-arquitetura-modular-serverless.md) | Um back-end Node com módulos em pastas, duas Lambdas (`api`, `coleta`), Hono + Kysely, AWS, Acelerato via Metabase |
+| [Visão geral (C4 1 e 2)](../architecture/overview.md) | Contexto, containers na AWS, módulos, fluxo da coleta ao cartão, onde cada regra é garantida |
+| [Modelo de dados](../architecture/data-model.md), [servidor](../architecture/server.md) e [roadmap](../architecture/roadmap.md) | Schemas e tabelas; organização do `server/`; ordem de implementação |
 | [Plano técnico do dashboard mock](../architecture/features/dashboard-mock.md) | Módulos, contratos, divisão de tarefas do 001 |
 | [Matriz de regras por métrica (M-005)](../architecture/regras-metricas.md) | Regra de cálculo de cada métrica rastreada ao briefing |
 
@@ -85,4 +89,4 @@ Revisões de código e de UX do 001, em [`docs/reviews/`](../reviews/): por fase
 | `packages/mock` | `@metricas-dspd/mock` | [modelo-de-dados-mock.md](modelo-de-dados-mock.md) |
 | `web/` | `@metricas-dspd/web` | [arquitetura-front.md](arquitetura-front.md) |
 | `e2e/` | testes Playwright | [qualidade-e-testes.md](qualidade-e-testes.md) |
-| `server/` | ainda não existe (pedido 002) | — |
+| `server/` | `@metricas-dspd/server` (migrações, seed, estado de coleta; HTTP e coletas a implementar, ADR 0013) | [server.md](../architecture/server.md) |

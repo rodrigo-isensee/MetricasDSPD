@@ -53,7 +53,8 @@ Valores são p95 na máquina de referência, salvo indicação. "Bloqueia" = ite
 |---|---|---|---|
 | M1 | Consultas de painel, p95, volume de 2 anos | < 500 ms | sim |
 | M2 | Todo filtro de painel coberto por índice; `EXPLAIN` das consultas principais registrado em `docs/architecture/` | sem `ALL` (full scan) nas tabelas de fato | sim |
-| M3 | Leitura no MySQL do Acelerato (somente leitura) por execução | < 60 s, sem travar a origem | sim |
+| M3 | Extração da tabela do Acelerato no Metabase (somente leitura) por execução (ADR 0013; antes: MySQL do Acelerato) | < 60 s, sem travar a origem | sim |
+| S1 | Partida a frio da Lambda `api` (montar `BaseBM`/`BaseAC` e o contexto) (ADR 0013) | < 1,5 s; com ela, a requisição a frio continua dentro de A1 depois do primeiro acesso | sim |
 
 **Coletas (002)**
 | # | Item | Orçamento | Bloqueia |

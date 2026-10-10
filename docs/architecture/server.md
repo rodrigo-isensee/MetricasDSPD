@@ -1,121 +1,137 @@
-# Servidor (`server/`): módulos, migrações, seed e acesso ao MySQL
+# Servidor (`server/`): módulos, migrações, seed e acesso ao PostgreSQL
 
-Status: K-017 parte 2. Modelo de dados em `data-model.md`; decisões em ADR 0004 (MySQL), 0005 (Kysely + SQL explícito), 0006 (coletas).
+Status: revisado em 2026-10-10 para a **ADR 0014 revisão 2** (PostgreSQL, `pg` puro, node-pg-migrate, outbox com polling, Fastify 5, Zod 4, OpenAPI, Vitest com schemas por execução, pnpm, Docker Compose local). Modelo em `data-model.md`; módulos e fronteiras na ADR 0013; contrato da coleta na ADR 0006.
 
-## Módulos
+**Estado atual do código** (antes dos cartões S-00 a S-12 do `roadmap.md`): migrações MySQL 0001–0010 com Kysely + `mysql2`, `grants.ts`, `lgpd.ts`, `staging.ts`, seed e `src/coletas/`; sem servidor HTTP. Tudo isso é portado para Postgres; nada do MySQL fica.
+
+## Estrutura alvo
+```
+server/
+  Dockerfile       multi-stage, Node 24 slim, usuário não root; uma imagem, várias entradas
+  migrations/      NNNN_*.ts: ddl(S) {up, down} + up/down(pgm) com pgm.sql; checksums.json
+  src/
+    app.ts         buildApp(deps): Fastify 5 + fastify-type-provider-zod com as rotas dos módulos
+    plataforma/    config (zod), db (pg: pools por papel, emTransacao, mapa S, parsers, migrar.ts, grants, lgpd), eventos (publicarEvento, processarOutbox), log (pino), erros, auth
+    modulos/       businessmap · acelerato · referencia · metricas · operacao (hoje src/coletas) · preferencias
+    entradas/      api.ts (listen) · worker.ts (agenda + poller) · migrar.ts · coleta-cli.ts · openapi.ts
+```
+Cada módulo expõe só `index.ts`; `businessmap` grava só em `dspd_bm`, `acelerato` só em `dspd_ac` (ambos leem `dspd_core.ref_*`). `dspd_bm` e `dspd_ac` nunca se misturam: nenhuma FK nem consulta cruza os dois (teste que lista os schemas usados por repositório).
 
 ```mermaid
 flowchart LR
-  subgraph server["server/ (@metricas-dspd/server)"]
-    cli["src/db/cli.ts<br/>npm run migrate"]
-    mig["src/db/migracoes.ts<br/>conectar + Migrator (Kysely)"]
-    mg["migrations/0001..0010<br/>DDL em SQL explícito (+ _util.ts)"]
-    gr["src/db/grants.ts<br/>GRANT por papel"]
-    stg["src/db/staging.ts<br/>gravarStgCard (dedup pela última versão)"]
-    seed["src/db/seed.ts<br/>mapear + semear"]
-    scli["src/db/seed-cli.ts<br/>npm run seed"]
-    col["src/coletas/<br/>repositorio (SQL, só leitura) -> eventos (mapeia ctl_coleta) -> servico"]
+  subgraph server["server/ (@metricas-dspd/server, uma imagem)"]
+    api["entradas/api.ts<br/>Fastify 5"]
+    wk["entradas/worker.ts<br/>agenda diária + poller da outbox"]
+    mg["entradas/migrar.ts<br/>node-pg-migrate + gerarGrants + ref:sync"]
+    mods["modulos/*"]
+    plat["plataforma/db<br/>pg Pool por papel, S, emTransacao"]
   end
-  lib["@metricas-dspd/metricas/core<br/>montarEstadoColeta, calibracao (60 dias), frescor"]
-  ctr["@metricas-dspd/contratos<br/>EstadoColeta, EventoColeta (zod .strict)"]
-  mock["@metricas-dspd/mock<br/>gerarBaseMock"]
-  db[("MySQL 8.4<br/>dspd_bm, dspd_ac, dspd_core")]
-  cli --> mig --> mg
-  mig --> db
-  gr -. "GRANTs aplicados pela operação" .-> db
-  stg --> db
-  scli --> seed --> mock
-  seed --> db
-  col --> db
-  col --> lib
-  col --> ctr
+  lib["@metricas-dspd/metricas"]
+  ctr["@metricas-dspd/contratos (zod)"]
+  db[("PostgreSQL 17<br/>metricas: dspd_bm · dspd_ac · dspd_core")]
+  api --> mods
+  wk --> mods
+  mods --> plat --> db
+  mg --> db
+  mods --> lib
+  api --> ctr
 ```
 
-`dspd_bm` (BusinessMap) e `dspd_ac` (Acelerato) nunca se misturam: nenhuma FK nem consulta cruza os dois. O pacote `@metricas-dspd/server` é workspace da raiz; `npm run pronto` na raiz roda typecheck, lint e testes do server junto com os demais pacotes (o server usa a própria configuração de ESLint).
+## Acesso a dados (`plataforma/db`)
+- Um `Pool` do `pg` por papel; `TimeZone=UTC` e `statement_timeout` por pool; `emTransacao(pool, fn)`; `ehDuplicado(erro)` (SQLSTATE `23505`).
+- Mapa `S = { bm, ac, core }` a partir de `DSPD_SCHEMA_PREFIXO` (vazio fora dos testes). Todo SQL qualificado: `${S.bm}.dim_card`. Parâmetros só por `$n`.
+- Idempotência: `ON CONFLICT ON CONSTRAINT uq_<tabela> DO NOTHING RETURNING` com alvo explícito; zero linhas = já existente. `ON CONFLICT` sem alvo, `DO UPDATE` fora das projeções e `SELECT *` são reprovados pelo lint.
+- Tipos de linha declarados por repositório; nada do driver sai do repositório. Parsers: `timestamptz` → `Date`, `int8` → `bigint`/`string`, `numeric` → `string`.
 
-### Estado de coleta (`src/coletas/`, integracao-real B1 a B4)
+## Estado de coleta (`src/coletas/` → `modulos/operacao`)
+`estadoColeta(db, dominio, agora)` e `historicoColetas(db, dominio, pagina)` leem `ctl_coleta` + `ctl_coleta_contagem` da fonte (schema fixo por domínio) e `ref_versao_criterio*`, e entregam a `montarEstadoColeta`/`paginarColetas` (regra única em `packages/metricas`). `erro_resumo` nunca sai: só a categoria. Contagens `arquivado_preservado` e `excluido_preservado` em `ctl_coleta_contagem.lidos`. Contrato HTTP em `docs/api/fontes.md`. Testes: SQL com driver falso (unitário) e `coletas.pg.test.ts` (projeto `pg`).
 
-`estadoColeta(db, dominio, agora)` e `historicoColetas(db, dominio, pagina)`: leem `ctl_coleta` + `ctl_coleta_contagem` da fonte (schema fixo por domínio; BM e AC nunca na mesma consulta) e `ref_versao_criterio*`, e entregam a `montarEstadoColeta`/`paginarColetas` (regra única em `packages/metricas`; selo e calibração não são recalculados aqui). `erro_resumo` nunca sai: só a categoria (prefixo `categoria: detalhe`). Convenção com o coletor (002): contagens `arquivado_preservado` e `excluido_preservado` em `ctl_coleta_contagem.lidos`. Contrato HTTP em `docs/api/fontes.md` (sem rotas ainda: o servidor HTTP não existe nesta etapa). Testes: `tests/coletas.test.ts` (SQL compilado com driver falso, 100%) e `tests/coletas.mysql.test.ts` (pulado sem `MYSQL_TEST_URL`).
-
-## Migrações
-
+## Migrações (node-pg-migrate)
 ```mermaid
 flowchart TD
-  A["npm run migrate -w @metricas-dspd/server<br/>(MYSQL_MIGRADOR_URL, usuário dspd_migrador)"] --> B["criarMigrator: tabela de controle<br/>dspd_core.kysely_migration"]
-  B --> C{"Há migração pendente?"}
-  C -- sim --> D["aplica em ordem de nome<br/>0001 schemas, 0002-0003 controle,<br/>0004-0007 BM, 0008-0009 AC, 0010 core"]
+  A["pnpm --filter @metricas-dspd/server migrate up<br/>(ou serviço compose 'migrate'; papel dspd_migrador)"] --> B["runner programático<br/>migrationsSchema = S.core, tabela pgmigrations"]
+  B --> L["pg_advisory_lock (do node-pg-migrate)"]
+  L --> C{"pendentes?"}
+  C -- sim --> D["cada migração numa transação<br/>0001 schemas + proibir_alteracao(), controle, BM, AC, core, outbox"]
   C -- não --> E["nada a fazer"]
-  D --> F["falha? para e registra<br/>(MySQL não tem DDL transacional)"]
+  D --> G["gerarGrants(S) com dspd_migrador"]
+  E --> G
+  G --> R["ref:sync com dspd_ref"]
+  D -- falha --> F["ROLLBACK da migração; esquema intacto"]
 ```
-
-- `npm run migrate` aplica até a última; `npm run migrate -w @metricas-dspd/server -- down` desfaz a última.
-- Migração aplicada nunca é editada: correção vira migração nova (ADR 0005). Cada migração exporta `ddl.up`/`ddl.down` (listas de instruções) para o teste estático.
+- Migrações **novas** para Postgres, numeradas a partir de `0001`, com as correções do `data-model.md` §11. As MySQL saem no mesmo PR.
+- Cada arquivo exporta `ddl(S)` (SQL puro, usado pelos testes estáticos de LGPD, tamanhos e checksum) e `up/down(pgm)` que só chamam `pgm.sql`. Migração aplicada nunca é editada; correção vira migração nova. CI: `up → down → up`.
+- Comandos: `migrate up|down|redo`. `down` desfaz a última.
 
 ## Seed (desenvolvimento)
-
 ```mermaid
 flowchart TD
-  S["npm run seed -w @metricas-dspd/server"] --> G["gerarBaseMock(semente) do pacote mock"]
-  G --> M["mapearBM / mapearAC<br/>epoch ms -> DATETIME(3) UTC, ids ASCII,<br/>sem responsaveis, usuario, justificativa"]
-  M --> X{"ctl_coleta 'seed-mock'<br/>já existe no schema?"}
+  S["pnpm db:seed"] --> G["gerarBaseMock(semente)"]
+  G --> M["mapearBM / mapearAC<br/>epoch ms -> timestamptz UTC, ids ASCII,<br/>responsaveis = '{}', usuario = NULL"]
+  M --> X{"ctl_coleta 'seed-mock' já existe no schema?"}
   X -- "mesma semente" --> N["ja_semeado: nada é gravado"]
-  X -- "outra semente" --> R["erro: use um banco novo"]
-  X -- não --> T["transação por schema:<br/>1 ctl_coleta + INSERT em lotes de 500"]
+  X -- "outra semente" --> R["erro: use db:reset"]
+  X -- não --> T["transação por schema:<br/>1 ctl_coleta + INSERT multi-linha em lotes de 500"]
 ```
+- Grava `dim_card`, `fato_transicao` (`fonte = 'revision'`, `id_origem = seed-N`), `fato_bloqueio`, `ref_coluna` (BM) e `dim_chamado`, `fato_etapa_chamado` (AC). Arquivados e excluídos entram como estão. Determinístico (sem relógio). O mock não traz nomes: `responsaveis` vazio e `usuario` nulo.
+- Nunca apaga nem sobrescreve (sem `ON CONFLICT DO UPDATE`, `DELETE`). `coluna_id` = `c<ordem>`; `data_acordada` com a data civil em America/Sao_Paulo.
+- Fora do seed (não inferido): `ref_quadro`, `ref_dominio`, `ref_alvo_prioridade`, calendário, staging, `*_versao`, `evt_*` e `fato_etapa_chamado.totalizador`. Variáveis: `PG_MIGRADOR_URL`, `MOCK_SEMENTE` (opcional).
+- Critério de pronto do port: mesmo hash da base mock lida do Postgres que o hash lido do MySQL antes (ou do mock direto, se o MySQL não estiver disponível).
 
-- Grava `dim_card`, `fato_transicao` (`fonte = 'revision'`, `id_origem = seed-N`), `fato_bloqueio`, `ref_coluna` (BM) e `dim_chamado`, `fato_etapa_chamado` (AC). Cards arquivados e excluídos entram como estão.
-- Determinístico: sem relógio; `coletado_em` = "hoje" da configuração do mock; mesma semente gera as mesmas linhas.
-- Nunca apaga nem sobrescreve (sem `INSERT IGNORE`, `ON DUPLICATE KEY`, `DELETE`). `coluna_id` = `c<ordem>` (o nome com acento fica em `ref_coluna.nome`); `data_acordada` usa a data civil em America/Sao_Paulo (-03:00).
-- Fora do seed (o mock não traz a informação; não foi inferida): `ref_quadro` (nível), `ref_dominio`, `ref_alvo_prioridade`, calendário, staging, `*_versao`, `evt_*` e `fato_etapa_chamado.totalizador`. Variáveis: `MYSQL_SEED_URL` (ou `MYSQL_MIGRADOR_URL`) e, opcional, `MOCK_SEMENTE`.
-
-## Usuários e grants por papel (data-model §8; `src/db/grants.ts`)
-
-| Usuário | Pode |
+## Papéis e grants (data-model §8; `plataforma/db/grants.ts`)
+| Papel | Pode |
 |---|---|
-| `dspd_migrador` | DDL (só no job de deploy); também usado no seed em desenvolvimento |
-| `dspd_coletor` | INSERT/SELECT em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; INSERT/UPDATE/DELETE nas projeções; SELECT/INSERT em `ctl_` (append-only, inclusive `ctl_automacao`), com `UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo)` em `ctl_coleta` e UPDATE em `ctl_coleta_contagem`; SELECT em `ref_` |
-| `dspd_ref` | INSERT/SELECT em `ref_` e `UPDATE (vigente_ate)` por coluna |
-| `dspd_webhook` | INSERT só em `dspd_bm.stg_webhook_evento` |
-| `dspd_api` | SELECT em projeções, `vw_`, `ref_`, `ctl_`; sem acesso a `stg_` |
-| `dspd_automacao` | INSERT/SELECT em `dspd_ac.ctl_automacao`; SELECT em `ref_` do core |
+| `dspd_migrador` | dono dos objetos (DDL); seed em desenvolvimento |
+| `dspd_coletor` | append-only em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; escrita nas projeções; `ctl_` com UPDATE por coluna; `outbox` (poller) |
+| `dspd_ref` | `INSERT/SELECT` em `ref_` e `UPDATE (vigente_ate)` |
+| `dspd_webhook` | `INSERT` em `dspd_bm.stg_webhook_evento` e em `dspd_core.outbox` (mesma transação) |
+| `dspd_api` | `SELECT` em projeções, `vw_`, `ref_`, `ctl_`, **por coluna, sem as de `COLUNAS_PESSOA`**; sem `stg_`, `evt_`, `*_versao`, `outbox` |
+| `dspd_automacao` | `dspd_ac.ctl_automacao` (sem uso até a T4.3) |
 
-Os usuários são criados pela operação (com senha fora do repositório); `gerarGrants` produz os `GRANT` a aplicar depois das migrações. Credenciais só em `.env`.
+`gerarGrants(S)` produz os `GRANT`/`REVOKE` e é aplicado ao fim de cada `migrate up`. Senhas só em `.env`.
 
-## Ambiente local com Docker
-
-Decisão do usuário (alinhamentos de 2026-10-10): o banco local roda em Docker. Arquivos: `docker-compose.yml`, `.env.example`, `docker/mysql/init/01-schemas-usuarios.sh`, `scripts/db.sh`, `scripts/test-mysql.sh`.
+## Ambiente local com Docker Compose
+Decisão do usuário (2026-10-10 §8): tudo local, sem custo. Arquivos: `docker-compose.yml`, `.env.example`, `docker/postgres/init/01-databases-papeis.sh`, `server/Dockerfile`, `web/Dockerfile` + `web/nginx.conf`.
 
 ```mermaid
 flowchart LR
   env[".env (não versionado)"] --> compose["docker-compose.yml"]
-  compose --> dev["mysql :3306 (volume dspd-mysql-data)"]
-  compose -. "perfil test" .-> tst["mysql-test :3307 (tmpfs, descartável)"]
-  init["init/01-schemas-usuarios.sh"] --> dev
-  dev --> mig["db:migrate: migrações + grants.ts"] --> seed["db:seed (mock)"]
-  tst --> t["test:mysql: MYSQL_TEST_URL, roda e derruba"]
+  compose --> pg["postgres :5432<br/>volume dspd-pg-data<br/>databases metricas, metricas_test"]
+  compose --> mig["migrate (roda e sai)"]
+  compose --> api["api :3000 (Fastify)"]
+  compose --> wk["worker (agenda + outbox)"]
+  compose --> web["web :8080 (nginx, proxy /api)"]
+  mig -->|depends_on healthy| pg
+  api -->|depends_on migrate completed| pg
+  wk -->|depends_on migrate completed| pg
+  web --> api
 ```
 
-MySQL 8.4, utf8mb4, InnoDB, fuso UTC, healthcheck. O init (só na primeira criação do volume) cria `dspd_bm`, `dspd_ac`, `dspd_core` e os usuários por papel (senhas de `DSPD_PWD_*`); os `GRANT` por tabela vêm de `gerarGrants` e são aplicados ao fim de `db:migrate` (`MYSQL_GRANTS_URL`, conta root local).
+O init (só na primeira criação do volume) cria os databases `metricas` e `metricas_test`, os papéis com `LOGIN` (senhas `DSPD_PWD_*`) e revoga `public`. Os schemas e grants vêm das migrações.
 
-| Script | Faz |
+| Script (pnpm, raiz) | Faz |
 |---|---|
-| `npm run db:up` / `db:down` | sobe (aguarda healthcheck) / derruba, mantendo o volume |
-| `npm run db:reset` | derruba apagando o volume e sobe de novo (reexecuta o init) |
-| `npm run db:migrate` | migrações com `dspd_migrador` e depois os grants |
-| `npm run db:seed` | seed do mock (só desenvolvimento) |
-| `npm run test:mysql` | sobe o `mysql-test`, roda os testes MySQL hoje pulados e derruba |
+| `pnpm db:up` / `db:down` | sobe só o `postgres` (aguarda healthcheck) / derruba, mantendo o volume |
+| `pnpm db:reset` | apaga o volume e sobe de novo (reexecuta o init) |
+| `pnpm db:migrate` | migrações + grants + `ref:sync` |
+| `pnpm db:seed` | seed do mock |
+| `pnpm stack:up` | `docker compose up -d --build` (postgres, migrate, api, worker, web) |
+| `pnpm dev` | `api` e `worker` com `tsx watch` + Vite, contra o `postgres` do compose |
+| `pnpm test:pg` | testes do projeto `pg` num conjunto de schemas por execução |
+| `pnpm db:limpar-testes` | apaga schemas `t%_dspd_%` de execuções interrompidas |
 
-Primeiro uso: `cp .env.example .env`, ajuste as senhas, `npm run db:up && npm run db:migrate && npm run db:seed`.
+Primeiro uso: `cp .env.example .env`, ajuste as senhas, `pnpm db:up && pnpm db:migrate && pnpm db:seed`; ou `pnpm stack:up` para tudo em contêiner.
+
+### Testes contra o Postgres (sem Testcontainers)
+`globalSetup` gera o prefixo `t<6 base36>_`, roda as migrações com o `S` prefixado no database `metricas_test` e aplica `gerarGrants(S)` (papéis compartilhados do cluster). `globalTeardown` faz `DROP SCHEMA ... CASCADE` (`DSPD_TESTE_MANTER=1` preserva). Projeto Vitest `pg` sem paralelismo de arquivos; cada teste cria seus dados. Sem `PG_TEST_URL`, os testes `pg` são pulados localmente; no CI são obrigatórios (job `db` sobe o mesmo compose).
 
 ### Instalar Docker no WSL2
-1. Opção simples: Docker Desktop no Windows, com "Use the WSL 2 based engine" e a integração ligada para a distro em Settings > Resources > WSL integration.
-2. Sem Desktop: no Ubuntu do WSL2, siga a instalação do Docker Engine pelo repositório apt oficial (docs.docker.com/engine/install/ubuntu), `sudo usermod -aG docker $USER`, reabra o terminal e, se o systemd não estiver ativo, adicione `[boot]\nsystemd=true` em `/etc/wsl.conf` e rode `wsl --shutdown` no Windows.
-3. Confira com `docker compose version` e `docker run --rm hello-world`.
+1. Docker Desktop no Windows, com "Use the WSL 2 based engine" e a integração ligada para a distro.
+2. Sem Desktop: Docker Engine pelo repositório apt oficial (docs.docker.com/engine/install/ubuntu), `sudo usermod -aG docker $USER`, reabrir o terminal; se o systemd não estiver ativo, `[boot]\nsystemd=true` em `/etc/wsl.conf` e `wsl --shutdown`.
+3. Conferir com `docker compose version` e `docker run --rm hello-world`.
 
-Nesta entrega os testes contra MySQL ainda não foram executados (Docker ausente na máquina); sem `MYSQL_TEST_URL` eles ficam pulados e os estáticos rodam sempre.
-
-## Regra LGPD de colunas (`src/db/lgpd.ts`)
-Módulo único, usado pelos testes estáticos das migrações e do seed (e pelo de `information_schema` no CI). O nome da coluna é dividido por `_` e falha se algum segmento casar `pessoa|responsav*|usuario*|user*|agente*|atendente*|solicitante*|autor*|criador*|email*|login*|assignee*|justificativa*`. Exceções só por `schema.tabela.coluna` (hoje `dspd_bm.dim_card.area_solicitante` e `dspd_bm.dim_card_versao.area_solicitante`, área organizacional, briefing 4.5). Decisão do usuário: nomes não são pseudonimizados; a garantia é que nenhuma view ou DTO expõe ou agrega por pessoa. O seed não grava responsáveis.
+## Regra LGPD de colunas (`src/db/lgpd.ts` → `plataforma/db/lgpd.ts`)
+Módulo único com `SEGMENTO_PESSOA`, `COLUNAS_PESSOA` (as colunas de pessoa permitidas no analítico: `dim_card.responsaveis`, `dim_card_versao.responsaveis`, `fato_transicao.usuario`), `EXCECOES_PESSOA` (`area_solicitante`) e `violaLgpd`. Usado pelos testes estáticos das migrações e do seed, pelo teste de catálogo e por `gerarGrants` (que tira as colunas de `COLUNAS_PESSOA` do `SELECT` da `dspd_api`). Regra completa em `data-model.md` §9.
 
 ## Staging de card
-`gravarStgCard(db, entrada)` recebe `quadroId`, `arquivado` e `excluidoDetectado` do coletor (nada é fixo em código). `fato_transicao.id_origem` é `VARCHAR(64) ascii` (hash SHA-256 hex do webhook). Removidos: índices `ix_*_versao_vigente` (redundantes com o UNIQUE) e `stg_webhook_evento.coleta_id`; `dim_chamado_versao` ganhou `organizacao` e `tipo`. `dspd_ref` tem `UPDATE (vigente_ate)` também em `dspd_core.ref_calendario_turno` e `ref_calendario_aplicacao`.
+`gravarStgCard(cliente, entrada)` recebe `quadroId`, `arquivado` e `excluidoDetectado` do coletor; deduplica contra a última versão com `ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk` e relê em caso de corrida (`data-model.md` §3.1). `fato_transicao.id_origem` é `varchar(64)` (SHA-256 hex do webhook).

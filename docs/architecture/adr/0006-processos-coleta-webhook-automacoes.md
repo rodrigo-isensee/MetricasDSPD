@@ -1,5 +1,6 @@
 # 0006 - Agendamento das coletas, webhook e automações externas
-- Status: aceita (mecanismo de agendamento do host depende da pergunta I-1)
+- Status: **substituída pela ADR 0013** (2026-10-10): processos `api`/`worker`/`automacoes`, croner e processamento do webhook a cada minuto dão lugar às Lambdas `api` e `coleta` com EventBridge Scheduler; a leitura do Acelerato passa a ser pelo Metabase; a T4.3 fica fora até P4/I-6. **Continuam valendo** o contrato de execução, `GET_LOCK` por fonte, retentativas e timeouts, o webhook que só grava staging e as regras da T4.3 (ver ADR 0013, "Continua valendo").
+- Status anterior: aceita (mecanismo de agendamento do host dependia da pergunta I-1)
 - Data: 2026-10-09
 - Briefing: T2.2, T2.3, T2.4, T5.1, T4.3 · Orçamento: ADR 0003 (K1–K4, M3)
 

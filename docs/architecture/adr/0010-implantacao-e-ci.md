@@ -1,5 +1,7 @@
 # 0010 - Implantação, ambientes e CI
-- Status: proposta (hospedagem e runner dependem de I-1, I-9, I-10)
+- Status: **substituída pela ADR 0013** (2026-10-10): hospedagem na AWS (S3 + CloudFront, API Gateway, Lambda, RDS, CDK); saem imagem Docker, nginx, registro e runner interno (I-1, I-9, I-10 deixam de valer). **Continuam valendo** os jobs `check`, `db`, `e2e`, `openapi`, migrações compatíveis com a versão anterior e os alertas.
+- **Ajustada pela ADR 0014, revisão 2** (2026-10-10, custo zero, §8 das decisões do usuário): **nenhuma implantação em nuvem agora**; a AWS da ADR 0013 vira alvo futuro. Ambiente = **Docker Compose local** (`postgres`, `migrate`, `api`, `worker`, `web`); a API sai como **imagem de contêiner** (volta a ideia de imagem desta ADR, sem registro nem runner interno). CI no **GitHub Actions** (gratuito, repo público): **pnpm** em todos os jobs (`pnpm/action-setup`, `cache: pnpm`, `--frozen-lockfile`); job `db` com o **PostgreSQL do compose** (`docker compose up -d --wait postgres`) e schemas prefixados por execução; verificação de `migrations/checksums.json`, snapshot de esquema e grants; job `image` (build sem publicar). Sem job de deploy.
+- Status anterior: proposta (hospedagem e runner dependiam de I-1, I-9, I-10)
 - Data: 2026-10-09
 - Relacionadas: ADR 0003 (o que bloqueia), ADR 0005 (migrações), ADR 0006 (processos), praticas §7, ata D15
 
