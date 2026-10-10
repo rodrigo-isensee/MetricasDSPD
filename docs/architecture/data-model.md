@@ -1,7 +1,7 @@
 # Modelo de dados — base analítica (MySQL 8)
 
-- Status: proposta para revisão de modelagem (tech-lead + arquiteto) antes das migrações do K-017
-- Data: 2026-10-09 · Decisões: ADR 0004 (MySQL), 0005 (Kysely + SQL), 0006 (coletas)
+- Status: aprovado (revisão de modelagem K-014 r2); atualizado com o code review 002-K-017-r1 (B1, R1, R2, R4–R6, R8 e §9) e a decisão L-1 do usuário (2026-10-10)
+- Data: 2026-10-09 · Revisão: 2026-10-10 · Decisões: ADR 0004 (MySQL), 0005 (Kysely + SQL), 0006 (coletas)
 - Forma da camada analítica = tipos de `@metricas-dspd/metricas` (`BaseBM`, `BaseAC`); o mock gera exatamente essa forma (paridade, D15).
 - Colunas marcadas **(prov.)** são extensões ao modelo 4.5 do briefing, provisórias até T2.1 (de-para da API) e à resposta do usuário.
 
@@ -13,7 +13,7 @@
 | Eventos / histórico | `evt_`, `dim_*_versao`, `fato_transicao` | eventos normalizados e versões SCD2 | **só INSERT** (grant) | sim, a partir do staging |
 | Projeções | `dim_card`, `fato_bloqueio`, `dim_chamado`, `fato_etapa_chamado` | estado atual e intervalos, na forma do briefing 4.5 | substituição por entidade afetada, em transação | sim, a partir de eventos + referência |
 | Referência | `ref_` | colunas, domínios fechados, calendário, critérios, alvos | só INSERT de nova vigência; fechar vigência = única UPDATE, por grant de coluna `UPDATE (vigente_ate)` (§8) | arquivo versionado no repositório (`ref:sync`) |
-| Controle | `ctl_` | log de coleta, marca d'água, falhas, reconciliação, automações | INSERT; UPDATE só de status/fim da própria execução | não |
+| Controle | `ctl_` | log de coleta, marca d'água, falhas, reconciliação, automações | INSERT; UPDATE por grant de coluna só em `ctl_coleta` (`status`, `finalizado_em`, `marca_dagua_ate`, `erro_resumo`) e em `ctl_coleta_contagem`; demais `ctl_` (inclusive `ctl_automacao`) só INSERT (§8) | não |
 
 "Nunca sobrescrever histórico" é garantido no staging e nos eventos por privilégio, não por convenção. Projeções podem ser refeitas inteiras (tabela nova + `RENAME TABLE` atômico) quando um critério muda (T2.6). Por isso nenhuma FK física aponta para projeção (§2).
 
@@ -22,9 +22,9 @@ Fluxo: `stg_*` → normalizador (TS) → `evt_*`/`fato_transicao`/`*_versao` →
 ## 2. Convenções
 - InnoDB, `utf8mb4_0900_ai_ci`; instantes `DATETIME(3)` UTC (sufixo `_em`); datas civis `DATE`.
 - Rastreabilidade em **toda** linha de staging, evento e projeção: `sistema_origem` (constante por schema, coluna `CHECK`), `id_origem` (chave natural na ferramenta), `coletado_em`, `coleta_id` (FK `ctl_coleta`). Projeções guardam `atualizado_por_coleta_id`.
-- Chave natural da origem: `VARCHAR(32) CHARACTER SET ascii` (prov., confirmar tipo no T2.1).
+- Chave natural da origem: `VARCHAR(32) CHARACTER SET ascii` (prov., confirmar tipo no T2.1). Exceção: `fato_transicao.id_origem` é `VARCHAR(64) CHARACTER SET ascii`, porque com `fonte = 'webhook'` guarda o SHA-256 do webhook em hex (64 caracteres).
 - PK substituta `BIGINT UNSIGNED AUTO_INCREMENT` (`*_sk`) onde a natural não é única (versões, eventos).
-- Hash de payload: `payload_sha256 BINARY(32)` = SHA-256 do JSON canônico (chaves ordenadas) **já pseudonimizado** (o que é gravado). A chave HMAC da pseudonimização não roda sem migração planejada (rotação mudaria todos os hashes e duplicaria o staging).
+- Hash de payload: `payload_sha256 BINARY(32)` = SHA-256 do JSON canônico (chaves ordenadas) do payload gravado, que é o payload original, sem pseudonimização (decisão L-1, §9). Mudar a canonicalização exige migração planejada (mudaria todos os hashes e duplicaria o staging).
 - **FK física só para `ctl_coleta` e entre tabelas imutáveis** (staging, eventos, versões). Evento, versão e staging **nunca** têm FK física para projeção (`dim_card`, `fato_bloqueio`, `dim_chamado`, `fato_etapa_chamado`) nem para `ref_*` com vigência na PK: a dependência é lógica (`card_id`, `chamado_id`, `coluna_id`), com índice, e verificada pela reconciliação. Motivos: o evento pode chegar antes da projeção do card; o rebuild por tabela nova + `RENAME TABLE` levaria as FKs dos filhos junto com a tabela renomeada; FK bloquearia a substituição da projeção. No ER, relações lógicas aparecem pontilhadas (`..`).
 - Toda FK e toda chave lógica indexadas. Nenhuma FK nem chave lógica cruza `dspd_bm` × `dspd_ac`.
 
@@ -58,7 +58,7 @@ erDiagram
 | `stg_custom_field` | (`id_origem`, `anterior_sk`) | definição + valores |
 | `stg_coluna` | (`quadro_id`, `id_origem`, `anterior_sk`) | estrutura do workflow |
 | `stg_bloqueio` | (`card_id`, `id_origem`, `anterior_sk`) | `payload JSON` |
-| `stg_webhook_evento` | (`payload_sha256`) | `recebido_em`, `payload JSON` (cada entrega é um evento; reentrega idêntica = mesma linha) |
+| `stg_webhook_evento` | (`payload_sha256`) | `webhook_sk` (PK), `recebido_em`, `payload JSON` (cada entrega é um evento; reentrega idêntica = mesma linha). **Sem `coleta_id`**: a entrega não pertence a uma coleta (o `dspd_webhook` só insere aqui); o vínculo com a coleta fica em `stg_webhook_processamento` |
 | `stg_webhook_processamento` | (`webhook_sk`, `coleta_id`) | `resultado ENUM('processado','ignorado','erro')`, `erro`; uma linha por tentativa; separada para o staging continuar só-INSERT. Webhook "processado" = existe linha com `resultado = 'processado'`; pendentes = sem essa linha (com ou sem tentativa de `erro`), reprocessados na coleta seguinte |
 | `stg_card_presenca` | (`varredura_id`, `id_origem`) | resultado da varredura completa semanal; card ausente → `evt_card` tipo `excluido_detectado` |
 
@@ -71,11 +71,11 @@ Escrita sempre com `INSERT` normal; só o erro 1062 (`ER_DUP_ENTRY`) é "já exi
 |---|---|---|---|
 | `dim_card_versao` (SCD2) | 1 versão por mudança de atributo | (`card_id`, `vigente_de`) | todos os atributos de `DimCard` exceto marcos, `vigente_de`, `stg_card_sk` |
 | `evt_card` | ciclo de vida | (`card_id`, `tipo`, `ocorrido_em`) | `tipo ENUM('criado','arquivado','desarquivado','excluido_detectado','restaurado')` |
-| `fato_transicao` | 1 linha por movimentação (4.5) | (`fonte`, `id_origem`); índice (`card_id`, `ocorrido_em`) | `quadro_id` (prov.: dispensável se `coluna_id` for global no T2.1), `coluna_origem_id`, `coluna_destino_id`, `tipo_coluna ENUM('fila','execucao')`, `direcao ENUM('avanco','retorno')`, `fonte ENUM('revision','webhook')`, `id_origem` (revision ou hash do webhook) |
+| `fato_transicao` | 1 linha por movimentação (4.5) | (`fonte`, `id_origem`); índice (`card_id`, `ocorrido_em`) | `quadro_id` (prov.: dispensável se `coluna_id` for global no T2.1), `coluna_origem_id`, `coluna_destino_id`, `tipo_coluna ENUM('fila','execucao')`, `direcao ENUM('avanco','retorno')`, `fonte ENUM('revision','webhook')`, `id_origem VARCHAR(64) CHARACTER SET ascii` (id da revision ou SHA-256 hex do webhook) |
 | `rec_transicao_par` | casamento webhook × revision | (`transicao_webhook_sk`) UNIQUE, (`transicao_revision_sk`) UNIQUE | `delta_ms`, `casado_em` |
 | `evt_bloqueio` | início e fim de bloqueio | (`card_id`, `id_origem`, `tipo ENUM('inicio','fim')`) | `motivo_codigo`, `coluna_id`, `fornecedor_codigo`, `ocorrido_em` |
 
-Versão vigente sem índice parcial: em `dim_card_versao` não há `vigente_ate`; a vigente é a de maior `vigente_de` por card (índice (`card_id`, `vigente_de` DESC)) e materializada em `dim_card`.
+Versão vigente sem índice parcial: em `dim_card_versao` não há `vigente_ate`; a vigente é a de maior `vigente_de` por card e é materializada em `dim_card`. O próprio UNIQUE (`card_id`, `vigente_de`) atende a busca (o InnoDB percorre o índice ao contrário); não há índice `DESC` adicional (o mesmo vale para `dim_chamado_versao`).
 
 Transição canônica (consumida pela biblioteca) = view `vw_transicao_canonica`: todas as `revision` + `webhook` sem par em `rec_transicao_par`. Tolerância de casamento: mesmo card e destino, |Δt| ≤ 120 s (prov., pergunta N-3). `tipo_coluna` e `direcao` são derivados com a `ref_coluna` vigente no instante da transição; reclassificar coluna = nova vigência + nova versão de critério + rebuild das projeções.
 
@@ -114,17 +114,17 @@ erDiagram
 |---|---|---|---|
 | `stg_chamado` | linha lida do Acelerato | (`id_origem`, `anterior_sk`), dedup contra a última versão (§3.1) | lido com o recorte 3.2 **e** chamados que saíram do recorte (para não perder mudança de equipe/exclusão) |
 | `stg_etapa` | linha da tabela/view de etapas | (`chamado_id`, `id_origem`, `anterior_sk`) | `VIEW_ESTATISTICAS_ETAPAS_2` cobre só fechados; abertos precisam da tabela de histórico de etapas (pergunta I-4b) |
-| `dim_chamado_versao` (SCD2) | versão por mudança | (`chamado_id`, `vigente_de`) | atributos de `Chamado` |
+| `dim_chamado_versao` (SCD2) | versão por mudança | (`chamado_id`, `vigente_de`) | atributos de `Chamado`, **incluindo `organizacao` e `tipo`** (campos do recorte 3.2: mudança de recorte de um chamado fica no histórico); sem índice `DESC` adicional (§3.2) |
 | `evt_etapa_chamado` | entrada em etapa | (`chamado_id`, `etapa`, `entrada_em`) | `motivo_pendencia` |
 | `dim_chamado` | 1 por chamado (inclui `excluido = true`, filtrado na view) | `chamado_id` | forma de `Chamado`; `justificativa_ajuste` **não** entra (§9) |
 | `fato_etapa_chamado` | intervalo por etapa | (`chamado_id`, `etapa`, `entrada`) | `saida`, `motivo_pendencia`, `totalizador` |
 | `ref_etapa_totalizador` | etapa → um dos 5 totalizadores (3.2, T4.4) | (`natureza`, `etapa_origem`, `vigente_de`) | requisição, incidente e fila antiga mapeados separadamente |
-| `ref_dominio` | domínios 3.4 | (`campo`, `codigo`, `vigente_de`) | `motivo_escalacao`, `motivo_pendencia`, `motivo_encerramento`, `avaliacao_problema`, `impacto`, `urgencia`, `prioridade`, `etapa`, `equipe` |
+| `ref_dominio` | domínios 3.4 e recorte 3.2 | (`campo`, `codigo`, `vigente_de`) | `organizacao_recorte`, `tipo_recorte` (valores do recorte usados por `vw_populacao_sssc`), `motivo_escalacao`, `motivo_pendencia`, `motivo_encerramento`, `avaliacao_problema`, `impacto`, `urgencia`, `prioridade`, `etapa`, `equipe` |
 | `ref_alvo_prioridade` | prazos P1–P5 | (`prioridade`, `vigente_de`) | `AlvoPrioridade` |
 | `ctl_automacao` | ação da T4.3 | (`chamado_id`, `regra`, `momento_gatilho`, `tentativa`) | `acao`, `modo ENUM('simulacao','ativo')`, `resultado`, `registrado_no_chamado`; resultado conhecido depois = nova linha (tentativa), sem UPDATE |
 
 Views do recorte (T5.1), sobre a nossa cópia, nunca no banco do Acelerato:
-- `vw_populacao_sssc`: `organizacao = 'DSPD Sustentação' AND tipo = 'DSPD - SSSC' AND equipe IN (...) AND excluido = false` (valores vêm de `ref_dominio`, não fixos na view).
+- `vw_populacao_sssc`: `organizacao = 'DSPD Sustentação' AND tipo = 'DSPD - SSSC' AND equipe IN (...) AND excluido = false` (valores vêm de `ref_dominio` vigente, campos `organizacao_recorte`, `tipo_recorte` e `equipe`; não fixos na view).
 - `vw_fechados_sla`: `status = 'Concluído' AND data_finalizado IS NOT NULL`, `status_sla_r` → dentro/fora.
 - `vw_abertos`: `data_finalizado IS NULL`.
 - Exceção de SLA por registro posterior sempre como coluna explícita, nunca filtrada em silêncio (T5.1).
@@ -181,8 +181,8 @@ O servidor carrega o contexto por domínio (recorte do histórico necessário) e
 | Usuário | `dspd_bm` / `dspd_ac` | `dspd_core` | Acelerato |
 |---|---|---|---|
 | `dspd_migrador` | DDL (só no job de deploy) | DDL | — |
-| `dspd_coletor` | INSERT/SELECT em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; INSERT/UPDATE/DELETE em projeções e `ctl_`; SELECT em `ref_` | SELECT | — |
-| `dspd_ref` (só o `ref:sync`) | INSERT/SELECT em `ref_` + `UPDATE (vigente_ate)` por coluna | idem em `ref_` | — |
+| `dspd_coletor` | INSERT/SELECT em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; SELECT/INSERT/UPDATE/DELETE em projeções; INSERT/SELECT em `ctl_` + `UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo)` em `ctl_coleta` e UPDATE em `ctl_coleta_contagem`; SELECT em `ref_` | SELECT | — |
+| `dspd_ref` (só o `ref:sync`) | INSERT/SELECT em `ref_` + `UPDATE (vigente_ate)` por coluna nas tabelas com vigência | idem em `ref_`, inclusive `ref_calendario_turno` e `ref_calendario_aplicacao` | — |
 | `dspd_webhook` | INSERT só em `dspd_bm.stg_webhook_evento` | — | — |
 | `dspd_api` | SELECT em projeções, `vw_`, `ref_`, `ctl_`; **sem acesso a `stg_`** | SELECT | — |
 | `dspd_automacao` | `dspd_ac`: INSERT/SELECT em `ctl_automacao` | SELECT | — |
@@ -192,26 +192,31 @@ O servidor carrega o contexto por domínio (recorte do histórico necessário) e
 
 | Dado de pessoa | Onde aparece na origem | Tratamento |
 |---|---|---|
-| Responsáveis do card (`responsaveis`, 4.5) | payload do card | **não projetado** no analítico; no staging, pseudonimizado (recomendação, pergunta L-1) |
+| Responsáveis do card (`responsaveis`, 4.5) | payload do card | **mantido com o nome** no staging (payload original, sem pseudonimização: decisão L-1); **não projetado** em coluna do analítico (nenhuma métrica usa) |
 | Usuário da transição (`usuario`, 4.5) | revision, webhook | idem |
 | Autores de comentário, tempo apontado | payloads BM | idem; horas apontadas nunca viram esforço (7.1) |
 | Solicitante, atendente/agente, e-mail | payload do chamado | idem |
 | Texto livre (título do card, justificativa de reclassificação, comentários) | payloads | título projetado (prov., pode conter nome: aceitar ou mascarar, L-2); justificativa só no staging, extraída para T5.5 por pessoa autorizada |
 | Identidade de quem acessa o painel | sessão | HMAC do `sub`, sem nome (ADR 0009) |
 
-Garantias (cada uma verificada por teste ou privilégio):
-1. **Esquema:** nenhuma coluna de pessoa em `dim_`, `fato_`, `evt_`, `vw_`, `ref_`. Teste de esquema no CI varre `information_schema.COLUMNS` dos três schemas (fora de `stg_`) e falha em nomes que casem `pessoa|responsav|usuario|user|agente|atendente|solicitante|autor|criador|email|login|assignee`.
-2. **Privilégio:** `dspd_api` não lê `stg_`; logo nenhuma rota consegue devolver dado pessoal, mesmo com bug.
-3. **Contrato:** schemas zod sem campo de pessoa; entrada `strict` recusa parâmetro de pessoa (ADR 0007); propriedade 6 da matriz de regras.
-4. **Agrupamento:** `equipe` existe só como filtro; nenhuma view agrupa por equipe para comparar times.
-5. **Staging:** pseudonimização por HMAC-SHA-256 com chave em `.env` (recomendada) preserva reconciliação sem nome; retenção do payload integral, se o usuário preferir, definida com o DPO (L-1).
+**Decisão L-1 (usuário, 2026-10-10, `docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §3):** os nomes **não** são pseudonimizados nem retirados da base. O staging guarda o payload original, com nomes; acesso restrito a `dspd_coletor` e `dspd_migrador` (retenção a definir com o DPO). A regra "nenhuma visão individual" passa a ser garantida pelas camadas que leem a base (privilégio, esquema analítico, contrato da API e telas), e não pela ausência do nome no banco.
 
-Consequência para o código: `DimCard.responsaveis` e `FatoTransicao.usuario` saem dos tipos da biblioteca e do mock (nenhuma métrica os usa; mudança coordenada react-frontend + node-backend no K-017, com hash da base mock recalculado e registrado). Isso diverge do texto literal do 4.5 e vai como pergunta L-1 ao usuário; até a resposta, o analítico não os guarda.
+Garantias (cada uma verificada por teste ou privilégio):
+1. **Esquema analítico sem coluna de pessoa** em `dim_`, `fato_`, `evt_`, `rec_`, `vw_`, `ref_`, `ctl_` (tudo fora de `stg_`). Regra com **fonte única** em `server/src/db/lgpd.ts` (`SEGMENTO_PESSOA`, `EXCECOES_PESSOA`, `violaLgpd`), usada pelo teste estático das migrações, pelo teste do seed e pelo teste de `information_schema.COLUMNS` no CI. Nenhum teste copia a lista.
+   - **Busca por segmento snake_case:** o nome da coluna é dividido por `_` e viola a regra se algum segmento casar `^(pessoa|responsav\w*|usuario\w*|user\w*|agente\w*|atendente\w*|solicitante\w*|autor\w*|criador\w*|email\w*|login\w*|assignee\w*|justificativa\w*)$` (sem diferenciar maiúsculas). Pega nomes prefixados (`ultimo_usuario`, `card_responsavel`) e plurais (`responsaveis`) sem depender de `\b`. `justificativa` entra porque a justificativa de reclassificação é texto livre que pode citar pessoa (fica só no staging).
+   - **Exceções só por `schema.tabela.coluna`**, cada uma com justificativa e item do briefing. Vigentes: `dspd_bm.dim_card.area_solicitante` e `dspd_bm.dim_card_versao.area_solicitante` (briefing 4.5 e domínio fechado 4.4: área organizacional, não pessoa). Proibida exceção por prefixo (`area_*`), curinga ou nome de coluna solto. Exceção nova só entra alterando esta seção, com revisão de modelagem (arquiteto + tech-lead), e depois em `EXCECOES_PESSOA`.
+2. **Privilégio:** `dspd_api` não tem acesso a `stg_` (único lugar com nomes); nenhuma rota consegue devolver nome, mesmo com bug. Verificado no teste de grants.
+3. **Contrato da API:** nenhuma rota, DTO ou schema zod tem campo de pessoa, nem como saída nem como parâmetro de filtro ou agrupamento; entrada `strict` recusa parâmetro desconhecido (ADR 0007); propriedade 6 da matriz de regras. Nenhum endpoint agrega por pessoa (ranking, contagem, tempo ou volume por pessoa).
+4. **Views e agrupamento:** nenhuma `vw_` seleciona, agrupa ou ordena por campo de pessoa; `equipe` existe só como filtro, e nenhuma view agrupa por equipe para comparar times (7.1).
+5. **Telas:** nenhuma tela mostra, filtra ou ordena por pessoa (filtro por agente fora da sustentação, decisão confirmada). Verificado nos testes de UI e E2E pelo `qa-engineer`.
+6. **Saída do staging:** extração de dado de pessoa do staging (ex.: justificativa para T5.5) só por pessoa autorizada, fora da API, e nunca vira coluna analítica sem passar pela regra de exceção da garantia 1.
+
+Consequência para o código: `DimCard.responsaveis` e `FatoTransicao.usuario` continuam fora dos tipos da biblioteca e do mock (nenhuma métrica os usa: mínimo necessário). O nome continua disponível no staging para reconciliação e auditoria.
 
 ## 10. Perguntas de modelagem para o usuário (não resolvidas por inferência)
 | # | Pergunta | Recomendação | Alternativa |
 |---|---|---|---|
-| L-1 | Remover `responsaveis` e `usuario` do analítico e pseudonimizar pessoas no staging? | sim, ambos | payload integral no staging, acesso restrito e retenção definida pelo DPO |
+| L-1 | ~~Pseudonimizar pessoas no staging?~~ **Respondida (2026-10-10):** não pseudonimizar; nomes ficam na base; garantia de nenhuma visão individual na API, views e telas (§9) | — | — |
 | L-2 | Título de card pode aparecer nas listas (O2, bloqueados)? | sim, com aviso de não escrever nomes no título | mostrar só o código do card |
 | N-3 | Webhook × revision: qual instante vale e qual a tolerância de casamento? | revision é canônica; webhook só antecipa; 120 s | webhook canônico quando houver |
 | N-5 | De onde vêm SLE, alocação acordada, limites de frentes e fichas de resultado? | arquivo versionado no repositório, preenchido pela governança (WS6) | campos/cartões no BusinessMap |
