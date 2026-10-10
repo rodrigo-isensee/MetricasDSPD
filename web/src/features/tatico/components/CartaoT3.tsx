@@ -18,7 +18,10 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
   const maiores = d
     ? [...d.naturezas]
         .filter((n) => med(n).desvioPP !== null && med(n).pct !== null)
-        .sort((a, b) => Math.abs(med(b).desvioPP ?? 0) - Math.abs(med(a).desvioPP ?? 0))
+        .sort(
+          // O filtro acima só deixa passar desvio e percentual publicados.
+          (a, b) => Math.abs(med(b).desvioPP as number) - Math.abs(med(a).desvioPP as number),
+        )
         .slice(0, 2)
     : []
   const leitura = !d
@@ -27,7 +30,7 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
       ? maiores
           .map(
             (n) =>
-              `${n.natureza} consumiu ${fmtPct(med(n).pct ?? 0)} da capacidade (acordado: ${fmtPct(n.acordadoPct)}).`,
+              `${n.natureza} consumiu ${fmtPct(med(n).pct as number)} da capacidade (acordado: ${fmtPct(n.acordadoPct)}).`,
           )
           .join(' ')
       : 'Percentuais indisponíveis: menos de 20 itens entregues no total.'

@@ -14,6 +14,7 @@ import {
   type Chamado,
   type EtapaChamado,
 } from './index'
+import { noIntervalo } from './comum'
 import { totalizadorDaEtapa } from './totalizadores'
 
 const HOJE = '2026-10-09T18:00:00-03:00'
@@ -229,5 +230,55 @@ describe('Acelerato', () => {
     expect(totalizadorDaEtapa('Pendente', 'Aguardando fornecedor')).toBe('espera-outros-times')
     expect(totalizadorDaEtapa('Aguardando validação', null)).toBe('espera-solicitante')
     expect(totalizadorDaEtapa('Encerrado', null)).toBeNull()
+  })
+
+  it('S1 marca "fora" quando a mediana passa do alvo e devolve só as prioridades filtradas', () => {
+    const ctx = criarContextoAC(
+      baseDe(25, () => ({ prioridade: 'P1' })),
+      HOJE,
+      CALENDARIO_PADRAO,
+    )
+    const r = calcularS1(ctx, { ...F, prioridade: ['P1'] })
+    expect(r.prioridades.map((p) => p.prioridade)).toEqual(['P1'])
+    // restauração de 9 h úteis contra o alvo de 4 h do P1
+    expect(r.prioridades[0]?.restauracao.statusMeta).toBe('fora')
+    expect(r.prioridades[0]?.primeiroAtendimento.statusMeta).toBe('fora')
+  })
+
+  it('pausa depois da restauração não entra no relógio de restauração (S1)', () => {
+    const base = baseDe(25)
+    const extras: EtapaChamado[] = base.chamados.map((c) => ({
+      chamado_id: c.chamado_id,
+      etapa: 'Pendente',
+      entrada: t('2026-09-16T09:00-03:00', CALENDARIO_PADRAO),
+      saida: t('2026-09-16T12:00-03:00', CALENDARIO_PADRAO),
+      motivo_pendencia: 'Aguardando solicitante',
+    }))
+    const ctx = criarContextoAC(
+      { ...base, etapas: [...base.etapas, ...extras] },
+      HOJE,
+      CALENDARIO_PADRAO,
+    )
+    const p3 = calcularS1(ctx, F).prioridades.find((p) => p.prioridade === 'P3')
+    expect(p3?.restauracao.estatistica.status).toBe('ok')
+    if (p3?.restauracao.estatistica.status === 'ok')
+      expect(p3.restauracao.estatistica.valor.p50).toBeCloseTo(9, 6)
+  })
+
+  it('chamado sem etapas registradas entra com tempo zero em cada etapa (S4)', () => {
+    const base = baseDe(22, () => ({ nivel_resolucao: 'N2' }))
+    const ctx = criarContextoAC({ ...base, etapas: [] }, HOJE, CALENDARIO_PADRAO)
+    const p3 = calcularS4(ctx, F).prioridades.find((p) => p.prioridade === 'P3')
+    const n2 = p3?.niveis.find((x) => x.nivel === 'N2')
+    expect(n2?.tempoEtapa?.status).toBe('ok')
+    if (n2?.tempoEtapa?.status === 'ok') expect(n2.tempoEtapa.valor.p50).toBe(0)
+  })
+
+  it('noIntervalo: instante nulo está fora; datas na borda estão dentro', () => {
+    const ctx = criarContextoAC(baseDe(1), HOJE, CALENDARIO_PADRAO)
+    const j = { inicio: '2026-09-14', fim: '2026-09-15' }
+    expect(noIntervalo(ctx, null, j)).toBe(false)
+    expect(noIntervalo(ctx, t('2026-09-15T23:00-03:00', CALENDARIO_PADRAO), j)).toBe(true)
+    expect(noIntervalo(ctx, t('2026-09-16T00:30-03:00', CALENDARIO_PADRAO), j)).toBe(false)
   })
 })

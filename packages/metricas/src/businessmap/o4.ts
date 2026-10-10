@@ -17,7 +17,10 @@ export function calcularO4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO4 {
   const cards = selecionar(ctx, f, 'story')
     .filter(ehDemanda)
     .filter((m) => m.entrega !== null)
-  const itens = cards.map((m) => ({ dia: diaLocal(m.entrega ?? 0, ctx.cal), tipo: m.card.tipo }))
+  const itens = cards.map((m) => ({
+    dia: diaLocal(m.entrega as number, ctx.cal),
+    tipo: m.card.tipo,
+  }))
 
   const semanas = semanasEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia).map(
     (s) => {

@@ -22,10 +22,10 @@ export function CartaoE2({ filtros }: { filtros: FiltrosFluxo }) {
     .reverse()
     .find((t) => t.segmentos.some((s) => s.tipo === 'fora-de-objetivo' && s.pct !== null))
   const fora = ultimo?.segmentos.find((s) => s.tipo === 'fora-de-objetivo')
-  const leitura = d
-    ? ev?.status === 'ok'
+  const leitura = ev
+    ? ev.status === 'ok'
       ? `${fmtPct(ev.pct)} da capacidade de evolução está ligada a um objetivo${fora?.pct != null ? `; ${fmtPct(fora.pct)} está fora de qualquer objetivo` : ''}.`
-      : `Percentuais indisponíveis: ${ev ? `${fmtInteiro(ev.n)} de 20 itens mínimos` : 'amostra insuficiente'}.`
+      : `Percentuais indisponíveis: ${fmtInteiro(ev.n)} de 20 itens mínimos.`
     : undefined
   return (
     <CartaoMetrica

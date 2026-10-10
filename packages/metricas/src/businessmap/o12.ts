@@ -9,9 +9,7 @@ import type { ContextoBM, MarcosCard } from './indice'
 const zero = () => ({ Interno: 0, Solicitante: 0, Terceiro: 0, naoClassificado: 0 })
 
 function vencido(ctx: ContextoBM, m: MarcosCard): boolean {
-  const lim = m.card.data_acordada
-  if (lim === null) return false
-  return lim < (m.entrega ?? ctx.hoje)
+  return (m.card.data_acordada as number) < (m.entrega ?? ctx.hoje)
 }
 
 /** O12: acordos x vencidos, por responsabilidade do atraso (campo preenchido no vencimento). */
@@ -26,7 +24,7 @@ export function calcularO12(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO12 {
   let vencidos = 0
   const linhas = meses.map((b) => {
     const doMes = cards.filter((m) => {
-      const d = diaLocal(m.card.data_acordada ?? 0, ctx.cal)
+      const d = diaLocal(m.card.data_acordada as number, ctx.cal)
       return d >= b.inicioDia && d <= b.fimDia
     })
     const v = doMes.filter((m) => vencido(ctx, m))

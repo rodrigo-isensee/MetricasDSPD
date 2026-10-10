@@ -23,7 +23,7 @@ export function CartaoE1({ filtros }: { filtros: FiltrosFluxo }) {
       ? undefined
       : e.status === 'ok'
         ? `A mediana do lead time dos projetos de ${seg.rotulo} é ${fmtDiasUteis(e.valor.total.p50, 0)}. ${fmtPct(e.valor.fracaoAntesPct)} desse tempo passa antes de o trabalho começar.`
-        : `Foram concluídos ${fmtInteiro(e.n)} projetos de ${seg.rotulo} nas últimas ${textoJanela(d?.janelaPercentis ?? { unidade: 'semanas', quantidade: 12 })}. Abaixo de 20 não publicamos mediana nem P85; cada projeto aparece como ponto.`
+        : `Foram concluídos ${fmtInteiro(e.n)} projetos de ${seg.rotulo} nas últimas ${textoJanela((d as NonNullable<typeof d>).janelaPercentis)}. Abaixo de 20 não publicamos mediana nem P85; cada projeto aparece como ponto.`
   return (
     <CartaoMetrica
       {...propsCartao('E1', q, NOTAS_ESTRATEGICO.E1)}

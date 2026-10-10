@@ -118,9 +118,7 @@ function Opcoes({
 }
 
 function rotuloPeriodo(p: Periodo): string {
-  return p.tipo === 'custom'
-    ? `${fmtData(p.de)} a ${fmtData(p.ate)}`
-    : (ROTULO_PERIODO[p.tipo] ?? p.tipo)
+  return p.tipo === 'custom' ? `${fmtData(p.de)} a ${fmtData(p.ate)}` : ROTULO_PERIODO[p.tipo]
 }
 
 /** Filtro de período (uma opção por vez; "Personalizado" valida as datas junto dos campos). */

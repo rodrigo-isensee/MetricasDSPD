@@ -16,9 +16,10 @@ function grupos(xs: readonly MarcosCard[], chave: (m: MarcosCard) => string, jan
     const falhas = g.filter((m) => m.card.origem_demanda !== null)
     const est = estatistica(g.length, janela, () => {
       const cont = new Map<OrigemDemanda, number>()
-      for (const m of falhas)
-        if (m.card.origem_demanda)
-          cont.set(m.card.origem_demanda, (cont.get(m.card.origem_demanda) ?? 0) + 1)
+      for (const m of falhas) {
+        const o = m.card.origem_demanda as OrigemDemanda
+        cont.set(o, (cont.get(o) ?? 0) + 1)
+      }
       const origens = [
         {
           origem: 'Demanda de valor' as const,
@@ -66,19 +67,16 @@ export function calcularT5(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT5 {
   }
   const ant = noPeriodo(anteriorJ)
   // Seleção separada da ordem de exibição: os 2 sistemas com maior parcela de falha, só para a variação.
-  const pctDe = (g: (typeof porSistema)[number]): number =>
-    g.estatistica.status === 'ok' ? g.estatistica.valor.pctFalha : -1
-  const piores = ordenarNeutro(
-    porSistema.filter((g) => g.estatistica.status === 'ok'),
-    (g) => [-pctDe(g), -g.n, g.nome],
-  ).slice(0, 2)
-  const variacaoSemestre = piores.map((g) => {
+  const comPct = porSistema.flatMap((g) =>
+    g.estatistica.status === 'ok' ? [{ g, pct: g.estatistica.valor.pctFalha }] : [],
+  )
+  const piores = ordenarNeutro(comPct, (x) => [-x.pct, -x.g.n, x.g.nome]).slice(0, 2)
+  const variacaoSemestre = piores.map(({ g, pct: atualPct }) => {
     const doAnt = ant.filter((m) => m.card.sistema === g.nome)
-    const atualPct = g.estatistica.status === 'ok' ? g.estatistica.valor.pctFalha : null
     const anteriorPct = publicavel(doAnt.length)
       ? r2((doAnt.filter((m) => m.card.origem_demanda !== null).length / doAnt.length) * 100)
       : null
-    const ok = atualPct !== null && anteriorPct !== null && anteriorPct !== 0
+    const ok = anteriorPct !== null && anteriorPct !== 0
     return {
       sistema: g.nome,
       atualPct,

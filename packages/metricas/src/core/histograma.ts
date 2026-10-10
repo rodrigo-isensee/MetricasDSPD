@@ -74,13 +74,13 @@ export function contarFaixas(
   const cont = faixas.map(() => 0)
   for (const v of valores) {
     const i = indiceFaixa(v, faixas)
-    cont[i] = (cont[i] ?? 0) + 1
+    cont[i] = (cont[i] as number) + 1
   }
   return faixas.map((f, i) => ({
     rotulo: rotulo(f),
     min: f.min,
     max: f.max,
-    contagem: cont[i] ?? 0,
+    contagem: cont[i] as number,
   }))
 }
 
@@ -109,8 +109,8 @@ export function histogramaEmpilhado(
 ): FaixaHistograma[] {
   const m = faixas.map(() => new Map<string, number>())
   for (const it of itens) {
-    const mm = m[indiceFaixa(it.valor, faixas)]
-    if (mm) mm.set(it.classe, (mm.get(it.classe) ?? 0) + 1)
+    const mm = m[indiceFaixa(it.valor, faixas)] as Map<string, number>
+    mm.set(it.classe, (mm.get(it.classe) ?? 0) + 1)
   }
   return faixas.map((f, i) => {
     const mm = m[i] as Map<string, number>

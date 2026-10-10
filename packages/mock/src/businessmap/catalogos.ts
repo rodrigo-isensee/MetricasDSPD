@@ -105,8 +105,8 @@ export function tituloFicticio(
   tipo: TipoCard | 'Projeto' | 'Frente',
 ): string {
   const objs = OBJETOS[sistema] ?? ['rotina']
-  const v = VERBOS[i % VERBOS.length] ?? 'Ajustar'
-  const o = objs[(i * 7) % objs.length] ?? 'rotina'
+  const v = VERBOS[i % VERBOS.length] as string
+  const o = objs[(i * 7) % objs.length] as string
   if (tipo === 'Projeto') return `Programa ${o} (${sistema})`
   if (tipo === 'Frente') return `Frente: ${o} (${sistema})`
   if (tipo === 'Incidente') return `Falha em ${o} (${sistema})`

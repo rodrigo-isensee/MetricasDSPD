@@ -76,7 +76,6 @@ export function selecionar(
 export const ehDemanda = (m: MarcosCard): boolean =>
   m.card.granularidade === 'story' && m.card.tipo !== 'Bug interno'
 
-export const diaDe = (ctx: ContextoBM, ms: number): number => diaLocal(ms, ctx.cal)
 export const dentro = (ctx: ContextoBM, ms: number | null, j: Intervalo): boolean => {
   if (ms === null) return false
   const d = diaLocal(ms, ctx.cal)

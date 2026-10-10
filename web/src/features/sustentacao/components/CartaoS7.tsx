@@ -69,7 +69,7 @@ export function CartaoS7({ filtros }: { filtros: FiltrosSustentacao }) {
   const d = q.dados
   const j = d?.ajusteDePrioridade.justificados
   const leitura = d
-    ? `${fmtInteiro(d.ajusteDePrioridade.totais.ocorrencias)} chamados tiveram a prioridade ajustada manualmente (${fmtInteiro(j?.k ?? 0)} de ${fmtInteiro(j?.n ?? 0)} justificados) e ${fmtInteiro(d.reclassificacaoDeTipo.totais.ocorrencias)} foram encerrados como "Reclassificado, não é incidente".`
+    ? `${fmtInteiro(d.ajusteDePrioridade.totais.ocorrencias)} chamados tiveram a prioridade ajustada manualmente (${fmtInteiro(d.ajusteDePrioridade.justificados.k)} de ${fmtInteiro(d.ajusteDePrioridade.justificados.n)} justificados) e ${fmtInteiro(d.reclassificacaoDeTipo.totais.ocorrencias)} foram encerrados como "Reclassificado, não é incidente".`
     : undefined
   return (
     <CartaoMetrica

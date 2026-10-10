@@ -29,7 +29,7 @@ export function calcularT4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT4 {
     const chegadas = xs.map((m) => diaLocal(m.entrada, ctx.cal))
     const saidas = xs
       .filter((m) => m.entrega !== null)
-      .map((m) => diaLocal(m.entrega ?? 0, ctx.cal))
+      .map((m) => diaLocal(m.entrega as number, ctx.cal))
     const linhas = semanas.map((s) => ({
       semana: s.chave,
       emAndamento: s.emAndamento,

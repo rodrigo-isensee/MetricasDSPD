@@ -49,7 +49,7 @@ export function calcularS7(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS7 
     },
     reclassificacaoDeTipo: {
       meses: meses.map((b) => {
-        const m = doMes(fechados, (x) => x.c.data_finalizado ?? 0, b.inicioDia, b.fimDia)
+        const m = doMes(fechados, (x) => x.c.data_finalizado as number, b.inicioDia, b.fimDia)
         const k = m.filter(
           (x) => x.c.motivo_encerramento === 'Reclassificado, não é incidente',
         ).length

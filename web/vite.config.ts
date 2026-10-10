@@ -45,8 +45,15 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text-summary', 'json-summary', 'html'],
       reportsDirectory: './coverage',
+      thresholds: { lines: 100, functions: 100, branches: 100, statements: 100 },
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.test.{ts,tsx}', 'src/**/*.d.ts'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.d.ts',
+        // Exclusões permitidas por docs/qa/estrategia-de-cobertura.md (K-057):
+        'src/main.tsx', // entrypoint trivial (createRoot + render), sem lógica.
+        'src/features/painel/PlaceholderPainel.tsx', // sem uso: restou da fase A; remoção pendente de aprovação.
+      ],
     },
   },
 })

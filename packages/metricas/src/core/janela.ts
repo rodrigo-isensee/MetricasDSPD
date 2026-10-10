@@ -1,12 +1,5 @@
 import { JANELA_PERCENTIS_PADRAO, type Intervalo, type Janela } from '@metricas-dspd/contratos'
-import {
-  diaDeIso,
-  diaLocal,
-  inicioDaSemana,
-  isoDeDia,
-  somarMeses,
-  type Calendario,
-} from './calendario'
+import { diaDeIso, isoDeDia, somarMeses } from './calendario'
 
 export type EspecJanela = { unidade: 'semanas' | 'meses'; quantidade: number }
 export type ClasseJanela = 'story' | 'frente' | 'projeto' | 'chamado'
@@ -44,12 +37,6 @@ export function janelaMovelDia(fimDia: number, espec: EspecJanela): Janela {
   return janelaMovel(isoDeDia(fimDia), espec)
 }
 
-/** Dia 84 está dentro da janela de 12 semanas; o dia 85 está fora. */
-export function dentroDoIntervalo(ms: number, j: Intervalo, cal: Calendario): boolean {
-  const d = diaLocal(ms, cal)
-  return d >= diaDeIso(j.inicio) && d <= diaDeIso(j.fim)
-}
-
 export function diaDentro(dia: number, j: Intervalo): boolean {
   return dia >= diaDeIso(j.inicio) && dia <= diaDeIso(j.fim)
 }
@@ -58,11 +45,4 @@ export function diaDentro(dia: number, j: Intervalo): boolean {
 export function janelaDeslocada(j: Janela, meses: number): Janela {
   const fim = somarMeses(diaDeIso(j.fim), -meses)
   return janelaMovelDia(fim, { unidade: j.unidade, quantidade: j.quantidade })
-}
-
-/** Fins de semana (domingos) das semanas completas até `fimDia`. */
-export function domingosAte(inicioDia: number, fimDia: number): number[] {
-  const out: number[] = []
-  for (let d = inicioDaSemana(inicioDia) + 6; d <= fimDia; d += 7) out.push(d)
-  return out
 }

@@ -1,5 +1,5 @@
 import { MINIMO_AMOSTRA } from '@metricas-dspd/contratos'
-import type { ResultadoVisaoGeral } from '@metricas-dspd/contratos'
+import type { Intervalo, ResultadoVisaoGeral } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { calcularEIAcelerato, calcularS1, calcularS2, type ContextoAC } from './acelerato'
 import {
@@ -89,6 +89,11 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
       valor: o12.vencidosCausaInterna,
       de: null,
     })
+  // Doze semanas sempre têm mais de 20 dias úteis: a taxa do O1 nunca é "insuficiente" aqui.
+  const diasNoLimite = o1.diasDentroDoLimite as Extract<
+    typeof o1.diasDentroDoLimite,
+    { status: 'ok' }
+  >
   const operacional: Indicador[] = [
     {
       metrica: 'O2',
@@ -102,14 +107,11 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
     {
       metrica: 'O1',
       codigo: 'O1',
-      valor: o1.diasDentroDoLimite.status === 'ok' ? o1.diasDentroDoLimite.pct : null,
-      de: o1.diasDentroDoLimite.n,
-      base: { n: o1.diasDentroDoLimite.n, unidade: 'dias úteis' },
-      status: o1.statusMeta === 'sem-referencia' ? 'insuficiente' : o1.statusMeta,
-      amostra:
-        o1.diasDentroDoLimite.status === 'insuficiente'
-          ? { n: o1.diasDentroDoLimite.n, minimo: MINIMO_AMOSTRA }
-          : null,
+      valor: diasNoLimite.pct,
+      de: diasNoLimite.n,
+      base: { n: diasNoLimite.n, unidade: 'dias úteis' },
+      status: o1.statusMeta as 'dentro' | 'fora',
+      amostra: null,
     },
     {
       metrica: 'BLOQUEADOS',
@@ -212,13 +214,13 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
       valor: e3.semFicha,
       de: e3.comFicha.n,
     })
-  if (e2.statusMeta === 'fora')
+  if (e2.statusMeta === 'fora' && e2.evolucaoVinculada.status === 'ok')
     add({
       nivel: 'estrategico',
       metrica: 'E2',
       ancora: 'e2',
       codigo: 'E2_ABAIXO_60',
-      valor: e2.evolucaoVinculada.status === 'ok' ? e2.evolucaoVinculada.pct : 0,
+      valor: e2.evolucaoVinculada.pct,
       de: null,
     })
   const estrategico: Indicador[] = [
@@ -276,8 +278,9 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
       valor: s1Fora,
       de: s1Pub.length,
     })
-  const p1 = s2.prioridades.find((p) => p.prioridade === 'P1')
-  const p1Taxa = p1?.restauracao.taxa
+  // Sem filtro de prioridade, as cinco prioridades sempre estão presentes.
+  const p1 = s2.prioridades.find((p) => p.prioridade === 'P1') as (typeof s2.prioridades)[number]
+  const p1Taxa = p1.restauracao.taxa
   const sustentacao: Indicador[] = [
     {
       metrica: 'S2',
@@ -300,14 +303,12 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
     {
       metrica: 'S2',
       codigo: 'S2_P1',
-      valor: p1Taxa?.status === 'ok' ? p1Taxa.pct : null,
-      de: p1Taxa?.n ?? 0,
-      base: { n: p1Taxa?.n ?? 0, unidade: 'chamados P1' },
+      valor: p1Taxa.status === 'ok' ? p1Taxa.pct : null,
+      de: p1Taxa.n,
+      base: { n: p1Taxa.n, unidade: 'chamados P1' },
       status:
-        p1?.restauracao.statusMeta === 'sem-referencia' || !p1
-          ? 'insuficiente'
-          : p1.restauracao.statusMeta,
-      amostra: p1Taxa?.status === 'insuficiente' ? { n: p1Taxa.n, minimo: MINIMO_AMOSTRA } : null,
+        p1.restauracao.statusMeta === 'sem-referencia' ? 'insuficiente' : p1.restauracao.statusMeta,
+      amostra: p1Taxa.status === 'insuficiente' ? { n: p1Taxa.n, minimo: MINIMO_AMOSTRA } : null,
     },
   ]
 
@@ -321,9 +322,9 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
   return {
     dataCorte: hoje,
     recortes: {
-      fluxo: o1.base.janela ?? { inicio: hoje, fim: hoje },
-      estrategico: e2.base.janela ?? { inicio: hoje, fim: hoje },
-      sustentacao: s2.base.janela ?? { inicio: hoje, fim: hoje },
+      fluxo: o1.base.janela as Intervalo,
+      estrategico: e2.base.janela as Intervalo,
+      sustentacao: s2.base.janela as Intervalo,
     },
     alertas,
     niveis: [

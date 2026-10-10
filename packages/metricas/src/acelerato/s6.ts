@@ -37,7 +37,7 @@ export function calcularS6(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS6 
     ),
     evolucao: meses.map((b) => {
       const doMes = xs.filter((x) => {
-        const d = diaLocal(x.c.data_finalizado ?? 0, ctx.cal)
+        const d = diaLocal(x.c.data_finalizado as number, ctx.cal)
         return d >= b.inicioDia && d <= b.fimDia
       })
       return { mes: b.chave, emAndamento: b.emAndamento, n: doMes.length, motivos: contagem(doMes) }

@@ -24,6 +24,7 @@ Meta por pacote: 100% nas quatro métricas. Exclusões (`coverage.exclude`), cad
 - Arquivos só de tipos (`types.ts`, interfaces/`type`): não geram código executável.
 - Arquivos de configuração (`vite.config.ts`, `vitest.config.ts`, `eslint.config.js`, `playwright.config.ts`): sem lógica de negócio.
 - Entrypoints triviais (`web/src/main.tsx`, apenas `createRoot().render`): cobertos pelo E2E (a página carrega).
+- `web/src/features/painel/PlaceholderPainel.tsx` (exclusão transitória, K-057): componente sem nenhum uso, resto da fase A. O correto é removê-lo; a remoção está pendente de aprovação (política de permissões). Sai do `coverage.exclude` junto com o arquivo.
 - Barrels `index.ts` que só reexportam: cobertos por importação.
 Proibido: excluir por conveniência, `/* v8 ignore */` sem justificativa e issue vinculada. Branch inalcançável vira remoção de código, não exclusão.
 

@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react'
 import { beforeAll } from 'vitest'
-import { RouterProvider } from 'react-router'
+import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
+import { BarraFiltros, useFiltros, type PainelId } from '@/features/filtros'
 import { Provedores } from '@/app/App'
 import { criarRoteadorMemoria } from '@/app/router'
 import { MockFonteMetricas } from '@/data'
@@ -33,3 +34,37 @@ beforeAll(async () => {
     import('@/features/espera-invisivel/EsperaInvisivelPage'),
   ])
 }, 60000)
+
+function BarraIsolada() {
+  const { pathname } = useLocation()
+  const painel = pathname.slice(1) as PainelId
+  const uso = useFiltros(painel as 'operacional')
+  return <BarraFiltros uso={uso} estrategico={painel === 'estrategico'} />
+}
+
+/** Só a barra de filtros do painel indicado pela URL (sem cabeçalho nem cartões): leve para testar filtros e URL. */
+export function renderizarBarra(url: string, fonte: MockFonteMetricas = fonteDeTeste) {
+  const roteador = createMemoryRouter([{ path: '*', element: <BarraIsolada /> }], {
+    initialEntries: [url],
+  })
+  const r = render(
+    <Provedores fonte={fonte}>
+      <RouterProvider router={roteador} />
+    </Provedores>,
+  )
+  return { ...r, roteador }
+}
+
+/** Um cartão isolado (sem o painel): só a fonte, a URL e os provedores. Muito mais leve que `renderizarApp`. */
+export function renderizarCartao(
+  cartao: React.ReactElement,
+  { url = '/', fonte = fonteDeTeste }: { url?: string; fonte?: MockFonteMetricas } = {},
+) {
+  const roteador = createMemoryRouter([{ path: '*', element: cartao }], { initialEntries: [url] })
+  const r = render(
+    <Provedores fonte={fonte}>
+      <RouterProvider router={roteador} />
+    </Provedores>,
+  )
+  return { ...r, roteador }
+}

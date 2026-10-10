@@ -41,5 +41,11 @@ export const PARES_POR_PRIORIDADE: Record<
 }
 
 /** Mediana do relógio de SLA (horas úteis), calibrada para aderência entre ~80% e ~90%. */
-export const MEDIANA_PA: Record<string, number> = { P1: 0.1, P2: 0.2, P3: 0.8, P4: 1.6, P5: 3.2 }
-export const MEDIANA_R: Record<string, number> = { P1: 1.5, P2: 4.2, P3: 7.5, P4: 20, P5: 32 }
+export const MEDIANA_PA: Record<Prioridade, number> = {
+  P1: 0.1,
+  P2: 0.2,
+  P3: 0.8,
+  P4: 1.6,
+  P5: 3.2,
+}
+export const MEDIANA_R: Record<Prioridade, number> = { P1: 1.5, P2: 4.2, P3: 7.5, P4: 20, P5: 32 }

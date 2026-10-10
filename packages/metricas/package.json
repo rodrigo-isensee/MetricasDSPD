@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit -p .",
     "test": "TZ=UTC vitest run",
     "cobertura": "TZ=UTC vitest run --coverage",
-    "pronto": "npm run typecheck && npm test"
+    "pronto": "npm run typecheck && npm run cobertura"
   },
   "dependencies": {
     "@metricas-dspd/contratos": "*"

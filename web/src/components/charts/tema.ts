@@ -28,7 +28,7 @@ const ORDEM_TIPOS = [
 /** Cor e padrão FIXOS por tipo de demanda, iguais em todo o sistema (spec 5; cor nunca é o único canal). */
 export function marcaDoTipo(tipo: string): { cor: IndiceCor; padrao: Padrao } {
   const i = Math.max(0, (ORDEM_TIPOS as readonly string[]).indexOf(tipo))
-  return { cor: corNaPosicao(i), padrao: PADROES[i % PADROES.length] ?? 'liso' }
+  return { cor: corNaPosicao(i), padrao: PADROES[i % PADROES.length] as Padrao }
 }
 
 /** Rótulo da unidade no eixo Y (R3): vertical, à esquerda ou à direita do eixo. */

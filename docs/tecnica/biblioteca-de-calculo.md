@@ -33,7 +33,6 @@ flowchart TB
     crit["criterios.ts (T2.6)"]
     hist["histograma.ts"]
     esp["espera.ts"]
-    mc["montecarlo.ts (reservado)"]
     reg["regras.ts (REGRAS_METRICA)"]
   end
   calc --> mbm
@@ -137,11 +136,19 @@ interface Amostra<D extends Dominio, G extends string> {
 - `espera.ts`: espera invisível = `(mediana cliente - mediana time) / mediana cliente * 100`, sobre os mesmos itens e a mesma janela; abaixo de 20 nenhuma das duas visões é publicada.
 - `histograma.ts`: faixas inteiras inclusivas sobre `floor(valor)`, presets `rapida`, `lenta`, `frente`, `projeto`, `backlog` (provisórios, P14).
 - `series.ts`: recortes em semanas, meses e trimestres com marca `emAndamento`.
-- `montecarlo.ts`: reservado. Nenhuma métrica desta etapa usa Monte Carlo (T6 e E5 fora); quando existir, recebe PRNG injetado.
+- Monte Carlo: ver 3.11 (`core/montecarlo.ts`, K-059).
 
 ### 3.10 Contextos e índices
 - `criarContextoBM(base, hoje, cal)` monta `MarcosCard` uma vez por base e calendário: entrada, compromisso, início, entrega vigente (`null` se reaberto), segmentos de execução, `cicloHU` (soma dos segmentos; o intervalo entregue não conta, P10), coluna e papel atuais, bloqueio aberto, projeto e frente de origem.
 - `criarContextoAC(base, hoje, cal)` monta `ChamadoCalc`: `fechado`, `apuravel` (fechado e sem exceção de registro posterior), primeiro atendimento e restauração em horas úteis (pendências descontadas do relógio de resolução), horas por totalizador e por etapa, `vidaHU`.
+
+### 3.11 Monte Carlo (`core/montecarlo.ts`)
+- `preverTermino(vazao, itens, granularidade, { prng, simulacoes? })`: "quando terminam N itens", em períodos. `preverItens(vazao, periodos, ...)`: "quantos itens saem em D períodos". Ambas reamostram com reposição a vazão (itens por período) de uma única `Amostra`, logo um domínio, uma classe e uma granularidade; BusinessMap e Acelerato, ou story, frente e projeto, não se combinam. `granularidade` (`dia`/`semana`) só rotula o resultado.
+- PRNG injetado (`Prng = () => número em [0,1)`); `criarPrng(semente)` (mulberry32) dá reprodutibilidade. O núcleo nunca chama `Math.random`. `simulacoes` padrão: 10 000.
+- Resultado `Estatistica<...>` em P50/P85/P95, nunca só média. Em `preverTermino` o P85 é o prazo que cobre 85% das simulações (p50 <= p85 <= p95). Em `preverItens` o rótulo é a confiança: P85 é o número de itens que se entrega em pelo menos 85% das simulações (quantil conservador; p95 <= p85 <= p50).
+- Regra de 20: `n` = total de itens entregues na janela (soma da vazão); abaixo de 20 é `insuficiente` e a simulação não roda. Interpretação adotada para "20 itens" na previsão; confirmar com o usuário se a regra deveria contar períodos.
+- A janela de 12 semanas e a filtragem por classe são responsabilidade de quem monta a `Amostra`. Não está na matriz `REGRAS_METRICA`: T6/E5 ainda não são métricas do núcleo.
+- Vazão deve ser de inteiros >= 0; outro valor lança `RangeError`. Testes: unitário, propriedade (monotonicidade, determinismo, mais itens nunca terminam antes) e 100% de cobertura.
 
 ## 4. Matriz `REGRAS_METRICA` (`core/regras.ts`)
 

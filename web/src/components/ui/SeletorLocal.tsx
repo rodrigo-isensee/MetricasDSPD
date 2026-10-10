@@ -34,11 +34,9 @@ export function SeletorLocal({ codigo, rotulo, valor, onChange, itens, children 
   const mover = (e: KeyboardEvent, para: number) => {
     e.preventDefault()
     const n = (para + itens.length) % itens.length
-    const alvo = itens[n]
-    if (alvo) {
-      onChange(alvo.valor)
-      refs.current[n]?.focus()
-    }
+    // `mover` só roda a partir de uma aba existente, então `n` sempre aponta para um item.
+    onChange((itens[n] as ItemSeletor).valor)
+    refs.current[n]?.focus()
   }
   const aoTeclar = (e: KeyboardEvent, i: number) => {
     if (e.key === 'ArrowRight') mover(e, i + 1)

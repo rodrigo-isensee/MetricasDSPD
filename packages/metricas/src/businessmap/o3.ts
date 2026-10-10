@@ -19,7 +19,11 @@ export interface Entregue {
 export function entreguesDe(ctx: ContextoBM, cards: readonly MarcosCard[]): Entregue[] {
   return cards
     .filter((m) => m.cicloHU !== null && m.entrega !== null)
-    .map((m) => ({ m, dia: diaLocal(m.entrega ?? 0, ctx.cal), ciclo: du(ctx, m.cicloHU ?? 0) }))
+    .map((m) => ({
+      m,
+      dia: diaLocal(m.entrega as number, ctx.cal),
+      ciclo: du(ctx, m.cicloHU as number),
+    }))
 }
 
 const noIntervalo = (e: Entregue, j: Intervalo): boolean =>

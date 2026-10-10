@@ -1,11 +1,18 @@
 import type { ResultadoEI } from '@metricas-dspd/contratos'
-import { PRIORIDADES, type Prioridade } from '@metricas-dspd/contratos'
+import type { Prioridade } from '@metricas-dspd/contratos'
 import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { diaDeIso, diaLocal } from '../core/calendario'
 import { estatisticaEspera, pontoEspera, type ParVisoes } from '../core/espera'
 import { JANELA_POR_GRANULARIDADE, janelaMovelDia } from '../core/janela'
 import { mesesEntre } from '../core/series'
-import { baseAmostral, criterios, janelaPercentis, periodoDe, selecionarAC } from './comum'
+import {
+  baseAmostral,
+  criterios,
+  janelaPercentis,
+  periodoDe,
+  prioridadesAlvo,
+  selecionarAC,
+} from './comum'
 import type { ContextoAC } from './indice'
 
 interface ItemEI {
@@ -37,10 +44,7 @@ export function calcularEIAcelerato(ctx: ContextoAC, f: FiltrosSustentacao): Res
   const jIni = diaDeIso(janela.inicio)
   const jFim = diaDeIso(janela.fim)
   const meses = mesesEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia)
-  const alvo =
-    f.prioridade.length === 0 ? PRIORIDADES : PRIORIDADES.filter((p) => f.prioridade.includes(p))
-
-  const segmentos = alvo.map((p) => {
+  const segmentos = prioridadesAlvo(f).map((p) => {
     const doSegmento = itens.filter((x) => x.prioridade === p)
     const naJanela = doSegmento.filter((x) => x.dia >= jIni && x.dia <= jFim)
     return {

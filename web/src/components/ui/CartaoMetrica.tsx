@@ -72,14 +72,6 @@ export interface CartaoMetricaProps {
   children?: ReactNode
 }
 
-const ROTULO_FILTRO: Record<string, string> = {
-  equipe: 'Equipe',
-  tipo: 'Tipo de demanda',
-  sistema: 'Sistema',
-  periodo: 'Período',
-  prioridade: 'Prioridade',
-}
-
 /**
  * Cartão de métrica (anatomia 4.0): cabeçalho (código, título, nota, tabela, base), pergunta, frase
  * de leitura, corpo e rodapé. Trata os quatro estados; "amostra insuficiente" é por estatística,
@@ -116,7 +108,7 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
     ...new Set(
       filtrosAtivos
         .filter((f) => p.aplicaveis && !p.aplicaveis.includes(f.chave as FiltroFluxoChave))
-        .map((f) => ROTULO_FILTRO[f.chave] ?? f.rotulo),
+        .map((f) => f.rotulo),
     ),
   ]
   const textoAplicados = aplicados.map((f) => `${f.rotulo} ${f.valor}`)

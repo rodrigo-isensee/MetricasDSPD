@@ -13,9 +13,9 @@ export function CartaoS6({ filtros }: { filtros: FiltrosSustentacao }) {
   const d = q.dados
   const t = d?.taxaContorno
   const leitura = d
-    ? t?.status === 'ok'
-      ? `${fmtPct(t.pct, 0)} dos encerramentos foram por contorno (${fmtInteiro(t.k)} de ${fmtInteiro(t.n)}): cada um é candidato a Registro de Problema.`
-      : `Taxa de contorno indisponível: ${fmtInteiro(d.base.n)} de 20 itens mínimos (${fmtInteiro(t?.k ?? 0)} de ${fmtInteiro(d.base.n)} por contorno).`
+    ? d.taxaContorno.status === 'ok'
+      ? `${fmtPct(d.taxaContorno.pct, 0)} dos encerramentos foram por contorno (${fmtInteiro(d.taxaContorno.k)} de ${fmtInteiro(d.taxaContorno.n)}): cada um é candidato a Registro de Problema.`
+      : `Taxa de contorno indisponível: ${fmtInteiro(d.taxaContorno.n)} de 20 itens mínimos (${fmtInteiro(d.taxaContorno.k)} de ${fmtInteiro(d.taxaContorno.n)} por contorno).`
     : undefined
   return (
     <CartaoMotivos
