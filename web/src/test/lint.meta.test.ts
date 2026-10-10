@@ -133,6 +133,78 @@ const DEVE_FALHAR: [string, string, string, RegExp][] = [
     "import { calcularMetrica } from '@metricas-dspd/metricas'\nexport const a = calcularMetrica",
     /não calculam/,
   ],
+  [
+    'contratos importa outro pacote',
+    'packages/contratos/src/x.ts',
+    "import { calcularMetrica } from '@metricas-dspd/metricas'\nexport const a = calcularMetrica",
+    /não depende de outros pacotes/,
+  ],
+  [
+    'contratos importa React',
+    'packages/contratos/src/x.ts',
+    "import { useState } from 'react'\nexport const a = useState",
+    /não conhece React/,
+  ],
+  [
+    'data/ (fora de data/mock) importa a biblioteca',
+    'web/src/data/http/x.ts',
+    "import { calcularMetrica } from '@metricas-dspd/metricas'\nexport const a = calcularMetrica",
+    /Fora de data\/mock/,
+  ],
+  [
+    'data/ (fora de data/mock) importa o mock',
+    'web/src/data/x.ts',
+    "import { gerarBaseMock } from '@metricas-dspd/mock'\nexport const a = gerarBaseMock",
+    /Fora de data\/mock/,
+  ],
+  [
+    'data/mock com import estático da biblioteca',
+    'web/src/data/mock/x.ts',
+    "import { calcularMetrica } from '@metricas-dspd/metricas'\nexport const a = calcularMetrica",
+    /import\(\) dinâmico/,
+  ],
+  [
+    'data/mock com import estático do mock',
+    'web/src/data/mock/x.ts',
+    "import { gerarBaseMock } from '@metricas-dspd/mock'\nexport const a = gerarBaseMock",
+    /import\(\) dinâmico/,
+  ],
+  [
+    'metricas importa o mock (raiz da lib)',
+    'packages/metricas/src/x.ts',
+    "import { gerarBaseMock } from '@metricas-dspd/mock'\nexport const a = gerarBaseMock",
+    /não importa o mock/,
+  ],
+  [
+    'metricas importa o mock (domínio)',
+    'packages/metricas/src/businessmap/x.ts',
+    "import { gerarBaseMock } from '@metricas-dspd/mock'\nexport const a = gerarBaseMock",
+    /não importa o mock/,
+  ],
+  [
+    'e2e importa pacote interno',
+    'e2e/tests/x.ts',
+    "import { gerarBaseMock } from '@metricas-dspd/mock'\nexport const a = gerarBaseMock",
+    /não importa pacotes internos/,
+  ],
+  [
+    'e2e importa por caminho relativo',
+    'e2e/tests/x.ts',
+    "import { a } from '../../packages/mock/src/index'\nexport const b = a",
+    /nunca por caminho relativo/,
+  ],
+  [
+    'pacote importa outro por caminho relativo',
+    'packages/metricas/src/businessmap/x.ts',
+    "import { a } from '../../../contratos/src/index'\nexport const b = a",
+    /nunca por caminho relativo/,
+  ],
+  [
+    'web importa pacote por caminho relativo',
+    'web/src/features/x/X.tsx',
+    "import { a } from '../../../../packages/contratos/src/index'\nexport const b = a",
+    /nunca por caminho relativo/,
+  ],
 ]
 
 describe('lint: fixtures que devem falhar', () => {
@@ -164,6 +236,31 @@ describe('lint: fixtures que devem passar (sem falso positivo)', () => {
       'core ordena',
       'packages/metricas/src/core/x.ts',
       'export const o = (xs: number[]) => [...xs].sort()',
+    ],
+    [
+      'data/mock importa a biblioteca por import() dinâmico e por import type',
+      'web/src/data/mock/x.ts',
+      "import type { ContextosMetricas } from '@metricas-dspd/metricas'\nexport const a = () => import('@metricas-dspd/metricas')\nexport type T = ContextosMetricas",
+    ],
+    [
+      'data/mock com import estático em teste',
+      'web/src/data/mock/x.test.ts',
+      "import { gerarBaseMock } from '@metricas-dspd/mock'\nexport const a = gerarBaseMock",
+    ],
+    [
+      'e2e importa só o playwright',
+      'e2e/tests/x.ts',
+      "import { test } from '@playwright/test'\nexport const a = test",
+    ],
+    [
+      'metricas importa o mock em teste',
+      'packages/metricas/src/x.test.ts',
+      "import { gerarBaseMock } from '@metricas-dspd/mock'\nexport const a = gerarBaseMock",
+    ],
+    [
+      'mock importa a biblioteca',
+      'packages/mock/src/x.ts',
+      "import { calcularMetrica } from '@metricas-dspd/metricas'\nexport const a = calcularMetrica",
     ],
     [
       'BM importa o core',

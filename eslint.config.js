@@ -39,6 +39,38 @@ const relativosRaizDaLib = {
   message: MSG_RAIZ,
 }
 
+const MSG_RELATIVO =
+  'Pacotes e web se conhecem só pelo nome (@metricas-dspd/*), nunca por caminho relativo (ADR 0002).'
+const relativoEntrePacotes = {
+  group: [
+    '**/packages/**',
+    '**/web/src/**',
+    '**/contratos/src/**',
+    '**/metricas/src/**',
+    '**/mock/src/**',
+  ],
+  message: MSG_RELATIVO,
+}
+const MSG_SEM_MOCK =
+  'A biblioteca de métricas não importa o mock (o grafo é metricas <- mock, ADR 0002).'
+const semMock = {
+  group: ['@metricas-dspd/mock', '@metricas-dspd/mock/*'],
+  message: MSG_SEM_MOCK,
+}
+const MSG_LIB_NA_UI =
+  'Fora de data/mock, o acesso à biblioteca e ao mock é proibido (ADR 0001/0002).'
+const semLibNaUI = [
+  {
+    group: [
+      '@metricas-dspd/metricas',
+      '@metricas-dspd/metricas/*',
+      '@metricas-dspd/mock',
+      '@metricas-dspd/mock/*',
+    ],
+    message: MSG_LIB_NA_UI,
+  },
+]
+
 const semSpreadEmMinMax = [
   {
     selector:
@@ -88,12 +120,18 @@ export default tseslint.config(
       '**/node_modules',
       '**/*.config.js',
       '**/scripts',
-      'e2e',
+      'e2e/playwright-report',
+      'e2e/test-results',
+      'e2e/perf-results',
     ],
   },
-  js.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
+  // O e2e entra no lint só com a regra de fronteira (bloco próprio abaixo): sem as regras estritas do app.
+  ...[js.configs.recommended, ...tseslint.configs.strictTypeChecked].map((c) => ({
+    ...c,
+    ignores: [...(c.ignores ?? []), 'e2e/**'],
+  })),
   {
+    ignores: ['e2e/**'],
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
@@ -132,6 +170,7 @@ export default tseslint.config(
               message: 'A UI não importa o gerador de mock: use a FonteMetricas.',
             },
             { group: ['recharts'], message: 'Recharts só é importado em components/charts/.' },
+            relativoEntrePacotes,
           ],
         },
       ],
@@ -139,7 +178,82 @@ export default tseslint.config(
   },
   {
     files: ['web/src/components/charts/**'],
-    rules: { 'no-restricted-imports': 'off' },
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [relativoEntrePacotes] }],
+    },
+  },
+  // ADR 0002: contratos é a folha do grafo (sem outros pacotes, sem React); e2e só conhece a app pela URL.
+  {
+    files: ['packages/contratos/**'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@metricas-dspd/*'],
+              message: 'contratos não depende de outros pacotes (ADR 0002).',
+            },
+            {
+              group: ['react', 'react/*', 'react-dom', 'react-dom/*'],
+              message: 'contratos não conhece React.',
+            },
+            relativoEntrePacotes,
+          ],
+        },
+      ],
+    },
+  },
+  // data/: só data/mock conhece a biblioteca e o mock, e mesmo assim por import() dinâmico ou import type.
+  {
+    files: ['web/src/data/**'],
+    ignores: ['web/src/data/mock/**', '**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [...semLibNaUI, relativoEntrePacotes] }],
+    },
+  },
+  {
+    files: ['web/src/data/mock/**'],
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [relativoEntrePacotes] }],
+      'no-restricted-syntax': [
+        'error',
+        ...semSpreadEmMinMax,
+        ...['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration'].map((tipo) => ({
+          selector: `${tipo}[importKind!='type'][exportKind!='type'][source.value=/^@metricas-dspd.(metricas|mock)/]`,
+          message:
+            'Em data/mock a biblioteca e o gerador entram por import() dinâmico (ou import type), para ficar fora do chunk inicial.',
+        })),
+      ],
+    },
+  },
+  // metricas não importa mock fora de testes; o e2e não importa pacotes internos.
+  {
+    files: ['packages/metricas/src/**'],
+    ignores: ['**/*.test.ts', '**/testing.ts'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [semMock, relativoEntrePacotes] }],
+    },
+  },
+  {
+    files: ['e2e/**/*.ts'],
+    languageOptions: { parser: tseslint.parser },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@metricas-dspd/*'],
+              message: 'O e2e testa a aplicação pela URL: não importa pacotes internos.',
+            },
+            relativoEntrePacotes,
+          ],
+        },
+      ],
+    },
   },
   // BusinessMap e Acelerato nunca se misturam em nenhum cálculo: nem na lib, nem nos geradores do mock.
   // Os núcleos (core, businessmap, acelerato, mock) também não importam a raiz que orquestra os dois
@@ -163,6 +277,8 @@ export default tseslint.config(
             },
             relativosRaizDaLib,
             soAmostraPorDominio,
+            semMock,
+            relativoEntrePacotes,
           ],
           paths: [...paraRaizDaLib, ...semPercentilSolto],
         },
@@ -186,6 +302,8 @@ export default tseslint.config(
               message: 'BusinessMap e Acelerato nunca se misturam.',
             },
             relativosRaizDaLib,
+            semMock,
+            relativoEntrePacotes,
           ],
           paths: [...paraRaizDaLib, ...semPercentilSolto],
         },
@@ -211,6 +329,8 @@ export default tseslint.config(
             },
             relativosRaizDaLib,
             soAmostraPorDominio,
+            semMock,
+            relativoEntrePacotes,
           ],
           paths: [...paraRaizDaLib, ...semPercentilSolto],
         },
@@ -234,6 +354,8 @@ export default tseslint.config(
               message: 'BusinessMap e Acelerato nunca se misturam.',
             },
             relativosRaizDaLib,
+            semMock,
+            relativoEntrePacotes,
           ],
           paths: [...paraRaizDaLib, ...semPercentilSolto],
         },
@@ -260,6 +382,8 @@ export default tseslint.config(
               message: 'O core não conhece os domínios.',
             },
             relativosRaizDaLib,
+            semMock,
+            relativoEntrePacotes,
           ],
           paths: paraRaizDaLib,
         },
@@ -269,7 +393,13 @@ export default tseslint.config(
   // Spread em Math.min/max proibido em todo o src (testes ficam de fora).
   {
     files: ['web/src/**', 'packages/**'],
-    ignores: ['**/*.test.ts', '**/*.test.tsx', 'packages/metricas/src/**', 'packages/mock/src/**'],
+    ignores: [
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      'packages/metricas/src/**',
+      'packages/mock/src/**',
+      'web/src/data/mock/**', // bloco próprio, que já inclui semSpreadEmMinMax
+    ],
     rules: { 'no-restricted-syntax': ['error', ...semSpreadEmMinMax] },
   },
   {
