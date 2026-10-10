@@ -62,7 +62,15 @@ function AtencaoDiaria({ filtros }: { filtros: FiltrosFluxo }) {
       texto: `WIP ${fmtInteiro(o1.hoje.acimaDoLimite)} acima do limite`,
     })
   const { estado, recarregar } = estadoFaixa([qO2, qBLOQUEADOS, qO1])
-  return <FaixaAtencao momento="hoje" itens={itens} estado={estado} onTentarDeNovo={recarregar} />
+  return (
+    <FaixaAtencao
+      momento="hoje"
+      itens={itens}
+      estado={estado}
+      onTentarDeNovo={recarregar}
+      reserva={{ mobile: 202, desktop: 88 }}
+    />
+  )
 }
 
 /** Itens da faixa "Pede atenção na semana": backlog parado há mais de 180 dias (O10) e vencidos por causa interna (O12). */

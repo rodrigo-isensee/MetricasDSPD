@@ -50,7 +50,15 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
       para: '#t9',
     })
   const { estado, recarregar } = estadoFaixa([qT2, qT3, qT4, qT9])
-  return <FaixaAtencao momento="semana" itens={itens} estado={estado} onTentarDeNovo={recarregar} />
+  return (
+    <FaixaAtencao
+      momento="semana"
+      itens={itens}
+      estado={estado}
+      onTentarDeNovo={recarregar}
+      reserva={{ mobile: 294, desktop: 130 }}
+    />
+  )
 }
 
 export default function TaticoPage() {

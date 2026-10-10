@@ -36,7 +36,15 @@ function Atencao({ filtros }: { filtros: FiltrosSustentacao }) {
       para: '#s1',
     })
   const { estado, recarregar } = estadoFaixa([qS2, qS1])
-  return <FaixaAtencao momento="semana" itens={itens} estado={estado} onTentarDeNovo={recarregar} />
+  return (
+    <FaixaAtencao
+      momento="semana"
+      itens={itens}
+      estado={estado}
+      onTentarDeNovo={recarregar}
+      reserva={{ mobile: 108, desktop: 88 }}
+    />
+  )
 }
 
 export default function SustentacaoPage() {

@@ -13,7 +13,7 @@ import { AvisoCriterio } from './AvisoCriterio'
 import { BadgeBase } from './BadgeBase'
 import { ChipFiltros, ChipFonte, ChipGranularidade, ChipMeta } from './Chips'
 import { useContextoPainel } from './ContextoPainel'
-import { ALTURAS_ESQUELETO } from './alturasEsqueleto'
+import { ALTURAS_ESQUELETO, ALTURAS_ESQUELETO_MOBILE } from './alturasEsqueleto'
 import { ALTURA_ESQUELETO_PADRAO, EsqueletoCartao, useEsqueleto } from './EsqueletoCartao'
 import { EstadoErro } from './EstadoErro'
 import { EstadoVazio } from './EstadoVazio'
@@ -101,6 +101,7 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
   const estado = esq.mostrar ? 'carregando' : p.estado
   const ok = estado === 'ok'
   const alturaCorpo = p.alturaEsqueleto ?? ALTURAS_ESQUELETO[p.codigo] ?? ALTURA_ESQUELETO_PADRAO
+  const alturaMobile = p.alturaEsqueleto ?? ALTURAS_ESQUELETO_MOBILE[p.codigo] ?? alturaCorpo
   const atualizando = ok && !!p.atualizando
 
   useEffect(() => {
@@ -214,6 +215,7 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
             codigo={p.codigo}
             titulo={p.titulo}
             altura={alturaCorpo}
+            alturaMobile={alturaMobile}
             brilho={esq.brilho}
           />
         </div>

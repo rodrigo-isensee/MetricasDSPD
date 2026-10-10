@@ -25,3 +25,38 @@ export const ALTURAS_ESQUELETO: Readonly<Record<string, number>> = {
   S6: 860,
   S7: 798,
 }
+
+/**
+ * Mesma ideia, para coluna única (abaixo de `lg`, medido a 375 px): o conteúdo fica mais alto porque os
+ * gráficos e as listas quebram em mais linhas e não há linha de grid esticada. K-050 (bug 008).
+ */
+export const ALTURAS_ESQUELETO_MOBILE: Readonly<Record<string, number>> = {
+  O1: 944,
+  O2: 2121,
+  BLOQUEADOS: 556,
+  O3: 1627,
+  O4: 358,
+  O7: 2626,
+  O9: 1968,
+  O10: 1422,
+  O12: 728,
+  O15: 942,
+  O18: 828,
+  T1: 1131,
+  T2: 1015,
+  T3: 762,
+  T4: 1207,
+  T5: 1251,
+  T7: 3977,
+  T9: 2793,
+  E1: 1077,
+  E2: 704,
+  E3: 1339,
+  S1: 2156,
+  S2: 1251,
+  S3: 1068,
+  S4: 1197,
+  S5: 1156,
+  S6: 1102,
+  S7: 1788,
+}

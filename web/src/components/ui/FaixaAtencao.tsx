@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { Icone } from './Icone'
 
@@ -46,6 +46,8 @@ interface Props {
   vazio?: string
   /** Máximo de itens antes de "Ver todos os alertas (N)". */
   maximo?: number
+  /** Altura (px) da faixa já pronta, em coluna única e em `lg`; reservada enquanto carrega (sem salto, K-050). */
+  reserva?: { mobile: number; desktop: number }
 }
 
 /** "Pede atenção": primeiro o que pede ação. Cada item leva ao cartão; ícone + texto, nunca só cor. */
@@ -57,14 +59,21 @@ export function FaixaAtencao({
   maximo,
   estado = 'ok',
   onTentarDeNovo,
+  reserva,
 }: Props) {
   const [todos, setTodos] = useState(false)
   const idLista = useId()
+  const reservando = estado === 'carregando' && reserva !== undefined
   const lista = maximo && !todos ? itens.slice(0, maximo) : itens
   return (
     <section
       aria-label={titulo}
-      className="rounded-lg border border-borda bg-superficie p-3"
+      className={`rounded-lg border border-borda bg-superficie p-3${reservando ? ' min-h-[var(--fa-m)] lg:min-h-[var(--fa-d)]' : ''}`}
+      style={
+        reservando
+          ? ({ '--fa-m': `${reserva.mobile}px`, '--fa-d': `${reserva.desktop}px` } as CSSProperties)
+          : undefined
+      }
       data-testid="faixa-atencao"
     >
       <h2 className="text-sm font-bold uppercase tracking-wide text-texto-2">{titulo}</h2>
