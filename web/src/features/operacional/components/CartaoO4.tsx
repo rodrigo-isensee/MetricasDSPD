@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AmostraInsuficiente, CartaoMetrica } from '@/components/ui'
-import { Barras } from '@/components/charts'
+import { Barras, marcaDoTipo } from '@/components/charts'
 import { TIPOS_CARD } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { APLICABILIDADE_FLUXO } from '@metricas-dspd/contratos'
@@ -33,7 +33,7 @@ export function CartaoO4({ filtros }: { filtros: FiltrosFluxo }) {
 
   const series = porTipo
     ? TIPOS_CARD.filter((t) => d?.semanas.some((s) => s.porTipo.some((p) => p.tipo === t))).map(
-        (t) => ({ chave: t, rotulo: t }),
+        (t) => ({ chave: t, rotulo: t, ...marcaDoTipo(t) }),
       )
     : [{ chave: 'itens', rotulo: 'Itens concluídos', cor: 1 as const }]
 
@@ -56,7 +56,7 @@ export function CartaoO4({ filtros }: { filtros: FiltrosFluxo }) {
         : {})}
       {...(leitura ? { leitura } : {})}
       {...(janela ? { janelaPercentis: janela, periodo: filtros.periodo } : {})}
-      nota={NOTAS_OPERACIONAL.O4 as NonNullable<(typeof NOTAS_OPERACIONAL)[string]>}
+      nota={NOTAS_OPERACIONAL.O4}
       meta={m.meta}
       fonte={m.fonte}
       granularidade={m.granularidade}

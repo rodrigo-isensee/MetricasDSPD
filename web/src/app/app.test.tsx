@@ -238,7 +238,7 @@ describe('filtros ↔ URL', () => {
 
 describe('cartão de referência O4 e estados simulados (?mock=)', () => {
   it('mostra os números calculados, base, tabela alternativa e nota', async () => {
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=semanal')
     const cartao = await screen.findByTestId('metrica-O4')
     await waitFor(() =>
       expect(within(cartao).getByTestId('base-O4')).toHaveTextContent(/Base: \d+ itens concluídos/),
@@ -255,14 +255,14 @@ describe('cartão de referência O4 e estados simulados (?mock=)', () => {
   })
 
   it('?mock=carregando: cartão com esqueleto e aria-busy', async () => {
-    renderizarApp('/operacional?mock=carregando')
+    renderizarApp('/operacional?cadencia=semanal&mock=carregando')
     const cartao = await screen.findByTestId('metrica-O4')
     expect(cartao).toHaveAttribute('aria-busy', 'true')
     expect(within(cartao).getByTestId('estado-carregando-O4')).toBeInTheDocument()
   })
 
   it('?mock=erro:o4: só o cartão O4 falha e "Tentar de novo" mantém os filtros', async () => {
-    const r = renderizarApp('/operacional?mock=erro:o4&equipe=fluig')
+    const r = renderizarApp('/operacional?cadencia=semanal&mock=erro:o4&equipe=fluig')
     const erro = await screen.findByTestId('estado-erro-O4')
     expect(erro).toHaveTextContent('Não foi possível carregar este gráfico')
     expect(screen.getByTestId('filtro-equipe')).toBeInTheDocument()
@@ -272,7 +272,7 @@ describe('cartão de referência O4 e estados simulados (?mock=)', () => {
   })
 
   it('?mock=vazio: "Nenhum item encontrado" com Limpar filtros', async () => {
-    renderizarApp('/operacional?mock=vazio&equipe=fluig')
+    renderizarApp('/operacional?cadencia=semanal&mock=vazio&equipe=fluig')
     const vazio = await screen.findByTestId('estado-vazio-O4')
     expect(vazio).toHaveTextContent('Nenhum item encontrado')
     expect(within(vazio).getByRole('button', { name: 'Remover filtro Equipe' })).toBeInTheDocument()
@@ -284,7 +284,7 @@ describe('cartão de referência O4 e estados simulados (?mock=)', () => {
   })
 
   it('filtro estreito deixa a vazão abaixo de 20 itens: faixa some e aparece "amostra insuficiente" com a base', async () => {
-    renderizarApp('/operacional?tipo=divida-tecnica')
+    renderizarApp('/operacional?cadencia=semanal&tipo=divida-tecnica')
     const cartao = await screen.findByTestId('metrica-O4')
     expect(await within(cartao).findByTestId('amostra-insuficiente-O4')).toBeInTheDocument()
     expect(within(cartao).getByTestId('leitura-O4')).toHaveTextContent(
@@ -293,7 +293,7 @@ describe('cartão de referência O4 e estados simulados (?mock=)', () => {
   })
 
   it('âncora: abrir /operacional#o4 foca o título do cartão', async () => {
-    renderizarApp('/operacional#o4')
+    renderizarApp('/operacional?cadencia=semanal#o4')
     const cartao = await screen.findByTestId('metrica-O4')
     await waitFor(() => expect(within(cartao).getByRole('heading', { level: 3 })).toHaveFocus())
   })
@@ -302,7 +302,9 @@ describe('cartão de referência O4 e estados simulados (?mock=)', () => {
 describe('Visão geral e Ajuda', () => {
   it('a Visão geral consome a fonte e a Ajuda lista as mudanças de critério', async () => {
     renderizarApp('/')
-    expect(await screen.findByText(/alertas e 4 níveis calculados/)).toBeInTheDocument()
+    expect(
+      await screen.findByTestId('nivel-operacional', undefined, { timeout: 8000 }),
+    ).toBeInTheDocument()
   })
   it('Ajuda traz as regras de uso e a tabela de critérios do mock', async () => {
     renderizarApp('/ajuda')

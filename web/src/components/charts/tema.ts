@@ -15,6 +15,22 @@ export const EIXO = {
   grade: 'var(--borda)',
 } as const
 
+const ORDEM_TIPOS = [
+  'Incidente',
+  'Requisição',
+  'Melhoria',
+  'Iniciativa',
+  'Bug interno',
+  'Defeito em produção',
+  'Dívida técnica',
+] as const
+
+/** Cor e padrão FIXOS por tipo de demanda, iguais em todo o sistema (spec 5; cor nunca é o único canal). */
+export function marcaDoTipo(tipo: string): { cor: IndiceCor; padrao: Padrao } {
+  const i = Math.max(0, (ORDEM_TIPOS as readonly string[]).indexOf(tipo))
+  return { cor: corNaPosicao(i), padrao: PADROES[i % PADROES.length] ?? 'liso' }
+}
+
 /** Rótulo da unidade no eixo Y (R3): vertical, à esquerda ou à direita do eixo. */
 export const rotuloEixoY = (unidade: string, lado: 'esq' | 'dir' = 'esq') => ({
   value: unidade,
