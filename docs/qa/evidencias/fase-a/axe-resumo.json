@@ -49,7 +49,7 @@
    "bloqueantes": [],
    "informativas": []
   },
-  "light /operacional?mock=erro:o4": {
+  "light /operacional?cadencia=semanal&mock=erro:o4": {
    "bloqueantes": [],
    "informativas": []
   },
@@ -101,7 +101,7 @@
    "bloqueantes": [],
    "informativas": []
   },
-  "dark /operacional?mock=erro:o4": {
+  "dark /operacional?cadencia=semanal&mock=erro:o4": {
    "bloqueantes": [],
    "informativas": []
   },
