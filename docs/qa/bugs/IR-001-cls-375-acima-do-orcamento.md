@@ -15,3 +15,7 @@ A medição desktop `/` falhou uma vez na suíte completa em série e passou iso
 
 ## Evidência
 Saída do `test:perf`; traces em `e2e/test-results/` (não versionados).
+
+## Correção (K-061)
+Causa medida (layout-shift sources): "Atualizado em", selo e "Entenda" entravam quando o estado de coleta chegava (linha de 20 px para 68 px a 375 px) e a faixa de calibração (108 px) empurrava recorte, filtros e cartões. Correção: o "Verificando a coleta…" reserva a linha final (placeholder invisível com a mesma quebra); o painel e a Visão geral seguram o resto da tela num bloco reservado até o estado das fontes da rota chegar (exceto `?mock=carregando`).
+CLS a 375 antes -> depois (3 execuções idênticas): `/` 0,186 -> 0,007; `/sustentacao` 0,150 -> 0,000; `/espera-invisivel` 0,224 -> 0,007. Desktop `/` 0,021. Resta 0,007 pela linha "Coleta falhou..." do BusinessMap (mock padrão), que não dá para prever.

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
 import type { Dominio, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
-import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta } from '@/data'
+import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta, useModoMock } from '@/data'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
 import { SemDadosDaFonte } from '@/features/coleta/SemDadosDaFonte'
@@ -42,6 +42,14 @@ function Casca({
 }) {
   const dataCorte = useDataReferencia()
   const erroSimulado = useErroDePainelSimulado()
+  // Faixa de calibração e "Atualizado em" só existem depois do estado de coleta; o resto da tela espera num
+  // bloco reservado para o conteúdo não descer quando a faixa entra (IR-001, CLS a 375 px).
+  const pendenteBm = useEstadoColeta('businessmap').isPending
+  const pendenteAc = useEstadoColeta('acelerato').isPending
+  // `?mock=carregando` quer ver os esqueletos dos cartões (o estado de coleta também nunca resolve nele).
+  const aguardando =
+    useModoMock() !== 'carregando' &&
+    ((fontes.includes('businessmap') && pendenteBm) || (fontes.includes('acelerato') && pendenteAc))
   // mock=erro (6.6): erro de painel, não de cartão. O shell continua; o painel não carrega.
   if (erroSimulado)
     return <ErroPagina erro="Erro simulado (mock=erro)" onTentarDeNovo={() => undefined} />
@@ -67,15 +75,21 @@ function Casca({
           }
           {...(base.publico ? { publico: base.publico } : {})}
         />
-        {fontes.map((d) => (
-          <FaixaCalibracaoFonte key={d} dominio={d} />
-        ))}
-        {base.extra}
-        <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
-        {fontes.length === 1 ? (
-          <CorpoDaFonte dominio={fontes[0] as Dominio}>{children}</CorpoDaFonte>
+        {aguardando ? (
+          <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
         ) : (
-          children
+          <>
+            {fontes.map((d) => (
+              <FaixaCalibracaoFonte key={d} dominio={d} />
+            ))}
+            {base.extra}
+            <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
+            {fontes.length === 1 ? (
+              <CorpoDaFonte dominio={fontes[0] as Dominio}>{children}</CorpoDaFonte>
+            ) : (
+              children
+            )}
+          </>
         )}
       </div>
     </ProvedorContextoPainel>

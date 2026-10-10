@@ -49,6 +49,6 @@ describe('PainelFluxo sem público informado', () => {
       { url: '/operacional' },
     )
     expect(await screen.findByText('Pergunta?')).toBeInTheDocument()
-    expect(screen.getByText('conteúdo')).toBeInTheDocument()
+    expect(await screen.findByText('conteúdo')).toBeInTheDocument()
   })
 })

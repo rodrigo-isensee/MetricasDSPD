@@ -14,7 +14,7 @@ import {
 import type { ResultadoVisaoGeral } from '@metricas-dspd/contratos'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
-import { useDataReferencia, useErroDePainelSimulado, useMetrica } from '@/data'
+import { useDataReferencia, useErroDePainelSimulado, useMetrica, useModoMock } from '@/data'
 import { fmtData, fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import {
   NOME_DO_NIVEL,
@@ -179,6 +179,8 @@ export default function VisaoGeralPage() {
   const data = useDataReferencia()
   const q = useMetrica('VISAO_GERAL', {})
   const pronta = useCalibracaoPronta()
+  const carregandoSimulado = useModoMock() === 'carregando'
+  const aguardando = !pronta && !carregandoSimulado
   if (useErroDePainelSimulado())
     return <ErroPagina erro="Erro simulado (mock=erro)" onTentarDeNovo={() => undefined} />
   // Antes de saber o que está em calibração, nenhum status é mostrado (some depois = pior que esperar).
@@ -208,8 +210,12 @@ export default function VisaoGeralPage() {
         }
         publico="Consolidado de todas as equipes (o sistema não compara equipes), sem filtros nesta tela."
       />
-      <FaixaCalibracaoFonte dominio="businessmap" />
-      <FaixaCalibracaoFonte dominio="acelerato" />
+      {pronta && (
+        <>
+          <FaixaCalibracaoFonte dominio="businessmap" />
+          <FaixaCalibracaoFonte dominio="acelerato" />
+        </>
+      )}
       {d && (
         <p
           className="rounded-md border border-borda bg-superficie p-3 text-sm"
@@ -220,7 +226,10 @@ export default function VisaoGeralPage() {
           {intervalo(d.recortes.estrategico)}; Sustentação em {intervalo(d.recortes.sustentacao)}.
         </p>
       )}
-      {(q.estado === 'carregando' || (q.estado === 'ok' && !pronta)) && (
+      {!pronta && (
+        <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
+      )}
+      {!aguardando && (q.estado === 'carregando' || (q.estado === 'ok' && !pronta)) && (
         <EsqueletoCartao codigo="VISAO_GERAL" titulo="Visão geral" altura={320} />
       )}
       {q.estado === 'erro' && (

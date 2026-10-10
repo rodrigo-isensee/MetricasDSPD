@@ -26,9 +26,18 @@ export function FrescorFonte({ dominio, comNome = false }: Props) {
       aria-busy={q.isPending || undefined}
     >
       {q.isPending && (
-        <p role="status" className="text-texto-2">
-          {comNome ? `${nome}: ` : ''}Verificando a coleta…
-        </p>
+        // Reserva a altura da linha pronta (texto, selo, "Entenda"): a linha invisível quebra como a real (IR-001).
+        <div className="relative">
+          <p role="status" className="absolute inset-x-0 top-0 text-texto-2">
+            {comNome ? `${nome}: ` : ''}Verificando a coleta…
+          </p>
+          <p aria-hidden="true" className="invisible flex flex-wrap items-center gap-x-2 gap-y-1">
+            {comNome && <span className="font-semibold">{nome}:</span>}
+            <span>Atualizado em 00/00/0000 00:00</span>
+            <SeloFrescor selo="atual" />
+            <span className="alvo">Entenda</span>
+          </p>
+        </div>
       )}
       {q.isError && (
         <p role="alert" className="flex flex-wrap items-center gap-2 text-alerta">
