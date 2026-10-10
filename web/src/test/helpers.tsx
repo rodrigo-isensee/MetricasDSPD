@@ -32,6 +32,7 @@ beforeAll(async () => {
     import('@/features/estrategico/EstrategicoPage'),
     import('@/features/sustentacao/SustentacaoPage'),
     import('@/features/espera-invisivel/EsperaInvisivelPage'),
+    import('@/features/dados/DadosPage'),
   ])
 }, 60000)
 
