@@ -90,6 +90,22 @@ describe('Exportar de um painel', () => {
     expect(within(dlg).queryByRole('button', { name: 'Limpar seleção' })).not.toBeInTheDocument()
   })
 
+  it('o rodapé com a ação primária fica fora do corpo que rola e "Marcar todas" respeita o limite', async () => {
+    const itens = itensDoNivel('operacional', [])
+    const { user } = montar('personalizada', itens)
+    const dlg = await abrir(user, 'Exportação personalizada')
+    const gerarBtn = within(dlg).getByRole('button', { name: 'Gerar arquivo' })
+    expect(within(dlg).getByTestId('exportar-corpo')).not.toContainElement(gerarBtn)
+    expect(within(dlg).getByTestId('exportar-rodape')).toContainElement(gerarBtn)
+    await user.click(
+      within(dlg).getByRole('button', { name: `Marcar todas (até ${LIMITE_METRICAS})` }),
+    )
+    expect(within(dlg).getAllByRole('checkbox', { checked: true })).toHaveLength(
+      Math.min(itens.length, LIMITE_METRICAS),
+    )
+    expect(within(dlg).queryByRole('button', { name: /Marcar todas/ })).not.toBeInTheDocument()
+  })
+
   it('sem métrica visível: estado vazio com orientação e sem gerar', async () => {
     const todas = itensDoNivel('operacional', []).map((i) => i.chave.split(':')[1]!)
     const { user } = montar('operacional', itensDoNivel('operacional', todas))

@@ -112,6 +112,20 @@ test.describe('conteúdo do PDF (1280 px)', () => {
     expect(pdf.texto).not.toContain('O10 · ');
   });
 
+  test('EXP-02b a 375x667 o botão Gerar arquivo está visível sem rolar', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await preparar(page, 'light');
+    await page.goto('/operacional');
+    await aguardarPainel(page);
+    await page.getByRole('button', { name: 'Exportação personalizada' }).click();
+    const dlg = page.getByRole('dialog');
+    const gerar = dlg.getByRole('button', { name: 'Gerar arquivo' });
+    await expect(gerar).toBeInViewport({ ratio: 1 });
+    const caixa = await gerar.boundingBox();
+    expect(caixa!.height).toBeGreaterThanOrEqual(24);
+    expect(caixa!.y + caixa!.height).toBeLessThanOrEqual(667);
+  });
+
   test('EXP-03 exportação personalizada: um PDF, BusinessMap antes de Acelerato, cada métrica com a sua fonte', async ({ page }) => {
     await preparar(page);
     await page.goto('/operacional');
