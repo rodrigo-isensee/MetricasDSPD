@@ -127,3 +127,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-10 14:56 | K-063 | Entrada | Entrada | Pedido 008 (exportar métricas em PDF/imagem) registrado |
 | 2026-10-10 14:56 | — | — | — | Usuário decidiu trocar o banco para PostgreSQL (§7) |
 | 2026-10-10 14:59 | K-064 | Entrada | Entrada | CI no GitHub Actions (6 etapas: rápida, testes 100%, Postgres em contêiner, build+size, E2E+axe, perf/Lighthouse) + proteção de branch + Dependabot + hook local; decisão do usuário: montar logo após a troca para PostgreSQL/pnpm |
+| 2026-10-10 16:33 | K-017 | Bloqueado | Pronto | Docker disponível; banco migrado para PostgreSQL (ADR 0014): migrações, seed e 31 testes pg executados (pedido 009); medição de desempenho do banco no S-11 |
