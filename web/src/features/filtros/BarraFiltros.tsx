@@ -111,6 +111,7 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
   const n = new Set(uso.chips.map((c) => c.chave)).size
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   // Equipes somadas no resultado: seleção, ou todas (padrão) quando o painel tem filtro de equipe.
+  const reservaAviso = uso.config.filtros.includes('equipe') && f.equipe.length === 0 && !uso.opcoes
   const equipes = uso.config.filtros.includes('equipe')
     ? f.equipe.length || (uso.opcoes?.equipes.length ?? 0)
     : 0
@@ -205,6 +206,12 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
           </Dialog.Root>
         </div>
       </div>
+      {equipes < 2 && reservaAviso && (
+        // Reserva a altura do aviso enquanto as opções não chegam: evita salto de layout (ADR 0003 F2).
+        <p aria-hidden="true" className="invisible text-sm">
+          &nbsp;
+        </p>
+      )}
       {equipes >= 2 && (
         <p className="text-sm text-texto-2" data-testid="aviso-consolidado">
           Resultado consolidado de {equipes} equipes. O sistema não compara equipes.

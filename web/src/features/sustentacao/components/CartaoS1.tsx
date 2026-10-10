@@ -162,7 +162,6 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
       onTentarDeNovo={q.recarregar}
       erro={q.erro}
       className="lg:col-span-12"
-      alturaEsqueleto={420}
     >
       {d && (
         <div className="flex flex-col gap-6">

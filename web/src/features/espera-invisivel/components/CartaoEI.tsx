@@ -43,6 +43,9 @@ interface Config {
   lenta: boolean
 }
 
+/** Altura reservada do corpo (completo), medida em desktop; evita salto de layout (ADR 0003 F2). */
+const ALTURA_EI: Partial<Record<Nivel, number>> = { FL1: 620, FL2: 570, FL3: 420, SUST: 420 }
+
 const CFG: Record<Nivel, Config> = {
   FL1: {
     id: 'EI_FL1',
@@ -223,7 +226,7 @@ export function CartaoEI({
       onTentarDeNovo={q.recarregar}
       erro={q.erro}
       className={className ?? 'lg:col-span-12'}
-      alturaEsqueleto={compacto ? 260 : 420}
+      alturaEsqueleto={compacto ? 300 : (ALTURA_EI[nivel] ?? 420)}
     >
       {d && seg && corpo && segmentado ? (
         <SeletorLocal

@@ -17,6 +17,9 @@ type Carregado = {
   sorteio: () => number
 }
 
+/** Devolve a thread principal ao navegador entre fases pesadas (tarefa longa < 200 ms, ADR 0003 C6). */
+const ceder = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
+
 export interface OpcoesMock {
   semente?: number
   /** Data de corte ISO com fuso (ex.: 2026-10-09T18:00:00-03:00). */
@@ -52,11 +55,13 @@ export class MockFonteMetricas implements FonteMetricas {
       const parcial: { semente?: number; hoje?: string } = {}
       if (this.opcoes.semente !== undefined) parcial.semente = this.opcoes.semente
       if (this.opcoes.hoje !== undefined) parcial.hoje = this.opcoes.hoje
+      await ceder()
       const base = mock.gerarBaseMock(parcial)
-      const ctx = {
-        bm: lib.businessmap.criarContextoBM(base.bm, base.config.hoje, lib.CALENDARIO_PADRAO),
-        ac: lib.acelerato.criarContextoAC(base.ac, base.config.hoje, lib.CALENDARIO_PADRAO),
-      }
+      await ceder()
+      const bm = lib.businessmap.criarContextoBM(base.bm, base.config.hoje, lib.CALENDARIO_PADRAO)
+      await ceder()
+      const ac = lib.acelerato.criarContextoAC(base.ac, base.config.hoje, lib.CALENDARIO_PADRAO)
+      const ctx = { bm, ac }
       // A Visão geral usa uma só data de corte: os dois contextos têm de concordar (review B13).
       if (ctx.bm.hojeIso !== ctx.ac.hojeIso)
         throw new Error(`Datas de corte divergentes: ${ctx.bm.hojeIso} x ${ctx.ac.hojeIso}`)

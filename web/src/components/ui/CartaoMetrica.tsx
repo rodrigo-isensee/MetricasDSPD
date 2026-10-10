@@ -13,6 +13,7 @@ import { AvisoCriterio } from './AvisoCriterio'
 import { BadgeBase } from './BadgeBase'
 import { ChipFiltros, ChipFonte, ChipGranularidade, ChipMeta } from './Chips'
 import { useContextoPainel } from './ContextoPainel'
+import { ALTURAS_ESQUELETO } from './alturasEsqueleto'
 import { ALTURA_ESQUELETO_PADRAO, EsqueletoCartao, useEsqueleto } from './EsqueletoCartao'
 import { EstadoErro } from './EstadoErro'
 import { EstadoVazio } from './EstadoVazio'
@@ -99,6 +100,7 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
   const esq = useEsqueleto(p.estado === 'carregando')
   const estado = esq.mostrar ? 'carregando' : p.estado
   const ok = estado === 'ok'
+  const alturaCorpo = p.alturaEsqueleto ?? ALTURAS_ESQUELETO[p.codigo] ?? ALTURA_ESQUELETO_PADRAO
   const atualizando = ok && !!p.atualizando
 
   useEffect(() => {
@@ -211,7 +213,7 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
           <EsqueletoCartao
             codigo={p.codigo}
             titulo={p.titulo}
-            altura={p.alturaEsqueleto ?? ALTURA_ESQUELETO_PADRAO}
+            altura={alturaCorpo}
             brilho={esq.brilho}
           />
         </div>
@@ -240,28 +242,30 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
             codigo: p.codigo,
           }}
         >
-          {p.leitura && (
-            <p
-              id={idLeitura}
-              className={clsx('mt-2 text-sm font-medium', esmaece)}
-              data-testid={`leitura-${p.codigo}`}
-            >
-              {p.leitura}
-            </p>
-          )}
-          {p.criterios && (
-            <div className="mt-2 flex flex-col gap-2">
-              <AvisoCriterio marcacoes={p.criterios.serie} />
-              <AvisoCriterio
-                marcacoes={p.criterios.janela.filter(
-                  (m) => !p.criterios?.serie.some((s) => s.id === m.id),
-                )}
-                tipo="janela"
-                janela={janelaTxt}
-              />
-            </div>
-          )}
-          <div className={clsx('mt-3', esmaece)}>{p.children}</div>
+          <div className="mt-1" style={{ minHeight: alturaCorpo }}>
+            {p.leitura && (
+              <p
+                id={idLeitura}
+                className={clsx('mt-2 text-sm font-medium', esmaece)}
+                data-testid={`leitura-${p.codigo}`}
+              >
+                {p.leitura}
+              </p>
+            )}
+            {p.criterios && (
+              <div className="mt-2 flex flex-col gap-2">
+                <AvisoCriterio marcacoes={p.criterios.serie} />
+                <AvisoCriterio
+                  marcacoes={p.criterios.janela.filter(
+                    (m) => !p.criterios?.serie.some((s) => s.id === m.id),
+                  )}
+                  tipo="janela"
+                  janela={janelaTxt}
+                />
+              </div>
+            )}
+            <div className={clsx('mt-3', esmaece)}>{p.children}</div>
+          </div>
         </ModoTabelaContext.Provider>
       )}
 
