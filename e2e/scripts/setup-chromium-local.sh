@@ -14,7 +14,7 @@ else FALTAM=(); fi
 if [ "${#FALTAM[@]}" -gt 0 ]; then
   echo "Libs faltando: ${FALTAM[*]}" >&2
   PKGS=$(for l in "${FALTAM[@]}"; do
-    apt-file search "$l" 2>/dev/null | head -1 | cut -d: -f1; done | sort -u | tr '\n' ' ')
+    { apt-file search "$l" 2>/dev/null || true; } | head -1 | cut -d: -f1; done | sort -u | tr '\n' ' ')
   # sem apt-file: usa a lista usual do Chromium
   PKGS="${PKGS:-libnspr4 libnss3 libasound2t64 libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2}"
   (cd "$DEST/debs" && apt-get download $PKGS >&2)
