@@ -1,5 +1,5 @@
 # 0005 - Acesso a dados e migrações: Kysely + SQL versionado
-- Status: aceita (confirmada pelo tech-lead no parecer K-014 r1; de acordo do node-backend pendente)
+- Status: aceita (confirmada pelo tech-lead no parecer K-014 r1; de acordo do node-backend dado em 2026-10-09)
 - Data: 2026-10-09
 - Origem: ata kickoff 002, D13 (Prisma × Kysely + SQL versionado; posição do node-backend e do tech-lead)
 - Substitui, para este projeto, "Prisma como ORM" da skill `node-backend`
@@ -12,7 +12,7 @@ Argumento central (praticas §6, do tech-lead, e D13): o esquema é o artefato r
 ### Divergência registrada (D13)
 - **Posição do node-backend (kickoff):** Prisma (Client + Migrate) com migrações em SQL cru editado à mão. Motivo: é o padrão da skill `node-backend` (time já conhece; Client tipado e Migrate prontos) e o SQL cru cobriria o que a DSL não expressa (colunas geradas, views, `CHECK`, grants). A ata não detalha o argumento: este motivo é a leitura do arquiteto, **a confirmar ou corrigir pelo node-backend** junto com o de acordo.
 - **Resposta (tech-lead, parecer `docs/reviews/002-K-014-r1.md`, que confirma Kysely + SQL):** (1) o Prisma Migrate não tem migração `down`, e praticas §6 exige caminho de volta com CI `up` → `down` → `up`; (2) o `multiSchema` do Prisma não cobre MySQL, e o modelo usa três databases na mesma conexão; (3) com SQL cru o Prisma vira só executor de arquivo, sem ganho sobre o `Migrator` do Kysely; (4) as consultas de carga de contexto cairiam em `$queryRaw` sem tipo.
-- **De acordo do node-backend:** pendente; colher antes do K-017. Discordância com argumento novo reabre esta ADR.
+- **De acordo do node-backend (2026-10-09, K-017):** de acordo com Kysely + SQL versionado. Correção do motivo registrado: a posição original pelo Prisma era a conveniência do padrão da skill, e os quatro argumentos do tech-lead procedem (sem `down`, sem multi-schema MySQL, Prisma reduzido a executor de SQL, `$queryRaw` sem tipo). Detalhe de implementação: no Kysely 0.29 o `Migrator` vem de `kysely/migration`; as migrações são TS com listas `up`/`down` de SQL explícito, registradas num provider estático. Spike pendente de ambiente (sem Docker na máquina do K-017): tabela do `Migrator` em `dspd_core` e `kysely-codegen`; os testes estão prontos em `server/tests/migracoes.mysql.test.ts`.
 - **A provar no spike do R0:** `kysely-codegen` gerando tipos dos três databases; tabela do `Migrator` em `dspd_core` com conexão sem database padrão. Se falhar, plano B abaixo (SQL puro + dbmate/Flyway).
 
 ## Decisão
