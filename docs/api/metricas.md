@@ -1,6 +1,6 @@
 # API de métricas (contrato HTTP)
 
-> **RASCUNHO.** Framework decidido: **Fastify 5** na Lambda `api` (`@fastify/aws-lambda`; contêiner se P14 decidir), com fastify-type-provider-zod 7 e OpenAPI gerado por `@fastify/swagger` 9 dos schemas Zod 4 de `@metricas-dspd/contratos` (ADR 0014, que revisa a 0013). Autenticação ainda depende do SSO (P3; ADR 0009 e ADR 0013 §8). Pontos marcados com [ADR] referem-se à autenticação.
+> **RASCUNHO.** Framework decidido: **Fastify 5** no serviço `api` (imagem de contêiner no Docker Compose local; nuvem adiada; banco PostgreSQL, papel `dspd_api` sem leitura das colunas de pessoa), com fastify-type-provider-zod 7 e OpenAPI gerado por `@fastify/swagger` 9 dos schemas Zod 4 de `@metricas-dspd/contratos` (ADR 0014, que revisa a 0013). Autenticação ainda depende do SSO (P3; ADR 0009 e ADR 0013 §8). Pontos marcados com [ADR] referem-se à autenticação.
 > Dependência: `web/src/contracts/` ainda não está versionado em nenhuma branch nem existe no worktree 002; o contrato só fecha depois que os contratos do front forem commitados e trazidos para o 002 (pacote compartilhado, praticas.md).
 > Fonte dos tipos: `web/src/contracts/` (DTOs zod, `ContratoMetricas`, `FonteMetricas`). Em caso de divergência, vale o zod do front até a ADR fechar; o back reutiliza os mesmos schemas.
 
