@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Métricas complementares 1280 (protótipo)</title>
+<meta name="viewport" content="width=1280, initial-scale=1">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-fundo:#e6effc;--atencao:#8a5a00;--atencao-fundo:#fff4dc}
+*{box-sizing:border-box}body{margin:0;width:1280px;background:var(--fundo);color:var(--texto);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:32px}
+.aviso{background:#8a5a00;color:#fff;padding:8px 24px;font-weight:600}
+header{display:flex;gap:16px;align-items:center;height:56px;padding:0 24px;background:var(--superficie);border-bottom:1px solid var(--borda)}header span{color:var(--texto-2)}header .sp{flex:1}
+main{padding:0 24px}h1{font-size:24px;margin:16px 0 0}h2{font-size:18px;margin:16px 0 8px}h3{font-size:16px;margin:0}.mini{color:var(--texto-2);font-size:12px}a{color:var(--acento)}
+.barra{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--borda);margin-top:8px}
+.bt{display:inline-flex;min-height:32px;align-items:center;gap:4px;border:1px solid var(--borda-controle);border-radius:6px;padding:2px 12px;background:var(--superficie);position:relative}.at{border-color:var(--acento);background:var(--acento-fundo);font-weight:600}
+.pop{position:absolute;top:36px;left:0;width:360px;background:var(--superficie);border:1px solid var(--borda-controle);border-radius:8px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:2;font-weight:400}.pop label{display:flex;gap:8px;min-height:28px}.pop b{display:block;margin-top:8px}
+.cartao{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:16px}.g{display:grid;grid-template-columns:1fr 1fr;gap:16px}.cab{display:flex;justify-content:space-between}
+.graf{height:64px;background:repeating-linear-gradient(90deg,var(--superficie-2) 0 12px,#fff 12px 16px);border-radius:4px;margin-top:8px}
+.num{font-size:28px;font-weight:700}
+details.mais{border:1px solid var(--acento);border-radius:8px;background:var(--superficie);margin-top:16px}details.mais>summary{cursor:pointer;padding:12px 16px;font-weight:700;font-size:16px;min-height:44px}details.mais>div{padding:0 16px 16px}
+.leia{margin-top:8px}.sel{display:inline-block;border:1px solid var(--borda-controle);border-radius:4px;padding:0 6px;font-size:12px;font-weight:600;background:var(--superficie-2)}
+.insuf{border:1px dashed var(--borda-controle);border-radius:6px;padding:8px;background:var(--superficie-2);margin-top:8px}
+table{width:100%;border-collapse:collapse;background:var(--superficie);border:1px solid var(--borda)}th,td{padding:6px 10px;text-align:left;border-top:1px solid var(--borda)}thead{background:var(--superficie-2)}
+</style></head><body>
+<div class="aviso">Protótipo descartável (métricas complementares). Dados fictícios. Largura 1280. A seção "Mais métricas" é disclosure por visita; não é preferência.</div>
+<header><b>Métricas DSPD</b><span>Visão geral</span><b>Operacional</b><span>Tático</span><span>Estratégico</span><span>Sustentação</span><span class="sp"></span><span>Métricas</span><span>Preferências</span><span>Ajuda</span></header>
+<main><h1>Operacional</h1><div class="mini">O trabalho está fluindo? Dados até 09/10/2026 · Fonte: BusinessMap</div>
+<div class="barra"><span class="bt">Equipe: Todas &#9662;</span><span class="bt">Tipo &#9662;</span><span class="bt">Período: 12 semanas &#9662;</span>
+<span class="bt at">&#9776; Métricas: 9 de 9 (+8 complementares) &#9662;
+<span class="pop" role="dialog" aria-label="Métricas deste painel"><fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;padding:0">Métricas deste painel</legend>
+<b>Núcleo</b><label><input type="checkbox" checked>O3 Tempo de ciclo</label><label><input type="checkbox" checked>O4 Vazão semanal</label><span class="mini">... mais 7 do núcleo</span>
+<b>Complementares</b><label><input type="checkbox" checked>O5 Eficiência de fluxo</label><label><input type="checkbox">O6 Índice de previsibilidade</label><label><input type="checkbox" checked>O8 Tamanho das demandas</label><span class="mini">... mais 5 (as "Em breve" não aparecem aqui)</span></fieldset>
+<span class="mini" role="status">Marcar ou desmarcar vale só para esta visita. A seção continua dentro de "Mais métricas".</span></span></span></div>
+<h2>Tempo (núcleo)</h2><div class="g"><div class="cartao"><div class="cab"><h3>O3 Tempo de ciclo</h3></div><p class="mini">Base: 87 itens · P50 4d · P85 9d · P95 15d</p><div class="graf"></div><p class="leia mini">Leia junto: <a href="#mais">O5 Eficiência de fluxo</a> · <a href="#mais">O6 Previsibilidade</a> · <a href="#mais">O8 Tamanho</a></p></div><div class="cartao"><h3>O4 Vazão semanal</h3><p class="mini">Faixa 5 a 11 itens por semana</p><div class="graf"></div></div></div>
+<p class="mini">(demais cartões do núcleo omitidos do desenho)</p>
+
+<details class="mais" id="mais" open><summary>Mais métricas deste painel · 8 complementares &#9662;</summary><div>
+<p class="mini">Aprofundam as perguntas do núcleo. Não entram em "Pede atenção" e não têm meta própria. Fonte: BusinessMap.</p>
+<h2>Por que demora?</h2><div class="g">
+<div class="cartao"><div class="cab"><h3>O5 Eficiência de fluxo</h3><span class="bt">Ocultar esta métrica</span></div><div class="num">28%</div><p class="mini">Base: 87 itens · tempo em execução ÷ ciclo total, sem fila e bloqueio · 12 semanas</p><div class="graf"></div></div>
+<div class="cartao"><div class="cab"><h3>O6 Índice de previsibilidade</h3><span class="bt">Ocultar esta métrica</span></div><div class="num">2,1</div><p class="mini">P85 ÷ P50 do lead time · Base: 87 itens · referência do briefing: abaixo de 2,5</p><div class="graf"></div></div></div>
+<h2>Tamanho e entrada</h2><div class="g">
+<div class="cartao"><div class="cab"><h3>O8 Tamanho das demandas</h3><span class="bt">Ocultar esta métrica</span></div><div class="insuf"><b>Amostra insuficiente:</b> 14 itens. Mínimo 20 para publicar.</div><p class="leia mini">Leia ao lado de O4 e O3. Nunca média isolada.</p></div>
+<div class="cartao"><div class="cab"><h3>O14 Origem da demanda</h3><span class="bt">Ocultar esta métrica</span></div><p class="mini">Volume por área e sistema, decomposto por tipo. Nunca por pessoa.</p><div class="graf"></div></div></div>
+<p class="mini" style="margin-top:12px"><span class="sel">Em breve</span> 4 métricas catalogadas ainda sem dado: O11, O13, O16, O17. <a href="#catalogo">Ver o catálogo</a></p>
+</div></details>
+
+<h2 id="catalogo">Página Catálogo de métricas (/metricas)</h2>
+<div class="mini" style="margin-bottom:8px">Filtros: Painel · Grupo (núcleo, complementar) · Status. Texto de status sempre escrito, não só cor.</div>
+<table><thead><tr><th>ID</th><th>Métrica</th><th>Painel</th><th>Grupo</th><th>Status</th><th>Abrir</th></tr></thead><tbody>
+<tr><td>O5</td><td>Eficiência de fluxo</td><td>Operacional</td><td>Complementar</td><td>Disponível</td><td><a href="#">Ir ao painel</a></td></tr>
+<tr><td>O17</td><td>Causa raiz e concentração</td><td>Operacional</td><td>Complementar</td><td><span class="sel">Em breve</span></td><td>n/a</td></tr>
+<tr><td>T6</td><td>Previsão probabilística</td><td>Tático</td><td>Complementar</td><td>Disponível</td><td><a href="#">Ir ao painel</a></td></tr>
+<tr><td>E5</td><td>Previsão de término (com escopo ao lado)</td><td>Estratégico</td><td>Complementar</td><td><span class="sel">Em breve</span></td><td>n/a</td></tr>
+<tr><td>S8</td><td>Taxa de reabertura</td><td>Sustentação</td><td>Complementar</td><td><span class="sel">Em breve</span></td><td>n/a</td></tr>
+</tbody></table>
+<p class="mini">Tabela abreviada: a página lista as 45 métricas do briefing (núcleo e complementares).</p>
+</main></body></html>
