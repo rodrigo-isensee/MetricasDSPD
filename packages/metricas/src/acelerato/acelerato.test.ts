@@ -6,6 +6,7 @@ import {
   calcularS1,
   calcularS2,
   calcularS4,
+  calcularS5,
   calcularS7,
   criarContextoAC,
   ALVOS_PADRAO,
@@ -86,6 +87,21 @@ const baseDe = (n: number, ajuste?: (i: number) => Partial<Chamado>): BaseAC => 
 }
 
 describe('Acelerato', () => {
+  it('S5 (F2): a base é todo chamado escalado e o sem motivo vira "Não informado"', () => {
+    const ctx = criarContextoAC(
+      baseDe(24, (i) => ({
+        nivel_resolucao: i < 20 ? 'N2' : i < 22 ? 'Fornecedor' : 'N1',
+        motivo_escalacao: i < 18 ? 'Sem conhecimento técnico no N1' : null,
+      })),
+      HOJE,
+      CALENDARIO_PADRAO,
+    )
+    const r = calcularS5(ctx, F)
+    expect(r.base.n).toBe(22)
+    expect(r.naoInformado).toBe(4)
+    expect(r.motivos.reduce((a, m) => a + m.n, 0)).toBe(18)
+  })
+
   it('S1 desconta as pendências do relógio de resolução e mede em horas úteis', () => {
     const ctx = criarContextoAC(baseDe(25), HOJE, CALENDARIO_PADRAO)
     const r = calcularS1(ctx, F)

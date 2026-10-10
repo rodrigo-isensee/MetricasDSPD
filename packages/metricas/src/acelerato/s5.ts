@@ -13,11 +13,14 @@ const p = (k: number, n: number) => {
   return v === null ? null : r2(v)
 }
 
+/** F2: base = chamados resolvidos em N2, N3 ou fornecedor, com ou sem motivo informado. */
+const escalado = (n: string | null) => n === 'N2' || n === 'N3' || n === 'Fornecedor'
+
 /** S5: motivos da escalação (domínio fechado de 5 valores), ordenados por volume, e evolução mensal. */
 export function calcularS5(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS5 {
   const periodo = periodoDe(ctx, f)
   const xs = selecionarAC(ctx, f).filter(
-    (x) => x.c.motivo_escalacao !== null && noP(ctx, x.c.aberto_em, periodo),
+    (x) => escalado(x.c.nivel_resolucao) && noP(ctx, x.c.aberto_em, periodo),
   )
   const meses = mesesEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia)
   return {
@@ -30,6 +33,7 @@ export function calcularS5(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS5 
       }),
       (x) => [-x.n, MOTIVOS_ESCALACAO.indexOf(x.motivo)],
     ),
+    naoInformado: xs.filter((x) => x.c.motivo_escalacao === null).length,
     evolucao: meses.map((b) => {
       const doMes = xs.filter((x) => {
         const d = diaLocal(x.c.aberto_em, ctx.cal)

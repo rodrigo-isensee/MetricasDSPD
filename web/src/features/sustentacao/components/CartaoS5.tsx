@@ -24,6 +24,7 @@ export function CartaoS5({ filtros }: { filtros: FiltrosSustentacao }) {
       evolucao={d?.evolucao ?? []}
       base={d?.base}
       total={d?.base.n ?? 0}
+      {...(d ? { naoInformado: d.naoInformado } : {})}
       foco={FOCO}
       estadoProps={{
         codigo: 'S5',

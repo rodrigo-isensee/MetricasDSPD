@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { FASES_DETECCAO, MOTIVOS_BLOQUEIO } from '@metricas-dspd/contratos'
 import {
   acelerato,
+  calcularMetrica,
   businessmap,
   diaLocal,
   ehDiaUtil,
@@ -212,5 +213,16 @@ describe('invariantes do Acelerato', () => {
     expect(
       base.ac.chamados.slice(0, 500).every((c) => ehDiaUtil(diaLocal(c.aberto_em, cal), cal)),
     ).toBe(true)
+  })
+})
+
+describe('Visão geral: alerta O10_BACKLOG_180 (F3)', () => {
+  it('é gerado se e somente se o backlog tem itens com mais de 180 dias', () => {
+    const bm = businessmap.criarContextoBM(base.bm, base.config.hoje, cal)
+    const ac = acelerato.criarContextoAC(base.ac, base.config.hoje, cal)
+    const f = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } }
+    const acima = businessmap.calcularO10(bm, f).acimaDe180.time
+    const g = calcularMetrica('VISAO_GERAL', {} as never, { bm, ac })
+    expect(g.alertas.some((a) => a.codigo === 'O10_BACKLOG_180')).toBe(acima > 0)
   })
 })

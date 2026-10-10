@@ -8,6 +8,7 @@ import {
   calcularE3,
   calcularEIBM,
   calcularO1,
+  calcularO10,
   calcularO12,
   calcularO2,
   calcularT2,
@@ -51,6 +52,7 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
   const o1 = calcularO1(bm, f12s)
   const bl = calcularBloqueados(bm, f12s)
   const o12 = calcularO12(bm, f12s)
+  const o10 = calcularO10(bm, f12s)
   if (o2.acimaP95 > 0)
     add({
       nivel: 'operacional',
@@ -68,6 +70,15 @@ export function calcularVisaoGeral(bm: ContextoBM, ac: ContextoAC): ResultadoVis
       codigo: 'O1_WIP_ACIMA_LIMITE',
       valor: o1.diasDentroDoLimite.k,
       de: o1.diasDentroDoLimite.n,
+    })
+  if (o10.acimaDe180.time > 0)
+    add({
+      nivel: 'operacional',
+      metrica: 'O10',
+      ancora: 'o10',
+      codigo: 'O10_BACKLOG_180',
+      valor: o10.acimaDe180.time,
+      de: o10.time.n,
     })
   if (o12.vencidosCausaInterna > 0)
     add({

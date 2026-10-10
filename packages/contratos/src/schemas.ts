@@ -676,7 +676,10 @@ const distMotivo = <T extends readonly [string, ...string[]]>(valores: T) =>
       }),
     ),
   })
-export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO)
+export const resultadoS5 = distMotivo(MOTIVOS_ESCALACAO).extend({
+  /** Escalados (N2, N3 ou fornecedor) sem motivo de escalação: "Não informado", nunca inferido. */
+  naoInformado: z.number(),
+})
 export const resultadoS6 = distMotivo(MOTIVOS_ENCERRAMENTO).extend({
   /** Chamados fechados sem motivo de encerramento ("Não informado"). */
   naoInformado: z.number(),

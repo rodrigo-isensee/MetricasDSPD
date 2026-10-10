@@ -1,8 +1,8 @@
-import { useState } from 'react'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras, Dispersao } from '@/components/charts'
 import { AmostraInsuficiente, CartaoMetrica, NumeroGrande, SeletorLocal } from '@/components/ui'
 import { useMetrica } from '@/data'
+import { useParametroLocal } from '@/features/filtros'
 import { propsCartao } from '@/features/tatico/propsCartao'
 import { fmtDiasUteis, fmtInteiro, fmtPct, fmtTrimestre, textoJanela } from '@/lib/formatar'
 import { NOTAS_ESTRATEGICO } from '../notas'
@@ -10,8 +10,9 @@ import { NOTAS_ESTRATEGICO } from '../notas'
 export function CartaoE1({ filtros }: { filtros: FiltrosFluxo }) {
   const q = useMetrica('E1', filtros)
   const d = q.dados
-  const [escolhido, setEscolhido] = useState<string | null>(null)
   const segmentos = d?.segmentos ?? []
+  const chaves = segmentos.map((s) => s.chave)
+  const [escolhido, setEscolhido] = useParametroLocal('e1', chaves, chaves[0] ?? '')
   // Um tipo de projeto por vez: Iniciativa e Melhoria nunca no mesmo cálculo nem gráfico.
   const seg = segmentos.find((s) => s.chave === escolhido) ?? segmentos[0]
   const e = seg?.estatistica

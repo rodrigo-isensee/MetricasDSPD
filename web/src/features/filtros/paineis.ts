@@ -28,7 +28,7 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
     periodoPadrao: '12s',
     periodos: PERIODOS_TODOS,
     personalizado: true,
-    params: [...BASE_FLUXO, 'cadencia', 'o2', 'o3', 'o7', 'o9', 'o10'],
+    params: [...BASE_FLUXO, 'cadencia', 'o2', 'o3', 'o7', 'o9', 'o10', 'ei_fl1'],
   },
   tatico: {
     dominio: 'fluxo',
@@ -36,7 +36,7 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
     periodoPadrao: '12s',
     periodos: PERIODOS_TODOS,
     personalizado: true,
-    params: [...BASE_FLUXO, 't1', 't2', 't4', 't5'],
+    params: [...BASE_FLUXO, 't1', 't2', 't4', 't5', 'ei_fl2'],
   },
   estrategico: {
     dominio: 'fluxo',
@@ -44,7 +44,7 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
     periodoPadrao: '12m',
     periodos: ['6m', '12m'],
     personalizado: false,
-    params: ['sistema', 'periodo'],
+    params: ['sistema', 'periodo', 'e1', 'ei_fl3'],
   },
   'espera-invisivel': {
     dominio: 'fluxo',
@@ -52,7 +52,7 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
     periodoPadrao: '12s',
     periodos: PERIODOS_TODOS,
     personalizado: true,
-    params: [...BASE_FLUXO],
+    params: [...BASE_FLUXO, 'ei_fl1', 'ei_fl2', 'ei_fl3', 'ei_sust'],
   },
   sustentacao: {
     dominio: 'sustentacao',
@@ -60,7 +60,7 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
     periodoPadrao: '6m',
     periodos: PERIODOS_TODOS,
     personalizado: true,
-    params: ['equipe', 'prioridade', 'periodo', 'de', 'ate', 's3', 's5', 's6'],
+    params: ['equipe', 'prioridade', 'periodo', 'de', 'ate', 's3', 's4', 's5', 's6', 'ei_sust'],
   },
 }
 

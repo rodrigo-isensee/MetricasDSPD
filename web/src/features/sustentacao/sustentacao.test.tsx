@@ -122,7 +122,7 @@ describe('painel Sustentação', () => {
   it('S5: cinco motivos do domínio fechado e alternador de evolução', async () => {
     const { el, roteador } = await cartao('S5')
     const t = within(el).getByTestId('tabela-S5-detalhe')
-    expect(within(t).getAllByRole('row')).toHaveLength(6)
+    expect(within(t).getAllByRole('row')).toHaveLength(7) // cabeçalho + 5 motivos + "Não informado"
     expect(
       within(t).getByText(/Sem conhecimento técnico no N1 \(Foco da meta\)/),
     ).toBeInTheDocument()
