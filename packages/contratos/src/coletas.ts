@@ -15,13 +15,15 @@ export const tipoErroColetaSchema = z.enum([
 ])
 export type TipoErroColeta = z.infer<typeof tipoErroColetaSchema>
 
-export const contagensColetaSchema = z.object({
-  lidos: z.number(),
-  novos: z.number(),
-  atualizados: z.number(),
-  arquivadosPreservados: z.number(),
-  excluidosPreservados: z.number(),
-})
+export const contagensColetaSchema = z
+  .object({
+    lidos: z.number(),
+    novos: z.number(),
+    atualizados: z.number(),
+    arquivadosPreservados: z.number(),
+    excluidosPreservados: z.number(),
+  })
+  .strict()
 export type ContagensColeta = z.infer<typeof contagensColetaSchema>
 
 export const eventoColetaSchema = z

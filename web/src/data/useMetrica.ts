@@ -1,9 +1,17 @@
+import { useMemo } from 'react'
 import { keepPreviousData, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
 import type { Dominio, MetricaId } from '@metricas-dspd/contratos'
 import type { FiltrosDe, ResultadoDe } from '@metricas-dspd/contratos'
 import { useFonte } from './FonteMetricasProvider'
-import { aplicarSimulacao, ehErroDePainel, lerModoMock, type ModoMock } from './simulacao'
+import {
+  aplicarSimulacao,
+  aplicarSimulacaoEstado,
+  aplicarSimulacaoHistorico,
+  ehErroDePainel,
+  lerModoMock,
+  type ModoMock,
+} from './simulacao'
 import { ehVazio } from './vazio'
 
 /** Ids que já falharam em `erro-uma-vez`, por cliente de cache: vários cartões da mesma métrica (cartão e faixa) compartilham. */
@@ -83,6 +91,41 @@ export function useCriterios() {
     queryFn: () => fonte.criterios(),
     staleTime: Infinity,
   })
+}
+
+/** Modo `?mock=` efetivo: só vale com a fonte mock. */
+function useModoEfetivo(): ModoMock | null {
+  const fonte = useFonte()
+  const [params] = useSearchParams()
+  return fonte.tipo === 'mock' ? lerModoMock(params.get('mock')) : null
+}
+
+/** Estado de coleta de UMA fonte (selo, calibração, falhas). Chave compartilhada por selo, faixa, cartões e `/dados`. */
+export function useEstadoColeta(dominio: Dominio) {
+  const fonte = useFonte()
+  const modo = useModoEfetivo()
+  return useQuery({
+    queryKey: ['coleta', dominio, modo],
+    queryFn: () => aplicarSimulacaoEstado(modo, dominio, () => fonte.estadoColeta(dominio)),
+  })
+}
+
+/** Histórico paginado de coletas de UMA fonte (20 por página). Mantém a página anterior ao trocar. */
+export function useHistoricoColetas(dominio: Dominio, pagina: number) {
+  const fonte = useFonte()
+  const modo = useModoEfetivo()
+  return useQuery({
+    queryKey: ['coletas', dominio, pagina, modo],
+    queryFn: () =>
+      aplicarSimulacaoHistorico(modo, dominio, () => fonte.historicoColetas(dominio, pagina)),
+    placeholderData: keepPreviousData,
+  })
+}
+
+/** Ids das métricas em calibração na fonte; vazio enquanto carrega ou se a leitura falhar (o painel nunca esconde dados por isso). */
+export function useMetricasEmCalibracao(dominio: Dominio): ReadonlySet<MetricaId> {
+  const { data } = useEstadoColeta(dominio)
+  return useMemo(() => new Set<MetricaId>(data?.metricasEmCalibracao ?? []), [data])
 }
 
 /** O modo simulado da página atual (spec 6.6), ou null. */

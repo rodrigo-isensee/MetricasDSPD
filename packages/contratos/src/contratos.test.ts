@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
   APLICABILIDADE_FLUXO,
+  POR_PAGINA_COLETAS,
+  contagensColetaSchema,
+  estadoColetaSchema,
+  eventoColetaSchema,
+  janelaCalibracaoSchema,
+  paginaColetasSchema,
   EQUIPES_SUSTENTACAO,
   EQUIPES_SUSTENTACAO_ID,
   JANELA_PERCENTIS_PADRAO,
@@ -164,5 +170,57 @@ describe('schemas de resultado', () => {
     expect(versaoCriterioSchema.safeParse({ ...v, afeta: ['ZZ'] }).success).toBe(false)
     expect(alertaCodigo.safeParse('O10_BACKLOG_180').success).toBe(true)
     expect(alertaCodigo.safeParse('QUALQUER').success).toBe(false)
+  })
+})
+
+describe('coletas (integração real)', () => {
+  const contagens = {
+    lidos: 10,
+    novos: 1,
+    atualizados: 2,
+    arquivadosPreservados: 3,
+    excluidosPreservados: 4,
+  }
+  const evento = {
+    id: 'bm-2026-10-08',
+    inicio: '2026-10-08T06:00:00-03:00',
+    fim: '2026-10-08T06:01:00-03:00',
+    duracaoMs: 60000,
+    resultado: 'ok',
+    tipoErro: null,
+    efeito: 'aplicada',
+    contagens,
+  }
+  const estado = {
+    dominio: 'businessmap',
+    selo: 'atual',
+    horasDesdeUltimaOk: 1,
+    ultimaOk: evento,
+    ultimaTentativa: evento,
+    proximaPrevista: '2026-10-09T06:00:00-03:00',
+    falhasRecentes: [],
+    calibracao: [],
+    metricasEmCalibracao: [],
+  }
+
+  it('aceita o formato válido e rejeita campo extra em todos os níveis (nada por pessoa)', () => {
+    expect(contagensColetaSchema.safeParse(contagens).success).toBe(true)
+    expect(contagensColetaSchema.safeParse({ ...contagens, pessoa: 'x' }).success).toBe(false)
+    expect(eventoColetaSchema.safeParse(evento).success).toBe(true)
+    expect(eventoColetaSchema.safeParse({ ...evento, autor: 'x' }).success).toBe(false)
+    expect(estadoColetaSchema.safeParse(estado).success).toBe(true)
+    expect(estadoColetaSchema.safeParse({ ...estado, responsavel: 'x' }).success).toBe(false)
+    const janela = {
+      inicio: '2026-09-15',
+      fim: '2026-11-13',
+      origem: 'inicio-coleta',
+      criterioId: null,
+      metricas: ['S1'],
+    }
+    expect(janelaCalibracaoSchema.safeParse(janela).success).toBe(true)
+    expect(janelaCalibracaoSchema.safeParse({ ...janela, extra: 1 }).success).toBe(false)
+    const pagina = { itens: [evento], pagina: 1, porPagina: POR_PAGINA_COLETAS, total: 1 }
+    expect(paginaColetasSchema.safeParse(pagina).success).toBe(true)
+    expect(paginaColetasSchema.safeParse({ ...pagina, porPagina: 10 }).success).toBe(false)
   })
 })

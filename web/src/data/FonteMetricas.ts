@@ -1,4 +1,10 @@
-import type { Dominio, MetricaId, VersaoCriterio } from '@metricas-dspd/contratos'
+import type {
+  Dominio,
+  EstadoColeta,
+  MetricaId,
+  PaginaColetas,
+  VersaoCriterio,
+} from '@metricas-dspd/contratos'
 import type { OpcoesFiltro } from '@metricas-dspd/contratos'
 import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
 
@@ -18,4 +24,8 @@ export interface FonteMetricas {
   criterios(): Promise<VersaoCriterio[]>
   /** Data de corte (AAAA-MM-DD): "Dados até DD/MM/AAAA". */
   dataReferencia(): Promise<string>
+  /** Estado de coleta de UMA fonte: selo de frescor, janela de calibração e falhas recentes (nunca somadas). */
+  estadoColeta(dominio: Dominio): Promise<EstadoColeta>
+  /** Histórico de coletas de uma fonte, mais recente primeiro, 20 por página (a partir da 1). */
+  historicoColetas(dominio: Dominio, pagina: number): Promise<PaginaColetas>
 }
