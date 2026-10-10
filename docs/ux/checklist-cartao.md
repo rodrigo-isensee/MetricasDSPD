@@ -1,6 +1,6 @@
 # Checklist de UX por cartão
 
-O dev cola este bloco na descrição do cartão do Kanban e marca cada item com evidência (print, teste ou trecho). Revisão de UX só começa com todos marcados ou justificados. Spec: `docs/ux/dashboard-metricas.md` (seções entre parênteses).
+O dev cola este bloco na descrição do cartão do Kanban e marca cada item com evidência (print, teste ou trecho). Revisão de UX só começa com todos marcados ou justificados. Spec: `docs/ux/dashboard-metricas/especificacao.md` (seções entre parênteses).
 
 ```markdown
 ### Checklist UX — <código do cartão, ex.: O3>

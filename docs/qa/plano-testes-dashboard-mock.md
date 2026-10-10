@@ -1,6 +1,6 @@
 # Plano de testes - Dashboard de métricas com dados mockados
 
-Links: especificação de UX `docs/ux/dashboard-metricas.md` (seção 10 = critérios de aceite C1 a C104) · plano técnico `docs/architecture/features/dashboard-mock.md` · ADR `docs/architecture/adr/0001-stack-front-dashboard-mock.md` · pedido `docs/pedidos/001-dashboard-mock.md` · regras invioláveis `CLAUDE.md`. Não há contrato de API (só front-end; a "API" é a interface `FonteMetricas` em `web/src/contracts`).
+Links: especificação de UX `docs/ux/dashboard-metricas/especificacao.md` (seção 10 = critérios de aceite C1 a C104) · plano técnico `docs/architecture/features/dashboard-mock.md` · ADR `docs/architecture/adr/0001-stack-front-dashboard-mock.md` · pedido `docs/pedidos/001-dashboard-mock.md` · regras invioláveis `CLAUDE.md`. Não há contrato de API (só front-end; a "API" é a interface `FonteMetricas` em `web/src/contracts`).
 
 Versão 2 (ver "Revisão 2 — mudanças" abaixo) · 2026-10-09 · autor: `qa-engineer` · status: plano; ferramentas de medição prontas; nenhum E2E de tela executado (o app está na fase A).
 

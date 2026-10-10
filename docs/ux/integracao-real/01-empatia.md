@@ -1,6 +1,6 @@
 # Integração real: empatia
 
-Demanda: substituir o mock por dados reais (BusinessMap, Acelerato). Base: `docs/ux/dashboard-metricas.md` (rev. 3), briefing 7.4 e 6.
+Demanda: substituir o mock por dados reais (BusinessMap, Acelerato). Base: `docs/ux/dashboard-metricas/especificacao.md` (rev. 3), briefing 7.4 e 6.
 Status: discovery adiantado (pedido 006). Tudo o que não está nos documentos é **hipótese (H)** até o usuário confirmar.
 
 ## Personas (as mesmas do painel; o que muda é a confiança no número)

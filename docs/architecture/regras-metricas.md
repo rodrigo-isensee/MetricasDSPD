@@ -2,7 +2,7 @@
 
 - Status: proposta (implementação no cartão K-030, `react-frontend`)
 - Data: 2026-10-09
-- Origem: `docs/alinhamentos/2026-10-09-melhoria-01-fase-a.md` (M-005); decisões provisórias Q1–Q6 em `docs/alinhamentos/2026-10-09-decisoes-review-fase-a.md`; regra de amostra D8 em `docs/ux/dashboard-metricas.md` 4.0.2.
+- Origem: `docs/alinhamentos/2026-10-09-melhoria-01-fase-a.md` (M-005); decisões provisórias Q1–Q6 em `docs/alinhamentos/2026-10-09-decisoes-review-fase-a.md`; regra de amostra D8 em `docs/ux/dashboard-metricas/especificacao.md` 4.0.2.
 
 O objetivo é que as regras do briefing sejam **dados executáveis**: uma matriz `REGRAS_METRICA` com uma linha por `MetricaId`, que parametriza testes de propriedade. Célula que o briefing não responde vale `'pendente-usuario'`; ninguém preenche por inferência.
 
