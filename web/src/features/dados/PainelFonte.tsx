@@ -2,6 +2,7 @@ import type { Dominio } from '@metricas-dspd/contratos'
 import { Botao, EsqueletoCartao, Icone } from '@/components/ui'
 import { useEstadoColeta } from '@/data'
 import { NOME_FONTE } from '@/features/coleta/fontes'
+import { SecoesFonte } from './SecoesFonte'
 
 /** Conteúdo de UMA fonte: carregando, erro com "Tentar de novo", vazio ou as seções (CA-20). */
 export function PainelFonte({ dominio }: { dominio: Dominio }) {
@@ -35,5 +36,5 @@ export function PainelFonte({ dominio }: { dominio: Dominio }) {
         <p className="text-texto-2">A primeira coleta acontece no próximo ciclo diário.</p>
       </div>
     )
-  return <div data-testid={`dados-conteudo-${dominio}`} />
+  return <SecoesFonte estado={q.data} />
 }
