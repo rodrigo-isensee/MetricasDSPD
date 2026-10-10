@@ -1,16 +1,21 @@
 # Preferências de métricas · 05 Validar
 
-Protótipos: `04-prototipo/index.html` (perfil e painel, 1280 e 375). **Ponto de compromisso: nada vai para "Pronto para fazer" sem aprovação do usuário.**
+Protótipos: `docs/ux/figma/prototipos/preferencias-*.html` (perfil e painel, 1280 e 375). Validado pelo usuário em 2026-10-10 14:56 (`docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §6).
 
-## Tarefas
-1. No perfil, ocultar O9 e T5 e conferir a mensagem "Salvo neste navegador".
-2. No Operacional, ocultar O10 pelo botão "Métricas" e depois pelo menu do cartão; desfazer.
-3. Achar quantas métricas estão ocultas e restaurar o padrão.
-4. Abrir o link recebido (com `ocultar`) e entender a faixa; escolher "Usar minhas preferências".
-5. Ler a faixa "Pede atenção" com O2 oculta e chegar ao cartão.
-
-## Perguntas
-Os termos "ocultar" e "métricas" são claros? As predefinições (hipótese) ajudam? O link deve levar a seleção de quem envia (C3)? A Visão geral deve ficar fora do recorte? Pode ocultar todos os cartões de um painel?
+## Roteiro (executado)
+1. Ocultar O9 e T5 no perfil. 2. Ocultar O10 pelo botão "Métricas" e pelo cartão; desfazer. 3. Contar ocultas e restaurar. 4. Abrir link recebido. 5. Ler "Pede atenção" com O2 oculta.
 
 ## Registro do retorno
-_(a preencher pelo usuário)_ Decisão: aprovado / ajustar (voltar à etapa X) / descartar.
+| # | Pergunta | Decisão | Efeito no desenho |
+|---|---|---|---|
+| 1 | Predefinições por papel | Sim: gerente, coordenador, time; ajustável | Deixa de ser hipótese; botões "Gerente / Coordenador / Time" no perfil. Conteúdo de cada conjunto: ver pergunta aberta P-1 |
+| 2 | Alerta de métrica oculta | Continua, com selo e "Mostrar nesta visita" | Mantido |
+| 3 | Visão geral | Sempre completa | Mantido |
+| 4 | Link compartilhado | **Só filtros** (contraria a recomendação C3) | Removido o parâmetro `ocultar` da URL; some o aviso "o link inclui sua seleção" e a faixa "Este link oculta N métricas" |
+| 5 | Ocultar todas de um painel | Permitido | Painel vazio com "Mostrar todas"; alertas e avisos seguem |
+| 6 | Espera invisível ocultável | Sim, nos painéis | Mantido |
+| 7 | Primeiro login com preferências no navegador | Perguntar antes | Diálogo "Usar estas preferências / Começar do padrão do meu papel" |
+
+Decisão: **aprovado com os ajustes acima** (aplicados nos protótipos e na `06-especificacao.md`). Consequência aceita pelo usuário: quem recebe um link não vê o recorte de quem enviou; para compartilhar a visão exata, ver pedido 008 (exportar).
+
+Pendência aberta: P-1 (conteúdo dos conjuntos por papel) está na especificação.

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Exportar métricas 375 (protótipo)</title>
+<meta name="viewport" content="width=375, initial-scale=1">
+<style>
+*{box-sizing:border-box}body{margin:0;width:375px;background:#f6f7f9;color:#1a1f2b;font:14px/1.45 system-ui,Arial,sans-serif}
+.aviso{background:#8a5a00;color:#fff;padding:8px 16px;font-weight:600}.mini{color:#4a5365;font-size:12px}
+.bt{display:flex;min-height:44px;align-items:center;justify-content:center;border:1px solid #6b7488;border-radius:6px;background:#fff;margin-top:8px}.pri{background:#1f5fbf;color:#fff;border-color:#1f5fbf}
+.folha{background:#fff;border-top:1px solid #6b7488;border-radius:12px 12px 0 0;padding:16px;margin-top:240px}
+label{display:flex;gap:8px;min-height:44px;align-items:center}fieldset{border:0;padding:0;margin:0 0 8px}legend{font-weight:700;padding:0}
+</style></head><body>
+<div class="aviso">Protótipo descartável (exportar, folha inferior). Dados fictícios. Largura 375.</div>
+<div style="padding:16px"><b style="font-size:20px">Operacional</b><div class="mini">Painel ao fundo (esmaecido). Botão "Exportar" na barra.</div></div>
+<div class="folha" role="dialog" aria-label="Exportar métricas"><b style="font-size:18px">Exportar métricas</b>
+<fieldset><legend>Métricas</legend><label><input type="checkbox" checked>O3 Tempo de ciclo</label><label><input type="checkbox" checked>O4 Vazão semanal</label><label><input type="checkbox">O9 (oculta; incluir a pedido)</label></fieldset>
+<fieldset><legend>Formato</legend><label><input type="radio" name="f" checked>PDF</label><label><input type="radio" name="f">Imagem PNG</label></fieldset>
+<p class="mini">Inclui base, janela, notas e avisos. Sem nomes de pessoas.</p>
+<div class="bt pri">Gerar arquivo</div><div class="bt">Cancelar</div>
+<p class="mini" role="status">Arquivo pronto. Baixar</p></div></body></html>

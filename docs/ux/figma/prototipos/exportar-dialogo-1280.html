@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Exportar métricas 1280 (protótipo)</title>
+<meta name="viewport" content="width=1280, initial-scale=1">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--controle:#6b7488;--acento:#1f5fbf;--atencao:#8a5a00;--atencao-fundo:#fff4dc}
+*{box-sizing:border-box}body{margin:0;width:1280px;background:var(--fundo);color:var(--texto);font:14px/1.45 system-ui,Arial,sans-serif;padding-bottom:32px}
+.aviso{background:#8a5a00;color:#fff;padding:8px 24px;font-weight:600}
+main{padding:0 24px}h1{font-size:24px;margin:16px 0 8px}.mini{color:var(--texto-2);font-size:12px}
+.bt{display:inline-flex;min-height:32px;align-items:center;border:1px solid var(--controle);border-radius:6px;padding:2px 12px;background:#fff}.pri{background:var(--acento);color:#fff;border-color:var(--acento)}
+.dlg{width:880px;display:grid;grid-template-columns:340px 1fr;gap:16px;background:#fff;border:1px solid var(--controle);border-radius:8px;padding:16px;margin-top:16px}
+label{display:flex;gap:8px;min-height:28px}fieldset{border:0;padding:0;margin:0 0 12px}legend{font-weight:700;padding:0}
+.pag{border:1px solid var(--borda);background:#fff;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.15)}.graf{height:80px;background:repeating-linear-gradient(90deg,#eef1f6 0 12px,#fff 12px 16px);margin:8px 0}
+.fic{background:var(--atencao-fundo);color:var(--atencao);border:1px solid var(--atencao);border-radius:6px;padding:2px 8px;font-weight:600}
+</style></head><body>
+<div class="aviso">Protótipo descartável (exportar métricas). Dados fictícios. Largura 1280. Painel Operacional, semanal, 12 semanas.</div>
+<main><h1>Operacional</h1>
+<p class="mini">Barra do painel: <span class="bt">Equipe</span> <span class="bt">Período</span> <span class="bt">Métricas: 6 de 9</span> <span class="bt pri">Exportar</span> · No cartão: menu "Exportar esta métrica"</p>
+<div class="dlg" role="dialog" aria-label="Exportar métricas">
+<div><h2 style="margin:0 0 8px;font-size:18px">Exportar métricas</h2>
+<fieldset><legend>Métricas (Operacional · BusinessMap)</legend><label><input type="checkbox" checked>O3 Tempo de ciclo</label><label><input type="checkbox" checked>O4 Vazão semanal</label><label><input type="checkbox" checked>O12 Acordos e vencidos</label><label><input type="checkbox">O9 Os três relógios <span class="mini">(oculta; incluir a pedido)</span></label></fieldset>
+<fieldset><legend>Formato</legend><label><input type="radio" name="f" checked>PDF (uma ou mais métricas)</label><label><input type="radio" name="f">Imagem PNG (uma por métrica; várias em .zip)</label></fieldset>
+<p class="mini">O arquivo inclui base, janela, filtros, notas e avisos como você vê na tela. Sem nomes de pessoas.</p>
+<span class="bt pri">Gerar arquivo</span> <span class="bt">Cancelar</span>
+<p class="mini" role="status">Gerando... / Arquivo pronto: metricas-operacional-2026-10-10.pdf. [Baixar]</p></div>
+<div><b>Prévia (A4)</b><div class="pag"><b>Métricas DSPD · Operacional</b> <span class="fic">Dados fictícios</span><div class="mini">Fonte: BusinessMap · Equipe: Todas (consolidado de 6 equipes) · Janela: 18/07 a 09/10/2026 · Gerado em 10/10/2026 14:30</div>
+<h3>O3 Tempo de ciclo</h3><div class="graf"></div><div class="mini">Base: 87 itens concluídos · P50/P85/P95 em dias úteis · Critério alterado em 02/03/2026 (marcado no gráfico)</div>
+<h3>O4 Vazão semanal</h3><div class="graf"></div><div class="mini">Base: 12 semanas · Amostra insuficiente quando houver menos de 20 itens</div>
+<div class="mini" style="margin-top:8px">O sistema não compara equipes nem avalia pessoas. Página 1 de 2</div></div></div>
+</div></main></body></html>
