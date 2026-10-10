@@ -67,7 +67,7 @@ export function CabecalhoPainel({
         <h1 tabIndex={-1} data-foco-rota className="text-2xl font-bold">
           {titulo}
         </h1>
-        <p className="text-sm text-texto-2">
+        <p className="min-h-5 w-full text-sm text-texto-2 sm:w-auto">
           {[dataCorte ? `Dados até ${fmtData(dataCorte)}` : null, fonte ? `Fonte: ${fonte}` : null]
             .filter(Boolean)
             .join(' · ')}
@@ -80,7 +80,8 @@ export function CabecalhoPainel({
         </p>
         {copiarLink && (
           <Botao onClick={() => void copiar()} data-testid="copiar-link" className="text-xs">
-            <Icone nome="link" /> Copiar link desta visão
+            <Icone nome="link" /> Copiar link
+            <span className="sr-only sm:not-sr-only"> desta visão</span>
           </Botao>
         )}
       </div>

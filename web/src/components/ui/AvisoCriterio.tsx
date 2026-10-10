@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { JANELA_PERCENTIS_PADRAO, type MarcacaoCriterio } from '@/contracts/comum'
+import { JANELA_PERCENTIS_PADRAO, type MarcacaoCriterio } from '@metricas-dspd/contratos'
 import { fmtData, textoJanela } from '@/lib/formatar'
 import { Icone } from './Icone'
 

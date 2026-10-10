@@ -1,5 +1,5 @@
-import type { MetricaId } from '@/contracts/comum'
-import { METRICAS_SUSTENTACAO } from '@/contracts/metricas'
+import type { MetricaId } from '@metricas-dspd/contratos'
+import { METRICAS_SUSTENTACAO } from '@metricas-dspd/contratos'
 
 /**
  * Parâmetro oculto `?mock=` (spec de UX 6.6): força estados para validação e QA.

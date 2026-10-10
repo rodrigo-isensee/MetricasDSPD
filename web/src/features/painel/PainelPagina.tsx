@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
-import type { FiltrosFluxo, FiltrosSustentacao } from '@/contracts/filtros'
+import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { useDataReferencia, useErroDePainelSimulado } from '@/data'
 import { BarraFiltros, useFiltros, type PainelId, type UseFiltros } from '@/features/filtros'
 
@@ -15,14 +15,14 @@ interface Base {
 
 type PainelFluxoId = Exclude<PainelId, 'sustentacao'>
 
-function Casca<F>({
+function Casca({
   uso,
   base,
   fonte,
   estrategico,
   children,
 }: {
-  uso: UseFiltros<F>
+  uso: UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
   base: Base
   fonte: string
   estrategico?: boolean
@@ -49,10 +49,7 @@ function Casca<F>({
           {...(base.publico ? { publico: base.publico } : {})}
         />
         {base.extra}
-        <BarraFiltros
-          uso={uso as unknown as Parameters<typeof BarraFiltros>[0]['uso']}
-          {...(estrategico ? { estrategico } : {})}
-        />
+        <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
         {children}
       </div>
     </ProvedorContextoPainel>
@@ -66,14 +63,17 @@ function Casca<F>({
 export function PainelFluxo({
   painel,
   children,
+  fonte = 'BusinessMap',
   ...base
 }: Base & {
+  /** Sobrepõe a fonte do cabeçalho (só a Espera invisível, que reúne os dois sistemas em blocos). */
+  fonte?: string
   painel: PainelFluxoId
   children: (filtros: FiltrosFluxo, uso: UseFiltros<FiltrosFluxo>) => ReactNode
 }) {
   const uso = useFiltros(painel)
   return (
-    <Casca uso={uso} base={base} fonte="BusinessMap" estrategico={painel === 'estrategico'}>
+    <Casca uso={uso} base={base} fonte={fonte} estrategico={painel === 'estrategico'}>
       {children(uso.filtros, uso)}
     </Casca>
   )

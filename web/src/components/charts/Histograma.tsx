@@ -1,4 +1,4 @@
-import type { FaixaHistograma } from '@/contracts/comum'
+import type { FaixaHistograma } from '@metricas-dspd/contratos'
 import { Barras, type CategoriaBarra, type SerieBarra } from './Barras'
 import { PADROES, corNaPosicao } from './tema'
 

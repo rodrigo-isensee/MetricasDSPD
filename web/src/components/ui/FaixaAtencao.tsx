@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { Icone } from './Icone'
 
@@ -19,7 +19,25 @@ export const TITULOS_FAIXA = {
   agora: 'Pede atenção agora',
 } as const
 
+export type EstadoFaixa = 'ok' | 'carregando' | 'erro'
+
+/** Combina as consultas que alimentam a faixa: erro vence carregando, que vence ok. */
+export function estadoFaixa(qs: readonly { estado: string; recarregar?: () => void }[]): {
+  estado: EstadoFaixa
+  recarregar: () => void
+} {
+  const estado = qs.some((q) => q.estado === 'erro')
+    ? 'erro'
+    : qs.some((q) => q.estado === 'carregando')
+      ? 'carregando'
+      : 'ok'
+  return { estado, recarregar: () => qs.forEach((q) => q.recarregar?.()) }
+}
+
 interface Props {
+  /** Enquanto carrega ou com erro, nunca afirma "Nada pede atenção". */
+  estado?: EstadoFaixa
+  onTentarDeNovo?: () => void
   /** Qual dos três títulos da spec 7.3. */
   momento?: keyof typeof TITULOS_FAIXA
   /** Texto livre; sobrepõe `momento`. */
@@ -28,6 +46,8 @@ interface Props {
   vazio?: string
   /** Máximo de itens antes de "Ver todos os alertas (N)". */
   maximo?: number
+  /** Altura (px) da faixa já pronta, em coluna única e em `lg`; reservada enquanto carrega (sem salto, K-050). */
+  reserva?: { mobile: number; desktop: number }
 }
 
 /** "Pede atenção": primeiro o que pede ação. Cada item leva ao cartão; ícone + texto, nunca só cor. */
@@ -37,18 +57,51 @@ export function FaixaAtencao({
   itens,
   vazio = 'Nada pede atenção agora com base nas metas publicadas.',
   maximo,
+  estado = 'ok',
+  onTentarDeNovo,
+  reserva,
 }: Props) {
   const [todos, setTodos] = useState(false)
   const idLista = useId()
+  const reservando = estado === 'carregando' && reserva !== undefined
   const lista = maximo && !todos ? itens.slice(0, maximo) : itens
   return (
     <section
       aria-label={titulo}
-      className="rounded-lg border border-borda bg-superficie p-3"
+      className={`rounded-lg border border-borda bg-superficie p-3${reservando ? ' min-h-[var(--fa-m)] lg:min-h-[var(--fa-d)]' : ''}`}
+      style={
+        reservando
+          ? ({ '--fa-m': `${reserva.mobile}px`, '--fa-d': `${reserva.desktop}px` } as CSSProperties)
+          : undefined
+      }
       data-testid="faixa-atencao"
     >
       <h2 className="text-sm font-bold uppercase tracking-wide text-texto-2">{titulo}</h2>
-      {itens.length === 0 ? (
+      {estado === 'carregando' ? (
+        <p
+          className="mt-2 text-sm text-texto-2"
+          role="status"
+          aria-busy="true"
+          data-testid="faixa-atencao-carregando"
+        >
+          Verificando o que pede atenção…
+        </p>
+      ) : estado === 'erro' ? (
+        <div role="alert" className="mt-2 text-sm" data-testid="faixa-atencao-erro">
+          <p className="flex items-center gap-2 text-alerta">
+            <Icone nome="alerta" /> Não foi possível verificar o que pede atenção.
+          </p>
+          {onTentarDeNovo && (
+            <button
+              type="button"
+              onClick={onTentarDeNovo}
+              className="alvo mt-1 rounded text-acento underline"
+            >
+              Tentar de novo
+            </button>
+          )}
+        </div>
+      ) : itens.length === 0 ? (
         <p className="mt-2 flex items-center gap-2 text-sm text-ok">
           <Icone nome="check" /> {vazio}
         </p>
@@ -83,7 +136,7 @@ export function FaixaAtencao({
           })}
         </ul>
       )}
-      {maximo !== undefined && itens.length > maximo && (
+      {estado === 'ok' && maximo !== undefined && itens.length > maximo && (
         <button
           type="button"
           aria-expanded={todos}

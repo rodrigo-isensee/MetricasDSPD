@@ -19,7 +19,12 @@ export function Secao({
       className="flex flex-col gap-3"
     >
       <div>
-        <h2 id={id ? `${id}-titulo` : undefined} className="text-lg font-bold">
+        <h2
+          id={id ? `${id}-titulo` : undefined}
+          tabIndex={-1}
+          data-cartao-titulo
+          className="text-lg font-bold outline-offset-2"
+        >
           {titulo}
         </h2>
         {pergunta && <p className="text-sm text-texto-2">{pergunta}</p>}

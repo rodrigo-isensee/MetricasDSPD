@@ -1,4 +1,4 @@
-import type { MetricaId } from '@/contracts/comum'
+import type { MetricaId } from '@metricas-dspd/contratos'
 
 export type PainelDaMetrica =
   'operacional' | 'tatico' | 'estrategico' | 'sustentacao' | 'espera-invisivel'
@@ -44,7 +44,7 @@ export const CATALOGO: readonly EntradaCatalogo[] = [
   },
   {
     id: 'BLOQUEADOS',
-    codigo: 'Bloqueados',
+    codigo: 'BLOQUEADOS',
     nome: 'Bloqueados agora',
     pergunta: 'O que está parado esperando alguém e há quanto tempo?',
     painel: 'operacional',

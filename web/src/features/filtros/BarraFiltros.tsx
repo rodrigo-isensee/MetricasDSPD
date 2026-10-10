@@ -2,9 +2,9 @@ import { Dialog } from 'radix-ui'
 import { useRef, useState } from 'react'
 import { Botao, Dica, Icone } from '@/components/ui'
 import { useAlturaCss } from '@/lib/useAlturaCss'
-import type { FiltrosFluxo, FiltrosSustentacao, OpcaoFiltro } from '@/contracts/filtros'
-import { TIPOS_FILTRO } from '@/contracts/comum'
-import { TIPO_ID } from '@/contracts/filtros'
+import type { FiltrosFluxo, FiltrosSustentacao, OpcaoFiltro } from '@metricas-dspd/contratos'
+import { TIPOS_FILTRO } from '@metricas-dspd/contratos'
+import { TIPO_ID } from '@metricas-dspd/contratos'
 import { AvisoFiltrosInvalidos } from './AvisoFiltrosInvalidos'
 import { ChipsFiltros } from './ChipsFiltros'
 import { FiltroMulti } from './FiltroMulti'
@@ -111,6 +111,7 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
   const n = new Set(uso.chips.map((c) => c.chave)).size
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   // Equipes somadas no resultado: seleção, ou todas (padrão) quando o painel tem filtro de equipe.
+  const reservaAviso = uso.config.filtros.includes('equipe') && f.equipe.length === 0 && !uso.opcoes
   const equipes = uso.config.filtros.includes('equipe')
     ? f.equipe.length || (uso.opcoes?.equipes.length ?? 0)
     : 0
@@ -143,7 +144,8 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
   } as Uso
 
   return (
-    <div className="flex flex-col gap-2">
+    // `contents`: a barra sticky precisa do contêiner alto do painel, não deste invólucro (bug 003).
+    <div className="contents">
       <AvisoFiltrosInvalidos invalidos={uso.invalidos} onEntendi={uso.dispensarInvalidos} />
       <div
         ref={barra}
@@ -204,6 +206,12 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
           </Dialog.Root>
         </div>
       </div>
+      {equipes < 2 && reservaAviso && (
+        // Reserva a altura do aviso enquanto as opções não chegam: evita salto de layout (ADR 0003 F2).
+        <p aria-hidden="true" className="invisible text-sm">
+          &nbsp;
+        </p>
+      )}
       {equipes >= 2 && (
         <p className="text-sm text-texto-2" data-testid="aviso-consolidado">
           Resultado consolidado de {equipes} equipes. O sistema não compara equipes.

@@ -184,3 +184,17 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
 }
+
+/* Região rolável na horizontal: sombras nas bordas indicam que há mais conteúdo (K-046). */
+.rolagem-sombra {
+  background:
+    linear-gradient(to right, var(--superficie) 30%, transparent) left center / 24px 100% no-repeat
+      local,
+    linear-gradient(to left, var(--superficie) 30%, transparent) right center / 24px 100% no-repeat
+      local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.28), transparent) left center / 10px 100%
+      no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.28), transparent) right center / 10px
+      100% no-repeat scroll;
+  background-color: var(--superficie);
+}

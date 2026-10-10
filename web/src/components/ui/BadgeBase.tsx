@@ -1,6 +1,6 @@
 import clsx from 'clsx'
-import type { BaseAmostral } from '@/contracts/comum'
-import { MINIMO_AMOSTRA } from '@/contracts/comum'
+import type { BaseAmostral } from '@metricas-dspd/contratos'
+import { MINIMO_AMOSTRA } from '@metricas-dspd/contratos'
 import { fmtData, fmtDataCurta, fmtInteiro } from '@/lib/formatar'
 import { Icone } from './Icone'
 

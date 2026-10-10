@@ -1,4 +1,4 @@
-import { PRIORIDADES, TIPOS_FILTRO, type Prioridade } from '@/contracts/comum'
+import { PRIORIDADES, TIPOS_FILTRO, type Prioridade } from '@metricas-dspd/contratos'
 import {
   EQUIPES_SUSTENTACAO_ID,
   PERIODOS_PADRAO,
@@ -9,7 +9,7 @@ import {
   type OpcoesFiltro,
   type PeriodoPadrao,
   type TipoFiltro,
-} from '@/contracts/filtros'
+} from '@metricas-dspd/contratos'
 import { dataValida } from '@/lib/formatar'
 import { validarPeriodoCustom } from './periodo'
 
@@ -233,4 +233,29 @@ export function paramsDeFluxo(
     de: f.periodo.tipo === 'custom' ? f.periodo.de : null,
     ate: f.periodo.tipo === 'custom' ? f.periodo.ate : null,
   }
+}
+
+/** Texto de busca da URL com vírgulas legíveis (`equipe=a,b`): `URLSearchParams` codifica a vírgula como %2C. */
+export function textoBusca(p: URLSearchParams): string {
+  return p.toString().replaceAll('%2C', ',')
+}
+
+/** Marcar todos os valores de um filtro equivale ao padrão ("Todos"): a lista vira vazia (FIL-04). */
+export function colapsarTodos<F extends FiltrosFluxo | FiltrosSustentacao>(
+  f: F,
+  opcoes: Opcoes,
+  sustentacao: boolean,
+): F {
+  const todos = (sel: readonly string[], validos: readonly string[] | null): boolean =>
+    validos !== null && validos.length > 0 && validos.every((v) => sel.includes(v))
+  const r = { ...f } as FiltrosFluxo & FiltrosSustentacao
+  if (todos(r.equipe, sustentacao ? EQUIPES_SUSTENTACAO_ID : idsDe(opcoes, 'equipes')))
+    r.equipe = []
+  if (sustentacao) {
+    if (todos(r.prioridade, PRIORIDADES)) r.prioridade = []
+  } else {
+    if (todos(r.tipo, TIPOS_FILTRO)) r.tipo = []
+    if (todos(r.sistema, idsDe(opcoes, 'sistemas'))) r.sistema = []
+  }
+  return r as F
 }

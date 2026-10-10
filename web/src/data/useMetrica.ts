@@ -1,11 +1,18 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useRef } from 'react'
+import { keepPreviousData, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
-import type { Dominio, MetricaId } from '@/contracts/comum'
-import type { FiltrosDe, ResultadoDe } from '@/contracts/metricas'
+import type { Dominio, MetricaId } from '@metricas-dspd/contratos'
+import type { FiltrosDe, ResultadoDe } from '@metricas-dspd/contratos'
 import { useFonte } from './FonteMetricasProvider'
 import { aplicarSimulacao, ehErroDePainel, lerModoMock, type ModoMock } from './simulacao'
 import { ehVazio } from './vazio'
+
+/** Ids que já falharam em `erro-uma-vez`, por cliente de cache: vários cartões da mesma métrica (cartão e faixa) compartilham. */
+const falhasSimuladas = new WeakMap<QueryClient, Set<string>>()
+function jaFalhouDo(c: QueryClient): Set<string> {
+  let s = falhasSimuladas.get(c)
+  if (!s) falhasSimuladas.set(c, (s = new Set()))
+  return s
+}
 
 export type EstadoMetrica = 'carregando' | 'erro' | 'vazio' | 'ok'
 
@@ -32,10 +39,10 @@ export function useMetrica<K extends MetricaId>(
   const [params] = useSearchParams()
   // `?mock=` só vale com a fonte mock: contra a API real, o parâmetro é ignorado (6.6).
   const modo = fonte.tipo === 'mock' ? lerModoMock(params.get('mock')) : null
-  const jaFalhou = useRef(new Set<string>())
+  const jaFalhou = jaFalhouDo(useQueryClient())
   const q = useQuery({
     queryKey: ['metrica', id, filtros, modo],
-    queryFn: () => aplicarSimulacao(modo, id, filtros, (f) => fonte.obter(id, f), jaFalhou.current),
+    queryFn: () => aplicarSimulacao(modo, id, filtros, (f) => fonte.obter(id, f), jaFalhou),
     placeholderData: keepPreviousData,
   })
   let estado: EstadoMetrica = 'ok'

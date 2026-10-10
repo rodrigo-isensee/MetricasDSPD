@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { MINIMO_AMOSTRA } from '@/contracts/comum'
+import { MINIMO_AMOSTRA } from '@metricas-dspd/contratos'
 import { Botao } from './Botao'
 import { Icone } from './Icone'
 

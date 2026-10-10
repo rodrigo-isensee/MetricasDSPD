@@ -43,7 +43,7 @@ Equipe, tipo de demanda, sistema e período, conforme o briefing. Sustentação 
 - Acessível (WCAG 2.2 AA), tema claro e escuro, responsivo, navegação por teclado.
 
 ## Fluxo do time
-1. `ux-designer`: especificação completa em `docs/ux/dashboard-metricas.md` (arquitetura de informação, navegação, layout de cada painel, tipo de gráfico de cada métrica e o porquê, estados, microcopy, critérios de aceite).
+1. `ux-designer`: especificação completa em `docs/ux/dashboard-metricas/especificacao.md` (arquitetura de informação, navegação, layout de cada painel, tipo de gráfico de cada métrica e o porquê, estados, microcopy, critérios de aceite).
 2. `software-architect` (enxuto, em paralelo): ADR com a stack do front (biblioteca de gráficos, roteamento, estado de filtros na URL), estrutura do gerador de mock e da biblioteca de cálculo.
 3. `react-frontend`: implementação seguindo a especificação e o ADR, com testes.
 4. `qa-engineer`: E2E com Playwright dos fluxos principais e verificação de acessibilidade com axe.

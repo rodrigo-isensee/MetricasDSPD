@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { AmostraInsuficiente, CartaoMetrica } from '@/components/ui'
-import { Barras } from '@/components/charts'
-import { TIPOS_CARD } from '@/contracts/comum'
-import type { FiltrosFluxo } from '@/contracts/filtros'
-import { APLICABILIDADE_FLUXO } from '@/contracts/metricas'
+import { Barras, marcaDoTipo } from '@/components/charts'
+import { TIPOS_CARD } from '@metricas-dspd/contratos'
+import type { FiltrosFluxo } from '@metricas-dspd/contratos'
+import { APLICABILIDADE_FLUXO } from '@metricas-dspd/contratos'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { useMetrica } from '@/data'
 import { fmtDataCurta, fmtInteiro, semanasDoIntervalo, textoJanela } from '@/lib/formatar'
@@ -33,7 +33,7 @@ export function CartaoO4({ filtros }: { filtros: FiltrosFluxo }) {
 
   const series = porTipo
     ? TIPOS_CARD.filter((t) => d?.semanas.some((s) => s.porTipo.some((p) => p.tipo === t))).map(
-        (t) => ({ chave: t, rotulo: t }),
+        (t) => ({ chave: t, rotulo: t, ...marcaDoTipo(t) }),
       )
     : [{ chave: 'itens', rotulo: 'Itens concluídos', cor: 1 as const }]
 
@@ -49,12 +49,14 @@ export function CartaoO4({ filtros }: { filtros: FiltrosFluxo }) {
             base: d.base,
             criterios: d.criterios,
             baseVariante:
-              faixa?.status === 'insuficiente' ? ('insuficiente' as const) : ('ok' as const),
+              faixa?.status === 'insuficiente' && faixa.n > 0
+                ? ('insuficiente' as const)
+                : ('ok' as const),
           }
         : {})}
       {...(leitura ? { leitura } : {})}
       {...(janela ? { janelaPercentis: janela, periodo: filtros.periodo } : {})}
-      nota={NOTAS_OPERACIONAL.O4 as NonNullable<(typeof NOTAS_OPERACIONAL)[string]>}
+      nota={NOTAS_OPERACIONAL.O4}
       meta={m.meta}
       fonte={m.fonte}
       granularidade={m.granularidade}

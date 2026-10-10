@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 /** Altura reservada do corpo do cartão: gráfico (260 px) + faixa da frase de leitura (spec 6.1: sem salto de layout). */
 export const ALTURA_ESQUELETO_PADRAO = 300
@@ -41,6 +41,8 @@ interface Props {
   codigo: string
   titulo: string
   altura?: number
+  /** Altura em coluna única (abaixo de `lg`); sem ela vale `altura` em todos os tamanhos. */
+  alturaMobile?: number
   atrasoMs?: number
   /** Quando o cartão controla o tempo (useEsqueleto), passa o brilho; sem isto o próprio esqueleto controla. */
   brilho?: boolean
@@ -50,20 +52,32 @@ export function EsqueletoCartao({
   codigo,
   titulo,
   altura = ALTURA_ESQUELETO_PADRAO,
+  alturaMobile,
   atrasoMs = 150,
   brilho,
 }: Props) {
   const proprio = useEsqueleto(brilho === undefined, atrasoMs)
   const visivel = brilho ?? proprio.brilho
+  // Reserva por breakpoint: coluna única abaixo de `lg`, grid de 12 colunas a partir dele.
+  const vars = {
+    '--alt-m': `${alturaMobile ?? altura}px`,
+    '--alt-d': `${altura}px`,
+  } as CSSProperties
+  const reserva = 'min-h-[var(--alt-m)] lg:min-h-[var(--alt-d)]'
   return (
-    <div data-testid={`estado-carregando-${codigo}`} style={{ minHeight: altura }} aria-busy="true">
+    <div
+      data-testid={`estado-carregando-${codigo}`}
+      className={reserva}
+      style={vars}
+      aria-busy="true"
+    >
       <span className="sr-only">
         Carregando {codigo} {titulo}…
       </span>
       <div
         aria-hidden="true"
-        className={visivel ? 'esqueleto h-full rounded-md' : 'rounded-md'}
-        style={{ minHeight: altura }}
+        className={`${visivel ? 'esqueleto h-full rounded-md' : 'rounded-md'} ${reserva}`}
+        style={vars}
         data-visivel={visivel}
       />
     </div>

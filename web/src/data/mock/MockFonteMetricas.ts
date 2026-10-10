@@ -1,21 +1,24 @@
-import type { Dominio, MetricaId, VersaoCriterio } from '@/contracts/comum'
+import type { Dominio, MetricaId, VersaoCriterio } from '@metricas-dspd/contratos'
 import {
   EQUIPES_SUSTENTACAO_ID,
   NOME_EQUIPE_SUSTENTACAO,
   TIPO_ID,
   type OpcoesFiltro,
-} from '@/contracts/filtros'
-import type { ContratoMetricas, ResultadoDe } from '@/contracts/metricas'
-import { TIPOS_FILTRO, PRIORIDADES } from '@/contracts/comum'
+} from '@metricas-dspd/contratos'
+import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
+import { TIPOS_FILTRO, PRIORIDADES } from '@metricas-dspd/contratos'
 import type { FonteMetricas } from '../FonteMetricas'
 
 type Carregado = {
-  ctx: import('@/lib/metrics').ContextosMetricas
-  lib: typeof import('@/lib/metrics')
-  base: import('@/mock').BaseMock
+  ctx: import('@metricas-dspd/metricas').ContextosMetricas
+  lib: typeof import('@metricas-dspd/metricas')
+  base: import('@metricas-dspd/mock').BaseMock
   /** Sorteio da latência: derivado da semente, determinístico. */
   sorteio: () => number
 }
+
+/** Devolve a thread principal ao navegador entre fases pesadas (tarefa longa < 200 ms, ADR 0003 C6). */
+const ceder = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
 
 export interface OpcoesMock {
   semente?: number
@@ -45,15 +48,20 @@ export class MockFonteMetricas implements FonteMetricas {
 
   private carregar(): Promise<Carregado> {
     this.carregado ??= (async () => {
-      const [mock, lib] = await Promise.all([import('@/mock'), import('@/lib/metrics')])
+      const [mock, lib] = await Promise.all([
+        import('@metricas-dspd/mock'),
+        import('@metricas-dspd/metricas'),
+      ])
       const parcial: { semente?: number; hoje?: string } = {}
       if (this.opcoes.semente !== undefined) parcial.semente = this.opcoes.semente
       if (this.opcoes.hoje !== undefined) parcial.hoje = this.opcoes.hoje
+      await ceder()
       const base = mock.gerarBaseMock(parcial)
-      const ctx = {
-        bm: lib.businessmap.criarContextoBM(base.bm, base.config.hoje, lib.CALENDARIO_PADRAO),
-        ac: lib.acelerato.criarContextoAC(base.ac, base.config.hoje, lib.CALENDARIO_PADRAO),
-      }
+      await ceder()
+      const bm = lib.businessmap.criarContextoBM(base.bm, base.config.hoje, lib.CALENDARIO_PADRAO)
+      await ceder()
+      const ac = lib.acelerato.criarContextoAC(base.ac, base.config.hoje, lib.CALENDARIO_PADRAO)
+      const ctx = { bm, ac }
       // A Visão geral usa uma só data de corte: os dois contextos têm de concordar (review B13).
       if (ctx.bm.hojeIso !== ctx.ac.hojeIso)
         throw new Error(`Datas de corte divergentes: ${ctx.bm.hojeIso} x ${ctx.ac.hojeIso}`)

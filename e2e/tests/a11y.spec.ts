@@ -4,7 +4,7 @@ import { test, expect, rodarAxe } from '../fixtures/base';
 
 // Axe WCAG 2.2 AA em todas as rotas e estados, nos dois temas. Escreve o resumo em docs/qa/evidencias/fase-a/axe-resumo.json.
 const ROTAS = ['/', '/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel', '/ajuda', '/rota-inexistente'];
-const ESTADOS = ['/operacional?mock=carregando', '/operacional?mock=erro', '/operacional?mock=erro:o4', '/operacional?mock=vazio'];
+const ESTADOS = ['/operacional?mock=carregando', '/operacional?mock=erro', '/operacional?cadencia=semanal&mock=erro:o4', '/operacional?mock=vazio'];
 const TEMAS = ['light', 'dark'] as const;
 const resumo: Record<string, unknown> = {};
 
@@ -35,7 +35,7 @@ for (const tema of TEMAS) {
 test('A11Y-03 axe com popover de filtro, nota e tabela abertos (dois temas)', async ({ page, painel }) => {
   for (const tema of TEMAS) {
     await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t === 'dark' ? 'escuro' : 'claro'), tema);
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=semanal');
     await painel.cartao('O4').esperarPronto();
     await painel.cartao('O4').abrirNota();
     await painel.cartao('O4').verComoTabela.click();

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import type { StatusMeta as Status } from '@/contracts/comum'
+import type { StatusMeta as Status } from '@metricas-dspd/contratos'
 import { Icone, type NomeIcone } from './Icone'
 
 const CFG: Record<Status, { texto: string; icone: NomeIcone; cor: string }> = {

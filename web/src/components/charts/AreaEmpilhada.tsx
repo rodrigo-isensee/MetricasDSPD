@@ -15,6 +15,7 @@ import { PadroesSvg } from './PadroesSvg'
 import type { PontoSerie } from './SerieLinhas'
 import {
   EIXO,
+  rotuloEixoY,
   PADROES,
   corNaPosicao,
   corSerie,
@@ -98,7 +99,13 @@ export function AreaEmpilhada({
           <PadroesSvg uid={uid} />
           <CartesianGrid stroke={EIXO.grade} strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="__x" tick={EIXO.tick} stroke={EIXO.stroke} tickFormatter={formatarX} />
-          <YAxis tick={EIXO.tick} stroke={EIXO.stroke} tickFormatter={formatar} width={48} />
+          <YAxis
+            tick={EIXO.tick}
+            stroke={EIXO.stroke}
+            tickFormatter={formatar}
+            width={64}
+            label={rotuloEixoY(unidade)}
+          />
           <Tooltip
             content={
               <TooltipTema formatar={(v) => formatar(v)} rotuloX={(x) => formatarX(String(x))} />

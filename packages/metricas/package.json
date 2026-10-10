@@ -1,0 +1,24 @@
+{
+  "name": "@metricas-dspd/metricas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./core": "./src/core/index.ts",
+    "./businessmap": "./src/businessmap/index.ts",
+    "./acelerato": "./src/acelerato/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "TZ=UTC vitest run",
+    "pronto": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@metricas-dspd/contratos": "*"
+  },
+  "devDependencies": {
+    "@metricas-dspd/mock": "*"
+  }
+}

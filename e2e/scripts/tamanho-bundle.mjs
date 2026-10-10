@@ -27,7 +27,7 @@ const saidaJson = opt('--json', null);
 const LIMITE = { F6: 200, F7: 60, F8: 130, F9: 120 }; // KB gzip (ADR 0003)
 
 if (!existsSync(join(dist, 'index.html'))) {
-  console.error(`Sem build em ${dist}. Rode "npm run build" em web/ antes.`);
+  console.error(`Sem build em ${dist}. Rode "npm run build" na raiz antes.`);
   process.exit(2);
 }
 

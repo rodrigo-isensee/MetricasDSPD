@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { RegiaoRolavel } from './RegiaoRolavel'
 
 export interface ColunaTabela {
   chave: string
@@ -30,14 +31,8 @@ export function TabelaDados({
   vazio = 'Sem dados.',
 }: TabelaDadosProps) {
   return (
-    <div
-      role="region"
-      aria-label={`Tabela de ${legenda}, role para os lados`}
-      tabIndex={0}
-      className="max-w-full overflow-x-auto rounded-md border border-borda"
-      data-testid={codigo ? `tabela-${codigo}` : undefined}
-    >
-      <table className="w-full min-w-max border-collapse text-sm">
+    <RegiaoRolavel rotulo={`Tabela de ${legenda}`} testid={codigo ? `tabela-${codigo}` : undefined}>
+      <table className="w-full border-collapse text-sm">
         <caption className="px-3 py-2 text-left text-xs text-texto-2">{legenda}</caption>
         <thead className="bg-superficie-2">
           <tr>
@@ -67,14 +62,14 @@ export function TabelaDados({
                   <th
                     key={c.chave}
                     scope="row"
-                    className="sticky left-0 bg-superficie px-3 py-2 text-left font-medium"
+                    className="sticky left-0 min-w-32 bg-superficie px-3 py-2 text-left font-medium"
                   >
                     {l[c.chave]}
                   </th>
                 ) : (
                   <td
                     key={c.chave}
-                    className={`px-3 py-2 tabular-nums ${c.alinhar === 'direita' ? 'text-right' : ''}`}
+                    className={`min-w-28 px-3 py-2 tabular-nums ${c.alinhar === 'direita' ? 'text-right' : ''}`}
                   >
                     {l[c.chave]}
                   </td>
@@ -84,6 +79,6 @@ export function TabelaDados({
           ))}
         </tbody>
       </table>
-    </div>
+    </RegiaoRolavel>
   )
 }

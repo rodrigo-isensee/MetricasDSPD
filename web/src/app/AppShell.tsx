@@ -93,17 +93,20 @@ export function AppShell() {
       >
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2">
           <div className="flex flex-wrap items-center gap-4">
-            <Link to="/" className="text-lg font-bold text-texto">
+            <Link
+              to="/"
+              className="alvo inline-flex items-center whitespace-nowrap text-lg font-bold text-texto"
+            >
               Métricas DSPD
             </Link>
             <NavegacaoGlobal />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-nowrap items-center gap-2 sm:gap-3">
             <AvisoDadosFicticios />
             <SeletorTema />
             <Link
               to="/ajuda"
-              className="alvo inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-acento underline"
+              className="alvo hidden items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-acento underline md:inline-flex"
             >
               <Icone nome="livro" /> Ajuda
             </Link>

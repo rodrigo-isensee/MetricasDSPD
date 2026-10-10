@@ -9,7 +9,7 @@ module.exports = {
     collect: {
       url: rotas.map((r) => `http://localhost:${PORTA}${r}`),
       numberOfRuns: Number(process.env.LHCI_RUNS || 3), // mediana de 3 execuções por rota
-      startServerCommand: `npm --prefix ../web exec -- vite preview --port ${PORTA} --strictPort`,
+      startServerCommand: `cd ../web && npx vite preview --port ${PORTA} --strictPort`,
       startServerReadyPattern: 'Local',
       startServerReadyTimeout: 60000,
       settings: {

@@ -11,7 +11,7 @@ import {
 import { fmtNumero } from '@/lib/formatar'
 import { GraficoBase } from './GraficoBase'
 import { Legenda, type ItemLegenda } from './Legenda'
-import { EIXO } from './tema'
+import { EIXO, rotuloEixoY } from './tema'
 
 export type FormaPonto = 'circulo' | 'losango' | 'triangulo' | 'anel'
 
@@ -160,7 +160,10 @@ export function Dispersao({
         height="100%"
         initialDimension={{ width: 640, height: altura }}
       >
-        <ScatterChart margin={{ top: 12, right: 16, bottom: 4, left: 4 }}>
+        <ScatterChart
+          accessibilityLayer={false}
+          margin={{ top: 12, right: 16, bottom: 4, left: 4 }}
+        >
           <CartesianGrid stroke={EIXO.grade} strokeDasharray="3 3" />
           <XAxis
             type="number"
@@ -183,7 +186,8 @@ export function Dispersao({
             name={rotuloY}
             tick={EIXO.tick}
             stroke={EIXO.stroke}
-            width={44}
+            width={60}
+            label={rotuloEixoY(rotuloY)}
           />
           <Tooltip
             cursor={false}

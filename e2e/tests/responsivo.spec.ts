@@ -25,7 +25,7 @@ test('RESP-05 largura máxima de 1440 px centralizada em 1920', async ({ page })
 for (const w of [1024, 1100, 1180, 1200]) {
   test(`A7 cabeçalho e barra de filtros sticky sem sobreposição em ${w} px`, async ({ painel, page }) => {
     await page.setViewportSize({ width: w, height: 700 });
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=semanal');
     await painel.cartao('O4').esperarPronto();
     await page.mouse.wheel(0, 600);
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
@@ -51,7 +51,7 @@ for (const w of [1024, 1100, 1180, 1200]) {
 // M6 (UX): rótulos do eixo X do O4 a 320 px não podem colidir.
 test('M6 rótulos do eixo X do O4 a 320 px sem sobreposição e sem rolagem horizontal', async ({ painel, page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=semanal');
   const o4 = painel.cartao('O4');
   await o4.esperarPronto();
   await o4.rolarAte();
@@ -60,7 +60,7 @@ test('M6 rótulos do eixo X do O4 a 320 px sem sobreposição e sem rolagem hori
   const caixas = await ticks.evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: e.textContent }; }));
   test.info().annotations.push({ type: 'ticks', description: JSON.stringify(caixas) });
   const ord = caixas.filter((c) => c.r > c.l).sort((a, b) => a.l - b.l);
-  for (let i = 1; i < ord.length; i++) expect(ord[i].l, `${ord[i - 1].t} x ${ord[i].t}`).toBeGreaterThanOrEqual(ord[i - 1].r - 0.5);
+  for (let i = 1; i < ord.length; i++) expect(ord[i]!.l, `${ord[i - 1]!.t} x ${ord[i]!.t}`).toBeGreaterThanOrEqual(ord[i - 1]!.r - 0.5);
   const sobra = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(sobra).toBeLessThanOrEqual(0);
 });
