@@ -1,6 +1,12 @@
 import { Link, useSearchParams } from 'react-router'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
-import { FaixaAtencao, Secao, SeletorCadencia, type ItemAtencao } from '@/components/ui'
+import {
+  FaixaAtencao,
+  estadoFaixa,
+  Secao,
+  SeletorCadencia,
+  type ItemAtencao,
+} from '@/components/ui'
 import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
@@ -27,9 +33,12 @@ const PERGUNTA: Record<Cadencia, string> = {
 
 /** Itens da faixa "Pede atenção hoje", montados dos DTOs que os cartões já carregam (mesma consulta, sem recálculo). */
 function AtencaoDiaria({ filtros }: { filtros: FiltrosFluxo }) {
-  const o2 = useMetrica('O2', filtros).dados
-  const bl = useMetrica('BLOQUEADOS', filtros).dados
-  const o1 = useMetrica('O1', filtros).dados
+  const qO2 = useMetrica('O2', filtros)
+  const o2 = qO2.dados
+  const qBLOQUEADOS = useMetrica('BLOQUEADOS', filtros)
+  const bl = qBLOQUEADOS.dados
+  const qO1 = useMetrica('O1', filtros)
+  const o1 = qO1.dados
   const itens: ItemAtencao[] = []
   if (o2 && o2.acimaP95 > 0)
     itens.push({
@@ -52,14 +61,18 @@ function AtencaoDiaria({ filtros }: { filtros: FiltrosFluxo }) {
       para: '#o1',
       texto: `WIP ${fmtInteiro(o1.hoje.acimaDoLimite)} acima do limite`,
     })
-  return <FaixaAtencao momento="hoje" itens={itens} />
+  const { estado, recarregar } = estadoFaixa([qO2, qBLOQUEADOS, qO1])
+  return <FaixaAtencao momento="hoje" itens={itens} estado={estado} onTentarDeNovo={recarregar} />
 }
 
 /** Itens da faixa "Pede atenção na semana": backlog parado há mais de 180 dias (O10) e vencidos por causa interna (O12). */
 function AtencaoSemanal({ filtros }: { filtros: FiltrosFluxo }) {
-  const o3 = useMetrica('O3', filtros).dados
-  const o10 = useMetrica('O10', filtros).dados
-  const o12 = useMetrica('O12', filtros).dados
+  const qO3 = useMetrica('O3', filtros)
+  const o3 = qO3.dados
+  const qO10 = useMetrica('O10', filtros)
+  const o10 = qO10.dados
+  const qO12 = useMetrica('O12', filtros)
+  const o12 = qO12.dados
   const itens: ItemAtencao[] = []
   // A decisão "subiu" vem do DTO (variação publicada só com 20 itens ou mais nas duas janelas).
   const subiu = (o3?.classes ?? []).filter(
@@ -88,7 +101,8 @@ function AtencaoSemanal({ filtros }: { filtros: FiltrosFluxo }) {
       para: '#o12',
       texto: `${fmtInteiro(o12.vencidosCausaInterna)} ${plural(o12.vencidosCausaInterna, 'vencido', 'vencidos')} por causa interna`,
     })
-  return <FaixaAtencao momento="semana" itens={itens} />
+  const { estado, recarregar } = estadoFaixa([qO3, qO10, qO12])
+  return <FaixaAtencao momento="semana" itens={itens} estado={estado} onTentarDeNovo={recarregar} />
 }
 
 const SECOES = [

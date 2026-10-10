@@ -1,4 +1,4 @@
-import { FaixaAtencao, Secao, type ItemAtencao } from '@/components/ui'
+import { FaixaAtencao, estadoFaixa, Secao, type ItemAtencao } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
@@ -12,10 +12,14 @@ import { CartaoT7 } from './components/CartaoT7'
 import { CartaoT9 } from './components/CartaoT9'
 
 function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
-  const t2 = useMetrica('T2', filtros).dados
-  const t3 = useMetrica('T3', filtros).dados
-  const t4 = useMetrica('T4', filtros).dados
-  const t9 = useMetrica('T9', filtros).dados
+  const qT2 = useMetrica('T2', filtros)
+  const t2 = qT2.dados
+  const qT3 = useMetrica('T3', filtros)
+  const t3 = qT3.dados
+  const qT4 = useMetrica('T4', filtros)
+  const t4 = qT4.dados
+  const qT9 = useMetrica('T9', filtros)
+  const t9 = qT9.dados
   const itens: ItemAtencao[] = []
   const fora2 = t2?.classes.filter((c) => c.statusMeta === 'fora').length ?? 0
   if (fora2)
@@ -45,7 +49,8 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
       texto: `${t9.projetosComEscopoCrescido} ${t9.projetosComEscopoCrescido === 1 ? 'projeto' : 'projetos'} com escopo crescido`,
       para: '#t9',
     })
-  return <FaixaAtencao momento="semana" itens={itens} />
+  const { estado, recarregar } = estadoFaixa([qT2, qT3, qT4, qT9])
+  return <FaixaAtencao momento="semana" itens={itens} estado={estado} onTentarDeNovo={recarregar} />
 }
 
 export default function TaticoPage() {

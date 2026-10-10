@@ -1,4 +1,4 @@
-import { FaixaAtencao, Secao, type ItemAtencao } from '@/components/ui'
+import { FaixaAtencao, estadoFaixa, Secao, type ItemAtencao } from '@/components/ui'
 import { useMetrica } from '@/data'
 import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { PainelSustentacao } from '@/features/painel/PainelPagina'
@@ -13,8 +13,10 @@ import { CartaoS7 } from './components/CartaoS7'
 
 /** "Pede atenção na semana": S2 abaixo de 90% e S1 com mediana acima do alvo, por prioridade (SUS-01). */
 function Atencao({ filtros }: { filtros: FiltrosSustentacao }) {
-  const s2 = useMetrica('S2', filtros).dados
-  const s1 = useMetrica('S1', filtros).dados
+  const qS2 = useMetrica('S2', filtros)
+  const s2 = qS2.dados
+  const qS1 = useMetrica('S1', filtros)
+  const s1 = qS1.dados
   const itens: ItemAtencao[] = []
   const fora2 =
     s2?.prioridades.filter(
@@ -33,7 +35,8 @@ function Atencao({ filtros }: { filtros: FiltrosSustentacao }) {
       texto: `Mediana acima do alvo em ${fora1} ${fora1 === 1 ? 'prioridade' : 'prioridades'}`,
       para: '#s1',
     })
-  return <FaixaAtencao momento="semana" itens={itens} />
+  const { estado, recarregar } = estadoFaixa([qS2, qS1])
+  return <FaixaAtencao momento="semana" itens={itens} estado={estado} onTentarDeNovo={recarregar} />
 }
 
 export default function SustentacaoPage() {

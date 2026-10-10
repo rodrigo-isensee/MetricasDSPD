@@ -1,4 +1,4 @@
-import { FaixaAtencao, Secao, type ItemAtencao } from '@/components/ui'
+import { FaixaAtencao, estadoFaixa, Secao, type ItemAtencao } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
@@ -8,8 +8,10 @@ import { CartaoE2 } from './components/CartaoE2'
 import { CartaoE3 } from './components/CartaoE3'
 
 function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
-  const e2 = useMetrica('E2', filtros).dados
-  const e3 = useMetrica('E3', filtros).dados
+  const qE2 = useMetrica('E2', filtros)
+  const e2 = qE2.dados
+  const qE3 = useMetrica('E3', filtros)
+  const e3 = qE3.dados
   const itens: ItemAtencao[] = []
   if (e3 && e3.semFicha > 0)
     itens.push({
@@ -19,7 +21,8 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
     })
   if (e2?.statusMeta === 'fora')
     itens.push({ id: 'e2', texto: 'Evolução vinculada a objetivo abaixo da meta', para: '#e2' })
-  return <FaixaAtencao momento="agora" itens={itens} />
+  const { estado, recarregar } = estadoFaixa([qE2, qE3])
+  return <FaixaAtencao momento="agora" itens={itens} estado={estado} onTentarDeNovo={recarregar} />
 }
 
 export default function EstrategicoPage() {

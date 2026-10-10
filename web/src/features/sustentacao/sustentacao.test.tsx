@@ -183,3 +183,29 @@ describe('painel Sustentação', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('faixa "Pede atenção" nos três estados (K-047)', () => {
+  it('carregando: avisa que está verificando e nunca diz "Nada pede atenção"', async () => {
+    renderizarApp('/sustentacao?mock=carregando')
+    const faixa = await screen.findByTestId('faixa-atencao')
+    expect(within(faixa).getByTestId('faixa-atencao-carregando')).toBeInTheDocument()
+    expect(faixa).not.toHaveTextContent('Nada pede atenção')
+  })
+
+  it('erro em uma métrica da faixa: mensagem com "Tentar de novo", sem "Nada pede atenção"', async () => {
+    renderizarApp('/sustentacao?mock=erro:s2')
+    const erro = await screen.findByTestId('faixa-atencao-erro', undefined, { timeout: 8000 })
+    expect(within(erro).getByRole('button', { name: 'Tentar de novo' })).toBeInTheDocument()
+    expect(screen.getByTestId('faixa-atencao')).not.toHaveTextContent('Nada pede atenção')
+  })
+
+  it('sucesso: mostra os itens e nenhum estado de carregando ou erro', async () => {
+    renderizarApp('/sustentacao')
+    const faixa = await screen.findByTestId('faixa-atencao')
+    await waitFor(() => expect(within(faixa).queryAllByRole('link').length).toBeGreaterThan(0), {
+      timeout: 8000,
+    })
+    expect(screen.queryByTestId('faixa-atencao-carregando')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('faixa-atencao-erro')).not.toBeInTheDocument()
+  })
+})
