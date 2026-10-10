@@ -18,3 +18,6 @@ e2e/.auth/
 
 # Builds alternativos
 dist-*/
+
+# Lixo do Lighthouse no WSL
+e2e/C:*
