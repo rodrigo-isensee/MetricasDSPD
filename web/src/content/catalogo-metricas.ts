@@ -1,0 +1,362 @@
+import type { MetricaId } from '@metricas-dspd/contratos'
+
+export type PainelDaMetrica =
+  'operacional' | 'tatico' | 'estrategico' | 'sustentacao' | 'espera-invisivel'
+
+export interface EntradaCatalogo {
+  id: MetricaId
+  /** Código exibido (O2, T9, S1, EI). */
+  codigo: string
+  nome: string
+  /** A pergunta que o cartão responde (spec de UX, seção 4). */
+  pergunta: string
+  painel: PainelDaMetrica
+  fonte: 'BusinessMap' | 'Acelerato'
+  granularidade: 'demanda' | 'frente' | 'projeto' | 'chamado'
+  /** Meta em texto (briefing seção 6). */
+  meta: string
+}
+
+/**
+ * Catálogo do núcleo (nome, pergunta e meta de cada métrica). As notas metodológicas completas
+ * (cinco seções) ficam em `features/<painel>/notas.ts`, escritas por quem implementa o painel.
+ */
+export const CATALOGO: readonly EntradaCatalogo[] = [
+  {
+    id: 'O1',
+    codigo: 'O1',
+    nome: 'Trabalho em progresso e limite',
+    pergunta: 'Estamos começando mais do que conseguimos terminar?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Dentro do limite em 90% dos dias',
+  },
+  {
+    id: 'O2',
+    codigo: 'O2',
+    nome: 'Idade do trabalho em progresso',
+    pergunta: 'Qual item em andamento já passou do tempo esperado e ninguém percebeu?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Nenhum item acima do P95 sem plano de ação',
+  },
+  {
+    id: 'BLOQUEADOS',
+    codigo: 'BLOQUEADOS',
+    nome: 'Bloqueados agora',
+    pergunta: 'O que está parado esperando alguém e há quanto tempo?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Sem meta numérica',
+  },
+  {
+    id: 'O3',
+    codigo: 'O3',
+    nome: 'Tempo de ciclo',
+    pergunta: 'Em quantos dias entregamos, com que grau de confiança?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Reduzir o P85 em 20% no semestre',
+  },
+  {
+    id: 'O4',
+    codigo: 'O4',
+    nome: 'Vazão semanal',
+    pergunta: 'Quantas demandas concluímos por semana, e o quanto isso varia?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Reduzir a amplitude da variação',
+  },
+  {
+    id: 'O7',
+    codigo: 'O7',
+    nome: 'Entrada × saída por tipo',
+    pergunta: 'Em que tipo de demanda estamos acumulando trabalho, mês a mês?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Saída ≥ entrada em cada tipo no acumulado do trimestre',
+  },
+  {
+    id: 'O9',
+    codigo: 'O9',
+    nome: 'Os três relógios do pedido',
+    pergunta:
+      'Quanto o solicitante espera, quanto fica sob nossa gestão e quanto de fato trabalhamos?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Reduzir a distância entre o lead time do cliente e o cycle time',
+  },
+  {
+    id: 'O10',
+    codigo: 'O10',
+    nome: 'Envelhecimento do backlog',
+    pergunta: 'O que está esperando há mais tempo sem nunca ter começado?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Nenhum item acima de 180 dias sem decisão explícita',
+  },
+  {
+    id: 'O12',
+    codigo: 'O12',
+    nome: 'Acordos e vencidos',
+    pergunta: 'Dos prazos que combinamos, quantos vencemos, e de quem foi o atraso?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Zero vencidos por causa interna',
+  },
+  {
+    id: 'O15',
+    codigo: 'O15',
+    nome: 'Onde os bugs são encontrados',
+    pergunta:
+      'Estamos encontrando nossos próprios erros cedo, ou deixando o negócio e a produção encontrarem?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Elevar a contenção e reduzir o escape; sem meta sobre o volume de bugs',
+  },
+  {
+    id: 'O18',
+    codigo: 'O18',
+    nome: 'Entregas com e sem bug',
+    pergunta: 'De tudo que entregamos no mês, quanto saiu limpo?',
+    painel: 'operacional',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Elevar a taxa de entrega limpa mantendo ou aumentando a vazão',
+  },
+  {
+    id: 'T1',
+    codigo: 'T1',
+    nome: 'Lead time ponta a ponta',
+    pergunta: 'Quanto tempo o solicitante realmente espera, e quanto desse tempo sequer é nosso?',
+    painel: 'tatico',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Publicar o lead time por classe e reduzir o tempo de fila',
+  },
+  {
+    id: 'T2',
+    codigo: 'T2',
+    nome: 'Aderência ao SLE',
+    pergunta: 'Estamos cumprindo o que prometemos, e quando falhamos, onde?',
+    painel: 'tatico',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: '85% por classe',
+  },
+  {
+    id: 'T3',
+    codigo: 'T3',
+    nome: 'Alocação da capacidade',
+    pergunta: 'Nossa capacidade está sendo consumida onde acordamos que seria?',
+    painel: 'tatico',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Desvio máximo de 10 pontos percentuais',
+  },
+  {
+    id: 'T4',
+    codigo: 'T4',
+    nome: 'Demanda × capacidade',
+    pergunta: 'A fila está crescendo ou diminuindo?',
+    painel: 'tatico',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Razão entre 0,9 e 1,0 no acumulado do trimestre',
+  },
+  {
+    id: 'T5',
+    codigo: 'T5',
+    nome: 'Demanda de falha',
+    pergunta: 'Quanto do nosso trabalho existe só porque algo antes não foi feito certo?',
+    painel: 'tatico',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: '−15% ao semestre nos dois sistemas mais afetados',
+  },
+  {
+    id: 'T7',
+    codigo: 'T7',
+    nome: 'Fluxo de frentes',
+    pergunta:
+      'Quantas frentes estamos tocando ao mesmo tempo, quanto cada uma leva e quais estão envelhecendo?',
+    painel: 'tatico',
+    fonte: 'BusinessMap',
+    granularidade: 'frente',
+    meta: 'Limite explícito de frentes',
+  },
+  {
+    id: 'T9',
+    codigo: 'T9',
+    nome: 'Avanço real e escopo',
+    pergunta: 'O projeto está de fato onde dizemos que está?',
+    painel: 'tatico',
+    fonte: 'BusinessMap',
+    granularidade: 'projeto',
+    meta: 'Avanço sempre calculado pelos cards filhos, nunca declarado',
+  },
+  {
+    id: 'E1',
+    codigo: 'E1',
+    nome: 'Lead time de projetos',
+    pergunta:
+      'Quanto tempo leva entre decidir fazer algo e esse algo estar em produção, e o gargalo está na execução ou na decisão?',
+    painel: 'estrategico',
+    fonte: 'BusinessMap',
+    granularidade: 'projeto',
+    meta: '−25% da mediana ao ano',
+  },
+  {
+    id: 'E2',
+    codigo: 'E2',
+    nome: 'Capacidade por objetivo estratégico',
+    pergunta: 'A carteira reflete as prioridades declaradas da empresa?',
+    painel: 'estrategico',
+    fonte: 'BusinessMap',
+    granularidade: 'projeto',
+    meta: '≥ 60% da evolução vinculada a objetivos declarados',
+  },
+  {
+    id: 'E3',
+    codigo: 'E3',
+    nome: 'Entrega × resultado',
+    pergunta: 'O que entregamos produziu o efeito que justificou a iniciativa?',
+    painel: 'estrategico',
+    fonte: 'BusinessMap',
+    granularidade: 'projeto',
+    meta: '100% das iniciativas com resultado declarado antes do início',
+  },
+  {
+    id: 'S1',
+    codigo: 'S1',
+    nome: 'Primeiro atendimento e restauração',
+    pergunta:
+      'Quanto tempo levamos para tocar no chamado e para restaurar o serviço, em cada prioridade?',
+    painel: 'sustentacao',
+    fonte: 'Acelerato',
+    granularidade: 'chamado',
+    meta: 'Prazos da matriz Impacto × Urgência',
+  },
+  {
+    id: 'S2',
+    codigo: 'S2',
+    nome: 'Aderência ao SLA',
+    pergunta: 'Cumprimos o prazo de responder e o prazo de restaurar, e em qual deles falhamos?',
+    painel: 'sustentacao',
+    fonte: 'Acelerato',
+    granularidade: 'chamado',
+    meta: 'Acima de 90%',
+  },
+  {
+    id: 'S3',
+    codigo: 'S3',
+    nome: 'Volume mensal por prioridade',
+    pergunta:
+      'Quantos chamados de cada prioridade chegam por mês, e essa distribuição está mudando?',
+    painel: 'sustentacao',
+    fonte: 'Acelerato',
+    granularidade: 'chamado',
+    meta: 'Proporção de P1 e P2 estável',
+  },
+  {
+    id: 'S4',
+    codigo: 'S4',
+    nome: 'Onde o chamado foi resolvido',
+    pergunta: 'Quanto do volume o primeiro nível resolve sozinho, e quanto chega ao especialista?',
+    painel: 'sustentacao',
+    fonte: 'Acelerato',
+    granularidade: 'chamado',
+    meta: 'Sem meta isolada',
+  },
+  {
+    id: 'S5',
+    codigo: 'S5',
+    nome: 'Motivos da escalação',
+    pergunta: 'Por que o chamado saiu do primeiro nível?',
+    painel: 'sustentacao',
+    fonte: 'Acelerato',
+    granularidade: 'chamado',
+    meta: 'Reduzir a escalação por falta de conhecimento técnico no N1',
+  },
+  {
+    id: 'S6',
+    codigo: 'S6',
+    nome: 'Motivos de encerramento',
+    pergunta:
+      'Como os chamados terminam: resolvidos de verdade, contornados ou nem eram incidente?',
+    painel: 'sustentacao',
+    fonte: 'Acelerato',
+    granularidade: 'chamado',
+    meta: 'Acompanhamento contínuo da taxa de contorno',
+  },
+  {
+    id: 'S7',
+    codigo: 'S7',
+    nome: 'Reclassificação',
+    pergunta: 'Quantos chamados tiveram a classificação alterada, e por quê?',
+    painel: 'sustentacao',
+    fonte: 'Acelerato',
+    granularidade: 'chamado',
+    meta: 'Sempre justificada; reduzir a reclassificação de tipo',
+  },
+  {
+    id: 'EI_FL1',
+    codigo: 'EI',
+    nome: 'Espera invisível · Operacional',
+    pergunta:
+      'Quanto do tempo que o solicitante experimenta acontece fora do período em que estávamos efetivamente trabalhando?',
+    painel: 'espera-invisivel',
+    fonte: 'BusinessMap',
+    granularidade: 'demanda',
+    meta: 'Reduzir; acima de 50% a discussão é de fila',
+  },
+  {
+    id: 'EI_FL2',
+    codigo: 'EI',
+    nome: 'Espera invisível · Tático',
+    pergunta:
+      'Quanto do tempo que o solicitante experimenta acontece fora do período em que estávamos efetivamente trabalhando?',
+    painel: 'espera-invisivel',
+    fonte: 'BusinessMap',
+    granularidade: 'frente',
+    meta: 'Reduzir; acima de 50% a discussão é de fila',
+  },
+  {
+    id: 'EI_FL3',
+    codigo: 'EI',
+    nome: 'Espera invisível · Estratégico',
+    pergunta:
+      'Quanto do tempo que o solicitante experimenta acontece fora do período em que estávamos efetivamente trabalhando?',
+    painel: 'espera-invisivel',
+    fonte: 'BusinessMap',
+    granularidade: 'projeto',
+    meta: 'Reduzir; acima de 50% a discussão é de fila',
+  },
+  {
+    id: 'EI_SUST',
+    codigo: 'EI',
+    nome: 'Espera invisível · Sustentação',
+    pergunta:
+      'Quanto do tempo que o solicitante experimenta acontece fora do período em que estávamos efetivamente trabalhando?',
+    painel: 'espera-invisivel',
+    fonte: 'Acelerato',
+    granularidade: 'chamado',
+    meta: 'Reduzir; acima de 50% a discussão é de fila',
+  },
+]
+
+export function entradaDoCatalogo(id: MetricaId): EntradaCatalogo {
+  const e = CATALOGO.find((x) => x.id === id)
+  if (!e) throw new Error(`Métrica fora do catálogo: ${id}`)
+  return e
+}

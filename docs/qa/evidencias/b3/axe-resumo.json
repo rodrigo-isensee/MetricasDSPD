@@ -1,0 +1,94 @@
+{
+ "commit": "e4ccab7",
+ "tags": [
+  "wcag2a",
+  "wcag2aa",
+  "wcag22aa"
+ ],
+ "resultados": {
+  "sustentacao 1280 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "sustentacao 1280 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "sustentacao 375 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "sustentacao 375 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "sustentacao estado-erro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "sustentacao estado-vazio": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "sustentacao estado-carregando": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "espera-invisivel 1280 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "espera-invisivel 1280 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "espera-invisivel 375 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "espera-invisivel 375 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "espera-invisivel estado-erro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "espera-invisivel estado-vazio": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "espera-invisivel estado-carregando": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "visao-geral 1280 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "visao-geral 1280 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "visao-geral 375 claro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "visao-geral 375 escuro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "visao-geral estado-erro": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "visao-geral estado-vazio": {
+   "bloqueantes": [],
+   "informativas": []
+  },
+  "visao-geral estado-carregando": {
+   "bloqueantes": [],
+   "informativas": []
+  }
+ }
+}

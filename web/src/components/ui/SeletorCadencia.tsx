@@ -1,0 +1,60 @@
+import clsx from 'clsx'
+import { useId } from 'react'
+import { Icone } from './Icone'
+
+interface Opcao<V extends string> {
+  valor: V
+  rotulo: string
+}
+
+interface Props<V extends string> {
+  rotulo?: string
+  valor: V
+  onChange: (v: V) => void
+  opcoes: readonly Opcao<V>[]
+}
+
+/** Grupo de rádio segmentado ("Diária / Semanal"). O foco permanece no seletor ao alternar. */
+export function SeletorCadencia<V extends string>({
+  rotulo = 'Cadência',
+  valor,
+  onChange,
+  opcoes,
+}: Props<V>) {
+  const nome = useId()
+  return (
+    <div className="flex flex-wrap items-center gap-2" data-testid="seletor-cadencia">
+      <span aria-hidden="true" className="text-sm font-medium text-texto-2">
+        {rotulo}:
+      </span>
+      <div
+        role="radiogroup"
+        aria-label={rotulo}
+        className="inline-flex overflow-hidden rounded-md border border-borda-controle"
+      >
+        {opcoes.map((o) => (
+          <label
+            key={o.valor}
+            className={clsx(
+              'alvo inline-flex cursor-pointer items-center px-3 py-1.5 text-sm has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-acento',
+              valor === o.valor
+                ? 'bg-acento font-semibold text-acento-texto'
+                : 'bg-superficie text-texto hover:bg-superficie-2',
+            )}
+          >
+            <input
+              type="radio"
+              name={nome}
+              value={o.valor}
+              checked={valor === o.valor}
+              onChange={() => onChange(o.valor)}
+              className="sr-only"
+            />
+            {valor === o.valor && <Icone nome="check" className="mr-1 size-4" />}
+            {o.rotulo}
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}

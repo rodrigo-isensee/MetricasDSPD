@@ -1,0 +1,62 @@
+import type { MetricaId } from '@metricas-dspd/contratos'
+import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
+import * as AC from './acelerato'
+import * as BM from './businessmap'
+import { calcularVisaoGeral } from './visaoGeral'
+
+/** Contexto de cálculo: um por domínio (BusinessMap e Acelerato nunca se misturam). */
+export interface ContextosMetricas {
+  bm: BM.ContextoBM
+  ac: AC.ContextoAC
+}
+
+/**
+ * Despacho tipado: cada métrica recebe exatamente os filtros do seu contrato e devolve o seu
+ * resultado (sem cast). Um `MetricaId` novo sem entrada aqui não compila.
+ */
+const CALCULOS: {
+  [K in MetricaId]: (f: ContratoMetricas[K]['filtros'], c: ContextosMetricas) => ResultadoDe<K>
+} = {
+  O1: (f, c) => BM.calcularO1(c.bm, f),
+  O2: (f, c) => BM.calcularO2(c.bm, f),
+  BLOQUEADOS: (f, c) => BM.calcularBloqueados(c.bm, f),
+  O3: (f, c) => BM.calcularO3(c.bm, f),
+  O4: (f, c) => BM.calcularO4(c.bm, f),
+  O7: (f, c) => BM.calcularO7(c.bm, f),
+  O9: (f, c) => BM.calcularO9(c.bm, f),
+  O10: (f, c) => BM.calcularO10(c.bm, f),
+  O12: (f, c) => BM.calcularO12(c.bm, f),
+  O15: (f, c) => BM.calcularO15(c.bm, f),
+  O18: (f, c) => BM.calcularO18(c.bm, f),
+  T1: (f, c) => BM.calcularT1(c.bm, f),
+  T2: (f, c) => BM.calcularT2(c.bm, f),
+  T3: (f, c) => BM.calcularT3(c.bm, f),
+  T4: (f, c) => BM.calcularT4(c.bm, f),
+  T5: (f, c) => BM.calcularT5(c.bm, f),
+  T7: (f, c) => BM.calcularT7(c.bm, f),
+  T9: (f, c) => BM.calcularT9(c.bm, f),
+  E1: (f, c) => BM.calcularE1(c.bm, f),
+  E2: (f, c) => BM.calcularE2(c.bm, f),
+  E3: (f, c) => BM.calcularE3(c.bm, f),
+  EI_FL1: (f, c) => BM.calcularEIBM(c.bm, f, 'FL1'),
+  EI_FL2: (f, c) => BM.calcularEIBM(c.bm, f, 'FL2'),
+  EI_FL3: (f, c) => BM.calcularEIBM(c.bm, f, 'FL3'),
+  S1: (f, c) => AC.calcularS1(c.ac, f),
+  S2: (f, c) => AC.calcularS2(c.ac, f),
+  S3: (f, c) => AC.calcularS3(c.ac, f),
+  S4: (f, c) => AC.calcularS4(c.ac, f),
+  S5: (f, c) => AC.calcularS5(c.ac, f),
+  S6: (f, c) => AC.calcularS6(c.ac, f),
+  S7: (f, c) => AC.calcularS7(c.ac, f),
+  EI_SUST: (f, c) => AC.calcularEIAcelerato(c.ac, f),
+  VISAO_GERAL: (_f, ctx) => calcularVisaoGeral(ctx.bm, ctx.ac),
+}
+
+/** Despacha uma métrica pelo id. Único ponto de entrada da biblioteca para a fonte mock. */
+export function calcularMetrica<K extends MetricaId>(
+  id: K,
+  filtros: ContratoMetricas[K]['filtros'],
+  ctx: ContextosMetricas,
+): ResultadoDe<K> {
+  return CALCULOS[id](filtros, ctx)
+}
