@@ -14,14 +14,14 @@
     "typecheck": "tsc -b",
     "test": "TZ=UTC vitest run",
     "test:watch": "TZ=UTC vitest",
-    "check": "npm run typecheck && npm test",
+    "check": "pnpm run typecheck && npm test",
     "cobertura": "TZ=UTC vitest run --coverage",
-    "pronto": "npm run typecheck && npm run cobertura && npm run build && npm run size"
+    "pronto": "pnpm run typecheck && pnpm run cobertura && pnpm run build && pnpm run size"
   },
   "dependencies": {
-    "@metricas-dspd/contratos": "*",
-    "@metricas-dspd/metricas": "*",
-    "@metricas-dspd/mock": "*",
+    "@metricas-dspd/contratos": "workspace:*",
+    "@metricas-dspd/metricas": "workspace:*",
+    "@metricas-dspd/mock": "workspace:*",
     "@tanstack/react-query": "^5.104.1",
     "clsx": "^2.1.1",
     "radix-ui": "^1.7.0",

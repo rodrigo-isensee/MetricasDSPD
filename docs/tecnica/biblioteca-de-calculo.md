@@ -179,7 +179,7 @@ Cada propriedade itera a matriz com fast-check sobre a base mock (escala 0,5, se
 | P5 | Embaralhar a entrada não muda a saída nem a ordem | todas | nenhuma |
 | P6 | Nenhuma chave nem valor por pessoa; equipe só como filtro aplicado | todas | nenhuma |
 
-Meta-testes (bloqueiam o `npm run pronto`): a matriz cobre exatamente `METRICA_IDS`; `status` coerente com as células; nenhuma chave proibida na segmentação e T7 temporal (P2); exceção só de id existente e a que a propriedade se aplica (exceção desnecessária esconde regra); fronteira exata 20/19 alcançada em pelo menos 20 métricas; toda métrica exercitada por cada propriedade ou listada como exceção.
+Meta-testes (bloqueiam o `pnpm run pronto`): a matriz cobre exatamente `METRICA_IDS`; `status` coerente com as células; nenhuma chave proibida na segmentação e T7 temporal (P2); exceção só de id existente e a que a propriedade se aplica (exceção desnecessária esconde regra); fronteira exata 20/19 alcançada em pelo menos 20 métricas; toda métrica exercitada por cada propriedade ou listada como exceção.
 
 ```mermaid
 flowchart LR
@@ -187,7 +187,7 @@ flowchart LR
   R --> MT[meta-testes]
   P -->|"exceção nominal com motivo"| E[(lista de exceções)]
   E --> MT
-  MT -->|"falha"| X[npm run pronto vermelho]
+  MT -->|"falha"| X[pnpm run pronto vermelho]
 ```
 
 ## 5. Catálogo das 33 métricas

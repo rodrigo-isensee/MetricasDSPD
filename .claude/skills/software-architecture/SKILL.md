@@ -10,7 +10,7 @@ description: Padrões de arquitetura do projeto - visão C4 em Mermaid, modelo d
 - PostgreSQL como banco principal, acessado via Prisma.
 - Comunicação front ↔ back via REST/JSON versionado (`/api/v1`).
 - Autenticação com sessão em cookie httpOnly (ou JWT de curta duração + refresh, via ADR).
-- Monorepo com npm workspaces: `server/`, `web/`, `e2e/`, `packages/shared` (tipos e schemas zod compartilhados).
+- Monorepo com pnpm workspaces: `server/`, `web/`, `e2e/`, `packages/shared` (tipos e schemas zod compartilhados).
 
 ## Visão geral (`docs/architecture/overview.md`)
 Diagramas C4 nível 1 (contexto) e 2 (containers) em Mermaid:

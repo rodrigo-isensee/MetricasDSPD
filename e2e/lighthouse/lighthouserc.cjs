@@ -1,5 +1,5 @@
 // Lighthouse CI (ADR 0003, F10): Performance >= 90 e Acessibilidade >= 95, perfil desktop, as 6 rotas, sobre `vite preview`.
-// Uso: `npm run lighthouse` (usa scripts/lighthouse.sh: faz build, descobre o Chromium do Playwright e roda o lhci).
+// Uso: `pnpm run lighthouse` (usa scripts/lighthouse.sh: faz build, descobre o Chromium do Playwright e roda o lhci).
 // Chrome: variável CHROME_PATH (o script a preenche com o Chromium do Playwright).
 const PORTA = process.env.LHCI_PORTA || '4175'; // porta própria para não colidir com o preview dos testes (4173/4174)
 const rotas = ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel'];
@@ -9,7 +9,7 @@ module.exports = {
     collect: {
       url: rotas.map((r) => `http://localhost:${PORTA}${r}`),
       numberOfRuns: Number(process.env.LHCI_RUNS || 3), // mediana de 3 execuções por rota
-      startServerCommand: `cd ../web && npx vite preview --port ${PORTA} --strictPort`,
+      startServerCommand: `cd ../web && pnpm exec vite preview --port ${PORTA} --strictPort`,
       startServerReadyPattern: 'Local',
       startServerReadyTimeout: 60000,
       settings: {

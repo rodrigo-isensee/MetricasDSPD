@@ -1,4 +1,4 @@
-# Ambiente local de banco. Uso: npm run db:up | db:down | db:reset | test:mysql
+# Ambiente local de banco. Uso: pnpm run db:up | db:down | db:reset | test:mysql
 x-mysql: &mysql
   image: mysql:8.4
   command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00", "--default-storage-engine=InnoDB"]

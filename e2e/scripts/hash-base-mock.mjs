@@ -38,7 +38,7 @@ for (const base of [join(raiz, 'web'), raiz, join(raiz, 'packages/mock')]) {
   }
 }
 if (!vite) {
-  console.error('Vite não encontrado (rode npm install em web/ ou na raiz).');
+  console.error('Vite não encontrado (rode pnpm install em web/ ou na raiz).');
   process.exit(2);
 }
 

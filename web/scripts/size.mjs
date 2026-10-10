@@ -1,4 +1,4 @@
-// Orçamento de bundle (ADR 0003, F6 a F9). Rode depois do `npm run build`.
+// Orçamento de bundle (ADR 0003, F6 a F9). Rode depois do `pnpm run build`.
 // Classifica os chunks de dist/assets (gzip) em inicial, rota, gráficos e mock/biblioteca.
 import { readdirSync, readFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'

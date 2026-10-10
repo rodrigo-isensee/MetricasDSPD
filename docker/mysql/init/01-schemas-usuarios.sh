@@ -1,6 +1,6 @@
 #!/bin/bash
 # Roda uma vez, na primeira inicialização do volume. Cria os 3 schemas e os usuários por papel.
-# Os GRANTs por tabela (grants.ts) são aplicados depois das migrações: npm run db:migrate.
+# Os GRANTs por tabela (grants.ts) são aplicados depois das migrações: pnpm run db:migrate.
 set -euo pipefail
 mysql -uroot -p"$MYSQL_ROOT_PASSWORD" <<SQL
 CREATE DATABASE IF NOT EXISTS dspd_bm   CHARACTER SET utf8mb4;

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Deixa o Chromium do Playwright rodar sem sudo (WSL/Linux sem libs do sistema):
 # baixa os .deb das libs que faltam, extrai em ~/.local/chromium-libs e imprime o export de LD_LIBRARY_PATH.
-# Uso: eval "$(bash scripts/setup-chromium-local.sh)"   (depois: npx playwright test)
+# Uso: eval "$(bash scripts/setup-chromium-local.sh)"   (depois: pnpm exec playwright test)
 set -euo pipefail
 DEST="${CHROMIUM_LIBS_DIR:-$HOME/.local/chromium-libs}"
 cd "$(dirname "$0")/.."
-npx playwright install chromium >&2
+pnpm exec playwright install chromium >&2
 CHROME="$(ls -d "$HOME"/.cache/ms-playwright/chromium_headless_shell-*/*/chrome-headless-shell 2>/dev/null | tail -1 || true)"
 mkdir -p "$DEST/debs"
 if [ -n "$CHROME" ]; then

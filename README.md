@@ -9,17 +9,17 @@ Node 24 ou superior (`nvm install 24 && nvm use 24`).
 
 ## Rodar
 ```bash
-npm install        # na raiz do monorepo (instala todos os workspaces)
-npm run dev        # na raiz: sobe o painel em http://localhost:5173
+pnpm install        # na raiz do monorepo (instala todos os workspaces)
+pnpm run dev        # na raiz: sobe o painel em http://localhost:5173
 ```
-Também funciona a partir de `web/`: `cd web && npm install && npm run dev`.
+Também funciona a partir de `web/`: `cd web && pnpm install && pnpm run dev`.
 
 ## Banco local (Docker)
-`cp .env.example .env`, depois `npm run db:up && npm run db:migrate && npm run db:seed`; `npm run test:mysql` roda os testes de banco em contêiner descartável. Instalação do Docker no WSL2 e detalhes: `docs/architecture/server.md`.
+`cp .env.example .env`, depois `pnpm run db:up && pnpm run db:migrate && pnpm run db:seed`; `pnpm run test:mysql` roda os testes de banco em contêiner descartável. Instalação do Docker no WSL2 e detalhes: `docs/architecture/server.md`.
 
 ## Verificar
-- `npm run pronto` (raiz): lint, formatação, tipos, testes, build e tamanho do bundle.
-- E2E: `cd e2e && npm run chromium:local` (uma vez, baixa o Chromium local) e depois `npm test`; `npm run gate` para o gate completo.
+- `pnpm run pronto` (raiz): lint, formatação, tipos, testes, build e tamanho do bundle.
+- E2E: `cd e2e && pnpm run chromium:local` (uma vez, baixa o Chromium local) e depois `pnpm test`; `pnpm run gate` para o gate completo.
 
 ## Estrutura
 - `web/`: aplicação React (painéis, componentes, camada de dados). Guia: `web/README-dev.md`.

@@ -577,7 +577,7 @@ describe(`P6: ${P.p6.nome}`, () => {
 })
 
 // ---------------------------------------------------------------------------------------------
-// Meta-testes (bloqueiam o `npm run pronto`)
+// Meta-testes (bloqueiam o `pnpm run pronto`)
 // ---------------------------------------------------------------------------------------------
 describe('meta: toda métrica tem teste, sem exceção órfã', () => {
   it('toda chave de METRICA_IDS está na matriz e a matriz não tem sobra', () => {

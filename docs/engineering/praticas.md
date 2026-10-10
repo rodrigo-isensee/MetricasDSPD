@@ -6,7 +6,7 @@ Base: skill `.claude/skills/engineering-practices/SKILL.md`. Este arquivo preval
 Regras marcadas **[lint]** ou **[CI]** são verificadas por máquina; as demais, no code review.
 
 ## 1. Estrutura e fronteiras
-Estrutura alvo (D2): monorepo com npm workspaces, escopo `@metricas-dspd/*`, pacotes como TS-fonte (sem build próprio), grafo `contratos ← metricas ← mock`. Fonte da verdade: [ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md) (seções "Estrutura" e "Fronteiras garantidas por lint"); a tabela abaixo é o resumo para o dia a dia.
+Estrutura alvo (D2): monorepo com pnpm workspaces, escopo `@metricas-dspd/*`, pacotes como TS-fonte (sem build próprio), grafo `contratos ← metricas ← mock`. Fonte da verdade: [ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md) (seções "Estrutura" e "Fronteiras garantidas por lint"); a tabela abaixo é o resumo para o dia a dia.
 
 | Pacote | Conteúdo | Pode importar |
 |---|---|---|
@@ -82,7 +82,7 @@ Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras
 - Credenciais só em `.env` (nunca versionado); usuário do MySQL do Acelerato somente leitura.
 
 ## 7. Definição de pronto (por cartão)
-1. `npm run check` verde (lint + typecheck + test) e `npm run build` verde: até a extração, em `web/`; depois, na raiz (todos os workspaces). Bundle (F6, F8, F9) e testes de tempo (C2, C3, C4) dentro dos limites de CI.
+1. `pnpm run check` verde (lint + typecheck + test) e `pnpm run build` verde: até a extração, em `web/`; depois, na raiz (todos os workspaces). Bundle (F6, F8, F9) e testes de tempo (C2, C3, C4) dentro dos limites de CI.
 2. Testes cobrindo o comportamento novo e as bordas da seção 4.
 3. Dentro do orçamento de performance.
 4. Parecer **aprovado** do tech-lead em `docs/reviews/<pedido>-<etapa>.md`.
@@ -111,7 +111,7 @@ Parecer: **aprovado** ou **ajustes necessários**, cada item com `arquivo:linha 
 ## 9. Git, commits e PR
 - **Branch de desenvolvimento** (decisão do usuário, substitui a regra "autores não commitam" da D8):
   - `develop` sai da `feature/dashboard-mock` e é onde os devs (`react-frontend`, `node-backend`) commitam, no diretório principal do repositório.
-  - Commits pequenos, um por mudança coerente, em Conventional Commits em português, referenciando o cartão no corpo (`Cartão: K-0xx`). `npm run check` verde antes de **cada** commit (até a extração, em `web/`; depois, na raiz). Mensagem termina com as linhas de atribuição da sessão (`Co-Authored-By:` e `Claude-Session:`).
+  - Commits pequenos, um por mudança coerente, em Conventional Commits em português, referenciando o cartão no corpo (`Cartão: K-0xx`). `pnpm run check` verde antes de **cada** commit (até a extração, em `web/`; depois, na raiz). Mensagem termina com as linhas de atribuição da sessão (`Co-Authored-By:` e `Claude-Session:`).
   - Devs não fazem merge, rebase, reset, amend de commit já revisado nem push; não tocam em outras branches.
   - Docs de UX e de QA (`docs/ux/`, `docs/qa/`, `e2e/`): o próprio autor (`ux-designer`, `qa-engineer`) commita na `develop`, com escopo `ux`, `qa` ou `e2e`. Docs de arquitetura do 002: o `software-architect` commita na `feature/arquitetura-mysql`, no worktree `../MetricasDSPD-002`. Pareceres (`docs/reviews/`), `KANBAN.md`, `docs/engineering/` e arquivos de agentes/skills: commitados pelo tech-lead (ou pelo Jarvis, no caso do quadro e da configuração do time).
   - Review por cartão: o tech-lead revisa o intervalo de commits do cartão (`git log`/`git diff <base>..<último commit do cartão>`) e registra o parecer em `docs/reviews/`. Ajuste de lógica volta ao autor como commit novo `fix(...)` na `develop` (nunca reescrita de histórico).
@@ -136,4 +136,4 @@ Ordem, falhando no primeiro erro, por workspace afetado:
 6. E2E Playwright + axe (projeto `mock`; no 002 também o projeto `api` contra MySQL 8 em container, com teste de paridade mock × seed — D15)
 7. Lighthouse CI desktop (F10: Performance ≥ 90, Acessibilidade ≥ 95) e projeto `perf` do Playwright (F1–F5, C5, C6) na pré-entrega
 
-Até o CI existir, o autor roda 1 a 5 localmente (`npm run check && npm run build && npm run size`) e o QA roda 6 e 7 na máquina de referência.
+Até o CI existir, o autor roda 1 a 5 localmente (`pnpm run check && pnpm run build && pnpm run size`) e o QA roda 6 e 7 na máquina de referência.

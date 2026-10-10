@@ -6,9 +6,10 @@ Versão 1 · 2026-10-10 · Mantido pelo tech-lead (com o software-architect). Re
 
 ```bash
 nvm install 24 && nvm use 24          # engines: node >= 24
-npm install                            # na raiz: instala todos os workspaces
+corepack enable                        # uma vez: habilita o pnpm fixado em packageManager (pnpm 10)
+pnpm install                            # na raiz: instala todos os workspaces
 git config core.hooksPath .githooks    # ativa o pre-push que bloqueia a main
-npm run dev                            # SPA com dados fictícios (Vite)
+pnpm run dev                            # SPA com dados fictícios (Vite)
 ```
 
 Chromium do Playwright (E2E, perf, Lighthouse):
@@ -16,14 +17,14 @@ Chromium do Playwright (E2E, perf, Lighthouse):
 ```bash
 cd e2e && npx playwright install chromium
 # WSL/Linux sem libs do sistema e sem sudo:
-eval "$(bash scripts/setup-chromium-local.sh)"   # ou: npm run chromium:local (imprime o export)
+eval "$(bash scripts/setup-chromium-local.sh)"   # ou: pnpm run chromium:local (imprime o export)
 ```
 
 O `export LD_LIBRARY_PATH` vale só para o shell atual; repita em cada terminal novo. Detalhes em [`docs/qa/gate-do-autor.md`](../qa/gate-do-autor.md).
 
 ## 2. Estrutura do monorepo
 
-npm workspaces, escopo `@metricas-dspd/*`, pacotes em TS-fonte sem build próprio ([ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md)).
+pnpm workspaces, escopo `@metricas-dspd/*`, pacotes em TS-fonte sem build próprio ([ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md)).
 
 | Caminho | Pacote | Conteúdo |
 |---|---|---|
@@ -34,19 +35,19 @@ npm workspaces, escopo `@metricas-dspd/*`, pacotes em TS-fonte sem build própri
 | `e2e/` | `@metricas-dspd/e2e` | Playwright (`tests/`, `pages/`, `perf/`), scripts do gate, Lighthouse |
 | `server/` | `@metricas-dspd/server` | pedido 002 (API, coletores, migrações) |
 
-Grafo permitido: `contratos ← metricas ← mock`; `web` importa `contratos`; `metricas`/`mock` só em `web/src/data/mock/**` por `import()` dinâmico. Fronteiras verificadas por lint e por `npm run fronteiras`.
+Grafo permitido: `contratos ← metricas ← mock`; `web` importa `contratos`; `metricas`/`mock` só em `web/src/data/mock/**` por `import()` dinâmico. Fronteiras verificadas por lint e por `pnpm run fronteiras`.
 
 ## 3. Scripts
 
 | Comando | Onde | O que faz |
 |---|---|---|
-| `npm run pronto` | raiz | lint + Prettier + `pronto` de cada workspace (typecheck + testes; no `web`, também build e `size`). **Rode antes de cada commit.** |
-| `npm run check` | raiz | lint + typecheck + testes + format:check |
-| `npm run gate` | `e2e/` | gate do autor: fronteiras BM x AC, hash da base mock e tamanho do bundle; termina em `GATE DO AUTOR: APROVADO\|REPROVADO`. Exige `npm run build` antes |
-| `npm run test:perf` | `e2e/` | projeto `perf` do Playwright (LCP, CLS, INP, troca de filtro, tarefas longas), contra `vite preview` |
-| `npm run lighthouse` | `e2e/` | Lighthouse desktop (Performance >= 90, Acessibilidade >= 95) |
-| `npm run e2e` / `npm run test:chromium` | raiz / `e2e/` | suíte E2E completa / só Chromium e semente alternativa |
-| `npm run hash-base -- --salvar <arq>` | `e2e/` | regenera a referência da base mock (só com decisão registrada no cartão) |
+| `pnpm run pronto` | raiz | lint + Prettier + `pronto` de cada workspace (typecheck + testes; no `web`, também build e `size`). **Rode antes de cada commit.** |
+| `pnpm run check` | raiz | lint + typecheck + testes + format:check |
+| `pnpm run gate` | `e2e/` | gate do autor: fronteiras BM x AC, hash da base mock e tamanho do bundle; termina em `GATE DO AUTOR: APROVADO\|REPROVADO`. Exige `pnpm run build` antes |
+| `pnpm run test:perf` | `e2e/` | projeto `perf` do Playwright (LCP, CLS, INP, troca de filtro, tarefas longas), contra `vite preview` |
+| `pnpm run lighthouse` | `e2e/` | Lighthouse desktop (Performance >= 90, Acessibilidade >= 95) |
+| `pnpm run e2e` / `pnpm run test:chromium` | raiz / `e2e/` | suíte E2E completa / só Chromium e semente alternativa |
+| `pnpm run hash-base --salvar <arq>` | `e2e/` | regenera a referência da base mock (só com decisão registrada no cartão) |
 
 Testes unitários rodam com `TZ=UTC` (já nos scripts): nunca dependem do fuso nem da hora da máquina.
 
@@ -109,14 +110,14 @@ Pré-requisito: a métrica está no catálogo do briefing e tem especificação 
 4. **Testes.** Unitários no domínio (`<dominio>.test.ts`) com as bordas da `praticas.md` seção 4 (n = 19/20, janela, fim de semana e feriado, item arquivado). Casos de aceitação do QA em `docs/qa/aceitacao/<cartão>.md` viram Vitest no mesmo cartão. Se a base mock mudar, o hash muda: decisão registrada no cartão.
 5. **Cartão no painel.** `web/src/features/<painel>/components/Cartao<ID>.tsx`, montado com `CartaoMetrica` e os componentes de `components/ui` (estado vazio, erro, `AmostraInsuficiente`, `AvisoCriterio`, `AlternarTabela`) e gráficos de `components/charts`. Dados por `useMetrica('<ID>', filtros)`; o cartão **não calcula**. Entrada no `content/catalogo-metricas.ts` e nota em `notas.ts` do painel. Teste de UI no `<painel>.test.tsx`.
 6. **Documentação.** Atualize `docs/tecnica/` (biblioteca e front) e, com back, `docs/architecture/` + `docs/api/`; confira `docs/ux/` com o ux-designer. Faz parte da definição de pronto.
-7. **Aceitação.** `npm run pronto` e `npm run gate` verdes, saída colada no cartão; move para Code review.
+7. **Aceitação.** `pnpm run pronto` e `pnpm run gate` verdes, saída colada no cartão; move para Code review.
 
 ## 7. Como criar um painel
 
 1. Especificação em `docs/ux/` e plano em `docs/architecture/features/`.
 2. Pasta `web/src/features/<painel>/` com `<Painel>Page.tsx` usando `PainelPagina` (cabeçalho, filtros, contexto), `components/`, `notas.ts` e teste.
 3. Rota em `web/src/app/router.tsx` e destino em `web/src/app/rotas.ts` (`fluxo: true` para BusinessMap); filtros do painel em `features/filtros/paineis.ts`.
-4. Carga lazy da rota (orçamento de bundle do ADR 0003; confira com `npm run size`).
+4. Carga lazy da rota (orçamento de bundle do ADR 0003; confira com `pnpm run size`).
 5. E2E e axe pelo QA em `e2e/tests/`; perf em `e2e/perf/` se a rota entrar no orçamento.
 
 ## 8. Convenções (resumo)
@@ -127,9 +128,12 @@ TypeScript estrito sem `enum`, `namespace` nem `any`; tempo e aleatoriedade inje
 
 | Sintoma | Causa provável | Solução |
 |---|---|---|
-| E2E ou perf testam código antigo | `vite preview` velho na porta 4173 é reaproveitado (`reuseExistingServer` fora do CI) | `fuser -k 4173/tcp` (ou `lsof -ti:4173 \| xargs kill`), `npm run build` e rode de novo |
+| E2E ou perf testam código antigo | `vite preview` velho na porta 4173 é reaproveitado (`reuseExistingServer` fora do CI) | `fuser -k 4173/tcp` (ou `lsof -ti:4173 \| xargs kill`), `pnpm run build` e rode de novo |
 | `error while loading shared libraries: libnss3.so` (WSL) | Chromium sem libs do sistema | `cd e2e && eval "$(bash scripts/setup-chromium-local.sh)"` no mesmo shell |
-| Falha intermitente de C6 (tarefa longa), O1 a frio ou F5 | testes de tempo sob carga (suíte inteira em paralelo, máquina ocupada) | rode isolado: `npm run test:perf` sem outra suíte; reporte se persistir, **nunca** pule o teste |
+| Falha intermitente de C6 (tarefa longa), O1 a frio ou F5 | testes de tempo sob carga (suíte inteira em paralelo, máquina ocupada) | rode isolado: `pnpm run test:perf` sem outra suíte; reporte se persistir, **nunca** pule o teste |
 | C5 (heap) retorna NaN | `JSHeapUsedSize` não vem do headless-shell | conhecido; tratado como alerta no relatório do QA |
-| `npm run gate` reprova no hash | base mock mudou | se não era intencional, investigue; se era, `npm run hash-base -- --salvar ...` e decisão no cartão |
+| `pnpm run gate` reprova no hash | base mock mudou | se não era intencional, investigue; se era, `pnpm run hash-base --salvar ...` e decisão no cartão |
 | Teste passa local e falha em outro fuso | dependência de `Date` local | use os scripts (`TZ=UTC`) e passe data de referência por parâmetro |
+
+## Dependências e vulnerabilidades (K-065)
+pnpm workspaces; versão do pnpm em `packageManager` (Corepack). `pnpm install --frozen-lockfile` no CI. Correções de segurança via `overrides` em `pnpm-workspace.yaml` (tmp, uuid, basic-ftp). Alertas sem versão corrigida publicada, justificados: `extract-zip` e `sprintf-js`, ambos transitivos de `@lhci/cli`/Playwright (só desenvolvimento, fora do bundle e do servidor).

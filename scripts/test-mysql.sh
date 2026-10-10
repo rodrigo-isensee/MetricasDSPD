@@ -8,4 +8,4 @@ command -v docker >/dev/null || { echo "Docker não encontrado (veja docs/archit
 trap 'docker compose --profile test rm -sfv mysql-test >/dev/null' EXIT
 docker compose --profile test up -d --wait mysql-test || exit 1
 MYSQL_TEST_URL="mysql://root:${MYSQL_ROOT_PASSWORD}@127.0.0.1:${MYSQL_TEST_PORT:-3307}" \
-  npm test -w @metricas-dspd/server
+  pnpm --filter @metricas-dspd/server test

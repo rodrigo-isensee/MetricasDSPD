@@ -6,27 +6,21 @@
   "engines": {
     "node": ">=24"
   },
-  "workspaces": [
-    "packages/*",
-    "server",
-    "web",
-    "e2e"
-  ],
   "scripts": {
-    "dev": "npm run dev -w @metricas-dspd/web",
-    "build": "npm run build -w @metricas-dspd/web",
+    "dev": "pnpm --filter @metricas-dspd/web dev",
+    "build": "pnpm --filter @metricas-dspd/web build",
     "lint": "eslint .",
-    "typecheck": "npm run typecheck -w @metricas-dspd/contratos -w @metricas-dspd/metricas -w @metricas-dspd/mock -w @metricas-dspd/web -w @metricas-dspd/server && npm exec -w e2e -- tsc --noEmit",
-    "test": "npm test --workspaces --if-present",
+    "typecheck": "pnpm --filter @metricas-dspd/contratos --filter @metricas-dspd/metricas --filter @metricas-dspd/mock --filter @metricas-dspd/web --filter @metricas-dspd/server run typecheck && pnpm --filter @metricas-dspd/e2e exec tsc --noEmit",
+    "test": "pnpm -r --if-present test",
     "format": "prettier --write web packages eslint.config.js tsconfig.base.json package.json",
     "format:check": "prettier --check web packages eslint.config.js tsconfig.base.json package.json",
-    "check": "npm run lint && npm run typecheck && npm test && npm run format:check",
-    "pronto": "npm run lint && npm run format:check && npm run pronto --workspaces --if-present",
-    "cobertura": "npm run cobertura --workspaces --if-present",
-    "e2e": "npm test -w @metricas-dspd/e2e",
+    "check": "pnpm run lint && pnpm run typecheck && pnpm test && pnpm run format:check",
+    "pronto": "pnpm run lint && pnpm run format:check && pnpm -r --if-present run pronto",
+    "cobertura": "pnpm -r --if-present run cobertura",
+    "e2e": "pnpm --filter @metricas-dspd/e2e test",
     "db:up": "docker compose up -d --wait mysql",
     "db:down": "docker compose down",
-    "db:reset": "docker compose down -v && npm run db:up",
+    "db:reset": "docker compose down -v && pnpm run db:up",
     "db:migrate": "bash scripts/db.sh migrate",
     "db:seed": "bash scripts/db.sh seed",
     "test:mysql": "bash scripts/test-mysql.sh"
@@ -44,5 +38,6 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"
-  }
+  },
+  "packageManager": "pnpm@10.34.6"
 }

@@ -10,9 +10,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run lint && npm run test",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run test",
     "migrate": "tsx src/db/cli.ts",
-    "pronto": "npm run typecheck && npm run lint && npm test",
+    "pronto": "pnpm run typecheck && pnpm run lint && pnpm test",
     "cobertura": "vitest run --coverage",
     "seed": "tsx src/db/seed-cli.ts",
     "grants": "tsx src/db/grants-cli.ts"
@@ -20,9 +20,9 @@
   "dependencies": {
     "kysely": "^0.29.6",
     "mysql2": "^3.11.0",
-    "@metricas-dspd/contratos": "*",
-    "@metricas-dspd/metricas": "*",
-    "@metricas-dspd/mock": "*"
+    "@metricas-dspd/contratos": "workspace:*",
+    "@metricas-dspd/metricas": "workspace:*",
+    "@metricas-dspd/mock": "workspace:*"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.3",

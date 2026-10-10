@@ -2,7 +2,7 @@
 
 Base pronta: biblioteca de cálculo, gerador de dados fictícios, camada de dados, shell, filtros na URL, componentes e gráficos. **Painéis só consomem `useMetrica` e os componentes**: não calculam nada.
 
-Comandos (na raiz do monorepo): `npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run build` · `npm run check` (lint + typecheck + testes + prettier) · `npm run pronto` (tudo, em todos os workspaces).
+Comandos (na raiz do monorepo): `pnpm run dev` · `pnpm run lint` · `pnpm run typecheck` · `pnpm test` · `pnpm run build` · `pnpm run check` (lint + typecheck + testes + prettier) · `pnpm run pronto` (tudo, em todos os workspaces).
 Latência simulada do mock: 150 a 400 ms por chamada (sorteio determinístico); `VITE_MOCK_LATENCIA=0` zera (E2E, medição).
 Parâmetro oculto para validação: `?mock=carregando|erro|vazio|erro:<id>` (ex.: `?mock=erro:o3`); também `erro-uma-vez:<ids>` e listas por vírgula. Só vale com a fonte mock e nunca vai em links.
 
