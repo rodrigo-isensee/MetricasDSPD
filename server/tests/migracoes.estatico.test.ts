@@ -6,6 +6,32 @@ import { gerarGrants } from '../src/db/grants.js';
 const nomes = Object.keys(MIGRACOES);
 const todoSql = nomes.flatMap((n) => MIGRACOES[n]!.ddl.up);
 
+/** Extrai (tabela, coluna) de cada CREATE TABLE: separa definições por vírgula de nível 0 e ignora chaves/índices. */
+function todasColunas(sqls: string[]): { tabela: string; coluna: string }[] {
+  const out: { tabela: string; coluna: string }[] = [];
+  for (const s of sqls) {
+    const m = /CREATE TABLE\s+(\S+)\s*\(/.exec(s);
+    if (!m) continue;
+    const tabela = m[1]!.replace(/`/g, '');
+    const corpo = s.slice(m.index + m[0].length, s.lastIndexOf(')'));
+    let nivel = 0, atual = '';
+    const defs: string[] = [];
+    for (const ch of corpo) {
+      if (ch === '(') nivel++;
+      if (ch === ')') nivel--;
+      if (ch === ',' && nivel === 0) { defs.push(atual); atual = ''; } else atual += ch;
+    }
+    defs.push(atual);
+    for (const d of defs) {
+      const nome = /^\s*`?([A-Za-z_]\w*)`?/.exec(d)?.[1];
+      if (nome && !/^(PRIMARY|UNIQUE|KEY|CONSTRAINT|INDEX|FOREIGN|CHECK|FULLTEXT)$/i.test(nome)) out.push({ tabela, coluna: nome });
+    }
+  }
+  return out;
+}
+/** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
+const COLUNAS_FORA_STG_ESPERADAS = 328;
+
 describe('migrações (análise estática, sem banco)', () => {
   it('nomes NNNN_descricao, sequenciais e ordenados', () => {
     nomes.forEach((n, i) => expect(n.startsWith(String(i + 1).padStart(4, '0') + '_')).toBe(true));
@@ -27,13 +53,20 @@ describe('migrações (análise estática, sem banco)', () => {
   it('proíbe INSERT IGNORE, ON DUPLICATE KEY, REPLACE e TRUNCATE (ADR 0004)', () => {
     expect(todoSql.join('\n')).not.toMatch(/INSERT\s+IGNORE|ON\s+DUPLICATE\s+KEY|REPLACE\s+INTO|TRUNCATE/i);
   });
-  it('só tabelas stg_ têm colunas de pessoa (LGPD, data-model §9)', () => {
-    for (const s of todoSql) {
-      const t = /CREATE TABLE (\S+)/.exec(s)?.[1] ?? '';
-      if (!t || /\.stg_/.test(t)) continue;
-      for (const m of s.matchAll(/^\s*([a-z_]+)\s+(?:VARCHAR|INT|BIGINT|JSON|TEXT|TINYINT|ENUM)/gim))
-        expect(violaLgpd(t.replace(/`/g, ''), m[1]!), `${t}.${m[1]}`).toBe(false);
-    }
+  it('só tabelas stg_ têm colunas de pessoa (LGPD, data-model §9): varre TODAS as colunas', () => {
+    const todas = todasColunas(todoSql).filter((c) => !/\.stg_/.test(c.tabela));
+    expect(todas.length).toBe(COLUNAS_FORA_STG_ESPERADAS);
+    expect(todas.filter((c) => violaLgpd(c.tabela, c.coluna)).map((c) => `${c.tabela}.${c.coluna}`)).toEqual([]);
+  });
+  it('sanidade do parser: dim_chamado_versao tem organizacao e tipo, e ignora chaves/índices', () => {
+    const cols = todasColunas(todoSql).filter((c) => c.tabela === 'dspd_ac.dim_chamado_versao').map((c) => c.coluna);
+    expect(cols).toEqual(expect.arrayContaining(['organizacao', 'tipo']));
+    expect(cols.some((c) => /^(primary|unique|key|constraint|index)$/i.test(c))).toBe(false);
+  });
+  it('negativo: coluna de pessoa fora de stg_ é detectada; em stg_ é ignorada', () => {
+    const fx = ['CREATE TABLE dspd_bm.dim_x (\n id BIGINT NOT NULL, criado DATETIME(3) NULL, ultimo_usuario VARCHAR(80) NULL,\n PRIMARY KEY (id)\n)'];
+    expect(todasColunas(fx).map((c) => c.coluna)).toEqual(['id', 'criado', 'ultimo_usuario']);
+    expect(todasColunas(fx).filter((c) => violaLgpd(c.tabela, c.coluna)).map((c) => c.coluna)).toEqual(['ultimo_usuario']);
   });
   it('regra de pessoa pega prefixos e aceita só a exceção explícita', () => {
     expect(colunaDePessoa('ultimo_usuario')).toBe(true);
@@ -64,7 +97,7 @@ describe('migrações (análise estática, sem banco)', () => {
 
 describe('grants por papel', () => {
   const g = gerarGrants({
-    bm: ['stg_card', 'dim_card', 'ref_quadro', 'ctl_coleta', 'stg_webhook_evento'],
+    bm: ['stg_card', 'dim_card', 'ref_quadro', 'ctl_coleta', 'ctl_coleta_contagem', 'stg_webhook_evento'],
     ac: ['stg_chamado', 'dim_chamado', 'ctl_automacao'], core: ['ref_calendario', 'ref_calendario_turno', 'ref_calendario_aplicacao'],
   });
   it('dspd_api nunca lê stg_', () => {
@@ -76,8 +109,9 @@ describe('grants por papel', () => {
   });
   it('coletor só atualiza colunas da execução em ctl_coleta; ctl_automacao é append-only', () => {
     const c = g.filter((x) => x.includes("'dspd_coletor'") && x.includes('.ctl_'));
-    expect(c.filter((x) => /UPDATE(?! \()/.test(x))).toEqual([]);
+    expect(c.filter((x) => /UPDATE(?! \()/.test(x) && !x.includes("ctl_coleta_contagem"))).toEqual([]);
     expect(c).toContain("GRANT UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo) ON dspd_bm.ctl_coleta TO 'dspd_coletor'@'%'");
+    expect(g).toContain("GRANT UPDATE ON dspd_bm.ctl_coleta_contagem TO 'dspd_coletor'@'%'");
     expect(g.filter((x) => x.includes('ctl_automacao') && /UPDATE|DELETE/.test(x))).toEqual([]);
   });
   it('dspd_ref fecha vigência por coluna também no core', () => {

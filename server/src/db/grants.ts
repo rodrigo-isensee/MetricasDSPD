@@ -18,10 +18,9 @@ export function gerarGrants(t: Tabelas): string[] {
     // ctl_: UPDATE só por coluna, só da execução (status/fim/marca-d'água/erro); demais ctl_ são append-only.
     const ctl = com(tabs, 'ctl_');
     out.push(...g('SELECT, INSERT', schema, ctl, 'dspd_coletor'));
-    for (const n of ctl.filter((x) => x === 'ctl_coleta'))
-      out.push(`GRANT UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo) ON ${schema}.${n} TO 'dspd_coletor'@'%'`);
-    for (const n of ctl.filter((x) => x === 'ctl_coleta_contagem'))
-      out.push(`GRANT UPDATE ON ${schema}.${n} TO 'dspd_coletor'@'%'`);
+    if (ctl.includes('ctl_coleta'))
+      out.push(`GRANT UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo) ON ${schema}.ctl_coleta TO 'dspd_coletor'@'%'`);
+    if (ctl.includes('ctl_coleta_contagem')) out.push(`GRANT UPDATE ON ${schema}.ctl_coleta_contagem TO 'dspd_coletor'@'%'`);
     out.push(...g('SELECT', schema, com(tabs, 'ref_'), 'dspd_coletor'));
     out.push(...g('SELECT', schema, [...tabs.filter(projecao), ...com(tabs, 'vw_', 'ref_', 'ctl_')], 'dspd_api'));
     const ref = com(tabs, 'ref_');

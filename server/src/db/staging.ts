@@ -15,8 +15,8 @@ export type EntradaStgCard = {
   quadroId: string; arquivado: boolean; excluidoDetectado: boolean;
 };
 
-export async function gravarStgCard(db: Kysely<unknown>, e: EntradaStgCard): Promise<ResultadoStaging> {
-  const { idOrigem, payload, sha256, coletaId, agora } = e;
+export async function gravarStgCard(db: Kysely<unknown>, entrada: EntradaStgCard): Promise<ResultadoStaging> {
+  const { idOrigem, payload, sha256, coletaId, agora, quadroId, arquivado, excluidoDetectado } = entrada;
   for (let tentativa = 0; tentativa < 5; tentativa++) {
     const r = await sql<{ stg_sk: string; payload_sha256: Buffer }>`
       SELECT stg_sk, payload_sha256 FROM dspd_bm.stg_card
@@ -26,7 +26,7 @@ export async function gravarStgCard(db: Kysely<unknown>, e: EntradaStgCard): Pro
     try {
       await sql`INSERT INTO dspd_bm.stg_card
         (id_origem, anterior_sk, payload_sha256, payload, quadro_id, arquivado, excluido_detectado, coletado_em, coleta_id)
-        VALUES (${idOrigem}, ${ultima ? ultima.stg_sk : 0}, ${sha256}, ${JSON.stringify(payload)}, ${e.quadroId}, ${e.arquivado ? 1 : 0}, ${e.excluidoDetectado ? 1 : 0}, ${agora}, ${coletaId})`.execute(db);
+        VALUES (${idOrigem}, ${ultima ? ultima.stg_sk : 0}, ${sha256}, ${JSON.stringify(payload)}, ${quadroId}, ${arquivado ? 1 : 0}, ${excluidoDetectado ? 1 : 0}, ${agora}, ${coletaId})`.execute(db);
       return 'inserido';
     } catch (e) {
       if (!ehDuplicata(e)) throw e;
