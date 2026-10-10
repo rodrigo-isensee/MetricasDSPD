@@ -1,47 +1,29 @@
-# Ambiente local de banco. Uso: pnpm run db:up | db:down | db:reset | test:mysql
-x-mysql: &mysql
-  image: mysql:8.4
-  command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00", "--default-storage-engine=InnoDB"]
-  environment: &env
-    TZ: UTC
-    MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?defina no .env (veja .env.example)}
-    DSPD_PWD_MIGRADOR: ${DSPD_PWD_MIGRADOR:-migrador_dev}
-    DSPD_PWD_COLETOR: ${DSPD_PWD_COLETOR:-coletor_dev}
-    DSPD_PWD_API: ${DSPD_PWD_API:-api_dev}
-    DSPD_PWD_REF: ${DSPD_PWD_REF:-ref_dev}
-    DSPD_PWD_WEBHOOK: ${DSPD_PWD_WEBHOOK:-webhook_dev}
-    DSPD_PWD_AUTOMACAO: ${DSPD_PWD_AUTOMACAO:-automacao_dev}
-  volumes:
-    - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
-
+# Ambiente local de banco (ADR 0014: tudo local, custo zero). Uso: pnpm run db:up | db:down | db:reset | test:pg
+# Um servidor PostgreSQL 17 com dois databases: `metricas` (desenvolvimento) e `metricas_test` (testes, um conjunto de schemas por execução).
 services:
-  mysql:
-    <<: *mysql
-    container_name: dspd-mysql
-    ports: ["${MYSQL_PORT:-3306}:3306"]
+  postgres:
+    image: postgres:17
+    container_name: dspd-postgres
+    environment:
+      TZ: UTC
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-troque-me-postgres}
+      DSPD_PWD_MIGRADOR: ${DSPD_PWD_MIGRADOR:-migrador_dev}
+      DSPD_PWD_COLETOR: ${DSPD_PWD_COLETOR:-coletor_dev}
+      DSPD_PWD_API: ${DSPD_PWD_API:-api_dev}
+      DSPD_PWD_REF: ${DSPD_PWD_REF:-ref_dev}
+      DSPD_PWD_WEBHOOK: ${DSPD_PWD_WEBHOOK:-webhook_dev}
+      DSPD_PWD_AUTOMACAO: ${DSPD_PWD_AUTOMACAO:-automacao_dev}
+    ports: ["${PG_PORT:-5432}:5432"]
     volumes:
-      - dspd-mysql-data:/var/lib/mysql
-      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+      - dspd-pg-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d metricas_test"]
       interval: 3s
       timeout: 3s
       retries: 30
-      start_period: 10s
-
-  # Descartável: sem volume (tmpfs), perfil "test"; os testes recriam os schemas.
-  mysql-test:
-    <<: *mysql
-    profiles: ["test"]
-    container_name: dspd-mysql-test
-    ports: ["${MYSQL_TEST_PORT:-3307}:3306"]
-    tmpfs: ["/var/lib/mysql"]
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
-      interval: 2s
-      timeout: 3s
-      retries: 40
       start_period: 5s
 
 volumes:
-  dspd-mysql-data:
+  dspd-pg-data:
