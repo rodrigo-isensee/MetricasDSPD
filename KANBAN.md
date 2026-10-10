@@ -1,6 +1,6 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-10 02:58 (reconciliado com historico.md e git log; o quadro estava parado em 2026-10-09 22:09) · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
+> Atualizado em: 2026-10-10 09:50 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
 > WIP: Empatizar 0/2 · Idear 0/2 · Validação do usuário 1 (K-034) · Pronto para fazer 0/5 · Em andamento: tech-lead 1 (K-011) · Code review 1/2 (K-017 parte 1) · QA 0/2 · Aguardando sua validação 1 PR (001, 29 cartões; limite conta PRs) · Bloqueados: 0
 > Item mais antigo em andamento: K-011 (pré-entrega do PR 1). Pedido 001 passou no QA final (r3, 2026-10-10 02:56); aguarda sua validação do PR. Retrospectiva: `docs/retrospectivas/2026-10-10-001.md`.
 > Pedido 002: K-014 e K-033 aprovados; K-017 parte 1 (migrações, 324b472) entregue sem review; seed pendente. Pedido 006: K-034 aguarda validação; K-035 e K-036 pausados por decisão do usuário até o fim do 001 (2026-10-09 21:03).
@@ -61,7 +61,7 @@ Documentos revisados e aprovados; seguem no PR de cada pedido.
 | K-033 | Rascunho do contrato da API (002) | 002 | node-backend | 2026-10-09 | 2026-10-09 21:22 | Aprovado na r2 (697802c), mesmo worktree; decisão frescor corpo × cabeçalho depende do K-034 |
 
 ## Aguardando sua validação (WIP 2 PRs)
-Todos no PR 1 do pedido 001, `develop` 4811cb9, QA r3 aprovado.
+PR 1 (pedido 001) mesclado pelo usuário em 2026-10-10 09:50 (eff026a).
 
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
