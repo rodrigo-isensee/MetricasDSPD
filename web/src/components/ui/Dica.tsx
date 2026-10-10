@@ -18,6 +18,8 @@ export function Dica({
 }) {
   const [aberto, setAberto] = useState(false)
   const fechar = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Aberta pelo hover: o clique seguinte (do mesmo mouse) mantém aberta em vez de fechar logo após abrir.
+  const porHover = useRef(false)
   const cancelar = () => {
     if (fechar.current) clearTimeout(fechar.current)
     fechar.current = null
@@ -25,16 +27,28 @@ export function Dica({
   const abrirPorHover = (e: { pointerType?: string }) => {
     if (e.pointerType && e.pointerType !== 'mouse') return
     cancelar()
+    porHover.current = true
     setAberto(true)
   }
   const fecharPorHover = (e: { pointerType?: string }) => {
     if (e.pointerType && e.pointerType !== 'mouse') return
     cancelar()
-    fechar.current = setTimeout(() => setAberto(false), 150)
+    fechar.current = setTimeout(() => {
+      porHover.current = false
+      setAberto(false)
+    }, 150)
   }
   return (
     <Popover.Root open={aberto} onOpenChange={setAberto}>
-      <Popover.Trigger asChild onPointerEnter={abrirPorHover} onPointerLeave={fecharPorHover}>
+      <Popover.Trigger
+        asChild
+        onPointerEnter={abrirPorHover}
+        onPointerLeave={fecharPorHover}
+        onClick={(e) => {
+          if (porHover.current) e.preventDefault()
+          porHover.current = false
+        }}
+      >
         {children ?? (
           <button
             type="button"
