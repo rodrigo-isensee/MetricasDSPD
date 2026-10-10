@@ -10,7 +10,7 @@ import {
 } from '@/components/ui'
 import type { ResultadoVisaoGeral } from '@metricas-dspd/contratos'
 import { useDataReferencia, useErroDePainelSimulado, useMetrica } from '@/data'
-import { fmtData, fmtDataCurta, fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
+import { fmtData, fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import {
   NOME_DO_NIVEL,
   ROTA_DO_NIVEL,
@@ -23,8 +23,12 @@ import {
 type Nivel = ResultadoVisaoGeral['niveis'][number]
 type StatusNivel = Nivel['status']
 
-const intervalo = (j: { inicio: string; fim: string }) =>
-  `${fmtDataCurta(j.inicio)} a ${fmtData(j.fim)}`
+const intervalo = (j: { inicio: string; fim: string }) => `${fmtData(j.inicio)} a ${fmtData(j.fim)}`
+
+/** O10 e O12 só existem na cadência semanal do Operacional: o link já a seleciona (VG-03). */
+const CADENCIA_SEMANAL = new Set(['O10', 'O12'])
+const destinoAlerta = (a: { nivel: keyof typeof ROTA_DO_NIVEL; metrica: string; ancora: string }) =>
+  `${ROTA_DO_NIVEL[a.nivel]}${a.nivel === 'operacional' && CADENCIA_SEMANAL.has(a.metrica) ? '?cadencia=semanal' : ''}#${a.ancora}`
 
 function StatusIndicador({ i }: { i: Indicador }) {
   if (i.status === 'insuficiente')
@@ -64,7 +68,7 @@ function CartaoNivel({ n }: { n: Nivel }) {
             className="flex flex-col gap-0.5"
           >
             <span>{textoIndicador(i)}</span>
-            <span className="flex flex-wrap items-center gap-2 text-xs text-texto-2">
+            <span className="flex flex-wrap items-center gap-x-2 text-xs text-texto-2">
               <StatusIndicador i={i} />
               {i.status !== 'insuficiente' && `em ${fmtInteiro(i.base.n)} ${i.base.unidade}`}
             </span>
@@ -166,7 +170,7 @@ export default function VisaoGeralPage() {
     d?.alertas.map((a) => ({
       id: `${a.nivel}-${a.codigo}`,
       texto: `${NOME_DO_NIVEL[a.nivel]}: ${textoAlerta(a)}`,
-      para: `${ROTA_DO_NIVEL[a.nivel]}#${a.ancora}`,
+      para: destinoAlerta(a),
       codigo: a.metrica,
     })) ?? []
   const fluxo = d?.esperaInvisivel.filter((e) => e.fonte === 'BusinessMap') ?? []
@@ -186,9 +190,9 @@ export default function VisaoGeralPage() {
           className="rounded-md border border-borda bg-superficie p-3 text-sm"
           data-testid="recorte-visao-geral"
         >
-          Recorte fixo, igual ao dos painéis: Operacional e Tático em {intervalo(d.recortes.fluxo)};
-          Estratégico em {intervalo(d.recortes.estrategico)}; Sustentação em{' '}
-          {intervalo(d.recortes.sustentacao)}.
+          Consolidado de todas as equipes · últimas 12 semanas. Recorte fixo, igual ao dos painéis:
+          Operacional e Tático em {intervalo(d.recortes.fluxo)}; Estratégico em{' '}
+          {intervalo(d.recortes.estrategico)}; Sustentação em {intervalo(d.recortes.sustentacao)}.
         </p>
       )}
       {q.estado === 'carregando' && (

@@ -1,4 +1,6 @@
-import { Secao } from '@/components/ui'
+import { FaixaAtencao, Secao, type ItemAtencao } from '@/components/ui'
+import { useMetrica } from '@/data'
+import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { PainelSustentacao } from '@/features/painel/PainelPagina'
 import { CartaoEISust } from '@/features/espera-invisivel/components/CartaoEI'
 import { CartaoS1 } from './components/CartaoS1'
@@ -8,6 +10,31 @@ import { CartaoS4 } from './components/CartaoS4'
 import { CartaoS5 } from './components/CartaoS5'
 import { CartaoS6 } from './components/CartaoS6'
 import { CartaoS7 } from './components/CartaoS7'
+
+/** "Pede atenção na semana": S2 abaixo de 90% e S1 com mediana acima do alvo, por prioridade (SUS-01). */
+function Atencao({ filtros }: { filtros: FiltrosSustentacao }) {
+  const s2 = useMetrica('S2', filtros).dados
+  const s1 = useMetrica('S1', filtros).dados
+  const itens: ItemAtencao[] = []
+  const fora2 =
+    s2?.prioridades.filter(
+      (p) => p.primeiroAtendimento.statusMeta === 'fora' || p.restauracao.statusMeta === 'fora',
+    ).length ?? 0
+  if (fora2)
+    itens.push({
+      id: 's2',
+      texto: `Aderência ao SLA abaixo de 90% em ${fora2} ${fora2 === 1 ? 'prioridade' : 'prioridades'}`,
+      para: '#s2',
+    })
+  const fora1 = s1?.prioridades.filter((p) => p.restauracao.statusMeta === 'fora').length ?? 0
+  if (fora1)
+    itens.push({
+      id: 's1',
+      texto: `Mediana acima do alvo em ${fora1} ${fora1 === 1 ? 'prioridade' : 'prioridades'}`,
+      para: '#s1',
+    })
+  return <FaixaAtencao momento="semana" itens={itens} />
+}
 
 export default function SustentacaoPage() {
   return (
@@ -27,6 +54,7 @@ export default function SustentacaoPage() {
             FLUIG, excluídos os removidos. Tempos e aderência usam somente chamados fechados.
             Chamados com exceção de SLA por registro posterior ficam fora destas apurações.
           </p>
+          <Atencao filtros={filtros} />
           <Secao id="prazos" titulo="Prazos" pergunta="Cumprimos o combinado, em cada prioridade?">
             <CartaoS2 filtros={filtros} />
             <CartaoS1 filtros={filtros} />

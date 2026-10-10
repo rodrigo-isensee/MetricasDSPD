@@ -23,6 +23,19 @@ describe('formatação da Sustentação (J2)', () => {
 })
 
 describe('painel Sustentação', () => {
+  it('mostra "Pede atenção na semana" com link para S2 (SUS-01)', async () => {
+    renderizarApp('/sustentacao')
+    const faixa = await screen.findByTestId('faixa-atencao', undefined, { timeout: 8000 })
+    expect(faixa).toHaveTextContent('Pede atenção na semana')
+    const hrefs = () =>
+      within(faixa)
+        .queryAllByRole('link')
+        .map((l) => l.getAttribute('href'))
+    await waitFor(() => expect(hrefs()).toEqual(expect.arrayContaining(['#s2'])), {
+      timeout: 8000,
+    })
+  })
+
   it('mostra os sete cartões com fonte Acelerato e granularidade chamado, e nada do BusinessMap', async () => {
     renderizarApp('/sustentacao')
     for (const c of ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']) {

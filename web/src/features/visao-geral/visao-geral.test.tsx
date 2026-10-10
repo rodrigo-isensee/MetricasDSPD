@@ -94,7 +94,9 @@ describe('tela Visão geral', () => {
       within(screen.getByTestId('nivel-operacional')).getByText('Fonte: BusinessMap'),
     ).toBeInTheDocument()
     expect(screen.queryByTestId('filtro-equipe')).toBeNull()
-    expect(screen.getByTestId('recorte-visao-geral')).toBeInTheDocument()
+    const recorte = screen.getByTestId('recorte-visao-geral')
+    expect(recorte).toHaveTextContent('Consolidado de todas as equipes · últimas 12 semanas')
+    expect(recorte.textContent).toMatch(/\d{2}\/\d{2}\/\d{4} a \d{2}\/\d{2}\/\d{4}/)
     expect(screen.getByText(/o sistema não compara equipes/)).toBeInTheDocument()
     expect(screen.queryByText(/ranking/i)).toBeNull()
     expect(screen.getByRole('link', { name: 'Daily de fluxo' })).toHaveAttribute(
@@ -110,7 +112,7 @@ describe('tela Visão geral', () => {
     expect(links.length).toBeGreaterThan(0)
     for (const l of links) {
       expect(l.getAttribute('href')).toMatch(
-        /^\/(operacional|tatico|estrategico|sustentacao)#[a-z0-9]+$/,
+        /^\/(operacional|tatico|estrategico|sustentacao)(\?cadencia=semanal)?#[a-z0-9]+$/,
       )
       expect(l.getAttribute('href')).not.toContain('mock')
     }
