@@ -59,3 +59,10 @@ O usuário decidiu **trocar o banco para PostgreSQL**, seguindo a stack técnica
 | D-3 | **Visão geral também exporta**, já na primeira versão (BM e AC em blocos separados) |
 | D-4 | **Exportação personalizada**, além do botão por painel: o usuário marca, nível a nível (Operacional, Tático, Estratégico, Sustentação, Espera invisível), as métricas visíveis e sai um PDF só; cada métrica com os próprios filtros e fonte; BM e AC em seções separadas |
 | D-5 | **Não registrar** as exportações |
+
+## 11. Pendências decididas provisoriamente enquanto o usuário está ausente (2026-10-10 15:33)
+| # | Pergunta | Decisão provisória (reversível) | Fundamento |
+|---|---|---|---|
+| L-3 | Nomes do Acelerato (solicitante, agente) também no analítico? | **Não** (só os nomes do BusinessMap, como no modelo 4.5). Adicionar a coluna depois é barato; expor dado pessoal já gravado não | LGPD; regra "dúvida de regra não se resolve por inferência" → confirmar com o usuário |
+| T2.3 | Webhook do BusinessMap sem endereço público (tudo local, custo zero) | Pendente até haver endereço público; coleta diária cobre o histórico | Decisão de custo zero (§8) |
+| — | Migrações MySQL já escritas | Reescritas a partir da 0001 em Postgres, sem conversão de dados (nenhum ambiente real usa o MySQL) | ADR 0014 rev. 2 |
