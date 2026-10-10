@@ -12,3 +12,8 @@
 | M-008/M-009 | Molde aprovado e checklist reduzem achados de UX | O4 de referência + checklist por cartão | Achados de UX altos/médios por painel | 2026-10-09 20:46 | Fim do 001 | — |
 | M-010 | QA em paralelo e por cartão evita gargalo | Aceitação antes; verificação de 15 min em paralelo ao review | Espera por QA; itens "verificar" | 2026-10-09 20:46 | Fim do 001 | — |
 | M-011 | Reunião curta por entrega mantém melhoria contínua | Ata por entrega | Atas por entrega | 2026-10-09 20:46 | Fim do 001 | — |
+| M-012 | Instâncias paralelas na fase B encurtam o calendário sem subir o retrabalho | 3 instâncias de react-frontend (exceção ao WIP 1 por agente, aprovada pelo usuário) | Tempo até as 3 entregas; devoluções por integração | 2026-10-09 23:03 | Fim do 001 | Funcionou com ressalva (ver retro 001) |
+| M-013 | Contar PRs, não cartões, no limite de Aguardando sua validação | Esclarecimento de política (proposto) | Cartões × limite no quadro | 2026-10-10 | Próximo pedido | Proposto |
+
+## Resultados do pedido 001 (retro 2026-10-10)
+M-001 funcionou (QA nunca passou de 1 cartão em fila; manter, mas definir que o limite 2 conta PRs). M-002 funcionou (fase B: 0 devoluções por cartão de B1/B2/B3 no review r1). M-003 funcionou. M-004 parcial (portão sempre verde, mas typecheck do e2e e CLS mobile ficaram fora dele). M-005 parcial (1 bloqueante de regra: O7 saldo acumulado). M-006 funcionou (bloqueantes por cartão: fase A 14; fase B 0 a 2). M-007 funcionou (0 duplicações na fase B). M-008/M-009 parcial (UX B3: 0 altos; B12: 2 altos de rolagem e rótulos). M-010 funcionou (QA B3 em 24 min). M-011 não cumprido (só a ata nº 1). M-012 funcionou com ressalva. Detalhes e dados em `docs/retrospectivas/2026-10-10-001.md`.

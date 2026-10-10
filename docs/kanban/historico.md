@@ -92,3 +92,18 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-10 00:41 | K-039, K-006, K-023, K-007, K-024 | QA | Revisão de UX | QA B12 (docs/qa/001-B12.md, 9de6634): 178/181 E2E, axe 0 violações |
 | 2026-10-10 00:41 | K-045 | Entrada | Pronto para fazer | [bug] O7 saldo acumulado recortado no período + teste de borda (K-043 r1 #1); B3-002 links de alerta da VG com cadencia=semanal (O12, O10); B12-001 (média) leitura do O2 com coluna errada; B12-003 (baixa) testid metrica-Bloqueados; react-frontend após K-044 |
 | 2026-10-10 00:45 | K-046 | Entrada | Pronto para fazer | [bug] UX B12 (docs/reviews/001-B12-ux-r1.md): 2 altos (tabelas cortadas sem rolagem em E3/T7/T4/Bloqueados/O2; rótulos sobrepostos no T7) bloqueiam a entrega + 5 médios (E2 tabela aberta com 35 linhas, Amostra insuficiente repetido no E1, cabeçalho mobile em 3 linhas, rótulo da semana em andamento no O4; B12-001 já no K-045); react-frontend após K-045 |
+| 2026-10-10 02:58 | — | — | — | **Reconciliação (agile-coach):** o histórico não recebeu lançamentos entre 00:45 e 02:56 e o quadro estava parado em 2026-10-09 22:09. As linhas abaixo são reconstruídas dos commits (hora do commit, não do movimento real) e dos pareceres. |
+| 2026-10-10 00:55 | K-043, K-044, K-045, K-041, K-042 | Code review | QA | Aprovados em docs/reviews/001-K-044-045-r1.md (ac72d0b) |
+| 2026-10-10 00:59 | K-046 | Em andamento | Code review | Entregue (7ece131, 58aab8f, 3318ddc); aprovado com recomendações em docs/reviews/001-K-046-r1.md |
+| 2026-10-10 01:01 | K-047 | Entrada | Em andamento | [bug] faixa Pede atenção com carregando/erro (dd1be98); aprovado em 001-K-047-048-r1 |
+| 2026-10-10 01:21 | K-009 | QA | QA | Parecer final r1 do QA (2088852): REPROVADO por 007 (S7 em mobile) e 008 (CLS/Lighthouse) |
+| 2026-10-10 01:43 | K-048 | Entrada | Em andamento | [bug] 007 (84ce0ed) e 008 (45049ff, 01:49); review 001-K-047-048-r1 (02:03): 007 aprovado, 008 com 1 bloqueante (minHeight no estado pronto). voltas 008: 1 |
+| 2026-10-10 02:17 | K-048 | QA | Em andamento | QA r2 (b2d1f31): 007 e B12-002 fechados, 008 reaberto em mobile. voltas 008: 2 |
+| 2026-10-10 02:21 | K-049 | Entrada | Em andamento | [bug] minHeight só no esqueleto (735c710), bloqueante do review final da branch |
+| 2026-10-10 02:37 | K-050 | Entrada | Em andamento | [bug] CLS a 375 px (13d35e6), 008 |
+| 2026-10-10 02:42 | K-049, K-050 | Code review | QA | Aprovados em docs/reviews/001-K-049-050-r1.md; branch liberada condicionada ao QA |
+| 2026-10-10 02:56 | K-004..K-050 (cartões do 001) | QA | Aguardando sua validação | QA final r3 APROVADO (4811cb9); 008 fechado (voltas: 3); fechados junto com os pais |
+| 2026-10-10 02:58 | K-014, K-033 | Code review | Revisado, aguardando envio | Aprovados na r2 (7783107, 697802c), worktree do 002 |
+| 2026-10-10 02:58 | K-017 | Entrada | Code review | Parte 1 (migrações, 324b472) entregue; sem review; seed pendente |
+| 2026-10-10 02:58 | K-034 | Validação do usuário | Validação do usuário | Reconciliação: segue aguardando o usuário; K-035/K-036 pausados |
+| 2026-10-10 02:59 | K-010 | Revisão de UX | Aguardando sua validação | UX final aprovado (docs/reviews/001-ux-final.md): altos da B12 resolvidos; 1 médio (rótulos truncados no T7) e 1 baixo (indício de rolagem) abertos, sem bloqueio |
