@@ -107,6 +107,9 @@ export function useEstadoColeta(dominio: Dominio) {
   return useQuery({
     queryKey: ['coleta', dominio, modo],
     queryFn: () => aplicarSimulacaoEstado(modo, dominio, () => fonte.estadoColeta(dominio)),
+    // IR-002: remontar um observador sobre uma consulta em erro a refaria e a devolveria a "pending", num laço
+    // com o bloco de espera do painel. A nova tentativa é só pelo "Tentar de novo".
+    retryOnMount: false,
   })
 }
 
