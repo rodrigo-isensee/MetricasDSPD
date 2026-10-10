@@ -82,6 +82,8 @@ export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
                 valores: { abertas: p.abertas },
               }))}
               series={[{ chave: 'abertas', rotulo: 'Frentes abertas', cor: 1 }]}
+              altura={Math.max(200, projetos.length * 32 + 56)}
+              larguraRotulos={150}
               semLegenda
             />
           )}

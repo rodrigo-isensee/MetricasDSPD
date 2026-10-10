@@ -1,5 +1,5 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
-import { CartaoMetrica } from '@/components/ui'
+import { CartaoMetrica, RegiaoRolavel } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { propsCartao } from '@/features/painel/propsCartao'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
@@ -55,14 +55,8 @@ export function CartaoE3({ filtros }: { filtros: FiltrosFluxo }) {
             {fmtInteiro(d.comFicha.k)} de {fmtInteiro(d.comFicha.n)} iniciativas com resultado
             declarado
           </p>
-          <div
-            role="region"
-            aria-label="Iniciativas e resultados, role para os lados"
-            tabIndex={0}
-            className="overflow-x-auto"
-            data-testid="tabela-E3"
-          >
-            <table className="w-full min-w-max text-sm">
+          <RegiaoRolavel rotulo="Iniciativas e resultados" testid="tabela-E3">
+            <table className="w-full text-sm">
               <caption className="sr-only">Entrega × resultado por iniciativa</caption>
               <thead>
                 <tr>
@@ -117,7 +111,7 @@ export function CartaoE3({ filtros }: { filtros: FiltrosFluxo }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </RegiaoRolavel>
         </div>
       )}
     </CartaoMetrica>

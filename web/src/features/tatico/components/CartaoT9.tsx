@@ -1,5 +1,5 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
-import { CartaoMetrica } from '@/components/ui'
+import { CartaoMetrica, RegiaoRolavel } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
@@ -44,14 +44,8 @@ export function CartaoT9({ filtros }: { filtros: FiltrosFluxo }) {
             <li>A fazer: contorno</li>
             <li>Adicionadas após o início: hachura cruzada</li>
           </ul>
-          <div
-            role="region"
-            aria-label="Avanço e escopo por projeto, role para os lados"
-            tabIndex={0}
-            className="overflow-x-auto"
-            data-testid="tabela-T9"
-          >
-            <table className="w-full min-w-max text-sm">
+          <RegiaoRolavel rotulo="Avanço e escopo por projeto" testid="tabela-T9">
+            <table className="w-full text-sm">
               <caption className="sr-only">Avanço real e escopo por projeto</caption>
               <thead>
                 <tr>
@@ -104,7 +98,7 @@ export function CartaoT9({ filtros }: { filtros: FiltrosFluxo }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </RegiaoRolavel>
         </div>
       )}
     </CartaoMetrica>

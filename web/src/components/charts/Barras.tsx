@@ -80,6 +80,9 @@ export interface BarrasProps {
 const traco = (t?: 'tracejado' | 'pontilhado') =>
   t === 'pontilhado' ? '2 4' : t === 'tracejado' ? '6 4' : undefined
 
+/** Rótulo longo do eixo vira reticências; o nome completo fica no tooltip e na tabela. */
+const truncar = (t: string, max: number) => (t.length > max ? `${t.slice(0, max - 1)}…` : t)
+
 /** Colunas ou barras (simples, agrupadas, empilhadas, 100%). Padrão listrado em períodos em andamento. */
 export function Barras({
   categorias,
@@ -212,6 +215,8 @@ export function Barras({
                 tick={EIXO.tick}
                 stroke={EIXO.stroke}
                 width={larguraRotulos}
+                interval={0}
+                tickFormatter={(v: string) => truncar(v, Math.floor(larguraRotulos / 6.5))}
               />
             </>
           ) : (
