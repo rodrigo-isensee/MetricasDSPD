@@ -1,7 +1,13 @@
 # Dashboard de métricas ágeis do DSPD (versão com dados fictícios)
 
-Especificação de UX · versão 2 (revisão 2) · 2026-10-09 · autor: `ux-designer`
+Especificação de UX · revisão 4 · 2026-10-10 · autor: `ux-designer`
 Pedido de origem: `docs/pedidos/001-dashboard-mock.md`. Fonte das regras: `CLAUDE.md` e `docs/briefing-execucao-metricas.md` (em conflito, vale o briefing).
+
+## Revisão 4 (2026-10-10) — mudanças
+Origem: desvio aceito no parecer B3; só registra o que o código já faz.
+- **Parâmetros de URL das abas** (rev. 4): a aba ativa de um cartão com abas fica na URL, para o link copiado reabrir a mesma visão. Um parâmetro por cartão: `ei_fl1` (EI-FL1, tipo de demanda), `ei_fl2` (EI-FL2), `ei_fl3` (EI-FL3, tipo de projeto), `ei_sust` (EI-SUST, prioridade P1 a P5), `s4` (S4) e `e1` (E1, tipo de projeto). O valor é o identificador da aba.
+- Regras: valor ausente ou inválido cai na primeira aba, em silêncio; parâmetro de painel onde o cartão não existe é ignorado e removido da URL, mas fica guardado na sessão (mesma regra de 2.5 e 2.6); trocar de aba atualiza a URL sem nova entrada no histórico; "Limpar filtros" não zera as abas (não são filtros). Estes parâmetros entram em "Copiar link desta visão".
+- Critério de aceite 112 (novo): abrir uma URL com `ei_fl1`, `ei_fl2`, `ei_fl3`, `ei_sust`, `s4` ou `e1` válidos mostra a aba correspondente selecionada; valor inválido mostra a primeira aba sem erro.
 
 ## Revisão 3 (2026-10-09) — mudanças
 Origem: `docs/alinhamentos/2026-10-09-decisoes-review-fase-a.md` e review da fase A. Marcadas com "(rev. 3)". Provisórias e reversíveis.
