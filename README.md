@@ -15,7 +15,7 @@ pnpm run dev        # na raiz: sobe o painel em http://localhost:5173
 Também funciona a partir de `web/`: `cd web && pnpm install && pnpm run dev`.
 
 ## Banco local (Docker)
-`cp .env.example .env`, depois `pnpm run db:up && pnpm run db:migrate && pnpm run db:seed`; `pnpm run test:mysql` roda os testes de banco em contêiner descartável. Instalação do Docker no WSL2 e detalhes: `docs/architecture/server.md`.
+O banco é PostgreSQL 17 no Docker Compose (custo zero). `cp .env.example .env`, depois `pnpm run db:up && pnpm run db:migrate && pnpm run db:seed`; `pnpm run test:pg` roda os testes de banco no mesmo Postgres, com um conjunto de schemas próprio por execução (removido ao final). Instalação do Docker no WSL2 e detalhes: `docs/architecture/server.md`.
 
 ## Verificar
 - `pnpm run pronto` (raiz): lint, formatação, tipos, testes, build e tamanho do bundle.

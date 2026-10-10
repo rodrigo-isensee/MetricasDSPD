@@ -2,7 +2,7 @@
 
 Status: revisado em 2026-10-10 para a **ADR 0014 revisão 2** (PostgreSQL, `pg` puro, node-pg-migrate, outbox com polling, Fastify 5, Zod 4, OpenAPI, Vitest com schemas por execução, pnpm, Docker Compose local). Modelo em `data-model.md`; módulos e fronteiras na ADR 0013; contrato da coleta na ADR 0006.
 
-**Estado atual do código** (antes dos cartões S-00 a S-12 do `roadmap.md`): migrações MySQL 0001–0010 com Kysely + `mysql2`, `grants.ts`, `lgpd.ts`, `staging.ts`, seed e `src/coletas/`; sem servidor HTTP. Tudo isso é portado para Postgres; nada do MySQL fica.
+**Estado atual do código** (S-01 a S-05 feitos em 2026-10-10): Postgres 17 no Compose; `src/plataforma/db` (`pg`: `criarPool`, `emTransacao`, `ehDuplicado`, parsers, mapa `S`, `migrar`, `gerarGrants` com GRANT por coluna, `lgpd`, `seed`); migrações Postgres 0001-0011 (node-pg-migrate, `ddl(S)` + `pgm.sql`, `checksums.json`; 0011 = outbox); `src/modulos/businessmap/staging.ts` e `src/modulos/operacao/` (ex-`coletas`) sobre `pg`; testes `unit` (dublê de `pool`, cobertura 100%) e `pg` (schemas por execução). Kysely, `mysql2` e o MySQL saíram. Sem servidor HTTP ainda (S-07).
 
 ## Estrutura alvo
 ```
@@ -135,3 +135,11 @@ Módulo único com `SEGMENTO_PESSOA`, `COLUNAS_PESSOA` (as colunas de pessoa per
 
 ## Staging de card
 `gravarStgCard(cliente, entrada)` recebe `quadroId`, `arquivado` e `excluidoDetectado` do coletor; deduplica contra a última versão com `ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk` e relê em caso de corrida (`data-model.md` §3.1). `fato_transicao.id_origem` é `varchar(64)` (SHA-256 hex do webhook).
+
+
+## Estado do port para Postgres (S-01 a S-05)
+- **Comandos:** `pnpm run db:up` (Compose), `db:migrate [up|down N|redo]`, `db:seed`, `db:limpar-testes`, `pnpm run test:pg` (sobe o `postgres`, roda o projeto Vitest `pg` com um conjunto de schemas por execução, `t<6 base36>_dspd_*` em `metricas_test`, removido pelo `globalTeardown`; `DSPD_TESTE_MANTER=1` preserva). `pnpm run pronto` roda typecheck, lint e cobertura 100% (thresholds ligados) sem banco: os testes `*.pg.test.ts` ficam pulados sem `PG_TESTE_URL`.
+- **Variáveis:** `PG_MIGRADOR_URL`, `PG_TESTE_URL`, `DSPD_PWD_*`, `DSPD_SCHEMA_PREFIXO` (vazio fora dos testes); ver `.env.example`.
+- **Grants:** `gerarGrants(S, catalogo)` lê tabelas, views e colunas do catálogo e é reaplicado ao fim de todo `migrate`. `dspd_api` recebe `SELECT` por coluna onde há coluna de `COLUNAS_PESSOA` (`responsaveis`, `usuario`); `fato_transicao` e `rec_transicao_par` entram para a API só porque `vw_transicao_canonica` (`security_invoker`) depende delas.
+- **Staging:** `gravarStgCard` usa `ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk` e relê; até 5 tentativas por item. Cada escritor perde no máximo (escritores simultâneos - 1) vezes, então mais de 5 escritores simultâneos sobre o mesmo item podem esgotar as tentativas (falha do item, reprocessada na coleta seguinte). Exige `READ COMMITTED`.
+- **Pendências conhecidas:** os testes de catálogo e o `snapshot` rodam só no projeto `pg`; o job `db` do GitHub Actions e a regra de lint de SQL (S-06) ainda não existem; o critério "mesmo hash da base mock" foi substituído por contagem de linhas e instantes idênticos (o seed anterior em MySQL nunca foi executado).
