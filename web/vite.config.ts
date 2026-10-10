@@ -21,6 +21,12 @@ export default defineConfig({
               test: /node_modules[\\/](react|react-dom|scheduler|clsx)[\\/]/,
               priority: 20,
             },
+            // F11 (ADR 0003): geração do PDF (jsPDF + desenhista; sem svg2pdf, que estourou o orçamento (tabela no lugar do gráfico)), só sob demanda.
+            {
+              name: 'exportar-pdf',
+              priority: 15,
+              test: /node_modules[\\/](jspdf|fflate|fast-png|iobuffer|svg-pathdata)[\\/]|features[\\/]exportar[\\/]desenhista/,
+            },
             {
               name: 'graficos',
               priority: 10,

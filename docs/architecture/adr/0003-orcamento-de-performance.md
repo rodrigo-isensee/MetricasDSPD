@@ -30,6 +30,7 @@ Valores são p95 na máquina de referência, salvo indicação. "Bloqueia" = ite
 | F8 | Chunk de gráficos (Recharts + `components/charts`, gzip) | < 130 KB, carregado só por rotas com gráfico | sim |
 | F9 | Chunk do mock + biblioteca (`@metricas-dspd/mock` + `@metricas-dspd/metricas`, gzip) | < 120 KB, fora do inicial, por `import()` dinâmico | sim (fora do inicial); tamanho: alerta |
 | F10 | Lighthouse (desktop) | Performance ≥ 90, Acessibilidade ≥ 95 | sim |
+| F11 | Chunk `exportar-pdf` (jsPDF + desenhista, gzip; pedido 008) | < 150 KB, só por `import()` ao clicar em "Gerar arquivo"; nunca no inicial (F6) nem em chunk de rota | sim (fora do inicial); tamanho: bloqueia |
 
 **Mock e cálculo (biblioteca, em Node ou navegador)**
 | # | Item | Orçamento | Bloqueia |
