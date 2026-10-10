@@ -22,3 +22,6 @@ Todas as decisões provisórias registradas em `docs/alinhamentos/2026-10-09-dec
 
 ## 4. Discovery pausado (K-035, K-036)
 O usuário delegou ao time a decisão do que é melhor para a entrega.
+
+## 5. Complemento do Jarvis (2026-10-10 10:12) — regra da janela de calibração automática (pergunta 1 da spec `docs/ux/integracao-real/05-especificacao.md`)
+**Provisória, a confirmar pelo usuário:** a janela de calibração dura **60 dias corridos** e é aberta automaticamente (a) no início da coleta de cada fonte (BusinessMap e Acelerato, separadamente) e (b) em cada mudança de critério registrada no controle de versões (T2.6), para as métricas afetadas. Duração em constante única. Fundamento: briefing 7.4 ("30 a 60 dias"; adotado o limite conservador).
