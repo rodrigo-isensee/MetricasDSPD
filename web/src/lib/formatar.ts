@@ -17,6 +17,16 @@ export function fmtData(iso: string): string {
   return `${d}/${m}/${a}`
 }
 
+/** 2026-10-09T06:10:00-03:00 -> 09/10/2026 06:10 (hora local do ISO, sem converter fuso). */
+export function fmtDataHora(iso: string): string {
+  return `${fmtData(iso)} ${iso.slice(11, 16)}`
+}
+
+/** 2026-10-09T06:10:00-03:00 -> 09/10 06:10 */
+export function fmtDataHoraCurta(iso: string): string {
+  return `${fmtDataCurta(iso)} ${iso.slice(11, 16)}`
+}
+
 /** 2026-10-09 -> 09/10 */
 export function fmtDataCurta(iso: string): string {
   const [, m, d] = iso.slice(0, 10).split('-')

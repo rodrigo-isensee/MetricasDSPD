@@ -109,7 +109,7 @@ export function lerFluxo(
         TIPOS_FILTRO.map((t) => TIPO_ID[t]),
         'tipo',
         invalidos,
-      ).map((id) => idParaTipo(id)),
+      ).map((id) => TIPO_POR_ID.get(id) as TipoFiltro),
       sistema: lerLista(p, 'sistema', idsDe(opcoes, 'sistemas'), 'sistema', invalidos),
       periodo: lerPeriodo(p, padrao, opcoes, invalidos, restricao),
     },
@@ -148,11 +148,8 @@ export function lerSustentacao(
   }
 }
 
-function idParaTipo(id: string): TipoFiltro {
-  const t = TIPOS_FILTRO.find((x) => TIPO_ID[x] === id)
-  if (!t) throw new Error(`tipo inválido: ${id}`)
-  return t
-}
+/** `lerLista` só deixa passar ids válidos, então a busca sempre acha o tipo. */
+const TIPO_POR_ID = new Map<string, TipoFiltro>(TIPOS_FILTRO.map((t) => [TIPO_ID[t], t]))
 
 /** Visão dos parâmetros com prefixo removido (usado quando um painel tem dois conjuntos de filtros). */
 function prefixar(params: URLSearchParams, prefixo: string): URLSearchParams {

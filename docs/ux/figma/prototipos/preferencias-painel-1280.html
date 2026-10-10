@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Painel com métricas ocultas 1280 (protótipo)</title>
+<meta name="viewport" content="width=1280, initial-scale=1">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-fundo:#e6effc;--alerta:#b42318;--alerta-fundo:#fdecea;--atencao:#8a5a00;--atencao-fundo:#fff4dc}
+*{box-sizing:border-box}body{margin:0;width:1280px;background:var(--fundo);color:var(--texto);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:32px}
+.aviso{background:#8a5a00;color:#fff;padding:8px 24px;font-weight:600}
+header{display:flex;gap:16px;align-items:center;height:56px;padding:0 24px;background:var(--superficie);border-bottom:1px solid var(--borda)}header b{margin-right:16px}header span{color:var(--texto-2)}header .sp{flex:1}.fic{background:var(--atencao-fundo);color:var(--atencao);border:1px solid var(--atencao);border-radius:6px;padding:2px 8px;font-weight:600}
+main{padding:0 24px}h1{font-size:24px;margin:16px 0 0}h2{font-size:18px;margin:16px 0 8px}h3{font-size:16px;margin:0}.mini{color:var(--texto-2);font-size:12px}
+.barra{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--borda);margin-top:8px}
+.bt{display:inline-flex;min-height:32px;align-items:center;gap:4px;border:1px solid var(--borda-controle);border-radius:6px;padding:2px 12px;background:var(--superficie);position:relative}.at{border-color:var(--acento);background:var(--acento-fundo);font-weight:600}
+.pop{position:absolute;top:36px;left:0;width:340px;background:var(--superficie);border:1px solid var(--borda-controle);border-radius:8px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:2;font-weight:400}.pop label{display:flex;gap:8px;min-height:28px}.pop .rod{display:flex;gap:8px;margin-top:8px}
+.faixa{border:1px solid var(--alerta);background:var(--alerta-fundo);border-radius:8px;padding:12px 16px;margin-top:16px}.faixa b{letter-spacing:.08em;font-size:14px}.faixa li{margin:4px 0}
+.ocu{display:flex;gap:8px;align-items:center;border:1px solid var(--acento);background:var(--acento-fundo);border-radius:6px;padding:8px 12px;margin-top:12px}
+.crit{display:flex;gap:8px;border:1px solid var(--atencao);background:var(--atencao-fundo);border-radius:6px;padding:8px 12px;margin-top:8px}
+.cartao{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:16px}.g{display:grid;grid-template-columns:1fr 1fr;gap:16px}.cab{display:flex;justify-content:space-between}
+.graf{height:80px;background:repeating-linear-gradient(90deg,var(--superficie-2) 0 12px,#fff 12px 16px);border-radius:4px;margin-top:8px}
+.vazio{border:1px dashed var(--borda-controle);border-radius:8px;padding:16px;background:var(--superficie-2)}
+.sel{display:inline-block;border:1px solid var(--borda-controle);border-radius:4px;padding:0 6px;font-size:12px;font-weight:600;background:var(--superficie-2)}
+a{color:var(--acento)}
+</style></head><body>
+<div class="aviso">Protótipo descartável (painel com métricas ocultas). Dados fictícios. Largura 1280. Exemplo: Operacional semanal; O9, O10 e O7 ocultos (O15 e O18 omitidos do desenho); alertas de O2 e O10.</div>
+<header><b>Métricas DSPD</b><span>Visão geral</span><b>Operacional</b><span>Tático</span><span>Estratégico</span><span>Sustentação</span><span class="sp"></span><span class="fic">i Dados fictícios</span><span>Tema: Automático</span><span>Preferências</span><span>Ajuda</span></header>
+<main><h1>Operacional</h1><div class="mini">O trabalho está fluindo? Dados até 09/10/2026 · Fonte: BusinessMap · <a href="#">Copiar link</a> (o link inclui sua seleção de métricas)</div>
+<div class="barra"><span class="bt">Equipe: Todas &#9662;</span><span class="bt">Tipo &#9662;</span><span class="bt">Sistema &#9662;</span><span class="bt">Período: 12 semanas &#9662;</span>
+<span class="bt at">&#9776; Métricas: 6 de 9 &#9662;
+<span class="pop" role="dialog" aria-label="Métricas deste painel"><fieldset style="border:0;padding:0;margin:0"><legend style="font-weight:700;padding:0">Métricas deste painel</legend><span class="mini">Vale só para esta visita. Seu padrão fica em Preferências.</span>
+<label><input type="checkbox" checked>O3 Tempo de ciclo</label><label><input type="checkbox">O9 Os três relógios</label><label><input type="checkbox" checked>Espera invisível do nível</label><label><input type="checkbox" checked>O4 Vazão semanal</label><label><input type="checkbox">O10 Envelhecimento do backlog</label><label><input type="checkbox" checked>O12 Acordos e vencidos</label></fieldset>
+<span class="rod"><span class="bt">Mostrar todas</span><span class="bt">Usar minhas preferências</span><span class="bt">Fechar</span></span><span class="mini" role="status">6 de 9 métricas visíveis</span></span></span></div>
+<div class="ocu">&#9432; <span><b>3 métricas ocultas:</b> O9, O10 e O7. <a href="#">Mostrar todas</a> · <a href="#">Usar minhas preferências</a></span></div>
+<div class="faixa" role="region" aria-label="Pede atenção"><b>PEDE ATENÇÃO NA SEMANA</b><ul><li>&#9888; 2 itens acima do P95 de idade (O2) <span class="sel">métrica oculta</span> <a href="#">Mostrar O2 nesta visita</a></li><li>&#9888; 14 itens do backlog com mais de 180 dias (O10) <span class="sel">métrica oculta</span> <a href="#">Mostrar O10 nesta visita</a></li></ul></div>
+<div class="crit">&#9888; <span><b>Critério alterado em métrica oculta:</b> O9 mudou em 02/03/2026. <a href="#">Mostrar O9</a></span></div>
+<div class="mini" style="margin-top:8px">Resultado consolidado de 6 equipes. O sistema não compara equipes.</div>
+<h2>Tempo</h2><div class="g"><div class="cartao"><div class="cab"><h3>O3 Tempo de ciclo</h3><span class="bt">Ocultar esta métrica</span></div><p class="mini">Base: 87 itens concluídos · 18/07 a 09/10/2026</p><div class="graf"></div></div><div class="cartao"><div class="cab"><h3>Espera invisível do nível</h3><span class="bt">Ocultar esta métrica</span></div><p class="mini">Base: 62 itens · Fonte: BusinessMap</p><div class="graf"></div></div></div>
+<h2>Fluxo e compromissos</h2><div class="g"><div class="cartao"><h3>O4 Vazão semanal</h3><div class="graf"></div></div><div class="cartao"><h3>O12 Acordos e vencidos</h3><div class="graf"></div></div></div>
+<h2>Backlog</h2><div class="vazio"><b>Todas as métricas desta seção estão ocultas.</b> (O10 e O7)&nbsp; <span class="bt">Mostrar métricas da seção</span></div>
+<p class="mini" role="status" style="margin-top:16px">Depois de ocultar: "O7 oculta. 6 de 9 métricas visíveis." <a href="#">Desfazer</a> (foco vai ao próximo título).</p>
+</main></body></html>

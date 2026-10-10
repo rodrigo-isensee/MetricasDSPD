@@ -1,4 +1,11 @@
-import type { BaseAmostral, Intervalo, Janela, MetricaId } from '@metricas-dspd/contratos'
+import {
+  PRIORIDADES,
+  type BaseAmostral,
+  type Intervalo,
+  type Janela,
+  type MetricaId,
+  type Prioridade,
+} from '@metricas-dspd/contratos'
 import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { diaDeIso, diaLocal } from '../core/calendario'
 import { criteriosDe } from '../core/criterios'
@@ -43,3 +50,9 @@ export const criterios = (id: MetricaId, serie: Intervalo, janela: Intervalo, ct
   criteriosDe(id, serie, janela, ctx.criterios)
 
 export const r2 = (v: number): number => arredondar(v)
+
+export function prioridadesAlvo(f: FiltrosSustentacao): readonly Prioridade[] {
+  return f.prioridade.length === 0
+    ? PRIORIDADES
+    : PRIORIDADES.filter((p) => f.prioridade.includes(p))
+}

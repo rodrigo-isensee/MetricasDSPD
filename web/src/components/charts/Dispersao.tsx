@@ -112,7 +112,7 @@ export function Dispersao({
     x: eixoX.tipo === 'categorias' ? p.x + (((i * 0.618) % 1) - 0.5) * 0.5 : p.x,
   }))
   const rotuloX = (x: number) =>
-    eixoX.tipo === 'data' ? eixoX.formatar(x) : (cats[Math.round(x)] ?? '')
+    eixoX.tipo === 'data' ? eixoX.formatar(x) : (cats[Math.round(x)] as string)
   const legenda: ItemLegenda[] = referencias.map((r) => ({
     rotulo: r.rotulo,
     cor: 7,

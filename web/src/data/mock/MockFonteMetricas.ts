@@ -1,4 +1,10 @@
-import type { Dominio, MetricaId, VersaoCriterio } from '@metricas-dspd/contratos'
+import type {
+  Dominio,
+  EstadoColeta,
+  MetricaId,
+  PaginaColetas,
+  VersaoCriterio,
+} from '@metricas-dspd/contratos'
 import {
   EQUIPES_SUSTENTACAO_ID,
   NOME_EQUIPE_SUSTENTACAO,
@@ -39,6 +45,8 @@ export interface OpcoesMock {
 export class MockFonteMetricas implements FonteMetricas {
   readonly tipo = 'mock' as const
   private carregado: Promise<Carregado> | null = null
+
+  private coletas: Promise<import('@metricas-dspd/mock').ColetasMock> | null = null
 
   private readonly opcoes: OpcoesMock
 
@@ -136,5 +144,33 @@ export class MockFonteMetricas implements FonteMetricas {
       lib.instanteDeIso(base.config.hoje, lib.CALENDARIO_PADRAO),
       lib.CALENDARIO_PADRAO,
     )
+  }
+
+  /** Coletas fictícias (fora da base: o hash da base não muda), geradas sob demanda e memoizadas. */
+  private carregarColetas(): Promise<import('@metricas-dspd/mock').ColetasMock> {
+    this.coletas ??= this.carregar().then(async ({ base }) => {
+      const mock = await import('@metricas-dspd/mock')
+      return mock.gerarColetasMock(base)
+    })
+    return this.coletas
+  }
+
+  async estadoColeta(dominio: Dominio): Promise<EstadoColeta> {
+    const [{ lib, base }, coletas, versoes] = await Promise.all([
+      this.carregar(),
+      this.carregarColetas(),
+      this.criterios(),
+    ])
+    return lib.montarEstadoColeta(
+      dominio,
+      coletas[dominio],
+      versoes,
+      lib.instanteDeIso(base.config.hoje, lib.CALENDARIO_PADRAO),
+    )
+  }
+
+  async historicoColetas(dominio: Dominio, pagina: number): Promise<PaginaColetas> {
+    const [{ lib }, coletas] = await Promise.all([this.carregar(), this.carregarColetas()])
+    return lib.paginarColetas(coletas[dominio], pagina)
   }
 }

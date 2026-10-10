@@ -1,11 +1,15 @@
 import { Popover } from 'radix-ui'
 import { Icone } from '@/components/ui'
+import { useFonte } from '@/data'
 
 /**
  * Selo permanente "Dados fictícios" (D12): sempre no cabeçalho, com texto + ícone, contraste >= 4,5:1,
- * e sem nenhum botão que o remova. O popover só explica.
+ * e sem nenhum botão que o remova. O popover só explica. Só aparece com a fonte mock: contra a
+ * API real os dados não são fictícios (plano integracao-real D5).
  */
 export function AvisoDadosFicticios() {
+  const { tipo } = useFonte()
+  if (tipo !== 'mock') return null
   return (
     <Popover.Root>
       <Popover.Trigger asChild>

@@ -11,7 +11,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
     "test": "TZ=UTC vitest run --passWithNoTests",
-    "pronto": "npm run typecheck && npm test"
+    "cobertura": "TZ=UTC vitest run --coverage",
+    "pronto": "npm run typecheck && npm run cobertura"
   },
   "dependencies": {
     "zod": "^4.6.5"

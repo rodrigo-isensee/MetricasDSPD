@@ -69,7 +69,7 @@ web/
       acelerato/tipos.ts · catalogos.ts · gerador.ts
     lib/metrics/            # biblioteca única (TS puro, sem React/DOM)
       core/calendario.ts · feriados.ts · percentil.ts · janela.ts · amostra.ts · estatistica.ts
-           histograma.ts · series.ts · criterios.ts · montecarlo.ts (reservado)
+           histograma.ts · series.ts · criterios.ts
       businessmap/marcos.ts · wip.ts · o1.ts … o18.ts · t1.ts … t9.ts · e1.ts … e3.ts · ei.ts
       acelerato/sla.ts · totalizadores.ts · s1.ts … s7.ts · ei.ts
       index.ts
@@ -216,7 +216,7 @@ TypeScript puro, sem React, sem DOM, sem fuso do sistema. Toda métrica do núcl
   Toda estatística de distribuição passa por aqui. Média só é exposta junto com percentis (`resumoComMedia`), nunca sozinha. Contagens simples (vazão, volume) não estão sujeitas ao mínimo, mas o DTO sempre declara `n`.
 - **Histograma** (`histograma.ts`): faixas em dias úteis com largura padrão por granularidade (story 1, frente 5, projeto 20; provisório) e opção de largura explícita; recebe uma única `Amostra`, logo uma única granularidade.
 - **Critérios** (`criterios.ts`, T2.6): `VersaoCriterio = { id, data, descricao, afeta: MetricaId[] }`; `marcacoesNoPeriodo(metrica, inicio, fim)` devolvida em todo DTO de série para o gráfico desenhar a marcação. O mock inclui uma mudança fictícia (ex.: 2026-03-02, "marco de entrada corrigido, T1.5") para exercitar a marcação.
-- **Monte Carlo**: nenhuma métrica do núcleo (T6 e E5 estão fora) precisa. Fica só a assinatura reservada em `montecarlo.ts`, sem implementação nesta etapa.
+- **Monte Carlo**: nenhuma métrica do núcleo (T6 e E5 estão fora) precisa. A assinatura reservada em `montecarlo.ts` foi removida (K-056); o módulo nasce com T6/E5, com PRNG injetado.
 
 ### 4.2 Específicos
 - `businessmap/marcos.ts` deriva entrada, compromisso, início, entrega de `dim_card`/`fato_transicao`; aplica regras de 4.2 (subtarefa não conta, descartado fora do ciclo, reaberto conforme P10, janela de 30 dias do bug).

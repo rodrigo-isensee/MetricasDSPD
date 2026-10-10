@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import type { StatusMeta as Status } from '@metricas-dspd/contratos'
+import { SeloCalibracao, useCartaoCalibracao } from './Calibracao'
 import { Icone, type NomeIcone } from './Icone'
 
 const CFG: Record<Status, { texto: string; icone: NomeIcone; cor: string }> = {
@@ -17,6 +18,9 @@ interface Props {
 
 /** Status de meta: sempre ícone + texto (a cor nunca é o único canal). */
 export function StatusMeta({ status, texto, className }: Props) {
+  // Em calibração a meta não é avaliada: o selo toma o lugar de Dentro/Fora (CA-05).
+  const calibrando = useCartaoCalibracao()
+  if (calibrando) return <SeloCalibracao testid="selo-calibracao-meta" />
   const c =
     status === 'sem-meta'
       ? { texto: 'Sem meta numérica', icone: 'info' as const, cor: 'text-texto-2 bg-superficie-2' }

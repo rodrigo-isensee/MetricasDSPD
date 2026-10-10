@@ -10,7 +10,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
     "test": "TZ=UTC vitest run",
-    "pronto": "npm run typecheck && npm test"
+    "cobertura": "TZ=UTC vitest run --coverage",
+    "pronto": "npm run typecheck && npm run cobertura"
   },
   "dependencies": {
     "@metricas-dspd/contratos": "*",

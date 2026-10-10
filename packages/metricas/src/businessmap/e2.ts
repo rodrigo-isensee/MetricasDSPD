@@ -31,7 +31,7 @@ export function calcularE2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE2 {
   const itens = selecionar(ctx, f, 'story', { semEquipe: true, semTipo: true })
     .filter(ehDemanda)
     .filter((m) => m.entrega !== null)
-    .map((m) => ({ m, dia: diaLocal(m.entrega ?? 0, ctx.cal), cat: categoria(ctx, m) }))
+    .map((m) => ({ m, dia: diaLocal(m.entrega as number, ctx.cal), cat: categoria(ctx, m) }))
   const objetivos = ctx.idx.base.config.objetivos
   const ordem: { nome: string; tipo: Tipo }[] = [
     ...objetivos.map((nome) => ({ nome, tipo: 'objetivo' as const })),

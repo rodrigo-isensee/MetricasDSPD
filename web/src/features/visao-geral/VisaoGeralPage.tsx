@@ -5,11 +5,16 @@ import {
   EsqueletoCartao,
   ErroPagina,
   FaixaAtencao,
+  SeloCalibracao,
   StatusMeta,
+  useCalibracaoPronta,
+  useEmCalibracao,
   type ItemAtencao,
 } from '@/components/ui'
 import type { ResultadoVisaoGeral } from '@metricas-dspd/contratos'
-import { useDataReferencia, useErroDePainelSimulado, useMetrica } from '@/data'
+import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
+import { FrescorFonte } from '@/features/coleta/FrescorFonte'
+import { useDataReferencia, useErroDePainelSimulado, useMetrica, useModoMock } from '@/data'
 import { fmtData, fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import {
   NOME_DO_NIVEL,
@@ -31,6 +36,8 @@ const destinoAlerta = (a: { nivel: keyof typeof ROTA_DO_NIVEL; metrica: string; 
   `${ROTA_DO_NIVEL[a.nivel]}${a.nivel === 'operacional' && CADENCIA_SEMANAL.has(a.metrica) ? '?cadencia=semanal' : ''}#${a.ancora}`
 
 function StatusIndicador({ i }: { i: Indicador }) {
+  // Em calibração a meta não é avaliada: nada de Dentro/Fora (CA-05).
+  if (useEmCalibracao()(i.codigo)) return <SeloCalibracao testid={`calibracao-${i.codigo}`} />
   if (i.status === 'insuficiente')
     return <StatusMeta status="sem-referencia" texto="Amostra insuficiente" />
   return <StatusMeta status={i.status === 'sem-meta' ? 'sem-meta' : i.status} />
@@ -49,6 +56,8 @@ const ROTULO_STATUS: Record<
 function CartaoNivel({ n }: { n: Nivel }) {
   const nome = NOME_DO_NIVEL[n.nivel]
   const st = ROTULO_STATUS[n.status]
+  const emCalibracao = useEmCalibracao()
+  const calibrando = n.indicadores.some((i) => emCalibracao(i.codigo))
   return (
     <section
       aria-labelledby={`nivel-${n.nivel}-titulo`}
@@ -59,7 +68,13 @@ function CartaoNivel({ n }: { n: Nivel }) {
       <h3 id={`nivel-${n.nivel}-titulo`} className="text-base font-semibold">
         {nome}
       </h3>
-      <StatusMeta status={st.status} texto={st.texto} className="w-fit" />
+      {calibrando ? (
+        <span className="w-fit">
+          <SeloCalibracao testid={`calibracao-nivel-${n.nivel}`} />
+        </span>
+      ) : (
+        <StatusMeta status={st.status} texto={st.texto} className="w-fit" />
+      )}
       <ul className="flex flex-1 flex-col gap-2 text-sm">
         {n.indicadores.slice(0, 3).map((i) => (
           <li
@@ -163,9 +178,13 @@ const REUNIOES = [
 export default function VisaoGeralPage() {
   const data = useDataReferencia()
   const q = useMetrica('VISAO_GERAL', {})
+  const pronta = useCalibracaoPronta()
+  const carregandoSimulado = useModoMock() === 'carregando'
+  const aguardando = !pronta && !carregandoSimulado
   if (useErroDePainelSimulado())
     return <ErroPagina erro="Erro simulado (mock=erro)" onTentarDeNovo={() => undefined} />
-  const d = q.dados
+  // Antes de saber o que está em calibração, nenhum status é mostrado (some depois = pior que esperar).
+  const d = pronta ? q.dados : undefined
   const itens: ItemAtencao[] =
     d?.alertas.map((a) => ({
       id: `${a.nivel}-${a.codigo}`,
@@ -183,8 +202,20 @@ export default function VisaoGeralPage() {
         dataCorte={data}
         fonte="BusinessMap e Acelerato (blocos separados)"
         slug="visao-geral"
+        frescor={
+          <div className="flex flex-col gap-1" data-testid="frescor-fontes">
+            <FrescorFonte dominio="businessmap" comNome />
+            <FrescorFonte dominio="acelerato" comNome />
+          </div>
+        }
         publico="Consolidado de todas as equipes (o sistema não compara equipes), sem filtros nesta tela."
       />
+      {pronta && (
+        <>
+          <FaixaCalibracaoFonte dominio="businessmap" />
+          <FaixaCalibracaoFonte dominio="acelerato" />
+        </>
+      )}
       {d && (
         <p
           className="rounded-md border border-borda bg-superficie p-3 text-sm"
@@ -195,7 +226,10 @@ export default function VisaoGeralPage() {
           {intervalo(d.recortes.estrategico)}; Sustentação em {intervalo(d.recortes.sustentacao)}.
         </p>
       )}
-      {q.estado === 'carregando' && (
+      {!pronta && (
+        <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
+      )}
+      {!aguardando && (q.estado === 'carregando' || (q.estado === 'ok' && !pronta)) && (
         <EsqueletoCartao codigo="VISAO_GERAL" titulo="Visão geral" altura={320} />
       )}
       {q.estado === 'erro' && (

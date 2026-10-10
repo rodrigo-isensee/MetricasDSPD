@@ -1,0 +1,37 @@
+{
+  "name": "@metricas-dspd/server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "migrate": "tsx src/db/cli.ts",
+    "pronto": "npm run typecheck && npm run lint && npm test",
+    "cobertura": "vitest run --coverage",
+    "seed": "tsx src/db/seed-cli.ts",
+    "grants": "tsx src/db/grants-cli.ts"
+  },
+  "dependencies": {
+    "kysely": "^0.29.6",
+    "mysql2": "^3.11.0",
+    "@metricas-dspd/contratos": "*",
+    "@metricas-dspd/metricas": "*",
+    "@metricas-dspd/mock": "*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^5.0.3",
+    "@types/node": "^26.6.5",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3",
+    "eslint": "^9.39.5",
+    "@eslint/js": "^9.39.5",
+    "typescript-eslint": "^8.71.1"
+  }
+}

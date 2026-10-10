@@ -8,6 +8,7 @@
   },
   "workspaces": [
     "packages/*",
+    "server",
     "web",
     "e2e"
   ],
@@ -15,17 +16,25 @@
     "dev": "npm run dev -w @metricas-dspd/web",
     "build": "npm run build -w @metricas-dspd/web",
     "lint": "eslint .",
-    "typecheck": "npm run typecheck -w @metricas-dspd/contratos -w @metricas-dspd/metricas -w @metricas-dspd/mock -w @metricas-dspd/web && npm exec -w e2e -- tsc --noEmit",
+    "typecheck": "npm run typecheck -w @metricas-dspd/contratos -w @metricas-dspd/metricas -w @metricas-dspd/mock -w @metricas-dspd/web -w @metricas-dspd/server && npm exec -w e2e -- tsc --noEmit",
     "test": "npm test --workspaces --if-present",
     "format": "prettier --write web packages eslint.config.js tsconfig.base.json package.json",
     "format:check": "prettier --check web packages eslint.config.js tsconfig.base.json package.json",
     "check": "npm run lint && npm run typecheck && npm test && npm run format:check",
     "pronto": "npm run lint && npm run format:check && npm run pronto --workspaces --if-present",
-    "e2e": "npm test -w @metricas-dspd/e2e"
+    "cobertura": "npm run cobertura --workspaces --if-present",
+    "e2e": "npm test -w @metricas-dspd/e2e",
+    "db:up": "docker compose up -d --wait mysql",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && npm run db:up",
+    "db:migrate": "bash scripts/db.sh migrate",
+    "db:seed": "bash scripts/db.sh seed",
+    "test:mysql": "bash scripts/test-mysql.sh"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.3",
     "eslint": "^9.39.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",

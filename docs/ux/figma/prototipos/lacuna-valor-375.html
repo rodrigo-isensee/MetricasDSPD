@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Lacuna de valor 375 (protótipo)</title>
+<meta name="viewport" content="width=375, initial-scale=1">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--atencao:#8a5a00;--atencao-fundo:#fff4dc}
+*{box-sizing:border-box}body{margin:0;width:375px;background:var(--fundo);color:var(--texto);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:32px}
+.aviso{background:#8a5a00;color:#fff;padding:8px 16px;font-weight:600}
+header{display:flex;align-items:center;height:56px;padding:0 16px;background:var(--superficie);border-bottom:1px solid var(--borda)}header .sp{flex:1}
+main{padding:0 16px}h1{font-size:22px;margin:16px 0 0}h2{font-size:16px;margin:16px 0 8px}h3{font-size:15px;margin:0}.mini{color:var(--texto-2);font-size:12px}
+.bt{display:flex;min-height:44px;align-items:center;justify-content:center;border:1px solid var(--borda-controle);border-radius:6px;background:var(--superficie);margin-top:8px}.pri{background:var(--acento);color:#fff;border-color:var(--acento);font-weight:600}
+.cartao{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:12px;margin-top:12px}
+.fonte{display:inline-block;border:1px solid var(--atencao);background:var(--atencao-fundo);color:var(--atencao);border-radius:4px;padding:0 6px;font-size:12px;font-weight:600}
+.barras{display:flex;height:28px;border:1px solid var(--borda-controle);border-radius:4px;overflow:hidden;font-weight:600;font-size:12px;margin:4px 0 12px}.barras span{display:flex;align-items:center;justify-content:center;border-right:1px solid #fff}
+.s1{background:#8a1c12;color:#fff}.s2{background:#e0a59f}.s3{background:#e5e7ec}.s4{background:#9ec1ef}.s5{background:#1f5fbf;color:#fff}
+.insuf{border:1px dashed var(--borda-controle);border-radius:6px;padding:8px;background:var(--superficie-2);margin-top:8px}
+label{display:block;font-weight:600}.campo{border:1px solid var(--borda-controle);border-radius:6px;padding:10px;background:#fff;min-height:44px}
+</style></head><body>
+<div class="aviso">Protótipo descartável (lacuna de valor, 375). Dados fictícios.</div>
+<header><b>Métricas DSPD</b><span class="sp"></span><span>Menu &#9776;</span></header>
+<main><h1>Sustentação</h1><div class="mini">Dados até 09/10/2026 · Acelerato. Filtros não se aplicam à seção abaixo. (S1 a S7 omitidos)</div>
+<h2>Percepção de valor</h2><span class="fonte">Fonte: Pesquisa de percepção</span>
+<p class="mini">3T/2026 · 9 de 12 áreas responderam (75%). Consolidado; sem comparação entre áreas ou equipes; sem meta. Leia ao lado de S1 e S2.</p>
+<div class="cartao"><p class="mini">1 Discordo totalmente · 2 Discordo · 3 Neutro · 4 Concordo · 5 Concordo totalmente. Números = respostas (n = 9).</p>
+<div>Resolve o que a minha área precisa</div><div class="barras"><span class="s2" style="width:11%">1</span><span class="s3" style="width:22%">2</span><span class="s4" style="width:44%">4</span><span class="s5" style="width:23%">2</span></div>
+<div>O prazo atende à criticidade</div><div class="barras"><span class="s1" style="width:11%">1</span><span class="s2" style="width:22%">2</span><span class="s3" style="width:22%">2</span><span class="s4" style="width:33%">3</span><span class="s5" style="width:12%">1</span></div>
+<div>O problema não volta depois de resolvido</div><div class="barras"><span class="s1" style="width:22%">2</span><span class="s2" style="width:22%">2</span><span class="s3" style="width:22%">2</span><span class="s4" style="width:22%">2</span><span class="s5" style="width:12%">1</span></div>
+<p class="mini">(mais 2 perguntas)</p></div>
+<div class="cartao"><h3>Tendência (pergunta 1)</h3><p>4T/2025: 3 de 7 · 1T/2026: 4 de 8 · 2T/2026: 5 de 9 · 3T/2026: 6 de 9 concordam</p></div>
+<div class="insuf"><b>Por área: base insuficiente.</b> Menos de 3 respostas por área (mínimo hipotético). Áreas agrupadas em "Outras áreas".</div>
+<h2>Carregar resultado da pesquisa</h2>
+<div class="cartao"><p class="mini">Só arquivo agregado. Arquivos com nome ou e-mail são recusados.</p>
+<label for="tri">Trimestre</label><div class="campo" id="tri">3T/2026</div><br><label for="arq">Arquivo CSV agregado</label><div class="campo" id="arq">percepcao-3T2026.csv</div>
+<div class="insuf" role="alert"><b>Arquivo recusado:</b> coluna "email" na linha 1. Remova colunas com dados de pessoas e tente de novo.</div>
+<span class="bt pri">Carregar resultado</span><span class="bt">Cancelar</span></div>
+</main></body></html>

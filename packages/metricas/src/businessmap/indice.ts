@@ -145,15 +145,12 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
     if (aberto) segmentos.push(aberto)
     const foiDescartado = descartado(card)
     const ativo = card.excluido_em === null && !card.eh_subtarefa && !foiDescartado
-    const entrega = entregue ? (trs[trs.length - 1]?.timestamp ?? null) : null
+    const entrega = entregue ? (trs[trs.length - 1] as FatoTransicao).timestamp : null
     const semDesfecho = arquivadoSemDesfecho(card, entrega !== null)
     const emAndamento = segmentos.length > 0 && segmentos[segmentos.length - 1]?.fim === null
     const cicloHU =
       entrega !== null && !emAndamento
-        ? segmentos.reduce(
-            (s, g) => s + (g.fim === null ? 0 : horasUteisEntre(g.ini, g.fim, cal)),
-            0,
-          )
+        ? segmentos.reduce((s, g) => s + horasUteisEntre(g.ini, g.fim as number, cal), 0)
         : null
     const blq = bloqueiosPorCard.get(card.card_id)?.find((b) => b.fim === null) ?? null
     return {

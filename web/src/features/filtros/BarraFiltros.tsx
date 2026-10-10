@@ -93,7 +93,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
 
 /** "A", "A e B", "A, B e C". */
 const listaE = (v: readonly string[]): string =>
-  v.length <= 1 ? (v[0] ?? '') : `${v.slice(0, -1).join(', ')} e ${v[v.length - 1]}`
+  v.length < 2 ? v.join('') : `${v.slice(0, -1).join(', ')} e ${v[v.length - 1]}`
 
 /**
  * Barra de filtros do painel (spec 2): só os filtros que se aplicam, aplicação imediata, chips dos
@@ -136,8 +136,8 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
   } as Uso
   const usoFolha: Uso = {
     ...usoA,
-    definir: ((parcial: never, op: { replace?: boolean } = {}) => {
-      const replace = mudouNaFolha.current || (op.replace ?? false)
+    definir: ((parcial: never, op: { replace: boolean }) => {
+      const replace = mudouNaFolha.current || op.replace
       mudouNaFolha.current = true
       ;(usoA.definir as (p: never, o: { replace: boolean }) => void)(parcial, { replace })
     }) as Uso['definir'],

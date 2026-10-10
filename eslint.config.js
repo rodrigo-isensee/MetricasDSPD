@@ -115,6 +115,7 @@ export default tseslint.config(
   {
     ignores: [
       '**/dist',
+      'server/**',
       '**/dist-alt',
       '**/coverage',
       '**/node_modules',

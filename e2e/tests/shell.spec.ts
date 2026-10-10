@@ -1,11 +1,11 @@
 import { test, expect } from '../fixtures/base';
 
 const ROTAS_PAINEL = ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel', '/ajuda'];
-const DESTINOS = ['Visão geral', 'Operacional', 'Tático', 'Estratégico', 'Sustentação', 'Espera invisível'];
+const DESTINOS = ['Visão geral', 'Operacional', 'Tático', 'Estratégico', 'Sustentação', 'Espera invisível', 'Dados e coletas'];
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
-test('NAV-01/02 entrada em / e 6 destinos na ordem, aria-current só na rota atual @smoke', async ({ painel, page }) => {
+test('NAV-01/02 entrada em / e 7 destinos na ordem, aria-current só na rota atual @smoke', async ({ painel, page }) => {
   await painel.ir('/');
   expect(await painel.cabecalho.destinos()).toEqual(DESTINOS);
   for (const [i, rota] of ROTAS_PAINEL.slice(0, 6).entries()) {

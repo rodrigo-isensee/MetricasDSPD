@@ -1,5 +1,5 @@
 import type { ResultadoS1 } from '@metricas-dspd/contratos'
-import { PRIORIDADES, type Prioridade } from '@metricas-dspd/contratos'
+import type { Prioridade } from '@metricas-dspd/contratos'
 import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { resumoComMedia } from '../core/estatistica'
 import { amostraAC } from './amostra'
@@ -9,16 +9,12 @@ import {
   janelaPercentis,
   noIntervalo,
   periodoDe,
+  prioridadesAlvo,
   r2,
   selecionarAC,
 } from './comum'
 import type { ContextoAC } from './indice'
-
-export function prioridadesAlvo(f: FiltrosSustentacao): readonly Prioridade[] {
-  return f.prioridade.length === 0
-    ? PRIORIDADES
-    : PRIORIDADES.filter((p) => f.prioridade.includes(p))
-}
+import type { AlvoPrioridade } from './modelo'
 
 /**
  * S1: primeiro atendimento (MTTA) e restauração (MTTR) por prioridade, nunca agregado.
@@ -65,11 +61,11 @@ export function calcularS1(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS1 
     janelaPercentis: janela,
     excecoesForaDaApuracao: fechados.length - apuraveis.length,
     prioridades: prioridadesAlvo(f).map((p) => {
-      const a = alvos.find((x) => x.prioridade === p)
+      const a = alvos.find((x) => x.prioridade === p) as AlvoPrioridade
       return {
         prioridade: p,
-        primeiroAtendimento: classe(p, 'primeiroAtendimentoHU', a?.primeiro_atendimento_horas ?? 0),
-        restauracao: classe(p, 'restauracaoHU', a?.restauracao_horas ?? 0),
+        primeiroAtendimento: classe(p, 'primeiroAtendimentoHU', a.primeiro_atendimento_horas),
+        restauracao: classe(p, 'restauracaoHU', a.restauracao_horas),
       }
     }),
   }

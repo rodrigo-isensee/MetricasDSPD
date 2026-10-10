@@ -31,10 +31,10 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
   )
   const out = dias.map((d, i) => ({
     data: isoDeDia(d),
-    wip: wip[i] ?? 0,
-    bloqueados: bloq[i] ?? 0,
+    wip: wip[i] as number,
+    bloqueados: bloq[i] as number,
     limite,
-    acimaDoLimite: (wip[i] ?? 0) > limite,
+    acimaDoLimite: (wip[i] as number) > limite,
   }))
 
   // retrato de hoje (referência = fim do período)

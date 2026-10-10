@@ -11,10 +11,9 @@ export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
   const q = useMetrica('O1', filtros)
   const d = q.dados
   const h = d?.hoje
-  const dias = d?.diasDentroDoLimite
   const leitura =
     d && h
-      ? `Hoje há ${fmtInteiro(h.total)} ${plural(h.total, 'item', 'itens')} em progresso para um limite de ${fmtInteiro(h.limite)} (${fmtInteiro(h.acimaDoLimite)} acima), ${fmtInteiro(h.bloqueados)} deles bloqueados.${dias ? ` Nos últimos ${fmtInteiro(dias.n)} dias úteis o WIP ficou dentro do limite em ${fmtInteiro(dias.k)}.` : ''}`
+      ? `Hoje há ${fmtInteiro(h.total)} ${plural(h.total, 'item', 'itens')} em progresso para um limite de ${fmtInteiro(h.limite)} (${fmtInteiro(h.acimaDoLimite)} acima), ${fmtInteiro(h.bloqueados)} deles bloqueados. Nos últimos ${fmtInteiro(d.diasDentroDoLimite.n)} dias úteis o WIP ficou dentro do limite em ${fmtInteiro(d.diasDentroDoLimite.k)}.`
       : undefined
   return (
     <CartaoMetrica
@@ -25,22 +24,20 @@ export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
     >
       {d && h && (
         <div className="flex flex-col gap-4">
-          {dias && (
-            <NumeroGrande
-              data-testid="o1-dias-dentro"
-              valor={
-                dias.status === 'ok'
-                  ? fmtPct(dias.pct, 0)
-                  : `${fmtInteiro(dias.k)} de ${fmtInteiro(dias.n)}`
-              }
-              rotulo={
-                dias.status === 'ok'
-                  ? `Dias dentro do limite: ${fmtInteiro(dias.k)} de ${fmtInteiro(dias.n)}`
-                  : 'dias dentro do limite (percentual só com 20 dias úteis ou mais)'
-              }
-              textoCompleto={`Dias dentro do limite: ${fmtInteiro(dias.k)} de ${fmtInteiro(dias.n)} dias úteis`}
-            />
-          )}
+          <NumeroGrande
+            data-testid="o1-dias-dentro"
+            valor={
+              d.diasDentroDoLimite.status === 'ok'
+                ? fmtPct(d.diasDentroDoLimite.pct, 0)
+                : `${fmtInteiro(d.diasDentroDoLimite.k)} de ${fmtInteiro(d.diasDentroDoLimite.n)}`
+            }
+            rotulo={
+              d.diasDentroDoLimite.status === 'ok'
+                ? `Dias dentro do limite: ${fmtInteiro(d.diasDentroDoLimite.k)} de ${fmtInteiro(d.diasDentroDoLimite.n)}`
+                : 'dias dentro do limite (percentual só com 20 dias úteis ou mais)'
+            }
+            textoCompleto={`Dias dentro do limite: ${fmtInteiro(d.diasDentroDoLimite.k)} de ${fmtInteiro(d.diasDentroDoLimite.n)} dias úteis`}
+          />
           {d.porColuna ? (
             <Barras
               descricao="WIP por coluna do fluxo, com bloqueados dentro do total"

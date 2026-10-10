@@ -1,4 +1,4 @@
-import type { MetricaId } from '@metricas-dspd/contratos'
+import type { Dominio, EstadoColeta, MetricaId, PaginaColetas } from '@metricas-dspd/contratos'
 import { METRICAS_SUSTENTACAO } from '@metricas-dspd/contratos'
 
 /**
@@ -9,9 +9,25 @@ import { METRICAS_SUSTENTACAO } from '@metricas-dspd/contratos'
  *   erro:{ids}            só os cartões listados falham, em todas as tentativas (ex.: erro:o3,t1)
  *   erro-uma-vez:{ids}    só os listados falham na primeira carga; "Tentar de novo" funciona
  * Ids = ids de âncora (minúsculas, com hífen: `ei-fl1`, `bloqueados`); id inexistente é ignorado.
+ *   coleta-atrasada:bm|ac   selo "Atrasado" na fonte indicada (bm = BusinessMap, ac = Acelerato)
+ *   coleta-vazia:bm|ac      fonte sem nenhuma coleta ("Ainda não há coletas desta fonte")
+ *   coleta-erro:bm|ac       falha de leitura do estado e do histórico da fonte ("Tentar de novo")
+ *   sem-calibracao          nenhuma janela de calibração vigente (cartões mostram Dentro/Fora da meta)
+ * (`carregando` também deixa o estado de coleta carregando.)
  * O parâmetro vale só para a página que o contém: os links não o propagam nem o "Copiar link".
  */
-export type ModoMock = 'carregando' | 'erro' | 'vazio' | `erro:${string}` | `erro-uma-vez:${string}`
+export type SiglaFonte = 'bm' | 'ac'
+export type ModoColeta = 'coleta-atrasada' | 'coleta-vazia' | 'coleta-erro'
+export type ModoMock =
+  | 'carregando'
+  | 'erro'
+  | 'vazio'
+  | `erro:${string}`
+  | `erro-uma-vez:${string}`
+  | `${ModoColeta}:${SiglaFonte}`
+  | 'sem-calibracao'
+
+const DOMINIO_DA_SIGLA: Record<SiglaFonte, Dominio> = { bm: 'businessmap', ac: 'acelerato' }
 
 export class ErroSimulado extends Error {
   readonly codigo = 'MOCK_ERRO_SIMULADO'
@@ -24,7 +40,8 @@ export class ErroSimulado extends Error {
 export function lerModoMock(valor: string | null): ModoMock | null {
   if (!valor) return null
   const v = valor.trim().toLowerCase()
-  if (v === 'carregando' || v === 'erro' || v === 'vazio') return v
+  if (v === 'carregando' || v === 'erro' || v === 'vazio' || v === 'sem-calibracao') return v
+  if (/^coleta-(atrasada|vazia|erro):(bm|ac)$/.test(v)) return v as ModoMock
   if (/^(erro|erro-uma-vez):[a-z0-9_-]+(,[a-z0-9_-]+)*$/.test(v)) return v as ModoMock
   return null
 }
@@ -74,4 +91,53 @@ export async function aplicarSimulacao<F, R>(
   }
   if (modo === 'vazio' && id !== 'VISAO_GERAL') return obter(filtrosSemDados(id, filtros))
   return obter(filtros)
+}
+
+/** O modo de coleta que vale para a fonte (`coleta-erro:bm` só afeta o BusinessMap), ou null. */
+function modoDaFonte(modo: ModoMock | null, dominio: Dominio): ModoColeta | null {
+  const m = /^(coleta-(?:atrasada|vazia|erro)):(bm|ac)$/.exec(modo ?? '')
+  return m && DOMINIO_DA_SIGLA[m[2] as SiglaFonte] === dominio ? (m[1] as ModoColeta) : null
+}
+
+const HORAS_ATRASO_SIMULADO = 26
+
+/** Aplica o modo simulado ao estado de coleta de uma fonte. `carregando` nunca resolve; só a fonte indicada muda. */
+export async function aplicarSimulacaoEstado(
+  modo: ModoMock | null,
+  dominio: Dominio,
+  obter: () => Promise<EstadoColeta>,
+): Promise<EstadoColeta> {
+  if (modo === 'carregando') return new Promise<EstadoColeta>(() => undefined)
+  const doDominio = modoDaFonte(modo, dominio)
+  if (doDominio === 'coleta-erro') throw new ErroSimulado(`coleta ${dominio}`)
+  const real = await obter()
+  const base =
+    modo === 'sem-calibracao' ? { ...real, calibracao: [], metricasEmCalibracao: [] } : real
+  if (doDominio === 'coleta-atrasada')
+    return { ...base, selo: 'atrasado', horasDesdeUltimaOk: HORAS_ATRASO_SIMULADO }
+  if (doDominio === 'coleta-vazia')
+    return {
+      ...base,
+      selo: 'sem-coleta',
+      horasDesdeUltimaOk: null,
+      ultimaOk: null,
+      ultimaTentativa: null,
+      falhasRecentes: [],
+      calibracao: [],
+      metricasEmCalibracao: [],
+    }
+  return base
+}
+
+/** Aplica o modo simulado ao histórico de coletas de uma fonte. */
+export async function aplicarSimulacaoHistorico(
+  modo: ModoMock | null,
+  dominio: Dominio,
+  obter: () => Promise<PaginaColetas>,
+): Promise<PaginaColetas> {
+  if (modo === 'carregando') return new Promise<PaginaColetas>(() => undefined)
+  const doDominio = modoDaFonte(modo, dominio)
+  if (doDominio === 'coleta-erro') throw new ErroSimulado(`coleta ${dominio}`)
+  const real = await obter()
+  return doDominio === 'coleta-vazia' ? { ...real, itens: [], total: 0 } : real
 }

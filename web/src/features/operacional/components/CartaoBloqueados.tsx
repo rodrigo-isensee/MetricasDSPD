@@ -14,10 +14,8 @@ export function CartaoBloqueados({ filtros }: { filtros: FiltrosFluxo }) {
     : []
   const maisAntigo = itens[0]
   const nenhum = !!d && itens.length === 0
-  const leitura = d
-    ? nenhum
-      ? undefined
-      : `${fmtInteiro(itens.length)} ${plural(itens.length, 'item está', 'itens estão')} bloqueado${itens.length === 1 ? '' : 's'}. O mais antigo está bloqueado há ${fmtDiasUteis(maisAntigo?.bloqueadoHaDiasUteis ?? 0, 0)} por "${maisAntigo?.motivo ?? ''}".`
+  const leitura = maisAntigo
+    ? `${fmtInteiro(itens.length)} ${plural(itens.length, 'item está', 'itens estão')} bloqueado${itens.length === 1 ? '' : 's'}. O mais antigo está bloqueado há ${fmtDiasUteis(maisAntigo.bloqueadoHaDiasUteis, 0)} por "${maisAntigo.motivo}".`
     : undefined
   const props = propsCartao('BLOQUEADOS', q, NOTAS_OPERACIONAL.BLOQUEADOS)
   return (

@@ -1,13 +1,14 @@
-import { act, screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { renderizarApp } from '@/test/helpers'
+import { fonteDeTeste, renderizarApp } from '@/test/helpers'
+import type { FonteMetricas } from '@/data'
 
 const busca = (r: { roteador: { state: { location: { search: string; pathname: string } } } }) =>
   new URLSearchParams(r.roteador.state.location.search)
 
 describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
-  it('navegação com exatamente os 6 destinos na ordem e aria-current na rota atual', async () => {
+  it('navegação com exatamente os 7 destinos na ordem e aria-current na rota atual', async () => {
     renderizarApp('/operacional')
     await screen.findByRole('heading', { level: 1, name: 'Operacional' })
     const nav = screen.getAllByRole('navigation', { name: 'Navegação principal' })[0] as HTMLElement
@@ -21,6 +22,7 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
       'Estratégico',
       'Sustentação',
       'Espera invisível',
+      'Dados e coletas',
     ])
     expect(within(nav).getByRole('link', { name: 'Operacional' })).toHaveAttribute(
       'aria-current',
@@ -38,6 +40,7 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
     '/estrategico',
     '/sustentacao',
     '/espera-invisivel',
+    '/dados',
     '/ajuda',
     '/nada-aqui',
   ])('%s: um único h1, aviso "Dados fictícios" e rodapé com a data', async (rota) => {
@@ -48,6 +51,23 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
     const rodape = screen.getByTestId('rodape')
     expect(rodape).toHaveTextContent('Dados fictícios gerados para validar a experiência')
     await waitFor(() => expect(rodape).toHaveTextContent('Dados até 09/10/2026'))
+  })
+
+  it('com fonte real (tipo api) não há aviso, nem texto, nem título de dados fictícios (D5)', async () => {
+    const api = Object.create(fonteDeTeste, {
+      tipo: { value: 'api' },
+    }) as unknown as FonteMetricas
+    renderizarApp('/ajuda', api as never)
+    await screen.findByRole('heading', { level: 1, name: 'Ajuda' })
+    expect(screen.queryByTestId('aviso-dados-ficticios')).not.toBeInTheDocument()
+    const rodape = screen.getByTestId('rodape')
+    await waitFor(() => expect(rodape).toHaveTextContent('Dados até 09/10/2026'))
+    expect(rodape).not.toHaveTextContent('fictícios')
+    const sobre = screen.getByRole('heading', { name: 'Sobre os dados' })
+      .parentElement as HTMLElement
+    expect(sobre).toHaveTextContent('Dados das coletas do BusinessMap e do Acelerato.')
+    expect(sobre).not.toHaveTextContent('fictícios')
+    expect(document.title).toBe('Ajuda · Métricas DSPD')
   })
 
   it('rota desconhecida mostra 404 com link para a Visão geral', async () => {
@@ -105,137 +125,6 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
   })
 })
 
-describe('filtros ↔ URL', () => {
-  it('Operacional e Tático mostram 4 filtros; Estratégico só Sistema e Período com explicação; Sustentação os próprios', async () => {
-    const op = renderizarApp('/operacional')
-    await screen.findByTestId('filtro-equipe')
-    for (const f of ['equipe', 'tipo', 'sistema', 'periodo'])
-      expect(screen.getByTestId(`filtro-${f}`)).toBeInTheDocument()
-    op.unmount()
-
-    const es = renderizarApp('/estrategico')
-    await screen.findByTestId('filtro-sistema')
-    expect(screen.queryByTestId('filtro-equipe')).toBeNull()
-    expect(screen.queryByTestId('filtro-tipo')).toBeNull()
-    expect(
-      screen.getByRole('button', { name: 'Por que não há filtro de equipe?' }),
-    ).toBeInTheDocument()
-    es.unmount()
-
-    renderizarApp('/sustentacao')
-    await screen.findByTestId('filtro-prioridade')
-    expect(screen.getByTestId('filtro-equipe')).toBeInTheDocument()
-    expect(screen.queryByTestId('filtro-sistema')).toBeNull()
-    expect(screen.queryByTestId('filtro-tipo')).toBeNull()
-  })
-
-  it('marcar um valor atualiza a URL na hora (sem botão Aplicar), cria chip e o Voltar desfaz', async () => {
-    const r = renderizarApp('/operacional')
-    await userEvent.click(await screen.findByTestId('filtro-equipe'))
-    const opcao = await screen.findByLabelText('Fluig')
-    await userEvent.click(opcao)
-    expect(busca(r).get('equipe')).toBe('fluig')
-    expect(screen.queryByRole('button', { name: 'Aplicar' })).toBeNull()
-    expect(
-      await screen.findByRole('button', { name: 'Remover filtro Equipe: Fluig' }),
-    ).toBeInTheDocument()
-    await act(async () => {
-      await r.roteador.navigate(-1)
-    })
-    expect(busca(r).has('equipe')).toBe(false)
-    await waitFor(() => expect(screen.queryByTestId('chip-filtro-equipe')).toBeNull())
-  })
-
-  it('só valores fora do padrão entram na URL; marcar todos equivale a Todos; remover chip remove só aquele filtro', async () => {
-    const r = renderizarApp('/operacional?equipe=fluig&sistema=protheus&periodo=4s')
-    const chip = await screen.findByRole('button', { name: 'Remover filtro Equipe: Fluig' })
-    await userEvent.click(chip)
-    expect(busca(r).has('equipe')).toBe(false)
-    expect(busca(r).get('sistema')).toBe('protheus')
-    expect(busca(r).get('periodo')).toBe('4s')
-    // período padrão do painel (12s) nunca aparece na URL
-    await userEvent.click(screen.getByRole('button', { name: /Remover filtro Período/ }))
-    expect(busca(r).has('periodo')).toBe(false)
-  })
-
-  it('"Limpar filtros" só aparece com filtro fora do padrão, restaura o padrão e anuncia "Filtros limpos."', async () => {
-    const r = renderizarApp('/operacional')
-    await screen.findByTestId('filtro-equipe')
-    expect(screen.queryByTestId('limpar-filtros')).toBeNull()
-    r.unmount()
-    const r2 = renderizarApp('/operacional?equipe=fluig&periodo=6m&cadencia=semanal')
-    await userEvent.click(await screen.findByTestId('limpar-filtros'))
-    expect(busca(r2).has('equipe')).toBe(false)
-    expect(busca(r2).has('periodo')).toBe(false)
-    expect(busca(r2).get('cadencia')).toBe('semanal')
-    expect(screen.queryByTestId('limpar-filtros')).toBeNull()
-    expect(screen.getByText('Filtros limpos.')).toBeInTheDocument()
-  })
-
-  it('valor inválido no link é ignorado, a URL é corrigida e aparece o aviso', async () => {
-    const r = renderizarApp('/operacional?equipe=fluig,xyz&tipo=nada&periodo=99x')
-    expect(await screen.findByTestId('aviso-filtros-invalidos')).toHaveTextContent(
-      'Alguns filtros do link não existem e foram ignorados: equipe "xyz", tipo "nada", período "99x"',
-    )
-    await waitFor(() => expect(busca(r).get('equipe')).toBe('fluig'))
-    expect(busca(r).has('tipo')).toBe(false)
-    expect(busca(r).has('periodo')).toBe(false)
-    await userEvent.click(screen.getByRole('button', { name: 'Entendi' }))
-    expect(screen.queryByTestId('aviso-filtros-invalidos')).toBeNull()
-  })
-
-  it('2 ou mais equipes: aviso de consolidado; nenhum rótulo compara equipes', async () => {
-    renderizarApp('/operacional?equipe=fluig,senior')
-    expect(await screen.findByTestId('aviso-consolidado')).toHaveTextContent(
-      'Resultado consolidado de 2 equipes. O sistema não compara equipes.',
-    )
-  })
-
-  it('período personalizado valida as datas junto dos campos', async () => {
-    const r = renderizarApp('/operacional')
-    await userEvent.click(await screen.findByTestId('filtro-periodo'))
-    await userEvent.click(await screen.findByRole('radio', { name: 'Personalizado' }))
-    const de = screen.getByLabelText('De')
-    const ate = screen.getByLabelText('Até')
-    await userEvent.type(de, '2026-09-01')
-    await userEvent.type(ate, '2026-08-01')
-    await userEvent.click(screen.getByRole('button', { name: 'Aplicar período' }))
-    expect(
-      await screen.findByText('A data inicial precisa ser anterior à data final.'),
-    ).toBeInTheDocument()
-    expect(busca(r).has('periodo')).toBe(false)
-    await userEvent.clear(ate)
-    await userEvent.type(ate, '2026-12-31')
-    await userEvent.click(screen.getByRole('button', { name: 'Aplicar período' }))
-    expect(
-      await screen.findByText(/A data final não pode passar de 09\/10\/2026/),
-    ).toBeInTheDocument()
-    await userEvent.clear(ate)
-    await userEvent.type(ate, '2026-09-03')
-    await userEvent.click(screen.getByRole('button', { name: 'Aplicar período' }))
-    expect(
-      await screen.findByText('Escolha um intervalo de pelo menos 7 dias.'),
-    ).toBeInTheDocument()
-    await userEvent.clear(ate)
-    await userEvent.type(ate, '2026-09-30')
-    await userEvent.click(screen.getByRole('button', { name: 'Aplicar período' }))
-    await waitFor(() => expect(busca(r).get('periodo')).toBe('custom'))
-    expect(busca(r).get('de')).toBe('2026-09-01')
-    expect(busca(r).get('ate')).toBe('2026-09-30')
-  })
-
-  it('filtros do fluxo não são herdados pela Sustentação e vice-versa', async () => {
-    const r = renderizarApp('/sustentacao?equipe=fluig&prioridade=p2')
-    expect(
-      await screen.findByRole('button', { name: 'Remover filtro Equipe: SSSC FLUIG' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Remover filtro Prioridade: P2' }),
-    ).toBeInTheDocument()
-    expect(busca(r).get('equipe')).toBe('fluig')
-  })
-})
-
 describe('cartão de referência O4 e estados simulados (?mock=)', () => {
   it('mostra os números calculados, base, tabela alternativa e nota', async () => {
     renderizarApp('/operacional?cadencia=semanal')
@@ -243,7 +132,7 @@ describe('cartão de referência O4 e estados simulados (?mock=)', () => {
     await waitFor(() =>
       expect(within(cartao).getByTestId('base-O4')).toHaveTextContent(/Base: \d+ itens concluídos/),
     )
-    expect(within(cartao).getByTestId('leitura-O4')).toHaveTextContent(
+    expect(await within(cartao).findByTestId('leitura-O4')).toHaveTextContent(
       /a vazão ficou entre \d+ e \d+ itens por semana; a mediana é \d+/,
     )
     await userEvent.click(within(cartao).getByRole('button', { name: 'Ver como tabela' }))

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Métricas complementares 375 (protótipo)</title>
+<meta name="viewport" content="width=375, initial-scale=1">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-fundo:#e6effc}
+*{box-sizing:border-box}body{margin:0;width:375px;background:var(--fundo);color:var(--texto);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:32px}
+.aviso{background:#8a5a00;color:#fff;padding:8px 16px;font-weight:600}
+header{display:flex;gap:8px;align-items:center;height:56px;padding:0 16px;background:var(--superficie);border-bottom:1px solid var(--borda)}header .sp{flex:1}
+main{padding:0 16px}h1{font-size:22px;margin:16px 0 0}h2{font-size:16px;margin:16px 0 8px}h3{font-size:15px;margin:0}.mini{color:var(--texto-2);font-size:12px}a{color:var(--acento)}
+.bt{display:flex;min-height:44px;align-items:center;border:1px solid var(--borda-controle);border-radius:6px;padding:2px 12px;background:var(--superficie);margin-top:8px}.at{border-color:var(--acento);background:var(--acento-fundo);font-weight:600}
+.cartao{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:12px;margin-top:12px}
+.graf{height:56px;background:repeating-linear-gradient(90deg,var(--superficie-2) 0 12px,#fff 12px 16px);border-radius:4px;margin-top:8px}
+.num{font-size:26px;font-weight:700}
+details.mais{border:1px solid var(--acento);border-radius:8px;background:var(--superficie);margin-top:16px}details.mais>summary{cursor:pointer;padding:12px;font-weight:700;min-height:44px}details.mais>div{padding:0 12px 12px}
+.sel{display:inline-block;border:1px solid var(--borda-controle);border-radius:4px;padding:0 6px;font-size:12px;font-weight:600;background:var(--superficie-2)}
+.insuf{border:1px dashed var(--borda-controle);border-radius:6px;padding:8px;background:var(--superficie-2);margin-top:8px}
+.folha{border:1px solid var(--borda-controle);border-radius:12px 12px 0 0;background:var(--superficie);padding:12px;margin-top:16px;box-shadow:0 -4px 16px rgba(0,0,0,.15)}.folha label{display:flex;gap:8px;min-height:44px;align-items:center}
+</style></head><body>
+<div class="aviso">Protótipo descartável (complementares, 375). Dados fictícios.</div>
+<header><b>Métricas DSPD</b><span class="sp"></span><span>Menu &#9776;</span></header>
+<main><h1>Operacional</h1><div class="mini">Dados até 09/10/2026 · BusinessMap</div>
+<span class="bt">Filtros &#9662;</span><span class="bt at">&#9776; Métricas: 9 de 9 (+8 complementares)</span>
+<div class="cartao"><h3>O3 Tempo de ciclo</h3><p class="mini">Base: 87 itens · P50 4d · P85 9d · P95 15d</p><div class="graf"></div><p class="mini" style="margin-top:8px">Leia junto: <a href="#mais">O5</a> · <a href="#mais">O6</a> · <a href="#mais">O8</a></p></div>
+<p class="mini">(demais cartões do núcleo omitidos)</p>
+<details class="mais" id="mais" open><summary>Mais métricas · 8 complementares &#9662;</summary><div>
+<p class="mini">Sem meta própria; não entram em "Pede atenção".</p>
+<h2>Por que demora?</h2>
+<div class="cartao"><h3>O5 Eficiência de fluxo</h3><div class="num">28%</div><p class="mini">Base: 87 itens · 12 semanas</p></div>
+<div class="cartao"><h3>O6 Previsibilidade</h3><div class="num">2,1</div><p class="mini">P85 ÷ P50 · referência: abaixo de 2,5</p></div>
+<h2>Tamanho e entrada</h2>
+<div class="cartao"><h3>O8 Tamanho das demandas</h3><div class="insuf"><b>Amostra insuficiente:</b> 14 itens. Mínimo 20 para publicar.</div></div>
+<p class="mini" style="margin-top:12px"><span class="sel">Em breve</span> 4 métricas sem dado: O11, O13, O16, O17. <a href="#">Ver o catálogo</a></p></div></details>
+<div class="folha" role="dialog" aria-label="Métricas deste painel"><b>Métricas deste painel</b> <span class="mini">(folha no mobile)</span>
+<label><input type="checkbox" checked>O3 Tempo de ciclo</label><b class="mini">Complementares</b><label><input type="checkbox" checked>O5 Eficiência de fluxo</label><label><input type="checkbox">O6 Previsibilidade</label><span class="bt">Fechar</span></div>
+</main></body></html>

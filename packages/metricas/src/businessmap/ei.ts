@@ -73,7 +73,7 @@ export function calcularEIBM(ctx: ContextoBM, f: FiltrosFluxo, nivel: NivelBM): 
     if (v)
       itens.push({
         tipo: m.card.tipo,
-        dia: m.entrega === null ? 0 : diaLocal(m.entrega, ctx.cal),
+        dia: diaLocal(m.entrega as number, ctx.cal),
         v,
       })
   }

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>/preferencias 375 (protótipo)</title>
+<meta name="viewport" content="width=375, initial-scale=1">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--atencao:#8a5a00;--ok:#0b6b3a;--ok-fundo:#e3f5ec}
+*{box-sizing:border-box}body{margin:0;width:375px;background:var(--fundo);color:var(--texto);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:32px}
+.aviso{background:#8a5a00;color:#fff;padding:8px 16px;font-weight:600}main{padding:0 16px}h1{font-size:20px;margin:16px 0 4px}.mini{color:var(--texto-2);font-size:12px}
+.nota{border:1px solid var(--borda);background:var(--superficie-2);border-radius:6px;padding:8px 12px;margin:8px 0}
+fieldset{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:12px;margin:12px 0}legend{font-weight:700;font-size:16px;padding:0 4px}
+label{display:flex;gap:12px;align-items:center;min-height:44px}input{width:24px;height:24px}
+.bt{display:flex;min-height:44px;align-items:center;justify-content:center;border:1px solid var(--borda-controle);border-radius:6px;background:var(--superficie);margin-top:8px}
+.selo{border:1px solid var(--ok);color:var(--ok);background:var(--ok-fundo);border-radius:6px;padding:2px 8px;font-weight:600;font-size:12px}
+</style></head><body>
+<div class="aviso">Protótipo descartável (/preferencias). Dados fictícios. Largura 375.</div>
+<main><h1>Preferências de métricas</h1>
+<div class="nota">i Suas escolhas ficam salvas neste navegador e ninguém as vê. Avisos e alertas continuam aparecendo.</div>
+<span class="selo" role="status">&#10003; Salvo neste navegador</span>
+<fieldset><legend>Operacional</legend><span class="mini">7 de 9 visíveis</span>
+<label><input type="checkbox" checked>O2 Idade do trabalho em progresso</label><label><input type="checkbox" checked>Bloqueados agora</label><label><input type="checkbox" checked>O1 Trabalho em progresso e limite</label><label><input type="checkbox" checked>O3 Tempo de ciclo</label><label><input type="checkbox">O9 Os três relógios</label><label><input type="checkbox" checked>O4 Vazão semanal</label></fieldset>
+<fieldset><legend>Tático</legend><span class="mini">8 de 9 visíveis</span><label><input type="checkbox" checked>T2 Aderência ao SLE</label><label><input type="checkbox">T5 Demanda de falha</label></fieldset>
+<p class="mini">Estratégico e Sustentação no mesmo formato.</p>
+<span class="bt">Restaurar padrão</span>
+</main></body></html>

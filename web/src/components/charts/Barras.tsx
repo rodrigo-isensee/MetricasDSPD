@@ -113,7 +113,7 @@ export function Barras({
   const cfg = series.map((s, i) => ({
     ...s,
     cor: s.cor ?? corNaPosicao(i),
-    padrao: s.padrao ?? (semPadrao >= 2 ? (PADROES[i % PADROES.length] ?? 'liso') : 'liso'),
+    padrao: s.padrao ?? (semPadrao >= 2 ? (PADROES[i % PADROES.length] as Padrao) : 'liso'),
   }))
   const empilha = modo !== 'agrupado'
   const fmtEixo = (v: number) => (modo === 'percentual' ? `${Math.round(v * 100)}%` : formatar(v))

@@ -72,7 +72,7 @@ export const ROTULO_FILTRO: Record<ChaveFiltro, string> = {
   prioridade: 'Prioridade',
 }
 
-export const ROTULO_PERIODO: Record<string, string> = {
+export const ROTULO_PERIODO: Record<PeriodoPadrao | 'custom', string> = {
   '4s': 'Últimas 4 semanas',
   '12s': 'Últimas 12 semanas',
   '6m': 'Últimos 6 meses',

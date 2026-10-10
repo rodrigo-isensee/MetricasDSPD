@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Integração real 375 (protótipo)</title>
+<meta name="viewport" content="width=375">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-fundo:#e6effc;--alerta:#b42318;--alerta-fundo:#fdecea;--atencao:#8a5a00;--atencao-fundo:#fff4dc;--ok:#0b6b3a;--ok-fundo:#e3f5ec;--serie-1:#0072b2}
+*{box-sizing:border-box}body{margin:0;width:375px;background:var(--fundo);color:var(--texto);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:32px}
+.aviso{background:#8a5a00;color:#fff;padding:8px 16px;font-weight:600}
+.w{padding:0 16px}h1{font-size:20px;margin:16px 16px 0}h2{font-size:18px;margin:24px 0 4px}.mini{color:var(--texto-2);font-size:12px}
+.cab{border:1px solid var(--borda);background:var(--superficie);border-radius:8px;padding:16px;margin-top:8px}.cab h3{margin:0;font-size:20px}
+.selo{display:inline-flex;gap:4px;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;border:1px solid;margin-top:4px}
+.s-ok{color:var(--ok);background:var(--ok-fundo);border-color:var(--ok)}.s-atr{color:var(--atencao);background:var(--atencao-fundo);border-color:var(--atencao)}.s-fal{color:var(--alerta);background:var(--alerta-fundo);border-color:var(--alerta)}.s-cal{color:var(--acento);background:var(--acento-fundo);border-color:var(--acento)}
+.fx{border:1px solid var(--acento);background:var(--acento-fundo);border-radius:6px;padding:12px;margin-top:8px}.fx a{color:var(--acento);text-decoration:underline;display:inline-block;min-height:44px;padding-top:10px}
+.cartao{border:1px solid var(--borda);border-radius:8px;background:var(--superficie);padding:16px;margin-top:8px}
+.cod{background:var(--acento-fundo);color:var(--acento);font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px}
+.bd{display:inline-flex;border:1px solid var(--borda);background:var(--superficie-2);color:var(--texto-2);border-radius:6px;padding:2px 8px;margin-top:4px}
+.chip{display:inline-flex;border:1px solid var(--borda);background:var(--superficie-2);color:var(--texto-2);border-radius:9999px;padding:2px 8px;margin:2px 0}
+.bt{display:inline-flex;align-items:center;min-height:44px;min-width:44px;border:1px solid var(--borda-controle);background:var(--superficie);color:var(--texto);border-radius:6px;padding:6px 12px;font:500 14px inherit;font-family:inherit}
+.graf{position:relative;height:100px;border:1px solid var(--borda);border-radius:6px;background:var(--superficie-2);margin-top:8px}
+.bar{position:absolute;bottom:0;width:8%;background:var(--serie-1)}
+.mc{position:absolute;top:0;bottom:0;left:62%;border-left:2px dashed var(--texto)}.mc span{position:absolute;top:4px;right:6px;background:var(--superficie);border:1px solid var(--borda-controle);border-radius:4px;padding:0 6px;font-size:11px;white-space:nowrap}
+.nota{border:1px solid var(--borda);background:var(--superficie-2);border-radius:6px;padding:8px 12px;margin-top:8px}
+</style></head><body>
+<div class="aviso">Protótipo descartável (discovery Integração real). Dados fictícios. Largura 375.</div>
+<h1>Integração real: telas novas</h1>
+<div class="w">
+<h2>W1. Selo de frescor</h2>
+<div class="cab"><h3>Operacional</h3><div class="mini">Fonte: BusinessMap · Atualizado em 09/10/2026 06:10</div><span class="selo s-ok">&#10003; Atual</span><br><button class="bt" style="margin-top:8px">Copiar link</button></div>
+<div class="cab"><h3>Operacional</h3><span class="selo s-atr">&#9201; Atrasado: última coleta há 26 h</span></div>
+<div class="cab"><h3>Operacional</h3><span class="selo s-fal">&#9650; Falha</span><p>Coleta falhou em 09/10 06:00. Mostrando dados de 08/10 06:10. <a href="#" style="color:var(--acento)">Entenda</a></p></div>
+
+<h2>W2. Calibração</h2>
+<div class="fx" role="status">i Dados de calibração (BusinessMap, 15/09 a 14/11/2026, janela definida automaticamente). Servem para ajustar o processo, não para cobrar pessoas ou times. Metas não são avaliadas neste período. <a href="#">Saiba mais</a></div>
+<div class="cartao"><span class="cod">O2</span> <b style="font-size:16px">Tempo de ciclo</b><br><span class="selo s-cal">i Em calibração</span><br><span class="bd">Base: 87 itens concluídos</span>
+<p style="font-weight:500">O P85 foi de 14 dias úteis.</p>
+<div class="graf"><div class="bar" style="left:6%;height:30%"></div><div class="bar" style="left:20%;height:60%"></div><div class="bar" style="left:34%;height:85%"></div><div class="bar" style="left:48%;height:50%"></div></div>
+<p><span class="chip">i Em calibração: sem avaliação de meta</span> <span class="chip">Fonte: BusinessMap</span></p></div>
+
+<h2>W3. Cobertura</h2>
+<div class="cartao"><span class="cod">O3</span> <b>Tempo de ciclo</b><p><b>Cobertura:</b> 14 de 62 cards com marco de início registrado (23%).</p><div class="nota">i Cards sem o marco não entram. A amostra pode mudar quando a configuração terminar.</div></div>
+
+<h2>W4. Mudança de critério</h2>
+<div class="cartao"><span class="cod">O2</span> <b>Tempo de ciclo</b>
+<div class="nota">&#9650; Mudança de critério em 02/03/2026. Dados antes e depois não são comparáveis. <a href="#" style="color:var(--acento)">Ver critérios</a></div>
+<div class="graf"><div class="bar" style="left:6%;height:40%"></div><div class="bar" style="left:20%;height:55%"></div><div class="bar" style="left:34%;height:35%"></div><div class="bar" style="left:75%;height:45%"></div><div class="mc"><span>Critério mudou</span></div></div></div>
+
+<h2>W5. Falhas de coleta</h2>
+<div class="cartao"><b>Ainda não há dados desta fonte</b><p>A primeira coleta do BusinessMap ainda não terminou. Volte mais tarde.</p><span class="bt">Voltar à Visão geral</span></div>
+<div class="cartao"><b style="color:var(--alerta)">&#9650; Não foi possível carregar este gráfico</b><p>Tivemos um problema ao ler os dados. Seus filtros foram mantidos.</p><span class="bt">Tentar de novo</span></div>
+<div class="cartao"><b>Sem dados para estes filtros</b><p>Nenhum item atende aos filtros escolhidos.</p><span class="bt">Limpar filtros</span></div>
+<p class="mini">Com dado anterior: cartão normal + selo "Atrasado" ou "Falha". A falha de uma fonte não altera a outra.</p>
+
+<h2>W6. Visão geral, duas fontes</h2>
+<div class="cartao">Dados:<br>BusinessMap <span class="selo s-ok">&#10003; Atual 06:10</span><br>Acelerato <span class="selo s-atr">&#9201; Atrasado há 26 h</span></div>
+<div class="cartao"><b>Operacional</b> <span class="selo s-cal">i Em calibração</span></div>
+<div class="cartao"><b>Sustentação</b> <span class="selo s-atr">&#9201; Atrasado</span></div>
+</div></body></html>

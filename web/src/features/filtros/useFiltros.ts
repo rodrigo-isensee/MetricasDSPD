@@ -66,30 +66,9 @@ function useBase(painel: PainelId, prefixo: string) {
   return { config, params, navigate, location, opcoes: opcoes, prefixo }
 }
 
-const listaDe = (
-  o: OpcoesFiltro,
-  chave: 'equipes' | 'sistemas' | 'tipos',
-): { id: string; nome: string }[] | undefined =>
-  chave === 'equipes'
-    ? o.equipes
-    : o.dominio === 'businessmap' && chave === 'sistemas'
-      ? o.sistemas
-      : undefined
-
-const rotuloDe = (
-  opcoes: OpcoesFiltro | undefined,
-  chave: 'equipes' | 'sistemas' | 'tipos',
-  id: string,
-): string => {
-  const lista = opcoes
-    ? chave === 'sistemas' && opcoes.dominio === 'acelerato'
-      ? []
-      : chave === 'tipos' && opcoes.dominio === 'acelerato'
-        ? []
-        : (listaDe(opcoes, chave) ?? [])
-    : []
-  return lista.find((x) => x.id === id)?.nome ?? id
-}
+/** Nome pelo id; sem opções carregadas (ou id desconhecido), mostra o próprio id. */
+const rotuloDe = (lista: readonly { id: string; nome: string }[] | undefined, id: string): string =>
+  lista?.find((x) => x.id === id)?.nome ?? id
 
 function chipsDe(
   filtros: FiltrosFluxo | FiltrosSustentacao,
@@ -98,13 +77,14 @@ function chipsDe(
   visiveis: readonly ChaveFiltro[],
 ): ChipFiltro[] {
   const chips: ChipFiltro[] = []
+  const sistemas = opcoes?.dominio === 'businessmap' ? opcoes.sistemas : undefined
   const f = filtros as FiltrosFluxo & FiltrosSustentacao
   if (visiveis.includes('equipe'))
     for (const id of f.equipe)
       chips.push({
         chave: 'equipe',
         rotulo: ROTULO_FILTRO.equipe,
-        valor: rotuloDe(opcoes, 'equipes', id),
+        valor: rotuloDe(opcoes?.equipes, id),
         valorId: id,
       })
   if (visiveis.includes('tipo'))
@@ -115,7 +95,7 @@ function chipsDe(
       chips.push({
         chave: 'sistema',
         rotulo: ROTULO_FILTRO.sistema,
-        valor: rotuloDe(opcoes, 'sistemas', id),
+        valor: rotuloDe(sistemas, id),
         valorId: id,
       })
   if (visiveis.includes('prioridade'))
@@ -133,7 +113,7 @@ function chipsDe(
       valor:
         f.periodo.tipo === 'custom'
           ? `${fmtData(f.periodo.de)} a ${fmtData(f.periodo.ate)}`
-          : (ROTULO_PERIODO[f.periodo.tipo] ?? f.periodo.tipo),
+          : ROTULO_PERIODO[f.periodo.tipo],
       valorId: null,
     })
   }
@@ -272,7 +252,7 @@ export function useFiltros(
         memoria.atualizar({
           ...(config.filtros.includes('equipe') ? { equipe: txt.equipe } : {}),
           ...(config.filtros.includes('tipo') ? { tipo: txt.tipo } : {}),
-          ...(config.filtros.includes('sistema') ? { sistema: txt.sistema } : {}),
+          sistema: txt.sistema,
           periodo: padraoP ? null : txt.periodo,
           de: padraoP ? null : txt.de,
           ate: padraoP ? null : txt.ate,

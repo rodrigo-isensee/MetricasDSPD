@@ -30,7 +30,8 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
   const sugerido = slug(d?.tipoSugerido ?? d?.tipos[0]?.tipo ?? TIPOS_CARD[0])
   const [aba, setAba] = useParametroLocal('o2', VALORES, sugerido)
   const [ordem, setOrdem] = useState<Ordem>('idade')
-  const tipoSel: TipoCard | undefined = TIPOS_CARD.find((t) => slug(t) === aba)
+  // `aba` só assume valores de VALORES (useParametroLocal), então sempre há um tipo.
+  const tipoSel = TIPOS_CARD.find((t) => slug(t) === aba) as TipoCard
   const ref = d?.tipos.find((t) => t.tipo === tipoSel)?.referencia
   const itens = d?.itens ?? []
   const doTipo = itens.filter((i) => i.tipo === tipoSel)
@@ -83,7 +84,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
               }))}
             >
               <Dispersao
-                descricao={`Idade dos itens em andamento por etapa${tipoSel ? ` (${tipoSel})` : ''}`}
+                descricao={`Idade dos itens em andamento por etapa (${tipoSel})`}
                 rotuloY="Idade (dias úteis)"
                 eixoX={{ tipo: 'categorias', categorias: d.etapas }}
                 pontos={doTipo.map((i) => ({

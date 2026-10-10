@@ -28,7 +28,7 @@ export function calcularO18(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO18 {
     else bugsPorOrigem.set(o, [b])
   }
   const vinculados = (m: MarcosCard): number => {
-    const lim = (m.entrega ?? 0) + JANELA_ATRIBUICAO_BUG_DIAS * MS_DIA
+    const lim = (m.entrega as number) + JANELA_ATRIBUICAO_BUG_DIAS * MS_DIA
     return (bugsPorOrigem.get(m.card.card_id) ?? []).filter((b) => b.card.criado_em <= lim).length
   }
   const dens = (n: number, bugsN: number): Estatistica<number> =>
@@ -43,7 +43,7 @@ export function calcularO18(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO18 {
   const meses = mesesEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia)
   const linhas = meses.map((b) => {
     const xs = entregues.filter((m) => {
-      const d = diaLocal(m.entrega ?? 0, ctx.cal)
+      const d = diaLocal(m.entrega as number, ctx.cal)
       return d >= b.inicioDia && d <= b.fimDia
     })
     const l = linhaDe(xs)
@@ -60,7 +60,7 @@ export function calcularO18(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO18 {
   })
 
   const doPeriodo = entregues.filter((m) => {
-    const d = diaLocal(m.entrega ?? 0, ctx.cal)
+    const d = diaLocal(m.entrega as number, ctx.cal)
     return d >= diaDeIso(periodo.inicio) && d <= diaDeIso(periodo.fim)
   })
   const t = linhaDe(doPeriodo)

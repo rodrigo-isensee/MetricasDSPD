@@ -79,12 +79,3 @@ export function trimestresEntre(inicioDia: number, fimDia: number, hojeDia: numb
   }
   return out
 }
-
-/** Índice do balde que contém o dia (busca linear; as séries têm poucas dezenas de baldes). */
-export function baldeDoDia(baldes: readonly Balde[], dia: number): number {
-  for (let i = 0; i < baldes.length; i++) {
-    const b = baldes[i] as Balde
-    if (dia >= b.inicioDia && dia <= b.fimDia) return i
-  }
-  return -1
-}

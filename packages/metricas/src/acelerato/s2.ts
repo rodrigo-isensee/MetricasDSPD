@@ -1,9 +1,15 @@
 import type { ResultadoS2 } from '@metricas-dspd/contratos'
 import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { taxa } from '../core/estatistica'
-import { baseAmostral, criterios, noIntervalo, periodoDe, selecionarAC } from './comum'
+import {
+  baseAmostral,
+  criterios,
+  noIntervalo,
+  periodoDe,
+  prioridadesAlvo,
+  selecionarAC,
+} from './comum'
 import type { ContextoAC } from './indice'
-import { prioridadesAlvo } from './s1'
 
 const META = 90
 

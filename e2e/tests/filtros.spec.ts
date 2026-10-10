@@ -21,7 +21,9 @@ test('FIL-03/06/07 marcar atualiza URL, recarregar restaura, chip remove, limpar
   await painel.filtros.alternar('equipe', ['ERP Protheus']);
   await expect(page).toHaveURL(/equipe=erp-protheus/);
   await o4.esperarPronto();
-  await expect.poll(() => o4.baseItens()).not.toBe(antes);
+  // A base some durante a recarga (null): espera um número diferente de `antes` e depois que ele se estabilize.
+  await expect.poll(async () => { const n = await o4.baseItens(); return n !== null && n !== antes; }).toBe(true);
+  await o4.esperarPronto();
   const filtrado = await o4.baseItens();
   await page.reload();
   await o4.esperarPronto();
@@ -33,7 +35,7 @@ test('FIL-03/06/07 marcar atualiza URL, recarregar restaura, chip remove, limpar
   await expect.poll(() => o4.baseItens()).toBe(antes);
   await painel.filtros.alternar('tipo', ['Incidente']);
   await painel.filtros.limpar.click();
-  expect(painel.filtros.parametros().toString()).toBe('cadencia=semanal'); // limpar filtros preserva a cadência (não é filtro)
+  await expect.poll(() => painel.filtros.parametros().toString()).toBe('cadencia=semanal'); // limpar filtros preserva a cadência (não é filtro)
 });
 
 test('FIL-04 marcar todos os valores remove o parâmetro', async ({ painel, page }) => {

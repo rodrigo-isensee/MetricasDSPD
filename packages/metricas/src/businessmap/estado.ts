@@ -3,6 +3,7 @@ import { horasUteisEntre } from '../core/calendario'
 import { ordenarNeutro } from '../core/ordenar'
 import { arquivadoForaDoAbertoEm, fimDeVidaAberta } from './descartado'
 import type { ContextoBM, MarcosCard } from './indice'
+import type { FatoTransicao } from './modelo'
 
 export interface EstadoEm {
   existe: boolean
@@ -88,8 +89,7 @@ export function faixasWip(ctx: ContextoBM, m: MarcosCard): Faixa[] {
   const faixas: Faixa[] = []
   let iniciado = false
   for (let i = 0; i < trs.length; i++) {
-    const x = trs[i]
-    if (!x) continue
+    const x = trs[i] as FatoTransicao
     const d = ctx.idx.papelDe(m.card.quadro_id, x.coluna_destino)
     if (d && d.tipo_coluna === 'execucao' && (d.papel === 'trabalho' || d.papel === 'homologacao'))
       iniciado = true
@@ -124,7 +124,7 @@ function primeiroNaoMenor(instantes: readonly number[], v: number): number {
   let hi = instantes.length
   while (lo < hi) {
     const meio = (lo + hi) >>> 1
-    if ((instantes[meio] ?? Infinity) < v) lo = meio + 1
+    if ((instantes[meio] as number) < v) lo = meio + 1
     else hi = meio
   }
   return lo
@@ -147,8 +147,8 @@ export function serieWip(
     const lo = primeiroNaoMenor(instantes, a)
     const hi = primeiroNaoMenor(instantes, b)
     if (lo < hi) {
-      d[lo] = (d[lo] ?? 0) + 1
-      d[hi] = (d[hi] ?? 0) - 1
+      d[lo] = (d[lo] as number) + 1
+      d[hi] = (d[hi] as number) - 1
     }
   }
   for (const m of cards) {
@@ -169,8 +169,8 @@ export function serieWip(
   let w = 0
   let b = 0
   for (let i = 0; i < n; i++) {
-    w += dw[i] ?? 0
-    b += db[i] ?? 0
+    w += dw[i] as number
+    b += db[i] as number
     wip.push(w)
     bloqueados.push(b)
   }

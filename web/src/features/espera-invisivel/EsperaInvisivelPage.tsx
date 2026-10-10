@@ -23,6 +23,7 @@ export default function EsperaInvisivelPage() {
       painel="espera-invisivel"
       slug="espera-invisivel"
       fonte="BusinessMap e Acelerato (blocos separados)"
+      fontes={['businessmap', 'acelerato']}
       titulo="Espera invisível"
       pergunta="Quanto do tempo do solicitante acontece fora da nossa gestão?"
       publico="Para todos."

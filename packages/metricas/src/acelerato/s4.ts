@@ -9,10 +9,10 @@ import {
   janelaPercentis,
   noIntervalo,
   periodoDe,
+  prioridadesAlvo,
   r2,
   selecionarAC,
 } from './comum'
-import { prioridadesAlvo } from './s1'
 import type { ContextoAC } from './indice'
 
 const ETAPA_DO_NIVEL = {

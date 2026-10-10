@@ -81,8 +81,8 @@ export function gerarBaseAcelerato(cfg: ConfigMock): BaseAC {
       const id = `CH-${String(++seq).padStart(5, '0')}`
 
       // --- relógio de SLA e etapas ---
-      const a = lognormal(rng, MEDIANA_PA[prio] ?? 1, 0.8)
-      const R = Math.max(a * 1.3, lognormal(rng, MEDIANA_R[prio] ?? 10, 0.8))
+      const a = lognormal(rng, MEDIANA_PA[prio], 0.8)
+      const R = Math.max(a * 1.3, lognormal(rng, MEDIANA_R[prio], 0.8))
       const rest = R - a
       const nivel = escolhaPonderada(rng, [
         ['N1', 52],

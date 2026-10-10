@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useMatches } from 'react-router'
 import { Icone, TituloErroContext } from '@/components/ui'
+import { useFonte } from '@/data'
+import { CalibracaoDasFontes } from '@/features/coleta/CalibracaoDasFontes'
 import { useAlturaCss } from '@/lib/useAlturaCss'
 import { AvisoDadosFicticios } from './AvisoDadosFicticios'
 import { NavegacaoGlobal } from './NavegacaoGlobal'
@@ -56,6 +58,7 @@ function useFocoDeRota() {
 }
 
 function useTituloDaPagina(emErro: boolean) {
+  const ficticios = useFonte().tipo === 'mock'
   const matches = useMatches()
   const titulo = emErro
     ? 'Não foi possível abrir este painel'
@@ -64,8 +67,8 @@ function useTituloDaPagina(emErro: boolean) {
         .map((m) => (m.handle as HandleRota | undefined)?.titulo)
         .find(Boolean)
   useEffect(() => {
-    document.title = `${titulo ?? 'Métricas DSPD'} · Métricas DSPD · Dados fictícios`
-  }, [titulo])
+    document.title = `${titulo ?? 'Métricas DSPD'} · Métricas DSPD${ficticios ? ' · Dados fictícios' : ''}`
+  }, [titulo, ficticios])
 }
 
 export function AppShell() {
@@ -119,7 +122,9 @@ export function AppShell() {
         className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-4 outline-none sm:px-6"
       >
         <TituloErroContext.Provider value={definirErro}>
-          <Outlet />
+          <CalibracaoDasFontes>
+            <Outlet />
+          </CalibracaoDasFontes>
         </TituloErroContext.Provider>
       </main>
       <Rodape />
