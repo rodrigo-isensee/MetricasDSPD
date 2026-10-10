@@ -50,4 +50,18 @@ Legenda: U unitário (back/web), S sistêmico (API/Supertest), E E2E, A axe 375 
 Modos `?mock=` do front (padrão, `coleta-atrasada`, `coleta-erro`, `coleta-vazia`, `sem-calibracao`) e interceptação de rede (`page.route`) para 500 e histórico de 0/20/21 itens.
 
 ## Resultado da execução
-Pendente: os E2E rodam quando F1-F7 forem concluídos (Q1 entrega apenas plano e especificação de testes).
+### Execução Q1 (2026-10-10)
+Ambiente: Chromium local, `vite preview` com `VITE_MOCK_LATENCIA=0`, branch `feature/integracao-real`.
+- E2E completo (chromium + semente-alt): 226 testes, 222 passaram na primeira rodada. As 4 falhas:
+  - CT-08: a regex pegava "Meta: Acima de 90%" e a nota da meta, que são a definição da meta e não o status; teste ajustado para exigir o status exato. Mudança esperada, não é bug.
+  - CT-17: a aba BusinessMap já vem ativa, então clicar nela não grava `?fonte=bm`; teste agora começa pela outra aba. Não é bug.
+  - CT-24: o aviso passou a dizer "Esta tela mostra apenas o estado das coletas. Não há informação por pessoa."; texto do teste atualizado.
+  - FIL-03 (`filtros.spec.ts`): falhou em paralelo e passou isolada; instável sob carga, a observar (sem skip).
+  - Depois dos ajustes: `integracao-real.spec.ts` 45/45.
+- axe (wcag2a/aa/22aa), claro e escuro, 7 rotas (`/dados` BM e AC, erro, vazio, `/sustentacao`, selo atrasado, coleta falha) em `integracao-real-evidencias.spec.ts`: 24/24, zero violações críticas ou sérias.
+- `test:perf`: 4 falhas de CLS (375 em `/`, `/sustentacao`, `/espera-invisivel`; desktop `/` uma vez, instável) e 7 não executados por ser série. Bug IR-001 (média, react-frontend).
+- CT-33 (sem permissão): fora de escopo desta etapa, não há autenticação.
+- Evidências: `docs/qa/evidencias/integracao-real/` (/dados BM e AC, faixa de calibração, selo atrasado e falha; 1280 claro e 375 escuro).
+- Não executados: testes unitários de back e front (fora do escopo pedido).
+
+Veredito: aprovado com ressalva. Funcional e acessibilidade ok; pendente o IR-001 (CLS mobile) e a conferência da perf completa após a correção.

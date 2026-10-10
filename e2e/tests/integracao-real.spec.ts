@@ -36,11 +36,11 @@ test.describe('Selo de frescor e calibração nos painéis', () => {
   test('CT-08/09 sem-calibracao remove a faixa; em calibração não há Dentro/Fora da meta', async ({ page }) => {
     await page.goto('/sustentacao');
     await expect(page.getByText('Em calibração').first()).toBeVisible();
-    await expect(page.getByText(/Dentro da meta|Fora da meta|Abaixo de 90%|Acima de 90%/)).toHaveCount(0);
+    await expect(page.getByText(/Dentro da meta|Fora da meta|^(Acima|Abaixo) de 90%$/)).toHaveCount(0);
     await page.goto('/sustentacao?mock=sem-calibracao');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByText('Em calibração')).toHaveCount(0);
-    await expect(page.getByText(/Abaixo de 90%|Acima de 90%/).first()).toBeVisible();
+    await expect(page.getByText(/^(Acima|Abaixo) de 90%$/).first()).toBeVisible();
   });
 
   test('CT-10 não há cadastro manual de janela de calibração', async ({ page }) => {
@@ -86,7 +86,8 @@ test.describe('Tela /dados', () => {
   test('CT-17 abas por fonte e URL', async ({ page }) => {
     await page.goto('/dados');
     await expect(page.getByRole('tablist')).toBeVisible();
-    for (const f of FONTES) {
+    // BM já é a aba ativa ao abrir /dados: clicar nela não muda o valor, então começa pela outra
+    for (const f of [...FONTES].reverse()) {
       await page.getByRole('tab', { name: f.aba }).click();
       await expect(page).toHaveURL(new RegExp(`fonte=${f.q}`));
       await expect(page.getByRole('tab', { name: f.aba })).toHaveAttribute('aria-selected', 'true');
@@ -128,7 +129,7 @@ test.describe('Tela /dados', () => {
       await expect(page.getByRole('combobox', { name: /pessoa|responsável|autor/i })).toHaveCount(0);
     }
     await page.goto('/dados');
-    await expect(page.getByText('Nenhuma informação por pessoa nesta tela.')).toBeVisible();
+    await expect(page.getByText('Esta tela mostra apenas o estado das coletas. Não há informação por pessoa.')).toBeVisible();
   });
 
   test('CT-25/35 erro com Tentar de novo recupera', async ({ page }) => {
