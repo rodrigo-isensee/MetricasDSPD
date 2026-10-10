@@ -80,7 +80,8 @@ export function CabecalhoPainel({
         </p>
         {copiarLink && (
           <Botao onClick={() => void copiar()} data-testid="copiar-link" className="text-xs">
-            <Icone nome="link" /> Copiar link desta visão
+            <Icone nome="link" /> Copiar link
+            <span className="sr-only sm:not-sr-only"> desta visão</span>
           </Botao>
         )}
       </div>

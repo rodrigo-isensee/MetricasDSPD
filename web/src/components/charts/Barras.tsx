@@ -103,7 +103,7 @@ export function Barras({
 }: BarrasProps) {
   const horizontal = orientacao === 'horizontal'
   const dados = categorias.map((c) => ({
-    __rotulo: c.rotulo,
+    __rotulo: c.emAndamento ? `${c.rotulo} (em andamento)` : c.rotulo,
     __andamento: c.emAndamento ?? false,
     ...c.valores,
   }))

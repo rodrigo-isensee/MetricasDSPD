@@ -11,7 +11,7 @@ export function AvisoDadosFicticios() {
       <Popover.Trigger asChild>
         <button
           type="button"
-          className="alvo inline-flex items-center gap-1 rounded-md border border-atencao bg-atencao-fundo px-2 py-1 text-sm font-semibold text-atencao"
+          className="alvo inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-atencao bg-atencao-fundo px-2 py-1 text-xs font-semibold text-atencao sm:text-sm"
           data-testid="aviso-dados-ficticios"
         >
           <Icone nome="info" />

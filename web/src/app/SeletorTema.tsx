@@ -7,7 +7,7 @@ export function SeletorTema() {
   const id = useId()
   return (
     <div className="flex items-center gap-1 text-sm">
-      <label htmlFor={id} className="text-texto-2">
+      <label htmlFor={id} className="sr-only text-texto-2 sm:not-sr-only">
         Tema:
       </label>
       <select
