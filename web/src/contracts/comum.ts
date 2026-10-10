@@ -182,13 +182,16 @@ export function estatisticaSchema<T extends z.ZodType>(valor: T) {
   return z.discriminatedUnion('status', [
     z.object({
       status: z.literal('ok'),
-      n: z.number().min(MINIMO_AMOSTRA),
+      n: z.number().int().min(MINIMO_AMOSTRA),
       valor,
       janela: intervaloSchema,
     }),
     z.object({
       status: z.literal('insuficiente'),
-      n: z.number(),
+      n: z
+        .number()
+        .int()
+        .max(MINIMO_AMOSTRA - 1),
       minimo: z.literal(MINIMO_AMOSTRA),
       janela: intervaloSchema,
     }),
@@ -202,11 +205,19 @@ export type Estatistica<T> =
  * Taxa k de n. Abaixo de 20 itens o percentual não é publicado, mas "k de n" permanece.
  */
 export const taxaSchema = z.discriminatedUnion('status', [
-  z.object({ status: z.literal('ok'), k: z.number(), n: z.number(), pct: z.number() }),
+  z.object({
+    status: z.literal('ok'),
+    k: z.number(),
+    n: z.number().int().min(MINIMO_AMOSTRA),
+    pct: z.number(),
+  }),
   z.object({
     status: z.literal('insuficiente'),
     k: z.number(),
-    n: z.number(),
+    n: z
+      .number()
+      .int()
+      .max(MINIMO_AMOSTRA - 1),
     minimo: z.literal(MINIMO_AMOSTRA),
   }),
 ])

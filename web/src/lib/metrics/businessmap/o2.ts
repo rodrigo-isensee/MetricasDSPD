@@ -54,7 +54,7 @@ export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
     }
   }
 
-  const itens = aberto.map(({ m, e }) => {
+  const itens = ordenarNeutro(aberto, ({ m }) => [m.card.card_id]).map(({ m, e }) => {
     const idade = du(ctx, idadeHUEm(ctx, m, t))
     const ref = referenciaPorTipo.get(m.card.tipo)
     let situacao: ResultadoO2['itens'][number]['situacao'] = 'sem-referencia'

@@ -5,6 +5,7 @@ import { diaDeIso, diaLocal, isoDeDia } from '../core/calendario'
 import { percentisDe, publicavel, resumoComMedia } from '../core/estatistica'
 import { JANELA_POR_GRANULARIDADE, janelaDeslocada, janelaMovelDia } from '../core/janela'
 import { semanasEntre } from '../core/series'
+import { ordenarNeutro } from '../core/ordenar'
 import { amostraBM } from './amostra'
 import { baseAmostral, criterios, du, janelaPercentis, periodoDe, r2, selecionar } from './comum'
 import type { ContextoBM, MarcosCard } from './indice'
@@ -69,12 +70,15 @@ export function calcularO3(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO3 {
       tipo,
       n: naJanela.length,
       estatistica,
-      pontos: naJanela.map((e) => ({
-        cardId: e.m.card.card_id,
-        titulo: e.m.card.titulo,
-        dataEntrega: isoDeDia(e.dia),
-        cicloDiasUteis: r2(e.ciclo),
-      })),
+      pontos: ordenarNeutro(
+        naJanela.map((e) => ({
+          cardId: e.m.card.card_id,
+          titulo: e.m.card.titulo,
+          dataEntrega: isoDeDia(e.dia),
+          cicloDiasUteis: r2(e.ciclo),
+        })),
+        (x) => [x.cardId],
+      ),
       serieP85: semanas.map((s) => {
         const r = p85NaJanela(es, janelaMovelDia(s.fimDia, espec))
         return { semana: s.chave, n: r.n, p85: r.p85 === null ? null : r2(r.p85) }

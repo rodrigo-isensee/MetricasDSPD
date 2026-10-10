@@ -27,7 +27,8 @@ export function percentil(valores: readonly number[], p: number): number {
 
 export function media(valores: readonly number[]): number {
   if (valores.length === 0) throw new RangeError('media: amostra vazia')
-  return valores.reduce((s, v) => s + v, 0) / valores.length
+  // Soma em ordem crescente: o resultado não depende da ordem de entrada (ponto flutuante não associa).
+  return ordenar(valores).reduce((s, v) => s + v, 0) / valores.length
 }
 
 export const mediana = (valores: readonly number[]): number => percentil(valores, 0.5)

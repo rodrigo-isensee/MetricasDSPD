@@ -3,6 +3,7 @@ import type { FiltrosFluxo } from '@/contracts/filtros'
 import { diaLocal, horasUteisEntre, isoDeDia, trimestreDeDia } from '../core/calendario'
 import { medianaDe, percentisDe, estatistica, publicavel } from '../core/estatistica'
 import { janelaDeslocada } from '../core/janela'
+import { ordenarNeutro } from '../core/ordenar'
 import { amostraBM } from './amostra'
 import {
   baseAmostral,
@@ -53,13 +54,16 @@ export function calcularE1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE1 {
       chave: slug(tipo),
       rotulo: tipo,
       n: naJanela.length,
-      pontos: noPeriodo.map((i) => ({
-        cardId: i.m.card.card_id,
-        titulo: i.m.card.titulo,
-        concluidoEm: isoDeDia(diaLocal(i.entrega, ctx.cal)),
-        trimestre: trimestreDeDia(diaLocal(i.entrega, ctx.cal)),
-        leadTimeDiasUteis: r2(i.total),
-      })),
+      pontos: ordenarNeutro(
+        noPeriodo.map((i) => ({
+          cardId: i.m.card.card_id,
+          titulo: i.m.card.titulo,
+          concluidoEm: isoDeDia(diaLocal(i.entrega, ctx.cal)),
+          trimestre: trimestreDeDia(diaLocal(i.entrega, ctx.cal)),
+          leadTimeDiasUteis: r2(i.total),
+        })),
+        (x) => [x.cardId],
+      ),
       estatistica: estatistica(naJanela.length, janela, () => {
         const p = percentisDe(am(naJanela.map((i) => i.total)))
         return {
