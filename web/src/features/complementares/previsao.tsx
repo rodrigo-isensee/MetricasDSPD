@@ -178,11 +178,6 @@ export function CartaoE4({ filtros }: P) {
   const q = useMetrica('E4', filtros)
   const d = q.dados
   const ultimo = d?.trimestres.at(-1)
-  const porNatureza = (n: 'Manter' | 'Evoluir') =>
-    (d?.trimestres ?? []).reduce(
-      (soma, t) => soma + (t.iniciadosPorNatureza.find((x) => x.natureza === n)?.n ?? 0),
-      0,
-    )
   return (
     <CartaoComplementar
       id="E4"
@@ -218,8 +213,8 @@ export function CartaoE4({ filtros }: P) {
             }}
           />
           <p className="text-sm" data-testid="natureza-E4">
-            Iniciados no período: {fmtInteiro(porNatureza('Manter'))} para manter e{' '}
-            {fmtInteiro(porNatureza('Evoluir'))} para evoluir.
+            Iniciados no período: {fmtInteiro(porNatureza(r.trimestres, 'Manter'))} para manter e{' '}
+            {fmtInteiro(porNatureza(r.trimestres, 'Evoluir'))} para evoluir.
           </p>
         </div>
       )}
@@ -292,4 +287,12 @@ export function CartaoE5({ filtros }: P) {
       )}
     </CartaoComplementar>
   )
+}
+
+type Trimestres = { iniciadosPorNatureza: { natureza: string; n: number }[] }[]
+
+function porNatureza(trimestres: Trimestres, n: 'Manter' | 'Evoluir'): number {
+  let soma = 0
+  for (const t of trimestres) soma += t.iniciadosPorNatureza.find((x) => x.natureza === n)?.n ?? 0
+  return soma
 }

@@ -8,6 +8,12 @@ import {
   FonteAjustada,
 } from '@/features/painel/testes/fonteFixa'
 import { renderizarApp, renderizarCartao } from '@/test/helpers'
+import { MemoryRouter } from 'react-router'
+import { PREFERENCIAS_PADRAO } from '@metricas-dspd/contratos'
+import type { FontePreferencias } from '@/features/preferencias/fonte'
+import { ProvedorPainelPreferencias } from '@/features/preferencias/ProvedorPainelPreferencias'
+import { ProvedorPreferencias } from '@/features/preferencias/ProvedorPreferencias'
+import { LeiaJunto } from './LeiaJunto'
 import { MaisMetricas } from './MaisMetricas'
 import { ListaInsuficientes } from './comuns'
 import { CartaoO14, CartaoO5 } from './fluxo'
@@ -52,6 +58,42 @@ describe('ramos dos componentes complementares', () => {
     } finally {
       c.status = original
     }
+  })
+
+  it('O14 mostra a linha "demais" quando existe', async () => {
+    const fonte = new FonteAjustada({
+      O14: (r: Qualquer) => {
+        r.porArea.demais = structuredClone(r.porArea.itens[0])
+        r.porArea.demais.nome = 'Demais'
+      },
+    })
+    renderizarCartao(<CartaoO14 filtros={FILTROS_FLUXO} />, { fonte })
+    const el = await screen.findByTestId('metrica-O14')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'))
+  })
+
+  it('Leia junto com id fora do catálogo do painel não desenha nada', async () => {
+    const fonte: FontePreferencias = {
+      origem: 'navegador',
+      obter: () => Promise.resolve(PREFERENCIAS_PADRAO),
+      salvar: () => Promise.resolve(),
+    }
+    render(
+      <MemoryRouter>
+        <ProvedorPreferencias fonte={fonte}>
+          <ProvedorPainelPreferencias painel="operacional">
+            <LeiaJunto id="inexistente" />
+          </ProvedorPainelPreferencias>
+        </ProvedorPreferencias>
+      </MemoryRouter>,
+    )
+    await Promise.resolve()
+    expect(screen.queryByTestId('leia-junto-inexistente')).not.toBeInTheDocument()
+  })
+
+  it('Leia junto fora de um painel não desenha nada', () => {
+    const a = render(<LeiaJunto id="O3" />)
+    expect(a.container).toBeEmptyDOMElement()
   })
 
   it('O14 troca de área para sistema', async () => {
