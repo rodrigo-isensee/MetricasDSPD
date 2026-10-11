@@ -26,6 +26,8 @@ export type DepsApp = {
   nivelLog?: string;
   /** Extensões das métricas complementares; padrão = mock. */
   extensoes?: () => ExtensoesMetricas;
+  /** Fonte dos dados: só em 'mock' as extensões mockadas entram; em 'real', sem extensão os campos saem insuficientes. Padrão 'mock'. */
+  fonteDados?: 'mock' | 'real';
   /** Destino do log (testes capturam); padrão stdout. */
   destinoLog?: { write(msg: string): void };
 };
@@ -57,7 +59,7 @@ export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
     transform: jsonSchemaTransform,
   });
   await app.register(async (i) => rotasSaude(i, deps.db));
-  const servico = new ServicoMetricas({ db: deps.db, S: deps.S, extensoes: deps.extensoes ?? extensoesMock });
+  const servico = new ServicoMetricas({ db: deps.db, S: deps.S, extensoes: deps.extensoes ?? (deps.fonteDados === 'real' ? undefined : extensoesMock) });
   await app.register(async (i) => {
     await rotasReferencia(i, { db: deps.db, S: deps.S, agora: deps.agora });
     await rotasOperacao(i, { db: deps.db, S: deps.S, agora: deps.agora });

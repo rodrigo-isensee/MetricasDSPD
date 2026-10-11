@@ -77,8 +77,8 @@ Formato único: `{ "error": { "code": string, "message": string, "details"?: [] 
 - `dataReferencia` de `GET /referencia` agora é a data da última coleta bem-sucedida (S-a), não mais hoje.
 - 304 com `If-None-Match` (ETag fraco por métrica, filtros, data, versões e página).
 
-## Métricas complementares (O5, O6, O8, O11, O13, O14, O16, O17, T6, T8, E4, E5, S8 a S12)
-Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e filtros das demais (`GET /api/v1/metricas/:id`, sem rota nova, sem migração); DTOs em `packages/contratos/src/schemas.ts` (`resultadoO5` ... `resultadoS12`). **Dados fictícios**: as extensões (causa raiz, sprint como card-template pai com filhos e data de ligação, natureza de projeto, reincidente, registro de Problema) vêm de `gerarExtensoesMock` e só alimentam o cálculo na fonte mock (`CATALOGO_CARTOES[].status = 'mock'`); sem extensões, T8, O17, E4, S8, S11 e S12 devolvem vazio/insuficiente, nunca 500.
+## Métricas complementares (O5, O6, O8, O11, O13, O14, O16, T6, T8, E4, E5, S8 a S12 e O17)
+Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e filtros das demais (`GET /api/v1/metricas/:id`, sem rota nova, sem migração); DTOs em `packages/contratos/src/schemas.ts` (`resultadoO5` ... `resultadoS12`). **Dados fictícios**: as extensões (causa raiz, sprint como card-template pai com filhos e data de ligação, natureza de projeto, reincidente, registro de Problema) vêm de `gerarExtensoesMock` e só alimentam o cálculo na fonte mock (`CATALOGO_CARTOES[].status = 'mock'`); só T8, O17, E4, S8, S11 e S12 dependem de extensão e são `status: 'mock'` no catálogo; as demais são `'disponivel'`. A API só injeta as extensões mockadas quando `DADOS_FONTE=mock` (padrão). Sem extensão, S8, S11 e S12 devolvem `campoDisponivel: false` com taxas `insuficiente` (S8 com `statusMeta: 'sem-referencia'`), O17 e E4 devolvem a lista de causa/natureza vazia e `campoDisponivel: false`, T8 devolve `sprints: []`: nunca 0% nem "dentro da meta". `campoDisponivel` (boolean) é campo novo e obrigatório em O17, E4, S8, S11 e S12.
 
 | Id | Corpo (campos principais) | Filtros que atuam |
 |---|---|---|
@@ -89,7 +89,7 @@ Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e f
 | O13 | `meses[{mes,defeitos,vazaoTotal,pct:Taxa}]` | equipe, sistema, período |
 | O14 | `porArea` e `porSistema`: `{itens[{nome,entregues,criados,porTipo}] (top 10), demais}` | equipe, sistema, período |
 | O16 | `meses[{entrada,correcao,estoqueFim,densidade}]`, `abertosPorSeveridade[]`, `maisAntigos[{cardId,tipo,severidade,idadeDiasUteis}]` (10, sem pessoa) | equipe, sistema, período |
-| O17 | `porCausa[{causa,n}]`, `porSistema[{sistema,n}]` | equipe, sistema, período |
+| O17 (Sustentação, Acelerato) | `campoDisponivel`, `porCausa[{causa,n}]` (incidentes encerrados), `porSistema[{sistema,n}]` (categoria do chamado) | equipe, prioridade, período (filtros da sustentação; não mais de fluxo) |
 | T6 | `entradas{itens,semanas}`, `classes[{classe,n,termino[{itens,previsao}],itens[{semanas,previsao}]}]` (P50/P85/P95, `Estatistica`) | equipe, sistema, período |
 | T8 | `sprints[{sprintId (card pai),nome,inicio,fim,itens,comprometidos,entreguesDoComprometido,carryOver,entradaNaoPlanejada,entreguePct:Taxa,naoPlanejadoPct:Taxa}]`, `agregado` | equipe, sistema, período |
 | E4 | `trimestres[{trimestre,iniciados,concluidos,emAbertoAcumulado,iniciadosPorNatureza[]}]` | sistema, período |

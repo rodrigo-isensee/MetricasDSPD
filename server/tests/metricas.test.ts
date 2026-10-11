@@ -68,6 +68,24 @@ describe('GET /api/v1/metricas/:id', () => {
     expect((r2.resultado as { sprints: unknown[] }).sprints.length).toBeGreaterThan(0);
   });
 
+  it('fonte real: sem extensões mockadas, S8, S11, S12, O17 e E4 saem sem campo, nunca 0% nem dentro da meta', async () => {
+    const d = criarDublePg(bancoDoMock(base));
+    const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
+    for (const id of ['S8', 'S11', 'S12', 'O17', 'E4']) {
+      const r = await get(app, `/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      expect(r.json().campoDisponivel, id).toBe(false);
+    }
+    const s8 = (await get(app, '/api/v1/metricas/S8')).json();
+    expect(s8.total.status).toBe('insuficiente');
+    expect(s8.statusMeta).toBe('sem-referencia');
+    expect((await get(app, '/api/v1/metricas/S11')).json().conversao.status).toBe('insuficiente');
+    expect((await get(app, '/api/v1/metricas/O17')).json().porCausa).toEqual([]);
+    const mock = await montar();
+    expect((await get(mock.app, '/api/v1/metricas/S8')).json().campoDisponivel).toBe(true);
+    expect((await get(mock.app, '/api/v1/metricas/O17')).json().campoDisponivel).toBe(true);
+  });
+
   it('o contrato OpenAPI não tem rota, parâmetro nem campo de pessoa', async () => {
     const { app } = await montar();
     await app.ready();
