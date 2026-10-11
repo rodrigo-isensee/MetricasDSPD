@@ -10,6 +10,7 @@ import { CartaoMetrica, Icone } from '@/components/ui'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import type { MetricaQuery } from '@/data'
 import { aplicaveisDe } from '@/features/painel/propsCartao'
+import { CampoSemFonte } from './comuns'
 import { NOTAS_COMPLEMENTARES } from './notas'
 
 /** Selo "Dados fictícios": a métrica complementar só tem dado mockado até a coleta real existir. */
@@ -25,7 +26,7 @@ export function SeloFicticio() {
   )
 }
 
-type Dto = { base: BaseAmostral; criterios: CriteriosResultado }
+type Dto = { base: BaseAmostral; criterios: CriteriosResultado; campoDisponivel?: boolean }
 
 interface Props<D extends Dto> {
   id: keyof typeof NOTAS_COMPLEMENTARES & MetricaId
@@ -61,6 +62,7 @@ export function CartaoComplementar<D extends Dto>({
   const m = entradaDoCatalogo(id)
   const ficticio = CATALOGO_CARTOES.find((c) => c.id === id.toLowerCase())?.status === 'mock'
   const d = q.dados
+  const semFonte = d?.campoDisponivel === false
   return (
     <CartaoMetrica
       codigo={id}
@@ -68,11 +70,10 @@ export function CartaoComplementar<D extends Dto>({
       pergunta={m.pergunta}
       estado={q.estado}
       atualizando={q.atualizando}
-      {...(d
-        ? { base: d.base, criterios: d.criterios, ...(baseVariante ? { baseVariante } : {}) }
-        : {})}
-      {...(leitura ? { leitura } : {})}
-      {...(janelaPercentis && periodo ? { janelaPercentis, periodo } : {})}
+      {...(d ? { criterios: d.criterios, ...(semFonte ? {} : { base: d.base }) } : {})}
+      {...(d && !semFonte && baseVariante ? { baseVariante } : {})}
+      {...(leitura && !semFonte ? { leitura } : {})}
+      {...(janelaPercentis && periodo && !semFonte ? { janelaPercentis, periodo } : {})}
       nota={NOTAS_COMPLEMENTARES[id]}
       meta={m.meta}
       fonte={m.fonte}
@@ -80,12 +81,12 @@ export function CartaoComplementar<D extends Dto>({
       {...(m.fonte === 'BusinessMap' ? { aplicaveis: aplicaveisDe(id) } : {})}
       selos={ficticio ? <SeloFicticio /> : undefined}
       acoes={acoes}
-      {...(semTabela ? { semTabela } : {})}
+      {...(semTabela || semFonte ? { semTabela: true } : {})}
       onTentarDeNovo={q.recarregar}
       erro={q.erro}
       className={className}
     >
-      {d && children(d)}
+      {d && (semFonte ? <CampoSemFonte codigo={id} /> : children(d))}
     </CartaoMetrica>
   )
 }

@@ -1,13 +1,14 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { CATALOGO_CARTOES } from '@metricas-dspd/contratos'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 
 const PAINEIS = [
-  ['/operacional?cadencia=semanal', 8, ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16', 'O17']],
+  ['/operacional?cadencia=semanal', 7, ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16']],
   ['/tatico', 2, ['T6', 'T8']],
   ['/estrategico', 2, ['E4', 'E5']],
-  ['/sustentacao', 5, ['S8', 'S9', 'S10', 'S11', 'S12']],
+  ['/sustentacao', 6, ['S9', 'S10', 'S8', 'S11', 'O17', 'S12']],
 ] as const
 
 // Abrir a seção monta até 8 gráficos em jsdom: folga para máquina carregada.
@@ -34,7 +35,11 @@ describe('Mais métricas deste painel', () => {
         await waitFor(() =>
           expect(c).toHaveAttribute('data-estado', expect.stringMatching(/^(ok|vazio)$/)),
         )
-        expect(within(c).getByTestId('selo-ficticio')).toHaveTextContent('Dados fictícios')
+        // O selo segue o `status` do catálogo do contrato: só onde falta fonte real.
+        const mock = CATALOGO_CARTOES.find((x) => x.id === id.toLowerCase())?.status === 'mock'
+        if (mock)
+          expect(within(c).getByTestId('selo-ficticio')).toHaveTextContent('Dados fictícios')
+        else expect(within(c).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
       }
       spy.mockRestore()
     },
@@ -61,6 +66,22 @@ describe('Mais métricas deste painel', () => {
     )
   })
 
+  it('"Leia junto" do O3 lista O5, O6 e O8 e o caminho O3 para O5 abre o cartão', async () => {
+    const u = userEvent.setup()
+    renderizarApp('/operacional?cadencia=semanal')
+    const leia = await screen.findByTestId('leia-junto-o3')
+    expect(
+      within(leia)
+        .getAllByRole('link')
+        .map((a) => a.textContent),
+    ).toEqual(['O5 Eficiência de fluxo', 'O6 Previsibilidade', 'O8 Tamanho das demandas'])
+    await u.click(within(leia).getByRole('link', { name: /O5 Eficiência de fluxo/ }))
+    const cartao = await screen.findByTestId('metrica-O5')
+    await waitFor(() =>
+      expect(within(cartao).getByRole('heading', { name: 'Eficiência de fluxo' })).toHaveFocus(),
+    )
+  })
+
   it('link direto com #id (vindo do catálogo) abre a seção no cartão', async () => {
     renderizarApp('/sustentacao#s9')
     expect(await screen.findByTestId('metrica-S9')).toBeInTheDocument()
@@ -72,7 +93,7 @@ describe('Mais métricas deste painel', () => {
     renderizarApp('/operacional?cadencia=semanal')
     await u.click(await screen.findByRole('link', { name: /O6 Previsibilidade/ }))
     await u.click(await screen.findByRole('button', { name: 'Ocultar esta métrica O6' }))
-    expect(await screen.findByText(/· 7 complementares/)).toBeInTheDocument()
+    expect(await screen.findByText(/· 6 complementares/)).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /O6 Previsibilidade/ })).not.toBeInTheDocument()
   })
 

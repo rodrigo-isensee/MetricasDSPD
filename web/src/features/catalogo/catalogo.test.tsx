@@ -22,15 +22,25 @@ describe('Catálogo de métricas (/metricas)', () => {
     const tabela = screen.getByRole('table')
     const linha = within(tabela).getByRole('row', { name: /O5 Eficiência de fluxo/ })
     expect(linha).toHaveTextContent('Complementar')
-    expect(linha).toHaveTextContent('Fictícios')
+    expect(linha).toHaveTextContent('Da coleta')
     expect(within(linha).getByRole('link')).toHaveAttribute('href', '/operacional#o5')
     expect(within(tabela).getByRole('row', { name: /O3 Tempo de ciclo/ })).toHaveTextContent(
-      'Fictícios',
+      'Da coleta',
     )
+    // Só o status `mock` do contrato (falta fonte real) vira "Fictícios".
+    for (const c of ['O17', 'T8', 'E4', 'S8', 'S11', 'S12'])
+      expect(within(tabela).getByRole('row', { name: new RegExp(`^${c} `) })).toHaveTextContent(
+        'Fictícios',
+      )
+    const ficticios = within(tabela)
+      .getAllByRole('row')
+      .filter((r) => /Fictícios/.test(r.textContent))
+    expect(ficticios).toHaveLength(6)
+    expect(within(tabela).getByRole('row', { name: /^O17 / })).toHaveTextContent('Sustentação')
     await u.selectOptions(screen.getByLabelText('Grupo'), 'Complementar')
     expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('17 de 45 métricas')
     await u.selectOptions(screen.getByLabelText('Painel'), 'sustentacao')
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('5 de 45 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('6 de 45 métricas')
   })
 
   it('o link do catálogo leva ao painel com a seção aberta no cartão', async () => {

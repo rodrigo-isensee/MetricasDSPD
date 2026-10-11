@@ -406,48 +406,6 @@ export function CartaoO16({ filtros }: P) {
   )
 }
 
-/** O17: causa raiz e concentração por sistema dos bugs concluídos. */
-export function CartaoO17({ filtros }: P) {
-  const q = useMetrica('O17', filtros)
-  const d = q.dados
-  const topo = d?.porCausa.reduce((a, b) => (b.n > a.n ? b : a), { causa: '', n: -1 })
-  return (
-    <CartaoComplementar
-      id="O17"
-      q={q}
-      leitura={
-        topo && topo.n >= 0
-          ? `A causa raiz mais frequente é ${topo.causa}, com ${fmtInteiro(topo.n)} bugs.`
-          : undefined
-      }
-    >
-      {(r) => (
-        <div className="flex flex-col gap-3">
-          <Barras
-            descricao="Bugs concluídos por causa raiz"
-            orientacao="horizontal"
-            unidade="bugs"
-            semLegenda
-            larguraRotulos={140}
-            categorias={r.porCausa.map((c) => ({ rotulo: c.causa, valores: { n: c.n } }))}
-            series={[{ chave: 'n', rotulo: 'Bugs' }]}
-          />
-          <Barras
-            descricao="Bugs concluídos por sistema"
-            orientacao="horizontal"
-            unidade="bugs"
-            semLegenda
-            larguraRotulos={140}
-            categorias={r.porSistema.map((c) => ({ rotulo: c.sistema, valores: { n: c.n } }))}
-            series={[{ chave: 'n', rotulo: 'Bugs' }]}
-          />
-          <Leia>A lista de causas é provisória até a decisão final do critério.</Leia>
-        </div>
-      )}
-    </CartaoComplementar>
-  )
-}
-
 function maiorN(itens: readonly { n: number }[]): number {
   let m = 0
   for (const i of itens) if (i.n > m) m = i.n

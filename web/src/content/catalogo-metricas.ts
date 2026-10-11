@@ -433,10 +433,10 @@ const COMPLEMENTARES: readonly Compl[] = [
   [
     'O17',
     'Causa raiz e concentração',
-    'Onde nascem os bugs: em que causa e em que sistema?',
-    'operacional',
-    'BusinessMap',
-    'demanda',
+    'Onde nascem os incidentes: em que causa raiz e em que sistema?',
+    'sustentacao',
+    'Acelerato',
+    'chamado',
     'Sem meta numérica',
   ],
   [

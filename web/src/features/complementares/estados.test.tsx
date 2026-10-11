@@ -1,22 +1,13 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import type { ComponentType } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { FiltrosDe, MetricaId, ResultadoDe } from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data'
 import { FILTROS_FLUXO, FILTROS_SUSTENTACAO } from '@/features/painel/testes/fonteFixa'
 import { fonteDeTeste, renderizarCartao } from '@/test/helpers'
-import {
-  CartaoO11,
-  CartaoO13,
-  CartaoO14,
-  CartaoO16,
-  CartaoO17,
-  CartaoO5,
-  CartaoO6,
-  CartaoO8,
-} from './fluxo'
+import { CartaoO11, CartaoO13, CartaoO14, CartaoO16, CartaoO5, CartaoO6, CartaoO8 } from './fluxo'
 import { CartaoE4, CartaoE5, CartaoT6, CartaoT8 } from './previsao'
-import { CartaoS10, CartaoS11, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
+import { CartaoO17, CartaoS10, CartaoS11, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
 
 vi.setConfig({ testTimeout: 45000 })
 
@@ -75,7 +66,7 @@ const CARTOES: [string, ComponentType<{ filtros: never }>, 'fluxo' | 'sust'][] =
   ['O13', CartaoO13, 'fluxo'],
   ['O14', CartaoO14, 'fluxo'],
   ['O16', CartaoO16, 'fluxo'],
-  ['O17', CartaoO17, 'fluxo'],
+  ['O17', CartaoO17, 'sust'],
   ['T6', CartaoT6, 'fluxo'],
   ['T8', CartaoT8, 'fluxo'],
   ['E4', CartaoE4, 'fluxo'],
@@ -116,4 +107,30 @@ describe.each(CARTOES)('%s: estados do cartão', (codigo, Cartao, tipo) => {
         expect(el.textContent).toMatch(/amostra insuficiente|de 20 itens mínimos|\d+ de \d+/i)
     },
   )
+})
+
+/** Resposta com `campoDisponivel: false`, como a fonte real devolve enquanto o campo não tem coleta. */
+class FonteSemCampo extends MockFonteMetricas {
+  constructor() {
+    super({ latenciaMs: 0 })
+  }
+  override async obter<K extends MetricaId>(id: K, filtros: FiltrosDe<K>): Promise<ResultadoDe<K>> {
+    const r = await fonteDeTeste.obter(id, filtros)
+    return { ...r, campoDisponivel: false }
+  }
+}
+
+describe.each(['O17', 'E4', 'S8', 'S11', 'S12'])('%s: campo sem fonte', (codigo) => {
+  it('mostra "Campo sem fonte" (texto e ícone), sem número e sem "amostra insuficiente"', async () => {
+    const [, Cartao, tipo] = CARTOES.find((c) => c[0] === codigo)!
+    const filtros = tipo === 'fluxo' ? FILTROS_FLUXO : FILTROS_SUSTENTACAO
+    const C = Cartao as ComponentType<{ filtros: unknown }>
+    renderizarCartao(<C filtros={filtros} />, { fonte: new FonteSemCampo() })
+    const el = await screen.findByTestId(`metrica-${codigo}`)
+    const aviso = await within(el).findByTestId(`campo-sem-fonte-${codigo}`)
+    expect(aviso).toHaveTextContent('Campo sem fonte')
+    expect(aviso.querySelector('svg')).not.toBeNull()
+    expect(el).not.toHaveTextContent(/amostra insuficiente/i)
+    expect(within(el).queryByRole('img')).not.toBeInTheDocument()
+  })
 })

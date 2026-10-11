@@ -4,6 +4,9 @@ import type { Page } from '@playwright/test'
 // QA metricas-complementares: seção "Mais métricas deste painel", Leia junto, catálogo (45), preferências, axe AA a 375 e 1280.
 const CHAVE = 'metricas-dspd:preferencias:v1'
 
+// Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios".
+const MOCK = new Set(['O17', 'T8', 'E4', 'S8', 'S11', 'S12'])
+
 const PAINEIS = [
   { rota: '/operacional?cadencia=semanal', n: 7, ids: ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16'] },
   { rota: '/tatico', n: 2, ids: ['T6', 'T8'] },
@@ -39,7 +42,7 @@ for (const tela of TELAS) {
     test.use({ viewport: { width: tela.width, height: tela.height } })
 
     for (const p of PAINEIS) {
-      test(`COMP-01 ${p.rota}: recolhida, abre com ${p.n} cartões fictícios, axe AA`, async ({ page, painel, problemas }) => {
+      test(`COMP-01 ${p.rota}: recolhida, abre com ${p.n} cartões (selo fictício só onde status é mock), axe AA`, async ({ page, painel, problemas }) => {
         await painel.ir(p.rota)
         await painel.esperarCartoesProntos()
         const det = page.getByTestId('mais-metricas')
@@ -50,7 +53,8 @@ for (const tela of TELAS) {
         for (const id of p.ids) {
           const c = page.getByTestId(`metrica-${id}`)
           await expect(c).toHaveAttribute('data-estado', /^(ok|vazio|insuficiente)$/)
-          await expect(c.getByTestId('selo-ficticio')).toHaveText('Dados fictícios')
+          if (MOCK.has(id)) await expect(c.getByTestId('selo-ficticio')).toHaveText('Dados fictícios')
+          else await expect(c.getByTestId('selo-ficticio')).toHaveCount(0)
         }
         await painel.esperarCartoesProntos()
         const r = await rodarAxe(page)
@@ -112,6 +116,24 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(cartao.getByRole('heading', { name: 'Previsibilidade' })).toBeFocused()
   })
 
+  test('COMP-05b "Leia junto" do O3 lista O5, O6 e O8 e o caminho O3 para O5 abre o cartão', async ({ page, painel }) => {
+    await painel.ir('/operacional?cadencia=semanal')
+    await painel.esperarCartoesProntos()
+    const leia = page.getByTestId('leia-junto-o3')
+    for (const c of ['O5', 'O6', 'O8']) await expect(leia.getByRole('link', { name: new RegExp(c) })).toBeVisible()
+    await leia.getByRole('link', { name: /O5/ }).click()
+    const cartao = page.getByTestId('metrica-O5')
+    await expect(cartao).toBeVisible()
+    await expect(cartao.getByRole('heading', { name: 'Eficiência de fluxo' })).toBeFocused()
+  })
+
+  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e só os 6 de status mock são "Fictícios"', async ({ page }) => {
+    await page.goto('/metricas')
+    await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText('Fictícios')
+    await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Da coleta')
+    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(6)
+  })
+
   test('COMP-06 link direto #s9 abre a seção no cartão', async ({ page }) => {
     await page.goto('/sustentacao#s9')
     await expect(page.getByTestId('metrica-S9')).toBeVisible()
@@ -139,7 +161,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await painel.ir('/operacional?cadencia=semanal')
     await page.getByTestId('mais-metricas').locator('summary').click()
     await page.getByTestId('metrica-O6').getByRole('button', { name: 'Ocultar esta métrica O6' }).click()
-    await expect(page.getByText(/· 7 complementares/)).toBeVisible()
+    await expect(page.getByText(/· 6 complementares/)).toBeVisible()
     await expect(page.getByTestId('leia-junto-o3').getByRole('link', { name: /O6/ })).toHaveCount(0)
   })
 

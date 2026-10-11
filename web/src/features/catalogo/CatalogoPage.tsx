@@ -25,8 +25,8 @@ export default function CatalogoPage() {
       </h1>
       <p className="text-sm text-texto-2">
         Tudo o que existe no DSPD: as métricas do núcleo e as complementares, que ficam na seção
-        "Mais métricas deste painel". Nenhum número do app representa a operação real: todos os
-        dados são fictícios, gerados até a coleta real.
+        "Mais métricas deste painel". A coluna "Dados" diz quais métricas ainda usam dados fictícios
+        por falta de fonte real; as demais vêm da coleta.
       </p>
       <div className="flex flex-wrap items-end gap-4">
         <label className="flex flex-col gap-1 text-sm font-medium">

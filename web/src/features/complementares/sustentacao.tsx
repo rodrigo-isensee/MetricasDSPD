@@ -20,6 +20,48 @@ interface P {
   filtros: FiltrosSustentacao
 }
 
+/** O17: causa raiz e concentração por sistema dos incidentes encerrados (Acelerato). */
+export function CartaoO17({ filtros }: P) {
+  const q = useMetrica('O17', filtros)
+  const d = q.dados
+  const topo = d?.porCausa.reduce((a, b) => (b.n > a.n ? b : a), { causa: '', n: -1 })
+  return (
+    <CartaoComplementar
+      id="O17"
+      q={q}
+      leitura={
+        topo && topo.n >= 0
+          ? `A causa raiz mais frequente é ${topo.causa}, com ${fmtInteiro(topo.n)} incidentes.`
+          : undefined
+      }
+    >
+      {(r) => (
+        <div className="flex flex-col gap-3">
+          <Barras
+            descricao="Incidentes encerrados por causa raiz"
+            orientacao="horizontal"
+            unidade="incidentes"
+            semLegenda
+            larguraRotulos={140}
+            categorias={r.porCausa.map((c) => ({ rotulo: c.causa, valores: { n: c.n } }))}
+            series={[{ chave: 'n', rotulo: 'Incidentes' }]}
+          />
+          <Barras
+            descricao="Incidentes encerrados por sistema"
+            orientacao="horizontal"
+            unidade="incidentes"
+            semLegenda
+            larguraRotulos={140}
+            categorias={r.porSistema.map((c) => ({ rotulo: c.sistema, valores: { n: c.n } }))}
+            series={[{ chave: 'n', rotulo: 'Incidentes' }]}
+          />
+          <Leia>A lista de causas é provisória até a decisão final do critério.</Leia>
+        </div>
+      )}
+    </CartaoComplementar>
+  )
+}
+
 /** S8: taxa de reabertura de incidentes, com a referência do briefing. */
 export function CartaoS8({ filtros }: P) {
   const q = useMetrica('S8', filtros)

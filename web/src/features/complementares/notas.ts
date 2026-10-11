@@ -87,13 +87,13 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     cuidados: 'Os itens mais antigos aparecem pelo identificador do card, sem nome de pessoa.',
   },
   O17: {
-    oQueE: 'A causa raiz e o sistema dos bugs já concluídos.',
+    oQueE: 'A causa raiz e o sistema dos incidentes já encerrados.',
     comoSeCalcula:
-      'Contagem de bugs concluídos por causa raiz (lista proposta pelo time; o campo "causa raiz" virá do Metabase na coleta real) e por sistema. Módulo = sistema do card (suposição ainda não confirmada).',
+      'Contagem de incidentes encerrados por causa raiz (campo do Acelerato, lido pelo Metabase; lista proposta pelo time) e por sistema. Sem mínimo de amostra: é contagem. Se o campo ainda não tem fonte, a métrica diz isso e não publica número.',
     comoLer: 'Concentração indica onde investir em prevenção.',
     meta: SEM_ALVO,
     cuidados:
-      'A lista de causas é provisória. A origem da métrica (BusinessMap ou Sustentação, que usa o Metabase do Acelerato) ainda está em aberto.',
+      'A lista de causas é provisória até a decisão final do critério. Por sistema, nunca por pessoa.',
   },
   T6: {
     oQueE: 'Uma previsão de prazo ou de quantidade de itens a partir da vazão semanal real.',
