@@ -1,6 +1,7 @@
 packages:
   - "packages/*"
   - server
+  - "tools/*"
   - web
   - e2e
 onlyBuiltDependencies:

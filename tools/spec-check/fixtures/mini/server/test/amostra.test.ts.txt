@@ -1,0 +1,5 @@
+describe('[rules/metrics/amostra-minima] amostra mínima', () => {
+  it('[scenarios/abaixo-de-20] não publica abaixo de 20 itens', () => {})
+  it.each([1, 2])('sem citação %s', () => {})
+  test(`[rules/metrics/amostra-minima].`, () => {})
+})
