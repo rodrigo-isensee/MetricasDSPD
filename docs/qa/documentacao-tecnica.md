@@ -111,6 +111,8 @@ Achabilidade refeita por busca em largura nos links (as 6 tarefas): O3 3 cliques
 
 ### DOC-02 - Textos "[planejado]" desatualizados
 
+- **Estado (2026-10-11): corrigido** (`eventos.md`, `politica-de-mudanca.md`, `04-eventos.md` e `00-plano.md` descrevem o que existe; "[planejado]" só onde falta código). Aguarda reteste do QA.
+
 - Onde: `docs/contratos/eventos.md` §1 (schema Zod por tipo, `payload` como `unknown`) e `docs/contratos/politica-de-mudanca.md:27` (teste de compatibilidade), mais o "[planejado]" do item 1 de `docs/engineering/contratos-plano.md`.
 - Esperado: a doc descreve o que existe (catálogo `catalogo.ts`, `validarPayload`, `docs:check` classifica mudança incompatível).
 - Evidência: itens 10a e 10b da seção 4.
@@ -121,6 +123,8 @@ Achabilidade refeita por busca em largura nos links (as 6 tarefas): O3 3 cliques
 - Reproduzir: alterar `cicloDiasUteis` para `z.string()` em `packages/contratos/src/schemas.ts` e rodar `pnpm run docs:check`. Obtido: stack trace com `exemplo de O3 não passa no schema`. Esperado: linha `problema` única indicando a métrica e o caminho, como em S2.
 
 ### DOC-04 - Linhas citadas deslocadas
+
+- **Estado (2026-10-11): corrigido** nas páginas de `docs/contratos`, trocando número de linha por referência a símbolo (`outbox.ts`, `webhook.ts`, `consumidores.ts`, `server/package.json`). Aguarda reteste do QA.
 
 - Exemplos: `outbox.ts` (doc :9-16, real :10-17), `server/package.json:27` (real :30), `webhook.ts:28-41`. Esperado: citações corretas; considerar citar o símbolo em vez do número.
 

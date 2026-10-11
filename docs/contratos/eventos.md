@@ -21,8 +21,8 @@ Sobre o payload: só identificadores técnicos; **nenhum dado de pessoa**, nem o
 Observação: a coluna `tipo` é `varchar(64)` sem `CHECK`; a lista fechada de tipos vive no código (`catalogo.ts`), conferida em `publicarEvento`, e não no banco.
 
 ## 2. Regras de nome e de fonte
-- Prefixo `bm.` pertence ao BusinessMap, `ac.` ao Acelerato; `coleta.*` vale para as duas, com a fonte no evento. O cadastro de consumidor recusa cruzamento (`consumidores.ts:7-19`: lança erro se o prefixo não bate com a fonte).
-- Um consumidor por (fonte, tipo); duplicado lança erro (`consumidores.ts:21`).
+- Prefixo `bm.` pertence ao BusinessMap, `ac.` ao Acelerato; `coleta.*` vale para as duas, com a fonte no evento. O cadastro de consumidor recusa cruzamento (`consumidores.ts`, método de registro: lança erro se `fonteDoTipo` não bate com a fonte).
+- Um consumidor por (fonte, tipo); duplicado lança erro (`consumidores.ts`, mesmo método de registro).
 - O poller roda **uma fonte por vez** e só vê eventos dela: BusinessMap e Acelerato nunca no mesmo lote.
 
 ## 3. Garantias de entrega e de idempotência
@@ -73,4 +73,4 @@ Legenda: elipse = estado em `outbox.status`; seta = transição.
 ## 4. Mudança de evento
 Mudança incompatível de payload = tipo novo; ver [politica-de-mudanca.md](politica-de-mudanca.md) §3. Novo tipo exige: schema em `catalogo.ts` (com exemplo em `EXEMPLOS_EVENTOS`), produtor na mesma transação, consumidor idempotente, teste de que o payload não tem chave de pessoa, fotografia nova (`pnpm run docs:fotografar`) e linha neste catálogo.
 
-**Conferência de fonte ao publicar (existe):** `publicarEvento` chama `conferirFonte` antes de validar o payload (`server/src/plataforma/eventos/outbox.ts:27`; função em `catalogo.ts:66-71`). Recusa o evento se o prefixo do tipo (`bm.`, `ac.`) pertence a outra fonte que a de `fonte`, ou se `payload.fonte`, quando existe, diverge da coluna. A mensagem não traz valores de payload. O cadastro de consumidor continua recusando o cruzamento (`consumidores.ts`).
+**Conferência de fonte ao publicar (existe):** `publicarEvento` chama `conferirFonte` antes de validar o payload (`publicarEvento` em `server/src/plataforma/eventos/outbox.ts`; `conferirFonte` em `catalogo.ts`). Recusa o evento se o prefixo do tipo (`bm.`, `ac.`) pertence a outra fonte que a de `fonte`, ou se `payload.fonte`, quando existe, diverge da coluna. A mensagem não traz valores de payload. O cadastro de consumidor continua recusando o cruzamento (`consumidores.ts`).

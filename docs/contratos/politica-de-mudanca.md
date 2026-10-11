@@ -9,7 +9,7 @@
 - Mudança **compatível** não muda a versão: campo novo **opcional** na resposta, rota nova, valor novo aceito na entrada.
 - Mudança **incompatível** exige `/api/v2` em paralelo, com prazo de convivência combinado com o usuário: remover ou renomear campo, trocar tipo, tornar obrigatório um campo novo, remover valor de enum, endurecer a entrada.
 - A saída é validada pelo schema Zod antes de serializar (fora do schema = 500, `server/src/plataforma/erros.ts:40`); por isso o schema é o contrato e o `openapi.json` é gerado dele.
-- O OpenAPI gerado e o versionado precisam ser iguais: `pnpm --filter @metricas-dspd/server run openapi:verificar` (`server/package.json:30`).
+- O OpenAPI gerado e o versionado precisam ser iguais: `pnpm --filter @metricas-dspd/server run openapi:verificar` (script `openapi:verificar` em `server/package.json`).
 
 ## 2. Compatibilidade: tabela de decisão
 

@@ -43,7 +43,7 @@ Fonte única: `server/src/plataforma/db/lgpd.ts`.
 | Dado | Retenção | Fonte |
 |---|---|---|
 | Staging, eventos, versões | indefinida; nunca apagados | `data-model.md` §1 |
-| `outbox` com `processado` | 30 dias (`RETENCAO_DIAS`, `server/src/plataforma/eventos/outbox.ts:11`) | [eventos.md](eventos.md) (a coluna `fonte` é conferida contra o prefixo do tipo e `payload.fonte` em `publicarEvento`) |
+| `outbox` com `processado` | 30 dias (`RETENCAO_DIAS`, `server/src/plataforma/eventos/outbox.ts`) | [eventos.md](eventos.md) (a coluna `fonte` é conferida contra o prefixo do tipo e `payload.fonte` em `publicarEvento`) |
 | Colunas de pessoa | **a definir com o DPO** (I-12) [planejado] | `data-model.md` §9, fim |
 | Log de coleta (`ctl_`) | sem política de expurgo; histórico não é apagado | `data-model.md` §6 |
 

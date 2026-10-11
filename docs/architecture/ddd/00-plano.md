@@ -42,7 +42,7 @@ Fora: diagramas de pacote por arquivo, event storming, documentação de cada fu
 ## 3. Evitar divergência
 
 - **Uma fonte por fato.** Domínio: Siegard. Contratos: zod (`packages/contratos`) → OpenAPI gerado. Banco: migrações → `data-model.md`. Regras de cálculo: `REGRAS_METRICA` + `regras-metricas.md`. A pasta `ddd/` só **explica e liga**; não repete atributo, coluna nem campo de DTO.
-- **Gerado:** `03-agregados.md` por `tools/docs-contratos` (`pnpm run docs:gerar`; lê o frontmatter YAML do Siegard) entre marcadores `<!-- gerado:inicio -->`/`<!-- gerado:fim -->`; CI roda em modo `--verificar` (gerado = versionado), igual ao `openapi:verificar`. Alternativa: `--project` do Siegard, descartada no CI por exigir Python.
+- **Gerado:** `03-agregados.md` por `tools/docs-contratos` (`pnpm run docs:gerar`; lê o frontmatter YAML do Siegard) entre marcadores `<!-- gerado:inicio -->`/`<!-- gerado:fim -->`; `pnpm run docs:check` (no `pronto` e no CI) confere gerado = versionado, igual ao `openapi:verificar`. Alternativa: `--project` do Siegard, descartada no CI por exigir Python.
 - **Conferido por `pnpm run docs:check`:** links relativos (com âncoras), cabeçalho, páginas órfãs e Mermaid em `docs/contratos/`, `docs/architecture/ddd/` e `docs/README.md`; páginas geradas iguais às versionadas; fotografias de contrato. **Ainda não conferido** [planejado]: todo tipo de evento do catálogo aparece em 04 (hoje o 04 remete ao catálogo em `contratos/eventos.md`), todo módulo de `server/src/modulos/` aparece em 07, todo elemento do Siegard citado existe fora do `03`.
 - **Validação Mermaid no CI:** extrair os blocos ```` ```mermaid ```` de `docs/**/*.md` e renderizar com `@mermaid-js/mermaid-cli` no job `e2e`, que já instala o Chromium (custo: segundos, nenhuma infra nova). `@mermaid-js/mermaid-cli` como devDependency de `e2e/`, versão fixa: dependência nova → passa pelo checklist de cadeia de suprimentos (`docs/security/`). Opção sem navegador (`mermaid.parse` com jsdom) fica como plano B se o render se mostrar instável.
 - **Data de revisão** no cabeçalho de cada arquivo; o code review (`tech-lead`) reprova PR que mude contexto, evento, agregado ou módulo sem tocar o arquivo correspondente.
@@ -55,7 +55,7 @@ Fora: diagramas de pacote por arquivo, event storming, documentação de cada fu
 | 1 | `docs/api/README.md` (índice de contratos) | tech-lead | P | 01, 02 |
 | 1 | `docs/README.md` + `tecnica/README.md` vira redirecionamento | ux-designer | P | 01, 02 |
 | 2 | `04-eventos.md`, `05-ciclos-de-vida.md`, `06-sequencias.md`, `07-componentes.md`, ER do `dspd_core` | software-architect | M | script |
-| 2 | `scripts/ddd-diagramas.mjs` + `03-agregados.md` gerado + `--verificar` | tech-lead (código) / arquiteto (forma) | M | 04–07 |
+| 2 | `tools/docs-contratos` (CLI: gerar, check, fotografar, mermaid) + `03-agregados.md` gerado + `docs:check` | tech-lead (código) / arquiteto (forma) | M | 04–07 |
 | 3 | Validação Mermaid e de links no CI; revisão de cadeia de suprimentos | tech-lead (CI), software-architect (segurança) | P | — |
 | 4 | Ajustes em `overview.md`/`server.md` (marcar módulos alvo, apontar para `ddd/`; `server.md` ganha seção "referência" no topo) | software-architect | P | — |
 | 5 | Code review, QA (links, render, verificação do gerado), revisão de navegação | tech-lead, qa-engineer, ux-designer | P | — |

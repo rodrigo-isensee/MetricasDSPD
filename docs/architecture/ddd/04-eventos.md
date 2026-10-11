@@ -1,13 +1,13 @@
 # Eventos de domínio e da outbox
 
-Propósito: catalogar os eventos que o sistema publica e consome, com produtor, consumidores, payload e garantias de entrega. Público: desenvolvedores do back-end, arquiteto e QA. Revisão: 2026-10-11.
+Propósito: explicar a relação entre a outbox e os eventos de domínio e como acrescentar um evento; o catálogo (produtor, consumidores, payload, garantias) está em `docs/contratos/eventos.md`. Público: desenvolvedores do back-end, arquiteto e QA. Revisão: 2026-10-11.
 
 Fontes no código: `server/src/plataforma/eventos/` (`catalogo.ts`, `outbox.ts`, `consumidores.ts`), `server/src/modulos/operacao/concluida.ts`, `server/src/modulos/businessmap/webhook.ts`, `server/src/entradas/worker.ts`. Tabela `dspd_core.outbox`: [`data-model.md`](../data-model.md) §5. Decisão: ADR 0014 (outbox com polling). Estados do evento: [05-ciclos-de-vida](05-ciclos-de-vida.md).
 
 ## Quais eventos existem hoje?
 O catálogo (tipo, fonte, produtor, consumidores, payload e garantias) vive em **um só lugar**: [`docs/contratos/eventos.md`](../../contratos/eventos.md), ao lado da fotografia do schema. Hoje são dois tipos, `coleta.concluida` e `bm.webhook.recebido`. O schema Zod de cada tipo existe em `server/src/plataforma/eventos/catalogo.ts` e é validado em `publicarEvento`; tipo fora do catálogo é recusado.
 
-Esta página trata só do que é de domínio: a relação entre a outbox e os fatos do domínio, e como acrescentar um evento. Tipos futuros previstos pelo prefixo: `bm.*` (só `businessmap`) e `ac.*` (só `acelerato`) [planejado]; nenhum existe. `coleta.*` vale para as duas fontes. O produtor de `coleta.concluida` só é chamado pelo coletor, que ainda não existe [planejado: WS2]. Os payloads só têm identificadores técnicos; nenhum dado pessoal (regra de `data-model.md` §5, teste de LGPD).
+Esta página trata só do que é de domínio: a relação entre a outbox e os fatos do domínio, e como acrescentar um evento. O prefixo do tipo diz a fonte: `bm.*` só `businessmap` (hoje existe `bm.webhook.recebido`) e `ac.*` só `acelerato` (nenhum tipo `ac.*` existe ainda [planejado: WS5]). `coleta.*` vale para as duas fontes. O produtor de `coleta.concluida` só é chamado pelo coletor, que ainda não existe [planejado: WS2]. Os payloads só têm identificadores técnicos; nenhum dado pessoal (regra de `data-model.md` §5, teste de LGPD).
 
 ## Qual a relação com os eventos do domínio?
 - **Evento da outbox** é mensagem interna de integração entre módulos, publicada e consumida por polling; é operacional e pode ser apagada (retenção de 30 dias após `processado`).

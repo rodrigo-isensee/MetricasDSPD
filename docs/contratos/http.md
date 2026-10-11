@@ -16,7 +16,7 @@ Conferido em `docs/api/openapi.json` (43 caminhos, 43 operações, todas `GET` e
 | Saúde (3) | `GET /health/live`, `GET /health/ready`, `GET /health` (alias de `ready`), fora do prefixo | `server/src/plataforma/saude.ts:13-24` |
 | Referência (2) | `GET /api/v1/filtros/{dominio}`, `GET /api/v1/referencia` | `server/src/modulos/referencia/rotas.ts:15-34` |
 | Fontes (3) | `GET /api/v1/fontes/{dominio}/estado`, `GET /api/v1/fontes/{dominio}/coletas`, `GET /api/v1/criterios` | `server/src/modulos/operacao/rotas.ts:21-41` |
-| Webhook (1) | `POST /webhooks/businessmap`, só existe com `WEBHOOK_BM_SEGREDO` configurado | `server/src/modulos/businessmap/webhook.ts:54` (`rotasWebhook`), `app.ts:62` |
+| Webhook (1) | `POST /webhooks/businessmap`, só existe com `WEBHOOK_BM_SEGREDO` configurado | `rotasWebhook` em `server/src/modulos/businessmap/webhook.ts`, `app.ts:62` |
 
 Total: 34 + 3 + 2 + 3 + 1 = 43. (O plano de contratos descrevia "33 + 10"; a décima rota é a 404 genérica de métrica.)
 
@@ -71,8 +71,8 @@ Formato: `{ "error": { "code": string, "message": string, "details"?: [{ "caminh
 | Status | `code` | Quando | Código |
 |---|---|---|---|
 | 400 | `VALIDATION_ERROR` | parâmetro inválido, desconhecido, de outro domínio ou de pessoa; data futura | `erros.ts:32`, `servico.ts:142` |
-| 400 | `PAYLOAD_INVALIDO` | corpo do webhook que não é objeto JSON | `webhook.ts:71` |
-| 401 | `UNAUTHENTICATED` | segredo do webhook inválido (hoje só o webhook); demais rotas [planejado] | `webhook.ts:59` |
+| 400 | `PAYLOAD_INVALIDO` | corpo do webhook que não é objeto JSON | `rotasWebhook` em `webhook.ts` |
+| 401 | `UNAUTHENTICATED` | segredo do webhook inválido (hoje só o webhook); demais rotas [planejado] | `rotasWebhook` em `webhook.ts` |
 | 403 | `FORBIDDEN` | sem permissão [planejado, ADR 0009] | |
 | 404 | `METRICA_NAO_ENCONTRADA` | id de métrica inexistente | `rotas.ts:53` |
 | 404 | `ROTA_NAO_ENCONTRADA` | rota inexistente | `erros.ts:52` |
