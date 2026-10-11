@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1, O2, BLOQUEADOS, O3.. E3, S1..S7, EI_FL1..3, EI_SUST, VISAO_GERAL). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O18, BLOQUEADOS, T1..T9, E1..E5, S1..S12, EI_FL1..3, EI_SUST, VISAO_GERAL; 50 ids, inclui as 17 complementares abaixo). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -76,6 +76,36 @@ Formato único: `{ "error": { "code": string, "message": string, "details"?: [] 
 - Query do fluxo usa ids de tipo (`tipo=bug-interno,melhoria`) e prioridades aceitam `P1` ou `p1`.
 - `dataReferencia` de `GET /referencia` agora é a data da última coleta bem-sucedida (S-a), não mais hoje.
 - 304 com `If-None-Match` (ETag fraco por métrica, filtros, data, versões e página).
+
+## Métricas complementares (O5, O6, O8, O11, O13, O14, O16, O17, T6, T8, E4, E5, S8 a S12)
+Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e filtros das demais (`GET /api/v1/metricas/:id`, sem rota nova, sem migração); DTOs em `packages/contratos/src/schemas.ts` (`resultadoO5` ... `resultadoS12`). **Dados fictícios**: as extensões (causa raiz, sprint, natureza de projeto, reabertura, sintoma, registro de Problema) vêm de `gerarExtensoesMock` e só alimentam o cálculo na fonte mock (`CATALOGO_CARTOES[].status = 'mock'`); sem extensões, T8, O17, E4, S8, S11 e S12 devolvem vazio/insuficiente, nunca 500.
+
+| Id | Corpo (campos principais) | Filtros que atuam |
+|---|---|---|
+| O5 | `tipos[{tipo,n,estatistica:{medianaPct,agregadaPct,horasExecucao,horasFila,horasBloqueio}}]` | equipe, tipo, sistema, período |
+| O6 | `alvoMax`, `classes[{classe,n,estatistica:{p50,p85,razao},statusMeta}]` | equipe, sistema, período |
+| O8 | `tipos[{tipo,n,estatistica:{mediana,media,p85,acimaP85AnteriorPct},porTamanho[]}]` | equipe, tipo, sistema, período |
+| O11 | `meses[{mes,emAndamento,definicao,prontos,porTipo[]}]`, `semanasDeBacklogPronto` | equipe, tipo, sistema, período |
+| O13 | `meses[{mes,defeitos,vazaoTotal,pct:Taxa}]` | equipe, sistema, período |
+| O14 | `porArea` e `porSistema`: `{itens[{nome,entregues,criados,porTipo}] (top 10), demais}` | equipe, sistema, período |
+| O16 | `meses[{entrada,correcao,estoqueFim,densidade}]`, `abertosPorSeveridade[]`, `maisAntigos[{cardId,tipo,severidade,idadeDiasUteis}]` (10, sem pessoa) | equipe, sistema, período |
+| O17 | `porCausa[{causa,n}]`, `porSistema[{sistema,n}]` | equipe, sistema, período |
+| T6 | `entradas{itens,semanas}`, `classes[{classe,n,termino[{itens,previsao}],itens[{semanas,previsao}]}]` (P50/P85/P95, `Estatistica`) | equipe, sistema, período |
+| T8 | `sprints[{sprintId,inicio,fim,comprometidos,entreguesDoComprometido,carryOver,adicionados,entreguePct:Taxa,naoPlanejadoPct:Taxa}]`, `agregado` | equipe, sistema, período |
+| E4 | `trimestres[{trimestre,iniciados,concluidos,emAbertoAcumulado,iniciadosPorNatureza[]}]` | sistema, período |
+| E5 | `vazaoSemanal{n,mediana}`, `projetos[{projetoId,projeto,frentesRestantes,frentesAdicionadasAposInicio,previsao}]` | sistema, período |
+| S8 | `diasReabertura`, `metaMaxPct`, `meses[{encerrados,reabertos,taxa}]`, `total`, `statusMeta` | equipe, prioridade, período |
+| S9 | `porMotivo[{motivo,n,estatistica}]` (horas úteis), `cumprimentoPrevisao:Taxa` | equipe, prioridade, período |
+| S10 | `prioridades[{prioridade,n,estatistica,histograma|null,aceitosEm15min:Taxa}]` (horas úteis) | equipe, prioridade, período |
+| S11 | `escopo:Taxa`, `porGrupo[{grupo:P1|P2|Contorno,taxa}]` (se sobrepõem), `conversao:Taxa` | equipe, período (prioridade não atua) |
+| S12 | `parametros{kRecorrente,janelaSemanas}`, `meses[{total,porSistema}]`, `recorrentes[]`, `excecaoSla:Taxa` | equipe, prioridade, período |
+
+Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem estatística (`insuficiente`, com "k de n" nas taxas); T6 e E5 usam `core/montecarlo` com semente fixa (resposta reprodutível); BM e AC separados; nenhuma chave por pessoa.
+
+### Mudanças de contrato para o front (este lote)
+- `METRICA_IDS` passa de 33 para 50; `CATALOGO_CARTOES` ganha `grupo` (`nucleo|complementar`) e `status` (`disponivel|mock`) e os 17 cartões; `leiaJunto` do núcleo aponta para complementares (O3 -> o6, O4 -> o8, O15 -> o13, S1 -> s9).
+- `S9` usa `porMotivo` (não `motivos`).
+- Mudança de comportamento do mock: as 5 de sustentação (S8 a S12) entram nas métricas em calibração da fonte Acelerato.
 
 ## Cache
 - Chave: `métrica + versão de carga (marca d'água da coleta + versão de critério mais recente) + versão de critério vigente + dataReferencia + filtros normalizados (listas ordenadas)`. A base (`BaseBM`/`BaseAC`) fica em memória por versão de carga; a marca d'água é relida a cada 60 s. Máximo de 500 resultados por domínio (descarta o mais antigo). Mudança de `ref_*` sem nova coleta só vale após reiniciar a api (ou nova coleta/versão de critério).

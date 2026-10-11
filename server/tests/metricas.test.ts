@@ -1,6 +1,6 @@
 import { METRICA_IDS } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { gerarBaseMock } from '@metricas-dspd/mock';
+import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { paginarO2 } from '../src/modulos/metricas/rotas.js';
@@ -42,7 +42,7 @@ describe('GET /api/v1/metricas/:id', () => {
     expect(r2.body).toBe('');
   });
 
-  it('as 33 métricas respondem 200 dentro do schema e nenhuma chave de pessoa aparece', async () => {
+  it('as 50 métricas respondem 200 dentro do schema e nenhuma chave de pessoa aparece', async () => {
     const { app } = await montar();
     const todas = new Set<string>();
     for (const id of METRICA_IDS) {
@@ -52,6 +52,21 @@ describe('GET /api/v1/metricas/:id', () => {
     }
     expect([...todas].filter((k) => PESSOA.test(k))).toEqual([]);
   }, 60_000);
+
+  it('complementares: extensões do mock por padrão; sem fonte de extensões o resultado é vazio, nunca erro', async () => {
+    const { app } = await montar();
+    const a = await get(app, '/api/v1/metricas/T8?periodo=12m');
+    expect(a.statusCode).toBe(200);
+    expect(a.json().sprints.length).toBeGreaterThan(0);
+    expect((await get(app, '/api/v1/metricas/S8')).statusCode).toBe(200);
+    const d = criarDublePg(bancoDoMock(base));
+    const sem = new ServicoMetricas({ db: d.pool });
+    const r = await sem.calcular('T8', { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12m' } }, {}, AGORA);
+    expect((r.resultado as { sprints: unknown[] }).sprints).toEqual([]);
+    const com = new ServicoMetricas({ db: d.pool, extensoes: () => gerarExtensoesMock(base) });
+    const r2 = await com.calcular('T8', { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12m' } }, {}, AGORA);
+    expect((r2.resultado as { sprints: unknown[] }).sprints.length).toBeGreaterThan(0);
+  });
 
   it('o contrato OpenAPI não tem rota, parâmetro nem campo de pessoa', async () => {
     const { app } = await montar();

@@ -5,9 +5,11 @@ import {
 } from 'fastify-type-provider-zod';
 import { rotasWebhook } from './modulos/businessmap/index.js';
 import { ServicoMetricas, rotasMetricas } from './modulos/metricas/index.js';
+import type { ExtensoesMetricas } from '@metricas-dspd/metricas';
 import { rotasOperacao } from './modulos/operacao/index.js';
 import { rotasReferencia } from './modulos/referencia/index.js';
 import type { Esquemas } from './plataforma/db/esquemas.js';
+import { extensoesMock } from './plataforma/db/extensoes-mock.js';
 import type { Consultavel, PoolLike } from './plataforma/db/pool.js';
 import { rotaNaoEncontrada, tratarErro } from './plataforma/erros.js';
 import { gerarRequestId, opcoesLog } from './plataforma/log.js';
@@ -22,6 +24,8 @@ export type DepsApp = {
   /** Receptor do webhook do BusinessMap: pool do papel `dspd_webhook` e segredo. Sem isto a rota não existe. */
   webhook?: { pool: PoolLike; segredo: string };
   nivelLog?: string;
+  /** Extensões das métricas complementares; padrão = mock. */
+  extensoes?: () => ExtensoesMetricas;
   /** Destino do log (testes capturam); padrão stdout. */
   destinoLog?: { write(msg: string): void };
 };
@@ -53,7 +57,7 @@ export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
     transform: jsonSchemaTransform,
   });
   await app.register(async (i) => rotasSaude(i, deps.db));
-  const servico = new ServicoMetricas({ db: deps.db, S: deps.S });
+  const servico = new ServicoMetricas({ db: deps.db, S: deps.S, extensoes: deps.extensoes ?? extensoesMock });
   await app.register(async (i) => {
     await rotasReferencia(i, { db: deps.db, S: deps.S, agora: deps.agora });
     await rotasOperacao(i, { db: deps.db, S: deps.S, agora: deps.agora });
