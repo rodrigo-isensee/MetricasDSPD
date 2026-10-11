@@ -111,3 +111,70 @@ Sugestão: em `publicarEvento`, recusar prefixo incompatível com a fonte e `pay
 ## Próximo passo
 
 Autor corrige de B1 a B4 e de I1 a I6 (os menores ficam a critério do autor), e o `tech-lead` faz a rodada 2. QA depois do aprovado.
+
+---
+
+# Rodada 2
+
+- Commits revisados: b127cc5, 885cc25, e2e614a, 84385c3, 60fae09, 360fb10, 6ae714a · Revisor: `tech-lead` · Data: 2026-10-11
+
+## Parecer: APROVADO (com R1 e R2 a corrigir antes do envio da branch)
+
+Os quatro bloqueantes e os seis importantes foram resolvidos, com teste para cada um. O que sobrou é texto: uma afirmação falsa (R1) e duas referências de linha que este próprio ajuste deslocou (R2). São correções de uma linha. Confiro no diff do PR, sem nova rodada. R3 e R4 ficam a critério do autor.
+
+## Verificações
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm run pronto` na raiz | passa (código 0). Cobertura 100%: `tools/docs-contratos` com 744/744 instruções e 471/471 ramos; `server` com 941/941 e 523/523. A primeira execução falhou só porque outro processo do vitest rodava ao mesmo tempo na mesma worktree (trava do diretório `coverage`). Não é defeito do código. |
+| `pnpm run docs:check` na raiz | `ok (284 páginas Markdown, 33 métricas, 2 eventos)` |
+| Experimento independente com `classificar`/`avaliarFotografias` | dão INCOMPATÍVEL: `minimum` de 20 para 10, `exclusiveMinimum` novo, `additionalProperties` de `false` para `{}`, valor novo de enum e campo que passa a anulável. Com o aceite do hash, a mudança aparece como "mudança aceita". Depois de fotografar, o mesmo aceite vira "aceite sem mudança pendente" e o check falha. |
+
+## Achados da rodada 1, item a item
+
+| Item | Situação | Evidência |
+|---|---|---|
+| B1: o v2 isentava o v1 | resolvido | 885cc25. `fotografias.ts` não procura v2 em lugar nenhum: `lerAceites` (`:260-263`) só lê `aceitas.json`. Teste em `gerador.test.ts:166`. A ausência de fotografia própria para `/api/v2/metricas/X` foi registrada como lacuna conhecida em `politica-de-mudanca.md:47`. Aceito: ainda não existe v2 de métrica, e o v1 continua congelado. |
+| B2: aceite permanente por nome | resolvido | `Aceite` com `mudanca` = sha256 do par antigo para novo (`fotografias.ts:190-201`). O aceite só vale para aquele hash (`:224-234`), e aceite órfão é problema (`:241-245`), por isso é de uso único. O schema exige hash, motivo e data (`:249-258`). Testes em `fotografias.test.ts:269` e `:292`. Há um registro só (`politica-de-mudanca.md:69-70`). |
+| B3: remoção não detectada | resolvido | `entradasFotografia` lista as fotografias sem contrato atual (`gerador.ts:115-148`), e `avaliarFotografias` as trata como "contrato removido" (`fotografias.ts:220-223`). `fotografar` apaga a fotografia só depois do aceite (`gerador.ts:160-173`). Testes em `gerador.test.ts:191` e `:225`. |
+| B4: documentação contra o código | resolvido | 60fae09 e 360fb10. `eventos.md:17` descreve o catálogo existente. O ciclo de vida está certo, com a reserva vencida em `processando` (`eventos.md:38`, `:55`, `:69`). `politica-de-mudanca.md:34-45` explica o gate como ele funciona. O "ainda não existe" saiu de `contratos/README.md` e `http.md`. As referências corrigidas conferem: `webhook.ts:54`, `:59`, `:71`; `server/package.json:30`; `outbox.ts:11`; `app.ts:38`. A tabela de garantias passou a citar símbolos. Exceção: R2. |
+| I1: classificador cego a palavras-chave | resolvido | lógica invertida, com lista fechada de compatíveis (`fotografias.ts:35-49`): qualquer outra palavra-chave diferente é incompatível (`:70-77`). Cobre `record` e `strict`/`passthrough` (`:137-148`) e tupla (`:124-135`). Testes em `fotografias.test.ts:77`, `:120`, `:137`. |
+| I2: classificador decidindo fora da política | resolvido | a política agora tem linhas separadas para saída e entrada (`politica-de-mudanca.md:25-29`) e a ratificação conservadora (`:32`). O código segue a política (`fotografias.ts:103-106`, `:163-168`). |
+| I3: teste copiando a lista de pessoa | resolvido | importa `SEGMENTO_PESSOA` e `segmentos` (`server/tests/eventos.catalogo.test.ts:7`), compara por segmento e em camelCase (`:19`), em qualquer nível (`:27`, `:35`). |
+| I4: dois catálogos de eventos | resolvido | catálogo único em `contratos/eventos.md:19`. `04-eventos.md:8` remete para ele. `07-componentes.md` cita `catalogo.ts`. A tabela de garantias do 04 (`:17-30`) ainda repete o §3 do catálogo, mas hoje está consistente com ele. Ver R1. |
+| I5: o padrão prometia mais que a ferramenta | resolvido | `padrao-de-documentacao.md` agora traz uma tabela com o escopo real e uma lista do que é [planejado]. As 15 ADRs têm `Estado:` na linha 2 (84385c3). `00-plano.md:46` reflete o que o `docs:check` confere. Exceção: R3. |
+| I6: `publicarEvento` não conferia a fonte | resolvido | `conferirFonte` (`catalogo.ts:62-71`) roda antes de validar o payload e do `INSERT` (`outbox.ts:27`). Recusa prefixo de outra fonte e `payload.fonte` divergente, com mensagem sem valores. `consumidores.ts:15-16` reutiliza `fonteDoTipo` (fonte única do prefixo). Testes em `eventos.catalogo.test.ts:75` e `:86`. |
+| DOC-01 (QA): alcance das páginas | resolvido | 6ae714a. `verificarOrfaos` faz busca em largura a partir de `docs/README.md` (`verificar-docs.ts:155-182`). Só o `README.md` herda o link para a pasta (`:163`), o que fecha o M2. A mensagem traz a página alcançável mais próxima e a cadeia de links. |
+| DOC-03 (QA): stack trace no exemplo inválido | resolvido | `exigirValido` lista os campos (`insumos.ts:55-66`). A falha nos insumos vira `FalhaInsumos` e sai com código 1, sem stack trace (`cli.ts:44-62`). Erro de outra origem continua subindo. Testes em `cli.test.ts:51` e `:64`. |
+| M5, M8 | resolvidos | `http.md:57` cita `app.ts:38` (`gerarRequestId`). O apagamento manual da fotografia está registrado em `politica-de-mudanca.md:43`. Os demais menores não foram reavaliados. |
+
+## Restantes
+
+**R1 (corrigir antes do envio). Afirmação falsa em `docs/architecture/ddd/04-eventos.md:10`.**
+- Problema: a página diz que, dos tipos `bm.*` e `ac.*`, "nenhum existe". Mas `bm.webhook.recebido` existe (`catalogo.ts:10`, `contratos/eventos.md:13`), e a linha 8 da mesma página o cita.
+- Outro ponto: o propósito na linha 3 ainda diz "catalogar os eventos ... com produtor, consumidores, payload e garantias", o que contradiz as linhas 8 e 19 do catálogo único.
+- Sugestão: dizer que `bm.webhook.recebido` existe e que `ac.*` é [planejado]. Reescrever o propósito como "visão de domínio dos eventos".
+- Autor: `software-architect`.
+
+**R2 (corrigir antes do envio). Referências de linha que b127cc5 deslocou, em `docs/contratos/eventos.md`.**
+- `eventos.md:25` aponta `consumidores.ts:21` para o consumidor duplicado; hoje é `:18`.
+- `eventos.md:24` aponta `consumidores.ts:7-19`; a recusa do cruzamento hoje está em `:15-16`.
+- Sugestão: citar o símbolo (`RegistroConsumidores.registrar`), como o resto da página já faz.
+
+**R3 (recomendado). `docs/architecture/ddd/00-plano.md` ainda descreve o que não foi feito.**
+- `:45` diz "CI roda em modo `--verificar`". Esse modo não existe: o CLI tem `gerar|check|fotografar|mermaid` (`cli.ts:22`), e o CI roda `docs:check`.
+- `:58` (tabela de fases) ainda cita `scripts/ddd-diagramas.mjs`.
+- `docs/engineering/contratos-plano.md:47` e `:60` citam `catalogo-eventos.ts`. É um plano datado, então aceito. Uma nota "feito em `catalogo.ts`" evita confusão.
+
+**R4 (recomendado). Mensagem de `exigirValido` (`tools/docs-contratos/src/insumos.ts:62-64`).**
+- Problema: a mensagem sugere "registre o aceite em `aceitas.json`", mas o aceite não contorna essa falha. `exigirValido` roda antes da comparação de fotografias (`:89`, `:111`) e lança a exceção de qualquer jeito.
+- Além disso, a mensagem chama de "mudança INCOMPATÍVEL" um caso que também pode ser defeito do cálculo ou do exemplo.
+- Sugestão: "o exemplo gerado não passa no schema do contrato: ajuste o schema, o cálculo ou o exemplo". Tirar a menção ao aceite.
+
+## Afirmações contra o código
+
+Conferidas nesta rodada e corretas: `app.ts:38`, `:55`, `:61`, `:62`; `erros.ts:40`, `:44-49`; `server/package.json:30`; `worker.ts:15`; `concluida.ts:6`, `:25`; `webhook.ts:37` (`validarPayload`), `:47`, `:54`, `:59`, `:71`; `outbox.ts:11`, `:27`; `catalogo.ts:66-71`; `plataforma/db/trava.ts` e `plataforma/worker.ts` (`pg_try_advisory_lock`); `grants.ts`. Também conferem todas as referências de `fotografias.ts` e `gerador.ts` citadas em `politica-de-mudanca.md:32-45`. Falsas ou velhas: só R1, R2 e R3.
+
+## Próximo passo
+
+O `software-architect` corrige R1 e R2 (e R3, se quiser). O autor do gerador decide sobre R4. O `tech-lead` confere no diff. Depois vem o QA, e o PR leva as pendências do usuário da rodada 1 e o M9.
