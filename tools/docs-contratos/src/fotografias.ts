@@ -24,7 +24,7 @@ export function canonico(v: unknown): string {
       .sort()
       .map((k) => `${JSON.stringify(k)}:${canonico(v[k])}`)
       .join(',')}}`
-  return JSON.stringify(v) ?? 'null'
+  return v === undefined ? 'null' : JSON.stringify(v)
 }
 
 function variantes(s: Json): unknown[] | undefined {
