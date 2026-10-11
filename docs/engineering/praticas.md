@@ -136,3 +136,15 @@ Ordem, falhando no primeiro erro, por workspace afetado:
 7. Lighthouse CI desktop (F10: Performance ≥ 90, Acessibilidade ≥ 95) e projeto `perf` do Playwright (F1–F5, C5, C6) na pré-entrega
 
 Até o CI existir, o autor roda 1 a 5 localmente (`pnpm run check && pnpm run build && pnpm run size`) e o QA roda 6 e 7 na máquina de referência.
+
+### 10.1 Revisão semanal do CI
+Dono: `tech-lead`. Toda segunda-feira, ~15 minutos, comparando com a linha de base em `docs/engineering/ci-metricas.md` (acrescente uma coluna/seção datada por semana).
+- [ ] Tempo por job (média e p95 dos últimos ~20 runs: `gh run list` + `gh run view --json jobs`); algum job cresceu mais de 20% sobre a linha de base?
+- [ ] Taxa de falha por job; separar falha real de falha de infraestrutura.
+- [ ] Flakes: testes que passaram só no retry do Playwright (`retries: 1`); abrir cartão para cada um.
+- [ ] Cache hit: `setup-node` (pnpm) e navegadores do Playwright; hit abaixo de 80% pede revisão da chave.
+- [ ] Versões das actions: PRs do Dependabot pendentes; SHAs continuam com comentário da versão.
+- [ ] Custo de minutos: soma de minutos faturáveis da semana e jobs mais caros (e2e, perf, testes).
+- [ ] Alertas do Dependabot e do job informativo `seguranca` (`pnpm audit --prod`, gitleaks); vulnerabilidade alta vira cartão.
+- [ ] Gates intactos: cobertura 100%, lint, typecheck e e2e nunca afrouxados para ganhar tempo; nomes dos jobs obrigatórios da proteção da `main` (rapida, testes, banco, build, e2e) inalterados.
+Resultado da revisão: uma linha no `ci-metricas.md` e, se houver ação, um cartão no `KANBAN.md`.
