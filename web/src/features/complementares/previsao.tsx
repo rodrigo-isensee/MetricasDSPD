@@ -143,22 +143,24 @@ export function CartaoT8({ filtros }: P) {
           />
           <TabelaDados
             codigo="T8-detalhe"
-            legenda="Sprints: comprometido, entregue, carry-over e adicionados; abaixo de 20 itens só k de n"
+            legenda="Sprints: comprometido, entregue, carry-over e entrada não planejada, por sprint; abaixo de 20 itens só k de n"
             colunas={[
-              { chave: 's', titulo: 'Sprint (fim)' },
+              { chave: 'n', titulo: 'Sprint' },
+              { chave: 's', titulo: 'Fim' },
               { chave: 'c', titulo: 'Comprometidos', alinhar: 'direita' },
               { chave: 'e', titulo: 'Entregues', alinhar: 'direita' },
               { chave: 'co', titulo: 'Carry-over', alinhar: 'direita' },
-              { chave: 'a', titulo: 'Adicionados', alinhar: 'direita' },
+              { chave: 'a', titulo: 'Entrada não planejada', alinhar: 'direita' },
               { chave: 'pe', titulo: 'Entregue', alinhar: 'direita' },
               { chave: 'np', titulo: 'Não planejada', alinhar: 'direita' },
             ]}
             linhas={r.sprints.map((s) => ({
+              n: s.nome,
               s: fmtData(s.fim),
               c: fmtInteiro(s.comprometidos),
               e: fmtInteiro(s.entreguesDoComprometido),
               co: fmtInteiro(s.carryOver),
-              a: fmtInteiro(s.adicionados),
+              a: fmtInteiro(s.entradaNaoPlanejada),
               pe: textoTaxa(s.entreguePct),
               np: textoTaxa(s.naoPlanejadoPct),
             }))}

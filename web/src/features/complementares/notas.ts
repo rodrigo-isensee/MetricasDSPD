@@ -106,7 +106,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   T8: {
     oQueE: 'O que a sprint entregou do que comprometeu, o que sobrou e o que entrou depois.',
     comoSeCalcula:
-      'Entregue do comprometido ÷ comprometido, carry-over e entrada não planejada = adicionados após o início ÷ itens da sprint.',
+      'Entregue do comprometido ÷ comprometido, carry-over e entrada não planejada = itens que entraram após o início ÷ itens da sprint. Cada sprint é um card com filhos; mostra por sprint, sem comparar times.',
     comoLer: 'Leia sempre junto com a entrada não planejada. 100% não é objetivo.',
     meta: 'Sem alvo de 100%.',
     cuidados: 'Não compara sprints entre times nem usa pontos como meta.',
@@ -129,12 +129,13 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Frentes adicionadas após o início atrasam o término; nunca leia a previsão sem elas.',
   },
   S8: {
-    oQueE: 'A parcela dos incidentes encerrados que voltaram como novo chamado do mesmo sintoma.',
+    oQueE:
+      'A parcela dos incidentes encerrados que voltaram como novo chamado, com o ticket anterior informado.',
     comoSeCalcula:
-      'Reabertos ÷ incidentes encerrados, por mês. Reabertura = novo chamado do mesmo sintoma dentro do intervalo configurado (valor provisório).',
+      'Reabertos ÷ incidentes encerrados, por mês. Reabertura = chamado com o campo de reincidência preenchido com o ticket anterior.',
     comoLer: 'Reabertura alta sugere correção que não resolveu.',
     meta: 'Abaixo de 5%.',
-    cuidados: 'O intervalo e o critério de sintoma ainda aguardam confirmação.',
+    cuidados: 'Depende do preenchimento do campo de reincidência.',
   },
   S9: {
     oQueE:
@@ -165,11 +166,11 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   },
   S12: {
     oQueE:
-      'Quais sistemas geram mais chamados, os problemas que se repetem e a exceção de SLA por registro posterior.',
+      'Quais sistemas geram mais chamados, a reincidência por sistema e a exceção de SLA por registro posterior.',
     comoSeCalcula:
-      'Chamados por sistema no mês; recorrente = mesmo sistema e sintoma pelo menos K vezes na janela (K provisório); % com exceção de SLA por registro posterior.',
-    comoLer: 'Recorrentes são candidatos a tratamento de causa.',
+      'Chamados por sistema no mês; reincidentes (campo de reincidência preenchido) e proporção por sistema na janela de 12 semanas; % com exceção de SLA por registro posterior.',
+    comoLer: 'Reincidência alta em um sistema sugere olhar a causa.',
     meta: 'Sem meta; por sistema, nunca por pessoa.',
-    cuidados: 'Sintoma e limite K aguardam confirmação.',
+    cuidados: 'Reincidência depende do preenchimento do campo.',
   },
 }

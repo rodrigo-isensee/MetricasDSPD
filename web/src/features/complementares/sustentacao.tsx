@@ -31,7 +31,7 @@ export function CartaoS8({ filtros }: P) {
       baseVariante={d?.total.status === 'ok' ? 'ok' : 'insuficiente'}
       leitura={
         d
-          ? `${textoTaxa(d.total)} dos incidentes encerrados foram reabertos (novo chamado do mesmo sintoma em até ${fmtInteiro(d.diasReabertura)} dias).`
+          ? `${textoTaxa(d.total)} dos incidentes encerrados foram reabertos (chamado com ticket anterior informado no campo de reincidência).`
           : undefined
       }
     >
@@ -224,7 +224,7 @@ const totaisPorSistema = (d: R12): [string, number][] => {
 const leituraS12 = (d: R12, [sistema, n]: [string, number]) =>
   `${sistema} é o sistema com mais chamados no período: ${fmtInteiro(n)}. Exceção de SLA por registro posterior: ${textoTaxa(d.excecaoSla)}.`
 
-/** S12: volume por sistema, recorrentes e exceção de SLA por registro posterior. */
+/** S12: volume por sistema, reincidência e exceção de SLA por registro posterior. */
 export function CartaoS12({ filtros }: P) {
   const q = useMetrica('S12', filtros)
   const d = q.dados
@@ -247,18 +247,24 @@ export function CartaoS12({ filtros }: P) {
             series={[{ chave: 'n', rotulo: 'Chamados' }]}
           />
           <TabelaDados
-            codigo="S12-recorrentes"
-            legenda={`Recorrentes: ${fmtInteiro(r.parametros.kRecorrente)} chamados ou mais do mesmo sistema e sintoma em ${fmtInteiro(r.parametros.janelaSemanas)} semanas`}
-            vazio="Nenhum problema recorrente na janela."
+            codigo="S12-reincidencia"
+            legenda={`Reincidência por sistema nas últimas ${fmtInteiro(r.parametros.janelaSemanas)} semanas`}
+            vazio="Nenhum chamado na janela."
             colunas={[
               { chave: 's', titulo: 'Sistema' },
-              { chave: 'y', titulo: 'Sintoma' },
               { chave: 'n', titulo: 'Chamados', alinhar: 'direita' },
+              { chave: 'r', titulo: 'Reincidentes', alinhar: 'direita' },
+              { chave: 'p', titulo: 'Proporção', alinhar: 'direita' },
             ]}
-            linhas={r.recorrentes.map((x) => ({ s: x.sistema, y: x.sintoma, n: fmtInteiro(x.n) }))}
+            linhas={r.reincidencia.map((x) => ({
+              s: x.sistema,
+              n: fmtInteiro(x.chamados),
+              r: fmtInteiro(x.reincidentes),
+              p: textoTaxa(x.proporcao),
+            }))}
           />
           <Leia>
-            Por sistema, nunca por pessoa. Sintoma e limite de recorrência são provisórios.
+            Por sistema, nunca por pessoa. Reincidente é o chamado com ticket anterior informado.
           </Leia>
         </div>
       )}
