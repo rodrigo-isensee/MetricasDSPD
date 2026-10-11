@@ -1,13 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import {
-  CATALOGO_EVENTOS, EXEMPLOS_EVENTOS, publicarEvento, validarPayload, type CatalogoEventos,
+  CATALOGO_EVENTOS, EXEMPLOS_EVENTOS, conferirFonte, publicarEvento, validarPayload, type CatalogoEventos,
 } from '../src/plataforma/eventos/index.js';
 import { receberWebhook } from '../src/modulos/businessmap/index.js';
+import { SEGMENTO_PESSOA, segmentos } from '../src/plataforma/db/lgpd.js';
 import { criarDublePg } from './duble-pg.js';
 
 const tipos = Object.keys(CATALOGO_EVENTOS);
-const CHAVE_PESSOA = /^(pessoa|responsav\w*|usuario\w*|user\w*|agente\w*|atendente\w*|solicitante\w*|autor\w*|criador\w*|email\w*|login\w*|assignee\w*)$/i;
+type JsonSchema = { properties?: Record<string, JsonSchema>; items?: JsonSchema; anyOf?: JsonSchema[] };
+
+/** Todas as chaves de propriedade, em qualquer nível (objetos, listas e uniões). */
+const chaves = (j: JsonSchema): string[] => [
+  ...Object.entries(j.properties ?? {}).flatMap(([k, v]) => [k, ...chaves(v)]),
+  ...(j.items ? chaves(j.items) : []),
+  ...(j.anyOf ?? []).flatMap(chaves),
+];
+const ehPessoa = (chave: string): boolean => segmentos(chave.replace(/([a-z])([A-Z])/g, '$1_$2')).some((s) => SEGMENTO_PESSOA.test(s));
 
 describe('catálogo de eventos da outbox (contrato)', () => {
   it('todo tipo tem um exemplo e o exemplo passa no schema', () => {
@@ -15,12 +24,21 @@ describe('catálogo de eventos da outbox (contrato)', () => {
     for (const t of tipos) expect(() => validarPayload(t, EXEMPLOS_EVENTOS[t as keyof typeof EXEMPLOS_EVENTOS])).not.toThrow();
   });
 
-  it('nenhum payload tem chave de pessoa e todo schema é estrito', () => {
+  it('nenhum payload tem chave de pessoa (fonte única SEGMENTO_PESSOA, por segmento, em qualquer nível) e todo schema é estrito', () => {
     for (const t of tipos) {
-      const json = z.toJSONSchema(CATALOGO_EVENTOS[t as keyof typeof CATALOGO_EVENTOS]) as { properties: Record<string, unknown>; additionalProperties: unknown };
+      const json = z.toJSONSchema(CATALOGO_EVENTOS[t as keyof typeof CATALOGO_EVENTOS]) as JsonSchema & { additionalProperties: unknown };
       expect(json.additionalProperties).toBe(false);
-      for (const chave of Object.keys(json.properties)) expect(CHAVE_PESSOA.test(chave), `${t}.${chave}`).toBe(false);
+      for (const chave of chaves(json)) expect(ehPessoa(chave), `${t}.${chave}`).toBe(false);
     }
+  });
+
+  it('o detector de pessoa enxerga chave aninhada, em lista, em união e em camelCase', () => {
+    const j = z.toJSONSchema(z.object({
+      a: z.object({ b: z.array(z.object({ responsavelEmail: z.string() })) }),
+      c: z.union([z.object({ solicitante_id: z.string() }), z.string()]),
+      d: z.string(),
+    })) as JsonSchema;
+    expect(chaves(j).filter(ehPessoa)).toEqual(['responsavelEmail', 'solicitante_id']);
   });
 
   it('recusa tipo fora do catálogo, campo extra, campo faltando e valor inválido, sem vazar o valor', () => {
@@ -52,5 +70,24 @@ describe('catálogo de eventos da outbox (contrato)', () => {
     expect(await receberWebhook(d.pool, Buffer.from('{}'), {}, new Date(0))).toBe(true);
     const evento = d.chamadas.find((c) => c.texto.includes('outbox'))!;
     expect(() => validarPayload('bm.webhook.recebido', JSON.parse(String(evento.valores[1])))).not.toThrow();
+  });
+
+  it('BusinessMap e Acelerato nunca se misturam na publicação: prefixo do tipo e payload.fonte conferem com a fonte', async () => {
+    const d = criarDublePg(() => [{ evento_id: 'u1' }]);
+    const wh = { webhookSk: '7', payloadSha256: 'a'.repeat(64) };
+    await expect(publicarEvento(d.cliente, { fonte: 'acelerato', tipo: 'bm.webhook.recebido', payload: wh })).rejects.toThrow('pertence a businessmap');
+    await expect(publicarEvento(d.cliente, { fonte: 'businessmap', tipo: 'coleta.concluida', payload: { fonte: 'acelerato', coletaId: '1', status: 'sucesso' } })).rejects.toThrow('payload.fonte diverge');
+    expect(d.chamadas).toHaveLength(0);
+    await expect(publicarEvento(d.cliente, { fonte: 'businessmap', tipo: 'bm.webhook.recebido', payload: wh })).resolves.toBe('u1');
+    await expect(publicarEvento(d.cliente, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: { fonte: 'acelerato', coletaId: '1', status: 'sucesso' } })).resolves.toBe('u1');
+    expect(d.chamadas).toHaveLength(2);
+  });
+
+  it('conferirFonte: prefixo ac., payload sem fonte ou não objeto não acusam; mensagem sem valores', () => {
+    expect(() => conferirFonte('businessmap', 'ac.x', {})).toThrow('pertence a acelerato');
+    expect(() => conferirFonte('acelerato', 'ac.x', {})).not.toThrow();
+    expect(() => conferirFonte('acelerato', 'coleta.concluida', null)).not.toThrow();
+    expect(() => conferirFonte('acelerato', 'coleta.concluida', 'texto')).not.toThrow();
+    expect(() => conferirFonte('acelerato', 'coleta.concluida', { fonte: 'segredo' })).toThrow('diverge');
   });
 });

@@ -4,5 +4,5 @@ export {
   type EventoNovo, type OpcoesProcessar, type ResultadoProcessar,
 } from './outbox.js';
 export {
-  CATALOGO_EVENTOS, EXEMPLOS_EVENTOS, TIPO_COLETA_CONCLUIDA, TIPO_EVENTO_WEBHOOK, validarPayload, type CatalogoEventos,
+  CATALOGO_EVENTOS, EXEMPLOS_EVENTOS, conferirFonte, fonteDoTipo, TIPO_COLETA_CONCLUIDA, TIPO_EVENTO_WEBHOOK, validarPayload, type CatalogoEventos,
 } from './catalogo.js';

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Fonte } from '../config.js';
 
 /**
  * Catálogo de eventos da outbox (docs/contratos/eventos.md): um schema Zod por tipo, validado na publicação.
@@ -49,4 +50,22 @@ export function validarPayload(tipo: string, payload: unknown, catalogo: Catalog
     throw new Error(`Payload inválido para ${tipo}: ${campos}`);
   }
   return r.data;
+}
+
+/** Prefixo do tipo -> fonte dona. `coleta.*` vale para as duas (a fonte vem no evento). */
+export const PREFIXO_FONTE: Readonly<Record<string, Fonte>> = { 'bm.': 'businessmap', 'ac.': 'acelerato' };
+
+/** Fonte dona do tipo pelo prefixo (`undefined` = tipo comum às duas fontes). */
+export const fonteDoTipo = (tipo: string): Fonte | undefined =>
+  Object.entries(PREFIXO_FONTE).find(([prefixo]) => tipo.startsWith(prefixo))?.[1];
+
+/**
+ * BusinessMap e Acelerato nunca se misturam: o prefixo do tipo tem de bater com a fonte do evento, e, quando o
+ * payload carrega `fonte`, ela tem de ser a mesma da coluna. Só lê o campo `fonte`; nunca devolve valores de payload.
+ */
+export function conferirFonte(fonte: Fonte, tipo: string, payload: unknown): void {
+  const dona = fonteDoTipo(tipo);
+  if (dona !== undefined && dona !== fonte) throw new Error(`Evento ${tipo} pertence a ${dona}, não a ${fonte}`);
+  const doPayload = typeof payload === 'object' && payload !== null ? (payload as { fonte?: unknown }).fonte : undefined;
+  if (doPayload !== undefined && doPayload !== fonte) throw new Error(`Evento ${tipo}: payload.fonte diverge da fonte do evento`);
 }

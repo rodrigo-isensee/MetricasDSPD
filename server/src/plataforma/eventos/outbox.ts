@@ -1,7 +1,7 @@
 import type { Fonte } from '../config.js';
 import { esquemasDoAmbiente, type Esquemas } from '../db/esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../db/pool.js';
-import { CATALOGO_EVENTOS, validarPayload, type CatalogoEventos } from './catalogo.js';
+import { CATALOGO_EVENTOS, conferirFonte, validarPayload, type CatalogoEventos } from './catalogo.js';
 import type { RegistroConsumidores } from './consumidores.js';
 
 /** Outbox transacional (ADR 0014): grava na MESMA transação da mudança; lida por polling, uma fonte por execução. */
@@ -19,10 +19,12 @@ export const backoffMs = (n: number): number => Math.min(BACKOFF_BASE_MS * 2 ** 
 /**
  * Chame com o cliente da transação que muda o estado: se ela desfizer, o evento também some.
  * O payload é validado pelo schema do tipo (catálogo de eventos) antes de gravar; tipo desconhecido é recusado.
+ * A fonte do evento tem de bater com o prefixo do tipo e com `payload.fonte` (BusinessMap e Acelerato nunca se misturam).
  */
 export async function publicarEvento(
   cliente: Consultavel, e: EventoNovo, S: Esquemas = esquemasDoAmbiente(), catalogo: CatalogoEventos = CATALOGO_EVENTOS,
 ): Promise<string> {
+  conferirFonte(e.fonte, e.tipo, e.payload);
   validarPayload(e.tipo, e.payload, catalogo);
   const r = await cliente.query<{ evento_id: string }>(
     `INSERT INTO ${S.core}.outbox (fonte, tipo, payload) VALUES ($1, $2, $3::jsonb) RETURNING evento_id`,
