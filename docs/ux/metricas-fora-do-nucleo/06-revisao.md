@@ -76,3 +76,77 @@ Arquivos lidos: `web/src/features/{complementares,catalogo,preferencias}/*`, `pa
 2. 1280 px: popover à direita (`lg:right-6 lg:top-40`) sem cobrir a barra de filtros sticky; grid `lg:col-span-6` dos cartões.
 3. Teclado: Enter/Espaço no `summary`, foco no título do cartão após "Leia junto", retorno do foco ao fechar o diálogo, axe nas três telas.
 4. Reduzir movimento e tema escuro: contraste do selo âmbar e de `text-atencao` sobre `superficie`.
+
+## Revalidação
+
+Data: 2026-10-11 · Uma rodada · Revisora: UX. Contra os achados acima e os alinhamentos `2026-10-11-decisoes-complementares.md` e `2026-10-11-decisoes-delegadas-ao-time.md`.
+
+Método: revisão estática do código (`web/src/features/{complementares,catalogo,preferencias}`, `packages/contratos/src/cartoes.ts`, `e2e/tests/complementares.spec.ts`). **Não houve preview nem inspeção a 375 e 1280 px**: não rodei build/preview, então os itens de "Pendente de inspeção em execução" continuam abertos para o QA/axe.
+
+### Situação dos achados anteriores
+
+| Achado | Situação | Evidência |
+|---|---|---|
+| B-1 Leia junto | **Parcial, segue bloqueante** | Ver N-1. `Def` agora aceita lista e O3 liga a O5, O6, O8 (a pergunta do teste 1 passa). Mas só 4 cartões renderizam `<LeiaJunto>` (O3, O4, O15, S1). |
+| M-1 notas | Resolvido | O5 (bloqueio sai da execução) e O11 (Requested a In Progress) em regra vigente; S8 (campo "reincidente", ticket anterior), S12 e T8 (card-template pai, entrada não planejada) conforme as decisões. O17 sem "módulo"; só mantém "lista provisória". |
+| M-2 status do catálogo | Resolvido, com observação | Coluna "Dados" = "Fictícios" onde `status=mock`, "Da coleta" nos demais. Segue o pedido desta rodada, mas difere da decisão delegada nº 20 ("Fictícios para todos até a coleta real") e do design system 2.11. Ver N-4. |
+| M-3 contador | Resolvido | Botão: "Métricas: 9 de 9 (+8 complementares)"; Preferências: "N de M do núcleo e N de M complementares visíveis". |
+| M-4 link com nome | Resolvido | `O5 Eficiência de fluxo`; `aria-label` começa pelo código e contém o texto visível. |
+| M-5 validação | **Pendente** | `05-validacao.md` sem retorno parcial e sem `especificacao.md` na pasta. |
+| L-1 link O15 | **Pendente** | `fluxo.tsx` O13 e O16 ainda com "taxa de escape (O15)" em texto. |
+| L-2 | Resolvido (sem código) | DS mantido; basta atualizar a ideação. |
+| L-3 restaurar | Resolvido | Diálogo diz que "a seção 'Mais métricas deste painel' volta a abrir". |
+| L-4 tudo oculto | **Pendente** | `MaisMetricas` ainda retorna `null` se tudo oculto e `FaixaOcultas` não menciona complementares. |
+| L-5, L-6 | Aceitos pela decisão nº 20 | Não mudar; observar no teste visual a 375 px. |
+| L-7 O6 | Resolvido por código | `Referência: abaixo de 2,5` como rótulo; sem `StatusMeta`. Falta o teste explícito de "sem Fora da meta". |
+
+### Verificações pedidas
+- **Leia junto alcança as 17**: no dado, sim (teste de contratos passa pelas 17). Na tela, **não**: ver N-1.
+- **O17 na Sustentação**: conforme. Está no catálogo de `sustentacao`, `cartaoPorId('operacional','o17')` é indefinido, fonte Acelerato, e há ligação S6 a O17.
+- **"Dados fictícios" só onde `status=mock`**: conforme (`CartaoComplementar` lê o status; O17, T8, E4, S8, S11 e S12 têm selo; as demais 11 não; o E2E COMP cobre os dois lados).
+- **"Campo sem fonte"**: claro, com ícone, texto e "Isto não significa zero"; distinto de amostra insuficiente.
+- **"n de N"**: S8 mostra "Campo preenchido em n de N" quando a cobertura é parcial. **S12 não mostra cobertura** (N-2). `ListaInsuficientes` usa "n de 20 itens mínimos".
+- **Contador**: "(+N complementares)" conforme.
+- **Textos O5/O11/O17/S8/S12/T8**: conforme as decisões (M-1). O17 ainda diz "até a decisão final do critério": aceitável, mas a origem já foi decidida; trocar por "lista proposta; o campo causa raiz virá do Metabase".
+- **Anti-meta**: mantida ("Sem alvo", "nunca por pessoa", T8 sem alvo de 100%, O8 com média ao lado, P85 em E5 e T6). S8 e S10 exibem "Abaixo de 5%" e "15 minutos" como referência do briefing (rotulados como referência); sem ranking de pessoas.
+
+### Novos achados
+
+**N-1 (alto; mantém o B-1 aberto). "Leia junto" só aparece em 4 dos 14 cartões que o mapa usa.**
+- Onde: `LeiaJunto` é renderizado apenas em `CartaoO3`, `CartaoO4`, `CartaoO15` e `CartaoS1`. O10, O7, T1, T4, T9, E1, E2, S2, S3, S6 e S7 têm `leiaJunto` no catálogo, mas nenhum JSX o exibe.
+- Efeito: pela tela só se chega a O5, O6, O8, O13, O16, S9 e S10. **Ficam sem entrada: O11, O14, O17, T6, T8, E4, E5, S8, S11, S12** (10 de 17). O teste de contratos passa porque verifica só o dado.
+- Correção: inserir `<LeiaJunto id=... />` nos 11 cartões; estender o teste (E2E ou de componente) para provar, por painel, que cada complementar tem um link visível a partir do núcleo.
+
+**N-2 (médio). S12 sem cobertura "n de N".** A decisão nº 13 manda S8 e S12 mostrarem a cobertura; só S8 tem (`cobertura` está só no schema de S8). Sem isso, a proporção de reincidência por sistema parece completa quando o campo é pouco preenchido. Correção: acrescentar `cobertura` ao DTO de S12 e a linha "Campo preenchido em n de N" no cartão.
+
+**N-3 (médio). Mapa "Leia junto" provisório: o usuário precisa confirmar.** O mapa vigente em `cartoes.ts` difere do texto da decisão nº 19 porque o item exige o mesmo painel (BusinessMap por painel):
+
+| Do cartão | Leia junto (código) | Observação |
+|---|---|---|
+| O3 | O5, O6, O8 | = decisão |
+| O4 | O8 | = decisão |
+| O10 | O11 | = decisão |
+| O7 | O14 | decisão dizia T5 a O14; T5 é Tático e O14 é Operacional |
+| O15 | O13, O16 | decisão incluía O17; O17 foi para a Sustentação |
+| T1 | T6 | (também aponta T4, que é núcleo e não aparece) |
+| T4 | nenhum visível | só aponta T1 (núcleo); decisão dizia T8 |
+| T9 | T8 | decisão dizia T6, E5 |
+| E1 | E5 | decisão dizia E4, E5 |
+| E2 | E4 | acrescentado pelo time |
+| S1 | S9, S10 | = decisão |
+| S2 | S8 | |
+| S3 | S12 | |
+| S6 | O17 | acrescentado (O17 é da Sustentação) |
+| S7 | S11 | decisão dizia S5 e S7 |
+| O18, T1 a T4 | O4, T4, T1 | pares núcleo a núcleo: o `LeiaJunto` os filtra; são dado morto |
+
+Pontos para o usuário confirmar: (a) T5 a O14 virou O7 a O14; (b) T4 a T8 não existe (T8 entra por T9); (c) S5 sem entrada para S11; (d) remover pares núcleo-núcleo do dado ou deixá-los. É hipótese do time até o usuário aprovar.
+
+**N-4 (baixo). Coluna "Dados" do catálogo: "Da coleta" para métricas do núcleo.** Hoje o app inteiro roda com mock (design system 2.11 e aviso global). Escrever "Da coleta" pode sugerir dado real. Opções: manter "Fictícios" para todos (decisão nº 20) ou trocar o rótulo por "Fonte real disponível". Decidir com o usuário; não bloqueia.
+
+**N-5 (baixo). O17 sem destino de "Leia junto" a partir do painel operacional** — esperado (é da Sustentação), mas a nota de O15 que sugere "causa raiz" não existe; sem ação.
+
+### Parecer
+- Resolvidos: M-1, M-2, M-3, M-4, L-2, L-3, L-7.
+- Pendentes: **B-1 (via N-1)**, M-5, L-1, L-4; novos N-2, N-3 (confirmação do mapa pelo usuário), N-4.
+- Não aprovo a interface para o QA final até N-1 ser corrigido e a inspeção em 375 e 1280 px ser feita.
