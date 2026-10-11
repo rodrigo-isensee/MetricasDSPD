@@ -954,9 +954,14 @@ export const resultadoO16 = z.object({
   ),
 })
 
-/** O17: causa raiz e concentração por sistema (bugs concluídos). Contagem, sem mínimo. */
+/**
+ * O17 (Sustentação, fonte Acelerato): incidentes encerrados por causa raiz e por sistema.
+ * Contagem, sem mínimo. Campo causa raiz via integração Metabase (decisão do usuário, 2026-10-11).
+ */
 export const resultadoO17 = z.object({
   ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
   porCausa: z.array(z.object({ causa: z.enum([...CAUSAS_RAIZ, 'Não informada']), n: z.number() })),
   porSistema: z.array(z.object({ sistema: z.string(), n: z.number() })),
 })
@@ -1021,6 +1026,8 @@ export const resultadoT8 = z.object({
 /** E4: projetos iniciados × concluídos por trimestre. */
 export const resultadoE4 = z.object({
   ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
   trimestres: z.array(
     z.object({
       trimestre: z.string(),
@@ -1055,6 +1062,8 @@ export const resultadoE5 = z.object({
 /** S8: taxa de reabertura de incidentes (reabertura = campo `reincidente` com o ticket anterior). */
 export const resultadoS8 = z.object({
   ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
   metaMaxPct: z.number(),
   meses: z.array(
     z.object({
@@ -1101,6 +1110,8 @@ export const resultadoS10 = z.object({
 /** S11: avaliação de Problema em P1, P2 e encerrados por contorno. */
 export const resultadoS11 = z.object({
   ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
   escopo: taxaSchema,
   /** Os grupos se sobrepõem (um P1 pode ter contorno); o escopo conta cada chamado uma vez. */
   porGrupo: z.array(z.object({ grupo: z.enum(['P1', 'P2', 'Contorno']), taxa: taxaSchema })),
@@ -1110,6 +1121,8 @@ export const resultadoS11 = z.object({
 /** S12: volume por sistema, reincidência por sistema e exceção de SLA. */
 export const resultadoS12 = z.object({
   ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
   parametros: z.object({ janelaSemanas: z.number() }),
   meses: z.array(
     z.object({

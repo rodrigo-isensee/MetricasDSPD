@@ -16,15 +16,17 @@ describe('extensões mock das métricas complementares', () => {
     expect(hashJson(gerarExtensoesMock(base))).toBe(hashJson(ext))
     const outra = gerarBaseMock({ escala: 0.2, semente: 7 })
     expect(hashJson(gerarExtensoesMock(outra))).not.toBe(hashJson(ext))
-    expect(hashJson(ext)).toBe('a4a5647e')
+    expect(hashJson(ext)).toBe('fbddcf28')
   })
 
-  it('BM: causa raiz só em bugs, domínio fechado; sprints quinzenais; natureza fechada', () => {
-    const bugs = base.bm.cards.filter(
-      (c) => c.tipo === 'Bug interno' || c.tipo === 'Defeito em produção',
-    )
-    expect(Object.keys(ext.bm.causasRaiz)).toHaveLength(bugs.length)
-    for (const v of Object.values(ext.bm.causasRaiz)) expect(CAUSAS_RAIZ).toContain(v)
+  it('AC: causa raiz só em incidentes, domínio fechado (O17 é da Sustentação)', () => {
+    const incidentes = base.ac.chamados.filter((c) => c.natureza === 'incidente')
+    expect(Object.keys(ext.ac.causasRaiz)).toHaveLength(incidentes.length)
+    for (const v of Object.values(ext.ac.causasRaiz)) expect(CAUSAS_RAIZ).toContain(v)
+    expect('causasRaiz' in ext.bm).toBe(false)
+  })
+
+  it('BM: sprints quinzenais; natureza fechada', () => {
     expect(ext.bm.sprints.length).toBeGreaterThan(20)
     expect(ext.bm.sprints[0]?.sprint_id).toBe('SPR-01')
     const projetos = base.bm.cards.filter((c) => c.granularidade === 'projeto')

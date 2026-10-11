@@ -29,12 +29,13 @@ describe('gerarColetasMock', () => {
     expect(bm.falhasRecentes.map((e) => e.tipoErro)).toEqual(['tempo-esgotado'])
     expect(bm.calibracao).toEqual([])
   })
-  it('AC: atual e calibração 15/09 a 13/11 só com métricas S* e EI_SUST', () => {
+  it('AC: atual e calibração 15/09 a 13/11 só com métricas S*, O17 e EI_SUST', () => {
     const ac = montarEstadoColeta('acelerato', c.acelerato, CRITERIOS_MOCK, hoje)
     expect(ac.selo).toBe('atual')
     expect(ac.calibracao).toHaveLength(1)
     expect(ac.calibracao[0]).toMatchObject({ inicio: '2026-09-15', fim: '2026-11-13' })
     expect(ac.metricasEmCalibracao).toEqual([
+      'O17',
       'S1',
       'S2',
       'S3',

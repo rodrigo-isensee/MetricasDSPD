@@ -30,7 +30,7 @@ describe('catálogo de cartões', () => {
       for (const par of c.leiaJunto ?? []) expect(cartaoPorId(c.painel, par)).toBeDefined()
   })
 
-  it('classifica os cartões: 32 do núcleo disponíveis e 17 complementares em mock', () => {
+  it('classifica os cartões: mock só onde falta fonte real (O17, T8, E4, S8, S11, S12)', () => {
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar')
     expect(compl.map((c) => c.codigo).sort()).toEqual(
       [
@@ -53,10 +53,24 @@ describe('catálogo de cartões', () => {
         'S12',
       ].sort(),
     )
-    for (const c of compl) expect(c.status).toBe('mock')
+    const mock = ['O17', 'T8', 'E4', 'S8', 'S11', 'S12']
+    for (const c of compl) expect(c.status).toBe(mock.includes(c.codigo) ? 'mock' : 'disponivel')
     for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'nucleo'))
       expect(c.status).toBe('disponivel')
     expect(CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo')).toHaveLength(32)
+  })
+
+  it('torna as 17 complementares alcançáveis por "leia junto" a partir do núcleo', () => {
+    const alcancadas = new Set(
+      CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo').flatMap((c) => c.leiaJunto ?? []),
+    )
+    for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'complementar'))
+      expect(alcancadas.has(c.id), c.codigo).toBe(true)
+  })
+
+  it('põe a O17 na Sustentação, nunca no BusinessMap', () => {
+    expect(cartaoPorId('sustentacao', 'o17')?.grupo).toBe('complementar')
+    expect(cartaoPorId('operacional', 'o17')).toBeUndefined()
   })
 
   it('acha por id e devolve undefined para o inexistente', () => {

@@ -507,13 +507,14 @@ export const REGRAS_METRICA = {
     pendencias: ['O16-densidade-origem-bug'],
   },
   O17: {
-    dominio: 'businessmap',
+    // Decisão do usuário (2026-10-11): vem do Acelerato (campo causa raiz via Metabase), painel Sustentação.
+    dominio: 'acelerato',
     segmentacao: ['causa-raiz', 'sistema'],
     ordem: 'neutra',
-    incluiArquivados: true,
+    incluiArquivados: 'nao-se-aplica',
     minimo: 0,
     minimoSobre: [],
-    granularidade: 'story',
+    granularidade: 'chamado',
     refBriefing: '06 O17; 4.4 causa raiz',
     status: 'ok',
   },

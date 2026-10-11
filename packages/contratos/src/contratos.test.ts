@@ -130,7 +130,7 @@ describe('metas, janela e aplicabilidade', () => {
 
   it('sustentação e fluxo não se misturam: nenhuma métrica S/EI_SUST tem aplicabilidade de fluxo', () => {
     for (const id of METRICAS_SUSTENTACAO) expect(APLICABILIDADE_FLUXO[id]).toBeUndefined()
-    expect(METRICAS_SUSTENTACAO).toHaveLength(13)
+    expect(METRICAS_SUSTENTACAO).toHaveLength(14)
     for (const [, chaves] of Object.entries(APLICABILIDADE_FLUXO))
       expect(chaves).toContain('periodo')
   })

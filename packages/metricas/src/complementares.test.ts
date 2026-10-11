@@ -60,28 +60,56 @@ describe('métricas complementares: contratos e regras comuns', () => {
     ] as const
     for (const id of ids)
       for (const ctx of [ctxMock, ctxSemExt]) {
-        const f = id.startsWith('S') ? FS : F
+        const f = id.startsWith('S') || id === 'O17' ? FS : F
         const r = calcularMetrica(id, f as never, ctx)
         expect(SCHEMAS_RESULTADO[id].safeParse(r).success, id).toBe(true)
       }
   })
 
-  it('sem extensão: sprints vazias, causa raiz "Não informada", natureza zerada e reabertura insuficiente', () => {
+  it('sem extensão: nada é publicado como 0% (S8, S11, S12 insuficientes; O17 e E4 sem partes)', () => {
     const t8 = calcularMetrica('T8', F, ctxSemExt)
     expect(t8.sprints).toEqual([])
-    const o17 = calcularMetrica('O17', F, ctxSemExt)
-    expect(o17.porCausa.filter((c) => c.n > 0).map((c) => c.causa)).toEqual(['Não informada'])
+    const o17 = calcularMetrica('O17', FS, ctxSemExt)
+    expect(o17.campoDisponivel).toBe(false)
+    expect(o17.porCausa).toEqual([])
     const e4 = calcularMetrica('E4', F, ctxSemExt)
-    expect(e4.trimestres.every((t) => t.iniciadosPorNatureza.every((n) => n.n === 0))).toBe(true)
+    expect(e4.campoDisponivel).toBe(false)
+    expect(e4.trimestres.every((t) => t.iniciadosPorNatureza.length === 0)).toBe(true)
     const s8 = calcularMetrica('S8', FS, ctxSemExt)
-    expect(s8.meses.every((m) => m.reabertos === 0)).toBe(true)
+    expect(s8.campoDisponivel).toBe(false)
+    expect(s8.total.status).toBe('insuficiente')
+    expect(s8.statusMeta).toBe('sem-referencia')
+    expect(s8.meses.every((m) => m.reabertos === 0 && m.taxa.status === 'insuficiente')).toBe(true)
     const s11 = calcularMetrica('S11', FS, ctxSemExt)
-    expect(s11.conversao.k).toBe(0)
+    expect(s11.campoDisponivel).toBe(false)
+    expect(s11.conversao.status).toBe('insuficiente')
+    const s12 = calcularMetrica('S12', FS, ctxSemExt)
+    expect(s12.campoDisponivel).toBe(false)
+    expect(s12.reincidencia.every((x) => x.proporcao.status === 'insuficiente')).toBe(true)
   })
 
-  it('com extensão: causa raiz vem do domínio fechado e os sprints trazem carry-over', () => {
-    const o17 = calcularMetrica('O17', F, ctxMock)
+  it('com extensão: campoDisponivel é true e a causa raiz vem do domínio fechado', () => {
+    for (const id of ['S8', 'S11', 'S12', 'O17'] as const)
+      expect(calcularMetrica(id, FS, ctxMock).campoDisponivel, id).toBe(true)
+    expect(calcularMetrica('E4', F, ctxMock).campoDisponivel).toBe(true)
+  })
+
+  it('O17 (Sustentação): incidentes encerrados por causa raiz e por sistema', () => {
+    const o17 = calcularMetrica('O17', FS, ctxMock)
     expect(o17.porCausa.some((c) => c.causa === 'Código')).toBe(true)
+    expect(o17.porSistema.reduce((t, x) => t + x.n, 0)).toBe(o17.base.n)
+    const total = o17.porCausa.reduce((t, x) => t + x.n, 0)
+    expect(total).toBe(o17.base.n)
+    const semCausa = calcularMetrica('O17', FS, {
+      ...ctxMock,
+      ext: { ...ext, ac: { ...ext.ac, causasRaiz: {} } },
+    })
+    expect(semCausa.porCausa.filter((c) => c.n > 0)).toEqual([
+      { causa: 'Não informada', n: o17.base.n },
+    ])
+  })
+
+  it('com extensão: os sprints trazem carry-over', () => {
     const t8 = calcularMetrica('T8', { ...F, periodo: { tipo: '6m' } }, ctxMock)
     expect(t8.sprints.length).toBeGreaterThan(5)
     for (const s of t8.sprints)

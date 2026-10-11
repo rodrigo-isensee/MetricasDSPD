@@ -38,7 +38,6 @@ const CALCULOS: {
   O13: (f, c) => BM.calcularO13(c.bm, f),
   O14: (f, c) => BM.calcularO14(c.bm, f),
   O16: (f, c) => BM.calcularO16(c.bm, f),
-  O17: (f, c) => BM.calcularO17(c.bm, f, c.ext?.bm),
   T1: (f, c) => BM.calcularT1(c.bm, f),
   T2: (f, c) => BM.calcularT2(c.bm, f),
   T3: (f, c) => BM.calcularT3(c.bm, f),
@@ -68,6 +67,7 @@ const CALCULOS: {
   S10: (f, c) => AC.calcularS10(c.ac, f),
   S11: (f, c) => AC.calcularS11(c.ac, f, c.ext?.ac),
   S12: (f, c) => AC.calcularS12(c.ac, f, c.ext?.ac),
+  O17: (f, c) => AC.calcularO17(c.ac, f, c.ext?.ac),
   EI_SUST: (f, c) => AC.calcularEIAcelerato(c.ac, f),
   VISAO_GERAL: (_f, ctx) => calcularVisaoGeral(ctx.bm, ctx.ac),
 }

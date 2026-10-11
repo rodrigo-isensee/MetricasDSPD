@@ -4,7 +4,7 @@
  * `DimCard`/`BaseBM` (mapas por id), para que as 33 métricas do núcleo e o hash da base mock não
  * mudem. Fonte real futura: tabelas próprias (T1.3, T1.4, T4.2). Nenhum campo identifica pessoa.
  */
-import type { CausaRaiz, NaturezaProjeto } from '@metricas-dspd/contratos'
+import type { NaturezaProjeto } from '@metricas-dspd/contratos'
 
 /** Sprint = card-template pai no BusinessMap; as entregas são os cards filhos ligados a ele. */
 export interface Sprint {
@@ -25,8 +25,6 @@ export interface SprintCard {
 }
 
 export interface ExtensaoBM {
-  /** card_id (bug) -> causa raiz. */
-  causasRaiz: Record<string, CausaRaiz>
   sprints: Sprint[]
   sprintCards: SprintCard[]
   /** card_id (projeto) -> natureza. */
@@ -34,7 +32,6 @@ export interface ExtensaoBM {
 }
 
 export const EXTENSAO_BM_VAZIA: ExtensaoBM = {
-  causasRaiz: {},
   sprints: [],
   sprintCards: [],
   naturezaProjeto: {},

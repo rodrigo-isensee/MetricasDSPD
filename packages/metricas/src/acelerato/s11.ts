@@ -1,17 +1,17 @@
 import type { ResultadoS11, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { taxa } from '../core/estatistica'
 import { baseAmostral, criterios, noIntervalo, periodoDe, selecionarAC } from './comum'
-import { EXTENSAO_AC_VAZIA, type ExtensaoAC } from './extensao'
+import type { ExtensaoAC } from './extensao'
 import type { ContextoAC } from './indice'
 
 /**
  * S11: avaliação de Problema em chamados P1, P2 e encerrados por contorno, e conversão em Registro
- * de Problema. O filtro de prioridade não atua (o escopo já é por prioridade e contorno).
+ * de Problema. Sem extensão, a conversão não é publicada (insuficiente), nunca 0%. O filtro de prioridade não atua (o escopo já é por prioridade e contorno).
  */
 export function calcularS11(
   ctx: ContextoAC,
   f: FiltrosSustentacao,
-  ext: ExtensaoAC = EXTENSAO_AC_VAZIA,
+  ext?: ExtensaoAC,
 ): ResultadoS11 {
   const periodo = periodoDe(ctx, f)
   const fechados = selecionarAC(ctx, f, { semPrioridade: true }).filter(
@@ -36,9 +36,13 @@ export function calcularS11(
       grupo,
       taxa: taxa(grupos[grupo].filter(avaliado).length, grupos[grupo].length),
     })),
-    conversao: taxa(
-      avaliacoes.filter((x) => ext.registroProblema[x.c.chamado_id] === true).length,
-      avaliacoes.length,
-    ),
+    campoDisponivel: ext !== undefined,
+    conversao:
+      ext === undefined
+        ? taxa(0, 0)
+        : taxa(
+            avaliacoes.filter((x) => ext.registroProblema[x.c.chamado_id] === true).length,
+            avaliacoes.length,
+          ),
   }
 }

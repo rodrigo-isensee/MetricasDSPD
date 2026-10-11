@@ -11,7 +11,7 @@ import {
   periodoDe,
   selecionarAC,
 } from './comum'
-import { EXTENSAO_AC_VAZIA, type ExtensaoAC } from './extensao'
+import type { ExtensaoAC } from './extensao'
 import type { ContextoAC } from './indice'
 
 /**
@@ -22,7 +22,7 @@ import type { ContextoAC } from './indice'
 export function calcularS12(
   ctx: ContextoAC,
   f: FiltrosSustentacao,
-  ext: ExtensaoAC = EXTENSAO_AC_VAZIA,
+  ext?: ExtensaoAC,
 ): ResultadoS12 {
   const periodo = periodoDe(ctx, f)
   const janela = janelaPercentis(ctx, f)
@@ -49,7 +49,7 @@ export function calcularS12(
   for (const x of naJanela) {
     const p = porSistema.get(x.c.categoria_sistema) ?? { chamados: 0, reincidentes: 0 }
     p.chamados++
-    if (ext.reabertoDe[x.c.chamado_id] !== undefined) p.reincidentes++
+    if (ext?.reabertoDe[x.c.chamado_id] !== undefined) p.reincidentes++
     porSistema.set(x.c.categoria_sistema, p)
   }
   const fechados = xs.filter((x) => x.fechado && noIntervalo(ctx, x.c.data_finalizado, periodo))
@@ -60,13 +60,14 @@ export function calcularS12(
       periodo,
     ),
     criterios: criterios('S12', periodo, janela, ctx),
+    campoDisponivel: ext !== undefined,
     parametros: { janelaSemanas: janela.quantidade },
     meses: linhas,
     reincidencia: ordenarNeutro(
       [...porSistema].map(([sistema, p]) => ({
         sistema,
         ...p,
-        proporcao: taxa(p.reincidentes, p.chamados),
+        proporcao: ext === undefined ? taxa(0, 0) : taxa(p.reincidentes, p.chamados),
       })),
       (p) => [-p.chamados, p.sistema],
     ),

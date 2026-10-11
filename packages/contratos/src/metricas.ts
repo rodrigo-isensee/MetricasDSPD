@@ -79,7 +79,7 @@ export interface ContratoMetricas {
   O13: Fluxo<ResultadoO13>
   O14: Fluxo<ResultadoO14>
   O16: Fluxo<ResultadoO16>
-  O17: Fluxo<ResultadoO17>
+  O17: Sust<ResultadoO17>
   T1: Fluxo<ResultadoT1>
   T2: Fluxo<ResultadoT2>
   T3: Fluxo<ResultadoT3>
@@ -131,6 +131,7 @@ export const METRICAS_SUSTENTACAO: readonly MetricaId[] = [
   'S10',
   'S11',
   'S12',
+  'O17',
   'EI_SUST',
 ]
 
@@ -168,7 +169,6 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   O13: ['equipe', 'sistema', 'periodo'],
   O14: ['equipe', 'sistema', 'periodo'],
   O16: ['equipe', 'sistema', 'periodo'],
-  O17: ['equipe', 'sistema', 'periodo'],
   T6: ['equipe', 'sistema', 'periodo'],
   T8: ['equipe', 'sistema', 'periodo'],
   E4: ['sistema', 'periodo'],

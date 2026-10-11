@@ -23,16 +23,10 @@ const INICIO_SPRINTS = '2025-10-06'
 const DIAS_SPRINT = 14
 
 function gerarBM(base: BaseMock): ExtensaoBM {
-  const causas = derivar(base.config.semente, 'complementares:causas')
   const spr = derivar(base.config.semente, 'complementares:sprints')
   const nat = derivar(base.config.semente, 'complementares:natureza')
-  const ehBug = (t: string) => t === 'Bug interno' || t === 'Defeito em produção'
-
-  const causasRaiz: Record<string, CausaRaiz> = {}
   const naturezaProjeto: Record<string, NaturezaProjeto> = {}
   for (const c of base.bm.cards) {
-    if (c.granularidade === 'story' && ehBug(c.tipo))
-      causasRaiz[c.card_id] = escolhaPonderada(causas, PESO_CAUSA)
     if (c.granularidade === 'projeto')
       naturezaProjeto[c.card_id] = bernoulli(nat, 0.6) ? 'Evoluir' : 'Manter'
   }
@@ -66,12 +60,19 @@ function gerarBM(base: BaseMock): ExtensaoBM {
       ligado_em: isoDeDia(diaDeIso(s.inicio) + (planejado ? 0 : depois)),
     })
   }
-  return { causasRaiz, sprints, sprintCards, naturezaProjeto }
+  return { sprints, sprintCards, naturezaProjeto }
 }
 
 function gerarAC(base: BaseMock): ExtensaoAC {
   const reab = derivar(base.config.semente, 'complementares:reabertura')
   const prob = derivar(base.config.semente, 'complementares:problema')
+  const causas = derivar(base.config.semente, 'complementares:causas')
+
+  // Causa raiz (O17): incidentes do Acelerato; no real vem do Metabase.
+  const causasRaiz: Record<string, CausaRaiz> = {}
+  for (const c of base.ac.chamados) {
+    if (c.natureza === 'incidente') causasRaiz[c.chamado_id] = escolhaPonderada(causas, PESO_CAUSA)
+  }
 
   const registroProblema: Record<string, boolean> = {}
   for (const c of base.ac.chamados) {
@@ -97,7 +98,7 @@ function gerarAC(base: BaseMock): ExtensaoAC {
       if (y) reabertoDe[y.chamado_id] = x.chamado_id
     }
   }
-  return { reabertoDe, registroProblema }
+  return { causasRaiz, reabertoDe, registroProblema }
 }
 
 export function gerarExtensoesMock(base: BaseMock): ExtensoesMetricas {

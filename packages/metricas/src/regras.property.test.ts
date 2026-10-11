@@ -100,7 +100,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
       O13: 'o resultado é série mensal de contagem de defeitos sobre a vazão total; o tipo é a definição, sem nó rotulado por tipo',
       O14: 'a chave é área solicitante (classificador por área não implementado); a distribuição é de contagem por nome, com top 10 e demais',
       O16: 'primeira chave é faixa de idade (derivada do instante, sem classificador de item); severidade é contagem de abertos',
-      O17: 'primeira chave é causa raiz, que vive na extensão (mapa por id), sem classificador de item no modelo do núcleo',
+      O17: 'primeira chave é causa raiz, que vive na extensão (mapa por chamado), sem classificador de item no modelo do núcleo',
       E4: 'série trimestral de contagem de projetos; o tipo de projeto não é rótulo de nó no resultado',
       S8: 'a prioridade atua só como filtro; o resultado é série mensal sem nó por prioridade',
       S9: 'a chave é o motivo da pendência, que vive na etapa (classificador por motivo não implementado)',
