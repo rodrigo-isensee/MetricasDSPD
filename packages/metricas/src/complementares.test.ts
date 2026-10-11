@@ -80,6 +80,7 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(s8.total.status).toBe('insuficiente')
     expect(s8.statusMeta).toBe('sem-referencia')
     expect(s8.meses.every((m) => m.reabertos === 0 && m.taxa.status === 'insuficiente')).toBe(true)
+    expect(s8.cobertura.n).toBe(0)
     const s11 = calcularMetrica('S11', FS, ctxSemExt)
     expect(s11.campoDisponivel).toBe(false)
     expect(s11.conversao.status).toBe('insuficiente')
@@ -264,6 +265,30 @@ describe('Sustentação: S8 e S9', () => {
       periodo: { tipo: '4s' },
     })
     expect(nada.statusMeta).toBe('sem-referencia')
+  })
+
+  it('S8: conta o chamado reincidente no mês de abertura e expõe a cobertura "n de N"', () => {
+    const incidentes = base.ac.chamados.filter((c) => c.natureza === 'incidente' && !c.excluido)
+    const reabertoDe: Record<string, string> = {}
+    const ausente: Record<string, true> = {}
+    incidentes.forEach((c, i) => {
+      if (i % 4 === 0) reabertoDe[c.chamado_id] = incidentes[0]!.chamado_id
+      else if (i % 4 === 1) ausente[c.chamado_id] = true
+    })
+    const r = acelerato.calcularS8(ctxMock.ac, FS, {
+      ...ext.ac,
+      reabertoDe,
+      reincidenteAusente: ausente,
+    })
+    const somaMeses = r.meses.reduce((t, m) => t + m.reabertos, 0)
+    expect(r.campoDisponivel).toBe(true)
+    expect(r.cobertura.total).toBe(r.meses.reduce((t, m) => t + m.encerrados, 0))
+    expect(r.cobertura.n).toBeLessThan(r.cobertura.total)
+    expect(r.cobertura.n).toBeGreaterThan(0)
+    expect(somaMeses).toBeGreaterThan(0)
+    expect(r.meses.every((m) => m.reabertos <= m.encerrados)).toBe(true)
+    const cheia = acelerato.calcularS8(ctxMock.ac, FS, { ...ext.ac, reabertoDe: {} })
+    expect(cheia.cobertura.n).toBe(cheia.cobertura.total)
   })
 
   it('S9: pendência sem motivo informado vira "Não informado"', () => {

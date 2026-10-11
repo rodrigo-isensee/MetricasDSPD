@@ -25493,6 +25493,22 @@
                     "campoDisponivel": {
                       "type": "boolean"
                     },
+                    "cobertura": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "total"
+                      ],
+                      "additionalProperties": false
+                    },
                     "metaMaxPct": {
                       "type": "number"
                     },
@@ -25667,6 +25683,7 @@
                     "base",
                     "criterios",
                     "campoDisponivel",
+                    "cobertura",
                     "metaMaxPct",
                     "meses",
                     "total",

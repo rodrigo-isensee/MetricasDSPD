@@ -10,6 +10,8 @@ export interface ExtensaoAC {
   causasRaiz: Record<string, CausaRaiz>
   /** chamado_id (campo `reincidente` preenchido) -> chamado_id do ticket anterior indicado nele. */
   reabertoDe: Record<string, string>
+  /** chamado_id (incidente) sem informação do campo `reincidente`: conta na cobertura, nunca como "não". */
+  reincidenteAusente?: Record<string, true>
   /** chamado_id -> a avaliação de Problema resultou em Registro de Problema. */
   registroProblema: Record<string, boolean>
 }

@@ -1064,6 +1064,8 @@ export const resultadoS8 = z.object({
   ...comum,
   /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
   campoDisponivel: z.boolean(),
+  /** Cobertura do campo `reincidente`: n incidentes com o campo informado de N (nunca ausente = "não"). */
+  cobertura: z.object({ n: z.number(), total: z.number() }),
   metaMaxPct: z.number(),
   meses: z.array(
     z.object({

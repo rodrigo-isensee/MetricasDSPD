@@ -94,7 +94,7 @@ Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e f
 | T8 | `sprints[{sprintId (card pai),nome,inicio,fim,itens,comprometidos,entreguesDoComprometido,carryOver,entradaNaoPlanejada,entreguePct:Taxa,naoPlanejadoPct:Taxa}]`, `agregado` | equipe, sistema, período |
 | E4 | `trimestres[{trimestre,iniciados,concluidos,emAbertoAcumulado,iniciadosPorNatureza[]}]` | sistema, período |
 | E5 | `vazaoSemanal{n,mediana}`, `projetos[{projetoId,projeto,frentesRestantes,frentesAdicionadasAposInicio,previsao}]` | sistema, período |
-| S8 | `metaMaxPct`, `meses[{encerrados,reabertos,taxa}]`, `total`, `statusMeta` | equipe, prioridade, período |
+| S8 | `campoDisponivel`, `cobertura{n,total}`, `metaMaxPct`, `meses[{encerrados (incidentes abertos no mês),reabertos,taxa}]`, `total`, `statusMeta` | equipe, prioridade, período |
 | S9 | `porMotivo[{motivo,n,estatistica}]` (horas úteis), `cumprimentoPrevisao:Taxa` | equipe, prioridade, período |
 | S10 | `prioridades[{prioridade,n,estatistica,histograma|null,aceitosEm15min:Taxa}]` (horas úteis) | equipe, prioridade, período |
 | S11 | `escopo:Taxa`, `porGrupo[{grupo:P1|P2|Contorno,taxa}]` (se sobrepõem), `conversao:Taxa` | equipe, período (prioridade não atua) |
@@ -105,7 +105,7 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 ### Decisões do usuário aplicadas (2026-10-11)
 - O5: bloqueio dentro de coluna de execução sai do tempo de execução (não-execução = fila + bloqueio).
 - O11: em definição = seção Requested (papel `backlog`); pronto = In Progress comprometido (papel `compromisso`); sem sexto papel de coluna.
-- S8: reabertura = campo `reincidente` preenchido com o ticket anterior; sem intervalo de dias nem "mesmo sintoma".
+- S8: reabertura = o próprio chamado com `reincidente` preenchido, contado no mês de abertura (mesma lógica da S12; decisão 14 de 11/10); denominador = incidentes abertos no mês; `cobertura {n, total}` = incidentes com o campo informado de N (ausente nunca vira "não reincidente" em silêncio); sem intervalo de dias nem "mesmo sintoma".
 - S12: chamado com `reincidente` já conta; sem limite K; contagem e proporção por sistema na janela de 12 semanas.
 - T8: sprint = card-template pai; planejado = filho ligado até o início da sprint; ligado depois = entrada não planejada.
 - Alterações de tipo: T8 `sprints[].adicionados` -> `entradaNaoPlanejada` e novo `nome`; S8 sem `diasReabertura`; S12 `parametros.kRecorrente` e `recorrentes[]` removidos, `reincidencia[]` novo.
@@ -119,3 +119,7 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 - Chave: `métrica + versão de carga (marca d'água da coleta + versão de critério mais recente) + versão de critério vigente + dataReferencia + filtros normalizados (listas ordenadas)`. A base (`BaseBM`/`BaseAC`) fica em memória por versão de carga; a marca d'água é relida a cada 60 s. Máximo de 500 resultados por domínio (descarta o mais antigo). Mudança de `ref_*` sem nova coleta só vale após reiniciar a api (ou nova coleta/versão de critério).
 - Invalida quando uma coleta incremental conclui (muda a data de referência/última coleta) ou quando uma nova versão de critério é registrada. Não sobrescreve histórico da base; só descarta resultados calculados.
 - Cache por domínio; chaves de fluxo e sustentação nunca compartilham entrada. Cache compartilhado só se a resposta independer de usuário (hoje independe; revisar se a ADR de auth introduzir escopo por equipe).
+
+### S8: critério de contagem (decisão 14, 2026-10-11)
+- Campo novo e obrigatório em `resultadoS8`: `cobertura: { n: number, total: number }` ("n de N": n = incidentes do período com o campo `reincidente` informado; total = incidentes abertos no período). Sem extensão: `{ n: 0, total: N }`.
+- Semântica alterada (mesmos nomes): `meses[].encerrados` passa a ser incidentes **abertos** no mês (antes, encerrados) e `reabertos` os chamados reincidentes abertos no mês; `base.unidade` = "incidentes abertos". Critério versionado (T2.6): marcar a mudança nos gráficos.
