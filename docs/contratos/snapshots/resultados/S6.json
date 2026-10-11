@@ -1,0 +1,278 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "motivos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "motivo": {
+            "type": "string",
+            "enum": [
+              "Resolução definitiva",
+              "Contorno aplicado",
+              "Reclassificado, não é incidente",
+              "Encerrado sem retorno",
+              "Duplicado"
+            ]
+          },
+          "n": {
+            "type": "number"
+          },
+          "pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "motivo",
+          "n",
+          "pct"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "evolucao": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mes": {
+            "type": "string"
+          },
+          "emAndamento": {
+            "type": "boolean"
+          },
+          "n": {
+            "type": "number"
+          },
+          "motivos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "motivo": {
+                  "type": "string",
+                  "enum": [
+                    "Resolução definitiva",
+                    "Contorno aplicado",
+                    "Reclassificado, não é incidente",
+                    "Encerrado sem retorno",
+                    "Duplicado"
+                  ]
+                },
+                "n": {
+                  "type": "number"
+                },
+                "pct": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "motivo",
+                "n",
+                "pct"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "mes",
+          "emAndamento",
+          "n",
+          "motivos"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "naoInformado": {
+      "type": "number"
+    },
+    "taxaContorno": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "ok"
+            },
+            "k": {
+              "type": "number"
+            },
+            "n": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 9007199254740991
+            },
+            "pct": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "status",
+            "k",
+            "n",
+            "pct"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "insuficiente"
+            },
+            "k": {
+              "type": "number"
+            },
+            "n": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 19
+            },
+            "minimo": {
+              "type": "number",
+              "const": 20
+            }
+          },
+          "required": [
+            "status",
+            "k",
+            "n",
+            "minimo"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "motivos",
+    "evolucao",
+    "naoInformado",
+    "taxaContorno"
+  ],
+  "additionalProperties": false
+}

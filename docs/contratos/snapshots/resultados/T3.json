@@ -1,0 +1,228 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "insuficiente"
+      ]
+    },
+    "naturezas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "natureza": {
+            "type": "string",
+            "enum": [
+              "Sustentação",
+              "Evolução",
+              "Projetos",
+              "Dívida técnica"
+            ]
+          },
+          "acordadoPct": {
+            "type": "number"
+          },
+          "itens": {
+            "type": "object",
+            "properties": {
+              "quantidade": {
+                "type": "number"
+              },
+              "pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "desvioPP": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "statusMeta": {
+                "type": "string",
+                "enum": [
+                  "dentro",
+                  "fora",
+                  "sem-referencia"
+                ]
+              }
+            },
+            "required": [
+              "quantidade",
+              "pct",
+              "desvioPP",
+              "statusMeta"
+            ],
+            "additionalProperties": false
+          },
+          "tempo": {
+            "type": "object",
+            "properties": {
+              "quantidade": {
+                "type": "number"
+              },
+              "pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "desvioPP": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "statusMeta": {
+                "type": "string",
+                "enum": [
+                  "dentro",
+                  "fora",
+                  "sem-referencia"
+                ]
+              }
+            },
+            "required": [
+              "quantidade",
+              "pct",
+              "desvioPP",
+              "statusMeta"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "natureza",
+          "acordadoPct",
+          "itens",
+          "tempo"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "status",
+    "naturezas"
+  ],
+  "additionalProperties": false
+}

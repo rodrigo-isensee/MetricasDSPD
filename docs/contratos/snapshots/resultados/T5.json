@@ -1,0 +1,497 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "porSistema": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "n": {
+            "type": "number"
+          },
+          "estatistica": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "valor": {
+                    "type": "object",
+                    "properties": {
+                      "pctFalha": {
+                        "type": "number"
+                      },
+                      "origens": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "origem": {
+                              "type": "string",
+                              "enum": [
+                                "Demanda de valor",
+                                "Erro em entrega anterior",
+                                "Configuração incorreta",
+                                "Falta de treinamento do usuário",
+                                "Informação não repassada",
+                                "Processo manual que deveria estar automatizado"
+                              ]
+                            },
+                            "n": {
+                              "type": "number"
+                            },
+                            "pct": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "origem",
+                            "n",
+                            "pct"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "origemMaior": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "Erro em entrega anterior",
+                              "Configuração incorreta",
+                              "Falta de treinamento do usuário",
+                              "Informação não repassada",
+                              "Processo manual que deveria estar automatizado"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "pctFalha",
+                      "origens",
+                      "origemMaior"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "valor",
+                  "janela"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "minimo",
+                  "janela"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nome",
+          "n",
+          "estatistica"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "porArea": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "n": {
+            "type": "number"
+          },
+          "estatistica": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "valor": {
+                    "type": "object",
+                    "properties": {
+                      "pctFalha": {
+                        "type": "number"
+                      },
+                      "origens": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "origem": {
+                              "type": "string",
+                              "enum": [
+                                "Demanda de valor",
+                                "Erro em entrega anterior",
+                                "Configuração incorreta",
+                                "Falta de treinamento do usuário",
+                                "Informação não repassada",
+                                "Processo manual que deveria estar automatizado"
+                              ]
+                            },
+                            "n": {
+                              "type": "number"
+                            },
+                            "pct": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "origem",
+                            "n",
+                            "pct"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "origemMaior": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "Erro em entrega anterior",
+                              "Configuração incorreta",
+                              "Falta de treinamento do usuário",
+                              "Informação não repassada",
+                              "Processo manual que deveria estar automatizado"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "pctFalha",
+                      "origens",
+                      "origemMaior"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "valor",
+                  "janela"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "minimo",
+                  "janela"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nome",
+          "n",
+          "estatistica"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "variacaoSemestre": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sistema": {
+            "type": "string"
+          },
+          "atualPct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "anteriorPct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "variacaoPct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "sistema",
+          "atualPct",
+          "anteriorPct",
+          "variacaoPct"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "porSistema",
+    "porArea",
+    "variacaoSemestre"
+  ],
+  "additionalProperties": false
+}
