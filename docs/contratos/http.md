@@ -3,7 +3,7 @@
 - **Propósito:** descrever as regras gerais da API (rotas, filtros, erros, paginação, cabeçalhos, cache). O detalhe de cada rota está no OpenAPI gerado; o de cada métrica, em `metricas/`.
 - **Público:** desenvolvedores do front e do back, QA.
 - **Revisão:** 2026-10-11.
-- **Fontes:** [`docs/api/openapi.json`](../api/openapi.json) (gerado dos schemas Zod, não editar à mão); [metricas/](metricas/) [planejado: gerado por outro agente, pode ainda não existir]; código em `server/src/modulos/*/rotas.ts` e `server/src/app.ts`.
+- **Fontes:** [`docs/api/openapi.json`](../api/openapi.json) (gerado dos schemas Zod, não editar à mão); [metricas/](metricas/README.md) (gerado, uma página por métrica); código em `server/src/modulos/*/rotas.ts` e `server/src/app.ts`.
 - Documentação só para o time; não há Swagger UI público (decisão do time).
 
 ## 1. Rotas (43 no OpenAPI)
@@ -16,7 +16,7 @@ Conferido em `docs/api/openapi.json` (43 caminhos, 43 operações, todas `GET` e
 | Saúde (3) | `GET /health/live`, `GET /health/ready`, `GET /health` (alias de `ready`), fora do prefixo | `server/src/plataforma/saude.ts:13-24` |
 | Referência (2) | `GET /api/v1/filtros/{dominio}`, `GET /api/v1/referencia` | `server/src/modulos/referencia/rotas.ts:15-34` |
 | Fontes (3) | `GET /api/v1/fontes/{dominio}/estado`, `GET /api/v1/fontes/{dominio}/coletas`, `GET /api/v1/criterios` | `server/src/modulos/operacao/rotas.ts:21-41` |
-| Webhook (1) | `POST /webhooks/businessmap`, só existe com `WEBHOOK_BM_SEGREDO` configurado | `server/src/modulos/businessmap/webhook.ts:51`, `app.ts:62` |
+| Webhook (1) | `POST /webhooks/businessmap`, só existe com `WEBHOOK_BM_SEGREDO` configurado | `server/src/modulos/businessmap/webhook.ts:54` (`rotasWebhook`), `app.ts:62` |
 
 Total: 34 + 3 + 2 + 3 + 1 = 43. (O plano de contratos descrevia "33 + 10"; a décima rota é a 404 genérica de métrica.)
 
@@ -54,7 +54,7 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos" (`schemas.ts:9`).
 | `X-Versao-Criterio` | versão de critério (T2.6) vigente na data; `"0"` se não há | `rotas.ts:47` |
 | `Cache-Control: private, max-age=60` | cache do navegador | `rotas.ts:15` |
 | `ETag` (fraco) + `304` com `If-None-Match` | por métrica, filtros, data, versões e página | `rotas.ts:45-48` |
-| `X-Request-Id` | em todo response; aproveita o enviado se `[A-Za-z0-9._-]{8,64}`, senão UUID | `server/src/app.ts:44-47` |
+| `X-Request-Id` | em todo response; aproveita o enviado se `[A-Za-z0-9._-]{8,64}`, senão UUID | `server/src/app.ts:38` (`gerarRequestId`) |
 
 O frescor da coleta não vai em cabeçalho: está no corpo de `GET /fontes/{dominio}/estado` (D1 em `docs/architecture/features/integracao-real.md`). Marcações de mudança de critério vêm no corpo, em `criterios`.
 
@@ -71,8 +71,8 @@ Formato: `{ "error": { "code": string, "message": string, "details"?: [{ "caminh
 | Status | `code` | Quando | Código |
 |---|---|---|---|
 | 400 | `VALIDATION_ERROR` | parâmetro inválido, desconhecido, de outro domínio ou de pessoa; data futura | `erros.ts:32`, `servico.ts:142` |
-| 400 | `PAYLOAD_INVALIDO` | corpo do webhook que não é objeto JSON | `webhook.ts:68` |
-| 401 | `UNAUTHENTICATED` | segredo do webhook inválido (hoje só o webhook); demais rotas [planejado] | `webhook.ts:56` |
+| 400 | `PAYLOAD_INVALIDO` | corpo do webhook que não é objeto JSON | `webhook.ts:71` |
+| 401 | `UNAUTHENTICATED` | segredo do webhook inválido (hoje só o webhook); demais rotas [planejado] | `webhook.ts:59` |
 | 403 | `FORBIDDEN` | sem permissão [planejado, ADR 0009] | |
 | 404 | `METRICA_NAO_ENCONTRADA` | id de métrica inexistente | `rotas.ts:53` |
 | 404 | `ROTA_NAO_ENCONTRADA` | rota inexistente | `erros.ts:52` |

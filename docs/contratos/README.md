@@ -9,7 +9,7 @@
 | Pergunta | Vá para |
 |---|---|
 | Que rotas existem, que filtros aceitam, que erros devolvem? | [http.md](http.md) e `docs/api/openapi.json` |
-| O que devolve a métrica `O3` (campos, mínimo de 20 itens, filtros)? | `docs/contratos/metricas/` [planejado: gerado por outro agente, ainda não existe neste commit] |
+| O que devolve a métrica `O3` (campos, mínimo de 20 itens, filtros)? | [metricas/](metricas/README.md) (uma página por métrica, gerada de `REGRAS_METRICA` e dos schemas por `tools/docs-contratos`) |
 | Posso mudar um campo do DTO? Quando vira `/api/v2`? | [politica-de-mudanca.md](politica-de-mudanca.md) |
 | Que eventos a outbox carrega, quem produz e quem consome? | [eventos.md](eventos.md) |
 | Que colunas guardam pessoa? Histórico, retenção, SCD2? | [dados.md](dados.md) |
@@ -22,7 +22,7 @@
 | Tipo | Fonte da verdade no código | Página |
 |---|---|---|
 | API HTTP (43 rotas) | `server/src/modulos/*/rotas.ts`, `server/src/plataforma/saude.ts`; OpenAPI gerado em `docs/api/openapi.json` | [http.md](http.md) |
-| DTOs e filtros | `packages/contratos/src/` (`comum.ts:96` `METRICA_IDS`, `metricas.ts:103` `APLICABILIDADE_FLUXO`, `coletas.ts`) | [http.md](http.md), `metricas/` [planejado] |
+| DTOs e filtros | `packages/contratos/src/` (`comum.ts:96` `METRICA_IDS`, `metricas.ts:103` `APLICABILIDADE_FLUXO`, `coletas.ts`) | [http.md](http.md), [metricas/](metricas/README.md) |
 | Regras por métrica (`REGRAS_METRICA`) | `packages/metricas/src/core/regras.ts:68` | `docs/architecture/regras-metricas.md` |
 | Eventos (outbox) | `server/src/plataforma/eventos/`, `modulos/operacao/concluida.ts`, `modulos/businessmap/webhook.ts` | [eventos.md](eventos.md) |
 | Dados (staging, analítico, LGPD) | migrações, `server/src/plataforma/db/lgpd.ts`, `docs/architecture/data-model.md` | [dados.md](dados.md) |

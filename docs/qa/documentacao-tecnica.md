@@ -74,6 +74,7 @@ Tempo: não cronometrei humano; com 1 a 2 cliques e tabelas de uma tela, 60 s é
 | DOC-04 | Referências `arquivo:linha` deslocadas em 1 a 3 linhas | baixa | tech-lead (docs) |
 
 ### DOC-01 - Contratos por métrica inalcançáveis por link
+- **Estado (2026-10-11): corrigido nos textos.** `docs/README.md` -> `contratos/README.md` -> `contratos/metricas/README.md` -> cada página (inclusive O3); verificado por busca em largura sobre os links (nenhuma página de `docs/contratos` fora do alcance). **Pendente:** a checagem de órfãs do verificador ainda não exige alcance a partir de `docs/README.md` (dono: node-backend, `tools/docs-contratos/src/verificar-docs.ts`, `verificarOrfaos`).
 - Passos: abrir `docs/README.md`; seguir links até `docs/contratos/metricas/O3.md`. `docs/contratos/README.md` (linha 12) e `docs/contratos/http.md` (linha 6) ainda dizem "[planejado: ... ainda não existe neste commit]" e citam `docs/contratos/metricas/` sem link; `metricas/README.md` não tem link de entrada em `docs/` (busca em largura a partir do índice: inalcançável).
 - Esperado: O3 a até 2 cliques; os 33 contratos e `metricas/README.md` linkados do índice de contratos.
 - Obtido: nenhum caminho de links. O `docs:check` passa (a verificação de páginas órfãs não acusa o subgrafo, pois as páginas se referenciam entre si).
@@ -83,6 +84,7 @@ Tempo: não cronometrei humano; com 1 a 2 cliques e tabelas de uma tela, 60 s é
 - Esperado: a doc descreve o que existe (catálogo `catalogo.ts`, `validarPayload`, `docs:check` classifica mudança incompatível).
 - Evidência: itens 10a e 10b da seção 4.
 ### DOC-03 - Mensagem bruta nas mutações de exemplo inválido
+- **Estado (2026-10-11): pendente, dono node-backend.** Exige código: `exigirValido` (`tools/docs-contratos/src/insumos.ts:55-59`) lança `Error` e o `cli` não o converte em problema. Correção: capturar no carregamento dos insumos e devolver `<contrato>: exemplo inválido; mudança INCOMPATÍVEL (<caminhos>)`, com teste.
 - Reproduzir: alterar `cicloDiasUteis` para `z.string()` em `packages/contratos/src/schemas.ts` e rodar `pnpm run docs:check`. Obtido: stack trace com `exemplo de O3 não passa no schema`. Esperado: linha `problema` única indicando a métrica e o caminho, como em S2.
 ### DOC-04 - Linhas citadas deslocadas
 - Exemplos: `outbox.ts` (doc :9-16, real :10-17), `server/package.json:27` (real :30), `webhook.ts:28-41`. Esperado: citações corretas; considerar citar o símbolo em vez do número.
