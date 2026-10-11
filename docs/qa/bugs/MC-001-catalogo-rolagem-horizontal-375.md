@@ -1,4 +1,5 @@
 # MC-001 - /metricas com rolagem horizontal da página em 375 px
+- Situação: corrigido (51dc4b5) e verificado em 2026-10-11; COMP-03 a 375 px passa.
 - Severidade: média
 - Responsável sugerido: react-frontend
 - Ambiente: branch feature/metricas-complementares (dbf3235), Chromium headless, viewport 375x812
