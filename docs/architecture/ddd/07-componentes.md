@@ -105,7 +105,7 @@ Legenda: retângulo com "modulos/" é um módulo de domínio ou de aplicação; 
 | `modulos/operacao` | existe | Estado e histórico de coleta (`/fontes/:dominio/estado`, `/coletas`, `/criterios`), `fecharColeta`, consumidor de `coleta.concluida` | `servico.ts`, `repositorio.ts`, `concluida.ts`, `rotas.ts` |
 | `modulos/preferencias` | [planejado] no servidor | Preferências do usuário, sem dado de outra pessoa; hoje só no navegador (`LocalStoragePreferencias`, `web/src/features/preferencias/fonte.ts`) | nenhum arquivo no `server/` |
 | `plataforma/db` | existe | Pools por papel, `emTransacao`, mapa `S`, migração, grants por coluna, regra LGPD, seed | `pool.ts`, `esquemas.ts`, `grants.ts`, `lgpd.ts`, `migrar.ts`, `trava.ts` |
-| `plataforma/eventos` | existe | Outbox: `publicarEvento`, `processarOutbox`, `RegistroConsumidores` | `outbox.ts`, `consumidores.ts` |
+| `plataforma/eventos` | existe | Outbox: `publicarEvento`, `processarOutbox`, `RegistroConsumidores`, catálogo Zod dos tipos | `catalogo.ts`, `outbox.ts`, `consumidores.ts` |
 | `plataforma` (demais) | existe | Config zod por entrada, logs, erros (ADR 0007), saúde, agenda e ciclo do worker, OpenAPI | `config.ts`, `log.ts`, `erros.ts`, `saude.ts`, `agenda.ts`, `worker.ts`, `openapi.ts` |
 
 ## Como é a biblioteca de cálculo por dentro?
