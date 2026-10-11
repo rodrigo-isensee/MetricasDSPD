@@ -137,6 +137,29 @@ describe('ramos dos componentes complementares', () => {
     )
   })
 
+  it('S8 mostra a cobertura "n de N" quando o campo não está em todos os chamados', async () => {
+    const fonte = new FonteAjustada({
+      S8: (r: Qualquer) => {
+        r.cobertura = { n: 30, total: 50 }
+      },
+    })
+    renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    expect(await screen.findByTestId('cobertura-S8')).toHaveTextContent(
+      'Campo preenchido em 30 de 50 chamados',
+    )
+  })
+
+  it('S8 com cobertura de 100% não mostra o aviso de cobertura', async () => {
+    const fonte = new FonteAjustada({
+      S8: (r: Qualquer) => {
+        r.cobertura = { n: 50, total: 50 }
+      },
+    })
+    renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    await screen.findByTestId('metrica-S8')
+    expect(screen.queryByTestId('cobertura-S8')).not.toBeInTheDocument()
+  })
+
   it('S8 acima da referência diz "Acima de 5%"', async () => {
     const fonte = new FonteAjustada({
       S8: (r: Qualquer) => {

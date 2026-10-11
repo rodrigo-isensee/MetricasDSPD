@@ -183,4 +183,21 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(page.getByTestId('metrica-T6')).toBeVisible()
     await expect(page.getByTestId('metrica-T8')).toBeVisible()
   })
+
+  test('COMP-12 S8: reincidência pelo mês de abertura; cobertura "n de N" só quando n < N', async ({ page, painel }) => {
+    await painel.ir('/sustentacao')
+    await painel.esperarCartoesProntos()
+    const c = page.getByTestId('metrica-S8')
+    await expect(c).toContainText('incidentes abertos')
+    const aviso = c.getByTestId('cobertura-S8')
+    if ((await aviso.count()) > 0) {
+      const t = (await aviso.textContent()) ?? ''
+      const m = /(\d+) de (\d+) chamados/.exec(t.replace(/\./g, ''))
+      expect(m).not.toBeNull()
+      const nums = [Number(m![1]), Number(m![2])]
+      expect(Math.min(...nums)).toBeLessThan(Math.max(...nums))
+    } else {
+      await expect(c).not.toContainText('Campo preenchido em')
+    }
+  })
 })

@@ -131,12 +131,13 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   },
   S8: {
     oQueE:
-      'A parcela dos incidentes encerrados que voltaram como novo chamado, com o ticket anterior informado.',
+      'A parcela dos incidentes abertos que são reincidentes, isto é, voltaram como novo chamado com o ticket anterior informado.',
     comoSeCalcula:
-      'Reabertos ÷ incidentes encerrados, por mês. Reabertura = chamado com o campo de reincidência preenchido com o ticket anterior.',
+      'Reincidentes ÷ incidentes abertos, por mês de abertura; o próprio chamado reincidente conta no mês em que foi aberto. Reincidente = chamado com o campo de reincidência preenchido com o ticket anterior.',
     comoLer: 'Reabertura alta sugere correção que não resolveu.',
     meta: 'Abaixo de 5%.',
-    cuidados: 'Depende do preenchimento do campo de reincidência.',
+    cuidados:
+      'Depende do preenchimento do campo de reincidência: o cartão mostra em quantos chamados ele foi informado.',
   },
   S9: {
     oQueE:

@@ -73,15 +73,15 @@ export function CartaoS8({ filtros }: P) {
       baseVariante={d?.total.status === 'ok' ? 'ok' : 'insuficiente'}
       leitura={
         d
-          ? `${textoTaxa(d.total)} dos incidentes encerrados foram reabertos (chamado com ticket anterior informado no campo de reincidência).`
+          ? `${textoTaxa(d.total)} dos incidentes abertos no período são reincidentes (chamado com ticket anterior informado no campo de reincidência).`
           : undefined
       }
     >
       {(r) => (
         <div className="flex flex-col gap-3">
           <Barras
-            descricao="Taxa de reabertura de incidentes por mês"
-            unidade="% reabertos"
+            descricao="Taxa de reincidência de incidentes por mês, pelo mês de abertura"
+            unidade="% reincidentes"
             semLegenda
             formatar={(v) => fmtPct(v, 1)}
             categorias={r.meses.map((m) => ({
@@ -89,18 +89,24 @@ export function CartaoS8({ filtros }: P) {
               emAndamento: m.emAndamento,
               valores: { taxa: m.taxa.status === 'ok' ? m.taxa.pct : null },
             }))}
-            series={[{ chave: 'taxa', rotulo: '% reabertos' }]}
+            series={[{ chave: 'taxa', rotulo: '% reincidentes' }]}
             referencias={[
               { valor: r.metaMaxPct, rotulo: `Referência: abaixo de ${fmtPct(r.metaMaxPct)}` },
             ]}
           />
+          {r.cobertura.n < r.cobertura.total && (
+            <p className="text-sm text-atencao" data-testid="cobertura-S8">
+              Campo preenchido em {fmtInteiro(r.cobertura.n)} de {fmtInteiro(r.cobertura.total)}{' '}
+              chamados. A taxa considera só o que foi informado.
+            </p>
+          )}
           {r.total.status === 'ok' ? (
             <StatusMeta
               status={r.statusMeta}
               texto={r.statusMeta === 'dentro' ? 'Abaixo de 5%' : 'Acima de 5%'}
             />
           ) : (
-            <AmostraInsuficiente n={r.total.n} codigo="S8" oQue="A taxa de reabertura" />
+            <AmostraInsuficiente n={r.total.n} codigo="S8" oQue="A taxa de reincidência" />
           )}
         </div>
       )}
