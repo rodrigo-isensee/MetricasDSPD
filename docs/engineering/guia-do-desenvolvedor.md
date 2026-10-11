@@ -42,6 +42,7 @@ Grafo permitido: `contratos ← metricas ← mock`; `web` importa `contratos`; `
 | Comando | Onde | O que faz |
 |---|---|---|
 | `pnpm run pronto` | raiz | lint + Prettier + `pronto` de cada workspace (typecheck + testes; no `web`, também build e `size`). **Rode antes de cada commit.** |
+| `pnpm run spec:check` | raiz | conferência spec↔teste (`tools/spec-check`); também roda dentro do `pronto` e no job `testes` do CI. No-op (exit 0) enquanto não houver `docs/especificacao` e `siegard-trace.json` |
 | `pnpm run check` | raiz | lint + typecheck + testes + format:check |
 | `pnpm run gate` | `e2e/` | gate do autor: fronteiras BM x AC, hash da base mock e tamanho do bundle; termina em `GATE DO AUTOR: APROVADO\|REPROVADO`. Exige `pnpm run build` antes |
 | `pnpm run test:perf` | `e2e/` | projeto `perf` do Playwright (LCP, CLS, INP, troca de filtro, tarefas longas), contra `vite preview` |
@@ -124,6 +125,15 @@ Pré-requisito: a métrica está no catálogo do briefing e tem especificação 
 
 TypeScript estrito sem `enum`, `namespace` nem `any`; tempo e aleatoriedade injetados; zod nas bordas; nomes em português do domínio; Recharts só em `components/charts`; acessibilidade com tabela alternativa em todo gráfico; commits `tipo(escopo): descrição` no imperativo. Lista completa e verificada por lint: `praticas.md` seções 1 a 5.
 
+## Ligação especificação ↔ teste (Siegard)
+
+Parte da definição de pronto: todo nó `rules/` e `scenarios/` de `docs/especificacao/` tem teste, e o teste e o `siegard-trace.json` (raiz, versionado) concordam.
+
+- **Convenção de nomes.** O nome do `it`/`test`/`describe` cita o nó entre colchetes, com o caminho sem `.md`: `it('[rules/metrics/amostra-minima] não publica abaixo de 20 itens', ...)`.
+- **Ligar.** Com o plugin instalado: `python3 trace.py --bind <alvo> <especificação> <nó> <arquivo>`; o arquivo é relativo ao alvo (ex.: `test/x.test.ts` para o alvo `server`). O trace é commitado.
+- **Um arquivo de teste para poucos nós.** O plugin guarda o digest do arquivo inteiro: qualquer edição nele marca desvio em todos os nós ligados. Arquivo agregador com 20 nós = 20 falsos alarmes por um `it` alheio.
+- **O que confere o quê.** `spec-check` (Node, local e CI): citação sem nó, nó sem teste, ligação sem citação, citação sem ligação, arquivo ou nó ligado inexistente. Não recalcula digests. O desvio (`trace.py --check`) é só local: o hook `pre-push` o roda se achar `trace.py` sob `~/.claude/plugins`; sem plugin, segue em silêncio.
+
 ## CI (GitHub Actions)
 
 Workflow `.github/workflows/ci.yml`; custo zero (repositório público). Os nomes dos jobs são estáveis porque a proteção da `main` os referencia. Execuções antigas da mesma branch são canceladas (`concurrency`).
@@ -141,7 +151,7 @@ flowchart LR
 | Job | O que roda | Quando |
 |---|---|---|
 | `rapida` | install `--frozen-lockfile` (cache), lint, format:check, typecheck | push e PR |
-| `testes` | typecheck + cobertura 100% bloqueante (`pnpm run cobertura`, igual ao `pronto` sem build) | push e PR |
+| `testes` | typecheck + cobertura 100% bloqueante (`pnpm run cobertura`, igual ao `pronto` sem build) + `spec:check` | push e PR |
 | `banco` | Postgres 17 como service container, `test:pg` com `PG_TESTE_URL` | push e PR, só se mudar `server/`, `packages/`, `scripts/`, `docker/`, lockfile ou o workflow (pulado conta como aprovado) |
 | `build` | build do web, orçamento de tamanho e `pnpm run gate` (fronteiras, hash da base mock) | push e PR |
 | `e2e` | Playwright Chromium (`--with-deps`), inclui axe nos dois temas | só PR (e disparo manual) |

@@ -1,0 +1,16 @@
+{
+  "name": "@metricas-dspd/spec-check",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "spec-check": "./src/main.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "TZ=UTC vitest run",
+    "cobertura": "TZ=UTC vitest run --coverage",
+    "spec:check": "node src/main.ts ../..",
+    "pronto": "pnpm run typecheck && pnpm run cobertura && pnpm run spec:check"
+  }
+}

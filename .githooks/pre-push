@@ -18,4 +18,13 @@ if ! { pnpm run lint && pnpm run typecheck; } >&2; then
     exit 1
   fi
 fi
+
+# Desvio spec<->código: se o plugin Siegard estiver instalado nesta máquina, roda o --check dele (só local;
+# o CI não roda Python). Plugin ausente ou sem siegard-trace.json: segue em silêncio.
+trace_py="$(find "$HOME/.claude/plugins" -name trace.py -path '*siegard*' 2>/dev/null | head -n 1)"
+if [ -n "$trace_py" ] && [ -f siegard-trace.json ] && command -v python3 >/dev/null; then
+  for alvo in $(python3 -c 'import json;print(" ".join(json.load(open("siegard.json")).get("targets",{}).values()))' 2>/dev/null); do
+    python3 -B "$trace_py" --check "$alvo" >&2 || { echo "pre-push: desvio spec<->código (trace.py --check $alvo); revise e religue com --bind." >&2; exit 1; }
+  done
+fi
 exit 0
