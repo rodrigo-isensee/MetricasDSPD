@@ -289,6 +289,14 @@ describe('Sustentação: S8 e S9', () => {
     expect(r.meses.every((m) => m.reabertos <= m.encerrados)).toBe(true)
     const cheia = acelerato.calcularS8(ctxMock.ac, FS, { ...ext.ac, reabertoDe: {} })
     expect(cheia.cobertura.n).toBe(cheia.cobertura.total)
+    // Denominador = incidentes com o campo informado (ausente não é "não reincidente").
+    expect(r.total.n).toBe(r.cobertura.n)
+    expect(r.total.k).toBe(somaMeses)
+    for (const m of r.meses) {
+      expect(m.informados).toBeLessThanOrEqual(m.encerrados)
+      expect(m.taxa.n).toBe(m.informados)
+    }
+    expect(r.meses.some((m) => m.informados < m.encerrados)).toBe(true)
   })
 
   it('S9: pendência sem motivo informado vira "Não informado"', () => {
@@ -334,5 +342,32 @@ describe('Sustentação: S8 e S9', () => {
     expect(cheia.parametros).toEqual({ janelaSemanas: 12 })
     for (const x of cheia.reincidencia) expect(x.reincidentes).toBe(x.chamados)
     expect(cheia.reincidencia.some((x) => x.proporcao.status === 'ok')).toBe(true)
+    expect(cheia.cobertura.n).toBe(cheia.cobertura.total)
+  })
+
+  it('S12: cobertura "n de N"; ausente fica fora do denominador; sem extensão só a reincidência some', () => {
+    const ids = base.ac.chamados.map((c) => c.chamado_id)
+    const ausente: Record<string, true> = {}
+    ids.forEach((id, i) => {
+      if (i % 2 === 0) ausente[id] = true
+    })
+    const r = acelerato.calcularS12(ctxMock.ac, FS, {
+      ...ext.ac,
+      reabertoDe: {},
+      reincidenteAusente: ausente,
+    })
+    expect(r.cobertura.total).toBe(r.reincidencia.reduce((t, x) => t + x.chamados, 0))
+    expect(r.cobertura.n).toBe(r.reincidencia.reduce((t, x) => t + x.informados, 0))
+    expect(r.cobertura.n).toBeGreaterThan(0)
+    expect(r.cobertura.n).toBeLessThan(r.cobertura.total)
+    for (const x of r.reincidencia) {
+      expect(x.informados).toBeLessThanOrEqual(x.chamados)
+      expect(x.proporcao.n).toBe(x.informados)
+    }
+    const sem = acelerato.calcularS12(ctxMock.ac, FS)
+    expect(sem.campoDisponivel).toBe(false)
+    expect(sem.cobertura).toEqual({ n: 0, total: r.cobertura.total })
+    expect(sem.meses.some((m) => m.total > 0)).toBe(true)
+    expect(sem.excecaoSla).toEqual(r.excecaoSla)
   })
 })

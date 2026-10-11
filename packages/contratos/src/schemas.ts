@@ -1072,6 +1072,8 @@ export const resultadoS8 = z.object({
       mes,
       emAndamento: z.boolean(),
       encerrados: z.number(),
+      /** Incidentes do mês com o campo `reincidente` informado: é o denominador da taxa do mês. */
+      informados: z.number(),
       reabertos: z.number(),
       taxa: taxaSchema,
     }),
@@ -1125,6 +1127,8 @@ export const resultadoS12 = z.object({
   ...comum,
   /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
   campoDisponivel: z.boolean(),
+  /** Cobertura do campo `reincidente` na janela de 12 semanas: n chamados com o campo informado de N (ausente nunca é "não"). */
+  cobertura: z.object({ n: z.number(), total: z.number() }),
   parametros: z.object({ janelaSemanas: z.number() }),
   meses: z.array(
     z.object({
@@ -1139,6 +1143,8 @@ export const resultadoS12 = z.object({
     z.object({
       sistema: z.string(),
       chamados: z.number(),
+      /** Chamados do sistema com o campo `reincidente` informado: denominador da proporção. */
+      informados: z.number(),
       reincidentes: z.number(),
       proporcao: taxaSchema,
     }),

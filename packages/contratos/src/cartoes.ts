@@ -29,7 +29,7 @@ export interface CartaoCatalogo {
   secaoTitulo: string
   /** Métricas que o cartão exibe (para cruzar com alertas e mudanças de critério). */
   metricas: readonly MetricaId[]
-  /** Cartões "leia junto" (lista; mesmo painel): o link some se o par está oculto. */
+  /** Cartões "leia junto" (lista de ids, únicos entre painéis; pode apontar para outro painel): o link some se o par está oculto. */
   leiaJunto?: readonly CartaoId[]
   /** Núcleo (briefing) ou complementar (seção "Mais métricas deste painel"). */
   grupo: 'nucleo' | 'complementar'
@@ -90,49 +90,49 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ...secao('operacional', 'compromissos', 'Compromissos', [['O12', 'Acordos e vencidos']]),
   ...secao('operacional', 'backlog', 'Backlog', [
     ['O10', 'Envelhecimento do backlog', undefined, ['o11']],
-    ['O7', 'Entrada × saída por tipo', undefined, ['o14']],
+    ['O7', 'Entrada × saída por tipo'],
   ]),
   ...secao('operacional', 'qualidade', 'Qualidade', [
-    ['O15', 'Onde os bugs são encontrados', undefined, ['o13', 'o16']],
+    ['O15', 'Onde os bugs são encontrados', undefined, ['o13', 'o16', 'o17']],
     ['O18', 'Entregas com e sem bug', undefined, ['o4']],
   ]),
   ...secao('tatico', 'publicado', 'Estamos cumprindo o que publicamos?', [
     ['T2', 'Aderência ao SLE'],
     ['T1', 'Lead time ponta a ponta', undefined, ['t4', 't6']],
-    ['T5', 'Demanda de falha'],
+    ['T5', 'Demanda de falha', undefined, ['o14']],
   ]),
   ...secao('tatico', 'fila', 'O que entra, e o que sai da fila para isso caber?', [
-    ['T4', 'Demanda × capacidade', undefined, ['t1']],
+    ['T4', 'Demanda × capacidade', undefined, ['t1', 't8']],
     ['T3', 'Alocação da capacidade'],
   ]),
   ...secao('tatico', 'projetos', 'Os projetos estão avançando de verdade?', [
-    ['T9', 'Avanço real e escopo', undefined, ['t8']],
+    ['T9', 'Avanço real e escopo', undefined, ['t6', 'e5']],
     ['T7', 'Fluxo de frentes'],
   ]),
   ...secao('tatico', 'espera-invisivel', 'Espera invisível do nível', [
     ['EI-FL2', 'Espera invisível · Tático', ['EI_FL2']],
   ]),
   ...secao('estrategico', 'prazo', 'Quanto tempo leva decidir e entregar?', [
-    ['E1', 'Lead time de projetos', undefined, ['e5']],
+    ['E1', 'Lead time de projetos', undefined, ['e4', 'e5']],
   ]),
   ...secao('estrategico', 'apostas', 'As entregas refletem as prioridades e geram resultado?', [
-    ['E2', 'Capacidade por objetivo estratégico', undefined, ['e4']],
+    ['E2', 'Capacidade por objetivo estratégico'],
     ['E3', 'Entrega × resultado'],
   ]),
   ...secao('estrategico', 'espera-invisivel', 'Espera invisível do nível', [
     ['EI-FL3', 'Espera invisível · Estratégico', ['EI_FL3']],
   ]),
   ...secao('sustentacao', 'prazos', 'Prazos', [
-    ['S2', 'Aderência ao SLA', undefined, ['s8']],
+    ['S2', 'Aderência ao SLA', undefined, ['s8', 's12']],
     ['S1', 'Primeiro atendimento e restauração', undefined, ['s9', 's10']],
   ]),
   ...secao('sustentacao', 'volume', 'Volume e resolução', [
-    ['S3', 'Volume mensal por prioridade', undefined, ['s12']],
+    ['S3', 'Volume mensal por prioridade', undefined, ['s8', 's12']],
     ['S4', 'Onde o chamado foi resolvido'],
   ]),
   ...secao('sustentacao', 'causas', 'Escalação, encerramento e reclassificação', [
-    ['S5', 'Motivos da escalação'],
-    ['S6', 'Motivos de encerramento', undefined, ['o17']],
+    ['S5', 'Motivos da escalação', undefined, ['s11']],
+    ['S6', 'Motivos de encerramento'],
     ['S7', 'Reclassificação', undefined, ['s11']],
   ]),
   ...secao('sustentacao', 'espera', 'Espera invisível do nível', [
@@ -237,6 +237,10 @@ export const cartoesDoPainel = (painel: PainelComCartoes): readonly CartaoCatalo
 
 export const cartaoPorId = (painel: PainelComCartoes, id: CartaoId): CartaoCatalogo | undefined =>
   CATALOGO_CARTOES.find((c) => c.painel === painel && c.id === id)
+
+/** Acha o cartão pelo id em qualquer painel (os ids são únicos no catálogo): usado pelo "leia junto" entre painéis. */
+export const cartaoPorIdGlobal = (id: CartaoId): CartaoCatalogo | undefined =>
+  CATALOGO_CARTOES.find((c) => c.id === id)
 
 /** Atalho opcional "Aplicar sugestão do meu papel": só marca caixas; o papel nunca é gravado. */
 export const PAPEIS = ['time', 'coordenador', 'gerente'] as const

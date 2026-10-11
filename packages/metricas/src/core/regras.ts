@@ -458,8 +458,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['percentis', 'mediana'],
     granularidade: 'story',
     refBriefing: '06 O8; 7.2 nunca média isolada',
-    status: PENDENTE,
-    pendencias: ['O8-acima-do-p85'],
+    status: 'ok',
   },
   O11: {
     dominio: 'businessmap',
@@ -503,8 +502,7 @@ export const REGRAS_METRICA = {
     minimoSobre: [],
     granularidade: 'story',
     refBriefing: '06 O16; 4.4 origem_bug',
-    status: PENDENTE,
-    pendencias: ['O16-densidade-origem-bug'],
+    status: 'ok',
   },
   O17: {
     // Decisão do usuário (2026-10-11): vem do Acelerato (campo causa raiz via Metabase), painel Sustentação.
@@ -549,8 +547,7 @@ export const REGRAS_METRICA = {
     minimoSobre: [],
     granularidade: 'projeto',
     refBriefing: '06 E4',
-    status: PENDENTE,
-    pendencias: ['E4-natureza-manter-evoluir', 'campos-sem-fonte-real'],
+    status: 'ok',
   },
   E5: {
     dominio: 'businessmap',
@@ -583,8 +580,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['percentis'],
     granularidade: 'chamado',
     refBriefing: '06 S9',
-    status: PENDENTE,
-    pendencias: ['S9-cumprimento-da-previsao'],
+    status: 'ok',
   },
   S10: {
     dominio: 'acelerato',
@@ -606,8 +602,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa'],
     granularidade: 'chamado',
     refBriefing: '06 S11',
-    status: PENDENTE,
-    pendencias: ['campos-sem-fonte-real'],
+    status: 'ok',
   },
   S12: {
     dominio: 'acelerato',

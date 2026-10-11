@@ -12,7 +12,7 @@ const SEM_CAMPO = taxa(0, 0)
 
 /**
  * S8: taxa de reabertura = incidentes com o campo `reincidente` (ticket anterior) preenchido ÷
- * incidentes, por mês de abertura do próprio chamado reincidente (mesma lógica da S12; decisão 14,
+ * incidentes com o campo informado, por mês de abertura do próprio chamado reincidente (mesma lógica da S12; decisão 14,
  * critério versionado T2.6). Sem intervalo de dias e sem critério de sintoma. Dado fictício até a
  * coleta real do campo. Chamado sem informação do campo (`reincidenteAusente`) nunca vira "não
  * reincidente" em silêncio: `cobertura` expõe "n de N" (n = incidentes com o campo informado).
@@ -31,19 +31,22 @@ export function calcularS8(ctx: ContextoAC, f: FiltrosSustentacao, ext?: Extensa
       const d = diaLocal(x.c.aberto_em, ctx.cal)
       return d >= b.inicioDia && d <= b.fimDia
     })
-    const r = doMes.filter((x) => ext?.reabertoDe[x.c.chamado_id] !== undefined).length
+    // Denominador = só incidentes com o campo informado: ausente nunca vira "não reincidente" (decisão 13).
+    const inf = doMes.filter((x) => ausente[x.c.chamado_id] !== true)
+    const r = inf.filter((x) => ext?.reabertoDe[x.c.chamado_id] !== undefined).length
     n += doMes.length
     k += r
-    informados += doMes.filter((x) => ausente[x.c.chamado_id] !== true).length
+    informados += inf.length
     return {
       mes: b.chave,
       emAndamento: b.emAndamento,
       encerrados: doMes.length,
+      informados: ext === undefined ? 0 : inf.length,
       reabertos: ext === undefined ? 0 : r,
-      taxa: ext === undefined ? SEM_CAMPO : taxa(r, doMes.length),
+      taxa: ext === undefined ? SEM_CAMPO : taxa(r, inf.length),
     }
   })
-  const total = ext === undefined ? SEM_CAMPO : taxa(k, n)
+  const total = ext === undefined ? SEM_CAMPO : taxa(k, informados)
   return {
     base: baseAmostral(n, 'incidentes abertos', periodo),
     criterios: criterios('S8', periodo, periodo, ctx),

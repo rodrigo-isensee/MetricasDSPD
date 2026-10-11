@@ -7,6 +7,7 @@ import {
   PAPEIS,
   PREFERENCIAS_PADRAO,
   cartaoPorId,
+  cartaoPorIdGlobal,
   cartoesDoPainel,
   preferenciasMetricasSchema,
 } from './cartoes'
@@ -25,9 +26,39 @@ describe('catálogo de cartões', () => {
     }
   })
 
-  it('aponta pares "leia junto" que existem no mesmo painel', () => {
+  it('aponta pares "leia junto" que existem no catálogo (podem ligar painéis diferentes, decisão 19)', () => {
     for (const c of CATALOGO_CARTOES)
-      for (const par of c.leiaJunto ?? []) expect(cartaoPorId(c.painel, par)).toBeDefined()
+      for (const par of c.leiaJunto ?? []) expect(cartaoPorIdGlobal(par), par).toBeDefined()
+  })
+
+  it('mantém ids únicos entre painéis e o mapa final da decisão 19', () => {
+    const ids = CATALOGO_CARTOES.map((c) => c.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(cartaoPorIdGlobal('inexistente')).toBeUndefined()
+    const mapa: Record<string, string[]> = {
+      o3: ['o5', 'o6', 'o8'],
+      o4: ['o8'],
+      o10: ['o11'],
+      o15: ['o13', 'o16', 'o17'],
+      t1: ['t6'],
+      t4: ['t8'],
+      t5: ['o14'],
+      t9: ['t6', 'e5'],
+      e1: ['e4', 'e5'],
+      s1: ['s9', 's10'],
+      s2: ['s8', 's12'],
+      s3: ['s8', 's12'],
+      s5: ['s11'],
+      s7: ['s11'],
+    }
+    for (const [de, para] of Object.entries(mapa)) {
+      const c = CATALOGO_CARTOES.find((x) => x.id === de)
+      for (const p of para) expect(c?.leiaJunto, `${de}->${p}`).toContain(p)
+    }
+    const dec19 = new Set(Object.keys(mapa))
+    // fora do mapa só ficam ligações entre cartões do núcleo (T1<->T4, O18->O4).
+    for (const c of CATALOGO_CARTOES.filter((x) => !dec19.has(x.id)))
+      for (const p of c.leiaJunto ?? []) expect(cartaoPorIdGlobal(p)?.grupo).toBe('nucleo')
   })
 
   it('classifica os cartões: mock só onde falta fonte real (O17, T8, E4, S8, S11, S12)', () => {

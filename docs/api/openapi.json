@@ -25526,6 +25526,9 @@
                           "encerrados": {
                             "type": "number"
                           },
+                          "informados": {
+                            "type": "number"
+                          },
                           "reabertos": {
                             "type": "number"
                           },
@@ -25599,6 +25602,7 @@
                           "mes",
                           "emAndamento",
                           "encerrados",
+                          "informados",
                           "reabertos",
                           "taxa"
                         ],
@@ -27810,6 +27814,22 @@
                     "campoDisponivel": {
                       "type": "boolean"
                     },
+                    "cobertura": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "total"
+                      ],
+                      "additionalProperties": false
+                    },
                     "parametros": {
                       "type": "object",
                       "properties": {
@@ -27874,6 +27894,9 @@
                             "type": "string"
                           },
                           "chamados": {
+                            "type": "number"
+                          },
+                          "informados": {
                             "type": "number"
                           },
                           "reincidentes": {
@@ -27948,6 +27971,7 @@
                         "required": [
                           "sistema",
                           "chamados",
+                          "informados",
                           "reincidentes",
                           "proporcao"
                         ],
@@ -28024,6 +28048,7 @@
                     "base",
                     "criterios",
                     "campoDisponivel",
+                    "cobertura",
                     "parametros",
                     "meses",
                     "reincidencia",
