@@ -5,10 +5,10 @@ import type { Page } from '@playwright/test'
 const CHAVE = 'metricas-dspd:preferencias:v1'
 
 const PAINEIS = [
-  { rota: '/operacional?cadencia=semanal', n: 8, ids: ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16', 'O17'] },
+  { rota: '/operacional?cadencia=semanal', n: 7, ids: ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16'] },
   { rota: '/tatico', n: 2, ids: ['T6', 'T8'] },
   { rota: '/estrategico', n: 2, ids: ['E4', 'E5'] },
-  { rota: '/sustentacao', n: 5, ids: ['S8', 'S9', 'S10', 'S11', 'S12'] },
+  { rota: '/sustentacao', n: 6, ids: ['O17', 'S8', 'S9', 'S10', 'S11', 'S12'] },
 ] as const
 
 const TELAS = [
@@ -88,8 +88,8 @@ for (const tela of TELAS) {
     test('COMP-04 preferências: grupo Complementares por painel, axe AA', async ({ page }) => {
       await page.goto('/preferencias')
       await expect(page.getByRole('heading', { level: 1, name: 'Preferências de métricas' })).toBeVisible()
-      await expect(page.getByTestId('contador-sustentacao')).toContainText('(+5)')
-      await expect(page.getByTestId('contador-operacional')).toContainText('(+8)')
+      await expect(page.getByTestId('contador-sustentacao')).toContainText('6 de 6 complementares')
+      await expect(page.getByTestId('contador-operacional')).toContainText('7 de 7 complementares')
       await expect(page.getByTestId('grupo-sustentacao').getByRole('group', { name: 'Complementares' })).toBeVisible()
       const r = await rodarAxe(page)
       expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])

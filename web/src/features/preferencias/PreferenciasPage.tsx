@@ -32,8 +32,9 @@ function GrupoPainel({ painel }: { painel: PainelComCartoes }) {
     >
       <legend className="px-1 text-lg font-bold">{ROTULO_PAINEL[painel]}</legend>
       <p className="text-sm text-texto-2" data-testid={`contador-${painel}`}>
-        {cartoes.filter((c) => !ocultos.includes(c.id)).length} de {cartoes.length} (+
-        {complementares.filter((c) => !ocultos.includes(c.id)).length}) visíveis
+        {cartoes.filter((c) => !ocultos.includes(c.id)).length} de {cartoes.length} do núcleo e{' '}
+        {complementares.filter((c) => !ocultos.includes(c.id)).length} de {complementares.length}{' '}
+        complementares visíveis
       </p>
       <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
         {grupos.map((g) => {
@@ -87,7 +88,7 @@ function RestaurarPadrao({ ocultos }: { ocultos: readonly string[] }) {
           <Dialog.Description className="mt-2 text-sm">
             {ocultos.length === 1 ? 'A métrica oculta' : `As ${ocultos.length} métricas ocultas`} (
             {ocultos.join(', ')}) {ocultos.length === 1 ? 'volta' : 'voltam'} a aparecer em todos os
-            painéis.
+            painéis e a seção "Mais métricas deste painel" volta a abrir.
           </Dialog.Description>
           <div className="mt-4 flex justify-end gap-2">
             <Dialog.Close asChild>

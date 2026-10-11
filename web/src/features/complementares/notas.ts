@@ -27,12 +27,12 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'A parte do tempo de ciclo em que o item esteve em coluna de execução, sem fila nem bloqueio.',
     comoSeCalcula:
-      'Horas úteis em execução ÷ horas úteis do ciclo (início à entrega), por tipo. Mostra a mediana das razões por item e a razão agregada (soma ÷ soma).',
+      'Horas úteis em execução ÷ horas úteis do ciclo (início à entrega), por tipo. Não-execução = fila + bloqueio. Mostra a mediana das razões por item e a razão agregada (soma ÷ soma).',
     comoLer:
       'Uma eficiência baixa diz que o tempo está na espera, não no trabalho. Leia ao lado do tempo de ciclo (O3).',
     meta: SEM_ALVO,
     cuidados:
-      'Bloqueio conta como não-execução mesmo em coluna de execução (confirmação do critério pendente). Itens de tipos diferentes não se somam.',
+      'Bloqueio conta como não-execução mesmo dentro de coluna de execução: o tempo bloqueado sai do tempo de execução (decisão de 11/10). Itens de tipos diferentes não se somam.',
   },
   O6: {
     oQueE: 'O quanto o prazo varia: a razão entre o P85 e o P50 do tempo de ciclo.',
@@ -55,7 +55,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   O11: {
     oQueE: 'O backlog dividido em itens ainda em definição e itens prontos para começar.',
     comoSeCalcula:
-      'Retrato no fim de cada mês, por tipo. "Semanas de backlog pronto" = prontos ÷ vazão semanal mediana (definição de pronto e de definição ainda a confirmar).',
+      'Retrato no fim de cada mês, por tipo. "Semanas de backlog pronto" = prontos ÷ vazão semanal mediana (em definição = seção Requested; pronto = In Progress, já comprometido; mede o intervalo de Requested até In Progress).',
     comoLer:
       'Pouco pronto significa que o time pode ficar sem o que fazer; muito pronto parado envelhece.',
     meta: SEM_ALVO,
@@ -89,10 +89,11 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
   O17: {
     oQueE: 'A causa raiz e o sistema dos bugs já concluídos.',
     comoSeCalcula:
-      'Contagem de bugs concluídos por causa raiz (lista provisória, a confirmar) e por sistema. Módulo = sistema por ora.',
+      'Contagem de bugs concluídos por causa raiz (lista proposta pelo time; o campo "causa raiz" virá do Metabase na coleta real) e por sistema. Módulo = sistema do card (suposição ainda não confirmada).',
     comoLer: 'Concentração indica onde investir em prevenção.',
     meta: SEM_ALVO,
-    cuidados: 'A lista de causas é provisória até a decisão final.',
+    cuidados:
+      'A lista de causas é provisória. A origem da métrica (BusinessMap ou Sustentação, que usa o Metabase do Acelerato) ainda está em aberto.',
   },
   T6: {
     oQueE: 'Uma previsão de prazo ou de quantidade de itens a partir da vazão semanal real.',

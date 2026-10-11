@@ -99,7 +99,7 @@ test.describe('fluxos', () => {
     await expect(
       page.getByRole('status').filter({ hasText: 'Salvo neste navegador' }),
     ).toBeVisible()
-    await expect(page.getByTestId('contador-operacional')).toHaveText('11 de 12 (+8) visíveis')
+    await expect(page.getByTestId('contador-operacional')).toHaveText('11 de 12 do núcleo e 7 de 7 complementares visíveis')
     await page.goto('/operacional?cadencia=semanal')
     await expect(page.getByTestId('metrica-O3')).toBeVisible()
     await expect(page.getByTestId('metrica-O9')).toHaveCount(0)

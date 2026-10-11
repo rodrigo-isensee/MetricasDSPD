@@ -25,8 +25,8 @@ export default function CatalogoPage() {
       </h1>
       <p className="text-sm text-texto-2">
         Tudo o que existe no DSPD: as métricas do núcleo e as complementares, que ficam na seção
-        "Mais métricas deste painel". Complementares com dados fictícios usam dados gerados até a
-        coleta real.
+        "Mais métricas deste painel". Nenhum número do app representa a operação real: todos os
+        dados são fictícios, gerados até a coleta real.
       </p>
       <div className="flex flex-wrap items-end gap-4">
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -64,7 +64,7 @@ export default function CatalogoPage() {
       </div>
       <TabelaDados
         codigo="catalogo"
-        legenda="Catálogo de métricas: código, nome, painel, grupo, fonte, granularidade e status"
+        legenda="Catálogo de métricas: código, nome, painel, grupo, fonte, granularidade e natureza dos dados"
         colunas={[
           { chave: 'c', titulo: 'Código' },
           { chave: 'n', titulo: 'Métrica' },
@@ -72,7 +72,7 @@ export default function CatalogoPage() {
           { chave: 'g', titulo: 'Grupo' },
           { chave: 'f', titulo: 'Fonte' },
           { chave: 'gr', titulo: 'Granularidade' },
-          { chave: 's', titulo: 'Status' },
+          { chave: 's', titulo: 'Dados' },
           { chave: 'a', titulo: 'Abrir' },
         ]}
         linhas={linhas.map((l) => ({
@@ -82,7 +82,7 @@ export default function CatalogoPage() {
           g: l.grupo,
           f: l.fonte,
           gr: l.granularidade,
-          s: l.status,
+          s: l.dados,
           a: (
             <Link to={l.destino} className="alvo inline-flex items-center text-acento underline">
               Ir ao painel <span className="sr-only">de {l.codigo}</span>

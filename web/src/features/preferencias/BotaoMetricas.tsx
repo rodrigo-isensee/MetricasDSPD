@@ -63,7 +63,7 @@ export function BotaoMetricas() {
           <Icone nome="menu" />
           <span>
             Métricas: {p.visiveis} de {p.total}
-            {` (+${p.complementaresVisiveis})`}
+            {` (+${p.complementaresVisiveis} complementares)`}
           </span>
         </Botao>
       </Dialog.Trigger>

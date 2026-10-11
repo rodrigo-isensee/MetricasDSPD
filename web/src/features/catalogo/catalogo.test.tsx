@@ -22,10 +22,10 @@ describe('Catálogo de métricas (/metricas)', () => {
     const tabela = screen.getByRole('table')
     const linha = within(tabela).getByRole('row', { name: /O5 Eficiência de fluxo/ })
     expect(linha).toHaveTextContent('Complementar')
-    expect(linha).toHaveTextContent('Dados fictícios')
+    expect(linha).toHaveTextContent('Fictícios')
     expect(within(linha).getByRole('link')).toHaveAttribute('href', '/operacional#o5')
     expect(within(tabela).getByRole('row', { name: /O3 Tempo de ciclo/ })).toHaveTextContent(
-      'Disponível',
+      'Fictícios',
     )
     await u.selectOptions(screen.getByLabelText('Grupo'), 'Complementar')
     expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('17 de 45 métricas')

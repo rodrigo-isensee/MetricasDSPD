@@ -1,7 +1,7 @@
 import { usePreferenciasPainel } from '@/components/ui'
 
 /**
- * "Leia junto: O5, O8": do cartão do núcleo para os complementares que o completam. O link abre a
+ * "Leia junto: O5 Eficiência de fluxo": do cartão do núcleo para os complementares que o completam. O link abre a
  * seção "Mais métricas deste painel" e leva ao cartão. Some quando o par está oculto (regra do 007).
  */
 export function LeiaJunto({ id }: { id: string }) {
@@ -30,7 +30,7 @@ export function LeiaJunto({ id }: { id: string }) {
                 p.irParaComplementar(c.id)
               }}
             >
-              {c.codigo}
+              {c.codigo} {c.rotulo}
             </a>
           </li>
         ))}

@@ -9,7 +9,8 @@ export interface LinhaCatalogo {
   grupo: 'Núcleo' | 'Complementar'
   fonte: 'BusinessMap' | 'Acelerato'
   granularidade: string
-  status: 'Disponível' | 'Dados fictícios'
+  /** Natureza do dado, não disponibilidade: todo número do app é fictício até a coleta real. */
+  dados: 'Fictícios'
   /** Destino no app: o painel e, para complementares, o cartão (abre a seção "Mais métricas"). */
   destino: string
 }
@@ -36,7 +37,7 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
       grupo: cartao ? 'Complementar' : 'Núcleo',
       fonte: m.fonte,
       granularidade: m.granularidade,
-      status: cartao?.status === 'mock' ? 'Dados fictícios' : 'Disponível',
+      dados: 'Fictícios',
       destino: `/${m.painel}${cartao ? `#${cartao.id}` : ''}`,
     }
   })
