@@ -14,7 +14,10 @@ interface Horas {
   bloqueio: number
 }
 
-/** Horas úteis do ciclo (início→entrega) separadas em execução, fila e bloqueio (o bloqueio vence a coluna). */
+/**
+ * Horas úteis do ciclo (início→entrega) separadas em execução, fila e bloqueio. Decisão do usuário:
+ * o bloqueio dentro de coluna de execução sai do tempo de execução (não-execução = fila + bloqueio).
+ */
 function horasDoCiclo(ctx: ContextoBM, m: MarcosCard): Horas {
   // Card entregue sempre tem transições (a entrega vem delas).
   const trs = ctx.idx.transicoesPorCard.get(m.card.card_id) as readonly FatoTransicao[]

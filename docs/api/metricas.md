@@ -78,7 +78,7 @@ Formato único: `{ "error": { "code": string, "message": string, "details"?: [] 
 - 304 com `If-None-Match` (ETag fraco por métrica, filtros, data, versões e página).
 
 ## Métricas complementares (O5, O6, O8, O11, O13, O14, O16, O17, T6, T8, E4, E5, S8 a S12)
-Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e filtros das demais (`GET /api/v1/metricas/:id`, sem rota nova, sem migração); DTOs em `packages/contratos/src/schemas.ts` (`resultadoO5` ... `resultadoS12`). **Dados fictícios**: as extensões (causa raiz, sprint, natureza de projeto, reabertura, sintoma, registro de Problema) vêm de `gerarExtensoesMock` e só alimentam o cálculo na fonte mock (`CATALOGO_CARTOES[].status = 'mock'`); sem extensões, T8, O17, E4, S8, S11 e S12 devolvem vazio/insuficiente, nunca 500.
+Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e filtros das demais (`GET /api/v1/metricas/:id`, sem rota nova, sem migração); DTOs em `packages/contratos/src/schemas.ts` (`resultadoO5` ... `resultadoS12`). **Dados fictícios**: as extensões (causa raiz, sprint como card-template pai com filhos e data de ligação, natureza de projeto, reincidente, registro de Problema) vêm de `gerarExtensoesMock` e só alimentam o cálculo na fonte mock (`CATALOGO_CARTOES[].status = 'mock'`); sem extensões, T8, O17, E4, S8, S11 e S12 devolvem vazio/insuficiente, nunca 500.
 
 | Id | Corpo (campos principais) | Filtros que atuam |
 |---|---|---|
@@ -91,16 +91,24 @@ Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e f
 | O16 | `meses[{entrada,correcao,estoqueFim,densidade}]`, `abertosPorSeveridade[]`, `maisAntigos[{cardId,tipo,severidade,idadeDiasUteis}]` (10, sem pessoa) | equipe, sistema, período |
 | O17 | `porCausa[{causa,n}]`, `porSistema[{sistema,n}]` | equipe, sistema, período |
 | T6 | `entradas{itens,semanas}`, `classes[{classe,n,termino[{itens,previsao}],itens[{semanas,previsao}]}]` (P50/P85/P95, `Estatistica`) | equipe, sistema, período |
-| T8 | `sprints[{sprintId,inicio,fim,comprometidos,entreguesDoComprometido,carryOver,adicionados,entreguePct:Taxa,naoPlanejadoPct:Taxa}]`, `agregado` | equipe, sistema, período |
+| T8 | `sprints[{sprintId (card pai),nome,inicio,fim,itens,comprometidos,entreguesDoComprometido,carryOver,entradaNaoPlanejada,entreguePct:Taxa,naoPlanejadoPct:Taxa}]`, `agregado` | equipe, sistema, período |
 | E4 | `trimestres[{trimestre,iniciados,concluidos,emAbertoAcumulado,iniciadosPorNatureza[]}]` | sistema, período |
 | E5 | `vazaoSemanal{n,mediana}`, `projetos[{projetoId,projeto,frentesRestantes,frentesAdicionadasAposInicio,previsao}]` | sistema, período |
-| S8 | `diasReabertura`, `metaMaxPct`, `meses[{encerrados,reabertos,taxa}]`, `total`, `statusMeta` | equipe, prioridade, período |
+| S8 | `metaMaxPct`, `meses[{encerrados,reabertos,taxa}]`, `total`, `statusMeta` | equipe, prioridade, período |
 | S9 | `porMotivo[{motivo,n,estatistica}]` (horas úteis), `cumprimentoPrevisao:Taxa` | equipe, prioridade, período |
 | S10 | `prioridades[{prioridade,n,estatistica,histograma|null,aceitosEm15min:Taxa}]` (horas úteis) | equipe, prioridade, período |
 | S11 | `escopo:Taxa`, `porGrupo[{grupo:P1|P2|Contorno,taxa}]` (se sobrepõem), `conversao:Taxa` | equipe, período (prioridade não atua) |
-| S12 | `parametros{kRecorrente,janelaSemanas}`, `meses[{total,porSistema}]`, `recorrentes[]`, `excecaoSla:Taxa` | equipe, prioridade, período |
+| S12 | `parametros{janelaSemanas}`, `meses[{total,porSistema}]`, `reincidencia[{sistema,chamados,reincidentes,proporcao:Taxa}]` (janela de 12 semanas), `excecaoSla:Taxa` | equipe, prioridade, período |
 
 Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem estatística (`insuficiente`, com "k de n" nas taxas); T6 e E5 usam `core/montecarlo` com semente fixa (resposta reprodutível); BM e AC separados; nenhuma chave por pessoa.
+
+### Decisões do usuário aplicadas (2026-10-11)
+- O5: bloqueio dentro de coluna de execução sai do tempo de execução (não-execução = fila + bloqueio).
+- O11: em definição = seção Requested (papel `backlog`); pronto = In Progress comprometido (papel `compromisso`); sem sexto papel de coluna.
+- S8: reabertura = campo `reincidente` preenchido com o ticket anterior; sem intervalo de dias nem "mesmo sintoma".
+- S12: chamado com `reincidente` já conta; sem limite K; contagem e proporção por sistema na janela de 12 semanas.
+- T8: sprint = card-template pai; planejado = filho ligado até o início da sprint; ligado depois = entrada não planejada.
+- Alterações de tipo: T8 `sprints[].adicionados` -> `entradaNaoPlanejada` e novo `nome`; S8 sem `diasReabertura`; S12 `parametros.kRecorrente` e `recorrentes[]` removidos, `reincidencia[]` novo.
 
 ### Mudanças de contrato para o front (este lote)
 - `METRICA_IDS` passa de 33 para 50; `CATALOGO_CARTOES` ganha `grupo` (`nucleo|complementar`) e `status` (`disponivel|mock`) e os 17 cartões; `leiaJunto` do núcleo aponta para complementares (O3 -> o6, O4 -> o8, O15 -> o13, S1 -> s9).

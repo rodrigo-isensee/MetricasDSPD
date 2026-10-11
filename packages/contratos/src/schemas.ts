@@ -999,7 +999,9 @@ export const resultadoT8 = z.object({
   ...comum,
   sprints: z.array(
     z.object({
+      /** Id do card-template pai que representa a sprint no BusinessMap. */
       sprintId: z.string(),
+      nome: z.string(),
       inicio: iso,
       fim: iso,
       emAndamento: z.boolean(),
@@ -1007,7 +1009,8 @@ export const resultadoT8 = z.object({
       comprometidos: z.number(),
       entreguesDoComprometido: z.number(),
       carryOver: z.number(),
-      adicionados: z.number(),
+      /** Filhos ligados ao pai depois do início da sprint (entrada não planejada). */
+      entradaNaoPlanejada: z.number(),
       entreguePct: taxaSchema,
       naoPlanejadoPct: taxaSchema,
     }),
@@ -1049,11 +1052,9 @@ export const resultadoE5 = z.object({
   ),
 })
 
-/** S8: taxa de reabertura de incidentes. */
+/** S8: taxa de reabertura de incidentes (reabertura = campo `reincidente` com o ticket anterior). */
 export const resultadoS8 = z.object({
   ...comum,
-  /** Parâmetro N (dias corridos) vindo da configuração versionada. */
-  diasReabertura: z.number(),
   metaMaxPct: z.number(),
   meses: z.array(
     z.object({
@@ -1106,10 +1107,10 @@ export const resultadoS11 = z.object({
   conversao: taxaSchema,
 })
 
-/** S12: volume por sistema, recorrentes e exceção de SLA. */
+/** S12: volume por sistema, reincidência por sistema e exceção de SLA. */
 export const resultadoS12 = z.object({
   ...comum,
-  parametros: z.object({ kRecorrente: z.number(), janelaSemanas: z.number() }),
+  parametros: z.object({ janelaSemanas: z.number() }),
   meses: z.array(
     z.object({
       mes,
@@ -1118,7 +1119,15 @@ export const resultadoS12 = z.object({
       porSistema: z.array(z.object({ sistema: z.string(), n: z.number() })),
     }),
   ),
-  recorrentes: z.array(z.object({ sistema: z.string(), sintoma: z.string(), n: z.number() })),
+  /** Janela de percentis (12 semanas): chamados e reincidentes (campo `reincidente` preenchido) por sistema. */
+  reincidencia: z.array(
+    z.object({
+      sistema: z.string(),
+      chamados: z.number(),
+      reincidentes: z.number(),
+      proporcao: taxaSchema,
+    }),
+  ),
   excecaoSla: taxaSchema,
 })
 

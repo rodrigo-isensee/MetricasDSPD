@@ -12,9 +12,10 @@ import type { FatoTransicao } from './modelo'
 import { vazaoSemanal } from './apoio'
 
 /**
- * O11: composição do backlog. Retrato no fim de cada mês: em definição (papel de coluna `backlog`)
- * × prontos (papel `compromisso`, fila de compromisso). Papéis por coluna: inferência do time
- * (pendente-usuario). Só retrato: nunca série de eventos.
+ * O11: composição do backlog (intervalo Requested -> In Progress). Retrato no fim de cada mês: em
+ * definição = seção Requested (papel de coluna `backlog`) × prontos = In Progress comprometido
+ * (papel `compromisso`, antes de iniciar o trabalho). Decisão do usuário: sem sexto papel de
+ * coluna; a correspondência está em `docs/architecture/regras-metricas.md`. Só retrato.
  */
 export function calcularO11(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO11 {
   const periodo = periodoDe(ctx, f)

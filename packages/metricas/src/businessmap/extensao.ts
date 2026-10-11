@@ -6,19 +6,22 @@
  */
 import type { CausaRaiz, NaturezaProjeto } from '@metricas-dspd/contratos'
 
+/** Sprint = card-template pai no BusinessMap; as entregas são os cards filhos ligados a ele. */
 export interface Sprint {
+  /** card_id do card-template pai. */
   sprint_id: string
+  nome: string
   /** AAAA-MM-DD, inclusivo. */
   inicio: string
   fim: string
 }
 
+/** Card filho ligado ao pai da sprint. */
 export interface SprintCard {
   card_id: string
   sprint_id: string
-  /** false = entrou na sprint depois do início (entrada não planejada). */
-  planejado_na_entrada: boolean
-  entregue: boolean
+  /** AAAA-MM-DD em que o filho foi ligado ao pai. Depois do início da sprint = entrada não planejada. */
+  ligado_em: string
 }
 
 export interface ExtensaoBM {

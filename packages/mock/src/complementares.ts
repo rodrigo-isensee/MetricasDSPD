@@ -21,13 +21,6 @@ const PESO_CAUSA: readonly (readonly [CausaRaiz, number])[] = CAUSAS_RAIZ.map((c
 /** Primeira sprint (segunda-feira) e duração: quinzenais, cobrindo mais de 12 meses. */
 const INICIO_SPRINTS = '2025-10-06'
 const DIAS_SPRINT = 14
-const SINTOMAS = [
-  'Erro de acesso',
-  'Lentidão',
-  'Dado divergente',
-  'Falha de integração',
-  'Relatório incorreto',
-] as const
 
 function gerarBM(base: BaseMock): ExtensaoBM {
   const causas = derivar(base.config.semente, 'complementares:causas')
@@ -49,6 +42,7 @@ function gerarBM(base: BaseMock): ExtensaoBM {
   for (let d = diaDeIso(INICIO_SPRINTS), i = 1; d <= hoje; d += DIAS_SPRINT, i++)
     sprints.push({
       sprint_id: `SPR-${String(i).padStart(2, '0')}`,
+      nome: `Sprint ${String(i).padStart(2, '0')}`,
       inicio: isoDeDia(d),
       fim: isoDeDia(d + DIAS_SPRINT - 1),
     })
@@ -63,43 +57,28 @@ function gerarBM(base: BaseMock): ExtensaoBM {
     // 85 a 95% das stories entram em sprint: o sorteio é sempre consumido (ordem estável).
     const entra = spr() < 0.9
     const planejado = spr() >= 0.15
+    const depois = 1 + Math.floor(spr() * (DIAS_SPRINT - 1))
     if (!entra) continue
-    const entregue =
-      c.concluido_em !== null &&
-      diaLocal(c.concluido_em, CALENDARIO_PADRAO) >= diaDeIso(s.inicio) &&
-      diaLocal(c.concluido_em, CALENDARIO_PADRAO) <= diaDeIso(s.fim)
+    // Planejado: ligado ao pai no início da sprint; senão, ligado depois (entrada não planejada).
     sprintCards.push({
       card_id: c.card_id,
       sprint_id: s.sprint_id,
-      planejado_na_entrada: planejado,
-      entregue,
+      ligado_em: isoDeDia(diaDeIso(s.inicio) + (planejado ? 0 : depois)),
     })
   }
   return { causasRaiz, sprints, sprintCards, naturezaProjeto }
 }
 
-/** N dias corridos do critério provisório de reabertura (S8, pendente do usuário). */
-const DIAS_REABERTURA = 7
-const MS_DIA = 86_400_000
-
 function gerarAC(base: BaseMock): ExtensaoAC {
   const reab = derivar(base.config.semente, 'complementares:reabertura')
-  const sin = derivar(base.config.semente, 'complementares:sintomas')
   const prob = derivar(base.config.semente, 'complementares:problema')
 
-  const sintomas: Record<string, string> = {}
   const registroProblema: Record<string, boolean> = {}
   for (const c of base.ac.chamados) {
-    const n = 3 + (c.categoria_sistema.length % 3)
-    const lista = SINTOMAS.slice(0, n)
-    sintomas[c.chamado_id] = escolhaPonderada(
-      sin,
-      lista.map((s, i) => [s, 10 - i * 2] as const),
-    )
     if (c.avaliacao_problema !== null) registroProblema[c.chamado_id] = bernoulli(prob, 0.3)
   }
 
-  // Reabertura: vínculo a um incidente posterior da mesma categoria, sem criar chamado.
+  // Reincidente: o chamado seguinte da mesma categoria indica o ticket anterior, sem criar chamado.
   const porCategoria = new Map<string, typeof base.ac.chamados>()
   for (const c of base.ac.chamados) {
     if (c.natureza !== 'incidente' || c.excluido) continue
@@ -114,16 +93,11 @@ function gerarAC(base: BaseMock): ExtensaoAC {
       if (x.status !== 'Concluído' || x.data_finalizado === null) continue
       if (!bernoulli(reab, 0.04)) continue
       const fim = x.data_finalizado
-      const y = ordenada.find(
-        (z) =>
-          z.aberto_em > fim &&
-          z.aberto_em <= fim + DIAS_REABERTURA * MS_DIA &&
-          reabertoDe[z.chamado_id] === undefined,
-      )
+      const y = ordenada.find((z) => z.aberto_em > fim && reabertoDe[z.chamado_id] === undefined)
       if (y) reabertoDe[y.chamado_id] = x.chamado_id
     }
   }
-  return { reabertoDe, sintomas, registroProblema }
+  return { reabertoDe, registroProblema }
 }
 
 export function gerarExtensoesMock(base: BaseMock): ExtensoesMetricas {

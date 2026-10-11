@@ -436,8 +436,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['mediana'],
     granularidade: 'story',
     refBriefing: '06 O5; 4.1 inicio; 4.2 bloqueio',
-    status: PENDENTE,
-    pendencias: ['O5-ciclo-bloqueio-razao'],
+    status: 'ok',
   },
   O6: {
     dominio: 'businessmap',
@@ -471,8 +470,7 @@ export const REGRAS_METRICA = {
     minimoSobre: [],
     granularidade: 'story',
     refBriefing: '06 O11; retrato mensal',
-    status: PENDENTE,
-    pendencias: ['O11-papeis-definicao-pronto'],
+    status: 'ok',
   },
   O13: {
     dominio: 'businessmap',
@@ -517,8 +515,7 @@ export const REGRAS_METRICA = {
     minimoSobre: [],
     granularidade: 'story',
     refBriefing: '06 O17; 4.4 causa raiz',
-    status: PENDENTE,
-    pendencias: ['O17-lista-causa-raiz', 'O17-modulo-ou-sistema'],
+    status: 'ok',
   },
   T6: {
     dominio: 'businessmap',
@@ -540,8 +537,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa'],
     granularidade: 'story',
     refBriefing: '06 T8; 7.2 sem alvo de 100%',
-    status: PENDENTE,
-    pendencias: ['T8-sprint-por-time-ou-quadro', 'campos-sem-fonte-real'],
+    status: 'ok',
   },
   E4: {
     dominio: 'businessmap',
@@ -575,8 +571,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa'],
     granularidade: 'chamado',
     refBriefing: '06 S8; T4.2',
-    status: PENDENTE,
-    pendencias: ['S8-intervalo-e-sintoma', 'campos-sem-fonte-real'],
+    status: 'ok',
   },
   S9: {
     dominio: 'acelerato',
@@ -622,8 +617,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa'],
     granularidade: 'chamado',
     refBriefing: '06 S12',
-    status: PENDENTE,
-    pendencias: ['S12-limite-k-e-janela', 'campos-sem-fonte-real'],
+    status: 'ok',
   },
   VISAO_GERAL: {
     dominio: 'composicao',

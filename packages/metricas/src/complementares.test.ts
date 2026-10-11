@@ -89,6 +89,14 @@ describe('métricas complementares: contratos e regras comuns', () => {
     expect(t8.agregado.entreguePct.status).toBe('ok')
   })
 
+  it('T8: filho ligado depois do início é entrada não planejada, separada do comprometido', () => {
+    const pai = ext.bm.sprints.find((x) => x.sprint_id === 'SPR-20')
+    expect(pai?.nome).toBe('Sprint 20')
+    const t8 = calcularMetrica('T8', { ...F, periodo: { tipo: '6m' } }, ctxMock)
+    for (const x of t8.sprints) expect(x.itens).toBe(x.comprometidos + x.entradaNaoPlanejada)
+    expect(t8.sprints.some((x) => x.entradaNaoPlanejada > 0)).toBe(true)
+  })
+
   it('T6 e E5: previsão determinística e ordenada p50 <= p85 <= p95', () => {
     const a = calcularMetrica('T6', F, ctxMock)
     expect(calcularMetrica('T6', F, ctxMock)).toEqual(a)
@@ -203,7 +211,7 @@ describe('O11, O14 e O16', () => {
 })
 
 describe('Sustentação: S8 e S9', () => {
-  it('S8: taxa acima da meta fica "fora"; o parâmetro N vem da configuração', () => {
+  it('S8: taxa acima da meta fica "fora"; reincidente preenchido conta sem intervalo de dias', () => {
     const porCat = new Map<string, string>()
     const reabertoDe: Record<string, string> = {}
     const incidentes = [...base.ac.chamados]
@@ -221,7 +229,6 @@ describe('Sustentação: S8 e S9', () => {
     expect(alta.total.status).toBe('ok')
     expect(alta.statusMeta).toBe('fora')
     const normal = calcularMetrica('S8', FS, ctxMock)
-    expect(normal.diasReabertura).toBe(7)
     expect(normal.statusMeta).toBe('dentro')
     const nada = acelerato.calcularS8(ctxMock.ac, {
       ...FS,
@@ -265,8 +272,14 @@ describe('Sustentação: S8 e S9', () => {
     expect(r.cumprimentoPrevisao.k).toBeLessThan(r.cumprimentoPrevisao.n)
   })
 
-  it('S12: extensão vazia usa "Não informado" como sintoma', () => {
-    const r = acelerato.calcularS12(ctxMock.ac, FS, EXTENSAO_AC_VAZIA)
-    expect(r.recorrentes.every((x) => x.sintoma === 'Não informado')).toBe(true)
+  it('S12: sem reincidentes a contagem por sistema é zero; com eles a proporção aparece', () => {
+    const vazia = acelerato.calcularS12(ctxMock.ac, FS, EXTENSAO_AC_VAZIA)
+    expect(vazia.reincidencia.length).toBeGreaterThan(0)
+    expect(vazia.reincidencia.every((x) => x.reincidentes === 0)).toBe(true)
+    const todos = Object.fromEntries(base.ac.chamados.map((c) => [c.chamado_id, 'X']))
+    const cheia = acelerato.calcularS12(ctxMock.ac, FS, { ...ext.ac, reabertoDe: todos })
+    expect(cheia.parametros).toEqual({ janelaSemanas: 12 })
+    for (const x of cheia.reincidencia) expect(x.reincidentes).toBe(x.chamados)
+    expect(cheia.reincidencia.some((x) => x.proporcao.status === 'ok')).toBe(true)
   })
 })

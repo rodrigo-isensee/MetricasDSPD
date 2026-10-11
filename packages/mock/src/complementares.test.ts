@@ -16,7 +16,7 @@ describe('extensões mock das métricas complementares', () => {
     expect(hashJson(gerarExtensoesMock(base))).toBe(hashJson(ext))
     const outra = gerarBaseMock({ escala: 0.2, semente: 7 })
     expect(hashJson(gerarExtensoesMock(outra))).not.toBe(hashJson(ext))
-    expect(hashJson(ext)).toBe('788edaf0')
+    expect(hashJson(ext)).toBe('a4a5647e')
   })
 
   it('BM: causa raiz só em bugs, domínio fechado; sprints quinzenais; natureza fechada', () => {
@@ -31,7 +31,10 @@ describe('extensões mock das métricas complementares', () => {
     expect(Object.keys(ext.bm.naturezaProjeto)).toHaveLength(projetos.length)
     const ids = new Set(ext.bm.sprints.map((s) => s.sprint_id))
     for (const sc of ext.bm.sprintCards) expect(ids.has(sc.sprint_id)).toBe(true)
-    const naoPlan = ext.bm.sprintCards.filter((s) => !s.planejado_na_entrada).length
+    const inicio = new Map(ext.bm.sprints.map((x) => [x.sprint_id, x.inicio]))
+    const naoPlan = ext.bm.sprintCards.filter(
+      (s) => s.ligado_em > (inicio.get(s.sprint_id) as string),
+    ).length
     expect(naoPlan / ext.bm.sprintCards.length).toBeGreaterThan(0.1)
     expect(naoPlan / ext.bm.sprintCards.length).toBeLessThan(0.2)
   })
@@ -46,7 +49,6 @@ describe('extensões mock das métricas complementares', () => {
       expect(a?.categoria_sistema).toBe(b?.categoria_sistema)
       expect(a?.aberto_em).toBeGreaterThan(b?.data_finalizado as number)
     }
-    expect(Object.keys(ext.ac.sintomas)).toHaveLength(base.ac.chamados.length)
     expect(Object.values(ext.ac.registroProblema).some(Boolean)).toBe(true)
   })
 })

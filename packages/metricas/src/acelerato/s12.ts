@@ -14,11 +14,11 @@ import {
 import { EXTENSAO_AC_VAZIA, type ExtensaoAC } from './extensao'
 import type { ContextoAC } from './indice'
 
-/** Recorrente = pelo menos K chamados do mesmo sistema e sintoma na janela (K provisório, pendente-usuario). */
-export const K_RECORRENTE = 5
-const TOP_RECORRENTES = 10
-
-/** S12: volume por sistema (categoria), recorrentes destacados e % com exceção de SLA por registro posterior. */
+/**
+ * S12: volume por sistema (categoria); na janela de 12 semanas, contagem e proporção de chamados
+ * reincidentes por sistema (campo `reincidente` preenchido já conta, sem limite K nem sintoma);
+ * e % com exceção de SLA por registro posterior.
+ */
 export function calcularS12(
   ctx: ContextoAC,
   f: FiltrosSustentacao,
@@ -45,13 +45,12 @@ export function calcularS12(
     }
   })
   const naJanela = xs.filter((x) => noIntervalo(ctx, x.c.aberto_em, janela))
-  const pares = new Map<string, { sistema: string; sintoma: string; n: number }>()
+  const porSistema = new Map<string, { chamados: number; reincidentes: number }>()
   for (const x of naJanela) {
-    const sintoma = ext.sintomas[x.c.chamado_id] ?? 'Não informado'
-    const k = `${x.c.categoria_sistema}|${sintoma}`
-    const p = pares.get(k)
-    if (p) p.n++
-    else pares.set(k, { sistema: x.c.categoria_sistema, sintoma, n: 1 })
+    const p = porSistema.get(x.c.categoria_sistema) ?? { chamados: 0, reincidentes: 0 }
+    p.chamados++
+    if (ext.reabertoDe[x.c.chamado_id] !== undefined) p.reincidentes++
+    porSistema.set(x.c.categoria_sistema, p)
   }
   const fechados = xs.filter((x) => x.fechado && noIntervalo(ctx, x.c.data_finalizado, periodo))
   return {
@@ -61,12 +60,16 @@ export function calcularS12(
       periodo,
     ),
     criterios: criterios('S12', periodo, janela, ctx),
-    parametros: { kRecorrente: K_RECORRENTE, janelaSemanas: janela.quantidade },
+    parametros: { janelaSemanas: janela.quantidade },
     meses: linhas,
-    recorrentes: ordenarNeutro(
-      [...pares.values()].filter((p) => p.n >= K_RECORRENTE),
-      (p) => [-p.n, p.sistema, p.sintoma],
-    ).slice(0, TOP_RECORRENTES),
+    reincidencia: ordenarNeutro(
+      [...porSistema].map(([sistema, p]) => ({
+        sistema,
+        ...p,
+        proporcao: taxa(p.reincidentes, p.chamados),
+      })),
+      (p) => [-p.chamados, p.sistema],
+    ),
     excecaoSla: taxa(
       fechados.filter((x) => x.c.excecao_sla_registro_posterior).length,
       fechados.length,

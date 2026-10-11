@@ -18388,6 +18388,9 @@
                           "sprintId": {
                             "type": "string"
                           },
+                          "nome": {
+                            "type": "string"
+                          },
                           "inicio": {
                             "type": "string"
                           },
@@ -18409,7 +18412,7 @@
                           "carryOver": {
                             "type": "number"
                           },
-                          "adicionados": {
+                          "entradaNaoPlanejada": {
                             "type": "number"
                           },
                           "entreguePct": {
@@ -18545,6 +18548,7 @@
                         },
                         "required": [
                           "sprintId",
+                          "nome",
                           "inicio",
                           "fim",
                           "emAndamento",
@@ -18552,7 +18556,7 @@
                           "comprometidos",
                           "entreguesDoComprometido",
                           "carryOver",
-                          "adicionados",
+                          "entradaNaoPlanejada",
                           "entreguePct",
                           "naoPlanejadoPct"
                         ],
@@ -25506,9 +25510,6 @@
                       ],
                       "additionalProperties": false
                     },
-                    "diasReabertura": {
-                      "type": "number"
-                    },
                     "metaMaxPct": {
                       "type": "number"
                     },
@@ -25682,7 +25683,6 @@
                   "required": [
                     "base",
                     "criterios",
-                    "diasReabertura",
                     "metaMaxPct",
                     "meses",
                     "total",
@@ -27805,15 +27805,11 @@
                     "parametros": {
                       "type": "object",
                       "properties": {
-                        "kRecorrente": {
-                          "type": "number"
-                        },
                         "janelaSemanas": {
                           "type": "number"
                         }
                       },
                       "required": [
-                        "kRecorrente",
                         "janelaSemanas"
                       ],
                       "additionalProperties": false
@@ -27861,7 +27857,7 @@
                         "additionalProperties": false
                       }
                     },
-                    "recorrentes": {
+                    "reincidencia": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -27869,17 +27865,83 @@
                           "sistema": {
                             "type": "string"
                           },
-                          "sintoma": {
-                            "type": "string"
-                          },
-                          "n": {
+                          "chamados": {
                             "type": "number"
+                          },
+                          "reincidentes": {
+                            "type": "number"
+                          },
+                          "proporcao": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "ok"
+                                    ]
+                                  },
+                                  "k": {
+                                    "type": "number"
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": 20,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "pct": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "status",
+                                  "k",
+                                  "n",
+                                  "pct"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "insuficiente"
+                                    ]
+                                  },
+                                  "k": {
+                                    "type": "number"
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 19
+                                  },
+                                  "minimo": {
+                                    "type": "number",
+                                    "enum": [
+                                      20
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "status",
+                                  "k",
+                                  "n",
+                                  "minimo"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
                           }
                         },
                         "required": [
                           "sistema",
-                          "sintoma",
-                          "n"
+                          "chamados",
+                          "reincidentes",
+                          "proporcao"
                         ],
                         "additionalProperties": false
                       }
@@ -27955,7 +28017,7 @@
                     "criterios",
                     "parametros",
                     "meses",
-                    "recorrentes",
+                    "reincidencia",
                     "excecaoSla"
                   ],
                   "additionalProperties": false
