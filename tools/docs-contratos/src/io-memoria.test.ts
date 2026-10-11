@@ -11,5 +11,7 @@ describe('criarIoMemoria', () => {
     expect(io.existe('a/b.md')).toBe(true)
     expect(io.existe('a/c')).toBe(true)
     expect(io.existe('z')).toBe(false)
+    io.apagar('a/b.md')
+    expect(io.ler('a/b.md')).toBeUndefined()
   })
 })

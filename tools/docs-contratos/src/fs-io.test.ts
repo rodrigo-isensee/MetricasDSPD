@@ -27,6 +27,14 @@ describe('criarIo', () => {
     expect(io.listar('nao-existe')).toEqual([])
   })
 
+  it('apaga arquivo e não falha se ele não existe', () => {
+    const io = criarIo(raiz)
+    io.escrever('a/b.md', 'um')
+    io.apagar('a/b.md')
+    io.apagar('a/b.md')
+    expect(io.existe('a/b.md')).toBe(false)
+  })
+
   it('lista com caminhos relativos à raiz mesmo para pastas aninhadas', () => {
     writeFileSync(join(raiz, 'x.md'), '')
     expect(criarIo(raiz).listar('.')).toEqual(['x.md'])

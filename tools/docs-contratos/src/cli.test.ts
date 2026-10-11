@@ -18,7 +18,6 @@ const metrica: InsumoMetrica = {
 const insumos: Insumos = {
   metricas: [metrica],
   eventos: [{ tipo: 'a.b', schema: { type: 'object' } }],
-  caminhosV2: [],
 }
 const FIGURA =
   '### T\n```mermaid\nflowchart LR\n  A --> B\n```\n\nLegenda: x\n\n<details open>\n<summary>Alternativa em lista</summary>\n\n- A -> B\n</details>\n'

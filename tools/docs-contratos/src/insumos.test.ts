@@ -94,13 +94,12 @@ describe('carregarInsumos (repositório real)', () => {
     expect(por('EI_FL1').cartoes[0]!.id).toBe('ei-fl1')
   })
 
-  it('eventos do catálogo entram com JSON Schema estrito; sem rota /api/v2 por enquanto', () => {
+  it('eventos do catálogo entram com JSON Schema estrito', () => {
     expect(insumos.eventos.map((e) => e.tipo)).toEqual(['coleta.concluida', 'bm.webhook.recebido'])
     expect(insumos.eventos[0]!.schema).toMatchObject({
       type: 'object',
       additionalProperties: false,
     })
-    expect(insumos.caminhosV2).toEqual([])
   })
 })
 

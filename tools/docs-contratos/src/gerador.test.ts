@@ -10,6 +10,7 @@ import {
   gravarGerados,
   type Insumos,
 } from './gerador.ts'
+import { hashMudanca } from './fotografias.ts'
 import { criarIoMemoria } from './io-memoria.ts'
 import type { InsumoMetrica } from './metricas.ts'
 
@@ -32,7 +33,6 @@ const insumos: Insumos = {
       schema: { type: 'object', properties: { s: { type: 'string' } }, required: ['s'] },
     },
   ],
-  caminhosV2: [],
 }
 const dominio = {
   'docs/especificacao/domain/flow/_context.md':
@@ -106,9 +106,10 @@ describe('fotografar e conferirFotografias', () => {
     expect(fotografar(io, insumos)).toEqual({ problemas: [], gravadas: [] })
   })
 
-  it('mudança incompatível trava o fotografar até haver aceite; compatível só pede nova fotografia', () => {
+  it('mudança incompatível trava o fotografar até haver aceite DAQUELA mudança; depois o aceite precisa ser removido', () => {
     const io = criarIoMemoria()
     fotografar(io, insumos)
+    const antiga = JSON.parse(io.ler('docs/contratos/snapshots/resultados/O1.json')!)
     const quebra: Insumos = {
       ...insumos,
       metricas: [{ ...metrica('O1'), schema: { type: 'object', properties: {}, required: [] } }],
@@ -117,14 +118,32 @@ describe('fotografar e conferirFotografias', () => {
     const r = fotografar(io, quebra)
     expect(r.gravadas).toEqual([])
     expect(r.problemas[0]).toContain('INCOMPATÍVEL')
+    const aceite = (contrato: string, mudanca: string) => ({
+      contrato,
+      mudanca,
+      motivo: 'campo removido a pedido',
+      data: '2026-10-11',
+    })
+    // aceite com hash de outra mudança não libera
     io.escrever(
       ARQUIVO_ACEITAS,
-      JSON.stringify({
-        aceitas: [{ contrato: 'O1', motivo: 'campo removido a pedido', data: '2026-10-11' }],
-      }),
+      JSON.stringify({ aceitas: [aceite('resultados/O1', 'f'.repeat(64))] }),
     )
+    expect(fotografar(io, quebra).gravadas).toEqual([])
+    const hash = hashMudanca(antiga, quebra.metricas[0]!.schema)
+    io.escrever(ARQUIVO_ACEITAS, JSON.stringify({ aceitas: [aceite('resultados/O1', hash)] }))
+    expect(conferirFotografias(io, quebra)[0]).toContain('desatualizada (mudança aceita)')
     expect(fotografar(io, quebra).gravadas).toEqual(['docs/contratos/snapshots/resultados/O1.json'])
+    // aplicada a mudança, o aceite vira lixo e o check obriga a limpar
+    expect(conferirFotografias(io, quebra)[0]).toContain('aceite sem mudança incompatível pendente')
+    io.escrever(ARQUIVO_ACEITAS, JSON.stringify({ aceitas: [] }))
     expect(conferirFotografias(io, quebra)).toEqual([])
+    // e a quebra seguinte do mesmo contrato não herda nada
+    const outra: Insumos = {
+      ...insumos,
+      metricas: [{ ...metrica('O1'), schema: { type: 'string' } }],
+    }
+    expect(conferirFotografias(io, outra)[0]).toContain('INCOMPATÍVEL')
 
     const compat: Insumos = {
       ...insumos,
@@ -144,14 +163,71 @@ describe('fotografar e conferirFotografias', () => {
     expect(conferirFotografias(io2, compat)[0]).toContain('desatualizada')
   })
 
-  it('rota v2 aceita a quebra da métrica', () => {
+  it('contrato v2 em paralelo não isenta o v1: o v1 continua sendo conferido (e o v2 tem fotografia própria)', () => {
     const io = criarIoMemoria()
     fotografar(io, insumos)
+    const v1quebrado = { ...metrica('O1'), schema: { type: 'string' } }
+    const v2: InsumoMetrica = { ...metrica('O1.v2'), schema: { type: 'string' } }
     const quebra: Insumos = {
       ...insumos,
-      caminhosV2: ['/api/v2/metricas/O1'],
-      metricas: [{ ...metrica('O1'), schema: { type: 'string' } }],
+      metricas: [v1quebrado, v2],
+      eventos: [
+        { tipo: 'coleta.concluida', schema: { type: 'string' } },
+        { tipo: 'coleta.concluida.v2', schema: { type: 'string' } },
+      ],
     }
-    expect(fotografar(io, quebra).problemas).toEqual([])
+    const p = conferirFotografias(io, quebra)
+    expect(p.filter((x) => x.includes('INCOMPATÍVEL')).map((x) => x.split(':')[0])).toEqual([
+      'resultados/O1',
+      'eventos/coleta.concluida',
+    ])
+    expect(p.filter((x) => x.includes('sem fotografia')).map((x) => x.split(':')[0])).toEqual([
+      'resultados/O1.v2',
+      'eventos/coleta.concluida.v2',
+    ])
+    expect(fotografar(io, quebra).gravadas).toEqual([])
+  })
+
+  it('métrica ou evento removido é detectado; só passa com o aceite da remoção e a fotografia some', () => {
+    const io = criarIoMemoria({ 'docs/contratos/snapshots/aceitas.json': '{"aceitas":[]}' })
+    fotografar(io, insumos)
+    const semMetrica: Insumos = { ...insumos, metricas: [] }
+    const semEvento: Insumos = { ...insumos, eventos: [] }
+    const p1 = conferirFotografias(io, semMetrica)
+    expect(p1).toHaveLength(1)
+    expect(p1[0]).toContain('resultados/O1: mudança INCOMPATÍVEL (contrato removido)')
+    expect(conferirFotografias(io, semEvento)[0]).toContain(
+      'eventos/coleta.concluida: mudança INCOMPATÍVEL (contrato removido)',
+    )
+    expect(fotografar(io, semMetrica).gravadas).toEqual([])
+    const antiga = JSON.parse(io.ler('docs/contratos/snapshots/resultados/O1.json')!)
+    io.escrever(
+      ARQUIVO_ACEITAS,
+      JSON.stringify({
+        aceitas: [
+          {
+            contrato: 'resultados/O1',
+            mudanca: hashMudanca(antiga, undefined),
+            motivo: 'métrica descontinuada a pedido',
+            data: '2026-10-11',
+          },
+        ],
+      }),
+    )
+    expect(fotografar(io, semMetrica).gravadas).toEqual([
+      'docs/contratos/snapshots/resultados/O1.json',
+    ])
+    expect(io.ler('docs/contratos/snapshots/resultados/O1.json')).toBeUndefined()
+    io.escrever(ARQUIVO_ACEITAS, '{"aceitas":[]}')
+    expect(conferirFotografias(io, semMetrica)).toEqual([])
+  })
+
+  it('fotografias em subpasta ou fora do padrão .json não contam como contrato', () => {
+    const io = criarIoMemoria({
+      'docs/contratos/snapshots/resultados/sub/x.json': '{}',
+      'docs/contratos/snapshots/resultados/leia.md': 'x',
+    })
+    fotografar(io, insumos)
+    expect(conferirFotografias(io, insumos)).toEqual([])
   })
 })

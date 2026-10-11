@@ -108,6 +108,5 @@ export function carregarInsumos(raiz: string): Insumos {
   return {
     metricas,
     eventos,
-    caminhosV2: Object.keys(openapi.paths).filter((p) => p.startsWith('/api/v2/')),
   }
 }

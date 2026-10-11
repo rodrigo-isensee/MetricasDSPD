@@ -4,7 +4,9 @@ import {
   aceitasSchema,
   avaliarFotografias,
   classificar,
-  contratosAceitos,
+  canonico,
+  hashMudanca,
+  lerAceites,
   paraJsonSchema,
 } from './fotografias.ts'
 
@@ -42,7 +44,7 @@ describe('classificar', () => {
     ])
   })
 
-  it('remoção, troca de tipo e obrigatório virando opcional são incompatíveis; o inverso é compatível', () => {
+  it('remoção, troca de tipo, obrigatório virando opcional e opcional virando obrigatório são incompatíveis', () => {
     const antigo = campos({ a: texto, b: numero })
     expect(classificar(antigo, campos({ a: texto })).incompativeis).toEqual([
       '$.b: campo removido (ou renomeado)',
@@ -53,19 +55,111 @@ describe('classificar', () => {
     expect(classificar(antigo, campos({ a: texto, b: numero }, ['a'])).incompativeis).toEqual([
       '$.b: campo obrigatório virou opcional',
     ])
-    expect(classificar(campos({ a: texto }, []), campos({ a: texto })).compativeis).toEqual([
-      '$.a: campo opcional virou obrigatório',
+    // fora da política: conservador
+    expect(classificar(campos({ a: texto }, []), campos({ a: texto })).incompativeis).toEqual([
+      '$.a: campo opcional virou obrigatório (fora da política; conservador)',
     ])
   })
 
-  it('enum: valor removido é incompatível, valor novo é compatível; enum que surge ou some também conta', () => {
+  it('enum: valor removido e valor novo (fora da política: conservador) são incompatíveis', () => {
     const e = (...v: string[]) => ({ type: 'string', enum: v })
     expect(classificar(e('a', 'b'), e('a')).incompativeis).toEqual([
       '$: valor "b" removido do enum',
     ])
-    expect(classificar(e('a'), e('a', 'b')).compativeis).toEqual(['$: valor "b" novo no enum'])
-    expect(classificar(texto, e('a')).compativeis).toEqual(['$: valor "a" novo no enum'])
+    expect(classificar(e('a'), e('a', 'b')).incompativeis).toEqual([
+      '$: valor "b" novo no enum (fora da política; conservador)',
+    ])
+    expect(classificar(e('a'), e('a', 'b')).compativeis).toEqual([])
+    expect(classificar(texto, e('a')).incompativeis).toHaveLength(1)
     expect(classificar(e('a'), texto).incompativeis).toEqual(['$: valor "a" removido do enum'])
+  })
+
+  it('palavras-chave de validação novas ou alteradas na saída são incompatíveis, uma a uma', () => {
+    const com = (extra: Record<string, unknown>) => ({ ...texto, ...extra })
+    const casos: [string, unknown, unknown][] = [
+      ['pattern', com({ pattern: '^a$' }), com({ pattern: '^b$' })],
+      ['pattern', texto, com({ pattern: '^b$' })],
+      ['format', com({ format: 'date' }), com({ format: 'uuid' })],
+      ['minimum', { type: 'number', minimum: 20 }, { type: 'number', minimum: 1 }],
+      ['maximum', { type: 'number', maximum: 19 }, { type: 'number', maximum: 99 }],
+      ['maxItems', { type: 'array', maxItems: 3 }, { type: 'array', maxItems: 4 }],
+      ['minLength', com({ minLength: 2 }), com({ minLength: 1 })],
+    ]
+    for (const [chave, a, n] of casos) {
+      const r = classificar(a, n)
+      expect(r.incompativeis, chave).toHaveLength(1)
+      expect(r.incompativeis[0], chave).toContain(`palavra-chave ${chave} mudou`)
+    }
+    // dentro de um campo e de uma união (a palavra-chave não fica escondida)
+    expect(
+      classificar(
+        campos({ n: { type: 'number', minimum: 20 } }),
+        campos({ n: { type: 'number', minimum: 1 } }),
+      ).incompativeis[0],
+    ).toContain('$.n: palavra-chave minimum')
+    expect(
+      classificar({ anyOf: [texto], minimum: 1 }, { anyOf: [texto], minimum: 2 }).incompativeis,
+    ).toHaveLength(1)
+  })
+
+  it('anotações (description, title, examples, $comment) não quebram', () => {
+    expect(
+      classificar(texto, {
+        ...texto,
+        description: 'x',
+        title: 'y',
+        examples: ['z'],
+        $comment: 'w',
+      }),
+    ).toEqual({
+      compativeis: [],
+      incompativeis: [],
+    })
+  })
+
+  it('record: tipo do valor (additionalProperties com schema) e strict x passthrough', () => {
+    const rec = (v: unknown) => ({ type: 'object', propertyNames: texto, additionalProperties: v })
+    expect(classificar(rec(texto), rec(texto)).incompativeis).toEqual([])
+    expect(classificar(rec(texto), rec(numero)).incompativeis).toEqual([
+      '${}: tipo mudou de "string" para "number"',
+    ])
+    const estrito = { ...campos({ a: texto }), additionalProperties: false }
+    const livre = { ...campos({ a: texto }), additionalProperties: {} }
+    expect(classificar(estrito, livre).incompativeis).toEqual([
+      '$: additionalProperties mudou de false para {}',
+    ])
+    expect(classificar(estrito, campos({ a: texto })).incompativeis).toEqual([
+      '$: additionalProperties mudou de false para null',
+    ])
+    expect(classificar(rec(texto), rec(true)).incompativeis).toHaveLength(1)
+  })
+
+  it('tupla (prefixItems): tipo de um elemento e tamanho', () => {
+    const tupla = (...v: unknown[]) => ({ type: 'array', prefixItems: v })
+    expect(classificar(tupla(texto, numero), tupla(texto, numero)).incompativeis).toEqual([])
+    expect(classificar(tupla(texto, numero), tupla(texto, texto)).incompativeis).toEqual([
+      '$[1]: tipo mudou de "number" para "string"',
+    ])
+    expect(classificar(tupla(texto), tupla(texto, numero)).incompativeis).toEqual([
+      '$: itens da tupla mudaram',
+    ])
+    expect(classificar({ type: 'array' }, tupla(texto)).incompativeis).toEqual([
+      '$: itens da tupla mudaram',
+    ])
+    expect(classificar(tupla(texto), { type: 'array' }).incompativeis).toEqual([
+      '$: itens da tupla mudaram',
+    ])
+  })
+
+  it('canonico não depende da ordem das chaves', () => {
+    expect(canonico({ b: 1, a: [{ d: 1, c: undefined }] })).toBe(
+      canonico({ a: [{ c: undefined, d: 1 }], b: 1 }),
+    )
+    expect(canonico(undefined)).toBe('null')
+    expect(
+      classificar({ type: 'object', x: { a: 1, b: 2 } }, { type: 'object', x: { b: 2, a: 1 } })
+        .incompativeis,
+    ).toEqual([])
   })
 
   it('const: mudança de valor é incompatível', () => {
@@ -136,54 +230,105 @@ describe('avaliarFotografias', () => {
     atual: schema,
     fotografia,
   })
-
-  it('sem problema quando a fotografia é igual', () => {
-    expect(avaliarFotografias([entrada(atual)], new Set()).problemas).toEqual([])
+  const quebrada = campos({ a: texto, b: texto })
+  const aceite = (contrato: string, mudanca: string) => ({
+    contrato,
+    mudanca,
+    motivo: 'campo removido a pedido',
+    data: '2026-10-11',
   })
 
-  it('acusa fotografia ausente, desatualizada (compatível) e incompatível', () => {
-    expect(avaliarFotografias([entrada(undefined)], new Set()).problemas[0]).toContain(
-      'sem fotografia',
-    )
+  it('sem problema quando a fotografia é igual (mesmo com chaves em outra ordem)', () => {
+    expect(avaliarFotografias([entrada(atual)], []).problemas).toEqual([])
+    expect(
+      avaliarFotografias(
+        [entrada({ required: ['a'], properties: { a: texto }, type: 'object' })],
+        [],
+      ).problemas,
+    ).toEqual([])
+  })
+
+  it('acusa fotografia ausente, desatualizada (compatível ou só anotação) e incompatível, com o hash a registrar', () => {
+    expect(avaliarFotografias([entrada(undefined)], []).problemas[0]).toContain('sem fotografia')
     const compat = avaliarFotografias(
       [entrada(campos({}, []), 'O9', campos({ a: texto }, []))],
-      new Set(),
+      [],
     ).problemas
     expect(compat[0]).toContain('desatualizada ($.a: campo novo opcional')
-    const quebra = avaliarFotografias(
-      [entrada(campos({ a: texto, b: texto }))],
-      new Set(),
+    const nota = avaliarFotografias(
+      [entrada(texto, 'O9', { ...texto, description: 'novo' })],
+      [],
     ).problemas
+    expect(nota[0]).toContain('desatualizada (só anotações)')
+    const quebra = avaliarFotografias([entrada(quebrada)], []).problemas
     expect(quebra[0]).toContain('INCOMPATÍVEL')
     expect(quebra[0]).toContain('aceitas.json')
+    expect(quebra[0]).toContain(hashMudanca(quebrada, atual))
   })
 
-  it('incompatibilidade aceita (v2 ou registro) vira só "desatualizada"; sem nada novo na diferença, "mudança aceita"', () => {
-    const foto = campos({ a: texto, b: texto })
-    const aceita = avaliarFotografias([entrada(foto)], new Set(['O9'])).problemas
-    expect(aceita).toHaveLength(1)
-    expect(aceita[0]).toContain('desatualizada (mudança aceita)')
+  it('o aceite vale só para a mudança concreta: outro hash, outro contrato ou outra mudança futura continuam barrados', () => {
+    const hash = hashMudanca(quebrada, atual)
+    const ok = avaliarFotografias([entrada(quebrada)], [aceite('resultados/O9', hash)]).problemas
+    expect(ok).toHaveLength(1)
+    expect(ok[0]).toContain('desatualizada (mudança aceita)')
+    // contrato diferente com o mesmo hash
+    expect(
+      avaliarFotografias([entrada(quebrada)], [aceite('resultados/O1', hash)]).problemas[0],
+    ).toContain('INCOMPATÍVEL')
+    // mesmo contrato, mudança diferente (a quebra seguinte não herda o aceite anterior)
+    const outra = campos({ a: texto, b: texto, c: texto })
+    const r = avaliarFotografias([entrada(outra)], [aceite('resultados/O9', hash)]).problemas
+    expect(r[0]).toContain('INCOMPATÍVEL')
+    expect(r.some((p) => p.includes('aceite sem mudança incompatível pendente'))).toBe(true)
+    // grupo diferente com o mesmo nome
+    expect(
+      avaliarFotografias(
+        [{ ...entrada(quebrada), grupo: 'eventos' }],
+        [aceite('resultados/O9', hash)],
+      ).problemas[0],
+    ).toContain('INCOMPATÍVEL')
+  })
+
+  it('aceite sem mudança pendente correspondente (já aplicada ou inexistente) é problema', () => {
+    const hash = hashMudanca(quebrada, atual)
+    const p = avaliarFotografias([entrada(atual)], [aceite('resultados/O9', hash)]).problemas
+    expect(p).toHaveLength(1)
+    expect(p[0]).toContain(
+      `resultados/O9: aceite sem mudança incompatível pendente correspondente (mudanca ${hash})`,
+    )
+    expect(p[0]).not.toContain('INCOMPATÍVEL')
+  })
+
+  it('contrato removido (fotografia sem schema atual) é incompatível; só passa com o aceite da remoção', () => {
+    const removida = { grupo: 'eventos', nome: 'x.y', atual: undefined, fotografia: atual }
+    const r = avaliarFotografias([removida], []).problemas
+    expect(r[0]).toContain('eventos/x.y: mudança INCOMPATÍVEL (contrato removido)')
+    const hash = hashMudanca(atual, undefined)
+    expect(r[0]).toContain(hash)
+    expect(hash).toBe(hashMudanca(atual, null))
+    const ok = avaliarFotografias([removida], [aceite('eventos/x.y', hash)]).problemas
+    expect(ok[0]).toContain('desatualizada (mudança aceita)')
   })
 })
 
-describe('contratosAceitos', () => {
-  it('une aceitas.json, rotas /api/v2 de métricas e tipos de evento .vN', () => {
-    const json = JSON.stringify({
-      aceitas: [{ contrato: 'T1', motivo: 'campo renomeado a pedido', data: '2026-10-11' }],
-    })
-    const s = contratosAceitos(
-      json,
-      ['/api/v2/metricas/O9', '/api/v2/outra'],
-      ['coleta.concluida.v2', 'bm.webhook.recebido'],
-    )
-    expect([...s].sort()).toEqual(['O9', 'T1', 'coleta.concluida'])
-  })
-
-  it('sem arquivo de aceites e sem v2, conjunto vazio; arquivo inválido é recusado', () => {
-    expect(contratosAceitos(undefined, [], []).size).toBe(0)
-    expect(() =>
-      contratosAceitos('{"aceitas":[{"contrato":"x","motivo":"curto","data":"hoje"}]}', [], []),
-    ).toThrow()
+describe('lerAceites', () => {
+  it('lê o arquivo; ausente é lista vazia; entrada sem contrato qualificado, hash ou data válidos é recusada', () => {
+    const h = 'a'.repeat(64)
+    const bom = {
+      contrato: 'resultados/T1',
+      mudanca: h,
+      motivo: 'campo renomeado a pedido',
+      data: '2026-10-11',
+    }
+    expect(lerAceites(JSON.stringify({ aceitas: [bom] }))).toEqual([bom])
+    expect(lerAceites(undefined)).toEqual([])
+    for (const ruim of [
+      { ...bom, contrato: 'T1' },
+      { ...bom, mudanca: 'abc' },
+      { ...bom, motivo: 'curto' },
+      { ...bom, data: 'hoje' },
+    ])
+      expect(() => lerAceites(JSON.stringify({ aceitas: [ruim] }))).toThrow()
     expect(aceitasSchema.safeParse({ aceitas: [] }).success).toBe(true)
   })
 })

@@ -11,6 +11,9 @@ export function criarIoMemoria(
     escrever: (c, t) => {
       arquivos.set(c, t)
     },
+    apagar: (c) => {
+      arquivos.delete(c)
+    },
     listar: (pasta) => [...arquivos.keys()].filter((c) => c.startsWith(`${pasta}/`)).sort(),
     existe: (c) => arquivos.has(c) || [...arquivos.keys()].some((a) => a.startsWith(`${c}/`)),
   }

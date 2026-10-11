@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, rmSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { Io } from './gerador.ts'
 
@@ -9,6 +9,9 @@ export function criarIo(raiz: string): Io {
     escrever: (c, texto) => {
       mkdirSync(dirname(join(raiz, c)), { recursive: true })
       writeFileSync(join(raiz, c), texto)
+    },
+    apagar: (c) => {
+      rmSync(join(raiz, c), { force: true })
     },
     listar: (pasta) =>
       existsSync(join(raiz, pasta))

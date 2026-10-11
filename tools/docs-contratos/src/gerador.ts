@@ -1,6 +1,11 @@
 import { aplicarBloco, extrairBloco, type Modelo } from './blocos.ts'
 import { montarContextos, renderAgregados } from './dominio.ts'
-import { avaliarFotografias, contratosAceitos, type EntradaFotografia } from './fotografias.ts'
+import {
+  avaliarFotografias,
+  idContrato,
+  lerAceites,
+  type EntradaFotografia,
+} from './fotografias.ts'
 import {
   caminhoFotografia,
   modeloIndiceMetricas,
@@ -14,6 +19,8 @@ export interface Io {
   /** Conteúdo do arquivo (caminho relativo à raiz) ou `undefined` se não existe. */
   ler(caminho: string): string | undefined
   escrever(caminho: string, texto: string): void
+  /** Remove o arquivo (sem erro se não existe). */
+  apagar(caminho: string): void
   /** Arquivos sob a pasta (recursivo), caminhos relativos à raiz com `/`. */
   listar(pasta: string): string[]
   existe(caminho: string): boolean
@@ -23,8 +30,6 @@ export type EventoInsumo = { tipo: string; schema: unknown }
 export type Insumos = {
   metricas: InsumoMetrica[]
   eventos: EventoInsumo[]
-  /** Caminhos do OpenAPI sob `/api/v2/`. */
-  caminhosV2: string[]
 }
 
 export const PASTA_METRICAS = 'docs/contratos/metricas'
@@ -104,12 +109,16 @@ export function conferirGerados(io: Io, insumos: Insumos): string[] {
 
 const serializar = (schema: unknown): string => `${JSON.stringify(schema, null, 2)}\n`
 
+type Grupo = 'resultados' | 'eventos'
+const GRUPOS: readonly Grupo[] = ['resultados', 'eventos']
+
+/** Entradas de fotografia: contratos atuais e, também, fotografias sem contrato atual (removidos). */
 function entradasFotografia(io: Io, insumos: Insumos): EntradaFotografia[] {
-  const lerFoto = (grupo: 'resultados' | 'eventos', nome: string): unknown => {
+  const lerFoto = (grupo: Grupo, nome: string): unknown => {
     const texto = io.ler(caminhoFotografia(grupo, nome))
     return texto === undefined ? undefined : JSON.parse(texto)
   }
-  return [
+  const atuais: EntradaFotografia[] = [
     ...insumos.metricas.map((m) => ({
       grupo: 'resultados',
       nome: m.id,
@@ -123,35 +132,46 @@ function entradasFotografia(io: Io, insumos: Insumos): EntradaFotografia[] {
       fotografia: lerFoto('eventos', e.tipo),
     })),
   ]
-}
-
-function aceitos(io: Io, insumos: Insumos): Set<string> {
-  return contratosAceitos(
-    io.ler(ARQUIVO_ACEITAS),
-    insumos.caminhosV2,
-    insumos.eventos.map((e) => e.tipo),
-  )
+  const existentes = new Set(atuais.map(idContrato))
+  const removidos: EntradaFotografia[] = []
+  for (const grupo of GRUPOS) {
+    const pasta = caminhoFotografia(grupo, 'x').slice(0, -'/x.json'.length)
+    for (const caminho of io.listar(pasta)) {
+      const nome = /^[^/]+\.json$/.test(caminho.slice(pasta.length + 1))
+        ? caminho.slice(pasta.length + 1, -'.json'.length)
+        : undefined
+      if (nome !== undefined && !existentes.has(`${grupo}/${nome}`))
+        removidos.push({ grupo, nome, atual: undefined, fotografia: lerFoto(grupo, nome) })
+    }
+  }
+  return [...atuais, ...removidos]
 }
 
 /** Compatibilidade entre os schemas atuais e as fotografias versionadas. */
 export function conferirFotografias(io: Io, insumos: Insumos): string[] {
-  return avaliarFotografias(entradasFotografia(io, insumos), aceitos(io, insumos)).problemas
+  return avaliarFotografias(entradasFotografia(io, insumos), lerAceites(io.ler(ARQUIVO_ACEITAS)))
+    .problemas
 }
 
 /**
- * Regrava as fotografias com os schemas atuais. Recusa se houver mudança incompatível não aceita: o aceite
- * (aceitas.json ou rota/tipo v2) vem antes, para a fotografia nova nunca esconder uma quebra.
+ * Regrava as fotografias com os schemas atuais e apaga as de contratos removidos. Recusa se houver mudança
+ * incompatível sem aceite daquela mudança (aceitas.json): o aceite vem antes, para a fotografia nova nunca esconder uma quebra.
  */
 export function fotografar(io: Io, insumos: Insumos): { problemas: string[]; gravadas: string[] } {
   const entradas = entradasFotografia(io, insumos)
   const bloqueios = avaliarFotografias(
     entradas.filter((e) => e.fotografia !== undefined),
-    aceitos(io, insumos),
+    lerAceites(io.ler(ARQUIVO_ACEITAS)),
   ).problemas.filter((p) => p.includes('INCOMPATÍVEL'))
   if (bloqueios.length > 0) return { problemas: bloqueios, gravadas: [] }
   const gravadas: string[] = []
   for (const e of entradas) {
-    const caminho = caminhoFotografia(e.grupo as 'resultados' | 'eventos', e.nome)
+    const caminho = caminhoFotografia(e.grupo as Grupo, e.nome)
+    if (e.atual === undefined) {
+      io.apagar(caminho)
+      gravadas.push(caminho)
+      continue
+    }
     const texto = serializar(e.atual)
     if (io.ler(caminho) !== texto) {
       io.escrever(caminho, texto)
