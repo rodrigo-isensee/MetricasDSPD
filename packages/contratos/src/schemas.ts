@@ -1072,7 +1072,7 @@ export const resultadoS8 = z.object({
 export const resultadoS9 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
-  motivos: z.array(
+  porMotivo: z.array(
     z.object({
       motivo: z.string(),
       n: z.number(),

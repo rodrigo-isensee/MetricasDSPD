@@ -80,7 +80,7 @@ export function idadeHUEm(ctx: ContextoBM, m: MarcosCard, t: number): number {
 }
 
 /** Intervalo semiaberto [ini, fim) em ms. */
-type Faixa = readonly [number, number]
+export type Faixa = readonly [number, number]
 
 /** Faixas em que o card está em progresso (mesma regra de `estadoEm.emWip`, sem varrer instantes). */
 export function faixasWip(ctx: ContextoBM, m: MarcosCard): Faixa[] {
@@ -102,7 +102,7 @@ export function faixasWip(ctx: ContextoBM, m: MarcosCard): Faixa[] {
 }
 
 /** União das faixas de bloqueio do card (um bloqueio aberto conta uma vez, mesmo que haja dois). */
-function faixasBloqueio(ctx: ContextoBM, m: MarcosCard): Faixa[] {
+export function faixasBloqueio(ctx: ContextoBM, m: MarcosCard): Faixa[] {
   const bs = ctx.idx.bloqueiosPorCard.get(m.card.card_id)
   if (!bs || bs.length === 0) return []
   const ord = ordenarNeutro(

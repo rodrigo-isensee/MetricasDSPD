@@ -34,7 +34,21 @@ describe('gerarColetasMock', () => {
     expect(ac.selo).toBe('atual')
     expect(ac.calibracao).toHaveLength(1)
     expect(ac.calibracao[0]).toMatchObject({ inicio: '2026-09-15', fim: '2026-11-13' })
-    expect(ac.metricasEmCalibracao).toEqual(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'EI_SUST'])
+    expect(ac.metricasEmCalibracao).toEqual([
+      'S1',
+      'S2',
+      'S3',
+      'S4',
+      'S5',
+      'S6',
+      'S7',
+      'S8',
+      'S9',
+      'S10',
+      'S11',
+      'S12',
+      'EI_SUST',
+    ])
   })
   it('histórico paginado em 20, mais recente primeiro, pelo schema', () => {
     const p = paginaColetasSchema.parse(paginarColetas(c.businessmap, 1))

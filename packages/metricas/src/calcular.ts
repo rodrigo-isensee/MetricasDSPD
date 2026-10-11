@@ -2,12 +2,15 @@ import type { MetricaId } from '@metricas-dspd/contratos'
 import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
 import * as AC from './acelerato'
 import * as BM from './businessmap'
+import type { ExtensoesMetricas } from './extensoes'
 import { calcularVisaoGeral } from './visaoGeral'
 
 /** Contexto de cálculo: um por domínio (BusinessMap e Acelerato nunca se misturam). */
 export interface ContextosMetricas {
   bm: BM.ContextoBM
   ac: AC.ContextoAC
+  /** Extensões das métricas complementares (mock). Sem elas, o cálculo complementar devolve vazio/insuficiente. */
+  ext?: ExtensoesMetricas
 }
 
 /**
@@ -28,6 +31,14 @@ const CALCULOS: {
   O12: (f, c) => BM.calcularO12(c.bm, f),
   O15: (f, c) => BM.calcularO15(c.bm, f),
   O18: (f, c) => BM.calcularO18(c.bm, f),
+  O5: (f, c) => BM.calcularO5(c.bm, f),
+  O6: (f, c) => BM.calcularO6(c.bm, f),
+  O8: (f, c) => BM.calcularO8(c.bm, f),
+  O11: (f, c) => BM.calcularO11(c.bm, f),
+  O13: (f, c) => BM.calcularO13(c.bm, f),
+  O14: (f, c) => BM.calcularO14(c.bm, f),
+  O16: (f, c) => BM.calcularO16(c.bm, f),
+  O17: (f, c) => BM.calcularO17(c.bm, f, c.ext?.bm),
   T1: (f, c) => BM.calcularT1(c.bm, f),
   T2: (f, c) => BM.calcularT2(c.bm, f),
   T3: (f, c) => BM.calcularT3(c.bm, f),
@@ -35,9 +46,13 @@ const CALCULOS: {
   T5: (f, c) => BM.calcularT5(c.bm, f),
   T7: (f, c) => BM.calcularT7(c.bm, f),
   T9: (f, c) => BM.calcularT9(c.bm, f),
+  T6: (f, c) => BM.calcularT6(c.bm, f),
+  T8: (f, c) => BM.calcularT8(c.bm, f, c.ext?.bm),
   E1: (f, c) => BM.calcularE1(c.bm, f),
   E2: (f, c) => BM.calcularE2(c.bm, f),
   E3: (f, c) => BM.calcularE3(c.bm, f),
+  E4: (f, c) => BM.calcularE4(c.bm, f, c.ext?.bm),
+  E5: (f, c) => BM.calcularE5(c.bm, f),
   EI_FL1: (f, c) => BM.calcularEIBM(c.bm, f, 'FL1'),
   EI_FL2: (f, c) => BM.calcularEIBM(c.bm, f, 'FL2'),
   EI_FL3: (f, c) => BM.calcularEIBM(c.bm, f, 'FL3'),
@@ -48,6 +63,11 @@ const CALCULOS: {
   S5: (f, c) => AC.calcularS5(c.ac, f),
   S6: (f, c) => AC.calcularS6(c.ac, f),
   S7: (f, c) => AC.calcularS7(c.ac, f),
+  S8: (f, c) => AC.calcularS8(c.ac, f, c.ext?.ac),
+  S9: (f, c) => AC.calcularS9(c.ac, f),
+  S10: (f, c) => AC.calcularS10(c.ac, f),
+  S11: (f, c) => AC.calcularS11(c.ac, f, c.ext?.ac),
+  S12: (f, c) => AC.calcularS12(c.ac, f, c.ext?.ac),
   EI_SUST: (f, c) => AC.calcularEIAcelerato(c.ac, f),
   VISAO_GERAL: (_f, ctx) => calcularVisaoGeral(ctx.bm, ctx.ac),
 }
