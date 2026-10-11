@@ -1,0 +1,20 @@
+{
+  "specification": "docs/especificacao",
+  "bindings": [
+    {
+      "node": "rules/metrics/amostra-minima",
+      "digest": "sha256:x",
+      "judged": true,
+      "files": [
+        { "path": "server/test/amostra.test.ts", "digest": "sha256:y", "node_digest": "sha256:z" }
+      ]
+    },
+    {
+      "node": "scenarios/abaixo-de-20",
+      "digest": "sha256:x",
+      "files": [
+        { "path": "server/test/amostra.test.ts", "digest": "sha256:y", "node_digest": "sha256:z" }
+      ]
+    }
+  ]
+}

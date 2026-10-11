@@ -51,6 +51,8 @@ jobs:
       # Igual ao `pronto` sem o build: typecheck + cobertura 100% bloqueante em cada pacote.
       - run: pnpm -r --if-present run typecheck
       - run: pnpm run cobertura
+      # Conferência spec<->teste (Node puro, sem Python); o --check do plugin Siegard é só local.
+      - run: pnpm run spec:check
 
   filtro:
     name: filtro
