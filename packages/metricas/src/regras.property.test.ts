@@ -602,7 +602,7 @@ describe('meta: toda métrica tem teste, sem exceção órfã', () => {
       const r: RegraMetrica = REGRAS_METRICA[id]
       const algumaPendente =
         Object.entries(r).some(([k, v]) => k !== 'status' && v === 'pendente-usuario') ||
-        ((r.pendencias as readonly string[] | undefined)?.length ?? 0) > 0
+        (r.pendencias?.length ?? 0) > 0
       expect(r.status === 'pendente-usuario', id).toBe(algumaPendente)
     }
   })
