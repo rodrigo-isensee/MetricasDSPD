@@ -1,4 +1,5 @@
 # 0007 - Contratos e validação entre front e back
+Estado: vigente (trecho do framework substituído pela [0013](0013-arquitetura-modular-serverless.md) e restabelecido pela [0014](0014-stack-tecnica-do-back-end.md))
 - Status: aceita. A ADR 0013 trocou Fastify por Hono; a **ADR 0014** (2026-10-10) restabelece o texto original: **rotas Fastify 5** com **fastify-type-provider-zod 7** e OpenAPI por **`@fastify/swagger` 9** a partir dos schemas Zod 4 de `contratos`. O risco do fim (compatibilidade do type provider com zod 4) está fechado: versões verificadas pelo usuário (ADR 0014). Regras de contrato, formato de erro e paridade não mudam.
 - Data: 2026-10-09
 - **Nota de 2026-10-11 (sem reescrever a decisão):** onde este texto diz **MySQL** (Paridade D15), leia **PostgreSQL**: a ADR 0014 substituiu o banco. A decisão de contrato (schemas Zod únicos, entrada `strict`, saída validada, OpenAPI versionado, `/api/v1`) continua em vigor. O rascunho `docs/api/metricas.md` virou documento implementado; o ponto de entrada atual é `docs/contratos/` (README, política de mudança, HTTP).

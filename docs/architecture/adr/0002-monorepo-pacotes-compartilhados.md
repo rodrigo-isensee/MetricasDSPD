@@ -1,4 +1,5 @@
 # 0002 - Monorepo com npm workspaces e pacotes compartilhados
+Estado: vigente
 - Status: aceita
 - Data: 2026-10-09
 - Substitui parcialmente: ADR 0001 (linha "Pacotes", linha "Regras de lint arquiteturais" e o risco de migração da biblioteca)

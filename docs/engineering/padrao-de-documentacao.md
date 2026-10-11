@@ -3,7 +3,7 @@
 Propósito: definir cabeçalho, nomes, estado das ADRs e diagramas Mermaid de `docs/`. Público: quem escreve ou revisa documentação. Revisão: 2026-10-11.
 
 ## Cabeçalho padrão
-Nas 5 primeiras linhas de toda página (exceto `reviews`, `qa/bugs`, `alinhamentos`, `kanban`):
+Nas 5 primeiras linhas de toda página (exceto `reviews`, `qa/bugs`, `alinhamentos`, `kanban`, `retrospectivas`, `architecture/propostas`):
 
 ```markdown
 # Título que responde a uma pergunta
@@ -23,7 +23,7 @@ Propósito: uma frase. Público: quem lê. Revisão: AAAA-MM-DD.
 - Pastas por tipo: `especificacao/` domínio, `api/` e `contratos/` contratos, `architecture/` decisões, `tecnica/` como funciona, `engineering/` práticas. Mover pastas só com redirecionamento de todos os links.
 
 ## Estado das ADRs
-Toda ADR e proposta traz, no topo, uma linha `Estado:`.
+Toda ADR traz, logo abaixo do título, uma linha `Estado: proposta|vigente|substituída por ...`. A linha é escrita à mão (a ferramenta ainda não a confere, ver "Verificação").
 
 | Estado | Significa | Obrigatório na linha |
 |---|---|---|
@@ -59,13 +59,20 @@ Legenda: retângulo = processo ou banco; o tipo está no rótulo.
 ````
 
 ## Verificação (critérios de aceite)
-1. `docs/README.md` existe; cada leitor chega ao seu item em até 2 cliques (roteiro no próprio índice).
-2. Link-check sem links quebrados em `docs/**/*.md`, incluindo âncoras; bloqueante no `pronto` e no CI.
-3. Todo arquivo de `docs/` (exceto `reviews`, `qa/bugs`, `alinhamentos`, `kanban`) é alcançável a partir do índice e dos READMEs de pasta.
-4. Toda página não excluída tem propósito, público e revisão nas 5 primeiras linhas.
-5. Todo bloco `mermaid` tem título, legenda, lista alternativa e até 15 nós.
-6. Toda ADR tem a linha `Estado:`.
-7. `api/openapi.json` está a 1 clique do índice.
-8. Achabilidade: 3 pessoas ou agentes achando contrato e diagrama de domínio em até 60 s.
+`pnpm run docs:check` (`tools/docs-contratos/src/verificar-docs.ts`) confere, bloqueante no `pronto` e no CI:
+
+| # | Critério | Escopo real da ferramenta |
+|---|---|---|
+| 1 | Link-check sem links quebrados, incluindo âncoras | todo `docs/**/*.md`, exceto `reviews/`, `qa/bugs/`, `alinhamentos/`, `kanban/`, `retrospectivas/` e `architecture/propostas/` |
+| 2 | Cabeçalho com propósito, público e revisão (AAAA-MM-DD) nas 5 primeiras linhas | só `docs/contratos/`, `docs/architecture/ddd/` e `docs/README.md` |
+| 3 | Página sem nenhum link recebido (órfã) | mesmo escopo do item 2 (um link para a pasta conta como link para o `README.md` dela e, hoje, para as demais páginas; ver M2 do review) |
+| 4 | Bloco `mermaid` com título, legenda, lista alternativa e até 15 nós | mesmo escopo do item 2 |
+
+Ainda **sem checagem automática** [planejado]; valem como regra de escrita e de revisão:
+- cabeçalho, órfãs e Mermaid nas demais pastas de `docs/` (hoje só o link-check as cobre);
+- linha `Estado:` em toda ADR (conferida na revisão; `docs/README.md` lista vigentes e substituídas);
+- `api/openapi.json` a 1 clique do índice;
+- achabilidade: 3 pessoas ou agentes achando contrato e diagrama de domínio em até 60 s (roteiro em `docs/README.md`; o teste ainda não foi feito);
+- o índice de ADRs e o `Estado:` de cada arquivo concordarem.
 
 Origem: [`ux/documentacao-tecnica/discovery.md`](../ux/documentacao-tecnica/discovery.md).
