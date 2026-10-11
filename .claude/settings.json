@@ -1,3 +1,7 @@
 {
-  "agent": "jarvis"
+  "agent": "jarvis",
+  "extraKnownMarketplaces": {
+    "siegard-generator": { "source": { "source": "github", "repo": "zig999/siegard2" } }
+  },
+  "enabledPlugins": { "siegard@siegard-generator": true }
 }
