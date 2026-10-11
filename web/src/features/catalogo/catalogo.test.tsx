@@ -22,20 +22,19 @@ describe('Catálogo de métricas (/metricas)', () => {
     const tabela = screen.getByRole('table')
     const linha = within(tabela).getByRole('row', { name: /O5 Eficiência de fluxo/ })
     expect(linha).toHaveTextContent('Complementar')
-    expect(linha).toHaveTextContent('Da coleta')
-    expect(within(linha).getByRole('link')).toHaveAttribute('href', '/operacional#o5')
-    expect(within(tabela).getByRole('row', { name: /O3 Tempo de ciclo/ })).toHaveTextContent(
-      'Da coleta',
+    // Decisão 20: todos os dados são fictícios até a coleta real, no núcleo e nos complementares.
+    expect(linha).toHaveTextContent('Fictícios')
+    expect(within(linha).getByRole('link')).toHaveAttribute(
+      'href',
+      '/operacional?cadencia=semanal#o5',
     )
-    // Só o status `mock` do contrato (falta fonte real) vira "Fictícios".
-    for (const c of ['O17', 'T8', 'E4', 'S8', 'S11', 'S12'])
-      expect(within(tabela).getByRole('row', { name: new RegExp(`^${c} `) })).toHaveTextContent(
-        'Fictícios',
-      )
-    const ficticios = within(tabela)
-      .getAllByRole('row')
-      .filter((r) => /Fictícios/.test(r.textContent))
-    expect(ficticios).toHaveLength(6)
+    expect(within(tabela).getByRole('row', { name: /O3 Tempo de ciclo/ })).toHaveTextContent(
+      'Fictícios',
+    )
+    expect(within(tabela).queryByText('Da coleta')).not.toBeInTheDocument()
+    const linhas = within(tabela).getAllByRole('row').slice(1)
+    expect(linhas).toHaveLength(45)
+    for (const l of linhas) expect(l).toHaveTextContent('Fictícios')
     expect(within(tabela).getByRole('row', { name: /^O17 / })).toHaveTextContent('Sustentação')
     await u.selectOptions(screen.getByLabelText('Grupo'), 'Complementar')
     expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('17 de 45 métricas')

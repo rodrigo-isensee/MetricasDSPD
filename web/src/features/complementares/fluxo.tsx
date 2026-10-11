@@ -279,7 +279,7 @@ export function CartaoO13({ filtros }: P) {
               formatar: (v) => fmtPct(v, 1),
             }}
           />
-          <Leia>Sem alvo de volume. Leia junto com a taxa de escape (O15).</Leia>
+          <Leia>Sem alvo de volume. Leia junto com Onde os bugs são encontrados (O15).</Leia>
         </div>
       )}
     </CartaoComplementar>
@@ -399,7 +399,7 @@ export function CartaoO16({ filtros }: P) {
               i: fmtDiasUteis(b.idadeDiasUteis, 0),
             }))}
           />
-          <Leia>Sem alvo de volume. Leia junto com a taxa de escape (O15).</Leia>
+          <Leia>Sem alvo de volume. Leia junto com Onde os bugs são encontrados (O15).</Leia>
         </div>
       )}
     </CartaoComplementar>

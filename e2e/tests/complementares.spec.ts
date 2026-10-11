@@ -127,11 +127,13 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(cartao.getByRole('heading', { name: 'Eficiência de fluxo' })).toBeFocused()
   })
 
-  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e só os 6 de status mock são "Fictícios"', async ({ page }) => {
+  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Fictícios" para as 45 (decisão 20)', async ({ page }) => {
     await page.goto('/metricas')
     await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText('Fictícios')
-    await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Da coleta')
-    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(6)
+    await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Fictícios')
+    await expect(page.getByRole('row', { name: /^O3 / })).toContainText('Fictícios')
+    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(45)
+    await expect(page.getByRole('cell', { name: 'Da coleta', exact: true })).toHaveCount(0)
   })
 
   test('COMP-06 link direto #s9 abre a seção no cartão', async ({ page }) => {
@@ -165,11 +167,12 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(page.getByTestId('leia-junto-o3').getByRole('link', { name: /O6/ })).toHaveCount(0)
   })
 
-  test('COMP-10 tudo oculto: a seção some', async ({ page, painel }) => {
+  test('COMP-10 tudo oculto: a seção vira uma linha de aviso, nunca some calada', async ({ page, painel }) => {
     await guardar(page, { tatico: ['t6', 't8'] })
     await painel.ir('/tatico')
     await painel.esperarCartoesProntos()
     await expect(page.getByTestId('mais-metricas')).toHaveCount(0)
+    await expect(page.getByTestId('mais-metricas-ocultas')).toHaveText('2 complementares ocultas pelas suas preferências.')
   })
 
   test('COMP-11 "Restaurar padrão" volta tudo e abre a seção no painel', async ({ page, painel }) => {
@@ -184,20 +187,58 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(page.getByTestId('metrica-T8')).toBeVisible()
   })
 
-  test('COMP-12 S8: reincidência pelo mês de abertura; cobertura "n de N" só quando n < N', async ({ page, painel }) => {
+  test('COMP-12 S8 e S12: denominador dos informados na tabela; cobertura "n de N" só quando parcial', async ({ page, painel }) => {
     await painel.ir('/sustentacao')
     await painel.esperarCartoesProntos()
-    const c = page.getByTestId('metrica-S8')
-    await expect(c).toContainText('incidentes abertos')
-    const aviso = c.getByTestId('cobertura-S8')
-    if ((await aviso.count()) > 0) {
-      const t = (await aviso.textContent()) ?? ''
-      const m = /(\d+) de (\d+) chamados/.exec(t.replace(/\./g, ''))
-      expect(m).not.toBeNull()
-      const nums = [Number(m![1]), Number(m![2])]
-      expect(Math.min(...nums)).toBeLessThan(Math.max(...nums))
-    } else {
-      await expect(c).not.toContainText('Campo preenchido em')
+    const det = page.getByTestId('mais-metricas')
+    if ((await det.getAttribute('open')) === null) await det.locator('summary').click()
+    const s8 = page.getByTestId('metrica-S8')
+    await expect(s8).toContainText('com o campo de reincidência informado')
+    await expect(s8.getByRole('columnheader', { name: 'Informados' })).toBeVisible()
+    const s12 = page.getByTestId('metrica-S12')
+    await expect(s12.getByRole('columnheader', { name: 'Com campo informado' })).toBeVisible()
+    // A base fictícia preenche o campo em todos os chamados (cobertura 100%): nenhum aviso de cobertura.
+    // O ramo parcial ("n de N" com n < N) é provado nos testes de componente, que ajustam a resposta.
+    await expect(s8.getByTestId('cobertura-S8')).toHaveCount(0)
+    await expect(s12.getByTestId('cobertura-S12')).toHaveCount(0)
+    await expect(s12.getByTestId('campo-sem-fonte-S12')).toHaveCount(0)
+  })
+
+  test('COMP-13 "Leia junto" em todos os cartões do núcleo que têm complementares', async ({ page, painel }) => {
+    const esperado: Record<string, Record<string, string[]>> = {
+      '/operacional?cadencia=semanal': { o3: ['O5', 'O6', 'O8'], o4: ['O8'], o10: ['O11'], o15: ['O13', 'O16', 'O17'] },
+      '/tatico': { t1: ['T6'], t4: ['T8'], t5: ['O14'], t9: ['T6', 'E5'] },
+      '/estrategico': { e1: ['E4', 'E5'] },
+      '/sustentacao': { s1: ['S9', 'S10'], s2: ['S8', 'S12'], s3: ['S8', 'S12'], s5: ['S11'], s7: ['S11'] },
     }
+    for (const [rota, cartoes] of Object.entries(esperado)) {
+      await painel.ir(rota)
+      await painel.esperarCartoesProntos()
+      for (const [id, codigos] of Object.entries(cartoes)) {
+        const links = page.getByTestId(`leia-junto-${id}`).getByRole('link')
+        await expect(links).toHaveCount(codigos.length)
+        for (const [i, c] of codigos.entries()) await expect(links.nth(i)).toContainText(new RegExp(`^${c} `))
+      }
+    }
+  })
+
+  test('COMP-14 "Leia junto" entre painéis: T5 leva ao O14 e O15 ao O17, com hash e foco no cartão', async ({ page, painel }) => {
+    await painel.ir('/tatico')
+    await painel.esperarCartoesProntos()
+    const t5 = page.getByTestId('leia-junto-t5').getByRole('link', { name: /O14/ })
+    await expect(t5).toHaveAttribute('href', '/operacional?cadencia=semanal#o14')
+    await t5.click()
+    await expect(page).toHaveURL(/\/operacional(\?[^#]*)?#o14$/)
+    const o14 = page.getByTestId('metrica-O14')
+    await expect(o14).toBeVisible()
+    await expect(page.getByTestId('mais-metricas')).toHaveAttribute('open', '')
+    await expect(o14.getByRole('heading', { level: 3 })).toBeFocused()
+    await painel.esperarCartoesProntos()
+    await page.getByTestId('leia-junto-o15').getByRole('link', { name: /O17/ }).click()
+    await expect(page).toHaveURL(/\/sustentacao(\?[^#]*)?#o17$/)
+    const o17 = page.getByTestId('metrica-O17')
+    await expect(o17).toBeVisible({ timeout: 20_000 })
+    await painel.esperarCartoesProntos()
+    await expect(o17.getByRole('heading', { level: 3 })).toBeFocused()
   })
 })

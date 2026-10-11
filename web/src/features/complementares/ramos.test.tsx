@@ -7,7 +7,7 @@ import {
   FILTROS_SUSTENTACAO,
   FonteAjustada,
 } from '@/features/painel/testes/fonteFixa'
-import { renderizarApp, renderizarCartao } from '@/test/helpers'
+import { fonteDeTeste, renderizarApp, renderizarCartao } from '@/test/helpers'
 import { MemoryRouter } from 'react-router'
 import { PREFERENCIAS_PADRAO } from '@metricas-dspd/contratos'
 import type { FontePreferencias } from '@/features/preferencias/fonte'
@@ -18,7 +18,7 @@ import { MaisMetricas } from './MaisMetricas'
 import { ListaInsuficientes } from './comuns'
 import { CartaoO14, CartaoO5 } from './fluxo'
 import { CartaoE4, CartaoE5, CartaoT6 } from './previsao'
-import { CartaoS10, CartaoS8 } from './sustentacao'
+import { CartaoO17, CartaoS10, CartaoS12, CartaoS8 } from './sustentacao'
 
 vi.setConfig({ testTimeout: 45000 })
 
@@ -32,7 +32,7 @@ describe('ramos dos componentes complementares', () => {
     expect(b.container).toBeEmptyDOMElement()
   })
 
-  it('com todas as métricas do painel ocultas, a seção também some', async () => {
+  it('com todas as métricas do painel ocultas, a seção diz quantas complementares estão ocultas', async () => {
     window.localStorage.setItem(
       'metricas-dspd:preferencias:v1',
       JSON.stringify({
@@ -44,6 +44,9 @@ describe('ramos dos componentes complementares', () => {
     renderizarApp('/estrategico')
     await screen.findByTestId('painel-oculto-vazio')
     expect(screen.queryByTestId('mais-metricas')).not.toBeInTheDocument()
+    expect(screen.getByTestId('mais-metricas-ocultas')).toHaveTextContent(
+      '2 complementares ocultas pelas suas preferências',
+    )
   })
 
   it('o selo "Dados fictícios" só aparece quando o catálogo diz que o status é mock', async () => {
@@ -158,6 +161,83 @@ describe('ramos dos componentes complementares', () => {
     renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
     await screen.findByTestId('metrica-S8')
     expect(screen.queryByTestId('cobertura-S8')).not.toBeInTheDocument()
+  })
+
+  it('S8 mostra por mês o denominador (informados) e os reincidentes', async () => {
+    const fonte = new FonteAjustada({
+      S8: (r: Qualquer) => {
+        r.meses[0].informados = 37
+        r.meses[0].reabertos = 3
+      },
+    })
+    renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    const el = await screen.findByTestId('metrica-S8')
+    const tabela = await within(el).findByRole('table', { name: /denominador da taxa/ })
+    expect(
+      within(tabela)
+        .getAllByRole('columnheader')
+        .map((c) => c.textContent),
+    ).toEqual(['Mês', 'Informados', 'Reincidentes', 'Taxa'])
+    expect(within(tabela).getAllByRole('row')[1]).toHaveTextContent('37')
+    expect(el).toHaveTextContent('com o campo de reincidência informado')
+  })
+
+  it('S12 mostra a cobertura "n de N" quando o campo não está em todos os chamados', async () => {
+    const fonte = new FonteAjustada({
+      S12: (r: Qualquer) => {
+        r.cobertura = { n: 30, total: 50 }
+      },
+    })
+    renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    expect(await screen.findByTestId('cobertura-S12')).toHaveTextContent(
+      'Campo preenchido em 30 de 50 chamados',
+    )
+  })
+
+  it('S12 com cobertura total não mostra o aviso', async () => {
+    const fonte = new FonteAjustada({
+      S12: (r: Qualquer) => {
+        r.cobertura = { n: 50, total: 50 }
+      },
+    })
+    renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    await screen.findByTestId('metrica-S12')
+    expect(screen.queryByTestId('cobertura-S12')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('campo-sem-fonte-S12')).not.toBeInTheDocument()
+  })
+
+  it('S12 sem fonte do campo: "Campo sem fonte" só na reincidência; volume e exceção de SLA seguem visíveis', async () => {
+    const fonte = new FonteAjustada({
+      S12: (r: Qualquer) => {
+        r.campoDisponivel = false
+        r.cobertura = { n: 0, total: 50 }
+      },
+    })
+    renderizarCartao(<CartaoS12 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    const el = await screen.findByTestId('metrica-S12')
+    expect(await within(el).findByTestId('campo-sem-fonte-S12')).toHaveTextContent(
+      'Campo sem fonte',
+    )
+    expect(within(el).queryByTestId('cobertura-S12')).not.toBeInTheDocument()
+    expect(within(el).queryByRole('table', { name: /Reincidência por sistema/ })).toBeNull()
+    expect(el).toHaveTextContent('é o sistema com mais chamados no período')
+    expect(el).toHaveTextContent('Exceção de SLA por registro posterior')
+  })
+
+  it('O17 não diz "mais frequente" quando todas as causas têm 0 incidentes', async () => {
+    const zerado = new FonteAjustada({
+      O17: (r: Qualquer) => {
+        for (const c of r.porCausa) c.n = 0
+      },
+    })
+    const a = renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: zerado })
+    const el = await screen.findByTestId('metrica-O17')
+    await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'))
+    expect(el).not.toHaveTextContent('mais frequente')
+    expect(el).toHaveTextContent('Só a lista de causas é provisória')
+    a.unmount()
+    renderizarCartao(<CartaoO17 filtros={FILTROS_SUSTENTACAO} />, { fonte: fonteDeTeste })
+    expect(await screen.findByText(/A causa raiz mais frequente é/)).toBeInTheDocument()
   })
 
   it('S8 acima da referência diz "Acima de 5%"', async () => {

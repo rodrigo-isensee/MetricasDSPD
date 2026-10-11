@@ -1,4 +1,5 @@
 import { CATALOGO_CARTOES, ROTULO_PAINEL } from '@metricas-dspd/contratos'
+import { destinoDoCartao } from '@/lib/destinoCartao'
 import { CATALOGO, type PainelDaMetrica } from '@/content/catalogo-metricas'
 
 export interface LinhaCatalogo {
@@ -9,8 +10,8 @@ export interface LinhaCatalogo {
   grupo: 'Núcleo' | 'Complementar'
   fonte: 'BusinessMap' | 'Acelerato'
   granularidade: string
-  /** Segue o `status` do cartão no contrato: 'Fictícios' só onde ainda falta fonte real (`mock`). */
-  dados: 'Fictícios' | 'Da coleta'
+  /** Decisão 20: o app inteiro roda com dados fictícios até a coleta real existir. */
+  dados: 'Fictícios'
   /** Destino no app: o painel e, para complementares, o cartão (abre a seção "Mais métricas"). */
   destino: string
 }
@@ -26,8 +27,9 @@ const ROTULO: Record<PainelDaMetrica, string> = {
 /** As 45 métricas do briefing (28 do núcleo e 17 complementares), derivadas dos dois catálogos estáticos. */
 export function linhasDoCatalogo(): LinhaCatalogo[] {
   return CATALOGO.filter((m) => !FORA.has(m.id)).map((m) => {
-    const cartoes = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id))
-    const cartao = cartoes.find((c) => c.grupo === 'complementar')
+    const cartao = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id)).find(
+      (c) => c.grupo === 'complementar',
+    )
     return {
       codigo: m.codigo,
       nome: m.id === 'EI_FL1' ? 'Espera invisível' : m.nome,
@@ -36,8 +38,8 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
       grupo: cartao ? 'Complementar' : 'Núcleo',
       fonte: m.fonte,
       granularidade: m.granularidade,
-      dados: cartoes.some((c) => c.status === 'mock') ? 'Fictícios' : 'Da coleta',
-      destino: `/${m.painel}${cartao ? `#${cartao.id}` : ''}`,
+      dados: 'Fictícios',
+      destino: cartao ? destinoDoCartao(cartao) : `/${m.painel}`,
     }
   })
 }

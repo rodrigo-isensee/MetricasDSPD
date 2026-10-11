@@ -65,7 +65,8 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE: 'Quantos defeitos em produção foram entregues no mês e quanto pesam na vazão total.',
     comoSeCalcula:
       'Contagem mensal de entregues do tipo Defeito em produção e o percentual sobre a vazão de demandas. Abaixo de 20 entregas, só "k de n".',
-    comoLer: 'Leia junto com a taxa de escape (O15). Mais defeitos não significa mais valor.',
+    comoLer:
+      'Leia junto com Onde os bugs são encontrados (O15). Mais defeitos não significa mais valor.',
     meta: 'Sem alvo de volume.',
     cuidados: 'Nunca vale como meta de volume, nem por equipe nem por pessoa.',
   },
@@ -82,7 +83,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'A entrada e a correção de bugs por mês, o estoque aberto, por severidade, e a idade dos mais antigos.',
     comoSeCalcula:
       'Bugs = Bug interno + Defeito em produção. Idade em dias úteis; densidade = bugs por entrega concluída no mês (com 20 entregas ou mais).',
-    comoLer: 'Veja se o estoque cresce. Leia junto com a taxa de escape (O15).',
+    comoLer: 'Veja se o estoque cresce. Leia junto com Onde os bugs são encontrados (O15).',
     meta: 'Sem alvo de volume.',
     cuidados: 'Os itens mais antigos aparecem pelo identificador do card, sem nome de pessoa.',
   },
@@ -93,7 +94,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     comoLer: 'Concentração indica onde investir em prevenção.',
     meta: SEM_ALVO,
     cuidados:
-      'A lista de causas é provisória até a decisão final do critério. Por sistema, nunca por pessoa.',
+      'Só a lista de causas é provisória: é uma proposta do time, e o campo causa raiz virá do Metabase. Por sistema, nunca por pessoa.',
   },
   T6: {
     oQueE: 'Uma previsão de prazo ou de quantidade de itens a partir da vazão semanal real.',

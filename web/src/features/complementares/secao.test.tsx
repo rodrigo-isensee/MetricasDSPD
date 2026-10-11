@@ -110,7 +110,7 @@ describe('Mais métricas deste painel', () => {
     expect(await screen.findByTestId('metrica-T6')).toBeInTheDocument()
   })
 
-  it('sem complementar visível a seção some; com o painel todo oculto também', async () => {
+  it('sem complementar visível a seção vira uma linha de aviso, nunca some calada', async () => {
     window.localStorage.setItem(
       'metricas-dspd:preferencias:v1',
       JSON.stringify({
@@ -123,6 +123,24 @@ describe('Mais métricas deste painel', () => {
     await screen.findByRole('heading', { level: 1, name: 'Tático' })
     await screen.findByTestId('botao-metricas')
     expect(screen.queryByTestId('mais-metricas')).not.toBeInTheDocument()
+    expect(await screen.findByTestId('mais-metricas-ocultas')).toHaveTextContent(
+      '2 complementares ocultas pelas suas preferências',
+    )
+  })
+
+  it('na Sustentação, as 6 complementares ocultas aparecem na linha de aviso', async () => {
+    window.localStorage.setItem(
+      'metricas-dspd:preferencias:v1',
+      JSON.stringify({
+        versao: 1,
+        paineis: { sustentacao: { ocultar: ['s8', 's9', 's10', 's11', 'o17', 's12'] } },
+        atualizadoEm: '2026-10-10T00:00:00.000Z',
+      }),
+    )
+    renderizarApp('/sustentacao')
+    expect(await screen.findByTestId('mais-metricas-ocultas')).toHaveTextContent(
+      '6 complementares ocultas pelas suas preferências',
+    )
   })
 
   it('complementares não aparecem em "Pede atenção"', async () => {

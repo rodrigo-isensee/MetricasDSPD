@@ -14,7 +14,7 @@ import { textoTaxa } from '@/features/painel/propsCartao'
 import { fmtTempoPrioridade } from '@/features/sustentacao/formatar'
 import { fmtHorasUteis } from '@/lib/formatar'
 import { CartaoComplementar } from './CartaoComplementar'
-import { Leia } from './comuns'
+import { CampoSemFonte, Leia } from './comuns'
 
 interface P {
   filtros: FiltrosSustentacao
@@ -30,7 +30,7 @@ export function CartaoO17({ filtros }: P) {
       id="O17"
       q={q}
       leitura={
-        topo && topo.n >= 0
+        topo && topo.n > 0
           ? `A causa raiz mais frequente é ${topo.causa}, com ${fmtInteiro(topo.n)} incidentes.`
           : undefined
       }
@@ -55,7 +55,10 @@ export function CartaoO17({ filtros }: P) {
             categorias={r.porSistema.map((c) => ({ rotulo: c.sistema, valores: { n: c.n } }))}
             series={[{ chave: 'n', rotulo: 'Incidentes' }]}
           />
-          <Leia>A lista de causas é provisória até a decisão final do critério.</Leia>
+          <Leia>
+            Só a lista de causas é provisória: é uma proposta do time, e o campo causa raiz virá do
+            Metabase.
+          </Leia>
         </div>
       )}
     </CartaoComplementar>
@@ -73,7 +76,7 @@ export function CartaoS8({ filtros }: P) {
       baseVariante={d?.total.status === 'ok' ? 'ok' : 'insuficiente'}
       leitura={
         d
-          ? `${textoTaxa(d.total)} dos incidentes abertos no período são reincidentes (chamado com ticket anterior informado no campo de reincidência).`
+          ? `${textoTaxa(d.total)} dos incidentes com o campo de reincidência informado são reincidentes (chamado com ticket anterior). A taxa usa só os incidentes informados.`
           : undefined
       }
     >
@@ -100,6 +103,22 @@ export function CartaoS8({ filtros }: P) {
               chamados. A taxa considera só o que foi informado.
             </p>
           )}
+          <TabelaDados
+            codigo="S8-meses"
+            legenda="Incidentes com o campo reincidente informado (denominador da taxa), por mês de abertura"
+            colunas={[
+              { chave: 'm', titulo: 'Mês' },
+              { chave: 'i', titulo: 'Informados', alinhar: 'direita' },
+              { chave: 'r', titulo: 'Reincidentes', alinhar: 'direita' },
+              { chave: 't', titulo: 'Taxa', alinhar: 'direita' },
+            ]}
+            linhas={r.meses.map((m) => ({
+              m: fmtMes(m.mes),
+              i: fmtInteiro(m.informados),
+              r: fmtInteiro(m.reabertos),
+              t: textoTaxa(m.taxa),
+            }))}
+          />
           {r.total.status === 'ok' ? (
             <StatusMeta
               status={r.statusMeta}
@@ -282,6 +301,7 @@ export function CartaoS12({ filtros }: P) {
       id="S12"
       q={q}
       leitura={d && ordenados[0] ? leituraS12(d, ordenados[0]) : undefined}
+      semFonteParcial
     >
       {(r) => (
         <div className="flex flex-col gap-3">
@@ -294,23 +314,37 @@ export function CartaoS12({ filtros }: P) {
             categorias={ordenados.map(([sistema, n]) => ({ rotulo: sistema, valores: { n } }))}
             series={[{ chave: 'n', rotulo: 'Chamados' }]}
           />
-          <TabelaDados
-            codigo="S12-reincidencia"
-            legenda={`Reincidência por sistema nas últimas ${fmtInteiro(r.parametros.janelaSemanas)} semanas`}
-            vazio="Nenhum chamado na janela."
-            colunas={[
-              { chave: 's', titulo: 'Sistema' },
-              { chave: 'n', titulo: 'Chamados', alinhar: 'direita' },
-              { chave: 'r', titulo: 'Reincidentes', alinhar: 'direita' },
-              { chave: 'p', titulo: 'Proporção', alinhar: 'direita' },
-            ]}
-            linhas={r.reincidencia.map((x) => ({
-              s: x.sistema,
-              n: fmtInteiro(x.chamados),
-              r: fmtInteiro(x.reincidentes),
-              p: textoTaxa(x.proporcao),
-            }))}
-          />
+          {r.campoDisponivel ? (
+            <>
+              <TabelaDados
+                codigo="S12-reincidencia"
+                legenda={`Reincidência por sistema nas últimas ${fmtInteiro(r.parametros.janelaSemanas)} semanas`}
+                vazio="Nenhum chamado na janela."
+                colunas={[
+                  { chave: 's', titulo: 'Sistema' },
+                  { chave: 'n', titulo: 'Chamados', alinhar: 'direita' },
+                  { chave: 'i', titulo: 'Com campo informado', alinhar: 'direita' },
+                  { chave: 'r', titulo: 'Reincidentes', alinhar: 'direita' },
+                  { chave: 'p', titulo: 'Proporção', alinhar: 'direita' },
+                ]}
+                linhas={r.reincidencia.map((x) => ({
+                  s: x.sistema,
+                  n: fmtInteiro(x.chamados),
+                  i: fmtInteiro(x.informados),
+                  r: fmtInteiro(x.reincidentes),
+                  p: textoTaxa(x.proporcao),
+                }))}
+              />
+              {r.cobertura.n < r.cobertura.total && (
+                <p className="text-sm text-atencao" data-testid="cobertura-S12">
+                  Campo preenchido em {fmtInteiro(r.cobertura.n)} de {fmtInteiro(r.cobertura.total)}{' '}
+                  chamados. A proporção considera só o que foi informado.
+                </p>
+              )}
+            </>
+          ) : (
+            <CampoSemFonte codigo="S12" />
+          )}
           <Leia>
             Por sistema, nunca por pessoa. Reincidente é o chamado com ticket anterior informado.
           </Leia>

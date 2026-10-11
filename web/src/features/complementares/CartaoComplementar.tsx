@@ -38,6 +38,8 @@ interface Props<D extends Dto> {
   periodo?: Periodo
   acoes?: ReactNode
   semTabela?: boolean
+  /** O campo ausente atinge só uma parte do cartão: o resto é real e continua visível (o corpo trata `campoDisponivel`). */
+  semFonteParcial?: boolean
   className?: string
   children: (d: D) => ReactNode
 }
@@ -56,13 +58,14 @@ export function CartaoComplementar<D extends Dto>({
   periodo,
   acoes,
   semTabela,
+  semFonteParcial,
   className = 'lg:col-span-6',
   children,
 }: Props<D>) {
   const m = entradaDoCatalogo(id)
   const ficticio = CATALOGO_CARTOES.find((c) => c.id === id.toLowerCase())?.status === 'mock'
   const d = q.dados
-  const semFonte = d?.campoDisponivel === false
+  const semFonte = d?.campoDisponivel === false && !semFonteParcial
   return (
     <CartaoMetrica
       codigo={id}

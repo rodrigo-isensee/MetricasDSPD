@@ -38,7 +38,16 @@ function Conteudo({
   }, [aberta, alvo, alvoAtendido])
 
   const visiveis = p.cartoes.filter((c) => c.grupo === 'complementar' && !p.estaOculto(c.id))
-  if (p.tudoOculto || visiveis.length === 0) return null
+  if (visiveis.length === 0) {
+    // Nunca some sem aviso: a pessoa ocultou tudo e precisa saber que a seção existe (o painel sempre tem complementares).
+    const total = p.cartoes.filter((c) => c.grupo === 'complementar').length
+    return (
+      <p className="text-sm text-texto-2" data-testid="mais-metricas-ocultas">
+        {fmtInteiro(total)} {plural(total, 'complementar oculta', 'complementares ocultas')} pelas
+        suas preferências.
+      </p>
+    )
+  }
   const secoes = [...new Map(visiveis.map((c) => [c.secao, c.secaoTitulo]))]
   return (
     <details
