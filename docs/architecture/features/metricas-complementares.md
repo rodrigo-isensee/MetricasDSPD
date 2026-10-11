@@ -16,7 +16,7 @@ Regras comuns: percentis 50/85/95 na janela de `JANELA_PERCENTIS_PADRAO`; abaixo
 | O13 Vazão de defeitos | por mês: contagem de entregues `Defeito em produção` e % sobre a vazão total de demandas (mesma definição de `ehDemanda`+bug do O4). Sem alvo de volume | story | BM | Operacional / "Qualidade" |
 | O14 Origem da demanda | ranking por `area_solicitante` ou `sistema` (seletor de dimensão; nunca pessoa) do volume entregue/criado, decomposto por tipo; top 10 + "demais" | story | BM | Operacional / "O que entra?" |
 | O16 Estoque e idade de bugs | por mês: entrada × correção (bugs = `Bug interno` + `Defeito em produção`); abertos hoje por `severidade`; idade (dias úteis) dos 10 mais antigos (sem título de pessoa); densidade = bugs por entrega concluída no mês (via `origem_bug`) | story | BM | Operacional / "Qualidade" |
-| O17 Causa raiz e concentração | contagem de bugs concluídos por `causa_raiz` (domínio fechado, ver 2) e por `sistema` (módulo = sistema, Q a confirmar, 5) | story | BM | Operacional / "Qualidade" |
+| O17 Defeitos por causa raiz e sistema | contagem de incidentes encerrados por `causa_raiz` (domínio fechado, ver 2; campo via Metabase) e por sistema (categoria do chamado). Movida para a Sustentação por decisão do usuário (2026-10-11) | chamado | AC | Sustentação / "Qualidade" |
 | T6 Previsão probabilística | `preverTermino` e `preverItens` de `core/montecarlo` sobre a vazão semanal (itens/semana) de UMA classe de serviço de stories na janela; entrada: nº de itens ou nº de semanas; saída P50/P85/P95; `n` = itens da janela | story | BM | Tático / "Quando fica pronto?" |
 | T8 Sprint | por sprint: % do comprometido entregue (`entregues_do_comprometido ÷ comprometidos`), carry-over (comprometidos não entregues) e entrada não planejada (`itens adicionados após o início ÷ itens da sprint`). Sem alvo de 100% (7.2) | story | BM | Tático / "Estamos cumprindo o plano?" |
 | E4 Iniciadas × concluídas | por trimestre: projetos iniciados (`iniciado_em`), concluídos (`concluido_em`), acumulado em aberto; proporção manter × evoluir (natureza do projeto, ver 2) | projeto | BM | Estratégico / "Estamos terminando ou só começando?" |
@@ -39,7 +39,7 @@ Faltam no modelo (não existem em `DimCard`/`Chamado`):
 
 | Campo novo | Usado por | Domínio |
 |---|---|---|
-| `causa_raiz` por bug | O17 | lista fechada (briefing 4.4): Requisito, Código, Configuração, Dados, Ambiente, Integração, Teste insuficiente (valores finais: decisão 5.2) |
+| `causa_raiz` por incidente (Acelerato) | O17 | lista fechada (briefing 4.4): Requisito, Código, Configuração, Dados, Ambiente, Integração, Teste insuficiente (valores finais: decisão 5.2) |
 | `sprint` (id, início, fim) e `SprintCard` (card_id, sprint_id, `planejado_na_entrada: boolean`, `entregue: boolean`) | T8 | sprints quinzenais, só em equipes que usam |
 | `natureza_projeto: 'Manter' \| 'Evoluir'` por projeto | E4 | fechado |
 | `reaberto_de: chamado_id \| null` | S8 | só incidentes |
