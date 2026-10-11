@@ -58,11 +58,11 @@ describe('outbox (SQL com dublê)', () => {
   const S = montarEsquemas('t_');
   it('publicarEvento grava no schema core com parâmetros', async () => {
     const d = criarDublePg(() => [{ evento_id: 'u1' }]);
-    expect(await publicarEvento(d.cliente, { fonte: 'businessmap', tipo: 'bm.webhook.recebido', payload: { a: 1 } }, S)).toBe('u1');
+    expect(await publicarEvento(d.cliente, { fonte: 'businessmap', tipo: 'bm.webhook.recebido', payload: { webhookSk: '1', payloadSha256: 'b'.repeat(64) } }, S)).toBe('u1');
     expect(d.chamadas[0]!.texto).toContain('t_dspd_core.outbox');
-    expect(d.chamadas[0]!.valores).toEqual(['businessmap', 'bm.webhook.recebido', '{"a":1}']);
+    expect(d.chamadas[0]!.valores).toEqual(['businessmap', 'bm.webhook.recebido', JSON.stringify({ webhookSk: '1', payloadSha256: 'b'.repeat(64) })]);
     const d2 = criarDublePg(() => [{ evento_id: 'u2' }]);
-    await publicarEvento(d2.cliente, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: {} });
+    await publicarEvento(d2.cliente, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: { fonte: 'acelerato', coletaId: '3', status: 'sucesso' } });
     expect(d2.chamadas[0]!.texto).toContain('dspd_core.outbox');
   });
   it('backoff exponencial com teto', () => {
