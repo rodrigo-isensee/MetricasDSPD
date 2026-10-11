@@ -66,13 +66,13 @@ gitGraph
   checkout develop
   commit id: "feat(metricas): K-0xx"
   commit id: "test(metricas): K-0xx"
-  branch feature/pedido
-  checkout develop
   commit id: "fix(...): ajuste do review"
-  checkout feature/pedido
+  checkout main
+  branch "feature/pedido"
+  checkout "feature/pedido"
   merge develop id: "chore(integracao) --no-ff"
   checkout main
-  merge feature/pedido id: "PR mesclado pelo usuário"
+  merge "feature/pedido" id: "PR mesclado pelo usuário"
 ```
 
 ## 5. Fluxo de trabalho do time

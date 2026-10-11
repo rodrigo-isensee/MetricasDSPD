@@ -141,7 +141,7 @@ stateDiagram-v2
   Normalizando --> Estavel: nada a corrigir
   ComAviso --> Estavel: replace na URL + AvisoFiltrosInvalidos (spec 2.6)
   Silenciosa --> Estavel: replace sem aviso (2.6.1)
-  Estavel --> Lida: definir/remover/limpar (push: Voltar desfaz; "todos" = omitir)
+  Estavel --> Lida: definir/remover/limpar (push: Voltar desfaz, "todos" = omitir)
   Estavel --> Estavel: aba local (replace, padrão nunca na URL)
   Estavel --> Memoria: filtros de fluxo vão para a memória de sessão
   Memoria --> Lida: link para outro painel de fluxo reaplica equipe/tipo/sistema/período

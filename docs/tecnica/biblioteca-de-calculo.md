@@ -70,7 +70,7 @@ sequenceDiagram
   participant M as Métrica (ex.: O3)
   participant K as core
   F->>X: criarContextoBM(base, hoje, calendario)<br/>criarContextoAC(base, hoje, calendario)
-  Note over X: índice memoizado por base e calendário<br/>(WeakMap); "hoje" é parâmetro, nunca o relógio
+  Note over X: índice memoizado por base e calendário<br/>(WeakMap), "hoje" é parâmetro, nunca o relógio
   F->>C: calcularMetrica('O3', filtros, {bm, ac})
   C->>M: calcularO3(ctx.bm, filtros)
   M->>K: janela, amostraBM('story', valores, janela)
