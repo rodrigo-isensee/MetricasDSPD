@@ -53,6 +53,8 @@ jobs:
       - run: pnpm run cobertura
       # Conferência spec<->teste (Node puro, sem Python); o --check do plugin Siegard é só local.
       - run: pnpm run spec:check
+      # Contratos e diagramas: páginas geradas = código, compatibilidade dos schemas, links, órfãs, cabeçalho e Mermaid.
+      - run: pnpm run docs:check
 
   filtro:
     name: filtro
@@ -177,6 +179,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
+      - name: Diagramas Mermaid renderizam (mermaid-cli com o Chromium do Playwright)
+        run: |
+          export PUPPETEER_EXECUTABLE_PATH="$(pnpm --filter @metricas-dspd/e2e exec node -p "require('@playwright/test').chromium.executablePath()")"
+          pnpm run docs:mermaid
       - run: pnpm --filter @metricas-dspd/e2e run test:chromium
       - uses: actions/upload-artifact@v7
         if: failure()
