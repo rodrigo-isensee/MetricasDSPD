@@ -3,6 +3,7 @@
 - Data: 2026-10-10 · **Revisão 2: 2026-10-10** (substitui por inteiro o texto da revisão 1, que mantinha MySQL com `mysql2` e migrador próprio)
 - **Substitui:** ADR 0004 (MySQL) por inteiro.
 - **Substitui parcialmente:** ADR 0005 (Kysely, `Migrator`, `kysely-codegen` e `mysql2` saem; entram `pg` e node-pg-migrate), ADR 0013 (AWS, Lambdas e RDS viram alvo futuro; hoje tudo roda em Docker Compose; P14 respondida), ADR 0010 (CI no GitHub Actions com o Postgres do compose; deploy adiado), ADR 0002 (npm → pnpm), ADR 0007 e 0008 (Fastify 5 volta).
+- **Substituída parcialmente pela ADR 0015 (2026-10-11):** acesso a dados (`pg` puro sem query builder → Kysely sobre `pg`) e tipos (sem codegen → kysely-codegen). Os trechos afetados estão marcados com **[0015]**. O restante continua valendo.
 - **Não muda:** monólito modular e módulos da ADR 0013 §2–§3, Metabase como origem do Acelerato (ADR 0013 §4), a biblioteca única (ADR 0011), o contrato da coleta (ADR 0006, partes que a 0013 manteve), as regras de camadas e de LGPD do `data-model.md` (agora em Postgres).
 
 ## Contexto
@@ -19,7 +20,7 @@ Situação do código: o `server/` tem migrações MySQL 0001–0010 (Kysely + `
 | Monorepo | **pnpm** workspaces (`pnpm-workspace.yaml`, `workspace:*`, `packageManager` fixado, Corepack) |
 | HTTP | **Fastify 5** (`^5.5.0`) |
 | Banco | **PostgreSQL 17** (mínimo 15, por `NULLS NOT DISTINCT` e `security_invoker`), imagem oficial no compose |
-| Acesso a dados | **`pg` (node-postgres) puro**, `Pool` por papel, sem ORM nem query builder |
+| Acesso a dados | ~~**`pg` (node-postgres) puro**, `Pool` por papel, sem ORM nem query builder~~ **[0015]** Kysely sobre `pg`, `Pool` por papel, sem ORM |
 | Migrações | **node-pg-migrate**, migrações em TypeScript que emitem SQL explícito (`pgm.sql`) |
 | Eventos | **outbox transacional** em `dspd_core.outbox`, lida por **polling** (`FOR UPDATE SKIP LOCKED`), sem BullMQ, Redis ou fila |
 | Validação | **Zod 4** (`>=4.1.5`) em toda fronteira, schemas de `@metricas-dspd/contratos` |
@@ -37,9 +38,11 @@ O `pnpm-lock.yaml` versionado fixa as versões. Quem atualizar uma das bibliotec
 - Tipos e regras de modelagem no `data-model.md` §2: `timestamptz(3)`, `jsonb`, `bigint GENERATED ALWAYS AS IDENTITY`, `text` + `CHECK` no lugar de `ENUM`, `bytea` de 32 bytes para hash, `UNIQUE NULLS NOT DISTINCT`, índices parciais, GRANT por coluna, views `security_invoker`, gatilho que impede `UPDATE`/`DELETE`/`TRUNCATE` nas tabelas append-only.
 
 ### Acesso a dados com `pg`
+> **[0015]** `emTransacao` e as interfaces `Consultavel`/`PoolLike` saem (Kysely `transaction()`); a idempotência continua igual, escrita como `onConflict(oc => oc.constraint(...).doNothing())`. Pools, parsers e `statement_timeout` ficam.
+
 - `plataforma/db`: um `Pool` por papel (`dspd_api`, `dspd_webhook`, `dspd_coletor`, `dspd_ref`, `dspd_migrador`), `statement_timeout` por pool, `emTransacao(pool, fn)`, `ehDuplicado(erro)` (SQLSTATE `23505`). Parsers de tipo: `timestamptz` → `Date`, `int8` → `bigint` ou `string` (nunca `number` sem verificação), `numeric` → `string` convertido no repositório.
 - **Idempotência na escrita:** `INSERT ... ON CONFLICT ON CONSTRAINT <uq_nome> DO NOTHING RETURNING <pk>` é permitido **só com alvo explícito** (a restrição da chave natural). Zero linhas devolvidas = "já existente". Isto substitui o "INSERT + erro 1062" do MySQL, porque no Postgres um erro dentro da transação a aborta inteira. `ON CONFLICT` sem alvo e `ON CONFLICT ... DO UPDATE` são **proibidos** em staging, eventos, versões, `ref_` e `ctl_` (regra de lint sobre o SQL e teste). Qualquer outro erro é falha do item.
-- **Tipos:** cada repositório declara o tipo da linha da sua consulta e converte para os tipos da biblioteca. Nenhum tipo do driver sai do repositório (ADR 0005). Sem codegen: o descompasso é pego pelo teste de esquema (`information_schema`/`pg_catalog` comparado a um snapshot versionado) e pelos testes de integração de cada consulta.
+- **[0015: substituído por kysely-codegen, um arquivo por schema, `--verify` no CI]** ~~**Tipos:**~~ cada repositório declara o tipo da linha da sua consulta e converte para os tipos da biblioteca. Nenhum tipo do driver sai do repositório (ADR 0005). Sem codegen: o descompasso é pego pelo teste de esquema (`information_schema`/`pg_catalog` comparado a um snapshot versionado) e pelos testes de integração de cada consulta.
 - **Consultas listam colunas.** `SELECT *` é proibido em código e em views (necessário para o GRANT por coluna, abaixo).
 
 ### Migrações com node-pg-migrate
@@ -92,7 +95,7 @@ Jobs `check` (typecheck, lint, testes unitários), `db` (`docker compose up -d -
 
 ## Alternativas consideradas
 - **Manter MySQL com `mysql2` e migrador próprio (revisão 1):** descartada pelo usuário.
-- **ORM (Prisma) ou query builder (Kysely, Knex):** excluídos pela stack definida.
+- **ORM (Prisma) ou query builder (Kysely, Knex):** excluídos pela stack definida. **[0015]** Kysely readmitido; ORM continua excluído.
 - **BullMQ + Redis:** retentativa pronta, mas é peça a mais e perde a atomicidade com o banco. Excluído pelo usuário.
 - **Testcontainers:** isolamento por contêiner, mais lento e com Docker por teste. Excluído; o prefixo dá o isolamento.
 - **Database por execução (`CREATE DATABASE ... TEMPLATE`):** isolamento total, mas exige papel com `CREATEDB` e conexão nova por database; o schema prefixado é suficiente e é o que o usuário pediu.
