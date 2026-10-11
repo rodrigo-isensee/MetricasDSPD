@@ -1,7 +1,25 @@
 {
   "agent": "jarvis",
   "extraKnownMarketplaces": {
-    "siegard-generator": { "source": { "source": "github", "repo": "zig999/siegard2" } }
+    "siegard-generator": {
+      "source": { "source": "github", "repo": "zig999/siegard2" },
+      "autoUpdate": false
+    }
   },
-  "enabledPlugins": { "siegard@siegard-generator": true }
+  "enabledPlugins": { "siegard@siegard-generator": true },
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f *)",
+      "Bash(git * --no-verify*)",
+      "Bash(git config * core.hooksPath*)"
+    ],
+    "ask": ["Bash(gh pr merge*)", "Bash(gh api * -X PUT*)"]
+  }
 }
