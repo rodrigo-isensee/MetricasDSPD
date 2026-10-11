@@ -86,6 +86,8 @@ export function ProvedorPainelPreferencias({
   useEffect(() => {
     const id = hash.slice(1)
     const c = cartaoPorId(painel, id)
+    // Sincroniza com a URL (sistema externo): abrir a seção é a reação ao hash.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (c?.grupo === 'complementar') irParaComplementar(id)
     // Só o hash dispara; `irParaComplementar` muda a cada recorte e reabriria a seção à toa.
     // eslint-disable-next-line react-hooks/exhaustive-deps

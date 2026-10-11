@@ -73,7 +73,7 @@ describe('ramos dos componentes complementares', () => {
       }
       for (const p of v.projetos ?? []) if (p.previsao.valor) p.previsao.valor.granularidade = 'dia'
     }
-    const fonte = new FonteAjustada({ T6: aDia as never, E5: aDia as never })
+    const fonte = new FonteAjustada({ T6: aDia, E5: aDia })
     renderizarCartao(<CartaoT6 filtros={FILTROS_FLUXO} />, { fonte })
     const t6 = await screen.findByTestId('metrica-T6')
     await waitFor(() => expect(t6).toHaveAttribute('data-estado', 'ok'))
@@ -85,9 +85,9 @@ describe('ramos dos componentes complementares', () => {
 
   it('E4 sem registro de natureza conta zero', async () => {
     const fonte = new FonteAjustada({
-      E4: ((r: Qualquer) => {
+      E4: (r: Qualquer) => {
         for (const t of r.trimestres) t.iniciadosPorNatureza = []
-      }) as never,
+      },
     })
     renderizarCartao(<CartaoE4 filtros={FILTROS_FLUXO} />, { fonte })
     expect(await screen.findByTestId('natureza-E4')).toHaveTextContent(
@@ -97,10 +97,10 @@ describe('ramos dos componentes complementares', () => {
 
   it('S8 acima da referência diz "Acima de 5%"', async () => {
     const fonte = new FonteAjustada({
-      S8: ((r: Qualquer) => {
+      S8: (r: Qualquer) => {
         r.statusMeta = 'fora'
         r.total = { status: 'ok', k: 10, n: 40, pct: 25 }
-      }) as never,
+      },
     })
     renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
     expect(await screen.findByText('Acima de 5%')).toBeInTheDocument()

@@ -55,11 +55,7 @@ export function CartaoO5({ filtros }: P) {
             />
           )}
           {ok.length === 0 && (
-            <AmostraInsuficiente
-              n={Math.max(0, ...faltam.map((t) => t.n))}
-              codigo="O5"
-              oQue="Eficiência de fluxo"
-            />
+            <AmostraInsuficiente n={maiorN(faltam)} codigo="O5" oQue="Eficiência de fluxo" />
           )}
           {ok.length > 0 && (
             <ListaInsuficientes itens={faltam.map((t) => ({ rotulo: t.tipo, n: t.n }))} />
@@ -113,11 +109,7 @@ export function CartaoO6({ filtros }: P) {
             />
           )}
           {ok.length === 0 && (
-            <AmostraInsuficiente
-              n={Math.max(0, ...faltam.map((c) => c.n))}
-              codigo="O6"
-              oQue="A razão P85 ÷ P50"
-            />
+            <AmostraInsuficiente n={maiorN(faltam)} codigo="O6" oQue="A razão P85 ÷ P50" />
           )}
           {ok.length > 0 && (
             <ListaInsuficientes itens={faltam.map((c) => ({ rotulo: c.classe, n: c.n }))} />
@@ -180,7 +172,7 @@ export function CartaoO8({ filtros }: P) {
           )}
           {ok.length === 0 && (
             <AmostraInsuficiente
-              n={Math.max(0, ...faltam.map((t) => t.n))}
+              n={maiorN(faltam)}
               codigo="O8"
               oQue="Mediana, P85 e média do tamanho"
             />
@@ -454,4 +446,10 @@ export function CartaoO17({ filtros }: P) {
       )}
     </CartaoComplementar>
   )
+}
+
+function maiorN(itens: readonly { n: number }[]): number {
+  let m = 0
+  for (const i of itens) if (i.n > m) m = i.n
+  return m
 }

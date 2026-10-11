@@ -22,7 +22,7 @@ describe('Mais métricas deste painel', () => {
       const resumo = await screen.findByText(
         new RegExp(`Mais métricas deste painel · ${n} complementares`),
       )
-      const det = screen.getByTestId('mais-metricas') as HTMLDetailsElement
+      const det = screen.getByTestId<HTMLDetailsElement>('mais-metricas')
       expect(det.open).toBe(false)
       await waitFor(() => expect(spy).toHaveBeenCalled())
       for (const id of ids) expect(spy.mock.calls.some((c) => c[0] === id)).toBe(false)
@@ -64,7 +64,7 @@ describe('Mais métricas deste painel', () => {
   it('link direto com #id (vindo do catálogo) abre a seção no cartão', async () => {
     renderizarApp('/sustentacao#s9')
     expect(await screen.findByTestId('metrica-S9')).toBeInTheDocument()
-    expect((screen.getByTestId('mais-metricas') as HTMLDetailsElement).open).toBe(true)
+    expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
   })
 
   it('ocultar uma complementar reduz a contagem; "Leia junto" some com o par oculto', async () => {

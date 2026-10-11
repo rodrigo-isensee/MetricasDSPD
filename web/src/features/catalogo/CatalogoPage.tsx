@@ -11,7 +11,7 @@ const GRUPOS = ['Todos', 'Núcleo', 'Complementar'] as const
  * Dado estático do bundle (sem endpoint, sem dado pessoal). Nenhuma métrica é plotada aqui.
  */
 export default function CatalogoPage() {
-  const todas = useMemo(linhasDoCatalogo, [])
+  const todas = useMemo(() => linhasDoCatalogo(), [])
   const [grupo, setGrupo] = useState<(typeof GRUPOS)[number]>('Todos')
   const [painel, setPainel] = useState('todos')
   const paineis = [...new Map(todas.map((l) => [l.painel, l.painelRotulo]))]
