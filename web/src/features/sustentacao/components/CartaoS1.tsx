@@ -13,6 +13,7 @@ import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { fmtTempoPrioridade } from '../formatar'
 import { NOTAS_SUSTENTACAO } from '../notas'
 import { TextoInsuficiente } from './comuns'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 type Linha = ResultadoS1['prioridades'][number]
 type Classe = Linha['restauracao']
@@ -173,6 +174,7 @@ export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
           {MEDIDAS.map((medida) => (
             <Bloco key={medida.chave} medida={medida} linhas={d.prioridades} />
           ))}
+          <LeiaJunto id="s1" />
         </div>
       )}
     </CartaoMetrica>

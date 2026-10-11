@@ -8,7 +8,7 @@ const busca = (r: { roteador: { state: { location: { search: string; pathname: s
   new URLSearchParams(r.roteador.state.location.search)
 
 describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
-  it('navegação com exatamente os 7 destinos na ordem e aria-current na rota atual', async () => {
+  it('navegação com exatamente os 8 destinos na ordem e aria-current na rota atual', async () => {
     renderizarApp('/operacional')
     await screen.findByRole('heading', { level: 1, name: 'Operacional' })
     const nav = screen.getAllByRole('navigation', { name: 'Navegação principal' })[0] as HTMLElement
@@ -22,6 +22,7 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
       'Estratégico',
       'Sustentação',
       'Espera invisível',
+      'Catálogo de métricas',
       'Dados e coletas',
     ])
     expect(within(nav).getByRole('link', { name: 'Operacional' })).toHaveAttribute(

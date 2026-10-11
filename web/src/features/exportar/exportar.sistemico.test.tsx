@@ -42,7 +42,7 @@ describe('Exportar nos painéis (sistêmico)', () => {
     const dlg = await abrir(user, 'Exportar')
     expect(spy).not.toHaveBeenCalled()
     expect(within(dlg).getAllByRole('checkbox')).toHaveLength(
-      cartoesDoPainel('operacional').length - 2,
+      cartoesDoPainel('operacional').filter((c) => c.grupo === 'nucleo').length - 2,
     )
     expect(within(dlg).queryByRole('checkbox', { name: /O9 / })).not.toBeInTheDocument()
     const baixar = await gerar(user, dlg)
