@@ -130,15 +130,15 @@ describe('metas, janela e aplicabilidade', () => {
 
   it('sustentação e fluxo não se misturam: nenhuma métrica S/EI_SUST tem aplicabilidade de fluxo', () => {
     for (const id of METRICAS_SUSTENTACAO) expect(APLICABILIDADE_FLUXO[id]).toBeUndefined()
-    expect(METRICAS_SUSTENTACAO).toHaveLength(8)
+    expect(METRICAS_SUSTENTACAO).toHaveLength(13)
     for (const [, chaves] of Object.entries(APLICABILIDADE_FLUXO))
       expect(chaves).toContain('periodo')
   })
 })
 
 describe('schemas de resultado', () => {
-  it('há exatamente um schema por métrica (33)', () => {
-    expect(METRICA_IDS).toHaveLength(33)
+  it('há exatamente um schema por métrica (50)', () => {
+    expect(METRICA_IDS).toHaveLength(50)
     expect(Object.keys(SCHEMAS_RESULTADO).sort()).toEqual([...METRICA_IDS].sort())
   })
 

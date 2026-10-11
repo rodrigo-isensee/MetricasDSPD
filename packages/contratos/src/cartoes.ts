@@ -31,6 +31,10 @@ export interface CartaoCatalogo {
   metricas: readonly MetricaId[]
   /** Pares "leia junto": o link some se o par está oculto. */
   leiaJunto?: readonly CartaoId[]
+  /** Núcleo (briefing) ou complementar (seção "Mais métricas deste painel"). */
+  grupo: 'nucleo' | 'complementar'
+  /** 'mock' = dado fictício até a coleta real (a interface rotula "Dados fictícios"). */
+  status: 'disponivel' | 'mock'
 }
 
 type Def = readonly [
@@ -45,6 +49,7 @@ function secao(
   id: string,
   titulo: string,
   cartoes: readonly Def[],
+  grupo: CartaoCatalogo['grupo'] = 'nucleo',
 ): CartaoCatalogo[] {
   return cartoes.map(([codigo, rotulo, metricas, par]) => ({
     id: codigo.toLowerCase(),
@@ -55,6 +60,8 @@ function secao(
     secaoTitulo: titulo,
     metricas: metricas ?? [codigo as MetricaId],
     ...(par ? { leiaJunto: [par] } : {}),
+    grupo,
+    status: grupo === 'nucleo' ? ('disponivel' as const) : ('mock' as const),
   }))
 }
 
@@ -65,18 +72,18 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['O1', 'Trabalho em progresso e limite'],
   ]),
   ...secao('operacional', 'tempo', 'Tempo', [
-    ['O3', 'Tempo de ciclo'],
+    ['O3', 'Tempo de ciclo', undefined, 'o6'],
     ['O9', 'Os três relógios do pedido'],
     ['EI-FL1', 'Espera invisível · Operacional', ['EI_FL1']],
   ]),
-  ...secao('operacional', 'fluxo', 'Fluxo', [['O4', 'Vazão semanal']]),
+  ...secao('operacional', 'fluxo', 'Fluxo', [['O4', 'Vazão semanal', undefined, 'o8']]),
   ...secao('operacional', 'compromissos', 'Compromissos', [['O12', 'Acordos e vencidos']]),
   ...secao('operacional', 'backlog', 'Backlog', [
     ['O10', 'Envelhecimento do backlog'],
     ['O7', 'Entrada × saída por tipo'],
   ]),
   ...secao('operacional', 'qualidade', 'Qualidade', [
-    ['O15', 'Onde os bugs são encontrados'],
+    ['O15', 'Onde os bugs são encontrados', undefined, 'o13'],
     ['O18', 'Entregas com e sem bug', undefined, 'o4'],
   ]),
   ...secao('tatico', 'publicado', 'Estamos cumprindo o que publicamos?', [
@@ -107,7 +114,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ]),
   ...secao('sustentacao', 'prazos', 'Prazos', [
     ['S2', 'Aderência ao SLA'],
-    ['S1', 'Primeiro atendimento e restauração'],
+    ['S1', 'Primeiro atendimento e restauração', undefined, 's9'],
   ]),
   ...secao('sustentacao', 'volume', 'Volume e resolução', [
     ['S3', 'Volume mensal por prioridade'],
@@ -121,6 +128,95 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ...secao('sustentacao', 'espera', 'Espera invisível do nível', [
     ['EI-SUST', 'Espera invisível · Sustentação', ['EI_SUST']],
   ]),
+
+  // Complementares (dados mockados): seção = a pergunta do painel.
+  ...secao(
+    'operacional',
+    'por-que-demora',
+    'Por que demora?',
+    [
+      ['O5', 'Eficiência de fluxo'],
+      ['O6', 'Previsibilidade'],
+      ['O8', 'Tamanho das demandas'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'operacional',
+    'o-que-entra',
+    'O que entra?',
+    [
+      ['O11', 'Composição do backlog'],
+      ['O14', 'Origem da demanda'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'operacional',
+    'qualidade-compl',
+    'Qualidade',
+    [
+      ['O13', 'Vazão de defeitos'],
+      ['O16', 'Estoque e idade de bugs'],
+      ['O17', 'Causa raiz e concentração'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'tatico',
+    'quando-fica-pronto',
+    'Quando fica pronto?',
+    [['T6', 'Previsão probabilística']],
+    'complementar',
+  ),
+  ...secao(
+    'tatico',
+    'cumprindo-o-plano',
+    'Estamos cumprindo o plano?',
+    [['T8', 'Sprint']],
+    'complementar',
+  ),
+  ...secao(
+    'estrategico',
+    'terminando-ou-comecando',
+    'Estamos terminando ou só começando?',
+    [['E4', 'Iniciadas × concluídas']],
+    'complementar',
+  ),
+  ...secao(
+    'estrategico',
+    'quando-termina',
+    'Quando termina?',
+    [['E5', 'Previsão de término']],
+    'complementar',
+  ),
+  ...secao(
+    'sustentacao',
+    'por-que-demora',
+    'Por que demora?',
+    [
+      ['S9', 'Tempo em pendência'],
+      ['S10', 'Fila de atribuição'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'sustentacao',
+    'qualidade',
+    'Qualidade',
+    [
+      ['S8', 'Taxa de reabertura'],
+      ['S11', 'Avaliação de Problema'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'sustentacao',
+    'o-que-entra',
+    'O que entra?',
+    [['S12', 'Volume por sistema']],
+    'complementar',
+  ),
 ]
 
 /** Ids de cartões retirados do catálogo ou renomeados (`novo` ou `null`): aplicado na leitura, em silêncio. */

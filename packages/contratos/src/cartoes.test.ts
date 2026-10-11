@@ -30,6 +30,35 @@ describe('catálogo de cartões', () => {
       for (const par of c.leiaJunto ?? []) expect(cartaoPorId(c.painel, par)).toBeDefined()
   })
 
+  it('classifica os cartões: 32 do núcleo disponíveis e 17 complementares em mock', () => {
+    const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar')
+    expect(compl.map((c) => c.codigo).sort()).toEqual(
+      [
+        'O5',
+        'O6',
+        'O8',
+        'O11',
+        'O13',
+        'O14',
+        'O16',
+        'O17',
+        'T6',
+        'T8',
+        'E4',
+        'E5',
+        'S8',
+        'S9',
+        'S10',
+        'S11',
+        'S12',
+      ].sort(),
+    )
+    for (const c of compl) expect(c.status).toBe('mock')
+    for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'nucleo'))
+      expect(c.status).toBe('disponivel')
+    expect(CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo')).toHaveLength(32)
+  })
+
   it('acha por id e devolve undefined para o inexistente', () => {
     expect(cartaoPorId('operacional', 'o9')?.codigo).toBe('O9')
     expect(cartaoPorId('tatico', 'o9')).toBeUndefined()
