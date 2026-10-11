@@ -67,19 +67,18 @@ Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras
 - Item que "bloqueia" fora do orçamento bloqueia o review e o PR. Exceção só registrada na ADR 0003 (item, valor medido, motivo, remédio, prazo), aprovada por arquiteto e tech-lead e comunicada ao usuário. Mudar o orçamento exige alterar a ADR.
 - Rotas `lazy`; gerador mock e biblioteca em chunk por `import()` dinâmico, pacotes com `"sideEffects": false`; Recharts só no chunk de gráficos.
 
-## 6. Modelagem MySQL (rascunho — revisar no 002 com o arquiteto, D13)
-- MySQL 8, InnoDB, `utf8mb4` / `utf8mb4_0900_ai_ci`, `snake_case`.
-- Datas em UTC, `DATETIME(3)`; conversão para `America/Sao_Paulo` só na apresentação.
-- Schemas separados por origem: `dspd_bm` (BusinessMap), `dspd_ac` (Acelerato), `dspd_core` (referência e critérios). Nenhuma consulta junta `dspd_bm` com `dspd_ac`.
+## 6. Modelagem PostgreSQL (decidida na [ADR 0014](../architecture/adr/0014-stack-tecnica-do-back-end.md); detalhe em `docs/architecture/data-model.md`)
+- PostgreSQL 17, `pg` puro (sem ORM nem query builder), migrações com node-pg-migrate, `snake_case`.
+- Datas em `timestamptz` (UTC); conversão para `America/Sao_Paulo` só na apresentação. JSON em `jsonb`.
+- Schemas nativos separados por origem: `dspd_bm` (BusinessMap), `dspd_ac` (Acelerato), `dspd_core` (referência, critérios, outbox). Nenhuma consulta junta `dspd_bm` com `dspd_ac`.
 - Prefixos de camada: `stg_`, `dim_`, `fato_`, `ref_`.
-- **Append-only:** staging e eventos nunca sofrem `UPDATE`/`DELETE` de histórico; mudança de atributo vira nova versão (SCD2) ou novo evento. Cartões arquivados e excluídos permanecem (com marcação).
-- **Idempotência:** restrição `UNIQUE` na chave natural da origem (ex.: `card_id` + `momento` + `tipo_evento`); recarga do mesmo lote não duplica nem altera.
-- Toda FK indexada; todo filtro de painel coberto por índice; `EXPLAIN` das consultas principais registrado no data-model.
-- **Nenhuma dimensão por pessoa.** Responsável/usuário não é coluna de dimensão nem de agrupamento. Se a carga precisar de identificador de pessoa para regra de negócio (ex.: deduplicação), discutir em ADR, com LGPD, antes da migração.
-- Colunas que vêm das extensões ao modelo 4.5 (ex.: `titulo`) entram marcadas como provisórias no data-model.
-- Migrações versionadas, uma mudança por migração, com caminho de volta; migração aplicada nunca é editada. Ferramenta definida em ADR no 002.
+- **Append-only:** staging e eventos nunca sofrem `UPDATE`/`DELETE` de histórico (gatilho no banco); mudança de atributo vira nova versão (SCD2) ou novo evento. Cartões arquivados e excluídos permanecem.
+- **Idempotência:** `ON CONFLICT ON CONSTRAINT ... DO NOTHING RETURNING` com alvo obrigatório; recarga do mesmo lote não duplica nem altera.
+- Toda FK indexada; todo filtro de painel coberto por índice; `EXPLAIN (ANALYZE)` das consultas principais registrado em `docs/architecture/server.md`.
+- **Pessoas:** nomes ficam no analítico (`responsaveis`, `usuario`), mas **GRANT por coluna** impede a API de lê-los; nenhuma dimensão, view, rota ou DTO agrupa ou expõe por pessoa.
+- Migrações versionadas, uma mudança por migração, com caminho de volta; migração aplicada nunca é editada.
 - Toda mudança de esquema passa pela revisão de modelagem (tech-lead + arquiteto) **antes** de a migração ser escrita.
-- Credenciais só em `.env` (nunca versionado); usuário do MySQL do Acelerato somente leitura.
+- Credenciais só em `.env` (nunca versionado); a fonte do Acelerato é somente leitura (Metabase).
 
 ## 7. Definição de pronto (por cartão)
 1. `pnpm run check` verde (lint + typecheck + test) e `pnpm run build` verde: até a extração, em `web/`; depois, na raiz (todos os workspaces). Bundle (F6, F8, F9) e testes de tempo (C2, C3, C4) dentro dos limites de CI.
@@ -133,7 +132,7 @@ Ordem, falhando no primeiro erro, por workspace afetado:
 3. `test` (`TZ=UTC`)
 4. `build`
 5. `size` (orçamento de bundle F6–F9 do ADR 0003: `size-limit` ou script de gzip sobre `dist/assets`)
-6. E2E Playwright + axe (projeto `mock`; no 002 também o projeto `api` contra MySQL 8 em container, com teste de paridade mock × seed — D15)
+6. E2E Playwright + axe (projeto `mock`; no 002 também o projeto `api` contra PostgreSQL 17 em container, com teste de paridade mock × seed — D15)
 7. Lighthouse CI desktop (F10: Performance ≥ 90, Acessibilidade ≥ 95) e projeto `perf` do Playwright (F1–F5, C5, C6) na pré-entrega
 
 Até o CI existir, o autor roda 1 a 5 localmente (`pnpm run check && pnpm run build && pnpm run size`) e o QA roda 6 e 7 na máquina de referência.
