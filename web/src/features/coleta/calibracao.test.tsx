@@ -9,7 +9,8 @@ import {
   StatusMeta,
   idDeMetrica,
 } from '@/components/ui'
-import { renderizarApp } from '@/test/helpers'
+import { renderizarApp, renderizarCartao } from '@/test/helpers'
+import { CalibracaoDasFontes } from './CalibracaoDasFontes'
 import { dominiosDaRota } from './fontes'
 
 const SUST = '/sustentacao'
@@ -54,7 +55,7 @@ describe('calibração: componentes', () => {
       'Dados de calibração (Acelerato, 15/09 a 13/11/2026; 01/10 a 29/11/2026',
     )
     expect(faixa).toHaveTextContent('não para cobrar pessoas ou times')
-    expect(screen.getByRole('link', { name: 'Saiba mais' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Saiba mais sobre a calibração' })).toHaveAttribute(
       'href',
       '/dados?fonte=ac#calibracao',
     )
@@ -113,6 +114,27 @@ describe('calibração: componentes', () => {
     expect(screen.getByTestId('faixa-atencao-carregando')).toBeInTheDocument()
     expect(screen.queryByText('T2 fora')).not.toBeInTheDocument()
     expect(screen.getByTestId('metrica-T2')).toHaveAttribute('data-estado', 'carregando')
+    expect(screen.queryByText('Fora da meta')).not.toBeInTheDocument()
+  })
+
+  it('com a leitura do estado de coleta falha (statusOculto) o status de meta some (R5)', () => {
+    render(
+      <MemoryRouter>
+        <ProvedorCalibracao metricas={new Set()} pronta statusOculto>
+          <StatusMeta status="fora" />
+          <CartaoMetrica
+            codigo="T2"
+            titulo="Aderência"
+            pergunta="?"
+            estado="ok"
+            nota={{ oQueE: 'a', comoSeCalcula: 'b', comoLer: 'c', meta: 'd', cuidados: 'e' }}
+            fonte="BusinessMap"
+            granularidade="frente"
+            statusMeta="fora"
+          />
+        </ProvedorCalibracao>
+      </MemoryRouter>,
+    )
     expect(screen.queryByText('Fora da meta')).not.toBeInTheDocument()
   })
 
@@ -179,5 +201,37 @@ describe('calibração na Sustentação (sistêmico: coletas mock -> hooks -> p�
     ).not.toBeInTheDocument()
     const alertas = screen.getByTestId('faixa-atencao')
     expect(within(alertas).queryByText(/Sustentação:/)).not.toBeInTheDocument()
+  })
+})
+
+describe('calibração: leitura falha e Visão geral', () => {
+  it('coleta-erro: a falha de leitura oculta o Dentro/Fora da meta; sem falha ele aparece (R5)', async () => {
+    const cartaoT2 = (
+      <CalibracaoDasFontes>
+        <CartaoMetrica
+          codigo="T2"
+          titulo="Aderência"
+          pergunta="?"
+          estado="ok"
+          nota={{ oQueE: 'a', comoSeCalcula: 'b', comoLer: 'c', meta: 'd', cuidados: 'e' }}
+          fonte="BusinessMap"
+          granularidade="frente"
+          statusMeta="fora"
+        />
+      </CalibracaoDasFontes>
+    )
+    const r = renderizarCartao(cartaoT2, { url: '/?mock=coleta-erro:bm' })
+    const t2 = await screen.findByTestId('metrica-T2')
+    await waitFor(() => expect(t2).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    expect(within(t2).queryByText('Fora da meta')).not.toBeInTheDocument()
+    r.unmount()
+    renderizarCartao(cartaoT2, { url: '/' })
+    expect(await screen.findByText('Fora da meta', {}, { timeout: 8000 })).toBeInTheDocument()
+  })
+
+  it('Visão geral: o nível com indicador em calibração mostra só o selo (R4)', async () => {
+    renderizarApp('/')
+    const selo = await screen.findByTestId('calibracao-nivel-sustentacao')
+    expect(selo).toHaveTextContent('Em calibração')
   })
 })

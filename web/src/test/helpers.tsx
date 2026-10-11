@@ -5,14 +5,19 @@ import { BarraFiltros, useFiltros, type PainelId } from '@/features/filtros'
 import { Provedores } from '@/app/App'
 import { criarRoteadorMemoria } from '@/app/router'
 import { MockFonteMetricas } from '@/data'
+import type { FontePreferencias } from '@/features/preferencias'
 
 /** Uma fonte para todos os testes: a base fictícia é gerada uma única vez; latência 0 (D7 se testa à parte). */
 export const fonteDeTeste = new MockFonteMetricas({ latenciaMs: 0 })
 
-export function renderizarApp(url: string, fonte: MockFonteMetricas = fonteDeTeste) {
+export function renderizarApp(
+  url: string,
+  fonte: MockFonteMetricas = fonteDeTeste,
+  fontePreferencias?: FontePreferencias,
+) {
   const roteador = criarRoteadorMemoria([url])
   const r = render(
-    <Provedores fonte={fonte}>
+    <Provedores fonte={fonte} {...(fontePreferencias ? { fontePreferencias } : {})}>
       <RouterProvider router={roteador} />
     </Provedores>,
   )
@@ -33,6 +38,7 @@ beforeAll(async () => {
     import('@/features/sustentacao/SustentacaoPage'),
     import('@/features/espera-invisivel/EsperaInvisivelPage'),
     import('@/features/dados/DadosPage'),
+    import('@/features/preferencias/PreferenciasPage'),
   ])
 }, 60000)
 

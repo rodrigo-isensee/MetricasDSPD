@@ -23,6 +23,7 @@ configure({ asyncUtilTimeout: 5000 })
 
 afterEach(() => {
   cleanup()
+  window.localStorage.clear()
 })
 
 // Recharts e Radix precisam destes recursos de navegador, ausentes no jsdom.

@@ -19,6 +19,7 @@ import {
 } from './Calibracao'
 import { ChipFiltros, ChipFonte, ChipGranularidade, ChipMeta } from './Chips'
 import { useContextoPainel } from './ContextoPainel'
+import { useCartaoVisivel, usePreferenciasPainel } from './PreferenciasPainel'
 import { ALTURAS_ESQUELETO, ALTURAS_ESQUELETO_MOBILE } from './alturasEsqueleto'
 import { ALTURA_ESQUELETO_PADRAO, EsqueletoCartao, useEsqueleto } from './EsqueletoCartao'
 import { EstadoErro } from './EstadoErro'
@@ -86,13 +87,14 @@ export interface CartaoMetricaProps {
 /** Períodos que coincidem com a janela de percentis (em semanas): nestes o selo "Janela fixa" não aparece. */
 const SEMANAS_DO_PERIODO: Partial<Record<Periodo['tipo'], number>> = { '4s': 4, '12s': 12 }
 
-export function CartaoMetrica(p: CartaoMetricaProps) {
+function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const [modo, setModo] = useState<ModoVisual>('grafico')
   const [notaAberta, setNotaAberta] = useState(false)
   const idTitulo = useId()
   const idLeitura = useId()
   const idNota = useId()
   const { filtrosAtivos, reportarAtualizando } = useContextoPainel()
+  const prefs = usePreferenciasPainel()
   const id = p.codigo.toLowerCase()
   const calibrando = useEmCalibracao()(p.codigo)
   const calibracaoPronta = useCalibracaoPronta()
@@ -183,6 +185,17 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
                 onAlternar={() => setModo((m) => (m === 'grafico' ? 'tabela' : 'grafico'))}
                 codigo={p.codigo}
               />
+            )}
+            {prefs?.cartoes.some((c) => c.id === id) && (
+              <button
+                type="button"
+                onClick={() => prefs.ocultarCartao(id)}
+                aria-label={`Ocultar esta métrica ${p.codigo}`}
+                data-testid={`ocultar-${p.codigo}`}
+                className="alvo inline-flex items-center rounded text-sm text-acento underline"
+              >
+                Ocultar
+              </button>
             )}
           </div>
         </div>
@@ -289,4 +302,10 @@ export function CartaoMetrica(p: CartaoMetricaProps) {
       </footer>
     </div>
   )
+}
+
+/** Métrica oculta pela pessoa não é desenhada (a consulta e os alertas seguem); fora de painel com preferências, sempre. */
+export function CartaoMetrica(p: CartaoMetricaProps) {
+  const oculto = !useCartaoVisivel(p.codigo.toLowerCase())
+  return oculto ? null : <CartaoMetricaVisivel {...p} />
 }

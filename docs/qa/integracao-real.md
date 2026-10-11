@@ -65,3 +65,13 @@ Ambiente: Chromium local, `vite preview` com `VITE_MOCK_LATENCIA=0`, branch `fea
 - Não executados: testes unitários de back e front (fora do escopo pedido).
 
 Veredito: aprovado com ressalva. Funcional e acessibilidade ok; pendente o IR-001 (CLS mobile) e a conferência da perf completa após a correção.
+
+### Revisão 2 (2026-10-10, após K-061/K-062; build novo, Chromium local, portas 4173/4174)
+- `npm run pronto`: verde (back 17+343, 107, 445 no front etc.). `npm run gate` (e2e): APROVADO (base mock idêntica, bundle ok).
+- E2E completa (chromium + semente-alt), 2 workers: 250/250 antes de acrescentar CT-34. Com workers padrão (paralelismo alto) houve 9 falhas (axe, FIL-03/04, OP-10/11, A11Y-03) que passaram isoladas e com 2 workers: instabilidade por carga da máquina (WSL), registrada, sem skip.
+- axe: zero violações críticas ou sérias nas rotas de `integracao-real-evidencias` e CT-27 (inclui `/operacional` com falha de coleta).
+- `test:perf` (CLS a 375): 0,000 a 0,007 em todas as rotas, orçamento 0,1. **IR-001 fechado.** Desktop: CLS 0,021 ok; C6 (tarefa longa < 200 ms) em `/` falhou em 3 de 4 rodadas (204 a 323 ms), outras rotas ok. Não relacionado a CLS; reportado como instável/limite apertado em máquina carregada, não alterado.
+- Capturas UX (`docs/qa/evidencias/integracao-real/`): M-1 `m1-selo-falha-coleta-falhou-*.png` (selo Falha + "Coleta falhou em ... Mostrando dados de ..."); M-2 `m2-pede-atencao-omitidos-*.png` (aviso de itens omitidos visível, sem "Verificando..."); `selo-falha-*` refeitas em `/operacional`. As antigas usavam `?mock=coleta-erro:bm`, que é falha de leitura, não de coleta.
+- Novo: **IR-002** (média, react-frontend): `?mock=coleta-erro:bm` fica em "Verificando a coleta..." e não mostra "Tentar de novo". CT-34 falha de propósito (sem skip).
+
+Veredito: aprovado com ressalva. IR-001 fechado; aberto IR-002 (média) e a instabilidade de C6 em `/`; sem bugs críticos ou altos.

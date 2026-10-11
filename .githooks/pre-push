@@ -6,4 +6,16 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     exit 1
   fi
 done
+
+# Checagem rápida antes de enviar (lint + typecheck); o resto fica com o CI.
+# Com alterações não commitadas (ex.: outro agente trabalhando na mesma árvore), uma falha pode não ser do commit
+# enviado: nesse caso só avisa, e o CI valida o commit de verdade.
+if ! { pnpm run lint && pnpm run typecheck; } >&2; then
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "pre-push: lint/typecheck falharam com a árvore suja; seguindo (o CI valida o commit enviado)." >&2
+  else
+    echo "pre-push: lint/typecheck falharam; corrija antes de enviar." >&2
+    exit 1
+  fi
+fi
 exit 0

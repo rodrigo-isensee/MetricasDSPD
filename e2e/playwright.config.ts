@@ -20,7 +20,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: `npm --prefix ../web run build && npm --prefix ../web run preview -- --port ${PORTA} --strictPort`,
+      command: `pnpm --dir ../web run build && pnpm --dir ../web run preview --port ${PORTA} --strictPort`,
       url: `http://localhost:${PORTA}`,
       reuseExistingServer: !CI,
       timeout: 180_000,
@@ -30,8 +30,8 @@ export default defineConfig({
       : [{
       // semente alternativa: o diretório de saída é separado para não sobrescrever o build padrão
       command:
-        `cd ../web && VITE_MOCK_SEMENTE=7 npx vite build --outDir dist-alt --emptyOutDir && ` +
-        `npx vite preview --outDir dist-alt --port ${PORTA_ALT} --strictPort`,
+        `cd ../web && VITE_MOCK_SEMENTE=7 pnpm exec vite build --outDir dist-alt --emptyOutDir && ` +
+        `pnpm exec vite preview --outDir dist-alt --port ${PORTA_ALT} --strictPort`,
       url: `http://localhost:${PORTA_ALT}`,
       reuseExistingServer: !CI,
       timeout: 180_000,
@@ -44,7 +44,7 @@ export default defineConfig({
       testIgnore: /semente-alt\.spec\.ts/,
     },
     {
-      // Medição de performance (ADR 0003): desktop 1366x768, build de produção. Rode com `npm run test:perf`.
+      // Medição de performance (ADR 0003): desktop 1366x768, build de produção. Rode com `pnpm run test:perf`.
       name: 'perf',
       testDir: './perf',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 768 }, trace: 'off', screenshot: 'off' },

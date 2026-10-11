@@ -38,6 +38,10 @@ export const ROTAS: RouteObject[] = [
             lazy: lazy(() => import('@/features/espera-invisivel/EsperaInvisivelPage')),
           },
           { path: 'dados', lazy: lazy(() => import('@/features/dados/DadosPage')) },
+          {
+            path: 'preferencias',
+            lazy: lazy(() => import('@/features/preferencias/PreferenciasPage')),
+          },
           { path: 'ajuda', lazy: lazy(() => import('@/features/ajuda/AjudaPage')) },
           {
             path: '*',

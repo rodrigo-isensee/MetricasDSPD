@@ -1,28 +1,10 @@
 import { estadoColetaSchema, paginaColetasSchema } from '@metricas-dspd/contratos';
-import { DummyDriver, Kysely, MysqlAdapter, MysqlIntrospector, MysqlQueryCompiler, type CompiledQuery, type DatabaseConnection, type QueryResult } from 'kysely';
 import { describe, expect, it } from 'vitest';
-import { agregarContagens, classificarErro, eventoDeLinhas, type LinhaColeta } from '../src/coletas/eventos.js';
-import { lerEventos, lerVersoes } from '../src/coletas/repositorio.js';
-import { estadoColeta, historicoColetas } from '../src/coletas/servico.js';
-
-/** Banco falso: devolve as linhas da fila, na ordem das consultas, e registra o SQL compilado. */
-function bancoFalso(respostas: unknown[][]) {
-  const consultas: CompiledQuery[] = [];
-  const conexao: DatabaseConnection = {
-    async executeQuery<R>(q: CompiledQuery): Promise<QueryResult<R>> {
-      consultas.push(q);
-      return { rows: (respostas.shift() ?? []) as R[] };
-    },
-    // eslint-disable-next-line require-yield
-    async *streamQuery() { throw new Error('sem stream'); },
-  };
-  const driver = new (class extends DummyDriver { override async acquireConnection() { return conexao; } })();
-  const db = new Kysely<unknown>({
-    dialect: { createAdapter: () => new MysqlAdapter(), createDriver: () => driver,
-      createIntrospector: (k) => new MysqlIntrospector(k), createQueryCompiler: () => new MysqlQueryCompiler() },
-  });
-  return { db, consultas };
-}
+import { agregarContagens, classificarErro, eventoDeLinhas, type LinhaColeta } from '../src/modulos/operacao/eventos.js';
+import { lerEventos, lerVersoes } from '../src/modulos/operacao/repositorio.js';
+import { estadoColeta, historicoColetas } from '../src/modulos/operacao/servico.js';
+import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
+import { criarDublePg } from './duble-pg.js';
 
 const d = (iso: string): Date => new Date(iso);
 const linha = (status: LinhaColeta['status'], erro: string | null = null): LinhaColeta => ({
@@ -44,8 +26,7 @@ describe('eventoDeLinhas', () => {
     { coletaId: 7, entidade: 'excluido_preservado', lidos: 2, inseridos: 0, jaExistentes: 0 },
   ];
   it('sucesso, parcial e falha', () => {
-    const ok = eventoDeLinhas('bm', linha('sucesso'), cont);
-    expect(ok).toMatchObject({ id: 'bm-7', inicio: '2026-10-09T06:00:00-03:00', fim: '2026-10-09T06:01:00-03:00', duracaoMs: 60000,
+    expect(eventoDeLinhas('bm', linha('sucesso'), cont)).toMatchObject({ id: 'bm-7', inicio: '2026-10-09T06:00:00-03:00', duracaoMs: 60000,
       resultado: 'ok', tipoErro: null, efeito: 'aplicada',
       contagens: { lidos: 10, novos: 3, atualizados: 7, arquivadosPreservados: 5, excluidosPreservados: 2 } });
     expect(eventoDeLinhas('ac', linha('parcial', 'dados-invalidos: x'), cont)).toMatchObject({ resultado: 'parcial', tipoErro: 'dados-invalidos', efeito: 'parcial-aplicada' });
@@ -54,41 +35,66 @@ describe('eventoDeLinhas', () => {
   });
 });
 
-const rowsColeta = [
-  { coleta_id: '2', iniciado_em: d('2026-10-09T09:00:00Z'), finalizado_em: d('2026-10-09T09:01:00Z'), status: 'falha', erro_resumo: 'tempo-esgotado: x' },
-  { coleta_id: '1', iniciado_em: d('2026-10-08T09:00:00Z'), finalizado_em: d('2026-10-08T09:01:00Z'), status: 'sucesso', erro_resumo: null },
-];
-const rowsContagem = [{ coleta_id: '1', entidade: 'card', lidos: '4', inseridos: '1', ja_existentes: '3' }];
+const coleta = (id: string, status: string, erro: string | null = null) => ({
+  coleta_id: id, iniciado_em: d('2026-10-08T09:00:00Z'), finalizado_em: d('2026-10-08T09:01:00Z'), status, erro_resumo: erro,
+});
+const responder = (c: { texto: string }): unknown[] => {
+  if (c.texto.includes('ctl_coleta_contagem'))
+    return [
+      { coleta_id: '1', entidade: 'card', lidos: 10, inseridos: 4, ja_existentes: 6 },
+      { coleta_id: '1', entidade: 'card', lidos: '5', inseridos: '1', ja_existentes: '4' },
+    ];
+  if (c.texto.includes('ctl_coleta')) return [coleta('1', 'sucesso'), coleta('2', 'falha', 'tempo-esgotado: x'), coleta('3', 'parcial')];
+  return [];
+};
 
-describe('repositório e serviço (SQL compilado, sem MySQL)', () => {
-  it('lerEventos usa só o schema da fonte, sem valores interpolados', async () => {
-    const { db, consultas } = bancoFalso([rowsColeta, rowsContagem]);
-    const ev = await lerEventos(db, 'acelerato');
-    expect(ev.map((e) => e.id)).toEqual(['ac-2', 'ac-1']);
-    expect(ev[1]?.contagens?.lidos).toBe(4);
-    expect(ev[0]?.contagens).toBeNull();
-    for (const q of consultas) { expect(q.sql).toContain('dspd_ac.'); expect(q.sql).not.toContain('dspd_bm'); expect(q.parameters).toEqual([]); }
+describe('lerEventos', () => {
+  it('consulta só o schema da fonte, sem parâmetros, e agrega contagens por coleta', async () => {
+    const { pool, chamadas } = criarDublePg(responder);
+    const ev = await lerEventos(pool, 'businessmap');
+    expect(chamadas.every((c) => c.texto.includes('dspd_bm.') && !c.texto.includes('dspd_ac') && c.valores.length === 0)).toBe(true);
+    expect(ev.map((e) => e.id)).toEqual(['bm-1', 'bm-2', 'bm-3']);
+    expect(ev[0]!.contagens).toMatchObject({ lidos: 15, novos: 5, atualizados: 10 });
+    expect(ev[1]).toMatchObject({ resultado: 'falha', tipoErro: 'tempo-esgotado', contagens: null });
+    expect(ev[2]!.contagens).toMatchObject({ lidos: 0 });
   });
-  it('lerVersoes agrupa métricas, ignora ids desconhecidos e parametriza o domínio', async () => {
-    const { db, consultas } = bancoFalso([[
-      { versao_id: '1', vigente_desde: d('2026-03-02'), descricao: 'a', metrica_id: 'O7' },
-      { versao_id: '1', vigente_desde: d('2026-03-02'), descricao: 'a', metrica_id: 'O9' },
-      { versao_id: '1', vigente_desde: d('2026-03-02'), descricao: 'a', metrica_id: 'XX' },
-      { versao_id: '2', vigente_desde: d('2026-06-01'), descricao: 'b', metrica_id: null },
-    ]]);
-    expect(await lerVersoes(db, 'businessmap')).toEqual([
-      { id: '1', data: '2026-03-02', descricao: 'a', afeta: ['O7', 'O9'] },
-      { id: '2', data: '2026-06-01', descricao: 'b', afeta: [] },
+  it('acelerato usa o schema ac com prefixo e o prefixo de id ac', async () => {
+    const { pool, chamadas } = criarDublePg(responder);
+    expect((await lerEventos(pool, 'acelerato', montarEsquemas('t_')))[0]!.id).toBe('ac-1');
+    expect(chamadas[0]!.texto).toContain('t_dspd_ac.ctl_coleta');
+  });
+});
+
+describe('lerVersoes', () => {
+  it('agrupa métricas por versão, ignora ids desconhecidos ou nulos e parametriza o domínio', async () => {
+    const { pool, chamadas } = criarDublePg(() => [
+      { versao_id: '1', vigente_desde: '2026-09-01', descricao: 'a', metrica_id: 'O2' },
+      { versao_id: '1', vigente_desde: '2026-09-01', descricao: 'a', metrica_id: 'O3' },
+      { versao_id: '1', vigente_desde: '2026-09-01', descricao: 'a', metrica_id: 'XX' },
+      { versao_id: '2', vigente_desde: '2026-09-02', descricao: 'b', metrica_id: null },
     ]);
-    expect(consultas[0]?.parameters).toEqual(['businessmap']);
+    const v = await lerVersoes(pool, 'businessmap');
+    expect(chamadas[0]!.valores).toEqual(['businessmap']);
+    expect(chamadas[0]!.texto).toContain('dspd_core.ref_versao_criterio');
+    expect(v).toHaveLength(2);
+    expect(v[0]).toMatchObject({ id: '1', data: '2026-09-01' });
+    expect(v[0]!.afeta).toHaveLength(2);
+    expect(v[1]!.afeta).toEqual([]);
   });
-  it('estadoColeta e historicoColetas devolvem DTOs válidos, uma fonte por vez', async () => {
-    const a = bancoFalso([rowsColeta, rowsContagem, []]);
-    const e = estadoColetaSchema.parse(await estadoColeta(a.db, 'businessmap', d('2026-10-09T21:00:00Z')));
-    expect(e).toMatchObject({ dominio: 'businessmap', selo: 'falha' });
-    expect(e.ultimaOk?.id).toBe('bm-1');
-    const b = bancoFalso([rowsColeta, rowsContagem]);
-    const p = paginaColetasSchema.parse(await historicoColetas(b.db, 'businessmap', 1));
-    expect(p).toMatchObject({ total: 2, pagina: 1 });
+});
+
+describe('servico', () => {
+  it('estado de uma fonte sem coletas', async () => {
+    const { pool } = criarDublePg();
+    expect((await estadoColeta(pool, 'acelerato', d('2026-10-09T21:00:00Z'))).selo).toBe('sem-coleta');
+  });
+  it('estado reflete falha mais recente e é um DTO válido', async () => {
+    const { pool } = criarDublePg((c) => (c.texto.includes('ctl_coleta_contagem') ? [] : c.texto.includes('ctl_coleta') ? [coleta('2', 'falha', 'tempo-esgotado: x')] : []));
+    const e = estadoColetaSchema.parse(await estadoColeta(pool, 'businessmap', d('2026-10-08T21:00:00Z'), montarEsquemas()));
+    expect(e.selo).toBe('falha');
+  });
+  it('histórico paginado, válido pelo contrato', async () => {
+    const { pool } = criarDublePg(responder);
+    expect(paginaColetasSchema.parse(await historicoColetas(pool, 'businessmap', 1))).toMatchObject({ total: 3, pagina: 1 });
   });
 });

@@ -55,6 +55,12 @@ test.describe('Selo de frescor e calibração nos painéis', () => {
     await expect(page.getByText(/Ainda não há dados desta fonte/)).toHaveCount(0);
   });
 
+  test('CT-34 falha de leitura do estado de coleta mostra "Tentar de novo" (IR-002)', async ({ page }) => {
+    await page.goto('/operacional?mock=coleta-erro:bm');
+    await expect(page.getByText(/Não foi possível verificar a coleta/)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
+  });
+
   test('CT-14 coleta-vazia mostra o estado sem dados', async ({ page }) => {
     await page.goto('/operacional?mock=coleta-vazia:bm');
     await expect(page.getByText(/Ainda não há dados desta fonte/).first()).toBeVisible();
@@ -101,8 +107,8 @@ test.describe('Tela /dados', () => {
         await expect(page.getByRole('heading', { name: t, exact: true })).toBeVisible();
       await expect(page.getByText(/Última tentativa/)).toBeVisible();
       await expect(page.getByText(/Próxima prevista/)).toBeVisible();
-      await expect(page.getByText(/Arquivados e excluídos permanecem na base/)).toBeVisible();
-      await expect(page.getByText(/Definida automaticamente pelo sistema/)).toBeVisible();
+      await expect(page.getByText(/Arquivados e excluídos: total preservado na base/)).toBeVisible();
+      await expect(page.getByText(/automaticamente pelo sistema/)).toBeVisible();
       for (const t of await page.getByRole('table').all()) await expect(t.getByRole('columnheader').first()).toBeVisible();
       // CT-32: só a fonte selecionada aparece no conteúdo
       const outra = f.q === 'bm' ? 'Acelerato' : 'BusinessMap';

@@ -1,6 +1,6 @@
 import { CLASSES_SERVICO, type FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
-import { CartaoMetrica, SeletorLocal, TabelaDados } from '@/components/ui'
+import { CartaoMetrica, SeletorLocal, TabelaDados, useCartaoVisivel } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros/useParametroLocal'
 import { fmtDiasUteis, fmtInteiro, fmtPct, textoJanela } from '@/lib/formatar'
@@ -24,6 +24,7 @@ const DONOS = {
 const VALORES = CLASSES_SERVICO.map(slug)
 
 export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
+  const t4Visivel = useCartaoVisivel('t4')
   const q = useMetrica('T1', filtros)
   const d = q.dados
   const [aba, setAba] = useParametroLocal('t1', VALORES, 'padrao')
@@ -118,11 +119,13 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
             As medianas dos blocos e a mediana do total são medidas separadas; uma não é a soma da
             outra. Janela de percentis: {textoJanela(d.janelaPercentis)}.
           </p>
-          <p className="text-sm">
-            <a className="alvo text-acento underline" href="#t4">
-              Leia junto com Demanda × capacidade (T4)
-            </a>
-          </p>
+          {t4Visivel && (
+            <p className="text-sm">
+              <a className="alvo text-acento underline" href="#t4">
+                Leia junto com Demanda × capacidade (T4)
+              </a>
+            </p>
+          )}
         </div>
       )}
     </CartaoMetrica>

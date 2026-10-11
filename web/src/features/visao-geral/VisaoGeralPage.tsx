@@ -14,6 +14,7 @@ import {
 import type { ResultadoVisaoGeral } from '@metricas-dspd/contratos'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
+import { BotaoExportar } from '@/features/exportar'
 import { useDataReferencia, useErroDePainelSimulado, useMetrica, useModoMock } from '@/data'
 import { fmtData, fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import {
@@ -210,6 +211,16 @@ export default function VisaoGeralPage() {
         }
         publico="Consolidado de todas as equipes (o sistema não compara equipes), sem filtros nesta tela."
       />
+      <p className="text-sm text-texto-2" data-testid="preferencias-valem">
+        As preferências de métricas valem para os painéis. Esta tela mostra tudo.{' '}
+        <Link to="/preferencias" className="text-acento underline">
+          Preferências
+        </Link>
+      </p>
+      <div className="flex flex-wrap items-center gap-2" data-testid="barra-exportar">
+        <BotaoExportar base="visao-geral" />
+        <BotaoExportar base="personalizada" />
+      </div>
       {pronta && (
         <>
           <FaixaCalibracaoFonte dominio="businessmap" />
@@ -226,11 +237,14 @@ export default function VisaoGeralPage() {
           {intervalo(d.recortes.estrategico)}; Sustentação em {intervalo(d.recortes.sustentacao)}.
         </p>
       )}
-      {!pronta && (
+      {aguardando && (
         <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
       )}
       {!aguardando && (q.estado === 'carregando' || (q.estado === 'ok' && !pronta)) && (
-        <EsqueletoCartao codigo="VISAO_GERAL" titulo="Visão geral" altura={320} />
+        // Em tela larga reserva uma tela inteira: o conteúdo real é mais alto e o rodapé, ao descer, não gera CLS.
+        <div className="lg:min-h-screen">
+          <EsqueletoCartao codigo="VISAO_GERAL" titulo="Visão geral" altura={320} />
+        </div>
       )}
       {q.estado === 'erro' && (
         <div

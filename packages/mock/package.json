@@ -11,10 +11,10 @@
     "typecheck": "tsc --noEmit -p .",
     "test": "TZ=UTC vitest run",
     "cobertura": "TZ=UTC vitest run --coverage",
-    "pronto": "npm run typecheck && npm run cobertura"
+    "pronto": "pnpm run typecheck && pnpm run cobertura"
   },
   "dependencies": {
-    "@metricas-dspd/contratos": "*",
-    "@metricas-dspd/metricas": "*"
+    "@metricas-dspd/contratos": "workspace:*",
+    "@metricas-dspd/metricas": "workspace:*"
   }
 }

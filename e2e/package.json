@@ -17,11 +17,12 @@
     "gate": "node scripts/gate.mjs",
     "chromium:local": "bash scripts/setup-chromium-local.sh",
     "fronteiras": "node scripts/verificar-fronteiras.mjs",
-    "perf:tudo": "npm run size && npm run test:perf && npm run lighthouse"
+    "perf:tudo": "pnpm run size && pnpm run test:perf && pnpm run lighthouse"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
     "@lhci/cli": "^0.15.1",
-    "@playwright/test": "^1.50.0"
+    "@playwright/test": "^1.50.0",
+    "pdfjs-dist": "^6.4.299"
   }
 }

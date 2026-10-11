@@ -1,4 +1,4 @@
-// Orçamento de bundle (ADR 0003, F6 a F9). Rode depois do `npm run build`.
+// Orçamento de bundle (ADR 0003, F6 a F9). Rode depois do `pnpm run build`.
 // Classifica os chunks de dist/assets (gzip) em inicial, rota, gráficos e mock/biblioteca.
 import { readdirSync, readFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
@@ -8,7 +8,7 @@ const dir = new URL('../dist/assets/', import.meta.url).pathname
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8')
 const iniciais = new Set([...html.matchAll(/assets\/([^"']+\.js)/g)].map((m) => m[1]))
 const KB = 1024
-const limites = { inicial: 200, rota: 60, graficos: 130, mock: 120 }
+const limites = { inicial: 200, rota: 60, graficos: 130, mock: 120, exportar: 150 }
 
 const arquivos = readdirSync(dir).filter((f) => f.endsWith('.js'))
 const linhas = arquivos.map((f) => {
@@ -17,6 +17,9 @@ const linhas = arquivos.map((f) => {
   let tipo = 'rota'
   if (iniciais.has(f)) tipo = 'inicial'
   else if (/^graficos-/.test(f)) tipo = 'graficos'
+  else if (/^(exportar-pdf|desenhista)-/.test(f)) tipo = 'exportar'
+  // Dependências opcionais do jsPDF (html(), SVG): nunca pedidas pelo app; só informativas.
+  else if (/^(purify\.es|html2canvas|index\.es)-/.test(f)) tipo = 'opcional'
   else if (/^(mock|metrics)-/.test(f) || /gerarBaseMock|mulberry32/.test(codigo)) tipo = 'mock'
   return { f, tipo, gz }
 })
@@ -40,6 +43,14 @@ console.log(
   `F8 gráficos: ${g.toFixed(2)} KB (< ${limites.graficos}) ${g < limites.graficos ? 'ok' : 'FALHOU'}`,
 )
 if (g >= limites.graficos) falhou = true
+const x = soma('exportar')
+console.log(
+  `F11 exportar-pdf (jsPDF + desenhista): ${x.toFixed(2)} KB (< ${limites.exportar}; só sob demanda) ${x < limites.exportar ? 'ok' : 'FALHOU'}`,
+)
+if (x >= limites.exportar || linhas.some((l) => l.tipo === 'exportar' && iniciais.has(l.f))) {
+  console.log('F11 FALHOU: chunk acima do orçamento ou no bundle inicial')
+  falhou = true
+}
 const m = soma('mock')
 console.log(
   `F9 mock + biblioteca: ${m.toFixed(2)} KB (< ${limites.mock}; fora do inicial, alerta de tamanho) ${m < limites.mock ? 'ok' : 'alerta'}`,

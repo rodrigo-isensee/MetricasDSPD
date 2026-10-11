@@ -36,7 +36,9 @@ export function Contagens({ estado }: { estado: EstadoColeta }) {
       ) : (
         <p className="text-texto-2">Ainda não há uma coleta concluída para contar.</p>
       )}
-      <p className="text-texto-2">Arquivados e excluídos permanecem na base.</p>
+      <p className="text-texto-2">
+        Arquivados e excluídos: total preservado na base (não é a contagem desta coleta).
+      </p>
     </SecaoDados>
   )
 }

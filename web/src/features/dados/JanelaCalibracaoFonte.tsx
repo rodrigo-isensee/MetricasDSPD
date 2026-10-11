@@ -13,7 +13,10 @@ export function JanelaCalibracaoFonte({ estado }: { estado: EstadoColeta }) {
   return (
     <SecaoDados id="calibracao" titulo="Janela de calibração">
       {estado.calibracao.length === 0 ? (
-        <p>Nenhuma janela de calibração vigente nesta fonte.</p>
+        <p>
+          Nenhuma janela de calibração vigente nesta fonte. Quando houver, ela é definida
+          automaticamente pelo sistema.
+        </p>
       ) : (
         <ul className="flex flex-col gap-2" data-testid="janelas-calibracao">
           {estado.calibracao.map((j) => (
@@ -30,10 +33,12 @@ export function JanelaCalibracaoFonte({ estado }: { estado: EstadoColeta }) {
           ))}
         </ul>
       )}
-      <p className="text-texto-2">
-        Definida automaticamente pelo sistema. Dados de calibração servem para ajustar o processo,
-        não para cobrar pessoas ou times.
-      </p>
+      {estado.calibracao.length > 0 && (
+        <p className="text-texto-2">
+          Definida automaticamente pelo sistema. Dados de calibração servem para ajustar o processo,
+          não para cobrar pessoas ou times.
+        </p>
+      )}
     </SecaoDados>
   )
 }

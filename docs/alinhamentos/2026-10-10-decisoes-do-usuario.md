@@ -25,3 +25,53 @@ O usuário delegou ao time a decisão do que é melhor para a entrega.
 
 ## 5. Complemento do Jarvis (2026-10-10 10:12) — regra da janela de calibração automática (pergunta 1 da spec `docs/ux/integracao-real/05-especificacao.md`)
 **Provisória, a confirmar pelo usuário:** a janela de calibração dura **60 dias corridos** e é aberta automaticamente (a) no início da coleta de cada fonte (BusinessMap e Acelerato, separadamente) e (b) em cada mudança de critério registrada no controle de versões (T2.6), para as métricas afetadas. Duração em constante única. Fundamento: briefing 7.4 ("30 a 60 dias"; adotado o limite conservador).
+
+## 6. Pedido 007 — validação do protótipo de preferências (2026-10-10 14:56)
+| # | Pergunta | Decisão do usuário |
+|---|---|---|
+| 1 | Predefinições por papel | **Sim**: conjunto sugerido por papel (gerente, coordenador, time), ajustável |
+| 2 | Alerta de métrica oculta na faixa "Pede atenção" | **Continua aparecendo**, com selo "métrica oculta" e "Mostrar nesta visita" |
+| 3 | Visão geral | **Sempre completa**, fora do recorte de preferências |
+| 4 | Link compartilhado | **Leva só os filtros**; o destinatário vê as próprias preferências (sem `ocultar` na URL) |
+| 5 | Ocultar todas as métricas de um painel | **Permitido**; painel vazio com "Mostrar todas" |
+| 6 (D-f) | Espera invisível ocultável | **Sim**, nos painéis; continua na página própria e na Visão geral |
+| 7 (D-g) | Primeiro login com preferências no navegador | **Perguntar antes** ("Usar estas preferências" / "Começar do padrão do meu papel") |
+
+## 7. Banco de dados (2026-10-10 14:56)
+O usuário decidiu **trocar o banco para PostgreSQL**, seguindo a stack técnica que ele enviou (Fastify 5, `pg` puro sem ORM/query builder, node-pg-migrate, outbox transacional no Postgres por polling sem BullMQ, Zod 4, fastify-type-provider-zod 7 + @fastify/swagger 9, Pino, Vitest sem Testcontainers, Postgres do Docker Compose com um schema por execução de teste, pnpm). Substitui a decisão anterior de MySQL (ADR 0004).
+
+## 8. Confirmações e infraestrutura (2026-10-10 15:14)
+| Tema | Decisão do usuário |
+|---|---|
+| Janela de calibração | **60 dias confirmados** (deixa de ser provisória) |
+| Tolerância do "Atrasado" | **0 h confirmada** |
+| Nomes de pessoas | **Também nas tabelas analíticas** (como no modelo 4.5 do briefing: `responsaveis`, `usuario`). Garantia de "nenhuma visão individual": o usuário de banco da API não lê essas colunas; nenhuma view, rota, DTO ou tela agrega ou exibe por pessoa |
+| Custo | **Nenhum gasto no momento**: tudo roda localmente com Docker Compose (Postgres + API Fastify + web); CI no GitHub Actions (gratuito, repo público). Implantação em nuvem (AWS/ECS/Lambda ou servidor da Unifique) **adiada**, não descartada; a API sai como imagem de contêiner para ser portátil |
+
+## 9. Pedido 007 — P-1 conjuntos por papel (2026-10-10 15:16)
+**Todos começam vendo todas as métricas.** Os conjuntos por papel (time = Operacional; coordenador = Operacional + Tático; gerente = Tático + Estratégico) viram **atalho opcional** no perfil ("Aplicar sugestão do meu papel"), não o padrão inicial. Ajusta a decisão 1 do §6.
+
+## 10. Pedido 008 — exportar métricas (2026-10-10 15:22)
+| # | Decisão do usuário |
+|---|---|
+| D-1 | **Somente PDF** (sem imagem/zip) |
+| D-2 | **Exporta só o que está visível** na tela (métrica oculta não entra) |
+| D-3 | **Visão geral também exporta**, já na primeira versão (BM e AC em blocos separados) |
+| D-4 | **Exportação personalizada**, além do botão por painel: o usuário marca, nível a nível (Operacional, Tático, Estratégico, Sustentação, Espera invisível), as métricas visíveis e sai um PDF só; cada métrica com os próprios filtros e fonte; BM e AC em seções separadas |
+| D-5 | **Não registrar** as exportações |
+
+## 11. Pendências decididas provisoriamente enquanto o usuário está ausente (2026-10-10 15:33)
+| # | Pergunta | Decisão provisória (reversível) | Fundamento |
+|---|---|---|---|
+| L-3 | Nomes do Acelerato (solicitante, agente) também no analítico? | **Não** (só os nomes do BusinessMap, como no modelo 4.5). Adicionar a coluna depois é barato; expor dado pessoal já gravado não | LGPD; regra "dúvida de regra não se resolve por inferência" → confirmar com o usuário |
+| T2.3 | Webhook do BusinessMap sem endereço público (tudo local, custo zero) | Pendente até haver endereço público; coleta diária cobre o histórico | Decisão de custo zero (§8) |
+| — | Migrações MySQL já escritas | Reescritas a partir da 0001 em Postgres, sem conversão de dados (nenhum ambiente real usa o MySQL) | ADR 0014 rev. 2 |
+
+## 12. Decisões do Jarvis no server enquanto o usuário está ausente (2026-10-10 17:19)
+| # | Pergunta | Decisão provisória (reversível) | Fundamento |
+|---|---|---|---|
+| S-a | `dataReferencia` da API | **Data da última coleta bem-sucedida da fonte** (as janelas de 12 semanas terminam nela; o painel não muda entre coletas) | Frescor/calibração (integração real); briefing 4.2 |
+| S-b | `versaoCriterio` sem versão registrada | `"0"` | T2.6 |
+| S-c | Equipes e sistemas do BusinessMap | De `ref_quadro` (nível `time`, sem quadros de teste) e `ref_dominio` (`campo='sistema'`); **confirmar com dados reais** do BusinessMap | Briefing 4.3/4.4 |
+| S-d | Ids de prioridade | Minúsculos (`p1`..`p5`), como o mock e o codec da web | Consistência |
+| S-e | Limite de 12 métricas por PDF (008) | Provisório; revisar com uso real | Plano `exportar-metricas.md` |

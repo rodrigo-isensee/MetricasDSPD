@@ -30,6 +30,7 @@ Valores são p95 na máquina de referência, salvo indicação. "Bloqueia" = ite
 | F8 | Chunk de gráficos (Recharts + `components/charts`, gzip) | < 130 KB, carregado só por rotas com gráfico | sim |
 | F9 | Chunk do mock + biblioteca (`@metricas-dspd/mock` + `@metricas-dspd/metricas`, gzip) | < 120 KB, fora do inicial, por `import()` dinâmico | sim (fora do inicial); tamanho: alerta |
 | F10 | Lighthouse (desktop) | Performance ≥ 90, Acessibilidade ≥ 95 | sim |
+| F11 | Chunk `exportar-pdf` (jsPDF + desenhista, gzip; pedido 008) | < 150 KB, só por `import()` ao clicar em "Gerar arquivo"; nunca no inicial (F6) nem em chunk de rota | sim (fora do inicial); tamanho: bloqueia |
 
 **Mock e cálculo (biblioteca, em Node ou navegador)**
 | # | Item | Orçamento | Bloqueia |
@@ -53,7 +54,8 @@ Valores são p95 na máquina de referência, salvo indicação. "Bloqueia" = ite
 |---|---|---|---|
 | M1 | Consultas de painel, p95, volume de 2 anos | < 500 ms | sim |
 | M2 | Todo filtro de painel coberto por índice; `EXPLAIN` das consultas principais registrado em `docs/architecture/` | sem `ALL` (full scan) nas tabelas de fato | sim |
-| M3 | Leitura no MySQL do Acelerato (somente leitura) por execução | < 60 s, sem travar a origem | sim |
+| M3 | Extração da tabela do Acelerato no Metabase (somente leitura) por execução (ADR 0013; antes: MySQL do Acelerato) | < 60 s, sem travar a origem | sim |
+| S1 | Partida a frio da Lambda `api` (montar `BaseBM`/`BaseAC` e o contexto) (ADR 0013) | < 1,5 s; com ela, a requisição a frio continua dentro de A1 depois do primeiro acesso | sim |
 
 **Coletas (002)**
 | # | Item | Orçamento | Bloqueia |

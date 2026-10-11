@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit -p .",
     "test": "TZ=UTC vitest run --passWithNoTests",
     "cobertura": "TZ=UTC vitest run --coverage",
-    "pronto": "npm run typecheck && npm run cobertura"
+    "pronto": "pnpm run typecheck && pnpm run cobertura"
   },
   "dependencies": {
     "zod": "^4.6.5"
