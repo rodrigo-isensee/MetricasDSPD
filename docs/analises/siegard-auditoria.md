@@ -6,6 +6,8 @@ Data: 2026-10-11 · Decisão do usuário: **instalar o plugin como está (opçã
 - Repositório público do autor `zig999`, **sem licença** (todos os direitos reservados por padrão): **não copiar código nem texto dele para este repositório**; reimplementar ideias é permitido.
 - Criado em 2026-07-29, 0 estrelas, 1 autor. Plugin `siegard` **5.19.0**, commit auditado `fe46a6b`.
 
+- O autor é o gerente e amigo do usuário (confiança informada pelo usuário em 2026-10-11); o repositório continua **sem licença** até o autor definir uma.
+
 ## Auditoria estática (leitura de ~15 mil linhas de Python do plugin; não é auditoria completa)
 | Ponto | Resultado |
 |---|---|
