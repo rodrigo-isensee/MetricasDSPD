@@ -41,10 +41,30 @@ const resultado = (problemas: string[], ok: string): Resultado =>
     ? { codigo: 0, linhas: [ok] }
     : { codigo: 1, linhas: [...problemas, `docs-contratos: ${problemas.length} problema(s).`] }
 
+/** Falha ao montar os insumos (exemplo fora do schema etc.) vira mensagem clara, sem stack trace. */
+class FalhaInsumos extends Error {}
+const carregar = async (deps: Deps): Promise<Insumos> => {
+  try {
+    return await deps.insumos()
+  } catch (erro) {
+    throw new FalhaInsumos(erro instanceof Error ? erro.message : String(erro))
+  }
+}
+
 export async function executar(comando: string | undefined, deps: Deps): Promise<Resultado> {
+  try {
+    return await executarComando(comando, deps)
+  } catch (erro) {
+    if (erro instanceof FalhaInsumos)
+      return { codigo: 1, linhas: [erro.message, 'docs-contratos: 1 problema(s).'] }
+    throw erro
+  }
+}
+
+async function executarComando(comando: string | undefined, deps: Deps): Promise<Resultado> {
   const { io } = deps
   if (comando === 'gerar') {
-    const gravados = gravarGerados(io, await deps.insumos(), deps.hoje)
+    const gravados = gravarGerados(io, await carregar(deps), deps.hoje)
     return {
       codigo: 0,
       linhas: [
@@ -54,7 +74,7 @@ export async function executar(comando: string | undefined, deps: Deps): Promise
     }
   }
   if (comando === 'check') {
-    const insumos = await deps.insumos()
+    const insumos = await carregar(deps)
     const arquivos = lerMarkdown(io)
     const problemas = [
       ...conferirGerados(io, insumos),
@@ -71,7 +91,7 @@ export async function executar(comando: string | undefined, deps: Deps): Promise
     )
   }
   if (comando === 'fotografar') {
-    const r = fotografar(io, await deps.insumos())
+    const r = fotografar(io, await carregar(deps))
     return r.problemas.length > 0
       ? resultado(r.problemas, '')
       : {

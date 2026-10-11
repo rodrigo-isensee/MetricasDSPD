@@ -118,18 +118,53 @@ describe('verificarCabecalho', () => {
 })
 
 describe('verificarOrfaos', () => {
-  it('página do escopo sem link de entrada é órfã; link de outra página, da raiz ou da pasta salva', () => {
+  it('só conta o que é alcançável em cadeia a partir do índice; link de pasta leva ao README dela', () => {
     const e = entrada({
       'docs/README.md': '[c](contratos/ligada.md) [d](architecture/ddd)',
-      'docs/contratos/ligada.md': '[eu](ligada.md)',
+      'docs/contratos/ligada.md': '[eu](ligada.md) [n](nada.md)',
       'docs/contratos/orfa.md': '',
+      'docs/architecture/ddd/README.md': '[x](x.md)',
       'docs/architecture/ddd/x.md': '',
-      'README.md': '[o](docs/contratos/da-raiz.md)',
-      'docs/contratos/da-raiz.md': '',
+      'docs/architecture/ddd/solta.md': '',
     })
     expect(verificarOrfaos(e)).toEqual([
-      'docs/contratos/orfa.md: página órfã (nenhuma outra página linka para ela)',
+      'docs/contratos/orfa.md: página isolada, inalcançável por links a partir de docs/README.md; página alcançável mais próxima: docs/contratos/ligada.md (caminho: docs/README.md -> docs/contratos/ligada.md); linke docs/contratos/orfa.md a partir dela',
+      'docs/architecture/ddd/solta.md: página isolada, inalcançável por links a partir de docs/README.md; página alcançável mais próxima: docs/architecture/ddd/README.md (caminho: docs/README.md -> docs/architecture/ddd/README.md); linke docs/architecture/ddd/solta.md a partir dela',
     ])
+  })
+
+  it('link de entrada que vem de página também inalcançável não salva (ilha); ciclos terminam', () => {
+    const e = entrada({
+      'docs/README.md': '[a](contratos/a.md)',
+      'docs/contratos/a.md': '[r](../README.md) [b](b.md)',
+      'docs/contratos/b.md': '[a](a.md) [c](c.md)',
+      'docs/contratos/ilha1.md': '[i](ilha2.md)',
+      'docs/contratos/ilha2.md': '[i](ilha1.md)',
+      'README.md': '[o](docs/contratos/ilha1.md)',
+    })
+    expect(verificarOrfaos(e).map((x) => x.split(':')[0])).toEqual([
+      'docs/contratos/ilha1.md',
+      'docs/contratos/ilha2.md',
+    ])
+  })
+
+  it('mostra o caminho mais curto até a página mais próxima, em vários saltos', () => {
+    const e = entrada({
+      'docs/README.md': '[a](contratos/a.md)',
+      'docs/contratos/a.md': '[m](metricas/m.md)',
+      'docs/contratos/metricas/m.md': '[z](z.md)',
+      'docs/contratos/metricas/z.md': '',
+      'docs/contratos/metricas/O3.md': '',
+    })
+    expect(verificarOrfaos(e)).toEqual([
+      'docs/contratos/metricas/O3.md: página isolada, inalcançável por links a partir de docs/README.md; página alcançável mais próxima: docs/contratos/metricas/m.md (caminho: docs/README.md -> docs/contratos/a.md -> docs/contratos/metricas/m.md); linke docs/contratos/metricas/O3.md a partir dela',
+    ])
+  })
+
+  it('sem índice, toda página do escopo é isolada e o índice é o único ponto de partida', () => {
+    const e = entrada({ 'docs/contratos/a.md': '' })
+    expect(verificarOrfaos(e)).toHaveLength(1)
+    expect(verificarOrfaos(e)[0]).toContain('(caminho: docs/README.md)')
   })
 })
 
@@ -180,7 +215,7 @@ describe('verificarDocs', () => {
     const e = entrada({ 'docs/contratos/a.md': `${CAB}[x](nada.md)\n` })
     expect(verificarDocs(e)).toEqual([
       'docs/contratos/a.md: link quebrado para docs/contratos/nada.md',
-      'docs/contratos/a.md: página órfã (nenhuma outra página linka para ela)',
+      expect.stringContaining('docs/contratos/a.md: página isolada'),
     ])
   })
 })

@@ -54,8 +54,15 @@ const filtrosPadrao = (id: MetricaId): unknown => {
 /** Falha cedo se o exemplo gerado não passa no schema do contrato. */
 export function exigirValido(nome: string, schema: z.ZodType, valor: unknown): void {
   const r = schema.safeParse(valor)
-  if (!r.success)
-    throw new Error(`exemplo de ${nome} não passa no schema: ${r.error.message.slice(0, 300)}`)
+  if (!r.success) {
+    const campos = r.error.issues
+      .slice(0, 10)
+      .map((i) => `  - ${i.path.length > 0 ? i.path.join('.') : '(raiz)'}: ${i.message}`)
+      .join('\n')
+    throw new Error(
+      `${nome}: mudança INCOMPATÍVEL, o exemplo gerado não passa no schema do contrato. Campos:\n${campos}\nAjuste o schema e o exemplo juntos; se a quebra for intencional, entregue o contrato novo em paralelo (/api/v2, tipo .v2) ou registre o aceite em docs/contratos/snapshots/aceitas.json.`,
+    )
+  }
 }
 
 /** Parâmetros de uma rota no OpenAPI versionado; rota ausente é erro (o OpenAPI precisa estar em dia). */

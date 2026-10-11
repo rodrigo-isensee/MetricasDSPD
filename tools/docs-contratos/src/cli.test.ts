@@ -48,6 +48,30 @@ describe('lerMarkdown', () => {
 })
 
 describe('executar', () => {
+  it('falha ao montar os insumos vira mensagem com código 1', async () => {
+    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- cobre rejeição com valor que não é Error
+    const falha = (e: unknown): Deps => deps({}, { insumos: () => Promise.reject(e) })
+    for (const cmd of ['gerar', 'check', 'fotografar']) {
+      const r = await executar(cmd, falha(new Error('X: mudança INCOMPATÍVEL')))
+      expect(r).toEqual({
+        codigo: 1,
+        linhas: ['X: mudança INCOMPATÍVEL', 'docs-contratos: 1 problema(s).'],
+      })
+    }
+    expect((await executar('check', falha('texto'))).linhas[0]).toBe('texto')
+  })
+
+  it('erro que não vem dos insumos continua subindo', async () => {
+    const d = deps(BASE)
+    const io = {
+      ...d.io,
+      ler: (): never => {
+        throw new Error('disco')
+      },
+    }
+    await expect(executar('check', { ...d, io })).rejects.toThrow()
+  })
+
   it('sem comando ou desconhecido mostra o uso e falha', async () => {
     expect(await executar(undefined, deps())).toEqual({ codigo: 1, linhas: [USO] })
     expect((await executar('x', deps())).codigo).toBe(1)
@@ -82,9 +106,9 @@ describe('executar', () => {
     d.io.escrever('docs/README.md', CAB)
     const r = await executar('check', d)
     expect(r.codigo).toBe(1)
-    expect(r.linhas).toContain(
-      'docs/architecture/ddd/03-agregados.md: página órfã (nenhuma outra página linka para ela)',
-    )
+    expect(
+      r.linhas.some((l) => l.startsWith('docs/architecture/ddd/03-agregados.md: página isolada')),
+    ).toBe(true)
   })
 
   it('check acusa página gerada ausente, fotografia ausente e problema de documentação', async () => {

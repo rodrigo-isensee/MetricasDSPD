@@ -137,21 +137,48 @@ export function verificarCabecalho(e: EntradaDocs): string[] {
   return problemas
 }
 
-/** Página do escopo sem nenhum link vindo de outra página (docs/ ou README/CLAUDE da raiz). */
+const INDICE = 'docs/README.md'
+
+/** Diretórios em comum (profundidade do prefixo compartilhado) entre dois caminhos. */
+const afinidade = (a: string, b: string): number => {
+  const pa = posix.dirname(a).split('/')
+  const pb = posix.dirname(b).split('/')
+  let n = 0
+  while (n < pa.length && n < pb.length && pa[n] === pb[n]) n++
+  return n
+}
+
+/**
+ * Página do escopo inalcançável por links a partir de `docs/README.md` (busca em largura).
+ * Link para pasta vale como link para o `README.md` dela, e só para ele.
+ */
 export function verificarOrfaos(e: EntradaDocs): string[] {
-  const recebe = new Set<string>()
-  for (const [arquivo, texto] of e.arquivos) {
-    for (const d of linksRelativos(arquivo, texto)) if (d.caminho !== arquivo) recebe.add(d.caminho)
+  const pai = new Map<string, string | null>([[INDICE, null]])
+  const fila = [INDICE]
+  for (let i = 0; i < fila.length; i++) {
+    const atual = em(fila, i)
+    const texto = e.arquivos.get(atual)
+    if (texto === undefined) continue
+    for (const d of linksRelativos(atual, texto)) {
+      const alvo = e.arquivos.has(d.caminho) ? d.caminho : `${d.caminho}/README.md`
+      if (!e.arquivos.has(alvo) || pai.has(alvo)) continue
+      pai.set(alvo, atual)
+      fila.push(alvo)
+    }
+  }
+  const cadeia = (p: string): string => {
+    const passos: string[] = []
+    for (let c: string | null | undefined = p; c !== null && c !== undefined; c = pai.get(c))
+      passos.unshift(c)
+    return passos.join(' -> ')
   }
   return [...e.arquivos.keys()]
-    .filter(
-      (a) =>
-        estaNoEscopo(a, e) &&
-        a !== 'docs/README.md' &&
-        !recebe.has(a) &&
-        !recebe.has(posix.dirname(a)),
-    )
-    .map((a) => `${a}: página órfã (nenhuma outra página linka para ela)`)
+    .filter((a) => estaNoEscopo(a, e) && !pai.has(a))
+    .map((a) => {
+      // fila está em ordem de distância; o primeiro de maior afinidade é o mais próximo
+      const perto = fila.reduce((m, c) => (afinidade(c, a) > afinidade(m, a) ? c : m))
+      return `${a}: página isolada, inalcançável por links a partir de ${INDICE}; página alcançável mais próxima: ${perto} (caminho: ${cadeia(perto)}); linke ${a} a partir dela`
+    })
 }
 
 const prox = (linhas: string[]): string => linhas.find((l) => l.trim() !== '') ?? ''

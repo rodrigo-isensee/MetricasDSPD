@@ -44,9 +44,20 @@ describe('descreverParametro', () => {
 
 describe('exigirValido e parametrosDe', () => {
   it('exemplo fora do schema derruba a geração, sem vazar mais que o resumo do erro', () => {
-    expect(() => exigirValido('X', z.object({ a: z.string() }), { a: 1 })).toThrow(
-      'exemplo de X não passa no schema',
+    const schema = z.object({ a: z.string(), b: z.object({ c: z.number() }) })
+    expect(() => exigirValido('X', schema, { a: 1, b: { c: 'x' } })).toThrow(
+      /^X: mudança INCOMPATÍVEL[\s\S]*\n {2}- a: [\s\S]*\n {2}- b\.c: [\s\S]*\/api\/v2/,
     )
+    expect(() => exigirValido('X', z.string(), 1)).toThrow('  - (raiz): ')
+    const muitos = z.object(
+      Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`k${i}`, z.string()])),
+    )
+    expect(() => exigirValido('X', muitos, {})).toThrow(/k9: [\s\S]*\nAjuste/)
+    try {
+      exigirValido('X', muitos, {})
+    } catch (e) {
+      expect((e as Error).message).not.toContain('k10')
+    }
     expect(() => exigirValido('X', z.string(), 'ok')).not.toThrow()
   })
 
