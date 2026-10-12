@@ -8,6 +8,7 @@ overrides:
   tmp: '>=0.2.6'
   uuid: '>=11.1.1'
   basic-ftp: '>=6.2.1'
+  playwright-core: 1.64.0
 
 importers:
 
@@ -54,13 +55,13 @@ importers:
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.10.0
-        version: 4.13.0(playwright-core@1.57.0)
+        version: 4.13.0(playwright-core@1.64.0)
       '@lhci/cli':
         specifier: ^0.15.1
         version: 0.15.1
       '@mermaid-js/mermaid-cli':
         specifier: 12.0.0
-        version: 12.0.0(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(playwright-core@1.57.0)(puppeteer@25.13.0(yauzl@2.10.0))(tailwindcss@4.3.3)
+        version: 12.0.0(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(playwright-core@1.64.0)(puppeteer@25.13.0(yauzl@2.10.0))(tailwindcss@4.3.3)
       '@playwright/test':
         specifier: ^1.50.0
         version: 1.64.0
@@ -282,7 +283,7 @@ packages:
   '@axe-core/playwright@4.13.0':
     resolution: {integrity: sha512-6YLx+kxXu5GJceG4ozFg+33a2EMTdjYwWGloJ3sb9Kta5pp+ZNS53uxGVog5JetIY8s++P5UrtX+cri+u0VAVg==}
     peerDependencies:
-      playwright-core: '>= 1.0.0'
+      playwright-core: 1.64.0
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -2225,7 +2226,7 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
     peerDependencies:
-      playwright-core: 1.57.0
+      playwright-core: 1.64.0
     peerDependenciesMeta:
       playwright-core:
         optional: true
@@ -4312,11 +4313,6 @@ packages:
     resolution: {integrity: sha512-bk1ZMTwG/Vymx+zPoa28MhNzucFvXJWp3csrSuxuHPSMeUettaCoQ5Jvg07mtC4JGNpcfTwz41oVCnNgBK9+vA==}
     hasBin: true
 
-  playwright-core@1.57.0:
-    resolution: {integrity: sha512-agTcKlMw/mjBWOnD6kFZttAAGHgi/Nw0CZ2o6JqWSbMlI219lAFLZZCyqByTsvVAJq5XA5H8cA6PrvBRpBWEuQ==}
-    engines: {node: '>=18'}
-    hasBin: true
-
   playwright-core@1.64.0:
     resolution: {integrity: sha512-T9r+MZkTECl2+oUcZ26YgZzTrYidTsIhYYkJix+6iDOymOb1FB2RLLSOxRGnZGv5DStt+aduIVbt+E8WygXYpg==}
     engines: {node: '>=20'}
@@ -5377,10 +5373,10 @@ snapshots:
       is-potential-custom-element-name: 1.0.1
       lru-cache: 11.5.3
 
-  '@axe-core/playwright@4.13.0(playwright-core@1.57.0)':
+  '@axe-core/playwright@4.13.0(playwright-core@1.64.0)':
     dependencies:
       axe-core: 4.13.0
-      playwright-core: 1.57.0
+      playwright-core: 1.64.0
 
   '@babel/code-frame@7.29.7':
     dependencies:
@@ -5874,12 +5870,12 @@ snapshots:
       mermaid: 12.1.0
     optional: true
 
-  '@mermaid-js/mermaid-cli@12.0.0(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(playwright-core@1.57.0)(puppeteer@25.13.0(yauzl@2.10.0))(tailwindcss@4.3.3)':
+  '@mermaid-js/mermaid-cli@12.0.0(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(playwright-core@1.64.0)(puppeteer@25.13.0(yauzl@2.10.0))(tailwindcss@4.3.3)':
     dependencies:
       '@fontsource-variable/recursive': 5.3.0
       '@fontsource/open-sans': 5.3.0
       '@fortawesome/fontawesome-free': 7.3.1
-      '@mermaid-js/mermaid-zenuml': 1.0.1(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(mermaid@12.1.0)(playwright-core@1.57.0)(tailwindcss@4.3.3)
+      '@mermaid-js/mermaid-zenuml': 1.0.1(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(mermaid@12.1.0)(playwright-core@1.64.0)(tailwindcss@4.3.3)
       chalk: 6.0.1
       commander: 15.0.0
       import-meta-resolve: 4.2.0
@@ -5896,9 +5892,9 @@ snapshots:
       - playwright-core
       - tailwindcss
 
-  '@mermaid-js/mermaid-zenuml@1.0.1(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(mermaid@12.1.0)(playwright-core@1.57.0)(tailwindcss@4.3.3)':
+  '@mermaid-js/mermaid-zenuml@1.0.1(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(mermaid@12.1.0)(playwright-core@1.64.0)(tailwindcss@4.3.3)':
     dependencies:
-      '@zenuml/core': 3.50.1(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(playwright-core@1.57.0)(tailwindcss@4.3.3)
+      '@zenuml/core': 3.50.1(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(playwright-core@1.64.0)(tailwindcss@4.3.3)
       mermaid: 12.1.0
     transitivePeerDependencies:
       - '@babel/core'
@@ -7328,7 +7324,7 @@ snapshots:
 
   '@vitest/spy@5.0.3': {}
 
-  '@zenuml/core@3.50.1(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(playwright-core@1.57.0)(tailwindcss@4.3.3)':
+  '@zenuml/core@3.50.1(@babel/core@7.29.7)(@babel/template@7.29.7)(@types/react@19.3.0)(playwright-core@1.64.0)(tailwindcss@4.3.3)':
     dependencies:
       '@floating-ui/react': 0.27.20(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@headlessui/react': 2.2.10(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -7347,7 +7343,7 @@ snapshots:
       tailwind-merge: 3.7.0
     optionalDependencies:
       '@napi-rs/canvas': 0.1.100
-      playwright-core: 1.57.0
+      playwright-core: 1.64.0
     transitivePeerDependencies:
       - '@babel/core'
       - '@babel/template'
@@ -9608,8 +9604,6 @@ snapshots:
       safe-stable-stringify: 2.5.0
       sonic-boom: 4.2.1
       thread-stream: 4.2.0
-
-  playwright-core@1.57.0: {}
 
   playwright-core@1.64.0: {}
 
