@@ -37,7 +37,7 @@ Regras:
 | develop → homolog | `tech-lead`, com o Jarvis abrindo o PR; o usuário é avisado | é rotina de time, sem decisão de produto; os gates automáticos decidem |
 | homolog → main | **somente o usuário** | a main é do usuário (CLAUDE.md); é a validação de negócio |
 
-Ressalva: `gh pr merge` hoje é "do usuário" para qualquer PR (jarvis.md). Para o tech-lead mesclar nos dois primeiros degraus, é preciso aprovação explícita e a redação do jarvis.md muda (ver §10). Na proteção de branch, o bypass fica restrito: nenhum agente pode mesclar na `main`.
+Ressalva: `gh pr merge` hoje é "do usuário" para qualquer PR (jarvis.md). Para o tech-lead mesclar nos dois primeiros degraus, é preciso aprovação explícita e a redação do jarvis.md muda (ver §10). Na proteção de branch, o bypass fica restrito: nenhum agente pode mesclar na `main`. Identidade (I5, decisão do usuário): no GitHub corporativo os agentes usarão uma conta de serviço com escrita e sem permissão de mesclar na `main` (o ruleset exige a aprovação do usuário). Até a migração, os agentes seguem na conta do usuário, e a proteção é o prompt de permissão do `gh pr merge` mais as regras dos agentes, com o `homolog-aprovada` corrigido (I1 a I4).
 
 ## 4. Gates e checks por branch
 
@@ -46,24 +46,24 @@ Nomes dos jobs obrigatórios atuais **não mudam**: `rapida`, `testes`, `banco`,
 | Gate | Evento | Obrigatório para mesclar | Roda |
 |---|---|---|---|
 | 1. PR → `develop` | `pull_request` base `develop` | `rapida`, `testes`, `build`, `e2e` (os mesmos do PR hoje); `banco` quando o `filtro` detectar mudança | rápido: feedback em minutos |
-| 2. PR → `homolog` | `pull_request` base `homolog` | **todos**: `rapida`, `testes`, `banco` (sem o filtro: sempre), `build`, `e2e`, `openapi`, `imagem`, `perf` (perf + Lighthouse) | suíte completa; o `banco` com migrações do zero **e** sobre cópia do esquema de homolog (migração forward-only ensaiada) |
-| 2b. após o merge em `homolog` | `push` em `homolog` | deploy em homolog (ver doc do arquiteto) e depois: smoke e E2E **contra o ambiente de homologação**, perf/Lighthouse contra a URL, verificação de saúde da coleta | job novo `homolog-e2e` (não obrigatório para PR; é o que alimenta o gate 3) |
+| 2. PR → `homolog` | `pull_request` base `homolog` | **todos**: `rapida`, `testes`, `banco` (sem o filtro: sempre), `build`, `e2e`, `openapi`, `imagem`, `perf` (perf + Lighthouse; roda em PR para `homolog` e para `main`) | suíte completa; o `banco` com migrações do zero **e** sobre cópia do esquema de homolog (migração forward-only ensaiada) |
+| 2b. após o merge em `homolog` | `push` em `homolog` | portão do `homolog.yml`: qualidade, banco, e2e, perf/Lighthouse, migração e smoke da pilha (E2E contra o ambiente implantado fica pendente, H4) | job `portao <sha>` (não obrigatório para PR; é o que alimenta o gate 3) |
 | 3. PR → `main` | `pull_request` base `main` | `rapida`, `testes`, `banco`, `build`, `e2e`, `perf` (já é assim hoje) **+** o check `homolog-aprovada` (abaixo) | revalidação barata; a prova pesada já foi feita em homolog |
 
 Critério de promoção `homolog` → `main` (check `homolog-aprovada` + decisão humana):
 1. O commit candidato é exatamente o HEAD de `homolog` (sem commit novo desde o início do soak).
-2. `homolog-e2e` verde no commit candidato **e** a execução noturna (cron já existente, perf das 02:00) verde nesse commit: ou seja, **pelo menos uma noite completa em homolog sem falha**. Proposta inicial: soak mínimo de 24 h corridas incluindo uma noite; para mudança só de docs, dispensado (rótulo `sem-soak`, decidido pelo tech-lead e visível no PR).
+2. O portão (execução `push` do `homolog.yml`) verde nesse commit **e** a rodada noturna (execução `schedule` do `homolog.yml`, 02:30 BRT) verde nesse commit: **pelo menos uma noite completa em homolog sem falha**. Mudança só de docs também passa por homolog e roda só o `docs:check` (H-2); não há rótulo de dispensa.
 3. Se a mudança toca coleta ou migração: pelo menos um ciclo de carga incremental completo em homolog, com a contagem de linhas conferida e histórico intacto (cards arquivados e excluídos presentes).
 4. Parecer do QA da candidata em `docs/qa/` e notas de versão no PR.
 5. **Aprovação do usuário**: ele revisa e mescla.
 
-O check `homolog-aprovada` é um workflow que consulta o resultado do `homolog-e2e` e do cron para o SHA do PR; falha se faltarem ou se HEAD diferir. Ele **não** substitui o julgamento do usuário; evita que se mescle sem a evidência.
+O check `homolog-aprovada` é um workflow que consulta, pela API de Actions, as **execuções concluídas com sucesso** do `homolog.yml` (job `portao <sha>`); falha se faltarem ou se HEAD diferir. Não usa status de commit (qualquer um publica um). A regra executada é a do código da **base** do PR (`main`), nunca a da branch candidata. Ele **não** substitui o julgamento do usuário; evita que se mescle sem a evidência. Limite conhecido: o GitHub não tem regra nativa de "origem só `homolog`", então a origem é conferida por este check (PR de fork é recusado); o YAML do check vem do merge ref, e por isso `.github/**` e `tools/homolog/**` pedem revisão atenta do usuário (CODEOWNERS quando houver).
 
 ## 5. Proteção de branch (GitHub; portável)
 
 | Branch | Regras |
 |---|---|
-| `main` | já existe (PR + checks). Acrescentar: origem só `homolog` ou `hotfix/*`; check `homolog-aprovada`; 1 aprovação do usuário (dono); sem force-push, sem deleção; sem bypass para agentes; histórico linear **não** exigido (usa merge commit). |
+| `main` | já existe (PR + checks). Acrescentar: check `homolog-aprovada` (é ele que confere a origem `homolog` ou `hotfix/*`; o GitHub não tem regra nativa para isso); 1 aprovação do usuário (dono); sem force-push, sem deleção; sem bypass para agentes; histórico linear **não** exigido (usa merge commit). |
 | `homolog` | PR obrigatório; checks do gate 2; sem force-push e sem deleção; branch deletada nunca. Mescla por tech-lead ou usuário. |
 | `develop` | PR obrigatório; checks do gate 1; sem force-push e sem deleção. (Hoje sem checks: passa a ter. É a mudança mais barata e que mais evita develop quebrada.) |
 
@@ -77,7 +77,7 @@ Portabilidade (Git corporativo na terça):
 
 Defeito em produção, urgente demais para esperar o ciclo:
 1. `hotfix/<slug>` sai da `main` (que é o que está em produção).
-2. PR para `main`, com os checks do gate 3 e **aprovação do usuário** (sem soak, mas com `homolog-e2e` rodando num deploy temporário da branch, se existir; senão, justificativa no PR).
+2. PR para `main`, com os checks do gate 3 e **aprovação do usuário**, sem soak. O `homolog-aprovada` só aprova `hotfix/*` que (a) seja do próprio repositório, (b) saia da ponta atual da `main` (`behind_by == 0`), (c) tenha de 1 a 10 commits novos (conteúdo maior vai por homolog) e (d) tenha o workflow `CI` completo verde para o SHA do PR (reexecute o check depois do CI). O check emite aviso `HOTFIX sem soak` e resumo no job.
 3. Imediatamente depois, o tech-lead leva a correção às demais branches: PR `main` → `homolog` e depois `main` → `develop` (merge commit, mesma correção, sem cherry-pick, para o git reconhecer que já está lá).
 4. Tag de patch (`vX.Y.Z+1`).
 
@@ -115,8 +115,8 @@ Regras:
 
 1. `on.pull_request` passa a listar `branches: [develop, homolog, main]`; `push` em `homolog` e `main` para o deploy/tag; `push` em outras branches continua (feedback do autor).
 2. `banco`: o `filtro` continua para base `develop`; para base `homolog` ou `main` o job roda sempre (`if: needs.filtro.outputs.banco == 'true' || github.base_ref != 'develop'`). Mesmo nome, mesmo job.
-3. `perf`: condição passa de `base_ref == 'main'` para `base_ref in (homolog, main)`; o cron noturno também roda contra o commit de `homolog`.
-4. `e2e` mantém o nome; `e2e` contra o ambiente é um job **novo** (`homolog-e2e`), disparado por `push` em `homolog`, com credenciais de homolog em secrets do ambiente (nunca no código).
+3. `perf`: condição passa de `base_ref == 'main'` para `base_ref in (homolog, main)` (feito); a rodada noturna do `homolog.yml` roda contra a ponta de `homolog`.
+4. `e2e` mantém o nome; o `e2e-homolog` do portão roda hoje contra o mock (E2E contra o ambiente implantado: pendente, H4).
 5. Job novo `homolog-aprovada` (apenas para PR com base `main`).
 6. Job novo `release` (push em `main`): cria a tag e a release com o trecho do CHANGELOG; permissões mínimas `contents: write` só nele.
 7. `concurrency` já separa por PR/ref: sem mudança.
@@ -154,17 +154,21 @@ Perguntas que só o usuário responde:
 |---|---|
 | Ambiente Docker Compose separado (projeto `metricasdspd-homolog`, portas 15432/13000/18080 só em `127.0.0.1`, volume próprio, limites de memória, sem webhook, sem senha padrão) | `docker-compose.homolog.yml`, `.env.homolog.example` |
 | Comandos (lógica testada, cobertura 100%) | `pnpm run homolog:subir`, `homolog:derrubar [-- --volume]`, `homolog:smoke`, `homolog:migracao -- --origem <dir da main> --destino .`; código em `tools/homolog/` |
-| Portão no push em `homolog` e rodada noturna na CI (02:30 BRT) | `.github/workflows/homolog.yml` (status `homolog-portao` e `homolog-noturna` no commit) |
+| Portão no push em `homolog` e rodada noturna na CI (02:30 BRT) | `.github/workflows/homolog.yml` (o job `portao <sha>` das execuções `push` e `schedule` é a evidência) |
 | Check `homolog-aprovada` (PR para a `main`) | `.github/workflows/homolog-aprovada.yml` |
 
 Uso local (sob demanda, nunca em rotina; respeite o teto de recursos): `cp .env.homolog.example .env.homolog`, preencha as senhas (12+ caracteres, nada de `*_dev`), `chmod 600 .env.homolog`, `pnpm run homolog:subir` (build, migração, seed mock e smoke), abrir `http://127.0.0.1:18080`, `pnpm run homolog:derrubar` ao terminar (o volume é preservado; `-- --volume` apaga os dados). Só mock até as integrações (H-7).
 
 Observações do desenho:
-- O `schedule` do GitHub só dispara com o workflow na branch padrão (`main`): a rodada noturna começa a valer depois da primeira release com este arquivo. Até lá, use `workflow_dispatch` para diagnóstico (não publica `homolog-noturna`).
+- O `schedule` do GitHub só dispara com o workflow na branch padrão (`main`): a rodada noturna começa a valer depois da primeira release com este arquivo. Até lá, `workflow_dispatch` em `homolog` faz o papel da noturna (ver abaixo).
 - O check `homolog-aprovada` não é reexecutado sozinho quando a noturna termina: use "Re-run jobs" no PR depois dela.
 - Documentação pura (só `docs/` e `.md` da raiz) roda só `docs:check` no portão (H-2); a noturna classifica pelo diff contra a `main`.
-- `hotfix/*` passa em `homolog-aprovada` com aviso (sem soak); vale a aprovação do usuário no PR.
-- Pendente (fora do mínimo útil): etapas H3 completa (contrato e paridade por HTTP), H4 contra o ambiente, H5 contra o Postgres de homologação, H6, H7, tags `-rc`, CHANGELOG e workflow de release.
+- `hotfix/*` segue as regras do §6 em `homolog-aprovada` (sem soak, com aviso); vale a aprovação do usuário no PR.
+- O portão de um push só de docs compara com o push anterior (`github.event.before`); a noturna compara com a `main` e fecha a lacuna, e `homolog-aprovada` exige as duas.
+- `homolog-aprovada` vale para o instante em que rodou: no PR de release, use **Re-run jobs imediatamente antes do merge** (uma noturna que falhe depois no mesmo SHA só aparece assim).
+- Primeira release: o `schedule` só existe com o arquivo na `main`. Enquanto `homolog.yml` não estiver na `main`, uma execução manual (`workflow_dispatch`, ref `homolog`) do `homolog.yml` vale como a noturna; a regra se desliga sozinha quando o arquivo chegar à `main`. Também nessa release a regra do check ainda não está na base: o job passa com aviso e a conferência é manual do usuário.
+- Status de commit `homolog-portao`/`homolog-noturna` não existem mais (eram falsificáveis).
+- Pendente (fora do mínimo útil; é cartão visível: M7 E2E contra a pilha implantada, M8 conferir origem `develop` no PR para `homolog`, M5 endurecimento do Compose): etapas H3 completa (contrato e paridade por HTTP), H4 contra o ambiente, H5 contra o Postgres de homologação, H6, H7, tags `-rc`, CHANGELOG e workflow de release.
 
 ## 14. Roteiro: proteção de branches no GitHub (feito pelo administrador)
 
@@ -177,13 +181,13 @@ Pré-requisitos: ter este PR mesclado em `develop` e criar a branch `homolog` a 
    - Allowed merge methods: **Squash**.
 2. **`homolog`** (alvo: `homolog`)
    - Require a pull request before merging; apenas de `develop` (ruleset: restrinja a origem se a versão do GitHub permitir; senão, conferência do tech-lead).
-   - Require status checks: `rapida`, `testes`, `banco`, `build`, `e2e` (no PR de promoção o `banco` roda sempre).
+   - Require status checks: `rapida`, `testes`, `banco`, `build`, `e2e`, `openapi`, `imagem`, `perf` (no PR de promoção o `banco` roda sempre; `perf` inclui o Lighthouse).
    - Block force pushes; restrict deletions.
    - Allowed merge methods: **Merge commit**.
    - O portão `portao` roda **depois** do merge (push): não o exija no PR; ele alimenta `homolog-aprovada`.
 3. **`main`** (já protegida; acrescentar)
-   - Acrescentar `homolog-aprovada` aos checks obrigatórios (mantendo `rapida`, `testes`, `banco`, `build`, `e2e`).
+   - **Primeira release, sem `homolog-aprovada` obrigatório:** o usuário mescla com a justificativa no PR (o `schedule` ainda não existe na `main`). **Depois dela**, acrescentar `homolog-aprovada` aos checks obrigatórios (mantendo `rapida`, `testes`, `banco`, `build`, `e2e`).
    - Require 1 approval (o usuário); sem bypass para agentes; block force pushes; restrict deletions.
    - Allowed merge methods: **Merge commit**.
-4. **Permissões:** o tech-lead precisa de permissão de escrita para mesclar em `develop` e `homolog`; ninguém além do usuário mescla na `main` (Restrict who can merge, se disponível). Em **Settings > Actions > General**, confirme "Workflow permissions: Read repository contents" (os workflows pedem `statuses: write` só no job `portao`).
-5. **Conferência:** abra um PR de teste `develop` → `homolog` e veja os checks; depois de mesclado, confira em **Actions** o workflow "Homologação" e o status `homolog-portao` no commit da `homolog`.
+4. **Permissões:** o tech-lead precisa de permissão de escrita para mesclar em `develop` e `homolog`; ninguém além do usuário mescla na `main` (Restrict who can merge, se disponível). Em **Settings > Actions > General**, confirme "Workflow permissions: Read repository contents" (os workflows só pedem leitura; `homolog-aprovada` usa `actions: read`).
+5. **Conferência:** abra um PR de teste `develop` → `homolog` e veja os checks; depois de mesclado, confira em **Actions** a execução do workflow "Homologação" para o commit da `homolog` (job `portao <sha>` verde).

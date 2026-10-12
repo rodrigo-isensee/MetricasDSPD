@@ -1,9 +1,11 @@
 # Plano técnico: ambiente de homologação e branch `homolog`
 
-- Data: 2026-10-12 · Autor: `software-architect` · Estado: **discovery** (aguarda H-1 a H-8, §10)
-- Decisão estrutural: [ADR 0018](../adr/0018-ambiente-de-homologacao.md) (proposta)
+- Data: 2026-10-12 · Autor: `software-architect` · Estado: **vigente**, com as decisões do usuário de 2026-10-12 ([alinhamento](../../alinhamentos/2026-10-12-homologacao.md)), que prevalecem sobre o texto abaixo
+- Decisão estrutural: [ADR 0018](../adr/0018-ambiente-de-homologacao.md) (vigente)
 - Pedido do usuário: "montar um ambiente e uma branch para homologação; sempre vamos subir para homolog, rodar mais testes, e só depois vai para a `main`".
 - Sem interface nova de produto: não há especificação de UX. A única peça visível é a faixa "Homologação · <sha>" (§7), que o `ux-designer` revisa.
+
+> **Decisões que superam trechos deste plano** (fonte: alinhamento e `docs/engineering/fluxo-homologacao.md`): (1) vale `feature/*` → `develop` → `homolog` → `main`, e não PR direto para `homolog` (S3 e §2); (2) `homolog` não avança por fast-forward da `main`; a ressincronização é por PR de merge, uma vez por release; (3) sem agendador do Windows (H-5): portão e rodada noturna rodam na CI hospedada, e o ambiente local sobe sob demanda; (4) `perf` e Lighthouse rodam no PR para `homolog` e no portão, além do PR para a `main`; (5) a evidência para a `main` são as execuções do `homolog.yml` lidas pelo check `homolog-aprovada`.
 
 ## 1. Requisitos e suposições
 

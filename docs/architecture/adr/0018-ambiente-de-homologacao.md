@@ -1,5 +1,5 @@
 # 0018 - Ambiente de homologação: branch `homolog`, Compose isolado em loopback e suíte de homologação portátil
-- Status: **proposta** (aguarda as respostas H-1 a H-8 do plano `features/homologacao.md` §10)
+- Status: **vigente** (decisão do usuário em 2026-10-12, [`alinhamentos/2026-10-12-homologacao.md`](../../alinhamentos/2026-10-12-homologacao.md); onde divergir do texto abaixo, a decisão prevalece: fluxo `develop` → `homolog` → `main` por PR de merge, rotina noturna na CI hospedada e não no Windows (H-5), `perf` e Lighthouse no PR para `homolog` e no portão, fluxo em `docs/engineering/fluxo-homologacao.md`)
 - Data: 2026-10-12
 - Substitui parcialmente: ADR 0010 (linha "homologação" da tabela de ambientes e o job `deploy` para homologação), ADR 0014 §"Execução" (passa a haver um segundo projeto Compose). A linha "homologação" da ADR 0013 continua sendo o alvo de nuvem futuro.
 - Não muda: custo zero (ADR 0014), loopback até o SSO (D-1), webhook desligado (D-2), a `main` é do usuário, o portão de code review e QA por entrega.
