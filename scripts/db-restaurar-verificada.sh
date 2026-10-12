@@ -27,8 +27,10 @@ INICIO=$SECONDS
 
 # Conexão administrativa (cria e remove o banco novo). Senha só no ambiente do subprocesso.
 adm() { PGUSER="$ADMIN" PGPASSWORD="$SENHA_ADMIN" pg "$@"; }
-limpar() { adm psql -X -q --no-password -d postgres -c "DROP DATABASE IF EXISTS $ALVO WITH (FORCE)" >/dev/null 2>&1 || true; rm -f "${TMP:-/nonexistent}"; }
-TMP=""
+TMP_RESTAURADO=""; TMP_VIVO=""
+limpar() { adm psql -X -q --no-password -d postgres -c "DROP DATABASE IF EXISTS $ALVO WITH (FORCE)" >/dev/null 2>&1 || true; rm -f "$TMP_RESTAURADO" "$TMP_VIVO"; }
+# Codifica a senha para a URL (caracteres como @ / : # ?).
+urlenc() { local LC_ALL=C s="$1" i c out=""; for ((i=0; i<${#s}; i++)); do c="${s:i:1}"; case "$c" in [a-zA-Z0-9.~_-]) out+="$c";; *) out+="$(printf '%%%02X' "'$c")";; esac; done; echo "$out"; }
 trap limpar EXIT
 
 echo "[restauracao] $(basename "$DUMP") ($(du -h "$DUMP" | cut -f1)) -> $ALVO"
@@ -39,13 +41,15 @@ adm psql -X -q -v ON_ERROR_STOP=1 --no-password -d "$ALVO" -c "GRANT CREATE, CON
 adm pg_restore --no-password --exit-on-error -d "$ALVO" < "$DUMP"
 
 # 1) migrate up na restauração: deve aplicar 0 migrações.
-SAIDA="$(cd "$RAIZ" && PG_MIGRADOR_URL="postgres://dspd_migrador:${PGPASSWORD:-$DSPD_PWD_MIGRADOR}@${PGHOST}:${PGPORT}/${ALVO}" \
+# Senha só do ambiente (PGPASSWORD ou DSPD_PWD_MIGRADOR); vazia (só .pgpass) = URL sem senha.
+SENHA_URL="$(urlenc "${PGPASSWORD:-${DSPD_PWD_MIGRADOR:-}}")"; [ -z "$SENHA_URL" ] || SENHA_URL=":$SENHA_URL"
+SAIDA="$(cd "$RAIZ" && PG_MIGRADOR_URL="postgres://dspd_migrador${SENHA_URL}@${PGHOST}:${PGPORT}/${ALVO}" \
   DSPD_SCHEMA_PREFIXO="" pnpm --silent --filter @metricas-dspd/server run migrate up 2>&1)" || { echo "$SAIDA" >&2; falhar "migrate up falhou na restauração"; }
 echo "$SAIDA" | grep -q '^up: 0 migração' || { echo "$SAIDA" >&2; falhar "migrate up aplicou migrações na restauração (esperado: 0)"; }
 echo "[restauracao] migrate up: 0 migração(ões), como esperado"
 
 # 2) inventário da restauração = inventário gravado no backup.
-RESTAURADO="$(mktemp)"; TMP="$RESTAURADO"
+RESTAURADO="$(mktemp)"; TMP_RESTAURADO="$RESTAURADO"
 PGDATABASE="$ALVO" pg psql -X -At -v ON_ERROR_STOP=1 --no-password -d "$ALVO" < "$RAIZ/scripts/sql/inventario.sql" > "$RESTAURADO"
 comparar() {
   if diff <(grep '^contagem|' "$1") <(grep '^contagem|' "$2") >/dev/null; then echo "[restauracao] contagens: iguais ($(grep -c '^contagem|' "$1") tabelas)"
@@ -57,9 +61,8 @@ comparar "$INV" "$RESTAURADO" "backup x restauração"
 
 # 3) opcional: banco vivo x restauração (só vale se nada gravou desde o backup).
 if [ "${DSPD_COMPARAR_COM_VIVO:-}" = 1 ]; then
-  VIVO="$(mktemp)"
+  VIVO="$(mktemp)"; TMP_VIVO="$VIVO"
   pg psql -X -At -v ON_ERROR_STOP=1 --no-password -d "$VIVO_DB" < "$RAIZ/scripts/sql/inventario.sql" > "$VIVO"
-  comparar "$VIVO" "$RESTAURADO" "vivo x restauração" || { rm -f "$VIVO"; exit 1; }
-  rm -f "$VIVO"
+  comparar "$VIVO" "$RESTAURADO" "vivo x restauração"
 fi
 echo "[restauracao] ok em $((SECONDS - INICIO))s; banco $ALVO removido"
