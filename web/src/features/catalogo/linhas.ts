@@ -18,15 +18,14 @@ export interface LinhaCatalogo {
 }
 
 /** Espera invisível aparece uma vez (os quatro níveis são a mesma métrica); BLOQUEADOS é lista, não métrica do briefing. */
-/** PV1 é a pesquisa de percepção (não é uma das 45 do briefing; fica fora até a decisão de listá-la aqui). */
-const FORA = new Set(['BLOQUEADOS', 'EI_FL2', 'EI_FL3', 'EI_SUST', 'PV1'])
+const FORA = new Set(['BLOQUEADOS', 'EI_FL2', 'EI_FL3', 'EI_SUST'])
 
 const ROTULO: Record<PainelDaMetrica, string> = {
   ...ROTULO_PAINEL,
   'espera-invisivel': 'Espera invisível',
 }
 
-/** As 45 métricas do briefing (28 do núcleo e 17 complementares), derivadas dos dois catálogos estáticos. */
+/** As 45 métricas do briefing (28 do núcleo e 17 complementares) mais a PV1 (pesquisa de percepção, grupo Núcleo), derivadas dos dois catálogos estáticos. */
 export function linhasDoCatalogo(): LinhaCatalogo[] {
   return CATALOGO.filter((m) => !FORA.has(m.id)).map((m) => {
     const cartao = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id)).find(

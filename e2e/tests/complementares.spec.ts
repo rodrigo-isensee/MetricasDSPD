@@ -1,7 +1,7 @@
 import { test, expect, rodarAxe } from '../fixtures/base'
 import type { Page } from '@playwright/test'
 
-// QA metricas-complementares: seção "Mais métricas deste painel", Leia junto, catálogo (45), preferências, axe AA a 375 e 1280.
+// QA metricas-complementares: seção "Mais métricas deste painel", Leia junto, catálogo (46), preferências, axe AA a 375 e 1280.
 const CHAVE = 'metricas-dspd:preferencias:v1'
 
 // Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios".
@@ -74,15 +74,15 @@ for (const tela of TELAS) {
       await expect(page.getByTestId('metrica-E4')).toHaveCount(0)
     })
 
-    test('COMP-03 catálogo: 45 métricas, grupo Complementar tem 17, axe AA', async ({ page }) => {
+    test('COMP-03 catálogo: 46 métricas (45 do briefing + PV1), grupo Complementar tem 17, axe AA', async ({ page }) => {
       await page.goto('/metricas')
       await expect(page.getByRole('heading', { level: 1, name: 'Catálogo de métricas' })).toBeVisible()
       const contagem = page.getByTestId('contagem-catalogo')
-      await expect(contagem).toHaveText('45 de 45 métricas')
+      await expect(contagem).toHaveText('46 de 46 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
-      await expect(contagem).toHaveText('17 de 45 métricas')
+      await expect(contagem).toHaveText('17 de 46 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Núcleo')
-      await expect(contagem).toHaveText('28 de 45 métricas')
+      await expect(contagem).toHaveText('29 de 46 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
       const r = await rodarAxe(page)
       expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
@@ -127,12 +127,12 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(cartao.getByRole('heading', { name: 'Eficiência de fluxo' })).toBeFocused()
   })
 
-  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Fictícios" para as 45 (decisão 20)', async ({ page }) => {
+  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Fictícios" para as 46 (decisão 20)', async ({ page }) => {
     await page.goto('/metricas')
     await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText('Fictícios')
     await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Fictícios')
     await expect(page.getByRole('row', { name: /^O3 / })).toContainText('Fictícios')
-    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(45)
+    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(46)
     await expect(page.getByRole('cell', { name: 'Da coleta', exact: true })).toHaveCount(0)
   })
 
@@ -209,7 +209,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
       '/operacional?cadencia=semanal': { o3: ['O5', 'O6', 'O8'], o4: ['O8'], o10: ['O11'], o15: ['O13', 'O16', 'O17'] },
       '/tatico': { t1: ['T6'], t4: ['T8'], t5: ['O14'], t9: ['T6', 'E5'] },
       '/estrategico': { e1: ['E4', 'E5'] },
-      '/sustentacao': { s1: ['S9', 'S10'], s2: ['S8', 'S12'], s3: ['S8', 'S12'], s5: ['S11'], s7: ['S11'] },
+      '/sustentacao': { s1: ['S9', 'S10', 'PV1'], s2: ['S8', 'S12', 'PV1'], s3: ['S8', 'S12'], s5: ['S11'], s7: ['S11'] },
     }
     for (const [rota, cartoes] of Object.entries(esperado)) {
       await painel.ir(rota)
