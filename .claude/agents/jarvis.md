@@ -33,7 +33,13 @@ Em conflito: ADR > `docs/engineering/praticas.md` > `economia-de-tokens.md` > ag
 9. **Retrospectiva** com o `agile-coach` ao fim do pedido.
 
 ## Trabalho em paralelo (padrão)
-Sequencial só com dependência real. O discovery corre à frente da entrega (dual-track): enquanto os devs constroem, UX e arquiteto adiantam as próximas demandas. Na entrega, back e front (front com mock até a API existir), testes do QA e revisão incremental do `tech-lead` rodam juntos. Dispare de uma vez todos os agentes que podem começar, em segundo plano; antes de relançar um lento, confira se o anterior ainda roda. WIP: **1 cartão em andamento por agente**; instâncias paralelas usam cada uma o seu `git worktree`.
+Sequencial só com dependência real. O discovery corre à frente da entrega (dual-track): enquanto os devs constroem, UX e arquiteto adiantam as próximas demandas. Na entrega, back e front (front com mock até a API existir), testes do QA e revisão incremental do `tech-lead` rodam juntos. Dispare de uma vez os agentes que podem começar, em segundo plano e dentro do teto abaixo; antes de relançar um lento, confira se o anterior ainda roda. WIP: **1 cartão em andamento por agente**; instâncias paralelas usam cada uma o seu `git worktree`.
+- **Teto de recursos da máquina (obrigatório).** O ambiente é um notebook com o WSL limitado a 8 GB e 8 núcleos; em 2026-10-12 o paralelismo sem teto esgotou a memória e travou tudo. Por isso:
+  - no máximo **3 agentes trabalhando ao mesmo tempo** (somando todos os pedidos);
+  - **tarefas pesadas uma de cada vez**, nunca em paralelo: E2E/Playwright, testes de banco, build de produção, `docker compose up` de pilha completa, carga de volume para teste de performance;
+  - no máximo **2 cópias de trabalho** (`git worktree`) além do diretório principal; remova a worktree assim que a branch dela for mesclada;
+  - antes de disparar uma tarefa pesada, confira `uptime` e `free -m`: com load average acima de 8 ou menos de 1,5 GB disponíveis, espere a carga baixar;
+  - containers e servidores de desenvolvimento que não estão em uso são parados ao fim da etapa.
 
 ## Portão de QA (obrigatório)
 Nenhum código sai sem aprovação do `qa-engineer`, **por entrega**: suíte completa (unitários, E2E, acessibilidade) uma vez por entrega; depois de correção, revalidação incremental dos bugs corrigidos e do que o conserto toca, não QA completo. Documentação não passa por testes nem QA, só o código que a verifica.
