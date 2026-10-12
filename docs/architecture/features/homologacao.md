@@ -1,7 +1,7 @@
 # Plano técnico: ambiente de homologação e branch `homolog`
 
 - Data: 2026-10-12 · Autor: `software-architect` · Estado: **discovery** (aguarda H-1 a H-8, §10)
-- Decisão estrutural: [ADR 0017](../adr/0017-ambiente-de-homologacao.md) (proposta)
+- Decisão estrutural: [ADR 0018](../adr/0018-ambiente-de-homologacao.md) (proposta)
 - Pedido do usuário: "montar um ambiente e uma branch para homologação; sempre vamos subir para homolog, rodar mais testes, e só depois vai para a `main`".
 - Sem interface nova de produto: não há especificação de UX. A única peça visível é a faixa "Homologação · <sha>" (§7), que o `ux-designer` revisa.
 
@@ -57,7 +57,7 @@ flowchart LR
 
 ## 3. Onde o ambiente roda
 
-**Recomendação: executor efêmero no CI hospedado (portão automático) + ambiente persistente local (validação e noturno), ambos chamando os mesmos scripts.** Alternativas e porquês na ADR 0017.
+**Recomendação: executor efêmero no CI hospedado (portão automático) + ambiente persistente local (validação e noturno), ambos chamando os mesmos scripts.** Alternativas e porquês na ADR 0018.
 
 | Opção | Custo | Memória do notebook | Funciona no Git corporativo | Dado real | Veredito |
 |---|---|---|---|---|---|
@@ -190,7 +190,7 @@ Pré-checagem embutida no script (o teto do Jarvis vira código): aborta se load
 
 | Cartão | Escopo | Dono | Esf. | Depende de | Paralelo com |
 |---|---|---|---|---|---|
-| **HM-00** Decisões | levar H-1 a H-8 ao usuário; aceitar a ADR 0017 | `jarvis` | P | — | — |
+| **HM-00** Decisões | levar H-1 a H-8 ao usuário; aceitar a ADR 0018 | `jarvis` | P | — | — |
 | **HM-01** Branch e regras | criar `homolog` a partir da `main`; `praticas.md` §9 e §10 (fluxo, release, fast-forward, revert); `pre-push` com "homolog só fast-forward"; modelo de PR de release; CLAUDE.md "Fluxo de uma demanda" (via usuário) | `tech-lead` | P | HM-00 (H-1, H-2, H-4) | HM-02 |
 | **HM-02** Compose de homologação | `docker-compose.homolog.yml`, `.env.homolog.example`, limites de memória, senhas obrigatórias, tags por SHA; teste de config (portas só loopback, webhook desligado) | `node-backend` | P | — | HM-01, HM-04 |
 | **HM-03** Scripts `homolog:*` | `subir`, `abrir`, `parar`, `status`, `voltar`, `resetar`, `noite`; `git archive`; pré-checagem de recursos; backup pré-implantação; `estado.json` e resumo; poda de imagens, logs e backups | `node-backend` | M | HM-02 | HM-04 |

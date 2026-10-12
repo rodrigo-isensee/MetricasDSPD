@@ -1,4 +1,4 @@
-# 0017 - Ambiente de homologação: branch `homolog`, Compose isolado em loopback e suíte de homologação portátil
+# 0018 - Ambiente de homologação: branch `homolog`, Compose isolado em loopback e suíte de homologação portátil
 - Status: **proposta** (aguarda as respostas H-1 a H-8 do plano `features/homologacao.md` §10)
 - Data: 2026-10-12
 - Substitui parcialmente: ADR 0010 (linha "homologação" da tabela de ambientes e o job `deploy` para homologação), ADR 0014 §"Execução" (passa a haver um segundo projeto Compose). A linha "homologação" da ADR 0013 continua sendo o alvo de nuvem futuro.
