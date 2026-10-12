@@ -52,7 +52,7 @@ Nomes dos jobs obrigatórios atuais **não mudam**: `rapida`, `testes`, `banco`,
 
 Critério de promoção `homolog` → `main` (check `homolog-aprovada` + decisão humana):
 1. O commit candidato é exatamente o HEAD de `homolog` (sem commit novo desde o início do soak).
-2. O portão (execução `push` do `homolog.yml`) verde nesse commit **e** a rodada noturna (execução `schedule` do `homolog.yml`, 02:30 BRT) verde nesse commit: **pelo menos uma noite completa em homolog sem falha**. Mudança só de docs também passa por homolog e roda só o `docs:check` (H-2); não há rótulo de dispensa.
+2. O portão (execução `push` do `homolog.yml`) verde nesse commit. **A rodada noturna (execução `schedule`, 02:30 BRT) é informativa por enquanto**, sem bloquear (decisão do usuário, 2026-10-12); religar quando o usuário decidir, trocando `EXIGIR_NOTURNA` para `true` em `tools/homolog/src/aprovacao.ts`. Quando religada: noite completa em homolog sem falha. Mudança só de docs também passa por homolog e roda só o `docs:check` (H-2); não há rótulo de dispensa.
 3. Se a mudança toca coleta ou migração: pelo menos um ciclo de carga incremental completo em homolog, com a contagem de linhas conferida e histórico intacto (cards arquivados e excluídos presentes).
 4. Parecer do QA da candidata em `docs/qa/` e notas de versão no PR.
 5. **Aprovação do usuário**: ele revisa e mescla.
@@ -164,7 +164,7 @@ Observações do desenho:
 - O check `homolog-aprovada` não é reexecutado sozinho quando a noturna termina: use "Re-run jobs" no PR depois dela.
 - Documentação pura (só `docs/` e `.md` da raiz) roda só `docs:check` no portão (H-2); a noturna classifica pelo diff contra a `main`.
 - `hotfix/*` segue as regras do §6 em `homolog-aprovada` (sem soak, com aviso); vale a aprovação do usuário no PR.
-- O portão de um push só de docs compara com o push anterior (`github.event.before`); a noturna compara com a `main` e fecha a lacuna, e `homolog-aprovada` exige as duas.
+- O portão de um push só de docs compara com o push anterior (`github.event.before`); a noturna compara com a `main` e fecha a lacuna, e `homolog-aprovada` só voltará a exigir as duas quando `EXIGIR_NOTURNA` for religada (hoje a noturna é informativa).
 - `homolog-aprovada` vale para o instante em que rodou: no PR de release, use **Re-run jobs imediatamente antes do merge** (uma noturna que falhe depois no mesmo SHA só aparece assim).
 - Primeira release: o `schedule` só existe com o arquivo na `main`. Enquanto `homolog.yml` não estiver na `main`, uma execução manual (`workflow_dispatch`, ref `homolog`) do `homolog.yml` vale como a noturna; a regra se desliga sozinha quando o arquivo chegar à `main`. Também nessa release a regra do check ainda não está na base: o job passa com aviso e a conferência é manual do usuário.
 - Status de commit `homolog-portao`/`homolog-noturna` não existem mais (eram falsificáveis).
