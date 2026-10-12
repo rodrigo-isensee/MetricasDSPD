@@ -1,5 +1,6 @@
 import { CATALOGO_CARTOES, ROTULO_PAINEL } from '@metricas-dspd/contratos'
 import { destinoDoCartao } from '@/lib/destinoCartao'
+import type { FonteDoCartao } from '@/components/ui'
 import { CATALOGO, type PainelDaMetrica } from '@/content/catalogo-metricas'
 
 export interface LinhaCatalogo {
@@ -8,7 +9,7 @@ export interface LinhaCatalogo {
   painel: PainelDaMetrica
   painelRotulo: string
   grupo: 'Núcleo' | 'Complementar'
-  fonte: 'BusinessMap' | 'Acelerato'
+  fonte: FonteDoCartao
   granularidade: string
   /** Decisão 20: o app inteiro roda com dados fictícios até a coleta real existir. */
   dados: 'Fictícios'
@@ -17,7 +18,8 @@ export interface LinhaCatalogo {
 }
 
 /** Espera invisível aparece uma vez (os quatro níveis são a mesma métrica); BLOQUEADOS é lista, não métrica do briefing. */
-const FORA = new Set(['BLOQUEADOS', 'EI_FL2', 'EI_FL3', 'EI_SUST'])
+/** PV1 é a pesquisa de percepção (não é uma das 45 do briefing; fica fora até a decisão de listá-la aqui). */
+const FORA = new Set(['BLOQUEADOS', 'EI_FL2', 'EI_FL3', 'EI_SUST', 'PV1'])
 
 const ROTULO: Record<PainelDaMetrica, string> = {
   ...ROTULO_PAINEL,

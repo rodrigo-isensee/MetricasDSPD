@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import {
-  METRICAS_SUSTENTACAO,
+  fonteDaMetrica,
   type Dominio,
   type MetricaId,
   type VersaoCriterio,
@@ -10,9 +10,9 @@ import { useCriterios } from '@/data'
 import { fmtData } from '@/lib/formatar'
 import { SecaoDados } from './SecaoDados'
 
+/** A métrica é da fonte da aba. A pesquisa (PV1) e a Visão geral não são de nenhuma das duas. */
 const daFonte = (dominio: Dominio, id: string): boolean =>
-  id !== 'VISAO_GERAL' &&
-  METRICAS_SUSTENTACAO.includes(id as MetricaId) === (dominio === 'acelerato')
+  fonteDaMetrica(id as MetricaId) === dominio
 
 /** Mudanças de critério (T2.6) que afetam a fonte da aba, com as métricas dela; nunca as da outra fonte (CA-18). */
 export function MudancasCriterio({ dominio }: { dominio: Dominio }) {

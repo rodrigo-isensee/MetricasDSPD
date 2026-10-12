@@ -1,5 +1,5 @@
 import type { Dominio, EstadoColeta, MetricaId, PaginaColetas } from '@metricas-dspd/contratos'
-import { METRICAS_SUSTENTACAO } from '@metricas-dspd/contratos'
+import { fonteDaMetrica } from '@metricas-dspd/contratos'
 
 /**
  * Parâmetro oculto `?mock=` (spec de UX 6.6): força estados para validação e QA.
@@ -61,7 +61,10 @@ const SEM_DADOS = '__sem-dados__'
 /** Filtros que não casam com nenhum registro, para forçar o estado vazio sem tocar nos DTOs. */
 export function filtrosSemDados<F>(id: MetricaId, filtros: F): F {
   const base = filtros as Record<string, unknown>
-  return METRICAS_SUSTENTACAO.includes(id)
+  const fonte = fonteDaMetrica(id)
+  // A pesquisa só aceita `dataReferencia`: nenhum filtro a esvazia, e o "sem pesquisa" é um estado próprio.
+  if (fonte === 'pesquisa') return filtros
+  return fonte === 'acelerato'
     ? ({ ...base, equipe: [SEM_DADOS] } as F)
     : ({ ...base, equipe: [SEM_DADOS], sistema: [SEM_DADOS] } as F)
 }
