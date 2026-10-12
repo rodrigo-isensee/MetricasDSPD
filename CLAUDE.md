@@ -5,7 +5,7 @@ Sistema de métricas ágeis do DSPD: coleta dados do BusinessMap (fluxo de proje
 Projeto full-stack: back-end em Node.js (`server/`), front-end em React (`web/`) e testes E2E (`e2e/`).
 
 ## Fonte da verdade
-- `docs/briefing-execucao-metricas.md`: **briefing de execução**. É a especificação: regras de cálculo, catálogo de métricas, frentes WS1 a WS6, tarefas e critérios de pronto. Leia as seções 00 a 04 antes de qualquer tarefa.
+- `docs/briefing-execucao-metricas.md`: **briefing de execução**. É a especificação: regras de cálculo, catálogo de métricas, frentes WS1 a WS6, tarefas e critérios de pronto. Leia só as seções que a tarefa exige (o pedido de delegação do Jarvis aponta quais); as regras invioláveis abaixo valem sempre e não dependem dessa leitura.
 - `docs/proposta-metricas-ageis.md`: proposta original, com a justificativa de cada métrica. Use para entender o porquê; em caso de conflito, vale o briefing.
 - `docs/referencia/`: os HTML originais dos dois documentos.
 
@@ -20,7 +20,7 @@ Projeto full-stack: back-end em Node.js (`server/`), front-end em React (`web/`)
 - Mudança de critério de cálculo é registrada com data e marcada nos gráficos (T2.6).
 - Dúvida de regra de negócio **não se resolve por inferência**: vira pergunta ao usuário, nunca decisão no código.
 - Ordem obrigatória: configuração (WS1, WS4) → coleta (WS2, WS5) → painéis (WS3).
-- Credenciais (apikey do BusinessMap, acesso ao Metabase do Acelerato, usuários do PostgreSQL) só em `.env`, nunca no código. A fonte do Acelerato é somente leitura (tabela no Metabase); a API não tem permissão de leitura das colunas de pessoa.
+- Credenciais (apikey do BusinessMap, e-mail e token da API do Acelerato, usuários do PostgreSQL) só em `.env`, nunca no código. O Acelerato é lido somente pela sua API pública, só com GET (nada é escrito no Acelerato). Essa API devolve dados de pessoa (nome, e-mail, ids de usuário) e texto livre (título, descrição): o coletor aplica uma lista fechada de campos (allow-list) na fronteira, e nome, e-mail, `usuarioKey`, descrição e título do chamado nunca chegam ao staging nem a outra tabela. A API do projeto (papel `dspd_api`) não lê colunas de pessoa (GRANT por coluna).
 
 ## O que é código e o que não é
 Frentes de implementação pelo time: WS2 (coletor e base analítica), WS3 (painéis do fluxo), WS5 (painéis de sustentação) e as automações externas da T4.3. As frentes WS1, WS4 e WS6 são configuração de ferramenta e governança feitas por pessoas; o time pode gerar apoio (relatórios, roteiros de teste, consultas), mas não as executa.
