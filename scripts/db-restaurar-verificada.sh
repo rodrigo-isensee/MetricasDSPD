@@ -34,6 +34,8 @@ trap limpar EXIT
 echo "[restauracao] $(basename "$DUMP") ($(du -h "$DUMP" | cut -f1)) -> $ALVO"
 adm psql -X -q -v ON_ERROR_STOP=1 --no-password -d postgres -c "CREATE DATABASE $ALVO ENCODING 'UTF8' TEMPLATE template0"
 adm psql -X -q -v ON_ERROR_STOP=1 --no-password -d "$ALVO" -c "ALTER DATABASE $ALVO SET timezone TO 'UTC'"
+# O pg_dump -Fc não leva as permissões do banco: devolve ao migrador o CREATE (como no banco real) para o `migrate up` conferir.
+adm psql -X -q -v ON_ERROR_STOP=1 --no-password -d "$ALVO" -c "GRANT CREATE, CONNECT ON DATABASE $ALVO TO dspd_migrador"
 adm pg_restore --no-password --exit-on-error -d "$ALVO" < "$DUMP"
 
 # 1) migrate up na restauração: deve aplicar 0 migrações.
