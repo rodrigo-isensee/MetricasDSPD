@@ -68,7 +68,7 @@ try {
     console.log(`-- ${nome}\n${r.rows.map((x) => x['QUERY PLAN']).join('\n')}\n`);
   };
   await exp('dim_card (carga)', `SELECT card_id, tipo, titulo, criado_em, concluido_em FROM ${E.bm}.dim_card WHERE criado_em IS NOT NULL AND granularidade IS NOT NULL AND tipo IS NOT NULL ORDER BY card_id`);
-  await exp('fato_transicao (carga)', `SELECT card_id, coluna_destino_id, ocorrido_em FROM ${E.bm}.fato_transicao WHERE tipo_coluna IS NOT NULL AND direcao IS NOT NULL ORDER BY card_id, ocorrido_em, transicao_sk`);
+  await exp('vw_transicao_canonica (carga)', `SELECT card_id, coluna_destino_id, ocorrido_em FROM ${E.bm}.vw_transicao_canonica WHERE tipo_coluna IS NOT NULL AND direcao IS NOT NULL ORDER BY card_id, ocorrido_em, transicao_sk`);
   await exp('fato_bloqueio (carga)', `SELECT card_id, inicio FROM ${E.bm}.fato_bloqueio WHERE motivo IS NOT NULL ORDER BY card_id, inicio, bloqueio_sk`);
   await exp('dim_chamado (carga)', `SELECT chamado_id, aberto_em FROM ${E.ac}.dim_chamado WHERE aberto_em IS NOT NULL AND equipe IS NOT NULL AND prioridade IS NOT NULL ORDER BY chamado_id`);
   await exp('fato_etapa_chamado (carga)', `SELECT chamado_id, etapa, entrada FROM ${E.ac}.fato_etapa_chamado ORDER BY chamado_id, entrada, etapa`);
