@@ -1,0 +1,25 @@
+name: Playwright
+description: Navegador Chromium do Playwright com cache por versão
+runs:
+  using: composite
+  steps:
+    - name: Versão do Playwright
+      id: pw
+      shell: bash
+      run: echo "v=$(pnpm --filter @metricas-dspd/e2e exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+    - name: Cache dos navegadores do Playwright
+      id: pwcache
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.pw.outputs.v }}
+    - name: Instala navegador e dependências do sistema
+      shell: bash
+      env:
+        CACHE_HIT: ${{ steps.pwcache.outputs.cache-hit }}
+      run: |
+        if [ "$CACHE_HIT" = 'true' ]; then
+          pnpm --filter @metricas-dspd/e2e exec playwright install-deps chromium
+        else
+          pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
+        fi

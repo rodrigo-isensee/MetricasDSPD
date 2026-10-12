@@ -52,13 +52,14 @@ As convenções de cada área ficam nas skills em `.claude/skills/`.
 3. `tech-lead` faz code review de toda entrega.
 4. `qa-engineer` testa — **todo desenvolvimento passa pelo QA**, sem exceção. Nenhuma branch é enviada sem o parecer do QA em `docs/qa/`.
 5. `ux-designer` revisa a interface implementada.
-6. `tech-lead` envia a branch e prepara o pull request.
-7. **O usuário valida e faz o merge na `main`.**
+6. `tech-lead` envia a branch e prepara o pull request para a `develop` (squash); mesclado por ele depois de review e QA.
+7. **Homologação** (`docs/engineering/fluxo-homologacao.md`): o `tech-lead` promove `develop` → `homolog` por PR (merge commit); o push em `homolog` dispara o portão da CI (suíte completa, migração a partir da main, smoke) e uma rodada noturna agendada na CI. Documentação passa por `homolog` rodando só `docs:check`. O ambiente local de homologação sobe sob demanda (`pnpm run homolog:subir`).
+8. **O usuário valida e faz o merge na `main`** do PR de release `homolog` → `main` (merge commit), liberado pelo check `homolog-aprovada` (candidato = ponta de `homolog`, portão e noturna verdes). Release sob demanda, depois de uma noite verde; validação manual só quando a release muda a interface.
 
 Correções e tarefas técnicas sem impacto de interface pulam o upstream, mas nunca o code review e o QA.
 
 ## A main é do usuário
-Nenhum agente faz commit, merge ou push na `main`. Toda mudança chega lá por pull request validado e mesclado pelo usuário. O hook `.githooks/pre-push` bloqueia envios para a `main`.
+Nenhum agente faz commit, merge ou push na `main`. Toda mudança chega lá por pull request validado e mesclado pelo usuário: o PR de release `homolog` → `main`, e só ele (hotfix sai da `main` com aprovação do usuário e volta a `homolog` e `develop` por PR). O fluxo é `feature/*` → `develop` → `homolog` → `main`; nada pula degrau e ninguém commita direto em `homolog` ou `main`. O `tech-lead` mescla em `develop` e em `homolog`; o usuário, na `main`. O hook `.githooks/pre-push` bloqueia envios para a `main`; `develop` e `homolog` são protegidas no GitHub.
 
 ## Quadro de atividades
 Todas as atividades do time ficam visíveis no `KANBAN.md` (raiz), atualizado pelo Jarvis a cada mudança de estado. O `agile-coach` cuida das políticas do quadro, das métricas de fluxo e das retrospectivas.
