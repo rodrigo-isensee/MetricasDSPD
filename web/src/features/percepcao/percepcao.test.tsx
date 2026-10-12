@@ -318,7 +318,7 @@ describe('CartaoPV1: tendência e versão do questionário', () => {
       'Pergunta',
       '4T/20254 respostas',
       '1T/202614 respostas',
-      '2T/202619 respostasQuestionário alterado',
+      '2T/202619 respostasQuestionário alterado em 01/04/2026',
       '3T/202624 respostas',
     ])
     const marcadas = cab.filter((c) => c.hasAttribute('data-quebra'))
@@ -334,6 +334,33 @@ describe('CartaoPV1: tendência e versão do questionário', () => {
     ).toEqual(['—base insuficiente', '7 de 14', '9 de 19', '12 de 24 (50%)'])
     expect(
       within(el).getByText(/4T\/2025: base insuficiente, 4 respostas\. Mínimo 5 para publicar\./),
+    ).toBeVisible()
+  })
+
+  it('quebra em versão que não é a vigente: marca sem data', async () => {
+    const { el } = await cartao(
+      resultado({
+        tendencia: [
+          { trimestre: '2026-T1', versaoId: 'v1', bloco: concordam(14) },
+          { trimestre: '2026-T2', versaoId: 'v3', bloco: concordam(19) },
+        ],
+      }),
+    )
+    const marca = within(within(el).getByTestId('tendencia')).getByTestId('quebra-serie')
+    expect(marca).toHaveTextContent(/^Questionário alterado$/)
+  })
+
+  it('expõe os seletores estáveis da seção (tendência, pontos por trimestre e quebra de série)', async () => {
+    const { el } = await cartao(resultado())
+    const t = within(el).getByTestId('tendencia')
+    expect(within(t).getAllByTestId('ponto-trimestre')).toHaveLength(4)
+    expect(within(t).getByTestId('quebra-serie')).toHaveTextContent('01/04/2026')
+    expect(within(el).getByTestId('por-area')).toBeVisible()
+    expect(within(within(el).getByTestId('por-area')).getAllByTestId('n-grupo')).toHaveLength(3)
+    expect(
+      within(within(el).getByTestId('o-que-mudou')).getByRole('heading', {
+        name: 'O que mudou por causa da pesquisa',
+      }),
     ).toBeVisible()
   })
 

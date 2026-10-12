@@ -34,7 +34,7 @@ function SemPesquisa() {
 function PorArea({ d }: { d: Ok }) {
   const p = d.porArea
   return (
-    <section aria-labelledby="pv1-por-area" className="flex flex-col gap-3">
+    <section aria-labelledby="pv1-por-area" className="flex flex-col gap-3" data-testid="por-area">
       <h4 id="pv1-por-area" className="text-sm font-bold">
         Por área
       </h4>
@@ -59,7 +59,7 @@ function PorArea({ d }: { d: Ok }) {
               <li key={a.outras ? 'outras' : a.rotulo} data-testid="pv1-area">
                 <h5 className="text-sm font-semibold">
                   {a.outras ? 'Outras áreas' : a.rotulo}{' '}
-                  <span className="font-normal text-texto-2">
+                  <span className="font-normal text-texto-2" data-testid="n-grupo">
                     · {fmtInteiro(a.bloco.n)} respostas
                   </span>
                 </h5>
@@ -79,7 +79,11 @@ function PorArea({ d }: { d: Ok }) {
 
 function OQueMudou({ d }: { d: Ok }) {
   return (
-    <section aria-labelledby="pv1-o-que-mudou" className="flex flex-col gap-1">
+    <section
+      aria-labelledby="pv1-o-que-mudou"
+      className="flex flex-col gap-1"
+      data-testid="o-que-mudou"
+    >
       <h4 id="pv1-o-que-mudou" className="text-sm font-bold">
         O que mudou por causa da pesquisa
       </h4>

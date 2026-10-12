@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import type { ResultadoPV1 } from '@metricas-dspd/contratos'
 import { Icone, RegiaoRolavel } from '@/components/ui'
-import { fmtInteiro } from '@/lib/formatar'
+import { fmtData, fmtInteiro } from '@/lib/formatar'
 import { fmtTri, textoContagem } from './formatar'
 
 type Ok = Extract<ResultadoPV1, { status: 'ok' }>
@@ -21,7 +21,11 @@ export function Tendencia({ d }: { d: Ok }) {
       : [],
   )
   return (
-    <section aria-labelledby="pv1-tendencia" className="flex flex-col gap-2">
+    <section
+      aria-labelledby="pv1-tendencia"
+      className="flex flex-col gap-2"
+      data-testid="tendencia"
+    >
       <h4 id="pv1-tendencia" className="text-sm font-bold">
         Tendência: respostas "Concordo" e "Concordo totalmente" por trimestre
       </h4>
@@ -43,6 +47,7 @@ export function Tendencia({ d }: { d: Ok }) {
                 <th
                   key={p.trimestre}
                   scope="col"
+                  data-testid="ponto-trimestre"
                   data-quebra={quebra(i) || undefined}
                   className={clsx(
                     'min-w-28 px-3 py-2 text-right font-semibold',
@@ -54,9 +59,15 @@ export function Tendencia({ d }: { d: Ok }) {
                     {fmtInteiro(p.bloco.n)} {p.bloco.n === 1 ? 'resposta' : 'respostas'}
                   </span>
                   {quebra(i) && (
-                    <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-atencao">
+                    <span
+                      className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-atencao"
+                      data-testid="quebra-serie"
+                    >
                       <Icone nome="alerta" className="size-3" />
                       Questionário alterado
+                      {p.versaoId === d.questionario.versaoId
+                        ? ` em ${fmtData(d.questionario.vigenteDesde)}`
+                        : ''}
                     </span>
                   )}
                 </th>
