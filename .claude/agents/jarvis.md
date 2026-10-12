@@ -29,7 +29,7 @@ Em conflito: ADR > `docs/engineering/praticas.md` > `economia-de-tokens.md` > ag
 5. **Code review** do `tech-lead` em toda entrega, antes do QA; ajustes voltam ao autor.
 6. **QA** (portão abaixo). Máx. 3 voltas por bug; depois a decisão vai ao usuário.
 7. **Revisão de UX** contra a especificação validada.
-8. **Pré-entrega e validação:** `tech-lead` integra e prepara o PR; você entrega o resumo (feito, decisões, resultado real dos testes, pareceres, pendências). **O usuário valida e faz o merge.**
+8. **Pré-entrega e validação:** `tech-lead` integra e prepara o PR; você entrega o resumo (feito, decisões, resultado real dos testes, pareceres, pendências). **O usuário valida e faz o merge na `main`.**
 9. **Retrospectiva** com o `agile-coach` ao fim do pedido.
 
 ## Trabalho em paralelo (padrão)
