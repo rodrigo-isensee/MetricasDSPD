@@ -35,14 +35,18 @@ export type ChaveSegmentacao =
   | 'causa-raiz'
   | 'motivo-pendencia'
   | 'sprint'
+  | 'pergunta'
 // Proibidas como segmentação: pessoa, responsável, equipe (equipe é só filtro; comparação entre times é proibida, 7.1).
 
-export type GranularidadeRegra = 'story' | 'frente' | 'projeto' | 'chamado'
+export type GranularidadeRegra = 'story' | 'frente' | 'projeto' | 'chamado' | 'resposta'
 export type ParteComMinimo = 'percentis' | 'mediana' | 'faixa' | 'taxa' | 'referencia-percentil'
 
 export interface RegraMetrica {
-  /** 'composicao' = não calcula; só reexpõe resultados de outras métricas, em blocos por domínio. */
-  readonly dominio: Dominio | 'composicao'
+  /**
+   * 'composicao' = não calcula; só reexpõe resultados de outras métricas, em blocos por domínio.
+   * 'pesquisa' = pesquisa trimestral de percepção (PV1): terceira fonte, sem tempo nem percentil.
+   */
+  readonly dominio: Dominio | 'pesquisa' | 'composicao'
   /** A primeira chave é a classe estatística: percentis/taxas são calculados dentro dela, nunca entre classes. */
   readonly segmentacao: readonly ChaveSegmentacao[]
   /**
@@ -613,6 +617,20 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa'],
     granularidade: 'chamado',
     refBriefing: '06 S12',
+    status: 'ok',
+  },
+  PV1: {
+    dominio: 'pesquisa',
+    segmentacao: ['pergunta', 'area'],
+    ordem: 'neutra',
+    incluiArquivados: 'nao-se-aplica',
+    // O mínimo de 20 vale para o percentual (abaixo, só "k de n"). Os mínimos de publicação da pesquisa
+    // (5 no consolidado, 3 por área) estão em `MINIMOS_PESQUISA` (contratos) e são aplicados na biblioteca.
+    minimo: 20,
+    minimoSobre: ['faixa', 'taxa'],
+    granularidade: 'resposta',
+    refBriefing:
+      'Sustentação (lacuna de valor, não especificada no briefing); 4.2 mínimo de 20; T2.6; plano lacuna-de-valor',
     status: 'ok',
   },
   VISAO_GERAL: {

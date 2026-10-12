@@ -1,6 +1,6 @@
 import {
-  METRICAS_SUSTENTACAO,
   METRICA_IDS,
+  fonteDaMetrica,
   type Dominio,
   type JanelaCalibracao,
   type MetricaId,
@@ -13,10 +13,8 @@ export const DURACAO_CALIBRACAO_DIAS = 60
 
 /** Métricas de cada fonte; a Visão geral não pertence a nenhuma (nunca mistura as duas). */
 export function metricasDaFonte(dominio: Dominio): MetricaId[] {
-  const sust = new Set<MetricaId>(METRICAS_SUSTENTACAO)
-  return METRICA_IDS.filter(
-    (m) => m !== 'VISAO_GERAL' && (dominio === 'acelerato' ? sust.has(m) : !sust.has(m)),
-  )
+  // fonteDaMetrica exclui a Visão geral ('ambos') e a PV1 ('pesquisa'): a pesquisa não passa por calibração.
+  return METRICA_IDS.filter((m) => fonteDaMetrica(m) === dominio)
 }
 
 function janela(

@@ -105,6 +105,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
       S8: 'a prioridade atua só como filtro; o resultado é série mensal sem nó por prioridade',
       S9: 'a chave é o motivo da pendência, que vive na etapa (classificador por motivo não implementado)',
       S11: 'os grupos P1, P2 e contorno se sobrepõem por definição: o nó do grupo depende do conjunto',
+      PV1: 'pesquisa agregada (pergunta e área são nós de contagem por faixa, sem item classificável); fronteiras 4/5, 2/3 e 19/20 serão cobertas por propriedades próprias no B2 (pesquisa/anonimato)',
       S12: 'a chave é a categoria do sistema (contagem por nome) e o recorrente depende do conjunto da janela',
     },
   },
@@ -117,6 +118,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
     nome: 'fronteira de amostra 19/20',
     aplica: (_id, r) => r.minimo === 20,
     excecoes: {
+      PV1: 'o mínimo de publicação é 5 (consolidado) e 3 (área), com o 20 só no percentual; sem nó ok de amostra de itens: coberto nos testes do B2 (pesquisa/anonimato)',
       E1: 'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer; coberto em businessmap.test.ts',
       EI_FL3:
         'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer',

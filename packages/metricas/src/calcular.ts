@@ -69,6 +69,8 @@ const CALCULOS: {
   S12: (f, c) => AC.calcularS12(c.ac, f, c.ext?.ac),
   O17: (f, c) => AC.calcularO17(c.ac, f, c.ext?.ac),
   EI_SUST: (f, c) => AC.calcularEIAcelerato(c.ac, f),
+  // PROVISÓRIO (B1): sem contexto de pesquisa o resultado é sempre `sem-pesquisa`. O B2 troca por `PESQ.calcularPV1(c.pesq)`.
+  PV1: () => ({ status: 'sem-pesquisa', fonte: 'pesquisa' }),
   VISAO_GERAL: (_f, ctx) => calcularVisaoGeral(ctx.bm, ctx.ac),
 }
 
