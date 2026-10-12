@@ -8,6 +8,7 @@ import { useMetrica } from '@/data'
 import { fmtDataCurta, fmtInteiro, semanasDoIntervalo, textoJanela } from '@/lib/formatar'
 import { aplicaveisDe } from '@/features/painel/propsCartao'
 import { NOTAS_OPERACIONAL } from '../notas'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 /**
  * CARTÃO DE REFERÊNCIA da fase A: mostra o padrão para os painéis da fase B.
@@ -107,6 +108,7 @@ export function CartaoO4({ filtros }: { filtros: FiltrosFluxo }) {
           {faixa?.status === 'insuficiente' && (
             <AmostraInsuficiente n={faixa.n} codigo="O4" oQue="Faixa e mediana" className="mt-3" />
           )}
+          <LeiaJunto id="o4" />
         </>
       )}
     </CartaoMetrica>

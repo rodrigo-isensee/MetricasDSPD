@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import {
+  PAINEIS_COM_CARTOES,
   PREFERENCIAS_PADRAO,
   type CartaoId,
   type Papel,
@@ -33,6 +34,9 @@ export interface PreferenciasValor {
   restaurarPadrao: () => void
   /** `null` volta ao perfil ("Usar minhas preferências"); lista vazia = "Mostrar todas". */
   definirNaVisita: (painel: PainelComCartoes, ocultos: readonly CartaoId[] | null) => void
+  /** Seção "Mais métricas deste painel" aberta na visita (fechada por padrão; vale na sessão, não no perfil). */
+  secaoAberta: (painel: PainelComCartoes) => boolean
+  definirSecaoAberta: (painel: PainelComCartoes, aberta: boolean) => void
 }
 
 const Ctx = createContext<PreferenciasValor | null>(null)
@@ -58,6 +62,7 @@ export function ProvedorPreferencias({
   const [pronto, setPronto] = useState(false)
   const [estadoSalvar, setEstadoSalvar] = useState<EstadoSalvar>('ocioso')
   const [visita, setVisita] = useState<Partial<Record<PainelComCartoes, readonly CartaoId[]>>>({})
+  const [abertas, setAbertas] = useState<Partial<Record<PainelComCartoes, boolean>>>({})
   const atual = useRef(prefs)
 
   useEffect(() => {
@@ -109,10 +114,14 @@ export function ProvedorPreferencias({
         gravar(Object.fromEntries(Object.entries(o).map(([p, ocultar]) => [p, { ocultar }])))
         setVisita({})
       },
+      // "Mostrar tudo" inclui os complementares: a seção abre na visita (D-4), sem entrar no perfil.
       restaurarPadrao: () => {
         gravar({})
         setVisita({})
+        setAbertas(Object.fromEntries(PAINEIS_COM_CARTOES.map((p) => [p, true])))
       },
+      secaoAberta: (p) => abertas[p] ?? false,
+      definirSecaoAberta: (p, aberta) => setAbertas((a) => ({ ...a, [p]: aberta })),
       definirNaVisita: (p, ocultos) =>
         setVisita((v) => {
           const prox = Object.fromEntries(Object.entries(v).filter(([k]) => k !== p))
@@ -120,7 +129,7 @@ export function ProvedorPreferencias({
           return prox
         }),
     }
-  }, [prefs, pronto, estadoSalvar, visita, fonte.origem, gravar])
+  }, [prefs, pronto, estadoSalvar, visita, abertas, fonte.origem, gravar])
 
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>
 }

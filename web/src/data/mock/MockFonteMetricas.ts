@@ -23,6 +23,27 @@ type Carregado = {
   sorteio: () => number
 }
 
+/** Métricas complementares: as únicas que precisam das extensões mockadas. */
+const COMPLEMENTARES: ReadonlySet<MetricaId> = new Set<MetricaId>([
+  'O5',
+  'O6',
+  'O8',
+  'O11',
+  'O13',
+  'O14',
+  'O16',
+  'O17',
+  'T6',
+  'T8',
+  'E4',
+  'E5',
+  'S8',
+  'S9',
+  'S10',
+  'S11',
+  'S12',
+])
+
 /** Devolve a thread principal ao navegador entre fases pesadas (tarefa longa < 200 ms, ADR 0003 C6). */
 const ceder = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
 
@@ -47,6 +68,8 @@ export class MockFonteMetricas implements FonteMetricas {
   private carregado: Promise<Carregado> | null = null
 
   private coletas: Promise<import('@metricas-dspd/mock').ColetasMock> | null = null
+
+  private extensoes: Promise<import('@metricas-dspd/metricas').ExtensoesMetricas> | null = null
 
   private readonly opcoes: OpcoesMock
 
@@ -79,6 +102,16 @@ export class MockFonteMetricas implements FonteMetricas {
     return this.carregado
   }
 
+  /** Extensões mockadas (causa raiz, sprint, natureza, reabertura...), fora da base: o hash dela não muda. */
+  private carregarExtensoes(): Promise<import('@metricas-dspd/metricas').ExtensoesMetricas> {
+    this.extensoes ??= this.carregar().then(async ({ base }) => {
+      const mock = await import('@metricas-dspd/mock')
+      await ceder()
+      return mock.gerarExtensoesMock(base)
+    })
+    return this.extensoes
+  }
+
   private async atraso(sorteio: () => number): Promise<void> {
     const ms = this.opcoes.latenciaMs ?? sorteio()
     if (ms > 0) await new Promise((r) => setTimeout(r, ms))
@@ -90,7 +123,9 @@ export class MockFonteMetricas implements FonteMetricas {
   ): Promise<ResultadoDe<K>> {
     const { ctx, lib, sorteio } = await this.carregar()
     await this.atraso(sorteio)
-    return lib.calcularMetrica(id, filtros, ctx)
+    // As extensões das complementares só são geradas quando uma delas é pedida (carga sob demanda).
+    const completo = COMPLEMENTARES.has(id) ? { ...ctx, ext: await this.carregarExtensoes() } : ctx
+    return lib.calcularMetrica(id, filtros, completo)
   }
 
   async opcoesFiltro<D extends Dominio>(

@@ -31,6 +31,10 @@ export type ChaveSegmentacao =
   | 'relogio'
   | 'projeto'
   | 'iniciativa'
+  | 'severidade'
+  | 'causa-raiz'
+  | 'motivo-pendencia'
+  | 'sprint'
 // Proibidas como segmentação: pessoa, responsável, equipe (equipe é só filtro; comparação entre times é proibida, 7.1).
 
 export type GranularidadeRegra = 'story' | 'frente' | 'projeto' | 'chamado'
@@ -56,6 +60,11 @@ export interface RegraMetrica {
   readonly refBriefing: string
   /** 'pendente-usuario' se qualquer célula for Pendente (verificado por teste, não declarado só à mão). */
   readonly status: 'ok' | Pendente
+  /**
+   * Dúvidas de regra de negócio em aberto com o usuário (o que o mock assumiu); lista em
+   * `docs/alinhamentos/2026-10-11-metricas-complementares-pendencias.md`. Não vazia implica status pendente.
+   */
+  readonly pendencias?: readonly string[]
 }
 
 const PENDENTE = 'pendente-usuario' as const
@@ -416,6 +425,194 @@ export const REGRAS_METRICA = {
     minimoSobre: ['mediana'],
     granularidade: 'chamado',
     refBriefing: 'T3.4; Q2',
+    status: 'ok',
+  },
+  O5: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['mediana'],
+    granularidade: 'story',
+    refBriefing: '06 O5; 4.1 inicio; 4.2 bloqueio',
+    status: 'ok',
+  },
+  O6: {
+    dominio: 'businessmap',
+    segmentacao: ['classe-servico'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['referencia-percentil'],
+    granularidade: 'story',
+    refBriefing: '06 O6; mesma amostra do O3',
+    status: 'ok',
+  },
+  O8: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['percentis', 'mediana'],
+    granularidade: 'story',
+    refBriefing: '06 O8; 7.2 nunca média isolada',
+    status: 'ok',
+  },
+  O11: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'story',
+    refBriefing: '06 O11; retrato mensal',
+    status: 'ok',
+  },
+  O13: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'story',
+    refBriefing: '06 O13; sem alvo de volume',
+    status: 'ok',
+  },
+  O14: {
+    dominio: 'businessmap',
+    segmentacao: ['area', 'sistema'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'story',
+    refBriefing: '06 O14; nunca por pessoa',
+    status: 'ok',
+  },
+  O16: {
+    dominio: 'businessmap',
+    segmentacao: ['faixa-idade', 'severidade'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'story',
+    refBriefing: '06 O16; 4.4 origem_bug',
+    status: 'ok',
+  },
+  O17: {
+    // Decisão do usuário (2026-10-11): vem do Acelerato (campo causa raiz via Metabase), painel Sustentação.
+    dominio: 'acelerato',
+    segmentacao: ['causa-raiz', 'sistema'],
+    ordem: 'neutra',
+    incluiArquivados: 'nao-se-aplica',
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'chamado',
+    refBriefing: '06 O17; 4.4 causa raiz',
+    status: 'ok',
+  },
+  T6: {
+    dominio: 'businessmap',
+    segmentacao: ['classe-servico'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['percentis'],
+    granularidade: 'story',
+    refBriefing: '06 T6; T2.5 Monte Carlo',
+    status: 'ok',
+  },
+  T8: {
+    dominio: 'businessmap',
+    segmentacao: [],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'story',
+    refBriefing: '06 T8; 7.2 sem alvo de 100%',
+    status: 'ok',
+  },
+  E4: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo-projeto'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'projeto',
+    refBriefing: '06 E4',
+    status: 'ok',
+  },
+  E5: {
+    dominio: 'businessmap',
+    segmentacao: [],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['percentis'],
+    granularidade: 'frente',
+    refBriefing: '06 E5; T2.5 Monte Carlo; T9',
+    status: 'ok',
+  },
+  S8: {
+    dominio: 'acelerato',
+    segmentacao: ['prioridade'],
+    ordem: 'temporal',
+    incluiArquivados: 'nao-se-aplica',
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'chamado',
+    refBriefing: '06 S8; T4.2',
+    status: 'ok',
+  },
+  S9: {
+    dominio: 'acelerato',
+    segmentacao: ['motivo-pendencia'],
+    ordem: 'neutra',
+    incluiArquivados: 'nao-se-aplica',
+    minimo: 20,
+    minimoSobre: ['percentis'],
+    granularidade: 'chamado',
+    refBriefing: '06 S9',
+    status: 'ok',
+  },
+  S10: {
+    dominio: 'acelerato',
+    segmentacao: ['prioridade'],
+    ordem: 'temporal',
+    incluiArquivados: 'nao-se-aplica',
+    minimo: 20,
+    minimoSobre: ['percentis', 'taxa'],
+    granularidade: 'chamado',
+    refBriefing: '06 S10',
+    status: 'ok',
+  },
+  S11: {
+    dominio: 'acelerato',
+    segmentacao: ['prioridade'],
+    ordem: 'neutra',
+    incluiArquivados: 'nao-se-aplica',
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'chamado',
+    refBriefing: '06 S11',
+    status: 'ok',
+  },
+  S12: {
+    dominio: 'acelerato',
+    segmentacao: ['sistema'],
+    ordem: 'neutra',
+    incluiArquivados: 'nao-se-aplica',
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'chamado',
+    refBriefing: '06 S12',
     status: 'ok',
   },
   VISAO_GERAL: {

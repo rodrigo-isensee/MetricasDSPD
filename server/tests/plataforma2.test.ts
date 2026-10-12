@@ -18,9 +18,11 @@ const AGORA = new Date('2026-10-10T15:00:00Z');
 
 describe('config', () => {
   it('api: padrões e validação sem vazar valores', () => {
-    expect(carregarConfigApi({ PG_API_URL: PG })).toMatchObject({ PORT: 3000, HOST: '0.0.0.0', DSPD_SCHEMA_PREFIXO: '', LOG_LEVEL: 'info' });
+    expect(carregarConfigApi({ PG_API_URL: PG })).toMatchObject({ PORT: 3000, DADOS_FONTE: 'mock', HOST: '0.0.0.0', DSPD_SCHEMA_PREFIXO: '', LOG_LEVEL: 'info' });
     expect(() => carregarConfigApi({ PG_API_URL: 'mysql://x:senha-secreta@h/d' })).toThrow('variáveis: PG_API_URL');
     try { carregarConfigApi({ PG_API_URL: 'mysql://x:senha-secreta@h/d' }); } catch (e) { expect(String(e)).not.toContain('senha-secreta'); }
+    expect(carregarConfigApi({ PG_API_URL: PG, DADOS_FONTE: 'real' }).DADOS_FONTE).toBe('real');
+    expect(() => carregarConfigApi({ PG_API_URL: PG, DADOS_FONTE: 'x' })).toThrow('DADOS_FONTE');
     expect(() => carregarConfigApi({ PG_API_URL: PG, PORT: '0' })).toThrow('PORT');
   });
   it('worker: fontes padrão, lista e fonte desconhecida recusada', () => {
@@ -230,7 +232,7 @@ describe('OpenAPI', () => {
     const caminhos = Object.keys(JSON.parse(gerado).paths);
     expect(caminhos.slice(0, 8)).toEqual(['/health/live', '/health/ready', '/health', '/api/v1/filtros/{dominio}', '/api/v1/referencia',
       '/api/v1/fontes/{dominio}/estado', '/api/v1/fontes/{dominio}/coletas', '/api/v1/criterios']);
-    expect(caminhos.filter((c) => c.startsWith('/api/v1/metricas/'))).toHaveLength(34); // 33 métricas + o 404 genérico
+    expect(caminhos.filter((c) => c.startsWith('/api/v1/metricas/'))).toHaveLength(51); // 50 métricas + o 404 genérico
     expect(caminhos).toContain('/webhooks/businessmap');
   });
 });

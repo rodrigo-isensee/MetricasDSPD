@@ -1,6 +1,6 @@
 import { METRICA_IDS, METRICAS_SUSTENTACAO, type MetricaId } from '@metricas-dspd/contratos';
 import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, type ContextosMetricas } from '@metricas-dspd/metricas';
-import { gerarBaseMock } from '@metricas-dspd/mock';
+import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -39,12 +39,13 @@ d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
     await mig.end();
   });
 
-  it('as 33 métricas: resultado idêntico ao do mock em memória', async () => {
+  it('as 50 métricas: resultado idêntico ao do mock em memória', async () => {
     const mem = mockComoNoBanco(base, ids);
     const ctx: ContextosMetricas = {
       bm: businessmap.criarContextoBM(mem.bm, CORTE, CALENDARIO_PADRAO), ac: acelerato.criarContextoAC(mem.ac, CORTE, CALENDARIO_PADRAO),
+      ext: gerarExtensoesMock(base),
     };
-    const s = new ServicoMetricas({ db: api, S: E });
+    const s = new ServicoMetricas({ db: api, S: E, extensoes: () => gerarExtensoesMock(base) });
     for (const id of METRICA_IDS as readonly MetricaId[]) {
       const f = id === 'VISAO_GERAL' ? {} : METRICAS_SUSTENTACAO.includes(id) ? SUST : FLUXO;
       const r = await s.calcular(id, f, { dataReferencia: CORTE_DATA }, AGORA);

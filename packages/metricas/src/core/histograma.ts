@@ -45,6 +45,15 @@ export const FAIXAS = {
     { min: 181, max: 260 },
     { min: 261, max: null },
   ],
+  /** Horas úteis na fila de atribuição (S10), sobre floor(horas). */
+  atribuicao: [
+    { min: 0, max: 0 },
+    { min: 1, max: 1 },
+    { min: 2, max: 3 },
+    { min: 4, max: 7 },
+    { min: 8, max: 15 },
+    { min: 16, max: null },
+  ],
   /** Idade de backlog em dias corridos (faixas longas permitidas só aqui). */
   backlog: [
     { min: 0, max: 30 },
