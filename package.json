@@ -34,7 +34,11 @@
     "stack:up": "docker compose up -d --build --wait",
     "stack:down": "docker compose down",
     "build:imagem": "docker build -f server/Dockerfile -t metricas-dspd-server .",
-    "openapi:gerar": "pnpm --filter @metricas-dspd/server run openapi:gerar"
+    "openapi:gerar": "pnpm --filter @metricas-dspd/server run openapi:gerar",
+    "homolog:subir": "node tools/homolog/src/main.ts subir",
+    "homolog:derrubar": "node tools/homolog/src/main.ts derrubar",
+    "homolog:smoke": "node tools/homolog/src/main.ts smoke",
+    "homolog:migracao": "node tools/homolog/src/main.ts migracao"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

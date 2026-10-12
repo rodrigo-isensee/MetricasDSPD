@@ -1,0 +1,16 @@
+{
+  "name": "@metricas-dspd/homolog",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "TZ=UTC vitest run",
+    "cobertura": "TZ=UTC vitest run --coverage",
+    "cli": "node src/main.ts",
+    "pronto": "pnpm run typecheck && pnpm run cobertura"
+  },
+  "devDependencies": {
+    "yaml": "^2.9.1"
+  }
+}
