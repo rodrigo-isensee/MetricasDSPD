@@ -766,7 +766,8 @@ export const alertaCodigo = z.enum([
   'S1_MEDIANA_ACIMA_ALVO',
 ])
 const indicadorVG = z.object({
-  metrica: z.enum(METRICA_IDS),
+  /** A Visão geral nunca traz a PV1 (pesquisa é outra fonte e não gera alerta): fora do enum. */
+  metrica: z.enum(METRICA_IDS).exclude(['PV1']),
   /** Código do indicador (métrica, ou métrica_subcorte como S2_P1). */
   codigo: z.string(),
   /** Valor principal; null quando insuficiente. */
@@ -1274,7 +1275,8 @@ export const resultadoPV1 = z.discriminatedUnion('status', [
         const iOutras = a.findIndex((x) => x.outras)
         if (iOutras !== -1 && iOutras !== a.length - 1) return false
         const nomes = a.filter((x) => !x.outras).map((x) => x.rotulo)
-        return nomes.every((n, i) => i === 0 || nomes[i - 1]!.localeCompare(n, 'pt-BR') <= 0)
+        const ordenados = [...nomes].sort((x, y) => x.localeCompare(y, 'pt-BR'))
+        return nomes.every((n, i) => n === ordenados[i])
       },
       { message: 'áreas em ordem alfabética, com "Outras áreas" por último e uma só vez' },
     )

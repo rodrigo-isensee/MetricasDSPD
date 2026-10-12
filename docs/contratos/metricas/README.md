@@ -3,7 +3,7 @@
 Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-12.
 
 <!-- gerado:inicio -->
-Gerado por `pnpm run docs:gerar`. 50 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
+Gerado por `pnpm run docs:gerar`. 51 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
 
 | Métrica | Nome | Domínio | Rota | Granularidade | Mínimo | Status das regras |
 |---|---|---|---|---|---|---|
@@ -52,6 +52,7 @@ Gerado por `pnpm run docs:gerar`. 50 métricas, uma página cada. Regras gerais,
 | [`S10`](S10.md) | Fila de atribuição | acelerato | `/api/v1/metricas/S10` | chamado | 20 | ok |
 | [`S11`](S11.md) | Avaliação de Problema | acelerato | `/api/v1/metricas/S11` | chamado | 20 | ok |
 | [`S12`](S12.md) | Volume por sistema | acelerato | `/api/v1/metricas/S12` | chamado | 20 | ok |
+| [`PV1`](PV1.md) | Percepção de valor do serviço | pesquisa | `/api/v1/metricas/PV1` | resposta | 20 | ok |
 | [`EI_FL1`](EI_FL1.md) | Espera invisível · Operacional | businessmap | `/api/v1/metricas/EI_FL1` | story | 20 | ok |
 | [`EI_FL2`](EI_FL2.md) | Espera invisível · Tático | businessmap | `/api/v1/metricas/EI_FL2` | frente | 20 | ok |
 | [`EI_FL3`](EI_FL3.md) | Espera invisível · Estratégico | businessmap | `/api/v1/metricas/EI_FL3` | projeto | 20 | ok |

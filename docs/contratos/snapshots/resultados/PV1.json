@@ -1,0 +1,814 @@
+{
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "const": "sem-pesquisa"
+        },
+        "fonte": {
+          "type": "string",
+          "const": "pesquisa"
+        }
+      },
+      "required": [
+        "status",
+        "fonte"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "const": "ok"
+        },
+        "fonte": {
+          "type": "string",
+          "const": "pesquisa"
+        },
+        "trimestre": {
+          "type": "string",
+          "pattern": "^\\d{4}-T[1-4]$"
+        },
+        "ciclo": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "questionario": {
+          "type": "object",
+          "properties": {
+            "versaoId": {
+              "type": "string"
+            },
+            "vigenteDesde": {
+              "type": "string"
+            },
+            "perguntas": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "codigo": {
+                    "type": "string"
+                  },
+                  "ordem": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "texto": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "codigo",
+                  "ordem",
+                  "texto"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "versaoId",
+            "vigenteDesde",
+            "perguntas"
+          ],
+          "additionalProperties": false
+        },
+        "participacao": {
+          "type": "object",
+          "properties": {
+            "respondentes": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "convidados": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "taxa": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "const": "ok"
+                    },
+                    "k": {
+                      "type": "number"
+                    },
+                    "n": {
+                      "type": "integer",
+                      "minimum": 20,
+                      "maximum": 9007199254740991
+                    },
+                    "pct": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "k",
+                    "n",
+                    "pct"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "const": "insuficiente"
+                    },
+                    "k": {
+                      "type": "number"
+                    },
+                    "n": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 19
+                    },
+                    "minimo": {
+                      "type": "number",
+                      "const": 20
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "k",
+                    "n",
+                    "minimo"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": [
+            "respondentes",
+            "convidados",
+            "taxa"
+          ],
+          "additionalProperties": false
+        },
+        "consolidado": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "base-insuficiente"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4
+                },
+                "minimo": {
+                  "type": "number",
+                  "const": 5
+                }
+              },
+              "required": [
+                "status",
+                "n",
+                "minimo"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "publicado"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": 5,
+                  "maximum": 9007199254740991
+                },
+                "perguntas": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "codigo": {
+                        "type": "string"
+                      },
+                      "faixas": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "faixa": {
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "const": 1
+                                },
+                                {
+                                  "type": "number",
+                                  "const": 2
+                                },
+                                {
+                                  "type": "number",
+                                  "const": 3
+                                },
+                                {
+                                  "type": "number",
+                                  "const": 4
+                                },
+                                {
+                                  "type": "number",
+                                  "const": 5
+                                }
+                              ]
+                            },
+                            "contagem": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "const": "ok"
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": 20,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pct": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "pct"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "const": "insuficiente"
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 19
+                                    },
+                                    "minimo": {
+                                      "type": "number",
+                                      "const": 20
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "minimo"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "faixa",
+                            "contagem"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "codigo",
+                      "faixas"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "status",
+                "n",
+                "perguntas"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "porArea": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "nao-publicado"
+                },
+                "motivo": {
+                  "type": "string",
+                  "enum": [
+                    "primeiro-ciclo",
+                    "base-insuficiente"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "motivo"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "publicado"
+                },
+                "areas": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "rotulo": {
+                        "type": "string"
+                      },
+                      "outras": {
+                        "type": "boolean"
+                      },
+                      "bloco": {
+                        "type": "object",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "const": "publicado"
+                          },
+                          "n": {
+                            "type": "integer",
+                            "minimum": 3,
+                            "maximum": 9007199254740991
+                          },
+                          "perguntas": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "codigo": {
+                                  "type": "string"
+                                },
+                                "faixas": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "faixa": {
+                                        "anyOf": [
+                                          {
+                                            "type": "number",
+                                            "const": 1
+                                          },
+                                          {
+                                            "type": "number",
+                                            "const": 2
+                                          },
+                                          {
+                                            "type": "number",
+                                            "const": 3
+                                          },
+                                          {
+                                            "type": "number",
+                                            "const": 4
+                                          },
+                                          {
+                                            "type": "number",
+                                            "const": 5
+                                          }
+                                        ]
+                                      },
+                                      "contagem": {
+                                        "oneOf": [
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "status": {
+                                                "type": "string",
+                                                "const": "ok"
+                                              },
+                                              "k": {
+                                                "type": "number"
+                                              },
+                                              "n": {
+                                                "type": "integer",
+                                                "minimum": 20,
+                                                "maximum": 9007199254740991
+                                              },
+                                              "pct": {
+                                                "type": "number"
+                                              }
+                                            },
+                                            "required": [
+                                              "status",
+                                              "k",
+                                              "n",
+                                              "pct"
+                                            ],
+                                            "additionalProperties": false
+                                          },
+                                          {
+                                            "type": "object",
+                                            "properties": {
+                                              "status": {
+                                                "type": "string",
+                                                "const": "insuficiente"
+                                              },
+                                              "k": {
+                                                "type": "number"
+                                              },
+                                              "n": {
+                                                "type": "integer",
+                                                "minimum": -9007199254740991,
+                                                "maximum": 19
+                                              },
+                                              "minimo": {
+                                                "type": "number",
+                                                "const": 20
+                                              }
+                                            },
+                                            "required": [
+                                              "status",
+                                              "k",
+                                              "n",
+                                              "minimo"
+                                            ],
+                                            "additionalProperties": false
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "faixa",
+                                      "contagem"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "codigo",
+                                "faixas"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "status",
+                          "n",
+                          "perguntas"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "rotulo",
+                      "outras",
+                      "bloco"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "status",
+                "areas"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "tendencia": {
+          "maxItems": 4,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "trimestre": {
+                "type": "string",
+                "pattern": "^\\d{4}-T[1-4]$"
+              },
+              "versaoId": {
+                "type": "string"
+              },
+              "bloco": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "const": "base-insuficiente"
+                      },
+                      "n": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 4
+                      },
+                      "minimo": {
+                        "type": "number",
+                        "const": 5
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "n",
+                      "minimo"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "const": "publicado"
+                      },
+                      "n": {
+                        "type": "integer",
+                        "minimum": 5,
+                        "maximum": 9007199254740991
+                      },
+                      "concordam": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "codigo": {
+                              "type": "string"
+                            },
+                            "contagem": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "const": "ok"
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": 20,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pct": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "pct"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "const": "insuficiente"
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 19
+                                    },
+                                    "minimo": {
+                                      "type": "number",
+                                      "const": 20
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "minimo"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "codigo",
+                            "contagem"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "n",
+                      "concordam"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "trimestre",
+              "versaoId",
+              "bloco"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "oQueMudou": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "trimestre": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-T[1-4]$"
+                },
+                "texto": {
+                  "type": "string",
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "trimestre",
+                "texto"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "criterios": {
+          "type": "object",
+          "properties": {
+            "serie": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "string"
+                  },
+                  "descricao": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "data",
+                  "descricao"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "janela": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "string"
+                  },
+                  "descricao": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "data",
+                  "descricao"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "serie",
+            "janela"
+          ],
+          "additionalProperties": false
+        },
+        "base": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            },
+            "janela": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "inicio": {
+                      "type": "string"
+                    },
+                    "fim": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "inicio",
+                    "fim"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "complemento": {
+              "type": "object",
+              "properties": {
+                "n": {
+                  "type": "number"
+                },
+                "unidade": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "n",
+                "unidade"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "n",
+            "unidade",
+            "janela"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "status",
+        "fonte",
+        "trimestre",
+        "ciclo",
+        "questionario",
+        "participacao",
+        "consolidado",
+        "porArea",
+        "tendencia",
+        "oQueMudou",
+        "criterios",
+        "base"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}
