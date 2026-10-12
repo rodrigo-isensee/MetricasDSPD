@@ -60,7 +60,7 @@ export function exigirValido(nome: string, schema: z.ZodType, valor: unknown): v
       .map((i) => `  - ${i.path.length > 0 ? i.path.join('.') : '(raiz)'}: ${i.message}`)
       .join('\n')
     throw new Error(
-      `${nome}: mudança INCOMPATÍVEL, o exemplo gerado não passa no schema do contrato. Campos:\n${campos}\nAjuste o schema e o exemplo juntos; se a quebra for intencional, entregue o contrato novo em paralelo (/api/v2, tipo .v2) ou registre o aceite em docs/contratos/snapshots/aceitas.json.`,
+      `${nome}: mudança INCOMPATÍVEL, o exemplo gerado não passa no schema do contrato. Campos:\n${campos}\nAjuste o schema e o exemplo juntos; se a quebra for intencional, entregue o contrato novo em paralelo (/api/v2, tipo .v2). Registrar aceite em aceitas.json NÃO contorna esta falha: o aceite só libera a fotografia versionada depois que o exemplo passa no schema.`,
     )
   }
 }
@@ -85,8 +85,14 @@ export function carregarInsumos(raiz: string): Insumos {
   const metricas = METRICA_IDS.map((id) => {
     const rota = `/api/v1/metricas/${id}`
     const sustentacao = METRICAS_SUSTENTACAO.includes(id)
+    const schemaResultado = (SCHEMAS_RESULTADO as Partial<Record<MetricaId, z.ZodType>>)[id]
+    if (schemaResultado === undefined) {
+      throw new Error(
+        `contrato resultados/${id} removido: incompatível, exige aceite (registre em docs/contratos/snapshots/aceitas.json) ou restaure o schema em SCHEMAS_RESULTADO`,
+      )
+    }
     const exemplo = calcularMetrica(id, filtrosPadrao(id) as never, ctx)
-    exigirValido(id, SCHEMAS_RESULTADO[id], exemplo)
+    exigirValido(id, schemaResultado, exemplo)
     const doDominio = id === 'VISAO_GERAL' ? [] : sustentacao ? filtrosSust : [...FILTROS_FLUXO]
     return {
       id,
@@ -101,7 +107,7 @@ export function carregarInsumos(raiz: string): Insumos {
         rotulo: c.rotulo,
         secao: c.secao,
       })),
-      schema: paraJsonSchema(SCHEMAS_RESULTADO[id]),
+      schema: paraJsonSchema(schemaResultado),
       exemplo,
     }
   })

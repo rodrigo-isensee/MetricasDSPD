@@ -49,6 +49,15 @@ describe('exigirValido e parametrosDe', () => {
       /^X: mudança INCOMPATÍVEL[\s\S]*\n {2}- a: [\s\S]*\n {2}- b\.c: [\s\S]*\/api\/v2/,
     )
     expect(() => exigirValido('X', z.string(), 1)).toThrow('  - (raiz): ')
+    // R4: o aceite NÃO contorna esta falha; a orientação não pode sugerir isso
+    let msg = ''
+    try {
+      exigirValido('X', z.string(), 1)
+    } catch (e) {
+      msg = (e as Error).message
+    }
+    expect(msg).toContain('NÃO contorna esta falha')
+    expect(msg).not.toMatch(/ou registre o aceite/)
     const muitos = z.object(
       Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`k${i}`, z.string()])),
     )

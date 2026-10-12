@@ -257,7 +257,24 @@ export const aceitasSchema = z.object({
   ),
 })
 
+const ARQUIVO_ACEITAS_NOME = 'docs/contratos/snapshots/aceitas.json'
+const FORMATO_ACEITAS =
+  'formato esperado: {"aceitas":[{"contrato":"resultados|eventos/<id>","mudanca":"<64 hex>","motivo":"<mín. 10 caracteres>","data":"AAAA-MM-DD"}]}'
+
 /** Aceites por mudança concreta, lidos de `aceitas.json` (v2 NÃO isenta o v1: tem contrato e fotografia próprios). */
 export function lerAceites(aceitasJson: string | undefined): Aceite[] {
-  return aceitasJson === undefined ? [] : aceitasSchema.parse(JSON.parse(aceitasJson)).aceitas
+  if (aceitasJson === undefined) return []
+  let bruto: unknown
+  try {
+    bruto = JSON.parse(aceitasJson)
+  } catch {
+    throw new Error(`${ARQUIVO_ACEITAS_NOME} inválido: não é um JSON legível; ${FORMATO_ACEITAS}`)
+  }
+  const r = aceitasSchema.safeParse(bruto)
+  if (r.success) return r.data.aceitas
+  const campos = r.error.issues
+    .slice(0, 10)
+    .map((i) => `  - ${i.path.length > 0 ? i.path.join('.') : '(raiz)'}: ${i.message}`)
+    .join('\n')
+  throw new Error(`${ARQUIVO_ACEITAS_NOME} inválido. Campos:\n${campos}\n${FORMATO_ACEITAS}`)
 }

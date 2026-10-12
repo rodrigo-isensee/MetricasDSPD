@@ -331,4 +331,36 @@ describe('lerAceites', () => {
       expect(() => lerAceites(JSON.stringify({ aceitas: [ruim] }))).toThrow()
     expect(aceitasSchema.safeParse({ aceitas: [] }).success).toBe(true)
   })
+
+  it('JSON ilegível ou fora do formato dá mensagem em português com arquivo, campo e formato esperado', () => {
+    expect(() => lerAceites('{nao e json')).toThrow(
+      /^docs\/contratos\/snapshots\/aceitas\.json inválido: não é um JSON legível; formato esperado: \{"aceitas"/,
+    )
+    const h = 'a'.repeat(64)
+    const bom = {
+      contrato: 'resultados/T1',
+      mudanca: h,
+      motivo: 'campo renomeado',
+      data: '2026-10-11',
+    }
+    let msg = ''
+    try {
+      lerAceites(JSON.stringify({ aceitas: [{ ...bom, mudanca: 'abc' }] }))
+    } catch (e) {
+      msg = (e as Error).message
+    }
+    expect(msg).toMatch(
+      /^docs\/contratos\/snapshots\/aceitas\.json inválido\. Campos:\n {2}- aceitas\.0\.mudanca: /,
+    )
+    expect(msg).toContain('formato esperado:')
+    expect(msg).not.toContain('ZodError')
+    expect(() => lerAceites('[]')).toThrow('  - (raiz): ')
+    const muitos = Array.from({ length: 12 }, () => ({ ...bom, mudanca: 'x' }))
+    expect(() => lerAceites(JSON.stringify({ aceitas: muitos }))).toThrow(/aceitas\.9\.mudanca/)
+    try {
+      lerAceites(JSON.stringify({ aceitas: muitos }))
+    } catch (e) {
+      expect((e as Error).message).not.toContain('aceitas.10.')
+    }
+  })
 })

@@ -98,7 +98,7 @@ Achabilidade refeita por busca em largura nos links (as 6 tarefas): O3 3 cliques
 | DOC-01 | Contratos por métrica inalcançáveis por link; `docs:check` não detecta            | média      | tech-lead (autor da doc; ajuste de `docs/` e do verificador) |
 | DOC-02 | Textos "[planejado]" já realizados (schemas de evento e teste de compatibilidade) | média      | tech-lead / software-architect (docs)                        |
 | DOC-03 | Mutações S1, S3, E2, E3 falham com exceção bruta, sem classificação               | baixa      | tech-lead (ferramenta `tools/docs-contratos`)                |
-| DOC-05 | Aceite malformado e métrica removida do mapa dão erro pouco claro (rodada 2)      | baixa      | tech-lead (ferramenta `tools/docs-contratos`)                |
+| DOC-05 | Aceite malformado e métrica removida do mapa dão erro pouco claro (rodada 2) (corrigido) | baixa      | tech-lead (ferramenta `tools/docs-contratos`)                |
 | DOC-04 | Referências `arquivo:linha` deslocadas em 1 a 3 linhas                            | baixa      | tech-lead (docs)                                             |
 
 ### DOC-01 - Contratos por métrica inalcançáveis por link
@@ -131,6 +131,7 @@ Achabilidade refeita por busca em largura nos links (as 6 tarefas): O3 3 cliques
 ### DOC-05 - Aceite malformado e métrica removida do mapa de schemas dão erro pouco claro (nova, baixa)
 
 - Responsável: tech-lead (`tools/docs-contratos`). Achado nas mutações P-b4 e P-c3 (seção 5). (1) `aceitas.json` com `mudanca` fora de 64 hex: `docs:check` imprime stack trace de `ZodError` em `fotografias.ts:262` (falha, mas sem mensagem do tipo "aceitas.json inválido"). (2) Remover `O3` de `SCHEMAS_RESULTADO` dá só `Cannot read properties of undefined (reading 'safeParse')`. Esperado: uma linha apontando o arquivo/contrato. Nenhum dos dois passa em falso.
+- **Estado (2026-10-11): corrigido.** `lerAceites` agora acusa "docs/contratos/snapshots/aceitas.json inválido" com campo e formato esperado (JSON ilegível ou fora do schema); métrica removida de `SCHEMAS_RESULTADO` dá "contrato resultados/O3 removido: incompatível, exige aceite". Testes com mutação em `fotografias.test.ts` e `insumos-removida.test.ts`. Também (R4): a mensagem de `exigirValido` não sugere mais aceite, que não contorna a falha do exemplo. Reverificação do QA pendente.
 
 ## Resultado da execução
 
