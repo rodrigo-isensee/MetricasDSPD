@@ -24,9 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: pnpm
@@ -41,9 +41,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: pnpm
@@ -51,6 +51,26 @@ jobs:
       # Igual ao `pronto` sem o build: typecheck + cobertura 100% bloqueante em cada pacote.
       - run: pnpm -r --if-present run typecheck
       - run: pnpm run cobertura
+      - name: Resumo de cobertura no job
+        if: always()
+        run: |
+          {
+            echo '### Cobertura (limite 100%)'
+            echo '| Pacote | Linhas | Ramos | Funções |'
+            echo '|---|---|---|---|'
+            for p in server web; do
+              f="$p/coverage/coverage-summary.json"
+              [ -f "$f" ] && node -e "const t=require('./$f').total;console.log('| $p | '+['lines','branches','functions'].map(k=>t[k].pct+'%').join(' | ')+' |')"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: cobertura
+          path: |
+            server/coverage
+            web/coverage
+          retention-days: 3
       # Conferência spec<->teste (Node puro, sem Python); o --check do plugin Siegard é só local.
       - run: pnpm run spec:check
       # Contratos e diagramas: páginas geradas = código, compatibilidade dos schemas, links, órfãs, cabeçalho e Mermaid.
@@ -67,8 +87,8 @@ jobs:
     outputs:
       banco: ${{ steps.f.outputs.banco }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: dorny/paths-filter@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
         id: f
         with:
           filters: |
@@ -110,9 +130,9 @@ jobs:
       DSPD_PWD_AUTOMACAO: automacao_dev
       PG_TESTE_URL: postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas_test
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: pnpm
@@ -127,9 +147,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: pnpm
@@ -143,7 +163,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Build da imagem do servidor (sem publicar)
         run: docker build -f server/Dockerfile -t metricas-dspd-server .
 
@@ -153,9 +173,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: pnpm
@@ -171,27 +191,42 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
+      - name: Versão do Playwright
+        id: pw
+        run: echo "v=$(pnpm --filter @metricas-dspd/e2e exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Cache dos navegadores do Playwright
+        id: pwcache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.v }}
+      - name: Instala navegador e dependências do sistema
+        run: |
+          if [ '${{ steps.pwcache.outputs.cache-hit }}' = 'true' ]; then
+            pnpm --filter @metricas-dspd/e2e exec playwright install-deps chromium
+          else
+            pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
+          fi
       - name: Diagramas Mermaid renderizam (mermaid-cli com o Chromium do Playwright)
         run: |
           export PUPPETEER_EXECUTABLE_PATH="$(pnpm --filter @metricas-dspd/e2e exec node -p "require('@playwright/test').chromium.executablePath()")"
           pnpm run docs:mermaid
       - run: pnpm --filter @metricas-dspd/e2e run test:chromium
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: failure()
         with:
           name: e2e-relatorio
           path: |
             e2e/playwright-report
             e2e/test-results
-          retention-days: 7
+          retention-days: 3
 
   perf:
     name: perf
@@ -201,22 +236,58 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
+      - name: Versão do Playwright
+        id: pw
+        run: echo "v=$(pnpm --filter @metricas-dspd/e2e exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Cache dos navegadores do Playwright
+        id: pwcache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.v }}
+      - name: Instala navegador e dependências do sistema
+        run: |
+          if [ '${{ steps.pwcache.outputs.cache-hit }}' = 'true' ]; then
+            pnpm --filter @metricas-dspd/e2e exec playwright install-deps chromium
+          else
+            pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
+          fi
       - run: pnpm run build
       - run: pnpm --filter @metricas-dspd/e2e run test:perf
       - run: pnpm --filter @metricas-dspd/e2e run lighthouse
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: perf-relatorios
           path: |
             e2e/lighthouse/relatorios
             e2e/perf-results
-          retention-days: 7
+          retention-days: 3
+
+  seguranca:
+    name: seguranca
+    # Informativo: nunca bloqueia (não faz parte da proteção da main).
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+      - name: Auditoria de dependências de produção
+        run: |
+          pnpm audit --prod 2>&1 | tee audit.txt || echo '::warning::pnpm audit encontrou vulnerabilidades (informativo)'
+          { echo '### pnpm audit --prod'; echo '```'; tail -n 30 audit.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Varredura de segredos (gitleaks via imagem oficial, sem licença)
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest detect --source /repo --redact --no-banner --exit-code 1 \
+            || echo '::warning::gitleaks encontrou possíveis segredos (informativo)'
