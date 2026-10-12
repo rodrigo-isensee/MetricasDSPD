@@ -49,7 +49,7 @@ Este projeto é desenvolvido pela fábrica **Forge** (plugin `forge@forge`, http
 5. `ux-designer` revisa a interface implementada.
 6. `tech-lead` envia a branch e prepara o pull request para a `develop` (squash); mesclado por ele depois de review e QA.
 7. **Homologação** (`docs/engineering/fluxo-homologacao.md`): o `tech-lead` promove `develop` → `homolog` por PR (merge commit); o push em `homolog` dispara o portão da CI (suíte completa, migração a partir da main, smoke) e uma rodada noturna agendada na CI. Documentação passa por `homolog` rodando só `docs:check`. O ambiente local de homologação sobe sob demanda (`pnpm run homolog:subir`).
-8. **O usuário valida e faz o merge na `main`** do PR de release `homolog` → `main` (merge commit), liberado pelo check `homolog-aprovada` (candidato = ponta de `homolog`, portão e noturna verdes). Release sob demanda, depois de uma noite verde; validação manual só quando a release muda a interface.
+8. **O usuário valida e faz o merge na `main`** do PR de release `homolog` → `main` (merge commit), liberado pelo check `homolog-aprovada` (candidato = ponta de `homolog`, portão verde; a rodada noturna é informativa por enquanto e será religada quando o usuário decidir). Release sob demanda; validação manual só quando a release muda a interface.
 
 Correções e tarefas técnicas sem impacto de interface pulam o upstream, mas nunca o code review e o QA.
 

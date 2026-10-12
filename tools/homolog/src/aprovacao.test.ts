@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ARQUIVO_CI,
   ARQUIVO_HOMOLOG,
+  EXIGIR_NOTURNA,
   MAX_COMMITS_HOTFIX,
   decidirAprovacao,
   type Api,
@@ -58,11 +59,26 @@ const pedido = (origem: string, extra: Partial<Pedido> = {}): Pedido => ({
 
 describe('decidirAprovacao: homolog → main', () => {
   it('aprova a ponta de homolog com o portão (push) e a noturna (schedule) verdes', async () => {
-    const d = await decidirAprovacao(api(verde), pedido('homolog'))
+    const d = await decidirAprovacao(api(verde), pedido('homolog'), true)
     expect(d).toEqual({
       aprovada: true,
       motivo: 'aaaaaaa é a ponta de homolog, com portão e noturna verdes',
     })
+  })
+  it('com EXIGIR_NOTURNA desligada (padrão) a noturna NÃO é exigida: só o portão basta', async () => {
+    expect(EXIGIR_NOTURNA).toBe(false)
+    const soPortao: Cenario = { ...verde, execucoes: [exec(1, 'push')], jobs: { 1: [portao] } }
+    const d = await decidirAprovacao(api(soPortao), pedido('homolog'))
+    expect(d).toEqual({
+      aprovada: true,
+      motivo: 'aaaaaaa é a ponta de homolog, com o portão verde (noturna informativa)',
+    })
+  })
+  it('com a noturna dispensada o portão continua exigido', async () => {
+    const semPortao: Cenario = { ...verde, jobs: { 1: [], 2: [portao] } }
+    const d = await decidirAprovacao(api(semPortao), pedido('homolog'), false)
+    expect(d.aprovada).toBe(false)
+    expect(d.motivo).toContain('portão de homolog sem sucesso')
   })
   it('recusa PR de fork, mesmo com o nome homolog', async () => {
     const d = await decidirAprovacao(api(verde), pedido('homolog', { repoOrigem: 'x/metricas' }))
@@ -107,11 +123,13 @@ describe('decidirAprovacao: homolog → main', () => {
     const semExecucao = await decidirAprovacao(
       api({ ...verde, execucoes: [exec(1, 'push')] }),
       pedido('homolog'),
+      true,
     )
     expect(semExecucao.motivo).toContain('rodada noturna sem sucesso')
     const semJob = await decidirAprovacao(
       api({ ...verde, jobs: { 1: [portao], 2: ['qualidade'] } }),
       pedido('homolog'),
+      true,
     )
     expect(semJob.motivo).toContain('rodada noturna sem sucesso')
   })
@@ -122,9 +140,14 @@ describe('decidirAprovacao: homolog → main', () => {
       jobs: { 1: [portao], 3: [portao] },
     }
     expect(
-      (await decidirAprovacao(api({ ...manual, portaoNaMain: false }), pedido('homolog'))).aprovada,
+      (await decidirAprovacao(api({ ...manual, portaoNaMain: false }), pedido('homolog'), true))
+        .aprovada,
     ).toBe(true)
-    const naMain = await decidirAprovacao(api({ ...manual, portaoNaMain: true }), pedido('homolog'))
+    const naMain = await decidirAprovacao(
+      api({ ...manual, portaoNaMain: true }),
+      pedido('homolog'),
+      true,
+    )
     expect(naMain.motivo).toContain('rodada noturna sem sucesso')
   })
   it('a execução manual fora de homolog não vale', async () => {
@@ -136,6 +159,7 @@ describe('decidirAprovacao: homolog → main', () => {
         jobs: { 1: [portao], 3: [portao] },
       }),
       pedido('homolog'),
+      true,
     )
     expect(d.aprovada).toBe(false)
   })
