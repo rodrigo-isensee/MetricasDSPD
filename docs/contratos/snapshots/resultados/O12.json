@@ -1,0 +1,350 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "meses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mes": {
+            "type": "string"
+          },
+          "emAndamento": {
+            "type": "boolean"
+          },
+          "acordos": {
+            "type": "number"
+          },
+          "vencidos": {
+            "type": "number"
+          },
+          "porResponsabilidade": {
+            "type": "object",
+            "properties": {
+              "Interno": {
+                "type": "number"
+              },
+              "Solicitante": {
+                "type": "number"
+              },
+              "Terceiro": {
+                "type": "number"
+              },
+              "naoClassificado": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "Interno",
+              "Solicitante",
+              "Terceiro",
+              "naoClassificado"
+            ],
+            "additionalProperties": false
+          },
+          "pctVencidos": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "pct": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "pct"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "minimo"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "mes",
+          "emAndamento",
+          "acordos",
+          "vencidos",
+          "porResponsabilidade",
+          "pctVencidos"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "totais": {
+      "type": "object",
+      "properties": {
+        "acordos": {
+          "type": "number"
+        },
+        "vencidos": {
+          "type": "number"
+        },
+        "porResponsabilidade": {
+          "type": "object",
+          "properties": {
+            "Interno": {
+              "type": "number"
+            },
+            "Solicitante": {
+              "type": "number"
+            },
+            "Terceiro": {
+              "type": "number"
+            },
+            "naoClassificado": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "Interno",
+            "Solicitante",
+            "Terceiro",
+            "naoClassificado"
+          ],
+          "additionalProperties": false
+        },
+        "pctVencidos": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "ok"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": 20,
+                  "maximum": 9007199254740991
+                },
+                "pct": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "pct"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "insuficiente"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 19
+                },
+                "minimo": {
+                  "type": "number",
+                  "const": 20
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "minimo"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": [
+        "acordos",
+        "vencidos",
+        "porResponsabilidade",
+        "pctVencidos"
+      ],
+      "additionalProperties": false
+    },
+    "vencidosCausaInterna": {
+      "type": "number"
+    },
+    "statusMeta": {
+      "type": "string",
+      "enum": [
+        "dentro",
+        "fora",
+        "sem-referencia"
+      ]
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "meses",
+    "totais",
+    "vencidosCausaInterna",
+    "statusMeta"
+  ],
+  "additionalProperties": false
+}

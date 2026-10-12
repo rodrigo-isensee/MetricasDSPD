@@ -1,6 +1,6 @@
 import { METRICA_IDS, METRICAS_SUSTENTACAO, type MetricaId } from '@metricas-dspd/contratos';
 import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, type ContextosMetricas } from '@metricas-dspd/metricas';
-import { gerarBaseMock } from '@metricas-dspd/mock';
+import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
 import { ServicoMetricas } from '../src/modulos/metricas/index.js';
 import { bancoDoMock, CORTE_DATA, mockComoNoBanco } from './base-duble.js';
@@ -18,9 +18,10 @@ describe('paridade mock x projeções (sem Postgres: linhas do seed num banco fa
   const ctx: ContextosMetricas = {
     bm: businessmap.criarContextoBM(memoria.bm, CORTE, CALENDARIO_PADRAO),
     ac: acelerato.criarContextoAC(memoria.ac, CORTE, CALENDARIO_PADRAO),
+    ext: gerarExtensoesMock(base),
   };
   const d = criarDublePg(bancoDoMock(base));
-  const servico = new ServicoMetricas({ db: d.pool });
+  const servico = new ServicoMetricas({ db: d.pool, extensoes: () => gerarExtensoesMock(base) });
   const filtrosDe = (id: MetricaId) => (id === 'VISAO_GERAL' ? {} : METRICAS_SUSTENTACAO.includes(id) ? SUST : FLUXO);
 
   it.each(METRICA_IDS)('%s: resultado idêntico', async (id) => {

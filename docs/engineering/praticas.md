@@ -107,6 +107,7 @@ Checklist:
 
 Parecer: **aprovado** ou **ajustes necessários**, cada item com `arquivo:linha · problema · sugestão · severidade (bloqueia / recomendado)`. Correção de lógica volta ao autor; o tech-lead só faz ajuste trivial de formatação.
 
+- **Regra do usuário (2026-10-11): todo pedido segue o mesmo caminho, sem exceção de método.** (1) **Discovery** antes de executar: o Jarvis aciona `software-architect`, `ux-designer` e `tech-lead` em paralelo: **discovery de UX** (empatia, definição, ideação, protótipo e critérios de aceite), **levantamento de negócio** (regras, regras invioláveis do briefing, decisões a levar ao usuário, impacto nas métricas), **arquitetura** (modelo, contratos, ADR, riscos, plano e cartões) e **documentação** (o que será escrito ou gerado: contratos, diagramas DDD, guias). (2) Só depois da síntese, e das decisões de produto levadas ao usuário, a execução começa. (3) Toda entrega sai com a documentação atualizada e com **testes unitários e E2E e cobertura de 100%** (thresholds do `pnpm run pronto`), revisão de código, QA e revisão de UX. Pedido sem interface pula só a parte de UX do discovery, e o Jarvis registra o motivo; correção trivial sem decisão de design pode dispensar o discovery, mas nunca os testes nem o review.
 ## 9. Git, commits e PR
 - **Branch de desenvolvimento** (decisão do usuário, substitui a regra "autores não commitam" da D8):
   - `develop` sai da `feature/dashboard-mock` e é onde os devs (`react-frontend`, `node-backend`) commitam, no diretório principal do repositório.

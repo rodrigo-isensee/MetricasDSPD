@@ -4,6 +4,7 @@ import { useMetrica } from '@/data'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
 import { propsCartao } from '@/features/painel/propsCartao'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 const ESTILOS = {
   concluidas: { background: 'var(--serie-1)' },
@@ -99,6 +100,7 @@ export function CartaoT9({ filtros }: { filtros: FiltrosFluxo }) {
               </tbody>
             </table>
           </RegiaoRolavel>
+          <LeiaJunto id="t9" />
         </div>
       )}
     </CartaoMetrica>

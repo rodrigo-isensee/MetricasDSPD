@@ -5,6 +5,7 @@ import type { BaseAmostral } from '@metricas-dspd/contratos'
 import { useParametroLocal } from '@/features/filtros'
 import { fmtInteiro, fmtMes, fmtPct } from '@/lib/formatar'
 import type { CartaoMetricaProps } from '@/components/ui'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 interface Motivo {
   motivo: string
@@ -123,6 +124,7 @@ export function CartaoMotivos({
             series={motivos.map((m) => ({ chave: m.motivo, rotulo: m.motivo }))}
           />
         )}
+        <LeiaJunto id={chave} />
       </div>
     </CartaoMetrica>
   )

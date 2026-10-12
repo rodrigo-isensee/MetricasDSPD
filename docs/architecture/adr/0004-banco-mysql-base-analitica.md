@@ -1,4 +1,5 @@
 # 0004 - MySQL 8 como banco da base analítica
+Estado: substituída por [0014](0014-stack-tecnica-do-back-end.md)
 - Status: **substituída pela ADR 0014** (revisão 2, 2026-10-10): o usuário trocou o banco para **PostgreSQL** (`docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §7). Continuam valendo, traduzidos para Postgres no `data-model.md`: três schemas separados, usuários por papel, instantes em UTC e "o banco seleciona; a biblioteca calcula". Saem as regras específicas do MySQL (`DATETIME(3)`, `utf8mb4`, erro 1062, `INSERT IGNORE`). O texto abaixo fica como registro.
 - Status anterior: aceita (escolha do solicitante, pedido 002). **Parcialmente substituída pela ADR 0013** (2026-10-10) em dois pontos: (1) o Acelerato deixa de ser lido por MySQL somente leitura e passa a vir de uma tabela no Metabase (API, chave só leitura), então o contexto "o Acelerato já é MySQL" e o usuário `acelerato_leitor` não valem mais; (2) a instância é **RDS MySQL 8.4** na AWS, privada na VPC (responde I-2). Schemas, tipos, privilégios por papel e "o banco seleciona; a biblioteca calcula" continuam.
 - Data: 2026-10-09

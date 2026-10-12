@@ -1,0 +1,479 @@
+{
+  "type": "object",
+  "properties": {
+    "dataCorte": {
+      "type": "string"
+    },
+    "recortes": {
+      "type": "object",
+      "properties": {
+        "fluxo": {
+          "type": "object",
+          "properties": {
+            "inicio": {
+              "type": "string"
+            },
+            "fim": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "inicio",
+            "fim"
+          ],
+          "additionalProperties": false
+        },
+        "estrategico": {
+          "type": "object",
+          "properties": {
+            "inicio": {
+              "type": "string"
+            },
+            "fim": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "inicio",
+            "fim"
+          ],
+          "additionalProperties": false
+        },
+        "sustentacao": {
+          "type": "object",
+          "properties": {
+            "inicio": {
+              "type": "string"
+            },
+            "fim": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "inicio",
+            "fim"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "fluxo",
+        "estrategico",
+        "sustentacao"
+      ],
+      "additionalProperties": false
+    },
+    "alertas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nivel": {
+            "type": "string",
+            "enum": [
+              "operacional",
+              "tatico",
+              "estrategico",
+              "sustentacao"
+            ]
+          },
+          "metrica": {
+            "type": "string"
+          },
+          "ancora": {
+            "type": "string"
+          },
+          "codigo": {
+            "type": "string",
+            "enum": [
+              "O2_ACIMA_P95",
+              "O1_WIP_ACIMA_LIMITE",
+              "O12_VENCIDOS_INTERNOS",
+              "O10_BACKLOG_180",
+              "T2_ABAIXO_85",
+              "T4_RAZAO_FORA",
+              "T3_DESVIO",
+              "T9_ESCOPO",
+              "E2_ABAIXO_60",
+              "E3_SEM_RESULTADO",
+              "S2_ABAIXO_90",
+              "S1_MEDIANA_ACIMA_ALVO"
+            ]
+          },
+          "valor": {
+            "type": "number"
+          },
+          "de": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "nivel",
+          "metrica",
+          "ancora",
+          "codigo",
+          "valor",
+          "de"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "niveis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nivel": {
+            "type": "string",
+            "enum": [
+              "operacional",
+              "tatico",
+              "estrategico",
+              "sustentacao"
+            ]
+          },
+          "fonte": {
+            "type": "string",
+            "enum": [
+              "BusinessMap",
+              "Acelerato"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "atencao",
+              "dentro",
+              "insuficiente",
+              "sem-meta"
+            ]
+          },
+          "indicadores": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "metrica": {
+                  "type": "string",
+                  "enum": [
+                    "O1",
+                    "O2",
+                    "BLOQUEADOS",
+                    "O3",
+                    "O4",
+                    "O7",
+                    "O9",
+                    "O10",
+                    "O12",
+                    "O15",
+                    "O18",
+                    "O5",
+                    "O6",
+                    "O8",
+                    "O11",
+                    "O13",
+                    "O14",
+                    "O16",
+                    "O17",
+                    "T1",
+                    "T2",
+                    "T3",
+                    "T4",
+                    "T5",
+                    "T7",
+                    "T9",
+                    "T6",
+                    "T8",
+                    "E1",
+                    "E2",
+                    "E3",
+                    "E4",
+                    "E5",
+                    "S1",
+                    "S2",
+                    "S3",
+                    "S4",
+                    "S5",
+                    "S6",
+                    "S7",
+                    "S8",
+                    "S9",
+                    "S10",
+                    "S11",
+                    "S12",
+                    "EI_FL1",
+                    "EI_FL2",
+                    "EI_FL3",
+                    "EI_SUST",
+                    "VISAO_GERAL"
+                  ]
+                },
+                "codigo": {
+                  "type": "string"
+                },
+                "valor": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "de": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "base": {
+                  "type": "object",
+                  "properties": {
+                    "n": {
+                      "type": "number"
+                    },
+                    "unidade": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "n",
+                    "unidade"
+                  ],
+                  "additionalProperties": false
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "dentro",
+                    "fora",
+                    "insuficiente",
+                    "sem-meta"
+                  ]
+                },
+                "amostra": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "minimo": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "minimo"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "metrica",
+                "codigo",
+                "valor",
+                "de",
+                "base",
+                "status",
+                "amostra"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "nivel",
+          "fonte",
+          "status",
+          "indicadores"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "esperaInvisivel": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nivel": {
+            "type": "string",
+            "enum": [
+              "FL1",
+              "FL2",
+              "FL3",
+              "SUST"
+            ]
+          },
+          "fonte": {
+            "type": "string",
+            "enum": [
+              "BusinessMap",
+              "Acelerato"
+            ]
+          },
+          "unidade": {
+            "type": "string",
+            "enum": [
+              "dias-uteis",
+              "horas-uteis"
+            ]
+          },
+          "segmentos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "chave": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "rotulo": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "estatistica": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "ok"
+                        },
+                        "n": {
+                          "type": "integer",
+                          "minimum": 20,
+                          "maximum": 9007199254740991
+                        },
+                        "valor": {
+                          "type": "object",
+                          "properties": {
+                            "cliente": {
+                              "type": "number"
+                            },
+                            "time": {
+                              "type": "number"
+                            },
+                            "indicePct": {
+                              "type": "number"
+                            },
+                            "acimaDe50": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "cliente",
+                            "time",
+                            "indicePct",
+                            "acimaDe50"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "janela": {
+                          "type": "object",
+                          "properties": {
+                            "inicio": {
+                              "type": "string"
+                            },
+                            "fim": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "inicio",
+                            "fim"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "n",
+                        "valor",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "insuficiente"
+                        },
+                        "n": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 19
+                        },
+                        "minimo": {
+                          "type": "number",
+                          "const": 20
+                        },
+                        "janela": {
+                          "type": "object",
+                          "properties": {
+                            "inicio": {
+                              "type": "string"
+                            },
+                            "fim": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "inicio",
+                            "fim"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "n",
+                        "minimo",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "chave",
+                "rotulo",
+                "estatistica"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "nivel",
+          "fonte",
+          "unidade",
+          "segmentos"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "dataCorte",
+    "recortes",
+    "alertas",
+    "niveis",
+    "esperaInvisivel"
+  ],
+  "additionalProperties": false
+}

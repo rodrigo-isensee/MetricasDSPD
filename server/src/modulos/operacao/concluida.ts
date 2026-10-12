@@ -1,10 +1,10 @@
 import type { Fonte } from '../../plataforma/config.js';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { publicarEvento, type Consumidor } from '../../plataforma/eventos/index.js';
+import { TIPO_COLETA_CONCLUIDA, publicarEvento, type Consumidor } from '../../plataforma/eventos/index.js';
 
 export type StatusFinal = 'sucesso' | 'parcial' | 'falha';
-export const TIPO_COLETA_CONCLUIDA = 'coleta.concluida';
+export { TIPO_COLETA_CONCLUIDA };
 const SCHEMA = { businessmap: 'bm', acelerato: 'ac' } as const;
 
 /**

@@ -1,0 +1,316 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "janelaPercentis": {
+      "type": "object",
+      "properties": {
+        "inicio": {
+          "type": "string"
+        },
+        "fim": {
+          "type": "string"
+        },
+        "unidade": {
+          "type": "string",
+          "enum": [
+            "semanas",
+            "meses"
+          ]
+        },
+        "quantidade": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "inicio",
+        "fim",
+        "unidade",
+        "quantidade"
+      ],
+      "additionalProperties": false
+    },
+    "classes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "classe": {
+            "type": "string",
+            "enum": [
+              "Urgente",
+              "Prazo fixo",
+              "Padrão",
+              "Intangível"
+            ]
+          },
+          "sle": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "diasUteis": {
+                    "type": "number"
+                  },
+                  "publicadoEm": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "diasUteis",
+                  "publicadoEm"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "n": {
+            "type": "number"
+          },
+          "dentroDoSle": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "const": "ok"
+                      },
+                      "k": {
+                        "type": "number"
+                      },
+                      "n": {
+                        "type": "integer",
+                        "minimum": 20,
+                        "maximum": 9007199254740991
+                      },
+                      "pct": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "k",
+                      "n",
+                      "pct"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "const": "insuficiente"
+                      },
+                      "k": {
+                        "type": "number"
+                      },
+                      "n": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 19
+                      },
+                      "minimo": {
+                        "type": "number",
+                        "const": 20
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "k",
+                      "n",
+                      "minimo"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "statusMeta": {
+            "type": "string",
+            "enum": [
+              "dentro",
+              "fora",
+              "sem-referencia"
+            ]
+          },
+          "estouros": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "number"
+              },
+              "porEtapa": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "etapa": {
+                      "type": "string",
+                      "enum": [
+                        "Fila",
+                        "Espera",
+                        "Execução",
+                        "Homologação"
+                      ]
+                    },
+                    "contagem": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "etapa",
+                    "contagem"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "total",
+              "porEtapa"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "classe",
+          "sle",
+          "n",
+          "dentroDoSle",
+          "statusMeta",
+          "estouros"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "janelaPercentis",
+    "classes"
+  ],
+  "additionalProperties": false
+}

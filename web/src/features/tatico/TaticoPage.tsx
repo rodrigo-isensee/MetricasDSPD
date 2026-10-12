@@ -11,6 +11,8 @@ import { CartaoT4 } from './components/CartaoT4'
 import { CartaoT5 } from './components/CartaoT5'
 import { CartaoT7 } from './components/CartaoT7'
 import { CartaoT9 } from './components/CartaoT9'
+import { MaisMetricas } from '@/features/complementares/MaisMetricas'
+import { cartaoDeFluxo } from '@/features/complementares/registro'
 
 function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
   const qT2 = useMetrica('T2', filtros)
@@ -106,6 +108,7 @@ export default function TaticoPage() {
           >
             <CartaoEIFL2 filtros={filtros} variante="compacto" />
           </SecaoPainel>
+          <MaisMetricas fonte="BusinessMap" renderizar={(id) => cartaoDeFluxo(id, filtros)} />
         </>
       )}
     </PainelFluxo>

@@ -1,10 +1,8 @@
 import type { Fonte } from '../config.js';
+import { fonteDoTipo } from './catalogo.js';
 
 export type EventoOutbox = { eventoId: string; fonte: Fonte; tipo: string; payload: unknown; tentativas: number };
 export type Consumidor = (e: EventoOutbox) => Promise<void>;
-
-/** Prefixo do tipo -> fonte dona. `coleta.*` vale para as duas (a fonte vem no evento). */
-const PREFIXO_FONTE: Record<string, Fonte> = { 'bm.': 'businessmap', 'ac.': 'acelerato' };
 
 /**
  * Consumidores por (fonte, tipo). O poller roda uma fonte por vez e só enxerga os dela, então um consumidor
@@ -14,9 +12,8 @@ export class RegistroConsumidores {
   readonly #mapa = new Map<string, Consumidor>();
 
   registrar(fonte: Fonte, tipo: string, consumidor: Consumidor): this {
-    for (const [prefixo, dona] of Object.entries(PREFIXO_FONTE)) {
-      if (tipo.startsWith(prefixo) && dona !== fonte) throw new Error(`Evento ${tipo} pertence a ${dona}, não a ${fonte}`);
-    }
+    const dona = fonteDoTipo(tipo);
+    if (dona !== undefined && dona !== fonte) throw new Error(`Evento ${tipo} pertence a ${dona}, não a ${fonte}`);
     const chave = `${fonte}|${tipo}`;
     if (this.#mapa.has(chave)) throw new Error(`Consumidor duplicado: ${chave}`);
     this.#mapa.set(chave, consumidor);

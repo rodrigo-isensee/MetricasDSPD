@@ -1,0 +1,182 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "campoDisponivel": {
+      "type": "boolean"
+    },
+    "trimestres": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "trimestre": {
+            "type": "string"
+          },
+          "emAndamento": {
+            "type": "boolean"
+          },
+          "iniciados": {
+            "type": "number"
+          },
+          "concluidos": {
+            "type": "number"
+          },
+          "emAbertoAcumulado": {
+            "type": "number"
+          },
+          "iniciadosPorNatureza": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "natureza": {
+                  "type": "string",
+                  "enum": [
+                    "Manter",
+                    "Evoluir"
+                  ]
+                },
+                "n": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "natureza",
+                "n"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "trimestre",
+          "emAndamento",
+          "iniciados",
+          "concluidos",
+          "emAbertoAcumulado",
+          "iniciadosPorNatureza"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "campoDisponivel",
+    "trimestres"
+  ],
+  "additionalProperties": false
+}

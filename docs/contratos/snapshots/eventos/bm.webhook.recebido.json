@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "properties": {
+    "webhookSk": {
+      "type": "string",
+      "pattern": "^\\d+$"
+    },
+    "payloadSha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "webhookSk",
+    "payloadSha256"
+  ],
+  "additionalProperties": false
+}

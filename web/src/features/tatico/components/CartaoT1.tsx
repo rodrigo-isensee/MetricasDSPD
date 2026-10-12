@@ -6,6 +6,7 @@ import { useParametroLocal } from '@/features/filtros/useParametroLocal'
 import { fmtDiasUteis, fmtInteiro, fmtPct, textoJanela } from '@/lib/formatar'
 import { NOTAS_TATICO } from '../notas'
 import { propsCartao, slug } from '@/features/painel/propsCartao'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 /** Bloco do lead time e a chave correspondente no DTO. */
 const BLOCOS = [
@@ -126,6 +127,7 @@ export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
               </a>
             </p>
           )}
+          <LeiaJunto id="t1" />
         </div>
       )}
     </CartaoMetrica>

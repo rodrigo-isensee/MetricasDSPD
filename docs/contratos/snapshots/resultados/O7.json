@@ -1,0 +1,229 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "mesesExibidos": {
+      "type": "number"
+    },
+    "totais": {
+      "type": "object",
+      "properties": {
+        "entrou": {
+          "type": "number"
+        },
+        "saiu": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "entrou",
+        "saiu"
+      ],
+      "additionalProperties": false
+    },
+    "porTipo": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "Incidente",
+              "Requisição",
+              "Melhoria",
+              "Iniciativa",
+              "Bug interno",
+              "Defeito em produção",
+              "Dívida técnica"
+            ]
+          },
+          "entrou": {
+            "type": "number"
+          },
+          "saiu": {
+            "type": "number"
+          },
+          "saldoPeriodo": {
+            "type": "number"
+          },
+          "saldoAcumulado": {
+            "type": "number"
+          },
+          "situacao": {
+            "type": "string",
+            "enum": [
+              "cresce",
+              "estavel",
+              "diminui"
+            ]
+          },
+          "entradaAcimaDaSaidaNoTrimestre": {
+            "type": "boolean"
+          },
+          "meses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "mes": {
+                  "type": "string"
+                },
+                "emAndamento": {
+                  "type": "boolean"
+                },
+                "entrada": {
+                  "type": "number"
+                },
+                "saida": {
+                  "type": "number"
+                },
+                "saldoAcumulado": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "mes",
+                "emAndamento",
+                "entrada",
+                "saida",
+                "saldoAcumulado"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "tipo",
+          "entrou",
+          "saiu",
+          "saldoPeriodo",
+          "saldoAcumulado",
+          "situacao",
+          "entradaAcimaDaSaidaNoTrimestre",
+          "meses"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "mesesExibidos",
+    "totais",
+    "porTipo"
+  ],
+  "additionalProperties": false
+}

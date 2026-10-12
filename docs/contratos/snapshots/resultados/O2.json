@@ -1,0 +1,410 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "janelaPercentis": {
+      "type": "object",
+      "properties": {
+        "inicio": {
+          "type": "string"
+        },
+        "fim": {
+          "type": "string"
+        },
+        "unidade": {
+          "type": "string",
+          "enum": [
+            "semanas",
+            "meses"
+          ]
+        },
+        "quantidade": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "inicio",
+        "fim",
+        "unidade",
+        "quantidade"
+      ],
+      "additionalProperties": false
+    },
+    "etapas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "agrupadoPorColuna": {
+      "type": "boolean"
+    },
+    "tipos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "Incidente",
+              "Requisição",
+              "Melhoria",
+              "Iniciativa",
+              "Bug interno",
+              "Defeito em produção",
+              "Dívida técnica"
+            ]
+          },
+          "abertos": {
+            "type": "number"
+          },
+          "acimaP85": {
+            "type": "number"
+          },
+          "acimaP95": {
+            "type": "number"
+          },
+          "referencia": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "valor": {
+                    "type": "object",
+                    "properties": {
+                      "p50": {
+                        "type": "number"
+                      },
+                      "p85": {
+                        "type": "number"
+                      },
+                      "p95": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "p50",
+                      "p85",
+                      "p95"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "valor",
+                  "janela"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "minimo",
+                  "janela"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "tipo",
+          "abertos",
+          "acimaP85",
+          "acimaP95",
+          "referencia"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "tipoSugerido": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "Incidente",
+            "Requisição",
+            "Melhoria",
+            "Iniciativa",
+            "Bug interno",
+            "Defeito em produção",
+            "Dívida técnica"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "itens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "cardId": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "Incidente",
+              "Requisição",
+              "Melhoria",
+              "Iniciativa",
+              "Bug interno",
+              "Defeito em produção",
+              "Dívida técnica"
+            ]
+          },
+          "etapa": {
+            "type": "string"
+          },
+          "idadeDiasUteis": {
+            "type": "number"
+          },
+          "semMoverHaDiasUteis": {
+            "type": "number"
+          },
+          "situacao": {
+            "type": "string",
+            "enum": [
+              "acima-p95",
+              "entre-p85-p95",
+              "dentro",
+              "sem-referencia"
+            ]
+          },
+          "bloqueioMotivo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "Aguardando fornecedor",
+                  "Aguardando validação do negócio",
+                  "Aguardando ambiente ou infraestrutura",
+                  "Dependência de outra demanda",
+                  "Falta de informação no chamado",
+                  "Janela de mudança",
+                  "Aguardando licença ou contrato"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "cardId",
+          "titulo",
+          "tipo",
+          "etapa",
+          "idadeDiasUteis",
+          "semMoverHaDiasUteis",
+          "situacao",
+          "bloqueioMotivo"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "acimaP95": {
+      "type": "number"
+    },
+    "statusMeta": {
+      "type": "string",
+      "enum": [
+        "dentro",
+        "fora",
+        "sem-referencia"
+      ]
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "janelaPercentis",
+    "etapas",
+    "agrupadoPorColuna",
+    "tipos",
+    "tipoSugerido",
+    "itens",
+    "acimaP95",
+    "statusMeta"
+  ],
+  "additionalProperties": false
+}

@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "exports": {
+    "./eventos": "./src/plataforma/eventos/catalogo.ts"
+  },
   "engines": {
     "node": ">=24"
   },
