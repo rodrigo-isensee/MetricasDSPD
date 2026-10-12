@@ -35,4 +35,10 @@ d('transições canônicas lidas pelo repositório (papel dspd_api)', () => {
     await grava(card, 'webhook', '2026-10-02T12:00:00Z');
     expect(await doCard(card)).toHaveLength(1);
   });
+
+  it('revision sem webhook conta uma transição (caminho dos dados de hoje)', async () => {
+    const card = unico('c');
+    await grava(card, 'revision', '2026-10-03T12:00:00Z');
+    expect(await doCard(card)).toHaveLength(1);
+  });
 });
