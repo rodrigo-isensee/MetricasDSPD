@@ -1,0 +1,232 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "meses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mes": {
+            "type": "string"
+          },
+          "emAndamento": {
+            "type": "boolean"
+          },
+          "entrada": {
+            "type": "number"
+          },
+          "correcao": {
+            "type": "number"
+          },
+          "estoqueFim": {
+            "type": "number"
+          },
+          "densidade": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "mes",
+          "emAndamento",
+          "entrada",
+          "correcao",
+          "estoqueFim",
+          "densidade"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "abertosPorSeveridade": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "severidade": {
+            "type": "string",
+            "enum": [
+              "Crítica",
+              "Alta",
+              "Média",
+              "Baixa",
+              "Sem severidade"
+            ]
+          },
+          "n": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "severidade",
+          "n"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "maisAntigos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "cardId": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "Incidente",
+              "Requisição",
+              "Melhoria",
+              "Iniciativa",
+              "Bug interno",
+              "Defeito em produção",
+              "Dívida técnica"
+            ]
+          },
+          "severidade": {
+            "type": "string",
+            "enum": [
+              "Crítica",
+              "Alta",
+              "Média",
+              "Baixa",
+              "Sem severidade"
+            ]
+          },
+          "idadeDiasUteis": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "cardId",
+          "tipo",
+          "severidade",
+          "idadeDiasUteis"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "meses",
+    "abertosPorSeveridade",
+    "maisAntigos"
+  ],
+  "additionalProperties": false
+}
