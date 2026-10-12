@@ -16,3 +16,18 @@ Branch `fix/banco-view-canonica` (commit 4241e70), 2026-10-12. Escopo: `lerTrans
 ## Observações
 - O duble de testes (`base-duble.ts`) agora casa por `vw_transicao_canonica`; os testes unitários dependem do texto da consulta, o que a mutação pg cobre.
 - Não há teste que rode a view com `dspd_api` sobre dados do mock completo; a paridade usa o duble. Risco baixo.
+
+## Revalidação (commit a5c5263, 2026-10-12)
+**Aprovado.** Nenhum bug aberto.
+
+| Verificação | Resultado |
+|---|---|
+| `test:pg` em banco temporário `metricas_teste_qa` (criado no Postgres do Compose, removido ao fim; o `metricas` de dev não foi tocado) | 10 arquivos, 47 testes aprovados (46 anteriores + o caso novo "revision sem webhook"), nenhum pulado |
+| Mutação M1: remover a cláusula `t.fonte = 'revision' OR` da view | os 3 testes passam (ver observação) |
+| Mutação M3: view sem as revision (`t.fonte = 'webhook' AND NOT EXISTS ...`) | "revision sem webhook" falha (`expected [] to have a length of 1 but got +0`), junto com "par casado" |
+| Mutação M2: view só com revision | "webhook sem par" falha |
+| Arquivo da migração | restaurado após cada mutação; árvore limpa |
+| `pnpm --filter ./server run pronto` | typecheck, lint e cobertura aprovados: 261 testes unitários, 100% em instruções, ramos, funções e linhas |
+
+## Observação da revalidação
+A cláusula `t.fonte = 'revision' OR` é logicamente redundante: uma revision nunca é `transicao_webhook_sk` em `rec_transicao_par`, então o `NOT EXISTS` já a mantém. Por isso removê-la isoladamente não muda o resultado e nenhum teste pode falhar (equivalente, não lacuna de teste). O caso novo protege o comportamento (revision sem webhook conta) contra regressões que excluam revision, como a M3. Sugestão ao `node-backend` (opcional): simplificar a view ou manter a cláusula como documentação.
