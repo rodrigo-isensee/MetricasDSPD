@@ -26,16 +26,16 @@ export default tseslint.config(
           { regex: `(modulos/|^\\.\\./)(${MODULOS.filter((x) => x !== m).join('|')})/(?!index\\.js$)`, message: MSG_INDEX },
           ...(m === 'businessmap' ? [{ group: ['**/acelerato', '**/acelerato/*'], message: 'businessmap e acelerato nunca se misturam.' }] : []),
           ...(m === 'acelerato' ? [{ group: ['**/businessmap', '**/businessmap/*'], message: 'businessmap e acelerato nunca se misturam.' }] : []),
-          { group: ['@metricas-dspd/mock', '@metricas-dspd/mock/*'], message: 'Só o seed e os testes de paridade importam o mock.' },
+          { group: ['@metricas-dspd/mock', '@metricas-dspd/mock/*'], message: 'Só o seed, as extensões mock e os testes de paridade importam o mock.' },
         ],
       }],
     },
   })),
   // Fora dos módulos: nada de arquivo interno de módulo.
-  { files: ['src/*.ts', 'src/plataforma/**/*.ts', 'src/entradas/**/*.ts'], ignores: ['src/plataforma/db/seed.ts', 'src/plataforma/db/seed-cli.ts'], rules: {
+  { files: ['src/*.ts', 'src/plataforma/**/*.ts', 'src/entradas/**/*.ts'], ignores: ['src/plataforma/db/seed.ts', 'src/plataforma/db/seed-cli.ts', 'src/plataforma/db/extensoes-mock.ts'], rules: {
     'no-restricted-imports': ['error', { patterns: [
       { regex: 'modulos/[^/]+/(?!index\\.js$)', message: MSG_INDEX },
-      { group: ['@metricas-dspd/mock', '@metricas-dspd/mock/*'], message: 'Só o seed e os testes de paridade importam o mock.' },
+      { group: ['@metricas-dspd/mock', '@metricas-dspd/mock/*'], message: 'Só o seed, as extensões mock e os testes de paridade importam o mock.' },
     ] }],
   } },
   // Serviço e repositório não leem o relógio nem sorteiam.

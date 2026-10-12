@@ -21,7 +21,7 @@ export interface EntradaCatalogo {
  * Catálogo do núcleo (nome, pergunta e meta de cada métrica). As notas metodológicas completas
  * (cinco seções) ficam em `features/<painel>/notas.ts`, escritas por quem implementa o painel.
  */
-export const CATALOGO: readonly EntradaCatalogo[] = [
+const NUCLEO: readonly EntradaCatalogo[] = [
   {
     id: 'O1',
     codigo: 'O1',
@@ -353,6 +353,187 @@ export const CATALOGO: readonly EntradaCatalogo[] = [
     granularidade: 'chamado',
     meta: 'Reduzir; acima de 50% a discussão é de fila',
   },
+]
+
+type Compl = readonly [
+  id: MetricaId,
+  nome: string,
+  pergunta: string,
+  painel: PainelDaMetrica,
+  fonte: EntradaCatalogo['fonte'],
+  granularidade: EntradaCatalogo['granularidade'],
+  meta: string,
+]
+
+/** Complementares (seção "Mais métricas deste painel"): nunca com alvo de volume nem de ranking (briefing 7.2). */
+const COMPLEMENTARES: readonly Compl[] = [
+  [
+    'O5',
+    'Eficiência de fluxo',
+    'Quanto do ciclo é trabalho de fato e quanto é fila e bloqueio?',
+    'operacional',
+    'BusinessMap',
+    'demanda',
+    'Sem meta numérica; leia com o tempo de ciclo (O3)',
+  ],
+  [
+    'O6',
+    'Previsibilidade',
+    'O prazo de um item é previsível ou varia demais?',
+    'operacional',
+    'BusinessMap',
+    'demanda',
+    'P85 ÷ P50 abaixo de 2,5',
+  ],
+  [
+    'O8',
+    'Tamanho das demandas',
+    'As demandas têm tamanhos parecidos ou há itens muito maiores que os outros?',
+    'operacional',
+    'BusinessMap',
+    'demanda',
+    'Sem meta; nunca a média isolada, leia com O3 e O4',
+  ],
+  [
+    'O11',
+    'Composição do backlog',
+    'O backlog tem itens prontos para começar ou só ideias ainda em definição?',
+    'operacional',
+    'BusinessMap',
+    'demanda',
+    'Sem meta numérica',
+  ],
+  [
+    'O13',
+    'Vazão de defeitos',
+    'Quantos defeitos em produção entregamos e quanto pesam na vazão?',
+    'operacional',
+    'BusinessMap',
+    'demanda',
+    'Sem alvo de volume; leia com a taxa de escape (O15)',
+  ],
+  [
+    'O14',
+    'Origem da demanda',
+    'De onde vem a demanda: que áreas e sistemas?',
+    'operacional',
+    'BusinessMap',
+    'demanda',
+    'Sem meta; por área ou sistema, nunca por pessoa',
+  ],
+  [
+    'O16',
+    'Estoque e idade de bugs',
+    'O estoque de bugs cresce ou diminui e quão velhos são?',
+    'operacional',
+    'BusinessMap',
+    'demanda',
+    'Sem alvo de volume; leia com a taxa de escape (O15)',
+  ],
+  [
+    'O17',
+    'Causa raiz e concentração',
+    'Onde nascem os incidentes: em que causa raiz e em que sistema?',
+    'sustentacao',
+    'Acelerato',
+    'chamado',
+    'Sem meta numérica',
+  ],
+  [
+    'T6',
+    'Previsão probabilística',
+    'Quando fica pronto? Quantos itens cabem no prazo?',
+    'tatico',
+    'BusinessMap',
+    'demanda',
+    'Compromisso externo no P85',
+  ],
+  [
+    'T8',
+    'Sprint',
+    'Estamos cumprindo o plano da sprint?',
+    'tatico',
+    'BusinessMap',
+    'demanda',
+    'Sem alvo de 100%; leia com a entrada não planejada',
+  ],
+  [
+    'E4',
+    'Iniciadas × concluídas',
+    'Estamos terminando projetos ou só começando?',
+    'estrategico',
+    'BusinessMap',
+    'projeto',
+    'Sem meta numérica',
+  ],
+  [
+    'E5',
+    'Previsão de término',
+    'Quando termina o projeto, olhando a vazão de frentes?',
+    'estrategico',
+    'BusinessMap',
+    'frente',
+    'Sempre com o crescimento de escopo ao lado; compromisso no P85',
+  ],
+  [
+    'S8',
+    'Taxa de reabertura',
+    'Quantos incidentes voltam depois de encerrados?',
+    'sustentacao',
+    'Acelerato',
+    'chamado',
+    'Abaixo de 5%',
+  ],
+  [
+    'S9',
+    'Tempo em pendência',
+    'Quanto tempo o chamado espera por retorno, e por quê?',
+    'sustentacao',
+    'Acelerato',
+    'chamado',
+    'Sem meta numérica',
+  ],
+  [
+    'S10',
+    'Fila de atribuição',
+    'Quanto o chamado espera até alguém aceitar?',
+    'sustentacao',
+    'Acelerato',
+    'chamado',
+    'Aceite em até 15 minutos',
+  ],
+  [
+    'S11',
+    'Avaliação de Problema',
+    'Os chamados que pedem análise de causa estão sendo avaliados?',
+    'sustentacao',
+    'Acelerato',
+    'chamado',
+    'Sem meta numérica',
+  ],
+  [
+    'S12',
+    'Volume por sistema',
+    'Quais sistemas geram mais chamados e quais problemas se repetem?',
+    'sustentacao',
+    'Acelerato',
+    'chamado',
+    'Sem meta; por sistema, nunca por pessoa',
+  ],
+]
+
+export const CATALOGO: readonly EntradaCatalogo[] = [
+  ...NUCLEO,
+  ...COMPLEMENTARES.map(([id, nome, pergunta, painel, fonte, granularidade, meta]) => ({
+    id,
+    codigo: id,
+    nome,
+    pergunta,
+    painel,
+    fonte,
+    granularidade,
+    meta,
+  })),
 ]
 
 export function entradaDoCatalogo(id: MetricaId): EntradaCatalogo {

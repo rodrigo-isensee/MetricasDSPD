@@ -5,7 +5,10 @@
  */
 import { z } from 'zod'
 import {
+  CAUSAS_RAIZ,
   CLASSES_SERVICO,
+  NATUREZAS_PROJETO,
+  SEVERIDADES,
   METRICA_IDS,
   FASES_DETECCAO,
   MOTIVOS_BLOQUEIO,
@@ -811,6 +814,342 @@ export const resultadoVisaoGeral = z.object({
       ),
     }),
   ),
+})
+
+/* ---------- Métricas complementares (dados mockados; ver docs/architecture/features/metricas-complementares.md) ---------- */
+const tamanho = z.enum(['P', 'M', 'G', 'Sem tamanho'])
+
+/** O5: eficiência de fluxo por tipo. Percentuais 0 a 100. Horas úteis. */
+export const resultadoO5 = z.object({
+  ...comum,
+  janelaPercentis: janelaSchema,
+  tipos: z.array(
+    z.object({
+      tipo,
+      n: z.number(),
+      estatistica: estatisticaSchema(
+        z.object({
+          /** Mediana das razões por item. */
+          medianaPct: z.number(),
+          /** Razão agregada (soma de horas em execução ÷ soma do ciclo). */
+          agregadaPct: z.number(),
+          horasExecucao: z.number(),
+          horasFila: z.number(),
+          horasBloqueio: z.number(),
+        }),
+      ),
+    }),
+  ),
+})
+
+/** O6: previsibilidade (P85 ÷ P50 do cycle time) por classe de serviço. */
+export const resultadoO6 = z.object({
+  ...comum,
+  janelaPercentis: janelaSchema,
+  /** Alvo exibido: razão abaixo deste valor. */
+  alvoMax: z.number(),
+  classes: z.array(
+    z.object({
+      classe,
+      n: z.number(),
+      estatistica: estatisticaSchema(
+        z.object({ p50: z.number(), p85: z.number(), razao: z.number() }),
+      ),
+      statusMeta: statusMetaSchema,
+    }),
+  ),
+})
+
+/** O8: tamanho das demandas (tempo em execução, dias úteis), nunca média isolada. */
+export const resultadoO8 = z.object({
+  ...comum,
+  janelaPercentis: janelaSchema,
+  tipos: z.array(
+    z.object({
+      tipo,
+      n: z.number(),
+      estatistica: estatisticaSchema(
+        z.object({
+          mediana: z.number(),
+          media: z.number(),
+          p85: z.number(),
+          /** % dos itens da janela acima do P85 da janela anterior; null sem referência publicável. */
+          acimaP85AnteriorPct: z.number().nullable(),
+        }),
+      ),
+      porTamanho: z.array(z.object({ tamanho, n: z.number(), mediana: z.number().nullable() })),
+    }),
+  ),
+})
+
+/** O11: composição do backlog (retrato no fim de cada mês). */
+export const resultadoO11 = z.object({
+  ...comum,
+  meses: z.array(
+    z.object({
+      mes,
+      emAndamento: z.boolean(),
+      definicao: z.number(),
+      prontos: z.number(),
+      porTipo: z.array(z.object({ tipo, definicao: z.number(), prontos: z.number() })),
+    }),
+  ),
+  /** Prontos no último retrato ÷ vazão semanal mediana; null sem vazão publicável. */
+  semanasDeBacklogPronto: z.number().nullable(),
+})
+
+/** O13: vazão de defeitos em produção. Sem alvo de volume. */
+export const resultadoO13 = z.object({
+  ...comum,
+  meses: z.array(
+    z.object({
+      mes,
+      emAndamento: z.boolean(),
+      defeitos: z.number(),
+      vazaoTotal: z.number(),
+      pct: taxaSchema,
+    }),
+  ),
+})
+
+const linhaOrigem = z.object({
+  nome: z.string(),
+  entregues: z.number(),
+  criados: z.number(),
+  porTipo: z.array(z.object({ tipo, entregues: z.number() })),
+})
+const blocoOrigem = z.object({ itens: z.array(linhaOrigem), demais: linhaOrigem.nullable() })
+/** O14: origem da demanda por área solicitante e por sistema (nunca por pessoa). */
+export const resultadoO14 = z.object({
+  ...comum,
+  porArea: blocoOrigem,
+  porSistema: blocoOrigem,
+})
+
+/** O16: estoque e idade de bugs. */
+export const resultadoO16 = z.object({
+  ...comum,
+  meses: z.array(
+    z.object({
+      mes,
+      emAndamento: z.boolean(),
+      entrada: z.number(),
+      correcao: z.number(),
+      estoqueFim: z.number(),
+      /** Bugs com origem informada por entrega concluída no mês; null com menos de 20 entregas. */
+      densidade: z.number().nullable(),
+    }),
+  ),
+  abertosPorSeveridade: z.array(
+    z.object({ severidade: z.enum([...SEVERIDADES, 'Sem severidade']), n: z.number() }),
+  ),
+  /** Os 10 mais antigos, só por id do card (sem pessoa). */
+  maisAntigos: z.array(
+    z.object({
+      cardId: z.string(),
+      tipo,
+      severidade: z.enum([...SEVERIDADES, 'Sem severidade']),
+      idadeDiasUteis: z.number(),
+    }),
+  ),
+})
+
+/**
+ * O17 (Sustentação, fonte Acelerato): incidentes encerrados por causa raiz e por sistema.
+ * Contagem, sem mínimo. Campo causa raiz via integração Metabase (decisão do usuário, 2026-10-11).
+ */
+export const resultadoO17 = z.object({
+  ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
+  porCausa: z.array(z.object({ causa: z.enum([...CAUSAS_RAIZ, 'Não informada']), n: z.number() })),
+  porSistema: z.array(z.object({ sistema: z.string(), n: z.number() })),
+})
+
+const previsaoTermino = estatisticaSchema(
+  z.object({
+    periodos: percentisSchema,
+    granularidade: z.enum(['dia', 'semana']),
+    itens: z.number(),
+    simulacoes: z.number(),
+  }),
+)
+const previsaoItens = estatisticaSchema(
+  z.object({
+    itens: percentisSchema,
+    granularidade: z.enum(['dia', 'semana']),
+    periodos: z.number(),
+    simulacoes: z.number(),
+  }),
+)
+/** T6: previsão probabilística (Monte Carlo) por classe de serviço de stories. */
+export const resultadoT6 = z.object({
+  ...comum,
+  janelaPercentis: janelaSchema,
+  /** Entradas fixas desta resposta (itens a terminar; semanas disponíveis). */
+  entradas: z.object({ itens: z.array(z.number()), semanas: z.array(z.number()) }),
+  classes: z.array(
+    z.object({
+      classe,
+      /** Itens entregues na janela (base da regra dos 20). */
+      n: z.number(),
+      termino: z.array(z.object({ itens: z.number(), previsao: previsaoTermino })),
+      itens: z.array(z.object({ semanas: z.number(), previsao: previsaoItens })),
+    }),
+  ),
+})
+
+/** T8: sprint (agregado; sem alvo de 100%). */
+export const resultadoT8 = z.object({
+  ...comum,
+  sprints: z.array(
+    z.object({
+      /** Id do card-template pai que representa a sprint no BusinessMap. */
+      sprintId: z.string(),
+      nome: z.string(),
+      inicio: iso,
+      fim: iso,
+      emAndamento: z.boolean(),
+      itens: z.number(),
+      comprometidos: z.number(),
+      entreguesDoComprometido: z.number(),
+      carryOver: z.number(),
+      /** Filhos ligados ao pai depois do início da sprint (entrada não planejada). */
+      entradaNaoPlanejada: z.number(),
+      entreguePct: taxaSchema,
+      naoPlanejadoPct: taxaSchema,
+    }),
+  ),
+  agregado: z.object({ entreguePct: taxaSchema, naoPlanejadoPct: taxaSchema }),
+})
+
+/** E4: projetos iniciados × concluídos por trimestre. */
+export const resultadoE4 = z.object({
+  ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
+  trimestres: z.array(
+    z.object({
+      trimestre: z.string(),
+      emAndamento: z.boolean(),
+      iniciados: z.number(),
+      concluidos: z.number(),
+      emAbertoAcumulado: z.number(),
+      iniciadosPorNatureza: z.array(
+        z.object({ natureza: z.enum(NATUREZAS_PROJETO), n: z.number() }),
+      ),
+    }),
+  ),
+})
+
+/** E5: previsão de término de projetos pela vazão de frentes (Monte Carlo). */
+export const resultadoE5 = z.object({
+  ...comum,
+  janelaPercentis: janelaSchema,
+  vazaoSemanal: z.object({ n: z.number(), mediana: z.number().nullable() }),
+  projetos: z.array(
+    z.object({
+      projetoId: z.string(),
+      projeto: z.string(),
+      frentesRestantes: z.number(),
+      /** Mostradas sempre ao lado da previsão (T9). */
+      frentesAdicionadasAposInicio: z.number(),
+      previsao: previsaoTermino,
+    }),
+  ),
+})
+
+/** S8: taxa de reabertura de incidentes (reabertura = campo `reincidente` com o ticket anterior). */
+export const resultadoS8 = z.object({
+  ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
+  /** Cobertura do campo `reincidente`: n incidentes com o campo informado de N (nunca ausente = "não"). */
+  cobertura: z.object({ n: z.number(), total: z.number() }),
+  metaMaxPct: z.number(),
+  meses: z.array(
+    z.object({
+      mes,
+      emAndamento: z.boolean(),
+      encerrados: z.number(),
+      /** Incidentes do mês com o campo `reincidente` informado: é o denominador da taxa do mês. */
+      informados: z.number(),
+      reabertos: z.number(),
+      taxa: taxaSchema,
+    }),
+  ),
+  total: taxaSchema,
+  statusMeta: statusMetaSchema,
+})
+
+/** S9: tempo em pendência (horas úteis) por motivo e cumprimento da previsão de retorno. */
+export const resultadoS9 = z.object({
+  ...comum,
+  janelaPercentis: janelaSchema,
+  porMotivo: z.array(
+    z.object({
+      motivo: z.string(),
+      n: z.number(),
+      estatistica: estatisticaSchema(percentisSchema),
+    }),
+  ),
+  cumprimentoPrevisao: taxaSchema,
+})
+
+/** S10: fila de atribuição (horas úteis em "Aguardando atribuição"), por prioridade. */
+export const resultadoS10 = z.object({
+  ...comum,
+  janelaPercentis: janelaSchema,
+  prioridades: z.array(
+    z.object({
+      prioridade,
+      n: z.number(),
+      estatistica: estatisticaSchema(percentisSchema),
+      histograma: z.array(faixaHistogramaSchema).nullable(),
+      aceitosEm15min: taxaSchema,
+    }),
+  ),
+})
+
+/** S11: avaliação de Problema em P1, P2 e encerrados por contorno. */
+export const resultadoS11 = z.object({
+  ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
+  escopo: taxaSchema,
+  /** Os grupos se sobrepõem (um P1 pode ter contorno); o escopo conta cada chamado uma vez. */
+  porGrupo: z.array(z.object({ grupo: z.enum(['P1', 'P2', 'Contorno']), taxa: taxaSchema })),
+  conversao: taxaSchema,
+})
+
+/** S12: volume por sistema, reincidência por sistema e exceção de SLA. */
+export const resultadoS12 = z.object({
+  ...comum,
+  /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
+  campoDisponivel: z.boolean(),
+  /** Cobertura do campo `reincidente` na janela de 12 semanas: n chamados com o campo informado de N (ausente nunca é "não"). */
+  cobertura: z.object({ n: z.number(), total: z.number() }),
+  parametros: z.object({ janelaSemanas: z.number() }),
+  meses: z.array(
+    z.object({
+      mes,
+      emAndamento: z.boolean(),
+      total: z.number(),
+      porSistema: z.array(z.object({ sistema: z.string(), n: z.number() })),
+    }),
+  ),
+  /** Janela de percentis (12 semanas): chamados e reincidentes (campo `reincidente` preenchido) por sistema. */
+  reincidencia: z.array(
+    z.object({
+      sistema: z.string(),
+      chamados: z.number(),
+      /** Chamados do sistema com o campo `reincidente` informado: denominador da proporção. */
+      informados: z.number(),
+      reincidentes: z.number(),
+      proporcao: taxaSchema,
+    }),
+  ),
+  excecaoSla: taxaSchema,
 })
 
 export const marcacoes = marcacaoCriterioSchema

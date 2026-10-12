@@ -1,4 +1,5 @@
 # 0009 - Autenticação e autorização
+Estado: proposta (destrava com a resposta do usuário sobre o SSO, pergunta I-3/P3 da [0013](0013-arquitetura-modular-serverless.md))
 - Status: proposta (depende da pergunta I-3 = P3 da ADR 0013: SSO a informar pelo usuário). **Parcialmente substituída pela ADR 0013** (2026-10-10, §8): `@fastify/secure-session` saía com o Hono, mas **volta com a ADR 0014** (Fastify 5), se o BFF for mantido; "mesmo proxy" passa a ser o CloudFront; o mecanismo (BFF com cookie ou autorizador JWT do API Gateway) fecha com a resposta do SSO. Papel `leitor`, `sub` em HMAC e autenticador falso continuam.
 - Data: 2026-10-09
 

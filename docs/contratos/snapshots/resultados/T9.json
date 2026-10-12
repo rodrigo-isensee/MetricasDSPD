@@ -1,0 +1,178 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "projetos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "projetoId": {
+            "type": "string"
+          },
+          "projeto": {
+            "type": "string"
+          },
+          "totalFrentes": {
+            "type": "number"
+          },
+          "originais": {
+            "type": "number"
+          },
+          "adicionadas": {
+            "type": "number"
+          },
+          "concluidas": {
+            "type": "number"
+          },
+          "emAndamento": {
+            "type": "number"
+          },
+          "aFazer": {
+            "type": "number"
+          },
+          "avancoPct": {
+            "type": "number"
+          },
+          "crescimentoEscopoPct": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "projetoId",
+          "projeto",
+          "totalFrentes",
+          "originais",
+          "adicionadas",
+          "concluidas",
+          "emAndamento",
+          "aFazer",
+          "avancoPct",
+          "crescimentoEscopoPct"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "projetosComEscopoCrescido": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "projetos",
+    "projetosComEscopoCrescido"
+  ],
+  "additionalProperties": false
+}

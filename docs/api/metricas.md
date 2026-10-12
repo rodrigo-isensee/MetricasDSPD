@@ -1,8 +1,8 @@
 # API de métricas (contrato HTTP)
 
-> **RASCUNHO.** Framework decidido: **Fastify 5** no serviço `api` (imagem de contêiner no Docker Compose local; nuvem adiada; banco PostgreSQL, papel `dspd_api` sem leitura das colunas de pessoa), com fastify-type-provider-zod 7 e OpenAPI gerado por `@fastify/swagger` 9 dos schemas Zod 4 de `@metricas-dspd/contratos` (ADR 0014, que revisa a 0013). Autenticação ainda depende do SSO (P3; ADR 0009 e ADR 0013 §8). Pontos marcados com [ADR] referem-se à autenticação.
-> Dependência: `web/src/contracts/` ainda não está versionado em nenhuma branch nem existe no worktree 002; o contrato só fecha depois que os contratos do front forem commitados e trazidos para o 002 (pacote compartilhado, praticas.md).
-> Fonte dos tipos: `web/src/contracts/` (DTOs zod, `ContratoMetricas`, `FonteMetricas`). Em caso de divergência, vale o zod do front até a ADR fechar; o back reutiliza os mesmos schemas.
+> **Status:** implementado (rotas em `server/src/modulos/`; OpenAPI gerado em `docs/api/openapi.json`, que vale em caso de divergência). A visão geral e atualizada do contrato HTTP está em [`docs/contratos/http.md`](../contratos/http.md); esta página guarda o detalhe por rota. Revisado em 2026-10-11.
+> Stack: **Fastify 5**, fastify-type-provider-zod 7 e `@fastify/swagger` 9 sobre os schemas Zod 4 de `@metricas-dspd/contratos` (ADR 0014, que revisa a 0013); banco PostgreSQL, papel `dspd_api` sem leitura das colunas de pessoa. Autenticação [planejado]: depende do SSO (ADR 0009); hoje a API não autentica. Pontos marcados com [ADR] referem-se à autenticação.
+> Fonte dos tipos: `packages/contratos/src/` (DTOs Zod, `ContratoMetricas`, `FonteMetricas`), pacote compartilhado pelo servidor e pelo front. Nenhum DTO é redeclarado.
 
 ## Saúde e OpenAPI
 - `GET /health/live` (processo no ar, sem banco), `GET /health/ready` e o alias `GET /health` (consultam o banco; 503 `BASE_INDISPONIVEL` se não responde). Fora do prefixo `/api/v1`. Resposta `{ "status": "ok" }`.
@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1, O2, BLOQUEADOS, O3.. E3, S1..S7, EI_FL1..3, EI_SUST, VISAO_GERAL). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O18, BLOQUEADOS, T1..T9, E1..E5, S1..S12, EI_FL1..3, EI_SUST, VISAO_GERAL; 50 ids, inclui as 17 complementares abaixo). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -30,7 +30,7 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
 | Sustentação (S*, EI_SUST) | `equipe` (`totvs,senior,fluig`), `prioridade` (`P1..P5`), `periodo` |
 | VISAO_GERAL | nenhum (padrões de cada painel) |
 
-- Aplicabilidade por métrica no fluxo: fonte é `APLICABILIDADE_FLUXO` (`web/src/contracts/metricas.ts`). Filtro do mesmo domínio não aplicável à métrica (ex.: `tipo` em O12, `equipe` em E1) é aceito e ignorado, sem 400, coerente com "Não afetado por".
+- Aplicabilidade por métrica no fluxo: fonte é `APLICABILIDADE_FLUXO` (`packages/contratos/src/metricas.ts`). Filtro do mesmo domínio não aplicável à métrica (ex.: `tipo` em O12, `equipe` em E1) é aceito e ignorado, sem 400, coerente com "Não afetado por".
 - `periodo`: `4s | 12s | 6m | 12m` (padrão `12s`) ou `custom` com `de` e `ate` (AAAA-MM-DD, dentro de `historico`).
 - Parâmetro de outro domínio (ex.: `sistema` em S1) -> 400 `VALIDATION_ERROR`.
 - `dataReferencia` (opcional, AAAA-MM-DD): recalcula com corte no fim desse dia (America/Sao_Paulo); padrão (decisão S-a) = instante da última coleta bem-sucedida da fonte da métrica (sem coleta: agora). Futura (depois de hoje) -> 400. VISAO_GERAL usa o corte mais antigo das duas fontes (provisório). Parâmetros desconhecidos (qualquer filtro de pessoa) -> 400. `de`/`ate` só com `periodo=custom`; `custom` exige os dois.
@@ -77,7 +77,51 @@ Formato único: `{ "error": { "code": string, "message": string, "details"?: [] 
 - `dataReferencia` de `GET /referencia` agora é a data da última coleta bem-sucedida (S-a), não mais hoje.
 - 304 com `If-None-Match` (ETag fraco por métrica, filtros, data, versões e página).
 
+## Métricas complementares (O5, O6, O8, O11, O13, O14, O16, T6, T8, E4, E5, S8 a S12 e O17)
+Plano: `docs/architecture/features/metricas-complementares.md`. Mesmas rotas e filtros das demais (`GET /api/v1/metricas/:id`, sem rota nova, sem migração); DTOs em `packages/contratos/src/schemas.ts` (`resultadoO5` ... `resultadoS12`). **Dados fictícios**: as extensões (causa raiz, sprint como card-template pai com filhos e data de ligação, natureza de projeto, reincidente, registro de Problema) vêm de `gerarExtensoesMock` e só alimentam o cálculo na fonte mock (`CATALOGO_CARTOES[].status = 'mock'`); só T8, O17, E4, S8, S11 e S12 dependem de extensão e são `status: 'mock'` no catálogo; as demais são `'disponivel'`. A API só injeta as extensões mockadas quando `DADOS_FONTE=mock` (padrão). Sem extensão, S8, S11 e S12 devolvem `campoDisponivel: false` com taxas `insuficiente` (S8 com `statusMeta: 'sem-referencia'`), O17 e E4 devolvem a lista de causa/natureza vazia e `campoDisponivel: false`, T8 devolve `sprints: []`: nunca 0% nem "dentro da meta". `campoDisponivel` (boolean) é campo novo e obrigatório em O17, E4, S8, S11 e S12.
+
+| Id | Corpo (campos principais) | Filtros que atuam |
+|---|---|---|
+| O5 | `tipos[{tipo,n,estatistica:{medianaPct,agregadaPct,horasExecucao,horasFila,horasBloqueio}}]` | equipe, tipo, sistema, período |
+| O6 | `alvoMax`, `classes[{classe,n,estatistica:{p50,p85,razao},statusMeta}]` | equipe, sistema, período |
+| O8 | `tipos[{tipo,n,estatistica:{mediana,media,p85,acimaP85AnteriorPct},porTamanho[]}]` | equipe, tipo, sistema, período |
+| O11 | `meses[{mes,emAndamento,definicao,prontos,porTipo[]}]`, `semanasDeBacklogPronto` | equipe, tipo, sistema, período |
+| O13 | `meses[{mes,defeitos,vazaoTotal,pct:Taxa}]` | equipe, sistema, período |
+| O14 | `porArea` e `porSistema`: `{itens[{nome,entregues,criados,porTipo}] (top 10), demais}` | equipe, sistema, período |
+| O16 | `meses[{entrada,correcao,estoqueFim,densidade}]`, `abertosPorSeveridade[]`, `maisAntigos[{cardId,tipo,severidade,idadeDiasUteis}]` (10, sem pessoa) | equipe, sistema, período |
+| O17 (Sustentação, Acelerato) | `campoDisponivel`, `porCausa[{causa,n}]` (incidentes encerrados), `porSistema[{sistema,n}]` (categoria do chamado) | equipe, prioridade, período (filtros da sustentação; não mais de fluxo) |
+| T6 | `entradas{itens,semanas}`, `classes[{classe,n,termino[{itens,previsao}],itens[{semanas,previsao}]}]` (P50/P85/P95, `Estatistica`) | equipe, sistema, período |
+| T8 | `sprints[{sprintId (card pai),nome,inicio,fim,itens,comprometidos,entreguesDoComprometido,carryOver,entradaNaoPlanejada,entreguePct:Taxa,naoPlanejadoPct:Taxa}]`, `agregado` | equipe, sistema, período |
+| E4 | `trimestres[{trimestre,iniciados,concluidos,emAbertoAcumulado,iniciadosPorNatureza[]}]` | sistema, período |
+| E5 | `vazaoSemanal{n,mediana}`, `projetos[{projetoId,projeto,frentesRestantes,frentesAdicionadasAposInicio,previsao}]` | sistema, período |
+| S8 | `campoDisponivel`, `cobertura{n,total}`, `metaMaxPct`, `meses[{encerrados (incidentes abertos no mês),informados (com o campo `reincidente` informado: denominador do mês),reabertos,taxa}]`, `total`, `statusMeta` | equipe, prioridade, período |
+| S9 | `porMotivo[{motivo,n,estatistica}]` (horas úteis), `cumprimentoPrevisao:Taxa` | equipe, prioridade, período |
+| S10 | `prioridades[{prioridade,n,estatistica,histograma|null,aceitosEm15min:Taxa}]` (horas úteis) | equipe, prioridade, período |
+| S11 | `escopo:Taxa`, `porGrupo[{grupo:P1|P2|Contorno,taxa}]` (se sobrepõem), `conversao:Taxa` | equipe, período (prioridade não atua) |
+| S12 | `campoDisponivel`, `cobertura{n,total}` (janela de 12 semanas), `parametros{janelaSemanas}`, `meses[{total,porSistema}]`, `reincidencia[{sistema,chamados,informados,reincidentes,proporcao:Taxa}]` (janela de 12 semanas; proporção = reincidentes ÷ informados), `excecaoSla:Taxa` | equipe, prioridade, período |
+
+Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem estatística (`insuficiente`, com "k de n" nas taxas); T6 e E5 usam `core/montecarlo` com semente fixa (resposta reprodutível); BM e AC separados; nenhuma chave por pessoa.
+
+### Decisões do usuário aplicadas (2026-10-11)
+- O5: bloqueio dentro de coluna de execução sai do tempo de execução (não-execução = fila + bloqueio).
+- O11: em definição = seção Requested (papel `backlog`); pronto = In Progress comprometido (papel `compromisso`); sem sexto papel de coluna.
+- S8: reabertura = o próprio chamado com `reincidente` preenchido, contado no mês de abertura (mesma lógica da S12; decisão 14 de 11/10); denominador = só os incidentes com o campo informado (`meses[].informados`; total = `cobertura.n`); `cobertura {n, total}` = incidentes com o campo informado de N (ausente nunca vira "não reincidente" em silêncio); sem intervalo de dias nem "mesmo sintoma".
+- S12: chamado com `reincidente` já conta; sem limite K; contagem e proporção por sistema na janela de 12 semanas; denominador = chamados com o campo informado; `cobertura {n, total}` como na S8. Sem extensão só a reincidência fica sem fonte (`campoDisponivel: false`, `cobertura {0, N}`): `meses` e `excecaoSla` continuam reais e devem ser exibidos.
+- T8: sprint = card-template pai; planejado = filho ligado até o início da sprint; ligado depois = entrada não planejada.
+- Alterações de tipo: T8 `sprints[].adicionados` -> `entradaNaoPlanejada` e novo `nome`; S8 sem `diasReabertura`; S12 `parametros.kRecorrente` e `recorrentes[]` removidos, `reincidencia[]` novo.
+
+### Mudanças de contrato para o front (este lote)
+- `METRICA_IDS` passa de 33 para 50; `CATALOGO_CARTOES` ganha `grupo` (`nucleo|complementar`) e `status` (`disponivel|mock`) e os 17 cartões; `leiaJunto` do núcleo aponta para complementares (O3 -> o6, O4 -> o8, O15 -> o13, S1 -> s9).
+- `S9` usa `porMotivo` (não `motivos`).
+- Mudança de comportamento do mock: as 5 de sustentação (S8 a S12) entram nas métricas em calibração da fonte Acelerato.
+
 ## Cache
 - Chave: `métrica + versão de carga (marca d'água da coleta + versão de critério mais recente) + versão de critério vigente + dataReferencia + filtros normalizados (listas ordenadas)`. A base (`BaseBM`/`BaseAC`) fica em memória por versão de carga; a marca d'água é relida a cada 60 s. Máximo de 500 resultados por domínio (descarta o mais antigo). Mudança de `ref_*` sem nova coleta só vale após reiniciar a api (ou nova coleta/versão de critério).
 - Invalida quando uma coleta incremental conclui (muda a data de referência/última coleta) ou quando uma nova versão de critério é registrada. Não sobrescreve histórico da base; só descarta resultados calculados.
 - Cache por domínio; chaves de fluxo e sustentação nunca compartilham entrada. Cache compartilhado só se a resposta independer de usuário (hoje independe; revisar se a ADR de auth introduzir escopo por equipe).
+
+### S8: critério de contagem (decisão 14, 2026-10-11)
+- Campo novo e obrigatório em `resultadoS8`: `cobertura: { n: number, total: number }` ("n de N": n = incidentes do período com o campo `reincidente` informado; total = incidentes abertos no período). Sem extensão: `{ n: 0, total: N }`.
+- Semântica alterada (mesmos nomes): `meses[].encerrados` passa a ser incidentes **abertos** no mês (antes, encerrados) e `reabertos` os chamados reincidentes abertos no mês; `base.unidade` = "incidentes abertos". Critério versionado (T2.6): marcar a mudança nos gráficos.
+
+- Rodada 2 (R2-1/R2-2/R2-3): campos novos e obrigatórios `resultadoS8.meses[].informados`, `resultadoS12.cobertura {n,total}` e `resultadoS12.reincidencia[].informados`; a taxa da S8 e a proporção da S12 passam a dividir por `informados`. `leiaJunto` (catálogo em `cartoes.ts`) segue o mapa final da decisão 19 e pode apontar para cartão de outro painel (ids únicos; novo `cartaoPorIdGlobal(id)`).

@@ -1,0 +1,312 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "trimestres": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "trimestre": {
+            "type": "string"
+          },
+          "emAndamento": {
+            "type": "boolean"
+          },
+          "n": {
+            "type": "number"
+          },
+          "segmentos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "categoria": {
+                  "type": "string"
+                },
+                "tipo": {
+                  "type": "string",
+                  "enum": [
+                    "objetivo",
+                    "obrigacao-legal",
+                    "manutencao",
+                    "fora-de-objetivo"
+                  ]
+                },
+                "n": {
+                  "type": "number"
+                },
+                "pct": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "categoria",
+                "tipo",
+                "n",
+                "pct"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "evolucaoVinculada": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "pct": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "pct"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "minimo"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "trimestre",
+          "emAndamento",
+          "n",
+          "segmentos",
+          "evolucaoVinculada"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "evolucaoVinculada": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "ok"
+            },
+            "k": {
+              "type": "number"
+            },
+            "n": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 9007199254740991
+            },
+            "pct": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "status",
+            "k",
+            "n",
+            "pct"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "insuficiente"
+            },
+            "k": {
+              "type": "number"
+            },
+            "n": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 19
+            },
+            "minimo": {
+              "type": "number",
+              "const": 20
+            }
+          },
+          "required": [
+            "status",
+            "k",
+            "n",
+            "minimo"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "statusMeta": {
+      "type": "string",
+      "enum": [
+        "dentro",
+        "fora",
+        "sem-referencia"
+      ]
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "trimestres",
+    "evolucaoVinculada",
+    "statusMeta"
+  ],
+  "additionalProperties": false
+}

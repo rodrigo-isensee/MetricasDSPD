@@ -24,11 +24,13 @@ export type EtapaAcelerato =
   | 'Encerrado'
   | 'Arquivar'
 
-export type MotivoPendencia =
-  | 'Aguardando fornecedor'
-  | 'Aguardando solicitante'
-  | 'Aguardando área vinculada'
-  | 'Aguardando janela de mudança'
+export const MOTIVOS_PENDENCIA = [
+  'Aguardando fornecedor',
+  'Aguardando solicitante',
+  'Aguardando área vinculada',
+  'Aguardando janela de mudança',
+] as const
+export type MotivoPendencia = (typeof MOTIVOS_PENDENCIA)[number]
 
 export interface Chamado {
   chamado_id: string

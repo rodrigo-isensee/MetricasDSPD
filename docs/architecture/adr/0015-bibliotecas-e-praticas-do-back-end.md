@@ -1,4 +1,5 @@
 # 0015 - Bibliotecas e práticas do back-end
+Estado: vigente
 - Status: **aceita** (decisão delegada ao arquiteto pelo usuário em 2026-10-11: "usar as melhores libs e práticas para Node; não precisa ser cru; evitar inflar a arquitetura")
 - Data: 2026-10-11
 - **Substitui parcialmente:** ADR 0014 rev. 2, só nos pontos "Acesso a dados: `pg` puro, sem ORM nem query builder" e "Tipos: sem codegen". Volta o Kysely da ADR 0005, agora sobre `pg` e Postgres.

@@ -1,7 +1,7 @@
 # Modelo de dados — base analítica (PostgreSQL)
 
 - Status: aprovado (revisão de modelagem K-014 r2; code review 002-K-017-r1); **traduzido para PostgreSQL em 2026-10-10** (ADR 0014 revisão 2) com as correções do §11 e a decisão do usuário sobre nomes nas tabelas analíticas (§9)
-- Data: 2026-10-09 · Revisão: 2026-10-10 · Decisões: **ADR 0014** (PostgreSQL, `pg` puro, node-pg-migrate, outbox, testes por schema), 0005 (SQL explícito), 0006 (contrato da coleta), 0013 (módulos, Acelerato via Metabase). A ADR 0004 (MySQL) está substituída.
+- Propósito: modelo físico da base analítica (tabelas, chaves, privilégios, LGPD). Público: arquiteto, back-end, QA. Data: 2026-10-09 · Revisão: 2026-10-11 (ER do `dspd_core` em §5; caminho de `lgpd.ts`) · Decisões: **ADR 0014** (PostgreSQL, `pg` puro, node-pg-migrate, outbox, testes por schema), 0005 (SQL explícito), 0006 (contrato da coleta), 0013 (módulos, Acelerato via Metabase). A ADR 0004 (MySQL) está substituída.
 - Origem do Acelerato: tabela no Metabase lida 1x/dia pela API (ADR 0013 §4).
 - Forma da camada analítica = tipos de `@metricas-dspd/metricas` (`BaseBM`, `BaseAC`); o mock gera exatamente essa forma (paridade, D15).
 - Colunas marcadas **(prov.)** são extensões ao modelo 4.5 do briefing, provisórias até T2.1 (de-para da API) e à resposta do usuário.
@@ -158,6 +158,86 @@ Views do recorte (T5.1), `security_invoker`, colunas explícitas, sobre a nossa 
 | `pgmigrations` | `id` | controle do node-pg-migrate (ADR 0014); só o migrador acessa |
 | `outbox` | `evento_sk` | abaixo |
 
+### ER do `dspd_core`
+Origem: migrações `server/migrations/0010_core_referencia.ts` e `0011_core_outbox.ts`. Os `ctl_*` não estão aqui: vivem em `dspd_bm` e `dspd_ac` (§6). A `outbox` não tem FK (o evento aponta só por identificador técnico no `payload`). Termos de domínio: [`ddd/01-linguagem-ubiqua.md`](ddd/01-linguagem-ubiqua.md).
+
+```mermaid
+erDiagram
+  ref_versao_criterio ||--o{ ref_versao_criterio_metrica : "versao_id"
+  ref_versao_criterio ||--o{ ref_feriado : "incluido_por_versao_id"
+  ref_calendario ||--o{ ref_calendario_turno : "calendario_id"
+  ref_calendario ||--o{ ref_feriado : "calendario_id"
+  ref_calendario ||--o{ ref_calendario_aplicacao : "calendario_id"
+  ref_versao_criterio {
+    bigint versao_id PK
+    date vigente_desde
+    text dominio "businessmap ou acelerato"
+    varchar descricao
+    varchar motivo
+    varchar referencia
+    timestamptz registrado_em
+  }
+  ref_versao_criterio_metrica {
+    bigint versao_id PK
+    varchar metrica_id PK
+  }
+  ref_calendario {
+    smallint calendario_id PK
+    varchar nome UK
+    smallint offset_minutos
+    varchar descricao
+  }
+  ref_calendario_turno {
+    smallint calendario_id PK
+    smallint dia_semana PK
+    smallint inicio_min PK
+    date vigente_de PK
+    smallint fim_min
+    date vigente_ate
+  }
+  ref_feriado {
+    smallint calendario_id PK
+    date data PK
+    text escopo
+    varchar descricao
+    bigint incluido_por_versao_id FK
+  }
+  ref_calendario_aplicacao {
+    text dominio PK
+    varchar classe PK
+    date vigente_de PK
+    smallint calendario_id FK
+    date vigente_ate
+  }
+  outbox {
+    bigint evento_sk PK
+    uuid evento_id UK
+    text fonte "businessmap ou acelerato"
+    varchar tipo
+    jsonb payload
+    text status "pendente, processando, processado, falha"
+    smallint tentativas
+    timestamptz criado_em
+    timestamptz disponivel_em
+    timestamptz reservado_ate
+    timestamptz processado_em
+    varchar ultimo_erro
+  }
+```
+
+Legenda: cada bloco é uma tabela; `PK` chave primária, `FK` chave estrangeira, `UK` chave única; o texto entre aspas é a lista fechada (`CHECK`) ou o nome da coluna da relação. `||--o{` lê-se "um para zero ou muitos". Sem cor: o significado está no texto. `pgmigrations` (controle do node-pg-migrate, criado em `dspd_core`) fica fora do diagrama.
+
+<details open>
+<summary>Alternativa em lista: relações do `dspd_core`</summary>
+
+- `ref_versao_criterio` -> `ref_versao_criterio_metrica`: uma versão afeta zero ou mais métricas (`versao_id`).
+- `ref_versao_criterio` -> `ref_feriado`: uma versão de critério inclui zero ou mais feriados (`incluido_por_versao_id`).
+- `ref_calendario` -> `ref_calendario_turno`: um calendário tem zero ou mais turnos (`calendario_id`).
+- `ref_calendario` -> `ref_feriado`: um calendário tem zero ou mais feriados (`calendario_id`).
+- `ref_calendario` -> `ref_calendario_aplicacao`: um calendário vale para zero ou mais classes (`calendario_id`).
+- `outbox`: sem relação com as demais; `fonte` filtra o poller.
+</details>
+
 Função `proibir_alteracao()` (gatilho das tabelas append-only, §1) também fica em `dspd_core`.
 
 ### `outbox`: eventos transacionais lidos por polling (ADR 0014)
@@ -243,7 +323,7 @@ O teste de grants (CI, job `db`) lê `information_schema.role_table_grants`/`col
 | Identidade de quem acessa o painel | sessão | HMAC do `sub`, sem nome (ADR 0009) |
 
 Garantias (cada uma verificada por teste ou privilégio):
-1. **Colunas de pessoa só numa lista fechada.** Fonte única em `server/src/db/lgpd.ts`: `SEGMENTO_PESSOA` (regex), `COLUNAS_PESSOA` (colunas de pessoa **permitidas** no analítico, por `schema.tabela.coluna`: `dspd_bm.dim_card.responsaveis`, `dspd_bm.dim_card_versao.responsaveis`, `dspd_bm.fato_transicao.usuario`), `EXCECOES_PESSOA` (falsos positivos: `dspd_bm.dim_card.area_solicitante`, `dspd_bm.dim_card_versao.area_solicitante`, área organizacional, briefing 4.5) e `violaLgpd`. Fora de `stg_`, qualquer coluna cujo nome, dividido por `_`, tenha segmento casando `^(pessoa|responsav\w*|usuario\w*|user\w*|agente\w*|atendente\w*|solicitante\w*|autor\w*|criador\w*|email\w*|login\w*|assignee\w*|justificativa\w*)$` e não esteja em `COLUNAS_PESSOA` nem em `EXCECOES_PESSOA` reprova. Usada pelo teste estático das migrações (`ddl(S)`), pelo teste do seed e pelo teste de catálogo no CI. Nenhum teste copia a lista. Entrada nova em qualquer das duas listas só com alteração desta seção e revisão de modelagem (arquiteto + tech-lead).
+1. **Colunas de pessoa só numa lista fechada.** Fonte única em `server/src/plataforma/db/lgpd.ts`: `SEGMENTO_PESSOA` (regex), `COLUNAS_PESSOA` (colunas de pessoa **permitidas** no analítico, por `schema.tabela.coluna`: `dspd_bm.dim_card.responsaveis`, `dspd_bm.dim_card_versao.responsaveis`, `dspd_bm.fato_transicao.usuario`), `EXCECOES_PESSOA` (falsos positivos: `dspd_bm.dim_card.area_solicitante`, `dspd_bm.dim_card_versao.area_solicitante`, área organizacional, briefing 4.5) e `violaLgpd`. Fora de `stg_`, qualquer coluna cujo nome, dividido por `_`, tenha segmento casando `^(pessoa|responsav\w*|usuario\w*|user\w*|agente\w*|atendente\w*|solicitante\w*|autor\w*|criador\w*|email\w*|login\w*|assignee\w*|justificativa\w*)$` e não esteja em `COLUNAS_PESSOA` nem em `EXCECOES_PESSOA` reprova. Usada pelo teste estático das migrações (`ddl(S)`), pelo teste do seed e pelo teste de catálogo no CI. Nenhum teste copia a lista. Entrada nova em qualquer das duas listas só com alteração desta seção e revisão de modelagem (arquiteto + tech-lead).
 2. **Privilégio:** `dspd_api` não tem `SELECT` em nenhuma coluna de `COLUNAS_PESSOA` (GRANT por coluna) nem em `stg_`; consulta que tente ler a coluna falha com `42501`, mesmo com bug no código. Por isso `SELECT *` é proibido nos repositórios da API.
 3. **Views:** todas `security_invoker` e com colunas explícitas; nenhuma `vw_` seleciona, agrupa ou ordena por coluna de pessoa (teste sobre `information_schema.view_column_usage`); `equipe` existe só como filtro, e nenhuma view agrupa por equipe para comparar times (7.1).
 4. **Contrato da API:** nenhuma rota, DTO ou schema zod tem campo de pessoa, nem como saída nem como filtro ou agrupamento; entrada `strict` recusa parâmetro desconhecido (ADR 0007); nenhum endpoint agrega por pessoa.

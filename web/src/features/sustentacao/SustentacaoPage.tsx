@@ -11,6 +11,8 @@ import { CartaoS4 } from './components/CartaoS4'
 import { CartaoS5 } from './components/CartaoS5'
 import { CartaoS6 } from './components/CartaoS6'
 import { CartaoS7 } from './components/CartaoS7'
+import { MaisMetricas } from '@/features/complementares/MaisMetricas'
+import { cartaoDeSustentacao } from '@/features/complementares/registro'
 
 /** "Pede atenção na semana": S2 abaixo de 90% e S1 com mediana acima do alvo, por prioridade (SUS-01). */
 function Atencao({ filtros }: { filtros: FiltrosSustentacao }) {
@@ -97,6 +99,7 @@ export default function SustentacaoPage() {
           <SecaoPainel cartoes={['ei-sust']} id="espera" titulo="Espera invisível do nível">
             <CartaoEISust filtros={filtros} variante="compacto" />
           </SecaoPainel>
+          <MaisMetricas fonte="Acelerato" renderizar={(id) => cartaoDeSustentacao(id, filtros)} />
         </>
       )}
     </PainelSustentacao>

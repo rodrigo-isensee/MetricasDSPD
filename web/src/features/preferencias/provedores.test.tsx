@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { PREFERENCIAS_PADRAO } from '@metricas-dspd/contratos'
 import { usePreferenciasPainel } from '@/components/ui'
@@ -58,11 +59,13 @@ describe('ProvedorPreferencias e ProvedorPainelPreferencias', () => {
   it('ocultar id fora do catálogo ou já oculto não faz nada; sem título na página, o foco cai no h1; sem h1, em lugar nenhum', async () => {
     const u = userEvent.setup()
     render(
-      <ProvedorPreferencias fonte={fonteLocal()}>
-        <ProvedorPainelPreferencias painel="operacional">
-          <Sonda />
-        </ProvedorPainelPreferencias>
-      </ProvedorPreferencias>,
+      <MemoryRouter>
+        <ProvedorPreferencias fonte={fonteLocal()}>
+          <ProvedorPainelPreferencias painel="operacional">
+            <Sonda />
+          </ProvedorPainelPreferencias>
+        </ProvedorPreferencias>
+      </MemoryRouter>,
     )
     await screen.findByTestId('n')
     await u.click(await screen.findByRole('button', { name: 'ocultar-inexistente' }))
@@ -85,11 +88,13 @@ describe('ProvedorPreferencias e ProvedorPainelPreferencias', () => {
   it('"Desfazer" sem o cartão na página (id ausente) não quebra', async () => {
     const u = userEvent.setup()
     render(
-      <ProvedorPreferencias fonte={fonteLocal()}>
-        <ProvedorPainelPreferencias painel="operacional">
-          <Sonda />
-        </ProvedorPainelPreferencias>
-      </ProvedorPreferencias>,
+      <MemoryRouter>
+        <ProvedorPreferencias fonte={fonteLocal()}>
+          <ProvedorPainelPreferencias painel="operacional">
+            <Sonda />
+          </ProvedorPainelPreferencias>
+        </ProvedorPreferencias>
+      </MemoryRouter>,
     )
     await u.click(await screen.findByRole('button', { name: 'ocultar-o2' }))
     await u.click(screen.getByRole('button', { name: 'Desfazer' }))
