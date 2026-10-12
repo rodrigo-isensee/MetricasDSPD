@@ -1,9 +1,9 @@
 name: Homologação aprovada
 
 # Check obrigatório dos PRs para a main: o candidato precisa ser a ponta de `homolog`, com o portão (push)
-# e a rodada noturna verdes (lidos das EXECUÇÕES do workflow homolog.yml, não de status de commit).
-# `hotfix/*` exige saída da ponta da main, poucos commits e o CI completo verde. Não substitui a aprovação
-# do usuário. Depois da noturna (ou do CI do hotfix), reexecute este check.
+# verde (a rodada noturna é informativa por enquanto: EXIGIR_NOTURNA em aprovacao.ts), lido das EXECUÇÕES do
+# workflow homolog.yml, não de status de commit. `hotfix/*` exige saída da ponta da main, poucos commits e o CI completo verde. Não substitui a aprovação
+# do usuário. Depois do CI do hotfix (ou da noturna, se religada), reexecute este check.
 # A regra vem do código da BASE do PR (main), nunca da branch candidata.
 on:
   pull_request:
