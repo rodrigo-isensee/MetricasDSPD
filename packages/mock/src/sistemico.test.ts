@@ -1,13 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
   METRICA_IDS,
-  METRICAS_SUSTENTACAO,
+  fonteDaMetrica,
   MINIMO_AMOSTRA,
   type MetricaId,
 } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
-import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO } from '@metricas-dspd/metricas'
-import { gerarBaseMock, gerarExtensoesMock } from '.'
+import {
+  acelerato,
+  businessmap,
+  calcularMetrica,
+  CALENDARIO_PADRAO,
+  pesquisa,
+} from '@metricas-dspd/metricas'
+import { gerarBaseMock, gerarExtensoesMock, gerarPesquisaMock } from '.'
 
 /**
  * Teste sistêmico entre pacotes: gerador (mock) -> contexto -> `calcularMetrica` (metricas) ->
@@ -18,11 +24,12 @@ const ctx = {
   bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
   ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
   ext: gerarExtensoesMock(base),
+  pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(base.config), base.config.hoje),
 }
 const filtrosPadrao = (id: MetricaId) =>
-  id === 'VISAO_GERAL'
+  id === 'VISAO_GERAL' || fonteDaMetrica(id) === 'pesquisa'
     ? {}
-    : METRICAS_SUSTENTACAO.includes(id)
+    : fonteDaMetrica(id) === 'acelerato'
       ? { equipe: [], prioridade: [], periodo: { tipo: '12m' } }
       : { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12m' } }
 
@@ -59,6 +66,7 @@ describe('gerador -> métricas -> contrato (51 métricas)', () => {
       bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
       ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
       ext: gerarExtensoesMock(base),
+      pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(base.config), base.config.hoje),
     }
     for (const id of METRICA_IDS) {
       const f = filtrosPadrao(id) as never

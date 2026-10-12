@@ -6,10 +6,16 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import { METRICA_IDS, MINIMO_AMOSTRA, type MetricaId } from '@metricas-dspd/contratos'
-import { METRICAS_SUSTENTACAO } from '@metricas-dspd/contratos'
-import { gerarBaseMock, gerarExtensoesMock, type BaseMock } from '@metricas-dspd/mock'
+import { fonteDaMetrica, resultadoPV1 } from '@metricas-dspd/contratos'
+import {
+  gerarBaseMock,
+  gerarExtensoesMock,
+  gerarPesquisaMock,
+  type BaseMock,
+} from '@metricas-dspd/mock'
 import { calcularMetrica, type ContextosMetricas } from './calcular'
-import { acelerato, businessmap } from '.'
+import { acelerato, businessmap, pesquisa } from '.'
+import type { BasePesquisa } from './pesquisa'
 import { CALENDARIO_PADRAO } from './core/calendario'
 import { REGRAS_METRICA, type ChaveSegmentacao, type RegraMetrica } from './core/regras'
 import type { BaseBM } from './businessmap/modelo'
@@ -21,16 +27,19 @@ const HOJE = base.config.hoje
 const hojeMs = businessmap.criarContextoBM(base.bm, HOJE, CALENDARIO_PADRAO).hoje
 
 const EXT = gerarExtensoesMock(base)
-const ctxDe = (bm: BaseBM, ac: BaseAC): ContextosMetricas => ({
+const PESQ = gerarPesquisaMock(base.config)
+const ctxPesq = (p: BasePesquisa) => pesquisa.criarContextoPesquisa(p, HOJE)
+const ctxDe = (bm: BaseBM, ac: BaseAC, pesq: BasePesquisa = PESQ): ContextosMetricas => ({
   ext: EXT,
+  pesq: ctxPesq(pesq),
   bm: businessmap.criarContextoBM(bm, HOJE, CALENDARIO_PADRAO),
   ac: acelerato.criarContextoAC(ac, HOJE, CALENDARIO_PADRAO),
 })
 const CTX = ctxDe(base.bm, base.ac)
 
-const ehAC = (id: MetricaId) => METRICAS_SUSTENTACAO.includes(id)
+const ehAC = (id: MetricaId) => fonteDaMetrica(id) === 'acelerato'
 const filtrosDe = (id: MetricaId, tipo: '12s' | '6m' | '12m' = '12m') =>
-  id === 'VISAO_GERAL'
+  id === 'VISAO_GERAL' || fonteDaMetrica(id) === 'pesquisa'
     ? {}
     : ehAC(id)
       ? { equipe: [], prioridade: [], periodo: { tipo } }
@@ -65,7 +74,7 @@ interface Propriedade {
 }
 const executados: Record<string, Set<MetricaId>> = {}
 
-const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
+const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
   p1: {
     nome: 'arquivar entregue não muda o resultado',
     aplica: (_id, r) => r.dominio === 'businessmap' && r.incluiArquivados !== 'nao-se-aplica',
@@ -81,7 +90,8 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
   },
   p2: {
     nome: 'classe isolada = classe no conjunto',
-    aplica: (id, r) => id !== 'VISAO_GERAL' && r.segmentacao.length > 0,
+    // A pesquisa (dominio 'pesquisa') não tem item classificável: as suas propriedades próprias são a P7.
+    aplica: (id, r) => id !== 'VISAO_GERAL' && r.dominio !== 'pesquisa' && r.segmentacao.length > 0,
     excecoes: {
       O1: 'primeira chave é coluna: o retrato por coluna depende da equipe única selecionada, sem classificador de item',
       BLOQUEADOS:
@@ -105,7 +115,6 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
       S8: 'a prioridade atua só como filtro; o resultado é série mensal sem nó por prioridade',
       S9: 'a chave é o motivo da pendência, que vive na etapa (classificador por motivo não implementado)',
       S11: 'os grupos P1, P2 e contorno se sobrepõem por definição: o nó do grupo depende do conjunto',
-      PV1: 'pesquisa agregada (pergunta e área são nós de contagem por faixa, sem item classificável); fronteiras 4/5, 2/3 e 19/20 serão cobertas por propriedades próprias no B2 (pesquisa/anonimato)',
       S12: 'a chave é a categoria do sistema (contagem por nome) e o recorrente depende do conjunto da janela',
     },
   },
@@ -116,9 +125,8 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
   },
   p4: {
     nome: 'fronteira de amostra 19/20',
-    aplica: (_id, r) => r.minimo === 20,
+    aplica: (_id, r) => r.minimo === 20 && r.dominio !== 'pesquisa',
     excecoes: {
-      PV1: 'o mínimo de publicação é 5 (consolidado) e 3 (área), com o 20 só no percentual; sem nó ok de amostra de itens: coberto nos testes do B2 (pesquisa/anonimato)',
       E1: 'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer; coberto em businessmap.test.ts',
       EI_FL3:
         'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer',
@@ -132,6 +140,11 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
   p6: {
     nome: 'nenhuma chave por pessoa',
     aplica: () => true,
+    excecoes: {},
+  },
+  p7: {
+    nome: 'pesquisa: mínimos, anonimato por subtração e ordem das áreas',
+    aplica: (_id, r) => r.dominio === 'pesquisa',
     excecoes: {},
   },
 }
@@ -375,10 +388,22 @@ describe(`P3: ${P.p3.nome}`, () => {
     const ref = plano(calc(id, CTX))
     for (const [nome, v] of Object.entries(variantes)) {
       // Troca só a base do OUTRO domínio.
-      const ctx: ContextosMetricas = eAC
-        ? { bm: v.bm, ac: CTX.ac, ext: EXT }
-        : { bm: CTX.bm, ac: v.ac, ext: EXT }
+      // A pesquisa é a terceira fonte: troca-se BM e AC juntos e a PV1 não muda.
+      const ctx: ContextosMetricas =
+        fonteDaMetrica(id) === 'pesquisa'
+          ? { bm: v.bm, ac: v.ac, ext: EXT, pesq: ctxPesq(PESQ) }
+          : eAC
+            ? { bm: v.bm, ac: CTX.ac, ext: EXT, pesq: ctxPesq(PESQ) }
+            : { bm: CTX.bm, ac: v.ac, ext: EXT, pesq: ctxPesq(PESQ) }
       expect(plano(calc(id, ctx)), `${id} com ${nome}`).toEqual(ref)
+    }
+    // E nenhuma outra métrica lê a pesquisa.
+    if (fonteDaMetrica(id) !== 'pesquisa') {
+      const outra = { ...CTX, pesq: ctxPesq(gerarPesquisaMock({ ...base.config, semente: 7 })) }
+      expect(plano(calc(id, outra)), `${id} com outra pesquisa`).toEqual(ref)
+      expect(plano(calc(id, { bm: CTX.bm, ac: CTX.ac, ext: EXT })), `${id} sem pesquisa`).toEqual(
+        ref,
+      )
     }
     marcar('p3', id)
   })
@@ -543,7 +568,16 @@ describe(`P5: ${P.p5.nome}`, () => {
           chamados: embaralhar(base.ac.chamados, seed + 4),
           etapas: embaralhar(base.ac.etapas, seed + 5),
         }
-        expect(plano(calc(id, ctxDe(bm, ac)))).toEqual(ref)
+        const pesq: BasePesquisa = {
+          ...PESQ,
+          areas: embaralhar(PESQ.areas, seed + 6),
+          versoes: embaralhar(PESQ.versoes, seed + 7),
+          cargas: embaralhar(PESQ.cargas, seed + 8).map((c, i) => ({
+            ...c,
+            linhas: embaralhar(c.linhas, seed + 9 + i),
+          })),
+        }
+        expect(plano(calc(id, ctxDe(bm, ac, pesq)))).toEqual(ref)
       }),
       { numRuns: 2, seed: 20261009 },
     )
@@ -588,6 +622,139 @@ describe(`P6: ${P.p6.nome}`, () => {
     varrer(plano(calc(id, CTX)), id, falhas)
     expect(falhas.slice(0, 4)).toEqual([])
     marcar('p6', id)
+  })
+})
+
+// ---------------------------------------------------------------------------------------------
+// Propriedade 7 (pesquisa): mínimos, anonimato por subtração e ordem das áreas
+// ---------------------------------------------------------------------------------------------
+const NOMES_AREAS = ['Zeta', 'Ágata', 'Beta', 'Delta', 'Épsilon', 'Alfa', 'Omega', 'Íris']
+
+/** Base de pesquisa aleatória: n ciclos, cada um com o respondentes por área (0 a 12) e faixas sorteadas. */
+function pesquisaDe(ciclos: number[][], seed: number): BasePesquisa {
+  const r = prng(seed)
+  const faixas = (n: number): number[] => {
+    const f = [0, 0, 0, 0, 0]
+    for (let i = 0; i < n; i++) {
+      const k = Math.floor(r() * 5)
+      f[k] = (f[k] as number) + 1
+    }
+    return f
+  }
+  return {
+    areas: NOMES_AREAS.map((rotulo, i) => ({ codigo: `a${i}`, rotulo })),
+    versoes: [
+      {
+        id: 'v',
+        vigenteDesde: '2025-01-01',
+        perguntas: [
+          { codigo: 'p1', ordem: 1, texto: 't1' },
+          { codigo: 'p2', ordem: 2, texto: 't2' },
+        ],
+      },
+    ],
+    criterios: [],
+    cargas: ciclos.map((tamanhos, c) => {
+      const ano = 2025 + Math.floor(c / 4)
+      const tri = (c % 4) + 1
+      return {
+        cargaId: c + 1,
+        trimestre: `${ano}-T${tri}`,
+        versaoId: 'v',
+        recebidaEm: `${ano}-${String(tri * 3).padStart(2, '0')}-28`,
+        oQueMudou: null,
+        linhas: tamanhos.flatMap((n, i) =>
+          ['p1', 'p2'].map((pergunta) => {
+            const [f1, f2, f3, f4, f5] = faixas(n) as [number, number, number, number, number]
+            return {
+              trimestre: `${ano}-T${tri}`,
+              area: `a${i}`,
+              pergunta,
+              f1,
+              f2,
+              f3,
+              f4,
+              f5,
+              convidados: n + 5,
+            }
+          }),
+        ),
+      }
+    }),
+  }
+}
+
+/** Todo nó com status 'ok' tem n >= 20; 'insuficiente' nunca carrega percentual; base-insuficiente nunca carrega faixas. */
+function conferirPesquisa(no: unknown, caminho: string, falhas: string[]): void {
+  if (Array.isArray(no))
+    return no.forEach((x, i) => conferirPesquisa(x, `${caminho}[${i}]`, falhas))
+  if (no === null || typeof no !== 'object') return
+  const o = no as Record<string, unknown>
+  if (o.status === 'ok' && typeof o.n === 'number' && o.n < MINIMO_AMOSTRA)
+    falhas.push(`${caminho}: percentual com n=${o.n}`)
+  if (o.status === 'insuficiente' && ('pct' in o || 'valor' in o))
+    falhas.push(`${caminho}: insuficiente com valor`)
+  if (o.status === 'base-insuficiente' && ('perguntas' in o || 'concordam' in o))
+    falhas.push(`${caminho}: base insuficiente com faixas`)
+  for (const [k, v] of Object.entries(o)) conferirPesquisa(v, `${caminho}.${k}`, falhas)
+}
+
+describe(`P7: ${P.p7.nome}`, () => {
+  const ciclosArb = fc.array(fc.array(fc.nat({ max: 12 }), { minLength: 1, maxLength: 8 }), {
+    minLength: 1,
+    maxLength: 6,
+  })
+  it.each(idsDe(P.p7))('%s', (id) => {
+    fc.assert(
+      fc.property(ciclosArb, fc.integer({ min: 1, max: 1_000_000 }), (ciclos, seed) => {
+        const b = pesquisaDe(ciclos, seed)
+        const hoje = b.cargas[b.cargas.length - 1]?.recebidaEm as string
+        const r = calcularMetrica(
+          id,
+          {},
+          {
+            ...CTX,
+            pesq: pesquisa.criarContextoPesquisa(b, hoje),
+          },
+        ) as ReturnType<typeof calcularMetrica<'PV1'>>
+        // Todo resultado passa no contrato (mínimos, ordem das áreas e A10 estão no schema).
+        expect(resultadoPV1.safeParse(r).success).toBe(true)
+        // Nunca publica percentual com n < 20 nem faixas abaixo do mínimo.
+        const falhas: string[] = []
+        conferirPesquisa(r, id, falhas)
+        expect(falhas).toEqual([])
+        if (r.status !== 'ok') return
+        expect(r.consolidado.status === 'publicado').toBe(r.consolidado.n >= 5)
+        expect(r.tendencia.length).toBeLessThanOrEqual(4)
+        expect(r.tendencia.map((t) => t.trimestre)).toEqual(
+          [...r.tendencia.map((t) => t.trimestre)].sort(),
+        )
+        if (r.ciclo < 2)
+          expect(r.porArea).toEqual({ status: 'nao-publicado', motivo: 'primeiro-ciclo' })
+        if (r.porArea.status !== 'publicado') return
+        // Por área só existe com consolidado publicado e com pelo menos 2 grupos.
+        expect(r.consolidado.status).toBe('publicado')
+        const grupos = r.porArea.areas.map((a) => a.bloco.n)
+        expect(grupos.length).toBeGreaterThanOrEqual(2)
+        // Nenhum grupo de 1 ou 2, e os grupos particionam o consolidado.
+        expect(grupos.every((n) => n >= 3)).toBe(true)
+        expect(grupos.reduce((s, n) => s + n, 0)).toBe(r.consolidado.n)
+        // Subtração: o consolidado menos QUALQUER subconjunto de grupos publicados nunca dá 1 ou 2.
+        for (let m = 0; m < 1 << grupos.length; m++) {
+          const parte = grupos.reduce((s, n, i) => s + (m & (1 << i) ? n : 0), 0)
+          const resto = r.consolidado.n - parte
+          expect(resto === 0 || resto >= 3, `resto ${resto}`).toBe(true)
+        }
+        // Áreas em ordem alfabética, com "Outras áreas" uma só vez e por último.
+        const nomes = r.porArea.areas.filter((a) => !a.outras).map((a) => a.rotulo)
+        expect(nomes).toEqual([...nomes].sort((x, y) => x.localeCompare(y, 'pt-BR')))
+        expect(r.porArea.areas.filter((a) => a.outras).length).toBeLessThanOrEqual(1)
+        const iOutras = r.porArea.areas.findIndex((a) => a.outras)
+        if (iOutras !== -1) expect(iOutras).toBe(r.porArea.areas.length - 1)
+      }),
+      { numRuns: 300, seed: 20261009 },
+    )
+    marcar('p7', id)
   })
 })
 

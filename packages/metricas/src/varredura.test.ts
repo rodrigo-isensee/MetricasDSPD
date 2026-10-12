@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest'
 import {
   EQUIPES_SUSTENTACAO_ID,
   METRICA_IDS,
-  METRICAS_SUSTENTACAO,
+  fonteDaMetrica,
   PRIORIDADES,
   TIPOS_FILTRO,
   type MetricaId,
   type Periodo,
 } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
-import { gerarBaseMock } from '@metricas-dspd/mock'
-import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO } from '.'
+import { gerarBaseMock, gerarPesquisaMock } from '@metricas-dspd/mock'
+import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, pesquisa } from '.'
 import type { ContextosMetricas } from './calcular'
 
 /**
@@ -31,6 +31,7 @@ const contextos = (cfg: Parameters<typeof gerarBaseMock>[0]): ContextosMetricas 
   return {
     bm: businessmap.criarContextoBM(b.bm, b.config.hoje, CALENDARIO_PADRAO),
     ac: acelerato.criarContextoAC(b.ac, b.config.hoje, CALENDARIO_PADRAO),
+    pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(b.config), b.config.hoje),
   }
 }
 
@@ -55,9 +56,7 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
   const sistemas = [...new Set(ctx.bm.idx.marcos.map((m) => m.slugSistema))].sort()
 
   it('fluxo: todo resultado respeita o contrato em qualquer combinação de filtros', () => {
-    const ids = METRICA_IDS.filter(
-      (id) => !METRICAS_SUSTENTACAO.includes(id) && id !== 'VISAO_GERAL',
-    )
+    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
     for (const id of ids) {
       for (const periodo of PERIODOS) {
         const todos = { equipe: [], tipo: [], sistema: [], periodo }
@@ -78,7 +77,7 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
   })
 
   it('sustentação: todo resultado respeita o contrato com equipes e prioridades', () => {
-    const ids = METRICA_IDS.filter((id) => METRICAS_SUSTENTACAO.includes(id))
+    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato')
     for (const id of ids) {
       for (const periodo of PERIODOS) {
         const todos = { equipe: [], prioridade: [], periodo }
@@ -95,6 +94,13 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
         for (const f of recortes) valida(id, calc(id, f, ctx))
       }
     }
+  })
+
+  it('pesquisa (PV1): só aceita a data de corte, ignora os filtros do fluxo e respeita o contrato', () => {
+    const r = calc('PV1', {}, ctx)
+    valida('PV1', r)
+    for (const f of [{ equipe: ['x'], tipo: ['Story'], sistema: ['y'], periodo: { tipo: '4s' } }])
+      expect(calc('PV1', f, ctx)).toEqual(r)
   })
 
   it('visão geral respeita o contrato e não recebe filtros', () => {
