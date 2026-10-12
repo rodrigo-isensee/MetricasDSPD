@@ -1,8 +1,9 @@
 import { METRICA_IDS, fonteDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
-import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, type ContextosMetricas } from '@metricas-dspd/metricas';
-import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
+import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, pesquisa, type ContextosMetricas } from '@metricas-dspd/metricas';
+import { gerarBaseMock, gerarExtensoesMock, gerarPesquisaMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
 import { ServicoMetricas } from '../src/modulos/metricas/index.js';
+import { fontePesquisaMock } from '../src/plataforma/db/pesquisa-mock.js';
 import { bancoDoMock, CORTE_DATA, mockComoNoBanco } from './base-duble.js';
 import { criarDublePg } from './duble-pg.js';
 
@@ -21,9 +22,10 @@ describe('paridade mock x projeções (sem Postgres: linhas do seed num banco fa
     bm: businessmap.criarContextoBM(memoria.bm, CORTE, CALENDARIO_PADRAO),
     ac: acelerato.criarContextoAC(memoria.ac, CORTE, CALENDARIO_PADRAO),
     ext: gerarExtensoesMock(base),
+    pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(base.config), CORTE_DATA),
   };
   const d = criarDublePg(bancoDoMock(base));
-  const servico = new ServicoMetricas({ db: d.pool, extensoes: () => gerarExtensoesMock(base) });
+  const servico = new ServicoMetricas({ db: d.pool, extensoes: () => gerarExtensoesMock(base), pesquisa: fontePesquisaMock });
   const filtrosDe = (id: MetricaId) => FILTROS_POR_FONTE[fonteDaMetrica(id)];
 
   it.each(METRICA_IDS)('%s: resultado idêntico', async (id) => {

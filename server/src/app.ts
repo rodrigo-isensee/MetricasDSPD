@@ -4,11 +4,12 @@ import {
   jsonSchemaTransform, serializerCompiler, validatorCompiler,
 } from 'fastify-type-provider-zod';
 import { rotasWebhook } from './modulos/businessmap/index.js';
-import { ServicoMetricas, rotasMetricas } from './modulos/metricas/index.js';
+import { ServicoMetricas, rotasMetricas, type FontePesquisa } from './modulos/metricas/index.js';
 import type { ExtensoesMetricas } from '@metricas-dspd/metricas';
 import { rotasOperacao } from './modulos/operacao/index.js';
 import { rotasReferencia } from './modulos/referencia/index.js';
 import type { Esquemas } from './plataforma/db/esquemas.js';
+import { fontePesquisaMock } from './plataforma/db/pesquisa-mock.js';
 import { extensoesMock } from './plataforma/db/extensoes-mock.js';
 import type { Consultavel, PoolLike } from './plataforma/db/pool.js';
 import { rotaNaoEncontrada, tratarErro } from './plataforma/erros.js';
@@ -26,6 +27,8 @@ export type DepsApp = {
   nivelLog?: string;
   /** Extensões das métricas complementares; padrão = mock. */
   extensoes?: () => ExtensoesMetricas;
+  /** Fonte da pesquisa de percepção (PV1); padrão = mock quando `fonteDados !== 'real'`. */
+  pesquisa?: FontePesquisa;
   /** Fonte dos dados: só em 'mock' as extensões mockadas entram; em 'real', sem extensão os campos saem insuficientes. Padrão 'mock'. */
   fonteDados?: 'mock' | 'real';
   /** Destino do log (testes capturam); padrão stdout. */
@@ -59,7 +62,8 @@ export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
     transform: jsonSchemaTransform,
   });
   await app.register(async (i) => rotasSaude(i, deps.db));
-  const servico = new ServicoMetricas({ db: deps.db, S: deps.S, extensoes: deps.extensoes ?? (deps.fonteDados === 'real' ? undefined : extensoesMock) });
+  const servico = new ServicoMetricas({ db: deps.db, S: deps.S, extensoes: deps.extensoes ?? (deps.fonteDados === 'real' ? undefined : extensoesMock),
+    pesquisa: deps.pesquisa ?? (deps.fonteDados === 'real' ? undefined : fontePesquisaMock) });
   await app.register(async (i) => {
     await rotasReferencia(i, { db: deps.db, S: deps.S, agora: deps.agora });
     await rotasOperacao(i, { db: deps.db, S: deps.S, agora: deps.agora });
