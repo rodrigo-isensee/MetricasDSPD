@@ -15,3 +15,4 @@ O usuário aprovou o desenho de docs/engineering/fluxo-homologacao.md como recom
 - H-6: Git corporativo = GitHub corporativo (confirmar runners após a migração).
 - H-7: dado real em homolog só na máquina do usuário, nunca na CI hospedada, com backups cifrados e retenção de 24 meses; só depois das integrações e das regras de LGPD (allow-list e redação) implementadas e testadas. Até lá, só mock.
 - H-1/H-3: conforme o fluxo aprovado (tech-lead mescla em develop e homolog; hotfix sai da main com aprovação do usuário).
+- I5 (identidade): conta de serviço (bot) para os agentes no GitHub corporativo, com escrita e sem permissão de mesclar na `main` (o ruleset da `main` exige aprovação/merge do usuário). Até a migração, os agentes seguem na conta do usuário e a proteção é o prompt de permissão do `gh pr merge` + a regra dos agentes, com I1–I4 corrigidos.
