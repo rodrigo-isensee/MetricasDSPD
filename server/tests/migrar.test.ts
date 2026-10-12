@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { criarDublePg } from './duble-pg.js';
 
+const configs: Record<string, unknown>[] = [];
 const clientes: { query: ReturnType<typeof vi.fn>; end: ReturnType<typeof vi.fn> }[] = [];
 let existe = true;
 vi.mock('pg', () => ({
@@ -14,7 +15,7 @@ vi.mock('pg', () => ({
       });
       connect = vi.fn().mockResolvedValue(undefined);
       end = vi.fn().mockResolvedValue(undefined);
-      constructor() { clientes.push(this); }
+      constructor(c: Record<string, unknown>) { configs.push(c); clientes.push(this); }
     },
   },
 }));
@@ -24,7 +25,7 @@ vi.mock('node-pg-migrate', () => ({ runner: (o: unknown) => runner(o) }));
 const { aplicarGrants, lerCatalogo, migrar } = await import('../src/plataforma/db/migrar.js');
 const { montarEsquemas } = await import('../src/plataforma/db/esquemas.js');
 
-beforeEach(() => { clientes.length = 0; existe = true; runner.mockReset().mockResolvedValue([{ name: '0001_schemas' }]); });
+beforeEach(() => { clientes.length = 0; configs.length = 0; existe = true; runner.mockReset().mockResolvedValue([{ name: '0001_schemas' }]); });
 afterEach(() => { delete process.env.DSPD_SCHEMA_PREFIXO; });
 
 describe('migrar (runner do node-pg-migrate mockado)', () => {
@@ -40,6 +41,8 @@ describe('migrar (runner do node-pg-migrate mockado)', () => {
     const o = runner.mock.calls[0]![0] as Record<string, unknown>;
     expect(o).toMatchObject({ direction: 'up', migrationsTable: 'pgmigrations', migrationsSchema: 't_dspd_core', checkOrder: true, createMigrationsSchema: true });
     expect('count' in o).toBe(false);
+    expect(o.singleTransaction).toBe(true);
+    expect(configs[0]!.options).toBe('-c TimeZone=UTC -c lock_timeout=5s');
     expect(clientes[0]!.end).toHaveBeenCalled();
     const sqls = clientes[0]!.query.mock.calls.map((c) => c[0] as string);
     expect(sqls).toContain('BEGIN');

@@ -29,6 +29,32 @@ describe('pool', () => {
     await p.end();
     await criarPool('postgres://u:p@127.0.0.1:1/x').end();
   });
+  it('criarPool aplica os timeouts de C3 e o application_name do papel', async () => {
+    const p = criarPool('postgres://dspd_api:p@127.0.0.1:1/x');
+    expect(p.options).toMatchObject({
+      statement_timeout: 30_000, lock_timeout: 5_000, idle_in_transaction_session_timeout: 30_000,
+      connectionTimeoutMillis: 5_000, application_name: 'dspd-api', max: 10,
+    });
+    await p.end();
+    const q = criarPool('postgres://migrador:p@127.0.0.1:1/x', {
+      statementTimeoutMs: 1, lockTimeoutMs: 2, idleInTransactionTimeoutMs: 3, connectionTimeoutMs: 4, aplicacao: 'meu-app',
+    });
+    expect(q.options).toMatchObject({
+      statement_timeout: 1, lock_timeout: 2, idle_in_transaction_session_timeout: 3, connectionTimeoutMillis: 4, application_name: 'meu-app',
+    });
+    await q.end();
+    const r = criarPool('postgres://migrador:p@127.0.0.1:1/x');
+    expect(r.options.application_name).toBe('dspd-migrador');
+    await r.end();
+  });
+  it('emTransacao destrói a conexão quando o ROLLBACK falha e preserva o erro original', async () => {
+    const d = criarDublePg((c) => (c.texto === 'ROLLBACK' ? new Error('conexão caiu') : []));
+    await expect(emTransacao(d.pool, () => Promise.reject(new Error('original')))).rejects.toThrow('original');
+    expect(d.estado.destruidos).toBe(1);
+    const ok = criarDublePg();
+    await emTransacao(ok.pool, async () => 1);
+    expect(ok.estado.destruidos).toBe(0);
+  });
   it('emTransacao confirma, desfaz em erro e sempre libera', async () => {
     const a = criarDublePg();
     expect(await emTransacao(a.pool, async (c) => { await c.query('SELECT 1'); return 7; })).toBe(7);

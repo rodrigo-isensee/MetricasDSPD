@@ -6,6 +6,8 @@ import { montarEsquemas, type Esquemas } from './esquemas.js';
 import type { Consultavel } from './pool.js';
 
 export const DIR_MIGRACOES = fileURLToPath(new URL('../../../migrations', import.meta.url));
+/** Migração nunca espera mais que isto por um lock (outro DDL ou sessão presa): falha e o operador decide. */
+export const LOCK_TIMEOUT_MIGRADOR = '5s';
 export type Direcao = 'up' | 'down';
 
 type LinhaCatalogo = { esquema: string; tabela: string; colunas: string[] };
@@ -56,12 +58,12 @@ export async function migrar(url: string, opcoes: OpcoesMigrar = {}): Promise<Re
   const S = montarEsquemas(prefixo);
   const anterior = process.env.DSPD_SCHEMA_PREFIXO;
   process.env.DSPD_SCHEMA_PREFIXO = prefixo;
-  const cliente = new pg.Client({ connectionString: url, options: '-c TimeZone=UTC' });
+  const cliente = new pg.Client({ connectionString: url, options: `-c TimeZone=UTC -c lock_timeout=${LOCK_TIMEOUT_MIGRADOR}` });
   await cliente.connect();
   try {
     const feitas = await runner({
       dbClient: cliente, dir: DIR_MIGRACOES, direction: direcao, migrationsTable: 'pgmigrations',
-      migrationsSchema: S.core, createMigrationsSchema: true, checkOrder: true, ignorePattern: '(\\..*|.*\\.json)',
+      migrationsSchema: S.core, createMigrationsSchema: true, checkOrder: true, singleTransaction: true, ignorePattern: '(\\..*|.*\\.json)',
       ...(direcao === 'down' ? { count: quantas ?? 1 } : quantas === undefined ? {} : { count: quantas }), log,
     });
     const grants = await aplicarGrants(cliente, S);

@@ -8,7 +8,8 @@ export interface Consultavel {
   ): Promise<{ rows: R[]; rowCount: number | null }>;
 }
 export interface ClienteLike extends Consultavel {
-  release(): void;
+  /** `true` (ou um erro) destrói a conexão em vez de devolvê-la ao pool; usado quando o estado da sessão é incerto. */
+  release(destruir?: boolean | Error): void;
 }
 export interface PoolLike extends Consultavel {
   connect(): Promise<ClienteLike>;
@@ -29,30 +30,48 @@ export const tipos = {
   },
 };
 
-export type OpcoesPool = { statementTimeoutMs?: number; max?: number };
+export type OpcoesPool = {
+  statementTimeoutMs?: number;
+  lockTimeoutMs?: number;
+  idleInTransactionTimeoutMs?: number;
+  connectionTimeoutMs?: number;
+  max?: number;
+  /** Nome que aparece em `pg_stat_activity`; padrão `dspd-<papel>` a partir do usuário da URL. */
+  aplicacao?: string;
+};
 
-/** Um Pool por papel (ADR 0014). Sessão em UTC; `statement_timeout` por pool. */
+/** Padrões de C3 (auditoria do banco): nenhuma sessão espera para sempre por lock, conexão ou transação parada. */
+export const TIMEOUTS_PADRAO = { statementMs: 30_000, lockMs: 5_000, idleInTransactionMs: 30_000, conexaoMs: 5_000 } as const;
+
+/** Um Pool por papel (ADR 0014). Sessão em UTC; timeouts de statement, lock, transação ociosa e conexão por pool. */
 export function criarPool(url: string, opcoes: OpcoesPool = {}): pg.Pool {
-  const { statementTimeoutMs = 30_000, max = 10 } = opcoes;
+  const {
+    statementTimeoutMs = TIMEOUTS_PADRAO.statementMs, lockTimeoutMs = TIMEOUTS_PADRAO.lockMs,
+    idleInTransactionTimeoutMs = TIMEOUTS_PADRAO.idleInTransactionMs, connectionTimeoutMs = TIMEOUTS_PADRAO.conexaoMs,
+    max = 10, aplicacao = `dspd-${decodeURIComponent(new URL(url).username).replace(/^dspd_/, '')}`,
+  } = opcoes;
   return new pg.Pool({
-    connectionString: url, max, types: tipos, statement_timeout: statementTimeoutMs,
-    options: '-c TimeZone=UTC',
+    connectionString: url, max, types: tipos, statement_timeout: statementTimeoutMs, lock_timeout: lockTimeoutMs,
+    idle_in_transaction_session_timeout: idleInTransactionTimeoutMs, connectionTimeoutMillis: connectionTimeoutMs,
+    application_name: aplicacao, options: '-c TimeZone=UTC',
   });
 }
 
 /** BEGIN/COMMIT; qualquer erro faz ROLLBACK e é repassado. O cliente sempre volta ao pool. */
 export async function emTransacao<T>(pool: PoolLike, fn: (cliente: Consultavel) => Promise<T>): Promise<T> {
   const cliente = await pool.connect();
+  let destruir = false;
   try {
     await cliente.query('BEGIN');
     const r = await fn(cliente);
     await cliente.query('COMMIT');
     return r;
   } catch (e) {
-    await cliente.query('ROLLBACK');
+    // Se o ROLLBACK também falhar, a sessão está em estado incerto: destrói a conexão e preserva o erro original.
+    await cliente.query('ROLLBACK').catch(() => { destruir = true; });
     throw e;
   } finally {
-    cliente.release();
+    cliente.release(destruir);
   }
 }
 
