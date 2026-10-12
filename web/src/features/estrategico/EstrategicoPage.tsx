@@ -7,6 +7,8 @@ import { CartaoEIFL3 } from '@/features/espera-invisivel/components/CartaoEI'
 import { CartaoE1 } from './components/CartaoE1'
 import { CartaoE2 } from './components/CartaoE2'
 import { CartaoE3 } from './components/CartaoE3'
+import { MaisMetricas } from '@/features/complementares/MaisMetricas'
+import { cartaoDeFluxo } from '@/features/complementares/registro'
 
 function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
   const qE2 = useMetrica('E2', filtros)
@@ -64,6 +66,7 @@ export default function EstrategicoPage() {
           >
             <CartaoEIFL3 filtros={filtros} variante="compacto" />
           </SecaoPainel>
+          <MaisMetricas fonte="BusinessMap" renderizar={(id) => cartaoDeFluxo(id, filtros)} />
         </>
       )}
     </PainelFluxo>

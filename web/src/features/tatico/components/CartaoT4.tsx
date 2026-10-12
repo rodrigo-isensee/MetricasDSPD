@@ -12,6 +12,7 @@ import { fmtDataCurta, fmtInteiro, fmtNumero } from '@/lib/formatar'
 import { useParametroLocal } from '@/features/filtros/useParametroLocal'
 import { NOTAS_TATICO } from '../notas'
 import { propsCartao, slug } from '@/features/painel/propsCartao'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 const VALORES = CLASSES_SERVICO.map(slug)
 
@@ -118,6 +119,7 @@ export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
               Veja o lead time (T1)
             </a>
           </p>
+          <LeiaJunto id="t4" />
         </div>
       )}
     </CartaoMetrica>

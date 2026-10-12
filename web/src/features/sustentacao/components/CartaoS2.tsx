@@ -6,6 +6,7 @@ import { useMetrica } from '@/data'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { NOTAS_SUSTENTACAO } from '../notas'
 import { TextoInsuficiente } from './comuns'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 type Celula = ResultadoS2['prioridades'][number]['restauracao']
 
@@ -101,6 +102,7 @@ export function CartaoS2({ filtros }: { filtros: FiltrosSustentacao }) {
               re: <Resultado c={p.restauracao} />,
             }))}
           />
+          <LeiaJunto id="s2" />
         </div>
       )}
     </CartaoMetrica>

@@ -1,0 +1,234 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "comFicha": {
+      "type": "object",
+      "properties": {
+        "k": {
+          "type": "number"
+        },
+        "n": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "k",
+        "n"
+      ],
+      "additionalProperties": false
+    },
+    "semFicha": {
+      "type": "number"
+    },
+    "statusMeta": {
+      "type": "string",
+      "enum": [
+        "dentro",
+        "fora",
+        "sem-referencia"
+      ]
+    },
+    "iniciativas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "cardId": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "situacao": {
+            "type": "string",
+            "enum": [
+              "em andamento",
+              "concluída"
+            ]
+          },
+          "ficha": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "resultadoEsperado": {
+                    "type": "string"
+                  },
+                  "declaradoAntesDoInicio": {
+                    "type": "boolean"
+                  },
+                  "unidade": {
+                    "type": "string"
+                  },
+                  "ganhoPrevisto": {
+                    "type": "number"
+                  },
+                  "ganhoMedido": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "medida": {
+                    "type": "string"
+                  },
+                  "dataDeclaracao": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "resultadoEsperado",
+                  "declaradoAntesDoInicio",
+                  "unidade",
+                  "ganhoPrevisto",
+                  "ganhoMedido",
+                  "medida",
+                  "dataDeclaracao"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "atingimentoPct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "cardId",
+          "nome",
+          "situacao",
+          "ficha",
+          "atingimentoPct"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "comFicha",
+    "semFicha",
+    "statusMeta",
+    "iniciativas"
+  ],
+  "additionalProperties": false
+}

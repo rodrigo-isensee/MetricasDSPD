@@ -5,6 +5,7 @@ import { useMetrica } from '@/data'
 import { fmtInteiro, fmtMes } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
 import { propsCartao, textoTaxa } from '@/features/painel/propsCartao'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 const GRUPOS = [
   { chave: 'contido', rotulo: 'Contido pela equipe', padrao: 'liso' },
@@ -97,6 +98,7 @@ export function CartaoO15({ filtros }: { filtros: FiltrosFluxo }) {
               altura={200}
             />
           )}
+          <LeiaJunto id="o15" />
         </div>
       )}
     </CartaoMetrica>

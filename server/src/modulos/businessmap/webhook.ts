@@ -4,11 +4,12 @@ import { z } from 'zod';
 import { AppError, erroSchema } from '../../plataforma/erros.js';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
+import { TIPO_EVENTO_WEBHOOK, validarPayload } from '../../plataforma/eventos/index.js';
 
 /** Corpo máximo do webhook: 256 KB (acima disso, 413). */
 export const LIMITE_WEBHOOK_BYTES = 256 * 1024;
 export const CABECALHO_SEGREDO = 'x-webhook-secret';
-export const TIPO_EVENTO_WEBHOOK = 'bm.webhook.recebido';
+export { TIPO_EVENTO_WEBHOOK };
 
 export type DepsWebhook = {
   /** Pool do papel `dspd_webhook` (INSERT em `stg_webhook_evento` e `outbox`; nada mais). */
@@ -32,6 +33,8 @@ export const segredoConfere = (recebido: unknown, esperado: string): boolean =>
  */
 export async function receberWebhook(pool: PoolLike, corpo: Buffer, payload: unknown, agora: Date, S: Esquemas = esquemasDoAmbiente()): Promise<boolean> {
   const hash = sha(corpo);
+  // Mesmo contrato do publicarEvento (este INSERT é direto porque o papel não tem RETURNING): valida antes de gravar.
+  const eventoPayload = (webhookSk: string) => validarPayload(TIPO_EVENTO_WEBHOOK, { webhookSk, payloadSha256: hash.toString('hex') });
   return emTransacao(pool, async (cx) => {
     const r = await cx.query<{ webhook_sk: string }>(
       `INSERT INTO ${S.bm}.stg_webhook_evento (payload_sha256, payload, recebido_em) VALUES ($1, $2::jsonb, $3)
@@ -42,7 +45,7 @@ export async function receberWebhook(pool: PoolLike, corpo: Buffer, payload: unk
     // Sem RETURNING: o papel `dspd_webhook` só tem INSERT em `outbox`.
     await cx.query(
       `INSERT INTO ${S.core}.outbox (fonte, tipo, payload) VALUES ('businessmap', $1, $2::jsonb)`,
-      [TIPO_EVENTO_WEBHOOK, JSON.stringify({ webhookSk: String(nova.webhook_sk), payloadSha256: hash.toString('hex') })]);
+      [TIPO_EVENTO_WEBHOOK, JSON.stringify(eventoPayload(String(nova.webhook_sk)))]);
     return true;
   });
 }

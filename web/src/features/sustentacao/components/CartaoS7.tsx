@@ -6,6 +6,7 @@ import { useMetrica } from '@/data'
 import { fmtInteiro, fmtMes, fmtPct } from '@/lib/formatar'
 import { NOTAS_SUSTENTACAO } from '../notas'
 import { TextoInsuficiente } from './comuns'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 type Bloco = ResultadoS7['reclassificacaoDeTipo']
 
@@ -112,6 +113,7 @@ export function CartaoS7({ filtros }: { filtros: FiltrosSustentacao }) {
             titulo="Reclassificado, não é incidente"
             bloco={d.reclassificacaoDeTipo}
           />
+          <LeiaJunto id="s7" />
         </div>
       )}
     </CartaoMetrica>

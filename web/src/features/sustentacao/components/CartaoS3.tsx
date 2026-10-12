@@ -6,6 +6,7 @@ import { useMetrica } from '@/data'
 import { fmtInteiro, fmtMes, fmtPct } from '@/lib/formatar'
 import { useParametroLocal } from '@/features/filtros'
 import { NOTAS_SUSTENTACAO } from '../notas'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 const MODOS = ['absoluto', 'proporcao'] as const
 
@@ -113,6 +114,7 @@ export function CartaoS3({ filtros }: { filtros: FiltrosSustentacao }) {
               aj: fmtInteiro(x.ajustesManuais),
             }))}
           />
+          <LeiaJunto id="s3" />
         </div>
       )}
     </CartaoMetrica>

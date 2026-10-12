@@ -1,0 +1,397 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "janelaPercentis": {
+      "type": "object",
+      "properties": {
+        "inicio": {
+          "type": "string"
+        },
+        "fim": {
+          "type": "string"
+        },
+        "unidade": {
+          "type": "string",
+          "enum": [
+            "semanas",
+            "meses"
+          ]
+        },
+        "quantidade": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "inicio",
+        "fim",
+        "unidade",
+        "quantidade"
+      ],
+      "additionalProperties": false
+    },
+    "classes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "Incidente",
+              "Requisição",
+              "Melhoria",
+              "Iniciativa",
+              "Bug interno",
+              "Defeito em produção",
+              "Dívida técnica"
+            ]
+          },
+          "n": {
+            "type": "number"
+          },
+          "estatistica": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "valor": {
+                    "type": "object",
+                    "properties": {
+                      "p50": {
+                        "type": "number"
+                      },
+                      "p85": {
+                        "type": "number"
+                      },
+                      "p95": {
+                        "type": "number"
+                      },
+                      "media": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "p50",
+                      "p85",
+                      "p95",
+                      "media"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "valor",
+                  "janela"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "minimo",
+                  "janela"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "pontos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "cardId": {
+                  "type": "string"
+                },
+                "titulo": {
+                  "type": "string"
+                },
+                "dataEntrega": {
+                  "type": "string"
+                },
+                "cicloDiasUteis": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "cardId",
+                "titulo",
+                "dataEntrega",
+                "cicloDiasUteis"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "serieP85": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "semana": {
+                  "type": "string"
+                },
+                "n": {
+                  "type": "number"
+                },
+                "p85": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "semana",
+                "n",
+                "p85"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "variacaoP85": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "indisponivel"
+                ]
+              },
+              "atual": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "anterior": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "variacaoPct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "janelaAnterior": {
+                "type": "object",
+                "properties": {
+                  "inicio": {
+                    "type": "string"
+                  },
+                  "fim": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "inicio",
+                  "fim"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "status",
+              "atual",
+              "anterior",
+              "variacaoPct",
+              "janelaAnterior"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "tipo",
+          "n",
+          "estatistica",
+          "pontos",
+          "serieP85",
+          "variacaoP85"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "janelaPercentis",
+    "classes"
+  ],
+  "additionalProperties": false
+}

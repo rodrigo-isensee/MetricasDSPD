@@ -20,3 +20,4 @@ export { derivar, type Prng } from './prng'
 export { LATENCIA_MAX_MS, LATENCIA_MIN_MS, sortearLatencia } from './latencia'
 export { CONFIG_PADRAO, type ConfigMock }
 export { gerarColetasMock, type ColetasMock } from './coletas'
+export { gerarExtensoesMock } from './complementares'

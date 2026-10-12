@@ -1,6 +1,7 @@
 # Visão geral da arquitetura
 
-- Data: 2026-10-09 · Revisão: 2026-10-10 (ADR 0014 revisão 2: PostgreSQL, tudo local em Docker Compose, nuvem adiada) · Pedido 002
+- Propósito: visão de contexto, contêineres, módulos e regras invioláveis do sistema. Público: arquiteto, desenvolvedores, agentes de IA, QA. Detalhe por contexto, eventos, estados, sequências e componentes: pasta [`ddd/`](ddd/00-plano.md).
+- Data: 2026-10-09 · Revisão: 2026-10-11 (módulos ainda inexistentes marcados como alvo; sequência da coleta movida para `ddd/06-sequencias.md`; antes, 2026-10-10: ADR 0014 revisão 2: PostgreSQL, tudo local em Docker Compose, nuvem adiada) · Pedido 002
 - Decisões: ADR 0001 (front), 0002 (monorepo e pacotes), 0003 (performance), 0005 (SQL explícito), 0007 (contratos), 0009 (autenticação, pendente do SSO), 0011 (pacote de cálculo), 0012 (gráficos), 0013 (monólito modular; a parte AWS virou alvo futuro), **0014 (stack: pnpm, Fastify 5, PostgreSQL com `pg` puro, node-pg-migrate, outbox com polling, Zod 4, OpenAPI, Vitest com schemas por execução, Docker Compose)**. Substituídas: 0004 (MySQL) pela 0014; 0006 e 0008 pela 0013.
 - Modelo: `data-model.md` · Servidor: `server.md` · Ordem de implementação: `roadmap.md`
 
@@ -38,7 +39,7 @@ flowchart TB
   web -->|"/api/*"| api["api<br/>Fastify 5 + módulos (imagem do servidor)"]
   bmext["BusinessMap"] -.->|"POST /webhooks/businessmap"| api
   wk["worker<br/>agenda diária por fonte, varredura semanal,<br/>poller da outbox (mesma imagem)"]
-  mig["migrate<br/>node-pg-migrate + grants + ref:sync<br/>(roda e sai)"]
+  mig["migrate<br/>node-pg-migrate + grants + ref:sync (alvo)<br/>(roda e sai)"]
   api -->|"dspd_api (SELECT por coluna), dspd_webhook (INSERT)"| db[("PostgreSQL 17<br/>metricas: dspd_bm · dspd_ac · dspd_core")]
   wk -->|dspd_coletor| db
   mig -->|"dspd_migrador, dspd_ref"| db
@@ -68,19 +69,21 @@ flowchart TB
 
 ## 3. Módulos dentro do `server/`
 
+Estado em 2026-10-11: existem `businessmap`, `referencia`, `metricas` e `operacao` em `server/src/modulos/`; **`acelerato` e `preferencias` são alvo (não existem)**, e as entradas existentes são `api.ts`, `worker.ts`, `migrar.ts` e `openapi.ts` (`coleta-cli.ts` é alvo). Hoje as preferências ficam só no navegador (`web/src/features/preferencias/fonte.ts`) e o worker ainda não chama `businessmap` nem `acelerato` (`tarefas: []` em `server/src/entradas/worker.ts`). O diagrama abaixo mostra o desenho de destino; nomes com "(alvo)" não existem. Detalhe por módulo: [`ddd/07-componentes.md`](ddd/07-componentes.md).
+
 ```mermaid
 flowchart LR
   subgraph entradas
     la["api.ts"]
-    lc["worker.ts / coleta-cli.ts"]
+    lc["worker.ts / coleta-cli.ts (alvo)"]
   end
   subgraph modulos
     bm["businessmap"]
-    ac["acelerato"]
+    ac["acelerato (alvo)"]
     ref["referencia"]
     met["metricas"]
     ops["operacao"]
-    pref["preferencias"]
+    pref["preferencias (alvo)"]
   end
   lib[("@metricas-dspd/metricas")]
   la --> met & ops & ref & pref
@@ -96,36 +99,13 @@ flowchart LR
   bm -. "proibido" .- ac
 ```
 
+Legenda: seta cheia = "chama pelo `index.ts`"; linha rotulada "proibido" = ausência deliberada de dependência; "(alvo)" = não existe ainda. Quem conversa com quem, em lista: `la` chama `met`, `ops`, `ref` e `pref`, e `bm` só pelo webhook; `lc` chama `bm` e `ac`; `bm` e `ac` chamam `ops` e `ref`; `met` chama a biblioteca, `ref` e `ops`; `bm` e `ac` não se chamam.
+
 Os módulos se chamam só pelo `index.ts`; `businessmap` só toca em `dspd_bm`, `acelerato` só em `dspd_ac` (ambos leem `dspd_core.ref_*`). Só `metricas` chama a raiz da biblioteca; os coletores usam `core` e a derivação de marcos do próprio domínio.
 
 ## 4. Da coleta ao cartão
 
-```mermaid
-sequenceDiagram
-  autonumber
-  participant BM as BusinessMap
-  participant W as worker
-  participant MB as Metabase
-  participant DB as Postgres dspd_*
-  participant A as api
-  participant L as @metricas-dspd/metricas
-  participant UI as web
-  BM-->>A: webhook (quando houver endereço público)
-  A->>DB: INSERT stg_webhook_evento ON CONFLICT DO NOTHING + outbox, 202
-  W->>DB: poller: outbox bm (SKIP LOCKED) → normaliza o webhook
-  W->>DB: agenda BM: pg_try_advisory_lock, abre ctl_coleta, lê marca d'água
-  W->>BM: cards, revisions, children, customFields, columns, bloqueios
-  W->>DB: dspd_bm: stg_* → evt_*/versões → projeções; ctl_coleta = sucesso + outbox coleta.concluida
-  W->>MB: agenda AC (outro horário): POST /api/card/:id/query/json
-  W->>DB: dspd_ac: stg_* (hash, versão ou ausência) → projeções
-  UI->>A: GET /api/v1/metricas/O3?equipe=...
-  A->>DB: versão de carga da fonte (relida a cada 60 s)
-  alt cache vazio ou versão nova
-    A->>DB: monta BaseBM ou BaseAC (colunas explícitas, sem pessoa) + ref + critérios
-    A->>L: calcularMetrica (n < 20 = insuficiente)
-  end
-  A-->>UI: DTO validado por zod + X-Versao-Criterio
-```
+As sequências (coleta do BusinessMap, coleta do Acelerato, webhook, cálculo e publicação, exportação) moveram-se para [`ddd/06-sequencias.md`](ddd/06-sequencias.md), com a marcação do que existe e do que é planejado (o coletor e o módulo `acelerato` ainda não existem). Eventos da outbox: [`ddd/04-eventos.md`](ddd/04-eventos.md); estados: [`ddd/05-ciclos-de-vida.md`](ddd/05-ciclos-de-vida.md).
 
 Invariantes do fluxo:
 - BM e AC percorrem caminhos separados (schemas, módulos, execuções, locks, lotes da outbox, contextos e chaves de cache distintos); a Visão geral só justapõe blocos.
@@ -137,7 +117,7 @@ Invariantes do fluxo:
 | Regra (CLAUDE.md) | Garantia |
 |---|---|
 | BusinessMap e Acelerato nunca se misturam | módulos sem import entre si (lint), schemas separados, coleta e poller por fonte, teste de schemas por repositório |
-| Nenhuma visão individual | nomes só nas colunas da lista `COLUNAS_PESSOA`; `dspd_api` sem `SELECT` nelas (GRANT por coluna) nem no staging; views `security_invoker` sem essas colunas; DTOs `strict`; `preferencias` responde só ao próprio usuário |
+| Nenhuma visão individual | nomes só nas colunas da lista `COLUNAS_PESSOA`; `dspd_api` sem `SELECT` nelas (GRANT por coluna) nem no staging; views `security_invoker` sem essas colunas; DTOs `strict`; `preferencias` (alvo; hoje só no navegador) responde só ao próprio usuário |
 | Biblioteca única (T2.5) | só o módulo `metricas` importa a raiz da biblioteca (lint) |
 | Nunca sobrescrever histórico | staging e eventos só INSERT (grant + gatilho `proibir_alteracao`); nova versão (SCD2) quando a linha muda; ausência registrada, nunca apagada |
 | Mudança de critério marcada (T2.6) | `ref_versao_criterio`; SQL da pergunta do Metabase versionado |

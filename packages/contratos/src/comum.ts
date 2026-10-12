@@ -89,6 +89,24 @@ export const MOTIVOS_ENCERRAMENTO = [
 ] as const
 export type MotivoEncerramento = (typeof MOTIVOS_ENCERRAMENTO)[number]
 
+/** Causa raiz de bug (O17). Valores PROVISÓRIOS do mock: lista fechada final é decisão do usuário (pendente). */
+export const CAUSAS_RAIZ = [
+  'Requisito',
+  'Código',
+  'Configuração',
+  'Dados',
+  'Ambiente',
+  'Integração',
+  'Teste insuficiente',
+] as const
+export type CausaRaiz = (typeof CAUSAS_RAIZ)[number]
+
+export const NATUREZAS_PROJETO = ['Manter', 'Evoluir'] as const
+export type NaturezaProjeto = (typeof NATUREZAS_PROJETO)[number]
+
+export const SEVERIDADES = ['Crítica', 'Alta', 'Média', 'Baixa'] as const
+export type Severidade = (typeof SEVERIDADES)[number]
+
 export const NIVEIS_RESOLUCAO = ['N1', 'N2', 'N3', 'Fornecedor'] as const
 export type NivelResolucao = (typeof NIVEIS_RESOLUCAO)[number]
 
@@ -105,6 +123,14 @@ export const METRICA_IDS = [
   'O12',
   'O15',
   'O18',
+  'O5',
+  'O6',
+  'O8',
+  'O11',
+  'O13',
+  'O14',
+  'O16',
+  'O17',
   'T1',
   'T2',
   'T3',
@@ -112,9 +138,13 @@ export const METRICA_IDS = [
   'T5',
   'T7',
   'T9',
+  'T6',
+  'T8',
   'E1',
   'E2',
   'E3',
+  'E4',
+  'E5',
   'S1',
   'S2',
   'S3',
@@ -122,6 +152,11 @@ export const METRICA_IDS = [
   'S5',
   'S6',
   'S7',
+  'S8',
+  'S9',
+  'S10',
+  'S11',
+  'S12',
   'EI_FL1',
   'EI_FL2',
   'EI_FL3',

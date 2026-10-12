@@ -29,7 +29,8 @@ export function AvisoDadosFicticios() {
           className="z-50 max-w-xs rounded-md border border-borda-controle bg-superficie p-3 text-sm text-texto shadow-lg"
         >
           Estes painéis usam dados gerados para validar a experiência. Nenhum número representa a
-          operação real.
+          operação real. Mesmo com a coleta ativa, o cartão marcado "Dados fictícios" ainda não tem
+          fonte real.
           <Popover.Arrow className="fill-superficie" />
         </Popover.Content>
       </Popover.Portal>

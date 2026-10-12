@@ -1,4 +1,5 @@
 # 0014 - Stack técnica do back-end: PostgreSQL, pg, node-pg-migrate, outbox, Fastify, tudo local
+Estado: vigente (acesso a dados e tipos substituídos pela [0015](0015-bibliotecas-e-praticas-do-back-end.md))
 - Status: **aceita**, revisão 2 (stack e custo definidos pelo usuário, `docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §7 e §8)
 - Data: 2026-10-10 · **Revisão 2: 2026-10-10** (substitui por inteiro o texto da revisão 1, que mantinha MySQL com `mysql2` e migrador próprio)
 - **Substitui:** ADR 0004 (MySQL) por inteiro.

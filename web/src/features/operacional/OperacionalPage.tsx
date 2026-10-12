@@ -24,6 +24,8 @@ import { CartaoO10 } from './components/CartaoO10'
 import { CartaoO12 } from './components/CartaoO12'
 import { CartaoO15 } from './components/CartaoO15'
 import { CartaoO18 } from './components/CartaoO18'
+import { MaisMetricas } from '@/features/complementares/MaisMetricas'
+import { cartaoDeFluxo } from '@/features/complementares/registro'
 
 const CADENCIAS = ['diaria', 'semanal'] as const
 type Cadencia = (typeof CADENCIAS)[number]
@@ -187,6 +189,7 @@ function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cade
         <CartaoO15 filtros={filtros} />
         <CartaoO18 filtros={filtros} />
       </SecaoPainel>
+      <MaisMetricas fonte="BusinessMap" renderizar={(id) => cartaoDeFluxo(id, filtros)} />
     </>
   )
 }

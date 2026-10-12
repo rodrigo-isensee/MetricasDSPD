@@ -29,24 +29,36 @@ export interface CartaoCatalogo {
   secaoTitulo: string
   /** Métricas que o cartão exibe (para cruzar com alertas e mudanças de critério). */
   metricas: readonly MetricaId[]
-  /** Pares "leia junto": o link some se o par está oculto. */
+  /** Cartões "leia junto" (lista de ids, únicos entre painéis; pode apontar para outro painel): o link some se o par está oculto. */
   leiaJunto?: readonly CartaoId[]
+  /** Núcleo (briefing) ou complementar (seção "Mais métricas deste painel"). */
+  grupo: 'nucleo' | 'complementar'
+  /** 'mock' = dado fictício até a coleta real (a interface rotula "Dados fictícios"). */
+  status: 'disponivel' | 'mock'
 }
 
 type Def = readonly [
   codigo: string,
   rotulo: string,
   metricas?: readonly MetricaId[] | undefined,
-  par?: string,
+  pares?: readonly string[],
 ]
+
+/**
+ * Complementares que ainda dependem de campo sem fonte real (extensão): só estas são rotuladas "Dados
+ * fictícios". O17 fica 'mock' até a coleta real do campo causa raiz (Metabase). As demais derivam
+ * só de `BaseBM`/`BaseAC` e são 'disponivel'.
+ */
+const COM_EXTENSAO_MOCK: ReadonlySet<string> = new Set(['O17', 'T8', 'E4', 'S8', 'S11', 'S12'])
 
 function secao(
   painel: PainelComCartoes,
   id: string,
   titulo: string,
   cartoes: readonly Def[],
+  grupo: CartaoCatalogo['grupo'] = 'nucleo',
 ): CartaoCatalogo[] {
-  return cartoes.map(([codigo, rotulo, metricas, par]) => ({
+  return cartoes.map(([codigo, rotulo, metricas, pares]) => ({
     id: codigo.toLowerCase(),
     codigo,
     rotulo,
@@ -54,7 +66,12 @@ function secao(
     secao: id,
     secaoTitulo: titulo,
     metricas: metricas ?? [codigo as MetricaId],
-    ...(par ? { leiaJunto: [par] } : {}),
+    ...(pares ? { leiaJunto: pares } : {}),
+    grupo,
+    status:
+      grupo === 'complementar' && COM_EXTENSAO_MOCK.has(codigo)
+        ? ('mock' as const)
+        : ('disponivel' as const),
   }))
 }
 
@@ -65,38 +82,38 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['O1', 'Trabalho em progresso e limite'],
   ]),
   ...secao('operacional', 'tempo', 'Tempo', [
-    ['O3', 'Tempo de ciclo'],
+    ['O3', 'Tempo de ciclo', undefined, ['o5', 'o6', 'o8']],
     ['O9', 'Os três relógios do pedido'],
     ['EI-FL1', 'Espera invisível · Operacional', ['EI_FL1']],
   ]),
-  ...secao('operacional', 'fluxo', 'Fluxo', [['O4', 'Vazão semanal']]),
+  ...secao('operacional', 'fluxo', 'Fluxo', [['O4', 'Vazão semanal', undefined, ['o8']]]),
   ...secao('operacional', 'compromissos', 'Compromissos', [['O12', 'Acordos e vencidos']]),
   ...secao('operacional', 'backlog', 'Backlog', [
-    ['O10', 'Envelhecimento do backlog'],
+    ['O10', 'Envelhecimento do backlog', undefined, ['o11']],
     ['O7', 'Entrada × saída por tipo'],
   ]),
   ...secao('operacional', 'qualidade', 'Qualidade', [
-    ['O15', 'Onde os bugs são encontrados'],
-    ['O18', 'Entregas com e sem bug', undefined, 'o4'],
+    ['O15', 'Onde os bugs são encontrados', undefined, ['o13', 'o16', 'o17']],
+    ['O18', 'Entregas com e sem bug', undefined, ['o4']],
   ]),
   ...secao('tatico', 'publicado', 'Estamos cumprindo o que publicamos?', [
     ['T2', 'Aderência ao SLE'],
-    ['T1', 'Lead time ponta a ponta', undefined, 't4'],
-    ['T5', 'Demanda de falha'],
+    ['T1', 'Lead time ponta a ponta', undefined, ['t4', 't6']],
+    ['T5', 'Demanda de falha', undefined, ['o14']],
   ]),
   ...secao('tatico', 'fila', 'O que entra, e o que sai da fila para isso caber?', [
-    ['T4', 'Demanda × capacidade', undefined, 't1'],
+    ['T4', 'Demanda × capacidade', undefined, ['t1', 't8']],
     ['T3', 'Alocação da capacidade'],
   ]),
   ...secao('tatico', 'projetos', 'Os projetos estão avançando de verdade?', [
-    ['T9', 'Avanço real e escopo'],
+    ['T9', 'Avanço real e escopo', undefined, ['t6', 'e5']],
     ['T7', 'Fluxo de frentes'],
   ]),
   ...secao('tatico', 'espera-invisivel', 'Espera invisível do nível', [
     ['EI-FL2', 'Espera invisível · Tático', ['EI_FL2']],
   ]),
   ...secao('estrategico', 'prazo', 'Quanto tempo leva decidir e entregar?', [
-    ['E1', 'Lead time de projetos'],
+    ['E1', 'Lead time de projetos', undefined, ['e4', 'e5']],
   ]),
   ...secao('estrategico', 'apostas', 'As entregas refletem as prioridades e geram resultado?', [
     ['E2', 'Capacidade por objetivo estratégico'],
@@ -106,21 +123,110 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['EI-FL3', 'Espera invisível · Estratégico', ['EI_FL3']],
   ]),
   ...secao('sustentacao', 'prazos', 'Prazos', [
-    ['S2', 'Aderência ao SLA'],
-    ['S1', 'Primeiro atendimento e restauração'],
+    ['S2', 'Aderência ao SLA', undefined, ['s8', 's12']],
+    ['S1', 'Primeiro atendimento e restauração', undefined, ['s9', 's10']],
   ]),
   ...secao('sustentacao', 'volume', 'Volume e resolução', [
-    ['S3', 'Volume mensal por prioridade'],
+    ['S3', 'Volume mensal por prioridade', undefined, ['s8', 's12']],
     ['S4', 'Onde o chamado foi resolvido'],
   ]),
   ...secao('sustentacao', 'causas', 'Escalação, encerramento e reclassificação', [
-    ['S5', 'Motivos da escalação'],
+    ['S5', 'Motivos da escalação', undefined, ['s11']],
     ['S6', 'Motivos de encerramento'],
-    ['S7', 'Reclassificação'],
+    ['S7', 'Reclassificação', undefined, ['s11']],
   ]),
   ...secao('sustentacao', 'espera', 'Espera invisível do nível', [
     ['EI-SUST', 'Espera invisível · Sustentação', ['EI_SUST']],
   ]),
+
+  // Complementares (dados mockados): seção = a pergunta do painel.
+  ...secao(
+    'operacional',
+    'por-que-demora',
+    'Por que demora?',
+    [
+      ['O5', 'Eficiência de fluxo'],
+      ['O6', 'Previsibilidade'],
+      ['O8', 'Tamanho das demandas'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'operacional',
+    'o-que-entra',
+    'O que entra?',
+    [
+      ['O11', 'Composição do backlog'],
+      ['O14', 'Origem da demanda'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'operacional',
+    'qualidade-compl',
+    'Qualidade',
+    [
+      ['O13', 'Vazão de defeitos'],
+      ['O16', 'Estoque e idade de bugs'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'tatico',
+    'quando-fica-pronto',
+    'Quando fica pronto?',
+    [['T6', 'Previsão probabilística']],
+    'complementar',
+  ),
+  ...secao(
+    'tatico',
+    'cumprindo-o-plano',
+    'Estamos cumprindo o plano?',
+    [['T8', 'Sprint']],
+    'complementar',
+  ),
+  ...secao(
+    'estrategico',
+    'terminando-ou-comecando',
+    'Estamos terminando ou só começando?',
+    [['E4', 'Iniciadas × concluídas']],
+    'complementar',
+  ),
+  ...secao(
+    'estrategico',
+    'quando-termina',
+    'Quando termina?',
+    [['E5', 'Previsão de término']],
+    'complementar',
+  ),
+  ...secao(
+    'sustentacao',
+    'por-que-demora',
+    'Por que demora?',
+    [
+      ['S9', 'Tempo em pendência'],
+      ['S10', 'Fila de atribuição'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'sustentacao',
+    'qualidade',
+    'Qualidade',
+    [
+      ['S8', 'Taxa de reabertura'],
+      ['S11', 'Avaliação de Problema'],
+      ['O17', 'Defeitos por causa raiz e sistema'],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'sustentacao',
+    'o-que-entra',
+    'O que entra?',
+    [['S12', 'Volume por sistema']],
+    'complementar',
+  ),
 ]
 
 /** Ids de cartões retirados do catálogo ou renomeados (`novo` ou `null`): aplicado na leitura, em silêncio. */
@@ -131,6 +237,10 @@ export const cartoesDoPainel = (painel: PainelComCartoes): readonly CartaoCatalo
 
 export const cartaoPorId = (painel: PainelComCartoes, id: CartaoId): CartaoCatalogo | undefined =>
   CATALOGO_CARTOES.find((c) => c.painel === painel && c.id === id)
+
+/** Acha o cartão pelo id em qualquer painel (os ids são únicos no catálogo): usado pelo "leia junto" entre painéis. */
+export const cartaoPorIdGlobal = (id: CartaoId): CartaoCatalogo | undefined =>
+  CATALOGO_CARTOES.find((c) => c.id === id)
 
 /** Atalho opcional "Aplicar sugestão do meu papel": só marca caixas; o papel nunca é gravado. */
 export const PAPEIS = ['time', 'coordenador', 'gerente'] as const

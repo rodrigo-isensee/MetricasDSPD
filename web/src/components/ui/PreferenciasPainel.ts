@@ -5,9 +5,18 @@ export interface PreferenciasPainel {
   painel: PainelComCartoes
   cartoes: readonly CartaoCatalogo[]
   ocultos: ReadonlySet<CartaoId>
-  /** Quantos cartões estão visíveis (N) e o total do painel (M). */
+  /** Quantos cartões do NÚCLEO estão visíveis (N) e o total do núcleo (M); os complementares contam à parte. */
   visiveis: number
   total: number
+  complementaresVisiveis: number
+  complementaresTotal: number
+  /** Seção "Mais métricas deste painel": aberta nesta visita (disclosure por visita, nunca preferência). */
+  secaoAberta: boolean
+  definirSecaoAberta: (aberta: boolean) => void
+  /** Cartão complementar que o "Leia junto" ou o catálogo pediu: a seção abre, rola até ele e o foco vai ao título. */
+  alvoComplementar: string | null
+  irParaComplementar: (id: CartaoId) => void
+  alvoAtendido: () => void
   /** O painel inteiro está oculto (CA-12). */
   tudoOculto: boolean
   estaOculto: (id: CartaoId) => boolean

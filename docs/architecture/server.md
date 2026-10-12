@@ -1,5 +1,9 @@
 # Servidor (`server/`): módulos, migrações, seed e acesso ao PostgreSQL
 
+Propósito: referência do servidor (estrutura, acesso a dados, migrações, seed, papéis, Compose) e diário dos lotes S-01 a S-12. Público: desenvolvedores do back-end, arquiteto e QA. Revisão: 2026-10-11.
+
+**Referência atual (comece aqui):** estrutura e componentes em [`ddd/07-componentes.md`](ddd/07-componentes.md); eventos da outbox em [`ddd/04-eventos.md`](ddd/04-eventos.md); estados da coleta e da outbox em [`ddd/05-ciclos-de-vida.md`](ddd/05-ciclos-de-vida.md); sequências em [`ddd/06-sequencias.md`](ddd/06-sequencias.md); tabelas em [`data-model.md`](data-model.md); contexto em [`overview.md`](overview.md). As seções abaixo a partir de "Estado do port" e "Camada HTTP" são diário de lotes: leia-as como histórico, e confirme no código. Ainda não existem: `modulos/acelerato`, `modulos/preferencias`, `entradas/coleta-cli.ts`, `ref:sync`, tarefas do coletor no worker (WS2).
+
 Status: revisado em 2026-10-10 para a **ADR 0014 revisão 2** (PostgreSQL, `pg` puro, node-pg-migrate, outbox com polling, Fastify 5, Zod 4, OpenAPI, Vitest com schemas por execução, pnpm, Docker Compose local). Modelo em `data-model.md`; módulos e fronteiras na ADR 0013; contrato da coleta na ADR 0006.
 
 **Estado atual do código** (S-01 a S-05 feitos em 2026-10-10): Postgres 17 no Compose; `src/plataforma/db` (`pg`: `criarPool`, `emTransacao`, `ehDuplicado`, parsers, mapa `S`, `migrar`, `gerarGrants` com GRANT por coluna, `lgpd`, `seed`); migrações Postgres 0001-0011 (node-pg-migrate, `ddl(S)` + `pgm.sql`, `checksums.json`; 0011 = outbox); `src/modulos/businessmap/staging.ts` e `src/modulos/operacao/` (ex-`coletas`) sobre `pg`; testes `unit` (dublê de `pool`, cobertura 100%) e `pg` (schemas por execução). Kysely, `mysql2` e o MySQL saíram. 
@@ -7,6 +11,7 @@ Status: revisado em 2026-10-10 para a **ADR 0014 revisão 2** (PostgreSQL, `pg` 
 **S-06 a S-10 feitos em 2026-10-10:** Fastify 5 (`src/app.ts`, `buildApp(deps)`; rotas `/health*`, `/api/v1/filtros/:dominio`, `/api/v1/referencia`; módulo `modulos/referencia`), erro no formato da ADR 0007 (`plataforma/erros.ts`), Pino com `requestId` e redação (`plataforma/log.ts`), config zod por entrada (`plataforma/config.ts`), OpenAPI (`docs/api/openapi.json`), outbox (`plataforma/eventos`: `publicarEvento`, `processarOutbox`, `RegistroConsumidores`), trava por fonte (`plataforma/db/trava.ts`), agenda e worker (`plataforma/agenda.ts`, `plataforma/worker.ts`), `fecharColeta` + consumidor de `coleta.concluida` em `modulos/operacao`, entradas `src/entradas/{api,worker,migrar,openapi}.ts`, `server/Dockerfile`, `docker/web/`, serviços `migrate/api/worker/web` no Compose. Ainda não: `coleta-cli`, tarefas do coletor no worker (WS2) e `ref:sync`. S-11 e S-12 abaixo.
 
 ## Estrutura alvo
+Marcação em 2026-10-11: existem `modulos/businessmap`, `referencia`, `metricas`, `operacao` e as entradas `api.ts`, `worker.ts`, `migrar.ts`, `openapi.ts`; **são alvo** `modulos/acelerato`, `modulos/preferencias`, `entradas/coleta-cli.ts` e `plataforma/auth`. As migrações são 0001 a 0012 (a 0012 é `bm_limite_wip_fluxo_indices`).
 ```
 server/
   Dockerfile       multi-stage, Node 24 slim, usuário não root; uma imagem, várias entradas

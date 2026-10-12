@@ -7,16 +7,17 @@ import {
 } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO } from '@metricas-dspd/metricas'
-import { gerarBaseMock } from '.'
+import { gerarBaseMock, gerarExtensoesMock } from '.'
 
 /**
  * Teste sistêmico entre pacotes: gerador (mock) -> contexto -> `calcularMetrica` (metricas) ->
- * schema do contrato (contratos), para as 33 métricas.
+ * schema do contrato (contratos), para as 50 métricas.
  */
 const base = gerarBaseMock({ escala: 0.5 })
 const ctx = {
   bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
   ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
+  ext: gerarExtensoesMock(base),
 }
 const filtrosPadrao = (id: MetricaId) =>
   id === 'VISAO_GERAL'
@@ -36,10 +37,10 @@ function amostrasPublicadas(x: unknown, acumulado: number[] = []): number[] {
   return acumulado
 }
 
-describe('gerador -> métricas -> contrato (33 métricas)', () => {
-  it('cobre exatamente as 33 métricas do catálogo', () => {
-    expect(METRICA_IDS).toHaveLength(33)
-    expect(Object.keys(SCHEMAS_RESULTADO)).toHaveLength(33)
+describe('gerador -> métricas -> contrato (50 métricas)', () => {
+  it('cobre exatamente as 50 métricas do catálogo', () => {
+    expect(METRICA_IDS).toHaveLength(50)
+    expect(Object.keys(SCHEMAS_RESULTADO)).toHaveLength(50)
   })
 
   it.each(METRICA_IDS)('%s: o resultado calculado sobre a base gerada obedece ao schema', (id) => {
@@ -57,6 +58,7 @@ describe('gerador -> métricas -> contrato (33 métricas)', () => {
     const outro = {
       bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
       ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
+      ext: gerarExtensoesMock(base),
     }
     for (const id of METRICA_IDS) {
       const f = filtrosPadrao(id) as never

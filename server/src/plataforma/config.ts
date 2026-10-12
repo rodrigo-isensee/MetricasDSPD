@@ -20,6 +20,8 @@ const esquemaApi = z.object({
   ...comum,
   PG_API_URL: urlPg,
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+  // Fonte dos dados: 'mock' (padrão atual, base semeada) liga as extensões mockadas; 'real' as desliga.
+  DADOS_FONTE: z.enum(['mock', 'real']).default('mock'),
   HOST: z.string().min(1).default('0.0.0.0'),
   // Webhook do BusinessMap (S-12): as duas variáveis juntas ligam a rota; nenhuma, a rota não existe.
   PG_WEBHOOK_URL: vazioIndefinido(urlPg.optional()),

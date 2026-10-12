@@ -13,9 +13,18 @@ import { usePreferencias } from './ProvedorPreferencias'
 
 function GrupoPainel({ painel }: { painel: PainelComCartoes }) {
   const prefs = usePreferencias()
-  const cartoes = cartoesDoPainel(painel)
+  const todos = cartoesDoPainel(painel)
+  const cartoes = todos.filter((c) => c.grupo === 'nucleo')
+  const complementares = todos.filter((c) => c.grupo === 'complementar')
   const ocultos = prefs.ocultosSalvos(painel)
   const secoes = [...new Set(cartoes.map((c) => c.secao))]
+  const grupos = [
+    ...secoes.map((s) => {
+      const doGrupo = cartoes.filter((c) => c.secao === s)
+      return { chave: s, titulo: doGrupo[0]?.secaoTitulo, cartoes: doGrupo }
+    }),
+    { chave: 'complementares', titulo: 'Complementares', cartoes: complementares },
+  ]
   return (
     <fieldset
       className="m-0 min-w-0 rounded-lg border border-borda bg-superficie p-4"
@@ -23,16 +32,17 @@ function GrupoPainel({ painel }: { painel: PainelComCartoes }) {
     >
       <legend className="px-1 text-lg font-bold">{ROTULO_PAINEL[painel]}</legend>
       <p className="text-sm text-texto-2" data-testid={`contador-${painel}`}>
-        {cartoes.length - ocultos.length} de {cartoes.length} visíveis
+        {cartoes.filter((c) => !ocultos.includes(c.id)).length} de {cartoes.length} do núcleo e{' '}
+        {complementares.filter((c) => !ocultos.includes(c.id)).length} de {complementares.length}{' '}
+        complementares visíveis
       </p>
       <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
-        {secoes.map((s) => {
-          const doGrupo = cartoes.filter((c) => c.secao === s)
+        {grupos.map((g) => {
           return (
-            <div key={s} role="group" aria-label={doGrupo[0]?.secaoTitulo}>
-              <p className="text-sm font-semibold">{doGrupo[0]?.secaoTitulo}</p>
+            <div key={g.chave} role="group" aria-label={g.titulo}>
+              <p className="text-sm font-semibold">{g.titulo}</p>
               <ul className="m-0 list-none p-0">
-                {doGrupo.map((c) => (
+                {g.cartoes.map((c) => (
                   <li key={c.id}>
                     <label className="alvo flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-superficie-2">
                       <input
@@ -78,7 +88,7 @@ function RestaurarPadrao({ ocultos }: { ocultos: readonly string[] }) {
           <Dialog.Description className="mt-2 text-sm">
             {ocultos.length === 1 ? 'A métrica oculta' : `As ${ocultos.length} métricas ocultas`} (
             {ocultos.join(', ')}) {ocultos.length === 1 ? 'volta' : 'voltam'} a aparecer em todos os
-            painéis.
+            painéis e a seção "Mais métricas deste painel" volta a abrir.
           </Dialog.Description>
           <div className="mt-4 flex justify-end gap-2">
             <Dialog.Close asChild>

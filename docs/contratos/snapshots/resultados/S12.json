@@ -1,0 +1,348 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "campoDisponivel": {
+      "type": "boolean"
+    },
+    "cobertura": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "total": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "n",
+        "total"
+      ],
+      "additionalProperties": false
+    },
+    "parametros": {
+      "type": "object",
+      "properties": {
+        "janelaSemanas": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "janelaSemanas"
+      ],
+      "additionalProperties": false
+    },
+    "meses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mes": {
+            "type": "string"
+          },
+          "emAndamento": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "number"
+          },
+          "porSistema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sistema": {
+                  "type": "string"
+                },
+                "n": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "sistema",
+                "n"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "mes",
+          "emAndamento",
+          "total",
+          "porSistema"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "reincidencia": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sistema": {
+            "type": "string"
+          },
+          "chamados": {
+            "type": "number"
+          },
+          "informados": {
+            "type": "number"
+          },
+          "reincidentes": {
+            "type": "number"
+          },
+          "proporcao": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "pct": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "pct"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "minimo"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "sistema",
+          "chamados",
+          "informados",
+          "reincidentes",
+          "proporcao"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "excecaoSla": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "ok"
+            },
+            "k": {
+              "type": "number"
+            },
+            "n": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 9007199254740991
+            },
+            "pct": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "status",
+            "k",
+            "n",
+            "pct"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "insuficiente"
+            },
+            "k": {
+              "type": "number"
+            },
+            "n": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 19
+            },
+            "minimo": {
+              "type": "number",
+              "const": 20
+            }
+          },
+          "required": [
+            "status",
+            "k",
+            "n",
+            "minimo"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "campoDisponivel",
+    "cobertura",
+    "parametros",
+    "meses",
+    "reincidencia",
+    "excecaoSla"
+  ],
+  "additionalProperties": false
+}

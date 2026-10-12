@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "properties": {
+    "fonte": {
+      "type": "string",
+      "enum": [
+        "businessmap",
+        "acelerato"
+      ]
+    },
+    "coletaId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "sucesso",
+        "parcial",
+        "falha"
+      ]
+    }
+  },
+  "required": [
+    "fonte",
+    "coletaId",
+    "status"
+  ],
+  "additionalProperties": false
+}
