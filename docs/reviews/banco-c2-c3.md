@@ -34,3 +34,17 @@ Aderência ao pedido: o desenho cobre o que a auditoria e o usuário pediram. Ne
 ## Commits
 
 Granularidade boa (6 commits coerentes). Não verifiquei um a um que cada commit compila isolado; o conjunto passa no `pronto`.
+
+## Rodada 2 — correções
+
+| Achado | Commit | Resolução |
+|---|---|---|
+| 1 (SIGPIPE) | fb9c5a6 | Lista do `pg_restore --list` capturada em variável antes do `grep -q`; teste `backup-script.test.ts` com lista de ~700 KB (falha no script antigo, passa no novo). Os `grep -q` de `db-restaurar-verificada.sh` leem de `echo` pequeno, sem pipe de processo: mantidos. |
+| 2 (ouvintes de `error`) | 7129a20 | `OpcoesPool.log` opcional; `warn` com `aplicacao` e a mensagem do erro (nunca URL/senha); `api` e `worker` passam o pino. O pool descarta o cliente ocioso. Testes. |
+| 3 (NTFS) | f703706 | Aviso no guia (ext4 ou disco cifrado), comentário no script, `*.dump` e `ultimo-backup-ok` no `.gitignore`. |
+| 4 (`new URL`) | 7129a20 | `aplicacaoDaUrl` com fallback `dspd-app`; testes. |
+| 5 (`singleTransaction`) | f703706 | Mantido; decisão documentada no código e teste que proíbe `CONCURRENTLY` nas migrações. Citar no PR. |
+| 6 (restauração) | eabce33 | Senha codificada (`urlenc`), `${...:-}` com `set -u` (URL sem senha se vier só de `.pgpass`), `trap` único para os dois temporários. |
+| 7 (CI) | f703706 | Guia documenta que o `schedule` só vale a partir da `main` e que se roda por `workflow_dispatch`. Frequência mensal segue pendente de confirmação do usuário; o workflow ainda não foi executado. |
+
+Verificação: `pronto` verde (279 testes, cobertura 100%); `timeouts.pg.test.ts` 7/7 contra Postgres em banco temporário (removido).
