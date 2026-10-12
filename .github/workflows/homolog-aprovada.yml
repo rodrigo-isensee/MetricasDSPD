@@ -1,0 +1,28 @@
+name: Homologação aprovada
+
+# Check obrigatório dos PRs para a main: o candidato precisa ser a ponta de `homolog`, com o portão (push)
+# e a rodada noturna verdes. Não substitui a aprovação do usuário. Depois da noturna, reexecute este check.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  statuses: read
+
+jobs:
+  homolog-aprovada:
+    name: homolog-aprovada
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+      - env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SHA_CANDIDATO: ${{ github.event.pull_request.head.sha }}
+          BRANCH_ORIGEM: ${{ github.event.pull_request.head.ref }}
+        run: node tools/homolog/src/main.ts aprovacao --sha "$SHA_CANDIDATO" --origem "$BRANCH_ORIGEM"

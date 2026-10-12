@@ -104,7 +104,8 @@ jobs:
     name: banco
     needs: filtro
     # Pulado (conta como aprovado) quando nada de server/, packages/ ou migrações mudou.
-    if: needs.filtro.outputs.banco == 'true' || github.event_name == 'workflow_dispatch'
+    # Em PR para homolog ou main roda sempre (migração é o que mais quebra na promoção).
+    if: needs.filtro.outputs.banco == 'true' || github.event_name == 'workflow_dispatch' || github.base_ref == 'homolog' || github.base_ref == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
