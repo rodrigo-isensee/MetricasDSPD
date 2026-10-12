@@ -39,6 +39,8 @@ export function validarEnv(env: Record<string, string>): string[] {
     if (valor === '') erros.push(`${chave} não definida`)
     else if (PADRAO_SENHA_DE_DEV.test(valor))
       erros.push(`${chave} usa um valor padrão de desenvolvimento`)
+    else if (!/^[A-Za-z0-9_-]+$/.test(valor))
+      erros.push(`${chave} só pode ter letras, números, "_" e "-" (sugestão: openssl rand -hex 16)`)
     else if (valor.length < TAMANHO_MINIMO_SEGREDO)
       erros.push(`${chave} curta demais (mínimo ${TAMANHO_MINIMO_SEGREDO} caracteres)`)
   }

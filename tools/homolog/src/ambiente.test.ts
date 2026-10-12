@@ -33,6 +33,13 @@ describe('validarEnv', () => {
     ])
     expect(erros.join()).not.toContain('curta"')
   })
+  it('recusa caracteres que quebram o Compose e as URLs, sem vazar o valor', () => {
+    const erros = validarEnv({ ...valido, DSPD_PWD_API: 'abc$def@ghi:jkl/mno' })
+    expect(erros).toEqual([
+      'DSPD_PWD_API só pode ter letras, números, "_" e "-" (sugestão: openssl rand -hex 16)',
+    ])
+    expect(erros.join()).not.toContain('abc$def')
+  })
   it('recusa o webhook ligado', () => {
     expect(validarEnv({ ...valido, WEBHOOK_BM_SEGREDO: 'x'.repeat(20) })).toEqual([
       'WEBHOOK_BM_SEGREDO deve ficar vazio em homologação (webhook desligado)',

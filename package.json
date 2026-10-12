@@ -10,7 +10,7 @@
     "dev": "pnpm --filter @metricas-dspd/web dev",
     "build": "pnpm --filter @metricas-dspd/web build",
     "lint": "eslint .",
-    "typecheck": "pnpm --filter @metricas-dspd/contratos --filter @metricas-dspd/metricas --filter @metricas-dspd/mock --filter @metricas-dspd/web --filter @metricas-dspd/server run typecheck && pnpm --filter @metricas-dspd/e2e exec tsc --noEmit",
+    "typecheck": "pnpm --filter @metricas-dspd/contratos --filter @metricas-dspd/metricas --filter @metricas-dspd/mock --filter @metricas-dspd/web --filter @metricas-dspd/server --filter @metricas-dspd/homolog run typecheck && pnpm --filter @metricas-dspd/e2e exec tsc --noEmit",
     "test": "pnpm -r --if-present test",
     "format": "prettier --write web packages tools eslint.config.js tsconfig.base.json package.json",
     "format:check": "prettier --check web packages tools eslint.config.js tsconfig.base.json package.json",
