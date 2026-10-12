@@ -22,3 +22,7 @@ dist-*/
 
 # Lixo do Lighthouse no WSL
 e2e/C:*
+
+# Backups do banco (dado real): segunda barreira além de DSPD_BACKUP_DIR fora do repositório
+*.dump
+ultimo-backup-ok

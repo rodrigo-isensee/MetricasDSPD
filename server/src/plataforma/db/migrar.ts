@@ -62,6 +62,8 @@ export async function migrar(url: string, opcoes: OpcoesMigrar = {}): Promise<Re
   await cliente.connect();
   try {
     const feitas = await runner({
+      // singleTransaction (decisão do C2/C3): um `up` com várias migrações é atômico (tudo ou nada), sem estado intermediário no
+      // banco; exige que nenhuma migração use `CREATE INDEX CONCURRENTLY` (hoje não há; o teste estático de migrações cobre).
       dbClient: cliente, dir: DIR_MIGRACOES, direction: direcao, migrationsTable: 'pgmigrations',
       migrationsSchema: S.core, createMigrationsSchema: true, checkOrder: true, singleTransaction: true, ignorePattern: '(\\..*|.*\\.json)',
       ...(direcao === 'down' ? { count: quantas ?? 1 } : quantas === undefined ? {} : { count: quantas }), log,

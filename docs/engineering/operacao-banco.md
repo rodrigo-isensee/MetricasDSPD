@@ -30,6 +30,8 @@ DSPD_BACKUP_DIR=/mnt/d/backups-metricas DSPD_PG_CONTAINER=metricasdspd-postgres-
 
 Grava na pasta: `metricas-AAAAMMDD-HHMMSS.dump` (`pg_dump -Fc`), `.inventario.txt` (contagens por tabela e colunas no instante do backup), `roles-AAAAMMDD-HHMMSS.sql` (`pg_dumpall --roles-only --no-role-passwords`; as senhas dos papéis ficam só no `.env`) e `ultimo-backup-ok` (data de Brasília). O dump é relido com `pg_restore --list` antes de qualquer confirmação; falha deixa o arquivo de confirmação como estava. A rotação mantém os 7 conjuntos mais recentes, por nome.
 
+**Permissões e disco:** o script usa `umask 077` (arquivos 0600, pasta 0700), que só vale em sistemas de arquivos POSIX como o ext4 do WSL. Em `/mnt/d` (NTFS/drvfs) o modo **não é honrado**: o dump, que tem dado de pessoa, fica legível por qualquer usuário Windows da máquina. Use um diretório ext4 do WSL ou um disco cifrado (BitLocker). `*.dump` e `ultimo-backup-ok` estão no `.gitignore` como segunda barreira.
+
 ## Restauração verificada (`scripts/db-restaurar-verificada.sh`)
 
 ```bash
@@ -83,6 +85,8 @@ Para a restauração de domingo, repita trocando `db-backup.sh` por `db-restaura
 ## Teste de restauração na CI
 
 `.github/workflows/restauracao.yml` (`workflow_dispatch` e mensal, dia 1 às 04:00 de Brasília): sobe um PostgreSQL 17 descartável, migra, semeia o mock, roda o **mesmo** `db-backup.sh` e `db-restaurar-verificada.sh` com `DSPD_COMPARAR_COM_VIVO=1`. Só dado fictício.
+
+**Quando dispara:** o agendamento (`schedule`) só vale a partir da branch padrão, a `main`; portanto o disparo mensal só começa depois da primeira release com este workflow. Antes disso, e a qualquer momento, rode por `workflow_dispatch` (Actions, Restauração verificada, Run workflow, escolhendo a branch). Rode uma vez por `workflow_dispatch` antes de contar com ele.
 
 ## Timeouts e higiene de conexão (C3)
 
