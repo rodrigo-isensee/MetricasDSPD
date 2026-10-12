@@ -1,6 +1,6 @@
 # Fluxo de branches e gates: develop → homolog → main
 
-Status: **proposta**, depende de aprovação do usuário (ver "Aprovações e perguntas"). Quando aprovada, `praticas.md` §9 e §10 passam a apontar para este documento.
+Status: **aprovado pelo usuário em 2026-10-12** (decisões em [`docs/alinhamentos/2026-10-12-homologacao.md`](../alinhamentos/2026-10-12-homologacao.md), que prevalecem sobre as propostas e perguntas abaixo). Mínimo útil implementado (HM-01 a HM-03, etapas H1, H2, H3 parcial e H8 parcial): §13. `praticas.md` §9 e §10 apontam para este documento.
 Autor: tech-lead. O ambiente de homologação (infra, dados, URL, deploy) é desenhado em [`docs/architecture/features/homologacao.md`](../architecture/features/homologacao.md) e não é repetido aqui; este documento trata só de branches, gates, versionamento e rollback.
 
 ## 1. Pedido e princípio
@@ -147,3 +147,43 @@ Perguntas que só o usuário responde:
 ## 12. Ordem sugerida de implantação
 
 1. Usuário aprova (itens 1–5 acima). 2. Criar `homolog` a partir da `develop` e a proteção. 3. Checks obrigatórios na `develop` (`rapida`, `testes`, `build`, `e2e`). 4. Ajustes no `ci.yml` (§10) com QA. 5. Ambiente de homologação (arquiteto). 6. Primeira promoção de ensaio com tag `v0.x.0-rc.1`. 7. Migração para o Git corporativo, reaplicando §5.
+
+## 13. O que está implementado e como usar
+
+| Peça | Onde |
+|---|---|
+| Ambiente Docker Compose separado (projeto `metricasdspd-homolog`, portas 15432/13000/18080 só em `127.0.0.1`, volume próprio, limites de memória, sem webhook, sem senha padrão) | `docker-compose.homolog.yml`, `.env.homolog.example` |
+| Comandos (lógica testada, cobertura 100%) | `pnpm run homolog:subir`, `homolog:derrubar [-- --volume]`, `homolog:smoke`, `homolog:migracao -- --origem <dir da main> --destino .`; código em `tools/homolog/` |
+| Portão no push em `homolog` e rodada noturna na CI (02:30 BRT) | `.github/workflows/homolog.yml` (status `homolog-portao` e `homolog-noturna` no commit) |
+| Check `homolog-aprovada` (PR para a `main`) | `.github/workflows/homolog-aprovada.yml` |
+
+Uso local (sob demanda, nunca em rotina; respeite o teto de recursos): `cp .env.homolog.example .env.homolog`, preencha as senhas (12+ caracteres, nada de `*_dev`), `chmod 600 .env.homolog`, `pnpm run homolog:subir` (build, migração, seed mock e smoke), abrir `http://127.0.0.1:18080`, `pnpm run homolog:derrubar` ao terminar (o volume é preservado; `-- --volume` apaga os dados). Só mock até as integrações (H-7).
+
+Observações do desenho:
+- O `schedule` do GitHub só dispara com o workflow na branch padrão (`main`): a rodada noturna começa a valer depois da primeira release com este arquivo. Até lá, use `workflow_dispatch` para diagnóstico (não publica `homolog-noturna`).
+- O check `homolog-aprovada` não é reexecutado sozinho quando a noturna termina: use "Re-run jobs" no PR depois dela.
+- Documentação pura (só `docs/` e `.md` da raiz) roda só `docs:check` no portão (H-2); a noturna classifica pelo diff contra a `main`.
+- `hotfix/*` passa em `homolog-aprovada` com aviso (sem soak); vale a aprovação do usuário no PR.
+- Pendente (fora do mínimo útil): etapas H3 completa (contrato e paridade por HTTP), H4 contra o ambiente, H5 contra o Postgres de homologação, H6, H7, tags `-rc`, CHANGELOG e workflow de release.
+
+## 14. Roteiro: proteção de branches no GitHub (feito pelo administrador)
+
+Pré-requisitos: ter este PR mesclado em `develop` e criar a branch `homolog` a partir da `develop` (`Branches` > `New branch`). Depois, em **Settings > Branches > Add branch ruleset** (ou "Branch protection rule", se o repositório não tiver rulesets). Os nomes dos checks aparecem na busca depois da primeira execução do workflow.
+
+1. **`develop`** (alvo: `develop`)
+   - Require a pull request before merging; 0 aprovações exigidas (mescla o tech-lead).
+   - Require status checks to pass: `rapida`, `testes`, `build`, `e2e` (e `banco`, que fica "pulado = aprovado" quando o filtro não detecta mudança). Marque "Require branches to be up to date".
+   - Block force pushes; restrict deletions.
+   - Allowed merge methods: **Squash**.
+2. **`homolog`** (alvo: `homolog`)
+   - Require a pull request before merging; apenas de `develop` (ruleset: restrinja a origem se a versão do GitHub permitir; senão, conferência do tech-lead).
+   - Require status checks: `rapida`, `testes`, `banco`, `build`, `e2e` (no PR de promoção o `banco` roda sempre).
+   - Block force pushes; restrict deletions.
+   - Allowed merge methods: **Merge commit**.
+   - O portão `portao` roda **depois** do merge (push): não o exija no PR; ele alimenta `homolog-aprovada`.
+3. **`main`** (já protegida; acrescentar)
+   - Acrescentar `homolog-aprovada` aos checks obrigatórios (mantendo `rapida`, `testes`, `banco`, `build`, `e2e`).
+   - Require 1 approval (o usuário); sem bypass para agentes; block force pushes; restrict deletions.
+   - Allowed merge methods: **Merge commit**.
+4. **Permissões:** o tech-lead precisa de permissão de escrita para mesclar em `develop` e `homolog`; ninguém além do usuário mescla na `main` (Restrict who can merge, se disponível). Em **Settings > Actions > General**, confirme "Workflow permissions: Read repository contents" (os workflows pedem `statuses: write` só no job `portao`).
+5. **Conferência:** abra um PR de teste `develop` → `homolog` e veja os checks; depois de mesclado, confira em **Actions** o workflow "Homologação" e o status `homolog-portao` no commit da `homolog`.
