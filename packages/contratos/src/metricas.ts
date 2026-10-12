@@ -1,5 +1,5 @@
 import type { z } from 'zod'
-import type { MetricaId } from './comum'
+import type { FonteMetrica, MetricaId } from './comum'
 import type { FiltrosFluxo, FiltrosSustentacao } from './filtros'
 import type * as s from './schemas'
 
@@ -48,6 +48,8 @@ export type ResultadoS9 = z.infer<typeof s.resultadoS9>
 export type ResultadoS10 = z.infer<typeof s.resultadoS10>
 export type ResultadoS11 = z.infer<typeof s.resultadoS11>
 export type ResultadoS12 = z.infer<typeof s.resultadoS12>
+export type ResultadoPV1 = z.infer<typeof s.resultadoPV1>
+export type BlocoPesquisaConsolidado = z.infer<typeof s.blocoPesquisaConsolidado>
 export type ResultadoEI = z.infer<typeof s.resultadoEI>
 export type ResultadoVisaoGeral = z.infer<typeof s.resultadoVisaoGeral>
 export type AlertaCodigo = z.infer<typeof s.alertaCodigo>
@@ -106,6 +108,8 @@ export interface ContratoMetricas {
   S10: Sust<ResultadoS10>
   S11: Sust<ResultadoS11>
   S12: Sust<ResultadoS12>
+  /** Pesquisa de percepção: só aceita `dataReferencia`; equipe, prioridade e período não se aplicam. */
+  PV1: Par<Record<string, never>, ResultadoPV1>
   EI_FL1: Fluxo<ResultadoEI>
   EI_FL2: Fluxo<ResultadoEI>
   EI_FL3: Fluxo<ResultadoEI>
@@ -134,6 +138,19 @@ export const METRICAS_SUSTENTACAO: readonly MetricaId[] = [
   'O17',
   'EI_SUST',
 ]
+
+/** Métricas cuja fonte é a pesquisa de percepção (nem BusinessMap, nem Acelerato). Não entram em `METRICAS_SUSTENTACAO`. */
+export const METRICAS_PESQUISA: readonly MetricaId[] = ['PV1']
+
+/**
+ * Fonte de dados de uma métrica: ponto único que substitui o teste binário "é sustentação? senão é fluxo".
+ * A Visão geral lê as duas fontes de fluxo/sustentação (`ambos`); a pesquisa nunca entra nessa composição.
+ */
+export function fonteDaMetrica(id: MetricaId): FonteMetrica | 'ambos' {
+  if (id === 'VISAO_GERAL') return 'ambos'
+  if (METRICAS_PESQUISA.includes(id)) return 'pesquisa'
+  return METRICAS_SUSTENTACAO.includes(id) ? 'acelerato' : 'businessmap'
+}
 
 /**
  * Quais filtros do fluxo atuam em cada métrica (tabela 2.2 da spec de UX).

@@ -99,6 +99,21 @@ describe('catálogo de cartões', () => {
       expect(alcancadas.has(c.id), c.codigo).toBe(true)
   })
 
+  it('põe a PV1 numa seção própria do painel Sustentação, mock, ligada a S1 e S2 nos dois sentidos', () => {
+    const pv1 = cartaoPorId('sustentacao', 'pv1')
+    expect(pv1).toMatchObject({
+      grupo: 'percepcao',
+      status: 'mock',
+      secao: 'percepcao',
+      metricas: ['PV1'],
+    })
+    expect(pv1?.leiaJunto).toEqual(['s1', 's2'])
+    expect(cartaoPorId('sustentacao', 's1')?.leiaJunto).toContain('pv1')
+    expect(cartaoPorId('sustentacao', 's2')?.leiaJunto).toContain('pv1')
+    expect(cartaoPorId('operacional', 'pv1')).toBeUndefined()
+    expect(CATALOGO_CARTOES.filter((c) => c.grupo === 'percepcao')).toHaveLength(1)
+  })
+
   it('põe a O17 na Sustentação, nunca no BusinessMap', () => {
     expect(cartaoPorId('sustentacao', 'o17')?.grupo).toBe('complementar')
     expect(cartaoPorId('operacional', 'o17')).toBeUndefined()
