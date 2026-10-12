@@ -31,14 +31,14 @@ describe('/dados: rota, navegação e abas', () => {
     expect(screen.getByRole('tab', { name: 'Acelerato' })).toHaveAttribute('aria-selected', 'true')
   })
 
-  it('abas BusinessMap e Acelerato com role tablist; a URL manda e o padrão é BusinessMap', async () => {
+  it('abas BusinessMap, Acelerato e Pesquisa de percepção com role tablist; a URL manda e o padrão é BusinessMap', async () => {
     renderizarApp('/dados')
     const lista = await screen.findByRole('tablist', { name: 'Fonte de dados' })
     expect(
       within(lista)
         .getAllByRole('tab')
         .map((t) => t.textContent),
-    ).toEqual(['BusinessMap', 'Acelerato'])
+    ).toEqual(['BusinessMap', 'Acelerato', 'Pesquisa de percepção'])
     expect(screen.getByRole('tab', { name: 'BusinessMap' })).toHaveAttribute(
       'aria-selected',
       'true',
@@ -70,6 +70,30 @@ describe('/dados: rota, navegação e abas', () => {
     expect(screen.getByRole('tabpanel')).not.toHaveTextContent('BusinessMap')
     expect(screen.getByTestId('nota-fontes-separadas')).toHaveTextContent(
       'As fontes nunca são somadas nem comparadas. Veja a aba BusinessMap separadamente.',
+    )
+  })
+
+  it('aba "Pesquisa de percepção" (?fonte=pq): só os critérios do dominio pesquisa, sem coleta', async () => {
+    const r = renderizarApp('/dados?fonte=bm')
+    await userEvent.click(await screen.findByRole('tab', { name: 'Pesquisa de percepção' }))
+    expect(busca(r).get('fonte')).toBe('pq')
+    const painel = await screen.findByTestId('dados-conteudo-pesquisa')
+    const t = await within(painel).findByRole('table', { name: /Mudanças de critério/ })
+    expect(within(t).getAllByRole('row')).toHaveLength(2)
+    expect(t).toHaveTextContent('01/04/2026')
+    expect(t).toHaveTextContent('Questionário v2')
+    expect(t).toHaveTextContent('PV1')
+    expect(screen.getByTestId('nota-fontes-separadas')).toHaveTextContent(
+      'A pesquisa de percepção é uma fonte à parte',
+    )
+    expect(screen.queryByTestId('dados-conteudo-businessmap')).not.toBeInTheDocument()
+  })
+
+  it('?fonte=pq abre direto a aba da pesquisa', async () => {
+    renderizarApp('/dados?fonte=pq')
+    expect(await screen.findByRole('tab', { name: 'Pesquisa de percepção' })).toHaveAttribute(
+      'aria-selected',
+      'true',
     )
   })
 
