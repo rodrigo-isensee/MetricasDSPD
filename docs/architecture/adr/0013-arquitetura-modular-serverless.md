@@ -1,4 +1,5 @@
 # 0013 - Back-end: monólito modular em Node, publicado como funções serverless na AWS
+Estado: vigente (a hospedagem na AWS é alvo futuro; o que roda hoje segue a [0014](0014-stack-tecnica-do-back-end.md))
 - Status: **aceita** (decisões do usuário em 2026-10-10, confirmadas ao Jarvis para reconciliação com a `main`)
 - Data: 2026-10-10
 - **Parcialmente substituída pela ADR 0014, revisão 2** (2026-10-10): banco **PostgreSQL** (sai o RDS MySQL); **AWS, Lambdas, API Gateway, RDS e CDK passam a ser alvo futuro, não o plano** (custo zero: tudo em Docker Compose local, P14 respondida assim); Hono → **Fastify 5** em contêiner; Kysely → **`pg` puro** + **node-pg-migrate**; **outbox transacional em `dspd_core.outbox` com polling** no serviço `worker`; npm → **pnpm**; testes com schemas prefixados por execução. **Continuam:** monólito modular, módulos e fronteiras (§2, §3, §9), Metabase como origem do Acelerato (§4), "sem barramento nem fila". Ao retomar a nuvem, uma ADR nova escolhe entre contêiner e Lambda.

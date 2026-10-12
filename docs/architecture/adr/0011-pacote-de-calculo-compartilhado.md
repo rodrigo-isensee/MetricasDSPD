@@ -1,4 +1,5 @@
 # 0011 - Pacote de cálculo compartilhado (`@metricas-dspd/metricas`)
+Estado: vigente
 - Status: aceita
 - Data: 2026-10-10
 - Relacionadas: ADR 0001 (origem no front), ADR 0002 (fronteiras e exports do pacote), ADR 0003 (orçamento de cálculo), ADR 0004 (o banco seleciona, a biblioteca calcula), ADR 0007 (DTOs e paridade); briefing T2.5, T2.6; `docs/architecture/regras-metricas.md`

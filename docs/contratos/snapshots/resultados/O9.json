@@ -1,0 +1,671 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "janelaPercentis": {
+      "type": "object",
+      "properties": {
+        "inicio": {
+          "type": "string"
+        },
+        "fim": {
+          "type": "string"
+        },
+        "unidade": {
+          "type": "string",
+          "enum": [
+            "semanas",
+            "meses"
+          ]
+        },
+        "quantidade": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "inicio",
+        "fim",
+        "unidade",
+        "quantidade"
+      ],
+      "additionalProperties": false
+    },
+    "classes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "Incidente",
+              "Requisição",
+              "Melhoria",
+              "Iniciativa",
+              "Bug interno",
+              "Defeito em produção",
+              "Dívida técnica"
+            ]
+          },
+          "n": {
+            "type": "number"
+          },
+          "relogios": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "valor": {
+                    "type": "object",
+                    "properties": {
+                      "cliente": {
+                        "type": "object",
+                        "properties": {
+                          "p50": {
+                            "type": "number"
+                          },
+                          "p85": {
+                            "type": "number"
+                          },
+                          "p95": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "p50",
+                          "p85",
+                          "p95"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "equipe": {
+                        "type": "object",
+                        "properties": {
+                          "p50": {
+                            "type": "number"
+                          },
+                          "p85": {
+                            "type": "number"
+                          },
+                          "p95": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "p50",
+                          "p85",
+                          "p95"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "ciclo": {
+                        "type": "object",
+                        "properties": {
+                          "p50": {
+                            "type": "number"
+                          },
+                          "p85": {
+                            "type": "number"
+                          },
+                          "p95": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "p50",
+                          "p85",
+                          "p95"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "distanciaClienteCicloP50": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "cliente",
+                      "equipe",
+                      "ciclo",
+                      "distanciaClienteCicloP50"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "valor",
+                  "janela"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "minimo",
+                  "janela"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "histogramas": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "valor": {
+                    "type": "object",
+                    "properties": {
+                      "cliente": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "rotulo": {
+                              "type": "string"
+                            },
+                            "min": {
+                              "type": "number"
+                            },
+                            "max": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "contagem": {
+                              "type": "number"
+                            },
+                            "empilhado": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "classe": {
+                                    "type": "string"
+                                  },
+                                  "contagem": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "classe",
+                                  "contagem"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "rotulo",
+                            "min",
+                            "max",
+                            "contagem"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "equipe": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "rotulo": {
+                              "type": "string"
+                            },
+                            "min": {
+                              "type": "number"
+                            },
+                            "max": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "contagem": {
+                              "type": "number"
+                            },
+                            "empilhado": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "classe": {
+                                    "type": "string"
+                                  },
+                                  "contagem": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "classe",
+                                  "contagem"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "rotulo",
+                            "min",
+                            "max",
+                            "contagem"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "ciclo": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "rotulo": {
+                              "type": "string"
+                            },
+                            "min": {
+                              "type": "number"
+                            },
+                            "max": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "contagem": {
+                              "type": "number"
+                            },
+                            "empilhado": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "classe": {
+                                    "type": "string"
+                                  },
+                                  "contagem": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "classe",
+                                  "contagem"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "rotulo",
+                            "min",
+                            "max",
+                            "contagem"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "cliente",
+                      "equipe",
+                      "ciclo"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "valor",
+                  "janela"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "minimo",
+                  "janela"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "serieMensal": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "mes": {
+                  "type": "string"
+                },
+                "n": {
+                  "type": "number"
+                },
+                "cliente": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "p50": {
+                          "type": "number"
+                        },
+                        "p85": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "p50",
+                        "p85"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "equipe": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "p50": {
+                          "type": "number"
+                        },
+                        "p85": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "p50",
+                        "p85"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "ciclo": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "p50": {
+                          "type": "number"
+                        },
+                        "p85": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "p50",
+                        "p85"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "mes",
+                "n",
+                "cliente",
+                "equipe",
+                "ciclo"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "tipo",
+          "n",
+          "relogios",
+          "histogramas",
+          "serieMensal"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "janelaPercentis",
+    "classes"
+  ],
+  "additionalProperties": false
+}

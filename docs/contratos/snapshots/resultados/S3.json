@@ -1,0 +1,191 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "meses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mes": {
+            "type": "string"
+          },
+          "emAndamento": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "number"
+          },
+          "porPrioridade": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "prioridade": {
+                  "type": "string",
+                  "enum": [
+                    "P1",
+                    "P2",
+                    "P3",
+                    "P4",
+                    "P5"
+                  ]
+                },
+                "n": {
+                  "type": "number"
+                },
+                "pct": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "prioridade",
+                "n",
+                "pct"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "p1p2Pct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ajustesManuais": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "mes",
+          "emAndamento",
+          "total",
+          "porPrioridade",
+          "p1p2Pct",
+          "ajustesManuais"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "meses"
+  ],
+  "additionalProperties": false
+}

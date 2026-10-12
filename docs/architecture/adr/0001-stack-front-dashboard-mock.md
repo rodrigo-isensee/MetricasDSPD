@@ -1,4 +1,5 @@
 # 0001 - Stack do front-end do dashboard de métricas (etapa mock)
+Estado: vigente (trecho substituído pela [0002](0002-monorepo-pacotes-compartilhados.md))
 - Status: aceita, parcialmente substituída pela 0002
 - Data: 2026-10-09 · Revisão: 2026-10-09 (ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`, D2)
 - Pedido: `docs/pedidos/001-dashboard-mock.md` · Plano técnico: `docs/architecture/features/dashboard-mock.md`

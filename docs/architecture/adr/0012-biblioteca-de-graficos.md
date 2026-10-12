@@ -1,4 +1,5 @@
 # 0012 - Biblioteca de gráficos (Recharts encapsulado)
+Estado: vigente
 - Status: aceita
 - Data: 2026-10-10
 - Relacionadas: ADR 0001 (escolha original e comparação detalhada), ADR 0003 (orçamento F8), ADR 0011 (nenhum componente calcula)

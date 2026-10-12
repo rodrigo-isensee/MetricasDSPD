@@ -1,4 +1,5 @@
 # 0003 - Orçamento de performance do projeto
+Estado: vigente
 - Status: aceita
 - Data: 2026-10-09
 - Origem: ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`, decisão D1 (com D6 e D7); cartão K-018

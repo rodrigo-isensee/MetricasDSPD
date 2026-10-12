@@ -1,7 +1,8 @@
 import { afterAll, describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { buildApp } from '../src/app.js';
 import { emTransacao } from '../src/plataforma/db/pool.js';
-import { RegistroConsumidores, processarOutbox, publicarEvento } from '../src/plataforma/eventos/index.js';
+import { RegistroConsumidores, processarOutbox, publicarEvento, type CatalogoEventos } from '../src/plataforma/eventos/index.js';
 import { fecharColeta } from '../src/modulos/operacao/index.js';
 import { S, novaColeta, poolDe, unico, url } from './pg/ctx.js';
 
@@ -15,21 +16,23 @@ d('outbox e rotas no Postgres', () => {
   const AGORA = new Date(Date.now() + 3_600_000);
   const DIA_FIXO = new Date('2026-10-10T15:00:00Z');
   const tipo = () => `bm.${unico('t')}`;
+  // Tipos aleatórios do teste não estão no catálogo de produção: este catálogo aceita qualquer payload (o que se testa é o SQL e o poller).
+  const LIVRE: CatalogoEventos = new Proxy({}, { get: () => z.object({}).passthrough() });
   const status = async (id: string) => (await migrador.query<{ status: string; tentativas: number; ultimo_erro: string | null }>(
     `SELECT status, tentativas, ultimo_erro FROM ${S.core}.outbox WHERE evento_id = $1`, [id])).rows[0]!;
 
   it('evento só existe se a transação confirmou (rollback some com ele)', async () => {
     const t = tipo();
-    await expect(emTransacao(coletor, async (c) => { await publicarEvento(c, { fonte: 'businessmap', tipo: t, payload: {} }, S); throw new Error('desfaz'); })).rejects.toThrow('desfaz');
+    await expect(emTransacao(coletor, async (c) => { await publicarEvento(c, { fonte: 'businessmap', tipo: t, payload: {} }, S, LIVRE); throw new Error('desfaz'); })).rejects.toThrow('desfaz');
     expect((await migrador.query(`SELECT 1 FROM ${S.core}.outbox WHERE tipo = $1`, [t])).rowCount).toBe(0);
-    const id = await emTransacao(coletor, (c) => publicarEvento(c, { fonte: 'businessmap', tipo: t, payload: { a: 1 } }, S));
+    const id = await emTransacao(coletor, (c) => publicarEvento(c, { fonte: 'businessmap', tipo: t, payload: { a: 1 } }, S, LIVRE));
     expect((await status(id)).status).toBe('pendente');
   });
 
   it('processa uma vez; reexecução não duplica; só a fonte pedida', async () => {
     const t = tipo();
-    const id = await publicarEvento(coletor, { fonte: 'businessmap', tipo: t, payload: {} }, S);
-    const idAc = await publicarEvento(coletor, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: {} }, S);
+    const id = await publicarEvento(coletor, { fonte: 'businessmap', tipo: t, payload: {} }, S, LIVRE);
+    const idAc = await publicarEvento(coletor, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: {} }, S, LIVRE);
     let chamadas = 0;
     const consumidores = new RegistroConsumidores().registrar('businessmap', t, async () => { chamadas++; });
     const op = { fonte: 'businessmap' as const, agora: AGORA, consumidores, S, limite: 500 };
@@ -42,7 +45,7 @@ d('outbox e rotas no Postgres', () => {
 
   it('dois pollers simultâneos não processam o mesmo evento', async () => {
     const t = tipo();
-    const ids = await Promise.all(Array.from({ length: 6 }, () => publicarEvento(coletor, { fonte: 'businessmap', tipo: t, payload: {} }, S)));
+    const ids = await Promise.all(Array.from({ length: 6 }, () => publicarEvento(coletor, { fonte: 'businessmap', tipo: t, payload: {} }, S, LIVRE)));
     const vistos: string[] = [];
     const consumidores = new RegistroConsumidores().registrar('businessmap', t, async (e) => { await new Promise((r) => setTimeout(r, 30)); vistos.push(e.eventoId); });
     const op = { fonte: 'businessmap' as const, agora: AGORA, consumidores, S, limite: 3 };
@@ -56,7 +59,7 @@ d('outbox e rotas no Postgres', () => {
 
   it('erro reagenda com backoff e guarda só a categoria; 8 tentativas = falha; reserva expirada é retomada', async () => {
     const t = tipo();
-    const id = await publicarEvento(coletor, { fonte: 'businessmap', tipo: t, payload: {} }, S);
+    const id = await publicarEvento(coletor, { fonte: 'businessmap', tipo: t, payload: {} }, S, LIVRE);
     const consumidores = new RegistroConsumidores().registrar('businessmap', t, async () => { throw new RangeError('segredo=123'); });
     let agora = AGORA;
     await processarOutbox(coletor, { fonte: 'businessmap', agora, consumidores, S, limite: 500 });
@@ -69,7 +72,7 @@ d('outbox e rotas no Postgres', () => {
     s = await status(id);
     expect(s).toMatchObject({ status: 'falha', tentativas: 8 });
     // reserva expirada: um consumidor que "morreu" deixou o evento em processando
-    const id2 = await publicarEvento(coletor, { fonte: 'businessmap', tipo: t, payload: {} }, S);
+    const id2 = await publicarEvento(coletor, { fonte: 'businessmap', tipo: t, payload: {} }, S, LIVRE);
     await migrador.query(`UPDATE ${S.core}.outbox SET status = 'processando', reservado_ate = $2, tentativas = 1 WHERE evento_id = $1`, [id2, new Date(AGORA.getTime() - 1000)]);
     const ok = new RegistroConsumidores().registrar('businessmap', t, async () => undefined);
     await processarOutbox(coletor, { fonte: 'businessmap', agora: AGORA, consumidores: ok, S, limite: 500 });
@@ -77,15 +80,15 @@ d('outbox e rotas no Postgres', () => {
   });
 
   it('tipo sem consumidor fica pendente, sem gastar tentativas', async () => {
-    const id = await publicarEvento(coletor, { fonte: 'businessmap', tipo: 'bm.webhook.recebido', payload: {} }, S);
+    const id = await publicarEvento(coletor, { fonte: 'businessmap', tipo: 'bm.webhook.recebido', payload: {} }, S, LIVRE);
     await processarOutbox(coletor, { fonte: 'businessmap', agora: AGORA, consumidores: new RegistroConsumidores(), S, limite: 500 });
     const r = await migrador.query(`SELECT status, tentativas FROM ${S.core}.outbox WHERE evento_id = $1`, [id]);
     expect(r.rows[0]).toMatchObject({ status: 'pendente', tentativas: 0 });
   });
 
   it('retenção: processado com mais de 30 dias é apagado; recente fica', async () => {
-    const a = await publicarEvento(coletor, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: {} }, S);
-    const b = await publicarEvento(coletor, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: {} }, S);
+    const a = await publicarEvento(coletor, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: {} }, S, LIVRE);
+    const b = await publicarEvento(coletor, { fonte: 'acelerato', tipo: 'coleta.concluida', payload: {} }, S, LIVRE);
     await migrador.query(`UPDATE ${S.core}.outbox SET status = 'processado', processado_em = $2 WHERE evento_id = $1`, [a, new Date(AGORA.getTime() - 31 * 86_400_000)]);
     await migrador.query(`UPDATE ${S.core}.outbox SET status = 'processado', processado_em = $2 WHERE evento_id = $1`, [b, new Date(AGORA.getTime() - 5 * 86_400_000)]);
     const r = await processarOutbox(coletor, { fonte: 'businessmap', agora: AGORA, consumidores: new RegistroConsumidores(), S, limite: 1 });

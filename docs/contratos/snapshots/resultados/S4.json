@@ -1,0 +1,292 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "prioridades": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "prioridade": {
+            "type": "string",
+            "enum": [
+              "P1",
+              "P2",
+              "P3",
+              "P4",
+              "P5"
+            ]
+          },
+          "n": {
+            "type": "number"
+          },
+          "niveis": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nivel": {
+                  "type": "string",
+                  "enum": [
+                    "N1",
+                    "N2",
+                    "N3",
+                    "Fornecedor"
+                  ]
+                },
+                "n": {
+                  "type": "number"
+                },
+                "pct": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "tempoEtapa": {
+                  "anyOf": [
+                    {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "const": "ok"
+                            },
+                            "n": {
+                              "type": "integer",
+                              "minimum": 20,
+                              "maximum": 9007199254740991
+                            },
+                            "valor": {
+                              "type": "object",
+                              "properties": {
+                                "p50": {
+                                  "type": "number"
+                                },
+                                "p85": {
+                                  "type": "number"
+                                },
+                                "p95": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "p50",
+                                "p85",
+                                "p95"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "janela": {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "status",
+                            "n",
+                            "valor",
+                            "janela"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "const": "insuficiente"
+                            },
+                            "n": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 19
+                            },
+                            "minimo": {
+                              "type": "number",
+                              "const": 20
+                            },
+                            "janela": {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "status",
+                            "n",
+                            "minimo",
+                            "janela"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "nivel",
+                "n",
+                "pct",
+                "tempoEtapa"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "prioridade",
+          "n",
+          "niveis"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "prioridades"
+  ],
+  "additionalProperties": false
+}

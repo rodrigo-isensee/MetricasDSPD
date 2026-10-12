@@ -1,8 +1,8 @@
 # API de métricas (contrato HTTP)
 
-> **RASCUNHO.** Framework decidido: **Fastify 5** no serviço `api` (imagem de contêiner no Docker Compose local; nuvem adiada; banco PostgreSQL, papel `dspd_api` sem leitura das colunas de pessoa), com fastify-type-provider-zod 7 e OpenAPI gerado por `@fastify/swagger` 9 dos schemas Zod 4 de `@metricas-dspd/contratos` (ADR 0014, que revisa a 0013). Autenticação ainda depende do SSO (P3; ADR 0009 e ADR 0013 §8). Pontos marcados com [ADR] referem-se à autenticação.
-> Dependência: `web/src/contracts/` ainda não está versionado em nenhuma branch nem existe no worktree 002; o contrato só fecha depois que os contratos do front forem commitados e trazidos para o 002 (pacote compartilhado, praticas.md).
-> Fonte dos tipos: `web/src/contracts/` (DTOs zod, `ContratoMetricas`, `FonteMetricas`). Em caso de divergência, vale o zod do front até a ADR fechar; o back reutiliza os mesmos schemas.
+> **Status:** implementado (rotas em `server/src/modulos/`; OpenAPI gerado em `docs/api/openapi.json`, que vale em caso de divergência). A visão geral e atualizada do contrato HTTP está em [`docs/contratos/http.md`](../contratos/http.md); esta página guarda o detalhe por rota. Revisado em 2026-10-11.
+> Stack: **Fastify 5**, fastify-type-provider-zod 7 e `@fastify/swagger` 9 sobre os schemas Zod 4 de `@metricas-dspd/contratos` (ADR 0014, que revisa a 0013); banco PostgreSQL, papel `dspd_api` sem leitura das colunas de pessoa. Autenticação [planejado]: depende do SSO (ADR 0009); hoje a API não autentica. Pontos marcados com [ADR] referem-se à autenticação.
+> Fonte dos tipos: `packages/contratos/src/` (DTOs Zod, `ContratoMetricas`, `FonteMetricas`), pacote compartilhado pelo servidor e pelo front. Nenhum DTO é redeclarado.
 
 ## Saúde e OpenAPI
 - `GET /health/live` (processo no ar, sem banco), `GET /health/ready` e o alias `GET /health` (consultam o banco; 503 `BASE_INDISPONIVEL` se não responde). Fora do prefixo `/api/v1`. Resposta `{ "status": "ok" }`.
@@ -30,7 +30,7 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
 | Sustentação (S*, EI_SUST) | `equipe` (`totvs,senior,fluig`), `prioridade` (`P1..P5`), `periodo` |
 | VISAO_GERAL | nenhum (padrões de cada painel) |
 
-- Aplicabilidade por métrica no fluxo: fonte é `APLICABILIDADE_FLUXO` (`web/src/contracts/metricas.ts`). Filtro do mesmo domínio não aplicável à métrica (ex.: `tipo` em O12, `equipe` em E1) é aceito e ignorado, sem 400, coerente com "Não afetado por".
+- Aplicabilidade por métrica no fluxo: fonte é `APLICABILIDADE_FLUXO` (`packages/contratos/src/metricas.ts`). Filtro do mesmo domínio não aplicável à métrica (ex.: `tipo` em O12, `equipe` em E1) é aceito e ignorado, sem 400, coerente com "Não afetado por".
 - `periodo`: `4s | 12s | 6m | 12m` (padrão `12s`) ou `custom` com `de` e `ate` (AAAA-MM-DD, dentro de `historico`).
 - Parâmetro de outro domínio (ex.: `sistema` em S1) -> 400 `VALIDATION_ERROR`.
 - `dataReferencia` (opcional, AAAA-MM-DD): recalcula com corte no fim desse dia (America/Sao_Paulo); padrão (decisão S-a) = instante da última coleta bem-sucedida da fonte da métrica (sem coleta: agora). Futura (depois de hoje) -> 400. VISAO_GERAL usa o corte mais antigo das duas fontes (provisório). Parâmetros desconhecidos (qualquer filtro de pessoa) -> 400. `de`/`ate` só com `periodo=custom`; `custom` exige os dois.

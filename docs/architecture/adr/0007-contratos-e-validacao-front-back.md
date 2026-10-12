@@ -1,6 +1,8 @@
 # 0007 - Contratos e validação entre front e back
+Estado: vigente (trecho do framework substituído pela [0013](0013-arquitetura-modular-serverless.md) e restabelecido pela [0014](0014-stack-tecnica-do-back-end.md))
 - Status: aceita. A ADR 0013 trocou Fastify por Hono; a **ADR 0014** (2026-10-10) restabelece o texto original: **rotas Fastify 5** com **fastify-type-provider-zod 7** e OpenAPI por **`@fastify/swagger` 9** a partir dos schemas Zod 4 de `contratos`. O risco do fim (compatibilidade do type provider com zod 4) está fechado: versões verificadas pelo usuário (ADR 0014). Regras de contrato, formato de erro e paridade não mudam.
 - Data: 2026-10-09
+- **Nota de 2026-10-11 (sem reescrever a decisão):** onde este texto diz **MySQL** (Paridade D15), leia **PostgreSQL**: a ADR 0014 substituiu o banco. A decisão de contrato (schemas Zod únicos, entrada `strict`, saída validada, OpenAPI versionado, `/api/v1`) continua em vigor. O rascunho `docs/api/metricas.md` virou documento implementado; o ponto de entrada atual é `docs/contratos/` (README, política de mudança, HTTP).
 - Relacionadas: ADR 0001 (zod no front), ADR 0002 (`@metricas-dspd/contratos`), rascunho `docs/api/metricas.md`, `docs/architecture/regras-metricas.md` §4.4
 
 ## Contexto
@@ -13,7 +15,7 @@ O pedido 002 exige que trocar `MockFonteMetricas` por `HttpFonteMetricas` seja s
 - **OpenAPI** gerado das rotas (`@fastify/swagger`) e versionado em `docs/api/openapi.json`; CI falha se o gerado divergir do versionado. `docs/api/*.md` continua sendo o contrato legível do node-backend.
 - **Versionamento:** prefixo `/api/v1`; mudança incompatível = `/api/v2` em paralelo. Campo novo opcional não muda versão.
 - **Formato:** JSON camelCase; erro `{ error: { code, message, details? } }`; metadados de frescor e critério nos cabeçalhos definidos no rascunho (`X-Data-Referencia`, `X-Versao-Criterio`; `X-Ultima-Coleta` removido, frescor no corpo de `/fontes/:dominio/estado`, plano integracao-real D1). Paginação conforme o rascunho (exceção do O2 registrada lá).
-- **Paridade (D15):** teste que, para cada `MetricaId` e conjunto de filtros de referência, compara o resultado da `MockFonteMetricas` (memória) com o da API sobre o seed no MySQL. Diferença = falha.
+- **Paridade (D15):** teste que, para cada `MetricaId` e conjunto de filtros de referência, compara o resultado da `MockFonteMetricas` (memória) com o da API sobre o seed no MySQL [hoje PostgreSQL, ADR 0014]. Diferença = falha.
 - **Datas no fio:** datas civis `AAAA-MM-DD`; instantes ISO 8601 com `Z`.
 
 ## Alternativas consideradas

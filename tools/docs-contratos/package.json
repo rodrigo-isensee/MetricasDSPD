@@ -1,0 +1,30 @@
+{
+  "name": "@metricas-dspd/docs-contratos",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "test": "TZ=UTC vitest run",
+    "cobertura": "TZ=UTC vitest run --coverage",
+    "docs:gerar": "TZ=UTC tsx src/main.ts gerar ../..",
+    "docs:check": "TZ=UTC tsx src/main.ts check ../..",
+    "docs:fotografar": "TZ=UTC tsx src/main.ts fotografar ../..",
+    "docs:mermaid": "TZ=UTC tsx src/main.ts mermaid ../..",
+    "pronto": "pnpm run typecheck && pnpm run cobertura && pnpm run docs:check"
+  },
+  "dependencies": {
+    "@metricas-dspd/contratos": "workspace:*",
+    "@metricas-dspd/metricas": "workspace:*",
+    "@metricas-dspd/mock": "workspace:*",
+    "@metricas-dspd/server": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
+  }
+}
