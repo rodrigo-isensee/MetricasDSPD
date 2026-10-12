@@ -16,7 +16,7 @@ Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite en
 ## Filtros
 
 - Atuam nesta métrica: nenhuma.
-- Não atuam: equipe, tipo, sistema, periodo.
+- Não atuam: nenhuma.
 
 ## Regras de cálculo
 
@@ -465,6 +465,132 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.PV1`); a fotografia versionada usa
 Resultado da base fictícia determinística (semente padrão), validado pelo schema acima. Listas com mais de 2 itens aparecem truncadas.
 
 ```json
-{"status":"sem-pesquisa","fonte":"pesquisa"}
+{
+  "status": "ok",
+  "fonte": "pesquisa",
+  "trimestre": "2026-T3",
+  "ciclo": 6,
+  "questionario": {
+    "versaoId": "q-v2",
+    "vigenteDesde": "2026-04-01",
+    "perguntas": [
+      {
+        "codigo": "informado",
+        "ordem": 1,
+        "texto": "Recebo avisos claros e no tempo certo sobre o andamento dos meus pedidos."
+      },
+      {
+        "codigo": "prioridades",
+        "ordem": 2,
+        "texto": "As entregas refletem as prioridades da minha área."
+      }
+    ]
+  },
+  "participacao": {"respondentes":24,"convidados":36,"taxa":{"status":"ok","k":24,"n":36,"pct":66.66666666666666}},
+  "consolidado": {
+    "status": "publicado",
+    "n": 24,
+    "perguntas": [
+      {
+        "codigo": "informado",
+        "faixas": [
+          {"faixa":1,"contagem":{"status":"ok","k":1,"n":24,"pct":4.166666666666666}},
+          {"faixa":2,"contagem":{"status":"ok","k":1,"n":24,"pct":4.166666666666666}}
+        ]
+      },
+      {
+        "codigo": "prioridades",
+        "faixas": [
+          {"faixa":1,"contagem":{"status":"ok","k":0,"n":24,"pct":0}},
+          {"faixa":2,"contagem":{"status":"ok","k":3,"n":24,"pct":12.5}}
+        ]
+      }
+    ]
+  },
+  "porArea": {
+    "status": "publicado",
+    "areas": [
+      {
+        "rotulo": "Comercial",
+        "outras": false,
+        "bloco": {
+          "status": "publicado",
+          "n": 5,
+          "perguntas": [
+            {
+              "codigo": "informado",
+              "faixas": [
+                {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":5,"minimo":20}},
+                {"faixa":2,"contagem":{"status":"insuficiente","k":1,"n":5,"minimo":20}}
+              ]
+            },
+            {
+              "codigo": "prioridades",
+              "faixas": [
+                {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":5,"minimo":20}},
+                {"faixa":2,"contagem":{"status":"insuficiente","k":0,"n":5,"minimo":20}}
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "rotulo": "Jurídico",
+        "outras": false,
+        "bloco": {
+          "status": "publicado",
+          "n": 4,
+          "perguntas": [
+            {
+              "codigo": "informado",
+              "faixas": [
+                {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":4,"minimo":20}},
+                {"faixa":2,"contagem":{"status":"insuficiente","k":0,"n":4,"minimo":20}}
+              ]
+            },
+            {
+              "codigo": "prioridades",
+              "faixas": [
+                {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":4,"minimo":20}},
+                {"faixa":2,"contagem":{"status":"insuficiente","k":1,"n":4,"minimo":20}}
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "tendencia": [
+    {
+      "trimestre": "2025-T4",
+      "versaoId": "q-v1",
+      "bloco": {"status":"base-insuficiente","n":4,"minimo":5}
+    },
+    {
+      "trimestre": "2026-T1",
+      "versaoId": "q-v1",
+      "bloco": {
+        "status": "publicado",
+        "n": 14,
+        "concordam": [
+          {"codigo":"informado","contagem":{"status":"insuficiente","k":8,"n":14,"minimo":20}},
+          {"codigo":"prioridades","contagem":{"status":"insuficiente","k":8,"n":14,"minimo":20}}
+        ]
+      }
+    }
+  ],
+  "oQueMudou": {"trimestre":"2026-T3","texto":"Publicamos a agenda de manutenção com antecedência."},
+  "criterios": {
+    "serie": [
+      {
+        "id": "pesquisa-q-v2",
+        "data": "2026-04-01",
+        "descricao": "Questionário v2: texto da pergunta sobre informação ajustado."
+      }
+    ],
+    "janela": []
+  },
+  "base": {"n":24,"unidade":"respostas","janela":null}
+}
 ```
 <!-- gerado:fim -->
