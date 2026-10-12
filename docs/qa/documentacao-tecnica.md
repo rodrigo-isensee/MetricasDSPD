@@ -136,3 +136,13 @@ Achabilidade refeita por busca em largura nos links (as 6 tarefas): O3 3 cliques
 ## Resultado da execução
 
 Data: 2026-10-11. Gate verde; mutações: 15 de 15 detectadas (3 de forma menos útil: DOC-03; sintaxe Mermaid só em `docs:mermaid`); achabilidade: 5 de 6 tarefas ok; amostragem: 8 de 10 confirmadas, 2 desatualizadas. Rodada 2: DOC-01 e DOC-03 VERIFICADOS (fechados); mutações da política (a)-(d) todas detectadas ou recusadas; achabilidade 6 de 6; novo DOC-05 (baixa). Pendentes: DOC-02 e DOC-04 (docs) e `docs:mermaid` no CI. Parecer: aprovado com ressalvas (nenhum defeito crítico ou alto).
+
+## Parecer final (rodada 3, 2026-10-11)
+
+- **DOC-02 VERIFICADO:** `eventos.md`, `politica-de-mudanca.md`, `04-eventos.md` e `00-plano.md` descrevem o que existe; "[planejado]" restante só onde falta código (coletor WS2, autenticação/ADR 0009, allow-list, colunas de pessoa/DPO, conferências futuras do `00-plano`). Conferido contra o código: `tarefas: []` no worker, `x-webhook-secret` em `webhook.ts`, `webhookRecebido` em `catalogo.ts`, `lerAceites`, `exigirValido`.
+- **DOC-04 VERIFICADO:** amostra de 8 afirmações com número de linha/símbolo contra o código, todas corretas: `app.ts:55/61/62`, `erros.ts:40`, `comum.ts:4` e `:96`, `metricas.ts:103`, `regras.ts:68`, `gerador.ts:116`, `worker.ts:16-18`, `outbox.ts`/`receberWebhook` por símbolo.
+- **DOC-05 VERIFICADO:** `aceitas.json` com `mudanca` fora de 64 hex: "docs/contratos/snapshots/aceitas.json inválido. Campos: aceitas.0.mudanca: ..." mais o formato esperado; JSON ilegível: "inválido: não é um JSON legível". `O3` removida de `SCHEMAS_RESULTADO`: "contrato resultados/O3 removido: incompatível, exige aceite ... ou restaure o schema". Nenhum ZodError cru nem "Cannot read properties". Mutações desfeitas; `git status` limpo. Observação (baixa, não bloqueia): a falha de `lerAceites` ainda sai como exceção não capturada do Node (mensagem clara, mas com a linha do stack); capturar em `cli.ts` como em DOC-03 seria o acabamento.
+- **R4 VERIFICADO:** a mensagem de `exigirValido` diz que registrar aceite NÃO contorna a falha do exemplo.
+- **Gates:** `pnpm run pronto` verde (cobertura 100% em `tools/docs-contratos`); `pnpm run docs:check`: ok (284 páginas, 33 métricas, 2 eventos).
+- **Bugs abertos: zero** (DOC-01 a DOC-05 fechados). Pendência fora de bug: `docs:mermaid` no CI.
+- **Parecer: APROVADO.**
