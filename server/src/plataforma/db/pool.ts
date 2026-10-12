@@ -50,11 +50,18 @@ export function criarPool(url: string, opcoes: OpcoesPool = {}): pg.Pool {
     idleInTransactionTimeoutMs = TIMEOUTS_PADRAO.idleInTransactionMs, connectionTimeoutMs = TIMEOUTS_PADRAO.conexaoMs,
     max = 10, aplicacao = `dspd-${decodeURIComponent(new URL(url).username).replace(/^dspd_/, '')}`,
   } = opcoes;
-  return new pg.Pool({
+  const pool = new pg.Pool({
     connectionString: url, max, types: tipos, statement_timeout: statementTimeoutMs, lock_timeout: lockTimeoutMs,
     idle_in_transaction_session_timeout: idleInTransactionTimeoutMs, connectionTimeoutMillis: connectionTimeoutMs,
     application_name: aplicacao, options: '-c TimeZone=UTC',
   });
+  // Conexão ociosa derrubada pelo servidor (restart, idle_in_transaction, terminate): o pool já a descarta; sem ouvinte o
+  // `error` do EventEmitter derrubaria o processo inteiro.
+  pool.on('error', () => undefined);
+  // Idem para a conexão emprestada: um `error` assíncrono (backend morto) fora de uma query não pode derrubar o processo;
+  // a query em andamento (se houver) já rejeita, e `release(true)` descarta a conexão.
+  pool.on('connect', (c) => { c.on('error', () => undefined); });
+  return pool;
 }
 
 /** BEGIN/COMMIT; qualquer erro faz ROLLBACK e é repassado. O cliente sempre volta ao pool. */

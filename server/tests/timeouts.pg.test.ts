@@ -1,7 +1,7 @@
 import pg from 'pg';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { migrar } from '../src/plataforma/db/migrar.js';
-import { criarPool } from '../src/plataforma/db/pool.js';
+import { criarPool, type ClienteLike, type PoolLike } from '../src/plataforma/db/pool.js';
 import { comTravaDaFonte } from '../src/plataforma/db/trava.js';
 import { prefixo, S, unico, url } from './pg/ctx.js';
 
@@ -107,5 +107,24 @@ d('timeouts e higiene de conexão (C3)', () => {
     expect(r).toEqual({ executou: true, valor: 'c' });
     expect(await comTravaDaFonte(novo(), fonte, async () => 'd')).toEqual({ executou: true, valor: 'd' });
     expect((await alvo.query('SELECT 1 AS ok')).rows[0]).toEqual({ ok: 1 });
+  });
+  it('trava da fonte: unlock que falha numa conexão VIVA destrói a conexão (release(true)) e a trava não fica retida', async () => {
+    const fonte = unico('g');
+    const real = novo({ max: 1 });
+    // Mesma conexão real, mas o unlock "falha" no cliente: a trava continua retida no servidor até a conexão ser destruída.
+    const falhaNoUnlock: PoolLike = {
+      query: (t, p) => real.query(t, p),
+      end: () => real.end(),
+      connect: async () => {
+        const c = await real.connect();
+        return {
+          query: ((t: string, p?: unknown[]) => (t.includes('pg_advisory_unlock') ? Promise.reject(new Error('unlock falhou')) : c.query(t, p))) as ClienteLike['query'],
+          release: (d) => c.release(d as boolean | undefined),
+        };
+      },
+    };
+    expect(await comTravaDaFonte(falhaNoUnlock, fonte, async () => 'a')).toEqual({ executou: true, valor: 'a' });
+    // Outra sessão consegue a trava: a conexão que a retinha foi encerrada em vez de voltar ao pool.
+    expect(await comTravaDaFonte(novo(), fonte, async () => 'b')).toEqual({ executou: true, valor: 'b' });
   });
 });

@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import { describe, expect, it } from 'vitest';
 import { criarPool, ehDuplicado, emTransacao, interpretadores, tipos, urlDoPapel } from '../src/plataforma/db/pool.js';
 import { esquemasDoAmbiente, montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
@@ -28,6 +29,15 @@ describe('pool', () => {
     const p = criarPool('postgres://u:p@127.0.0.1:1/x', { max: 1, statementTimeoutMs: 1000 });
     await p.end();
     await criarPool('postgres://u:p@127.0.0.1:1/x').end();
+  });
+  it('criarPool tem ouvinte de error: conexão ociosa derrubada não derruba o processo', async () => {
+    const p = criarPool('postgres://u:p@127.0.0.1:1/x');
+    expect(p.listenerCount('error')).toBeGreaterThan(0);
+    expect(() => p.emit('error', new Error('terminated'))).not.toThrow();
+    const cliente = new EventEmitter();
+    p.emit('connect', cliente as never);
+    expect(() => cliente.emit('error', new Error('terminated'))).not.toThrow();
+    await p.end();
   });
   it('criarPool aplica os timeouts de C3 e o application_name do papel', async () => {
     const p = criarPool('postgres://dspd_api:p@127.0.0.1:1/x');
