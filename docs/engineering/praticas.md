@@ -1,7 +1,7 @@
 # Práticas de engenharia — MetricasDSPD
 
 Versão 3 · 2026-10-10 (documentação técnica na definição de pronto; v2 2026-10-09 alinhada às ADRs 0002 e 0003) · Mantido por tech-lead + software-architect (K-015, decisão D9 da ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`).
-Base: skill `.claude/skills/engineering-practices/SKILL.md`. Este arquivo prevalece sobre a skill; decisões estruturais ficam em ADR (`docs/architecture/adr/`). Divergência entre tech-lead e arquiteto vira ADR com as duas posições.
+Base: skill `engineering-practices` da fábrica Forge. Este arquivo prevalece sobre a skill; decisões estruturais ficam em ADR (`docs/architecture/adr/`). Divergência entre tech-lead e arquiteto vira ADR com as duas posições.
 
 Regras marcadas **[lint]** ou **[CI]** são verificadas por máquina; as demais, no code review.
 
