@@ -1,12 +1,25 @@
 {
-  "agent": "jarvis",
+  "agent": "forge:jarvis",
   "extraKnownMarketplaces": {
     "siegard-generator": {
-      "source": { "source": "github", "repo": "zig999/siegard2" },
+      "source": {
+        "source": "github",
+        "repo": "zig999/siegard2"
+      },
+      "autoUpdate": false
+    },
+    "forge": {
+      "source": {
+        "source": "github",
+        "repo": "rodrigo-isensee/Forge"
+      },
       "autoUpdate": false
     }
   },
-  "enabledPlugins": { "siegard@siegard-generator": true },
+  "enabledPlugins": {
+    "siegard@siegard-generator": true,
+    "forge@forge": true
+  },
   "permissions": {
     "deny": [
       "Read(./.env)",
@@ -20,6 +33,9 @@
       "Bash(git * --no-verify*)",
       "Bash(git config * core.hooksPath*)"
     ],
-    "ask": ["Bash(gh pr merge*)", "Bash(gh api * -X PUT*)"]
+    "ask": [
+      "Bash(gh pr merge*)",
+      "Bash(gh api * -X PUT*)"
+    ]
   }
 }

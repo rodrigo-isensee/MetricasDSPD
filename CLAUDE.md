@@ -25,21 +25,16 @@ Projeto full-stack: back-end em Node.js (`server/`), front-end em React (`web/`)
 ## O que é código e o que não é
 Frentes de implementação pelo time: WS2 (coletor e base analítica), WS3 (painéis do fluxo), WS5 (painéis de sustentação) e as automações externas da T4.3. As frentes WS1, WS4 e WS6 são configuração de ferramenta e governança feitas por pessoas; o time pode gerar apoio (relatórios, roteiros de teste, consultas), mas não as executa.
 
-## Time de agentes (`.claude/agents/`)
-O `jarvis` (orquestrador) é o agente principal da sessão (definido em `.claude/settings.json`): conversa com o usuário, delega para os especialistas abaixo e mantém o quadro Kanban.
+## Fábrica Forge
+Este projeto é desenvolvido pela fábrica **Forge** (plugin `forge@forge`, https://github.com/rodrigo-isensee/Forge). O Jarvis (`forge:jarvis`, agente principal em `.claude/settings.json`) e o time (`forge:tech-lead`, `forge:software-architect`, `forge:ux-designer`, `forge:node-backend`, `forge:react-frontend`, `forge:qa-engineer`, `forge:agile-coach`), as skills e o processo geral vêm do Forge. Este arquivo guarda só o que é **deste sistema**: regras invioláveis, fluxo de branches e homologação, e as exceções locais abaixo.
 
-| Agente | Responsabilidade | Entrega em |
-|---|---|---|
-| `jarvis` | Orquestração: planejamento, delegação, quadro Kanban, reuniões de alinhamento, comunicação com o usuário | `KANBAN.md`, `docs/alinhamentos/` |
-| `ux-designer` | Upstream com Design Thinking (empatia, definição, ideação, protótipo, validação), especificação e revisão de interface | `docs/ux/<demanda>/` |
-| `software-architect` | Arquitetura, modelo de dados, ADRs e plano técnico — com o tech lead | `docs/architecture/` |
-| `tech-lead` | Boas práticas de desenvolvimento e modelagem (com o arquiteto), code review, decisões de commit, branches e pull requests | `docs/engineering/`, `docs/reviews/`, git |
-| `node-backend` | APIs, regras de negócio, banco, testes do servidor | `server/`, `docs/api/` |
-| `react-frontend` | Telas, componentes, integração com a API, testes de UI | `web/` |
-| `qa-engineer` | Plano de testes, E2E, acessibilidade, parecer de QA | `e2e/`, `docs/qa/` |
-| `agile-coach` | Quadro Kanban, métricas de fluxo do time, retrospectivas e melhoria contínua | `docs/kanban/`, `docs/retrospectivas/` |
+**Fábrica × projeto:** mudanças em agentes, skills, fluxo e práticas gerais vão para o repositório Forge, nunca para este projeto. Não crie `.claude/agents/` nem `.claude/skills/` aqui: eles teriam prioridade sobre o Forge e divergiriam da fábrica.
 
-As convenções de cada área ficam nas skills em `.claude/skills/`.
+**Exceções locais às regras da fábrica:**
+- Teto de recursos: o do Forge (estação WSL com 8 GB e 8 núcleos) vale como está.
+- Orçamento de performance: ADR 0003.
+- Branches: `feature/*` → `develop` → `homolog` → `main` (abaixo), em vez do fluxo padrão da fábrica.
+- Comando de pronto: `pnpm run pronto`.
 
 ## Fluxo de uma demanda
 **Upstream (discovery)** — `ux-designer` e `software-architect` juntos: o UX conduz Design Thinking (empatizar → definir → idear → prototipar) e o arquiteto avalia em paralelo viabilidade, dados, integrações e riscos → **validação do usuário no protótipo** (ponto de compromisso).
