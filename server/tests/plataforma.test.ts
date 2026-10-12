@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { describe, expect, it } from 'vitest';
-import { criarPool, ehDuplicado, emTransacao, interpretadores, tipos, urlDoPapel } from '../src/plataforma/db/pool.js';
+import { aplicacaoDaUrl, criarPool, ehDuplicado, emTransacao, interpretadores, tipos, urlDoPapel } from '../src/plataforma/db/pool.js';
 import { esquemasDoAmbiente, montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
 import { gerarGrants, type Catalogo } from '../src/plataforma/db/grants.js';
 import { limparTestes } from '../src/plataforma/db/limpar-testes.js';
@@ -38,6 +38,24 @@ describe('pool', () => {
     p.emit('connect', cliente as never);
     expect(() => cliente.emit('error', new Error('terminated'))).not.toThrow();
     await p.end();
+  });
+  it('criarPool registra as falhas de conexão (warn) sem a URL nem a senha', async () => {
+    const chamadas: Array<[string, { aplicacao: string; erro: string }]> = [];
+    const p = criarPool('postgres://dspd_api:segredo@127.0.0.1:1/x', { log: (m, c) => { chamadas.push([m, c]); } });
+    p.emit('error', new Error('terminated'));
+    const cliente = new EventEmitter();
+    p.emit('connect', cliente as never);
+    cliente.emit('error', new Error('backend morto'));
+    expect(chamadas.map(([, c]) => c)).toEqual([
+      { aplicacao: 'dspd-api', erro: 'terminated' }, { aplicacao: 'dspd-api', erro: 'backend morto' },
+    ]);
+    expect(JSON.stringify(chamadas)).not.toContain('segredo');
+    await p.end();
+  });
+  it('aplicacaoDaUrl cai em dspd-app quando a URL não é interpretável', () => {
+    expect(aplicacaoDaUrl('/var/run/postgresql')).toBe('dspd-app');
+    expect(aplicacaoDaUrl('postgres://%E0%A4%A@h/x')).toBe('dspd-app');
+    expect(aplicacaoDaUrl('postgres://dspd_api@h/x')).toBe('dspd-api');
   });
   it('criarPool aplica os timeouts de C3 e o application_name do papel', async () => {
     const p = criarPool('postgres://dspd_api:p@127.0.0.1:1/x');
