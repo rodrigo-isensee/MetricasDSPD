@@ -1,4 +1,4 @@
-import { METRICA_IDS, METRICAS_SUSTENTACAO, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, fonteDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, type ContextosMetricas } from '@metricas-dspd/metricas';
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
 import type pg from 'pg';
@@ -17,6 +17,8 @@ const AGORA = new Date('2026-10-10T15:00:00Z');
 const CORTE = `${CORTE_DATA}T23:59:59-03:00`;
 const FLUXO = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } };
 const SUST = { equipe: [], prioridade: [], periodo: { tipo: '12s' as const } };
+/** Filtros de cada fonte: a Visão geral e a pesquisa (PV1) não têm filtros. */
+const FILTROS_POR_FONTE = { businessmap: FLUXO, acelerato: SUST, ambos: {}, pesquisa: {} } as const;
 
 /** Paridade real: mock em memória x seed no PostgreSQL lido pelo papel `dspd_api` (grants por coluna). */
 d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
@@ -47,7 +49,7 @@ d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
     };
     const s = new ServicoMetricas({ db: api, S: E, extensoes: () => gerarExtensoesMock(base) });
     for (const id of METRICA_IDS as readonly MetricaId[]) {
-      const f = id === 'VISAO_GERAL' ? {} : METRICAS_SUSTENTACAO.includes(id) ? SUST : FLUXO;
+      const f = FILTROS_POR_FONTE[fonteDaMetrica(id)];
       const r = await s.calcular(id, f, { dataReferencia: CORTE_DATA }, AGORA);
       expect(r.resultado, id).toEqual(calcularMetrica(id, f as never, ctx));
     }

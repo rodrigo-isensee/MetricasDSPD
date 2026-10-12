@@ -1110,6 +1110,7 @@
                                 "S10",
                                 "S11",
                                 "S12",
+                                "PV1",
                                 "EI_FL1",
                                 "EI_FL2",
                                 "EI_FL3",
@@ -1179,6 +1180,7 @@
                           "S10",
                           "S11",
                           "S12",
+                          "PV1",
                           "EI_FL1",
                           "EI_FL2",
                           "EI_FL3",
@@ -1607,6 +1609,7 @@
                             "S10",
                             "S11",
                             "S12",
+                            "PV1",
                             "EI_FL1",
                             "EI_FL2",
                             "EI_FL3",
@@ -28206,6 +28209,1063 @@
         }
       }
     },
+    "/api/v1/metricas/PV1": {
+      "get": {
+        "summary": "Métrica PV1",
+        "tags": [
+          "metricas"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "dataReferencia",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "sem-pesquisa"
+                          ]
+                        },
+                        "fonte": {
+                          "type": "string",
+                          "enum": [
+                            "pesquisa"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "fonte"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "ok"
+                          ]
+                        },
+                        "fonte": {
+                          "type": "string",
+                          "enum": [
+                            "pesquisa"
+                          ]
+                        },
+                        "trimestre": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-T[1-4]$"
+                        },
+                        "ciclo": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 9007199254740991
+                        },
+                        "questionario": {
+                          "type": "object",
+                          "properties": {
+                            "versaoId": {
+                              "type": "string"
+                            },
+                            "vigenteDesde": {
+                              "type": "string"
+                            },
+                            "perguntas": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "codigo": {
+                                    "type": "string"
+                                  },
+                                  "ordem": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "texto": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "codigo",
+                                  "ordem",
+                                  "texto"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "versaoId",
+                            "vigenteDesde",
+                            "perguntas"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "participacao": {
+                          "type": "object",
+                          "properties": {
+                            "respondentes": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "convidados": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "taxa": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "ok"
+                                      ]
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": 20,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pct": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "pct"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "insuficiente"
+                                      ]
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 19
+                                    },
+                                    "minimo": {
+                                      "type": "number",
+                                      "enum": [
+                                        20
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "minimo"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "respondentes",
+                            "convidados",
+                            "taxa"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "consolidado": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "base-insuficiente"
+                                  ]
+                                },
+                                "n": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 4
+                                },
+                                "minimo": {
+                                  "type": "number",
+                                  "enum": [
+                                    5
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "status",
+                                "n",
+                                "minimo"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "publicado"
+                                  ]
+                                },
+                                "n": {
+                                  "type": "integer",
+                                  "minimum": 5,
+                                  "maximum": 9007199254740991
+                                },
+                                "perguntas": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "codigo": {
+                                        "type": "string"
+                                      },
+                                      "faixas": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "faixa": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "number",
+                                                  "enum": [
+                                                    1
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "number",
+                                                  "enum": [
+                                                    2
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "number",
+                                                  "enum": [
+                                                    3
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "number",
+                                                  "enum": [
+                                                    4
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "number",
+                                                  "enum": [
+                                                    5
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            "contagem": {
+                                              "oneOf": [
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "status": {
+                                                      "type": "string",
+                                                      "enum": [
+                                                        "ok"
+                                                      ]
+                                                    },
+                                                    "k": {
+                                                      "type": "number"
+                                                    },
+                                                    "n": {
+                                                      "type": "integer",
+                                                      "minimum": 20,
+                                                      "maximum": 9007199254740991
+                                                    },
+                                                    "pct": {
+                                                      "type": "number"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "status",
+                                                    "k",
+                                                    "n",
+                                                    "pct"
+                                                  ],
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "status": {
+                                                      "type": "string",
+                                                      "enum": [
+                                                        "insuficiente"
+                                                      ]
+                                                    },
+                                                    "k": {
+                                                      "type": "number"
+                                                    },
+                                                    "n": {
+                                                      "type": "integer",
+                                                      "minimum": -9007199254740991,
+                                                      "maximum": 19
+                                                    },
+                                                    "minimo": {
+                                                      "type": "number",
+                                                      "enum": [
+                                                        20
+                                                      ]
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "status",
+                                                    "k",
+                                                    "n",
+                                                    "minimo"
+                                                  ],
+                                                  "additionalProperties": false
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "faixa",
+                                            "contagem"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "codigo",
+                                      "faixas"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "status",
+                                "n",
+                                "perguntas"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "porArea": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "nao-publicado"
+                                  ]
+                                },
+                                "motivo": {
+                                  "type": "string",
+                                  "enum": [
+                                    "primeiro-ciclo",
+                                    "base-insuficiente"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "status",
+                                "motivo"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "publicado"
+                                  ]
+                                },
+                                "areas": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "rotulo": {
+                                        "type": "string"
+                                      },
+                                      "outras": {
+                                        "type": "boolean"
+                                      },
+                                      "bloco": {
+                                        "type": "object",
+                                        "properties": {
+                                          "status": {
+                                            "type": "string",
+                                            "enum": [
+                                              "publicado"
+                                            ]
+                                          },
+                                          "n": {
+                                            "type": "integer",
+                                            "minimum": 3,
+                                            "maximum": 9007199254740991
+                                          },
+                                          "perguntas": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "properties": {
+                                                "codigo": {
+                                                  "type": "string"
+                                                },
+                                                "faixas": {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                      "faixa": {
+                                                        "anyOf": [
+                                                          {
+                                                            "type": "number",
+                                                            "enum": [
+                                                              1
+                                                            ]
+                                                          },
+                                                          {
+                                                            "type": "number",
+                                                            "enum": [
+                                                              2
+                                                            ]
+                                                          },
+                                                          {
+                                                            "type": "number",
+                                                            "enum": [
+                                                              3
+                                                            ]
+                                                          },
+                                                          {
+                                                            "type": "number",
+                                                            "enum": [
+                                                              4
+                                                            ]
+                                                          },
+                                                          {
+                                                            "type": "number",
+                                                            "enum": [
+                                                              5
+                                                            ]
+                                                          }
+                                                        ]
+                                                      },
+                                                      "contagem": {
+                                                        "oneOf": [
+                                                          {
+                                                            "type": "object",
+                                                            "properties": {
+                                                              "status": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                  "ok"
+                                                                ]
+                                                              },
+                                                              "k": {
+                                                                "type": "number"
+                                                              },
+                                                              "n": {
+                                                                "type": "integer",
+                                                                "minimum": 20,
+                                                                "maximum": 9007199254740991
+                                                              },
+                                                              "pct": {
+                                                                "type": "number"
+                                                              }
+                                                            },
+                                                            "required": [
+                                                              "status",
+                                                              "k",
+                                                              "n",
+                                                              "pct"
+                                                            ],
+                                                            "additionalProperties": false
+                                                          },
+                                                          {
+                                                            "type": "object",
+                                                            "properties": {
+                                                              "status": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                  "insuficiente"
+                                                                ]
+                                                              },
+                                                              "k": {
+                                                                "type": "number"
+                                                              },
+                                                              "n": {
+                                                                "type": "integer",
+                                                                "minimum": -9007199254740991,
+                                                                "maximum": 19
+                                                              },
+                                                              "minimo": {
+                                                                "type": "number",
+                                                                "enum": [
+                                                                  20
+                                                                ]
+                                                              }
+                                                            },
+                                                            "required": [
+                                                              "status",
+                                                              "k",
+                                                              "n",
+                                                              "minimo"
+                                                            ],
+                                                            "additionalProperties": false
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    "required": [
+                                                      "faixa",
+                                                      "contagem"
+                                                    ],
+                                                    "additionalProperties": false
+                                                  }
+                                                }
+                                              },
+                                              "required": [
+                                                "codigo",
+                                                "faixas"
+                                              ],
+                                              "additionalProperties": false
+                                            }
+                                          }
+                                        },
+                                        "required": [
+                                          "status",
+                                          "n",
+                                          "perguntas"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "required": [
+                                      "rotulo",
+                                      "outras",
+                                      "bloco"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "status",
+                                "areas"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "tendencia": {
+                          "maxItems": 4,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "trimestre": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-T[1-4]$"
+                              },
+                              "versaoId": {
+                                "type": "string"
+                              },
+                              "bloco": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "base-insuficiente"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 4
+                                      },
+                                      "minimo": {
+                                        "type": "number",
+                                        "enum": [
+                                          5
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "minimo"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "publicado"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 5,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "concordam": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "codigo": {
+                                              "type": "string"
+                                            },
+                                            "contagem": {
+                                              "oneOf": [
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "status": {
+                                                      "type": "string",
+                                                      "enum": [
+                                                        "ok"
+                                                      ]
+                                                    },
+                                                    "k": {
+                                                      "type": "number"
+                                                    },
+                                                    "n": {
+                                                      "type": "integer",
+                                                      "minimum": 20,
+                                                      "maximum": 9007199254740991
+                                                    },
+                                                    "pct": {
+                                                      "type": "number"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "status",
+                                                    "k",
+                                                    "n",
+                                                    "pct"
+                                                  ],
+                                                  "additionalProperties": false
+                                                },
+                                                {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "status": {
+                                                      "type": "string",
+                                                      "enum": [
+                                                        "insuficiente"
+                                                      ]
+                                                    },
+                                                    "k": {
+                                                      "type": "number"
+                                                    },
+                                                    "n": {
+                                                      "type": "integer",
+                                                      "minimum": -9007199254740991,
+                                                      "maximum": 19
+                                                    },
+                                                    "minimo": {
+                                                      "type": "number",
+                                                      "enum": [
+                                                        20
+                                                      ]
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "status",
+                                                    "k",
+                                                    "n",
+                                                    "minimo"
+                                                  ],
+                                                  "additionalProperties": false
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "codigo",
+                                            "contagem"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "concordam"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "trimestre",
+                              "versaoId",
+                              "bloco"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "oQueMudou": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "trimestre": {
+                                  "type": "string",
+                                  "pattern": "^\\d{4}-T[1-4]$"
+                                },
+                                "texto": {
+                                  "type": "string",
+                                  "maxLength": 500
+                                }
+                              },
+                              "required": [
+                                "trimestre",
+                                "texto"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "criterios": {
+                          "type": "object",
+                          "properties": {
+                            "serie": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "data": {
+                                    "type": "string"
+                                  },
+                                  "descricao": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "data",
+                                  "descricao"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "janela": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "data": {
+                                    "type": "string"
+                                  },
+                                  "descricao": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "data",
+                                  "descricao"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "serie",
+                            "janela"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "base": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "unidade": {
+                              "type": "string"
+                            },
+                            "janela": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "inicio": {
+                                      "type": "string"
+                                    },
+                                    "fim": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "inicio",
+                                    "fim"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "complemento": {
+                              "type": "object",
+                              "properties": {
+                                "n": {
+                                  "type": "number"
+                                },
+                                "unidade": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "n",
+                                "unidade"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade",
+                            "janela"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "fonte",
+                        "trimestre",
+                        "ciclo",
+                        "questionario",
+                        "participacao",
+                        "consolidado",
+                        "porArea",
+                        "tendencia",
+                        "oQueMudou",
+                        "criterios",
+                        "base"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/metricas/EI_FL1": {
       "get": {
         "summary": "Métrica EI_FL1",
@@ -30963,6 +32023,7 @@
                                     "S10",
                                     "S11",
                                     "S12",
+                                    "PV1",
                                     "EI_FL1",
                                     "EI_FL2",
                                     "EI_FL3",

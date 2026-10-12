@@ -1,5 +1,5 @@
 import {
-  CATALOGO_CARTOES, METRICAS_SUSTENTACAO, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  CATALOGO_CARTOES, fonteDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, type ContextosMetricas, type ExtensoesMetricas,
@@ -38,8 +38,8 @@ type Marca = { versao: string; finalizadoEm: Date | null };
 type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null };
 type Entrada<B> = { lidoEm: number; carga: Promise<Carga<B>> | null; atual: Carga<B> | null };
 
-const dominioDe = (id: MetricaId): Dom | 'ambos' =>
-  id === 'VISAO_GERAL' ? 'ambos' : METRICAS_SUSTENTACAO.includes(id) ? 'acelerato' : 'businessmap';
+/** Fonte de dados da métrica: `fonteDaMetrica` é o ponto único (a PV1 é `pesquisa`, nunca BusinessMap nem Acelerato). */
+const dominioDe = fonteDaMetrica;
 
 /** Chave normalizada: listas ordenadas, ordem das propriedades fixa. */
 export function normalizar(f: FiltrosMetrica): string {
@@ -148,6 +148,12 @@ export class ServicoMetricas {
     const hoje = dataCivil(agoraDate);
     if (op.dataReferencia !== undefined && op.dataReferencia > hoje) {
       throw new AppError('VALIDATION_ERROR', 'Parâmetros inválidos.', 400, [{ caminho: 'dataReferencia', mensagem: 'Data futura.' }]);
+    }
+    if (dom === 'pesquisa') {
+      // PROVISÓRIO (B3 liga a fonte `pesquisa`: carga, versão e cache próprios). Até lá: sem pesquisa, sem ler BM nem AC.
+      const dataReferencia = op.dataReferencia ?? hoje;
+      const versaoCriterio = await this.versaoCriterio(dataReferencia, agora);
+      return { resultado: { status: 'sem-pesquisa', fonte: 'pesquisa' }, dataReferencia, versaoCriterio, chave: `${id}|${versaoCriterio}|${dataReferencia}` };
     }
     const bm = dom === 'acelerato' ? null : await this.carga('businessmap', agora);
     const ac = dom === 'businessmap' ? null : await this.carga('acelerato', agora);
