@@ -6,6 +6,9 @@ const semear = vi.fn().mockResolvedValue('semeado');
 const limpar = vi.fn().mockResolvedValue(['t1_dspd_bm']);
 const cliente = { connect: vi.fn().mockResolvedValue(undefined), end: vi.fn().mockResolvedValue(undefined) };
 const escrever = vi.fn();
+const recusa = vi.fn<(e: unknown) => string | null>().mockReturnValue(null);
+const confirmacao = vi.fn<(d: unknown) => string | undefined>().mockReturnValue('2026-10-12');
+vi.mock('../src/plataforma/db/trava-down.js', () => ({ motivoDeRecusa: (e: unknown) => recusa(e), lerConfirmacaoBackup: (d: unknown) => confirmacao(d) }));
 vi.mock('../src/plataforma/db/migrar.js', () => ({ migrar: (...a: unknown[]) => migrar(...a), DIR_MIGRACOES: '/tmp/x' }));
 vi.mock('../src/plataforma/db/pool.js', () => ({ criarPool: () => pool }));
 vi.mock('../src/plataforma/db/seed.js', () => ({ semear: (...a: unknown[]) => semear(...a) }));
@@ -14,11 +17,12 @@ vi.mock('pg', () => ({ default: { Client: class { constructor() { return cliente
 vi.mock('@metricas-dspd/mock', () => ({ gerarBaseMock: (o: unknown) => ({ opcoes: o }) }));
 vi.mock('node:fs', () => ({ readdirSync: () => ['0002_b.ts', '0001_a.ts', 'checksums.json'], writeFileSync: (...a: unknown[]) => escrever(...a) }));
 
-const ENV = ['PG_MIGRADOR_URL', 'PG_SEED_URL', 'PG_TESTE_URL', 'MOCK_SEMENTE', 'DSPD_SCHEMA_PREFIXO'];
+const ENV = ['DSPD_PERMITIR_DOWN', 'DSPD_BACKUP_DIR', 'PG_MIGRADOR_URL', 'PG_SEED_URL', 'PG_TESTE_URL', 'MOCK_SEMENTE', 'DSPD_SCHEMA_PREFIXO'];
 const salvo = [...process.argv];
 beforeEach(() => {
   vi.resetModules(); vi.clearAllMocks();
   migrar.mockResolvedValue({ migracoes: ['a'], grants: 3 });
+  recusa.mockReturnValue(null);
   for (const k of ENV) delete process.env[k];
   vi.spyOn(console, 'log').mockImplementation(() => undefined);
   process.argv = [...salvo];
@@ -52,6 +56,20 @@ describe('cli de migração', () => {
     process.argv[2] = 'redo';
     await import('../src/plataforma/db/cli.js');
     expect(migrar.mock.calls.map((c) => (c[1] as { direcao: string }).direcao)).toEqual(['down', 'up']);
+  });
+});
+
+describe('cli de migração: trava do down/redo (C2)', () => {
+  it('repassa comando, prefixo, DSPD_PERMITIR_DOWN e a confirmação do backup; recusa antes de migrar', async () => {
+    process.env.PG_MIGRADOR_URL = 'postgres://x';
+    process.env.DSPD_PERMITIR_DOWN = '1';
+    process.env.DSPD_BACKUP_DIR = '/mnt/backup';
+    process.argv[2] = 'down';
+    recusa.mockReturnValue('down recusado: motivo');
+    await expect(import('../src/plataforma/db/cli.js')).rejects.toThrow('down recusado: motivo');
+    expect(migrar).not.toHaveBeenCalled();
+    expect(confirmacao).toHaveBeenCalledWith('/mnt/backup');
+    expect(recusa.mock.calls[0]![0]).toMatchObject({ comando: 'down', prefixo: '', permitir: '1', confirmacaoBackup: '2026-10-12' });
   });
 });
 

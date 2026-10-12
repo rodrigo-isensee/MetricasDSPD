@@ -154,6 +154,16 @@ describe('trava por fonte', () => {
     const f = criarDublePg((c) => (c.texto.includes('try_advisory') ? [{ ok: true }] : []));
     await expect(comTravaDaFonte(f.pool, 'x', async () => { throw new Error('y'); })).rejects.toThrow('y');
     expect(f.chamadas.some((c) => c.texto.includes('advisory_unlock'))).toBe(true);
+    expect(f.estado.destruidos).toBe(0);
+  });
+  it('unlock com falha destrói a conexão (solta o lock) e não perde o resultado nem o erro de fn', async () => {
+    const quebra = (c: { texto: string }) => (c.texto.includes('advisory_unlock') ? new Error('sem conexão') : [{ ok: true }]);
+    const a = criarDublePg(quebra);
+    expect(await comTravaDaFonte(a.pool, 'acelerato', async () => 7)).toEqual({ executou: true, valor: 7 });
+    expect(a.estado.destruidos).toBe(1);
+    const b = criarDublePg(quebra);
+    await expect(comTravaDaFonte(b.pool, 'x', async () => { throw new Error('y'); })).rejects.toThrow('y');
+    expect(b.estado.destruidos).toBe(1);
   });
 });
 

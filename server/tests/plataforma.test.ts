@@ -1,5 +1,6 @@
+import { EventEmitter } from 'node:events';
 import { describe, expect, it } from 'vitest';
-import { criarPool, ehDuplicado, emTransacao, interpretadores, tipos, urlDoPapel } from '../src/plataforma/db/pool.js';
+import { aplicacaoDaUrl, criarPool, ehDuplicado, emTransacao, interpretadores, tipos, urlDoPapel } from '../src/plataforma/db/pool.js';
 import { esquemasDoAmbiente, montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
 import { gerarGrants, type Catalogo } from '../src/plataforma/db/grants.js';
 import { limparTestes } from '../src/plataforma/db/limpar-testes.js';
@@ -28,6 +29,59 @@ describe('pool', () => {
     const p = criarPool('postgres://u:p@127.0.0.1:1/x', { max: 1, statementTimeoutMs: 1000 });
     await p.end();
     await criarPool('postgres://u:p@127.0.0.1:1/x').end();
+  });
+  it('criarPool tem ouvinte de error: conexão ociosa derrubada não derruba o processo', async () => {
+    const p = criarPool('postgres://u:p@127.0.0.1:1/x');
+    expect(p.listenerCount('error')).toBeGreaterThan(0);
+    expect(() => p.emit('error', new Error('terminated'))).not.toThrow();
+    const cliente = new EventEmitter();
+    p.emit('connect', cliente as never);
+    expect(() => cliente.emit('error', new Error('terminated'))).not.toThrow();
+    await p.end();
+  });
+  it('criarPool registra as falhas de conexão (warn) sem a URL nem a senha', async () => {
+    const chamadas: Array<[string, { aplicacao: string; erro: string }]> = [];
+    const p = criarPool('postgres://dspd_api:segredo@127.0.0.1:1/x', { log: (m, c) => { chamadas.push([m, c]); } });
+    p.emit('error', new Error('terminated'));
+    const cliente = new EventEmitter();
+    p.emit('connect', cliente as never);
+    cliente.emit('error', new Error('backend morto'));
+    expect(chamadas.map(([, c]) => c)).toEqual([
+      { aplicacao: 'dspd-api', erro: 'terminated' }, { aplicacao: 'dspd-api', erro: 'backend morto' },
+    ]);
+    expect(JSON.stringify(chamadas)).not.toContain('segredo');
+    await p.end();
+  });
+  it('aplicacaoDaUrl cai em dspd-app quando a URL não é interpretável', () => {
+    expect(aplicacaoDaUrl('/var/run/postgresql')).toBe('dspd-app');
+    expect(aplicacaoDaUrl('postgres://%E0%A4%A@h/x')).toBe('dspd-app');
+    expect(aplicacaoDaUrl('postgres://dspd_api@h/x')).toBe('dspd-api');
+  });
+  it('criarPool aplica os timeouts de C3 e o application_name do papel', async () => {
+    const p = criarPool('postgres://dspd_api:p@127.0.0.1:1/x');
+    expect(p.options).toMatchObject({
+      statement_timeout: 30_000, lock_timeout: 5_000, idle_in_transaction_session_timeout: 30_000,
+      connectionTimeoutMillis: 5_000, application_name: 'dspd-api', max: 10,
+    });
+    await p.end();
+    const q = criarPool('postgres://migrador:p@127.0.0.1:1/x', {
+      statementTimeoutMs: 1, lockTimeoutMs: 2, idleInTransactionTimeoutMs: 3, connectionTimeoutMs: 4, aplicacao: 'meu-app',
+    });
+    expect(q.options).toMatchObject({
+      statement_timeout: 1, lock_timeout: 2, idle_in_transaction_session_timeout: 3, connectionTimeoutMillis: 4, application_name: 'meu-app',
+    });
+    await q.end();
+    const r = criarPool('postgres://migrador:p@127.0.0.1:1/x');
+    expect(r.options.application_name).toBe('dspd-migrador');
+    await r.end();
+  });
+  it('emTransacao destrói a conexão quando o ROLLBACK falha e preserva o erro original', async () => {
+    const d = criarDublePg((c) => (c.texto === 'ROLLBACK' ? new Error('conexão caiu') : []));
+    await expect(emTransacao(d.pool, () => Promise.reject(new Error('original')))).rejects.toThrow('original');
+    expect(d.estado.destruidos).toBe(1);
+    const ok = criarDublePg();
+    await emTransacao(ok.pool, async () => 1);
+    expect(ok.estado.destruidos).toBe(0);
   });
   it('emTransacao confirma, desfaz em erro e sempre libera', async () => {
     const a = criarDublePg();

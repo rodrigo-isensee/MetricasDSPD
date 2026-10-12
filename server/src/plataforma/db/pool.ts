@@ -8,7 +8,8 @@ export interface Consultavel {
   ): Promise<{ rows: R[]; rowCount: number | null }>;
 }
 export interface ClienteLike extends Consultavel {
-  release(): void;
+  /** `true` (ou um erro) destrói a conexão em vez de devolvê-la ao pool; usado quando o estado da sessão é incerto. */
+  release(destruir?: boolean | Error): void;
 }
 export interface PoolLike extends Consultavel {
   connect(): Promise<ClienteLike>;
@@ -29,30 +30,63 @@ export const tipos = {
   },
 };
 
-export type OpcoesPool = { statementTimeoutMs?: number; max?: number };
+export type OpcoesPool = {
+  statementTimeoutMs?: number;
+  lockTimeoutMs?: number;
+  idleInTransactionTimeoutMs?: number;
+  connectionTimeoutMs?: number;
+  max?: number;
+  /** Nome que aparece em `pg_stat_activity`; padrão `dspd-<papel>` a partir do usuário da URL. */
+  aplicacao?: string;
+  /** Registro de falhas assíncronas de conexão (nível warn); nunca recebe a URL nem a senha. Sem ele, as falhas ficam sem log. */
+  log?: (msg: string, contexto: { aplicacao: string; erro: string }) => void;
+};
 
-/** Um Pool por papel (ADR 0014). Sessão em UTC; `statement_timeout` por pool. */
+/** Papel da URL para o `application_name`; URL que o `new URL` ou o decode não aceitam (socket Unix, `%` inválido) cai em `dspd-app`. */
+export function aplicacaoDaUrl(url: string): string {
+  try { return `dspd-${decodeURIComponent(new URL(url).username).replace(/^dspd_/, '')}`; } catch { return 'dspd-app'; }
+}
+
+/** Padrões de C3 (auditoria do banco): nenhuma sessão espera para sempre por lock, conexão ou transação parada. */
+export const TIMEOUTS_PADRAO = { statementMs: 30_000, lockMs: 5_000, idleInTransactionMs: 30_000, conexaoMs: 5_000 } as const;
+
+/** Um Pool por papel (ADR 0014). Sessão em UTC; timeouts de statement, lock, transação ociosa e conexão por pool. */
 export function criarPool(url: string, opcoes: OpcoesPool = {}): pg.Pool {
-  const { statementTimeoutMs = 30_000, max = 10 } = opcoes;
-  return new pg.Pool({
-    connectionString: url, max, types: tipos, statement_timeout: statementTimeoutMs,
-    options: '-c TimeZone=UTC',
+  const {
+    statementTimeoutMs = TIMEOUTS_PADRAO.statementMs, lockTimeoutMs = TIMEOUTS_PADRAO.lockMs,
+    idleInTransactionTimeoutMs = TIMEOUTS_PADRAO.idleInTransactionMs, connectionTimeoutMs = TIMEOUTS_PADRAO.conexaoMs,
+    max = 10, aplicacao = aplicacaoDaUrl(url), log,
+  } = opcoes;
+  const pool = new pg.Pool({
+    connectionString: url, max, types: tipos, statement_timeout: statementTimeoutMs, lock_timeout: lockTimeoutMs,
+    idle_in_transaction_session_timeout: idleInTransactionTimeoutMs, connectionTimeoutMillis: connectionTimeoutMs,
+    application_name: aplicacao, options: '-c TimeZone=UTC',
   });
+  // Só a mensagem do erro vai ao log (nunca a URL/senha). Sem ouvinte, o `error` do EventEmitter derrubaria o processo.
+  const avisar = (msg: string) => (e: Error): void => { log?.(msg, { aplicacao, erro: e.message }); };
+  // Conexão ociosa derrubada pelo servidor (restart, idle_in_transaction, terminate): registra e deixa o pool descartá-la.
+  pool.on('error', avisar('conexão ociosa do pool falhou; o pool a descarta'));
+  // Conexão emprestada: um `error` assíncrono (backend morto) fora de uma query também é registrado; a query em andamento
+  // (se houver) já rejeita, e `release(true)` descarta a conexão.
+  pool.on('connect', (c) => { c.on('error', avisar('conexão emprestada falhou fora de uma query')); });
+  return pool;
 }
 
 /** BEGIN/COMMIT; qualquer erro faz ROLLBACK e é repassado. O cliente sempre volta ao pool. */
 export async function emTransacao<T>(pool: PoolLike, fn: (cliente: Consultavel) => Promise<T>): Promise<T> {
   const cliente = await pool.connect();
+  let destruir = false;
   try {
     await cliente.query('BEGIN');
     const r = await fn(cliente);
     await cliente.query('COMMIT');
     return r;
   } catch (e) {
-    await cliente.query('ROLLBACK');
+    // Se o ROLLBACK também falhar, a sessão está em estado incerto: destrói a conexão e preserva o erro original.
+    await cliente.query('ROLLBACK').catch(() => { destruir = true; });
     throw e;
   } finally {
-    cliente.release();
+    cliente.release(destruir);
   }
 }
 
