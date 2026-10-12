@@ -58,7 +58,7 @@ jobs:
             echo '### Cobertura (limite 100%)'
             echo '| Pacote | Linhas | Ramos | Funções |'
             echo '|---|---|---|---|'
-            for p in server web; do
+            for p in server web tools/homolog; do
               f="$p/coverage/coverage-summary.json"
               [ -f "$f" ] && node -e "const t=require('./$f').total;console.log('| $p | '+['lines','branches','functions'].map(k=>t[k].pct+'%').join(' | ')+' |')"
             done
@@ -233,7 +233,7 @@ jobs:
     name: perf
     if: >-
       github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.base_ref == 'main')
+      (github.event_name == 'pull_request' && (github.base_ref == 'homolog' || github.base_ref == 'main'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

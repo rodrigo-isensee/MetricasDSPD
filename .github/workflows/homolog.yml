@@ -1,15 +1,15 @@
 name: Homologação
 
 # Portão da branch `homolog` (push) e rodada noturna contra a ponta de `homolog` (agendamento).
-# Cada um publica um status no commit (homolog-portao, homolog-noturna) que o check
-# `homolog-aprovada` (homolog-aprovada.yml) lê para liberar o PR homolog -> main.
+# O check `homolog-aprovada` (homolog-aprovada.yml) lê as EXECUÇÕES concluídas deste workflow (API de Actions)
+# e procura o job `portao <sha>` em sucesso: push = portão; schedule = noturna. Não há status de commit.
 # Documentação pura roda só o docs:check (H-2). O schedule só dispara com este arquivo na branch padrão.
 on:
   push:
     branches: [homolog]
   schedule:
     - cron: '30 5 * * *' # 02:30 em Brasília
-  workflow_dispatch: # diagnóstico: roda a suíte sem publicar status
+  workflow_dispatch: # em homolog vale como a noturna enquanto este arquivo não está na main (1ª release)
 
 concurrency:
   group: homolog-${{ github.event_name }}
@@ -231,25 +231,20 @@ jobs:
         run: pnpm run homolog:derrubar -- --volume
 
   portao:
-    name: portao
+    name: portao ${{ needs.escopo.outputs.sha }}
     needs: [escopo, portao-docs, qualidade, banco, e2e, perf, migracao-smoke]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      contents: read
-      statuses: write
     steps:
-      - name: Resultado e status no commit de homolog
+      - name: Resultado do portão (a conclusão desta execução é a evidência)
         env:
-          GH_TOKEN: ${{ github.token }}
           EVENTO: ${{ github.event_name }}
           SHA: ${{ needs.escopo.outputs.sha }}
           ESCOPO: ${{ needs.escopo.outputs.escopo }}
           RESULTADO_ESCOPO: ${{ needs.escopo.result }}
           RESULTADOS_CODIGO: ${{ needs.qualidade.result }} ${{ needs.banco.result }} ${{ needs.e2e.result }} ${{ needs.perf.result }} ${{ needs.migracao-smoke.result }}
           RESULTADO_DOCS: ${{ needs.portao-docs.result }}
-          URL_EXECUCAO: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           # Docs: só o docs:check. Código: os cinco jobs precisam estar em success (skipped não vale).
           estado=failure
@@ -262,13 +257,4 @@ jobs:
             fi
           fi
           echo "estado=$estado escopo=$ESCOPO evento=$EVENTO"
-          case "$EVENTO" in
-            push) contexto=homolog-portao ;;
-            schedule) contexto=homolog-noturna ;;
-            *) contexto='' ;;
-          esac
-          if [ -n "$contexto" ]; then
-            gh api "repos/${{ github.repository }}/statuses/$SHA" -f state="$estado" -f context="$contexto" \
-              -f description="escopo $ESCOPO" -f target_url="$URL_EXECUCAO"
-          fi
           [ "$estado" = 'success' ]

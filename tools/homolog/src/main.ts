@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Entrada de linha de comando: só liga as dependências reais à lógica testada (excluída da cobertura).
 import { spawn } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { appendFileSync, existsSync, readFileSync } from 'node:fs'
 import { setTimeout as esperar } from 'node:timers/promises'
 import { decidirAprovacao, type Api } from './aprovacao.ts'
+import { criarApi } from './github.ts'
 import { derrubar, migracao, smoke, subir } from './comandos.ts'
 import { classificarEscopo } from './escopo.ts'
 import type { Dependencias } from './tipos.ts'
@@ -47,21 +48,12 @@ function apiDoGitHub(): Api {
     authorization: `Bearer ${process.env.GITHUB_TOKEN ?? ''}`,
     accept: 'application/vnd.github+json',
   }
-  const obter = async (caminho: string): Promise<unknown> => {
+  return criarApi(async (caminho) => {
     const resposta = await fetch(`https://api.github.com/repos/${repo}/${caminho}`, {
       headers: cabecalhos,
     })
     return resposta.ok ? resposta.json() : undefined
-  }
-  return {
-    shaDaBranch: async (branch) =>
-      ((await obter(`commits/${branch}`)) as { sha?: string } | undefined)?.sha,
-    estadoDoContexto: async (sha, contexto) => {
-      const combinado = (await obter(`commits/${sha}/status`)) as
-        { statuses?: { context: string; state: string }[] } | undefined
-      return combinado?.statuses?.find((s) => s.context === contexto)?.state
-    },
-  }
+  })
 }
 
 const [comando, ...args] = process.argv.slice(2)
@@ -96,14 +88,23 @@ switch (comando) {
     const decisao = await decidirAprovacao(apiDoGitHub(), {
       shaCandidato: opcao(args, 'sha'),
       branchOrigem: opcao(args, 'origem'),
+      repoOrigem: opcao(args, 'repo-origem'),
+      repoDestino: process.env.GITHUB_REPOSITORY ?? '',
     })
+    if (decisao.aviso !== undefined) {
+      console.log(`::warning::${decisao.aviso}`)
+      appendFileSync(
+        process.env.GITHUB_STEP_SUMMARY ?? '/dev/null',
+        `### ${decisao.aviso}\n\n${decisao.motivo}\n`,
+      )
+    }
     console.log(decisao.motivo)
     process.exitCode = decisao.aprovada ? 0 : 1
     break
   }
   default:
     console.log(
-      'uso: main.ts subir | derrubar [--volume] | smoke | migracao --origem D --destino D | escopo --base X --head Y | aprovacao --sha S --origem B',
+      'uso: main.ts subir | derrubar [--volume] | smoke | migracao --origem D --destino D | escopo --base X --head Y | aprovacao --sha S --origem B --repo-origem O/R',
     )
     process.exitCode = 2
 }

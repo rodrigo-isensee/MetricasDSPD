@@ -70,6 +70,7 @@ interface Job {
   needs?: string | string[]
   if?: string
   permissions?: Record<string, string>
+  steps?: { uses?: string; with?: Record<string, string> }[]
 }
 interface Workflow {
   on: Record<string, unknown>
@@ -86,7 +87,7 @@ describe('workflows de homologação', () => {
     expect(homolog.on).toMatchObject({ push: { branches: ['homolog'] } })
     expect(Object.keys(homolog.on).sort()).toEqual(['push', 'schedule', 'workflow_dispatch'])
   })
-  it('o portão cobre banco, e2e, perf, migração e smoke, e só ele escreve status', () => {
+  it('o portão cobre banco, e2e, perf, migração e smoke, e nenhum job escreve nada', () => {
     expect(Object.keys(homolog.jobs)).toEqual(
       expect.arrayContaining([
         'escopo',
@@ -100,14 +101,41 @@ describe('workflows de homologação', () => {
       ]),
     )
     expect(homolog.permissions).toEqual({ contents: 'read' })
-    expect(homolog.jobs.portao?.permissions).toEqual({ contents: 'read', statuses: 'write' })
-    const comEscrita = Object.entries(homolog.jobs).filter(([, j]) => j.permissions !== undefined)
-    expect(comEscrita.map(([n]) => n)).toEqual(['portao'])
+    expect(Object.values(homolog.jobs).filter((j) => j.permissions !== undefined)).toEqual([])
+    expect(ler('.github/workflows/homolog.yml')).not.toMatch(/statuses|gh api/)
+  })
+  it('o portão depende dos jobs de código e os avalia, e o nome do job carrega o SHA', () => {
+    const jobs = ['qualidade', 'banco', 'e2e', 'perf', 'migracao-smoke']
+    expect(homolog.jobs.portao?.needs).toEqual(
+      expect.arrayContaining(['escopo', 'portao-docs', ...jobs]),
+    )
+    const texto = ler('.github/workflows/homolog.yml')
+    for (const job of jobs) expect(texto).toContain(`needs.${job}.result`)
+    expect(homolog.jobs.portao?.name).toBe('portao ${{ needs.escopo.outputs.sha }}')
+  })
+  it('toda action de terceiros está fixada por SHA e a branch do PR só chega ao run por env', () => {
+    for (const arquivo of [
+      '.github/workflows/ci.yml',
+      '.github/workflows/homolog.yml',
+      '.github/workflows/homolog-aprovada.yml',
+      '.github/actions/preparar/action.yml',
+      '.github/actions/playwright/action.yml',
+    ])
+      for (const [, uso] of ler(arquivo).matchAll(/uses:\s*(\S+)/g))
+        if (!uso?.startsWith('./')) expect(uso, arquivo).toMatch(/@[0-9a-f]{40}$/)
+    const aprovadaTexto = ler('.github/workflows/homolog-aprovada.yml')
+    expect(aprovadaTexto).not.toContain('pull_request_target')
+    expect(aprovadaTexto).not.toMatch(/run:[^\n]*\$\{\{/)
   })
   it('documentação roda só o docs:check', () => {
     expect(homolog.jobs['portao-docs']?.if).toContain("== 'docs'")
     for (const nome of ['qualidade', 'banco', 'e2e', 'perf', 'migracao-smoke'])
       expect(homolog.jobs[nome]?.if, nome).toContain("== 'codigo'")
+  })
+  it('homolog-aprovada lê a regra da BASE do PR, nunca da branch candidata', () => {
+    const passos = aprovada.jobs['homolog-aprovada']?.steps ?? []
+    const checkout = passos.find((p) => p.uses?.startsWith('actions/checkout@'))
+    expect(checkout?.with?.ref).toBe('${{ github.event.pull_request.base.sha }}')
   })
   it('homolog-aprovada vale só para PR na main e só lê', () => {
     expect(aprovada.on).toEqual({
@@ -117,7 +145,11 @@ describe('workflows de homologação', () => {
       },
     })
     expect(aprovada.jobs['homolog-aprovada']?.name).toBe('homolog-aprovada')
-    expect(aprovada.permissions).toEqual({ contents: 'read', statuses: 'read' })
+    expect(aprovada.permissions).toEqual({ contents: 'read', actions: 'read' })
+  })
+  it('o perf (com Lighthouse) roda também no PR para homolog (gate 2)', () => {
+    expect(ci.jobs.perf?.if).toContain("github.base_ref == 'homolog'")
+    expect(ci.jobs.perf?.if).toContain("github.base_ref == 'main'")
   })
   it('o CI atual mantém os jobs obrigatórios e o banco roda sempre em PR para homolog e main', () => {
     for (const nome of ['rapida', 'testes', 'banco', 'build', 'e2e'])

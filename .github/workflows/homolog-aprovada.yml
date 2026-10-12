@@ -1,7 +1,10 @@
 name: Homologação aprovada
 
 # Check obrigatório dos PRs para a main: o candidato precisa ser a ponta de `homolog`, com o portão (push)
-# e a rodada noturna verdes. Não substitui a aprovação do usuário. Depois da noturna, reexecute este check.
+# e a rodada noturna verdes (lidos das EXECUÇÕES do workflow homolog.yml, não de status de commit).
+# `hotfix/*` exige saída da ponta da main, poucos commits e o CI completo verde. Não substitui a aprovação
+# do usuário. Depois da noturna (ou do CI do hotfix), reexecute este check.
+# A regra vem do código da BASE do PR (main), nunca da branch candidata.
 on:
   pull_request:
     branches: [main]
@@ -9,7 +12,7 @@ on:
 
 permissions:
   contents: read
-  statuses: read
+  actions: read
 
 jobs:
   homolog-aprovada:
@@ -18,6 +21,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 24
@@ -25,4 +31,11 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SHA_CANDIDATO: ${{ github.event.pull_request.head.sha }}
           BRANCH_ORIGEM: ${{ github.event.pull_request.head.ref }}
-        run: node tools/homolog/src/main.ts aprovacao --sha "$SHA_CANDIDATO" --origem "$BRANCH_ORIGEM"
+          REPO_ORIGEM: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          # Primeira release: a regra ainda não existe na main. A base não é controlável pelo candidato.
+          if [ ! -f tools/homolog/src/main.ts ]; then
+            echo '::warning::A regra de homolog-aprovada ainda não está na main (primeira release): conferência manual do usuário.'
+            exit 0
+          fi
+          node tools/homolog/src/main.ts aprovacao --sha "$SHA_CANDIDATO" --origem "$BRANCH_ORIGEM" --repo-origem "$REPO_ORIGEM"
