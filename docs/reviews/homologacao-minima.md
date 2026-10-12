@@ -104,3 +104,35 @@ Correção: alinhar os textos do `tech-lead` nesta branch. O plano e a ADR ficam
 | I5 (identidade e aprovação) | `jarvis` → usuário; registro pelo `software-architect` em `docs/security/` | P/M | antes de configurar o ruleset da `main` |
 | Plano `features/homologacao.md` e ADR 0018 | `software-architect` | P | cartão próprio |
 | M3, M4, M5, M6, M7, M8, M9 | `tech-lead` / `node-backend` / `qa-engineer` | P | backlog |
+
+## Rodada 2 — correções (tech-lead, 2026-10-12)
+
+Todas as correções estão na branch `chore/homologacao-minima`; cada item consta no commit indicado.
+
+| Commit | Achados |
+|---|---|
+| `cf36946` | I1, I2, I3, I4, I6, M2, M10 |
+| `382d23e` | M3, M4 |
+| `c22609a` | I7, M1, M6 (e I5, decisão do usuário) |
+| `40e09de` | M9 |
+
+| Achado | Resolução |
+|---|---|
+| I1 hotfix | `decidirHotfix` (`tools/homolog/src/aprovacao.ts`): PR do próprio repositório (fork recusado), `behind_by == 0` contra a `main`, de 1 a 10 commits novos e workflow `CI` do PR verde para o SHA (API de Actions). Emite `::warning::HOTFIX sem soak` e resumo do job. Documentado em `fluxo-homologacao.md` §6. |
+| I2 evidência | Status de commit removido. `homolog-aprovada` lê execuções de `homolog.yml` (`status=success`, `head_sha`, `event` push/schedule) e exige o job `portao <sha>` em sucesso; o job agora leva o SHA no nome (um `schedule` tem `head_sha` da `main`, por isso o SHA vai no nome do job). Interpretação da API em `tools/homolog/src/github.ts`, testada. `homolog.yml` ficou sem permissões de escrita. Sugestão ao usuário permanece: `Bash(gh api *statuses*)` no `deny` (configuração dele). |
+| I3 regra da base | `actions/checkout` com `ref: base.sha` e `persist-credentials: false`; se a base ainda não tem o script (primeira release), o job passa com aviso e a conferência é do usuário. Teste trava o `ref`. Risco residual aceito: o YAML vem do merge ref (CODEOWNERS e revisão do usuário em `.github/**` e `tools/homolog/**`). |
+| I4 primeira release | `workflow_dispatch` em `homolog` vale como a noturna enquanto `homolog.yml` não está na `main` (`portaoNaMain`); desliga sozinho depois. §14 manda a primeira release sem `homolog-aprovada` obrigatório. |
+| I5 identidade | Decisão do usuário registrada no §3 do fluxo (conta de serviço no GitHub corporativo; até lá, prompt do `gh pr merge` e a regra dos agentes). Registro em `docs/security/` fica para o `software-architect`. |
+| I6 perf | Opção 1: `perf` (com Lighthouse) roda em PR para `homolog` e `main`; §14 lista `openapi`, `imagem` e `perf` para a `homolog`. Teste trava a condição. |
+| I7 textos | `fluxo-homologacao.md` (job, rótulo, cron, hotfix, regra de origem), `features/homologacao.md` (estado vigente e nota das decisões que superam trechos) e ADR 0018 (vigente). A reescrita completa do plano do arquiteto segue em cartão próprio. |
+| M1 | Documentado (§13). |
+| M2 | Testes: `portao` depende dos cinco jobs e os avalia; actions de terceiros por SHA; sem `pull_request_target` nem `${{` em `run:` do check. |
+| M3 | `validarEnv` restringe a `[A-Za-z0-9_-]` com a sugestão `openssl rand -hex 16` (o `.env.homolog.example` não foi alterado). |
+| M4 | `typecheck` da raiz inclui `@metricas-dspd/homolog`; resumo de cobertura do CI lista `tools/homolog`. |
+| M6 | Documentado (§13, "Re-run jobs antes do merge"). |
+| M9 | `jarvis.md`: "faz o merge na `main`". |
+| M10 | Resolvido (o passo que interpolava `github.repository` foi removido com os status). |
+
+Viram cartão (backlog): **M5** endurecimento do Compose (digest, `no-new-privileges`, `read_only`; cartão da S-27); **M7** E2E contra a pilha implantada (H4); **M8** conferir a origem `develop` nos PR para `homolog`; registro do risco aceito em `docs/security/` (I3 e I5); `Bash(gh api *statuses*)` no `deny` (usuário).
+
+O que só a CI valida: a leitura real da API de Actions (nome do job com SHA, `path` das execuções, filtros), o `exclude_pull_requests`, o `actions: read` do token e o comportamento de `homolog-aprovada` num PR de verdade. Os testes cobrem a lógica com respostas simuladas (cobertura 100% em `tools/homolog`).
