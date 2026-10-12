@@ -86,7 +86,7 @@ Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras
 3. Dentro do orçamento de performance.
 4. Parecer **aprovado** do tech-lead em `docs/reviews/<pedido>-<etapa>.md`.
 5. Parecer do QA (e da UX, quando houver tela) sem bloqueio aberto.
-6. Commits do autor na `develop` revisados e integrados pelo tech-lead na `feature/dashboard-mock` (seção 9).
+6. Commits do autor na própria branch de trabalho, revisados e integrados pelo tech-lead na `develop` (seção 9).
 7. **Documentação técnica atualizada na mesma entrega** (pedido do usuário, 2026-10-10): front e biblioteca (`packages/*`, `web/`) em `docs/tecnica/`; back (`server/`) em `docs/architecture/` (plano, modelo de dados, ADR) e `docs/api/` (contrato); documentação de UX (`docs/ux/`) coerente com a tela entregue. Sem a doc, o cartão não passa do code review. Guia de uso: [`guia-do-desenvolvedor.md`](guia-do-desenvolvedor.md).
 
 ## 8. Code review
@@ -109,34 +109,27 @@ Parecer: **aprovado** ou **ajustes necessários**, cada item com `arquivo:linha 
 
 - **Regra do usuário (2026-10-11): todo pedido segue o mesmo caminho, sem exceção de método.** (1) **Discovery** antes de executar: o Jarvis aciona `software-architect`, `ux-designer` e `tech-lead` em paralelo: **discovery de UX** (empatia, definição, ideação, protótipo e critérios de aceite), **levantamento de negócio** (regras, regras invioláveis do briefing, decisões a levar ao usuário, impacto nas métricas), **arquitetura** (modelo, contratos, ADR, riscos, plano e cartões) e **documentação** (o que será escrito ou gerado: contratos, diagramas DDD, guias). (2) Só depois da síntese, e das decisões de produto levadas ao usuário, a execução começa. (3) Toda entrega sai com a documentação atualizada e com **testes unitários e E2E e cobertura de 100%** (thresholds do `pnpm run pronto`), revisão de código, QA e revisão de UX. Pedido sem interface pula só a parte de UX do discovery, e o Jarvis registra o motivo; correção trivial sem decisão de design pode dispensar o discovery, mas nunca os testes nem o review.
 ## 9. Git, commits e PR
-- **Branch de desenvolvimento** (decisão do usuário, substitui a regra "autores não commitam" da D8):
-  - `develop` sai da `feature/dashboard-mock` e é onde os devs (`react-frontend`, `node-backend`) commitam, no diretório principal do repositório.
-  - Commits pequenos, um por mudança coerente, em Conventional Commits em português, referenciando o cartão no corpo (`Cartão: K-0xx`). `pnpm run check` verde antes de **cada** commit (até a extração, em `web/`; depois, na raiz). Mensagem termina com as linhas de atribuição da sessão (`Co-Authored-By:` e `Claude-Session:`).
-  - Devs não fazem merge, rebase, reset, amend de commit já revisado nem push; não tocam em outras branches.
-  - Docs de UX e de QA (`docs/ux/`, `docs/qa/`, `e2e/`): o próprio autor (`ux-designer`, `qa-engineer`) commita na `develop`, com escopo `ux`, `qa` ou `e2e`. Docs de arquitetura do 002: o `software-architect` commita na `feature/arquitetura-mysql`, no worktree `../MetricasDSPD-002`. Pareceres (`docs/reviews/`), `KANBAN.md`, `docs/engineering/` e arquivos de agentes/skills: commitados pelo tech-lead (ou pelo Jarvis, no caso do quadro e da configuração do time).
-  - Review por cartão: o tech-lead revisa o intervalo de commits do cartão (`git log`/`git diff <base>..<último commit do cartão>`) e registra o parecer em `docs/reviews/`. Ajuste de lógica volta ao autor como commit novo `fix(...)` na `develop` (nunca reescrita de histórico).
-  - Integração: somente após code review **e** QA aprovados, o tech-lead faz, na `feature/dashboard-mock`, `git merge --no-ff <último commit aprovado da develop>` com mensagem `chore(integracao): integra K-0xx da develop` + linhas de atribuição. **Decisão: sempre `--no-ff`**, para que cada integração marque no histórico o conjunto revisado e aprovado (fácil de localizar e de reverter com `git revert -m 1`). Nunca se integra commit ainda não aprovado; se a `develop` tiver commits à frente, integra-se só até o último aprovado.
-  - A `feature/dashboard-mock` é a branch que vira PR para a `main`; a `develop` nunca vira PR. Depois de cada integração, a `develop` segue de onde está (já contém tudo o que foi integrado).
-- A `main` é do usuário: nenhum agente faz commit, merge, rebase, reset ou push nela; hook `pre-push` em `.githooks/` (`git config core.hooksPath .githooks`); `--no-verify` proibido.
-- Branches a partir da base certa: `feature/`, `fix/`, `docs/`, `chore/`, `refactor/` + slug. Encadeamento atual (D4): `feature/dashboard-mock` (PR 1, todo o 001 + monorepo) → `feature/arquitetura-mysql` (PR 2, em `git worktree` separado em `../MetricasDSPD-002`, criada já a partir do mesmo HEAD para os docs de arquitetura; a extração para pacotes (D3) entra nela depois via `git merge` da `feature/dashboard-mock`).
-- Conventional Commits em português: `tipo(escopo): descrição no imperativo`, tipos `feat, fix, docs, test, refactor, perf, chore, ci`. Escopos usuais: `metricas`, `mock`, `dados`, `ui`, `painel-<nome>`, `contratos`, `server`, `db`, `e2e`, `kanban`, `arquitetura`, `ux`, `engenharia`.
+Fluxo completo, gates, tags e rollback: [`fluxo-homologacao.md`](fluxo-homologacao.md). Resumo:
+- **Fluxo de branches:** `feature/*` / `fix/*` / `docs/*` / `chore/*` (saem da `develop`) → `develop` (PR, **squash**, um commit por cartão) → `homolog` (PR, **merge commit**) → `main` (PR de release, **merge commit**). Nada pula degrau; ninguém commita direto em `develop`, `homolog` nem `main`; sem `rebase` nem `--force` nas três. Defeito achado em homolog volta por `fix/` → `develop`. Hotfix sai da `main` com aprovação do usuário e volta a `homolog` e `develop` por PR de merge.
+- **Quem mescla:** o `tech-lead` mescla em `develop` (após review e QA) e em `homolog`; **somente o usuário** mescla na `main`.
+- **Autores** (devs, UX, QA) commitam na própria branch de trabalho (worktree por frente, quando houver paralelismo), commits pequenos, um por mudança coerente, em Conventional Commits em português, referenciando o cartão no corpo (`Cartão: K-0xx`). `pnpm run pronto` verde antes de **cada** commit. Mensagem termina com as linhas de atribuição da sessão (`Co-Authored-By:` e `Claude-Session:`). Autores não fazem merge, rebase, reset, amend de commit já revisado nem push; `git add` explícito por caminho.
+- **Review por cartão:** o tech-lead revisa o intervalo de commits do cartão e registra o parecer em `docs/reviews/`. Ajuste de lógica volta ao autor como commit novo `fix(...)` (nunca reescrita de histórico).
+- **Docs:** `docs/ux/` e `docs/qa/`/`e2e/` são commitados pelo autor (escopos `ux`, `qa`, `e2e`); `docs/architecture/`, pelo `software-architect`; pareceres, `KANBAN.md`, `docs/engineering/` e arquivos de agentes/skills, pelo tech-lead (ou pelo Jarvis, no quadro e na configuração do time). Documentação também passa por `homolog`, onde roda só `docs:check`.
+- A `main` é do usuário: nenhum agente faz commit, merge, rebase, reset ou push nela; hook `pre-push` em `.githooks/` (`git config core.hooksPath .githooks`); `--no-verify` proibido. `develop` e `homolog` são protegidas no GitHub (roteiro em `fluxo-homologacao.md`).
+- Branches: `feature/`, `fix/`, `docs/`, `chore/`, `refactor/` + slug, a partir da `develop` atualizada.
+- Conventional Commits em português: `tipo(escopo): descrição no imperativo`, tipos `feat, fix, docs, test, refactor, perf, chore, ci`. Escopos usuais: `metricas`, `mock`, `dados`, `ui`, `painel-<nome>`, `contratos`, `server`, `db`, `e2e`, `homolog`, `kanban`, `arquitetura`, `ux`, `engenharia`.
 - Um commit por mudança coerente; cada commit compila e passa nos testes.
-- Extração para pacotes (D3): segue o "Procedimento da extração" do [ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md). Linha de base (número de testes e hash da base mock) anotada na mensagem; correção do cruzamento `CRITERIOS_MOCK` em commit próprio antes; depois um commit mecânico único (`git mv` + imports + configs), sem mudança de lógica, de nome nem de teste. Aceite: mesmo número de testes e mesmo hash; se o hash mudar, o commit é desfeito e investigado, nunca se ajusta o hash esperado.
-- Antes de commitar: `git status` e `git diff --staged`. Nunca versionar `.env`, `node_modules`, `dist`, relatórios de teste.
-- Atualizar a branch: `git fetch` + `git merge origin/main` na própria branch.
+- Extração para pacotes (D3): segue o "Procedimento da extração" do [ADR 0002](../architecture/adr/0002-monorepo-pacotes-compartilhados.md) (concluída).
+- Antes de commitar: `git status` e `git diff --staged`. Nunca versionar `.env`, `.env.homolog`, `node_modules`, `dist`, relatórios de teste.
+- Atualizar a branch: `git fetch` + `git merge origin/develop` na própria branch.
 - Descrição do PR: objetivo e pedido · o que mudou · decisões e ADRs · como testar · parecer do QA · parecer do code review · riscos e pendências.
 
-## 10. Pipeline de CI (planejada)
-Ordem, falhando no primeiro erro, por workspace afetado:
-1. `lint` (inclui fronteiras)
-2. `typecheck`
-3. `test` (`TZ=UTC`)
-4. `build`
-5. `size` (orçamento de bundle F6–F9 do ADR 0003: `size-limit` ou script de gzip sobre `dist/assets`)
-6. E2E Playwright + axe (projeto `mock`; no 002 também o projeto `api` contra PostgreSQL 17 em container, com teste de paridade mock × seed — D15)
-7. Lighthouse CI desktop (F10: Performance ≥ 90, Acessibilidade ≥ 95) e projeto `perf` do Playwright (F1–F5, C5, C6) na pré-entrega
-
-Até o CI existir, o autor roda 1 a 5 localmente (`pnpm run check && pnpm run build && pnpm run size`) e o QA roda 6 e 7 na máquina de referência.
+## 10. Pipeline de CI
+- **PR (qualquer base):** `ci.yml`: `rapida` (lint, formato, typecheck), `testes` (cobertura 100%, spec-check, docs:check), `banco` (por filtro em PR para `develop`; sempre em PR para `homolog` e `main`), `openapi`, `imagem`, `build` (tamanho e gate), `e2e`, `perf` (PR para a `main`), `seguranca` (informativo). Os nomes `rapida`, `testes`, `banco`, `build`, `e2e` são os da proteção de branch e não mudam.
+- **Push em `homolog`:** `homolog.yml` (portão): suíte completa, E2E, perf/Lighthouse, migração a partir do estado da `main` e smoke da pilha de homologação; documentação pura roda só `docs:check`. Publica o status `homolog-portao` no commit.
+- **Noturno (02:30 BRT):** o mesmo workflow contra a ponta de `homolog`, publicando `homolog-noturna`. Ambiente local sem rotina: sobe sob demanda (`pnpm run homolog:subir`).
+- **PR para a `main`:** `homolog-aprovada.yml` exige candidato = ponta de `homolog`, com `homolog-portao` e `homolog-noturna` verdes (hotfix dispensa, com aviso).
+- A lógica fica em scripts do repositório (`tools/homolog`, testados com cobertura 100%); o YAML só decide quando chamar.
 
 ### 10.1 Revisão semanal do CI
 Dono: `tech-lead`. Toda segunda-feira, ~15 minutos, comparando com a linha de base em `docs/engineering/ci-metricas.md` (acrescente uma coluna/seção datada por semana).

@@ -1,0 +1,80 @@
+# Ambiente de homologação (ADR 0018). Projeto, volume, portas e segredos próprios: não toca o ambiente de dev.
+# Uso: pnpm run homolog:subir | homolog:derrubar | homolog:smoke (veja docs/engineering/fluxo-homologacao.md).
+# Só mock até as integrações (H-7). Webhook sempre desligado. Portas só em 127.0.0.1.
+name: metricasdspd-homolog
+
+services:
+  postgres:
+    image: postgres:17
+    mem_limit: 512m
+    environment:
+      TZ: UTC
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${HOMOLOG_PG_SUPERUSER_PWD:?defina no .env.homolog}
+      DSPD_PWD_MIGRADOR: ${DSPD_PWD_MIGRADOR:?defina no .env.homolog}
+      DSPD_PWD_COLETOR: ${DSPD_PWD_COLETOR:?defina no .env.homolog}
+      DSPD_PWD_API: ${DSPD_PWD_API:?defina no .env.homolog}
+      DSPD_PWD_REF: ${DSPD_PWD_REF:?defina no .env.homolog}
+      DSPD_PWD_WEBHOOK: ${DSPD_PWD_WEBHOOK:?defina no .env.homolog}
+      DSPD_PWD_AUTOMACAO: ${DSPD_PWD_AUTOMACAO:?defina no .env.homolog}
+    ports: ["127.0.0.1:${HOMOLOG_PG_PORT:-15432}:5432"]
+    volumes:
+      - dspd-homolog-pg-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d metricas_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+    restart: "no"
+
+  migrate:
+    build: { context: ., dockerfile: server/Dockerfile }
+    mem_limit: 384m
+    command: ["node", "--import", "tsx", "src/entradas/migrar.ts"]
+    environment:
+      PG_MIGRADOR_URL: postgres://dspd_migrador:${DSPD_PWD_MIGRADOR:?defina no .env.homolog}@postgres:5432/metricas
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  # A api só recebe a credencial dspd_api. Sem PG_WEBHOOK_URL nem segredo: o webhook fica desligado.
+  api:
+    build: { context: ., dockerfile: server/Dockerfile }
+    mem_limit: 384m
+    environment:
+      PG_API_URL: postgres://dspd_api:${DSPD_PWD_API:?defina no .env.homolog}@postgres:5432/metricas
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports: ["127.0.0.1:${HOMOLOG_API_PORT:-13000}:3000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: "no"
+
+  worker:
+    build: { context: ., dockerfile: server/Dockerfile }
+    mem_limit: 256m
+    command: ["node", "--import", "tsx", "src/entradas/worker.ts"]
+    environment:
+      PG_COLETOR_URL: postgres://dspd_coletor:${DSPD_PWD_COLETOR:?defina no .env.homolog}@postgres:5432/metricas
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: "no"
+
+  web:
+    build: { context: ., dockerfile: docker/web/Dockerfile }
+    mem_limit: 64m
+    ports: ["127.0.0.1:${HOMOLOG_WEB_PORT:-18080}:80"]
+    depends_on:
+      api: { condition: service_healthy }
+    restart: "no"
+
+volumes:
+  dspd-homolog-pg-data:
