@@ -7,7 +7,7 @@
 # Só confirma o backup depois de o dump ser lido de volta (`pg_restore --list`). Em falha, sai com código != 0 e não toca na confirmação.
 set -euo pipefail
 . "$(dirname "$0")/lib-pg.sh"
-umask 077
+umask 077 # vale em ext4; em NTFS/drvfs (/mnt/d) o modo não é honrado: use disco cifrado (docs/engineering/operacao-banco.md)
 
 DIR="$(exigir_dir_fora_do_repo "${DSPD_BACKUP_DIR:-}")"
 RETENCAO="${DSPD_BACKUP_RETENCAO:-7}"
@@ -23,7 +23,9 @@ pg pg_dumpall --roles-only --no-role-passwords --no-password > "$DIR/roles-$CARI
 pg psql -X -At -v ON_ERROR_STOP=1 --no-password -d "$PGDATABASE" < "$(dirname "$0")/sql/inventario.sql" > "$BASE.inventario.txt.tmp"
 
 # Verificação: o dump precisa ser legível e conter tabelas; o inventário precisa ter conteúdo.
-pg pg_restore --list < "$BASE.dump.tmp" | grep -q 'TABLE' || falhar "dump ilegível ou sem tabelas"
+# Sem pipe: `grep -q` sai no primeiro acerto e o pg_restore levaria SIGPIPE (141 sob pipefail) quando a lista passa de 64 KB.
+LISTA="$(pg pg_restore --list < "$BASE.dump.tmp")" || falhar "dump ilegível"
+grep -q 'TABLE' <<<"$LISTA" || falhar "dump sem tabelas"
 [ -s "$BASE.inventario.txt.tmp" ] || falhar "inventário vazio"
 
 mv "$BASE.dump.tmp" "$BASE.dump"
