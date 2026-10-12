@@ -26,7 +26,7 @@ As fraquezas estão em quatro pontos:
 3. **Desempenho medido, mas sem trava.** `desempenho.ts` é manual, os EXPLAIN dele não são as consultas reais e o CI não tem teste de plano.
 4. **Índices desenhados para filtros que o servidor não aplica no SQL.** Metade dos índices das projeções não atende nenhuma consulta de hoje, enquanto duas consultas reais crescem sem limite.
 
-Há ainda um **risco de correção**: a carga de transições lê `fato_transicao` direto, e não a view canônica. Quando o webhook gravar transições, elas vão contar em dobro.
+Há ainda um **risco de correção**: a carga de transições lia `fato_transicao` direto, e não a view canônica (resolvido em C1). Quando o webhook gravar transições, elas vão contar em dobro.
 
 ---
 
@@ -229,13 +229,14 @@ O append-only já elimina o principal motivo prático (descarte por `DROP PARTIT
 
 ## 13. Riscos fora de "boas práticas" que a auditoria encontrou
 
-**R1. Transições em dobro quando o webhook entrar (alta, P).**
+**R1. Transições em dobro quando o webhook entrar (alta, P). RESOLVIDO (C1, 2026-10-12).**
 - `lerTransicoes` lê `${S.bm}.fato_transicao` direto (`metricas/repositorio.ts:60`).
 - O modelo define que a biblioteca consome a **view canônica** `vw_transicao_canonica`: todas as `revision` + webhooks **sem par** (`data-model.md:91`; view em `0005:62-67`). O próprio `grants.ts:19` diz que a API lê `fato_transicao` "só porque `vw_transicao_canonica` a lê".
 - Hoje o seed só grava `fonte = 'revision'` (`seed.ts:63`), por isso a paridade passa.
 - Quando o consumidor do webhook (WS2) gravar `fonte = 'webhook'`, cada movimentação casada passa a contar duas vezes no CFD, no WIP e nos marcos. O dado sai errado sem nenhum erro.
 - Correção: `FROM ${S.bm}.vw_transicao_canonica`, mais um teste no Postgres com um par webhook × revision casado que espera uma linha só.
 - Dono: `node-backend`.
+- **Resolução:** `lerTransicoes` lê `vw_transicao_canonica`; a view não precisou de migração. Prova em `server/tests/transicao-canonica.pg.test.ts` (par casado conta uma linha; webhook sem par continua contando); o teste falha com a leitura antiga de `fato_transicao`. Falta só medir de novo o p95 com `desempenho.ts` (anti-join da view), junto do C7.
 
 **R2. Histórico de coletas sem limite na API (média, P).**
 - `lerEventos` devolve todas as coletas incrementais da fonte e todas as contagens (`operacao/repositorio.ts:22-29`) a cada `estadoColeta` e `historicoColetas`, e pagina em memória (`operacao/servico.ts:9,16`).
@@ -255,7 +256,7 @@ Retorno = (severidade × probabilidade) / esforço. Os nomes de schema abaixo s�
 
 | Ordem | Cartão | Resolve | Sev. | Esf. | Dono |
 |---|---|---|---|---|---|
-| 1 | **C1** Carga de transições pela view canônica + teste do par casado | R1 | alta | P | `node-backend` |
+| 1 | ~~**C1** Carga de transições pela view canônica + teste do par casado~~ **resolvido** | R1 | alta | P | `node-backend` |
 | 2 | **C2** Backup diário + restauração testada + trava de `down` em produção | O1, A5, G8, E6 | alta | M | `node-backend` + `tech-lead`; destino da cópia: **usuário** (I-14) |
 | 3 | **C3** Timeouts e higiene de conexão | S8, G4, T4, T5, G6 | média | P | `node-backend` (fecha parte da S-19) |
 | 4 | **C4** Histórico de coletas limitado no SQL | R2 | média | P | `node-backend` |

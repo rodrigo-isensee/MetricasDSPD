@@ -1,0 +1,260 @@
+name: Homologação
+
+# Portão da branch `homolog` (push) e rodada noturna contra a ponta de `homolog` (agendamento).
+# O check `homolog-aprovada` (homolog-aprovada.yml) lê as EXECUÇÕES concluídas deste workflow (API de Actions)
+# e procura o job `portao <sha>` em sucesso: push = portão; schedule = noturna. Não há status de commit.
+# Documentação pura roda só o docs:check (H-2). O schedule só dispara com este arquivo na branch padrão.
+on:
+  push:
+    branches: [homolog]
+  schedule:
+    - cron: '30 5 * * *' # 02:30 em Brasília
+  workflow_dispatch: # em homolog vale como a noturna enquanto este arquivo não está na main (1ª release)
+
+concurrency:
+  group: homolog-${{ github.event_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CI: 'true'
+
+jobs:
+  escopo:
+    name: escopo
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.alvo.outputs.sha }}
+      escopo: ${{ steps.alvo.outputs.escopo }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'push' && github.sha || 'homolog' }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+      - id: alvo
+        env:
+          EVENTO: ${{ github.event_name }}
+          ANTES: ${{ github.event.before }}
+        run: |
+          sha="$(git rev-parse HEAD)"
+          base="origin/main"
+          if [ "$EVENTO" = 'push' ] && ! echo "$ANTES" | grep -qE '^0+$'; then base="$ANTES"; fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "escopo=$(node tools/homolog/src/main.ts escopo --base "$base" --head "$sha")" >> "$GITHUB_OUTPUT"
+
+  portao-docs:
+    name: portao-docs
+    needs: escopo
+    if: needs.escopo.outputs.escopo == 'docs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.escopo.outputs.sha }}
+      - uses: ./.github/actions/preparar
+      - run: pnpm run docs:check
+
+  qualidade:
+    name: qualidade
+    needs: escopo
+    if: needs.escopo.outputs.escopo == 'codigo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.escopo.outputs.sha }}
+      - uses: ./.github/actions/preparar
+      - run: pnpm run lint
+      - run: pnpm run format:check
+      - run: pnpm run typecheck
+      - run: pnpm run cobertura
+      - run: pnpm run spec:check
+      - run: pnpm run docs:check
+      - run: pnpm --filter @metricas-dspd/server run openapi:verificar
+      - run: pnpm run build
+      - run: pnpm --filter @metricas-dspd/web run size
+      - run: pnpm --filter @metricas-dspd/e2e run gate
+
+  banco:
+    name: banco-homolog
+    needs: escopo
+    if: needs.escopo.outputs.escopo == 'codigo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPASSWORD: postgres_ci
+      POSTGRES_USER: postgres
+      DSPD_PWD_MIGRADOR: migrador_dev
+      DSPD_PWD_COLETOR: coletor_dev
+      DSPD_PWD_API: api_dev
+      DSPD_PWD_REF: ref_dev
+      DSPD_PWD_WEBHOOK: webhook_dev
+      DSPD_PWD_AUTOMACAO: automacao_dev
+      PG_TESTE_URL: postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas_test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.escopo.outputs.sha }}
+      - uses: ./.github/actions/preparar
+      - name: Papéis e databases (mesmo script do Compose)
+        run: bash docker/postgres/init/01-databases-papeis.sh
+      - run: pnpm --filter @metricas-dspd/server run test:pg
+
+  e2e:
+    name: e2e-homolog
+    needs: escopo
+    if: needs.escopo.outputs.escopo == 'codigo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.escopo.outputs.sha }}
+      - uses: ./.github/actions/preparar
+      - uses: ./.github/actions/playwright
+      - name: Diagramas Mermaid renderizam
+        run: |
+          export PUPPETEER_EXECUTABLE_PATH="$(pnpm --filter @metricas-dspd/e2e exec node -p "require('@playwright/test').chromium.executablePath()")"
+          pnpm run docs:mermaid
+      - run: pnpm --filter @metricas-dspd/e2e run test:chromium
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: failure()
+        with:
+          name: e2e-relatorio
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 3
+
+  perf:
+    name: perf-homolog
+    needs: escopo
+    if: needs.escopo.outputs.escopo == 'codigo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.escopo.outputs.sha }}
+      - uses: ./.github/actions/preparar
+      - uses: ./.github/actions/playwright
+      - run: pnpm run build
+      - run: pnpm --filter @metricas-dspd/e2e run test:perf
+      - run: pnpm --filter @metricas-dspd/e2e run lighthouse
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: perf-relatorios
+          path: |
+            e2e/lighthouse/relatorios
+            e2e/perf-results
+          retention-days: 3
+
+  # H1: migra com o código da main e depois com o candidato (e repete o candidato). H2: sobe a pilha de homologação e confere o smoke.
+  migracao-smoke:
+    name: migracao-smoke
+    needs: escopo
+    if: needs.escopo.outputs.escopo == 'codigo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.escopo.outputs.sha }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          path: main-src
+      - uses: ./.github/actions/preparar
+      - name: Dependências da main
+        working-directory: main-src
+        run: pnpm install --frozen-lockfile
+      - name: Papéis e databases do Postgres de serviço (só para a verificação de migração)
+        env:
+          PGHOST: 127.0.0.1
+          PGPASSWORD: postgres_ci
+          POSTGRES_USER: postgres
+          DSPD_PWD_MIGRADOR: migrador_dev
+          DSPD_PWD_COLETOR: coletor_dev
+          DSPD_PWD_API: api_dev
+          DSPD_PWD_REF: ref_dev
+          DSPD_PWD_WEBHOOK: webhook_dev
+          DSPD_PWD_AUTOMACAO: automacao_dev
+        run: bash docker/postgres/init/01-databases-papeis.sh
+      - name: Migração a partir do estado da main
+        env:
+          PG_MIGRADOR_URL: postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas
+        run: node tools/homolog/src/main.ts migracao --origem main-src --destino .
+      - name: Ambiente de homologação (segredos gerados nesta execução)
+        run: |
+          {
+            for chave in HOMOLOG_PG_SUPERUSER_PWD DSPD_PWD_MIGRADOR DSPD_PWD_COLETOR DSPD_PWD_API DSPD_PWD_REF DSPD_PWD_WEBHOOK DSPD_PWD_AUTOMACAO; do
+              echo "$chave=$(openssl rand -hex 16)"
+            done
+          } > .env.homolog
+          chmod 600 .env.homolog
+      - name: Sobe a pilha, semeia e roda o smoke
+        run: pnpm run homolog:subir
+      - name: Derruba a pilha
+        if: always()
+        run: pnpm run homolog:derrubar -- --volume
+
+  portao:
+    name: portao ${{ needs.escopo.outputs.sha }}
+    needs: [escopo, portao-docs, qualidade, banco, e2e, perf, migracao-smoke]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Resultado do portão (a conclusão desta execução é a evidência)
+        env:
+          EVENTO: ${{ github.event_name }}
+          SHA: ${{ needs.escopo.outputs.sha }}
+          ESCOPO: ${{ needs.escopo.outputs.escopo }}
+          RESULTADO_ESCOPO: ${{ needs.escopo.result }}
+          RESULTADOS_CODIGO: ${{ needs.qualidade.result }} ${{ needs.banco.result }} ${{ needs.e2e.result }} ${{ needs.perf.result }} ${{ needs.migracao-smoke.result }}
+          RESULTADO_DOCS: ${{ needs.portao-docs.result }}
+        run: |
+          # Docs: só o docs:check. Código: os cinco jobs precisam estar em success (skipped não vale).
+          estado=failure
+          if [ "$RESULTADO_ESCOPO" = 'success' ]; then
+            if [ "$ESCOPO" = 'docs' ]; then
+              [ "$RESULTADO_DOCS" = 'success' ] && estado=success
+            else
+              estado=success
+              for r in $RESULTADOS_CODIGO; do [ "$r" = 'success' ] || estado=failure; done
+            fi
+          fi
+          echo "estado=$estado escopo=$ESCOPO evento=$EVENTO"
+          [ "$estado" = 'success' ]
