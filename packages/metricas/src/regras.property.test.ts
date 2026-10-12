@@ -7,7 +7,7 @@ import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import { METRICA_IDS, MINIMO_AMOSTRA, type MetricaId } from '@metricas-dspd/contratos'
 import { METRICAS_SUSTENTACAO } from '@metricas-dspd/contratos'
-import { gerarBaseMock, type BaseMock } from '@metricas-dspd/mock'
+import { gerarBaseMock, gerarExtensoesMock, type BaseMock } from '@metricas-dspd/mock'
 import { calcularMetrica, type ContextosMetricas } from './calcular'
 import { acelerato, businessmap } from '.'
 import { CALENDARIO_PADRAO } from './core/calendario'
@@ -20,7 +20,9 @@ const base: BaseMock = gerarBaseMock({ escala: 0.5 })
 const HOJE = base.config.hoje
 const hojeMs = businessmap.criarContextoBM(base.bm, HOJE, CALENDARIO_PADRAO).hoje
 
+const EXT = gerarExtensoesMock(base)
 const ctxDe = (bm: BaseBM, ac: BaseAC): ContextosMetricas => ({
+  ext: EXT,
   bm: businessmap.criarContextoBM(bm, HOJE, CALENDARIO_PADRAO),
   ac: acelerato.criarContextoAC(ac, HOJE, CALENDARIO_PADRAO),
 })
@@ -95,6 +97,15 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6', Propriedade> = {
       S5: 'pct é a participação do motivo no total dos motivos, por definição',
       S6: 'pct é a participação do motivo no total dos motivos, por definição',
       S7: 'tipo de reclassificação é evento do chamado (classificador não implementado)',
+      O13: 'o resultado é série mensal de contagem de defeitos sobre a vazão total; o tipo é a definição, sem nó rotulado por tipo',
+      O14: 'a chave é área solicitante (classificador por área não implementado); a distribuição é de contagem por nome, com top 10 e demais',
+      O16: 'primeira chave é faixa de idade (derivada do instante, sem classificador de item); severidade é contagem de abertos',
+      O17: 'primeira chave é causa raiz, que vive na extensão (mapa por chamado), sem classificador de item no modelo do núcleo',
+      E4: 'série trimestral de contagem de projetos; o tipo de projeto não é rótulo de nó no resultado',
+      S8: 'a prioridade atua só como filtro; o resultado é série mensal sem nó por prioridade',
+      S9: 'a chave é o motivo da pendência, que vive na etapa (classificador por motivo não implementado)',
+      S11: 'os grupos P1, P2 e contorno se sobrepõem por definição: o nó do grupo depende do conjunto',
+      S12: 'a chave é a categoria do sistema (contagem por nome) e o recorrente depende do conjunto da janela',
     },
   },
   p3: {
@@ -362,7 +373,9 @@ describe(`P3: ${P.p3.nome}`, () => {
     const ref = plano(calc(id, CTX))
     for (const [nome, v] of Object.entries(variantes)) {
       // Troca só a base do OUTRO domínio.
-      const ctx: ContextosMetricas = eAC ? { bm: v.bm, ac: CTX.ac } : { bm: CTX.bm, ac: v.ac }
+      const ctx: ContextosMetricas = eAC
+        ? { bm: v.bm, ac: CTX.ac, ext: EXT }
+        : { bm: CTX.bm, ac: v.ac, ext: EXT }
       expect(plano(calc(id, ctx)), `${id} com ${nome}`).toEqual(ref)
     }
     marcar('p3', id)
@@ -587,9 +600,9 @@ describe('meta: toda métrica tem teste, sem exceção órfã', () => {
   it("status é 'pendente-usuario' se e somente se alguma célula for pendente", () => {
     for (const id of METRICA_IDS) {
       const r: RegraMetrica = REGRAS_METRICA[id]
-      const algumaPendente = Object.entries(r).some(
-        ([k, v]) => k !== 'status' && v === 'pendente-usuario',
-      )
+      const algumaPendente =
+        Object.entries(r).some(([k, v]) => k !== 'status' && v === 'pendente-usuario') ||
+        (r.pendencias?.length ?? 0) > 0
       expect(r.status === 'pendente-usuario', id).toBe(algumaPendente)
     }
   })

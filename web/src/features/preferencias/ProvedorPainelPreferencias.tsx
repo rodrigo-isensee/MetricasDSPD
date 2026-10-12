@@ -5,6 +5,7 @@ import {
   type CartaoId,
   type PainelComCartoes,
 } from '@metricas-dspd/contratos'
+import { useLocation } from 'react-router'
 import { Botao, ContextoPreferenciasPainel as Ctx, type PreferenciasPainel } from '@/components/ui'
 import { usePreferencias } from './ProvedorPreferencias'
 
@@ -48,8 +49,10 @@ export function ProvedorPainelPreferencias({
   const ocultos = useMemo(() => new Set(lista), [lista])
   const [aviso, setAviso] = useState<Aviso | null>(null)
   const [anuncio, setAnuncio] = useState('')
+  const [alvo, setAlvo] = useState<string | null>(null)
+  const { hash } = useLocation()
   const foco = useRef<Foco | null>(null)
-  const { definirNaVisita } = prefs
+  const { definirNaVisita, definirSecaoAberta } = prefs
 
   useEffect(() => {
     const f = foco.current
@@ -69,17 +72,46 @@ export function ProvedorPainelPreferencias({
     [definirNaVisita, painel],
   )
 
+  const irParaComplementar = useCallback(
+    (id: CartaoId) => {
+      // Se a pessoa ocultou o cartão, pedir para ir até ele o mostra nesta visita.
+      if (ocultos.has(id)) definir(lista.filter((x) => x !== id))
+      definirSecaoAberta(painel, true)
+      setAlvo(id)
+    },
+    [ocultos, lista, definir, definirSecaoAberta, painel],
+  )
+
+  // Link direto (`/operacional#o5`, vindo do catálogo): abre a seção e leva ao cartão.
+  useEffect(() => {
+    const id = hash.slice(1)
+    const c = cartaoPorId(painel, id)
+    // Sincroniza com a URL (sistema externo): abrir a seção é a reação ao hash.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (c?.grupo === 'complementar') irParaComplementar(id)
+    // Só o hash dispara; `irParaComplementar` muda a cada recorte e reabriria a seção à toa.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hash, painel])
+
   const valor = useMemo<PreferenciasPainel>(() => {
-    const total = cartoes.length
+    const nucleo = cartoes.filter((c) => c.grupo === 'nucleo')
+    const compl = cartoes.filter((c) => c.grupo === 'complementar')
+    const total = nucleo.length
     const ocultar = (id: CartaoId) => {
       const c = cartaoPorId(painel, id)
       if (!c || ocultos.has(id)) return
       const titulos = [...document.querySelectorAll<HTMLElement>(TITULOS)]
       const meu = document.querySelector<HTMLElement>(`[id="${id}"] [data-cartao-titulo]`)
       foco.current = { tipo: 'indice', i: Math.max(0, meu ? titulos.indexOf(meu) : 0) }
-      const restantes = total - ocultos.size - 1
-      setAnuncio(`${c.codigo} oculta. ${restantes} de ${total} métricas visíveis. Desfazer`)
-      setAviso({ id, texto: `${c.codigo} oculta. ${restantes} de ${total} métricas visíveis.` })
+      // O contador é do grupo do cartão: núcleo e complementares nunca se somam.
+      const doGrupo = c.grupo === 'nucleo' ? nucleo : compl
+      const restantes = doGrupo.filter((n) => !ocultos.has(n.id) && n.id !== id).length
+      const qual = c.grupo === 'nucleo' ? 'métricas' : 'complementares'
+      setAnuncio(`${c.codigo} oculta. ${restantes} de ${doGrupo.length} ${qual} visíveis. Desfazer`)
+      setAviso({
+        id,
+        texto: `${c.codigo} oculta. ${restantes} de ${doGrupo.length} ${qual} visíveis.`,
+      })
       definir([...ocultos, id])
     }
     const mostrar = (id: CartaoId) => definir(lista.filter((x) => x !== id))
@@ -87,9 +119,16 @@ export function ProvedorPainelPreferencias({
       painel,
       cartoes,
       ocultos,
-      visiveis: total - ocultos.size,
+      visiveis: nucleo.filter((c) => !ocultos.has(c.id)).length,
       total,
-      tudoOculto: ocultos.size === total,
+      complementaresVisiveis: compl.filter((c) => !ocultos.has(c.id)).length,
+      complementaresTotal: compl.length,
+      tudoOculto: ocultos.size === cartoes.length,
+      secaoAberta: prefs.secaoAberta(painel),
+      definirSecaoAberta: (aberta) => definirSecaoAberta(painel, aberta),
+      alvoComplementar: alvo,
+      irParaComplementar,
+      alvoAtendido: () => setAlvo(null),
       estaOculto: (id) => ocultos.has(id),
       ocultarCartao: ocultar,
       mostrar,
@@ -98,7 +137,18 @@ export function ProvedorPainelPreferencias({
       mostrarTodas: () => definir([]),
       usarMinhas: () => definirNaVisita(painel, null),
     }
-  }, [painel, cartoes, ocultos, lista, definir, definirNaVisita])
+  }, [
+    painel,
+    cartoes,
+    ocultos,
+    lista,
+    definir,
+    definirNaVisita,
+    definirSecaoAberta,
+    prefs,
+    alvo,
+    irParaComplementar,
+  ])
 
   const desfazer = ({ id }: Aviso) => {
     foco.current = { tipo: 'id', id }

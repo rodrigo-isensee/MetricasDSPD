@@ -13,6 +13,7 @@ import { useParametroLocal } from '@/features/filtros'
 import { fmtData, fmtDataCurta, fmtDiasUteis, fmtInteiro, fmtNumero, plural } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
 import { diaNum, isoDoDia, propsCartao, slug } from '@/features/painel/propsCartao'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 const VALORES = TIPOS_CARD.map(slug)
 
@@ -148,6 +149,7 @@ export function CartaoO3({ filtros }: { filtros: FiltrosFluxo }) {
               </div>
             )}
           </SeletorLocal>
+          <LeiaJunto id="o3" />
         </div>
       )}
     </CartaoMetrica>

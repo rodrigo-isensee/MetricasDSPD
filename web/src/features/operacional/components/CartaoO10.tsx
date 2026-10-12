@@ -6,6 +6,7 @@ import { useParametroLocal } from '@/features/filtros'
 import { fmtData, fmtInteiro, fmtMes, plural } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
 import { propsCartao, slug } from '@/features/painel/propsCartao'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 const VALORES = TIPOS_CARD.map(slug)
 
@@ -108,6 +109,7 @@ export function CartaoO10({ filtros }: { filtros: FiltrosFluxo }) {
               oQue="Evolução da idade do backlog"
             />
           )}
+          <LeiaJunto id="o10" />
         </div>
       )}
     </CartaoMetrica>

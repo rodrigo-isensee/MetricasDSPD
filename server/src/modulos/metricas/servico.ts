@@ -1,8 +1,8 @@
 import {
-  METRICAS_SUSTENTACAO, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  CATALOGO_CARTOES, METRICAS_SUSTENTACAO, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
-  acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, type ContextosMetricas,
+  acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, type ContextosMetricas, type ExtensoesMetricas,
 } from '@metricas-dspd/metricas';
 import type { BaseAC } from '@metricas-dspd/metricas/acelerato';
 import { AppError } from '../../plataforma/erros.js';
@@ -48,7 +48,14 @@ export function normalizar(f: FiltrosMetrica): string {
   return JSON.stringify([lista(o.equipe), lista(o.tipo), lista(o.sistema), lista(o.prioridade), o.periodo ?? null]);
 }
 
-export type DepsServico = { db: Consultavel; S?: Esquemas; maxResultados?: number };
+/** Métricas complementares (catálogo de cartões): as únicas que leem as extensões (dados fictícios até a coleta real). */
+const COMPLEMENTARES = new Set<MetricaId>(CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').flatMap((c) => c.metricas));
+
+export type DepsServico = {
+  db: Consultavel; S?: Esquemas; maxResultados?: number;
+  /** Fonte das extensões das métricas complementares (hoje só o mock; vira tabelas em T1.3/T1.4/T4.2). Sem ela, o cálculo devolve vazio/insuficiente. */
+  extensoes?: () => ExtensoesMetricas;
+};
 
 /**
  * Serviço de métricas: lê as projeções do banco, monta `BaseBM`/`BaseAC` e calcula SÓ pela biblioteca
@@ -175,6 +182,7 @@ export class ServicoMetricas {
     const ctx: ContextosMetricas = {
       bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, CALENDARIO_PADRAO),
       ac: acelerato.criarContextoAC(ac?.base ?? BASE_AC_VAZIA, corte, CALENDARIO_PADRAO),
+      ...(COMPLEMENTARES.has(id) && this.deps.extensoes ? { ext: this.deps.extensoes() } : {}),
     };
     const resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
     mapa.set(chave, resultado);

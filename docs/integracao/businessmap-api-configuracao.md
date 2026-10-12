@@ -1,0 +1,146 @@
+# BusinessMap: configuração da integração real (API v2)
+
+Data: 2026-10-11. Complementa `docs/architecture/features/integracao-real.md`. Colunas, seções e tipos de coluna estão em `docs/analises/businessmap-colunas-e-tipos.md` (não repetido aqui).
+
+## 0. Fontes e legenda
+Fonte principal: a especificação OpenAPI pública da API v2 (`https://demo.kanbanize.com/openapi/json`, 2,2 MB), lida em blocos de 100 mil caracteres por um resumidor automático. Também `https://businessmap.io/api`. A base de conhecimento (`knowledgebase.businessmap.io`) retorna 403: **artigos oficiais não foram lidos**.
+
+- **[DOC]** consta na especificação OpenAPI lida.
+- **[INF]** inferência minha, a confirmar contra o swagger da conta.
+- **[NÃO LIDO]** existe indício, mas o trecho não foi acessado.
+
+Limite desta leitura: o resumidor não devolve o texto bruto; trate nomes de parâmetros como confiáveis e descrições longas como paráfrase. Antes de codar o coletor, abrir o swagger da própria conta (Minha conta > API) e conferir os itens marcados.
+
+## 1. Autenticação
+- Chave de API alfanumérica enviada em cabeçalho: **`apikey: <chave>`** [DOC]. A especificação também aceita `Authorization` (OAuth 2.0, token que expira em 1 hora) [DOC]. **Decisão para nós: só `apikey`**, sem OAuth (mais simples, sem renovação).
+- Onde gerar: no BusinessMap, menu "Minha conta" > "API" [DOC, businessmap.io/api]. Há também `POST /my/apiKey/generate` [DOC; gera nova chave, **invalida a anterior [INF]**, não usar no coletor].
+- A chave pertence a um **usuário** e herda as permissões dele [INF]. Não há escopo "somente leitura" na chave [INF, não vi escopos]. Portanto a leitura somente leitura é garantida **pelo papel do usuário**: criar um usuário de serviço (ex.: `svc-metricas`) com papel de **leitor/visualizador** nos quadros coletados, sem permissão de editar, e gerar a chave nele. Os caminhos de escrita (`POST/PATCH/PUT/DELETE`) não são usados e o coletor não deve ter cliente que os exponha (testar: o cliente HTTP só aceita GET).
+- Permissão mínima necessária [INF]: ver cards, histórico/revisões, bloqueios e estrutura dos quadros listados; ler a lista de usuários não é necessário (ver §4.9).
+- Segredo só em `.env`; nunca em log, erro, URL ou `payload` gravado (redaction do cabeçalho `apikey`).
+
+## 2. Base URL
+- Formato: `https://<conta>.kanbanize.com/api/v2` [DOC para o prefixo `/api/v2`; o host da especificação é o da demo]. O host da **sua** conta pode ser `<conta>.kanbanize.com` ou outro domínio da Businessmap [INF]: confirmar na tela "Minha conta > API".
+- Resposta de listas: `{ "data": { "pagination": { "all_pages", "current_page", "results_per_page" }, "data": [ ... ] } }` [DOC para `/cards`]. Endpoints de objeto único devolvem `{ "data": {...} }` [INF].
+
+## 3. Limites de taxa, paginação e retry
+- Limite por hora (padrão **600**) e por minuto (padrão **30**) [DOC]. Valores da conta: `GET /apiLimits` [DOC]. Existe também `/oldApiLimits` [DOC, legado].
+- Cabeçalhos: `X-RateLimit-PerMinute-Remaining` [DOC]; `X-RateLimit-PerHour-Limit/Remaining` e `PerMinute-Limit` [espelho de terceiros, ver análise de colunas].
+- Excedeu: HTTP **429** com corpo contendo `retry_after` em segundos [DOC].
+- Paginação: `page` e `per_page`. Padrão geral 100/máx. 200 [DOC]; **`GET /cards`: padrão 200, máximo 1000** [DOC].
+- Filtros não suportados são **ignorados sem erro** [DOC]: validar a resposta (contar e conferir datas) em vez de confiar no filtro.
+
+Estratégia do coletor:
+1. **Orçamento**: 30/min é o gargalo. Cliente com limitador local (ex.: 1 chamada a cada 2,5 s, parametrizável) lendo `PerMinute-Remaining`.
+2. **429**: dormir `retry_after` (mais jitter) e repetir; não contar como falha do item.
+3. **5xx e erro de rede**: até 3 tentativas com backoff exponencial (1 s, 4 s, 16 s) e timeout por chamada (ex.: 30 s); depois falha do item em `ctl_coleta_falha`, categoria segura (`indisponivel`, `tempo-esgotado`).
+4. **401/403**: não repetir; tipo `autenticacao`, interromper a coleta (chave inválida/revogada).
+5. Coleta incremental por `last_modified_from` (ver §4.2) reduz o volume: a carga inicial histórica é a única cara. Estimativa: N cards / 1000 por página; o custo real vem de `revisions` por card (1 chamada por card, ver §4.3). Com 30/min, 1.000 cards = cerca de 35 minutos só de revisões: **usar `expand=transitions,block_times` (§4.3) para evitar essa chamada quando bastar**.
+
+## 4. Endpoints para o coletor
+Todos GET.
+
+### 4.1 Quadros, workflows e colunas
+| Necessidade | Endpoint | Status |
+|---|---|---|
+| Workflows do quadro | `GET /boards/{board_id}/workflows` (sem parâmetros) | [DOC] |
+| Colunas por workflow (tempo de ciclo) | `GET /boards/{board_id}/workflows/{workflow_id}/cycleTimeColumns` e `/effectiveCycleTimeColumns` | [DOC] |
+| Estrutura do quadro com colunas/raias (nome, `section`, `flow_type`, `limit`, `position`, `parent_column_id`) | schema `Column` tem esses campos [DOC]; **o endpoint que devolve a árvore (provavelmente `/boards/{board_id}/currentStructure`)** | [NÃO LIDO]: só vi a menção a `currentStructure` na descrição de `/blockReasons`. Confirmar no swagger |
+| Listar quadros (`GET /boards`) e filtros | existe `/boards` [INF] | [NÃO LIDO] |
+| Mudanças de estrutura | `GET /boards/history` (`board_ids`, `event_types` como `column_created`, `from`, `to`) [DOC] | útil para T2.6 (mudança de critério) |
+
+`flow_type` e `section` da coluna são os campos que alimentam `ref_coluna` (`tipo_coluna`, `papel`); a leitura de significado está na análise de colunas.
+
+### 4.2 Cards (listagem) [DOC]
+`GET /cards`. Filtros: `card_ids`, `board_ids`, `workflow_ids`, `type_ids`, `custom_ids`, `column_ids`, `lane_ids`, `last_column_ids`, `last_lane_ids`, `sections`, `is_blocked`, `sizes`, `priorities`, `owner_user_ids`, `reason_ids`.
+- **`state=active|archived|discarded`**: é assim que se alcançam **arquivados e descartados** (excluir o filtro não garante trazê-los [INF]; fazer uma varredura por estado, três chamadas paginadas).
+- Datas (`YYYY-MM-DD HH:mm:ss`; variante `_date` com `YYYY-MM-DD`): `created_from/to`, **`last_modified_from/to`** (base da carga incremental), `first_start_*`, `first_end_*`, `last_start_*`, `last_end_*`, `in_current_position_since_*`, `deadline_*`, `archived_from/to` (com `state=archived`), `discarded_from/to` (com `state=discarded`).
+- `fields` (restringe colunas) e `expand` [DOC]. Campos selecionáveis relevantes: `card_id`, `title`, `custom_id`, `type_id`, `size`, `priority`, `deadline`, `created_at`, `revision`, `last_modified`, `board_id`, `workflow_id`, `column_id`, `lane_id`, `section`, `last_column_id`, `last_lane_id`, `archived_at`, `reason_id`, `discard_comment`, `discarded_at`, `is_blocked`, `block_reason`, `current_block_time`, `current_cycle_time`, `child_card_stats`, `first_request_time`, `first_start_time`, `first_end_time`, `last_request_time`, `last_start_time`, `last_end_time`.
+- `expand` úteis: **`custom_fields`**, **`transitions`**, **`block_times`**, `linked_cards`, `lead_time_per_column`, `subtasks`, `tag_ids`, `initiative_details`.
+- **Evitar** (pessoa): `owner_user_id`, `reporter`, `co_owner_ids`, `watcher_ids`, `logged_times`, `last_comment`, `comment_count`. Usar `fields=` com lista fechada de campos permitidos para que o dado de pessoa nem chegue ao processo (minimização LGPD). O coletor só inclui `owner_user_id` se uma regra de negócio exigir (data-model §9 mantém `responsaveis`; **decisão do usuário pendente**, a API nunca deve devolver visão por pessoa).
+- Card individual: `GET /cards/{card_id}` [DOC].
+- Exclusão: a API tem `deleteMany`, mas **não há listagem de excluídos** [INF]; usamos a varredura semanal de presença (`stg_card_presenca`, `excluido_detectado`), já no modelo.
+
+### 4.3 Histórico de transições
+Duas rotas [DOC], ambas pedem validação no swagger:
+- **`GET /cards/{card_id}/revisions`** e **`/revisions/{revision}`**: o schema `CardRevision` tem `card_id`, `board_id`, `column_id`, `lane_id`, `revision`, `created_at`, `replaced_at`, `user_id`, `custom_fields`, `subtasks`, `linked_cards`. Cada revisão guarda a posição do card naquele momento; transição = mudança de `column_id` entre revisões consecutivas [INF]. Mapeia para `stg_revision` e `fato_transicao` (`fonte='revision'`). Custo: 1 chamada por card (e por revisão se não vier em lista [INF]).
+- **`expand=transitions` e `expand=block_times` em `GET /cards`**: [DOC] existem como valores de `expand`; **campos de cada item não lidos** [NÃO LIDO]. Se trouxerem coluna e instante de entrada/saída, são a via barata para a carga em lote (poucas chamadas de 1000 cards). Também `lead_time_per_column`. Ação do usuário/Jarvis: chamar um card real com esses `expand` e anexar o JSON (sem dados de pessoa) ao arquivo de análise.
+- `user_id` das revisões é pessoa: descartar na normalização; `fato_transicao.usuario` fica `NULL` salvo decisão do usuário (data-model §9).
+
+### 4.4 Bloqueios
+- No card: `is_blocked`, `block_reason`, `current_block_time` [DOC]; histórico por `expand=block_times` [DOC; campos não lidos].
+- `GET /cards/{card_id}/blockReason` [DOC]: bloqueio atual.
+- Catálogo de motivos: `GET /blockReasons` (`label`, `availability`, `is_enabled`, `expand`) e `GET /blockReasons/{reason_id}/cards` [DOC]; alimenta `ref_dominio.motivo_bloqueio`.
+- Histórico de alterações do catálogo (não dos bloqueios dos cards): `GET /blockReasons/history` [DOC].
+
+### 4.5 Pai/filho e vínculos
+`GET /cards/{card_id}/parents`, `/children`, `/parentGraph`, `/childGraph`, `/linkedCards`, `/relatives`, `/predecessors`, `/successors` e `/subtasks` [DOC]. Para o coletor: `expand=linked_cards` na listagem [DOC] ou `parents`/`children` por card; popula `stg_vinculo` e `dim_card.card_pai`. **Qual tipo de vínculo o time usa para story, frente e projeto precisa ser confirmado pelo usuário** (não resolver por inferência). `child_card_stats` vem em `fields` [DOC].
+
+### 4.6 Campos customizados
+- Definições: `GET /customFields` e `/customFields/{field_id}` [DOC] (o `field_id` é o que entra na configuração do mapeamento para `sistema`, `area_solicitante`, `fornecedor`, `severidade` etc., data-model §3.4).
+- Valores do card: `expand=custom_fields` [DOC] ou `GET /cards/{card_id}/customFields`.
+- Opções de listas: `/customFields/{field_id}/allowedValues` [DOC, citado na descrição de regra].
+- Tipos de card: `GET /cardTypes` [DOC, parâmetros não lidos]; `type_id` vira `tipo_card`.
+
+### 4.7 Motivos de descarte
+`GET /discardReasons/{reason_id}/cards` e histórico `/discardReasons/history` [DOC]; lista `GET /discardReasons` [INF]. Alimenta `motivo_descarte`.
+
+### 4.8 Webhooks
+- Gerenciamento por API: `GET/POST /webhooks`, `GET/PATCH/DELETE /webhooks/{webhook_id}`, `GET /webhooks/history` [DOC]. Criação: corpo com `url` (1 a 65000 caracteres, http/https), `board_id` (obrigatório, **um webhook por quadro**), `is_enabled` [DOC].
+- **Segredo**: não vai no corpo; é devolvido **na resposta de criação**, uma vez ("guardar com segurança") [DOC]. Guardar em `WEBHOOK_BM_SEGREDO`.
+- **[NÃO LIDO / pendente]**: lista de eventos assinados, formato do payload, **como o segredo assina a entrega** (cabeçalho, algoritmo HMAC?) e política de reentrega. A especificação lida não trouxe isso (os "eventos" `created/updated/deleted` do schema são do log de auditoria do próprio webhook). Isso vive na base de conhecimento, que deu 403. **O usuário precisa colar o artigo de webhooks** antes de ligar o receptor; o receptor já existe (`POST /webhooks/businessmap`, `server/src/modulos/businessmap/webhook.ts`) e confere o segredo conforme o ADR/segurança do projeto; conferir que o método coincide com o do BusinessMap.
+- Requisito de rede: a URL precisa ser alcançável pela internet a partir do BusinessMap (a API do projeto está em `127.0.0.1`): exige reverse proxy/túnel com TLS. **Se isso não for possível, usar só polling** (suficiente: coleta diária às 06:00).
+- Recomendação: **polling é a fonte de verdade** (revisions + `last_modified_from` com sobreposição); webhook é acelerador opcional, reconciliado depois (`rec_transicao_par`), como já está no modelo.
+
+### 4.9 Usuários (sem expor pessoa)
+`GET /users` [DOC] (`user_ids`, `emails`, `usernames`, `fields`, `expand`). **Não é necessário** para nenhuma métrica: não chamar. Resolver `owner_user_id`/`user_id` para nome só se o usuário decidir manter `responsaveis` (data-model §9); nesse caso, restringir `fields=user_id,realname` e gravar só em coluna protegida por GRANT. Também ver `GET /users/{id}/lastActivity` (não usar).
+
+## 5. O que cada endpoint nos dá versus o modelo
+| Tabela / contrato | Origem | Endpoint | Observação |
+|---|---|---|---|
+| `stg_card`, `dim_card_versao`, `dim_card` | card | `GET /cards` (+ `fields`, `expand=custom_fields`) | marcos `first_*`/`last_*` da API são **comparação**; os nossos marcos saem da função única T2.4 sobre transições |
+| `evt_card` (`arquivado`, `excluido_detectado`) | `state`, `archived_at`, `discarded_at`; varredura | `GET /cards?state=...` | desarquivado/restaurado inferidos de reaparecer em `active` |
+| `stg_revision`, `fato_transicao` | revisões/`transitions` | `/cards/{id}/revisions` ou `expand=transitions` | `coluna_destino_id` = `column_id`; tipo/direção vêm de `ref_coluna` |
+| `evt_bloqueio`, `fato_bloqueio` | bloqueios | `expand=block_times` | duração em horas úteis calculada pela biblioteca, nunca em SQL |
+| `stg_vinculo`, `card_pai` | vínculos | `parents`/`children`/`linked_cards` | tipo de vínculo a confirmar |
+| `ref_quadro`, `ref_coluna` | estrutura | workflows + estrutura do quadro | `eh_teste`, equipe e nível **não vêm da API**: configuração humana (WS1) |
+| `ref_dominio` | campos customizados, tipos, motivos | `customFields`, `cardTypes`, `blockReasons`, `discardReasons` | domínios fechados 4.4 |
+| `ctl_coleta*` | nós | n/a | `marca_dagua_ate` = maior `last_modified` visto |
+| `ConfigBM` (SLE, alocação acordada, limite de frentes) | **não vem da API** | pergunta N-5 | configuração |
+
+## 6. Variáveis do `.env` (nomes, sem valores)
+Já existentes: `WEBHOOK_BM_SEGREDO`, `PG_WEBHOOK_URL`, `PG_COLETOR_URL`, `LOG_LEVEL`. **Propostas novas** (o `node-backend` valida com zod na partida, em `server/src/plataforma/config.ts`, e atualiza `.env.example`):
+- `BUSINESSMAP_URL_BASE` (ex.: formato `https://<conta>.kanbanize.com/api/v2`, sem barra final)
+- `BUSINESSMAP_APIKEY`
+- `BUSINESSMAP_QUADROS_IDS` (lista de IDs separados por vírgula; quadros de teste excluídos)
+- `BUSINESSMAP_LIMITE_POR_MINUTO` (padrão 30, usar abaixo do real, ex.: 25)
+- `BUSINESSMAP_TIMEOUT_MS` (padrão 30000)
+- `BUSINESSMAP_PAGINA_TAMANHO` (padrão 200; máx. 1000)
+- `WEBHOOK_BM_SEGREDO` (já existe; só se o webhook for ligado)
+
+Mapeamentos de campo customizado (`field_id` para `sistema`, `fornecedor` etc.) são **dado de configuração versionado** (arquivo em `docs/` ou `ref_`), não segredo, e não vão no `.env`.
+
+## 7. Roteiro: o que o usuário precisa entregar ou fazer
+1. **Criar (ou escolher) um usuário de serviço** no BusinessMap com papel somente de leitura nos quadros da coleta (sem edição, sem administração). Se não for possível, avisar: nesse caso a chave terá os poderes de quem a gerou e o risco vai para `docs/security/`.
+2. Logado nesse usuário, **gerar a apikey**: Minha conta > API. Copiar **direto para o `.env`** da máquina do coletor (`BUSINESSMAP_APIKEY`). **Não colar a chave em chat, issue, commit ou documento.**
+3. Informar o **host da conta** (o endereço que aparece no navegador e na tela da API) para fixar `BUSINESSMAP_URL_BASE`.
+4. Listar os **IDs dos quadros** a coletar e marcar quais são de teste (fora do cálculo, briefing 4.2). O ID aparece na URL do quadro (`/ctrl_board/<id>`) [INF].
+5. Informar **quais campos customizados** representam: tipo de demanda, sistema, área solicitante, fornecedor, objetivo estratégico, severidade, causa raiz, fase de detecção, origem, tamanho (nome e `field_id`, obtidos com `GET /customFields`).
+6. Confirmar o **tipo de vínculo** pai/filho usado para story, frente e projeto (§4.5) e quais **colunas** são fila/execução/compromisso/entrega (ver análise de colunas; é decisão do usuário, não minha).
+7. Colar (sem dados de pessoa) um **exemplo de resposta** de um card real com `expand=transitions,block_times,custom_fields` (§4.3) e a página oficial de **webhooks** (eventos e assinatura).
+8. Decidir **webhook ou só polling** (§4.8) e se existe URL pública com TLS para recebê-lo.
+9. Decidir sobre **dados de pessoa** (`responsaveis`, `usuario` das transições): o padrão proposto é não coletar (pergunta de modelagem aberta em data-model §12).
+10. Rodar os testes de conexão (§8) e entregar o resultado.
+
+## 8. Testar a conexão (somente leitura)
+Executar na máquina do coletor, com a chave carregada do `.env` (nunca digitada no comando nem em log de shell compartilhado). Use um arquivo de cabeçalho para não deixar a chave no histórico:
+```bash
+# 1) autenticação e limites (o mais barato; não retorna cards)
+curl -sS -H "apikey: $BUSINESSMAP_APIKEY" "$BUSINESSMAP_URL_BASE/apiLimits"
+# 2) um card, só campos não pessoais
+curl -sS -H "apikey: $BUSINESSMAP_APIKEY" \
+  "$BUSINESSMAP_URL_BASE/cards?board_ids=<ID>&per_page=1&fields=card_id,title,column_id,section,created_at,last_modified"
+# 3) arquivados (confirma o filtro de estado)
+curl -sS -H "apikey: $BUSINESSMAP_APIKEY" \
+  "$BUSINESSMAP_URL_BASE/cards?board_ids=<ID>&state=archived&per_page=1&fields=card_id,archived_at"
+```
+Leitura dos resultados: HTTP 200 com `data` = autenticado. 401/403 = chave errada ou sem permissão. 429 = respeitar `retry_after`. Confirmar também que uma chamada de escrita **é negada** com esse usuário (ex.: deve falhar ao tentar editar): prova de que a chave é somente leitura.

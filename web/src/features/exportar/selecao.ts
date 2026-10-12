@@ -51,8 +51,9 @@ export function itensDoNivel(
       metrica: c.id,
       fonte: c.fonte,
     }))
+  // Complementares ficam fora da exportação nesta fase (dados fictícios; decisão pendente do usuário).
   return cartoesDoPainel(nivel)
-    .filter((c) => !ocultos.includes(c.id))
+    .filter((c) => c.grupo === 'nucleo' && !ocultos.includes(c.id))
     .flatMap((c) =>
       c.metricas.map((m) => ({
         chave: `${nivel}:${c.id}`,
