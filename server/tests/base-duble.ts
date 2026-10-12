@@ -33,7 +33,7 @@ export function bancoDoMock(base: BaseMock, opcoes: { coletaId?: string; versaoC
   return (c) => {
     const t = c.texto;
     if (t.includes('FROM dspd_bm.dim_card')) return bm.dim_card!;
-    if (t.includes('FROM dspd_bm.fato_transicao')) return bm.fato_transicao!.map((l) => ({ ...l, ocorrido_em: (l.ocorrido_em as Date).getTime() }));
+    if (t.includes('FROM dspd_bm.vw_transicao_canonica')) return bm.fato_transicao!.map((l) => ({ ...l, ocorrido_em: (l.ocorrido_em as Date).getTime() }));
     if (t.includes('FROM dspd_bm.fato_bloqueio')) return bm.fato_bloqueio!;
     if (t.includes('FROM dspd_bm.ref_coluna')) return bm.ref_coluna!;
     if (t.includes('FROM dspd_ac.dim_chamado')) return ac.dim_chamado!;

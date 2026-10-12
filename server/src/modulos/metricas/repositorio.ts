@@ -3,7 +3,7 @@ import type { Consultavel } from '../../plataforma/db/pool.js';
 
 /**
  * Leitura das projeções para montar `BaseBM` / `BaseAC` (amostras dos painéis). Só colunas explícitas (nunca `SELECT *`):
- * `dim_card.responsaveis` e `fato_transicao.usuario` NÃO estão nas listas abaixo (a `dspd_api` nem tem privilégio sobre elas).
+ * `dim_card.responsaveis` e `fato_transicao.usuario` (a view canônica também não a expõe) NÃO estão nas listas abaixo (a `dspd_api` nem tem privilégio sobre elas).
  * BusinessMap e Acelerato nunca na mesma consulta: cada função toca um único schema (`S.bm` ou `S.ac`).
  * Cartões arquivados e excluídos permanecem (nenhum filtro por `arquivado_em`/`excluido_em`).
  */
@@ -52,12 +52,16 @@ export const lerCards = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente
       WHERE criado_em IS NOT NULL AND granularidade IS NOT NULL AND tipo IS NOT NULL
       ORDER BY card_id`)).rows;
 
-/** Sem ORDER BY: a biblioteca ordena as transições de cada card (timestamp, destino, origem); ordenar no banco custaria um sort em disco. */
+/**
+ * Lê a view canônica (`vw_transicao_canonica`: todas as revision + webhooks sem par em `rec_transicao_par`), nunca `fato_transicao`
+ * direto: a mesma transição gravada pela coleta e pelo webhook contaria em dobro (auditoria R1/C1).
+ * Sem ORDER BY: a biblioteca ordena as transições de cada card (timestamp, destino, origem); ordenar no banco custaria um sort em disco.
+ */
 export const lerTransicoes = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaTransicao[]> =>
   (await db.query<LinhaTransicao>(
     `SELECT card_id, quadro_id, coluna_origem_id, coluna_destino_id, tipo_coluna, direcao,
             (extract(epoch FROM ocorrido_em) * 1000)::float8 AS ocorrido_em
-       FROM ${S.bm}.fato_transicao
+       FROM ${S.bm}.vw_transicao_canonica
       WHERE tipo_coluna IS NOT NULL AND direcao IS NOT NULL`)).rows;
 
 export const lerBloqueios = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaBloqueio[]> =>
