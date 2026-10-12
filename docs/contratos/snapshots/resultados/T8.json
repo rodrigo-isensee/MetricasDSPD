@@ -1,0 +1,423 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "sprints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sprintId": {
+            "type": "string"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "inicio": {
+            "type": "string"
+          },
+          "fim": {
+            "type": "string"
+          },
+          "emAndamento": {
+            "type": "boolean"
+          },
+          "itens": {
+            "type": "number"
+          },
+          "comprometidos": {
+            "type": "number"
+          },
+          "entreguesDoComprometido": {
+            "type": "number"
+          },
+          "carryOver": {
+            "type": "number"
+          },
+          "entradaNaoPlanejada": {
+            "type": "number"
+          },
+          "entreguePct": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "pct": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "pct"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "minimo"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "naoPlanejadoPct": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "pct": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "pct"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "k": {
+                    "type": "number"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  }
+                },
+                "required": [
+                  "status",
+                  "k",
+                  "n",
+                  "minimo"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "sprintId",
+          "nome",
+          "inicio",
+          "fim",
+          "emAndamento",
+          "itens",
+          "comprometidos",
+          "entreguesDoComprometido",
+          "carryOver",
+          "entradaNaoPlanejada",
+          "entreguePct",
+          "naoPlanejadoPct"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "agregado": {
+      "type": "object",
+      "properties": {
+        "entreguePct": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "ok"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": 20,
+                  "maximum": 9007199254740991
+                },
+                "pct": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "pct"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "insuficiente"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 19
+                },
+                "minimo": {
+                  "type": "number",
+                  "const": 20
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "minimo"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "naoPlanejadoPct": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "ok"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": 20,
+                  "maximum": 9007199254740991
+                },
+                "pct": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "pct"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "insuficiente"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 19
+                },
+                "minimo": {
+                  "type": "number",
+                  "const": 20
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "minimo"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": [
+        "entreguePct",
+        "naoPlanejadoPct"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "sprints",
+    "agregado"
+  ],
+  "additionalProperties": false
+}
