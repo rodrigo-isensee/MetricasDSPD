@@ -101,6 +101,29 @@ describe('parâmetro oculto ?mock=', () => {
     const recebido = await aplicarSimulacao('vazio', 'PV1', {}, (x) => Promise.resolve(x))
     expect(recebido).toEqual({})
   })
+  it('PV1 mostra a pesquisa mockada: 3T/2026, reenvio do 2T na série e critério da pesquisa na lista', async () => {
+    const r = await fonte.obter('PV1', {})
+    expect(r.status).toBe('ok')
+    if (r.status !== 'ok') return
+    expect(r.trimestre).toBe('2026-T3')
+    expect(r.consolidado.status === 'publicado' ? r.consolidado.n : 0).toBe(24)
+    // O reenvio do 2T/2026 vale pela carga mais recente: 19 respostas, não a soma das duas cargas.
+    expect(r.tendencia.map((t) => [t.trimestre, t.bloco.n])).toEqual([
+      ['2025-T4', 4],
+      ['2026-T1', 14],
+      ['2026-T2', 19],
+      ['2026-T3', 24],
+    ])
+    const ids = (await fonte.criterios()).map((c) => c.id)
+    expect(ids).toContain('pesquisa-q-v2')
+  })
+  it('PV1 antes da primeira carga (2025-07-10) devolve o estado sem-pesquisa', async () => {
+    const antes = new MockFonteMetricas({ latenciaMs: 0, hoje: '2025-07-09T18:00:00-03:00' })
+    await expect(antes.obter('PV1', {})).resolves.toEqual({
+      status: 'sem-pesquisa',
+      fonte: 'pesquisa',
+    })
+  })
   it('vazio força o resultado sem itens em todas as métricas (O1 mantém os dias úteis como base)', async () => {
     // A pesquisa não tem itens a esvaziar: sem carga ela mostra o estado próprio "sem pesquisa" (testado à parte).
     for (const id of METRICA_IDS.filter((i) => i !== 'VISAO_GERAL' && i !== 'PV1')) {
