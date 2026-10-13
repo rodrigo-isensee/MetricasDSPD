@@ -150,3 +150,12 @@ Pontos para o usuário confirmar: (a) T5 a O14 virou O7 a O14; (b) T4 a T8 não 
 - Resolvidos: M-1, M-2, M-3, M-4, L-2, L-3, L-7.
 - Pendentes: **B-1 (via N-1)**, M-5, L-1, L-4; novos N-2, N-3 (confirmação do mapa pelo usuário), N-4.
 - Não aprovo a interface para o QA final até N-1 ser corrigido e a inspeção em 375 e 1280 px ser feita.
+
+### Atualização de 2026-10-12 (verificada no código e nos testes)
+| Item | Status | Evidência |
+|---|---|---|
+| N-1 Leia junto | Resolvido | Commit e21aaa8. Cartões que têm complementares no catálogo exibem `LeiaJunto` (O3, O4, O10, O15, T1, T4, T5, T9, E1, S1, S2, S3, S7); O7, E2 e S6 já não têm par no catálogo. Teste `leiajunto.test.tsx` prova, por painel, os links visíveis e que as 17 são alcançadas. |
+| N-2 cobertura "n de N" na S12 | Resolvido | `cobertura-S12` em `complementares/sustentacao.tsx`; E2E COMP-12. |
+| L-1 link para O15 | Resolvido | `LinkO15` em O13 e O16 (âncora `#o15`; texto simples se o O15 estiver oculto). Teste `o6-o15.test.tsx` e E2E COMP-15. |
+| L-4 tudo oculto | Resolvido | `MaisMetricas` mostra "N complementares ocultas pelas suas preferências"; E2E COMP-10. |
+| L-7 O6 sem "Fora da meta" | Resolvido | Teste `o6-o15.test.tsx` e E2E COMP-15. |

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { METRICA_IDS, MINIMO_AMOSTRA } from '@metricas-dspd/contratos'
-import { METRICAS_SUSTENTACAO } from '@metricas-dspd/contratos'
+import { fonteDaMetrica } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
-import { gerarBaseMock } from '@metricas-dspd/mock'
+import { gerarBaseMock, gerarPesquisaMock } from '@metricas-dspd/mock'
 import { calcularMetrica } from './calcular'
-import { acelerato, businessmap } from '.'
+import { acelerato, businessmap, pesquisa } from '.'
 import { CALENDARIO_PADRAO, instanteDeIso } from './core/calendario'
 import {
   calcularE1,
@@ -24,6 +24,7 @@ const base = gerarBaseMock({ escala: 0.5 })
 const ctx = {
   bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
   ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
+  pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(base.config), base.config.hoje),
 }
 const fluxo = (p: FiltrosFluxo['periodo']): FiltrosFluxo => ({
   equipe: [],
@@ -58,10 +59,11 @@ describe('toda métrica (B14): schema, regra dos 20 e marcação de critério', 
   it.each(METRICA_IDS.filter((m) => m !== 'VISAO_GERAL'))(
     '%s respeita a regra dos 20 em todos os períodos e o schema',
     (id) => {
-      const s = METRICAS_SUSTENTACAO.includes(id)
+      const fonte = fonteDaMetrica(id)
       const falhas: string[] = []
       for (const tipo of periodos) {
-        const f = s ? sust({ tipo }) : fluxo({ tipo })
+        const f =
+          fonte === 'pesquisa' ? {} : fonte === 'acelerato' ? sust({ tipo }) : fluxo({ tipo })
         const r = calcularMetrica(id, f as never, ctx)
         expect(SCHEMAS_RESULTADO[id].safeParse(r).success, `${id} ${tipo}`).toBe(true)
         conferirRegraDos20(r, id, falhas)
@@ -77,6 +79,30 @@ describe('toda métrica (B14): schema, regra dos 20 e marcação de critério', 
     expect(curto.criterios.serie).toHaveLength(0)
   })
 
+  it('PV1 é a terceira fonte: BusinessMap e Acelerato não a alteram (e ela não altera as outras)', () => {
+    const ref = calcularMetrica('PV1', {}, ctx)
+    expect(ref.status).toBe('ok')
+    const vazia = {
+      ...base,
+      bm: { ...base.bm, cards: [] },
+      ac: { ...base.ac, chamados: [], etapas: [] },
+    }
+    const outro = {
+      ...ctx,
+      bm: businessmap.criarContextoBM(vazia.bm, base.config.hoje, CALENDARIO_PADRAO),
+      ac: acelerato.criarContextoAC(vazia.ac, base.config.hoje, CALENDARIO_PADRAO),
+    }
+    expect(calcularMetrica('PV1', {}, outro)).toEqual(ref)
+    const semPesq = { bm: ctx.bm, ac: ctx.ac }
+    expect(calcularMetrica('S1', sust({ tipo: '12m' }) as never, semPesq)).toEqual(
+      calcularMetrica('S1', sust({ tipo: '12m' }) as never, ctx),
+    )
+    expect(calcularMetrica('PV1', {}, semPesq)).toEqual({
+      status: 'sem-pesquisa',
+      fonte: 'pesquisa',
+    })
+  })
+
   it('VISAO_GERAL: cada bloco só tem fonte própria e usa a data de corte comum', () => {
     const r = calcularMetrica('VISAO_GERAL', {}, ctx)
     expect(ctx.bm.hojeIso).toBe(ctx.ac.hojeIso)
@@ -84,9 +110,9 @@ describe('toda métrica (B14): schema, regra dos 20 e marcação de critério', 
     expect(new Set(fontes)).toEqual(new Set(['BusinessMap', 'Acelerato']))
     for (const n of r.niveis)
       for (const ind of n.indicadores)
-        expect(
-          ind.metrica.startsWith('S') || ind.metrica === 'EI_SUST' ? 'Acelerato' : 'BusinessMap',
-        ).toBe(n.fonte)
+        expect(fonteDaMetrica(ind.metrica) === 'acelerato' ? 'Acelerato' : 'BusinessMap').toBe(
+          n.fonte,
+        )
   })
 })
 

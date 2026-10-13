@@ -2,6 +2,7 @@ import type { MetricaId } from '@metricas-dspd/contratos'
 import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
 import * as AC from './acelerato'
 import * as BM from './businessmap'
+import * as PESQ from './pesquisa'
 import type { ExtensoesMetricas } from './extensoes'
 import { calcularVisaoGeral } from './visaoGeral'
 
@@ -11,6 +12,8 @@ export interface ContextosMetricas {
   ac: AC.ContextoAC
   /** Extensões das métricas complementares (mock). Sem elas, o cálculo complementar devolve vazio/insuficiente. */
   ext?: ExtensoesMetricas
+  /** Contexto da pesquisa de percepção (terceira fonte, separada). Sem ele, a PV1 devolve `sem-pesquisa`. */
+  pesq?: PESQ.ContextoPesquisa
 }
 
 /**
@@ -69,6 +72,7 @@ const CALCULOS: {
   S12: (f, c) => AC.calcularS12(c.ac, f, c.ext?.ac),
   O17: (f, c) => AC.calcularO17(c.ac, f, c.ext?.ac),
   EI_SUST: (f, c) => AC.calcularEIAcelerato(c.ac, f),
+  PV1: (_f, c) => PESQ.calcularPV1(c.pesq),
   VISAO_GERAL: (_f, ctx) => calcularVisaoGeral(ctx.bm, ctx.ac),
 }
 

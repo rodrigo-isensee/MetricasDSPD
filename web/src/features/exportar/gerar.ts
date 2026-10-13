@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query'
 import {
-  METRICAS_SUSTENTACAO,
+  fonteDaMetrica,
   type Dominio,
   type FiltrosFluxo,
   type FiltrosSustentacao,
@@ -22,8 +22,12 @@ import {
 import { notaDaMetrica } from './notas'
 import { escopoDoArquivo, filtrosDoItem, rotuloDoEscopo, type ItemExportavel } from './selecao'
 
-const dominioDe = (id: MetricaId): Dominio =>
-  METRICAS_SUSTENTACAO.includes(id) ? 'acelerato' : 'businessmap'
+/** Domínio das opções de filtro da métrica; a pesquisa não tem (fica fora da exportação). */
+export const dominioDe = (id: MetricaId): Dominio => {
+  const fonte = fonteDaMetrica(id)
+  if (fonte === 'pesquisa') throw new Error('A pesquisa de percepção não é exportável')
+  return fonte === 'acelerato' ? 'acelerato' : 'businessmap'
+}
 
 export interface ParametrosGeracao {
   base: BaseExportacao

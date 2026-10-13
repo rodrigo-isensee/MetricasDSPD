@@ -4,7 +4,10 @@ import { Botao, Icone } from '@/components/ui'
 import { usePreferenciasPainel, type PreferenciasPainel } from '@/components/ui'
 
 /** Seções do painel na ordem do catálogo, com os cartões de cada uma (só do grupo pedido). */
-export function secoesDoPainel(p: PreferenciasPainel, grupo: 'nucleo' | 'complementar' = 'nucleo') {
+export function secoesDoPainel(
+  p: PreferenciasPainel,
+  grupo: 'nucleo' | 'complementar' | 'percepcao' = 'nucleo',
+) {
   const mapa = new Map<string, { id: string; titulo: string; cartoes: typeof p.cartoes }>()
   for (const c of p.cartoes.filter((x) => x.grupo === grupo)) {
     const s = mapa.get(c.secao) ?? { id: c.secao, titulo: c.secaoTitulo, cartoes: [] }
@@ -91,6 +94,14 @@ export function BotaoMetricas() {
               ajuda='Ficam na seção "Mais métricas deste painel".'
               cartoes={secoesDoPainel(p, 'complementar').flatMap((s) => s.cartoes)}
             />
+            {secoesDoPainel(p, 'percepcao').length > 0 && (
+              <GrupoCaixas
+                p={p}
+                titulo="Percepção de valor"
+                ajuda="Pesquisa trimestral, no fim do painel."
+                cartoes={secoesDoPainel(p, 'percepcao').flatMap((s) => s.cartoes)}
+              />
+            )}
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Botao onClick={p.mostrarTodas}>Mostrar todas</Botao>

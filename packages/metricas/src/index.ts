@@ -1,6 +1,7 @@
 export * from './core'
 export * as businessmap from './businessmap'
 export * as acelerato from './acelerato'
+export * as pesquisa from './pesquisa'
 export { calcularVisaoGeral } from './visaoGeral'
 export { calcularMetrica, type ContextosMetricas } from './calcular'
 export { slug } from './slug'

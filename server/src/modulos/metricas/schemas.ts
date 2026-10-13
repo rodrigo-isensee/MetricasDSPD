@@ -72,6 +72,10 @@ export const querySustentacaoSchema = z.object({
 export const queryVisaoGeralSchema = z.object({ dataReferencia: data.optional() }).strict()
   .transform((q): ConsultaCalculo<Record<string, never>> => (q.dataReferencia === undefined ? { filtros: {} } : { filtros: {}, dataReferencia: q.dataReferencia }));
 
+/** Pesquisa de percepção (PV1): só a data de referência; equipe, prioridade e período não se aplicam. */
+export const queryPesquisaSchema = z.object({ dataReferencia: data.optional() }).strict()
+  .transform((q): ConsultaCalculo<Record<string, never>> => (q.dataReferencia === undefined ? { filtros: {} } : { filtros: {}, dataReferencia: q.dataReferencia }));
+
 export const paramsIdSchema = z.object({ id: z.string() }).strict();
 export const itensMetaSchema = z.object({ page: z.number().int().min(1), pageSize: z.number().int().min(1), total: z.number().int().min(0) }).strict();
 /** O2 paginado: o DTO do contrato mais `itensMeta` (docs/api/metricas.md). */

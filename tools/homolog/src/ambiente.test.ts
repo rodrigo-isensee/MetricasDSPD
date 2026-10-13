@@ -14,6 +14,13 @@ describe('validarEnv', () => {
   it('aceita segredos fortes', () => {
     expect(validarEnv(valido)).toEqual([])
   })
+  it('exige DSPD_PWD_PESQUISA e recusa o padrão pesquisa_dev', () => {
+    const { DSPD_PWD_PESQUISA: _fora, ...semPesquisa } = valido
+    expect(validarEnv(semPesquisa)).toEqual(['DSPD_PWD_PESQUISA não definida'])
+    expect(validarEnv({ ...valido, DSPD_PWD_PESQUISA: 'pesquisa_dev' })).toEqual([
+      'DSPD_PWD_PESQUISA usa um valor padrão de desenvolvimento',
+    ])
+  })
   it('recusa ausentes, padrões de dev e curtos, sem vazar o valor', () => {
     const env = {
       ...valido,

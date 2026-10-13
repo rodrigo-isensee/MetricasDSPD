@@ -140,14 +140,14 @@ describe('/dados: ramos das tabelas', () => {
     expect(screen.getByTestId('pagina-businessmap')).toHaveTextContent('Página 1 de 1')
   })
 
-  it('critérios: uma mudança que afeta as duas fontes aparece em cada aba só com as métricas dela', async () => {
+  it('critérios: uma mudança que afeta as duas fontes aparece em cada aba só com as métricas dela (a PV1, da pesquisa, não entra em nenhuma)', async () => {
     const fonte = comCriterios(() =>
       Promise.resolve([
         {
           id: 'c',
           data: '2026-05-05',
           descricao: 'Regra comum',
-          afeta: ['O2', 'S1', 'VISAO_GERAL'],
+          afeta: ['O2', 'S1', 'VISAO_GERAL', 'PV1'],
         },
       ]),
     )

@@ -31,8 +31,11 @@ export interface CartaoCatalogo {
   metricas: readonly MetricaId[]
   /** Cartões "leia junto" (lista de ids, únicos entre painéis; pode apontar para outro painel): o link some se o par está oculto. */
   leiaJunto?: readonly CartaoId[]
-  /** Núcleo (briefing) ou complementar (seção "Mais métricas deste painel"). */
-  grupo: 'nucleo' | 'complementar'
+  /**
+   * Núcleo (briefing), complementar (seção "Mais métricas deste painel") ou percepção (seção própria e
+   * visível no fim do painel Sustentação, fora de "Mais métricas").
+   */
+  grupo: 'nucleo' | 'complementar' | 'percepcao'
   /** 'mock' = dado fictício até a coleta real (a interface rotula "Dados fictícios"). */
   status: 'disponivel' | 'mock'
 }
@@ -69,7 +72,7 @@ function secao(
     ...(pares ? { leiaJunto: pares } : {}),
     grupo,
     status:
-      grupo === 'complementar' && COM_EXTENSAO_MOCK.has(codigo)
+      grupo === 'percepcao' || (grupo === 'complementar' && COM_EXTENSAO_MOCK.has(codigo))
         ? ('mock' as const)
         : ('disponivel' as const),
   }))
@@ -123,8 +126,8 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['EI-FL3', 'Espera invisível · Estratégico', ['EI_FL3']],
   ]),
   ...secao('sustentacao', 'prazos', 'Prazos', [
-    ['S2', 'Aderência ao SLA', undefined, ['s8', 's12']],
-    ['S1', 'Primeiro atendimento e restauração', undefined, ['s9', 's10']],
+    ['S2', 'Aderência ao SLA', undefined, ['s8', 's12', 'pv1']],
+    ['S1', 'Primeiro atendimento e restauração', undefined, ['s9', 's10', 'pv1']],
   ]),
   ...secao('sustentacao', 'volume', 'Volume e resolução', [
     ['S3', 'Volume mensal por prioridade', undefined, ['s8', 's12']],
@@ -138,6 +141,14 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ...secao('sustentacao', 'espera', 'Espera invisível do nível', [
     ['EI-SUST', 'Espera invisível · Sustentação', ['EI_SUST']],
   ]),
+  // Terceira fonte (pesquisa trimestral de percepção): 'mock' até existir carga real.
+  ...secao(
+    'sustentacao',
+    'percepcao',
+    'Percepção de valor · pesquisa trimestral',
+    [['PV1', 'Percepção de valor do serviço', undefined, ['s1', 's2']]],
+    'percepcao',
+  ),
 
   // Complementares (dados mockados): seção = a pergunta do painel.
   ...secao(

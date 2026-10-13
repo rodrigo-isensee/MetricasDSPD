@@ -17,6 +17,7 @@ function GrupoPainel({ painel }: { painel: PainelComCartoes }) {
   const cartoes = todos.filter((c) => c.grupo === 'nucleo')
   const complementares = todos.filter((c) => c.grupo === 'complementar')
   const ocultos = prefs.ocultosSalvos(painel)
+  const percepcao = todos.filter((c) => c.grupo === 'percepcao')
   const secoes = [...new Set(cartoes.map((c) => c.secao))]
   const grupos = [
     ...secoes.map((s) => {
@@ -24,6 +25,9 @@ function GrupoPainel({ painel }: { painel: PainelComCartoes }) {
       return { chave: s, titulo: doGrupo[0]?.secaoTitulo, cartoes: doGrupo }
     }),
     { chave: 'complementares', titulo: 'Complementares', cartoes: complementares },
+    ...(percepcao.length > 0
+      ? [{ chave: 'percepcao', titulo: 'Percepção de valor (pesquisa)', cartoes: percepcao }]
+      : []),
   ]
   return (
     <fieldset
@@ -35,6 +39,8 @@ function GrupoPainel({ painel }: { painel: PainelComCartoes }) {
         {cartoes.filter((c) => !ocultos.includes(c.id)).length} de {cartoes.length} do núcleo e{' '}
         {complementares.filter((c) => !ocultos.includes(c.id)).length} de {complementares.length}{' '}
         complementares visíveis
+        {percepcao.length > 0 &&
+          ` · ${percepcao.filter((c) => !ocultos.includes(c.id)).length} de ${percepcao.length} da pesquisa de percepção`}
       </p>
       <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
         {grupos.map((g) => {

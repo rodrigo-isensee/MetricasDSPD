@@ -12,3 +12,6 @@ VG-11: linha de recorte "Consolidado de todas as equipes · últimas 12 semanas"
 "Recorte fixo, igual ao dos painéis: Operacional e Tático em 18/07 a 09/10/2026; Estratégico em 10/10 a 09/10/2026; ...". O Estratégico lê como início posterior ao fim (o ano do início, 2025, é omitido).
 ## Evidência
 `docs/qa/evidencias/b3/visao-geral-1280-claro.png`. Decisão pendente: o texto atual é aceito (então atualizo VG-11) ou volta ao do plano? Em qualquer caso, mostrar o ano do início quando diferente do fim.
+
+## Status: CORRIGIDO (2026-10-12)
+Decisão do time (recomendação da triagem): o texto atual é aceito. Ele começa pela linha do VG-11 ("Consolidado de todas as equipes · últimas 12 semanas") e acrescenta o recorte de cada painel, já com o ano (`fmtData`), o que elimina a ambiguidade. O VG-11 passa a ser lido como "começa por essa frase; o recorte por painel vem em seguida". Sem mudança de código.

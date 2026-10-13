@@ -11,6 +11,7 @@ import { CartaoS4 } from './components/CartaoS4'
 import { CartaoS5 } from './components/CartaoS5'
 import { CartaoS6 } from './components/CartaoS6'
 import { CartaoS7 } from './components/CartaoS7'
+import { CartaoPV1 } from '@/features/percepcao/CartaoPV1'
 import { MaisMetricas } from '@/features/complementares/MaisMetricas'
 import { cartaoDeSustentacao } from '@/features/complementares/registro'
 
@@ -100,6 +101,14 @@ export default function SustentacaoPage() {
             <CartaoEISust filtros={filtros} variante="compacto" />
           </SecaoPainel>
           <MaisMetricas fonte="Acelerato" renderizar={(id) => cartaoDeSustentacao(id, filtros)} />
+          <SecaoPainel
+            cartoes={['pv1']}
+            id="percepcao"
+            titulo="Percepção de valor · pesquisa trimestral"
+            pergunta="O serviço entrega valor para as áreas atendidas? Leia ao lado de S1 e S2, sem cálculo cruzado."
+          >
+            <CartaoPV1 />
+          </SecaoPainel>
         </>
       )}
     </PainelSustentacao>

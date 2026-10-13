@@ -6,7 +6,7 @@ import { useMetrica } from '@/data'
 import { fmtDiasUteis, fmtInteiro, fmtMes, fmtNumero, fmtPct, textoJanela } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
 import { CartaoComplementar } from './CartaoComplementar'
-import { Leia, ListaInsuficientes } from './comuns'
+import { Leia, LinkO15, ListaInsuficientes } from './comuns'
 
 interface P {
   filtros: FiltrosFluxo
@@ -279,7 +279,9 @@ export function CartaoO13({ filtros }: P) {
               formatar: (v) => fmtPct(v, 1),
             }}
           />
-          <Leia>Sem alvo de volume. Leia junto com Onde os bugs são encontrados (O15).</Leia>
+          <Leia>
+            Sem alvo de volume. Leia junto com <LinkO15 />.
+          </Leia>
         </div>
       )}
     </CartaoComplementar>
@@ -399,7 +401,9 @@ export function CartaoO16({ filtros }: P) {
               i: fmtDiasUteis(b.idadeDiasUteis, 0),
             }))}
           />
-          <Leia>Sem alvo de volume. Leia junto com Onde os bugs são encontrados (O15).</Leia>
+          <Leia>
+            Sem alvo de volume. Leia junto com <LinkO15 />.
+          </Leia>
         </div>
       )}
     </CartaoComplementar>
