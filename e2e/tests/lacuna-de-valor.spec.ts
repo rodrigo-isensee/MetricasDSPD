@@ -25,6 +25,9 @@ async function abrir(page: Page, painel: { ir: (r: string) => Promise<void>; esp
   await painel.esperarCartoesProntos()
   const cartao = page.getByTestId('metrica-PV1')
   await expect(cartao).toBeVisible()
+  // esperarCartoesProntos pode passar antes do PV1 montar o corpo (carregamento tardio); o conteúdo é a prova de pronto.
+  await expect(cartao.getByTestId('pv1-participacao')).toBeVisible()
+  await expect(cartao).not.toHaveAttribute('aria-busy', 'true')
   return cartao
 }
 
@@ -61,6 +64,9 @@ for (const tela of TELAS) {
     test(`LV-03 CT-07/10/11 "Por área": alfabética, "Outras áreas" por último, soma das áreas + Outras = 24, sem ranking`, async ({ page, painel }) => {
       const cartao = await abrir(page, painel)
       const areas = cartao.getByTestId('por-area').getByRole('heading', { level: 5 })
+      await expect(areas.first()).toBeVisible()
+      await expect(cartao.getByTestId('por-area').getByTestId('n-grupo').first()).toBeVisible()
+      await expect.poll(() => areas.count()).toBeGreaterThan(1)
       const nomes = (await areas.allTextContents()).map((t) => t.replace(/\s*·.*$/, '').trim())
       expect(nomes.at(-1)).toBe('Outras áreas')
       const demais = nomes.slice(0, -1)
@@ -132,7 +138,9 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
     if (await faixa.count()) await expect(faixa).not.toContainText(/\bPV1\b|percepção/i)
     await painel.ir('/sustentacao?periodo=30d')
     await painel.esperarCartoesProntos()
-    expect(await page.getByTestId('metrica-PV1').innerText()).toBe(antes)
+    const depois = page.getByTestId('metrica-PV1')
+    await expect(depois.getByTestId('pv1-participacao')).toBeVisible()
+    await expect.poll(() => depois.innerText()).toBe(antes)
   })
 
   test('LV-10 CT-19 "Leia junto" de S1 e S2 leva a PV1; ocultar pv1 nas preferências remove link e seção', async ({ page, painel }) => {
