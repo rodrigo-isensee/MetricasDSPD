@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de UX: fase A (shell, filtros, tema, componentes e cartão O4)
 
 Revisor: `ux-designer` · 2026-10-09 · Decisão D11 da ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`

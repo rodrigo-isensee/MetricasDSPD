@@ -28,6 +28,7 @@ jobs:
       DSPD_PWD_REF: ref_dev
       DSPD_PWD_WEBHOOK: webhook_dev
       DSPD_PWD_AUTOMACAO: automacao_dev
+      DSPD_PWD_PESQUISA: pesquisa_dev
       PG_MIGRADOR_URL: postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas
       DSPD_PG_CONTAINER: pgci
       DSPD_COMPARAR_COM_VIVO: '1'
@@ -43,7 +44,7 @@ jobs:
       - name: PostgreSQL 17 com os papéis do projeto
         run: |
           docker run -d --name pgci -p 127.0.0.1:5432:5432 \
-            -e POSTGRES_PASSWORD -e DSPD_PWD_MIGRADOR -e DSPD_PWD_COLETOR -e DSPD_PWD_API -e DSPD_PWD_REF -e DSPD_PWD_WEBHOOK -e DSPD_PWD_AUTOMACAO \
+            -e POSTGRES_PASSWORD -e DSPD_PWD_MIGRADOR -e DSPD_PWD_COLETOR -e DSPD_PWD_API -e DSPD_PWD_REF -e DSPD_PWD_WEBHOOK -e DSPD_PWD_AUTOMACAO -e DSPD_PWD_PESQUISA \
             -v "$PWD/docker/postgres/init:/docker-entrypoint-initdb.d:ro" postgres:17
           until docker exec pgci pg_isready -U postgres -d metricas_test >/dev/null 2>&1; do sleep 2; done
       - name: Migrar e semear (mock)

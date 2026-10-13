@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano de testes - integração real (frescor, calibração e /dados)
 Links: `docs/ux/integracao-real/05-especificacao.md` (CA-01..CA-22), `04-prototipo.md` (W1-W6). Contrato/plano técnico: `docs/api/` e `docs/architecture/features/` (ver rastreio ao final do ciclo).
 

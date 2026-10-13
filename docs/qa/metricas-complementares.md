@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de QA - métricas complementares (17)
 Branch `feature/metricas-complementares` (7aa4d6c, após as correções). Data: 2026-10-11. Ambiente: Chromium headless (Playwright, `vite preview` do build de produção, dados mock), WSL2.
 Links: `docs/ux/metricas-fora-do-nucleo/`, `docs/architecture/features/metricas-complementares.md`, `docs/alinhamentos/2026-10-11-decisoes-complementares.md`.

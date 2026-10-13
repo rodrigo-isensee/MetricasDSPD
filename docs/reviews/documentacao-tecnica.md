@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review: documentação técnica (DDD, contratos, índice) — rodada 1
 
 - Branch: `docs/documentacao-tecnica` (7 commits sobre `origin/develop`, b59a8d5..c1eaf00) · Revisor: `tech-lead` · Data: 2026-10-11

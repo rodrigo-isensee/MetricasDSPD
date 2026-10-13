@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano técnico - Dashboard de métricas com dados mockados
 
 - Data: 2026-10-09 · Pedido: `docs/pedidos/001-dashboard-mock.md`

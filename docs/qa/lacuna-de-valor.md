@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano de testes - lacuna de valor (PV1, K-036)
 
 Links: UX `docs/ux/lacuna-de-valor/` (validação `05-validacao.md` ainda sem retorno do usuário), plano técnico `docs/architecture/features/lacuna-de-valor.md` (seções 3, 7, 8), contrato `ResultadoPV1` em `packages/contratos/src/schemas.ts` (`resultadoPV1`), decisões provisórias U1/U2/U3 no commit 509b8d1. Spec: `e2e/tests/lacuna-de-valor.spec.ts`.
