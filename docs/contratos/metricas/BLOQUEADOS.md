@@ -1,6 +1,6 @@
 # Contrato da métrica BLOQUEADOS
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica BLOQUEADOS. Público: time (back-end, front-end, QA). Revisão: 2026-10-11.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica BLOQUEADOS. Público: time (back-end, front-end, QA). Revisão: 2026-10-13.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -63,7 +63,12 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.BLOQUEADOS`); a fotografia version
           "anyOf": [
             {
               "type": "object",
-              "properties": {"inicio":{"type":"string"},"fim":{"type":"string"}},
+              "properties": {
+                "inicio": {"type":"string"},
+                "fim": {"type":"string"},
+                "unidade": {"type":"string","enum":["semanas","meses"]},
+                "quantidade": {"type":"number"}
+              },
               "required": ["inicio","fim"],
               "additionalProperties": false
             },
