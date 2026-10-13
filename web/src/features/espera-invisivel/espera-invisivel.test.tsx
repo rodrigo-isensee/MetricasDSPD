@@ -18,15 +18,15 @@ async function pronto(codigo: string, url = URL_DO[codigo] as string) {
 }
 
 describe('Espera invisível por nível, segmentada', () => {
-  it('cada painel traz só a espera invisível do próprio nível, com id de âncora estável', async () => {
-    for (const n of ['FL1', 'FL2', 'FL3', 'SUST']) {
-      const { el, unmount } = await pronto(`EI-${n}`)
+  it.each(['FL1', 'FL2', 'FL3', 'SUST'])(
+    '%s: o painel traz só a espera invisível do próprio nível, com id de âncora estável',
+    async (n) => {
+      const { el } = await pronto(`EI-${n}`)
       expect(el).toHaveAttribute('id', `ei-${n.toLowerCase()}`)
       for (const outro of ['FL1', 'FL2', 'FL3', 'SUST'].filter((x) => x !== n))
         expect(screen.queryByTestId(`metrica-EI-${outro}`)).toBeNull()
-      unmount()
-    }
-  })
+    },
+  )
 
   it('FL1: abas por tipo, uma por vez, sem aba "Todos"; cada aba tem as duas visões juntas e o índice', async () => {
     const { el, roteador } = await pronto('EI-FL1')
