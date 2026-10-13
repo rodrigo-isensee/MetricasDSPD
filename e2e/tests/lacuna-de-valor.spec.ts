@@ -94,7 +94,17 @@ for (const tela of TELAS) {
       await expect(tendencia).toBeVisible()
       expect(await tendencia.getByTestId('ponto-trimestre').count()).toBeLessThanOrEqual(4)
       await expect(tendencia.getByTestId('quebra-serie')).toContainText(/2026|01\/04|abr/i)
-      await expect(tendencia.getByText(/Base insuficiente/).or(tendencia.getByText(/Concordam/)).first()).toBeVisible()
+      await expect(tendencia.getByText(/Base insuficiente/).or(tendencia.getByText(/concorda/i)).first()).toBeVisible()
+    })
+
+    test(`LV-15 L-3/L-4/L-6 tendência diz que mostra só o lado que concorda e as barras usam um só matiz (sem vermelho)`, async ({ page, painel }) => {
+      const cartao = await abrir(page, painel)
+      await expect(cartao.getByTestId('tendencia-PV1')).toContainText('Só o lado que concorda')
+      await expect(cartao.getByTestId('quebra-serie')).toContainText('01/04/2026')
+      const faixa = cartao.locator('[data-testid="distribuicao-consolidado"] [data-faixa]')
+      expect(await faixa.count()).toBeGreaterThan(0)
+      const classes = await faixa.evaluateAll((els) => els.map((e) => e.className))
+      for (const c of classes) expect(c).not.toMatch(/alerta/)
     })
 
     test(`LV-06 CT-15 "O que mudou por causa da pesquisa" presente, como texto puro`, async ({ page, painel }) => {

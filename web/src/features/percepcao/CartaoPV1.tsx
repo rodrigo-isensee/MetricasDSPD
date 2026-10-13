@@ -160,7 +160,12 @@ function Corpo({ d }: { d: Ok }) {
           </>
         )}
       </section>
-      {d.tendencia.length > 0 && <Tendencia d={d} />}
+      {d.tendencia.length > 1 && <Tendencia d={d} />}
+      {d.tendencia.length === 1 && (
+        <p className="text-sm text-texto-2" data-testid="pv1-sem-tendencia">
+          Primeiro ciclo: ainda sem tendência. A comparação por trimestre começa no segundo ciclo.
+        </p>
+      )}
       <PorArea d={d} />
       <OQueMudou d={d} />
       <p className="text-sm text-texto-2" data-testid="pv1-rodape">
