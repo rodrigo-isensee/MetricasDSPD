@@ -191,4 +191,78 @@ describe('HttpFonteMetricas', () => {
     ctl.abort()
     await assertiva
   })
+
+  it('tempo-limite na chamada vira TEMPO_ESGOTADO, distinto de rede indisponível', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(
+      (_url, init) =>
+        new Promise<Response>((_res, rej) => {
+          init?.signal?.addEventListener('abort', () =>
+            rej(new DOMException('tempo', 'TimeoutError')),
+          )
+        }),
+    )
+    await expect(
+      new HttpFonteMetricas({ fetchImpl, tempoLimiteMs: 5 }).criterios(),
+    ).rejects.toMatchObject({ status: 0, code: 'TEMPO_ESGOTADO' })
+  })
+
+  it('tempo-limite durante a leitura do corpo vira TEMPO_ESGOTADO, sem log de resposta inválida', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const fetchImpl = vi.fn<typeof fetch>((_url, init) => {
+      const resp = new Response('{}', { status: 200 })
+      vi.spyOn(resp, 'json').mockImplementation(
+        () =>
+          new Promise((_res, rej) => {
+            init?.signal?.addEventListener('abort', () =>
+              rej(new DOMException('tempo', 'TimeoutError')),
+            )
+          }),
+      )
+      return Promise.resolve(resp)
+    })
+    await expect(
+      new HttpFonteMetricas({ fetchImpl, tempoLimiteMs: 5 }).criterios(),
+    ).rejects.toMatchObject({ code: 'TEMPO_ESGOTADO' })
+    expect(log).not.toHaveBeenCalled()
+    log.mockRestore()
+  })
+
+  it('cancelamento pelo Query durante a leitura do corpo propaga o AbortError, sem log', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const ctl = new AbortController()
+    const fetchImpl = vi.fn<typeof fetch>(() => {
+      const resp = new Response('{}', { status: 200 })
+      vi.spyOn(resp, 'json').mockImplementation(
+        () =>
+          new Promise((_res, rej) => {
+            ctl.signal.addEventListener('abort', () =>
+              rej(new DOMException('abortado', 'AbortError')),
+            )
+          }),
+      )
+      return Promise.resolve(resp)
+    })
+    const p = new HttpFonteMetricas({ fetchImpl }).obter('O1', FLUXO, { signal: ctl.signal })
+    const assertiva = expect(p).rejects.toMatchObject({ name: 'AbortError' })
+    await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalled())
+    await new Promise((r) => setTimeout(r, 0))
+    ctl.abort()
+    await assertiva
+    expect(log).not.toHaveBeenCalled()
+    log.mockRestore()
+  })
+
+  it('opcoesFiltro recusa resposta de outro domínio (RESPOSTA_INVALIDA)', async () => {
+    const mock = new MockFonteMetricas({ latenciaMs: 0 })
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const fetchImpl = vi.fn().mockResolvedValue(json(await mock.opcoesFiltro('acelerato')))
+    await expect(
+      new HttpFonteMetricas({ fetchImpl }).opcoesFiltro('businessmap'),
+    ).rejects.toMatchObject({ code: 'RESPOSTA_INVALIDA' })
+    const aoContrario = vi.fn().mockResolvedValue(json(await mock.opcoesFiltro('businessmap')))
+    await expect(
+      new HttpFonteMetricas({ fetchImpl: aoContrario }).opcoesFiltro('acelerato'),
+    ).rejects.toMatchObject({ code: 'RESPOSTA_INVALIDA' })
+    log.mockRestore()
+  })
 })

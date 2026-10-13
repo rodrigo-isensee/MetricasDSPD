@@ -1,7 +1,8 @@
 import type { z } from 'zod'
 import {
   estadoColetaSchema,
-  opcoesFiltroSchema,
+  opcoesFiltroFluxoSchema,
+  opcoesFiltroSustentacaoSchema,
   paginaColetasSchema,
   referenciaSchema,
   versaoCriterioSchema,
@@ -20,13 +21,15 @@ import { filtrosParaQuery } from './filtrosParaQuery'
 
 /** Itens do O2 pedidos por página (máximo da API): a tela usa só o total de `itensMeta` e uma amostra. */
 export const PAGINA_O2 = 200
-const TEMPO_LIMITE_MS = 15_000
+export const TEMPO_LIMITE_MS = 15_000
 
 export interface OpcoesHttp {
   /** Base da API, relativa à origem (mesma origem, sem CORS). */
   base?: string
   /** Implementação de `fetch` (testes). */
   fetchImpl?: typeof fetch
+  /** Tempo-limite por chamada, em ms (testes; padrão 15 s). */
+  tempoLimiteMs?: number
 }
 
 /**
@@ -38,14 +41,16 @@ export class HttpFonteMetricas implements FonteMetricas {
   readonly tipo = 'api' as const
   private readonly base: string
   private readonly fetchImpl: typeof fetch
+  private readonly tempoLimiteMs: number
 
-  constructor({ base = '/api/v1', fetchImpl }: OpcoesHttp = {}) {
+  constructor({ base = '/api/v1', fetchImpl, tempoLimiteMs = TEMPO_LIMITE_MS }: OpcoesHttp = {}) {
+    this.tempoLimiteMs = tempoLimiteMs
     this.base = base.replace(/\/+$/, '')
     this.fetchImpl = fetchImpl ?? ((...a) => fetch(...a))
   }
 
   private async buscar<T>(caminho: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
-    const limite = AbortSignal.timeout(TEMPO_LIMITE_MS)
+    const limite = AbortSignal.timeout(this.tempoLimiteMs)
     let resp: Response
     try {
       resp = await this.fetchImpl(`${this.base}${caminho}`, {
@@ -55,11 +60,21 @@ export class HttpFonteMetricas implements FonteMetricas {
     } catch (e) {
       // Cancelamento pelo Query (filtro trocou, cartão saiu): propaga como está, sem virar erro de tela.
       if (signal?.aborted) throw e
-      throw new ErroApi(0, 'REDE_INDISPONIVEL')
+      throw new ErroApi(0, limite.aborted ? 'TEMPO_ESGOTADO' : 'REDE_INDISPONIVEL')
+    }
+    // Aborto ou tempo-limite durante a leitura do corpo não é "resposta fora do contrato".
+    const lerCorpo = async (): Promise<unknown> => {
+      try {
+        return await resp.json()
+      } catch (e) {
+        if (signal?.aborted) throw e
+        if (limite.aborted) throw new ErroApi(0, 'TEMPO_ESGOTADO')
+        return null
+      }
     }
     const requestId = resp.headers.get('X-Request-Id')
     if (!resp.ok) {
-      const corpo: unknown = await resp.json().catch(() => null)
+      const corpo = await lerCorpo()
       const code = (corpo as { error?: { code?: unknown } } | null)?.error?.code
       throw new ErroApi(
         resp.status,
@@ -67,7 +82,7 @@ export class HttpFonteMetricas implements FonteMetricas {
         requestId,
       )
     }
-    const json: unknown = await resp.json().catch(() => null)
+    const json = await lerCorpo()
     const r = schema.safeParse(json)
     if (!r.success) {
       // Sem o corpo: pode conter dado do servidor; só o código e o request id.
@@ -94,7 +109,10 @@ export class HttpFonteMetricas implements FonteMetricas {
   }
 
   opcoesFiltro<D extends Dominio>(dominio: D): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
-    return this.buscar(`/filtros/${dominio}`, opcoesFiltroSchema) as Promise<
+    // O schema é o do domínio pedido: resposta de outro domínio vira RESPOSTA_INVALIDA.
+    const schema: z.ZodType<OpcoesFiltro> =
+      dominio === 'businessmap' ? opcoesFiltroFluxoSchema : opcoesFiltroSustentacaoSchema
+    return this.buscar(`/filtros/${dominio}`, schema) as Promise<
       Extract<OpcoesFiltro, { dominio: D }>
     >
   }
