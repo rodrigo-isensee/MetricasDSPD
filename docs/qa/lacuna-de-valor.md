@@ -46,5 +46,54 @@ Legenda de automação: E2E = `e2e/tests/lacuna-de-valor.spec.ts`; fixme = escri
 Cenário fixo de `gerarPesquisaMock` (sem semente nova): 2025-T2 n=9, 2025-T3 n=11, 2025-T4 n=4, 2026-T1 n=14, 2026-T2 n=19 (reenviado), 2026-T3 n=24. E2E usa a base mock padrão do web (sem backend). Para CT-04/05/21 é preciso uma forma de fixar a `dataReferencia` ou interceptar a rota; se o web usar só mock em memória, usar `page.route` na API real (projeto de integração) ou depender de fixture a ser combinada com o react-frontend.
 Entradas inválidas e bordas: cobertas na biblioteca (fronteiras 4/5, 2/3, 19/20) e no validador de CSV; no E2E, o texto "O que mudou" com HTML e caracteres especiais (CT-15).
 
-## Resultado da execução
-Ainda não executado. Q1 entrega plano e spec; a execução e o parecer ficam no cartão Q2 (depende de B3, B4, F2). Spec com `test.fixme` por falta de F1/F2/B3 (motivo no título de cada teste). Bugs: nenhum registrado.
+## Resultado da execução (Q2, 2026-10-12, feature/lacuna-de-valor @ af9950e)
+
+Ambiente: WSL, Node 24, Chromium headless com libs locais, `vite preview` (mock), PostgreSQL 17 temporário em contêiner próprio (porta 55432, removido ao final). Comandos pesados sob `flock /tmp/metricas-pesado.lock`.
+
+| Verificação | Resultado |
+|---|---|
+| `pnpm run pronto` (lint, format, typecheck, build, cobertura 100%) | verde. Testes: contratos 41, mock 157, metricas 504, tools/pesquisa 33, server 282 (55 PG pulados sem banco), web 752, docs-contratos 102, homolog 67, spec-check 14. Bundle F6 186,80 KB < 200 |
+| `pnpm run docs:check` | ok (337 páginas, 51 métricas) |
+| `test:pg` completo em banco temporário (init original, papel `dspd_pesquisa` criado) | 11 arquivos, 55 testes verdes, inclusive os 7 de `pesquisa.pg.test.ts` (carga real com o pacote, append-only 55000/42501, papéis, domínio, I-2, migração 0013 down/up). A pendência de evidência PG do I-1 está fechada |
+| E2E Chromium completo (`test:chromium`, com axe, 1280 e 375) | 342 passaram, 2 `fixme` herdados (LV-11, LV-12), 1 falha na primeira rodada (FIL-04, flaky, abaixo) |
+| E2E `filtros.spec.ts` após o ajuste do teste, 3 repetições x 2 | 39 de 39 verdes nas duas rodadas |
+| C6 (`test:perf`, mediana agregada de 15 amostras por rota) | 1ª rodada: falhou em `/` (308 ms) com carga alta da máquina (load 9,6, vitest de outro QA fora do lock); 3 rodadas seguintes com a máquina livre: verdes, 107 a 165 ms (limite 200) nas 6 rotas; CLS 0,001 a 0,004 |
+
+### Cenários da PV1
+| ID | Resultado | Evidência |
+|---|---|---|
+| CT-01, 02, 03 | passa | E2E LV-01, LV-02 (1280 e 375) |
+| CT-04 (5 a 19, sem %), CT-05 (n < 5), CT-06 (ciclo 1) | passa (unitário) | `pesquisa.test.ts`; sem E2E (LV-11/LV-12 `fixme` por falta de forma de fixar a data no web) |
+| CT-07, CT-10, CT-11 | passa | LV-03 (alfabética, Outras por último, soma 24, sem ranking) |
+| CT-08, CT-09 (A10) | passa | `pesquisa.test.ts` (resto 1 ou 2 arrasta a menor área; menos de 2 grupos não publica) e propriedade |
+| CT-12, CT-16 | passa | LV-04 (sem média, nota, meta, ranking, pessoa ou comentário) |
+| CT-13, CT-14 (T2.6) | passa | LV-05 (4 trimestres, quebra com data) |
+| CT-15 | passa | LV-06 (texto puro) |
+| CT-17 | passa | LV-08 (nenhuma escrita, sem upload) |
+| CT-18, CT-20 | passa | LV-09 (fora de "Pede atenção", fontes separadas, filtros não alteram) |
+| CT-19 | passa | LV-10 |
+| CT-21 | sem cobertura E2E | LV-11 `fixme` (motivo "aguarda F1 e B3" desatualizado, ver G-1); estado coberto em `percepcao.test.tsx` |
+| CT-22, CT-23 | passa | LV-07 (axe wcag2a/2aa/22aa a 1280 e 375, sem rolagem horizontal), LV-13 (teclado) |
+| CT-24 | passa, com ressalva | `metricas.pesquisa.test.ts`: DTO, só `dataReferencia` (outros 400), data futura 400, antes da 1ª carga `sem-pesquisa`. Não há asserção explícita de 304 para a PV1 (G-2) |
+| CT-25 | passa | `csv.test.ts`, `carga.test.ts`, `pesquisa.pg.test.ts` (coluna extra e `email` recusados sem vazar o nome ou a célula, célula com `@`, área fora da lista no CSV e no banco, soma divergente, UPDATE/DELETE/TRUNCATE falham) |
+| CT-26 | passa | LV-14 (PV1 no catálogo com fonte "Pesquisa de percepção") |
+| CT-27 | passa (unitário) | exportação exclui PV1 |
+| CT-28 | passa | hashes BM `924448d4` e AC `b2bfd4c0` intactos; pesquisa `b2eb2918` |
+| I-2 (última carga por trimestre) | passa | `pesquisa.test.ts` (carga 5 com n=17 nunca publicada em nenhuma data), propriedade P7b, PG "leitura real" |
+
+Axe: zero violações críticas ou sérias nos fluxos novos e nos existentes. Anonimato 5/3, k de n abaixo de 20, A10, I-2 e a separação das fontes foram conferidos no navegador e na biblioteca.
+
+### Revalidação do lote de bugs (cartão 1 da triagem de 2026-10-12)
+003, 004, 005, B12-001, B12-003, B3-001 e B3-002: VERIFICADOS em navegador; arquivos de bug atualizados. 004: sem `%2C` (URL `?equipe=erp-protheus,fluig`).
+
+### Achados
+- G-1 (baixa, qa-engineer/react-frontend): LV-11 (CT-21) e LV-12 (CT-05) seguem `test.fixme` com motivo desatualizado (m-8 da revisão). Não dá para simular a rota no web, que usa mock em memória; precisa de fixture combinada com o react-frontend. Cenários cobertos só em unitário e componente.
+- G-2 (baixa, node-backend): falta teste explícito de 304 (ETag) na rota da PV1 (CT-24).
+- G-3 (instabilidade de teste, corrigida): FIL-04 e FIL-22 liam a URL logo após Esc e falharam uma vez sob carga; trocadas por `expect.poll` em `e2e/tests/filtros.spec.ts`. O produto atualiza a URL ao fechar o menu, sem defeito de comportamento.
+- G-4 (informativo): C6 é sensível a concorrência fora do `flock` (falha única em `/` com load 9,6). Mediana agregada não mascarou a carga e as rodadas limpas passam com folga.
+- Pendências que não são de QA: aceite do usuário (M-4 da UX, `05-validacao.md`), U1, U2, U3, `DSPD_PWD_PESQUISA=` nos exemplos de `.env`.
+
+Bugs abertos: nenhum crítico, alto ou médio.
+
+### Parecer
+APROVADO para seguir ao PR: todos os cenários de prioridade alta passam, nenhum bug aberto crítico, alto ou médio, zero violações de acessibilidade críticas ou sérias. Ressalvas: G-1 e G-2 (baixas) e as pendências de aceite do usuário acima.
