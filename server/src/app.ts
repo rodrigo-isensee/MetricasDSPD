@@ -4,7 +4,7 @@ import {
   jsonSchemaTransform, serializerCompiler, validatorCompiler,
 } from 'fastify-type-provider-zod';
 import { rotasWebhook } from './modulos/businessmap/index.js';
-import { ServicoMetricas, rotasMetricas, type FontePesquisa } from './modulos/metricas/index.js';
+import { ServicoMetricas, criarFontePesquisaReal, rotasMetricas, type FontePesquisa } from './modulos/metricas/index.js';
 import type { ExtensoesMetricas } from '@metricas-dspd/metricas';
 import { rotasOperacao } from './modulos/operacao/index.js';
 import { rotasReferencia } from './modulos/referencia/index.js';
@@ -27,7 +27,7 @@ export type DepsApp = {
   nivelLog?: string;
   /** Extensões das métricas complementares; padrão = mock. */
   extensoes?: () => ExtensoesMetricas;
-  /** Fonte da pesquisa de percepção (PV1); padrão = mock quando `fonteDados !== 'real'`. */
+  /** Fonte da pesquisa de percepção (PV1); padrão = mock quando `fonteDados !== 'real'` e a leitura de `pesq_*` quando 'real'. */
   pesquisa?: FontePesquisa;
   /** Fonte dos dados: só em 'mock' as extensões mockadas entram; em 'real', sem extensão os campos saem insuficientes. Padrão 'mock'. */
   fonteDados?: 'mock' | 'real';
@@ -63,7 +63,7 @@ export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
   });
   await app.register(async (i) => rotasSaude(i, deps.db));
   const servico = new ServicoMetricas({ db: deps.db, S: deps.S, extensoes: deps.extensoes ?? (deps.fonteDados === 'real' ? undefined : extensoesMock),
-    pesquisa: deps.pesquisa ?? (deps.fonteDados === 'real' ? undefined : fontePesquisaMock) });
+    pesquisa: deps.pesquisa ?? (deps.fonteDados === 'real' ? criarFontePesquisaReal(deps.db, deps.S) : fontePesquisaMock) });
   await app.register(async (i) => {
     await rotasReferencia(i, { db: deps.db, S: deps.S, agora: deps.agora });
     await rotasOperacao(i, { db: deps.db, S: deps.S, agora: deps.agora });

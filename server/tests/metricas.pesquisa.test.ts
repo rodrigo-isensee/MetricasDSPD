@@ -80,12 +80,18 @@ describe('PV1 (pesquisa de percepção)', () => {
     expect(n).toBe(6);
   });
 
-  it('fonte real sem leitura da pesquisa (B4 pendente): sem-pesquisa, nunca dado inventado nem erro', async () => {
-    const app = await buildApp({ db: novoDb().pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
+  it('fonte real sem nenhuma carga em pesq_*: sem-pesquisa, nunca dado inventado nem erro', async () => {
+    const app = await buildApp({ db: criarDublePg().pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
     const r = await app.inject('/api/v1/metricas/PV1');
     expect(r.statusCode).toBe(200);
     expect(r.json().status).toBe('sem-pesquisa');
     expect(r.headers['x-versao-criterio']).toBe('0');
+  });
+
+  it('serviço sem fonte da pesquisa configurada: sem-pesquisa e versão de critério 0', async () => {
+    const c = await new ServicoMetricas({ db: criarDublePg().pool }).calcular('PV1', {}, {}, AGORA);
+    expect(c.resultado).toMatchObject({ status: 'sem-pesquisa', fonte: 'pesquisa' });
+    expect(c.versaoCriterio).toBe('0');
   });
 
   it('fonte injetada na app e fonte mock memoizada', async () => {
