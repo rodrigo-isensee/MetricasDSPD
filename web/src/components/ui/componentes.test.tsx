@@ -551,6 +551,9 @@ describe('detalhes dos componentes de base', () => {
       'data-erro-codigo',
       'REFERENCIA_AUSENTE',
     )
+    expect(screen.getByTestId('estado-erro-O4')).not.toHaveAttribute('data-request-id')
+    rerender(<EstadoErro codigo="O4" erro={new ErroApi(500, 'INTERNAL_ERROR', 'req-12345678')} />)
+    expect(screen.getByTestId('estado-erro-O4')).toHaveAttribute('data-request-id', 'req-12345678')
     rerender(<EstadoErro codigo="O4" erro={new Error('x')} />)
     expect(screen.getByTestId('estado-erro-O4')).not.toHaveAttribute('data-erro-codigo')
   })

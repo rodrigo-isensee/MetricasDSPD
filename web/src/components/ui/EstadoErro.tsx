@@ -24,11 +24,13 @@ export function EstadoErro({
   const alerta = reivindicarAlerta(id)
   // `ErroApi.code` (duck typing: a UI não depende da camada de dados); só para o E2E e o suporte.
   const codigoErro = (erro as { code?: unknown } | null)?.code
+  const idRequisicao = (erro as { requestId?: unknown } | null)?.requestId
   return (
     <div
       role={alerta ? 'alert' : 'status'}
       className="flex flex-col items-start gap-2 rounded-md border border-alerta bg-alerta-fundo p-4 text-sm"
       data-erro-codigo={typeof codigoErro === 'string' ? codigoErro : undefined}
+      data-request-id={typeof idRequisicao === 'string' ? idRequisicao : undefined}
       data-testid={codigo ? `estado-erro-${codigo}` : 'estado-erro'}
     >
       <p className="flex items-center gap-2 font-semibold text-alerta">
