@@ -204,11 +204,26 @@ test.describe('Preferências (critério 9)', () => {
     await page.goto('/tatico')
     await pronto(page)
     await expect(page.getByTestId('metrica-EI-FL2')).toHaveCount(0)
-    await expect(page.getByTestId('secao-oculta').or(page.getByRole('button', { name: /Mostrar/ }).first()).first()).toBeVisible()
+    await expect(page.getByTestId('secao-oculta')).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Ir para' }).getByRole('link', { name: 'Espera invisível' })).toHaveCount(0)
     await page.goto('/operacional?cadencia=semanal')
     await pronto(page)
     await expect(page.getByTestId('metrica-EI-FL1')).toHaveCount(0)
     await expect(page.getByRole('navigation', { name: 'Ir para' }).getByRole('link', { name: 'Espera invisível' })).toHaveCount(0)
+  })
+})
+
+test.describe('Preferências pela UI (critério 9)', () => {
+  test('desmarcar a Espera invisível do Tático grava só { tatico: [ei-fl2] } e o painel respeita', async ({ page }) => {
+    await page.goto('/preferencias')
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await page.getByTestId('grupo-tatico').getByRole('checkbox', { name: /EI-FL2/ }).uncheck()
+    await expect(page.getByText('Salvo neste navegador')).toBeVisible()
+    const gravado = await page.evaluate((chave) => JSON.parse(localStorage.getItem(chave) ?? 'null'), CHAVE)
+    expect(gravado.paineis.tatico.ocultar).toEqual(['ei-fl2'])
+    await page.goto('/tatico')
+    await pronto(page)
+    await expect(page.getByTestId('metrica-EI-FL2')).toHaveCount(0)
   })
 })
 

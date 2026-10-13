@@ -472,6 +472,19 @@ describe('outras telas', () => {
     expect(screen.getByTestId('secao-oculta')).toBeInTheDocument()
   })
 
+  it('desmarcar a Espera invisível do Tático grava só `{ tatico: [ei-fl2] }` e o painel respeita', async () => {
+    const u = userEvent.setup()
+    const r = renderizarApp('/preferencias')
+    const grupo = await screen.findByTestId('grupo-tatico')
+    await u.click(within(grupo).getByRole('checkbox', { name: /EI-FL2/ }))
+    expect(await screen.findByText('Salvo neste navegador')).toBeInTheDocument()
+    expect(guardado().paineis.tatico?.ocultar).toEqual(['ei-fl2'])
+    r.unmount()
+    renderizarApp('/tatico')
+    expect(await screen.findByTestId('metrica-T2')).toBeInTheDocument()
+    expect(screen.queryByTestId('metrica-EI-FL2')).not.toBeInTheDocument()
+  })
+
   it('a Espera invisível pode ser ocultada no painel do nível', async () => {
     guardar({ tatico: ['ei-fl2'] })
     renderizarApp('/tatico')
