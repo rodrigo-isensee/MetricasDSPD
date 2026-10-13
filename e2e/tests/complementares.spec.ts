@@ -167,6 +167,18 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(page.getByTestId('leia-junto-o3').getByRole('link', { name: /O6/ })).toHaveCount(0)
   })
 
+  test('COMP-15 O13 e O16 trazem link para o O15 (L-1) e O6 nunca mostra "Fora da meta" (L-7)', async ({ page, painel }) => {
+    await painel.ir('/operacional?cadencia=semanal')
+    await page.getByTestId('mais-metricas').locator('summary').click()
+    for (const codigo of ['O13', 'O16']) {
+      await expect(
+        page.getByTestId(`metrica-${codigo}`).getByRole('link', { name: 'Onde os bugs são encontrados (O15)' }),
+      ).toHaveAttribute('href', '#o15')
+    }
+    await expect(page.getByTestId('metrica-O6')).toContainText('Referência do briefing: abaixo de 2,5')
+    await expect(page.getByTestId('metrica-O6')).not.toContainText(/fora da meta/i)
+  })
+
   test('COMP-10 tudo oculto: a seção vira uma linha de aviso, nunca some calada', async ({ page, painel }) => {
     await guardar(page, { tatico: ['t6', 't8'] })
     await painel.ir('/tatico')
