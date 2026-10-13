@@ -14,6 +14,7 @@ import {
   type Chamado,
   type EtapaChamado,
 } from './index'
+import { justificativaInformada } from './modelo'
 import { noIntervalo } from './comum'
 import { totalizadorDaEtapa } from './totalizadores'
 
@@ -183,6 +184,25 @@ describe('Acelerato', () => {
       base(() => ({ justificativa_ajuste: null, justificativa_informada: false }))
         .ajusteDePrioridade.justificados.k,
     ).toBe(0)
+  })
+
+  it('R6: justificativa só com espaços ou vazia NÃO conta; texto não vazio conta', () => {
+    expect(justificativaInformada(null)).toBe(false)
+    expect(justificativaInformada('')).toBe(false)
+    expect(justificativaInformada('  \t\n ')).toBe(false)
+    expect(justificativaInformada(' x ')).toBe(true)
+    const r = calcularS7(
+      criarContextoAC(
+        baseDe(22, (i) => ({
+          prioridade_ajustada_manualmente: i < 3,
+          justificativa_ajuste: i === 0 ? 'motivo' : i === 1 ? '   ' : i === 2 ? '' : null,
+        })),
+        HOJE,
+        CALENDARIO_PADRAO,
+      ),
+      F,
+    )
+    expect(r.ajusteDePrioridade.justificados).toEqual({ k: 1, n: 3 })
   })
 
   it('espera invisível da sustentação usa os totalizadores: cliente = vida; time = em atendimento', () => {

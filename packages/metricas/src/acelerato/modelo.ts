@@ -109,3 +109,7 @@ export const ALVOS_PADRAO: AlvoPrioridade[] = [
   { prioridade: 'P4', primeiro_atendimento_horas: 4, restauracao_horas: 40 },
   { prioridade: 'P5', primeiro_atendimento_horas: 8, restauracao_horas: 80 },
 ]
+
+/** Predicado único de "justificado" (R6): campo preenchido e não vazio; texto só com espaços NÃO conta. Usado pela S7 e pelo seed/coletor. */
+export const justificativaInformada = (texto: string | null): boolean =>
+  texto !== null && texto.trim() !== ''

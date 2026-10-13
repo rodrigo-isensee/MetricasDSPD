@@ -127,7 +127,7 @@ B1 e B2 seguem fora (merge e QA). Situação dos recomendados:
 | R3 | Corrigido. `opcoesFiltro` valida com o schema do domínio pedido, sem cast de schema; teste de domínio trocado. |
 | R4 | Corrigido. `VITE_API_BASE` só aceita caminho relativo (`baseDaApi`); URL absoluta ou `//host` falha na partida. |
 | R5 | Corrigido na tela: `CartaoO2` lê `itensMeta.total` e avisa ("Dispersão e lista mostram os N itens mais velhos de M em andamento."). Cartão restante: tabela e exportação paginadas. Texto a confirmar pelo UX na revisão. |
-| R6 | Texto unificado (especificação, notas da S7, data-model): "justificado = campo preenchido (não vazio)". **Pergunta aberta ao usuário:** texto só com espaços conta? O predicado único na biblioteca espera a resposta. |
+| R6 | Texto unificado (especificação, notas da S7, data-model): "justificado = campo preenchido (não vazio)". **Decisão técnica do time (R6, reversível):** texto só com espaços NÃO conta. Predicado único `justificativaInformada` (`trim() !== ''`) em `packages/metricas/src/acelerato/modelo.ts`, usado pela S7 e pelo seed; teste para os dois casos. Se o usuário decidir o contrário, é trocar esse predicado. |
 | R7 | Registrado no plano (seção 12) como cartão WS5 do coletor; o Jarvis lança no `KANBAN.md`. |
 | R8 | Teste novo no seed: nenhum critério do mock se perde na separação por fonte. |
 | R9 | Fica como cartão do QA (URL esperada em vez de `at(-1)`). |
