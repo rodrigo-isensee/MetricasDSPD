@@ -18,3 +18,10 @@ Em `api` os cartões resolvem em instantes diferentes (rede real) e o conteúdo 
 
 ## Evidência
 Falha "F2 CLS: expected < 0.1, received 0.1128" em `e2e/perf/perf.spec.ts:88`, nas 3 execuções; log do perf-api (scratchpad da sessão).
+
+## Correção (react-frontend, 2026-10-13)
+- Causa: a faixa "Pede atenção" de `/estrategico` reservava 88 px em desktop enquanto carrega, mas pronta (com itens) mede 98 px; os 10 px empurravam todo o painel abaixo dela. Em `api` o conteúdo chega depois do primeiro quadro e o deslocamento aparece; no mock a resposta é imediata.
+- Correção na origem: `reserva.desktop` de 88 para 98 em `web/src/features/estrategico/EstrategicoPage.tsx` (dimensão final, sem esconder conteúdo). Teste unitário da reserva em `estrategico.test.tsx`.
+- Resultado: CLS de `/estrategico` em `perf-api` = 0,021 em 5 de 5 execuções (antes 0,113). Mock não alterado (a mudança só vale enquanto carrega).
+- Observação: o 0,113 não reapareceu após a correção, mas a causa exata do valor alto (frente aos 10 px) não foi isolada com instrumentação própria; se voltar, reabrir.
+- Status: corrigido.

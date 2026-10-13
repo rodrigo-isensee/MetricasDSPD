@@ -101,3 +101,6 @@ Parecer mantido: aprovado com ressalvas, sem bug crítico ou alto aberto. O ajus
 | E2E `chromium-api` | 18/18 (FA5-10 a FA5-14 com `data-erro-codigo` e `data-request-id`) |
 | `perf-api` | 12 aprovados, 1 reprovado (F2 CLS `/estrategico` = 0,113, FA-006; os testes seguintes do bloco serial ficam sem rodar). A1 aprovada: `/operacional` p95 87 ms (limite 300), Tático 81, Estratégico 20, Sustentação 81, Espera invisível 12, geral 61; isolada fria 61, quente 29; nenhuma resposta não 200 |
 | E2E grupo mock (inclui axe) | 345/345; FIL-04 passou |
+
+## Reteste FA-006 (2026-10-13)
+`perf-api`: CLS de `/estrategico` = 0,021 em todas as execuções (limite 0,1); FA-006 corrigido (reserva da faixa "Pede atenção" 88 para 98 px). Bloco serial seguinte rodou. Uma execução reprovou F4 com 101,4 ms (limite 100; ruído de carga, n=19, p95 = máximo; as outras ficaram em 69 a 82 ms). `pronto` verde; grupo E2E `chromium` (filtros, estados, responsivo, painéis) 98 aprovados.
