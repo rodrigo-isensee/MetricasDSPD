@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de UX pré-PR da develop (r1)
 
 Parecer imutável. Escopo: pedido 007 (preferências de métricas) e pedido 008 (exportar PDF). Base: `docs/qa/develop-pre-pr.md`, quatro capturas em `docs/qa/evidencias/pre-pr/`, decisões do usuário (§6, §9, §10). Limite da revisão: `exemplo-operacional.pdf` não pôde ser aberto (sem `pdftoppm` no ambiente), então o conteúdo do PDF não foi inspecionado; só a prévia textual e o diálogo. Revisão visual por captura, sem navegação ao vivo; a conformidade com a especificação foi tomada do relatório do QA (289 testes verdes, axe sem violações bloqueantes).

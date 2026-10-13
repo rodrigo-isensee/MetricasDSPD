@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Estratégia de cobertura de testes
 
 Meta: 100% de linhas, funções, branches e statements por pacote, mais 100% das rotas e estados em E2E. Este documento só mede e planeja; os thresholds ainda não estão ligados.

@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review: 17 métricas complementares (rodada 1)
 
 - Branch: `feature/metricas-complementares` (comparada com `origin/develop`, até `15d2966`)

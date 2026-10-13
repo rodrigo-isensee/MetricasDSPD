@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Revisão final de UX - pedido 001 (dashboard mock)
 
 Base: `docs/reviews/001-B12-ux-r1.md`, `docs/qa/001-dashboard-mock.md` (r3, aprovado) e capturas em `docs/qa/evidencias/final/`.

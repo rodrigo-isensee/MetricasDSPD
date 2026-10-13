@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de QA - documentação técnica
 
 Propósito: registrar a validação (duas rodadas) da entrega de documentação técnica: gate, teste de mutação, achabilidade e conferência contra o código. Público: tech-lead, arquiteto e usuário. Revisão: 2026-10-11.

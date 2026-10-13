@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Review final da branch (D8): `feature/dashboard-mock..develop`
 
 Revisor: tech-lead · 46 commits, 308 arquivos (+14226 / -5698) · HEAD `45049ff`.

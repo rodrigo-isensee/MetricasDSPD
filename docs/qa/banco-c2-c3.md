@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de QA: banco C2 (backup, restauração verificada, trava do down) e C3 (timeouts)
 
 Data: 2026-10-12 · Branch `fix/banco-backup-noturno` (e264326) · Referência: `docs/reviews/banco-c2-c3.md` (com a rodada 2). Ambiente: Postgres 17 do Compose (`metricasdspd-postgres-1`), senhas padrão de dev.

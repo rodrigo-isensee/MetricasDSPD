@@ -56,18 +56,10 @@ describe('docker-compose.homolog.yml', () => {
   })
 })
 
-/**
- * Segredos cuja linha `CHAVE=` ainda precisa ser acrescentada aos `.env*.example` pelo usuário (os agentes não têm
- * permissão de editar esses arquivos). Quando o usuário acrescentar, esvazie a lista: o teste passa a exigir todos.
- */
-const AGUARDA_EXEMPLO_DO_USUARIO: readonly string[] = ['DSPD_PWD_PESQUISA']
-
 describe('.env.homolog.example', () => {
   it('lista todos os segredos sem valor e fica versionável', () => {
     const exemplo = ler('.env.homolog.example')
-    for (const chave of SEGREDOS_OBRIGATORIOS.filter(
-      (c) => !AGUARDA_EXEMPLO_DO_USUARIO.includes(c),
-    ))
+    for (const chave of SEGREDOS_OBRIGATORIOS)
       expect(exemplo).toMatch(new RegExp(`^${chave}=$`, 'm'))
     expect(ler('.gitignore')).toContain('!.env.homolog.example')
   })
@@ -186,5 +178,31 @@ describe('segredos do init do Postgres (B-1: nenhuma senha padrão em homologaç
   it('o laço de segredos da CI de homologação gera todas elas', () => {
     const laco = ler('.github/workflows/homolog.yml').match(/for chave in ([^;]+); do/)?.[1] ?? ''
     for (const chave of SEGREDOS_OBRIGATORIOS) expect(laco.split(/\s+/)).toContain(chave)
+  })
+  it('o .env.example (dev) lista toda senha usada pelo init (vazia vale: o compose usa o padrão de dev)', () => {
+    const exemplo = ler('.env.example')
+    for (const chave of usadas) expect(exemplo).toMatch(new RegExp(`^${chave}=`, 'm'))
+  })
+  it('o compose de dev as repassa ao Postgres, com padrão *_dev', () => {
+    const texto = ler('docker-compose.yml')
+    for (const chave of usadas)
+      expect(texto).toMatch(new RegExp(`${chave}: \\$\\{${chave}:-[a-z]+_dev\\}`))
+  })
+  it('workflows e scripts que sobem o Postgres do projeto definem todas elas', () => {
+    for (const arquivo of [
+      '.github/workflows/ci.yml',
+      '.github/workflows/homolog.yml',
+      '.github/workflows/restauracao.yml',
+    ])
+      for (const chave of usadas)
+        expect(ler(arquivo), `${arquivo} ${chave}`).toMatch(new RegExp(`${chave}: `))
+    const docker =
+      ler('.github/workflows/restauracao.yml').match(/docker run[\s\S]*?postgres:17/)?.[0] ?? ''
+    for (const chave of usadas) expect(docker, chave).toContain(`-e ${chave}`)
+    for (const chave of usadas.filter((c) => c !== 'DSPD_PWD_MIGRADOR'))
+      expect(ler('scripts/test-pg.sh'), chave).toContain(chave)
+  })
+  it('o reparar-papeis.sh exige a senha do papel dspd_pesquisa', () => {
+    expect(ler('docker/postgres/reparar-papeis.sh')).toContain('${DSPD_PWD_PESQUISA:?')
   })
 })

@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Gate do autor
 
 Verificação que o dev roda antes de mover o cartão para review e cola a saída no cartão.
