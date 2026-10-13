@@ -262,7 +262,7 @@ jobs:
             pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
           fi
       - run: pnpm run build
-      - name: Perf (C6: 1 rodada; runner exclusivo e estável)
+      - name: Perf (C6 com 1 rodada, runner exclusivo e estável)
         run: pnpm --filter @metricas-dspd/e2e run test:perf
         env:
           PERF_RODADAS_C6: '1'
