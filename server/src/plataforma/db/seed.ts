@@ -1,6 +1,7 @@
 import type { VersaoCriterio } from '@metricas-dspd/contratos';
+import { justificativaInformada } from '@metricas-dspd/metricas/acelerato';
 import { slug } from '@metricas-dspd/metricas/core';
-import { gerarBaseMock, type BaseMock } from '@metricas-dspd/mock';
+import { gerarBaseMock, gerarPesquisaMock, type BaseMock } from '@metricas-dspd/mock';
 import { esquemasDoAmbiente, type Esquemas } from './esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from './pool.js';
 
@@ -125,7 +126,7 @@ export function mapearBM(base: BaseMock, coletaId: number, S: Esquemas = esquema
 }
 
 /** Só o indicador "campo não vazio"; o texto livre nunca é gravado (data-model §9). */
-const justificado = (texto: string | null): boolean => texto !== null && texto.trim() !== '';
+const justificado = justificativaInformada;
 
 export function mapearAC(base: BaseMock, coletaId: number, S: Esquemas = esquemasDoAmbiente()): Tabela[] {
   const coletado = dt(new Date(base.config.hoje).getTime());
@@ -166,9 +167,10 @@ export function criteriosDaFonte(base: BaseMock, fonte: 'businessmap' | 'acelera
   return lista.filter((c) => c.afeta.every((m) => (fonte === 'acelerato' ? ehSust(m) : !ehSust(m))));
 }
 
-/** Versões de critério (`dspd_core`) da fonte: uma linha por versão e uma por métrica afetada. */
-async function gravarCriterios(trx: Consultavel, S: Esquemas, base: BaseMock, fonte: 'businessmap' | 'acelerato'): Promise<void> {
-  for (const v of criteriosDaFonte(base, fonte)) {
+/** Versões de critério (`dspd_core`) da fonte (ou da pesquisa): uma linha por versão e uma por métrica afetada. */
+async function gravarCriterios(trx: Consultavel, S: Esquemas, base: BaseMock, fonte: 'businessmap' | 'acelerato' | 'pesquisa'): Promise<void> {
+  const versoes = fonte === 'pesquisa' ? gerarPesquisaMock(base.config).criterios : criteriosDaFonte(base, fonte);
+  for (const v of versoes) {
     const r = await trx.query<{ versao_id: string }>(
       `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING versao_id`,
@@ -239,6 +241,8 @@ export async function semear(
           await trx.query(q.texto, q.valores);
         }
       await gravarCriterios(trx, S, base, fonte);
+      // A versão de critério da pesquisa (PV1) vai junto da última fonte, dentro da mesma trava de idempotência.
+      if (fonte === 'acelerato') await gravarCriterios(trx, S, base, 'pesquisa');
       await trx.query(
         `INSERT INTO ${schema}.ctl_coleta (tarefa, iniciado_em, finalizado_em, status, versao_coletor)
          VALUES ('coleta_incremental', $1, $1, 'sucesso', $2)`, [iniciado, VERSAO_SEED_COLETA]);

@@ -64,7 +64,7 @@ d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
     expect((await app.inject('/api/v1/metricas/VISAO_GERAL')).statusCode).toBe(200);
     expect((await app.inject('/api/v1/fontes/businessmap/estado')).statusCode).toBe(200);
     expect((await app.inject('/api/v1/fontes/acelerato/coletas')).statusCode).toBe(200);
-    expect((await app.inject('/api/v1/criterios')).json()).toHaveLength(2);
+    expect((await app.inject('/api/v1/criterios')).json()).toHaveLength(3); // BusinessMap, Acelerato e a pesquisa (PV1)
     expect((await app.inject('/api/v1/referencia')).json().dataReferencia).toBe('2026-10-09');
   });
 

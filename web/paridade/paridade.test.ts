@@ -125,8 +125,7 @@ function difs(mock: unknown, api: unknown, caminho = '$', saida: string[] = []):
 }
 
 /**
- * O banco dá às versões de critério ids sequenciais (1, 2, ...: BusinessMap antes do Acelerato, que no mock coincide com
- * a ordem por data); o mock usa ids textuais. É a única diferença de representação aceita: troca o id do mock pelo do banco.
+ * O banco dá às versões de critério ids sequenciais (1, 2, ...: BusinessMap, Acelerato e pesquisa, na ordem do seed); o mock usa ids textuais. É a única diferença de representação aceita: troca o id do mock pelo do banco.
  */
 let idsDoBanco = new Map<string, string>()
 const viaJson = (v: unknown): unknown => {
@@ -138,13 +137,24 @@ const viaJson = (v: unknown): unknown => {
 d('paridade mock x API (servidor real, DADOS_FONTE=mock)', () => {
   let conjuntosFl: Conjunto[] = []
   let conjuntosSu: Conjunto[] = []
+  let dataRef = ''
 
   beforeAll(async () => {
     // Equipe e sistema vêm das opções do mock (a API devolve as mesmas, o que o primeiro teste confere).
-    idsDoBanco = new Map((await mock.criterios()).map((v, i) => [v.id, String(i + 1)]))
+    // Ordem de gravação do seed: BusinessMap, Acelerato e pesquisa (o mock as devolve ordenadas por data).
+    const fonteDe = (v: { afeta: string[] }): number =>
+      v.afeta.includes('PV1')
+        ? 2
+        : v.afeta.every((m) => m.startsWith('S') || m === 'EI_SUST')
+          ? 1
+          : 0
+    const doMock = await mock.criterios()
+    const naOrdemDoSeed = [0, 1, 2].flatMap((f) => doMock.filter((v) => fonteDe(v) === f))
+    idsDoBanco = new Map(naOrdemDoSeed.map((v, i) => [v.id, String(i + 1)]))
     const [bm, ref] = await Promise.all([mock.opcoesFiltro('businessmap'), http.dataReferencia()])
     conjuntosFl = conjuntosFluxo(bm.equipes[0]!.id, bm.sistemas[0]!.id, ref)
     conjuntosSu = conjuntosSust(ref)
+    dataRef = ref
   })
 
   it('data de referência, critérios e opções de filtro iguais', async () => {
@@ -157,17 +167,24 @@ d('paridade mock x API (servidor real, DADOS_FONTE=mock)', () => {
   it.each(METRICA_IDS.map((id) => [id]))(
     '%s: iguais após o parse e no corpo bruto',
     async (id: MetricaId) => {
+      // A PV1 vem da fonte mock da pesquisa (ids textuais do mock, sem passar pelo banco): não traduz ids.
+      const traduzir = id === 'PV1' ? (v: unknown): unknown => v : viaJson
       const sust = METRICAS_SUSTENTACAO.includes(id)
       const lista =
         id === 'VISAO_GERAL'
           ? [{ nome: 'sem filtros', filtros: {} }]
-          : sust
-            ? conjuntosSu
-            : conjuntosFl
+          : id === 'PV1' // a pesquisa só aceita a data de referência (nada de equipe, sistema nem período)
+            ? [
+                { nome: 'sem filtros', filtros: {} },
+                { nome: 'data de referência', filtros: { dataReferencia: dataRef } },
+              ]
+            : sust
+              ? conjuntosSu
+              : conjuntosFl
       const schema = id === 'O2' ? resultadoO2PaginadoSchema : SCHEMAS_RESULTADO[id]
       const falhas: string[] = []
       for (const { nome, filtros } of lista) {
-        const esperadoBruto = viaJson(await mock.obter(id, filtros as never))
+        const esperadoBruto = traduzir(await mock.obter(id, filtros as never))
         const esperadoParse = schema.parse(esperadoBruto)
         let obtido: unknown
         try {
@@ -176,7 +193,7 @@ d('paridade mock x API (servidor real, DADOS_FONTE=mock)', () => {
           falhas.push(`[${nome}] a API respondeu com erro: ${(e as Error).message}`)
           continue
         }
-        const dp = difs(esperadoParse, viaJson(obtido))
+        const dp = difs(esperadoParse, traduzir(obtido))
         if (dp.length > 0) {
           falhas.push(`[${nome}] após o parse: ${dp.join(' | ')}`)
           continue
