@@ -1,11 +1,6 @@
 import type { ReactNode } from 'react'
 import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
-import type {
-  Dominio,
-  FiltrosFluxo,
-  FiltrosSustentacao,
-  PainelComCartoes,
-} from '@metricas-dspd/contratos'
+import type { Dominio, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta, useModoMock } from '@/data'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
@@ -38,21 +33,6 @@ function CorpoDaFonte({ dominio, children }: { dominio: Dominio; children: React
   return data?.ultimaOk === null ? <SemDadosDaFonte dominio={dominio} /> : children
 }
 
-/** Liga o recorte de métricas (pedido 007) só nos painéis que têm cartões ocultáveis. */
-function Recorte({
-  painel,
-  children,
-}: {
-  painel?: PainelComCartoes | undefined
-  children: ReactNode
-}) {
-  return painel ? (
-    <ProvedorPainelPreferencias painel={painel}>{children}</ProvedorPainelPreferencias>
-  ) : (
-    children
-  )
-}
-
 function Casca({
   painelDoCorpo,
   uso,
@@ -60,13 +40,10 @@ function Casca({
   fonte,
   fontes,
   estrategico,
-  preferencias,
   children,
 }: {
   /** Nível do botão "Exportar" (o mesmo id do painel). */
   painelDoCorpo: NivelExportacao
-  /** Painel com cartões ocultáveis (pedido 007); a Espera invisível não tem. */
-  preferencias?: PainelComCartoes
   /** Fontes que o painel usa: o selo de cada uma aparece no cabeçalho, sempre separado. */
   fontes: readonly Dominio[]
   uso: UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
@@ -88,7 +65,7 @@ function Casca({
     useModoMock() !== 'carregando' &&
     ((fontes.includes('businessmap') && pendenteBm) ||
       (fontes.includes('acelerato') && pendenteAc) ||
-      (!!preferencias && !preferenciasProntas))
+      !preferenciasProntas)
   // mock=erro (6.6): erro de painel, não de cartão. O shell continua; o painel não carrega.
   if (erroSimulado)
     return <ErroPagina erro="Erro simulado (mock=erro)" onTentarDeNovo={() => undefined} />
@@ -98,7 +75,7 @@ function Casca({
       removerFiltro={uso.remover}
       limparFiltros={uso.limpar}
     >
-      <Recorte painel={preferencias}>
+      <ProvedorPainelPreferencias painel={painelDoCorpo}>
         <div className="flex flex-col gap-4">
           <CabecalhoPainel
             titulo={base.titulo}
@@ -124,7 +101,7 @@ function Casca({
               ))}
               {base.extra}
               <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
-                {preferencias && <BotaoMetricas />}
+                <BotaoMetricas />
                 <BotaoExportar base={painelDoCorpo} />
                 <BotaoExportar base="personalizada" />
               </div>
@@ -139,7 +116,7 @@ function Casca({
             </>
           )}
         </div>
-      </Recorte>
+      </ProvedorPainelPreferencias>
     </ProvedorContextoPainel>
   )
 }
@@ -151,13 +128,8 @@ function Casca({
 export function PainelFluxo({
   painel,
   children,
-  fonte = 'BusinessMap',
-  fontes = ['businessmap'],
   ...base
 }: Base & {
-  /** Sobrepõe a fonte do cabeçalho (só a Espera invisível, que reúne os dois sistemas em blocos). */
-  fonte?: string
-  fontes?: readonly Dominio[]
   painel: PainelFluxoId
   children: (filtros: FiltrosFluxo, uso: UseFiltros<FiltrosFluxo>) => ReactNode
 }) {
@@ -167,10 +139,9 @@ export function PainelFluxo({
       painelDoCorpo={painel}
       uso={uso}
       base={base}
-      fonte={fonte}
-      fontes={fontes}
+      fonte="BusinessMap"
+      fontes={['businessmap']}
       estrategico={painel === 'estrategico'}
-      {...(painel !== 'espera-invisivel' ? { preferencias: painel } : {})}
     >
       {children(uso.filtros, uso)}
     </Casca>
@@ -192,7 +163,6 @@ export function PainelSustentacao({
       base={base}
       fonte="Acelerato"
       fontes={['acelerato']}
-      preferencias="sustentacao"
     >
       {children(uso.filtros, uso)}
     </Casca>
