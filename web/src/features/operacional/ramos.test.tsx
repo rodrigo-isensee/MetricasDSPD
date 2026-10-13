@@ -108,6 +108,32 @@ describe('O2: idade do WIP', () => {
     )
   })
 
+  it('com mais itens em andamento que a página, avisa que a dispersão mostra só os mais velhos', async () => {
+    renderizarCartao(<CartaoO2 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        O2: (r: { itens: unknown[]; itensMeta: { total: number } }) => {
+          r.itensMeta = { ...r.itensMeta, total: r.itens.length + 311 }
+        },
+      }),
+    })
+    const el = await pronto('O2')
+    expect(within(el).getByTestId('o2-amostra')).toHaveTextContent(
+      /mostram os \d+ itens mais velhos de \d+ em andamento\./,
+    )
+  })
+
+  it('com todos os itens na página, não mostra o aviso de amostra', async () => {
+    renderizarCartao(<CartaoO2 filtros={FILTROS_FLUXO} />, {
+      fonte: new FonteAjustada({
+        O2: (r: { itens: unknown[]; itensMeta: { total: number } }) => {
+          r.itensMeta = { ...r.itensMeta, total: r.itens.length }
+        },
+      }),
+    })
+    const el = await pronto('O2')
+    expect(within(el).queryByTestId('o2-amostra')).toBeNull()
+  })
+
   it('sem nenhum item em andamento, a leitura não cita o mais velho', async () => {
     renderizarCartao(<CartaoO2 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteAjustada({

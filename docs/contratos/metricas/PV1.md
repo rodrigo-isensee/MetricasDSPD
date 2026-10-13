@@ -422,7 +422,12 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.PV1`); a fotografia versionada usa
               "anyOf": [
                 {
                   "type": "object",
-                  "properties": {"inicio":{"type":"string"},"fim":{"type":"string"}},
+                  "properties": {
+                    "inicio": {"type":"string"},
+                    "fim": {"type":"string"},
+                    "unidade": {"type":"string","enum":["semanas","meses"]},
+                    "quantidade": {"type":"number"}
+                  },
                   "required": ["inicio","fim"],
                   "additionalProperties": false
                 },

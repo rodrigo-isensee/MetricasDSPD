@@ -31,7 +31,7 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
       itens={itens}
       estado={estado}
       onTentarDeNovo={recarregar}
-      reserva={{ mobile: 108, desktop: 88 }}
+      reserva={{ mobile: 108, desktop: 98 }}
     />
   )
 }

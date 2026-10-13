@@ -754,7 +754,7 @@ Os valores entre parênteses são só conversão para o leitor desta spec; a tel
 - **Base:** "Prioridade: 37 ajustes em 218 chamados; Tipo: 14 em 480". % some < 20 chamados no mês.
 - **Meta:** "Sempre justificada; reduzir a reclassificação de tipo" (a justificativa mostra "k de n" e status só nesse item).
 - **Leitura:** "37 chamados tiveram prioridade ajustada manualmente (todos justificados) e 14 foram encerrados como 'não é incidente'."
-- **Nota:** *O que é:* dois fenômenos diferentes, medidos separados. *Como se calcula:* ajuste manual = campo "Prioridade ajustada manualmente = Sim"; tipo = motivo de encerramento "Reclassificado, não é incidente". *Como ler:* ajuste de prioridade alto e estável indica matriz mal calibrada; de tipo, catálogo confuso. *Meta:* sempre justificada; reduzir a de tipo. *Cuidados:* as razões ficam em campo livre e ainda não há lista fechada (agrupamento trimestral está planejado); por isso esta tela não lista motivos.
+- **Nota:** *O que é:* dois fenômenos diferentes, medidos separados. *Como se calcula:* ajuste manual = campo "Prioridade ajustada manualmente = Sim", e "justificado" = campo de justificativa preenchido (não vazio); tipo = motivo de encerramento "Reclassificado, não é incidente". *Como ler:* ajuste de prioridade alto e estável indica matriz mal calibrada; de tipo, catálogo confuso. *Meta:* sempre justificada; reduzir a de tipo. *Cuidados:* as razões ficam em campo livre e ainda não há lista fechada (agrupamento trimestral está planejado); por isso esta tela não lista motivos.
 - **Dados:** chamados (ajuste_manual, justificativa preenchida sim/não, motivo_encerramento).
 
 ---

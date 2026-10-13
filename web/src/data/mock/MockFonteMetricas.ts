@@ -13,6 +13,7 @@ import {
 } from '@metricas-dspd/contratos'
 import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
 import { TIPOS_FILTRO, PRIORIDADES } from '@metricas-dspd/contratos'
+import type { ResultadoO2Paginado } from '@metricas-dspd/contratos/validacao'
 import type { FonteMetricas } from '../FonteMetricas'
 
 type Carregado = {
@@ -45,6 +46,26 @@ const COMPLEMENTARES: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S11',
   'S12',
 ])
+
+/** Itens do O2 por página: o mesmo da API (`pageSize=200`, página 1). */
+const PAGINA_O2 = 200
+
+/**
+ * O2 no formato da API (R3 do plano front-via-api): `itens` da página 1 (até 200), ordenados por idade
+ * decrescente com desempate por `cardId`, e `itensMeta` com o total do conjunto completo.
+ */
+export function paginarO2(r: ResultadoDe<'O2'>): ResultadoO2Paginado {
+  const ordenados = [...r.itens].sort(
+    (a, b) =>
+      b.idadeDiasUteis - a.idadeDiasUteis ||
+      (a.cardId < b.cardId ? -1 : a.cardId > b.cardId ? 1 : 0),
+  )
+  return {
+    ...r,
+    itens: ordenados.slice(0, PAGINA_O2),
+    itensMeta: { page: 1, pageSize: PAGINA_O2, total: ordenados.length },
+  }
+}
 
 /** Devolve a thread principal ao navegador entre fases pesadas (tarefa longa < 200 ms, ADR 0003 C6). */
 const ceder = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
@@ -89,7 +110,25 @@ export class MockFonteMetricas implements FonteMetricas {
       if (this.opcoes.semente !== undefined) parcial.semente = this.opcoes.semente
       if (this.opcoes.hoje !== undefined) parcial.hoje = this.opcoes.hoje
       await ceder()
-      const base = mock.gerarBaseMock(parcial)
+      const gerada = mock.gerarBaseMock(parcial)
+      // `data_acordada` é uma data (briefing: tipo Data; coluna `date` no banco) que vale até o fim do expediente do dia (P2):
+      // o gerador sorteia um instante, e a API só tem o dia. Normaliza aqui (o gerador e o hash da base ficam como estão)
+      // para o mock e a API calcularem o O12 sobre o mesmo valor (FA-003).
+      const cal = lib.CALENDARIO_PADRAO
+      const base = {
+        ...gerada,
+        bm: {
+          ...gerada.bm,
+          cards: gerada.bm.cards.map((c) =>
+            c.data_acordada === null
+              ? c
+              : {
+                  ...c,
+                  data_acordada: lib.fimDoExpediente(lib.diaLocal(c.data_acordada, cal), cal),
+                },
+          ),
+        },
+      }
       await ceder()
       const bm = lib.businessmap.criarContextoBM(base.bm, base.config.hoje, lib.CALENDARIO_PADRAO)
       await ceder()
@@ -137,7 +176,9 @@ export class MockFonteMetricas implements FonteMetricas {
     await this.atraso(sorteio)
     // As extensões das complementares só são geradas quando uma delas é pedida (carga sob demanda).
     const completo = COMPLEMENTARES.has(id) ? { ...ctx, ext: await this.carregarExtensoes() } : ctx
-    return lib.calcularMetrica(id, filtros, completo)
+    const r = lib.calcularMetrica(id, filtros, completo)
+    if (id === 'O2') return paginarO2(r as unknown as ResultadoDe<'O2'>)
+    return r
   }
 
   async opcoesFiltro<D extends Dominio>(
@@ -155,7 +196,10 @@ export class MockFonteMetricas implements FonteMetricas {
       dominio === 'businessmap'
         ? {
             dominio: 'businessmap',
-            equipes: base.bm.config.equipes.map((e) => ({ id: lib.slug(e.nome), nome: e.nome })),
+            // Em ordem alfabética, como a API (as equipes do banco vêm ordenadas por nome).
+            equipes: base.bm.config.equipes
+              .map((e) => ({ id: lib.slug(e.nome), nome: e.nome }))
+              .sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR')),
             tipos: TIPOS_FILTRO.map((t) => ({ id: TIPO_ID[t], nome: t })),
             sistemas: base.bm.config.sistemas.map((s) => ({ id: lib.slug(s), nome: s })),
             historico,

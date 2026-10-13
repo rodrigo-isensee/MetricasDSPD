@@ -79,7 +79,7 @@ export function mockComoNoBanco(base: BaseMock, idsDoBanco?: Map<string, string>
   };
   const ac = {
     ...base.ac,
-    chamados: base.ac.chamados.map((c) => ({ ...c, justificativa_ajuste: null })),
+    chamados: base.ac.chamados.map((c) => ({ ...c, justificativa_ajuste: null, justificativa_informada: c.justificativa_ajuste !== null && c.justificativa_ajuste.trim() !== '' })),
     config: { ...base.ac.config, criterios: reid(base.ac.config.criterios) },
   };
   return { ...base, bm, ac };

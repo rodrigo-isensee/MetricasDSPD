@@ -12,7 +12,8 @@ import { instalarObservadores, lerVitais, medirCargaFria } from './lcp';
 import { medirTrocaFiltro } from './troca-filtro';
 
 const SAIDA = join(process.cwd(), 'perf-results');
-const ARQ = join(SAIDA, 'resultado.json');
+// PERF_VARIANTE=api grava resultado-api.json (a medição pela API não sobrescreve a do mock).
+const ARQ = join(SAIDA, process.env.PERF_VARIANTE ? `resultado-${process.env.PERF_VARIANTE}.json` : 'resultado.json');
 const RODADAS_C6 = Number(process.env.PERF_RODADAS_C6 ?? 3);
 const N_C6 = Number(process.env.PERF_REPETICOES_C6 ?? 5);
 const N = Number(process.env.PERF_REPETICOES ?? ORCAMENTO.repeticoes);

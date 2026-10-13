@@ -10,7 +10,7 @@ import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js
 import { semear } from '../src/plataforma/db/seed.js';
 import { CORTE_DATA, mockComoNoBanco } from './base-duble.js';
 import { poolDe, url } from './pg/ctx.js';
-import { semearReferencia } from './pg/referencia.js';
+import { idsDosCriterios } from './pg/referencia.js';
 
 const d = describe.skipIf(!url);
 const AGORA = new Date('2026-10-10T15:00:00Z');
@@ -32,7 +32,7 @@ d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
     mig = poolDe();
     await migrar(url!, { prefixo: p });
     await semear(mig, base, E);
-    ids = await semearReferencia(mig, E, base);
+    ids = await idsDosCriterios(mig, E);
     api = poolDe('dspd_api');
   }, 120_000);
   afterAll(async () => {
@@ -64,7 +64,7 @@ d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
     expect((await app.inject('/api/v1/metricas/VISAO_GERAL')).statusCode).toBe(200);
     expect((await app.inject('/api/v1/fontes/businessmap/estado')).statusCode).toBe(200);
     expect((await app.inject('/api/v1/fontes/acelerato/coletas')).statusCode).toBe(200);
-    expect((await app.inject('/api/v1/criterios')).json()).toHaveLength(2);
+    expect((await app.inject('/api/v1/criterios')).json()).toHaveLength(3); // BusinessMap, Acelerato e a pesquisa (PV1)
     expect((await app.inject('/api/v1/referencia')).json().dataReferencia).toBe('2026-10-09');
   });
 

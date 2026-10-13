@@ -20,6 +20,16 @@
                 },
                 "fim": {
                   "type": "string"
+                },
+                "unidade": {
+                  "type": "string",
+                  "enum": [
+                    "semanas",
+                    "meses"
+                  ]
+                },
+                "quantidade": {
+                  "type": "number"
                 }
               },
               "required": [
@@ -211,6 +221,16 @@
                       },
                       "fim": {
                         "type": "string"
+                      },
+                      "unidade": {
+                        "type": "string",
+                        "enum": [
+                          "semanas",
+                          "meses"
+                        ]
+                      },
+                      "quantidade": {
+                        "type": "number"
                       }
                     },
                     "required": [
@@ -252,6 +272,16 @@
                       },
                       "fim": {
                         "type": "string"
+                      },
+                      "unidade": {
+                        "type": "string",
+                        "enum": [
+                          "semanas",
+                          "meses"
+                        ]
+                      },
+                      "quantidade": {
+                        "type": "number"
                       }
                     },
                     "required": [

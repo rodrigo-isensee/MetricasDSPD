@@ -2,19 +2,24 @@ import { gerarBaseMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
 import { S_PADRAO } from '../src/plataforma/db/esquemas.js';
 import { violaLgpd } from '../src/plataforma/db/lgpd.js';
-import { dia, dt, insertLote, lotes, mapearAC, mapearBM, type Tabela } from '../src/plataforma/db/seed.js';
+import { criteriosDaFonte, dia, dt, insertLote, lotes, mapearAC, mapearBM, type Tabela } from '../src/plataforma/db/seed.js';
 import { MIGRACOES } from './migracoes.js';
 
 const base = gerarBaseMock({ escala: 0.05 });
 const todas = (b = base): Tabela[] => [...mapearBM(b, 1, S_PADRAO), ...mapearAC(b, 1, S_PADRAO)];
 const ddl = Object.values(MIGRACOES).flatMap((m) => m.ddl(S_PADRAO).up);
-const criacao = (t: string): string => ddl.find((s) => s.startsWith(`CREATE TABLE ${t} (`)) ?? '';
+const criacao = (t: string): string => ddl.filter((s) => s.startsWith(`CREATE TABLE ${t} (`) || s.startsWith(`ALTER TABLE ${t} ADD COLUMN`)).join('\n');
 
 describe('seed (análise estática, sem banco)', () => {
   it('epoch ms vira timestamptz(3) UTC e data civil usa o fuso do calendário', () => {
     expect(dt(0)).toBe('1970-01-01 00:00:00.000');
     expect(dt(1_760_000_000_123)).toBe('2025-10-09 08:53:20.123');
     expect(dia(Date.parse('2026-10-10T01:00:00Z'))).toBe('2026-10-09');
+  });
+  it('nenhum critério do mock se perde na separação por fonte (um que afete as duas fontes falharia aqui)', () => {
+    const gravados = [...criteriosDaFonte(base, 'businessmap'), ...criteriosDaFonte(base, 'acelerato')].map((c) => c.id);
+    const distintos = new Set([...base.bm.config.criterios, ...base.ac.config.criterios].map((c) => c.id));
+    expect(gravados.sort()).toEqual([...distintos].sort());
   });
   it('determinístico pela semente e diferente com outra semente', () => {
     expect(todas(gerarBaseMock({ escala: 0.05 }))).toEqual(todas());
@@ -41,7 +46,7 @@ describe('seed (análise estática, sem banco)', () => {
   });
   it('nenhuma coluna de pessoa é gravada (data-model §9)', () => {
     for (const { tabela, linhas } of todas())
-      for (const c of Object.keys(linhas[0] ?? {})) expect(violaLgpd(tabela, c) || /responsaveis|usuario|justificativa/.test(c), `${tabela}.${c}`).toBe(false);
+      for (const c of Object.keys(linhas[0] ?? {})) expect(violaLgpd(tabela, c) || /responsaveis|usuario|justificativa(?!_informada$)/.test(c), `${tabela}.${c}`).toBe(false);
   });
   it('ids ASCII visível com até 32 caracteres e instantes no formato timestamptz(3)', () => {
     for (const { linhas } of todas())

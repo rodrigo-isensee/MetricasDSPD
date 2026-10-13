@@ -9,7 +9,9 @@ const coleta = (id: string, status: string) => ({
 const responder: Respondedor = (c) => {
   if (c.texto.includes('ctl_coleta_contagem')) return [{ coleta_id: '1', entidade: 'card', lidos: 10, inseridos: 4, ja_existentes: 6 }];
   if (c.texto.includes('ref_versao_criterio v'))
-    return c.valores[0] === 'businessmap'
+    return c.valores[0] === 'pesquisa'
+      ? [{ versao_id: '4', vigente_desde: '2026-04-01', descricao: 'Questionário v2', metrica_id: 'PV1' }]
+      : c.valores[0] === 'businessmap'
       ? [{ versao_id: '2', vigente_desde: '2026-03-02', descricao: 'Marco de entrada', metrica_id: 'O7' }, { versao_id: '2', vigente_desde: '2026-03-02', descricao: 'Marco de entrada', metrica_id: 'T1' }]
       : [{ versao_id: '1', vigente_desde: '2026-06-01', descricao: 'Etapas novas', metrica_id: 'S1' }, { versao_id: '3', vigente_desde: '2026-03-02', descricao: 'Outra', metrica_id: null }];
   if (c.texto.includes('ctl_coleta')) return [coleta('2', 'falha'), coleta('1', 'sucesso')];
@@ -52,7 +54,7 @@ describe('/api/v1/fontes/:dominio', () => {
     expect(r.statusCode).toBe(400);
     expect(r.json().error.code).toBe('VALIDATION_ERROR');
   });
-  it('criterios: as duas fontes, cada uma com as suas versões, por data e id', async () => {
+  it('criterios: as duas fontes e a pesquisa, cada uma com as suas versões, por data e id', async () => {
     const { app } = await montar();
     const r = await app.inject('/api/v1/criterios');
     expect(r.statusCode).toBe(200);
@@ -60,6 +62,7 @@ describe('/api/v1/fontes/:dominio', () => {
     expect(r.json()).toEqual([
       { id: '2', data: '2026-03-02', descricao: 'Marco de entrada', afeta: ['O7', 'T1'] },
       { id: '3', data: '2026-03-02', descricao: 'Outra', afeta: [] },
+      { id: '4', data: '2026-04-01', descricao: 'Questionário v2', afeta: ['PV1'] },
       { id: '1', data: '2026-06-01', descricao: 'Etapas novas', afeta: ['S1'] },
     ]);
   });

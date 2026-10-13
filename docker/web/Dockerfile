@@ -3,6 +3,9 @@ FROM node:24-slim AS build
 ENV CI=true
 RUN corepack enable
 WORKDIR /repo
+# Fonte dos dados da SPA (mock|api): a imagem de homologação passa --build-arg VITE_FONTE=api.
+ARG VITE_FONTE=mock
+ENV VITE_FONTE=$VITE_FONTE
 COPY . .
 RUN pnpm install --frozen-lockfile --filter "@metricas-dspd/web..." && pnpm --filter @metricas-dspd/web build
 
