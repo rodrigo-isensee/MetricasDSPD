@@ -71,46 +71,44 @@ export interface RegraMetrica {
   readonly pendencias?: readonly string[]
 }
 
-const PENDENTE = 'pendente-usuario' as const
-
 /**
- * P1 (arquivado sem desfecho conta como aberto?) segue pendente para o usuário: as células afetadas
- * ficam `pendente-usuario` e a propriedade 1 as exclui nominalmente. O comportamento provisório do
- * time (sai do aberto, contado à parte) está nos testes de `regras.test.ts`, não na matriz.
+ * P1 (decisão definitiva de 11/10): card arquivado sem entrega NÃO conta como aberto; sai do aberto, permanece
+ * na base e é contado à parte (`regras.test.ts`). Por isso as métricas de aberto/idade/bloqueio têm
+ * `incluiArquivados: true` (o arquivado fica na base) e nenhuma célula pendente.
  */
 export const REGRAS_METRICA = {
   O1: {
     dominio: 'businessmap',
     segmentacao: ['coluna', 'tipo'],
     ordem: 'neutra',
-    incluiArquivados: PENDENTE,
+    incluiArquivados: true,
     minimo: 0,
     minimoSobre: [],
     granularidade: 'story',
     refBriefing: '06 O1; 4.2 colunas; 7.3 fila conta WIP',
-    status: PENDENTE,
+    status: 'ok',
   },
   O2: {
     dominio: 'businessmap',
     segmentacao: ['tipo', 'etapa'],
     ordem: 'neutra',
-    incluiArquivados: PENDENTE,
+    incluiArquivados: true,
     minimo: 20,
     minimoSobre: ['referencia-percentil'],
     granularidade: 'story',
     refBriefing: '06 O2; 4.1 inicio',
-    status: PENDENTE,
+    status: 'ok',
   },
   BLOQUEADOS: {
     dominio: 'businessmap',
     segmentacao: ['coluna', 'tipo'],
     ordem: 'neutra',
-    incluiArquivados: PENDENTE,
+    incluiArquivados: true,
     minimo: 0,
     minimoSobre: [],
     granularidade: 'story',
     refBriefing: '4.2 bloqueio marcado no card; 06 O1',
-    status: PENDENTE,
+    status: 'ok',
   },
   O3: {
     dominio: 'businessmap',
@@ -160,12 +158,12 @@ export const REGRAS_METRICA = {
     dominio: 'businessmap',
     segmentacao: ['tipo', 'faixa-idade'],
     ordem: 'neutra',
-    incluiArquivados: PENDENTE,
+    incluiArquivados: true,
     minimo: 20,
     minimoSobre: ['percentis'],
     granularidade: 'story',
     refBriefing: '06 O10; 4.1 entrada/compromisso',
-    status: PENDENTE,
+    status: 'ok',
   },
   O12: {
     dominio: 'businessmap',
@@ -237,12 +235,12 @@ export const REGRAS_METRICA = {
     dominio: 'businessmap',
     segmentacao: ['classe-servico'],
     ordem: 'temporal',
-    incluiArquivados: PENDENTE,
+    incluiArquivados: true,
     minimo: 20,
     minimoSobre: ['mediana', 'faixa'],
     granularidade: 'story',
     refBriefing: '06 T4; Q3',
-    status: PENDENTE,
+    status: 'ok',
   },
   T5: {
     dominio: 'businessmap',
@@ -259,23 +257,23 @@ export const REGRAS_METRICA = {
     dominio: 'businessmap',
     segmentacao: ['projeto'],
     ordem: 'temporal',
-    incluiArquivados: PENDENTE,
+    incluiArquivados: true,
     minimo: 20,
     minimoSobre: ['percentis', 'referencia-percentil'],
     granularidade: 'frente',
     refBriefing: '06 T7; 02 feature = pacote; 7.3 granularidade; P2 (aging é eixo de tempo)',
-    status: PENDENTE,
+    status: 'ok',
   },
   T9: {
     dominio: 'businessmap',
     segmentacao: ['projeto'],
     ordem: 'neutra',
-    incluiArquivados: PENDENTE,
+    incluiArquivados: true,
     minimo: 0,
     minimoSobre: [],
     granularidade: 'frente',
     refBriefing: '06 T9; 7.1 sem % de conclusão de tarefa',
-    status: PENDENTE,
+    status: 'ok',
   },
   E1: {
     dominio: 'businessmap',

@@ -62,8 +62,6 @@ const AC_VAZIA: BaseAC = { ...base.ac, chamados: [], etapas: [] }
 // Exceções nominais e cobertura
 // ---------------------------------------------------------------------------------------------
 type Excecoes = Partial<Record<MetricaId, string>>
-const P1 =
-  'P1 pendente-usuario: arquivado sem desfecho ainda não tem regra confirmada (propriedade 1 só vale para entregue)'
 const COMPOSICAO =
   'composição: não calcula, só reexpõe blocos (coberta pela propriedade 3 por bloco)'
 
@@ -78,15 +76,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
   p1: {
     nome: 'arquivar entregue não muda o resultado',
     aplica: (_id, r) => r.dominio === 'businessmap' && r.incluiArquivados !== 'nao-se-aplica',
-    excecoes: {
-      O1: P1,
-      O2: P1,
-      BLOQUEADOS: P1,
-      O10: P1,
-      T4: P1,
-      T7: P1,
-      T9: P1,
-    },
+    excecoes: {},
   },
   p2: {
     nome: 'classe isolada = classe no conjunto',
