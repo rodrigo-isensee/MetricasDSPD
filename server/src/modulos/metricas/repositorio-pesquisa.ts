@@ -23,6 +23,7 @@ export const TTL_PESQUISA_MS = 60_000;
 
 export async function lerBasePesquisa(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<pesquisa.BasePesquisa> {
   const s = S.core;
+  // O rótulo da área é o do maior `vigente_de`, sem olhar `vigente_ate`: uma área encerrada continua dando rótulo às cargas antigas.
   const areas = await db.query<RowArea>(
     `SELECT DISTINCT ON (codigo) codigo, rotulo FROM ${s}.ref_pesq_area ORDER BY codigo, vigente_de DESC`);
   const perguntas = await db.query<RowPergunta>(

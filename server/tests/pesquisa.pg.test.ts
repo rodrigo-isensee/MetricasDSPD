@@ -1,7 +1,7 @@
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { calcularMetrica } from '@metricas-dspd/metricas';
-import { carregar, esquemaCoreDe } from '../../tools/pesquisa/src/carga.ts';
+import { carregar, esquemaCoreDe } from '@metricas-dspd/pesquisa/carga';
 import { criarFontePesquisaReal } from '../src/modulos/metricas/index.js';
 import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
 import { migrar } from '../src/plataforma/db/migrar.js';
@@ -23,7 +23,7 @@ d('pesquisa de percepção (PV1): tabelas, papéis e carga', () => {
   let dono: pg.Pool, carga: pg.Pool, api: pg.Pool, coletor: pg.Pool;
   let versao = '';
   const q = (p: pg.Pool, t: string, v: unknown[] = []) => p.query(t, v);
-  const doPapel = (papel: string): pg.Pool => criarPool(urlDoPapel(url!, papel, papel === 'dspd_pesquisa' ? (process.env.DSPD_PWD_PESQUISA || 'pesquisa_dev') : papel === 'dspd_api' ? (process.env.DSPD_PWD_API ?? 'api_dev') : (process.env.DSPD_PWD_COLETOR ?? 'coletor_dev')), { max: 2 });
+  const doPapel = (papel: string): pg.Pool => criarPool(urlDoPapel(url!, papel, papel === 'dspd_pesquisa' ? (process.env.DSPD_PWD_PESQUISA ?? 'pesquisa_dev') : papel === 'dspd_api' ? (process.env.DSPD_PWD_API ?? 'api_dev') : (process.env.DSPD_PWD_COLETOR ?? 'coletor_dev')), { max: 2 });
 
   beforeAll(async () => {
     await migrar(url!, { prefixo });
@@ -128,7 +128,7 @@ d('pesquisa de percepção (PV1): tabelas, papéis e carga', () => {
     const ctx = { pesq: (await import('@metricas-dspd/metricas')).pesquisa.criarContextoPesquisa(base, '2099-01-01') };
     const r = (calcularMetrica as (...a: unknown[]) => { status: string; trimestre: string; participacao: { respondentes: number; convidados: number } })('PV1', {}, ctx);
     expect(r).toMatchObject({ status: 'ok', trimestre: T, participacao: { respondentes: 17, convidados: 19 } });
-    const colunas = (await q(dono, `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name LIKE 'pesq\\_%' OR table_name LIKE 'ref\\_pesq\\_%'`, [E.core])).rows as { column_name: string }[];
+    const colunas = (await q(dono, `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND (table_name LIKE 'pesq\\_%' OR table_name LIKE 'ref\\_pesq\\_%')`, [E.core])).rows as { column_name: string }[];
     expect(colunas.map((x) => x.column_name).filter((n) => /pessoa|usuario|email|login|responsav|comentario|autor|nome/i.test(n))).toEqual([]);
   });
 

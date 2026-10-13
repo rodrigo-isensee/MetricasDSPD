@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "exports": {
+    "./carga": "./src/carga.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
     "test": "TZ=UTC vitest run",
