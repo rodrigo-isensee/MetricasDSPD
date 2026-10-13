@@ -1,7 +1,7 @@
 # Modelo de dados — base analítica (PostgreSQL)
 
 - Status: aprovado (revisão de modelagem K-014 r2; code review 002-K-017-r1); **traduzido para PostgreSQL em 2026-10-10** (ADR 0014 revisão 2) com as correções do §11 e a decisão do usuário sobre nomes nas tabelas analíticas (§9)
-- Propósito: modelo físico da base analítica (tabelas, chaves, privilégios, LGPD). Público: arquiteto, back-end, QA. Data: 2026-10-09 · Revisão: 2026-10-11 (ER do `dspd_core` em §5; caminho de `lgpd.ts`) · Decisões: **ADR 0014** (PostgreSQL, `pg` puro, node-pg-migrate, outbox, testes por schema), 0005 (SQL explícito), 0006 (contrato da coleta), 0013 (módulos, Acelerato via Metabase). A ADR 0004 (MySQL) está substituída.
+- Propósito: modelo físico da base analítica (tabelas, chaves, privilégios, LGPD). Público: arquiteto, back-end, QA. Data: 2026-10-09 · Revisão: 2026-10-12 (ER do `dspd_core` em §5; caminho de `lgpd.ts`) · Decisões: **ADR 0014** (PostgreSQL, `pg` puro, node-pg-migrate, outbox, testes por schema), 0005 (SQL explícito), 0006 (contrato da coleta), 0013 (módulos, Acelerato via Metabase). A ADR 0004 (MySQL) está substituída.
 - Origem do Acelerato: tabela no Metabase lida 1x/dia pela API (ADR 0013 §4).
 - Forma da camada analítica = tipos de `@metricas-dspd/metricas` (`BaseBM`, `BaseAC`); o mock gera exatamente essa forma (paridade, D15).
 - Colunas marcadas **(prov.)** são extensões ao modelo 4.5 do briefing, provisórias até T2.1 (de-para da API) e à resposta do usuário.
@@ -153,8 +153,14 @@ Views do recorte (T5.1), `security_invoker`, colunas explícitas, sobre a nossa 
 | `ref_calendario_turno` | (`calendario_id`, `dia_semana`, `inicio_min`, `vigente_de`) | `fim_min`, `vigente_ate` |
 | `ref_feriado` | (`calendario_id`, `data`) | `escopo CHECK IN ('nacional','estadual','municipal','ponto_facultativo')`, `descricao`, `incluido_por_versao_id` |
 | `ref_calendario_aplicacao` | (`dominio`, `classe`, `vigente_de`) | qual calendário vale para cada classe (4.2; P2/N-6) |
-| `ref_versao_criterio` (T2.6) | `versao_id` | `vigente_desde date`, `dominio CHECK IN ('businessmap','acelerato')`, `descricao`, `motivo`, `referencia` (PR/ata), `registrado_em`. Mudança que afeta os dois domínios = duas linhas |
+| `ref_versao_criterio` (T2.6) | `versao_id` | `vigente_desde date`, `dominio CHECK IN ('businessmap','acelerato','pesquisa')` (a 0013 acrescentou `pesquisa`), `descricao`, `motivo`, `referencia` (PR/ata), `registrado_em`. Mudança que afeta os dois domínios = duas linhas |
 | `ref_versao_criterio_metrica` | (`versao_id`, `metrica_id`) | quais `MetricaId` são afetadas |
+| `ref_pesq_area` (0013) | (`codigo`, `vigente_de`) | `rotulo`, `vigente_ate`: lista fechada de áreas atendidas (unidade organizacional, nunca pessoa) |
+| `ref_pesq_pergunta` (0013) | (`versao_id`, `codigo`) | `ordem`, `texto`, `vigente_de`, `vigente_ate`; o questionário é a `ref_versao_criterio` com `dominio = 'pesquisa'` |
+| `pesq_carga` (0013, append-only) | `carga_id` | `trimestre` (`2026-T3`), `versao_id`, `recebida_em`, `arquivo_sha256`, `linhas`, `substitui_carga_id` (reenvio: a anterior fica guardada), `o_que_mudou` (texto da coordenação, até 500, sem e-mail nem URL) |
+| `pesq_resultado` (0013, append-only) | (`carga_id`, `area_codigo`, `pergunta_codigo`, `faixa`) | `contagem`; `faixa` de 1 a 5. Gatilho confere a área e a pergunta contra a referência |
+| `pesq_participacao` (0013, append-only) | (`carga_id`, `area_codigo`) | `convidados`, `respondentes` (`respondentes <= convidados`) |
+| `vw_pesq_vigente` (view) | `carga_id` | a carga de maior `carga_id` de cada trimestre |
 | `pgmigrations` | `id` | controle do node-pg-migrate (ADR 0014); só o migrador acessa |
 | `outbox` | `evento_sk` | abaixo |
 
@@ -302,8 +308,9 @@ Papéis com `LOGIN`, criados pelo init do compose (senhas de `.env`), donos de n
 | `dspd_coletor` | `SELECT, INSERT` em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; `SELECT, INSERT, UPDATE, DELETE` em projeções; `SELECT, INSERT` em `ctl_` + `UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo)` em `ctl_coleta` e `UPDATE` em `ctl_coleta_contagem`; `SELECT` em `ref_` | `SELECT` em `ref_`; `outbox`: `SELECT, INSERT, DELETE` + `UPDATE (status, tentativas, disponivel_em, reservado_ate, processado_em, ultimo_erro)` |
 | `dspd_ref` (só `ref:sync`) | `SELECT, INSERT` em `ref_` + `UPDATE (vigente_ate)` | idem em `ref_` |
 | `dspd_webhook` | `INSERT` em `dspd_bm.stg_webhook_evento` (+ `SELECT (webhook_sk, payload_sha256)` para devolver o existente) | `INSERT` em `outbox` |
-| `dspd_api` | `SELECT` em projeções, `vw_`, `ref_`, `ctl_`, **por coluna nas tabelas com coluna de pessoa** (todas as colunas menos as de `COLUNAS_PESSOA`, §9); **sem acesso a `stg_`**, `evt_`, `*_versao` | `SELECT` em `ref_`; sem `outbox` nem `pgmigrations` |
+| `dspd_api` | `SELECT` em projeções, `vw_`, `ref_`, `ctl_`, **por coluna nas tabelas com coluna de pessoa** (todas as colunas menos as de `COLUNAS_PESSOA`, §9); **sem acesso a `stg_`**, `evt_`, `*_versao` | `SELECT` em `ref_`, `pesq_` e `vw_pesq_vigente` (nenhuma tem coluna de pessoa); sem `outbox` nem `pgmigrations` |
 | `dspd_automacao` | `dspd_ac`: `SELECT, INSERT` em `ctl_automacao` | `SELECT` em `ref_` (sem uso até a T4.3) |
+| `dspd_pesquisa` (só a carga da pesquisa, PV1) | nenhum acesso | `SELECT, INSERT` em `pesq_`; `SELECT` em `ref_pesq_` e `ref_versao_criterio*`; sem `UPDATE` nem `DELETE` |
 
 Nenhum papel tem `TRUNCATE`, `REFERENCES` nem `TRIGGER`. Serviços do compose (ADR 0014): `api` usa `dspd_api` + `dspd_webhook`; `worker` usa `dspd_coletor`; `migrate` usa `dspd_migrador` + `dspd_ref`.
 
