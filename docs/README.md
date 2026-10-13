@@ -7,6 +7,7 @@ Propósito: ponto de entrada único; leva cada leitor ao documento certo em até
 - **Tipos de documento:** decisão (ADR), contrato (API), domínio (especificação), guia (como fazer) e registro (QA, reviews, alinhamentos).
 - **Código:** `server/` (API e coleta), `web/` (painéis), `packages/` (contratos, cálculo, mock), `e2e/` (testes). Mapa em [`tecnica/README.md`](tecnica/README.md).
 - **Regras invioláveis** (sem avaliação individual, BusinessMap e Acelerato nunca se misturam) ficam no [briefing](briefing-execucao-metricas.md) e no `CLAUDE.md`; não são copiadas aqui.
+- Operação do banco (backup, restauração, agendamento): [`engineering/operacao-banco.md`](engineering/operacao-banco.md).
 - Padrão das páginas e dos diagramas: [`engineering/padrao-de-documentacao.md`](engineering/padrao-de-documentacao.md).
 
 ## Por pergunta

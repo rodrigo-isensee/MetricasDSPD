@@ -6,6 +6,8 @@ import { montarEsquemas, type Esquemas } from './esquemas.js';
 import type { Consultavel } from './pool.js';
 
 export const DIR_MIGRACOES = fileURLToPath(new URL('../../../migrations', import.meta.url));
+/** Migração nunca espera mais que isto por um lock (outro DDL ou sessão presa): falha e o operador decide. */
+export const LOCK_TIMEOUT_MIGRADOR = '5s';
 export type Direcao = 'up' | 'down';
 
 type LinhaCatalogo = { esquema: string; tabela: string; colunas: string[] };
@@ -78,13 +80,15 @@ export async function migrar(url: string, opcoes: OpcoesMigrar = {}): Promise<Re
   const S = montarEsquemas(prefixo);
   const anterior = process.env.DSPD_SCHEMA_PREFIXO;
   process.env.DSPD_SCHEMA_PREFIXO = prefixo;
-  const cliente = new pg.Client({ connectionString: url, options: '-c TimeZone=UTC' });
+  const cliente = new pg.Client({ connectionString: url, options: `-c TimeZone=UTC -c lock_timeout=${LOCK_TIMEOUT_MIGRADOR}` });
   await cliente.connect();
   try {
     if (direcao === 'up') await verificarPapeis(cliente, log);
     const feitas = await runner({
+      // singleTransaction (decisão do C2/C3): um `up` com várias migrações é atômico (tudo ou nada), sem estado intermediário no
+      // banco; exige que nenhuma migração use `CREATE INDEX CONCURRENTLY` (hoje não há; o teste estático de migrações cobre).
       dbClient: cliente, dir: DIR_MIGRACOES, direction: direcao, migrationsTable: 'pgmigrations',
-      migrationsSchema: S.core, createMigrationsSchema: true, checkOrder: true, ignorePattern: '(\\..*|.*\\.json)',
+      migrationsSchema: S.core, createMigrationsSchema: true, checkOrder: true, singleTransaction: true, ignorePattern: '(\\..*|.*\\.json)',
       ...(direcao === 'down' ? { count: quantas ?? 1 } : quantas === undefined ? {} : { count: quantas }), log,
     });
     const grants = await aplicarGrants(cliente, S);

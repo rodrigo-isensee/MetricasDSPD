@@ -38,6 +38,12 @@ const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela ==
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
 const COLUNAS_FORA_STG_ESPERADAS = 395;
 
+describe('migrações e singleTransaction', () => {
+  it('nenhuma migração usa CONCURRENTLY (incompatível com o `up` em transação única)', () => {
+    expect(todoSql.filter((q) => /CONCURRENTLY/i.test(q))).toEqual([]);
+  });
+});
+
 describe('migrações (análise estática, sem banco)', () => {
   it('nomes NNNN_descricao, sequenciais, ordenados e iguais aos arquivos do diretório', () => {
     nomes.forEach((n, i) => expect(n.startsWith(String(i + 1).padStart(4, '0') + '_')).toBe(true));

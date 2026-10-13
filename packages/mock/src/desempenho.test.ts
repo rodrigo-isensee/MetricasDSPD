@@ -12,16 +12,63 @@ import { gerarBaseMock, gerarPesquisaMock } from '.'
  * Estabilidade (K-030 r1, b): a frio = MEDIANA de 5 medições, cada uma com contexto recriado sobre a
  * mesma base; 2a chamada = mediana das 5; p95 de 20 repetições a quente. O orçamento de 50 ms é
  * impresso como alerta, sem falhar. O arquivo roda sem paralelismo (vitest.config: fileParallelism false).
+ * Tempos em CPU time (não parede), com limite absoluto de 150 ms em máquina ociosa (calibração abaixo).
+ *
+ * Mede tempo de CPU (user+system, process.cpuUsage), não relógio de parede: quando o pnpm -r roda outros
+ * pacotes em paralelo ou a máquina de CI está disputada, o relógio inclui o tempo em que o processo ficou
+ * fora da CPU, o que não é lentidão do código. Uma regressão real (mais trabalho) aumenta o CPU time.
  */
-const LIMITE_METRICA_MS = 150
+const cpuMs = (): number => {
+  const u = process.cpuUsage()
+  return (u.user + u.system) / 1000
+}
+const medir = (fn: () => void): number => {
+  const t0 = cpuMs()
+  fn()
+  return cpuMs() - t0
+}
+
+const mediana = (v: number[]): number =>
+  [...v].sort((x, y) => x - y)[Math.floor((v.length - 1) / 2)] ?? 0
+
+/**
+ * Calibração de CPU na mesma execução: um trabalho fixo (aritmética + alocação + Map + sort, o mesmo perfil
+ * do cálculo) é medido em CPU time. REF_OCIOSA_MS é a mediana dele em máquina ociosa; sob contenção de
+ * cache/SMT/GC (pnpm -r em paralelo) o CPU time do mesmo trabalho infla, e o limite sobe na mesma proporção:
+ * limite = 150 ms x fator, com fator = mediana(ref)/REF_OCIOSA_MS limitado a [1, FATOR_MAX]. Em máquina
+ * ociosa o fator é 1 e vale o limite absoluto de 150 ms; o teto do fator impede que uma lentidão real
+ * (ex.: +300 ms) seja absorvida pela calibração.
+ */
+const REF_OCIOSA_MS = 3.3
+const FATOR_MAX = 2
+const trabalhoReferencia = (): number => {
+  const m = new Map<number, number[]>()
+  let acc = 0
+  for (let i = 0; i < 60_000; i++) {
+    const k = (i * 2654435761) % 5003
+    const l = m.get(k) ?? []
+    l.push(Math.sqrt(i) * 1.0001)
+    m.set(k, l)
+    acc += l.length
+  }
+  for (const l of m.values()) acc += l.sort((a, b) => b - a)[0] ?? 0
+  return acc
+}
+const calibrar = (): number => {
+  void trabalhoReferencia() // aquecimento do JIT
+  const amostras: number[] = []
+  for (let i = 0; i < 7; i++) amostras.push(medir(() => void trabalhoReferencia()))
+  return mediana(amostras)
+}
+const LIMITE_BASE_MS = 150
 const ORCAMENTO_METRICA_MS = 50
 const LIMITE_PAINEL_MS = 900
 const LIMITE_GERADOR_MS = 1500
 const K_FRIO = 5
 const REPETICOES_QUENTE = 20
-const t0Gerador = performance.now()
+const t0Gerador = cpuMs()
 const base = gerarBaseMock()
-const msGerador = performance.now() - t0Gerador
+const msGerador = cpuMs() - t0Gerador
 const PESQUISA = gerarPesquisaMock(base.config)
 const novoContexto = () => ({
   bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
@@ -35,25 +82,23 @@ const filtros = (id: string) =>
     : fonteDaMetrica(id as never) === 'acelerato'
       ? { equipe: [], prioridade: [], periodo: { tipo: '12s' as const } }
       : { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } }
-const mediana = (v: number[]): number =>
-  [...v].sort((x, y) => x - y)[Math.floor((v.length - 1) / 2)] ?? 0
 const p95De = (v: number[]): number =>
   [...v].sort((x, y) => x - y)[Math.ceil(v.length * 0.95) - 1] ?? 0
-const medir = (fn: () => void): number => {
-  const t0 = performance.now()
-  fn()
-  return performance.now() - t0
-}
-
 describe('desempenho (ADR 0003)', () => {
   it('o gerador do mock, na escala padrão, cabe no orçamento', () => {
     console.info(`gerador ${msGerador.toFixed(0)}ms (limite ${LIMITE_GERADOR_MS}ms)`)
-    expect(msGerador).toBeLessThan(LIMITE_GERADOR_MS)
+    const fator = Math.min(FATOR_MAX, Math.max(1, calibrar() / REF_OCIOSA_MS))
+    expect(msGerador).toBeLessThan(LIMITE_GERADOR_MS * fator)
   })
 
   it('cada métrica cabe no limite de CI: mediana a frio (5 contextos), mediana da 2a chamada e p95 de 20', () => {
     const linhas: string[] = []
+    let fatorMax = 1
     for (const id of METRICA_IDS.filter((m) => m !== 'VISAO_GERAL')) {
+      const ref = calibrar()
+      const fator = Math.min(FATOR_MAX, Math.max(1, ref / REF_OCIOSA_MS))
+      fatorMax = Math.max(fatorMax, fator)
+      const LIMITE_METRICA_MS = LIMITE_BASE_MS * fator
       const frios: number[] = []
       const segundas: number[] = []
       for (let k = 0; k < K_FRIO; k++) {
@@ -69,14 +114,14 @@ describe('desempenho (ADR 0003)', () => {
       const p95 = p95De(quentes)
       const alerta = Math.max(frio, segunda, p95) >= ORCAMENTO_METRICA_MS ? ' ALERTA>50ms' : ''
       linhas.push(
-        `${id} frio(med)=${frio.toFixed(0)}ms 2a(med)=${segunda.toFixed(0)}ms p95=${p95.toFixed(0)}ms${alerta}`,
+        `${id} ref=${ref.toFixed(1)} fator=${fator.toFixed(2)} frio(med)=${frio.toFixed(0)}ms 2a(med)=${segunda.toFixed(0)}ms p95=${p95.toFixed(0)}ms${alerta}`,
       )
       expect(frio, `${id} a frio (mediana de ${K_FRIO})`).toBeLessThan(LIMITE_METRICA_MS)
       expect(segunda, `${id} na 2a chamada (mediana)`).toBeLessThan(LIMITE_METRICA_MS)
       expect(p95, `${id} p95 de ${REPETICOES_QUENTE}`).toBeLessThan(LIMITE_METRICA_MS)
     }
     console.info(
-      `orçamento da ADR 0003 (alerta, não falha): ${ORCAMENTO_METRICA_MS} ms\n${linhas.join('\n')}`,
+      `orçamento da ADR 0003 (alerta, não falha): ${ORCAMENTO_METRICA_MS} ms; maior fator de calibração ${fatorMax.toFixed(2)}\n${linhas.join('\n')}`,
     )
   }, 120_000)
 
