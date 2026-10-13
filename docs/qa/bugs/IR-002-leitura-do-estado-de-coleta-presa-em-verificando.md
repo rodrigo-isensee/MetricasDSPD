@@ -17,3 +17,6 @@ Sem o sufixo (`/operacional`, falha de coleta real) o selo Falha e o aviso funci
 
 ## Evidência
 CT-34 falha; `e2e/test-results` (trace). Capturas de M-1 foram refeitas em `/operacional` (falha de coleta).
+
+## Status: CORRIGIDO (2026-10-12)
+CT-34 ("falha de leitura do estado de coleta mostra Tentar de novo") rodado em Chromium: passa, sem alteração de código (o ramo `isError` de `FrescorFonte.tsx` funciona após K-061/K-062).

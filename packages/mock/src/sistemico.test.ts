@@ -1,28 +1,35 @@
 import { describe, expect, it } from 'vitest'
 import {
   METRICA_IDS,
-  METRICAS_SUSTENTACAO,
+  fonteDaMetrica,
   MINIMO_AMOSTRA,
   type MetricaId,
 } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
-import { acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO } from '@metricas-dspd/metricas'
-import { gerarBaseMock, gerarExtensoesMock } from '.'
+import {
+  acelerato,
+  businessmap,
+  calcularMetrica,
+  CALENDARIO_PADRAO,
+  pesquisa,
+} from '@metricas-dspd/metricas'
+import { gerarBaseMock, gerarExtensoesMock, gerarPesquisaMock } from '.'
 
 /**
  * Teste sistêmico entre pacotes: gerador (mock) -> contexto -> `calcularMetrica` (metricas) ->
- * schema do contrato (contratos), para as 50 métricas.
+ * schema do contrato (contratos), para as 51 métricas.
  */
 const base = gerarBaseMock({ escala: 0.5 })
 const ctx = {
   bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
   ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
   ext: gerarExtensoesMock(base),
+  pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(base.config), base.config.hoje),
 }
 const filtrosPadrao = (id: MetricaId) =>
-  id === 'VISAO_GERAL'
+  id === 'VISAO_GERAL' || fonteDaMetrica(id) === 'pesquisa'
     ? {}
-    : METRICAS_SUSTENTACAO.includes(id)
+    : fonteDaMetrica(id) === 'acelerato'
       ? { equipe: [], prioridade: [], periodo: { tipo: '12m' } }
       : { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12m' } }
 
@@ -37,10 +44,10 @@ function amostrasPublicadas(x: unknown, acumulado: number[] = []): number[] {
   return acumulado
 }
 
-describe('gerador -> métricas -> contrato (50 métricas)', () => {
-  it('cobre exatamente as 50 métricas do catálogo', () => {
-    expect(METRICA_IDS).toHaveLength(50)
-    expect(Object.keys(SCHEMAS_RESULTADO)).toHaveLength(50)
+describe('gerador -> métricas -> contrato (51 métricas)', () => {
+  it('cobre exatamente as 51 métricas do catálogo', () => {
+    expect(METRICA_IDS).toHaveLength(51)
+    expect(Object.keys(SCHEMAS_RESULTADO)).toHaveLength(51)
   })
 
   it.each(METRICA_IDS)('%s: o resultado calculado sobre a base gerada obedece ao schema', (id) => {
@@ -59,6 +66,7 @@ describe('gerador -> métricas -> contrato (50 métricas)', () => {
       bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
       ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
       ext: gerarExtensoesMock(base),
+      pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(base.config), base.config.hoje),
     }
     for (const id of METRICA_IDS) {
       const f = filtrosPadrao(id) as never

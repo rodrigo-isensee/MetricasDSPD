@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { MINIMO_AMOSTRA } from '@metricas-dspd/contratos'
-import { Icone } from '@/components/ui'
+import { Icone, usePreferenciasPainel } from '@/components/ui'
 import { fmtInteiro } from '@/lib/formatar'
 
 /** Itens de uma lista que ficaram sem estatística publicada (menos de 20): nunca o número parcial. */
@@ -21,6 +21,18 @@ export function ListaInsuficientes({ itens }: { itens: readonly { rotulo: string
 /** Orientação de leitura (regras anti-meta do briefing 7.2), sempre visível no cartão. */
 export function Leia({ children }: { children: ReactNode }) {
   return <p className="text-sm text-texto-2">{children}</p>
+}
+
+/** Link para o cartão O15 (mesmo painel). Se a pessoa ocultou o O15, vira texto simples, sem link morto. */
+export function LinkO15() {
+  const p = usePreferenciasPainel()
+  const nome = 'Onde os bugs são encontrados (O15)'
+  if (p?.estaOculto('o15')) return <>{nome}</>
+  return (
+    <a href="#o15" className="text-acento underline">
+      {nome}
+    </a>
+  )
 }
 
 /**

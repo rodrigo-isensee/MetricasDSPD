@@ -30,7 +30,7 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
         const leia = await screen.findByTestId(`leia-junto-${c.id}`)
         const esperado = (c.leiaJunto ?? [])
           .map((x) => cartaoPorIdGlobal(x))
-          .filter((x) => x?.grupo === 'complementar')
+          .filter((x) => x?.grupo === 'complementar' || x?.grupo === 'percepcao')
           .map((x) => `${x?.codigo} ${x?.rotulo}`)
         expect(
           within(leia)

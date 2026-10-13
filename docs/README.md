@@ -22,6 +22,7 @@ Propósito: ponto de entrada único; leva cada leitor ao documento certo em até
 | Ver tabelas e schemas | [`architecture/data-model.md`](architecture/data-model.md) |
 | Ver a regra de cálculo de uma métrica | [`architecture/regras-metricas.md`](architecture/regras-metricas.md) |
 | Subir o ambiente e adicionar uma métrica | [`engineering/guia-do-desenvolvedor.md`](engineering/guia-do-desenvolvedor.md) |
+| Carregar a pesquisa trimestral de percepção (PV1) | [`engineering/carga-da-pesquisa-de-percepcao.md`](engineering/carga-da-pesquisa-de-percepcao.md) |
 | Saber quais dados pessoais são lidos | [`security/revisao-de-seguranca.md`](security/revisao-de-seguranca.md) |
 | Ver o plano de testes e o gate | [`tecnica/qualidade-e-testes.md`](tecnica/qualidade-e-testes.md), [`qa/`](qa/README.md) |
 | Ver a spec de tela e o design system | [`ux/`](ux/README.md) |

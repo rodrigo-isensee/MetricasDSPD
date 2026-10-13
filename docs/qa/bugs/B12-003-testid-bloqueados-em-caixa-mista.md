@@ -11,3 +11,6 @@
 `metrica-Bloqueados`; `estado-vazio-*` e `estado-erro-*` também não existem para esse cartão (o vazio é só texto "Nenhum item bloqueado hoje.").
 ## Evidência
 Testes B12 usam `cartao('Bloqueados')`. Se o front mantiver a caixa mista, QA ajusta a fixture em vez de exigir a mudança.
+
+## Status: VERIFICADO (2026-10-12, QA, feature/lacuna-de-valor @ af9950e)
+Chromium. `b12-fluxo.spec.ts` (cartão BLOQUEADOS por `painel.cartao`, links "Ver BLOQUEADOS" e âncora) passou; testid `metrica-BLOQUEADOS`. Corrigido.

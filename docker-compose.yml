@@ -15,6 +15,7 @@ services:
       DSPD_PWD_REF: ${DSPD_PWD_REF:-ref_dev}
       DSPD_PWD_WEBHOOK: ${DSPD_PWD_WEBHOOK:-webhook_dev}
       DSPD_PWD_AUTOMACAO: ${DSPD_PWD_AUTOMACAO:-automacao_dev}
+      DSPD_PWD_PESQUISA: ${DSPD_PWD_PESQUISA:-pesquisa_dev}
     ports: ["127.0.0.1:${PG_PORT:-5432}:5432"]
     volumes:
       - dspd-pg-data:/var/lib/postgresql/data

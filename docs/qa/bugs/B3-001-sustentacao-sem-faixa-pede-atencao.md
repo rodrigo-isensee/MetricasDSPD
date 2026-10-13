@@ -13,3 +13,6 @@ SUS-01 e SUS-16: faixa "Pede atenção" com S2 < 90% por prioridade e S1 com med
 A faixa não existe (os dados justificariam: S2 P2 a P4 abaixo de 90% no mock).
 ## Evidência
 `e2e/tests/b3-sust-ei-vg.spec.ts` > SUS-01; `docs/qa/evidencias/b3/sustentacao-1280-claro.png`.
+
+## Status: VERIFICADO (2026-10-12, QA, feature/lacuna-de-valor @ af9950e)
+Chromium. `b3-sust-ei-vg.spec.ts` SUS-01 e `b12-fluxo.spec.ts`: faixa "Pede atenção" visível em /sustentacao. Corrigido.

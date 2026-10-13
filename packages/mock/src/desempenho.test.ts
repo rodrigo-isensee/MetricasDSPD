@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { CALENDARIO_PADRAO } from '@metricas-dspd/metricas/core'
 import { METRICA_IDS } from '@metricas-dspd/contratos'
-import { METRICAS_SUSTENTACAO } from '@metricas-dspd/contratos'
-import { acelerato, businessmap, calcularMetrica } from '@metricas-dspd/metricas'
+import { fonteDaMetrica } from '@metricas-dspd/contratos'
+import { acelerato, businessmap, calcularMetrica, pesquisa } from '@metricas-dspd/metricas'
 import { diasUteisNoIntervalo, instanteDe, isoDeDia } from '@metricas-dspd/metricas/core'
 import { estadoEm, serieWip } from '@metricas-dspd/metricas/businessmap'
-import { gerarBaseMock } from '.'
+import { gerarBaseMock, gerarPesquisaMock } from '.'
 
 /**
  * Orçamento da ADR 0003: C3 < 50 ms por métrica, C4 < 300 ms por painel. Limite de CI = 3x (praticas 4).
@@ -69,15 +69,19 @@ const REPETICOES_QUENTE = 20
 const t0Gerador = cpuMs()
 const base = gerarBaseMock()
 const msGerador = cpuMs() - t0Gerador
+const PESQUISA = gerarPesquisaMock(base.config)
 const novoContexto = () => ({
   bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
   ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
+  pesq: pesquisa.criarContextoPesquisa(PESQUISA, base.config.hoje),
 })
 const ctx = novoContexto()
 const filtros = (id: string) =>
-  METRICAS_SUSTENTACAO.includes(id as never)
-    ? { equipe: [], prioridade: [], periodo: { tipo: '12s' as const } }
-    : { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } }
+  fonteDaMetrica(id as never) === 'pesquisa'
+    ? {}
+    : fonteDaMetrica(id as never) === 'acelerato'
+      ? { equipe: [], prioridade: [], periodo: { tipo: '12s' as const } }
+      : { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } }
 const p95De = (v: number[]): number =>
   [...v].sort((x, y) => x - y)[Math.ceil(v.length * 0.95) - 1] ?? 0
 describe('desempenho (ADR 0003)', () => {

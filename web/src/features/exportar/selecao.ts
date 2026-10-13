@@ -1,5 +1,5 @@
 import {
-  METRICAS_SUSTENTACAO,
+  fonteDaMetrica,
   cartoesDoPainel,
   type CartaoId,
   type Dominio,
@@ -12,7 +12,13 @@ import { CATALOGO, entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { lerFluxo, lerSustentacao } from '@/features/filtros/codec'
 import { PAINEIS, type PainelId } from '@/features/filtros/paineis'
 import type { Memoria } from '@/features/filtros/memoria'
-import { LIMITE_METRICAS, ORDEM_FONTES, nomeArquivo, type FonteExportacao } from './modelo'
+import {
+  LIMITE_METRICAS,
+  ORDEM_FONTES,
+  fonteExportavel,
+  nomeArquivo,
+  type FonteExportacao,
+} from './modelo'
 
 export type NivelExportacao = PainelId
 
@@ -49,7 +55,7 @@ export function itensDoNivel(
       codigo: c.id.replace('_', '-'),
       rotulo: c.nome,
       metrica: c.id,
-      fonte: c.fonte,
+      fonte: fonteExportavel(c.fonte),
     }))
   // Complementares ficam fora da exportação nesta fase (dados fictícios; decisão pendente do usuário).
   return cartoesDoPainel(nivel)
@@ -61,7 +67,7 @@ export function itensDoNivel(
         codigo: c.codigo,
         rotulo: c.rotulo,
         metrica: m,
-        fonte: entradaDoCatalogo(m).fonte,
+        fonte: fonteExportavel(entradaDoCatalogo(m).fonte),
       })),
     )
 }
@@ -138,7 +144,7 @@ export function filtrosDoItem(
   memoria: Memoria,
   opcoes: OpcoesFiltro | undefined,
 ): FiltrosFluxo | FiltrosSustentacao {
-  if (item.nivel === 'espera-invisivel' && METRICAS_SUSTENTACAO.includes(item.metrica)) {
+  if (item.nivel === 'espera-invisivel' && fonteDaMetrica(item.metrica) === 'acelerato') {
     const config = PAINEIS.sustentacao
     const aqui = pathname === '/espera-invisivel'
     return lerSustentacao(

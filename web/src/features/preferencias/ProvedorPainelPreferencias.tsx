@@ -104,14 +104,16 @@ export function ProvedorPainelPreferencias({
       const meu = document.querySelector<HTMLElement>(`[id="${id}"] [data-cartao-titulo]`)
       foco.current = { tipo: 'indice', i: Math.max(0, meu ? titulos.indexOf(meu) : 0) }
       // O contador é do grupo do cartão: núcleo e complementares nunca se somam.
+      // A pesquisa de percepção é um cartão à parte: não entra em nenhum dos dois contadores.
       const doGrupo = c.grupo === 'nucleo' ? nucleo : compl
       const restantes = doGrupo.filter((n) => !ocultos.has(n.id) && n.id !== id).length
       const qual = c.grupo === 'nucleo' ? 'métricas' : 'complementares'
-      setAnuncio(`${c.codigo} oculta. ${restantes} de ${doGrupo.length} ${qual} visíveis. Desfazer`)
-      setAviso({
-        id,
-        texto: `${c.codigo} oculta. ${restantes} de ${doGrupo.length} ${qual} visíveis.`,
-      })
+      const resumo =
+        c.grupo === 'percepcao'
+          ? `${c.codigo} oculta.`
+          : `${c.codigo} oculta. ${restantes} de ${doGrupo.length} ${qual} visíveis.`
+      setAnuncio(`${resumo} Desfazer`)
+      setAviso({ id, texto: resumo })
       definir([...ocultos, id])
     }
     const mostrar = (id: CartaoId) => definir(lista.filter((x) => x !== id))

@@ -1,8 +1,8 @@
 import {
-  CATALOGO_CARTOES, METRICAS_SUSTENTACAO, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  CATALOGO_CARTOES, fonteDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
-  acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, type ContextosMetricas, type ExtensoesMetricas,
+  acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, pesquisa, type ContextosMetricas, type ExtensoesMetricas,
 } from '@metricas-dspd/metricas';
 import type { BaseAC } from '@metricas-dspd/metricas/acelerato';
 import { AppError } from '../../plataforma/erros.js';
@@ -10,6 +10,7 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
 import { dataCivil, lerEquipesBM, lerSistemasBM, lerVersaoCriterioVigente } from '../referencia/index.js';
+import type { FontePesquisa } from './fonte-pesquisa.js';
 import { montarBaseAC, montarBaseBM, type RefBM } from './mapa.js';
 import {
   lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerDominio, lerEtapas, lerFichas, lerLimiteFrentes,
@@ -38,8 +39,8 @@ type Marca = { versao: string; finalizadoEm: Date | null };
 type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null };
 type Entrada<B> = { lidoEm: number; carga: Promise<Carga<B>> | null; atual: Carga<B> | null };
 
-const dominioDe = (id: MetricaId): Dom | 'ambos' =>
-  id === 'VISAO_GERAL' ? 'ambos' : METRICAS_SUSTENTACAO.includes(id) ? 'acelerato' : 'businessmap';
+/** Fonte de dados da métrica: `fonteDaMetrica` é o ponto único (a PV1 é `pesquisa`, nunca BusinessMap nem Acelerato). */
+const dominioDe = fonteDaMetrica;
 
 /** Chave normalizada: listas ordenadas, ordem das propriedades fixa. */
 export function normalizar(f: FiltrosMetrica): string {
@@ -55,6 +56,8 @@ export type DepsServico = {
   db: Consultavel; S?: Esquemas; maxResultados?: number;
   /** Fonte das extensões das métricas complementares (hoje só o mock; vira tabelas em T1.3/T1.4/T4.2). Sem ela, o cálculo devolve vazio/insuficiente. */
   extensoes?: () => ExtensoesMetricas;
+  /** Fonte da pesquisa de percepção (PV1): mock agora; no B4, as tabelas `pesq_*`. Sem ela, a PV1 devolve `sem-pesquisa`. */
+  pesquisa?: FontePesquisa;
 };
 
 /**
@@ -142,6 +145,31 @@ export class ServicoMetricas {
     }
   }
 
+  /** PV1: fonte própria (carga, versão de critério e cache próprios); não lê BusinessMap nem Acelerato. Sem fonte configurada: `sem-pesquisa`. */
+  private async calcularPesquisa(id: MetricaId, dataReferencia: string): Promise<Calculo> {
+    const leitura = this.deps.pesquisa === undefined ? null : await this.deps.pesquisa.ler();
+    const vigentes = (leitura?.base.criterios ?? []).filter((c) => c.data <= dataReferencia)
+      .sort((x, y) => `${x.data}|${x.id}`.localeCompare(`${y.data}|${y.id}`));
+    const versaoCriterio = vigentes.at(-1)?.id ?? '0';
+    const chave = `${id}|${leitura?.versao ?? '0'}|${versaoCriterio}|${dataReferencia}`;
+    let mapa = this.resultados.get('pesquisa');
+    if (mapa === undefined) {
+      mapa = new Map();
+      this.resultados.set('pesquisa', mapa);
+    }
+    const pronto = mapa.get(chave);
+    if (pronto !== undefined) return { resultado: pronto, dataReferencia, versaoCriterio, chave };
+    const ctx: ContextosMetricas = {
+      bm: businessmap.criarContextoBM(BASE_BM_VAZIA, dataReferencia, CALENDARIO_PADRAO),
+      ac: acelerato.criarContextoAC(BASE_AC_VAZIA, dataReferencia, CALENDARIO_PADRAO),
+      ...(leitura === null ? {} : { pesq: pesquisa.criarContextoPesquisa(leitura.base, dataReferencia) }),
+    };
+    const resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, {}, ctx);
+    mapa.set(chave, resultado);
+    if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
+    return { resultado, dataReferencia, versaoCriterio, chave };
+  }
+
   async calcular(id: MetricaId, filtros: FiltrosMetrica, op: OpcoesCalculo, agoraDate: Date): Promise<Calculo> {
     const agora = agoraDate.getTime();
     const dom = dominioDe(id);
@@ -149,6 +177,7 @@ export class ServicoMetricas {
     if (op.dataReferencia !== undefined && op.dataReferencia > hoje) {
       throw new AppError('VALIDATION_ERROR', 'Parâmetros inválidos.', 400, [{ caminho: 'dataReferencia', mensagem: 'Data futura.' }]);
     }
+    if (dom === 'pesquisa') return this.calcularPesquisa(id, op.dataReferencia ?? hoje);
     const bm = dom === 'acelerato' ? null : await this.carga('businessmap', agora);
     const ac = dom === 'businessmap' ? null : await this.carga('acelerato', agora);
     if (ac !== null && ac.base.config.alvos.length === 0 && METRICAS_COM_ALVOS.includes(id)) {

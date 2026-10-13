@@ -10,6 +10,7 @@ export const SEGREDOS_OBRIGATORIOS = [
   'DSPD_PWD_REF',
   'DSPD_PWD_WEBHOOK',
   'DSPD_PWD_AUTOMACAO',
+  'DSPD_PWD_PESQUISA',
 ] as const
 
 export const PORTAS_PADRAO = { pg: 15432, api: 13000, web: 18080 } as const

@@ -56,10 +56,18 @@ describe('docker-compose.homolog.yml', () => {
   })
 })
 
+/**
+ * Segredos cuja linha `CHAVE=` ainda precisa ser acrescentada aos `.env*.example` pelo usuário (os agentes não têm
+ * permissão de editar esses arquivos). Quando o usuário acrescentar, esvazie a lista: o teste passa a exigir todos.
+ */
+const AGUARDA_EXEMPLO_DO_USUARIO: readonly string[] = ['DSPD_PWD_PESQUISA']
+
 describe('.env.homolog.example', () => {
   it('lista todos os segredos sem valor e fica versionável', () => {
     const exemplo = ler('.env.homolog.example')
-    for (const chave of SEGREDOS_OBRIGATORIOS)
+    for (const chave of SEGREDOS_OBRIGATORIOS.filter(
+      (c) => !AGUARDA_EXEMPLO_DO_USUARIO.includes(c),
+    ))
       expect(exemplo).toMatch(new RegExp(`^${chave}=$`, 'm'))
     expect(ler('.gitignore')).toContain('!.env.homolog.example')
   })
@@ -156,5 +164,27 @@ describe('workflows de homologação', () => {
       expect(ci.jobs[nome]?.name).toBe(nome)
     expect(ci.jobs.banco?.if).toContain("github.base_ref == 'homolog'")
     expect(ci.jobs.banco?.if).toContain("github.base_ref == 'main'")
+  })
+})
+
+describe('segredos do init do Postgres (B-1: nenhuma senha padrão em homologação)', () => {
+  const init = ler('docker/postgres/init/01-databases-papeis.sh')
+  const usadas = [...new Set([...init.matchAll(/\$\{?(DSPD_PWD_[A-Z]+)/g)].map((m) => m[1]))]
+
+  it('não tem valor padrão (`:-`) para variável alguma', () => {
+    expect(init).not.toMatch(/\$\{[A-Z_]+:-/)
+    expect(init).not.toMatch(/_dev/)
+  })
+  it('só usa senhas que são segredos obrigatórios da homologação', () => {
+    expect(usadas.length).toBeGreaterThanOrEqual(7)
+    for (const chave of usadas) expect(SEGREDOS_OBRIGATORIOS as readonly string[]).toContain(chave)
+  })
+  it('as repassa ao Postgres do compose de homologação, obrigatórias', () => {
+    const texto = ler(ARQUIVO_COMPOSE)
+    for (const chave of usadas) expect(texto).toContain(`${chave}: \${${chave}:?`)
+  })
+  it('o laço de segredos da CI de homologação gera todas elas', () => {
+    const laco = ler('.github/workflows/homolog.yml').match(/for chave in ([^;]+); do/)?.[1] ?? ''
+    for (const chave of SEGREDOS_OBRIGATORIOS) expect(laco.split(/\s+/)).toContain(chave)
   })
 })

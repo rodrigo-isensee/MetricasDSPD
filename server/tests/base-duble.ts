@@ -1,4 +1,4 @@
-import type { VersaoCriterio } from '@metricas-dspd/contratos';
+import { fonteDaMetrica, type MetricaId, type VersaoCriterio } from '@metricas-dspd/contratos';
 import { CALENDARIO_PADRAO, diaLocal, fimDoExpediente } from '@metricas-dspd/metricas/core';
 import type { BaseBM } from '@metricas-dspd/metricas/businessmap';
 import type { BaseMock } from '@metricas-dspd/mock';
@@ -11,10 +11,11 @@ const comoDriver = (l: Linha): Record<string, unknown> =>
   Object.fromEntries(Object.entries(l).map(([k, v]) => [k, typeof v === 'string' && DATA_HORA.test(v) ? new Date(`${v.replace(' ', 'T')}Z`) : v]));
 
 export const CORTE_DATA = '2026-10-09';
-const ehSust = (m: string): boolean => m.startsWith('S') || m === 'EI_SUST';
+const ehSust = (m: MetricaId): boolean => fonteDaMetrica(m) === 'acelerato';
+const ehFluxo = (m: MetricaId): boolean => fonteDaMetrica(m) === 'businessmap';
 /** Critérios de cada fonte (a do mock tem os dois em ambas; o banco guarda cada um na sua) e os ids que o banco lhes dá (1, 2). */
 export function criteriosPorFonte(base: BaseMock): { bm: VersaoCriterio[]; ac: VersaoCriterio[]; ids: Map<string, string> } {
-  const bm = base.bm.config.criterios.filter((c) => c.afeta.every((m) => !ehSust(m)));
+  const bm = base.bm.config.criterios.filter((c) => c.afeta.every(ehFluxo));
   const ac = base.ac.config.criterios.filter((c) => c.afeta.every(ehSust));
   return { bm, ac, ids: new Map([...bm, ...ac].map((v, i) => [v.id, String(i + 1)])) };
 }
