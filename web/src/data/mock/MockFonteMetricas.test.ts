@@ -5,7 +5,7 @@ import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { ehVazio } from '../vazio'
 import { aplicarSimulacao, ErroSimulado, lerModoMock } from '../simulacao'
-import { MockFonteMetricas } from './MockFonteMetricas'
+import { MockFonteMetricas, paginarO2 } from './MockFonteMetricas'
 
 /** Latência 0: os testes não esperam o atraso simulado (D7). */
 const fonte = new MockFonteMetricas({ latenciaMs: 0 })
@@ -104,4 +104,43 @@ describe('parâmetro oculto ?mock=', () => {
       if (id !== 'O1') expect((r as { base: { n: number } }).base.n, id).toBe(0)
     }
   }, 60_000)
+})
+
+describe('O2 alinhado à API (R3)', () => {
+  it('devolve no máximo 200 itens, ordenados por idade, com itensMeta do conjunto completo', async () => {
+    const f = new MockFonteMetricas({ latenciaMs: 0 })
+    const r = (await f.obter('O2', {
+      equipe: [],
+      tipo: [],
+      sistema: [],
+      periodo: { tipo: '12s' },
+    })) as unknown as {
+      itens: { idadeDiasUteis: number }[]
+      itensMeta: { page: number; pageSize: number; total: number }
+    }
+    expect(r.itens.length).toBeLessThanOrEqual(200)
+    expect(r.itensMeta).toMatchObject({ page: 1, pageSize: 200 })
+    expect(r.itensMeta.total).toBeGreaterThanOrEqual(r.itens.length)
+    const idades = r.itens.map((i) => i.idadeDiasUteis)
+    expect(idades).toStrictEqual([...idades].sort((a, b) => b - a))
+  })
+})
+
+describe('paginarO2', () => {
+  it('desempata a idade por cardId e limita a página a 200 itens', () => {
+    const item = (cardId: string, idadeDiasUteis: number) => ({ cardId, idadeDiasUteis })
+    const base = {
+      itens: [
+        item('B', 3),
+        item('C', 5),
+        item('A', 3),
+        item('B', 3),
+        ...Array.from({ length: 250 }, (_, i) => item(`Z${i}`, 1)),
+      ],
+    }
+    const r = paginarO2(base as unknown as Parameters<typeof paginarO2>[0])
+    expect(r.itens.slice(0, 5).map((i) => i.cardId)).toStrictEqual(['C', 'A', 'B', 'B', 'Z0'])
+    expect(r.itens).toHaveLength(200)
+    expect(r.itensMeta).toStrictEqual({ page: 1, pageSize: 200, total: 254 })
+  })
 })

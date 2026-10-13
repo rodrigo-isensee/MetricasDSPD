@@ -1,4 +1,4 @@
-import type { z } from 'zod'
+import { z } from 'zod'
 import type { MetricaId } from './comum'
 import type { ResultadoDe } from './metricas'
 import * as s from './schemas'
@@ -60,3 +60,17 @@ export const SCHEMAS_RESULTADO: { [K in MetricaId]: z.ZodType<ResultadoDe<K>> } 
   EI_SUST: s.resultadoEI,
   VISAO_GERAL: s.resultadoVisaoGeral,
 }
+
+/** Metadados de paginação do O2 (`itensMeta`): a API pagina só `itens`; o resto é do conjunto completo. */
+export const itensMetaSchema = z
+  .object({
+    page: z.number().int().min(1),
+    pageSize: z.number().int().min(1),
+    total: z.number().int().min(0),
+  })
+  .strict()
+export type ItensMeta = z.infer<typeof itensMetaSchema>
+
+/** O2 como a API devolve (e como o mock se alinha): o DTO do contrato mais `itensMeta`. */
+export const resultadoO2PaginadoSchema = s.resultadoO2.extend({ itensMeta: itensMetaSchema })
+export type ResultadoO2Paginado = z.infer<typeof resultadoO2PaginadoSchema>

@@ -50,7 +50,8 @@ export function useMetrica<K extends MetricaId>(
   const jaFalhou = jaFalhouDo(useQueryClient())
   const q = useQuery({
     queryKey: ['metrica', id, filtros, modo],
-    queryFn: () => aplicarSimulacao(modo, id, filtros, (f) => fonte.obter(id, f), jaFalhou),
+    queryFn: ({ signal }) =>
+      aplicarSimulacao(modo, id, filtros, (f) => fonte.obter(id, f, { signal }), jaFalhou),
     placeholderData: keepPreviousData,
   })
   let estado: EstadoMetrica = 'ok'

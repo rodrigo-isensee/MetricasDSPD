@@ -13,6 +13,7 @@ import {
 } from '@metricas-dspd/contratos'
 import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
 import { TIPOS_FILTRO, PRIORIDADES } from '@metricas-dspd/contratos'
+import type { ResultadoO2Paginado } from '@metricas-dspd/contratos/validacao'
 import type { FonteMetricas } from '../FonteMetricas'
 
 type Carregado = {
@@ -43,6 +44,26 @@ const COMPLEMENTARES: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S11',
   'S12',
 ])
+
+/** Itens do O2 por página: o mesmo da API (`pageSize=200`, página 1). */
+const PAGINA_O2 = 200
+
+/**
+ * O2 no formato da API (R3 do plano front-via-api): `itens` da página 1 (até 200), ordenados por idade
+ * decrescente com desempate por `cardId`, e `itensMeta` com o total do conjunto completo.
+ */
+export function paginarO2(r: ResultadoDe<'O2'>): ResultadoO2Paginado {
+  const ordenados = [...r.itens].sort(
+    (a, b) =>
+      b.idadeDiasUteis - a.idadeDiasUteis ||
+      (a.cardId < b.cardId ? -1 : a.cardId > b.cardId ? 1 : 0),
+  )
+  return {
+    ...r,
+    itens: ordenados.slice(0, PAGINA_O2),
+    itensMeta: { page: 1, pageSize: PAGINA_O2, total: ordenados.length },
+  }
+}
 
 /** Devolve a thread principal ao navegador entre fases pesadas (tarefa longa < 200 ms, ADR 0003 C6). */
 const ceder = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
@@ -125,7 +146,9 @@ export class MockFonteMetricas implements FonteMetricas {
     await this.atraso(sorteio)
     // As extensões das complementares só são geradas quando uma delas é pedida (carga sob demanda).
     const completo = COMPLEMENTARES.has(id) ? { ...ctx, ext: await this.carregarExtensoes() } : ctx
-    return lib.calcularMetrica(id, filtros, completo)
+    const r = lib.calcularMetrica(id, filtros, completo)
+    if (id === 'O2') return paginarO2(r as unknown as ResultadoDe<'O2'>)
+    return r
   }
 
   async opcoesFiltro<D extends Dominio>(
