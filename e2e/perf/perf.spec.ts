@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { test, expect } from '@playwright/test';
 import { ORCAMENTO, ROTAS, ROTAS_PAINEL } from '../fixtures/constantes';
 import { PainelPage } from '../pages/PainelPage';
-import { resumir, type Resumo } from './estatistica';
+import { percentil, resumir, type Resumo } from './estatistica';
 import { instalarObservadores, lerVitais, medirCargaFria } from './lcp';
 import { medirTrocaFiltro } from './troca-filtro';
 
@@ -62,27 +62,30 @@ test.describe('perf', () => {
       await page.waitForLoadState('networkidle');
       await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
       const v = await lerVitais(page);
-      // C6 é sensível a carga da máquina (rajadas de outro processo elevam todas as cargas seguidas de uma rodada).
-      // Mediana de N cargas por rodada; se a rodada passa do limite, repete até RODADAS_C6 vezes e vale a melhor
-      // mediana. Limite inalterado: uma regressão real é alta em todas as rodadas, ruído de carga não é.
-      let longas = [v.maiorTarefaLongaMs];
-      let c6 = resumir(longas);
+      // C6 é sensível a carga da máquina. O critério é a MEDIANA AGREGADA de todas as amostras (RODADAS_C6 x N_C6 cargas,
+      // sem repetir "até passar" nem escolher a melhor rodada): uma rajada de ruído se dilui, e uma regressão que aparece
+      // na maioria das cargas continua acima do limite. Todas as rodadas e o p85 agregado vão para o resultado.json.
+      // Na CI (runner exclusivo e estável) PERF_RODADAS_C6=1; localmente rode sob o flock dos agentes (concorrência é a causa do ruído).
+      const longas = [v.maiorTarefaLongaMs];
+      const medianasPorRodada: number[] = [];
       for (let rodada = 0; rodada < RODADAS_C6; rodada++) {
-        if (rodada > 0) longas = [];
-        for (let i = longas.length; i < N_C6; i++) {
+        const daRodada = rodada === 0 ? [v.maiorTarefaLongaMs] : [];
+        for (let i = daRodada.length; i < N_C6; i++) {
           await page.reload();
           await painel.esperarCartoesProntos();
           await page.waitForLoadState('networkidle');
-          longas.push((await lerVitais(page)).maiorTarefaLongaMs);
+          const medida = (await lerVitais(page)).maiorTarefaLongaMs;
+          daRodada.push(medida);
+          longas.push(medida);
         }
-        const atual = resumir(longas);
-        if (rodada === 0 || atual.mediana < c6.mediana) c6 = atual;
-        if (c6.mediana < ORCAMENTO.C6_tarefaLongaMs) break;
+        medianasPorRodada.push(resumir(daRodada).mediana);
       }
-      registrar(`F2_C6_${rota}`, { ...v, c6 });
-      console.log(`[perf] ${rota}: CLS=${v.cls.toFixed(3)} maiorTarefaLonga(mediana de ${c6.n})=${c6.mediana.toFixed(0)} ms (max=${c6.max.toFixed(0)} ms)`);
+      const c6 = resumir(longas);
+      const c6p85 = percentil([...longas].sort((x, y) => x - y), 85);
+      registrar(`F2_C6_${rota}`, { ...v, c6, c6p85, medianasPorRodada });
+      console.log(`[perf] ${rota}: CLS=${v.cls.toFixed(3)} maiorTarefaLonga(mediana agregada de ${c6.n})=${c6.mediana.toFixed(0)} ms (p85=${c6p85.toFixed(0)} ms, max=${c6.max.toFixed(0)} ms, medianas por rodada=${medianasPorRodada.map((m) => m.toFixed(0)).join('/')})`);
       expect.soft(v.cls, 'F2 CLS').toBeLessThan(ORCAMENTO.F2_cls);
-      expect.soft(c6.mediana, 'C6 tarefa longa (mediana)').toBeLessThan(ORCAMENTO.C6_tarefaLongaMs);
+      expect.soft(c6.mediana, 'C6 tarefa longa (mediana agregada)').toBeLessThan(ORCAMENTO.C6_tarefaLongaMs);
     });
   }
 
