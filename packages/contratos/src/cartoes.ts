@@ -87,7 +87,6 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ...secao('operacional', 'tempo', 'Tempo', [
     ['O3', 'Tempo de ciclo', undefined, ['o5', 'o6', 'o8']],
     ['O9', 'Os três relógios do pedido'],
-    ['EI-FL1', 'Espera invisível · Operacional', ['EI_FL1']],
   ]),
   ...secao('operacional', 'fluxo', 'Fluxo', [['O4', 'Vazão semanal', undefined, ['o8']]]),
   ...secao('operacional', 'compromissos', 'Compromissos', [['O12', 'Acordos e vencidos']]),
@@ -99,6 +98,12 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['O15', 'Onde os bugs são encontrados', undefined, ['o13', 'o16', 'o17']],
     ['O18', 'Entregas com e sem bug', undefined, ['o4']],
   ]),
+  ...secao(
+    'operacional',
+    'espera-invisivel',
+    'Quanto do tempo do solicitante fica fora da nossa gestão?',
+    [['EI-FL1', 'Espera invisível · Operacional', ['EI_FL1']]],
+  ),
   ...secao('tatico', 'publicado', 'Estamos cumprindo o que publicamos?', [
     ['T2', 'Aderência ao SLE'],
     ['T1', 'Lead time ponta a ponta', undefined, ['t4', 't6']],
@@ -112,9 +117,12 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['T9', 'Avanço real e escopo', undefined, ['t6', 'e5']],
     ['T7', 'Fluxo de frentes'],
   ]),
-  ...secao('tatico', 'espera-invisivel', 'Espera invisível do nível', [
-    ['EI-FL2', 'Espera invisível · Tático', ['EI_FL2']],
-  ]),
+  ...secao(
+    'tatico',
+    'espera-invisivel',
+    'Quanto do tempo do solicitante fica fora da nossa gestão?',
+    [['EI-FL2', 'Espera invisível · Tático', ['EI_FL2']]],
+  ),
   ...secao('estrategico', 'prazo', 'Quanto tempo leva decidir e entregar?', [
     ['E1', 'Lead time de projetos', undefined, ['e4', 'e5']],
   ]),
@@ -122,9 +130,12 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['E2', 'Capacidade por objetivo estratégico'],
     ['E3', 'Entrega × resultado'],
   ]),
-  ...secao('estrategico', 'espera-invisivel', 'Espera invisível do nível', [
-    ['EI-FL3', 'Espera invisível · Estratégico', ['EI_FL3']],
-  ]),
+  ...secao(
+    'estrategico',
+    'espera-invisivel',
+    'Quanto do tempo do solicitante fica fora da nossa gestão?',
+    [['EI-FL3', 'Espera invisível · Estratégico', ['EI_FL3']]],
+  ),
   ...secao('sustentacao', 'prazos', 'Prazos', [
     ['S2', 'Aderência ao SLA', undefined, ['s8', 's12', 'pv1']],
     ['S1', 'Primeiro atendimento e restauração', undefined, ['s9', 's10', 'pv1']],
@@ -138,7 +149,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['S6', 'Motivos de encerramento'],
     ['S7', 'Reclassificação', undefined, ['s11']],
   ]),
-  ...secao('sustentacao', 'espera', 'Espera invisível do nível', [
+  ...secao('sustentacao', 'espera', 'Quanto do tempo do solicitante fica fora da nossa gestão?', [
     ['EI-SUST', 'Espera invisível · Sustentação', ['EI_SUST']],
   ]),
   // Terceira fonte (pesquisa trimestral de percepção): 'mock' até existir carga real.
@@ -273,7 +284,18 @@ export const CHAVE_PREFERENCIAS = 'metricas-dspd:preferencias:v1'
 export const preferenciasMetricasSchema = z.object({
   versao: z.literal(1),
   /** Guarda OCULTOS: cartão novo aparece por padrão. */
-  paineis: z.partialRecord(z.enum(PAINEIS_COM_CARTOES), z.object({ ocultar: z.array(z.string()) })),
+  paineis: z.preprocess(
+    // Chave de painel que não existe (ex.: `espera-invisivel`, que nunca guardou nada) é ignorada em silêncio.
+    (v) =>
+      v && typeof v === 'object'
+        ? Object.fromEntries(
+            Object.entries(v).filter(([k]) =>
+              (PAINEIS_COM_CARTOES as readonly string[]).includes(k),
+            ),
+          )
+        : v,
+    z.partialRecord(z.enum(PAINEIS_COM_CARTOES), z.object({ ocultar: z.array(z.string()) })),
+  ),
   atualizadoEm: z.string(),
 })
 export type PreferenciasMetricas = z.infer<typeof preferenciasMetricasSchema>

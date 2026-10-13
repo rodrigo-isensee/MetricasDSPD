@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react'
-import { Link } from 'react-router'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { ParEspera, SerieLinhas } from '@/components/charts'
 import {
   AmostraInsuficiente,
@@ -43,9 +42,6 @@ interface Config {
   lenta: boolean
 }
 
-/** Altura reservada do corpo (completo), medida em desktop; evita salto de layout (ADR 0003 F2). */
-const ALTURA_EI: Record<Nivel, number> = { FL1: 620, FL2: 570, FL3: 420, SUST: 420 }
-
 const CFG: Record<Nivel, Config> = {
   FL1: {
     id: 'EI_FL1',
@@ -74,8 +70,6 @@ const CFG: Record<Nivel, Config> = {
 interface Props {
   nivel: Nivel
   q: MetricaQuery<ResultadoEI>
-  /** Compacto (painéis de nível): par e índice da aba escolhida + link "Ver evolução". */
-  variante?: 'completo' | 'compacto'
   aplicaveis?: readonly FiltroFluxoChave[]
   periodo: FiltrosFluxo['periodo']
   className?: string
@@ -84,14 +78,7 @@ interface Props {
 const maiusculo = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 /** Cartão de Espera invisível de UM nível: abas por segmento (uma classe por vez), sempre as duas visões juntas. */
-export function CartaoEI({
-  nivel,
-  q,
-  variante = 'completo',
-  aplicaveis,
-  periodo,
-  className,
-}: Props) {
+export function CartaoEI({ nivel, q, aplicaveis, periodo, className }: Props) {
   const cfg = CFG[nivel]
   const sufixo = nivel.toLowerCase()
   const m = entradaDoCatalogo(cfg.id)
@@ -113,7 +100,23 @@ export function CartaoEI({
         ? `${nome}o cliente espera ${fmt(est.valor.cliente)} (mediana); o time tem o pedido por ${fmt(est.valor.time)}. ${fmtPct(est.valor.indicePct, 0)} do tempo do solicitante acontece fora da nossa gestão.${est.valor.acimaDe50 ? ' Acima de 50% a discussão é de fila, não de produtividade da equipe.' : ''}`
         : `${nome}${fmtInteiro(est.n)} de 20 itens mínimos: nenhuma das duas visões é publicada.`
   }
-  const compacto = variante === 'compacto'
+  const temSerie =
+    !!seg && seg.estatistica.status === 'ok' && seg.serie.some((p) => p.cliente !== null)
+  const idEvolucao = `evolucao-${useId()}`
+  const [aberta, setAberta] = useState(false)
+  const botaoRef = useRef<HTMLButtonElement>(null)
+  // Esc fecha o gráfico aberto quando o foco está neste cartão e devolve o foco ao botão.
+  useEffect(() => {
+    if (!aberta) return undefined
+    const fechar = (e: KeyboardEvent) => {
+      const cartao = document.getElementById(`ei-${sufixo}`) as HTMLElement
+      if (e.key !== 'Escape' || !cartao.contains(document.activeElement)) return
+      setAberta(false)
+      botaoRef.current?.focus()
+    }
+    document.addEventListener('keydown', fechar)
+    return () => document.removeEventListener('keydown', fechar)
+  }, [aberta, sufixo])
 
   const corpo =
     seg && est ? (
@@ -161,33 +164,44 @@ export function CartaoEI({
             janela={d.janelaPercentis}
           />
         )}
-        {!compacto && seg.serie.some((p) => p.cliente !== null) && (
-          <ComTabelaPropria codigo={`EI-${nivel}-evolucao`}>
-            <SerieLinhas
-              descricao={`Evolução mensal da espera invisível, ${cfg.rotulo}${rotuloSeg ? `, ${rotuloSeg}` : ''}`}
-              unidade={cfg.unidade}
-              formatarX={fmtMes}
-              formatar={fmt}
-              marcacoes={d.criterios.serie}
-              pontos={seg.serie.map((p) => ({
-                x: p.mes,
-                valores: { cliente: p.cliente, time: p.time },
-              }))}
-              series={[
-                { chave: 'cliente', rotulo: 'Visão do cliente', cor: 1, traco: 'solido' },
-                { chave: 'time', rotulo: 'Visão do time', cor: 2, traco: 'tracejado' },
-              ]}
-              faixas={[{ de: 'cliente', ate: 'time', rotulo: 'Espera invisível' }]}
-            />
-          </ComTabelaPropria>
+        {temSerie && aberta && (
+          <div
+            id={idEvolucao}
+            data-testid={`ei-evolucao-${idSeg}`}
+            className="max-w-full overflow-x-auto"
+          >
+            <ComTabelaPropria codigo={`EI-${nivel}-evolucao`}>
+              <SerieLinhas
+                descricao={`Evolução mensal da espera invisível, ${cfg.rotulo}${rotuloSeg ? `, ${rotuloSeg}` : ''}`}
+                unidade={cfg.unidade}
+                formatarX={fmtMes}
+                formatar={fmt}
+                marcacoes={d.criterios.serie}
+                pontos={seg.serie.map((p) => ({
+                  x: p.mes,
+                  valores: { cliente: p.cliente, time: p.time },
+                }))}
+                series={[
+                  { chave: 'cliente', rotulo: 'Visão do cliente', cor: 1, traco: 'solido' },
+                  { chave: 'time', rotulo: 'Visão do time', cor: 2, traco: 'tracejado' },
+                ]}
+                faixas={[{ de: 'cliente', ate: 'time', rotulo: 'Espera invisível' }]}
+              />
+            </ComTabelaPropria>
+          </div>
         )}
-        {compacto && (
-          <Link
-            to={`/espera-invisivel#ei-${sufixo}`}
+        {temSerie && (
+          <button
+            type="button"
+            ref={botaoRef}
+            aria-expanded={aberta}
+            aria-controls={idEvolucao}
+            aria-label={`${aberta ? 'Esconder' : 'Ver'} evolução mensal, ${cfg.rotulo}`}
+            onClick={() => setAberta((v) => !v)}
             className="alvo w-fit text-sm text-acento underline"
           >
-            Ver evolução
-          </Link>
+            {aberta ? 'Esconder evolução mensal' : 'Ver evolução mensal'}
+          </button>
         )}
         {nivel === 'SUST' && (
           <p className="text-sm text-texto-2" data-testid="ei-fonte-sust">
@@ -201,11 +215,11 @@ export function CartaoEI({
   return (
     <CartaoMetrica
       codigo={`EI-${nivel}`}
-      titulo={`${m.nome}${rotuloSeg && compacto ? ` · ${rotuloSeg}` : ''}`}
+      titulo={`${m.nome}${rotuloSeg ? ` · ${rotuloSeg}` : ''}`}
       pergunta={m.pergunta}
       estado={q.estado}
       atualizando={q.atualizando}
-      variante={compacto ? 'compacto' : 'padrao'}
+      variante="compacto"
       {...(d
         ? {
             base: d.base,
@@ -226,7 +240,7 @@ export function CartaoEI({
       onTentarDeNovo={q.recarregar}
       erro={q.erro}
       className={className ?? 'lg:col-span-12'}
-      alturaEsqueleto={compacto ? 300 : ALTURA_EI[nivel]}
+      alturaEsqueleto={300}
     >
       {d && seg && corpo && segmentado ? (
         <SeletorLocal
