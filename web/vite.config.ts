@@ -9,6 +9,8 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  // Dev com VITE_FONTE=api: /api na mesma origem, sem CORS (a API não envia Access-Control-Allow-Origin).
+  server: { proxy: { '/api': 'http://127.0.0.1:3000' } },
   build: {
     chunkSizeWarningLimit: 600,
     // F8 (ADR 0003): gráficos (Recharts + components/charts) em chunk próprio, carregado só pelas rotas com gráfico.

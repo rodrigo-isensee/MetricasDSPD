@@ -18,8 +18,30 @@ describe('App e composição', () => {
     expect(await fonte.dataReferencia()).toBe('2026-10-09')
   })
 
-  it('sem variáveis, usa os padrões', () => {
-    expect(criarFontePadrao()).toBeDefined()
+  it('sem variáveis, usa os padrões: fonte mock', () => {
+    expect(criarFontePadrao().tipo).toBe('mock')
+  })
+
+  it('VITE_FONTE=api escolhe a fonte HTTP, com a base padrão ou a configurada', async () => {
+    vi.stubEnv('VITE_FONTE', 'api')
+    const f = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => Promise.resolve(new Response('[]')))
+    const fonte = criarFontePadrao()
+    expect(fonte.tipo).toBe('api')
+    await fonte.criterios()
+    vi.stubEnv('VITE_API_BASE', 'http://x/v9')
+    await criarFontePadrao().criterios()
+    expect(f.mock.calls.map((c) => c[0])).toStrictEqual([
+      '/api/v1/criterios',
+      'http://x/v9/criterios',
+    ])
+    f.mockRestore()
+  })
+
+  it('VITE_FONTE inválida falha na partida, sem cair no mock', () => {
+    vi.stubEnv('VITE_FONTE', 'banco')
+    expect(() => criarFontePadrao()).toThrow('VITE_FONTE inválida')
   })
 
   it('monta o aplicativo completo com o roteador do navegador', async () => {
