@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import type { ResultadoO2Paginado } from '@metricas-dspd/contratos/validacao'
 import { TIPOS_CARD, type FiltrosFluxo, type TipoCard } from '@metricas-dspd/contratos'
 import { Dispersao, type FormaPonto } from '@/components/charts'
 import {
   AmostraInsuficiente,
   Botao,
   CartaoMetrica,
+  Icone,
   SeletorLocal,
   TabelaDados,
 } from '@/components/ui'
@@ -34,6 +36,9 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
   const tipoSel = TIPOS_CARD.find((t) => slug(t) === aba) as TipoCard
   const ref = d?.tipos.find((t) => t.tipo === tipoSel)?.referencia
   const itens = d?.itens ?? []
+  // A API (e o mock) paginam `itens`; `itensMeta.total` é o conjunto completo em andamento.
+  const total = (d as Partial<ResultadoO2Paginado> | undefined)?.itensMeta?.total ?? itens.length
+  const amostra = total > itens.length
   const doTipo = itens.filter((i) => i.tipo === tipoSel)
   const mais = [...itens].sort((a, b) => b.idadeDiasUteis - a.idadeDiasUteis)[0]
   const maisAcima = [...itens]
@@ -129,6 +134,18 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
                 </p>
               )}
             </SeletorLocal>
+            {amostra && (
+              <p
+                className="mt-2 flex items-center gap-2 text-sm text-texto-2"
+                data-testid="o2-amostra"
+              >
+                <Icone nome="alerta" />
+                <span>
+                  Dispersão e lista mostram os {fmtInteiro(itens.length)} itens mais velhos de{' '}
+                  {fmtInteiro(total)} em andamento.
+                </span>
+              </p>
+            )}
           </div>
           <div className="lg:col-span-5" data-testid="o2-lista">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
