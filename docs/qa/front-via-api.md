@@ -104,3 +104,19 @@ Parecer mantido: aprovado com ressalvas, sem bug crítico ou alto aberto. O ajus
 
 ## Reteste FA-006 (2026-10-13)
 `perf-api`: CLS de `/estrategico` = 0,021 em todas as execuções (limite 0,1); FA-006 corrigido (reserva da faixa "Pede atenção" 88 para 98 px). Bloco serial seguinte rodou. Uma execução reprovou F4 com 101,4 ms (limite 100; ruído de carga, n=19, p95 = máximo; as outras ficaram em 69 a 82 ms). `pronto` verde; grupo E2E `chromium` (filtros, estados, responsivo, painéis) 98 aprovados.
+
+## Revalidação após o merge da develop (2026-10-13, 43f0e4d + merge de origin/develop 91a878d)
+Merge sem conflitos (FiltroMulti, lockfile, workspace). Máquina compartilhada com outros agentes (load average 3 a 10), o que afetou os números de latência.
+
+| Verificação | Resultado |
+|---|---|
+| `perf-api` completo, 3 execuções | CLS de `/estrategico` = 0,021 nas 3 (limite 0,1); demais CLS dentro do limite (`/operacional` 0,009 a 0,069, `/tatico` 0,025 a 0,088, `/sustentacao` 0,002 a 0,003). F4 reprovou nas 3 (p95 142, 135 e 418 ms; limite 100) |
+| F4 isolado em `perf-api` (3 execuções) | 75,8 ms (aprovado), 175,9 e 247,1 ms (reprovados) |
+| F4 em modo mock (`--project=perf`, 3 execuções) | 152, 147 e 111 ms (reprovou nas 3) |
+| Paridade | 52/52 |
+| E2E `chromium-api` | 1ª execução 15/18 (FA5-01 de `/operacional`, `/tatico` e `/estrategico` reprovaram sob carga); reexecução 18/18 |
+| E2E `chromium` (a11y, filtros, estados, responsivo, shell, complementares) | 108/108 |
+| `pnpm run pronto` | 1ª execução: 1 teste de `packages/metricas` reprovou sob carga; isolado 506/506; reexecução completa verde (metricas 506, server 301 com 64 de banco pulados, web 782, mock 157, docs-contratos 102) |
+| `docs:check` | ok (351 páginas, 51 métricas, 2 eventos) |
+
+FA-006: verificado (0,021 em 3 de 3 execuções após o merge). Ressalva: F4 passou a falhar também em modo mock, o que aponta para carga do ambiente (e não para `api`); como o merge trouxe a mudança em `FiltroMulti` (acúmulo de cliques), a medição precisa ser repetida com a máquina ociosa antes de descartar essa causa. Nenhum bug novo aberto; F4 fica como pendência de reexecução em ambiente quieto.

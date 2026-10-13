@@ -24,4 +24,4 @@ Falha "F2 CLS: expected < 0.1, received 0.1128" em `e2e/perf/perf.spec.ts:88`, n
 - Correção na origem: `reserva.desktop` de 88 para 98 em `web/src/features/estrategico/EstrategicoPage.tsx` (dimensão final, sem esconder conteúdo). Teste unitário da reserva em `estrategico.test.tsx`.
 - Resultado: CLS de `/estrategico` em `perf-api` = 0,021 em 5 de 5 execuções (antes 0,113). Mock não alterado (a mudança só vale enquanto carrega).
 - Observação: o 0,113 não reapareceu após a correção, mas a causa exata do valor alto (frente aos 10 px) não foi isolada com instrumentação própria; se voltar, reabrir.
-- Status: corrigido.
+- Status: corrigido e verificado pelo QA (2026-10-13, 0,021 em 3 de 3 execuções do `perf-api` após o merge da develop).
