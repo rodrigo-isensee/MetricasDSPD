@@ -1,20 +1,20 @@
 # Contratos por métrica: índice
 
-Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-12.
+Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-13.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar`. 51 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
 
 | Métrica | Nome | Domínio | Rota | Granularidade | Mínimo | Status das regras |
 |---|---|---|---|---|---|---|
-| [`O1`](O1.md) | Trabalho em progresso e limite | businessmap | `/api/v1/metricas/O1` | story | 0 | pendente-usuario |
-| [`O2`](O2.md) | Idade do trabalho em progresso | businessmap | `/api/v1/metricas/O2` | story | 20 | pendente-usuario |
-| [`BLOQUEADOS`](BLOQUEADOS.md) | Bloqueados agora | businessmap | `/api/v1/metricas/BLOQUEADOS` | story | 0 | pendente-usuario |
+| [`O1`](O1.md) | Trabalho em progresso e limite | businessmap | `/api/v1/metricas/O1` | story | 0 | ok |
+| [`O2`](O2.md) | Idade do trabalho em progresso | businessmap | `/api/v1/metricas/O2` | story | 20 | ok |
+| [`BLOQUEADOS`](BLOQUEADOS.md) | Bloqueados agora | businessmap | `/api/v1/metricas/BLOQUEADOS` | story | 0 | ok |
 | [`O3`](O3.md) | Tempo de ciclo | businessmap | `/api/v1/metricas/O3` | story | 20 | ok |
 | [`O4`](O4.md) | Vazão semanal | businessmap | `/api/v1/metricas/O4` | story | 20 | ok |
 | [`O7`](O7.md) | Entrada × saída por tipo | businessmap | `/api/v1/metricas/O7` | story | 0 | ok |
 | [`O9`](O9.md) | Os três relógios do pedido | businessmap | `/api/v1/metricas/O9` | story | 20 | ok |
-| [`O10`](O10.md) | Envelhecimento do backlog | businessmap | `/api/v1/metricas/O10` | story | 20 | pendente-usuario |
+| [`O10`](O10.md) | Envelhecimento do backlog | businessmap | `/api/v1/metricas/O10` | story | 20 | ok |
 | [`O12`](O12.md) | Acordos e vencidos | businessmap | `/api/v1/metricas/O12` | story | 20 | ok |
 | [`O15`](O15.md) | Onde os bugs são encontrados | businessmap | `/api/v1/metricas/O15` | story | 20 | ok |
 | [`O18`](O18.md) | Entregas com e sem bug | businessmap | `/api/v1/metricas/O18` | story | 20 | ok |
@@ -29,10 +29,10 @@ Gerado por `pnpm run docs:gerar`. 51 métricas, uma página cada. Regras gerais,
 | [`T1`](T1.md) | Lead time ponta a ponta | businessmap | `/api/v1/metricas/T1` | story | 20 | ok |
 | [`T2`](T2.md) | Aderência ao SLE | businessmap | `/api/v1/metricas/T2` | story | 20 | ok |
 | [`T3`](T3.md) | Alocação da capacidade | businessmap | `/api/v1/metricas/T3` | story | 20 | ok |
-| [`T4`](T4.md) | Demanda × capacidade | businessmap | `/api/v1/metricas/T4` | story | 20 | pendente-usuario |
+| [`T4`](T4.md) | Demanda × capacidade | businessmap | `/api/v1/metricas/T4` | story | 20 | ok |
 | [`T5`](T5.md) | Demanda de falha | businessmap | `/api/v1/metricas/T5` | story | 20 | ok |
-| [`T7`](T7.md) | Fluxo de frentes | businessmap | `/api/v1/metricas/T7` | frente | 20 | pendente-usuario |
-| [`T9`](T9.md) | Avanço real e escopo | businessmap | `/api/v1/metricas/T9` | frente | 0 | pendente-usuario |
+| [`T7`](T7.md) | Fluxo de frentes | businessmap | `/api/v1/metricas/T7` | frente | 20 | ok |
+| [`T9`](T9.md) | Avanço real e escopo | businessmap | `/api/v1/metricas/T9` | frente | 0 | ok |
 | [`T6`](T6.md) | Previsão probabilística | businessmap | `/api/v1/metricas/T6` | story | 20 | ok |
 | [`T8`](T8.md) | Sprint | businessmap | `/api/v1/metricas/T8` | story | 20 | ok |
 | [`E1`](E1.md) | Lead time de projetos | businessmap | `/api/v1/metricas/E1` | projeto | 20 | ok |
