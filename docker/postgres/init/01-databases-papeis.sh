@@ -6,7 +6,7 @@ set -euo pipefail
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres \
   -v pwd_migrador="$DSPD_PWD_MIGRADOR" -v pwd_coletor="$DSPD_PWD_COLETOR" -v pwd_api="$DSPD_PWD_API" \
   -v pwd_ref="$DSPD_PWD_REF" -v pwd_webhook="$DSPD_PWD_WEBHOOK" -v pwd_automacao="$DSPD_PWD_AUTOMACAO" \
-  -v pwd_pesquisa="${DSPD_PWD_PESQUISA:-pesquisa_dev}" <<'SQL'
+  -v pwd_pesquisa="$DSPD_PWD_PESQUISA" <<'SQL'
 CREATE ROLE dspd_migrador LOGIN PASSWORD :'pwd_migrador';
 CREATE ROLE dspd_coletor LOGIN PASSWORD :'pwd_coletor';
 CREATE ROLE dspd_api LOGIN PASSWORD :'pwd_api';

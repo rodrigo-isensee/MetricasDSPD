@@ -110,6 +110,7 @@ jobs:
       DSPD_PWD_REF: ref_dev
       DSPD_PWD_WEBHOOK: webhook_dev
       DSPD_PWD_AUTOMACAO: automacao_dev
+      DSPD_PWD_PESQUISA: pesquisa_dev
       PG_TESTE_URL: postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas_test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -211,6 +212,7 @@ jobs:
           DSPD_PWD_REF: ref_dev
           DSPD_PWD_WEBHOOK: webhook_dev
           DSPD_PWD_AUTOMACAO: automacao_dev
+          DSPD_PWD_PESQUISA: pesquisa_dev
         run: bash docker/postgres/init/01-databases-papeis.sh
       - name: Migração a partir do estado da main
         env:
@@ -219,7 +221,7 @@ jobs:
       - name: Ambiente de homologação (segredos gerados nesta execução)
         run: |
           {
-            for chave in HOMOLOG_PG_SUPERUSER_PWD DSPD_PWD_MIGRADOR DSPD_PWD_COLETOR DSPD_PWD_API DSPD_PWD_REF DSPD_PWD_WEBHOOK DSPD_PWD_AUTOMACAO; do
+            for chave in HOMOLOG_PG_SUPERUSER_PWD DSPD_PWD_MIGRADOR DSPD_PWD_COLETOR DSPD_PWD_API DSPD_PWD_REF DSPD_PWD_WEBHOOK DSPD_PWD_AUTOMACAO DSPD_PWD_PESQUISA; do
               echo "$chave=$(openssl rand -hex 16)"
             done
           } > .env.homolog
