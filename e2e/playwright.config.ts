@@ -4,6 +4,11 @@ import { defineConfig, devices } from '@playwright/test';
 const PORTA = 4173;
 const PORTA_ALT = 4174; // build com outra semente (critério C80)
 const CI = !!process.env.CI;
+// FA-5: com E2E_API_URL (API real local, `scripts/com-api-mock.sh`) a suíte roda só os projetos `*-api`, contra a SPA
+// buildada com VITE_FONTE=api, servida pelo `vite preview` com /api encaminhado à API (mesma origem, sem CORS).
+// Sem essa variável nada muda: os demais projetos são o grupo @mock (SPA com o mock embutido).
+const API_URL = process.env.E2E_API_URL;
+const PORTA_API = 4175;
 
 export default defineConfig({
   testDir: './tests',
@@ -18,7 +23,17 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  webServer: [
+  webServer: API_URL ? [
+    {
+      // outDir próprio: não sobrescreve o build do mock
+      command:
+        `cd ../web && VITE_FONTE=api pnpm exec vite build --outDir dist-api --emptyOutDir && ` +
+        `VITE_API_PROXY=${API_URL} pnpm exec vite preview --outDir dist-api --port ${PORTA_API} --strictPort`,
+      url: `http://localhost:${PORTA_API}`,
+      reuseExistingServer: false,
+      timeout: 180_000,
+    },
+  ] : [
     {
       command: `pnpm --dir ../web run build && pnpm --dir ../web run preview --port ${PORTA} --strictPort`,
       url: `http://localhost:${PORTA}`,
@@ -37,7 +52,23 @@ export default defineConfig({
       timeout: 180_000,
     }]),
   ],
-  projects: [
+  projects: API_URL ? [
+    {
+      name: 'chromium-api',
+      testDir: './tests-api',
+      use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${PORTA_API}` },
+    },
+    {
+      // Desempenho pela API (ADR 0003: F1 a F5 no navegador, A1 por requisição). Rode com `pnpm run test:perf:api`.
+      name: 'perf-api',
+      testDir: './perf',
+      testMatch: /(perf|perf-api)\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 768 }, baseURL: `http://localhost:${PORTA_API}`, trace: 'off', screenshot: 'off' },
+      fullyParallel: false,
+      workers: 1,
+      timeout: 120_000,
+    },
+  ] : [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
