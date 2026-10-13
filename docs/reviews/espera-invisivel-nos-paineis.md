@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: espera-invisivel-nos-paineis
 branch: feature/espera-invisivel-nos-paineis
-commit: 7d1bc71e623cccc93e78cc55ad24ab58e429f387
+commit: 3ad62a762df6ffc8538f413b9410381c3dc48f45
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-13
@@ -58,6 +58,10 @@ Não rodei a suíte E2E: o autor já rodou `pnpm run pronto` (verde, cobertura d
    - `aria-controls` aponta para um id ausente só enquanto `aria-expanded="false"`, caso que o axe aceita.
    - O alvo é de 44px em 375, e o E2E com axe está verde segundo o autor.
 9. **Commits.** As mensagens são claras e em português. O cc9d999 junta correção, E2E e documentação (ver R3). A PR vai para a `develop` por squash, então isso não afeta o histórico final.
+
+## Revisão dos commits posteriores (a80882a a 3ad62a7)
+
+Aprovado de novo. Os commits 9913c30, 9341ca0 e 130edde atendem R1 (`?.contains`, sem cast) e R2 (caso próprio para Esc fora do cartão, sem a tecla `a`). Também: `aria-controls` só com o gráfico aberto, hash do redirecionamento insensível a maiúsculas (com teste), testes de FL3 e Sustentação e E2E de gravação de `ei-fl2` pela UI. Só código de teste e ajustes pequenos; nada de regra nova. `lint`, `typecheck` e os testes do web estão verdes. R3 segue resolvido pelo squash.
 
 ## Recomendações (não bloqueiam)
 
