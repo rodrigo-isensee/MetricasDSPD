@@ -6,7 +6,7 @@ A pesquisa roda fora do app. O app recebe só contagens por trimestre, área, pe
 
 ## Antes da primeira carga (uma vez)
 
-1. O papel `dspd_pesquisa` existe no servidor. No volume novo o init do Compose o cria; num volume antigo, rode como administrador: `CREATE ROLE dspd_pesquisa LOGIN PASSWORD '...'` e `GRANT CONNECT ON DATABASE metricas TO dspd_pesquisa`, e depois `pnpm run db:migrate` (a migração 0013 e os GRANT). A senha vai só no `.env` (`DSPD_PWD_PESQUISA`).
+1. O papel `dspd_pesquisa` existe no servidor, com `CONNECT` em `metricas` **e em `metricas_test`** (o teste de banco usa o segundo). No volume novo o init do Compose faz tudo. Num volume antigo (anterior à migração 0013), o `db:migrate` falha logo no início com "Papéis ausentes" e aponta este passo: rode como administrador `DSPD_PWD_PESQUISA=... bash docker/postgres/reparar-papeis.sh` (no Compose de dev: `docker compose exec -e DSPD_PWD_PESQUISA=... -T postgres bash -s < docker/postgres/reparar-papeis.sh`). O script cria o papel se faltar e concede `CONNECT` nos dois databases; é idempotente. Depois rode `pnpm run db:migrate` (a migração 0013 e os GRANT). A senha vai só no `.env` (`DSPD_PWD_PESQUISA`); em homologação ela é obrigatória e sem valor padrão.
 2. A lista fechada de áreas (`ref_pesq_area`) e o questionário vigente (uma linha em `ref_versao_criterio` com `dominio = 'pesquisa'`, `afeta` = PV1, e as perguntas em `ref_pesq_pergunta`) são cadastrados pelo papel `dspd_ref`. Área é unidade organizacional, nunca nome de pessoa. Trocar o texto de uma pergunta ou a escala exige uma versão nova (mudança de critério T2.6, marcada nos gráficos).
 
 ## Carregar um trimestre

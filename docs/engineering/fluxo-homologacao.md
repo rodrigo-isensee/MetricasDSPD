@@ -159,6 +159,8 @@ Perguntas que só o usuário responde:
 
 Uso local (sob demanda, nunca em rotina; respeite o teto de recursos): `cp .env.homolog.example .env.homolog`, preencha as senhas (12+ caracteres, nada de `*_dev`), `chmod 600 .env.homolog`, `pnpm run homolog:subir` (build, migração, seed mock e smoke), abrir `http://127.0.0.1:18080`, `pnpm run homolog:derrubar` ao terminar (o volume é preservado; `-- --volume` apaga os dados). Só mock até as integrações (H-7).
 
+Volume local de homologação criado antes da migração 0013 (papel `dspd_pesquisa`): o `db:migrate` falha com "Papéis ausentes". Defina `DSPD_PWD_PESQUISA` (forte, obrigatória) no `.env.homolog` e rode `docker/postgres/reparar-papeis.sh` como administrador, ou recrie o volume (`homolog:derrubar -- --volume`). Passo descrito em [`carga-da-pesquisa-de-percepcao.md`](carga-da-pesquisa-de-percepcao.md).
+
 Observações do desenho:
 - O `schedule` do GitHub só dispara com o workflow na branch padrão (`main`): a rodada noturna começa a valer depois da primeira release com este arquivo. Até lá, `workflow_dispatch` em `homolog` faz o papel da noturna (ver abaixo).
 - O check `homolog-aprovada` não é reexecutado sozinho quando a noturna termina: use "Re-run jobs" no PR depois dela.
