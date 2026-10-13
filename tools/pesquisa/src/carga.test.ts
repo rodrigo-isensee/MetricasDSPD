@@ -16,7 +16,7 @@ const SHA = 'a'.repeat(64)
 
 type Chamada = { texto: string; valores: unknown[] }
 interface Cenario {
-  vigente?: { carga_id: string; arquivo_sha256: string }
+  vigente?: { carga_id: string; arquivo_sha256: string; o_que_mudou?: string | null }
   versao?: string | null
   falharEm?: RegExp
 }
@@ -123,6 +123,22 @@ describe('carregar', () => {
       expect(r).toEqual({ status: 'ja-carregada', cargaId: '9', sha256: sha })
     }
     expect(escritas(d.textos())).toEqual([])
+  })
+
+  it('mesmo arquivo com "O que mudou" diferente do vigente não é descartado em silêncio: exige --substituir', async () => {
+    const { createHash } = await import('node:crypto')
+    const sha = createHash('sha256').update(CSV).digest('hex')
+    const vigente = { carga_id: '9', arquivo_sha256: sha, o_que_mudou: 'Texto antigo.' }
+    const sem = await carregar(dublePool({ vigente }).pool, op({ oQueMudou: 'Texto novo.' }))
+    expect(sem.status).toBe('ja-existe')
+    const com = await carregar(
+      dublePool({ vigente }).pool,
+      op({ oQueMudou: 'Texto novo.', substituir: T }),
+    )
+    expect(com).toMatchObject({ status: 'carregada', substitui: '9' })
+    // O mesmo texto vigente, ou nenhum texto informado, continua idempotente.
+    for (const extra of [{ oQueMudou: 'Texto antigo.' }, {}])
+      expect((await carregar(dublePool({ vigente }).pool, op(extra))).status).toBe('ja-carregada')
   })
 
   it('trimestre já carregado com arquivo diferente exige --substituir e faz a pergunta', async () => {

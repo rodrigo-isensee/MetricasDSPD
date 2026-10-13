@@ -27,7 +27,8 @@ A pesquisa roda fora do app. O app recebe só contagens por trimestre, área, pe
 
 ## Reenvio e repetição
 
-- Mesmo arquivo já vigente no trimestre: nada é gravado e o comando avisa (é seguro repetir).
+- Mesmo arquivo já vigente no trimestre, com o mesmo texto "O que mudou" (ou sem `--o-que-mudou`): nada é gravado e o comando avisa (é seguro repetir). Mesmo arquivo com um texto "O que mudou" **diferente** do vigente conta como reenvio: exige `--substituir`, e o texto novo nunca é descartado em silêncio.
+- O painel mostra sempre só a carga vigente de cada trimestre; a substituída fica na base e não é publicada, nem por `dataReferencia` (anonimato, [`security/pesquisa-de-percepcao.md`](../security/pesquisa-de-percepcao.md)).
 - Arquivo diferente para um trimestre já carregado: o comando para com "Substituir a pesquisa de 3T/2026? A versão anterior fica guardada." Repita com `--substituir 2026-T3 --confirmar`. A carga anterior continua na base (nunca há `UPDATE` nem `DELETE`); vale a de maior número.
 - O questionário usado é o vigente no último dia do trimestre. As áreas aceitas são as vigentes nessa mesma data.
 

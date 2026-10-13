@@ -30,10 +30,10 @@ export const MAX_LINHAS = 2000
 const ESPERADAS: readonly string[] = COLUNAS_CSV_PESQUISA
 const NUMERICAS = new Set(['f1', 'f2', 'f3', 'f4', 'f5', 'convidados'])
 
-/** Nome de coluna só entra na mensagem se for inofensivo (um cabeçalho com e-mail ou texto livre não vaza para o log). */
 /** Respondentes de uma linha (soma das faixas); numa área é igual em todas as perguntas, garantido pela validação. */
 export const respondentesDe = (l: LinhaPesquisa): number => l.f1 + l.f2 + l.f3 + l.f4 + l.f5
 
+/** Nome de coluna só entra na mensagem se for inofensivo (um cabeçalho com e-mail ou texto livre não vaza para o log). */
 const nomeSeguro = (n: string): string => (/^[a-z0-9_]{1,30}$/i.test(n) ? n : '(nome inválido)')
 
 function conferirCabecalho(colunas: string[]): ErroCarga[] {

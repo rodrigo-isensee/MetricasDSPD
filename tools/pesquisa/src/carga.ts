@@ -111,12 +111,15 @@ async function dentroDaTransacao(
   // Duas cargas do mesmo trimestre ao mesmo tempo esperam uma pela outra.
   await db.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`pesq_carga:${op.trimestre}`])
   const vigente = (
-    await db.query<{ carga_id: string; arquivo_sha256: string }>(
-      `SELECT carga_id, arquivo_sha256 FROM ${s}.pesq_carga WHERE trimestre = $1 ORDER BY carga_id DESC LIMIT 1`,
+    await db.query<{ carga_id: string; arquivo_sha256: string; o_que_mudou: string | null }>(
+      `SELECT carga_id, arquivo_sha256, o_que_mudou FROM ${s}.pesq_carga WHERE trimestre = $1 ORDER BY carga_id DESC LIMIT 1`,
       [op.trimestre],
     )
   ).rows[0]
-  if (vigente?.arquivo_sha256 === sha256)
+  // Mesmo arquivo só é "já carregado" se o texto "O que mudou" informado também for o vigente. Texto informado e diferente
+  // (m-6) é um reenvio: exige --substituir, nunca é descartado em silêncio. Sem --o-que-mudou, o texto vigente não é comparado.
+  const textoMudou = oQueMudou !== null && vigente?.o_que_mudou !== oQueMudou
+  if (vigente?.arquivo_sha256 === sha256 && !textoMudou)
     return { status: 'ja-carregada', cargaId: vigente.carga_id, sha256 }
   if (vigente !== undefined && op.substituir === undefined)
     return { status: 'ja-existe', trimestre: op.trimestre }
