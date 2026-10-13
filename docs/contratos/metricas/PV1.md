@@ -1,6 +1,6 @@
 # Contrato da métrica PV1
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica PV1. Público: time (back-end, front-end, QA). Revisão: 2026-10-12.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica PV1. Público: time (back-end, front-end, QA). Revisão: 2026-10-13.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -474,35 +474,31 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
     "versaoId": "q-v2",
     "vigenteDesde": "2026-04-01",
     "perguntas": [
+      {"codigo":"resolve","ordem":1,"texto":"A sustentação resolve o que a minha área precisa."},
       {
-        "codigo": "informado",
-        "ordem": 1,
-        "texto": "Recebo avisos claros e no tempo certo sobre o andamento dos meus pedidos."
-      },
-      {
-        "codigo": "prioridades",
+        "codigo": "prazo",
         "ordem": 2,
-        "texto": "As entregas refletem as prioridades da minha área."
+        "texto": "O prazo de atendimento é adequado à criticidade para a minha área."
       }
     ]
   },
-  "participacao": {"respondentes":24,"convidados":36,"taxa":{"status":"ok","k":24,"n":36,"pct":66.66666666666666}},
+  "participacao": {"respondentes":24,"convidados":37,"taxa":{"status":"ok","k":24,"n":37,"pct":64.86486486486487}},
   "consolidado": {
     "status": "publicado",
     "n": 24,
     "perguntas": [
       {
-        "codigo": "informado",
+        "codigo": "resolve",
         "faixas": [
-          {"faixa":1,"contagem":{"status":"ok","k":1,"n":24,"pct":4.166666666666666}},
-          {"faixa":2,"contagem":{"status":"ok","k":1,"n":24,"pct":4.166666666666666}}
+          {"faixa":1,"contagem":{"status":"ok","k":0,"n":24,"pct":0}},
+          {"faixa":2,"contagem":{"status":"ok","k":4,"n":24,"pct":16.666666666666664}}
         ]
       },
       {
-        "codigo": "prioridades",
+        "codigo": "prazo",
         "faixas": [
-          {"faixa":1,"contagem":{"status":"ok","k":0,"n":24,"pct":0}},
-          {"faixa":2,"contagem":{"status":"ok","k":3,"n":24,"pct":12.5}}
+          {"faixa":1,"contagem":{"status":"ok","k":1,"n":24,"pct":4.166666666666666}},
+          {"faixa":2,"contagem":{"status":"ok","k":1,"n":24,"pct":4.166666666666666}}
         ]
       }
     ]
@@ -511,48 +507,48 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
     "status": "publicado",
     "areas": [
       {
-        "rotulo": "Comercial",
-        "outras": false,
-        "bloco": {
-          "status": "publicado",
-          "n": 5,
-          "perguntas": [
-            {
-              "codigo": "informado",
-              "faixas": [
-                {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":5,"minimo":20}},
-                {"faixa":2,"contagem":{"status":"insuficiente","k":1,"n":5,"minimo":20}}
-              ]
-            },
-            {
-              "codigo": "prioridades",
-              "faixas": [
-                {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":5,"minimo":20}},
-                {"faixa":2,"contagem":{"status":"insuficiente","k":0,"n":5,"minimo":20}}
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "rotulo": "Jurídico",
+        "rotulo": "Atendimento",
         "outras": false,
         "bloco": {
           "status": "publicado",
           "n": 4,
           "perguntas": [
             {
-              "codigo": "informado",
+              "codigo": "resolve",
               "faixas": [
                 {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":4,"minimo":20}},
-                {"faixa":2,"contagem":{"status":"insuficiente","k":0,"n":4,"minimo":20}}
+                {"faixa":2,"contagem":{"status":"insuficiente","k":2,"n":4,"minimo":20}}
               ]
             },
             {
-              "codigo": "prioridades",
+              "codigo": "prazo",
               "faixas": [
-                {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":4,"minimo":20}},
+                {"faixa":1,"contagem":{"status":"insuficiente","k":1,"n":4,"minimo":20}},
                 {"faixa":2,"contagem":{"status":"insuficiente","k":1,"n":4,"minimo":20}}
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "rotulo": "Comercial",
+        "outras": false,
+        "bloco": {
+          "status": "publicado",
+          "n": 3,
+          "perguntas": [
+            {
+              "codigo": "resolve",
+              "faixas": [
+                {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":3,"minimo":20}},
+                {"faixa":2,"contagem":{"status":"insuficiente","k":1,"n":3,"minimo":20}}
+              ]
+            },
+            {
+              "codigo": "prazo",
+              "faixas": [
+                {"faixa":1,"contagem":{"status":"insuficiente","k":0,"n":3,"minimo":20}},
+                {"faixa":2,"contagem":{"status":"insuficiente","k":0,"n":3,"minimo":20}}
               ]
             }
           ]
@@ -573,8 +569,8 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
         "status": "publicado",
         "n": 14,
         "concordam": [
-          {"codigo":"informado","contagem":{"status":"insuficiente","k":8,"n":14,"minimo":20}},
-          {"codigo":"prioridades","contagem":{"status":"insuficiente","k":8,"n":14,"minimo":20}}
+          {"codigo":"resolve","contagem":{"status":"insuficiente","k":9,"n":14,"minimo":20}},
+          {"codigo":"prazo","contagem":{"status":"insuficiente","k":11,"n":14,"minimo":20}}
         ]
       }
     }
