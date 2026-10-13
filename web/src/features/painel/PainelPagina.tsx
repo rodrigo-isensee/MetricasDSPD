@@ -38,14 +38,14 @@ function Casca({
   uso,
   base,
   fonte,
-  fontes,
+  dominio,
   estrategico,
   children,
 }: {
   /** Nível do botão "Exportar" (o mesmo id do painel). */
   painelDoCorpo: NivelExportacao
-  /** Fontes que o painel usa: o selo de cada uma aparece no cabeçalho, sempre separado. */
-  fontes: readonly Dominio[]
+  /** Fonte que o painel usa: o selo dela aparece no cabeçalho (BusinessMap e Acelerato nunca se misturam). */
+  dominio: Dominio
   uso: UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
   base: Base
   fonte: string
@@ -63,9 +63,7 @@ function Casca({
   const preferenciasProntas = usePreferencias().pronto
   const aguardando =
     useModoMock() !== 'carregando' &&
-    ((fontes.includes('businessmap') && pendenteBm) ||
-      (fontes.includes('acelerato') && pendenteAc) ||
-      !preferenciasProntas)
+    ((dominio === 'businessmap' ? pendenteBm : pendenteAc) || !preferenciasProntas)
   // mock=erro (6.6): erro de painel, não de cartão. O shell continua; o painel não carrega.
   if (erroSimulado)
     return <ErroPagina erro="Erro simulado (mock=erro)" onTentarDeNovo={() => undefined} />
@@ -85,9 +83,7 @@ function Casca({
             slug={base.slug}
             frescor={
               <div className="flex flex-col gap-1">
-                {fontes.map((d) => (
-                  <FrescorFonte key={d} dominio={d} comNome={fontes.length > 1} />
-                ))}
+                <FrescorFonte dominio={dominio} />
               </div>
             }
             {...(base.publico ? { publico: base.publico } : {})}
@@ -96,9 +92,7 @@ function Casca({
             <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
           ) : (
             <>
-              {fontes.map((d) => (
-                <FaixaCalibracaoFonte key={d} dominio={d} />
-              ))}
+              <FaixaCalibracaoFonte dominio={dominio} />
               {base.extra}
               <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
                 <BotaoMetricas />
@@ -108,11 +102,7 @@ function Casca({
               <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
               <FaixaOcultas />
               <PainelOcultoVazio />
-              {fontes.length === 1 ? (
-                <CorpoDaFonte dominio={fontes[0] as Dominio}>{children}</CorpoDaFonte>
-              ) : (
-                children
-              )}
+              <CorpoDaFonte dominio={dominio}>{children}</CorpoDaFonte>
             </>
           )}
         </div>
@@ -140,7 +130,7 @@ export function PainelFluxo({
       uso={uso}
       base={base}
       fonte="BusinessMap"
-      fontes={['businessmap']}
+      dominio="businessmap"
       estrategico={painel === 'estrategico'}
     >
       {children(uso.filtros, uso)}
@@ -157,13 +147,7 @@ export function PainelSustentacao({
 }) {
   const uso = useFiltros('sustentacao')
   return (
-    <Casca
-      painelDoCorpo="sustentacao"
-      uso={uso}
-      base={base}
-      fonte="Acelerato"
-      fontes={['acelerato']}
-    >
+    <Casca painelDoCorpo="sustentacao" uso={uso} base={base} fonte="Acelerato" dominio="acelerato">
       {children(uso.filtros, uso)}
     </Casca>
   )
