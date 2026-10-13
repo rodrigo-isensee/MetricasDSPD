@@ -80,7 +80,10 @@ export function Tendencia({ d }: { d: Ok }) {
           <tbody>
             {perguntas.map((q) => (
               <tr key={q.codigo} className="border-t border-borda">
-                <th scope="row" className="sticky left-0 z-10 min-w-40 border-r border-borda bg-superficie px-3 py-2 text-left font-medium">
+                <th
+                  scope="row"
+                  className="sticky left-0 z-10 min-w-40 border-r border-borda bg-superficie px-3 py-2 text-left font-medium"
+                >
                   {q.texto}
                 </th>
                 {pontos.map((p, i) => {
