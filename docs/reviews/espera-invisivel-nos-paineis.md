@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: espera-invisivel-nos-paineis
 branch: feature/espera-invisivel-nos-paineis
-commit: 3ad62a762df6ffc8538f413b9410381c3dc48f45
+commit: 5fc3a7d6291a43761832898d8cdc0e5ea386d4b1
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-13
@@ -61,7 +61,7 @@ Não rodei a suíte E2E: o autor já rodou `pnpm run pronto` (verde, cobertura d
 
 ## Revisão dos commits posteriores (a80882a a 3ad62a7)
 
-Aprovado de novo. Os commits 9913c30, 9341ca0 e 130edde atendem R1 (`?.contains`, sem cast) e R2 (caso próprio para Esc fora do cartão, sem a tecla `a`). Também: `aria-controls` só com o gráfico aberto, hash do redirecionamento insensível a maiúsculas (com teste), testes de FL3 e Sustentação e E2E de gravação de `ei-fl2` pela UI. Só código de teste e ajustes pequenos; nada de regra nova. `lint`, `typecheck` e os testes do web estão verdes. R3 segue resolvido pelo squash. O campo `commit` aponta para 3ad62a7, o último commit de código e QA revisado.
+Aprovado de novo. Os commits 9913c30, 9341ca0 e 130edde atendem R1 (`?.contains`, sem cast) e R2 (caso próprio para Esc fora do cartão, sem a tecla `a`). Também: `aria-controls` só com o gráfico aberto, hash do redirecionamento insensível a maiúsculas (com teste), testes de FL3 e Sustentação e E2E de gravação de `ei-fl2` pela UI. Só código de teste e ajustes pequenos; nada de regra nova. `lint`, `typecheck` e os testes do web estão verdes. R3 segue resolvido pelo squash. O E2E da CI acusou três specs antigos (`complementares`, `lacuna-de-valor`) ainda esperando 46 métricas no catálogo; o commit 5fc3a7d os atualiza para 49 (Núcleo 32, Complementar 17), coerente com as 4 linhas de espera invisível da especificação. Revisado: só valores esperados em teste. O E2E da CI ficou verde nesse commit.
 
 ## Recomendações (não bloqueiam)
 
