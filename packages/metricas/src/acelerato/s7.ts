@@ -1,10 +1,15 @@
 import type { ResultadoS7 } from '@metricas-dspd/contratos'
 import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
+import type { Chamado } from './modelo'
 import { diaDeIso, diaLocal } from '../core/calendario'
 import { taxa } from '../core/estatistica'
 import { mesesEntre } from '../core/series'
 import { baseAmostral, criterios, noIntervalo, periodoDe, selecionarAC } from './comum'
 import type { ContextoAC } from './indice'
+
+/** Texto presente ou, sem texto, o indicador derivado. */
+const justificado = (x: { c: Chamado }): boolean =>
+  x.c.justificativa_ajuste !== null || x.c.justificativa_informada === true
 
 /** S7: dois fenômenos medidos separados e nunca somados: ajuste manual de prioridade e reclassificação de tipo. */
 export function calcularS7(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS7 {
@@ -43,7 +48,7 @@ export function calcularS7(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS7 
       }),
       totais: { total: abertos.length, ocorrencias: ajustes.length },
       justificados: {
-        k: ajustes.filter((x) => x.c.justificativa_ajuste !== null).length,
+        k: ajustes.filter(justificado).length,
         n: ajustes.length,
       },
     },

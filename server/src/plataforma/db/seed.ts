@@ -124,13 +124,17 @@ export function mapearBM(base: BaseMock, coletaId: number, S: Esquemas = esquema
   ];
 }
 
+/** Só o indicador "campo não vazio"; o texto livre nunca é gravado (data-model §9). */
+const justificado = (texto: string | null): boolean => texto !== null && texto.trim() !== '';
+
 export function mapearAC(base: BaseMock, coletaId: number, S: Esquemas = esquemasDoAmbiente()): Tabela[] {
   const coletado = dt(new Date(base.config.hoje).getTime());
   const dimChamado = base.ac.chamados.map((c): Linha => ({
     chamado_id: c.chamado_id, natureza: c.natureza, equipe: c.equipe, organizacao: c.organizacao,
     tipo: c.tipo_fila, categoria_sistema: c.categoria_sistema, excluido: c.excluido, status: c.status,
     impacto: c.impacto, urgencia: c.urgencia, prioridade: c.prioridade,
-    prioridade_ajustada_manualmente: c.prioridade_ajustada_manualmente, aberto_em: dt(c.aberto_em),
+    prioridade_ajustada_manualmente: c.prioridade_ajustada_manualmente,
+    justificativa_informada: justificado(c.justificativa_ajuste), aberto_em: dt(c.aberto_em),
     primeiro_atendimento_em: dtn(c.primeiro_atendimento_em), restaurado_em: dtn(c.restaurado_em),
     data_finalizado: dtn(c.data_finalizado), status_sla_r: c.status_sla_r, status_sla_pa: c.status_sla_pa,
     motivo_escalacao: c.motivo_escalacao, motivo_pendencia_atual: c.motivo_pendencia_atual,

@@ -46,6 +46,8 @@ export interface Chamado {
   prioridade: Prioridade
   prioridade_ajustada_manualmente: boolean
   justificativa_ajuste: string | null
+  /** Indicador derivado "justificativa preenchida", para quando o texto não está disponível (S7; o banco não guarda o texto). */
+  justificativa_informada?: boolean
   aberto_em: number
   primeiro_atendimento_em: number | null
   restaurado_em: number | null

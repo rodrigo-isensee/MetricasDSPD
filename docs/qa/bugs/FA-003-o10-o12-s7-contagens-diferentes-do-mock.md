@@ -1,5 +1,5 @@
 # FA-003 - O10, O12 e S7 com contagens diferentes do mock (complementos/extensões)
-- Status: O10 e O12 corrigidos; S7 aberto (decisão de modelo de dados)
+- Status: O10, O12 e S7 corrigidos (S7: decisão do time, coluna booleana derivada `justificativa_informada`, migração 0014)
 - Severidade: média (número diferente na tela entre mock e API; causa ainda não isolada)
 - Responsável sugerido: node-backend (investigar `extensoesMock` do servidor x `gerarExtensoesMock(base)` e a leitura de colunas do banco)
 - Ambiente: feature/front-via-api, `DADOS_FONTE=mock`
@@ -18,3 +18,5 @@ Linhas `$.base.complemento.n: mock=133 api=169` etc. na saída do teste de parid
 
 ## Correção
 O10 só divergia pelo que o seed não gravava (FA-002). O12: `data_acordada` é Data (briefing; coluna `date`) valendo até o fim do expediente do dia (P2), mas o gerador do mock sorteia um instante; a API só tem o dia. O `MockFonteMetricas` agora normaliza `data_acordada` para o fim do expediente do dia (mesma regra de `mockComoNoBanco`, já provada em `metricas.paridade.test.ts`); o gerador e os hashes da base não mudaram. S7 (`ajusteDePrioridade.justificados.k`: mock 44, API 0): a métrica conta chamados com `justificativa_ajuste` preenchida, mas o texto livre nunca vai ao banco (data-model §9, `lgpd.ts`), então a API não tem como contar. Não é defeito de seed nem de consulta: falta decidir se a projeção ganha uma coluna booleana derivada ("justificativa informada", sem o texto), o que exige migração, ajuste do coletor e do data-model. Pendente de decisão do usuário; sem alteração de regra no código.
+
+S7 resolvido: decisão do time (reversível, preserva privacidade). A migração 0014 adiciona `justificativa_informada boolean` a `dim_chamado` e `dim_chamado_versao`; o seed a preenche por "campo não vazio" (o texto nunca é gravado), a API a lê e a biblioteca (`Chamado.justificativa_informada?`) a usa quando o texto não está presente. Resultado do mock inalterado.

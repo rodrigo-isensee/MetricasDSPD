@@ -162,6 +162,29 @@ describe('Acelerato', () => {
     expect(r.reclassificacaoDeTipo.totais.ocorrencias).toBe(2)
   })
 
+  it('S7 conta o indicador justificativa_informada quando o texto não está presente, sem mudar o resultado com o texto', () => {
+    const base = (f: (i: number) => Partial<Chamado>) =>
+      calcularS7(
+        criarContextoAC(
+          baseDe(22, (i) => ({ prioridade_ajustada_manualmente: i < 3, ...f(i) })),
+          HOJE,
+          CALENDARIO_PADRAO,
+        ),
+        F,
+      )
+    const comTexto = base((i) => ({ justificativa_ajuste: i < 2 ? 'x' : null }))
+    const comIndicador = base((i) => ({
+      justificativa_ajuste: null,
+      justificativa_informada: i < 2,
+    }))
+    expect(comIndicador.ajusteDePrioridade.justificados).toEqual({ k: 2, n: 3 })
+    expect(comIndicador).toEqual(comTexto)
+    expect(
+      base(() => ({ justificativa_ajuste: null, justificativa_informada: false }))
+        .ajusteDePrioridade.justificados.k,
+    ).toBe(0)
+  })
+
   it('espera invisível da sustentação usa os totalizadores: cliente = vida; time = em atendimento', () => {
     const ctx = criarContextoAC(baseDe(25), HOJE, CALENDARIO_PADRAO)
     const r = calcularEIAcelerato(ctx, F)

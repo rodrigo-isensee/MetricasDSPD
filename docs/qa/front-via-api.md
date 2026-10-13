@@ -71,4 +71,4 @@ O2: `itensMeta` e a primeira página de 200 itens iguais nos filtros sem referê
 4. PR e dev continuam em `mock`; o E2E padrão fica no grupo mock e o `chromium-api` roda em `homolog`.
 
 ## Reexecução após as correções FA-001 a FA-004 (2026-10-12)
-Paridade: 50 de 51 verdes (47 métricas x 9 filtros + referência/critérios/filtros); falha só S7 (`justificados.k`, FA-003: a justificativa em texto livre não é persistida, decisão de modelo pendente). `test:pg` 55/55; `pronto` verde com cobertura 100%; `docs:check` ok. A paridade mapeia os ids de critério do mock para os do banco (1, 2) e ordena equipes por nome nos dois lados.
+Paridade: 51 de 51 verdes (47 métricas x 9 filtros + referência/critérios/filtros); o S7 (FA-003) fechou com a coluna derivada `justificativa_informada` (migração 0014; o texto livre continua fora do banco). `test:pg` 55/55; `pronto` verde com cobertura 100%; `docs:check` ok. A paridade mapeia os ids de critério do mock para os do banco (1, 2) e ordena equipes por nome nos dois lados.

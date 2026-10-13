@@ -8,7 +8,7 @@ import { MIGRACOES } from './migracoes.js';
 const base = gerarBaseMock({ escala: 0.05 });
 const todas = (b = base): Tabela[] => [...mapearBM(b, 1, S_PADRAO), ...mapearAC(b, 1, S_PADRAO)];
 const ddl = Object.values(MIGRACOES).flatMap((m) => m.ddl(S_PADRAO).up);
-const criacao = (t: string): string => ddl.find((s) => s.startsWith(`CREATE TABLE ${t} (`)) ?? '';
+const criacao = (t: string): string => ddl.filter((s) => s.startsWith(`CREATE TABLE ${t} (`) || s.startsWith(`ALTER TABLE ${t} ADD COLUMN`)).join('\n');
 
 describe('seed (análise estática, sem banco)', () => {
   it('epoch ms vira timestamptz(3) UTC e data civil usa o fuso do calendário', () => {
@@ -41,7 +41,7 @@ describe('seed (análise estática, sem banco)', () => {
   });
   it('nenhuma coluna de pessoa é gravada (data-model §9)', () => {
     for (const { tabela, linhas } of todas())
-      for (const c of Object.keys(linhas[0] ?? {})) expect(violaLgpd(tabela, c) || /responsaveis|usuario|justificativa/.test(c), `${tabela}.${c}`).toBe(false);
+      for (const c of Object.keys(linhas[0] ?? {})) expect(violaLgpd(tabela, c) || /responsaveis|usuario|justificativa(?!_informada$)/.test(c), `${tabela}.${c}`).toBe(false);
   });
   it('ids ASCII visível com até 32 caracteres e instantes no formato timestamptz(3)', () => {
     for (const { linhas } of todas())

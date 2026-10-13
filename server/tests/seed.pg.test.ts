@@ -32,6 +32,17 @@ d('seed contra PostgreSQL 17', () => {
     expect(await cont()).toEqual(antes);
   });
 
+  it('justificativa_informada: indicador igual a "campo não vazio" do mock; o texto não está em nenhuma coluna (FA-003)', async () => {
+    const esperado = base.ac.chamados.filter((c) => c.justificativa_ajuste !== null && c.justificativa_ajuste.trim() !== '').length;
+    expect(esperado).toBeGreaterThan(0);
+    expect(await n(`${E.ac}.dim_chamado WHERE justificativa_informada`)).toBe(esperado);
+    const texto = base.ac.chamados.find((c) => c.justificativa_ajuste)!.justificativa_ajuste!;
+    const r = await db.query<{ n: string }>(`SELECT count(*) AS n FROM ${E.ac}.dim_chamado c WHERE c::text LIKE $1`, [`%${texto}%`]);
+    expect(Number(r.rows[0]!.n)).toBe(0);
+    const col = await db.query(`SELECT 1 FROM information_schema.columns WHERE table_schema = $1 AND table_name = 'dim_chamado_versao' AND column_name = 'justificativa_informada'`, [E.ac]);
+    expect(col.rowCount).toBe(1);
+  });
+
   it('grava a referência, os critérios por fonte e uma coleta_incremental por fonte (FA-001, FA-002)', async () => {
     const q = async (t: string, onde = 'true') => n(`${t} WHERE ${onde}`);
     expect(await n(`${E.ac}.ref_alvo_prioridade`)).toBe(base.ac.config.alvos.length);
