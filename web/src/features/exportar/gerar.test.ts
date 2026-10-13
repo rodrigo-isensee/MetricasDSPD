@@ -21,11 +21,9 @@ describe('gerarArquivo (cache novo: lê tudo pela fonte)', () => {
     expect(r.blob.type).toBe('application/pdf')
   })
 
-  it('não repete a mesma métrica com os mesmos filtros (EI-FL1 no Operacional e na Espera invisível)', async () => {
-    const itens = [
-      ...itensDoNivel('operacional', []).filter((i) => i.metrica === 'EI_FL1'),
-      ...itensDoNivel('espera-invisivel', []).filter((i) => i.metrica === 'EI_FL1'),
-    ]
+  it('não repete a mesma métrica com os mesmos filtros (EI-FL1 duas vezes na seleção)', async () => {
+    const ei = itensDoNivel('operacional', []).filter((i) => i.metrica === 'EI_FL1')
+    const itens = [...ei, ...ei]
     expect(itens).toHaveLength(2)
     const r = await gerarArquivo({ ...base(), base: 'personalizada', itens })
     const t = await r.blob.text()
@@ -34,17 +32,17 @@ describe('gerarArquivo (cache novo: lê tudo pela fonte)', () => {
     expect(r.nome).toContain('_personalizada_')
   })
 
-  it('a Espera invisível leva as quatro métricas, cada uma com os filtros do seu domínio', async () => {
+  it('a espera invisível sai pelo painel do nível: a da Sustentação só com Acelerato e filtros dela', async () => {
     const r = await gerarArquivo({
       ...base(),
-      pathname: '/espera-invisivel',
-      params: new URLSearchParams('sust_periodo=12m&periodo=4s'),
-      base: 'espera-invisivel',
-      itens: itensDoNivel('espera-invisivel', []),
+      pathname: '/sustentacao',
+      params: new URLSearchParams('periodo=12m'),
+      base: 'sustentacao',
+      itens: itensDoNivel('sustentacao', []).filter((i) => i.metrica === 'EI_SUST'),
     })
     const t = await r.blob.text()
     expect(t).toContain('(Fonte: Acelerato)')
+    expect(t).not.toContain('(Fonte: BusinessMap)')
     expect(t).toContain('12 meses')
-    expect(t).toContain('4 semanas')
   })
 })

@@ -226,7 +226,6 @@ describe('Exportação personalizada', () => {
     ...itensDoNivel('operacional', []),
     ...itensDoNivel('tatico', []),
     ...itensDoNivel('sustentacao', []),
-    ...itensDoNivel('espera-invisivel', []),
   ]
 
   it('começa vazia, lista nível a nível e separa BusinessMap de Acelerato na prévia', async () => {
@@ -235,7 +234,7 @@ describe('Exportação personalizada', () => {
     expect(
       within(dlg).getByRole('heading', { name: 'Exportação personalizada' }),
     ).toBeInTheDocument()
-    for (const nivel of ['Operacional', 'Tático', 'Sustentação', 'Espera invisível'])
+    for (const nivel of ['Operacional', 'Tático', 'Sustentação'])
       expect(within(dlg).getByRole('group', { name: nivel })).toBeInTheDocument()
     expect(within(dlg).getByRole('group', { name: 'Estratégico' })).toHaveTextContent(
       'Nenhuma métrica visível neste nível.',

@@ -1,5 +1,4 @@
 import {
-  fonteDaMetrica,
   cartoesDoPainel,
   type CartaoId,
   type Dominio,
@@ -8,7 +7,7 @@ import {
   type MetricaId,
   type OpcoesFiltro,
 } from '@metricas-dspd/contratos'
-import { CATALOGO, entradaDoCatalogo } from '@/content/catalogo-metricas'
+import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { lerFluxo, lerSustentacao } from '@/features/filtros/codec'
 import { PAINEIS, type PainelId } from '@/features/filtros/paineis'
 import type { Memoria } from '@/features/filtros/memoria'
@@ -27,7 +26,6 @@ export const NIVEIS: readonly { id: NivelExportacao; rotulo: string; rota: strin
   { id: 'tatico', rotulo: 'Tático', rota: '/tatico' },
   { id: 'estrategico', rotulo: 'Estratégico', rota: '/estrategico' },
   { id: 'sustentacao', rotulo: 'Sustentação', rota: '/sustentacao' },
-  { id: 'espera-invisivel', rotulo: 'Espera invisível', rota: '/espera-invisivel' },
 ]
 
 export interface ItemExportavel {
@@ -42,21 +40,11 @@ export interface ItemExportavel {
 
 /**
  * Métricas exportáveis de um nível: só as VISÍVEIS (preferências do pedido 007; métrica oculta não aparece).
- * A Espera invisível não tem preferências: todas as suas métricas estão sempre na tela.
  */
 export function itensDoNivel(
   nivel: NivelExportacao,
   ocultos: readonly CartaoId[],
 ): ItemExportavel[] {
-  if (nivel === 'espera-invisivel')
-    return CATALOGO.filter((c) => c.painel === 'espera-invisivel').map((c) => ({
-      chave: `${nivel}:${c.id}`,
-      nivel,
-      codigo: c.id.replace('_', '-'),
-      rotulo: c.nome,
-      metrica: c.id,
-      fonte: fonteExportavel(c.fonte),
-    }))
   // Complementares ficam fora da exportação nesta fase (dados fictícios; decisão pendente do usuário).
   return cartoesDoPainel(nivel)
     .filter((c) => c.grupo === 'nucleo' && !ocultos.includes(c.id))
@@ -77,7 +65,6 @@ export const ESCOPO_DO_NIVEL: Record<NivelExportacao, string> = {
   tatico: 'fluxo-tatico',
   estrategico: 'fluxo-estrategico',
   sustentacao: 'sustentacao',
-  'espera-invisivel': 'espera-invisivel',
 }
 
 /** Escopo do nome do arquivo: uma métrica só leva o id dela; senão o escopo do painel ou "personalizada". */
@@ -121,41 +108,15 @@ export function filtrosDoNivel(
       aqui ? params : new URLSearchParams(),
       opcoes,
       config.periodoPadrao,
-      '',
       restricao,
     ).filtros
   const origem = aqui ? params : new URLSearchParams(Object.entries(memoria))
-  const f = lerFluxo(origem, opcoes, config.periodoPadrao, '', restricao).filtros
+  const f = lerFluxo(origem, opcoes, config.periodoPadrao, restricao).filtros
   return {
     ...f,
     equipe: config.filtros.includes('equipe') ? f.equipe : [],
     tipo: config.filtros.includes('tipo') ? f.tipo : [],
   }
-}
-
-/**
- * Filtros de uma métrica: os do nível dela. A Espera invisível tem um segundo conjunto, os da Sustentação
- * (prefixo `sust_`), que nunca vêm do fluxo.
- */
-export function filtrosDoItem(
-  item: Pick<ItemExportavel, 'nivel' | 'metrica'>,
-  pathname: string,
-  params: URLSearchParams,
-  memoria: Memoria,
-  opcoes: OpcoesFiltro | undefined,
-): FiltrosFluxo | FiltrosSustentacao {
-  if (item.nivel === 'espera-invisivel' && fonteDaMetrica(item.metrica) === 'acelerato') {
-    const config = PAINEIS.sustentacao
-    const aqui = pathname === '/espera-invisivel'
-    return lerSustentacao(
-      aqui ? params : new URLSearchParams(),
-      opcoes,
-      config.periodoPadrao,
-      'sust_',
-      { periodos: config.periodos, personalizado: config.personalizado },
-    ).filtros
-  }
-  return filtrosDoNivel(item.nivel, pathname, params, memoria, opcoes)
 }
 
 /** Seleção inicial do "Exportar" do painel: tudo que está visível, até o limite. */
