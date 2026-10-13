@@ -87,10 +87,10 @@ test.describe('fonte api: painéis com dados reais da API', () => {
 
 test.describe('fonte api: falhas da API (page.route)', () => {
   const FALHAS = [
-    { nome: '400 REQUISICAO_INVALIDA', status: 400, corpo: { error: { code: 'REQUISICAO_INVALIDA', message: 'filtro inválido', requestId: 'r-400' } } },
-    { nome: '500 ERRO_INTERNO', status: 500, corpo: { error: { code: 'ERRO_INTERNO', message: 'falha interna', requestId: 'r-500' } } },
-    { nome: '503 REFERENCIA_AUSENTE', status: 503, corpo: { error: { code: 'REFERENCIA_AUSENTE', message: 'Referência não carregada', requestId: 'r-503' } } },
-    { nome: '500 com corpo que não é JSON', status: 500, corpo: null },
+    { nome: '400 REQUISICAO_INVALIDA', status: 400, codigo: 'REQUISICAO_INVALIDA', corpo: { error: { code: 'REQUISICAO_INVALIDA', message: 'filtro inválido', requestId: 'r-400' } } },
+    { nome: '500 ERRO_INTERNO', status: 500, codigo: 'ERRO_INTERNO', corpo: { error: { code: 'ERRO_INTERNO', message: 'falha interna', requestId: 'r-500' } } },
+    { nome: '503 REFERENCIA_AUSENTE', status: 503, codigo: 'REFERENCIA_AUSENTE', corpo: { error: { code: 'REFERENCIA_AUSENTE', message: 'Referência não carregada', requestId: 'r-503' } } },
+    { nome: '500 com corpo que não é JSON', status: 500, codigo: 'HTTP_500', corpo: null },
   ];
   for (const f of FALHAS) {
     test(`FA5-10 ${f.nome} em O4: erro só nesse cartão, sem repetir sozinho, com "Tentar de novo"`, async ({ painel, page }) => {
@@ -102,6 +102,7 @@ test.describe('fonte api: falhas da API (page.route)', () => {
       await painel.ir(ROTAS.operacionalSemanal);
       const o4 = painel.cartao('O4');
       await expect(o4.erro).toBeVisible();
+      await expect(o4.erro).toHaveAttribute('data-erro-codigo', f.codigo);
       await expect(o4.tentarDeNovo).toBeVisible();
       await expect(painel.cartao('O3').raiz).toHaveAttribute('data-estado', ESTADOS_COM_DADO);
       await expect(painel.erroDePainel).toHaveCount(0);
@@ -114,7 +115,7 @@ test.describe('fonte api: falhas da API (page.route)', () => {
   test('FA5-11 rede indisponível (conexão abortada) em O4 vira erro no cartão', async ({ painel, page }) => {
     await page.route(/\/api\/v1\/metricas\/O4\?/, (route) => route.abort('connectionrefused'));
     await painel.ir(ROTAS.operacionalSemanal);
-    await expect(painel.cartao('O4').erro).toBeVisible();
+    await expect(painel.cartao('O4').erro).toHaveAttribute('data-erro-codigo', 'REDE_INDISPONIVEL');
     await expect(painel.cartao('O3').raiz).toHaveAttribute('data-estado', ESTADOS_COM_DADO);
   });
 
@@ -137,7 +138,7 @@ test.describe('fonte api: falhas da API (page.route)', () => {
     await page.route(/\/api\/v1\/metricas\/O4\?/, (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ base: 'quebrado', segredo: 'NAO-MOSTRAR-ESTE-TEXTO' }) }));
     await painel.ir(ROTAS.operacionalSemanal);
-    await expect(painel.cartao('O4').erro).toBeVisible();
+    await expect(painel.cartao('O4').erro).toHaveAttribute('data-erro-codigo', 'RESPOSTA_INVALIDA');
     await expect(page.getByText('NAO-MOSTRAR-ESTE-TEXTO')).toHaveCount(0);
     expect(problemas.some((p) => p.includes('Resposta fora do contrato')), 'o front registra o erro de contrato no console, sem o corpo').toBe(true);
     expect(problemas.join('\n')).not.toContain('NAO-MOSTRAR-ESTE-TEXTO');
@@ -146,7 +147,7 @@ test.describe('fonte api: falhas da API (page.route)', () => {
   test('FA5-14 resposta 200 que não é JSON vira erro no cartão', async ({ painel, page }) => {
     await page.route(/\/api\/v1\/metricas\/O4\?/, (route) => route.fulfill({ status: 200, contentType: 'text/html', body: '<html>proxy</html>' }));
     await painel.ir(ROTAS.operacionalSemanal);
-    await expect(painel.cartao('O4').erro).toBeVisible();
+    await expect(painel.cartao('O4').erro).toHaveAttribute('data-erro-codigo', 'RESPOSTA_INVALIDA');
   });
 
   test('FA5-15 falha nas opções de filtro (500) não derruba o painel inteiro', async ({ painel, page }) => {

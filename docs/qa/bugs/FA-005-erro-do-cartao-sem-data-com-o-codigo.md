@@ -14,3 +14,8 @@ Todos os erros viram o mesmo cartão, sem atributo; os E2E só provam "erro no c
 
 ## Evidência
 `e2e/tests-api/api.spec.ts` FA5-10 a FA5-14 (passam, sem poder distinguir a causa).
+
+## Correção
+- Status: corrigido em parte (código). `EstadoErro` expõe `data-erro-codigo` (= `ErroApi.code`) no `estado-erro-*`, sem mudar texto nem visual. Teste de componente em `web/src/components/ui/componentes.test.tsx`; FA5-10, 11, 13 e 14 passaram a asserir o código (`REQUISICAO_INVALIDA`, `ERRO_INTERNO`, `REFERENCIA_AUSENTE`, `HTTP_500`, `REDE_INDISPONIVEL`, `RESPOSTA_INVALIDA`).
+- Fora do escopo: `data-request-id` (não pedido nesta rodada; permanece aberto).
+- Pendência: o spec E2E não pôde ser executado nesta estação (Chromium sem `libnspr4.so`, sem sudo); validar em ambiente com as dependências do Playwright.
