@@ -22,11 +22,13 @@ const AREAS = [
   ['suprimentos', 'Suprimentos'],
 ] as const
 
+// As 5 perguntas da decisão 22 (D-1), escala de 5 pontos. O texto de `informado` muda na v2 (marca T2.6).
 const PERGUNTAS_V1 = [
-  ['informado', 'Sou mantido informado sobre o andamento dos meus pedidos.'],
-  ['prioridades', 'As entregas refletem as prioridades da minha área.'],
-  ['previsibilidade', 'Os prazos combinados são cumpridos de forma previsível.'],
-  ['valor', 'O serviço entrega valor para a minha área.'],
+  ['resolve', 'A sustentação resolve o que a minha área precisa.'],
+  ['prazo', 'O prazo de atendimento é adequado à criticidade para a minha área.'],
+  ['informado', 'Sou informado sobre o andamento dos meus pedidos.'],
+  ['nao_volta', 'O problema não volta depois de resolvido.'],
+  ['confianca', 'Confio na sustentação para o que é crítico.'],
 ] as const
 
 interface Ciclo {

@@ -14,7 +14,7 @@ const respondentes = (
 
 describe('pesquisa mock (PV1): determinismo e isolamento', () => {
   it('hash fixo da pesquisa (muda só de propósito)', () => {
-    expect(hashJson(pesq)).toBe('40ca659c')
+    expect(hashJson(pesq)).toBe('b2eb2918')
   })
   it('é determinística por semente e muda com outra semente', () => {
     expect(hashJson(gerarPesquisaMock(CONFIG_PADRAO))).toBe(hashJson(pesq))
@@ -28,20 +28,28 @@ describe('pesquisa mock (PV1): determinismo e isolamento', () => {
 })
 
 describe('pesquisa mock (PV1): cenário e invariantes', () => {
+  it('as 5 perguntas da decisão 22; só o texto de `informado` muda na v2', () => {
+    const [v1, v2] = pesq.versoes
+    const cod = (v?: (typeof pesq.versoes)[number]) => v?.perguntas.map((p) => p.codigo)
+    expect(cod(v1)).toEqual(['resolve', 'prazo', 'informado', 'nao_volta', 'confianca'])
+    expect(cod(v2)).toEqual(cod(v1))
+    const mudou = v1?.perguntas.filter((p, i) => p.texto !== v2?.perguntas[i]?.texto)
+    expect(mudou?.map((p) => p.codigo)).toEqual(['informado'])
+  })
   it('totais fixados por trimestre vigente (9, 11, 4, 14, 19, 24) e reenvio guardado', () => {
-    const n = (t: string) => respondentes(vigente(t)?.linhas ?? [], 'valor')
+    const n = (t: string) => respondentes(vigente(t)?.linhas ?? [], 'resolve')
     expect(['2025-T2', '2025-T3', '2025-T4', '2026-T1', '2026-T2', '2026-T3'].map(n)).toEqual([
       9, 11, 4, 14, 19, 24,
     ])
     const t2 = pesq.cargas
       .filter((c) => c.trimestre === '2026-T2')
       .sort((a, b) => a.cargaId - b.cargaId)
-    expect(t2.map((c) => respondentes(c.linhas, 'valor'))).toEqual([17, 19])
+    expect(t2.map((c) => respondentes(c.linhas, 'resolve'))).toEqual([17, 19])
   })
   it('A10 exercitado: 2026-T1 tem áreas 4,3,3,3,1 e 2026-T3 tem 5,4,4,3,3,2,2,1', () => {
     const tam = (t: string) =>
       (vigente(t)?.linhas ?? [])
-        .filter((l) => l.pergunta === 'valor')
+        .filter((l) => l.pergunta === 'resolve')
         .map((l) => l.f1 + l.f2 + l.f3 + l.f4 + l.f5)
         .sort((a, b) => b - a)
     expect(tam('2026-T1')).toEqual([4, 3, 3, 3, 1])

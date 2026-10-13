@@ -220,7 +220,7 @@ describe('calcularPV1 sobre o mock', () => {
         r.consolidado.perguntas[0]?.faixas[0]?.contagem.status,
     ).toBe('ok')
     expect(r.questionario.versaoId).toBe('q-v2')
-    expect(r.questionario.perguntas.map((p) => p.ordem)).toEqual([1, 2, 3, 4])
+    expect(r.questionario.perguntas.map((p) => p.ordem)).toEqual([1, 2, 3, 4, 5])
     if (r.porArea.status !== 'publicado') throw new Error('esperava por área')
     expect(r.porArea.areas.at(-1)).toMatchObject({ outras: true, bloco: { n: 5 } })
     expect(r.tendencia.map((t) => t.trimestre)).toEqual([
