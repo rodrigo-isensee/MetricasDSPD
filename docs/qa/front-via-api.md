@@ -69,3 +69,6 @@ O2: `itensMeta` e a primeira página de 200 itens iguais nos filtros sem referê
 2. Pré-condições (bloqueiam a adoção): corrigir FA-001 e FA-002 (seed de referência e `coleta_incremental`) e FA-003; só então a paridade deve ficar 100% verde (0 falhas) e entrar na CI de `homolog`, ao lado do `chromium-api`.
 3. Smoke novo em `pnpm run homolog:smoke`: `GET /api/v1/metricas/O3` e `/S1` pela origem do web (200) e verificação de que o título não tem "Dados fictícios".
 4. PR e dev continuam em `mock`; o E2E padrão fica no grupo mock e o `chromium-api` roda em `homolog`.
+
+## Reexecução após as correções FA-001 a FA-004 (2026-10-12)
+Paridade: 50 de 51 verdes (47 métricas x 9 filtros + referência/critérios/filtros); falha só S7 (`justificados.k`, FA-003: a justificativa em texto livre não é persistida, decisão de modelo pendente). `test:pg` 55/55; `pronto` verde com cobertura 100%; `docs:check` ok. A paridade mapeia os ids de critério do mock para os do banco (1, 2) e ordena equipes por nome nos dois lados.

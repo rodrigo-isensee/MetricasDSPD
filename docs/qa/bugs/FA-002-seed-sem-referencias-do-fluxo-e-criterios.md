@@ -1,4 +1,5 @@
 # FA-002 - Seed não grava as referências do fluxo nem as versões de critério: opções de filtro vazias e métricas divergentes do mock
+- Status: corrigido (feature/front-via-api)
 - Severidade: média (alta se a homologação adotar `VITE_FONTE=api` sem corrigir)
 - Responsável sugerido: node-backend (seed derivado do mock, FA-4)
 - Ambiente: feature/front-via-api, API `DADOS_FONTE=mock`
@@ -17,3 +18,6 @@ Mesmo resultado do mock após o parse, para os mesmos filtros.
 
 ## Evidência
 Mensagens de diferença por caminho no teste `web/paridade/paridade.test.ts` (ver `docs/qa/front-via-api.md`).
+
+## Correção
+O seed grava `ref_quadro`, `ref_dominio` (sistema, objetivo, área interna), `ref_limite_wip_fluxo`, `ref_limite_frentes`, `ref_sle` (percentil 85; Intangível sem prazo não tem linha), `ref_alocacao_acordada`, `ref_ficha_resultado`, os critérios por fonte em `dspd_core` (BM com a versão 2026-03-02, AC com a de 2026-06-01; ids 1 e 2 do banco, a paridade os mapeia) e uma `coleta_incremental` por fonte (versão `seed-mock-coleta`). O fixture do servidor de paridade deixou de inserir a coleta. Dois ajustes de fixture/mock sem mexer na base: o servidor de paridade usa relógio fixo na data da base (`historico.fim` vinha de "hoje"), e `MockFonteMetricas.opcoesFiltro` ordena as equipes por nome (a API ordena por nome). Os helpers de teste `tests/pg/referencia.ts` passaram a só ler os ids dos critérios.

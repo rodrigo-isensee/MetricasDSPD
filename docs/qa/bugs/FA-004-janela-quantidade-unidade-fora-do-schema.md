@@ -1,4 +1,5 @@
 # FA-004 - Biblioteca devolve `janela.quantidade/unidade`, o contrato não declara e a API descarta; schemas de resultado não são `.strict()`
+- Status: corrigido (feature/front-via-api)
 - Severidade: baixa
 - Responsável sugerido: node-backend (pacote `contratos`: declarar os campos ou parar de emiti-los na biblioteca)
 - Ambiente: feature/front-via-api
@@ -14,3 +15,6 @@ O mock (biblioteca) emite `base.janela.unidade/quantidade` (e em `estatistica.ja
 
 ## Evidência
 `$.base.janela.unidade: só no mock | $.base.janela.quantidade: só no mock` na saída do teste de paridade.
+
+## Correção
+`unidade` (`semanas`|`meses`) e `quantidade` passam a ser declaradas, opcionais, em `base.janela`, `estatistica.janela`, `janelaFaixa` e `janelaAnterior` (`janelaCalculoSchema` em `packages/contratos/src/comum.ts`; acréscimo compatível: o `docs:check` classifica como "campo novo opcional" e os snapshots, o OpenAPI e as páginas foram regerados). `.strict()` nos schemas de resultado foi avaliado e não aplicado: os mesmos schemas validam a resposta no front, e campo novo da API passaria a derrubar um front mais antigo (acréscimo deixa de ser compatível); testado, 2 testes do front quebraram exatamente por isso. A detecção de campo que some ou aparece fica com o corpo bruto da paridade (`web/paridade`), documentado em `docs/api/metricas.md`.

@@ -1,4 +1,5 @@
 # FA-001 - Sustentação e Visão geral respondem 503 REFERENCIA_AUSENTE sobre a base semeada
+- Status: corrigido (feature/front-via-api)
 - Severidade: alta (no modo `api` o painel de Sustentação e a Visão geral ficam com cartões em erro)
 - Responsável sugerido: node-backend (seed/projeção de referência)
 - Ambiente: branch feature/front-via-api (bd6d721 + testes FA-4/FA-5), API com `DADOS_FONTE=mock`, Postgres 17 de teste, Chromium headless
@@ -15,3 +16,6 @@ S1, S2, S3, S5, EI_SUST e VISAO_GERAL devolvem o mesmo resultado do mock (a base
 
 ## Evidência
 Paridade: `docs/qa/front-via-api.md` (tabela). E2E: `[chromium-api] FA5-01 /sustentacao` e `FA5-02`: `503 /metricas/S1?periodo=6m ... REFERENCIA_AUSENTE`.
+
+## Correção
+O seed (`server/src/plataforma/db/seed.ts`, `mapearAC`) grava `ref_alvo_prioridade` a partir de `base.ac.config.alvos`. S1, S2, S3, S5, EI_SUST e VISAO_GERAL deixam de responder 503 e passam na paridade.
