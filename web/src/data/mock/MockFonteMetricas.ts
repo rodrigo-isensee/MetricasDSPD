@@ -108,7 +108,25 @@ export class MockFonteMetricas implements FonteMetricas {
       if (this.opcoes.semente !== undefined) parcial.semente = this.opcoes.semente
       if (this.opcoes.hoje !== undefined) parcial.hoje = this.opcoes.hoje
       await ceder()
-      const base = mock.gerarBaseMock(parcial)
+      const gerada = mock.gerarBaseMock(parcial)
+      // `data_acordada` é uma data (briefing: tipo Data; coluna `date` no banco) que vale até o fim do expediente do dia (P2):
+      // o gerador sorteia um instante, e a API só tem o dia. Normaliza aqui (o gerador e o hash da base ficam como estão)
+      // para o mock e a API calcularem o O12 sobre o mesmo valor (FA-003).
+      const cal = lib.CALENDARIO_PADRAO
+      const base = {
+        ...gerada,
+        bm: {
+          ...gerada.bm,
+          cards: gerada.bm.cards.map((c) =>
+            c.data_acordada === null
+              ? c
+              : {
+                  ...c,
+                  data_acordada: lib.fimDoExpediente(lib.diaLocal(c.data_acordada, cal), cal),
+                },
+          ),
+        },
+      }
       await ceder()
       const bm = lib.businessmap.criarContextoBM(base.bm, base.config.hoje, lib.CALENDARIO_PADRAO)
       await ceder()
@@ -166,7 +184,10 @@ export class MockFonteMetricas implements FonteMetricas {
       dominio === 'businessmap'
         ? {
             dominio: 'businessmap',
-            equipes: base.bm.config.equipes.map((e) => ({ id: lib.slug(e.nome), nome: e.nome })),
+            // Em ordem alfabética, como a API (as equipes do banco vêm ordenadas por nome).
+            equipes: base.bm.config.equipes
+              .map((e) => ({ id: lib.slug(e.nome), nome: e.nome }))
+              .sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR')),
             tipos: TIPOS_FILTRO.map((t) => ({ id: TIPO_ID[t], nome: t })),
             sistemas: base.bm.config.sistemas.map((s) => ({ id: lib.slug(s), nome: s })),
             historico,
