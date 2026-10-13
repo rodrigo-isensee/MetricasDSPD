@@ -30,6 +30,12 @@
     232,
     236,
     244
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    106,
+    168,
+    255
    ]
   },
   {
@@ -54,6 +60,12 @@
     232,
     236,
     244
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    106,
+    168,
+    255
    ]
   },
   {
@@ -78,6 +90,12 @@
     232,
     236,
     244
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    106,
+    168,
+    255
    ]
   },
   {
@@ -102,6 +120,12 @@
     232,
     236,
     244
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    106,
+    168,
+    255
    ]
   },
   {
@@ -126,7 +150,40 @@
     15,
     20,
     32
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    106,
+    168,
+    255
    ]
+  }
+ ],
+ "contrastes": [
+  {
+   "faixa": "1",
+   "borda": 7.02,
+   "preenchimento": 1.14
+  },
+  {
+   "faixa": "2",
+   "borda": 7.02,
+   "preenchimento": 1.45
+  },
+  {
+   "faixa": "3",
+   "borda": 7.02,
+   "preenchimento": 1.78
+  },
+  {
+   "faixa": "4",
+   "borda": 7.02,
+   "preenchimento": 2.22
+  },
+  {
+   "faixa": "5",
+   "borda": 7.02,
+   "preenchimento": 7.02
   }
  ]
 }

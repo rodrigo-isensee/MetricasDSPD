@@ -107,3 +107,13 @@ Decisões tomadas pelo time com a recomendação deste relatório (o usuário de
 | L-8 | A data da quebra vem da marca T2.6 de `criterios.serie` que cai entre o trimestre anterior e a coluna; sem marca, a vigência do questionário (só se a versão é a vigente). O contrato já trazia `criterios`, sem mudança de API | `Tendencia.tsx` |
 | L-9 | Comentário do catálogo corrigido (PV1 é terceira fonte; a coluna Fonte a distingue). Sem mudança de tela | `catalogo/linhas.ts` |
 | M-4 | Roteiro de validação gerado (itens 3 e 4 do roteiro trocados); aceite do usuário segue aberto | `05-validacao.md` |
+
+## Contraste não textual da rampa (WCAG 1.4.11, achado do QA em `docs/qa/acabamento-ux.md`)
+Decisão técnica do time: a rampa de um matiz (8/20/30/40/100%) fica como está (o texto passa 4,5:1 com folga) e cada trecho da barra, e cada amostra da legenda, ganha borda do token `acento` (`border border-acento`), que também separa as faixas vizinhas. Sem mudança de regra, de matiz nem de dado; a faixa continua sem depender só da cor.
+
+| Tema | Borda/fundo (todas as faixas) | Preenchimento/fundo (faixas 1 a 5) |
+|---|---|---|
+| Claro | 6,09 | 1,12; 1,35; 1,58; 1,88; 6,09 |
+| Escuro | 7,02 | 1,14; 1,45; 1,78; 2,22; 7,02 |
+
+Verificação: `e2e/tests/acabamento-ux-evidencias.spec.ts` calcula o contraste da borda de cada faixa contra o fundo nos dois temas (1280 e 375) e falha abaixo de 3:1; teste unitário em `percepcao.test.tsx`. Evidências regeneradas em `docs/qa/evidencias/acabamento-ux/`.

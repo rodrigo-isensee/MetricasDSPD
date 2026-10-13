@@ -167,6 +167,9 @@ describe('CartaoPV1: publicado (n = 24, com percentual)', () => {
     // faixa com 0 respostas não ocupa espaço; as demais trazem o número.
     const faixas = barras[0]?.querySelectorAll('[data-faixa]') ?? []
     expect([...faixas].map((f) => f.textContent)).toEqual(['0', '1', '1', '11', '11'])
+    // contraste não textual (1.4.11): cada trecho e cada amostra da legenda têm borda do token `acento`.
+    for (const f of faixas) expect(f).toHaveClass('border', 'border-acento')
+    expect(legenda.querySelectorAll('span.border-acento')).toHaveLength(5)
     expect(within(el).queryByTestId('pv1-so-k-de-n')).toBeNull()
     expect(within(el).queryByText('n = 24')).toBeNull()
   })
