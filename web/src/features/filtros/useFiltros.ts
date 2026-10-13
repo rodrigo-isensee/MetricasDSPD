@@ -48,22 +48,17 @@ export interface UseFiltros<F> {
   guardadosNaoAplicaveis: string[]
 }
 
-interface OpcaoHook {
-  /** Prefixo dos parâmetros (ex.: "sust_"), para um painel com dois conjuntos de filtros. */
-  prefixo?: string
-}
-
 interface EstadoNav {
   filtrosInvalidos?: string[]
 }
 
-function useBase(painel: PainelId, prefixo: string) {
+function useBase(painel: PainelId) {
   const config = PAINEIS[painel]
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const location = useLocation()
   const { data: opcoes } = useOpcoesFiltro(config.dominio === 'fluxo' ? 'businessmap' : 'acelerato')
-  return { config, params, navigate, location, opcoes: opcoes, prefixo }
+  return { config, params, navigate, location, opcoes: opcoes }
 }
 
 /** Nome pelo id; sem opções carregadas (ou id desconhecido), mostra o próprio id. */
@@ -120,11 +115,8 @@ function chipsDe(
   return chips
 }
 
-export function useFiltros(painel: 'sustentacao', o?: OpcaoHook): UseFiltros<FiltrosSustentacao>
-export function useFiltros(
-  painel: Exclude<PainelId, 'sustentacao'>,
-  o?: OpcaoHook,
-): UseFiltros<FiltrosFluxo>
+export function useFiltros(painel: 'sustentacao'): UseFiltros<FiltrosSustentacao>
+export function useFiltros(painel: Exclude<PainelId, 'sustentacao'>): UseFiltros<FiltrosFluxo>
 /**
  * Único ponto de leitura e escrita dos filtros: a URL é a fonte da verdade. Valores inválidos
  * caem no padrão, a URL é corrigida com `replace` e o aviso (2.6) fica disponível em `invalidos`.
@@ -132,10 +124,8 @@ export function useFiltros(
  */
 export function useFiltros(
   painel: PainelId,
-  o: OpcaoHook = {},
 ): UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao> {
-  const prefixo = o.prefixo ?? ''
-  const { config, params, navigate, location, opcoes } = useBase(painel, prefixo)
+  const { config, params, navigate, location, opcoes } = useBase(painel)
   const ehSust = config.dominio === 'sustentacao'
   const memoria = useMemoriaFiltros()
   const guardados = useMemoriaAtual()
@@ -147,9 +137,9 @@ export function useFiltros(
   const leitura = useMemo(
     () =>
       ehSust
-        ? lerSustentacao(params, opcoes, config.periodoPadrao, prefixo, restricao)
-        : lerFluxo(params, opcoes, config.periodoPadrao, prefixo, restricao),
-    [params, opcoes, config.periodoPadrao, ehSust, prefixo, restricao],
+        ? lerSustentacao(params, opcoes, config.periodoPadrao, restricao)
+        : lerFluxo(params, opcoes, config.periodoPadrao, restricao),
+    [params, opcoes, config.periodoPadrao, ehSust, restricao],
   )
 
   // Filtros que o painel não oferece (equipe e tipo no Estratégico) não entram nos cálculos.
@@ -169,10 +159,10 @@ export function useFiltros(
   // Memória de sessão (filtros de fluxo): URL -> memória. Presente na URL = guarda; ausente = apaga
   // só nos filtros que o painel oferece (a URL é a verdade ali). O período do Estratégico, restrito
   // a 6m/12m, não é apagado por ausência (o valor guardado pertence ao outro painel).
-  const memorizaFluxo = !ehSust && prefixo === ''
+  const memorizaFluxo = !ehSust
   useEffect(() => {
     if (!memorizaFluxo || !opcoes) return
-    const livre = lerFluxo(params, opcoes, config.periodoPadrao, '').filtros
+    const livre = lerFluxo(params, opcoes, config.periodoPadrao).filtros
     const txt = paramsDeFluxo(livre)
     const upd: Parameters<typeof memoria.atualizar>[0] = {}
     for (const k of ['equipe', 'tipo', 'sistema'] as const) {
@@ -198,32 +188,25 @@ export function useFiltros(
     let p = new URLSearchParams(params)
     if (temInvalidos)
       p = ehSust
-        ? escreverSustentacao(
-            params,
-            leitura.filtros as FiltrosSustentacao,
-            config.periodoPadrao,
-            prefixo,
-          )
-        : escreverFluxo(params, leitura.filtros as FiltrosFluxo, config.periodoPadrao, prefixo)
-    if (prefixo === '') {
-      for (const k of PARAMS_CONHECIDOS) if (!config.params.includes(k)) p.delete(k)
-      // Período válido, mas fora das opções do painel (periodo=4s no Estratégico): não aplicável.
-      const ef = leitura.filtros.periodo
-      const bruto = params.get('periodo')
-      if (
-        bruto &&
-        ((PERIODOS_PADRAO as readonly string[]).includes(bruto) || bruto === 'custom') &&
-        ef.tipo === config.periodoPadrao &&
-        bruto !== config.periodoPadrao
-      ) {
-        p.delete('periodo')
-        p.delete('de')
-        p.delete('ate')
-      }
+        ? escreverSustentacao(params, leitura.filtros as FiltrosSustentacao, config.periodoPadrao)
+        : escreverFluxo(params, leitura.filtros as FiltrosFluxo, config.periodoPadrao)
+    for (const k of PARAMS_CONHECIDOS) if (!config.params.includes(k)) p.delete(k)
+    // Período válido, mas fora das opções do painel (periodo=4s no Estratégico): não aplicável.
+    const ef = leitura.filtros.periodo
+    const bruto = params.get('periodo')
+    if (
+      bruto &&
+      ((PERIODOS_PADRAO as readonly string[]).includes(bruto) || bruto === 'custom') &&
+      ef.tipo === config.periodoPadrao &&
+      bruto !== config.periodoPadrao
+    ) {
+      p.delete('periodo')
+      p.delete('de')
+      p.delete('ate')
     }
     if (p.toString() === params.toString()) return null
     return { p, invalidos: temInvalidos }
-  }, [leitura, opcoes, params, ehSust, config, prefixo])
+  }, [leitura, opcoes, params, ehSust, config])
   const invalidosAgora = leitura.invalidos
   useEffect(() => {
     if (!normalizada) return
@@ -242,8 +225,8 @@ export function useFiltros(
     (bruto: FiltrosFluxo | FiltrosSustentacao, replace: boolean) => {
       const novo = colapsarTodos(bruto, opcoes, ehSust)
       const p = ehSust
-        ? escreverSustentacao(params, novo as FiltrosSustentacao, config.periodoPadrao, prefixo)
-        : escreverFluxo(params, novo as FiltrosFluxo, config.periodoPadrao, prefixo)
+        ? escreverSustentacao(params, novo as FiltrosSustentacao, config.periodoPadrao)
+        : escreverFluxo(params, novo as FiltrosFluxo, config.periodoPadrao)
       if (memorizaFluxo) {
         // Ação do usuário é autoridade: os filtros do painel atualizam a memória (período padrão = apaga).
         const f = novo as FiltrosFluxo
@@ -271,7 +254,6 @@ export function useFiltros(
       opcoes,
       ehSust,
       config,
-      prefixo,
       memorizaFluxo,
       memoria,
     ],

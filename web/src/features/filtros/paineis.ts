@@ -1,6 +1,6 @@
 import type { PeriodoPadrao } from '@metricas-dspd/contratos'
 
-export type PainelId = 'operacional' | 'tatico' | 'estrategico' | 'espera-invisivel' | 'sustentacao'
+export type PainelId = 'operacional' | 'tatico' | 'estrategico' | 'sustentacao'
 export type DominioFiltros = 'fluxo' | 'sustentacao'
 export type ChaveFiltro = 'equipe' | 'tipo' | 'sistema' | 'periodo' | 'prioridade'
 
@@ -45,14 +45,6 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
     periodos: ['6m', '12m'],
     personalizado: false,
     params: ['sistema', 'periodo', 'e1', 'ei_fl3'],
-  },
-  'espera-invisivel': {
-    dominio: 'fluxo',
-    filtros: ['equipe', 'tipo', 'sistema', 'periodo'],
-    periodoPadrao: '12s',
-    periodos: PERIODOS_TODOS,
-    personalizado: true,
-    params: [...BASE_FLUXO, 'ei_fl1', 'ei_fl2', 'ei_fl3', 'ei_sust'],
   },
   sustentacao: {
     dominio: 'sustentacao',

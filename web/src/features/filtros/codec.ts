@@ -95,10 +95,9 @@ export function lerFluxo(
   params: URLSearchParams,
   opcoes: Opcoes,
   padrao: PeriodoPadrao,
-  prefixo = '',
   restricao: RestricaoPeriodo = SEM_RESTRICAO,
 ): Leitura<FiltrosFluxo> {
-  const p = prefixar(params, prefixo)
+  const p = params
   const invalidos: string[] = []
   return {
     filtros: {
@@ -121,10 +120,9 @@ export function lerSustentacao(
   params: URLSearchParams,
   opcoes: Opcoes,
   padrao: PeriodoPadrao,
-  prefixo = '',
   restricao: RestricaoPeriodo = SEM_RESTRICAO,
 ): Leitura<FiltrosSustentacao> {
-  const p = prefixar(params, prefixo)
+  const p = params
   const invalidos: string[] = []
   return {
     filtros: {
@@ -151,42 +149,28 @@ export function lerSustentacao(
 /** `lerLista` só deixa passar ids válidos, então a busca sempre acha o tipo. */
 const TIPO_POR_ID = new Map<string, TipoFiltro>(TIPOS_FILTRO.map((t) => [TIPO_ID[t], t]))
 
-/** Visão dos parâmetros com prefixo removido (usado quando um painel tem dois conjuntos de filtros). */
-function prefixar(params: URLSearchParams, prefixo: string): URLSearchParams {
-  if (!prefixo) return params
-  const out = new URLSearchParams()
-  for (const [k, v] of params) if (k.startsWith(prefixo)) out.set(k.slice(prefixo.length), v)
-  return out
-}
-
-function gravar(
-  params: URLSearchParams,
-  prefixo: string,
-  chave: string,
-  valor: string | null,
-): void {
-  if (valor === null || valor === '') params.delete(prefixo + chave)
-  else params.set(prefixo + chave, valor)
+function gravar(params: URLSearchParams, chave: string, valor: string | null): void {
+  if (valor === null || valor === '') params.delete(chave)
+  else params.set(chave, valor)
 }
 
 function gravarPeriodo(
   params: URLSearchParams,
-  prefixo: string,
   periodo: FiltrosFluxo['periodo'],
   padrao: PeriodoPadrao,
 ): void {
   if (periodo.tipo === padrao) {
-    gravar(params, prefixo, 'periodo', null)
-    gravar(params, prefixo, 'de', null)
-    gravar(params, prefixo, 'ate', null)
+    gravar(params, 'periodo', null)
+    gravar(params, 'de', null)
+    gravar(params, 'ate', null)
   } else if (periodo.tipo === 'custom') {
-    gravar(params, prefixo, 'periodo', 'custom')
-    gravar(params, prefixo, 'de', periodo.de)
-    gravar(params, prefixo, 'ate', periodo.ate)
+    gravar(params, 'periodo', 'custom')
+    gravar(params, 'de', periodo.de)
+    gravar(params, 'ate', periodo.ate)
   } else {
-    gravar(params, prefixo, 'periodo', periodo.tipo)
-    gravar(params, prefixo, 'de', null)
-    gravar(params, prefixo, 'ate', null)
+    gravar(params, 'periodo', periodo.tipo)
+    gravar(params, 'de', null)
+    gravar(params, 'ate', null)
   }
 }
 
@@ -195,13 +179,12 @@ export function escreverFluxo(
   base: URLSearchParams,
   f: FiltrosFluxo,
   padrao: PeriodoPadrao,
-  prefixo = '',
 ): URLSearchParams {
   const p = new URLSearchParams(base)
-  gravar(p, prefixo, 'equipe', f.equipe.join(',') || null)
-  gravar(p, prefixo, 'tipo', f.tipo.map((t) => TIPO_ID[t]).join(',') || null)
-  gravar(p, prefixo, 'sistema', f.sistema.join(',') || null)
-  gravarPeriodo(p, prefixo, f.periodo, padrao)
+  gravar(p, 'equipe', f.equipe.join(',') || null)
+  gravar(p, 'tipo', f.tipo.map((t) => TIPO_ID[t]).join(',') || null)
+  gravar(p, 'sistema', f.sistema.join(',') || null)
+  gravarPeriodo(p, f.periodo, padrao)
   return p
 }
 
@@ -209,12 +192,11 @@ export function escreverSustentacao(
   base: URLSearchParams,
   f: FiltrosSustentacao,
   padrao: PeriodoPadrao,
-  prefixo = '',
 ): URLSearchParams {
   const p = new URLSearchParams(base)
-  gravar(p, prefixo, 'equipe', f.equipe.join(',') || null)
-  gravar(p, prefixo, 'prioridade', f.prioridade.map((x) => x.toLowerCase()).join(',') || null)
-  gravarPeriodo(p, prefixo, f.periodo, padrao)
+  gravar(p, 'equipe', f.equipe.join(',') || null)
+  gravar(p, 'prioridade', f.prioridade.map((x) => x.toLowerCase()).join(',') || null)
+  gravarPeriodo(p, f.periodo, padrao)
   return p
 }
 
