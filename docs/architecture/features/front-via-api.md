@@ -65,6 +65,8 @@ Teste com os dois caminhos sobre a **mesma base**: o gerador `@metricas-dspd/moc
 | R1 | Divergência mock × API que a tela esconde (número diferente) | média x alto | paridade da seção 5 como portão H3 |
 | R2 | F5/A1 estouram com 6 conexões e ~12 `GET` por painel | média x médio | medir em H6; escada: HTTP/2, concorrência, rota agregada |
 | R3 | O2 paginado (200) vs mock completo | média x médio | verificar o cartão; `itensMeta` |
+
+**Decisão proposta sobre o O2 paginado (FA-1, a confirmar no FA-3):** a API é a fonte de formato; o mock se alinha a ela, não o contrário. Proposta: o `HttpFonteMetricas` envia `pageSize=200` e a tela mostra o total vindo de `itensMeta` (contagem real) e a lista parcial só como amostra; "Ver dados em tabela" e exportação do O2 pedem páginas seguintes (`itensMeta`) até completar, em vez de assumir a lista inteira. O `MockFonteMetricas` passa a devolver `itens` limitado a 200 com `itensMeta` coerente, para a paridade (FA-4) comparar sem normalizar. Implementação fica com o `react-frontend` no FA-3; FA-1 não altera o front.
 | R4 | Testes que dependem da latência e dos estados do mock (`?mock=`) quebram no modo `api` | alta x baixo | grupo `@mock`; `page.route` |
 | R5 | Padrão `api` na imagem sem a API de pé deixa o painel todo em erro | baixa x médio | smoke H2 + H3 antes do H4 |
 | R6 | `opcoesFiltroSchema` e `referenciaSchema` ficam só em `server/` (o front não os importa) | certa x baixo | node-backend move os dois para `@metricas-dspd/contratos` (sem mudar o contrato HTTP) |
