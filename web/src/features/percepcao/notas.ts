@@ -5,7 +5,7 @@ export const NOTA_PV1: TextoNota = {
   oQueE:
     'Como os gestores das áreas atendidas percebem o serviço da sustentação, em uma pesquisa trimestral com cinco perguntas fechadas e escala de cinco pontos.',
   comoSeCalcula:
-    'A pesquisa roda fora do app e o painel recebe só contagens por trimestre, área, pergunta e faixa da escala. Nada é calculado aqui: o resultado já chega decidido. "Concordam" soma as faixas 4 e 5.',
+    'A pesquisa roda fora do app e o painel recebe só contagens por trimestre, área, pergunta e faixa da escala. Nada é calculado aqui: o resultado já chega decidido. "Concordam" soma as faixas 4 e 5 e é só o que a tendência mostra: o lado que discorda fica na distribuição.',
   comoLer:
     'Leia a distribuição inteira, pergunta a pergunta, ao lado de S1 e S2, sem cruzar os números. A fonte é a pesquisa, não o Acelerato. O bloco "O que mudou" mostra o retorno dado após o ciclo anterior.',
   meta: 'Sem meta de satisfação nem de participação: uma meta induziria respostas.',

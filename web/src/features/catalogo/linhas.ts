@@ -25,7 +25,7 @@ const ROTULO: Record<PainelDaMetrica, string> = {
   'espera-invisivel': 'Espera invisível',
 }
 
-/** As 45 métricas do briefing (28 do núcleo e 17 complementares) mais a PV1 (pesquisa de percepção, grupo Núcleo), derivadas dos dois catálogos estáticos. */
+/** As 45 métricas do briefing (28 do núcleo e 17 complementares) mais a PV1 (pesquisa de percepção, terceira fonte: a coluna Fonte a distingue do BusinessMap e do Acelerato), derivadas dos dois catálogos estáticos. */
 export function linhasDoCatalogo(): LinhaCatalogo[] {
   return CATALOGO.filter((m) => !FORA.has(m.id)).map((m) => {
     const cartao = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id)).find(

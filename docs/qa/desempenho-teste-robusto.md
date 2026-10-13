@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer (review + QA) - teste de desempenho robusto
 
 Commit revisado: f8b67d0 (branch fix/desempenho-teste-robusto). Escopo: `packages/mock/src/desempenho.test.ts` e ADR 0003. Sem E2E.

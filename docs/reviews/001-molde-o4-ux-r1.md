@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de UX 001 - M-008: cartão O4 e shell como molde da fase B (r1)
 
 Revisor: `ux-designer` · 2026-10-09 · Imutável.

@@ -1,12 +1,13 @@
 # Métricas fora do núcleo · 05 Validar
 
-Status: **aguardando o usuário (ausente)**. Demanda não vai a "Pronto para fazer" antes do retorno.
+Status: **retorno parcial pelas decisões de 11/10 (D-1 a D-6, nº 19 a 21); aceite do usuário no app pendente (não bloqueia).**
 
-## Roteiro (abrir `figma/prototipos/complementares-1280.html`)
-1. No Operacional, ache onde ver a eficiência de fluxo (O5) a partir de O3. Esperado: link "Leia junto" ou seção "Mais métricas".
-2. Descubra se existe métrica de defeitos por causa raiz (O17) e se já está disponível. Esperado: catálogo, "Em breve".
-3. Oculte O6 pelo seletor "Métricas" e entenda que a seção continua recolhível.
-4. Perguntas: a seção recolhida basta? O nome é claro? Falta alguma complementar essencial? Algum cartão parece meta ou ranking?
+## Roteiro no app (dados fictícios; ~5 min, a 1280 e a 375 px)
+1. No Operacional, a partir do tempo de ciclo (O3), ache a eficiência de fluxo (O5) pelo "Leia junto" em até 2 cliques.
+2. Confira o mapa "Leia junto": T4 leva a T8, T5 a O14, T9 a E5, O15 a O17? Falta ou sobra algum link? (N-3)
+3. Em "Métricas" (catálogo), a coluna "Dados" diz "Fictícios" para todas. Está claro? (N-4)
+4. Oculte O6 pelo seletor "Métricas" e confira que a seção continua recolhível.
+5. Perguntas: a seção recolhida basta? O nome é claro? Falta alguma complementar? Algum cartão parece meta ou ranking?
 
 ## Registro do retorno
-(vazio) Decisão: aprovado | ajustar (voltar à etapa X) | descartar. Responder D-1 a D-6 em `03-ideacao.md`.
+(vazio) Decisão: aprovado | ajustar (voltar à etapa X) | descartar.

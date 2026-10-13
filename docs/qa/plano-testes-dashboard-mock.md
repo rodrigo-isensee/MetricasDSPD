@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano de testes - Dashboard de métricas com dados mockados
 
 Links: especificação de UX `docs/ux/dashboard-metricas/especificacao.md` (seção 10 = critérios de aceite C1 a C104) · plano técnico `docs/architecture/features/dashboard-mock.md` · ADR `docs/architecture/adr/0001-stack-front-dashboard-mock.md` · pedido `docs/pedidos/001-dashboard-mock.md` · regras invioláveis `CLAUDE.md`. Não há contrato de API (só front-end; a "API" é a interface `FonteMetricas` em `web/src/contracts`).

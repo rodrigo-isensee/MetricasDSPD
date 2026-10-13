@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review — 001 · fase A (K-004 scaffold, biblioteca e mock; K-022 shell, filtros, tema e componentes)
 
 - Data: 2026-10-09 · Revisor: tech-lead · Autor: react-frontend
