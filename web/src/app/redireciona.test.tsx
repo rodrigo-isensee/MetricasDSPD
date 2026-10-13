@@ -9,6 +9,8 @@ describe('/espera-invisivel: só redireciona, por hash e preservando os filtros'
     ['#ei-fl2', '?periodo=4s&equipe=x&ei_fl2=a', '/tatico?periodo=4s&equipe=x&ei_fl2=a#ei-fl2'],
     ['#ei-fl3', '?periodo=6m', '/estrategico?periodo=6m#ei-fl3'],
     ['#ei-fl3', '', '/estrategico#ei-fl3'],
+    ['#EI-FL1', '?periodo=4s', '/operacional?periodo=4s&cadencia=semanal#ei-fl1'],
+    ['#Ei-Sust', '', '/sustentacao#ei-sust'],
     [
       '#ei-sust',
       '?periodo=4s&equipe=x&sust_prioridade=P1&sust_periodo=12m&ei_sust=p1',

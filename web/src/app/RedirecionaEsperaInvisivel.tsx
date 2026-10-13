@@ -16,7 +16,7 @@ export function destinoDaEsperaInvisivel(hash: string, busca: string): string {
     else fluxo.append(chave, valor)
   })
   const com = (p: URLSearchParams) => (p.size > 0 ? `?${p.toString().replaceAll('%2C', ',')}` : '')
-  switch (hash) {
+  switch (hash.toLowerCase()) {
     case '#ei-fl1': {
       fluxo.set('cadencia', 'semanal')
       return `/operacional${com(fluxo)}#ei-fl1`
