@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Triagem de bugs ligados a métricas e telas (2026-10-12)
 
 Base: develop atual (a6012e8). Método: leitura de código, `e2e/scripts/verificar-fronteiras.mjs` (leve) e histórico git. Nenhum E2E rodado; "corrigido" abaixo significa corrigido no código, não revalidado em navegador.

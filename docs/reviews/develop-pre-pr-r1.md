@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review: develop antes do PR (r1)
 
 - Data: 2026-10-10 18:32 (BRT)

@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review r2 — 001 · fase A (delta `a1f9125..252bed4` na `develop`)
 
 Revisor: tech-lead · base: [`001-fase-a.md`](001-fase-a.md) · fechado em 2026-10-09 22:13.

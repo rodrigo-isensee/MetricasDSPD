@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review: homologação mínima (develop → homolog → main) — rodada 1
 
 - Branch: `chore/homologacao-minima` sobre `origin/develop` · Autor: `tech-lead` · Revisor: `software-architect` (com a skill `cyber-security`) · Data: 2026-10-12

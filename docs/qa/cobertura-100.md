@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de cobertura 100% (2026-10-10, develop)
 
 ## Mudanças

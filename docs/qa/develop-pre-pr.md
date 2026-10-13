@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de QA - develop antes do PR para main
 Commit testado: 2193c78 (worktree limpo, Chromium local, 2026-10-10). Escopo: pedidos 007 (preferências) e 008 (exportar PDF), server em Postgres, pnpm, CI.
 

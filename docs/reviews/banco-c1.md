@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review: banco C1/R1 (leitura de transições pela view canônica)
 
 Branch `fix/banco-view-canonica` (4241e70 contra origin/develop). Revisor: tech-lead. Uma rodada.
