@@ -108,3 +108,17 @@ Os planos 9 R3 e R5 preveem registrar em `docs/security/` o papel `dspd_pesquisa
 4. react-frontend: I-4 junto com o QA, m-9, e a formatação de `Tendencia.tsx`.
 5. qa-engineer: m-8, e Q2 depois dos ajustes.
 6. Rodada 2 de review só sobre os ajustes.
+
+## Rodada 2: correções (node-backend, 2026-10-12)
+
+| Achado | Correção | Commit |
+|---|---|---|
+| B-1 | Init sem `:-`; `DSPD_PWD_PESQUISA: ${...:?}` no compose de homologação; em `SEGREDOS_OBRIGATORIOS`; no laço de segredos de `homolog.yml` e nos blocos `env` da CI. Testes novos: `validarEnv` falha sem a variável ou com `pesquisa_dev`; todo `DSPD_PWD_*` do init está nos segredos, no compose e no laço da CI, e o init não tem padrão. **Pendente do usuário:** linha `DSPD_PWD_PESQUISA=` em `.env.example` e `.env.homolog.example` (o teste do exemplo de homologação tem uma exceção temporária `AGUARDA_EXEMPLO_DO_USUARIO`, a esvaziar quando a linha entrar) | `0f58624` |
+| I-1 | `verificarPapeis` antes do `up`: papel ausente falha com a mensagem do passo de reparo; sem `CONNECT` avisa. Script idempotente `docker/postgres/reparar-papeis.sh` (cria o papel e dá `CONNECT` em `metricas` e `metricas_test`). Guia e fluxo de homologação atualizados | `d23567d` |
+| I-2 | Decisão do time (a): sempre a última carga do trimestre; `dataReferencia` só decide se o trimestre existia. Teste sobre o mock e propriedade P7b com até 2 reenvios. Adendo datado em `decisoes-delegadas-ao-time.md` | `c4909c5` |
+| I-3 | Mock com `resolve`, `prazo`, `informado`, `nao_volta`, `confianca` (v2 muda só `informado`); hash da pesquisa `b2eb2918`; BM/AC intactos (`924448d4`, `b2bfd4c0`); contrato gerado da PV1 regerado | `8ba9e0b`, `1169dec` |
+| I-4 | C6 = mediana agregada de todas as amostras (rodadas x 5), sem "melhor rodada"; `resultado.json` com medianas por rodada e p85; `PERF_RODADAS_C6=1` em `ci.yml` e `homolog.yml`; perf rodado sob o `flock`. Medida local: C6 entre 117 e 139 ms nas 6 rotas (limite 200 ms) | `0f29aa2` |
+| I-5 | `docs/security/pesquisa-de-percepcao.md` (dados, papéis, carga, A10, I-2, riscos aceitos) | `c4909c5` |
+| m-1, m-6 | JSDoc de `nomeSeguro` no lugar. Mesmo arquivo com "O que mudou" diferente do vigente vira reenvio (exige `--substituir`); sem `--o-que-mudou` continua idempotente | `54597c3` |
+| m-2, m-3, m-5, m-7 | Parênteses no filtro de tabelas; o teste PG importa `@metricas-dspd/pesquisa/carga` (devDependency do server); comentário sobre o rótulo da área; `??` na senha da pesquisa | `a231341` |
+| m-4, m-8, m-9, m-10 | Não tratados aqui (documentação do arquiteto, QA, react-frontend e texto do PR) | n/a |
