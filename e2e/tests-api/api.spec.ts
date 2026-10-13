@@ -97,12 +97,15 @@ test.describe('fonte api: falhas da API (page.route)', () => {
       let chamadas = 0;
       await page.route(/\/api\/v1\/metricas\/O4\?/, async (route) => {
         chamadas += 1;
-        await route.fulfill({ status: f.status, contentType: f.corpo ? 'application/json' : 'text/html', body: f.corpo ? JSON.stringify(f.corpo) : '<html>Bad gateway</html>' });
+        await route.fulfill({ status: f.status, headers: f.corpo ? { 'X-Request-Id': f.corpo.error.requestId } : {}, contentType: f.corpo ? 'application/json' : 'text/html', body: f.corpo ? JSON.stringify(f.corpo) : '<html>Bad gateway</html>' });
       });
       await painel.ir(ROTAS.operacionalSemanal);
       const o4 = painel.cartao('O4');
       await expect(o4.erro).toBeVisible();
       await expect(o4.erro).toHaveAttribute('data-erro-codigo', f.codigo);
+      const reqId = f.corpo?.error.requestId;
+      if (reqId) await expect(o4.erro).toHaveAttribute('data-request-id', reqId);
+      else await expect(o4.erro).not.toHaveAttribute('data-request-id');
       await expect(o4.tentarDeNovo).toBeVisible();
       await expect(painel.cartao('O3').raiz).toHaveAttribute('data-estado', ESTADOS_COM_DADO);
       await expect(painel.erroDePainel).toHaveCount(0);

@@ -88,3 +88,16 @@ Parecer: aprovado com ressalvas, sem bug crítico ou alto aberto. Pendências: F
 
 Axe: a interface não mudou; as specs de a11y do grupo mock passaram (zero violações críticas ou sérias). Bugs FA-001 a FA-005 verificados; FA-006 aberto.
 Nota: rodar os E2E regrava `docs/qa/evidencias/*` (imagens); descartadas com `git checkout` antes do commit.
+
+## Reconfirmação do QA (retomada, 2026-10-13, 4cdf595 + ajuste de teste)
+Parecer mantido: aprovado com ressalvas, sem bug crítico ou alto aberto. O ajuste de `e2e/tests-api/api.spec.ts` (header `X-Request-Id` no `route.fulfill` e assert de `data-request-id`) foi revisado e é válido; commitado junto.
+
+| Suíte | Resultado |
+|---|---|
+| `pnpm run pronto` | verde; packages/metricas 506, server 301 (64 de banco pulados), web 780, docs-contratos 102 |
+| `docs:check` | ok (351 páginas, 51 métricas, 2 eventos) |
+| `test:pg` | 57 aprovados, 7 reprovados, os mesmos de `pesquisa.pg.test.ts` (`permission denied for database "metricas_test"`, ambiente: falta `docker/postgres/reparar-papeis.sh` no volume antigo). Schemas temporários removidos (0 restantes) |
+| Paridade | 52/52 |
+| E2E `chromium-api` | 18/18 (FA5-10 a FA5-14 com `data-erro-codigo` e `data-request-id`) |
+| `perf-api` | 12 aprovados, 1 reprovado (F2 CLS `/estrategico` = 0,113, FA-006; os testes seguintes do bloco serial ficam sem rodar). A1 aprovada: `/operacional` p95 87 ms (limite 300), Tático 81, Estratégico 20, Sustentação 81, Espera invisível 12, geral 61; isolada fria 61, quente 29; nenhuma resposta não 200 |
+| E2E grupo mock (inclui axe) | 345/345; FIL-04 passou |
