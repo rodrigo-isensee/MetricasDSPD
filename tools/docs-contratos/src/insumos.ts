@@ -5,13 +5,19 @@ import {
   CATALOGO_CARTOES,
   filtrosSustentacaoSchema,
   METRICA_IDS,
-  METRICAS_SUSTENTACAO,
+  fonteDaMetrica,
   type MetricaId,
 } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
-import { acelerato, businessmap, CALENDARIO_PADRAO, calcularMetrica } from '@metricas-dspd/metricas'
+import {
+  acelerato,
+  businessmap,
+  CALENDARIO_PADRAO,
+  calcularMetrica,
+  pesquisa,
+} from '@metricas-dspd/metricas'
 import { REGRAS_METRICA } from '@metricas-dspd/metricas/regras'
-import { gerarBaseMock } from '@metricas-dspd/mock'
+import { gerarBaseMock, gerarPesquisaMock } from '@metricas-dspd/mock'
 import type { z } from 'zod'
 import { CATALOGO_EVENTOS, EXEMPLOS_EVENTOS } from '@metricas-dspd/server/eventos'
 import { paraJsonSchema } from './fotografias.ts'
@@ -45,8 +51,9 @@ export function descreverParametro(p: ParametroOpenapi): Parametro {
 }
 
 const filtrosPadrao = (id: MetricaId): unknown => {
-  if (id === 'VISAO_GERAL') return {}
-  return METRICAS_SUSTENTACAO.includes(id)
+  const fonte = fonteDaMetrica(id)
+  if (fonte === 'ambos' || fonte === 'pesquisa') return {}
+  return fonte === 'acelerato'
     ? { equipe: [], prioridade: [], periodo: PERIODO_PADRAO }
     : { equipe: [], tipo: [], sistema: [], periodo: PERIODO_PADRAO }
 }
@@ -79,12 +86,14 @@ export function carregarInsumos(raiz: string): Insumos {
   const ctx = {
     bm: businessmap.criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO),
     ac: acelerato.criarContextoAC(base.ac, base.config.hoje, CALENDARIO_PADRAO),
+    pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(base.config), base.config.hoje),
   }
   const filtrosSust = Object.keys(filtrosSustentacaoSchema.shape)
 
   const metricas = METRICA_IDS.map((id) => {
     const rota = `/api/v1/metricas/${id}`
-    const sustentacao = METRICAS_SUSTENTACAO.includes(id)
+    const fonte = fonteDaMetrica(id)
+    const sustentacao = fonte === 'acelerato'
     const schemaResultado = (SCHEMAS_RESULTADO as Partial<Record<MetricaId, z.ZodType>>)[id]
     if (schemaResultado === undefined) {
       throw new Error(
@@ -93,7 +102,12 @@ export function carregarInsumos(raiz: string): Insumos {
     }
     const exemplo = calcularMetrica(id, filtrosPadrao(id) as never, ctx)
     exigirValido(id, schemaResultado, exemplo)
-    const doDominio = id === 'VISAO_GERAL' ? [] : sustentacao ? filtrosSust : [...FILTROS_FLUXO]
+    const doDominio =
+      fonte === 'ambos' || fonte === 'pesquisa'
+        ? []
+        : sustentacao
+          ? filtrosSust
+          : [...FILTROS_FLUXO]
     return {
       id,
       rota,

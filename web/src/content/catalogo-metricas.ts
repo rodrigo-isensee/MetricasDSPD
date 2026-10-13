@@ -1,4 +1,5 @@
 import type { MetricaId } from '@metricas-dspd/contratos'
+import type { FonteDoCartao, GranularidadeDoCartao } from '@/components/ui'
 
 export type PainelDaMetrica =
   'operacional' | 'tatico' | 'estrategico' | 'sustentacao' | 'espera-invisivel'
@@ -11,8 +12,8 @@ export interface EntradaCatalogo {
   /** A pergunta que o cartão responde (spec de UX, seção 4). */
   pergunta: string
   painel: PainelDaMetrica
-  fonte: 'BusinessMap' | 'Acelerato'
-  granularidade: 'demanda' | 'frente' | 'projeto' | 'chamado'
+  fonte: FonteDoCartao
+  granularidade: GranularidadeDoCartao
   /** Meta em texto (briefing seção 6). */
   meta: string
 }
@@ -522,8 +523,23 @@ const COMPLEMENTARES: readonly Compl[] = [
   ],
 ]
 
+/** Pesquisa trimestral de percepção (terceira fonte): nem BusinessMap, nem Acelerato. */
+const PERCEPCAO: readonly EntradaCatalogo[] = [
+  {
+    id: 'PV1',
+    codigo: 'PV1',
+    nome: 'Percepção de valor do serviço',
+    pergunta: 'Os gestores das áreas atendidas sentem que o serviço entrega valor?',
+    painel: 'sustentacao',
+    fonte: 'Pesquisa de percepção',
+    granularidade: 'resposta agregada',
+    meta: 'Sem meta de satisfação',
+  },
+]
+
 export const CATALOGO: readonly EntradaCatalogo[] = [
   ...NUCLEO,
+  ...PERCEPCAO,
   ...COMPLEMENTARES.map(([id, nome, pergunta, painel, fonte, granularidade, meta]) => ({
     id,
     codigo: id,

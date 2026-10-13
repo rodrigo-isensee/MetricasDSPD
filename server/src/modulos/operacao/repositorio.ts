@@ -42,8 +42,8 @@ export async function lerEventos(db: Consultavel, dominio: Dominio, S: Esquemas 
   );
 }
 
-/** Versões de critério (T2.6) da fonte, de `dspd_core`. */
-export async function lerVersoes(db: Consultavel, dominio: Dominio, S: Esquemas = esquemasDoAmbiente()): Promise<VersaoCriterio[]> {
+/** Versões de critério (T2.6) da fonte (inclui a pesquisa, PV1), de `dspd_core`. */
+export async function lerVersoes(db: Consultavel, dominio: Dominio | 'pesquisa', S: Esquemas = esquemasDoAmbiente()): Promise<VersaoCriterio[]> {
   const r = await db.query<RowVersao>(
     `SELECT v.versao_id, v.vigente_desde, v.descricao, m.metrica_id FROM ${S.core}.ref_versao_criterio v
      LEFT JOIN ${S.core}.ref_versao_criterio_metrica m ON m.versao_id = v.versao_id

@@ -13,3 +13,6 @@
 A frase diz que o mais velho "está em Fila". O item em Fila com 17 dias é o S-0962 (Dívida técnica, "Sem referência: amostra insuficiente"), que não está acima do P95. O leitor é levado ao item errado; o rótulo "O mais velho" também fica ambíguo (mais velho de todos ou do grupo acima do P95).
 ## Evidência
 Dump do `main` de `/operacional` (O2) e linhas S-0962 e S-1697 da tabela. Sem teste automático: a regra de redação não está no plano; UX deve decidir se a frase fala do item acima do P95 ou do mais velho geral.
+
+## Status: VERIFICADO (2026-10-12, QA, feature/lacuna-de-valor @ af9950e)
+Chromium, `/operacional`: "1 item está acima do P95 do seu tipo. O mais velho entre eles tem 17 dias úteis e está em "Execução"", coerente com o item acima do P95. Corrigido.

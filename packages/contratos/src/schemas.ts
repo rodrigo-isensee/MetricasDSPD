@@ -7,6 +7,7 @@ import { z } from 'zod'
 import {
   CAUSAS_RAIZ,
   CLASSES_SERVICO,
+  MINIMOS_PESQUISA,
   NATUREZAS_PROJETO,
   SEVERIDADES,
   METRICA_IDS,
@@ -31,6 +32,7 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
+import { trimestreSchema } from './pesquisa'
 
 const iso = z.string() // AAAA-MM-DD
 const mes = z.string() // AAAA-MM
@@ -765,7 +767,8 @@ export const alertaCodigo = z.enum([
   'S1_MEDIANA_ACIMA_ALVO',
 ])
 const indicadorVG = z.object({
-  metrica: z.enum(METRICA_IDS),
+  /** A Visão geral nunca traz a PV1 (pesquisa é outra fonte e não gera alerta): fora do enum. */
+  metrica: z.enum(METRICA_IDS).exclude(['PV1']),
   /** Código do indicador (métrica, ou métrica_subcorte como S2_P1). */
   codigo: z.string(),
   /** Valor principal; null quando insuficiente. */
@@ -1152,5 +1155,144 @@ export const resultadoS12 = z.object({
   ),
   excecaoSla: taxaSchema,
 })
+
+/* ---------- Pesquisa de percepção (PV1) ---------- */
+/** Faixa da escala de 5 pontos (rótulos em `FAIXAS_ESCALA`). */
+const faixaEscala = z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)])
+
+/**
+ * Bloco da pesquisa (consolidado, área ou ponto da tendência). O mínimo está no schema: com `n` abaixo dele
+ * só existe `base-insuficiente` (sem faixas), então o payload não consegue carregar número que a regra proíbe.
+ * Percentual só com n >= 20 (`taxaSchema`); de 5 a 19 vai só "k de n".
+ */
+function blocoPesquisa<M extends number>(minimo: M) {
+  return z.discriminatedUnion('status', [
+    z.strictObject({
+      status: z.literal('base-insuficiente'),
+      n: z
+        .number()
+        .int()
+        .min(0)
+        .max(minimo - 1),
+      minimo: z.literal(minimo),
+    }),
+    z
+      .strictObject({
+        status: z.literal('publicado'),
+        n: z.number().int().min(minimo),
+        perguntas: z.array(
+          z.strictObject({
+            codigo: z.string(),
+            faixas: z.array(z.strictObject({ faixa: faixaEscala, contagem: taxaSchema })),
+          }),
+        ),
+      })
+      .refine((b) => b.perguntas.every((p) => p.faixas.every((f) => f.contagem.n === b.n)), {
+        message: 'taxa.n diferente do n do bloco',
+      }),
+  ])
+}
+const blocoConsolidado = blocoPesquisa(MINIMOS_PESQUISA.consolidado)
+const blocoArea = blocoPesquisa(MINIMOS_PESQUISA.area)
+/** Bloco do consolidado (mínimo 5). */
+export const blocoPesquisaConsolidado = blocoConsolidado
+
+const areaPublicada = z.strictObject({
+  rotulo: z.string(),
+  /** true = o grupo "Outras áreas" (áreas pequenas somadas). */
+  outras: z.boolean(),
+  bloco: blocoArea.options[1],
+})
+
+export const resultadoPV1 = z.discriminatedUnion('status', [
+  z.strictObject({ status: z.literal('sem-pesquisa'), fonte: z.literal('pesquisa') }),
+  z
+    .strictObject({
+      status: z.literal('ok'),
+      fonte: z.literal('pesquisa'),
+      /** Trimestre vigente mais recente até a dataReferencia (`2026-T3`). */
+      trimestre: trimestreSchema,
+      /** Ordinal entre os trimestres carregados (1 = primeiro ciclo). */
+      ciclo: z.number().int().min(1),
+      questionario: z.strictObject({
+        versaoId: z.string(),
+        vigenteDesde: iso,
+        perguntas: z.array(
+          z.strictObject({ codigo: z.string(), ordem: z.number().int(), texto: z.string() }),
+        ),
+      }),
+      /** Sem meta (decisão 26): "k de n convidados", percentual só com n >= 20. */
+      participacao: z.strictObject({
+        respondentes: z.number().int(),
+        convidados: z.number().int(),
+        taxa: taxaSchema,
+      }),
+      consolidado: blocoConsolidado,
+      porArea: z.discriminatedUnion('status', [
+        z.strictObject({
+          status: z.literal('nao-publicado'),
+          motivo: z.enum(['primeiro-ciclo', 'base-insuficiente']),
+        }),
+        z.strictObject({ status: z.literal('publicado'), areas: z.array(areaPublicada) }),
+      ]),
+      /** Até 4 trimestres vigentes, do mais antigo ao mais recente; cada ponto com o próprio mínimo. */
+      tendencia: z
+        .array(
+          z.strictObject({
+            trimestre: trimestreSchema,
+            versaoId: z.string(),
+            bloco: z.discriminatedUnion('status', [
+              z.strictObject({
+                status: z.literal('base-insuficiente'),
+                n: z
+                  .number()
+                  .int()
+                  .min(0)
+                  .max(MINIMOS_PESQUISA.consolidado - 1),
+                minimo: z.literal(MINIMOS_PESQUISA.consolidado),
+              }),
+              z.strictObject({
+                status: z.literal('publicado'),
+                n: z.number().int().min(MINIMOS_PESQUISA.consolidado),
+                /** "Concordam" = faixas 4 e 5 somadas, por pergunta (U3, provisório). */
+                concordam: z.array(z.strictObject({ codigo: z.string(), contagem: taxaSchema })),
+              }),
+            ]),
+          }),
+        )
+        .max(4),
+      /** Texto escrito pela coordenação para o ciclo vigente; exibido como texto puro. */
+      oQueMudou: z
+        .strictObject({ trimestre: trimestreSchema, texto: z.string().max(500) })
+        .nullable(),
+      criterios: criteriosSchema,
+      base: baseAmostralSchema,
+    })
+    .refine(
+      (r) => {
+        if (r.porArea.status !== 'publicado') return true
+        const a = r.porArea.areas
+        // O primeiro "Outras" tem de ser o último item: isso também impede duas vezes.
+        const iOutras = a.findIndex((x) => x.outras)
+        if (iOutras !== -1 && iOutras !== a.length - 1) return false
+        const nomes = a.filter((x) => !x.outras).map((x) => x.rotulo)
+        const ordenados = [...nomes].sort((x, y) => x.localeCompare(y, 'pt-BR'))
+        return nomes.every((n, i) => n === ordenados[i])
+      },
+      { message: 'áreas em ordem alfabética, com "Outras áreas" por último e uma só vez' },
+    )
+    .refine(
+      (r) => {
+        // A10: consolidado menos as áreas publicadas nunca pode revelar um grupo de 1 ou 2 respondentes.
+        if (r.porArea.status !== 'publicado' || r.consolidado.status !== 'publicado') return true
+        const resto = r.consolidado.n - r.porArea.areas.reduce((t, x) => t + x.bloco.n, 0)
+        return resto < 1 || resto >= MINIMOS_PESQUISA.area
+      },
+      {
+        message:
+          'consolidado menos as áreas publicadas não pode dar 1 ou 2 (supressão complementar)',
+      },
+    ),
+])
 
 export const marcacoes = marcacaoCriterioSchema

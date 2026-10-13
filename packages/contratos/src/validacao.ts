@@ -54,6 +54,7 @@ export const SCHEMAS_RESULTADO: { [K in MetricaId]: z.ZodType<ResultadoDe<K>> } 
   S10: s.resultadoS10,
   S11: s.resultadoS11,
   S12: s.resultadoS12,
+  PV1: s.resultadoPV1,
   EI_FL1: s.resultadoEI,
   EI_FL2: s.resultadoEI,
   EI_FL3: s.resultadoEI,

@@ -20,15 +20,16 @@ function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
   const navegar = useNavigate()
   const pares = (p.cartoes.find((c) => c.id === id)?.leiaJunto ?? []).flatMap((x) => {
     const c = cartaoPorIdGlobal(x)
-    if (c?.grupo !== 'complementar') return []
+    if (c?.grupo !== 'complementar' && c?.grupo !== 'percepcao') return []
     const oculto =
       c.painel === p.painel ? p.estaOculto(c.id) : prefs.ocultosNaVisita(c.painel).includes(c.id)
     return oculto ? [] : [c]
   })
   if (pares.length === 0) return null
   const ir = (c: CartaoCatalogo) => {
-    if (c.painel === p.painel) p.irParaComplementar(c.id)
-    else void navegar(destinoDoCartao(c))
+    if (c.painel !== p.painel) void navegar(destinoDoCartao(c))
+    else if (c.grupo === 'percepcao') irParaSecaoVisivel(c.id)
+    else p.irParaComplementar(c.id)
   }
   return (
     <div
@@ -42,8 +43,12 @@ function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
             <a
               href={destinoDoCartao(c)}
               className="alvo inline-flex items-center text-acento underline"
-              aria-label={`${c.codigo} ${c.rotulo}, abre Mais métricas ${
-                c.painel === p.painel ? 'deste painel' : `do painel ${NOME_PAINEL[c.painel]}`
+              aria-label={`${c.codigo} ${c.rotulo}, ${
+                c.grupo === 'percepcao'
+                  ? 'vai para a seção de percepção de valor'
+                  : `abre Mais métricas ${
+                      c.painel === p.painel ? 'deste painel' : `do painel ${NOME_PAINEL[c.painel]}`
+                    }`
               }`}
               onClick={(e) => {
                 e.preventDefault()
@@ -57,6 +62,13 @@ function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
       </ul>
     </div>
   )
+}
+
+/** A pesquisa de percepção já está visível no fim do painel (não fica em "Mais métricas"): rola até ela e leva o foco. */
+function irParaSecaoVisivel(id: string) {
+  const el = document.getElementById(id)
+  el?.scrollIntoView({ block: 'start' })
+  el?.querySelector<HTMLElement>('[data-cartao-titulo]')?.focus()
 }
 
 const NOME_PAINEL: Record<CartaoCatalogo['painel'], string> = {

@@ -17,6 +17,7 @@ services:
       DSPD_PWD_REF: ${DSPD_PWD_REF:?defina no .env.homolog}
       DSPD_PWD_WEBHOOK: ${DSPD_PWD_WEBHOOK:?defina no .env.homolog}
       DSPD_PWD_AUTOMACAO: ${DSPD_PWD_AUTOMACAO:?defina no .env.homolog}
+      DSPD_PWD_PESQUISA: ${DSPD_PWD_PESQUISA:?defina no .env.homolog}
     ports: ["127.0.0.1:${HOMOLOG_PG_PORT:-15432}:5432"]
     volumes:
       - dspd-homolog-pg-data:/var/lib/postgresql/data

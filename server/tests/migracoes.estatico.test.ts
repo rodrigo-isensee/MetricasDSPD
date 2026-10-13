@@ -38,7 +38,7 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 370;
+const COLUNAS_FORA_STG_ESPERADAS = 397;
 
 describe('migrações e singleTransaction', () => {
   it('nenhuma migração usa CONCURRENTLY (incompatível com o `up` em transação única)', () => {
@@ -48,9 +48,8 @@ describe('migrações e singleTransaction', () => {
 
 describe('migrações (análise estática, sem banco)', () => {
   it('nomes NNNN_descricao, sequenciais, ordenados e iguais aos arquivos do diretório', () => {
-    // 0013 (pesquisa) entra por outra branch, antes desta; a 0014 independe dela. Ao mesclar, o salto some e o teste volta ao estrito.
     const numeros = nomes.map((n) => Number(n.slice(0, 4)));
-    numeros.forEach((x, i) => expect(x === i + 1 || (x === i + 2 && x === 14), nomes[i]).toBe(true));
+    numeros.forEach((x, i) => expect(x, nomes[i]).toBe(i + 1));
     expect([...nomes].sort()).toEqual(nomes);
     expect(arquivosDeMigracao()).toEqual(nomes);
   });
@@ -115,7 +114,7 @@ describe('migrações (análise estática, sem banco)', () => {
   });
   it('toda view é security_invoker e lista colunas (C-views, data-model §2)', () => {
     const views = todoSql.filter((s) => s.startsWith('CREATE VIEW'));
-    expect(views).toHaveLength(6);
+    expect(views).toHaveLength(7);
     for (const v of views) expect(v).toMatch(/^CREATE VIEW \S+ WITH \(security_invoker = true\) AS/);
   });
   it('C1: origem_demanda e demais códigos de ref_dominio têm o tipo de ref_dominio.codigo (varchar(80))', () => {

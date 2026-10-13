@@ -5,6 +5,29 @@ export const MINIMO_AMOSTRA = 20
 
 export type Dominio = 'businessmap' | 'acelerato'
 
+/**
+ * Fonte de uma métrica. `pesquisa` (pesquisa trimestral de percepção) é a terceira fonte e fica FORA de
+ * `Dominio` de propósito: `Dominio` tipa amostra, percentil e calibração, e a pesquisa não tem tempo nem
+ * percentil. Assim o compilador impede qualquer mistura com BusinessMap ou Acelerato.
+ */
+export type FonteMetrica = Dominio | 'pesquisa'
+
+/**
+ * Mínimos de publicação da pesquisa de percepção (decisões 24 e 30; só mudam com nova versão de critério, T2.6).
+ * `porAreaDesdeCiclo`: o recorte por área só é publicado a partir deste ciclo (o 1o ciclo é só consolidado).
+ * Abaixo de `MINIMO_AMOSTRA` (20) vale a regra do percentual: só "k de n".
+ */
+export const MINIMOS_PESQUISA = { consolidado: 5, area: 3, porAreaDesdeCiclo: 2 } as const
+
+/** Rótulos fixos da escala de 5 pontos da pesquisa (faixa 1 a 5). Trocar a escala exige nova versão do questionário. */
+export const FAIXAS_ESCALA = [
+  'Discordo totalmente',
+  'Discordo',
+  'Neutro',
+  'Concordo',
+  'Concordo totalmente',
+] as const
+
 /** Granularidade dos cards do BusinessMap. Frente = feature ou pacote (mesmo nível). */
 export const GRANULARIDADES = ['story', 'frente', 'projeto'] as const
 export type Granularidade = (typeof GRANULARIDADES)[number]
@@ -157,6 +180,7 @@ export const METRICA_IDS = [
   'S10',
   'S11',
   'S12',
+  'PV1',
   'EI_FL1',
   'EI_FL2',
   'EI_FL3',

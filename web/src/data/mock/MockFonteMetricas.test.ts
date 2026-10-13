@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { METRICA_IDS } from '@metricas-dspd/contratos'
-import { METRICAS_SUSTENTACAO } from '@metricas-dspd/contratos'
+import { fonteDaMetrica } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { ehVazio } from '../vazio'
@@ -24,7 +24,7 @@ const sust = (p: FiltrosSustentacao['periodo']): FiltrosSustentacao => ({
 describe('MockFonteMetricas', () => {
   it('toda métrica devolve um DTO válido pelo schema zod, com filtros padrão e com filtros estreitos', async () => {
     for (const id of METRICA_IDS) {
-      const s = METRICAS_SUSTENTACAO.includes(id)
+      const s = fonteDaMetrica(id) === 'acelerato'
       const filtros = [
         s ? sust({ tipo: '6m' }) : fluxo({ tipo: '12s' }),
         s
@@ -35,7 +35,8 @@ describe('MockFonteMetricas', () => {
           : fluxo({ tipo: 'custom', de: '2026-01-01', ate: '2026-03-31' }),
       ]
       for (const f of filtros) {
-        const r = await fonte.obter(id, id === 'VISAO_GERAL' ? {} : f)
+        // A Visão geral e a pesquisa (PV1) só aceitam `dataReferencia`: nenhum filtro se aplica.
+        const r = await fonte.obter(id, id === 'VISAO_GERAL' || id === 'PV1' ? {} : f)
         const p = SCHEMAS_RESULTADO[id].safeParse(r)
         expect(
           p.success,
@@ -70,9 +71,9 @@ describe('MockFonteMetricas', () => {
         METRICA_IDS.map((id) =>
           fonte.obter(
             id,
-            (id === 'VISAO_GERAL'
+            (id === 'VISAO_GERAL' || id === 'PV1'
               ? {}
-              : METRICAS_SUSTENTACAO.includes(id)
+              : fonteDaMetrica(id) === 'acelerato'
                 ? sust({ tipo: '6m' })
                 : fluxo({ tipo: '12s' })) as never,
           ),
@@ -96,9 +97,63 @@ describe('parâmetro oculto ?mock=', () => {
     await expect(aplicarSimulacao('erro:o3', 'O3', {}, ok)).rejects.toBeInstanceOf(ErroSimulado)
     await expect(aplicarSimulacao('erro:o3', 'O4', {}, ok)).resolves.toBe(1)
   })
+  it('vazio não injeta filtros na pesquisa (ela só aceita dataReferencia)', async () => {
+    const recebido = await aplicarSimulacao('vazio', 'PV1', {}, (x) => Promise.resolve(x))
+    expect(recebido).toEqual({})
+  })
+  it('PV1 mostra a pesquisa mockada: 3T/2026, reenvio do 2T na série e critério da pesquisa na lista', async () => {
+    const r = await fonte.obter('PV1', {})
+    expect(r.status).toBe('ok')
+    if (r.status !== 'ok') return
+    expect(r.trimestre).toBe('2026-T3')
+    expect(r.consolidado.status === 'publicado' ? r.consolidado.n : 0).toBe(24)
+    // O reenvio do 2T/2026 vale pela carga mais recente: 19 respostas, não a soma das duas cargas.
+    expect(r.tendencia.map((t) => [t.trimestre, t.bloco.n])).toEqual([
+      ['2025-T4', 4],
+      ['2026-T1', 14],
+      ['2026-T2', 19],
+      ['2026-T3', 24],
+    ])
+    const ids = (await fonte.criterios()).map((c) => c.id)
+    expect(ids).toContain('pesquisa-q-v2')
+  })
+  it('modos pesquisa:sem e pesquisa:insuficiente simulam os dois estados da PV1 e só dela', async () => {
+    expect(lerModoMock('Pesquisa:Sem')).toBe('pesquisa:sem')
+    expect(lerModoMock('pesquisa:outro')).toBeNull()
+    const obter = (f: Record<string, never>) => fonte.obter('PV1', f)
+    await expect(aplicarSimulacao('pesquisa:sem', 'PV1', {}, obter)).resolves.toEqual({
+      status: 'sem-pesquisa',
+      fonte: 'pesquisa',
+    })
+    const r = await aplicarSimulacao('pesquisa:insuficiente', 'PV1', {}, obter)
+    expect(SCHEMAS_RESULTADO.PV1.safeParse(r).success).toBe(true)
+    expect(r).toMatchObject({
+      status: 'ok',
+      consolidado: { status: 'base-insuficiente', n: 4, minimo: 5 },
+    })
+    // Sem pesquisa na origem, o modo insuficiente não inventa dados.
+    const antes = new MockFonteMetricas({ latenciaMs: 0, hoje: '2025-07-09T18:00:00-03:00' })
+    await expect(
+      aplicarSimulacao('pesquisa:insuficiente', 'PV1', {}, (f: Record<string, never>) =>
+        antes.obter('PV1', f),
+      ),
+    ).resolves.toEqual({ status: 'sem-pesquisa', fonte: 'pesquisa' })
+    const outra = await aplicarSimulacao('pesquisa:sem', 'S1', sust({ tipo: '6m' }), (x) =>
+      fonte.obter('S1', x),
+    )
+    expect(outra).toEqual(await fonte.obter('S1', sust({ tipo: '6m' })))
+  })
+  it('PV1 antes da primeira carga (2025-07-10) devolve o estado sem-pesquisa', async () => {
+    const antes = new MockFonteMetricas({ latenciaMs: 0, hoje: '2025-07-09T18:00:00-03:00' })
+    await expect(antes.obter('PV1', {})).resolves.toEqual({
+      status: 'sem-pesquisa',
+      fonte: 'pesquisa',
+    })
+  })
   it('vazio força o resultado sem itens em todas as métricas (O1 mantém os dias úteis como base)', async () => {
-    for (const id of METRICA_IDS.filter((i) => i !== 'VISAO_GERAL')) {
-      const f = METRICAS_SUSTENTACAO.includes(id) ? sust({ tipo: '6m' }) : fluxo({ tipo: '12s' })
+    // A pesquisa não tem itens a esvaziar: sem carga ela mostra o estado próprio "sem pesquisa" (testado à parte).
+    for (const id of METRICA_IDS.filter((i) => i !== 'VISAO_GERAL' && i !== 'PV1')) {
+      const f = fonteDaMetrica(id) === 'acelerato' ? sust({ tipo: '6m' }) : fluxo({ tipo: '12s' })
       const r = await aplicarSimulacao('vazio', id, f, (x) => fonte.obter(id, x as never))
       expect(ehVazio(id, r), id).toBe(true)
       if (id !== 'O1') expect((r as { base: { n: number } }).base.n, id).toBe(0)

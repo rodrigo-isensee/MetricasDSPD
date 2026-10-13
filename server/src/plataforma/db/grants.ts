@@ -4,7 +4,7 @@ import type { Esquemas } from './esquemas.js';
 /** Colunas por tabela/view de cada schema, lidas do catálogo (a ordem é a do banco). */
 export type Catalogo = { bm: Record<string, string[]>; ac: Record<string, string[]>; core: Record<string, string[]> };
 
-export const PAPEIS = ['dspd_coletor', 'dspd_api', 'dspd_ref', 'dspd_webhook', 'dspd_automacao'] as const;
+export const PAPEIS = ['dspd_coletor', 'dspd_api', 'dspd_ref', 'dspd_webhook', 'dspd_automacao', 'dspd_pesquisa'] as const;
 
 const COM = (nomes: string[], ...prefixos: string[]): string[] => nomes.filter((n) => prefixos.some((p) => n.startsWith(p)));
 const PROJECAO = /^(dim_card|dim_chamado|fato_bloqueio|fato_etapa_chamado)$/;
@@ -26,7 +26,7 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
   };
   const usage: Record<(typeof PAPEIS)[number], string[]> = {
     dspd_coletor: [S.bm, S.ac, S.core], dspd_api: [S.bm, S.ac, S.core], dspd_ref: [S.bm, S.ac, S.core],
-    dspd_webhook: [S.bm, S.core], dspd_automacao: [S.ac, S.core],
+    dspd_webhook: [S.bm, S.core], dspd_automacao: [S.ac, S.core], dspd_pesquisa: [S.core],
   };
   for (const schema of [S.bm, S.ac, S.core]) {
     out.push(`REVOKE ALL ON SCHEMA ${schema} FROM PUBLIC, ${papeis}`, `REVOKE ALL ON ALL TABLES IN SCHEMA ${schema} FROM PUBLIC, ${papeis}`);
@@ -69,6 +69,12 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
     out.push(`GRANT SELECT, INSERT, DELETE ON ${S.core}.outbox TO dspd_coletor`,
       `GRANT UPDATE (${OUTBOX_COLUNAS_COLETOR}) ON ${S.core}.outbox TO dspd_coletor`, `GRANT INSERT ON ${S.core}.outbox TO dspd_webhook`);
   }
+  // Pesquisa (PV1): sem coluna de pessoa em nenhuma tabela, então `COLUNAS_PESSOA` não muda. A carga só insere (append-only também por gatilho);
+  // lê a lista fechada e as versões de critério para validar. A API só lê.
+  const pesq = COM(Object.keys(cat.core), 'pesq_');
+  g('SELECT, INSERT', S.core, pesq, 'dspd_pesquisa');
+  g('SELECT', S.core, COM(Object.keys(cat.core), 'ref_pesq_', 'ref_versao_criterio'), 'dspd_pesquisa');
+  g('SELECT', S.core, [...pesq, ...COM(Object.keys(cat.core), 'vw_pesq_')], 'dspd_api');
   out.push(`GRANT INSERT ON ${S.bm}.stg_webhook_evento TO dspd_webhook`,
     `GRANT SELECT (webhook_sk, payload_sha256) ON ${S.bm}.stg_webhook_evento TO dspd_webhook`);
   out.push(`GRANT SELECT, INSERT ON ${S.ac}.ctl_automacao TO dspd_automacao`);

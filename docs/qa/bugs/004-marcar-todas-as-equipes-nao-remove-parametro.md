@@ -14,3 +14,6 @@ URL fica ?equipe=erp-protheus%2Cfluig%2Csenior%2Cmarketing-e-vendas%2Cdados%2Cpl
 
 ## Evidência
 e2e/tests/filtros.spec.ts (FIL-04).
+
+## Status: VERIFICADO (2026-10-12, QA, feature/lacuna-de-valor @ af9950e)
+Chromium. `filtros.spec.ts` FIL-04 passou 3 de 3 isolado e 9 de 9 em repetição. Com 2 equipes a URL fica `?equipe=erp-protheus,fluig` (vírgula literal, sem `%2C`). Houve 1 falha em suíte completa sob carga, causada por leitura da URL logo após Esc (corrida do teste, não do produto); a asserção passou a usar `expect.poll` (e2e/tests/filtros.spec.ts, FIL-04 e FIL-22). Corrigido.

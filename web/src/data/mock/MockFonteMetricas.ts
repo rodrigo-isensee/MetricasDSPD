@@ -18,6 +18,8 @@ import type { FonteMetricas } from '../FonteMetricas'
 
 type Carregado = {
   ctx: import('@metricas-dspd/metricas').ContextosMetricas
+  /** Critérios da pesquisa (dominio 'pesquisa', T2.6), lidos do contexto da terceira fonte. */
+  criteriosPesquisa: VersaoCriterio[]
   lib: typeof import('@metricas-dspd/metricas')
   base: import('@metricas-dspd/mock').BaseMock
   /** Sorteio da latência: derivado da semente, determinístico. */
@@ -131,12 +133,22 @@ export class MockFonteMetricas implements FonteMetricas {
       const bm = lib.businessmap.criarContextoBM(base.bm, base.config.hoje, lib.CALENDARIO_PADRAO)
       await ceder()
       const ac = lib.acelerato.criarContextoAC(base.ac, base.config.hoje, lib.CALENDARIO_PADRAO)
-      const ctx = { bm, ac }
+      const pesq = lib.pesquisa.criarContextoPesquisa(
+        mock.gerarPesquisaMock(base.config),
+        base.config.hoje,
+      )
+      const ctx = { bm, ac, pesq }
       // A Visão geral usa uma só data de corte: os dois contextos têm de concordar (review B13).
       if (ctx.bm.hojeIso !== ctx.ac.hojeIso)
         throw new Error(`Datas de corte divergentes: ${ctx.bm.hojeIso} x ${ctx.ac.hojeIso}`)
       const rng = mock.derivar(base.config.semente, 'latencia')
-      return { ctx, lib, base, sorteio: () => mock.sortearLatencia(rng) }
+      return {
+        ctx,
+        criteriosPesquisa: pesq.base.criterios,
+        lib,
+        base,
+        sorteio: () => mock.sortearLatencia(rng),
+      }
     })()
     return this.carregado
   }
@@ -211,9 +223,14 @@ export class MockFonteMetricas implements FonteMetricas {
   }
 
   async criterios(): Promise<VersaoCriterio[]> {
-    const { base } = await this.carregar()
+    const { base, criteriosPesquisa } = await this.carregar()
     const vistos = new Map<string, VersaoCriterio>()
-    for (const v of [...base.bm.config.criterios, ...base.ac.config.criterios]) vistos.set(v.id, v)
+    for (const v of [
+      ...base.bm.config.criterios,
+      ...base.ac.config.criterios,
+      ...criteriosPesquisa,
+    ])
+      vistos.set(v.id, v)
     return [...vistos.values()].sort((a, b) => a.data.localeCompare(b.data))
   }
 

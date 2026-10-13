@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { runner } from 'node-pg-migrate';
 import pg from 'pg';
-import { gerarGrants, type Catalogo } from './grants.js';
+import { gerarGrants, PAPEIS, type Catalogo } from './grants.js';
 import { montarEsquemas, type Esquemas } from './esquemas.js';
 import type { Consultavel } from './pool.js';
 
@@ -26,6 +26,28 @@ export async function lerCatalogo(db: Consultavel, S: Esquemas): Promise<Catalog
   const chave = new Map<string, keyof Catalogo>([[S.bm, 'bm'], [S.ac, 'ac'], [S.core, 'core']]);
   for (const l of r.rows) cat[chave.get(l.esquema)!][l.tabela] = l.colunas;
   return cat;
+}
+
+/**
+ * Confere, antes de migrar, que os papéis dos GRANTs existem (volume criado antes da 0013 não tem `dspd_pesquisa`).
+ * O migrador não cria papel nem concede CONNECT: faltando papel, falha com o passo de reparo; faltando só CONNECT, avisa pelo `log`.
+ */
+export async function verificarPapeis(db: Consultavel, log: (m: string) => void = () => undefined): Promise<void> {
+  const r = await db.query<{ papel: string; conecta: boolean }>(
+    `SELECT p AS papel, has_database_privilege(p, current_database(), 'CONNECT') AS conecta
+     FROM unnest($1::text[]) AS p WHERE EXISTS (SELECT 1 FROM pg_roles WHERE rolname = p)`,
+    [[...PAPEIS]],
+  );
+  const existentes = new Set(r.rows.map((l) => l.papel));
+  const faltam = PAPEIS.filter((p) => !existentes.has(p));
+  if (faltam.length > 0)
+    throw new Error(
+      `Papéis ausentes no servidor: ${faltam.join(', ')}. O volume do Postgres é anterior à migração 0013; rode como administrador ` +
+        '`docker/postgres/reparar-papeis.sh` (veja docs/engineering/carga-da-pesquisa-de-percepcao.md, "Antes da primeira carga") e repita o db:migrate.',
+    );
+  const semConnect = r.rows.filter((l) => !l.conecta).map((l) => l.papel);
+  if (semConnect.length > 0)
+    log(`Aviso: sem CONNECT neste database: ${semConnect.join(', ')}. Rode docker/postgres/reparar-papeis.sh como administrador.`);
 }
 
 /** Aplica `gerarGrants(S)` numa transação. Usa o catálogo atual (reaplicável a qualquer momento). */
@@ -61,6 +83,7 @@ export async function migrar(url: string, opcoes: OpcoesMigrar = {}): Promise<Re
   const cliente = new pg.Client({ connectionString: url, options: `-c TimeZone=UTC -c lock_timeout=${LOCK_TIMEOUT_MIGRADOR}` });
   await cliente.connect();
   try {
+    if (direcao === 'up') await verificarPapeis(cliente, log);
     const feitas = await runner({
       // singleTransaction (decisão do C2/C3): um `up` com várias migrações é atômico (tudo ou nada), sem estado intermediário no
       // banco; exige que nenhuma migração use `CREATE INDEX CONCURRENTLY` (hoje não há; o teste estático de migrações cobre).

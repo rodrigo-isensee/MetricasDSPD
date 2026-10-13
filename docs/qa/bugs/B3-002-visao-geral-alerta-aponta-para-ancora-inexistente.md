@@ -16,3 +16,6 @@ VG-03: todo alerta leva ao cartão de origem existente e visível.
 
 ## Reverificação B12 (567e995): continua aberto
 O12 agora existe (em `/operacional?cadencia=semanal`, `#o12`), mas o alerta da Visão geral continua com href `/operacional#o12`, sem `cadencia=semanal`. O padrão é a diária, que não tem O12, então o VG-03 segue falhando. Correção: o link do alerta O12 (e de qualquer alerta de cartão semanal: O10, O12) deve incluir `?cadencia=semanal`. Responsável: react-frontend (link da faixa da Visão geral).
+
+## Status: VERIFICADO (2026-10-12, QA, feature/lacuna-de-valor @ af9950e)
+Chromium. `b3-sust-ei-vg.spec.ts` VG-03 (alertas da Visão geral levam ao cartão de origem) passou, e `b12-fluxo.spec.ts` B3-002 confirma `#o12` na semanal com o link da faixa. Corrigido.

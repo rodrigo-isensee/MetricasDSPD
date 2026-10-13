@@ -17,7 +17,14 @@ import {
   useCalibracaoPronta,
   useEmCalibracao,
 } from './Calibracao'
-import { ChipFiltros, ChipFonte, ChipGranularidade, ChipMeta } from './Chips'
+import {
+  ChipFiltros,
+  ChipFonte,
+  ChipGranularidade,
+  ChipMeta,
+  type FonteDoCartao,
+  type GranularidadeDoCartao,
+} from './Chips'
 import { useContextoPainel } from './ContextoPainel'
 import { useCartaoVisivel, usePreferenciasPainel } from './PreferenciasPainel'
 import { ALTURAS_ESQUELETO, ALTURAS_ESQUELETO_MOBILE } from './alturasEsqueleto'
@@ -53,8 +60,8 @@ export interface CartaoMetricaProps {
   /** Status da meta; só quando a meta é numérica (D10). */
   statusMeta?: Status | 'sem-meta'
   textoStatus?: string
-  fonte: 'BusinessMap' | 'Acelerato'
-  granularidade: 'demanda' | 'frente' | 'projeto' | 'chamado'
+  fonte: FonteDoCartao
+  granularidade: GranularidadeDoCartao
   /** Filtros que atuam no cartão (tabela 2.2). Omitido = todos os ativos atuam (sustentação). */
   aplicaveis?: readonly FiltroFluxoChave[]
   criterios?: CriteriosResultado

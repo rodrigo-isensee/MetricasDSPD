@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1..O18, BLOQUEADOS, T1..T9, E1..E5, S1..S12, EI_FL1..3, EI_SUST, VISAO_GERAL; 50 ids, inclui as 17 complementares abaixo). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O18, BLOQUEADOS, T1..T9, E1..E5, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL; 51 ids, inclui as 17 complementares abaixo e a PV1, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -28,6 +28,7 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
 |---|---|
 | Fluxo (O*, T*, E*, BLOQUEADOS, EI_FL1..3) | `equipe`, `tipo` (ids de `TIPO_ID`), `sistema`, `periodo` |
 | Sustentação (S*, EI_SUST) | `equipe` (`totvs,senior,fluig`), `prioridade` (`P1..P5`), `periodo` |
+| Pesquisa de percepção (PV1) | nenhum (só `dataReferencia`) |
 | VISAO_GERAL | nenhum (padrões de cada painel) |
 
 - Aplicabilidade por métrica no fluxo: fonte é `APLICABILIDADE_FLUXO` (`packages/contratos/src/metricas.ts`). Filtro do mesmo domínio não aplicável à métrica (ex.: `tipo` em O12, `equipe` em E1) é aceito e ignorado, sem 400, coerente com "Não afetado por".
@@ -116,6 +117,22 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 - `METRICA_IDS` passa de 33 para 50; `CATALOGO_CARTOES` ganha `grupo` (`nucleo|complementar`) e `status` (`disponivel|mock`) e os 17 cartões; `leiaJunto` do núcleo aponta para complementares (O3 -> o6, O4 -> o8, O15 -> o13, S1 -> s9).
 - `S9` usa `porMotivo` (não `motivos`).
 - Mudança de comportamento do mock: as 5 de sustentação (S8 a S12) entram nas métricas em calibração da fonte Acelerato.
+
+## Percepção de valor (PV1, pesquisa trimestral)
+Plano: `docs/architecture/features/lacuna-de-valor.md`. **Terceira fonte**, `pesquisa`: nem BusinessMap, nem Acelerato. Painel Sustentação, seção própria no fim (`grupo: 'percepcao'`, cartão `pv1`, `status: 'mock'`), com "leia junto" S1/S2 nos dois sentidos. Dados fictícios até existir carga real. Sem rota nova de leitura além da `GET /api/v1/metricas/PV1` e **sem rota de escrita** (a carga é script externo, B4).
+
+- **Fonte por métrica:** `fonteDaMetrica(id)` (`@metricas-dspd/contratos`) devolve `'businessmap' | 'acelerato' | 'pesquisa' | 'ambos'`. Use-a em vez de `METRICAS_SUSTENTACAO.includes(id)` (PV1 cairia em "fluxo"). `METRICAS_PESQUISA = ['PV1']`; a PV1 **não** está em `METRICAS_SUSTENTACAO`. Tipo `FonteMetrica = Dominio | 'pesquisa'` (não alarga `Dominio`).
+- **Query:** só `dataReferencia` (opcional, AAAA-MM-DD, não futura); qualquer outro parâmetro (equipe, prioridade, período) -> 400. Filtros do contrato: `Record<string, never>`. Rodapé da UI: "Não afetado por: equipe, prioridade, período".
+- **Constantes** (`comum.ts`): `MINIMOS_PESQUISA = { consolidado: 5, area: 3, porAreaDesdeCiclo: 2 }`, `FAIXAS_ESCALA` (5 rótulos, faixa 1 a 5).
+- **Resultado** (`ResultadoPV1`, schema `resultadoPV1`, zod estrito: chave fora do schema reprova):
+  - `{ status: 'sem-pesquisa', fonte: 'pesquisa' }`: nenhuma pesquisa até a `dataReferencia`. Estado: "Nenhuma pesquisa carregada...", sem botão de upload.
+  - `{ status: 'ok', fonte: 'pesquisa', trimestre ('2026-T3'), ciclo (1 = primeiro), questionario { versaoId, vigenteDesde, perguntas[{codigo, ordem, texto}] }, participacao { respondentes, convidados, taxa: Taxa }, consolidado: Bloco(5), porArea, tendencia[] (até 4), oQueMudou { trimestre, texto } | null, criterios, base { n, unidade: 'respostas', janela: null } }`.
+  - **Bloco** (`consolidado` mínimo 5, área mínimo 3, ponto da tendência mínimo 5): `{ status: 'base-insuficiente', n, minimo }` (n abaixo do mínimo; **sem faixas**; a UI mostra só "Base insuficiente: N respostas. Mínimo M", U2) ou `{ status: 'publicado', n (>= mínimo), perguntas[{ codigo, faixas[{ faixa: 1..5, contagem: Taxa }] }] }`. Em `contagem`, `Taxa.n` é o `n` do bloco: n de 5 a 19 vem `insuficiente` (só "k de n", sem percentual); n >= 20 vem `ok` com `pct`.
+  - **porArea:** `{ status: 'nao-publicado', motivo: 'primeiro-ciclo' | 'base-insuficiente' }` ou `{ status: 'publicado', areas[{ rotulo, outras, bloco: publicado }] }` em ordem alfabética, com "Outras áreas" (`outras: true`) por último e no máximo uma vez. Anonimato (A10, no schema): consolidado menos a soma das áreas publicadas nunca dá 1 ou 2.
+  - **tendencia[]:** `{ trimestre, versaoId, bloco: { status: 'base-insuficiente', n, minimo: 5 } | { status: 'publicado', n, concordam[{ codigo, contagem: Taxa }] } }`; "concordam" = faixas 4 e 5 somadas (U3, provisório). Troca de `versaoId` entre pontos gera marcação em `criterios.serie` (T2.6): a UI desenha a quebra de série.
+- **O contrato proíbe por desenho:** média, nota única, meta, semáforo, ranking (ordem fixa), campo de pessoa ou de comentário, percentual com n < 20.
+- **Estado atual do back-end (B1):** os contratos e o schema estão publicados; até a biblioteca (B2) e a fonte `pesquisa` do serviço (B3) a rota devolve sempre `sem-pesquisa`, sem ler BusinessMap nem Acelerato.
+- **Linha do CSV de carga** (`linhaPesquisaSchema`, `COLUNAS_CSV_PESQUISA`): `trimestre,area,pergunta,f1,f2,f3,f4,f5,convidados`; coluna extra recusa o arquivo; sem `@`; soma das faixas <= convidados.
 
 ## Cache
 - Chave: `métrica + versão de carga (marca d'água da coleta + versão de critério mais recente) + versão de critério vigente + dataReferencia + filtros normalizados (listas ordenadas)`. A base (`BaseBM`/`BaseAC`) fica em memória por versão de carga; a marca d'água é relida a cada 60 s. Máximo de 500 resultados por domínio (descarta o mais antigo). Mudança de `ref_*` sem nova coleta só vale após reiniciar a api (ou nova coleta/versão de critério).

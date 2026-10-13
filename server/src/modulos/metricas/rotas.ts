@@ -1,11 +1,11 @@
 import { createHash } from 'node:crypto';
-import { METRICA_IDS, METRICAS_SUSTENTACAO, type MetricaId, type ResultadoO2 } from '@metricas-dspd/contratos';
+import { METRICA_IDS, fonteDaMetrica, type MetricaId, type ResultadoO2 } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ZodType } from 'zod';
 import { AppError, erroSchema } from '../../plataforma/erros.js';
 import {
-  paramsIdSchema, queryFluxoSchema, querySustentacaoSchema, queryVisaoGeralSchema, resultadoO2PaginadoSchema,
+  paramsIdSchema, queryFluxoSchema, queryPesquisaSchema, querySustentacaoSchema, queryVisaoGeralSchema, resultadoO2PaginadoSchema,
   type ConsultaCalculo,
 } from './schemas.js';
 import type { FiltrosMetrica, ServicoMetricas } from './servico.js';
@@ -16,8 +16,8 @@ const CACHE = 'private, max-age=60';
 export const PAGINA_PADRAO = 50;
 export const PAGINA_MAXIMA = 200;
 
-const queryDe = (id: MetricaId): ZodType =>
-  id === 'VISAO_GERAL' ? queryVisaoGeralSchema : METRICAS_SUSTENTACAO.includes(id) ? querySustentacaoSchema : queryFluxoSchema;
+const QUERY_POR_FONTE = { ambos: queryVisaoGeralSchema, pesquisa: queryPesquisaSchema, acelerato: querySustentacaoSchema, businessmap: queryFluxoSchema } as const;
+const queryDe = (id: MetricaId): ZodType => QUERY_POR_FONTE[fonteDaMetrica(id)];
 
 /** Itens do O2 ordenados por idade decrescente (desempate `cardId`); `tipos`, referências e contagens ficam do conjunto completo. */
 export function paginarO2(r: ResultadoO2, page = 1, pageSize?: number): ResultadoO2 & { itensMeta: { page: number; pageSize: number; total: number } } {

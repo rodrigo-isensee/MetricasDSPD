@@ -214,6 +214,11 @@ Contexto e posições (doc: `K036/02-definicao.md`, `03-ideacao.md`): coleta C2 
 
 Validação do protótipo do K-036 (`05-validacao.md`): o time aceita com estas decisões; o usuário confirma na entrega.
 
+### Adendo 2026-10-12 (I-2 do code review do K-036): reenvio e data de referência
+Contexto: a rota aceita `dataReferencia`. Com a regra "vale a carga recebida até a data", comparar o painel antes e depois de um reenvio revela, por subtração, as respostas de 1 ou 2 pessoas (a mesma fuga que a supressão complementar A10 fecha dentro de um ciclo). Opções levadas ao usuário no review: (a) vigente = sempre a mais recente; (b) publicar a substituída só se a diferença por grupo for 0 ou 3 ou mais; (c) aceitar o risco.
+
+Decisão do time (padrão restritivo e reversível, até o usuário decidir): **(a)**. A PV1 publica SEMPRE só a última carga vigente de cada trimestre (maior `cargaId`). A `dataReferencia` só decide se o trimestre já existia (alguma carga recebida até a data); nenhuma data devolve a carga substituída. A substituída continua guardada na base (nunca se sobrescreve histórico), mas não é publicada. Prova: teste de propriedade com até 2 reenvios (`regras.property.test.ts`, P7b) e teste sobre o mock (`pesquisa.test.ts`). Reverter: trocar `vigentes()` em `packages/metricas/src/pesquisa/pv1.ts` para (b) exige a regra de diferença por grupo e o aval do usuário. Registro de segurança: `docs/security/pesquisa-de-percepcao.md`.
+
 ## Consequências para o código
 
 | Decisão | O que exige | Agente |
