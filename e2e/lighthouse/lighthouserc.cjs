@@ -4,7 +4,7 @@
 const PORTA = process.env.LHCI_PORTA || '4175'; // porta própria para não colidir com o preview dos testes (4173/4174)
 const rotas = process.env.LHCI_ROTAS
   ? process.env.LHCI_ROTAS.split(',')
-  : ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel', '/preferencias', '/dados'];
+  : ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/preferencias', '/dados'];
 
 module.exports = {
   ci: {
