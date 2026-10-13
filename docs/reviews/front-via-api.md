@@ -116,3 +116,22 @@
 3. react-frontend: R1 a R4 (pequenos, podem ir num commit nesta branch ou em cartão logo após); R5 antes da D2.
 4. node-backend: R6 (com pergunta ao usuário, se o briefing for omisso), R8, R11(b). Jarvis: cartão de R7.
 5. software-architect: R12 e a numeração reservada em B1.
+
+## Rodada 2 — correções (react-frontend, 2026-10-13)
+B1 e B2 seguem fora (merge e QA). Situação dos recomendados:
+
+| Item | Situação |
+|---|---|
+| R1 | Corrigido. Aborto do Query durante a leitura do corpo propaga o `AbortError`; tempo-limite vira `TEMPO_ESGOTADO`; nenhum log falso (`HttpFonteMetricas.ts`, 3 testes novos). |
+| R2 | Corrigido. `TEMPO_ESGOTADO` distinto de `REDE_INDISPONIVEL`; tempo-limite injetável (`tempoLimiteMs`), testado. |
+| R3 | Corrigido. `opcoesFiltro` valida com o schema do domínio pedido, sem cast de schema; teste de domínio trocado. |
+| R4 | Corrigido. `VITE_API_BASE` só aceita caminho relativo (`baseDaApi`); URL absoluta ou `//host` falha na partida. |
+| R5 | Corrigido na tela: `CartaoO2` lê `itensMeta.total` e avisa ("Dispersão e lista mostram os N itens mais velhos de M em andamento."). Cartão restante: tabela e exportação paginadas. Texto a confirmar pelo UX na revisão. |
+| R6 | Texto unificado (especificação, notas da S7, data-model): "justificado = campo preenchido (não vazio)". **Pergunta aberta ao usuário:** texto só com espaços conta? O predicado único na biblioteca espera a resposta. |
+| R7 | Registrado no plano (seção 12) como cartão WS5 do coletor; o Jarvis lança no `KANBAN.md`. |
+| R8 | Teste novo no seed: nenhum critério do mock se perde na separação por fonte. |
+| R9 | Fica como cartão do QA (URL esperada em vez de `at(-1)`). |
+| R10 | Corrigido: a config da paridade falha sem `API_URL`. |
+| R11 | `com-api-mock.sh`: limpeza por conexão (driver `pg`), sem o nome do container, com aviso se falhar; recusa banco que não termine em `_test` no script e em `servidor-api-mock.ts`. |
+| R12 | Corrigido: plano sem `.strict()` nos resultados; compatibilidade registrada na ADR 0007. |
+| I2 (parte) | `data-request-id` no `EstadoErro` implementado (FA-005); a conferência de `X-Data-Referencia`/`X-Versao-Criterio` segue em cartão. |
