@@ -215,14 +215,17 @@ describe('painel Estratégico (mock)', () => {
   })
 })
 
-describe('Espera invisível do nível (K-042)', () => {
+describe('Espera invisível no painel (K-042)', () => {
   it('o Estratégico traz a seção com o cartão compacto EI-FL3', async () => {
     renderizarApp('/estrategico')
     const el = await cartao('EI-FL3')
     const secao = document.getElementById('espera-invisivel') as HTMLElement
     expect(secao).toContainElement(el)
     expect(
-      within(secao).getByRole('heading', { level: 2, name: /Espera invisível do nível/ }),
+      within(secao).getByRole('heading', {
+        level: 2,
+        name: /Quanto do tempo do solicitante fica fora da nossa gestão/,
+      }),
     ).toBeInTheDocument()
   })
 })
