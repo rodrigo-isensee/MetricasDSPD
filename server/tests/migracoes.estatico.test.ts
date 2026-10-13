@@ -11,10 +11,12 @@ const nomes = Object.keys(MIGRACOES);
 const ddls = nomes.map((n) => ({ n, ...MIGRACOES[n]!.ddl(S_PADRAO) }));
 const todoSql = ddls.flatMap((d) => d.up);
 
-/** Extrai (tabela, coluna, definição) de cada CREATE TABLE: separa por vírgula de nível 0 e ignora restrições. */
+/** Extrai (tabela, coluna, definição) de cada CREATE TABLE (e ALTER TABLE ... ADD COLUMN): separa por vírgula de nível 0 e ignora restrições. */
 function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: string }[] {
   const out: { tabela: string; coluna: string; def: string }[] = [];
   for (const s of sqls) {
+    const alt = /^ALTER TABLE\s+(\S+)\s+ADD COLUMN(?: IF NOT EXISTS)?\s+(\w+)\s+(.*)$/.exec(s);
+    if (alt) { out.push({ tabela: alt[1]!, coluna: alt[2]!, def: `${alt[2]} ${alt[3]}` }); continue; }
     const m = /^CREATE TABLE\s+(\S+)\s*\(/.exec(s);
     if (!m) continue;
     const corpo = s.slice(m.index + m[0].length, s.lastIndexOf(')'));
@@ -36,7 +38,7 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 395;
+const COLUNAS_FORA_STG_ESPERADAS = 397;
 
 describe('migrações e singleTransaction', () => {
   it('nenhuma migração usa CONCURRENTLY (incompatível com o `up` em transação única)', () => {
@@ -46,7 +48,8 @@ describe('migrações e singleTransaction', () => {
 
 describe('migrações (análise estática, sem banco)', () => {
   it('nomes NNNN_descricao, sequenciais, ordenados e iguais aos arquivos do diretório', () => {
-    nomes.forEach((n, i) => expect(n.startsWith(String(i + 1).padStart(4, '0') + '_')).toBe(true));
+    const numeros = nomes.map((n) => Number(n.slice(0, 4)));
+    numeros.forEach((x, i) => expect(x, nomes[i]).toBe(i + 1));
     expect([...nomes].sort()).toEqual(nomes);
     expect(arquivosDeMigracao()).toEqual(nomes);
   });
@@ -140,11 +143,12 @@ describe('migrações (análise estática, sem banco)', () => {
     const chamado = Object.keys(gerarBaseMock({ escala: 0.05 }).ac.chamados[0]!)
       .filter((k) => k !== 'justificativa_ajuste').map((k) => (k === 'tipo_fila' ? 'tipo' : k));
     chamado.push('etapa'); // etapa atual: extensão do data-model §4, fora da interface Chamado
+    chamado.push('justificativa_informada'); // 0014 (FA-003): só o indicador, fora de ATRIBUTOS_CHAMADO (0008/0009 imutáveis)
     chamado.sort();
     const cols = colunas.filter((c) => c.tabela === `${S_PADRAO.ac}.dim_chamado`).map((c) => c.coluna);
     expect(cols.filter((c) => !['chamado_id', 'coletado_em', 'atualizado_por_coleta_id', 'sistema_origem'].includes(c)).sort()).toEqual(
       chamado.filter((c) => c !== 'chamado_id'));
-    expect(ATRIBUTOS_CHAMADO.map(([n]) => n).sort()).toEqual(chamado.filter((c) => c !== 'chamado_id'));
+    expect(ATRIBUTOS_CHAMADO.map(([n]) => n).sort()).toEqual(chamado.filter((c) => c !== 'chamado_id' && c !== 'justificativa_informada'));
     expect(cols).not.toContain('justificativa_ajuste');
     expect(colunas.filter((c) => c.tabela === `${S_PADRAO.ac}.stg_chamado`).map((c) => c.coluna)).toContain('ausente_na_extracao');
   });

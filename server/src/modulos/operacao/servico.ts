@@ -22,8 +22,10 @@ export async function ultimaColetaOk(db: Consultavel, dominio: Dominio, S?: Esqu
   return fim === null ? null : isoLocal(fim.getTime());
 }
 
-/** Versões de critério (T2.6) das duas fontes, cada uma com as suas, em ordem de data (desempate por id). */
+/** Versões de critério (T2.6) das fontes e da pesquisa (PV1), cada uma com as suas, em ordem de data (desempate por id). */
 export async function criterios(db: Consultavel, S?: Esquemas): Promise<VersaoCriterio[]> {
-  const todas = [...(await lerVersoes(db, 'businessmap', S)), ...(await lerVersoes(db, 'acelerato', S))];
+  const todas = [
+    ...(await lerVersoes(db, 'businessmap', S)), ...(await lerVersoes(db, 'acelerato', S)), ...(await lerVersoes(db, 'pesquisa', S)),
+  ];
   return todas.sort((a, b) => a.data.localeCompare(b.data) || Number(a.id) - Number(b.id));
 }

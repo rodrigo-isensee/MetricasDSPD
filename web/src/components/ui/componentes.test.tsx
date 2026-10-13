@@ -8,6 +8,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react'
+import { ErroApi } from '../../data/http/ErroApi'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { MemoryRouter } from 'react-router'
@@ -540,6 +541,21 @@ describe('detalhes dos componentes de base', () => {
     render(<EstadoErro erro={null} />)
     expect(screen.getByTestId('estado-erro')).toBeInTheDocument()
     expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('EstadoErro expõe o código do ErroApi em data-erro-codigo e omite quando o erro não tem código', () => {
+    const { rerender } = render(
+      <EstadoErro codigo="O4" erro={new ErroApi(503, 'REFERENCIA_AUSENTE')} />,
+    )
+    expect(screen.getByTestId('estado-erro-O4')).toHaveAttribute(
+      'data-erro-codigo',
+      'REFERENCIA_AUSENTE',
+    )
+    expect(screen.getByTestId('estado-erro-O4')).not.toHaveAttribute('data-request-id')
+    rerender(<EstadoErro codigo="O4" erro={new ErroApi(500, 'INTERNAL_ERROR', 'req-12345678')} />)
+    expect(screen.getByTestId('estado-erro-O4')).toHaveAttribute('data-request-id', 'req-12345678')
+    rerender(<EstadoErro codigo="O4" erro={new Error('x')} />)
+    expect(screen.getByTestId('estado-erro-O4')).not.toHaveAttribute('data-erro-codigo')
   })
 
   it('AlternarTabela sem código não tem testid', () => {

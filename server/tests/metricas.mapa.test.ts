@@ -73,12 +73,12 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
   it('chamado, etapa e alvos do AC', () => {
     const l: LinhaChamado = {
       chamado_id: 'a1', natureza: 'incidente', equipe: 'SSSC TOTVS', organizacao: 'DSPD Sustentação', tipo: 'DSPD - SSSC', categoria_sistema: null,
-      excluido: false, status: 'Aberto', impacto: 'Alto', urgencia: 'Alta', prioridade: 'P1', prioridade_ajustada_manualmente: false, aberto_em: T,
+      excluido: false, status: 'Aberto', impacto: 'Alto', urgencia: 'Alta', prioridade: 'P1', prioridade_ajustada_manualmente: false, justificativa_informada: true, aberto_em: T,
       primeiro_atendimento_em: null, restaurado_em: T, data_finalizado: null, status_sla_r: null, status_sla_pa: null, motivo_escalacao: null,
       motivo_pendencia_atual: null, previsao_retorno: null, motivo_encerramento: null, avaliacao_problema: null, excecao_sla_registro_posterior: false,
       incidente_critico_coordenado: false, nivel_resolucao: null,
     };
-    expect(chamadoDe(l)).toMatchObject({ categoria_sistema: '', aberto_em: T.getTime(), restaurado_em: T.getTime(), primeiro_atendimento_em: null, justificativa_ajuste: null, tipo_fila: 'DSPD - SSSC' });
+    expect(chamadoDe(l)).toMatchObject({ categoria_sistema: '', aberto_em: T.getTime(), restaurado_em: T.getTime(), primeiro_atendimento_em: null, justificativa_ajuste: null, justificativa_informada: true, tipo_fila: 'DSPD - SSSC' });
     expect(etapaDe({ chamado_id: 'a1', etapa: 'Novo', entrada: T.getTime(), saida: null, motivo_pendencia: null })).toEqual({ chamado_id: 'a1', etapa: 'Novo', entrada: T.getTime(), saida: null, motivo_pendencia: null });
     const ac = montarBaseAC({ chamados: [l], etapas: [], alvos: [{ prioridade: 'P1', prazo_pa_horas_uteis: '0.25', prazo_r_horas_uteis: '4.00' }], criterios: [] });
     expect(ac.config.alvos).toEqual([{ prioridade: 'P1', primeiro_atendimento_horas: 0.25, restauracao_horas: 4 }]);

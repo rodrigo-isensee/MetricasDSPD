@@ -32,7 +32,7 @@ export type LinhaColuna = {
 export type LinhaChamado = {
   chamado_id: string; natureza: Texto; equipe: Texto; organizacao: Texto; tipo: Texto; categoria_sistema: Texto;
   excluido: boolean; status: Texto; impacto: Texto; urgencia: Texto; prioridade: Texto;
-  prioridade_ajustada_manualmente: boolean; aberto_em: Instante; primeiro_atendimento_em: Instante;
+  prioridade_ajustada_manualmente: boolean; justificativa_informada: boolean; aberto_em: Instante; primeiro_atendimento_em: Instante;
   restaurado_em: Instante; data_finalizado: Instante; status_sla_r: Texto; status_sla_pa: Texto;
   motivo_escalacao: Texto; motivo_pendencia_atual: Texto; previsao_retorno: Instante; motivo_encerramento: Texto;
   avaliacao_problema: Texto; excecao_sla_registro_posterior: boolean; incidente_critico_coordenado: boolean;
@@ -81,7 +81,7 @@ export const lerColunas = async (db: Consultavel, S: Esquemas = esquemasDoAmbien
 export const lerChamados = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaChamado[]> =>
   (await db.query<LinhaChamado>(
     `SELECT chamado_id, natureza, equipe, organizacao, tipo, categoria_sistema, excluido, status, impacto, urgencia,
-            prioridade, prioridade_ajustada_manualmente, aberto_em, primeiro_atendimento_em, restaurado_em,
+            prioridade, prioridade_ajustada_manualmente, justificativa_informada, aberto_em, primeiro_atendimento_em, restaurado_em,
             data_finalizado, status_sla_r, status_sla_pa, motivo_escalacao, motivo_pendencia_atual, previsao_retorno,
             motivo_encerramento, avaliacao_problema, excecao_sla_registro_posterior, incidente_critico_coordenado,
             nivel_resolucao

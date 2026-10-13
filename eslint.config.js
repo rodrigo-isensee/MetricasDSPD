@@ -117,6 +117,7 @@ export default tseslint.config(
       '**/dist',
       'server/**',
       '**/dist-alt',
+      '**/dist-api',
       '**/coverage',
       '**/node_modules',
       '**/*.config.js',

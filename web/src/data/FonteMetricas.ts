@@ -10,14 +10,20 @@ import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
 
 /**
  * Fronteira entre a interface e os dados. A UI só conhece esta interface e os DTOs de `contracts/`.
- * Hoje a implementação é `MockFonteMetricas`; amanhã, uma `HttpFonteMetricas` (GET /api/v1/metricas/:id).
+ * Hoje a implementação é `MockFonteMetricas`; `HttpFonteMetricas` (GET /api/v1/metricas/:id), escolhida por `VITE_FONTE`.
  */
+/** Opções de uma chamada: `signal` é o `AbortSignal` do React Query (a fonte mock o ignora). */
+export interface OpcoesObter {
+  signal?: AbortSignal
+}
+
 export interface FonteMetricas {
   /** 'mock' liga o aviso permanente de dados fictícios. */
   readonly tipo: 'mock' | 'api'
   obter<K extends MetricaId>(
     id: K,
     filtros: ContratoMetricas[K]['filtros'],
+    opcoes?: OpcoesObter,
   ): Promise<ResultadoDe<K>>
   opcoesFiltro<D extends Dominio>(dominio: D): Promise<Extract<OpcoesFiltro, { dominio: D }>>
   /** Mudanças de critério de cálculo registradas (T2.6), de todos os domínios. */

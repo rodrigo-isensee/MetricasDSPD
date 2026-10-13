@@ -18,6 +18,8 @@ export const COLUNAS_PESSOA: readonly string[] = [
 export const EXCECOES_PESSOA: Readonly<Record<string, string>> = {
   'dspd_bm.dim_card.area_solicitante': 'área organizacional (briefing 4.5), não pessoa',
   'dspd_bm.dim_card_versao.area_solicitante': 'área organizacional (briefing 4.5), não pessoa',
+  'dspd_ac.dim_chamado.justificativa_informada': 'indicador booleano derivado (FA-003); o texto livre nunca é gravado',
+  'dspd_ac.dim_chamado_versao.justificativa_informada': 'indicador booleano derivado (FA-003); o texto livre nunca é gravado',
 };
 
 export const segmentos = (coluna: string): string[] => coluna.split('_').filter(Boolean);

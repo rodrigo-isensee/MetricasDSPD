@@ -13,6 +13,7 @@
     "size": "node scripts/size.mjs",
     "typecheck": "tsc -b",
     "test": "TZ=UTC vitest run",
+    "test:paridade": "vitest run --config vitest.paridade.config.ts",
     "test:watch": "TZ=UTC vitest",
     "check": "pnpm run typecheck && npm test",
     "cobertura": "TZ=UTC vitest run --coverage",

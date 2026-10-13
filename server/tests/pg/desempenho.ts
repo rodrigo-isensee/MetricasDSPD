@@ -11,7 +11,6 @@ import { montarEsquemas, prefixoDeTeste } from '../../src/plataforma/db/esquemas
 import { migrar } from '../../src/plataforma/db/migrar.js';
 import { semear } from '../../src/plataforma/db/seed.js';
 import { criarPool, urlDoPapel } from '../../src/plataforma/db/pool.js';
-import { semearReferencia } from './referencia.js';
 
 const url = process.env.PG_TESTE_URL!;
 const ESCALA = Number(process.env.DESEMPENHO_ESCALA ?? 5);
@@ -32,7 +31,6 @@ const base = gerarBaseMock({ escala: ESCALA, mesesHistorico: 24 });
 console.log(`volume: ${base.bm.cards.length} cards, ${base.bm.transicoes.length} transições, ${base.bm.bloqueios.length} bloqueios | ${base.ac.chamados.length} chamados, ${base.ac.etapas.length} etapas`);
 const t0 = performance.now();
 await semear(mig, base, E);
-await semearReferencia(mig, E, base);
 await mig.query('ANALYZE');
 console.log(`seed: ${((performance.now() - t0) / 1000).toFixed(0)} s`);
 const api = criarPool(urlDoPapel(url, 'dspd_api', process.env.DSPD_PWD_API ?? 'api_dev'), { max: 4 });

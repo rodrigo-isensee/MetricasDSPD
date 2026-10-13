@@ -24,6 +24,7 @@ import {
   estatisticaSchema,
   faixaHistogramaSchema,
   intervaloSchema,
+  janelaCalculoSchema,
   janelaSchema,
   marcacaoCriterioSchema,
   percentisComMediaSchema,
@@ -156,7 +157,7 @@ export const resultadoO3 = z.object({
         atual: z.number().nullable(),
         anterior: z.number().nullable(),
         variacaoPct: z.number().nullable(),
-        janelaAnterior: intervaloSchema,
+        janelaAnterior: janelaCalculoSchema,
       }),
     }),
   ),
@@ -172,7 +173,7 @@ export const resultadoO4 = z.object({
       porTipo: z.array(z.object({ tipo, itens: z.number() })),
     }),
   ),
-  janelaFaixa: intervaloSchema,
+  janelaFaixa: janelaCalculoSchema,
   faixa: estatisticaSchema(z.object({ min: z.number(), max: z.number(), mediana: z.number() })),
 })
 

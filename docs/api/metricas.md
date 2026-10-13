@@ -44,6 +44,8 @@ Corpo = `ResultadoDe<id>` (schema em `SCHEMAS_RESULTADO[id]`), sem envelope. Met
 
 Os critérios (T2.6) aparecem no corpo em `criterios: { serie, janela }` (marcações da métrica), como no DTO.
 
+Janela do cálculo (`base.janela`, `estatistica.janela`, `previsao.janela`, `janelaFaixa`, `janelaAnterior`): `{ inicio, fim }` e, quando vem de janela móvel, `unidade` (`semanas` ou `meses`) e `quantidade` (número), opcionais no contrato; a biblioteca sempre os emite (acréscimo compatível, FA-004). Os schemas de resultado seguem sem `.strict()` de propósito: campo novo da API não pode derrubar um front mais antigo; o teste de paridade (`web/paridade`) compara o corpo bruto e acusa campo que some ou aparece.
+
 ### Paginação do O2
 `GET /metricas/O2?page=1&pageSize=50` pagina somente `itens` (padrão 50, máx. 200, ordenados por `idadeDiasUteis` decrescente, desempate `cardId`). `tipos`, referências e contagens são sempre do conjunto completo. Meta no corpo: `itensMeta: { page, pageSize, total }`. [Diverge do `{ data, meta }` padrão por manter o DTO existente; o front hoje recebe todos os itens, então `page` ausente = todos até o máximo de 200 e `total` informa o resto.] Outras métricas ignoram `page`.
 

@@ -1,6 +1,6 @@
 # Contrato da métrica EI_SUST
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica EI_SUST. Público: time (back-end, front-end, QA). Revisão: 2026-10-11.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica EI_SUST. Público: time (back-end, front-end, QA). Revisão: 2026-10-13.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -58,7 +58,12 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.EI_SUST`); a fotografia versionada
           "anyOf": [
             {
               "type": "object",
-              "properties": {"inicio":{"type":"string"},"fim":{"type":"string"}},
+              "properties": {
+                "inicio": {"type":"string"},
+                "fim": {"type":"string"},
+                "unidade": {"type":"string","enum":["semanas","meses"]},
+                "quantidade": {"type":"number"}
+              },
               "required": ["inicio","fim"],
               "additionalProperties": false
             },
@@ -144,7 +149,12 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.EI_SUST`); a fotografia versionada
                   },
                   "janela": {
                     "type": "object",
-                    "properties": {"inicio":{"type":"string"},"fim":{"type":"string"}},
+                    "properties": {
+                      "inicio": {"type":"string"},
+                      "fim": {"type":"string"},
+                      "unidade": {"type":"string","enum":["semanas","meses"]},
+                      "quantidade": {"type":"number"}
+                    },
                     "required": ["inicio","fim"],
                     "additionalProperties": false
                   }
@@ -160,7 +170,12 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.EI_SUST`); a fotografia versionada
                   "minimo": {"type":"number","const":20},
                   "janela": {
                     "type": "object",
-                    "properties": {"inicio":{"type":"string"},"fim":{"type":"string"}},
+                    "properties": {
+                      "inicio": {"type":"string"},
+                      "fim": {"type":"string"},
+                      "unidade": {"type":"string","enum":["semanas","meses"]},
+                      "quantidade": {"type":"number"}
+                    },
                     "required": ["inicio","fim"],
                     "additionalProperties": false
                   }
