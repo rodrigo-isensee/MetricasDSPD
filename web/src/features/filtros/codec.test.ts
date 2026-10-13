@@ -53,7 +53,7 @@ describe('leitura dos filtros de fluxo', () => {
     expect(lerFluxo(P(''), opcoes, '12s').filtros.periodo).toEqual({ tipo: '12s' })
     expect(lerFluxo(P('periodo=4s'), opcoes, '12s').filtros.periodo).toEqual({ tipo: '4s' })
     const so12 = { periodos: ['6m', '12m'] as const, personalizado: false }
-    expect(lerFluxo(P('periodo=4s'), opcoes, '12m', so12).filtros.periodo).toEqual({
+    expect(lerFluxo(P('periodo=4s'), opcoes, '12m', '', so12).filtros.periodo).toEqual({
       tipo: '12m',
     })
     const custom = P('periodo=custom&de=2026-03-01&ate=2026-04-01')
@@ -62,7 +62,7 @@ describe('leitura dos filtros de fluxo', () => {
       de: '2026-03-01',
       ate: '2026-04-01',
     })
-    expect(lerFluxo(custom, opcoes, '12m', so12).filtros.periodo).toEqual({ tipo: '12m' })
+    expect(lerFluxo(custom, opcoes, '12m', '', so12).filtros.periodo).toEqual({ tipo: '12m' })
     const ruim = lerFluxo(P('periodo=custom&de=2026-04-01&ate=2026-03-01'), opcoes, '12s')
     expect(ruim.filtros.periodo).toEqual({ tipo: '12s' })
     expect(ruim.invalidos).toEqual(['período personalizado'])
@@ -79,6 +79,11 @@ describe('leitura dos filtros de fluxo', () => {
     expect(lerFluxo(P('periodo=custom&de=2026-03-01'), undefined, '12s').invalidos).toEqual([
       'período personalizado',
     ])
+  })
+
+  it('lê só os parâmetros com o prefixo indicado', () => {
+    const r = lerFluxo(P('sust_equipe=a&equipe=b'), opcoes, '12s', 'sust_')
+    expect(r.filtros.equipe).toEqual(['a'])
   })
 })
 
@@ -97,10 +102,13 @@ describe('leitura e escrita da sustentação', () => {
     expect(p.get('s3')).toBe('prop')
   })
 
-  it('período padrão e listas vazias saem da URL', () => {
+  it('período padrão e listas vazias saem da URL; com prefixo, só mexe no prefixo', () => {
     const f: FiltrosSustentacao = { equipe: [], prioridade: [], periodo: { tipo: '6m' } }
     const p = escreverSustentacao(P('equipe=fluig&periodo=4s&de=x&ate=y'), f, '6m')
     expect(p.toString()).toBe('')
+    const q = escreverSustentacao(P('equipe=fluig'), { ...f, equipe: ['senior'] }, '6m', 'sust_')
+    expect(q.get('equipe')).toBe('fluig')
+    expect(q.get('sust_equipe')).toBe('senior')
   })
 })
 

@@ -108,10 +108,11 @@ export function filtrosDoNivel(
       aqui ? params : new URLSearchParams(),
       opcoes,
       config.periodoPadrao,
+      '',
       restricao,
     ).filtros
   const origem = aqui ? params : new URLSearchParams(Object.entries(memoria))
-  const f = lerFluxo(origem, opcoes, config.periodoPadrao, restricao).filtros
+  const f = lerFluxo(origem, opcoes, config.periodoPadrao, '', restricao).filtros
   return {
     ...f,
     equipe: config.filtros.includes('equipe') ? f.equipe : [],

@@ -42,7 +42,7 @@ Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite en
 
 ## Cartões que usam a métrica
 
-- Painel `operacional`, seção `tempo`: Espera invisível · Operacional (`ei-fl1`).
+- Painel `operacional`, seção `espera-invisivel`: Espera invisível · Operacional (`ei-fl1`).
 
 ## Schema do resultado
 

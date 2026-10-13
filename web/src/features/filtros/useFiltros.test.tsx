@@ -6,7 +6,11 @@ import { Provedores } from '@/app/App'
 import { fonteDeTeste } from '@/test/helpers'
 import { useFiltros } from './useFiltros'
 
-function montar<P extends 'operacional' | 'estrategico' | 'sustentacao'>(painel: P, url: string) {
+function montar<P extends 'operacional' | 'estrategico' | 'sustentacao'>(
+  painel: P,
+  url: string,
+  prefixo?: string,
+) {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <Provedores fonte={fonteDeTeste}>
       <MemoryRouter initialEntries={[url]}>{children}</MemoryRouter>
@@ -14,7 +18,7 @@ function montar<P extends 'operacional' | 'estrategico' | 'sustentacao'>(painel:
   )
   return renderHook(
     () => ({
-      uso: useFiltros(painel as 'operacional'),
+      uso: useFiltros(painel as 'operacional', prefixo ? { prefixo } : undefined),
       loc: useLocation(),
     }),
     { wrapper },
@@ -112,6 +116,16 @@ describe('useFiltros: definir, limpar e normalização da URL', () => {
     const r = montar('operacional', '/operacional?periodo=custom&de=2026-03-01&ate=2026-04-01')
     await aguardarOpcoes(r)
     expect(r.result.current.uso.chips.map((c) => c.valor)).toEqual(['01/03/2026 a 01/04/2026'])
+  })
+
+  it('com prefixo, lê e escreve só os parâmetros do prefixo e não normaliza o resto', async () => {
+    const r = montar('operacional', '/operacional?sust_equipe=fluig&equipe=xyz', 'sust_')
+    await aguardarOpcoes(r)
+    expect(r.result.current.uso.filtros.equipe).toEqual(['fluig'])
+    act(() => r.result.current.uso.definir({ equipe: ['senior'] }))
+    expect(r.result.current.loc.search).toContain('sust_equipe=senior')
+    expect(r.result.current.loc.search).toContain('equipe=xyz')
+    expect(r.result.current.uso.guardadosNaoAplicaveis).toEqual([])
   })
 
   it('sem opções carregadas, o chip mostra o id da equipe', () => {

@@ -37,7 +37,8 @@ test.describe('redirecionamento da rota antiga (critério 2)', () => {
       const url = new URL(page.url())
       expect(url.hash).toBe(`#${cartao.toLowerCase()}`)
       for (const t of trechos) expect(url.search.toLowerCase()).toContain(t.toLowerCase())
-      if (rota === '/estrategico') expect(url.search).not.toMatch(/equipe|tipo/)
+      // O painel normaliza (replace) depois de carregar as opções: espera a URL assentar.
+      if (rota === '/estrategico') await expect.poll(() => new URL(page.url()).search).not.toMatch(/equipe|tipo/)
       if (rota === '/sustentacao') {
         expect(url.search).not.toContain('sust_')
         expect(url.search).not.toContain('equipe')
@@ -71,6 +72,7 @@ for (const tela of TELAS) {
 
     test('menu sem "Espera invisível" (critério 1)', async ({ page }) => {
       await page.goto('/')
+      if (tela.width < 1024) await page.getByTestId('abrir-menu').click()
       const nav = page.getByRole('navigation', { name: 'Navegação principal' }).first()
       await expect(nav).toBeAttached()
       await expect(page.getByRole('link', { name: 'Espera invisível', exact: true }).filter({ visible: true })).toHaveCount(0)
@@ -86,7 +88,7 @@ for (const tela of TELAS) {
         await expect(secao.getByRole('heading', { level: 2, name: TITULO })).toBeVisible()
         await expect(page.locator('[data-testid^="metrica-EI-"]')).toHaveCount(1)
 
-        const botao = cartao.getByRole('button', { name: `Ver evolução mensal, ${nivel}` })
+        const botao = cartao.getByRole('button', { name: new RegExp(`evolução mensal, ${nivel}$`) })
         if (codigo === 'EI-FL3') {
           // Estratégico: amostra insuficiente no mock, sem série publicável, sem botão.
           await expect(cartao.getByRole('button', { name: /evolução mensal/ })).toHaveCount(0)
@@ -94,7 +96,8 @@ for (const tela of TELAS) {
           await expect(botao).toHaveAttribute('aria-expanded', 'false')
           await botao.scrollIntoViewIfNeeded()
           const alvo = await botao.boundingBox()
-          expect(alvo!.height).toBeGreaterThanOrEqual(44 - 1)
+          // 44px no celular (375); no desktop vale o piso de 24px do sistema de design.
+          expect(alvo!.height).toBeGreaterThanOrEqual((tela.width < 768 ? 44 : 24) - 1)
           const antes = page.url()
           await botao.click()
           await expect(botao).toHaveAttribute('aria-expanded', 'true')
@@ -103,7 +106,7 @@ for (const tela of TELAS) {
           expect(await semRolagemHorizontal(page)).toBe(true)
           const r = await rodarAxe(page)
           expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
-          await cartao.getByRole('tab').first().focus()
+          await cartao.getByTestId(/^ei-evolucao-/).click({ position: { x: 2, y: 2 } })
           await page.keyboard.press('Escape')
           await expect(botao).toHaveAttribute('aria-expanded', 'false')
           await expect(botao).toBeFocused()

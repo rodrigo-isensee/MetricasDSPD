@@ -108,3 +108,9 @@ Nenhuma nova: os mesmos `EI_FL1`, `EI_FL2`, `EI_FL3`, `EI_SUST` (série mensal p
 
 ## Decisões que só o usuário toma
 - Nenhuma bloqueante. Premissas a confirmar (hipóteses): (a) EI fica fora da visão diária do Operacional; (b) link sem hash cai na Visão geral; (c) a evolução mensal fica atrás de um botão (não aberta por padrão), coerente com a recomendação U3(c) de não alongar o painel semanal.
+
+## Registro da implementação (feature/espera-invisivel-nos-paineis)
+- Feito: cartão com evolução mensal por botão, seção `espera-invisivel` nos quatro painéis, rota antiga só redireciona (por hash, com `replace`), menu, Visão geral, catálogo (4 linhas), filtros, exportação, preferências e testes E2E (axe, 375 e 1280).
+- Ajuste pedido depois: o mecanismo de prefixo `sust_` (`lerFluxo`, `lerSustentacao`, `escreverFluxo`, `escreverSustentacao`, `useFiltros(..., { prefixo })`) foi restaurado, porque a demanda `sustentacao-no-operacional` põe os dois conjuntos de filtros na mesma URL. Nesta demanda o painel `/sustentacao` continua sem prefixo, e o redirecionador da rota antiga tira o `sust_` ao levar para `/sustentacao` (critério 2); a demanda seguinte passa `sust_*` intactos para `/operacional?cadencia=sustentacao`.
+- E2E: o alvo do botão de evolução exige 44px só em 375 (no desktop vale o piso de 24px do sistema); o teste do menu em 375 abre o menu antes; o foco de Esc parte do gráfico (o Tático não tem abas).
+- Critérios atendidos: 1 a 12. Verificação: `pnpm run pronto` verde (cobertura 100%) e `espera-invisivel-nos-paineis.spec.ts` (23), mais `a11y`, `filtros`, `exportar`, `responsivo` e `b3-sust-ei-vg` verdes.
