@@ -87,7 +87,7 @@ describe('FiltroMulti', () => {
     await userEvent.click(screen.getByLabelText('Beta'))
     expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], false)
     await userEvent.click(screen.getByLabelText('Alfa'))
-    expect(onChange).toHaveBeenLastCalledWith([], true)
+    expect(onChange).toHaveBeenLastCalledWith(['b'], true)
     await userEvent.click(screen.getByRole('button', { name: 'Limpar' }))
     expect(onChange).toHaveBeenLastCalledWith([], true)
     await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
@@ -116,7 +116,39 @@ describe('FiltroMulti', () => {
     await userEvent.click(within(bloco).getByLabelText('Alfa'))
     expect(onChange).toHaveBeenLastCalledWith(['a'], false)
     await userEvent.click(within(bloco).getByLabelText('Beta'))
-    expect(onChange).toHaveBeenLastCalledWith(['b'], true)
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], true)
+  })
+
+  it('cliques em sequência acumulam mesmo que a prop selecionados ainda não tenha atualizado (bug 004)', async () => {
+    const onChange = vi.fn()
+    const { rerender } = render(
+      <FiltroMulti
+        id="x"
+        rotulo="Equipe"
+        variante="lista"
+        opcoes={opcoes}
+        selecionados={[]}
+        onChange={onChange}
+      />,
+    )
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    await userEvent.click(screen.getByLabelText('Beta'))
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], true)
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    expect(onChange).toHaveBeenLastCalledWith(['b', 'a'], true)
+    // Mudança externa (chip removido, Limpar) volta a mandar na seleção.
+    rerender(
+      <FiltroMulti
+        id="x"
+        rotulo="Equipe"
+        variante="lista"
+        opcoes={opcoes}
+        selecionados={['b']}
+        onChange={onChange}
+      />,
+    )
+    await userEvent.click(screen.getByLabelText('Beta'))
+    expect(onChange).toHaveBeenLastCalledWith([], true)
   })
 })
 
