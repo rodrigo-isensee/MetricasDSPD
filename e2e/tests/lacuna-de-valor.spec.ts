@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test'
 
 // QA lacuna-de-valor (K-036, PV1): seção "Percepção de valor" no fim da Sustentação, dados fictícios.
 // Plano: docs/qa/lacuna-de-valor.md. Valores esperados vêm do cenário fixo do mock (2026-T3: n=24, áreas 5,4,4,3,3,2,2,1).
-// LV-11 e LV-12 seguem em test.fixme: precisam da rota PV1 no server (B3) para simular o estado. O resto roda contra o mock do front.
+// LV-11 e LV-12 forçam os estados com ?mock=pesquisa:sem e ?mock=pesquisa:insuficiente. Tudo roda contra o mock do front.
 // data-testid do cartão (F1/F2): metrica-PV1, por-area, n-grupo (h5 = nome da área), tendencia, ponto-trimestre, quebra-serie, o-que-mudou.
 
 const CHAVE = 'metricas-dspd:preferencias:v1'
@@ -155,25 +155,27 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
     await expect(page.getByTestId('leia-junto-s1').getByRole('link', { name: /PV1/ })).toHaveCount(0)
   })
 
-  test.fixme('LV-11 CT-21 sem pesquisa: mensagem orientando a carga, sem botão de upload (aguarda F1 e B3 para simular a rota)', async ({ page, painel }) => {
-    await page.route('**/api/v1/metricas/PV1*', (r) =>
-      r.fulfill({ json: { status: 'sem-pesquisa', fonte: 'pesquisa' } }),
-    )
-    await painel.ir('/sustentacao')
+  // Estados forçados pelo parâmetro oculto ?mock= (pesquisa:sem, pesquisa:insuficiente): o mock é em memória, não há rota para interceptar.
+  test('LV-11 CT-21 sem pesquisa: mensagem orientando a carga, sem botão de upload', async ({ page, painel }) => {
+    await painel.ir('/sustentacao', { mock: 'pesquisa:sem' })
+    await painel.esperarCartoesProntos()
     const cartao = page.getByTestId('metrica-PV1')
     await expect(cartao.getByText(/Nenhuma pesquisa carregada/)).toBeVisible()
-    await expect(cartao.getByRole('button')).toHaveCount(0)
+    // Os botões que sobram são do cartão ("Como ler", "Ocultar"); nada de carga/envio de arquivo no web.
+    await expect(cartao.getByRole('button', { name: /carregar|enviar|upload|importar|anexar|arquivo/i })).toHaveCount(0)
+    await expect(cartao.locator('input[type="file"]')).toHaveCount(0)
   })
 
-  test.fixme('LV-12 CT-05 base insuficiente: só o total de respostas, sem faixas nem percentual (U2, aguarda F1 e B3)', async ({ page, painel }) => {
-    await page.route('**/api/v1/metricas/PV1*', (r) =>
-      r.fulfill({ json: null }), // substituir por fixture do schema com consolidado { status: 'base-insuficiente', n: 4, minimo: 5 }
-    )
-    await painel.ir('/sustentacao')
+  test('LV-12 CT-05 base insuficiente: só o total de respostas, sem faixas nem percentual (U2)', async ({ page, painel }) => {
+    await painel.ir('/sustentacao', { mock: 'pesquisa:insuficiente' })
+    await painel.esperarCartoesProntos()
     const cartao = page.getByTestId('metrica-PV1')
-    await expect(cartao.getByText('Base insuficiente: 4 respostas. Mínimo 5 para publicar.')).toBeVisible()
-    await expect(cartao.getByText('Concordo totalmente')).toHaveCount(0)
-    await expect(cartao.getByText('%')).toHaveCount(0)
+    await expect(cartao.getByText('Base insuficiente: 4 respostas. Mínimo 5 para publicar.').first()).toBeVisible()
+    const distribuicao = cartao.getByRole('region', { name: /Distribuição das respostas por pergunta/ })
+    await expect(distribuicao.getByText('Concordo totalmente')).toHaveCount(0)
+    await expect(distribuicao.getByText('%')).toHaveCount(0)
+    await expect(cartao.getByTestId('legenda-faixas')).toHaveCount(0)
+    await expect(cartao.getByTestId('pv1-participacao')).not.toContainText('%')
   })
 
   test('LV-13 CT-23 teclado: Tab atravessa a seção sem armadilha e a tabela equivalente é alcançável', async ({ page, painel }) => {

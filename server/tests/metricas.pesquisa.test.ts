@@ -31,8 +31,14 @@ describe('PV1 (pesquisa de percepção)', () => {
     expect(r.headers['x-data-referencia']).toBe('2026-10-10');
     expect(tocouBmOuAc(d)).toBe(false);
     expect(r.headers['cache-control']).toBe('private, max-age=60');
-    const r2 = await app.inject({ method: 'GET', url: '/api/v1/metricas/PV1', headers: { 'if-none-match': r.headers.etag as string } });
+    const etag = r.headers.etag as string;
+    expect(etag).toMatch(/^"?W?\/?.+"?$/);
+    const r2 = await app.inject({ method: 'GET', url: '/api/v1/metricas/PV1', headers: { 'if-none-match': etag } });
     expect(r2.statusCode).toBe(304);
+    expect(r2.body).toBe('');
+    expect(r2.headers.etag).toBe(etag);
+    const r3 = await app.inject({ method: 'GET', url: '/api/v1/metricas/PV1', headers: { 'if-none-match': '"outro"' } });
+    expect(r3.statusCode).toBe(200);
   });
 
   it('rota: só dataReferencia; qualquer outro parâmetro é 400 e data futura também', async () => {

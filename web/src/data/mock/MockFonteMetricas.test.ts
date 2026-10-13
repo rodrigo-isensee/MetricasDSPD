@@ -117,6 +117,32 @@ describe('parâmetro oculto ?mock=', () => {
     const ids = (await fonte.criterios()).map((c) => c.id)
     expect(ids).toContain('pesquisa-q-v2')
   })
+  it('modos pesquisa:sem e pesquisa:insuficiente simulam os dois estados da PV1 e só dela', async () => {
+    expect(lerModoMock('Pesquisa:Sem')).toBe('pesquisa:sem')
+    expect(lerModoMock('pesquisa:outro')).toBeNull()
+    const obter = (f: Record<string, never>) => fonte.obter('PV1', f)
+    await expect(aplicarSimulacao('pesquisa:sem', 'PV1', {}, obter)).resolves.toEqual({
+      status: 'sem-pesquisa',
+      fonte: 'pesquisa',
+    })
+    const r = await aplicarSimulacao('pesquisa:insuficiente', 'PV1', {}, obter)
+    expect(SCHEMAS_RESULTADO.PV1.safeParse(r).success).toBe(true)
+    expect(r).toMatchObject({
+      status: 'ok',
+      consolidado: { status: 'base-insuficiente', n: 4, minimo: 5 },
+    })
+    // Sem pesquisa na origem, o modo insuficiente não inventa dados.
+    const antes = new MockFonteMetricas({ latenciaMs: 0, hoje: '2025-07-09T18:00:00-03:00' })
+    await expect(
+      aplicarSimulacao('pesquisa:insuficiente', 'PV1', {}, (f: Record<string, never>) =>
+        antes.obter('PV1', f),
+      ),
+    ).resolves.toEqual({ status: 'sem-pesquisa', fonte: 'pesquisa' })
+    const outra = await aplicarSimulacao('pesquisa:sem', 'S1', sust({ tipo: '6m' }), (x) =>
+      fonte.obter('S1', x),
+    )
+    expect(outra).toEqual(await fonte.obter('S1', sust({ tipo: '6m' })))
+  })
   it('PV1 antes da primeira carga (2025-07-10) devolve o estado sem-pesquisa', async () => {
     const antes = new MockFonteMetricas({ latenciaMs: 0, hoje: '2025-07-09T18:00:00-03:00' })
     await expect(antes.obter('PV1', {})).resolves.toEqual({
