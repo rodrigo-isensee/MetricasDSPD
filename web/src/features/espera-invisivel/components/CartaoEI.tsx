@@ -109,8 +109,8 @@ export function CartaoEI({ nivel, q, aplicaveis, periodo, className }: Props) {
   useEffect(() => {
     if (!aberta) return undefined
     const fechar = (e: KeyboardEvent) => {
-      const cartao = document.getElementById(`ei-${sufixo}`) as HTMLElement
-      if (e.key !== 'Escape' || !cartao.contains(document.activeElement)) return
+      const cartao = document.getElementById(`ei-${sufixo}`)
+      if (e.key !== 'Escape' || !cartao?.contains(document.activeElement)) return
       setAberta(false)
       botaoRef.current?.focus()
     }
@@ -195,7 +195,7 @@ export function CartaoEI({ nivel, q, aplicaveis, periodo, className }: Props) {
             type="button"
             ref={botaoRef}
             aria-expanded={aberta}
-            aria-controls={idEvolucao}
+            aria-controls={aberta ? idEvolucao : undefined}
             aria-label={`${aberta ? 'Esconder' : 'Ver'} evolução mensal, ${cfg.rotulo}`}
             onClick={() => setAberta((v) => !v)}
             className="alvo w-fit text-sm text-acento underline"

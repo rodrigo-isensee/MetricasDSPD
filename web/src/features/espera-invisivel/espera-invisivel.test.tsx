@@ -1,7 +1,8 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { renderizarApp } from '@/test/helpers'
+import { CartaoEI } from './components/CartaoEI'
+import { fonteDeTeste, renderizarApp, renderizarCartao } from '@/test/helpers'
 
 const URL_DO: Record<string, string> = {
   'EI-FL1': '/operacional?cadencia=semanal',
@@ -124,15 +125,38 @@ describe('Espera invisível por nível, segmentada', () => {
     expect(within(el).queryByTestId(/^ei-evolucao-/)).toBeNull()
     await userEvent.click(botao)
     ;(within(el).getAllByRole('tab')[0] as HTMLElement).focus()
-    await userEvent.keyboard('a')
-    expect(botao).toHaveAttribute('aria-expanded', 'true')
-    ;(document.activeElement as HTMLElement).blur()
-    await userEvent.keyboard('{Escape}')
-    expect(botao).toHaveAttribute('aria-expanded', 'true')
-    ;(within(el).getAllByRole('tab')[0] as HTMLElement).focus()
     await userEvent.keyboard('{Escape}')
     expect(botao).toHaveAttribute('aria-expanded', 'false')
     expect(botao).toHaveFocus()
+  })
+
+  it('Esc com o foco fora do cartão não fecha o gráfico', async () => {
+    const { el } = await pronto('EI-FL1')
+    const botao = within(el).getByRole('button', { name: 'Ver evolução mensal, Operacional' })
+    await userEvent.click(botao)
+    ;(document.activeElement as HTMLElement).blur()
+    await userEvent.keyboard('{Escape}')
+    expect(botao).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('aria-controls só existe com o gráfico aberto (nunca aponta para id ausente)', async () => {
+    const { el } = await pronto('EI-FL1')
+    const botao = within(el).getByRole('button', { name: 'Ver evolução mensal, Operacional' })
+    expect(botao).not.toHaveAttribute('aria-controls')
+    await userEvent.click(botao)
+    expect(botao).toHaveAttribute('aria-controls')
+    await userEvent.click(botao)
+    expect(botao).not.toHaveAttribute('aria-controls')
+  })
+
+  it('Sustentação: o gráfico abre e a tabela equivalente acompanha o cartão', async () => {
+    const { el } = await pronto('EI-SUST', '/sustentacao?ei_sust=p3')
+    await userEvent.click(
+      within(el).getByRole('button', { name: 'Ver evolução mensal, Sustentação' }),
+    )
+    expect(within(el).getByTestId('ei-evolucao-sust-p3')).toBeInTheDocument()
+    await userEvent.click(within(el).getByRole('button', { name: /tabela/i }))
+    expect(within(el).getByTestId('tabela-EI-SUST-evolucao')).toBeInTheDocument()
   })
 
   it('FL2 (sem abas) também abre a evolução mensal no cartão', async () => {
@@ -153,5 +177,35 @@ describe('Espera invisível por nível, segmentada', () => {
     await userEvent.click(within(el).getByRole('tab', { name: /Requisição/ }))
     expect(roteador.state.location.search).toContain('ei_fl1=requisicao')
     expect(grafico().getAttribute('data-testid')).toBe('ei-evolucao-fl1-requisicao')
+  })
+
+  it('Estratégico: com série publicável, o gráfico abre, fecha e devolve o foco (o mock do FL3 tem amostra insuficiente)', async () => {
+    const dados = await fonteDeTeste.obter('EI_FL1', {
+      equipe: [],
+      tipo: [],
+      sistema: [],
+      periodo: { tipo: '12m' },
+    })
+    renderizarCartao(
+      <CartaoEI
+        nivel="FL3"
+        periodo={{ tipo: '12m' }}
+        q={{
+          estado: 'ok',
+          dados: { ...dados, nivel: 'FL3' },
+          erro: null,
+          atualizando: false,
+          recarregar: () => undefined,
+        }}
+      />,
+    )
+    const botao = await screen.findByRole('button', { name: 'Ver evolução mensal, Estratégico' })
+    await userEvent.click(botao)
+    expect(screen.getByTestId(/^ei-evolucao-/)).toBeInTheDocument()
+    expect(botao).toHaveAttribute('aria-expanded', 'true')
+    ;(screen.getAllByRole('tab')[0] as HTMLElement).focus()
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByTestId(/^ei-evolucao-/)).toBeNull()
+    expect(botao).toHaveFocus()
   })
 })
