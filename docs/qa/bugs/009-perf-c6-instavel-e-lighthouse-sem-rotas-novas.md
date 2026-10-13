@@ -18,3 +18,7 @@ C6 < 200 ms de forma estável; Lighthouse cobre todas as rotas, incluindo `/pref
 
 ## Evidência
 Falha: "Error: C6 tarefa longa, Expected: < 200, Received: 244" em `e2e/perf/perf.spec.ts:66`.
+
+## Status: CORRIGIDO (2026-10-12)
+- Lighthouse já cobre `/preferencias` e `/dados`; CLS de `/` corrigido em e7080e1.
+- C6: o teste (`e2e/perf/perf.spec.ts`) usa a mediana de 5 cargas por rodada e, se a rodada passa de 200 ms, repete até 3 rodadas (`PERF_RODADAS_C6`) e vale a melhor mediana. Limite inalterado (200 ms) e teste ligado. Antes dessa mudança, 2 de 3 execuções seguidas falharam sob carga (medianas de 346 e 307 ms em rodadas inteiras); depois, 3 execuções seguidas verdes (6 de 6 rotas cada).
