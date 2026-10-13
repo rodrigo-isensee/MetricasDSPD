@@ -1,3 +1,5 @@
+import type { VersaoCriterio } from '@metricas-dspd/contratos';
+import { slug } from '@metricas-dspd/metricas/core';
 import { gerarBaseMock, type BaseMock } from '@metricas-dspd/mock';
 import { esquemasDoAmbiente, type Esquemas } from './esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from './pool.js';
@@ -5,10 +7,14 @@ import { emTransacao, type Consultavel, type PoolLike } from './pool.js';
 /**
  * Seed da base analítica a partir do mock compartilhado (`gerarBaseMock`): nenhuma regra é duplicada aqui,
  * só o mapeamento para as tabelas do data-model. Sem relógio, sem Math.random: determinístico pela semente.
- * Grava projeções (`dim_card`, `fato_bloqueio`, `dim_chamado`, `fato_etapa_chamado`), `fato_transicao` e `ref_coluna`.
+ * Grava projeções (`dim_card`, `fato_bloqueio`, `dim_chamado`, `fato_etapa_chamado`), `fato_transicao`, `ref_coluna`, a
+ * referência da config do mock (`ref_*`, convenções do módulo `metricas`: valor global com equipe = '*', SLE no percentil 85,
+ * natureza em `classe_servico`), as versões de critério de cada fonte (`dspd_core`) e uma `coleta_incremental` por fonte
+ * (sem ela o estado da coleta diz "Nenhuma coleta concluída").
  * Não grava `responsaveis`, `usuario`, `justificativa_ajuste` (data-model §9). Nunca apaga nem sobrescreve.
  */
 export const VERSAO_SEED = 'seed-mock';
+export const VERSAO_SEED_COLETA = 'seed-mock-coleta';
 export const TAMANHO_LOTE = 500;
 const OFFSET_CIVIL_MS = -3 * 3600_000; // America/Sao_Paulo (ref_calendario.offset_minutos = -180)
 
@@ -81,11 +87,40 @@ export function mapearBM(base: BaseMock, coletaId: number, S: Esquemas = esquema
     tipo_coluna: c.tipo_coluna, papel: c.papel, ordem: c.ordem, limite_wip: c.limite_wip,
   }));
 
+  const cfg = base.bm.config;
+  const dominio = (campo: string, itens: string[]): Linha[] =>
+    itens.map((x, i) => ({ campo, codigo: x, vigente_de: vigenteDe, rotulo: x, ordem: i }));
+  const refQuadro = cfg.equipes.map((e): Linha => ({
+    quadro_id: `quadro-${slug(e.nome)}`, vigente_de: vigenteDe, equipe: e.nome, nivel: 'time', eh_teste: false,
+  }));
+  const refLimiteWip = Object.entries(cfg.limite_wip_fluxo).map(([equipe, limite]): Linha => ({
+    equipe, vigente_de: vigenteDe, limite,
+  }));
+  // SLE sem prazo (Intangível) não tem linha: a coluna é NOT NULL e a leitura devolve a classe sem SLE.
+  const refSle = cfg.sle.flatMap((x): Linha[] =>
+    x.dias_uteis === null ? [] : [{ equipe: '*', classe_servico: x.classe, vigente_de: x.publicado_em, percentil: 85, dias_uteis: x.dias_uteis }]);
+  const refAlocacao = cfg.alocacao.map((a): Linha => ({
+    equipe: '*', classe_servico: a.natureza, vigente_de: vigenteDe, percentual: a.pct,
+  }));
+  const refFicha = base.bm.fichas.map(({ card_id, ...ficha }): Linha => ({
+    card_id, vigente_de: vigenteDe, ficha: JSON.stringify(ficha),
+  }));
+
   return [
     { tabela: `${S.bm}.dim_card`, linhas: dimCard },
     { tabela: `${S.bm}.fato_transicao`, linhas: fatoTransicao },
     { tabela: `${S.bm}.fato_bloqueio`, linhas: fatoBloqueio },
     { tabela: `${S.bm}.ref_coluna`, linhas: refColuna },
+    { tabela: `${S.bm}.ref_quadro`, linhas: refQuadro },
+    { tabela: `${S.bm}.ref_dominio`, linhas: [
+      ...dominio('sistema', cfg.sistemas), ...dominio('objetivo_estrategico', cfg.objetivos),
+      ...dominio('area_interna', cfg.areas_internas),
+    ] },
+    { tabela: `${S.bm}.ref_limite_wip_fluxo`, linhas: refLimiteWip },
+    { tabela: `${S.bm}.ref_limite_frentes`, linhas: [{ equipe: '*', vigente_de: vigenteDe, limite: cfg.limite_frentes }] },
+    { tabela: `${S.bm}.ref_sle`, linhas: refSle },
+    { tabela: `${S.bm}.ref_alocacao_acordada`, linhas: refAlocacao },
+    { tabela: `${S.bm}.ref_ficha_resultado`, linhas: refFicha },
   ];
 }
 
@@ -108,10 +143,36 @@ export function mapearAC(base: BaseMock, coletaId: number, S: Esquemas = esquema
     chamado_id: e.chamado_id, etapa: e.etapa, entrada: dt(e.entrada), saida: dtn(e.saida),
     motivo_pendencia: e.motivo_pendencia, coletado_em: coletado, atualizado_por_coleta_id: coletaId,
   }));
+  const vigenteDe = dia(Math.min(...base.ac.chamados.map((c) => c.aberto_em)));
+  const refAlvo = base.ac.config.alvos.map((a): Linha => ({
+    prioridade: a.prioridade, vigente_de: vigenteDe, prazo_pa_horas_uteis: a.primeiro_atendimento_horas,
+    prazo_r_horas_uteis: a.restauracao_horas,
+  }));
   return [
     { tabela: `${S.ac}.dim_chamado`, linhas: dimChamado },
     { tabela: `${S.ac}.fato_etapa_chamado`, linhas: fatoEtapa },
+    { tabela: `${S.ac}.ref_alvo_prioridade`, linhas: refAlvo },
   ];
+}
+
+const ehSust = (m: string): boolean => m.startsWith('S') || m === 'EI_SUST';
+/** Cada versão de critério fica na fonte das métricas que ela afeta (a do mock repete as duas em ambas as fontes). */
+export function criteriosDaFonte(base: BaseMock, fonte: 'businessmap' | 'acelerato'): VersaoCriterio[] {
+  const lista = fonte === 'businessmap' ? base.bm.config.criterios : base.ac.config.criterios;
+  return lista.filter((c) => c.afeta.every((m) => (fonte === 'acelerato' ? ehSust(m) : !ehSust(m))));
+}
+
+/** Versões de critério (`dspd_core`) da fonte: uma linha por versão e uma por métrica afetada. */
+async function gravarCriterios(trx: Consultavel, S: Esquemas, base: BaseMock, fonte: 'businessmap' | 'acelerato'): Promise<void> {
+  for (const v of criteriosDaFonte(base, fonte)) {
+    const r = await trx.query<{ versao_id: string }>(
+      `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING versao_id`,
+      [v.data, fonte, v.descricao, VERSAO_SEED, `mock:${v.id}`, dt(new Date(base.config.hoje).getTime())]);
+    const id = r.rows[0]!.versao_id;
+    for (const m of v.afeta)
+      await trx.query(`INSERT INTO ${S.core}.ref_versao_criterio_metrica (versao_id, metrica_id) VALUES ($1, $2)`, [id, m]);
+  }
 }
 
 export function lotes<T>(itens: T[], tamanho = TAMANHO_LOTE): T[][] {
@@ -149,11 +210,11 @@ export async function semear(
     escala: base.config.escala, mesesHistorico: base.config.mesesHistorico };
   const iniciado = dt(new Date(base.config.hoje).getTime());
   let gravou = false;
-  const alvos: { schema: string; mapear: (b: BaseMock, c: number, s: Esquemas) => Tabela[] }[] = [
-    { schema: S.bm, mapear: mapearBM },
-    { schema: S.ac, mapear: mapearAC },
+  const alvos: { schema: string; fonte: 'businessmap' | 'acelerato'; mapear: (b: BaseMock, c: number, s: Esquemas) => Tabela[] }[] = [
+    { schema: S.bm, fonte: 'businessmap', mapear: mapearBM },
+    { schema: S.ac, fonte: 'acelerato', mapear: mapearAC },
   ];
-  for (const { schema, mapear } of alvos) {
+  for (const { schema, fonte, mapear } of alvos) {
     await emTransacao(pool, async (trx: Consultavel) => {
       await trx.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`dspd:seed:${schema}`]);
       const ex = await trx.query<{ coleta_id: string; parametros: unknown }>(
@@ -173,6 +234,10 @@ export async function semear(
           const q = insertLote(tabela, lote);
           await trx.query(q.texto, q.valores);
         }
+      await gravarCriterios(trx, S, base, fonte);
+      await trx.query(
+        `INSERT INTO ${schema}.ctl_coleta (tarefa, iniciado_em, finalizado_em, status, versao_coletor)
+         VALUES ('coleta_incremental', $1, $1, 'sucesso', $2)`, [iniciado, VERSAO_SEED_COLETA]);
       gravou = true;
     });
   }

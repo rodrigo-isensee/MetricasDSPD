@@ -32,6 +32,18 @@ d('seed contra PostgreSQL 17', () => {
     expect(await cont()).toEqual(antes);
   });
 
+  it('grava a referência, os critérios por fonte e uma coleta_incremental por fonte (FA-001, FA-002)', async () => {
+    const q = async (t: string, onde = 'true') => n(`${t} WHERE ${onde}`);
+    expect(await n(`${E.ac}.ref_alvo_prioridade`)).toBe(base.ac.config.alvos.length);
+    expect(await n(`${E.bm}.ref_quadro`)).toBe(base.bm.config.equipes.length);
+    expect(await n(`${E.bm}.ref_limite_wip_fluxo`)).toBe(base.bm.config.equipes.length);
+    expect(await n(`${E.bm}.ref_ficha_resultado`)).toBe(base.bm.fichas.length);
+    expect(await q(`${E.bm}.ref_dominio`, "campo = 'sistema'")).toBe(base.bm.config.sistemas.length);
+    expect(await q(`${E.core}.ref_versao_criterio`, "dominio = 'businessmap'")).toBe(1);
+    expect(await q(`${E.core}.ref_versao_criterio`, "dominio = 'acelerato'")).toBe(1);
+    for (const s of [E.bm, E.ac]) expect(await q(`${s}.ctl_coleta`, "tarefa = 'coleta_incremental' AND status = 'sucesso'")).toBe(1);
+  });
+
   it('dois seeds simultâneos num schema novo gravam uma vez só (lock consultivo)', async () => {
     const p2 = prefixoDeTeste();
     const E2 = montarEsquemas(p2);

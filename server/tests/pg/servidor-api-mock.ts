@@ -24,17 +24,11 @@ await migrar(urlMigrador, { prefixo });
 const migrador = criarPool(urlMigrador);
 const base = gerarBaseMock();
 await semear(migrador, base, S);
-// Ajuste de fixture: o seed grava só a coleta `projecao`; sem uma `coleta_incremental` bem-sucedida o estado da coleta
-// diz "Nenhuma coleta concluída" e os painéis nem renderizam os cartões. Registrado como defeito do seed (docs/qa/bugs).
-for (const s of [S.bm, S.ac]) {
-  await migrador.query(
-    `INSERT INTO ${s}.ctl_coleta (tarefa, iniciado_em, finalizado_em, status, versao_coletor)
-     VALUES ('coleta_incremental', $1, $1, 'sucesso', 'fixture-fa4-fa5')`, [base.config.hoje]);
-}
 await migrador.end();
 
 const pool = criarPool(urlDoPapel(urlMigrador, 'dspd_api', process.env.DSPD_PWD_API ?? 'api_dev'), { statementTimeoutMs: 10_000 });
-const app = await buildApp({ db: pool, S, agora: () => new Date(), nivelLog: 'silent', fonteDados: 'mock' });
+// Relógio fixo na data da base: `historico.fim` e a data de referência dependem de "hoje" e o mock tem a sua data fixa.
+const app = await buildApp({ db: pool, S, agora: () => new Date(base.config.hoje), nivelLog: 'silent', fonteDados: 'mock' });
 
 let encerrando = false;
 const encerrar = async (): Promise<void> => {
