@@ -61,7 +61,7 @@ Não rodei a suíte E2E: o autor já rodou `pnpm run pronto` (verde, cobertura d
 
 ## Revisão dos commits posteriores (a80882a a 3ad62a7)
 
-Aprovado de novo. Os commits 9913c30, 9341ca0 e 130edde atendem R1 (`?.contains`, sem cast) e R2 (caso próprio para Esc fora do cartão, sem a tecla `a`). Também: `aria-controls` só com o gráfico aberto, hash do redirecionamento insensível a maiúsculas (com teste), testes de FL3 e Sustentação e E2E de gravação de `ei-fl2` pela UI. Só código de teste e ajustes pequenos; nada de regra nova. `lint`, `typecheck` e os testes do web estão verdes. R3 segue resolvido pelo squash.
+Aprovado de novo. Os commits 9913c30, 9341ca0 e 130edde atendem R1 (`?.contains`, sem cast) e R2 (caso próprio para Esc fora do cartão, sem a tecla `a`). Também: `aria-controls` só com o gráfico aberto, hash do redirecionamento insensível a maiúsculas (com teste), testes de FL3 e Sustentação e E2E de gravação de `ei-fl2` pela UI. Só código de teste e ajustes pequenos; nada de regra nova. `lint`, `typecheck` e os testes do web estão verdes. R3 segue resolvido pelo squash. O campo `commit` aponta para 3ad62a7, o último commit de código e QA revisado.
 
 ## Recomendações (não bloqueiam)
 
