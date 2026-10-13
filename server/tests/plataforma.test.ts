@@ -66,7 +66,9 @@ describe('gerarGrants', () => {
       ctl_coleta_contagem: ['coleta_id'], vw_transicao_canonica: ['card_id'],
     },
     ac: { stg_chamado: ['stg_sk'], dim_chamado: ['chamado_id'], ctl_automacao: ['automacao_sk'], ctl_coleta: ['coleta_id'] },
-    core: { ref_calendario: ['calendario_id'], ref_calendario_turno: ['vigente_ate'], outbox: ['evento_sk'], pgmigrations: ['id'] },
+    core: { ref_calendario: ['calendario_id'], ref_calendario_turno: ['vigente_ate'], outbox: ['evento_sk'], pgmigrations: ['id'],
+      pesq_carga: ['carga_id'], pesq_resultado: ['carga_id'], vw_pesq_vigente: ['carga_id'], ref_pesq_area: ['codigo', 'vigente_ate'],
+      ref_versao_criterio: ['versao_id'], ref_versao_criterio_metrica: ['versao_id'] },
   };
   const g = gerarGrants(S, cat);
   it('começa revogando tudo e dá USAGE só nos schemas de cada papel', () => {
@@ -76,7 +78,7 @@ describe('gerarGrants', () => {
   });
   it('dspd_api: nunca stg_/evt_/versão, coluna de pessoa fora do GRANT, views e ref_ inteiros', () => {
     const api = g.filter((x) => x.endsWith('TO dspd_api'));
-    expect(api.filter((x) => /stg_|evt_|_versao/.test(x))).toEqual([]);
+    expect(api.filter((x) => /stg_|evt_|_versao( |$)/.test(x))).toEqual([]);
     expect(api.join('\n')).not.toMatch(/responsaveis|usuario/);
     expect(api).toContain('GRANT SELECT (card_id, titulo) ON t_dspd_bm.dim_card TO dspd_api');
     expect(api).toContain('GRANT SELECT (transicao_sk, card_id) ON t_dspd_bm.fato_transicao TO dspd_api');
@@ -101,6 +103,19 @@ describe('gerarGrants', () => {
       'GRANT INSERT ON t_dspd_core.outbox TO dspd_webhook', 'GRANT INSERT ON t_dspd_bm.stg_webhook_evento TO dspd_webhook',
       'GRANT SELECT (webhook_sk, payload_sha256) ON t_dspd_bm.stg_webhook_evento TO dspd_webhook']);
     expect(g).toContain('GRANT SELECT, INSERT ON t_dspd_ac.ctl_automacao TO dspd_automacao');
+  });
+  it('dspd_pesquisa só insere em pesq_* e lê a referência; dspd_api só lê pesq_* e a view; nada de UPDATE/DELETE', () => {
+    const pesquisa = g.filter((x) => x.endsWith('TO dspd_pesquisa'));
+    expect(pesquisa).toEqual([
+      'GRANT USAGE ON SCHEMA t_dspd_core TO dspd_pesquisa',
+      'GRANT SELECT, INSERT ON t_dspd_core.pesq_carga TO dspd_pesquisa', 'GRANT SELECT, INSERT ON t_dspd_core.pesq_resultado TO dspd_pesquisa',
+      'GRANT SELECT ON t_dspd_core.ref_pesq_area TO dspd_pesquisa', 'GRANT SELECT ON t_dspd_core.ref_versao_criterio TO dspd_pesquisa',
+      'GRANT SELECT ON t_dspd_core.ref_versao_criterio_metrica TO dspd_pesquisa']);
+    expect(pesquisa.join('\n')).not.toMatch(/UPDATE|DELETE|t_dspd_bm|t_dspd_ac|outbox/);
+    const api = g.filter((x) => x.endsWith('TO dspd_api') && /pesq/.test(x));
+    expect(api).toEqual(['GRANT SELECT ON t_dspd_core.ref_pesq_area TO dspd_api', 'GRANT SELECT ON t_dspd_core.pesq_carga TO dspd_api',
+      'GRANT SELECT ON t_dspd_core.pesq_resultado TO dspd_api', 'GRANT SELECT ON t_dspd_core.vw_pesq_vigente TO dspd_api']);
+    expect(g[0]).toMatch(/dspd_pesquisa/);
   });
   it('sem outbox no catálogo não concede nada nela', () => {
     const sem = gerarGrants(S, { ...cat, core: { ref_calendario: ['calendario_id'] } });
