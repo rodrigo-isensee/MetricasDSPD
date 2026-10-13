@@ -167,6 +167,9 @@ describe('CartaoPV1: publicado (n = 24, com percentual)', () => {
     // faixa com 0 respostas não ocupa espaço; as demais trazem o número.
     const faixas = barras[0]?.querySelectorAll('[data-faixa]') ?? []
     expect([...faixas].map((f) => f.textContent)).toEqual(['0', '1', '1', '11', '11'])
+    // contraste não textual (1.4.11): cada trecho e cada amostra da legenda têm borda do token `acento`.
+    for (const f of faixas) expect(f).toHaveClass('border', 'border-acento')
+    expect(legenda.querySelectorAll('span.border-acento')).toHaveLength(5)
     expect(within(el).queryByTestId('pv1-so-k-de-n')).toBeNull()
     expect(within(el).queryByText('n = 24')).toBeNull()
   })
@@ -272,15 +275,16 @@ describe('CartaoPV1: base insuficiente', () => {
         consolidado: { status: 'base-insuficiente', n: 1, minimo: 5 },
         tendencia: [
           {
-            trimestre: '2026-T3',
+            trimestre: '2026-T2',
             versaoId: 'v2',
             bloco: { status: 'base-insuficiente', n: 1, minimo: 5 },
           },
+          { trimestre: '2026-T3', versaoId: 'v2', bloco: concordam(24) },
         ],
       }),
     )
     expect(within(el).getByTestId('pv1-base-insuficiente')).toHaveTextContent('1 resposta.')
-    expect(within(el).getByText(/3T\/2026: base insuficiente, 1 resposta\./)).toBeVisible()
+    expect(within(el).getByText(/2T\/2026: base insuficiente, 1 resposta\./)).toBeVisible()
   })
 })
 
@@ -389,6 +393,45 @@ describe('CartaoPV1: tendência e versão do questionário', () => {
     )
     expect(within(el).queryByTestId('aviso-quebra-serie')).toBeNull()
     expect(within(el).queryByText('Questionário alterado')).toBeNull()
+  })
+
+  it('um único trimestre: sem tabela, só a legenda "Primeiro ciclo" (L-3)', async () => {
+    const { el } = await cartao(
+      resultado({ tendencia: [{ trimestre: '2026-T3', versaoId: 'v2', bloco: concordam(24) }] }),
+    )
+    expect(within(el).queryByTestId('tendencia-PV1')).toBeNull()
+    expect(within(el).getByTestId('pv1-sem-tendencia')).toHaveTextContent(
+      'Primeiro ciclo: ainda sem tendência.',
+    )
+  })
+
+  it('a data da quebra vem da marca T2.6 do trimestre; marca fora do intervalo cai na vigência (L-8)', async () => {
+    const { el } = await cartao(
+      resultado({
+        criterios: {
+          serie: [
+            { id: 'a', data: '2025-01-10', descricao: 'antiga' },
+            { id: 'pesq', data: '2026-05-15', descricao: 'Pergunta 3 reescrita' },
+          ],
+          janela: [],
+        },
+      }),
+    )
+    const t = within(el).getByTestId('tendencia')
+    expect(within(t).getByTestId('quebra-serie')).toHaveTextContent('em 15/05/2026')
+  })
+
+  it('a tendência diz que mostra só o lado que concorda (L-4)', async () => {
+    const { el } = await cartao(resultado())
+    expect(within(el).getByTestId('tendencia-PV1')).toHaveTextContent('Só o lado que concorda')
+  })
+
+  it('a distribuição usa uma rampa de um só matiz, sem vermelho (L-6), e abre espaço a 3 dígitos (L-5)', async () => {
+    const { el } = await cartao(resultado({ consolidado: publicado(250) }))
+    const faixas = el.querySelectorAll('[data-testid="distribuicao-consolidado"] [data-faixa]')
+    expect(faixas.length).toBeGreaterThan(0)
+    for (const f of Array.from(faixas)) expect(f.className).not.toMatch(/alerta/)
+    expect(Array.from(faixas).some((f) => f.classList.contains('min-w-8'))).toBe(true)
   })
 
   it('sem trimestres na tendência o bloco não aparece', async () => {

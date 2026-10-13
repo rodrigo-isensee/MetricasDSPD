@@ -9,14 +9,16 @@ type Pergunta = Ok['questionario']['perguntas'][number]
 type Publicado = Extract<Ok['consolidado'], { status: 'publicado' }>
 
 /**
- * Uma cor por faixa, mas a faixa nunca depende dela: cada trecho traz o número de respostas e a legenda
- * escrita vem acima (a tabela equivalente traz o resto). Contraste conferido nos dois temas.
+ * Rampa de um só matiz (acento), do mais claro ao mais escuro: não sugere semáforo nem "bom" e "ruim" (L-6).
+ * A faixa nunca depende da cor: cada trecho traz o número de respostas e a legenda escrita vem acima (a tabela
+ * equivalente traz o resto). Passos até 40% mantêm o texto do tema acima de 4,5:1 nos dois temas. Cada trecho tem
+ * borda `acento` (contraste >= 3:1 contra o fundo, WCAG 1.4.11), que também separa as faixas vizinhas.
  */
 const CLASSE_FAIXA = [
-  'bg-alerta text-acento-texto',
-  'bg-alerta-fundo text-texto',
-  'bg-superficie-2 text-texto',
-  'bg-acento-fundo text-texto',
+  'bg-acento/8 text-texto',
+  'bg-acento/20 text-texto',
+  'bg-acento/30 text-texto',
+  'bg-acento/40 text-texto',
   'bg-acento text-acento-texto',
 ] as const
 
@@ -32,7 +34,7 @@ export function LegendaFaixas() {
           <span
             aria-hidden="true"
             className={clsx(
-              'inline-block size-3 rounded-sm border border-borda-controle',
+              'inline-block size-3 rounded-sm border border-acento',
               CLASSE_FAIXA[i]?.split(' ')[0],
             )}
           />
@@ -131,9 +133,9 @@ export function Distribuicao({
                   data-faixa={f.faixa}
                   style={{ flexGrow: f.contagem.k, flexBasis: 0 }}
                   className={clsx(
-                    'flex items-center justify-center border-r border-superficie last:border-r-0',
+                    'flex items-center justify-center border border-acento',
                     CLASSE_FAIXA[f.faixa - 1],
-                    f.contagem.k > 0 ? 'min-w-5' : 'hidden',
+                    f.contagem.k >= 100 ? 'min-w-8' : f.contagem.k > 0 ? 'min-w-5' : 'hidden',
                   )}
                 >
                   {f.contagem.k}
