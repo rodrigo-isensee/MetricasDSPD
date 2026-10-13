@@ -29,7 +29,10 @@ const corpos = new Map<string, string>()
 /** `fetch` que guarda o corpo bruto de cada resposta, por caminho. */
 const fetchGravando: typeof fetch = async (url, init) => {
   const r = await fetch(url, init)
-  corpos.set(String(url), await r.clone().text())
+  corpos.set(
+    typeof url === 'string' ? url : url instanceof URL ? url.href : url.url,
+    await r.clone().text(),
+  )
   return r
 }
 const http = new HttpFonteMetricas({ base: `${API_URL}/api/v1`, fetchImpl: fetchGravando })
@@ -38,8 +41,13 @@ type Conjunto = { nome: string; filtros: object }
 
 function conjuntosFluxo(equipe: string, sistema: string, ref: string): Conjunto[] {
   const base = { equipe: [], tipo: [], sistema: [] }
-  const dias = (n: number) => new Date(Date.parse(`${ref}T12:00:00Z`) - n * 86_400_000).toISOString().slice(0, 10)
-  const f = (p: Partial<FiltrosFluxo>): FiltrosFluxo => ({ ...base, periodo: { tipo: '12s' }, ...p })
+  const dias = (n: number) =>
+    new Date(Date.parse(`${ref}T12:00:00Z`) - n * 86_400_000).toISOString().slice(0, 10)
+  const f = (p: Partial<FiltrosFluxo>): FiltrosFluxo => ({
+    ...base,
+    periodo: { tipo: '12s' },
+    ...p,
+  })
   return [
     { nome: 'padrão 12s', filtros: f({}) },
     { nome: '4s', filtros: f({ periodo: { tipo: '4s' } }) },
@@ -48,14 +56,31 @@ function conjuntosFluxo(equipe: string, sistema: string, ref: string): Conjunto[
     { nome: 'tipo Incidente+Melhoria', filtros: f({ tipo: ['Incidente', 'Melhoria'] }) },
     { nome: 'todos os tipos', filtros: f({ tipo: [...TIPOS_FILTRO] }) },
     { nome: 'equipe+sistema', filtros: f({ equipe: [equipe], sistema: [sistema] }) },
-    { nome: 'personalizado 8 semanas', filtros: f({ periodo: { tipo: 'custom', de: dias(56), ate: ref } }) },
-    { nome: 'combinado 6m', filtros: f({ equipe: [equipe], tipo: ['Defeito em produção'], sistema: [sistema], periodo: { tipo: '6m' } }) },
+    {
+      nome: 'personalizado 8 semanas',
+      filtros: f({ periodo: { tipo: 'custom', de: dias(56), ate: ref } }),
+    },
+    {
+      nome: 'combinado 6m',
+      filtros: f({
+        equipe: [equipe],
+        tipo: ['Defeito em produção'],
+        sistema: [sistema],
+        periodo: { tipo: '6m' },
+      }),
+    },
   ]
 }
 
 function conjuntosSust(ref: string): Conjunto[] {
-  const dias = (n: number) => new Date(Date.parse(`${ref}T12:00:00Z`) - n * 86_400_000).toISOString().slice(0, 10)
-  const f = (p: Partial<FiltrosSustentacao>): FiltrosSustentacao => ({ equipe: [], prioridade: [], periodo: { tipo: '12s' }, ...p })
+  const dias = (n: number) =>
+    new Date(Date.parse(`${ref}T12:00:00Z`) - n * 86_400_000).toISOString().slice(0, 10)
+  const f = (p: Partial<FiltrosSustentacao>): FiltrosSustentacao => ({
+    equipe: [],
+    prioridade: [],
+    periodo: { tipo: '12s' },
+    ...p,
+  })
   return [
     { nome: 'padrão 12s', filtros: f({}) },
     { nome: '4s', filtros: f({ periodo: { tipo: '4s' } }) },
@@ -63,11 +88,25 @@ function conjuntosSust(ref: string): Conjunto[] {
     { nome: '12m', filtros: f({ periodo: { tipo: '12m' } }) },
     { nome: 'equipe totvs', filtros: f({ equipe: ['totvs'] }) },
     { nome: 'duas equipes', filtros: f({ equipe: ['senior', 'fluig'] }) },
-    { nome: 'prioridade', filtros: f({ prioridade: [PRIORIDADES[0]!] }) },
-    { nome: 'personalizado 8 semanas', filtros: f({ periodo: { tipo: 'custom', de: dias(56), ate: ref } }) },
-    { nome: 'combinado 6m', filtros: f({ equipe: ['totvs'], prioridade: [PRIORIDADES[0]!, PRIORIDADES[1]!], periodo: { tipo: '6m' } }) },
+    { nome: 'prioridade', filtros: f({ prioridade: [PRIORIDADES[0]] }) },
+    {
+      nome: 'personalizado 8 semanas',
+      filtros: f({ periodo: { tipo: 'custom', de: dias(56), ate: ref } }),
+    },
+    {
+      nome: 'combinado 6m',
+      filtros: f({
+        equipe: ['totvs'],
+        prioridade: [PRIORIDADES[0], PRIORIDADES[1]],
+        periodo: { tipo: '6m' },
+      }),
+    },
   ]
 }
+
+/** Texto curto de um valor (JSON.stringify devolve undefined para `undefined`, apesar do tipo). */
+const txt = (v: unknown): string =>
+  ((JSON.stringify(v) as string | undefined) ?? 'undefined').slice(0, 60)
 
 /** Primeiras diferenças entre dois JSON, como `caminho: mock=... api=...` (mensagem legível, sem despejar o objeto). */
 function difs(mock: unknown, api: unknown, caminho = '$', saida: string[] = []): string[] {
@@ -80,21 +119,30 @@ function difs(mock: unknown, api: unknown, caminho = '$', saida: string[] = []):
       else difs(mock[k], api[k], `${caminho}.${k}`, saida)
     }
   } else if (JSON.stringify(mock) !== JSON.stringify(api)) {
-    saida.push(`${caminho}: mock=${JSON.stringify(mock)?.slice(0, 60)} api=${JSON.stringify(api)?.slice(0, 60)}`)
+    saida.push(`${caminho}: mock=${txt(mock)} api=${txt(api)}`)
   }
   return saida
 }
 
-const viaJson = (v: unknown): unknown => JSON.parse(JSON.stringify(v))
+/**
+ * O banco dá às versões de critério ids sequenciais (1, 2, ...: BusinessMap antes do Acelerato, que no mock coincide com
+ * a ordem por data); o mock usa ids textuais. É a única diferença de representação aceita: troca o id do mock pelo do banco.
+ */
+let idsDoBanco = new Map<string, string>()
+const viaJson = (v: unknown): unknown => {
+  let t = JSON.stringify(v)
+  for (const [mockId, id] of idsDoBanco) t = t.replaceAll(`"${mockId}"`, `"${id}"`)
+  return JSON.parse(t)
+}
 
 d('paridade mock x API (servidor real, DADOS_FONTE=mock)', () => {
   let conjuntosFl: Conjunto[] = []
   let conjuntosSu: Conjunto[] = []
 
   beforeAll(async () => {
-    // Equipe e sistema vêm das opções do MOCK: o seed não grava ref_quadro/ref_dominio e a API devolve listas vazias (reportado como defeito).
+    // Equipe e sistema vêm das opções do mock (a API devolve as mesmas, o que o primeiro teste confere).
+    idsDoBanco = new Map((await mock.criterios()).map((v, i) => [v.id, String(i + 1)]))
     const [bm, ref] = await Promise.all([mock.opcoesFiltro('businessmap'), http.dataReferencia()])
-    if (bm.dominio !== 'businessmap') throw new Error('opções do BusinessMap esperadas')
     conjuntosFl = conjuntosFluxo(bm.equipes[0]!.id, bm.sistemas[0]!.id, ref)
     conjuntosSu = conjuntosSust(ref)
   })
@@ -106,30 +154,39 @@ d('paridade mock x API (servidor real, DADOS_FONTE=mock)', () => {
       expect(await http.opcoesFiltro(dom)).toEqual(viaJson(await mock.opcoesFiltro(dom)))
   })
 
-  it.each(METRICA_IDS.map((id) => [id]))('%s: iguais após o parse e no corpo bruto', async (id: MetricaId) => {
-    const sust = METRICAS_SUSTENTACAO.includes(id)
-    const lista = id === 'VISAO_GERAL' ? [{ nome: 'sem filtros', filtros: {} }] : sust ? conjuntosSu : conjuntosFl
-    const schema = id === 'O2' ? resultadoO2PaginadoSchema : SCHEMAS_RESULTADO[id]
-    const falhas: string[] = []
-    for (const { nome, filtros } of lista) {
-      const esperadoBruto = viaJson(await mock.obter(id, filtros as never))
-      const esperadoParse = schema.parse(esperadoBruto)
-      let obtido: unknown
-      try {
-        obtido = await http.obter(id, filtros as never)
-      } catch (e) {
-        falhas.push(`[${nome}] a API respondeu com erro: ${(e as Error).message}`)
-        continue
+  it.each(METRICA_IDS.map((id) => [id]))(
+    '%s: iguais após o parse e no corpo bruto',
+    async (id: MetricaId) => {
+      const sust = METRICAS_SUSTENTACAO.includes(id)
+      const lista =
+        id === 'VISAO_GERAL'
+          ? [{ nome: 'sem filtros', filtros: {} }]
+          : sust
+            ? conjuntosSu
+            : conjuntosFl
+      const schema = id === 'O2' ? resultadoO2PaginadoSchema : SCHEMAS_RESULTADO[id]
+      const falhas: string[] = []
+      for (const { nome, filtros } of lista) {
+        const esperadoBruto = viaJson(await mock.obter(id, filtros as never))
+        const esperadoParse = schema.parse(esperadoBruto)
+        let obtido: unknown
+        try {
+          obtido = await http.obter(id, filtros as never)
+        } catch (e) {
+          falhas.push(`[${nome}] a API respondeu com erro: ${(e as Error).message}`)
+          continue
+        }
+        const dp = difs(esperadoParse, viaJson(obtido))
+        if (dp.length > 0) {
+          falhas.push(`[${nome}] após o parse: ${dp.join(' | ')}`)
+          continue
+        }
+        const bruto = JSON.parse(corpos.get([...corpos.keys()].at(-1)!)!)
+        const db = difs(esperadoBruto, bruto)
+        if (db.length > 0) falhas.push(`[${nome}] corpo bruto: ${db.join(' | ')}`)
       }
-      const dp = difs(esperadoParse, viaJson(obtido))
-      if (dp.length > 0) {
-        falhas.push(`[${nome}] após o parse: ${dp.join(' | ')}`)
-        continue
-      }
-      const bruto = JSON.parse(corpos.get([...corpos.keys()].at(-1)!)!)
-      const db = difs(esperadoBruto, bruto)
-      if (db.length > 0) falhas.push(`[${nome}] corpo bruto: ${db.join(' | ')}`)
-    }
-    expect(falhas).toEqual([])
-  }, 120_000)
+      expect(falhas).toEqual([])
+    },
+    120_000,
+  )
 })
