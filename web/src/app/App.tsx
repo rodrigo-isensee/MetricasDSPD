@@ -25,10 +25,18 @@ export function criarQueryClient(): QueryClient {
 
 const env = import.meta.env as Record<string, string | undefined>
 
+/** `VITE_API_BASE`: só caminho relativo (mesma origem, sem CORS); URL absoluta ou `//host` falha na partida. */
+export function baseDaApi(valor: string | undefined): string {
+  if (!valor) return '/api/v1'
+  if (!valor.startsWith('/') || valor.startsWith('//'))
+    throw new Error(`VITE_API_BASE inválida: "${valor}" (use um caminho relativo, como "/api/v1")`)
+  return valor
+}
+
 /** `VITE_FONTE=mock|api` (padrão `mock`). Valor inválido falha na partida: nunca cai no mock em silêncio. */
 export function criarFontePadrao(): FonteMetricas {
   const fonte = env.VITE_FONTE ?? 'mock'
-  if (fonte === 'api') return new HttpFonteMetricas({ base: env.VITE_API_BASE || '/api/v1' })
+  if (fonte === 'api') return new HttpFonteMetricas({ base: baseDaApi(env.VITE_API_BASE) })
   if (fonte !== 'mock') throw new Error(`VITE_FONTE inválida: "${fonte}" (use "mock" ou "api")`)
   const semente = env.VITE_MOCK_SEMENTE
   return new MockFonteMetricas({

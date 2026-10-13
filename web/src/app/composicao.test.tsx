@@ -30,13 +30,18 @@ describe('App e composição', () => {
     const fonte = criarFontePadrao()
     expect(fonte.tipo).toBe('api')
     await fonte.criterios()
-    vi.stubEnv('VITE_API_BASE', 'http://x/v9')
+    vi.stubEnv('VITE_API_BASE', '/v9')
     await criarFontePadrao().criterios()
-    expect(f.mock.calls.map((c) => c[0])).toStrictEqual([
-      '/api/v1/criterios',
-      'http://x/v9/criterios',
-    ])
+    expect(f.mock.calls.map((c) => c[0])).toStrictEqual(['/api/v1/criterios', '/v9/criterios'])
     f.mockRestore()
+  })
+
+  it('VITE_API_BASE absoluta (ou //host) falha na partida: só caminho relativo', () => {
+    vi.stubEnv('VITE_FONTE', 'api')
+    vi.stubEnv('VITE_API_BASE', 'https://outro-host/api/v1')
+    expect(() => criarFontePadrao()).toThrow('VITE_API_BASE inválida')
+    vi.stubEnv('VITE_API_BASE', '//outro-host/api')
+    expect(() => criarFontePadrao()).toThrow('VITE_API_BASE inválida')
   })
 
   it('VITE_FONTE inválida falha na partida, sem cair no mock', () => {
