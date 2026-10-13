@@ -16,6 +16,7 @@ import { semear } from '../../src/plataforma/db/seed.js';
 
 const urlMigrador = process.env.PG_TESTE_URL;
 if (!urlMigrador) throw new Error('PG_TESTE_URL ausente (URL do migrador no banco de teste)');
+if (!/\/[^/?]*_test(\?|$)/.test(urlMigrador)) throw new Error('PG_TESTE_URL deve apontar para um banco de teste (nome terminado em _test)');
 const porta = Number(process.env.PORT ?? 3100);
 const prefixo = prefixoDeTeste();
 const S = montarEsquemas(prefixo);
