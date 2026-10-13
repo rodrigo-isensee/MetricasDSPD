@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review: banco C2 (backup, restauração, trava do down) e C3 (timeouts)
 
 Revisor: tech-lead · 2026-10-12 · Branch `fix/banco-backup-noturno` (d9b9554, 6e81a22, 37d41d0, 35fff96, ae889da, d0fbfad) · Referência: `docs/architecture/auditoria-banco.md` C2/C3 e a decisão do usuário (backup 03:30 BRT fora do projeto, 7 dias; restauração verificada aos domingos 04:30 e na CI; nada de dia; roteiro de agendamento para o usuário).

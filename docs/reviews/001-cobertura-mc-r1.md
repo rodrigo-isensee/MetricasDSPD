@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Review 001 · cobertura (K-056, K-057), Monte Carlo (K-059) e fechamento do K-054 · rodada 1
 
 Data: 2026-10-10 12:15 (BRT) · Revisor: tech-lead · Branch: `develop`

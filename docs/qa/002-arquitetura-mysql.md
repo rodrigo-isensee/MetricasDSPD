@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de QA - pedido 002 (arquitetura completa e MySQL)
 
 Data: 2026-10-10 · Ambiente: worktree `MetricasDSPD-002`, sem Docker/MySQL (decisão do usuário: Docker).

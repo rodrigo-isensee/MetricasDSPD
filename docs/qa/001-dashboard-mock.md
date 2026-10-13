@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer final de QA - pedido 001 (dashboard mock), revisão 3
 Data: 2026-10-10 · develop 13d35e6 (K-049, K-050) · Chromium local (libs via `setup-chromium-local.sh`) contra `vite preview` após `npm run build`.
 

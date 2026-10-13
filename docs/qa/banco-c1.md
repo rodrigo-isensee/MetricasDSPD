@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de QA - correção C1 do banco (view canônica de transições)
 
 Branch `fix/banco-view-canonica` (commit 4241e70), 2026-10-12. Escopo: `lerTransicoes` passa a ler `vw_transicao_canonica` em vez de `fato_transicao`.

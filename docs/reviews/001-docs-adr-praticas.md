@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review — 001 · documentação: ADR 0002, ADR 0003, ADR 0001 (rev.), plano rev. 3 e práticas (K-018, K-015)
 
 - Data: 2026-10-09 · Revisor: tech-lead · Autores: software-architect (ADRs, plano), tech-lead (práticas; revisado pelo arquiteto)
