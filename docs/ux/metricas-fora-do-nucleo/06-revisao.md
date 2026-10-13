@@ -159,3 +159,10 @@ Pontos para o usuário confirmar: (a) T5 a O14 virou O7 a O14; (b) T4 a T8 não 
 | L-1 link para O15 | Resolvido | `LinkO15` em O13 e O16 (âncora `#o15`; texto simples se o O15 estiver oculto). Teste `o6-o15.test.tsx` e E2E COMP-15. |
 | L-4 tudo oculto | Resolvido | `MaisMetricas` mostra "N complementares ocultas pelas suas preferências"; E2E COMP-10. |
 | L-7 O6 sem "Fora da meta" | Resolvido | Teste `o6-o15.test.tsx` e E2E COMP-15. |
+
+## Acabamento (2026-10-13, branch `feature/acabamento-ux`)
+| Item | Decisão | Onde |
+|---|---|---|
+| N-3 mapa "Leia junto" | O mapa de `cartoes.ts` já segue a decisão nº 19 (inclusive entre painéis: T4 a T8, T5 a O14, T9 a E5, O15 a O17; o link navega ao painel de destino). Os pares núcleo a núcleo (T1 a T4, T4 a T1, O18 a O4) seguem no dado e o `LeiaJunto` os filtra (guarda coberta por teste); não aparecem na tela. Confirmação final do mapa fica com o usuário no roteiro | `packages/contratos/src/cartoes.ts` |
+| N-4 coluna "Dados" | Já está conforme a decisão nº 20: "Fictícios" para todos até a coleta real (tipo `dados: 'Fictícios'` em `linhas.ts`). Sem mudança | `catalogo/linhas.ts` |
+| M-5 | Roteiro de validação atualizado em `05-validacao.md` para o usuário fazer no app; não bloqueia | `05-validacao.md` |
