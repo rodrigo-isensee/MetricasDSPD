@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@metricas-dspd/pesquisa": "workspace:*",
     "@types/node": "^26.6.5",
     "@types/pg": "^8.23.1",
     "@vitest/coverage-v8": "^5.0.3",

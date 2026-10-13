@@ -1,5 +1,6 @@
+import { EventEmitter } from 'node:events';
 import { describe, expect, it } from 'vitest';
-import { criarPool, ehDuplicado, emTransacao, interpretadores, tipos, urlDoPapel } from '../src/plataforma/db/pool.js';
+import { aplicacaoDaUrl, criarPool, ehDuplicado, emTransacao, interpretadores, tipos, urlDoPapel } from '../src/plataforma/db/pool.js';
 import { esquemasDoAmbiente, montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
 import { gerarGrants, type Catalogo } from '../src/plataforma/db/grants.js';
 import { limparTestes } from '../src/plataforma/db/limpar-testes.js';
@@ -28,6 +29,59 @@ describe('pool', () => {
     const p = criarPool('postgres://u:p@127.0.0.1:1/x', { max: 1, statementTimeoutMs: 1000 });
     await p.end();
     await criarPool('postgres://u:p@127.0.0.1:1/x').end();
+  });
+  it('criarPool tem ouvinte de error: conexão ociosa derrubada não derruba o processo', async () => {
+    const p = criarPool('postgres://u:p@127.0.0.1:1/x');
+    expect(p.listenerCount('error')).toBeGreaterThan(0);
+    expect(() => p.emit('error', new Error('terminated'))).not.toThrow();
+    const cliente = new EventEmitter();
+    p.emit('connect', cliente as never);
+    expect(() => cliente.emit('error', new Error('terminated'))).not.toThrow();
+    await p.end();
+  });
+  it('criarPool registra as falhas de conexão (warn) sem a URL nem a senha', async () => {
+    const chamadas: Array<[string, { aplicacao: string; erro: string }]> = [];
+    const p = criarPool('postgres://dspd_api:segredo@127.0.0.1:1/x', { log: (m, c) => { chamadas.push([m, c]); } });
+    p.emit('error', new Error('terminated'));
+    const cliente = new EventEmitter();
+    p.emit('connect', cliente as never);
+    cliente.emit('error', new Error('backend morto'));
+    expect(chamadas.map(([, c]) => c)).toEqual([
+      { aplicacao: 'dspd-api', erro: 'terminated' }, { aplicacao: 'dspd-api', erro: 'backend morto' },
+    ]);
+    expect(JSON.stringify(chamadas)).not.toContain('segredo');
+    await p.end();
+  });
+  it('aplicacaoDaUrl cai em dspd-app quando a URL não é interpretável', () => {
+    expect(aplicacaoDaUrl('/var/run/postgresql')).toBe('dspd-app');
+    expect(aplicacaoDaUrl('postgres://%E0%A4%A@h/x')).toBe('dspd-app');
+    expect(aplicacaoDaUrl('postgres://dspd_api@h/x')).toBe('dspd-api');
+  });
+  it('criarPool aplica os timeouts de C3 e o application_name do papel', async () => {
+    const p = criarPool('postgres://dspd_api:p@127.0.0.1:1/x');
+    expect(p.options).toMatchObject({
+      statement_timeout: 30_000, lock_timeout: 5_000, idle_in_transaction_session_timeout: 30_000,
+      connectionTimeoutMillis: 5_000, application_name: 'dspd-api', max: 10,
+    });
+    await p.end();
+    const q = criarPool('postgres://migrador:p@127.0.0.1:1/x', {
+      statementTimeoutMs: 1, lockTimeoutMs: 2, idleInTransactionTimeoutMs: 3, connectionTimeoutMs: 4, aplicacao: 'meu-app',
+    });
+    expect(q.options).toMatchObject({
+      statement_timeout: 1, lock_timeout: 2, idle_in_transaction_session_timeout: 3, connectionTimeoutMillis: 4, application_name: 'meu-app',
+    });
+    await q.end();
+    const r = criarPool('postgres://migrador:p@127.0.0.1:1/x');
+    expect(r.options.application_name).toBe('dspd-migrador');
+    await r.end();
+  });
+  it('emTransacao destrói a conexão quando o ROLLBACK falha e preserva o erro original', async () => {
+    const d = criarDublePg((c) => (c.texto === 'ROLLBACK' ? new Error('conexão caiu') : []));
+    await expect(emTransacao(d.pool, () => Promise.reject(new Error('original')))).rejects.toThrow('original');
+    expect(d.estado.destruidos).toBe(1);
+    const ok = criarDublePg();
+    await emTransacao(ok.pool, async () => 1);
+    expect(ok.estado.destruidos).toBe(0);
   });
   it('emTransacao confirma, desfaz em erro e sempre libera', async () => {
     const a = criarDublePg();
@@ -66,7 +120,9 @@ describe('gerarGrants', () => {
       ctl_coleta_contagem: ['coleta_id'], vw_transicao_canonica: ['card_id'],
     },
     ac: { stg_chamado: ['stg_sk'], dim_chamado: ['chamado_id'], ctl_automacao: ['automacao_sk'], ctl_coleta: ['coleta_id'] },
-    core: { ref_calendario: ['calendario_id'], ref_calendario_turno: ['vigente_ate'], outbox: ['evento_sk'], pgmigrations: ['id'] },
+    core: { ref_calendario: ['calendario_id'], ref_calendario_turno: ['vigente_ate'], outbox: ['evento_sk'], pgmigrations: ['id'],
+      pesq_carga: ['carga_id'], pesq_resultado: ['carga_id'], vw_pesq_vigente: ['carga_id'], ref_pesq_area: ['codigo', 'vigente_ate'],
+      ref_versao_criterio: ['versao_id'], ref_versao_criterio_metrica: ['versao_id'] },
   };
   const g = gerarGrants(S, cat);
   it('começa revogando tudo e dá USAGE só nos schemas de cada papel', () => {
@@ -76,7 +132,7 @@ describe('gerarGrants', () => {
   });
   it('dspd_api: nunca stg_/evt_/versão, coluna de pessoa fora do GRANT, views e ref_ inteiros', () => {
     const api = g.filter((x) => x.endsWith('TO dspd_api'));
-    expect(api.filter((x) => /stg_|evt_|_versao/.test(x))).toEqual([]);
+    expect(api.filter((x) => /stg_|evt_|_versao( |$)/.test(x))).toEqual([]);
     expect(api.join('\n')).not.toMatch(/responsaveis|usuario/);
     expect(api).toContain('GRANT SELECT (card_id, titulo) ON t_dspd_bm.dim_card TO dspd_api');
     expect(api).toContain('GRANT SELECT (transicao_sk, card_id) ON t_dspd_bm.fato_transicao TO dspd_api');
@@ -101,6 +157,19 @@ describe('gerarGrants', () => {
       'GRANT INSERT ON t_dspd_core.outbox TO dspd_webhook', 'GRANT INSERT ON t_dspd_bm.stg_webhook_evento TO dspd_webhook',
       'GRANT SELECT (webhook_sk, payload_sha256) ON t_dspd_bm.stg_webhook_evento TO dspd_webhook']);
     expect(g).toContain('GRANT SELECT, INSERT ON t_dspd_ac.ctl_automacao TO dspd_automacao');
+  });
+  it('dspd_pesquisa só insere em pesq_* e lê a referência; dspd_api só lê pesq_* e a view; nada de UPDATE/DELETE', () => {
+    const pesquisa = g.filter((x) => x.endsWith('TO dspd_pesquisa'));
+    expect(pesquisa).toEqual([
+      'GRANT USAGE ON SCHEMA t_dspd_core TO dspd_pesquisa',
+      'GRANT SELECT, INSERT ON t_dspd_core.pesq_carga TO dspd_pesquisa', 'GRANT SELECT, INSERT ON t_dspd_core.pesq_resultado TO dspd_pesquisa',
+      'GRANT SELECT ON t_dspd_core.ref_pesq_area TO dspd_pesquisa', 'GRANT SELECT ON t_dspd_core.ref_versao_criterio TO dspd_pesquisa',
+      'GRANT SELECT ON t_dspd_core.ref_versao_criterio_metrica TO dspd_pesquisa']);
+    expect(pesquisa.join('\n')).not.toMatch(/UPDATE|DELETE|t_dspd_bm|t_dspd_ac|outbox/);
+    const api = g.filter((x) => x.endsWith('TO dspd_api') && /pesq/.test(x));
+    expect(api).toEqual(['GRANT SELECT ON t_dspd_core.ref_pesq_area TO dspd_api', 'GRANT SELECT ON t_dspd_core.pesq_carga TO dspd_api',
+      'GRANT SELECT ON t_dspd_core.pesq_resultado TO dspd_api', 'GRANT SELECT ON t_dspd_core.vw_pesq_vigente TO dspd_api']);
+    expect(g[0]).toMatch(/dspd_pesquisa/);
   });
   it('sem outbox no catálogo não concede nada nela', () => {
     const sem = gerarGrants(S, { ...cat, core: { ref_calendario: ['calendario_id'] } });

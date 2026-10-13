@@ -154,6 +154,16 @@ describe('trava por fonte', () => {
     const f = criarDublePg((c) => (c.texto.includes('try_advisory') ? [{ ok: true }] : []));
     await expect(comTravaDaFonte(f.pool, 'x', async () => { throw new Error('y'); })).rejects.toThrow('y');
     expect(f.chamadas.some((c) => c.texto.includes('advisory_unlock'))).toBe(true);
+    expect(f.estado.destruidos).toBe(0);
+  });
+  it('unlock com falha destrói a conexão (solta o lock) e não perde o resultado nem o erro de fn', async () => {
+    const quebra = (c: { texto: string }) => (c.texto.includes('advisory_unlock') ? new Error('sem conexão') : [{ ok: true }]);
+    const a = criarDublePg(quebra);
+    expect(await comTravaDaFonte(a.pool, 'acelerato', async () => 7)).toEqual({ executou: true, valor: 7 });
+    expect(a.estado.destruidos).toBe(1);
+    const b = criarDublePg(quebra);
+    await expect(comTravaDaFonte(b.pool, 'x', async () => { throw new Error('y'); })).rejects.toThrow('y');
+    expect(b.estado.destruidos).toBe(1);
   });
 });
 
@@ -232,7 +242,7 @@ describe('OpenAPI', () => {
     const caminhos = Object.keys(JSON.parse(gerado).paths);
     expect(caminhos.slice(0, 8)).toEqual(['/health/live', '/health/ready', '/health', '/api/v1/filtros/{dominio}', '/api/v1/referencia',
       '/api/v1/fontes/{dominio}/estado', '/api/v1/fontes/{dominio}/coletas', '/api/v1/criterios']);
-    expect(caminhos.filter((c) => c.startsWith('/api/v1/metricas/'))).toHaveLength(51); // 50 métricas + o 404 genérico
+    expect(caminhos.filter((c) => c.startsWith('/api/v1/metricas/'))).toHaveLength(52); // 51 métricas + o 404 genérico
     expect(caminhos).toContain('/webhooks/businessmap');
   });
 });

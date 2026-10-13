@@ -1,6 +1,6 @@
 # Contrato da métrica BLOQUEADOS
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica BLOQUEADOS. Público: time (back-end, front-end, QA). Revisão: 2026-10-11.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica BLOQUEADOS. Público: time (back-end, front-end, QA). Revisão: 2026-10-13.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -34,13 +34,11 @@ Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite en
 | Granularidade | story |
 | Segmentação permitida | coluna, tipo |
 | Ordem | neutra |
-| Inclui arquivados | pendente-usuario |
+| Inclui arquivados | true |
 | Mínimo de amostra | 0 (contagem, censo ou retrato: sem mínimo) |
 | Partes sob mínimo | nenhuma |
 | Referência no briefing | 4.2 bloqueio marcado no card; 06 O1 |
-| Status | pendente-usuario |
-
-Status `pendente-usuario`: há célula de regra que o briefing não responde. Não se infere no código: é pergunta ao usuário (ver `docs/architecture/regras-metricas.md`).
+| Status | ok |
 
 ## Cartões que usam a métrica
 

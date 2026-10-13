@@ -1,6 +1,6 @@
 import {
   APLICABILIDADE_FLUXO,
-  METRICAS_SUSTENTACAO,
+  fonteDaMetrica,
   type FiltroFluxoChave,
   type FiltrosFluxo,
   type FiltrosSustentacao,
@@ -9,7 +9,7 @@ import {
   type ResultadoVisaoGeral,
   type VersaoCriterio,
 } from '@metricas-dspd/contratos'
-import type { TextoNota } from '@/components/ui'
+import type { FonteDoCartao, TextoNota } from '@/components/ui'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { ROTULO_FILTRO, ROTULO_PERIODO } from '@/features/filtros/paineis'
 import { fmtData, fmtInteiro, fmtNumero, textoJanela } from '@/lib/formatar'
@@ -22,6 +22,15 @@ import { fmtData, fmtInteiro, fmtNumero, textoJanela } from '@/lib/formatar'
 
 export type FonteExportacao = 'BusinessMap' | 'Acelerato'
 export const ORDEM_FONTES: readonly FonteExportacao[] = ['BusinessMap', 'Acelerato']
+
+/**
+ * Fonte de uma métrica na exportação. A pesquisa de percepção (PV1) fica fora da exportação nesta fase:
+ * chegar aqui com ela é erro de programação, nunca um caso a tratar como BusinessMap ou Acelerato.
+ */
+export function fonteExportavel(fonte: FonteDoCartao): FonteExportacao {
+  if (fonte === 'Pesquisa de percepção') throw new Error('A pesquisa de percepção não é exportável')
+  return fonte
+}
 
 /** Limite de métricas por exportação (plano 008, seção 5). */
 export const LIMITE_METRICAS = 12
@@ -136,7 +145,7 @@ export function textoFiltros(
 ): string {
   const equipes = filtros.equipe.map((e) => nomeDe(opcoes?.equipes, e))
   const partes = [`${ROTULO_FILTRO.equipe}: ${lista(equipes)}`]
-  if (METRICAS_SUSTENTACAO.includes(id)) {
+  if (fonteDaMetrica(id) === 'acelerato') {
     partes.push(`${ROTULO_FILTRO.prioridade}: ${lista((filtros as FiltrosSustentacao).prioridade)}`)
   } else {
     const f = filtros as FiltrosFluxo
@@ -341,7 +350,7 @@ export function construirBloco(e: EntradaBloco): BlocoExportacao {
     id: e.id,
     codigo: e.codigo ?? cat.codigo,
     titulo: e.titulo ?? cat.nome,
-    fonte: cat.fonte,
+    fonte: fonteExportavel(cat.fonte),
     filtros: textoFiltros(e.id, e.filtros, e.opcoes),
     janela: textoJanelaBloco(d),
     base: textoBase(d.base),

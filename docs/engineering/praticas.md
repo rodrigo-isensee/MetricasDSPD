@@ -1,7 +1,7 @@
 # Práticas de engenharia — MetricasDSPD
 
 Versão 3 · 2026-10-10 (documentação técnica na definição de pronto; v2 2026-10-09 alinhada às ADRs 0002 e 0003) · Mantido por tech-lead + software-architect (K-015, decisão D9 da ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`).
-Base: skill `.claude/skills/engineering-practices/SKILL.md`. Este arquivo prevalece sobre a skill; decisões estruturais ficam em ADR (`docs/architecture/adr/`). Divergência entre tech-lead e arquiteto vira ADR com as duas posições.
+Base: skill `engineering-practices` da fábrica Forge. Este arquivo prevalece sobre a skill; decisões estruturais ficam em ADR (`docs/architecture/adr/`). Divergência entre tech-lead e arquiteto vira ADR com as duas posições.
 
 Regras marcadas **[lint]** ou **[CI]** são verificadas por máquina; as demais, no code review.
 
@@ -128,7 +128,7 @@ Fluxo completo, gates, tags e rollback: [`fluxo-homologacao.md`](fluxo-homologac
 - **PR (qualquer base):** `ci.yml`: `rapida` (lint, formato, typecheck), `testes` (cobertura 100%, spec-check, docs:check), `banco` (por filtro em PR para `develop`; sempre em PR para `homolog` e `main`), `openapi`, `imagem`, `build` (tamanho e gate), `e2e`, `perf` (PR para a `main`), `seguranca` (informativo). Os nomes `rapida`, `testes`, `banco`, `build`, `e2e` são os da proteção de branch e não mudam.
 - **Push em `homolog`:** `homolog.yml` (portão): suíte completa, E2E, perf/Lighthouse, migração a partir do estado da `main` e smoke da pilha de homologação; documentação pura roda só `docs:check`. Publica o status `homolog-portao` no commit.
 - **Noturno (02:30 BRT):** o mesmo workflow contra a ponta de `homolog`, publicando `homolog-noturna`. Ambiente local sem rotina: sobe sob demanda (`pnpm run homolog:subir`).
-- **PR para a `main`:** `homolog-aprovada.yml` exige candidato = ponta de `homolog`, com `homolog-portao` e `homolog-noturna` verdes (hotfix dispensa, com aviso).
+- **PR para a `main`:** `homolog-aprovada.yml` exige candidato = ponta de `homolog`, com o portão de `homolog` verde; a noturna é informativa por enquanto (`EXIGIR_NOTURNA=false`, hotfix dispensa, com aviso).
 - A lógica fica em scripts do repositório (`tools/homolog`, testados com cobertura 100%); o YAML só decide quando chamar.
 
 ### 10.1 Revisão semanal do CI

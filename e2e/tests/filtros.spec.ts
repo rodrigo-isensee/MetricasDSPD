@@ -44,7 +44,7 @@ test('FIL-04 marcar todos os valores remove o parâmetro', async ({ painel, page
   const nomes = ['ERP Protheus', 'Fluig', 'Senior', 'Marketing e Vendas', 'Dados', 'Plataforma 5G'];
   for (const n of nomes) await page.getByRole('checkbox', { name: n }).click();
   await page.keyboard.press('Escape');
-  expect(painel.filtros.parametros().has('equipe')).toBe(false);
+  await expect.poll(() => painel.filtros.parametros().has('equipe')).toBe(false); // a URL é atualizada ao fechar o menu; ler na hora corre contra o commit (flaky sob carga)
 });
 
 test('FIL-05 Voltar desfaz só a última mudança, Avançar refaz', async ({ painel, page }) => {
@@ -121,7 +121,7 @@ test('FIL-22 alternar 10 vezes não gera URL inconsistente', async ({ painel, pa
   const caixa = page.getByRole('checkbox', { name: 'Fluig' });
   for (let i = 0; i < 10; i++) await caixa.click();
   await page.keyboard.press('Escape');
-  expect(painel.filtros.parametros().has('equipe')).toBe(false);
+  await expect.poll(() => painel.filtros.parametros().has('equipe')).toBe(false); // espera o commit da URL ao fechar o menu (flaky sob carga)
 });
 
 test('NAV-06 links entre painéis de fluxo preservam filtros', async ({ painel, page }) => {

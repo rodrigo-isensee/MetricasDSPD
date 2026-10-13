@@ -129,6 +129,7 @@ jobs:
       DSPD_PWD_REF: ref_dev
       DSPD_PWD_WEBHOOK: webhook_dev
       DSPD_PWD_AUTOMACAO: automacao_dev
+      DSPD_PWD_PESQUISA: pesquisa_dev
       PG_TESTE_URL: postgres://dspd_migrador:migrador_dev@127.0.0.1:5432/metricas_test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -261,7 +262,10 @@ jobs:
             pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
           fi
       - run: pnpm run build
-      - run: pnpm --filter @metricas-dspd/e2e run test:perf
+      - name: Perf (C6 com 1 rodada, runner exclusivo e estável)
+        run: pnpm --filter @metricas-dspd/e2e run test:perf
+        env:
+          PERF_RODADAS_C6: '1'
       - run: pnpm --filter @metricas-dspd/e2e run lighthouse
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()

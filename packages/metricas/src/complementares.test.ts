@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
+import {
+  fonteDaMetrica,
+  type FiltrosFluxo,
+  type FiltrosSustentacao,
+} from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock'
 import { acelerato, businessmap, calcularMetrica, type ContextosMetricas } from '.'
@@ -60,7 +64,7 @@ describe('métricas complementares: contratos e regras comuns', () => {
     ] as const
     for (const id of ids)
       for (const ctx of [ctxMock, ctxSemExt]) {
-        const f = id.startsWith('S') || id === 'O17' ? FS : F
+        const f = fonteDaMetrica(id) === 'acelerato' ? FS : F
         const r = calcularMetrica(id, f as never, ctx)
         expect(SCHEMAS_RESULTADO[id].safeParse(r).success, id).toBe(true)
       }

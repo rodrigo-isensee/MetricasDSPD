@@ -5,15 +5,20 @@ import { Icone } from './Icone'
 const base =
   'inline-flex items-center gap-1 rounded-full border border-borda bg-superficie-2 px-2 py-0.5 text-sm text-texto-2'
 
-export function ChipFonte({ fonte }: { fonte: 'BusinessMap' | 'Acelerato' }) {
-  return <span className={base}>Fonte: {fonte}</span>
+export type FonteDoCartao = 'BusinessMap' | 'Acelerato' | 'Pesquisa de percepção'
+export type GranularidadeDoCartao =
+  'demanda' | 'frente' | 'projeto' | 'chamado' | 'resposta agregada'
+
+export function ChipFonte({ fonte }: { fonte: FonteDoCartao }) {
+  return (
+    <span className={base}>
+      Fonte: {fonte}
+      {fonte === 'Pesquisa de percepção' && ' (não é Acelerato)'}
+    </span>
+  )
 }
 
-export function ChipGranularidade({
-  granularidade,
-}: {
-  granularidade: 'demanda' | 'frente' | 'projeto' | 'chamado'
-}) {
+export function ChipGranularidade({ granularidade }: { granularidade: GranularidadeDoCartao }) {
   return <span className={base}>Granularidade: {granularidade}</span>
 }
 

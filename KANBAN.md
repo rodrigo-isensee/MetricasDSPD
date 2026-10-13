@@ -1,6 +1,6 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-10 10:55 · Mantido pelo Jarvis; políticas do `agile-coach` (`.claude/skills/kanban-scrum/SKILL.md`).
+> Atualizado em: 2026-10-10 10:55 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
 > WIP: Empatizar 0/2 · Idear 0/2 · Validação do usuário 1 (K-055) · Pronto para fazer 1/5 (K-034) · Em andamento: react-frontend 2 (K-056, K-057; 2 instâncias) · Code review 3/2 (K-017, K-053, K-054; K-053 fecha com o pai K-017) · QA 0/2 · Aguardando sua validação 1 PR (#2) · Bloqueados: 1 (K-017, depende do usuário: Docker)
 > Item mais antigo em andamento: K-056/K-057 (10:31). Pedido 001 concluído (PR #1 mesclado, eff026a). Atenção: Code review acima do limite (3/2); K-017 aguarda Docker na máquina para os testes MySQL.
 > Pedido 002 (`feature/arquitetura-mysql`): K-014, K-033 aprovados; K-017 re-review (bugs K-053 corrigidos, 831779d); ambiente Docker pronto (fce13e1); data-model atualizado pelo arquiteto, sem commit. Pedido 006: K-034 validado; K-035/K-036 pausados até o UX ficar livre. Pedido 007: K-055 aguarda validação (5 pontos + D-f, D-g).

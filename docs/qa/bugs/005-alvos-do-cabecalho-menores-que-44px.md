@@ -14,3 +14,6 @@ A11Y-13 / critério 102: alvos >= 44x44 px abaixo de 768 px (>= 24 px sempre; 2.
 
 ## Evidência
 e2e/tests/responsivo.spec.ts (A11Y-13).
+
+## Status: VERIFICADO (2026-10-12, QA, feature/lacuna-de-valor @ af9950e)
+Chromium. `responsivo.spec.ts` A11Y-13 (alvos >= 44 px abaixo de 768 px e >= 24 px acima, incluindo o link da marca) passou. Corrigido.

@@ -36,7 +36,13 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 368;
+const COLUNAS_FORA_STG_ESPERADAS = 395;
+
+describe('migrações e singleTransaction', () => {
+  it('nenhuma migração usa CONCURRENTLY (incompatível com o `up` em transação única)', () => {
+    expect(todoSql.filter((q) => /CONCURRENTLY/i.test(q))).toEqual([]);
+  });
+});
 
 describe('migrações (análise estática, sem banco)', () => {
   it('nomes NNNN_descricao, sequenciais, ordenados e iguais aos arquivos do diretório', () => {
@@ -105,7 +111,7 @@ describe('migrações (análise estática, sem banco)', () => {
   });
   it('toda view é security_invoker e lista colunas (C-views, data-model §2)', () => {
     const views = todoSql.filter((s) => s.startsWith('CREATE VIEW'));
-    expect(views).toHaveLength(6);
+    expect(views).toHaveLength(7);
     for (const v of views) expect(v).toMatch(/^CREATE VIEW \S+ WITH \(security_invoker = true\) AS/);
   });
   it('C1: origem_demanda e demais códigos de ref_dominio têm o tipo de ref_dominio.codigo (varchar(80))', () => {
