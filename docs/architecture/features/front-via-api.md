@@ -89,3 +89,6 @@ Teste com os dois caminhos sobre a **mesma base**: o gerador `@metricas-dspd/moc
 | FA-6 | Code review, parecer de QA em `docs/qa/`, revisão de segurança curta em `docs/security/` (itens da seção 7) | tech-lead, qa-engineer, software-architect | P | FA-2 a FA-5 |
 
 Ordem: FA-1 e FA-2 em paralelo; FA-3 após FA-2; FA-4 e FA-5 em paralelo após FA-3 (o QA pode preparar os esqueletos de FA-4/FA-5 desde já). Total relativo: 2 pequenos + 3 médios (em torno de 4 a 6 dias-pessoa somados, 1 cartão em andamento por agente). Nenhuma mudança de interface visível: sem UX; o `ux-designer` só confirma, na revisão, que os estados de erro não ganharam texto novo.
+
+## 11. Execução FA-4 e FA-5 (QA, 2026-10-12)
+Entregues: teste de paridade (`web/paridade/`, `pnpm --dir web run test:paridade`), projetos E2E `chromium-api` e `perf-api` (ligados por `E2E_API_URL`), `scripts/com-api-mock.sh` e `server/tests/pg/servidor-api-mock.ts`. Resultado real e bugs em `docs/qa/front-via-api.md` e `docs/qa/bugs/FA-001` a `FA-005`: a paridade acusa 35 testes com defeito (seed sem referências, contagens divergentes em O10/O12/S7, `janela.*` descartada). **D2 não deve ser adotada antes de FA-001 a FA-003.** Proposta de D2 na seção final do plano de QA.
