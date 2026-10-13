@@ -1,0 +1,189 @@
+{
+ "axeCartao": {
+  "bloqueantes": [],
+  "informativas": []
+ },
+ "axePagina": {
+  "bloqueantes": [],
+  "informativas": []
+ },
+ "medidas": [
+  {
+   "faixa": "1",
+   "fundoBase": [
+    255,
+    255,
+    255
+   ],
+   "bgRgba": [
+    26,
+    89,
+    191,
+    0.0784313725490196
+   ],
+   "composto": [
+    237,
+    242,
+    250
+   ],
+   "texto": [
+    26,
+    31,
+    43
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    31,
+    95,
+    191
+   ]
+  },
+  {
+   "faixa": "2",
+   "fundoBase": [
+    255,
+    255,
+    255
+   ],
+   "bgRgba": [
+    30,
+    95,
+    190,
+    0.2
+   ],
+   "composto": [
+    210,
+    223,
+    242
+   ],
+   "texto": [
+    26,
+    31,
+    43
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    31,
+    95,
+    191
+   ]
+  },
+  {
+   "faixa": "3",
+   "fundoBase": [
+    255,
+    255,
+    255
+   ],
+   "bgRgba": [
+    30,
+    96,
+    192,
+    0.30196078431372547
+   ],
+   "composto": [
+    187,
+    207,
+    236
+   ],
+   "texto": [
+    26,
+    31,
+    43
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    31,
+    95,
+    191
+   ]
+  },
+  {
+   "faixa": "4",
+   "fundoBase": [
+    255,
+    255,
+    255
+   ],
+   "bgRgba": [
+    30,
+    95,
+    190,
+    0.4
+   ],
+   "composto": [
+    165,
+    191,
+    229
+   ],
+   "texto": [
+    26,
+    31,
+    43
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    31,
+    95,
+    191
+   ]
+  },
+  {
+   "faixa": "5",
+   "fundoBase": [
+    255,
+    255,
+    255
+   ],
+   "bgRgba": [
+    31,
+    95,
+    191,
+    1
+   ],
+   "composto": [
+    31,
+    95,
+    191
+   ],
+   "texto": [
+    255,
+    255,
+    255
+   ],
+   "bordaLargura": 1,
+   "borda": [
+    31,
+    95,
+    191
+   ]
+  }
+ ],
+ "contrastes": [
+  {
+   "faixa": "1",
+   "borda": 6.09,
+   "preenchimento": 1.12
+  },
+  {
+   "faixa": "2",
+   "borda": 6.09,
+   "preenchimento": 1.35
+  },
+  {
+   "faixa": "3",
+   "borda": 6.09,
+   "preenchimento": 1.58
+  },
+  {
+   "faixa": "4",
+   "borda": 6.09,
+   "preenchimento": 1.88
+  },
+  {
+   "faixa": "5",
+   "borda": 6.09,
+   "preenchimento": 6.09
+  }
+ ]
+}

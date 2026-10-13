@@ -6,6 +6,32 @@ import { fmtTri, textoContagem } from './formatar'
 
 type Ok = Extract<ResultadoPV1, { status: 'ok' }>
 
+type Ponto = Ok['tendencia'][number]
+
+/** " em dd/mm/aaaa" quando há data da quebra (L-8); vazio quando não há. */
+function textoDataQuebra(d: Ok, anterior: Ponto, atual: Ponto): string {
+  const data = dataDaQuebra(d, anterior, atual)
+  return data ? ` em ${fmtData(data)}` : ''
+}
+
+/** Trimestre (`2026-T2`) em que cai uma data ISO. */
+const trimestreDaData = (iso: string): string =>
+  `${iso.slice(0, 4)}-T${Math.ceil(Number(iso.slice(5, 7)) / 3)}`
+
+/**
+ * Data da quebra de série entre dois trimestres seguidos (L-8): a marca T2.6 (`criterios.serie`) que cai entre o trimestre
+ * anterior (exclusive) e este (inclusive); sem marca, a data de vigência do questionário só quando a versão é a
+ * vigente. Sem nenhuma das duas, a coluna fica sem data.
+ */
+function dataDaQuebra(d: Ok, anterior: Ponto, atual: Ponto): string | undefined {
+  const marca = d.criterios.serie.find((m) => {
+    const t = trimestreDaData(m.data)
+    return t > anterior.trimestre && t <= atual.trimestre
+  })
+  if (marca) return marca.data
+  return atual.versaoId === d.questionario.versaoId ? d.questionario.vigenteDesde : undefined
+}
+
 /**
  * Tendência dos últimos trimestres: respostas "Concordam" (faixas 4 e 5), por pergunta, em "k de n".
  * Uma troca de versão do questionário entre dois trimestres quebra a série (T2.6): a coluna ganha marca
@@ -35,8 +61,8 @@ export function Tendencia({ d }: { d: Ok }) {
       >
         <table className="w-full border-collapse text-sm">
           <caption className="px-3 py-2 text-left text-xs text-texto-2">
-            Concordam (faixas 4 e 5) por pergunta, em k de n respostas. O "n" muda de um trimestre
-            para outro.
+            Só o lado que concorda (faixas 4 e 5), por pergunta, em k de n respostas. Para o lado
+            que discorda, leia a distribuição acima. O "n" muda de um trimestre para outro.
           </caption>
           <thead className="bg-superficie-2">
             <tr>
@@ -68,9 +94,7 @@ export function Tendencia({ d }: { d: Ok }) {
                     >
                       <Icone nome="alerta" className="size-3" />
                       Questionário alterado
-                      {p.versaoId === d.questionario.versaoId
-                        ? ` em ${fmtData(d.questionario.vigenteDesde)}`
-                        : ''}
+                      {textoDataQuebra(d, pontos[i - 1] as Ponto, p)}
                     </span>
                   )}
                 </th>
