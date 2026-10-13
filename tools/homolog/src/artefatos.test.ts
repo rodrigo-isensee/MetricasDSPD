@@ -65,7 +65,9 @@ const AGUARDA_EXEMPLO_DO_USUARIO: readonly string[] = ['DSPD_PWD_PESQUISA']
 describe('.env.homolog.example', () => {
   it('lista todos os segredos sem valor e fica versionável', () => {
     const exemplo = ler('.env.homolog.example')
-    for (const chave of SEGREDOS_OBRIGATORIOS.filter((c) => !AGUARDA_EXEMPLO_DO_USUARIO.includes(c)))
+    for (const chave of SEGREDOS_OBRIGATORIOS.filter(
+      (c) => !AGUARDA_EXEMPLO_DO_USUARIO.includes(c),
+    ))
       expect(exemplo).toMatch(new RegExp(`^${chave}=$`, 'm'))
     expect(ler('.gitignore')).toContain('!.env.homolog.example')
   })

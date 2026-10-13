@@ -767,19 +767,23 @@ describe('P7b: reenvios nunca expõem a carga substituída (decisão I-2)', () =
             ...ultima,
             cargaId: ultima.cargaId + i + 1,
             recebidaEm: `${ultima.recebidaEm.slice(0, 8)}${29 + i}`,
-            linhas: ultima.linhas.map((l) => ({ ...l, f1: l.f1 + d, convidados: l.convidados + d })),
+            linhas: ultima.linhas.map((l) => ({
+              ...l,
+              f1: l.f1 + d,
+              convidados: l.convidados + d,
+            })),
           }))
           const base: BasePesquisa = { ...b, cargas: [...b.cargas, ...reenvios] }
           const final = reenvios[reenvios.length - 1] as (typeof reenvios)[number]
           const em = (hoje: string) =>
-            calcularMetrica(
-              'PV1',
-              {},
-              { ...CTX, pesq: pesquisa.criarContextoPesquisa(base, hoje) },
-            )
+            calcularMetrica('PV1', {}, { ...CTX, pesq: pesquisa.criarContextoPesquisa(base, hoje) })
           const referencia = em(final.recebidaEm)
           // Do primeiro recebimento do trimestre em diante, todas as datas dão o mesmo painel (o da carga final).
-          for (const hoje of [ultima.recebidaEm, ...reenvios.map((r) => r.recebidaEm), '2099-12-31'])
+          for (const hoje of [
+            ultima.recebidaEm,
+            ...reenvios.map((r) => r.recebidaEm),
+            '2099-12-31',
+          ])
             expect(em(hoje), hoje).toEqual(referencia)
         },
       ),
