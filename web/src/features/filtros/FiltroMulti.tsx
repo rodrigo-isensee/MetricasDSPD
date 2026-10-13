@@ -1,5 +1,5 @@
 import { Popover } from 'radix-ui'
-import { useId, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type RefObject, type ReactNode } from 'react'
 import { Botao, Icone } from '@/components/ui'
 import type { OpcaoFiltro } from '@metricas-dspd/contratos'
 
@@ -29,11 +29,18 @@ function Lista({
   selecionados,
   onChange,
   aoMudar,
-}: Props & { aoMudar: () => boolean }) {
+  atualRef,
+}: Props & { aoMudar: () => boolean; atualRef: RefObject<string[]> }) {
   const base = useId()
   const alternar = (opcaoId: string, marcado: boolean) => {
     const replace = aoMudar()
-    const prox = marcado ? [...selecionados, opcaoId] : selecionados.filter((x) => x !== opcaoId)
+    // Parte da última seleção emitida, não da prop: cliques em sequência rápida chegam antes de a URL
+    // (fonte da prop) re-renderizar, e a prop velha perderia a marcação anterior (bug 004).
+    const base = atualRef.current
+    const prox = marcado
+      ? [...base.filter((x) => x !== opcaoId), opcaoId]
+      : base.filter((x) => x !== opcaoId)
+    atualRef.current = prox
     onChange(prox, replace)
   }
   return (
@@ -79,6 +86,12 @@ export function FiltroMulti(props: Props) {
     genero = 'f',
   } = props
   const mudou = useRef(false)
+  const atual = useRef<string[]>([...selecionados])
+  const chaveProp = selecionados.join('\u0000')
+  useEffect(() => {
+    // A URL (fonte da prop) voltou a mandar: ressincroniza a seleção de partida.
+    atual.current = chaveProp === '' ? [] : chaveProp.split('\u0000')
+  }, [chaveProp])
   const aoMudar = () => {
     const replace = mudou.current
     mudou.current = true
@@ -91,7 +104,7 @@ export function FiltroMulti(props: Props) {
           {rotulo}
           {dica}
         </p>
-        <Lista {...props} aoMudar={aoMudar} />
+        <Lista {...props} aoMudar={aoMudar} atualRef={atual} />
       </div>
     )
   }
@@ -116,9 +129,15 @@ export function FiltroMulti(props: Props) {
             sideOffset={6}
             className="z-50 w-64 rounded-md border border-borda-controle bg-superficie p-3 shadow-lg"
           >
-            <Lista {...props} aoMudar={aoMudar} />
+            <Lista {...props} aoMudar={aoMudar} atualRef={atual} />
             <div className="mt-3 flex justify-between gap-2">
-              <Botao onClick={() => onChange([], mudou.current)} className="text-xs">
+              <Botao
+                onClick={() => {
+                  atual.current = []
+                  onChange([], mudou.current)
+                }}
+                className="text-xs"
+              >
                 Limpar
               </Botao>
               <Popover.Close asChild>
