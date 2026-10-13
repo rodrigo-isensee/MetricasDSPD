@@ -117,7 +117,7 @@ export function Distribuicao({
         return (
           <li
             key={pergunta.codigo}
-            className="grid grid-cols-1 items-center gap-1 sm:grid-cols-[minmax(0,16rem)_1fr_4rem] sm:gap-3"
+            className="grid grid-cols-1 items-center gap-1 sm:grid-cols-[minmax(0,16rem)_1fr] sm:gap-3"
           >
             <span className="text-sm">{pergunta.texto}</span>
             <div
@@ -140,7 +140,6 @@ export function Distribuicao({
                 </span>
               ))}
             </div>
-            <span className="text-xs text-texto-2 sm:text-right">n = {fmtInteiro(bloco.n)}</span>
           </li>
         )
       })}

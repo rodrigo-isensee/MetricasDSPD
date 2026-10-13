@@ -133,7 +133,7 @@ describe('CartaoPV1: sem pesquisa', () => {
       'Nenhuma pesquisa carregada',
     )
     expect(el).toHaveTextContent(
-      'A coordenação carrega o resultado do trimestre pelo procedimento de carga.',
+      'A coordenação da sustentação publica o resultado depois de cada trimestre. Ainda não há resultado.',
     )
     expect(within(el).queryByRole('button', { name: /carregar|enviar|importar/i })).toBeNull()
     expect(el.querySelector('input[type="file"]')).toBeNull()
@@ -156,7 +156,7 @@ describe('CartaoPV1: publicado (n = 24, com percentual)', () => {
     expect(within(el).getByTestId('pv1-participacao')).toHaveTextContent(
       'Participação: 24 de 30 convidados (80%). Sem meta de participação.',
     )
-    const legenda = within(el).getByTestId('legenda-faixas')
+    const legenda = within(el).getAllByTestId('legenda-faixas')[0] as HTMLElement
     for (const t of ['1 Discordo totalmente', '3 Neutro', '5 Concordo totalmente'])
       expect(within(legenda).getByText(t)).toBeInTheDocument()
     const barras = within(within(el).getByTestId('distribuicao-consolidado')).getAllByRole('img')
@@ -168,7 +168,7 @@ describe('CartaoPV1: publicado (n = 24, com percentual)', () => {
     const faixas = barras[0]?.querySelectorAll('[data-faixa]') ?? []
     expect([...faixas].map((f) => f.textContent)).toEqual(['0', '1', '1', '11', '11'])
     expect(within(el).queryByTestId('pv1-so-k-de-n')).toBeNull()
-    expect(within(el).getAllByText('n = 24')).toHaveLength(5)
+    expect(within(el).queryByText('n = 24')).toBeNull()
   })
 
   it('"Ver como tabela" traz a mesma distribuição com contagem e percentual (n >= 20)', async () => {
@@ -193,8 +193,14 @@ describe('CartaoPV1: publicado (n = 24, com percentual)', () => {
     expect(within(el).queryByRole('meter')).toBeNull()
   })
 
-  it('o rodapé diz que filtros do painel não se aplicam e que não há meta', async () => {
+  it('o aviso de filtros fica logo após a participação e o rodapé diz que não há meta', async () => {
     const { el } = await cartao(resultado())
+    expect(within(el).getByTestId('pv1-participacao').nextElementSibling).toBe(
+      within(el).getByTestId('pv1-nao-se-aplica'),
+    )
+    expect(within(el).getByTestId('pv1-rodape')).toHaveTextContent(
+      'não avalia pessoas nem compara áreas ou equipes. Sem meta de satisfação.',
+    )
     expect(within(el).getByTestId('pv1-nao-se-aplica')).toHaveTextContent(
       'Os filtros do painel (equipe, prioridade e período) não se aplicam a esta seção.',
     )
@@ -250,6 +256,7 @@ describe('CartaoPV1: base insuficiente', () => {
         consolidado: { status: 'base-insuficiente', n: 4, minimo: 5 },
         participacao: { respondentes: 4, convidados: 10, taxa: taxa(4, 10) },
         base: { n: 4, unidade: 'respostas', janela: null },
+        porArea: { status: 'nao-publicado', motivo: 'base-insuficiente' },
       }),
     )
     expect(within(el).getByTestId('pv1-base-insuficiente')).toHaveTextContent(
@@ -306,6 +313,10 @@ describe('CartaoPV1: por área', () => {
       'Outras áreas · 5 respostas',
     ])
     expect(within(areas[0] as HTMLElement).getAllByRole('img')).toHaveLength(5)
+    // Blocos com n < 20: a regra do "k de n" e a legenda são repetidas acima de "Por área".
+    const sec = within(el).getByTestId('por-area')
+    expect(within(sec).getByTestId('pv1-so-k-de-n-area')).toHaveTextContent('k de n')
+    expect(within(sec).getByTestId('legenda-faixas')).toBeVisible()
   })
 })
 
@@ -326,6 +337,9 @@ describe('CartaoPV1: tendência e versão do questionário', () => {
     expect(within(el).getByTestId('aviso-quebra-serie')).toHaveTextContent(
       'Não compare os números antes e depois da marca.',
     )
+    // A coluna da pergunta fica fixa ao rolar (375 px).
+    expect(within(t).getAllByRole('rowheader')[0]).toHaveClass('sticky', 'left-0')
+    expect(cab[0]).toHaveClass('sticky', 'left-0')
     const linha1 = within(t).getAllByRole('row')[1] as HTMLElement
     expect(
       within(linha1)
@@ -407,7 +421,7 @@ describe('CartaoPV1: O que mudou', () => {
     expect(
       within(el).getByRole('heading', { name: 'O que mudou por causa da pesquisa' }),
     ).toBeVisible()
-    expect(el).toHaveTextContent('Registro da coordenação · 2T/2026')
+    expect(el).toHaveTextContent('Em resposta à pesquisa de 2T/2026')
   })
 
   it('sem registro, diz que a coordenação ainda não escreveu', async () => {

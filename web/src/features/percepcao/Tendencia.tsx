@@ -40,7 +40,10 @@ export function Tendencia({ d }: { d: Ok }) {
           </caption>
           <thead className="bg-superficie-2">
             <tr>
-              <th scope="col" className="px-3 py-2 text-left font-semibold">
+              <th
+                scope="col"
+                className="sticky left-0 z-10 min-w-40 border-r border-borda bg-superficie-2 px-3 py-2 text-left font-semibold"
+              >
                 Pergunta
               </th>
               {pontos.map((p, i) => (
@@ -77,7 +80,7 @@ export function Tendencia({ d }: { d: Ok }) {
           <tbody>
             {perguntas.map((q) => (
               <tr key={q.codigo} className="border-t border-borda">
-                <th scope="row" className="min-w-40 bg-superficie px-3 py-2 text-left font-medium">
+                <th scope="row" className="sticky left-0 z-10 min-w-40 border-r border-borda bg-superficie px-3 py-2 text-left font-medium">
                   {q.texto}
                 </th>
                 {pontos.map((p, i) => {

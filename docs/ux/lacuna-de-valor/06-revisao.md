@@ -27,45 +27,45 @@ Nenhum, por código. A interface atende às regras invioláveis e às decisões 
 
 ### Médio
 
-**M-1. Blocos por área com n < 20 não explicam "k de n".**
+**M-1. Blocos por área com n < 20 não explicam "k de n".** [RESOLVIDO 2026-10-12: texto e legenda repetidos acima de "Por área"]
 - Onde: `CartaoPV1.tsx`, `soKDeN` só avalia `consolidado`; `PorArea` não repete a explicação.
 - Problema: em "Financeiro · 12 respostas" a barra mostra contagens sem percentual e o leitor não sabe por quê (a regra só é dita sob o consolidado, bem acima). Fere "visibilidade do status".
 - Correção: calcular `soKDeN` por bloco (ou texto único na introdução de "Por área": "Com menos de 20 respostas só aparece a quantidade, sem percentual"). Repetir a legenda das faixas (ou `LegendaFaixas` compacta) acima de "Por área", pois a de cima fica fora da tela, sobretudo a 375 px.
 
-**M-2. Tendência: primeira coluna sem fixar, perde-se a pergunta ao rolar a 375 px.**
+**M-2. Tendência: primeira coluna sem fixar, perde-se a pergunta ao rolar a 375 px.** [RESOLVIDO: `sticky left-0` na coluna da pergunta]
 - Onde: `Tendencia.tsx`, `th scope="row"` com `bg-superficie` mas sem `sticky left-0`.
 - Problema: 4 trimestres × `min-w-28` + `min-w-40` passam de 600 px; em 343 px a rolagem horizontal separa o número do texto da pergunta (reconhecer em vez de lembrar; 1.4.10 reflow é atendido pela região rolável, mas o contexto se perde).
 - Correção: `sticky left-0 z-10` na célula de cabeçalho de linha e no canto da cabeça (com borda direita), ou, a 375 px, empilhar por pergunta com o trimestre como linha.
 
-**M-3. Aviso "filtros não se aplicam" no fim do cartão.**
+**M-3. Aviso "filtros não se aplicam" no fim do cartão.** [RESOLVIDO: logo após a participação; rodapé curto mantido]
 - Onde: `CartaoPV1.tsx`, `pv1-nao-se-aplica` (último parágrafo), misturado com "não avalia pessoas" e "sem meta".
 - Problema: quem muda equipe, prioridade ou período e vê o cartão inalterado só descobre o motivo depois de rolar tudo; três mensagens num bloco denso (design minimalista).
 - Correção: mover a frase dos filtros para logo abaixo da participação (ou para a `pergunta` da `SecaoPainel`, que já diz "Leia ao lado de S1 e S2"); manter "não avalia pessoas nem compara áreas ou equipes. Sem meta de satisfação." como rodapé curto.
 
-**M-4. Validação do usuário e `especificacao.md` ausentes.**
+**M-4. Validação do usuário e `especificacao.md` ausentes.** [ABERTO: depende do usuário]
 - Onde: `05-validacao.md` (retorno vazio), pasta sem `especificacao.md`.
 - Problema: as decisões 22 a 31 são do time (provisórias: base 5/3, "k de n" abaixo de 20, por área só a partir do 2º ciclo, bloco "O que mudou"). O roteiro de tarefas (achar a PV1 ao lado de S2, entender "Outras áreas", ler o aviso de dados de pessoas) não foi feito com o app real.
 - Correção: registrar em `05-validacao.md` o alinhamento de 11/10 como retorno parcial, trocar o roteiro item 3 ("simular carregar") por "ver o estado sem pesquisa e saber quem carrega", e gerar `especificacao.md`. Pedir aceite do usuário com o app rodando.
 
 ### Baixo
 
-**L-1. "O que mudou" ambíguo quanto ao trimestre.** `CartaoPV1.tsx`: "Registro da coordenação · 2T/2026" ao lado de uma pesquisa 3T/2026 não diz se o texto responde à pesquisa de 2T ou foi escrito em 2T. Sugestão: "Em resposta à pesquisa de 2T/2026".
+**L-1. "O que mudou" ambíguo quanto ao trimestre.** [RESOLVIDO: "Em resposta à pesquisa de ..."] `CartaoPV1.tsx`: "Registro da coordenação · 2T/2026" ao lado de uma pesquisa 3T/2026 não diz se o texto responde à pesquisa de 2T ou foi escrito em 2T. Sugestão: "Em resposta à pesquisa de 2T/2026".
 
-**L-2. Texto de "sem pesquisa" vago.** "pelo procedimento de carga" é jargão. Sugestão: "A coordenação da sustentação publica o resultado depois de cada trimestre. Ainda não há resultado." Também há leve contradição de ter "Dados fictícios" num cartão que diz "nenhuma pesquisa": manter o selo (decisão do usuário) mas só quando o dado é mock.
+**L-2. Texto de "sem pesquisa" vago.** [PARCIAL: texto trocado; selo só com dado mock já é assim, via catálogo] "pelo procedimento de carga" é jargão. Sugestão: "A coordenação da sustentação publica o resultado depois de cada trimestre. Ainda não há resultado." Também há leve contradição de ter "Dados fictícios" num cartão que diz "nenhuma pesquisa": manter o selo (decisão do usuário) mas só quando o dado é mock.
 
-**L-3. Tendência com um único trimestre repete o consolidado.** `CartaoPV1.tsx` mostra a tabela quando `tendencia.length > 0`. Com 1 ponto é redundante; exibir só com 2 ou mais, ou legenda "Primeiro ciclo: ainda sem tendência".
+**L-3. Tendência com um único trimestre repete o consolidado.** [PENDENTE: decisão de exibição] `CartaoPV1.tsx` mostra a tabela quando `tendencia.length > 0`. Com 1 ponto é redundante; exibir só com 2 ou mais, ou legenda "Primeiro ciclo: ainda sem tendência".
 
-**L-4. Tendência só mostra "Concordam" (faixas 4 e 5).** Esconde a movimentação do lado discordante, e a regra "ler a distribuição inteira" da nota fica só no consolidado. Aceitável por decisão de escopo; registrar como hipótese a confirmar com o usuário e deixar a nota dizer "só o lado que concorda".
+**L-4. Tendência só mostra "Concordam" (faixas 4 e 5).** [PENDENTE: confirmar com o usuário] Esconde a movimentação do lado discordante, e a regra "ler a distribuição inteira" da nota fica só no consolidado. Aceitável por decisão de escopo; registrar como hipótese a confirmar com o usuário e deixar a nota dizer "só o lado que concorda".
 
-**L-5. Largura das barras não proporcional para contagens pequenas.** `Distribuicao.tsx`: `min-w-5` infla trechos com 1 ou 2 respostas; números de 3 dígitos (≥ 100) cortam em `text-xs`. Sem risco hoje (n típico 5 a 40); ajustar `min-w` se n crescer e conferir a 375 px.
+**L-5. Largura das barras não proporcional para contagens pequenas.** [PENDENTE: sem risco hoje] `Distribuicao.tsx`: `min-w-5` infla trechos com 1 ou 2 respostas; números de 3 dígitos (≥ 100) cortam em `text-xs`. Sem risco hoje (n típico 5 a 40); ajustar `min-w` se n crescer e conferir a 375 px.
 
-**L-6. Escala vermelho-azul sugere semáforo.** `CLASSE_FAIXA` usa `alerta` para "Discordo totalmente". Não depende só de cor e há legenda, mas o vermelho induz juízo ("sem semáforo"). Preferir uma rampa de um único matiz (neutro a acento) ou divergente neutra.
+**L-6. Escala vermelho-azul sugere semáforo.** [PENDENTE: decisão de design (nova rampa de cor)] `CLASSE_FAIXA` usa `alerta` para "Discordo totalmente". Não depende só de cor e há legenda, mas o vermelho induz juízo ("sem semáforo"). Preferir uma rampa de um único matiz (neutro a acento) ou divergente neutra.
 
-**L-7. Ruído repetido.** "n = 24" repetido em cada uma das 5 barras de cada bloco; o `n` já está no título do bloco. Manter só o título ou só a coluna.
+**L-7. Ruído repetido.** [RESOLVIDO: coluna "n = " removida das barras] "n = 24" repetido em cada uma das 5 barras de cada bloco; o `n` já está no título do bloco. Manter só o título ou só a coluna.
 
-**L-8. Quebra de série sem data fora da versão vigente.** `Tendencia.tsx` mostra a data só quando a versão é a vigente; usar a data da marca T2.6 (`criterios.serie`) quando existir.
+**L-8. Quebra de série sem data fora da versão vigente.** [PENDENTE: depende de `criterios.serie` no contrato] `Tendencia.tsx` mostra a data só quando a versão é a vigente; usar a data da marca T2.6 (`criterios.serie`) quando existir.
 
-**L-9. Catálogo e comentário desatualizados.** `catalogo/linhas.ts` descreve a PV1 como "grupo Núcleo" com "45 métricas"; deixar claro na tela do catálogo que é terceira fonte (coluna Fonte já diz "Pesquisa de percepção"). Sem mudança de código obrigatória.
+**L-9. Catálogo e comentário desatualizados.** [PENDENTE: fora de `web/src/features/percepcao/`] `catalogo/linhas.ts` descreve a PV1 como "grupo Núcleo" com "45 métricas"; deixar claro na tela do catálogo que é terceira fonte (coluna Fonte já diz "Pesquisa de percepção"). Sem mudança de código obrigatória.
 
 ## Inspeção em execução pendente (QA/UX)
 1. 375 px: barras com rótulo numérico legíveis (trechos estreitos), legenda quebrando em linhas, tabela de tendência com rolagem e foco no `RegiaoRolavel`, selos "Pesquisa de 3T/2026" e "Dados fictícios" empilhando sem quebrar o cabeçalho.

@@ -125,6 +125,8 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
   test('LV-09 CT-18/20 PV1 fora de "Pede atenção", rodapé de filtros não aplicáveis e mudar equipe não altera a seção', async ({ page, painel }) => {
     const cartao = await abrir(page, painel)
     await expect(cartao.getByTestId('pv1-nao-se-aplica')).toContainText('não se aplicam')
+    await expect(cartao.getByTestId('pv1-participacao').locator('xpath=following-sibling::*[1]')).toHaveAttribute('data-testid', 'pv1-nao-se-aplica')
+    await expect(cartao.getByTestId('pv1-rodape')).toContainText('Sem meta de satisfação')
     const antes = await cartao.innerText()
     const faixa = page.getByTestId('faixa-atencao')
     if (await faixa.count()) await expect(faixa).not.toContainText(/\bPV1\b|percepção/i)

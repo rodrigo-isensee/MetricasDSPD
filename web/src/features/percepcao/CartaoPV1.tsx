@@ -25,14 +25,23 @@ function SemPesquisa() {
         <Icone nome="info" /> Nenhuma pesquisa carregada
       </p>
       <p className="text-texto-2">
-        A coordenação carrega o resultado do trimestre pelo procedimento de carga.
+        A coordenação da sustentação publica o resultado depois de cada trimestre. Ainda não há
+        resultado.
       </p>
     </div>
   )
 }
 
+/** O resultado já decide: faixa sem percentual é a que ficou abaixo de 20 respostas. */
+type Publicado = Extract<Ok['consolidado'], { status: 'publicado' }>
+
+function temSoKDeN(b: Pick<Publicado, 'perguntas'>) {
+  return b.perguntas.some((p) => p.faixas.some((f) => f.contagem.status === 'insuficiente'))
+}
+
 function PorArea({ d }: { d: Ok }) {
   const p = d.porArea
+  const areaKDeN = p.status === 'publicado' && p.areas.some((a) => temSoKDeN(a.bloco))
   return (
     <section aria-labelledby="pv1-por-area" className="flex flex-col gap-3" data-testid="por-area">
       <h4 id="pv1-por-area" className="text-sm font-bold">
@@ -54,6 +63,12 @@ function PorArea({ d }: { d: Ok }) {
             Em ordem alfabética, nunca em ranking. Áreas com poucas respostas são somadas em "Outras
             áreas".
           </p>
+          <LegendaFaixas />
+          {areaKDeN && (
+            <p className="text-xs text-texto-2" data-testid="pv1-so-k-de-n-area">
+              Com menos de 20 respostas só aparece a quantidade (k de n), sem percentual.
+            </p>
+          )}
           <ul className="m-0 flex list-none flex-col gap-4 p-0">
             {p.areas.map((a) => (
               <li key={a.outras ? 'outras' : a.rotulo} data-testid="pv1-area">
@@ -90,7 +105,7 @@ function OQueMudou({ d }: { d: Ok }) {
       {d.oQueMudou ? (
         <>
           <p className="text-xs text-texto-2">
-            Registro da coordenação · {fmtTri(d.oQueMudou.trimestre)}
+            Em resposta à pesquisa de {fmtTri(d.oQueMudou.trimestre)}
           </p>
           {/* Texto puro: nunca HTML. */}
           <p className="whitespace-pre-line text-sm" data-testid="pv1-o-que-mudou">
@@ -109,14 +124,15 @@ function OQueMudou({ d }: { d: Ok }) {
 function Corpo({ d }: { d: Ok }) {
   const { participacao: part, consolidado } = d
   // O resultado já decide: faixa sem percentual é a que ficou abaixo de 20 respostas.
-  const soKDeN =
-    consolidado.status === 'publicado' &&
-    consolidado.perguntas.some((p) => p.faixas.some((f) => f.contagem.status === 'insuficiente'))
+  const soKDeN = consolidado.status === 'publicado' && temSoKDeN(consolidado)
   return (
     <div className="flex flex-col gap-5">
       <p className="text-sm" data-testid="pv1-participacao">
         Participação: {fmtInteiro(part.respondentes)} de {fmtInteiro(part.convidados)} convidados
         {part.taxa.status === 'ok' ? ` (${fmtPct(part.taxa.pct)})` : ''}. Sem meta de participação.
+      </p>
+      <p className="text-sm text-texto-2" data-testid="pv1-nao-se-aplica">
+        Os filtros do painel (equipe, prioridade e período) não se aplicam a esta seção.
       </p>
       <section aria-labelledby="pv1-distribuicao" className="flex flex-col gap-2">
         <h4 id="pv1-distribuicao" className="text-sm font-bold">
@@ -147,10 +163,8 @@ function Corpo({ d }: { d: Ok }) {
       {d.tendencia.length > 0 && <Tendencia d={d} />}
       <PorArea d={d} />
       <OQueMudou d={d} />
-      <p className="text-sm text-texto-2" data-testid="pv1-nao-se-aplica">
-        Os filtros do painel (equipe, prioridade e período) não se aplicam a esta seção. Resultado
-        consolidado: o sistema não avalia pessoas nem compara áreas ou equipes. Sem meta de
-        satisfação.
+      <p className="text-sm text-texto-2" data-testid="pv1-rodape">
+        O sistema não avalia pessoas nem compara áreas ou equipes. Sem meta de satisfação.
       </p>
     </div>
   )
