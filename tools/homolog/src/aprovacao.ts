@@ -1,6 +1,11 @@
 export const ARQUIVO_HOMOLOG = '.github/workflows/homolog.yml'
 export const ARQUIVO_CI = '.github/workflows/ci.yml'
 export const MAX_COMMITS_HOTFIX = 10
+/**
+ * Decisão do usuário (2026-10-12): a rodada noturna é informativa por enquanto e não bloqueia a release.
+ * Para religar a exigência, troque para `true` (uma linha).
+ */
+export const EXIGIR_NOTURNA = false
 
 /** Uma execução concluída com sucesso de um workflow, como a API de Actions a descreve. */
 export interface Execucao {
@@ -49,7 +54,11 @@ export interface Decisao {
  * Regra do check `homolog-aprovada` (PR para a main). A decisão final continua sendo do usuário.
  * A evidência vem das execuções do workflow de homologação (API de Actions), nunca de status de commit.
  */
-export async function decidirAprovacao(api: Api, pedido: Pedido): Promise<Decisao> {
+export async function decidirAprovacao(
+  api: Api,
+  pedido: Pedido,
+  exigirNoturna: boolean = EXIGIR_NOTURNA,
+): Promise<Decisao> {
   if (pedido.repoOrigem !== pedido.repoDestino)
     return { aprovada: false, motivo: `PR de fork não é aceito (origem: ${pedido.repoOrigem})` }
   if (pedido.branchOrigem.startsWith('hotfix/')) return decidirHotfix(api, pedido)
@@ -74,6 +83,11 @@ export async function decidirAprovacao(api: Api, pedido: Pedido): Promise<Decisa
   if (!portao)
     return { aprovada: false, motivo: `portão de homolog sem sucesso em ${curto(ponta)}` }
 
+  if (!exigirNoturna)
+    return {
+      aprovada: true,
+      motivo: `${curto(ponta)} é a ponta de homolog, com o portão verde (noturna informativa)`,
+    }
   // Sem o workflow na main não há cron: a execução manual em homolog vale como a noturna (só na 1ª release).
   const eventosNoturna = (await api.portaoNaMain())
     ? ['schedule']

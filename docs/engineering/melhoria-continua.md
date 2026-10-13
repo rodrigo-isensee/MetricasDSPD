@@ -1,25 +1,10 @@
 # Melhoria contínua por entrega
 
-Objetivo: a cada entrega o time (arquitetura, UX, back, front, QA, tech lead, Jarvis) gasta menos tokens, entrega mais e erra menos. Métricas são do processo, nunca de agente ou pessoa. Experimentos vão para `docs/kanban/melhorias.md` (próximo ID: M-014).
+A regra geral agora é da fábrica e vale para todos os projetos: [melhoria-continua.md no Forge](https://github.com/rodrigo-isensee/Forge/blob/main/docs/melhoria-continua.md). Mudanças nela vão para o Forge.
 
-## a) Mecanismo (fim de cada entrega, 15 min no máximo)
-1. **Registro por papel** (Jarvis pede no fechamento do PR; cada papel responde em até 3 linhas no relatório final do subagente): `custou caro` (tokens, tempo, releitura), `deu retrabalho` (o que voltou e por quê), `melhoria proposta` (mudança exata).
-2. **Consolidação** (agile-coach): junta as respostas em `docs/retrospectivas/AAAA-MM-DD-<pedido>.md`, agrupa por causa e escolhe **no máximo 3 experimentos**, cada um com dono, métrica, linha de base e critério de sucesso (ex.: "tokens do QA -20% sem subir escapes").
-3. **Reavaliação** na entrega seguinte: cada experimento termina em manter, ajustar ou reverter, anotado em `melhorias.md`. Uma mudança por vez por parte do processo. Mudança em `.claude/agents/` ou `CLAUDE.md` só entra após aprovação do usuário (seção e).
-4. Retrospectiva sem dados não vale: se a métrica não foi coletada, o primeiro experimento é coletá-la.
+## Registros deste projeto
 
-## b) Métricas (planilha única `docs/kanban/entregas.md`, uma linha por entrega)
-| Métrica | Como coletar | Quem |
-|---|---|---|
-| Tokens por agente por entrega | `subagent_tokens` do relatório de cada subagente, somado por papel | Jarvis anota ao receber |
-| Rodadas de review e de QA | contar `docs/reviews/*-rN.md` e `docs/qa/` da entrega | agile-coach |
-| Bugs por entrega e onde nasceram | pareceres por severidade; origem = fase (spec, arquitetura, código, teste, UX) | agile-coach |
-| Tempo de ciclo | `historico.md` (valores brutos até 20 itens) | agile-coach |
-| Falhas de CI por entrega | `gh run list --json conclusion` filtrado pela branch | tech-lead |
-| Retrabalho | commits `fix:` na branch após o primeiro review; pais devolvidos | tech-lead |
-| Escapes | bugs achados após o parecer do QA | qa-engineer |
-
-## c) Linha de base (hoje, 2026-10-11)
+### c) Linha de base (hoje, 2026-10-11)
 - Commits: 258 em 3 dias (76, 156, 26). Por tipo: docs 118, feat 37, test 31, fix 30, chore 16, build 5, ci 4. `fix` = 12% do total; **docs = 46%**, ou seja, muito do custo é texto de processo e parecer (ordem de grandeza, não tokens).
 - Pareceres: 37 em `docs/reviews/` (8 do pedido 002) e 17 arquivos em `docs/qa/`. Pedido 002: K-017 teve 3 rodadas, K-014 e K-033 duas.
 - Pedido 001 (retro): 9h20 de calendário, ~22 cartões no review, 5 pais devolvidos (~23%), bugs 007 e 008 escaparam do QA (2), bug 008 com 3 voltas (alarme), fase A 14 bloqueantes contra 0 a 2 na fase B.
@@ -28,7 +13,7 @@ Objetivo: a cada entrega o time (arquitetura, UX, back, front, QA, tech lead, Ja
 - **Tokens por agente: sem dados** (nunca registrados). Primeiro experimento: registrar.
 - Tempo de ciclo: ver retro 001 (5 min a 4h40; amostra < 20, sem percentil).
 
-## d) Backlog inicial de melhorias
+### d) Backlog inicial de melhorias
 Ganho: A alto, M médio, B baixo. Risco idem.
 
 | # | Papel | Melhoria | Ganho / Risco |
@@ -51,7 +36,7 @@ Ganho: A alto, M médio, B baixo. Risco idem.
 | 16 | Tech lead | Commits de docs agrupados por entrega (118 de 258 commits são docs) e pareceres sem repetir o texto da spec | B / B |
 | 17 | Agile-coach | Planilha `entregas.md` e script que soma `subagent_tokens` e conta pareceres/`fix` por branch | M / B |
 
-## e) Propostas que dependem do usuário (não aplicadas)
+### e) Propostas que dependem do usuário (não aplicadas)
 Textos exatos a aprovar:
 1. **`.claude/agents/jarvis.md`**: acrescentar "Ao delegar, usar o modelo de prompt de `docs/engineering/melhoria-continua.md` (insumos, trechos a ler, critério de pronto, retorno em até 15 linhas). Tarefas mecânicas (quadro, histórico, atas) usam o modelo mais barato disponível. Ao receber cada relatório, anotar `subagent_tokens` em `docs/kanban/entregas.md`."
 2. **Todos os agentes** (`.claude/agents/*.md`): acrescentar "Termine o relatório com `Custou caro / Deu retrabalho / Melhoria proposta`, uma linha cada; leia apenas as seções indicadas na delegação e consulte `docs/architecture/contratos.md` antes dos documentos de origem."

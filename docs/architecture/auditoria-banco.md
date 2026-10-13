@@ -257,8 +257,8 @@ Retorno = (severidade × probabilidade) / esforço. Os nomes de schema abaixo s�
 | Ordem | Cartão | Resolve | Sev. | Esf. | Dono |
 |---|---|---|---|---|---|
 | 1 | ~~**C1** Carga de transições pela view canônica + teste do par casado~~ **resolvido** | R1 | alta | P | `node-backend` |
-| 2 | **C2** Backup diário + restauração testada + trava de `down` em produção | O1, A5, G8, E6 | alta | M | `node-backend` + `tech-lead`; destino da cópia: **usuário** (I-14) |
-| 3 | **C3** Timeouts e higiene de conexão | S8, G4, T4, T5, G6 | média | P | `node-backend` (fecha parte da S-19) |
+| 2 | ~~**C2** Backup diário + restauração testada + trava de `down` em produção~~ **resolvido** (scripts, trava e CI; instalação do agendamento: **usuário**, [guia](../engineering/operacao-banco.md)) | O1, A5, G8, E6 | alta | M | `node-backend` + `tech-lead` |
+| 3 | ~~**C3** Timeouts e higiene de conexão~~ **resolvido** (só o lado do cliente; o `ALTER ROLE ... SET` no init segue pendente, S-19) | S8, G4, T4, T5, G6 | média | P | `node-backend` |
 | 4 | **C4** Histórico de coletas limitado no SQL | R2 | média | P | `node-backend` |
 | 5 | **C5** Índice da outbox com `tipo` | R3/W4 | média | P | `node-backend` |
 | 6 | **C6** Snapshot de índices e restrições no teste de catálogo | G7 | média | P | `node-backend` / `qa-engineer` |
@@ -279,12 +279,14 @@ SELECT card_id, quadro_id, coluna_origem_id, coluna_destino_id, tipo_coluna, dir
 ```
 O `NOT EXISTS` da view usa `uq_rec_par_webhook`. Medir de novo o p95 com `desempenho.ts`, porque a view acrescenta um anti-join.
 
-### C2. Backup, restauração e trava do `down`
+### C2. Backup, restauração e trava do `down` (resolvido)
+Implementado em `scripts/db-backup.sh`, `scripts/db-restaurar-verificada.sh`, `server/src/plataforma/db/trava-down.ts` e `.github/workflows/restauracao.yml`; operação e agendamento em [`engineering/operacao-banco.md`](../engineering/operacao-banco.md). Decisão do usuário: backup diário às 03:30 (Brasília) para pasta fora do projeto, 7 dias, teste de restauração aos domingos 04:30, nada roda de dia. O texto abaixo é o plano original.
 - `scripts/db-backup.sh`: `pg_dump -Fc -d metricas` (papel `dspd_migrador`, que é dono de tudo), mais `pg_dumpall --roles-only`. Agendamento no host e cópia para fora da máquina; o destino é decisão do usuário.
 - Restauração testada: job mensal ou `workflow_dispatch` que restaura o dump do seed num banco novo, roda `migrate up` (deve aplicar 0 migrações) e compara contagens e o snapshot do catálogo.
 - `cli.ts`: recusar `down` e `redo` quando `DSPD_SCHEMA_PREFIXO` estiver vazio, salvo com `DSPD_PERMITIR_DOWN=1` e o backup do dia confirmado.
 
-### C3. Timeouts (sem privilégio extra: tudo pela configuração do cliente `pg`)
+### C3. Timeouts (sem privilégio extra: tudo pela configuração do cliente `pg`) (resolvido)
+Implementado em `pool.ts` (`criarPool`, `emTransacao`), `trava.ts` e `migrar.ts`; testes em `tests/timeouts.pg.test.ts`. Pendente: a defesa por `ALTER ROLE ... SET` no init (clientes fora da aplicação), que pertence à S-19.
 ```ts
 // pool.ts, criarPool: além do que já existe
 new pg.Pool({ ..., statement_timeout, lock_timeout: 5_000, idle_in_transaction_session_timeout: 30_000,
