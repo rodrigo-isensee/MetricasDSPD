@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review: lacuna de valor, PV1 (K-036) e acabamento das métricas (rodada 1)
 
 - Branch: `feature/lacuna-de-valor` (comparada com `origin/develop`, até `b20b95e`, 31 commits)

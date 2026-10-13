@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Adendo ao parecer de UX da fase A (001)
 
 Registrado pelo Jarvis em 2026-10-09 20:30. Duas instâncias do `ux-designer` revisaram a fase A em paralelo (a segunda foi relançada por engano, achando que a primeira tinha falhado). A segunda sobrescreveu `001-fase-a-ux.md`. Os itens abaixo constavam **só na primeira versão** (0 críticos, 8 altos, 12 médios, 10 baixos) e continuam valendo. O conjunto a corrigir é a **união** dos dois.

@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano técnico: ambiente de homologação e branch `homolog`
 
 - Data: 2026-10-12 · Autor: `software-architect` · Estado: **vigente**, com as decisões do usuário de 2026-10-12 ([alinhamento](../../alinhamentos/2026-10-12-homologacao.md)), que prevalecem sobre o texto abaixo

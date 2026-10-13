@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de QA - rodada noturna opcional (commit fbea23d)
 
 Branch `chore/noturna-opcional` contra `origin/develop`. Review técnico curto + QA incremental. Sem E2E (mudança sem interface).

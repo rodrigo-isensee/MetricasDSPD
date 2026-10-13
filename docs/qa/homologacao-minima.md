@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de QA - homologação mínima (develop, homolog, main)
 
 Branch `chore/homologacao-minima` (commit 4cf0b48), 2026-10-12. Escopo: `tools/homolog`, `docker-compose.homolog.yml`, workflows `ci`, `homolog` e `homolog-aprovada`. Review e correções: `docs/reviews/homologacao-minima.md`.
