@@ -748,6 +748,46 @@ describe(`P7: ${P.p7.nome}`, () => {
   })
 })
 
+describe('P7b: reenvios nunca expõem a carga substituída (decisão I-2)', () => {
+  it('para até dois reenvios, nenhuma data de referência muda o resultado nem mostra uma carga anterior', () => {
+    const ciclosArb = fc.array(fc.array(fc.nat({ max: 12 }), { minLength: 1, maxLength: 8 }), {
+      minLength: 1,
+      maxLength: 5,
+    })
+    fc.assert(
+      fc.property(
+        ciclosArb,
+        fc.integer({ min: 1, max: 1_000_000 }),
+        fc.array(fc.integer({ min: 1, max: 2 }), { minLength: 1, maxLength: 2 }),
+        (ciclos, seed, deltas) => {
+          const b = pesquisaDe(ciclos, seed)
+          const ultima = b.cargas[b.cargas.length - 1] as BasePesquisa['cargas'][number]
+          // Reenvios do último trimestre: mais 1 ou 2 respondentes, recebidos depois (mesmo mês, dias seguintes).
+          const reenvios = deltas.map((d, i) => ({
+            ...ultima,
+            cargaId: ultima.cargaId + i + 1,
+            recebidaEm: `${ultima.recebidaEm.slice(0, 8)}${29 + i}`,
+            linhas: ultima.linhas.map((l) => ({ ...l, f1: l.f1 + d, convidados: l.convidados + d })),
+          }))
+          const base: BasePesquisa = { ...b, cargas: [...b.cargas, ...reenvios] }
+          const final = reenvios[reenvios.length - 1] as (typeof reenvios)[number]
+          const em = (hoje: string) =>
+            calcularMetrica(
+              'PV1',
+              {},
+              { ...CTX, pesq: pesquisa.criarContextoPesquisa(base, hoje) },
+            )
+          const referencia = em(final.recebidaEm)
+          // Do primeiro recebimento do trimestre em diante, todas as datas dão o mesmo painel (o da carga final).
+          for (const hoje of [ultima.recebidaEm, ...reenvios.map((r) => r.recebidaEm), '2099-12-31'])
+            expect(em(hoje), hoje).toEqual(referencia)
+        },
+      ),
+      { numRuns: 200, seed: 20261012 },
+    )
+  })
+})
+
 // ---------------------------------------------------------------------------------------------
 // Meta-testes (bloqueiam o `pnpm run pronto`)
 // ---------------------------------------------------------------------------------------------

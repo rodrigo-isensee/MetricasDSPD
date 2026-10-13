@@ -195,14 +195,20 @@ describe('calcularPV1 sobre o mock', () => {
     expect(r.porArea.areas.every((a) => a.bloco.n >= 3)).toBe(true)
   })
 
-  it('2T/2026 reenviado: vale a carga nova (19) só depois do reenvio; a anterior fica na base', () => {
-    expect(ok('2026-07-10').consolidado).toMatchObject({ n: 17 })
-    const r = ok('2026-07-20')
-    expect(r.consolidado).toMatchObject({ n: 19 })
-    const f =
-      r.consolidado.status === 'publicado' && r.consolidado.perguntas[0]?.faixas[0]?.contagem
-    expect(f && f.status).toBe('insuficiente')
+  it('2T/2026 reenviado: a carga substituída (17) nunca é publicada, em nenhuma data de referência', () => {
+    const f = (d: string) => {
+      const r = ok(d)
+      return r.consolidado.status === 'publicado' && r.consolidado.perguntas[0]?.faixas[0]?.contagem
+    }
+    // Antes e depois do reenvio (08/07 e 20/07) o painel é idêntico: a diferença de 2 respondentes não aparece.
+    const depois = ok('2026-07-31')
+    for (const d of ['2026-07-08', '2026-07-10', '2026-07-19', '2026-07-20'])
+      expect(ok(d), d).toEqual(depois)
+    expect(depois.consolidado).toMatchObject({ n: 19 })
+    expect(f('2026-07-10') && f('2026-07-10').status).toBe('insuficiente')
     expect(base.cargas.filter((c) => c.trimestre === '2026-T2')).toHaveLength(2)
+    // Antes da primeira carga do trimestre, ele ainda não existe.
+    expect(ok('2026-07-07').trimestre).toBe('2026-T1')
   })
 
   it('3T/2026 (24): percentual no consolidado, Outras = 5, questionário v2, quebra de série', () => {

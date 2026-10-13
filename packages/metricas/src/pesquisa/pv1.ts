@@ -22,15 +22,23 @@ const TENDENCIA_MAX = 4
 
 const cmp = (a: string, b: string) => a.localeCompare(b, 'pt-BR')
 
-/** Trimestre vigente = a carga de maior id recebida até o corte; uma por trimestre, em ordem cronológica. */
+/**
+ * Uma carga vigente por trimestre, em ordem cronológica: SEMPRE a de maior id, qualquer que seja o corte. O corte só decide
+ * se o trimestre já existia (alguma carga recebida até ele). Assim nenhuma data de referência devolve a carga substituída, e
+ * comparar o painel antes e depois de um reenvio não revela as respostas de 1 ou 2 pessoas por subtração (decisão I-2,
+ * padrão restritivo; a substituída continua guardada na base, só não é publicada).
+ */
 function vigentes(cargas: readonly CargaPesquisa[], hojeIso: string): CargaPesquisa[] {
   const porTrimestre = new Map<string, CargaPesquisa>()
+  const existentes = new Set<string>()
   for (const c of cargas) {
-    if (c.recebidaEm > hojeIso) continue
+    if (c.recebidaEm <= hojeIso) existentes.add(c.trimestre)
     const atual = porTrimestre.get(c.trimestre)
     if (!atual || c.cargaId > atual.cargaId) porTrimestre.set(c.trimestre, c)
   }
-  return [...porTrimestre.values()].sort((a, b) => cmp(a.trimestre, b.trimestre))
+  return [...porTrimestre.values()]
+    .filter((c) => existentes.has(c.trimestre))
+    .sort((a, b) => cmp(a.trimestre, b.trimestre))
 }
 
 function versaoDe(versoes: readonly VersaoQuestionario[], id: string): VersaoQuestionario {

@@ -27,8 +27,9 @@ export interface VersaoQuestionario {
 }
 
 /**
- * Uma carga recebida. Um trimestre pode ter mais de uma (reenvio): a vigente é a de maior `cargaId`
- * recebida até a data de referência; as anteriores ficam guardadas (nunca se sobrescreve histórico).
+ * Uma carga recebida. Um trimestre pode ter mais de uma (reenvio): a vigente é SEMPRE a de maior `cargaId`
+ * (a data de referência só decide se o trimestre já existia); as anteriores ficam guardadas (nunca se sobrescreve
+ * histórico), mas nunca são publicadas (anonimato, decisão I-2).
  */
 export interface CargaPesquisa {
   cargaId: number
@@ -52,7 +53,7 @@ export interface BasePesquisa {
 
 export interface ContextoPesquisa {
   base: BasePesquisa
-  /** Data de corte (AAAA-MM-DD): só conta carga recebida até ela. */
+  /** Data de corte (AAAA-MM-DD): só decide se o trimestre já existia; nunca escolhe uma carga substituída. */
   hojeIso: string
 }
 
