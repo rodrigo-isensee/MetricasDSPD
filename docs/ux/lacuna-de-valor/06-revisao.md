@@ -94,3 +94,16 @@ Verificado no código e nos testes até a atualização de 2026-10-12 (sem mudan
 
 ## Parecer
 Sem bloqueante por código; recomendo corrigir M-1 a M-3 antes do QA final. Não aprovo definitivamente sem a inspeção visual e o retorno do usuário (M-4 e abertos das complementares).
+
+## Acabamento (2026-10-13, branch `feature/acabamento-ux`)
+Decisões tomadas pelo time com a recomendação deste relatório (o usuário delegou as decisões de design dos mocks). Hipóteses até o usuário validar o app (roteiro em `05-validacao.md`).
+
+| Item | Decisão | Onde |
+|---|---|---|
+| L-3 | Com 1 trimestre não há tabela: legenda "Primeiro ciclo: ainda sem tendência" | `CartaoPV1.tsx` |
+| L-4 | Mantém só "Concordam" (faixas 4 e 5); a legenda da tabela e a nota passam a dizer "só o lado que concorda" e a mandar ler a distribuição. Hipótese a confirmar com o usuário | `Tendencia.tsx`, `notas.ts` |
+| L-5 | Trecho com 100 ou mais respostas ganha `min-w-8`; proporção para contagens pequenas mantida (n típico 5 a 40) | `Distribuicao.tsx` |
+| L-6 | Rampa de um só matiz (acento, de 8% a 100%); sem vermelho. Passos até 40% com texto do tema (acima de 4,5:1 nos dois temas); só a faixa 5 usa texto invertido | `Distribuicao.tsx` |
+| L-8 | A data da quebra vem da marca T2.6 de `criterios.serie` que cai entre o trimestre anterior e a coluna; sem marca, a vigência do questionário (só se a versão é a vigente). O contrato já trazia `criterios`, sem mudança de API | `Tendencia.tsx` |
+| L-9 | Comentário do catálogo corrigido (PV1 é terceira fonte; a coluna Fonte a distingue). Sem mudança de tela | `catalogo/linhas.ts` |
+| M-4 | Roteiro de validação gerado (itens 3 e 4 do roteiro trocados); aceite do usuário segue aberto | `05-validacao.md` |
