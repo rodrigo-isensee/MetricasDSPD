@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano técnico: 17 métricas complementares (dados mockados)
 
 UX: `docs/ux/metricas-fora-do-nucleo/03-ideacao.md` (alternativa A+B), protótipos `docs/ux/figma/prototipos/complementares-*.html`.

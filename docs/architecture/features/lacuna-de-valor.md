@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano técnico: lacuna de valor na sustentação (K-036, PV1, dados mockados)
 
 UX: `docs/ux/lacuna-de-valor/02-definicao.md`, `03-ideacao.md` (alternativa C2 + D1), protótipos `docs/ux/figma/prototipos/lacuna-valor-{1280,375}.html`.

@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano técnico: Integração real (K-034), frescor, calibração e `/dados`
 
 - Spec: `docs/ux/integracao-real/05-especificacao.md` (CA-01 a CA-22). Decisões: `docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §2 e §5.

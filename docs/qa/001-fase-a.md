@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Parecer de QA 001 - Fase A (K-004, K-022, retrabalho K-027..K-029)
 Código: develop @ 252bed4. Ambiente: `vite preview` com `VITE_MOCK_LATENCIA=0`, Chromium headless local, pt-BR. Plano: `docs/qa/plano-testes-dashboard-mock.md`.
 

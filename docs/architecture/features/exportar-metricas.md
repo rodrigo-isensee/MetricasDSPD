@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano técnico: exportar métricas em PDF (pedido 008)
 
 UX: `docs/ux/exportar-metricas/` (01 a 04). Decisões do usuário: `docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §10 (D-1 a D-5). Custo zero, sem back-end, sem migração, sem endpoint, sem ADR nova (decisão local ao front; fica registrada aqui).
