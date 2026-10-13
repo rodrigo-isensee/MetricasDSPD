@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: espera-invisivel-nos-paineis
 branch: feature/espera-invisivel-nos-paineis
-commit: 130edde3a044c8a93f9dc5d140015dff7c78f7d0
+commit: f1cf072
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -26,6 +26,12 @@ Especificação: `docs/ux/espera-invisivel-nos-paineis/especificacao.md`. Review
 - Unitários do back e do front e `pnpm run pronto`: rodados pelo autor (verde, cobertura de 100%) e pelo tech-lead (contratos 45/45, web 799/799). Não repeti a suíte unitária.
 - A execução do E2E regravou imagens e JSON de `docs/qa/evidencias/`; restaurei com `git checkout` e não entram no commit.
 - Vermelho antes do verde e mutação: não executados por mim nesta rodada (o autor registrou os testes unitários e o E2E novos, mas o parecer não tem a falha observada sem a implementação). Fica como lacuna de processo, sem impacto no veredito.
+
+## Atualização para f1cf072 (catálogo com 49 métricas)
+- Mudança desde 3ad62a7: `5fc3a7d` ajusta `complementares.spec.ts` (COMP-03 e COMP-12) e `lacuna-de-valor.spec.ts` (LV-14) de 46 para 49 métricas (Núcleo 29 para 32, Complementar 17); o resto são pareceres de review.
+- Os números 49 / 32 / 17 estão corretos e são consequência prevista do critério 8: `web/src/features/catalogo/linhas.ts` deixou de recolher a espera invisível em uma linha (antes `FORA` omitia EI_FL2, EI_FL3 e EI_SUST) e passou a listar uma linha por nível. Conta: 46 - 1 + 4 = 49; as 3 linhas novas são Núcleo (29 + 3 = 32); as 17 complementares não mudam. O catálogo de dados (`catalogo-metricas.ts`) só troca o painel das 4 entradas EI; não há efeito colateral da remoção da página.
+- Execução: `flock /tmp/metricas-pesado.lock pnpm exec playwright test complementares lacuna-de-valor espera-invisivel-nos-paineis --project=chromium`: **77 de 77 passaram** (1,6 min), sem skip nem repetição. A execução da rodada anterior (150 de 150) cobriu os demais specs e as mudanças desde então não tocam código de produção.
+- Veredito mantido: **aprovado**, sem bugs abertos.
 
 ## Critério, teste e resultado
 | CA | Teste (e2e/tests) | Resultado |
