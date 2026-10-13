@@ -78,6 +78,7 @@ export default defineConfig({
       // Medição de performance (ADR 0003): desktop 1366x768, build de produção. Rode com `pnpm run test:perf`.
       name: 'perf',
       testDir: './perf',
+      testIgnore: /perf-api\.spec\.ts/, // A1 pela API só existe no projeto `perf-api` (exige E2E_API_URL)
       use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 768 }, trace: 'off', screenshot: 'off' },
       fullyParallel: false,
       workers: 1,
