@@ -1,5 +1,5 @@
 # FA-001 - Sustentação e Visão geral respondem 503 REFERENCIA_AUSENTE sobre a base semeada
-- Status: corrigido (feature/front-via-api)
+- Status: verificado pelo QA em 2026-10-13 (paridade 52/52 e E2E chromium-api 18/18); era: corrigido (feature/front-via-api)
 - Severidade: alta (no modo `api` o painel de Sustentação e a Visão geral ficam com cartões em erro)
 - Responsável sugerido: node-backend (seed/projeção de referência)
 - Ambiente: branch feature/front-via-api (bd6d721 + testes FA-4/FA-5), API com `DADOS_FONTE=mock`, Postgres 17 de teste, Chromium headless

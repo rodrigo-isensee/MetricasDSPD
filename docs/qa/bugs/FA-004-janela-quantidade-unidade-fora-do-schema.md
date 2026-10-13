@@ -1,5 +1,5 @@
 # FA-004 - Biblioteca devolve `janela.quantidade/unidade`, o contrato não declara e a API descarta; schemas de resultado não são `.strict()`
-- Status: corrigido (feature/front-via-api)
+- Status: verificado pelo QA em 2026-10-13 (paridade 52/52 e E2E chromium-api 18/18); era: corrigido (feature/front-via-api)
 - Severidade: baixa
 - Responsável sugerido: node-backend (pacote `contratos`: declarar os campos ou parar de emiti-los na biblioteca)
 - Ambiente: feature/front-via-api

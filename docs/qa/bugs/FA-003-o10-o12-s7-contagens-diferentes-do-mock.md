@@ -1,5 +1,5 @@
 # FA-003 - O10, O12 e S7 com contagens diferentes do mock (complementos/extensões)
-- Status: O10, O12 e S7 corrigidos (S7: decisão do time, coluna booleana derivada `justificativa_informada`, migração 0014)
+- Status: verificado pelo QA em 2026-10-13 (paridade 52/52 e E2E chromium-api 18/18); era: O10, O12 e S7 corrigidos (S7: decisão do time, coluna booleana derivada `justificativa_informada`, migração 0014)
 - Severidade: média (número diferente na tela entre mock e API; causa ainda não isolada)
 - Responsável sugerido: node-backend (investigar `extensoesMock` do servidor x `gerarExtensoesMock(base)` e a leitura de colunas do banco)
 - Ambiente: feature/front-via-api, `DADOS_FONTE=mock`

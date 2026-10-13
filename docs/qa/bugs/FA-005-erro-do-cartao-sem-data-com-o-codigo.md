@@ -1,4 +1,5 @@
 # FA-005 - Estado de erro do cartão não expõe o código do erro (`data-*`) nem o `requestId`
+- Status: verificado pelo QA em 2026-10-13: `data-erro-codigo` e `data-request-id` (vem do header `X-Request-Id`, não do corpo) asseridos em FA5-10 (400, 500, 503 e 500 sem JSON, que não tem o atributo), FA5-11, 13 e 14; 18/18 no `chromium-api`.
 - Severidade: baixa (testabilidade e suporte)
 - Responsável sugerido: react-frontend
 - Ambiente: feature/front-via-api, SPA `VITE_FONTE=api`

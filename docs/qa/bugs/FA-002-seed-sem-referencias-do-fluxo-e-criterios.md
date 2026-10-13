@@ -1,5 +1,5 @@
 # FA-002 - Seed não grava as referências do fluxo nem as versões de critério: opções de filtro vazias e métricas divergentes do mock
-- Status: corrigido (feature/front-via-api)
+- Status: verificado pelo QA em 2026-10-13 (paridade 52/52 e E2E chromium-api 18/18); era: corrigido (feature/front-via-api)
 - Severidade: média (alta se a homologação adotar `VITE_FONTE=api` sem corrigir)
 - Responsável sugerido: node-backend (seed derivado do mock, FA-4)
 - Ambiente: feature/front-via-api, API `DADOS_FONTE=mock`

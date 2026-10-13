@@ -72,3 +72,19 @@ O2: `itensMeta` e a primeira página de 200 itens iguais nos filtros sem referê
 
 ## Reexecução após as correções FA-001 a FA-004 (2026-10-12)
 Paridade: 51 de 51 verdes (47 métricas x 9 filtros + referência/critérios/filtros); o S7 (FA-003) fechou com a coluna derivada `justificativa_informada` (migração 0014; o texto livre continua fora do banco). `test:pg` 55/55; `pronto` verde com cobertura 100%; `docs:check` ok. A paridade mapeia os ids de critério do mock para os do banco (1, 2) e ordena equipes por nome nos dois lados.
+
+## Parecer final do QA (B2, 2026-10-13, bb45253, WSL2, Chromium headless)
+Parecer: aprovado com ressalvas, sem bug crítico ou alto aberto. Pendências: FA-006 (CLS de `/estrategico` em `api`, média) e o `test:pg` (7 testes de `pesquisa.pg.test.ts` falham por ambiente, abaixo).
+
+| Suíte | Resultado |
+|---|---|
+| `pnpm run pronto` | verde; web 780/780, server 301 aprovados (64 de banco pulados pelo projeto unit, rodam no `test:pg`), cobertura 100% |
+| `docs:check` | ok (350 páginas, 51 métricas, 2 eventos) |
+| `test:pg` | 57 aprovados, 7 reprovados, todos em `pesquisa.pg.test.ts`: `permission denied for database "metricas_test"`. Causa de ambiente: o volume antigo do container compartilhado não tem `GRANT CONNECT ON DATABASE metricas_test TO dspd_pesquisa` (o `metricas` tem). Remédio documentado: `docker/postgres/reparar-papeis.sh`. Não apliquei (modifica o container compartilhado; bloqueado pela permissão). Não é defeito do código da branch; rodar de novo depois do reparo. Os schemas temporários foram removidos pelo teardown |
+| Paridade | 52/52 |
+| E2E `chromium-api` | 18/18. FA5-10 (400, 500, 503, 500 sem JSON), 11, 13 e 14 asserem `data-erro-codigo`; FA5-10 asserta também `data-request-id` (header `X-Request-Id`; ausente no 500 sem JSON). Ajuste de teste em `e2e/tests-api/api.spec.ts` (ainda não commitado) |
+| `perf-api` (3 execuções) | 12 de 13 aprovados em todas; reprovado: F2 CLS de `/estrategico` = 0,113 (limite 0,1), 3 de 3 vezes, 0,001 em mock: FA-006. A1 no navegador aprovada nas três: p95 de `/operacional` 41, 64 e 79 ms (a oscilação 118 a 302 ms não voltou), Sustentação 40 a 55, Tático 29 a 44, Estratégico 13 a 23; isolada fria p95 36 a 41 ms, quente 11 a 12 ms; nenhuma resposta não 200. F1 LCP 156 a 160 ms, F4 80 ms, F5 184 ms |
+| E2E grupo mock (`chromium` + `semente-alt`, inclui axe) | 345/345 (o FIL-04 instável da rodada anterior passou) |
+
+Axe: a interface não mudou; as specs de a11y do grupo mock passaram (zero violações críticas ou sérias). Bugs FA-001 a FA-005 verificados; FA-006 aberto.
+Nota: rodar os E2E regrava `docs/qa/evidencias/*` (imagens); descartadas com `git checkout` antes do commit.
