@@ -9,7 +9,13 @@ import {
   type MetricaId,
 } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
-import { acelerato, businessmap, CALENDARIO_PADRAO, calcularMetrica, pesquisa } from '@metricas-dspd/metricas'
+import {
+  acelerato,
+  businessmap,
+  CALENDARIO_PADRAO,
+  calcularMetrica,
+  pesquisa,
+} from '@metricas-dspd/metricas'
 import { REGRAS_METRICA } from '@metricas-dspd/metricas/regras'
 import { gerarBaseMock, gerarPesquisaMock } from '@metricas-dspd/mock'
 import type { z } from 'zod'
@@ -96,7 +102,12 @@ export function carregarInsumos(raiz: string): Insumos {
     }
     const exemplo = calcularMetrica(id, filtrosPadrao(id) as never, ctx)
     exigirValido(id, schemaResultado, exemplo)
-    const doDominio = fonte === 'ambos' || fonte === 'pesquisa' ? [] : sustentacao ? filtrosSust : [...FILTROS_FLUXO]
+    const doDominio =
+      fonte === 'ambos' || fonte === 'pesquisa'
+        ? []
+        : sustentacao
+          ? filtrosSust
+          : [...FILTROS_FLUXO]
     return {
       id,
       rota,
