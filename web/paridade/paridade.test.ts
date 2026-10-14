@@ -184,11 +184,11 @@ d('paridade mock x API (servidor real, DADOS_FONTE=mock)', () => {
       const schema = id === 'O2' ? resultadoO2PaginadoSchema : SCHEMAS_RESULTADO[id]
       const falhas: string[] = []
       for (const { nome, filtros } of lista) {
-        const esperadoBruto = traduzir(await mock.obter(id, filtros as never))
+        const esperadoBruto = traduzir(await mock.obter(id, filtros))
         const esperadoParse = schema.parse(esperadoBruto)
         let obtido: unknown
         try {
-          obtido = await http.obter(id, filtros as never)
+          obtido = await http.obter(id, filtros)
         } catch (e) {
           falhas.push(`[${nome}] a API respondeu com erro: ${(e as Error).message}`)
           continue

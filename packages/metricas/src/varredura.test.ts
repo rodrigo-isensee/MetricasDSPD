@@ -71,43 +71,49 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
   // Uma execução por métrica (it.each): a varredura inteira numa só passava de 15 s com a máquina carregada;
   // cada métrica isolada leva uma fração disso e uma falha aponta a métrica.
   const idsB = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap' && !ehTendencia(id))
-  it.each(idsB)('fluxo: todo resultado respeita o contrato em qualquer combinação de filtros (%s)', (id) => {
-    for (const periodo of PERIODOS) {
-      const todos = { equipe: [], tipo: [], sistema: [], periodo }
-      const recortes = [
-        todos,
-        { ...todos, equipe: equipes.slice(0, 1) },
-        { ...todos, equipe: equipes.slice(0, 3), sistema: sistemas.slice(0, 2) },
-        { ...todos, tipo: [TIPOS_FILTRO[0]] },
-        { ...todos, tipo: [TIPOS_FILTRO[1], TIPOS_FILTRO[3]], sistema: sistemas.slice(2, 3) },
-      ]
-      for (const f of recortes) {
-        const r = calc(id, f, ctx)
-        valida(id, r)
-        expect(calc(id, f, ctx)).toEqual(r)
+  it.each(idsB)(
+    'fluxo: todo resultado respeita o contrato em qualquer combinação de filtros (%s)',
+    (id) => {
+      for (const periodo of PERIODOS) {
+        const todos = { equipe: [], tipo: [], sistema: [], periodo }
+        const recortes = [
+          todos,
+          { ...todos, equipe: equipes.slice(0, 1) },
+          { ...todos, equipe: equipes.slice(0, 3), sistema: sistemas.slice(0, 2) },
+          { ...todos, tipo: [TIPOS_FILTRO[0]] },
+          { ...todos, tipo: [TIPOS_FILTRO[1], TIPOS_FILTRO[3]], sistema: sistemas.slice(2, 3) },
+        ]
+        for (const f of recortes) {
+          const r = calc(id, f, ctx)
+          valida(id, r)
+          expect(calc(id, f, ctx)).toEqual(r)
+        }
       }
-    }
-  })
+    },
+  )
 
   // Uma execução por métrica (it.each): a varredura inteira numa só passava de 15 s com a máquina carregada;
   // cada métrica isolada leva uma fração disso e uma falha aponta a métrica.
   const idsA = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato' && !ehTendencia(id))
-  it.each(idsA)('sustentação: todo resultado respeita o contrato com equipes e prioridades (%s)', (id) => {
-    for (const periodo of PERIODOS) {
-      const todos = { equipe: [], prioridade: [], periodo }
-      const recortes = [
-        todos,
-        { ...todos, equipe: [EQUIPES_SUSTENTACAO_ID[0]] },
-        { ...todos, prioridade: [PRIORIDADES[0]] },
-        {
-          ...todos,
-          equipe: [...EQUIPES_SUSTENTACAO_ID.slice(1)],
-          prioridade: [PRIORIDADES[2], PRIORIDADES[4]],
-        },
-      ]
-      for (const f of recortes) valida(id, calc(id, f, ctx))
-    }
-  })
+  it.each(idsA)(
+    'sustentação: todo resultado respeita o contrato com equipes e prioridades (%s)',
+    (id) => {
+      for (const periodo of PERIODOS) {
+        const todos = { equipe: [], prioridade: [], periodo }
+        const recortes = [
+          todos,
+          { ...todos, equipe: [EQUIPES_SUSTENTACAO_ID[0]] },
+          { ...todos, prioridade: [PRIORIDADES[0]] },
+          {
+            ...todos,
+            equipe: [...EQUIPES_SUSTENTACAO_ID.slice(1)],
+            prioridade: [PRIORIDADES[2], PRIORIDADES[4]],
+          },
+        ]
+        for (const f of recortes) valida(id, calc(id, f, ctx))
+      }
+    },
+  )
 
   it('pesquisa (PV1): só aceita a data de corte, ignora os filtros do fluxo e respeita o contrato', () => {
     const r = calc('PV1', {}, ctx)
