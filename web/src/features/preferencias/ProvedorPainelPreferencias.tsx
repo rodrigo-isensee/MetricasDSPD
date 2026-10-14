@@ -82,13 +82,22 @@ export function ProvedorPainelPreferencias({
     [ocultos, lista, definir, definirSecaoAberta, painel],
   )
 
-  // Link direto (`/operacional#o5`, vindo do catálogo): abre a seção e leva ao cartão.
+  // Link direto (`/operacional#o5`, vindo do catálogo): abre a seção e leva ao cartão. O hash de uma seção de
+  // complementares (`#compl-sust-qualidade`, também o destino do redirecionador da antiga `/sustentacao`) abre a
+  // seção e leva ao primeiro cartão dela.
   useEffect(() => {
-    const id = hash.slice(1)
+    const id = hash.slice(1).toLowerCase()
     const c = cartaoPorId(painel, id)
+    const secaoDeComplementares = cartoes.some(
+      (x) => x.grupo === 'complementar' && `compl-${x.secao}` === id,
+    )
     // Sincroniza com a URL (sistema externo): abrir a seção é a reação ao hash.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (c?.grupo === 'complementar') irParaComplementar(id)
+    else if (secaoDeComplementares) {
+      definirSecaoAberta(painel, true)
+      setAlvo(id)
+    }
     // Só o hash dispara; `irParaComplementar` muda a cada recorte e reabriria a seção à toa.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hash, painel])

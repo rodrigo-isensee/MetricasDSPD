@@ -35,20 +35,17 @@ export function NumeroChave({ estado, modelo, rotulo, id, codigo, onTentarDeNovo
   let corpo
   if (oculto) {
     corpo = (
-      <dd
-        className="m-0 flex flex-col items-start gap-1 text-sm"
-        data-testid={`numero-${id}-oculto`}
-      >
+      <div className="flex flex-col items-start gap-1 text-sm" data-testid={`numero-${id}-oculto`}>
         <span>{codigo} oculta nas suas preferências.</span>
         <Botao className="text-xs" onClick={() => prefs?.mostrar(cartao)}>
           Mostrar {codigo} nesta visita
         </Botao>
-      </dd>
+      </div>
     )
   } else if (estado === 'erro') {
     corpo = (
-      <dd
-        className="m-0 flex flex-col items-start gap-1 text-sm text-alerta"
+      <div
+        className="flex flex-col items-start gap-1 text-sm text-alerta"
         data-testid={`numero-${id}-erro`}
       >
         <span className="flex items-center gap-1">
@@ -57,22 +54,22 @@ export function NumeroChave({ estado, modelo, rotulo, id, codigo, onTentarDeNovo
         <Botao className="text-xs" onClick={onTentarDeNovo}>
           Tentar de novo
         </Botao>
-      </dd>
+      </div>
     )
   } else if (estado === 'carregando' || !modelo) {
     corpo = (
-      <dd
-        className="m-0 min-h-20 text-sm text-texto-2"
+      <div
+        className="min-h-20 text-sm text-texto-2"
         aria-busy="true"
         data-testid={`numero-${id}-carregando`}
       >
         <span className="sr-only">Carregando {codigo}…</span>
         <span aria-hidden="true" className="block h-8 w-24 rounded bg-superficie-2" />
-      </dd>
+      </div>
     )
   } else {
     corpo = (
-      <dd className="m-0 flex flex-col gap-1">
+      <div className="flex flex-col gap-1">
         {modelo.valor === null ? (
           <span className="text-sm" data-testid={`numero-${id}-insuficiente`}>
             {modelo.insuficiente}
@@ -91,24 +88,27 @@ export function NumeroChave({ estado, modelo, rotulo, id, codigo, onTentarDeNovo
         ) : (
           modelo.status && <StatusMeta status={modelo.status} />
         )}
-      </dd>
+      </div>
     )
   }
+  // `dl` só aceita `dt` e `dd` (ou `div` que os agrupe): o conteúdo e o link ficam dentro do `dd`.
   return (
     <div
       className="flex flex-col gap-1 rounded-md border border-borda bg-superficie-2 p-3"
       data-testid={`numero-${id}`}
     >
       <dt className="text-sm font-semibold">{modelo?.rotulo ?? rotulo}</dt>
-      {corpo}
-      {!oculto && (
-        <Link
-          to={destinoDe(`#${cartao}`)}
-          className="alvo inline-flex items-center text-sm text-acento underline"
-        >
-          Ver {codigo} na {ROTULO_VISAO[visao]}
-        </Link>
-      )}
+      <dd className="m-0 flex flex-col gap-1">
+        {corpo}
+        {!oculto && (
+          <Link
+            to={destinoDe(`#${cartao}`)}
+            className="alvo inline-flex items-center text-sm text-acento underline"
+          >
+            Ver {codigo} na {ROTULO_VISAO[visao]}
+          </Link>
+        )}
+      </dd>
     </div>
   )
 }

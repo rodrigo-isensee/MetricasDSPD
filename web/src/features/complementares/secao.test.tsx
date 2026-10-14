@@ -90,6 +90,20 @@ describe('Mais métricas deste painel', () => {
     expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
   })
 
+  it('link direto com o id da seção de complementares (#compl-sust-qualidade) abre a seção e leva ao primeiro cartão dela', async () => {
+    renderizarApp('/operacional?cadencia=sustentacao#COMPL-SUST-QUALIDADE')
+    const cartao = await screen.findByTestId('metrica-S8')
+    expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
+    await waitFor(() => expect(within(cartao).getByRole('heading', { level: 3 })).toHaveFocus())
+    expect(document.getElementById('compl-sust-qualidade')).not.toBeNull()
+  })
+
+  it('a antiga /sustentacao#compl-qualidade chega à mesma seção, aberta', async () => {
+    renderizarApp('/sustentacao#compl-qualidade')
+    expect(await screen.findByTestId('metrica-S8')).toBeInTheDocument()
+    expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
+  })
+
   it('ocultar uma complementar reduz a contagem; "Leia junto" some com o par oculto', async () => {
     const u = userEvent.setup()
     renderizarApp('/operacional?cadencia=semanal')
