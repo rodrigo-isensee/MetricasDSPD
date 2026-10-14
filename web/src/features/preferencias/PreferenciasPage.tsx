@@ -117,6 +117,13 @@ function RestaurarPadrao({ ocultos }: { ocultos: readonly string[] }) {
 }
 
 /** `/preferencias`: o padrão pessoal de métricas visíveis, por painel. Aplica na hora, sem botão Salvar. */
+/** Na tela, a visão Sustentação vem logo depois do Operacional (a ordem dos dados não muda). */
+const ORDEM_NA_TELA = [
+  'operacional',
+  'sustentacao',
+  ...PAINEIS_COM_CARTOES.filter((p) => p !== 'operacional' && p !== 'sustentacao'),
+] as const
+
 export default function PreferenciasPage() {
   const prefs = usePreferencias()
   const codigosOcultos = PAINEIS_COM_CARTOES.flatMap((p) =>
@@ -163,7 +170,7 @@ export default function PreferenciasPage() {
               ))}
             </div>
           </section>
-          {PAINEIS_COM_CARTOES.map((p) => (
+          {ORDEM_NA_TELA.map((p) => (
             <GrupoPainel key={p} painel={p} />
           ))}
           <div className="flex flex-wrap items-center gap-3">

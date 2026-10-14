@@ -17,7 +17,7 @@ type Uso = UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
 const TEXTO_ESTRATEGICO =
   'O nível estratégico olha projetos, que envolvem várias equipes. Por isso não há filtro por equipe.'
 const TEXTO_TIPO =
-  'Aqui são cards do BusinessMap. Chamados do Acelerato estão no painel Sustentação.'
+  'Aqui são cards do BusinessMap. Chamados do Acelerato estão na visão Sustentação do Operacional.'
 
 function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' }) {
   const { config, opcoes } = uso

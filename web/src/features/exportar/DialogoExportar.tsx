@@ -46,6 +46,12 @@ const TITULO: Record<'visao-geral' | 'personalizada' | 'painel', string> = {
   painel: 'Exportar métricas',
 }
 
+/** O Operacional e a visão Sustentação dizem de que fonte é o arquivo (as duas moram na mesma página). */
+const TITULO_DO_NIVEL: Partial<Record<BaseExportacao, string>> = {
+  operacional: 'Exportar · Operacional (fluxo de projeto)',
+  sustentacao: 'Exportar · Operacional · Sustentação',
+}
+
 /**
  * Diálogo de exportação (pedido 008): marca as métricas visíveis, mostra a prévia do arquivo e gera o PDF.
  * No "Exportar" do painel nasce com tudo marcado; na personalizada, vazio, nível a nível. A Visão geral
@@ -136,7 +142,8 @@ export function DialogoExportar({
         >
           <div className="min-h-0 flex-1 overflow-y-auto p-4" data-testid="exportar-corpo">
             <Dialog.Title className="text-lg font-bold">
-              {TITULO[visaoGeral || personalizada ? base : 'painel']}
+              {TITULO_DO_NIVEL[base as 'operacional' | 'sustentacao'] ??
+                TITULO[visaoGeral || personalizada ? base : 'painel']}
             </Dialog.Title>
             <Dialog.Description className="mt-1 text-sm text-texto-2">
               Gera um arquivo PDF só com o que está visível na tela, com base, janela, filtros e

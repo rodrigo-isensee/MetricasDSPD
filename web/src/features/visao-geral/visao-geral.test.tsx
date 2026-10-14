@@ -103,6 +103,33 @@ describe('tela Visão geral', () => {
       'href',
       '/operacional?cadencia=diaria',
     )
+    // Nenhum link da Visão geral leva ao Resumo: o destino de cada nível é uma visão de detalhe.
+    expect(
+      within(screen.getByTestId('nivel-sustentacao')).getByRole('link', {
+        name: 'Abrir Operacional · Sustentação',
+      }),
+    ).toHaveAttribute('href', '/operacional?cadencia=sustentacao')
+    expect(
+      within(screen.getByTestId('nivel-operacional')).getByRole('link', {
+        name: 'Abrir Operacional',
+      }),
+    ).toHaveAttribute('href', '/operacional?cadencia=diaria')
+    const reunioes = within(screen.getByRole('region', { name: 'Por reunião' })).getAllByRole(
+      'link',
+    )
+    expect(reunioes.map((l) => l.textContent).slice(0, 3)).toEqual([
+      'Daily de fluxo',
+      'Revisão de fluxo semanal',
+      'Revisão da sustentação · semanal',
+    ])
+    expect(screen.getByRole('link', { name: 'Revisão da sustentação · semanal' })).toHaveAttribute(
+      'href',
+      '/operacional?cadencia=sustentacao',
+    )
+    for (const l of screen.getByRole('main').querySelectorAll('a[href^="/operacional"]'))
+      expect(l.getAttribute('href'), l.textContent ?? '').toMatch(
+        /cadencia=(diaria|semanal|sustentacao)/,
+      )
   })
 
   it('itens de atenção levam ao cartão do painel, sem filtro nem parâmetro mock', async () => {
@@ -112,7 +139,7 @@ describe('tela Visão geral', () => {
     expect(links.length).toBeGreaterThan(0)
     for (const l of links) {
       expect(l.getAttribute('href')).toMatch(
-        /^\/(operacional|tatico|estrategico|sustentacao)(\?cadencia=semanal)?#[a-z0-9]+$/,
+        /^\/(operacional\?cadencia=(diaria|semanal|sustentacao)|tatico|estrategico)#[a-z0-9]+$/,
       )
       expect(l.getAttribute('href')).not.toContain('mock')
     }
@@ -134,7 +161,10 @@ describe('tela Visão geral', () => {
     const rota = (id: string) => within(within(ei).getByTestId(id)).getByRole('link')
     expect(rota('ei-resumo-fl2')).toHaveAttribute('href', '/tatico#ei-fl2')
     expect(rota('ei-resumo-fl3')).toHaveAttribute('href', '/estrategico#ei-fl3')
-    expect(rota('ei-resumo-sust')).toHaveAttribute('href', '/sustentacao#ei-sust')
+    expect(rota('ei-resumo-sust')).toHaveAttribute(
+      'href',
+      '/operacional?cadencia=sustentacao#ei-sust',
+    )
     expect(within(ei).getByTestId('ei-resumo-fl3')).toHaveTextContent('Amostra insuficiente')
     expect(within(ei).getByTestId('ei-resumo-fl3')).not.toHaveTextContent('%')
     expect(within(ei).getByTestId('ei-resumo-fl2')).toHaveTextContent('64%')

@@ -93,7 +93,7 @@ describe('Exportar nos painéis (sistêmico)', () => {
 describe('Exportação personalizada (sistêmico)', () => {
   it('um PDF só com métricas de níveis e fontes diferentes: BusinessMap antes de Acelerato', async () => {
     const user = userEvent.setup()
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=diaria')
     const dlg = await abrir(user, 'Exportação personalizada')
     await user.click(within(dlg).getByRole('checkbox', { name: /S1 .*Acelerato/ }))
     await user.click(within(dlg).getByRole('checkbox', { name: /T2 .*BusinessMap/ }))
@@ -131,7 +131,7 @@ describe('Exportação personalizada (sistêmico)', () => {
     const quebrada = new MockFonteMetricas({ latenciaMs: 0 })
     vi.spyOn(quebrada, 'obter').mockRejectedValue(new Error('falha interna 500'))
     const user = userEvent.setup()
-    renderizarApp('/operacional', quebrada)
+    renderizarApp('/operacional?cadencia=diaria', quebrada)
     const dlg = await abrir(user, 'Exportar')
     await user.click(within(dlg).getByRole('button', { name: 'Gerar arquivo' }))
     const alerta = await within(dlg).findByRole('alert')

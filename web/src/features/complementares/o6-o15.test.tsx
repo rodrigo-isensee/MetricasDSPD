@@ -38,7 +38,7 @@ describe('O6 Previsibilidade e links para o O15', () => {
       }),
     )
     renderizarApp('/operacional?cadencia=semanal')
-    await userEvent.setup().click(await screen.findByText(/Mais métricas deste painel/))
+    await userEvent.setup().click(await screen.findByText(/Mais métricas desta visão/))
     const o13 = await screen.findByTestId('metrica-O13')
     await waitFor(() => expect(o13).toHaveAttribute('data-estado', 'ok'))
     expect(o13).toHaveTextContent('Leia junto com Onde os bugs são encontrados (O15).')

@@ -8,7 +8,7 @@ const PAINEIS = [
   ['/operacional?cadencia=semanal', 7, ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16']],
   ['/tatico', 2, ['T6', 'T8']],
   ['/estrategico', 2, ['E4', 'E5']],
-  ['/sustentacao', 6, ['S9', 'S10', 'S8', 'S11', 'O17', 'S12']],
+  ['/operacional?cadencia=sustentacao', 6, ['S9', 'S10', 'S8', 'S11', 'O17', 'S12']],
 ] as const
 
 // Abrir a seção monta até 8 gráficos em jsdom: folga para máquina carregada.
@@ -21,7 +21,9 @@ describe('Mais métricas deste painel', () => {
       const spy = vi.spyOn(fonteDeTeste, 'obter')
       renderizarApp(url)
       const resumo = await screen.findByText(
-        new RegExp(`Mais métricas deste painel · ${n} complementares`),
+        new RegExp(
+          `Mais métricas ${url.startsWith('/operacional') ? 'desta visão' : 'deste painel'} · ${n} complementares`,
+        ),
       )
       const det = screen.getByTestId<HTMLDetailsElement>('mais-metricas')
       expect(det.open).toBe(false)
@@ -83,7 +85,7 @@ describe('Mais métricas deste painel', () => {
   })
 
   it('link direto com #id (vindo do catálogo) abre a seção no cartão', async () => {
-    renderizarApp('/sustentacao#s9')
+    renderizarApp('/operacional?cadencia=sustentacao#s9')
     expect(await screen.findByTestId('metrica-S9')).toBeInTheDocument()
     expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
   })
@@ -137,14 +139,14 @@ describe('Mais métricas deste painel', () => {
         atualizadoEm: '2026-10-10T00:00:00.000Z',
       }),
     )
-    renderizarApp('/sustentacao')
+    renderizarApp('/operacional?cadencia=sustentacao')
     expect(await screen.findByTestId('mais-metricas-ocultas')).toHaveTextContent(
       '6 complementares ocultas pelas suas preferências',
     )
   })
 
   it('complementares não aparecem em "Pede atenção"', async () => {
-    renderizarApp('/sustentacao')
+    renderizarApp('/operacional?cadencia=sustentacao')
     await screen.findByTestId('mais-metricas')
     const faixa = screen.queryByTestId('faixa-atencao')
     if (faixa) expect(faixa.textContent).not.toMatch(/S8|S9|S10|S11|S12/)

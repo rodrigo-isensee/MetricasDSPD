@@ -13,7 +13,8 @@ export const ROTULO_PAINEL: Record<PainelComCartoes, string> = {
   operacional: 'Operacional',
   tatico: 'Tático',
   estrategico: 'Estratégico',
-  sustentacao: 'Sustentação',
+  // A Sustentação é uma visão do Operacional; a chave gravada (`sustentacao`) é só o identificador do conjunto de cartões.
+  sustentacao: 'Operacional · Sustentação',
 }
 
 /** Id do cartão: o código da métrica em minúsculas (`o9`, `bloqueados`, `ei-fl1`), igual ao `id` do cartão na página. */
