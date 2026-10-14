@@ -105,7 +105,7 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.TENDENCIA_FLUXO`); a fotografia ve
       "items": {
         "type": "object",
         "properties": {
-          "mes": {"type":"string"},
+          "mes": {"type":"string","pattern":"^\\d{4}-(0[1-9]|1[0-2])$"},
           "fimDoMes": {"type":"string"},
           "janelaPercentis": {
             "type": "object",
