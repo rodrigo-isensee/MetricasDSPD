@@ -1,18 +1,16 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-14 08:10 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
-> WIP: Empatizar 0/2 · Idear 0/2 · Validação do usuário 0 · Pronto para fazer 2/5 · Em andamento: react-frontend 1 (K-069), node-backend 1 (K-072), tech-lead 1 (K-076) · Code review 0/2 · QA 0/2 · Aguardando sua validação 1 PR (#63) · Bloqueados: 0
-> O estado detalhado, as decisões e os próximos passos estão em `docs/kanban/estado-2026-10-14.md`. Os cartões até K-064 foram concluídos e arquivados; o registro está em `docs/kanban/historico.md`. O quadro ficou parado de 2026-10-10 a 2026-10-14 e foi reconstruído em 2026-10-14.
+> Atualizado em: 2026-10-14 15:30 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> WIP: Validação do usuário 1 (K-078) · Pronto para fazer 0/5 · Em andamento: agile-coach 1 (K-077), software-architect 1 (K-079), qa-engineer 1 (K-080) · Code review 0/2 · QA 0/2 · Aguardando sua validação 0 PRs · Bloqueados: 0
+> O estado detalhado, as decisões e os próximos passos estão em `docs/kanban/estado-2026-10-14-tarde.md`. Os cartões até K-064 foram concluídos e arquivados; o registro está em `docs/kanban/historico.md`. O quadro ficou parado de 2026-10-10 a 2026-10-14 e foi reconstruído em 2026-10-14.
 
 # Upstream — descoberta (Design Thinking)
 
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-073 | Sustentação no Operacional: front F1–F8 (visões Resumo, Diária, Semanal e Sustentação) | sust-no-operacional | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | Depende de K-069 (mexe nos mesmos filtros) e de K-072 (contratos B1 e B2). O plano está em `docs/architecture/plano-sustentacao-no-operacional.md` e vai junto com K-072 |
 | K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | Validado (`docs/ux/revisao-geral-usabilidade/04-decisoes.md`). Entra depois de K-073 (mesmas telas). O protótipo HTML vai junto com a feature |
 | K-075 | Compatibilidade com celular, iPad e tablet (3 fatias, MOB-CA-1 a 27) | 010 | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | O discovery está pronto. O usuário delegou as decisões ao time (D1 = B). Entra depois de K-074; o software-architect inclui o orçamento móvel na ADR 0003 |
-| K-077 | Retrospectiva + melhoria do Forge: parecer gravado pelo Bash fica sem autoria e trava o merge | processo | forge:agile-coach | 2026-10-14 | 2026-10-14 08:10 | Travou o #64 por horas na noite de 13 para 14. Vira PR no Forge para instruir os agentes a gravar os pareceres só com Write ou Edit |
 
 ## Empatizar e definir (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -25,6 +23,7 @@
 ## Validação do usuário
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-078 | Pedido 011: 17 métricas (O19–O26, T10–T14, E6–E9; T14 nova a pedido do usuário) | 011 | usuário | 2026-10-14 | 2026-10-14 15:30 | Discovery pronto, sem commit. Decisões pendentes uma por vez, a começar pela D-8 (`docs/ux/metricas-tambem-disponiveis/04-decisoes.md`) |
 
 ---
 
@@ -35,15 +34,14 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-070 | [bug] IS-002: teste de desempenho C3 instável sob carga | qa-intensivo | forge:node-backend | 2026-10-14 | 2026-10-14 08:10 | Severidade baixa, parecer em `docs/qa/intensivo-sistemico.md`. Entra no PR do lote K-069 ou logo depois |
-| K-071 | [bug] IS-007: teste C5 imprime NaN e anota ok | qa-intensivo | forge:qa-engineer | 2026-10-14 | 2026-10-14 08:10 | Severidade baixa. Medido à parte: 30,1 MB |
 
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-069 | [bug] Lote dos testes intensivos (IF-001 a 007; IS-001, 003, 004, 005 e 006) + testes novos do QA | qa-intensivo | forge:react-frontend | 2026-10-14 | 2026-10-14 07:40 | Worktree `../MetricasDSPD-bugs`, branch `fix/bugs-intensivos` (develop 376d997 + `test/qa-intensivo-main`). IF-004: a O6 segue o filtro de tipo (decisão do usuário). IS-004 já resolvido pela espera invisível |
-| K-072 | Sustentação no Operacional: back B1–B3 (contratos de tendência, biblioteca e API) + ADR 0019 | sust-no-operacional | forge:node-backend | 2026-10-14 | 2026-10-14 07:40 | Worktree `../MetricasDSPD-sust`, branch `feature/sustentacao-no-operacional`. As respostas P1 a P4 estão no plano, seção 10 |
-| K-076 | Documentação do discovery (.md) para a develop | usabilidade/sust/010 | forge:tech-lead | 2026-10-14 | 2026-10-14 07:50 | Branch `docs/discovery-md`, só com .md; os protótipos HTML seguem com cada feature. Falta apagar a branch antiga `docs/discovery-usabilidade-sust-mobile` |
+| K-072+K-073 | Sustentação no Operacional: back B1–B3 e front F1–F8 | sust-no-operacional | forge:node-backend + forge:react-frontend | 2026-10-14 | 2026-10-14 18:10 | Volta 3 (volta 2 reprovada pelo pronto da raiz: V1 lint, V2 format, V3 docs-contratos; leitura toda resolvida). Back corrige V1-V3; front corrige o texto L9. Commits do tech-lead: db13363, 3b5a382 |
+| K-077 | Retrospectiva + melhoria do Forge: parecer gravado pelo Bash fica sem autoria e trava o merge | processo | forge:agile-coach | 2026-10-14 | 2026-10-14 15:30 | Retro 002 e proposta (a, b, c) prontas. 3 PRs prontos e commitados em ~/.forge-contrib/MetricasDSPD, mas o push foi barrado pelo pre-push do Forge, que não roda dentro do Claude. Ação do usuário: push e PR pelo terminal dele |
+| K-079 | Pedido 011: ajustes técnicos (T10, O25) e confirmações da API do BusinessMap (responsáveis nas revisões, tipos de vínculo, spike P-T1) | 011 | forge:software-architect | 2026-10-14 | 2026-10-14 15:30 | Feito em 2026-10-14 (plano §8). Abertas ao usuário: D-14', bordas Q-a/Q-b da D-5', motivos de descarte do O25 |
+| K-080 | Plano de testes da Sustentação no Operacional (a partir da especificação, em paralelo ao review) | sust-no-operacional | forge:qa-engineer | 2026-10-14 | 2026-10-14 15:30 | Plano pronto (77 casos, 10 ambiguidades A1–A10 enviadas ao UX). A execução entra quando o review aprovar |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -56,11 +54,14 @@
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| PR #63 | Release homolog → main: espera invisível nos painéis (K-065), front via API (K-066) e correção do E2E de desempenho | — | usuário | 2026-10-13 | 2026-10-14 07:00 | Portão verde (5d2b70a) e homolog-aprovada verde. Falta a sua aprovação (Review → Approve) e o merge com merge commit. Muda a interface |
 
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-076 | Documentação do discovery (.md) para a develop | usabilidade/sust/010 | forge:tech-lead | 2026-10-14 | 2026-10-14 15:30 | #66 na develop |
+| K-071 | [bug] IS-007: teste C5 imprime NaN e anota ok | qa-intensivo | forge:qa-engineer | 2026-10-14 | 2026-10-14 15:30 | No lote #70 (develop), #71 (homolog) e release #72 na main |
+| K-070 | [bug] IS-002: teste de desempenho C3 instável sob carga | qa-intensivo | forge:node-backend | 2026-10-14 | 2026-10-14 15:30 | No lote #70 (develop), #71 (homolog) e release #72 na main |
+| K-069 | [bug] Lote dos testes intensivos (IF-001 a 007; IS-001, 003, 004, 005 e 006) + testes novos do QA | qa-intensivo | forge:react-frontend | 2026-10-14 | 2026-10-14 15:30 | No lote #70 (develop), #71 (homolog) e release #72 na main |
 | K-065 | Espera invisível dentro de cada painel | espera-invisivel | forge:react-frontend | 2026-10-13 | 2026-10-14 07:00 | #64 (376d997) na develop e #65 na homolog; segue no PR #63 |
 | K-066 | Front via API (HttpFonteMetricas, VITE_FONTE) | — | forge:react-frontend | 2026-10-13 | 2026-10-13 22:44 | #59 e #61 na homolog; segue no PR #63 |
 | K-067 | QA intensivo de filtros na main (IF-001 a 007) | qa-intensivo | forge:qa-engineer | 2026-10-13 | 2026-10-13 | Parecer em `docs/qa/intensivo-filtros.md`; os testes vão com K-069 |

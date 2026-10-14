@@ -137,3 +137,23 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-14 08:10 | K-072 | Pronto para fazer | Em andamento | Sustentação no Operacional, back-end B1 a B3 |
 | 2026-10-14 08:10 | K-073, K-074, K-075, K-077 | Entrada | Entrada | Sustentação front; usabilidade U1 a U5; mobile e tablet (010); retrospectiva + melhoria do Forge |
 | 2026-10-14 08:10 | K-076 | Pronto para fazer | Em andamento | Documentação .md do discovery para a develop |
+
+- 2026-10-14 15:30 — K-069, K-070, K-071 → Pronto (release #72 na main); K-076 → Pronto (#66); K-072+K-073 → Code review; K-078 (pedido 011) → Validação do usuário.
+- 2026-10-14 15:30 — Usuário autorizou 4 agentes. K-077 → Em andamento (agile-coach); K-079 e K-080 abertos em Em andamento.
+- 2026-10-14 15:35 — Lançamento de K-077, K-079 e K-080 recusado pelo hook R-TETO (3 agentes ativos na máquina, teto adaptativo 2–3); ficam na fila.
+- 2026-10-14 15:50 — K-072+K-073: review reprovado por documentação; pronto verde na 2a rodada (varredura instável sob carga). Volta 1 ao node-backend e ao react-frontend.
+- 2026-10-14 15:55 — K-079 concluído (plano 011 §8; ADR 0019 L2 editada, commit pendente com o tech-lead). K-080 (QA) lançado.
+- 2026-10-14 16:00 — K-080: plano de QA pronto. UX lançado para os textos e o alerta do review e para A1–A10. K-077 segue na fila do R-TETO.
+- 2026-10-14 16:05 — UX: adendo do review gravado (U1 pendente com o usuário; vale (a) até a resposta). K-077 lançado (agile-coach).
+- 2026-10-14 16:10 — K-077: retro 002 e proposta ao Forge prontas; 3 PRs do tech-lead aguardando vaga (R-TETO).
+- 2026-10-14 16:15 — K-072 (back) volta 1 concluída: 36df612 (M2, L3) e 50de2a0 (L4, M3). Aguarda o front para a volta 2 do review.
+- 2026-10-14 16:25 — K-073 front volta 1 concluída (66e3d46, 06fab0c); front aplicando o adendo de UX antes da volta 2 do review. Tech-lead abrindo os 3 PRs do Forge (K-077).
+- 2026-10-14 16:30 — Usuário reduziu o teto desta sessão para 3 agentes.
+- 2026-10-14 16:45 — K-072+K-073 → Code review (volta 2), depois do adendo de UX no front (6 commits, web 1031/1031, 100%).
+- 2026-10-14 17:00 — Plano da Sustentação: tabela 4.5 corrigida pelo architect (sem commit); vai na volta 2.
+- 2026-10-14 17:10 — Usuário aceitou as recomendações: D-1' = A (pedido 011) e U1 = (a) (Sustentação).
+- 2026-10-14 17:30 — Pedido 011: o usuário aprovou a T14 (participação do meu time no projeto) como métrica nova; D-1' = A e U1 = (a) registradas.
+- 2026-10-14 17:45 — T14: discovery de UX e de arquitetura concluídos; triagem das perguntas registrada no pedido 011.
+- 2026-10-14 17:50 — K-077: os 3 PRs do Forge ficaram prontos localmente, mas o push foi barrado pelo pre-push (a suíte não roda dentro de sessão Claude). A ação foi para o usuário. Volta 2 do review da Sustentação iniciada.
+- 2026-10-14 18:10 — K-072+K-073: volta 2 reprovada só pelo pronto da raiz (V1 a V3); volta 3 com o node-backend e o react-frontend.
+- 2026-10-14 18:20 — Usuário ausente: subir recursos de forma equilibrada. Tech-lead abrindo o PR de documentação e do quadro (chore/forge-0.13.0 → develop). Orçamento móvel (K-075, architect) aguarda vaga no R-TETO.
