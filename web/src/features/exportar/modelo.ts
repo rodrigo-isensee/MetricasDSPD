@@ -358,10 +358,7 @@ export function construirBloco(e: EntradaBloco): BlocoExportacao {
     fonte: fonteExportavel(cat.fonte),
     filtros: textoFiltros(e.id, e.filtros, e.opcoes),
     janela: textoJanelaBloco(d),
-    base: textoBase(
-      d.base,
-      e.id === 'E3' ? (e.dto as ResultadoE3).comFicha.k : undefined,
-    ),
+    base: textoBase(d.base, e.id === 'E3' ? (e.dto as ResultadoE3).comFicha.k : undefined),
     amostraInsuficiente: textoInsuficiente(e.dto),
     nota: resumoDaNota(e.nota),
     criterios: textoCriterios([...d.criterios.serie, ...d.criterios.janela]),

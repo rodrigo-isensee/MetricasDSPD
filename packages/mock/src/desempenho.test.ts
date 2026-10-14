@@ -99,7 +99,9 @@ describe('desempenho (ADR 0003)', () => {
       // Melhor de até RODADAS (ADR 0003, condições de medição; IS-002): cada rodada recalibra e mede de novo,
       // e para na primeira dentro do teto. Pico de contenção infla uma rodada; regressão real infla todas.
       // A rodada escolhida é a de menor razão (pior medida / limite); os tetos não mudam.
-      let melhor: { ref: number; fator: number; limite: number; frio: number; segunda: number; p95: number } | undefined
+      let melhor:
+        | { ref: number; fator: number; limite: number; frio: number; segunda: number; p95: number }
+        | undefined
       for (let rodada = 0; rodada < RODADAS; rodada++) {
         const ref = calibrar()
         const fator = Math.min(FATOR_MAX, Math.max(1, ref / REF_OCIOSA_MS))
@@ -114,7 +116,14 @@ describe('desempenho (ADR 0003)', () => {
         const quentes: number[] = []
         for (let i = 0; i < REPETICOES_QUENTE; i++)
           quentes.push(medir(() => calcularMetrica(id, filtros(id) as never, ctx)))
-        const r = { ref, fator, limite, frio: mediana(frios), segunda: mediana(segundas), p95: p95De(quentes) }
+        const r = {
+          ref,
+          fator,
+          limite,
+          frio: mediana(frios),
+          segunda: mediana(segundas),
+          p95: p95De(quentes),
+        }
         const razao = (x: typeof r) => Math.max(x.frio, x.segunda, x.p95) / x.limite
         if (!melhor || razao(r) < razao(melhor)) melhor = r
         if (razao(r) < 1) break
