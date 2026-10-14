@@ -9,6 +9,7 @@ import { FiltroPeriodo } from './FiltroPeriodo'
 const opcoes = [
   { id: 'a', nome: 'Alfa' },
   { id: 'b', nome: 'Beta' },
+  { id: 'c', nome: 'Gama' },
 ]
 
 describe('FiltroMulti', () => {
@@ -72,7 +73,7 @@ describe('FiltroMulti', () => {
   })
 
   it('cliques em sequência com props atrasadas (URL intermediária) acumulam todas as marcações', async () => {
-    const tres = [...opcoes, { id: 'c', nome: 'Gama' }, { id: 'd', nome: 'Delta' }]
+    const tres = [...opcoes, { id: 'd', nome: 'Delta' }]
     const onChange = vi.fn()
     const el = (sel: string[]) => (
       <FiltroMulti id="x" rotulo="Equipe" opcoes={tres} selecionados={sel} onChange={onChange} />
@@ -92,7 +93,7 @@ describe('FiltroMulti', () => {
     expect(onChange).toHaveBeenLastCalledWith(['d', 'a'], true)
   })
 
-  it('marcar todas: a URL vira "Todas" (prop vazia) e o clique seguinte parte do vazio', async () => {
+  it('marcar todas: a URL vira "Todas" (prop vazia), as caixas voltam a vazias e o clique seguinte parte do vazio', async () => {
     const onChange = vi.fn()
     const el = (sel: string[]) => (
       <FiltroMulti id="x" rotulo="Equipe" opcoes={opcoes} selecionados={sel} onChange={onChange} />
@@ -102,7 +103,9 @@ describe('FiltroMulti', () => {
     await userEvent.click(screen.getByLabelText('Alfa'))
     rerender(el(['a']))
     await userEvent.click(screen.getByLabelText('Beta'))
-    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], true)
+    await userEvent.click(screen.getByLabelText('Gama'))
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b', 'c'], true)
+    expect(screen.getByLabelText('Alfa')).not.toBeChecked()
     rerender(el([]))
     await userEvent.click(screen.getByLabelText('Alfa'))
     expect(onChange).toHaveBeenLastCalledWith(['a'], true)
@@ -172,7 +175,7 @@ describe('FiltroMulti', () => {
     await userEvent.click(screen.getByLabelText('Beta'))
     expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], true)
     await userEvent.click(screen.getByLabelText('Alfa'))
-    expect(onChange).toHaveBeenLastCalledWith(['b', 'a'], true)
+    expect(onChange).toHaveBeenLastCalledWith(['b'], true)
     // Mudança externa (chip removido, Limpar) volta a mandar na seleção.
     rerender(
       <FiltroMulti
@@ -344,5 +347,19 @@ describe('BarraFiltros: folha em tela estreita e avisos', () => {
     expect(
       await screen.findByText(/Filtros atualizados\. Equipe: Fluig e Senior\./),
     ).toBeInTheDocument()
+  })
+})
+
+describe('FiltroMulti: caixa marcada e prop atrasada', () => {
+  it('desmarcar logo depois de marcar, com a URL ainda sem alcançar, tira a marcação (não marca de novo)', async () => {
+    const onChange = vi.fn()
+    render(
+      <FiltroMulti id="x" rotulo="Equipe" opcoes={opcoes} selecionados={[]} onChange={onChange} />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    expect(screen.getByLabelText('Alfa')).toBeChecked()
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    expect(onChange).toHaveBeenLastCalledWith([], true)
   })
 })

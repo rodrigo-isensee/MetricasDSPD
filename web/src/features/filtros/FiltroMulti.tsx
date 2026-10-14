@@ -1,5 +1,5 @@
 import { Popover } from 'radix-ui'
-import { useEffect, useId, useRef, type RefObject, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type RefObject, type ReactNode } from 'react'
 import { Botao, Icone } from '@/components/ui'
 import type { OpcaoFiltro } from '@metricas-dspd/contratos'
 
@@ -36,6 +36,7 @@ function Lista({
   atualRef: RefObject<string[]>
   registrar: (ids: string[]) => void
 }) {
+  // `selecionados` aqui são as marcações exibidas (a última seleção do usuário), não a prop da URL.
   const base = useId()
   const alternar = (opcaoId: string, marcado: boolean) => {
     const replace = aoMudar()
@@ -45,7 +46,6 @@ function Lista({
     const prox = marcado
       ? [...base.filter((x) => x !== opcaoId), opcaoId]
       : base.filter((x) => x !== opcaoId)
-    atualRef.current = prox
     registrar(prox)
     onChange(prox, replace)
   }
@@ -93,7 +93,13 @@ export function FiltroMulti(props: Props) {
   } = props
   const mudou = useRef(false)
   const atual = useRef<string[]>([...selecionados])
-  // Seleções emitidas que a prop ainda não alcançou: uma prop igual a uma emissão anterior (a URL de um
+  // Marcações exibidas: seguem a última ação do usuário, não a prop. Com a prop (URL) atrasada, a caixa
+  // recém-marcada voltaria a desmarcada e o clique seguinte (desmarcar) viraria "marcar" de novo.
+  const [exibidos, setExibidos] = useState<readonly string[]>(selecionados)
+  const fixar = (ids: string[]) => {
+    atual.current = ids
+    setExibidos(ids)
+  } // Seleções emitidas que a prop ainda não alcançou: uma prop igual a uma emissão anterior (a URL de um
   // clique antigo, que chega atrasada sob carga) não sobrescreve `atual` (IF-002/IS-003). Uma prop que
   // nunca foi emitida é mudança de fora (chip removido, Limpar) e ressincroniza.
   const emitida = useRef<{ chaves: Set<string>; ultima: string; em: number } | null>(null)
@@ -109,7 +115,7 @@ export function FiltroMulti(props: Props) {
       return
     // A URL (fonte da prop) alcançou a última seleção emitida (ou mudou por fora): ressincroniza.
     emitida.current = null
-    atual.current = chaveProp === '' ? [] : chaveProp.split('\u0000')
+    fixar(chaveProp === '' ? [] : chaveProp.split('\u0000'))
   }, [chaveProp])
   const registrar = (ids: string[]) => {
     // Marcar todas vira "Todas" na URL (prop vazia): é essa a chave que a prop vai alcançar.
@@ -118,6 +124,8 @@ export function FiltroMulti(props: Props) {
     const chaves = emitida.current?.chaves ?? new Set<string>()
     chaves.add(chave)
     emitida.current = { chaves, ultima: chave, em: Date.now() }
+    // "Todas" não é uma lista marcada: as caixas voltam a vazias, como a URL vai ficar.
+    fixar(todas ? [] : ids)
   }
   const aoMudar = () => {
     const replace = mudou.current
@@ -131,7 +139,13 @@ export function FiltroMulti(props: Props) {
           {rotulo}
           {dica}
         </p>
-        <Lista {...props} aoMudar={aoMudar} atualRef={atual} registrar={registrar} />
+        <Lista
+          {...props}
+          selecionados={exibidos}
+          aoMudar={aoMudar}
+          atualRef={atual}
+          registrar={registrar}
+        />
       </div>
     )
   }
@@ -156,11 +170,16 @@ export function FiltroMulti(props: Props) {
             sideOffset={6}
             className="z-50 w-64 rounded-md border border-borda-controle bg-superficie p-3 shadow-lg"
           >
-            <Lista {...props} aoMudar={aoMudar} atualRef={atual} registrar={registrar} />
+            <Lista
+              {...props}
+              selecionados={exibidos}
+              aoMudar={aoMudar}
+              atualRef={atual}
+              registrar={registrar}
+            />
             <div className="mt-3 flex justify-between gap-2">
               <Botao
                 onClick={() => {
-                  atual.current = []
                   registrar([])
                   onChange([], mudou.current)
                 }}
