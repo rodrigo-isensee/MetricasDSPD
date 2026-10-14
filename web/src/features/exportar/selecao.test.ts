@@ -4,7 +4,6 @@ import {
   NIVEIS,
   dominioDoNivel,
   escopoDoArquivo,
-  filtrosDoItem,
   filtrosDoNivel,
   itensDoNivel,
   rotuloDoEscopo,
@@ -26,14 +25,16 @@ describe('itensDoNivel: só o que está visível', () => {
     })
     expect(itensDoNivel('sustentacao', []).every((i) => i.fonte === 'Acelerato')).toBe(true)
   })
-  it('a Espera invisível lista as quatro métricas, sempre visíveis, cada uma da sua fonte', () => {
-    const ei = itensDoNivel('espera-invisivel', ['ei-fl1'])
-    expect(ei.map((i) => [i.codigo, i.fonte])).toEqual([
-      ['EI-FL1', 'BusinessMap'],
-      ['EI-FL2', 'BusinessMap'],
-      ['EI-FL3', 'BusinessMap'],
-      ['EI-SUST', 'Acelerato'],
-    ])
+  it('a espera invisível sai pelo painel do próprio nível, respeita ocultos e cada uma tem a sua fonte', () => {
+    const cod = (n: Parameters<typeof itensDoNivel>[0], o: string[] = []) =>
+      itensDoNivel(n, o)
+        .filter((i) => i.codigo.startsWith('EI'))
+        .map((i) => [i.codigo, i.fonte])
+    expect(cod('operacional')).toEqual([['EI-FL1', 'BusinessMap']])
+    expect(cod('tatico')).toEqual([['EI-FL2', 'BusinessMap']])
+    expect(cod('estrategico')).toEqual([['EI-FL3', 'BusinessMap']])
+    expect(cod('sustentacao')).toEqual([['EI-SUST', 'Acelerato']])
+    expect(cod('operacional', ['ei-fl1'])).toEqual([])
   })
   it('a seleção inicial respeita o limite de 12', () => {
     const itens = [...itensDoNivel('operacional', []), ...itensDoNivel('tatico', [])]
@@ -58,14 +59,13 @@ describe('escopo e rótulos', () => {
       'fluxo-tatico',
       'fluxo-estrategico',
       'sustentacao',
-      'espera-invisivel',
     ])
   })
   it('rótulos e domínio', () => {
     expect(rotuloDoEscopo('visao-geral')).toBe('Visão geral')
     expect(rotuloDoEscopo('personalizada')).toBe('Exportação personalizada')
     expect(rotuloDoEscopo('tatico')).toBe('Tático')
-    expect(NIVEIS).toHaveLength(5)
+    expect(NIVEIS).toHaveLength(4)
     expect(dominioDoNivel('sustentacao')).toBe('acelerato')
     expect(dominioDoNivel('operacional')).toBe('businessmap')
   })
@@ -102,31 +102,6 @@ describe('filtrosDoNivel', () => {
       undefined,
     )
     expect(f).toMatchObject({ equipe: [], tipo: [], periodo: { tipo: '12m' } })
-  })
-})
-
-describe('filtrosDoItem', () => {
-  it('a EI-SUST usa os filtros da Sustentação (prefixo sust_), nunca os do fluxo', () => {
-    const url = new URLSearchParams('periodo=4s&sust_periodo=12m&sust_prioridade=p1')
-    const item = { nivel: 'espera-invisivel', metrica: 'EI_SUST' } as const
-    expect(filtrosDoItem(item, '/espera-invisivel', url, {}, undefined)).toMatchObject({
-      periodo: { tipo: '12m' },
-      prioridade: ['P1'],
-    })
-    expect(filtrosDoItem(item, '/operacional', url, {}, undefined)).toMatchObject({
-      periodo: { tipo: '6m' },
-      prioridade: [],
-    })
-  })
-  it('as demais métricas seguem o filtro do nível', () => {
-    const f = filtrosDoItem(
-      { nivel: 'espera-invisivel', metrica: 'EI_FL1' },
-      '/espera-invisivel',
-      new URLSearchParams('periodo=4s'),
-      {},
-      undefined,
-    )
-    expect(f.periodo).toEqual({ tipo: '4s' })
   })
 })
 

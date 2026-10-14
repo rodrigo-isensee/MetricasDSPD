@@ -129,8 +129,8 @@ describe('selos nos painéis (sistêmico: fonte mock, hooks e páginas)', () => 
     expect(screen.queryByTestId(`selo-frescor-${outro}`)).not.toBeInTheDocument()
   })
 
-  it('Visão geral e Espera invisível mostram dois selos, um por fonte, separados', async () => {
-    for (const rota of ['/', '/espera-invisivel']) {
+  it('Visão geral mostra dois selos, um por fonte, separados', async () => {
+    for (const rota of ['/']) {
       const r = renderizarApp(rota)
       expect(await screen.findByTestId('selo-frescor-businessmap')).toHaveTextContent('Falha')
       expect(screen.getByTestId('selo-frescor-acelerato')).toHaveTextContent('Atual')

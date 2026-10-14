@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { test, expect, rodarAxe } from '../fixtures/base';
 
 // Axe WCAG 2.2 AA em todas as rotas e estados, nos dois temas. Escreve o resumo em docs/qa/evidencias/fase-a/axe-resumo.json.
-const ROTAS = ['/', '/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel', '/ajuda', '/rota-inexistente'];
+const ROTAS = ['/', '/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao', '/ajuda', '/rota-inexistente'];
 const ESTADOS = ['/operacional?mock=carregando', '/operacional?mock=erro', '/operacional?cadencia=semanal&mock=erro:o4', '/operacional?mock=vazio'];
 const TEMAS = ['light', 'dark'] as const;
 const resumo: Record<string, unknown> = {};

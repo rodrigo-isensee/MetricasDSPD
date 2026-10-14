@@ -20,9 +20,7 @@ export function BotaoExportar({ base }: { base: BaseExportacao }) {
   const memoria = useMemoriaAtual()
   const niveis: NivelExportacao[] =
     base === 'personalizada' ? NIVEIS.map((n) => n.id) : base === 'visao-geral' ? [] : [base]
-  const itens = niveis.flatMap((n) =>
-    itensDoNivel(n, n === 'espera-invisivel' ? [] : prefs.ocultosNaVisita(n)),
-  )
+  const itens = niveis.flatMap((n) => itensDoNivel(n, prefs.ocultosNaVisita(n)))
   return (
     <DialogoExportar
       base={base}

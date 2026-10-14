@@ -19,19 +19,20 @@ const taxaIns = (k: number, n: number) => ({
 })
 
 describe('Operacional semanal: estrutura', () => {
-  it('seções com h2 e ids, ordem O3, O9, EI-FL1, O4, O12, O10, O7, O15, O18; O12 só em Compromissos; "Ir para"', async () => {
+  it('seções com h2 e ids, ordem O3, O9, O4, O12, O10, O7, O15, O18, EI-FL1; O12 só em Compromissos; "Ir para"', async () => {
     renderizarApp(URL)
     await cartao('O3')
     const ordem = screen
       .getAllByTestId(/^metrica-/)
       .map((e) => e.getAttribute('data-testid')?.replace('metrica-', ''))
-    expect(ordem).toEqual(['O3', 'O9', 'EI-FL1', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18'])
+    expect(ordem).toEqual(['O3', 'O9', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18', 'EI-FL1'])
     const secoes: [string, string][] = [
       ['tempo', 'Tempo'],
       ['fluxo', 'Fluxo'],
       ['compromissos', 'Compromissos'],
       ['backlog', 'Backlog'],
       ['qualidade', 'Qualidade'],
+      ['espera-invisivel', 'Quanto do tempo do solicitante fica fora da nossa gestão?'],
     ]
     for (const [id, nome] of secoes) {
       const sec = document.getElementById(id) as HTMLElement
@@ -45,7 +46,7 @@ describe('Operacional semanal: estrutura', () => {
       within(nav)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Tempo', 'Fluxo', 'Compromissos', 'Backlog', 'Qualidade'])
+    ).toEqual(['Tempo', 'Fluxo', 'Compromissos', 'Backlog', 'Qualidade', 'Espera invisível'])
   })
 })
 

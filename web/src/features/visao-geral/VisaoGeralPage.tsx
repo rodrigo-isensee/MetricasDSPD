@@ -105,25 +105,25 @@ function CartaoNivel({ n }: { n: Nivel }) {
 const EI_NIVEIS = {
   FL1: {
     rotulo: 'Operacional',
-    rota: '/espera-invisivel#ei-fl1',
+    rota: '/operacional?cadencia=semanal#ei-fl1',
     link: 'Ver todos os tipos',
     entidade: 'demandas',
   },
   FL2: {
     rotulo: 'Tático',
-    rota: '/espera-invisivel#ei-fl2',
+    rota: '/tatico#ei-fl2',
     link: 'Detalhar',
     entidade: 'frentes',
   },
   FL3: {
     rotulo: 'Estratégico',
-    rota: '/espera-invisivel#ei-fl3',
+    rota: '/estrategico#ei-fl3',
     link: 'Ver todos os tipos',
     entidade: 'projetos',
   },
   SUST: {
     rotulo: 'Sustentação',
-    rota: '/espera-invisivel#ei-sust',
+    rota: '/sustentacao#ei-sust',
     link: 'Ver todas as prioridades',
     entidade: 'chamados',
   },

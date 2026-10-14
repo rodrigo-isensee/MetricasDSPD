@@ -1,11 +1,6 @@
 import type { ReactNode } from 'react'
 import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
-import type {
-  Dominio,
-  FiltrosFluxo,
-  FiltrosSustentacao,
-  PainelComCartoes,
-} from '@metricas-dspd/contratos'
+import type { Dominio, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta, useModoMock } from '@/data'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
@@ -38,37 +33,19 @@ function CorpoDaFonte({ dominio, children }: { dominio: Dominio; children: React
   return data?.ultimaOk === null ? <SemDadosDaFonte dominio={dominio} /> : children
 }
 
-/** Liga o recorte de métricas (pedido 007) só nos painéis que têm cartões ocultáveis. */
-function Recorte({
-  painel,
-  children,
-}: {
-  painel?: PainelComCartoes | undefined
-  children: ReactNode
-}) {
-  return painel ? (
-    <ProvedorPainelPreferencias painel={painel}>{children}</ProvedorPainelPreferencias>
-  ) : (
-    children
-  )
-}
-
 function Casca({
   painelDoCorpo,
   uso,
   base,
   fonte,
-  fontes,
+  dominio,
   estrategico,
-  preferencias,
   children,
 }: {
   /** Nível do botão "Exportar" (o mesmo id do painel). */
   painelDoCorpo: NivelExportacao
-  /** Painel com cartões ocultáveis (pedido 007); a Espera invisível não tem. */
-  preferencias?: PainelComCartoes
-  /** Fontes que o painel usa: o selo de cada uma aparece no cabeçalho, sempre separado. */
-  fontes: readonly Dominio[]
+  /** Fonte que o painel usa: o selo dela aparece no cabeçalho (BusinessMap e Acelerato nunca se misturam). */
+  dominio: Dominio
   uso: UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
   base: Base
   fonte: string
@@ -86,9 +63,7 @@ function Casca({
   const preferenciasProntas = usePreferencias().pronto
   const aguardando =
     useModoMock() !== 'carregando' &&
-    ((fontes.includes('businessmap') && pendenteBm) ||
-      (fontes.includes('acelerato') && pendenteAc) ||
-      (!!preferencias && !preferenciasProntas))
+    ((dominio === 'businessmap' ? pendenteBm : pendenteAc) || !preferenciasProntas)
   // mock=erro (6.6): erro de painel, não de cartão. O shell continua; o painel não carrega.
   if (erroSimulado)
     return <ErroPagina erro="Erro simulado (mock=erro)" onTentarDeNovo={() => undefined} />
@@ -98,7 +73,7 @@ function Casca({
       removerFiltro={uso.remover}
       limparFiltros={uso.limpar}
     >
-      <Recorte painel={preferencias}>
+      <ProvedorPainelPreferencias painel={painelDoCorpo}>
         <div className="flex flex-col gap-4">
           <CabecalhoPainel
             titulo={base.titulo}
@@ -108,9 +83,7 @@ function Casca({
             slug={base.slug}
             frescor={
               <div className="flex flex-col gap-1">
-                {fontes.map((d) => (
-                  <FrescorFonte key={d} dominio={d} comNome={fontes.length > 1} />
-                ))}
+                <FrescorFonte dominio={dominio} />
               </div>
             }
             {...(base.publico ? { publico: base.publico } : {})}
@@ -119,27 +92,21 @@ function Casca({
             <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />
           ) : (
             <>
-              {fontes.map((d) => (
-                <FaixaCalibracaoFonte key={d} dominio={d} />
-              ))}
+              <FaixaCalibracaoFonte dominio={dominio} />
               {base.extra}
               <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
-                {preferencias && <BotaoMetricas />}
+                <BotaoMetricas />
                 <BotaoExportar base={painelDoCorpo} />
                 <BotaoExportar base="personalizada" />
               </div>
               <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
               <FaixaOcultas />
               <PainelOcultoVazio />
-              {fontes.length === 1 ? (
-                <CorpoDaFonte dominio={fontes[0] as Dominio}>{children}</CorpoDaFonte>
-              ) : (
-                children
-              )}
+              <CorpoDaFonte dominio={dominio}>{children}</CorpoDaFonte>
             </>
           )}
         </div>
-      </Recorte>
+      </ProvedorPainelPreferencias>
     </ProvedorContextoPainel>
   )
 }
@@ -151,13 +118,8 @@ function Casca({
 export function PainelFluxo({
   painel,
   children,
-  fonte = 'BusinessMap',
-  fontes = ['businessmap'],
   ...base
 }: Base & {
-  /** Sobrepõe a fonte do cabeçalho (só a Espera invisível, que reúne os dois sistemas em blocos). */
-  fonte?: string
-  fontes?: readonly Dominio[]
   painel: PainelFluxoId
   children: (filtros: FiltrosFluxo, uso: UseFiltros<FiltrosFluxo>) => ReactNode
 }) {
@@ -167,10 +129,9 @@ export function PainelFluxo({
       painelDoCorpo={painel}
       uso={uso}
       base={base}
-      fonte={fonte}
-      fontes={fontes}
+      fonte="BusinessMap"
+      dominio="businessmap"
       estrategico={painel === 'estrategico'}
-      {...(painel !== 'espera-invisivel' ? { preferencias: painel } : {})}
     >
       {children(uso.filtros, uso)}
     </Casca>
@@ -186,14 +147,7 @@ export function PainelSustentacao({
 }) {
   const uso = useFiltros('sustentacao')
   return (
-    <Casca
-      painelDoCorpo="sustentacao"
-      uso={uso}
-      base={base}
-      fonte="Acelerato"
-      fontes={['acelerato']}
-      preferencias="sustentacao"
-    >
+    <Casca painelDoCorpo="sustentacao" uso={uso} base={base} fonte="Acelerato" dominio="acelerato">
       {children(uso.filtros, uso)}
     </Casca>
   )

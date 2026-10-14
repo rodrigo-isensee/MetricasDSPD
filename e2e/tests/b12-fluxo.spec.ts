@@ -20,7 +20,7 @@ test.describe('K-006 Operacional diário', () => {
     await painel.cadencia.getByText('Semanal', { exact: true }).click();
     await expect(page).toHaveURL(/cadencia=semanal/);
     await painel.esperarCartoesProntos();
-    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O3', 'O9', 'EI-FL1', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18']);
+    await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O3', 'O9', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18', 'EI-FL1']);
     await painel.cadencia.getByText('Diária', { exact: true }).click();
     await expect(page).not.toHaveURL(/cadencia=/);
     await expect(painel.cadencia.getByRole('radio', { name: 'Diária' })).toBeFocused();
@@ -131,9 +131,9 @@ test.describe('K-023 Operacional semanal', () => {
   test('OP-22 âncoras "Ir para" levam às seções', async ({ painel, page }) => {
     await painel.ir(SEM);
     const nav = page.getByRole('navigation', { name: 'Ir para' });
-    for (const s of ['Tempo', 'Fluxo', 'Compromissos', 'Backlog', 'Qualidade']) {
+    for (const [s, id] of [['Tempo', 'tempo'], ['Fluxo', 'fluxo'], ['Compromissos', 'compromissos'], ['Backlog', 'backlog'], ['Qualidade', 'qualidade'], ['Espera invisível', 'espera-invisivel']] as const) {
       await nav.getByRole('link', { name: s }).click();
-      await expect(page).toHaveURL(new RegExp('#' + s.toLowerCase()));
+      await expect(page).toHaveURL(new RegExp('#' + id + '$'));
     }
   });
 
