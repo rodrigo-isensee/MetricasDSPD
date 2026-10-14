@@ -21,3 +21,6 @@ Em `useFiltros`, antes de as opções de filtro chegarem, a validação de reser
 
 ## Evidência
 `e2e/tests/intensivo-filtros-bordas.spec.ts` IF-B09, IF-B10, IF-B16 e IF-B17: `getByTestId('aviso-filtros-invalidos')` não encontrado. IF-B11, IF-B12, IF-B13 e IF-B15 (inválidos só pelo histórico) mostram o aviso.
+
+## Correção
+- Correção: 935e51a (fix(web): filtros na URL partem do estado vigente, URL canônica e aviso de período inválido)

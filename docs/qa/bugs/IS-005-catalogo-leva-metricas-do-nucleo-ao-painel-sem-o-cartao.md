@@ -24,3 +24,6 @@ Teste `SIS-CONS-01` em `e2e/tests/intensivo-sistemico.spec.ts` (trecho da falha)
 ... (o mesmo para O4, O7, O9, O10, O12, O15, O18)
 "T1: \"Ir ao painel\" sem âncora do cartão (/tatico)", ... "PV1: \"Ir ao painel\" sem âncora do cartão (/sustentacao)"
 ```
+
+## Correção
+- Correção: 0bd48bd (fix(web): Ir ao painel do catálogo leva ao cartão de toda métrica)

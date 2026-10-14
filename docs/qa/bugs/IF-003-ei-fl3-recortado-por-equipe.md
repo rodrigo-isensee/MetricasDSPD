@@ -17,3 +17,6 @@ Tabela 2.2 da spec (`docs/ux/dashboard-metricas/especificacao.md`) e `APLICABILI
 ## Evidência
 - Propriedade INV-F2 (`packages/metricas/src/filtros.intensivo.test.ts`), nas duas bases: `EI_FL3 (aplica sistema/periodo) mudou com {"equipe":["senior"],...}`.
 - E2E IF-A `/espera-invisivel` (`e2e/tests/intensivo-filtros.spec.ts`): `EI-FL3 diz "Não afetado por: Equipe, Tipo de demanda", mas a base muda: "0 de 20" com o filtro x "1 de 20" sem`.
+
+## Correção
+- Correção: 079a2b1 (fix(metricas): EI-FL3 sem recorte de equipe e O6 segue o filtro de tipo)

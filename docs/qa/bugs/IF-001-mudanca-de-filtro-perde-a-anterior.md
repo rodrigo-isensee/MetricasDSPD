@@ -27,3 +27,6 @@ A URL termina com `cadencia=semanal&tipo=incidente`: o filtro de equipe some sem
 - Log do Playwright (IF-I13): `Expected: "cadencia=semanal&equipe=fluig&tipo=incidente"` / `Received: "cadencia=semanal&tipo=incidente"`.
 - Log (IF-I09 375 px): `Expected: "equipe=fluig&periodo=4s&tipo=melhoria"` / `Received: "periodo=4s"`; botão "Filtros (1)".
 - Reprodutibilidade: ver tabela de repetição em `docs/qa/intensivo-filtros.md`.
+
+## Correção
+- Correção: 935e51a (fix(web): filtros na URL partem do estado vigente, URL canônica e aviso de período inválido)

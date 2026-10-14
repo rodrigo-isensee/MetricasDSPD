@@ -19,3 +19,6 @@ Causa provável (leitura do código, não corrigido pelo QA): o `useEffect` que 
 ## Evidência
 - Saída da execução: `Error: expect(received).toBe(expected) ... Expected: false Received: true` em `tests/filtros.spec.ts:47`.
 - `error-context.md` e `trace.zip` em `e2e-out-1/filtros-FIL-04-marcar-todos-os-valores-remove-o-parâmetro-chromium/` (pasta temporária da execução, não versionada).
+
+## Correção
+- Correção: 935e51a (fix(web): filtros na URL partem do estado vigente, URL canônica e aviso de período inválido)

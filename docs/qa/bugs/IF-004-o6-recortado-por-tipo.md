@@ -23,3 +23,6 @@ Propriedade INV-F2 (`packages/metricas/src/filtros.intensivo.test.ts`), nas duas
 
 ## Decisão do usuário (2026-10-13)
 - IF-004: a O6 **segue o filtro de tipo**, como a O3 de onde deriva; a tela passa a dizer que o filtro se aplica (mínimo de 20 itens continua valendo).
+
+## Correção
+- Correção: 079a2b1 (fix(metricas): EI-FL3 sem recorte de equipe e O6 segue o filtro de tipo)

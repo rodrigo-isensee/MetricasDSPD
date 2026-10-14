@@ -19,3 +19,6 @@ Spec 2.5: "Só valores fora do padrão entram na URL... em minúsculas e sem ace
 
 ## Evidência
 `e2e/tests/intensivo-filtros-bordas.spec.ts` IF-B21, IF-B22, IF-B42, IF-B43, IF-B44, IF-B45 e IF-B46 (asserções de URL canônica). Nenhum desses casos quebra o painel nem gera erro de console (IF-B23 a IF-B28 passam).
+
+## Correção
+- Correção: 935e51a (fix(web): filtros na URL partem do estado vigente, URL canônica e aviso de período inválido)

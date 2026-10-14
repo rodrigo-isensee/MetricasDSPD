@@ -19,3 +19,6 @@ Em `FiltroMulti`, o `useEffect` que ressincroniza `atual.current` com a prop `se
 
 ## Evidência
 `e2e/tests/intensivo-filtros.spec.ts` IF-I01 (caso `/sustentacao equipe`): `Expected: false` / `Received: true` para `searchParams.has('equipe')`. Os casos de fluxo (6 equipes, 6 tipos, 8 sistemas) e de prioridade passaram na mesma execução; o defeito depende do tempo de render.
+
+## Correção
+- Correção: 935e51a (fix(web): filtros na URL partem do estado vigente, URL canônica e aviso de período inválido)

@@ -30,3 +30,6 @@ Teste `SIS-INV-03` em `e2e/tests/intensivo-sistemico.spec.ts`; `error-context.md
 - button "Remover filtro Sistema"
 - button "Remover filtro Período"
 ```
+
+## Estado
+- Resolvido na develop pela espera invisível (a página /espera-invisivel foi removida; o EI-SUST vive só na Sustentação, com os filtros sust_). Conferido com SIS-INV-03 em e2e/tests/intensivo-sistemico.spec.ts.

@@ -15,3 +15,6 @@ Quando o ano do início difere do ano do fim, mostrar o ano no início ("10/10/2
 
 ## Evidência
 Sonda Playwright em `/estrategico`: `base-E2=Base: 3.137 itens entregues· 10/10 a 09/10/2026`.
+
+## Correção
+- Correção: d35a50a (fix(web): janela da base mostra o ano do início quando difere do fim)

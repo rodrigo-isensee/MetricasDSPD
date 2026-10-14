@@ -16,3 +16,6 @@ A mesma base da tela (`Base: 9 de 11 iniciativas`): a exportação traz os mesmo
 
 ## Evidência
 Teste `SIS-CONS-05` em `e2e/tests/intensivo-sistemico.spec.ts`: `"/estrategico E3: tela \"Base: 9 de 11 iniciativas\" e o PDF não traz 9"`.
+
+## Correção
+- Correção: 0759413 (fix(web): PDF do E3 traz a base 'k de n' como a tela)
