@@ -161,10 +161,10 @@ Esqueleto (o nome final dos campos fica com o back):
 | Fluxo | Vazão: última semana fechada e faixa de 12 semanas | `O4.semanas` (última com `emAndamento=false`) e `O4.faixa` | idem |
 | Fluxo | Itens abertos acima do P95 | `O2.acimaP95` | idem |
 | Fluxo | Vencidos por causa interna | `O12.vencidosCausaInterna` | idem |
-| Sustentação | Prioridades com aderência < 90% | `contarForaS2(S2.prioridades)`, regra igual à do "Pede atenção" | padrão da sustentação (6 meses, Q5) |
+| Sustentação | Prioridades com aderência < 90% | `contarForaS2(S2.prioridades)`, regra igual à do "Pede atenção" | 12 semanas no Resumo (P3 = a); no detalhe, o período do filtro (padrão 6 meses, Q5) |
 | Sustentação | Prioridades com mediana acima do alvo | `S1.prioridades[*].restauracao.statusMeta`, regra igual à do "Pede atenção" | idem |
 | Sustentação | Volume e P1+P2 | `S3.base.n` e `S3.janela.p1p2` | idem |
-| Ambos | "Pede atenção" | `atencao.ts` (mesmas regras de hoje) | padrões |
+| Ambos | "Pede atenção" | `atencao.ts` (mesmas regras de hoje) | Resumo: 12 semanas; detalhe: período do filtro. Janela do alerta segue a opção (a) da U1 (duas janelas, explicadas na tela) até o usuário decidir |
 | Ambos | Tendência | `TENDENCIA_FLUXO`, `TENDENCIA_SUST` | sem filtros |
 
 Com filtros padrão, as consultas são as mesmas da Diária, da Semanal e da Sustentação. O cache do React Query é compartilhado, e a ida às visões de detalhe é imediata.
@@ -196,7 +196,7 @@ Com filtros padrão, as consultas são as mesmas da Diária, da Semanal e da Sus
 | R4 | A normalização 2.6.1 apaga `sust_*` ou `s3`/`ei_sust` em `/operacional` | alta sem teste × alto (link perdido) | `params` do operacional ampliado; testes de invariante no `useFiltros` e E2E CA-6 e CA-11 |
 | R5 | Hash ambíguo entre visões (ex.: `qualidade` × `sust-qualidade`) | baixa × médio | Tabela derivada do catálogo, mais teste de unicidade |
 | R6 | Links internos que esperavam a Diária caem no Resumo | média × médio | Auditoria por `grep` de `'/operacional'` sem `cadencia` (Visão geral, catálogo, Ajuda, redirecionadores, E2E); CA-24 |
-| R7 | Números da sustentação em 6 meses (Q5) ao lado de uma série de 12 semanas (Q1): o último ponto difere do número | certa × baixo (leitura) | Janela escrita em cada número e no título da série; confirmação P3 |
+| R7 | ~~Números da sustentação em 6 meses (Q5) ao lado de uma série de 12 semanas (Q1): o último ponto difere do número~~ **Superado pela P3 = (a) (seção 10):** no Resumo, números e série usam 12 semanas. Resta a diferença entre o Resumo (12 semanas) e o detalhe (período do filtro), tratada pela U1 = (a) | baixa × baixo (leitura) | Janela escrita em cada número, no título da série e no "Pede atenção" |
 | R8 | Coletas das duas fontes em meses diferentes desalinham o eixo | baixa × baixo | A mesma `dataReferencia` (a mais antiga) nas duas tendências (4.4) |
 | R9 | Contradição da spec na base do volume mensal da sustentação | certa × médio | Pergunta P4. Até lá, a série de volume não entra no merge. |
 | R10 | Conflito com a branch da espera invisível (mesmos arquivos) | alta × baixo | Só começa depois do merge dela; branch nova a partir da `develop` |
@@ -323,7 +323,7 @@ Ordem: **B1 primeiro** (contrato, pequeno). Depois rodam em paralelo o back (B2,
     - (a) "k de m avaliadas", com m < 5 escrito e "não publicado" só se m = 0;
     - (b) "não publicado" se qualquer prioridade estiver insuficiente;
     - (c) outro critério?
-- **P3 (não bloqueia; o plano segue Q5 ao pé da letra).**
+- **P3 (não bloqueia; o plano segue Q5 ao pé da letra).** **Superada: respondida (a) na seção 10; o texto abaixo é a pergunta original.**
   - Os números-chave da Sustentação usam a janela do detalhe (6 meses, Q5). A série usa 12 semanas até o fim do mês (Q1). Por isso o último ponto e o número podem diferir; as duas janelas ficam escritas na tela.
   - Confirma? Ou os números da Sustentação no Resumo também devem usar 12 semanas, como dizia o wireframe?
 - **P4 (bloqueia só a série de volume da Sustentação).**
