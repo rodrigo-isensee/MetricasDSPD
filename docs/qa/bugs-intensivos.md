@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: bugs-intensivos
 branch: fix/bugs-intensivos
-commit: 70b48a3
+commit: e426a0a
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -19,6 +19,8 @@ Links: `docs/reviews/bugs-intensivos.md` (code review aprovado), `docs/qa/intens
 
 ## Veredito
 **Aprovado** no HEAD 70b48a3. Os 15 bugs do lote estão resolvidos (IF-001 a IF-007, IS-001 a IS-008). O IS-008 (`format:check` reprovava dois arquivos, média) foi corrigido em 0c7d348, só formatação.
+
+6c7f5b7: merge da develop só com documentação (#66, #67), sem efeito em teste. Diff desde d2152e5 até e426a0a: só `docs/`, `KANBAN.md` e `.md`, sem arquivo de código.
 
 Reteste incremental após 81e1ae0 (entraram b74d78f, parecer de UX; 4e47bcf, `fix(web)`; 70b48a3, review). O diff de `web` desde 81e1ae0 toca `AvisoFiltrosInvalidos.tsx` (texto novo quando o período personalizado do link é inválido), `FiltroMulti.tsx` (botão e `aria-label` passam a usar `exibidos`, as caixas marcadas, em vez de `selecionados`) e dois arquivos de teste de unidade.
 - E2E (`chromium`, `--workers=2`, `nice -n 19`, `flock`): `filtros` e `intensivo-filtros*` (177 testes): **176 passaram, 1 falhou** (IF-A `/operacional?cadencia=semanal`, instável sob carga). Reexecutado isolado (`--workers=1`) duas vezes: **2/2 passaram** (41,8 s e 50,2 s). IF-I01 e IF-U passaram desta vez. Instabilidade só de tempo, sem divergência de asserção; fica reportada, sem `skip`.
