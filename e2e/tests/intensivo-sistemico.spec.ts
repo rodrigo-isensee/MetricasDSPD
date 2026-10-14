@@ -9,7 +9,7 @@ import { test, expect, rodarAxe } from '../fixtures/base';
  */
 
 const ROTAS_TODAS = ['/', '/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel', '/metricas', '/dados', '/preferencias', '/ajuda'] as const;
-const PAINEIS = ['/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel'] as const;
+const PAINEIS = ['/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao'] as const; // a página /espera-invisivel foi removida: só redireciona (coberta em espera-invisivel-nos-paineis.spec.ts)
 const PESSOA = /Pessoa \d{2}|[\w.+-]+@[\w-]+\.[a-z]{2,}/;
 
 const ROTAS_COM_CARTOES = /^\/(operacional|tatico|estrategico|sustentacao|espera-invisivel)(\?|#|$)/;
@@ -67,7 +67,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
         return { codigo: td[0] ?? '', nome: td[1] ?? '', painel: td[2] ?? '', fonte: td[4] ?? '', gran: td[5] ?? '', href: a?.getAttribute('href') ?? '' };
       }),
     );
-    expect(dados).toHaveLength(46);
+    expect(dados).toHaveLength(49);
     const problemas: string[] = [];
     for (const d of dados) {
       await page.goto(d.href);
@@ -134,7 +134,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
       const ins = texto.match(/Amostra insuficiente \(([\d.]+) de 20 [^,)]+(?:, no maior segmento: ([^)]+))?\)/);
       expect(ok ?? ins, texto).not.toBeNull();
       await linha.getByRole('link').click();
-      await page.waitForURL(/\/espera-invisivel/);
+      await page.waitForURL(/\/(operacional|tatico|estrategico|sustentacao)/); // o resumo leva ao cartão no painel de origem
       await prontos(page);
       const cartao = page.getByTestId(`metrica-EI-${nivel.toUpperCase()}`);
       await expect(cartao).toBeVisible();
@@ -338,10 +338,10 @@ test.describe('SIS-INV regras invioláveis na interface', () => {
     }
     // Espera invisível: o bloco da Sustentação ignora os filtros do fluxo (números e texto do cartão)
     const numeros = (t: string) => (t.match(/\d[\d.,]*/g) ?? []).join(' ');
-    await page.goto('/espera-invisivel');
+    await page.goto('/espera-invisivel#ei-sust'); // a página antiga redireciona: o EI-SUST vive na Sustentação
     await prontos(page);
     const antes = await page.getByTestId('metrica-EI-SUST').innerText();
-    await page.goto('/espera-invisivel?periodo=4s&tipo=divida-tecnica&sistema=protheus');
+    await page.goto('/espera-invisivel?periodo=4s&tipo=divida-tecnica&sistema=protheus#ei-sust');
     await prontos(page);
     const depois = await page.getByTestId('metrica-EI-SUST').innerText();
     const semChips = (t: string) => t.split('\n').filter((l) => !/Filtros aplicados|Remover filtro|Para chegar a 20|sem filtros/.test(l)).join('\n');
@@ -407,7 +407,7 @@ test.describe('SIS-ROB robustez', () => {
     const nav = page.getByRole('navigation', { name: 'Navegação principal' }).first();
     await expect(nav.getByRole('link').first()).toBeVisible();
     const destinos = await nav.getByRole('link').evaluateAll((as) => as.map((a) => a.getAttribute('href') ?? '').filter((h) => h.startsWith('/')));
-    expect(destinos.length).toBeGreaterThanOrEqual(8);
+    expect(destinos.length).toBeGreaterThanOrEqual(7);
     for (let volta = 0; volta < 4; volta++) for (const d of destinos) await nav.locator(`a[href="${d}"]`).first().click({ noWaitAfter: true });
     await expect(page).toHaveURL(new RegExp(`${destinos.at(-1)!.replace('?', '\\?')}$`));
     await prontos(page);
