@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: bugs-intensivos
 branch: fix/bugs-intensivos
-commit: 03665ffff5443ca5b8025377046f4e722eb5d371
+commit: 0c7d348055467bb126ba4cf0b7063fc732a96665
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-14
@@ -13,12 +13,14 @@ data: 2026-10-14
 
 Escopo da primeira rodada: `git diff 376d997..d3babc2`, ou seja, o merge de `test/qa-intensivo-main` (1f08626 e 79edf17, lidos por amostragem) e as correções 935e51a a 838f774. Para cada bug, conferi a linha "Correção:" do arquivo em `docs/qa/bugs/` contra o commit correspondente. Segunda rodada (re-review): `git diff 9d6d681..03665ff`, com os commits 6846a93 (documentação) e 03665ff (recomendações).
 
+Terceira rodada (HEAD atual, 0c7d348): `git diff 03665ff..0c7d348` tocou só `web/src/features/exportar/modelo.ts` e `packages/mock/src/desempenho.test.ts`, e a mudança é apenas formatação Prettier (quebra de linha, sem alteração de código). Commit 0c7d348 é só formatação (IS-008), para o `format:check` voltar a passar. Os commits de documentação do QA (ae23d22 e 77fd131) estão fora de `web`, `packages`, `server` e `e2e`, e não alteram o código revisado.
+
 Verificação local da primeira rodada (com `nice -n 19` e sob `flock /tmp/metricas-pesado.lock`): typecheck de `packages/metricas`, `packages/contratos`, `packages/mock`, `server` e `web`, todos verdes. Lint do `server` e eslint dos arquivos alterados do `web`, verdes. Testes unitários: `metricas` 522/522, `contratos` 45/45, `mock` 157/157, os dois testes sistêmicos do `server` 111/111, e no `web` os arquivos de filtros, catálogo, exportação, formatar e navegação, 113/113. Não rodei o E2E; o autor informa 312/312.
 
 Verificação da segunda rodada (mesmas precauções): typecheck do `web` e eslint dos arquivos alterados, verdes. Não rodei os testes; o autor informa web 832/832 com cobertura de 100% e os E2E de filtros verdes, com 5 que só passaram na repetição por timeout sob carga (a mesma espera de CPU do IS-001, sem falha de asserção).
 
 ## Veredito
-**Aprovado.** O item que bloqueava (documentação do mecanismo de URL do front) foi atendido em 6846a93, e as recomendações de código foram atendidas em 03665ff. Os itens restantes são recomendações que seguem fora deste lote, como cartões próprios (ver "Pendências fora do lote").
+**Aprovado.** O item que bloqueava (documentação do mecanismo de URL do front) foi atendido em 6846a93, e as recomendações de código foram atendidas em 03665ff. O commit 0c7d348 é só formatação e não altera o parecer. Os itens restantes são recomendações que seguem fora deste lote, como cartões próprios (ver "Pendências fora do lote").
 
 ## Pontos de atenção do pedido
 - **IS-001 (timeout de 15 s para 90 s em 4000300 e 8dc19d6): aceito.** A justificativa foi medida e está registrada em `web/vite.config.ts:50-56`: 830 testes, 20 deles acima de 5 s, o pior com 11 s, e 45 s ainda estourou com load 10. Todas as falhas da evidência foram por espera de CPU, nenhuma por asserção. O timeout de teste unitário não é o guarda de desempenho do projeto: esse papel é do orçamento do ADR 0003 (E2E perf e `desempenho.test.ts`), que continua intacto. A causa (testes que montam um painel inteiro) segue de fora, e vira cartão próprio.
@@ -36,7 +38,7 @@ Verificação da segunda rodada (mesmas precauções): typecheck do `web` e esli
 5. **Pendente, cartão próprio.** Mínimos de `pFrio` e `pQuente` do `server/tests/api-perf.sistemico-intensivo.test.ts` (linhas 63-64) tirados da mesma rodada.
 6. **Pendente, cartão próprio.** `e2e/tests/intensivo-sistemico.spec.ts:137` com a rota e o hash do cartão de origem.
 7. **Atendido (03665ff).** `useParametroLocal.ts` e `NavegacaoGlobal.tsx` passaram a usar `textoBusca`.
-8. **Atendido (03665ff).** `exportar/modelo.ts` usa o tipo `ResultadoE3` do contrato em lugar do tipo estrutural escrito à mão. Ainda é uma asserção de tipo, mas ancorada no contrato compartilhado e sem o `?.` que escondia a ausência da ficha: aceito.
+8. **Atendido (03665ff).** `exportar/modelo.ts` usa o tipo `ResultadoE3` do contrato em lugar do tipo estrutural escrito à mão. Ainda é uma asserção de tipo, mas ancorada no contrato compartilhado e sem o `?.` que escondia a ausência da ficha: aceito. A formatação de 0c7d348 não mexe nessa asserção.
 9. **Atendido (03665ff).** `catalogo/linhas.ts` lança `Catálogo inconsistente` quando falta cartão, com teste novo em `linhas.test.ts` (catálogo vazio simulado).
 10. **Atendido (03665ff).** Comentário do `FiltroMulti` movido para a linha de baixo.
 
@@ -44,7 +46,7 @@ Verificação da segunda rodada (mesmas precauções): typecheck do `web` e esli
 Itens 3, 5 e 6 viram cartões próprios no quadro (decisão do pedido de re-review), e o item 4 é do QA. Nenhum deles bloqueia a entrega e nenhum afeta regra de negócio.
 
 ## Checklist
-1. Escopo: cada bug tem um commit rastreado e nada fora do lote entrou. A correção de cobertura em 6b30aae e o acompanhamento em c485929 pertencem ao IS-005. Os dois commits da segunda rodada só tocam documentação e as recomendações do parecer.
+1. Escopo: cada bug tem um commit rastreado e nada fora do lote entrou. A correção de cobertura em 6b30aae e o acompanhamento em c485929 pertencem ao IS-005. Os dois commits da segunda rodada só tocam documentação e as recomendações do parecer. O commit 0c7d348 só formata dois arquivos (IS-008).
 2. ADRs e regras invioláveis: respeitados (ver os pontos de atenção).
 3. Cálculo na `core`: sim. A IF-003 usa a opção já existente de `selecionar`.
 4. Legibilidade: boa; duplicações removidas.
@@ -54,4 +56,4 @@ Itens 3, 5 e 6 viram cartões próprios no quadro (decisão do pedido de re-revi
 8. Testes: cada bug tem teste (`useFiltros.test.tsx`, `filtros-componentes.test.tsx`, `buscaPendente.test.ts`, `formatar.test.ts`, `modelo.test.ts`, `catalogo.test.tsx`, `navegacao.test.tsx`, `businessmap.test.ts`, C5 em `perf.spec.ts`), mais `linhas.test.ts` na segunda rodada. `setup.ts` limpa a busca pendente entre os testes.
 9. Acessibilidade: sem mudança de semântica. O `FiltroMulti` mantém as caixas nativas.
 10. Documentação: contrato da O6 regenerado, bugs com "Correção:" (o IS-001 será ajustado pelo QA) e a seção de URL do front documentada.
-11. Commits: Conventional Commits em português, um por mudança coerente e com as linhas de atribuição.
+11. Commits: Conventional Commits em português, um por mudança coerente e com as linhas de atribuição. 0c7d348 segue o padrão.
