@@ -7,7 +7,7 @@ import { linhasDoCatalogo } from './linhas'
 const GRUPOS = ['Todos', 'Núcleo', 'Complementar'] as const
 
 /**
- * `/metricas`: o catálogo das 45 métricas do briefing + 1 de percepção (46), com painel, grupo, fonte, status e link para o painel.
+ * `/metricas`: o catálogo das 45 métricas do briefing + 1 de percepção, com a espera invisível em uma linha por nível (49 linhas), com painel, grupo, fonte, status e link para o painel.
  * Dado estático do bundle (sem endpoint, sem dado pessoal). Nenhuma métrica é plotada aqui.
  */
 export default function CatalogoPage() {
@@ -25,8 +25,9 @@ export default function CatalogoPage() {
       </h1>
       <p className="text-sm text-texto-2">
         Tudo o que existe no DSPD: 45 métricas do briefing + 1 de percepção (a pesquisa de valor do
-        serviço). As complementares ficam na seção "Mais métricas deste painel". Até a coleta real
-        existir, todas as métricas usam dados fictícios; a coluna "Dados" lembra isso.
+        serviço); a espera invisível aparece em uma linha por nível. As complementares ficam na
+        seção "Mais métricas deste painel". Até a coleta real existir, todas as métricas usam dados
+        fictícios; a coluna "Dados" lembra isso.
       </p>
       <div className="flex flex-wrap items-end gap-4">
         <label className="flex flex-col gap-1 text-sm font-medium">

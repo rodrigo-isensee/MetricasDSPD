@@ -60,20 +60,19 @@ describe('Exportar nos painéis (sistêmico)', () => {
     spy.mockRestore()
   })
 
-  it('a Sustentação exporta só Acelerato; a Espera invisível mostra os botões sem "Métricas"', async () => {
+  it('a Sustentação exporta só Acelerato, e a espera invisível do nível está na lista', async () => {
     const user = userEvent.setup()
     const r = renderizarApp('/sustentacao')
     const dlg = await abrir(user, 'Exportar')
     expect(within(dlg).getAllByRole('checkbox').length).toBeGreaterThan(5)
+    expect(
+      within(dlg).getByRole('checkbox', { name: /EI-SUST .*\(Acelerato\)/ }),
+    ).toBeInTheDocument()
     await gerar(user, dlg)
     const t = await textoDoPdf()
     expect(t).toContain('(Fonte: Acelerato)')
     expect(t).not.toContain('(Fonte: BusinessMap)')
     r.unmount()
-    renderizarApp('/espera-invisivel')
-    expect(await screen.findByRole('button', { name: 'Exportar' })).toBeInTheDocument()
-    expect(screen.queryByTestId('botao-metricas')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Exportação personalizada' })).toBeInTheDocument()
   })
 
   it('a Visão geral exporta com BusinessMap e Acelerato em seções separadas', async () => {

@@ -117,11 +117,12 @@ function AtencaoSemanal({ filtros }: { filtros: FiltrosFluxo }) {
 }
 
 const SECOES = [
-  ['tempo', 'Tempo', ['o3', 'o9', 'ei-fl1']],
+  ['tempo', 'Tempo', ['o3', 'o9']],
   ['fluxo', 'Fluxo', ['o4']],
   ['compromissos', 'Compromissos', ['o12']],
   ['backlog', 'Backlog', ['o10', 'o7']],
   ['qualidade', 'Qualidade', ['o15', 'o18']],
+  ['espera-invisivel', 'Espera invisível', ['ei-fl1']],
 ] as const
 
 function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cadencia }) {
@@ -170,10 +171,9 @@ function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cade
           </a>
         ))}
       </nav>
-      <SecaoPainel cartoes={['o3', 'o9', 'ei-fl1']} id="tempo" titulo="Tempo">
+      <SecaoPainel cartoes={['o3', 'o9']} id="tempo" titulo="Tempo">
         <CartaoO3 filtros={filtros} />
         <CartaoO9 filtros={filtros} />
-        <CartaoEIFL1 filtros={filtros} variante="compacto" />
       </SecaoPainel>
       <SecaoPainel cartoes={['o4']} id="fluxo" titulo="Fluxo">
         <CartaoO4 filtros={filtros} />
@@ -188,6 +188,13 @@ function Conteudo({ filtros, cadencia }: { filtros: FiltrosFluxo; cadencia: Cade
       <SecaoPainel cartoes={['o15', 'o18']} id="qualidade" titulo="Qualidade">
         <CartaoO15 filtros={filtros} />
         <CartaoO18 filtros={filtros} />
+      </SecaoPainel>
+      <SecaoPainel
+        cartoes={['ei-fl1']}
+        id="espera-invisivel"
+        titulo="Quanto do tempo do solicitante fica fora da nossa gestão?"
+      >
+        <CartaoEIFL1 filtros={filtros} />
       </SecaoPainel>
       <MaisMetricas fonte="BusinessMap" renderizar={(id) => cartaoDeFluxo(id, filtros)} />
     </>

@@ -1,14 +1,14 @@
 import { test, expect } from '../fixtures/base';
 
-const ROTAS_PAINEL = ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel', '/ajuda'];
-const DESTINOS = ['Visão geral', 'Operacional', 'Tático', 'Estratégico', 'Sustentação', 'Espera invisível', 'Catálogo de métricas', 'Dados e coletas'];
+const ROTAS_PAINEL = ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/ajuda'];
+const DESTINOS = ['Visão geral', 'Operacional', 'Tático', 'Estratégico', 'Sustentação', 'Catálogo de métricas', 'Dados e coletas'];
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
-test('NAV-01/02 entrada em / e 8 destinos na ordem, aria-current só na rota atual @smoke', async ({ painel, page }) => {
+test('NAV-01/02 entrada em / e 7 destinos na ordem, aria-current só na rota atual @smoke', async ({ painel, page }) => {
   await painel.ir('/');
   expect(await painel.cabecalho.destinos()).toEqual(DESTINOS);
-  for (const [i, rota] of ROTAS_PAINEL.slice(0, 6).entries()) {
+  for (const [i, rota] of ROTAS_PAINEL.slice(0, 5).entries()) {
     await painel.ir(rota);
     await expect(painel.cabecalho.nav.locator('[aria-current="page"]')).toHaveCount(1);
     expect(await painel.cabecalho.itemAtual()).toBe(DESTINOS[i]);

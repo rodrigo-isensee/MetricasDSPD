@@ -129,8 +129,12 @@ describe('tela Visão geral', () => {
     )
     expect(within(fl1).getByRole('link', { name: 'Ver todos os tipos' })).toHaveAttribute(
       'href',
-      '/espera-invisivel#ei-fl1',
+      '/operacional?cadencia=semanal#ei-fl1',
     )
+    const rota = (id: string) => within(within(ei).getByTestId(id)).getByRole('link')
+    expect(rota('ei-resumo-fl2')).toHaveAttribute('href', '/tatico#ei-fl2')
+    expect(rota('ei-resumo-fl3')).toHaveAttribute('href', '/estrategico#ei-fl3')
+    expect(rota('ei-resumo-sust')).toHaveAttribute('href', '/sustentacao#ei-sust')
     expect(within(ei).getByTestId('ei-resumo-fl3')).toHaveTextContent('Amostra insuficiente')
     expect(within(ei).getByTestId('ei-resumo-fl3')).not.toHaveTextContent('%')
     expect(within(ei).getByTestId('ei-resumo-fl2')).toHaveTextContent('64%')

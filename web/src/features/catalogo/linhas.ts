@@ -17,30 +17,26 @@ export interface LinhaCatalogo {
   destino: string
 }
 
-/** Espera invisível aparece uma vez (os quatro níveis são a mesma métrica); BLOQUEADOS é lista, não métrica do briefing. */
-const FORA = new Set(['BLOQUEADOS', 'EI_FL2', 'EI_FL3', 'EI_SUST'])
+/** BLOQUEADOS é lista, não métrica do briefing. */
+const FORA = new Set(['BLOQUEADOS'])
 
-const ROTULO: Record<PainelDaMetrica, string> = {
-  ...ROTULO_PAINEL,
-  'espera-invisivel': 'Espera invisível',
-}
-
-/** As 45 métricas do briefing (28 do núcleo e 17 complementares) mais a PV1 (pesquisa de percepção, terceira fonte: a coluna Fonte a distingue do BusinessMap e do Acelerato), derivadas dos dois catálogos estáticos. */
+/** As 45 métricas do briefing (28 do núcleo e 17 complementares), com a espera invisível em uma linha por nível, mais a PV1 (pesquisa de percepção, terceira fonte: a coluna Fonte a distingue do BusinessMap e do Acelerato), derivadas dos dois catálogos estáticos. */
 export function linhasDoCatalogo(): LinhaCatalogo[] {
   return CATALOGO.filter((m) => !FORA.has(m.id)).map((m) => {
-    const cartao = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id)).find(
-      (c) => c.grupo === 'complementar',
-    )
+    const cartoes = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id))
+    const cartao = cartoes.find((c) => c.grupo === 'complementar')
+    /** Complementares e a espera invisível (uma linha por nível) apontam para o cartão. */
+    const alvo = cartao ?? (m.codigo === 'EI' ? cartoes[0] : undefined)
     return {
       codigo: m.codigo,
-      nome: m.id === 'EI_FL1' ? 'Espera invisível' : m.nome,
+      nome: m.nome,
       painel: m.painel,
-      painelRotulo: ROTULO[m.painel],
+      painelRotulo: ROTULO_PAINEL[m.painel],
       grupo: cartao ? 'Complementar' : 'Núcleo',
       fonte: m.fonte,
       granularidade: m.granularidade,
       dados: 'Fictícios',
-      destino: cartao ? destinoDoCartao(cartao) : `/${m.painel}`,
+      destino: alvo ? destinoDoCartao(alvo) : `/${m.painel}`,
     }
   })
 }

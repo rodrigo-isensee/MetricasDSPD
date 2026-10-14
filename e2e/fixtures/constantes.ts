@@ -6,7 +6,6 @@ export const ROTAS = {
   tatico: '/tatico',
   estrategico: '/estrategico',
   sustentacao: '/sustentacao',
-  esperaInvisivel: '/espera-invisivel',
   ajuda: '/ajuda',
   naoEncontrada: '/rota-inexistente',
 } as const;
@@ -51,7 +50,6 @@ export const ROTAS_PAINEL = [
   ROTAS.tatico,
   ROTAS.estrategico,
   ROTAS.sustentacao,
-  ROTAS.esperaInvisivel,
 ] as const;
 
 /** Slug de `painel-{slug}` por rota (spec 10, convenção L5). */
@@ -61,22 +59,20 @@ export const SLUG_PAINEL = {
   [ROTAS.tatico]: 'tatico',
   [ROTAS.estrategico]: 'estrategico',
   [ROTAS.sustentacao]: 'sustentacao',
-  [ROTAS.esperaInvisivel]: 'espera-invisivel',
   [ROTAS.ajuda]: 'ajuda',
 } as const;
 
 /** Códigos de cartão (maiúsculas, como em `metrica-{codigo}`), incluindo BLOQUEADOS e EI-* (critério 110). */
 export const CARTOES_POR_ROTA = {
   operacionalDiaria: ['O2', 'BLOQUEADOS', 'O1'],
-  operacionalSemanal: ['O3', 'O9', 'EI-FL1', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18'],
+  operacionalSemanal: ['O3', 'O9', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18', 'EI-FL1'],
   tatico: ['T2', 'T1', 'T5', 'T4', 'T3', 'T9', 'T7', 'EI-FL2'],
   estrategico: ['E1', 'E2', 'E3', 'EI-FL3'],
   sustentacao: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'EI-SUST'],
-  esperaInvisivel: ['EI-FL1', 'EI-FL2', 'EI-FL3', 'EI-SUST'],
 } as const;
 
 /** Seções da cadência semanal e ordem (critério 31). */
-export const SECOES_SEMANAL = ['tempo', 'fluxo', 'compromissos', 'backlog', 'qualidade'] as const;
+export const SECOES_SEMANAL = ['tempo', 'fluxo', 'compromissos', 'backlog', 'qualidade', 'espera-invisivel'] as const;
 export const NIVEIS_EI = ['fl1', 'fl2', 'fl3', 'sust'] as const;
 
 /** Ids válidos de `?mock=erro:{id}` (spec 6.6). */

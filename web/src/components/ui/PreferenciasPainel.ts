@@ -33,7 +33,7 @@ export interface PreferenciasPainel {
 
 export const ContextoPreferenciasPainel = createContext<PreferenciasPainel | null>(null)
 
-/** `null` fora de um painel com cartões (Visão geral, Espera invisível, testes isolados): nada é recortado. */
+/** `null` fora de um painel com cartões (Visão geral, testes isolados): nada é recortado. */
 export function usePreferenciasPainel(): PreferenciasPainel | null {
   return useContext(ContextoPreferenciasPainel)
 }

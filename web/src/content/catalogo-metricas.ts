@@ -1,8 +1,7 @@
 import type { MetricaId } from '@metricas-dspd/contratos'
 import type { FonteDoCartao, GranularidadeDoCartao } from '@/components/ui'
 
-export type PainelDaMetrica =
-  'operacional' | 'tatico' | 'estrategico' | 'sustentacao' | 'espera-invisivel'
+export type PainelDaMetrica = 'operacional' | 'tatico' | 'estrategico' | 'sustentacao'
 
 export interface EntradaCatalogo {
   id: MetricaId
@@ -316,7 +315,7 @@ const NUCLEO: readonly EntradaCatalogo[] = [
     nome: 'Espera invisível · Operacional',
     pergunta:
       'Quanto do tempo que o solicitante experimenta acontece fora do período em que estávamos efetivamente trabalhando?',
-    painel: 'espera-invisivel',
+    painel: 'operacional',
     fonte: 'BusinessMap',
     granularidade: 'demanda',
     meta: 'Reduzir; acima de 50% a discussão é de fila',
@@ -327,7 +326,7 @@ const NUCLEO: readonly EntradaCatalogo[] = [
     nome: 'Espera invisível · Tático',
     pergunta:
       'Quanto do tempo que o solicitante experimenta acontece fora do período em que estávamos efetivamente trabalhando?',
-    painel: 'espera-invisivel',
+    painel: 'tatico',
     fonte: 'BusinessMap',
     granularidade: 'frente',
     meta: 'Reduzir; acima de 50% a discussão é de fila',
@@ -338,7 +337,7 @@ const NUCLEO: readonly EntradaCatalogo[] = [
     nome: 'Espera invisível · Estratégico',
     pergunta:
       'Quanto do tempo que o solicitante experimenta acontece fora do período em que estávamos efetivamente trabalhando?',
-    painel: 'espera-invisivel',
+    painel: 'estrategico',
     fonte: 'BusinessMap',
     granularidade: 'projeto',
     meta: 'Reduzir; acima de 50% a discussão é de fila',
@@ -349,7 +348,7 @@ const NUCLEO: readonly EntradaCatalogo[] = [
     nome: 'Espera invisível · Sustentação',
     pergunta:
       'Quanto do tempo que o solicitante experimenta acontece fora do período em que estávamos efetivamente trabalhando?',
-    painel: 'espera-invisivel',
+    painel: 'sustentacao',
     fonte: 'Acelerato',
     granularidade: 'chamado',
     meta: 'Reduzir; acima de 50% a discussão é de fila',

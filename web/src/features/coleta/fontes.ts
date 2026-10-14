@@ -15,10 +15,9 @@ export const DOMINIO_DA_SIGLA: Record<'bm' | 'ac', Dominio> = {
 
 export const ROTA_DADOS = '/dados'
 
-/** Fontes que cada rota usa; a calibração só espera o estado dessas (Visão geral e Espera invisível usam as duas). */
+/** Fontes que cada rota usa; a calibração só espera o estado dessas (a Visão geral usa as duas). */
 export function dominiosDaRota(caminho: string): readonly Dominio[] {
   if (caminho === '/sustentacao') return ['acelerato']
-  if (caminho === '/' || caminho === '/espera-invisivel' || caminho === '/dados')
-    return ['businessmap', 'acelerato']
+  if (caminho === '/' || caminho === '/dados') return ['businessmap', 'acelerato']
   return ['businessmap']
 }
