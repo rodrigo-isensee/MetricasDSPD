@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { buscaVigente, registrarBusca } from './buscaPendente'
+import { textoBusca } from './codec'
 
 /**
  * Seletor local de um cartão na URL (`o3=melhoria`, `s3=prop`, `cadencia=semanal`).
@@ -23,7 +24,7 @@ export function useParametroLocal<V extends string>(
       const p = new URLSearchParams(buscaVigente(location.pathname, location.search))
       if (v === padrao) p.delete(chave)
       else p.set(chave, v)
-      const search = p.toString().replaceAll('%2C', ',')
+      const search = textoBusca(p)
       registrarBusca(location.pathname, search ? `?${search}` : '')
       void navigate(
         { pathname: location.pathname, search, hash: location.hash },

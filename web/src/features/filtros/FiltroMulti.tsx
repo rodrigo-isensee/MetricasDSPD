@@ -2,6 +2,7 @@ import { Popover } from 'radix-ui'
 import { useEffect, useId, useRef, useState, type RefObject, type ReactNode } from 'react'
 import { Botao, Icone } from '@/components/ui'
 import type { OpcaoFiltro } from '@metricas-dspd/contratos'
+import { VALIDADE_MS } from './buscaPendente'
 
 interface Props {
   /** Usado no data-testid (`filtro-equipe`). */
@@ -99,7 +100,8 @@ export function FiltroMulti(props: Props) {
   const fixar = (ids: string[]) => {
     atual.current = ids
     setExibidos(ids)
-  } // Seleções emitidas que a prop ainda não alcançou: uma prop igual a uma emissão anterior (a URL de um
+  }
+  // Seleções emitidas que a prop ainda não alcançou: uma prop igual a uma emissão anterior (a URL de um
   // clique antigo, que chega atrasada sob carga) não sobrescreve `atual` (IF-002/IS-003). Uma prop que
   // nunca foi emitida é mudança de fora (chip removido, Limpar) e ressincroniza.
   const emitida = useRef<{ chaves: Set<string>; ultima: string; em: number } | null>(null)
@@ -110,7 +112,7 @@ export function FiltroMulti(props: Props) {
       pend &&
       pend.ultima !== chaveProp &&
       pend.chaves.has(chaveProp) &&
-      Date.now() - pend.em < 3000
+      Date.now() - pend.em < VALIDADE_MS
     )
       return
     // A URL (fonte da prop) alcançou a última seleção emitida (ou mudou por fora): ressincroniza.

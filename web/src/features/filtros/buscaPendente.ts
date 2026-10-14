@@ -6,7 +6,7 @@
  * quando a URL renderizada o alcança, quando muda a rota, ou depois de `VALIDADE_MS` (rede de
  * segurança para navegações interrompidas ou normalizadas para outra URL).
  */
-const VALIDADE_MS = 3000
+export const VALIDADE_MS = 3000
 
 interface Pendente {
   pathname: string

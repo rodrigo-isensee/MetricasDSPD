@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link, NavLink } from 'react-router'
 import { Botao, Icone } from '@/components/ui'
 import { CHAVES_MEMORIA, PAINEIS, useMemoriaAtual, type PainelId } from '@/features/filtros'
+import { textoBusca } from '@/features/filtros/codec'
 import { DESTINOS } from './rotas'
 
 /**
@@ -23,7 +24,7 @@ function useBusca(): (destino: (typeof DESTINOS)[number]) => string {
       p.delete('de')
       p.delete('ate')
     }
-    const s = p.toString().replaceAll('%2C', ',')
+    const s = textoBusca(p)
     return s ? `?${s}` : ''
   }
 }

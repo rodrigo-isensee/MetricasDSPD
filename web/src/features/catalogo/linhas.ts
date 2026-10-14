@@ -26,7 +26,8 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
     const cartoes = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id))
     const cartao = cartoes.find((c) => c.grupo === 'complementar')
     /** Toda linha aponta para o cartão que a mostra (IS-005); a EI tem um por nível e leva ao primeiro. */
-    const alvo = (cartao ?? cartoes[0]) as CartaoCatalogo // o teste do catálogo garante que existe
+    const alvo: CartaoCatalogo | undefined = cartao ?? cartoes[0]
+    if (!alvo) throw new Error(`Catálogo inconsistente: a métrica ${m.id} não tem cartão`)
     return {
       codigo: m.codigo,
       nome: m.nome,

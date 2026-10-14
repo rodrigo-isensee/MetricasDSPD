@@ -6,6 +6,7 @@ import {
   type FiltrosSustentacao,
   type MetricaId,
   type OpcoesFiltro,
+  type ResultadoE3,
   type ResultadoVisaoGeral,
   type VersaoCriterio,
 } from '@metricas-dspd/contratos'
@@ -359,7 +360,7 @@ export function construirBloco(e: EntradaBloco): BlocoExportacao {
     janela: textoJanelaBloco(d),
     base: textoBase(
       d.base,
-      e.id === 'E3' ? (e.dto as { comFicha?: { k: number } }).comFicha?.k : undefined,
+      e.id === 'E3' ? (e.dto as ResultadoE3).comFicha.k : undefined,
     ),
     amostraInsuficiente: textoInsuficiente(e.dto),
     nota: resumoDaNota(e.nota),
