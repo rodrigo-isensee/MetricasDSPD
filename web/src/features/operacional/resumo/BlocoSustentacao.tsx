@@ -3,6 +3,7 @@ import { FaixaAtencao, estadoFaixa } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { itensSustentacao } from '../atencao'
 import { ROTULO_VISAO } from '@/features/navegacao/visao'
+import { textoPeriodoCurto } from '@/features/filtros/paineis'
 import { BlocoResumo } from './BlocoResumo'
 import { FILTROS_SUST_RESUMO, filtrosTendencia, useReferenciaDasTendencias } from './consultas'
 import { useDestinoDaVisao, useDestinoNaVisao } from './destinos'
@@ -11,6 +12,8 @@ import { NumeroChave } from './NumeroChave'
 import { TendenciaSustentacao } from './TendenciaSustentacao'
 
 const f = FILTROS_SUST_RESUMO
+/** Janela do alerta do Resumo, escrita na tela: sai dos mesmos filtros que alimentam as consultas (U1 pendente). */
+const JANELA_ALERTA = textoPeriodoCurto(f.periodo)
 
 function ConteudoSustentacao() {
   const destinoDe = useDestinoNaVisao()
@@ -31,12 +34,20 @@ function ConteudoSustentacao() {
     <>
       <FaixaAtencao
         titulo="Pede atenção · Sustentação (Acelerato)"
-        vazio="Nada pede atenção na Sustentação na semana."
+        vazio={`Nada pede atenção na Sustentação nas últimas ${JANELA_ALERTA}.`}
+        janela={`Janela: últimas ${JANELA_ALERTA}`}
         itens={itens}
         estado={estado}
         onTentarDeNovo={recarregar}
         reserva={{ mobile: 108, desktop: 88 }}
       />
+      <p className="text-xs text-texto-2" data-testid="nota-janelas-alerta">
+        Mesmo alerta, janelas diferentes: aqui as últimas {JANELA_ALERTA}; na visão Sustentação, o
+        período do filtro (padrão 6 meses). Por isso o resultado pode diferir.{' '}
+        <Link to={destinoVisao('sustentacao')} className="alvo text-acento underline">
+          Ver na Sustentação
+        </Link>
+      </p>
       <dl className="m-0 grid grid-cols-2 gap-3 lg:grid-cols-3" data-testid="numeros-sustentacao">
         <NumeroChave
           id="s2"

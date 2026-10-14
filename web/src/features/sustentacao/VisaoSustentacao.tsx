@@ -7,6 +7,7 @@ import {
   SECAO_MAIS_METRICAS,
   type SecaoDoIndice,
 } from '@/features/operacional/IndiceDeSecoes'
+import { textoPeriodoCurto } from '@/features/filtros/paineis'
 import { itensSustentacao } from '@/features/operacional/atencao'
 import { CartaoEISust } from '@/features/espera-invisivel/components/CartaoEI'
 import { CartaoS1 } from './components/CartaoS1'
@@ -20,15 +21,16 @@ import { CartaoPV1 } from '@/features/percepcao/CartaoPV1'
 import { MaisMetricas } from '@/features/complementares/MaisMetricas'
 import { cartaoDeSustentacao } from '@/features/complementares/registro'
 
-/** "Pede atenção na semana": S2 abaixo de 90% e S1 com mediana acima do alvo, por prioridade (SUS-01). */
+/** "Pede atenção no período": S2 abaixo de 90% e S1 com mediana acima do alvo, por prioridade (SUS-01). */
 function Atencao({ filtros }: { filtros: FiltrosSustentacao }) {
   const qS2 = useMetrica('S2', filtros)
   const qS1 = useMetrica('S1', filtros)
   const { estado, recarregar } = estadoFaixa([qS2, qS1])
   return (
     <FaixaAtencao
-      momento="semana"
-      fonte="Sustentação (Acelerato)"
+      titulo="Pede atenção no período · Sustentação (Acelerato)"
+      vazio="Nada pede atenção na Sustentação no período selecionado."
+      janela={`Período do filtro: ${textoPeriodoCurto(filtros.periodo)}`}
       itens={itensSustentacao(qS2.dados, qS1.dados)}
       estado={estado}
       onTentarDeNovo={recarregar}

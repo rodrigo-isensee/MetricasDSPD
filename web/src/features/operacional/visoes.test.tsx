@@ -47,6 +47,20 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     await waitFor(() => expect(visaoMarcada()).toBe('Semanal'), { timeout: 15000 })
   })
 
+  it('seta no grupo de rádio troca a visão e cada seta é uma entrada de histórico (A7)', async () => {
+    const r = renderizarApp('/operacional?cadencia=diaria')
+    const radio = await screen.findByRole('radio', { name: 'Diária' })
+    radio.focus()
+    await userEvent.keyboard('{ArrowRight}')
+    await waitFor(() => expect(busca(r).get('cadencia')).toBe('semanal'), { timeout: 15000 })
+    expect(r.roteador.state.historyAction).toBe('PUSH')
+    await userEvent.keyboard('{ArrowLeft}')
+    await waitFor(() => expect(busca(r).get('cadencia')).toBe('diaria'), { timeout: 15000 })
+    expect(r.roteador.state.historyAction).toBe('PUSH')
+    await r.roteador.navigate(-1)
+    await waitFor(() => expect(visaoMarcada()).toBe('Semanal'), { timeout: 15000 })
+  })
+
   it('o título do documento muda por visão', async () => {
     const r = renderizarApp('/operacional?cadencia=diaria')
     await screen.findByRole('radiogroup', { name: 'Visão' })
@@ -98,7 +112,10 @@ describe('uma fonte por visão (CA-3, CA-4, CA-8)', () => {
     }
     expect(document.querySelectorAll('[data-testid^="metrica-O"]')).toHaveLength(0)
     const faixa = screen.getByTestId('faixa-atencao')
-    expect(faixa).toHaveTextContent('Pede atenção na semana · Sustentação (Acelerato)')
+    expect(faixa).toHaveTextContent('Pede atenção no período · Sustentação (Acelerato)')
+    expect(within(faixa).getByTestId('faixa-atencao-janela')).toHaveTextContent(
+      'Período do filtro: 6 meses',
+    )
     await waitFor(() =>
       expect(
         within(faixa)

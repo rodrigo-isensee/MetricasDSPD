@@ -48,6 +48,8 @@ interface Props {
   fonte?: string
   itens: readonly ItemAtencao[]
   vazio?: string
+  /** Linha auxiliar sob o título com a janela dos números do alerta ("Janela: últimas 12 semanas"). */
+  janela?: string
   /** Máximo de itens antes de "Ver todos os alertas (N)". */
   maximo?: number
   /** Altura (px) da faixa já pronta, em coluna única e em `lg`; reservada enquanto carrega (sem salto, K-050). */
@@ -61,6 +63,7 @@ export function FaixaAtencao({
   titulo = fonte ? `${TITULOS_FAIXA[momento]} · ${fonte}` : TITULOS_FAIXA[momento],
   itens: itensBrutos,
   vazio = 'Nada pede atenção agora com base nas metas publicadas.',
+  janela,
   maximo,
   estado: estadoDaConsulta = 'ok',
   onTentarDeNovo,
@@ -91,6 +94,11 @@ export function FaixaAtencao({
       data-testid="faixa-atencao"
     >
       <h2 className="text-sm font-bold uppercase tracking-wide text-texto-2">{titulo}</h2>
+      {janela && (
+        <p className="mt-1 text-xs text-texto-2" data-testid="faixa-atencao-janela">
+          {janela}
+        </p>
+      )}
       {estado === 'carregando' ? (
         <p
           className="mt-2 text-sm text-texto-2"

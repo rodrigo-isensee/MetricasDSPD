@@ -376,10 +376,24 @@ describe('Resumo: alertas por fonte (CA-28)', () => {
       }),
     ).toBeInTheDocument()
     expect(
-      await screen.findByText('Nada pede atenção na Sustentação na semana.', undefined, {
-        timeout: 8000,
-      }),
+      await screen.findByText(
+        'Nada pede atenção na Sustentação nas últimas 12 semanas.',
+        undefined,
+        { timeout: 8000 },
+      ),
     ).toBeInTheDocument()
+    for (const id of ['resumo-fluxo', 'resumo-sustentacao'] as const)
+      expect(within(await bloco(id)).getByTestId('faixa-atencao-janela')).toHaveTextContent(
+        'Janela: últimas 12 semanas',
+      )
+    expect(screen.getByTestId('nota-janelas-alerta')).toHaveTextContent(
+      'Mesmo alerta, janelas diferentes: aqui as últimas 12 semanas; na visão Sustentação, o período do filtro (padrão 6 meses). Por isso o resultado pode diferir.',
+    )
+    expect(
+      within(screen.getByTestId('nota-janelas-alerta')).getByRole('link', {
+        name: 'Ver na Sustentação',
+      }),
+    ).toHaveAttribute('href', expect.stringContaining('cadencia=sustentacao'))
     expect((await numero('s2')).querySelector('[data-status="dentro"]')).not.toBeNull()
   })
 })

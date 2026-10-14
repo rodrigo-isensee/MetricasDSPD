@@ -1,4 +1,5 @@
-import type { PeriodoPadrao } from '@metricas-dspd/contratos'
+import type { FiltrosSustentacao, PeriodoPadrao } from '@metricas-dspd/contratos'
+import { fmtData } from '@/lib/formatar'
 
 export type PainelId = 'operacional' | 'tatico' | 'estrategico' | 'sustentacao'
 export type DominioFiltros = 'fluxo' | 'sustentacao'
@@ -99,3 +100,15 @@ export const ROTULO_PERIODO: Record<PeriodoPadrao | 'custom', string> = {
 export const PARAMS_CONHECIDOS: readonly string[] = [
   ...new Set(Object.values(PAINEIS).flatMap((c) => c.params)),
 ]
+
+const TEXTO_PERIODO_CURTO: Record<PeriodoPadrao, string> = {
+  '4s': '4 semanas',
+  '12s': '12 semanas',
+  '6m': '6 meses',
+  '12m': '12 meses',
+}
+
+/** Período do filtro em texto corrido ("6 meses"; personalizado: "de a"), para escrever a janela de um alerta. */
+export function textoPeriodoCurto(p: FiltrosSustentacao['periodo']): string {
+  return p.tipo === 'custom' ? `${fmtData(p.de)} a ${fmtData(p.ate)}` : TEXTO_PERIODO_CURTO[p.tipo]
+}

@@ -3,6 +3,7 @@ import { useMetrica } from '@/data'
 import { itensDiaria, itensSemanal } from '../atencao'
 import { ROTULO_VISAO } from '@/features/navegacao/visao'
 import { Link } from 'react-router'
+import { textoPeriodoCurto } from '@/features/filtros/paineis'
 import { BlocoResumo } from './BlocoResumo'
 import { FILTROS_FLUXO_RESUMO, filtrosTendencia, useReferenciaDasTendencias } from './consultas'
 import { useDestinoDaVisao, useDestinoNaVisao } from './destinos'
@@ -86,6 +87,7 @@ function ConteudoFluxo() {
       <FaixaAtencao
         titulo="Pede atenção · Fluxo de projeto (BusinessMap)"
         vazio="Nada pede atenção no fluxo de projeto agora."
+        janela={`Janela: últimas ${textoPeriodoCurto(f.periodo)}`}
         itens={itens}
         estado={estado}
         onTentarDeNovo={recarregar}
