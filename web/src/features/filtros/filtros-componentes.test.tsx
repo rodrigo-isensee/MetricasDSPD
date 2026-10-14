@@ -9,6 +9,7 @@ import { FiltroPeriodo } from './FiltroPeriodo'
 const opcoes = [
   { id: 'a', nome: 'Alfa' },
   { id: 'b', nome: 'Beta' },
+  { id: 'c', nome: 'Gama' },
 ]
 
 describe('FiltroMulti', () => {
@@ -71,6 +72,57 @@ describe('FiltroMulti', () => {
     expect(screen.getByRole('button', { name: 'Sistema: Todos' })).toBeInTheDocument()
   })
 
+  it('cliques em sequência com props atrasadas (URL intermediária) acumulam todas as marcações', async () => {
+    const tres = [...opcoes, { id: 'd', nome: 'Delta' }]
+    const onChange = vi.fn()
+    const el = (sel: string[]) => (
+      <FiltroMulti id="x" rotulo="Equipe" opcoes={tres} selecionados={sel} onChange={onChange} />
+    )
+    const { rerender } = render(el([]))
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    await userEvent.click(screen.getByLabelText('Beta'))
+    // chega o render da URL do primeiro clique, depois do segundo clique
+    rerender(el(['a']))
+    await userEvent.click(screen.getByLabelText('Gama'))
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b', 'c'], true)
+    // a URL alcança o que foi emitido: volta a mandar a prop
+    rerender(el(['a', 'b', 'c']))
+    rerender(el(['d']))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    expect(onChange).toHaveBeenLastCalledWith(['d', 'a'], true)
+  })
+
+  it('o botão acompanha as caixas marcadas, mesmo antes de a URL chegar', async () => {
+    const onChange = vi.fn()
+    render(
+      <FiltroMulti id="x" rotulo="Equipe" opcoes={opcoes} selecionados={[]} onChange={onChange} />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    const botao = screen.getByTestId('filtro-x')
+    expect(botao).toHaveAccessibleName('Equipe: Alfa')
+    expect(botao).toHaveTextContent('Equipe: Alfa')
+  })
+
+  it('marcar todas: a URL vira "Todas" (prop vazia), as caixas voltam a vazias e o clique seguinte parte do vazio', async () => {
+    const onChange = vi.fn()
+    const el = (sel: string[]) => (
+      <FiltroMulti id="x" rotulo="Equipe" opcoes={opcoes} selecionados={sel} onChange={onChange} />
+    )
+    const { rerender } = render(el([]))
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    rerender(el(['a']))
+    await userEvent.click(screen.getByLabelText('Beta'))
+    await userEvent.click(screen.getByLabelText('Gama'))
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b', 'c'], true)
+    expect(screen.getByLabelText('Alfa')).not.toBeChecked()
+    rerender(el([]))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    expect(onChange).toHaveBeenLastCalledWith(['a'], true)
+  })
+
   it('popover: a primeira marcação empilha no histórico, as seguintes substituem; Limpar e Fechar', async () => {
     const onChange = vi.fn()
     render(
@@ -93,7 +145,8 @@ describe('FiltroMulti', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     // Ao reabrir, volta a empilhar.
-    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Alfa' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    // (o botão já mostra "Todas": acompanha as caixas, não a prop antiga)
     await userEvent.click(screen.getByRole('button', { name: 'Limpar' }))
     expect(onChange).toHaveBeenLastCalledWith([], false)
   })
@@ -135,7 +188,7 @@ describe('FiltroMulti', () => {
     await userEvent.click(screen.getByLabelText('Beta'))
     expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], true)
     await userEvent.click(screen.getByLabelText('Alfa'))
-    expect(onChange).toHaveBeenLastCalledWith(['b', 'a'], true)
+    expect(onChange).toHaveBeenLastCalledWith(['b'], true)
     // Mudança externa (chip removido, Limpar) volta a mandar na seleção.
     rerender(
       <FiltroMulti
@@ -307,5 +360,19 @@ describe('BarraFiltros: folha em tela estreita e avisos', () => {
     expect(
       await screen.findByText(/Filtros atualizados\. Equipe: Fluig e Senior\./),
     ).toBeInTheDocument()
+  })
+})
+
+describe('FiltroMulti: caixa marcada e prop atrasada', () => {
+  it('desmarcar logo depois de marcar, com a URL ainda sem alcançar, tira a marcação (não marca de novo)', async () => {
+    const onChange = vi.fn()
+    render(
+      <FiltroMulti id="x" rotulo="Equipe" opcoes={opcoes} selecionados={[]} onChange={onChange} />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    expect(screen.getByLabelText('Alfa')).toBeChecked()
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    expect(onChange).toHaveBeenLastCalledWith([], true)
   })
 })

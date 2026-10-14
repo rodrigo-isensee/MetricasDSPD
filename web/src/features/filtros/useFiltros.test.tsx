@@ -151,3 +151,85 @@ describe('useFiltros: definir, limpar e normalização da URL', () => {
     expect(r.result.current.loc.search).toContain('sistema=protheus')
   })
 })
+
+describe('useFiltros: ações em sequência rápida (IF-001, IS-003)', () => {
+  it('duas ações no mesmo tick (antes de o router renderizar) partem uma da outra', async () => {
+    const r = montar('operacional', '/operacional?cadencia=semanal')
+    await aguardarOpcoes(r)
+    act(() => {
+      r.result.current.uso.definir({ equipe: ['fluig'] })
+      r.result.current.uso.definir({ tipo: ['Incidente'] })
+    })
+    expect(r.result.current.loc.search).toBe('?cadencia=semanal&equipe=fluig&tipo=incidente')
+  })
+
+  it('remover dois chips em sequência remove os dois', async () => {
+    const r = montar('operacional', '/operacional?equipe=fluig,dados&tipo=incidente')
+    await aguardarOpcoes(r)
+    act(() => {
+      r.result.current.uso.remover('equipe', 'fluig')
+      r.result.current.uso.remover('tipo', 'incidente')
+    })
+    expect(r.result.current.loc.search).toBe('?equipe=dados')
+  })
+
+  it('limpar logo depois de definir não deixa o filtro novo para trás', async () => {
+    const r = montar('operacional', '/operacional')
+    await aguardarOpcoes(r)
+    act(() => {
+      r.result.current.uso.definir({ equipe: ['fluig'] })
+      r.result.current.uso.limpar()
+    })
+    expect(r.result.current.loc.search).toBe('')
+  })
+
+  it('Sustentação com prefixo: filtros e cadência em sequência acumulam', async () => {
+    const r = montar('sustentacao', '/sustentacao?sust_prioridade=p1', 'sust_')
+    await aguardarOpcoes(r)
+    act(() => {
+      r.result.current.uso.definir({ equipe: ['fluig'] })
+      r.result.current.uso.definir({ periodo: { tipo: '12m' } })
+    })
+    expect(r.result.current.loc.search).toContain('sust_prioridade=p1')
+    expect(r.result.current.loc.search).toContain('sust_equipe=fluig')
+    expect(r.result.current.loc.search).toContain('sust_periodo=12m')
+  })
+})
+
+describe('useFiltros: URL canônica e avisos (IF-005, IF-006)', () => {
+  const buscaFinal = async (painel: 'operacional' | 'estrategico', url: string) => {
+    const r = montar(painel, url)
+    await aguardarOpcoes(r)
+    return r
+  }
+
+  it.each([
+    ['/operacional?periodo=12s', ''],
+    ['/estrategico?periodo=12m', ''],
+    ['/operacional?de=2026-06-01&ate=2026-08-31', ''],
+    ['/operacional?equipe=%20FLUIG%20,fluig,Dados', '?equipe=fluig,dados'],
+    ['/operacional?equipe=fluig&equipe=dados', '?equipe=fluig'],
+  ])('%s vira a URL canônica', async (url, esperado) => {
+    const r = await buscaFinal(url.startsWith('/estrategico') ? 'estrategico' : 'operacional', url)
+    await waitFor(() => expect(r.result.current.loc.search).toBe(esperado))
+    expect(r.result.current.uso.invalidos).toEqual([])
+  })
+
+  it('marcar todas as equipes na URL equivale a Todas e some', async () => {
+    const r = await buscaFinal('operacional', '/operacional')
+    const todas = r.result.current.uso.opcoes!.equipes.map((e) => e.id).join(',')
+    const r2 = await buscaFinal('operacional', `/operacional?equipe=${todas}`)
+    await waitFor(() => expect(r2.result.current.loc.search).toBe(''))
+  })
+
+  it.each([
+    '/operacional?periodo=custom',
+    '/operacional?periodo=custom&de=2026-08-31&ate=2026-06-01',
+    '/sustentacao?periodo=custom&de=2026-02-30&ate=2026-03-31',
+    '/sustentacao?periodo=custom&de=ontem&ate=hoje',
+  ])('período personalizado inválido (%s) é descartado COM aviso', async (url) => {
+    const r = montar(url.startsWith('/sust') ? 'sustentacao' : 'operacional', url)
+    await waitFor(() => expect(r.result.current.uso.invalidos).toEqual(['período personalizado']))
+    expect(r.result.current.loc.search).toBe('')
+  })
+})

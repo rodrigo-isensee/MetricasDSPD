@@ -1,4 +1,4 @@
-import { CATALOGO_CARTOES, ROTULO_PAINEL } from '@metricas-dspd/contratos'
+import { CATALOGO_CARTOES, ROTULO_PAINEL, type CartaoCatalogo } from '@metricas-dspd/contratos'
 import { destinoDoCartao } from '@/lib/destinoCartao'
 import type { FonteDoCartao } from '@/components/ui'
 import { CATALOGO, type PainelDaMetrica } from '@/content/catalogo-metricas'
@@ -25,8 +25,9 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
   return CATALOGO.filter((m) => !FORA.has(m.id)).map((m) => {
     const cartoes = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id))
     const cartao = cartoes.find((c) => c.grupo === 'complementar')
-    /** Complementares e a espera invisível (uma linha por nível) apontam para o cartão. */
-    const alvo = cartao ?? (m.codigo === 'EI' ? cartoes[0] : undefined)
+    /** Toda linha aponta para o cartão que a mostra (IS-005); a EI tem um por nível e leva ao primeiro. */
+    const alvo: CartaoCatalogo | undefined = cartao ?? cartoes[0]
+    if (!alvo) throw new Error(`Catálogo inconsistente: a métrica ${m.id} não tem cartão`)
     return {
       codigo: m.codigo,
       nome: m.nome,
@@ -36,7 +37,7 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
       fonte: m.fonte,
       granularidade: m.granularidade,
       dados: 'Fictícios',
-      destino: alvo ? destinoDoCartao(alvo) : `/${m.painel}`,
+      destino: destinoDoCartao(alvo),
     }
   })
 }

@@ -1,5 +1,7 @@
 import { useCallback } from 'react'
-import { useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams } from 'react-router'
+import { buscaVigente, registrarBusca } from './buscaPendente'
+import { textoBusca } from './codec'
 
 /**
  * Seletor local de um cartão na URL (`o3=melhoria`, `s3=prop`, `cadencia=semanal`).
@@ -11,17 +13,25 @@ export function useParametroLocal<V extends string>(
   validos: readonly V[],
   padrao: V,
 ): [V, (v: V) => void] {
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const bruto = params.get(chave)
   const valor = (validos as readonly string[]).includes(bruto ?? '') ? (bruto as V) : padrao
   const definir = useCallback(
     (v: V) => {
-      const p = new URLSearchParams(params)
+      // Parte da URL vigente (inclui a navegação ainda não renderizada), não da do último render.
+      const p = new URLSearchParams(buscaVigente(location.pathname, location.search))
       if (v === padrao) p.delete(chave)
       else p.set(chave, v)
-      setParams(p, { replace: true, preventScrollReset: true })
+      const search = textoBusca(p)
+      registrarBusca(location.pathname, search ? `?${search}` : '')
+      void navigate(
+        { pathname: location.pathname, search, hash: location.hash },
+        { replace: true, preventScrollReset: true },
+      )
     },
-    [params, setParams, chave, padrao],
+    [navigate, location.pathname, location.search, location.hash, chave, padrao],
   )
   return [valor, definir]
 }

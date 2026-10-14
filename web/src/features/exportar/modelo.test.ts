@@ -299,3 +299,17 @@ describe('Visão geral, seções por fonte e conteúdo', () => {
     })
   })
 })
+
+describe('base do E3 no PDF (IS-006)', () => {
+  it('traz "k de n" como o selo da tela', async () => {
+    const dto = await fonte.obter('E3', { ...FLUXO, periodo: { tipo: '12m' } })
+    const b = await bloco('E3', { ...FLUXO, periodo: { tipo: '12m' } })
+    expect(b.base).toBe(
+      `Base: ${dto.comFicha.k} de ${dto.base.n} ${dto.base.unidade}`.replace(
+        /\B(?=(\d{3})+(?!\d))/g,
+        '.',
+      ),
+    )
+    expect(b.base).toMatch(/^Base: \d+ de \d+ iniciativas$/)
+  })
+})

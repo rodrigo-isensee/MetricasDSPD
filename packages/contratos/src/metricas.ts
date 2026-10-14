@@ -180,7 +180,7 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   E2: ['sistema', 'periodo'],
   E3: ['sistema', 'periodo'],
   O5: ['equipe', 'tipo', 'sistema', 'periodo'],
-  O6: ['equipe', 'sistema', 'periodo'],
+  O6: ['equipe', 'tipo', 'sistema', 'periodo'],
   O8: ['equipe', 'tipo', 'sistema', 'periodo'],
   O11: ['equipe', 'tipo', 'sistema', 'periodo'],
   O13: ['equipe', 'sistema', 'periodo'],
