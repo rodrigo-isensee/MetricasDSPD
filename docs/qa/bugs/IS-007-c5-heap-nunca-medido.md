@@ -17,3 +17,5 @@ Causa: o teste chama `Performance.getMetrics` pelo CDP sem antes chamar `Perform
 
 ## Evidência
 Saída do `pnpm run test:perf` em 2026-10-13 19:27 (load 1 min 4,89): `[perf] C5 heap após todos os painéis: NaN MB (alerta > 150 MB)` / `✓ 9 [perf] › perf/perf.spec.ts:134:3 › perf › C5 heap JS após abrir todos os painéis (alerta < 150 MB)`. Sugestão: `await cdp.send('Performance.enable')` antes do `getMetrics` e falhar o teste quando o valor não for finito (medição ausente não é "ok").
+
+Correção: 838f774
