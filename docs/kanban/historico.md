@@ -128,3 +128,12 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-10 14:56 | — | — | — | Usuário decidiu trocar o banco para PostgreSQL (§7) |
 | 2026-10-10 14:59 | K-064 | Entrada | Entrada | CI no GitHub Actions (6 etapas: rápida, testes 100%, Postgres em contêiner, build+size, E2E+axe, perf/Lighthouse) + proteção de branch + Dependabot + hook local; decisão do usuário: montar logo após a troca para PostgreSQL/pnpm |
 | 2026-10-10 16:33 | K-017 | Bloqueado | Pronto | Docker disponível; banco migrado para PostgreSQL (ADR 0014): migrações, seed e 31 testes pg executados (pedido 009); medição de desempenho do banco no S-11 |
+| 2026-10-14 08:10 | K-001..K-064 | (vários) | Arquivo | Quadro reconstruído: os cartões até K-064 estão concluídos (releases #40, #51, #57 e #60 na main); o quadro estava parado desde 2026-10-10 |
+| 2026-10-14 08:10 | K-065 | Em andamento | Pronto | Espera invisível nos painéis: #64 na develop (376d997) e #65 na homolog; vai no release #63 |
+| 2026-10-14 08:10 | K-066 | Em andamento | Pronto | Front via API: #59 e #61; vai no release #63 |
+| 2026-10-14 08:10 | K-067, K-068 | QA | Pronto | Testes intensivos de filtros e sistêmico concluídos |
+| 2026-10-14 08:10 | K-069 | Pronto para fazer | Em andamento | Lote de bugs IF e IS (react-frontend) |
+| 2026-10-14 08:10 | K-070, K-071 | Entrada | Pronto para fazer | IS-002 (node-backend) e IS-007 (qa-engineer) |
+| 2026-10-14 08:10 | K-072 | Pronto para fazer | Em andamento | Sustentação no Operacional, back-end B1 a B3 |
+| 2026-10-14 08:10 | K-073, K-074, K-075, K-077 | Entrada | Entrada | Sustentação front; usabilidade U1 a U5; mobile e tablet (010); retrospectiva + melhoria do Forge |
+| 2026-10-14 08:10 | K-076 | Pronto para fazer | Em andamento | Documentação .md do discovery para a develop |
