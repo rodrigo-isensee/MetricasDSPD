@@ -6,6 +6,7 @@ import {
   calcularEIBM,
   calcularO1,
   calcularO3,
+  calcularO6,
   calcularO15,
   calcularO18,
   calcularT7,
@@ -395,5 +396,43 @@ describe('granularidades (T7, T9)', () => {
     const t7 = calcularT7(ctx, F)
     expect(t7.kpis.frentesEmAndamento).toBe(1)
     expect(t7.histograma.status).toBe('insuficiente')
+  })
+})
+
+describe('filtros e aplicabilidade (IF-003, IF-004)', () => {
+  const cards = (n: number, extra: Partial<EspecCard>): EspecCard[] =>
+    Array.from({ length: n }, (_, i) => ({
+      criado: '2026-08-03T08:00-03:00',
+      trilha: trilhaSimples(
+        '2026-08-03T08:00-03:00',
+        '2026-08-10T08:00-03:00',
+        '2026-08-10T09:00-03:00',
+        '2026-08-14T17:00-03:00',
+      ),
+      ...extra,
+      id: `${extra.tipo ?? 'x'}${extra.gran ?? 's'}${extra.equipe ?? ''}${i}`,
+    }))
+
+  it('EI-FL3 não é recortado por equipe (projetos envolvem várias equipes)', () => {
+    const e = [
+      ...cards(12, { gran: 'projeto', equipe: 'Fluig' }),
+      ...cards(12, { gran: 'projeto', equipe: 'Dados' }),
+    ]
+    const todos = calcularEIBM(ctxDe(e), F, 'FL3')
+    const fluig = calcularEIBM(ctxDe(e), { ...F, equipe: ['fluig'] }, 'FL3')
+    expect(todos.segmentos[0]?.n).toBe(24)
+    expect(fluig).toEqual(todos)
+  })
+
+  it('O6 segue o filtro de tipo, como o O3 de onde deriva', () => {
+    const e = [
+      ...cards(25, { tipo: 'Melhoria', classe: 'Padrão' }),
+      ...cards(25, { tipo: 'Incidente', classe: 'Padrão' }),
+    ]
+    const soMelhoria = calcularO6(ctxDe(e), { ...F, tipo: ['Melhoria'] })
+    const todos = calcularO6(ctxDe(e), F)
+    const n = (r: ReturnType<typeof calcularO6>) => r.classes.reduce((a, c) => a + c.n, 0)
+    expect(n(todos)).toBe(50)
+    expect(n(soMelhoria)).toBe(25)
   })
 })

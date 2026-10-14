@@ -13,6 +13,7 @@ import {
   paramsDeFluxo,
   textoBusca,
 } from './codec'
+import { buscaVigente, registrarBusca } from './buscaPendente'
 import { useMemoriaAtual, useMemoriaFiltros } from './memoria'
 import {
   PAINEIS,
@@ -196,7 +197,9 @@ export function useFiltros(
   const normalizada = useMemo(() => {
     const temInvalidos = leitura.invalidos.length > 0 && !!opcoes
     let p = new URLSearchParams(params)
-    if (temInvalidos)
+    // URL canônica (2.5): só valores fora do padrão, em minúsculas, sem repetição e sem "todas as
+    // opções" (IF-006). Só com as opções carregadas, que é quando se sabe o que é "todas".
+    if (temInvalidos || opcoes)
       p = ehSust
         ? escreverSustentacao(
             params,
@@ -210,8 +213,12 @@ export function useFiltros(
       // Período válido, mas fora das opções do painel (periodo=4s no Estratégico): não aplicável.
       const ef = leitura.filtros.periodo
       const bruto = params.get('periodo')
+      // `custom` inválido não é "não aplicável": o aviso de ignorado vem da validação (IF-005).
+      const personalizadoValido =
+        bruto !== 'custom' || !leitura.invalidos.includes('período personalizado')
       if (
         bruto &&
+        personalizadoValido &&
         ((PERIODOS_PADRAO as readonly string[]).includes(bruto) || bruto === 'custom') &&
         ef.tipo === config.periodoPadrao &&
         bruto !== config.periodoPadrao
@@ -238,12 +245,32 @@ export function useFiltros(
     )
   }, [normalizada, navigate, location.pathname, location.hash, location.state, invalidosAgora])
 
+  // Parâmetros "de agora": incluem a última navegação que o router ainda não renderizou, para que
+  // uma ação rápida parta do estado que o usuário acabou de montar (IF-001, IS-003).
+  const paramsVigentes = useCallback(
+    () => new URLSearchParams(buscaVigente(location.pathname, location.search)),
+    [location.pathname, location.search],
+  )
+  const lerAgora = useCallback(
+    () =>
+      (ehSust
+        ? lerSustentacao(paramsVigentes(), opcoes, config.periodoPadrao, prefixo, restricao)
+        : lerFluxo(paramsVigentes(), opcoes, config.periodoPadrao, prefixo, restricao)
+      ).filtros as FiltrosFluxo & FiltrosSustentacao,
+    [paramsVigentes, opcoes, config.periodoPadrao, ehSust, prefixo, restricao],
+  )
+
   const aplicar = useCallback(
     (bruto: FiltrosFluxo | FiltrosSustentacao, replace: boolean) => {
       const novo = colapsarTodos(bruto, opcoes, ehSust)
       const p = ehSust
-        ? escreverSustentacao(params, novo as FiltrosSustentacao, config.periodoPadrao, prefixo)
-        : escreverFluxo(params, novo as FiltrosFluxo, config.periodoPadrao, prefixo)
+        ? escreverSustentacao(
+            paramsVigentes(),
+            novo as FiltrosSustentacao,
+            config.periodoPadrao,
+            prefixo,
+          )
+        : escreverFluxo(paramsVigentes(), novo as FiltrosFluxo, config.periodoPadrao, prefixo)
       if (memorizaFluxo) {
         // Ação do usuário é autoridade: os filtros do painel atualizam a memória (período padrão = apaga).
         const f = novo as FiltrosFluxo
@@ -258,13 +285,12 @@ export function useFiltros(
           ate: padraoP ? null : txt.ate,
         })
       }
-      void navigate(
-        { pathname: location.pathname, search: textoBusca(p), hash: location.hash },
-        { replace },
-      )
+      const search = textoBusca(p)
+      registrarBusca(location.pathname, search ? `?${search}` : '')
+      void navigate({ pathname: location.pathname, search, hash: location.hash }, { replace })
     },
     [
-      params,
+      paramsVigentes,
       navigate,
       location.pathname,
       location.hash,
@@ -277,26 +303,25 @@ export function useFiltros(
     ],
   )
 
-  const base = leitura.filtros as FiltrosFluxo & FiltrosSustentacao
   const definir = useCallback(
     (parcial: Partial<FiltrosFluxo & FiltrosSustentacao>, op: { replace?: boolean } = {}) =>
-      aplicar({ ...base, ...parcial }, op.replace ?? false),
-    [aplicar, base],
+      aplicar({ ...lerAgora(), ...parcial }, op.replace ?? false),
+    [aplicar, lerAgora],
   )
   const vazio = useCallback(
     (): FiltrosFluxo & FiltrosSustentacao => ({
-      ...base,
+      ...lerAgora(),
       equipe: [],
       tipo: [],
       sistema: [],
       prioridade: [],
       periodo: { tipo: config.periodoPadrao },
     }),
-    [base, config.periodoPadrao],
+    [lerAgora, config.periodoPadrao],
   )
   const remover = useCallback(
     (chave: string, valorId?: string) => {
-      const f = { ...base } as FiltrosFluxo & FiltrosSustentacao
+      const f = { ...lerAgora() }
       if (chave === 'periodo') f.periodo = { tipo: config.periodoPadrao }
       else if (chave === 'tipo')
         f.tipo = valorId ? f.tipo.filter((t) => TIPO_ID[t] !== valorId && t !== valorId) : []
@@ -310,7 +335,7 @@ export function useFiltros(
         f.sistema = valorId ? f.sistema.filter((x) => x !== valorId) : []
       aplicar(f, false)
     },
-    [base, aplicar, config.periodoPadrao],
+    [lerAgora, aplicar, config.periodoPadrao],
   )
   const limpar = useCallback(() => aplicar(vazio(), false), [aplicar, vazio])
   const dispensarInvalidos = useCallback(

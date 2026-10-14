@@ -1,7 +1,8 @@
 import { Popover } from 'radix-ui'
-import { useEffect, useId, useRef, type RefObject, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type RefObject, type ReactNode } from 'react'
 import { Botao, Icone } from '@/components/ui'
 import type { OpcaoFiltro } from '@metricas-dspd/contratos'
+import { VALIDADE_MS } from './buscaPendente'
 
 interface Props {
   /** Usado no data-testid (`filtro-equipe`). */
@@ -30,7 +31,13 @@ function Lista({
   onChange,
   aoMudar,
   atualRef,
-}: Props & { aoMudar: () => boolean; atualRef: RefObject<string[]> }) {
+  registrar,
+}: Props & {
+  aoMudar: () => boolean
+  atualRef: RefObject<string[]>
+  registrar: (ids: string[]) => void
+}) {
+  // `selecionados` aqui são as marcações exibidas (a última seleção do usuário), não a prop da URL.
   const base = useId()
   const alternar = (opcaoId: string, marcado: boolean) => {
     const replace = aoMudar()
@@ -40,7 +47,7 @@ function Lista({
     const prox = marcado
       ? [...base.filter((x) => x !== opcaoId), opcaoId]
       : base.filter((x) => x !== opcaoId)
-    atualRef.current = prox
+    registrar(prox)
     onChange(prox, replace)
   }
   return (
@@ -87,11 +94,41 @@ export function FiltroMulti(props: Props) {
   } = props
   const mudou = useRef(false)
   const atual = useRef<string[]>([...selecionados])
+  // Marcações exibidas: seguem a última ação do usuário, não a prop. Com a prop (URL) atrasada, a caixa
+  // recém-marcada voltaria a desmarcada e o clique seguinte (desmarcar) viraria "marcar" de novo.
+  const [exibidos, setExibidos] = useState<readonly string[]>(selecionados)
+  const fixar = (ids: string[]) => {
+    atual.current = ids
+    setExibidos(ids)
+  }
+  // Seleções emitidas que a prop ainda não alcançou: uma prop igual a uma emissão anterior (a URL de um
+  // clique antigo, que chega atrasada sob carga) não sobrescreve `atual` (IF-002/IS-003). Uma prop que
+  // nunca foi emitida é mudança de fora (chip removido, Limpar) e ressincroniza.
+  const emitida = useRef<{ chaves: Set<string>; ultima: string; em: number } | null>(null)
   const chaveProp = selecionados.join('\u0000')
   useEffect(() => {
-    // A URL (fonte da prop) voltou a mandar: ressincroniza a seleção de partida.
-    atual.current = chaveProp === '' ? [] : chaveProp.split('\u0000')
+    const pend = emitida.current
+    if (
+      pend &&
+      pend.ultima !== chaveProp &&
+      pend.chaves.has(chaveProp) &&
+      Date.now() - pend.em < VALIDADE_MS
+    )
+      return
+    // A URL (fonte da prop) alcançou a última seleção emitida (ou mudou por fora): ressincroniza.
+    emitida.current = null
+    fixar(chaveProp === '' ? [] : chaveProp.split('\u0000'))
   }, [chaveProp])
+  const registrar = (ids: string[]) => {
+    // Marcar todas vira "Todas" na URL (prop vazia): é essa a chave que a prop vai alcançar.
+    const todas = opcoes.length > 0 && opcoes.every((o) => ids.includes(o.id))
+    const chave = todas ? '' : ids.join('\u0000')
+    const chaves = emitida.current?.chaves ?? new Set<string>()
+    chaves.add(chave)
+    emitida.current = { chaves, ultima: chave, em: Date.now() }
+    // "Todas" não é uma lista marcada: as caixas voltam a vazias, como a URL vai ficar.
+    fixar(todas ? [] : ids)
+  }
   const aoMudar = () => {
     const replace = mudou.current
     mudou.current = true
@@ -104,7 +141,13 @@ export function FiltroMulti(props: Props) {
           {rotulo}
           {dica}
         </p>
-        <Lista {...props} aoMudar={aoMudar} atualRef={atual} />
+        <Lista
+          {...props}
+          selecionados={exibidos}
+          aoMudar={aoMudar}
+          atualRef={atual}
+          registrar={registrar}
+        />
       </div>
     )
   }
@@ -116,10 +159,10 @@ export function FiltroMulti(props: Props) {
             className="gap-1 text-sm"
             data-testid={`filtro-${id}`}
             aria-haspopup="dialog"
-            aria-label={`${rotulo}: ${resumo(opcoes, selecionados, genero)}`}
+            aria-label={`${rotulo}: ${resumo(opcoes, exibidos, genero)}`}
           >
             <span className="text-texto-2">{rotulo}:</span>{' '}
-            <span className="font-semibold">{resumo(opcoes, selecionados, genero)}</span>
+            <span className="font-semibold">{resumo(opcoes, exibidos, genero)}</span>
             <Icone nome="chevron" />
           </Botao>
         </Popover.Trigger>
@@ -129,11 +172,17 @@ export function FiltroMulti(props: Props) {
             sideOffset={6}
             className="z-50 w-64 rounded-md border border-borda-controle bg-superficie p-3 shadow-lg"
           >
-            <Lista {...props} aoMudar={aoMudar} atualRef={atual} />
+            <Lista
+              {...props}
+              selecionados={exibidos}
+              aoMudar={aoMudar}
+              atualRef={atual}
+              registrar={registrar}
+            />
             <div className="mt-3 flex justify-between gap-2">
               <Botao
                 onClick={() => {
-                  atual.current = []
+                  registrar([])
                   onChange([], mudou.current)
                 }}
                 className="text-xs"
