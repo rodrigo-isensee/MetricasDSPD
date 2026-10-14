@@ -25,8 +25,8 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
   return CATALOGO.filter((m) => !FORA.has(m.id)).map((m) => {
     const cartoes = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id))
     const cartao = cartoes.find((c) => c.grupo === 'complementar')
-    /** Complementares e a espera invisível (uma linha por nível) apontam para o cartão. */
-    const alvo = cartao ?? (m.codigo === 'EI' ? cartoes[0] : undefined)
+    /** Toda linha aponta para o cartão que a mostra (IS-005); a EI tem um por nível e leva ao primeiro. */
+    const alvo = cartao ?? cartoes[0]
     return {
       codigo: m.codigo,
       nome: m.nome,

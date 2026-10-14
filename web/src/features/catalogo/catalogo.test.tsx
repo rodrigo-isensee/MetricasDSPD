@@ -28,8 +28,16 @@ describe('Catálogo de métricas (/metricas)', () => {
     expect(pv1).toMatchObject({
       fonte: 'Pesquisa de percepção',
       grupo: 'Núcleo',
-      destino: '/sustentacao',
+      destino: '/sustentacao#pv1',
     })
+  })
+
+  it('"Ir ao painel" leva ao cartão da métrica, no núcleo também (IS-005)', () => {
+    const l = linhasDoCatalogo()
+    expect(l.filter((x) => !x.destino.includes('#')).map((x) => x.codigo)).toEqual([])
+    const o3 = l.find((x) => x.codigo === 'O3')
+    expect(o3?.destino).toBe('/operacional?cadencia=semanal#o3')
+    expect(l.find((x) => x.codigo === 'T1')?.destino).toBe('/tatico#t1')
   })
 
   it('mostra a tabela com status escrito e link que abre o cartão; filtros por painel e grupo', async () => {
