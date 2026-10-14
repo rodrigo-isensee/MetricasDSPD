@@ -142,7 +142,8 @@ test.describe('Sustentação no Operacional: menu, seletor e fontes', () => {
 
   test('CA-8 Pede atenção separado por fonte', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=sustentacao&mock=sem-calibracao');
-    await expect(painel.faixaAtencao.getByRole('heading')).toContainText('Sustentação (Acelerato)');
+    await expect(painel.faixaAtencao.getByRole('heading')).toHaveText('Pede atenção no período · Sustentação (Acelerato)');
+    await expect(painel.faixaAtencao.getByTestId('faixa-atencao-janela')).toHaveText('Período do filtro: 6 meses');
     await expect(painel.faixaAtencao.getByRole('link').first()).toBeVisible();
     const sust = await painel.faixaAtencao.getByRole('link').evaluateAll((els) => els.map((e) => e.getAttribute('href')));
     for (const h of sust) expect(h).toMatch(/^#s[12]$/);
@@ -447,6 +448,8 @@ test.describe('Visão Resumo', () => {
     await expect(page.getByRole('region', { name: 'Pede atenção · Fluxo de projeto (BusinessMap)' })).toBeVisible();
     const faixaS = page.getByRole('region', { name: 'Pede atenção · Sustentação (Acelerato)' });
     await expect(faixaS).toBeVisible();
+    await expect(faixaS.getByTestId('faixa-atencao-janela')).toHaveText('Janela: últimas 12 semanas');
+    await expect(page.getByTestId('nota-janelas-alerta')).toContainText('Mesmo alerta, janelas diferentes');
     await expect(faixaS.getByRole('link').first()).toHaveAttribute('href', /cadencia=sustentacao.*#s[12]$/);
     await faixaS.getByRole('link').first().click();
     await expect(page).toHaveURL(/cadencia=sustentacao/);
@@ -465,7 +468,7 @@ test.describe('Visão Resumo', () => {
     expect(await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith('metricas-dspd:preferencias')))).toEqual([PREFS]);
   });
 
-  test('CA-30 exportação do Resumo: só "Exportar vários", com os cartões dos números já marcados', async ({ page, painel }) => {
+  test('CA-30 exportação do Resumo: só "Exportar vários", com os níveis Operacional e Operacional · Sustentação pré-selecionados', async ({ page, painel }) => {
     await painel.ir('/operacional');
     await aguardarResumo(page);
     await expect(page.getByTestId('botao-exportar')).toHaveCount(0);
