@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: bugs-intensivos
 branch: fix/bugs-intensivos
-commit: 0c7d348055467bb126ba4cf0b7063fc732a96665
+commit: 4e47bcf
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-14
@@ -15,12 +15,14 @@ Escopo da primeira rodada: `git diff 376d997..d3babc2`, ou seja, o merge de `tes
 
 Terceira rodada (HEAD atual, 0c7d348): `git diff 03665ff..0c7d348` tocou só `web/src/features/exportar/modelo.ts` e `packages/mock/src/desempenho.test.ts`, e a mudança é apenas formatação Prettier (quebra de linha, sem alteração de código). Commit 0c7d348 é só formatação (IS-008), para o `format:check` voltar a passar. Os commits de documentação do QA (ae23d22 e 77fd131) estão fora de `web`, `packages`, `server` e `e2e`, e não alteram o código revisado.
 
+Quarta rodada (HEAD atual, 4e47bcf): `git diff b76b789..HEAD -- web`, ajustes da revisão de UX (`docs/ux/revisao-bugs-intensivos.md`, movida para a branch em b74d78f). Em `AvisoFiltrosInvalidos.tsx`, o aviso separa o período personalizado inválido (texto próprio) dos filtros inexistentes. Em `FiltroMulti.tsx`, o botão e o `aria-label` passam a usar `exibidos` (as caixas marcadas) em vez de `selecionados`, de modo que a marcação acompanha o clique antes de a URL chegar, o que é coerente com o mecanismo documentado no item 1. Há teste novo para cada um dos dois, e dois testes antigos foram ajustados com comentário. Sem regra de negócio, dado de pessoa nem cálculo envolvidos. Recomendação, que não bloqueia: o literal `'período personalizado'` agora aparece em `codec.ts:81`, `useFiltros.ts:218` e `AvisoFiltrosInvalidos.tsx:3`; vale exportá-lo de uma constante no `codec.ts` num próximo toque. Verificação local: typecheck do `web` e eslint de `features/filtros`, verdes (com `nice` e `flock`). Não rodei os testes; o autor informa web 834/834 com cobertura de 100% e E2E de filtros verdes (2 instáveis só sob carga).
+
 Verificação local da primeira rodada (com `nice -n 19` e sob `flock /tmp/metricas-pesado.lock`): typecheck de `packages/metricas`, `packages/contratos`, `packages/mock`, `server` e `web`, todos verdes. Lint do `server` e eslint dos arquivos alterados do `web`, verdes. Testes unitários: `metricas` 522/522, `contratos` 45/45, `mock` 157/157, os dois testes sistêmicos do `server` 111/111, e no `web` os arquivos de filtros, catálogo, exportação, formatar e navegação, 113/113. Não rodei o E2E; o autor informa 312/312.
 
 Verificação da segunda rodada (mesmas precauções): typecheck do `web` e eslint dos arquivos alterados, verdes. Não rodei os testes; o autor informa web 832/832 com cobertura de 100% e os E2E de filtros verdes, com 5 que só passaram na repetição por timeout sob carga (a mesma espera de CPU do IS-001, sem falha de asserção).
 
 ## Veredito
-**Aprovado.** O item que bloqueava (documentação do mecanismo de URL do front) foi atendido em 6846a93, e as recomendações de código foram atendidas em 03665ff. O commit 0c7d348 é só formatação e não altera o parecer. Os itens restantes são recomendações que seguem fora deste lote, como cartões próprios (ver "Pendências fora do lote").
+**Aprovado.** O item que bloqueava (documentação do mecanismo de URL do front) foi atendido em 6846a93, e as recomendações de código foram atendidas em 03665ff. O commit 0c7d348 é só formatação e o 4e47bcf (ajustes de UX) está conforme, sem alterar o parecer. Os itens restantes são recomendações que seguem fora deste lote, como cartões próprios (ver "Pendências fora do lote").
 
 ## Pontos de atenção do pedido
 - **IS-001 (timeout de 15 s para 90 s em 4000300 e 8dc19d6): aceito.** A justificativa foi medida e está registrada em `web/vite.config.ts:50-56`: 830 testes, 20 deles acima de 5 s, o pior com 11 s, e 45 s ainda estourou com load 10. Todas as falhas da evidência foram por espera de CPU, nenhuma por asserção. O timeout de teste unitário não é o guarda de desempenho do projeto: esse papel é do orçamento do ADR 0003 (E2E perf e `desempenho.test.ts`), que continua intacto. A causa (testes que montam um painel inteiro) segue de fora, e vira cartão próprio.
