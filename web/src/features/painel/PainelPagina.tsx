@@ -21,14 +21,20 @@ interface Base {
   pergunta: string
   publico?: string
   slug: string
-  /** Conteúdo entre o cabeçalho e a barra de filtros (ex.: seletor de cadência). */
+  /** Conteúdo entre o cabeçalho e a barra de filtros (ex.: seletor de visão). */
   extra?: ReactNode
+  /** Nome da fonte dos filtros quando a página tem duas ("Filtros da Sustentação · Acelerato"). */
+  legendaFiltros?: string
+  /** Onde um valor inválido do link não existe ("na Sustentação"): o aviso cita a fonte. */
+  ondeFiltros?: string
+  /** Conteúdo logo abaixo da barra de filtros (ex.: a linha dos filtros guardados da outra fonte). */
+  depoisDosFiltros?: ReactNode
 }
 
 type PainelFluxoId = Exclude<PainelId, 'sustentacao'>
 
 /** Corpo do painel de UMA fonte: sem nenhuma coleta ok não há o que mostrar (CA-09); nas outras situações os dados anteriores continuam. */
-function CorpoDaFonte({ dominio, children }: { dominio: Dominio; children: ReactNode }) {
+export function CorpoDaFonte({ dominio, children }: { dominio: Dominio; children: ReactNode }) {
   const { data } = useEstadoColeta(dominio)
   return data?.ultimaOk === null ? <SemDadosDaFonte dominio={dominio} /> : children
 }
@@ -99,7 +105,13 @@ function Casca({
                 <BotaoExportar base={painelDoCorpo} />
                 <BotaoExportar base="personalizada" />
               </div>
-              <BarraFiltros uso={uso} {...(estrategico ? { estrategico } : {})} />
+              <BarraFiltros
+                uso={uso}
+                {...(estrategico ? { estrategico } : {})}
+                {...(base.legendaFiltros ? { legenda: base.legendaFiltros } : {})}
+                {...(base.ondeFiltros ? { onde: base.ondeFiltros } : {})}
+              />
+              {base.depoisDosFiltros}
               <FaixaOcultas />
               <PainelOcultoVazio />
               <CorpoDaFonte dominio={dominio}>{children}</CorpoDaFonte>
@@ -138,14 +150,19 @@ export function PainelFluxo({
   )
 }
 
-/** Molde do painel de SUSTENTAÇÃO (Acelerato), com filtros próprios que nunca vêm do fluxo. */
+/**
+ * Molde do painel de SUSTENTAÇÃO (Acelerato), com filtros próprios que nunca vêm do fluxo. `prefixo` (`sust_`)
+ * guarda os filtros na mesma URL dos do fluxo, quando a Sustentação é uma visão do Operacional.
+ */
 export function PainelSustentacao({
   children,
+  prefixo,
   ...base
 }: Base & {
+  prefixo?: string
   children: (filtros: FiltrosSustentacao, uso: UseFiltros<FiltrosSustentacao>) => ReactNode
 }) {
-  const uso = useFiltros('sustentacao')
+  const uso = useFiltros('sustentacao', prefixo ? { prefixo } : undefined)
   return (
     <Casca painelDoCorpo="sustentacao" uso={uso} base={base} fonte="Acelerato" dominio="acelerato">
       {children(uso.filtros, uso)}
