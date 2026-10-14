@@ -29,6 +29,27 @@ describe('LocalStoragePreferencias', () => {
     )
   })
 
+  it('perfil de versão futura: lê o padrão e nunca é sobrescrito (A6)', async () => {
+    const guardado = '{"versao":2,"paineis":{"operacional":{"ocultar":["o9"]}}}'
+    const arm = armazenamentoFalso(guardado)
+    const f = new LocalStoragePreferencias(arm)
+    expect(await f.obter()).toEqual(PREFERENCIAS_PADRAO)
+    await expect(f.salvar(PREFERENCIAS_PADRAO)).rejects.toThrow('versão mais nova')
+    expect(arm.dados.get('metricas-dspd:preferencias:v1')).toBe(guardado)
+  })
+
+  it('perfil corrompido: lê o padrão sem gravar, e a primeira escolha grava versao 1 (A6)', async () => {
+    for (const lixo of ['{nao-json', 'null', '"x"', '{"versao":"2"}', '{"versao":1,"paineis":3}']) {
+      const arm = armazenamentoFalso(lixo)
+      const f = new LocalStoragePreferencias(arm)
+      expect(await f.obter()).toEqual(PREFERENCIAS_PADRAO)
+      expect(arm.dados.get('metricas-dspd:preferencias:v1')).toBe(lixo)
+      const p = { ...PREFERENCIAS_PADRAO, atualizadoEm: '2026-10-14T00:00:00.000Z' }
+      await f.salvar(p)
+      expect(await f.obter()).toEqual(p)
+    }
+  })
+
   it('grava e lê de volta com a chave versionada', async () => {
     const arm = armazenamentoFalso()
     const f = new LocalStoragePreferencias(arm)

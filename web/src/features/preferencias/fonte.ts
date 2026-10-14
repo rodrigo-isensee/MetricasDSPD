@@ -25,6 +25,17 @@ export interface FontePreferencias {
   salvar(p: PreferenciasMetricas): Promise<void>
 }
 
+/** `versao` numérica maior que 1 no JSON guardado; JSON quebrado ou outro formato não conta (esses viram o padrão). */
+function versaoGuardadaEhFutura(bruto: string | null): boolean {
+  if (bruto === null) return false
+  try {
+    const v: unknown = (JSON.parse(bruto) as { versao?: unknown } | null)?.versao
+    return typeof v === 'number' && v > 1
+  } catch {
+    return false
+  }
+}
+
 type Armazenamento = Pick<Storage, 'getItem' | 'setItem'>
 
 export class LocalStoragePreferencias implements FontePreferencias {
@@ -46,9 +57,16 @@ export class LocalStoragePreferencias implements FontePreferencias {
     })
   }
 
-  /** Falha de gravação (cota cheia, armazenamento bloqueado) rejeita: a tela mantém a escolha e avisa. */
+  /**
+   * Falha de gravação (cota cheia, armazenamento bloqueado) rejeita: a tela mantém a escolha e avisa. Perfil guardado
+   * com `versao` maior que 1 (de uma versão futura do sistema) nunca é sobrescrito: rejeita sem gravar (A6).
+   */
   salvar(p: PreferenciasMetricas): Promise<void> {
-    return new Promise((resolver) => {
+    return new Promise((resolver, rejeitar) => {
+      if (versaoGuardadaEhFutura(this.armazenamento.getItem(CHAVE_PREFERENCIAS))) {
+        rejeitar(new Error('Perfil guardado em versão mais nova: não foi sobrescrito.'))
+        return
+      }
       this.armazenamento.setItem(CHAVE_PREFERENCIAS, JSON.stringify(p))
       resolver()
     })
