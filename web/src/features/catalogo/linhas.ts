@@ -1,4 +1,4 @@
-import { CATALOGO_CARTOES, ROTULO_PAINEL } from '@metricas-dspd/contratos'
+import { CATALOGO_CARTOES, ROTULO_PAINEL, type CartaoCatalogo } from '@metricas-dspd/contratos'
 import { destinoDoCartao } from '@/lib/destinoCartao'
 import type { FonteDoCartao } from '@/components/ui'
 import { CATALOGO, type PainelDaMetrica } from '@/content/catalogo-metricas'
@@ -26,7 +26,7 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
     const cartoes = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id))
     const cartao = cartoes.find((c) => c.grupo === 'complementar')
     /** Toda linha aponta para o cartão que a mostra (IS-005); a EI tem um por nível e leva ao primeiro. */
-    const alvo = cartao ?? cartoes[0]
+    const alvo = (cartao ?? cartoes[0]) as CartaoCatalogo // o teste do catálogo garante que existe
     return {
       codigo: m.codigo,
       nome: m.nome,
@@ -36,7 +36,7 @@ export function linhasDoCatalogo(): LinhaCatalogo[] {
       fonte: m.fonte,
       granularidade: m.granularidade,
       dados: 'Fictícios',
-      destino: alvo ? destinoDoCartao(alvo) : `/${m.painel}`,
+      destino: destinoDoCartao(alvo),
     }
   })
 }
