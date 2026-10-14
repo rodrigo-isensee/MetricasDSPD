@@ -23,10 +23,14 @@ export type NivelExportacao = PainelId
 
 export const NIVEIS: readonly { id: NivelExportacao; rotulo: string; rota: string }[] = [
   { id: 'operacional', rotulo: 'Operacional', rota: '/operacional' },
+  // A Sustentação é uma visão do Operacional (mesma rota), logo depois dele; o nível e o escopo gravados não mudam.
+  { id: 'sustentacao', rotulo: 'Operacional · Sustentação', rota: '/operacional' },
   { id: 'tatico', rotulo: 'Tático', rota: '/tatico' },
   { id: 'estrategico', rotulo: 'Estratégico', rota: '/estrategico' },
-  { id: 'sustentacao', rotulo: 'Sustentação', rota: '/sustentacao' },
 ]
+
+/** Prefixo dos parâmetros dos filtros da Sustentação quando ela divide a URL com os do fluxo. */
+export const PREFIXO_SUSTENTACAO = 'sust_'
 
 export interface ItemExportavel {
   /** `nivel:cartao`: único na seleção. */
@@ -89,8 +93,9 @@ export const dominioDoNivel = (nivel: NivelExportacao): Dominio =>
   nivel === 'sustentacao' ? 'acelerato' : 'businessmap'
 
 /**
- * Filtros de um nível: os da URL se o usuário está nele; senão, no fluxo, os guardados na sessão
+ * Filtros de um nível: os da URL se o usuário está na rota dele; senão, no fluxo, os guardados na sessão
  * (os mesmos que os links entre painéis levam); na Sustentação, os padrões (ela é independente do fluxo).
+ * Em `/operacional` (em qualquer visão) a Sustentação lê os `sust_*` e o fluxo lê os parâmetros sem prefixo.
  */
 export function filtrosDoNivel(
   nivel: NivelExportacao,
@@ -108,7 +113,7 @@ export function filtrosDoNivel(
       aqui ? params : new URLSearchParams(),
       opcoes,
       config.periodoPadrao,
-      '',
+      PREFIXO_SUSTENTACAO,
       restricao,
     ).filtros
   const origem = aqui ? params : new URLSearchParams(Object.entries(memoria))

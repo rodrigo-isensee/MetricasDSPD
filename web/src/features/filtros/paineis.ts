@@ -28,7 +28,23 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
     periodoPadrao: '12s',
     periodos: PERIODOS_TODOS,
     personalizado: true,
-    params: [...BASE_FLUXO, 'cadencia', 'o2', 'o3', 'o7', 'o9', 'o10', 'ei_fl1'],
+    // Os parâmetros de cartão da Sustentação (`s3`...`ei_sust`) valem em `/operacional`: sem eles a Diária e a
+    // Semanal os apagariam (2.6.1) e trocar de visão perderia o que foi escolhido. Os `sust_*` nunca são conhecidos.
+    params: [
+      ...BASE_FLUXO,
+      'cadencia',
+      'o2',
+      'o3',
+      'o7',
+      'o9',
+      'o10',
+      'ei_fl1',
+      's3',
+      's4',
+      's5',
+      's6',
+      'ei_sust',
+    ],
   },
   tatico: {
     dominio: 'fluxo',
@@ -55,6 +71,13 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
     params: ['equipe', 'prioridade', 'periodo', 'de', 'ate', 's3', 's4', 's5', 's6', 'ei_sust'],
   },
 }
+
+/** Filtro de equipe da Sustentação: as equipes são outras (H2), então o rótulo diz de quem são. */
+export const ROTULO_EQUIPE_SUSTENTACAO = 'Equipe de sustentação'
+
+/** Rótulo de um filtro no domínio: só a equipe muda de nome na Sustentação. */
+export const rotuloDoFiltro = (chave: ChaveFiltro, dominio: DominioFiltros): string =>
+  chave === 'equipe' && dominio === 'sustentacao' ? ROTULO_EQUIPE_SUSTENTACAO : ROTULO_FILTRO[chave]
 
 export const ROTULO_FILTRO: Record<ChaveFiltro, string> = {
   equipe: 'Equipe',

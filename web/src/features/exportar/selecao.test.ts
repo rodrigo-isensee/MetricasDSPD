@@ -80,18 +80,25 @@ describe('filtrosDoNivel', () => {
     expect(
       filtrosDoNivel('tatico', '/operacional', url, { periodo: '6m' }, undefined).periodo,
     ).toEqual({ tipo: '6m' })
+    // A Sustentação divide a rota com o fluxo: o `periodo=4s` sem prefixo é do fluxo e não vale para ela.
     expect(filtrosDoNivel('sustentacao', '/operacional', url, {}, undefined).periodo).toEqual({
       tipo: '6m',
     })
-    expect(
-      filtrosDoNivel(
-        'sustentacao',
-        '/sustentacao',
-        new URLSearchParams('periodo=12m'),
-        {},
-        undefined,
-      ).periodo,
-    ).toEqual({ tipo: '12m' })
+    expect(filtrosDoNivel('sustentacao', '/tatico', url, {}, undefined).periodo).toEqual({
+      tipo: '6m',
+    })
+  })
+  it('em /operacional a Sustentação lê os sust_* e o fluxo, os parâmetros sem prefixo', () => {
+    const url = new URLSearchParams(
+      'periodo=4s&equipe=fluig&sust_periodo=12m&sust_prioridade=p1&sust_equipe=totvs',
+    )
+    expect(filtrosDoNivel('sustentacao', '/operacional', url, {}, undefined)).toMatchObject({
+      periodo: { tipo: '12m' },
+      prioridade: ['P1'],
+      equipe: ['totvs'],
+    })
+    const fluxo = filtrosDoNivel('operacional', '/operacional', url, {}, undefined)
+    expect(fluxo.periodo).toEqual({ tipo: '4s' })
   })
   it('o Estratégico não usa equipe nem tipo', () => {
     const f = filtrosDoNivel(
