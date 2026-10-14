@@ -12,7 +12,7 @@ import { NumeroChave } from './NumeroChave'
 import { TendenciaSustentacao } from './TendenciaSustentacao'
 
 const f = FILTROS_SUST_RESUMO
-/** Janela do alerta do Resumo, escrita na tela: sai dos mesmos filtros que alimentam as consultas (U1 pendente). */
+/** Janela do alerta do Resumo, escrita na tela: sai dos mesmos filtros que alimentam as consultas (U1 = (a), decidida pelo usuário em 2026-10-14). */
 const JANELA_ALERTA = textoPeriodoCurto(f.periodo)
 
 function ConteudoSustentacao() {
