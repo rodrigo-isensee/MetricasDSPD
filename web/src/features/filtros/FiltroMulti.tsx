@@ -159,10 +159,10 @@ export function FiltroMulti(props: Props) {
             className="gap-1 text-sm"
             data-testid={`filtro-${id}`}
             aria-haspopup="dialog"
-            aria-label={`${rotulo}: ${resumo(opcoes, selecionados, genero)}`}
+            aria-label={`${rotulo}: ${resumo(opcoes, exibidos, genero)}`}
           >
             <span className="text-texto-2">{rotulo}:</span>{' '}
-            <span className="font-semibold">{resumo(opcoes, selecionados, genero)}</span>
+            <span className="font-semibold">{resumo(opcoes, exibidos, genero)}</span>
             <Icone nome="chevron" />
           </Botao>
         </Popover.Trigger>

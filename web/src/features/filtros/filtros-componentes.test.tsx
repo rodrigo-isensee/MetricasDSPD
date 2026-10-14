@@ -93,6 +93,18 @@ describe('FiltroMulti', () => {
     expect(onChange).toHaveBeenLastCalledWith(['d', 'a'], true)
   })
 
+  it('o botão acompanha as caixas marcadas, mesmo antes de a URL chegar', async () => {
+    const onChange = vi.fn()
+    render(
+      <FiltroMulti id="x" rotulo="Equipe" opcoes={opcoes} selecionados={[]} onChange={onChange} />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    const botao = screen.getByTestId('filtro-x')
+    expect(botao).toHaveAccessibleName('Equipe: Alfa')
+    expect(botao).toHaveTextContent('Equipe: Alfa')
+  })
+
   it('marcar todas: a URL vira "Todas" (prop vazia), as caixas voltam a vazias e o clique seguinte parte do vazio', async () => {
     const onChange = vi.fn()
     const el = (sel: string[]) => (
@@ -133,7 +145,8 @@ describe('FiltroMulti', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     // Ao reabrir, volta a empilhar.
-    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Alfa' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    // (o botão já mostra "Todas": acompanha as caixas, não a prop antiga)
     await userEvent.click(screen.getByRole('button', { name: 'Limpar' }))
     expect(onChange).toHaveBeenLastCalledWith([], false)
   })
