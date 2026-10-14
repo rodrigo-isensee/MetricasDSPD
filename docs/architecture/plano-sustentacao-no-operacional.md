@@ -164,7 +164,7 @@ Esqueleto (o nome final dos campos fica com o back):
 | Sustentação | Prioridades com aderência < 90% | `contarForaS2(S2.prioridades)`, regra igual à do "Pede atenção" | 12 semanas no Resumo (P3 = a); no detalhe, o período do filtro (padrão 6 meses, Q5) |
 | Sustentação | Prioridades com mediana acima do alvo | `S1.prioridades[*].restauracao.statusMeta`, regra igual à do "Pede atenção" | idem |
 | Sustentação | Volume e P1+P2 | `S3.base.n` e `S3.janela.p1p2` | idem |
-| Ambos | "Pede atenção" | `atencao.ts` (mesmas regras de hoje) | Resumo: 12 semanas; detalhe: período do filtro. Janela do alerta segue a opção (a) da U1 (duas janelas, explicadas na tela) até o usuário decidir |
+| Ambos | "Pede atenção" | `atencao.ts` (mesmas regras de hoje) | Resumo: 12 semanas; detalhe: período do filtro. Janela do alerta: U1 = (a), decidida pelo usuário em 2026-10-14 (duas janelas, escritas na tela, com a nota "Mesmo alerta, janelas diferentes") |
 | Ambos | Tendência | `TENDENCIA_FLUXO`, `TENDENCIA_SUST` | sem filtros |
 
 Com filtros padrão, as consultas são as mesmas da Diária, da Semanal e da Sustentação. O cache do React Query é compartilhado, e a ida às visões de detalhe é imediata.
