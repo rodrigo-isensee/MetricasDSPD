@@ -306,8 +306,12 @@ interface DtoComum {
 
 const intervalo = (j: { inicio: string; fim: string }) => `${fmtData(j.inicio)} a ${fmtData(j.fim)}`
 
-export function textoBase(b: DtoComum['base']): string {
-  const base = `Base: ${fmtInteiro(b.n)} ${b.unidade}`
+export function textoBase(b: DtoComum['base'], k?: number): string {
+  // Censo ("k de n"): a mesma frase do selo da tela (E3: "Base: 9 de 11 iniciativas").
+  const base =
+    k === undefined
+      ? `Base: ${fmtInteiro(b.n)} ${b.unidade}`
+      : `Base: ${fmtInteiro(k)} de ${fmtInteiro(b.n)} ${b.unidade}`
   return b.complemento ? `${base}; ${fmtInteiro(b.complemento.n)} ${b.complemento.unidade}` : base
 }
 
@@ -353,7 +357,10 @@ export function construirBloco(e: EntradaBloco): BlocoExportacao {
     fonte: fonteExportavel(cat.fonte),
     filtros: textoFiltros(e.id, e.filtros, e.opcoes),
     janela: textoJanelaBloco(d),
-    base: textoBase(d.base),
+    base: textoBase(
+      d.base,
+      e.id === 'E3' ? (e.dto as { comFicha?: { k: number } }).comFicha?.k : undefined,
+    ),
     amostraInsuficiente: textoInsuficiente(e.dto),
     nota: resumoDaNota(e.nota),
     criterios: textoCriterios([...d.criterios.serie, ...d.criterios.janela]),
