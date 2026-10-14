@@ -30,7 +30,12 @@ function Lista({
   onChange,
   aoMudar,
   atualRef,
-}: Props & { aoMudar: () => boolean; atualRef: RefObject<string[]> }) {
+  registrar,
+}: Props & {
+  aoMudar: () => boolean
+  atualRef: RefObject<string[]>
+  registrar: (ids: string[]) => void
+}) {
   const base = useId()
   const alternar = (opcaoId: string, marcado: boolean) => {
     const replace = aoMudar()
@@ -41,6 +46,7 @@ function Lista({
       ? [...base.filter((x) => x !== opcaoId), opcaoId]
       : base.filter((x) => x !== opcaoId)
     atualRef.current = prox
+    registrar(prox)
     onChange(prox, replace)
   }
   return (
@@ -87,11 +93,32 @@ export function FiltroMulti(props: Props) {
   } = props
   const mudou = useRef(false)
   const atual = useRef<string[]>([...selecionados])
+  // Seleções emitidas que a prop ainda não alcançou: uma prop igual a uma emissão anterior (a URL de um
+  // clique antigo, que chega atrasada sob carga) não sobrescreve `atual` (IF-002/IS-003). Uma prop que
+  // nunca foi emitida é mudança de fora (chip removido, Limpar) e ressincroniza.
+  const emitida = useRef<{ chaves: Set<string>; ultima: string; em: number } | null>(null)
   const chaveProp = selecionados.join('\u0000')
   useEffect(() => {
-    // A URL (fonte da prop) voltou a mandar: ressincroniza a seleção de partida.
+    const pend = emitida.current
+    if (
+      pend &&
+      pend.ultima !== chaveProp &&
+      pend.chaves.has(chaveProp) &&
+      Date.now() - pend.em < 3000
+    )
+      return
+    // A URL (fonte da prop) alcançou a última seleção emitida (ou mudou por fora): ressincroniza.
+    emitida.current = null
     atual.current = chaveProp === '' ? [] : chaveProp.split('\u0000')
   }, [chaveProp])
+  const registrar = (ids: string[]) => {
+    // Marcar todas vira "Todas" na URL (prop vazia): é essa a chave que a prop vai alcançar.
+    const todas = opcoes.length > 0 && opcoes.every((o) => ids.includes(o.id))
+    const chave = todas ? '' : ids.join('\u0000')
+    const chaves = emitida.current?.chaves ?? new Set<string>()
+    chaves.add(chave)
+    emitida.current = { chaves, ultima: chave, em: Date.now() }
+  }
   const aoMudar = () => {
     const replace = mudou.current
     mudou.current = true
@@ -104,7 +131,7 @@ export function FiltroMulti(props: Props) {
           {rotulo}
           {dica}
         </p>
-        <Lista {...props} aoMudar={aoMudar} atualRef={atual} />
+        <Lista {...props} aoMudar={aoMudar} atualRef={atual} registrar={registrar} />
       </div>
     )
   }
@@ -129,11 +156,12 @@ export function FiltroMulti(props: Props) {
             sideOffset={6}
             className="z-50 w-64 rounded-md border border-borda-controle bg-superficie p-3 shadow-lg"
           >
-            <Lista {...props} aoMudar={aoMudar} atualRef={atual} />
+            <Lista {...props} aoMudar={aoMudar} atualRef={atual} registrar={registrar} />
             <div className="mt-3 flex justify-between gap-2">
               <Botao
                 onClick={() => {
                   atual.current = []
+                  registrar([])
                   onChange([], mudou.current)
                 }}
                 className="text-xs"

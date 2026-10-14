@@ -71,6 +71,43 @@ describe('FiltroMulti', () => {
     expect(screen.getByRole('button', { name: 'Sistema: Todos' })).toBeInTheDocument()
   })
 
+  it('cliques em sequência com props atrasadas (URL intermediária) acumulam todas as marcações', async () => {
+    const tres = [...opcoes, { id: 'c', nome: 'Gama' }, { id: 'd', nome: 'Delta' }]
+    const onChange = vi.fn()
+    const el = (sel: string[]) => (
+      <FiltroMulti id="x" rotulo="Equipe" opcoes={tres} selecionados={sel} onChange={onChange} />
+    )
+    const { rerender } = render(el([]))
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    await userEvent.click(screen.getByLabelText('Beta'))
+    // chega o render da URL do primeiro clique, depois do segundo clique
+    rerender(el(['a']))
+    await userEvent.click(screen.getByLabelText('Gama'))
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b', 'c'], true)
+    // a URL alcança o que foi emitido: volta a mandar a prop
+    rerender(el(['a', 'b', 'c']))
+    rerender(el(['d']))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    expect(onChange).toHaveBeenLastCalledWith(['d', 'a'], true)
+  })
+
+  it('marcar todas: a URL vira "Todas" (prop vazia) e o clique seguinte parte do vazio', async () => {
+    const onChange = vi.fn()
+    const el = (sel: string[]) => (
+      <FiltroMulti id="x" rotulo="Equipe" opcoes={opcoes} selecionados={sel} onChange={onChange} />
+    )
+    const { rerender } = render(el([]))
+    await userEvent.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    rerender(el(['a']))
+    await userEvent.click(screen.getByLabelText('Beta'))
+    expect(onChange).toHaveBeenLastCalledWith(['a', 'b'], true)
+    rerender(el([]))
+    await userEvent.click(screen.getByLabelText('Alfa'))
+    expect(onChange).toHaveBeenLastCalledWith(['a'], true)
+  })
+
   it('popover: a primeira marcação empilha no histórico, as seguintes substituem; Limpar e Fechar', async () => {
     const onChange = vi.fn()
     render(

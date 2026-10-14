@@ -2,7 +2,7 @@ import { Dialog } from 'radix-ui'
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router'
 import { Botao, Icone } from '@/components/ui'
-import { CHAVES_MEMORIA, useMemoriaAtual } from '@/features/filtros'
+import { CHAVES_MEMORIA, PAINEIS, useMemoriaAtual, type PainelId } from '@/features/filtros'
 import { DESTINOS } from './rotas'
 
 /**
@@ -16,6 +16,13 @@ function useBusca(): (destino: (typeof DESTINOS)[number]) => string {
   return (d) => {
     const p = new URLSearchParams()
     if (d.fluxo) for (const k of CHAVES_MEMORIA) if (memoria[k]) p.set(k, memoria[k])
+    // O padrão do destino nunca entra na URL (2.5): 12 meses memorizado no Operacional não vai ao Estratégico.
+    const painel = PAINEIS[d.to.slice(1) as PainelId] as (typeof PAINEIS)[PainelId] | undefined
+    if (painel && p.get('periodo') === painel.periodoPadrao) {
+      p.delete('periodo')
+      p.delete('de')
+      p.delete('ate')
+    }
     const s = p.toString().replaceAll('%2C', ',')
     return s ? `?${s}` : ''
   }
