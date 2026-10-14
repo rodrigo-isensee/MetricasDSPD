@@ -138,3 +138,17 @@ Memoização não pode alterar resultado: os testes de métrica e o hash da base
   - Testes de tempo instáveis no CI → limites de CI como múltiplos do orçamento, aquecimento separado da medição, valor real impresso para acompanhar tendência.
   - Volume real maior que o mock (002) → C3/C4 valem para o volume do mock; o servidor é medido por A1/M1 sobre 2 anos de seed, com cache das métricas pesadas.
   - Orçamento de bundle apertado com Recharts → gráficos em chunk próprio (F8); se estourar, revisar importações por submódulo antes de trocar de biblioteca.
+
+### Medição das tendências do Resumo (node-backend, 2026-10-14; plano `sustentacao-no-operacional`, B3)
+Mock em escala padrão (5.788 cards, 6.062 chamados), CPU time (`process.cpuUsage`), contexto recriado a cada medição, máquina com carga média de 7 a 10 (outros agentes rodando suítes); medida com o mesmo método de `packages/mock/src/desempenho.test.ts` (mediana de 5 contextos a frio, 2ª chamada, p95 de 20). Biblioteca isolada (C3):
+
+| Métrica | A frio (mediana de 5) | 2ª chamada | p95 de 20 | Orçamento C3 | Situação |
+|---|---|---|---|---|---|
+| TENDENCIA_FLUXO (6 meses) | 16,6 ms | 12,4 ms | 12,4 ms | < 50 ms | ok |
+| TENDENCIA_SUST (6 meses) | 4,2 ms | 3,7 ms | 5,2 ms | < 50 ms | ok |
+| O3 (referência) | 15,4 ms | 10,1 ms | 11,9 ms | < 50 ms | ok |
+| S2 (referência) | 5,0 ms | 4,1 ms | 5,1 ms | < 50 ms | ok |
+
+API (Fastify `inject`, dublê de banco com o mesmo mock; sem Postgres): `GET` a frio, com a base já carregada, 10,9 ms (fluxo) e 7,1 ms (sustentação); a quente (cache de resultado) p95 1,0 ms e 0,6 ms; outra `dataReferencia` sem cache de resultado, 6,5 ms (fluxo) e 77,6 ms (sustentação, que reindexa o Acelerato para o novo corte, como já faz o S2). Corpos de 8,6 KB e 7,9 KB. Todos dentro de A1 (< 300 ms) e A2 (< 50 ms). **Não medido:** A1/A2 contra o Postgres real com 2 anos de seed (`e2e/tests/perf-api.spec.ts` exige a pilha no ar); fica para o QA na pré-entrega. A carga da base (primeira consulta depois de uma coleta) é a do domínio, não da tendência.
+
+Como o custo ficou baixo: o ponto de cada mês usa o mesmo núcleo do O3 (`classesNaJanela`) e do S2 (`aderenciaPorPrioridade`), sem refazer pontos, série semanal e variação; os entregues por tipo e os chamados apuráveis são montados uma vez para os seis meses (não dependem do corte). A primeira versão, que chamava `calcularO3` inteiro em seis contextos, custava cerca de 550 ms a frio e estourava o limite de CI de 150 ms. Efeito colateral: o O3 passou de cerca de 65 ms para cerca de 15 ms (as pontas da janela eram lidas por item).

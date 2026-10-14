@@ -5,7 +5,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { ZodType } from 'zod';
 import { AppError, erroSchema } from '../../plataforma/erros.js';
 import {
-  paramsIdSchema, queryFluxoSchema, queryPesquisaSchema, querySustentacaoSchema, queryVisaoGeralSchema, resultadoO2PaginadoSchema,
+  paramsIdSchema, queryFluxoSchema, queryPesquisaSchema, queryTendenciaSchema, querySustentacaoSchema, queryVisaoGeralSchema, resultadoO2PaginadoSchema,
   type ConsultaCalculo,
 } from './schemas.js';
 import type { FiltrosMetrica, ServicoMetricas } from './servico.js';
@@ -17,7 +17,9 @@ export const PAGINA_PADRAO = 50;
 export const PAGINA_MAXIMA = 200;
 
 const QUERY_POR_FONTE = { ambos: queryVisaoGeralSchema, pesquisa: queryPesquisaSchema, acelerato: querySustentacaoSchema, businessmap: queryFluxoSchema } as const;
-const queryDe = (id: MetricaId): ZodType => QUERY_POR_FONTE[fonteDaMetrica(id)];
+const TENDENCIAS: readonly MetricaId[] = ['TENDENCIA_FLUXO', 'TENDENCIA_SUST'];
+/** As tendências têm fonte própria (uma por métrica), mas não aceitam filtro: só `dataReferencia`. */
+const queryDe = (id: MetricaId): ZodType => (TENDENCIAS.includes(id) ? queryTendenciaSchema : QUERY_POR_FONTE[fonteDaMetrica(id)]);
 
 /** Itens do O2 ordenados por idade decrescente (desempate `cardId`); `tipos`, referências e contagens ficam do conjunto completo. */
 export function paginarO2(r: ResultadoO2, page = 1, pageSize?: number): ResultadoO2 & { itensMeta: { page: number; pageSize: number; total: number } } {
