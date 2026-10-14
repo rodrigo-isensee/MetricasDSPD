@@ -21,6 +21,8 @@ Links: `docs/reviews/bugs-intensivos.md` (code review aprovado), `docs/qa/intens
 ## Veredito
 **Reprovado por um item de forma, não de comportamento.** Os 14 bugs do lote estão resolvidos. Mas `pnpm run pronto` falha em `format:check` em dois arquivos que o lote deixou sem formatar (IS-008, média). Correção trivial (`prettier --write` e um commit `style`); com ela, e o `pronto` verde, o parecer passa a aprovado sem nova rodada de E2E (só toca formatação). Quando o `pronto` completo rodar, registrar aqui.
 
+Observação: o `pnpm run pronto` completo não chegou ao fim por causa do IS-008; as etapas seguintes foram rodadas à parte com `pnpm -r --if-present run pronto`.
+
 ## Ambiente
 WSL2, Chromium headless, `nice -n 19` e `flock /tmp/metricas-pesado.lock`, `--workers=2`. Load de 1 minuto entre 0,2 e 6,8 durante as rodadas (o usuário usava a máquina).
 
