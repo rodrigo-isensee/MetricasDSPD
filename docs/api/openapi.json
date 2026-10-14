@@ -33893,7 +33893,8 @@
                         "type": "object",
                         "properties": {
                           "mes": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
                           },
                           "fimDoMes": {
                             "type": "string"
@@ -34405,7 +34406,8 @@
                         "type": "object",
                         "properties": {
                           "mes": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
                           },
                           "fimDoMes": {
                             "type": "string"

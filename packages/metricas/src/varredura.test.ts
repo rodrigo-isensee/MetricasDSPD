@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   EQUIPES_SUSTENTACAO_ID,
   METRICA_IDS,
+  METRICAS_TENDENCIA,
   fonteDaMetrica,
   PRIORIDADES,
   TIPOS_FILTRO,
@@ -47,7 +48,7 @@ const calc = (id: MetricaId, filtros: unknown, ctx: ContextosMetricas) =>
   calcularMetrica(id, filtros as never, ctx) as { base?: { n: number } }
 
 /** As tendências do Resumo não têm filtro (só a data de corte): a varredura de filtros não se aplica (`tendencia.test.ts`). */
-const ehTendencia = (id: MetricaId): boolean => id.startsWith('TENDENCIA_')
+const ehTendencia = (id: MetricaId): boolean => METRICAS_TENDENCIA.includes(id)
 
 it('tendências: o resultado respeita o contrato e é determinístico em cada cenário', () => {
   for (const [, ctx] of CENARIOS)
@@ -67,44 +68,44 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
   const equipes = [...new Set(ctx.bm.idx.marcos.map((m) => m.slugEquipe))].sort()
   const sistemas = [...new Set(ctx.bm.idx.marcos.map((m) => m.slugSistema))].sort()
 
-  it('fluxo: todo resultado respeita o contrato em qualquer combinação de filtros', () => {
-    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap' && !ehTendencia(id))
-    for (const id of ids) {
-      for (const periodo of PERIODOS) {
-        const todos = { equipe: [], tipo: [], sistema: [], periodo }
-        const recortes = [
-          todos,
-          { ...todos, equipe: equipes.slice(0, 1) },
-          { ...todos, equipe: equipes.slice(0, 3), sistema: sistemas.slice(0, 2) },
-          { ...todos, tipo: [TIPOS_FILTRO[0]] },
-          { ...todos, tipo: [TIPOS_FILTRO[1], TIPOS_FILTRO[3]], sistema: sistemas.slice(2, 3) },
-        ]
-        for (const f of recortes) {
-          const r = calc(id, f, ctx)
-          valida(id, r)
-          expect(calc(id, f, ctx)).toEqual(r)
-        }
+  // Uma execução por métrica (it.each): a varredura inteira numa só passava de 15 s com a máquina carregada;
+  // cada métrica isolada leva uma fração disso e uma falha aponta a métrica.
+  const idsB = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap' && !ehTendencia(id))
+  it.each(idsB)('fluxo: todo resultado respeita o contrato em qualquer combinação de filtros (%s)', (id) => {
+    for (const periodo of PERIODOS) {
+      const todos = { equipe: [], tipo: [], sistema: [], periodo }
+      const recortes = [
+        todos,
+        { ...todos, equipe: equipes.slice(0, 1) },
+        { ...todos, equipe: equipes.slice(0, 3), sistema: sistemas.slice(0, 2) },
+        { ...todos, tipo: [TIPOS_FILTRO[0]] },
+        { ...todos, tipo: [TIPOS_FILTRO[1], TIPOS_FILTRO[3]], sistema: sistemas.slice(2, 3) },
+      ]
+      for (const f of recortes) {
+        const r = calc(id, f, ctx)
+        valida(id, r)
+        expect(calc(id, f, ctx)).toEqual(r)
       }
     }
   })
 
-  it('sustentação: todo resultado respeita o contrato com equipes e prioridades', () => {
-    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato' && !ehTendencia(id))
-    for (const id of ids) {
-      for (const periodo of PERIODOS) {
-        const todos = { equipe: [], prioridade: [], periodo }
-        const recortes = [
-          todos,
-          { ...todos, equipe: [EQUIPES_SUSTENTACAO_ID[0]] },
-          { ...todos, prioridade: [PRIORIDADES[0]] },
-          {
-            ...todos,
-            equipe: [...EQUIPES_SUSTENTACAO_ID.slice(1)],
-            prioridade: [PRIORIDADES[2], PRIORIDADES[4]],
-          },
-        ]
-        for (const f of recortes) valida(id, calc(id, f, ctx))
-      }
+  // Uma execução por métrica (it.each): a varredura inteira numa só passava de 15 s com a máquina carregada;
+  // cada métrica isolada leva uma fração disso e uma falha aponta a métrica.
+  const idsA = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato' && !ehTendencia(id))
+  it.each(idsA)('sustentação: todo resultado respeita o contrato com equipes e prioridades (%s)', (id) => {
+    for (const periodo of PERIODOS) {
+      const todos = { equipe: [], prioridade: [], periodo }
+      const recortes = [
+        todos,
+        { ...todos, equipe: [EQUIPES_SUSTENTACAO_ID[0]] },
+        { ...todos, prioridade: [PRIORIDADES[0]] },
+        {
+          ...todos,
+          equipe: [...EQUIPES_SUSTENTACAO_ID.slice(1)],
+          prioridade: [PRIORIDADES[2], PRIORIDADES[4]],
+        },
+      ]
+      for (const f of recortes) valida(id, calc(id, f, ctx))
     }
   })
 

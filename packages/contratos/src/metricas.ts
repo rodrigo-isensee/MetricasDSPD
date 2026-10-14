@@ -148,6 +148,9 @@ export const METRICAS_SUSTENTACAO: readonly MetricaId[] = [
   'TENDENCIA_SUST',
 ]
 
+/** Métricas de tendência mensal: uma fonte cada, sem filtros de recorte (só `dataReferencia`). Um id novo sem filtro entra aqui. */
+export const METRICAS_TENDENCIA: readonly MetricaId[] = ['TENDENCIA_FLUXO', 'TENDENCIA_SUST']
+
 /** Métricas cuja fonte é a pesquisa de percepção (nem BusinessMap, nem Acelerato). Não entram em `METRICAS_SUSTENTACAO`. */
 export const METRICAS_PESQUISA: readonly MetricaId[] = ['PV1']
 
