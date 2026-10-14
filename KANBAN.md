@@ -1,17 +1,18 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-10 10:55 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
-> WIP: Empatizar 0/2 · Idear 0/2 · Validação do usuário 1 (K-055) · Pronto para fazer 1/5 (K-034) · Em andamento: react-frontend 2 (K-056, K-057; 2 instâncias) · Code review 3/2 (K-017, K-053, K-054; K-053 fecha com o pai K-017) · QA 0/2 · Aguardando sua validação 1 PR (#2) · Bloqueados: 1 (K-017, depende do usuário: Docker)
-> Item mais antigo em andamento: K-056/K-057 (10:31). Pedido 001 concluído (PR #1 mesclado, eff026a). Atenção: Code review acima do limite (3/2); K-017 aguarda Docker na máquina para os testes MySQL.
-> Pedido 002 (`feature/arquitetura-mysql`): K-014, K-033 aprovados; K-017 re-review (bugs K-053 corrigidos, 831779d); ambiente Docker pronto (fce13e1); data-model atualizado pelo arquiteto, sem commit. Pedido 006: K-034 validado; K-035/K-036 pausados até o UX ficar livre. Pedido 007: K-055 aguarda validação (5 pontos + D-f, D-g).
+> Atualizado em: 2026-10-14 08:10 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> WIP: Empatizar 0/2 · Idear 0/2 · Validação do usuário 0 · Pronto para fazer 2/5 · Em andamento: react-frontend 1 (K-069), node-backend 1 (K-072), tech-lead 1 (K-076) · Code review 0/2 · QA 0/2 · Aguardando sua validação 1 PR (#63) · Bloqueados: 0
+> O estado detalhado, as decisões e os próximos passos estão em `docs/kanban/estado-2026-10-14.md`. Os cartões até K-064 foram concluídos e arquivados; o registro está em `docs/kanban/historico.md`. O quadro ficou parado de 2026-10-10 a 2026-10-14 e foi reconstruído em 2026-10-14.
 
 # Upstream — descoberta (Design Thinking)
 
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-035 | Discovery: métricas fora do núcleo | 006 | ux-designer | 2026-10-09 | 2026-10-09 20:53 | PAUSADO; retoma (entra em Empatizar) quando o UX ficar livre |
-| K-036 | Discovery: lacuna de valor na sustentação | 006 | ux-designer | 2026-10-09 | 2026-10-09 20:53 | PAUSADO; retoma quando o UX ficar livre |
+| K-073 | Sustentação no Operacional: front F1–F8 (visões Resumo, Diária, Semanal e Sustentação) | sust-no-operacional | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | Depende de K-069 (mexe nos mesmos filtros) e de K-072 (contratos B1 e B2). O plano está em `docs/architecture/plano-sustentacao-no-operacional.md` e vai junto com K-072 |
+| K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | Validado (`docs/ux/revisao-geral-usabilidade/04-decisoes.md`). Entra depois de K-073 (mesmas telas). O protótipo HTML vai junto com a feature |
+| K-075 | Compatibilidade com celular, iPad e tablet (3 fatias, MOB-CA-1 a 27) | 010 | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | O discovery está pronto. O usuário delegou as decisões ao time (D1 = B). Entra depois de K-074; o software-architect inclui o orçamento móvel na ADR 0003 |
+| K-077 | Retrospectiva + melhoria do Forge: parecer gravado pelo Bash fica sem autoria e trava o merge | processo | forge:agile-coach | 2026-10-14 | 2026-10-14 08:10 | Travou o #64 por horas na noite de 13 para 14. Vira PR no Forge para instruir os agentes a gravar os pareceres só com Write ou Edit |
 
 ## Empatizar e definir (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -24,7 +25,6 @@
 ## Validação do usuário
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-055 | Preferências de métricas por usuário (discovery) | 007 | ux-designer + software-architect | 2026-10-10 | 2026-10-10 10:21 | Discovery (151954d) e viabilidade (780290f) prontos; aguarda sua validação: 5 pontos + D-f, D-g |
 
 ---
 
@@ -35,97 +35,40 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-034 | Integração real (BusinessMap e Acelerato) e tela /dados | 006 | a definir | 2026-10-09 | 2026-10-10 10:04 | Validado com ajustes (decisões 2026-10-10); spec final e tela /dados em a428edf; implementação futura |
+| K-070 | [bug] IS-002: teste de desempenho C3 instável sob carga | qa-intensivo | forge:node-backend | 2026-10-14 | 2026-10-14 08:10 | Severidade baixa, parecer em `docs/qa/intensivo-sistemico.md`. Entra no PR do lote K-069 ou logo depois |
+| K-071 | [bug] IS-007: teste C5 imprime NaN e anota ok | qa-intensivo | forge:qa-engineer | 2026-10-14 | 2026-10-14 08:10 | Severidade baixa. Medido à parte: 30,1 MB |
 
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-056 | Cobertura 100% dos pacotes (contratos, metricas, mock) | 001 | react-frontend (instância 1) | 2026-10-10 | 2026-10-10 10:40 | Baseline 1b9b291; QA liga thresholds depois; 2 instâncias do mesmo agente (exceção de paralelismo) |
-| K-057 | Cobertura 100% do web | 001 | react-frontend (instância 2) | 2026-10-10 | 2026-10-10 10:40 | Baseline 1b9b291 (web 91,6/87,1/86,5/89,4) |
+| K-069 | [bug] Lote dos testes intensivos (IF-001 a 007; IS-001, 003, 004, 005 e 006) + testes novos do QA | qa-intensivo | forge:react-frontend | 2026-10-14 | 2026-10-14 07:40 | Worktree `../MetricasDSPD-bugs`, branch `fix/bugs-intensivos` (develop 376d997 + `test/qa-intensivo-main`). IF-004: a O6 segue o filtro de tipo (decisão do usuário). IS-004 já resolvido pela espera invisível |
+| K-072 | Sustentação no Operacional: back B1–B3 (contratos de tendência, biblioteca e API) + ADR 0019 | sust-no-operacional | forge:node-backend | 2026-10-14 | 2026-10-14 07:40 | Worktree `../MetricasDSPD-sust`, branch `feature/sustentacao-no-operacional`. As respostas P1 a P4 estão no plano, seção 10 |
+| K-076 | Documentação do discovery (.md) para a develop | usabilidade/sust/010 | forge:tech-lead | 2026-10-14 | 2026-10-14 07:50 | Branch `docs/discovery-md`, só com .md; os protótipos HTML seguem com cada feature. Falta apagar a branch antiga `docs/discovery-usabilidade-sust-mobile` |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-053 | [bug] K-017 r1 (id_origem, gravarStgCard, recomendados) | 002 | node-backend | 2026-10-10 | 2026-10-10 10:50 | origem code review; pai K-017; parecer docs/reviews/002-K-017-r1.md; corrigido (831779d), em re-review do tech-lead; fecha com o pai |
-| K-054 | [bug] Timeouts dos testes do web sob carga | 001 | react-frontend | 2026-10-10 | 2026-10-10 10:50 | Feito (937efa1), em review do tech-lead |
 
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 
-## Revisado, aguardando o envio da branch (documentação, fora do WIP)
-Documentos revisados e aprovados; seguem no PR de cada pedido.
-
-| ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
-|---|---|---|---|---|---|---|
-| K-014 | Arquitetura completa: overview, data-model, ADRs | 002 | software-architect + tech-lead | 2026-10-09 | 2026-10-09 21:28 | Aprovado na r2 (7783107), em `feature/arquitetura-mysql`; sem PR ainda |
-| K-033 | Rascunho do contrato da API (002) | 002 | node-backend | 2026-10-09 | 2026-10-09 21:22 | Aprovado na r2 (697802c), mesmo worktree; decisão frescor corpo × cabeçalho depende do K-034 |
-
 ## Aguardando sua validação (WIP 2 PRs)
-PR 1 (pedido 001) mesclado pelo usuário em 2026-10-10 09:50 (eff026a).
-
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| PR #2 | develop → main (docs técnicas do 001, guia do desenvolvedor 659ed9c, DoD com documentação eb4dc4d, UX/Figma 14394f5, spec de integração real a428edf) | 001/006 | usuário | 2026-10-10 | 2026-10-10 | Aberto pelo usuário; aguarda sua validação |
+| PR #63 | Release homolog → main: espera invisível nos painéis (K-065), front via API (K-066) e correção do E2E de desempenho | — | usuário | 2026-10-13 | 2026-10-14 07:00 | Portão verde (5d2b70a) e homolog-aprovada verde. Falta a sua aprovação (Review → Approve) e o merge com merge commit. Muda a interface |
 
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-058 | Documentação técnica do 001 (`docs/tecnica/`, 6428396, 51fdb4c) | 001 | software-architect + tech-lead | 2026-10-10 | 2026-10-10 | Pronto na develop; segue no PR #2 (ID K-058 atribuído nesta atualização) |
-| K-011 | Pré-entrega, envio da branch e descrição do PR | 001 | tech-lead | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-018 | ADR 0003 + ADR 0002 + ADR 0001 e plano rev. 3 | 003 | software-architect → tech-lead | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-015 | Práticas de engenharia | 002 | tech-lead → software-architect | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-004 | Front fase A1: scaffold, biblioteca de cálculo e gerador mock | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-022 | Front fase A2: shell, filtros, tema e componentes base | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-027 | [bug] Code review fase A (14 bloqueantes) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-028 | [bug] UX fase A (8 altos) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-029 | [ajuste] UX fase A (médios e baixos) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-030 | Portão `npm run pronto`, matriz REGRAS_METRICA | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-031 | Spec da matriz REGRAS_METRICA | 001 | software-architect | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-016 | Monorepo: extração para `packages/` | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-032 | Aceitação dos cartões B | 001 | qa-engineer | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-039 | [bug] QA fase A (médios e baixos) + R3 | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-006 | Front B1a: Operacional diário | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-023 | Front B1b: Operacional semanal | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-007 | Front B2: Tático | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-024 | Front B2b: Estratégico | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-008 | Front B3a: Sustentação | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-025 | Front B3b: Espera invisível | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-026 | Front B3c: Visão geral | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-041 | [ajuste] Fronteiras ESLint ADR 0002 | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-042 | [ajuste] Integração entre painéis (EI) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-043 | [ajuste] Rodada consolidada (B3 r1, K-041, K-042, F4) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-044 | [bug] QA/UX B3 | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-045 | [bug] QA B12 e O7 saldo | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-046 | [bug] UX B12 (2 altos, 5 médios) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-047 | [bug] Faixa Pede atenção com carregando/erro | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-048 | [bug] QA final: 007 (S7) e 008 (CLS) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-049 | [bug] Reserva de altura só no esqueleto (bloqueante do branch-final) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-050 | [bug] CLS a 375 px (008) | 001 | react-frontend | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-009 | QA: automação E2E + axe e parecer | 001 | qa-engineer | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-010 | Revisão de UX da interface implementada | 001 | ux-designer | 2026-10-09 | 2026-10-10 09:50 | Merge do PR #1 (eff026a) pelo usuário |
-| K-001 | Especificação de UX do dashboard (rev. 1 e rev. 2) | 001 | ux-designer | 2026-10-09 | 2026-10-09 18:12 | Commits bf0baca, a60a37a |
-| K-002 | ADR 0001 e plano técnico do dashboard mock (rev. 1 e 2) | 001 | software-architect | 2026-10-09 | 2026-10-09 18:13 | Commits f929ed1, fdb3b1d |
-| K-003 | Plano de testes e esqueleto do pacote E2E | 001 | qa-engineer | 2026-10-09 | 2026-10-09 18:03 | Commit c157fdd |
+| K-065 | Espera invisível dentro de cada painel | espera-invisivel | forge:react-frontend | 2026-10-13 | 2026-10-14 07:00 | #64 (376d997) na develop e #65 na homolog; segue no PR #63 |
+| K-066 | Front via API (HttpFonteMetricas, VITE_FONTE) | — | forge:react-frontend | 2026-10-13 | 2026-10-13 22:44 | #59 e #61 na homolog; segue no PR #63 |
+| K-067 | QA intensivo de filtros na main (IF-001 a 007) | qa-intensivo | forge:qa-engineer | 2026-10-13 | 2026-10-13 | Parecer em `docs/qa/intensivo-filtros.md`; os testes vão com K-069 |
+| K-068 | QA intensivo sistêmico na main (IS-001 a 007) | qa-intensivo | forge:qa-engineer | 2026-10-13 | 2026-10-13 | Aprovado com ressalvas, sem bugs críticos nem altos; os testes vão com K-069 |
 
 ## Bloqueado
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-017 | Migrações iniciais e seed | 002 | node-backend | 2026-10-09 | 2026-10-10 10:50 | Origem: Code review. Testes MySQL dependem de Docker na máquina (ação do usuário); ambiente pronto em fce13e1; re-review dos bugs K-053 em curso |
-
-## Processo (pedidos 003–005) — fora do WIP e das métricas de fluxo
-Cartões de processo e reuniões não contam no WIP do fluxo de entrega nem em lead/cycle time; têm um único estado.
-
-| ID | Cartão | Pedido | Responsável | Estado | Obs. |
-|---|---|---|---|---|---|
-| K-012 | Reunião de checkpoint do pedido 001 (escopo e performance) | 003 | jarvis | Feito 2026-10-09 18:52 | Ata em `docs/alinhamentos/`; gera K-018 |
-| K-013 | Kickoff do pedido 002 | 003 | jarvis | Feito 2026-10-09 18:52 | Ata em `docs/alinhamentos/`; libera K-014, K-016, K-017 |
-| K-019 | Popular o quadro e o histórico | 004 | jarvis | Feito 2026-10-09 18:50 | — |
-| K-020 | Commit dos arquivos de time e dos pedidos 002–005 | 005 | tech-lead | Feito 2026-10-09 | 6b2b3eb, 9f11794, 43cb7ad, afb6382 |
-| K-021 | Auditoria do quadro e limites de WIP iniciais | 004 | agile-coach | Feito 2026-10-09 | Mudanças no histórico e em `melhorias.md` |
-| K-037 | Pedido 006: paralelismo e discovery adiantado | 006 | jarvis | Em curso (K-035/K-036 pausados) | `docs/pedidos/006-*.md`; gera K-034..K-036 |
-| K-038 | Reunião de melhoria nº 1 (fase A) | 006 | jarvis | Feito 2026-10-09 | Ata `docs/alinhamentos/2026-10-09-melhoria-01-fase-a.md`; M-004..M-012; branch `develop` e worktree 002 (84d8f14); gerou K-030 |
-| K-051 | Retrospectiva do pedido 001 | 001 | agile-coach | Feito 2026-10-10 | `docs/retrospectivas/2026-10-10-001.md` |
 
 ## Políticas locais (acrescentadas na auditoria K-021)
 - **Entrada é o backlog:** cartão com dependência aberta de outro cartão fica em Entrada; só entra em "Pronto para fazer" o que pode ser puxado agora (a espera por ata de reunião em andamento é a única exceção, e deve constar em Obs.).
