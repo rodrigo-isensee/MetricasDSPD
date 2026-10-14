@@ -1,4 +1,6 @@
 # IS-008 - format:check do pronto reprova dois arquivos do lote
+- Status: resolvido
+- Correção: 0c7d348 (`prettier --write` nos dois arquivos; diff só de formatação, sem mudança de código; verificado em 2026-10-14 com `pnpm run format:check` e `pnpm run lint` verdes)
 - Severidade: média (bloqueia `pnpm run pronto`; contorno trivial)
 - Responsável sugerido: react-frontend (modelo.ts) e node-backend/qualquer dev (desempenho.test.ts)
 - Ambiente: fix/bugs-intensivos, HEAD be4dfb1
