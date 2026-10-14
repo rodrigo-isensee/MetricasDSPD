@@ -36,6 +36,8 @@ interface Props {
   gerar: (selecionados: readonly ItemExportavel[]) => Promise<ArquivoGerado>
   /** Relógio injetado (nome do arquivo na prévia). */
   agora: () => Date
+  /** Na personalizada, chaves (`nivel:cartao`) que já nascem marcadas, dentro do limite do arquivo e só se visíveis. */
+  preSelecionar?: readonly string[]
 }
 
 const TITULO: Record<'visao-geral' | 'personalizada' | 'painel', string> = {
@@ -49,7 +51,15 @@ const TITULO: Record<'visao-geral' | 'personalizada' | 'painel', string> = {
  * No "Exportar" do painel nasce com tudo marcado; na personalizada, vazio, nível a nível. A Visão geral
  * não tem escolha: exporta o resumo inteiro. Foco preso, Esc e retorno do foco vêm do Radix.
  */
-export function DialogoExportar({ base, itens, mock, carregando = false, gerar, agora }: Props) {
+export function DialogoExportar({
+  base,
+  itens,
+  mock,
+  carregando = false,
+  gerar,
+  agora,
+  preSelecionar,
+}: Props) {
   const [aberto, setAberto] = useState(false)
   const [sel, setSel] = useState<string[]>([])
   const [estado, setEstado] = useState<Estado>(OCIOSO)
@@ -74,7 +84,13 @@ export function DialogoExportar({ base, itens, mock, carregando = false, gerar, 
   const abrir = (v: boolean) => {
     descartar.current = !v
     if (v) {
-      setSel(personalizada || visaoGeral ? [] : selecaoInicial(itens))
+      setSel(
+        personalizada && preSelecionar
+          ? selecaoInicial(itens.filter((i) => preSelecionar.includes(i.chave)))
+          : personalizada || visaoGeral
+            ? []
+            : selecaoInicial(itens),
+      )
       setEstado(OCIOSO)
     }
     setAberto(v)

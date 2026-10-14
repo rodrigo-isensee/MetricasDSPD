@@ -14,6 +14,8 @@ export function filtrosParaQuery(filtros: object, extra: Record<string, string> 
   lista('tipo', f.tipo, (t) => TIPO_ID[t as TipoFiltro])
   lista('sistema', f.sistema)
   lista('prioridade', f.prioridade)
+  // Só as tendências do Resumo mandam a data de referência (mesmo eixo nas duas fontes); as demais usam o padrão.
+  if (typeof f.dataReferencia === 'string') q.set('dataReferencia', f.dataReferencia)
   const p = f.periodo as { tipo: string; de?: string; ate?: string } | undefined
   if (p) {
     q.set('periodo', p.tipo)
