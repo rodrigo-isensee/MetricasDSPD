@@ -20,3 +20,6 @@ O O6 (previsibilidade P85/P50 por classe de serviço) deve respeitar o filtro de
 ## Evidência
 E2E IF-A `/operacional?cadencia=semanal` (`e2e/tests/intensivo-filtros.spec.ts`): `O6 diz "Não afetado por: Tipo de demanda", mas a base muda: "Base: 116 itens concluídos" com o filtro x "Base: 198 itens concluídos" sem` (URL com `equipe=fluig,dados&tipo=melhoria,divida-tecnica&sistema=fluig,data-lake`).
 Propriedade INV-F2 (`packages/metricas/src/filtros.intensivo.test.ts`), nas duas bases: `O6 (aplica equipe/sistema/periodo) mudou com {"equipe":[],"tipo":["Melhoria","Dívida técnica"],...}`. Na tela (sonda Playwright): rodapé do O6 com "Filtros aplicados: Equipe Fluig · Equipe Dados" e "Não afetado por: Tipo de demanda" com `tipo=melhoria` ativo.
+
+## Decisão do usuário (2026-10-13)
+- IF-004: a O6 **segue o filtro de tipo**, como a O3 de onde deriva; a tela passa a dizer que o filtro se aplica (mínimo de 20 itens continua valendo).
