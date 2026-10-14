@@ -157,3 +157,6 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-10-14 17:50 — K-077: os 3 PRs do Forge ficaram prontos localmente, mas o push foi barrado pelo pre-push (a suíte não roda dentro de sessão Claude). A ação foi para o usuário. Volta 2 do review da Sustentação iniciada.
 - 2026-10-14 18:10 — K-072+K-073: volta 2 reprovada só pelo pronto da raiz (V1 a V3); volta 3 com o node-backend e o react-frontend.
 - 2026-10-14 18:20 — Usuário ausente: subir recursos de forma equilibrada. Tech-lead abrindo o PR de documentação e do quadro (chore/forge-0.13.0 → develop). Orçamento móvel (K-075, architect) aguarda vaga no R-TETO.
+- 2026-10-14 18:40 — K-072+K-073: volta 3 do back concluída (95fdf1a, d4ac4dd), pronto da raiz verde (exit 0). A volta 3 do review espera o tech-lead terminar o PR de docs. Orçamento móvel (K-075) com o architect. Usuário fora: pediu o remote control (não acionável pelo agente) e consumo consciente.
+- 2026-10-14 18:50 — K-075: orçamento móvel incluído na ADR 0003 pelo architect (sem commit, no diretório principal; vai num PR de docs depois do atual).
+- 2026-10-14 19:00 — PR #73 (docs do 011, adendo, retro e quadro) mesclado na develop (cdb5f8a). K-072+K-073 na volta 3 do review. Abertos K-081 (registro da versão do Forge, ação do usuário) e K-082 (PR da ADR 0003).
