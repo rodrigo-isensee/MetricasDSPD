@@ -208,11 +208,11 @@ const J = { inicio: '2026-07-18', fim: '2026-10-09' }
 
 describe('TendenciaFluxo e TendenciaSustentacao (sem painel de preferências)', () => {
   it('carregando mostra o esqueleto de altura fixa; erro mostra "Tentar de novo" da série', async () => {
-    const a = noRouter(<TendenciaFluxo q={q('carregando')} o3={undefined} />)
+    const a = noRouter(<TendenciaFluxo q={q('carregando')} qO3={q('ok')} />)
     expect(screen.getByTestId('tendencia-fluxo-carregando')).toBeInTheDocument()
     a.unmount()
     const r = q('erro')
-    const b = noRouter(<TendenciaFluxo q={r} o3={undefined} />)
+    const b = noRouter(<TendenciaFluxo q={r} qO3={q('ok')} />)
     await userEvent.click(
       within(screen.getByTestId('tendencia-fluxo-erro')).getByRole('button', {
         name: 'Tentar de novo',
@@ -236,12 +236,35 @@ describe('TendenciaFluxo e TendenciaSustentacao (sem painel de preferências)', 
         },
       ],
     } as never
-    noRouter(<TendenciaFluxo q={q('ok', t)} o3={undefined} />)
+    noRouter(<TendenciaFluxo q={q('ok', t)} qO3={q('ok')} />)
     expect(screen.getByTestId('tendencia-fluxo-p85')).toHaveTextContent(
       'P85 do tempo de ciclo, em dias úteis, últimos 6 meses',
     )
     expect(screen.getByTestId('tendencia-fluxo-p85-vazio')).toBeInTheDocument()
     expect(screen.getByTestId('tendencia-fluxo-concluidos')).toBeInTheDocument()
+  })
+  it('O3 com erro: a série de P85 mostra o próprio erro (não diz que falta histórico) e a de concluídos segue', async () => {
+    const t = {
+      criterios: { serie: [], janela: [] },
+      meses: [
+        {
+          mes: '2026-08',
+          fimDoMes: '2026-08-31',
+          janelaPercentis: { ...J, unidade: 'semanas', quantidade: 12 },
+          p85PorTipo: [],
+          concluidos: 4,
+        },
+      ],
+    } as never
+    const o3 = q('erro')
+    noRouter(<TendenciaFluxo q={q('ok', t)} qO3={o3} />)
+    const erro = screen.getByTestId('tendencia-fluxo-p85-erro')
+    expect(erro).toHaveTextContent('P85 indisponível')
+    expect(screen.queryByText(/Ainda não há histórico suficiente/)).toBeNull()
+    expect(screen.queryByTestId('tendencia-fluxo-p85')).toBeNull()
+    expect(screen.getByTestId('tendencia-fluxo-concluidos')).toBeInTheDocument()
+    await userEvent.click(within(erro).getByRole('button', { name: 'Tentar de novo' }))
+    expect(o3.recarregar).toHaveBeenCalledOnce()
   })
   it('Sustentação: as duas séries', () => {
     const t = {

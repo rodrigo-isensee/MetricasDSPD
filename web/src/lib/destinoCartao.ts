@@ -1,5 +1,5 @@
 import type { CartaoCatalogo } from '@metricas-dspd/contratos'
-import { visaoDoHash } from '@/features/operacional/visao'
+import { visaoDoHash } from '@/features/navegacao/visao'
 
 /**
  * Endereço de um cartão: sempre dentro do Operacional, na visão dona do cartão (tabela hash → visão):

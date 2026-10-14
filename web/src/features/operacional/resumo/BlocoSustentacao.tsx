@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { FaixaAtencao, estadoFaixa } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { itensSustentacao } from '../atencao'
-import { ROTULO_VISAO } from '../visao'
+import { ROTULO_VISAO } from '@/features/navegacao/visao'
 import { BlocoResumo } from './BlocoResumo'
 import { FILTROS_SUST_RESUMO, filtrosTendencia, useReferenciaDasTendencias } from './consultas'
 import { useDestinoDaVisao, useDestinoNaVisao } from './destinos'
@@ -19,7 +19,7 @@ function ConteudoSustentacao() {
   const qS2 = useMetrica('S2', f)
   const qS1 = useMetrica('S1', f)
   const qS3 = useMetrica('S3', f)
-  const qT = useMetrica('TENDENCIA_SUST', filtrosTendencia(referencia.dataReferencia) as never, {
+  const qT = useMetrica('TENDENCIA_SUST', filtrosTendencia(referencia.dataReferencia), {
     habilitada: referencia.pronta && [qS2, qS1, qS3].every((q) => q.estado !== 'carregando'),
   })
   const itens = itensSustentacao(qS2.dados, qS1.dados).map((i) => ({

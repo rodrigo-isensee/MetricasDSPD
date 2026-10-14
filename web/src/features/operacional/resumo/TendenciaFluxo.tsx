@@ -44,10 +44,10 @@ export function ErroTendencia({ id, onTentarDeNovo }: { id: string; onTentarDeNo
  */
 export function TendenciaFluxo({
   q,
-  o3,
+  qO3,
 }: {
   q: MetricaQuery<ResultadoDe<'TENDENCIA_FLUXO'>>
-  o3: ResultadoDe<'O3'> | undefined
+  qO3: MetricaQuery<ResultadoDe<'O3'>>
 }) {
   const prefs = usePreferenciasPainel()
   const id = 'tendencia-fluxo'
@@ -57,6 +57,9 @@ export function TendenciaFluxo({
   if (q.estado === 'carregando') return <EsqueletoTendencia id={id} />
   if (q.estado === 'erro') return <ErroTendencia id={id} onTentarDeNovo={q.recarregar} />
   const t = q.dados as ResultadoDe<'TENDENCIA_FLUXO'>
+  const o3 = qO3.dados
+  // Sem o O3 não há tipo, e sem tipo o P85 do mês não existe: o histórico está lá, só não se sabe de qual tipo.
+  const p85Indisponivel = verP85 && qO3.estado === 'erro'
   const tipo = o3 ? tipoPredominante(o3)?.tipo : undefined
   const p85 = serieP85(t, tipo)
   const concl = serieConcluidos(t)
@@ -68,7 +71,17 @@ export function TendenciaFluxo({
       aria-label="Tendência mês a mês, últimos 6 meses"
       data-testid={id}
     >
-      {verP85 && (
+      {p85Indisponivel && (
+        <div data-testid="tendencia-fluxo-p85-erro">
+          <EstadoErro
+            codigo="O3"
+            titulo="P85 indisponível"
+            texto="Não foi possível carregar o tempo de ciclo, que define o tipo da série."
+            onTentarDeNovo={qO3.recarregar}
+          />
+        </div>
+      )}
+      {verP85 && !p85Indisponivel && (
         <SerieMensal
           id="tendencia-fluxo-p85"
           titulo={`P85 do tempo de ciclo${tipo ? ` · ${tipo}` : ''}, em dias úteis, últimos 6 meses`}

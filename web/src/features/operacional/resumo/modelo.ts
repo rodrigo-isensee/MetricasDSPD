@@ -272,7 +272,8 @@ export function fraseDaSerie(pontos: readonly PontoMensal[], comparar: boolean):
   const mes = mesPorExtenso(ultimo.mes)
   if (ultimo.valor === null) return `Em ${mes}: ${ultimo.texto}. Valor não publicado.`
   if (!comparar || !antes || antes.valor === null) return `Em ${mes}: ${ultimo.texto}.`
-  const d = ultimo.valor - antes.valor
+  // A diferença sai dos valores como aparecem na tela (arredondados), para a frase bater com os números.
+  const d = Math.round(ultimo.valor) - Math.round(antes.valor)
   const cmp =
     d === 0
       ? `igual a ${mesPorExtenso(antes.mes)}`

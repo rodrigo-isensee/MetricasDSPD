@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams, type Location } from 'react-router'
 import { buscaVigente, registrarBusca } from '@/features/filtros/buscaPendente'
 import { textoBusca } from '@/features/filtros/codec'
-import { comVisao, resolverVisao, type Visao } from './visao'
+import { comVisao, resolverVisao, type Visao } from '@/features/navegacao/visao'
 
 interface EstadoNav {
   filtrosInvalidos?: string[]
@@ -21,8 +21,7 @@ export interface UsoVisao {
 export function useVisaoOperacional(): UsoVisao {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const { pathname, search, hash, state: bruto } = useLocation() as Location<EstadoNav | null>
-  const state = bruto
+  const { pathname, search, hash, state } = useLocation() as Location<EstadoNav | null>
   const resolvida = resolverVisao(params, hash)
   const { corrigir, invalido } = resolvida
   const canonica = textoBusca(resolvida.busca)

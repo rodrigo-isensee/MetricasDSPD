@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 import { SeletorCadencia } from '@/components/ui'
-import { ROTULO_VISAO, VISOES, type Visao } from './visao'
+import { ROTULO_VISAO, VISOES, type Visao } from '@/features/navegacao/visao'
 
 /** Pré-carga do chunk da visão Sustentação: o seletor a chama na intenção (ponteiro ou foco), antes do clique. */
 export const carregarSustentacao = () => import('@/features/sustentacao/VisaoSustentacao')
@@ -9,28 +9,29 @@ export const carregarSustentacao = () => import('@/features/sustentacao/VisaoSus
  * A escolha deve manter o foco no rádio (7.2). Trocar de visão pode trocar o molde da página (Resumo, fluxo e
  * Sustentação são moldes diferentes) e remontar o seletor: o foco pedido espera a visão mudar e volta ao rádio.
  */
-let focoPendente = false
-
 export function SeletorVisao({
   visao,
   onEscolher,
+  focoPendenteRef,
 }: {
   visao: Visao
   onEscolher: (v: Visao) => void
+  /** Vive na página (que não remonta ao trocar de visão), não no módulo: nada vaza entre montagens. */
+  focoPendenteRef: RefObject<boolean>
 }) {
   const raiz = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!focoPendente) return
-    focoPendente = false
+    if (!focoPendenteRef.current) return
+    focoPendenteRef.current = false
     raiz.current?.querySelector<HTMLInputElement>('input:checked')?.focus()
-  }, [visao])
+  }, [visao, focoPendenteRef])
   return (
     <div ref={raiz}>
       <SeletorCadencia
         rotulo="Visão"
         valor={visao}
         onChange={(v) => {
-          focoPendente = true
+          focoPendenteRef.current = true
           onEscolher(v)
         }}
         onIntencao={(v) => {

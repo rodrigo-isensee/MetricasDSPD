@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router'
-import { hrefDaVisao, visaoDoHash, type Visao } from '../visao'
+import { hrefDaVisao, visaoDoHash, type Visao } from '@/features/navegacao/visao'
 
 /**
  * Destino de um cartão ou âncora a partir do Resumo: a visão dona do hash (tabela 4.2), com os dois conjuntos de

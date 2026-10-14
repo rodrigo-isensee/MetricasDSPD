@@ -1,4 +1,4 @@
-import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
+import type { FiltrosDe, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { useEstadoColeta } from '@/data'
 
 /**
@@ -42,5 +42,6 @@ export function useReferenciaDasTendencias(): {
 }
 
 /** Filtros das tendências: só a data de referência (o contrato não aceita filtro; `strict` na API). */
-export const filtrosTendencia = (dataReferencia: string | undefined): Record<string, never> =>
-  (dataReferencia ? { dataReferencia } : {}) as Record<string, never>
+export const filtrosTendencia = (
+  dataReferencia: string | undefined,
+): FiltrosDe<'TENDENCIA_FLUXO'> => (dataReferencia ? { dataReferencia } : {})

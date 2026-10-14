@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useRef, useState } from 'react'
 import { Link, useSearchParams, type Location } from 'react-router'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { EsqueletoCartao } from '@/components/ui'
@@ -24,7 +24,7 @@ import { IndiceDeSecoes, SECAO_MAIS_METRICAS, type SecaoDoIndice } from './Indic
 import { VisaoResumo } from './resumo/VisaoResumo'
 import { ANUNCIO_DA_VISAO, carregarSustentacao, SeletorVisao } from './SeletorVisao'
 import { useVisaoOperacional } from './useVisaoOperacional'
-import { hrefDaVisao, resolverVisao, ROTULO_VISAO, type Visao } from './visao'
+import { hrefDaVisao, resolverVisao, ROTULO_VISAO, type Visao } from '@/features/navegacao/visao'
 
 // A visão Sustentação é um chunk à parte: só baixa quando a pessoa a escolhe, chega por link ou mostra intenção.
 const VisaoSustentacao = lazy(carregarSustentacao)
@@ -117,11 +117,14 @@ const tituloDaPagina = (l: Pick<Location, 'search' | 'hash'>): string =>
 export default function OperacionalPage() {
   const { visao, escolher } = useVisaoOperacional()
   const [anuncio, setAnuncio] = useState('')
+  const focoPendenteRef = useRef(false)
   const aoEscolher = (v: Visao) => {
     setAnuncio(ANUNCIO_DA_VISAO[v])
     escolher(v)
   }
-  const seletor = <SeletorVisao visao={visao} onEscolher={aoEscolher} />
+  const seletor = (
+    <SeletorVisao visao={visao} onEscolher={aoEscolher} focoPendenteRef={focoPendenteRef} />
+  )
   const comPergunta = (v: 'diaria' | 'semanal') => (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
       {seletor}

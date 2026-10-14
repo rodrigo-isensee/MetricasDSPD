@@ -208,7 +208,7 @@ describe('paginarO2', () => {
       const recebidos: unknown[] = []
       const r = await aplicarSimulacao('vazio', id, { dataReferencia: '2026-10-09' }, (f) => {
         recebidos.push(f)
-        return fonte.obter(id, f as never)
+        return fonte.obter(id, f)
       })
       expect(recebidos).toEqual([{ dataReferencia: '2026-10-09' }])
       expect((r as { meses: unknown[] }).meses).toEqual([])

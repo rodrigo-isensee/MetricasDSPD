@@ -298,6 +298,10 @@ describe('frase de leitura e utilidades', () => {
     expect(fraseDaSerie([p('2026-08', 10, '10'), p('2026-09', 14, '14')], true)).toBe(
       'Em setembro: 14, 4 a mais que em agosto.',
     )
+    // a diferença sai dos números como aparecem na tela: 14,4 -> 14 e 12,6 -> 13 dão "1 a menos"
+    expect(fraseDaSerie([p('2026-08', 14.4, '14'), p('2026-09', 12.6, '13')], true)).toBe(
+      'Em setembro: 13, 1 a menos que em agosto.',
+    )
     expect(fraseDaSerie([p('2026-08', 14, '14'), p('2026-09', 14, '14')], true)).toBe(
       'Em setembro: 14, igual a agosto.',
     )

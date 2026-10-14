@@ -455,6 +455,16 @@ describe('Resumo: estados e anúncio (CA-31)', () => {
     ).toBeInTheDocument()
   })
 
+  it('erro no O3: a tendência não afirma falta de histórico e oferece "Tentar de novo" do P85', async () => {
+    renderizarApp('/operacional?mock=erro:o3')
+    const erro = await screen.findByTestId('tendencia-fluxo-p85-erro', undefined, {
+      timeout: 15000,
+    })
+    expect(erro).toHaveTextContent('P85 indisponível')
+    expect(screen.queryByText(/Ainda não há histórico suficiente/)).toBeNull()
+    expect(screen.getByTestId('tendencia-fluxo-concluidos')).toBeInTheDocument()
+  })
+
   it('erro só na tendência: o bloco continua e o "Tentar de novo" é da série', async () => {
     renderizarApp('/operacional?mock=erro-uma-vez:tendencia-sust')
     const erro = await screen.findByTestId('tendencia-sustentacao-erro', undefined, {

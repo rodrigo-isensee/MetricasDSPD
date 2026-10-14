@@ -1,7 +1,7 @@
 import { FaixaAtencao, estadoFaixa } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { itensDiaria, itensSemanal } from '../atencao'
-import { ROTULO_VISAO } from '../visao'
+import { ROTULO_VISAO } from '@/features/navegacao/visao'
 import { Link } from 'react-router'
 import { BlocoResumo } from './BlocoResumo'
 import { FILTROS_FLUXO_RESUMO, filtrosTendencia, useReferenciaDasTendencias } from './consultas'
@@ -32,7 +32,7 @@ function ConteudoFluxo() {
   const qO10 = useMetrica('O10', f)
   const todas = [qO3, qO4, qO2, qO12, qBL, qO1, qO10]
   // A tendência só dispara depois dos números e dos alertas do bloco (resolvidos, com sucesso ou não).
-  const qT = useMetrica('TENDENCIA_FLUXO', filtrosTendencia(referencia.dataReferencia) as never, {
+  const qT = useMetrica('TENDENCIA_FLUXO', filtrosTendencia(referencia.dataReferencia), {
     habilitada: referencia.pronta && todas.every((q) => q.estado !== 'carregando'),
   })
   const itens = [
@@ -105,7 +105,7 @@ function ConteudoFluxo() {
           />
         ))}
       </dl>
-      <TendenciaFluxo q={qT} o3={qO3.dados} />
+      <TendenciaFluxo q={qT} qO3={qO3} />
       <p className="flex flex-wrap items-center gap-4 text-sm">
         <Link
           to={destinoVisao('semanal')}

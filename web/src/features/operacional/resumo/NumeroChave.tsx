@@ -8,7 +8,7 @@ import {
   usePreferenciasPainel,
 } from '@/components/ui'
 import type { EstadoMetrica } from '@/data'
-import { ROTULO_VISAO, type Visao } from '../visao'
+import { ROTULO_VISAO, type Visao } from '@/features/navegacao/visao'
 import { useDestinoNaVisao } from './destinos'
 import type { NumeroModelo } from './modelo'
 

@@ -1,5 +1,5 @@
 import type { Dominio } from '@metricas-dspd/contratos'
-import { resolverVisao } from '@/features/operacional/visao'
+import { resolverVisao } from '@/features/navegacao/visao'
 
 export const NOME_FONTE: Record<Dominio, string> = {
   businessmap: 'BusinessMap',
