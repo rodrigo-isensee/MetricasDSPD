@@ -90,12 +90,13 @@ describe('Mais métricas deste painel', () => {
     expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
   })
 
-  it('link direto com o id da seção de complementares (#compl-sust-qualidade) abre a seção e leva ao primeiro cartão dela', async () => {
+  it('link direto com o id da seção de complementares (#compl-sust-qualidade) abre a seção e leva o foco ao título dela', async () => {
     renderizarApp('/operacional?cadencia=sustentacao#COMPL-SUST-QUALIDADE')
     const cartao = await screen.findByTestId('metrica-S8')
     expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
-    await waitFor(() => expect(within(cartao).getByRole('heading', { level: 3 })).toHaveFocus())
-    expect(document.getElementById('compl-sust-qualidade')).not.toBeNull()
+    const secao = document.getElementById('compl-sust-qualidade') as HTMLElement
+    expect(secao).toContainElement(cartao)
+    await waitFor(() => expect(within(secao).getByRole('heading', { level: 2 })).toHaveFocus())
   })
 
   it('a antiga /sustentacao#compl-qualidade chega à mesma seção, aberta', async () => {
