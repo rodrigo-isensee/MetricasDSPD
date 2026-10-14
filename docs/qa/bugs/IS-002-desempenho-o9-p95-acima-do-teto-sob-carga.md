@@ -25,3 +25,6 @@ Como a rodada falhou no `mock`, o `pnpm -r` parou e o `web` nem rodou nela.
 
 ## Sugestão (para o dono decidir)
 Recalibrar perto da medição de cada métrica (ou usar a mediana de várias calibrações) em vez de uma calibração única; não aumentar o teto às cegas (o teto é o que pega regressão real).
+
+## Correção
+Correção: 10765a8 (teste de perf do server: CPU time e melhor de 3 rodadas; o caso do packages/mock não foi alterado aqui)
