@@ -30,4 +30,4 @@ Logs das execuções (trechos): `web pronto: Error: Test timed out in 15000ms.` 
 Medir quais testes passam de 5 s sem carga e dividi-los ou trocar a montagem de painel inteiro por montagem do cartão; alternativa é limitar o paralelismo do pronto (`--workspace-concurrency`) em vez de só aumentar o timeout.
 
 ## Correção
-- Correção: 4000300 (fix(web): timeout de teste calibrado pela medição). Medição: 830 testes, 20 acima de 5 s, pior 11 s; testTimeout 15 s para 45 s.
+- Correção: 4000300 (fix(web): timeout de teste calibrado pela medição). Medição: 830 testes, 20 acima de 5 s, pior 11 s; testTimeout 15 s para 90 s (45 s ainda estourou sob load 10); ver também o commit seguinte.
