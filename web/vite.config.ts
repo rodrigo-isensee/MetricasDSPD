@@ -50,11 +50,12 @@ export default defineConfig({
     // IS-001: os testes que montam um painel inteiro (jsdom + Recharts, vários cartões) levam de 4 a 11 s
     // com a máquina folgada e com cobertura (medido: 20 de 830 passam de 5 s, o pior leva 11 s). Com o
     // `pronto` rodando os pacotes em paralelo e a estação compartilhada (load 6 a 14), o tempo vai a 2-4x
-    // e os 15 s anteriores estouravam por espera de CPU, nunca por asserção. 45 s dá ~4x de folga ao pior
-    // caso medido; regressão de desempenho de verdade é pega pelo orçamento de ADR 0003 (E2E perf), não
-    // por timeout de teste unitário.
-    testTimeout: 45000,
-    hookTimeout: 45000,
+    // e os 15 s anteriores estouravam por espera de CPU, nunca por asserção. Com load 10 (medido numa rodada
+    // do pronto) 45 s ainda estourou em 4 testes que passam em 10 s com a máquina folgada; 90 s dá ~8x de
+    // folga ao pior caso medido. Regressão de desempenho de verdade é pega pelo orçamento do ADR 0003
+    // (E2E perf), não por timeout de teste unitário.
+    testTimeout: 90000,
+    hookTimeout: 90000,
     // K-054: render pesado (jsdom + Recharts) é CPU-bound; com todos os núcleos o tempo por teste
     // estourava sob carga. 4 workers mantêm o tempo total e baixam o pico por teste de ~15 s para ~4 s.
     maxWorkers: 4,
