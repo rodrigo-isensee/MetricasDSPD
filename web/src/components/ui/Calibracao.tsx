@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { fmtData, fmtDataCurta } from '@/lib/formatar'
+import { fmtIntervalo } from '@/lib/formatar'
 import { Icone } from './Icone'
 
 /** "T2" e "EI-SUST" viram o id de métrica ("T2", "EI_SUST"). */
@@ -87,7 +87,7 @@ interface FaixaProps {
  * ninguém. `role="status"`, ícone + texto. A janela é definida pelo sistema, nunca cadastrada.
  */
 export function FaixaCalibracao({ fonte, janelas, saibaMais, testid }: FaixaProps) {
-  const periodo = janelas.map((j) => `${fmtDataCurta(j.inicio)} a ${fmtData(j.fim)}`).join('; ')
+  const periodo = janelas.map((j) => fmtIntervalo(j.inicio, j.fim)).join('; ')
   return (
     <div
       role="status"

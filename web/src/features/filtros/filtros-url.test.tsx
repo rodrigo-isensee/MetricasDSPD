@@ -87,6 +87,13 @@ describe('filtros ↔ URL', () => {
     expect(screen.queryByTestId('aviso-filtros-invalidos')).toBeNull()
   })
 
+  it('período personalizado inválido no link: o aviso fala do período, não de filtros inexistentes', async () => {
+    renderizarBarra('/operacional?periodo=custom')
+    const aviso = await screen.findByTestId('aviso-filtros-invalidos')
+    expect(aviso).toHaveTextContent('O período personalizado do link é inválido')
+    expect(aviso).not.toHaveTextContent('filtros do link não existem')
+  })
+
   it('2 ou mais equipes: aviso de consolidado; nenhum rótulo compara equipes', async () => {
     renderizarBarra('/operacional?equipe=fluig,senior')
     expect(await screen.findByTestId('aviso-consolidado')).toHaveTextContent(
