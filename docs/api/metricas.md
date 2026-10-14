@@ -193,7 +193,7 @@ Plano: `docs/architecture/plano-sustentacao-no-operacional.md`. Decisão: [ADR 0
 `ResultadoS3.janela: { total: number, p1p2: Taxa }`, calculado sobre **todo o período filtrado** (chamados abertos entre `periodo.inicio` e `periodo.fim`, não a soma de meses nem só os meses cujo primeiro dia cai no período): `total` é o volume e `p1p2` é "k de n" de P1+P2 (percentual só com n >= 20). Alimenta o número-chave "Volume na janela e proporção de P1+P2" do Resumo (P3: 12 semanas). O resto do S3 não mudou. O campo é obrigatório no schema de resposta; consumidor que ignora campo extra não muda.
 
 ### Mudanças de contrato para o front (Sustentação no Operacional)
-- Ids novos em `METRICA_IDS`: `TENDENCIA_FLUXO`, `TENDENCIA_SUST` (`ContratoMetricas` com filtros `Record<string, never>`; `SCHEMAS_RESULTADO`, `ResultadoTendenciaFluxo`, `ResultadoTendenciaSust`).
+- Ids novos em `METRICA_IDS`: `TENDENCIA_FLUXO`, `TENDENCIA_SUST` (`ContratoMetricas` com filtros `SoDataReferencia` (`{ dataReferencia?: string }`); `SCHEMAS_RESULTADO`, `ResultadoTendenciaFluxo`, `ResultadoTendenciaSust`).
 - `ResultadoS3.janela` novo (acima).
 - `METRICAS_SUSTENTACAO` ganha `TENDENCIA_SUST`; `fonteDaMetrica` classifica as duas novas por fonte. Fica com o front (F4) a troca de ids de seção em `cartoes.ts` prevista no plano; nenhum id de cartão muda.
 

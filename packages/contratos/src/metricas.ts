@@ -60,6 +60,8 @@ interface Par<F, R> {
   filtros: F
   resultado: R
 }
+/** Filtros das tendências: nenhum filtro de recorte, só a data de referência opcional (ADR 0019). */
+export type SoDataReferencia = { dataReferencia?: string }
 type Fluxo<R> = Par<FiltrosFluxo, R>
 type Sust<R> = Par<FiltrosSustentacao, R>
 
@@ -119,9 +121,9 @@ export interface ContratoMetricas {
   /** Sem filtros: sempre os padrões de cada painel (spec 3.1). */
   VISAO_GERAL: Par<Record<string, never>, ResultadoVisaoGeral>
   /** BusinessMap, sem filtros: sempre os padrões do fluxo (12 semanas). Só `dataReferencia`. */
-  TENDENCIA_FLUXO: Par<Record<string, never>, ResultadoTendenciaFluxo>
+  TENDENCIA_FLUXO: Par<SoDataReferencia, ResultadoTendenciaFluxo>
   /** Acelerato, sem filtros: sempre os padrões da sustentação. Só `dataReferencia`. */
-  TENDENCIA_SUST: Par<Record<string, never>, ResultadoTendenciaSust>
+  TENDENCIA_SUST: Par<SoDataReferencia, ResultadoTendenciaSust>
 }
 
 export type FiltrosDe<K extends MetricaId> = ContratoMetricas[K]['filtros']

@@ -1305,7 +1305,7 @@ export const resultadoPV1 = z.discriminatedUnion('status', [
 export const marcacoes = marcacaoCriterioSchema
 
 /* ---------- Tendência mensal do Resumo do Operacional (ADR 0019) ---------- */
-const mesCivil = z.string() // AAAA-MM
+const mesCivil = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/) // AAAA-MM
 /**
  * Um ponto por mês-calendário fechado, no máximo 6. Cada ponto é a métrica de origem calculada na data de
  * referência `fimDoMes` com a janela móvel de 12 semanas (nenhuma fórmula nova); as contagens são do mês.
