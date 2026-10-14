@@ -139,10 +139,14 @@ test.describe('perf', () => {
       await painel.esperarCartoesProntos();
     }
     const cdp = await page.context().newCDPSession(page);
+    // IS-007: sem Performance.enable o getMetrics volta vazio.
+    await cdp.send('Performance.enable');
     await cdp.send('HeapProfiler.collectGarbage');
     const { metrics } = await cdp.send('Performance.getMetrics');
     const usado = metrics.find((m) => m.name === 'JSHeapUsedSize')?.value ?? Number.NaN;
     const mb = usado / 1024 / 1024;
+    // Medida ausente nunca é "ok".
+    expect(Number.isFinite(mb) && mb > 0, `C5: JSHeapUsedSize indisponível (${usado})`).toBe(true);
     registrar('C5_heapMB', mb);
     console.log(`[perf] C5 heap após todos os painéis: ${mb.toFixed(1)} MB (alerta > ${ORCAMENTO.C5_heapMB} MB)`);
     // Alerta: só anota, não falha (ADR 0003: "não (alerta)").

@@ -8,6 +8,7 @@ import {
   fmtDiasCorridos,
   fmtDiasUteis,
   fmtHorasUteis,
+  fmtIntervalo,
   fmtMes,
   fmtPct,
   fmtTrimestre,
@@ -17,6 +18,11 @@ import {
 } from './formatar'
 
 describe('formatação pt-BR', () => {
+  it('intervalo: o início leva o ano quando difere do fim (IF-007)', () => {
+    expect(fmtIntervalo('2026-07-18', '2026-10-09')).toBe('18/07 a 09/10/2026')
+    expect(fmtIntervalo('2025-10-10', '2026-10-09')).toBe('10/10/2025 a 09/10/2026')
+  })
+
   it('data, mês, trimestre e porcentagem', () => {
     expect(fmtDataCurta('2026-10-09')).toBe('09/10')
     expect(fmtDataHora('2026-10-09T06:10:33-03:00')).toBe('09/10/2026 06:10')

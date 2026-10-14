@@ -64,7 +64,7 @@ export function calcularEIBM(ctx: ContextoBM, f: FiltrosFluxo, nivel: NivelBM): 
   const periodo = periodoDe(ctx, f)
   const janela = janelaPercentis(ctx, f, g)
   const espec = JANELA_POR_GRANULARIDADE[g]
-  const cards = selecionar(ctx, f, g, { semTipo: true }).filter((m) =>
+  const cards = selecionar(ctx, f, g, { semTipo: true, semEquipe: nivel === 'FL3' }).filter((m) =>
     g === 'story' ? ehDemanda(m) : true,
   )
   const itens: ItemEI[] = []

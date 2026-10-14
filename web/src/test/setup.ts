@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { cloneElement, isValidElement, type ReactElement } from 'react'
 import { afterEach, vi } from 'vitest'
+import { limparBuscaPendente } from '@/features/filtros/buscaPendente'
 
 // jsdom não mede layout: o ResponsiveContainer recebe um tamanho fixo para o gráfico renderizar.
 vi.mock('recharts', async (importar) => {
@@ -23,6 +24,7 @@ configure({ asyncUtilTimeout: 5000 })
 
 afterEach(() => {
   cleanup()
+  limparBuscaPendente()
   window.localStorage.clear()
 })
 

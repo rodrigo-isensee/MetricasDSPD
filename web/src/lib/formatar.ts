@@ -33,6 +33,12 @@ export function fmtDataCurta(iso: string): string {
   return `${d}/${m}`
 }
 
+/** Intervalo "09/07 a 09/10/2026"; com anos diferentes, o início leva o ano ("10/10/2025 a 09/10/2026"). */
+export function fmtIntervalo(inicio: string, fim: string): string {
+  const mesmoAno = inicio.slice(0, 4) === fim.slice(0, 4)
+  return `${mesmoAno ? fmtDataCurta(inicio) : fmtData(inicio)} a ${fmtData(fim)}`
+}
+
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
 /** 2026-06 -> jun/2026 */
