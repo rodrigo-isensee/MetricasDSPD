@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: bugs-intensivos
 branch: fix/bugs-intensivos
-commit: 4e47bcf
+commit: 6c7f5b7
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-14
@@ -59,3 +59,7 @@ Itens 3, 5 e 6 viram cartões próprios no quadro (decisão do pedido de re-revi
 9. Acessibilidade: sem mudança de semântica. O `FiltroMulti` mantém as caixas nativas.
 10. Documentação: contrato da O6 regenerado, bugs com "Correção:" (o IS-001 será ajustado pelo QA) e a seção de URL do front documentada.
 11. Commits: Conventional Commits em português, um por mudança coerente e com as linhas de atribuição. 0c7d348 segue o padrão.
+
+## Atualização para 6c7f5b7 (merge da develop)
+
+O merge `6c7f5b7` trouxe da `develop` somente documentação (#66 e #67: pedido 010, especificações de UX e KANBAN). Nenhum arquivo de código mudou desde 4e47bcf (`git diff d2152e5 6c7f5b7 --stat` lista só `docs/` e `KANBAN.md`). Parecer mantido: aprovado (revisão registrada pelo tech-lead).
