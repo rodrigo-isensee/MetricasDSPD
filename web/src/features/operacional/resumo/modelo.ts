@@ -1,5 +1,5 @@
 import type { MarcacaoCriterio, ResultadoDe, Taxa } from '@metricas-dspd/contratos'
-import { MINIMO_AMOSTRA } from '@metricas-dspd/contratos'
+import { MINIMO_AMOSTRA, TIPOS_CARD } from '@metricas-dspd/contratos'
 import { fmtInteiro, fmtNumero, fmtPct, plural } from '@/lib/formatar'
 import { contarAvaliadasS1, contarAvaliadasS2, contarForaS1, contarForaS2 } from '../atencao'
 
@@ -31,11 +31,30 @@ export interface NumeroModelo {
 
 const poucos = (n: number) => `Poucos itens (n=${fmtInteiro(n)}). Estatística não publicada.`
 
+type ClasseO3 = ResultadoDe<'O3'>['classes'][number]
+
+const posicaoDoTipo = (tipo: string): number => {
+  const i = (TIPOS_CARD as readonly string[]).indexOf(tipo)
+  return i === -1 ? TIPOS_CARD.length : i
+}
+
+/** Tipos por mais itens; no empate, a ordem fixa do cartão O3 (`TIPOS_CARD`), nunca a de chegada dos dados (A9). */
+function tiposOrdenados(o3: ResultadoDe<'O3'>): ClasseO3[] {
+  return [...o3.classes].sort(
+    (a, b) =>
+      b.n - a.n || posicaoDoTipo(a.tipo) - posicaoDoTipo(b.tipo) || a.tipo.localeCompare(b.tipo),
+  )
+}
+
 /** Tipo predominante da janela: o de mais itens (o mesmo critério da aba padrão do cartão O3). Nunca entre tipos (P1). */
-export function tipoPredominante(
-  o3: ResultadoDe<'O3'>,
-): ResultadoDe<'O3'>['classes'][number] | undefined {
-  return [...o3.classes].sort((a, b) => b.n - a.n)[0]
+export function tipoPredominante(o3: ResultadoDe<'O3'>): ClasseO3 | undefined {
+  return tiposOrdenados(o3)[0]
+}
+
+/** Outros tipos com exatamente a mesma contagem do predominante, na ordem do cartão O3 ("empate com Bug"). */
+export function tiposEmpatados(o3: ResultadoDe<'O3'>): string[] {
+  const [primeiro, ...resto] = tiposOrdenados(o3)
+  return primeiro ? resto.filter((c) => c.n === primeiro.n).map((c) => c.tipo) : []
 }
 
 export function numeroP85(o3: ResultadoDe<'O3'>): NumeroModelo {
@@ -51,7 +70,8 @@ export function numeroP85(o3: ResultadoDe<'O3'>): NumeroModelo {
   }
   if (!c) return { ...base, valor: null, base: '0 itens concluídos', insuficiente: poucos(0) }
   const e = c.estatistica
-  const itens = `${fmtInteiro(c.n)} ${plural(c.n, 'item concluído', 'itens concluídos')}`
+  const empate = tiposEmpatados(o3)
+  const itens = `${fmtInteiro(c.n)} ${plural(c.n, 'item concluído', 'itens concluídos')}${empate.length ? `; empate com ${empate.join(', ')}` : ''}`
   if (e.status === 'ok')
     return {
       ...base,

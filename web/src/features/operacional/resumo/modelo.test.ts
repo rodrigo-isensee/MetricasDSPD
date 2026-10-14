@@ -15,6 +15,7 @@ import {
   serieSla,
   serieVolume,
   tipoPredominante,
+  tiposEmpatados,
   type PontoMensal,
 } from './modelo'
 
@@ -43,6 +44,24 @@ describe('número P85 (P1: tipo predominante, nunca entre tipos)', () => {
       visao: 'semanal',
     })
     expect(numeroP85(o3(classe('Bug', 1))).base).toBe('1 item concluído')
+  })
+  it('empate no tipo predominante: ordem fixa do cartão O3, não a de chegada, e o rótulo diz "empate com"', () => {
+    const a = o3(classe('Melhoria', 40), classe('Incidente', 40), classe('Bug interno', 40))
+    const b = o3(classe('Bug interno', 40), classe('Melhoria', 40), classe('Incidente', 40))
+    for (const o of [a, b]) {
+      expect(tipoPredominante(o)?.tipo).toBe('Incidente')
+      expect(tiposEmpatados(o)).toEqual(['Melhoria', 'Bug interno'])
+      expect(numeroP85(o)).toMatchObject({
+        rotulo: 'P85 do tempo de ciclo · Incidente',
+        base: '40 itens concluídos; empate com Melhoria, Bug interno',
+      })
+    }
+    // tipo fora do catálogo desempata por último, e por nome
+    const c = o3(classe('Zeta', 5), classe('Alfa', 5), classe('Melhoria', 5))
+    expect(tipoPredominante(c)?.tipo).toBe('Melhoria')
+    expect(tiposEmpatados(c)).toEqual(['Alfa', 'Zeta'])
+    expect(tiposEmpatados(o3())).toEqual([])
+    expect(tiposEmpatados(o3(classe('Bug', 30), classe('Melhoria', 90)))).toEqual([])
   })
   it('abaixo de 20 itens não publica', () => {
     const n = numeroP85(o3(classe('Dívida técnica', 14, 'insuficiente')))
