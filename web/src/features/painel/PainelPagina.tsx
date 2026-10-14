@@ -151,18 +151,18 @@ export function PainelFluxo({
 }
 
 /**
- * Molde do painel de SUSTENTAÇÃO (Acelerato), com filtros próprios que nunca vêm do fluxo. `prefixo` (`sust_`)
- * guarda os filtros na mesma URL dos do fluxo, quando a Sustentação é uma visão do Operacional.
+ * Molde da visão SUSTENTAÇÃO (Acelerato), com filtros próprios que nunca vêm do fluxo. `prefixo` (`sust_`) guarda os
+ * filtros dela na mesma URL dos filtros do fluxo (a Sustentação é uma visão do Operacional).
  */
 export function PainelSustentacao({
   children,
   prefixo,
   ...base
 }: Base & {
-  prefixo?: string
+  prefixo: string
   children: (filtros: FiltrosSustentacao, uso: UseFiltros<FiltrosSustentacao>) => ReactNode
 }) {
-  const uso = useFiltros('sustentacao', prefixo ? { prefixo } : undefined)
+  const uso = useFiltros('sustentacao', { prefixo })
   return (
     <Casca painelDoCorpo="sustentacao" uso={uso} base={base} fonte="Acelerato" dominio="acelerato">
       {children(uso.filtros, uso)}

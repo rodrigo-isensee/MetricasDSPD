@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useLocation, useNavigate, type Location } from 'react-router'
-import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
+import { CabecalhoPainel, ErroPagina } from '@/components/ui'
 import { useDataReferencia, useErroDePainelSimulado } from '@/data'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
 import { BotaoExportar } from '@/features/exportar'
@@ -8,8 +8,6 @@ import { LinhaFiltrosGuardados } from '@/features/filtros'
 import { AvisoFiltrosInvalidos } from '@/features/filtros/AvisoFiltrosInvalidos'
 import { BlocoFluxo } from './BlocoFluxo'
 import { BlocoSustentacao } from './BlocoSustentacao'
-
-const SEM_FILTROS = () => undefined
 
 /**
  * "Exportar vários painéis" nasce com as métricas dos números-chave dos dois blocos (Operacional e Operacional ·
@@ -40,40 +38,32 @@ export function VisaoResumo({ extra }: { extra: ReactNode }) {
   if (erroSimulado)
     return <ErroPagina erro="Erro simulado (mock=erro)" onTentarDeNovo={() => undefined} />
   return (
-    <ProvedorContextoPainel
-      filtrosAtivos={[]}
-      removerFiltro={SEM_FILTROS}
-      limparFiltros={SEM_FILTROS}
-    >
-      <div className="flex flex-col gap-4">
-        <CabecalhoPainel
-          titulo="Operacional"
-          pergunta="Estamos bem?"
-          publico="Para coordenadores e líderes · uma leitura rápida das duas fontes."
-          dataCorte={dataCorte}
-          fonte="BusinessMap e Acelerato (blocos separados)"
-          slug="operacional"
-          frescor={
-            <div className="flex flex-col gap-1" data-testid="frescor-fontes">
-              <FrescorFonte dominio="businessmap" comNome />
-              <FrescorFonte dominio="acelerato" comNome />
-            </div>
-          }
-        />
-        {extra}
-        <AvisoFiltrosInvalidos
-          invalidos={state?.filtrosInvalidos ?? []}
-          onEntendi={() =>
-            void navigate({ pathname, search, hash }, { replace: true, state: null })
-          }
-        />
-        <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
-          <BotaoExportar base="personalizada" preSelecionar={PRE_SELECAO} />
-        </div>
-        <LinhaFiltrosGuardados visao="resumo" />
-        <BlocoFluxo />
-        <BlocoSustentacao />
+    <div className="flex flex-col gap-4">
+      <CabecalhoPainel
+        titulo="Operacional"
+        pergunta="Estamos bem?"
+        publico="Para coordenadores e líderes · uma leitura rápida das duas fontes."
+        dataCorte={dataCorte}
+        fonte="BusinessMap e Acelerato (blocos separados)"
+        slug="operacional"
+        frescor={
+          <div className="flex flex-col gap-1" data-testid="frescor-fontes">
+            <FrescorFonte dominio="businessmap" comNome />
+            <FrescorFonte dominio="acelerato" comNome />
+          </div>
+        }
+      />
+      {extra}
+      <AvisoFiltrosInvalidos
+        invalidos={state?.filtrosInvalidos ?? []}
+        onEntendi={() => void navigate({ pathname, search, hash }, { replace: true, state: null })}
+      />
+      <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
+        <BotaoExportar base="personalizada" preSelecionar={PRE_SELECAO} />
       </div>
-    </ProvedorContextoPainel>
+      <LinhaFiltrosGuardados visao="resumo" />
+      <BlocoFluxo />
+      <BlocoSustentacao />
+    </div>
   )
 }

@@ -82,8 +82,6 @@ export function filtrosSemDados<F>(id: MetricaId, filtros: F): F {
   const fonte = fonteDaMetrica(id)
   // A pesquisa só aceita `dataReferencia`: nenhum filtro a esvazia, e o "sem pesquisa" é um estado próprio.
   if (fonte === 'pesquisa') return filtros
-  // As tendências também só aceitam `dataReferencia` (um filtro daria 400 na API real): o vazio delas é `meses: []`.
-  if (ehTendencia(id)) return filtros
   return fonte === 'acelerato'
     ? ({ ...base, equipe: [SEM_DADOS] } as F)
     : ({ ...base, equipe: [SEM_DADOS], sistema: [SEM_DADOS] } as F)

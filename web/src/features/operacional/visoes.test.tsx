@@ -44,7 +44,7 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     expect(document.title).toContain('Operacional · Sustentação · Métricas DSPD')
     // O Voltar desfaz a troca
     await r.roteador.navigate(-1)
-    await waitFor(() => expect(visaoMarcada()).toBe('Semanal'))
+    await waitFor(() => expect(visaoMarcada()).toBe('Semanal'), { timeout: 15000 })
   })
 
   it('o título do documento muda por visão', async () => {

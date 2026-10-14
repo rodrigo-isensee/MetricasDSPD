@@ -127,9 +127,7 @@ describe('tela Visão geral', () => {
       '/operacional?cadencia=sustentacao',
     )
     for (const l of screen.getByRole('main').querySelectorAll('a[href^="/operacional"]'))
-      expect(l.getAttribute('href'), l.textContent ?? '').toMatch(
-        /cadencia=(diaria|semanal|sustentacao)/,
-      )
+      expect(l.getAttribute('href'), l.textContent).toMatch(/cadencia=(diaria|semanal|sustentacao)/)
   })
 
   it('itens de atenção levam ao cartão do painel, sem filtro nem parâmetro mock', async () => {

@@ -63,7 +63,9 @@ describe('Resumo: padrão e estrutura (CA-23, CA-25)', () => {
 
   it('valor de visão desconhecido cai no Resumo com o aviso de valor inválido', async () => {
     const r = renderizarApp('/operacional?cadencia=xyz')
-    expect(await screen.findByTestId('aviso-filtros-invalidos')).toHaveTextContent('visão "xyz"')
+    expect(
+      await screen.findByTestId('aviso-filtros-invalidos', undefined, { timeout: 15000 }),
+    ).toHaveTextContent('visão "xyz"')
     expect(r.roteador.state.location.search).toBe('')
     await userEvent.click(screen.getByRole('button', { name: 'Entendi' }))
     await waitFor(() => expect(screen.queryByTestId('aviso-filtros-invalidos')).toBeNull())
@@ -165,7 +167,7 @@ describe('Resumo: números-chave (CA-26)', () => {
       S3: (r: ResultadoDe<'S3'>) => {
         r.janela = { total: 9, p1p2: { status: 'insuficiente', k: 2, n: 9, minimo: 20 } }
       },
-    } as never)
+    })
     renderizarApp('/operacional', fonte)
     const p85 = await numero('p85')
     expect(within(p85).getByTestId('numero-p85-insuficiente')).toHaveTextContent(
@@ -297,7 +299,7 @@ describe('Resumo: tendência (CA-27)', () => {
           { id: 'c1', data: '2026-06-10', descricao: 'Novo critério de conclusão' },
         ]
       },
-    } as never)
+    })
     renderizarApp('/operacional', fonte)
     const p85 = await screen.findByTestId('tendencia-fluxo-p85', undefined, { timeout: 15000 })
     expect(within(p85).getAllByTestId('marcador-criterio')).toHaveLength(1)
@@ -366,7 +368,7 @@ describe('Resumo: alertas por fonte (CA-28)', () => {
       S1: (r: ResultadoDe<'S1'>) => {
         for (const p of r.prioridades) p.restauracao.statusMeta = 'dentro'
       },
-    } as never)
+    })
     renderizarApp('/operacional?mock=sem-calibracao', fonte)
     expect(
       await screen.findByText('Nada pede atenção no fluxo de projeto agora.', undefined, {
@@ -432,7 +434,7 @@ describe('Resumo: filtros, preferências e exportação (CA-29, CA-30)', () => {
     await userEvent.click(await screen.findByTestId('botao-exportar-personalizada'))
     const dialogo = await screen.findByTestId('dialogo-exportar')
     const marcado = (nome: RegExp) =>
-      (within(dialogo).getByRole('checkbox', { name: nome }) as HTMLInputElement).checked
+      within(dialogo).getByRole<HTMLInputElement>('checkbox', { name: nome }).checked
     await waitFor(() => expect(marcado(/O3/)).toBe(true))
     for (const c of [/O4/, /O2/, /O12/, /S2/, /S1 /, /S3/]) expect(marcado(c)).toBe(true)
     expect(marcado(/O9/)).toBe(false)

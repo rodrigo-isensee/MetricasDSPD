@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { cartoesDoPainel } from '@metricas-dspd/contratos'
 import {
   TABELA_HASH,
+  entradasDaTabela,
   VISAO_PADRAO,
   comVisao,
   hrefDaVisao,
@@ -79,8 +80,10 @@ describe('tabela hash -> visão (4.2)', () => {
       (c) => c.id,
     )
     expect(new Set(cartoes).size).toBe(cartoes.length)
-    // A tabela inteira é construída sem âncora repetida (a montagem falha se houver).
-    expect(TABELA_HASH.size).toBeGreaterThan(40)
+    // Nenhuma âncora aparece duas vezes (nem na mesma visão, nem em visões diferentes).
+    const ancoras = entradasDaTabela().map(([a]) => a)
+    expect(new Set(ancoras).size).toBe(ancoras.length)
+    expect(TABELA_HASH.size).toBe(ancoras.length)
   })
 
   it('os ids de seção complementar da sustentação não colidem com os do fluxo', () => {

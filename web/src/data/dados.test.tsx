@@ -45,6 +45,32 @@ describe('useMetrica com fonte real (API)', () => {
   })
 })
 
+describe('useMetrica: consulta adiada (habilitada: false)', () => {
+  it('fica em "carregando" sem chamar a fonte e consulta quando habilita', async () => {
+    const fonte = {
+      tipo: 'api',
+      obter: vi.fn().mockResolvedValue({ base: { n: 5 } }),
+    } as unknown as FonteMetricas
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={new QueryClient()}>
+        <FonteMetricasProvider fonte={fonte}>
+          <MemoryRouter>{children}</MemoryRouter>
+        </FonteMetricasProvider>
+      </QueryClientProvider>
+    )
+    const filtros = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } }
+    const { result, rerender } = renderHook(
+      ({ habilitada }) => useMetrica('O4', filtros, { habilitada }),
+      { wrapper, initialProps: { habilitada: false } },
+    )
+    expect(result.current.estado).toBe('carregando')
+    expect(fonte.obter).not.toHaveBeenCalled()
+    rerender({ habilitada: true })
+    await waitFor(() => expect(result.current.estado).toBe('ok'))
+    expect(fonte.obter).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('MockFonteMetricas: opções e latência', () => {
   it('aceita semente e data de corte; sem latência fixa, sorteia um atraso por chamada', async () => {
     const fonte = new MockFonteMetricas({ semente: 7, hoje: '2026-09-30' })

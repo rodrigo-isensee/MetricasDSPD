@@ -18,7 +18,7 @@ export const ROTULO_VISAO: Record<Visao, string> = {
   sustentacao: 'Sustentação',
 }
 
-const ehVisao = (v: string | null): v is Visao => (VISOES as readonly string[]).includes(v ?? '')
+const ehVisao = (v: string): v is Visao => (VISOES as readonly string[]).includes(v)
 
 /** `cadencia` desconhecido cai no Resumo e é sinalizado (aviso de valor inválido, 2.6). */
 export function lerVisao(params: URLSearchParams): { visao: Visao; invalido: string | null } {
@@ -40,31 +40,41 @@ const ANCORAS_DO_RESUMO: readonly string[] = [
   'tendencia-sustentacao',
 ]
 
-/** Tabela hash → visão, derivada do catálogo (nada de lista escrita à mão além do que o catálogo não tem). */
-function montarTabela(): ReadonlyMap<string, Visao> {
-  const tabela = new Map<string, Visao>()
-  const por = (id: string, visao: Visao) => {
-    if (tabela.has(id)) throw new Error(`Âncora duplicada entre visões: ${id}`)
-    tabela.set(id, visao)
-  }
-  for (const c of cartoesDoPainel('operacional')) {
-    por(c.id, CARTOES_DA_DIARIA.includes(c.id) ? 'diaria' : 'semanal')
-    if (c.grupo === 'nucleo' && !CARTOES_DA_DIARIA.includes(c.id) && !tabela.has(c.secao))
-      por(c.secao, 'semanal')
-    if (c.grupo === 'complementar' && !tabela.has(`compl-${c.secao}`))
-      por(`compl-${c.secao}`, 'semanal')
-  }
-  for (const c of cartoesDoPainel('sustentacao')) {
-    por(c.id, 'sustentacao')
-    if (c.grupo !== 'complementar' && !tabela.has(c.secao)) por(c.secao, 'sustentacao')
-    if (c.grupo === 'complementar' && !tabela.has(`compl-${c.secao}`))
-      por(`compl-${c.secao}`, 'sustentacao')
-  }
-  for (const a of ANCORAS_DO_RESUMO) por(a, 'resumo')
-  return tabela
+/**
+ * Pares âncora → visão, derivados do catálogo (nada de lista escrita à mão além do que o catálogo não tem).
+ * Exportados em lista para o teste provar que nenhuma âncora pertence a duas visões.
+ */
+export function entradasDaTabela(): [string, Visao][] {
+  const operacional = cartoesDoPainel('operacional')
+  const sustentacao = cartoesDoPainel('sustentacao')
+  const doNucleoFluxo = operacional.filter(
+    (c) => c.grupo === 'nucleo' && !CARTOES_DA_DIARIA.includes(c.id),
+  )
+  const secoes = (cs: typeof operacional) => [...new Set(cs.map((c) => c.secao))]
+  return [
+    ...operacional.map((c): [string, Visao] => [
+      c.id,
+      CARTOES_DA_DIARIA.includes(c.id) ? 'diaria' : 'semanal',
+    ]),
+    ...secoes(doNucleoFluxo).map((s): [string, Visao] => [s, 'semanal']),
+    ...secoes(operacional.filter((c) => c.grupo === 'complementar')).map((s): [string, Visao] => [
+      `compl-${s}`,
+      'semanal',
+    ]),
+    ...sustentacao.map((c): [string, Visao] => [c.id, 'sustentacao']),
+    ...secoes(sustentacao.filter((c) => c.grupo !== 'complementar')).map((s): [string, Visao] => [
+      s,
+      'sustentacao',
+    ]),
+    ...secoes(sustentacao.filter((c) => c.grupo === 'complementar')).map((s): [string, Visao] => [
+      `compl-${s}`,
+      'sustentacao',
+    ]),
+    ...ANCORAS_DO_RESUMO.map((a): [string, Visao] => [a, 'resumo']),
+  ]
 }
 
-export const TABELA_HASH: ReadonlyMap<string, Visao> = montarTabela()
+export const TABELA_HASH: ReadonlyMap<string, Visao> = new Map(entradasDaTabela())
 
 /** Visão dona do hash (sem diferenciar maiúsculas); `null` para vazio, `#mais-metricas` ou desconhecido. */
 export function visaoDoHash(hash: string): Visao | null {

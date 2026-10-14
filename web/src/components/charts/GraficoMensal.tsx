@@ -50,14 +50,14 @@ function TickMes({
   payload,
   semValor,
 }: {
-  x?: number
-  y?: number
-  payload?: { value: string }
+  x: string | number
+  y: string | number
+  payload: { value: unknown }
   semValor: ReadonlySet<string>
 }) {
-  const mes = payload?.value ?? ''
+  const mes = String(payload.value)
   return (
-    <g transform={`translate(${x ?? 0},${y ?? 0})`}>
+    <g transform={`translate(${x},${y})`}>
       <text textAnchor="middle" fill="var(--texto-2)" fontSize={12}>
         <tspan x={0} dy={12}>
           {fmtMes(mes)}
@@ -100,7 +100,7 @@ export function GraficoMensal({
           stroke={EIXO.stroke}
           interval={0}
           height={semValor.size > 0 ? 44 : 28}
-          tick={<TickMes semValor={semValor} />}
+          tick={(p) => <TickMes x={p.x} y={p.y} payload={p.payload} semValor={semValor} />}
         />
         <YAxis
           stroke={EIXO.stroke}
