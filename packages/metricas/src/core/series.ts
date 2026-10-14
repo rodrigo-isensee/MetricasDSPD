@@ -79,3 +79,35 @@ export function trimestresEntre(inicioDia: number, fimDia: number, hojeDia: numb
   }
   return out
 }
+
+/** Meses da tendência do Resumo (ADR 0019): os 6 últimos meses-calendário fechados. */
+export const MESES_TENDENCIA = 6
+
+/**
+ * Os `n` últimos meses-calendário cujo último dia é menor ou igual ao dia de referência, do mais antigo ao mais
+ * recente. O mês em curso fica de fora; se a referência é o último dia do mês, esse mês já está fechado.
+ */
+export function mesesFechados(hojeDia: number, n: number): Balde[] {
+  let m = mesDeDia(hojeDia)
+  if (ultimoDiaDoMes(m) > hojeDia) m = mesDeDia(primeiroDiaDoMes(m) - 1)
+  const out: Balde[] = []
+  for (let i = 0; i < n; i++) {
+    const f = ultimoDiaDoMes(m)
+    out.unshift({ chave: m, inicioDia: primeiroDiaDoMes(m), fimDia: f, emAndamento: false })
+    m = mesDeDia(primeiroDiaDoMes(m) - 1)
+  }
+  return out
+}
+
+/** Do primeiro dia do mais antigo ao último dia do mais recente de uma lista de meses (não vazia). */
+export function limitesDosMeses(baldes: readonly Balde[]): {
+  inicioDia: number
+  primeiroFimDia: number
+  fimDia: number
+} {
+  return {
+    inicioDia: (baldes[0] as Balde).inicioDia,
+    primeiroFimDia: (baldes[0] as Balde).fimDia,
+    fimDia: (baldes[baldes.length - 1] as Balde).fimDia,
+  }
+}

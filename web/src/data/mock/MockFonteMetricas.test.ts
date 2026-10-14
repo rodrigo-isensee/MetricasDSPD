@@ -152,7 +152,11 @@ describe('parâmetro oculto ?mock=', () => {
   })
   it('vazio força o resultado sem itens em todas as métricas (O1 mantém os dias úteis como base)', async () => {
     // A pesquisa não tem itens a esvaziar: sem carga ela mostra o estado próprio "sem pesquisa" (testado à parte).
-    for (const id of METRICA_IDS.filter((i) => i !== 'VISAO_GERAL' && i !== 'PV1')) {
+    // As tendências do Resumo (TENDENCIA_*) só aceitam `dataReferencia`: nenhum filtro as esvazia (ADR 0019); o estado
+    // vazio delas é o de série sem itens, tratado pela tarefa F6 do plano da Sustentação no Operacional.
+    const semFiltro = (i: string) =>
+      i === 'VISAO_GERAL' || i === 'PV1' || i.startsWith('TENDENCIA_')
+    for (const id of METRICA_IDS.filter((i) => !semFiltro(i))) {
       const f = fonteDaMetrica(id) === 'acelerato' ? sust({ tipo: '6m' }) : fluxo({ tipo: '12s' })
       const r = await aplicarSimulacao('vazio', id, f, (x) => fonte.obter(id, x as never))
       expect(ehVazio(id, r), id).toBe(true)

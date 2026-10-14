@@ -52,6 +52,8 @@ export type ResultadoPV1 = z.infer<typeof s.resultadoPV1>
 export type BlocoPesquisaConsolidado = z.infer<typeof s.blocoPesquisaConsolidado>
 export type ResultadoEI = z.infer<typeof s.resultadoEI>
 export type ResultadoVisaoGeral = z.infer<typeof s.resultadoVisaoGeral>
+export type ResultadoTendenciaFluxo = z.infer<typeof s.resultadoTendenciaFluxo>
+export type ResultadoTendenciaSust = z.infer<typeof s.resultadoTendenciaSust>
 export type AlertaCodigo = z.infer<typeof s.alertaCodigo>
 
 interface Par<F, R> {
@@ -116,6 +118,10 @@ export interface ContratoMetricas {
   EI_SUST: Sust<ResultadoEI>
   /** Sem filtros: sempre os padrões de cada painel (spec 3.1). */
   VISAO_GERAL: Par<Record<string, never>, ResultadoVisaoGeral>
+  /** BusinessMap, sem filtros: sempre os padrões do fluxo (12 semanas). Só `dataReferencia`. */
+  TENDENCIA_FLUXO: Par<Record<string, never>, ResultadoTendenciaFluxo>
+  /** Acelerato, sem filtros: sempre os padrões da sustentação. Só `dataReferencia`. */
+  TENDENCIA_SUST: Par<Record<string, never>, ResultadoTendenciaSust>
 }
 
 export type FiltrosDe<K extends MetricaId> = ContratoMetricas[K]['filtros']
@@ -137,6 +143,7 @@ export const METRICAS_SUSTENTACAO: readonly MetricaId[] = [
   'S12',
   'O17',
   'EI_SUST',
+  'TENDENCIA_SUST',
 ]
 
 /** Métricas cuja fonte é a pesquisa de percepção (nem BusinessMap, nem Acelerato). Não entram em `METRICAS_SUSTENTACAO`. */

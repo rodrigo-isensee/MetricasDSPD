@@ -46,6 +46,18 @@ const CENARIOS: [string, ContextosMetricas][] = [
 const calc = (id: MetricaId, filtros: unknown, ctx: ContextosMetricas) =>
   calcularMetrica(id, filtros as never, ctx) as { base?: { n: number } }
 
+/** As tendências do Resumo não têm filtro (só a data de corte): a varredura de filtros não se aplica (`tendencia.test.ts`). */
+const ehTendencia = (id: MetricaId): boolean => id.startsWith('TENDENCIA_')
+
+it('tendências: o resultado respeita o contrato e é determinístico em cada cenário', () => {
+  for (const [, ctx] of CENARIOS)
+    for (const id of ['TENDENCIA_FLUXO', 'TENDENCIA_SUST'] as const) {
+      const r = calc(id, {}, ctx)
+      expect(SCHEMAS_RESULTADO[id].safeParse(r).success, id).toBe(true)
+      expect(calc(id, {}, ctx)).toEqual(r)
+    }
+})
+
 const valida = (id: MetricaId, resultado: unknown) => {
   const r = SCHEMAS_RESULTADO[id].safeParse(resultado)
   expect(r.success, `${id}: ${r.success ? '' : r.error.message.slice(0, 300)}`).toBe(true)
@@ -56,7 +68,7 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
   const sistemas = [...new Set(ctx.bm.idx.marcos.map((m) => m.slugSistema))].sort()
 
   it('fluxo: todo resultado respeita o contrato em qualquer combinação de filtros', () => {
-    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
+    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap' && !ehTendencia(id))
     for (const id of ids) {
       for (const periodo of PERIODOS) {
         const todos = { equipe: [], tipo: [], sistema: [], periodo }
@@ -77,7 +89,7 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
   })
 
   it('sustentação: todo resultado respeita o contrato com equipes e prioridades', () => {
-    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato')
+    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato' && !ehTendencia(id))
     for (const id of ids) {
       for (const periodo of PERIODOS) {
         const todos = { equipe: [], prioridade: [], periodo }
