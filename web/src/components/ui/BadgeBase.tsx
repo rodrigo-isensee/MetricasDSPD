@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import type { BaseAmostral } from '@metricas-dspd/contratos'
 import { MINIMO_AMOSTRA } from '@metricas-dspd/contratos'
-import { fmtData, fmtDataCurta, fmtInteiro } from '@/lib/formatar'
+import { fmtData, fmtInteiro, fmtIntervalo } from '@/lib/formatar'
 import { Icone } from './Icone'
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
 
 function janelaTexto(j: BaseAmostral['janela']): string | null {
   if (!j) return null
-  return j.inicio === j.fim ? fmtData(j.fim) : `${fmtDataCurta(j.inicio)} a ${fmtData(j.fim)}`
+  return j.inicio === j.fim ? fmtData(j.fim) : fmtIntervalo(j.inicio, j.fim)
 }
 
 /** "Base: 87 itens concluídos · 18/07 a 09/10/2026". Nenhum número sem base (critério 74). */

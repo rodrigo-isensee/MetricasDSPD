@@ -7,7 +7,7 @@ import {
   type Periodo,
 } from '@metricas-dspd/contratos'
 import type { FiltroFluxoChave } from '@metricas-dspd/contratos'
-import { fmtData, fmtDataCurta } from '@/lib/formatar'
+import { fmtIntervalo } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
 import { AvisoCriterio } from './AvisoCriterio'
 import { BadgeBase } from './BadgeBase'
@@ -139,7 +139,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
     !!p.periodo &&
     (semanasJanela === null || SEMANAS_DO_PERIODO[p.periodo.tipo] !== semanasJanela)
   const nesta = {
-    janela: j ? `${fmtDataCurta(j.inicio)} a ${fmtData(j.fim)}` : null,
+    janela: j ? fmtIntervalo(j.inicio, j.fim) : null,
     filtros: textoAplicados.length ? textoAplicados.join(' · ') : null,
     base: p.base ? `${p.base.n} ${p.base.unidade}` : null,
   }
