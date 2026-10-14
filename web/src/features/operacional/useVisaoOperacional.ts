@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useSearchParams, type Location } from 'react-router'
 import { buscaVigente, registrarBusca } from '@/features/filtros/buscaPendente'
 import { textoBusca } from '@/features/filtros/codec'
 import { comVisao, resolverVisao, type Visao } from './visao'
@@ -21,15 +21,14 @@ export interface UsoVisao {
 export function useVisaoOperacional(): UsoVisao {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const { pathname, search, hash, state } = useLocation()
+  const { pathname, search, hash, state: bruto } = useLocation() as Location<EstadoNav | null>
+  const state = bruto
   const resolvida = resolverVisao(params, hash)
   const { corrigir, invalido } = resolvida
   const canonica = textoBusca(resolvida.busca)
   useEffect(() => {
     if (!corrigir) return
-    const prox: EstadoNav | null = invalido
-      ? { filtrosInvalidos: [`visão "${invalido}"`] }
-      : (state as EstadoNav | null)
+    const prox: EstadoNav | null = invalido ? { filtrosInvalidos: [`visão "${invalido}"`] } : state
     void navigate(
       { pathname, search: canonica ? `?${canonica}` : '', hash },
       { replace: true, state: prox, preventScrollReset: true },
@@ -40,10 +39,7 @@ export function useVisaoOperacional(): UsoVisao {
       const p = comVisao(new URLSearchParams(buscaVigente(pathname, search)), v)
       const prox = textoBusca(p)
       registrarBusca(pathname, prox ? `?${prox}` : '')
-      void navigate(
-        { pathname, search: prox ? `?${prox}` : '' },
-        { preventScrollReset: true },
-      )
+      void navigate({ pathname, search: prox ? `?${prox}` : '' }, { preventScrollReset: true })
     },
     [navigate, pathname, search],
   )

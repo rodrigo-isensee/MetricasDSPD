@@ -12,14 +12,17 @@ interface Props<V extends string> {
   valor: V
   onChange: (v: V) => void
   opcoes: readonly Opcao<V>[]
+  /** Intenção de escolher uma opção (ponteiro sobre ela ou foco): serve para pré-carregar o que ela mostra. */
+  onIntencao?: (v: V) => void
 }
 
-/** Grupo de rádio segmentado ("Diária / Semanal"). O foco permanece no seletor ao alternar. */
+/** Grupo de rádio segmentado ("Resumo / Diária / Semanal / Sustentação"). O foco permanece no seletor ao alternar. */
 export function SeletorCadencia<V extends string>({
   rotulo = 'Cadência',
   valor,
   onChange,
   opcoes,
+  onIntencao,
 }: Props<V>) {
   const nome = useId()
   return (
@@ -30,11 +33,12 @@ export function SeletorCadencia<V extends string>({
       <div
         role="radiogroup"
         aria-label={rotulo}
-        className="inline-flex overflow-hidden rounded-md border border-borda-controle"
+        className="inline-flex flex-wrap overflow-hidden rounded-md border border-borda-controle"
       >
         {opcoes.map((o) => (
           <label
             key={o.valor}
+            {...(onIntencao ? { onPointerEnter: () => onIntencao(o.valor) } : {})}
             className={clsx(
               'alvo inline-flex cursor-pointer items-center px-3 py-1.5 text-sm has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-acento',
               valor === o.valor
@@ -48,6 +52,7 @@ export function SeletorCadencia<V extends string>({
               value={o.valor}
               checked={valor === o.valor}
               onChange={() => onChange(o.valor)}
+              {...(onIntencao ? { onFocus: () => onIntencao(o.valor) } : {})}
               className="sr-only"
             />
             {valor === o.valor && <Icone nome="check" className="mr-1 size-4" />}

@@ -52,7 +52,9 @@ describe('useVisaoOperacional', () => {
 
   it('o hash vence a cadencia e o hash é mantido', async () => {
     montar('/operacional?cadencia=diaria&sust_prioridade=p1#s1')
-    await waitFor(() => expect(url()).toBe('/operacional?cadencia=sustentacao&sust_prioridade=p1#s1'))
+    await waitFor(() =>
+      expect(url()).toBe('/operacional?cadencia=sustentacao&sust_prioridade=p1#s1'),
+    )
     expect(screen.getByTestId('visao')).toHaveTextContent('sustentacao')
   })
 
@@ -60,9 +62,7 @@ describe('useVisaoOperacional', () => {
     const r = montar('/operacional?cadencia=semanal&equipe=x&periodo=4s#o3')
     await waitFor(() => expect(url()).toBe('/operacional?cadencia=semanal&equipe=x&periodo=4s#o3'))
     await userEvent.click(screen.getByText('sust'))
-    await waitFor(() =>
-      expect(url()).toBe('/operacional?cadencia=sustentacao&equipe=x&periodo=4s'),
-    )
+    await waitFor(() => expect(url()).toBe('/operacional?cadencia=sustentacao&equipe=x&periodo=4s'))
     expect(r.state.historyAction).toBe('PUSH')
     await userEvent.click(screen.getByText('resumo'))
     await waitFor(() => expect(url()).toBe('/operacional?equipe=x&periodo=4s'))

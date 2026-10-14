@@ -44,6 +44,8 @@ interface Props {
   momento?: keyof typeof TITULOS_FAIXA
   /** Texto livre; sobrepõe `momento`. */
   titulo?: string
+  /** Fonte da faixa, quando a página tem duas: "Pede atenção na semana · Sustentação (Acelerato)". */
+  fonte?: string
   itens: readonly ItemAtencao[]
   vazio?: string
   /** Máximo de itens antes de "Ver todos os alertas (N)". */
@@ -55,7 +57,8 @@ interface Props {
 /** "Pede atenção": primeiro o que pede ação. Cada item leva ao cartão; ícone + texto, nunca só cor. */
 export function FaixaAtencao({
   momento = 'agora',
-  titulo = TITULOS_FAIXA[momento],
+  fonte,
+  titulo = fonte ? `${TITULOS_FAIXA[momento]} · ${fonte}` : TITULOS_FAIXA[momento],
   itens: itensBrutos,
   vazio = 'Nada pede atenção agora com base nas metas publicadas.',
   maximo,

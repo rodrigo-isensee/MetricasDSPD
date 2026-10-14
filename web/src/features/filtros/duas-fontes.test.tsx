@@ -163,14 +163,14 @@ describe('os dois conjuntos de filtros na mesma URL (4.1)', () => {
     const b = buscaDe(r)
     expect(b.get('sust_equipe')).toBe('totvs')
     expect(b.get('sust_prioridade')).toBe('p1')
-    for (const [k, v] of [
-      ['equipe', 'fluig'],
-      ['tipo', 'bug'],
-      ['sistema', 'protheus'],
-      ['periodo', '4s'],
-      ['o3', 'melhoria'],
-    ])
-      expect(b.get(k), k).toBe(v)
+    const esperado: Record<string, string> = {
+      equipe: 'fluig',
+      tipo: 'bug',
+      sistema: 'protheus',
+      periodo: '4s',
+      o3: 'melhoria',
+    }
+    for (const [k, v] of Object.entries(esperado)) expect(b.get(k), k).toBe(v)
   })
   it('valor inválido da Sustentação é ignorado, a URL é corrigida e o aviso fica disponível', async () => {
     const r = montar(

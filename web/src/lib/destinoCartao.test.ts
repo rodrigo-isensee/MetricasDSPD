@@ -3,7 +3,9 @@ import { destinoDoCartao } from './destinoCartao'
 
 describe('destinoDoCartao', () => {
   it('a visão vem da tabela hash -> visão', () => {
-    expect(destinoDoCartao({ painel: 'operacional', id: 'o2' })).toBe('/operacional?cadencia=diaria#o2')
+    expect(destinoDoCartao({ painel: 'operacional', id: 'o2' })).toBe(
+      '/operacional?cadencia=diaria#o2',
+    )
     expect(destinoDoCartao({ painel: 'operacional', id: 'o3' })).toBe(
       '/operacional?cadencia=semanal#o3',
     )
