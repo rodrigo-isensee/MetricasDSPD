@@ -50,6 +50,20 @@ describe('useVisaoOperacional', () => {
     expect(screen.getByTestId('estado').textContent).toContain('visão \\"xyz\\"')
   })
 
+  it('hash desconhecido com cadencia inválida: Resumo com aviso, hash preservado, sem entrada no histórico (A8)', async () => {
+    const r = montar('/operacional?cadencia=xyz&equipe=a#nao-existe')
+    await waitFor(() => expect(url()).toBe('/operacional?equipe=a#nao-existe'))
+    expect(screen.getByTestId('visao')).toHaveTextContent('resumo')
+    expect(screen.getByTestId('estado').textContent).toContain('visão \\"xyz\\"')
+    expect(r.state.historyAction).toBe('REPLACE')
+  })
+
+  it('hash desconhecido com cadencia válida segue a cadencia (A8)', () => {
+    montar('/operacional?cadencia=semanal#nao-existe')
+    expect(screen.getByTestId('visao')).toHaveTextContent('semanal')
+    expect(url()).toBe('/operacional?cadencia=semanal#nao-existe')
+  })
+
   it('o hash vence a cadencia e o hash é mantido', async () => {
     montar('/operacional?cadencia=diaria&sust_prioridade=p1#s1')
     await waitFor(() =>
