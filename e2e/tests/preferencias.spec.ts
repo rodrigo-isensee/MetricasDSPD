@@ -77,7 +77,7 @@ for (const tela of TELAS) {
         await preparar(page, tema)
         await page.goto('/preferencias')
         await page.getByRole('button', { name: 'Aplicar sugestão do papel Gerente' }).click()
-        await page.goto('/operacional')
+        await page.goto('/operacional?cadencia=diaria')
         await expect(page.getByTestId('painel-oculto-vazio')).toBeVisible()
         await expect(page.getByTestId('faixa-atencao')).toBeVisible()
         const r = await rodarAxe(page)
@@ -135,7 +135,7 @@ test.describe('fluxos', () => {
     await page.getByRole('button', { name: 'Ocultar esta métrica O3' }).click()
     await page.getByRole('button', { name: /Copiar link/ }).click()
     const link = await page.evaluate(() => navigator.clipboard.readText())
-    expect(link).toContain('/operacional')
+    expect(link).toContain('/operacional?cadencia=diaria')
     expect(link.toLowerCase()).not.toContain('ocultar')
   })
 
@@ -154,7 +154,7 @@ test.describe('fluxos', () => {
         ),
       [CHAVE],
     )
-    await page.goto('/operacional')
+    await page.goto('/operacional?cadencia=diaria')
     const faixa = page.getByTestId('faixa-atencao')
     await expect(faixa.getByText('métrica oculta').first()).toBeVisible()
     await faixa
@@ -189,7 +189,7 @@ test.describe('fluxos', () => {
   test('PREF-15 teclado: popover abre por Enter, caixa marca por Espaço, Esc devolve o foco', async ({
     page,
   }) => {
-    await page.goto('/operacional')
+    await page.goto('/operacional?cadencia=diaria')
     await page.getByTestId('botao-metricas').focus()
     await page.keyboard.press('Enter')
     const dlg = page.getByRole('dialog', { name: 'Métricas deste painel' })

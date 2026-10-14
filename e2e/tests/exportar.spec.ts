@@ -115,7 +115,7 @@ test.describe('conteúdo do PDF (1280 px)', () => {
   test('EXP-02b a 375x667 o botão Gerar arquivo está visível sem rolar', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await preparar(page, 'light');
-    await page.goto('/operacional');
+    await page.goto('/operacional?cadencia=diaria');
     await aguardarPainel(page);
     await page.getByRole('button', { name: 'Exportação personalizada' }).click();
     const dlg = page.getByRole('dialog');
@@ -128,7 +128,7 @@ test.describe('conteúdo do PDF (1280 px)', () => {
 
   test('EXP-03 exportação personalizada: um PDF, BusinessMap antes de Acelerato, cada métrica com a sua fonte', async ({ page }) => {
     await preparar(page);
-    await page.goto('/operacional');
+    await page.goto('/operacional?cadencia=diaria');
     await aguardarPainel(page);
     await page.getByRole('button', { name: 'Exportação personalizada' }).click();
     const dlg = page.getByRole('dialog', { name: 'Exportação personalizada' });
@@ -166,7 +166,7 @@ test.describe('conteúdo do PDF (1280 px)', () => {
 
   test('EXP-05 Sustentação: só Acelerato, sem nenhum nome de pessoa nos campos', async ({ page }) => {
     await preparar(page);
-    await page.goto('/sustentacao');
+    await page.goto('/operacional?cadencia=sustentacao');
     await aguardarPainel(page);
     await page.getByRole('button', { name: 'Exportar', exact: true }).click();
     const { pdf } = await gerarEBaixar(page);
@@ -177,7 +177,7 @@ test.describe('conteúdo do PDF (1280 px)', () => {
 
   test('EXP-06 teclado: Esc fecha, o foco volta ao botão e o limite de 12 desabilita o excedente', async ({ page }) => {
     await preparar(page);
-    await page.goto('/operacional');
+    await page.goto('/operacional?cadencia=diaria');
     await aguardarPainel(page);
     const botao = page.getByRole('button', { name: 'Exportação personalizada' });
     await botao.focus();

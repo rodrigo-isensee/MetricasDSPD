@@ -3,11 +3,11 @@ import { test, expect } from '../fixtures/base';
 test.use({ viewport: { width: 1280, height: 800 } });
 
 test('FIL-01/02 filtros por painel e URL limpa no padrão', async ({ painel, page }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   for (const f of ['equipe', 'tipo', 'sistema', 'periodo'] as const) await expect(painel.filtros.botao(f)).toBeVisible();
   expect(painel.filtros.parametros().toString()).toBe('');
   await expect(painel.filtros.limpar).toHaveCount(0);
-  await painel.ir('/sustentacao');
+  await painel.ir('/operacional?cadencia=sustentacao');
   await expect(painel.filtros.botao('prioridade')).toBeVisible();
   await expect(painel.filtros.botao('tipo')).toHaveCount(0);
   await expect(page.getByTestId('barra-filtros')).toContainText('Últimos 6 meses');
@@ -39,7 +39,7 @@ test('FIL-03/06/07 marcar atualiza URL, recarregar restaura, chip remove, limpar
 });
 
 test('FIL-04 marcar todos os valores remove o parâmetro', async ({ painel, page }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   await painel.filtros.botao('equipe').click();
   const nomes = ['ERP Protheus', 'Fluig', 'Senior', 'Marketing e Vendas', 'Dados', 'Plataforma 5G'];
   for (const n of nomes) await page.getByRole('checkbox', { name: n }).click();
@@ -48,7 +48,7 @@ test('FIL-04 marcar todos os valores remove o parâmetro', async ({ painel, page
 });
 
 test('FIL-05 Voltar desfaz só a última mudança, Avançar refaz', async ({ painel, page }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   await painel.filtros.alternar('equipe', ['ERP Protheus']);
   await painel.filtros.alternar('sistema', ['Fluig']).catch(() => undefined);
   const url2 = page.url();
@@ -58,10 +58,12 @@ test('FIL-05 Voltar desfaz só a última mudança, Avançar refaz', async ({ pai
   expect(page.url()).toBe(url2);
 });
 
-test('FIL-08 filtros de fluxo não vão para a sustentação e voltam limpos', async ({ painel, page }) => {
-  await painel.ir('/operacional?equipe=erp-protheus');
-  await painel.cabecalho.linkPara('Sustentação').click();
-  await expect(page).toHaveURL(/\/sustentacao$/);
+test('FIL-08 filtros de fluxo ficam guardados na visão Sustentação e não viram filtro dela', async ({ painel, page }) => {
+  await painel.ir('/operacional?cadencia=diaria&equipe=erp-protheus');
+  await page.getByRole('radio', { name: 'Sustentação' }).click({ force: true });
+  await expect(page).toHaveURL(/cadencia=sustentacao/);
+  await expect(page).toHaveURL(/equipe=erp-protheus/);
+  await expect(page).not.toHaveURL(/sust_equipe/);
 });
 
 test('FIL-09 URL inválida ignora só o inválido e avisa', async ({ painel, page }) => {
@@ -74,11 +76,11 @@ test('FIL-09 URL inválida ignora só o inválido e avisa', async ({ painel, pag
 });
 
 test('FIL-10 consolidado com 2 ou mais equipes (inclusive Todas), com N correto', async ({ painel }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   expect(await painel.filtros.equipesConsolidadas()).toBe(6); // spec: também em "Todas"
-  await painel.ir('/operacional?equipe=erp-protheus');
+  await painel.ir('/operacional?cadencia=diaria&equipe=erp-protheus');
   expect(await painel.filtros.equipesConsolidadas()).toBeNull();
-  await painel.ir('/operacional?equipe=erp-protheus,fluig,senior');
+  await painel.ir('/operacional?cadencia=diaria&equipe=erp-protheus,fluig,senior');
   expect(await painel.filtros.equipesConsolidadas()).toBe(3);
   await expect(painel.filtros.consolidado).toContainText('não compara equipes');
 });
@@ -90,7 +92,7 @@ test('FIL-12 O4 informa os filtros aplicados', async ({ painel }) => {
 
 test('FIL-13 abaixo de 768 px os filtros viram folha com "Ver resultados"', async ({ painel, page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   await expect(painel.filtros.abrirFolha).toBeVisible();
   await painel.filtros.abrirFolha.click();
   await expect(page.getByRole('dialog')).toBeVisible();
@@ -101,7 +103,7 @@ test('FIL-13 abaixo de 768 px os filtros viram folha com "Ver resultados"', asyn
 });
 
 test('FIL-16 popover: teclado abre, Esc fecha e devolve o foco', async ({ painel, page }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   await painel.filtros.botao('tipo').focus();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('checkbox').first()).toBeVisible();
@@ -110,13 +112,13 @@ test('FIL-16 popover: teclado abre, Esc fecha e devolve o foco', async ({ painel
 });
 
 test('FIL-19 mudança de filtro é anunciada na região aria-live', async ({ painel }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   await painel.filtros.alternar('equipe', ['ERP Protheus']);
   await expect(painel.filtros.regiaoAnuncios.filter({ hasText: /Filtros atualizados/ }).first()).toBeAttached();
 });
 
 test('FIL-22 alternar 10 vezes não gera URL inconsistente', async ({ painel, page }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   await painel.filtros.botao('equipe').click();
   const caixa = page.getByRole('checkbox', { name: 'Fluig' });
   for (let i = 0; i < 10; i++) await caixa.click();
@@ -125,7 +127,7 @@ test('FIL-22 alternar 10 vezes não gera URL inconsistente', async ({ painel, pa
 });
 
 test('NAV-06 links entre painéis de fluxo preservam filtros', async ({ painel, page }) => {
-  await painel.ir('/operacional?equipe=erp-protheus&tipo=incidente');
+  await painel.ir('/operacional?cadencia=diaria&equipe=erp-protheus&tipo=incidente');
   await painel.cabecalho.linkPara('Tático').click();
   await expect(page).toHaveURL(/equipe=erp-protheus/);
   await expect(page).toHaveURL(/tipo=incidente/);

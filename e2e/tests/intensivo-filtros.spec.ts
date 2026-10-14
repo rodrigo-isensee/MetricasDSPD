@@ -82,14 +82,14 @@ const dimPeriodoFluxo: Dim = { nome: 'periodo', valores: [{}, { periodo: '4s' },
 const PAINEIS: { id: string; rota: string; dims: Dim[]; filtros: string[]; periodoPadrao: string }[] = [
   {
     id: 'operacional-diaria',
-    rota: '/operacional',
+    rota: '/operacional?cadencia=diaria',
     dims: [dimEquipe, dimTipo, dimSistema, dimPeriodoFluxo],
     filtros: ['equipe', 'tipo', 'sistema', 'periodo'],
     periodoPadrao: '12s',
   },
   {
     id: 'operacional-semanal',
-    rota: '/operacional',
+    rota: '/operacional?cadencia=diaria',
     dims: [dimEquipe, dimTipo, dimSistema, dimPeriodoFluxo, { nome: 'cadencia', valores: [{ cadencia: 'semanal' }] }],
     filtros: ['equipe', 'tipo', 'sistema', 'periodo'],
     periodoPadrao: '12s',
@@ -107,7 +107,7 @@ const PAINEIS: { id: string; rota: string; dims: Dim[]; filtros: string[]; perio
   },
   {
     id: 'sustentacao',
-    rota: '/sustentacao',
+    rota: '/operacional?cadencia=sustentacao',
     dims: [
       { nome: 'equipe', valores: [{}, { equipe: 'totvs' }, { equipe: 'senior,fluig' }] },
       { nome: 'prioridade', valores: [{}, { prioridade: 'p1' }, { prioridade: 'p2,p3' }, { prioridade: 'p3,p4,p5' }] },
@@ -217,7 +217,7 @@ function verificarSemPessoa(texto: string): string[] {
 // IF-00: opções do mock conferem com as constantes deste arquivo
 // ---------------------------------------------------------------------------------------------
 test('IF-00 ids das opções de filtro conferem com o mock', async ({ page }) => {
-  await page.goto('/operacional');
+  await page.goto('/operacional?cadencia=diaria');
   await page.getByTestId('filtro-equipe').click();
   const eq = await page.locator('[data-testid^="equipe-opcao-"]').evaluateAll((es) => es.map((e) => e.getAttribute('data-testid')!.replace('equipe-opcao-', '')));
   expect([...eq].sort()).toEqual([...EQUIPES].sort()); // as opções vêm em ordem alfabética (API), a ordem não é contrato
@@ -230,7 +230,7 @@ test('IF-00 ids das opções de filtro conferem com o mock', async ({ page }) =>
   const ti = await page.locator('[data-testid^="tipo-opcao-"]').evaluateAll((es) => es.map((e) => e.getAttribute('data-testid')!.replace('tipo-opcao-', '')));
   expect(ti).toEqual(TIPOS);
   await page.keyboard.press('Escape');
-  await page.goto('/sustentacao');
+  await page.goto('/operacional?cadencia=sustentacao');
   await page.getByTestId('filtro-equipe').click();
   expect(await page.locator('[data-testid^="equipe-opcao-"]').evaluateAll((es) => es.map((e) => e.getAttribute('data-testid')!.replace('equipe-opcao-', '')))).toEqual(SSSC);
   await page.keyboard.press('Escape');
@@ -339,7 +339,7 @@ const SEQUENCIAS: { id: string; rota: string; passos: ((p: Page) => Promise<void
   },
   {
     id: 'sustentacao',
-    rota: '/sustentacao',
+    rota: '/operacional?cadencia=sustentacao',
     passos: [(p) => marcar(p, 'prioridade', ['p1', 'p2']), (p) => marcar(p, 'equipe', ['totvs']), (p) => escolherPeriodo(p, 'Últimas 12 semanas')],
   },
 ];
@@ -380,7 +380,7 @@ for (const s of SEQUENCIAS) {
 // IF-A: "Não afetado por" precisa ser verdade (tabela 2.2 x cálculo), inclusive nas complementares
 // ---------------------------------------------------------------------------------------------
 const ROTAS_APLIC: { rota: string; filtros: Record<string, string> }[] = [
-  { rota: '/operacional', filtros: { equipe: 'fluig,dados', tipo: 'melhoria,divida-tecnica', sistema: 'fluig,data-lake' } },
+  { rota: '/operacional?cadencia=diaria', filtros: { equipe: 'fluig,dados', tipo: 'melhoria,divida-tecnica', sistema: 'fluig,data-lake' } },
   { rota: '/operacional?cadencia=semanal', filtros: { equipe: 'fluig,dados', tipo: 'melhoria,divida-tecnica', sistema: 'fluig,data-lake' } },
   { rota: '/tatico', filtros: { equipe: 'fluig,dados', tipo: 'melhoria,divida-tecnica', sistema: 'fluig,data-lake' } },
   { rota: '/estrategico', filtros: { sistema: 'protheus,crm' } },
@@ -425,16 +425,16 @@ for (const caso of ROTAS_APLIC) {
 // IF-D: domínios separados na tela
 // ---------------------------------------------------------------------------------------------
 test('IF-D1 filtros de fluxo na URL da Sustentação são removidos e não mudam nenhum cartão', async ({ page }) => {
-  await page.goto('/sustentacao');
+  await page.goto('/operacional?cadencia=sustentacao');
   const limpo = await retrato(page);
-  await page.goto('/sustentacao?tipo=incidente&sistema=protheus&cadencia=semanal');
+  await page.goto('/operacional?cadencia=sustentacao&tipo=incidente&sistema=protheus&cadencia=semanal');
   const sujo = await retrato(page);
   await expect.poll(() => new URL(page.url()).search).toBe('');
   expect(sujo).toEqual(limpo);
 });
 
 test('IF-D2 prioridade na URL de painéis de fluxo é removida e não muda nenhum cartão', async ({ page }) => {
-  for (const rota of ['/operacional', '/tatico', '/estrategico']) {
+  for (const rota of ['/operacional?cadencia=diaria', '/tatico', '/estrategico']) {
     await page.goto(rota);
     const limpo = await retrato(page);
     await page.goto(`${rota}?prioridade=p1,p2`);
@@ -445,20 +445,20 @@ test('IF-D2 prioridade na URL de painéis de fluxo é removida e não muda nenhu
 });
 
 test('IF-D3 equipe de sustentação (totvs) não vaza para o fluxo e equipe do fluxo não vaza para a sustentação', async ({ page }) => {
-  await page.goto('/sustentacao?equipe=totvs');
+  await page.goto('/operacional?cadencia=sustentacao&equipe=totvs');
   await retrato(page);
   await page.getByRole('navigation').first().getByRole('link', { name: 'Operacional' }).click();
   await expect(page).toHaveURL(/\/operacional$/);
-  await page.goto('/operacional?equipe=fluig');
+  await page.goto('/operacional?cadencia=diaria&equipe=fluig');
   await retrato(page);
-  await page.getByRole('navigation').first().getByRole('link', { name: 'Sustentação' }).click();
-  await expect(page).toHaveURL(/\/sustentacao$/);
+  await page.getByRole('radio', { name: 'Sustentação' }).click({ force: true });
+  await expect(page).toHaveURL(/cadencia=sustentacao/);
   const r = await retrato(page);
   expect(r.chips).toEqual([]);
 });
 
 test('IF-D4 Estratégico: equipe e tipo guardados aparecem como "não se aplica" e voltam no Tático', async ({ page }) => {
-  await page.goto('/operacional?equipe=fluig&tipo=incidente&periodo=4s');
+  await page.goto('/operacional?cadencia=diaria&equipe=fluig&tipo=incidente&periodo=4s');
   await retrato(page);
   await page.getByRole('navigation').first().getByRole('link', { name: 'Estratégico' }).click();
   await expect(page).toHaveURL(/\/estrategico/);
@@ -474,7 +474,7 @@ test('IF-D4 Estratégico: equipe e tipo guardados aparecem como "não se aplica"
 });
 
 test('IF-D5 Visão geral, catálogo e dados aceitam parâmetros de filtro sem erro e sem quebrar a memória', async ({ page, problemas }) => {
-  await page.goto('/operacional?equipe=dados&sistema=data-lake');
+  await page.goto('/operacional?cadencia=diaria&equipe=dados&sistema=data-lake');
   await retrato(page);
   for (const rota of ['/?equipe=fluig&prioridade=p1&periodo=4s', '/metricas?equipe=fluig&tipo=xyz', '/dados?fonte=ac&equipe=fluig&periodo=99', '/dados?fonte=zz']) {
     await page.goto(rota);
@@ -491,11 +491,11 @@ test('IF-D5 Visão geral, catálogo e dados aceitam parâmetros de filtro sem er
 // ---------------------------------------------------------------------------------------------
 test('IF-I01 marcar todas (uma a uma) e desmarcar todas, em cada filtro múltiplo', async ({ page }) => {
   const casos: [string, string, string[]][] = [
-    ['/operacional', 'equipe', EQUIPES],
-    ['/operacional', 'tipo', TIPOS],
-    ['/operacional', 'sistema', SISTEMAS],
-    ['/sustentacao', 'equipe', SSSC],
-    ['/sustentacao', 'prioridade', PRIORIDADES],
+    ['/operacional?cadencia=diaria', 'equipe', EQUIPES],
+    ['/operacional?cadencia=diaria', 'tipo', TIPOS],
+    ['/operacional?cadencia=diaria', 'sistema', SISTEMAS],
+    ['/operacional?cadencia=sustentacao', 'equipe', SSSC],
+    ['/operacional?cadencia=sustentacao', 'prioridade', PRIORIDADES],
   ];
   for (const [rota, filtro, ids] of casos) {
     await page.goto(rota);
@@ -530,7 +530,7 @@ test('IF-I02 "Limpar filtros" zera tudo e preserva cadência e abas locais', asy
 });
 
 test('IF-I03 cliques rápidos em sequência no mesmo popover (FIL-04), 5 rodadas', async ({ page }) => {
-  await page.goto('/operacional');
+  await page.goto('/operacional?cadencia=diaria');
   await retrato(page);
   for (let rodada = 0; rodada < 5; rodada++) {
     await page.getByTestId('filtro-equipe').click();
@@ -544,7 +544,7 @@ test('IF-I03 cliques rápidos em sequência no mesmo popover (FIL-04), 5 rodadas
 });
 
 test('IF-I04 cliques no mesmo tick (dispatch síncrono) não perdem marcação', async ({ page }) => {
-  await page.goto('/operacional');
+  await page.goto('/operacional?cadencia=diaria');
   await retrato(page);
   await page.getByTestId('filtro-equipe').click();
   await page.evaluate(() => {
@@ -554,7 +554,7 @@ test('IF-I04 cliques no mesmo tick (dispatch síncrono) não perdem marcação',
 });
 
 test('IF-I05 sob CPU 6x mais lenta: filtro seguido de troca de cadência não perde o filtro', async ({ page }) => {
-  await page.goto('/operacional');
+  await page.goto('/operacional?cadencia=diaria');
   await retrato(page);
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
@@ -567,7 +567,7 @@ test('IF-I05 sob CPU 6x mais lenta: filtro seguido de troca de cadência não pe
 });
 
 test('IF-I06 sob CPU 6x mais lenta: remover dois chips em sequência remove os dois', async ({ page }) => {
-  await page.goto('/operacional?equipe=fluig,dados&tipo=incidente');
+  await page.goto('/operacional?cadencia=diaria&equipe=fluig,dados&tipo=incidente');
   await retrato(page);
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
@@ -579,7 +579,7 @@ test('IF-I06 sob CPU 6x mais lenta: remover dois chips em sequência remove os d
 
 test('IF-I07 mesmo tick, filtros diferentes (equipe e depois tipo) na folha de 375 px: os dois ficam', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto('/operacional');
+  await page.goto('/operacional?cadencia=diaria');
   await retrato(page);
   await page.getByTestId('abrir-filtros').click();
   await expect(page.getByRole('dialog')).toBeVisible();
@@ -591,7 +591,7 @@ test('IF-I07 mesmo tick, filtros diferentes (equipe e depois tipo) na folha de 3
 });
 
 test('IF-I08 teclado: Tab até o filtro, Espaço abre, Tab/Espaço marca, Esc fecha e devolve o foco', async ({ page }) => {
-  await page.goto('/sustentacao');
+  await page.goto('/operacional?cadencia=sustentacao');
   await retrato(page);
   await page.getByTestId('filtro-prioridade').focus();
   await page.keyboard.press('Space');
@@ -678,7 +678,7 @@ test('IF-I10 preferências ocultando cartões + filtros: ocultos continuam ocult
   await page.getByTestId('ocultar-O4').click();
   await expect(page.getByTestId('metrica-O4')).toHaveCount(0);
   expect(paramsOrdenados(page.url())).toBe('cadencia=semanal&equipe=senior&sistema=senior');
-  await page.goto('/sustentacao?prioridade=p1');
+  await page.goto('/operacional?cadencia=sustentacao&prioridade=p1');
   const s = await retrato(page);
   expect(s.cartoes.map((c) => c.codigo)).not.toContain('S1');
 });
@@ -708,12 +708,12 @@ test('IF-I11 compartilhar link: "Copiar link" leva os filtros (sem `mock`) e abr
 test('IF-I12 combinações sem dados: estado vazio/insuficiente correto, nunca erro', async ({ page, problemas }) => {
   // equipe e sistema sem interseção (cada sistema pertence a uma equipe no mock)
   for (const url of [
-    '/operacional?equipe=fluig&sistema=protheus',
+    '/operacional?cadencia=diaria&equipe=fluig&sistema=protheus',
     '/operacional?cadencia=semanal&equipe=fluig&sistema=protheus',
     '/tatico?equipe=dados&sistema=crm',
     '/espera-invisivel?equipe=senior&sistema=core-5g',
     '/estrategico?sistema=portal-do-cliente&periodo=6m',
-    '/sustentacao?equipe=fluig&prioridade=p1&periodo=4s',
+    '/operacional?cadencia=sustentacao&equipe=fluig&prioridade=p1&periodo=4s',
   ]) {
     await page.goto(url);
     const r = await retrato(page);
@@ -731,10 +731,10 @@ test('IF-I12 combinações sem dados: estado vazio/insuficiente correto, nunca e
 
 test('IF-I13 dois filtros diferentes em sequência na barra (sem esperar o painel) mantêm os dois', async ({ page }) => {
   // Uso comum: marcar Equipe, fechar e já abrir Tipo de demanda. Sem esperar o painel recarregar.
-  for (const rota of ['/operacional?cadencia=semanal', '/tatico', '/sustentacao']) {
+  for (const rota of ['/operacional?cadencia=semanal', '/tatico', '/operacional?cadencia=sustentacao']) {
     await page.goto(rota);
     await retrato(page);
-    const sust = rota.startsWith('/sustentacao');
+    const sust = rota.startsWith('/operacional?cadencia=sustentacao');
     await marcar(page, 'equipe', [sust ? 'senior' : 'fluig']);
     await marcar(page, sust ? 'prioridade' : 'tipo', [sust ? 'p2' : 'incidente']);
     const esperado = new URL(rota, 'http://x').searchParams;

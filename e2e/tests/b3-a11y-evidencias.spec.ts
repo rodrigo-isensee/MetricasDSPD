@@ -2,9 +2,9 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { test, expect, rodarAxe } from '../fixtures/base';
 
-// QA B3: axe (WCAG 2.2 AA) nos dois temas em /sustentacao, /espera-invisivel e / (1280 e 375) + screenshots para a UX.
+// QA B3: axe (WCAG 2.2 AA) nos dois temas na visão Sustentação do /operacional, /espera-invisivel e / (1280 e 375) + screenshots para a UX.
 const DIR = resolve(import.meta.dirname, '../../docs/qa/evidencias/b3');
-const ROTAS = [['sustentacao', '/sustentacao'], ['visao-geral', '/']] as const;
+const ROTAS = [['sustentacao', '/operacional?cadencia=sustentacao'], ['visao-geral', '/']] as const;
 const VPS = [['1280', 1280, 800], ['375', 375, 812]] as const;
 const TEMAS = [['claro', 'claro'], ['escuro', 'escuro']] as const;
 const ESTADOS = ['erro', 'vazio', 'carregando'] as const;
