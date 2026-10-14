@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base';
 
-const ROTAS = ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel', '/ajuda'];
+const ROTAS = ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/ajuda'];
 
 for (const w of [320, 375, 640, 768, 1024, 1180, 1280, 1920]) {
   test(`RESP-01 sem rolagem horizontal da página em ${w} px`, async ({ page }) => {

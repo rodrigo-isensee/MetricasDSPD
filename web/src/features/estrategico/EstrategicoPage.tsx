@@ -31,7 +31,7 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
       itens={itens}
       estado={estado}
       onTentarDeNovo={recarregar}
-      reserva={{ mobile: 108, desktop: 88 }}
+      reserva={{ mobile: 108, desktop: 98 }}
     />
   )
 }
@@ -62,9 +62,9 @@ export default function EstrategicoPage() {
           <SecaoPainel
             cartoes={['ei-fl3']}
             id="espera-invisivel"
-            titulo="Espera invisível do nível"
+            titulo="Quanto do tempo do solicitante fica fora da nossa gestão?"
           >
-            <CartaoEIFL3 filtros={filtros} variante="compacto" />
+            <CartaoEIFL3 filtros={filtros} />
           </SecaoPainel>
           <MaisMetricas fonte="BusinessMap" renderizar={(id) => cartaoDeFluxo(id, filtros)} />
         </>

@@ -72,20 +72,27 @@ test.describe('K-008 Sustentacao', () => {
   });
 });
 
-test.describe('K-025 Espera invisivel', () => {
-  test.beforeEach(async ({ painel, page }) => {
-    await painel.ir('/espera-invisivel');
-    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
+test.describe('K-025 Espera invisivel dentro de cada painel', () => {
+  const PAINEIS_EI = [
+    ['EI-FL1', '/operacional?cadencia=semanal'],
+    ['EI-FL2', '/tatico'],
+    ['EI-FL3', '/estrategico'],
+    ['EI-SUST', '/sustentacao'],
+  ] as const;
+
+  test('EI-02 cada painel traz so o cartao do proprio nivel', async ({ page, painel }) => {
+    for (const [c, rota] of PAINEIS_EI) {
+      await painel.ir(rota);
+      await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
+      await expect(page.getByTestId(`metrica-${c}`)).toBeVisible();
+      for (const [outro] of PAINEIS_EI.filter(([x]) => x !== c)) await expect(page.getByTestId(`metrica-${outro}`)).toHaveCount(0);
+    }
   });
 
-  test('EI-02 quatro blocos, divisor de fonte, sem grafico compartilhado', async ({ page }) => {
-    for (const c of ['EI-FL1', 'EI-FL2', 'EI-FL3', 'EI-SUST']) await expect(page.getByTestId(`metrica-${c}`)).toBeVisible();
-    await expect(page.getByTestId('ei-fonte-sust')).toContainText(/Fonte diferente.*Acelerato/);
-    for (const c of ['EI-FL1', 'EI-FL2', 'EI-FL3', 'EI-SUST']) expect(await page.getByTestId(`metrica-${c}`).locator('svg').count() >= 0).toBe(true);
-  });
-
-  test('EI-01 cliente e time sempre em par; insuficiente some com os dois', async ({ page }) => {
-    for (const c of ['EI-FL1', 'EI-FL2', 'EI-FL3', 'EI-SUST']) {
+  test('EI-01 cliente e time sempre em par; insuficiente some com os dois', async ({ page, painel }) => {
+    for (const [c, rota] of PAINEIS_EI) {
+      await painel.ir(rota);
+      await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
       const cartao = page.getByTestId(`metrica-${c}`);
       const cli = await cartao.locator('[data-testid^="ei-cliente-"]').count();
       const tim = await cartao.locator('[data-testid^="ei-time-"]').count();
@@ -94,7 +101,9 @@ test.describe('K-025 Espera invisivel', () => {
     }
   });
 
-  test('EI-03 indice confere com as duas medianas visiveis', async ({ page }) => {
+  test('EI-03 indice confere com as duas medianas visiveis', async ({ page, painel }) => {
+    await painel.ir('/operacional?cadencia=semanal');
+    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
     const seg = page.getByTestId('ei-segmento-fl1-incidente');
     const n = (s: string) => parseFloat(s.replace(/[^\d,]/g, '').replace(',', '.'));
     const cli = n((await page.getByTestId('ei-cliente-fl1-incidente').innerText()).match(/[\d.,]+/)![0]);
@@ -104,13 +113,17 @@ test.describe('K-025 Espera invisivel', () => {
     expect(Math.abs(((cli - tim) / cli) * 100 - n(idx![1]!))).toBeLessThan(1.5);
   });
 
-  test('EI-09 texto da Sustentacao: nao compare com BusinessMap', async ({ page }) => {
-    await expect(page.getByTestId('metrica-EI-SUST')).toContainText(/não compare com os níveis do BusinessMap/i);
+  test('EI-09 texto da Sustentacao: nao compare com BusinessMap', async ({ page, painel }) => {
+    await painel.ir('/sustentacao');
+    await expect(page.getByTestId('metrica-EI-SUST')).toContainText(/não comparável com os níveis do BusinessMap/i);
   });
 
-  test('EI-05 bloco de Sustentacao nao herda filtro de fluxo', async ({ page, painel }) => {
+  test('EI-05 a Sustentacao nao herda filtro de fluxo', async ({ page, painel }) => {
+    await painel.ir('/sustentacao');
+    await expect(page.getByTestId('metrica-EI-SUST')).toBeVisible();
+    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
     const base = await page.getByTestId('base-EI-SUST').innerText();
-    await painel.ir('/espera-invisivel?tipo=incidente&equipe=fl1');
+    await painel.ir('/sustentacao?tipo=incidente&equipe=fl1');
     await expect(page.getByTestId('metrica-EI-SUST')).toBeVisible();
     expect(await page.getByTestId('base-EI-SUST').innerText()).toBe(base);
   });

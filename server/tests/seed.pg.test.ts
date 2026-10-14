@@ -32,6 +32,29 @@ d('seed contra PostgreSQL 17', () => {
     expect(await cont()).toEqual(antes);
   });
 
+  it('justificativa_informada: indicador igual a "campo não vazio" do mock; o texto não está em nenhuma coluna (FA-003)', async () => {
+    const esperado = base.ac.chamados.filter((c) => c.justificativa_ajuste !== null && c.justificativa_ajuste.trim() !== '').length;
+    expect(esperado).toBeGreaterThan(0);
+    expect(await n(`${E.ac}.dim_chamado WHERE justificativa_informada`)).toBe(esperado);
+    const texto = base.ac.chamados.find((c) => c.justificativa_ajuste)!.justificativa_ajuste!;
+    const r = await db.query<{ n: string }>(`SELECT count(*) AS n FROM ${E.ac}.dim_chamado c WHERE c::text LIKE $1`, [`%${texto}%`]);
+    expect(Number(r.rows[0]!.n)).toBe(0);
+    const col = await db.query(`SELECT 1 FROM information_schema.columns WHERE table_schema = $1 AND table_name = 'dim_chamado_versao' AND column_name = 'justificativa_informada'`, [E.ac]);
+    expect(col.rowCount).toBe(1);
+  });
+
+  it('grava a referência, os critérios por fonte e uma coleta_incremental por fonte (FA-001, FA-002)', async () => {
+    const q = async (t: string, onde = 'true') => n(`${t} WHERE ${onde}`);
+    expect(await n(`${E.ac}.ref_alvo_prioridade`)).toBe(base.ac.config.alvos.length);
+    expect(await n(`${E.bm}.ref_quadro`)).toBe(base.bm.config.equipes.length);
+    expect(await n(`${E.bm}.ref_limite_wip_fluxo`)).toBe(base.bm.config.equipes.length);
+    expect(await n(`${E.bm}.ref_ficha_resultado`)).toBe(base.bm.fichas.length);
+    expect(await q(`${E.bm}.ref_dominio`, "campo = 'sistema'")).toBe(base.bm.config.sistemas.length);
+    expect(await q(`${E.core}.ref_versao_criterio`, "dominio = 'businessmap'")).toBe(1);
+    expect(await q(`${E.core}.ref_versao_criterio`, "dominio = 'acelerato'")).toBe(1);
+    for (const s of [E.bm, E.ac]) expect(await q(`${s}.ctl_coleta`, "tarefa = 'coleta_incremental' AND status = 'sucesso'")).toBe(1);
+  });
+
   it('dois seeds simultâneos num schema novo gravam uma vez só (lock consultivo)', async () => {
     const p2 = prefixoDeTeste();
     const E2 = montarEsquemas(p2);

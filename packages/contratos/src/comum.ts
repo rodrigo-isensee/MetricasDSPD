@@ -193,6 +193,17 @@ export type MetricaId = (typeof METRICA_IDS)[number]
 export const intervaloSchema = z.object({ inicio: z.string(), fim: z.string() })
 export type Intervalo = z.infer<typeof intervaloSchema>
 
+/**
+ * Janela que acompanha um cálculo (`base.janela`, `estatistica.janela`, `previsao.janela`...): o intervalo e, quando o
+ * cálculo vem de uma janela móvel, a especificação que a gerou (`unidade`/`quantidade`; a biblioteca sempre a emite).
+ * Opcionais: acréscimo compatível, o consumidor que só usa o intervalo não muda (FA-004).
+ */
+export const janelaCalculoSchema = intervaloSchema.extend({
+  unidade: z.enum(['semanas', 'meses']).optional(),
+  quantidade: z.number().optional(),
+})
+export type JanelaCalculo = z.infer<typeof janelaCalculoSchema>
+
 /** Janela móvel de percentis: intervalo + a especificação que a gerou. */
 export const janelaSchema = intervaloSchema.extend({
   unidade: z.enum(['semanas', 'meses']),
@@ -243,7 +254,7 @@ export function estatisticaSchema<T extends z.ZodType>(valor: T) {
       status: z.literal('ok'),
       n: z.number().int().min(MINIMO_AMOSTRA),
       valor,
-      janela: intervaloSchema,
+      janela: janelaCalculoSchema,
     }),
     z.object({
       status: z.literal('insuficiente'),
@@ -252,13 +263,13 @@ export function estatisticaSchema<T extends z.ZodType>(valor: T) {
         .int()
         .max(MINIMO_AMOSTRA - 1),
       minimo: z.literal(MINIMO_AMOSTRA),
-      janela: intervaloSchema,
+      janela: janelaCalculoSchema,
     }),
   ])
 }
 export type Estatistica<T> =
-  | { status: 'ok'; n: number; valor: T; janela: Intervalo }
-  | { status: 'insuficiente'; n: number; minimo: typeof MINIMO_AMOSTRA; janela: Intervalo }
+  | { status: 'ok'; n: number; valor: T; janela: JanelaCalculo }
+  | { status: 'insuficiente'; n: number; minimo: typeof MINIMO_AMOSTRA; janela: JanelaCalculo }
 
 /**
  * Taxa k de n. Abaixo de 20 itens o percentual não é publicado, mas "k de n" permanece.
@@ -288,7 +299,7 @@ export type Taxa =
 export const baseAmostralSchema = z.object({
   n: z.number(),
   unidade: z.string(),
-  janela: intervaloSchema.nullable(),
+  janela: janelaCalculoSchema.nullable(),
   /** Segunda base do cartão, quando há (ex.: itens concluídos usados como referência). */
   complemento: z.object({ n: z.number(), unidade: z.string() }).optional(),
 })

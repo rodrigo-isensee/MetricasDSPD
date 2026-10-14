@@ -271,13 +271,16 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     expect(screen.queryByTestId('faixa-ocultas')).not.toBeInTheDocument()
   })
 
-  it('ocultar o último cartão da página leva o foco ao último título que sobrou', async () => {
+  it('ocultar um cartão leva o foco ao título seguinte (a seção de espera invisível, no fim da página)', async () => {
     const u = userEvent.setup()
     renderizarApp('/operacional?cadencia=semanal')
     await screen.findByTestId('metrica-O18')
     await u.click(screen.getByRole('button', { name: 'Ocultar esta métrica O18' }))
     expect(
-      screen.getByRole('heading', { level: 3, name: /Onde os bugs são encontrados/ }),
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Quanto do tempo do solicitante fica fora da nossa gestão?',
+      }),
     ).toHaveFocus()
   })
 
@@ -451,12 +454,35 @@ describe('outras telas', () => {
     expect(screen.queryByRole('button', { name: /^Métricas:/ })).not.toBeInTheDocument()
   })
 
-  it('a Espera invisível (página própria) mostra tudo, sem botão de ocultar', async () => {
-    guardar({ operacional: ['ei-fl1'] })
-    renderizarApp('/espera-invisivel')
-    expect(await screen.findByTestId('metrica-EI-FL1')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Ocultar esta métrica/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /^Métricas:/ })).not.toBeInTheDocument()
+  it('ocultos salvos antes da mudança (ids ei-*) continuam valendo, a seção sai do "Ir para" e a chave solta `espera-invisivel` é ignorada', async () => {
+    guardar({ operacional: ['ei-fl1'], 'espera-invisivel': ['ei-fl2'] } as never)
+    renderizarApp('/operacional?cadencia=semanal')
+    expect(await screen.findByTestId('metrica-O3')).toBeInTheDocument()
+    expect(screen.queryByTestId('metrica-EI-FL1')).not.toBeInTheDocument()
+    const irPara = screen.getByRole('navigation', { name: 'Ir para' })
+    expect(within(irPara).queryByRole('link', { name: 'Espera invisível' })).toBeNull()
+    expect(within(irPara).getByRole('link', { name: 'Qualidade' })).toBeInTheDocument()
+  })
+
+  it('oculta o EI-FL2 gravando só o id no painel Tático (formato do 007) e o marcador da P1 aparece', async () => {
+    guardar({ tatico: ['ei-fl2'] })
+    renderizarApp('/tatico')
+    expect(await screen.findByTestId('metrica-T2')).toBeInTheDocument()
+    expect(screen.queryByTestId('metrica-EI-FL2')).not.toBeInTheDocument()
+    expect(screen.getByTestId('secao-oculta')).toBeInTheDocument()
+  })
+
+  it('desmarcar a Espera invisível do Tático grava só `{ tatico: [ei-fl2] }` e o painel respeita', async () => {
+    const u = userEvent.setup()
+    const r = renderizarApp('/preferencias')
+    const grupo = await screen.findByTestId('grupo-tatico')
+    await u.click(within(grupo).getByRole('checkbox', { name: /EI-FL2/ }))
+    expect(await screen.findByText('Salvo neste navegador')).toBeInTheDocument()
+    expect(guardado().paineis.tatico?.ocultar).toEqual(['ei-fl2'])
+    r.unmount()
+    renderizarApp('/tatico')
+    expect(await screen.findByTestId('metrica-T2')).toBeInTheDocument()
+    expect(screen.queryByTestId('metrica-EI-FL2')).not.toBeInTheDocument()
   })
 
   it('a Espera invisível pode ser ocultada no painel do nível', async () => {

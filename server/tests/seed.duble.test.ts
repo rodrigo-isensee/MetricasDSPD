@@ -10,7 +10,7 @@ const embaralhado = Object.fromEntries(Object.entries(params).reverse());
 
 describe('semear (dublê de banco)', () => {
   it('base vazia: uma transação por schema, lock, INSERT da coleta com RETURNING e lotes parametrizados', async () => {
-    const { pool, chamadas } = criarDublePg((c) => (c.texto.includes('RETURNING coleta_id') ? [{ coleta_id: '9' }] : []));
+    const { pool, chamadas } = criarDublePg((c) => (c.texto.includes('RETURNING coleta_id') ? [{ coleta_id: '9' }] : c.texto.includes('RETURNING versao_id') ? [{ versao_id: '5' }] : []));
     expect(await semear(pool, base)).toBe('semeado');
     const t = chamadas.map((c) => c.texto);
     expect(t.filter((x) => x === 'BEGIN')).toHaveLength(2);

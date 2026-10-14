@@ -20,7 +20,7 @@ import {
   type BlocoExportacao,
 } from './modelo'
 import { notaDaMetrica } from './notas'
-import { escopoDoArquivo, filtrosDoItem, rotuloDoEscopo, type ItemExportavel } from './selecao'
+import { escopoDoArquivo, filtrosDoNivel, rotuloDoEscopo, type ItemExportavel } from './selecao'
 
 /** Domínio das opções de filtro da métrica; a pesquisa não tem (fica fora da exportação). */
 export const dominioDe = (id: MetricaId): Dominio => {
@@ -84,8 +84,8 @@ export async function gerarArquivo(p: ParametrosGeracao): Promise<ArquivoGerado>
     blocos = []
     const vistos = new Set<string>()
     for (const item of p.itens) {
-      const filtros: FiltrosFluxo | FiltrosSustentacao = filtrosDoItem(
-        item,
+      const filtros: FiltrosFluxo | FiltrosSustentacao = filtrosDoNivel(
+        item.nivel,
         p.pathname,
         p.params,
         p.memoria,

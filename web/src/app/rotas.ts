@@ -5,7 +5,6 @@ export const DESTINOS = [
   { to: '/tatico', rotulo: 'Tático', fluxo: true },
   { to: '/estrategico', rotulo: 'Estratégico', fluxo: true },
   { to: '/sustentacao', rotulo: 'Sustentação', fluxo: false },
-  { to: '/espera-invisivel', rotulo: 'Espera invisível', fluxo: true },
   { to: '/metricas', rotulo: 'Catálogo de métricas', fluxo: false },
   { to: '/dados', rotulo: 'Dados e coletas', fluxo: false },
 ] as const

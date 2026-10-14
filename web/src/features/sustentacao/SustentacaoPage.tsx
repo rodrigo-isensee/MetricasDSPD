@@ -97,8 +97,12 @@ export default function SustentacaoPage() {
             <CartaoS6 filtros={filtros} />
             <CartaoS7 filtros={filtros} />
           </SecaoPainel>
-          <SecaoPainel cartoes={['ei-sust']} id="espera" titulo="Espera invisível do nível">
-            <CartaoEISust filtros={filtros} variante="compacto" />
+          <SecaoPainel
+            cartoes={['ei-sust']}
+            id="espera"
+            titulo="Quanto do tempo do solicitante fica fora da nossa gestão?"
+          >
+            <CartaoEISust filtros={filtros} />
           </SecaoPainel>
           <MaisMetricas fonte="Acelerato" renderizar={(id) => cartaoDeSustentacao(id, filtros)} />
           <SecaoPainel

@@ -62,7 +62,7 @@ export const NOTAS_SUSTENTACAO: Record<string, TextoNota> = {
     oQueE:
       'Dois fenômenos diferentes, medidos separados: ajuste manual de prioridade e reclassificação de tipo.',
     comoSeCalcula:
-      'Ajuste manual = campo "Prioridade ajustada manualmente = Sim"; tipo = motivo de encerramento "Reclassificado, não é incidente".',
+      'Ajuste manual = campo "Prioridade ajustada manualmente = Sim", e justificado = campo de justificativa preenchido (não vazio); tipo = motivo de encerramento "Reclassificado, não é incidente".',
     comoLer:
       'Ajuste de prioridade alto e estável indica matriz mal calibrada; de tipo, catálogo confuso.',
     meta: 'Sempre justificada; reduzir a reclassificação de tipo.',

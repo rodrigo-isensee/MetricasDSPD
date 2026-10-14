@@ -23,11 +23,10 @@ async function cartao(codigo: string, url: string) {
 }
 
 describe('calibração: fontes por rota (A4)', () => {
-  it('a Sustentação espera só o Acelerato; o fluxo só o BusinessMap; Visão geral e Espera invisível as duas', () => {
+  it('a Sustentação espera só o Acelerato; o fluxo só o BusinessMap; a Visão geral as duas', () => {
     expect(dominiosDaRota('/sustentacao')).toEqual(['acelerato'])
     expect(dominiosDaRota('/operacional')).toEqual(['businessmap'])
     expect(dominiosDaRota('/')).toEqual(['businessmap', 'acelerato'])
-    expect(dominiosDaRota('/espera-invisivel')).toEqual(['businessmap', 'acelerato'])
   })
 })
 

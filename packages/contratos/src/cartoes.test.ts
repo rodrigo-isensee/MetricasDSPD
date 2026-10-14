@@ -137,4 +137,29 @@ describe('catálogo de cartões', () => {
     expect(preferenciasMetricasSchema.safeParse(PREFERENCIAS_PADRAO).success).toBe(true)
     expect(preferenciasMetricasSchema.safeParse({ versao: 2 }).success).toBe(false)
   })
+
+  it('ignora em silêncio chave de painel inexistente (a antiga `espera-invisivel`) e mantém os ocultos válidos', () => {
+    const r = preferenciasMetricasSchema.safeParse({
+      versao: 1,
+      paineis: {
+        operacional: { ocultar: ['ei-fl1'] },
+        'espera-invisivel': { ocultar: ['ei-fl2'] },
+      },
+      atualizadoEm: '2026-10-10T00:00:00.000Z',
+    })
+    expect(r.success && r.data.paineis).toEqual({ operacional: { ocultar: ['ei-fl1'] } })
+  })
+
+  it('a espera invisível de cada nível está no painel do nível, na seção própria, e os ids não mudaram', () => {
+    const ei = CATALOGO_CARTOES.filter((c) => c.codigo.startsWith('EI-'))
+    expect(ei.map((c) => [c.id, c.painel, c.secao])).toEqual([
+      ['ei-fl1', 'operacional', 'espera-invisivel'],
+      ['ei-fl2', 'tatico', 'espera-invisivel'],
+      ['ei-fl3', 'estrategico', 'espera-invisivel'],
+      ['ei-sust', 'sustentacao', 'espera'],
+    ])
+    expect(new Set(ei.map((c) => c.secaoTitulo))).toEqual(
+      new Set(['Quanto do tempo do solicitante fica fora da nossa gestão?']),
+    )
+  })
 })

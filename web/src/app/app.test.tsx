@@ -8,7 +8,7 @@ const busca = (r: { roteador: { state: { location: { search: string; pathname: s
   new URLSearchParams(r.roteador.state.location.search)
 
 describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
-  it('navegação com exatamente os 8 destinos na ordem e aria-current na rota atual', async () => {
+  it('navegação com exatamente os 7 destinos na ordem e aria-current na rota atual', async () => {
     renderizarApp('/operacional')
     await screen.findByRole('heading', { level: 1, name: 'Operacional' })
     const nav = screen.getAllByRole('navigation', { name: 'Navegação principal' })[0] as HTMLElement
@@ -21,7 +21,6 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
       'Tático',
       'Estratégico',
       'Sustentação',
-      'Espera invisível',
       'Catálogo de métricas',
       'Dados e coletas',
     ])
@@ -40,7 +39,6 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
     '/tatico',
     '/estrategico',
     '/sustentacao',
-    '/espera-invisivel',
     '/dados',
     '/ajuda',
     '/nada-aqui',
@@ -104,9 +102,7 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
         '/tatico?equipe=fluig&tipo=melhoria&periodo=4s',
       ),
     )
-    expect(
-      within(nav).getByRole('link', { name: 'Espera invisível' }).getAttribute('href'),
-    ).toContain('equipe=fluig')
+    expect(within(nav).queryByRole('link', { name: 'Espera invisível' })).toBeNull()
     expect(within(nav).getByRole('link', { name: 'Sustentação' }).getAttribute('href')).toBe(
       '/sustentacao',
     )

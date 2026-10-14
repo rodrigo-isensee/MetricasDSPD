@@ -14,6 +14,7 @@ import {
   type Chamado,
   type EtapaChamado,
 } from './index'
+import { justificativaInformada } from './modelo'
 import { noIntervalo } from './comum'
 import { totalizadorDaEtapa } from './totalizadores'
 
@@ -160,6 +161,48 @@ describe('Acelerato', () => {
     expect(r.ajusteDePrioridade.totais.ocorrencias).toBe(3)
     expect(r.ajusteDePrioridade.justificados).toEqual({ k: 2, n: 3 })
     expect(r.reclassificacaoDeTipo.totais.ocorrencias).toBe(2)
+  })
+
+  it('S7 conta o indicador justificativa_informada quando o texto não está presente, sem mudar o resultado com o texto', () => {
+    const base = (f: (i: number) => Partial<Chamado>) =>
+      calcularS7(
+        criarContextoAC(
+          baseDe(22, (i) => ({ prioridade_ajustada_manualmente: i < 3, ...f(i) })),
+          HOJE,
+          CALENDARIO_PADRAO,
+        ),
+        F,
+      )
+    const comTexto = base((i) => ({ justificativa_ajuste: i < 2 ? 'x' : null }))
+    const comIndicador = base((i) => ({
+      justificativa_ajuste: null,
+      justificativa_informada: i < 2,
+    }))
+    expect(comIndicador.ajusteDePrioridade.justificados).toEqual({ k: 2, n: 3 })
+    expect(comIndicador).toEqual(comTexto)
+    expect(
+      base(() => ({ justificativa_ajuste: null, justificativa_informada: false }))
+        .ajusteDePrioridade.justificados.k,
+    ).toBe(0)
+  })
+
+  it('R6: justificativa só com espaços ou vazia NÃO conta; texto não vazio conta', () => {
+    expect(justificativaInformada(null)).toBe(false)
+    expect(justificativaInformada('')).toBe(false)
+    expect(justificativaInformada('  \t\n ')).toBe(false)
+    expect(justificativaInformada(' x ')).toBe(true)
+    const r = calcularS7(
+      criarContextoAC(
+        baseDe(22, (i) => ({
+          prioridade_ajustada_manualmente: i < 3,
+          justificativa_ajuste: i === 0 ? 'motivo' : i === 1 ? '   ' : i === 2 ? '' : null,
+        })),
+        HOJE,
+        CALENDARIO_PADRAO,
+      ),
+      F,
+    )
+    expect(r.ajusteDePrioridade.justificados).toEqual({ k: 1, n: 3 })
   })
 
   it('espera invisível da sustentação usa os totalizadores: cliente = vida; time = em atendimento', () => {

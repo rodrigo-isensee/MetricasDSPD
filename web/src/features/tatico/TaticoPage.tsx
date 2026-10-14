@@ -104,9 +104,9 @@ export default function TaticoPage() {
           <SecaoPainel
             cartoes={['ei-fl2']}
             id="espera-invisivel"
-            titulo="Espera invisível do nível"
+            titulo="Quanto do tempo do solicitante fica fora da nossa gestão?"
           >
-            <CartaoEIFL2 filtros={filtros} variante="compacto" />
+            <CartaoEIFL2 filtros={filtros} />
           </SecaoPainel>
           <MaisMetricas fonte="BusinessMap" renderizar={(id) => cartaoDeFluxo(id, filtros)} />
         </>

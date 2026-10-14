@@ -27,3 +27,6 @@ O pedido 002 exige que trocar `MockFonteMetricas` por `HttpFonteMetricas` seja s
 - Mais fácil: o front não muda ao ligar a API; erros de contrato aparecem no CI (paridade e OpenAPI).
 - Mais difícil: mudança de schema afeta web, servidor e mock ao mesmo tempo (é o objetivo).
 - Risco: compatibilidade do type provider com zod 4 → confirmar versão no K-017; plano B é validar manualmente com `schema.parse` num hook `preValidation`/`preSerialization`.
+
+## Nota de compatibilidade (2026-10-13, review do front via API)
+Os schemas de **resultado** não usam `.strict()`: o Zod padrão descarta campo não declarado (`strip`), que nunca chega à UI, e o corpo bruto da paridade detecta a divergência. Assim, acrescentar campo opcional a um resultado é compatível com front já publicado. Remover ou mudar o tipo de campo declarado continua sendo mudança incompatível. Os schemas de entrada (filtros, query) seguem `.strict()`.
