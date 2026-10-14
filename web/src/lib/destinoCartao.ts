@@ -1,14 +1,15 @@
 import type { CartaoCatalogo } from '@metricas-dspd/contratos'
-
-/** Cartões da visão diária do Operacional (a faixa do dia); os demais vivem na semanal. */
-const CARTOES_DA_DIARIA: readonly string[] = ['o2', 'bloqueados', 'o1']
+import { visaoDoHash } from '@/features/operacional/visao'
 
 /**
- * Endereço de um cartão: o painel e o hash do cartão. No Operacional a visão diária só tem a faixa do dia
- * (O2, bloqueados e O1); os demais cartões (e a seção "Mais métricas") vivem na semanal, então o link já
- * pede `cadencia=semanal`. Os da faixa do dia ficam na diária (o padrão), onde o cartão existe.
+ * Endereço de um cartão: sempre dentro do Operacional, na visão dona do cartão (tabela hash → visão):
+ * a faixa do dia na Diária, os demais cartões do fluxo na Semanal e os da sustentação na Sustentação.
+ * Os outros painéis têm rota própria.
  */
 export function destinoDoCartao(c: Pick<CartaoCatalogo, 'painel' | 'id'>): string {
-  const semanal = c.painel === 'operacional' && !CARTOES_DA_DIARIA.includes(c.id)
-  return `/${c.painel}${semanal ? '?cadencia=semanal' : ''}#${c.id}`
+  if (c.painel === 'sustentacao') return `/operacional?cadencia=sustentacao#${c.id}`
+  if (c.painel === 'operacional')
+    // Todo cartão do painel `operacional` está na tabela (teste de unicidade e de cobertura do catálogo).
+    return `/operacional?cadencia=${visaoDoHash(`#${c.id}`) as string}#${c.id}`
+  return `/${c.painel}#${c.id}`
 }

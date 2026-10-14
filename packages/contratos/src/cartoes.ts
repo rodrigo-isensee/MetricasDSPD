@@ -223,7 +223,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ),
   ...secao(
     'sustentacao',
-    'por-que-demora',
+    'sust-por-que-demora',
     'Por que demora?',
     [
       ['S9', 'Tempo em pendência'],
@@ -233,7 +233,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ),
   ...secao(
     'sustentacao',
-    'qualidade',
+    'sust-qualidade',
     'Qualidade',
     [
       ['S8', 'Taxa de reabertura'],
@@ -244,7 +244,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ),
   ...secao(
     'sustentacao',
-    'o-que-entra',
+    'sust-o-que-entra',
     'O que entra?',
     [['S12', 'Volume por sistema']],
     'complementar',

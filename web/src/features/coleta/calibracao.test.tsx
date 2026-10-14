@@ -24,8 +24,8 @@ async function cartao(codigo: string, url: string) {
 
 describe('calibração: fontes por rota (A4)', () => {
   it('a Sustentação espera só o Acelerato; o fluxo só o BusinessMap; a Visão geral as duas', () => {
-    expect(dominiosDaRota('/sustentacao')).toEqual(['acelerato'])
-    expect(dominiosDaRota('/operacional')).toEqual(['businessmap'])
+    expect(dominiosDaRota('/operacional', '?cadencia=sustentacao')).toEqual(['acelerato'])
+    expect(dominiosDaRota('/operacional', '?cadencia=semanal')).toEqual(['businessmap'])
     expect(dominiosDaRota('/')).toEqual(['businessmap', 'acelerato'])
   })
 })
