@@ -21,4 +21,4 @@ Causa provável (leitura do código, não corrigido pelo QA): o `useEffect` que 
 - `error-context.md` e `trace.zip` em `e2e-out-1/filtros-FIL-04-marcar-todos-os-valores-remove-o-parâmetro-chromium/` (pasta temporária da execução, não versionada).
 
 ## Correção
-- Correção: 935e51a (fix(web): filtros na URL partem do estado vigente, URL canônica e aviso de período inválido)
+- Correção: 935e51a (fix(web): filtros na URL partem do estado vigente, URL canônica e aviso de período inválido); fb7dcb4 (fix(web): FiltroMulti mostra a última marcação do usuário)

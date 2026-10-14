@@ -26,4 +26,4 @@ Teste `SIS-CONS-01` em `e2e/tests/intensivo-sistemico.spec.ts` (trecho da falha)
 ```
 
 ## Correção
-- Correção: 0bd48bd (fix(web): Ir ao painel do catálogo leva ao cartão de toda métrica)
+- Correção: 0bd48bd (fix(web): Ir ao painel do catálogo leva ao cartão de toda métrica); 6b30aae e c485929 (O1, O2 e Bloqueados levam à visão diária)

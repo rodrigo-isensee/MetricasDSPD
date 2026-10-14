@@ -29,4 +29,4 @@ A URL termina com `cadencia=semanal&tipo=incidente`: o filtro de equipe some sem
 - Reprodutibilidade: ver tabela de repetição em `docs/qa/intensivo-filtros.md`.
 
 ## Correção
-- Correção: 935e51a (fix(web): filtros na URL partem do estado vigente, URL canônica e aviso de período inválido)
+- Correção: 935e51a (fix(web): filtros na URL partem do estado vigente, URL canônica e aviso de período inválido); 6576625 (spec acompanha a develop)
