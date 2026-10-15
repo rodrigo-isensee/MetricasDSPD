@@ -34,21 +34,24 @@ export function calcularT10(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT10 {
   const porFornecedor = agrupar(periodo)
   const naJanela = agrupar(janela)
   const fornecedores = ordenarNeutro([...porFornecedor.entries()], ([nome]) => [nome]).map(
-    ([fornecedor, horas]) => ({
-      fornecedor,
-      bloqueios: horas.length,
-      diasUteis: r2(du(ctx, soma(horas))),
-      duracao: estatistica((naJanela.get(fornecedor) ?? []).length, janela, () => {
-        const p = percentisDe(
-          amostraBM(
-            'story',
-            (naJanela.get(fornecedor) ?? []).map((h) => du(ctx, h)),
-            janela,
-          ),
-        )
-        return { p50: r2(p.p50), p85: r2(p.p85), p95: r2(p.p95) }
-      }),
-    }),
+    ([fornecedor, horas]) => {
+      const daJanela = naJanela.get(fornecedor) ?? []
+      return {
+        fornecedor,
+        bloqueios: horas.length,
+        diasUteis: r2(du(ctx, soma(horas))),
+        duracao: estatistica(daJanela.length, janela, () => {
+          const p = percentisDe(
+            amostraBM(
+              'story',
+              daJanela.map((h) => du(ctx, h)),
+              janela,
+            ),
+          )
+          return { p50: r2(p.p50), p85: r2(p.p85), p95: r2(p.p95) }
+        }),
+      }
+    },
   )
   const todas = [...porFornecedor.values()].flat()
   return {
