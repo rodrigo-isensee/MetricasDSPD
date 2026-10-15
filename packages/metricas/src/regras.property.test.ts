@@ -121,6 +121,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
     nome: 'fronteira de amostra 19/20',
     aplica: (_id, r) => r.minimo === 20 && r.dominio !== 'pesquisa',
     excecoes: {
+      T10: 'percentis na janela de 12 semanas (B3-1): com a base de escala 0,5 nenhum fornecedor chega a 20 bloqueios na janela, então não há nó ok para varrer; a fronteira 19/20 e o corte do dia 84/85 são provados em bloqueios.test.ts',
       E1: 'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer; coberto em businessmap.test.ts',
       E9: 'nível de projeto: o mock não publica 20 projetos concluídos na janela de 12 semanas, então não há nó ok para varrer; a fronteira 19/20 da referência P85 é provada em e9.test.ts',
       EI_FL3:

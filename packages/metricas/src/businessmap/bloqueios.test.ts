@@ -264,15 +264,116 @@ describe('O19 e T10 sobre o mock (medição registrada, a base não muda)', () =
     expect(r.motivos.every((m) => m.pctDoTotal.status === 'ok')).toBe(true)
   })
 
-  it('T10 em 12 semanas: Alfa 19 (abaixo), Beta 23 e Gama 26; 12 meses publica os três', () => {
+  it('T10 em 12 semanas: Alfa 19 (abaixo), Beta 23 e Gama 26; com 12 meses a janela dos percentis não muda', () => {
     const r = calcularT10(ctx, F)
     expect(r.fornecedores.map((x) => [x.fornecedor, x.bloqueios, x.duracao.status])).toEqual([
       ['Fornecedor Alfa', 19, 'insuficiente'],
       ['Fornecedor Beta', 23, 'ok'],
       ['Fornecedor Gama', 26, 'ok'],
     ])
+    // B3-1: com 12 meses o censo cresce, mas os percentis seguem na janela de 12 semanas (Alfa continua com 19).
     const ano = calcularT10(ctx, { ...F, periodo: { tipo: '12m' } })
-    expect(ano.fornecedores.map((x) => x.duracao.status)).toEqual(['ok', 'ok', 'ok'])
+    expect(ano.fornecedores.map((x) => [x.bloqueios > x.duracao.n, x.duracao.status])).toEqual([
+      [true, 'insuficiente'],
+      [true, 'ok'],
+      [true, 'ok'],
+    ])
+    expect(ano.fornecedores.map((x) => x.duracao.n)).toEqual([19, 23, 26])
     expect(SCHEMAS_RESULTADO.T10.safeParse(r).success).toBe(true)
+  })
+})
+
+const F12M: FiltrosFluxo = { ...F, periodo: { tipo: '12m' } }
+const F4S: FiltrosFluxo = { ...F, periodo: { tipo: '4s' } }
+const comCriterio = (cards: EspecCard[], bloqueios: FatoBloqueio[], afeta: 'O19' | 'T10') => {
+  const base = umaBase(cards, bloqueios)
+  base.config.criterios = [
+    { id: 'c-meio', data: '2026-09-20', descricao: 'critério no meio', afeta: [afeta] },
+    { id: 'c-janela', data: '2026-08-15', descricao: 'critério só na janela', afeta: [afeta] },
+    { id: 'c-fora', data: '2026-08-15', descricao: 'outra métrica', afeta: ['O1'] },
+  ]
+  return criarContextoBM(base, HOJE_TESTE, CALENDARIO_PADRAO)
+}
+
+describe('B3-1: percentis na janela de 12 semanas, censo no período', () => {
+  // Janela de 12 semanas termina em 2026-10-09: o dia 84 é 2026-07-18 (dentro) e o 85 é 2026-07-17 (fora).
+  const noDia = (dia: string, n: number, motivo: MotivoBloqueio, forn: string | null) =>
+    Array.from({ length: n }, () => bloq('A', motivo, forn, `${dia}T10:00:00-03:00`, 2))
+
+  it('O19: bloqueio no dia 84 entra na amostra e o do dia 85 fica fora, embora conte no período de 12 meses', () => {
+    const dentroDaJanela = calcularO19(
+      ctxDe([card('A')], noDia('2026-07-18', 20, 'Janela de mudança', null)),
+      F12M,
+    )
+    const m = dentroDaJanela.motivos.find((x) => x.motivo === 'Janela de mudança')
+    expect(m?.duracao).toMatchObject({ status: 'ok', n: 20, janela: { inicio: '2026-07-18' } })
+
+    const foraDaJanela = calcularO19(
+      ctxDe(
+        [card('A')],
+        [
+          ...noDia('2026-07-18', 19, 'Janela de mudança', null),
+          ...noDia('2026-07-17', 1, 'Janela de mudança', null),
+        ],
+      ),
+      F12M,
+    )
+    const f = foraDaJanela.motivos.find((x) => x.motivo === 'Janela de mudança')
+    expect(f).toMatchObject({ bloqueios: 20, pctDoTotal: { status: 'ok', k: 20, n: 20 } })
+    expect(f?.duracao).toMatchObject({ status: 'insuficiente', n: 19 })
+  })
+
+  it('T10: o mesmo corte 84/85 vale por fornecedor', () => {
+    const r = calcularT10(
+      ctxDe(
+        [card('A')],
+        [
+          ...noDia('2026-07-18', 20, 'Aguardando fornecedor', 'Fornecedor Alfa'),
+          ...noDia('2026-07-18', 19, 'Aguardando fornecedor', 'Fornecedor Beta'),
+          ...noDia('2026-07-17', 1, 'Aguardando fornecedor', 'Fornecedor Beta'),
+        ],
+      ),
+      F12M,
+    )
+    const [alfa, beta] = r.fornecedores
+    expect(alfa?.duracao).toMatchObject({ status: 'ok', n: 20 })
+    expect(beta).toMatchObject({ bloqueios: 20 })
+    expect(beta?.duracao).toMatchObject({ status: 'insuficiente', n: 19 })
+  })
+})
+
+describe('L3: marcação de critério cruzando o período (O19 e T10)', () => {
+  const bl = muitos(2, 'Aguardando fornecedor', 'Fornecedor Alfa')
+  it('O19: a série traz as versões do período e a janela traz as da janela', () => {
+    const r = calcularO19(comCriterio([card('A')], bl, 'O19'), F4S)
+    expect(r.criterios.serie.map((c) => c.id)).toEqual(['c-meio'])
+    expect(r.criterios.janela.map((c) => c.id)).toEqual(['c-janela', 'c-meio'])
+  })
+  it('T10: a série traz as versões do período e a janela traz as da janela', () => {
+    const r = calcularT10(comCriterio([card('A')], bl, 'T10'), F4S)
+    expect(r.criterios.serie.map((c) => c.id)).toEqual(['c-meio'])
+    expect(r.criterios.janela.map((c) => c.id)).toEqual(['c-janela', 'c-meio'])
+  })
+})
+
+describe('B3-2: bloqueio que atravessa o fim do período', () => {
+  it('conta como aberto no fim do período, sem entrar na soma nem nos percentis', () => {
+    // Período custom até 2026-09-10; o bloqueio vai de 09-08 a 09-21 (passa do fim) e outro começa só depois do corte.
+    const fim = (dia: string) => instanteDeIso(`${dia}T10:00:00-03:00`, CALENDARIO_PADRAO)
+    const atravessa: FatoBloqueio = {
+      ...bloq('A', 'Janela de mudança', null, '2026-09-21T10:00:00-03:00', 1),
+      inicio: fim('2026-09-08'),
+    }
+    const depois: FatoBloqueio = {
+      ...bloq('A', 'Janela de mudança', null, '2026-09-21T10:00:00-03:00', 1),
+      inicio: fim('2026-09-15'),
+    }
+    const r = calcularO19(ctxDe([card('A')], [atravessa, depois]), {
+      ...F,
+      periodo: { tipo: 'custom', de: '2026-08-01', ate: '2026-09-10' },
+    })
+    expect(r.abertosForaDaSoma).toBe(1)
+    expect(r.base.n).toBe(0)
+    expect(r.totalDiasUteis).toBe(0)
   })
 })

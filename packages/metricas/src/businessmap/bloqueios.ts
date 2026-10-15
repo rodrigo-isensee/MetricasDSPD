@@ -7,7 +7,7 @@ import type { ContextoBM, MarcosCard } from './indice'
 export interface BloqueiosDoPeriodo {
   /** Bloqueios com `fim` dentro do período, de cards que passaram pelos filtros. Duração sempre preenchida. */
   encerrados: readonly (FatoBloqueio & { duracao_horas_uteis: number })[]
-  /** Bloqueios ainda abertos no fim do período: ficam fora de soma e percentil (O19). */
+  /** Bloqueios abertos no fim do período (inclui os que terminam depois dele): ficam fora de soma e percentil (O19). */
   abertos: number
 }
 
@@ -25,11 +25,10 @@ export function bloqueiosDoPeriodo(
   let abertos = 0
   for (const m of cards) {
     for (const b of ctx.idx.bloqueiosPorCard.get(m.card.card_id) ?? []) {
-      if (b.fim === null) {
-        if (b.inicio <= corte) abertos++
-      } else if (b.duracao_horas_uteis !== null && dentro(ctx, b.fim, periodo)) {
+      // Aberto no fim do período: começou até o corte e ainda não tinha terminado nele (inclui o que termina depois).
+      if (b.inicio <= corte && (b.fim === null || b.fim > corte)) abertos++
+      if (b.fim !== null && b.duracao_horas_uteis !== null && dentro(ctx, b.fim, periodo))
         encerrados.push({ ...b, duracao_horas_uteis: b.duracao_horas_uteis })
-      }
     }
   }
   return { encerrados, abertos }
