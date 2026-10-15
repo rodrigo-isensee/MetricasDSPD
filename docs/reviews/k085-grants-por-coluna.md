@@ -3,17 +3,32 @@ tipo: review
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis
 branch: fix/grants-por-coluna
-commit: 911625a791c56dfcbf4c9d2128d848181c25132c
+commit: c626cd0
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-15
 ---
 
-# Code review: K-085, GRANT por coluna do `dspd_api` (ADR 0020, M-4 e B-3) (volta 3)
+# Code review: K-085, GRANT por coluna do `dspd_api` (ADR 0020, M-4 e B-3) (volta 4)
 
 Propósito: parecer de code review do K-085. Público: node-backend (autor), software-architect, security-engineer, qa-engineer e Jarvis.
 
 **Veredito da volta 3: aprovado, sem mudança de conteúdo de código.** O achado 1 (bloqueante) foi corrigido em 61f974c, e o 21dabc0 fechou o achado 2 já neste cartão. Resta o achado 3 (frase da ADR 0020), que é do software-architect e não bloqueia.
+
+**Veredito da volta 4: aprovado sobre c626cd0** (integração com o K-084). Detalhe na seção abaixo.
+
+## Volta 4: integração com o K-084 (1094cf7..c626cd0)
+
+- **O que entrou:** merge da `develop` (0fe209a, K-084 #77): `allow-list.ts`, `responsaveis.ts`, ajustes em `staging.ts`, `webhook.ts`, `index.ts`, testes novos, `server.md` (+1 linha, coletor), `fontes.md` e os pareceres do K-084. O merge não tocou `grants.ts`.
+- **Pontos de contato:**
+  - `grants.ts` x `stg_`: sem sobreposição. O K-085 só filtra `COLUNAS_FORA_DA_API` e `TABELAS_FORA_DA_API` (`agg_` e `ref_`); as `stg_` seguem na regra `IMUTAVEL`, fora da API. O `dspd_webhook` mantém `INSERT` e `SELECT (webhook_sk, payload_sha256)` em `stg_webhook_evento`, o que o K-084 usa. O K-084 não escreve em `ref_conta_automacao`.
+  - Allow-list x `COLUNAS_PESSOA`: responsáveis vão só a `dim_card` e `dim_card_versao`, colunas que a API não lê. Coerente com o GRANT por coluna.
+  - `server.md`: a linha nova do K-084 não conflita com o §8 do `data-model.md` deste cartão.
+- **Ferramentas (saída real, em c626cd0):**
+  - `flock /tmp/metricas-pesado.lock nice -n 19 pnpm run pronto; echo EXIT=$?`: **EXIT=0** (`docs:check` ok, 413 páginas; cobertura de `tools/docs-contratos` em 100%).
+  - `test:pg` (`vitest run --project pg`) de `guarda-api`, `papeis`, `allow-list.qa`, `responsaveis`, `webhook` e `staging`, com o Postgres do compose: **EXIT=0, 6 arquivos, 35 testes passaram**. Não rodei o `test:pg` completo; o job `banco` da CI segue como portão.
+- **Para o QA revalidar:** o parecer do QA do K-085 precisa apontar c626cd0 (o `forge-check pr` acusa o HEAD antigo). Reexecutar `guarda-api.pg` e `papeis.pg` junto com `allow-list.qa.pg` e `responsaveis.pg`, e confirmar que `dspd_api` segue sem acesso às `stg_` e às colunas de pessoa após a escrita do coletor.
+- **Riscos:** baixo. O código dos dois cartões é disjunto; os achados 3 e 4 da volta 1 seguem como estavam.
 
 ## Volta 3: atualização com a develop, só docs (911140c..911625a)
 
