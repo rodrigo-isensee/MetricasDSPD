@@ -1,11 +1,11 @@
-import type { FiltrosFluxo, ResultadoT12 } from '@metricas-dspd/contratos'
+import type { FiltrosFluxo, MotivoBloqueio, ResultadoT12 } from '@metricas-dspd/contratos'
 import { taxa } from '../core/estatistica'
 import { ordenarNeutro } from '../core/ordenar'
 import { baseAmostral, criterios, dentro, ehDemanda, periodoDe, selecionar } from './comum'
 import type { ContextoBM, MarcosCard } from './indice'
 
 /** Motivo do bloqueio que conta como "ida e volta" na entrada (D-8 = A). */
-export const MOTIVO_IDA_E_VOLTA = 'Falta de informação no chamado'
+export const MOTIVO_IDA_E_VOLTA: MotivoBloqueio = 'Falta de informação no chamado'
 
 /**
  * D-8 = A, os dois critérios com OU (o card que tem os dois conta uma vez só):

@@ -1,4 +1,5 @@
 import {
+  MINIMO_AMOSTRA,
   TIPOS_CARD,
   type FiltrosFluxo,
   type ResultadoO21,
@@ -18,7 +19,7 @@ import {
   selecionar,
 } from './comum'
 import type { ContextoBM } from './indice'
-import type { FatoTransicao, PapelColuna } from './modelo'
+import type { PapelColuna } from './modelo'
 import { entreguesDe } from './o3'
 
 /** Papéis de coluna na ordem do fluxo (ordem neutra do domínio da matriz por papel). */
@@ -44,14 +45,15 @@ export function calcularO21(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO21 {
   const janela = janelaPercentis(ctx, f, 'story')
   const cards = selecionar(ctx, f, 'story').filter(ehDemanda)
   // A entrega vigente é a última transição do card: todo retorno de quem está entregue vem antes dela.
-  const retornosPorCard = new Map<string, FatoTransicao[]>()
-  for (const t of ctx.idx.base.transicoes)
-    if (t.direcao === 'retorno' && t.coluna_origem !== null)
-      retornosPorCard.set(t.card_id, [...(retornosPorCard.get(t.card_id) ?? []), t])
   const entregas = entreguesDe(
     ctx,
     cards.filter((m) => m.entrega !== null),
-  ).map((e) => ({ ...e, retornos: retornosPorCard.get(e.m.card.card_id) ?? [] }))
+  ).map((e) => ({
+    ...e,
+    retornos: (ctx.idx.transicoesPorCard.get(e.m.card.card_id) ?? []).filter(
+      (t) => t.direcao === 'retorno' && t.coluna_origem !== null,
+    ),
+  }))
   const doPeriodo = entregas.filter((e) => dentro(ctx, e.m.entrega, periodo))
   const comRetorno = doPeriodo.filter((e) => e.retornos.length > 0)
 
@@ -123,8 +125,8 @@ export function calcularO21(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO21 {
       const doTipo = naJanela.filter((e) => e.m.card.tipo === tipo)
       const com = doTipo.filter((e) => e.retornos.length > 0).map((e) => e.ciclo)
       const sem = doTipo.filter((e) => e.retornos.length === 0).map((e) => e.ciclo)
-      const abaixoCom = com.length < 20
-      const abaixoSem = sem.length < 20
+      const abaixoCom = com.length < MINIMO_AMOSTRA
+      const abaixoSem = sem.length < MINIMO_AMOSTRA
       return {
         tipo,
         com: duracao(com),
