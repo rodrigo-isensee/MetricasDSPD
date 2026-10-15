@@ -567,6 +567,18 @@ export const REGRAS_METRICA = {
       'pedido 011 T10; D-10 = A (sem prazo contratado); R-5 (qualquer motivo com fornecedor informado)',
     status: 'ok',
   },
+  O25: {
+    dominio: 'businessmap',
+    segmentacao: [],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa', 'percentis'],
+    granularidade: 'story',
+    refBriefing:
+      "pedido 011 O25; R-2' = A (descartado = estado nativo discarded ou excluído, instante discarded_at; motivo sem descarte vira aviso); P-1 = A; D-13 (tempo consumido do início ao descarte; antes do início à parte); motivos de descarte = A (porMotivo nulo até ler /discardReasons, CA-44)",
+    status: 'ok',
+  },
   T12: {
     dominio: 'businessmap',
     segmentacao: ['area'],

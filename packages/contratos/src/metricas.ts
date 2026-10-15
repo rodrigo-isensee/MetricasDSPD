@@ -2,7 +2,14 @@ import type { z } from 'zod'
 import type { FonteMetrica, MetricaId } from './comum'
 import type { FiltrosFluxo, FiltrosSustentacao } from './filtros'
 import type * as s from './schemas'
-import type { ResultadoO19, ResultadoT10, ResultadoT12, ResultadoE7, ResultadoE9 } from './tambem'
+import type {
+  ResultadoO19,
+  ResultadoT10,
+  ResultadoT12,
+  ResultadoE7,
+  ResultadoE9,
+  ResultadoO25,
+} from './tambem'
 
 export type ResultadoO1 = z.infer<typeof s.resultadoO1>
 export type ResultadoBloqueados = z.infer<typeof s.resultadoBloqueados>
@@ -84,6 +91,7 @@ export interface ContratoMetricas {
   O16: Fluxo<ResultadoO16>
   O17: Sust<ResultadoO17>
   O19: Fluxo<ResultadoO19>
+  O25: Fluxo<ResultadoO25>
   T1: Fluxo<ResultadoT1>
   T2: Fluxo<ResultadoT2>
   T3: Fluxo<ResultadoT3>
@@ -193,6 +201,7 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   O14: ['equipe', 'sistema', 'periodo'],
   O16: ['equipe', 'sistema', 'periodo'],
   O19: ['equipe', 'tipo', 'sistema', 'periodo'],
+  O25: ['equipe', 'tipo', 'sistema', 'periodo'],
   T6: ['equipe', 'sistema', 'periodo'],
   T8: ['equipe', 'sistema', 'periodo'],
   T10: ['equipe', 'tipo', 'sistema', 'periodo'],

@@ -65,6 +65,17 @@ describe('GET /api/v1/metricas/:id', () => {
     expect((await get(app, '/api/v1/metricas/T12?periodo=abc')).statusCode).toBe(400);
   });
 
+  it('O25 (pedido 011): 200 no schema, filtros do fluxo, porMotivo nulo e nenhum campo de pessoa, motivo ou comentário', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/O25?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O25.safeParse(r.json()).success).toBe(true);
+    expect(r.json().porMotivo).toBeNull();
+    expect(JSON.stringify(r.json())).not.toMatch(/discard_comment|responsave|usuario|Criado por engano/);
+    expect((await get(app, '/api/v1/metricas/O25?periodo=12m&tipo=melhoria&equipe=fluig')).statusCode).toBe(200);
+    expect((await get(app, '/api/v1/metricas/O25?periodo=abc')).statusCode).toBe(400);
+  });
+
   it('E7 e E9 (pedido 011, B5): 200 no schema, E7 sem R$ e com 4 naturezas, E9 com faixas fixas e sem pessoa', async () => {
     const { app } = await montar();
     const e7 = await get(app, '/api/v1/metricas/E7?periodo=12m');
@@ -79,6 +90,8 @@ describe('GET /api/v1/metricas/:id', () => {
     expect(SCHEMAS_RESULTADO.E9.safeParse(e9.json()).success).toBe(true);
     const faixas = new Set(['0–30', '31–90', '91–180', 'mais de 180']);
     for (const p of e9.json().projetos as { faixa: string }[]) expect(faixas.has(p.faixa)).toBe(true);
+    // regra 7: uma referência P85 por tipo de projeto, nunca um P85 dos dois juntos
+    expect((e9.json().referenciasP85 as { tipo: string }[]).map((x) => x.tipo)).toEqual(['Iniciativa', 'Melhoria']);
   });
 
   it('O19 e T10 (pedido 011): 200 no schema, filtros do fluxo, motivos na ordem do domínio, fornecedor alfabético e sem prazo', async () => {
