@@ -307,7 +307,7 @@ describe('séries mensais', () => {
       'Em julho: não publicado. Valor não publicado.',
     )
     expect(fraseDaSerieSla([{ mes: '2026-07', valor: 0, n: null, texto: '0' }])).toBe(
-      'Em julho: 0 de 0 prioridades avaliadas estão abaixo de 90%.',
+      'Em julho: nenhuma prioridade avaliada.',
     )
     expect(serieSla(t)).toEqual([
       { mes: '2026-08', valor: 1, n: 2, texto: '1 de 2 avaliadas' },

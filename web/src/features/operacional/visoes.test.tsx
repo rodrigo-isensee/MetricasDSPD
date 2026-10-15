@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
 
 const visaoMarcada = () =>
@@ -82,6 +82,20 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     await waitFor(() =>
       expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 })),
     )
+  })
+
+  it('sem h1 no documento a troca por link não quebra: só não move o foco', async () => {
+    renderizarApp('/operacional')
+    const nota = await screen.findByTestId('nota-janelas-alerta', undefined, { timeout: 15000 })
+    const espia = vi.spyOn(Document.prototype, 'querySelector').mockReturnValue(null)
+    try {
+      await userEvent.click(within(nota).getByRole('link', { name: 'Ver na Sustentação' }))
+      await waitFor(() => expect(visaoMarcada()).toBe('Sustentação'), { timeout: 15000 })
+      expect(espia).toHaveBeenCalledWith('h1')
+      expect(screen.getByTestId('anuncio-visao')).toHaveTextContent('Visão Sustentação.')
+    } finally {
+      espia.mockRestore()
+    }
   })
 
   it('seta no grupo de rádio troca a visão e cada seta é uma entrada de histórico (A7)', async () => {

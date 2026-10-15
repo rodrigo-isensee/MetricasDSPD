@@ -136,8 +136,9 @@ export default function OperacionalPage() {
     // Troca por link sem hash: o link some da tela e o foco cairia no body; vai ao título da página (D-03).
     // Pelo seletor o foco volta ao rádio; com hash o foco vai ao cartão.
     if (viaSeletor || hash) return
-    // O h1 sempre existe nas quatro visões (molde da página).
-    const h1 = document.querySelector('h1') as HTMLElement
+    // Uma visão lazy que ainda não montou pode não ter o h1: nesse caso só não move o foco.
+    const h1 = document.querySelector<HTMLElement>('h1')
+    if (!h1) return
     h1.tabIndex = -1
     h1.focus({ preventScroll: true })
   }, [visao, hash])

@@ -1,7 +1,10 @@
 import type { MarcacaoCriterio, ResultadoDe, Taxa } from '@metricas-dspd/contratos'
-import { MINIMO_AMOSTRA, TIPOS_CARD } from '@metricas-dspd/contratos'
+import { META_RAZAO_MIN, MINIMO_AMOSTRA, TIPOS_CARD } from '@metricas-dspd/contratos'
 import { fmtInteiro, fmtNumero, fmtPct, plural } from '@/lib/formatar'
 import { contarAvaliadasS1, contarAvaliadasS2, contarForaS1, contarForaS2 } from '../atencao'
+
+/** Meta de aderência em texto ("90%"), derivada de `META_RAZAO_MIN` para o literal não divergir do contrato. */
+const META_SLA_TEXTO = `${Math.round(META_RAZAO_MIN * 100)}%`
 
 /**
  * Modelo de apresentação do Resumo: só reorganiza o que os DTOs já trazem (nenhum cálculo de métrica, nenhuma conta
@@ -142,11 +145,11 @@ export function numeroS2(s2: ResultadoDe<'S2'>): NumeroModelo {
     id: 's2',
     codigo: 'S2',
     cartao: 's2',
-    rotulo: 'Prioridades com aderência ao SLA abaixo de 90%',
+    rotulo: `Prioridades com aderência ao SLA abaixo de ${META_SLA_TEXTO}`,
     valor: m > 0 ? `${fmtInteiro(k)} de ${fmtInteiro(m)}` : null,
     unidade: plural(m, 'prioridade avaliada', 'prioridades avaliadas'),
     base: `${fmtInteiro(s2.base.n)} ${s2.base.unidade}`,
-    meta: 'Meta: aderência de 90% ou mais em cada prioridade',
+    meta: `Meta: aderência de ${META_SLA_TEXTO} ou mais em cada prioridade`,
     ...(m > 0 ? { status: k > 0 ? ('fora' as const) : ('dentro' as const) } : {}),
     ...(m > 0 ? {} : { insuficiente: NENHUMA }),
     visao: 'sustentacao',
@@ -285,13 +288,14 @@ export const serieVolume = (t: ResultadoDe<'TENDENCIA_SUST'>): PontoMensal[] =>
     texto: `${fmtInteiro(m.volume)} ${plural(m.volume, 'chamado', 'chamados')}`,
   }))
 
-/** Frase da série de SLA: diz o que foi contado (abaixo de 90%), para "2 de 5" não ser lido como "2 estão bem". */
+/** Frase da série de SLA: diz o que foi contado (abaixo da meta), para "2 de 5" não ser lido como "2 estão bem". */
 export function fraseDaSerieSla(pontos: readonly PontoMensal[]): string {
   const ultimo = pontos.at(-1)
   if (!ultimo) return ''
   const mes = mesPorExtenso(ultimo.mes)
   if (ultimo.valor === null) return `Em ${mes}: ${ultimo.texto}. Valor não publicado.`
-  return `Em ${mes}: ${fmtInteiro(ultimo.valor)} de ${fmtInteiro(ultimo.n ?? 0)} prioridades avaliadas ${ultimo.valor === 1 ? 'está' : 'estão'} abaixo de 90%.`
+  if (!ultimo.n) return `Em ${mes}: nenhuma prioridade avaliada.`
+  return `Em ${mes}: ${fmtInteiro(ultimo.valor)} de ${fmtInteiro(ultimo.n)} prioridades avaliadas ${ultimo.valor === 1 ? 'está' : 'estão'} abaixo de ${META_SLA_TEXTO}.`
 }
 
 /** Frase de leitura, sem adjetivos: "Em setembro: 14 dias úteis, 2 a menos que em agosto." */

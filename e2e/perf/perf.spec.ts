@@ -172,3 +172,24 @@ test.describe('perf-375', () => {
     });
   }
 });
+
+// SNO-004: as reservas de altura do Resumo (BlocoResumo.reserva, EsqueletoTendencia, FrescorFonte.reservarFalha) são números
+// medidos a 1280 e a 375 de largura. Este caso mede o CLS do Resumo exatamente nessas larguras, com a latência simulada ligada
+// (é ela que mostra o esqueleto), para uma mudança de texto ou de espaçamento não trazer o salto de volta sem aviso.
+test.describe('perf-resumo-reservas', () => {
+  for (const largura of [1280, 375]) {
+    test(`F2 CLS do Resumo a ${largura}px, com os esqueletos reservados`, async ({ page }) => {
+      await page.setViewportSize({ width: largura, height: largura === 375 ? 812 : 800 });
+      await instalarObservadores(page);
+      const painel = new PainelPage(page);
+      await painel.ir(ROTAS.operacionalResumo);
+      await painel.esperarCartoesProntos();
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
+      const v = await lerVitais(page);
+      registrar(`F2_resumo_${largura}`, v);
+      console.log(`[perf] resumo ${largura}: CLS=${v.cls.toFixed(3)}`);
+      expect.soft(v.cls, `F2 CLS do Resumo a ${largura}px`).toBeLessThan(ORCAMENTO.F2_cls);
+    });
+  }
+});
