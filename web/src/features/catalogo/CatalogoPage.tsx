@@ -26,7 +26,7 @@ export default function CatalogoPage() {
       <p className="text-sm text-texto-2">
         Tudo o que existe no DSPD: 45 métricas do briefing + 1 de percepção (a pesquisa de valor do
         serviço); a espera invisível aparece em uma linha por nível. As complementares ficam na
-        seção "Mais métricas deste painel". Até a coleta real existir, todas as métricas usam dados
+        seção "Mais métricas" da visão. Até a coleta real existir, todas as métricas usam dados
         fictícios; a coluna "Dados" lembra isso.
       </p>
       <div className="flex flex-wrap items-end gap-4">

@@ -118,10 +118,10 @@ describe('SemDadosDaFonte', () => {
 
 describe('selos nos painéis (sistêmico: fonte mock, hooks e páginas)', () => {
   it.each([
-    ['/operacional', 'businessmap', 'Falha'],
+    ['/operacional?cadencia=semanal', 'businessmap', 'Falha'],
     ['/tatico', 'businessmap', 'Falha'],
     ['/estrategico', 'businessmap', 'Falha'],
-    ['/sustentacao', 'acelerato', 'Atual'],
+    ['/operacional?cadencia=sustentacao', 'acelerato', 'Atual'],
   ] as const)('%s mostra o selo só da própria fonte', async (rota, dominio, texto) => {
     renderizarApp(rota)
     expect(await screen.findByTestId(`selo-frescor-${dominio}`)).toHaveTextContent(texto)

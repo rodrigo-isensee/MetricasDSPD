@@ -1,6 +1,7 @@
 import { createBrowserRouter, createMemoryRouter, type RouteObject } from 'react-router'
 import { AppShell } from './AppShell'
 import { RedirecionaEsperaInvisivel } from './RedirecionaEsperaInvisivel'
+import { RedirecionaSustentacao } from './RedirecionaSustentacao'
 import { ErroDeRota, PaginaNaoEncontrada } from './Erros'
 
 const lazy =
@@ -30,10 +31,8 @@ export const ROTAS: RouteObject[] = [
             path: 'estrategico',
             lazy: lazy(() => import('@/features/estrategico/EstrategicoPage')),
           },
-          {
-            path: 'sustentacao',
-            lazy: lazy(() => import('@/features/sustentacao/SustentacaoPage')),
-          },
+          // Antiga página: só redireciona (síncrono, sem chunk de página).
+          { path: 'sustentacao', Component: RedirecionaSustentacao },
           { path: 'espera-invisivel', Component: RedirecionaEsperaInvisivel },
           { path: 'metricas', lazy: lazy(() => import('@/features/catalogo/CatalogoPage')) },
           { path: 'dados', lazy: lazy(() => import('@/features/dados/DadosPage')) },

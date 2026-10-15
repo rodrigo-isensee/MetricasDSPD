@@ -47,7 +47,7 @@ describe('/dados: Última coleta, Contagens e Janela de calibração (cenário p
     expect(await secao('Contagens da última coleta')).toHaveTextContent('chamados lidos')
     const janela = await secao('Janela de calibração')
     expect(within(janela).getByTestId('janelas-calibracao')).toHaveTextContent(
-      /15\/09 a 13\/11\/2026 \(desde a primeira coleta da fonte; métricas: O17, S1, S2.*EI-SUST\)/,
+      /15\/09 a 13\/11\/2026 \(desde a primeira coleta da fonte; métricas: O17, S1, S2.*EI-SUST.*\)/,
     )
     expect(within(janela).getByText('Em calibração')).toBeInTheDocument()
   })

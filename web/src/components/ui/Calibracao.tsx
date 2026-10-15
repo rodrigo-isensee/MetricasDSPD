@@ -99,7 +99,7 @@ export function FaixaCalibracao({ fonte, janelas, saibaMais, testid }: FaixaProp
         Dados de calibração ({fonte}, {periodo}, janela definida automaticamente). Servem para
         ajustar o processo, não para cobrar pessoas ou times. Metas não são avaliadas neste período.
       </p>
-      <Link to={saibaMais} className="alvo whitespace-nowrap text-acento underline">
+      <Link to={saibaMais} className="alvo text-acento underline">
         Saiba mais sobre a calibração
       </Link>
     </div>

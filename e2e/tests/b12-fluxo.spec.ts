@@ -7,7 +7,7 @@ const FOCO_TEXTOS_PESSOA = /respons[aá]vel|assignee|\branking\b|Pessoa \d+/i;
 
 test.describe('K-006 Operacional diário', () => {
   test('OP-01 abre na cadência Diária, ordem O2, Bloqueados, O1, link para a semanal', async ({ painel, page }) => {
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=diaria');
     await painel.esperarCartoesProntos();
     await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O2', 'BLOQUEADOS', 'O1']);
     await expect(page.getByTestId('pergunta-cadencia')).toContainText('Qual item mais velho não andou desde ontem?');
@@ -16,18 +16,18 @@ test.describe('K-006 Operacional diário', () => {
   });
 
   test('OP-02 seletor de cadência alterna, grava e remove o parâmetro e mantém o foco', async ({ painel, page }) => {
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=diaria');
     await painel.cadencia.getByText('Semanal', { exact: true }).click();
     await expect(page).toHaveURL(/cadencia=semanal/);
     await painel.esperarCartoesProntos();
     await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O3', 'O9', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18', 'EI-FL1']);
     await painel.cadencia.getByText('Diária', { exact: true }).click();
-    await expect(page).not.toHaveURL(/cadencia=/);
+    await expect(page).toHaveURL(/cadencia=diaria/); // a Diária deixou de ser o padrão: o padrão agora é o Resumo (CA-23)
     await expect(painel.cadencia.getByRole('radio', { name: 'Diária' })).toBeFocused();
   });
 
   test('OP-03 faixa "Pede atenção" com itens que levam aos cartões de origem', async ({ painel, page }) => {
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=diaria');
     await painel.esperarCartoesProntos();
     await expect(painel.faixaAtencao).toContainText(/acima do P95/);
     for (const [nome, id] of [[/Ver O2/, 'o2'], [/Ver BLOQUEADOS/, 'bloqueados'], [/Ver O1/, 'o1']] as const) {
@@ -38,7 +38,7 @@ test.describe('K-006 Operacional diário', () => {
   });
 
   test('OP-04 O2 sem pessoa, máximo 10 itens, aba de tipo insuficiente sinalizada', async ({ painel }) => {
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=diaria');
     const o2 = painel.cartao('O2');
     await o2.esperarPronto();
     const linhas = o2.raiz.locator('tbody tr');
@@ -51,7 +51,7 @@ test.describe('K-006 Operacional diário', () => {
   });
 
   test('OP-21 O2 ordena por "Sem mover há" e seleciona tipo gravando o2=', async ({ painel, page }) => {
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=diaria');
     const o2 = painel.cartao('O2');
     await o2.esperarPronto();
     await o2.raiz.getByRole('button', { name: 'Sem mover há', exact: true }).click();
@@ -63,7 +63,7 @@ test.describe('K-006 Operacional diário', () => {
   });
 
   test('OP-05/24 Bloqueados: colunas do domínio, sem responsável, base = linhas, sem agregação por motivo', async ({ painel }) => {
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=diaria');
     const b = painel.cartao('BLOQUEADOS');
     await b.esperarPronto();
     for (const c of ['Card', 'Tipo', 'Motivo', 'Fornecedor']) await expect(b.raiz.getByRole('columnheader', { name: new RegExp(c) })).toBeVisible();
@@ -74,7 +74,7 @@ test.describe('K-006 Operacional diário', () => {
   });
 
   test('OP-06 Bloqueados vazio é estado positivo', async ({ painel }) => {
-    await painel.ir('/operacional', { mock: 'vazio' });
+    await painel.ir('/operacional?cadencia=diaria', { mock: 'vazio' });
     const b = painel.cartao('BLOQUEADOS');
     await b.esperarPronto();
     await expect(b.raiz).toContainText('Nenhum item bloqueado hoje.');
@@ -82,19 +82,19 @@ test.describe('K-006 Operacional diário', () => {
   });
 
   test('OP-07 O1: sem equipe única só Fila x Execução; com uma equipe barras por coluna', async ({ painel }) => {
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=diaria');
     const o1 = painel.cartao('O1');
     await o1.esperarPronto();
     await expect(o1.raiz).toContainText('Selecione uma equipe para ver por coluna.');
     await expect(o1.raiz).toContainText(/Limite somado de \d+ equipes/);
-    await painel.ir('/operacional?equipe=erp-protheus');
+    await painel.ir('/operacional?cadencia=diaria&equipe=erp-protheus');
     await o1.esperarPronto();
     await expect(o1.raiz).not.toContainText('Selecione uma equipe para ver por coluna.');
     await expect(o1.raiz).toContainText(/Fila/);
   });
 
   test('OP-09 O1 "k de n dias" e KPI coerentes', async ({ painel }) => {
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=diaria');
     const o1 = painel.cartao('O1');
     await o1.esperarPronto();
     const t = await o1.raiz.innerText();
@@ -105,7 +105,7 @@ test.describe('K-006 Operacional diário', () => {
   });
 
   test('ST-03 erro:o2 isola o erro no cartão e os demais seguem', async ({ painel }) => {
-    await painel.ir('/operacional', { mock: 'erro:o2' });
+    await painel.ir('/operacional?cadencia=diaria', { mock: 'erro:o2' });
     await expect(painel.cartao('O2').erro).toBeVisible();
     await painel.cartao('O1').esperarEstado('ok');
     await painel.cartao('BLOQUEADOS').esperarPronto();
@@ -119,7 +119,7 @@ test.describe('K-006 Operacional diário', () => {
   });
 
   test('FIL-12 diária: filtro de equipe recorta O2/O1 e informa filtros aplicados', async ({ painel }) => {
-    await painel.ir('/operacional?equipe=erp-protheus');
+    await painel.ir('/operacional?cadencia=diaria&equipe=erp-protheus');
     await painel.esperarCartoesProntos();
     for (const c of ['O2', 'O1']) await expect(painel.cartao(c).raiz).toContainText(/Filtros|Equipe/);
   });
@@ -229,9 +229,11 @@ test.describe('K-023 Operacional semanal', () => {
     await painel.esperarCartoesProntos();
     await expect(page.locator('#o12')).toHaveCount(1);
     await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveAttribute('href', /cadencia=semanal.*#o12|#o12/);
+    // o hash decide a visão (CA-12): `#o12` sem `cadencia` abre a Semanal, com o O12
     await painel.ir('/operacional#o12');
     await painel.esperarCartoesProntos();
-    expect(await painel.codigosDosCartoes()).not.toContain('O12');
+    await expect(page).toHaveURL(/cadencia=semanal/);
+    expect(await painel.codigosDosCartoes()).toContain('O12');
   });
 
   test('FIL-14/FIL-12 filtro de sistema/tipo atua e informa nos cartões semanais', async ({ painel }) => {

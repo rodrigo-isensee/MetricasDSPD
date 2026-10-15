@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base';
 
-const ROTAS = ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/ajuda'];
+const ROTAS = ['/', '/operacional?cadencia=diaria', '/tatico', '/estrategico', '/operacional?cadencia=sustentacao', '/ajuda'];
 
 for (const w of [320, 375, 640, 768, 1024, 1180, 1280, 1920]) {
   test(`RESP-01 sem rolagem horizontal da página em ${w} px`, async ({ page }) => {
@@ -8,6 +8,9 @@ for (const w of [320, 375, 640, 768, 1024, 1180, 1280, 1920]) {
     for (const r of ROTAS) {
       await page.goto(r);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      // a visão Sustentação é carregada sob demanda (chunk + dados): mede só depois que o conteúdo da visão está na tela (mutação M3 do QA: sem esta espera o teste media o esqueleto)
+      if (r.includes('cadencia=sustentacao')) await expect(page.getByTestId('recorte-sustentacao')).toBeVisible();
+      await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 30_000 });
       const sobra = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(sobra, `${r} @${w}`).toBeLessThanOrEqual(0);
     }
@@ -16,7 +19,7 @@ for (const w of [320, 375, 640, 768, 1024, 1180, 1280, 1920]) {
 
 test('RESP-05 largura máxima de 1440 px centralizada em 1920', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1000 });
-  await page.goto('/operacional');
+  await page.goto('/operacional?cadencia=diaria');
   const larg = await page.getByRole('main').evaluate((e) => e.getBoundingClientRect().width);
   expect(larg).toBeLessThanOrEqual(1440);
 });
@@ -68,7 +71,7 @@ test('M6 rótulos do eixo X do O4 a 320 px sem sobreposição e sem rolagem hori
 test('A11Y-13 alvos >= 24 px (e >= 44 px abaixo de 768) nos controles do shell e filtros', async ({ painel, page }) => {
   for (const [w, min] of [[1280, 24], [375, 44]] as const) {
     await page.setViewportSize({ width: w, height: 800 });
-    await painel.ir('/operacional');
+    await painel.ir('/operacional?cadencia=diaria');
     const pequenos = await page.locator('header button, header a, header select, [data-testid="barra-filtros"] button').evaluateAll((els, m) =>
       els.filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.width < m || r.height < m); }).map((e) => `${e.textContent?.trim().slice(0, 20)} ${Math.round(e.getBoundingClientRect().width)}x${Math.round(e.getBoundingClientRect().height)}`), min);
     expect(pequenos, `@${w}`).toEqual([]);

@@ -15,7 +15,8 @@ export function CalibracaoDasFontes({ children }: { children: ReactNode }) {
   const pendenteBm = estadoBm.isPending
   const pendenteAc = estadoAc.isPending
   // `pronta` espera só as fontes que a rota usa (K-061, A4): a Sustentação não espera o BusinessMap.
-  const usadas = dominiosDaRota(useLocation().pathname)
+  const { pathname, search, hash } = useLocation()
+  const usadas = dominiosDaRota(pathname, search, hash)
   const pendente =
     (usadas.includes('businessmap') && pendenteBm) || (usadas.includes('acelerato') && pendenteAc)
   // Leitura falhou numa fonte da rota: não dá para saber se está em calibração; oculta o status de meta.

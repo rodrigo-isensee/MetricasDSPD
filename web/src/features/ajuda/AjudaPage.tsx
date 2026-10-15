@@ -100,12 +100,25 @@ export default function AjudaPage() {
           (1 dia útil = 8 horas úteis).
         </p>
       </section>
+      <section id="resumo" tabIndex={-1} className="outline-none">
+        <h2 className="text-lg font-bold">Resumo do Operacional</h2>
+        <p>
+          O Resumo é a primeira tela do Operacional: uma leitura rápida em dois blocos, um por fonte
+          (fluxo de projeto, do BusinessMap, e Sustentação, do Acelerato), sem somar nem comparar os
+          dois. Os números usam a janela de {textoJanela(JANELA_PERCENTIS_PADRAO)} e a tendência
+          mostra os últimos 6 meses fechados, cada ponto com a janela de{' '}
+          {textoJanela(JANELA_PERCENTIS_PADRAO)} até o fim do mês. Mês com menos de 20 itens aparece
+          sem valor. O Resumo não tem filtros e não é uma métrica: os detalhes estão nas visões
+          Diária, Semanal e Sustentação.
+        </p>
+      </section>
       <section>
         <h2 className="text-lg font-bold">Fontes</h2>
         <p>
           BusinessMap (fluxo de projeto) e Acelerato (sustentação) nunca se misturam.
           &quot;Incidente&quot; e &quot;Requisição&quot; no fluxo são tipos de card do BusinessMap;
-          não têm relação com os chamados do Acelerato, que só aparecem na Sustentação.
+          não têm relação com os chamados do Acelerato, que só aparecem na visão Sustentação do
+          Operacional.
         </p>
       </section>
       <section id="glossario" tabIndex={-1} className="outline-none">
