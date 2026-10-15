@@ -35,3 +35,50 @@
     - Q-T14-5: quais projetos aparecem;
     - Q-T14-6: publicar "outros times" quando há um único outro time.
   - D-15 a D-17 do UX coincidem com Q-T14-3/4, Q-T14-7 e o filtro "meu time". Ficam conciliadas com as suposições acima.
+- 2026-10-14 — **Q-T14-1 = B** (usuário): a fonte é o campo customizado do card, nome provisório "Time responsável"; nome exato e cardinalidade (único ou múltiplo) ficam para confirmar na integração com o BusinessMap. Até lá vale a Q-T14-9 = A (se múltiplo, conta quando o meu time estiver entre os marcados), que funciona nos dois casos. Consequência: T14 vai para a fase 3 (coleta nova), com mock antes.
+- 2026-10-14 — **D-14' = A** (usuário): o T13 conta só vínculo `predecessor` com card de outro quadro. **R-4 = sim**, apresentada junto com a recomendação e aceita com o A: vínculo vigente em algum momento antes da entrega conta. Depende de a API registrar a mudança de vínculo nas revisões, a confirmar na integração.
+- 2026-10-14 — **Q-T14-5 = D** (usuário): na T14 aparecem os projetos ligados a um sistema do meu time (`ConfigBM.equipes[].sistemas`, inclusive com 0% de atuação) e também qualquer projeto com pelo menos 1 card do meu time.
+- 2026-10-14 — **Q-T14-6 = A** (usuário): "outros times" é publicado mesmo quando o projeto tem um único outro time, sempre sem nome, sem tempo, sem vazão e sem ranking. Entendimento registrado: participação de cards no projeto não é comparação de desempenho entre times (regra 7.1). Removida a frase "nenhum time é identificado", que seria falsa nesse caso.
+- 2026-10-14 — **D-10 = A** (usuário): o T10 sai sem prazo contratado, mostrando só o praticado (P50/P85) por fornecedor com a linha "Prazo contratado não informado". O cadastro versionado (B, com R-7 = P85) entra quando os contratos forem informados.
+- 2026-10-14 — **R-2' = A** (usuário): no O25, descartado é o card com estado nativo `discarded` do BusinessMap, e também o card excluído. O instante é o `discarded_at`; no excluído, é o instante da exclusão ou, sem ele, a última revisão, marcada como aproximada. Motivo preenchido sem descarte nem exclusão vira aviso de preenchimento e fica fora da taxa.
+- 2026-10-14 — **Motivos de descarte (O25) = A** (usuário): o domínio é o catálogo nativo do BusinessMap (`/discardReasons`, `reason_id`), com mudanças versionadas (T2.6). O `discard_comment` nunca entra. Até a integração ler o catálogo, o O25 publica só taxa e tempo consumido (`porMotivo = null`).
+- 2026-10-14 — **Protótipo validado pelo usuário: aprovado** (ponto de compromisso). Escopo: 17 métricas (O19–O26, T10–T14, E6–E9), conforme 02-especificacao.md e 04-decisoes.md de 2026-10-14.
+- 2026-10-14 — **Prioridade = A** (usuário): o back do 011 (biblioteca, contratos e mock) começa já, em paralelo; o front segue a ordem K-074 → K-075 → 011. Antes, revisão do desenho técnico pelo tech-lead com o architect.
+- 2026-10-14 21:10 — O usuário foi dormir ("toque tudo que puder"). Pendências não bloqueantes da fase 1 viram **suposições provisórias**, que o usuário confirma na volta (R-DECISAO):
+  - P-1: **decidida pelo usuário = A** (21:15): a R-2' vale em todas as métricas; registrar como mudança de critério com data (T2.6). Só afeta `descartado.ts` na coleta real.
+  - Q-a: 1 passagem.
+  - Q-b: conta.
+  - Q-E7-1: pró-rata por dias corridos, só na fase 2.
+- 2026-10-14 21:30 — **Review de segurança da ADR 0020: aprovado com ressalvas.** O parecer está em `docs/security/adr-0020-protecao-de-pessoa.md`. M-1 a M-4 entram na ADR antes da fase 3. Os ajustes de código (M-1: a `stg_card` grava o payload inteiro; M-2: o webhook grava o corpo bruto) viram o cartão K-084 do node-backend, antes da fase 3.
+  - **Para o usuário na volta, R-1 (reidentificação):** num time pequeno, o E8 com a lista "1 pessoa" por sistema e a T14 com um único outro time de uma pessoa só podem apontar quem é a pessoa. Opções: confirmar sabendo do risco, mostrar a lista só para a coordenação, mostrar só a contagem sem nomes de sistema, ou ajustar o texto. Não bloqueia a fase 1.
+- 2026-10-14 22:00 — A ADR 0020 incorporou M-1 a M-4 e B-1 a B-5. Ela vale para a fase 2. M-1 a M-4 são pré-condição da fase 3, e o security-engineer relê a ADR antes dela.
+  - **Para o usuário na volta, R-2:** de onde vem `fato_transicao.usuario`, já que o `user_id` sai da staging. Opções:
+    - (a) gravar da memória do coletor, com cobertura parcial;
+    - (b) desativar a coluna, que nenhuma métrica lê (recomendação do architect);
+    - (c) abrir exceção na staging, contra o parecer de segurança.
+    Até a resposta, a coluna fica nula. Não bloqueia.
+- 2026-10-15 03:00 — **Para o usuário na volta, O19-pct:** o percentual de cada causa do O19 é calculado sobre o número de bloqueios ou sobre os dias úteis bloqueados? A "Leitura" da especificação ("64 dias úteis … 38% do total") sugere dias. Implementado provisoriamente sobre bloqueios (R6 do review), com o mínimo de 20 valendo sobre bloqueios. Se for sobre dias, é preciso definir sobre o que vale o mínimo de 20.
+- B3 (69e98e0): os ids O19 e T10 existem na API, mas as entradas do catálogo de cartões ficam para o cartão do front. O aceite do `docs:check` do VISAO_GERAL precisa ser ratificado pelo architect e pelo tech-lead.
+- 2026-10-15 04:20 — **B6 (O25)**, decisões tomadas na implementação:
+  - **(a) Resolvida pelo documento:** o P50/P85 do tempo consumido sai por tipo de demanda (regra geral 7 da especificação). Ajuste mandado ao node-backend.
+  - **(b) Para o usuário na volta:** card entregue e depois excluído conta como descarte? Está implementado como descarte, pela leitura literal da R-2'. Recomendação do Jarvis: **não**. A entrega é um evento real; a exclusão posterior é limpeza do quadro. Não ocorre no mock.
+  - **(c) No review do tech-lead:** card com motivo preenchido e sem descarte sai da taxa inteira, como manda a R-2'. O aviso ignora o período.
+- 2026-10-15 08:00 — **K-084 (allow-list do coletor) pronto** (5352a67, branch `fix/coletor-allow-list`). Review de segurança em andamento.
+  - **Para o usuário na volta, dados antigos:** o código anterior gravava o payload inteiro do BusinessMap. Qualquer `stg_card`, `stg_webhook_evento` ou `stg_revision` já coletada em dev ou homologação pode conter `discard_comment`, ids e texto livre. Nada foi apagado.
+  - Decisão do usuário: fazer o levantamento e o expurgo nos ambientes em que o coletor rodou.
+  - Falta o artigo de webhooks do BusinessMap para confirmar o formato do payload.
+- 2026-10-15 16:00 — Review do lote B2 a B10: 8 cartões aprovados; B3 e B5 com ajustes; 6 itens bloqueiam o QA. O node-backend corrige. Decisão do tech-lead: o B11a (mock da fase 1, com alvos por métrica) vem antes do front e do QA.
+  - **Para o usuário na volta, T10-janela:** os percentis do tempo de terceiros por fornecedor usam a janela móvel de 12 semanas da regra inviolável (A). A alternativa é uma exceção de 12 meses só para fornecedor (B), porque a nota da especificação sugere 12 meses. Vale A até a resposta. Recomendação: A, porque a regra é inviolável e a B exigiria mudar a regra.
+- 2026-10-15 16:20 — **Para o usuário na volta, O20-destaque:** o Backlog pode ser a faixa em destaque, ou seja, "a etapa que mais acumulou"? Opções:
+  - **(A)** o destaque considera só as filas a partir do compromisso; o Backlog continua desenhado, mas não é destacado. Recomendação do UX.
+  - **(B)** o Backlog entra no destaque, como o código faz hoje.
+  - **(C)** o Backlog entra, mas a frase também cita a maior fila depois do compromisso.
+  Vale B até a resposta. O alvo do mock no "Todas" depende dessa resposta.
+- 2026-10-16 — **O20-destaque = A** (usuário): o destaque considera só as filas a partir do compromisso. O Backlog continua desenhado como faixa, mas nunca é o destaque. Ajustar o cálculo, o CA (UX) e o alvo do mock `destaqueDoTodasAceito`.
+- 2026-10-16 — **T10-janela = A** (usuário): os percentis ficam na janela móvel de 12 semanas (regra inviolável), e a contagem segue o período. Já é o que está implementado.
+- 2026-10-16 — **O19-pct = B** (usuário): o percentual de cada causa é calculado sobre os **dias úteis bloqueados**. O mínimo de 20 continua valendo sobre o número de bloqueios da causa. A implementação atual (por bloqueios) precisa mudar: node-backend, junto com o ajuste do O20.
+- 2026-10-16 — **O25(b) = B** (usuário): card entregue e depois excluído **não** conta como descarte; continua como entrega na vazão e no ciclo. Ajuste no `descartado.ts`/O25 (node-backend), com teste.
+- 2026-10-16 — **Q-a = 1 passagem, Q-b = conta (1 passagem), Q-E7-1 = pró-rata por dias corridos**: o usuário confirmou as sugestões ("faça sua sugestão"). Deixam de ser provisórias.
+- 2026-10-16 — **R-1 = B** (usuário): o E8 mostra só a **contagem** de sistemas com 1 pessoa, sem nomear os sistemas. Na T14, "outros times" fica oculto quando somar menos de 2 pessoas (mostra só "meu time: k de n"). Ajustar spec (UX), contrato e cálculo (fase 2 do E8 e T14), e a ADR 0020 (architect).
+- 2026-10-16 — **R-2 = B** (usuário): a coluna `fato_transicao.usuario` é desativada (revê a decisão de 2026-10-10). Nenhuma métrica a lê. Ajuste: migração e data-model (node-backend e architect), ADR 0020.
+- 2026-10-16 — **Dados antigos = A** (usuário): o time levanta nos bancos local e de homologação local (contagem e chaves, sem ler conteúdo) se há payload antigo nas stg_. Se achar dado de pessoa, recria o ambiente. Dono: node-backend, com parecer do security-engineer.

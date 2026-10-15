@@ -6,6 +6,16 @@ export type Catalogo = { bm: Record<string, string[]>; ac: Record<string, string
 
 export const PAPEIS = ['dspd_coletor', 'dspd_api', 'dspd_ref', 'dspd_webhook', 'dspd_automacao', 'dspd_pesquisa'] as const;
 
+/**
+ * Colunas que a API não lê e que NÃO são de pessoa (ADR 0020, M-4), por `schema.tabela.coluna` sem prefixo de teste.
+ * Lista própria, separada de `COLUNAS_PESSOA`, para não distorcer o catálogo LGPD. `agg_conhecimento_sistema.entregas`
+ * entra aqui quando a tabela existir (fase 3 do pedido 011): a API lê `tem_entrega`, nunca a contagem.
+ */
+export const COLUNAS_FORA_DA_API: readonly string[] = ['dspd_bm.agg_conhecimento_sistema.entregas'];
+
+/** Tabelas inteiras que a API não lê, por `schema.tabela` (ADR 0020, B-3): só o `dspd_coletor` lê `ref_conta_automacao`. */
+export const TABELAS_FORA_DA_API: readonly string[] = ['dspd_bm.ref_conta_automacao', 'dspd_ac.ref_conta_automacao', 'dspd_core.ref_conta_automacao'];
+
 const COM = (nomes: string[], ...prefixos: string[]): string[] => nomes.filter((n) => prefixos.some((p) => n.startsWith(p)));
 const PROJECAO = /^(dim_card|dim_chamado|fato_bloqueio|fato_etapa_chamado)$/;
 const IMUTAVEL = /^(stg_|evt_|rec_|fato_transicao$)|_versao$/;
@@ -35,7 +45,10 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
 
   const colunasApi = (chave: 'bm' | 'ac', tabela: string): string[] | null => {
     const todas = cat[chave][tabela]!;
-    const permitidas = todas.filter((c) => !COLUNAS_PESSOA.includes(`${nomeLogico(chave)}.${tabela}.${c}`));
+    const permitidas = todas.filter((c) => {
+      const id = `${nomeLogico(chave)}.${tabela}.${c}`;
+      return !COLUNAS_PESSOA.includes(id) && !COLUNAS_FORA_DA_API.includes(id);
+    });
     return permitidas.length === todas.length ? null : permitidas;
   };
 
@@ -52,7 +65,8 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
     if (ctl.includes('ctl_coleta_contagem')) out.push(`GRANT UPDATE ON ${schema}.ctl_coleta_contagem TO dspd_coletor`);
     g('SELECT', schema, COM(tabs, 'ref_'), 'dspd_coletor');
     // API: projeções, views, ref_ e ctl_; nunca stg_, evt_, *_versao. Tabela com coluna de pessoa: só as demais colunas.
-    const paraApi = [...tabs.filter((n) => PROJECAO.test(n) || n === 'fato_transicao' || n === 'rec_transicao_par'), ...COM(tabs, 'vw_', 'ref_', 'ctl_')];
+    const paraApi = [...tabs.filter((n) => PROJECAO.test(n) || n === 'fato_transicao' || n === 'rec_transicao_par' || n === 'agg_conhecimento_sistema'),
+      ...COM(tabs, 'vw_', 'ref_', 'ctl_')].filter((n) => !TABELAS_FORA_DA_API.includes(`${nomeLogico(chave)}.${n}`));
     for (const t of paraApi) {
       const cols = colunasApi(chave, t);
       out.push(cols ? `GRANT SELECT (${cols.join(', ')}) ON ${schema}.${t} TO dspd_api` : `GRANT SELECT ON ${schema}.${t} TO dspd_api`);
@@ -62,7 +76,10 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
       out.push(`GRANT UPDATE (vigente_ate) ON ${schema}.${n} TO dspd_ref`);
   }
   const refCore = COM(Object.keys(cat.core), 'ref_');
-  for (const papel of ['dspd_coletor', 'dspd_api', 'dspd_automacao']) g('SELECT', S.core, refCore, papel);
+  // Mesmo filtro de TABELAS_FORA_DA_API para o core (K-085, B-K2): a tabela fora da API não vira legível por estar em outro schema.
+  const refCoreApi = refCore.filter((n) => !TABELAS_FORA_DA_API.includes(`${nomeLogico('core')}.${n}`));
+  for (const papel of ['dspd_coletor', 'dspd_automacao']) g('SELECT', S.core, refCore, papel);
+  g('SELECT', S.core, refCoreApi, 'dspd_api');
   g('SELECT, INSERT', S.core, refCore, 'dspd_ref');
   for (const n of refCore.filter((x) => cat.core[x]!.includes('vigente_ate'))) out.push(`GRANT UPDATE (vigente_ate) ON ${S.core}.${n} TO dspd_ref`);
   if (cat.core.outbox) {

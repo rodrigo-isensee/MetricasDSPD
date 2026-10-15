@@ -1,8 +1,35 @@
 # Métricas "Também disponíveis" (pedido 011) · 04 Decisões
 
-Duas partes: **(A) decisões do usuário** (produto e regra de negócio), a levar **uma por vez**, na ordem abaixo (da que mais trava para a que menos trava); **(B) decisões de UX**, tomadas aqui e registradas para a validação.
+**Para validar (2026-10-14):** abra o protótipo (`python3 -m http.server 5184` dentro de `03-prototipo`, depois `http://localhost:5184/cartoes.html`) e confira, em 1280 e 375 px, o que mudou com as suas decisões: O24 ("esperaram, depois de ultrapassados, X dias úteis até começar", fila por equipe); O25 (só taxa e tempo, sem divisão por motivo, com o aviso de motivo preenchido sem descarte); T10 (sem prazo contratado, com a linha "Prazo contratado não informado"); T14 (projetos do meu time inclusive com 0%, "outros times" sempre somados e o selo de não comparação); E7 (rateio em R$ com o aviso "Rateio do custo total do DSPD, não esforço medido"); e os textos de T12, T13, O22 e O26. Responda ao roteiro no fim deste arquivo: aprovado, ajustar ou descartar. Não resta outra decisão pendente no pedido 011.
 
-Nenhuma regra de negócio foi inferida: onde a proposta ou o briefing não definem, a métrica fica com `[D-n]` em `02-especificacao.md` e o mock usa a recomendação marcada como provisória.
+Duas partes: **(A) decisões do usuário** (produto e regra de negócio), **todas tomadas em 2026-10-14**; **(B) decisões de UX**, tomadas aqui e registradas para a validação. O texto das opções em A e C é o histórico de como cada uma foi levada; a escolha final está na tabela abaixo.
+
+## Status das decisões (todas decididas)
+| Decisão | Data | Escolha |
+|---|---|---|
+| D-1 / D-1' | 2026-10-14 | A: custo total do DSPD rateado pela participação por sistema; "por demanda" = custo do sistema ÷ entregas; aviso "Rateio do custo total do DSPD, não esforço medido"; sem horas apontadas |
+| D-2 | 2026-10-14 | A: contagem de entregas |
+| D-3 | 2026-10-14 | A: pessoas distintas em 12 meses |
+| D-4 | 2026-10-14 | B: contagens e lista dos sistemas em "1 pessoa" |
+| D-5' | 2026-10-14 | B: troca = alguém sai e outro entra, ou conjunto substituído |
+| D-6' | 2026-10-14 | A: classe Padrão, mesmo tipo, fila por equipe |
+| R-1 | 2026-10-14 | A: dias úteis do início de quem passou na frente ao início do ultrapassado |
+| D-7, D-11, D-12, D-13 | 2026-10-14 | Resolvidas pelos documentos (seção C) |
+| D-8 | 2026-10-14 | A: bloqueio "Falta de informação no chamado" antes do início ou retorno da coluna de compromisso ao backlog |
+| D-9' | 2026-10-14 | só comentário humano |
+| D-10 | 2026-10-14 | A: sem prazo contratado agora (R-7 fica para quando houver cadastro) |
+| D-14' e R-4 | 2026-10-14 | A: só predecessor com card de outro quadro; vínculo removido antes da entrega conta |
+| R-2' | 2026-10-14 | A: descartado = estado `discarded` e excluído; instante `discarded_at` (excluído: exclusão ou última revisão, aproximada); motivo sem descarte é aviso |
+| Motivos de descarte | 2026-10-14 | A: catálogo nativo `/discardReasons`, versionado; `discard_comment` nunca entra; até a integração, só taxa e tempo |
+| T14 (inclusão) | 2026-10-14 | A: métrica nova "Participação do meu time no projeto" |
+| Q-T14-1 | 2026-10-14 | B: campo customizado "Time responsável" (nome e cardinalidade a confirmar na integração) |
+| Q-T14-5 | 2026-10-14 | D: projetos ligados a sistema do meu time (inclusive 0%) e projetos com 1 card do meu time ou mais |
+| Q-T14-6 | 2026-10-14 | A: "outros times" publicado mesmo com um único outro time, sempre sem nome |
+| D-15 a D-17, Q-T14-2/3/4/7/8/9 | 2026-10-14 | Suposições do time, conciliadas (abaixo) e validáveis no protótipo |
+
+Suposições do T14 que o usuário confirma ao validar: story por padrão com seletor para frente (uma por vez); entram cards não descartados em qualquer estado; o Período escolhe os projetos e conta o projeto inteiro; card sem time entra no total como "Sem time informado", fora do denominador do percentual; vale o time na entrega; com vários times no card, conta se o meu estiver entre eles.
+
+**A confirmar na integração (não é decisão do usuário):** nome e cardinalidade de "Time responsável"; revisões trazerem responsáveis (O26) e mudança de vínculo (T13); catálogo de motivos de descarte e instante da exclusão (O25).
 
 ## A. Decisões do usuário
 
@@ -94,7 +121,7 @@ O briefing 4.2 diz "entra na taxa de descarte com o tempo já consumido", sem di
 - **C. A ou B.**
 - **Recomendação: C**, mostrando a parte de B (dias bloqueados) separada no cartão, como na spec.
 
-### Abertas da T14 (2026-10-14, K-078): uma por vez, ainda não levadas ao usuário
+### T14 (2026-10-14, K-078): histórico das opções; resolvidas pela conciliação com Q-T14-1 a 9 (ver tabela de status)
 - **D-15 · Que item e que escopo a T14 conta.** A. Demandas (story) não descartadas, em qualquer estado, de projetos em andamento (recomendação: é a unidade de B:110 e responde "quanto do projeto"). B. Só demandas entregues no período. C. Frentes (o time responsável da frente é do coordenador, não do time; não recomendada).
 - **D-16 · O que é "meu time" quando o filtro de Equipe está vazio ("Todas") ou tem várias.** A. O cartão pede uma equipe e não calcula (recomendação: evita inventar um "time" e não vira comparação). B. Soma das equipes selecionadas como "meu time". C. Usar a equipe do usuário no perfil (não existe hoje; criaria dado de pessoa).
 - **D-17 · Demanda sem time responsável.** A. Fica à parte em "Sem time informado", fora do denominador, com contagem visível (recomendação). B. Conta como "outros times" (infla "não é do meu time"). C. Conta pelo quadro em que está.
@@ -127,6 +154,10 @@ O briefing 4.2 diz "entra na taxa de descarte com o tempo já consumido", sem di
 6. No bloco do O2, "mais de 5 dias úteis" corresponde à "uma semana" que você tinha em mente?
 7. Algum cartão parece meta, ranking ou avaliação de pessoa?
 
+8. Em O24, a espera "depois de ultrapassados, até começar" responde ao que você quer saber da ordem de chegada?
+9. Em T14, a lista de projetos (inclusive com 0%) e o "Sem time informado" fora do percentual atendem à cobrança do time?
+10. Em E7, o rateio em R$ e o custo por demanda atendem à diretoria?
+
 Registro do retorno: (vazio) Decisão: aprovado | ajustar (voltar à etapa X) | descartar.
 
 ## Respostas do usuário
@@ -153,7 +184,7 @@ Regra pedida pelo usuário: o que o briefing ou a proposta definem vale e preval
 | D-11 | Resolvida | — (recomendação de UX revertida) |
 | D-12 | Resolvida | — |
 | D-13 | Resolvida | — |
-| D-14 | Parcialmente resolvida | — (recomendação de UX revertida) |
+| D-14 | Decidida pelo usuário em 2026-10-14: A | Só predecessor em outro quadro; pai/filho e relative fora. R-4: vínculo removido antes da entrega conta (recomendação apresentada junto e aceita com o A) |
 
 ### D-1 · Custo por sistema — parcialmente resolvida; decisão do usuário revertida em parte pelo documento
 - **O que o documento fixa:**
@@ -264,15 +295,8 @@ Regra pedida pelo usuário: o que o briefing ou a proposta definem vale e preval
 - **O23 e tempo apontado:** o briefing lista "tempo apontado" ao lado de "estoque parado" (B:57). Pela 7.1 (B:409) ele nunca entra. O O23 continua só com a ausência de movimento de coluna (`semMoverHaDiasUteis`).
 - **O23 "uma semana":** o texto é da proposta, "não se move há mais de uma semana" (P:249). 5 dias úteis é a conversão pela regra de dias úteis (B:110). A regra de higiene "mais de duas semanas em coluna de execução" (P:637) é para a pauta da revisão semanal, não para esta métrica.
 
-### O que volta ao usuário (uma por vez, nesta ordem)
-1. **D-14'** tipos de vínculo (junto com **R-4**, vínculo removido): depende antes da confirmação do arquiteto sobre a API.
-2. **D-9'** primeiro toque: só comentário ou qualquer reação.
-3. **D-8** regra de "ida e volta".
-4. **D-5'** o que é "troca" com mais de um responsável.
-5. **D-6'** fila por equipe ou do DSPD (junto com **R-1**, o "custo" da ultrapassagem).
-6. **D-1'** de que é o custo de capacidade e como aparece o "por demanda".
-7. **D-10** prazo contratado (junto com **R-7**, só se for B).
-8. **R-2'** instante do descarte para card sem arquivamento, e se o excluído entra.
+### O que volta ao usuário
+Nada além da validação do protótipo. Todas as decisões de produto e de regra estão tomadas (tabela de status no topo).
 
 ## D. Lacunas de regra levantadas pelo arquiteto (R-1 a R-7), conciliadas com os documentos (2026-10-14)
 Mesmo critério da seção C e mesmas abreviações (**B**, **P**, **H**, **HB**). Origem: `docs/architecture/features/metricas-tambem-disponiveis.md`, final da seção 7. Os termos em questão foram conferidos também nos HTML de `docs/referencia/` (por exemplo H:1110-1111 e H:1431), sem diferença em relação ao texto convertido.
@@ -337,6 +361,18 @@ Mesmo critério da seção C e mesmas abreviações (**B**, **P**, **H**, **HB**
 
 ### O que mudou na especificação por causa desta seção
 - E7 com 4 naturezas (R-3); E9 com a nota do marco (R-6); T10 com o critério por campo `fornecedor` (R-5) e prazo só com D-10 = B.
-- O24, O25, T13 e T10 ganharam chips de regra provisória (R-1, R-2', R-4, R-7).
+- O24, O25, T13 e T10 ganharam chips de regra provisória (R-1, R-2', R-4, R-7); todos foram retirados em 2026-10-14 com as decisões do usuário.
 - Achado para o arquiteto: o plano técnico (§2, T10) fala em filtrar só "Aguardando fornecedor", e (§2, O25) em "Criado por engano" nos motivos. As duas coisas ficam sem base e devem ser ajustadas ali.
 - **D-9' (2026-10-14): só comentário** (opção C da seção de conciliação; apresentada ao usuário como "a"). Primeiro toque = primeiro comentário humano no cartão (B:57).
+
+## E. Respostas ao review do back (2026-10-15)
+
+### O20: o Backlog pode ser o destaque, inclusive com "Todas"? Resposta (b): a especificação não decide
+- **O que a especificação diz** (`02-especificacao.md`, O20, "Leitura"): o destaque "aponta a faixa de fila com maior crescimento absoluto entre o início e o fim do período". A seção "Visual" lista o Backlog como uma das faixas do "Todas". Nenhum trecho diz se o Backlog é "fila" para o destaque, e nenhum CA trata do destaque (o CA-1 só cobre as seções). O exemplo é "Aguardando homologação" (uma equipe). O Entregue nunca é fila, o que confere com o cálculo.
+- **Indício, sem valor de decisão:** o protótipo (`cartoes.html`, legenda do O20) agrupa "Backlog e Pronto para" numa só faixa de hachura e não os trata como etapa de acúmulo. É hipótese minha de que a intenção era acumulação a partir do compromisso, e a hipótese não foi validada.
+- **Proposta de UX (marcada como proposta):** o destaque considera só as filas a partir do compromisso, sem o Backlog. Razões: (1) o O1, que o cartão manda ler junto, não conta o Backlog; (2) o Backlog crescendo é entrada de demanda, já coberta pelo O7 e pelo O10/O11, e tende a ganhar sempre, o que esvazia a frase; (3) a pergunta do painel é "onde o trabalho acumula?", isto é, onde o trabalho já aceito trava. O Backlog continua desenhado como faixa no gráfico, só não concorre ao destaque.
+- **Vira pergunta ao usuário (R-DECISAO)?** Sim. Definir qual etapa conta como "acúmulo" é critério de cálculo, e mudança de critério tem regra própria (T2.6). Não resolvo por inferência. Opções:
+  - **A (recomendada).** Destaque só entre as filas a partir do compromisso (no "Todas": "Pronto para" e "Homologação"; com uma equipe: as colunas de fila depois da de compromisso). Prós: coerente com o O1 e com a pergunta; o destaque informa algo novo. Contras: um Backlog que incha não aparece na frase (aparece na faixa e no O7/O10).
+  - **B.** Backlog entra como qualquer fila (estado atual do código). Prós: simples, sem regra nova. Contras: no "Todas" o destaque tende a ser sempre o Backlog.
+  - **C.** Backlog entra, mas só se a frase também citar a maior fila do compromisso ("Backlog cresceu X; entre as etapas em andamento, Y cresceu Z"). Prós: nada fica escondido. Contras: frase mais longa, duas leituras no mesmo cartão.
+- **Efeito se A:** no "Todas" o alvo do mock passa a ser o que o review já previu ("Pronto para" cresce) e o texto "Leitura" ganha a ressalva "a partir do compromisso". Isso exige CA novo de destaque (a escrever com a resposta) e a revisão do `REGRAS_METRICA.pendencias`. Até a resposta, vale o código atual (B), conforme o review.
