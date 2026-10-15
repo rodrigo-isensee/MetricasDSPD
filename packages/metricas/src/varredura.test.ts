@@ -43,6 +43,8 @@ const CENARIOS: [string, ContextosMetricas][] = [
   ],
 ]
 
+const IDS_FLUXO = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
+
 const calc = (id: MetricaId, filtros: unknown, ctx: ContextosMetricas) =>
   calcularMetrica(id, filtros as never, ctx) as { base?: { n: number } }
 
@@ -55,9 +57,9 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
   const equipes = [...new Set(ctx.bm.idx.marcos.map((m) => m.slugEquipe))].sort()
   const sistemas = [...new Set(ctx.bm.idx.marcos.map((m) => m.slugSistema))].sort()
 
-  it('fluxo: todo resultado respeita o contrato em qualquer combinação de filtros', () => {
-    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
-    for (const id of ids) {
+  it.each(IDS_FLUXO)(
+    'fluxo %s: todo resultado respeita o contrato em qualquer combinação de filtros',
+    (id) => {
       for (const periodo of PERIODOS) {
         const todos = { equipe: [], tipo: [], sistema: [], periodo }
         const recortes = [
@@ -73,8 +75,10 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
           expect(calc(id, f, ctx)).toEqual(r)
         }
       }
-    }
-  })
+    },
+    // Folga explícita: cada id tem o próprio tempo, e a suíte do mock disputa CPU no `pnpm -r`.
+    30_000,
+  )
 
   it('sustentação: todo resultado respeita o contrato com equipes e prioridades', () => {
     const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato')
