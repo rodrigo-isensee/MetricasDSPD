@@ -15,3 +15,5 @@ O Jarvis acrescenta uma linha por agente a cada relatório recebido (`subagent_t
 | 2026-10-13 | Ajustes review+UX espera invisível | react-frontend | 62.993 | 10 min | 1 | pronto verde, cobertura 100%, E2E 24/24 |
 | 2026-10-13 | Plano técnico Sustentação no Operacional + ADR 0019 proposta | software-architect | 181.338 | 8 min | 1 | 4 perguntas ao usuário (P1, P2, P4 bloqueiam partes) |
 | 2026-10-13 | Discovery 010 compatibilidade mobile/tablet | ux-designer | - | - | 1 | matriz, 27 CAs, protótipo; D1 ao usuário |
+| 2026-10-14 | K-069 lote de bugs IF/IS (front) | react-frontend | - | ~2h | 1 | 13 commits; web pronto verde 100%; E2E 312/312; server vermelho só no IS-002 |
+| 2026-10-14 | K-072 Sustentação no Operacional back B1-B3 | node-backend | - | ~3h | 1 | 3 commits; pacotes 100%; web pronto com timeouts sob carga |

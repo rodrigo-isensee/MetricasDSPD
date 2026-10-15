@@ -16,7 +16,7 @@ d('staging: borda A -> B -> A e concorrência (pg, ON CONFLICT ON CONSTRAINT)', 
   const qtd = async (id: string): Promise<number> =>
     Number((await db.query<{ n: string }>(`SELECT count(*) AS n FROM ${S.bm}.stg_card WHERE id_origem = $1`, [id])).rows[0]!.n);
   const grava = (id: string, v: string, conexao: pg.Pool = db) =>
-    gravarStgCard(conexao, { idOrigem: id, payload: { v }, sha256: hash(v), coletaId: coleta, agora: new Date(), quadroId: 'q1', arquivado: false, excluidoDetectado: false }, S);
+    gravarStgCard(conexao, { idOrigem: id, card: { title: v }, coletaId: coleta, agora: new Date(), quadroId: 'q1', arquivado: false, excluidoDetectado: false }, S);
 
   it('A, B, A gera 3 linhas encadeadas; recoleta idêntica de A não gera nenhuma', async () => {
     const id = unico('a');
