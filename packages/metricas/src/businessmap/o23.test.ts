@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import type { FiltrosFluxo } from '@metricas-dspd/contratos'
+import { METRICA_IDS, fonteDaMetrica, type FiltrosFluxo } from '@metricas-dspd/contratos'
 import { CALENDARIO_PADRAO, diaDeIso, isoDeDia } from '../core/calendario'
 import {
   LIMITE_PARADO_DIAS_UTEIS,
+  NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO,
   VERSAO_CRITERIO_DESCARTE_NATIVO,
   VERSAO_CRITERIO_PARADOS_V1,
   marcacoesNoPeriodo,
 } from '../core/criterios'
+import { gerarBaseMock } from '@metricas-dspd/mock'
 import { calcularO2 } from './index'
 import { criarContextoBM } from './indice'
 import { HOJE_TESTE, umaBase, type EspecCard } from './testing'
@@ -51,6 +53,13 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
       expect.arrayContaining(['O1', 'O2', 'O25', 'T12', 'E9']),
     )
     expect(VERSAO_CRITERIO_DESCARTE_NATIVO.afeta).not.toContain('S1')
+    // B11a-7: o `afeta` acompanha o catálogo (toda id BusinessMap, menos as nascidas depois, nominais)
+    const doBusinessMap = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
+    expect(VERSAO_CRITERIO_DESCARTE_NATIVO.afeta).toEqual(
+      doBusinessMap.filter((id) => !NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO.includes(id)),
+    )
+    expect(VERSAO_CRITERIO_DESCARTE_NATIVO.afeta).toHaveLength(44)
+    expect(NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO.every((id) => doBusinessMap.includes(id))).toBe(true)
     const nova = { inicio: '2026-10-14', fim: '2026-10-31' }
     expect(marcacoesNoPeriodo('O25', nova, []).map((m) => m.id)).toEqual([
       VERSAO_CRITERIO_DESCARTE_NATIVO.id,
@@ -88,5 +97,21 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
   it('sem itens em andamento: 0 de 0', () => {
     const r = calcularO2(criarContextoBM(umaBase([]), HOJE_TESTE, CALENDARIO_PADRAO), F)
     expect(r.parados.taxa).toEqual({ status: 'insuficiente', k: 0, n: 0, minimo: 20 })
+  })
+})
+
+describe('O23 na base do mock (B11a: alvo da especificação de UX, 20 a 30%)', () => {
+  const base = gerarBaseMock()
+  const ctx = criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO)
+
+  it('Todas, 12 semanas: com 20 itens ou mais o percentual é publicado e fica entre 20% e 30%', () => {
+    const r = calcularO2(ctx, F)
+    const taxa = r.parados.taxa
+    expect(taxa.status).toBe('ok')
+    if (taxa.status !== 'ok') return
+    expect(taxa.n).toBeGreaterThanOrEqual(20)
+    expect(taxa.pct).toBeGreaterThanOrEqual(20)
+    expect(taxa.pct).toBeLessThanOrEqual(30)
+    expect(r.parados.porEtapa.reduce((s, e) => s + e.k, 0)).toBe(taxa.k)
   })
 })

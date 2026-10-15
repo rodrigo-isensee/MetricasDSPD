@@ -53,6 +53,12 @@ export const PARAMETROS_TAMBEM = {
   ] as readonly (readonly [MotivoBloqueio, number])[],
   /** O25: cards abertos com motivo de descarte e sem descarte (aviso de preenchimento). */
   avisos: 3,
+  /** O23: parcela dos itens em andamento cuja última transição recua para mais de 5 dias úteis atrás. */
+  parados: 0.6,
+  /** O23: dos itens que começaram há pouco (sem como recuar sem mexer no início), a parcela cujo início recua junto. */
+  paradosEnvelhecidos: 0.35,
+  /** O23: faixa (dias úteis antes de "hoje") sorteada para a última transição dos parados; começa acima do limite de 5. */
+  paradosDias: [6, 14] as readonly [number, number],
   /** E9: idades (dias úteis) dos projetos aprovados e não iniciados que se somam aos do gerador. */
   projetosParados: [95, 140, 200, 255] as readonly number[],
 } as const
@@ -65,6 +71,7 @@ export const PASSOS_TAMBEM = [
   'retorno',
   'motivo',
   'aviso',
+  'parados',
   'projetos',
 ] as const
 export type PassoTambem = (typeof PASSOS_TAMBEM)[number]
@@ -92,6 +99,8 @@ const ehDemandaDoTime = (c: DimCard): boolean =>
   c.tipo !== 'Bug interno' &&
   !c.eh_subtarefa &&
   c.excluido_em === null
+
+const HORA_MS = 60 * 60 * 1000
 
 const compactar = <T>(lista: T[], manter: (x: T) => boolean): void => {
   let n = 0
@@ -197,6 +206,12 @@ export function aplicarTambemFase1(e: EntradaTambem): void {
       const criadoDaFrente = new Map(
         cards.filter((c) => c.granularidade === 'frente').map((c) => [c.card_id, c.criado_em]),
       )
+      // o card nunca passa a ser criado depois da sua primeira subtarefa ou bug filho
+      const primeiroFilho = new Map<string, number>()
+      for (const f of cards)
+        for (const pai of [f.card_pai, f.origem_bug])
+          if (pai !== null && f.criado_em < (primeiroFilho.get(pai) ?? Infinity))
+            primeiroFilho.set(pai, f.criado_em)
       const grupos = new Map<string, DimCard[]>()
       for (const c of cards) {
         if (!(
@@ -224,7 +239,7 @@ export function aplicarTambemFase1(e: EntradaTambem): void {
         porSaida.forEach((c, i) => {
           const trs = lista(c.card_id)
           const piso = criadoDaFrente.get(c.card_pai as string) ?? 0
-          const teto = trs[1]?.timestamp ?? hoje
+          const teto = Math.min(trs[1]?.timestamp ?? hoje, primeiroFilho.get(c.card_id) ?? Infinity)
           c.criado_em = Math.max(piso, Math.min(criados[i] as number, teto))
           ;(trs[0] as FatoTransicao).timestamp = c.criado_em
         })
@@ -324,6 +339,73 @@ export function aplicarTambemFase1(e: EntradaTambem): void {
       for (let i = 0; i < P.avisos; i++) {
         const c = abertos.splice(Math.floor(r() * abertos.length), 1)[0] as DimCard
         c.motivo_descarte = escolha(r, MOTIVOS_DESCARTE)
+      }
+    },
+
+    /* ---------- O23: estoque parado dentro do WIP (última transição recuada, início e coluna intactos) ---------- */
+    parados: () => {
+      const r = derivar(semente, 'businessmap/tambem:parados')
+      const dias: number[] = []
+      for (let d = e.hojeDia; dias.length <= P.paradosDias[1]; d--)
+        if (ehDiaUtil(d, cal)) dias.push(d)
+      const criadoDaFrente = new Map(
+        cards.filter((c) => c.granularidade === 'frente').map((c) => [c.card_id, c.criado_em]),
+      )
+      const ligados = new Set(cards.flatMap((c) => [c.card_pai, c.origem_bug]))
+      for (const c of cards) {
+        if (
+          !(
+            ehDemandaDoTime(c) &&
+            c.iniciado_em !== null &&
+            c.concluido_em === null &&
+            c.arquivado_em === null
+          ) ||
+          !bernoulli(r, P.parados)
+        )
+          continue
+        const trs = lista(c.card_id)
+        const ultima = trs[trs.length - 1] as FatoTransicao
+        const inicio = c.iniciado_em
+        // o recuo cabe entre o início e o limite: sorteia só entre as idades possíveis (6 a 14 dias úteis antes de "hoje")
+        const possiveis = dias.filter(
+          (d, i) => i >= P.paradosDias[0] && instanteDe(d, 10 * 60, cal) > inicio + HORA_MS,
+        )
+        if (possiveis.length > 0 && ultima.timestamp !== inicio) {
+          // início e coluna intactos: as transições depois do início se comprimem até o novo instante
+          const novo = instanteDe(escolha(r, possiveis), 10 * 60, cal)
+          if (novo >= ultima.timestamp) continue
+          const fator = (novo - inicio) / (ultima.timestamp - inicio)
+          for (const t of trs)
+            if (t.timestamp > inicio)
+              t.timestamp = inicio + Math.floor((t.timestamp - inicio) * fator)
+          continue
+        }
+        // o item começou há pouco: só uma parcela é "envelhecida" (o card inteiro recua junto, sem filhos nem bugs a ele ligados)
+        if (!bernoulli(r, P.paradosEnvelhecidos) || ligados.has(c.card_id)) continue
+        const alvo = instanteDe(
+          escolha(
+            r,
+            dias.filter((_, i) => i >= P.paradosDias[0]),
+          ),
+          10 * 60,
+          cal,
+        )
+        const delta = ultima.timestamp - alvo
+        const piso = Math.max(
+          criadoDaFrente.get(c.card_pai as string) ?? 0,
+          instanteDe(e.diaInicioHist, 0, cal),
+        )
+        if (delta <= 0 || c.criado_em - delta < piso) continue
+        for (const t of trs) t.timestamp -= delta
+        for (const b of bloqueios)
+          if (b.card_id === c.card_id) {
+            b.inicio -= delta
+            b.fim = b.fim === null ? null : b.fim - delta
+          }
+        c.criado_em -= delta
+        c.iniciado_em = inicio - delta
+        c.comprometido_em = (c.comprometido_em as number) - delta // todo item iniciado já foi comprometido
+        if (c.data_acordada !== null) c.data_acordada -= delta
       }
     },
 

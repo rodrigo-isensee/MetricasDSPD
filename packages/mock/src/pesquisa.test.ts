@@ -20,10 +20,10 @@ describe('pesquisa mock (PV1): determinismo e isolamento', () => {
     expect(hashJson(gerarPesquisaMock(CONFIG_PADRAO))).toBe(hashJson(pesq))
     expect(hashJson(gerarPesquisaMock({ ...CONFIG_PADRAO, semente: 7 }))).not.toBe(hashJson(pesq))
   })
-  it('não toca a base de BusinessMap e Acelerato: hashes b9645d93 e 4a7c9719 intactos', () => {
+  it('não toca a base de BusinessMap e Acelerato: hashes 68a67741 e 824092e4 intactos', () => {
     gerarPesquisaMock(CONFIG_PADRAO)
-    expect(hashJson(gerarBaseMock())).toBe('b9645d93')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('4a7c9719')
+    expect(hashJson(gerarBaseMock())).toBe('68a67741')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('824092e4')
   })
 })
 

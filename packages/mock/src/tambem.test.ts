@@ -58,6 +58,14 @@ describe('B11a: ajuste do mock da fase 1', () => {
       expect(t.timestamp).toBeGreaterThanOrEqual(ultima.get(t.card_id) ?? 0)
       ultima.set(t.card_id, t.timestamp)
     }
+    // B11a-6: subtarefa e bug filho nunca são criados antes do card pai (nem o início fica antes da criação)
+    for (const c of bm.cards) {
+      for (const pai of [c.card_pai, c.origem_bug]) {
+        if (pai === null) continue
+        expect(c.criado_em).toBeGreaterThanOrEqual(criado.get(pai) as number)
+      }
+      if (c.iniciado_em !== null) expect(c.iniciado_em).toBeGreaterThanOrEqual(c.criado_em)
+    }
     for (const b of bm.bloqueios) {
       expect(b.inicio).toBeGreaterThanOrEqual(criado.get(b.card_id) as number)
       expect(b.fim === null || b.fim >= b.inicio).toBe(true)

@@ -463,6 +463,10 @@ describe('O20: fluxo cumulativo', () => {
         expect(r.faixas.find((x) => x.chave === d.faixa)?.tipoColuna).toBe('fila')
         expect(d.para - d.de).toBeGreaterThan(0)
       }
+      // alvo da especificação: pelo menos uma equipe com fila que cresce em 5 itens ou mais
+      expect(comDestaque.some((r) => (r.destaque?.para ?? 0) - (r.destaque?.de ?? 0) >= 5)).toBe(
+        true,
+      )
       expect(destaqueDoTodasAceito(calcularO20(ctx, F).destaque)).toBe(true)
       // "Nenhuma etapa acumulou": destaque nulo com as faixas presentes
       const semDestaque = comEquipe.filter((r) => r.destaque === null)

@@ -310,13 +310,13 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
     "sustentacao": {"inicio":"2026-04-10","fim":"2026-10-09"}
   },
   "alertas": [
-    {"nivel":"operacional","metrica":"O2","ancora":"o2","codigo":"O2_ACIMA_P95","valor":1,"de":89},
+    {"nivel":"operacional","metrica":"O2","ancora":"o2","codigo":"O2_ACIMA_P95","valor":11,"de":89},
     {
       "nivel": "operacional",
       "metrica": "O1",
       "ancora": "o1",
       "codigo": "O1_WIP_ACIMA_LIMITE",
-      "valor": 49,
+      "valor": 44,
       "de": 59
     }
   ],
@@ -329,7 +329,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
         {
           "metrica": "O2",
           "codigo": "O2",
-          "valor": 1,
+          "valor": 11,
           "de": 89,
           "base": {"n":89,"unidade":"itens abertos"},
           "status": "fora",
@@ -338,7 +338,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
         {
           "metrica": "O1",
           "codigo": "O1",
-          "valor": 83.05084745762711,
+          "valor": 74.57627118644068,
           "de": 59,
           "base": {"n":59,"unidade":"dias úteis"},
           "status": "fora",
@@ -365,7 +365,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
           "codigo": "T4",
           "valor": 3,
           "de": 3,
-          "base": {"n":1180,"unidade":"chegadas e entregas"},
+          "base": {"n":1181,"unidade":"chegadas e entregas"},
           "status": "fora",
           "amostra": null
         }
