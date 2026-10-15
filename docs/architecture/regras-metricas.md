@@ -109,6 +109,8 @@ Legenda: BM = `businessmap`, AC = `acelerato`, Arq. = `incluiArquivados`, Mín. 
 | EI_FL2      | BM         | (granularidade só; feature = pacote)                                                        | temporal | true                                     | 20 / mediana                                       | frente                                   | T3.4; 02                                      | ok               |
 | EI_FL3      | BM         | tipo-projeto                                                                                | temporal | true                                     | 20 / mediana                                       | projeto                                  | T3.4; Q4                                      | ok               |
 | EI_SUST     | AC         | prioridade                                                                                  | temporal | nao-se-aplica                            | 20 / mediana                                       | chamado                                  | T3.4; Q2                                      | ok               |
+| O19         | BM         | motivo-bloqueio                                                                             | neutra   | true                                     | 20 / percentis, taxa                               | story                                    | pedido 011 O19; R6 (n da taxa = bloqueios)    | ok               |
+| T10         | BM         | fornecedor                                                                                  | neutra   | true                                     | 20 / percentis                                     | story                                    | pedido 011 T10; D-10 = A; R-5                 | ok               |
 | VISAO_GERAL | composicao | herda de cada métrica exposta                                                               | neutra   | herda                                    | herda                                              | story, frente, projeto, chamado (blocos) | 3.1 da spec UX; Q1                            | ok               |
 
 Notas da tabela:
@@ -118,6 +120,7 @@ Notas da tabela:
 - T7: a spec de UX pede barras por projeto em ordem decrescente de frentes abertas. Ranking de projeto não é proibido (não é pessoa nem time), mas contraria `ordem: 'neutra'`; o K-030 implementa neutra (id do projeto) até o Jarvis/UX decidir.
 - Q1–Q6 e P8 são decisões **provisórias do time**; ficam `ok` aqui e continuam na lista para o usuário.
 - A janela de 12 semanas em frentes e projetos (pergunta 2 da spec UX) segue aberta, mas não é coluna desta matriz (janela é parâmetro único).
+- O19 e T10 (pedido 011, B3): a base é `fato_bloqueio` com `fim` no período; a unidade do mínimo é o **bloqueio** (R6: o `pctDoTotal` do O19 é k de n em bloqueios, nunca em dias úteis). T10: só o praticado (P50/P85 por fornecedor), sem prazo contratado e sem status (D-10 = A); entra todo bloqueio encerrado com fornecedor informado, de qualquer motivo (R-5, CA-24). Os dois têm exceção nominal só na propriedade P2, porque o classificador por card não isola a chave (motivo e fornecedor vivem no fato de bloqueio).
 
 ### Decisão do usuário (antes pergunta; nenhuma célula `pendente-usuario` em aberto)
 

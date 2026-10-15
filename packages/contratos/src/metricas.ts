@@ -2,6 +2,7 @@ import type { z } from 'zod'
 import type { FonteMetrica, MetricaId } from './comum'
 import type { FiltrosFluxo, FiltrosSustentacao } from './filtros'
 import type * as s from './schemas'
+import type { ResultadoO19, ResultadoT10 } from './tambem'
 
 export type ResultadoO1 = z.infer<typeof s.resultadoO1>
 export type ResultadoBloqueados = z.infer<typeof s.resultadoBloqueados>
@@ -82,6 +83,7 @@ export interface ContratoMetricas {
   O14: Fluxo<ResultadoO14>
   O16: Fluxo<ResultadoO16>
   O17: Sust<ResultadoO17>
+  O19: Fluxo<ResultadoO19>
   T1: Fluxo<ResultadoT1>
   T2: Fluxo<ResultadoT2>
   T3: Fluxo<ResultadoT3>
@@ -91,6 +93,7 @@ export interface ContratoMetricas {
   T9: Fluxo<ResultadoT9>
   T6: Fluxo<ResultadoT6>
   T8: Fluxo<ResultadoT8>
+  T10: Fluxo<ResultadoT10>
   E1: Fluxo<ResultadoE1>
   E2: Fluxo<ResultadoE2>
   E3: Fluxo<ResultadoE3>
@@ -186,8 +189,10 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   O13: ['equipe', 'sistema', 'periodo'],
   O14: ['equipe', 'sistema', 'periodo'],
   O16: ['equipe', 'sistema', 'periodo'],
+  O19: ['equipe', 'tipo', 'sistema', 'periodo'],
   T6: ['equipe', 'sistema', 'periodo'],
   T8: ['equipe', 'sistema', 'periodo'],
+  T10: ['equipe', 'tipo', 'sistema', 'periodo'],
   E4: ['sistema', 'periodo'],
   E5: ['sistema', 'periodo'],
   // EI-FL1 e EI-FL3: o tipo é a dimensão (abas, um por vez), não filtro. EI-FL2 não usa tipo (tipos são de story); EI-FL3 tem o tipo de projeto como dimensão (abas).

@@ -36,7 +36,9 @@ export function bancoDoMock(base: BaseMock, opcoes: { coletaId?: string; versaoC
     if (t.includes('FROM dspd_bm.dim_card')) return bm.dim_card!;
     // A deduplicação da view canônica (par webhook/revision) não é reproduzida aqui: é provada por transicao-canonica.pg.test.ts.
     if (t.includes('FROM dspd_bm.vw_transicao_canonica')) return bm.fato_transicao!.map((l) => ({ ...l, ocorrido_em: (l.ocorrido_em as Date).getTime() }));
-    if (t.includes('FROM dspd_bm.fato_bloqueio')) return bm.fato_bloqueio!;
+    // numeric(12,2): o Postgres arredonda a duração na gravação e devolve texto.
+    if (t.includes('FROM dspd_bm.fato_bloqueio'))
+      return bm.fato_bloqueio!.map((l) => ({ ...l, duracao_horas_uteis: l.duracao_horas_uteis === null ? null : Number(l.duracao_horas_uteis).toFixed(2) }));
     if (t.includes('FROM dspd_bm.ref_coluna')) return bm.ref_coluna!;
     if (t.includes('FROM dspd_ac.dim_chamado')) return ac.dim_chamado!;
     if (t.includes('FROM dspd_ac.fato_etapa_chamado')) return ac.fato_etapa_chamado!.map((l) => ({ ...l, entrada: (l.entrada as Date).getTime(), saida: l.saida === null ? null : (l.saida as Date).getTime() }));

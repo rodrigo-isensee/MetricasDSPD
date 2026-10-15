@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1..O18, BLOQUEADOS, T1..T9, E1..E5, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL; 51 ids, inclui as 17 complementares abaixo e a PV1, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O19, BLOQUEADOS, T1..T10, E1..E5, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL; 53 ids, inclui as 17 complementares abaixo e a PV1, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -119,7 +119,7 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 - Mudança de comportamento do mock: as 5 de sustentação (S8 a S12) entram nas métricas em calibração da fonte Acelerato.
 
 ## Métricas "também disponíveis", fase 1 (pedido 011): contratos sem rota ainda
-> **Status:** só contratos (B1, `packages/contratos/src/tambem.ts`). Nenhum dos ids abaixo entra em `METRICA_IDS` neste cartão: cada id ganha a rota `GET /api/v1/metricas/:id` (e a OpenAPI regenerada) no cartão do seu cálculo, para não existir rota que devolva dado inventado. A API continua com 51 ids; a única mudança na OpenAPI (regenerada) é o campo `parados` na resposta do O2 (obrigatório desde o B2). O front pode tipar contra os tipos exportados, mas só consome o id quando o cartão dele fechar.
+> **Status:** só contratos (B1, `packages/contratos/src/tambem.ts`). Nenhum dos ids abaixo entra em `METRICA_IDS` neste cartão: cada id ganha a rota `GET /api/v1/metricas/:id` (e a OpenAPI regenerada) no cartão do seu cálculo, para não existir rota que devolva dado inventado. A API tinha 51 ids no B1; a única mudança na OpenAPI (regenerada) é o campo `parados` na resposta do O2 (obrigatório desde o B2). O front pode tipar contra os tipos exportados, mas só consome o id quando o cartão dele fechar.
 - **Tipos** (`@metricas-dspd/contratos`): `ResultadoO19`, `ResultadoO20`, `ResultadoO21`, `ResultadoO24`, `ResultadoO25`, `ResultadoT10`, `ResultadoT11`, `ResultadoT12`, `ResultadoE7`, `ResultadoE9` e `ParadosO2`; schemas homônimos em minúsculas (`resultadoO19`...) e o mapa `SCHEMAS_TAMBEM_FASE1`.
 - **Envelope:** o de sempre (`base`, `criterios`); estatística e taxa vêm de `estatistica`/`taxa` (`status: 'ok' | 'insuficiente'`, abaixo de 20 itens só "k de n", sem valor). BusinessMap apenas; nenhum campo mistura Acelerato.
 - **Fechados:** todo objeto próprio é `strict`. Campo extra, inclusive de pessoa (`responsaveis`, `usuario`, `equipe`...), invalida o resultado. Um teste (`tambem.test.ts`) varre os nomes de campo dos dez schemas e falha se aparecer nome de pessoa ou de comparação entre times.
@@ -137,6 +137,13 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 | T12 Qualidade da entrada por área | `total` (taxa), `areas[{ area, taxa }]` |
 | E7 Capacidade por sistema | `total`, `sistemas[{ sistema, entregas, participacao (taxa), porNatureza[{ natureza, taxa }], custoRateado \| null, custoPorDemanda \| null }]`, `custoConfigurado` |
 | E9 Projetos aguardando início | `projetos[{ cardId, codigo, titulo, criadoEm, idadeDiasUteis, faixa }]`, `referenciaP85` (estatistica só com `p85`, importada do E1) |
+
+### O19 e T10 (B3): rotas ativas
+- Desde o B3 `GET /api/v1/metricas/O19` e `GET /api/v1/metricas/T10` existem (53 ids; OpenAPI regenerada). Filtros: equipe, tipo, sistema, período (a seleção é por card de story: frente e projeto nunca entram). Só BusinessMap; nenhum campo de pessoa. **Cartões no catálogo (`CATALOGO_CARTOES`): ainda não entram.** Acrescentá-los muda o catálogo compartilhado e quebra 21 testes do web (contagens "+N complementares", componentes ausentes), então ficam para o cartão do front, no mesmo commit do catálogo web. Entradas prontas: O19 em operacional, seção `por-que-demora` (leia junto `bloqueados`, `o5`) e T10 em tático, seção nova `de-quem-depende` "De quem depende o prazo?" (leia junto `bloqueados`, `o12`, `o19`), ambos `complementar` e `disponivel`.
+- **Base:** bloqueios com `fim` dentro do período (padrão 12 semanas) de cards que passam pelos filtros; bloqueio sem `fim` não entra na soma e é contado em `abertosForaDaSoma` (O19). `base.unidade` = "bloqueios encerrados" (O19) e "bloqueios encerrados com fornecedor" (T10).
+- **O19:** `motivos` sempre com os 7 motivos, na ordem do domínio (a interface ordena por soma). `bloqueios` e `diasUteis` são censo e saem sempre. `pctDoTotal` é `taxa` com **k = bloqueios do motivo e n = total de bloqueios encerrados** (R6: o mínimo de 20 vale sobre bloqueios, nunca sobre dias; vem `insuficiente` com `k` e `n` abaixo de 20 no total). `duracao` é `estatistica` (P50/P85/P95 da duração em dias úteis, pela biblioteca) só com 20 ou mais bloqueios do motivo.
+- **T10:** uma linha por fornecedor, em ordem alfabética, de todo bloqueio encerrado com fornecedor informado, de qualquer motivo da lista fechada (D-10 = A, R-5); bloqueio sem fornecedor (nulo ou em branco) fica fora. `duracao` só com 20 ou mais bloqueios do fornecedor. Sem `prazoDiasUteis`, `status` nem `prazoFornecedor`: a interface mostra a linha fixa "Prazo contratado não informado".
+- **Mock (base não muda):** em 12 semanas o O19 tem 223 bloqueios encerrados e 4 abertos, e o menor motivo tem 25 (todos publicam P50/P85); com uma equipe só (26 bloqueios) todos ficam abaixo de 20 e só saem soma e contagem. T10 em 12 semanas: Alfa 19 (insuficiente), Beta 23, Gama 26; em 12 meses os três publicam.
 
 ### Acréscimo ao O2 (bloco O23 "estoque parado")
 - Campo `parados` em `resultadoO2`, **obrigatório desde o B2** (a resposta do O2 passa a trazê-lo sempre; os campos antigos não mudam). Forma: `{ limiteDiasUteis, taxa, porEtapa[{ etapa, k }] }`. `taxa` é "k de n" sobre o WIP atual (só publica o percentual com n >= 20; `k` e `n` sempre presentes). `porEtapa` segue as `etapas` do O2 (colunas com uma equipe, "Fila" e "Execução" sem equipe), uma entrada por etapa, inclusive com `k = 0`.

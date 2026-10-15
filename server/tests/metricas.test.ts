@@ -42,7 +42,7 @@ describe('GET /api/v1/metricas/:id', () => {
     expect(r2.body).toBe('');
   });
 
-  it('as 50 métricas respondem 200 dentro do schema e nenhuma chave de pessoa aparece', async () => {
+  it('todas as métricas respondem 200 dentro do schema e nenhuma chave de pessoa aparece', async () => {
     const { app } = await montar();
     const todas = new Set<string>();
     for (const id of METRICA_IDS) {
@@ -52,6 +52,22 @@ describe('GET /api/v1/metricas/:id', () => {
     }
     expect([...todas].filter((k) => PESSOA.test(k))).toEqual([]);
   }, 60_000);
+
+  it('O19 e T10 (pedido 011): 200 no schema, filtros do fluxo, motivos na ordem do domínio, fornecedor alfabético e sem prazo', async () => {
+    const { app } = await montar();
+    const o19 = await get(app, '/api/v1/metricas/O19?periodo=12m');
+    expect(o19.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O19.safeParse(o19.json()).success).toBe(true);
+    expect(o19.json().motivos).toHaveLength(7);
+    const t10 = await get(app, '/api/v1/metricas/T10?periodo=12m&tipo=melhoria');
+    expect(t10.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.T10.safeParse(t10.json()).success).toBe(true);
+    const nomes = (t10.json().fornecedores as { fornecedor: string }[]).map((x) => x.fornecedor);
+    expect(nomes).toEqual([...nomes].sort());
+    expect([...chaves(t10.json())].filter((k) => /prazo|contratad/i.test(k))).toEqual([]);
+    expect(Object.keys((t10.json().fornecedores as object[])[0] ?? {}).sort()).toEqual(['bloqueios', 'diasUteis', 'duracao', 'fornecedor']);
+    expect((await get(app, '/api/v1/metricas/T10?periodo=abc')).statusCode).toBe(400);
+  });
 
   it('complementares: extensões do mock por padrão; sem fonte de extensões o resultado é vazio, nunca erro', async () => {
     const { app } = await montar();

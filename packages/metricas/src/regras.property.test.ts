@@ -100,6 +100,8 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
       O13: 'o resultado é série mensal de contagem de defeitos sobre a vazão total; o tipo é a definição, sem nó rotulado por tipo',
       O14: 'a chave é área solicitante (classificador por área não implementado); a distribuição é de contagem por nome, com top 10 e demais',
       O16: 'primeira chave é faixa de idade (derivada do instante, sem classificador de item); severidade é contagem de abertos',
+      O19: 'primeira chave é motivo do bloqueio, que vive no fato_bloqueio (um card tem vários motivos): isolar por card não isola o motivo; pctDoTotal é participação no total, por definição',
+      T10: 'primeira chave é fornecedor, que vive no fato_bloqueio (um card pode ter bloqueios de mais de um fornecedor): isolar por card não isola o fornecedor',
       O17: 'primeira chave é causa raiz, que vive na extensão (mapa por chamado), sem classificador de item no modelo do núcleo',
       E4: 'série trimestral de contagem de projetos; o tipo de projeto não é rótulo de nó no resultado',
       S8: 'a prioridade atua só como filtro; o resultado é série mensal sem nó por prioridade',
@@ -462,7 +464,12 @@ function nosDeEstatistica(no: unknown, caminho: string, out: No[] = []): No[] {
     else if ((o.status === 'ok' || o.status === 'insuficiente') && typeof baseN === 'number')
       out.push({ caminho, n: baseN, status: o.status, noBruto: {} })
     // S5/S6: pct de cada motivo é nulo quando o total do conjunto tem menos de 20 itens.
-    if (Array.isArray(o.motivos) && typeof baseN === 'number')
+    // (O19 também tem `motivos`, mas cada motivo carrega `pctDoTotal` e `duracao` próprios, nós já varridos abaixo.)
+    if (
+      Array.isArray(o.motivos) &&
+      typeof baseN === 'number' &&
+      (o.motivos as object[]).every((m) => 'pct' in m)
+    )
       out.push({
         caminho: `${caminho}.motivos`,
         n: baseN,

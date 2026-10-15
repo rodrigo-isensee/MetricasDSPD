@@ -227,9 +227,14 @@ describe('contratos da fase 1 do pedido 011 (B1)', () => {
     expect(SCHEMAS_TAMBEM_FASE1[codigo].safeParse(ex).success).toBe(false)
   })
 
-  it('o conjunto cobre exatamente os 10 resultados da fase 1 e nenhum entra em METRICA_IDS ainda', () => {
+  it('o conjunto cobre exatamente os 10 resultados da fase 1; só entram em METRICA_IDS os que já têm cálculo', () => {
     expect(CODIGOS).toEqual(['O19', 'O20', 'O21', 'O24', 'O25', 'T10', 'T11', 'T12', 'E7', 'E9'])
-    for (const c of CODIGOS) expect(METRICA_IDS as readonly string[]).not.toContain(c)
+    // Cada id entra com o seu cálculo: B3 trouxe O19 e T10; os demais entram nos cartões seguintes.
+    const comCalculo = ['O19', 'T10']
+    for (const c of CODIGOS)
+      expect(METRICA_IDS as readonly string[], c).toSatisfy(
+        (ids: readonly string[]) => ids.includes(c) === comCalculo.includes(c),
+      )
   })
 
   describe('trava de pessoa (P-T6, ata 2026-10-14)', () => {
