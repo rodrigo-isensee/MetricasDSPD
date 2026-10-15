@@ -123,8 +123,15 @@ export default function OperacionalPage() {
   const viaSeletorRef = useRef<Visao | null>(null)
   const visaoAnterior = useRef(visao)
   const aoEscolher = (v: Visao) => {
-    viaSeletorRef.current = v
     escolher(v)
+    // Voltar à visão já comitada (A, B, A no mesmo quadro): nenhuma troca vai comitar, então nada deve ficar
+    // pendente (o efeito do seletor e o do anúncio só rodam quando a visão muda).
+    if (v === visao) {
+      viaSeletorRef.current = null
+      focoPendenteRef.current = null
+      return
+    }
+    viaSeletorRef.current = v
   }
   // O anúncio sai da visão resolvida, não do handler do seletor: Voltar, links "Ver na..." e hash também anunciam.
   // A montagem inicial não anuncia (a visão anterior começa igual à atual).

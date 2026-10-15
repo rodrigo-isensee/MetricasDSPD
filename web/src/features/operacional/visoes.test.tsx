@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { renderizarApp } from '@/test/helpers'
@@ -110,6 +110,26 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     expect(r.roteador.state.historyAction).toBe('PUSH')
     await r.roteador.navigate(-1)
     await waitFor(() => expect(visaoMarcada()).toBe('Semanal'), { timeout: 15000 })
+  })
+
+  it('V6-4: duas escolhas no mesmo quadro que voltam à visão de partida não prendem o foco nem o rastro do seletor', async () => {
+    const r = renderizarApp('/operacional?cadencia=diaria')
+    await screen.findByRole('radiogroup', { name: 'Visão' })
+    const diaria = screen.getByRole('radio', { name: 'Diária' })
+    act(() => {
+      fireEvent.click(screen.getByRole('radio', { name: 'Semanal' }))
+      // O navegador marca o rádio nativamente; sem render entre as setas, o React ainda não o restaurou.
+      ;(diaria as HTMLInputElement).checked = false
+      fireEvent.click(diaria)
+    })
+    await waitFor(() => expect(busca(r).get('cadencia')).toBe('diaria'))
+    // Troca por link depois: sem refs presas, o foco vai ao título (D-03), não fica no seletor.
+    await act(async () => {
+      await r.roteador.navigate('/operacional?cadencia=sustentacao')
+    })
+    await waitFor(() => expect(document.activeElement).toBe(document.querySelector('h1')), {
+      timeout: 15000,
+    })
   })
 
   it('o título do documento muda por visão', async () => {
