@@ -287,7 +287,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Cálculo:** módulo novo `businessmap/e9.ts`.
   - É o retrato de `hoje`: idade em dias úteis desde `criado_em` (`core/calendario`), com as faixas fixas da spec.
   - A referência é o P85 do "antes do início" **importado do `e1.ts`** (não recalculado), e só aparece quando o E1 tem ≥ 20 projetos.
-- **Contrato:** `{ projetos: [{ cardId, codigo, titulo, criadoEm, idadeDiasUteis, faixa }], referenciaP85: estatistica }`.
+- **Contrato:** `{ projetos: [{ cardId, codigo, titulo, tipo, criadoEm, idadeDiasUteis, faixa }], segmentoPor: 'tipo', referenciasP85: [{ tipo, referenciaP85: estatistica }] }` (uma referência por tipo, mínimo 20 por tipo; ajuste de 2026-10-15, regra 7 e Q4).
 - **Mock:** a base atual. Medir quantos projetos estão abertos e não iniciados. Se forem menos de 6, ou nenhum passar de 180 dias úteis, a extensão **não** cria projeto (mexeria em E1 e E4); o cartão mostra o que existe.
 - **Mínimo:** censo dos abertos; a referência de percentil só com ≥ 20 concluídos.
 

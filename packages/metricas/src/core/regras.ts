@@ -615,13 +615,14 @@ export const REGRAS_METRICA = {
   },
   E9: {
     dominio: 'businessmap',
-    segmentacao: [],
+    segmentacao: ['tipo-projeto'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,
     minimoSobre: ['referencia-percentil'],
     granularidade: 'projeto',
-    refBriefing: 'pedido 011 E9; R-6 (criado_em = aprovação); referência P85 importada do E1',
+    refBriefing:
+      'pedido 011 E9; R-6 (criado_em = aprovação); referência P85 por tipo de projeto (regra 7, Q4) importada do E1',
     status: 'ok',
   },
   S8: {

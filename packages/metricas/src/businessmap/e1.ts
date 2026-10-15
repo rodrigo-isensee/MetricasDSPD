@@ -19,7 +19,7 @@ import { slug } from '../slug'
 import type { ContextoBM } from './indice'
 
 /** Tipos de projeto (decisão Q4): cada um tem a própria estatística. */
-const TIPOS_PROJETO = ['Iniciativa', 'Melhoria'] as const
+export const TIPOS_PROJETO = ['Iniciativa', 'Melhoria'] as const
 
 /** Projeto concluído com os tempos em dias úteis (criação → início = "antes do início"). Fonte única do E1 e da referência do E9. */
 export function concluidosDeProjeto(ctx: ContextoBM, f: FiltrosFluxo) {

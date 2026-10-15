@@ -137,6 +137,18 @@
           "titulo": {
             "type": "string"
           },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "Incidente",
+              "Requisição",
+              "Melhoria",
+              "Iniciativa",
+              "Bug interno",
+              "Defeito em produção",
+              "Dívida técnica"
+            ]
+          },
           "criadoEm": {
             "type": "string"
           },
@@ -151,6 +163,7 @@
           "cardId",
           "codigo",
           "titulo",
+          "tipo",
           "criadoEm",
           "idadeDiasUteis",
           "faixa"
@@ -158,126 +171,151 @@
         "additionalProperties": false
       }
     },
-    "referenciaP85": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "const": "ok"
-            },
-            "n": {
-              "type": "integer",
-              "minimum": 20,
-              "maximum": 9007199254740991
-            },
-            "valor": {
-              "type": "object",
-              "properties": {
-                "p85": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "p85"
-              ],
-              "additionalProperties": false
-            },
-            "janela": {
-              "type": "object",
-              "properties": {
-                "inicio": {
-                  "type": "string"
-                },
-                "fim": {
-                  "type": "string"
-                },
-                "unidade": {
-                  "type": "string",
-                  "enum": [
-                    "semanas",
-                    "meses"
-                  ]
-                },
-                "quantidade": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "inicio",
-                "fim"
-              ],
-              "additionalProperties": false
-            }
+    "segmentoPor": {
+      "type": "string",
+      "const": "tipo"
+    },
+    "referenciasP85": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "Iniciativa",
+              "Melhoria"
+            ]
           },
-          "required": [
-            "status",
-            "n",
-            "valor",
-            "janela"
-          ],
-          "additionalProperties": false
+          "referenciaP85": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "ok"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 9007199254740991
+                  },
+                  "valor": {
+                    "type": "object",
+                    "properties": {
+                      "p85": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "p85"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      },
+                      "unidade": {
+                        "type": "string",
+                        "enum": [
+                          "semanas",
+                          "meses"
+                        ]
+                      },
+                      "quantidade": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "valor",
+                  "janela"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "const": "insuficiente"
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 19
+                  },
+                  "minimo": {
+                    "type": "number",
+                    "const": 20
+                  },
+                  "janela": {
+                    "type": "object",
+                    "properties": {
+                      "inicio": {
+                        "type": "string"
+                      },
+                      "fim": {
+                        "type": "string"
+                      },
+                      "unidade": {
+                        "type": "string",
+                        "enum": [
+                          "semanas",
+                          "meses"
+                        ]
+                      },
+                      "quantidade": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "inicio",
+                      "fim"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "status",
+                  "n",
+                  "minimo",
+                  "janela"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
         },
-        {
-          "type": "object",
-          "properties": {
-            "status": {
-              "type": "string",
-              "const": "insuficiente"
-            },
-            "n": {
-              "type": "integer",
-              "minimum": -9007199254740991,
-              "maximum": 19
-            },
-            "minimo": {
-              "type": "number",
-              "const": 20
-            },
-            "janela": {
-              "type": "object",
-              "properties": {
-                "inicio": {
-                  "type": "string"
-                },
-                "fim": {
-                  "type": "string"
-                },
-                "unidade": {
-                  "type": "string",
-                  "enum": [
-                    "semanas",
-                    "meses"
-                  ]
-                },
-                "quantidade": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "inicio",
-                "fim"
-              ],
-              "additionalProperties": false
-            }
-          },
-          "required": [
-            "status",
-            "n",
-            "minimo",
-            "janela"
-          ],
-          "additionalProperties": false
-        }
-      ]
+        "required": [
+          "tipo",
+          "referenciaP85"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "required": [
     "base",
     "criterios",
     "projetos",
-    "referenciaP85"
+    "segmentoPor",
+    "referenciasP85"
   ],
   "additionalProperties": false
 }

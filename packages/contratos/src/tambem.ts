@@ -175,7 +175,7 @@ export const resultadoE7 = fechado({
   custoConfigurado: z.boolean(),
 })
 
-/** E9 Projetos aguardando início. Projeto tem código e título; não é pessoa. O P85 vem do E1. */
+/** E9 Projetos aguardando início. Projeto tem código e título; não é pessoa. Os P85 vêm do E1, um por tipo. */
 export const resultadoE9 = fechado({
   ...comum,
   projetos: z.array(
@@ -183,12 +183,20 @@ export const resultadoE9 = fechado({
       cardId: z.string(),
       codigo: z.string(),
       titulo: z.string(),
+      tipo,
       criadoEm: iso,
       idadeDiasUteis: z.number(),
       faixa: z.string(),
     }),
   ),
-  referenciaP85: estatisticaSchema(fechado({ p85: z.number() })),
+  segmentoPor: z.literal('tipo'),
+  /** Uma referência por tipo de projeto (regra 7, Q4): Iniciativa e Melhoria nunca no mesmo P85; mínimo 20 por tipo. */
+  referenciasP85: z.array(
+    fechado({
+      tipo: z.enum(['Iniciativa', 'Melhoria']),
+      referenciaP85: estatisticaSchema(fechado({ p85: z.number() })),
+    }),
+  ),
 })
 
 export type ResultadoO19 = z.infer<typeof resultadoO19>

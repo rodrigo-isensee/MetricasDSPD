@@ -121,11 +121,16 @@ const EXEMPLOS: Record<CodigoTambemFase1, unknown> = {
         codigo: 'PRJ-1',
         titulo: 'Projeto',
         criadoEm: '2026-05-04',
+        tipo: 'Iniciativa',
         idadeDiasUteis: 90,
         faixa: '61 a 90',
       },
     ],
-    referenciaP85: { status: 'insuficiente', n: 3, minimo: 20, janela },
+    segmentoPor: 'tipo',
+    referenciasP85: [
+      { tipo: 'Iniciativa', referenciaP85: { status: 'insuficiente', n: 3, minimo: 20, janela } },
+      { tipo: 'Melhoria', referenciaP85: { status: 'insuficiente', n: 0, minimo: 20, janela } },
+    ],
   },
 }
 

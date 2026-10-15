@@ -98,6 +98,7 @@ describe('E9: projetos aguardando início', () => {
       'criadoEm',
       'faixa',
       'idadeDiasUteis',
+      'tipo',
       'titulo',
     ])
   })
@@ -109,29 +110,71 @@ describe('E9: projetos aguardando início', () => {
     expect([180.5, 181, 400].map(faixaE9)).toEqual([FAIXA_E9_ACIMA, FAIXA_E9_ACIMA, FAIXA_E9_ACIMA])
   })
 
-  it('com o E1 abaixo de 20 projetos concluídos não há referência (n e janela, sem P85)', () => {
+  const ref = (r: ReturnType<typeof calcularE9>, tipo: string) =>
+    r.referenciasP85.find((x) => x.tipo === tipo)?.referenciaP85
+
+  it('com o E1 abaixo de 20 projetos concluídos no tipo não há referência (n e janela, sem P85)', () => {
     const r = calcularE9(
       ctxDe([aguardando('P-1', '2026-09-01T08:00:00-03:00'), ...concluidos(19)]),
       F,
     )
-    expect(r.referenciaP85).toMatchObject({ status: 'insuficiente', n: 19, minimo: 20 })
-    expect(JSON.stringify(r.referenciaP85)).not.toContain('p85')
+    expect(r.segmentoPor).toBe('tipo')
+    expect(r.referenciasP85.map((x) => x.tipo)).toEqual(['Iniciativa', 'Melhoria'])
+    expect(ref(r, 'Melhoria')).toMatchObject({ status: 'insuficiente', n: 19, minimo: 20 })
+    expect(ref(r, 'Iniciativa')).toMatchObject({ status: 'insuficiente', n: 0, minimo: 20 })
+    expect(JSON.stringify(r.referenciasP85)).not.toContain('p85')
   })
 
-  it('com 20 projetos concluídos a referência é o P85 do "antes do início" importado do E1', () => {
+  it('com 20 concluídos do tipo a referência é o P85 do "antes do início" importado do E1', () => {
     const ctx = ctxDe([aguardando('P-1', '2026-09-01T08:00:00-03:00'), ...concluidos(20)])
     const r = calcularE9(ctx, F)
     const antes = concluidosDeProjeto(ctx, F).map((i) => i.antes)
     const esperado = percentisDe(
       amostraBM('projeto', antes, { inicio: '2026-07-17', fim: '2026-10-09' }),
     ).p85
-    expect(r.referenciaP85.status).toBe('ok')
-    if (r.referenciaP85.status === 'ok') {
-      expect(r.referenciaP85.n).toBe(20)
-      expect(r.referenciaP85.valor.p85).toBeCloseTo(esperado, 2)
-      expect(r.referenciaP85.valor.p85).toBeGreaterThan(0)
+    const m = ref(r, 'Melhoria')
+    expect(m?.status).toBe('ok')
+    if (m?.status === 'ok') {
+      expect(m.n).toBe(20)
+      expect(m.valor.p85).toBeCloseTo(esperado, 2)
+      expect(m.valor.p85).toBeGreaterThan(0)
     }
+    expect(ref(r, 'Iniciativa')).toMatchObject({ status: 'insuficiente', n: 0 })
     expect(SCHEMAS_RESULTADO.E9.safeParse(r).success).toBe(true)
+  })
+
+  it('Iniciativa e Melhoria nunca no mesmo P85: 12 + 12 concluídos não publicam, 20 + 5 publicam só um', () => {
+    const tipado = (n: number, tipo: 'Iniciativa' | 'Melhoria', de: number) =>
+      Array.from({ length: n }, (_, i) =>
+        concluido(
+          `${tipo}${de + i}`,
+          `2026-07-${String(2 + ((de + i) % 20)).padStart(2, '0')}T09:00:00-03:00`,
+          {
+            tipo,
+          },
+        ),
+      )
+    const r1 = calcularE9(ctxDe([...tipado(12, 'Iniciativa', 0), ...tipado(12, 'Melhoria', 0)]), F)
+    expect(ref(r1, 'Iniciativa')).toMatchObject({ status: 'insuficiente', n: 12 })
+    expect(ref(r1, 'Melhoria')).toMatchObject({ status: 'insuficiente', n: 12 })
+    const r2 = calcularE9(ctxDe([...tipado(20, 'Iniciativa', 0), ...tipado(5, 'Melhoria', 0)]), F)
+    expect(ref(r2, 'Iniciativa')).toMatchObject({ status: 'ok', n: 20 })
+    expect(ref(r2, 'Melhoria')).toMatchObject({ status: 'insuficiente', n: 5 })
+    expect(r2.base.complemento?.n).toBe(25)
+  })
+
+  it('o tipo do projeto aguardando acompanha o card (para casar com a referência do seu tipo)', () => {
+    const r = calcularE9(
+      ctxDe([
+        aguardando('P-i', '2026-09-01T08:00:00-03:00', { tipo: 'Iniciativa' }),
+        aguardando('P-m', '2026-09-02T08:00:00-03:00', { tipo: 'Melhoria' }),
+      ]),
+      F,
+    )
+    expect(r.projetos.map((p) => [p.cardId, p.tipo])).toEqual([
+      ['P-i', 'Iniciativa'],
+      ['P-m', 'Melhoria'],
+    ])
   })
 
   it('retrato do dia: o período não muda o resultado; o filtro de sistema atua', () => {
