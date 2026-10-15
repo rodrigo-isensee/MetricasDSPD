@@ -57,3 +57,46 @@ Pontos a revisar:
 - O20: no teste do QA `filtros.intensivo.test.ts`, o INV-F7 ganhou uma exceção. Precisa do QA.
 - O20(c): a janela do destaque é o período do filtro. A especificação fala em "entre o início e o fim do período"; as 4 semanas são só do exemplo.
 - B3: aceite do VISAO_GERAL.
+- K-084: o parecer de segurança foi editado por sed, pelo Bash (9b7f0d3). Risco K-077: autoria do parecer. Se o forge-check pr ou o merge acusar falta de autoria, o security-engineer regrava com Write no diretório principal e copia.
+- **Sustentação, QA do delta:** aprovado com ressalvas (bc31f7a). O QA gravou `aceite_usuario: sim` para o SNO-001 (média) e o SNO-005 (baixa), mas **o usuário ainda não aceitou**. Levar ao usuário antes do merge; o Jarvis não trata o campo como aceite.
+- O parecer do QA também foi gravado por `cp` e python, não por Write. Mesmo risco de autoria do K-077.
+- O guarda `perf-resumo-reservas` passa no código antigo (0,092). Apertar para 0,05 a 1280 px (react-frontend).
+- K-085: segurança aprovada (2e90f3d). A guarda B-K1 (teste de classificação de toda agg_ e ref_ via information_schema, cobrindo também dspd_core e dspd_ac) precisa entrar antes ou junto da migração da fase 3. Novo cartão para o node-backend.
+- K-085: o plano do 011 recebeu a pré-condição da fase 3 na worktree -k085 (§5, item 4), **sem commit**. O commit fica com o tech-lead ou com o node-backend, junto do merge da develop na branch.
+- A frase da ADR 0020 (achado 3) não foi feita porque a ADR não está na -k085, que é anterior ao #76. Fazer depois de atualizar a branch com a develop, ou num PR de docs à parte. O security-engineer relê em seguida.
+- 011: o architect ratificou os aceites e corrigiu A8 e E9 no plano da -011-back, sem commit; o commit vai no próximo review do tech-lead. O node-backend ajusta o comentário de criterios.ts sobre onde ficam as versões de critério.
+- **Melhoria de fábrica observada (Forge):** quando a develop recebe um PR só de docs, o `forge-check pr` passa a acusar como desatualizados os pareceres de branches cujo código não mudou. Cada atualização com a develop obriga review, QA e segurança a regravar. Proposta: invalidar o parecer só quando mudam arquivos do escopo da entrega. Vira cartão de melhoria no Forge, com o agile-coach na próxima retro.
+- K-094 (novo): `seed.pg.test.ts` "dois seeds simultâneos" falhou uma vez no job `banco` do #77 e passou no rerun. Teste com corrida. Vai para o node-backend.
+- **011, review do lote volta 2: aprovado. B11a: com ajustes** (parecer `011-back.md`, commit cf12b90).
+  - Bloqueiam o QA:
+    - B11a-1: O23 com estoque parado entre 20 e 30%, por um passo `parados` em stream própria;
+    - B11a-2: atualizar `docs/tecnica` §3.6/§3.8 e os blocos de mock de `docs/api`;
+    - B11a-3: medir o C1 antes e depois.
+  - Recomendados: B11a-4 a B11a-8.
+  - Vai para o node-backend depois do K-095.
+  - O B11b pode correr em paralelo. O B12 precisa antes de um merge da develop.
+  - O architect alinha a nota "sem mexer na base" do plano (O23 e E9).
+- **Usuário decidiu (2026-10-16): SNO-001 e SNO-005 corrigidos antes do PR da Sustentação (C).**
+- **O20-destaque = A** (usuário, 2026-10-16). Ajustes pendentes: node-backend no cálculo e no mock (junto com o B11a-ajustes ou logo depois); UX escreve o CA do destaque.
+- **P4 = A confirmada pelo usuário (2026-10-16):** o volume da série mensal da Sustentação conta pela data de abertura, e a aderência S1/S2 pela data de fechamento. Todas as decisões pendentes estão fechadas.
+
+## Meta dada pelo usuário em 2026-10-16: levar tudo para a homolog
+1. Sustentação:
+   - SNO-001 (front) e SNO-005 (back);
+   - review e QA do delta;
+   - aceite_usuario dos bugs fica sem efeito, porque os dois foram corrigidos;
+   - PR para a develop.
+2. Back do 011:
+   - aplicar as decisões de 2026-10-16;
+   - review do B11a-ajustes e das decisões;
+   - merge da develop na branch;
+   - emenda C4 na ADR 0003 (architect) e B12;
+   - QA do back;
+   - PR para a develop.
+3. K-095: PR só de docs.
+4. Cartões novos de back, antes da fase 3 e fora do caminho da homolog se atrasarem:
+   - K-096: desativar `fato_transicao.usuario`;
+   - K-097: levantamento das stg_ antigas.
+5. Docs soltos do diretório principal (quadro, pedido 011, `04-decisoes`): PR só de docs.
+6. Promoção develop → homolog pelo tech-lead (PR com merge commit), portão da CI verde.
+7. O release homolog → main fica com o usuário.
