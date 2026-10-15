@@ -24,7 +24,9 @@ export function calcularO19(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO19 {
   const motivos = MOTIVOS_BLOQUEIO.map((motivo) => {
     const doMotivo = encerrados.filter((b) => b.motivo === motivo)
     const horas = doMotivo.map((b) => b.duracao_horas_uteis)
-    const horasJanela = naJanela.filter((b) => b.motivo === motivo).map((b) => b.duracao_horas_uteis)
+    const horasJanela = naJanela
+      .filter((b) => b.motivo === motivo)
+      .map((b) => b.duracao_horas_uteis)
     return {
       motivo,
       bloqueios: doMotivo.length,
