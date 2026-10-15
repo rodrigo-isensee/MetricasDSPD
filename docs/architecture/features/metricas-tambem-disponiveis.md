@@ -22,7 +22,7 @@ Insumos: `01-cobertura.md`, `02-especificacao.md`, `04-decisoes.md` (UX); `data-
 - **Biblioteca:** todo tempo, percentil e taxa vem de `core/` (`calendario`, `percentil`, `estatistica`, `histograma`, `series`, `janela`).
 - **Amostra mínima:** abaixo de 20 não se publica estatística (`MINIMO_AMOSTRA`).
 - **Histórico:** append-only preservado. Os dados novos são projeções derivadas ou tabelas novas, sem `UPDATE` em evento.
-- **T2.6:** os critérios novos têm limite e prazo versionados em `criterios` ou `ref_`, nunca como literal no código.
+- **T2.6:** os critérios novos têm limite e prazo versionados, nunca como literal solto no código. A versão vive em um de dois lugares (A8, ajustado em 2026-10-15): na base (`ref_versao_criterio`, via `ref:sync`) ou, quando o critério nasce na própria biblioteca, em `VERSOES_DA_BIBLIOTECA` (`packages/metricas/src/core/criterios.ts`), que `marcacoesNoPeriodo` soma às da base sem repetir id. O critério do estoque parado (O23, `LIMITE_PARADO_DIAS_UTEIS`, `VERSAO_CRITERIO_PARADOS_V1`) usa a segunda via.
 - **Métricas proibidas (7.1):** nenhuma usa horas apontadas. O E7 fica sem R$ enquanto a D-1 não for decidida, e a opção C da D-1 está recusada.
 
 ## 1. Códigos finais
@@ -135,7 +135,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Dado:** existe. `semMoverHaDiasUteis` já é calculado por item em `o2.ts`.
 - **Cálculo:** dentro de `o2.ts`, sem módulo novo.
   - `k` = itens em andamento com `semMover > limite`; `n` = WIP atual; quebra por etapa (papel ou coluna, a mesma do O2).
-  - O limite (5 dias úteis, U-11) entra como **parâmetro versionado** em `criterios` (T2.6), não como literal.
+  - O limite (5 dias úteis, U-11) entra como constante única `LIMITE_PARADO_DIAS_UTEIS` com `VersaoCriterio` v1 em `VERSOES_DA_BIBLIOTECA` (T2.6, A8); mudar o limite exige nova versão no mesmo commit.
 - **Contrato:** acréscimo compatível em `ResultadoO2`: `parados: { limiteDiasUteis, k, n, taxa, porEtapa: [{ etapa, k }] }`. É campo novo no schema zod (ADR 0007: acréscimo, não quebra).
 - **Mock:** a base atual. Medir a parcela acima de 5 dias úteis; a spec pede 20% a 30%, mas sem mexer na base.
 - **Mínimo:** censo do WIP. A taxa só sai com n ≥ 20; abaixo, "k de n".
@@ -286,10 +286,21 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Dado:** existe. Cards `granularidade = 'projeto'` com `iniciado_em = null`, não descartados e não arquivados (`descartado`, `arquivadoSemDesfecho`).
 - **Cálculo:** módulo novo `businessmap/e9.ts`.
   - É o retrato de `hoje`: idade em dias úteis desde `criado_em` (`core/calendario`), com as faixas fixas da spec.
-  - A referência é o P85 do "antes do início" **importado do `e1.ts`** (não recalculado), e só aparece quando o E1 tem ≥ 20 projetos.
+  - A referência é o P85 do "antes do início" **importado do `e1.ts`** (não recalculado), **por tipo** (`referenciasP85`), e só aparece no tipo que tem ≥ 20 projetos concluídos.
+  - O E9 não calcula deslize nem "na data": `deslizeDiasUteis` e `naData` são do E6 (correção de 2026-10-15, review do B2 a B10).
 - **Contrato:** `{ projetos: [{ cardId, codigo, titulo, tipo, criadoEm, idadeDiasUteis, faixa }], segmentoPor: 'tipo', referenciasP85: [{ tipo, referenciaP85: estatistica }] }` (uma referência por tipo, mínimo 20 por tipo; ajuste de 2026-10-15, regra 7 e Q4).
 - **Mock:** a base atual. Medir quantos projetos estão abertos e não iniciados. Se forem menos de 6, ou nenhum passar de 180 dias úteis, a extensão **não** cria projeto (mexeria em E1 e E4); o cartão mostra o que existe.
 - **Mínimo:** censo dos abertos; a referência de percentil só com ≥ 20 concluídos.
+
+### Aceites de contrato (política de mudança §5, ratificação do architect, 2026-10-15)
+Ratifico, junto com o tech-lead, os aceites de mudança incompatível do lote B2 a B10:
+- enum `indicadores[].metrica` do `VISAO_GERAL`: O19, T10, T12, E7, E9, O25, O21, O20, O24;
+- E7, `participacao` anulável;
+- contratos de E9 (`e9085e7`), O25, O21 e O24 (por tipo, regra 7), e O20 (`emProgresso` obrigatório).
+
+Motivo: nenhum desses contratos está publicado e nenhum consumidor os lê. No `VISAO_GERAL`, o enum só cresce e `visaoGeral.ts` emite apenas ids do núcleo, então a resposta não muda. São, portanto, ajustes de desenho antes da publicação, sem custo de migração. Sem discordância. Exigência de processo, vinda do tech-lead: daqui em diante, toda mudança incompatível passa pelo aceite de uso único, mesmo em contrato não publicado.
+
+Alinhamento de texto: o plano escreve `{ k, n, taxa }` (O24, O25, T12, O21) e `{ natureza, itens, pct }` (E7); o código usa `taxaSchema` (`k`, `n`, `pct`, com `pct` só quando n ≥ 20). É a mesma informação, com o mínimo garantido pelo tipo; vale o `taxaSchema` e `docs/api/metricas.md`.
 
 ## 3. Proteção de pessoa (O26, E8 e O22)
 
