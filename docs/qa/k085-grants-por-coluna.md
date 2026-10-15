@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis
 branch: fix/grants-por-coluna
-commit: 01e965e
+commit: 1094cf7
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -19,6 +19,8 @@ Links: ADR 0020 (M-4 e B-3), review `docs/reviews/k085-grants-por-coluna.md` (ap
 
 ## Veredito
 **Aprovado.** Nenhum bug aberto. Nenhum teste novo foi acrescentado: os do autor já cobrem as obrigações e os casos de abuso extras foram exercidos em arquivo temporário descartado. O HEAD testado, 01e965e, difere de 21dabc0 só em documentação. Nenhum código de produção foi alterado pelo QA.
+
+Revalidado em 2026-10-15 no HEAD `1094cf7` (atualização com a `develop`, só docs): ver a seção final.
 
 ## Execução real (HEAD 01e965e, Postgres do Compose)
 - `pnpm run test:pg`: 64 aprovados, 7 falhas, todas em `tests/pesquisa.pg.test.ts` (ambiente, já conhecidas, fora do diff). Guarda, papéis e catálogo: verdes.
@@ -66,3 +68,11 @@ Nenhum sobrevivente. Arquivo restaurado após cada mutante.
 - M3 a M5 só são pegos pelo unitário (texto do SQL), não pelo teste de papel real nos schemas `dspd_ac` e `dspd_core`. Aceitável: a guarda de privilégio cobre o banco migrado quando as tabelas existirem. Sugestão baixa ao node-backend, sem bloquear.
 - R-1 da segurança (regex sem `owner|user`, só `agg_`) segue como recomendação.
 - 7 falhas de `pesquisa.pg` são de ambiente e não pertencem a este diff.
+
+## Revalidação: atualização com a develop (só docs)
+- Data: 2026-10-15. Parecer original no commit `01e965e`; HEAD revalidado: `1094cf7` (branch `fix/grants-por-coluna`, worktree `MetricasDSPD-k085`). O campo `commit:` passa a ser o HEAD testado.
+- Motivo: a branch mergeou a `develop` (`911625a`), que trouxe só documentação. O `forge-check pr` acusava o parecer como desatualizado por causa de `docs/alinhamentos/2026-10-14-revisao-desenho-011.md`, que não é caminho livre (LIVRES).
+- Código e teste: `git diff 01e965e 1094cf7 --stat -- server packages web e2e` vazio. Os 18 arquivos que mudaram desde o parecer são de `docs/` e `KANBAN.md`. Nenhum código de produção, teste, migração, fixture ou configuração de pronto mudou.
+- Unitário do `server` em `1094cf7` (`npx vitest run --project unit`, com `flock /tmp/metricas-pesado.lock nice -n 19`): 22 arquivos, **414 passaram**, 0 falharam. Igual ao parecer original.
+- Não reexecutei `test:pg` nem `lint`: o código testado é idêntico ao de `01e965e` (mesmo resultado de 64 aprovados e as mesmas 7 falhas de `pesquisa.pg` de ambiente).
+- Veredito mantido: **aprovado**, zero bugs abertos.
