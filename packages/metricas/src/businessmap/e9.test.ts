@@ -196,9 +196,26 @@ describe('E9: projetos aguardando início', () => {
     expect(SCHEMAS_RESULTADO.E9.safeParse(r).success).toBe(true)
   })
 
-  it('base do mock: obedece ao schema (número de projetos abertos registrado no docs/api)', () => {
-    const base = gerarBaseMock({ escala: 0.5 })
+  it('base do mock (B5-2): 3 projetos abertos, nas faixas 0–30 e 31–90, e nenhum acima de 90; o B11a atualiza estes números', () => {
+    const base = gerarBaseMock({})
     const r = calcularE9(criarContextoBM(base.bm, HOJE_TESTE, CALENDARIO_PADRAO), F)
     expect(SCHEMAS_RESULTADO.E9.safeParse(r).success).toBe(true)
+    expect(r.projetos).toHaveLength(3)
+    expect(r.projetos.map((p) => p.faixa).sort()).toEqual(['0–30', '31–90', '31–90'])
+    expect(r.projetos.some((p) => p.idadeDiasUteis > 90)).toBe(false)
+  })
+})
+
+describe('L3: marcação de critério cruzando o período (E9)', () => {
+  it('a série traz a versão do período e fora dele não traz', () => {
+    const base = umaBase([])
+    base.config.criterios = [
+      { id: 'c-dentro', data: '2026-09-20', descricao: 'dentro do período', afeta: ['E9'] },
+      { id: 'c-antes', data: '2025-01-10', descricao: 'antes do período', afeta: ['E9'] },
+      { id: 'c-outra', data: '2026-09-20', descricao: 'outra métrica', afeta: ['O1'] },
+    ]
+    const r = calcularE9(criarContextoBM(base, HOJE_TESTE, CALENDARIO_PADRAO), F)
+    expect(r.criterios.serie.map((c) => c.id)).toEqual(['c-dentro'])
+    expect(r.criterios.janela.map((c) => c.id)).toEqual(['c-dentro'])
   })
 })
