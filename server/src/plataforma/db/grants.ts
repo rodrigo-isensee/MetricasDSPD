@@ -14,7 +14,7 @@ export const PAPEIS = ['dspd_coletor', 'dspd_api', 'dspd_ref', 'dspd_webhook', '
 export const COLUNAS_FORA_DA_API: readonly string[] = ['dspd_bm.agg_conhecimento_sistema.entregas'];
 
 /** Tabelas inteiras que a API não lê, por `schema.tabela` (ADR 0020, B-3): só o `dspd_coletor` lê `ref_conta_automacao`. */
-export const TABELAS_FORA_DA_API: readonly string[] = ['dspd_bm.ref_conta_automacao'];
+export const TABELAS_FORA_DA_API: readonly string[] = ['dspd_bm.ref_conta_automacao', 'dspd_ac.ref_conta_automacao', 'dspd_core.ref_conta_automacao'];
 
 const COM = (nomes: string[], ...prefixos: string[]): string[] => nomes.filter((n) => prefixos.some((p) => n.startsWith(p)));
 const PROJECAO = /^(dim_card|dim_chamado|fato_bloqueio|fato_etapa_chamado)$/;
@@ -76,7 +76,10 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
       out.push(`GRANT UPDATE (vigente_ate) ON ${schema}.${n} TO dspd_ref`);
   }
   const refCore = COM(Object.keys(cat.core), 'ref_');
-  for (const papel of ['dspd_coletor', 'dspd_api', 'dspd_automacao']) g('SELECT', S.core, refCore, papel);
+  // Mesmo filtro de TABELAS_FORA_DA_API para o core (K-085, B-K2): a tabela fora da API não vira legível por estar em outro schema.
+  const refCoreApi = refCore.filter((n) => !TABELAS_FORA_DA_API.includes(`${nomeLogico('core')}.${n}`));
+  for (const papel of ['dspd_coletor', 'dspd_automacao']) g('SELECT', S.core, refCore, papel);
+  g('SELECT', S.core, refCoreApi, 'dspd_api');
   g('SELECT, INSERT', S.core, refCore, 'dspd_ref');
   for (const n of refCore.filter((x) => cat.core[x]!.includes('vigente_ate'))) out.push(`GRANT UPDATE (vigente_ate) ON ${S.core}.${n} TO dspd_ref`);
   if (cat.core.outbox) {

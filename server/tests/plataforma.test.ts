@@ -150,6 +150,14 @@ describe('gerarGrants', () => {
     expect(g2).toContain('GRANT SELECT ON t_dspd_bm.ref_conta_automacao TO dspd_coletor');
     expect(api).toContain('GRANT SELECT ON t_dspd_bm.ref_x TO dspd_api');
   });
+  it('dspd_api: ref_conta_automacao fora da API em qualquer schema, inclusive o core (K-085, B-K2)', () => {
+    const cols = ['conta_id', 'motivo', 'vigente_ate'];
+    const g3 = gerarGrants(S, { bm: cat.bm, ac: { ...cat.ac, ref_conta_automacao: cols }, core: { ...cat.core, ref_conta_automacao: cols } });
+    expect(g3.filter((x) => x.endsWith('TO dspd_api')).join('\n')).not.toMatch(/ref_conta_automacao/);
+    expect(g3).toContain('GRANT SELECT ON t_dspd_core.ref_conta_automacao TO dspd_coletor');
+    expect(g3).toContain('GRANT SELECT ON t_dspd_core.ref_conta_automacao TO dspd_automacao');
+    expect(g3).toContain('GRANT SELECT ON t_dspd_ac.ref_conta_automacao TO dspd_coletor');
+  });
   it('coletor: staging só SELECT/INSERT; ctl_coleta só colunas da execução; outbox por coluna', () => {
     expect(g).toContain('GRANT SELECT, INSERT ON t_dspd_bm.stg_card TO dspd_coletor');
     expect(g).toContain('GRANT UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo) ON t_dspd_bm.ctl_coleta TO dspd_coletor');
