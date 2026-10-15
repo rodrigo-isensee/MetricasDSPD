@@ -5,6 +5,7 @@ import {
   LIMITE_PARADO_DIAS_UTEIS,
   NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO,
   VERSAO_CRITERIO_DESCARTE_NATIVO,
+  VERSAO_CRITERIO_EXCLUIDO_ENTREGUE,
   VERSAO_CRITERIO_PARADOS_V1,
   marcacoesNoPeriodo,
 } from '../core/criterios'
@@ -66,6 +67,20 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
     ])
     expect(marcacoesNoPeriodo('O25', { inicio: '2026-10-01', fim: '2026-10-14' }, [])).toEqual([])
     expect(marcacoesNoPeriodo('S1', nova, [])).toEqual([])
+  })
+
+  it('B11b: o T11 nasceu depois do descarte nativo e sai do `afeta` das duas versões que compartilham a lista, com a lista nominal', () => {
+    expect(NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO).toEqual(['T11'])
+    expect(fonteDaMetrica('T11')).toBe('businessmap')
+    expect(METRICA_IDS).toContain('T11')
+    for (const v of [VERSAO_CRITERIO_DESCARTE_NATIVO, VERSAO_CRITERIO_EXCLUIDO_ENTREGUE]) {
+      expect(v.afeta).not.toContain('T11')
+      expect(v.afeta).toHaveLength(44)
+    }
+    // sem T11 na lista nominal ele entraria: o teste de igualdade acima é a trava
+    const semNominal = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
+    expect(semNominal).toHaveLength(45)
+    expect(marcacoesNoPeriodo('T11', { inicio: '2026-10-01', fim: '2026-10-16' }, [])).toEqual([])
   })
 
   it('abaixo de 20 itens devolve "k de n" sem percentual; só mudança de coluna conta como mover', () => {

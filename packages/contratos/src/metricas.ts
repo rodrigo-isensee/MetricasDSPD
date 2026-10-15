@@ -5,6 +5,7 @@ import type * as s from './schemas'
 import type {
   ResultadoO19,
   ResultadoT10,
+  ResultadoT11,
   ResultadoT12,
   ResultadoE7,
   ResultadoE9,
@@ -108,6 +109,7 @@ export interface ContratoMetricas {
   T6: Fluxo<ResultadoT6>
   T8: Fluxo<ResultadoT8>
   T10: Fluxo<ResultadoT10>
+  T11: Fluxo<ResultadoT11>
   T12: Fluxo<ResultadoT12>
   E1: Fluxo<ResultadoE1>
   E2: Fluxo<ResultadoE2>
@@ -214,6 +216,8 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   T6: ['equipe', 'sistema', 'periodo'],
   T8: ['equipe', 'sistema', 'periodo'],
   T10: ['equipe', 'tipo', 'sistema', 'periodo'],
+  // T11: janela fixa de 24 meses mais o corrente; o período é aceito e ignorado (CA-12, "Não afetado por: Período"), como no E9.
+  T11: ['equipe', 'tipo', 'sistema', 'periodo'],
   T12: ['equipe', 'tipo', 'sistema', 'periodo'],
   E4: ['sistema', 'periodo'],
   E5: ['sistema', 'periodo'],

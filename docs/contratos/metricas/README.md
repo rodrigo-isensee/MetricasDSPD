@@ -3,7 +3,7 @@
 Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-15.
 
 <!-- gerado:inicio -->
-Gerado por `pnpm run docs:gerar`. 60 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
+Gerado por `pnpm run docs:gerar`. 61 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
 
 | Métrica | Nome | Domínio | Rota | Granularidade | Mínimo | Status das regras |
 |---|---|---|---|---|---|---|
@@ -41,6 +41,7 @@ Gerado por `pnpm run docs:gerar`. 60 métricas, uma página cada. Regras gerais,
 | [`T6`](T6.md) | Previsão probabilística | businessmap | `/api/v1/metricas/T6` | story | 20 | ok |
 | [`T8`](T8.md) | Sprint | businessmap | `/api/v1/metricas/T8` | story | 20 | ok |
 | [`T10`](T10.md) | - | businessmap | `/api/v1/metricas/T10` | story | 20 | ok |
+| [`T11`](T11.md) | - | businessmap | `/api/v1/metricas/T11` | story | 0 | ok |
 | [`T12`](T12.md) | - | businessmap | `/api/v1/metricas/T12` | story | 20 | ok |
 | [`E1`](E1.md) | Lead time de projetos | businessmap | `/api/v1/metricas/E1` | projeto | 20 | ok |
 | [`E2`](E2.md) | Capacidade por objetivo estratégico | businessmap | `/api/v1/metricas/E2` | story | 20 | ok |

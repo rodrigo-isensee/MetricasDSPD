@@ -54,6 +54,44 @@ describe('GET /api/v1/metricas/:id', () => {
     expect([...todas].filter((k) => PESSOA.test(k))).toEqual([]);
   }, 60_000);
 
+  it('T11 (pedido 011, B11b): 200 no schema, 24 meses mais o corrente, picos de janeiro e julho, período ignorado e sem pessoa', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/T11');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.T11.safeParse(r.json()).success).toBe(true);
+    const t11 = r.json();
+    const meses = (t11.anos as { ano: number; meses: { mes: number; entradas: number | null; emAndamento: boolean }[] }[]).flatMap((a) => a.meses.map((m) => ({ ano: a.ano, ...m })));
+    expect(meses.filter((m) => m.entradas !== null)).toHaveLength(25);
+    expect(meses.filter((m) => m.emAndamento)).toHaveLength(1);
+    expect(t11.mesesComDado).toBe(24);
+    expect(t11.historicoCurto).toBe(false);
+    const media = t11.mediaMensal as number;
+    for (const m of meses.filter((x) => x.entradas !== null && !x.emAndamento && (x.mes === 1 || x.mes === 7))) expect(m.entradas as number).toBeGreaterThanOrEqual(1.25 * media);
+    expect([...chaves(t11)].filter((k) => PESSOA.test(k))).toEqual([]);
+    // CA-12: o período não muda a resposta; equipe, tipo e sistema mudam
+    expect((await get(app, '/api/v1/metricas/T11?periodo=4s')).json()).toEqual(t11);
+    expect((await get(app, '/api/v1/metricas/T11?periodo=abc')).statusCode).toBe(400);
+    const so = await get(app, '/api/v1/metricas/T11?tipo=melhoria');
+    expect(so.statusCode).toBe(200);
+    expect((so.json().base as { n: number }).n).toBeLessThan((t11.base as { n: number }).n);
+  }, 60_000);
+
+  it('T11: a extensão é lazy (só o T11 a chama) e, sem ela (fonte real), devolve vazio com histórico curto, nunca 500', async () => {
+    let chamadas = 0;
+    const gerar = () => { chamadas++; return { entradasSazonais: [] }; };
+    const montarCom = async (extra: Partial<Parameters<typeof buildApp>[0]>) => buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', ...extra });
+    const app = await montarCom({ extensaoTambem: gerar });
+    await get(app, '/api/v1/metricas/O1');
+    await get(app, '/api/v1/metricas/T12');
+    expect(chamadas).toBe(0);
+    expect((await get(app, '/api/v1/metricas/T11')).statusCode).toBe(200);
+    expect(chamadas).toBe(1);
+    const real = await montarCom({ fonteDados: 'real' });
+    const r = await get(real, '/api/v1/metricas/T11');
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toMatchObject({ anos: [], mesesComDado: 0, mediaMensal: null, historicoCurto: true });
+  });
+
   it('T12 (pedido 011): 200 no schema, filtros do fluxo, áreas por volume e nenhuma chave de equipe ou pessoa', async () => {
     const { app } = await montar();
     const r = await get(app, '/api/v1/metricas/T12?periodo=12m');

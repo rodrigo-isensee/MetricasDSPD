@@ -12,6 +12,8 @@ export interface ContextosMetricas {
   ac: AC.ContextoAC
   /** Extensões das métricas complementares (mock). Sem elas, o cálculo complementar devolve vazio/insuficiente. */
   ext?: ExtensoesMetricas
+  /** Extensão só de mock do pedido 011 (T11: histórico de 24 meses). Sem ela, o T11 devolve vazio. */
+  tambem?: BM.ExtensaoTambemBM
   /** Contexto da pesquisa de percepção (terceira fonte, separada). Sem ele, a PV1 devolve `sem-pesquisa`. */
   pesq?: PESQ.ContextoPesquisa
 }
@@ -52,6 +54,7 @@ const CALCULOS: {
   T6: (f, c) => BM.calcularT6(c.bm, f),
   T8: (f, c) => BM.calcularT8(c.bm, f, c.ext?.bm),
   T10: (f, c) => BM.calcularT10(c.bm, f),
+  T11: (f, c) => BM.calcularT11(c.bm, f, c.tambem),
   T12: (f, c) => BM.calcularT12(c.bm, f),
   O20: (f, c) => BM.calcularO20(c.bm, f),
   O21: (f, c) => BM.calcularO21(c.bm, f),

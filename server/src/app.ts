@@ -6,11 +6,12 @@ import {
 import { rotasWebhook } from './modulos/businessmap/index.js';
 import { ServicoMetricas, criarFontePesquisaReal, rotasMetricas, type FontePesquisa } from './modulos/metricas/index.js';
 import type { ExtensoesMetricas } from '@metricas-dspd/metricas';
+import type { ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
 import { rotasOperacao } from './modulos/operacao/index.js';
 import { rotasReferencia } from './modulos/referencia/index.js';
 import type { Esquemas } from './plataforma/db/esquemas.js';
 import { fontePesquisaMock } from './plataforma/db/pesquisa-mock.js';
-import { extensoesMock } from './plataforma/db/extensoes-mock.js';
+import { extensaoTambemMock, extensoesMock } from './plataforma/db/extensoes-mock.js';
 import type { Consultavel, PoolLike } from './plataforma/db/pool.js';
 import { rotaNaoEncontrada, tratarErro } from './plataforma/erros.js';
 import { gerarRequestId, opcoesLog } from './plataforma/log.js';
@@ -27,6 +28,8 @@ export type DepsApp = {
   nivelLog?: string;
   /** Extensões das métricas complementares; padrão = mock. */
   extensoes?: () => ExtensoesMetricas;
+  /** Extensão do pedido 011 (T11); padrão = mock quando `fonteDados !== 'real'`. */
+  extensaoTambem?: () => ExtensaoTambemBM;
   /** Fonte da pesquisa de percepção (PV1); padrão = mock quando `fonteDados !== 'real'` e a leitura de `pesq_*` quando 'real'. */
   pesquisa?: FontePesquisa;
   /** Fonte dos dados: só em 'mock' as extensões mockadas entram; em 'real', sem extensão os campos saem insuficientes. Padrão 'mock'. */
@@ -63,6 +66,7 @@ export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
   });
   await app.register(async (i) => rotasSaude(i, deps.db));
   const servico = new ServicoMetricas({ db: deps.db, S: deps.S, extensoes: deps.extensoes ?? (deps.fonteDados === 'real' ? undefined : extensoesMock),
+    extensaoTambem: deps.extensaoTambem ?? (deps.fonteDados === 'real' ? undefined : extensaoTambemMock),
     pesquisa: deps.pesquisa ?? (deps.fonteDados === 'real' ? criarFontePesquisaReal(deps.db, deps.S) : fontePesquisaMock) });
   await app.register(async (i) => {
     await rotasReferencia(i, { db: deps.db, S: deps.S, agora: deps.agora });

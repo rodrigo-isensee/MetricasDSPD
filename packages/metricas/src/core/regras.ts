@@ -615,6 +615,18 @@ export const REGRAS_METRICA = {
       "pedido 011 O25; R-2' = A (descartado = estado nativo discarded ou excluído, instante discarded_at; motivo sem descarte vira aviso); P-1 = A; D-13 (tempo consumido do início ao descarte; antes do início à parte); motivos de descarte = A (porMotivo nulo até ler /discardReasons, CA-44)",
     status: 'ok',
   },
+  T11: {
+    dominio: 'businessmap',
+    segmentacao: ['mes-do-ano'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 T11; contagem de demandas criadas por mês (censo, sem percentil), janela fixa de 24 meses fechados mais o corrente, fora do período do filtro (CA-12); mock: série própria da extensão (P-T3 = a)',
+    status: 'ok',
+  },
   T12: {
     dominio: 'businessmap',
     segmentacao: ['area'],

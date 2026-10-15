@@ -5,6 +5,7 @@ import * as s from './schemas'
 import {
   resultadoO19,
   resultadoT10,
+  resultadoT11,
   resultadoT12,
   resultadoE7,
   resultadoE9,
@@ -50,6 +51,7 @@ export const SCHEMAS_RESULTADO: { [K in MetricaId]: z.ZodType<ResultadoDe<K>> } 
   T6: s.resultadoT6,
   T8: s.resultadoT8,
   T10: resultadoT10,
+  T11: resultadoT11,
   T12: resultadoT12,
   E1: s.resultadoE1,
   E2: s.resultadoE2,

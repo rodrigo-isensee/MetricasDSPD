@@ -5,6 +5,7 @@ import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, pesquisa, type ContextosMetricas, type ExtensoesMetricas,
 } from '@metricas-dspd/metricas';
 import type { BaseAC } from '@metricas-dspd/metricas/acelerato';
+import type { ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
 import { AppError } from '../../plataforma/erros.js';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
@@ -52,10 +53,15 @@ export function normalizar(f: FiltrosMetrica): string {
 /** Métricas complementares (catálogo de cartões): as únicas que leem as extensões (dados fictícios até a coleta real). */
 const COMPLEMENTARES = new Set<MetricaId>(CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').flatMap((c) => c.metricas));
 
+/** Métricas do pedido 011 que leem a extensão separada `ExtensaoTambemBM` (fase 1: só o T11). */
+const COM_EXTENSAO_TAMBEM = new Set<MetricaId>(['T11']);
+
 export type DepsServico = {
   db: Consultavel; S?: Esquemas; maxResultados?: number;
   /** Fonte das extensões das métricas complementares (hoje só o mock; vira tabelas em T1.3/T1.4/T4.2). Sem ela, o cálculo devolve vazio/insuficiente. */
   extensoes?: () => ExtensoesMetricas;
+  /** Extensão do pedido 011 (T11), só de mock e lazy: chamada só quando o T11 é pedido. Sem ela, o T11 devolve vazio. */
+  extensaoTambem?: () => ExtensaoTambemBM;
   /** Fonte da pesquisa de percepção (PV1): mock agora; no B4, as tabelas `pesq_*`. Sem ela, a PV1 devolve `sem-pesquisa`. */
   pesquisa?: FontePesquisa;
 };
@@ -212,6 +218,7 @@ export class ServicoMetricas {
       bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, CALENDARIO_PADRAO),
       ac: acelerato.criarContextoAC(ac?.base ?? BASE_AC_VAZIA, corte, CALENDARIO_PADRAO),
       ...(COMPLEMENTARES.has(id) && this.deps.extensoes ? { ext: this.deps.extensoes() } : {}),
+      ...(COM_EXTENSAO_TAMBEM.has(id) && this.deps.extensaoTambem ? { tambem: this.deps.extensaoTambem() } : {}),
     };
     const resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
     mapa.set(chave, resultado);
