@@ -2,9 +2,9 @@
 
 Base: `01-cobertura.md`. Protótipo: `03-prototipo/`. Decisões: `04-decisoes.md`. Segue o padrão do discovery das complementares (`docs/ux/metricas-fora-do-nucleo/`), o design system (`docs/ux/design-system.md`) e o checklist por cartão (`docs/ux/checklist-cartao.md`).
 
-**Status: hipótese até a validação do usuário no protótipo.** Itens que ainda dependem de decisão do usuário estão marcados com `[D-n]`. A conciliação com o briefing e a proposta (04, seção C, 2026-10-14) já foi aplicada: D-2, D-7, D-11, D-12 e D-13 estão resolvidas pelos documentos; D-3 e D-4 estão decididas pelo usuário; D-1, D-5, D-6, D-8, D-9, D-10 e D-14 têm parte fixada pelos documentos e um resto em aberto. As lacunas R-1 a R-7 do arquiteto foram conciliadas (04, seção D): R-3, R-5 e R-6 resolvidas; R-2 e R-7 parciais; R-1 e R-4 em aberto.
+**Status: todas as decisões de produto e de regra do pedido 011 estão tomadas (2026-10-14); resta a validação do usuário no protótipo** (ponto de compromisso). O que depende da integração com o BusinessMap está marcado "a confirmar na integração": nome e cardinalidade do campo "Time responsável" (T14), se a API registra nas revisões a troca de responsável (O26) e a mudança de vínculo (T13), e o catálogo de motivos de descarte (O25). Decisões e datas: `04-decisoes.md` e pedido 011.
 
-**Acréscimo de 2026-10-14 (K-078):** a métrica T14 "Participação do meu time no projeto" entrou no escopo por decisão do usuário (pedido 011). Total: 17 métricas (16 cartões complementares e o bloco O23). Novas perguntas abertas: `[D-15]` nível e escopo, `[D-16]` "meu time" com filtro vazio, `[D-17]` demanda sem time responsável. Onde o texto abaixo disser "os 16", leia 17 (cartões 16 + O23 já eram 16 antes da T14).
+**Acréscimo de 2026-10-14 (K-078):** a métrica T14 "Participação do meu time no projeto" entrou no escopo por decisão do usuário (pedido 011). Total: 17 métricas (16 cartões complementares e o bloco O23). Onde o texto abaixo disser "os 16", leia 17.
 
 ## 1. Objetivo
 Responder as perguntas da proposta que ficaram fora do catálogo (bloqueios, acúmulo, retorno, descarte, terceiros, sazonalidade, dependências, datas do portfólio, capacidade por sistema, concentração de conhecimento e projetos parados) sem aumentar o painel padrão e sem abrir brecha para avaliação individual.
@@ -14,10 +14,10 @@ As mesmas das complementares (`metricas-fora-do-nucleo/01-empatia.md`): time e c
 
 ## 3. Regras transversais (valem para os 17; a T14 foi acrescentada em 2026-10-14, K-078)
 1. **Onde entram:** como complementares (`grupo: 'complementar'`), dentro da seção recolhida "Mais métricas deste painel", agrupadas por pergunta. Exceção: O23 é um bloco do cartão O2 (núcleo).
-2. **Status:** `mock` ("Dados fictícios") até existir coleta real do dado; entram em `COM_EXTENSAO_MOCK` as que dependem de dado novo (O22, O26, T10 com prazo contratado, T13, T14, E6 com replanejamento, E7 com custo, E8).
+2. **Status:** `mock` ("Dados fictícios") até existir coleta real do dado; entram em `COM_EXTENSAO_MOCK` as que dependem de dado novo (O22, O26, T13, T14, E6 com replanejamento, E7 com custo, E8).
 3. **Sem alertas** em "Pede atenção" (decisão D-3 das complementares). Nenhuma tem meta numérica nesta fase: o rodapé mostra "Sem meta numérica" com ícone "i".
 4. **Fonte única por cartão:** todos os 17 são **BusinessMap**. Nenhum soma, compara no mesmo eixo ou divide por dado do Acelerato.
-5. **Granularidade única por gráfico:** Operacional e Tático em demanda (story); T13 permite trocar para frente por seletor local (uma por vez); T14 conta só demandas, agrupadas por projeto, sem seletor; Estratégico em projeto, exceto E7 (demanda entregue, agregada por sistema) e E8 (sistema).
+5. **Granularidade única por gráfico:** Operacional e Tático em demanda (story); T13 e T14 permitem trocar para frente por seletor local (uma por vez; no T14 o projeto é só o agrupador); Estratégico em projeto, exceto E7 (demanda entregue, agregada por sistema) e E8 (sistema).
 6. **Mínimo de 20:** percentil (P50/P85/P95) e percentual só com n ≥ 20 na classe; abaixo, "k de n" e o componente AmostraInsuficiente. Projetos usam a variante `lenta` (pontos por projeto e contagem visíveis). Contagens e somas (censo) são publicadas com BadgeBase.
 7. **Percentil só dentro da classe:** toda distribuição de tempo é por tipo de demanda (SeletorLocal, um tipo por vez). Comparação "com × sem" (O21, T13) só entre dois grupos do **mesmo** tipo, cada um com n ≥ 20.
 8. **Pessoas e times:** nenhum cartão mostra, filtra, ordena ou exporta por pessoa. O26 e E8 recebem só contagens já agregadas. Nenhum cartão lista, nomeia ou ordena times uns contra os outros: a T14 mostra só "meu time" e "outros times" somados.
@@ -92,7 +92,7 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 - **Alerta:** nenhum.
 - **Filtros:** Equipe, Tipo, Sistema, Período.
 - **Mínimo:** percentis com ≥ 20 pedidos tocados no tipo, janela de 12 semanas.
-- **Fonte/dado:** BusinessMap · **extração nova**: instante do primeiro comentário depois da criação. A fonte listada pelo briefing é "comentários" (B:57). Fica em aberto `[D-9']` se mudança de coluna e atribuição também contam; a recomendação é só comentário. Comentário gerado por regra automática não conta. Tempo apontado nunca. Guardar só o instante (`dim_card.primeiro_toque_em`), nunca quem tocou nem o texto do comentário.
+- **Fonte/dado:** BusinessMap · **extração nova**: instante do primeiro comentário depois da criação. A fonte listada pelo briefing é "comentários" (B:57). Só o comentário conta (mudança de coluna e atribuição não). Comentário gerado por regra automática não conta. Tempo apontado nunca. Guardar só o instante (`dim_card.primeiro_toque_em`), nunca quem tocou nem o texto do comentário.
 
 ### O23 Estoque parado dentro do WIP (bloco do O2)
 - **Pergunta:** Quanto do "em andamento" não se move há mais de uma semana?
@@ -110,28 +110,29 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 ### O24 Ordem de chegada
 - **Pergunta:** Que pedidos passaram na frente de pedidos mais antigos, e a que custo para os que esperaram?
 - **Painel/seção:** Operacional · Onde o trabalho acumula?
-- **Visual:** (a) destaque "18 de 64 inícios (28%) passaram na frente de um pedido mais antigo"; (b) barras mensais empilhadas "em ordem" × "fora de ordem" (cor + hachura); (c) para o tipo escolhido, P50/P85 dos dias úteis a mais que os ultrapassados esperaram.
-- **Leitura:** "28% dos inícios da classe Padrão passaram na frente de um pedido mais antigo do mesmo tipo. Os ultrapassados esperaram, no P85, 9 dias úteis a mais."
+- **Visual:** (a) destaque "18 de 64 inícios (28%) passaram na frente de um pedido mais antigo"; (b) barras mensais empilhadas "em ordem" × "fora de ordem" (cor + hachura); (c) para o tipo escolhido, P50/P85 dos dias úteis que os ultrapassados esperaram, depois de ultrapassados, até começar.
+- **Leitura:** "28% dos inícios da classe Padrão passaram na frente de um pedido mais antigo do mesmo tipo, na fila da mesma equipe. Os ultrapassados esperaram, depois de ultrapassados, 9 dias úteis até começar (P85)."
 - **Leia junto:** O10 (envelhecimento do backlog), T2 (aderência ao SLE).
 - **Alerta:** nenhum. Texto fixo na nota: "A ordem de chegada é a política da classe Padrão. Urgente, Prazo fixo e Intangível têm regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro."
 - **Filtros:** Equipe, Tipo, Sistema, Período.
 - **Mínimo:** percentual com ≥ 20 inícios; P50/P85 com ≥ 20 itens ultrapassados no tipo.
 - **Fonte/dado:** BusinessMap · `criado_em`, `iniciado_em`, `equipe`, `tipo`, `classe_servico` · **já no modelo**.
-  - Grupo de comparação: **só classe Padrão, mesmo tipo** (P:597-600, D-6 resolvida em parte).
-  - Em aberto `[D-6']`: se a fila é por equipe (recomendação) ou do DSPD inteiro.
-  - Em aberto `[R-1]`: o "custo" da ultrapassagem. A proposta só diz "e a que custo" (P:250). Recomendação: tempo entre o início de quem passou na frente e o início do ultrapassado. Até a decisão, o bloco (c) é provisório.
+  - Grupo de comparação: **só classe Padrão, mesmo tipo, na fila de cada equipe (quadro)** (P:597-600; decisão do usuário, 2026-10-14).
+  - Custo da ultrapassagem (decisão do usuário, 2026-10-14): dias úteis entre o início do primeiro item que passou na frente e o início do ultrapassado. Texto do cartão: "esperaram, depois de ultrapassados, X dias úteis até começar"; nunca "dias a mais".
 
 ### O25 Descarte
 - **Pergunta:** Quanto esforço foi investido no que nunca foi entregue?
 - **Painel/seção:** Operacional · Onde se perde esforço?
-- **Visual:** (a) destaque "9 descartados de 105 encerrados (8,6%)"; (b) barras mensais da taxa (mês corrente listrado + rótulo "em andamento"); (c) tempo já consumido: soma de dias úteis dividida em "antes do início" (descarte saudável, decidido na fila) e "depois do início" (trabalho jogado fora), com P50/P85 do tempo consumido depois do início; (d) tabela por motivo do descarte, se o motivo for domínio fechado.
+- **Visual:** (a) destaque "9 descartados de 105 encerrados (8,6%)"; (b) barras mensais da taxa (mês corrente listrado + rótulo "em andamento"); (c) tempo já consumido: soma de dias úteis dividida em "antes do início" (descarte saudável, decidido na fila) e "depois do início" (trabalho jogado fora), com P50/P85 do tempo consumido depois do início; (d) aviso de preenchimento quando há card com motivo de descarte e sem estar descartado nem excluído. Nesta fase o cartão mostra só taxa e tempo consumido, sem divisão por motivo; a tabela por motivo só entra quando a integração ler o catálogo de motivos do BusinessMap (a confirmar na integração).
 - **Leitura:** "9 itens foram descartados no período (8,6% do que encerrou). Eles tinham consumido 38 dias úteis depois de começar; 6 foram descartados ainda na fila, sem trabalho iniciado."
 - **Leia junto:** O4 (vazão), O7 (entrada × saída).
 - **Alerta:** nenhum. Nota: "Descartar cedo é saudável; o custo está no que foi descartado depois de começar."
 - **Filtros:** Equipe, Tipo, Sistema, Período.
 - **Mínimo:** taxa com ≥ 20 encerrados (entregues + descartados) no período; P50/P85 do tempo consumido com ≥ 20 descartados após o início (raro: o normal é mostrar soma e contagem).
-- **Fonte/dado:** BusinessMap · `descartado()` (`motivo_descarte` preenchido), `iniciado_em`, `arquivado_em` como instante do descarte · **já no modelo**.
-  - Tempo consumido = do início (primeira entrada em execução) até o descarte. Descartado antes de iniciar consome zero e aparece à parte (D-13, resolvida por B:106, B:110, P:251). Card excluído entra no descarte como o arquivado (P:564, B:59). "Criado por engano" não é motivo documentado e sai do mock. Em aberto `[R-2']`: instante do descarte de card com motivo e sem arquivamento ou exclusão (recomendação: não é descarte, vira aviso de dado). Motivo em domínio fechado depende de WS1 (hoje `motivo_descarte` é texto; sem domínio fechado a tabela por motivo não aparece, por 7.3).
+- **Fonte/dado:** BusinessMap · estado nativo `discarded` do card (e card excluído), `iniciado_em`, `discarded_at` · **já no modelo** (a confirmar na integração: leitura do estado nativo e do catálogo de motivos).
+  - Descartado = card com estado nativo `discarded` do BusinessMap e também o card excluído (P:564, B:59). Instante: `discarded_at`; no excluído, o instante da exclusão ou, sem ele, a última revisão, marcada como aproximada (decisão do usuário, 2026-10-14). Motivo preenchido sem descarte nem exclusão vira aviso de preenchimento e fica fora da taxa.
+  - Tempo consumido = do início (primeira entrada em execução) até o descarte. Descartado antes de iniciar consome zero e aparece à parte (B:106, B:110, P:251).
+  - Motivos: o domínio é o catálogo nativo do BusinessMap (`/discardReasons`, `reason_id`), com mudanças versionadas (T2.6); `discard_comment` nunca entra (**a confirmar na integração**). Até a integração ler o catálogo, `porMotivo = null` e o cartão publica só taxa e tempo consumido. "Criado por engano" não existe nos documentos e fica fora do mock.
 
 ### O26 Passagens de mão
 - **Pergunta:** Quantas trocas de responsável uma demanda sofre até ser entregue?
@@ -144,18 +145,18 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 - **Mínimo:** histograma (contagem) sempre; percentual e P85 por faixa com ≥ 20.
 - **Fonte/dado:** BusinessMap · **extração nova**: número de **trocas de responsável** por card (`dim_card.passagens`, P:252), calculado na fronteira do coletor a partir das revisões (B:53). O coletor descarta as identidades e grava só o inteiro.
   - Mudança de equipe ou de quadro não conta.
-  - Em aberto `[D-5']`: se incluir um co-responsável sem saída de ninguém conta. A recomendação é não contar.
+  - Troca = alguém sai e outro entra, ou o conjunto de responsáveis é substituído. Incluir um co-responsável sem ninguém sair não conta (decisão do usuário, 2026-10-14). **A confirmar na integração:** que as revisões do BusinessMap trazem o campo de responsáveis.
 
 ### T10 Tempo de terceiros
 - **Pergunta:** O tempo de resposta contratado com cada fornecedor é o praticado?
 - **Painel/seção:** Tático · De quem depende o prazo?
-- **Visual:** tabela-gráfico, uma linha por fornecedor em **ordem alfabética**: bloqueios, dias úteis somados, P50 e P85 da duração (barra horizontal com marcas P50/P85) e, se houver, o prazo contratado como linha vertical rotulada e status "Dentro do contratado" / "Acima do contratado" com ícone + texto. Sem prazo cadastrado: "Prazo contratado não informado".
-- **Leitura:** "Os bloqueios por fornecedor somaram 52 dias úteis no período. Fornecedor Beta respondeu em até 6 dias úteis em 85% dos casos, acima dos 3 contratados."
+- **Visual:** tabela-gráfico, uma linha por fornecedor em **ordem alfabética**: bloqueios, dias úteis somados, P50 e P85 da duração (barra horizontal com marcas P50/P85) e, se houver, uma linha de rodapé "Prazo contratado não informado". Nesta fase não há coluna de prazo contratado nem status "dentro/acima do contratado" (decisão do usuário, 2026-10-14).
+- **Leitura:** "Os bloqueios por fornecedor somaram 52 dias úteis no período. Fornecedor Beta respondeu em até 6 dias úteis em 85% dos casos. Prazo contratado não informado."
 - **Leia junto:** BLOQUEADOS, O12 (atrasos de responsabilidade "Terceiro"), O19.
 - **Alerta:** nenhum nesta fase.
 - **Filtros:** Equipe, Tipo, Sistema, Período.
 - **Mínimo:** P50/P85 por fornecedor com ≥ 20 bloqueios encerrados, senão "— amostra insuficiente" na célula e só contagem e soma. Janela: para fornecedor o volume é baixo; o período padrão do cartão é o do painel, e a nota sugere "12 meses" quando faltar amostra.
-- **Fonte/dado:** BusinessMap · `fato_bloqueio` com o campo `fornecedor` preenchido, de qualquer motivo (R-5, resolvida por B:126, P:614; inclui "Aguardando licença ou contrato") · **já no modelo**. Status "dentro/acima do contratado": recomendação P85 contra o prazo `[R-7]`, só vale com D-10 = B. Prazo contratado por fornecedor: os documentos não dizem de onde vem (P:344, P:561). Recomendação: **configuração nova** `[D-10]`, versionada como critério (T2.6), cadastrada quando os contratos forem informados. Não usa S9 (Acelerato).
+- **Fonte/dado:** BusinessMap · `fato_bloqueio` com o campo `fornecedor` preenchido, de qualquer motivo (B:126, P:614; inclui "Aguardando licença ou contrato") · **já no modelo**. Prazo contratado: fora desta fase (decisão do usuário, 2026-10-14). Quando os contratos forem informados, entra como configuração versionada (T2.6), com comparação do P85 ao prazo, em nova entrega. Não usa S9 (Acelerato).
 
 ### T11 Sazonalidade da chegada
 - **Pergunta:** Quando a demanda chega, e o que se repete todo ano?
@@ -178,7 +179,7 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 - **Alerta:** nenhum. Nota: "Mede a clareza do pedido que chega, para combinar com a área o que um pedido precisa trazer. Não é nota da área."
 - **Filtros:** Equipe, Tipo, Sistema, Período.
 - **Mínimo:** percentual por área com ≥ 20 demandas; abaixo, só "k de n".
-- **Fonte/dado:** BusinessMap · `area_solicitante`, `fato_bloqueio` (motivo "Falta de informação no chamado"), `fato_transicao` (retorno) · **já no modelo**. Dimensão `area_solicitante` (B:123). Definição de "ida e volta" em aberto `[D-8]`; recomendação A.
+- **Fonte/dado:** BusinessMap · `area_solicitante`, `fato_bloqueio` (motivo "Falta de informação no chamado"), `fato_transicao` (retorno) · **já no modelo**. Dimensão `area_solicitante` (B:123). "Ida e volta" = bloqueio com motivo "Falta de informação no chamado" antes do início, ou retorno do card da coluna de compromisso para o backlog (decisão do usuário, 2026-10-14).
 
 ### T13 Dependências entre quadros
 - **Pergunta:** Quanto do prazo depende de trabalho que não é nosso?
@@ -191,11 +192,11 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 - **Mínimo:** percentual com ≥ 20 entregas; par com × sem só se cada grupo tiver ≥ 20 no tipo e na granularidade.
 - **Fonte/dado:** BusinessMap · **extração nova** de vínculos entre cards (`fato_vinculo`: card, card relacionado, tipo de vínculo, quadro do relacionado). Origem "Extração + vínculos" (P:348).
   - Pai/filho **não conta**: é hierarquia e cruza quadros por construção (B:41-42).
-  - Em aberto `[R-4]`: vínculo removido antes da entrega. Recomendação: conta se esteve vigente em algum momento antes da entrega.
-  - Em aberto `[D-14']`: quais tipos contam. A recomendação é só dependência (predecessor/sucessor) com card de outro quadro. Depende de o arquiteto confirmar os tipos de vínculo da API.
+  - Conta só o vínculo `predecessor` com card de outro quadro; "relacionado" e pai/filho ficam fora (decisão do usuário, 2026-10-14).
+  - Vínculo removido antes da entrega conta, se esteve vigente em algum momento antes da entrega (decisão do usuário, 2026-10-14). **A confirmar na integração:** que a API registra a mudança de vínculo nas revisões; sem isso, só vale o vínculo vigente na coleta.
 
 ### T14 Participação do meu time no projeto
-Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078). Motivação: "quanto deste projeto não é do meu time", porque o time é cobrado por entregas de projetos em que atua pouco.
+Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078); entra na fase 3 (coleta nova). Motivação: "quanto deste projeto não é do meu time", porque o time é cobrado por entregas de projetos em que atua pouco.
 - **Pergunta:** Quanto deste projeto não é do meu time?
 - **Painel/seção:** Tático · De quem depende o prazo? (com T13). Cabe melhor aqui que em "O que entra, e quando?" porque, como o T13, mede o quanto do resultado de um projeto está em mãos que não são do time; "De quem depende" é a pergunta do painel.
 - **Visual:** uma linha por projeto em andamento, ordenada pelo **total de demandas do projeto** (volume, nunca pela participação). Barra 100% em três partes com cor + hachura: "Meu time", "Outros times (somados)" e "Sem time informado". Rótulo escrito "k de n (p%) meu time". Destaque acima: "61 de 173 demandas com time informado (35%) são do meu time". Selo: "Só mostra meu time e os outros somados. Não compara times."
@@ -203,14 +204,15 @@ Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078). Motivação: "quanto d
   - Regra da frase: o destaque é o total do recorte; o exemplo cita o projeto de menor participação do meu time **só em texto**, nunca em ordenação. Se nenhum projeto publica percentual, a frase omite o exemplo.
 - **Leia junto:** T13 (dependências entre quadros), T9 (avanço real e escopo).
 - **Alerta:** nenhum. Sem meta numérica; não existe "participação mínima esperada". Nota fixa: "Mostra a parte do projeto que é do meu time, para entender a cobrança por entregas em que atuo pouco. Não é nota do time nem comparação."
-- **Filtros:** Equipe (**obrigatório**: define "meu time"; com "Todas" o cartão não calcula, ver `[D-16]`), Sistema. **Não afetado por: Período** (retrato dos projetos em andamento, como E9). Sem filtro nem abertura por outro time, por pessoa ou por responsável.
+- **Filtros:** Equipe (**obrigatório**: define "meu time"; com "Todas" ou várias o cartão não calcula), Sistema, Período. O Período escolhe quais projetos entram (projetos em andamento em algum momento do período); a contagem é sempre do projeto inteiro. Sem filtro nem abertura por outro time, por pessoa ou por responsável.
 - **Mínimo:** percentual (por projeto e total) só com n ≥ 20 demandas **com time informado**; abaixo, "k de n" e "percentual não publicado (menos de 20)", mas a barra aparece (contagem é censo). O total geral segue a mesma regra.
-- **Fonte/dado:** BusinessMap · demandas (story) agrupadas ao projeto pela hierarquia projeto > frente > demanda (B:41-42) e **campo "time responsável" do card** (nome genérico; o campo exato é confirmado pelo arquiteto) · **extração nova** (`dim_card.time_responsavel` e vínculo da demanda ao projeto, ver necessidades de dados).
-  - **Granularidade única `[D-15]`:** o item contado é a demanda entregável (story), a mesma unidade de D-2 (B:110); o projeto é só o agrupador. Frente e projeto nunca entram na contagem, nem em seletor. Hipótese: o campo de time responsável está preenchido nas stories; frente e projeto ficam fora porque sua "responsabilidade" é do coordenador e do gerente, e não de um time.
-  - **Escopo `[D-15]`:** projetos em andamento (iniciados e não concluídos); demandas não descartadas, em qualquer estado (o "quanto do projeto" é do escopo todo, não só do entregue). Provisório até o usuário confirmar.
-  - **"Meu time" `[D-16]`:** a equipe escolhida no filtro. Com "Todas" (vazio) ou mais de uma equipe, o cartão mostra "Escolha uma equipe para ver a participação do meu time." e não calcula. Provisório.
-  - **Sem time responsável `[D-17]`:** a demanda sem o campo preenchido não é nem "meu" nem "outros": fica em "Sem time informado", fora do denominador do percentual, e a contagem é visível como aviso de dado. Provisório.
-  - "Outros times" é soma única; o sistema nunca lista, nomeia nem ordena times, nem na tabela alternativa nem na exportação. A leitura por quem muda o filtro de Equipe uma a uma é do usuário, e a nota fixa de não comparação a acompanha.
+- **Fonte/dado:** BusinessMap · demandas (story) agrupadas ao projeto pela hierarquia projeto > frente > demanda (B:41-42) e **campo customizado "Time responsável" do card** (decisão do usuário, 2026-10-14) · **extração nova** (`dim_card.time_responsavel` e vínculo da demanda ao projeto, ver necessidades de dados).
+  - **A confirmar na integração:** nome exato do campo e cardinalidade (escolha única ou múltipla); se a hierarquia story > frente > projeto já coletada basta para ligar a demanda ao projeto. Até lá vale: se o card tiver vários times, conta como "meu time" quando o meu estiver entre eles (funciona nos dois casos).
+  - **Projetos que aparecem (decisão do usuário, 2026-10-14):** os ligados a um sistema do meu time (`ConfigBM.equipes[].sistemas`), inclusive com 0% de atuação, e também qualquer projeto com pelo menos 1 card do meu time.
+  - **Item contado (suposição do time):** demanda (story), a unidade de B:110, com seletor local para frente (uma granularidade por vez, nunca juntas, como no T13). Projeto é só o agrupador.
+  - **Escopo (suposição do time):** cards não descartados, em qualquer estado ("quanto do projeto" é do escopo todo). Vale o time do card na entrega ou, antes dela, o time atual.
+  - **Sem time responsável (suposição do time):** o card sem o campo preenchido entra no total de demandas do projeto como "Sem time informado", fora do denominador do percentual, com a contagem visível como aviso de dado.
+  - **"Outros times" (decisão do usuário, 2026-10-14):** soma única, publicada mesmo quando o projeto tem um único outro time; sempre sem nome, sem tempo, sem vazão e sem ranking. Participação de cards no projeto não é comparação de desempenho entre times (7.1). O sistema nunca lista, nomeia nem ordena times, nem na tabela alternativa nem na exportação.
   - Só BusinessMap: nenhuma parcela vem de chamados do Acelerato.
 
 ### E6 Datas do portfólio
@@ -231,8 +233,8 @@ Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078). Motivação: "quanto d
 - **Painel/seção:** Estratégico · O que custa manter o parque, e de quem depende?
 - **Visual:** barras horizontais 100% por sistema (ordem por participação), divididas por natureza (as 4 do T3: Sustentação, Evolução, Projetos e Dívida técnica, pela mesma função do T3; R-3 resolvida por B:369) com cor + hachura; rótulo "% das entregas · n itens".
   - A métrica é de custo (P:402: "Quanto custa manter cada sistema", origem "Extração + custo de capacidade").
-  - Enquanto o custo de capacidade, dado externo (P:561), não for informado, o cartão mostra só participação e contagem. Este é o estado provisório que corresponde à resposta A do usuário em D-1.
-  - Com o custo informado, entra a coluna "custo rateado" com o chip "Rateio do custo total do DSPD, não esforço medido". A base do custo e o "por demanda" estão em aberto `[D-1']`; a recomendação é o custo total do DSPD e o custo ÷ entregas do sistema.
+  - Custo de capacidade = custo total do DSPD no período, rateado pela participação por sistema (entregas). "Por demanda" = custo do sistema ÷ entregas do sistema (decisão do usuário, 2026-10-14). Colunas "custo rateado" e "custo por demanda" com o aviso "Rateio do custo total do DSPD, não esforço medido". Nunca por equipe nem por pessoa; horas apontadas não entram (7.1).
+  - Enquanto o custo total não for informado em configuração (dado externo, P:561), o cartão mostra só participação e contagem (CA-13).
 - **Leitura:** "O sistema Folha concentrou 22% das entregas do trimestre, 81% delas de sustentação."
 - **Leia junto:** T3 (alocação da capacidade), E2 (capacidade por objetivo).
 - **Alerta:** nenhum.
@@ -240,7 +242,7 @@ Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078). Motivação: "quanto d
 - **Mínimo:** percentual com ≥ 20 entregas no total; sistemas com menos de 20 entregas mostram "k de n" e ficam agrupados no fim.
 - **Fonte/dado:** BusinessMap · `sistema`, `tipo`, `concluido_em` (granularidade demanda, subtarefa fora) · **já no modelo**.
   - Peso = contagem de demandas entregues (D-2, resolvida por B:110 e P:629).
-  - Custo de capacidade: configuração externa versionada (T2.6) `[D-1']`.
+  - Custo total do DSPD: configuração externa versionada (T2.6), com valor, período e quem informa registrados.
   - **Nunca horas apontadas** (B:409). Chamados do Acelerato por sistema seguem só no S12; o cartão diz "Não inclui os chamados da sustentação (Acelerato), que estão no S12" com link.
 
 ### E8 Concentração de conhecimento
@@ -276,14 +278,14 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 | `dim_coluna` (papel, ordem) | O20, O21 | já no modelo |
 | `semMoverHaDiasUteis` (O2) | O23 | já calculado |
 | `criado_em`, `iniciado_em`, `classe_servico`, `equipe` | O24, T11, E9 | já no modelo |
-| `motivo_descarte`, `arquivado_em` | O25 | no modelo; domínio fechado do motivo pendente (WS1) |
-| `primeiro_toque_em` | O22 | **extração nova** (comentários, B:57; só o instante; `[D-9']` decide se revisões de coluna e atribuição também contam) |
-| `passagens` (inteiro por card) | O26 | **extração nova** a partir das revisões (trocas de responsável), calculada na fronteira; identidades descartadas |
-| `fato_vinculo` | T13 | **extração nova** (vínculos de dependência entre cards; pai/filho fora; tipos em `[D-14']`) |
-| `time_responsavel` (campo do card; nome genérico, arquiteto confirma o campo) e a ligação demanda > frente > projeto | T14 | **extração nova**; só o rótulo "meu time / outros / sem informação" sobe à API, nunca o nome de outro time |
+| estado `discarded`, `discarded_at`, exclusão; catálogo `/discardReasons` | O25 | no modelo o estado e o instante; instante da exclusão e catálogo de motivos **a confirmar na integração** (`porMotivo = null` até lá) |
+| `primeiro_toque_em` | O22 | **extração nova** (só comentário humano, B:57; só o instante) |
+| `passagens` (inteiro por card) | O26 | **extração nova** a partir das revisões (alguém sai e outro entra, ou conjunto substituído), calculada na fronteira; identidades descartadas; campo de responsáveis nas revisões **a confirmar na integração** |
+| `fato_vinculo` | T13 | **extração nova** (só `predecessor` com card de outro quadro, inclusive removido antes da entrega; pai/filho e relacionado fora); registro de mudança de vínculo nas revisões **a confirmar na integração** |
+| `time_responsavel` (campo customizado "Time responsável"; nome e cardinalidade **a confirmar na integração**), a ligação demanda > frente > projeto e `ConfigBM.equipes[].sistemas` | T14 | **extração nova**; só o rótulo "meu time / outros / sem informação" sobe à API, nunca o nome de outro time |
 | `data_acordada_original`, `replanejamentos` | E6 | **derivação nova** das revisões já coletadas (valor no compromisso e alterações posteriores) |
-| Prazo contratado por fornecedor | T10 | **configuração nova**, versionada (T2.6), quando os contratos forem informados `[D-10]` |
-| Custo de capacidade para rateio | E7 | **dado externo** (P:561), configuração versionada (T2.6); base em `[D-1']` |
+| Prazo contratado por fornecedor | T10 | fora desta fase; configuração versionada (T2.6) numa entrega futura, quando os contratos forem informados |
+| Custo total do DSPD para rateio | E7 | **dado externo** (P:561), configuração versionada (T2.6): valor, período, quem informa |
 | `agg_conhecimento_sistema` (pessoas distintas em `responsaveis` das entregas por sistema, 12 meses) | E8 | **agregado novo** no coletor; API nunca lê pessoa |
 | Histórico de 24 meses de `criado_em` | T11 | carga histórica (coletor e mock) |
 
@@ -293,19 +295,19 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 3. **Primeiro toque:** `primeiro_toque_em` para todos os cards com reação, distribuição assimétrica (maioria em menos de 1 dia útil, cauda até 15); 5 a 8 pedidos abertos sem toque; um tipo com menos de 20 para exercitar a amostra insuficiente.
 4. **Parados no WIP:** 20% a 30% do WIP com `semMover` acima de 5 dias úteis.
 5. **Ordem de chegada:** inícios fora de ordem em cerca de 25% dos casos da classe Padrão, dentro de mesma equipe e tipo. Cards das classes Urgente, Prazo fixo e Intangível existem no mock, mas ficam fora do cálculo, para exercitar o filtro de classe.
-6. **Descarte:** 6% a 10% dos encerrados com `motivo_descarte`, dois terços antes do início, um terço depois; motivos de um domínio fechado provisório (marcado como provisório, como `CAUSAS_RAIZ`).
+6. **Descarte:** 6% a 10% dos encerrados em estado `discarded`, dois terços antes do início, um terço depois, mais 1 card com motivo e sem descarte (para o aviso); sem motivos no mock (`porMotivo = null`) até a integração ler o catálogo.
 7. **Passagens:** `passagens` inteiro por card entregue, 0 a 6, correlacionado positivamente com o tempo de ciclo; nenhuma identidade no mock além do que já existe.
 8. **Sazonalidade:** 24 meses de `criado_em` com picos em janeiro e julho (ou o padrão que o usuário indicar na validação) e ruído; mês corrente parcial.
 9. **Áreas:** 6 a 8 áreas solicitantes, volumes desiguais; 10% a 25% de "ida e volta" por área; duas áreas com menos de 20 demandas.
 10. **Vínculos:** `fato_vinculo` em cerca de 35% das demandas e 50% das frentes, apontando para cards de quadros de outras equipes.
 11. **Projetos:** 11 a 14 projetos concluídos em 12 meses com `data_acordada`, data original e 0 a 3 replanejamentos (menos de 20, para exercitar a variante `lenta`); 6 a 8 projetos aprovados não iniciados, um acima de 180 dias úteis.
 12. **Sistemas:** 18 a 20 sistemas com entregas, natureza por tipo; `agg_conhecimento_sistema` com 4 sistemas em 1 pessoa, 6 em 2, o resto em 3 ou mais. O mock gera o agregado diretamente, sem pessoas.
-14. **T14:** 5 projetos em andamento (um com menos de 20 demandas), 12 a 62 demandas cada, três times fictícios por projeto no mínimo (nunca exibidos), participação do meu time de 12% a 66%, 1 a 2 demandas por projeto sem time responsável.
-13. **Configuração:** prazo contratado para 2 dos 4 fornecedores (para exercitar "não informado").
+14. **T14:** 6 projetos em andamento (dois com menos de 20 demandas, um deles ligado a um sistema do meu time com 0% de atuação), 12 a 62 demandas cada, três times fictícios por projeto no mínimo (nunca exibidos), participação do meu time de 12% a 66%, 1 a 2 demandas por projeto sem time responsável.
+13. **Configuração:** nenhum prazo contratado (T10 mostra "Prazo contratado não informado"); custo total do DSPD fictício para exercitar a variante com R$ do E7, e ausente para o estado só em %.
 
 ## 9. Microcopy comum
 - Seções: "Onde o trabalho acumula?", "Onde se perde esforço?", "O que entra, e quando?", "De quem depende o prazo?", "O que custa manter o parque, e de quem depende?".
-- Selos: "Conta trocas, nunca quem." (O26) · "Mede risco de continuidade do parque. Não mostra nem avalia pessoas." (E8) · "Rateio do custo total do DSPD, não esforço medido." (E7, só com custo de capacidade informado; texto final depende de `[D-1']`).
+- Selos: "Conta trocas, nunca quem." (O26) · "Mede risco de continuidade do parque. Não mostra nem avalia pessoas." (E8) · "Rateio do custo total do DSPD, não esforço medido." (E7, com o custo total informado).
 - Célula sem amostra: "— amostra insuficiente".
 - Rodapé: "Fonte: BusinessMap" · "Granularidade: demanda | frente | projeto | sistema" · "Sem meta numérica".
 
@@ -322,7 +324,16 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 - `CA-10` QUANDO o recorte de E8 tem menos de 5 sistemas O SISTEMA DEVE exibir "Recorte pequeno demais para mostrar a concentração sem identificar pessoas." e ocultar as faixas.
 - `CA-11` O SISTEMA DEVE ordenar T10 por nome do fornecedor, T12 por volume de demandas e E7 por participação, sem destaque de "pior" ou "melhor".
 - `CA-12` QUANDO a pessoa abre T11 O SISTEMA DEVE exibir o chip "Não afetado por: Período" e a janela fixa de 24 meses mais o mês corrente listrado.
-- `CA-13` ENQUANTO E7 não tiver custo de capacidade configurado O SISTEMA DEVE exibir só participação percentual e contagem, sem valores em R$.
+- `CA-13` ENQUANTO E7 não tiver custo total do DSPD configurado O SISTEMA DEVE exibir só participação percentual e contagem, sem valores em R$.
+- `CA-35` QUANDO o custo total do DSPD está configurado O SISTEMA DEVE exibir no E7 o custo rateado por sistema (custo total × participação nas entregas), o custo por demanda (custo do sistema ÷ entregas do sistema) e o aviso "Rateio do custo total do DSPD, não esforço medido.", sem custo por equipe nem por pessoa.
+- `CA-36` O SISTEMA DEVE exibir no T10 a linha "Prazo contratado não informado" e não exibir coluna de prazo contratado nem status "dentro/acima do contratado".
+- `CA-37` O SISTEMA DEVE calcular no O24 a espera do ultrapassado como os dias úteis entre o início do primeiro item que passou na frente e o início dele próprio, na fila da mesma equipe, e exibi-la como "esperaram, depois de ultrapassados, X dias úteis até começar".
+- `CA-38` O SISTEMA DEVE contar como passagem no O26 só a troca em que alguém sai e outro entra ou o conjunto de responsáveis é substituído, e não contar a inclusão de co-responsável sem saída.
+- `CA-39` O SISTEMA DEVE contar como "ida e volta" no T12 o bloqueio com motivo "Falta de informação no chamado" antes do início ou o retorno do card da coluna de compromisso ao backlog.
+- `CA-40` O SISTEMA DEVE contar no T13 só o vínculo `predecessor` com card de outro quadro, inclusive o removido antes da entrega que esteve vigente antes dela.
+- `CA-41` O SISTEMA DEVE listar no T14 os projetos ligados a um sistema do meu time, mesmo com 0% de atuação, e os projetos com pelo menos 1 card do meu time.
+- `CA-42` O SISTEMA DEVE exibir "Outros times" no T14 mesmo quando o projeto tem um único outro time, sem nome, tempo, vazão nem ranking.
+- `CA-43` O SISTEMA DEVE considerar o primeiro toque do O22 só como o primeiro comentário humano posterior à criação do card.
 - `CA-14` O SISTEMA DEVE não incluir nenhum dos 17 cartões na faixa "Pede atenção".
 - `CA-15` QUANDO a pessoa abre a página "Métricas" O SISTEMA DEVE listar "Retrabalho e reincidência" com status "Coberta por outras métricas" e links para O13, T5, O21, S8 e S12, sem cartão próprio.
 - `CA-16` O SISTEMA DEVE exibir em cada um dos 17 cartões "Como ler e como é calculado", "Ver como tabela" com os mesmos números do gráfico e o selo "Dados fictícios" enquanto o status for `mock`.
@@ -336,11 +347,12 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 - `CA-24` O SISTEMA DEVE incluir no T10 todo bloqueio encerrado com fornecedor informado, qualquer que seja o motivo, e excluir o bloqueio sem fornecedor.
 - `CA-25` QUANDO o recorte de E8 tem 4 sistemas ou menos O SISTEMA DEVE não exibir a lista dos sistemas da faixa "1 pessoa" (complementa CA-10 e CA-18).
 - `CA-27` QUANDO a pessoa abre o T14 com uma equipe no filtro O SISTEMA DEVE exibir, para cada projeto em andamento, a contagem de demandas do meu time, de outros times (somados) e sem time informado, em barra com cor e hachura e rótulo "k de n".
-- `CA-28` SE o filtro de Equipe está em "Todas" ou tem mais de uma equipe ENTÃO O SISTEMA DEVE exibir "Escolha uma equipe para ver a participação do meu time." no T14 e não calcular nenhum valor `[D-16]`.
+- `CA-28` SE o filtro de Equipe está em "Todas" ou tem mais de uma equipe ENTÃO O SISTEMA DEVE exibir "Escolha uma equipe para ver a participação do meu time." no T14 e não calcular nenhum valor.
 - `CA-29` O SISTEMA DEVE não listar, nomear, filtrar nem ordenar nenhum outro time no T14, na tabela alternativa e na exportação; "outros times" é uma única soma.
 - `CA-30` O SISTEMA DEVE ordenar os projetos do T14 pelo total de demandas do projeto, do maior para o menor, e não pela participação do meu time.
 - `CA-31` SE o projeto (ou o total) tem menos de 20 demandas com time informado ENTÃO O SISTEMA DEVE exibir "k de n" e "percentual não publicado (menos de 20)" no T14, sem o percentual.
-- `CA-32` O SISTEMA DEVE contar no T14 só demandas (story), agrupadas ao projeto, sem contar frente nem projeto e sem seletor de granularidade `[D-15]`.
-- `CA-33` O SISTEMA DEVE excluir do denominador do percentual do T14 as demandas sem time responsável e exibir a contagem delas em "Sem time informado" `[D-17]`.
-- `CA-34` O SISTEMA DEVE exibir no T14 o chip "Não afetado por: Período" e o selo "Só mostra meu time e os outros somados. Não compara times.".
-- `CA-26` O SISTEMA DEVE contar como descartados no O25 os cards arquivados e excluídos que tenham motivo de descarte, e listar à parte, fora da taxa, o card com motivo e sem arquivamento nem exclusão `[R-2']`.
+- `CA-32` O SISTEMA DEVE contar no T14, por padrão, demandas (story) agrupadas ao projeto e oferecer a troca para frentes exibindo uma granularidade por vez, sem nunca contar projeto.
+- `CA-33` O SISTEMA DEVE incluir no total de demandas do T14 as demandas sem time responsável, excluí-las do denominador do percentual e exibir a contagem delas em "Sem time informado".
+- `CA-34` O SISTEMA DEVE exibir no T14 o selo "Só mostra meu time e os outros somados. Não compara times." e aplicar o filtro de Período à escolha dos projetos, contando sempre o projeto inteiro.
+- `CA-26` O SISTEMA DEVE contar como descartados no O25 os cards com estado nativo `discarded` e os excluídos, usando `discarded_at` (no excluído, o instante da exclusão ou, sem ele, a última revisão, marcada como aproximada), e listar à parte, fora da taxa, o card com motivo de descarte sem estar descartado nem excluído.
+- `CA-44` ENQUANTO a integração não ler o catálogo de motivos de descarte do BusinessMap O SISTEMA DEVE exibir no O25 só a taxa e o tempo consumido, sem divisão por motivo, e nunca usar o comentário do descarte.
