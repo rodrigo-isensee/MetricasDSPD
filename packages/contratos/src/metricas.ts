@@ -2,7 +2,7 @@ import type { z } from 'zod'
 import type { FonteMetrica, MetricaId } from './comum'
 import type { FiltrosFluxo, FiltrosSustentacao } from './filtros'
 import type * as s from './schemas'
-import type { ResultadoO19, ResultadoT10, ResultadoT12 } from './tambem'
+import type { ResultadoO19, ResultadoT10, ResultadoT12, ResultadoE7, ResultadoE9 } from './tambem'
 
 export type ResultadoO1 = z.infer<typeof s.resultadoO1>
 export type ResultadoBloqueados = z.infer<typeof s.resultadoBloqueados>
@@ -100,6 +100,8 @@ export interface ContratoMetricas {
   E3: Fluxo<ResultadoE3>
   E4: Fluxo<ResultadoE4>
   E5: Fluxo<ResultadoE5>
+  E7: Fluxo<ResultadoE7>
+  E9: Fluxo<ResultadoE9>
   S1: Sust<ResultadoS1>
   S2: Sust<ResultadoS2>
   S3: Sust<ResultadoS3>
@@ -197,6 +199,9 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   T12: ['equipe', 'tipo', 'sistema', 'periodo'],
   E4: ['sistema', 'periodo'],
   E5: ['sistema', 'periodo'],
+  E7: ['sistema', 'periodo'],
+  // E9 é retrato do dia: o período é aceito e ignorado ("Não afetado por: Período"), como nas demais métricas de retrato.
+  E9: ['sistema', 'periodo'],
   // EI-FL1 e EI-FL3: o tipo é a dimensão (abas, um por vez), não filtro. EI-FL2 não usa tipo (tipos são de story); EI-FL3 tem o tipo de projeto como dimensão (abas).
   EI_FL1: ['equipe', 'sistema', 'periodo'],
   EI_FL2: ['equipe', 'sistema', 'periodo'],

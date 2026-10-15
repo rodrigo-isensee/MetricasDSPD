@@ -65,6 +65,22 @@ describe('GET /api/v1/metricas/:id', () => {
     expect((await get(app, '/api/v1/metricas/T12?periodo=abc')).statusCode).toBe(400);
   });
 
+  it('E7 e E9 (pedido 011, B5): 200 no schema, E7 sem R$ e com 4 naturezas, E9 com faixas fixas e sem pessoa', async () => {
+    const { app } = await montar();
+    const e7 = await get(app, '/api/v1/metricas/E7?periodo=12m');
+    expect(e7.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.E7.safeParse(e7.json()).success).toBe(true);
+    expect(e7.json().custoConfigurado).toBe(false);
+    expect(JSON.stringify(e7.json())).not.toMatch(/"custo(Rateado|PorDemanda)":[0-9]/);
+    expect((e7.json().sistemas as { porNatureza: unknown[] }[])[0]?.porNatureza).toHaveLength(4);
+    expect((await get(app, '/api/v1/metricas/E7?periodo=abc')).statusCode).toBe(400);
+    const e9 = await get(app, '/api/v1/metricas/E9');
+    expect(e9.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.E9.safeParse(e9.json()).success).toBe(true);
+    const faixas = new Set(['0–30', '31–90', '91–180', 'mais de 180']);
+    for (const p of e9.json().projetos as { faixa: string }[]) expect(faixas.has(p.faixa)).toBe(true);
+  });
+
   it('O19 e T10 (pedido 011): 200 no schema, filtros do fluxo, motivos na ordem do domínio, fornecedor alfabético e sem prazo', async () => {
     const { app } = await montar();
     const o19 = await get(app, '/api/v1/metricas/O19?periodo=12m');

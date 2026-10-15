@@ -154,6 +154,8 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.VISAO_GERAL`); a fotografia versio
                     "E3",
                     "E4",
                     "E5",
+                    "E7",
+                    "E9",
                     "S1",
                     "S2",
                     "S3",

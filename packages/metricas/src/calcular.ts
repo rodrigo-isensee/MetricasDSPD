@@ -58,6 +58,8 @@ const CALCULOS: {
   E3: (f, c) => BM.calcularE3(c.bm, f),
   E4: (f, c) => BM.calcularE4(c.bm, f, c.ext?.bm),
   E5: (f, c) => BM.calcularE5(c.bm, f),
+  E7: (f, c) => BM.calcularE7(c.bm, f),
+  E9: (f, c) => BM.calcularE9(c.bm, f),
   EI_FL1: (f, c) => BM.calcularEIBM(c.bm, f, 'FL1'),
   EI_FL2: (f, c) => BM.calcularEIBM(c.bm, f, 'FL2'),
   EI_FL3: (f, c) => BM.calcularEIBM(c.bm, f, 'FL3'),

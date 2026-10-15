@@ -21,6 +21,19 @@ import type { ContextoBM } from './indice'
 /** Tipos de projeto (decisão Q4): cada um tem a própria estatística. */
 const TIPOS_PROJETO = ['Iniciativa', 'Melhoria'] as const
 
+/** Projeto concluído com os tempos em dias úteis (criação → início = "antes do início"). Fonte única do E1 e da referência do E9. */
+export function concluidosDeProjeto(ctx: ContextoBM, f: FiltrosFluxo) {
+  return selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true })
+    .filter((m) => m.entrega !== null && m.inicio !== null)
+    .map((m) => {
+      const entrega = m.entrega as number
+      const inicio = m.inicio as number
+      const total = du(ctx, horasUteisEntre(m.entrada, entrega, ctx.cal))
+      const antes = du(ctx, horasUteisEntre(m.entrada, inicio, ctx.cal))
+      return { m, entrega, total, antes, exec: Math.max(0, total - antes) }
+    })
+}
+
 /**
  * E1: lead time de projetos (criação do card aprovado → entrega), antes e depois do início.
  * Segmentado por tipo de projeto (4.2): Iniciativa e Melhoria nunca entram na mesma mediana.
@@ -28,16 +41,7 @@ const TIPOS_PROJETO = ['Iniciativa', 'Melhoria'] as const
 export function calcularE1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoE1 {
   const periodo = periodoDe(ctx, f)
   const janela = janelaPercentis(ctx, f, 'projeto')
-  const concl = selecionar(ctx, f, 'projeto', { semEquipe: true, semTipo: true }).filter(
-    (m) => m.entrega !== null && m.inicio !== null,
-  )
-  const todos = concl.map((m) => {
-    const entrega = m.entrega as number
-    const inicio = m.inicio as number
-    const total = du(ctx, horasUteisEntre(m.entrada, entrega, ctx.cal))
-    const antes = du(ctx, horasUteisEntre(m.entrada, inicio, ctx.cal))
-    return { m, entrega, total, antes, exec: Math.max(0, total - antes) }
-  })
+  const todos = concluidosDeProjeto(ctx, f)
   const ant = janelaDeslocada(janela, 12)
   const am = (vs: readonly number[]) => amostraBM('projeto', vs, janela)
   const segmentos = TIPOS_PROJETO.map((tipo) => {

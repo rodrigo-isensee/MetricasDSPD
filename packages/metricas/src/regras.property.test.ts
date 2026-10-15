@@ -103,6 +103,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
       O19: 'primeira chave é motivo do bloqueio, que vive no fato_bloqueio (um card tem vários motivos): isolar por card não isola o motivo; pctDoTotal é participação no total, por definição',
       T10: 'primeira chave é fornecedor, que vive no fato_bloqueio (um card pode ter bloqueios de mais de um fornecedor): isolar por card não isola o fornecedor',
       T12: 'primeira chave é a área solicitante (campo do card, sem classificador de item no harness); o isolamento da área e a ordem por volume são provados em t12.test.ts (R5, CA-11), e a taxa por área vem do mesmo conjunto de demandas',
+      E7: 'primeira chave é o sistema (campo do card, sem classificador de item no harness) e a participação é fração do total, por definição; o isolamento por sistema e a natureza pelo T3 são provados em e7.test.ts e e7.natureza.test.ts (CA-23)',
       O17: 'primeira chave é causa raiz, que vive na extensão (mapa por chamado), sem classificador de item no modelo do núcleo',
       E4: 'série trimestral de contagem de projetos; o tipo de projeto não é rótulo de nó no resultado',
       S8: 'a prioridade atua só como filtro; o resultado é série mensal sem nó por prioridade',
@@ -121,6 +122,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
     aplica: (_id, r) => r.minimo === 20 && r.dominio !== 'pesquisa',
     excecoes: {
       E1: 'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer; coberto em businessmap.test.ts',
+      E9: 'nível de projeto: o mock não publica 20 projetos concluídos na janela de 12 semanas, então não há nó ok para varrer; a fronteira 19/20 da referência P85 é provada em e9.test.ts',
       EI_FL3:
         'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer',
     },
