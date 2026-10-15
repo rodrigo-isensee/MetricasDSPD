@@ -382,6 +382,10 @@ Coincide com a D-12 A, refinada pelo que já está no modelo e no mock.
 4. **Na coleta real:**
    - migrações para `dim_card` (`primeiro_toque_em`, `passagens`, `data_acordada_original`, `replanejamentos`), `stg_comentario_instante`, `stg_vinculo_relacao`, `fato_vinculo`, `agg_conhecimento_sistema`, `ref_prazo_fornecedor`, `ref_conta_automacao` e, só com D-1 = B, `ref_custo_area`;
    - `gerarGrants` atualizado;
+   - **pré-condição da migração que cria `agg_conhecimento_sistema` e `ref_conta_automacao` (K-085, B-K1 a B-K3):**
+     - manter exatamente esses nomes e o schema `dspd_bm`: a exclusão da API é por nome (`TABELAS_FORA_DA_API`, `COLUNAS_FORA_DA_API`), e outro nome ou schema abriria acesso em silêncio;
+     - citar o K-085 no cartão e no PR;
+     - rodar a guarda (`guarda-api.pg.test.ts`) no mesmo PR: tabela ou coluna nova sem classificação derruba o teste; `ref_conta_automacao` entra como "fora da API" e `agg_conhecimento_sistema` como "na API", sem `responsaveis` e sem coluna que case com o regex de pessoa;
    - revisão de modelagem (arquiteto + tech-lead) por tocar `lgpd.ts`/§9.
 
 Divisão:
