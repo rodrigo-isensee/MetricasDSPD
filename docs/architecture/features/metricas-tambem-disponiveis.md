@@ -94,7 +94,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - Faixa = `PapelColuna`, quando o filtro é "Todas".
   - A frase de leitura usa o maior crescimento absoluto nas faixas de fila (`tipo_coluna = 'fila'`).
   - As mudanças de critério do período vêm de `core/criterios`.
-- **Contrato:** `{ agrupamento: 'coluna' | 'papel', faixas: [{ chave, rotulo, ordem, tipoColuna }], dias: [{ dia, contagens: number[] }], destaque: { faixa, de, para } | null, mudancasCriterio }`.
+- **Contrato:** `{ agrupamento: 'coluna' | 'papel', faixas: [{ chave, rotulo, ordem, tipoColuna }], dias: [{ dia, contagens: number[] }], destaque: { faixa, de, para } | null, mudancasCriterio }` (sem mudança no B9; `destaque.faixa` é a `chave`; só há faixa para item em progresso, a varredura do B8; ver `docs/api/metricas.md`).
 - **Mock:** a base já tem a história. Para a faixa que cresce nas últimas 4 semanas, o mock **não** altera a base. Se a base não mostrar crescimento, a frase cai em "Nenhuma etapa acumulou", que é um estado válido.
 - **Mínimo:** contagem diária (censo), sem estatística. Sem transição no período, o estado é vazio.
 

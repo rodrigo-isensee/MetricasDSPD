@@ -9,6 +9,7 @@ import type {
   ResultadoE7,
   ResultadoE9,
   ResultadoO25,
+  ResultadoO20,
   ResultadoO21,
 } from './tambem'
 
@@ -92,6 +93,7 @@ export interface ContratoMetricas {
   O16: Fluxo<ResultadoO16>
   O17: Sust<ResultadoO17>
   O19: Fluxo<ResultadoO19>
+  O20: Fluxo<ResultadoO20>
   O21: Fluxo<ResultadoO21>
   O25: Fluxo<ResultadoO25>
   T1: Fluxo<ResultadoT1>
@@ -203,6 +205,7 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   O14: ['equipe', 'sistema', 'periodo'],
   O16: ['equipe', 'sistema', 'periodo'],
   O19: ['equipe', 'tipo', 'sistema', 'periodo'],
+  O20: ['equipe', 'tipo', 'sistema', 'periodo'],
   O21: ['equipe', 'tipo', 'sistema', 'periodo'],
   O25: ['equipe', 'tipo', 'sistema', 'periodo'],
   T6: ['equipe', 'sistema', 'periodo'],

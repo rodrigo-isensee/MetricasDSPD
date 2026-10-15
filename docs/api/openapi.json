@@ -1085,6 +1085,7 @@
                                 "O16",
                                 "O17",
                                 "O19",
+                                "O20",
                                 "O21",
                                 "O25",
                                 "T1",
@@ -1162,6 +1163,7 @@
                           "O16",
                           "O17",
                           "O19",
+                          "O20",
                           "O21",
                           "O25",
                           "T1",
@@ -1598,6 +1600,7 @@
                             "O16",
                             "O17",
                             "O19",
+                            "O20",
                             "O21",
                             "O25",
                             "T1",
@@ -14261,6 +14264,506 @@
                     "motivos",
                     "abertosForaDaSoma",
                     "totalDiasUteis"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metricas/O20": {
+      "get": {
+        "summary": "Métrica O20",
+        "tags": [
+          "metricas"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tipo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sistema",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "12s",
+              "type": "string",
+              "enum": [
+                "4s",
+                "12s",
+                "6m",
+                "12m",
+                "custom"
+              ]
+            },
+            "in": "query",
+            "name": "periodo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "de",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "ate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "dataReferencia",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "unidade": {
+                          "type": "string"
+                        },
+                        "janela": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                },
+                                "unidade": {
+                                  "type": "string",
+                                  "enum": [
+                                    "semanas",
+                                    "meses"
+                                  ]
+                                },
+                                "quantidade": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "complemento": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "unidade": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "unidade",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "criterios": {
+                      "type": "object",
+                      "properties": {
+                        "serie": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "janela": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "serie",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "agrupamento": {
+                      "type": "string",
+                      "enum": [
+                        "coluna",
+                        "papel"
+                      ]
+                    },
+                    "faixas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "chave": {
+                            "type": "string"
+                          },
+                          "rotulo": {
+                            "type": "string"
+                          },
+                          "ordem": {
+                            "type": "number"
+                          },
+                          "tipoColuna": {
+                            "type": "string",
+                            "enum": [
+                              "fila",
+                              "execucao"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "chave",
+                          "rotulo",
+                          "ordem",
+                          "tipoColuna"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "dias": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "dia": {
+                            "type": "string"
+                          },
+                          "contagens": {
+                            "type": "array",
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "required": [
+                          "dia",
+                          "contagens"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "destaque": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "faixa": {
+                              "type": "string"
+                            },
+                            "de": {
+                              "type": "number"
+                            },
+                            "para": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "faixa",
+                            "de",
+                            "para"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "mudancasCriterio": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "type": "string"
+                          },
+                          "descricao": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "data",
+                          "descricao"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "base",
+                    "criterios",
+                    "agrupamento",
+                    "faixas",
+                    "dias",
+                    "destaque",
+                    "mudancasCriterio"
                   ],
                   "additionalProperties": false
                 }
@@ -37785,6 +38288,7 @@
                                     "O16",
                                     "O17",
                                     "O19",
+                                    "O20",
                                     "O21",
                                     "O25",
                                     "T1",

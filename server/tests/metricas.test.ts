@@ -1,3 +1,4 @@
+import { gzipSync } from 'node:zlib';
 import { METRICA_IDS } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
@@ -63,6 +64,24 @@ describe('GET /api/v1/metricas/:id', () => {
     expect(Object.keys((r.json().areas as object[])[0] ?? {}).sort()).toEqual(['area', 'taxa']);
     expect((await get(app, '/api/v1/metricas/T12?periodo=12m&tipo=melhoria')).statusCode).toBe(200);
     expect((await get(app, '/api/v1/metricas/T12?periodo=abc')).statusCode).toBe(400);
+  });
+
+  it('O20 (pedido 011, B9): 200 no schema, papel em "Todas", coluna com uma equipe, payload gzip < 50 KB no período máximo e nenhum campo de pessoa ou de equipe', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/O20?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O20.safeParse(r.json()).success).toBe(true);
+    expect(r.json().agrupamento).toBe('papel');
+    for (const x of r.json().faixas as { chave: string }[])
+      expect(['backlog', 'compromisso', 'trabalho', 'homologacao', 'entrega']).toContain(x.chave);
+    expect(gzipSync(r.body).length / 1024).toBeLessThan(50);
+    expect(JSON.stringify(r.json())).not.toMatch(/responsave|usuario|"equipe"/);
+    const e = await get(app, '/api/v1/metricas/O20?periodo=12m&equipe=fluig');
+    expect(e.statusCode).toBe(200);
+    expect(e.json().agrupamento).toBe('coluna');
+    expect(SCHEMAS_RESULTADO.O20.safeParse(e.json()).success).toBe(true);
+    expect(gzipSync(e.body).length / 1024).toBeLessThan(50);
+    expect((await get(app, '/api/v1/metricas/O20?periodo=abc')).statusCode).toBe(400);
   });
 
   it('O21 (pedido 011, B7): 200 no schema, par por tipo, matriz por papel em "Todas" e nenhum campo de pessoa ou de equipe', async () => {
