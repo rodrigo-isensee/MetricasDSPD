@@ -67,3 +67,18 @@
   - **Para o usuário na volta, dados antigos:** o código anterior gravava o payload inteiro do BusinessMap. Qualquer `stg_card`, `stg_webhook_evento` ou `stg_revision` já coletada em dev ou homologação pode conter `discard_comment`, ids e texto livre. Nada foi apagado.
   - Decisão do usuário: fazer o levantamento e o expurgo nos ambientes em que o coletor rodou.
   - Falta o artigo de webhooks do BusinessMap para confirmar o formato do payload.
+- 2026-10-15 16:00 — Review do lote B2 a B10: 8 cartões aprovados; B3 e B5 com ajustes; 6 itens bloqueiam o QA. O node-backend corrige. Decisão do tech-lead: o B11a (mock da fase 1, com alvos por métrica) vem antes do front e do QA.
+  - **Para o usuário na volta, T10-janela:** os percentis do tempo de terceiros por fornecedor usam a janela móvel de 12 semanas da regra inviolável (A). A alternativa é uma exceção de 12 meses só para fornecedor (B), porque a nota da especificação sugere 12 meses. Vale A até a resposta. Recomendação: A, porque a regra é inviolável e a B exigiria mudar a regra.
+- 2026-10-15 16:20 — **Para o usuário na volta, O20-destaque:** o Backlog pode ser a faixa em destaque, ou seja, "a etapa que mais acumulou"? Opções:
+  - **(A)** o destaque considera só as filas a partir do compromisso; o Backlog continua desenhado, mas não é destacado. Recomendação do UX.
+  - **(B)** o Backlog entra no destaque, como o código faz hoje.
+  - **(C)** o Backlog entra, mas a frase também cita a maior fila depois do compromisso.
+  Vale B até a resposta. O alvo do mock no "Todas" depende dessa resposta.
+- 2026-10-16 — **O20-destaque = A** (usuário): o destaque considera só as filas a partir do compromisso. O Backlog continua desenhado como faixa, mas nunca é o destaque. Ajustar o cálculo, o CA (UX) e o alvo do mock `destaqueDoTodasAceito`.
+- 2026-10-16 — **T10-janela = A** (usuário): os percentis ficam na janela móvel de 12 semanas (regra inviolável), e a contagem segue o período. Já é o que está implementado.
+- 2026-10-16 — **O19-pct = B** (usuário): o percentual de cada causa é calculado sobre os **dias úteis bloqueados**. O mínimo de 20 continua valendo sobre o número de bloqueios da causa. A implementação atual (por bloqueios) precisa mudar: node-backend, junto com o ajuste do O20.
+- 2026-10-16 — **O25(b) = B** (usuário): card entregue e depois excluído **não** conta como descarte; continua como entrega na vazão e no ciclo. Ajuste no `descartado.ts`/O25 (node-backend), com teste.
+- 2026-10-16 — **Q-a = 1 passagem, Q-b = conta (1 passagem), Q-E7-1 = pró-rata por dias corridos**: o usuário confirmou as sugestões ("faça sua sugestão"). Deixam de ser provisórias.
+- 2026-10-16 — **R-1 = B** (usuário): o E8 mostra só a **contagem** de sistemas com 1 pessoa, sem nomear os sistemas. Na T14, "outros times" fica oculto quando somar menos de 2 pessoas (mostra só "meu time: k de n"). Ajustar spec (UX), contrato e cálculo (fase 2 do E8 e T14), e a ADR 0020 (architect).
+- 2026-10-16 — **R-2 = B** (usuário): a coluna `fato_transicao.usuario` é desativada (revê a decisão de 2026-10-10). Nenhuma métrica a lê. Ajuste: migração e data-model (node-backend e architect), ADR 0020.
+- 2026-10-16 — **Dados antigos = A** (usuário): o time levanta nos bancos local e de homologação local (contagem e chaves, sem ler conteúdo) se há payload antigo nas stg_. Se achar dado de pessoa, recria o ambiente. Dono: node-backend, com parecer do security-engineer.
