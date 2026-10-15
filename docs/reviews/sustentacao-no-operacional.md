@@ -3,13 +3,57 @@ tipo: review
 contrato: 1
 pedido: sustentacao-no-operacional
 branch: feature/sustentacao-no-operacional
-commit: d4ac4dd1ede89fa81481e67ef4853fdb3b58f5ec
+commit: 5adf9802c3b236424f1ddf51ad791172c139a097
 parecer: aprovado
 revisor: tech-lead
-data: 2026-10-14
+data: 2026-10-15
 ---
 
 # Code review: Sustentação dentro do Operacional (K-072 + K-073; back B1 a B3, front F1 a F8)
+
+## Volta 5 (delta 9ab5ece..5adf980)
+
+**Veredito: aprovado.** O item 1 da volta 4, que bloqueava, foi resolvido, e os itens 2 a 5, que eram recomendações, também. O código novo é pequeno e todo ele tem teste.
+
+Escopo: 140a60d (documentação técnica e ressalvas 2 a 5), bc31f7a (parecer do QA do delta, fora do escopo do código) e 5adf980 (limite do `perf-resumo-reservas` a 1280 px). São 9 arquivos, com 111 linhas a mais e 14 a menos. O código de produção está em 2 arquivos: `OperacionalPage.tsx` e `resumo/modelo.ts`.
+
+**Ferramentas (citadas):** rodei `flock /tmp/metricas-pesado.lock nice -n 19 pnpm run pronto; echo EXIT=$?` na raiz da worktree, em 5adf980, e o resultado foi **EXIT=0**. O Prettier e o ESLint passaram. A cobertura ficou em 100%. No web, 73 arquivos e 1.040 testes passaram. No server, 425 testes passaram e 64 foram pulados (12 arquivos `.pg`, que ficam com o job `banco` da CI). O `docs:check` deu ok (400 páginas, 53 métricas). O bundle ficou dentro do orçamento: F6 com 191,05 KB (< 200), F8 com 111,62, F11 com 132,64 e F9 com 9,84. O pronto não roda E2E nem Lighthouse, e essas medições ficaram com o QA (673 E2E verdes, Lighthouse com CLS de 0,0039 três vezes, medidos em 140a60d).
+
+| # (volta 4) | Situação |
+|---|---|
+| 1 `arquitetura-front.md:181` | **Resolvido** (140a60d). A linha não cita mais o `aria-pressed` e registra o D-05a. O novo item "Delta pós-QA e UX (K-073)" cobre `nivel`, as reservas medidas (com valores e larguras), o anúncio e o foco, e o `versao-nova`/`ErroVersaoMaisNova`. |
+| 2 h1 nulo | **Resolvido.** O código passou a usar `querySelector<HTMLElement>('h1')` com retorno antecipado, e o novo teste em `visoes.test.tsx` cobre o ramo sem h1. |
+| 3 reservas sem amarra | **Resolvido pela documentação e pelo guarda.** A origem das medidas está na doc técnica, e não em cada constante; aceito, porque a doc lista todos os números juntos. O caso `perf-resumo-reservas` mede o CLS a 1280 e a 375. Com 5adf980, o limite a 1280 px passou a 0,05: o QA mediu 0,092 no código antigo e 0,004 no atual. Assim o caso deixou de ser só um piso e passou a detectar a regressão. |
+| 4 "90%" à mão | **Resolvido.** O texto agora vem de `META_SLA_TEXTO`, derivado de `META_RAZAO_MIN`, no rótulo, na meta e na frase da série. |
+| 5 "0 de 0" | **Resolvido.** Com `n` nulo ou 0, a frase passa a ser "nenhuma prioridade avaliada", e o teste foi atualizado. A validação desse texto pela UX é feita na revisão de interface. |
+
+Observações (não bloqueiam):
+- `visoes.test.tsx:90` faz o `querySelector` de `Document.prototype` devolver `null` para **todo** seletor durante o clique. O teste passa porque o Testing Library usa `querySelectorAll`. Se o teste ficar frágil, a troca é restringir o mock ao seletor `'h1'` (`mockImplementation`).
+- O caso apertado em 5adf980 não foi rodado no commit final. Como o código de produção é o mesmo que o QA mediu em 140a60d (0,004 contra o limite de 0,05), o risco é baixo, e a próxima rodada do `test:perf` confirma.
+
+**Pendências fora do código (para o PR):**
+- **Parecer do QA.** O `forge-check pr sustentacao-no-operacional --base origin/develop` acusa duas coisas: (a) não há registro de que o papel `qa` gravou a versão atual de `docs/qa/sustentacao-no-operacional.md`, porque ela foi editada pelo Bash (K-077); (b) o `commit: 140a60d` do parecer ficou desatualizado, porque `e2e/perf/perf.spec.ts` mudou em 5adf980. O QA precisa regravar o parecer com o Write, já com o commit 5adf980. Isso não se corrige aqui.
+- **Aceite do usuário.** O `aceite_usuario: sim` do parecer do QA foi gravado pelo QA, e não pelo usuário. A branch só vai para o PR depois de o usuário aceitar abertos o SNO-001 (média, K-075) e o SNO-005 (baixa).
+
+## Volta 4 (delta pós-QA, 67624ba..9ab5ece)
+
+**Veredito: ajustes necessários** (`parecer: reprovado` no frontmatter, por um item de documentação). O código do delta está correto, e os testes cobrem cada correção. O bloqueio é o mesmo critério das voltas anteriores: a documentação técnica tem que acompanhar a entrega (práticas, seção 7, item 7, e seção 8, item 10).
+
+Escopo: 80d2fbf, 18d8327 e 032c470 (testes e parecer do QA), 8423b19 (SNO-002, SNO-004 e A6) e 9ab5ece (D-01 a D-03, D-05, D-06 e D-08). São 46 arquivos, com 1.546 linhas a mais e 115 a menos; o código de produção está em 22 arquivos de `web/src`. Contexto: o parecer do QA (`sustentacao-no-operacional.md` na pasta do QA, aprovado com ressalvas, testado em 67624ba) e a reconferência da UX (`06-revisao-implementada.md`, seção 7, aprovada; D-04 e SNO-001 vão para o K-075).
+
+**Ferramentas (citadas):** `flock /tmp/metricas-pesado.lock nice -n 19 pnpm run pronto` em 9ab5ece, **exit 0**. Cobertura de 100% em todos os pacotes: no web, 73 arquivos e 1.039 testes; F6 com 191,06 KB (< 200). No server, 12 arquivos `.pg` foram pulados por falta de banco na estação, e quem os roda é o job `banco` da CI. O pronto não roda E2E nem Lighthouse, e por isso o novo `sustentacao-no-operacional-qa.spec.ts`, os 12 specs adaptados (SNO-003) e o CLS de 0,004 do SNO-004 ficam para o QA do delta.
+
+| # | Arquivo:linha | Problema | Sugestão | Severidade |
+|---|---|---|---|---|
+| 1 | `docs/tecnica/arquitetura-front.md:181` | Ainda diz "Ver como tabela" (`aria-pressed`), que o D-05a removeu. A doc técnica também não registra o que o delta acrescentou: a prop `nivel` da `FaixaAtencao` (h3 dentro do bloco, D-01), a reserva de altura por largura (`BlocoResumo.reserva` mobile/desktop, `EsqueletoTendencia.series`, `FrescorFonte.reservarFalha`, SNO-004), o anúncio e o foco da visão resolvida (D-02, D-03) e o estado `versao-nova` das preferências (`ErroVersaoMaisNova`, A6). | Um commit `docs(tecnica)` do react-frontend que corrija a linha 181 e acrescente essas quatro linhas na seção do Resumo e das preferências. | bloqueia |
+| 2 | `web/src/features/operacional/OperacionalPage.tsx:140` | `document.querySelector('h1') as HTMLElement` é um cast sobre um valor que pode ser `null`. O comentário garante que o h1 existe, mas uma visão `lazy` que ainda não montou faria a página quebrar com `TypeError` dentro do efeito, em vez de só não mover o foco. | `const h1 = document.querySelector<HTMLElement>('h1'); if (!h1) return` (o ramo novo pede um teste para manter a cobertura de 100%), ou um `ref` passado ao molde da página. | recomendado |
+| 3 | `web/src/features/operacional/resumo/BlocoFluxo.tsx:95,138`, `FrescorFonte.tsx:29`, `NumeroChave.tsx:62` (o `TendenciaFluxo.tsx:18-29` já traz a origem no comentário) | As reservas são números medidos (448/192, 1890/950, 50 px, 98 px) e não estão amarrados a nada. Qualquer mudança de texto ou de espaçamento no Resumo faz o CLS voltar sem que nenhum teste unitário perceba. | Um comentário em cada constante com a origem da medida (largura, fonte e data), e um caso de CLS do Resumo no `e2e/perf` com o limite F2 (o Lighthouse foi quem pegou o SNO-004; o F2 do Playwright passava). | recomendado |
+| 4 | `web/src/features/operacional/resumo/modelo.ts:294` | O "90%" está escrito à mão na frase, e a meta existe em `META_RAZAO_MIN` (`packages/contratos/src/metas.ts:6`). Os rótulos vizinhos (linhas 145 e 149) já tinham o mesmo literal antes deste delta. | Derivar o texto de `META_RAZAO_MIN`, numa função de formatação, para a frase e os rótulos. Pode ser um cartão próprio, já que o literal antecede este delta. | recomendado |
+| 5 | `web/src/features/operacional/resumo/modelo.ts:294` e `modelo.test.ts:309-310` | Com `n` nulo, a frase sai "0 de 0 prioridades avaliadas estão abaixo de 90%", e o teste fixa esse texto. Ler "0 de 0" é estranho e diz menos do que o vazio. | Com `n` nulo ou 0: "Em julho: nenhuma prioridade avaliada." Validar o texto com a UX (D-08). | recomendado |
+
+Checklist (leitura): **escopo**: faz o que o QA (SNO-002, SNO-004, A6) e a UX (D-01 a D-03, D-05, D-06, D-08) pediram, sem extra; D-04 e SNO-001 foram para o K-075, por decisão registrada. **Regras invioláveis**: nenhuma afetada. O painel não calcula (`fraseDaSerieSla` só formata o ponto que já existe), BusinessMap e Acelerato seguem em blocos separados, e abaixo de 20 itens o valor continua não publicado (`CT-53` agora protege `S3.janela` no contrato). **Tipos**: `ErroVersaoMaisNova` é um erro de domínio tipado e o provedor distingue por `instanceof`; os casts de `CSSProperties` em variáveis CSS são o idioma do React. **Acessibilidade**: a região da `FaixaAtencao` passou a `aria-labelledby` do título visível; o nome do "Leia junto" começa pelo texto visível (2.5.3); o gráfico não é mais lido duas vezes; o carregamento não abre uma segunda região viva. **Testes**: um teste unitário por correção, cada um com o caso que falhava (h3 único por bloco, anúncio no Voltar e no hash, foco no h1, nome acessível por regex ancorada, alerta da A6). Os E2E novos afirmam mínimos nas varreduras (`>= 3` ids `compl-sust-*`, `>= 3` gráficos, texto `> 500`), e não há `waitForTimeout`, `.only` nem `.skip`. **Commits**: Conventional Commits com `Cartão:`. O 8423b19 e o 9ab5ece misturam correções de origens diferentes (QA e UX), mas cada um é coerente com uma única revisão.
+
+**Para aprovar:** o item 1. Os itens 2 a 5 podem entrar no mesmo commit de correção ou virar cartão, com registro no quadro. Depois disso vêm a volta 5, só sobre o delta, e o QA do delta: E2E completo, Lighthouse do Resumo para confirmar o SNO-004 e a reconferência do SNO-002.
 
 ## Volta 3 (3b5a382..d4ac4dd)
 
