@@ -1,7 +1,7 @@
 # Modelo de dados — base analítica (PostgreSQL)
 
 - Status: aprovado (revisão de modelagem K-014 r2; code review 002-K-017-r1); **traduzido para PostgreSQL em 2026-10-10** (ADR 0014 revisão 2) com as correções do §11 e a decisão do usuário sobre nomes nas tabelas analíticas (§9)
-- Propósito: modelo físico da base analítica (tabelas, chaves, privilégios, LGPD). Público: arquiteto, back-end, QA. Data: 2026-10-09 · Revisão: 2026-10-12 (ER do `dspd_core` em §5; caminho de `lgpd.ts`) · Decisões: **ADR 0014** (PostgreSQL, `pg` puro, node-pg-migrate, outbox, testes por schema), 0005 (SQL explícito), 0006 (contrato da coleta), 0013 (módulos, Acelerato via Metabase). A ADR 0004 (MySQL) está substituída.
+- Propósito: modelo físico da base analítica (tabelas, chaves, privilégios, LGPD). Público: arquiteto, back-end, QA. Data: 2026-10-09 · Revisão: 2026-10-14 (§9, garantia 6, alinhada ao código pela P-T6 do pedido 011; ADR 0020); 2026-10-12 (ER do `dspd_core` em §5; caminho de `lgpd.ts`) · Decisões: **ADR 0014** (PostgreSQL, `pg` puro, node-pg-migrate, outbox, testes por schema), 0005 (SQL explícito), 0006 (contrato da coleta), 0013 (módulos, Acelerato via Metabase). A ADR 0004 (MySQL) está substituída.
 - Origem do Acelerato: tabela no Metabase lida 1x/dia pela API (ADR 0013 §4).
 - Forma da camada analítica = tipos de `@metricas-dspd/metricas` (`BaseBM`, `BaseAC`); o mock gera exatamente essa forma (paridade, D15).
 - Colunas marcadas **(prov.)** são extensões ao modelo 4.5 do briefing, provisórias até T2.1 (de-para da API) e à resposta do usuário.
@@ -61,13 +61,13 @@ erDiagram
 ### 3.1 Staging
 | Tabela | Chave natural (restrição) | Campos além do padrão |
 |---|---|---|
-| `stg_card` | `uq_stg_card` (`id_origem`, `anterior_sk`) `NULLS NOT DISTINCT` | `payload jsonb`, `quadro_id`, `arquivado`, `excluido_detectado` |
-| `stg_revision` | (`card_id`, `revision_id`) (prov.: chave da revision no T2.1) | `payload jsonb` |
+| `stg_card` | `uq_stg_card` (`id_origem`, `anterior_sk`) `NULLS NOT DISTINCT` | `payload jsonb` (**só o registro da allow-list fechada**, ADR 0020 item 4a; nunca o objeto da API; sem responsáveis, `discard_comment` nem texto livre), `quadro_id`, `arquivado`, `excluido_detectado` |
+| `stg_revision` | (`card_id`, `revision_id`) (prov.: chave da revision no T2.1) | `payload jsonb` (**allow-list fechada**, ADR 0020 item 4c: `card_id`, `revision`, `created_at`, `replaced_at`, `board_id`, `column_id`, `lane_id`, `troca_responsavel boolean`, `linked_cards` e `custom_fields` reduzidos; **sem** `user_id`, `owner_user_id`, `co_owner_ids`, `subtasks`) |
 | `stg_vinculo` | (`pai_id`, `filho_id`, `anterior_sk`) `NULLS NOT DISTINCT` | `payload jsonb` |
 | `stg_custom_field` | (`id_origem`, `anterior_sk`) `NULLS NOT DISTINCT` | definição + valores |
 | `stg_coluna` | (`quadro_id`, `id_origem`, `anterior_sk`) `NULLS NOT DISTINCT` | estrutura do workflow |
 | `stg_bloqueio` | (`card_id`, `id_origem`, `anterior_sk`) `NULLS NOT DISTINCT` | `payload jsonb` |
-| `stg_webhook_evento` | (`payload_sha256`) | `webhook_sk` (PK, identidade), `recebido_em`, `payload jsonb`. Cada entrega é um evento; reentrega idêntica = mesma linha. **Sem `coleta_id`** (a entrega não pertence a uma coleta); o vínculo fica em `stg_webhook_processamento` |
+| `stg_webhook_evento` | (`payload_sha256`) | `webhook_sk` (PK, identidade), `recebido_em`, `payload jsonb` (**só a allow-list do receptor**, ADR 0020 item 4f: tipo, `card_id`, `board_id`, `workflow_id`, `column_id`, `lane_id` anterior e atual, instante; sem autor, texto nem `discard_comment`; o corpo bruto não é gravado, mas `payload_sha256` é calculado sobre ele). Cada entrega é um evento; reentrega idêntica = mesma linha. **Sem `coleta_id`** (a entrega não pertence a uma coleta); o vínculo fica em `stg_webhook_processamento` |
 | `stg_webhook_processamento` | (`webhook_sk`, `coleta_id`) | `resultado text CHECK IN ('processado','ignorado','erro')`, `erro`; uma linha por tentativa. Processado = existe linha `processado`; pendentes são reprocessados na coleta seguinte |
 | `stg_card_presenca` | (`varredura_id`, `id_origem`) | resultado da varredura semanal; card ausente → `evt_card` tipo `excluido_detectado` |
 
@@ -308,7 +308,7 @@ Papéis com `LOGIN`, criados pelo init do compose (senhas de `.env`), donos de n
 | `dspd_coletor` | `SELECT, INSERT` em `stg_`, `evt_`, `*_versao`, `fato_transicao`, `rec_`; `SELECT, INSERT, UPDATE, DELETE` em projeções; `SELECT, INSERT` em `ctl_` + `UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo)` em `ctl_coleta` e `UPDATE` em `ctl_coleta_contagem`; `SELECT` em `ref_` | `SELECT` em `ref_`; `outbox`: `SELECT, INSERT, DELETE` + `UPDATE (status, tentativas, disponivel_em, reservado_ate, processado_em, ultimo_erro)` |
 | `dspd_ref` (só `ref:sync`) | `SELECT, INSERT` em `ref_` + `UPDATE (vigente_ate)` | idem em `ref_` |
 | `dspd_webhook` | `INSERT` em `dspd_bm.stg_webhook_evento` (+ `SELECT (webhook_sk, payload_sha256)` para devolver o existente) | `INSERT` em `outbox` |
-| `dspd_api` | `SELECT` em projeções, `vw_`, `ref_`, `ctl_`, **por coluna nas tabelas com coluna de pessoa** (todas as colunas menos as de `COLUNAS_PESSOA`, §9); **sem acesso a `stg_`**, `evt_`, `*_versao` | `SELECT` em `ref_`, `pesq_` e `vw_pesq_vigente` (nenhuma tem coluna de pessoa); sem `outbox` nem `pgmigrations` |
+| `dspd_api` | `SELECT` em projeções, `vw_`, `ref_`, `ctl_`, **por coluna nas tabelas com coluna de pessoa** (todas as colunas menos as de `COLUNAS_PESSOA`, §9, e menos `agg_conhecimento_sistema.entregas`, em lista própria de colunas fora da API junto do `gerarGrants`, ADR 0020 item 5); **sem acesso a `stg_`** nem a `ref_conta_automacao` (ADR 0020 4g), `evt_`, `*_versao` | `SELECT` em `ref_`, `pesq_` e `vw_pesq_vigente` (nenhuma tem coluna de pessoa); sem `outbox` nem `pgmigrations` |
 | `dspd_automacao` | `dspd_ac`: `SELECT, INSERT` em `ctl_automacao` | `SELECT` em `ref_` (sem uso até a T4.3) |
 | `dspd_pesquisa` (só a carga da pesquisa, PV1) | nenhum acesso | `SELECT, INSERT` em `pesq_`; `SELECT` em `ref_pesq_` e `ref_versao_criterio*`; sem `UPDATE` nem `DELETE` |
 
@@ -322,9 +322,9 @@ O teste de grants (CI, job `db`) lê `information_schema.role_table_grants`/`col
 
 | Dado de pessoa | Onde fica | Quem lê |
 |---|---|---|
-| Responsáveis do card | staging (payload) + **`dim_card.responsaveis`**, **`dim_card_versao.responsaveis`** (`text[]`) | `dspd_coletor`, `dspd_migrador`; **nunca `dspd_api`** |
-| Usuário da transição | staging (revision, webhook) + **`fato_transicao.usuario`** | idem |
-| Autores de comentário, tempo apontado | só staging | idem; horas apontadas nunca viram esforço (7.1) |
+| Responsáveis do card | **só** `dim_card.responsaveis` e `dim_card_versao.responsaveis` (`text[]`); lidos da API em memória e entregues ao projetor na mesma execução, **nunca na staging** (ADR 0020 4b); a reconstrução da projeção preserva o valor gravado, e reconstruir o histórico exige reler a API | `dspd_coletor`, `dspd_migrador`; **nunca `dspd_api`** |
+| Usuário da transição | **`fato_transicao.usuario`**, **nulo** até a decisão **R-2** do usuário (opções (a) memória do coletor, (b) revogar a coluna, (c) exceção na staging; recomendação do arquiteto: (b); ADR 0020, "Decisão do usuário pendente"). Nenhum cartão a grava; não está na staging (revision, webhook) | idem |
+| Autores de comentário, tempo apontado | **nenhum** armazenamento: o autor é comparado em memória com `ref_conta_automacao` e descartado; `stg_comentario_instante` guarda só `(card_id, comentario_id, criado_em)` (ADR 0020 4e); tempo apontado não é coletado (`logged_times` fora da allow-list); horas apontadas nunca viram esforço (7.1) | — |
 | Solicitante, atendente/agente, e-mail (Acelerato) | só staging (o modelo 4.5 não os traz para o analítico; trazer exige nova decisão do usuário) | `dspd_coletor`, `dspd_migrador` |
 | Texto livre (título, justificativa de reclassificação) | título projetado (prov., L-2); justificativa só no staging (T5.5, pessoa autorizada); no analítico, apenas o booleano derivado `dim_chamado.justificativa_informada` ("campo não vazio"; o texto nunca é gravado) | — |
 | Identidade de quem acessa o painel | sessão | HMAC do `sub`, sem nome (ADR 0009) |
@@ -335,7 +335,7 @@ Garantias (cada uma verificada por teste ou privilégio):
 3. **Views:** todas `security_invoker` e com colunas explícitas; nenhuma `vw_` seleciona, agrupa ou ordena por coluna de pessoa (teste sobre `information_schema.view_column_usage`); `equipe` existe só como filtro, e nenhuma view agrupa por equipe para comparar times (7.1).
 4. **Contrato da API:** nenhuma rota, DTO ou schema zod tem campo de pessoa, nem como saída nem como filtro ou agrupamento; entrada `strict` recusa parâmetro desconhecido (ADR 0007); nenhum endpoint agrega por pessoa.
 5. **Telas:** nenhuma tela mostra, filtra ou ordena por pessoa (testes de UI e E2E).
-6. **Biblioteca:** `DimCard.responsaveis` e `FatoTransicao.usuario` continuam **fora** dos tipos de `@metricas-dspd/metricas` e do mock (nenhuma métrica os usa). O repositório da API não os seleciona; o projetor os grava a partir do staging.
+6. **Biblioteca:** `DimCard.responsaveis` e `FatoTransicao.usuario` **existem** nos tipos de `@metricas-dspd/metricas` (`businessmap/modelo.ts`) e o mock os preenche com pseudônimos, mas **nenhuma métrica os lê**. A proteção é na leitura e na saída, não na ausência do campo (decisão P-T6 do tech-lead, revisão de desenho do pedido 011, `docs/alinhamentos/2026-10-14-revisao-desenho-011.md`): (a) regra de lint que proíbe ler `responsaveis` e `usuario` em `packages/metricas/src/businessmap/*.ts`; (b) property test (`regras.property.test.ts`) que falha se qualquer string de pessoa do mock aparecer na saída de qualquer métrica. O repositório da API não seleciona essas colunas (e a garantia 2 impede, mesmo com bug); o projetor grava `responsaveis` a partir da memória do coletor (ADR 0020 4b), e `usuario` fica nulo até a R-2. Função que precise de identidade (contar trocas de responsável, contar responsáveis distintos) fica fora de `businessmap/`, na subpasta `coletor/` da biblioteca, não exportada pelo `index.ts` público e importável só pelo coletor (ADR 0020); o que ela devolve é inteiro ou faixa, sem pessoa.
 
 Uso permitido das colunas de pessoa: reconciliação e auditoria por pessoa autorizada, com o papel `dspd_coletor`/`dspd_migrador`, fora da API. Retenção a definir com o DPO (I-12).
 
