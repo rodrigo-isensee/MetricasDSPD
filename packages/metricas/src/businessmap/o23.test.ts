@@ -59,7 +59,7 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
     expect(VERSAO_CRITERIO_DESCARTE_NATIVO.afeta).toEqual(
       doBusinessMap.filter((id) => !NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO.includes(id)),
     )
-    expect(VERSAO_CRITERIO_DESCARTE_NATIVO.afeta).toHaveLength(44)
+    expect(VERSAO_CRITERIO_DESCARTE_NATIVO.afeta).toHaveLength(45)
     expect(NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO.every((id) => doBusinessMap.includes(id))).toBe(true)
     const nova = { inicio: '2026-10-14', fim: '2026-10-15' }
     expect(marcacoesNoPeriodo('O25', nova, []).map((m) => m.id)).toEqual([
@@ -75,11 +75,11 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
     expect(METRICA_IDS).toContain('T11')
     for (const v of [VERSAO_CRITERIO_DESCARTE_NATIVO, VERSAO_CRITERIO_EXCLUIDO_ENTREGUE]) {
       expect(v.afeta).not.toContain('T11')
-      expect(v.afeta).toHaveLength(44)
+      expect(v.afeta).toHaveLength(45)
     }
     // sem T11 na lista nominal ele entraria: o teste de igualdade acima é a trava
     const semNominal = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
-    expect(semNominal).toHaveLength(45)
+    expect(semNominal).toHaveLength(46)
     expect(marcacoesNoPeriodo('T11', { inicio: '2026-10-01', fim: '2026-10-16' }, [])).toEqual([])
   })
 

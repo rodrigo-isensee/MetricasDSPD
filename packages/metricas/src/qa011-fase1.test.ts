@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import {
   METRICA_IDS,
+  METRICAS_TENDENCIA,
   alertaCodigo,
   fonteDaMetrica,
   type FiltrosFluxo,
@@ -60,9 +61,13 @@ const ctxMock = (hoje: string) => ({
   bm: businessmap.criarContextoBM(base.bm, hoje, CALENDARIO_PADRAO),
   ext,
 })
-// B11b: o T11 nasceu depois do descarte nativo (lista nominal) e não é marcado pelas duas versões do descarte
+// B11b: o T11 nasceu depois do descarte nativo (lista nominal) e não é marcado pelas duas versões do descarte.
+// A tendência do Resumo fica de fora: a janela dela termina no último mês fechado, então não cruza as datas dos critérios.
 const BM_IDS = METRICA_IDS.filter(
-  (id) => fonteDaMetrica(id) === 'businessmap' && !NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO.includes(id),
+  (id) =>
+    fonteDaMetrica(id) === 'businessmap' &&
+    !NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO.includes(id) &&
+    !METRICAS_TENDENCIA.includes(id),
 )
 
 describe('F-1 / INV-4: as ids da fase 1 são do BusinessMap', () => {
