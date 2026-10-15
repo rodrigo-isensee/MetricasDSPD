@@ -82,11 +82,18 @@ export function idadeHUEm(ctx: ContextoBM, m: MarcosCard, t: number): number {
 /** Intervalo semiaberto [ini, fim) em ms. */
 export type Faixa = readonly [number, number]
 
+/** Faixa de progresso com a coluna em que o card estava nela. */
+export interface FaixaColuna {
+  ini: number
+  fim: number
+  coluna: string
+}
+
 /** Faixas em que o card está em progresso (mesma regra de `estadoEm.emWip`, sem varrer instantes). */
-export function faixasWip(ctx: ContextoBM, m: MarcosCard): Faixa[] {
+export function faixasWip(ctx: ContextoBM, m: MarcosCard): FaixaColuna[] {
   const trs = ctx.idx.transicoesPorCard.get(m.card.card_id) ?? []
   const fimVida = fimDeVidaAberta(m.card)
-  const faixas: Faixa[] = []
+  const faixas: FaixaColuna[] = []
   let iniciado = false
   for (let i = 0; i < trs.length; i++) {
     const x = trs[i] as FatoTransicao
@@ -96,7 +103,7 @@ export function faixasWip(ctx: ContextoBM, m: MarcosCard): Faixa[] {
     if (!iniciado || (d?.papel ?? null) === 'entrega') continue
     const a = Math.max(x.timestamp, m.card.criado_em)
     const b = Math.min(trs[i + 1]?.timestamp ?? Infinity, fimVida)
-    if (a < b) faixas.push([a, b])
+    if (a < b) faixas.push({ ini: a, fim: b, coluna: x.coluna_destino })
   }
   return faixas
 }
@@ -130,19 +137,36 @@ function primeiroNaoMenor(instantes: readonly number[], v: number): number {
   return lo
 }
 
+export interface SerieWip {
+  wip: number[]
+  bloqueados: number[]
+}
+
+export interface VarreduraPorColuna {
+  total: SerieWip
+  /** Série de cada coluna em que algum card esteve em progresso (colunas sem passagem não aparecem). */
+  porColuna: ReadonlyMap<string, SerieWip>
+}
+
 /**
  * WIP e bloqueados em cada instante (crescentes) numa ÚNICA varredura dos cards: cada card vira
- * faixas e soma +1/-1 numa diferença acumulada. Custo O(cards x transições + instantes), em vez de
+ * faixas e soma +1/-1 numa diferença acumulada, no total e por coluna (a coluna de uma faixa é o
+ * destino da transição que a abre). Custo O(cards x transições + instantes x colunas), em vez de
  * O(instantes x cards x transições) de chamar `estadoEm` por dia.
  */
-export function serieWip(
+export function varrerPorColuna(
   ctx: ContextoBM,
   cards: readonly MarcosCard[],
   instantes: readonly number[],
-): { wip: number[]; bloqueados: number[] } {
+): VarreduraPorColuna {
   const n = instantes.length
-  const dw = new Array<number>(n + 1).fill(0)
-  const db = new Array<number>(n + 1).fill(0)
+  type Dif = { w: number[]; b: number[] }
+  const novo = (): Dif => ({
+    w: new Array<number>(n + 1).fill(0),
+    b: new Array<number>(n + 1).fill(0),
+  })
+  const tot = novo()
+  const cols = new Map<string, Dif>()
   const marcar = (d: number[], a: number, b: number) => {
     const lo = primeiroNaoMenor(instantes, a)
     const hi = primeiroNaoMenor(instantes, b)
@@ -155,24 +179,47 @@ export function serieWip(
     const fw = faixasWip(ctx, m)
     if (fw.length === 0) continue
     const fb = faixasBloqueio(ctx, m)
-    for (const [a, b] of fw) {
-      marcar(dw, a, b)
+    for (const { ini: a, fim: b, coluna } of fw) {
+      let c = cols.get(coluna)
+      if (!c) {
+        c = novo()
+        cols.set(coluna, c)
+      }
+      marcar(tot.w, a, b)
+      marcar(c.w, a, b)
       for (const [x, y] of fb) {
         const lo = Math.max(a, x)
         const hi = Math.min(b, y)
-        if (lo < hi) marcar(db, lo, hi)
+        if (lo < hi) {
+          marcar(tot.b, lo, hi)
+          marcar(c.b, lo, hi)
+        }
       }
     }
   }
-  const wip: number[] = []
-  const bloqueados: number[] = []
-  let w = 0
-  let b = 0
-  for (let i = 0; i < n; i++) {
-    w += dw[i] as number
-    b += db[i] as number
-    wip.push(w)
-    bloqueados.push(b)
+  const acumular = (d: Dif): SerieWip => {
+    const wip: number[] = []
+    const bloqueados: number[] = []
+    let w = 0
+    let b = 0
+    for (let i = 0; i < n; i++) {
+      w += d.w[i] as number
+      b += d.b[i] as number
+      wip.push(w)
+      bloqueados.push(b)
+    }
+    return { wip, bloqueados }
   }
-  return { wip, bloqueados }
+  const porColuna = new Map<string, SerieWip>()
+  for (const [k, d] of cols) porColuna.set(k, acumular(d))
+  return { total: acumular(tot), porColuna }
+}
+
+/** WIP e bloqueados totais em cada instante (a varredura por coluna, somada). */
+export function serieWip(
+  ctx: ContextoBM,
+  cards: readonly MarcosCard[],
+  instantes: readonly number[],
+): SerieWip {
+  return varrerPorColuna(ctx, cards, instantes).total
 }
