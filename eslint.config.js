@@ -96,6 +96,13 @@ const semLeituraDeArquivamento = [
   },
 ]
 
+// P-T6 (pedido 011, ADR 0020): métrica nenhuma lê identidade de pessoa do card. `responsaveis` e `usuario`
+// continuam em modelo.ts por fidelidade ao 4.5, e esta regra protege a leitura (o property test protege a saída).
+const semLeituraDePessoa = ['responsaveis', 'usuario'].map((property) => ({
+  property,
+  message: `Métrica não lê "${property}": nenhuma métrica serve para avaliação individual (briefing 7.1, ADR 0020).`,
+}))
+
 const MSG_AMOSTRA =
   'criarAmostraInterna só é importado por businessmap/amostra.ts e acelerato/amostra.ts: use amostraBM/amostraAC.'
 const soAmostraPorDominio = {
@@ -422,6 +429,12 @@ export default tseslint.config(
         ...semLeituraDeArquivamento,
       ],
     },
+  },
+  // Pessoa (P-T6): leitura de `responsaveis`/`usuario` proibida em businessmap/*.ts (a definição do tipo fica em modelo.ts).
+  {
+    files: ['packages/metricas/src/businessmap/**'],
+    ignores: ['**/*.test.ts'],
+    rules: { 'no-restricted-properties': ['error', ...semLeituraDePessoa] },
   },
   {
     files: ['packages/mock/src/**'],
