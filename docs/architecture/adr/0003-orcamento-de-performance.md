@@ -6,6 +6,7 @@ Estado: vigente
 - Ajusta o orçamento padrão do Jarvis (fábrica Forge) ("Orçamento de performance") para este projeto
 - Relacionadas: ADR 0001 (stack do front), ADR 0002 (monorepo), plano técnico `docs/architecture/features/dashboard-mock.md`
 - Alteração 2026-10-14 (pedido 010, cartão K-075): seção "Orçamento móvel (pedido 010)", com critério de reversão e leituras próprios. Base: `docs/ux/compatibilidade-mobile-tablet/02-propostas.md` (seção 7) e `04-decisoes.md` (D1 = B, Q2 = projetar para 4G)
+- Alteração 2026-10-15 (pedido 011, emenda A11 da ata `docs/alinhamentos/2026-10-14-revisao-desenho-011.md`): seção "Emenda C4 (pedido 011)", com critério de reversão e leitura próprios. Só o C4 muda; o orçamento móvel e os demais itens ficam como estão. Pré-condição do cartão B12
 
 ## Contexto
 O pedido 003 exige um orçamento de performance específico do projeto, registrado em ADR, e medições reais contra ele ("medição real ou pendente, nunca ok sem número"). O orçamento padrão do Jarvis (LCP < 2,5 s, bundle < 250 KB, API p95 < 300 ms, banco p95 < 500 ms) é genérico. Este sistema tem características próprias:
@@ -184,6 +185,28 @@ Condições:
 - Informativo (relatório e resumo ao usuário, sem segurar o PR): F10m (Desempenho), C6m, F12, F13, F14; F1m e F3m enquanto provisórios.
 - Exceção e prazo: a regra de "O que bloqueia a entrega" acima vale igual.
 
+### Emenda C4 (pedido 011, 2026-10-15)
+Problema: o C4 diz "todas as métricas do painel", escrito quando o painel tinha só o núcleo. O 011 acrescenta métricas complementares (fase 1: Operacional +7 ids e o bloco do O23 no O2, Tático +5, Estratégico +4, conforme `docs/architecture/features/metricas-tambem-disponiveis.md`, risco C4) que só são calculadas com a seção "Mais métricas" aberta (carga lazy, mesmo plano, seção 4: gerador `gerarExtensaoTambemMock` fora de C1). O C4 passa a valer em duas condições, medidas à parte:
+
+| Condição | O que entra no cálculo | Orçamento | Limite de CI | Fonte |
+|---|---|---|---|---|
+| C4-fechada (seção "Mais métricas" fechada, estado inicial) | só as métricas do painel anteriores ao 011 (inclui `VISAO_GERAL` e o bloco do O23 dentro do O2, que não é lazy) | < 300 ms, igual ao C4 vigente | 900 ms (3x) | C4 vigente; sem regressão permitida pelas novas |
+| C4-aberta (seção aberta, com a geração lazy já paga) | as anteriores mais as complementares do painel | < 450 ms, **provisório, medir no B12** | 900 ms (3x), nas duas condições (ata, B12) | derivação: 300 ms + 3 métricas novas a 50 ms (C3); os C3 medidos a frio são bem menores (abaixo), então o valor pode apertar; confirmar com a leitura do B12 |
+
+Regras da emenda:
+- **Gerador lazy fica fora do C4 e do C1.** O primeiro cálculo que precisa da extensão paga a geração uma vez por contexto; esse custo é medido separado (teste de tempo próprio do gerador, já previsto no plano) e reportado como "primeira abertura", não entra na amostra de 20 repetições, mas entra na leitura a frio do B12. Limite provisório da geração da extensão: < 200 ms, **provisório, medir no B12** (sem medição no projeto; C1 inteiro mede 196 a 275 ms para 5.788 cards, e a extensão é menor que a base).
+- **O limite vale por painel, não pela soma das 42+ métricas.** Painéis não pedem tudo junto; o mesmo princípio da linha "33 métricas" da tabela de medições.
+- **Cada complementar continua em C3 sozinha** (< 50 ms a frio, limite de CI 150 ms). C3 a frio medidos nos cartões: O1 cerca de 10 ms depois do B8 (antes: 31 a 38 ms; `docs/tecnica/biblioteca-de-calculo.md`, seção da varredura); O20 18 a 24 ms e O24 11 ms (relatos dos cartões B9 e B10, números não registrados em arquivo do repositório; o B12 os repete e grava no relatório). Demais ids novos: sem número até o B12.
+- A medição usa as condições já fixadas (semente e `hoje` padrão, filtros padrão e pior filtro conhecido, CPU time, melhor de rodadas) e passa pela biblioteca compartilhada; nada de cálculo próprio para o painel.
+- Memoização por `(MetricaId, filtros normalizados)` e a varredura por coluna (B8) valem nas duas condições; o resultado das métricas anteriores não pode mudar (hash da base e snapshots iguais).
+
+**O que bloqueia (C4 do 011)**
+- Bloqueia o PR do B12: limite de CI de 900 ms nas duas condições, por painel (Operacional, Tático, Estratégico), com o valor registrado; e C4-fechada < 300 ms na pré-entrega do QA.
+- C4-aberta < 450 ms e a geração lazy < 200 ms: **alerta** (relatório e resumo ao usuário) até o B12 registrar a leitura; se a leitura couber, passam a bloquear na pré-entrega do QA das fases seguintes por alteração desta ADR; se não couber, o valor é revisto com o número medido, por alteração desta ADR, nunca por exceção silenciosa.
+- Exceção: regra de "O que bloqueia a entrega" acima.
+
+**Critério de reversão da emenda:** se a leitura do B12 mostrar C4-aberta acima de 450 ms em algum painel com todas as complementares da fase 1 já em C3 < 50 ms, o carregamento lazy deixa de ser suficiente e as complementares passam a ser calculadas só por cartão (cada uma em seu `GET`, D7), sem entrar em nenhuma composição de painel; o C4 volta a valer só como C4-fechada.
+
 ## Alternativas consideradas
 - **Orçamento padrão do Jarvis sem ajuste** (LCP < 2,5 s, bundle < 250 KB, troca de filtro < 200 ms/1 s): simples, mas folgado demais para uma SPA interna de desktop com dados em memória; não cobre o cálculo da biblioteca, que é o gargalo real medido (O1 a frio, `VISAO_GERAL`). Descartado.
 - **Medir só no CI**: automático, mas máquinas de CI variam muito; geraria falhas aleatórias ou limites tão folgados que nada pegariam. Adotado o modelo misto: limites folgados no CI para regressão grosseira e valor do orçamento na máquina de referência na pré-entrega.
@@ -218,3 +241,4 @@ Do orçamento móvel: se a leitura da fatia 1 mostrar F1m < 2,5 s **e** F12 < 50
 | Data | Medida | Veredito (manter, ajustar, reverter) |
 |---|---|---|
 | 2026-10-14 | Orçamento móvel registrado; nenhum item móvel medido. Base: F6 186,76 KB, F1 com CPU 4× p95 372 ms, CLS a 375 px até 0,019 | pendente (medir na fatia 1) |
+| 2026-10-15 | Emenda C4 (011) registrada. C3 a frio relatados: O1 cerca de 10 ms, O20 18 a 24 ms, O24 11 ms. C4-aberta 450 ms, geração lazy 200 ms: provisórios | pendente (medir no B12) |
