@@ -21,3 +21,6 @@ O axe não aponta (a regra `label-content-name-mismatch` é experimental e fica 
 
 ## Sugestão de correção
 `aria-label` = texto visível + complemento: `O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato. Abre Mais métricas da visão Sustentação.`
+
+## Reverificação
+Fechado em 2026-10-15 (HEAD 140a60d): nome acessível começa pelo texto visível; teste de unidade vermelho no código antigo e verde no atual; E2E CA-18 verde.

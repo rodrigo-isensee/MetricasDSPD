@@ -3,15 +3,15 @@ tipo: qa
 contrato: 1
 pedido: sustentacao-no-operacional
 branch: feature/sustentacao-no-operacional
-commit: 18d8327
+commit: 140a60d
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
-bugs_medios: 2
-bugs_baixos: 2
+bugs_medios: 1
+bugs_baixos: 1
 aceite_usuario: sim
-data: 2026-10-14
+data: 2026-10-15
 ---
 
 # QA: Sustentação dentro do Operacional (K-072 e K-073)
@@ -163,3 +163,50 @@ Respondidas pelo adendo e testadas assim: A1 (O17 só na Sustentação), A2 (qua
 4. IF-A (Semanal e Tático) fica a poucos segundos do teto de 30 s; instável sob carga, não é defeito desta entrega.
 5. `test:pg`: 7 testes de `pesquisa.pg.test.ts` falham no Postgres local por permissão de banco. Precisa ser corrigido no ambiente (papel `dspd_pesquisa`), e é anterior a esta demanda.
 6. Alterações de teste do QA estão no commit `80d2fbf` (E2E, tests-api, perf-api, fixture) e `18d8327` (contrato do S3). Evidências em `docs/qa/evidencias/` regravadas pela suíte foram revertidas (não fazem parte desta entrega).
+
+## Delta pós-QA (2026-10-15, HEAD 140a60d)
+Delta testado: `8423b19` (SNO-002, SNO-004, A6), `9ab5ece` (ressalvas de UX D-01 a D-08) e `140a60d` (documentação, caso `perf-resumo-reservas`). Só `web/src` de produção mudou (16 arquivos); o resto é teste e documentação. Rodado com `flock /tmp/metricas-pesado.lock nice -n 19`, build de produção refeito no HEAD.
+
+**Veredito: aprovado com ressalvas.** Nenhum bug crítico ou alto. SNO-002 e SNO-004 fechados; SNO-001 e SNO-005 seguem abertos (pré-existentes). `aceite_usuario: sim` mantido.
+
+### Execução
+| Suíte | Resultado |
+|---|---|
+| E2E `chromium` + `chromium-semente-alt`, 2 workers | **673 passaram, 0 falharam** (24,9 min). O IF-A instável da rodada anterior passou |
+| Unidade do web, pastas do delta (`operacional`, `components/ui`, `complementares`, `preferencias`) | 20 arquivos, **398 passaram** |
+| `perf-resumo-reservas` (Playwright, mock) | 2 de 2 passaram: CLS 0,004 a 1280 px, 0,035 a 375 px |
+| Lighthouse `/operacional` (Resumo), 3 execuções | desempenho 0,99, acessibilidade 1, LCP 0,89 s, **CLS 0,0039 nas 3** (antes 0,125); sem aviso de asserção |
+
+### Reverificação (vermelho antes do verde)
+Método: `git checkout 032c470 -- <16 arquivos de produção do delta>`, build (`vite build`, sem `tsc`, porque os testes novos não compilam contra o código antigo), testes; depois `git checkout HEAD -- ...` e novo build. Árvore limpa ao final.
+
+| Item | Vermelho (código de 032c470) | Verde (140a60d) |
+|---|---|---|
+| SNO-004 CLS do Resumo | Lighthouse x3: **CLS 0,1253 (aviso)** | 0,0039 x3 |
+| SNO-002 nome acessível | `leiajunto.test.tsx` falha (nome não começa pelo texto visível) | passa |
+| A6 mensagem da versão futura | `preferencias.test.tsx` falha | passa |
+| D-01 h3 do "Pede atenção" | 3 falhas (`componentes`, `resumo.test.tsx`) | passa |
+| D-02 / D-03 anúncio e foco no h1 | 3 falhas em `visoes.test.tsx` | passa |
+| D-05b/c leitura em dobro, carregando sem região viva | 3 falhas | passa |
+| D-06 / D-08 meta do S1 e frases de leitura | 4 falhas em `modelo.test.ts` e `componentes.test.tsx` | passa |
+| Total | **14 falhas, 7 arquivos** | **398 de 398** |
+| D-05a (`aria-pressed` fora do botão da tabela) e D-07 (texto da A6) | cobertos nas asserções acima; D-05a sem teste próprio, só leitura de código | |
+
+**Achado sobre o `perf-resumo-reservas`:** no código antigo ele **passou** (CLS 0,092 a 1280 px, abaixo do orçamento F2 de 0,1; a 375 px 0,035 nos dois). Ou seja, o caso novo **não detecta a regressão do SNO-004**: quem a detecta é o Lighthouse (0,125 contra 0,0039). O caso serve como piso de segurança, não como guarda da correção; a guarda real é o `perf:tudo` com o Lighthouse. Sugestão ao react-frontend (baixa, sem bug aberto): apertar o limite do caso para 0,05 a 1280 px (medido: 0,004 depois, 0,092 antes).
+
+### D-04 e SNO-001 a 375 px com fonte a 200% (só registro, adiados para o K-075)
+Sonda descartável (fora do repositório) com `html { font-size: 200% }`, 375 x 812, build do HEAD:
+- **SNO-001 persiste**: `scrollWidth` 640 contra `clientWidth` 375 em `/`, `/operacional`, `?cadencia=sustentacao` e `?cadencia=semanal`. Sem mudança desde o parecer anterior; severidade média mantida.
+- **D-04 não mensurável de forma limpa**: como a página inteira tem 640 px de largura (SNO-001), a grade de números-chave do Resumo ocupa 640 px e a captura a 375 mostra o conteúdo cortado à direita (cabeçalho, texto introdutório). Nos 12 elementos de número-chave, nenhum tem `scrollWidth` maior que `clientWidth` (sem texto cortado dentro do cartão). A conclusão de D-04 depende de o K-075 corrigir antes o cabeçalho.
+- Observação: nas visões Sustentação e Semanal há `TABLE` com direita em 1934 e 1458 px nessa condição; não medi se estão dentro de um contêiner com rolagem própria. Para o K-075 conferir.
+
+### Bugs após o delta
+| Bug | Situação |
+|---|---|
+| SNO-002 | **fechado** (testes de unidade e E2E CA-18) |
+| SNO-004 | **fechado** (Lighthouse 3/3, CLS 0,0039) |
+| SNO-001 | aberto, média, pré-existente, K-075 |
+| SNO-005 | aberto, baixa, pré-existente, node-backend |
+| SNO-003 | fechado antes |
+
+Riscos: o bundle inicial não foi remedido neste delta (o `pronto` do tech-lead cobre); `test:pg` com 7 falhas de ambiente continua anterior à demanda; D-05a sem teste próprio.

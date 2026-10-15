@@ -21,3 +21,6 @@ Medição do F2 pelo Playwright (`pnpm run test:perf`, 1366 e 375 px) **passa** 
 
 ## Decisão de QA
 Não bloqueia (a medição bloqueante do F2 passou e não há perda de função), mas fica aberto e o parecer leva `aceite_usuario: sim`.
+
+## Reverificação
+Fechado em 2026-10-15 (HEAD 140a60d): Lighthouse 3/3 com CLS 0,0039 (antes 0,1253 no código de 032c470, reproduzido).
