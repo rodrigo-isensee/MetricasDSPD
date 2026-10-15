@@ -9,19 +9,24 @@ interface Props {
   dominio: Dominio
   /** Mostra o nome da fonte antes do selo (páginas com as duas fontes, em blocos separados). */
   comNome?: boolean
+  /**
+   * Reserva a altura da linha extra do aviso de falha ("Coleta falhou em…"), que só aparece nesse estado: com ela o
+   * cabeçalho não desce quando o estado chega (CLS do Resumo do Operacional, ADR 0003).
+   */
+  reservarFalha?: boolean
 }
 
 /**
  * Frescor de UMA fonte no cabeçalho do painel: "Atualizado em", selo, "Entenda" e, em falha, o aviso
  * de que os dados anteriores continuam na tela (CA-01, CA-03, CA-09). Nunca soma as duas fontes.
  */
-export function FrescorFonte({ dominio, comNome = false }: Props) {
+export function FrescorFonte({ dominio, comNome = false, reservarFalha = false }: Props) {
   const q = useEstadoColeta(dominio)
   const nome = NOME_FONTE[dominio]
   const e = q.data
   return (
     <div
-      className="flex flex-col gap-1 text-sm"
+      className={`flex flex-col gap-1 text-sm${reservarFalha ? ' min-h-[50px]' : ''}`}
       data-testid={`frescor-${dominio}`}
       aria-busy={q.isPending || undefined}
     >

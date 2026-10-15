@@ -123,7 +123,7 @@ export function CartaoEI({ nivel, q, aplicaveis, periodo, className }: Props) {
       <div className="flex flex-col gap-3" data-testid={`ei-segmento-${idSeg}`}>
         {est.status === 'ok' ? (
           <>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(6rem,1fr))] gap-2">
               <NumeroGrande
                 data-testid={`ei-cliente-${idSeg}`}
                 valor={fmtNumero(est.valor.cliente, nivel === 'SUST' ? 2 : 1)}

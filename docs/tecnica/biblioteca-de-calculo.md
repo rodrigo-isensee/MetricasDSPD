@@ -262,7 +262,7 @@ Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Cl
 |---|---|---|---|---|---|---|
 | S1 | `calcularS1` | primeiro atendimento e restauração (pendências descontadas) dos apuráveis fechados na janela: P50/P85/P95 + média; razão mediana/alvo e P85/alvo | prioridade | HU | 20 | 06 S1; 3.2; Q2 |
 | S2 | `calcularS2` | % no prazo do SLA de primeiro atendimento (`status_sla_pa`) e de restauração (`status_sla_r`), separados; meta 90% | prioridade | % | 20 (taxa) | 06 S2; 3.2; Q2 |
-| S3 | `calcularS3` | chamados abertos por mês e prioridade; proporção, % P1+P2, ajustes manuais | prioridade | chamados; % | 0 (proporção só com n ≥ 20 no mês) | 06 S3 |
+| S3 | `calcularS3` | chamados abertos por mês e prioridade; proporção, % P1+P2, ajustes manuais; `janela` = total e P1+P2 (k de n) do período inteiro | prioridade | chamados; % | 0 (proporção só com n ≥ 20 no mês) | 06 S3 |
 | S4 | `calcularS4` | nível de resolução (N1, N2, N3, Fornecedor) dentro de cada prioridade; P50/P85/P95 do tempo na etapa do nível | prioridade, nível | %; HU | 20 (mediana) | 06 S4; 7.2; Q2 |
 | S5 | `calcularS5` | motivos de escalação (domínio fechado) entre resolvidos em N2, N3 ou Fornecedor; não informado à parte; evolução mensal | motivo de escalação | % | 20 (taxa) | 06 S5; 7.3 |
 | S6 | `calcularS6` | motivos de encerramento dos fechados; taxa de contorno; não informado nunca inferido | motivo de encerramento | % | 20 (taxa) | 06 S6 |
@@ -273,6 +273,8 @@ Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Cl
 
 | Métrica | Função | Fórmula resumida | Segmentação | Unidade | Mínimo | Ref. briefing |
 |---|---|---|---|---|---|---|
+| TENDENCIA_FLUXO | `businessmap/tendencia.ts` `calcularTendenciaFluxo` | seis meses fechados; cada ponto é o núcleo do O3 (`classesNaJanela`, o mesmo do `calcularO3`) na janela de 12 semanas até o fim do mês, projetado em `{ tipo, n, estatistica{p50,p85} }`; `concluidos` pela seleção do O4 (`concluidosDeDemanda`). Sem fórmula própria | `tipo` | DU; itens | 20 (percentis, herdado do O3) | ADR 0019; plano sustentacao-no-operacional |
+| TENDENCIA_SUST | `acelerato/tendencia.ts` `calcularTendenciaSust` | seis meses fechados; cada ponto é o núcleo do S2 (`aderenciaPorPrioridade`, o mesmo do `calcularS2`) na janela de 12 semanas até o fim do mês e `volume` pela abertura (`diasDeAbertura`, base do S3). Sem fórmula própria | `prioridade` | %; chamados | 20 (taxa, herdado do S2) | ADR 0019; plano sustentacao-no-operacional |
 | VISAO_GERAL | `calcularVisaoGeral` | reexpõe O1, O2, BLOQUEADOS, O10, O12, T2, T3, T4, T9, E2, E3, S1, S2 e os 4 EI em blocos por nível e fonte; alertas por meta violada. Não calcula nada que misture domínios | (por bloco) | herdada | herdado de cada métrica | spec UX 3.1; Q1 |
 
 ## 6. Pendências que afetam a biblioteca

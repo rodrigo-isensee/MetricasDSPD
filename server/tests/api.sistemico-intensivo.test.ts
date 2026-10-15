@@ -9,7 +9,7 @@ import { bancoDoMock } from './base-duble.js';
 import { criarDublePg } from './duble-pg.js';
 
 /**
- * Testes SISTÊMICOS intensivos (QA, docs/qa/intensivo-sistemico.md): as 61 rotas de métrica sob uma matriz de filtros válidos
+ * Testes SISTÊMICOS intensivos (QA, docs/qa/intensivo-sistemico.md): as 63 rotas de métrica sob uma matriz de filtros válidos
  * e inválidos, ETag/304, e as regras invioláveis verificadas sobre as respostas reais da API (pessoa, regra dos 20 itens,
  * BusinessMap x Acelerato, story/frente/projeto). Sem Postgres: o banco falso responde com as linhas que o seed gravaria.
  */
@@ -45,6 +45,9 @@ const INVALIDOS = {
   pesquisa: [...INVALIDOS_COMUNS, 'equipe=totvs', 'periodo=4s'],
 } as const;
 
+/** As tendências mensais (ADR 0019) aceitam só `dataReferencia`, como a Visão geral: a matriz delas é a de "ambos". */
+const grupoDe = (id: MetricaId) => (id === 'TENDENCIA_FLUXO' || id === 'TENDENCIA_SUST' ? 'ambos' : fonteDaMetrica(id));
+
 const schemaDe = (id: MetricaId) => (id === 'O2' ? resultadoO2PaginadoSchema : SCHEMAS_RESULTADO[id]);
 
 /** Respostas 200 da matriz válida, guardadas para as verificações de regra inviolável. */
@@ -55,13 +58,13 @@ beforeAll(async () => {
   app = await montar(base);
 }, 60_000);
 
-describe('SIS-API: matriz de filtros nas 61 rotas', () => {
-  it('são 61 rotas de métrica', () => {
-    expect(METRICA_IDS).toHaveLength(61);
+describe('SIS-API: matriz de filtros nas 63 rotas', () => {
+  it('são 63 rotas de métrica', () => {
+    expect(METRICA_IDS).toHaveLength(63);
   });
 
   it.each([...METRICA_IDS])('%s: filtros válidos = 200 no schema, ETag estável e 304', async (id) => {
-    for (const q of VALIDOS[fonteDaMetrica(id)]()) {
+    for (const q of VALIDOS[grupoDe(id)]()) {
       const r = await app.inject(url(id, q));
       expect(r.statusCode, `${id}?${q} ${r.body.slice(0, 200)}`).toBe(200);
       const parse = schemaDe(id).safeParse(r.json());
@@ -83,7 +86,7 @@ describe('SIS-API: matriz de filtros nas 61 rotas', () => {
   }, 120_000);
 
   it.each([...METRICA_IDS])('%s: filtros inválidos = 400 VALIDATION_ERROR sem eco do valor', async (id) => {
-    for (const q of INVALIDOS[fonteDaMetrica(id)]) {
+    for (const q of INVALIDOS[grupoDe(id)]) {
       const r = await app.inject(url(id, q));
       expect(r.statusCode, `${id}?${q}: ${r.body.slice(0, 200)}`).toBe(400);
       const e = r.json().error;
@@ -123,8 +126,8 @@ function* percorrer(v: unknown, caminho: string[] = [], ancestrais: Record<strin
 }
 
 describe('SIS-INV: regras invioláveis nas respostas da API', () => {
-  it('nenhuma resposta (61 rotas x filtros) traz nome, e-mail ou id de pessoa da base', () => {
-    expect(respostas.length).toBeGreaterThan(59 * 2);
+  it('nenhuma resposta (63 rotas x filtros) traz nome, e-mail ou id de pessoa da base', () => {
+    expect(respostas.length).toBeGreaterThan(61 * 2);
     const pessoas = new Set<string>();
     for (const c of base.bm.cards) for (const p of c.responsaveis) pessoas.add(p);
     for (const t of base.bm.transicoes) if (t.usuario) pessoas.add(t.usuario);

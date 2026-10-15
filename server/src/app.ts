@@ -4,7 +4,7 @@ import {
   jsonSchemaTransform, serializerCompiler, validatorCompiler,
 } from 'fastify-type-provider-zod';
 import { rotasWebhook } from './modulos/businessmap/index.js';
-import { ServicoMetricas, criarFontePesquisaReal, rotasMetricas, type FontePesquisa } from './modulos/metricas/index.js';
+import { ServicoMetricas, criarFontePesquisaReal, filtrosPadraoDe, rotasMetricas, type FontePesquisa } from './modulos/metricas/index.js';
 import type { ExtensoesMetricas } from '@metricas-dspd/metricas';
 import type { ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
 import { rotasOperacao } from './modulos/operacao/index.js';
@@ -34,11 +34,17 @@ export type DepsApp = {
   pesquisa?: FontePesquisa;
   /** Fonte dos dados: só em 'mock' as extensões mockadas entram; em 'real', sem extensão os campos saem insuficientes. Padrão 'mock'. */
   fonteDados?: 'mock' | 'real';
+  /** Aquece a base em memória e o código das métricas antes de aceitar requisições (SNO-005). Padrão: desligado (testes). */
+  aquecer?: boolean;
+  /** Prazo máximo que a subida espera pelo aquecimento (ms). Padrão 5000, bem abaixo do pluginTimeout de 10 s. */
+  prazoAquecimentoMs?: number;
   /** Destino do log (testes capturam); padrão stdout. */
   destinoLog?: { write(msg: string): void };
 };
 
 export const VERSAO_API = '0.1.0';
+const PRAZO_ESPERA_AQUECIMENTO_MS = 5000;
+const classeDoErro = (e: unknown): string => (e as Error).constructor.name;
 
 /** Monta o Fastify (sem `listen`): usado pela entrada `api`, pelos testes (`inject`) e pelo gerador do OpenAPI. */
 export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
@@ -68,6 +74,31 @@ export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
   const servico = new ServicoMetricas({ db: deps.db, S: deps.S, extensoes: deps.extensoes ?? (deps.fonteDados === 'real' ? undefined : extensoesMock),
     extensaoTambem: deps.extensaoTambem ?? (deps.fonteDados === 'real' ? undefined : extensaoTambemMock),
     pesquisa: deps.pesquisa ?? (deps.fonteDados === 'real' ? criarFontePesquisaReal(deps.db, deps.S) : fontePesquisaMock) });
+  if (deps.aquecer === true) {
+    // O onReady está sujeito ao pluginTimeout do Fastify (10 s): se o aquecimento passasse disso, ready()/listen falharia
+    // com FST_ERR_HOOK_TIMEOUT e a API não subiria. Por isso a espera é limitada; o aquecimento segue em segundo plano.
+    const prazo = deps.prazoAquecimentoMs ?? PRAZO_ESPERA_AQUECIMENTO_MS;
+    app.addHook('onReady', async () => {
+      const t0 = performance.now();
+      const aquecimento = servico.aquecer(deps.agora(), filtrosPadraoDe).then(
+        (r) => {
+          const ms = Math.round(performance.now() - t0);
+          if (r.falhas.length > 0) app.log.warn({ metricas: r.metricas, falhas: r.falhas, ms }, 'aquecimento concluído com métricas que falharam; a consulta real as trata');
+          else app.log.info({ metricas: r.metricas, falhas: r.falhas, ms }, 'aquecimento concluído');
+          return 'concluido' as const;
+        },
+        (e: unknown) => {
+          app.log.warn({ erro: classeDoErro(e) }, 'aquecimento falhou; a primeira consulta carrega a base');
+          return 'concluido' as const;
+        },
+      );
+      let timer: NodeJS.Timeout = undefined as never;
+      const vencido = new Promise<'prazo'>((res) => { timer = setTimeout(() => { res('prazo'); }, prazo); });
+      const quem = await Promise.race([aquecimento, vencido]);
+      clearTimeout(timer);
+      if (quem === 'prazo') app.log.warn({ prazoMs: prazo }, 'aquecimento não terminou no prazo; a API sobe e ele continua em segundo plano');
+    });
+  }
   await app.register(async (i) => {
     await rotasReferencia(i, { db: deps.db, S: deps.S, agora: deps.agora });
     await rotasOperacao(i, { db: deps.db, S: deps.S, agora: deps.agora });

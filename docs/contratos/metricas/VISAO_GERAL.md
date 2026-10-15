@@ -177,7 +177,9 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.VISAO_GERAL`); a fotografia versio
                     "EI_FL2",
                     "EI_FL3",
                     "EI_SUST",
-                    "VISAO_GERAL"
+                    "VISAO_GERAL",
+                    "TENDENCIA_FLUXO",
+                    "TENDENCIA_SUST"
                   ]
                 },
                 "codigo": {"type":"string"},

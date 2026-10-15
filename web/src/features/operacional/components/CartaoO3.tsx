@@ -14,6 +14,7 @@ import { fmtData, fmtDataCurta, fmtDiasUteis, fmtInteiro, fmtNumero, plural } fr
 import { NOTAS_OPERACIONAL } from '../notas'
 import { diaNum, isoDoDia, propsCartao, slug } from '@/features/painel/propsCartao'
 import { LeiaJunto } from '@/features/complementares/LeiaJunto'
+import { tipoPredominante } from '../resumo/modelo'
 
 const VALORES = TIPOS_CARD.map(slug)
 
@@ -21,7 +22,7 @@ const VALORES = TIPOS_CARD.map(slug)
 export function CartaoO3({ filtros }: { filtros: FiltrosFluxo }) {
   const q = useMetrica('O3', filtros)
   const d = q.dados
-  const maior = d ? [...d.classes].sort((a, b) => b.n - a.n)[0]?.tipo : undefined
+  const maior = d ? tipoPredominante(d)?.tipo : undefined
   const [aba, setAba] = useParametroLocal('o3', VALORES, slug(maior ?? TIPOS_CARD[0]))
   const c = d?.classes.find((x) => slug(x.tipo) === aba)
   const est = c?.estatistica

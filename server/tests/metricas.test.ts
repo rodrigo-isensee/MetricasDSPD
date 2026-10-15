@@ -271,6 +271,37 @@ describe('GET /api/v1/metricas/:id', () => {
     expect((await get(app, '/api/v1/metricas/VISAO_GERAL?dataReferencia=2026-10-08')).headers['x-data-referencia']).toBe('2026-10-08');
   });
 
+  it('tendências: 200 no schema, até 6 meses fechados, 304 por etag, uma fonte por consulta e sem filtro', async () => {
+    const { app, d } = await montar();
+    for (const id of ['TENDENCIA_FLUXO', 'TENDENCIA_SUST'] as const) {
+      const r = await get(app, `/api/v1/metricas/${id}?dataReferencia=2026-10-08`);
+      expect(r.statusCode, id).toBe(200);
+      expect(r.headers['x-data-referencia']).toBe('2026-10-08');
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success).toBe(true);
+      const meses = (r.json() as { meses: { mes: string }[] }).meses.map((m) => m.mes);
+      expect(meses).toEqual(['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09']);
+      const etag = r.headers.etag as string;
+      const r2 = await app.inject({ method: 'GET', url: `/api/v1/metricas/${id}?dataReferencia=2026-10-08`, headers: { 'if-none-match': etag } });
+      expect(r2.statusCode).toBe(304);
+    }
+    const textos = d.chamadas.map((c) => c.texto);
+    for (const t of textos) expect(t.includes('dspd_bm') && t.includes('dspd_ac')).toBe(false);
+  });
+
+  it.each([
+    ['filtro em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?equipe=fluig'],
+    ['periodo em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?periodo=6m'],
+    ['prioridade em TENDENCIA_SUST', '/api/v1/metricas/TENDENCIA_SUST?prioridade=P1'],
+    ['pessoa em TENDENCIA_SUST', '/api/v1/metricas/TENDENCIA_SUST?agente=ana'],
+    ['dataReferencia futura em TENDENCIA_SUST', '/api/v1/metricas/TENDENCIA_SUST?dataReferencia=2026-10-11'],
+    ['dataReferencia inválida em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?dataReferencia=ontem'],
+  ])('400 VALIDATION_ERROR (tendência): %s', async (_nome, url) => {
+    const { app } = await montar();
+    const r = await get(app, url);
+    expect(r.statusCode).toBe(400);
+    expect(r.json().error.code).toBe('VALIDATION_ERROR');
+  });
+
   it.each([
     ['filtro de outro domínio (sistema em S1)', '/api/v1/metricas/S1?sistema=fluig'],
     ['filtro de outro domínio (prioridade no fluxo)', '/api/v1/metricas/T1?prioridade=P1'],

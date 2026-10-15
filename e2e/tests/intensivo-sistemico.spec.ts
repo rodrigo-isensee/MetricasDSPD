@@ -8,8 +8,8 @@ import { test, expect, rodarAxe } from '../fixtures/base';
  * vistas pela interface e robustez (estados, navegação, recarga, tema, largura, axe). Dados: o mock do build.
  */
 
-const ROTAS_TODAS = ['/', '/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel', '/metricas', '/dados', '/preferencias', '/ajuda'] as const;
-const PAINEIS = ['/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao'] as const; // a página /espera-invisivel foi removida: só redireciona (coberta em espera-invisivel-nos-paineis.spec.ts)
+const ROTAS_TODAS = ['/', '/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/operacional?cadencia=sustentacao', '/espera-invisivel', '/metricas', '/dados', '/preferencias', '/ajuda'] as const;
+const PAINEIS = ['/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/operacional?cadencia=sustentacao'] as const; // a página /espera-invisivel foi removida: só redireciona (coberta em espera-invisivel-nos-paineis.spec.ts)
 const PESSOA = /Pessoa \d{2}|[\w.+-]+@[\w-]+\.[a-z]{2,}/;
 
 const ROTAS_COM_CARTOES = /^\/(operacional|tatico|estrategico|sustentacao|espera-invisivel)(\?|#|$)/;
@@ -95,7 +95,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
     test.setTimeout(300_000);
     const problemas: string[] = [];
     let total = 0;
-    for (const rota of ['/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao']) {
+    for (const rota of ['/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/operacional?cadencia=sustentacao']) {
       await page.goto(rota);
       await prontos(page);
       const links = await page.locator('[data-testid^="leia-junto-"] a').evaluateAll((as) =>
@@ -105,8 +105,9 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
         total++;
         await page.goto(rota);
         await prontos(page);
-        await page.getByTestId(`leia-junto-${l.origem}`).getByRole('link', { name: l.texto }).click();
         const codigo = l.texto.split(' ')[0]!;
+        // pelo código no início do nome acessível: o aria-label do link entre visões não repete o texto visível (bug BUG-SNO-QA-03)
+        await page.getByTestId(`leia-junto-${l.origem}`).getByRole('link', { name: new RegExp(`^${codigo} `) }).click();
         const alvo = page.getByTestId(`metrica-${codigo}`);
         try {
           await expect(alvo, `${rota} ${l.origem} -> ${codigo}`).toBeVisible();
@@ -161,7 +162,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
     const ind = async (c: string) => (await page.getByTestId(`indicador-${c}`).innerText()).replace(/\s+/g, ' ');
     const vg = { BLOQUEADOS: await ind('BLOQUEADOS'), O2: await ind('O2'), T9: await ind('T9'), E3: await ind('E3') };
     const problemas: string[] = [];
-    const casos: [keyof typeof vg, string][] = [['BLOQUEADOS', '/operacional'], ['O2', '/operacional'], ['E3', '/estrategico']];
+    const casos: [keyof typeof vg, string][] = [['BLOQUEADOS', '/operacional?cadencia=diaria'], ['O2', '/operacional?cadencia=diaria'], ['E3', '/estrategico']];
     for (const [c, rota] of casos) {
       if (/insuficiente/i.test(vg[c])) continue;
       const n = vg[c].match(/^([\d.]+)(?: de ([\d.]+))?/);
@@ -187,7 +188,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
   test('SIS-CONS-05 PDF x tela: a base de cada cartão exportado é a mesma da tela, em cada painel', async ({ page }) => {
     test.setTimeout(180_000);
     const problemas: string[] = [];
-    for (const rota of ['/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao', '/espera-invisivel']) {
+    for (const rota of ['/operacional?cadencia=semanal', '/tatico', '/estrategico', '/operacional?cadencia=sustentacao', '/espera-invisivel']) {
       await page.goto(rota);
       await prontos(page);
       const bases = await page.locator('[data-testid^="base-"]').evaluateAll((els) =>
@@ -218,7 +219,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
     const SUST = new Set(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'EI-SUST']);
     const problemas: string[] = [];
     const comAviso = new Set<string>();
-    for (const rota of ['/operacional?cadencia=semanal&periodo=12m', '/tatico?periodo=12m', '/estrategico?periodo=12m', '/sustentacao?periodo=12m', '/espera-invisivel?periodo=12m&sust_periodo=12m']) {
+    for (const rota of ['/operacional?cadencia=semanal&periodo=12m', '/tatico?periodo=12m', '/estrategico?periodo=12m', '/operacional?cadencia=sustentacao&sust_periodo=12m', '/espera-invisivel?periodo=12m&sust_periodo=12m']) {
       await page.goto(rota);
       await prontos(page);
       await abrirMaisMetricas(page);
@@ -237,7 +238,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
     // Em 12 meses toda série afetada atravessa a mudança: a marcação tem de aparecer.
     for (const c of [...FLUXO, ...SUST]) if (!comAviso.has(c)) problemas.push(`${c}: afetada pela mudança de critério e sem aviso em 12 meses`);
     // Em 4 semanas nenhuma série nem janela de 12 semanas cruza março ou junho: nenhum aviso.
-    for (const rota of ['/operacional?cadencia=semanal&periodo=4s', '/tatico?periodo=4s', '/sustentacao?periodo=4s']) {
+    for (const rota of ['/operacional?cadencia=semanal&periodo=4s', '/tatico?periodo=4s', '/operacional?cadencia=sustentacao&sust_periodo=4s']) {
       await page.goto(rota);
       await prontos(page);
       const donos = await page.getByTestId('aviso-criterio').evaluateAll((els) => els.map((e) => e.closest('[data-testid^="metrica-"]')?.getAttribute('data-testid') ?? 'fora'));
@@ -299,7 +300,7 @@ test.describe('SIS-INV regras invioláveis na interface', () => {
     test.setTimeout(120_000);
     const problemas: string[] = [];
     let insuficientes = 0;
-    for (const rota of ['/operacional?cadencia=semanal&periodo=4s&tipo=divida-tecnica', '/tatico?periodo=4s&tipo=divida-tecnica', '/estrategico?periodo=6m', '/sustentacao?periodo=4s&prioridade=p1', '/espera-invisivel?periodo=4s&tipo=divida-tecnica&sust_periodo=4s&sust_prioridade=p1']) {
+    for (const rota of ['/operacional?cadencia=semanal&periodo=4s&tipo=divida-tecnica', '/tatico?periodo=4s&tipo=divida-tecnica', '/estrategico?periodo=6m', '/operacional?cadencia=sustentacao&periodo=4s&prioridade=p1', '/espera-invisivel?periodo=4s&tipo=divida-tecnica&sust_periodo=4s&sust_prioridade=p1']) {
       await page.goto(rota);
       await prontos(page);
       await abrirMaisMetricas(page);
@@ -327,7 +328,7 @@ test.describe('SIS-INV regras invioláveis na interface', () => {
 
   test('SIS-INV-03 BusinessMap x Acelerato: cada painel mostra só a sua fonte; filtro do fluxo não muda a Sustentação', async ({ page }) => {
     const problemas: string[] = [];
-    for (const [rota, fonte, outra] of [['/operacional?cadencia=semanal', 'BusinessMap', 'Acelerato'], ['/tatico', 'BusinessMap', 'Acelerato'], ['/estrategico', 'BusinessMap', 'Acelerato'], ['/sustentacao', 'Acelerato', 'BusinessMap']] as const) {
+    for (const [rota, fonte, outra] of [['/operacional?cadencia=semanal', 'BusinessMap', 'Acelerato'], ['/tatico', 'BusinessMap', 'Acelerato'], ['/estrategico', 'BusinessMap', 'Acelerato'], ['/operacional?cadencia=sustentacao', 'Acelerato', 'BusinessMap']] as const) {
       await page.goto(rota);
       await prontos(page);
       await abrirMaisMetricas(page);
@@ -402,12 +403,12 @@ test.describe('SIS-ROB robustez', () => {
     });
   }
 
-  test('SIS-ROB-03 navegação rápida: 4 voltas pelos 8 destinos sem esperar carregar; termina íntegro e sem erro de página', async ({ page, problemas }) => {
+  test('SIS-ROB-03 navegação rápida: 4 voltas pelos destinos do menu sem esperar carregar; termina íntegro e sem erro de página', async ({ page, problemas }) => {
     await page.goto('/');
     const nav = page.getByRole('navigation', { name: 'Navegação principal' }).first();
     await expect(nav.getByRole('link').first()).toBeVisible();
     const destinos = await nav.getByRole('link').evaluateAll((as) => as.map((a) => a.getAttribute('href') ?? '').filter((h) => h.startsWith('/')));
-    expect(destinos.length).toBeGreaterThanOrEqual(7);
+    expect(destinos.length).toBeGreaterThanOrEqual(6); // a Sustentação deixou o menu (CA-1): 6 destinos de painel, mais Preferências e Ajuda quando presentes
     for (let volta = 0; volta < 4; volta++) for (const d of destinos) await nav.locator(`a[href="${d}"]`).first().click({ noWaitAfter: true });
     await expect(page).toHaveURL(new RegExp(`${destinos.at(-1)!.replace('?', '\\?')}$`));
     await prontos(page);
@@ -435,7 +436,7 @@ test.describe('SIS-ROB robustez', () => {
     await page.goto('/operacional?cadencia=semanal&periodo=4s');
     await prontos(page);
     const base4s = await page.getByTestId('base-O3').innerText();
-    await page.goto('/sustentacao');
+    await page.goto('/operacional?cadencia=sustentacao');
     await prontos(page);
     await page.goBack();
     await prontos(page);

@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1..O21, O24, O25, BLOQUEADOS, T1..T12, E1..E5, E7, E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL; 61 ids, inclui as 17 complementares abaixo e a PV1, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O21, O24, O25, BLOQUEADOS, T1..T12, E1..E5, E7, E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL, TENDENCIA_FLUXO, TENDENCIA_SUST; 63 ids, inclui as 17 complementares abaixo, a PV1 e as duas tendências, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -30,6 +30,7 @@ Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
 | Sustentação (S*, EI_SUST) | `equipe` (`totvs,senior,fluig`), `prioridade` (`P1..P5`), `periodo` |
 | Pesquisa de percepção (PV1) | nenhum (só `dataReferencia`) |
 | VISAO_GERAL | nenhum (padrões de cada painel) |
+| TENDENCIA_FLUXO, TENDENCIA_SUST | nenhum (só `dataReferencia`; padrões do fluxo e da sustentação) |
 
 - Aplicabilidade por métrica no fluxo: fonte é `APLICABILIDADE_FLUXO` (`packages/contratos/src/metricas.ts`). Filtro do mesmo domínio não aplicável à métrica (ex.: `tipo` em O12, `equipe` em E1) é aceito e ignorado, sem 400, coerente com "Não afetado por".
 - `periodo`: `4s | 12s | 6m | 12m` (padrão `12s`) ou `custom` com `de` e `ate` (AAAA-MM-DD, dentro de `historico`).
@@ -162,7 +163,7 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 - **Mock (base do B11a; ver `packages/mock/src/businessmap/tambem.ts`):** E7 em 12 semanas: 602 entregas em 8 sistemas (Protheus 156, Core 5G 150, Fluig 108, Senior 76, Data Lake 68, CRM 17, Site/Marketing 16, Portal do cliente 11; 3 abaixo de 20). A spec previa 18 a 20 sistemas: o mock gera 8. E9: **7 projetos abertos e não iniciados** (idades 28,75, 36,75, 61,75, 95,75, 140,75, 200,75 e 255,75 dias úteis), com as quatro faixas representadas e 2 acima de 180; o passo `projetos` acrescenta 4 projetos aos 3 do gerador. A decisão de ampliar o mock foi do tech-lead (B11).
 
 ### T11 (B11b): rota ativa
-- Desde o B11b `GET /api/v1/metricas/T11` existe (61 ids; OpenAPI regenerada). Filtros que atuam: **equipe, tipo, sistema**. O **período é aceito e não atua** (CA-12): a janela é fixa de 24 meses fechados mais o mês corrente, ancorada na data de corte, e a resposta é idêntica com qualquer `periodo`, `de` e `ate` (a rota os aceita e ignora; `periodo` inválido continua 400). Só BusinessMap; nenhum campo de pessoa. **Cartão no catálogo (`CATALOGO_CARTOES`): ainda não entra** (mesmo motivo do B3 a B10). Entrada pronta para o front: T11 em tático, seção `o-que-entra` "O que entra, e quando?" (leia junto `t4`, `t6`), `complementar`, `disponivel` (status `mock` enquanto não houver coleta real), filtros Equipe, Tipo e Sistema, **"Não afetado por: Período"** (como no E9, a aplicabilidade `APLICABILIDADE_FLUXO.T11` lista `periodo`, porque o contrato exige `periodo` em toda métrica de fluxo: o front monta o chip passando ao cartão a lista sem `periodo`, como já faz no E9). O seletor "Todos os tipos / um tipo" do mapa de calor usa o filtro `tipo`.
+- Desde o B11b `GET /api/v1/metricas/T11` existe (63 ids; OpenAPI regenerada). Filtros que atuam: **equipe, tipo, sistema**. O **período é aceito e não atua** (CA-12): a janela é fixa de 24 meses fechados mais o mês corrente, ancorada na data de corte, e a resposta é idêntica com qualquer `periodo`, `de` e `ate` (a rota os aceita e ignora; `periodo` inválido continua 400). Só BusinessMap; nenhum campo de pessoa. **Cartão no catálogo (`CATALOGO_CARTOES`): ainda não entra** (mesmo motivo do B3 a B10). Entrada pronta para o front: T11 em tático, seção `o-que-entra` "O que entra, e quando?" (leia junto `t4`, `t6`), `complementar`, `disponivel` (status `mock` enquanto não houver coleta real), filtros Equipe, Tipo e Sistema, **"Não afetado por: Período"** (como no E9, a aplicabilidade `APLICABILIDADE_FLUXO.T11` lista `periodo`, porque o contrato exige `periodo` em toda métrica de fluxo: o front monta o chip passando ao cartão a lista sem `periodo`, como já faz no E9). O seletor "Todos os tipos / um tipo" do mapa de calor usa o filtro `tipo`.
 - **Resposta:** `{ base, criterios, anos[{ ano, meses[{ mes (1..12), entradas | null, emAndamento }] }], marcacoes, mesesComDado, mediaMensal | null, historicoCurto }`.
   - `anos` tem uma linha por ano civil que toca a janela (de 2024 a 2026 no mock), cada uma com os **12 meses**, na ordem jan a dez. `entradas` = demandas criadas no mês (story que não é bug interno nem subtarefa); `null` = mês fora da janela ou anterior ao início do histórico (célula vazia, sem número); `0` = mês coberto sem nenhuma entrada. `emAndamento: true` só no mês corrente (parcial; a interface lista e rotula "em andamento").
   - **Censo, sem percentil:** é contagem; o mínimo de 20 não se aplica e não há `estatistica`. `mediaMensal` é só referência de contagem (média dos meses **fechados** cobertos, 2 casas), nunca aparece sozinha e nunca é estatística de tempo; `null` sem nenhum mês fechado.
@@ -240,6 +241,68 @@ Plano: `docs/architecture/features/lacuna-de-valor.md`. **Terceira fonte**, `pes
 - **O contrato proíbe por desenho:** média, nota única, meta, semáforo, ranking (ordem fixa), campo de pessoa ou de comentário, percentual com n < 20.
 - **Estado atual do back-end (B1):** os contratos e o schema estão publicados; até a biblioteca (B2) e a fonte `pesquisa` do serviço (B3) a rota devolve sempre `sem-pesquisa`, sem ler BusinessMap nem Acelerato.
 - **Linha do CSV de carga** (`linhaPesquisaSchema`, `COLUNAS_CSV_PESQUISA`): `trimestre,area,pergunta,f1,f2,f3,f4,f5,convidados`; coluna extra recusa o arquivo; sem `@`; soma das faixas <= convidados.
+
+## Tendência mensal do Resumo do Operacional (TENDENCIA_FLUXO e TENDENCIA_SUST)
+Plano: `docs/architecture/plano-sustentacao-no-operacional.md`. Decisão: [ADR 0019](../architecture/adr/0019-tendencia-mensal-por-data-de-referencia.md). **Uma métrica por fonte**: `TENDENCIA_FLUXO` lê só o BusinessMap (`fonteDaMetrica` = `businessmap`) e `TENDENCIA_SUST` lê só o Acelerato (`acelerato`). Não existe tendência "geral" nem resposta com as duas fontes. `TENDENCIA_SUST` entra em `METRICAS_SUSTENTACAO`.
+
+- **Rotas:** `GET /api/v1/metricas/TENDENCIA_FLUXO?dataReferencia=AAAA-MM-DD` e `GET /api/v1/metricas/TENDENCIA_SUST?dataReferencia=AAAA-MM-DD`.
+- **Query:** só `dataReferencia` (opcional). Qualquer outro parâmetro (filtro, `periodo`, pessoa) -> 400 `VALIDATION_ERROR`; data futura -> 400. Mesmos cabeçalhos (`X-Data-Referencia`, `X-Versao-Criterio`, `Cache-Control`, `ETag`) e 304 por `If-None-Match` das demais. Sem `dataReferencia`, o corte é o da última coleta da fonte. Para os dois blocos terem o mesmo eixo, a interface manda nas duas consultas a mesma `dataReferencia` (a mais antiga das duas últimas coletas ok).
+- **Meses:** os 6 últimos meses-calendário cujo último dia é menor ou igual à data de referência, do mais antigo ao mais recente. O mês em curso fica fora (se a referência é o último dia do mês, esse mês já conta como fechado).
+- **Ponto = a métrica de origem na data:** cada ponto de distribuição usa o mesmo núcleo do `calcularO3` ou do `calcularS2` (`classesNaJanela`, `aderenciaPorPrioridade`) com corte em `AAAA-MM-<último dia>` e janela móvel de 12 semanas. Nenhuma fórmula nova: um teste de propriedade confere cada ponto contra a métrica de origem calculada em um contexto criado para o fim do mês. Como no resto do sistema, o estado de cada card/chamado é o da base atual (um card reaberto ou reclassificado depois do fim do mês muda o ponto passado; "como se estivesse naquela data" vale para a janela e o corte, não para uma reconstrução histórica da base).
+- **Mínimo de 20:** cada estatística e cada taxa segue a métrica de origem. Abaixo de 20 itens vem `insuficiente` com `n` e sem valor. As contagens (`concluidos`, `volume`) são do mês-calendário e sempre publicadas (0 em mês sem itens).
+
+### TENDENCIA_FLUXO (BusinessMap, story)
+```json
+{
+  "base": { "n": 112, "unidade": "itens concluídos", "janela": { "inicio": "2026-04-01", "fim": "2026-09-30" } },
+  "criterios": { "serie": [], "janela": [] },
+  "meses": [
+    {
+      "mes": "2026-09",
+      "fimDoMes": "2026-09-30",
+      "janelaPercentis": { "inicio": "2026-07-09", "fim": "2026-09-30", "unidade": "semanas", "quantidade": 12 },
+      "p85PorTipo": [
+        { "tipo": "Melhoria", "n": 31, "estatistica": { "status": "ok", "n": 31, "valor": { "p50": 4.2, "p85": 9.1 }, "janela": { "inicio": "2026-07-09", "fim": "2026-09-30", "unidade": "semanas", "quantidade": 12 } } },
+        { "tipo": "Incidente", "n": 7, "estatistica": { "status": "insuficiente", "n": 7, "minimo": 20, "janela": { "inicio": "2026-07-09", "fim": "2026-09-30" } } }
+      ],
+      "concluidos": 18
+    }
+  ]
+}
+```
+- `p85PorTipo` é igual a `O3.classes` no fim do mês (mesmos tipos, mesma ordem), só com `tipo`, `n` e `estatistica` de `{ p50, p85 }`: **sempre por tipo, nunca um percentil entre tipos** (P1 = tipo predominante: a interface escolhe o tipo de maior `n` na janela e rotula "P85 · <tipo>"; o contrato não esconde os demais tipos). Sem `pontos` (títulos de card) e sem série.
+- `concluidos`: itens de demanda concluídos no mês-calendário pela data de conclusão (a seleção do O4: story, sem Bug interno); cards arquivados após a entrega contam; descartados e subtarefas ficam fora, como no O3 e no O4.
+- `base`: soma de `concluidos`; `janela` é o intervalo dos 6 meses.
+
+### TENDENCIA_SUST (Acelerato, chamado)
+```json
+{
+  "base": { "n": 604, "unidade": "chamados abertos", "janela": { "inicio": "2026-04-01", "fim": "2026-09-30" } },
+  "criterios": { "serie": [], "janela": [] },
+  "meses": [
+    {
+      "mes": "2026-09",
+      "fimDoMes": "2026-09-30",
+      "janela": { "inicio": "2026-07-09", "fim": "2026-09-30", "unidade": "semanas", "quantidade": 12 },
+      "prioridades": [
+        { "prioridade": "P1", "primeiroAtendimento": { "taxa": { "status": "insuficiente", "k": 3, "n": 4, "minimo": 20 }, "statusMeta": "sem-referencia" }, "restauracao": { "taxa": { "status": "insuficiente", "k": 3, "n": 4, "minimo": 20 }, "statusMeta": "sem-referencia" } }
+      ],
+      "volume": 104
+    }
+  ]
+}
+```
+- `prioridades` é igual a `S2.prioridades` no fim do mês (12 semanas, as 5 prioridades). O "k de m avaliadas" (P2) **não é calculado no back nem na tela**: a tela usa a mesma função pura que conta as prioridades fora do alvo no "Pede atenção" (`contarForaS2`); prioridade com menos de 20 chamados vem `insuficiente` (`k de n`, sem percentual) e fica fora de m.
+- `volume`: chamados abertos no mês-calendário pela **data de abertura** (P4 = a mesma base do cartão S3, para o ponto bater com o detalhe); chamados excluídos ficam fora, como no S3.
+- Dados de pessoa e texto livre (título, descrição) nunca aparecem: só agregados. A API continua sem ler colunas de pessoa.
+
+### S3: campo novo `janela` (acréscimo compatível)
+`ResultadoS3.janela: { total: number, p1p2: Taxa }`, calculado sobre **todo o período filtrado** (chamados abertos entre `periodo.inicio` e `periodo.fim`, não a soma de meses nem só os meses cujo primeiro dia cai no período): `total` é o volume e `p1p2` é "k de n" de P1+P2 (percentual só com n >= 20). Alimenta o número-chave "Volume na janela e proporção de P1+P2" do Resumo (P3: 12 semanas). O resto do S3 não mudou. O campo é obrigatório no schema de resposta; consumidor que ignora campo extra não muda.
+
+### Mudanças de contrato para o front (Sustentação no Operacional)
+- Ids novos em `METRICA_IDS`: `TENDENCIA_FLUXO`, `TENDENCIA_SUST` (`ContratoMetricas` com filtros `SoDataReferencia` (`{ dataReferencia?: string }`); `SCHEMAS_RESULTADO`, `ResultadoTendenciaFluxo`, `ResultadoTendenciaSust`).
+- `ResultadoS3.janela` novo (acima).
+- `METRICAS_SUSTENTACAO` ganha `TENDENCIA_SUST`; `fonteDaMetrica` classifica as duas novas por fonte. Fica com o front (F4) a troca de ids de seção em `cartoes.ts` prevista no plano; nenhum id de cartão muda.
 
 ## Cache
 - Chave: `métrica + versão de carga (marca d'água da coleta + versão de critério mais recente) + versão de critério vigente + dataReferencia + filtros normalizados (listas ordenadas)`. A base (`BaseBM`/`BaseAC`) fica em memória por versão de carga; a marca d'água é relida a cada 60 s. Máximo de 500 resultados por domínio (descarta o mais antigo). Mudança de `ref_*` sem nova coleta só vale após reiniciar a api (ou nova coleta/versão de critério).

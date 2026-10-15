@@ -200,6 +200,8 @@ export const METRICA_IDS = [
   'EI_FL3',
   'EI_SUST',
   'VISAO_GERAL',
+  'TENDENCIA_FLUXO',
+  'TENDENCIA_SUST',
 ] as const
 export type MetricaId = (typeof METRICA_IDS)[number]
 

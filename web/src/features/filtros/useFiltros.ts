@@ -20,7 +20,9 @@ import {
   PARAMS_CONHECIDOS,
   ROTULO_FILTRO,
   ROTULO_PERIODO,
+  rotuloDoFiltro,
   type ChaveFiltro,
+  type DominioFiltros,
   type PainelId,
 } from './paineis'
 import { fmtData } from '@/lib/formatar'
@@ -76,6 +78,7 @@ function chipsDe(
   padrao: string,
   opcoes: OpcoesFiltro | undefined,
   visiveis: readonly ChaveFiltro[],
+  dominio: DominioFiltros,
 ): ChipFiltro[] {
   const chips: ChipFiltro[] = []
   const sistemas = opcoes?.dominio === 'businessmap' ? opcoes.sistemas : undefined
@@ -84,7 +87,7 @@ function chipsDe(
     for (const id of f.equipe)
       chips.push({
         chave: 'equipe',
-        rotulo: ROTULO_FILTRO.equipe,
+        rotulo: rotuloDoFiltro('equipe', dominio),
         valor: rotuloDe(opcoes?.equipes, id),
         valorId: id,
       })
@@ -348,7 +351,7 @@ export function useFiltros(
   )
 
   const chips = useMemo(
-    () => chipsDe(efetivo, config.periodoPadrao, opcoes, config.filtros),
+    () => chipsDe(efetivo, config.periodoPadrao, opcoes, config.filtros, config.dominio),
     [efetivo, config, opcoes],
   )
 

@@ -3,8 +3,8 @@ import { resolve } from 'node:path';
 import { test, expect, rodarAxe } from '../fixtures/base';
 
 // Axe WCAG 2.2 AA em todas as rotas e estados, nos dois temas. Escreve o resumo em docs/qa/evidencias/fase-a/axe-resumo.json.
-const ROTAS = ['/', '/operacional', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/sustentacao', '/ajuda', '/rota-inexistente'];
-const ESTADOS = ['/operacional?mock=carregando', '/operacional?mock=erro', '/operacional?cadencia=semanal&mock=erro:o4', '/operacional?mock=vazio'];
+const ROTAS = ['/', '/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/operacional?cadencia=sustentacao', '/ajuda', '/rota-inexistente'];
+const ESTADOS = ['/operacional?cadencia=diaria&mock=carregando', '/operacional?cadencia=diaria&mock=erro', '/operacional?cadencia=semanal&mock=erro:o4', '/operacional?cadencia=diaria&mock=vazio'];
 const TEMAS = ['light', 'dark'] as const;
 const resumo: Record<string, unknown> = {};
 
@@ -49,7 +49,7 @@ test('A11Y-03 axe com popover de filtro, nota e tabela abertos (dois temas)', as
 
 test('A11Y-04 axe a 375 px (/, /operacional, /sustentacao)', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  for (const rota of ['/', '/operacional', '/sustentacao']) {
+  for (const rota of ['/', '/operacional?cadencia=diaria', '/operacional?cadencia=sustentacao']) {
     await page.goto(rota);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     const r = await rodarAxe(page);

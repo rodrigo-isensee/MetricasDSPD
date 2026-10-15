@@ -1,4 +1,5 @@
-import type { PeriodoPadrao } from '@metricas-dspd/contratos'
+import type { FiltrosSustentacao, PeriodoPadrao } from '@metricas-dspd/contratos'
+import { fmtData } from '@/lib/formatar'
 
 export type PainelId = 'operacional' | 'tatico' | 'estrategico' | 'sustentacao'
 export type DominioFiltros = 'fluxo' | 'sustentacao'
@@ -28,7 +29,23 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
     periodoPadrao: '12s',
     periodos: PERIODOS_TODOS,
     personalizado: true,
-    params: [...BASE_FLUXO, 'cadencia', 'o2', 'o3', 'o7', 'o9', 'o10', 'ei_fl1'],
+    // Os parâmetros de cartão da Sustentação (`s3`...`ei_sust`) valem em `/operacional`: sem eles a Diária e a
+    // Semanal os apagariam (2.6.1) e trocar de visão perderia o que foi escolhido. Os `sust_*` nunca são conhecidos.
+    params: [
+      ...BASE_FLUXO,
+      'cadencia',
+      'o2',
+      'o3',
+      'o7',
+      'o9',
+      'o10',
+      'ei_fl1',
+      's3',
+      's4',
+      's5',
+      's6',
+      'ei_sust',
+    ],
   },
   tatico: {
     dominio: 'fluxo',
@@ -56,6 +73,13 @@ export const PAINEIS: Record<PainelId, ConfigPainel> = {
   },
 }
 
+/** Filtro de equipe da Sustentação: as equipes são outras (H2), então o rótulo diz de quem são. */
+export const ROTULO_EQUIPE_SUSTENTACAO = 'Equipe de sustentação'
+
+/** Rótulo de um filtro no domínio: só a equipe muda de nome na Sustentação. */
+export const rotuloDoFiltro = (chave: ChaveFiltro, dominio: DominioFiltros): string =>
+  chave === 'equipe' && dominio === 'sustentacao' ? ROTULO_EQUIPE_SUSTENTACAO : ROTULO_FILTRO[chave]
+
 export const ROTULO_FILTRO: Record<ChaveFiltro, string> = {
   equipe: 'Equipe',
   tipo: 'Tipo de demanda',
@@ -76,3 +100,15 @@ export const ROTULO_PERIODO: Record<PeriodoPadrao | 'custom', string> = {
 export const PARAMS_CONHECIDOS: readonly string[] = [
   ...new Set(Object.values(PAINEIS).flatMap((c) => c.params)),
 ]
+
+const TEXTO_PERIODO_CURTO: Record<PeriodoPadrao, string> = {
+  '4s': '4 semanas',
+  '12s': '12 semanas',
+  '6m': '6 meses',
+  '12m': '12 meses',
+}
+
+/** Período do filtro em texto corrido ("6 meses"; personalizado: "de a"), para escrever a janela de um alerta. */
+export function textoPeriodoCurto(p: FiltrosSustentacao['periodo']): string {
+  return p.tipo === 'custom' ? `${fmtData(p.de)} a ${fmtData(p.ate)}` : TEXTO_PERIODO_CURTO[p.tipo]
+}

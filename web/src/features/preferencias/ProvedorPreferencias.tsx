@@ -16,9 +16,14 @@ import {
   type PainelComCartoes,
   type PreferenciasMetricas,
 } from '@metricas-dspd/contratos'
-import { ocultosDaSugestao, ocultosValidos, type FontePreferencias } from './fonte'
+import {
+  ErroVersaoMaisNova,
+  ocultosDaSugestao,
+  ocultosValidos,
+  type FontePreferencias,
+} from './fonte'
 
-export type EstadoSalvar = 'ocioso' | 'salvo' | 'erro'
+export type EstadoSalvar = 'ocioso' | 'salvo' | 'erro' | 'versao-nova'
 
 export interface PreferenciasValor {
   /** false até a primeira leitura da fonte: os painéis esperam para não piscar com o recorte errado. */
@@ -93,7 +98,7 @@ export function ProvedorPreferencias({
       setPrefs(prox)
       fonte.salvar(prox).then(
         () => setEstadoSalvar('salvo'),
-        () => setEstadoSalvar('erro'),
+        (e: unknown) => setEstadoSalvar(e instanceof ErroVersaoMaisNova ? 'versao-nova' : 'erro'),
       )
     },
     [fonte],

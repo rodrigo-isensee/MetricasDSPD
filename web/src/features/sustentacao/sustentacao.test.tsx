@@ -26,10 +26,10 @@ describe('formatação da Sustentação (J2)', () => {
 })
 
 describe('painel Sustentação', () => {
-  it('mostra "Pede atenção na semana" com link para S2 (SUS-01)', async () => {
+  it('mostra "Pede atenção no período" com link para S2 (SUS-01)', async () => {
     renderizarApp('/sustentacao?mock=sem-calibracao')
     const faixa = await screen.findByTestId('faixa-atencao', undefined, { timeout: 8000 })
-    expect(faixa).toHaveTextContent('Pede atenção na semana')
+    expect(faixa).toHaveTextContent('Pede atenção no período')
     const hrefs = () =>
       within(faixa)
         .queryAllByRole('link')

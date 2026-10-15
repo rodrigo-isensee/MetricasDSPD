@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, Outlet, useLocation, useMatches } from 'react-router'
+import { Link, Outlet, useLocation, useMatches, type Location } from 'react-router'
 import { Icone, TituloErroContext } from '@/components/ui'
 import { useFonte } from '@/data'
 import { CalibracaoDasFontes } from '@/features/coleta/CalibracaoDasFontes'
@@ -11,7 +11,8 @@ import { SeletorTema } from './SeletorTema'
 
 /** Metadados de rota (`handle.titulo`) usados no <title> e no foco do h1. */
 export interface HandleRota {
-  titulo?: string
+  /** Texto fixo ou função da URL (o Operacional troca o título por visão). */
+  titulo?: string | ((local: Location) => string)
 }
 
 /** Foco no h1 ao trocar de rota e no título do cartão ao abrir uma âncora (#t9). */
@@ -60,12 +61,16 @@ function useFocoDeRota() {
 function useTituloDaPagina(emErro: boolean) {
   const ficticios = useFonte().tipo === 'mock'
   const matches = useMatches()
+  const local = useLocation()
+  const bruto = [...matches]
+    .reverse()
+    .map((m) => (m.handle as HandleRota | undefined)?.titulo)
+    .find(Boolean)
   const titulo = emErro
     ? 'Não foi possível abrir este painel'
-    : [...matches]
-        .reverse()
-        .map((m) => (m.handle as HandleRota | undefined)?.titulo)
-        .find(Boolean)
+    : typeof bruto === 'function'
+      ? bruto(local)
+      : bruto
   useEffect(() => {
     document.title = `${titulo ?? 'Métricas DSPD'} · Métricas DSPD${ficticios ? ' · Dados fictícios' : ''}`
   }, [titulo, ficticios])
@@ -104,7 +109,7 @@ export function AppShell() {
             </Link>
             <NavegacaoGlobal />
           </div>
-          <div className="flex flex-nowrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <AvisoDadosFicticios />
             <SeletorTema />
             <Link

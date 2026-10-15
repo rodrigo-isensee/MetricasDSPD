@@ -243,6 +243,20 @@ Regras da emenda:
   - Risco: Safari real mais lento que a emulação de Chromium → o roteiro em iPhone e iPad reais (D1 = B) registra lentidão percebida; dois relatos na mesma tela viram medição dedicada.
   - Limite: nenhum número móvel vale para o Safari; a referência é Chromium com CPU e rede limitadas.
 
+### Medição das tendências do Resumo (node-backend, 2026-10-14; plano `sustentacao-no-operacional`, B3)
+Mock em escala padrão (5.788 cards, 6.062 chamados), CPU time (`process.cpuUsage`), contexto recriado a cada medição, máquina com carga média de 7 a 10 (outros agentes rodando suítes); medida com o mesmo método de `packages/mock/src/desempenho.test.ts` (mediana de 5 contextos a frio, 2ª chamada, p95 de 20). Biblioteca isolada (C3):
+
+| Métrica | A frio (mediana de 5) | 2ª chamada | p95 de 20 | Orçamento C3 | Situação |
+|---|---|---|---|---|---|
+| TENDENCIA_FLUXO (6 meses) | 16,6 ms | 12,4 ms | 12,4 ms | < 50 ms | ok |
+| TENDENCIA_SUST (6 meses) | 4,2 ms | 3,7 ms | 5,2 ms | < 50 ms | ok |
+| O3 (referência) | 15,4 ms | 10,1 ms | 11,9 ms | < 50 ms | ok |
+| S2 (referência) | 5,0 ms | 4,1 ms | 5,1 ms | < 50 ms | ok |
+
+API (Fastify `inject`, dublê de banco com o mesmo mock; sem Postgres): `GET` a frio, com a base já carregada, 10,9 ms (fluxo) e 7,1 ms (sustentação); a quente (cache de resultado) p95 1,0 ms e 0,6 ms; outra `dataReferencia` sem cache de resultado, 6,5 ms (fluxo) e 77,6 ms (sustentação, que reindexa o Acelerato para o novo corte, como já faz o S2). Corpos de 8,6 KB e 7,9 KB. Todos dentro de A1 (< 300 ms) e A2 (< 50 ms). **Não medido:** A1/A2 contra o Postgres real com 2 anos de seed (`e2e/tests/perf-api.spec.ts` exige a pilha no ar); fica para o QA na pré-entrega. A carga da base (primeira consulta depois de uma coleta) é a do domínio, não da tendência.
+
+Como o custo ficou baixo: o ponto de cada mês usa o mesmo núcleo do O3 (`classesNaJanela`) e do S2 (`aderenciaPorPrioridade`), sem refazer pontos, série semanal e variação; os entregues por tipo e os chamados apuráveis são montados uma vez para os seis meses (não dependem do corte). A primeira versão, que chamava `calcularO3` inteiro em seis contextos, custava cerca de 550 ms a frio e estourava o limite de CI de 150 ms. Efeito colateral: o O3 passou de cerca de 65 ms para cerca de 15 ms (as pontas da janela eram lidas por item).
+
 ## Por que o existente não basta
 Vale para o projeto `perf-movel` e a configuração móvel do Lighthouse (ferramenta nova). O que existe: projetos `perf` e `perf-api` do Playwright (desktop e o caso a 375 px, sem limitar rede) e `lighthouserc.cjs` com `preset: 'desktop'` ("sem limitação de CPU e rede"). Evidência de execução: as medições de F1 (p95 372 a 384 ms) e F10 (LCP 627 a 877 ms) em `docs/qa/intensivo-sistemico.md` foram feitas sem limitar rede; a única limitação existente é a de CPU 4× no F1, que não altera o número (372 ms contra 384 ms), porque o custo da carga fria em 4G está na rede, que nenhum teste emula. O diagnóstico do 010 registrou a lacuna (MT14). Sem um projeto com rede limitada, F1m, F12 e F13 não têm como ser medidos.
 

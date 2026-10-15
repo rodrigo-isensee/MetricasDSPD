@@ -28,7 +28,7 @@ test('ST-03b ?mock=erro-uma-vez:o4 recupera com "Tentar de novo" (v1-A7)', async
 });
 
 test('ST-04 ?mock=erro vira erro de painel, com shell preservado e rota para a Visão geral', async ({ painel, page }) => {
-  await painel.ir('/operacional', { mock: 'erro' });
+  await painel.ir('/operacional?cadencia=diaria', { mock: 'erro' });
   await expect(painel.erroDePainel).toBeVisible();
   await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
   await painel.cabecalho.esperarAvisoFicticio();
@@ -65,7 +65,7 @@ test('ST-12 mock inválido é ignorado e não aparece na UI nem nos links', asyn
 });
 
 test('ST-12b links de navegação não propagam mock válido (spec 6.6, v1-A7)', async ({ painel }) => {
-  await painel.ir('/operacional', { mock: 'carregando' });
+  await painel.ir('/operacional?cadencia=diaria', { mock: 'carregando' });
   for (const href of await painel.cabecalho.nav.getByRole('link').evaluateAll((a) => a.map((x) => x.getAttribute('href') ?? ''))) {
     expect(href).not.toContain('mock');
   }
@@ -73,7 +73,7 @@ test('ST-12b links de navegação não propagam mock válido (spec 6.6, v1-A7)',
 
 test('ST-12c "Copiar link" não inclui mock', async ({ painel, page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await painel.ir('/operacional', { mock: 'carregando' });
+  await painel.ir('/operacional?cadencia=diaria', { mock: 'carregando' });
   await page.getByTestId('copiar-link').click();
   const url = await page.evaluate(() => navigator.clipboard.readText());
   expect(url).not.toContain('mock');

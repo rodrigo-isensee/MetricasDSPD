@@ -3,7 +3,7 @@
 Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-15.
 
 <!-- gerado:inicio -->
-Gerado por `pnpm run docs:gerar`. 61 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
+Gerado por `pnpm run docs:gerar`. 63 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
 
 | Métrica | Nome | Domínio | Rota | Granularidade | Mínimo | Status das regras |
 |---|---|---|---|---|---|---|
@@ -68,4 +68,6 @@ Gerado por `pnpm run docs:gerar`. 61 métricas, uma página cada. Regras gerais,
 | [`EI_FL3`](EI_FL3.md) | Espera invisível · Estratégico | businessmap | `/api/v1/metricas/EI_FL3` | projeto | 20 | ok |
 | [`EI_SUST`](EI_SUST.md) | Espera invisível · Sustentação | acelerato | `/api/v1/metricas/EI_SUST` | chamado | 20 | ok |
 | [`VISAO_GERAL`](VISAO_GERAL.md) | - | composicao | `/api/v1/metricas/VISAO_GERAL` | story, frente, projeto, chamado | 0 | ok |
+| [`TENDENCIA_FLUXO`](TENDENCIA_FLUXO.md) | - | businessmap | `/api/v1/metricas/TENDENCIA_FLUXO` | story | 20 | ok |
+| [`TENDENCIA_SUST`](TENDENCIA_SUST.md) | - | acelerato | `/api/v1/metricas/TENDENCIA_SUST` | chamado | 20 | ok |
 <!-- gerado:fim -->

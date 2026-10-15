@@ -44,25 +44,36 @@ interface Props {
   momento?: keyof typeof TITULOS_FAIXA
   /** Texto livre; sobrepõe `momento`. */
   titulo?: string
+  /** Fonte da faixa, quando a página tem duas: "Pede atenção na semana · Sustentação (Acelerato)". */
+  fonte?: string
   itens: readonly ItemAtencao[]
   vazio?: string
+  /** Linha auxiliar sob o título com a janela dos números do alerta ("Janela: últimas 12 semanas"). */
+  janela?: string
   /** Máximo de itens antes de "Ver todos os alertas (N)". */
   maximo?: number
   /** Altura (px) da faixa já pronta, em coluna única e em `lg`; reservada enquanto carrega (sem salto, K-050). */
   reserva?: { mobile: number; desktop: number }
+  /** Nível do título: `h2` nas páginas; `h3` quando a faixa vive dentro de um bloco que já tem `h2` (Resumo). */
+  nivel?: 'h2' | 'h3'
 }
 
 /** "Pede atenção": primeiro o que pede ação. Cada item leva ao cartão; ícone + texto, nunca só cor. */
 export function FaixaAtencao({
   momento = 'agora',
-  titulo = TITULOS_FAIXA[momento],
+  fonte,
+  titulo = fonte ? `${TITULOS_FAIXA[momento]} · ${fonte}` : TITULOS_FAIXA[momento],
   itens: itensBrutos,
   vazio = 'Nada pede atenção agora com base nas metas publicadas.',
+  janela,
   maximo,
   estado: estadoDaConsulta = 'ok',
   onTentarDeNovo,
   reserva,
+  nivel = 'h2',
 }: Props) {
+  const Titulo = nivel
+  const idTitulo = useId()
   const emCalibracao = useEmCalibracao()
   const prefs = usePreferenciasPainel()
   // Antes de saber o que está em calibração nada é afirmado: nem alerta, nem "Nada pede atenção".
@@ -78,7 +89,7 @@ export function FaixaAtencao({
   const lista = maximo && !todos ? itens.slice(0, maximo) : itens
   return (
     <section
-      aria-label={titulo}
+      aria-labelledby={idTitulo}
       className={`rounded-lg border border-borda bg-superficie p-3${reservando ? ' min-h-[var(--fa-m)] lg:min-h-[var(--fa-d)]' : ''}`}
       style={
         reservando
@@ -87,11 +98,17 @@ export function FaixaAtencao({
       }
       data-testid="faixa-atencao"
     >
-      <h2 className="text-sm font-bold uppercase tracking-wide text-texto-2">{titulo}</h2>
+      <Titulo id={idTitulo} className="text-sm font-bold uppercase tracking-wide text-texto-2">
+        {titulo}
+      </Titulo>
+      {janela && (
+        <p className="mt-1 text-xs text-texto-2" data-testid="faixa-atencao-janela">
+          {janela}
+        </p>
+      )}
       {estado === 'carregando' ? (
         <p
           className="mt-2 text-sm text-texto-2"
-          role="status"
           aria-busy="true"
           data-testid="faixa-atencao-carregando"
         >
@@ -148,16 +165,16 @@ export function FaixaAtencao({
             const conteudo = (
               <>
                 <Icone nome="alerta" className="size-4 text-alerta" />
-                <span>{i.texto}</span>
+                <span className="min-w-0">{i.texto}</span>
                 <span className="text-acento underline">
                   {i.rotuloLink ?? `Ver ${i.codigo ?? i.id.toUpperCase()}`}
                 </span>
               </>
             )
             const cls =
-              'alvo inline-flex items-center gap-2 rounded-md border border-borda bg-superficie-2 px-3 py-1.5 text-sm text-texto hover:bg-acento-fundo'
+              'alvo inline-flex max-w-full items-center gap-2 rounded-md border border-borda bg-superficie-2 px-3 py-1.5 text-sm text-texto hover:bg-acento-fundo'
             return (
-              <li key={i.id}>
+              <li key={i.id} className="min-w-0 max-w-full">
                 {interno ? (
                   <a href={i.para} className={cls}>
                     {conteudo}

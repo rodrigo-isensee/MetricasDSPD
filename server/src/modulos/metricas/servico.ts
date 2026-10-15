@@ -1,5 +1,5 @@
 import {
-  CATALOGO_CARTOES, fonteDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  CATALOGO_CARTOES, METRICA_IDS, fonteDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, pesquisa, type ContextosMetricas, type ExtensoesMetricas,
@@ -174,6 +174,29 @@ export class ServicoMetricas {
     mapa.set(chave, resultado);
     if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
     return { resultado, dataReferencia, versaoCriterio, chave };
+  }
+
+  /**
+   * Aquecimento (SNO-005): carrega as duas bases em memória e roda uma vez cada métrica de fluxo e de sustentação (filtros
+   * padrão), para que a primeira consulta depois de subir não pague a leitura do banco, a indexação nem a compilação a
+   * quente do código. Chamado antes de a API aceitar requisições. Falha de uma métrica não impede a subida: a classe do erro (sem mensagem) volta
+   * na lista e a consulta real o trata como sempre.
+   */
+  async aquecer(agoraDate: Date, filtrosPadrao: (id: MetricaId) => FiltrosMetrica): Promise<{ metricas: number; falhas: { id: MetricaId; erro: string }[] }> {
+    const agora = agoraDate.getTime();
+    await Promise.all([this.carga('businessmap', agora), this.carga('acelerato', agora)]);
+    const falhas: { id: MetricaId; erro: string }[] = [];
+    let metricas = 0;
+    for (const id of METRICA_IDS) {
+      if (dominioDe(id) === 'pesquisa') continue;
+      try {
+        await this.calcular(id, filtrosPadrao(id), {}, agoraDate);
+        metricas += 1;
+      } catch (e) {
+        falhas.push({ id, erro: (e as Error).constructor.name });
+      }
+    }
+    return { metricas, falhas };
   }
 
   async calcular(id: MetricaId, filtros: FiltrosMetrica, op: OpcoesCalculo, agoraDate: Date): Promise<Calculo> {
