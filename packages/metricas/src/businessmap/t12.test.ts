@@ -253,3 +253,17 @@ describe('T12 sobre o mock (medição registrada, a base não muda)', () => {
     expect(retornos).toEqual([])
   })
 })
+
+describe('L3: marcação de critério cruzando o período (T12)', () => {
+  it('a série traz a versão do período e fora dele não traz', () => {
+    const base = umaBase([])
+    base.config.criterios = [
+      { id: 'c-dentro', data: '2026-09-20', descricao: 'dentro do período', afeta: ['T12'] },
+      { id: 'c-antes', data: '2025-01-10', descricao: 'antes do período', afeta: ['T12'] },
+      { id: 'c-outra', data: '2026-09-20', descricao: 'outra métrica', afeta: ['O1'] },
+    ]
+    const r = calcularT12(criarContextoBM(base, HOJE_TESTE, CALENDARIO_PADRAO), F)
+    expect(r.criterios.serie.map((c) => c.id)).toEqual(['c-dentro'])
+    expect(r.criterios.janela.map((c) => c.id)).toEqual(['c-dentro'])
+  })
+})
