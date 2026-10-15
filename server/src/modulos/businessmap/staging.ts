@@ -1,17 +1,10 @@
 import { createHash } from 'node:crypto';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { registroCard, registroRevisao, type DominiosCamposCustomizados } from './allow-list.js';
+import { registroCard, registroRevisao, serializar, type DominiosCamposCustomizados } from './allow-list.js';
 
 export type ResultadoStaging = 'inserido' | 'ja_existente';
 
-/**
- * Grava uma versão de stg_card (ADR 0014, data-model §3.1): dedup contra a ÚLTIMA versão; INSERT com
- * `ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk` (alvo explícito, sem DO UPDATE).
- * Zero linhas devolvidas = outro coletor gravou sobre a mesma anterior: relê e reavalia (até 5 vezes).
- * Como ON CONFLICT não gera erro, a transação do chamador não é abortada. Exige READ COMMITTED (padrão),
- * para que a releitura enxergue o que a outra transação confirmou.
- */
 /**
  * `card` é o objeto da API: a allow-list (ADR 0020, 4a) é aplicada AQUI, antes do INSERT, e o `payload` gravado é só o registro
  * filtrado. O hash de deduplicação é o do registro filtrado (mudança só em campo fora da lista não gera versão nova).
@@ -22,11 +15,18 @@ export type EntradaStgCard = {
   quadroId: string; arquivado: boolean; excluidoDetectado: boolean;
 };
 
+/**
+ * Grava uma versão de stg_card (ADR 0014, data-model §3.1): dedup contra a ÚLTIMA versão; INSERT com
+ * `ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk` (alvo explícito, sem DO UPDATE).
+ * Zero linhas devolvidas = outro coletor gravou sobre a mesma anterior: relê e reavalia (até 5 vezes).
+ * Como ON CONFLICT não gera erro, a transação do chamador não é abortada. Exige READ COMMITTED (padrão),
+ * para que a releitura enxergue o que a outra transação confirmou.
+ */
 export async function gravarStgCard(
   db: Consultavel, entrada: EntradaStgCard, S: Esquemas = esquemasDoAmbiente(),
 ): Promise<ResultadoStaging> {
   const { idOrigem, card, dominios, coletaId, agora, quadroId, arquivado, excluidoDetectado } = entrada;
-  const payload = JSON.stringify(registroCard(card, dominios));
+  const payload = serializar(registroCard(card, dominios));
   const sha256 = createHash('sha256').update(payload).digest();
   for (let tentativa = 0; tentativa < 5; tentativa++) {
     const r = await db.query<{ stg_sk: string; payload_sha256: Buffer }>(
@@ -56,7 +56,7 @@ export type EntradaStgRevision = {
 export async function gravarStgRevision(
   db: Consultavel, entrada: EntradaStgRevision, S: Esquemas = esquemasDoAmbiente(),
 ): Promise<boolean> {
-  const payload = JSON.stringify(registroRevisao(entrada.revisao, entrada.trocaResponsavel, entrada.dominios));
+  const payload = serializar(registroRevisao(entrada.revisao, entrada.trocaResponsavel, entrada.dominios));
   const sha256 = createHash('sha256').update(payload).digest();
   const r = await db.query(
     `INSERT INTO ${S.bm}.stg_revision (card_id, revision_id, payload_sha256, payload, coletado_em, coleta_id)

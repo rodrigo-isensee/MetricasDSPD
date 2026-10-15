@@ -4,7 +4,7 @@ import {
   CAMPOS_CARD, CAMPOS_REVISAO, CAMPOS_WEBHOOK, extrairResponsaveis, gravarResponsaveis, gravarStgCard, gravarStgRevision,
   registroCard, registroRevisao, registroWebhook, rotasWebhook,
 } from '../src/modulos/businessmap/index.js';
-import { reduzirCamposCustomizados, tipoParaLog } from '../src/modulos/businessmap/allow-list.js';
+import { reduzirCamposCustomizados, serializar, tipoParaLog } from '../src/modulos/businessmap/allow-list.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { criarDublePg } from './duble-pg.js';
 
@@ -64,6 +64,13 @@ describe('allow-list do card (stg_card, 4a, M-1)', () => {
     expect(r.block_reason_id).toBe(9);
     expect(r.linked_cards).toEqual([{ card_id: 11, link_type: 'parent' }]);
     expect(r.child_card_stats).toEqual({ child_card_count: 2, ok: true });
+  });
+  it('child_card_stats sai com chaves em ordem e o hash não depende da ordem das chaves da API', () => {
+    const a = registroCard({ card_id: 1, child_card_stats: { b: 1, a: 2 }, custom_fields: [{ z: 1, a: 2 }] });
+    const b = registroCard({ child_card_stats: { a: 2, b: 1 }, card_id: 1, custom_fields: [{ a: 2, z: 1 }] });
+    expect(Object.keys(a.child_card_stats as object)).toEqual(['a', 'b']);
+    expect(serializar(a)).toBe(serializar(b));
+    expect(serializar({ x: [{ b: 1, a: [{ d: 1, c: 2 }] }], k: null })).toBe('{"k":null,"x":[{"a":[{"c":2,"d":1}],"b":1}]}');
   });
   it('campo que vira objeto na API (por exemplo o título) não passa: só escalares', () => {
     expect(registroCard({ card_id: 1, title: { nome: MARCADOR } }).title).toBeUndefined();
@@ -191,13 +198,14 @@ describe('responsáveis em memória (4b, M-1)', () => {
   it('grava só em dim_card e dim_card_versao: nenhum SQL toca stg_', async () => {
     const d = criarDublePg((c) => (c.texto.startsWith('INSERT') ? [{ card_versao_sk: '1' }] : { rows: [], rowCount: 1 }));
     expect(await gravarResponsaveis(d.pool, e, S)).toEqual({ dimCard: true, versao: true });
-    expect(d.chamadas).toHaveLength(2);
-    expect(d.chamadas[0]!.texto).toContain('UPDATE t_dspd_bm.dim_card SET responsaveis');
-    expect(d.chamadas[1]!.texto).toContain('INSERT INTO t_dspd_bm.dim_card_versao');
-    expect(d.chamadas[1]!.texto).toContain('ON CONFLICT ON CONSTRAINT uq_dim_card_versao DO NOTHING');
-    expect(d.chamadas[1]!.texto).not.toMatch(/UPDATE t_dspd_bm\.dim_card_versao/);
+    expect(d.chamadas).toHaveLength(3);
+    expect(d.chamadas[0]!.texto).toMatch(/^SELECT vigente_de, responsaveis FROM t_dspd_bm\.dim_card_versao/);
+    expect(d.chamadas[1]!.texto).toContain('UPDATE t_dspd_bm.dim_card SET responsaveis');
+    expect(d.chamadas[2]!.texto).toContain('INSERT INTO t_dspd_bm.dim_card_versao');
+    expect(d.chamadas[2]!.texto).toContain('ON CONFLICT ON CONSTRAINT uq_dim_card_versao DO NOTHING');
+    expect(d.chamadas[2]!.texto).not.toMatch(/UPDATE t_dspd_bm\.dim_card_versao/);
     for (const c of d.chamadas) expect(c.texto).not.toContain('stg_revision');
-    expect(d.chamadas[0]!.valores[1]).toEqual(['1', '2']);
+    expect(d.chamadas[1]!.valores[1]).toEqual(['1', '2']);
   });
   it('nada mudou: nada é gravado; null nem consulta o banco', async () => {
     const d = criarDublePg(() => ({ rows: [], rowCount: 0 }));

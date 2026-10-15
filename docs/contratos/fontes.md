@@ -13,12 +13,14 @@
 | Entrada por API | coleta incremental diária e varredura semanal, com apikey no `.env` (nunca no código) | [planejado]: lista de tarefas do worker está vazia (`server/src/entradas/worker.ts:16-18`) |
 | Entrada por webhook | `POST /webhooks/businessmap`: cabeçalho `x-webhook-secret`, corpo JSON objeto até 256 KB; `202 { "status": "recebido" }`; entrega idêntica não duplica | implementado (`server/src/modulos/businessmap/webhook.ts`) |
 | Staging | `stg_card`, `stg_revision`, `stg_bloqueio`, `stg_webhook_evento` etc., com payload reduzido à allow-list (ADR 0020), SHA-256 e cadeia `anterior_sk` (`data-model.md` §3.1); gravação em `server/src/modulos/businessmap/staging.ts:18-36` | `gravarStgCard` implementado; demais tabelas conforme `data-model.md` |
-| Formato real do payload do webhook | desconhecido até o coletor; o corpo é guardado como veio (`jsonb`) e só o hash e o `webhookSk` seguem para a outbox | **a confirmar** (WS2) |
+| Formato real do payload do webhook | desconhecido até o coletor; só o registro da allow-list (ADR 0020, 4f) é gravado em `stg_webhook_evento`; o `payload_sha256` é o do corpo bruto; tipo fora de `TIPOS_WEBHOOK_BM_GRAVADOS` recebe 202 e não grava; só o hash e o `webhookSk` seguem para a outbox | **a confirmar** (WS2) |
 | Normalização do evento | consumidor de `bm.webhook.recebido` | [planejado] (ver [eventos.md](eventos.md)) |
 | Instante canônico de transição | revision é canônica; webhook só antecipa; tolerância de casamento 120 s | pergunta N-3 aberta (`data-model.md` §12) |
 
-### Allow-list de campos [planejado]
-Não há, no repositório, uma lista de campos permitidos da API do BusinessMap: nenhum documento a define e o código ainda não normaliza o payload. Estado atual: o staging guarda o payload bruto (inclusive nomes de pessoas, só legíveis por `dspd_coletor` e `dspd_migrador`, nunca por `dspd_api`; `dados.md` §2). Ao implementar o normalizador, a lista de campos que sobem do staging para o analítico deve ser registrada aqui e passar pela revisão de modelagem; campo de pessoa só nas três colunas de `COLUNAS_PESSOA`.
+### Allow-list de campos
+**[implementado] para `stg_card`, `stg_revision` e `stg_webhook_evento`:** `server/src/modulos/businessmap/allow-list.ts` (ADR 0020). Cada entidade tem uma constante de campos permitidos e o registro gravado é montado só a partir dela; campo fora da lista é descartado antes do INSERT. O hash de deduplicação é o do registro filtrado, serializado com chaves em ordem canônica. Responsáveis não passam pela staging: vão da memória do coletor só para `dim_card` e `dim_card_versao` (`COLUNAS_PESSOA`, que `dspd_api` não lê). Campo novo exige alterar a ADR 0020.
+
+**[planejado] para `stg_bloqueio`, `stg_custom_field`, `stg_vinculo` e `stg_coluna`:** ainda não há lista; a escrita nessas tabelas fica negada até haver (parecer de segurança K-084, B-K3). A lista deve ser registrada aqui e passar pela revisão de modelagem.
 
 ## 2. Acelerato (sustentação)
 

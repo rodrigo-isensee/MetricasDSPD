@@ -22,7 +22,7 @@ export const CAMPOS_CARD = [
 export const CAMPOS_REVISAO = ['card_id', 'revision', 'created_at', 'replaced_at', 'board_id', 'column_id', 'lane_id'] as const;
 
 /** 4f: tipos de evento do webhook que o receptor grava. Outro tipo recebe 2xx e não é gravado. */
-export const TIPOS_EVENTO_WEBHOOK = ['card_moved'] as const;
+export const TIPOS_WEBHOOK_BM_GRAVADOS = ['card_moved'] as const;
 /** 4f: campos do registro do webhook (o corpo bruto nunca é gravado). */
 export const CAMPOS_WEBHOOK = ['card_id', 'board_id', 'workflow_id', 'column_id', 'lane_id', 'column_id_anterior', 'lane_id_anterior'] as const;
 
@@ -72,7 +72,7 @@ export function registroCard(card: unknown, dominios: DominiosCamposCustomizados
   const stats = entrada.child_card_stats;
   if (ehObjeto(stats)) {
     const s: Objeto = {};
-    for (const [k, v] of Object.entries(stats)) if (typeof v === 'number' || typeof v === 'boolean') s[k] = v;
+    for (const k of Object.keys(stats).sort()) { const v = stats[k]; if (typeof v === 'number' || typeof v === 'boolean') s[k] = v; }
     r.child_card_stats = s;
   }
   const vinculos = reduzirVinculos(entrada.linked_cards);
@@ -97,6 +97,13 @@ export function registroRevisao(
   return r;
 }
 
+/** Serialização canônica (chaves em ordem, em todos os níveis): o hash de dedupe não depende da ordem da resposta da API. */
+export function serializar(v: unknown): string {
+  const ordenar = (x: unknown): unknown => Array.isArray(x) ? x.map(ordenar)
+    : ehObjeto(x) ? Object.fromEntries(Object.keys(x).sort().map((k) => [k, ordenar(x[k])])) : x;
+  return JSON.stringify(ordenar(v));
+}
+
 const TIPO_SEGURO = /^[a-z0-9_.]{1,40}$/;
 
 /**
@@ -107,7 +114,7 @@ const TIPO_SEGURO = /^[a-z0-9_.]{1,40}$/;
 export function registroWebhook(payload: unknown): Objeto | null {
   const p = ehObjeto(payload) ? payload : {};
   const tipo = p.evento;
-  if (typeof tipo !== 'string' || !(TIPOS_EVENTO_WEBHOOK as readonly string[]).includes(tipo)) return null;
+  if (typeof tipo !== 'string' || !(TIPOS_WEBHOOK_BM_GRAVADOS as readonly string[]).includes(tipo)) return null;
   const card = ehObjeto(p.card) ? p.card : {};
   const anterior = ehObjeto(p.anterior) ? p.anterior : {};
   const r: Objeto = { evento: tipo };
