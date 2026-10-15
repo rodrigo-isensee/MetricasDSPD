@@ -24,7 +24,7 @@ export function calcularO11(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO11 {
   const instantes = meses.map((b) => Math.min(ctx.hoje, fimDoExpediente(b.fimDia, ctx.cal)))
   // Papel de cada card em cada retrato, numa única passada pelas transições (instantes crescentes).
   const papeis = cards
-    .filter((m) => m.card.excluido_em === null)
+    .filter((m) => !m.excluido)
     .map((m) => {
       const trs = ctx.idx.transicoesPorCard.get(m.card.card_id) ?? []
       let i = 0
@@ -40,7 +40,7 @@ export function calcularO11(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO11 {
     })
   const linhas = meses.map((b, k) => {
     const noRetrato = cards
-      .filter((m) => m.card.excluido_em === null)
+      .filter((m) => !m.excluido)
       .map((m, j) => ({ tipo: m.card.tipo, papel: (papeis[j] as (string | undefined)[])[k] }))
     const conta = (papel: string, tipo?: string) =>
       noRetrato.filter((x) => x.papel === papel && (tipo === undefined || x.tipo === tipo)).length

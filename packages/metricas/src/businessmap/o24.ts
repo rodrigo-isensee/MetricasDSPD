@@ -41,8 +41,7 @@ function varrerFilas(ctx: ContextoBM): Map<string, Passagem> {
   const grupos = new Map<string, MarcosCard[]>()
   for (const m of ctx.idx.marcos) {
     const c = m.card
-    if (c.classe_servico !== 'Padrão' || !ehDemanda(m) || c.eh_subtarefa || c.excluido_em !== null)
-      continue
+    if (c.classe_servico !== 'Padrão' || !ehDemanda(m) || c.eh_subtarefa || m.excluido) continue
     const chave = `${c.quadro_id}|${c.tipo}`
     const l = grupos.get(chave)
     if (l) l.push(m)

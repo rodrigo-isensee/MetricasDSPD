@@ -37,7 +37,7 @@ export function calcularO25(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO25 {
     (m) => ehDemanda(m) && !m.card.eh_subtarefa,
   )
   const eventos = cards.flatMap((m) => {
-    const d = instanteDoDescarte(m.card, m.ultimaTransicao ?? m.card.criado_em)
+    const d = instanteDoDescarte(m.card, m.ultimaTransicao ?? m.card.criado_em, m.entrega)
     if (d !== null) {
       const iniciou = m.inicio !== null && m.inicio < d.instante
       return [
@@ -53,7 +53,7 @@ export function calcularO25(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO25 {
         },
       ]
     }
-    if (m.entrega !== null && !motivoSemDescarte(m.card))
+    if (m.entrega !== null && !motivoSemDescarte(m.card, m.entrega))
       return [
         {
           tipo: m.card.tipo,
@@ -122,7 +122,7 @@ export function calcularO25(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO25 {
     avisoPreenchimento: {
       itens: cards.filter(
         (m) =>
-          motivoSemDescarte(m.card) &&
+          motivoSemDescarte(m.card, m.entrega) &&
           (dentro(ctx, m.entrega, periodo) ||
             (m.card.criado_em <= corte && (m.entrega === null || m.entrega > corte))),
       ).length,

@@ -13,7 +13,7 @@ import { ordenarNeutro } from '../core/ordenar'
 export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
   const periodo = periodoDe(ctx, f)
   const cards = selecionar(ctx, f, 'story', { incluirInativos: true }).filter(
-    (m) => !m.card.eh_subtarefa && m.card.excluido_em === null,
+    (m) => !m.card.eh_subtarefa && !m.excluido,
   )
   const equipesSel =
     f.equipe.length === 0

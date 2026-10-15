@@ -47,6 +47,18 @@ export const VERSAO_CRITERIO_DESCARTE_NATIVO: VersaoCriterio = {
   afeta: METRICAS_DO_DESCARTE_NATIVO,
 }
 
+/**
+ * O25(b) = B (pedido 011, 2026-10-16): card entregue e excluído depois deixa de ser descarte e continua como entrega na
+ * vazão e no ciclo. Mesma abrangência do descarte nativo (todas as métricas de fonte BusinessMap).
+ */
+export const VERSAO_CRITERIO_EXCLUIDO_ENTREGUE: VersaoCriterio = {
+  id: 'criterio-2026-10-16-excluido-entregue',
+  data: '2026-10-16',
+  descricao:
+    'Card entregue e depois excluído deixou de contar como descarte: segue como entrega na vazão e no ciclo',
+  afeta: METRICAS_DO_DESCARTE_NATIVO,
+}
+
 /** O20-destaque = A (pedido 011, 2026-10-16): o destaque do fluxo cumulativo não considera mais o Backlog. */
 export const VERSAO_CRITERIO_O20_DESTAQUE_V2: VersaoCriterio = {
   id: 'criterio-2026-10-16-o20-destaque-sem-backlog',
@@ -60,6 +72,7 @@ export const VERSAO_CRITERIO_O20_DESTAQUE_V2: VersaoCriterio = {
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
   VERSAO_CRITERIO_DESCARTE_NATIVO,
+  VERSAO_CRITERIO_EXCLUIDO_ENTREGUE,
   VERSAO_CRITERIO_O20_DESTAQUE_V2,
 ]
 

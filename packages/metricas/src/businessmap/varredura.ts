@@ -14,10 +14,7 @@ const memo = new WeakMap<ContextoBM, Map<string, VarreduraPorColuna>>()
 /** Cards em jogo: stories ativas ou não, sem subtarefa nem excluídos (a base do O1), do quadro (`null` = todos). */
 const cardsDaVarredura = (ctx: ContextoBM, f: FiltrosFluxo, quadro: string | null) =>
   selecionar(ctx, f, 'story', { incluirInativos: true }).filter(
-    (c) =>
-      !c.card.eh_subtarefa &&
-      c.card.excluido_em === null &&
-      (quadro === null || c.card.quadro_id === quadro),
+    (c) => !c.card.eh_subtarefa && !c.excluido && (quadro === null || c.card.quadro_id === quadro),
   )
 
 const norm = (l: readonly string[]) => ordenarNeutro(l, (x) => [x]).join(',')

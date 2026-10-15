@@ -60,7 +60,7 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
     )
     expect(VERSAO_CRITERIO_DESCARTE_NATIVO.afeta).toHaveLength(44)
     expect(NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO.every((id) => doBusinessMap.includes(id))).toBe(true)
-    const nova = { inicio: '2026-10-14', fim: '2026-10-31' }
+    const nova = { inicio: '2026-10-14', fim: '2026-10-15' }
     expect(marcacoesNoPeriodo('O25', nova, []).map((m) => m.id)).toEqual([
       VERSAO_CRITERIO_DESCARTE_NATIVO.id,
     ])

@@ -3,14 +3,18 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseBusinessMap, gerarBaseMock } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO } from '../core/calendario'
+import { marcacoesNoPeriodo } from '../core/criterios'
 import {
   descartado,
+  entregueAntesDeExcluir,
   descartadoNativo,
   instanteDeExcluido,
   instanteDoDescarte,
   motivoSemDescarte,
 } from './descartado'
 import { calcularO25 } from './index'
+import { calcularO3 } from './o3'
+import { calcularO4 } from './o4'
 import { criarContextoBM, type ContextoBM } from './indice'
 import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
 import type { DimCard } from './modelo'
@@ -214,12 +218,78 @@ describe('O25: descarte', () => {
     expect(r.avisoPreenchimento).toEqual({ itens: 3 })
   })
 
-  it("o card excluído e entregue conta uma vez só, como descarte (R-2': excluído é descartado)", () => {
-    const r = calcularO25(
-      ctxDe([entregue('x1')], (c) => ({ ...c, excluido_em: c.concluido_em })),
-      F,
-    )
-    expect(r.encerrados).toMatchObject({ k: 1, n: 1 })
+  describe('O25(b) = B (2026-10-16): entregue e depois excluído não é descarte', () => {
+    const excluidoDepoisDaEntrega = (c: DimCard): DimCard => ({
+      ...c,
+      excluido_em: (c.concluido_em as number) + 86_400_000,
+    })
+
+    it('segue como entrega: encerrado não descartado, ativo, com ciclo, na vazão e no tempo de ciclo', () => {
+      const ctx = ctxDe([entregue('x1')], excluidoDepoisDaEntrega)
+      const m = ctx.idx.marcos[0]!
+      expect(m.descartado).toBe(false)
+      expect(m.excluido).toBe(false)
+      expect(m.ativo).toBe(true)
+      expect(m.cicloHU).not.toBeNull()
+      const r = calcularO25(ctx, F)
+      expect(r.encerrados).toMatchObject({ k: 0, n: 1 })
+      expect(r.consumido.antesDoInicio.itens + r.consumido.depoisDoInicio.itens).toBe(0)
+      expect(calcularO3(ctx, F).base.n).toBe(1)
+      expect(calcularO4(ctx, F).base.n).toBe(1)
+    })
+
+    it('excluído na mesma hora da entrega também é entregue; o que não estava entregue segue descarte', () => {
+      const mesmaHora = ctxDe([entregue('x1')], (c) => ({ ...c, excluido_em: c.concluido_em }))
+      expect(calcularO25(mesmaHora, F).encerrados).toMatchObject({ k: 0, n: 1 })
+      // excluído antes de entregar (entrega vigente posterior à exclusão): é descarte
+      const antes = ctxDe([entregue('x1')], (c) => ({
+        ...c,
+        excluido_em: (c.concluido_em as number) - 86_400_000,
+      }))
+      expect(antes.idx.marcos[0]!.excluido).toBe(true)
+      expect(calcularO25(antes, F).encerrados).toMatchObject({ k: 1, n: 1 })
+      // sem entrega vigente (reaberto) e depois excluído: descarte
+      const reaberto = ctxDe(
+        [
+          {
+            ...entregue('x1'),
+            trilha: [
+              ...trilhaSimples(
+                '2026-09-01T08:00:00-03:00',
+                '2026-09-02T08:00:00-03:00',
+                '2026-09-14T09:00:00-03:00',
+                '2026-09-22T10:00:00-03:00',
+              ),
+              ['Em desenvolvimento', '2026-09-23T10:00:00-03:00'],
+            ],
+          },
+        ],
+        (c) => ({ ...c, excluido_em: c.criado_em + 30 * 86_400_000 }),
+      )
+      expect(reaberto.idx.marcos[0]!.descartado).toBe(true)
+      expect(calcularO25(reaberto, F).encerrados).toMatchObject({ k: 1, n: 1 })
+    })
+
+    it('T2.6: a mudança é uma versão de critério datada, com marca nos períodos que cruzam 2026-10-16', () => {
+      const marcas = marcacoesNoPeriodo('O25', { inicio: '2026-10-01', fim: '2026-10-31' }, [])
+      expect(marcas.map((m) => [m.id, m.data])).toContainEqual([
+        'criterio-2026-10-16-excluido-entregue',
+        '2026-10-16',
+      ])
+    })
+
+    it('definições: entregueAntesDeExcluir, descartado e instante do descarte', () => {
+      const base = umaBase([entregue('e1')]).cards[0] as DimCard
+      const excl = { ...base, excluido_em: 10 }
+      expect(entregueAntesDeExcluir(excl, 10)).toBe(true)
+      expect(entregueAntesDeExcluir(excl, 11)).toBe(false)
+      expect(entregueAntesDeExcluir(excl, null)).toBe(false)
+      expect(entregueAntesDeExcluir(base, 5)).toBe(false)
+      expect(descartado(excl, 5)).toBe(false)
+      expect(descartado(excl, null)).toBe(true)
+      expect(instanteDoDescarte(excl, 99, 5)).toBeNull()
+      expect(instanteDoDescarte(excl, 99, null)).toEqual({ instante: 10, aproximado: false })
+    })
   })
 
   it('porMotivo é nulo (CA-44) e nenhum campo de pessoa, motivo nem comentário sai no resultado', () => {
@@ -334,10 +404,10 @@ describe('O25: descarte', () => {
     it('P-1 = A: sem o card de aviso, a definição nova e a antiga (motivo preenchido) coincidem em todo card', () => {
       const legado = (c: DimCard) => c.motivo_descarte !== null
       const semAviso = gerarBaseBusinessMap(base.config, { omitir: ['aviso'] })
-      expect(semAviso.cards.every((c) => descartado(c) === legado(c))).toBe(true)
-      const avisos = base.bm.cards.filter((c) => descartado(c) !== legado(c))
+      expect(semAviso.cards.every((c) => descartado(c, null) === legado(c))).toBe(true)
+      const avisos = base.bm.cards.filter((c) => descartado(c, null) !== legado(c))
       expect(avisos.length).toBeGreaterThanOrEqual(1)
-      expect(avisos.every((c) => motivoSemDescarte(c) && c.excluido_em === null)).toBe(true)
+      expect(avisos.every((c) => motivoSemDescarte(c, null) && c.excluido_em === null)).toBe(true)
       // os cards de aviso seguem nos cálculos (ativos), o que a Q6 impedia
       const ativos = new Set(ctx.idx.marcos.filter((m) => m.ativo).map((m) => m.card.card_id))
       expect(avisos.every((c) => ativos.has(c.card_id))).toBe(true)
@@ -350,37 +420,37 @@ describe("descartado.ts: definição nativa do descarte (R-2', P-1)", () => {
   const com = (p: Partial<DimCard>): DimCard => ({ ...base, ...p })
 
   it('descartado = estado nativo (projeção: motivo e arquivamento juntos) ou excluído', () => {
-    expect(descartadoNativo(base)).toBe(false)
-    expect(descartadoNativo(com({ motivo_descarte: 'X', arquivado_em: 5 }))).toBe(true)
-    expect(descartadoNativo(com({ excluido_em: 5 }))).toBe(true)
+    expect(descartadoNativo(base, null)).toBe(false)
+    expect(descartadoNativo(com({ motivo_descarte: 'X', arquivado_em: 5 }), null)).toBe(true)
+    expect(descartadoNativo(com({ excluido_em: 5 }), null)).toBe(true)
     // arquivado sem motivo: fim normal de card entregue, não é descarte
-    expect(descartadoNativo(com({ arquivado_em: 5 }))).toBe(false)
-    expect(descartadoNativo(com({ motivo_descarte: 'X' }))).toBe(false)
+    expect(descartadoNativo(com({ arquivado_em: 5 }), null)).toBe(false)
+    expect(descartadoNativo(com({ motivo_descarte: 'X' }), null)).toBe(false)
   })
 
   it('P-1 = A: descartado() é a definição nativa; motivo preenchido sozinho não tira o card dos cálculos', () => {
-    expect(descartado(com({ motivo_descarte: 'X' }))).toBe(false)
-    expect(descartado(com({ motivo_descarte: 'X', arquivado_em: 5 }))).toBe(true)
-    expect(descartado(com({ excluido_em: 5 }))).toBe(true)
-    expect(descartado(base)).toBe(false)
+    expect(descartado(com({ motivo_descarte: 'X' }), null)).toBe(false)
+    expect(descartado(com({ motivo_descarte: 'X', arquivado_em: 5 }), null)).toBe(true)
+    expect(descartado(com({ excluido_em: 5 }), null)).toBe(true)
+    expect(descartado(base, null)).toBe(false)
   })
 
   it('motivo sem descarte nem exclusão é aviso', () => {
-    expect(motivoSemDescarte(com({ motivo_descarte: 'X' }))).toBe(true)
-    expect(motivoSemDescarte(com({ motivo_descarte: 'X', arquivado_em: 5 }))).toBe(false)
-    expect(motivoSemDescarte(com({ motivo_descarte: 'X', excluido_em: 5 }))).toBe(false)
-    expect(motivoSemDescarte(base)).toBe(false)
+    expect(motivoSemDescarte(com({ motivo_descarte: 'X' }), null)).toBe(true)
+    expect(motivoSemDescarte(com({ motivo_descarte: 'X', arquivado_em: 5 }), null)).toBe(false)
+    expect(motivoSemDescarte(com({ motivo_descarte: 'X', excluido_em: 5 }), null)).toBe(false)
+    expect(motivoSemDescarte(base, null)).toBe(false)
   })
 
   it('instante: exclusão no excluído, arquivamento no descartado, nulo se não descartado', () => {
     expect(
-      instanteDoDescarte(com({ excluido_em: 7, arquivado_em: 5, motivo_descarte: 'X' }), 99),
+      instanteDoDescarte(com({ excluido_em: 7, arquivado_em: 5, motivo_descarte: 'X' }), 99, null),
     ).toEqual({ instante: 7, aproximado: false })
-    expect(instanteDoDescarte(com({ arquivado_em: 5, motivo_descarte: 'X' }), 99)).toEqual({
+    expect(instanteDoDescarte(com({ arquivado_em: 5, motivo_descarte: 'X' }), 99, null)).toEqual({
       instante: 5,
       aproximado: false,
     })
-    expect(instanteDoDescarte(base, 99)).toBeNull()
+    expect(instanteDoDescarte(base, 99, null)).toBeNull()
   })
 
   it('sem o instante da exclusão, usa a última revisão e marca como aproximado', () => {
