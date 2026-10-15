@@ -3,6 +3,7 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { CALENDARIO_PADRAO, diaDeIso, isoDeDia } from '../core/calendario'
 import {
   LIMITE_PARADO_DIAS_UTEIS,
+  VERSAO_CRITERIO_DESCARTE_NATIVO,
   VERSAO_CRITERIO_PARADOS_V1,
   marcacoesNoPeriodo,
 } from '../core/criterios'
@@ -30,7 +31,7 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
   })
 
   it('a v1 vira marcação do O2 quando o período a cruza, sem depender da lista da base nem repetir id', () => {
-    const periodo = { inicio: '2026-10-01', fim: '2026-10-31' }
+    const periodo = { inicio: '2026-10-01', fim: '2026-10-14' }
     const esperado = [
       {
         id: VERSAO_CRITERIO_PARADOS_V1.id,
@@ -40,8 +41,22 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
     ]
     expect(marcacoesNoPeriodo('O2', periodo, [])).toEqual(esperado)
     expect(marcacoesNoPeriodo('O2', periodo, [VERSAO_CRITERIO_PARADOS_V1])).toEqual(esperado)
-    expect(marcacoesNoPeriodo('O1', periodo, [])).toEqual([])
+    expect(marcacoesNoPeriodo('S1', periodo, [])).toEqual([])
     expect(marcacoesNoPeriodo('O2', { inicio: '2026-09-01', fim: '2026-09-30' }, [])).toEqual([])
+  })
+
+  it('P-1 = A: a versão do descarte nativo marca as métricas do BusinessMap que usam "descartado", só a partir de 2026-10-15', () => {
+    expect(VERSAO_CRITERIO_DESCARTE_NATIVO.data).toBe('2026-10-15')
+    expect(VERSAO_CRITERIO_DESCARTE_NATIVO.afeta).toEqual(
+      expect.arrayContaining(['O1', 'O2', 'O25', 'T12', 'E9']),
+    )
+    expect(VERSAO_CRITERIO_DESCARTE_NATIVO.afeta).not.toContain('S1')
+    const nova = { inicio: '2026-10-14', fim: '2026-10-31' }
+    expect(marcacoesNoPeriodo('O25', nova, []).map((m) => m.id)).toEqual([
+      VERSAO_CRITERIO_DESCARTE_NATIVO.id,
+    ])
+    expect(marcacoesNoPeriodo('O25', { inicio: '2026-10-01', fim: '2026-10-14' }, [])).toEqual([])
+    expect(marcacoesNoPeriodo('S1', nova, [])).toEqual([])
   })
 
   it('abaixo de 20 itens devolve "k de n" sem percentual; só mudança de coluna conta como mover', () => {

@@ -22,8 +22,68 @@ export const VERSAO_CRITERIO_PARADOS_V1: VersaoCriterio = {
   afeta: ['O2'],
 }
 
+/**
+ * P-1 = A (pedido 011): "descartado" passa a ser o estado nativo `discarded` do BusinessMap ou o card excluído, em todas
+ * as métricas. Card com motivo de descarte preenchido e sem descarte deixa de sair dos cálculos e vira aviso no O25.
+ */
+export const VERSAO_CRITERIO_DESCARTE_NATIVO: VersaoCriterio = {
+  id: 'criterio-2026-10-15-descarte-nativo',
+  data: '2026-10-15',
+  descricao:
+    'Descartado passou a ser o estado nativo do BusinessMap (descartado ou excluído); motivo preenchido sem descarte não sai mais dos cálculos',
+  afeta: [
+    'O1',
+    'O2',
+    'BLOQUEADOS',
+    'O3',
+    'O4',
+    'O5',
+    'O6',
+    'O7',
+    'O8',
+    'O9',
+    'O10',
+    'O11',
+    'O12',
+    'O13',
+    'O14',
+    'O15',
+    'O16',
+    'O18',
+    'O19',
+    'O20',
+    'O21',
+    'O24',
+    'O25',
+    'T1',
+    'T2',
+    'T3',
+    'T4',
+    'T5',
+    'T6',
+    'T7',
+    'T8',
+    'T9',
+    'T10',
+    'T12',
+    'E1',
+    'E2',
+    'E3',
+    'E4',
+    'E5',
+    'E7',
+    'E9',
+    'EI_FL1',
+    'EI_FL2',
+    'EI_FL3',
+  ],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
-export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [VERSAO_CRITERIO_PARADOS_V1]
+export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
+  VERSAO_CRITERIO_PARADOS_V1,
+  VERSAO_CRITERIO_DESCARTE_NATIVO,
+]
 
 /**
  * Mudanças de critério de cálculo (T2.6). A lista vive na configuração da base; aqui só se

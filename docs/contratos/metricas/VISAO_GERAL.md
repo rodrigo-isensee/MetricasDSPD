@@ -316,7 +316,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
       "metrica": "O1",
       "ancora": "o1",
       "codigo": "O1_WIP_ACIMA_LIMITE",
-      "valor": 46,
+      "valor": 49,
       "de": 59
     }
   ],
@@ -338,7 +338,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
         {
           "metrica": "O1",
           "codigo": "O1",
-          "valor": 77.96610169491525,
+          "valor": 83.05084745762711,
           "de": 59,
           "base": {"n":59,"unidade":"dias úteis"},
           "status": "fora",
@@ -356,7 +356,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
           "codigo": "T2",
           "valor": 1,
           "de": 3,
-          "base": {"n":634,"unidade":"demandas entregues"},
+          "base": {"n":602,"unidade":"demandas entregues"},
           "status": "fora",
           "amostra": null
         },
@@ -365,7 +365,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
           "codigo": "T4",
           "valor": 3,
           "de": 3,
-          "base": {"n":1228,"unidade":"chegadas e entregas"},
+          "base": {"n":1180,"unidade":"chegadas e entregas"},
           "status": "fora",
           "amostra": null
         }
@@ -383,8 +383,8 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
           "rotulo": "Incidente",
           "estatistica": {
             "status": "ok",
-            "n": 81,
-            "valor": {"cliente":2.28,"time":1.91,"indicePct":15.97,"acimaDe50":false},
+            "n": 80,
+            "valor": {"cliente":2.46,"time":1.93,"indicePct":21.71,"acimaDe50":false},
             "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
           }
         },
@@ -393,8 +393,8 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
           "rotulo": "Requisição",
           "estatistica": {
             "status": "ok",
-            "n": 79,
-            "valor": {"cliente":7.45,"time":3.43,"indicePct":53.98,"acimaDe50":true},
+            "n": 74,
+            "valor": {"cliente":8.77,"time":3.35,"indicePct":61.76,"acimaDe50":true},
             "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
           }
         }

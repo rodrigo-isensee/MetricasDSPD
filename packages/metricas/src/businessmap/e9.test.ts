@@ -196,13 +196,22 @@ describe('E9: projetos aguardando início', () => {
     expect(SCHEMAS_RESULTADO.E9.safeParse(r).success).toBe(true)
   })
 
-  it('base do mock (B5-2): 3 projetos abertos, nas faixas 0–30 e 31–90, e nenhum acima de 90; o B11a atualiza estes números', () => {
+  it('base do mock (B11a): 6 a 8 projetos abertos, um acima de 180 dias úteis, todas as faixas e referência insuficiente', () => {
     const base = gerarBaseMock({})
     const r = calcularE9(criarContextoBM(base.bm, HOJE_TESTE, CALENDARIO_PADRAO), F)
     expect(SCHEMAS_RESULTADO.E9.safeParse(r).success).toBe(true)
-    expect(r.projetos).toHaveLength(3)
-    expect(r.projetos.map((p) => p.faixa).sort()).toEqual(['0–30', '31–90', '31–90'])
-    expect(r.projetos.some((p) => p.idadeDiasUteis > 90)).toBe(false)
+    expect(r.projetos.length).toBeGreaterThanOrEqual(6)
+    expect(r.projetos.length).toBeLessThanOrEqual(8)
+    expect(r.projetos.some((p) => p.idadeDiasUteis > 180)).toBe(true)
+    expect([...new Set(r.projetos.map((p) => p.faixa))].sort()).toEqual([
+      '0–30',
+      '31–90',
+      '91–180',
+      'mais de 180',
+    ])
+    // menos de 20 concluídos por tipo na janela: nenhuma referência publica o P85 (variante "lenta")
+    expect(r.referenciasP85.every((x) => x.referenciaP85.status === 'insuficiente')).toBe(true)
+    expect(r.projetos).toHaveLength(7)
   })
 })
 

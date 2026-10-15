@@ -32,10 +32,11 @@ const FILTROS: FiltrosFluxo[] = [
 ]
 
 describe('B8: varredura por coluna, O1 sem regressão', () => {
-  it('o resultado do O1 mantém a impressão digital de antes da refatoração', () => {
+  // Impressão digital regravada no B11a (a base do mock mudou de propósito); a refatoração da varredura segue provada pela comparação com o estado ingênuo abaixo.
+  it('o resultado do O1 mantém a impressão digital (base do mock do B11a)', () => {
     const h = createHash('sha256')
     for (const f of FILTROS) h.update(JSON.stringify(calcularO1(novoCtx(), f)))
-    expect(h.digest('hex')).toBe('ae6f2e1a465a4ec2737dab4d13a838a88e994df338c9ea8d3177572cdba95f02')
+    expect(h.digest('hex')).toBe('a57c2b0ad3da5b1be9b60fd9b514e1715924c3d06c38ba3fbd49d10cb686b9b0')
   })
 
   it('a soma das colunas é o total, e o total é o estadoEm por dia', () => {

@@ -2,15 +2,15 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
-import { gerarBaseMock } from '@metricas-dspd/mock'
+import { gerarBaseBusinessMap, gerarBaseMock } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO } from '../core/calendario'
 import { percentisDe } from '../core/estatistica'
 import { amostraBM } from './amostra'
-import { calcularO21 } from './index'
+import { calcularO21, calcularO3, calcularO4, calcularT1 } from './index'
 import { criarContextoBM, type ContextoBM } from './indice'
 import { ordenarNeutro } from '../core/ordenar'
 import { instanteDeIso } from '../core/calendario'
-import type { FatoTransicao } from './modelo'
+import type { DimCard, FatoTransicao } from './modelo'
 import { entreguesDe } from './o3'
 import { selecionar } from './comum'
 import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
@@ -274,13 +274,89 @@ describe('O21: fluxo reverso', () => {
     expect(SCHEMAS_RESULTADO.O21.safeParse(r).success).toBe(true)
   })
 
-  it('base do mock: obedece ao schema e a parcela medida é a do docs/api', () => {
+  const totaisT1 = (c: ContextoBM, f: FiltrosFluxo) =>
+    calcularT1(c, f).classes.map((x) =>
+      x.estatistica.status === 'ok'
+        ? [
+            x.n,
+            x.estatistica.valor.total,
+            x.estatistica.valor.blocos.fila,
+            x.estatistica.valor.blocos.espera,
+          ]
+        : [x.n],
+    )
+
+  describe('base do mock (B11a: alvos da fase 1 como asserção)', () => {
     const base = gerarBaseMock()
     const ctx = criarContextoBM(base.bm, HOJE_TESTE, CALENDARIO_PADRAO)
-    for (const periodo of ['12s', '12m'] as const) {
-      const r = calcularO21(ctx, { ...F, periodo: { tipo: periodo } })
-      expect(SCHEMAS_RESULTADO.O21.safeParse(r).success).toBe(true)
-      expect(r.entregas.k).toBeGreaterThan(0)
-    }
+    const r = calcularO21(ctx, F)
+
+    it('obedece ao schema e 20% a 30% das entregas têm retorno, em 12 semanas e em 12 meses', () => {
+      for (const periodo of ['12s', '12m'] as const) {
+        const x = calcularO21(ctx, { ...F, periodo: { tipo: periodo } })
+        expect(SCHEMAS_RESULTADO.O21.safeParse(x).success).toBe(true)
+        expect(x.entregas.status).toBe('ok')
+        expect(x.entregas.k / x.entregas.n).toBeGreaterThanOrEqual(0.2)
+        expect(x.entregas.k / x.entregas.n).toBeLessThanOrEqual(0.3)
+      }
+    })
+
+    it('ao menos 60% dos retornos que não são reabertura vão de teste ou homologação para o desenvolvimento; reaberturas entre 2 e 10', () => {
+      expect(r.reaberturas).toBeGreaterThanOrEqual(2)
+      expect(r.reaberturas).toBeLessThanOrEqual(10)
+      const demais = r.matriz.celulas.filter((c) => !c.reaberto)
+      const total = demais.reduce((s, c) => s + c.retornos, 0)
+      // por papel (Todas): teste e desenvolvimento são "trabalho", homologação é "homologacao"
+      const principais = demais
+        .filter(
+          (c) =>
+            c.destino === 'trabalho' && (c.origem === 'trabalho' || c.origem === 'homologacao'),
+        )
+        .reduce((s, c) => s + c.retornos, 0)
+      expect(principais / total).toBeGreaterThanOrEqual(0.6)
+      // por coluna (uma equipe): as duas colunas de origem são as do alvo
+      const eq = calcularO21(ctx, { ...F, equipe: ['fluig'] })
+      expect(eq.matriz.eixo).toBe('coluna')
+      const pares = eq.matriz.celulas
+        .filter((c) => !c.reaberto)
+        .map((c) => `${c.origem} -> ${c.destino}`)
+      expect(pares).toContain('Em teste -> Em desenvolvimento')
+      expect(pares).toContain('Em homologação -> Em desenvolvimento')
+    })
+
+    it('par com x sem: ao menos 1 tipo publica (os dois grupos com 20 ou mais) e ao menos 1 tem grupo abaixo do mínimo', () => {
+      expect(r.comparacoes.some((c) => c.grupoAbaixoDoMinimo === null)).toBe(true)
+      expect(r.comparacoes.some((c) => c.grupoAbaixoDoMinimo !== null)).toBe(true)
+      const publica = r.comparacoes.find((c) => c.grupoAbaixoDoMinimo === null)
+      expect(publica?.com.status).toBe('ok')
+      expect(publica?.sem.status).toBe('ok')
+    })
+
+    it('o retorno fica dentro do intervalo de execução: nem o início nem a entrega mudam (O3, O4 e T1 iguais sem o passo)', () => {
+      const sem = gerarBaseBusinessMap(base.config, { omitir: ['retorno'] })
+      const ctxSem = criarContextoBM(sem, HOJE_TESTE, CALENDARIO_PADRAO)
+      for (const f of [F, { ...F, periodo: { tipo: '12m' as const } }]) {
+        expect(calcularO3(ctx, f)).toEqual(calcularO3(ctxSem, f))
+        expect(calcularO4(ctx, f)).toEqual(calcularO4(ctxSem, f))
+        // T1: o total, a fila e a espera não mudam; só o tempo da volta ao desenvolvimento passa de "homologação" para "execução"
+        expect(totaisT1(ctx, f)).toEqual(totaisT1(ctxSem, f))
+      }
+      expect(calcularO21(ctxSem, F).entregas.k).toBeLessThan(r.entregas.k)
+      const inicio = new Map(sem.cards.map((c) => [c.card_id, [c.iniciado_em, c.concluido_em]]))
+      for (const c of base.bm.cards)
+        if (c.tipo !== 'Bug interno' && c.arquivado_em === null)
+          expect([c.iniciado_em, c.concluido_em]).toEqual(inicio.get(c.card_id))
+      // todo retorno inserido cai entre o início e a conclusão do card
+      const cardsPorId = new Map(base.bm.cards.map((c) => [c.card_id, c]))
+      for (const t of base.bm.transicoes) {
+        const c = cardsPorId.get(t.card_id) as DimCard
+        if (
+          t.direcao === 'retorno' &&
+          t.coluna_destino === 'Em desenvolvimento' &&
+          t.coluna_origem !== 'Entregue'
+        )
+          expect(t.timestamp).toBeGreaterThan(c.iniciado_em as number)
+      }
+    })
   })
 })

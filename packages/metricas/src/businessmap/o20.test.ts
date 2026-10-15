@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import type { FiltrosFluxo } from '@metricas-dspd/contratos'
+import type { FiltrosFluxo, ResultadoO20 } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO } from '../core/calendario'
@@ -444,6 +444,30 @@ describe('O20: fluxo cumulativo', () => {
           expect(d.para).toBeGreaterThan(d.de)
         }
       }
+    })
+
+    /**
+     * DECISÃO DO USUÁRIO PENDENTE (Backlog como destaque no "Todas", pergunta da UX). Hoje vale a regra da
+     * implementação: o Backlog pode ser destaque. Se a resposta tirar o Backlog, trocar SÓ esta função
+     * (passa a exigir a faixa "compromisso", "Pronto para") e, se preciso, o mock em `mock/.../tambem.ts`.
+     */
+    const destaqueDoTodasAceito = (d: ResultadoO20['destaque']): boolean =>
+      d !== null && ['backlog', 'compromisso'].includes(d.faixa) && d.para > d.de
+
+    it('B11a: com uma equipe há destaque numa fila que cresce e no "Todas" há destaque aceito; há combinação sem destaque', () => {
+      const comEquipe = equipes.map((e) => calcularO20(ctx, { ...F, equipe: [e] }))
+      const comDestaque = comEquipe.filter((r) => r.destaque !== null)
+      expect(comDestaque.length).toBeGreaterThanOrEqual(1)
+      for (const r of comDestaque) {
+        const d = r.destaque as NonNullable<ResultadoO20['destaque']>
+        expect(r.faixas.find((x) => x.chave === d.faixa)?.tipoColuna).toBe('fila')
+        expect(d.para - d.de).toBeGreaterThan(0)
+      }
+      expect(destaqueDoTodasAceito(calcularO20(ctx, F).destaque)).toBe(true)
+      // "Nenhuma etapa acumulou": destaque nulo com as faixas presentes
+      const semDestaque = comEquipe.filter((r) => r.destaque === null)
+      expect(semDestaque.length).toBeGreaterThanOrEqual(1)
+      expect(semDestaque.every((r) => r.faixas.length > 0 && r.dias.length > 0)).toBe(true)
     })
 
     it('o em progresso por dia é o WIP do O1, em "Todas" e por equipe', () => {

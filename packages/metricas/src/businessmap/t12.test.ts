@@ -4,7 +4,9 @@ import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
 import { calcularT12, type FatoBloqueio } from './index'
-import { criarContextoBM } from './indice'
+import { dentro, ehDemanda, periodoDe, selecionar } from './comum'
+import { criarContextoBM, type MarcosCard } from './indice'
+import { MOTIVO_IDA_E_VOLTA, teveIdaEVolta } from './t12'
 import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
 
 const F: FiltrosFluxo = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }
@@ -212,45 +214,72 @@ describe('T12: qualidade da entrada por área (D-8 = A)', () => {
   })
 })
 
-describe('T12 sobre o mock (medição registrada, a base não muda)', () => {
+describe('T12 sobre o mock (B11a: alvos da fase 1 como asserção)', () => {
   const b = gerarBaseMock({})
   const ctx = criarContextoBM(b.bm, b.config.hoje, CALENDARIO_PADRAO)
 
-  it('em 12 semanas: 738 demandas, 8 áreas, todas com 20 ou mais; a parcela com ida e volta é 0%', () => {
+  it('em 12 semanas: ida e volta de 10% a 25% no total, uma área com 20 ou mais e k > 0 e duas áreas com menos de 20', () => {
     const r = calcularT12(ctx, F)
-    expect(r.total).toEqual({ status: 'ok', k: 0, n: 738, pct: 0 })
-    expect(r.areas.map((a) => [a.area, a.taxa.n])).toEqual([
-      ['Financeiro', 143],
-      ['Jurídico', 123],
-      ['Comercial', 119],
-      ['Atendimento ao Cliente', 117],
-      ['Operações', 100],
-      ['Logística', 58],
-      ['Recursos Humanos', 40],
-      ['DSPD (interno)', 38],
-    ])
-    expect(r.areas.every((a) => a.taxa.status === 'ok' && a.taxa.k === 0)).toBe(true)
+    expect(r.total.status).toBe('ok')
+    expect(r.total.k / r.total.n).toBeGreaterThanOrEqual(0.1)
+    expect(r.total.k / r.total.n).toBeLessThanOrEqual(0.25)
+    expect(r.areas.some((a) => a.taxa.n >= 20 && a.taxa.k > 0 && a.taxa.status === 'ok')).toBe(true)
+    const pequenas = r.areas.filter((a) => a.taxa.n < 20)
+    expect(pequenas.map((a) => a.area).sort()).toEqual(['Logística', 'Recursos Humanos'])
+    expect(pequenas.every((a) => a.taxa.status === 'insuficiente')).toBe(true)
+    expect(r.areas.filter((a) => a.taxa.n >= 20 && a.taxa.status === 'ok')).toHaveLength(
+      r.areas.length - 2,
+    )
     expect(SCHEMAS_RESULTADO.T12.safeParse(r).success).toBe(true)
   })
 
-  it('a causa do 0%: o mock só gera bloqueio depois do início e nenhum retorno compromisso -> backlog', () => {
-    const doMotivo = b.bm.bloqueios.filter((x) => x.motivo === 'Falta de informação no chamado')
-    expect(doMotivo.length).toBeGreaterThan(0)
-    const inicioDe = new Map(b.bm.cards.map((c) => [c.card_id, c.iniciado_em]))
-    expect(doMotivo.every((x) => x.inicio >= (inicioDe.get(x.card_id) ?? Infinity))).toBe(true)
-    const retornos = b.bm.transicoes.filter(
-      (x) =>
-        x.coluna_origem !== null &&
-        ctx.idx.papelDe(
-          b.bm.cards.find((c) => c.card_id === x.card_id)?.quadro_id ?? '',
-          x.coluna_origem,
-        )?.papel === 'compromisso' &&
-        ctx.idx.papelDe(
-          b.bm.cards.find((c) => c.card_id === x.card_id)?.quadro_id ?? '',
-          x.coluna_destino,
-        )?.papel === 'backlog',
+  it('os dois critérios (D-8 = A) aparecem: 5 ou mais pelo (a), 5 ou mais pelo (b) e ao menos 1 pelos dois', () => {
+    const demandas = selecionar(ctx, F, 'story').filter(ehDemanda)
+    const periodo = periodoDe(ctx, F)
+    const doPeriodo = demandas.filter((m) => dentro(ctx, m.card.criado_em, periodo))
+    const porBloqueio = (m: MarcosCard) =>
+      (ctx.idx.bloqueiosPorCard.get(m.card.card_id) ?? []).some(
+        (x) => x.motivo === MOTIVO_IDA_E_VOLTA && (m.inicio === null || x.inicio < m.inicio),
+      )
+    const porRetorno = (m: MarcosCard) =>
+      (ctx.idx.transicoesPorCard.get(m.card.card_id) ?? []).some(
+        (t) =>
+          t.coluna_origem !== null &&
+          ctx.idx.papelDe(m.card.quadro_id, t.coluna_origem)?.papel === 'compromisso' &&
+          ctx.idx.papelDe(m.card.quadro_id, t.coluna_destino)?.papel === 'backlog',
+      )
+    expect(doPeriodo.filter(porBloqueio).length).toBeGreaterThanOrEqual(5)
+    expect(doPeriodo.filter(porRetorno).length).toBeGreaterThanOrEqual(5)
+    expect(doPeriodo.filter((m) => porBloqueio(m) && porRetorno(m)).length).toBeGreaterThanOrEqual(
+      1,
     )
-    expect(retornos).toEqual([])
+    // a lista da função é a união dos dois (cada card uma vez só)
+    expect(doPeriodo.filter((m) => teveIdaEVolta(ctx, m)).length).toBe(
+      doPeriodo.filter((m) => porBloqueio(m) || porRetorno(m)).length,
+    )
+  })
+
+  it('o bloqueio por falta de informação começa antes do início do card e o retorno ao backlog fica entre o compromisso e o início', () => {
+    const cardsPorId = new Map(ctx.idx.marcos.map((m) => [m.card.card_id, m]))
+    const antes = b.bm.bloqueios.filter((x) => {
+      const m = cardsPorId.get(x.card_id) as MarcosCard
+      return x.motivo === MOTIVO_IDA_E_VOLTA && (m.inicio === null || x.inicio < m.inicio)
+    })
+    expect(antes.length).toBeGreaterThanOrEqual(5)
+    const retornos = b.bm.transicoes.filter((x) => {
+      const m = cardsPorId.get(x.card_id) as MarcosCard
+      return (
+        x.direcao === 'retorno' &&
+        x.coluna_origem === 'Pronto para desenvolver' &&
+        ctx.idx.papelDe(m.card.quadro_id, x.coluna_destino)?.papel === 'backlog'
+      )
+    })
+    expect(retornos.length).toBeGreaterThanOrEqual(5)
+    for (const x of retornos) {
+      const m = cardsPorId.get(x.card_id) as MarcosCard
+      expect(x.timestamp).toBeGreaterThan(m.compromisso as number)
+      expect(x.timestamp).toBeLessThan(m.inicio ?? ctx.hoje)
+    }
   })
 })
 

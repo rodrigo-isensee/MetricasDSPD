@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
-import { gerarBaseMock } from '@metricas-dspd/mock'
+import { gerarBaseBusinessMap, gerarBaseMock } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO } from '../core/calendario'
 import { fimDeVidaAberta } from './descartado'
 import { calcularO24 } from './index'
@@ -252,20 +252,42 @@ describe('O24: ordem de chegada', () => {
     expect(JSON.stringify(r)).not.toMatch(/Pessoa|responsave|usuario/)
   })
 
-  it('no mock: schema válido, só Padrão e sem equipe na saída (parcela fora de ordem registrada)', () => {
+  describe('no mock (B11a: alvos da fase 1 como asserção)', () => {
     const base = gerarBaseMock()
     const ctx = criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO)
     const r = calcularO24(ctx, F)
-    expect(SCHEMAS_RESULTADO.O24.safeParse(r).success).toBe(true)
-    const sem = JSON.stringify(r)
-    for (const e of base.bm.config.equipes) expect(sem).not.toContain(e.nome)
-    console.info(
-      `O24 mock 12s: ${JSON.stringify(r.inicios)} custo ${JSON.stringify(r.custo.porTipo.map((t) => [t.tipo, t.ultrapassados, t.estatistica.status]))}`,
-    )
-    const longo = calcularO24(ctx, { ...F, periodo: { tipo: '12m' } })
-    console.info(
-      `O24 mock 12m: ${JSON.stringify(longo.inicios)} custo ${JSON.stringify(longo.custo.porTipo.map((t) => [t.tipo, t.ultrapassados, t.estatistica.status]))}`,
-    )
+
+    it('schema válido, só Padrão e sem equipe na saída', () => {
+      expect(SCHEMAS_RESULTADO.O24.safeParse(r).success).toBe(true)
+      const sem = JSON.stringify(r)
+      for (const e of base.bm.config.equipes) expect(sem).not.toContain(e.nome)
+    })
+
+    it('20% a 30% dos inícios Padrão fora de ordem, em 12 semanas e em 12 meses', () => {
+      for (const f of [F, { ...F, periodo: { tipo: '12m' as const } }]) {
+        const x = calcularO24(ctx, f)
+        expect(x.inicios.status).toBe('ok')
+        expect(x.inicios.k / x.inicios.n).toBeGreaterThanOrEqual(0.2)
+        expect(x.inicios.k / x.inicios.n).toBeLessThanOrEqual(0.3)
+      }
+    })
+
+    it('custo: ao menos 1 tipo publica (20 ultrapassados ou mais) e ao menos 1 tipo é insuficiente', () => {
+      const estados = r.custo.porTipo.map((t) => [t.ultrapassados >= 20, t.estatistica.status])
+      expect(estados.some(([maior, st]) => maior && st === 'ok')).toBe(true)
+      expect(estados.some(([maior, st]) => !maior && st === 'insuficiente')).toBe(true)
+    })
+
+    it('as classes Urgente, Prazo fixo e Intangível continuam na base, fora da fila do O24', () => {
+      const classes = new Set(base.bm.cards.map((c) => c.classe_servico))
+      for (const c of ['Urgente', 'Prazo fixo', 'Intangível'] as const)
+        expect(classes.has(c)).toBe(true)
+      const sem = gerarBaseBusinessMap(base.config, { omitir: ['ordem'] })
+      const antes = new Map(sem.cards.map((c) => [c.card_id, c.criado_em]))
+      for (const c of base.bm.cards)
+        if (c.classe_servico !== 'Padrão' || c.tipo === 'Defeito em produção')
+          expect(c.criado_em).toBe(antes.get(c.card_id))
+    })
   })
 
   it('a varredura dá o mesmo resultado que a comparação ingênua par a par (mock, 12 meses)', () => {
@@ -302,6 +324,5 @@ describe('O24: ordem de chegada', () => {
     }
     expect(r.base.n).toBe(esperadoN)
     expect(r.inicios.k).toBe(esperadoFora)
-    console.info(`O24 mock 12m: n=${esperadoN} fora=${esperadoFora}`)
   })
 })

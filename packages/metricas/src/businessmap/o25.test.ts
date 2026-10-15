@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
-import { gerarBaseMock } from '@metricas-dspd/mock'
+import { gerarBaseBusinessMap, gerarBaseMock } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO } from '../core/calendario'
 import {
+  descartado,
   descartadoNativo,
   instanteDeExcluido,
   instanteDoDescarte,
@@ -296,12 +297,51 @@ describe('O25: descarte', () => {
     expect(SCHEMAS_RESULTADO.O25.safeParse(r).success).toBe(true)
   })
 
-  it('base do mock: obedece ao schema e a parcela medida é a do docs/api', () => {
-    const base = gerarBaseMock({ escala: 0.5 })
-    const r = calcularO25(criarContextoBM(base.bm, HOJE_TESTE, CALENDARIO_PADRAO), F)
-    expect(SCHEMAS_RESULTADO.O25.safeParse(r).success).toBe(true)
-    expect(r.avisoPreenchimento.itens).toBe(0)
-    expect(r.porMotivo).toBeNull()
+  describe('base do mock (B11a: alvos da fase 1 como asserção)', () => {
+    const base = gerarBaseMock()
+    const ctx = criarContextoBM(base.bm, HOJE_TESTE, CALENDARIO_PADRAO)
+    const r = calcularO25(ctx, F)
+
+    it('6% a 10% dos encerrados descartados, de 55% a 75% antes do início (cerca de 2/3), schema válido', () => {
+      expect(SCHEMAS_RESULTADO.O25.safeParse(r).success).toBe(true)
+      expect(r.encerrados.status).toBe('ok')
+      const pct = r.encerrados.k / r.encerrados.n
+      expect(pct).toBeGreaterThanOrEqual(0.06)
+      expect(pct).toBeLessThanOrEqual(0.1)
+      const antes = r.consumido.antesDoInicio.itens / r.encerrados.k
+      expect(antes).toBeGreaterThanOrEqual(0.55)
+      expect(antes).toBeLessThanOrEqual(0.75)
+      expect(r.porMotivo).toBeNull()
+    })
+
+    it('ao menos 1 card de aviso (motivo e sem descarte) e ao menos 1 excluído no período', () => {
+      expect(r.avisoPreenchimento.itens).toBeGreaterThanOrEqual(1)
+      const excluidosNoPeriodo = base.bm.cards.filter(
+        (c) => c.excluido_em !== null && c.excluido_em > ctx.hoje - 84 * 86_400_000,
+      )
+      expect(excluidosNoPeriodo.length).toBeGreaterThanOrEqual(1)
+    })
+
+    it('nenhum tipo chega a 20 descartados depois do início em 12 semanas: soma e contagem, sem percentil', () => {
+      const { porTipo, itens } = r.consumido.depoisDoInicio
+      expect(itens).toBeGreaterThan(0)
+      for (const t of porTipo) {
+        expect(t.itens).toBeLessThan(20)
+        expect(t.estatistica.status).toBe('insuficiente')
+      }
+    })
+
+    it('P-1 = A: sem o card de aviso, a definição nova e a antiga (motivo preenchido) coincidem em todo card', () => {
+      const legado = (c: DimCard) => c.motivo_descarte !== null
+      const semAviso = gerarBaseBusinessMap(base.config, { omitir: ['aviso'] })
+      expect(semAviso.cards.every((c) => descartado(c) === legado(c))).toBe(true)
+      const avisos = base.bm.cards.filter((c) => descartado(c) !== legado(c))
+      expect(avisos.length).toBeGreaterThanOrEqual(1)
+      expect(avisos.every((c) => motivoSemDescarte(c) && c.excluido_em === null)).toBe(true)
+      // os cards de aviso seguem nos cálculos (ativos), o que a Q6 impedia
+      const ativos = new Set(ctx.idx.marcos.filter((m) => m.ativo).map((m) => m.card.card_id))
+      expect(avisos.every((c) => ativos.has(c.card_id))).toBe(true)
+    })
   })
 })
 
@@ -316,6 +356,13 @@ describe("descartado.ts: definição nativa do descarte (R-2', P-1)", () => {
     // arquivado sem motivo: fim normal de card entregue, não é descarte
     expect(descartadoNativo(com({ arquivado_em: 5 }))).toBe(false)
     expect(descartadoNativo(com({ motivo_descarte: 'X' }))).toBe(false)
+  })
+
+  it('P-1 = A: descartado() é a definição nativa; motivo preenchido sozinho não tira o card dos cálculos', () => {
+    expect(descartado(com({ motivo_descarte: 'X' }))).toBe(false)
+    expect(descartado(com({ motivo_descarte: 'X', arquivado_em: 5 }))).toBe(true)
+    expect(descartado(com({ excluido_em: 5 }))).toBe(true)
+    expect(descartado(base)).toBe(false)
   })
 
   it('motivo sem descarte nem exclusão é aviso', () => {

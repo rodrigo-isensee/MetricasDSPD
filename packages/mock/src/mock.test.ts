@@ -35,9 +35,9 @@ describe('determinismo', () => {
     expect(ms).toBeLessThan(1500)
   })
 
-  it('a base padrão tem o mesmo hash de antes de mover CRITERIOS_MOCK para mock/criterios.ts (K-021/ADR 0002)', () => {
-    expect(hashJson(base)).toBe('924448d4')
-    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('b2bfd4c0')
+  it('hash da base padrão e da escala 0,2: regravado uma vez no B11a (antes: 924448d4 e b2bfd4c0)', () => {
+    expect(hashJson(base)).toBe('b9645d93')
+    expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe('4a7c9719')
   })
 
   it('as duas bases usam o mesmo "hoje" (padrão e personalizado), e o contexto também', () => {

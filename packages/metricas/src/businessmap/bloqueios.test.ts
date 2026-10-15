@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MOTIVOS_BLOQUEIO, type FiltrosFluxo, type MotivoBloqueio } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
+import { gerarBaseBusinessMap } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
 import { calcularO19, calcularT10, type FatoBloqueio } from './index'
 import { criarContextoBM } from './indice'
@@ -242,44 +243,70 @@ describe('T10: tempo de terceiros (só o praticado)', () => {
   })
 })
 
-describe('O19 e T10 sobre o mock (medição registrada, a base não muda)', () => {
+describe('O19 e T10 sobre o mock (B11a: alvos da fase 1 como asserção)', () => {
   const b = gerarBaseMock({})
   const ctx = criarContextoBM(b.bm, b.config.hoje, CALENDARIO_PADRAO)
 
-  it('em 12 semanas, todo motivo passa de 20 bloqueios (menor: 25, total 223, 4 abertos)', () => {
+  it('O19 em 12 semanas: 120 encerrados ou mais, ao menos 1 motivo com 20 ou mais, ao menos 2 abaixo de 20 e 3 a 5 abertos', () => {
     const r = calcularO19(ctx, F)
-    expect(r.base.n).toBe(223)
-    expect(r.abertosForaDaSoma).toBe(4)
-    expect(Math.min(...r.motivos.map((m) => m.bloqueios))).toBe(25)
-    expect(r.motivos.every((m) => m.duracao.status === 'ok')).toBe(true)
+    expect(r.base.n).toBeGreaterThanOrEqual(120)
+    expect(r.abertosForaDaSoma).toBeGreaterThanOrEqual(3)
+    expect(r.abertosForaDaSoma).toBeLessThanOrEqual(5)
+    const publicados = r.motivos.filter((m) => m.bloqueios >= 20)
+    const abaixo = r.motivos.filter((m) => m.bloqueios < 20)
+    expect(publicados.length).toBeGreaterThanOrEqual(1)
+    expect(abaixo.length).toBeGreaterThanOrEqual(2)
+    // abaixo de 20 não publica a duração ("amostra insuficiente"); com 20 ou mais publica
+    expect(abaixo.every((m) => m.duracao.status === 'insuficiente')).toBe(true)
+    expect(publicados.every((m) => m.duracao.status === 'ok')).toBe(true)
     expect(SCHEMAS_RESULTADO.O19.safeParse(r).success).toBe(true)
   })
 
-  it('com uma equipe só (26 bloqueios) todos os motivos ficam abaixo de 20 e só saem soma e contagem', () => {
+  it('com uma equipe só (30 bloqueios) todos os motivos ficam abaixo de 20 e só saem soma e contagem', () => {
     const equipe = [...new Set(ctx.idx.marcos.map((m) => m.slugEquipe))].sort().slice(0, 1)
     const r = calcularO19(ctx, { ...F, equipe })
-    expect(r.base.n).toBe(26)
-    expect(r.motivos.map((m) => m.bloqueios)).toEqual([4, 2, 4, 3, 5, 5, 3])
+    expect(r.base.n).toBe(30)
+    expect(r.motivos.map((m) => m.bloqueios)).toEqual([3, 3, 7, 0, 15, 0, 2])
     expect(r.motivos.every((m) => m.duracao.status === 'insuficiente')).toBe(true)
     expect(r.motivos.every((m) => m.pctDoTotal.status === 'ok')).toBe(true)
   })
 
-  it('T10 em 12 semanas: Alfa 19 (abaixo), Beta 23 e Gama 26; com 12 meses a janela dos percentis não muda', () => {
+  it('T10 em 12 semanas: 40 a 70 bloqueios em 3 fornecedores, ao menos 1 com 20 ou mais e ao menos 1 abaixo; com 12 meses a janela dos percentis não muda', () => {
     const r = calcularT10(ctx, F)
-    expect(r.fornecedores.map((x) => [x.fornecedor, x.bloqueios, x.duracao.status])).toEqual([
-      ['Fornecedor Alfa', 19, 'insuficiente'],
-      ['Fornecedor Beta', 23, 'ok'],
-      ['Fornecedor Gama', 26, 'ok'],
+    const total = r.fornecedores.reduce((s, x) => s + x.bloqueios, 0)
+    expect(total).toBeGreaterThanOrEqual(40)
+    expect(total).toBeLessThanOrEqual(70)
+    expect(r.fornecedores.map((x) => x.fornecedor)).toEqual([
+      'Fornecedor Alfa',
+      'Fornecedor Beta',
+      'Fornecedor Gama',
     ])
-    // B3-1: com 12 meses o censo cresce, mas os percentis seguem na janela de 12 semanas (Alfa continua com 19).
+    expect(r.fornecedores.some((x) => x.bloqueios >= 20 && x.duracao.status === 'ok')).toBe(true)
+    expect(
+      r.fornecedores.some((x) => x.bloqueios < 20 && x.duracao.status === 'insuficiente'),
+    ).toBe(true)
+    expect(r.fornecedores.map((x) => [x.fornecedor, x.bloqueios])).toEqual([
+      ['Fornecedor Alfa', 17],
+      ['Fornecedor Beta', 20],
+      ['Fornecedor Gama', 26],
+    ])
+    // B3-1: com 12 meses o censo cresce, mas os percentis seguem na janela de 12 semanas (Alfa continua com 17).
     const ano = calcularT10(ctx, { ...F, periodo: { tipo: '12m' } })
     expect(ano.fornecedores.map((x) => [x.bloqueios > x.duracao.n, x.duracao.status])).toEqual([
       [true, 'insuficiente'],
       [true, 'ok'],
       [true, 'ok'],
     ])
-    expect(ano.fornecedores.map((x) => x.duracao.n)).toEqual([19, 23, 26])
+    expect(ano.fornecedores.map((x) => x.duracao.n)).toEqual([17, 20, 26])
     expect(SCHEMAS_RESULTADO.T10.safeParse(r).success).toBe(true)
+  })
+
+  it('o aberto do O19 vem do gerador principal: o ajuste da fase 1 só fecha bloqueios novos', () => {
+    const abertos = b.bm.bloqueios.filter((x) => x.fim === null).length
+    const sem = gerarBaseBusinessMap(b.config, { tambem: false }).bloqueios.filter(
+      (x) => x.fim === null,
+    ).length
+    expect(abertos).toBe(sem)
   })
 })
 

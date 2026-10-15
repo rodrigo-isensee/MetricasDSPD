@@ -1,11 +1,23 @@
 import type { DimCard } from './modelo'
 
-/**
- * Única definição de "descartado" (decisão Q6): card com `motivo_descarte` preenchido.
- * Arquivado NÃO é descartado: entregue e depois arquivado é o fim normal e permanece nos cálculos.
- * Nenhum outro arquivo de métrica lê `motivo_descarte` ou `arquivado_em` (regra de lint).
+/*
+ * Descartado pela definição nativa (R-2' = A, P-1 = A: vale em todas as métricas): estado `discarded` do BusinessMap
+ * ou card excluído. O modelo da fase 1 não carrega o estado nativo nem o `discarded_at`: o gerador sempre arquiva junto
+ * com o motivo, então `motivo_descarte` + `arquivado_em` é a projeção do estado `discarded` e o instante do
+ * arquivamento é a projeção do `discarded_at`. Na coleta real a projeção troca pelos campos nativos, aqui, e nenhuma
+ * métrica muda. `discard_comment` (texto livre) nunca é lido.
  */
-export const descartado = (card: DimCard): boolean => card.motivo_descarte !== null
+export const descartadoNativo = (card: DimCard): boolean =>
+  card.excluido_em !== null || (card.motivo_descarte !== null && card.arquivado_em !== null)
+
+/**
+ * Única definição de "descartado" (P-1 = A, 2026-10-14; substitui a Q6, em que bastava `motivo_descarte` preenchido).
+ * Motivo preenchido sem descarte nem exclusão não descarta: o card segue nos cálculos e vira aviso de preenchimento no
+ * O25. Arquivado NÃO é descartado: entregue e depois arquivado é o fim normal e permanece nos cálculos.
+ * Registrada como `VERSAO_CRITERIO_DESCARTE_NATIVO` (T2.6). Nenhum outro arquivo de métrica lê `motivo_descarte`
+ * ou `arquivado_em` (regra de lint).
+ */
+export const descartado = (card: DimCard): boolean => descartadoNativo(card)
 
 /** Arquivado sem entrega e sem `motivo_descarte` (decisão P1): fora do "aberto", contado à parte. */
 export const arquivadoSemDesfecho = (card: DimCard, entregue: boolean): boolean =>
@@ -21,18 +33,6 @@ export const arquivadoForaDoAbertoEm = (card: DimCard, t: number, naEntrega: boo
 
 /** Fim da vida "aberta" do card para varreduras de faixas: o instante do arquivamento, se houver. */
 export const fimDeVidaAberta = (card: DimCard): number => card.arquivado_em ?? Infinity
-
-/*
- * Descarte do O25 (R-2' = A, P-1 = A). Descartado é o card com estado nativo `discarded` do BusinessMap e também o
- * excluído. O modelo da fase 1 não carrega o estado nativo nem o `discarded_at`: o gerador sempre arquiva junto com o
- * motivo, então `motivo_descarte` + `arquivado_em` é a projeção do estado `discarded` e o instante do arquivamento é a
- * projeção do `discarded_at`. Na coleta real a projeção troca pelos campos nativos, aqui, e nenhuma métrica muda.
- * `discard_comment` (texto livre) nunca é lido.
- */
-
-/** Descartado pela definição nativa: estado `discarded` (projeção da fase 1) ou card excluído. */
-export const descartadoNativo = (card: DimCard): boolean =>
-  card.excluido_em !== null || (card.motivo_descarte !== null && card.arquivado_em !== null)
 
 /** Motivo preenchido sem descarte nem exclusão: aviso de preenchimento, fora da taxa (CA-26). */
 export const motivoSemDescarte = (card: DimCard): boolean =>
