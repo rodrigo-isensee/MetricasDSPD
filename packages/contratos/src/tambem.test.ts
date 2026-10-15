@@ -72,7 +72,10 @@ const EXEMPLOS: Record<CodigoTambemFase1, unknown> = {
     inicios: taxaOk,
     meses: [{ mes: '2026-09', emOrdem: 10, foraDeOrdem: 3, emAndamento: false }],
     marcacoes: [marcacao],
-    custo: { tipo: 'Melhoria', estatistica: duracaoOk },
+    custo: {
+      segmentoPor: 'tipo',
+      porTipo: [{ tipo: 'Melhoria', ultrapassados: 25, estatistica: duracaoOk }],
+    },
     grupo: 'equipe-tipo-padrao',
   },
   O25: {
@@ -245,8 +248,8 @@ describe('contratos da fase 1 do pedido 011 (B1)', () => {
 
   it('o conjunto cobre exatamente os 10 resultados da fase 1; só entram em METRICA_IDS os que já têm cálculo', () => {
     expect(CODIGOS).toEqual(['O19', 'O20', 'O21', 'O24', 'O25', 'T10', 'T11', 'T12', 'E7', 'E9'])
-    // Cada id entra com o seu cálculo: B3 trouxe O19 e T10, B4 o T12, B5 o E7 e o E9, B6 o O25, B7 o O21, B9 o O20; os demais entram nos cartões seguintes.
-    const comCalculo = ['O19', 'O20', 'O21', 'O25', 'T10', 'T12', 'E7', 'E9']
+    // Cada id entra com o seu cálculo: B3 trouxe O19 e T10, B4 o T12, B5 o E7 e o E9, B6 o O25, B7 o O21, B9 o O20, B10 o O24; os demais entram nos cartões seguintes.
+    const comCalculo = ['O19', 'O20', 'O21', 'O24', 'O25', 'T10', 'T12', 'E7', 'E9']
     for (const c of CODIGOS)
       expect(METRICA_IDS as readonly string[], c).toSatisfy(
         (ids: readonly string[]) => ids.includes(c) === comCalculo.includes(c),

@@ -161,6 +161,7 @@ export const METRICA_IDS = [
   'O19',
   'O20',
   'O21',
+  'O24',
   'O25',
   'T1',
   'T2',

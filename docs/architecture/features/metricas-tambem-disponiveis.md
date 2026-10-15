@@ -148,7 +148,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - Para cada início no período, verifica se havia no mesmo grupo um card criado antes, ainda não iniciado e não descartado nem arquivado naquele instante (`arquivadoAte`). Se houver, é "fora de ordem".
   - Algoritmo: para cada grupo, ordenar por `criado_em` e varrer os inícios em ordem temporal com um conjunto ordenado dos não iniciados. O custo é O(n log n) por grupo.
   - Custo da ultrapassagem **decidido (R-1 = A, 2026-10-14):** para cada ultrapassado, dias úteis (`core/calendario`) entre o início do **primeiro** item que passou na frente dele e o seu próprio início. P50/P85 por tipo (`core/percentil`). Texto do cartão: "esperaram, depois de ultrapassados, X dias úteis até começar" (nunca "dias a mais"). Ultrapassado ainda não iniciado fica fora da estatística até iniciar.
-- **Contrato:** `{ inicios: { k, n, taxa }, meses: [{ mes, emOrdem, foraDeOrdem, emAndamento }], custo: { tipo, estatistica } | null, grupo: 'equipe-tipo-padrao' }`. O `grupo` é literal único (sem alternativas no contrato).
+- **Contrato:** `{ inicios: { k, n, taxa }, meses: [{ mes, emOrdem, foraDeOrdem, emAndamento }], custo: { segmentoPor: 'tipo', porTipo: [{ tipo, ultrapassados, estatistica }] }, marcacoes, grupo: 'equipe-tipo-padrao' }`. O `grupo` é literal único (sem alternativas no contrato). No B10 o `custo` único virou `porTipo` (regra 7, mesmo ajuste do O25); ver `docs/api/metricas.md`.
 - **Mock:** a base atual. Medir a parcela fora de ordem na classe Padrão; a spec pede cerca de 25%. Não se mexe na base. As pendências D-6 e R-1 deixam de ser `pendente-usuario` em `REGRAS_METRICA`.
 - **Mínimo:** a taxa com ≥ 20 inícios; P50/P85 do custo com ≥ 20 ultrapassados no tipo.
 

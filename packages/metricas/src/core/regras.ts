@@ -591,6 +591,18 @@ export const REGRAS_METRICA = {
       'pedido 011 O21; transicoes de retorno ate a conclusao; ciclo do O3 (entreguesDe); par com x sem so dentro do tipo, 20 em cada grupo (regra 7, CA-6); matriz por coluna (uma equipe) ou por papel (R5)',
     status: 'ok',
   },
+  O24: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa', 'percentis'],
+    granularidade: 'story',
+    refBriefing:
+      "pedido 011 O24; D-6' = A (fila de cada equipe, só classe Padrão, mesmo tipo; Urgente, Prazo fixo e Intangível fora, CA-17); R-1 = A (espera do ultrapassado, do início do primeiro que passou na frente até o próprio início, CA-37); P50/P85 por tipo (regra 7)",
+    status: 'ok',
+  },
   O25: {
     dominio: 'businessmap',
     segmentacao: ['tipo'],

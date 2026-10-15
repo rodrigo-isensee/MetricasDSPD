@@ -11,6 +11,7 @@ import type {
   ResultadoO25,
   ResultadoO20,
   ResultadoO21,
+  ResultadoO24,
 } from './tambem'
 
 export type ResultadoO1 = z.infer<typeof s.resultadoO1>
@@ -95,6 +96,7 @@ export interface ContratoMetricas {
   O19: Fluxo<ResultadoO19>
   O20: Fluxo<ResultadoO20>
   O21: Fluxo<ResultadoO21>
+  O24: Fluxo<ResultadoO24>
   O25: Fluxo<ResultadoO25>
   T1: Fluxo<ResultadoT1>
   T2: Fluxo<ResultadoT2>
@@ -207,6 +209,7 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   O19: ['equipe', 'tipo', 'sistema', 'periodo'],
   O20: ['equipe', 'tipo', 'sistema', 'periodo'],
   O21: ['equipe', 'tipo', 'sistema', 'periodo'],
+  O24: ['equipe', 'tipo', 'sistema', 'periodo'],
   O25: ['equipe', 'tipo', 'sistema', 'periodo'],
   T6: ['equipe', 'sistema', 'periodo'],
   T8: ['equipe', 'sistema', 'periodo'],

@@ -113,7 +113,14 @@ export const resultadoO24 = fechado({
     }),
   ),
   marcacoes,
-  custo: fechado({ tipo, estatistica: duracao }).nullable(),
+  /**
+   * Espera dos ultrapassados (R-1 = A): dias úteis entre o início do primeiro item que passou na frente e o início
+   * do ultrapassado. Só dentro de cada tipo (regra 7; a interface mostra um por vez); mínimo 20 por tipo.
+   */
+  custo: fechado({
+    segmentoPor: z.literal('tipo'),
+    porTipo: z.array(fechado({ tipo, ultrapassados: z.number(), estatistica: duracao })),
+  }),
   grupo: z.literal('equipe-tipo-padrao'),
 })
 

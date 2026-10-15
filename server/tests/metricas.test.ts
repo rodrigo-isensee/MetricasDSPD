@@ -84,6 +84,21 @@ describe('GET /api/v1/metricas/:id', () => {
     expect((await get(app, '/api/v1/metricas/O20?periodo=abc')).statusCode).toBe(400);
   });
 
+  it('O24 (pedido 011, B10): 200 no schema, grupo único, custo por tipo, nenhum campo de pessoa nem de equipe e 400 em filtro inválido', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/O24?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O24.safeParse(r.json()).success).toBe(true);
+    expect(r.json().grupo).toBe('equipe-tipo-padrao');
+    expect(r.json().custo.segmentoPor).toBe('tipo');
+    expect(gzipSync(r.body).length / 1024).toBeLessThan(50);
+    expect(JSON.stringify({ ...r.json(), grupo: undefined })).not.toMatch(/responsave|usuario|equipe/i);
+    const e = await get(app, '/api/v1/metricas/O24?periodo=12m&equipe=fluig');
+    expect(e.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O24.safeParse(e.json()).success).toBe(true);
+    expect((await get(app, '/api/v1/metricas/O24?periodo=abc')).statusCode).toBe(400);
+  });
+
   it('O21 (pedido 011, B7): 200 no schema, par por tipo, matriz por papel em "Todas" e nenhum campo de pessoa ou de equipe', async () => {
     const { app } = await montar();
     const r = await get(app, '/api/v1/metricas/O21?periodo=12m');
