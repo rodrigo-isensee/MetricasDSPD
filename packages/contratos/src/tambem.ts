@@ -107,7 +107,15 @@ export const resultadoO25 = fechado({
   marcacoes,
   consumido: fechado({
     antesDoInicio: fechado({ itens: z.number() }),
-    depoisDoInicio: fechado({ itens: z.number(), diasUteis: z.number(), estatistica: duracao }),
+    depoisDoInicio: fechado({
+      itens: z.number(),
+      diasUteis: z.number(),
+      segmentoPor: z.literal('tipo'),
+      /** P50/P85/P95 do tempo consumido só dentro de cada tipo (regra 7); mínimo 20 por tipo; a UI mostra um por vez. */
+      porTipo: z.array(
+        fechado({ tipo, itens: z.number(), diasUteis: z.number(), estatistica: duracao }),
+      ),
+    }),
   }),
   /** Descartes cujo instante veio da última revisão (aproximado). */
   instanteAproximado: fechado({ itens: z.number() }),

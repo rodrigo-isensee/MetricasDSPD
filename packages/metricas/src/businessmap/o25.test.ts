@@ -88,9 +88,11 @@ describe('O25: descarte', () => {
     )
     expect(r.consumido.antesDoInicio).toEqual({ itens: 1 })
     expect(r.consumido.depoisDoInicio).toMatchObject({ itens: 2, diasUteis: 4 })
-    // 2 descartados depois do início: abaixo de 20, sem percentil
-    expect(r.consumido.depoisDoInicio.estatistica).toMatchObject({ status: 'insuficiente', n: 2 })
-    expect(JSON.stringify(r.consumido.depoisDoInicio.estatistica)).not.toContain('p50')
+    // 2 descartados depois do início no tipo: abaixo de 20, sem percentil
+    const mel = r.consumido.depoisDoInicio.porTipo[0]!
+    expect(mel).toMatchObject({ tipo: 'Melhoria', itens: 2, diasUteis: 4 })
+    expect(mel.estatistica).toMatchObject({ status: 'insuficiente', n: 2 })
+    expect(JSON.stringify(mel.estatistica)).not.toContain('p50')
   })
 
   it('com 20 descartados depois do início publica P50/P85/P95 do consumido; o antes do início não entra', () => {
@@ -102,9 +104,26 @@ describe('O25: descarte', () => {
       F,
     )
     expect(r.consumido.antesDoInicio.itens).toBe(5)
-    const e = r.consumido.depoisDoInicio.estatistica
+    expect(r.consumido.depoisDoInicio.segmentoPor).toBe('tipo')
+    const e = r.consumido.depoisDoInicio.porTipo[0]!.estatistica
     expect(e).toMatchObject({ status: 'ok', n: 20, valor: { p50: 2, p85: 2, p95: 2 } })
     expect(r.consumido.depoisDoInicio.diasUteis).toBe(40)
+  })
+
+  it('regra 7: P50/P85 do consumido só dentro do tipo, com mínimo de 20 por tipo (19/20)', () => {
+    const r = calcularO25(
+      ctxDe([
+        ...muitos(20, (i) => descartadoDepois(`m${i}`)),
+        ...muitos(19, (i) => descartadoDepois(`i${i}`, { tipo: 'Incidente' })),
+      ]),
+      F,
+    )
+    const { porTipo, itens } = r.consumido.depoisDoInicio
+    expect(itens).toBe(39) // soma e contagem juntam tipos; percentil nunca
+    expect(porTipo.map((t) => t.tipo)).toEqual(['Incidente', 'Melhoria'])
+    expect(porTipo[0]!.estatistica).toMatchObject({ status: 'insuficiente', n: 19 })
+    expect(porTipo[1]!.estatistica).toMatchObject({ status: 'ok', n: 20 })
+    expect(SCHEMAS_RESULTADO.O25.safeParse(r).success).toBe(true)
   })
 
   it('card excluído conta como descarte no instante da exclusão (o índice o tira dos demais cálculos)', () => {

@@ -1,4 +1,4 @@
-import type { FiltrosFluxo, ResultadoO25 } from '@metricas-dspd/contratos'
+import { TIPOS_CARD, type FiltrosFluxo, type ResultadoO25 } from '@metricas-dspd/contratos'
 import { diaDeIso, diaLocal, horasUteisEntre } from '../core/calendario'
 import { estatistica, percentisDe, taxa } from '../core/estatistica'
 import { mesesEntre } from '../core/series'
@@ -25,7 +25,8 @@ const soma = (xs: readonly number[]): number => xs.reduce((s, x) => s + x, 0)
  * instante do descarte (o da exclusão no excluído; sem ele, a última revisão, marcada como aproximada). Motivo
  * preenchido sem descarte vira aviso e fica fora da taxa (CA-26). Tempo consumido (D-13, CA-19): do início ao
  * descarte em horas úteis; quem foi descartado antes de iniciar fica à parte, com tempo zero. P50/P85/P95 do
- * consumido depois do início só com n >= 20 na janela de 12 semanas. Sem divisão por motivo enquanto a integração
+ * consumido depois do início só com n >= 20 na janela de 12 semanas, por tipo de demanda (regra 7: percentil só
+ * dentro da classe; um tipo por vez na interface). Sem divisão por motivo enquanto a integração
  * não ler o catálogo nativo (`porMotivo = null`, CA-44); `discard_comment` e pessoa nunca entram.
  */
 export function calcularO25(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO25 {
@@ -40,6 +41,7 @@ export function calcularO25(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO25 {
       const iniciou = m.inicio !== null && m.inicio < d.instante
       return [
         {
+          tipo: m.card.tipo,
           descartado: true,
           instante: d.instante,
           aproximado: d.aproximado,
@@ -53,6 +55,7 @@ export function calcularO25(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO25 {
     if (m.entrega !== null && !motivoSemDescarte(m.card))
       return [
         {
+          tipo: m.card.tipo,
           descartado: false,
           instante: m.entrega,
           aproximado: false,
@@ -91,15 +94,25 @@ export function calcularO25(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO25 {
       depoisDoInicio: {
         itens: depois.length,
         diasUteis: r2(soma(depois.map((e) => e.consumidoDu))),
-        estatistica: estatistica(depoisNaJanela.length, janela, () => {
-          const p = percentisDe(
-            amostraBM(
-              'story',
-              depoisNaJanela.map((e) => e.consumidoDu),
-              janela,
-            ),
-          )
-          return { p50: r2(p.p50), p85: r2(p.p85), p95: r2(p.p95) }
+        segmentoPor: 'tipo' as const,
+        porTipo: TIPOS_CARD.filter((t) => depois.some((e) => e.tipo === t)).map((t) => {
+          const doTipo = depois.filter((e) => e.tipo === t)
+          const naJanela = depoisNaJanela.filter((e) => e.tipo === t)
+          return {
+            tipo: t,
+            itens: doTipo.length,
+            diasUteis: r2(soma(doTipo.map((e) => e.consumidoDu))),
+            estatistica: estatistica(naJanela.length, janela, () => {
+              const p = percentisDe(
+                amostraBM(
+                  'story',
+                  naJanela.map((e) => e.consumidoDu),
+                  janela,
+                ),
+              )
+              return { p50: r2(p.p50), p85: r2(p.p85), p95: r2(p.p95) }
+            }),
+          }
         }),
       },
     },

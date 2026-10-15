@@ -14836,139 +14836,179 @@
                             "diasUteis": {
                               "type": "number"
                             },
-                            "estatistica": {
-                              "oneOf": [
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "status": {
-                                      "type": "string",
-                                      "enum": [
-                                        "ok"
-                                      ]
-                                    },
-                                    "n": {
-                                      "type": "integer",
-                                      "minimum": 20,
-                                      "maximum": 9007199254740991
-                                    },
-                                    "valor": {
-                                      "type": "object",
-                                      "properties": {
-                                        "p50": {
-                                          "type": "number"
-                                        },
-                                        "p85": {
-                                          "type": "number"
-                                        },
-                                        "p95": {
-                                          "type": "number"
-                                        }
-                                      },
-                                      "required": [
-                                        "p50",
-                                        "p85",
-                                        "p95"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    "janela": {
-                                      "type": "object",
-                                      "properties": {
-                                        "inicio": {
-                                          "type": "string"
-                                        },
-                                        "fim": {
-                                          "type": "string"
-                                        },
-                                        "unidade": {
-                                          "type": "string",
-                                          "enum": [
-                                            "semanas",
-                                            "meses"
-                                          ]
-                                        },
-                                        "quantidade": {
-                                          "type": "number"
-                                        }
-                                      },
-                                      "required": [
-                                        "inicio",
-                                        "fim"
-                                      ],
-                                      "additionalProperties": false
-                                    }
-                                  },
-                                  "required": [
-                                    "status",
-                                    "n",
-                                    "valor",
-                                    "janela"
-                                  ],
-                                  "additionalProperties": false
-                                },
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "status": {
-                                      "type": "string",
-                                      "enum": [
-                                        "insuficiente"
-                                      ]
-                                    },
-                                    "n": {
-                                      "type": "integer",
-                                      "minimum": -9007199254740991,
-                                      "maximum": 19
-                                    },
-                                    "minimo": {
-                                      "type": "number",
-                                      "enum": [
-                                        20
-                                      ]
-                                    },
-                                    "janela": {
-                                      "type": "object",
-                                      "properties": {
-                                        "inicio": {
-                                          "type": "string"
-                                        },
-                                        "fim": {
-                                          "type": "string"
-                                        },
-                                        "unidade": {
-                                          "type": "string",
-                                          "enum": [
-                                            "semanas",
-                                            "meses"
-                                          ]
-                                        },
-                                        "quantidade": {
-                                          "type": "number"
-                                        }
-                                      },
-                                      "required": [
-                                        "inicio",
-                                        "fim"
-                                      ],
-                                      "additionalProperties": false
-                                    }
-                                  },
-                                  "required": [
-                                    "status",
-                                    "n",
-                                    "minimo",
-                                    "janela"
-                                  ],
-                                  "additionalProperties": false
-                                }
+                            "segmentoPor": {
+                              "type": "string",
+                              "enum": [
+                                "tipo"
                               ]
+                            },
+                            "porTipo": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "tipo": {
+                                    "type": "string",
+                                    "enum": [
+                                      "Incidente",
+                                      "Requisição",
+                                      "Melhoria",
+                                      "Iniciativa",
+                                      "Bug interno",
+                                      "Defeito em produção",
+                                      "Dívida técnica"
+                                    ]
+                                  },
+                                  "itens": {
+                                    "type": "number"
+                                  },
+                                  "diasUteis": {
+                                    "type": "number"
+                                  },
+                                  "estatistica": {
+                                    "oneOf": [
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "status": {
+                                            "type": "string",
+                                            "enum": [
+                                              "ok"
+                                            ]
+                                          },
+                                          "n": {
+                                            "type": "integer",
+                                            "minimum": 20,
+                                            "maximum": 9007199254740991
+                                          },
+                                          "valor": {
+                                            "type": "object",
+                                            "properties": {
+                                              "p50": {
+                                                "type": "number"
+                                              },
+                                              "p85": {
+                                                "type": "number"
+                                              },
+                                              "p95": {
+                                                "type": "number"
+                                              }
+                                            },
+                                            "required": [
+                                              "p50",
+                                              "p85",
+                                              "p95"
+                                            ],
+                                            "additionalProperties": false
+                                          },
+                                          "janela": {
+                                            "type": "object",
+                                            "properties": {
+                                              "inicio": {
+                                                "type": "string"
+                                              },
+                                              "fim": {
+                                                "type": "string"
+                                              },
+                                              "unidade": {
+                                                "type": "string",
+                                                "enum": [
+                                                  "semanas",
+                                                  "meses"
+                                                ]
+                                              },
+                                              "quantidade": {
+                                                "type": "number"
+                                              }
+                                            },
+                                            "required": [
+                                              "inicio",
+                                              "fim"
+                                            ],
+                                            "additionalProperties": false
+                                          }
+                                        },
+                                        "required": [
+                                          "status",
+                                          "n",
+                                          "valor",
+                                          "janela"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "status": {
+                                            "type": "string",
+                                            "enum": [
+                                              "insuficiente"
+                                            ]
+                                          },
+                                          "n": {
+                                            "type": "integer",
+                                            "minimum": -9007199254740991,
+                                            "maximum": 19
+                                          },
+                                          "minimo": {
+                                            "type": "number",
+                                            "enum": [
+                                              20
+                                            ]
+                                          },
+                                          "janela": {
+                                            "type": "object",
+                                            "properties": {
+                                              "inicio": {
+                                                "type": "string"
+                                              },
+                                              "fim": {
+                                                "type": "string"
+                                              },
+                                              "unidade": {
+                                                "type": "string",
+                                                "enum": [
+                                                  "semanas",
+                                                  "meses"
+                                                ]
+                                              },
+                                              "quantidade": {
+                                                "type": "number"
+                                              }
+                                            },
+                                            "required": [
+                                              "inicio",
+                                              "fim"
+                                            ],
+                                            "additionalProperties": false
+                                          }
+                                        },
+                                        "required": [
+                                          "status",
+                                          "n",
+                                          "minimo",
+                                          "janela"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "tipo",
+                                  "itens",
+                                  "diasUteis",
+                                  "estatistica"
+                                ],
+                                "additionalProperties": false
+                              }
                             }
                           },
                           "required": [
                             "itens",
                             "diasUteis",
-                            "estatistica"
+                            "segmentoPor",
+                            "porTipo"
                           ],
                           "additionalProperties": false
                         }

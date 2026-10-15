@@ -569,7 +569,7 @@ export const REGRAS_METRICA = {
   },
   O25: {
     dominio: 'businessmap',
-    segmentacao: [],
+    segmentacao: ['tipo'],
     ordem: 'temporal',
     incluiArquivados: true,
     minimo: 20,

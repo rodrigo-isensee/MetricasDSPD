@@ -76,7 +76,12 @@ const EXEMPLOS: Record<CodigoTambemFase1, unknown> = {
     marcacoes: [],
     consumido: {
       antesDoInicio: { itens: 2 },
-      depoisDoInicio: { itens: 3, diasUteis: 14, estatistica: duracaoPouca },
+      depoisDoInicio: {
+        itens: 3,
+        diasUteis: 14,
+        segmentoPor: 'tipo',
+        porTipo: [{ tipo: 'Melhoria', itens: 3, diasUteis: 14, estatistica: duracaoPouca }],
+      },
     },
     instanteAproximado: { itens: 1 },
     avisoPreenchimento: { itens: 0 },

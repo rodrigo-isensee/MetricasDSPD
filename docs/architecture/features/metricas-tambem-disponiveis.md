@@ -166,7 +166,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - Os 4 valores restantes são marcados como **provisórios**, como `CAUSAS_RAIZ`, até o usuário responder a pergunta do domínio. Retirar o valor do gerador mudaria o hash da base (`924448d4`); a correção fica no adaptador do O25 (mapear o valor para `null`), sem tocar em `gerarBaseMock`.
 - **Mínimo:**
   - taxa com ≥ 20 encerrados;
-  - P50/P85 do consumido com ≥ 20 descartados após o início (raro);
+  - P50/P85 do consumido **por tipo** (regra 7; ajuste de 2026-10-15), com ≥ 20 descartados após o início no tipo (raro);
   - fora isso, soma e contagem.
 
 ### O26 Passagens de mão
