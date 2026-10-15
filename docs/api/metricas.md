@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1..O19, BLOQUEADOS, T1..T10, E1..E5, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL; 53 ids, inclui as 17 complementares abaixo e a PV1, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O19, BLOQUEADOS, T1..T10, T12, E1..E5, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL; 54 ids, inclui as 17 complementares abaixo e a PV1, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -144,6 +144,13 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 - **O19:** `motivos` sempre com os 7 motivos, na ordem do domínio (a interface ordena por soma). `bloqueios` e `diasUteis` são censo e saem sempre. `pctDoTotal` é `taxa` com **k = bloqueios do motivo e n = total de bloqueios encerrados** (R6: o mínimo de 20 vale sobre bloqueios, nunca sobre dias; vem `insuficiente` com `k` e `n` abaixo de 20 no total). `duracao` é `estatistica` (P50/P85/P95 da duração em dias úteis, pela biblioteca) só com 20 ou mais bloqueios do motivo.
 - **T10:** uma linha por fornecedor, em ordem alfabética, de todo bloqueio encerrado com fornecedor informado, de qualquer motivo da lista fechada (D-10 = A, R-5); bloqueio sem fornecedor (nulo ou em branco) fica fora. `duracao` só com 20 ou mais bloqueios do fornecedor. Sem `prazoDiasUteis`, `status` nem `prazoFornecedor`: a interface mostra a linha fixa "Prazo contratado não informado".
 - **Mock (base não muda):** em 12 semanas o O19 tem 223 bloqueios encerrados e 4 abertos, e o menor motivo tem 25 (todos publicam P50/P85); com uma equipe só (26 bloqueios) todos ficam abaixo de 20 e só saem soma e contagem. T10 em 12 semanas: Alfa 19 (insuficiente), Beta 23, Gama 26; em 12 meses os três publicam.
+
+### T12 (B4): rota ativa
+- Desde o B4 `GET /api/v1/metricas/T12` existe (54 ids; OpenAPI regenerada). Filtros: equipe, tipo, sistema, período. Só BusinessMap; nenhum campo de pessoa. **Cartão no catálogo (`CATALOGO_CARTOES`): ainda não entra** (mesmo motivo do B3: quebra o catálogo e os testes do web; fica para o cartão do front). Entrada pronta: T12 em tático, seção `o-que-entra` "O que entra, e quando?" (leia junto `o14`, `o11`), `complementar` e `disponivel`.
+- **Base:** demandas (story que não é bug interno; frente e projeto nunca entram) com `criado_em` dentro do período (padrão 12 semanas). `base.unidade` = "demandas criadas".
+- **"Ida e volta" (D-8 = A, CA-39):** a demanda conta se tem bloqueio com motivo "Falta de informação no chamado" que começou antes do início (ou o card nunca iniciou), **ou** um retorno da coluna de papel `compromisso` para a de papel `backlog`. Os dois critérios são um OU: a demanda que tem os dois conta uma vez só.
+- **Resposta:** `total` e `areas[{ area, taxa }]`, todos `taxa` (`{ status, k, n, pct }` com n >= 20, ou `{ status: 'insuficiente', k, n, minimo }`). `areas` por volume decrescente de demandas, desempate pelo nome (CA-11), nunca por taxa. `area` é a **área solicitante** (dimensão permitida): nunca a equipe do DSPD nem pessoa (R5; teste com cards de várias equipes e filtro de equipe).
+- **Mock (base não muda): a parcela medida é 0%.** Em 12 semanas: 738 demandas em 8 áreas (Financeiro 143, Jurídico 123, Comercial 119, Atendimento ao Cliente 117, Operações 100, Logística 58, Recursos Humanos 40, DSPD (interno) 38), todas com n >= 20 e `k = 0`. Causa: o gerador só cria bloqueio depois do início do card e não gera retorno compromisso -> backlog. Fica fora do 10% a 25% e das duas áreas abaixo de 20 que a spec previa; decisão de ajustar o mock é do tech-lead (mudaria hashes e snapshots) e não foi tomada aqui. Os testes provam o cálculo com fixtures montadas à mão.
 
 ### Acréscimo ao O2 (bloco O23 "estoque parado")
 - Campo `parados` em `resultadoO2`, **obrigatório desde o B2** (a resposta do O2 passa a trazê-lo sempre; os campos antigos não mudam). Forma: `{ limiteDiasUteis, taxa, porEtapa[{ etapa, k }] }`. `taxa` é "k de n" sobre o WIP atual (só publica o percentual com n >= 20; `k` e `n` sempre presentes). `porEtapa` segue as `etapas` do O2 (colunas com uma equipe, "Fila" e "Execução" sem equipe), uma entrada por etapa, inclusive com `k = 0`.

@@ -567,6 +567,18 @@ export const REGRAS_METRICA = {
       'pedido 011 T10; D-10 = A (sem prazo contratado); R-5 (qualquer motivo com fornecedor informado)',
     status: 'ok',
   },
+  T12: {
+    dominio: 'businessmap',
+    segmentacao: ['area'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 T12; D-8 = A (ida e volta = bloqueio por falta de informação antes do início, ou retorno compromisso -> backlog); área solicitante, nunca equipe',
+    status: 'ok',
+  },
   E4: {
     dominio: 'businessmap',
     segmentacao: ['tipo-projeto'],

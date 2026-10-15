@@ -53,6 +53,18 @@ describe('GET /api/v1/metricas/:id', () => {
     expect([...todas].filter((k) => PESSOA.test(k))).toEqual([]);
   }, 60_000);
 
+  it('T12 (pedido 011): 200 no schema, filtros do fluxo, áreas por volume e nenhuma chave de equipe ou pessoa', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/T12?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.T12.safeParse(r.json()).success).toBe(true);
+    const volumes = (r.json().areas as { taxa: { n: number } }[]).map((x) => x.taxa.n);
+    expect(volumes).toEqual([...volumes].sort((a, b) => b - a));
+    expect(Object.keys((r.json().areas as object[])[0] ?? {}).sort()).toEqual(['area', 'taxa']);
+    expect((await get(app, '/api/v1/metricas/T12?periodo=12m&tipo=melhoria')).statusCode).toBe(200);
+    expect((await get(app, '/api/v1/metricas/T12?periodo=abc')).statusCode).toBe(400);
+  });
+
   it('O19 e T10 (pedido 011): 200 no schema, filtros do fluxo, motivos na ordem do domínio, fornecedor alfabético e sem prazo', async () => {
     const { app } = await montar();
     const o19 = await get(app, '/api/v1/metricas/O19?periodo=12m');

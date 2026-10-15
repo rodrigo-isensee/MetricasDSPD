@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { MetricaId } from './comum'
 import type { ResultadoDe } from './metricas'
 import * as s from './schemas'
-import { resultadoO19, resultadoT10 } from './tambem'
+import { resultadoO19, resultadoT10, resultadoT12 } from './tambem'
 
 /**
  * Módulo próprio (review R18): só a validação em tempo de execução (fonte HTTP e testes) importa
@@ -40,6 +40,7 @@ export const SCHEMAS_RESULTADO: { [K in MetricaId]: z.ZodType<ResultadoDe<K>> } 
   T6: s.resultadoT6,
   T8: s.resultadoT8,
   T10: resultadoT10,
+  T12: resultadoT12,
   E1: s.resultadoE1,
   E2: s.resultadoE2,
   E3: s.resultadoE3,

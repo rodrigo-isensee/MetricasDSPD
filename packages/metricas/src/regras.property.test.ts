@@ -102,6 +102,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
       O16: 'primeira chave é faixa de idade (derivada do instante, sem classificador de item); severidade é contagem de abertos',
       O19: 'primeira chave é motivo do bloqueio, que vive no fato_bloqueio (um card tem vários motivos): isolar por card não isola o motivo; pctDoTotal é participação no total, por definição',
       T10: 'primeira chave é fornecedor, que vive no fato_bloqueio (um card pode ter bloqueios de mais de um fornecedor): isolar por card não isola o fornecedor',
+      T12: 'primeira chave é a área solicitante (campo do card, sem classificador de item no harness); o isolamento da área e a ordem por volume são provados em t12.test.ts (R5, CA-11), e a taxa por área vem do mesmo conjunto de demandas',
       O17: 'primeira chave é causa raiz, que vive na extensão (mapa por chamado), sem classificador de item no modelo do núcleo',
       E4: 'série trimestral de contagem de projetos; o tipo de projeto não é rótulo de nó no resultado',
       S8: 'a prioridade atua só como filtro; o resultado é série mensal sem nó por prioridade',
