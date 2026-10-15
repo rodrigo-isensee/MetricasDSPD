@@ -174,11 +174,15 @@
             "items": {
               "type": "number"
             }
+          },
+          "emProgresso": {
+            "type": "number"
           }
         },
         "required": [
           "dia",
-          "contagens"
+          "contagens",
+          "emProgresso"
         ],
         "additionalProperties": false
       }

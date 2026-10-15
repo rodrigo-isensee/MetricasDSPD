@@ -57,6 +57,17 @@ const acumula = (id: string, dia: string, extra: Partial<EspecCard> = {}): Espec
   ],
   ...extra,
 })
+/** Entra em "Em desenvolvimento" dentro do período (o O20 só publica com transição no período). */
+const entraNoPeriodo = (id: string, extra: Partial<EspecCard> = {}): EspecCard => ({
+  id,
+  criado: '2026-06-01T08:00:00-03:00',
+  trilha: [
+    ['Aguardando priorização', '2026-06-01T08:00:00-03:00'],
+    ['Pronto para desenvolver', '2026-06-02T08:00:00-03:00'],
+    ['Em desenvolvimento', '2026-09-20T09:00:00-03:00'],
+  ],
+  ...extra,
+})
 const idx = (r: ReturnType<typeof calcularO20>, chave: string) =>
   r.faixas.findIndex((x) => x.chave === chave)
 
@@ -73,9 +84,17 @@ describe('O20: fluxo cumulativo', () => {
     )
     const r = calcularO20(ctxDe(base), { ...F, equipe: ['equipe-a'] })
     expect(r.agrupamento).toBe('coluna')
-    expect(r.faixas.map((x) => x.chave)).toEqual(['Em desenvolvimento', 'Aguardando homologação'])
-    expect(r.faixas.map((x) => x.tipoColuna)).toEqual(['execucao', 'fila'])
-    expect(r.faixas[0]!.ordem).toBeLessThan(r.faixas[1]!.ordem)
+    // de "Backlog" a "Entregue": as faixas de antes do início também aparecem, na ordem do quadro
+    expect(r.faixas.map((x) => x.chave)).toEqual([
+      'Aguardando priorização',
+      'Pronto para desenvolver',
+      'Em desenvolvimento',
+      'Aguardando homologação',
+    ])
+    expect(r.faixas.map((x) => x.tipoColuna)).toEqual(['fila', 'fila', 'execucao', 'fila'])
+    expect(r.faixas.map((x) => x.ordem)).toEqual(
+      [...r.faixas.map((x) => x.ordem)].sort((a, b) => a - b),
+    )
     const i = idx(r, 'Aguardando homologação')
     const primeiro = r.dias[0]!
     const ultimo = r.dias[r.dias.length - 1]!
@@ -83,14 +102,14 @@ describe('O20: fluxo cumulativo', () => {
     expect(primeiro.contagens[i]).toBe(0)
     expect(ultimo.contagens[i]).toBe(3)
     expect(r.destaque).toEqual({ faixa: 'Aguardando homologação', de: 0, para: 3 })
-    expect(r.base).toMatchObject({ n: 4, unidade: 'itens em progresso no pico do período' })
+    expect(r.base).toMatchObject({ n: 4, unidade: 'itens no fluxo no pico do período' })
     expect(SCHEMAS_RESULTADO.O20.safeParse(r).success).toBe(true)
   })
 
   it('"Nenhuma etapa acumulou": sem fila que cresça, o destaque é nulo e as faixas continuam', () => {
-    const base = naEquipe(umaBase([constante('k1'), constante('k2')]), 'equipe-a')
+    const base = naEquipe(umaBase([constante('k1'), entraNoPeriodo('k2')]), 'equipe-a')
     const r = calcularO20(ctxDe(base), { ...F, equipe: ['equipe-a'] })
-    expect(r.faixas.map((x) => x.chave)).toEqual(['Em desenvolvimento'])
+    expect(r.faixas.map((x) => x.chave)).toContain('Em desenvolvimento')
     expect(r.destaque).toBeNull()
     // fila que encolheu também não é destaque
     const base2 = naEquipe(
@@ -124,7 +143,11 @@ describe('O20: fluxo cumulativo', () => {
       'equipe-a',
     )
     const r = calcularO20(ctxDe(base), { ...F, equipe: ['equipe-a'] })
-    expect(r.faixas.map((x) => x.chave)).toEqual(['Em desenvolvimento'])
+    expect(r.faixas.map((x) => x.chave)).toEqual([
+      'Aguardando priorização',
+      'Pronto para desenvolver',
+      'Em desenvolvimento',
+    ])
     expect(r.destaque).toBeNull()
   })
 
@@ -145,14 +168,19 @@ describe('O20: fluxo cumulativo', () => {
     )
     const base = { ...sem, colunas: sem.colunas.filter((c) => c.coluna !== 'Aguardando revisão') }
     const porColuna = calcularO20(ctxDe(base), { ...F, equipe: ['equipe-a'] })
-    expect(porColuna.faixas.map((x) => x.chave)).toEqual([
+    expect(porColuna.faixas.map((x) => x.chave).slice(-2)).toEqual([
       'Em desenvolvimento',
       'Aguardando revisão',
     ])
-    expect(porColuna.faixas[1]).toMatchObject({ tipoColuna: 'execucao' })
+    expect(porColuna.faixas.at(-1)).toMatchObject({ tipoColuna: 'execucao' })
     const porPapel = calcularO20(ctxDe(base), F)
-    expect(porPapel.faixas.map((x) => x.chave)).toEqual(['trabalho', 'sem-papel'])
-    expect(porPapel.faixas[1]).toMatchObject({ rotulo: 'Sem papel definido' })
+    expect(porPapel.faixas.map((x) => x.chave)).toEqual([
+      'backlog',
+      'compromisso',
+      'trabalho',
+      'sem-papel',
+    ])
+    expect(porPapel.faixas[3]).toMatchObject({ rotulo: 'Sem papel definido' })
 
     // volta ao compromisso (fila pura) depois de iniciado: o papel cresce e é o destaque
     const volta = (id: string, dia: string): EspecCard => ({
@@ -167,13 +195,108 @@ describe('O20: fluxo cumulativo', () => {
     })
     const r = calcularO20(ctxDe(umaBase([volta('v1', '2026-09-29'), volta('v2', '2026-09-30')])), F)
     expect(r.faixas.map((x) => [x.chave, x.tipoColuna])).toEqual([
+      ['backlog', 'fila'],
       ['compromisso', 'fila'],
       ['trabalho', 'execucao'],
     ])
     expect(r.destaque).toEqual({ faixa: 'compromisso', de: 0, para: 2 })
   })
 
-  it('sem nenhum item em progresso no período: estado vazio (faixas e dias vazios)', () => {
+  it('de "Backlog" a "Entregue": as faixas de antes do início e de entregue contam; o em progresso é o do O1', () => {
+    const entregue = (id: string, dia: string): EspecCard => ({
+      id,
+      criado: '2026-08-03T08:00:00-03:00',
+      trilha: [
+        ['Aguardando priorização', '2026-08-03T08:00:00-03:00'],
+        ['Pronto para desenvolver', '2026-08-04T08:00:00-03:00'],
+        ['Em desenvolvimento', '2026-08-10T09:00:00-03:00'],
+        ['Entregue', `${dia}T10:00:00-03:00`],
+      ],
+    })
+    const noBacklog: EspecCard = {
+      id: 'b1',
+      criado: '2026-09-01T08:00:00-03:00',
+      trilha: [['Aguardando priorização', '2026-09-01T08:00:00-03:00']],
+    }
+    const base = naEquipe(
+      umaBase([entregue('e1', '2026-09-01'), entregue('e2', '2026-09-10'), noBacklog]),
+      'equipe-a',
+    )
+    const ctx = ctxDe(base)
+    const r = calcularO20(ctx, { ...F, equipe: ['equipe-a'] })
+    const chaves = r.faixas.map((x) => x.chave)
+    expect(chaves).toEqual([
+      'Aguardando priorização',
+      'Pronto para desenvolver',
+      'Em desenvolvimento',
+      'Entregue',
+    ])
+    const ult = r.dias.at(-1)!
+    expect(ult.contagens[chaves.indexOf('Entregue')]).toBe(2)
+    expect(ult.contagens[chaves.indexOf('Aguardando priorização')]).toBe(1)
+    expect(ult.contagens[chaves.indexOf('Em desenvolvimento')]).toBe(0)
+    // Entregue nunca é destaque (não é fila de espera) e o backlog crescente é fila
+    expect(r.destaque).toEqual({ faixa: 'Aguardando priorização', de: 0, para: 1 })
+    expect(ult.emProgresso).toBe(0)
+    const o1 = calcularO1(ctx, { ...F, equipe: ['equipe-a'] })
+    r.dias.forEach((d, i) => expect(d.emProgresso).toBe(o1.serie[i]!.wip))
+    expect(Math.max(...r.dias.map((d) => d.emProgresso))).toBe(2)
+    // "Todas": por papel
+    const t = calcularO20(ctx, F)
+    expect(t.faixas.map((x) => x.chave)).toEqual(['backlog', 'compromisso', 'trabalho', 'entrega'])
+    expect(t.dias.at(-1)!.contagens[3]).toBe(2)
+  })
+
+  it('card arquivado sai das faixas no instante do arquivamento (fimDeVidaAberta)', () => {
+    const base = naEquipe(
+      umaBase([
+        entraNoPeriodo('k1', { descarte: '2026-09-25T10:00:00-03:00' }),
+        entraNoPeriodo('k2'),
+      ]),
+      'equipe-a',
+    )
+    const r = calcularO20(ctxDe(base), { ...F, equipe: ['equipe-a'] })
+    const i = idx(r, 'Em desenvolvimento')
+    expect(r.dias.find((d) => d.dia === '2026-09-24')!.contagens[i]).toBe(2)
+    expect(r.dias.at(-1)!.contagens[i]).toBe(1)
+  })
+
+  it('entregue e arquivado depois continua na faixa Entregue (P1)', () => {
+    const e = (id: string, extra: Partial<EspecCard> = {}): EspecCard => ({
+      id,
+      criado: '2026-08-03T08:00:00-03:00',
+      trilha: [
+        ['Aguardando priorização', '2026-08-03T08:00:00-03:00'],
+        ['Em desenvolvimento', '2026-08-10T09:00:00-03:00'],
+        ['Entregue', '2026-09-01T10:00:00-03:00'],
+      ],
+      ...extra,
+    })
+    const base = naEquipe(umaBase([e('e1', { descarte: '2026-09-20T10:00:00-03:00' })]), 'equipe-a')
+    const r = calcularO20(ctxDe(base), { ...F, equipe: ['equipe-a'] })
+    expect(r.dias.at(-1)!.contagens[idx(r, 'Entregue')]).toBe(1)
+  })
+
+  it('card sem nenhuma transição não entra nas faixas', () => {
+    const base = naEquipe(
+      umaBase([
+        entraNoPeriodo('k1'),
+        { id: 'sem', criado: '2026-08-03T08:00:00-03:00', trilha: [] },
+      ]),
+      'equipe-a',
+    )
+    const r = calcularO20(ctxDe(base), { ...F, equipe: ['equipe-a'] })
+    expect(r.dias.at(-1)!.contagens[idx(r, 'Em desenvolvimento')]).toBe(1)
+  })
+
+  it('sem transição no período (só histórico antigo): estado vazio, mesmo com cards em andamento', () => {
+    const r = calcularO20(ctxDe(umaBase([constante('k1')])), F)
+    expect(r.faixas).toEqual([])
+    expect(r.dias).toEqual([])
+    expect(r.base.n).toBe(0)
+  })
+
+  it('sem nenhum item no período: estado vazio (faixas e dias vazios)', () => {
     const r = calcularO20(ctxDe(umaBase([])), F)
     expect(r.faixas).toEqual([])
     expect(r.dias).toEqual([])
@@ -185,7 +308,7 @@ describe('O20: fluxo cumulativo', () => {
 
   it('"Todas": faixa por papel, somada entre quadros de nomes de coluna diferentes (nunca equipe)', () => {
     const a = naEquipe(umaBase([constante('k1'), acumula('a1', '2026-09-29')]), 'equipe-a')
-    const b = naEquipe(umaBase([constante('k2', { equipe: 'Equipe B' })]), 'equipe-b', {
+    const b = naEquipe(umaBase([entraNoPeriodo('k2', { equipe: 'Equipe B' })]), 'equipe-b', {
       'Em desenvolvimento': 'Fazendo',
     })
     const base: BaseBM = {
@@ -201,36 +324,35 @@ describe('O20: fluxo cumulativo', () => {
     const ctx = ctxDe(base)
     const r = calcularO20(ctx, F)
     expect(r.agrupamento).toBe('papel')
-    expect(r.faixas.map((x) => x.chave)).toEqual(['trabalho'])
-    expect(r.faixas[0]).toMatchObject({ rotulo: 'Em execução', tipoColuna: 'execucao' })
     // trabalho = k1 (A) + a1 (A, em "Aguardando homologação", papel trabalho) + k2 (B, em "Fazendo")
-    expect(r.dias[r.dias.length - 1]!.contagens).toEqual([3])
-    expect(r.dias[0]!.contagens).toEqual([2])
+    const t = r.faixas.findIndex((x) => x.chave === 'trabalho')
+    expect(r.faixas[t]).toMatchObject({ rotulo: 'Em execução', tipoColuna: 'execucao' })
+    expect(r.faixas.map((x) => x.chave)).toEqual(['backlog', 'compromisso', 'trabalho'])
+    expect(r.dias[r.dias.length - 1]!.contagens[t]).toBe(3)
+    expect(r.dias[0]!.contagens[t]).toBe(1)
     // mais de uma equipe também é papel
     const duas = calcularO20(ctx, { ...F, equipe: ['equipe-a', 'equipe-b'] })
     expect(duas.agrupamento).toBe('papel')
     // o total por dia bate com o do O1 (mesma varredura)
     const o1 = calcularO1(ctx, F)
-    r.dias.forEach((d, i) => expect(d.contagens.reduce((s, v) => s + v, 0)).toBe(o1.serie[i]!.wip))
+    r.dias.forEach((d, i) => expect(d.emProgresso).toBe(o1.serie[i]!.wip))
     // uma equipe só: coluna, e a coluna renomeada do outro quadro não aparece
     const soB = calcularO20(ctx, { ...F, equipe: ['equipe-b'] })
-    expect(soB.faixas.map((x) => x.chave)).toEqual(['Fazendo'])
+    expect(soB.faixas.map((x) => x.chave)).toContain('Fazendo')
+    expect(soB.faixas.map((x) => x.chave)).not.toContain('Em desenvolvimento')
   })
 
   it('a chave da memoização leva os filtros: tipo e equipe diferentes não reaproveitam o resultado', () => {
     const base = naEquipe(
       umaBase([
-        constante('k1', { tipo: 'Melhoria' }),
-        constante('k2', { tipo: 'Incidente' }),
-        constante('k3', { tipo: 'Incidente' }),
+        entraNoPeriodo('k1', { tipo: 'Melhoria' }),
+        entraNoPeriodo('k2', { tipo: 'Incidente' }),
+        entraNoPeriodo('k3', { tipo: 'Incidente' }),
       ]),
       'equipe-a',
     )
     const ctx = ctxDe(base)
-    const total = (f: FiltrosFluxo) =>
-      calcularO20(ctx, f)
-        .dias.at(-1)
-        ?.contagens.reduce((s, v) => s + v, 0)
+    const total = (f: FiltrosFluxo) => calcularO20(ctx, f).dias.at(-1)?.emProgresso
     expect(total(F)).toBe(3)
     expect(total({ ...F, tipo: ['Incidente'] })).toBe(2)
     expect(total({ ...F, tipo: ['Melhoria'] })).toBe(1)
@@ -324,14 +446,12 @@ describe('O20: fluxo cumulativo', () => {
       }
     })
 
-    it('a soma das faixas por dia é o WIP do O1, em "Todas" e por equipe', () => {
+    it('o em progresso por dia é o WIP do O1, em "Todas" e por equipe', () => {
       for (const f of [F, { ...F, equipe: [equipes[0]!] }]) {
         const r = calcularO20(ctx, f)
         const o1 = calcularO1(ctx, f)
         expect(r.dias).toHaveLength(o1.serie.length)
-        r.dias.forEach((d, i) =>
-          expect(d.contagens.reduce((s, v) => s + v, 0)).toBe(o1.serie[i]!.wip),
-        )
+        r.dias.forEach((d, i) => expect(d.emProgresso).toBe(o1.serie[i]!.wip))
       }
     })
   })

@@ -50,7 +50,7 @@ const EXEMPLOS: Record<CodigoTambemFase1, unknown> = {
     ...comum,
     agrupamento: 'coluna',
     faixas: [{ chave: 'c1', rotulo: 'Análise', ordem: 1, tipoColuna: 'fila' }],
-    dias: [{ dia: '2026-07-01', contagens: [3] }],
+    dias: [{ dia: '2026-07-01', contagens: [3], emProgresso: 3 }],
     destaque: { faixa: 'c1', de: 2, para: 7 },
     mudancasCriterio: [marcacao],
   },

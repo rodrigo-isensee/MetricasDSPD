@@ -349,6 +349,8 @@ describe.each(CENARIOS)('QA intensivo de filtros: $nome', (c) => {
           const nb = baseN(calc(id, f([b]), ctx))
           const nab = baseN(calc(id, f([a, b]), ctx))
           if (na === null || nb === null || nab === null) continue
+          // O20: base 0 é estado vazio (sem transição no período, spec), não contagem: não entra na aditividade.
+          if (id === 'O20' && (na === 0 || nb === 0)) continue
           if (nab < Math.max(na, nb) || nab > na + nb)
             violacoes.push(`${id}: ${a}=${na}, ${b}=${nb}, ${a}+${b}=${nab} (${periodo.tipo})`)
         }

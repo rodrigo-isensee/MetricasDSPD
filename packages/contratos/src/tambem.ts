@@ -65,7 +65,7 @@ export const resultadoO20 = fechado({
       tipoColuna: z.enum(['fila', 'execucao']),
     }),
   ),
-  dias: z.array(fechado({ dia: iso, contagens: z.array(z.number()) })),
+  dias: z.array(fechado({ dia: iso, contagens: z.array(z.number()), emProgresso: z.number() })),
   destaque: fechado({ faixa: z.string(), de: z.number(), para: z.number() }).nullable(),
   mudancasCriterio: marcacoes,
 })

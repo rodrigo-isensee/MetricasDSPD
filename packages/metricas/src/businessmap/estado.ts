@@ -223,3 +223,58 @@ export function serieWip(
 ): SerieWip {
   return varrerPorColuna(ctx, cards, instantes).total
 }
+
+export interface VarreduraVida {
+  /** Contagem diária por coluna em que algum card esteve vivo (de "Backlog" a "Entregue"). */
+  porColuna: ReadonlyMap<string, readonly number[]>
+  /** Transições dos cards selecionados dentro de [desde, instantes.at(-1)]. */
+  transicoesNoPeriodo: number
+}
+
+/**
+ * Contagem por coluna de TODA a vida do card (da criação ao arquivamento, `fimDeVidaAberta`; a faixa "Entregue" não termina no arquivamento, P1), inclusive antes do
+ * início e depois da entrega, que a varredura do WIP (`varrerPorColuna`) deixa de fora. Mesma diferença +1/-1.
+ */
+export function varrerVidaPorColuna(
+  ctx: ContextoBM,
+  cards: readonly MarcosCard[],
+  instantes: readonly number[],
+  desde: number,
+): VarreduraVida {
+  const n = instantes.length
+  const ate = instantes[n - 1] as number // vazio: `x <= undefined` é falso, nada conta
+  const cols = new Map<string, number[]>()
+  let transicoesNoPeriodo = 0
+  for (const m of cards) {
+    const trs = ctx.idx.transicoesPorCard.get(m.card.card_id) ?? []
+    const fimVida = fimDeVidaAberta(m.card)
+    for (let i = 0; i < trs.length; i++) {
+      const x = trs[i] as FatoTransicao
+      if (x.timestamp >= desde && x.timestamp <= ate) transicoesNoPeriodo++
+      const a = Math.max(x.timestamp, m.card.criado_em)
+      // Entregue e arquivado depois continua entregue (P1): só o que está aberto termina no arquivamento.
+      const naEntrega = ctx.idx.papelDe(m.card.quadro_id, x.coluna_destino)?.papel === 'entrega'
+      const b = Math.min(trs[i + 1]?.timestamp ?? Infinity, naEntrega ? Infinity : fimVida)
+      if (a >= b) continue
+      const lo = primeiroNaoMenor(instantes, a)
+      const hi = primeiroNaoMenor(instantes, b)
+      if (lo >= hi) continue
+      let d = cols.get(x.coluna_destino)
+      if (!d) {
+        d = new Array<number>(n + 1).fill(0)
+        cols.set(x.coluna_destino, d)
+      }
+      d[lo] = (d[lo] as number) + 1
+      d[hi] = (d[hi] as number) - 1
+    }
+  }
+  const porColuna = new Map<string, readonly number[]>()
+  for (const [k, d] of cols) {
+    let v = 0
+    porColuna.set(
+      k,
+      d.slice(0, n).map((x) => (v += x)),
+    )
+  }
+  return { porColuna, transicoesNoPeriodo }
+}
