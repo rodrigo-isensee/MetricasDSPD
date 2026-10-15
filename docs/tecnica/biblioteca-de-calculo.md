@@ -15,8 +15,9 @@ flowchart TB
   subgraph bm["businessmap/"]
     idxbm["indice.ts<br/>indexarBM / criarContextoBM<br/>MarcosCard"]
     ambm["amostra.ts<br/>amostraBM(granularidade)"]
-    desc["descartado.ts<br/>descartado / arquivadoSemDesfecho"]
-    mbm["o1 ... o18, t1 ... t9, e1 ... e3, ei"]
+    desc["descartado.ts<br/>descartado / descartadoNativo / instanteDoDescarte"]
+    var["varredura.ts<br/>varredura +1/-1 por coluna e da vida (memoizada)"]
+    mbm["o1 ... o25, t1 ... t12, e1 ... e9, ei"]
   end
   subgraph ac["acelerato/"]
     idxac["indice.ts<br/>criarContextoAC<br/>ChamadoCalc"]
@@ -43,6 +44,7 @@ flowchart TB
   mbm --> idxbm
   mbm --> ambm
   mbm --> desc
+  mbm --> var
   mac --> idxac
   mac --> amac
   ambm --> am
@@ -103,6 +105,7 @@ sequenceDiagram
 - `MINIMO_AMOSTRA = 20` (em contratos). `publicavel(n) = n >= 20`.
 - `estatistica(n, janela, calcular)`: abaixo de 20 devolve `{ status: 'insuficiente', n, minimo, janela }` **sem chamar** `calcular` (o valor nem existe); senão `{ status: 'ok', n, valor, janela }`.
 - `percentis(a)` (P50/P85/P95), `resumoComMedia(a)` (a média só existe junto dos percentis), `taxa(k, n)` (o `pct` só existe com `n >= 20`), `pctOuNulo`.
+- Os cartões novos (O19, O21, O24, O25, T10, E7, E9) importam `MINIMO_AMOSTRA` de `@metricas-dspd/contratos` em vez de repetir o 20; nenhum literal de mínimo fica no código de métrica.
 - `percentisDe`/`medianaDe` não aplicam o mínimo e só podem ser usados dentro de uma `estatistica(...)` já protegida.
 
 ### 3.5 `Amostra` com marca (`core/amostra.ts`)
@@ -121,6 +124,7 @@ interface Amostra<D extends Dominio, G extends string> {
 - Única definição (Q6): `descartado(card) = card.motivo_descarte !== null`.
 - Arquivado não é descartado: entregue e arquivado é o fim normal e permanece nos cálculos (4.2, 7.3).
 - `arquivadoSemDesfecho(card, entregue)`: arquivado, sem descarte e sem entrega. Pela regra provisória P1 sai do "trabalho aberto" e é contado à parte; a célula correspondente da matriz continua `pendente-usuario`.
+- **Definição nativa do O25 (R-2' = A, P-1 = A)** em `descartado.ts`: `descartadoNativo(card)` = excluído, ou motivo preenchido junto com arquivamento (projeção do estado `discarded` do BusinessMap na fase 1). `motivoSemDescarte(card)` = motivo preenchido sem ser descartado nem excluído (aviso de preenchimento, fora da taxa, CA-26). `instanteDoDescarte` devolve o instante (`excluido_em` ou o arquivamento como `discarded_at`) e `aproximado: true` quando só há a última revisão (`instanteDeExcluido`). `discard_comment` nunca é lido. O `descartado()` acima não mudou: continua a definição Q6 das demais métricas, até o B11a alinhar à P-1 = A.
 - `MarcosCard.ativo = não excluído && não subtarefa && não descartado`. Excluídos e arquivados permanecem na base (carga incremental nunca apaga histórico).
 
 ### 3.7 `ordenarNeutro` (`core/ordenar.ts`)
@@ -128,7 +132,8 @@ interface Amostra<D extends Dominio, G extends string> {
 - "Ordem neutra" do domínio (fluxo, P1 a P5, taxonomia 4.3, domínio fechado) com desempate por id; nunca ordem por desempenho de pessoa ou equipe.
 
 ### 3.8 Versões de critério (T2.6, `core/criterios.ts`)
-- A lista de `VersaoCriterio` (`id`, `data`, `descricao`, `afeta: MetricaId[]`) vive na configuração da base, não no código.
+- A lista de `VersaoCriterio` (`id`, `data`, `descricao`, `afeta: MetricaId[]`) vive na configuração da base. **Exceção (B2):** as versões que nascem de uma constante da própria biblioteca ficam em `VERSOES_DA_BIBLIOTECA` (hoje só `VERSAO_CRITERIO_PARADOS_V1`, id `criterio-2026-10-14-parados-v1`, data 2026-10-14, afeta O2) e `marcacoesNoPeriodo` as soma às da base sem repetir id. Alinhar com o texto do A8 é pendência do architect.
+- `LIMITE_PARADO_DIAS_UTEIS = 5` (O23, bloco `parados` do O2): constante única; mudar o valor exige nova `VersaoCriterio` no mesmo commit.
 - `marcacoesNoPeriodo(metrica, periodo, versoes)` devolve as mudanças que afetam a métrica com data em `(inicio, fim]`, ordenadas por data. `criteriosDe` devolve as marcações da série e da janela; todo resultado traz `criterios`, que a UI marca no gráfico.
 - Critério v1: percentil tipo 7 e janela de 12 semanas.
 
@@ -141,6 +146,12 @@ interface Amostra<D extends Dominio, G extends string> {
 ### 3.10 Contextos e índices
 - `criarContextoBM(base, hoje, cal)` monta `MarcosCard` uma vez por base e calendário: entrada, compromisso, início, entrega vigente (`null` se reaberto), segmentos de execução, `cicloHU` (soma dos segmentos; o intervalo entregue não conta, P10), coluna e papel atuais, bloqueio aberto, projeto e frente de origem.
 - `criarContextoAC(base, hoje, cal)` monta `ChamadoCalc`: `fechado`, `apuravel` (fechado e sem exceção de registro posterior), primeiro atendimento e restauração em horas úteis (pendências descontadas do relógio de resolução), horas por totalizador e por etapa, `vidaHU`.
+
+### 3.10.1 Varredura por coluna e da vida (`businessmap/varredura.ts`, `estado.ts`, B8)
+- `varreduraPorColuna(ctx, f, quadro, instantes)`: varredura +1/-1 por coluna dos cards em progresso (stories ativas ou não, sem subtarefa nem excluídos: a base do O1). É a única fonte do WIP do O1 e do `emProgresso` do O20 (a invariante "igual ao `wip` do O1 no dia" é teste).
+- `varreduraVida(ctx, f, quadro, instantes, desde)`: o mesmo, da vida inteira do card (de Backlog a Entregue, inclusive o entregue arquivado, P1), usada pelo O20.
+- As duas são memoizadas por contexto (`WeakMap`). A chave leva o quadro (`null` = todos), os filtros normalizados (`ordenarNeutro`) e os instantes; o resultado é compartilhado e não pode ser alterado. Também são memoizados `selecionar` (`comum.ts`) e a varredura de filas do O24 (que não depende de filtro). Os caches não têm teto: item para o `security-engineer` (disponibilidade).
+- O1 a frio caiu de 31-38 ms para cerca de 10 ms; a impressão digital do O1 é igual em 8 filtros (`varredura.test.ts`).
 
 ### 3.11 Monte Carlo (`core/montecarlo.ts`)
 - `preverTermino(vazao, itens, granularidade, { prng, simulacoes? })`: "quando terminam N itens", em períodos. `preverItens(vazao, periodos, ...)`: "quantos itens saem em D períodos". Ambas reamostram com reposição a vazão (itens por período) de uma única `Amostra`, logo um domínio, uma classe e uma granularidade; BusinessMap e Acelerato, ou story, frente e projeto, não se combinam. `granularidade` (`dia`/`semana`) só rotula o resultado.
@@ -165,7 +176,7 @@ As regras do briefing como dados executáveis, uma linha por `MetricaId` (`satis
 | `refBriefing` | onde a regra está no briefing |
 | `status` | `pendente-usuario` se e somente se alguma célula for pendente (verificado por teste) |
 
-Estado atual: 7 linhas com `status: 'pendente-usuario'`, todas pela P1 (arquivado sem desfecho): O1, O2, BLOQUEADOS, O10, T4, T7, T9.
+Estado atual (cartões novos do pedido 011): O19, O21, O24, O25, T10, T12, E7 e E9 não têm pendência (`status: 'ok'`). Nas propriedades eles aparecem como exceções nominais onde a chave vive fora do card ou do conjunto (ver 4.1). 7 linhas com `status: 'pendente-usuario'`, todas pela P1 (arquivado sem desfecho): O1, O2, BLOQUEADOS, O10, T4, T7, T9.
 
 ### 4.1 As 6 propriedades (`regras.property.test.ts`)
 Cada propriedade itera a matriz com fast-check sobre a base mock (escala 0,5, semente fixa) e lista as exceções **nominalmente**, com motivo.
@@ -173,9 +184,9 @@ Cada propriedade itera a matriz com fast-check sobre a base mock (escala 0,5, se
 | # | Propriedade | Aplica a | Exceções nominais |
 |---|---|---|---|
 | P1 | Arquivar card **entregue** não muda o resultado | BM com `incluiArquivados` definido | O1, O2, BLOQUEADOS, O10, T4, T7, T9 (P1 pendente) |
-| P2 | Classe isolada = a mesma classe dentro do conjunto | métricas com segmentação (exceto `VISAO_GERAL`) | O1, BLOQUEADOS, O12, O18, T3, T7, T9, E2, E3, S3, S5, S6, S7 (classificador não implementado ou participação no total por definição) |
+| P2 | Classe isolada = a mesma classe dentro do conjunto | métricas com segmentação (exceto `VISAO_GERAL`) | O1, BLOQUEADOS, O12, O18, T3, T7, T9, E2, E3, S3, S5, S6, S7 (classificador não implementado ou participação no total por definição); **novas:** O19 e T10 (motivo e fornecedor vivem no bloqueio, não no card), T12 (área é campo do card, sem classificador no harness) e E7 (sistema é campo do card; participação é fração do total) |
 | P3 | Dados do outro domínio não alteram o resultado | todas; `VISAO_GERAL` por bloco | nenhuma |
-| P4 | Fronteira 19/20: n = 19 não publica, n = 20 publica; `insuficiente` nunca carrega `valor`/`pct` | `minimo = 20` | E1, EI_FL3 (o mock não tem 20 projetos por tipo, Q4; coberto em `businessmap.test.ts`) |
+| P4 | Fronteira 19/20: n = 19 não publica, n = 20 publica; `insuficiente` nunca carrega `valor`/`pct` | `minimo = 20` | E1, EI_FL3 (o mock não tem 20 projetos por tipo, Q4; coberto em `businessmap.test.ts`); **novas:** E9 (idem, fronteira da referência P85 em `e9.test.ts`) e T10 (percentis na janela de 12 semanas: na base de escala 0,5 nenhum fornecedor chega a 20; fronteira 19/20 e corte do dia 84/85 em `bloqueios.test.ts`) |
 | P5 | Embaralhar a entrada não muda a saída nem a ordem | todas | nenhuma |
 | P6 | Nenhuma chave nem valor por pessoa; equipe só como filtro aplicado | todas | nenhuma |
 
@@ -190,7 +201,9 @@ flowchart LR
   MT -->|"falha"| X[pnpm run pronto vermelho]
 ```
 
-## 5. Catálogo das 33 métricas
+## 5. Catálogo das 42 métricas
+
+As 33 do núcleo e as 9 do pedido 011 (fase 1: O19, O20, O21, O24, O25, T10, T12, E7, E9; mais o bloco O23 dentro do O2). Todas as novas são só BusinessMap e nenhuma tem campo de pessoa ou de equipe; o contrato de cada uma está em `docs/contratos/metricas/`.
 
 Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Classe" é a primeira chave de segmentação (estatística calculada dentro dela). A referência é o `refBriefing` da matriz.
 
@@ -199,7 +212,7 @@ Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Cl
 | Métrica | Função | Fórmula resumida | Segmentação | Unidade | Mínimo | Ref. briefing |
 |---|---|---|---|---|---|---|
 | O1 | `calcularO1` | WIP por dia útil no fim do expediente (fila e bloqueados contam) vs limite somado das equipes; % de dias dentro do limite; retrato por coluna se uma equipe | coluna, tipo | itens; % de dias | 0 (taxa de dias usa `taxa`) | 06 O1; 4.2 colunas; 7.3 |
-| O2 | `calcularO2` | idade de cada item aberto vs P85/P95 do ciclo do próprio tipo na janela (dentro, entre P85-P95, acima P95) | tipo, etapa | DU | 20 na referência de percentil | 06 O2; 4.1 início |
+| O2 | `calcularO2` | idade de cada item aberto vs P85/P95 do ciclo do próprio tipo na janela (dentro, entre P85-P95, acima P95); **bloco O23 (`parados`, B2):** k de n dos itens do WIP sem mudar de coluna há mais de `LIMITE_PARADO_DIAS_UTEIS` (5) DU, por etapa, percentual só com n >= 20, sem tempo apontado | tipo, etapa | DU | 20 na referência de percentil | 06 O2; 4.1 início |
 | BLOQUEADOS | `calcularBloqueados` | itens em WIP com bloqueio aberto; tempo bloqueado = HU do início do bloqueio até o corte | coluna, tipo | DU | 0 | 4.2; 06 O1 |
 | O3 | `calcularO3` | tempo de ciclo (soma dos segmentos de execução) dos entregues na janela: P50/P85/P95 + média; série semanal do P85; variação do P85 vs janela 6 meses antes | tipo | DU | 20 (percentis) | 06 O3; 4.1; 4.2 |
 | O4 | `calcularO4` | entregas por semana; faixa mín-máx e mediana das semanas completas da janela | tipo | itens/semana | 20 (faixa, mediana) | 06 O4; 4.2 |
@@ -209,6 +222,11 @@ Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Cl
 | O12 | `calcularO12` | acordos com data no mês; vencido = data acordada < entrega (ou corte); por responsabilidade do atraso; % vencidos | responsabilidade do atraso | itens; % | 20 (taxa) | 06 O12; 7.3 |
 | O15 | `calcularO15` | bugs com fase de detecção criados no período; contenção = fases internas / total; escape = Produção / total | fase de detecção | % | 20 (taxa) | 06 O15; 4.3; 4.2; 7.2 |
 | O18 | `calcularO18` | entregas com e sem bug vinculado até 30 dias após a entrega; taxa limpa, densidade geral (bugs/entregues) e entre afetados (bugs/com bug); mês "em apuração" até fechar os 30 dias | com/sem bug, tipo | %; bugs/item | 20 (taxa) | 06 O18; 4.2 |
+| O19 | `calcularO19` | bloqueios encerrados no período por motivo (7 motivos do domínio fechado): contagem e soma em DU (censo) e `pctDoTotal` = k de n (n = bloqueios encerrados, não dias); P50/P85/P95 da duração **na janela de 12 semanas**; abertos no fim do período (inclui os que terminam depois) à parte, fora da soma | motivo do bloqueio | DU; % | 20 (taxa e percentis, por motivo) | pedido 011 O19; R6; B3-1 |
+| O20 | `calcularO20` | contagem diária de itens por faixa, de Backlog a Entregue (varredura da vida, B8), mais `emProgresso` = WIP do O1; faixa = coluna com uma equipe, papel nos demais casos; destaque = fila de maior crescimento entre o primeiro e o último dia do período; vazio sem transição no período | coluna (uma equipe) ou papel | itens | 0 (censo) | pedido 011 O20; B8; R5 |
+| O21 | `calcularO21` | entregas do período com ao menos um retorno (inclui reabertura); matriz origem para destino por coluna (uma equipe) ou por papel; par com x sem retorno do tempo de ciclo do O3 (`entreguesDe`), só dentro do tipo, `grupoAbaixoDoMinimo` indica o grupo que faltou | tipo; coluna ou papel | %; DU | 20 (taxa; 20 em cada grupo do par) | pedido 011 O21; CA-6; regra 7 |
+| O24 | `calcularO24` | inícios da classe Padrão que passaram na frente de um mais antigo do mesmo quadro e tipo (varredura FIFO O(n log n)); custo = espera do ultrapassado, do início do primeiro que passou até o próprio início (R-1 = A), P50/P85 por tipo na janela | tipo (grupo `equipe-tipo-padrao`) | %; DU | 20 (taxa; percentis por tipo) | pedido 011 O24; D-6' = A; R-1 = A; CA-17 |
+| O25 | `calcularO25` | encerrados (entregues e descartados) no período: taxa de descarte, série mensal; tempo consumido depois do início por tipo (P50/P85 na janela; antes do início à parte, D-13); aviso de preenchimento = motivo sem descarte que saiu da taxa do período (B6-1); `porMotivo` nulo (CA-44) | tipo | %; DU | 20 (taxa; percentis por tipo) | pedido 011 O25; R-2' = A; P-1 = A |
 | EI_FL1 | `calcularEIBM(..., 'FL1')` | (mediana cliente - mediana equipe) / mediana cliente, por tipo de demanda (sem Bug interno) | tipo | %; DU | 20 (mediana) | T3.4; 06 EI; Q4 |
 
 ### 5.2 BusinessMap, tático (FL2)
@@ -221,6 +239,8 @@ Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Cl
 | T4 | `calcularT4` | chegadas x vazão por semana e classe; faixas, razão chegada/vazão, backlog, semanas para zerar | classe de serviço | itens/semana; razão | 20 (mediana, faixa) | 06 T4; Q3 |
 | T5 | `calcularT5` | % de demanda de falha (origem preenchida) por sistema e por área, origens; variação semestral dos 2 sistemas de maior parcela | sistema, área | % | 20 (taxa) | 06 T5; 4.2 |
 | T7 | `calcularT7` | frentes abertas por projeto vs limite; idade de cada frente vs P85/P95 do ciclo das frentes concluídas; histograma de frentes | projeto (granularidade frente) | DU | 20 (percentis) | 06 T7; 02; 7.3; P2 |
+| T10 | `calcularT10` | bloqueios encerrados com fornecedor informado, de qualquer motivo: contagem e soma em DU por fornecedor (censo no período), P50/P85/P95 **na janela de 12 semanas** (opção A até o usuário decidir); sem prazo contratado nem status (D-10 = A) | fornecedor | DU | 20 (percentis, por fornecedor) | pedido 011 T10; D-10 = A; R-5; B3-1 |
+| T12 | `calcularT12` | demandas criadas no período com "ida e volta" = bloqueio "Falta de informação no chamado" antes do início (ou card nunca iniciado) OU retorno compromisso para backlog (D-8 = A, conta uma vez); k de n por área, em ordem de volume | área solicitante | % | 20 (taxa, total e por área) | pedido 011 T12; D-8 = A |
 | T9 | `calcularT9` | por projeto em andamento: avanço = frentes concluídas / total; crescimento de escopo = adicionadas / originais | projeto (granularidade frente) | % (censo) | 0 | 06 T9; 7.1 |
 | EI_FL2 | `calcularEIBM(..., 'FL2')` | espera invisível de frentes: cliente = entrada a entrega; time = compromisso a entrega; segmento único | (nenhuma) | %; DU | 20 (mediana) | T3.4; 02 |
 
@@ -231,6 +251,8 @@ Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Cl
 | E1 | `calcularE1` | lead time de projetos (entrada a entrega) por tipo de projeto (Iniciativa, Melhoria): P50/P85/P95, medianas antes e depois do início; variação da mediana vs 12 meses antes | tipo de projeto | DU | 20 | 06 E1; Q4 |
 | E2 | `calcularE2` | entregas por trimestre e categoria (objetivo, obrigação legal, manutenção, fora de objetivo); % da evolução vinculada a objetivo (meta 60%) | objetivo, natureza | %; itens | 20 (taxa) | 06 E2; Q5 |
 | E3 | `calcularE3` | iniciativas com e sem ficha de resultado; atingimento = ganho medido / previsto | iniciativa | % (censo) | 0 | 06 E3 |
+| E7 | `calcularE7` | demandas entregues no período por sistema (peso por contagem, D-2) e por natureza do T3 (`naturezaDe`, sem mapa próprio); `participacao` = k de n com o total só com 20 ou mais entregas no sistema, senão `null` (B5-1); sem R$ (`custoConfigurado: false`, CA-13) | sistema, natureza | itens; % | 20 (taxa) | pedido 011 E7; D-1' = A; D-2; CA-23 |
+| E9 | `calcularE9` | projetos aprovados e ainda não iniciados (retrato de hoje): idade em DU desde a criação, faixa fixa (0-30, 31-90, 91-180, mais de 180); referência P85 por tipo de projeto, importada do E1 (`concluidosDeProjeto`), mínimo 20 por tipo | tipo de projeto | DU | 20 (referência P85, por tipo) | pedido 011 E9; regra 7; Q4 |
 | EI_FL3 | `calcularEIBM(..., 'FL3')` | espera invisível de projetos: cliente = entrada a entrega; time = início a entrega; por tipo de projeto | tipo de projeto | %; DU | 20 (mediana) | T3.4; Q4 |
 
 ### 5.4 Acelerato, sustentação
@@ -260,3 +282,7 @@ Nenhuma é resolvida por inferência; ficam com o usuário.
 - P3/pergunta 2: janela de 12 meses para frente e projeto.
 - P8: mapa tipo para natureza do T3.
 - P14/pergunta 13: faixas de histograma.
+- T10, janela dos percentis (pedido 011): opção A em vigor (12 semanas, regra geral); opção B (janela própria de 12 meses, parâmetro único) depende do usuário.
+- O19, base do percentual: `pctDoTotal` sobre bloqueios (provisório); sobre dias exigiria pergunta ao usuário sobre o mínimo de 20.
+- O25(b): entregue e depois excluído conta como descarte? Com o usuário.
+- O20: o Backlog pode ser o destaque no "Todas"? Pergunta à UX; fica como está (Backlog é fila).
