@@ -5,6 +5,7 @@ import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO } from '../core/calendario'
 import { slug } from '../slug'
+import { marcacoesNoPeriodo } from '../core/criterios'
 import { calcularO1, calcularO20 } from './index'
 import { criarContextoBM, type ContextoBM } from './indice'
 import type { BaseBM } from './modelo'
@@ -235,8 +236,8 @@ describe('O20: fluxo cumulativo', () => {
     expect(ult.contagens[chaves.indexOf('Entregue')]).toBe(2)
     expect(ult.contagens[chaves.indexOf('Aguardando priorização')]).toBe(1)
     expect(ult.contagens[chaves.indexOf('Em desenvolvimento')]).toBe(0)
-    // Entregue nunca é destaque (não é fila de espera) e o backlog crescente é fila
-    expect(r.destaque).toEqual({ faixa: 'Aguardando priorização', de: 0, para: 1 })
+    // Entregue nunca é destaque (não é fila de espera) e o Backlog, mesmo crescendo, também não (O20-destaque = A)
+    expect(r.destaque).toBeNull()
     expect(ult.emProgresso).toBe(0)
     const o1 = calcularO1(ctx, { ...F, equipe: ['equipe-a'] })
     r.dias.forEach((d, i) => expect(d.emProgresso).toBe(o1.serie[i]!.wip))
@@ -399,6 +400,17 @@ describe('O20: fluxo cumulativo', () => {
     expect(fonte).not.toMatch(/faixasWip|estadoEm|responsaveis|usuario/)
   })
 
+  it('T2.6: o destaque sem Backlog é uma mudança de critério datada, só do O20', () => {
+    const periodo = { inicio: '2026-10-01', fim: '2026-10-31' }
+    expect(marcacoesNoPeriodo('O20', periodo, []).map((m) => [m.id, m.data])).toContainEqual([
+      'criterio-2026-10-16-o20-destaque-sem-backlog',
+      '2026-10-16',
+    ])
+    expect(marcacoesNoPeriodo('O21', periodo, []).map((m) => m.id)).not.toContain(
+      'criterio-2026-10-16-o20-destaque-sem-backlog',
+    )
+  })
+
   describe('base do mock', () => {
     const base = gerarBaseMock()
     const ctx = criarContextoBM(base.bm, base.config.hoje, CALENDARIO_PADRAO)
@@ -446,13 +458,9 @@ describe('O20: fluxo cumulativo', () => {
       }
     })
 
-    /**
-     * DECISÃO DO USUÁRIO PENDENTE (Backlog como destaque no "Todas", pergunta da UX). Hoje vale a regra da
-     * implementação: o Backlog pode ser destaque. Se a resposta tirar o Backlog, trocar SÓ esta função
-     * (passa a exigir a faixa "compromisso", "Pronto para") e, se preciso, o mock em `mock/.../tambem.ts`.
-     */
+    /** O20-destaque = A (2026-10-16): no "Todas" o destaque é uma fila depois do compromisso, nunca o Backlog. */
     const destaqueDoTodasAceito = (d: ResultadoO20['destaque']): boolean =>
-      d !== null && ['backlog', 'compromisso'].includes(d.faixa) && d.para > d.de
+      d !== null && ['compromisso', 'trabalho', 'homologacao'].includes(d.faixa) && d.para > d.de
 
     it('B11a: com uma equipe há destaque numa fila que cresce e no "Todas" há destaque aceito; há combinação sem destaque', () => {
       const comEquipe = equipes.map((e) => calcularO20(ctx, { ...F, equipe: [e] }))

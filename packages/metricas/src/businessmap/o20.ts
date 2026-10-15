@@ -41,7 +41,8 @@ const somar = (a: readonly number[] | undefined, b: readonly number[]): number[]
  * B8). O WIP do O1 não é uma faixa: vem em `dias[].emProgresso`, da mesma varredura do O1 (invariante: igual ao
  * `wip` do O1 no dia). Faixa = coluna só quando há uma equipe filtrada (um quadro); em todos os outros casos
  * ("Todas" ou mais de uma equipe) é o papel da coluna, somado quadro a quadro, porque os nomes de coluna variam
- * por quadro; nunca equipe nem pessoa (R5). O destaque é a faixa de fila (nunca "Entregue") com o maior
+ * por quadro; nunca equipe nem pessoa (R5). O destaque é a faixa de fila a partir do compromisso (nunca "Backlog", que
+ * continua desenhado como faixa, nem "Entregue"; O20-destaque = A, 2026-10-16) com o maior
  * crescimento absoluto entre o primeiro e o último dia do período filtrado (a regra da especificação); se nenhuma
  * cresceu, é `null`. Sem nenhuma transição no período, `faixas` e `dias` vêm vazios. Censo: sem estatística nem
  * mínimo.
@@ -128,7 +129,12 @@ export function calcularO20(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO20 {
   let destaque: ResultadoO20['destaque'] = null
   let maior = 0
   for (const x of faixas)
-    if (x.tipoColuna === 'fila' && x.papel !== 'entrega' && ultimo(x) - primeiro(x) > maior) {
+    if (
+      x.tipoColuna === 'fila' &&
+      x.papel !== 'entrega' &&
+      x.papel !== 'backlog' &&
+      ultimo(x) - primeiro(x) > maior
+    ) {
       maior = ultimo(x) - primeiro(x)
       destaque = { faixa: x.chave, de: primeiro(x), para: ultimo(x) }
     }

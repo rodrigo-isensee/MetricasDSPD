@@ -47,10 +47,20 @@ export const VERSAO_CRITERIO_DESCARTE_NATIVO: VersaoCriterio = {
   afeta: METRICAS_DO_DESCARTE_NATIVO,
 }
 
+/** O20-destaque = A (pedido 011, 2026-10-16): o destaque do fluxo cumulativo não considera mais o Backlog. */
+export const VERSAO_CRITERIO_O20_DESTAQUE_V2: VersaoCriterio = {
+  id: 'criterio-2026-10-16-o20-destaque-sem-backlog',
+  data: '2026-10-16',
+  descricao:
+    'Destaque do fluxo cumulativo considera só as filas a partir do compromisso (sem o Backlog)',
+  afeta: ['O20'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
   VERSAO_CRITERIO_DESCARTE_NATIVO,
+  VERSAO_CRITERIO_O20_DESTAQUE_V2,
 ]
 
 /**
