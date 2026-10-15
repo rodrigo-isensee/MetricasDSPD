@@ -173,21 +173,21 @@ export class ServicoMetricas {
   /**
    * Aquecimento (SNO-005): carrega as duas bases em memória e roda uma vez cada métrica de fluxo e de sustentação (filtros
    * padrão), para que a primeira consulta depois de subir não pague a leitura do banco, a indexação nem a compilação a
-   * quente do código. Chamado antes de a API aceitar requisições. Falha de uma métrica não impede a subida: o erro volta
+   * quente do código. Chamado antes de a API aceitar requisições. Falha de uma métrica não impede a subida: a classe do erro (sem mensagem) volta
    * na lista e a consulta real o trata como sempre.
    */
-  async aquecer(agoraDate: Date, filtrosPadrao: (id: MetricaId) => FiltrosMetrica): Promise<{ metricas: number; falhas: MetricaId[] }> {
+  async aquecer(agoraDate: Date, filtrosPadrao: (id: MetricaId) => FiltrosMetrica): Promise<{ metricas: number; falhas: { id: MetricaId; erro: string }[] }> {
     const agora = agoraDate.getTime();
     await Promise.all([this.carga('businessmap', agora), this.carga('acelerato', agora)]);
-    const falhas: MetricaId[] = [];
+    const falhas: { id: MetricaId; erro: string }[] = [];
     let metricas = 0;
     for (const id of METRICA_IDS) {
       if (dominioDe(id) === 'pesquisa') continue;
       try {
         await this.calcular(id, filtrosPadrao(id), {}, agoraDate);
         metricas += 1;
-      } catch {
-        falhas.push(id);
+      } catch (e) {
+        falhas.push({ id, erro: (e as Error).constructor.name });
       }
     }
     return { metricas, falhas };
