@@ -3,17 +3,27 @@ tipo: review
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis
 branch: fix/grants-por-coluna
-commit: 61f974c5c6425f89bdc500a5300d0ba4802d59ba
+commit: 911625a791c56dfcbf4c9d2128d848181c25132c
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-15
 ---
 
-# Code review: K-085, GRANT por coluna do `dspd_api` (ADR 0020, M-4 e B-3) (volta 2)
+# Code review: K-085, GRANT por coluna do `dspd_api` (ADR 0020, M-4 e B-3) (volta 3)
 
 Propósito: parecer de code review do K-085. Público: node-backend (autor), software-architect, security-engineer, qa-engineer e Jarvis.
 
-**Veredito da volta 2: aprovado.** O achado 1 (bloqueante) foi corrigido em 61f974c, e o 21dabc0 fechou o achado 2 já neste cartão. Resta o achado 3 (frase da ADR 0020), que é do software-architect e não bloqueia.
+**Veredito da volta 3: aprovado, sem mudança de conteúdo de código.** O achado 1 (bloqueante) foi corrigido em 61f974c, e o 21dabc0 fechou o achado 2 já neste cartão. Resta o achado 3 (frase da ADR 0020), que é do software-architect e não bloqueia.
+
+## Volta 3: atualização com a develop, só docs (911140c..911625a)
+
+- **Commit do plano.** 3861090 (`docs(011): pré-condição da migração da fase 3 (K-085)`) registra, em `docs/architecture/features/metricas-tambem-disponiveis.md`, a pré-condição da migração que cria `agg_conhecimento_sistema` e `ref_conta_automacao` (nomes e schema `dspd_bm` exatos, citar o K-085, rodar `guarda-api.pg.test.ts` no mesmo PR).
+- **Merge de `origin/develop` (911625a), com conflito só em documentação, resolvido à mão:**
+  - `docs/architecture/data-model.md` §8 (linha do `dspd_api`): mantida a versão desta branch, que descreve `COLUNAS_FORA_DA_API`, `TABELAS_FORA_DA_API`, `agg_conhecimento_sistema` e a exceção de `ref_conta_automacao`; a da `develop` era a versão anterior ao K-085.
+  - `docs/architecture/features/metricas-tambem-disponiveis.md` §5: a `develop` reorganizou a seção em fases e cartões B1 a B12. Adotei a estrutura da `develop` e reinseri o bloco da pré-condição do K-085 na "Fase 3", logo depois do item de `gerarGrants`, `lgpd.ts` e índices. Nenhum texto da `develop` foi perdido.
+- **Código intacto.** `git diff 911140c HEAD -- server packages web e2e` está vazio.
+- **Ferramenta.** O `pronto` (EXIT=0) e o `test:pg` da guarda da volta 2 valem, porque o código é idêntico. Não foram refeitos.
+- **Outros pareceres.** QA e segurança são revalidados pelos donos; este parecer não os refaz nem os edita.
 
 ## Volta 2 (delta 2e90f3d..61f974c)
 
@@ -37,17 +47,17 @@ Propósito: parecer de code review do K-085. Público: node-backend (autor), sof
 | # | Situação | Bloqueia? |
 |---|---|---|
 | 1 | `data-model.md` §8 desatualizado: **corrigido em 61f974c** | fechado |
-| 2 | Exclusão por nome literal e padrão de `ref_` ser conceder: **fechado por 21dabc0** (guarda de classificação e de privilégio no banco migrado, filtro no core). A guarda só ganha força de fato quando a migração da fase 3 criar as tabelas (R-2 da segurança). Pré-condição da migração da fase 3: o cartão dela cita o K-085 e roda `guarda-api.pg.test.ts` no mesmo PR (B-K3, checklist do tech-lead). | **não bloqueia este cartão** |
+| 2 | Exclusão por nome literal e padrão de `ref_` ser conceder: **fechado por 21dabc0** (guarda de classificação e de privilégio no banco migrado, filtro no core). A guarda só ganha força de fato quando a migração da fase 3 criar as tabelas (R-2 da segurança). Pré-condição da migração da fase 3: o cartão dela cita o K-085 e roda `guarda-api.pg.test.ts` no mesmo PR (B-K3, checklist do tech-lead), agora registrada no plano (3861090). | **não bloqueia este cartão** |
 | 3 | A ADR 0020, item 4g, diz "só o `dspd_coletor` lê" `ref_conta_automacao`, mas o `dspd_ref` também tem `SELECT, INSERT` (cadastro da WS1). O código e o §8 já dizem o certo; falta ajustar a frase da ADR ("só o `dspd_coletor` lê para coletar; o `dspd_ref` cadastra; a API não lê"). Dono: software-architect. | **não bloqueia**: é texto de ADR, sem efeito em código ou em privilégio |
 | 4 | `agg_conhecimento_sistema` em `paraApi` pelo nome: informativo, mantido | não |
 
 ## Pendências fora deste cartão
 - software-architect: frase da ADR 0020 (achado 3) e, opcionalmente, `ref_` da API por lista permitida (B-K1 item 4 da segurança).
-- tech-lead: item no checklist do cartão da migração da fase 3 (rodar a guarda; classificar as tabelas novas).
+- tech-lead: item no checklist do cartão da migração da fase 3 (rodar a guarda; classificar as tabelas novas). Registrado no plano.
 - node-backend, quando houver ocasião: `owner|user` no regex da guarda e extensão às `ref_` (R-1).
 
 ## Próximo passo
-QA. Sem push nem PR ainda: a ordem é parecer do QA em `docs/qa/` e, depois, envio e PR para a `develop` (squash).
+QA (revalidação). Sem push nem PR ainda: a ordem é parecer do QA em `docs/qa/` e, depois, envio e PR para a `develop` (squash).
 
 ---
 
