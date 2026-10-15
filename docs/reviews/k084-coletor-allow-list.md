@@ -3,13 +3,25 @@ tipo: review
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis
 branch: fix/coletor-allow-list
-commit: 9b7f0d3efd787d92a2266762cd5ce155d0a49d6c
+commit: 8737be4caf0072ca741f40097374cb21f1707f46
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-15
 ---
 
 # Code review: K-084, allow-list do coletor do BusinessMap
+
+## Volta 3 (delta de teste do QA, 9b7f0d3..8737be4)
+
+**Veredito: aprovado.** O QA acrescentou testes em d0bce7f e o parecer em 8737be4. O delta desde a volta 2 (1f546c2, que só trouxe o meu parecer) tem 3 arquivos e 303 linhas a mais, nenhuma a menos: `server/tests/allow-list.qa.test.ts` (115), `server/tests/allow-list.qa.pg.test.ts` (118) e `docs/qa/k084-coletor-allow-list.md` (70).
+
+- **Sem mudança de produção.** `git diff 1f546c2..HEAD` não toca nenhum arquivo fora de `server/tests` e `docs/qa`. O código aprovado na volta 2 é o mesmo.
+- **Testes novos, lidos.** Os de unidade (`allow-list.qa.test.ts`) cobrem chaves de protótipo, entrada que não é objeto, proibido aninhado, 200 chaves desconhecidas, tipo de webhook disfarçado, log do tipo, hash estável e responsáveis. Os `.pg` usam os papéis reais (`dspd_webhook`, `dspd_coletor`) e conferem a linha gravada inteira (`t::text`) contra o marcador, a ordem das entregas, o encadeamento de versões, a revisão fora de ordem e a negação de UPDATE e DELETE. Nada deriva das constantes de produção: o marcador `MARCADOR-QA-PESSOA` e as listas de proibidos estão escritos à mão.
+- **Item 11 do checklist (ausência).** Cada `not.toContain(M)` tem um positivo no mesmo teste (`toEqual`, `toMatchObject` ou `toHaveLength`), e o teste de 200 chaves afirma mínimos nas constantes (`CAMPOS_CARD > 20`, demais `>= 5`), contra constante esvaziada.
+- **Observação (não bloqueia).** O teste de `extrairResponsaveis({ owner_user_id: M })` documenta que o id é texto e que o valor nunca chega à staging; a prova está no `.pg`. Está coerente com a regra.
+- **Ferramenta (citada).** `vitest run tests/allow-list.qa.test.ts` na worktree, em 8737be4: 29 testes passaram. Os `.pg` dependem de `DATABASE_URL`; o QA registrou a execução no parecer dele, e o job `banco` da CI continua sendo o portão. O `pronto` completo da volta 2 (9b7f0d3, exit 0) vale, porque o delta só acrescenta testes.
+
+Autoria e segurança: nada novo a citar; o parecer de segurança segue como na volta 2, e o delta não tem gatilho de segurança.
 
 ## Volta 2 (delta e2a6d50..9b7f0d3)
 
