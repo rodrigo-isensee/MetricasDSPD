@@ -330,7 +330,7 @@ describe('contratos da fase 1 do pedido 011 (B1)', () => {
     })
   })
 
-  describe('ResultadoO2.parados (O23, acréscimo compatível, ADR 0007)', () => {
+  describe('ResultadoO2.parados (O23, ADR 0007)', () => {
     const parados = {
       limiteDiasUteis: 5,
       taxa: taxaPouca,
@@ -341,9 +341,9 @@ describe('contratos da fase 1 do pedido 011 (B1)', () => {
       expect(paradosSchema.safeParse({ ...parados, responsaveis: [] }).success).toBe(false)
       expect(nomesDeCampo(jsonDe(paradosSchema)).filter((n) => NOME_DE_PESSOA.test(n))).toEqual([])
     })
-    it('é opcional no O2: o resultado antigo continua válido', () => {
+    it('é obrigatório no O2 desde o B2', () => {
       const campo = resultadoO2.shape.parados
-      expect(campo.safeParse(undefined).success).toBe(true)
+      expect(campo.safeParse(undefined).success).toBe(false)
       expect(campo.safeParse(parados).success).toBe(true)
     })
   })

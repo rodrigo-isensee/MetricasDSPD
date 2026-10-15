@@ -2971,6 +2971,7 @@
                     "itens",
                     "acimaP95",
                     "statusMeta",
+                    "parados",
                     "itensMeta"
                   ],
                   "additionalProperties": false

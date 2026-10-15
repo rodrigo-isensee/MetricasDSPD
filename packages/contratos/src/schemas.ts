@@ -134,8 +134,8 @@ export const resultadoO2 = z.object({
   ),
   acimaP95: z.number(),
   statusMeta: statusMetaSchema,
-  /** O23 (pedido 011): acréscimo compatível (ADR 0007); opcional até o B2 calcular, quando passa a obrigatório. */
-  parados: paradosSchema.optional(),
+  /** O23 (pedido 011, B2): bloco do O2; obrigatório desde que o cálculo o devolve. */
+  parados: paradosSchema,
 })
 
 const serieP85 = z.array(z.object({ semana: iso, n: z.number(), p85: z.number().nullable() }))

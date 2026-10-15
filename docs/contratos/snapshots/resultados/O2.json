@@ -526,7 +526,8 @@
     "tipoSugerido",
     "itens",
     "acimaP95",
-    "statusMeta"
+    "statusMeta",
+    "parados"
   ],
   "additionalProperties": false
 }

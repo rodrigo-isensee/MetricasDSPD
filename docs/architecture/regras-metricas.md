@@ -151,3 +151,8 @@ Meta-testes (bloqueiam o `npm run pronto`):
 
 ## Correspondência O11 com os papéis de coluna (decisão do usuário, 2026-10-11)
 O11 mede o intervalo Requested -> In Progress sem criar sexto papel de coluna. "Em definição" = cards cuja última coluna tem papel `backlog` (seção Requested). "Pronto" = papel `compromisso` (In Progress comprometido, antes de iniciar o trabalho). O mapeamento coluna -> papel segue `dim_coluna` por quadro.
+
+## O23 Estoque parado (bloco do O2, pedido 011, B2)
+- Cálculo em `businessmap/o2.ts`, sobre `semMoverHaDiasUteis` (mudança de coluna; tempo apontado nunca). Parado = acima de `LIMITE_PARADO_DIAS_UTEIS` (5 dias úteis, constante única em `core/criterios`).
+- Versão de critério v1: `VERSAO_CRITERIO_PARADOS_V1` (`criterio-2026-10-14-parados-v1`, `afeta: ['O2']`), na lista `VERSOES_DA_BIBLIOTECA` (`core/criterios`), que `marcacoesNoPeriodo` soma às da base sem repetir id; o mock e a base não mudam. Mudar o limite = mudar a constante e registrar nova versão no mesmo commit.
+- Publicação: "k de n" sempre; percentual só com n >= 20 (WIP atual). Quebra por etapa igual à do O2.
