@@ -137,7 +137,30 @@ describe('T11 sazonalidade da chegada', () => {
     expect(r.anos.flatMap((a) => a.meses).some((m) => m.emAndamento)).toBe(true)
     const fim = calcularT11(ctxDe('2026-10-31T18:00:00-03:00'), F, extDe([entrada('2026-10-02')]))
     expect(fim.anos.flatMap((a) => a.meses).some((m) => m.emAndamento)).toBe(false)
+    // 25 meses fechados nesse dia (o mês está completo): o 24 é o tamanho da janela anterior ao corrente, não um teto
     expect(fim.mesesComDado).toBe(1)
+  })
+
+  it('B11b-1: data de corte no meio do mês ignora entradas criadas depois do corte (contagem e início do histórico)', () => {
+    const ctx = ctxDe('2026-08-10T18:00:00-03:00')
+    const r = calcularT11(
+      ctx,
+      F,
+      extDe([
+        entrada('2026-07-20'),
+        entrada('2026-08-02'),
+        entrada('2026-08-25'),
+        entrada('2026-08-28'),
+      ]),
+    )
+    expect(celula(r, 2026, 8)).toEqual({ mes: 8, entradas: 1, emAndamento: true })
+    expect(celula(r, 2026, 7)?.entradas).toBe(1)
+    expect(r.base.n).toBe(2)
+    // só há entradas depois do corte: é como não ter histórico
+    const so = calcularT11(ctx, F, extDe([entrada('2026-08-25'), entrada('2026-09-02')]))
+    expect(so.anos).toEqual([])
+    expect(so.base.n).toBe(0)
+    expect(so.mesesComDado).toBe(0)
   })
 
   it('marcacoes: mudança de critério que afeta o T11 dentro da janela aparece; sem mudança, vem vazio', () => {

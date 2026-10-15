@@ -19,6 +19,10 @@ export const MESES_FECHADOS_T11 = 24
  * começa no mês da entrada mais antiga da extensão (sem filtros, para o filtro não encurtar a janela); antes dele
  * o mês é `null` (sem dado), depois dele é a contagem, inclusive 0.
  *
+ * Só entram entradas criadas até a data de corte (`criado_em <= ctx.hoje`), na contagem e no início do histórico.
+ * No último dia do mês o corrente fecha e a janela chega a 25 meses fechados (o mês está completo): `mesesComDado` e
+ * `mediaMensal` usam os 25; `historicoCurto` segue sendo `< 24`.
+ *
  * `mesesComDado` = meses FECHADOS cobertos pelo histórico (os que alimentam `mediaMensal`); `historicoCurto` = menos de
  * 24. `mediaMensal` é só referência de contagem (média dos meses fechados cobertos, nunca estatística de tempo).
  */
@@ -32,7 +36,8 @@ export function calcularT11(
   const janela = { inicio: isoDeDia(inicioDia), fim: ctx.hojeIso }
   const crit = criterios('T11', janela, janela, ctx)
   const baldes = mesesEntre(inicioDia, ctx.hojeDia, ctx.hojeDia)
-  const entradas = ext?.entradasSazonais ?? []
+  // Nada além da data de corte (B11b-1): a fonte pode ter entradas posteriores (mock com dataReferencia, dim_card real).
+  const entradas = (ext?.entradasSazonais ?? []).filter((e) => e.criado_em <= ctx.hoje)
 
   const diaDe = (ms: number): number => diaLocal(ms, ctx.cal)
   const primeira = entradas.reduce((m, e) => Math.min(m, e.criado_em), Infinity)

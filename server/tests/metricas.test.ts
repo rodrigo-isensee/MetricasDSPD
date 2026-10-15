@@ -5,6 +5,7 @@ import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { paginarO2 } from '../src/modulos/metricas/rotas.js';
+import { extensaoTambemMock } from '../src/plataforma/db/extensoes-mock.js';
 import { normalizar, ServicoMetricas, TTL_VERSAO_MS } from '../src/modulos/metricas/index.js';
 import { bancoDoMock } from './base-duble.js';
 import { criarDublePg, type Respondedor } from './duble-pg.js';
@@ -74,6 +75,20 @@ describe('GET /api/v1/metricas/:id', () => {
     const so = await get(app, '/api/v1/metricas/T11?tipo=melhoria');
     expect(so.statusCode).toBe(200);
     expect((so.json().base as { n: number }).n).toBeLessThan((t11.base as { n: number }).n);
+  }, 60_000);
+
+  it('T11 (B11b-1): dataReferencia no meio do mês não conta entradas criadas depois do corte', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/T11?dataReferencia=2026-08-10');
+    expect(r.statusCode).toBe(200);
+    const t11 = r.json();
+    const ago = (t11.anos as { ano: number; meses: { mes: number; entradas: number | null; emAndamento: boolean }[] }[]).find((a) => a.ano === 2026)!.meses.find((m) => m.mes === 8)!;
+    const ext = extensaoTambemMock().entradasSazonais;
+    const noMes = ext.filter((e) => e.criado_em >= Date.parse('2026-08-01T00:00:00-03:00') && e.criado_em < Date.parse('2026-09-01T00:00:00-03:00'));
+    const ateCorte = noMes.filter((e) => e.criado_em < Date.parse('2026-08-11T00:00:00-03:00')).length;
+    expect(noMes.length).toBeGreaterThan(ateCorte);
+    expect(ago.emAndamento).toBe(true);
+    expect(ago.entradas).toBe(ateCorte);
   }, 60_000);
 
   it('T11: a extensão é lazy (só o T11 a chama) e, sem ela (fonte real), devolve vazio com histórico curto, nunca 500', async () => {

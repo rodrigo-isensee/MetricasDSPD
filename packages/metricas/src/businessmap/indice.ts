@@ -28,7 +28,7 @@ export interface MarcosCard {
    * preenchido, 4.2/4.5). Arquivado NÃO tira o card (7.3): entregue e arquivado é o fim normal.
    */
   ativo: boolean
-  /** Descartado: tem `motivo_descarte` (decisão Q6). */
+  /** Descartado nativo (P-1 = A); entregue e depois excluído não é descarte (O25(b) = B). */
   descartado: boolean
   /** Excluído e não entregue antes da exclusão (O25(b) = B): quem foi entregue e depois excluído continua nos cálculos. */
   excluido: boolean
