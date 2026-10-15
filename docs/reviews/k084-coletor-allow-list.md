@@ -3,13 +3,22 @@ tipo: review
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis
 branch: fix/coletor-allow-list
-commit: 8737be4caf0072ca741f40097374cb21f1707f46
+commit: d81a6cb22238d9beefc3d14e6a41634a52fc9d47
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-15
 ---
 
 # Code review: K-084, allow-list do coletor do BusinessMap
+
+## Volta 4: atualização com a develop, só docs (2941276..d81a6cb)
+
+**Veredito: aprovado, sem mudança de conteúdo.** A `develop` avançou com o PR #76 (só documentação) e a branch recebeu `git merge origin/develop` (sem force). O merge não teve conflito.
+
+- **Código intacto.** `git diff 2941276 HEAD -- server packages web e2e` está vazio: nenhum arquivo de código, de pacote, de front ou de E2E mudou. O código e os testes lidos nas voltas 2 e 3 são os mesmos.
+- **O que entrou:** só arquivos de `docs/` (por exemplo `docs/kanban/estado-2026-10-14-noite.md`, `docs/security/adr-0020-protecao-de-pessoa.md` e `docs/ux/sustentacao-no-operacional/06-revisao-implementada.md`). Nenhum deles é tocado pelo diff do K-084 além do que já estava.
+- **Ferramenta.** O `pronto` completo da volta 2 (9b7f0d3, EXIT=0) e os 29 testes da volta 3 valem, porque o conteúdo de código é idêntico. Não foi refeito.
+- **Outros pareceres.** QA e segurança têm gatilho próprio e são revalidados pelos donos; este parecer não os refaz nem os edita.
 
 ## Volta 3 (delta de teste do QA, 9b7f0d3..8737be4)
 
