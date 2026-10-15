@@ -3,7 +3,7 @@ import type { Consultavel } from '../../plataforma/db/pool.js';
 
 /**
  * Leitura das projeções para montar `BaseBM` / `BaseAC` (amostras dos painéis). Só colunas explícitas (nunca `SELECT *`):
- * `dim_card.responsaveis` e `fato_transicao.usuario` (a view também não a expõe) NÃO estão nas listas abaixo (a `dspd_api` nem tem privilégio sobre elas).
+ * `dim_card.responsaveis` NÃO está nas listas abaixo (a `dspd_api` nem tem privilégio sobre ela). `fato_transicao.usuario` foi removida (K-096).
  * BusinessMap e Acelerato nunca na mesma consulta: cada função toca um único schema (`S.bm` ou `S.ac`).
  * Cartões arquivados e excluídos permanecem (nenhum filtro por `arquivado_em`/`excluido_em`).
  */

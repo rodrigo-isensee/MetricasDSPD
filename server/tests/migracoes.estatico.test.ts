@@ -11,10 +11,12 @@ const nomes = Object.keys(MIGRACOES);
 const ddls = nomes.map((n) => ({ n, ...MIGRACOES[n]!.ddl(S_PADRAO) }));
 const todoSql = ddls.flatMap((d) => d.up);
 
-/** Extrai (tabela, coluna, definição) de cada CREATE TABLE (e ALTER TABLE ... ADD COLUMN): separa por vírgula de nível 0 e ignora restrições. */
+/** Extrai (tabela, coluna, definição) de cada CREATE TABLE (e ALTER TABLE ... ADD/DROP COLUMN): separa por vírgula de nível 0 e ignora restrições. */
 function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: string }[] {
   const out: { tabela: string; coluna: string; def: string }[] = [];
   for (const s of sqls) {
+    const queda = /^ALTER TABLE\s+(\S+)\s+DROP COLUMN(?: IF EXISTS)?\s+(\w+)$/.exec(s);
+    if (queda) { const i = out.findIndex((c) => c.tabela === queda[1] && c.coluna === queda[2]); if (i >= 0) out.splice(i, 1); continue; }
     const alt = /^ALTER TABLE\s+(\S+)\s+ADD COLUMN(?: IF NOT EXISTS)?\s+(\w+)\s+(.*)$/.exec(s);
     if (alt) { out.push({ tabela: alt[1]!, coluna: alt[2]!, def: `${alt[2]} ${alt[3]}` }); continue; }
     const m = /^CREATE TABLE\s+(\S+)\s*\(/.exec(s);
@@ -38,7 +40,7 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 397;
+const COLUNAS_FORA_STG_ESPERADAS = 396;
 
 describe('migrações e singleTransaction', () => {
   it('nenhuma migração usa CONCURRENTLY (incompatível com o `up` em transação única)', () => {
