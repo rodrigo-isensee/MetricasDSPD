@@ -2,28 +2,41 @@
 tipo: plano-tecnico
 contrato: 1
 pedido: 011
-estado: proposta
+estado: vigente
 ux: docs/ux/metricas-tambem-disponiveis/02-especificacao.md
-adrs: [0003, 0007, 0011, 0016]
+adrs: [0003, 0007, 0011, 0016, 0020]
 agentes: [node-backend, react-frontend, qa-engineer, tech-lead]
 ---
 # Plano técnico: métricas "Também disponíveis" (pedido 011), viabilidade e desenho
 
-Estado: **proposta** (discovery). Vira `vigente` depois da validação do usuário no protótipo e das decisões D-1 a D-14 de `docs/ux/metricas-tambem-disponiveis/04-decisoes.md`. Nada aqui foi implementado.
+Estado: **vigente** desde 2026-10-14. O protótipo foi validado pelo usuário (ponto de compromisso), e a revisão de desenho do tech-lead (`docs/alinhamentos/2026-10-14-revisao-desenho-011.md`, K-078, "aprovado com ajustes") foi incorporada: ajustes A1 a A13 e decisões P-T3 a P-T6. Os cartões do back da fase 1 (B1 a B12) são os da ata, §3, sem mudança; este plano os resume em §5.
 
-Decisões do usuário já incorporadas (2026-10-14, `docs/pedidos/011-metricas-tambem-disponiveis.md`): **D-8 = A** (T12), **D-5' = B** (O26), **D-6' = A** (O24) e **R-1 = A** (O24). Confirmações técnicas do cartão K-079 (revisões, vínculos, T10 e O25): §8. Métrica nova T14 (decisão "T14 nova = A", cartão K-078): §9. A D-1' (custo) segue em aberto com o usuário e não é tratada aqui.
+**Decisões do usuário incorporadas** (2026-10-14, `docs/pedidos/011-metricas-tambem-disponiveis.md`; onde entraram: §8 d):
+- **D-8 = A** (T12), **D-5' = B** (O26), **D-6' = A** e **R-1 = A** (O24);
+- **D-1' = A** (E7, custo total do DSPD rateado), **D-10 = A** (T10 sem prazo contratado, R-7 = P85 para quando houver contratos);
+- **R-2' = A** e **motivos de descarte = A** (O25);
+- **D-9'** (O22, só o primeiro comentário humano);
+- **D-14' = A** e **R-4 = sim** (T13);
+- **T14 nova = A**, **Q-T14-1 = B**, **Q-T14-5 = D** e **Q-T14-6 = A** (T14).
+
+**Pendências que este plano não fecha:**
+- **P-1 (com o usuário, R-DECISAO): a R-2' vale só para o O25 ou substitui a Q6 em todas as métricas?** O plano foi escrito para caber nas duas respostas; o ponto está marcado em O25 (§2) com **[P-1]**. Não bloqueia a fase 1 (no mock as duas leituras dão o mesmo conjunto); precisa de resposta antes da coleta real.
+- **Bordas Q-a e Q-b da D-5'** (O26, §8 a): com o usuário, como `pendente-usuario`.
+- **Emenda de C4 na ADR 0003 (A11):** dizer se C4 vale com a seção "Mais métricas" fechada, aberta ou nas duas, e com que limite. Depende do merge do PR #74 (orçamento móvel), que altera a mesma ADR; feita pelo architect logo depois. **Precisa estar escrita antes do B12**, que mede C4 nessas condições.
+- **ADR 0020** (proteção de pessoa no coletor, A10): criada como `proposta`; precisa estar `vigente` antes da fase 2.
 
 Insumos: `01-cobertura.md`, `02-especificacao.md`, `04-decisoes.md` (UX); `data-model.md` §3, §7, §8 e §9; `features/metricas-complementares.md` (precedente das extensões de mock); ADR 0003 (orçamento); `packages/metricas/src` (módulos `core/` e `businessmap/`).
 
 **Conferência com a constituição:** o projeto não tem `docs/constituicao.md`. Conferido contra as regras invioláveis do `CLAUDE.md`: **conforme**. Detalhe:
-- **Pessoa:** nenhuma das 16 publica, filtra, ordena ou segmenta por pessoa. O26 e E8 recebem só inteiros calculados no coletor (§3).
-- **BM × AC:** as 16 são só BusinessMap. Nenhuma lê `BaseAC`. O gêmeo de sazonalidade na Sustentação (D-11) fica fora.
+- **Pessoa:** nenhuma das 17 publica, filtra, ordena ou segmenta por pessoa. O26 e E8 recebem só inteiros calculados no coletor (§3, ADR 0020).
+- **Comparação entre times:** nenhuma lista nem ordena times. No T14, os outros times são um inteiro só, sem nome (Q-T14-6 = A, §9).
+- **BM × AC:** as 17 são só BusinessMap. Nenhuma lê `BaseAC`. O gêmeo de sazonalidade na Sustentação (D-11) fica fora.
 - **Granularidade:** uma por gráfico. No T13, o seletor troca entre demanda e frente, uma de cada vez.
 - **Biblioteca:** todo tempo, percentil e taxa vem de `core/` (`calendario`, `percentil`, `estatistica`, `histograma`, `series`, `janela`).
 - **Amostra mínima:** abaixo de 20 não se publica estatística (`MINIMO_AMOSTRA`).
 - **Histórico:** append-only preservado. Os dados novos são projeções derivadas ou tabelas novas, sem `UPDATE` em evento.
-- **T2.6:** os critérios novos têm limite e prazo versionados em `criterios` ou `ref_`, nunca como literal no código.
-- **Métricas proibidas (7.1):** nenhuma usa horas apontadas. O E7 fica sem R$ enquanto a D-1 não for decidida, e a opção C da D-1 está recusada.
+- **T2.6:** pelos mecanismos que já existem (A8, detalhe em O23): na biblioteca, parâmetro numa **constante única** e cada mudança de valor registrada como nova `VersaoCriterio` em `core/criterios`; na base, valor configurável em tabela `ref_` com vigência (`vigente_de`, `vigente_ate`), e cada vigência nova gera `VersaoCriterio`. Nenhum literal espalhado. Todo DTO de série devolve `marcacoes` (`praticas.md` §3).
+- **Métricas proibidas (7.1):** nenhuma usa horas apontadas. O R$ do E7 é o rateio do custo total do DSPD pela participação nas entregas (D-1' = A), nunca esforço; a proposta de usar horas apontadas foi sinalizada e não adotada.
 
 ## 1. Códigos finais
 
@@ -49,7 +62,7 @@ Os códigos provisórios do UX ficam **confirmados**, sem colisão: hoje o fluxo
 | E9 | Projetos aguardando início | sim |
 | T14 | Participação do meu time no projeto | sim (acrescentada em 2026-10-14, decisão "T14 nova = A"; desenho em §9) |
 
-`METRICA_IDS` ganha 15 ids, inseridos na ordem do painel depois dos complementares de cada nível: O19 a O26 sem O23, T10 a T13, E6 a E9. Isso gera o efeito em cascata já conhecido:
+São **17 métricas e 16 ids novos** em `METRICA_IDS` (o O23 é bloco do O2 e não tem id): O19 a O26 sem o O23 (7), T10 a T14 (5) e E6 a E9 (4), inseridos na ordem do painel depois dos complementares de cada nível. Cada id entra no cartão do seu cálculo, nunca antes (B1 cria só os contratos), para não existir rota que devolva dado inventado. Isso gera o efeito em cascata já conhecido:
 - `SCHEMAS_RESULTADO`;
 - `ContratoMetricas`;
 - `APLICABILIDADE_FLUXO`;
@@ -59,11 +72,11 @@ Os códigos provisórios do UX ficam **confirmados**, sem colisão: hoje o fluxo
 - `calibracao.ts`;
 - `varredura.test.ts`.
 
-As rotas `GET /api/v1/metricas/:id` nascem pela iteração de `METRICA_IDS`, sem rota nova.
+As rotas `GET /api/v1/metricas/:id` nascem pela iteração de `METRICA_IDS`, sem rota nova. A OpenAPI é regenerada (`pnpm run openapi:gerar`) em cada cartão que acrescenta id, e `docs/api/` e `docs/tecnica/` vão no mesmo commit (`praticas.md` §7.7). Todos os schemas de resultado são `strict`.
 
-Novas chaves em `ChaveSegmentacao`: `'motivo-bloqueio'`, `'fornecedor'`, `'faixa-passagens'` e `'mes-do-ano'`. Não entram `pessoa`, `responsavel` nem `equipe`.
+Novas chaves em `ChaveSegmentacao`: `'motivo-bloqueio'`, `'fornecedor'` e `'mes-do-ano'` na fase 1 (B1); `'faixa-passagens'` na fase 2, com o O26. Não entram `pessoa`, `responsavel` nem `equipe`.
 
-## 2. As 16 métricas
+## 2. As 17 métricas
 
 Legenda da coluna "Dado":
 - **existe**: está em `BaseBM` e em `dim_card`, `fato_transicao` ou `fato_bloqueio`.
@@ -71,6 +84,8 @@ Legenda da coluna "Dado":
 - **real**: o que a coleta real precisa ter.
 
 Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo resultado segue o envelope atual, com `base`, `janela`, `criterio` e `estatistica`/`taxa` de `contratos/comum`. Quando falta amostra, o resultado traz `insuficiente` com "k de n".
+
+**Forma da taxa (alinhada ao contrato implementado, B1).** Onde este plano escreve `taxa`, `{ k, n, taxa }` ou `pct`, a forma real é o `taxaSchema` de `contratos/comum`: uma união discriminada por `status`, `{ status: 'ok', k, n, pct }` (só com n ≥ 20) ou `{ status: 'insuficiente', k, n, minimo: 20 }` (n ≤ 19, sem `pct`). Assim o mínimo de 20 é garantido pelo tipo, e "k de n" permanece nos dois casos. Nos contratos abaixo, `taxa` significa esse schema inteiro, nunca um número solto.
 
 ### O19 Bloqueios por causa
 - **Fonte:** BM.
@@ -82,8 +97,8 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
     - contagem;
     - P50/P85 da duração com `core/percentil`, só com n ≥ 20.
   - Conta à parte os bloqueios ainda abertos (`fim = null`).
-- **Contrato:** `{ motivos: [{ motivo, bloqueios, diasUteis, pctDoTotal (taxa), duracao: estatistica }], abertosForaDaSoma, totalDiasUteis }`.
-- **Mock:** a base atual já tem bloqueios, com motivo sorteado de forma uniforme (`gerador.ts:289`). A spec 8.1 pede distribuição desigual, mas isso alteraria o hash da base (`924448d4`). Proposta: aceitar a distribuição atual e conferir na implementação que ao menos um motivo passa de 20 em 12 semanas e outro fica abaixo. Se não passar, ver P-T3.
+- **Contrato:** `{ motivos: [{ motivo, bloqueios, diasUteis, pctDoTotal: taxaSchema, duracao: estatistica }], abertosForaDaSoma, totalDiasUteis }`.
+- **Mock:** a base atual já tem bloqueios, com motivo sorteado de forma uniforme (`gerador.ts:289`). A spec 8.1 pede distribuição desigual, mas isso alteraria o hash da base (`924448d4`). Decidido (P-T3 = a): a base não muda. O B3 mede se algum motivo passa de 20 em 12 semanas e algum fica abaixo e registra o número no teste; se faltar amostra, o cartão mostra o que existe.
 - **Mínimo:** soma e contagem são censo e saem sempre. P50/P85 e o percentual só saem com n ≥ 20 por motivo.
 
 ### O20 Fluxo cumulativo
@@ -106,7 +121,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - A matriz conta pares (origem → destino) de retorno, agregados por papel quando o filtro é "Todas".
   - A linha "reaberto" junta os retornos com origem de papel `entrega`.
   - O par com × sem compara o tempo de ciclo do tipo escolhido. Reaproveita a função de marcos e de ciclo do O3; não recalcula o ciclo.
-- **Contrato:** `{ entregas: { k, n, taxa }, matriz: { eixo: 'coluna'|'papel', celulas: [{ origem, destino, retornos }] }, reaberturas, comparacao: { tipo, com: estatistica, sem: estatistica } }`.
+- **Contrato:** `{ entregas: taxaSchema, matriz: { eixo: 'coluna'|'papel', celulas: [{ origem, destino, retornos }] }, reaberturas, comparacao: { tipo, com: estatistica, sem: estatistica } }`.
 - **Mock:** a base atual já tem os retornos. Medir quantos são: a spec pede cerca de 25% das entregas. Se a base tiver menos, o cartão mostra o que existe; não se mexe na base.
 - **Mínimo:**
   - percentual com n ≥ 20 entregas;
@@ -115,8 +130,8 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 ### O22 Primeiro toque
 - **Fonte:** BM.
 - **Dado:** **extração nova**: `dim_card.primeiro_toque_em timestamptz NULL`.
-  - Definição pela D-9 (recomendação A): o primeiro evento entre mudança de coluna, comentário e atribuição de responsável, posterior a `criado_em`, excluindo eventos automáticos.
-  - Real: o projetor calcula o campo a partir de `stg_revision` (atribuição e coluna) e de uma staging nova, `stg_comentario_instante (card_id, comentario_id, criado_em)`, gravada pelo coletor por **allow-list**: sem autor e sem texto.
+  - Definição **decidida (D-9', 2026-10-14; CA-43):** o primeiro **comentário humano** posterior a `criado_em`. Mudança de coluna e atribuição de responsável **não** contam. Comentário de conta de automação fica fora.
+  - Real: o projetor calcula o campo só a partir de uma staging nova, `stg_comentario_instante (card_id, comentario_id, criado_em)`, gravada pelo coletor por **allow-list** (ADR 0020): sem autor e sem texto. O O22 **não** depende de `stg_revision`.
   - Depois de preenchido, o campo não muda mais. Por isso o coletor deixa de buscar comentários desse card (economia de chamadas, K1).
 - **Cálculo:** módulo novo `businessmap/o22.ts`.
   - Mede de `criado_em` até `primeiro_toque_em` em horas úteis, convertidas para dias úteis com uma casa (`core/calendario`).
@@ -135,8 +150,9 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Dado:** existe. `semMoverHaDiasUteis` já é calculado por item em `o2.ts`.
 - **Cálculo:** dentro de `o2.ts`, sem módulo novo.
   - `k` = itens em andamento com `semMover > limite`; `n` = WIP atual; quebra por etapa (papel ou coluna, a mesma do O2).
-  - O limite (5 dias úteis, U-11) entra como **parâmetro versionado** em `criterios` (T2.6), não como literal.
-- **Contrato:** acréscimo compatível em `ResultadoO2`: `parados: { limiteDiasUteis, k, n, taxa, porEtapa: [{ etapa, k }] }`. É campo novo no schema zod (ADR 0007: acréscimo, não quebra).
+  - O limite (5 dias úteis, U-11) segue o mecanismo que já existe (A8): **constante única** no módulo (como `DURACAO_CALIBRACAO_DIAS`), com a `VersaoCriterio` v1 registrada em `core/criterios` (`afeta` inclui `o2`). Mudar o valor é mudar a constante **e** registrar nova `VersaoCriterio` no mesmo commit, o que gera a marcação no gráfico (T2.6). `VersaoCriterio` (`{id, data, descricao, afeta}`) continua sem campo de valor.
+  - **Por que não um "parâmetro versionado com valor e vigência" agora:** seria mecanismo novo (campo de valor em `VersaoCriterio` ou tabela de parâmetros lida pela biblioteca), e o existente basta: a constante é lida num lugar só, e a `VersaoCriterio` já dá data, descrição e marcação. Valor que o usuário configura sem deploy (custo do DSPD do E7, prazo de fornecedor do T10) já tem padrão próprio, a tabela `ref_` com vigência. **Critério para propor ADR de parâmetro:** um limite da biblioteca precisar mudar por configuração, sem deploy, ou dois valores do mesmo limite precisarem valer em períodos diferentes do mesmo cálculo.
+- **Contrato:** acréscimo compatível em `ResultadoO2`: `parados: { limiteDiasUteis, taxa: taxaSchema, porEtapa: [{ etapa, k }] }` (o `k` e o `n` ficam dentro da `taxa`). É campo novo no schema zod (ADR 0007: acréscimo, não quebra).
 - **Mock:** a base atual. Medir a parcela acima de 5 dias úteis; a spec pede 20% a 30%, mas sem mexer na base.
 - **Mínimo:** censo do WIP. A taxa só sai com n ≥ 20; abaixo, "k de n".
 
@@ -148,22 +164,31 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - Para cada início no período, verifica se havia no mesmo grupo um card criado antes, ainda não iniciado e não descartado nem arquivado naquele instante (`arquivadoAte`). Se houver, é "fora de ordem".
   - Algoritmo: para cada grupo, ordenar por `criado_em` e varrer os inícios em ordem temporal com um conjunto ordenado dos não iniciados. O custo é O(n log n) por grupo.
   - Custo da ultrapassagem **decidido (R-1 = A, 2026-10-14):** para cada ultrapassado, dias úteis (`core/calendario`) entre o início do **primeiro** item que passou na frente dele e o seu próprio início. P50/P85 por tipo (`core/percentil`). Texto do cartão: "esperaram, depois de ultrapassados, X dias úteis até começar" (nunca "dias a mais"). Ultrapassado ainda não iniciado fica fora da estatística até iniciar.
-- **Contrato:** `{ inicios: { k, n, taxa }, meses: [{ mes, emOrdem, foraDeOrdem, emAndamento }], custo: { tipo, estatistica } | null, grupo: 'equipe-tipo-padrao' }`. O `grupo` é literal único (sem alternativas no contrato).
+- **Contrato:** `{ inicios: taxaSchema, meses: [{ mes, emOrdem, foraDeOrdem, emAndamento }], marcacoes, custo: { tipo, estatistica } | null, grupo: 'equipe-tipo-padrao' }`. O `grupo` é literal único (sem alternativas no contrato). `marcacoes` são as versões de critério que cruzam a série (A9).
 - **Mock:** a base atual. Medir a parcela fora de ordem na classe Padrão; a spec pede cerca de 25%. Não se mexe na base. As pendências D-6 e R-1 deixam de ser `pendente-usuario` em `REGRAS_METRICA`.
+- **Testes próprios (B10):** CA-17 e CA-37; Urgente, Prazo fixo e Intangível fora; ultrapassado não iniciado fora da estatística.
 - **Mínimo:** a taxa com ≥ 20 inícios; P50/P85 do custo com ≥ 20 ultrapassados no tipo.
 
 ### O25 Descarte
 - **Fonte:** BM.
-- **Dado:** existe. `motivo_descarte`, `arquivado_em` e `iniciado_em`.
-  - **Restrição de código:** `descartado.ts` é o único arquivo que pode ler `motivo_descarte` e `arquivado_em` (regra de lint). O O25 exige funções novas **nesse arquivo**: `instanteDoDescarte(card)` e `motivoDoDescarte(card)`. O `o25.ts` usa essas funções e não lê os campos direto.
+- **Regra decidida (R-2' = A, 2026-10-14; CA-26):** descartado é o card com estado nativo `discarded` do BusinessMap **e** o card excluído. O instante é o `discarded_at`; no excluído, o instante da exclusão ou, sem ele, a última revisão, **marcada como aproximada**. Motivo preenchido sem descarte nem exclusão vira **aviso de preenchimento**, listado à parte e **fora da taxa**.
+- **Motivos decididos (motivos de descarte = A; CA-44):** o domínio é o catálogo nativo `/discardReasons` (`reason_id`), com mudanças versionadas (T2.6). O `discard_comment` **nunca** entra (nem na allow-list do coletor). Até a integração ler o catálogo, `porMotivo = null`. Não se usa `ref_dominio` para motivo de descarte.
+- **Dado:**
+  - Fase 1 (mock): `motivo_descarte`, `arquivado_em`, `excluido_em` e `iniciado_em`, que já existem. No mock, o gerador sempre arquiva junto com o motivo, então "estado nativo `discarded`" e a Q6 dão o mesmo conjunto, e o aviso de preenchimento fica vazio.
+  - Fase 3 (real): projeção do estado nativo e do instante (`discarded_at`) e do `reason_id` em `dim_card`, mais o catálogo `/discardReasons` como `ref_` com vigência. Nomes de coluna na revisão de modelagem da fase 3 (§5).
+  - **Restrição de código:** `descartado.ts` é o único arquivo que pode ler `motivo_descarte` e `arquivado_em` (regra de lint `semLeituraDeArquivamento`). O O25 exige funções novas **nesse arquivo**: `instanteDoDescarte(card)` (com a marca de aproximado) e `motivoDoDescarte(card)`. O `o25.ts` usa essas funções e não lê os campos direto.
 - **Cálculo:** módulo novo `businessmap/o25.ts`.
-  - Encerrados no período = entregues (`concluido_em`) + descartados (instante do descarte); taxa = descartados ÷ encerrados (`core/estatistica`).
-  - Tempo consumido pela D-13 (recomendação A): do `iniciado_em` ao descarte em horas úteis. Descartado antes do início conta zero e aparece à parte.
-  - Tabela por motivo só quando o motivo pertence a um domínio fechado vigente (`ref_dominio` campo `motivo_descarte`, ainda inexistente). Os domínios fechados do briefing (B:135-139) não incluem motivo de descarte; os valores do domínio são **pergunta ao usuário** (§8 c). Enquanto não houver resposta, `porMotivo = null` no real e no contrato o campo é anulável.
-- **Contrato:** `{ encerrados: { k, n, taxa }, meses: [{ mes, taxa, emAndamento }], consumido: { antesDoInicio: { itens }, depoisDoInicio: { itens, diasUteis, estatistica } }, porMotivo: [{ motivo, itens }] | null }`.
+  - O índice tira os excluídos dos cálculos (`indice.ts:147`), mas o O25 **inclui** o card excluído como descarte, com o instante `excluido_em`.
+  - Encerrados no período = entregues (`concluido_em`) + descartados (instante do descarte); taxa = descartados ÷ encerrados (`core/estatistica`). O aviso de preenchimento não entra em nenhum dos dois.
+  - Tempo consumido pela D-13 (CA-19): do `iniciado_em` ao descarte em horas úteis. Descartado antes do início conta zero e aparece à parte.
+- **[P-1] Ponto que depende da resposta do usuário** (Q6 × R-2', §7). As duas respostas cabem neste desenho, e a fase 1 é igual nas duas:
+  - **(i) A R-2' vale só para o O25.** `descartado(card)` mantém a definição da Q6 (motivo preenchido) para WIP, aberto, vazão e as demais. O O25 usa a definição nativa, por uma função própria em `descartado.ts`. Na coleta real, um card com motivo e sem estado `discarded` conta como descartado no WIP e como aviso no O25; a diferença fica documentada em `REGRAS_METRICA` dos dois lados.
+  - **(ii) A R-2' substitui a Q6 em todas.** `descartado(card)` passa à definição nativa, no mesmo arquivo, com nova `VersaoCriterio` (`afeta` = todas as métricas que usam `descartado`) e marcação nos gráficos (T2.6). O excluído continua fora das demais métricas pelo índice; só o O25 o inclui. No mock nenhum snapshot muda, porque os conjuntos coincidem.
+  - Nas duas, a mudança fica em `descartado.ts`, o único ponto que a regra de lint deixa ler os campos. Até a resposta, o B6 mantém `descartado()` na Q6 e registra a P-1 como `pendente-usuario` em `REGRAS_METRICA`.
+- **Contrato:** `{ encerrados: taxaSchema, meses: [{ mes, taxa: taxaSchema, emAndamento }], marcacoes, consumido: { antesDoInicio: { itens }, depoisDoInicio: { itens, diasUteis, estatistica } }, instanteAproximado: { itens }, avisoPreenchimento: { itens }, porMotivo: [{ motivo, itens }] | null }`. `instanteAproximado` conta os descartes cujo instante veio da última revisão; `avisoPreenchimento` conta os cards com motivo sem descarte nem exclusão (CA-26); `porMotivo` é anulável (CA-44); `marcacoes` na série mensal (A9).
 - **Mock:** a base atual já descarta (`aplicarDescarte`) com `MOTIVOS_DESCARTE` (4 valores mais "Criado por engano" para os excluídos).
-  - **"Criado por engano" sai do O25** (§8 c): não existe em nenhum documento (04-decisoes, R-2). O O25 não o exibe como motivo nem o usa como filtro. O card excluído entra no descarte como o arquivado (P:564; 04-decisoes, R-2), com motivo `null` ("motivo não informado").
-  - Os 4 valores restantes são marcados como **provisórios**, como `CAUSAS_RAIZ`, até o usuário responder a pergunta do domínio. Retirar o valor do gerador mudaria o hash da base (`924448d4`); a correção fica no adaptador do O25 (mapear o valor para `null`), sem tocar em `gerarBaseMock`.
+  - **"Criado por engano" sai do O25** (§8 c): não existe em nenhum documento. O adaptador do O25 o mapeia para `null`, sem tocar em `gerarBaseMock` (o hash `924448d4` não muda). O card excluído entra no descarte (R-2').
+  - `porMotivo = null` também no mock, pela CA-44: os 4 valores do gerador não são o catálogo nativo e não são publicados como motivo.
 - **Mínimo:**
   - taxa com ≥ 20 encerrados;
   - P50/P85 do consumido com ≥ 20 descartados após o início (raro);
@@ -171,7 +196,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 
 ### O26 Passagens de mão
 - **Fonte:** BM.
-- **Dado:** **extração nova**: `dim_card.passagens smallint NULL`. É um inteiro, não é coluna de pessoa, e a API pode ler. Cálculo e proteção em §3.
+- **Dado:** **extração nova**: `dim_card.passagens smallint NULL`. É um inteiro, não é coluna de pessoa, e a API pode ler. Cálculo e proteção em §3 e na ADR 0020. Mock na fase 2, real na fase 3; as bordas Q-a e Q-b (§8 a) ficam como `pendente-usuario`.
 - **Cálculo:**
   - No coletor: a contagem de trocas pela **D-5' = B** (decidida em 2026-10-14): conta só quando alguém sai e outro entra, ou o conjunto é substituído; incluir co-responsável sem ninguém sair não conta. Fonte e mecanismo: §8 a.
   - Na biblioteca: módulo novo `businessmap/o26.ts`. Para cada entregue do tipo escolhido, faz o histograma por faixa (0, 1, 2, 3, 4+) e o P85 do tempo de ciclo por faixa, reaproveitando o ciclo do O3.
@@ -184,15 +209,14 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 ### T10 Tempo de terceiros
 - **Fonte:** BM.
 - **Dado:** existe. `fato_bloqueio` com `fornecedor` informado, **qualquer** motivo do domínio fechado (B:136). O critério é o campo, não o motivo (§8 c).
-  - Prazo contratado: **configuração nova** (D-10, B), na tabela `ref_prazo_fornecedor (fornecedor_codigo, dias_uteis, vigente_de, vigente_ate)`, que segue o padrão `ref_` com vigência.
-  - Toda vigência nova gera uma versão de critério (T2.6).
+  - **Sem prazo contratado (D-10 = A, 2026-10-14; CA-36):** o T10 mostra só o praticado (P50/P85) por fornecedor, com a linha fixa "Prazo contratado não informado" na interface. Não há coluna de prazo nem status "dentro/acima".
+  - Quando o usuário informar os contratos, entra o cadastro versionado (opção B da D-10, R-7 = P85): tabela `ref_prazo_fornecedor (fornecedor_codigo, dias_uteis, vigente_de, vigente_ate)`, no padrão `ref_` com vigência, cada vigência nova gerando `VersaoCriterio`, e o status comparando o P85 com o prazo vigente no `fim` do bloqueio. **Fora da fila até lá**: não está em nenhuma fase deste plano.
 - **Cálculo:** módulo novo `businessmap/t10.ts`.
-  - Para cada fornecedor, em ordem alfabética: bloqueios encerrados no período, soma em dias úteis e P50/P85 da duração (`core/percentil`).
-  - Status em relação ao prazo vigente no `fim` do bloqueio: compara o **P85** com o prazo. Isso é uma escolha de exibição já na spec; a comparação pelo P85 deve ser confirmada na validação.
-- **Contrato:** `{ fornecedores: [{ fornecedor, bloqueios, diasUteis, duracao: estatistica, prazoDiasUteis | null, status: 'dentro'|'acima'|'sem-prazo'|null }], totalDiasUteis }`.
+  - Para cada fornecedor, em ordem alfabética (CA-11): bloqueios encerrados no período, soma em dias úteis e P50/P85 da duração (`core/percentil`).
+- **Contrato:** `{ fornecedores: [{ fornecedor, bloqueios, diasUteis, duracao: estatistica }], totalDiasUteis }`. Sem `prazoDiasUteis`, `status` nem `prazoFornecedor`. A volta do prazo, quando houver contrato, é acréscimo compatível (ADR 0007).
 - **Mock:**
   - A base já tem 3 fornecedores (`catalogos.ts:60`: Alfa, Beta e Gama). Não há Delta; a spec aceita de 3 a 4.
-  - Prazo de mock em `ConfigBM` estendido no ext (`prazoFornecedor`) para 2 dos 3.
+  - Sem prazo de mock: o campo `prazoFornecedor` saiu da extensão (A2).
   - A base também põe `fornecedor` em "Aguardando licença ou contrato". Esses bloqueios **entram** no T10: entra todo bloqueio encerrado com fornecedor informado (R-5, resolvida pelos documentos; §8 c). O filtro "só Aguardando fornecedor" da versão anterior deste plano foi retirado por não ter base. Bloqueio "Aguardando fornecedor" sem fornecedor é falha de preenchimento e fica fora da tabela.
 - **Mínimo:** P50/P85 por fornecedor com ≥ 20 encerrados; abaixo, "— amostra insuficiente" e só contagem e soma.
 
@@ -204,11 +228,9 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - Mês corrente marcado com `emAndamento`.
   - A média mensal é só referência de contagem.
   - A agregação por mês vem de `core/series`.
-- **Contrato:** `{ anos: [{ ano, meses: [{ mes, entradas | null, emAndamento }] }], mesesComDado, mediaMensal, historicoCurto: boolean }`.
-- **Mock:** **o ponto mais sensível.** O mock tem 18 meses (`config.ts:13`, `mesesHistorico: 18`), sem padrão sazonal. Duas opções (decisão técnica, P-T3):
-  - **(a) Série própria no ext.** `entradasSazonais: { criado_em, tipo, equipe, sistema }[]` com 24 meses e picos em janeiro e julho, consumida só pelo T11 quando a fonte é mock. A função de cálculo é a mesma; só muda o adaptador. Custo: no mock, T11 e O7 divergem nos meses em comum. Isso precisa ficar documentado no teste e na nota de QA.
-  - **(b) Rebaseline da base para 24 meses com sazonalidade.** É fiel e coerente, mas muda o hash `924448d4` e os snapshots das 50 métricas. Também soma cerca de 33% de cards, com risco direto em C1 (medido entre 309 e 422 ms para um limite de 500).
-  - **Recomendação: (a)** enquanto o status for `mock`. Na coleta real, o adaptador lê `dim_card` e a divergência some.
+- **Contrato:** `{ anos: [{ ano, meses: [{ mes, entradas | null, emAndamento }] }], marcacoes, mesesComDado, mediaMensal, historicoCurto: boolean }`. `marcacoes` cobre a janela de 24 meses (A9).
+- **Mock:** **o ponto mais sensível.** O mock tem 18 meses (`config.ts:13`, `mesesHistorico: 18`), sem padrão sazonal. **Decidido (P-T3 = a, tech-lead):** série própria `entradasSazonais: { criado_em, tipo, equipe, sistema }[]` na extensão `ExtensaoTambemBM`, com 24 meses e picos em janeiro e julho, consumida só pelo T11 quando a fonte é mock. A função de cálculo é a mesma; só muda o adaptador. A base não muda (`924448d4`, `b2bfd4c0`). No mock, T11 e O7 divergem nos meses em comum: isso fica documentado no teste do T11 e na nota de QA. Na coleta real, o adaptador lê `dim_card` e a divergência some. Descartada: (b) rebaseline da base para 24 meses (mudaria hashes e snapshots e somaria cerca de 33% de cards, com risco em C1).
+- **Fase 1 (B11):** o T11 entra com a extensão, sem coleta nova. Testes: CA-12 (o T11 não muda com o período); sem extensão, vazio ou insuficiente, nunca 500.
 - **Mínimo:** contagem (censo), sem percentil. Com menos de 24 meses, `historicoCurto = true` e a nota da spec.
 
 ### T12 Qualidade da entrada por área
@@ -218,7 +240,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - Demandas que entraram no período (`criado_em`).
   - "Ida e volta" pela **D-8 = A** (decidida em 2026-10-14): bloqueio desse motivo com `inicio < iniciado_em` (ou o card ainda não iniciado), **ou** um retorno compromisso → backlog.
   - Para cada área, ordenada por volume (neutra): `k`, `n` e taxa (`core/estatistica`).
-- **Contrato:** `{ total: { k, n, taxa }, areas: [{ area, k, n, taxa }] }`.
+- **Contrato:** `{ total: taxaSchema, areas: [{ area, taxa: taxaSchema }] }` (o `k` e o `n` de cada área ficam dentro da `taxa`).
 - **Mock:** a base atual (`AREAS_EXTERNAS` mais a área interna). A frequência de ida e volta depende dos bloqueios uniformes e dos retornos já existentes. Medir; a spec pede de 10% a 25%, com duas áreas abaixo de 20.
 - **Mínimo:** taxa por área com ≥ 20; abaixo, "k de n".
 
@@ -227,19 +249,20 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Dado:** **extração nova**.
   - Projeção `fato_vinculo (card_id, card_relacionado_id, tipo_vinculo, quadro_relacionado_id, outro_quadro boolean, criado_em, removido_em NULL)`, a partir de uma staging nova `stg_vinculo_relacao`.
   - Por que staging nova: a `stg_vinculo` atual cobre só pai e filho (`pai_id`, `filho_id`), não predecessor nem relacionado.
-  - O tipo de vínculo segue a D-14'. A API expõe `predecessor`/`successor` além de pai/filho e `relative`, mas o vínculo não tem data de criação nem de remoção: as datas só saem da comparação entre revisões (§8 b).
+  - **Tipo decidido (D-14' = A, 2026-10-14; CA-40, CA-21):** só o vínculo `predecessor` com card de **outro quadro**. `successor`, `relative` e pai/filho ficam fora. A API não dá data de criação nem de remoção do vínculo: as datas só saem da comparação entre revisões (§8 b).
   - Pela conciliação da D-14 (04-decisoes, seção C), o bloqueio "Dependência de outra demanda" sai do T13 e vira "leia junto" com o O19.
   - Um vínculo removido gera evento, nunca `DELETE` em evento.
 - **Cálculo:** módulo novo `businessmap/t13.ts`.
-  - Entregas do período na granularidade escolhida, uma por vez (`story` ou `frente`).
-  - "Dependeu" = vínculo do tipo decidido na D-14' para `outro_quadro`, vigente conforme a R-4 (A: em algum momento antes de `concluido_em`; B: na entrega). As duas são calculáveis só a partir das revisões (§8 b).
+  - Entregas do período na granularidade escolhida, uma por vez (`story` ou `frente`; seletor, CA-8).
+  - "Dependeu" = vínculo `predecessor` com `outro_quadro = true` **vigente em algum momento antes de `concluido_em`** (R-4 = sim), inclusive o removido antes da entrega (CA-40). Depende de a API registrar a mudança de vínculo nas revisões, a confirmar no spike da fase 3 (§8 b); se não registrar, o T13 volta ao usuário.
+  - Card com `outro_quadro` desconhecido (quadro do relacionado sem permissão) vai para `semDado`, nunca para "não dependeu".
   - Par P50/P85 do lead time com × sem no mesmo tipo, reaproveitando o T1.
   - A resposta não traz o quadro nem a equipe do relacionado: só o booleano.
-- **Contrato:** `{ granularidade, entregas: { k, n, taxa }, comparacao: { tipo, com: estatistica, sem: estatistica } }`. O bloco de bloqueio por dependência saiu (conciliação da D-14).
-- **Mock:** extensão `vinculos: { card_id, relacionado_id, outro_quadro }[]` em cerca de 35% das stories e 50% das frentes, apontando para cards existentes de outras equipes.
+- **Contrato:** `{ granularidade, entregas: { k, n, taxa }, semDado, comparacao: { tipo, com: estatistica, sem: estatistica } }`. O bloco de bloqueio por dependência saiu (conciliação da D-14).
+- **Mock (fase 2):** extensão `vinculos: { card_id, relacionado_id, tipo: 'predecessor', outro_quadro, vigenteAte: number | null }[]` em cerca de 35% das stories e 50% das frentes, apontando para cards existentes de outras equipes; uma parte removida antes da entrega, para exercitar a R-4, e alguns de mesmo quadro, que não contam.
 - **Mínimo:**
   - taxa com ≥ 20 entregas;
-  - par só quando cada grupo tem ≥ 20 no tipo **e** na granularidade.
+  - par só quando cada grupo tem ≥ 20 no tipo **e** na granularidade (CA-6).
 
 ### E6 Datas do portfólio
 - **Fonte:** BM.
@@ -259,14 +282,17 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 
 ### E7 Capacidade por sistema
 - **Fonte:** BM.
-- **Dado:** existe. `sistema`, `tipo`, `concluido_em`, demanda sem subtarefa. Custo (só com D-1 = B): `ref_custo_area (valor, vigente_de, vigente_ate)`, um único valor por área, nunca por equipe ou pessoa. Nada de horas apontadas.
+- **Dado:** existe. `sistema`, `tipo`, `concluido_em`, demanda sem subtarefa. Nada de horas apontadas.
+- **Custo decidido (D-1' = A, 2026-10-14; CA-35, CA-13):** custo de capacidade = **custo total do DSPD no período**, rateado pela participação de cada sistema nas entregas (D-2). Um valor só, do DSPD inteiro: nunca por área, equipe ou pessoa. O `ref_custo_area` da versão anterior deste plano saiu.
+  - Configuração versionada (T2.6): tabela `ref_custo_dspd (valor, periodicidade, vigente_de, vigente_ate)`, no padrão `ref_` com vigência; cada vigência nova gera `VersaoCriterio` e marcação. O schema (proposta: `dspd_core`, porque não é dado de origem) e os tipos ficam para a revisão de modelagem da fase 3. O valor é dado externo, informado por pessoa (P:561).
+  - Conversão do valor configurado para o custo do período: **recomendação** pró-rata por dias corridos de cada vigência dentro do período. É regra de cálculo que o usuário não fixou: entra como `pendente-usuario` em `REGRAS_METRICA` (Q-E7-1, §7) quando o E7 com R$ for implementado.
 - **Cálculo:** módulo novo `businessmap/e7.ts`.
-  - Entregas do período por sistema; participação = entregas do sistema ÷ total (`core/estatistica`). Peso pela D-2 (recomendação A: contagem).
-  - A natureza vem da função **`naturezaDe` do T3** (`t3.ts:14`), sem um segundo mapeamento. Atenção: ela tem 4 naturezas (inclui "Projetos"), e a spec cita 3 (ver R-3).
+  - Entregas do período por sistema; participação = entregas do sistema ÷ total (`core/estatistica`). Peso pela D-2 (contagem).
+  - A natureza vem da função **`naturezaDe` do T3** (`t3.ts:14`), com as 4 naturezas (CA-23), sem um segundo mapeamento.
   - Sistemas com menos de 20 entregas vão para o fim, com "k de n".
-  - O rateio em R$ (só com D-1 = B) = participação × custo vigente, calculado na biblioteca.
-- **Contrato:** `{ total, sistemas: [{ sistema, entregas, participacao (taxa), porNatureza: [{ natureza, itens, pct }], custoRateado | null }], custoConfigurado: boolean }`.
-- **Mock:** a base atual (18 a 20 sistemas). Sem custo (CA-13).
+  - Com custo configurado (fase 2, por fixture): `custoRateado` = custo do período × participação; `custoPorDemanda` = `custoRateado` ÷ entregas do sistema. Os dois calculados na biblioteca. A interface mostra o aviso "Rateio do custo total do DSPD, não esforço medido." (CA-35).
+- **Contrato:** `{ total, sistemas: [{ sistema, entregas, participacao: taxaSchema, porNatureza: [{ natureza, taxa: taxaSchema }], custoRateado | null, custoPorDemanda | null }], custoConfigurado: boolean }`. `custoRateado` e `custoPorDemanda` são anuláveis desde o B1.
+- **Mock:** a base atual (18 a 20 sistemas). **Sem custo** (CA-13): nenhum R$ no mock. O R$ é exercitado só por fixture de teste na fase 2.
 - **Mínimo:** participação com ≥ 20 entregas no total; por sistema, abaixo de 20 só "k de n".
 
 ### E8 Concentração de conhecimento
@@ -276,7 +302,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - No projetor: a faixa por sistema e janela.
   - Na biblioteca: módulo novo `businessmap/e8.ts`, que só conta sistemas por faixa (1, 2, 3+) na janela escolhida.
   - Se houver menos de 5 sistemas com entregas, devolve `recortePequeno` e omite as faixas (CA-10).
-  - A lista de sistemas em "1 pessoa" só vem com D-4 = B.
+  - A lista de sistemas em "1 pessoa" vem pela D-4 = B (usuário, 2026-10-14, `04-decisoes.md`; CA-18, CA-25): nomes de sistema, nunca de pessoa.
 - **Contrato:** `{ janelaMeses, sistemasComEntrega, faixas: { uma, duas, tresOuMais } | null, recortePequeno: boolean, sistemasUmaPessoa: string[] | null }`. Não tem campo de pessoa; a validação zod é `strict`.
 - **Mock:** a extensão gera **diretamente** o agregado, sem pessoas: 4 sistemas em uma pessoa, 6 em duas e o resto em três ou mais.
 - **Mínimo:** censo de sistemas, sem percentil. O recorte precisa ter 5 ou mais sistemas.
@@ -294,6 +320,8 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 ## 3. Proteção de pessoa (O26, E8 e O22)
 
 Princípio: **a identidade só existe dentro do coletor e do projetor (papel `dspd_coletor`); o que sai deles é um inteiro sem pessoa.** A API (`dspd_api`) continua sem `SELECT` em `COLUNAS_PESSOA` (GRANT por coluna) e sem acesso a `*_versao` e `stg_`.
+
+A decisão de arquitetura desta seção está na **ADR 0020** (proteção de pessoa no coletor: subpasta `coletor/`, regra de lint de import, allow-list de revisões e comentários, agregado por faixa). Ela está como `proposta` e precisa estar `vigente` antes da fase 2. Por mexer com dado pessoal, a revisão inclui o `security-engineer` (R-SEGURANCA). `gatilhos_seguranca` deste plano: dados pessoais (responsáveis e autores na fronteira do coletor), banco (tabelas e GRANTs novos na fase 3).
 
 ```mermaid
 flowchart LR
@@ -319,10 +347,11 @@ flowchart LR
   - Minimização: guarda a faixa, não o número exato de pessoas. O nome da coluna não casa com o regex de `lgpd.ts`, e a tabela não entra em `COLUNAS_PESSOA` porque não tem pessoa.
   - O projetor recalcula por janela mensal móvel (D-3: 12 meses), contando os responsáveis distintos na `dim_card_versao` vigente em `concluido_em` das entregas do sistema.
   - Projeção substituível por janela (`DELETE`+`INSERT` na mesma transação), como as demais projeções.
-- **O22:** a staging de comentário guarda só `(card_id, comentario_id, criado_em)`.
-  - Autor e texto são descartados na fronteira (allow-list, o mesmo padrão do Acelerato).
-  - Para excluir os eventos automáticos, o coletor compara o autor **em memória** com uma lista de contas de sistema (`ref_conta_automacao`, ids técnicos de robô, não de pessoa) e descarta o autor em seguida.
-- **Onde fica a função de contagem:**
+- **O22 (D-9': só comentário humano):** a staging de comentário guarda só `(card_id, comentario_id, criado_em)`.
+  - Autor e texto são descartados na fronteira (allow-list, ADR 0020; o mesmo princípio do Acelerato no `CLAUDE.md`).
+  - Para excluir os comentários automáticos, o coletor compara o autor **em memória** com uma lista de contas de sistema (`ref_conta_automacao`, ids técnicos de robô, não de pessoa) e descarta o autor em seguida.
+  - O O22 não lê revisões: atribuição e mudança de coluna não são toque.
+- **Onde fica a função de contagem (ADR 0020):**
   - Funções puras em `packages/metricas/src/coletor/` (subpasta nova): `houveTroca(anterior: ReadonlySet<string>, atual: ReadonlySet<string>): boolean` (§8 a) e `faixaConcentracao(idsDistintos: number)`.
   - Recebem ids opacos e devolvem números.
   - **Não** são exportadas pelo `index.ts` público, não entram no bundle web, e uma regra de lint permite importá-las só a partir de `server/src/modulos/coleta*`.
@@ -330,85 +359,92 @@ flowchart LR
 - **Testes obrigatórios:**
   - teste de grants: `dspd_api` lê `passagens` e `agg_conhecimento_sistema` e não lê `responsaveis`;
   - teste LGPD de catálogo (`lgpd.ts`): nenhuma coluna nova viola o regex;
-  - property test existente (`regras.property.test.ts:581`): nenhuma string de pessoa do mock aparece na saída das 15 métricas novas;
+  - property test existente (`regras.property.test.ts:581`): nenhuma string de pessoa do mock aparece na saída dos **16 ids novos** (cada cartão acrescenta o seu; o B12 confere os 10 da fase 1);
+  - teste da allow-list do coletor (fase 3): falha se `owner_user_id`, `co_owner_ids`, `user_id`, autor ou texto de comentário chegarem a staging;
   - E2E: CA-9 e CA-10.
-- **Achado informativo (não bloqueia):** `data-model.md` §9, garantia 6, diz que `DimCard.responsaveis` e `FatoTransicao.usuario` ficam **fora** dos tipos da biblioteca e do mock. Hoje eles estão em `modelo.ts:34`/`:58`, e o mock os preenche com pseudônimos (`gerador.ts:391`). Nenhuma métrica os lê, e o property test protege a saída. Proposta ao tech-lead: alinhar o documento ao código, ou tirar os campos dos tipos públicos e deixá-los só no tipo do projetor. Em qualquer caso, nenhuma das 15 pode ler esses campos: regra de lint `no-restricted-properties` em `businessmap/*.ts`.
+- **`responsaveis` e `usuario` nos tipos da biblioteca (P-T6, decidido pelo tech-lead):** os dois campos **continuam** em `modelo.ts` (`:34`, `:58`) e no mock (pseudônimos, `gerador.ts:391`). A proteção é na saída e na leitura: (1) regra de lint que proíbe ler `responsaveis` e `usuario` em `packages/metricas/src/businessmap/*.ts`, **entregue no B1**, antes da primeira métrica nova (mesmo padrão de `semLeituraDeArquivamento` do `eslint.config.js`); (2) o property test de pessoa. O `data-model.md` §9, garantia 6, foi alinhado a isso (A12).
 
 ## 4. Mock: estrutura
 
 Segue o precedente das complementares sem mexer em `BaseBM`/`gerarBaseMock`. O hash `924448d4` (escala 0,2: `b2bfd4c0`) continua intacto.
-- Interface nova `ExtensaoTambemBM` em `businessmap/extensao.ts`, com os campos:
-  - `primeiroToque`;
-  - `passagens`;
-  - `vinculos`;
-  - `datasProjeto`;
-  - `conhecimentoSistema`;
-  - `prazoFornecedor`;
-  - `entradasSazonais`.
-- Gerador **separado**, `gerarExtensaoTambemMock(base)`, com streams `derivar(semente, 'tambem:<campo>')`. Assim o hash das extensões existentes (`fbddcf28`) **não muda**, e o novo ganha teste de hash próprio e de determinismo.
+- Interface nova `ExtensaoTambemBM` em `businessmap/extensao.ts`. Os campos entram com as métricas que os usam:
+  - fase 1 (B11): `entradasSazonais` (T11);
+  - fase 2: `primeiroToque` (O22), `passagens` (O26), `vinculos` (T13), `datasProjeto` (E6), `conhecimentoSistema` (E8) e `equipeResponsavel` (T14).
+  - Não há `prazoFornecedor` (D-10 = A) nem custo de mock (CA-13).
+- Gerador **separado** (P-T4, decidido): `gerarExtensaoTambemMock(base)`, com streams `derivar(semente, 'tambem:<campo>')`. Assim o hash das extensões existentes (`fbddcf28`) **não muda**, e o novo ganha teste de hash próprio e de determinismo.
 - `ContextosMetricas` ganha `tambem?: ExtensaoTambemBM`. Os cálculos que dependem dele devolvem `insuficiente`/vazio quando ele falta, nunca 500.
 - Geração **lazy**: só quando a seção "Mais métricas" abre ou no primeiro cálculo que precise dela, nunca em C1.
-- `COM_EXTENSAO_MOCK` (`cartoes.ts:55`) recebe O22, O26, T13, E6 e E8 sempre. T10 e E7 entram só quando tiverem prazo ou custo de mock (T10 sim, E7 não).
-- Os 24 meses da sazonalidade vêm de `entradasSazonais` (opção (a) do T11).
-- Regras ainda pendentes com o usuário (D-9', D-10/R-7, D-14'/R-4, R-2', D-1', o domínio de motivo de descarte e as duas bordas da D-5' em §8 a): a recomendação marcada fica como `pendencias` em `REGRAS_METRICA`, com `status: 'pendente-usuario'`. D-5', D-6', D-8 e R-1 já estão decididas e não entram como pendência.
+- `COM_EXTENSAO_MOCK` (`cartoes.ts:55`) recebe T11 na fase 1 e O22, O26, T13, E6, E8 e T14 na fase 2. T10 e E7 não entram (sem prazo e sem custo de mock).
+- **`pendencias` em `REGRAS_METRICA`:** só o que segue aberto com o usuário entra como `status: 'pendente-usuario'`: a **P-1** (O25 e, conforme a resposta, as métricas que usam `descartado`), as bordas **Q-a** e **Q-b** da D-5' (O26), a **Q-E7-1** (pró-rata do custo, E7) e, no T14, a cardinalidade do campo "Time responsável" e as suposições Q-T14-2, 3, 4, 7, 8 e 9 do pedido (cada uma com a recomendação de §9.5 valendo até confirmação). As decididas (D-1', D-4, D-5', D-6', D-8, D-9', D-10, D-14', R-1, R-2', R-4, motivos de descarte, Q-T14-1, Q-T14-5, Q-T14-6) e as resolvidas pelos documentos (D-7, D-13, R-3, R-5, R-6) não entram como pendência.
 
 ## 5. Ordem de implementação recomendada
 
-Coincide com a D-12 A, refinada pelo que já está no modelo e no mock.
+Segue a divisão da ata de revisão (`docs/alinhamentos/2026-10-14-revisao-desenho-011.md`, §3 e §4). Os cartões B1 a B12, com os critérios de pronto comuns e os próprios, são **os da ata, sem mudança**; aqui fica o resumo e o que cada fase exige antes de começar.
 
-1. **Fase 1: só dado existente, sem extensão.**
-   - O23 (acréscimo no O2, o menor);
-   - O19;
-   - E9;
-   - E7 sem custo;
-   - T10 sem prazo;
-   - O25 (com as funções novas em `descartado.ts`);
-   - T12 (D-8 = A, decidida);
-   - O21;
-   - O20 (generalizar a varredura do O1);
-   - O24 (D-6' = A e R-1 = A, decididas);
-   - T14, **só se** a Q-T14-1 confirmar `equipe` do quadro como fonte (§9.4). Se a fonte for um campo customizado, o T14 vai para a fase 3.
-   - Paralelizáveis em três grupos: bloqueios (O19, T10, T12), fluxo (O20, O21, O24) e retrato/estratégico (O23, O25, E7, E9).
-2. **Fase 2: extensão de mock sem coleta nova.**
-   - T11 (`entradasSazonais`);
-   - prazo do T10 (`prazoFornecedor`).
-3. **Fase 3: extração nova, primeiro em mock.**
-   - E6;
-   - T13 (depende da D-14' e da R-4; sem dependência de bloqueio, §8 b);
-   - O22;
-   - O26;
-   - E8.
-   - Os três últimos têm pessoa na fronteira e dependem de P-T1. A coleta real dessas cinco depende do coletor real (WS2) e do spike da OpenAPI do BusinessMap.
-4. **Na coleta real:**
-   - migrações para `dim_card` (`primeiro_toque_em`, `passagens`, `data_acordada_original`, `replanejamentos`), `stg_comentario_instante`, `stg_vinculo_relacao`, `fato_vinculo`, `agg_conhecimento_sistema`, `ref_prazo_fornecedor`, `ref_conta_automacao` e, só com D-1 = B, `ref_custo_area`;
-   - `gerarGrants` atualizado;
-   - **pré-condição da migração que cria `agg_conhecimento_sistema` e `ref_conta_automacao` (K-085, B-K1 a B-K3):**
-     - manter exatamente esses nomes e o schema `dspd_bm`: a exclusão da API é por nome (`TABELAS_FORA_DA_API`, `COLUNAS_FORA_DA_API`), e outro nome ou schema abriria acesso em silêncio;
-     - citar o K-085 no cartão e no PR;
-     - rodar a guarda (`guarda-api.pg.test.ts`) no mesmo PR: tabela ou coluna nova sem classificação derruba o teste; `ref_conta_automacao` entra como "fora da API" e `agg_conhecimento_sistema` como "na API", sem `responsaveis` e sem coluna que case com o regex de pessoa;
-   - revisão de modelagem (arquiteto + tech-lead) por tocar `lgpd.ts`/§9.
+### Fase 1: dado que já está em `BaseBM` e no mock (cartões B1 a B12)
+Sem coleta nova, sem migração e sem tocar em `gerarBaseMock`. Métricas: **O19, O20, O21, O23, O24, O25, T10 (sem prazo), T11, T12, E7 (sem R$) e E9**, ou seja, 11 métricas e 10 ids (o O23 é bloco do O2).
 
-Divisão:
-- `node-backend`: contratos (primeiro, para desbloquear o front), cálculos e `REGRAS_METRICA`, extensão de mock, serviço e testes de rota.
-- `react-frontend`: cartões, seções novas e bloco do O2, assim que os tipos de resultado existirem.
-- `qa-engineer`: em paralelo, plano com:
-  - borda 19/20 por métrica;
-  - CA-6 (cada grupo);
-  - CA-9/CA-10 (pessoa);
-  - CA-12 (T11 não afetado por período);
-  - lazy da seção;
-  - orçamento.
-- `tech-lead`: review, P-T3 e o achado de §3.
+| Cartão | Conteúdo (resumo; o critério de pronto é o da ata) |
+|---|---|
+| B1 | Contratos zod `strict` dos 10 resultados e de `ResultadoO2.parados`, com os ajustes de A2, A3, A1 e A9 (T10 sem prazo, O25 com aviso e `porMotivo` anulável, E7 com `custoPorDemanda` anulável, `marcacoes` em toda série); chaves `'motivo-bloqueio'`, `'fornecedor'`, `'mes-do-ano'`; regra de lint de `responsaveis`/`usuario` (P-T6). Nenhum id em `METRICA_IDS`. |
+| B2 | O23 no O2, constante única mais `VersaoCriterio` v1 (A8). |
+| B3 | O19 e T10. |
+| B4 | T12. |
+| B5 | E7 sem R$ e E9. |
+| B6 | O25, com `descartado()` mantido na Q6 enquanto a P-1 estiver aberta. |
+| B7 | O21. |
+| B8 | Varredura por coluna (refatoração do O1). |
+| B9 | O20 sobre o B8. |
+| B10 | O24. |
+| B11 | `ExtensaoTambemBM` (só `entradasSazonais`), gerador lazy com hash próprio, e T11. |
+| B12 | Fechamento: C4 nas condições da emenda A11, rotas das 10 ids, `docs:check`, `openapi:verificar`, property test de pessoa nas 10 ids. |
+
+Ordem: B1 primeiro (desbloqueia o front); depois B2 a B7, B10 e B11, em qualquer ordem; B8 antes de B9; B12 por último. Com um `node-backend` e um cartão por agente: B1 a B12 em sequência.
+
+**Pré-condição do B12:** a emenda de C4 na ADR 0003 (A11), feita pelo architect depois do merge do PR #74. Pendência registrada no topo deste plano.
+
+### Fase 2: métricas de extração nova, primeiro em mock
+Começa depois do B12 e com a **ADR 0020 `vigente`**. Cada uma com o seu campo em `ExtensaoTambemBM` (§4):
+- **E6:** `datasProjeto` (D-7, CA-20), com a variante `lenta` abaixo de 20.
+- **T13:** `vinculos`, só `predecessor` com outro quadro e vigente em algum momento antes da entrega (D-14' = A, R-4 = sim; CA-40, CA-21), seletor story/frente (CA-8) e CA-6.
+- **O22:** `primeiroToque`, só o primeiro comentário humano (D-9', CA-43).
+- **O26:** `passagens`, função pura `houveTroca` com property test (CA-38); chave `'faixa-passagens'`; Q-a e Q-b como `pendente-usuario`.
+- **E8:** `conhecimentoSistema` gerado direto como agregado, recorte de 5 sistemas e lista "1 pessoa" (D-3, D-4 = B; CA-9, CA-10, CA-18, CA-25).
+- **T14:** `equipeResponsavel` (Q-T14-1 = B), CA-27 a CA-34, CA-41 e CA-42 (Q-T14-5 = D, Q-T14-6 = A). Desenho em §9.
+- **E7 com R$:** custo total do DSPD como configuração versionada (D-1' = A), rateio e custo por demanda (CA-35), exercitado só por fixture. O mock segue sem custo (CA-13).
+
+### Fase 3: coleta real e integração
+Depende do coletor real do BusinessMap (WS2) e da configuração da WS1.
+- Spike P-T1 no card real (§8 a e b): troca de responsável e vínculo geram revisão? Qual o instante? Como fica o card relacionado em quadro sem permissão? O campo "Time responsável" (nome, cardinalidade)? Com resultado negativo, O26, T13 ou T14 voltam ao usuário.
+- **Revisão de modelagem (architect + tech-lead) antes de qualquer migração:**
+  - `dim_card`: `primeiro_toque_em`, `passagens`, `data_acordada_original`, `replanejamentos`, `equipe_responsavel` (também em `dim_card_versao`), e o instante e o motivo nativos de descarte (`discarded_at`, `reason_id`);
+  - `stg_comentario_instante`, `stg_vinculo_relacao`, `fato_vinculo`, `agg_conhecimento_sistema`, `ref_conta_automacao`, o catálogo de `/discardReasons` (ref com vigência) e `ref_custo_dspd`;
+  - `gerarGrants`, `lgpd.ts` e os índices de §6.
+  - **Pré-condição da migração que cria `agg_conhecimento_sistema` e `ref_conta_automacao` (K-085, B-K1 a B-K3):**
+    - manter exatamente esses nomes e o schema `dspd_bm`: a exclusão da API é por nome (`TABELAS_FORA_DA_API`, `COLUNAS_FORA_DA_API`), e outro nome ou schema abriria acesso em silêncio;
+    - citar o K-085 no cartão e no PR;
+    - rodar a guarda (`guarda-api.pg.test.ts`) no mesmo PR: tabela ou coluna nova sem classificação derruba o teste; `ref_conta_automacao` entra como "fora da API" e `agg_conhecimento_sistema` como "na API", sem `responsaveis` e sem coluna que case com o regex de pessoa.
+- Allow-list do coletor com o teste da ADR 0020. Medição de K1 por entidade, com a carga histórica de 24 meses numa execução separada.
+- `porMotivo` do O25 a partir do catálogo nativo. O tratamento definitivo do descarte segue a resposta à **P-1** (O25, §2).
+- Estado de partida do O26 (§8 a, passo 5): escolhido pelo tech-lead com o K1 medido.
+- **Fora da fila:** o prazo contratado do T10 (`ref_prazo_fornecedor`, R-7 = P85), só quando o usuário informar os contratos (D-10 = A).
+
+### Divisão
+- `node-backend`: cartões B1 a B12, depois a fase 2; contratos primeiro, para desbloquear o front.
+- `react-frontend`: cartões, seção "Mais métricas" e bloco do O2, depois de K-074 e K-075 (prioridade = A), a partir dos tipos do B1.
+- `qa-engineer`: em paralelo, plano com borda 19/20 por métrica, CA-6 (cada grupo), CA-7 (BM × AC), CA-9/CA-10 (pessoa), CA-12 (T11 fora do período), CA-14 (nenhum novo em "Pede atenção"), lazy da seção e orçamento (C3 por id, C4 nas condições da emenda A11).
+- `tech-lead`: review por cartão e revisão da ADR 0020 com o `security-engineer`.
+- `software-architect`: emenda A11 na ADR 0003 depois do PR #74; revisão de modelagem da fase 3.
 
 ## 6. Riscos de desempenho (ADR 0003)
 
 | Item | Risco | Métrica | Mitigação | Verificação |
 |---|---|---|---|---|
-| C3 (< 50 ms, inclusive a frio) | alto | O20 | Varredura +1/−1 por coluna, memoizada por quadro no contexto. O O20 é o O1 multiplicado pelas colunas; foi o O1 a frio (554 ms) que estourou na fase A. | `desempenho.test.ts` cobre os 15 ids novos, a frio e 20×, filtro padrão e período máximo |
+| C3 (< 50 ms, inclusive a frio) | alto | O20 | Varredura +1/−1 por coluna, memoizada por quadro no contexto. O O20 é o O1 multiplicado pelas colunas; foi o O1 a frio (554 ms) que estourou na fase A. | `desempenho.test.ts` cobre os 16 ids novos (cada um no seu cartão), a frio e 20×, filtro padrão e período máximo; limite de CI de 150 ms |
 | C3 | médio | O24 | Conjunto ordenado por grupo, O(n log n). Proibido o O(n²) ingênuo sobre a base inteira. | idem |
 | C3 | médio | O21, O26, T13 | Reaproveitar ciclo e lead time memoizados do O3 e do T1 em vez de recalcular por card. | idem |
 | C1 (< 500 ms; medido entre 309 e 422) | médio | todas | `gerarExtensaoTambemMock` é lazy, fora de C1. Rebaseline da base para 24 meses (opção b do T11) quebraria C1. | `mock` C2 inalterado; teste de tempo próprio do novo gerador |
-| C4 (< 300 ms por painel) | médio | Operacional passa a ter +15 complementares | As complementares só calculam com a seção aberta (lazy). Medir C4 do núcleo e da seção aberta separadamente. | C4 com a seção aberta, registrado pelo QA |
+| C4 (< 300 ms por painel; CI 900 ms) | médio | Operacional ganha 7 ids e o bloco do O23; Tático 5; Estratégico 4 | As novas só calculam com a seção "Mais métricas" aberta (lazy). A ADR 0003 define C4 como "todas as métricas do painel" e não diz o que vale com a seção fechada ou aberta: **emenda A11 pendente**, depois do merge do PR #74. | B12 mede C4 por painel nas duas condições da emenda, com o valor registrado; QA confere |
 | A3 (payload < 50 KB gzip) | baixo | O20 | 12 meses × até 9 faixas = cerca de 3,3 mil inteiros, bem abaixo do limite. E6 e E9 têm listas de dezenas. | medir no teste de rota |
 | M1/M2 (< 500 ms, sem full scan) | médio | O19, T10, T13, E9 | Índices novos: `fato_bloqueio (motivo, fim) WHERE fim IS NOT NULL`; `fato_vinculo (card_id)` e `(card_relacionado_id)`; `dim_card (granularidade, criado_em) WHERE iniciado_em IS NULL` para o E9. `EXPLAIN` registrado. | job `db` do CI |
 | S1 (partida a frio < 1,5 s) | baixo | todas | O contexto carrega 4 colunas a mais em `dim_card` e 2 tabelas pequenas (`fato_vinculo`, `agg_`). | medição do S1 no QA |
@@ -420,19 +456,27 @@ Divisão:
 |---|---|---|---|
 | P-T1 | A OpenAPI do BusinessMap expõe, no histórico do card (revisions ou equivalente), (a) a troca de responsável, (b) a mudança do campo de data acordada, (c) o instante de criação de comentário, (d) os vínculos predecessor/relacionado com o quadro do outro card e (e) a marca de evento automático? O briefing 3.1 proíbe assumir nomes. | spike do `node-backend` na OpenAPI do subdomínio, antes da fase 3 | **Respondida em parte pela OpenAPI pública (K-079, §8):** (a) sim, `CardRevision` traz `owner_user_id` e `co_owner_ids`; (b) `CardRevision` traz `custom_fields` (a confirmar no card real); (d) sim para o tipo (`predecessor`, `successor`, `relative`, `parent`, `child`), não para datas do vínculo e não para o quadro do outro card. (c) e (e) não verificados nesta rodada. O que resta é o spike no card real (§8 a e b). |
 | P-T2 | O SCD2 diário perde trocas de responsável no mesmo dia (A→B→A). Isso basta para o O26? | arquiteto + tech-lead (se mudar a leitura, vai ao usuário) | **Resolvida pelo §8 a:** a contagem usa as revisões, não o SCD2. Só volta se o spike mostrar que a troca de responsável não gera revisão. |
-| P-T3 | Mock do T11: série própria no ext (a) ou rebaseline da base para 24 meses (b)? E o mesmo para a distribuição de motivos do O19, se faltar amostra. | tech-lead | (a). O rebaseline fica para quando houver outro motivo para mexer na base. |
-| P-T4 | Gerador separado (`gerarExtensaoTambemMock`) para manter o hash `fbddcf28`, ou incorporar ao gerador atual e atualizar o hash conscientemente? | tech-lead | Separado. |
-| P-T5 | No E8, guardar a faixa (1, 2, 3+) em vez do número exato de pessoas. | arquiteto + tech-lead | Faixa (minimização LGPD). O cartão só precisa das três faixas. |
-| P-T6 | Divergência entre `data-model.md` §9.6 e `modelo.ts` (`responsaveis`/`usuario` nos tipos da biblioteca). | tech-lead | Ver §3, achado informativo. |
+| P-T3 | Mock do T11: série própria no ext (a) ou rebaseline da base para 24 meses (b)? E o mesmo para a distribuição de motivos do O19, se faltar amostra. | tech-lead | **Decidida (ata K-078): (a).** A base não muda; a divergência T11 × O7 no mock fica no teste e na nota de QA. No O19, se faltar amostra, o cartão mostra o que existe. |
+| P-T4 | Gerador separado (`gerarExtensaoTambemMock`) para manter o hash `fbddcf28`, ou incorporar ao gerador atual e atualizar o hash conscientemente? | tech-lead | **Decidida: separado**, com teste de hash próprio e de determinismo. |
+| P-T5 | No E8, guardar a faixa (1, 2, 3+) em vez do número exato de pessoas. | arquiteto + tech-lead | **Decidida: faixa**, para a fase 2 (ADR 0020). |
+| P-T6 | Divergência entre `data-model.md` §9.6 e `modelo.ts` (`responsaveis`/`usuario` nos tipos da biblioteca). | tech-lead | **Decidida: alinhar o documento ao código** (§3); regra de lint no B1; `data-model.md` §9, garantia 6, atualizado. |
 
-**Lacunas de regra de negócio** que os documentos de UX ainda não tratam. Não foram decididas aqui e vão ao usuário pelo Jarvis, junto com as D-n:
-- **R-1 (O24): decidida, A** (2026-10-14), leitura (i). Incorporada no O24.
-- **R-2 (O25):** qual é o instante do descarte quando o card tem `motivo_descarte` mas não foi arquivado? E os excluídos com "Criado por engano" entram na taxa de descarte?
-- **R-3 (E7):** a natureza tem 3 valores (spec) ou os 4 do T3, incluindo "Projetos"? A recomendação técnica é reaproveitar o T3, com 4.
-- **R-4 (T13):** um vínculo removido antes da entrega conta como "dependeu"? Continua com o usuário, junto com a D-14'. Dado técnico para a decisão em §8 b: as duas opções só são calculáveis pelas revisões.
-- **R-5 (T10): resolvida pelos documentos** (04-decisoes, seção D): entra todo bloqueio com fornecedor informado. Incorporada no T10 (§8 c).
-- **R-6 (E9):** a spec supõe que "o card de projeto nasce logo após a aprovação". Isso é verdade nos quadros reais, ou existe um campo ou coluna de aprovação que deveria ser o marco? Se não for verdade, a idade mede outra coisa.
-- **R-7 (T10):** o status "dentro/acima do contratado" compara o P85 com o prazo, ou a fração de bloqueios dentro do prazo?
+**Regras de negócio: situação em 2026-10-14.**
+
+| # | Métrica | Situação | Onde |
+|---|---|---|---|
+| **P-1** | O25 e as que usam `descartado` | **Aberta, com o usuário (R-DECISAO).** A Q6 (2026-10-09, definitiva em 2026-10-10) define, para todas as métricas, descartado = card com `motivo_descarte`. A R-2' = A (2026-10-14) define, no O25, descartado = estado nativo `discarded` ou excluído. A R-2' vale só para o O25 ou substitui a Q6 em todas (WIP, aberto, vazão)? Não bloqueia a fase 1 (no mock os conjuntos coincidem); precisa de resposta antes da coleta real. | O25 (§2), as duas saídas descritas |
+| R-1 | O24 | Decidida, A | O24 |
+| R-2 → R-2' | O25 | Decidida, A (estado nativo e excluído; motivo sem descarte vira aviso) | O25 |
+| Motivos de descarte | O25 | Decidida, A (catálogo `/discardReasons`, `reason_id`; `discard_comment` nunca) | O25 |
+| R-3 | E7 | Resolvida pelos documentos: 4 naturezas do T3 (CA-23) | E7 |
+| R-4 | T13 | Decidida: sim (vigente em algum momento antes da entrega) | T13 |
+| R-5 | T10 | Resolvida pelos documentos: todo bloqueio com fornecedor informado | T10, §8 c |
+| R-6 | E9 | Resolvida pelos documentos: o card de projeto nasce com a aprovação (nota do marco no cartão) | E9 |
+| R-7 | T10 | Decidida com a D-10: P85 contra o prazo, só quando houver contratos | T10 |
+| Q-a, Q-b | O26 | Abertas, com o usuário (bordas da D-5') | §8 a |
+| Q-E7-1 | E7 | **Nova, para o usuário quando o E7 com R$ for implementado (fase 2):** como o valor configurado vira custo do período (recomendação: pró-rata por dias corridos de cada vigência dentro do período). Até a resposta, `pendente-usuario`. | E7 |
+| Cardinalidade de "Time responsável" | T14 | Aberta, a confirmar na integração (Q-T14-1 = B); vale a Q-T14-9 = A | §9 |
 
 ## 8. Confirmações técnicas (cartão K-079, 2026-10-14)
 
@@ -462,36 +506,46 @@ Divisão:
 - **Datas por derivação [INF], não confirmado:** `CardRevision` traz `linked_cards`. Comparando revisões consecutivas, o vínculo aparece numa revisão e some em outra; o instante seria o `replaced_at` da revisão anterior. Falta confirmar no card real: (1) se criar ou remover vínculo gera revisão; (2) em qual dos dois cards (ou nos dois) a revisão aparece.
 - **Quadro do outro card:** o vínculo traz só o `card_id`. O quadro vem de `dim_card` quando o card relacionado está num quadro coletado; caso contrário, de `GET /cards/{card_id}` (só se o usuário de serviço tiver acesso ao quadro). Sem acesso, `outro_quadro` é desconhecido e o card cai num `semDado` do T13, nunca em "não dependeu". **Não confirmado** o comportamento da API quando o card relacionado está num quadro sem permissão.
 - **Consequência para as decisões do usuário:**
-  - **D-14':** os tipos existem; a escolha continua com o usuário. Dado técnico: `parent`/`child` é a hierarquia projeto → frente → story (B:54) e fica fora pela conciliação; `relative` não expressa direção nem espera. Quanto a `predecessor` × `successor`: "trabalho que não é nosso" (P:348) aponta para o card que tem um predecessor em outro quadro, mas incluir ou não o `successor` é decisão do usuário.
-  - **R-4:** tanto A (vigente em algum momento antes de `concluido_em`) quanto B (vigente na entrega) dependem das revisões. Com só o estado atual do vínculo, nenhuma das duas é calculável para card já concluído: um vínculo removido depois da entrega some, e um removido antes não deixa rastro. Se o spike do item anterior der negativo, o T13 fica sem fonte para datas, e a decisão volta ao usuário com essa limitação.
+  - **D-14' = A (decidida, 2026-10-14):** só `predecessor` com card de outro quadro. `parent`/`child` (hierarquia projeto → frente → story, B:54), `relative` e `successor` ficam fora.
+  - **R-4 = sim (decidida, 2026-10-14):** conta o vínculo vigente em algum momento antes de `concluido_em`. Só é calculável pelas revisões: com o estado atual do vínculo, um vínculo removido antes da entrega não deixa rastro. Se o spike do item anterior der negativo, o T13 fica sem fonte para datas, e a decisão volta ao usuário com essa limitação.
 - **Custo (K1):** com `expand=linked_cards` na listagem, o estado atual não custa chamada a mais; as datas vêm do mesmo detalhe de revisão do item a.
 
 ### c) T10 e O25 alinhados aos documentos
 - **T10, motivo:** o filtro "só Aguardando fornecedor" não tem base. O domínio fechado de motivos (B:136) tem sete valores, entre eles "Aguardando fornecedor" e "Aguardando licença ou contrato", e nenhum documento amarra a métrica a um motivo. A métrica depende do campo `fornecedor` (B:126; P:344). Vale a R-5 como resolvida em `04-decisoes.md`, seção D: entra todo bloqueio encerrado com fornecedor informado, de qualquer motivo do domínio. Corrigido no T10 (§2). Ressalva da própria R-5: a leitura do campo como critério pode ser contestada pelo usuário na validação.
 - **O25, "Criado por engano":** não existe em nenhum documento (04-decisoes, R-2). Os domínios fechados do briefing (B:135-139) são motivo de bloqueio, fase de detecção, causa raiz e origem da demanda; **não há domínio de motivo de descarte**. O valor sai do O25 (§2), e o card excluído entra no descarte com motivo `null` (P:564).
-- **Pergunta ao usuário (O25):** existe um domínio fechado de motivo de descarte, e quais são os valores? Dado técnico: o BusinessMap tem catálogo nativo `GET /discardReasons` [DOC], e o card tem `reason_id`, `discarded_at` e `discard_comment` [DOC] e o estado `discarded` (businessmap-api-configuracao §4.2). `discard_comment` é texto livre e nunca entra na allow-list. Até a resposta, o O25 publica taxa e tempo consumido, e `porMotivo = null`. Observação para a R-2' (sem decidir): `discarded_at` é um instante nativo de descarte, distinto de `archived_at`.
+- **O25, motivo e instante (respondidas pelo usuário em 2026-10-14):** o domínio é o catálogo nativo `GET /discardReasons` (`reason_id`), versionado (motivos = A), e o instante é o `discarded_at` do estado nativo `discarded` (R-2' = A), distinto de `archived_at`. `discard_comment` é texto livre e nunca entra na allow-list. Até a integração ler o catálogo, o O25 publica taxa e tempo consumido, e `porMotivo = null` (CA-44). Ficou a P-1 (alcance da R-2' sobre a Q6, §7).
 
 ### d) Decisões do usuário incorporadas
 | Decisão | Onde entrou |
 |---|---|
-| D-8 = A | T12 (§2) e fase 1 (§5) |
+| D-8 = A | T12 (§2), B4 |
 | D-5' = B | O26 (§2), §3 e item a acima, com as bordas Q-a e Q-b |
-| D-6' = A (por equipe, classe Padrão, mesmo tipo) | O24 (§2): grupo `equipe-tipo-padrao` |
+| D-6' = A (por equipe, classe Padrão, mesmo tipo) | O24 (§2): grupo `equipe-tipo-padrao`, B10 |
 | R-1 = A | O24 (§2): custo da ultrapassagem e texto do cartão |
+| D-1' = A | E7 (§2): custo total do DSPD, `ref_custo_dspd`, `custoRateado` e `custoPorDemanda` (CA-35); fase 2 |
+| D-4 = B | E8 (§2): lista de sistemas em "1 pessoa" |
+| D-9' (só comentário humano) | O22 (§2) e §3 (CA-43); sem `stg_revision` |
+| D-10 = A (e R-7 = P85 para depois) | T10 (§2): sem prazo nem status (CA-36), B3 |
+| R-2' = A | O25 (§2), CA-26, B6; P-1 aberta |
+| Motivos de descarte = A | O25 (§2) e item c, CA-44 |
+| D-14' = A e R-4 = sim | T13 (§2) e item b, CA-40, CA-21 |
+| T14 nova = A, Q-T14-1 = B, Q-T14-5 = D, Q-T14-6 = A | §9 |
 
 ## 9. T14 Participação do meu time no projeto (cartão K-078, 2026-10-14)
 
 Decisão do usuário ("T14 nova = A", pedido 011): métrica nova do Tático, separada do T13. Mede, de um projeto, a fração dos cards com o meu time no campo de time responsável. Os outros times são sempre somados em "outros times", sem lista e sem ordem. Motivo: o time é cobrado por entregas de projetos em que atua pouco. A especificação de tela é do `ux-designer`, em paralelo; aqui ficam só a fonte, o cálculo, o contrato em alto nível e as perguntas.
 
 **Conferência com as regras invioláveis:**
-- **Comparação entre times:** a resposta tem só "meu time", "outros times" (um número) e "sem time informado". Não traz o nome, a quantidade nem a ordem dos outros times. O zod é `strict`, e um teste falha se aparecer qualquer equipe além da filtrada. Bloqueio residual: ver Q-T14-6.
-- **Pessoa:** não lê `responsaveis` nem `usuario`. "Time" é unidade organizacional (quadro), não pessoa.
+- **Comparação entre times:** a resposta tem só "meu time", "outros times" (um número) e "sem time informado". Não traz o nome, a quantidade nem a ordem dos outros times. O zod é `strict`, e um teste falha se aparecer qualquer equipe além da filtrada. Com um único outro time, "outros times" é publicado mesmo assim (Q-T14-6 = A): o usuário registrou que participação de cards no projeto não é comparação de desempenho entre times (7.1). Por isso o T14 nunca traz tempo, vazão nem ranking de times, e a frase "nenhum time é identificado" não é usada.
+- **Pessoa:** não lê `responsaveis` nem `usuario`. "Time" é unidade organizacional (valor do campo "Time responsável"), não pessoa.
 - **BM × AC:** só BusinessMap. A `equipe` do Acelerato (`dim_chamado.equipe`, SSSC) é outro domínio e não entra.
 - **Granularidade:** uma só por resultado (§9.3).
 - **Biblioteca:** `taxa`, `publicavel` e `MINIMO_AMOSTRA` de `core/estatistica`, e `projetoId` de `businessmap/indice.ts`.
 
-### 9.1 De onde vem o "time responsável": **não confirmado**
-Nenhum documento define um campo "time responsável":
+### 9.1 De onde vem o "time responsável": **decidido, campo customizado (Q-T14-1 = B)**
+**Decisão do usuário (2026-10-14):** a fonte é o campo customizado do card, nome provisório "Time responsável". O nome exato e a cardinalidade (escolha única ou múltipla) se confirmam na integração com o BusinessMap (spike da fase 3, itens 1 a 3 abaixo). Até lá vale a Q-T14-9 = A, que funciona nos dois casos. Consequência: o T14 sai da fase 1; entra na **fase 2** em mock (extensão `equipeResponsavel`) e na **fase 3** na coleta real. A recomendação técnica anterior, (a), não foi adotada; a tabela abaixo fica como registro da análise.
+
+Contexto da análise (antes da decisão). Nenhum documento define um campo "time responsável":
 - O briefing não o lista entre os campos customizados exigidos (B:121-134) nem no modelo analítico (B:142).
 - A API do BusinessMap não tem campo nativo de equipe no card. Os campos de card em `businessmap-api-configuracao.md` §4.2 são `board_id`, `workflow_id`, `lane_id`, `column_id`, `owner_user_id` e `co_owner_ids`, mais os customizados (§4.6).
 
@@ -506,13 +560,12 @@ Candidatos, do que já existe ao que falta:
 
 **Situação da coleta:** o coletor real do BusinessMap ainda não existe. Há gravação de staging em `server/src/modulos/businessmap/staging.ts`, mas não há cliente nem projetor real. Nada está "na staging" com dado real. No mock, (a) já existe: projeto em `Portfólio`, frente com a equipe do sistema em 90% dos casos (`gerador.ts:602`) e story com a equipe da frente (`gerador.ts:657`).
 
-**Recomendação técnica:** (a). Já existe, é o mesmo conceito que o filtro "equipe" usa em todos os painéis, e não pede campo novo. Pelo princípio do briefing, nenhum campo obrigatório entra sem métrica que dependa dele (B:140). Mas o usuário falou em "campo de time responsável", e a fonte é decisão dele (**Q-T14-1**).
+A recomendação técnica era (a). O usuário escolheu (b) (Q-T14-1 = B), e é o que vale. O campo "Time responsável" passa a ser campo que a métrica exige, com o T14 como métrica que depende dele (B:140).
 
-**O que o spike no card real precisa ver** (`node-backend`, com o swagger da conta, mesmo roteiro do §8):
-1. `GET /customFields`: existe campo de equipe ou time responsável? Se existir: tipo (lista única ou múltipla), `allowedValues` e em quais quadros é usado.
-2. Um projeto real com `GET /cards/{id}/childGraph`: as frentes e stories de um projeto estão em quadros de times diferentes? O `board_id` de cada filho bate com o time que de fato fez o trabalho?
-3. Uma story que mudou de quadro: a revisão registra o `board_id` anterior (`CardRevision.board_id`, [DOC])?
-4. `GET /boards` e a estrutura de raias: algum quadro é compartilhado por mais de um time, separado por raia? Se for, (a) não basta para esse quadro.
+**O que o spike no card real precisa ver** (`node-backend`, fase 3, com o swagger da conta, mesmo roteiro do §8):
+1. `GET /customFields`: o `field_id` e o nome exato do campo "Time responsável", o tipo (lista única ou múltipla), os `allowedValues` e em quais quadros é usado.
+2. Os valores do campo batem com as equipes de `ConfigBM.equipes` (e `ref_quadro.equipe`)? Se não baterem, o mapeamento valor → equipe vira configuração (`ref_dominio` `equipe_responsavel`), sem inferência.
+3. Uma story cujo valor do campo mudou: a revisão registra o valor anterior (`CardRevision.custom_fields`, [DOC])? Necessário para a Q-T14-8 (time na entrega).
 
 ### 9.2 Como associar card e projeto
 - Pela hierarquia pai e filho: projeto → frente → story (B:41; `stg_vinculo` → `dim_card.card_pai`). O índice já resolve isso: `MarcosCard.projetoId = raiz(card, 'projeto')` (`indice.ts:174`), subindo até 4 níveis. O T14 reaproveita esse campo e não refaz a subida.
@@ -521,62 +574,67 @@ Candidatos, do que já existe ao que falta:
   - subtarefa (`eh_subtarefa`, B:110 "subtarefa NÃO conta como item");
   - card de quadro de teste (`ref_quadro.eh_teste`);
   - story sem pai: não tem projeto. Ela já aparece como defeito de dado (B:42), não no T14.
-- **Nível contado:** um só por resultado (B:45). Duas opções, decididas pelo usuário (**Q-T14-2**):
-  - **story** (recomendação): é no quadro do time que o trabalho acontece (B:41), e a contagem é mais sensível. Um projeto tem de 4 a 20 stories por frente no mock.
-  - **frente:** é a unidade de avanço do projeto (B:47). Porém um projeto tem de 3 a 12 frentes, e quase nenhum chegaria a 20 (§9.3).
-  - O seletor de granularidade, igual ao do T13, pode oferecer as duas, uma de cada vez. Isso cabe ao UX.
-- A população de cards (abertos, entregues, descartados) e a janela são perguntas (**Q-T14-3**, **Q-T14-4**).
+- **Nível contado:** um só por resultado (B:45). Pela suposição **Q-T14-2** (pedido 011): story por padrão, com seletor para frente, uma de cada vez. Por frente, quase nenhum projeto chega a 20 (um projeto tem de 3 a 12 frentes no mock).
+- **População e janela** (suposições Q-T14-3 e Q-T14-4): entram os cards não descartados (abertos e entregues), do projeto inteiro; o período escolhe quais projetos aparecem. "Descartado" aqui usa `descartado()`, e por isso segue a resposta à **P-1** (§7) sem mudança neste módulo.
 
 ### 9.3 Cálculo pela biblioteca compartilhada
 Módulo novo `businessmap/t14.ts`, só função pura sobre `ContextoBM`:
-1. "Meu time" = o valor do filtro `equipe`. Com o filtro em "Todas", não existe "meu time": o resultado é o estado `semEquipe` (o cartão pede para escolher uma equipe), nunca uma tabela de todas as equipes.
+1. "Meu time" = o valor do filtro `equipe`, quando **exatamente uma** equipe está selecionada. Com "Todas" **ou com mais de uma equipe** no filtro, o resultado é o estado `semEquipe` e nenhum valor é calculado (CA-28), nunca uma tabela de equipes.
 2. **O filtro `equipe` não recorta a população**, ao contrário das outras métricas: recortar apagaria os "outros times". Para o T14, o filtro só diz qual equipe é "meu time". Os filtros `sistema` e `periodo` continuam valendo; `tipo` não se aplica (o recorte vem do projeto). Em `FILTROS_FLUXO`: `T14: ['equipe', 'sistema', 'periodo']`, e o comportamento diferente da equipe vai documentado em `REGRAS_METRICA`.
-3. Projetos listados: pela Q-T14-5.
+3. **Projetos listados (Q-T14-5 = D, decidida):** a união de (i) os projetos ligados a um sistema do meu time (`ConfigBM.equipes[].sistemas`), **inclusive com 0% de atuação**, e (ii) qualquer projeto com pelo menos 1 card do meu time.
 4. Para cada projeto, com os cards da granularidade escolhida (§9.2):
-   - `n` = total;
-   - `k` = cards cuja fonte de time (§9.1) é igual ao meu time;
-   - `outros` = cards com outro time;
-   - `semTime` = cards sem time (só se o usuário mantiver isso no `n`, Q-T14-7).
+   - `total` = todos os cards, inclusive os sem time (CA-33);
+   - `semTime` = cards sem valor no campo, listados em "Sem time informado" e **fora do denominador** (CA-33);
+   - `n` = cards **com time informado** = `total − semTime` (CA-31);
+   - `k` = cards com o meu time no campo (com campo múltiplo, conta quando o meu time está entre os marcados, Q-T14-9 = A);
+   - `outrosTimes` = `n − k` (cards com time informado e sem o meu time);
    - `participacao = taxa(k, n)` (`core/estatistica`).
-5. **Mínimo de 20:** com `publicavel(n)` falso (`n < 20`), o projeto mostra só "k de n" e `participacao = null`, como nas outras taxas deste plano. A contagem (censo) sai sempre.
-6. **"Outros times"** é um inteiro só. A biblioteca não monta mapa por equipe nem em memória: conta `igual` × `diferente` × `sem valor`. Isso evita que um consumidor futuro exponha a quebra por acidente.
-7. Ordem dos projetos: neutra (`ordenarNeutro` por código). Ordem por participação, se o UX quiser, é ordem de projetos, não de times, e não fere a regra 7.1.
-8. Critério versionado (T2.6): a fonte do time (quadro ou campo), a granularidade padrão e o tratamento de troca de time entram como versão em `criterios`. Se a configuração de `ref_quadro.equipe` mudar, a mudança gera marcação nos gráficos.
+5. **Mínimo de 20:** com `publicavel(n)` falso (`n < 20` demandas com time informado, no projeto ou no total), o projeto mostra só "k de n" e "percentual não publicado (menos de 20)", com `participacao = null` (CA-31). A contagem (censo) sai sempre.
+6. **"Outros times"** é um inteiro só, publicado mesmo quando há um único outro time (Q-T14-6 = A), sem nome, tempo, vazão nem ranking. A biblioteca não monta mapa por equipe nem em memória: conta `meu` × `outro` × `sem valor`. Isso evita que um consumidor futuro exponha a quebra por acidente.
+7. **Ordem dos projetos (CA-30):** pelo `total` de demandas do projeto, do maior para o menor, por `ordenarNeutro` com o `total` decrescente como primeira chave e o código como desempate. Nunca pela participação do meu time.
+8. Critério versionado (T2.6): a fonte do time (o campo), a granularidade padrão e o tratamento de troca de time entram como `VersaoCriterio`. Mudança no mapeamento valor do campo → equipe gera marcação.
 
 **Contrato (alto nível; detalhe zod do `node-backend`):**
-`{ equipe, granularidade: 'story' | 'frente', semEquipe: boolean, projetos: [{ projetoId, codigo, titulo, meuTime: { k, n, taxa | null }, outrosTimes: number, semTime: number }] }`
+`{ equipe | null, granularidade: 'story' | 'frente', semEquipe: boolean, projetos: [{ projetoId, codigo, titulo, total, meuTime: { k, n, taxa | null }, outrosTimes: number, semTime: number }] }`
 
-Não há campo com nome de outra equipe. O schema é `strict`.
+Não há campo com nome de outra equipe. O schema é `strict`. Com `semEquipe = true`, `projetos` é vazio.
 
-**Mock:** se a fonte for (a), não precisa de extensão: a base atual já tem equipe por frente e por story. Ressalva para o QA: no mock, a story sempre herda a equipe da frente. Por isso "story" e "frente" só diferem no peso de cada frente. Medir quantos projetos passam de 20 cards na granularidade frente; o esperado é quase nenhum. Se a fonte for (b), entra a extensão `equipeResponsavel: Record<card_id, string | null>` em `ExtensaoTambemBM` (§4), com cerca de 15% dos cards de outro time e 5% sem valor.
+**Mock (fase 2):** extensão `equipeResponsavel: Record<card_id, string | null>` em `ExtensaoTambemBM` (§4), partindo da equipe da frente ou da story na base, com cerca de 15% dos cards de outro time e 5% sem valor, e ao menos um projeto ligado a um sistema do meu time com 0 cards dele (Q-T14-5 = D). Ressalva para o QA: no mock, "story" e "frente" diferem pouco; medir quantos projetos passam de 20 cards com time informado na granularidade frente.
 
 **Testes obrigatórios:**
-- Borda 19/20 do `n`.
-- Filtro "Todas" leva a `semEquipe`.
+- Borda 19/20 do `n` (com time informado), inclusive um projeto com `total ≥ 20` e `n < 20`.
+- Filtro "Todas" e filtro com duas equipes levam a `semEquipe` (CA-28).
 - O property test garante que nenhuma string de equipe diferente da filtrada aparece na saída.
-- A soma `k + outrosTimes + semTime = n`.
-- Um projeto em que o meu time tem 0 cards (conforme a Q-T14-5).
+- As somas `k + outrosTimes = n` e `n + semTime = total`.
+- Um projeto ligado a sistema do meu time em que o meu time tem 0 cards aparece (Q-T14-5 = D).
+- Ordem pelo `total` decrescente (CA-30), não pela participação.
+- Card com campo múltiplo que inclui o meu time conta em `k`, e não em `outrosTimes`.
 
 **Desempenho (ADR 0003, C3):** uma passada linear sobre `marcos`, agrupando por `projetoId`. Custo O(n), sem risco.
 
 ### 9.4 Ordem no plano de implementação
-- **Fonte (a), `equipe` do quadro:** usa dado que já existe no modelo e no mock. Entra na **fase 1** (§5), no grupo "retrato/estratégico", e não depende de coleta nova. Na coleta real, depende só de `dim_card.equipe` preenchida pelo projetor a partir de `ref_quadro`, que a WS1 configura. Isso já é exigência de todas as métricas com filtro de equipe.
-- **Fonte (b), campo customizado:** vai para a **fase 3** (extensão de mock e depois extração nova). Na coleta real, precisa de:
-  - a migração de `dim_card.equipe_responsavel`, também em `dim_card_versao` para a Q-T14-8;
+- **Fonte decidida, campo customizado (Q-T14-1 = B):** o T14 **não** está na fase 1. Entra na **fase 2** em mock (extensão `equipeResponsavel`, §5) e na **fase 3** na coleta real, que precisa de:
+  - a migração de `dim_card.equipe_responsavel`, também em `dim_card_versao` para a Q-T14-8 (com campo múltiplo, o tipo da coluna é decidido na revisão de modelagem, depois do spike);
   - o domínio `equipe_responsavel` em `ref_dominio`;
   - o mapeamento do `field_id`.
   - O `expand=custom_fields` já está previsto, sem chamada a mais (K1).
-- Em qualquer caso, o T14 entra em `METRICA_IDS` depois do T13. Enquanto as perguntas abaixo estiverem abertas, suas recomendações ficam como `pendencias` com `status: 'pendente-usuario'` em `REGRAS_METRICA`.
+- O T14 entra em `METRICA_IDS` depois do T13. As suposições Q-T14-2, 3, 4, 7, 8 e 9 e a cardinalidade do campo ficam como `pendencias` com `status: 'pendente-usuario'` em `REGRAS_METRICA`; as decididas (Q-T14-1, 5 e 6) não entram.
 
-### 9.5 Perguntas de regra ao usuário (não decididas aqui)
-| # | Pergunta | Opções | Recomendação |
-|---|---|---|---|
-| Q-T14-1 | O que é o "time responsável" de um card? | A: a equipe dona do quadro em que o card está (já existe, é o filtro "equipe" dos painéis); B: um campo customizado do card (diga o nome; não está no briefing); C: outro (raia ou quadro compartilhado) | **A.** Já existe e não cria campo obrigatório novo (B:140). Se houver quadro compartilhado entre times, só o spike (§9.1, item 4) mostra. |
-| Q-T14-2 | Que nível de card é contado? | A: story; B: frente; C: as duas, com seletor, uma de cada vez | **C, com story como padrão.** Por frente, quase nenhum projeto chega a 20. |
-| Q-T14-3 | Que cards do projeto entram? | A: todos os não descartados (abertos e entregues); B: só os entregues; C: todos, inclusive os descartados | **A.** A cobrança é sobre o projeto inteiro, e o card descartado não é atuação. |
-| Q-T14-4 | A métrica olha o projeto inteiro ou só a janela do período? | A: o projeto inteiro (censo desde a criação), com o período escolhendo quais projetos aparecem; B: só os cards criados ou entregues dentro do período | **A.** A pergunta "quanto deste projeto é do meu time" é sobre o projeto inteiro. |
-| Q-T14-5 | Que projetos aparecem para "meu time"? | A: os que têm ao menos 1 card do meu time; B: os ligados a um sistema do meu time (`ConfigBM.equipes[].sistemas`); C: todos os projetos ativos ou concluídos no período | **B ∪ A.** O motivo declarado é a cobrança por projetos com pouca atuação. Em A, um projeto cobrado em que o time tem 0 cards não aparece. Precisa confirmar se "o time é cobrado" segue o sistema. |
-| Q-T14-6 | Quando o projeto tem só um outro time, "outros times" o identifica. Publicar mesmo assim? | A: publicar; a regra proíbe comparar, e aqui não se compara desempenho, só a fatia de cards; B: juntar "outros" e "sem time" nesse caso; C: não publicar "outros", só "meu time: k de n" | **A**, com a frase "do restante, nenhum time é identificado". **Ponto de conformidade:** se o usuário vir nisso comparação entre times, vale C. |
-| Q-T14-7 | E o card sem time responsável? (Com a fonte A, só acontece com quadro sem equipe em `ref_quadro`. Com a fonte B, quando o campo está vazio.) | A: conta no `n` como "sem time informado", à parte; B: fica fora do `n`; C: conta em "outros times" | **A.** Mantém o `n` honesto e mostra a falha de preenchimento sem inflar "outros". |
-| Q-T14-8 | E o card que mudou de time (de quadro ou de valor do campo)? | A: vale o time atual; B: vale o time na entrega (para o aberto, o atual); C: conta para todos os times por que passou | **B.** A entrega é o marco de todas as métricas de vazão (B:107). Exige o histórico de `dim_card_versao` (ADR 0016), que já está no modelo. C quebra a soma `k + outros = n`. |
-| Q-T14-9 | E o card com mais de um time? (Só existe com a fonte B e campo de múltipla escolha.) | A: conta como do meu time se eu estiver entre eles; B: divide igualmente entre os times; C: fica em "sem time" | **A**, e `outrosTimes` conta o card só se não houver o meu time entre os marcados, para preservar a soma. Com a fonte A, a pergunta não se aplica. |
+### 9.5 Perguntas de regra do T14: situação
+A coluna "Recomendação" é a da análise original; a coluna "Situação" é a que vale.
+
+| # | Pergunta | Opções | Recomendação | Situação |
+|---|---|---|---|---|
+| Q-T14-1 | O que é o "time responsável" de um card? | A: a equipe dona do quadro em que o card está (já existe, é o filtro "equipe" dos painéis); B: um campo customizado do card (diga o nome; não está no briefing); C: outro (raia ou quadro compartilhado) | A | **Decidida: B** (campo "Time responsável", nome e cardinalidade a confirmar na integração) |
+| Q-T14-2 | Que nível de card é contado? | A: story; B: frente; C: as duas, com seletor, uma de cada vez | C, com story como padrão | Suposição registrada no pedido (story padrão, seletor para frente); `pendente-usuario` |
+| Q-T14-3 | Que cards do projeto entram? | A: todos os não descartados (abertos e entregues); B: só os entregues; C: todos, inclusive os descartados | A | Suposição registrada (não descartados); `pendente-usuario`. "Descartado" segue a P-1 |
+| Q-T14-4 | A métrica olha o projeto inteiro ou só a janela do período? | A: o projeto inteiro (censo desde a criação), com o período escolhendo quais projetos aparecem; B: só os cards criados ou entregues dentro do período | A | Suposição registrada (projeto inteiro); `pendente-usuario` |
+| Q-T14-5 | Que projetos aparecem para "meu time"? | A: os que têm ao menos 1 card do meu time; B: os ligados a um sistema do meu time (`ConfigBM.equipes[].sistemas`); C: todos os projetos ativos ou concluídos no período | B ∪ A | **Decidida: D** (B ∪ A: ligados a sistema do meu time, inclusive com 0%, mais os com ≥ 1 card do meu time) |
+| Q-T14-6 | Quando o projeto tem só um outro time, "outros times" o identifica. Publicar mesmo assim? | A: publicar; a regra proíbe comparar, e aqui não se compara desempenho, só a fatia de cards; B: juntar "outros" e "sem time" nesse caso; C: não publicar "outros", só "meu time: k de n" | A | **Decidida: A**, sem a frase "nenhum time é identificado" (seria falsa com um único outro time). Sem nome, tempo, vazão nem ranking |
+| Q-T14-7 | E o card sem time responsável? (Com a fonte A, só acontece com quadro sem equipe em `ref_quadro`. Com a fonte B, quando o campo está vazio.) | A: conta no `n` como "sem time informado", à parte; B: fica fora do `n`; C: conta em "outros times" | A | Suposição A, na forma da spec (CA-33): conta no total e em "Sem time informado", **fora do denominador** do percentual; `pendente-usuario` |
+| Q-T14-8 | E o card que mudou de time (de quadro ou de valor do campo)? | A: vale o time atual; B: vale o time na entrega (para o aberto, o atual); C: conta para todos os times por que passou | B | Suposição registrada (time na entrega); `pendente-usuario`. Exige o histórico do campo (spike §9.1, item 3) |
+| Q-T14-9 | E o card com mais de um time? (Só existe com a fonte B e campo de múltipla escolha.) | A: conta como do meu time se eu estiver entre eles; B: divide igualmente entre os times; C: fica em "sem time" | A | Vale A até confirmar a cardinalidade (pedido, Q-T14-1 = B); `outrosTimes` conta o card só se o meu time não estiver entre os marcados |
+
+## Histórico do plano
+
+- 2026-10-14: forma dos percentuais alinhada ao `taxaSchema` implementado no B1 (`tambem.ts`), sem mudar decisão nem cartão: O19, O21, O23 (`parados`), O24, O25, T12 e E7 passam a descrever `taxa: taxaSchema` (`{ status, k, n, pct }` ou `{ status, k, n, minimo }`), e o `{ itens, pct }` do E7 vira `taxa: taxaSchema` (review B1, item 5).

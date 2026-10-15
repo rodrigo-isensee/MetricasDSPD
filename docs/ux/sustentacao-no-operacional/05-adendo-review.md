@@ -59,3 +59,5 @@ Até a resposta, vale (a). Não bloqueia o QA: o teste confere janela escrita, n
 
 ## Decisão do usuário
 - 2026-10-14 — **U1 = (a)** (usuário: "das duas faça suas recomendações"): Resumo com 12 semanas e detalhe com o período do filtro, cada um com a janela escrita na tela e a nota "Mesmo alerta, janelas diferentes".
+- 2026-10-14 — **A6 = B** (usuário): o comportamento fica como está. No caso de perfil salvo por versão mais nova, a mensagem passa a ser "Suas preferências foram salvas por uma versão mais nova do sistema e não serão alteradas aqui.". Ajuste de texto para o react-frontend, junto com o retorno do QA.
+- 2026-10-14 — **A9 = A** (usuário): no empate do tipo predominante, vale a ordem fixa das abas do cartão O3, com o aviso "empate com <tipo>" na base. Deixa de ser proposta.
