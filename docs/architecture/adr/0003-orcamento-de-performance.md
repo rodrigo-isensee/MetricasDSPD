@@ -5,6 +5,7 @@ Estado: vigente
 - Origem: ata `docs/alinhamentos/2026-10-09-checkpoint-001-kickoff-002.md`, decisão D1 (com D6 e D7); cartão K-018
 - Ajusta o orçamento padrão do Jarvis (fábrica Forge) ("Orçamento de performance") para este projeto
 - Relacionadas: ADR 0001 (stack do front), ADR 0002 (monorepo), plano técnico `docs/architecture/features/dashboard-mock.md`
+- Alteração 2026-10-14 (pedido 010, cartão K-075): seção "Orçamento móvel (pedido 010)", com critério de reversão e leituras próprios. Base: `docs/ux/compatibilidade-mobile-tablet/02-propostas.md` (seção 7) e `04-decisoes.md` (D1 = B, Q2 = projetar para 4G)
 
 ## Contexto
 O pedido 003 exige um orçamento de performance específico do projeto, registrado em ADR, e medições reais contra ele ("medição real ou pendente, nunca ok sem número"). O orçamento padrão do Jarvis (LCP < 2,5 s, bundle < 250 KB, API p95 < 300 ms, banco p95 < 500 ms) é genérico. Este sistema tem características próprias:
@@ -124,12 +125,75 @@ Os resultados vão para o relatório do QA (`docs/qa/<pedido>.md`) e para a ata 
 
 Memoização não pode alterar resultado: os testes de métrica e o hash da base continuam iguais, e a chave do cache inclui todos os filtros (inclusive período) normalizados.
 
+### Orçamento móvel (pedido 010, 2026-10-14)
+Complementa o orçamento acima; nada dele muda. F6 a F9 e F11 (peso dos chunks) já valem para qualquer aparelho, porque o bundle é o mesmo. Os itens abaixo cobrem o que o desktop não mede: CPU de celular, rede 4G e toque.
+
+**Fontes dos números.** Cada valor traz a origem. "Provisório" = sem medição no projeto; o número é a meta de partida e é confirmado ou corrigido com a medição da fatia 1 (Fundamentos), registrada em "Leituras" no fim desta ADR. Valores medidos até hoje que servem de base:
+- F6 JS inicial 186,76 KB gzip; JS + CSS inicial 193,11 KB; gráficos 111,38 KB; maior chunk de rota 9,37 KB (`docs/qa/intensivo-sistemico.md`, Desempenho). Folga de F6: **13,24 KB**.
+- F1 LCP de `/` com CPU 4× e sem limitar rede: p95 372 ms (mesma fonte); 300 a 704 ms em `docs/qa/001-fase-a.md`.
+- F2 CLS a 375 px: 0,000 a 0,019 (mesma fonte e `docs/tecnica/qualidade-e-testes.md`).
+- C6 maior tarefa longa, sem limitar CPU: 103 a 139 ms (intensivo). Com CPU 4× não há medição.
+- A3: cada resposta de métrica < 50 KB gzip; o Resumo do Operacional faz 12 GETs (`docs/qa/sustentacao-no-operacional-plano.md`).
+
+**Perfil de referência**
+| Eixo | Referência | Fonte |
+|---|---|---|
+| Aparelho | Celular Android de entrada: Chromium com `isMobile: true`, `hasTouch: true`, viewport **390×844**, `deviceScaleFactor` 3 | 390×844 é viewport obrigatório da spec (02, 9.1); Android de entrada é o pior caso de CPU do parque nível 1 (02, matriz; D1 = B) |
+| CPU | 4× mais lenta que a máquina de referência | perfil móvel do Lighthouse; já usado como alerta nesta ADR |
+| Rede | "4G lenta" do Lighthouse: RTT 150 ms, 1,6 Mbps de descida, 750 kbps de subida | spec 02, seção 7; Q2 = projetar para 4G |
+| Tablet | Sem orçamento de rede próprio: o iPad nível 1 usa o mesmo bundle e, em retrato (820), o mesmo layout de faixa média; a referência do celular é mais restritiva | 02, matriz; D1 = B |
+| Aparelho real | iPhone e iPad do roteiro de ~15 min por release com interface: observação qualitativa ("travou", "demorou"), sem número | D1 = B; limite da emulação (02, 9.2) |
+
+**Itens**
+| # | Item | Orçamento | Fonte | Bloqueia |
+|---|---|---|---|---|
+| F1m | LCP em `/` e `/operacional`, Lighthouse móvel (perfil acima, carga fria), mediana de 3 | < 2,5 s | spec 02 (F1m); é o limite "bom" do Core Web Vitals. **Provisório**: a estimativa de cascata abaixo dá 2,0 a 3,3 s, ou seja, o valor pode não caber | alerta na fatia 1; **bloqueia a partir da fatia 2** se a leitura da fatia 1 ficar < 2,5 s; se ficar acima, entra como exceção (regra "O que bloqueia") com o remédio abaixo |
+| F2m | CLS no perfil de referência (com rede limitada, o esqueleto fica mais tempo na tela), em `/` e `/operacional`, a 390×844 e 375×667 | < 0,1 | igual a F2; medido 0,000 a 0,019 a 375 px | sim |
+| F3m | INP de toque (seletor de Visão, abrir Filtros e Menu, "Ver resultados", toque num gráfico, MOB-CA-15) com CPU 4× | < 200 ms | igual a F3 (limite "bom" do INP). **Provisório**: F3 só foi medido sem limitar CPU (48 a 64 ms) | alerta na fatia 1; bloqueia a partir da fatia 2 se a leitura couber |
+| C6m | Maior tarefa longa na carga de `/operacional` com CPU 4× | < 200 ms | igual a C6. **Provisório**: sem limitar CPU já mede 103 a 139 ms; 4× disso passa de 400 ms se a escala for linear | alerta |
+| F10m | Lighthouse móvel em `/` e `/operacional`, mediana de 3 | Desempenho ≥ 80 (**provisório**, spec 02); Acessibilidade ≥ 95 (igual a F10, medido 100) | spec 02; F10 | Desempenho: alerta; Acessibilidade: sim |
+| F12 | Bytes da primeira visita a `/` e a `/operacional` no perfil de referência: JS + CSS + dados da primeira tela, gzip | < 500 KB | spec 02. **Provisório**: só o estático já soma ~314 KB (inicial 193,11 + gráficos 111,38 + rota 9,37); sobram ~186 KB para os dados, que não foram medidos juntos | alerta |
+| F13 | Carga por proximidade: abaixo de 1024 px, cartão fora da primeira tela só consulta a API e monta o gráfico quando fica a até uma altura de tela da área visível, com a altura reservada (sem CLS, F2m) | número de `GET` de métrica antes de rolar ≤ cartões visíveis + cartões na margem de uma tela | spec 02 (F13); MT14a do diagnóstico | alerta |
+| F14 | Gerar o PDF de 12 métricas com CPU 4× | < 8 s, sem tarefa longa > 200 ms durante a geração depois do clique | spec 02 (F14). **Provisório**: nunca medido; o chunk F11 tem 132,64 KB | alerta |
+| F15 | Incremento de código móvel (barra de contexto, gaveta, Compartilhar, faixa de leitura) | cabe em F6 (folga de 13,24 KB) ou vai para chunk carregado sob demanda | F6 vigente | sim, via F6 |
+
+**Decisões tomadas aqui**
+- **F13 só abaixo de 1024 px** (faixas compacta e média: celular, celular deitado, tablet em pé). Acima de 1024 vale a spec da Sustentação (7.1), sem carga por proximidade: F5 continua medindo o painel inteiro no desktop e a exportação continua com todos os dados já carregados. Mecanismo: `IntersectionObserver` com `rootMargin` de uma altura de tela, dentro do cartão, sem mudar a regra de que cada cartão carrega sozinho (D7). A exportação, quando aberta, pede os cartões que faltam.
+- **Pré-carga de chunk também no toque** (MT7a): toda pré-carga hoje disparada por passagem do ponteiro passa a disparar também em `pointerdown` e em foco.
+- **Remédio previsto se F1m passar de 2,5 s na fatia 1**, nesta ordem, cada um medido antes do próximo: `modulepreload` do chunk da rota e do chunk de gráficos em `/` e `/operacional` (corta uma ida e volta da cascata); a primeira tela (cabeçalho e "Pede atenção", MOB-CA-8) pinta sem esperar o chunk de gráficos; só então rever o valor do orçamento, com o número medido, por alteração desta ADR.
+
+**Estimativa de cascata (base do "provisório" de F1m).** Na rede de referência: HTML, depois JS inicial (193 KB a ~200 KB/s ≈ 1,0 s), depois chunk da rota, depois `GET` da primeira métrica. Com o RTT de 150 ms do modo simulado do Lighthouse, ≈ 2,0 a 2,3 s mais a pintura com CPU 4× (372 ms medidos sem rede); com a latência por requisição da limitação real (562,5 ms, ver abaixo), ≈ 3,3 s. Não é medição; é o motivo de F1m nascer como alerta.
+
+**Como medir**
+| Itens | Ferramenta | Onde |
+|---|---|---|
+| F1m, F10m | Lighthouse CI com `formFactor: 'mobile'`, `screenEmulation.mobile: true` e throttling `mobileSlow4G` (padrão móvel do Lighthouse, modo simulado), 3 execuções por URL, mediana. Configuração própria (`lighthouserc.movel.cjs`), separada da desktop | `e2e/lighthouse/` (qa-engineer) |
+| F2m, F3m, C6m, F12, F13 | Projeto `perf-movel` do Playwright, **só Chromium** (a limitação de rede e de CPU é via CDP; o WebKit do Playwright não tem CDP). Por contexto novo: `Network.enable` + `Network.emulateNetworkConditions` com os valores ajustados do Lighthouse para limitação por requisição (latência 562,5 ms, descida 1.474,56 kbps = 188.744 B/s, subida 675 kbps = 86.400 B/s) e `Emulation.setCPUThrottlingRate { rate: 4 }`; cache limpo (carga fria). Reaproveita `perf/lcp.ts` (já aceita `throttleCpu` e `viewport`) e as marcações `data-estado` dos cartões. Toques com `locator.tap()`. 20 repetições para p95 em F2m e F3m; F12 e F13 com 3 repetições (são contagens, não tempos) | `e2e/perf/` (qa-engineer) |
+| F12 | Somar, para cada resposta até o fim da carga da primeira tela (todos os cartões visíveis com `data-estado` final), o tamanho gzip do corpo: o do manifest/script `size` para os assets, e o corpo recomprimido com `zlib.gzipSync` para as respostas da API que vierem sem compressão. Motivo: o `vite preview` não comprime, e o número bruto superestimaria | `e2e/perf/` |
+| F14 | Mesmo projeto `perf-movel`, CPU 4× sem limitar rede: do clique em "Gerar arquivo" ao link "Baixar"; tarefas longas por `PerformanceObserver('longtask')` nesse intervalo | `e2e/perf/` |
+| F15 | Script `size` (F6), sem mudança | raiz |
+
+Condições:
+- **Fonte de dados:** F1m, F2m, F12 e F13 com a API local e o seed (modo do projeto `perf-api`), porque no celular os dados vêm pela rede; com o mock, o número vai ao relatório marcado "mock" e vale só como alerta. A partida a frio da Lambda (S1) fica fora: é medida à parte.
+- **Teto de recursos:** `perf-movel` roda isolado, com 1 worker, fora da suíte paralela (lição do C6 instável, bug 009), com o load de 1 minuto registrado; tag `@perf-movel`. No CI e na rodada noturna, não por PR.
+- **Projetos móveis funcionais** (`celular-chromium`, `celular-webkit`, `tablet-webkit`, `tablet-chromium`, spec 02, 9.2) não medem desempenho: o WebKit não limita rede nem CPU, e a emulação de toque não muda o custo de rede.
+
+**O que bloqueia, para o pedido 010**
+- Por PR: F15 (via F6), sempre, automático.
+- Na pré-entrega do QA de cada fatia: F2m e F10m (Acessibilidade); a partir da fatia 2, também F1m e F3m se a leitura da fatia 1 confirmou que cabem.
+- Informativo (relatório e resumo ao usuário, sem segurar o PR): F10m (Desempenho), C6m, F12, F13, F14; F1m e F3m enquanto provisórios.
+- Exceção e prazo: a regra de "O que bloqueia a entrega" acima vale igual.
+
 ## Alternativas consideradas
 - **Orçamento padrão do Jarvis sem ajuste** (LCP < 2,5 s, bundle < 250 KB, troca de filtro < 200 ms/1 s): simples, mas folgado demais para uma SPA interna de desktop com dados em memória; não cobre o cálculo da biblioteca, que é o gargalo real medido (O1 a frio, `VISAO_GERAL`). Descartado.
 - **Medir só no CI**: automático, mas máquinas de CI variam muito; geraria falhas aleatórias ou limites tão folgados que nada pegariam. Adotado o modelo misto: limites folgados no CI para regressão grosseira e valor do orçamento na máquina de referência na pré-entrega.
 - **Web Worker desde já**: tira o cálculo da thread principal de saída, mas adiciona serialização, complexidade de teste e de depuração antes de saber se é necessário. Fica como remédio condicionado à medição.
 - **Pré-calcular tudo na geração do mock**: painéis instantâneos, mas o custo vai para C1 e deixa de exercitar o caminho que o servidor vai usar (calcular sob demanda com cache). Descartado.
 - **Orçamento só de front, deixando API/banco/coletas para o 002**: o 002 já começa após a extração e o desenho do MySQL depende das metas de consulta; registrar agora evita reabrir a ADR.
+- **Móvel (010), ADR nova em vez de seção aqui**: separaria dois orçamentos que dividem os mesmos chunks e a mesma regra de exceção; `praticas.md` §5 e o quadro apontam para esta ADR. Descartado.
+- **Móvel com F1m bloqueante desde a fatia 1**: a estimativa de cascata dá até 3,3 s; bloquear antes de medir pararia a fatia 1 por um número sem base. Descartado: alerta até a primeira leitura.
+- **Móvel medido só pelo Lighthouse**: um número por URL, sem toque, sem contar requisições (F13) e sem INP. Adotado só para F1m e F10m; o resto no Playwright com CDP.
+- **Carga por proximidade (F13) em todas as larguras**: economiza dados também no iPad deitado, mas muda o que F5 mede no desktop e contraria a spec da Sustentação (7.1). Descartado; reabre se o iPad deitado passar de F12.
 
 ## Consequências
 - Mais fácil: discussões de performance passam a ter número e dono; regressões de bundle e de cálculo são pegas no CI; o servidor herda metas claras para a mesma biblioteca.
@@ -138,3 +202,19 @@ Memoização não pode alterar resultado: os testes de métrica e o hash da base
   - Testes de tempo instáveis no CI → limites de CI como múltiplos do orçamento, aquecimento separado da medição, valor real impresso para acompanhar tendência.
   - Volume real maior que o mock (002) → C3/C4 valem para o volume do mock; o servidor é medido por A1/M1 sobre 2 anos de seed, com cache das métricas pesadas.
   - Orçamento de bundle apertado com Recharts → gráficos em chunk próprio (F8); se estourar, revisar importações por submódulo antes de trocar de biblioteca.
+- Móvel (010):
+  - Mais difícil: o `qa-engineer` mantém um projeto `perf-movel` só em Chromium e uma configuração móvel do Lighthouse; o `react-frontend` implementa a carga por proximidade abaixo de 1024 e a pré-carga no toque, e encaixa o código móvel na folga de 13,24 KB de F6.
+  - Risco: F6 estoura com o código móvel → barra de contexto, gaveta e Compartilhar em chunk sob demanda (F15).
+  - Risco: Safari real mais lento que a emulação de Chromium → o roteiro em iPhone e iPad reais (D1 = B) registra lentidão percebida; dois relatos na mesma tela viram medição dedicada.
+  - Limite: nenhum número móvel vale para o Safari; a referência é Chromium com CPU e rede limitadas.
+
+## Por que o existente não basta
+Vale para o projeto `perf-movel` e a configuração móvel do Lighthouse (ferramenta nova). O que existe: projetos `perf` e `perf-api` do Playwright (desktop e o caso a 375 px, sem limitar rede) e `lighthouserc.cjs` com `preset: 'desktop'` ("sem limitação de CPU e rede"). Evidência de execução: as medições de F1 (p95 372 a 384 ms) e F10 (LCP 627 a 877 ms) em `docs/qa/intensivo-sistemico.md` foram feitas sem limitar rede; a única limitação existente é a de CPU 4× no F1, que não altera o número (372 ms contra 384 ms), porque o custo da carga fria em 4G está na rede, que nenhum teste emula. O diagnóstico do 010 registrou a lacuna (MT14). Sem um projeto com rede limitada, F1m, F12 e F13 não têm como ser medidos.
+
+## Critério de reversão
+Do orçamento móvel: se a leitura da fatia 1 mostrar F1m < 2,5 s **e** F12 < 500 KB em `/operacional` sem a carga por proximidade (F13 desligada), F13 sai do orçamento e do código, porque a economia de rede não justifica a diferença de comportamento entre faixas.
+
+## Leituras
+| Data | Medida | Veredito (manter, ajustar, reverter) |
+|---|---|---|
+| 2026-10-14 | Orçamento móvel registrado; nenhum item móvel medido. Base: F6 186,76 KB, F1 com CPU 4× p95 372 ms, CLS a 375 px até 0,019 | pendente (medir na fatia 1) |
