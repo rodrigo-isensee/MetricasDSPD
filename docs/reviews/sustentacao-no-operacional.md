@@ -3,13 +3,98 @@ tipo: review
 contrato: 1
 pedido: sustentacao-no-operacional
 branch: feature/sustentacao-no-operacional
-commit: 5adf9802c3b236424f1ddf51ad791172c139a097
+commit: f8b09f1358c231571a0794bec9065c9432c1699f
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-15
 ---
 
 # Code review: Sustentação dentro do Operacional (K-072 + K-073; back B1 a B3, front F1 a F8)
+
+## Volta 7: V6-1 a V6-4 (delta 54c4ebf..f8b09f1)
+
+**Veredito: aprovado.** O bloqueio V6-1 foi resolvido, com teste que reprova o código anterior, e os itens V6-2, V6-3 e V6-4 também. O `pronto` da raiz está verde. Falta ao QA rodar o que o `pronto` não cobre (roteiro abaixo).
+
+Escopo: 19c5cf9 (V6-1, V6-2 e V6-3), fea4a27 (V6-4) e f8b09f1 (seção 8 da revisão de UX, só documentação). São 6 arquivos de código ou documentação técnica, com 106 linhas a mais e 19 a menos, mais o commit da UX.
+
+**Ferramentas (citadas):** rodei `flock /tmp/metricas-pesado.lock nice -n 19 pnpm run pronto; echo EXIT=$?` na raiz da worktree, em f8b09f1, e o resultado foi **EXIT=0**. Prettier e ESLint passaram, e a cobertura ficou em 100%. Web: 73 arquivos e 1.041 testes (+1 do V6-4). Server: 496 testes passaram (+1 do banco lento) e 83 foram pulados (15 arquivos `.pg`, do job `banco` da CI). metricas: 653; contratos: 47; mock: 161; homolog: 73; pesquisa: 33; spec-check: 14; docs-contratos: 102. O `docs:check` deu ok (424 páginas, 53 métricas). Bundle: F6 com 191,10 KB (< 200), F8 com 111,62, F11 com 132,64 e F9 com 9,84. O pronto não roda E2E, Lighthouse nem `perf-api`.
+
+| # | Situação |
+|---|---|
+| V6-1 `app.ts` (bloqueava) | **Resolvido.** `Promise.race` entre o aquecimento e um timer de 5 s (`PRAZO_ESPERA_AQUECIMENTO_MS`, injetável por `prazoAquecimentoMs`), bem abaixo do `pluginTimeout` de 10 s. Se o prazo vence, a API sobe, registra "aquecimento não terminou no prazo" e o aquecimento termina em segundo plano. O `.then` do aquecimento tem os dois ramos (sucesso e erro), então não há rejeição solta, e o timer é limpo quando o aquecimento termina primeiro. Fica um detalhe sem custo: `let timer = undefined as never`, que existe só para a atribuição dentro do executor; aceito. |
+| Teste do V6-1 | **Bom.** O banco lento atrasa cada consulta em 12 s (acima do `pluginTimeout`) com temporizador falso. O teste afirma que `ready()` resolve em 5,1 s, que o aviso do prazo sai, que "aquecimento concluído" ainda não saiu, e que ele sai depois, em segundo plano. Com o código anterior, o `ready()` esperaria os 12 s e falharia. Os temporizadores falsos cobrem só `setTimeout` e `clearTimeout`, e são restaurados no `finally`, então o teste é determinístico e não vaza. |
+| V6-2 `servico.ts` | **Resolvido.** `falhas` agora é `{ id, erro }`, com `erro` = nome da classe, sem mensagem. O log de falha do aquecimento também registra só a classe (`classeDoErro`), no mesmo critério do outbox. O teste prova que "banco fora" não aparece no log. |
+| V6-3 testes | **Resolvido.** Os dois testes capturam o log com `destinoLog` e afirmam o aviso e a lista de falhas (`id` string e `erro` casando `^[A-Za-z]+$`). |
+| V6-4 `OperacionalPage.tsx` | **Resolvido.** `aoEscolher` chama `escolher(v)` e, quando `v === visao` (a visão já comitada), limpa `viaSeletorRef` e `focoPendenteRef` e retorna. Cobre A, B, A no mesmo quadro. Quando `visao` já é B, `v` é A e o caminho normal vale. O teste novo em `visoes.test.tsx` cobre a borda. |
+| `server.md` | **Atualizado** com o prazo (V6-1), o teste e a regra de log só com a classe do erro. |
+
+Checklist (leitura): **escopo**: só os quatro itens, sem extra. **Regras invioláveis**: nenhuma afetada (o aquecimento só chama `calcular`). **Segurança**: o log não carrega mensagem de erro do banco, que era a preocupação do V6-2. **Performance**: a subida espera no máximo 5 s, e o 1,2 s medido continua válido; o custo de memória não muda. **Commits**: Conventional Commits em português, um por assunto.
+
+**Aceito como está (continua valendo da volta 6):** a recarga depois de uma coleta (V6-5) segue sem cartão no quadro. Cabe ao Jarvis abrir o cartão, com o `perf-api` depois de uma coleta como critério de entrada. Não bloqueia.
+
+**Revisão da UX (seção 8 de `06-revisao-implementada.md`, f8b09f1):** aprovou o efeito do SNO-001 a 375 px, o que fecha a pendência de olhar da UX que a volta 6 pediu para as telas fora do pedido.
+
+### O que o QA precisa rodar (nunca rodou no código atual)
+
+Antes do Playwright, na worktree: `eval "$(bash e2e/scripts/setup-chromium-local.sh)"` (no WSL do autor o Chromium não abria). Usar `flock /tmp/metricas-pesado.lock nice -n 19` em tudo.
+- **CT-03 e D-03 com o V6-4:** `CT-03` de `sustentacao-no-operacional-qa.spec.ts` com `--repeat-each=5` e o `D-03` (troca por link vai ao h1). Nenhum dos dois rodou depois do fea4a27.
+- **SNO-005, `perf-api`:** o `perf-api` completo contra o Postgres com 24 meses de seed: A1 frio na rota `/` e a "A1 isolada fria". Medir o tempo de subida (o log "aquecimento concluído" traz `ms`) e o RSS da API. Nunca rodou.
+- **Subida com o banco parado:** a API tem que subir em no máximo cerca de 5 s e avisar (aviso de falha ou de prazo). Nunca rodou.
+- **SNO-001:** `cabecalho-fonte-200.spec.ts` e a sonda a 375 px com fonte a 200%, mais a varredura de layout e o axe a 375 e 320 px nas telas que mudaram fora do pedido (Tático T3, Espera invisível, Sustentação S3 e Motivos, faixa de calibração), se ainda não rodaram no código atual.
+- **Regressão:** E2E completo, Lighthouse do Resumo (CLS) e o `test:pg` da develop (K-085: o aquecimento lê com o papel `dspd_api`).
+- **Parecer do QA:** regravar `docs/qa/sustentacao-no-operacional.md` com o Write, no HEAD novo, e tirar o `aceite_usuario`, que perdeu o objeto.
+
+## Volta 6: SNO-001, SNO-005, CT-03 (delta 5adf980..54c4ebf)
+
+**Veredito: ajustes necessários** (`parecer: reprovado`). A correção do SNO-001 e a do CT-03 estão corretas. A do SNO-005 tem um bloqueio: o aquecimento promete que "falha não impede a subida", mas um aquecimento lento derruba a API. Esse modo de falha é pior do que o bug que a correção resolve (baixa, primeira consulta lenta).
+
+Escopo: 26ad55b (SNO-001), 0d185d6 (CT-03), 59dedb5 (SNO-005) e o merge de `origin/develop` 54c4ebf (K-084, K-085, #73 a #76, #83, #84). O código de produção mudou em 15 arquivos: 4 do server e 11 do web. Por decisão do usuário (C), o SNO-001 e o SNO-005 são corrigidos nesta entrega. O `aceite_usuario` do parecer do QA perde o objeto.
+
+**Merge de `origin/develop`.** Deu um único conflito, em `docs/architecture/adr/0003-orcamento-de-performance.md`. A branch acrescentou a subseção "Medição das tendências do Resumo" e a develop (#74) acrescentou os riscos do orçamento móvel e as seções "Por que o existente não basta", "Critério de reversão" e "Leituras". Resolvi mantendo os dois lados: os itens "Móvel (010)" ficam no fim da lista de riscos, a subseção de medição vem logo depois e as seções novas da develop fecham o documento. Merge sem force; `server.md` e `intensivo-filtros.spec.ts` se mesclaram sozinhos.
+
+**Ferramentas (citadas):** rodei `flock /tmp/metricas-pesado.lock nice -n 19 pnpm run pronto; echo EXIT=$?` na raiz da worktree, em 54c4ebf (já com a develop), e o resultado foi **EXIT=0**. Prettier e ESLint passaram, e a cobertura ficou em 100%. Web: 73 arquivos e 1.040 testes. Server: 495 testes passaram e 83 foram pulados (15 arquivos `.pg`, que ficam com o job `banco` da CI). metricas: 653; contratos: 47; mock: 161; homolog: 73; pesquisa: 33; spec-check: 14; docs-contratos: 102. O `docs:check` deu ok (424 páginas, 53 métricas). Bundle: F6 com 191,10 KB (< 200), F8 com 111,62, F11 com 132,63 e F9 com 9,84. O pronto não roda E2E, Lighthouse nem `perf-api`.
+
+### SNO-005: aquecimento na subida
+
+O desenho está certo. `aquecer()` carrega as duas bases e calcula as métricas com a mesma chave de cache da rota (`filtrosPadraoDe` sai do próprio `queryDe(id).parse({})`, então não há um segundo jeito de montar os filtros). O hook `onReady` roda antes de `listen`. Os testes contam consultas ao banco, e não tempo, então são determinísticos e reprovam o código antigo. Nenhuma regra inviolável é tocada: o aquecimento só chama `calcular`, que passa pela biblioteca, e não mistura as fontes.
+
+- **Falha rápida (banco recusa conexão, erro numa métrica):** é tolerada. O `Promise.all` das duas cargas rejeita antes do laço, o `catch` do hook registra o aviso e a API sobe. Com o banco inalcançável, o pior caso é o `connectionTimeoutMillis` de 5 s do pool (`TIMEOUTS_PADRAO.conexaoMs`), e as duas cargas correm em paralelo.
+- **Falha lenta: não é tolerada (bloqueio V6-1).** No Fastify 5.12.5, o hook `onReady` fica sujeito ao `pluginTimeout`, que por padrão é de 10.000 ms e que o `buildApp` não muda. Conferi com um script descartável: um `onReady` de 2 s com `pluginTimeout: 1000` faz o `ready()` rejeitar com `FST_ERR_HOOK_TIMEOUT` em 1.013 ms. Esse erro nasce fora do `try/catch` do hook. Então, se o aquecimento passar de 10 s, `listen` falha e a API não sobe. Isso acontece com um banco lento, com um `statement_timeout` de 10 s numa consulta da carga, com uma base real maior que o seed de 24 meses ou com a máquina carregada (o 1,2 s foi medido com carga de 3 a 5). Em homolog, o serviço `api` tem `restart: "no"` e ficaria fora do ar. Em produção, o efeito é o mesmo a cada reinício.
+- **Tempo de boot contra a ADR 0003:** a ADR não tem orçamento de subida, então o 1,2 s não reprova nada. O healthcheck de homolog tolera a demora (`start_period` de 5 s, 20 tentativas a cada 5 s). Memória: o aquecimento guarda o que as primeiras consultas guardariam de qualquer forma (as duas bases e cerca de 52 resultados, muito abaixo de `MAX_RESULTADOS` = 500). Com os 384 MB do `mem_limit` de homolog, o pico só chega mais cedo. Ainda assim, vale medir o RSS depois da subida contra a base real.
+- **Recarga depois de uma coleta (próximo passo, aceito como está):** a troca da marca d'água, relida a cada 60 s, ainda é paga por uma consulta: a primeira depois da coleta leva de 160 a 560 ms, e o A1 é < 300 ms. Isso acontece uma vez por coleta e por fonte, e não por usuário. Não bloqueia, porque está documentado em `server.md` como limite conhecido. Ele precisa de um cartão no quadro (não achei um), com a medição do `perf-api` depois de uma coleta como critério de entrada. A correção natural é recarregar em segundo plano, mantendo a base anterior até a nova ficar pronta. O V6-1 vale para ela também: nada que bloqueie.
+
+### SNO-001: piso de largura
+
+- **Causa raiz certa.** `min-width: 20rem` virava 640 px com a fonte a 200%. O piso passou a `min(20rem, 320px)`. Com a fonte padrão (16 px) o valor é o mesmo de antes, e o zoom do navegador não muda nada, porque o px CSS escala junto. O único efeito novo é com uma fonte raiz menor que 16 px: o piso desce, por exemplo, para 240 px com 12 px. Isso não prejudica a WCAG 1.4.10, que pede refluxo a 320 px e não proíbe menos. Aceito. Um `320px` puro seria mais simples de ler, mas fica como opção do autor.
+- **Efeito global.** O `SeletorCadencia` vira uma grade 2x2 abaixo de 400 px. O componente só é usado pelo `SeletorVisao`, então não há efeito em outra tela. As trocas de `flex-wrap`, `min-w-0` e `max-w-full` em `CartaoT3`, `CartaoS3`, `CartaoMotivos`, `CartaoEI`, `FaixaAtencao` e `Calibracao` só permitem quebra de linha e não escondem conteúdo. Mesmo assim, mudam a aparência a 375 px de telas fora do pedido (Tático, Espera invisível, Sustentação), e isso pede o olhar da UX.
+- **Teste.** `cabecalho-fonte-200.spec.ts` mede o documento e o cabeçalho nas 4 rotas do bug e confirma que Menu, tema e selo continuam visíveis. É um teste E2E e fica fora do pronto.
+
+### CT-03: foco por visão
+
+- **Lógica certa.** Guardar a visão pedida, e não um booleano, resolve a corrida. Com setas em sequência, as visões intermediárias que o React comita não puxam o foco (`focoPendenteRef.current !== visao`). Também não caem no h1, porque `viaSeletorRef` vale até a última visão escolhida chegar. Ficou simples e o comentário explica o porquê.
+- **Teste.** O commit não traz teste novo. A guarda é o E2E `CT-03` de `sustentacao-no-operacional-qa.spec.ts`, que era o que falhava. A corrida depende do tempo de commit do React, e o E2E é o nível certo para ela. Aceito.
+- **Borda (baixo, não bloqueia):** se duas escolhas no mesmo tique voltarem à visão de partida (A, B, A antes do commit), `visao` não muda, o efeito não roda e as duas refs ficam presas em A. Consequência: a próxima troca por link não leva o foco ao h1 (D-03), e uma volta para A por link devolve o foco ao rádio. A situação é rara, depende de duas teclas em menos de um quadro, e o dano é só de foco.
+
+### Achados da volta 6
+
+| # | Arquivo:linha | Problema | Sugestão | Severidade |
+|---|---|---|---|---|
+| V6-1 · node-backend | `server/src/app.ts:69-78` | O `onReady` fica sujeito ao `pluginTimeout` (10 s). Um aquecimento lento faz o `ready()`/`listen` falhar com `FST_ERR_HOOK_TIMEOUT` fora do `try/catch`, e a API não sobe. O texto em `server.md` ("falha não impede a subida") não vale para lentidão. | Limitar a espera do hook a um prazo bem abaixo do `pluginTimeout` (por exemplo 5 s, numa constante com comentário). Se o prazo vencer, registrar o aviso, deixar o aquecimento terminar em segundo plano (com `.catch` que registra) e liberar a subida. Teste: um dublê que atrasa a carga, com prazo injetável ou temporizador falso, e `ready()` resolvendo. Atualizar `server.md`. | bloqueia |
+| V6-2 · node-backend | `server/src/modulos/metricas/servico.ts:189` | O `catch` do laço guarda só o id. A causa da falha se perde, e o log de `app.ts:73` não diz por que a métrica falhou (`praticas.md:37`, log com contexto). | Guardar `{ id, erro: nome da classe }` (sem mensagem, como no outbox) e registrar no log do aquecimento. | recomendado |
+| V6-3 · node-backend | `server/tests/metricas.aquecimento.test.ts:238-251` | Os títulos prometem "registra o aviso" e "é listada", mas nenhuma das duas coisas é verificada: os testes só afirmam que a API sobe. | Capturar o log com `destinoLog` e afirmar o aviso e a lista de falhas (aproveitar o V6-2). | recomendado |
+| V6-4 · react-frontend | `web/src/features/operacional/OperacionalPage.tsx:125-145` | Borda das refs presas (A, B, A no mesmo tique), descrita acima. | Se o custo for baixo, limpar as duas refs quando `escolher(v)` for chamado com a visão já resolvida; se não, registrar no K-075. | baixo |
+| V6-5 · tech-lead/Jarvis | KANBAN | A recarga depois de uma coleta não tem cartão. | Abrir o cartão com o critério de entrada (o `perf-api` depois de uma coleta). | recomendado |
+
+Checklist (leitura): **escopo**: só os três defeitos, sem extra (o redesenho do cabeçalho segue no K-075). **Regras invioláveis**: nenhuma afetada. **Segurança**: o log do aquecimento traz `String(e)`. Um erro do `pg` não traz a senha, mas para ficar igual ao outbox o certo é registrar só a classe (V6-2). Não abro cartão para o `security-engineer`. **Performance**: o SNO-005 resolve o A1 frio na subida; a recarga depois de uma coleta fica como próximo passo (V6-5). **Commits**: Conventional Commits com `Cartão:`, um por defeito, e mensagens com acento.
+
+**Para aprovar:** o V6-1, com teste. O V6-2 e o V6-3 podem entrar no mesmo commit. A volta 7 olha só esse delta.
+
+**O que o QA precisa revalidar (depois do V6-1):**
+- **SNO-005:** o `perf-api` completo contra o Postgres com 24 meses de seed, numa estação onde o Chromium abra (no WSL do autor ele não abre, então nunca rodou): A1 frio na rota `/` e a "A1 isolada fria". Medir também o tempo de subida (o log "aquecimento concluído" traz `ms`) e o RSS da API. Rodar uma vez com o banco parado: a API tem que subir e avisar.
+- **SNO-001:** o `cabecalho-fonte-200.spec.ts` e a sonda do bug a 375 px com fonte a 200%. Repetir a varredura de layout a 375 e 320 px nas telas que mudaram fora do pedido (Tático T3, Espera invisível, Sustentação S3 e Motivos, faixa de calibração) e o axe nelas.
+- **CT-03:** o E2E `CT-03` repetido (`--repeat-each=5`) e o D-03 (troca por link vai ao h1), para provar que a correção da corrida não quebrou o foco no título.
+- **Regressão:** o E2E completo e o Lighthouse do Resumo (o merge da develop entrou e o CSS global mudou), e o `test:pg` da develop (K-085: o aquecimento lê a base com o papel `dspd_api`, que agora tem GRANT por coluna).
+- **Frontmatter:** regravar o parecer com o Write no novo HEAD e tirar o `aceite_usuario`, que perdeu o objeto.
 
 ## Volta 5 (delta 9ab5ece..5adf980)
 
@@ -170,7 +255,7 @@ O pronto da raiz não teria passado no commit do autor em nenhum dos três casos
 
 ### Riscos (acréscimos à volta 1)
 - A6 muda o comportamento de gravação: um perfil de versão futura faz `salvar` rejeitar, e a tela mostra o aviso de falha de gravação que já existe (`PreferenciasPage.tsx:188`: "Não foi possível salvar suas preferências. Tente de novo."). Nesse caso, "Tente de novo" nunca funciona. Fica para o UX decidir se esse caso precisa de um texto próprio. Não bloqueia.
-- A medição A1/A2 contra o Postgres real continua com o QA.
+- A medição A1/A2 continua com o QA.
 
 ## Volta 1 (2e6c0f2)
 
