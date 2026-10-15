@@ -118,11 +118,12 @@ export default function OperacionalPage() {
   const { visao, escolher } = useVisaoOperacional()
   const [anuncio, setAnuncio] = useState('')
   const { hash } = useLocation()
-  const focoPendenteRef = useRef(false)
-  const viaSeletorRef = useRef(false)
+  const focoPendenteRef = useRef<Visao | null>(null)
+  // Última visão escolhida pelo seletor; vale para todas as visões comitadas até ela chegar (setas em sequência).
+  const viaSeletorRef = useRef<Visao | null>(null)
   const visaoAnterior = useRef(visao)
   const aoEscolher = (v: Visao) => {
-    viaSeletorRef.current = true
+    viaSeletorRef.current = v
     escolher(v)
   }
   // O anúncio sai da visão resolvida, não do handler do seletor: Voltar, links "Ver na..." e hash também anunciam.
@@ -131,8 +132,8 @@ export default function OperacionalPage() {
     if (visaoAnterior.current === visao) return
     visaoAnterior.current = visao
     setAnuncio(ANUNCIO_DA_VISAO[visao])
-    const viaSeletor = viaSeletorRef.current
-    viaSeletorRef.current = false
+    const viaSeletor = viaSeletorRef.current !== null
+    if (viaSeletorRef.current === visao) viaSeletorRef.current = null
     // Troca por link sem hash: o link some da tela e o foco cairia no body; vai ao título da página (D-03).
     // Pelo seletor o foco volta ao rádio; com hash o foco vai ao cartão.
     if (viaSeletor || hash) return

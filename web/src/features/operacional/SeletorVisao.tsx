@@ -16,13 +16,17 @@ export function SeletorVisao({
 }: {
   visao: Visao
   onEscolher: (v: Visao) => void
-  /** Vive na página (que não remonta ao trocar de visão), não no módulo: nada vaza entre montagens. */
-  focoPendenteRef: RefObject<boolean>
+  /**
+   * Visão que o usuário escolheu e cujo foco ainda é devido ao rádio. Vive na página (que não remonta ao trocar de
+   * visão), não no módulo: nada vaza entre montagens. Guarda a visão, não um booleano: com setas em sequência o React
+   * comita as visões intermediárias depois de o foco nativo já ter andado; só a última escolha pode devolver o foco.
+   */
+  focoPendenteRef: RefObject<Visao | null>
 }) {
   const raiz = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (!focoPendenteRef.current) return
-    focoPendenteRef.current = false
+    if (focoPendenteRef.current !== visao) return
+    focoPendenteRef.current = null
     raiz.current?.querySelector<HTMLInputElement>('input:checked')?.focus()
   }, [visao, focoPendenteRef])
   return (
@@ -31,7 +35,7 @@ export function SeletorVisao({
         rotulo="Visão"
         valor={visao}
         onChange={(v) => {
-          focoPendenteRef.current = true
+          focoPendenteRef.current = v
           onEscolher(v)
         }}
         onIntencao={(v) => {
