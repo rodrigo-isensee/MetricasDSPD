@@ -10,6 +10,10 @@
  * INV-F5  nenhum dado individual (nome de pessoa, usuário, responsável) aparece em nenhum resultado.
  * INV-F6  a ordem dos valores na URL não altera o resultado (equipe=a,b == equipe=b,a).
  * INV-F7  consolidado de equipes: base(a+b) >= max(base(a), base(b)) e <= base(a) + base(b).
+ *         Exceção única, do O20 (011-back, ratificada pelo QA com restrição): o limite superior (aditividade) não vale
+ *         quando alguma das duas equipes está no estado vazio (`dias` vazio: sem transição no período, base 0 por
+ *         ausência de dado, não por contagem). O limite inferior vale sempre, e o estado vazio tem teste próprio
+ *         (INV-F7b). Motivo: a base do O20 é o pico diário, e o consolidado troca as faixas por papel.
  */
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
@@ -91,6 +95,8 @@ const baseN = (r: unknown): number | null => {
   const b = (r as { base?: { n?: unknown } }).base
   return b && typeof b.n === 'number' ? b.n : null
 }
+
+const diasO20 = (r: unknown): number => ((r as { dias?: unknown[] }).dias ?? []).length
 
 /** Subconjunto (pode ser vazio = "Todos"). */
 const sub = <T>(xs: readonly T[]) => fc.subarray([...xs])
@@ -349,14 +355,48 @@ describe.each(CENARIOS)('QA intensivo de filtros: $nome', (c) => {
           const nb = baseN(calc(id, f([b]), ctx))
           const nab = baseN(calc(id, f([a, b]), ctx))
           if (na === null || nb === null || nab === null) continue
-          // O20: base 0 é estado vazio (sem transição no período, spec), não contagem: não entra na aditividade.
-          if (id === 'O20' && (na === 0 || nb === 0)) continue
-          if (nab < Math.max(na, nb) || nab > na + nb)
+          // O20: só o estado vazio de fato (lista `dias` vazia) fica fora do limite superior; o inferior vale sempre.
+          const vazio =
+            id === 'O20' &&
+            (diasO20(calc(id, f([a]), ctx)) === 0 || diasO20(calc(id, f([b]), ctx)) === 0)
+          if (nab < Math.max(na, nb) || (!vazio && nab > na + nb))
             violacoes.push(`${id}: ${a}=${na}, ${b}=${nb}, ${a}+${b}=${nab} (${periodo.tipo})`)
         }
       }),
       opcoesFc(Math.max(5, Math.floor(RUNS / 2))),
     )
     expect(violacoes.slice(0, 10)).toEqual([])
+  }, 600_000)
+
+  it('INV-F7b O20 vazio: sem transição no período o consolidado é vazio; vazio mais dados não perde os dados', () => {
+    const futuro: Periodo = { tipo: 'custom', de: '2027-01-04', ate: '2027-01-29' }
+    const f = (equipe: string[], periodo: Periodo) => ({ equipe, tipo: [], sistema: [], periodo })
+    let ambosVazios = 0
+    let misto = 0
+    const pares = c.equipes.flatMap((x) =>
+      c.equipes.filter((y) => y > x).map((y) => [x, y] as const),
+    )
+    for (const [a, b] of pares) {
+      // ambos vazios: período sem transição
+      const v = calc('O20', f([a, b], futuro), c.ctx)
+      expect(diasO20(v), `${a}+${b}`).toBe(0)
+      expect(baseN(v), `${a}+${b}`).toBe(0)
+      ambosVazios++
+      for (const periodo of PERIODOS) {
+        const ra = calc('O20', f([a], periodo), c.ctx)
+        const rb = calc('O20', f([b], periodo), c.ctx)
+        if ((diasO20(ra) === 0) === (diasO20(rb) === 0)) continue
+        const comDados = diasO20(ra) === 0 ? rb : ra
+        const rab = calc('O20', f([a, b], periodo), c.ctx)
+        expect(
+          diasO20(rab),
+          `${a}+${b} (${periodo.tipo}): vazio mais dados não fica vazio`,
+        ).toBeGreaterThan(0)
+        expect(baseN(rab)!, `${a}+${b} (${periodo.tipo})`).toBeGreaterThanOrEqual(baseN(comDados)!)
+        misto++
+      }
+    }
+    expect(ambosVazios, 'guarda de suíte vazia: pares ambos vazios').toBeGreaterThanOrEqual(1)
+    process.stdout.write(`INV-F7b ${c.nome}: ${ambosVazios} pares vazios, ${misto} casos mistos\n`)
   }, 600_000)
 })

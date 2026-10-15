@@ -101,32 +101,8 @@ test.describe('K-025 Espera invisivel dentro de cada painel', () => {
     }
   });
 
-  test('EI-03 indice confere com as duas medianas visiveis', async ({ page, painel }) => {
-    await painel.ir('/operacional?cadencia=semanal');
-    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
-    const seg = page.getByTestId('ei-segmento-fl1-incidente');
-    const n = (s: string) => parseFloat(s.replace(/[^\d,]/g, '').replace(',', '.'));
-    const textoCli = (await page.getByTestId('ei-cliente-fl1-incidente').innerText()).match(/[\d.,]+/)![0];
-    const textoTim = (await page.getByTestId('ei-time-fl1-incidente').innerText()).match(/[\d.,]+/)![0];
-    const casas = (t: string) => (t.includes(',') ? t.split(',')[1]!.length : 0);
-    const cli = n(textoCli);
-    const tim = n(textoTim);
-    const idxTexto = (await page.getByTestId('ei-indice-fl1-incidente').innerText()).match(/(\d+(?:,\d+)?)\s*%/);
-    expect(idxTexto, await seg.innerText()).not.toBeNull();
-    const idx = n(idxTexto![1]!);
-    // As medianas aparecem arredondadas e o índice vem do valor exato: o índice mostrado tem de caber no intervalo que
-    // o arredondamento de cada mediana permite (meio passo da última casa mostrada), mais o meio passo do próprio índice.
-    const meioCli = 0.5 * 10 ** -casas(textoCli);
-    const meioTim = 0.5 * 10 ** -casas(textoTim);
-    const extremos = [-1, 1].flatMap((a) => [-1, 1].map((b) => {
-      const c = cli + a * meioCli;
-      const t = tim + b * meioTim;
-      return ((c - t) / c) * 100;
-    }));
-    const folga = 0.5 * 10 ** -casas(idxTexto![1]!);
-    expect(idx, `cliente ${textoCli}, time ${textoTim}, índice ${idxTexto![1]}`).toBeGreaterThanOrEqual(Math.min(...extremos) - folga);
-    expect(idx, `cliente ${textoCli}, time ${textoTim}, índice ${idxTexto![1]}`).toBeLessThanOrEqual(Math.max(...extremos) + folga);
-  });
+  // EI-03 (índice confere com as medianas) mudou para e2e/tests-api/api.spec.ts: no mock embutido não há resposta HTTP
+  // para comparar nem para adulterar (page.route), e a tolerância derivada da tela deixava o teste sem dentes.
 
   test('EI-09 texto da Sustentacao: nao compare com BusinessMap', async ({ page, painel }) => {
     await painel.ir('/sustentacao');
