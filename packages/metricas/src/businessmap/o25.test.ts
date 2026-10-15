@@ -180,6 +180,39 @@ describe('O25: descarte', () => {
     expect(r.encerrados).toMatchObject({ k: 1, n: 2 })
   })
 
+  it('B6-1: o aviso segue o período: entregues nele e abertos no fim dele; fora disso não conta', () => {
+    const comMotivo = new Set(['A', 'B', 'C', 'D', 'E'])
+    const trilha = (criado: string, fim: string | null): EspecCard['trilha'] => [
+      ['Aguardando priorização', criado],
+      ...(fim === null
+        ? []
+        : ([
+            ['Pronto para desenvolver', criado],
+            ['Em desenvolvimento', criado],
+            ['Entregue', fim],
+          ] as EspecCard['trilha'])),
+    ]
+    const c = (id: string, criado: string, fim: string | null): EspecCard => ({
+      id,
+      criado,
+      trilha: trilha(criado, fim),
+    })
+    const r = calcularO25(
+      ctxDe(
+        [
+          c('A', '2026-08-03T08:00:00-03:00', '2026-08-20T10:00:00-03:00'), // entregue no período
+          c('B', '2026-09-01T08:00:00-03:00', null), // aberto no fim do período
+          c('C', '2026-05-04T08:00:00-03:00', '2026-06-10T10:00:00-03:00'), // entregue antes do período
+          c('D', '2026-09-20T08:00:00-03:00', null), // criado depois do fim do período
+          c('E', '2026-09-01T08:00:00-03:00', '2026-09-22T10:00:00-03:00'), // atravessa o fim: aberto nele
+        ],
+        (x) => (comMotivo.has(x.card_id) ? { ...x, motivo_descarte: 'Duplicado' } : x),
+      ),
+      { ...F, periodo: { tipo: 'custom', de: '2026-08-01', ate: '2026-09-10' } },
+    )
+    expect(r.avisoPreenchimento).toEqual({ itens: 3 })
+  })
+
   it("o card excluído e entregue conta uma vez só, como descarte (R-2': excluído é descartado)", () => {
     const r = calcularO25(
       ctxDe([entregue('x1')], (c) => ({ ...c, excluido_em: c.concluido_em })),

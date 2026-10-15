@@ -1,5 +1,5 @@
 import { TIPOS_CARD, type FiltrosFluxo, type ResultadoO25 } from '@metricas-dspd/contratos'
-import { diaDeIso, diaLocal, horasUteisEntre } from '../core/calendario'
+import { diaDeIso, diaLocal, fimDoExpediente, horasUteisEntre } from '../core/calendario'
 import { estatistica, percentisDe, taxa } from '../core/estatistica'
 import { mesesEntre } from '../core/series'
 import { amostraBM } from './amostra'
@@ -23,7 +23,7 @@ const soma = (xs: readonly number[]): number => xs.reduce((s, x) => s + x, 0)
  * O25: descarte. Encerrados do período = entregues + descartados; taxa = descartados / encerrados, pela biblioteca
  * (percentual só com n >= 20). Descartado é o estado nativo `discarded` ou o excluído (R-2' = A, P-1 = A), no
  * instante do descarte (o da exclusão no excluído; sem ele, a última revisão, marcada como aproximada). Motivo
- * preenchido sem descarte vira aviso e fica fora da taxa (CA-26). Tempo consumido (D-13, CA-19): do início ao
+ * preenchido sem descarte vira aviso e fica fora da taxa (CA-26); o aviso conta só quem sairia da taxa do período (entregues nele ou abertos no fim dele). Tempo consumido (D-13, CA-19): do início ao
  * descarte em horas úteis; quem foi descartado antes de iniciar fica à parte, com tempo zero. P50/P85/P95 do
  * consumido depois do início só com n >= 20 na janela de 12 semanas, por tipo de demanda (regra 7: percentil só
  * dentro da classe; um tipo por vez na interface). Sem divisão por motivo enquanto a integração
@@ -32,6 +32,7 @@ const soma = (xs: readonly number[]): number => xs.reduce((s, x) => s + x, 0)
 export function calcularO25(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO25 {
   const periodo = periodoDe(ctx, f)
   const janela = janelaPercentis(ctx, f, 'story')
+  const corte = fimDoExpediente(diaDeIso(periodo.fim), ctx.cal)
   const cards = selecionar(ctx, f, 'story', { incluirInativos: true }).filter(
     (m) => ehDemanda(m) && !m.card.eh_subtarefa,
   )
@@ -117,7 +118,15 @@ export function calcularO25(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO25 {
       },
     },
     instanteAproximado: { itens: descartados.filter((e) => e.aproximado).length },
-    avisoPreenchimento: { itens: cards.filter((m) => motivoSemDescarte(m.card)).length },
+    // B6-1: o aviso fala da mesma população da taxa do período: entregues no período e abertos no fim dele.
+    avisoPreenchimento: {
+      itens: cards.filter(
+        (m) =>
+          motivoSemDescarte(m.card) &&
+          (dentro(ctx, m.entrega, periodo) ||
+            (m.card.criado_em <= corte && (m.entrega === null || m.entrega > corte))),
+      ).length,
+    },
     porMotivo: null,
   }
 }
