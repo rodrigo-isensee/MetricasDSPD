@@ -27272,67 +27272,74 @@
                             "type": "number"
                           },
                           "participacao": {
-                            "oneOf": [
+                            "anyOf": [
                               {
-                                "type": "object",
-                                "properties": {
-                                  "status": {
-                                    "type": "string",
-                                    "enum": [
-                                      "ok"
-                                    ]
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "ok"
+                                        ]
+                                      },
+                                      "k": {
+                                        "type": "number"
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 20,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pct": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "k",
+                                      "n",
+                                      "pct"
+                                    ],
+                                    "additionalProperties": false
                                   },
-                                  "k": {
-                                    "type": "number"
-                                  },
-                                  "n": {
-                                    "type": "integer",
-                                    "minimum": 20,
-                                    "maximum": 9007199254740991
-                                  },
-                                  "pct": {
-                                    "type": "number"
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "insuficiente"
+                                        ]
+                                      },
+                                      "k": {
+                                        "type": "number"
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 19
+                                      },
+                                      "minimo": {
+                                        "type": "number",
+                                        "enum": [
+                                          20
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "k",
+                                      "n",
+                                      "minimo"
+                                    ],
+                                    "additionalProperties": false
                                   }
-                                },
-                                "required": [
-                                  "status",
-                                  "k",
-                                  "n",
-                                  "pct"
-                                ],
-                                "additionalProperties": false
+                                ]
                               },
                               {
-                                "type": "object",
-                                "properties": {
-                                  "status": {
-                                    "type": "string",
-                                    "enum": [
-                                      "insuficiente"
-                                    ]
-                                  },
-                                  "k": {
-                                    "type": "number"
-                                  },
-                                  "n": {
-                                    "type": "integer",
-                                    "minimum": -9007199254740991,
-                                    "maximum": 19
-                                  },
-                                  "minimo": {
-                                    "type": "number",
-                                    "enum": [
-                                      20
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "status",
-                                  "k",
-                                  "n",
-                                  "minimo"
-                                ],
-                                "additionalProperties": false
+                                "type": "null"
                               }
                             ]
                           },

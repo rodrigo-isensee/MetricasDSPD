@@ -199,7 +199,8 @@ export const resultadoE7 = fechado({
     fechado({
       sistema: z.string(),
       entregas: z.number(),
-      participacao: taxaSchema,
+      /** `taxa(entregas, total)` com 20 ou mais entregas no sistema; `null` abaixo (a interface monta o "k de n" com `entregas` e `total`). */
+      participacao: taxaSchema.nullable(),
       porNatureza: z.array(fechado({ natureza: z.enum(NATUREZAS_ENTREGA), taxa: taxaSchema })),
       custoRateado: z.number().nullable(),
       custoPorDemanda: z.number().nullable(),

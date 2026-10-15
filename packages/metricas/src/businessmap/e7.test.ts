@@ -50,28 +50,34 @@ describe('E7: capacidade por sistema, sem R$ (D-2, CA-13, CA-23)', () => {
     expect(SCHEMAS_RESULTADO.E7.safeParse(r).success).toBe(true)
   })
 
-  it('sistema com menos de 20 entregas mostra "k de n" e vai para o fim, mesmo com mais volume que outro com 20 não existir antes', () => {
+  it('sistema com menos de 20 entregas tem participação nula e vai para o fim', () => {
     const r = calcularE7(
       ctxDe([...varios(5, 'Alfa'), ...varios(25, 'Zeta'), ...varios(19, 'Beta')]),
       F,
     )
     expect(r.sistemas.map((s) => s.sistema)).toEqual(['Zeta', 'Beta', 'Alfa'])
     expect(r.sistemas[0]?.participacao.status).toBe('ok')
-    expect(r.sistemas[1]?.participacao).toEqual({
-      status: 'insuficiente',
-      k: 19,
-      n: 19,
-      minimo: 20,
-    })
-    expect(r.sistemas[2]?.participacao).toEqual({ status: 'insuficiente', k: 5, n: 5, minimo: 20 })
+    // B5-1: abaixo de 20 entregas a participação é nula (nunca "19 de 19"); o "k de n" sai de entregas e total.
+    expect(r.sistemas[1]).toMatchObject({ participacao: null, entregas: 19 })
+    expect(r.sistemas[2]).toMatchObject({ participacao: null, entregas: 5 })
+    expect(r.total).toBe(49)
   })
 
-  it('com menos de 20 entregas no total nada é percentual: só "k de n" sobre o total', () => {
+  it('com menos de 20 entregas no total toda participação é nula; entregas e total bastam para o "k de n"', () => {
     const r = calcularE7(ctxDe([...varios(8, 'Alfa'), ...varios(4, 'Beta')]), F)
     expect(r.total).toBe(12)
-    expect(r.sistemas.map((s) => s.participacao)).toEqual([
-      { status: 'insuficiente', k: 8, n: 12, minimo: 20 },
-      { status: 'insuficiente', k: 4, n: 12, minimo: 20 },
+    expect(r.sistemas.map((s) => [s.entregas, s.participacao])).toEqual([
+      [8, null],
+      [4, null],
+    ])
+    expect(SCHEMAS_RESULTADO.E7.safeParse(r).success).toBe(true)
+  })
+
+  it('fronteira 19/20 por sistema: 19 entregas é nulo e 20 publica o percentual sobre o total', () => {
+    const r = calcularE7(ctxDe([...varios(19, 'Alfa'), ...varios(20, 'Beta')]), F)
+    expect(r.sistemas.map((s) => [s.sistema, s.participacao])).toEqual([
+      ['Beta', { status: 'ok', k: 20, n: 39, pct: (20 / 39) * 100 }],
+      ['Alfa', null],
     ])
   })
 
@@ -161,5 +167,19 @@ describe('E7: capacidade por sistema, sem R$ (D-2, CA-13, CA-23)', () => {
     })
     expect(SCHEMAS_RESULTADO.E7.safeParse(r).success).toBe(true)
     expect(r.sistemas.reduce((s, x) => s + x.entregas, 0)).toBe(r.total)
+  })
+})
+
+describe('L3: marcação de critério cruzando o período (E7)', () => {
+  it('a série traz a versão do período e fora dele não traz', () => {
+    const base = umaBase([])
+    base.config.criterios = [
+      { id: 'c-dentro', data: '2026-09-20', descricao: 'dentro do período', afeta: ['E7'] },
+      { id: 'c-antes', data: '2025-01-10', descricao: 'antes do período', afeta: ['E7'] },
+      { id: 'c-outra', data: '2026-09-20', descricao: 'outra métrica', afeta: ['O1'] },
+    ]
+    const r = calcularE7(criarContextoBM(base, HOJE_TESTE, CALENDARIO_PADRAO), F)
+    expect(r.criterios.serie.map((c) => c.id)).toEqual(['c-dentro'])
+    expect(r.criterios.janela.map((c) => c.id)).toEqual(['c-dentro'])
   })
 })
