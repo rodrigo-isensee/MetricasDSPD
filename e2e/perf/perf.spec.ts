@@ -189,7 +189,10 @@ test.describe('perf-resumo-reservas', () => {
       const v = await lerVitais(page);
       registrar(`F2_resumo_${largura}`, v);
       console.log(`[perf] resumo ${largura}: CLS=${v.cls.toFixed(3)}`);
-      expect.soft(v.cls, `F2 CLS do Resumo a ${largura}px`).toBeLessThan(ORCAMENTO.F2_cls);
+      // SNO-004: a 1280 px o limite é 0,05 (medido 0,004 com a correção; 0,092 sem ela, que passava no limite geral de 0,1).
+      // A 375 px continua com o orçamento geral.
+      const limite = largura === 1280 ? 0.05 : ORCAMENTO.F2_cls;
+      expect.soft(v.cls, `F2 CLS do Resumo a ${largura}px`).toBeLessThan(limite);
     });
   }
 });
