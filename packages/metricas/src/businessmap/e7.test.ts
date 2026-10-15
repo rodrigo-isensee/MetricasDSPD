@@ -56,7 +56,7 @@ describe('E7: capacidade por sistema, sem R$ (D-2, CA-13, CA-23)', () => {
       F,
     )
     expect(r.sistemas.map((s) => s.sistema)).toEqual(['Zeta', 'Beta', 'Alfa'])
-    expect(r.sistemas[0]?.participacao.status).toBe('ok')
+    expect(r.sistemas[0]?.participacao?.status).toBe('ok')
     // B5-1: abaixo de 20 entregas a participação é nula (nunca "19 de 19"); o "k de n" sai de entregas e total.
     expect(r.sistemas[1]).toMatchObject({ participacao: null, entregas: 19 })
     expect(r.sistemas[2]).toMatchObject({ participacao: null, entregas: 5 })
