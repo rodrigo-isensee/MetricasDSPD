@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useId } from 'react'
+import { useId, type CSSProperties } from 'react'
 import {
   JANELA_PERCENTIS_PADRAO,
   type Dominio,
@@ -32,7 +32,7 @@ export function BlocoResumo({
   /** Conjunto de preferências dos cartões de origem (a chave gravada continua `operacional` / `sustentacao`). */
   painel: PainelComCartoes
   /** Altura reservada enquanto espera o estado de coleta e as preferências (sem salto de layout). */
-  reserva: number
+  reserva: number | { mobile: number; desktop: number }
   children: ReactNode
 }) {
   const idTitulo = useId()
@@ -57,7 +57,21 @@ export function BlocoResumo({
         </p>
       </header>
       {aguardando ? (
-        <div aria-hidden="true" style={{ minHeight: reserva }} data-testid={`${id}-aguardando`} />
+        <div
+          aria-hidden="true"
+          className={
+            typeof reserva === 'number' ? undefined : 'min-h-[var(--rb-m)] lg:min-h-[var(--rb-d)]'
+          }
+          style={
+            typeof reserva === 'number'
+              ? { minHeight: reserva }
+              : ({
+                  '--rb-m': `${reserva.mobile}px`,
+                  '--rb-d': `${reserva.desktop}px`,
+                } as CSSProperties)
+          }
+          data-testid={`${id}-aguardando`}
+        />
       ) : (
         <ProvedorPainelPreferencias painel={painel}>
           <FaixaCalibracaoFonte dominio={dominio} />

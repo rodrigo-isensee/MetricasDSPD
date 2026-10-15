@@ -12,7 +12,7 @@ import {
 } from '@metricas-dspd/contratos'
 import { destinoDoCartao } from '@/lib/destinoCartao'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
-import type { FontePreferencias } from './fonte'
+import { ErroVersaoMaisNova, type FontePreferencias } from './fonte'
 
 /** Perfil pré-carregado no navegador (o que a pessoa já salvou em /preferencias). */
 function guardar(paineis: Partial<Record<PainelComCartoes, string[]>>) {
@@ -143,6 +143,20 @@ describe('perfil /preferencias', () => {
       'Não foi possível salvar suas preferências. Tente de novo.',
     )
     expect(caixa).not.toBeChecked()
+  })
+
+  it('perfil salvo por versão mais nova: avisa que não será alterado (A6)', async () => {
+    const u = userEvent.setup()
+    const f: FontePreferencias = {
+      origem: 'navegador',
+      obter: () => Promise.resolve(PREFERENCIAS_PADRAO),
+      salvar: () => Promise.reject(new ErroVersaoMaisNova()),
+    }
+    renderizarApp('/preferencias', fonteDeTeste, f)
+    await u.click(await screen.findByRole('checkbox', { name: /O9 Os três relógios/ }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Suas preferências foram salvas por uma versão mais nova do sistema e não serão alteradas aqui.',
+    )
   })
 
   it('mostra um esqueleto enquanto lê as preferências', async () => {

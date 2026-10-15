@@ -43,17 +43,19 @@ function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
             <a
               href={destinoDoCartao(c)}
               className="alvo inline-flex items-center text-acento underline"
-              aria-label={`${c.codigo} ${c.rotulo}, ${
-                c.grupo === 'percepcao'
-                  ? 'vai para a seção de percepção de valor'
-                  : entreVisoes(c, p.painel)
-                    ? `abre Mais métricas da visão ${VISAO_OUTRA_FONTE[c.painel as 'sustentacao']}, fonte ${FONTE_DO_PAINEL[c.painel as 'sustentacao']}`
-                    : `abre Mais métricas ${
-                        c.painel === p.painel
-                          ? 'deste painel'
-                          : `do painel ${NOME_PAINEL[c.painel]}`
-                      }`
-              }`}
+              aria-label={
+                entreVisoes(c, p.painel)
+                  ? `${c.codigo} ${c.rotulo} · visão ${VISAO_OUTRA_FONTE[c.painel as 'sustentacao']}, fonte ${FONTE_DO_PAINEL[c.painel as 'sustentacao']}. Abre Mais métricas da visão ${VISAO_OUTRA_FONTE[c.painel as 'sustentacao']}.`
+                  : `${c.codigo} ${c.rotulo}, ${
+                      c.grupo === 'percepcao'
+                        ? 'vai para a seção de percepção de valor'
+                        : `abre Mais métricas ${
+                            c.painel === p.painel
+                              ? 'deste painel'
+                              : `do painel ${NOME_PAINEL[c.painel]}`
+                          }`
+                    }`
+              }
               onClick={(e) => {
                 e.preventDefault()
                 ir(c)

@@ -48,8 +48,8 @@ export function VisaoResumo({ extra }: { extra: ReactNode }) {
         slug="operacional"
         frescor={
           <div className="flex flex-col gap-1" data-testid="frescor-fontes">
-            <FrescorFonte dominio="businessmap" comNome />
-            <FrescorFonte dominio="acelerato" comNome />
+            <FrescorFonte dominio="businessmap" comNome reservarFalha />
+            <FrescorFonte dominio="acelerato" comNome reservarFalha />
           </div>
         }
       />

@@ -91,7 +91,7 @@ function ConteudoFluxo() {
         itens={itens}
         estado={estado}
         onTentarDeNovo={recarregar}
-        reserva={{ mobile: 202, desktop: 108 }}
+        reserva={{ mobile: 448, desktop: 192 }}
       />
       <dl className="m-0 grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="numeros-fluxo">
         {numeros.map((n) => (
@@ -134,7 +134,7 @@ export function BlocoFluxo() {
       titulo="Fluxo de projeto · BusinessMap"
       dominio="businessmap"
       painel="operacional"
-      reserva={640}
+      reserva={{ mobile: 1890, desktop: 950 }}
     >
       <ConteudoFluxo />
     </BlocoResumo>

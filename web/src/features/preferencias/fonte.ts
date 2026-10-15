@@ -25,6 +25,13 @@ export interface FontePreferencias {
   salvar(p: PreferenciasMetricas): Promise<void>
 }
 
+/** Rejeição de `salvar` quando o perfil guardado vem de versão mais nova (A6): a tela mostra aviso próprio. */
+export class ErroVersaoMaisNova extends Error {
+  constructor() {
+    super('Perfil guardado em versão mais nova: não foi sobrescrito.')
+  }
+}
+
 /** `versao` numérica maior que 1 no JSON guardado; JSON quebrado ou outro formato não conta (esses viram o padrão). */
 function versaoGuardadaEhFutura(bruto: string | null): boolean {
   if (bruto === null) return false
@@ -64,7 +71,7 @@ export class LocalStoragePreferencias implements FontePreferencias {
   salvar(p: PreferenciasMetricas): Promise<void> {
     return new Promise((resolver, rejeitar) => {
       if (versaoGuardadaEhFutura(this.armazenamento.getItem(CHAVE_PREFERENCIAS))) {
-        rejeitar(new Error('Perfil guardado em versão mais nova: não foi sobrescrito.'))
+        rejeitar(new ErroVersaoMaisNova())
         return
       }
       this.armazenamento.setItem(CHAVE_PREFERENCIAS, JSON.stringify(p))

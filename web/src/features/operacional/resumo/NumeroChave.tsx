@@ -59,7 +59,7 @@ export function NumeroChave({ estado, modelo, rotulo, id, codigo, onTentarDeNovo
   } else if (estado === 'carregando' || !modelo) {
     corpo = (
       <div
-        className="min-h-20 text-sm text-texto-2"
+        className="min-h-[98px] text-sm text-texto-2"
         aria-busy="true"
         data-testid={`numero-${id}-carregando`}
       >

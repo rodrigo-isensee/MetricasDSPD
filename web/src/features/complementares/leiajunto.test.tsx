@@ -80,6 +80,10 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     expect(link17).toHaveTextContent(
       'O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato',
     )
+    // WCAG 2.5.3: o nome acessível contém o texto visível
+    expect(link17).toHaveAccessibleName(
+      /^O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato\. Abre Mais métricas da visão Sustentação\.$/,
+    )
     expect(link17).toHaveAttribute('href', '/operacional?cadencia=sustentacao#o17')
     await u.click(link17)
     expect(await screen.findByTestId('metrica-O17')).toBeInTheDocument()

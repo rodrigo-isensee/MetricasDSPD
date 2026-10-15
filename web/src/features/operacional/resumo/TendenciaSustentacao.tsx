@@ -18,7 +18,8 @@ export function TendenciaSustentacao({ q }: { q: MetricaQuery<ResultadoDe<'TENDE
   const verSla = !prefs?.estaOculto('s2')
   const verVolume = !prefs?.estaOculto('s3')
   if (!verSla && !verVolume) return null
-  if (q.estado === 'carregando') return <EsqueletoTendencia id={id} />
+  if (q.estado === 'carregando')
+    return <EsqueletoTendencia id={id} series={verSla && verVolume ? 2 : 1} />
   if (q.estado === 'erro') return <ErroTendencia id={id} onTentarDeNovo={q.recarregar} />
   const t = q.dados as ResultadoDe<'TENDENCIA_SUST'>
   const sla = serieSla(t)

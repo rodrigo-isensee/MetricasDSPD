@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { JANELA_PERCENTIS_PADRAO, type ResultadoDe } from '@metricas-dspd/contratos'
 import { EstadoErro, usePreferenciasPainel } from '@/components/ui'
 import type { MetricaQuery } from '@/data'
@@ -13,10 +14,24 @@ import { SerieMensal } from './SerieMensal'
 
 const JANELA = textoJanela(JANELA_PERCENTIS_PADRAO)
 
-/** Esqueleto de altura fixa da tendência (160 px a 1280, 200 px a 375): o bloco não salta quando ela chega. */
-export function EsqueletoTendencia({ id }: { id: string }) {
+/**
+ * Esqueleto de altura fixa da tendência: reserva a altura das séries já prontas (cada uma com cerca de 236 px a 1280
+ * e 388 px a 375, mais 16 px entre elas), para o bloco não saltar quando ela chega (CLS, ADR 0003).
+ */
+export function EsqueletoTendencia({ id, series = 2 }: { id: string; series?: 1 | 2 }) {
+  const folga = (series - 1) * 16
   return (
-    <div className="h-[200px] md:h-[160px]" aria-busy="true" data-testid={`${id}-carregando`}>
+    <div
+      className="h-[var(--et-m)] md:h-[var(--et-d)]"
+      style={
+        {
+          '--et-m': `${series * 388 + folga}px`,
+          '--et-d': `${series * 236 + folga}px`,
+        } as CSSProperties
+      }
+      aria-busy="true"
+      data-testid={`${id}-carregando`}
+    >
       <span className="sr-only">Carregando a tendência…</span>
       <div aria-hidden="true" className="esqueleto h-full rounded-md" />
     </div>
@@ -54,7 +69,8 @@ export function TendenciaFluxo({
   const verP85 = !prefs?.estaOculto('o3')
   const verConcluidos = !prefs?.estaOculto('o4')
   if (!verP85 && !verConcluidos) return null
-  if (q.estado === 'carregando') return <EsqueletoTendencia id={id} />
+  if (q.estado === 'carregando')
+    return <EsqueletoTendencia id={id} series={verP85 && verConcluidos ? 2 : 1} />
   if (q.estado === 'erro') return <ErroTendencia id={id} onTentarDeNovo={q.recarregar} />
   const t = q.dados as ResultadoDe<'TENDENCIA_FLUXO'>
   const o3 = qO3.dados

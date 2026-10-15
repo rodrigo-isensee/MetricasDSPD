@@ -183,6 +183,12 @@ export default function PreferenciasPage() {
                 </p>
               )}
             </div>
+            {prefs.estadoSalvar === 'versao-nova' && (
+              <p role="alert" className="flex items-center gap-2 text-sm text-alerta">
+                <Icone nome="alerta" /> Suas preferências foram salvas por uma versão mais nova do
+                sistema e não serão alteradas aqui.
+              </p>
+            )}
             {prefs.estadoSalvar === 'erro' && (
               <p role="alert" className="flex items-center gap-2 text-sm text-alerta">
                 <Icone nome="alerta" /> Não foi possível salvar suas preferências. Tente de novo.
