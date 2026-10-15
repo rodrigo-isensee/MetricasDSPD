@@ -36,6 +36,9 @@ export type ChaveSegmentacao =
   | 'motivo-pendencia'
   | 'sprint'
   | 'pergunta'
+  | 'motivo-bloqueio'
+  | 'fornecedor'
+  | 'mes-do-ano'
 // Proibidas como segmentação: pessoa, responsável, equipe (equipe é só filtro; comparação entre times é proibida, 7.1).
 
 export type GranularidadeRegra = 'story' | 'frente' | 'projeto' | 'chamado' | 'resposta'

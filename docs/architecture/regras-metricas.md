@@ -38,6 +38,9 @@ export type ChaveSegmentacao =
   | 'relogio'
   | 'projeto'
   | 'iniciativa'
+  | 'motivo-bloqueio' // pedido 011 (B1): O19
+  | 'fornecedor' // pedido 011 (B1): T10
+  | 'mes-do-ano' // pedido 011 (B1): T11
 // Proibidas como segmentação: pessoa, responsável, equipe (equipe é só filtro; comparação entre times é proibida, 7.1).
 
 export type Granularidade = 'story' | 'frente' | 'projeto' | 'chamado'

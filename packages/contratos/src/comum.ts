@@ -124,6 +124,10 @@ export const CAUSAS_RAIZ = [
 ] as const
 export type CausaRaiz = (typeof CAUSAS_RAIZ)[number]
 
+/** Naturezas de entrega do T3, reaproveitadas pelo E7 (`naturezaDe`, CA-23): lista única. */
+export const NATUREZAS_ENTREGA = ['Sustentação', 'Evolução', 'Projetos', 'Dívida técnica'] as const
+export type NaturezaEntrega = (typeof NATUREZAS_ENTREGA)[number]
+
 export const NATUREZAS_PROJETO = ['Manter', 'Evoluir'] as const
 export type NaturezaProjeto = (typeof NATUREZAS_PROJETO)[number]
 

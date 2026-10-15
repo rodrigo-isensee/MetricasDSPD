@@ -422,6 +422,98 @@
         "fora",
         "sem-referencia"
       ]
+    },
+    "parados": {
+      "type": "object",
+      "properties": {
+        "limiteDiasUteis": {
+          "type": "number"
+        },
+        "taxa": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "ok"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": 20,
+                  "maximum": 9007199254740991
+                },
+                "pct": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "pct"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "insuficiente"
+                },
+                "k": {
+                  "type": "number"
+                },
+                "n": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 19
+                },
+                "minimo": {
+                  "type": "number",
+                  "const": 20
+                }
+              },
+              "required": [
+                "status",
+                "k",
+                "n",
+                "minimo"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "porEtapa": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "etapa": {
+                "type": "string"
+              },
+              "k": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "etapa",
+              "k"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "limiteDiasUteis",
+        "taxa",
+        "porEtapa"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

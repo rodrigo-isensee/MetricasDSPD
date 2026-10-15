@@ -118,6 +118,35 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 - `S9` usa `porMotivo` (não `motivos`).
 - Mudança de comportamento do mock: as 5 de sustentação (S8 a S12) entram nas métricas em calibração da fonte Acelerato.
 
+## Métricas "também disponíveis", fase 1 (pedido 011): contratos sem rota ainda
+> **Status:** só contratos (B1, `packages/contratos/src/tambem.ts`). Nenhum dos ids abaixo entra em `METRICA_IDS` neste cartão: cada id ganha a rota `GET /api/v1/metricas/:id` (e a OpenAPI regenerada) no cartão do seu cálculo, para não existir rota que devolva dado inventado. A API continua com 51 ids; a única mudança na OpenAPI (regenerada) é o campo opcional `parados` na resposta do O2. O front pode tipar contra os tipos exportados, mas só consome o id quando o cartão dele fechar.
+- **Tipos** (`@metricas-dspd/contratos`): `ResultadoO19`, `ResultadoO20`, `ResultadoO21`, `ResultadoO24`, `ResultadoO25`, `ResultadoT10`, `ResultadoT11`, `ResultadoT12`, `ResultadoE7`, `ResultadoE9` e `ParadosO2`; schemas homônimos em minúsculas (`resultadoO19`...) e o mapa `SCHEMAS_TAMBEM_FASE1`.
+- **Envelope:** o de sempre (`base`, `criterios`); estatística e taxa vêm de `estatistica`/`taxa` (`status: 'ok' | 'insuficiente'`, abaixo de 20 itens só "k de n", sem valor). BusinessMap apenas; nenhum campo mistura Acelerato.
+- **Fechados:** todo objeto próprio é `strict`. Campo extra, inclusive de pessoa (`responsaveis`, `usuario`, `equipe`...), invalida o resultado. Um teste (`tambem.test.ts`) varre os nomes de campo dos dez schemas e falha se aparecer nome de pessoa ou de comparação entre times.
+- **Séries** devolvem `marcacoes` (mudanças de critério, T2.6): O24, O25 e T11. O O20 usa `mudancasCriterio`, como no plano.
+
+| Id | Corpo (campos além de `base` e `criterios`) |
+|---|---|
+| O19 Bloqueios por causa | `motivos[{ motivo, bloqueios, diasUteis, pctDoTotal (taxa), duracao (estatistica) }]` (7 motivos, ordem neutra do domínio), `abertosForaDaSoma`, `totalDiasUteis` |
+| O20 Fluxo cumulativo | `agrupamento` (`coluna`\|`papel`), `faixas[{ chave, rotulo, ordem, tipoColuna }]`, `dias[{ dia, contagens[] }]`, `destaque { faixa, de, para } \| null`, `mudancasCriterio` |
+| O21 Fluxo reverso | `entregas` (taxa), `matriz { eixo, celulas[{ origem, destino, retornos }] }`, `reaberturas`, `comparacao { tipo, com, sem }` (cada grupo é uma `estatistica`: o que tem menos de 20 vem `insuficiente` com o seu n) |
+| O24 Ordem de chegada | `inicios` (taxa), `meses[{ mes, emOrdem, foraDeOrdem, emAndamento }]`, `marcacoes`, `custo { tipo, estatistica } \| null`, `grupo: 'equipe-tipo-padrao'` |
+| O25 Descarte | `encerrados` (taxa), `meses[{ mes, taxa, emAndamento }]`, `marcacoes`, `consumido { antesDoInicio { itens }, depoisDoInicio { itens, diasUteis, estatistica } }`, `instanteAproximado { itens }`, `avisoPreenchimento { itens }` (fora da taxa), `porMotivo[{ motivo, itens }] \| null` |
+| T10 Tempo de terceiros | `fornecedores[{ fornecedor, bloqueios, diasUteis, duracao }]`, `totalDiasUteis`. **Sem** `prazoDiasUteis`, `status` nem `prazoFornecedor` (D-10 = A) |
+| T11 Sazonalidade da chegada | `anos[{ ano, meses[{ mes (1..12), entradas \| null, emAndamento }] }]`, `marcacoes`, `mesesComDado`, `mediaMensal \| null`, `historicoCurto` |
+| T12 Qualidade da entrada por área | `total` (taxa), `areas[{ area, taxa }]` |
+| E7 Capacidade por sistema | `total`, `sistemas[{ sistema, entregas, participacao (taxa), porNatureza[{ natureza, taxa }], custoRateado \| null, custoPorDemanda \| null }]`, `custoConfigurado` |
+| E9 Projetos aguardando início | `projetos[{ cardId, codigo, titulo, criadoEm, idadeDiasUteis, faixa }]`, `referenciaP85` (estatistica só com `p85`, importada do E1) |
+
+### Acréscimo ao O2 (bloco O23 "estoque parado")
+- Campo novo `parados` em `resultadoO2`, **opcional** por ora (ADR 0007: acréscimo compatível); o B2 o calcula e passa a devolvê-lo sempre. Forma: `{ limiteDiasUteis, taxa, porEtapa[{ etapa, k }] }`, com `taxa` no padrão "k de n" (só publica o percentual com n >= 20). Os campos antigos do O2 não mudam.
+
+### Novas chaves de segmentação (`ChaveSegmentacao`, biblioteca)
+- `motivo-bloqueio` (O19), `fornecedor` (T10) e `mes-do-ano` (T11). `faixa-passagens` só entra na fase 2, com o O26. Nunca `pessoa`, `responsavel` nem `equipe`.
+
+### Trava de pessoa na biblioteca (P-T6, ADR 0020)
+- Regra de lint `no-restricted-properties` proíbe ler `responsaveis` e `usuario` em `packages/metricas/src/businessmap/**` (exceto testes). A definição dos campos segue em `modelo.ts`, sem leitura. Meta-teste em `web/src/test/lint.meta.test.ts`.
+
 ## Percepção de valor (PV1, pesquisa trimestral)
 Plano: `docs/architecture/features/lacuna-de-valor.md`. **Terceira fonte**, `pesquisa`: nem BusinessMap, nem Acelerato. Painel Sustentação, seção própria no fim (`grupo: 'percepcao'`, cartão `pv1`, `status: 'mock'`), com "leia junto" S1/S2 nos dois sentidos. Dados fictícios até existir carga real. Sem rota nova de leitura além da `GET /api/v1/metricas/PV1` e **sem rota de escrita** (a carga é script externo, B4).
 
