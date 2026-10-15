@@ -148,7 +148,7 @@ test.describe('K-026 Visao geral', () => {
     for (const [n, rota] of Object.entries(alvo)) {
       const nivel = page.getByTestId(`nivel-${n}`);
       expect(await nivel.locator('[data-testid^="indicador-"]').count()).toBeLessThanOrEqual(3);
-      await expect(nivel.getByRole('link', { name: /^Abrir / })).toHaveAttribute('href', new RegExp(`${rota}$`));
+      await expect(nivel.getByRole('link', { name: /^Abrir / })).toHaveAttribute('href', new RegExp(`${rota.replace('?', '\\?')}$`));
     }
   });
 
@@ -172,11 +172,12 @@ test.describe('K-026 Visao geral', () => {
     await expect(page.getByTestId('ei-fonte-sust')).toContainText(/Fonte diferente/);
   });
 
-  test('VG-06 tabela Por reuniao com 6 linhas e links', async ({ page }) => {
+  test('VG-06 tabela Por reuniao com 7 linhas e links', async ({ page }) => {
     const sec = page.getByRole('region', { name: 'Por reunião' });
     const hrefs = await sec.getByRole('link').evaluateAll((a) => a.map((x) => x.getAttribute('href')));
-    for (const h of ['/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/tatico#t2', '/tatico#t4', '/estrategico#e1', '/estrategico#e3']) expect(hrefs).toContain(h);
-    await expect(sec.getByRole('listitem')).toHaveCount(6);
+    // 7 reuniões: a Revisão da sustentação · semanal entrou na demanda da Sustentação no Operacional (CA-16)
+    for (const h of ['/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/operacional?cadencia=sustentacao', '/tatico#t2', '/tatico#t4', '/estrategico#e1', '/estrategico#e3']) expect(hrefs).toContain(h);
+    await expect(sec.getByRole('listitem')).toHaveCount(7);
   });
 
   test('VG-07 no maximo 6 alertas visiveis; expandir confere N', async ({ page }) => {

@@ -22,7 +22,7 @@ test.describe('K-006 Operacional diário', () => {
     await painel.esperarCartoesProntos();
     await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O3', 'O9', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18', 'EI-FL1']);
     await painel.cadencia.getByText('Diária', { exact: true }).click();
-    await expect(page).not.toHaveURL(/cadencia=/);
+    await expect(page).toHaveURL(/cadencia=diaria/); // a Diária deixou de ser o padrão: o padrão agora é o Resumo (CA-23)
     await expect(painel.cadencia.getByRole('radio', { name: 'Diária' })).toBeFocused();
   });
 
@@ -229,9 +229,11 @@ test.describe('K-023 Operacional semanal', () => {
     await painel.esperarCartoesProntos();
     await expect(page.locator('#o12')).toHaveCount(1);
     await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveAttribute('href', /cadencia=semanal.*#o12|#o12/);
+    // o hash decide a visão (CA-12): `#o12` sem `cadencia` abre a Semanal, com o O12
     await painel.ir('/operacional#o12');
     await painel.esperarCartoesProntos();
-    expect(await painel.codigosDosCartoes()).not.toContain('O12');
+    await expect(page).toHaveURL(/cadencia=semanal/);
+    expect(await painel.codigosDosCartoes()).toContain('O12');
   });
 
   test('FIL-14/FIL-12 filtro de sistema/tipo atua e informa nos cartões semanais', async ({ painel }) => {

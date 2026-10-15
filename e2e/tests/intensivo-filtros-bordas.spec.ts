@@ -22,8 +22,11 @@ async function estados(page: Page): Promise<Record<string, string | null>> {
   );
 }
 
+/** Busca da URL sem o parâmetro `cadencia` (a visão): estes casos tratam só dos filtros, e a visão é parte da entrada. */
 const busca = (page: Page): string => {
-  const bruto = new URL(page.url()).search.replace(/^\?/, '');
+  const params = new URL(page.url()).searchParams;
+  params.delete('cadencia');
+  const bruto = params.toString();
   try {
     return decodeURIComponent(bruto);
   } catch {
@@ -47,8 +50,8 @@ const CASOS: Caso[] = [
   { id: 'B01 equipe inexistente', url: '/operacional?cadencia=diaria&equipe=xyz', esperado: '', aviso: /equipe "xyz"/ },
   { id: 'B02 só o inválido sai', url: '/operacional?cadencia=diaria&equipe=fluig,xyz,dados', esperado: 'equipe=fluig,dados', aviso: /equipe "xyz"/, botao: ['filtro-equipe', 'Equipe: 2 selecionadas'] },
   { id: 'B03 tipo e sistema inexistentes', url: '/tatico?tipo=story&sistema=sap', esperado: '', aviso: /tipo "story".*sistema "sap"|sistema "sap".*tipo "story"/ },
-  { id: 'B04 prioridade inexistente', url: '/operacional?cadencia=sustentacao&prioridade=p9,p1', esperado: 'prioridade=p1', aviso: /prioridade "p9"/ },
-  { id: 'B05 equipe do fluxo na sustentação', url: '/operacional?cadencia=sustentacao&equipe=erp-protheus', esperado: '', aviso: /equipe "erp-protheus"/ },
+  { id: 'B04 prioridade inexistente', url: '/operacional?cadencia=sustentacao&sust_prioridade=p9,p1', esperado: 'sust_prioridade=p1', aviso: /prioridade "p9"/ },
+  { id: 'B05 equipe do fluxo na sustentação', url: '/operacional?cadencia=sustentacao&sust_equipe=erp-protheus', esperado: '', aviso: /equipe "erp-protheus"/ },
   { id: 'B06 equipe da sustentação no fluxo', url: '/operacional?cadencia=diaria&equipe=totvs', esperado: '', aviso: /equipe "totvs"/ },
   { id: 'B07 período inexistente', url: '/operacional?cadencia=diaria&periodo=99', esperado: '', aviso: /período "99"/ },
   { id: 'B08 período em maiúsculas', url: '/operacional?cadencia=diaria&periodo=4S', esperado: '', aviso: /período "4S"/ },
@@ -60,8 +63,8 @@ const CASOS: Caso[] = [
   { id: 'B13 custom um dia depois da data dos dados', url: '/tatico?periodo=custom&de=2026-09-01&ate=2026-10-10', esperado: '', aviso: /período personalizado/ },
   { id: 'B14 custom até a data dos dados (limite válido)', url: '/tatico?periodo=custom&de=2026-09-01&ate=2026-10-09', esperado: 'periodo=custom&de=2026-09-01&ate=2026-10-09', aviso: null, botao: ['filtro-periodo', /01\/09\/2026 a 09\/10\/2026/] },
   { id: 'B15 custom antes do início da base', url: '/operacional?cadencia=diaria&periodo=custom&de=2000-01-01&ate=2026-06-30', esperado: '', aviso: /período personalizado/ },
-  { id: 'B16 custom com data impossível', url: '/operacional?cadencia=sustentacao&periodo=custom&de=2026-02-30&ate=2026-03-31', esperado: '', aviso: /período personalizado/ },
-  { id: 'B17 custom com texto', url: '/operacional?cadencia=sustentacao&periodo=custom&de=ontem&ate=hoje', esperado: '', aviso: /período personalizado/ },
+  { id: 'B16 custom com data impossível', url: '/operacional?cadencia=sustentacao&sust_periodo=custom&sust_de=2026-02-30&sust_ate=2026-03-31', esperado: '', aviso: /período personalizado/ },
+  { id: 'B17 custom com texto', url: '/operacional?cadencia=sustentacao&sust_periodo=custom&sust_de=ontem&sust_ate=hoje', esperado: '', aviso: /período personalizado/ },
   // não aplicáveis no painel (silêncio, sem aviso)
   { id: 'B18 Estratégico com 4 semanas', url: '/estrategico?periodo=4s', esperado: '', aviso: null, botao: ['filtro-periodo', /Últimos 12 meses/] },
   { id: 'B19 Estratégico com personalizado', url: '/estrategico?periodo=custom&de=2026-06-01&ate=2026-08-31', esperado: '', aviso: null },
@@ -78,10 +81,10 @@ const CASOS: Caso[] = [
   { id: 'B29 codificação malformada no valor', url: '/operacional?cadencia=diaria&equipe=%E0%A4%A', esperado: '', aviso: /equipe/ },
   { id: 'B30 codificação malformada na chave', url: '/operacional?cadencia=diaria&%E0%A4%A=1&equipe=fluig', esperado: /equipe=fluig/, aviso: null },
   { id: 'B31 injeção de marcação no valor', url: '/operacional?cadencia=diaria&equipe=%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E', esperado: '', aviso: /equipe "<img src=x onerror=alert\(1\)>"/ },
-  { id: 'B32 valor muito longo', url: `/operacional?equipe=${'a'.repeat(4000)}`, esperado: '', aviso: /equipe/ },
-  { id: 'B33 hash preservado na normalização', url: '/operacional?equipe=xyz&cadencia=semanal#o4', esperado: 'cadencia=semanal', aviso: /equipe "xyz"/ },
-  { id: 'B34 cadência inválida com filtro válido', url: '/operacional?cadencia=mensal&equipe=fluig', esperado: /equipe=fluig/, aviso: null },
-  { id: 'B35 sustentação com período de 12 meses e personalizado no limite', url: '/operacional?cadencia=sustentacao&periodo=custom&de=2026-04-01&ate=2026-10-09', esperado: 'periodo=custom&de=2026-04-01&ate=2026-10-09', aviso: null },
+  { id: 'B32 valor muito longo', url: `/operacional?cadencia=diaria&equipe=${'a'.repeat(4000)}`, esperado: '', aviso: /equipe/ },
+  { id: 'B33 hash preservado na normalização', url: '/operacional?equipe=xyz&cadencia=semanal#o4', esperado: '', aviso: /equipe "xyz"/ },
+  { id: 'B34 cadência inválida com filtro válido', url: '/operacional?cadencia=mensal&equipe=fluig', esperado: /^equipe=fluig$/, aviso: /visão "mensal"/ },
+  { id: 'B35 sustentação com período de 12 meses e personalizado no limite', url: '/operacional?cadencia=sustentacao&sust_periodo=custom&sust_de=2026-04-01&sust_ate=2026-10-09', esperado: 'sust_periodo=custom&sust_de=2026-04-01&sust_ate=2026-10-09', aviso: null },
 ];
 
 for (const c of CASOS) {
@@ -124,7 +127,7 @@ test('IF-B40 a correção da URL inválida não cria entrada de histórico (Volt
 });
 
 test('IF-B41 "Entendi" some com o aviso e recarregar não o traz de volta', async ({ page }) => {
-  await page.goto('/operacional?cadencia=sustentacao&prioridade=zz');
+  await page.goto('/operacional?cadencia=sustentacao&sust_prioridade=zz');
   await pronto(page);
   await page.getByRole('button', { name: 'Entendi' }).click();
   await expect(page.getByTestId('aviso-filtros-invalidos')).toHaveCount(0);

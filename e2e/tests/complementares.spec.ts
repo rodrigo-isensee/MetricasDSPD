@@ -46,7 +46,7 @@ for (const tela of TELAS) {
         await painel.ir(p.rota)
         await painel.esperarCartoesProntos()
         const det = page.getByTestId('mais-metricas')
-        await expect(det.getByText(new RegExp(`Mais métricas deste painel · ${p.n} complementares`))).toBeVisible()
+        await expect(det.getByText(new RegExp(`Mais métricas (deste painel|desta visão) · ${p.n} complementares`))).toBeVisible()
         await expect(det).not.toHaveAttribute('open', '')
         for (const id of p.ids) await expect(page.getByTestId(`metrica-${id}`)).toHaveCount(0)
         await det.locator('summary').click()

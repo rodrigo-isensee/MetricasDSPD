@@ -5,7 +5,7 @@ test.use({ viewport: { width: 1280, height: 800 } });
 test('FIL-01/02 filtros por painel e URL limpa no padrão', async ({ painel, page }) => {
   await painel.ir('/operacional?cadencia=diaria');
   for (const f of ['equipe', 'tipo', 'sistema', 'periodo'] as const) await expect(painel.filtros.botao(f)).toBeVisible();
-  expect(painel.filtros.parametros().toString()).toBe('');
+  expect(painel.filtros.parametros().toString()).toBe('cadencia=diaria'); // URL limpa: só a visão, nenhum filtro no padrão
   await expect(painel.filtros.limpar).toHaveCount(0);
   await painel.ir('/operacional?cadencia=sustentacao');
   await expect(painel.filtros.botao('prioridade')).toBeVisible();
@@ -67,7 +67,7 @@ test('FIL-08 filtros de fluxo ficam guardados na visão Sustentação e não vir
 });
 
 test('FIL-09 URL inválida ignora só o inválido e avisa', async ({ painel, page }) => {
-  await painel.ir('/operacional?equipe=xyz&tipo=foo&periodo=99&cadencia=x');
+  await painel.ir('/operacional?cadencia=diaria&equipe=xyz&tipo=foo&periodo=99');
   await expect(painel.filtros.invalidos).toBeVisible();
   await expect(painel.filtros.invalidos).toContainText('foram ignorados');
   await painel.cartao('O2').esperarEstado('ok');

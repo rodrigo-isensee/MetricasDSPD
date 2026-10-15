@@ -25,7 +25,7 @@ async function pronto(page: Page) {
 
 test.describe('redirecionamento da rota antiga (critério 2)', () => {
   const CASOS = [
-    ['/espera-invisivel?periodo=4s&equipe=fluig#ei-fl1', '/operacional?cadencia=diaria', 'EI-FL1', ['cadencia=semanal', 'periodo=4s', 'equipe=fluig']],
+    ['/espera-invisivel?periodo=4s&equipe=fluig#ei-fl1', '/operacional?cadencia=semanal', 'EI-FL1', ['cadencia=semanal', 'periodo=4s', 'equipe=fluig']],
     ['/espera-invisivel?periodo=4s&equipe=fluig#ei-fl2', '/tatico', 'EI-FL2', ['periodo=4s', 'equipe=fluig']],
     ['/espera-invisivel?periodo=6m&equipe=fluig&tipo=incidente#ei-fl3', '/estrategico', 'EI-FL3', ['periodo=6m']],
     ['/espera-invisivel?periodo=4s&equipe=fluig&sust_prioridade=P1#ei-sust', '/operacional?cadencia=sustentacao', 'EI-SUST', ['prioridade=p1']],
@@ -33,14 +33,14 @@ test.describe('redirecionamento da rota antiga (critério 2)', () => {
   for (const [entrada, rota, cartao, trechos] of CASOS) {
     test(`${entrada} termina em ${rota} e foca ${cartao}`, async ({ page }) => {
       await page.goto(entrada)
-      await expect(page).toHaveURL(new RegExp(`${rota}\\?`))
+      await expect(page).toHaveURL(new RegExp(`${rota.split('?')[0]}\\?`))
       const url = new URL(page.url())
       expect(url.hash).toBe(`#${cartao.toLowerCase()}`)
       for (const t of trechos) expect(url.search.toLowerCase()).toContain(t.toLowerCase())
       // O painel normaliza (replace) depois de carregar as opções: espera a URL assentar.
       if (rota === '/estrategico') await expect.poll(() => new URL(page.url()).search).not.toMatch(/equipe|tipo/)
       if (rota === '/operacional?cadencia=sustentacao') {
-        expect(url.search).not.toContain('sust_')
+        expect(url.search.toLowerCase()).toContain('sust_prioridade=p1') // CA-13: só os filtros da Sustentação, já com o prefixo
         expect(url.search).not.toContain('equipe')
         expect(url.search).not.toContain('periodo=4s')
       }
@@ -161,7 +161,7 @@ test.describe('Visão geral e catálogo (critérios 7 e 8)', () => {
     await page.goto('/')
     await pronto(page)
     const esperado = {
-      fl1: ['/operacional?cadencia=diaria', 'EI-FL1'],
+      fl1: ['/operacional?cadencia=semanal', 'EI-FL1'], // a espera invisível do fluxo vive na Semanal
       fl2: ['/tatico', 'EI-FL2'],
       fl3: ['/estrategico', 'EI-FL3'],
       sust: ['/operacional?cadencia=sustentacao', 'EI-SUST'],
@@ -170,9 +170,9 @@ test.describe('Visão geral e catálogo (critérios 7 e 8)', () => {
       await page.goto('/')
       await pronto(page)
       const link = page.getByTestId(`ei-resumo-${nivel}`).getByRole('link')
-      await expect(link).toHaveAttribute('href', new RegExp(`^${rota}.*#${cartao.toLowerCase()}$`))
+      await expect(link).toHaveAttribute('href', new RegExp(`^${rota.replace('?', '\\?')}.*#${cartao.toLowerCase()}$`))
       await link.click()
-      await expect(page).toHaveURL(new RegExp(`${rota}.*#${cartao.toLowerCase()}$`))
+      await expect(page).toHaveURL(new RegExp(`${rota.replace('?', '\\?')}.*#${cartao.toLowerCase()}$`))
       await expect(page.getByTestId(`metrica-${cartao}`)).toBeVisible()
     }
   })
@@ -232,7 +232,7 @@ test.describe('Exportação (critério 10)', () => {
     await page.goto('/operacional?cadencia=sustentacao')
     await pronto(page)
     await page.getByRole('button', { name: 'Exportar', exact: true }).click()
-    const dlg = page.getByRole('dialog', { name: 'Exportar métricas' })
+    const dlg = page.getByRole('dialog', { name: 'Exportar · Operacional · Sustentação' })
     await expect(dlg.getByRole('checkbox', { name: /EI-SUST .*\(Acelerato\)/ })).toBeVisible()
     await expect(dlg.getByRole('checkbox', { name: /EI-FL/ })).toHaveCount(0)
     await page.keyboard.press('Escape')

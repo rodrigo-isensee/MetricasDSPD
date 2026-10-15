@@ -105,8 +105,9 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
         total++;
         await page.goto(rota);
         await prontos(page);
-        await page.getByTestId(`leia-junto-${l.origem}`).getByRole('link', { name: l.texto }).click();
         const codigo = l.texto.split(' ')[0]!;
+        // pelo código no início do nome acessível: o aria-label do link entre visões não repete o texto visível (bug BUG-SNO-QA-03)
+        await page.getByTestId(`leia-junto-${l.origem}`).getByRole('link', { name: new RegExp(`^${codigo} `) }).click();
         const alvo = page.getByTestId(`metrica-${codigo}`);
         try {
           await expect(alvo, `${rota} ${l.origem} -> ${codigo}`).toBeVisible();
@@ -218,7 +219,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
     const SUST = new Set(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'EI-SUST']);
     const problemas: string[] = [];
     const comAviso = new Set<string>();
-    for (const rota of ['/operacional?cadencia=semanal&periodo=12m', '/tatico?periodo=12m', '/estrategico?periodo=12m', '/operacional?cadencia=sustentacao&periodo=12m', '/espera-invisivel?periodo=12m&sust_periodo=12m']) {
+    for (const rota of ['/operacional?cadencia=semanal&periodo=12m', '/tatico?periodo=12m', '/estrategico?periodo=12m', '/operacional?cadencia=sustentacao&sust_periodo=12m', '/espera-invisivel?periodo=12m&sust_periodo=12m']) {
       await page.goto(rota);
       await prontos(page);
       await abrirMaisMetricas(page);
@@ -237,7 +238,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
     // Em 12 meses toda série afetada atravessa a mudança: a marcação tem de aparecer.
     for (const c of [...FLUXO, ...SUST]) if (!comAviso.has(c)) problemas.push(`${c}: afetada pela mudança de critério e sem aviso em 12 meses`);
     // Em 4 semanas nenhuma série nem janela de 12 semanas cruza março ou junho: nenhum aviso.
-    for (const rota of ['/operacional?cadencia=semanal&periodo=4s', '/tatico?periodo=4s', '/operacional?cadencia=sustentacao&periodo=4s']) {
+    for (const rota of ['/operacional?cadencia=semanal&periodo=4s', '/tatico?periodo=4s', '/operacional?cadencia=sustentacao&sust_periodo=4s']) {
       await page.goto(rota);
       await prontos(page);
       const donos = await page.getByTestId('aviso-criterio').evaluateAll((els) => els.map((e) => e.closest('[data-testid^="metrica-"]')?.getAttribute('data-testid') ?? 'fora'));
@@ -402,12 +403,12 @@ test.describe('SIS-ROB robustez', () => {
     });
   }
 
-  test('SIS-ROB-03 navegação rápida: 4 voltas pelos 8 destinos sem esperar carregar; termina íntegro e sem erro de página', async ({ page, problemas }) => {
+  test('SIS-ROB-03 navegação rápida: 4 voltas pelos destinos do menu sem esperar carregar; termina íntegro e sem erro de página', async ({ page, problemas }) => {
     await page.goto('/');
     const nav = page.getByRole('navigation', { name: 'Navegação principal' }).first();
     await expect(nav.getByRole('link').first()).toBeVisible();
     const destinos = await nav.getByRole('link').evaluateAll((as) => as.map((a) => a.getAttribute('href') ?? '').filter((h) => h.startsWith('/')));
-    expect(destinos.length).toBeGreaterThanOrEqual(7);
+    expect(destinos.length).toBeGreaterThanOrEqual(6); // a Sustentação deixou o menu (CA-1): 6 destinos de painel, mais Preferências e Ajuda quando presentes
     for (let volta = 0; volta < 4; volta++) for (const d of destinos) await nav.locator(`a[href="${d}"]`).first().click({ noWaitAfter: true });
     await expect(page).toHaveURL(new RegExp(`${destinos.at(-1)!.replace('?', '\\?')}$`));
     await prontos(page);

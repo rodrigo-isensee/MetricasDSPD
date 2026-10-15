@@ -73,7 +73,7 @@ test.describe('conteúdo do PDF (1280 px)', () => {
     await page.goto('/operacional?cadencia=semanal&periodo=4s');
     await aguardarPainel(page);
     await page.getByRole('button', { name: 'Exportar', exact: true }).click();
-    await expect(page.getByRole('dialog', { name: 'Exportar métricas' })).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Exportar · Operacional (fluxo de projeto)' })).toBeVisible();
     const { download, pdf } = await gerarEBaixar(page);
     expect(download.suggestedFilename()).toMatch(/^metricas-dspd_fluxo-operacional_\d{4}-\d{2}-\d{2}_ficticio\.pdf$/);
     expect(pdf.titulo).toContain('Métricas DSPD · Operacional');
@@ -209,7 +209,7 @@ for (const tela of TELAS) {
         expect(await semRolagemHorizontal(page)).toBe(true);
 
         await page.getByRole('button', { name: 'Exportar', exact: true }).click();
-        const dlg = page.getByRole('dialog', { name: 'Exportar métricas' });
+        const dlg = page.getByRole('dialog', { name: 'Exportar · Operacional (fluxo de projeto)' });
         await expect(dlg).toBeVisible();
         r = await rodarAxe(page);
         expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([]);

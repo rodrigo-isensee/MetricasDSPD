@@ -8,6 +8,9 @@ for (const w of [320, 375, 640, 768, 1024, 1180, 1280, 1920]) {
     for (const r of ROTAS) {
       await page.goto(r);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      // a visão Sustentação é carregada sob demanda (chunk + dados): mede só depois que o conteúdo da visão está na tela (mutação M3 do QA: sem esta espera o teste media o esqueleto)
+      if (r.includes('cadencia=sustentacao')) await expect(page.getByTestId('recorte-sustentacao')).toBeVisible();
+      await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 30_000 });
       const sobra = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(sobra, `${r} @${w}`).toBeLessThanOrEqual(0);
     }

@@ -63,11 +63,16 @@ export function pairwise(dims: Dim[]): Record<string, string>[][] {
   return escolhidas.map((t) => t.map((v, i) => dims[i]!.valores[v]!));
 }
 
-const urlDe = (rota: string, partes: Record<string, string>[]): string => {
-  const p = new URLSearchParams();
-  for (const parte of partes) for (const [k, v] of Object.entries(parte)) if (v !== '') p.set(k, v);
+/**
+ * `rota` pode já trazer a visão (`?cadencia=...`). Na Sustentação os filtros vivem com o prefixo `sust_` (CA-5, CA-6):
+ * `prefixo` vale para todo parâmetro de filtro, nunca para `cadencia`.
+ */
+const urlDe = (rota: string, partes: Record<string, string>[], prefixo = ''): string => {
+  const [caminho = '', busca = ''] = rota.split('?');
+  const p = new URLSearchParams(busca);
+  for (const parte of partes) for (const [k, v] of Object.entries(parte)) if (v !== '') p.set(k === 'cadencia' ? k : `${prefixo}${k}`, v);
   const s = p.toString().replaceAll('%2C', ',');
-  return s ? `${rota}?${s}` : rota;
+  return s ? `${caminho}?${s}` : caminho;
 };
 
 const dimEquipe: Dim = {
@@ -79,7 +84,7 @@ const dimSistema: Dim = { nome: 'sistema', valores: [{}, { sistema: 'fluig' }, {
 const dimPeriodoFluxo: Dim = { nome: 'periodo', valores: [{}, { periodo: '4s' }, { periodo: '6m' }, { periodo: '12m' }, CUSTOM] };
 
 /** Cenários por painel: rota, dimensões e o que esperar da barra. */
-const PAINEIS: { id: string; rota: string; dims: Dim[]; filtros: string[]; periodoPadrao: string }[] = [
+const PAINEIS: { id: string; rota: string; dims: Dim[]; filtros: string[]; periodoPadrao: string; prefixo?: string }[] = [
   {
     id: 'operacional-diaria',
     rota: '/operacional?cadencia=diaria',
@@ -89,7 +94,7 @@ const PAINEIS: { id: string; rota: string; dims: Dim[]; filtros: string[]; perio
   },
   {
     id: 'operacional-semanal',
-    rota: '/operacional?cadencia=diaria',
+    rota: '/operacional',
     dims: [dimEquipe, dimTipo, dimSistema, dimPeriodoFluxo, { nome: 'cadencia', valores: [{ cadencia: 'semanal' }] }],
     filtros: ['equipe', 'tipo', 'sistema', 'periodo'],
     periodoPadrao: '12s',
@@ -115,6 +120,7 @@ const PAINEIS: { id: string; rota: string; dims: Dim[]; filtros: string[]; perio
     ],
     filtros: ['equipe', 'prioridade', 'periodo'],
     periodoPadrao: '6m',
+    prefixo: 'sust_',
   },
 ];
 
@@ -190,8 +196,8 @@ const paramsOrdenados = (url: string): string =>
 
 /** Linha de base (sem filtros) por rota + cadência + período: cacheada no worker. */
 const LINHA_BASE = new Map<string, Retrato>();
-async function linhaBase(browser: Browser, rota: string, extras: Record<string, string>): Promise<Retrato> {
-  const url = urlDe(rota, [extras]);
+async function linhaBase(browser: Browser, rota: string, extras: Record<string, string>, prefixo = ''): Promise<Retrato> {
+  const url = urlDe(rota, [extras], prefixo);
   const salvo = LINHA_BASE.get(url);
   if (salvo) return salvo;
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' });
@@ -245,7 +251,7 @@ for (const painelCfg of PAINEIS) {
   const combos = pairwise(painelCfg.dims);
   test.describe(`IF-C ${painelCfg.id}: ${combos.length} combinações pairwise`, () => {
     combos.forEach((partes, i) => {
-      const url = urlDe(painelCfg.rota, partes);
+      const url = urlDe(painelCfg.rota, partes, painelCfg.prefixo);
       test(`IF-C-${painelCfg.id}-${String(i + 1).padStart(2, '0')} ${url}`, async ({ page, browser, problemas }) => {
         await page.goto(url);
         const r = await retrato(page);
@@ -276,7 +282,7 @@ for (const painelCfg of PAINEIS) {
         // 3) Cartões: os mesmos da linha de base (filtro não some cartão); nenhum em erro.
         const extras: Record<string, string> = {};
         for (const k of ['cadencia', 'periodo', 'de', 'ate']) if (sel[k]) extras[k] = sel[k];
-        const base = await linhaBase(browser, painelCfg.rota, extras);
+        const base = await linhaBase(browser, painelCfg.rota, extras, painelCfg.prefixo);
         expect(r.cartoes.map((c) => c.codigo)).toEqual(base.cartoes.map((c) => c.codigo));
         for (const c of r.cartoes) expect(['ok', 'vazio', 'insuficiente', 'pronto'], `${c.codigo} em ${c.estado}`).toContain(c.estado);
 
@@ -424,12 +430,14 @@ for (const caso of ROTAS_APLIC) {
 // ---------------------------------------------------------------------------------------------
 // IF-D: domínios separados na tela
 // ---------------------------------------------------------------------------------------------
-test('IF-D1 filtros de fluxo na URL da Sustentação são removidos e não mudam nenhum cartão', async ({ page }) => {
+test('IF-D1 filtros de fluxo na URL da Sustentação ficam guardados e não mudam nenhum cartão', async ({ page }) => {
   await page.goto('/operacional?cadencia=sustentacao');
   const limpo = await retrato(page);
-  await page.goto('/operacional?cadencia=sustentacao&tipo=incidente&sistema=protheus&cadencia=semanal');
+  // CA-6: os filtros do fluxo ficam guardados na URL (voltam nas visões Diária e Semanal) e não tocam nenhum cartão da Sustentação
+  await page.goto('/operacional?cadencia=sustentacao&tipo=incidente&sistema=protheus');
   const sujo = await retrato(page);
-  await expect.poll(() => new URL(page.url()).search).toBe('');
+  expect(paramsOrdenados(page.url())).toBe('cadencia=sustentacao&sistema=protheus&tipo=incidente');
+  expect(sujo.chips).toEqual([]);
   expect(sujo).toEqual(limpo);
 });
 
@@ -437,7 +445,7 @@ test('IF-D2 prioridade na URL de painéis de fluxo é removida e não muda nenhu
   for (const rota of ['/operacional?cadencia=diaria', '/tatico', '/estrategico']) {
     await page.goto(rota);
     const limpo = await retrato(page);
-    await page.goto(`${rota}?prioridade=p1,p2`);
+    await page.goto(`${rota}${rota.includes('?') ? '&' : '?'}prioridade=p1,p2`);
     const sujo = await retrato(page);
     await expect.poll(() => new URL(page.url()).searchParams.has('prioridade'), rota).toBe(false);
     expect(sujo, rota).toEqual(limpo);
@@ -498,22 +506,23 @@ test('IF-I01 marcar todas (uma a uma) e desmarcar todas, em cada filtro múltipl
     ['/operacional?cadencia=sustentacao', 'prioridade', PRIORIDADES],
   ];
   for (const [rota, filtro, ids] of casos) {
+    const chave = rota.includes('sustentacao') ? `sust_${filtro}` : filtro; // parâmetro da URL (a Sustentação prefixa)
     await page.goto(rota);
     await retrato(page);
     await page.getByTestId(`filtro-${filtro}`).click();
     for (const id of ids) await page.getByTestId(`${filtro}-opcao-${id}`).click();
-    await expect.poll(() => new URL(page.url()).searchParams.has(filtro), `${rota} ${filtro}: todas marcadas = Todos`).toBe(false);
+    await expect.poll(() => new URL(page.url()).searchParams.has(chave), `${rota} ${filtro}: todas marcadas = Todos`).toBe(false);
     await expect(page.getByTestId(`filtro-${filtro}`)).toHaveAttribute('aria-label', /: Tod[ao]s$/);
     // depois de "todas" (que vira Todos e desmarca as caixas), marcar uma volta a filtrar só por ela
     await page.getByTestId(`${filtro}-opcao-${ids[0]}`).click();
-    await expect.poll(() => new URL(page.url()).searchParams.get(filtro)).toBe(ids[0]);
+    await expect.poll(() => new URL(page.url()).searchParams.get(chave)).toBe(ids[0]);
     await page.getByTestId(`${filtro}-opcao-${ids[0]}`).click();
-    await expect.poll(() => new URL(page.url()).searchParams.has(filtro)).toBe(false);
+    await expect.poll(() => new URL(page.url()).searchParams.has(chave)).toBe(false);
     // botão "Limpar" do popover
     await page.getByTestId(`${filtro}-opcao-${ids[1]}`).click();
-    await expect.poll(() => new URL(page.url()).searchParams.get(filtro)).toBe(ids[1]);
+    await expect.poll(() => new URL(page.url()).searchParams.get(chave)).toBe(ids[1]);
     await page.getByRole('button', { name: 'Limpar', exact: true }).click();
-    await expect.poll(() => new URL(page.url()).searchParams.has(filtro)).toBe(false);
+    await expect.poll(() => new URL(page.url()).searchParams.has(chave)).toBe(false);
     await page.keyboard.press('Escape');
   }
 });
@@ -573,7 +582,7 @@ test('IF-I06 sob CPU 6x mais lenta: remover dois chips em sequência remove os d
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
   await page.getByRole('button', { name: 'Remover filtro Equipe: Fluig' }).click();
   await page.getByRole('button', { name: 'Remover filtro Tipo de demanda: Incidente' }).click();
-  await expect.poll(() => paramsOrdenados(page.url()), { timeout: 30_000 }).toBe('equipe=dados');
+  await expect.poll(() => paramsOrdenados(page.url()), { timeout: 30_000 }).toBe('cadencia=diaria&equipe=dados');
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
 });
 
@@ -587,7 +596,7 @@ test('IF-I07 mesmo tick, filtros diferentes (equipe e depois tipo) na folha de 3
     (document.querySelector('[role="dialog"] [data-testid="equipe-opcao-fluig"]') as HTMLInputElement).click();
     (document.querySelector('[role="dialog"] [data-testid="tipo-opcao-incidente"]') as HTMLInputElement).click();
   });
-  await expect.poll(() => paramsOrdenados(page.url())).toBe('equipe=fluig&tipo=incidente');
+  await expect.poll(() => paramsOrdenados(page.url())).toBe('cadencia=diaria&equipe=fluig&tipo=incidente');
 });
 
 test('IF-I08 teclado: Tab até o filtro, Espaço abre, Tab/Espaço marca, Esc fecha e devolve o foco', async ({ page }) => {
@@ -603,20 +612,20 @@ test('IF-I08 teclado: Tab até o filtro, Espaço abre, Tab/Espaço marca, Esc fe
   await page.keyboard.press('Space');
   await page.keyboard.press('Tab');
   await page.keyboard.press('Space'); // P2
-  await expect.poll(() => new URL(page.url()).searchParams.get('prioridade')).toBe('p1,p2');
+  await expect.poll(() => new URL(page.url()).searchParams.get('sust_prioridade')).toBe('p1,p2');
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('filtro-prioridade')).toBeFocused();
   await expect(page.getByTestId('filtro-prioridade')).toHaveAttribute('aria-label', 'Prioridade: 2 selecionadas');
   // Tab até "Limpar filtros" e Enter
   await page.getByTestId('limpar-filtros').focus();
   await page.keyboard.press('Enter');
-  await expect.poll(() => new URL(page.url()).search).toBe('');
+  await expect.poll(() => new URL(page.url()).search).toBe('?cadencia=sustentacao');
   // período por teclado: setas no grupo de rádio
   await page.getByTestId('filtro-periodo').focus();
   await page.keyboard.press('Enter');
   await page.getByRole('radio', { name: 'Últimos 6 meses' }).focus();
   await page.keyboard.press('ArrowDown');
-  await expect.poll(() => new URL(page.url()).searchParams.get('periodo')).toBe('12m');
+  await expect.poll(() => new URL(page.url()).searchParams.get('sust_periodo')).toBe('12m');
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('filtro-periodo')).toBeFocused();
 });
@@ -678,7 +687,7 @@ test('IF-I10 preferências ocultando cartões + filtros: ocultos continuam ocult
   await page.getByTestId('ocultar-O4').click();
   await expect(page.getByTestId('metrica-O4')).toHaveCount(0);
   expect(paramsOrdenados(page.url())).toBe('cadencia=semanal&equipe=senior&sistema=senior');
-  await page.goto('/operacional?cadencia=sustentacao&prioridade=p1');
+  await page.goto('/operacional?cadencia=sustentacao&sust_prioridade=p1');
   const s = await retrato(page);
   expect(s.cartoes.map((c) => c.codigo)).not.toContain('S1');
 });
@@ -713,7 +722,7 @@ test('IF-I12 combinações sem dados: estado vazio/insuficiente correto, nunca e
     '/tatico?equipe=dados&sistema=crm',
     '/espera-invisivel?equipe=senior&sistema=core-5g',
     '/estrategico?sistema=portal-do-cliente&periodo=6m',
-    '/operacional?cadencia=sustentacao&equipe=fluig&prioridade=p1&periodo=4s',
+    '/operacional?cadencia=sustentacao&sust_equipe=fluig&sust_prioridade=p1&sust_periodo=4s',
   ]) {
     await page.goto(url);
     const r = await retrato(page);
@@ -738,8 +747,8 @@ test('IF-I13 dois filtros diferentes em sequência na barra (sem esperar o paine
     await marcar(page, 'equipe', [sust ? 'senior' : 'fluig']);
     await marcar(page, sust ? 'prioridade' : 'tipo', [sust ? 'p2' : 'incidente']);
     const esperado = new URL(rota, 'http://x').searchParams;
-    esperado.set('equipe', sust ? 'senior' : 'fluig');
-    esperado.set(sust ? 'prioridade' : 'tipo', sust ? 'p2' : 'incidente');
+    esperado.set(sust ? 'sust_equipe' : 'equipe', sust ? 'senior' : 'fluig');
+    esperado.set(sust ? 'sust_prioridade' : 'tipo', sust ? 'p2' : 'incidente');
     await expect.poll(() => paramsOrdenados(page.url()), rota).toBe(paramsOrdenados(`http://x/?${esperado.toString()}`));
   }
 });
