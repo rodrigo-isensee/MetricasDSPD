@@ -30,7 +30,7 @@ await migrador.end();
 
 const pool = criarPool(urlDoPapel(urlMigrador, 'dspd_api', process.env.DSPD_PWD_API ?? 'api_dev'), { statementTimeoutMs: 10_000 });
 // Relógio fixo na data da base: `historico.fim` e a data de referência dependem de "hoje" e o mock tem a sua data fixa.
-const app = await buildApp({ db: pool, S, agora: () => new Date(base.config.hoje), nivelLog: 'silent', fonteDados: 'mock' });
+const app = await buildApp({ db: pool, S, agora: () => new Date(base.config.hoje), nivelLog: 'silent', fonteDados: 'mock', aquecer: true });
 
 let encerrando = false;
 const encerrar = async (): Promise<void> => {

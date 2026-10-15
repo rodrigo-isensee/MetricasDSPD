@@ -20,6 +20,9 @@ const QUERY_POR_FONTE = { ambos: queryVisaoGeralSchema, pesquisa: queryPesquisaS
 /** As tendências têm fonte própria (uma por métrica), mas não aceitam filtro: só `dataReferencia`. */
 const queryDe = (id: MetricaId): ZodType => (METRICAS_TENDENCIA.includes(id) ? queryTendenciaSchema : QUERY_POR_FONTE[fonteDaMetrica(id)]);
 
+/** Filtros que a rota monta para uma consulta sem parâmetros (usados no aquecimento: mesma chave de cache da consulta real). */
+export const filtrosPadraoDe = (id: MetricaId): FiltrosMetrica => (queryDe(id).parse({}) as ConsultaCalculo<FiltrosMetrica>).filtros;
+
 /** Itens do O2 ordenados por idade decrescente (desempate `cardId`); `tipos`, referências e contagens ficam do conjunto completo. */
 export function paginarO2(r: ResultadoO2, page = 1, pageSize?: number): ResultadoO2 & { itensMeta: { page: number; pageSize: number; total: number } } {
   const tamanho = pageSize ?? (page === 1 ? PAGINA_MAXIMA : PAGINA_PADRAO);
