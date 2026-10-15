@@ -8,6 +8,7 @@ import { criarDublePg, type Respondedor } from './duble-pg.js';
 const SEGREDO = 'segredo-de-teste-com-mais-de-16';
 const AGORA = new Date('2026-10-10T15:00:00Z');
 const URL = '/webhooks/businessmap';
+const EVENTO = '{"evento":"card_moved","card":{"id":1}}';
 
 async function montar(r: Respondedor = (c) => (c.texto.includes('stg_webhook_evento') ? [{ webhook_sk: '7' }] : [])) {
   const api = criarDublePg();
@@ -39,15 +40,33 @@ describe('POST /webhooks/businessmap', () => {
     expect(JSON.parse(wh.chamadas[2]!.valores[1] as string)).toEqual({ webhookSk: '7', payloadSha256: createHash('sha256').update(corpo).digest('hex') });
     expect(api.chamadas).toHaveLength(0);
   });
+  it('M-2: grava o registro da allow-list, nunca o corpo bruto; o hash é o do corpo bruto', async () => {
+    const { post, wh } = await montar();
+    const corpo = JSON.stringify({ evento: 'card_moved', card: { id: 10, column_id: 7, title: 'MARCADOR-X', description: 'MARCADOR-X' }, author: 'MARCADOR-X', text: 'MARCADOR-X', discard_comment: 'MARCADOR-X', user: { email: 'MARCADOR-X' } });
+    expect((await post(corpo)).statusCode).toBe(202);
+    const ins = wh.chamadas[1]!;
+    expect(ins.valores[0]).toEqual(createHash('sha256').update(corpo).digest());
+    expect(JSON.parse(ins.valores[1] as string)).toEqual({ evento: 'card_moved', card_id: 10, column_id: 7 });
+    expect(JSON.stringify(wh.chamadas.map((c) => c.valores))).not.toContain('MARCADOR-X');
+  });
+  it('M-2: tipo de evento fora da lista responde 202, não grava nada (nem outbox) e o log leva só o tipo', async () => {
+    const { post, wh, linhas } = await montar();
+    expect((await post('{"evento":"card_deleted","comment":"MARCADOR-X"}')).statusCode).toBe(202);
+    expect((await post('{"evento":"Fulano MARCADOR-X"}')).statusCode).toBe(202);
+    expect(wh.chamadas).toHaveLength(0);
+    const log = linhas.join('');
+    expect(log).toContain('card_deleted');
+    expect(log).not.toContain('MARCADOR-X');
+  });
   it('reenvio idêntico: 202 e nenhum evento novo', async () => {
     const { post, wh } = await montar((c) => (c.texto.includes('stg_webhook_evento') ? [] : []));
-    expect((await post('{"a":1}')).statusCode).toBe(202);
+    expect((await post(EVENTO)).statusCode).toBe(202);
     expect(wh.chamadas.map((c) => c.texto).filter((t) => t.includes('outbox'))).toHaveLength(0);
     expect(wh.chamadas.at(-1)!.texto).toBe('COMMIT');
   });
   it('falha no banco: rollback e 500 sem detalhe', async () => {
     const { post, wh } = await montar((c) => (c.texto.includes('outbox') ? new Error('senha=x') : [{ webhook_sk: '1' }]));
-    const r = await post('{"a":1}');
+    const r = await post(EVENTO);
     expect(r.statusCode).toBe(500);
     expect(r.body).not.toContain('senha');
     expect(wh.chamadas.at(-1)!.texto).toBe('ROLLBACK');
@@ -116,9 +135,9 @@ describe('segredoConfere e receberWebhook', () => {
   });
   it('devolve se a entrega era nova', async () => {
     const nova = criarDublePg(() => [{ webhook_sk: '1' }]);
-    expect(await receberWebhook(nova.pool, Buffer.from('{}'), {}, AGORA)).toBe(true);
+    expect(await receberWebhook(nova.pool, Buffer.from('{}'), { evento: 'card_moved' }, AGORA)).toBe('gravado');
     const repetida = criarDublePg(() => []);
-    expect(await receberWebhook(repetida.pool, Buffer.from('{}'), {}, AGORA)).toBe(false);
+    expect(await receberWebhook(repetida.pool, Buffer.from('{}'), { evento: 'card_moved' }, AGORA)).toBe('duplicado');
   });
 });
 
