@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   fraseDaSerie,
+  fraseDaSerieSla,
   marcacoesUnicas,
   mesPorExtenso,
   numeroAcimaP95,
@@ -211,6 +212,10 @@ describe('demais números', () => {
     ).toMatchObject({ valor: '1 de 2', status: 'fora', visao: 'sustentacao' })
     expect(numeroS1(s1([['dentro', true]]))).toMatchObject({ valor: '0 de 1', status: 'dentro' })
     expect(numeroS1(s1([['sem-referencia', false]])).valor).toBeNull()
+    // D-06: o S1 escreve o alvo, como S2, O3, O2 e O12
+    expect(numeroS1(s1([['dentro', true]])).meta).toBe(
+      'Meta: mediana dentro do alvo de cada prioridade',
+    )
   })
   it('S3: volume sempre publicado e P1+P2 em k de n quando há menos de 20', () => {
     const base = { base: { n: 951, unidade: 'chamados abertos' } }
@@ -290,6 +295,20 @@ describe('séries mensais', () => {
         },
       ],
     } as never
+    // D-08: a frase diz o que foi contado (abaixo de 90%)
+    expect(fraseDaSerieSla([{ mes: '2026-09', valor: 2, n: 5, texto: '2 de 5 avaliadas' }])).toBe(
+      'Em setembro: 2 de 5 prioridades avaliadas estão abaixo de 90%.',
+    )
+    expect(fraseDaSerieSla([{ mes: '2026-09', valor: 1, n: 5, texto: '1 de 5 avaliadas' }])).toBe(
+      'Em setembro: 1 de 5 prioridades avaliadas está abaixo de 90%.',
+    )
+    expect(fraseDaSerieSla([])).toBe('')
+    expect(fraseDaSerieSla([{ mes: '2026-07', valor: null, n: 0, texto: 'não publicado' }])).toBe(
+      'Em julho: não publicado. Valor não publicado.',
+    )
+    expect(fraseDaSerieSla([{ mes: '2026-07', valor: 0, n: null, texto: '0' }])).toBe(
+      'Em julho: 0 de 0 prioridades avaliadas estão abaixo de 90%.',
+    )
     expect(serieSla(t)).toEqual([
       { mes: '2026-08', valor: 1, n: 2, texto: '1 de 2 avaliadas' },
       {

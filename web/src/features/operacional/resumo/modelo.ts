@@ -164,6 +164,7 @@ export function numeroS1(s1: ResultadoDe<'S1'>): NumeroModelo {
     valor: m > 0 ? `${fmtInteiro(k)} de ${fmtInteiro(m)}` : null,
     unidade: plural(m, 'prioridade avaliada', 'prioridades avaliadas'),
     base: `${fmtInteiro(s1.base.n)} ${s1.base.unidade}`,
+    meta: 'Meta: mediana dentro do alvo de cada prioridade',
     ...(m > 0 ? { status: k > 0 ? ('fora' as const) : ('dentro' as const) } : {}),
     ...(m > 0 ? {} : { insuficiente: NENHUMA }),
     visao: 'sustentacao',
@@ -283,6 +284,15 @@ export const serieVolume = (t: ResultadoDe<'TENDENCIA_SUST'>): PontoMensal[] =>
     n: m.volume,
     texto: `${fmtInteiro(m.volume)} ${plural(m.volume, 'chamado', 'chamados')}`,
   }))
+
+/** Frase da série de SLA: diz o que foi contado (abaixo de 90%), para "2 de 5" não ser lido como "2 estão bem". */
+export function fraseDaSerieSla(pontos: readonly PontoMensal[]): string {
+  const ultimo = pontos.at(-1)
+  if (!ultimo) return ''
+  const mes = mesPorExtenso(ultimo.mes)
+  if (ultimo.valor === null) return `Em ${mes}: ${ultimo.texto}. Valor não publicado.`
+  return `Em ${mes}: ${fmtInteiro(ultimo.valor)} de ${fmtInteiro(ultimo.n ?? 0)} prioridades avaliadas ${ultimo.valor === 1 ? 'está' : 'estão'} abaixo de 90%.`
+}
 
 /** Frase de leitura, sem adjetivos: "Em setembro: 14 dias úteis, 2 a menos que em agosto." */
 export function fraseDaSerie(pontos: readonly PontoMensal[], comparar: boolean): string {

@@ -21,6 +21,8 @@ export interface SerieMensalProps {
   colunaValor: string
   /** Teto fixo do eixo (ex.: 5 prioridades). */
   eixoMax?: number
+  /** Texto do vazio (a unidade da regra dos 20 muda por fonte). */
+  vazio?: string
 }
 
 /** Posição da mudança de critério no eixo: o primeiro mês em/depois da data. */
@@ -42,6 +44,7 @@ export function SerieMensal({
   frase,
   colunaValor,
   eixoMax,
+  vazio = 'Ainda não há histórico suficiente: nenhum dos últimos 6 meses atinge 20 itens.',
 }: SerieMensalProps) {
   const [tabela, setTabela] = useState(false)
   const idTitulo = useId()
@@ -63,7 +66,6 @@ export function SerieMensal({
         </div>
         {!semHistorico && pontos.length > 0 && (
           <Botao
-            aria-pressed={tabela}
             onClick={() => setTabela((t) => !t)}
             data-testid={`${id}-alternar`}
             className="text-xs"
@@ -74,7 +76,7 @@ export function SerieMensal({
       </div>
       {semHistorico || pontos.length === 0 ? (
         <p className="text-sm text-texto-2" data-testid={`${id}-vazio`}>
-          Ainda não há histórico suficiente: nenhum dos últimos 6 meses atinge 20 itens.
+          {vazio}
         </p>
       ) : tabela ? (
         <TabelaDados
@@ -97,7 +99,7 @@ export function SerieMensal({
         <figure className="m-0">
           <div
             role="img"
-            aria-label={resumo}
+            aria-label={titulo}
             className="h-[200px] w-full text-xs md:h-[160px]"
             data-testid={`${id}-grafico`}
           >

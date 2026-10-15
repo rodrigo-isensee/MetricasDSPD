@@ -2,7 +2,7 @@ import { JANELA_PERCENTIS_PADRAO, type ResultadoDe } from '@metricas-dspd/contra
 import { usePreferenciasPainel } from '@/components/ui'
 import type { MetricaQuery } from '@/data'
 import { textoJanela } from '@/lib/formatar'
-import { fraseDaSerie, marcacoesUnicas, serieSla, serieVolume } from './modelo'
+import { fraseDaSerie, fraseDaSerieSla, marcacoesUnicas, serieSla, serieVolume } from './modelo'
 import { SerieMensal } from './SerieMensal'
 import { EsqueletoTendencia, ErroTendencia } from './TendenciaFluxo'
 
@@ -39,9 +39,10 @@ export function TendenciaSustentacao({ q }: { q: MetricaQuery<ResultadoDe<'TENDE
           subtitulo={`Cada ponto: janela de ${JANELA} até o fim do mês; k de m prioridades avaliadas (20 chamados ou mais)`}
           unidade="prioridades"
           forma="linha"
+          vazio="Ainda não há histórico suficiente: nenhuma prioridade teve 20 chamados ou mais em nenhum dos últimos 6 meses."
           pontos={sla}
           marcacoes={marcacoesUnicas(t.criterios)}
-          frase={fraseDaSerie(sla, false)}
+          frase={fraseDaSerieSla(sla)}
           colunaValor="Fora do alvo (k de m avaliadas)"
           eixoMax={5}
         />

@@ -47,6 +47,43 @@ describe('seletor Visão (CA-2, CA-19)', () => {
     await waitFor(() => expect(visaoMarcada()).toBe('Semanal'), { timeout: 15000 })
   })
 
+  it('Voltar e a troca de hash também anunciam a visão (D-02)', async () => {
+    const r = renderizarApp('/operacional?cadencia=semanal')
+    await screen.findByRole('radiogroup', { name: 'Visão' })
+    expect(screen.getByTestId('anuncio-visao')).toBeEmptyDOMElement()
+    await userEvent.click(screen.getByRole('radio', { name: 'Diária' }))
+    await waitFor(() =>
+      expect(screen.getByTestId('anuncio-visao')).toHaveTextContent(
+        'Visão Diária. Fonte: BusinessMap.',
+      ),
+    )
+    await r.roteador.navigate(-1)
+    await waitFor(() =>
+      expect(screen.getByTestId('anuncio-visao')).toHaveTextContent(
+        'Visão Semanal. Fonte: BusinessMap.',
+      ),
+    )
+    await r.roteador.navigate('/operacional?cadencia=semanal#s1')
+    await waitFor(() =>
+      expect(screen.getByTestId('anuncio-visao')).toHaveTextContent(
+        'Visão Sustentação. Fonte: Acelerato.',
+      ),
+    )
+  })
+
+  it('"Ver na Sustentação" do Resumo anuncia a visão e leva o foco ao título, não ao body (D-02, D-03)', async () => {
+    renderizarApp('/operacional')
+    const nota = await screen.findByTestId('nota-janelas-alerta', undefined, { timeout: 15000 })
+    await userEvent.click(within(nota).getByRole('link', { name: 'Ver na Sustentação' }))
+    await waitFor(() => expect(visaoMarcada()).toBe('Sustentação'), { timeout: 15000 })
+    expect(screen.getByTestId('anuncio-visao')).toHaveTextContent(
+      'Visão Sustentação. Fonte: Acelerato.',
+    )
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 })),
+    )
+  })
+
   it('seta no grupo de rádio troca a visão e cada seta é uma entrada de histórico (A7)', async () => {
     const r = renderizarApp('/operacional?cadencia=diaria')
     const radio = await screen.findByRole('radio', { name: 'Diária' })

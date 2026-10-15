@@ -193,7 +193,10 @@ describe('Resumo: tendência (CA-27)', () => {
       /P85 do tempo de ciclo · Melhoria, em dias úteis, últimos 6 meses/,
     )
     expect(p85).toHaveTextContent('Cada ponto: janela de 12 semanas até o fim do mês')
-    expect(within(p85).getByRole('img')).toHaveAccessibleName(/abril: .*setembro: /)
+    expect(within(p85).getByRole('img')).toHaveAccessibleName(
+      'P85 do tempo de ciclo · Melhoria, em dias úteis, últimos 6 meses',
+    )
+    expect(within(p85).getByRole('img').closest('figure')).toHaveTextContent(/abril: .*setembro: /)
     expect(within(p85).getByTestId('tendencia-fluxo-p85-frase')).toHaveTextContent(
       /^Em setembro: \d+ dias úteis, \d+ a (mais|menos) que em agosto\.$|^Em setembro: \d+ dias úteis, igual a agosto\.$/,
     )
@@ -211,7 +214,7 @@ describe('Resumo: tendência (CA-27)', () => {
     const sla = screen.getByTestId('tendencia-sustentacao-sla')
     expect(sla).toHaveTextContent('Cada ponto: janela de 12 semanas até o fim do mês')
     expect(within(sla).getByTestId('tendencia-sustentacao-sla-frase')).toHaveTextContent(
-      /^Em setembro: \d+ de \d+ avaliadas\.$/,
+      /^Em setembro: \d+ de \d+ prioridades avaliadas (está|estão) abaixo de 90%\.$/,
     )
   })
 
@@ -308,6 +311,17 @@ describe('Resumo: tendência (CA-27)', () => {
 })
 
 describe('Resumo: alertas por fonte (CA-28)', () => {
+  it('"Pede atenção" é h3 dentro do bloco da fonte, nunca um h2 irmão do título do bloco (D-01)', async () => {
+    renderizarApp('/operacional?mock=sem-calibracao')
+    for (const id of ['resumo-fluxo', 'resumo-sustentacao'] as const) {
+      const b = await bloco(id)
+      const faixa = await within(b).findByTestId('faixa-atencao')
+      expect(within(faixa).getByRole('heading', { level: 3, name: /^Pede atenção/ })).toBeVisible()
+      expect(within(b).getAllByRole('heading', { level: 2 })).toHaveLength(1)
+    }
+    expect(screen.queryByRole('heading', { level: 2, name: /Pede atenção/ })).toBeNull()
+  })
+
   it('títulos por fonte, itens das regras atuais e links que levam à visão dona com o hash', async () => {
     renderizarApp('/operacional?mock=sem-calibracao')
     const fluxo = await bloco('resumo-fluxo')

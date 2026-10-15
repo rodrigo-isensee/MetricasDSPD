@@ -156,10 +156,20 @@ describe('SerieMensal', () => {
       'n=14 · não publicado',
     )
     expect(within(t).getByRole('row', { name: /abr\/2026/ })).toHaveTextContent('publicado')
-    expect(screen.getByRole('button', { name: 'Ver como gráfico' })).toHaveAttribute(
+    // D-05a: o nome já muda; sem aria-pressed ("Ver como gráfico, pressionado" se contradiz).
+    expect(screen.getByRole('button', { name: 'Ver como gráfico' })).not.toHaveAttribute(
       'aria-pressed',
-      'true',
     )
+  })
+  it('o gráfico não é lido em dobro: o nome do img é o título e o resumo fica só na legenda (D-05b)', () => {
+    render(serie())
+    const grafico = screen.getByTestId('t-grafico')
+    expect(grafico.getAttribute('aria-label')).not.toMatch(/abr/i)
+    expect(grafico.closest('figure')?.querySelector('figcaption')).toHaveTextContent(/abr/i)
+  })
+  it('vazio com texto próprio da fonte (D-08)', () => {
+    render(serie({ pontos: pontos(null, null), vazio: 'nenhuma prioridade teve 20 chamados' }))
+    expect(screen.getByTestId('t-vazio')).toHaveTextContent('nenhuma prioridade teve 20 chamados')
   })
   it('tabela com base ausente mostra "—"', async () => {
     render(

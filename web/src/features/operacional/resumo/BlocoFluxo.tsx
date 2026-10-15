@@ -85,6 +85,7 @@ function ConteudoFluxo() {
   return (
     <>
       <FaixaAtencao
+        nivel="h3"
         titulo="Pede atenção · Fluxo de projeto (BusinessMap)"
         vazio="Nada pede atenção no fluxo de projeto agora."
         janela={`Janela: últimas ${textoPeriodoCurto(f.periodo)}`}

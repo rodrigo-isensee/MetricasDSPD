@@ -1,5 +1,5 @@
-import { lazy, Suspense, useRef, useState } from 'react'
-import { Link, useSearchParams, type Location } from 'react-router'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams, type Location } from 'react-router'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { EsqueletoCartao } from '@/components/ui'
 import { LinhaFiltrosGuardados } from '@/features/filtros'
@@ -117,11 +117,30 @@ const tituloDaPagina = (l: Pick<Location, 'search' | 'hash'>): string =>
 export default function OperacionalPage() {
   const { visao, escolher } = useVisaoOperacional()
   const [anuncio, setAnuncio] = useState('')
+  const { hash } = useLocation()
   const focoPendenteRef = useRef(false)
+  const viaSeletorRef = useRef(false)
+  const visaoAnterior = useRef(visao)
   const aoEscolher = (v: Visao) => {
-    setAnuncio(ANUNCIO_DA_VISAO[v])
+    viaSeletorRef.current = true
     escolher(v)
   }
+  // O anúncio sai da visão resolvida, não do handler do seletor: Voltar, links "Ver na..." e hash também anunciam.
+  // A montagem inicial não anuncia (a visão anterior começa igual à atual).
+  useEffect(() => {
+    if (visaoAnterior.current === visao) return
+    visaoAnterior.current = visao
+    setAnuncio(ANUNCIO_DA_VISAO[visao])
+    const viaSeletor = viaSeletorRef.current
+    viaSeletorRef.current = false
+    // Troca por link sem hash: o link some da tela e o foco cairia no body; vai ao título da página (D-03).
+    // Pelo seletor o foco volta ao rádio; com hash o foco vai ao cartão.
+    if (viaSeletor || hash) return
+    // O h1 sempre existe nas quatro visões (molde da página).
+    const h1 = document.querySelector('h1') as HTMLElement
+    h1.tabIndex = -1
+    h1.focus({ preventScroll: true })
+  }, [visao, hash])
   const seletor = (
     <SeletorVisao visao={visao} onEscolher={aoEscolher} focoPendenteRef={focoPendenteRef} />
   )

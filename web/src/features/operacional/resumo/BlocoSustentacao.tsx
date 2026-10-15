@@ -33,6 +33,7 @@ function ConteudoSustentacao() {
   return (
     <>
       <FaixaAtencao
+        nivel="h3"
         titulo="Pede atenção · Sustentação (Acelerato)"
         vazio={`Nada pede atenção na Sustentação nas últimas ${JANELA_ALERTA}.`}
         janela={`Janela: últimas ${JANELA_ALERTA}`}
