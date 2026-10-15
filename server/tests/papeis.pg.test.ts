@@ -1,5 +1,7 @@
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
+import { aplicarGrants } from '../src/plataforma/db/migrar.js';
 import { hash, novaColeta, poolDe, S, unico, url } from './pg/ctx.js';
 
 const d = describe.skipIf(!url);
@@ -81,5 +83,41 @@ d('papéis e privilégios (conectando como cada papel)', () => {
     const por = Object.fromEntries(r.rows.map((x) => [x.chamado_id, x.dentro_sla]));
     expect(por).toEqual({ [on]: true, [oc]: false, [oe]: null });
     await expect(coletor.query(`INSERT INTO ${S.ac}.dim_chamado (chamado_id, status_sla_r, coletado_em, atualizado_por_coleta_id) VALUES ($1, 'dentro', now(), 1)`, [unico('o')])).rejects.toMatchObject({ code: '23514' });
+  });
+});
+
+/** K-085 (ADR 0020, M-4 e B-3): colunas e tabelas fora da API, num conjunto de schemas isolado, aplicando o `aplicarGrants` real. */
+d('grants: colunas e tabelas fora da API (dspd_api)', () => {
+  let dono: pg.Pool, api: pg.Pool, coletor: pg.Pool;
+  const E = montarEsquemas(`t${unico('k').slice(1, 7)}_`);
+  beforeAll(async () => {
+    dono = poolDe(); api = poolDe('dspd_api'); coletor = poolDe('dspd_coletor');
+    for (const s of [E.bm, E.ac, E.core]) await dono.query(`CREATE SCHEMA ${s}`);
+    await dono.query(`CREATE TABLE ${E.bm}.agg_conhecimento_sistema (sistema_codigo text, faixa_concentracao smallint, tem_entrega boolean, entregas int)`);
+    await dono.query(`CREATE TABLE ${E.bm}.ref_conta_automacao (conta_id text, motivo text, confirmado_em date)`);
+    await dono.query(`CREATE TABLE ${E.bm}.ref_quadro (quadro_id text)`);
+    // o `gerarGrants` concede nestas duas de forma incondicional
+    await dono.query(`CREATE TABLE ${E.bm}.stg_webhook_evento (webhook_sk bigint, payload_sha256 bytea)`);
+    await dono.query(`CREATE TABLE ${E.ac}.ctl_automacao (automacao_sk bigint)`);
+    await dono.query(`INSERT INTO ${E.bm}.agg_conhecimento_sistema VALUES ('s', 1, true, 4)`);
+    await dono.query(`INSERT INTO ${E.bm}.ref_conta_automacao VALUES ('robo', 'm', now())`);
+    await dono.query(`INSERT INTO ${E.bm}.ref_quadro VALUES ('q')`);
+    await aplicarGrants(dono, E);
+  });
+  afterAll(async () => {
+    for (const s of [E.bm, E.ac, E.core]) await dono.query(`DROP SCHEMA IF EXISTS ${s} CASCADE`);
+    await Promise.all([dono, api, coletor].map((p) => p.end()));
+  });
+
+  it('api lê tem_entrega e a faixa; entregas e SELECT * falham com 42501', async () => {
+    expect((await api.query(`SELECT faixa_concentracao, tem_entrega FROM ${E.bm}.agg_conhecimento_sistema`)).rows).toEqual([{ faixa_concentracao: 1, tem_entrega: true }]);
+    await expect(api.query(`SELECT entregas FROM ${E.bm}.agg_conhecimento_sistema`)).rejects.toMatchObject({ code: '42501' });
+    await expect(api.query(`SELECT * FROM ${E.bm}.agg_conhecimento_sistema`)).rejects.toMatchObject({ code: '42501' });
+  });
+  it('api não lê ref_conta_automacao; lê as demais ref_; o coletor lê a lista', async () => {
+    await expect(api.query(`SELECT 1 FROM ${E.bm}.ref_conta_automacao`)).rejects.toMatchObject({ code: '42501' });
+    await expect(api.query(`SELECT conta_id FROM ${E.bm}.ref_conta_automacao`)).rejects.toMatchObject({ code: '42501' });
+    expect((await api.query(`SELECT quadro_id FROM ${E.bm}.ref_quadro`)).rows).toHaveLength(1);
+    expect((await coletor.query(`SELECT conta_id FROM ${E.bm}.ref_conta_automacao`)).rows).toHaveLength(1);
   });
 });

@@ -140,6 +140,16 @@ describe('gerarGrants', () => {
     expect(api).toContain('GRANT SELECT ON t_dspd_bm.rec_transicao_par TO dspd_api');
     expect(api.some((x) => /pgmigrations|outbox/.test(x))).toBe(false);
   });
+  it('dspd_api: coluna fora da API (M-4) e tabela fora da API (B-3) não entram no GRANT; o coletor ainda lê a ref', () => {
+    const cat2: Catalogo = { ...cat, bm: { ...cat.bm, agg_conhecimento_sistema: ['sistema_codigo', 'faixa_concentracao', 'tem_entrega', 'entregas'],
+      ref_conta_automacao: ['conta_id', 'motivo', 'confirmado_em', 'vigente_ate'] } };
+    const g2 = gerarGrants(S, cat2);
+    const api = g2.filter((x) => x.endsWith('TO dspd_api'));
+    expect(api).toContain('GRANT SELECT (sistema_codigo, faixa_concentracao, tem_entrega) ON t_dspd_bm.agg_conhecimento_sistema TO dspd_api');
+    expect(api.join('\n')).not.toMatch(/entregas|ref_conta_automacao/);
+    expect(g2).toContain('GRANT SELECT ON t_dspd_bm.ref_conta_automacao TO dspd_coletor');
+    expect(api).toContain('GRANT SELECT ON t_dspd_bm.ref_x TO dspd_api');
+  });
   it('coletor: staging só SELECT/INSERT; ctl_coleta só colunas da execução; outbox por coluna', () => {
     expect(g).toContain('GRANT SELECT, INSERT ON t_dspd_bm.stg_card TO dspd_coletor');
     expect(g).toContain('GRANT UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo) ON t_dspd_bm.ctl_coleta TO dspd_coletor');
