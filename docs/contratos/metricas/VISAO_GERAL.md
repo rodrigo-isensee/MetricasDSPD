@@ -1,6 +1,6 @@
 # Contrato da métrica VISAO_GERAL
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica VISAO_GERAL. Público: time (back-end, front-end, QA). Revisão: 2026-10-13.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica VISAO_GERAL. Público: time (back-end, front-end, QA). Revisão: 2026-10-14.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -167,7 +167,9 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.VISAO_GERAL`); a fotografia versio
                     "EI_FL2",
                     "EI_FL3",
                     "EI_SUST",
-                    "VISAO_GERAL"
+                    "VISAO_GERAL",
+                    "TENDENCIA_FLUXO",
+                    "TENDENCIA_SUST"
                   ]
                 },
                 "codigo": {"type":"string"},

@@ -46,7 +46,15 @@ describe('Operacional semanal: estrutura', () => {
       within(nav)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Tempo', 'Fluxo', 'Compromissos', 'Backlog', 'Qualidade', 'Espera invisível'])
+    ).toEqual([
+      'Tempo',
+      'Fluxo',
+      'Compromissos',
+      'Backlog',
+      'Qualidade',
+      'Espera invisível',
+      'Mais métricas',
+    ])
   })
 })
 

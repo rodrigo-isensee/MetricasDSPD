@@ -4,6 +4,8 @@ import type {
   MetricaId,
   PaginaColetas,
   ResultadoPV1,
+  ResultadoTendenciaFluxo,
+  ResultadoTendenciaSust,
 } from '@metricas-dspd/contratos'
 import { fonteDaMetrica } from '@metricas-dspd/contratos'
 
@@ -21,6 +23,8 @@ import { fonteDaMetrica } from '@metricas-dspd/contratos'
  *   sem-calibracao          nenhuma janela de calibração vigente (cartões mostram Dentro/Fora da meta)
  *   pesquisa:sem            PV1 no estado "sem pesquisa" (nenhuma carga da pesquisa)
  *   pesquisa:insuficiente   PV1 com 4 respostas no trimestre (base insuficiente, sem faixas nem percentuais)
+ *   tendencia-poucos        Resumo do Operacional: meses com menos de 20 itens nas duas tendências (junho no fluxo;
+ *                           junho com 3 prioridades e julho sem nenhuma, na Sustentação), para ver o marcador vazado
  * (`carregando` também deixa o estado de coleta carregando.)
  * O parâmetro vale só para a página que o contém: os links não o propagam nem o "Copiar link".
  */
@@ -36,6 +40,7 @@ export type ModoMock =
   | 'sem-calibracao'
   | 'pesquisa:sem'
   | 'pesquisa:insuficiente'
+  | 'tendencia-poucos'
 
 const DOMINIO_DA_SIGLA: Record<SiglaFonte, Dominio> = { bm: 'businessmap', ac: 'acelerato' }
 
@@ -51,7 +56,7 @@ export function lerModoMock(valor: string | null): ModoMock | null {
   if (!valor) return null
   const v = valor.trim().toLowerCase()
   if (v === 'carregando' || v === 'erro' || v === 'vazio' || v === 'sem-calibracao') return v
-  if (v === 'pesquisa:sem' || v === 'pesquisa:insuficiente') return v
+  if (v === 'pesquisa:sem' || v === 'pesquisa:insuficiente' || v === 'tendencia-poucos') return v
   if (/^coleta-(atrasada|vazia|erro):(bm|ac)$/.test(v)) return v as ModoMock
   if (/^(erro|erro-uma-vez):[a-z0-9_-]+(,[a-z0-9_-]+)*$/.test(v)) return v as ModoMock
   return null
@@ -68,6 +73,8 @@ function idsDoModo(modo: ModoMock, prefixo: 'erro:' | 'erro-uma-vez:'): string[]
 export const ehErroDePainel = (modo: ModoMock | null): boolean => modo === 'erro'
 
 const SEM_DADOS = '__sem-dados__'
+
+const ehTendencia = (id: MetricaId): boolean => id === 'TENDENCIA_FLUXO' || id === 'TENDENCIA_SUST'
 
 /** Filtros que não casam com nenhum registro, para forçar o estado vazio sem tocar nos DTOs. */
 export function filtrosSemDados<F>(id: MetricaId, filtros: F): F {
@@ -99,6 +106,60 @@ function pesquisaInsuficiente(r: unknown): unknown {
   } satisfies ResultadoPV1
 }
 
+const POUCOS = 14
+
+/** Mês da tendência do fluxo com todos os tipos abaixo de 20 itens na janela (estatística não publicada). */
+function fluxoComPoucos(r: ResultadoTendenciaFluxo): ResultadoTendenciaFluxo {
+  return {
+    ...r,
+    meses: r.meses.map((m, i) =>
+      i === 2
+        ? {
+            ...m,
+            p85PorTipo: m.p85PorTipo.map((c) => ({
+              ...c,
+              n: POUCOS,
+              estatistica: {
+                status: 'insuficiente' as const,
+                n: POUCOS,
+                minimo: 20 as const,
+                janela: m.janelaPercentis,
+              },
+            })),
+          }
+        : m,
+    ),
+  }
+}
+
+/** Tendência da Sustentação: em junho a P2 fica com menos de 20 chamados (sobram 3 prioridades avaliadas) e em julho nenhuma prioridade chega a 20. */
+function sustComPoucos(r: ResultadoTendenciaSust): ResultadoTendenciaSust {
+  const sem = (
+    c: ResultadoTendenciaSust['meses'][number]['prioridades'][number]['restauracao'],
+  ) => ({
+    taxa: { status: 'insuficiente' as const, k: 0, n: POUCOS, minimo: 20 as const },
+    statusMeta: c.statusMeta === 'sem-referencia' ? c.statusMeta : ('sem-referencia' as const),
+  })
+  return {
+    ...r,
+    meses: r.meses.map((m, i) => {
+      if (i !== 2 && i !== 3) return m
+      return {
+        ...m,
+        prioridades: m.prioridades.map((p) =>
+          i === 3 || p.prioridade === 'P2'
+            ? {
+                ...p,
+                primeiroAtendimento: sem(p.primeiroAtendimento),
+                restauracao: sem(p.restauracao),
+              }
+            : p,
+        ),
+      }
+    }),
+  }
+}
+
 /**
  * Aplica o modo simulado à chamada de dados. Sem modo, repassa. `jaFalhou` guarda os ids que já
  * falharam em `erro-uma-vez` (a recuperação com "Tentar de novo" precisa de estado entre chamadas).
@@ -126,6 +187,12 @@ export async function aplicarSimulacao<F, R>(
     if (modo === 'pesquisa:sem') return { status: 'sem-pesquisa', fonte: 'pesquisa' } as R
     return pesquisaInsuficiente(await obter(filtros)) as R
   }
+  if (modo === 'tendencia-poucos' && id === 'TENDENCIA_FLUXO')
+    return fluxoComPoucos((await obter(filtros)) as ResultadoTendenciaFluxo) as R
+  if (modo === 'tendencia-poucos' && id === 'TENDENCIA_SUST')
+    return sustComPoucos((await obter(filtros)) as ResultadoTendenciaSust) as R
+  // Tendência sem histórico: o resultado real, sem nenhum mês (nenhum filtro vai para a API).
+  if (modo === 'vazio' && ehTendencia(id)) return { ...(await obter(filtros)), meses: [] }
   if (modo === 'vazio' && id !== 'VISAO_GERAL') return obter(filtrosSemDados(id, filtros))
   return obter(filtros)
 }

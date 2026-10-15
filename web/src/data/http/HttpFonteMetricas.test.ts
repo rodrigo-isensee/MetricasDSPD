@@ -11,6 +11,13 @@ const json = (corpo: unknown, status = 200, id = 'req-12345678') =>
     headers: { 'Content-Type': 'application/json', 'X-Request-Id': id },
   })
 
+describe('filtrosParaQuery: tendências', () => {
+  it('só a data de referência vai na query (a API recusa qualquer filtro nelas)', () => {
+    expect(filtrosParaQuery({ dataReferencia: '2026-09-30' })).toBe('dataReferencia=2026-09-30')
+    expect(filtrosParaQuery({})).toBe('')
+  })
+})
+
 describe('filtrosParaQuery', () => {
   it('omite "Todos", serializa listas em CSV e converte o tipo para o id', () => {
     expect(filtrosParaQuery(FLUXO)).toBe('periodo=12s')

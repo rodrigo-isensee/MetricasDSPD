@@ -1,11 +1,15 @@
 // Constantes compartilhadas pelos testes. Ver docs/qa/plano-testes-dashboard-mock.md.
 export const ROTAS = {
   visaoGeral: '/',
-  operacional: '/operacional',
+  /** A visão Diária (antes o padrão): os specs que tratam da faixa do dia partem desta URL. */
+  operacional: '/operacional?cadencia=diaria',
+  /** O Resumo é o padrão de `/operacional` (sem parâmetro). */
+  operacionalResumo: '/operacional',
   operacionalSemanal: '/operacional?cadencia=semanal',
   tatico: '/tatico',
   estrategico: '/estrategico',
-  sustentacao: '/sustentacao',
+  /** A Sustentação é uma visão do Operacional (a antiga `/sustentacao` só redireciona). */
+  sustentacao: '/operacional?cadencia=sustentacao',
   ajuda: '/ajuda',
   naoEncontrada: '/rota-inexistente',
 } as const;
@@ -46,7 +50,9 @@ export const DATA_CORTE = '09/10/2026';
 /** As 6 rotas de painel (Lighthouse, perf, axe, varreduras). */
 export const ROTAS_PAINEL = [
   ROTAS.visaoGeral,
+  ROTAS.operacionalResumo,
   ROTAS.operacional,
+  ROTAS.operacionalSemanal,
   ROTAS.tatico,
   ROTAS.estrategico,
   ROTAS.sustentacao,
@@ -55,10 +61,12 @@ export const ROTAS_PAINEL = [
 /** Slug de `painel-{slug}` por rota (spec 10, convenção L5). */
 export const SLUG_PAINEL = {
   [ROTAS.visaoGeral]: 'visao-geral',
+  [ROTAS.operacionalResumo]: 'operacional',
   [ROTAS.operacional]: 'operacional',
+  [ROTAS.operacionalSemanal]: 'operacional',
   [ROTAS.tatico]: 'tatico',
   [ROTAS.estrategico]: 'estrategico',
-  [ROTAS.sustentacao]: 'sustentacao',
+  [ROTAS.sustentacao]: 'operacional',
   [ROTAS.ajuda]: 'ajuda',
 } as const;
 

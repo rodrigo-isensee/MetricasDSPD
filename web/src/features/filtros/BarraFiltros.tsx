@@ -1,5 +1,5 @@
 import { Dialog } from 'radix-ui'
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Botao, Dica, Icone } from '@/components/ui'
 import { useAlturaCss } from '@/lib/useAlturaCss'
 import type { FiltrosFluxo, FiltrosSustentacao, OpcaoFiltro } from '@metricas-dspd/contratos'
@@ -9,6 +9,7 @@ import { AvisoFiltrosInvalidos } from './AvisoFiltrosInvalidos'
 import { ChipsFiltros } from './ChipsFiltros'
 import { FiltroMulti } from './FiltroMulti'
 import { FiltroPeriodo } from './FiltroPeriodo'
+import { rotuloDoFiltro } from './paineis'
 import type { UseFiltros } from './useFiltros'
 
 type Uso = UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
@@ -16,10 +17,11 @@ type Uso = UseFiltros<FiltrosFluxo> | UseFiltros<FiltrosSustentacao>
 const TEXTO_ESTRATEGICO =
   'O nível estratégico olha projetos, que envolvem várias equipes. Por isso não há filtro por equipe.'
 const TEXTO_TIPO =
-  'Aqui são cards do BusinessMap. Chamados do Acelerato estão no painel Sustentação.'
+  'Aqui são cards do BusinessMap. Chamados do Acelerato estão na visão Sustentação do Operacional.'
 
 function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' }) {
   const { config, opcoes } = uso
+  const rotuloEquipe = rotuloDoFiltro('equipe', config.dominio)
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   const definir = uso.definir
   const tiposOpc: OpcaoFiltro[] = TIPOS_FILTRO.map((t) => ({ id: TIPO_ID[t], nome: t }))
@@ -30,7 +32,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
       {config.filtros.includes('equipe') && (
         <FiltroMulti
           id="equipe"
-          rotulo="Equipe"
+          rotulo={rotuloEquipe}
           opcoes={opcoes?.equipes ?? []}
           selecionados={f.equipe}
           variante={variante}
@@ -100,7 +102,20 @@ const listaE = (v: readonly string[]): string =>
  * ativos, "Limpar filtros", anúncio para leitores de tela e folha em telas estreitas. Fixa (sticky)
  * a partir de 768 px, sem cobrir o foco (scroll-padding no CSS).
  */
-export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategico?: boolean }) {
+export function BarraFiltros({
+  uso,
+  estrategico = false,
+  legenda,
+  onde,
+}: {
+  uso: Uso
+  estrategico?: boolean
+  /** Quando a página tem duas fontes, o nome da fonte dos filtros ("Filtros da Sustentação · Acelerato"). */
+  legenda?: string
+  /** Onde um valor inválido do link não existe ("na Sustentação"), para o aviso citar a fonte. */
+  onde?: string
+}) {
+  const idLegenda = useId()
   const [folha, setFolha] = useState(false)
   const [interagiu, setInteragiu] = useState(false)
   const barra = useRef<HTMLDivElement>(null)
@@ -146,7 +161,11 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
   return (
     // `contents`: a barra sticky precisa do contêiner alto do painel, não deste invólucro (bug 003).
     <div className="contents">
-      <AvisoFiltrosInvalidos invalidos={uso.invalidos} onEntendi={uso.dispensarInvalidos} />
+      <AvisoFiltrosInvalidos
+        invalidos={uso.invalidos}
+        onEntendi={uso.dispensarInvalidos}
+        {...(onde ? { onde } : {})}
+      />
       <div
         ref={barra}
         className="z-30 border-y border-borda bg-fundo py-2 md:sticky md:top-[var(--h-cabecalho)]"
@@ -155,8 +174,13 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
         <div
           className="hidden flex-wrap items-center gap-2 md:flex"
           role="group"
-          aria-label="Filtros"
+          {...(legenda ? { 'aria-labelledby': idLegenda } : { 'aria-label': 'Filtros' })}
         >
+          {legenda && (
+            <span id={idLegenda} className="text-sm font-semibold" data-testid="legenda-filtros">
+              {legenda}:
+            </span>
+          )}
           <Controles uso={usoA} variante="popover" />
           {estrategico && (
             <Dica texto={TEXTO_ESTRATEGICO} rotulo="Por que não há filtro de equipe?" />
@@ -186,7 +210,9 @@ export function BarraFiltros({ uso, estrategico = false }: { uso: Uso; estrategi
                 className="fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] overflow-auto rounded-t-xl border border-borda-controle bg-superficie p-4 shadow-xl"
                 aria-describedby={undefined}
               >
-                <Dialog.Title className="mb-3 text-lg font-bold">Filtros</Dialog.Title>
+                <Dialog.Title className="mb-3 text-lg font-bold">
+                  {legenda ?? 'Filtros'}
+                </Dialog.Title>
                 <div className="flex flex-col gap-4">
                   <Controles uso={usoFolha} variante="lista" />
                   {estrategico && <p className="text-sm text-texto-2">{TEXTO_ESTRATEGICO}</p>}

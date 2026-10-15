@@ -40,7 +40,7 @@ export function CartaoS3({ filtros }: { filtros: FiltrosSustentacao }) {
       erro={q.erro}
       className="lg:col-span-12"
       acoes={
-        <div role="group" aria-label="Visão do volume" className="flex gap-1 text-xs">
+        <div role="group" aria-label="Visão do volume" className="flex flex-wrap gap-1 text-xs">
           {MODOS.map((v) => (
             <button
               key={v}

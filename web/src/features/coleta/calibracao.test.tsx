@@ -13,7 +13,7 @@ import { renderizarApp, renderizarCartao } from '@/test/helpers'
 import { CalibracaoDasFontes } from './CalibracaoDasFontes'
 import { dominiosDaRota } from './fontes'
 
-const SUST = '/sustentacao'
+const SUST = '/operacional?cadencia=sustentacao'
 
 async function cartao(codigo: string, url: string) {
   renderizarApp(url)
@@ -24,8 +24,8 @@ async function cartao(codigo: string, url: string) {
 
 describe('calibração: fontes por rota (A4)', () => {
   it('a Sustentação espera só o Acelerato; o fluxo só o BusinessMap; a Visão geral as duas', () => {
-    expect(dominiosDaRota('/sustentacao')).toEqual(['acelerato'])
-    expect(dominiosDaRota('/operacional')).toEqual(['businessmap'])
+    expect(dominiosDaRota('/operacional', '?cadencia=sustentacao')).toEqual(['acelerato'])
+    expect(dominiosDaRota('/operacional', '?cadencia=semanal')).toEqual(['businessmap'])
     expect(dominiosDaRota('/')).toEqual(['businessmap', 'acelerato'])
   })
 })
@@ -173,14 +173,14 @@ describe('calibração na Sustentação (sistêmico: coletas mock -> hooks -> p�
   })
 
   it('?mock=sem-calibracao devolve as metas e some a faixa', async () => {
-    const s2 = await cartao('S2', `${SUST}?mock=sem-calibracao`)
+    const s2 = await cartao('S2', `${SUST}&mock=sem-calibracao`)
     expect(screen.queryByTestId('faixa-calibracao-acelerato')).not.toBeInTheDocument()
     expect(within(s2).queryByTestId('selo-calibracao')).not.toBeInTheDocument()
     expect(within(s2).getAllByText(/^(Abaixo|Acima) de 90%$/).length).toBeGreaterThan(0)
   })
 
   it('a calibração do Acelerato não toca nos painéis do BusinessMap (nunca se misturam)', async () => {
-    const o2 = await cartao('O2', '/operacional')
+    const o2 = await cartao('O2', '/operacional?cadencia=diaria')
     expect(screen.queryByTestId('faixa-calibracao-acelerato')).not.toBeInTheDocument()
     expect(screen.queryByTestId('faixa-calibracao-businessmap')).not.toBeInTheDocument()
     expect(within(o2).queryByTestId('selo-calibracao')).not.toBeInTheDocument()

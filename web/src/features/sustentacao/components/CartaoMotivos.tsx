@@ -52,7 +52,7 @@ export function CartaoMotivos({
       {...(base ? { base } : {})}
       className="lg:col-span-6"
       acoes={
-        <div role="group" aria-label="Visão" className="flex gap-1 text-xs">
+        <div role="group" aria-label="Visão" className="flex flex-wrap gap-1 text-xs">
           {VISOES.map((v) => (
             <button
               key={v}

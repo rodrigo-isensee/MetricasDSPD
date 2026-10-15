@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   EQUIPES_SUSTENTACAO_ID,
   METRICA_IDS,
+  METRICAS_TENDENCIA,
   fonteDaMetrica,
   PRIORIDADES,
   TIPOS_FILTRO,
@@ -46,6 +47,18 @@ const CENARIOS: [string, ContextosMetricas][] = [
 const calc = (id: MetricaId, filtros: unknown, ctx: ContextosMetricas) =>
   calcularMetrica(id, filtros as never, ctx) as { base?: { n: number } }
 
+/** As tendências do Resumo não têm filtro (só a data de corte): a varredura de filtros não se aplica (`tendencia.test.ts`). */
+const ehTendencia = (id: MetricaId): boolean => METRICAS_TENDENCIA.includes(id)
+
+it('tendências: o resultado respeita o contrato e é determinístico em cada cenário', () => {
+  for (const [, ctx] of CENARIOS)
+    for (const id of ['TENDENCIA_FLUXO', 'TENDENCIA_SUST'] as const) {
+      const r = calc(id, {}, ctx)
+      expect(SCHEMAS_RESULTADO[id].safeParse(r).success, id).toBe(true)
+      expect(calc(id, {}, ctx)).toEqual(r)
+    }
+})
+
 const valida = (id: MetricaId, resultado: unknown) => {
   const r = SCHEMAS_RESULTADO[id].safeParse(resultado)
   expect(r.success, `${id}: ${r.success ? '' : r.error.message.slice(0, 300)}`).toBe(true)
@@ -55,9 +68,12 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
   const equipes = [...new Set(ctx.bm.idx.marcos.map((m) => m.slugEquipe))].sort()
   const sistemas = [...new Set(ctx.bm.idx.marcos.map((m) => m.slugSistema))].sort()
 
-  it('fluxo: todo resultado respeita o contrato em qualquer combinação de filtros', () => {
-    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
-    for (const id of ids) {
+  // Uma execução por métrica (it.each): a varredura inteira numa só passava de 15 s com a máquina carregada;
+  // cada métrica isolada leva uma fração disso e uma falha aponta a métrica.
+  const idsB = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap' && !ehTendencia(id))
+  it.each(idsB)(
+    'fluxo: todo resultado respeita o contrato em qualquer combinação de filtros (%s)',
+    (id) => {
       for (const periodo of PERIODOS) {
         const todos = { equipe: [], tipo: [], sistema: [], periodo }
         const recortes = [
@@ -73,12 +89,15 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
           expect(calc(id, f, ctx)).toEqual(r)
         }
       }
-    }
-  })
+    },
+  )
 
-  it('sustentação: todo resultado respeita o contrato com equipes e prioridades', () => {
-    const ids = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato')
-    for (const id of ids) {
+  // Uma execução por métrica (it.each): a varredura inteira numa só passava de 15 s com a máquina carregada;
+  // cada métrica isolada leva uma fração disso e uma falha aponta a métrica.
+  const idsA = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'acelerato' && !ehTendencia(id))
+  it.each(idsA)(
+    'sustentação: todo resultado respeita o contrato com equipes e prioridades (%s)',
+    (id) => {
       for (const periodo of PERIODOS) {
         const todos = { equipe: [], prioridade: [], periodo }
         const recortes = [
@@ -93,8 +112,8 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
         ]
         for (const f of recortes) valida(id, calc(id, f, ctx))
       }
-    }
-  })
+    },
+  )
 
   it('pesquisa (PV1): só aceita a data de corte, ignora os filtros do fluxo e respeita o contrato', () => {
     const r = calc('PV1', {}, ctx)

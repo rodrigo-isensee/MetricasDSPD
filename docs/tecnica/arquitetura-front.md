@@ -14,7 +14,8 @@ flowchart TB
       shell["AppShell, NavegacaoGlobal,<br/>AvisoDadosFicticios, Rodape, Erros"]
     end
     subgraph features["features/"]
-      paginas["visao-geral, operacional, tatico,<br/>estrategico, sustentacao,<br/>espera-invisivel, ajuda<br/>(Página + Cartões Xn)"]
+      paginas["visao-geral, operacional (4 visões),<br/>tatico, estrategico,<br/>espera-invisivel, ajuda<br/>(Página + Cartões Xn)"]
+      nav["navegacao/visao.ts<br/>(visões do Operacional, puro)"]
       painel["painel/PainelPagina<br/>PainelFluxo, PainelSustentacao"]
       filtros["filtros/<br/>useFiltros, codec, paineis,<br/>memoria, useParametroLocal, BarraFiltros"]
     end
@@ -33,6 +34,7 @@ flowchart TB
   end
   App --> router --> shell --> paginas
   paginas --> painel --> filtros
+  paginas --> nav
   paginas --> hooks
   paginas --> ui --> charts
   paginas --> content
@@ -44,6 +46,7 @@ flowchart TB
 ```
 
 Regras que o desenho garante:
+
 - **Nenhum componente calcula.** Cartões recebem o DTO pronto de `useMetrica`; frases de leitura são montadas a partir do DTO (ex.: `CartaoO4`, o cartão de referência).
 - **Uma porta de dados.** Painéis só conhecem `FonteMetricas` e os tipos de `contratos`. Trocar o mock pela API não toca em painel ([práticas](../engineering/praticas.md)).
 - **Painéis em chunks separados** (`router.tsx`, `lazy`), e a biblioteca e o gerador fora do chunk inicial (`import()` dinâmico em `data/mock`, ADR 0003).
@@ -75,19 +78,19 @@ flowchart LR
 
 Fronteiras em `eslint.config.js` (cada uma vira erro de lint, não só revisão):
 
-| Escopo | Proibido | Por quê |
-|---|---|---|
-| `web/src/features`, `components`, `app` | `@metricas-dspd/metricas`, `@metricas-dspd/mock`; `recharts` fora de `components/charts` | UI não calcula nem gera dados (ADR 0001) |
-| `web/src/data/**` (menos `data/mock`) | `metricas` e `mock` | Só a fonte mock conhece a biblioteca |
-| `web/src/data/mock/**` | import estático de `metricas`/`mock` | Fora do chunk inicial (ADR 0003) |
-| `packages/contratos` | outros `@metricas-dspd/*`, React | Contratos são a folha do grafo (ADR 0002) |
-| `packages/metricas/src` | `@metricas-dspd/mock` | Grafo é `metricas <- mock` |
-| `metricas/businessmap`, `mock/businessmap` ↔ `acelerato` | importar o outro domínio | BusinessMap e Acelerato nunca se misturam |
-| `metricas/core` | domínios e a raiz (`calcular`, `visaoGeral`, `index`) | O núcleo não conhece domínio |
-| `packages/metricas`, `packages/mock` | `Math.random`, `Date.now`, `new Date()`, `performance.now` | Determinismo: "hoje" é parâmetro |
-| métricas dos dois domínios | `sort` direto, leitura de `motivo_descarte`/`arquivado_em` fora de `descartado.ts`, percentil solto | Ordenação neutra, descarte único, percentil só sobre `Amostra` |
-| todo o código | caminho relativo entre pacotes; spread em `Math.min/max` | Pacotes se conhecem pelo nome; pilha em base grande |
-| `e2e/` | qualquer `@metricas-dspd/*` | Testa a aplicação pela URL |
+| Escopo                                                   | Proibido                                                                                            | Por quê                                                        |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `web/src/features`, `components`, `app`                  | `@metricas-dspd/metricas`, `@metricas-dspd/mock`; `recharts` fora de `components/charts`            | UI não calcula nem gera dados (ADR 0001)                       |
+| `web/src/data/**` (menos `data/mock`)                    | `metricas` e `mock`                                                                                 | Só a fonte mock conhece a biblioteca                           |
+| `web/src/data/mock/**`                                   | import estático de `metricas`/`mock`                                                                | Fora do chunk inicial (ADR 0003)                               |
+| `packages/contratos`                                     | outros `@metricas-dspd/*`, React                                                                    | Contratos são a folha do grafo (ADR 0002)                      |
+| `packages/metricas/src`                                  | `@metricas-dspd/mock`                                                                               | Grafo é `metricas <- mock`                                     |
+| `metricas/businessmap`, `mock/businessmap` ↔ `acelerato` | importar o outro domínio                                                                            | BusinessMap e Acelerato nunca se misturam                      |
+| `metricas/core`                                          | domínios e a raiz (`calcular`, `visaoGeral`, `index`)                                               | O núcleo não conhece domínio                                   |
+| `packages/metricas`, `packages/mock`                     | `Math.random`, `Date.now`, `new Date()`, `performance.now`                                          | Determinismo: "hoje" é parâmetro                               |
+| métricas dos dois domínios                               | `sort` direto, leitura de `motivo_descarte`/`arquivado_em` fora de `descartado.ts`, percentil solto | Ordenação neutra, descarte único, percentil só sobre `Amostra` |
+| todo o código                                            | caminho relativo entre pacotes; spread em `Math.min/max`                                            | Pacotes se conhecem pelo nome; pilha em base grande            |
+| `e2e/`                                                   | qualquer `@metricas-dspd/*`                                                                         | Testa a aplicação pela URL                                     |
 
 ## 3. Do gerador ao cartão
 
@@ -130,7 +133,7 @@ sequenceDiagram
 
 ## 4. Filtros na URL
 
-A URL é a fonte da verdade (`useFiltros` + `codec.ts`); `paineis.ts` define, por painel, filtros, período padrão, períodos aceitos e parâmetros conhecidos. Fluxo e sustentação têm tipos distintos e nunca se herdam.
+A URL é a fonte da verdade (`useFiltros` + `codec.ts`); `paineis.ts` define, por painel, filtros, período padrão, períodos aceitos e parâmetros conhecidos. Fluxo e sustentação têm tipos distintos e nunca se herdam. Desde a Sustentação no Operacional (K-072/K-073) os dois conjuntos convivem na mesma URL, `/operacional` (seção 4.1).
 
 ```mermaid
 stateDiagram-v2
@@ -152,16 +155,32 @@ stateDiagram-v2
   }
 ```
 
-| Grupo | Parâmetros | Escrita |
-|---|---|---|
-| Filtros de fluxo | `equipe`, `tipo`, `sistema`, `periodo` (`4s`, `12s`, `6m`, `12m`, `custom`), `de`, `ate` | `push`; padrão omitido; Estratégico só `sistema` e `6m`/`12m` |
-| Filtros de sustentação | `equipe`, `prioridade`, `periodo`, `de`, `ate` | `push`; independentes do fluxo, fora da memória de sessão |
-| Abas e seletores locais (`useParametroLocal`) | `cadencia`, `o2`, `o3`, `o9`, `o10`, `t1`, `t4`, `t5`, `s3`, `s4` (`p1` padrão), `s5`, `s6`, `e1` (Iniciativa ou Melhoria, um por vez), `ei_fl1`, `ei_fl2`, `ei_fl3`, `ei_sust` (segmento do cartão EI) | `replace`; valor inválido cai no padrão |
-| Simulação | `mock` | Lido por `useMetrica` só quando `fonte.tipo === 'mock'`; não é parâmetro conhecido de painel, então a normalização não o remove |
+| Grupo                                         | Parâmetros                                                                                                                                                                                  | Escrita                                                                                                                                 |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Filtros de fluxo                              | `equipe`, `tipo`, `sistema`, `periodo` (`4s`, `12s`, `6m`, `12m`, `custom`), `de`, `ate`                                                                                                    | `push`; padrão omitido; Estratégico só `sistema` e `6m`/`12m`                                                                           |
+| Filtros de sustentação                        | `sust_equipe`, `sust_prioridade`, `sust_periodo`, `sust_de`, `sust_ate` (prefixo `sust_`, passado a `useFiltros`)                                                                           | `push`; independentes do fluxo, fora da memória de sessão                                                                               |
+| Visão do Operacional                          | `cadencia` = `diaria`, `semanal` ou `sustentacao` (Resumo é o padrão e fica fora da URL)                                                                                                    | Escolha no seletor: `push`. Correção da URL (valor inválido, hash de outra visão, `cadencia=resumo`): `replace` (`useVisaoOperacional`) |
+| Abas e seletores locais (`useParametroLocal`) | `o2`, `o3`, `o9`, `o10`, `t1`, `t4`, `t5`, `s3`, `s4` (`p1` padrão), `s5`, `s6`, `e1` (Iniciativa ou Melhoria, um por vez), `ei_fl1`, `ei_fl2`, `ei_fl3`, `ei_sust` (segmento do cartão EI) | `replace`; valor inválido cai no padrão. Os de cartão são únicos e sem prefixo (valem nas visões em que o cartão existe)                |
+| Simulação                                     | `mock`                                                                                                                                                                                      | Lido por `useMetrica` só quando `fonte.tipo === 'mock'`; não é parâmetro conhecido de painel, então a normalização não o remove         |
 
 **Busca pendente e URL canônica.** No React Router 7 a navegação é uma transição: num painel pesado, sob carga, o render da URL nova atrasa, e uma segunda ação do usuário que partisse da URL do último render desfaria a primeira (IF-001, IS-003). Por isso `buscaPendente.ts` guarda a última busca que o app mandou navegar. A regra: toda escrita de URL (`useFiltros`, `useParametroLocal`) lê a base com `buscaVigente(pathname, search)` e, ao navegar, chama `registrarBusca`. A pendência é descartada quando a URL renderizada a alcança, quando a rota muda ou depois de `VALIDADE_MS` (3 s, rede de segurança para navegações interrompidas ou normalizadas para outra URL). A URL escrita é canônica (IF-006): só valores fora do padrão, em minúsculas, sem repetição e sem "todas as opções" (marcar todas vira "Todos", lista vazia); a canonicalização só ocorre com as opções carregadas, que é quando se sabe o que é "todas". O `FiltroMulti` exibe a marcação da última emissão do usuário, não a prop (a URL, que pode vir atrasada): sem isso a caixa recém-marcada voltaria a desmarcada e o clique seguinte viraria "marcar" de novo. Uma prop igual a uma emissão anterior, dentro de `VALIDADE_MS`, não sobrescreve a marcação; uma prop nunca emitida (chip removido, Limpar) ressincroniza.
 
-A memória de sessão (`memoria.tsx`) vive só em memória (nunca `localStorage`): recarregar zera.
+A memória de sessão (`memoria.tsx`) vive só em memória (nunca `localStorage`): recarregar zera. Ela é só dos filtros do fluxo (sem prefixo); os `sust_*` nunca entram nela.
+
+### 4.1 Operacional: quatro visões em uma rota
+
+Plano: [plano-sustentacao-no-operacional.md](../architecture/plano-sustentacao-no-operacional.md) (tabelas 4.1 a 4.5); [ADR 0019](../architecture/adr/0019-tendencia-mensal-por-data-de-referencia.md) para as tendências. A antiga página `sustentacao` deixou de existir: a Sustentação é uma visão do Operacional.
+
+- **Visões** (`navegacao/visao.ts`, módulo puro, sem cálculo): `resumo` (padrão), `diaria`, `semanal` e `sustentacao`. URL canônica: `/operacional` abre o **Resumo**, sem `cadencia`; as demais levam `cadencia=<visão>`. `/operacional` sem `cadencia` deixou de abrir a Diária. Um link externo antigo para `/operacional` cai, portanto, no Resumo. `cadencia` desconhecido cai no Resumo com o aviso de valor inválido (`filtrosInvalidos` no `state` da navegação).
+- **`useVisaoOperacional`** lê `cadencia` e o hash, e devolve `visao` e `escolher`. `escolher` usa `push` (o Voltar desfaz), mantém os demais parâmetros e usa `buscaVigente`/`registrarBusca` (seção 4); a correção de URL usa `replace`. `OperacionalPage` escolhe o molde: `VisaoResumo`, `PainelSustentacao` (com `prefixo="sust_"`, chunk `VisaoSustentacao` sob demanda, pré-carga por intenção em `SeletorVisao`) ou `PainelFluxo` (Diária e Semanal). O foco volta ao rádio do seletor após a troca (um `useRef` da página passado ao `SeletorVisao`, pois o seletor remonta quando o molde muda) e um `aria-live` próprio anuncia a visão e a fonte (`ANUNCIO_DA_VISAO`).
+- **Tabela hash → visão** (`TABELA_HASH`, `visaoDoHash`): derivada do catálogo (`cartoesDoPainel`) e dos ids de seção; só os cartões da Diária (`o2`, `bloqueados`, `o1`) e as âncoras do Resumo (`resumo-fluxo`, `resumo-sustentacao`, `tendencia-fluxo`, `tendencia-sustentacao`) são escritos à mão. O hash **vence** `cadencia` (`resolverVisao`), sem diferenciar maiúsculas; hash vazio, `#mais-metricas` ou desconhecido não decide. Um teste prova que nenhum hash pertence a duas visões. Usada por `OperacionalPage`, `lib/destinoCartao` (o link de um cartão já cai na visão dona dele), `features/coleta/fontes` e pelo Resumo (`hrefDaVisao`, que mantém os dois conjuntos de filtros e nunca propaga `mock`).
+- **Dois conjuntos de filtros na mesma URL.** Diária e Semanal usam o fluxo (sem prefixo); a Sustentação usa `sust_*`. Trocar de visão não apaga o conjunto da outra: ele fica guardado na URL, e `LinhaFiltrosGuardados` (com `contarAtivos`, que lê pelo `codec` sem normalizar nem gravar) avisa "N filtros do fluxo/da Sustentação guardados não se aplicam aqui". O Resumo não lê nem grava nenhum filtro: usa os padrões fixos (`FILTROS_FLUXO_RESUMO` e `FILTROS_SUST_RESUMO`, ambos com 12 semanas, decisão P3), então suas consultas são as mesmas da Diária e da Semanal e o cache é compartilhado. `PAINEIS.operacional.params` inclui os parâmetros de cartão da sustentação (`s3`, `s4`, `s5`, `s6`, `ei_sust`) para a Diária e a Semanal não os apagarem. BusinessMap e Acelerato nunca se misturam: cada bloco, consulta e filtro tem uma única fonte.
+- **Redirecionadores** (`app/RedirecionaSustentacao`, `app/RedirecionaEsperaInvisivel`, síncronos, `Navigate replace`): `/sustentacao` vai para `/operacional?cadencia=sustentacao`, trocando `equipe`, `prioridade`, `periodo`, `de`, `ate` por `sust_*`, mantendo `sust_*`, `s3` a `s6`, `ei_sust` e `mock`, descartando o resto, e renomeando os hashes `#compl-<seção>` para `#compl-sust-<seção>`. `/espera-invisivel#ei-sust` vai direto para a visão Sustentação com os `sust_*` intactos. O destino é sempre um caminho interno fixo e a busca é reconstruída com `URLSearchParams` (sem redirecionamento aberto).
+- **Fonte por visão.** `dominiosDaRota(caminho, busca, hash)` (`features/coleta/fontes.ts`) devolve as duas fontes no Resumo, só `acelerato` na Sustentação e só `businessmap` na Diária e na Semanal; `CalibracaoDasFontes` e o selo de frescor esperam só o estado dessas. O título da página é `handle.titulo` como função da `Location` (`Operacional · <visão>`).
+- **Resumo** (`operacional/resumo/`): **não calcula**, só reorganiza DTOs que já existem. `BlocoFluxo` (BusinessMap) e `BlocoSustentacao` (Acelerato) são seções separadas com `NumeroChave`; `modelo.ts` (puro) monta o texto de cada número e `destinos.ts` os links. Origem de cada número (tabela 4.5 do plano): P85 do tipo predominante e P50 = `O3` (`tipoPredominante`, o mesmo critério da aba padrão do `CartaoO3`; empate de itens desempata pela ordem fixa `TIPOS_CARD`, a do cartão O3, nunca pela de chegada, e `tiposEmpatados` acrescenta "; empate com X" à base do número); vazão = `O4`; acima do P95 = `O2.acimaP95`; vencidos por causa interna = `O12`; aderência por prioridade = `S2`; mediana contra o alvo = `S1`; volume e P1+P2 = `S3`; "Pede atenção" = `operacional/atencao.ts` (as mesmas regras de Diária, Semanal e Sustentação, funções puras sobre os DTOs). **Janela do "Pede atenção" (U1 = (a), decidida pelo usuário em 2026-10-14):** o Resumo usa 12 semanas e o escreve na tela (`FaixaAtencao` ganhou a prop `janela`: "Janela: últimas 12 semanas", também no bloco Fluxo; vazio "Nada pede atenção na Sustentação nas últimas 12 semanas."), mais a nota "Mesmo alerta, janelas diferentes" com link "Ver na Sustentação" (`nota-janelas-alerta`). O texto sai de `textoPeriodoCurto(FILTROS_SUST_RESUMO.periodo)` (`filtros/paineis.ts`), então trocar a janela do alerta é trocar o filtro da constante e remover a nota. A visão Sustentação usa o filtro: título "Pede atenção no período · Sustentação (Acelerato)" e linha "Período do filtro: 6 meses" (dinâmica). Cada número tem carregando, erro (com "Tentar de novo" só dele) e "Poucos itens (n=…). Estatística não publicada." abaixo de 20.
+- **Tendências** (`TendenciaFluxo`, `TendenciaSustentacao`, `SerieMensal`, `GraficoMensal`): dois DTOs próprios, `TENDENCIA_FLUXO` e `TENDENCIA_SUST`, com os 6 últimos meses fechados. A única entrada é `dataReferencia` (tipada como `SoDataReferencia` no contrato; `filtrosTendencia`): a mais antiga das duas últimas coletas ok (`useReferenciaDasTendencias`). A consulta só dispara depois dos números e do "Pede atenção" do bloco; o erro dela é só da série. Cada série tem "Ver como tabela" (um botão que alterna o próprio rótulo para "Ver como gráfico"; sem `aria-pressed`, D-05a), mês abaixo de 20 itens aparece sem valor (marcador vazado, "poucos itens (n=14)") e as mudanças de critério são marcadas. Se o O3 falha, a série de P85 mostra o próprio erro ("P85 indisponível", com "Tentar de novo" ligado ao O3), porque sem o tipo não há P85 a mostrar, e a de concluídos segue. Uma série de métrica oculta nas preferências some junto com o número. A frase da série de SLA nomeia o que foi contado ("N de M prioridades avaliadas estão abaixo de 90%", com a meta lida de `META_RAZAO_MIN`) e, sem prioridade avaliada, diz "nenhuma prioridade avaliada".
+- **Delta pós-QA e UX (K-073).** (1) **Nível de título (D-01):** `FaixaAtencao` ganhou a prop `nivel` (`'h2'` padrão, `'h3'`); dentro de um bloco do Resumo o título da faixa é h3, para cada bloco ter um único h2, e a região usa `aria-labelledby` do título visível. (2) **Reservas de altura contra CLS (SNO-004):** enquanto carrega, `BlocoResumo.reserva` (número, ou `{ mobile, desktop }` com `--rb-m`/`--rb-d`), `FaixaAtencao.reserva` (`--fa-m`/`--fa-d`), `EsqueletoTendencia.series` e `FrescorFonte.reservarFalha` guardam a altura da versão pronta. São números medidos (448/192, 1890/950, 108/88, 560, 50 e 98 px, a 1280 e a 375 de largura); mudar texto ou espaçamento do Resumo exige remedir. O guarda é o caso `perf-resumo-reservas` em `e2e/perf/perf.spec.ts` (CLS do Resumo a 1280 e a 375, limite F2) e o Lighthouse do QA. (3) **Anúncio e foco na troca de visão (D-02, D-03):** o `aria-live` `anuncio-visao` sai da visão resolvida (efeito sobre `visao`), não do clique: Voltar, links "Ver na..." e hash também anunciam, e a montagem inicial não. Troca pelo seletor devolve o foco ao rádio; troca por link sem hash leva o foco ao h1 (`tabIndex=-1`, sem rolar; se o h1 ainda não existe, não move o foco); com hash o foco vai ao cartão. (4) **Preferências, versão mais nova (A6):** `salvar` rejeita com `ErroVersaoMaisNova` (erro de domínio tipado) quando o valor guardado tem `versao` maior que 1; `ProvedorPreferencias` distingue por `instanceof` e põe `estadoSalvar = 'versao-nova'` (em vez de `'erro'`), e `PreferenciasPage` mostra `role=alert` "Suas preferências foram salvas por uma versão mais nova do sistema e não serão alteradas aqui."
+- **Modo mock `tendencia-poucos`** (`data/simulacao.ts`, só com fonte mock): meses com menos de 20 itens nas duas tendências (junho no fluxo; junho e julho na Sustentação), para testar e ver o estado sem valor. Os `?mock=` não são propagados por links.
 
 ## 5. Trocar o mock pela API (`HttpFonteMetricas`)
 
@@ -185,6 +204,7 @@ export class HttpFonteMetricas implements FonteMetricas {
 ```
 
 Passos:
+
 1. Criar `data/http/` (cai na regra de `data/**`: pode usar `contratos` e `contratos/validacao`, nunca `metricas`/`mock`).
 2. `criarFontePadrao()` escolhe a fonte por variável de ambiente (ex.: `VITE_FONTE=api`); o mock continua disponível para dev e E2E.
 3. Com `tipo: 'api'`, `?mock=` já é ignorado por `useMetrica`. O `AvisoDadosFicticios`, o texto do rodapé e o sufixo do título só aparecem com `useFonte().tipo === 'mock'` (feito na integração real, D5).
@@ -208,7 +228,7 @@ Plano: [integracao-real.md](../architecture/features/integracao-real.md); spec: 
 Spec: `docs/ux/preferencias-metricas/06-especificacao.md` e `viabilidade-tecnica.md`; decisões finais em `docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §6 e §9.
 
 - **Catálogo único de cartões** em `@metricas-dspd/contratos` (`cartoes.ts`): `CATALOGO_CARTOES` (id = código em minúsculas, painel, seção, métricas, par "leia junto"), `CARTOES_RETIRADOS`, conjuntos por papel (`PAINEIS_DO_PAPEL`) e o schema zod `PreferenciasMetricas` (`{versao, paineis: {<painel>: {ocultar: ids}}, atualizadoEm}`; guarda os ocultos, então cartão novo aparece). Um teste confere que todo `metrica-*` desenhado está no catálogo.
-- **Porta `FontePreferencias`** (`features/preferencias/fonte.ts`): `origem`, `obter()` e `salvar()`. Hoje `LocalStoragePreferencias` (chave `metricas-dspd:preferencias:v1`); preferência ausente, corrompida ou de versão desconhecida vira "tudo visível". Com o SSO entra uma implementação HTTP (`GET`/`PUT /me/preferencias-metricas`, sem parâmetro de usuário) injetada em `Provedores`, e a tela não muda. **Fora desta entrega:** o diálogo de primeiro login ("Usar estas preferências" / "Começar do padrão do meu papel", CA-14) depende do SSO; a porta já expõe `origem` para ele.
+- **Porta `FontePreferencias`** (`features/preferencias/fonte.ts`): `origem`, `obter()` e `salvar()`. Hoje `LocalStoragePreferencias` (chave `metricas-dspd:preferencias:v1`); preferência ausente, corrompida ou de versão desconhecida vira "tudo visível" **sem erro na tela e sem gravar nada na leitura**; a primeira alteração grava `versao: 1`, exceto se o valor guardado tiver `versao` maior que 1 (versão futura): `salvar` rejeita sem sobrescrever (a tela mantém a escolha e avisa, como em qualquer falha de gravação). Com o SSO entra uma implementação HTTP (`GET`/`PUT /me/preferencias-metricas`, sem parâmetro de usuário) injetada em `Provedores`, e a tela não muda. **Fora desta entrega:** o diálogo de primeiro login ("Usar estas preferências" / "Começar do padrão do meu papel", CA-14) depende do SSO; a porta já expõe `origem` para ele.
 - **Dois níveis de estado.** `ProvedorPreferencias` (global, em `Provedores`) guarda o perfil (persistido) e os ajustes da visita (só memória, por painel; nunca em URL nem em storage). `ProvedorPainelPreferencias` (um por painel, dentro de `Casca` de `PainelPagina`; a Espera invisível não tem) deriva o recorte efetivo (visita, senão perfil) e oferece `ocultarCartao` (anúncio em `aria-live`, "Desfazer" por 10 s e foco no próximo título ou no título restaurado), `mostrar`, `mostrarVarios`, `mostrarTodas` e `usarMinhas`. Contexto e hooks (`usePreferenciasPainel`, `useCartaoVisivel`) ficam em `components/ui/PreferenciasPainel.ts` para a UI não importar de `features/`; fora de um painel com preferências nada é recortado (Visão geral, Espera invisível, testes de cartão isolado).
 - **O recorte é só de renderização.** `CartaoMetrica` devolve `null` se o cartão está oculto, mas o hook de dados do cartão continua rodando e a faixa "Pede atenção" tem as próprias consultas (cache compartilhado). Nada muda em `FonteMetricas`, no payload ou nos cálculos.
 - **Faixa "Pede atenção" nunca é filtrada.** `FaixaAtencao` troca o link "Ver X" por selo "métrica oculta" e botão "Mostrar X nesta visita" quando o id do item está oculto. Mudança de critério em métrica oculta (`useCriterios` x `metricas` do catálogo) vira aviso com "Mostrar X" (`AvisosCriterioOcultas`). Avisos do painel e internos de cartão visível (base, amostra insuficiente, nota, dados fictícios) não passam pelo recorte.
@@ -218,8 +238,8 @@ Spec: `docs/ux/preferencias-metricas/06-especificacao.md` e `viabilidade-tecnica
 - **Privacidade (regra do briefing).** Nada por pessoa, nenhuma telemetria ou log de preferência, nenhum ranking; o perfil nunca sai do navegador.
 - **Testes.** Unitários (`fonte.test.ts`, `provedores.test.tsx`), sistêmicos (`preferencias.test.tsx`, painéis completos com o mock) e E2E (`e2e/tests/preferencias.spec.ts`: axe a 375 e 1280, temas claro e escuro, popover aberto, estado vazio, teclado, foco, "Copiar link" sem seleção).
 
-
 ## 8. Exportação em PDF (pedido 008)
+
 Plano: `docs/architecture/features/exportar-metricas.md`; UX: `docs/ux/exportar-metricas/`; decisões D-1 a D-5: `docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §10. Só front, sem endpoint e sem migração.
 
 - **Módulo `features/exportar/`.** `modelo.ts` (puro): DTO + filtros viram `BlocoExportacao` (título, fonte, filtros em texto, janela dos dados e dos percentis, base, "amostra insuficiente" lida do próprio DTO, nota resumida do catálogo `notas.ts`, mudanças de critério, tabela). Nada é recalculado e campos de pessoa (`CAMPO_PESSOAL`) nunca entram. `selecao.ts` lista as métricas **visíveis** por nível (preferências do 007; a Espera invisível, sem preferências, lista as quatro), calcula escopo, nome do arquivo e prévia, e resolve os filtros de cada métrica (URL do painel em que o usuário está; senão a memória de sessão do fluxo; a Sustentação e a EI-SUST nunca herdam filtros do fluxo). `DialogoExportar.tsx` é o diálogo (Radix: foco preso, Esc, retorno do foco; folha no celular; estados vazio, carregando, gerando, erro e pronto com "Baixar"); `BotaoExportar.tsx` o liga a `usePreferencias`, à fonte e ao cache do React Query; `gerar.ts` lê os DTOs pela mesma chave de cache dos cartões e monta o conteúdo; `desenhista.ts` pinta com jsPDF.
@@ -229,3 +249,14 @@ Plano: `docs/architecture/features/exportar-metricas.md`; UX: `docs/ux/exportar-
 - **PDF.** A4 retrato; título e idioma pt-BR; texto selecionável; cabeçalho e rodapé em todas as páginas; "Dados fictícios" em todas quando `fonte.tipo === 'mock'`, e `_ficticio` no nome. Nome: `metricas-dspd_<escopo>_<AAAA-MM-DD>[_ficticio].pdf` (dia civil de São Paulo; escopo `visao-geral`, `fluxo-operacional`, `fluxo-tatico`, `fluxo-estrategico`, `sustentacao`, `espera-invisivel`, `personalizada` ou o id da métrica, se for uma só). Qualquer exceção vira "Não foi possível gerar o arquivo. Tente de novo.", sem detalhe técnico e sem arquivo parcial.
 - **Privacidade.** Sem log, contador ou telemetria das exportações (D-5); o arquivo é gerado e baixado no navegador, nada sai dele.
 - **Testes.** Unitários (`modelo`, `selecao`, `desenhista`, `gerar`, `carregarPdf`), componente (`DialogoExportar`), sistêmico com o mock (`exportar.sistemico.test.tsx`: só visíveis, chunk só no clique, BM antes de AC) e E2E (`e2e/tests/exportar.spec.ts`: baixa o PDF e lê o texto com `pdfjs-dist`; axe a 375 e 1280 nos dois temas).
+
+## 9. Largura com a fonte ampliada a 200% (SNO-001, K-073)
+
+A 375 px com `html { font-size: 200% }` nenhuma página pode passar de 375 px de largura (WCAG 1.4.4 e 1.4.10). Causa raiz: `body { min-width: 20rem }` em `web/src/styles/tokens.css`. Em `rem` o piso de 320 px virava 640 px com a fonte a 200%, e o cabeçalho, o `main` e o rodapé herdavam essa largura (medida com Playwright: `body`, `header`, `main` com 640 px; o botão Menu terminava em x = 538). A tentativa de trocar `flex-nowrap` por `flex-wrap` no cabeçalho não bastava por isso.
+
+Regras que ficam:
+- O piso do `body` é em px CSS: `min-width: min(20rem, 320px)`. Nunca use `rem` para um piso de largura de página.
+- O grupo da direita do cabeçalho (`AppShell`) quebra linha (`flex-wrap`); o selo "Dados fictícios", o tema e o Menu continuam todos visíveis.
+- Grupos de ações de cartão (`CartaoT3`, `CartaoS3`, `CartaoMotivos`), o seletor de visão (`SeletorCadencia`, grade 2x2 abaixo de 400 px, MOB-CA-12), os três números do `CartaoEI` (`auto-fit` com mínimo de 6 rem), a lista de `FaixaAtencao` e o link da faixa de calibração (`Calibracao`) quebram linha em vez de impor largura (`flex-wrap`, `min-w-0`, `max-w-full`, sem `whitespace-nowrap`).
+- Teste: `e2e/tests/cabecalho-fonte-200.spec.ts` mede `scrollWidth <= clientWidth` do documento e do cabeçalho nas rotas `/`, `/tatico`, `/operacional?cadencia=semanal` e `?cadencia=sustentacao`.
+- O redesenho mobile completo do cabeçalho (uma linha, tema na gaveta, MOB-CA-9) é do K-075 e não foi antecipado aqui.

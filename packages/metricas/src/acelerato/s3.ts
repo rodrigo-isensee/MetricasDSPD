@@ -2,10 +2,15 @@ import type { ResultadoS3 } from '@metricas-dspd/contratos'
 import { PRIORIDADES } from '@metricas-dspd/contratos'
 import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { diaDeIso, diaLocal } from '../core/calendario'
-import { pctOuNulo, publicavel } from '../core/estatistica'
+import { pctOuNulo, publicavel, taxa } from '../core/estatistica'
 import { mesesEntre } from '../core/series'
-import { baseAmostral, criterios, periodoDe, r2, selecionarAC } from './comum'
+import { baseAmostral, criterios, noIntervalo, periodoDe, r2, selecionarAC } from './comum'
 import type { ContextoAC } from './indice'
+
+/** Dia local de abertura dos chamados (a base do S3), reusado pela tendência mensal. */
+export function diasDeAbertura(ctx: ContextoAC, f: FiltrosSustentacao): number[] {
+  return selecionarAC(ctx, f).map((x) => diaLocal(x.c.aberto_em, ctx.cal))
+}
 
 /** S3: volume mensal por prioridade, absoluto e em proporção. Conta todos os chamados abertos no mês. */
 export function calcularS3(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS3 {
@@ -34,9 +39,12 @@ export function calcularS3(ctx: ContextoAC, f: FiltrosSustentacao): ResultadoS3 
       ajustesManuais: doMes.filter((x) => x.c.prioridade_ajustada_manualmente).length,
     }
   })
+  const naJanela = xs.filter((x) => noIntervalo(ctx, x.c.aberto_em, periodo))
+  const p1p2Janela = naJanela.filter((x) => x.c.prioridade === 'P1' || x.c.prioridade === 'P2')
   return {
     base: baseAmostral(total, 'chamados abertos', periodo),
     criterios: criterios('S3', periodo, periodo, ctx),
     meses: linhas,
+    janela: { total: naJanela.length, p1p2: taxa(p1p2Janela.length, naJanela.length) },
   }
 }

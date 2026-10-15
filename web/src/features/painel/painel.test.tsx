@@ -6,12 +6,23 @@ import { propsCartao, diaNum, isoDoDia, slug, textoTaxa } from './propsCartao'
 
 describe('PainelPagina: erro simulado (?mock=erro)', () => {
   it('o painel todo falha dentro do shell e "Tentar de novo" não derruba nada', async () => {
-    renderizarApp('/operacional?mock=erro')
+    renderizarApp('/operacional?cadencia=diaria&mock=erro')
     const erro = await screen.findByTestId('erro-pagina')
     expect(erro).toHaveTextContent('Não foi possível abrir este painel')
     expect(screen.getByRole('navigation', { name: 'Navegação principal' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }))
     expect(screen.getByTestId('erro-pagina')).toBeInTheDocument()
+  })
+
+  it('o Resumo e a visão Sustentação também falham inteiros, dentro do shell', async () => {
+    for (const url of ['/operacional?mock=erro', '/operacional?cadencia=sustentacao&mock=erro']) {
+      const r = renderizarApp(url)
+      const erro = await screen.findByTestId('erro-pagina')
+      expect(erro).toHaveTextContent('Não foi possível abrir este painel')
+      await userEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }))
+      expect(screen.getByTestId('erro-pagina')).toBeInTheDocument()
+      r.unmount()
+    }
   })
 })
 

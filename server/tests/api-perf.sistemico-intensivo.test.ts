@@ -24,7 +24,7 @@ const cpuMs = () => {
 };
 const p95 = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.ceil(xs.length * 0.95) - 1]!;
 
-describe('SIS-PERF-API: orçamento A1 a A3 nas 51 rotas (volume padrão do mock)', () => {
+describe('SIS-PERF-API: orçamento A1 a A3 nas 53 rotas (volume padrão do mock)', () => {
   it('payload gzip < 50 KB em todas; tempo frio e quente registrados', async () => {
     const base = gerarBaseMock();
     const grandes: string[] = [];
@@ -38,7 +38,7 @@ describe('SIS-PERF-API: orçamento A1 a A3 nas 51 rotas (volume padrão do mock)
       const t0 = cpuMs();
       for (const id of METRICA_IDS) {
         // pior filtro conhecido (período máximo) onde o período se aplica
-        const u = `/api/v1/metricas/${id}${['businessmap', 'acelerato'].includes(fonteDaMetrica(id)) ? '?periodo=12m' : ''}`;
+        const u = `/api/v1/metricas/${id}${['businessmap', 'acelerato'].includes(fonteDaMetrica(id)) && !id.startsWith('TENDENCIA_') ? '?periodo=12m' : ''}`;
         const a = cpuMs();
         const r = await app.inject(u);
         frio[id] = cpuMs() - a;

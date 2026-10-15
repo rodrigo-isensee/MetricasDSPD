@@ -43,19 +43,27 @@ function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
             <a
               href={destinoDoCartao(c)}
               className="alvo inline-flex items-center text-acento underline"
-              aria-label={`${c.codigo} ${c.rotulo}, ${
-                c.grupo === 'percepcao'
-                  ? 'vai para a seção de percepção de valor'
-                  : `abre Mais métricas ${
-                      c.painel === p.painel ? 'deste painel' : `do painel ${NOME_PAINEL[c.painel]}`
+              aria-label={
+                entreVisoes(c, p.painel)
+                  ? `${c.codigo} ${c.rotulo} · visão ${VISAO_OUTRA_FONTE[c.painel as 'sustentacao']}, fonte ${FONTE_DO_PAINEL[c.painel as 'sustentacao']}. Abre Mais métricas da visão ${VISAO_OUTRA_FONTE[c.painel as 'sustentacao']}.`
+                  : `${c.codigo} ${c.rotulo}, ${
+                      c.grupo === 'percepcao'
+                        ? 'vai para a seção de percepção de valor'
+                        : `abre Mais métricas ${
+                            c.painel === p.painel
+                              ? 'deste painel'
+                              : `do painel ${NOME_PAINEL[c.painel]}`
+                          }`
                     }`
-              }`}
+              }
               onClick={(e) => {
                 e.preventDefault()
                 ir(c)
               }}
             >
               {c.codigo} {c.rotulo}
+              {entreVisoes(c, p.painel) &&
+                ` · visão ${VISAO_OUTRA_FONTE[c.painel as 'sustentacao']}, fonte ${FONTE_DO_PAINEL[c.painel as 'sustentacao']}`}
             </a>
           </li>
         ))}
@@ -71,9 +79,15 @@ function irParaSecaoVisivel(id: string) {
   el?.querySelector<HTMLElement>('[data-cartao-titulo]')?.focus()
 }
 
+/** O fluxo e a Sustentação vivem no Operacional, em visões de fontes diferentes: o "leia junto" entre elas diz qual. */
+const entreVisoes = (c: CartaoCatalogo, atual: CartaoCatalogo['painel']): boolean =>
+  c.painel === 'sustentacao' && atual === 'operacional'
+const VISAO_OUTRA_FONTE = { sustentacao: 'Sustentação' } as const
+const FONTE_DO_PAINEL = { sustentacao: 'Acelerato' } as const
+
 const NOME_PAINEL: Record<CartaoCatalogo['painel'], string> = {
   operacional: 'Operacional',
   tatico: 'Tático',
   estrategico: 'Estratégico',
-  sustentacao: 'Sustentação',
+  sustentacao: 'Operacional · Sustentação',
 }

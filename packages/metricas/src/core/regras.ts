@@ -631,6 +631,30 @@ export const REGRAS_METRICA = {
       'Sustentação (lacuna de valor, não especificada no briefing); 4.2 mínimo de 20; T2.6; plano lacuna-de-valor',
     status: 'ok',
   },
+  TENDENCIA_FLUXO: {
+    // Cada ponto é o O3 (por tipo) no último dia do mês; a classe estatística continua sendo o tipo.
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['percentis'],
+    granularidade: 'story',
+    refBriefing: 'ADR 0019; plano sustentacao-no-operacional (O3 e O4 por mês)',
+    status: 'ok',
+  },
+  TENDENCIA_SUST: {
+    // Cada ponto é o S2 (por prioridade) no último dia do mês; o volume é a contagem de abertos (base do S3).
+    dominio: 'acelerato',
+    segmentacao: ['prioridade'],
+    ordem: 'temporal',
+    incluiArquivados: 'nao-se-aplica',
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'chamado',
+    refBriefing: 'ADR 0019; plano sustentacao-no-operacional (S2 e S3 por mês)',
+    status: 'ok',
+  },
   VISAO_GERAL: {
     dominio: 'composicao',
     segmentacao: [],

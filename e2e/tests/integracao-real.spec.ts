@@ -1,7 +1,7 @@
 import { test, expect, rodarAxe } from '../fixtures/base';
 
 // Plano: docs/qa/integracao-real.md (CT-xx). Seletores por papel e texto da microcopy de docs/ux/integracao-real/05-especificacao.md.
-const PAINEIS = ['/operacional', '/tatico', '/estrategico', '/sustentacao'];
+const PAINEIS = ['/operacional?cadencia=diaria', '/tatico', '/estrategico', '/operacional?cadencia=sustentacao'];
 const FONTES = [{ aba: 'BusinessMap', q: 'bm' }, { aba: 'Acelerato', q: 'ac' }];
 const VIEWPORTS = [{ width: 375, height: 800 }, { width: 1280, height: 800 }];
 
@@ -22,22 +22,22 @@ test.describe('Selo de frescor e calibração nos painéis', () => {
   });
 
   test('CT-04 coleta-atrasada mostra horas de atraso', async ({ page }) => {
-    await page.goto('/operacional?mock=coleta-atrasada:bm');
+    await page.goto('/operacional?cadencia=diaria&mock=coleta-atrasada:bm');
     await expect(page.getByText(/Atrasado: última coleta há \d+ h/).first()).toBeVisible();
   });
 
   test('CT-06/07 calibração: painel visível, faixa status e selo no cartão', async ({ page }) => {
-    await page.goto('/sustentacao');
+    await page.goto('/operacional?cadencia=sustentacao');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByRole('status').filter({ hasText: /não para cobrar|não para cobrar pessoas/i }).first()).toBeVisible();
     await expect(page.getByText('Em calibração').first()).toBeVisible();
   });
 
   test('CT-08/09 sem-calibracao remove a faixa; em calibração não há Dentro/Fora da meta', async ({ page }) => {
-    await page.goto('/sustentacao');
+    await page.goto('/operacional?cadencia=sustentacao');
     await expect(page.getByText('Em calibração').first()).toBeVisible();
     await expect(page.getByText(/Dentro da meta|Fora da meta|^(Acima|Abaixo) de 90%$/)).toHaveCount(0);
-    await page.goto('/sustentacao?mock=sem-calibracao');
+    await page.goto('/operacional?cadencia=sustentacao&mock=sem-calibracao');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByText('Em calibração')).toHaveCount(0);
     await expect(page.getByText(/^(Acima|Abaixo) de 90%$/).first()).toBeVisible();
@@ -50,41 +50,41 @@ test.describe('Selo de frescor e calibração nos painéis', () => {
   });
 
   test('CT-13 coleta-erro mantém dados anteriores e avisa', async ({ page }) => {
-    await page.goto('/operacional');
+    await page.goto('/operacional?cadencia=diaria');
     await expect(page.getByText(/Coleta falhou em .*Mostrando dados de/).first()).toBeVisible();
     await expect(page.getByText(/Ainda não há dados desta fonte/)).toHaveCount(0);
   });
 
   test('CT-34 falha de leitura do estado de coleta mostra "Tentar de novo" (IR-002)', async ({ page }) => {
-    await page.goto('/operacional?mock=coleta-erro:bm');
+    await page.goto('/operacional?cadencia=diaria&mock=coleta-erro:bm');
     await expect(page.getByText(/Não foi possível verificar a coleta/)).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('button', { name: 'Tentar de novo' })).toBeVisible();
   });
 
   test('CT-14 coleta-vazia mostra o estado sem dados', async ({ page }) => {
-    await page.goto('/operacional?mock=coleta-vazia:bm');
+    await page.goto('/operacional?cadencia=diaria&mock=coleta-vazia:bm');
     await expect(page.getByText(/Ainda não há dados desta fonte/).first()).toBeVisible();
   });
 
   test('CT-15 falha em uma fonte não altera a outra', async ({ page }) => {
-    await page.goto('/sustentacao?mock=coleta-erro:bm');
+    await page.goto('/operacional?cadencia=sustentacao&mock=coleta-erro:bm');
     await expect(page.getByTestId('selo-frescor-acelerato')).toContainText('Atual');
     await expect(page.getByText(/Coleta falhou em/)).toHaveCount(0);
   });
 
   test('CT-31 aviso de dados fictícios aparece no mock', async ({ page }) => {
-    await page.goto('/operacional');
+    await page.goto('/operacional?cadencia=diaria');
     await expect(page.getByText(/dados fictícios/i).first()).toBeVisible();
   });
 });
 
 test.describe('Tela /dados', () => {
   test('CT-16 acesso pela navegação e pelo link Entenda', async ({ page }) => {
-    await page.goto('/operacional');
+    await page.goto('/operacional?cadencia=diaria');
     await page.getByRole('link', { name: /Dados e coletas/ }).first().click();
     await expect(page).toHaveURL(/\/dados/);
     await expect(page.getByRole('heading', { level: 1, name: 'Dados e coletas' })).toBeVisible();
-    await page.goto('/operacional');
+    await page.goto('/operacional?cadencia=diaria');
     await page.getByRole('link', { name: /Entenda/ }).first().click();
     await expect(page).toHaveURL(/\/dados/);
   });
@@ -177,7 +177,7 @@ test.describe('Tela /dados', () => {
 for (const vp of VIEWPORTS) {
   test.describe(`${vp.width}px`, () => {
     test.use({ viewport: vp });
-    const ROTAS = ['/dados?fonte=bm', '/dados?fonte=ac', '/dados?mock=coleta-vazia:bm', '/dados?mock=carregando', '/operacional?mock=coleta-atrasada:bm', '/operacional?mock=coleta-erro:bm', '/operacional?mock=coleta-vazia:bm', '/operacional?mock=sem-calibracao', '/'];
+    const ROTAS = ['/dados?fonte=bm', '/dados?fonte=ac', '/dados?mock=coleta-vazia:bm', '/dados?mock=carregando', '/operacional?cadencia=diaria&mock=coleta-atrasada:bm', '/operacional?cadencia=diaria&mock=coleta-erro:bm', '/operacional?cadencia=diaria&mock=coleta-vazia:bm', '/operacional?cadencia=diaria&mock=sem-calibracao', '/'];
     for (const rota of ROTAS) {
       test(`CT-27 axe ${rota}`, async ({ page }) => {
         await page.goto(rota);
