@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis
 branch: fix/coletor-allow-list
-commit: d0bce7f
+commit: 7eab8e0
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -19,6 +19,8 @@ Links: ADR 0020 (itens 4a, 4b, 4c, 4d, 4f), review `docs/reviews/k084-coletor-al
 
 ## Veredito
 **Aprovado.** Nenhum bug aberto. Todas as obrigações de proteção de pessoa e de texto livre na fronteira têm evidência com o papel real do Postgres (`dspd_coletor`, `dspd_webhook`). O commit `d0bce7f` é o HEAD da branch com os testes do QA (só `server/tests/`, nenhum código de produção alterado); o código de produção testado é o de `9b7f0d3`.
+
+Revalidado em 2026-10-15 no HEAD `7eab8e0` (atualização com a `develop`, só docs): ver a seção final.
 
 ## Escopo
 Diff `origin/develop...HEAD`: `allow-list.ts`, `responsaveis.ts`, `staging.ts`, `webhook.ts`, `index.ts` e os testes dos autores. Fora do escopo: cliente da API e worker (não existem), demais `stg_` (B-K3), forma dos campos (B-K1), erro do jsonb no coletor (B-K2): pré-condições dos próximos cartões, já registradas pela segurança.
@@ -68,3 +70,11 @@ Nenhum aberto. Os achados B-K1 (forma das strings nas chaves permitidas), B-K2 (
 3. `responsaveis.ts`: a leitura da vigente e o `UPDATE` são duas instruções (observação do review); só importa quando houver mais de um coletor no mesmo card.
 4. Os 7 testes de `pesquisa.pg` falham no Postgres local por permissão do papel `dspd_pesquisa`; é anterior e de ambiente, e o job `banco` da CI é o portão.
 5. Os arquivos novos do QA não passam no `prettier --check`; os testes dos autores (por exemplo `allow-list.test.ts`) também não, então o `pronto` não os verifica.
+
+## Revalidação: atualização com a develop (só docs)
+- Data: 2026-10-15. Parecer original no commit `d0bce7f`; HEAD revalidado: `7eab8e0` (branch `fix/coletor-allow-list`, worktree `MetricasDSPD-k084`). O campo `commit:` passa a ser o HEAD testado.
+- Motivo: a `develop` recebeu só documentação (PR #76) e a branch a mergeou (`d81a6cb`). O `forge-check pr` acusava o parecer como desatualizado por causa de `docs/alinhamentos/2026-10-14-revisao-desenho-011.md`, que não é caminho livre (LIVRES).
+- Código e teste: `git diff d0bce7f 7eab8e0 --stat -- server packages web e2e` vazio. Os 19 arquivos que mudaram desde o parecer são de `docs/` e `KANBAN.md` (alinhamento, ADR 0003 e 0020, arquitetura, integração, kanban, pedido, UX, revisão e segurança). Nenhum código de produção, teste, migração, fixture ou configuração de pronto mudou.
+- Unidade do `server` em `7eab8e0` (`npx vitest run --project unit`, com `flock /tmp/metricas-pesado.lock nice -n 19`): 25 arquivos, **476 passaram**, 0 falharam. Igual ao parecer original.
+- Não reexecutei `test:pg` nem `pronto`: o código testado é idêntico ao de `d0bce7f` (mesmo resultado de 69 de 76, mesmas 7 falhas de `pesquisa.pg` de ambiente).
+- Veredito mantido: **aprovado**, zero bugs abertos.
