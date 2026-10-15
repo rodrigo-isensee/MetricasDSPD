@@ -420,6 +420,10 @@ Depende do coletor real do BusinessMap (WS2) e da configuração da WS1.
   - `dim_card`: `primeiro_toque_em`, `passagens`, `data_acordada_original`, `replanejamentos`, `equipe_responsavel` (também em `dim_card_versao`), e o instante e o motivo nativos de descarte (`discarded_at`, `reason_id`);
   - `stg_comentario_instante`, `stg_vinculo_relacao`, `fato_vinculo`, `agg_conhecimento_sistema`, `ref_conta_automacao`, o catálogo de `/discardReasons` (ref com vigência) e `ref_custo_dspd`;
   - `gerarGrants`, `lgpd.ts` e os índices de §6.
+  - **Pré-condição da migração que cria `agg_conhecimento_sistema` e `ref_conta_automacao` (K-085, B-K1 a B-K3):**
+    - manter exatamente esses nomes e o schema `dspd_bm`: a exclusão da API é por nome (`TABELAS_FORA_DA_API`, `COLUNAS_FORA_DA_API`), e outro nome ou schema abriria acesso em silêncio;
+    - citar o K-085 no cartão e no PR;
+    - rodar a guarda (`guarda-api.pg.test.ts`) no mesmo PR: tabela ou coluna nova sem classificação derruba o teste; `ref_conta_automacao` entra como "fora da API" e `agg_conhecimento_sistema` como "na API", sem `responsaveis` e sem coluna que case com o regex de pessoa.
 - Allow-list do coletor com o teste da ADR 0020. Medição de K1 por entidade, com a carga histórica de 24 meses numa execução separada.
 - `porMotivo` do O25 a partir do catálogo nativo. O tratamento definitivo do descarte segue a resposta à **P-1** (O25, §2).
 - Estado de partida do O26 (§8 a, passo 5): escolhido pelo tech-lead com o K1 medido.
