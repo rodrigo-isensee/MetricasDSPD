@@ -137,3 +137,57 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-14 08:10 | K-072 | Pronto para fazer | Em andamento | Sustentação no Operacional, back-end B1 a B3 |
 | 2026-10-14 08:10 | K-073, K-074, K-075, K-077 | Entrada | Entrada | Sustentação front; usabilidade U1 a U5; mobile e tablet (010); retrospectiva + melhoria do Forge |
 | 2026-10-14 08:10 | K-076 | Pronto para fazer | Em andamento | Documentação .md do discovery para a develop |
+
+- 2026-10-14 15:30 — K-069, K-070, K-071 → Pronto (release #72 na main); K-076 → Pronto (#66); K-072+K-073 → Code review; K-078 (pedido 011) → Validação do usuário.
+- 2026-10-14 15:30 — Usuário autorizou 4 agentes. K-077 → Em andamento (agile-coach); K-079 e K-080 abertos em Em andamento.
+- 2026-10-14 15:35 — Lançamento de K-077, K-079 e K-080 recusado pelo hook R-TETO (3 agentes ativos na máquina, teto adaptativo 2–3); ficam na fila.
+- 2026-10-14 15:50 — K-072+K-073: review reprovado por documentação; pronto verde na 2a rodada (varredura instável sob carga). Volta 1 ao node-backend e ao react-frontend.
+- 2026-10-14 15:55 — K-079 concluído (plano 011 §8; ADR 0019 L2 editada, commit pendente com o tech-lead). K-080 (QA) lançado.
+- 2026-10-14 16:00 — K-080: plano de QA pronto. UX lançado para os textos e o alerta do review e para A1–A10. K-077 segue na fila do R-TETO.
+- 2026-10-14 16:05 — UX: adendo do review gravado (U1 pendente com o usuário; vale (a) até a resposta). K-077 lançado (agile-coach).
+- 2026-10-14 16:10 — K-077: retro 002 e proposta ao Forge prontas; 3 PRs do tech-lead aguardando vaga (R-TETO).
+- 2026-10-14 16:15 — K-072 (back) volta 1 concluída: 36df612 (M2, L3) e 50de2a0 (L4, M3). Aguarda o front para a volta 2 do review.
+- 2026-10-14 16:25 — K-073 front volta 1 concluída (66e3d46, 06fab0c); front aplicando o adendo de UX antes da volta 2 do review. Tech-lead abrindo os 3 PRs do Forge (K-077).
+- 2026-10-14 16:30 — Usuário reduziu o teto desta sessão para 3 agentes.
+- 2026-10-14 16:45 — K-072+K-073 → Code review (volta 2), depois do adendo de UX no front (6 commits, web 1031/1031, 100%).
+- 2026-10-14 17:00 — Plano da Sustentação: tabela 4.5 corrigida pelo architect (sem commit); vai na volta 2.
+- 2026-10-14 17:10 — Usuário aceitou as recomendações: D-1' = A (pedido 011) e U1 = (a) (Sustentação).
+- 2026-10-14 17:30 — Pedido 011: o usuário aprovou a T14 (participação do meu time no projeto) como métrica nova; D-1' = A e U1 = (a) registradas.
+- 2026-10-14 17:45 — T14: discovery de UX e de arquitetura concluídos; triagem das perguntas registrada no pedido 011.
+- 2026-10-14 17:50 — K-077: os 3 PRs do Forge ficaram prontos localmente, mas o push foi barrado pelo pre-push (a suíte não roda dentro de sessão Claude). A ação foi para o usuário. Volta 2 do review da Sustentação iniciada.
+- 2026-10-14 18:10 — K-072+K-073: volta 2 reprovada só pelo pronto da raiz (V1 a V3); volta 3 com o node-backend e o react-frontend.
+- 2026-10-14 18:20 — Usuário ausente: subir recursos de forma equilibrada. Tech-lead abrindo o PR de documentação e do quadro (chore/forge-0.13.0 → develop). Orçamento móvel (K-075, architect) aguarda vaga no R-TETO.
+- 2026-10-14 18:40 — K-072+K-073: volta 3 do back concluída (95fdf1a, d4ac4dd), pronto da raiz verde (exit 0). A volta 3 do review espera o tech-lead terminar o PR de docs. Orçamento móvel (K-075) com o architect. Usuário fora: pediu o remote control (não acionável pelo agente) e consumo consciente.
+- 2026-10-14 18:50 — K-075: orçamento móvel incluído na ADR 0003 pelo architect (sem commit, no diretório principal; vai num PR de docs depois do atual).
+- 2026-10-14 19:00 — PR #73 (docs do 011, adendo, retro e quadro) mesclado na develop (cdb5f8a). K-072+K-073 na volta 3 do review. Abertos K-081 (registro da versão do Forge, ação do usuário) e K-082 (PR da ADR 0003).
+- 2026-10-14 20:15 — K-078: protótipo do 011 aprovado → Pronto para fazer. K-082: #74 bloqueado pelo e2e IF-A na CI. K-083 aberto (react-frontend investiga).
+- 2026-10-14 20:25 — Usuário definiu a prioridade: back do 011 em paralelo; front K-074 → K-075 → 011.
+- 2026-10-14 20:40 — Revisão de desenho do 011: aprovado com ajustes (ata em alinhamentos). Architect aplica A1–A13. B1 (node-backend) aguarda vaga no R-TETO. P-1 com o usuário.
+- 2026-10-14 21:00 — Plano do 011 vigente (A1 a A13; ADR 0020 proposta). K-078 → Em andamento: B1 com o node-backend.
+- 2026-10-14 21:10 — Usuário ausente (noite). Estado em estado-2026-10-14-noite.md.
+- 2026-10-14 21:30 — ADR 0020: segurança aprovada com ressalvas; K-084 aberto; R-1 com o usuário.
+- 2026-10-14 22:00 — ADR 0020 atualizada (vigente para a fase 2). Cartões K-085 a K-090 abertos. R-2 com o usuário.
+- 2026-10-14 22:20 — K-090 concluído (data-model e configuração da API alinhados à ADR 0020).
+- 2026-10-14 23:00 — K-083 → Code review (causa: timeout do E2E na CI).
+- 2026-10-14 23:20 — K-083: review aprovado → fila do QA.
+- 2026-10-14 23:50 — K-078 B1 pronto (4535089, 4e70af9; pronto da raiz verde). Review incremental do B1 com o tech-lead; B2 (O23) com o node-backend. Nota: o node-backend rodou o pnpm install --offline fora do flock (3,5 s) depois de 38 min na fila; reforçado na delegação do B2.
+- 2026-10-15 00:10 — Review do B1: aprovado, com ajustes R1 a R4 para depois do B2.
+- 2026-10-15 00:40 — Sustentação: QA aprovado com ressalvas (5 bugs SNO, nenhum alto aberto). Front corrige SNO-002, SNO-004 e o texto da A6; revisão de UX em paralelo.
+- 2026-10-15 01:00 — Sustentação: revisão de UX aprovada com ressalvas (D-01 a D-09). D-09 vai para o architect; QA do K-083 na fila (R-TETO com carga 7 e 1,6 GB livres).
+- 2026-10-15 01:20 — K-078 B2 (O23) pronto (75837cd; pronto verde). Node-backend nos ajustes R1 a R4 do B1. QA do K-083 lançado. O review do B2 entra no próximo lote com o tech-lead. Na validação, confirmar o limite de 5 dias úteis (U-11).
+- 2026-10-15 02:00 — K-083: QA aprovado; o tech-lead integra e destrava o #74. Abertos K-091 (IFA-001), K-092 (IF-U instável) e K-093 (SNO-005).
+- 2026-10-15 02:30 — Sustentação: SNO-002, SNO-004 (CLS de 0,125 para 0,0039) e texto da A6 em 8423b19. SNO-001 vai para o K-075. Próximo: as ressalvas de UX D-01 a D-08 (react-frontend) e a D-09 (architect), os dois na fila do R-TETO, com carga 8.
+- 2026-10-15 03:00 — K-078 B3 (O19, T10) pronto (69e98e0). Pergunta O19-pct para o usuário. Ressalvas de UX D-01 a D-08 da Sustentação com o react-frontend.
+- 2026-10-15 03:40 — K-078 B4 (T12) pronto (f3629a0). O mock não gera ida e volta (k = 0); a extensão do mock é decisão do tech-lead no review (B11). B5 na fila do R-TETO.
+- 2026-10-15 04:20 — Sustentação: ressalvas de UX D-01 a D-08 aplicadas (9ab5ece; pronto verde; E2E 133 e 77 verdes; flake do CT-03 sob carga). D-04 e SNO-001 vão para o K-075. Próximo: review e QA do delta 8423b19..9ab5ece, reconferência do UX e D-09 (architect).
+- 2026-10-15 04:50 — Sustentação: especificação 5.9.3 corrigida (diff conferido, só a linha e o histórico); reconferência do UX aprovada. Falta o review e o QA do delta 8423b19..9ab5ece, depois o PR. O tech-lead está ocupado com os PRs do K-083 e do #74.
+- 2026-10-15 03:10 — A máquina reiniciou, e os agentes do K-083 e do B5 foram interrompidos. O PR #75 (K-083) estava com os checks verdes; o tech-lead retoma o merge do #75 e do #74. O node-backend retoma o B5 a partir do trabalho parcial que ficou sem commit.
+- 2026-10-15 03:40 — K-078 B5 (E7 sem R$, E9) pronto (04dd94d). O E9 juntava Iniciativa e Melhoria num P85 só, o que contraria a regra geral 7 da especificação e a Q4 do E1. O Jarvis mandou fazer por tipo (decidido pelo documento, não vai ao usuário). Depois vem o B6 (O25). O E9 dos campos idade e faixa segue a especificação.
+- 2026-10-15 04:20 — K-078: ajuste do E9 por tipo (e9085e7) e B6/O25 (ab924c3) prontos. O O25 vai ser ajustado por tipo antes do B7. Pergunta (b) do O25 para o usuário.
+- 2026-10-15 05:10 — K-078: O25 por tipo (103105d) e B7/O21 (0c18a5b) prontos, com o pronto verde. Os dados fictícios estão insuficientes: o O21 dá 1,4% de retornos contra os cerca de 25% da especificação, e o O25 não publica nenhum tipo. Vai como decisão prioritária ao tech-lead no review do lote B2 a B7 (B11). B8 em andamento.
+- 2026-10-15 06:00 — K-078 B9/O20 pronto (c443888). Dois pontos divergiam da especificação e voltaram ao node-backend: faixas de Backlog a Entregue, e destaque nas últimas 4 semanas. O papel misto vai para o review do tech-lead. O #74 continua com o tech-lead.
+- 2026-10-15 06:40 — B9-ajuste (0e426e3): o O20 passa a ter as faixas de Backlog a Entregue. A janela do destaque fica no período do filtro, como a regra da especificação manda. B10 (O24) em andamento.
+- 2026-10-15 07:20 — K-078 B10/O24 pronto (2a2f837). O mock dá 86,5% fora de ordem contra os cerca de 25% da especificação; mais um ponto para a decisão do mock no B11. O plano foi atualizado só na cópia da worktree.
+- 2026-10-15 08:00 — K-084 pronto (5352a67); review de segurança e releitura da ADR 0020 com o security-engineer. O #74 está verde e ainda não foi mesclado: o tech-lead não concluiu.
+- 2026-10-15 09:00 — K-085 (GRANT por coluna) pronto (a4643d8, branch fix/grants-por-coluna). O código de saída do pronto não ficou provado; o review do tech-lead roda o pronto de novo. As tabelas ainda não existem, então a exclusão vale por nome quando elas forem criadas.
+- 2026-10-15 09:20 — PR #74 (ADR 0003, orçamento móvel) mesclado na develop; #75 já estava. K-082 e K-083 concluídos. O diretório principal segue na branch local docs/orcamento-movel (já mesclada), com docs sem commit; o tech-lead troca de branch no próximo PR de docs.

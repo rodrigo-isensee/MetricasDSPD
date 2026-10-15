@@ -21,14 +21,25 @@ d('webhook do BusinessMap com o papel dspd_webhook', () => {
     `SELECT count(*) AS n FROM ${S.core}.outbox WHERE tipo = 'bm.webhook.recebido' AND payload->>'payloadSha256' = $1`, [marca])).rows[0]!.n);
 
   it('202; reenvio idêntico não duplica a entrega nem o evento; entrega diferente cria outro', async () => {
-    const corpo = JSON.stringify({ evento: 'card_moved', n: Math.random() });
+    const corpo = JSON.stringify({ evento: 'card_moved', card: { id: String(Math.random()) } });
     expect((await post(corpo)).statusCode).toBe(202);
     expect((await post(corpo)).statusCode).toBe(202);
-    const r = await mig.query<{ n: string; h: string }>(`SELECT count(*) AS n, encode(payload_sha256, 'hex') AS h FROM ${S.bm}.stg_webhook_evento WHERE payload->>'n' = $1 GROUP BY payload_sha256`, [String(JSON.parse(corpo).n)]);
+    const r = await mig.query<{ n: string; h: string }>(`SELECT count(*) AS n, encode(payload_sha256, 'hex') AS h FROM ${S.bm}.stg_webhook_evento WHERE payload->>'card_id' = $1 GROUP BY payload_sha256`, [String(JSON.parse(corpo).card.id)]);
     expect(r.rows[0]!.n).toBe('1');
     expect(await eventos(r.rows[0]!.h)).toBe(1);
-    const outro = JSON.stringify({ evento: 'card_moved', n: Math.random() });
+    const outro = JSON.stringify({ evento: 'card_moved', card: { id: String(Math.random()) } });
     expect((await post(outro)).statusCode).toBe(202);
+  });
+  it('M-2: o corpo bruto não é gravado (só a allow-list); tipo fora da lista não grava nada', async () => {
+    const id = String(Math.random());
+    const corpo = JSON.stringify({ evento: 'card_moved', card: { id, description: 'MARCADOR-PESSOA' }, author: 'MARCADOR-PESSOA', discard_comment: 'MARCADOR-PESSOA' });
+    expect((await post(corpo)).statusCode).toBe(202);
+    const r = await mig.query<{ payload: Record<string, unknown> }>(`SELECT payload FROM ${S.bm}.stg_webhook_evento WHERE payload->>'card_id' = $1`, [id]);
+    expect(r.rows).toHaveLength(1);
+    expect(JSON.stringify(r.rows[0]!.payload)).not.toContain('MARCADOR-PESSOA');
+    const fora = JSON.stringify({ evento: 'card_deleted', card: { id: `x${id}` } });
+    expect((await post(fora)).statusCode).toBe(202);
+    expect((await mig.query(`SELECT 1 FROM ${S.bm}.stg_webhook_evento WHERE payload::text LIKE $1`, [`%x${id}%`])).rows).toHaveLength(0);
   });
   it('o papel só insere: não lê o payload nem o outbox', async () => {
     await expect(wh.query(`SELECT payload FROM ${S.bm}.stg_webhook_evento LIMIT 1`)).rejects.toThrow(/permission denied/);

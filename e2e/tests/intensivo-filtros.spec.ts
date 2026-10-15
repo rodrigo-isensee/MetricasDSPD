@@ -399,6 +399,9 @@ async function abrirComplementares(page: Page): Promise<void> {
 
 for (const caso of ROTAS_APLIC) {
   test(`IF-A ${caso.rota}: cartão que diz "Não afetado por X" não muda quando X sai`, async ({ page }) => {
+    // O teste navega uma vez por cartão "Não afetado por" (cada página espera o painel assentar): o orçamento
+    // padrão de 30 s vale para o teste inteiro, não para a asserção; na CI /tatico levou 25 s e a semanal estourou em 31 s.
+    test.setTimeout(120_000);
     const u = new URL(caso.rota, 'http://x');
     for (const [k, v] of Object.entries(caso.filtros)) u.searchParams.set(k, v);
     await page.goto(u.pathname + u.search.replaceAll('%2C', ','));
