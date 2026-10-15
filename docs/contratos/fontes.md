@@ -12,7 +12,7 @@
 |---|---|---|
 | Entrada por API | coleta incremental diária e varredura semanal, com apikey no `.env` (nunca no código) | [planejado]: lista de tarefas do worker está vazia (`server/src/entradas/worker.ts:16-18`) |
 | Entrada por webhook | `POST /webhooks/businessmap`: cabeçalho `x-webhook-secret`, corpo JSON objeto até 256 KB; `202 { "status": "recebido" }`; entrega idêntica não duplica | implementado (`server/src/modulos/businessmap/webhook.ts`) |
-| Staging | `stg_card`, `stg_revision`, `stg_bloqueio`, `stg_webhook_evento` etc., com payload bruto, SHA-256 e cadeia `anterior_sk` (`data-model.md` §3.1); gravação em `server/src/modulos/businessmap/staging.ts:18-36` | `gravarStgCard` implementado; demais tabelas conforme `data-model.md` |
+| Staging | `stg_card`, `stg_revision`, `stg_bloqueio`, `stg_webhook_evento` etc., com payload reduzido à allow-list (ADR 0020), SHA-256 e cadeia `anterior_sk` (`data-model.md` §3.1); gravação em `server/src/modulos/businessmap/staging.ts:18-36` | `gravarStgCard` implementado; demais tabelas conforme `data-model.md` |
 | Formato real do payload do webhook | desconhecido até o coletor; o corpo é guardado como veio (`jsonb`) e só o hash e o `webhookSk` seguem para a outbox | **a confirmar** (WS2) |
 | Normalização do evento | consumidor de `bm.webhook.recebido` | [planejado] (ver [eventos.md](eventos.md)) |
 | Instante canônico de transição | revision é canônica; webhook só antecipa; tolerância de casamento 120 s | pergunta N-3 aberta (`data-model.md` §12) |

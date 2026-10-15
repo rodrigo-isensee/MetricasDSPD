@@ -67,7 +67,7 @@ describe('catálogo de eventos da outbox (contrato)', () => {
 
   it('o webhook grava um evento que passa no schema do catálogo', async () => {
     const d = criarDublePg((c) => (c.texto.includes('stg_webhook_evento') ? [{ webhook_sk: '12' }] : []));
-    expect(await receberWebhook(d.pool, Buffer.from('{}'), {}, new Date(0))).toBe(true);
+    expect(await receberWebhook(d.pool, Buffer.from('{}'), { evento: 'card_moved' }, new Date(0))).toBe('gravado');
     const evento = d.chamadas.find((c) => c.texto.includes('outbox'))!;
     expect(() => validarPayload('bm.webhook.recebido', JSON.parse(String(evento.valores[1])))).not.toThrow();
   });
