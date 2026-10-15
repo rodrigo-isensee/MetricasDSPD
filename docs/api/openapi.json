@@ -14061,13 +14061,16 @@
                                       "ok"
                                     ]
                                   },
-                                  "k": {
-                                    "type": "number"
-                                  },
-                                  "n": {
+                                  "bloqueios": {
                                     "type": "integer",
                                     "minimum": 20,
                                     "maximum": 9007199254740991
+                                  },
+                                  "diasUteis": {
+                                    "type": "number"
+                                  },
+                                  "totalDiasUteis": {
+                                    "type": "number"
                                   },
                                   "pct": {
                                     "type": "number"
@@ -14075,8 +14078,9 @@
                                 },
                                 "required": [
                                   "status",
-                                  "k",
-                                  "n",
+                                  "bloqueios",
+                                  "diasUteis",
+                                  "totalDiasUteis",
                                   "pct"
                                 ],
                                 "additionalProperties": false
@@ -14090,13 +14094,16 @@
                                       "insuficiente"
                                     ]
                                   },
-                                  "k": {
-                                    "type": "number"
-                                  },
-                                  "n": {
+                                  "bloqueios": {
                                     "type": "integer",
                                     "minimum": -9007199254740991,
                                     "maximum": 19
+                                  },
+                                  "diasUteis": {
+                                    "type": "number"
+                                  },
+                                  "totalDiasUteis": {
+                                    "type": "number"
                                   },
                                   "minimo": {
                                     "type": "number",
@@ -14107,8 +14114,9 @@
                                 },
                                 "required": [
                                   "status",
-                                  "k",
-                                  "n",
+                                  "bloqueios",
+                                  "diasUteis",
+                                  "totalDiasUteis",
                                   "minimo"
                                 ],
                                 "additionalProperties": false

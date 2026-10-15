@@ -59,6 +59,15 @@ export const VERSAO_CRITERIO_EXCLUIDO_ENTREGUE: VersaoCriterio = {
   afeta: METRICAS_DO_DESCARTE_NATIVO,
 }
 
+/** O19-pct = B (pedido 011, 2026-10-16): o percentual de cada causa passa a ser sobre os dias úteis bloqueados. */
+export const VERSAO_CRITERIO_O19_PCT_DIAS: VersaoCriterio = {
+  id: 'criterio-2026-10-16-o19-pct-em-dias-uteis',
+  data: '2026-10-16',
+  descricao:
+    'Percentual de cada causa de bloqueio passou a ser sobre os dias úteis bloqueados (antes, sobre o número de bloqueios); mínimo de 20 segue sobre os bloqueios da causa',
+  afeta: ['O19'],
+}
+
 /** O20-destaque = A (pedido 011, 2026-10-16): o destaque do fluxo cumulativo não considera mais o Backlog. */
 export const VERSAO_CRITERIO_O20_DESTAQUE_V2: VersaoCriterio = {
   id: 'criterio-2026-10-16-o20-destaque-sem-backlog',
@@ -73,6 +82,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
   VERSAO_CRITERIO_DESCARTE_NATIVO,
   VERSAO_CRITERIO_EXCLUIDO_ENTREGUE,
+  VERSAO_CRITERIO_O19_PCT_DIAS,
   VERSAO_CRITERIO_O20_DESTAQUE_V2,
 ]
 

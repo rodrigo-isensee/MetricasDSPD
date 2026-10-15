@@ -4,6 +4,7 @@ import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
 import { gerarBaseBusinessMap } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
+import { marcacoesNoPeriodo } from '../core/criterios'
 import { calcularO19, calcularT10, type FatoBloqueio } from './index'
 import { criarContextoBM } from './indice'
 import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
@@ -84,8 +85,8 @@ describe('O19: bloqueios por causa', () => {
     expect(SCHEMAS_RESULTADO.O19.safeParse(r).success).toBe(true)
   })
 
-  it('R6: o pctDoTotal é k de n em bloqueios (n = bloqueios encerrados), nunca em dias úteis', () => {
-    // 20 bloqueios curtos de um motivo e 1 longo de outro: em dias o longo dominaria (100 de 120).
+  it('O19-pct = B: o pctDoTotal é a participação nos DIAS úteis; o mínimo de 20 vale sobre os bloqueios da causa', () => {
+    // 20 bloqueios curtos (1 dia) de um motivo e 1 longo (100 dias) de outro: em dias o longo domina.
     const r = calcularO19(
       ctxDe(
         [card('A')],
@@ -96,20 +97,61 @@ describe('O19: bloqueios por causa', () => {
       ),
       F,
     )
-    const valid = r.motivos[1]
-    expect(r.motivos.find((m) => m.motivo === 'Janela de mudança')?.pctDoTotal).toEqual({
+    const janela = r.motivos.find((m) => m.motivo === 'Janela de mudança')!
+    const valid = r.motivos.find((m) => m.motivo === 'Aguardando validação do negócio')!
+    expect(janela.pctDoTotal).toMatchObject({
       status: 'ok',
-      k: 20,
-      n: 21,
-      pct: (20 / 21) * 100,
+      bloqueios: 20,
+      diasUteis: janela.diasUteis,
+      totalDiasUteis: r.totalDiasUteis,
     })
-    expect(valid?.pctDoTotal).toMatchObject({ status: 'ok', k: 1, n: 21 })
+    const pj = janela.pctDoTotal as Extract<typeof janela.pctDoTotal, { status: 'ok' }>
+    expect(pj.pct).toBeCloseTo((janela.diasUteis / r.totalDiasUteis) * 100, 9)
+    // o longo (1 bloqueio) está abaixo de 20 bloqueios: não publica o percentual, mesmo dominando os dias
+    expect(valid.pctDoTotal).toEqual({
+      status: 'insuficiente',
+      bloqueios: 1,
+      diasUteis: valid.diasUteis,
+      totalDiasUteis: r.totalDiasUteis,
+      minimo: 20,
+    })
+    expect(valid.diasUteis).toBeGreaterThan(janela.diasUteis)
+    expect(SCHEMAS_RESULTADO.O19.safeParse(r).success).toBe(true)
   })
 
-  it('abaixo de 20 bloqueios no total o percentual não é publicado: só "k de n"', () => {
-    const r = calcularO19(ctxDe([card('A')], muitos(19, 'Janela de mudança', null)), F)
-    const m = r.motivos.find((x) => x.motivo === 'Janela de mudança')
-    expect(m?.pctDoTotal).toEqual({ status: 'insuficiente', k: 19, n: 19, minimo: 20 })
+  it('O19-pct = B: com 20 ou mais bloqueios da causa publica o percentual em dias; com 19 não, mesmo que o total passe de 20', () => {
+    const r = calcularO19(
+      ctxDe(
+        [card('A')],
+        [...muitos(19, 'Janela de mudança', null), ...muitos(20, 'Aguardando fornecedor', null, 2)],
+      ),
+      F,
+    )
+    const m = (x: string) => r.motivos.find((y) => y.motivo === x)!.pctDoTotal
+    expect(m('Janela de mudança')).toMatchObject({ status: 'insuficiente', bloqueios: 19 })
+    expect(JSON.stringify(m('Janela de mudança'))).not.toContain('pct')
+    expect(m('Aguardando fornecedor')).toMatchObject({ status: 'ok', bloqueios: 20 })
+    const pcts = r.motivos.flatMap((x) => (x.pctDoTotal.status === 'ok' ? [x.pctDoTotal.pct] : []))
+    expect(pcts.every((v) => v >= 0 && v <= 100)).toBe(true)
+  })
+
+  it('O19-pct = B: 20 bloqueios sem nenhum dia útil (total zero) publicam 0%, sem dividir por zero', () => {
+    const r = calcularO19(ctxDe([card('A')], muitos(20, 'Janela de mudança', null, 0)), F)
+    expect(r.totalDiasUteis).toBe(0)
+    expect(r.motivos.find((x) => x.motivo === 'Janela de mudança')?.pctDoTotal).toMatchObject({
+      status: 'ok',
+      pct: 0,
+    })
+  })
+
+  it('T2.6: a mudança do percentual é uma versão de critério datada, só do O19', () => {
+    const periodo = { inicio: '2026-10-01', fim: '2026-10-31' }
+    expect(marcacoesNoPeriodo('O19', periodo, []).map((m) => m.id)).toContain(
+      'criterio-2026-10-16-o19-pct-em-dias-uteis',
+    )
+    expect(marcacoesNoPeriodo('O20', periodo, []).map((m) => m.id)).not.toContain(
+      'criterio-2026-10-16-o19-pct-em-dias-uteis',
+    )
   })
 
   it('conta à parte os abertos e fica só com os encerrados dentro do período, de story', () => {
@@ -268,7 +310,8 @@ describe('O19 e T10 sobre o mock (B11a: alvos da fase 1 como asserção)', () =>
     expect(r.base.n).toBe(30)
     expect(r.motivos.map((m) => m.bloqueios)).toEqual([3, 3, 7, 0, 15, 0, 2])
     expect(r.motivos.every((m) => m.duracao.status === 'insuficiente')).toBe(true)
-    expect(r.motivos.every((m) => m.pctDoTotal.status === 'ok')).toBe(true)
+    // O19-pct = B: o mínimo é sobre os bloqueios da causa (nenhuma chega a 20), então o percentual não sai
+    expect(r.motivos.every((m) => m.pctDoTotal.status === 'insuficiente')).toBe(true)
   })
 
   it('T10 em 12 semanas: 40 a 70 bloqueios em 3 fornecedores, ao menos 1 com 20 ou mais e ao menos 1 abaixo; com 12 meses a janela dos percentis não muda', () => {
@@ -346,7 +389,7 @@ describe('B3-1: percentis na janela de 12 semanas, censo no período', () => {
       F12M,
     )
     const f = foraDaJanela.motivos.find((x) => x.motivo === 'Janela de mudança')
-    expect(f).toMatchObject({ bloqueios: 20, pctDoTotal: { status: 'ok', k: 20, n: 20 } })
+    expect(f).toMatchObject({ bloqueios: 20, pctDoTotal: { status: 'ok', bloqueios: 20 } })
     expect(f?.duracao).toMatchObject({ status: 'insuficiente', n: 19 })
   })
 

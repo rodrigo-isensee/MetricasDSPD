@@ -9,6 +9,7 @@
  */
 import { z } from 'zod'
 import {
+  MINIMO_AMOSTRA,
   MOTIVOS_BLOQUEIO,
   NATUREZAS_ENTREGA,
   TIPOS_CARD,
@@ -37,6 +38,31 @@ export const paradosSchema = fechado({
   porEtapa: z.array(fechado({ etapa: z.string(), k: z.number() })),
 })
 
+/**
+ * Participação da causa no total de dias úteis bloqueados (O19-pct = B, 2026-10-16). O percentual é sobre os DIAS úteis;
+ * o mínimo de 20 vale sobre o número de BLOQUEIOS da causa (abaixo, só `diasUteis` de `totalDiasUteis`, sem `pct`).
+ */
+export const pctDiasUteisSchema = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('ok'),
+    bloqueios: z.number().int().min(MINIMO_AMOSTRA),
+    diasUteis: z.number(),
+    totalDiasUteis: z.number(),
+    pct: z.number(),
+  }),
+  z.object({
+    status: z.literal('insuficiente'),
+    bloqueios: z
+      .number()
+      .int()
+      .max(MINIMO_AMOSTRA - 1),
+    diasUteis: z.number(),
+    totalDiasUteis: z.number(),
+    minimo: z.literal(MINIMO_AMOSTRA),
+  }),
+])
+export type PctDiasUteis = z.infer<typeof pctDiasUteisSchema>
+
 /** O19 Bloqueios por causa: 7 motivos em ordem neutra do domínio; a interface é que ordena por soma. */
 export const resultadoO19 = fechado({
   ...comum,
@@ -45,7 +71,7 @@ export const resultadoO19 = fechado({
       motivo: z.enum(MOTIVOS_BLOQUEIO),
       bloqueios: z.number(),
       diasUteis: z.number(),
-      pctDoTotal: taxaSchema,
+      pctDoTotal: pctDiasUteisSchema,
       duracao,
     }),
   ),
