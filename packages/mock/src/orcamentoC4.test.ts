@@ -1,18 +1,20 @@
-import { describe, expect, it } from 'vitest'
-import { CATALOGO_CARTOES, fonteDaMetrica } from '@metricas-dspd/contratos'
-import type { MetricaId } from '@metricas-dspd/contratos'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { idsDoC4, fonteDaMetrica, SCHEMAS_TAMBEM_FASE1 } from '@metricas-dspd/contratos'
+import type { CadenciaC4, MetricaId } from '@metricas-dspd/contratos'
+import { loadavg } from 'node:os'
 import { acelerato, businessmap, calcularMetrica, pesquisa } from '@metricas-dspd/metricas'
 import { CALENDARIO_PADRAO } from '@metricas-dspd/metricas/core'
 import { gerarBaseMock, gerarExtensaoTambemMock, gerarExtensoesMock, gerarPesquisaMock } from '.'
 
 /**
- * Emenda C4 da ADR 0003 (pedido 011, cartão B12). Mede por painel, em duas condições, com CPU time e a frio
+ * Emenda C4 da ADR 0003 (pedido 011, cartão B12; composição fixada em 2026-10-16). Mede com CPU time e a frio
  * (contexto novo a cada medição; a extensão do 011 e a pesquisa já geradas, porque o gerador lazy é medido
- * à parte):
- *  - C4-fechada: métricas do painel anteriores ao 011 (catálogo, núcleo e complementares) + VISAO_GERAL;
- *  - C4-aberta: as anteriores + as complementares do 011 já implementadas no painel + VISAO_GERAL.
- * Limite de CI = 3x o orçamento nas duas condições (900 ms); o orçamento (300 e 450 ms) é impresso como
- * alerta. Também mede o gerador lazy (orçamento 200 ms, CI 600 ms) e o C3 a frio de cada id novo.
+ * à parte), por painel e por cadência (Operacional: diária e semanal):
+ *  - C4-fechada: o que a página pede com "Mais métricas" fechada (`idsDoC4`, a partir do catálogo);
+ *  - C4-aberta: a fechada mais todas as complementares do painel;
+ *  - VISAO_GERAL: painel próprio, medida à parte, fora da soma de qualquer painel.
+ * Limite de CI = 3x o orçamento (900 ms) por cadência; o orçamento (300 e 450 ms) é impresso. Cada leitura
+ * imprime o load de 1 min e o fator de calibração (leitura de orçamento só vale com fator <= 1,2). Também mede o gerador lazy (orçamento 200 ms, CI 600 ms) e o C3 a frio de cada id novo.
  * Filtros padrão (12s) e o pior filtro conhecido (período máximo, 12m).
  */
 const cpuMs = (): number => {
@@ -66,16 +68,14 @@ const fatorDeCalibracao = (): number => {
 
 type PainelFluxo = 'operacional' | 'tatico' | 'estrategico'
 const PAINEIS: readonly PainelFluxo[] = ['operacional', 'tatico', 'estrategico']
-/** Ids do 011 já implementados (fase 1), por painel. T11 só calcula com a extensão do 011. */
-const NOVAS: Record<PainelFluxo, readonly MetricaId[]> = {
-  operacional: ['O19', 'O20', 'O21', 'O24', 'O25'],
-  tatico: ['T10', 'T11', 'T12'],
-  estrategico: ['E7', 'E9'],
+/** Medidas do C4 por painel: o Operacional tem duas cadências; Tático e Estratégico, uma (a semanal, só o núcleo). */
+const CADENCIAS: Record<PainelFluxo, readonly CadenciaC4[]> = {
+  operacional: ['diaria', 'semanal'],
+  tatico: ['semanal'],
+  estrategico: ['semanal'],
 }
-const TODAS_NOVAS = PAINEIS.flatMap((p) => NOVAS[p])
-const ANTERIORES = (p: PainelFluxo): MetricaId[] => [
-  ...new Set(CATALOGO_CARTOES.filter((c) => c.painel === p).flatMap((c) => [...c.metricas])),
-]
+/** Ids do 011 (fase 1), do contrato. T11 só calcula com a extensão do 011. */
+const TODAS_NOVAS = Object.keys(SCHEMAS_TAMBEM_FASE1) as MetricaId[]
 
 const base = gerarBaseMock()
 const PESQUISA = gerarPesquisaMock(base.config)
@@ -99,6 +99,13 @@ const calcular = (id: MetricaId, c: ReturnType<typeof novoContexto>, periodo: '1
   calcularMetrica(id, id === 'VISAO_GERAL' ? {} : (filtros(id, periodo) as never), c)
 
 describe('emenda C4 da ADR 0003 (pedido 011)', () => {
+  // Aquecimento do JIT: sem ele, o fator de calibração da primeira medição do processo chega ao teto (2,0).
+  beforeAll(() => {
+    for (let i = 0; i < 5; i++) fatorDeCalibracao()
+    const c = novoContexto()
+    ;(['O2', 'O3', 'VISAO_GERAL'] as MetricaId[]).forEach((id) => calcular(id, c, '12s'))
+  })
+
   it('gerador lazy da extensão do 011 (primeira abertura) cabe no limite de CI', () => {
     const amostras: number[] = []
     for (let i = 0; i < MEDICOES; i++)
@@ -111,35 +118,61 @@ describe('emenda C4 da ADR 0003 (pedido 011)', () => {
   })
 
   for (const painel of PAINEIS) {
-    for (const periodo of ['12s', '12m'] as const) {
-      it(`C4 do painel ${painel}, período ${periodo}: fechada e aberta dentro do limite de CI`, () => {
-        const anteriores = [...ANTERIORES(painel), 'VISAO_GERAL' as MetricaId]
-        let melhor = { f: Infinity, a: Infinity, fator: 1 }
-        for (let rodada = 0; rodada < RODADAS; rodada++) {
-          const fator = fatorDeCalibracao()
-          const fechadas: number[] = []
-          const abertas: number[] = []
-          for (let i = 0; i < MEDICOES; i++) {
-            const c = novoContexto()
-            const f = medir(() => anteriores.forEach((id) => calcular(id, c, periodo)))
-            const n = medir(() => NOVAS[painel].forEach((id) => calcular(id, c, periodo)))
-            fechadas.push(f)
-            abertas.push(f + n)
+    for (const cadencia of CADENCIAS[painel]) {
+      for (const periodo of ['12s', '12m'] as const) {
+        it(`C4 do painel ${painel} (${cadencia}), período ${periodo}: fechada e aberta dentro do limite de CI`, () => {
+          const fechadaIds = idsDoC4(painel, 'fechada', cadencia)
+          const abertaIds = idsDoC4(painel, 'aberta', cadencia)
+          const extras = abertaIds.filter((id) => !fechadaIds.includes(id))
+          let melhor = { f: Infinity, a: Infinity, fator: 1, load: 0 }
+          for (let rodada = 0; rodada < RODADAS; rodada++) {
+            const fator = fatorDeCalibracao()
+            const load = loadavg()[0] ?? 0
+            const fechadas: number[] = []
+            const abertas: number[] = []
+            for (let i = 0; i < MEDICOES; i++) {
+              const c = novoContexto()
+              const f = medir(() => fechadaIds.forEach((id) => calcular(id, c, periodo)))
+              const n = medir(() => extras.forEach((id) => calcular(id, c, periodo)))
+              fechadas.push(f)
+              abertas.push(f + n)
+            }
+            const r = { f: mediana(fechadas), a: mediana(abertas), fator, load }
+            const razao = (x: typeof r) => Math.max(x.f, x.a) / (LIMITE_CI_PAINEL_MS * x.fator)
+            if (razao(r) < razao(melhor)) melhor = r
+            if (razao(r) < 1) break
           }
-          const r = { f: mediana(fechadas), a: mediana(abertas), fator }
-          const razao = (x: typeof r) => Math.max(x.f, x.a) / (LIMITE_CI_PAINEL_MS * x.fator)
-          if (razao(r) < razao(melhor)) melhor = r
-          if (razao(r) < 1) break
-        }
-        const { f, a, fator } = melhor
-        const limite = LIMITE_CI_PAINEL_MS * fator
-        const linha = `C4 ${painel} ${periodo} (${anteriores.length} anteriores + ${NOVAS[painel].length} novas): fechada ${f.toFixed(0)}ms (orç ${ORC_FECHADA_MS}) aberta ${a.toFixed(0)}ms (orç ${ORC_ABERTA_MS}); CI ${limite.toFixed(0)} (fator ${fator.toFixed(2)})`
-        console.info(linha)
-        expect(f, `${painel} ${periodo} fechada`).toBeLessThan(limite)
-        expect(a, `${painel} ${periodo} aberta`).toBeLessThan(limite)
-      }, 60_000)
+          const { f, a, fator, load } = melhor
+          const limite = LIMITE_CI_PAINEL_MS * fator
+          console.info(
+            `C4 ${painel} ${cadencia} ${periodo} (${fechadaIds.length} fechada + ${extras.length} complementares): fechada ${f.toFixed(0)}ms (orç ${ORC_FECHADA_MS}) aberta ${a.toFixed(0)}ms (orç ${ORC_ABERTA_MS}); CI ${limite.toFixed(0)}; fator ${fator.toFixed(2)}; load1 ${load.toFixed(2)}`,
+          )
+          expect(f, `${painel} ${cadencia} ${periodo} fechada`).toBeLessThan(limite)
+          expect(a, `${painel} ${cadencia} ${periodo} aberta`).toBeLessThan(limite)
+        }, 60_000)
+      }
     }
   }
+
+  it('VISAO_GERAL (rota /), medida à parte e a frio, cabe no limite de CI', () => {
+    let melhor = { v: Infinity, fator: 1, load: 0 }
+    for (let rodada = 0; rodada < RODADAS; rodada++) {
+      const fator = fatorDeCalibracao()
+      const load = loadavg()[0] ?? 0
+      const amostras: number[] = []
+      for (let i = 0; i < MEDICOES; i++) {
+        const c = novoContexto()
+        amostras.push(medir(() => void calcular('VISAO_GERAL', c, '12s')))
+      }
+      const r = { v: mediana(amostras), fator, load }
+      if (r.v / r.fator < melhor.v / melhor.fator) melhor = r
+      if (r.v < LIMITE_CI_PAINEL_MS * r.fator) break
+    }
+    console.info(
+      `VISAO_GERAL a frio ${melhor.v.toFixed(0)}ms (orç ${ORC_FECHADA_MS}); CI ${(LIMITE_CI_PAINEL_MS * melhor.fator).toFixed(0)}; fator ${melhor.fator.toFixed(2)}; load1 ${melhor.load.toFixed(2)}`,
+    )
+    expect(melhor.v).toBeLessThan(LIMITE_CI_PAINEL_MS * melhor.fator)
+  }, 60_000)
 
   it('C3 a frio de cada id novo (mediana de contextos novos) cabe no limite de CI', () => {
     const linhas: string[] = []
