@@ -137,8 +137,8 @@ describe('metas, janela e aplicabilidade', () => {
 })
 
 describe('schemas de resultado', () => {
-  it('há exatamente um schema por métrica (57)', () => {
-    expect(METRICA_IDS).toHaveLength(57)
+  it('há exatamente um schema por métrica (58)', () => {
+    expect(METRICA_IDS).toHaveLength(58)
     expect(Object.keys(SCHEMAS_RESULTADO).sort()).toEqual([...METRICA_IDS].sort())
   })
 

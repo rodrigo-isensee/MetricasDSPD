@@ -138,6 +138,7 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.VISAO_GERAL`); a fotografia versio
                     "O16",
                     "O17",
                     "O19",
+                    "O21",
                     "O25",
                     "T1",
                     "T2",

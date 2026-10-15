@@ -65,6 +65,18 @@ describe('GET /api/v1/metricas/:id', () => {
     expect((await get(app, '/api/v1/metricas/T12?periodo=abc')).statusCode).toBe(400);
   });
 
+  it('O21 (pedido 011, B7): 200 no schema, par por tipo, matriz por papel em "Todas" e nenhum campo de pessoa ou de equipe', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/O21?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O21.safeParse(r.json()).success).toBe(true);
+    expect(r.json().segmentoPor).toBe('tipo');
+    expect(r.json().matriz.eixo).toBe('papel');
+    expect(JSON.stringify(r.json())).not.toMatch(/responsave|usuario|"equipe"/);
+    expect((await get(app, '/api/v1/metricas/O21?periodo=12m&tipo=melhoria&equipe=fluig')).statusCode).toBe(200);
+    expect((await get(app, '/api/v1/metricas/O21?periodo=abc')).statusCode).toBe(400);
+  });
+
   it('O25 (pedido 011): 200 no schema, filtros do fluxo, porMotivo nulo e nenhum campo de pessoa, motivo ou comentário', async () => {
     const { app } = await montar();
     const r = await get(app, '/api/v1/metricas/O25?periodo=12m');

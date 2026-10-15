@@ -3,7 +3,7 @@
 Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-15.
 
 <!-- gerado:inicio -->
-Gerado por `pnpm run docs:gerar`. 57 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
+Gerado por `pnpm run docs:gerar`. 58 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
 
 | Métrica | Nome | Domínio | Rota | Granularidade | Mínimo | Status das regras |
 |---|---|---|---|---|---|---|
@@ -27,6 +27,7 @@ Gerado por `pnpm run docs:gerar`. 57 métricas, uma página cada. Regras gerais,
 | [`O16`](O16.md) | Estoque e idade de bugs | businessmap | `/api/v1/metricas/O16` | story | 0 | ok |
 | [`O17`](O17.md) | Defeitos por causa raiz e sistema | acelerato | `/api/v1/metricas/O17` | chamado | 0 | ok |
 | [`O19`](O19.md) | - | businessmap | `/api/v1/metricas/O19` | story | 20 | ok |
+| [`O21`](O21.md) | - | businessmap | `/api/v1/metricas/O21` | story | 20 | ok |
 | [`O25`](O25.md) | - | businessmap | `/api/v1/metricas/O25` | story | 20 | ok |
 | [`T1`](T1.md) | Lead time ponta a ponta | businessmap | `/api/v1/metricas/T1` | story | 20 | ok |
 | [`T2`](T2.md) | Aderência ao SLE | businessmap | `/api/v1/metricas/T2` | story | 20 | ok |

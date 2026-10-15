@@ -567,6 +567,18 @@ export const REGRAS_METRICA = {
       'pedido 011 T10; D-10 = A (sem prazo contratado); R-5 (qualquer motivo com fornecedor informado)',
     status: 'ok',
   },
+  O21: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa', 'percentis'],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 O21; transicoes de retorno ate a conclusao; ciclo do O3 (entreguesDe); par com x sem so dentro do tipo, 20 em cada grupo (regra 7, CA-6); matriz por coluna (uma equipe) ou por papel (R5)',
+    status: 'ok',
+  },
   O25: {
     dominio: 'businessmap',
     segmentacao: ['tipo'],

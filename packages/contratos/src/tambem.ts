@@ -70,16 +70,34 @@ export const resultadoO20 = fechado({
   mudancasCriterio: marcacoes,
 })
 
-/** O21 Fluxo reverso. O par com × sem exige 20 em cada grupo: cada `estatistica` diz o seu n (CA-6). */
+/**
+ * O21 Fluxo reverso. O par com × sem é por tipo (regra 7) e exige 20 em cada grupo: cada `estatistica` diz o seu n e
+ * `grupoAbaixoDoMinimo` diz qual grupo faltou (CA-6). A célula `reaberto` marca o retorno a partir de "Entregue".
+ */
 export const resultadoO21 = fechado({
   ...comum,
   entregas: taxaSchema,
   matriz: fechado({
     eixo: z.enum(['coluna', 'papel']),
-    celulas: z.array(fechado({ origem: z.string(), destino: z.string(), retornos: z.number() })),
+    celulas: z.array(
+      fechado({
+        origem: z.string(),
+        destino: z.string(),
+        retornos: z.number(),
+        reaberto: z.boolean(),
+      }),
+    ),
   }),
   reaberturas: z.number(),
-  comparacao: fechado({ tipo, com: duracao, sem: duracao }),
+  segmentoPor: z.literal('tipo'),
+  comparacoes: z.array(
+    fechado({
+      tipo,
+      com: duracao,
+      sem: duracao,
+      grupoAbaixoDoMinimo: z.enum(['com', 'sem', 'ambos']).nullable(),
+    }),
+  ),
 })
 
 /** O24 Ordem de chegada. O grupo é literal único (D-6' = A). */

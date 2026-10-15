@@ -106,7 +106,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - A matriz conta pares (origem → destino) de retorno, agregados por papel quando o filtro é "Todas".
   - A linha "reaberto" junta os retornos com origem de papel `entrega`.
   - O par com × sem compara o tempo de ciclo do tipo escolhido. Reaproveita a função de marcos e de ciclo do O3; não recalcula o ciclo.
-- **Contrato:** `{ entregas: { k, n, taxa }, matriz: { eixo: 'coluna'|'papel', celulas: [{ origem, destino, retornos }] }, reaberturas, comparacao: { tipo, com: estatistica, sem: estatistica } }`.
+- **Contrato:** `{ entregas: taxaSchema, matriz: { eixo: 'coluna'|'papel', celulas: [{ origem, destino, retornos, reaberto }] }, reaberturas, segmentoPor: 'tipo', comparacoes: [{ tipo, com: estatistica, sem: estatistica, grupoAbaixoDoMinimo: 'com'|'sem'|'ambos'|null }] }` (ajuste de 2026-10-15 no B7: o par é por tipo, regra 7, CA-6, e a célula marca a reabertura).
 - **Mock:** a base atual já tem os retornos. Medir quantos são: a spec pede cerca de 25% das entregas. Se a base tiver menos, o cartão mostra o que existe; não se mexe na base.
 - **Mínimo:**
   - percentual com n ≥ 20 entregas;
