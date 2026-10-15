@@ -131,9 +131,26 @@ const EXEMPLOS: Record<CodigoTambemFase1, unknown> = {
 
 const CODIGOS = Object.keys(SCHEMAS_TAMBEM_FASE1) as CodigoTambemFase1[]
 
-/** Nomes que identificam pessoa ou comparam times: proibidos em qualquer contrato (briefing 7.1, ADR 0020). */
+/** Nomes que identificam pessoa ou comparam times: proibidos em qualquer contrato (briefing 7.1, P-T6). */
 const NOME_DE_PESSOA =
-  /respons[aá]vel|responsaveis|usuario|usu[aá]rio|pessoa|autor|owner|assignee|agente|analista|desenvolvedor|^e-?mail$|user_?id|ranking|^(equipes?|times?)$/i
+  /respons[aá]vel|responsaveis|usuario|usu[aá]rio|pessoa|autor|owner|assignee|agente|analista|desenvolvedor|^e-?mail$|user_?id|ranking|equipe|quadro|^times?$|^time_?id|por_?times?|nome_?time/i
+
+function primeiroObjetoDeLista(v: unknown): Record<string, unknown> | undefined {
+  if (Array.isArray(v)) {
+    for (const i of v) {
+      if (typeof i === 'object' && i !== null && !Array.isArray(i))
+        return i as Record<string, unknown>
+    }
+    return undefined
+  }
+  if (v !== null && typeof v === 'object') {
+    for (const x of Object.values(v)) {
+      const r = primeiroObjetoDeLista(x)
+      if (r !== undefined) return r
+    }
+  }
+  return undefined
+}
 
 function nomesDeCampo(js: unknown, out: string[] = []): string[] {
   if (Array.isArray(js)) for (const x of js) nomesDeCampo(x, out)
@@ -202,13 +219,10 @@ describe('contratos da fase 1 do pedido 011 (B1)', () => {
 
   it.each(CODIGOS)('%s: rejeita campo de pessoa em objeto aninhado', (codigo) => {
     const ex = structuredClone(EXEMPLOS[codigo]) as Record<string, unknown>
-    // primeiro item de lista de objetos do exemplo (quando houver) ou o primeiro objeto aninhado
-    const alvo = Object.values(ex).flatMap((v) =>
-      Array.isArray(v)
-        ? v.filter((i): i is Record<string, unknown> => typeof i === 'object' && i !== null)
-        : [],
-    )[0]
-    if (alvo === undefined) return // exemplo sem lista de objetos (nenhum caso hoje além do O25)
+    // primeiro item de lista de objetos, em qualquer profundidade (O21: matriz.celulas[0])
+    const alvo = primeiroObjetoDeLista(ex)
+    expect(alvo, `${codigo} sem lista de objetos no exemplo`).toBeDefined()
+    if (alvo === undefined) return
     alvo.responsavel = 'fulano'
     expect(SCHEMAS_TAMBEM_FASE1[codigo].safeParse(ex).success).toBe(false)
   })
@@ -218,7 +232,7 @@ describe('contratos da fase 1 do pedido 011 (B1)', () => {
     for (const c of CODIGOS) expect(METRICA_IDS as readonly string[]).not.toContain(c)
   })
 
-  describe('trava de pessoa (P-T6, ADR 0020)', () => {
+  describe('trava de pessoa (P-T6, ata 2026-10-14)', () => {
     it.each(CODIGOS)(
       '%s: nenhum campo com nome de pessoa ou de comparação entre times',
       (codigo) => {
@@ -236,9 +250,32 @@ describe('contratos da fase 1 do pedido 011 (B1)', () => {
       expect(nomesDeCampo(jsonDe(comPessoa)).filter((n) => NOME_DE_PESSOA.test(n))).toEqual([
         'responsaveis',
       ])
-      for (const n of ['usuario', 'usuarioKey', 'ownerId', 'equipe', 'autorDoComentario', 'email'])
+      for (const n of [
+        'usuario',
+        'usuarioKey',
+        'ownerId',
+        'equipe',
+        'porEquipe',
+        'equipeId',
+        'nomeEquipe',
+        'quadro',
+        'quadroId',
+        'timeId',
+        'porTime',
+        'autorDoComentario',
+        'email',
+      ])
         expect(NOME_DE_PESSOA.test(n), n).toBe(true)
-      for (const n of ['sistema', 'fornecedor', 'motivo', 'area', 'titulo', 'tempo', 'cardId'])
+      for (const n of [
+        'sistema',
+        'fornecedor',
+        'motivo',
+        'area',
+        'titulo',
+        'tempo',
+        'cardId',
+        'timestamp',
+      ])
         expect(NOME_DE_PESSOA.test(n), n).toBe(false)
     })
 

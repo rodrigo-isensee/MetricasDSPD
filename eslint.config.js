@@ -96,11 +96,11 @@ const semLeituraDeArquivamento = [
   },
 ]
 
-// P-T6 (pedido 011, ADR 0020): métrica nenhuma lê identidade de pessoa do card. `responsaveis` e `usuario`
+// P-T6 (pedido 011, ata 2026-10-14): métrica nenhuma lê identidade de pessoa do card. `responsaveis` e `usuario`
 // continuam em modelo.ts por fidelidade ao 4.5, e esta regra protege a leitura (o property test protege a saída).
 const semLeituraDePessoa = ['responsaveis', 'usuario'].map((property) => ({
   property,
-  message: `Métrica não lê "${property}": nenhuma métrica serve para avaliação individual (briefing 7.1, ADR 0020).`,
+  message: `Métrica não lê "${property}": nenhuma métrica serve para avaliação individual (briefing 7.1, P-T6, ata 2026-10-14).`,
 }))
 
 const MSG_AMOSTRA =

@@ -145,7 +145,7 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 ### Novas chaves de segmentação (`ChaveSegmentacao`, biblioteca)
 - `motivo-bloqueio` (O19), `fornecedor` (T10) e `mes-do-ano` (T11). `faixa-passagens` só entra na fase 2, com o O26. Nunca `pessoa`, `responsavel` nem `equipe`.
 
-### Trava de pessoa na biblioteca (P-T6, ADR 0020)
+### Trava de pessoa na biblioteca (P-T6, ata 2026-10-14)
 - Regra de lint `no-restricted-properties` proíbe ler `responsaveis` e `usuario` em `packages/metricas/src/businessmap/**` (exceto testes). A definição dos campos segue em `modelo.ts`, sem leitura. Meta-teste em `web/src/test/lint.meta.test.ts`.
 
 ## Percepção de valor (PV1, pesquisa trimestral)
