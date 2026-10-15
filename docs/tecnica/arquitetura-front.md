@@ -249,3 +249,14 @@ Plano: `docs/architecture/features/exportar-metricas.md`; UX: `docs/ux/exportar-
 - **PDF.** A4 retrato; título e idioma pt-BR; texto selecionável; cabeçalho e rodapé em todas as páginas; "Dados fictícios" em todas quando `fonte.tipo === 'mock'`, e `_ficticio` no nome. Nome: `metricas-dspd_<escopo>_<AAAA-MM-DD>[_ficticio].pdf` (dia civil de São Paulo; escopo `visao-geral`, `fluxo-operacional`, `fluxo-tatico`, `fluxo-estrategico`, `sustentacao`, `espera-invisivel`, `personalizada` ou o id da métrica, se for uma só). Qualquer exceção vira "Não foi possível gerar o arquivo. Tente de novo.", sem detalhe técnico e sem arquivo parcial.
 - **Privacidade.** Sem log, contador ou telemetria das exportações (D-5); o arquivo é gerado e baixado no navegador, nada sai dele.
 - **Testes.** Unitários (`modelo`, `selecao`, `desenhista`, `gerar`, `carregarPdf`), componente (`DialogoExportar`), sistêmico com o mock (`exportar.sistemico.test.tsx`: só visíveis, chunk só no clique, BM antes de AC) e E2E (`e2e/tests/exportar.spec.ts`: baixa o PDF e lê o texto com `pdfjs-dist`; axe a 375 e 1280 nos dois temas).
+
+## 9. Largura com a fonte ampliada a 200% (SNO-001, K-073)
+
+A 375 px com `html { font-size: 200% }` nenhuma página pode passar de 375 px de largura (WCAG 1.4.4 e 1.4.10). Causa raiz: `body { min-width: 20rem }` em `web/src/styles/tokens.css`. Em `rem` o piso de 320 px virava 640 px com a fonte a 200%, e o cabeçalho, o `main` e o rodapé herdavam essa largura (medida com Playwright: `body`, `header`, `main` com 640 px; o botão Menu terminava em x = 538). A tentativa de trocar `flex-nowrap` por `flex-wrap` no cabeçalho não bastava por isso.
+
+Regras que ficam:
+- O piso do `body` é em px CSS: `min-width: min(20rem, 320px)`. Nunca use `rem` para um piso de largura de página.
+- O grupo da direita do cabeçalho (`AppShell`) quebra linha (`flex-wrap`); o selo "Dados fictícios", o tema e o Menu continuam todos visíveis.
+- Grupos de ações de cartão (`CartaoT3`, `CartaoS3`, `CartaoMotivos`), o seletor de visão (`SeletorCadencia`, grade 2x2 abaixo de 400 px, MOB-CA-12), os três números do `CartaoEI` (`auto-fit` com mínimo de 6 rem), a lista de `FaixaAtencao` e o link da faixa de calibração (`Calibracao`) quebram linha em vez de impor largura (`flex-wrap`, `min-w-0`, `max-w-full`, sem `whitespace-nowrap`).
+- Teste: `e2e/tests/cabecalho-fonte-200.spec.ts` mede `scrollWidth <= clientWidth` do documento e do cabeçalho nas rotas `/`, `/tatico`, `/operacional?cadencia=semanal` e `?cadencia=sustentacao`.
+- O redesenho mobile completo do cabeçalho (uma linha, tema na gaveta, MOB-CA-9) é do K-075 e não foi antecipado aqui.

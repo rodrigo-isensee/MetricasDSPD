@@ -42,7 +42,7 @@ export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
       {...(leitura ? { leitura } : {})}
       className="lg:col-span-6"
       acoes={
-        <fieldset className="flex items-center gap-1 text-sm">
+        <fieldset className="flex flex-wrap items-center gap-1 text-sm">
           <legend className="sr-only">Contar por</legend>
           <span aria-hidden="true">Contar por:</span>
           {(

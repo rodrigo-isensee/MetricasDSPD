@@ -109,7 +109,7 @@ export function AppShell() {
             </Link>
             <NavegacaoGlobal />
           </div>
-          <div className="flex flex-nowrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <AvisoDadosFicticios />
             <SeletorTema />
             <Link

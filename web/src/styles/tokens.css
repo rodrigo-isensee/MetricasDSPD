@@ -118,7 +118,8 @@ html {
 }
 
 body {
-  min-width: 20rem;
+  /* Piso de 320 px CSS (WCAG 1.4.10). Em rem ele dobrava com a fonte a 200% (640 px) e a página estourava (SNO-001). */
+  min-width: min(20rem, 320px);
   background: var(--fundo);
   color: var(--texto);
 }

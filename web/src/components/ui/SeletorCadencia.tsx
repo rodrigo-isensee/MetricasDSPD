@@ -33,14 +33,14 @@ export function SeletorCadencia<V extends string>({
       <div
         role="radiogroup"
         aria-label={rotulo}
-        className="inline-flex flex-wrap overflow-hidden rounded-md border border-borda-controle"
+        className="grid grid-cols-[repeat(2,minmax(0,1fr))] overflow-hidden rounded-md border border-borda-controle min-[400px]:inline-flex min-[400px]:flex-wrap"
       >
         {opcoes.map((o) => (
           <label
             key={o.valor}
             {...(onIntencao ? { onPointerEnter: () => onIntencao(o.valor) } : {})}
             className={clsx(
-              'alvo inline-flex cursor-pointer items-center px-3 py-1.5 text-sm has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-acento',
+              'alvo inline-flex min-w-0 cursor-pointer items-center [overflow-wrap:anywhere] px-3 py-1.5 text-sm has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-acento',
               valor === o.valor
                 ? 'bg-acento font-semibold text-acento-texto'
                 : 'bg-superficie text-texto hover:bg-superficie-2',

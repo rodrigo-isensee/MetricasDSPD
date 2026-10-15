@@ -165,16 +165,16 @@ export function FaixaAtencao({
             const conteudo = (
               <>
                 <Icone nome="alerta" className="size-4 text-alerta" />
-                <span>{i.texto}</span>
+                <span className="min-w-0">{i.texto}</span>
                 <span className="text-acento underline">
                   {i.rotuloLink ?? `Ver ${i.codigo ?? i.id.toUpperCase()}`}
                 </span>
               </>
             )
             const cls =
-              'alvo inline-flex items-center gap-2 rounded-md border border-borda bg-superficie-2 px-3 py-1.5 text-sm text-texto hover:bg-acento-fundo'
+              'alvo inline-flex max-w-full items-center gap-2 rounded-md border border-borda bg-superficie-2 px-3 py-1.5 text-sm text-texto hover:bg-acento-fundo'
             return (
-              <li key={i.id}>
+              <li key={i.id} className="min-w-0 max-w-full">
                 {interno ? (
                   <a href={i.para} className={cls}>
                     {conteudo}
