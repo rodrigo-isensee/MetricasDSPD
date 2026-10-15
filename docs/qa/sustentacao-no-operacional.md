@@ -3,14 +3,14 @@ tipo: qa
 contrato: 1
 pedido: sustentacao-no-operacional
 branch: feature/sustentacao-no-operacional
-commit: 140a60d
+commit: 5adf980
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 1
 bugs_baixos: 1
-aceite_usuario: sim
+aceite_usuario: nao
 data: 2026-10-15
 ---
 
@@ -19,17 +19,17 @@ data: 2026-10-15
 Links: plano `docs/qa/sustentacao-no-operacional-plano.md` (77 casos, CT-01 a CT-77), especificação `docs/ux/sustentacao-no-operacional/especificacao.md` (CA-1 a CA-31) e adendo `05-adendo-review.md` (A1 a A10; U1 = a), plano técnico `docs/architecture/plano-sustentacao-no-operacional.md`, contrato `docs/api/metricas.md`, review `docs/reviews/sustentacao-no-operacional.md` (aprovado na volta 3, 67624ba), bugs `docs/qa/bugs/SNO-001` a `SNO-005`.
 
 ## Veredito
-**Aprovado com ressalvas** (frontmatter `parecer: aprovado` com `aceite_usuario: sim`, porque há 2 bugs médios e 2 baixos abertos). Nenhum bug crítico ou alto aberto. Zero violações de acessibilidade sérias ou críticas em todas as telas e variantes testadas.
+**Aprovado com ressalvas, com o aceite do usuário PENDENTE** (`aceite_usuario: nao`: o usuário ainda não aceitou SNO-001 e SNO-005; o formato do Forge só prevê `sim` ou ausência, então o valor `nao` marca o pendente e o `forge-check` deve reprovar o campo até o aceite). Nenhum bug crítico ou alto aberto. Zero violações de acessibilidade sérias ou críticas em todas as telas e variantes testadas. Há 1 bug médio (SNO-001) e 1 baixo (SNO-005) abertos; o portão só fecha quando o usuário aceitar os dois ou pedir a correção.
 
-O código de produção testado é o de **67624ba**; os commits seguintes do QA só mexem em teste (`80d2fbf`, `18d8327`). A rodada achou um problema grave de processo, já resolvido no teste: a suíte E2E completa estava **vermelha com 124 falhas** (SNO-003), porque a adaptação dos E2E antigos ficou incompleta. O `pnpm run pronto` não roda E2E, por isso não acusou. Nenhuma das 124 era defeito de produção.
+O código de produção testado é o de **67624ba** mais o delta de `web/src` de 140a60d; os commits do QA só mexem em teste (`80d2fbf`, `18d8327`). O HEAD testado é **5adf980**: o único arquivo que mudou desde o parecer anterior (bc31f7a, que olhava 140a60d) é `e2e/perf/perf.spec.ts` (limite de CLS do caso `perf-resumo-reservas` a 1280 px, 0,05), reverificado abaixo. A rodada inicial achou um problema grave de processo, já resolvido no teste: a suíte E2E completa estava **vermelha com 124 falhas** (SNO-003), porque a adaptação dos E2E antigos ficou incompleta. O `pnpm run pronto` não roda E2E, por isso não acusou. Nenhuma das 124 era defeito de produção.
 
-Abertos (todos aceitos para a entrega, a confirmar pelo usuário):
+Abertos (a confirmar pelo usuário):
 | Bug | Sev. | Resumo | Responsável |
 |---|---|---|---|
 | SNO-001 | média | Cabeçalho global estoura a largura (640 px) a 375 px com fonte a 200%, em todas as telas; **pré-existente**, fora do escopo da demanda | react-frontend |
-| SNO-004 | média | CLS do Resumo = 0,125 no Lighthouse (orçamento F2 = 0,1), reproduzido 3/3; o F2 do Playwright passa | react-frontend |
-| SNO-002 | baixa | "Leia junto" O15 para O17: o `aria-label` não contém o texto visível (WCAG 2.5.3) | react-frontend |
 | SNO-005 | baixa | Primeira consulta de cada fonte depois de subir a API passa de 300 ms (100 a 741 ms sob carga), qualquer métrica; **pré-existente** | node-backend |
+
+Fechados no delta: SNO-002 (baixa, "Leia junto" O15 para O17) e SNO-004 (média, CLS do Resumo 0,125 no Lighthouse; agora 0,0039).
 
 ## Ambiente
 WSL2 com 8 GB, Chromium headless do Playwright (bibliotecas de sistema via `~/.local/chromium-libs`), `flock /tmp/metricas-pesado.lock` + `nice -n 19`, uma execução pesada por vez. Carga de 1 minuto entre 0,4 e 7 (outros agentes usavam a máquina; as execuções de tempo variaram bastante por isso). Docker presente: Postgres do Compose subiu junto com o Playwright sem estourar a memória (6 GB livres no início das execuções), rodado um de cada vez.
@@ -57,10 +57,10 @@ WSL2 com 8 GB, Chromium headless do Playwright (bibliotecas de sistema via `~/.l
 | CA-15 exportação | dev CA-15 (CT-24); qa CT-25 (PDF aberto com pdfjs) | Sustentação: só Acelerato, S2 sim, S3 e PV1 ocultos fora do arquivo, sem e-mail nem pessoa; Semanal: só BusinessMap; Resumo: duas fontes em seções separadas, sem tendência | passou |
 | CA-16 Visão geral | dev CA-16 (CT-26); `b3-sust-ei-vg` VG-02/06 adaptados | nenhum link vai ao Resumo; 7 reuniões | passou |
 | CA-17 catálogo | dev CA-17 (CT-27) | S1 a S12, O17, EI-SUST, PV1 com painel "Operacional · Sustentação" | passou |
-| CA-18 leia junto O15 para O17 | dev CA-18 (CT-28); `SIS-CONS-02` adaptado | troca a visão, abre Mais métricas, foca o cartão; nenhum número cruza | passou (SNO-002 aberto, baixa) |
+| CA-18 leia junto O15 para O17 | dev CA-18 (CT-28); `SIS-CONS-02` adaptado | troca a visão, abre Mais métricas, foca o cartão; nenhum número cruza | passou (SNO-002 fechado no delta) |
 | CA-19 acessibilidade | dev CA-19 (CT-29, CT-30); qa CT-29 (variantes), CT-31 | axe WCAG 2.2 AA nas 4 visões a 375 e 1280, também com Mais métricas aberto e com cartões ocultos; anúncio `aria-live` e título por visão; foco por hash não encoberto (2.4.11); `prefers-reduced-motion` sem rolagem suave | passou (0 violações sérias ou críticas) |
 | CA-20 layout 375 e 1280 | dev CA-20 (CT-32); qa CT-32 (zoom) | sem rolagem horizontal nas 4 visões a 1280, 640 (200% de zoom), 375 e 320 px (400%); seletor em até 2 linhas e alvos de 44 px, também com fonte a 200% | passou (SNO-001 aberto, média: a página inteira com fonte a 200% a 375 px, pré-existente) |
-| CA-21 chunk e orçamento | dev CA-21 (CT-33); `perf:tudo` (CT-34) | Diária e Semanal não baixam `VisaoSustentacao-*.js` (33 KB, chunk próprio); inicial 190,66 KB gzip < 200 KB | passou; Lighthouse: SNO-004 |
+| CA-21 chunk e orçamento | dev CA-21 (CT-33); `perf:tudo` (CT-34) | Diária e Semanal não baixam `VisaoSustentacao-*.js` (33 KB, chunk próprio); inicial 190,66 KB gzip < 200 KB | passou; Lighthouse: SNO-004 fechado |
 | CA-22 sem coleta do Acelerato | dev CA-22 (CT-35) | `SemDadosDaFonte` só na Sustentação; fluxo funciona | passou |
 | CA-23 Resumo padrão | dev CA-23 (CT-37) | `cadencia=resumo` normalizado; `cadencia=RESUMO` e `xyz` caem no Resumo com aviso, sem entrada no histórico (qa CT-10) | passou |
 | CA-24 compatibilidade | dev CA-24 (CT-38); varredura por grep | nenhum link interno cai no Resumo; os `'/operacional'` sem `cadencia` que sobram no código são o Resumo, o item do menu e o caminho das funções de URL e de exportação | passou |
@@ -107,7 +107,7 @@ WSL2 com 8 GB, Chromium headless do Playwright (bibliotecas de sistema via `~/.l
 | `test:pg` | 57 passaram, 7 falharam por ambiente (ver CT-59) |
 | `perf` (Playwright no mock): F1 LCP p95 504 ms; F2 CLS e C6 em 7 rotas a 1366 e 375 px; F3 a F5; C5 | **17 de 17 passaram** |
 | `size`: F6 190,66 KB < 200 KB; F8 111,38 KB < 130 KB; chunks de rota < 60 KB | passou |
-| Lighthouse nas 3 URLs (3 execuções cada) | desempenho 87 a 97, acessibilidade 100; **1 aviso**: CLS do Resumo 0,125 (SNO-004) |
+| Lighthouse nas 3 URLs (3 execuções cada) | desempenho 87 a 97, acessibilidade 100; **1 aviso** na rodada inicial: CLS do Resumo 0,125 (SNO-004, fechado no delta) |
 | `perf-api` | ver "A1 e A2" |
 
 ## A1 e A2 no Postgres real
@@ -167,7 +167,7 @@ Respondidas pelo adendo e testadas assim: A1 (O17 só na Sustentação), A2 (qua
 ## Delta pós-QA (2026-10-15, HEAD 140a60d)
 Delta testado: `8423b19` (SNO-002, SNO-004, A6), `9ab5ece` (ressalvas de UX D-01 a D-08) e `140a60d` (documentação, caso `perf-resumo-reservas`). Só `web/src` de produção mudou (16 arquivos); o resto é teste e documentação. Rodado com `flock /tmp/metricas-pesado.lock nice -n 19`, build de produção refeito no HEAD.
 
-**Veredito: aprovado com ressalvas.** Nenhum bug crítico ou alto. SNO-002 e SNO-004 fechados; SNO-001 e SNO-005 seguem abertos (pré-existentes). `aceite_usuario: sim` mantido.
+**Veredito do delta: aprovado com ressalvas.** Nenhum bug crítico ou alto. SNO-002 e SNO-004 fechados; SNO-001 e SNO-005 seguem abertos (pré-existentes).
 
 ### Execução
 | Suíte | Resultado |
@@ -192,7 +192,7 @@ Método: `git checkout 032c470 -- <16 arquivos de produção do delta>`, build (
 | Total | **14 falhas, 7 arquivos** | **398 de 398** |
 | D-05a (`aria-pressed` fora do botão da tabela) e D-07 (texto da A6) | cobertos nas asserções acima; D-05a sem teste próprio, só leitura de código | |
 
-**Achado sobre o `perf-resumo-reservas`:** no código antigo ele **passou** (CLS 0,092 a 1280 px, abaixo do orçamento F2 de 0,1; a 375 px 0,035 nos dois). Ou seja, o caso novo **não detecta a regressão do SNO-004**: quem a detecta é o Lighthouse (0,125 contra 0,0039). O caso serve como piso de segurança, não como guarda da correção; a guarda real é o `perf:tudo` com o Lighthouse. Sugestão ao react-frontend (baixa, sem bug aberto): apertar o limite do caso para 0,05 a 1280 px (medido: 0,004 depois, 0,092 antes).
+**Achado sobre o `perf-resumo-reservas`:** no código antigo ele **passou** (CLS 0,092 a 1280 px, abaixo do orçamento F2 de 0,1; a 375 px 0,035 nos dois). Ou seja, o caso novo **não detecta a regressão do SNO-004**: quem a detecta é o Lighthouse (0,125 contra 0,0039). O caso serve como piso de segurança, não como guarda da correção; a guarda real é o `perf:tudo` com o Lighthouse. Sugestão ao react-frontend: apertar o limite do caso para 0,05 a 1280 px (medido: 0,004 depois, 0,092 antes). **Atendida em 5adf980** (ver abaixo).
 
 ### D-04 e SNO-001 a 375 px com fonte a 200% (só registro, adiados para o K-075)
 Sonda descartável (fora do repositório) com `html { font-size: 200% }`, 375 x 812, build do HEAD:
@@ -210,3 +210,11 @@ Sonda descartável (fora do repositório) com `html { font-size: 200% }`, 375 x 
 | SNO-003 | fechado antes |
 
 Riscos: o bundle inicial não foi remedido neste delta (o `pronto` do tech-lead cobre); `test:pg` com 7 falhas de ambiente continua anterior à demanda; D-05a sem teste próprio.
+
+## Delta 5adf980 (2026-10-15)
+Diff `bc31f7a..5adf980`: 1 arquivo, `e2e/perf/perf.spec.ts` (+4 -1). O caso `perf-resumo-reservas` passa a exigir CLS < 0,05 a 1280 px (a 375 px segue o orçamento geral F2 de 0,1). Nenhum código de produção mudou, então as suítes do delta anterior (E2E 673, unidade 398, Lighthouse) continuam valendo.
+
+Reexecução do caso em 5adf980, 2 vezes (`playwright test --project=perf -g perf-resumo-reservas`, com `flock` e `nice`): **2 de 2 passaram nas duas execuções**, CLS 0,004 a 1280 px e 0,035 a 375 px, idênticos nas duas (31 s cada). O limite novo tem folga: 0,004 contra 0,05 (o código antigo media 0,092, que agora falharia, mas a prova vermelha com o código antigo não foi refeita neste delta; ela vale pela medida de 0,092 do delta anterior). A primeira tentativa falhou por ambiente (`libnspr4.so` ausente do `LD_LIBRARY_PATH`), sem relação com o código; repetida com as bibliotecas de `~/.local/chromium-libs`.
+
+## Aceite pendente
+Para fechar o portão (R-QA) o usuário precisa aceitar SNO-001 (média) e SNO-005 (baixa), ambos pré-existentes, ou pedir a correção. Até lá `aceite_usuario: nao`. Ao aceitar, o campo passa a `sim` e o parecer vale para o commit atual.
