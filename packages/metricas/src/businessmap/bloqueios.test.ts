@@ -339,6 +339,21 @@ describe('B3-1: percentis na janela de 12 semanas, censo no período', () => {
     expect(alfa?.duracao).toMatchObject({ status: 'ok', n: 20 })
     expect(beta).toMatchObject({ bloqueios: 20 })
     expect(beta?.duracao).toMatchObject({ status: 'insuficiente', n: 19 })
+    // Fornecedor com bloqueios só antes da janela: entra no censo do período e tem n = 0 nos percentis.
+    const antigo = calcularT10(
+      ctxDe(
+        [card('A')],
+        [
+          ...noDia('2026-05-04', 3, 'Aguardando fornecedor', 'Fornecedor Gama'),
+          ...noDia('2026-07-18', 1, 'Aguardando fornecedor', 'Fornecedor Alfa'),
+        ],
+      ),
+      F12M,
+    )
+    expect(antigo.fornecedores.map((x) => [x.fornecedor, x.bloqueios, x.duracao.n])).toEqual([
+      ['Fornecedor Alfa', 1, 1],
+      ['Fornecedor Gama', 3, 0],
+    ])
   })
 })
 

@@ -19,7 +19,7 @@ import {
   selecionar,
 } from './comum'
 import type { ContextoBM } from './indice'
-import type { PapelColuna } from './modelo'
+import type { FatoTransicao, PapelColuna } from './modelo'
 import { entreguesDe } from './o3'
 
 /** Papéis de coluna na ordem do fluxo (ordem neutra do domínio da matriz por papel). */
@@ -50,7 +50,8 @@ export function calcularO21(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO21 {
     cards.filter((m) => m.entrega !== null),
   ).map((e) => ({
     ...e,
-    retornos: (ctx.idx.transicoesPorCard.get(e.m.card.card_id) ?? []).filter(
+    // Quem tem entrega tem transições (a entrega vem delas): o índice sempre traz a lista.
+    retornos: (ctx.idx.transicoesPorCard.get(e.m.card.card_id) as readonly FatoTransicao[]).filter(
       (t) => t.direcao === 'retorno' && t.coluna_origem !== null,
     ),
   }))
