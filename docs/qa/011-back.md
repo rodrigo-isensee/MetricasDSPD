@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis-back
 branch: feature/011-metricas-tambem-back
-commit: 4c7efee
+commit: 8908d92
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -31,8 +31,12 @@ O restante do diff é documentação: o #93 (`7a4a955`, só `docs/`), `cf70b25` 
 **O que isso significa para o parecer 011-back:**
 - O parecer de `4c7efee` continua válido para o código que ele testou. Não cobre a mudança do seed (K-094), que entrou depois.
 - O K-094 tem parecer próprio, `docs/qa/k094-seed-concorrente.md`, sobre o commit do #91 (desenvolvido e revisado fora deste branch). Não o reexamino aqui.
-- Reexecutei no HEAD `8908d92` (worktree limpa, sem alterações de código): `server/tests/seed.duble.test.ts`, **6 de 6 passam** (`pnpm exec vitest run tests/seed.duble.test.ts --coverage.enabled=false`, EXIT=0). Não rodei `seed.pg.test.ts` (exige Postgres do `test:pg`) nem a suíte completa (`pnpm run pronto`, `test:pg`, E2E) sobre `8908d92`. Se o `tech-lead` quiser o parecer do back fechado sobre o HEAD do PR, é preciso rodar o `pronto` e o `test:pg` sobre `8908d92`.
-- O cabeçalho do parecer continua com `commit: 4c7efee`, porque é esse o HEAD que a suíte completa testou.
+- Reexecutei no HEAD `8908d92` (worktree limpa, sem alterações de código), com `flock /tmp/metricas-pesado.lock nice -n 19`:
+  - `pnpm run pronto`: **EXIT=0** (server 562 passam e 84 pulados do projeto `pg`; web 1045; packages/metricas 937; packages/contratos 120; tools/homolog 73; tools/pesquisa 33; docs-contratos 102; docs:check ok).
+  - `env -u DSPD_PWD_PESQUISA pnpm run test:pg`: **EXIT=0** (15 arquivos, 84 testes passam, incluindo `seed.pg.test.ts` com o seed concorrente do K-094).
+  - `seed.duble.test.ts`: 6 de 6 (rodada anterior; também coberto pelo `pronto` acima).
+  - E2E: não rodei de novo. Evidência: a CI do PR #92 passou o E2E nesse mesmo SHA `8908d92` (27 min).
+- O cabeçalho do parecer passa a `commit: 8908d92`: suíte completa (pronto e test:pg) e E2E da CI sobre o HEAD de código. Desempenho (ADR 0003) e mutação seguem os do parecer de `03b6176`; o K-094 não toca o cálculo de métricas. Veredito mantido: aprovado, zero bug aberto.
 
 # Revalidação: revert do a1 e merge do #88
 
