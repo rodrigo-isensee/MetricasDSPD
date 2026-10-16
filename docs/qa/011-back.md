@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis-back
 branch: feature/011-metricas-tambem-back
-commit: fa5bdfe
+commit: 03b6176
 parecer: aprovado
-escopo: incremental
+escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -13,9 +13,118 @@ bugs_baixos: 0
 data: 2026-10-15
 ---
 
-# QA: back do pedido 011, fase 1 (K-078, cartões B1 a B11a)
+# QA: back do pedido 011 (K-078, cartões B1 a B12)
 
 Links: plano `docs/qa/011-back-plano.md` (80 casos, 10 invariantes, 9 de T2.6, API, mutação, desempenho), especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md`, pedido `docs/pedidos/011-metricas-tambem-disponiveis.md` (decisões de 2026-10-16), review `docs/reviews/011-back.md` (aprovado em a212d12), contrato `docs/api/metricas.md`, pergunta registrada `docs/qa/bugs/B11-001-t10-fornecedor-diferencia-caixa-do-nome.md`.
+
+# B11b + B12 + merge da develop (QA final do back)
+
+**Veredito: aprovado, escopo completo do back do 011 (B1 a B12), com uma ressalva fora do meu veredito: o C6 (B11c-1) segue aberto com o `software-architect`.** Zero bug crítico, alto, médio ou baixo aberto no que testei.
+
+- **Commit testado: `03b6176`** = `9db6fd1` mais o commit só de teste do QA (inclui `5d3debf`, a correção B11b-1, e `364e15d`, o merge de `origin/develop` com a Sustentação, #87). Mais dois arquivos de teste meus, commitados por cima (ver "Testes novos").
+- **Onde rodei:** a worktree `feature/011-metricas-tambem-back` tinha edições sem commit de outro agente (C6: `packages/mock/src/businessmap/gerador.ts`, `fases.test.ts`, `MockFonteMetricas.ts`). Para não testar código que não é o HEAD, rodei tudo numa worktree limpa em `9db6fd1` mais os meus dois testes (`pnpm install --offline --frozen-lockfile`). Dois pronto rodados na worktree suja falharam por causa disso (ver "Instabilidades"); **não valem como evidência** e não os conto.
+- **Tudo pesado** sob `flock /tmp/metricas-pesado.lock nice -n 19`; E2E com `eval "$(bash e2e/scripts/setup-chromium-local.sh)"` e `LD_LIBRARY_PATH` exportado, 1 worker.
+
+## Ratificação: a TENDENCIA_FLUXO fora do loop "todas as ids" de `qa011-fase1.test.ts`
+**Ratificada, com um teste que fecha o buraco.** A razão do tech-lead está certa: a janela da tendência termina no último mês fechado (30/09 com "hoje" em 20/10) e não cruza 15/10 nem 16/10, então exigir a marcação nela seria afirmar uma coisa falsa. O que a exclusão deixava sem guarda era a própria tendência estar no `afeta`. Escrevi o `QA011 T2.6 tendência`: com "hoje" 20/10 a tendência **não** traz `descarte-nativo`; com "hoje" 20/11 (janela até 31/10) **traz** `descarte-nativo` e `excluido-entregue`. Mutante M-26 (pôr `TENDENCIA_FLUXO` na lista `NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO`): o teste **falha**; produção restaurada. O guarda "44 ids" do loop fica como está (a tendência e o T11 saem dele nominalmente; o catálogo BusinessMap tem 46 ids, 45 delas marcadas).
+
+## T11-1 a T11-6 (hash da extensão `cdcae971`)
+| Caso | Teste | Resultado | Fronteira protegida |
+|---|---|---|---|
+| T11-1 | E `t11.test.ts` (janela fixa ancorada em "hoje"; o que é anterior fica fora; período do filtro não muda o T11) e `extensaoTambem.test.ts` (CA-12); E `server/tests/metricas.test.ts` T11 (`periodo=4s` igual ao padrão; `periodo=abc` dá 400); N `QA011-API T11` | passa | 24 fechados mais o corrente; período ignorado |
+| T11-2 | E `t11.test.ts` (mês corrente `emAndamento`; com "hoje" no último dia do mês já fecha; filtros de equipe, tipo e sistema recortam sem encurtar o histórico); N `QA011-API` (a soma das equipes não passa do total e é maior que 0) | passa | último dia do mês; recorte |
+| T11-3 | E `t11.test.ts` (histórico curto e extensão vazia: vazio, `historicoCurto`, nunca erro), `extensaoTambem.test.ts` (base sem demanda) e `metricas.test.ts` (fonte `real` devolve vazio com 200, nunca 500) | passa | vazio e menos de 24 meses |
+| T11-4 | E `extensaoTambem.test.ts`: base intacta (`68a67741`, Acelerato `0113e077`), hash próprio **`cdcae971`** determinístico, picos de janeiro e julho (>= 1,25 x média), mês corrente parcial; E `metricas.test.ts` repete os picos pela API | passa | base BM intacta; hash |
+| T11-5 | E `tambem.test.ts` (chave `mes-do-ano`, `marcacoes` em O24, O25 e T11); N `QA011-API T11-5`: `violacoes()` vazio e nenhuma chave `p50`, `p85`, `p95` ou `estatistica` no corpo | passa | censo, sem percentil |
+| T11-6 | E `t11.test.ts` (nenhuma das duas versões do descarte o marca; mudança de critério explícita aparece) e `qa011-fase1.test.ts` (lista nominal) | passa | `afeta` correto |
+
+Execução dedicada: `t11.test.ts` 9 de 9, `extensaoTambem.test.ts` 9 de 9, `metricas.test.ts -t T11` 3 de 3 (não vacuoso: o teste exige entradas depois do corte).
+
+## Corte no meio do mês pela API (B11b-1)
+Teste novo `QA011-API corte no meio do mês` (escala 0,25, `agora` 2026-10-10), com os números que medi:
+
+| `dataReferencia` | `base.n` | `mesesComDado` | mês do corte |
+|---|---|---|---|
+| 2026-08-10 | 2.957 | 22 | agosto `emAndamento`, 48 entradas |
+| 2026-08-31 | 3.030 | 23 | agosto fechado, 121 |
+| 2026-09-15 | 3.088 | 23 | setembro `emAndamento` |
+| padrão (sem data) | 3.194 | 24 | outubro `emAndamento` |
+
+O teste exige `n` estritamente crescente com a data, agosto em andamento em 10/08 e fechado em 31/08, entradas de agosto menores em 10/08 que em 31/08, e **setembro e outubro de 2026 sem contagem em 10/08** (nada além do corte). Bate com o que o tech-lead mediu.
+**Vermelho antes do verde:** `git show 5d3debf~1:packages/metricas/src/businessmap/t11.ts > t11.ts` e `vitest run tests/qa011-fase1.api.test.ts` no `server`: **falha** com `expected 3030 to be less than 3030` (sem a correção o corte em 31/08 e o de 10/08 dão o mesmo `n`, porque o mês inteiro é contado). Arquivo restaurado (M-27). Os dois testes do autor (`t11.test.ts` e `metricas.test.ts`) o review já viu falhar sem a correção.
+
+## C4 por cadência, em CPU (`orcamentoC4.test.ts`, 11 casos, 3 rodadas verdes + 1 com saída impressa)
+Leitura da rodada com saída, load de 1 min de 4,4 a 4,7 (a máquina estava disputada), fator de calibração do teste. Leitura só vale com fator <= 1,2.
+
+| Painel e período | Fechada (orç. 300) | Aberta (orç. 450) | Fator | Leitura |
+|---|---|---|---|---|
+| Operacional diária 12s | 70 ms | 145 ms | 1,02 | válida |
+| Operacional diária 12m | 42 ms | 153 ms | 1,00 | válida |
+| Operacional semanal 12s | 69 ms | 152 ms | 1,00 | válida |
+| Operacional semanal 12m | 101 ms | 236 ms | 1,05 | válida |
+| Tático 12s | 29 ms | 80 ms | **2,00** | **inválida** (fator acima de 1,2); a 12m, válida, dá o mesmo patamar |
+| Tático 12m | 25 ms | 82 ms | 1,00 | válida |
+| Estratégico 12s | 7 ms | 33 ms | 1,02 | válida |
+| Estratégico 12m | 9 ms | 34 ms | 1,02 | válida |
+| `VISAO_GERAL` a frio (orç. 300) | 92 ms | n/a | 1,01 | válida |
+
+Gerador lazy: mediana 3 ms (1ª 7 ms; orçamento 200 ms). C3 a frio dos ids novos: O19 2, O20 26, O21 4, O24 5, O25 3, T10 3, **T11 1**, T12 3, E7 1, E9 1 ms (< 50 ms). Todas as leituras válidas ficam abaixo da metade do orçamento. O pior caso (Operacional semanal 12m aberta, 236 ms) é 52% de 450 ms. **A 12s do Tático ficou sem leitura válida** nesta rodada; não repeti além das 3 execuções porque o dado da 12m e o do review (fator 1,00 a 1,03, 24 e 75 ms) cobrem o painel.
+Os pedidos de rede por cadência (fechada pede só `idsDoC4`, `VISAO_GERAL` não é pedida em `/operacional`) são do review, medidos no navegador sobre `9db6fd1`; não os repeti, porque o front do 011 ainda não entrou.
+
+## F5 e C6 (E2E de desempenho, `perf`, 1 worker)
+- **F5** (painel atualizado na troca de filtro, com latência simulada, n = 20): mediana 39,4 ms, **p95 347,6 ms** (orçamento 500 ms), 1ª troca 541,7 ms. Passou. O load de 1 min ficou entre 2,3 e 2,6 na rodada (o teste de navegador não calcula o fator de calibração). F3 INP 48 ms, F4 mediana 32,2 ms, p95 57,4 ms. C5 heap 21 MB. CLS de 0,000 a 0,035.
+- **C6** (maior tarefa longa, mediana de 15, orçamento < 200 ms): `/` 135 ms; `/operacional` 161 ms; diária 149; semanal 138; Tático 141; Estratégico 137; Sustentação 137. **Todos passaram nesta rodada**, com a máquina mais livre e 1 worker.
+- **B11c-1 (C6): aberto, com o `software-architect`.** A leitura que passou aqui **não fecha** o achado: o review mediu 235 a 466 ms na mesma branch sob load de 2 a 3, e a `develop` fica em 174 a 200 ms. A medida é sensível à carga, e a ADR 0003 trata o C6 como bloqueante do PR. Não bloqueia o meu veredito sobre o resto do back; registro só que **em uma máquina quieta o C6 passou com folga de 20% a 30%** (135 a 161 ms), o que é um dado a mais para o architect decidir entre fatiar a geração, usar Web Worker ou tratar como alerta com ADR.
+
+## Suíte completa sobre `9db6fd1` + meus testes (`pnpm run pronto`, EXIT=0)
+| Suíte | Resultado |
+|---|---|
+| lint, prettier, typecheck | verdes |
+| contratos | 120 de 120 |
+| metricas (cobertura 100% mantida) | 937 de 937 (936 do review + 1 meu) |
+| mock (hashes `68a67741`, `824092e4`, `495a0e07`, `cdcae971`; C1 e C2) | 206 de 206 |
+| server | 562 passam, 83 pulados (`*.pg.test.ts`, cobertos pelo `test:pg` abaixo); inclui os 26 de `qa011-fase1.api.test.ts` (23 + 3 novos) |
+| web | 1.045 de 1.045 |
+| homolog / spec-check / pesquisa | 73 / 14 / 33 |
+| docs-contratos (`docs:check`) | 102 de 102; "437 páginas Markdown, 63 métricas, 2 eventos" |
+| **`test:pg`** (Postgres 17 no Docker, banco `metricas_test`, GRANT por coluna do K-085) | **EXIT=0**, 15 arquivos, 83 testes |
+| `hash-base` | `5.792` cards, `6.062` chamados, geração 172 ms; hash da base `68a67741` (os testes do mock o afirmam) |
+| **E2E completo, 1 worker** (`pnpm run e2e --workers=1`: `chromium`, `chromium-semente-alt` e `perf`) | **695 de 695 passaram em 37,0 min**, nenhum `skip`, nenhum `flaky` (inclui as 4 falhas por timeout e o CT-29 a 375 px da rodada paralela do review) |
+| E2E API real (`chromium-api`, `com-api-mock.sh`, `E2E_API_URL`) | 27 de 27 (tendências CT-58, CT-59, CT-65; EI-03 e EI-03b) |
+| Acessibilidade (axe, WCAG 2.2 AA, nos E2E dos painéis) | zero violação crítica ou séria nos 695 |
+
+## Testes novos desta rodada (no repositório, só código de teste)
+| Teste | Obrigação | Arquivo | Vermelho |
+|---|---|---|---|
+| `QA011 T2.6 tendência` | CR-1, CR-4: a tendência está no `afeta` e a marcação cruza a data quando a janela cruza | `packages/metricas/src/qa011-fase1.test.ts` | M-26, falha |
+| `QA011-API T11 existe, sem percentil` | T11-5, A-2 (T11 não é 404) | `server/tests/qa011-fase1.api.test.ts` | n/a (obrigação de contrato; coberta também pelo schema `strict`) |
+| `QA011-API toda equipe` | T11-2 | idem | n/a |
+| `QA011-API corte no meio do mês` | B11b-1 pela API | idem | M-27, falha |
+
+Mutantes acumulados do parecer: **27 à mão, todos mortos** (M-26 e M-27 desta rodada). Não há Stryker; a pontuação de mutação não é medida.
+
+## Instabilidades registradas (nada foi marcado `skip`)
+- `web/src/features/sustentacao/ramos.test.tsx`, "SLA fora da meta em mais de uma prioridade...: singular e plural": **falhou uma vez** por timeout de 5 s (5.259 ms, load 4 a 5, o arquivo inteiro levou 47 s) e **passa em 12 s sozinho**. Na rodada limpa passou. É teste de componente da Sustentação (#87), do `react-frontend`; sugiro dar folga de timeout ao teste (o `tech-lead` decide). Não é defeito do 011.
+- `packages/mock/src/fases.test.ts` (arquivo novo, não commitado, do C6): "CPU por fase" falhou com 309,9 ms contra 300 numa rodada sob carga. É código do trabalho em andamento do architect; não está no HEAD e fica fora do meu veredito, mas o limite fixo de 300 ms sem fator de calibração tende a ser instável (os testes de C4 usam o fator).
+- Lock: a suíte esperou o `flock` várias vezes por outros agentes; as medições de CPU só valem com o fator impresso.
+
+## Bugs
+Nenhum novo. Os abertos continuam sendo:
+- **B11-001** (pergunta ao usuário, não bloqueia): o fornecedor do T10 deve ignorar a caixa do nome?
+- **B11c-1** (C6, `software-architect`; não é bug de produção meu nem do QA).
+- Recomendados do review ainda abertos: B12-1 (comentar a ponte por prefixo em `cartoes.ts`) e B12-2 (limpar a linha da ADR 0003), V2-2 já tratado.
+
+## Pendências para o PR (fora do meu veredito)
+1. B11c-1 resolvido ou aceito pelo architect, com ADR, antes do PR (a ADR 0003 trata o C6 como bloqueante).
+2. Divergência do E7 (8 sistemas no mock contra 18 a 20 da spec) e a pergunta B11-001: levar ao usuário na validação.
+3. Descrição do PR com os riscos e mudanças de comportamento do mock (O24, O23, exemplos de `docs/contratos`), como pede o review.
+4. Os cartões do 011 ainda não estão no `CATALOGO_CARTOES` do front (a C4 aberta com os 10 do 011 só se mede quando o front entrar); a diária não tem seção "Mais métricas" na tela, então a C4 aberta diária é medida teórica. Decisão de desenho, não de back.
+5. O parecer do front do 011 e a revisão de interface do `ux-designer` são outro cartão.
+
+---
+
+## Parecer anterior: B1 a B11a (commit fa5bdfe, escopo incremental)
+*Substituído pelo veredito acima: o T11 (B11b) e o B12 estão cobertos; as pendências 1 e 5 da lista de pendências abaixo estão encerradas.*
 
 ## Veredito
 **Aprovado, escopo incremental.** Zero bug crítico, alto, médio ou baixo aberto. O escopo é incremental porque os 6 casos do **T11 ficam "pendente B11b"**: o T11 ainda não está entregue no commit testado. A aprovação vale para B1 a B11a; o B11b exige parecer próprio.
