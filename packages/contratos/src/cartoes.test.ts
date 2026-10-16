@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   CARTOES_RETIRADOS,
   CATALOGO_CARTOES,
+  COM_EXTENSAO_MOCK,
   PAINEIS_COM_CARTOES,
   PAINEIS_DO_PAPEL,
   PAPEIS,
@@ -165,6 +166,13 @@ describe('catálogo de cartões', () => {
   })
 })
 
+describe('COM_EXTENSAO_MOCK (pedido 011, fase 2)', () => {
+  it('recebe E6 e E8; T11 e E7 não entram (sem extração nova nem custo no mock)', () => {
+    for (const c of ['E6', 'E8']) expect(COM_EXTENSAO_MOCK.has(c), c).toBe(true)
+    for (const c of ['T11', 'E7', 'O19', 'T10']) expect(COM_EXTENSAO_MOCK.has(c), c).toBe(false)
+  })
+})
+
 describe('idsDoC4 (fonte única do C4, ADR 0003)', () => {
   it('Operacional fechada: diária e semanal, sem VISAO_GERAL', () => {
     expect(idsDoC4('operacional', 'fechada', 'diaria')).toEqual(['O2', 'BLOQUEADOS', 'O1'])
@@ -187,7 +195,9 @@ describe('idsDoC4 (fonte única do C4, ADR 0003)', () => {
     expect(a).toEqual(expect.arrayContaining(['O5', 'O16', 'O19', 'O20', 'O21', 'O24', 'O25']))
     expect(a).not.toContain('VISAO_GERAL')
     expect(idsDoC4('tatico', 'aberta')).toEqual(expect.arrayContaining(['T6', 'T10', 'T11', 'T12']))
-    expect(idsDoC4('estrategico', 'aberta')).toEqual(expect.arrayContaining(['E7', 'E9']))
+    expect(idsDoC4('estrategico', 'aberta')).toEqual(
+      expect.arrayContaining(['E6', 'E7', 'E8', 'E9']),
+    )
   })
   it('painel sem 011 (sustentação) devolve só o catálogo', () => {
     const a = idsDoC4('sustentacao', 'aberta')

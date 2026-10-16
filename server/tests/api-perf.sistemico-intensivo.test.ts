@@ -24,7 +24,7 @@ const cpuMs = () => {
 };
 const p95 = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.ceil(xs.length * 0.95) - 1]!;
 
-describe('SIS-PERF-API: orçamento A1 a A3 nas 63 rotas (volume padrão do mock)', () => {
+describe('SIS-PERF-API: orçamento A1 a A3 nas 65 rotas (volume padrão do mock)', () => {
   it('payload gzip < 50 KB em todas; tempo frio e quente registrados', async () => {
     const base = gerarBaseMock();
     const grandes: string[] = [];

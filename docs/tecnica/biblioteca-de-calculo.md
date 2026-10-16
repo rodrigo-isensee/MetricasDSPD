@@ -19,6 +19,9 @@ flowchart TB
     var["varredura.ts<br/>varredura +1/-1 por coluna e da vida (memoizada)"]
     mbm["o1 ... o25, t1 ... t12, e1 ... e9, ei"]
   end
+  subgraph col["coletor/ (fora da entrada pública, ADR 0020)"]
+    htr["faixaConcentracao<br/>recebe um inteiro já contado, devolve a faixa"]
+  end
   subgraph ac["acelerato/"]
     idxac["indice.ts<br/>criarContextoAC<br/>ChamadoCalc"]
     amac["amostra.ts<br/>amostraAC(prioridade)"]
@@ -61,6 +64,7 @@ Regras de fronteira (verificadas por `eslint.config.js` e pelo meta-teste `web/s
 - `motivo_descarte` e `arquivado_em` só são lidos em `businessmap/descartado.ts`.
 - Sem `sort`/`toSorted` direto em métrica (usar `ordenarNeutro`), sem `Math.min(...xs)`/`Math.max(...xs)` (usar `minimo()`/`maximo()`), sem `Math.random`, sem `mediana` sobre valores soltos.
 - A biblioteca não importa o mock (só os testes importam).
+- `coletor/` (ADR 0020) recebe identidade opaca de pessoa e devolve só boolean ou inteiro; **não** entra em `exports` do `package.json`, em `src/index.ts` nem em `./businessmap`, e nenhuma métrica a importa (teste em `coletor/faixaConcentracao.test.ts`; a regra de lint de import por caminho é da fase 3).
 
 ## 2. Fluxo de um cálculo
 
@@ -144,6 +148,10 @@ interface Amostra<D extends Dominio, G extends string> {
 - `series.ts`: recortes em semanas, meses e trimestres com marca `emAndamento`.
 - Monte Carlo: ver 3.11 (`core/montecarlo.ts`, K-059).
 
+### 3.9.1 Extensão do pedido 011 e custo (`businessmap/extensao.ts`, `businessmap/custo.ts`)
+- `ExtensaoTambemBM` (só mock, gerada por `gerarExtensaoTambemMock`, lazy e fora da montagem do contexto) carrega o que a base ainda não tem: `entradasSazonais` (T11), `datasProjeto` (E6) e `conhecimentoSistema` (E8). Nenhum campo é pessoa: são instantes e faixas já agregados, como o coletor os entregaria (ADR 0020, item 8). `ContextosMetricas.tambem` a recebe; sem ela, cada métrica devolve o estado vazio (nunca erro).
+- `custoDoPeriodo(config, periodo)`: custo total do DSPD do período, por pró-rata em dias corridos de cada vigência dentro de cada mês (ou ano) (Q-E7-1); `null` quando nenhuma vigência cobre o período. `ContextosMetricas.custo` só chega por fixture de teste (no mock não há custo, CA-13).
+
 ### 3.10 Contextos e índices
 - `criarContextoBM(base, hoje, cal)` monta `MarcosCard` uma vez por base e calendário: entrada, compromisso, início, entrega vigente (`null` se reaberto), segmentos de execução, `cicloHU` (soma dos segmentos; o intervalo entregue não conta, P10), coluna e papel atuais, bloqueio aberto, projeto e frente de origem.
 - `criarContextoAC(base, hoje, cal)` monta `ChamadoCalc`: `fechado`, `apuravel` (fechado e sem exceção de registro posterior), primeiro atendimento e restauração em horas úteis (pendências descontadas do relógio de resolução), horas por totalizador e por etapa, `vidaHU`.
@@ -177,7 +185,7 @@ As regras do briefing como dados executáveis, uma linha por `MetricaId` (`satis
 | `refBriefing` | onde a regra está no briefing |
 | `status` | `pendente-usuario` se e somente se alguma célula for pendente (verificado por teste) |
 
-Estado atual (cartões novos do pedido 011): O19, O21, O24, O25, T10, T12, E7 e E9 não têm pendência (`status: 'ok'`). Nas propriedades eles aparecem como exceções nominais onde a chave vive fora do card ou do conjunto (ver 4.1). 7 linhas com `status: 'pendente-usuario'`, todas pela P1 (arquivado sem desfecho): O1, O2, BLOQUEADOS, O10, T4, T7, T9.
+Estado atual (cartões novos do pedido 011): O19, O21, O24, O25, T10, T12, E6, E7, E8 e E9 não têm pendência (`status: 'ok'`; a decidida Q-E7-1 vale como regra do E7). Nas propriedades eles aparecem como exceções nominais onde a chave vive fora do card ou do conjunto (ver 4.1). 7 linhas com `status: 'pendente-usuario'`, todas pela P1 (arquivado sem desfecho): O1, O2, BLOQUEADOS, O10, T4, T7, T9.
 
 ### 4.1 As 6 propriedades (`regras.property.test.ts`)
 Cada propriedade itera a matriz com fast-check sobre a base mock (escala 0,5, semente fixa) e lista as exceções **nominalmente**, com motivo.
@@ -202,9 +210,9 @@ flowchart LR
   MT -->|"falha"| X[pnpm run pronto vermelho]
 ```
 
-## 5. Catálogo das 42 métricas
+## 5. Catálogo das 44 métricas
 
-As 33 do núcleo e as 9 do pedido 011 (fase 1: O19, O20, O21, O24, O25, T10, T12, E7, E9; mais o bloco O23 dentro do O2). Todas as novas são só BusinessMap e nenhuma tem campo de pessoa ou de equipe; o contrato de cada uma está em `docs/contratos/metricas/`.
+As 33 do núcleo e as 11 do pedido 011 com cálculo próprio (fase 1: O19, O20, O21, O24, O25, T10, T12, E7, E9, mais o bloco O23 dentro do O2 e a T11, descrita em `docs/api/metricas.md`; fase 2, em mock: E6, E8). Todas as novas são só BusinessMap e nenhuma tem campo de pessoa ou de equipe; o contrato de cada uma está em `docs/contratos/metricas/`.
 
 Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Classe" é a primeira chave de segmentação (estatística calculada dentro dela). A referência é o `refBriefing` da matriz.
 
@@ -252,7 +260,9 @@ Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Cl
 | E1 | `calcularE1` | lead time de projetos (entrada a entrega) por tipo de projeto (Iniciativa, Melhoria): P50/P85/P95, medianas antes e depois do início; variação da mediana vs 12 meses antes | tipo de projeto | DU | 20 | 06 E1; Q4 |
 | E2 | `calcularE2` | entregas por trimestre e categoria (objetivo, obrigação legal, manutenção, fora de objetivo); % da evolução vinculada a objetivo (meta 60%) | objetivo, natureza | %; itens | 20 (taxa) | 06 E2; Q5 |
 | E3 | `calcularE3` | iniciativas com e sem ficha de resultado; atingimento = ganho medido / previsto | iniciativa | % (censo) | 0 | 06 E3 |
-| E7 | `calcularE7` | demandas entregues no período por sistema (peso por contagem, D-2) e por natureza do T3 (`naturezaDe`, sem mapa próprio); `participacao` = k de n com o total só com 20 ou mais entregas no sistema, senão `null` (B5-1); sem R$ (`custoConfigurado: false`, CA-13) | sistema, natureza | itens; % | 20 (taxa) | pedido 011 E7; D-1' = A; D-2; CA-23 |
+| E7 | `calcularE7` | demandas entregues no período por sistema (peso por contagem, D-2) e por natureza do T3 (`naturezaDe`, sem mapa próprio); `participacao` = k de n com o total só com 20 ou mais entregas no sistema, senão `null` (B5-1); sem R$ (`custoConfigurado: false`, CA-13) a menos que a configuração do custo total do DSPD chegue por fixture (`custo.ts`, pró-rata por dias corridos, Q-E7-1): `custoRateado` = custo do período x entregas / total e `custoPorDemanda` = rateado / entregas, só com 20 ou mais entregas no sistema | sistema, natureza | itens; % | 20 (taxa) | pedido 011 E7; D-1' = A; D-2; CA-23 |
+| E6 | `calcularE6` | projetos concluídos no período com data comprometida (extensão): deslize em DU inteiros com sinal (`diasUteisNoIntervalo`), na data pelo dia civil (tolerância zero, D-7); `naData` (taxa) e P50/P85 do deslize (janela de 12 semanas) só com 20 ou mais; pontos sempre; `semData` à parte | (nenhuma) | DU; % | 20 (taxa e P50/P85) | pedido 011 E6; D-7; CA-20 |
+| E8 | `calcularE8` | conta SISTEMAS por faixa de pessoas (1, 2, 3 ou mais) a partir do agregado por sistema (extensão; no real, `agg_conhecimento_sistema`), janela fixa de 12 meses; menos de 5 sistemas = recorte pequeno, sem faixas; nenhum nome de sistema (R-1 = B); nunca lê pessoa | (nenhuma) | sistemas | 0 (censo) | pedido 011 E8; D-3; R-1 = B; CA-10 |
 | E9 | `calcularE9` | projetos aprovados e ainda não iniciados (retrato de hoje): idade em DU desde a criação, faixa fixa (0-30, 31-90, 91-180, mais de 180); referência P85 por tipo de projeto, importada do E1 (`concluidosDeProjeto`), mínimo 20 por tipo | tipo de projeto | DU | 20 (referência P85, por tipo) | pedido 011 E9; regra 7; Q4 |
 | EI_FL3 | `calcularEIBM(..., 'FL3')` | espera invisível de projetos: cliente = entrada a entrega; time = início a entrega; por tipo de projeto | tipo de projeto | %; DU | 20 (mediana) | T3.4; Q4 |
 

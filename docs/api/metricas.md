@@ -19,7 +19,7 @@
 - Datas AAAA-MM-DD (America/Sao_Paulo); tempo: fluxo (BusinessMap) em dias úteis, exceto O10 em dias corridos (exceção do briefing); sustentação (Acelerato) em horas úteis.
 
 ## GET /api/v1/metricas/:id
-`:id` é um `MetricaId` (O1..O21, O24, O25, BLOQUEADOS, T1..T12, E1..E5, E7, E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL, TENDENCIA_FLUXO, TENDENCIA_SUST; 63 ids, inclui as 17 complementares abaixo, a PV1 e as duas tendências, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
+`:id` é um `MetricaId` (O1..O21, O24, O25, BLOQUEADOS, T1..T12, E1..E9, S1..S12, EI_FL1..3, EI_SUST, PV1, VISAO_GERAL, TENDENCIA_FLUXO, TENDENCIA_SUST; 65 ids, inclui as 17 complementares abaixo, as 12 do pedido 011 que têm id próprio, a PV1 e as duas tendências, última seção). Id desconhecido -> 404 `METRICA_NAO_ENCONTRADA`.
 
 ### Query (filtros), conforme o domínio da métrica
 Listas em CSV (`equipe=a,b`); ausente ou vazio = "Todos".
@@ -221,10 +221,38 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 - **Mock (base do B11a; ver `packages/mock/src/businessmap/tambem.ts`):** em 12 semanas, "Todas": 25 de 89 itens em andamento parados (28,1%), dentro dos 20% a 30% da especificação, com percentual publicado (n >= 20). O passo `parados` (stream `businessmap/tambem:parados`) recua a última transição de parte dos itens para mais de 5 dias úteis antes de "hoje" sem mudar o início nem a coluna atual; nos itens que começaram há poucos dias não há como recuar sem mexer no início, e uma parcela deles é envelhecida por inteiro (o card recua junto). O asserto de faixa está em `o23.test.ts`.
 
 ### Novas chaves de segmentação (`ChaveSegmentacao`, biblioteca)
-- `motivo-bloqueio` (O19), `fornecedor` (T10) e `mes-do-ano` (T11). `faixa-passagens` só entra na fase 2, com o O26. Nunca `pessoa`, `responsavel` nem `equipe`.
+- `motivo-bloqueio` (O19), `fornecedor` (T10) e `mes-do-ano` (T11). `faixa-passagens` só entra no lote das operacionais da fase 2, com o O26. Nunca `pessoa`, `responsavel` nem `equipe`.
 
 ### Trava de pessoa na biblioteca (P-T6, ata 2026-10-14)
 - Regra de lint `no-restricted-properties` proíbe ler `responsaveis` e `usuario` em `packages/metricas/src/businessmap/**` (exceto testes). A definição dos campos segue em `modelo.ts`, sem leitura. Meta-teste em `web/src/test/lint.meta.test.ts`.
+
+## Métricas "também disponíveis", fase 2 (pedido 011): E6, E8 e E7 com R$
+> **Status:** rotas ativas, só em mock (extração nova, coleta real na fase 3). `GET /api/v1/metricas/{E6,E8}` existem (65 ids; OpenAPI regenerada). T13 e T14 entram no lote das táticas, e O22 e O26 no das operacionais (decisão do usuário de 2026-10-17: lotes por nível, estratégicas primeiro). Só BusinessMap; nenhum campo de pessoa; abaixo de 20 itens só "k de n", sem valor. **Cartões no catálogo (`CATALOGO_CARTOES`): ainda não entram** (mesmo motivo da fase 1: quebra o catálogo e os testes do web; fica para o cartão do front). `COM_EXTENSAO_MOCK` (exportado de `@metricas-dspd/contratos`) já recebe os dois (status `mock`, "Dados fictícios"); T11 e E7 não entram (plano §4: sem extração nova nem custo no mock). Tipos: `ResultadoE6`, `ResultadoE8`; mapa `SCHEMAS_TAMBEM_FASE2` (e `SCHEMAS_TAMBEM` com as 12).
+- **Fonte dos dados no mock:** extensão separada `ExtensaoTambemBM` (`gerarExtensaoTambemMock`, lazy, hash por campo, stream `businessmap/tambem:<campo>`), que a base e a montagem do contexto não pagam (C1 e C2). Campos novos: `datasProjeto` (E6) e `conhecimentoSistema` (E8). **Nenhum guarda pessoa:** `conhecimentoSistema` é a faixa que sairia do coletor (ADR 0020, item 8) e o gerador não lê `responsaveis` nem `usuario` (teste confere o texto do arquivo). O servidor passa a extensão às métricas do 011 que a usam (T11 e estas duas) e só a elas; sem ela (fonte real) todas devolvem o estado vazio, nunca 500.
+- **Filtros que atuam:** E6: sistema e período (sem equipe). E8: só o período, aceito e ignorado (a janela é fixa de 12 meses até a data de corte; equipe, sistema e tipo não atuam, para não reduzir a uma linha e apontar a pessoa).
+
+| Id | Corpo (campos além de `base` e `criterios`) |
+|---|---|
+| E6 Datas do portfólio | `projetos[{ cardId, codigo, titulo, deslizeDiasUteis (inteiro, com sinal), replanejamentos }]`, `semData`, `naData (taxa)`, `deslize (estatistica { p50, p85 })` |
+| E8 Concentração de conhecimento | `janelaMeses (12)`, `sistemasComEntrega`, `faixas { uma, duas, tresOuMais } \| null`, `recortePequeno` |
+
+### E6 (E1): rota ativa
+- Projetos concluídos no período e a distância em **dias úteis inteiros** entre a data comprometida (a registrada no compromisso, D-7, CA-20) e a conclusão, com sinal (negativo = antes; 0 = na data; positivo = atraso). **Tolerância zero:** entregar até o fim do dia da data comprometida é "na data" (o dia civil decide, não a contagem). `replanejamentos` conta as alterações posteriores da data. `naData` (`taxa`) e `deslize` (P50/P85) só com **20 ou mais projetos**; os `projetos` (pontos) saem sempre (variante `lenta`). Acréscimo ao plano: `semData` conta os concluídos sem data comprometida registrada, fora dos pontos e das contas (nunca somem em silêncio). `naData` e os pontos são do período; o P50/P85 é da janela móvel de 12 semanas (a do E1 e a do E9), como a regra inviolável manda.
+- **Mock:** 13 projetos com data entre os 27 concluídos em 12 meses (14 ficam em `semData`): 4 de 13 na data, deslizes de -8 a 56 dias úteis, replanejamentos de 0 a 3; abaixo de 20 de propósito (`insuficiente`).
+
+### E8 (E2): rota ativa, com a R-1 = B
+- **Só a contagem de sistemas por faixa** (1, 2, 3 ou mais pessoas), **sem nenhum nome de sistema, nem o da faixa "1 pessoa"** (R-1 = B, 2026-10-16, revê a D-4 = B): o campo `sistemasUmaPessoa` do plano não existe. `faixas` é `null` e `recortePequeno` é `true` com menos de 5 sistemas com entrega (CA-10); a interface não lista sistemas em nenhum caso (CA-25 fica sem objeto). Censo, sem percentil. A faixa por sistema vem pronta do agregado (no mock, gerada direto; na coleta real, de `agg_conhecimento_sistema`, que o coletor e o projetor preenchem); a biblioteca só soma sistemas por faixa e nunca lê pessoa. Janela fixa de 12 meses até a data de corte (`janelaMeses`).
+- **Mock:** 8 sistemas com entrega (a base tem 8, não 18 a 20): 2 em 1 pessoa, 3 em 2 e 3 em 3 ou mais.
+
+### E7 com R$ por fixture (E1)
+- `calcularE7(ctx, filtros, custo?)` e `ContextosMetricas.custo` aceitam a configuração do custo total do DSPD (`ConfigCustoDspd`: vigências `{ valor, periodicidade ('mensal'\|'anual'), vigente_de, vigente_ate }`). **A fonte de dados nunca a entrega** (no mock não há custo, CA-13): o contrato do E7 não muda e a rota segue sem R$; a configuração só chega por fixture de teste até a fase 3 (`ref_custo_dspd`).
+- **Q-E7-1 = pró-rata por dias corridos** (decidida em 2026-10-16): para cada vigência, dentro de cada mês (ou ano) que ela cobre no período, vale `valor x dias cobertos / dias do mês (ou do ano)`; soma as vigências. Nenhuma vigência cobre o período: `null`, `custoConfigurado: false`, sem R$. `custoRateado = custo do período x entregas do sistema / total`; `custoPorDemanda = custoRateado / entregas do sistema`, ambos com 2 casas. É o rateio do custo **total** do DSPD, nunca esforço medido, por equipe ou por pessoa. **Suposição do back (pergunta ao usuário se discordar):** o rateio e o custo por demanda só saem para o sistema com 20 ou mais entregas (como a `participacao`); abaixo disso ficam `null` e a interface mostra "k de n".
+
+### Mudanças de contrato para o front
+- Duas ids novas (`E6`, `E8`) em `METRICA_IDS`, `SCHEMAS_RESULTADO`, `ContratoMetricas` e `APLICABILIDADE_FLUXO` (E6: sistema, período; E8: período). `CATALOGO_CARTOES` não muda. O enum `indicadores[].metrica` do `VISAO_GERAL` cresce com as duas (mesmo aceite de uso único da fase 1; `visaoGeral.ts` segue emitindo só ids do núcleo).
+- **Desvios do plano, todos antes da publicação (nenhum consumidor lê estes contratos):** E8 sem `sistemasUmaPessoa` (R-1 = B); E6 com `semData`.
+- O `MockFonteMetricas` do front, quando os cartões entrarem no catálogo, precisa passar `ctx.tambem = gerarExtensaoTambemMock(base)` às métricas do 011 que a usam (T11 e estas duas); sem ela elas devolvem o estado vazio.
+- **C4 (ADR 0003):** a suíte `orcamentoC4.test.ts` mede o conjunto completo de cada painel com "Mais métricas" aberta (a aberta já inclui as ids novas pelo prefixo do painel), dentro do orçamento de 450 ms (limite de CI 900 ms). Gerador lazy da extensão: cerca de 20 a 30 ms (orçamento 200 ms).
 
 ## Percepção de valor (PV1, pesquisa trimestral)
 Plano: `docs/architecture/features/lacuna-de-valor.md`. **Terceira fonte**, `pesquisa`: nem BusinessMap, nem Acelerato. Painel Sustentação, seção própria no fim (`grupo: 'percepcao'`, cartão `pv1`, `status: 'mock'`), com "leia junto" S1/S2 nos dois sentidos. Dados fictícios até existir carga real. Sem rota nova de leitura além da `GET /api/v1/metricas/PV1` e **sem rota de escrita** (a carga é script externo, B4).

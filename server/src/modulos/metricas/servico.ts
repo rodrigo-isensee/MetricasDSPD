@@ -53,14 +53,14 @@ export function normalizar(f: FiltrosMetrica): string {
 /** Métricas complementares (catálogo de cartões): as únicas que leem as extensões (dados fictícios até a coleta real). */
 const COMPLEMENTARES = new Set<MetricaId>(CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').flatMap((c) => c.metricas));
 
-/** Métricas do pedido 011 que leem a extensão separada `ExtensaoTambemBM` (fase 1: só o T11). */
-const COM_EXTENSAO_TAMBEM = new Set<MetricaId>(['T11']);
+/** Métricas do pedido 011 que leem a extensão separada `ExtensaoTambemBM` (T11 da fase 1; E6 e E8 da fase 2). */
+const COM_EXTENSAO_TAMBEM = new Set<MetricaId>(['T11', 'E6', 'E8']);
 
 export type DepsServico = {
   db: Consultavel; S?: Esquemas; maxResultados?: number;
   /** Fonte das extensões das métricas complementares (hoje só o mock; vira tabelas em T1.3/T1.4/T4.2). Sem ela, o cálculo devolve vazio/insuficiente. */
   extensoes?: () => ExtensoesMetricas;
-  /** Extensão do pedido 011 (T11), só de mock e lazy: chamada só quando o T11 é pedido. Sem ela, o T11 devolve vazio. */
+  /** Extensão do pedido 011 (T11 e as da fase 2), só de mock e lazy: chamada só quando uma dessas métricas é pedida. Sem ela, elas devolvem vazio ou insuficiente. */
   extensaoTambem?: () => ExtensaoTambemBM;
   /** Fonte da pesquisa de percepção (PV1): mock agora; no B4, as tabelas `pesq_*`. Sem ela, a PV1 devolve `sem-pesquisa`. */
   pesquisa?: FontePesquisa;
