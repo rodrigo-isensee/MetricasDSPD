@@ -2,6 +2,7 @@ import { gzipSync } from 'node:zlib';
 import { METRICA_IDS } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
+import { EXTENSAO_TAMBEM_BM_VAZIA } from '@metricas-dspd/metricas/businessmap';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { paginarO2 } from '../src/modulos/metricas/rotas.js';
@@ -93,7 +94,7 @@ describe('GET /api/v1/metricas/:id', () => {
 
   it('T11: a extensão é lazy (só o T11 a chama) e, sem ela (fonte real), devolve vazio com histórico curto, nunca 500', async () => {
     let chamadas = 0;
-    const gerar = () => { chamadas++; return { entradasSazonais: [] }; };
+    const gerar = () => { chamadas++; return EXTENSAO_TAMBEM_BM_VAZIA; };
     const montarCom = async (extra: Partial<Parameters<typeof buildApp>[0]>) => buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', ...extra });
     const app = await montarCom({ extensaoTambem: gerar });
     await get(app, '/api/v1/metricas/O1');
@@ -522,4 +523,46 @@ describe('ServicoMetricas: carga, versão e cache', () => {
     const s = new ServicoMetricas({ db: criarDublePg(bancoDoMock(base)).pool });
     await expect(s.calcular('T1', FL, { dataReferencia: '2026-10-11' }, AGORA)).rejects.toMatchObject({ code: 'VALIDATION_ERROR', status: 400 });
   });
+});
+
+describe('fase 2 do pedido 011 (E1 e E2): E6 e E8 em mock', () => {
+  const NOVAS = ['E6', 'E8'] as const;
+
+  it.each(NOVAS)('%s: 200 no schema, filtros do fluxo, cabeçalhos e nenhum campo de pessoa', async (id) => {
+    const { app } = await montar();
+    const r = await get(app, `/api/v1/metricas/${id}?periodo=12m`);
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success).toBe(true);
+    expect(r.headers['cache-control']).toBe('private, max-age=60');
+    expect([...chaves(r.json())].filter((k) => PESSOA.test(k))).toEqual([]);
+    expect((await get(app, `/api/v1/metricas/${id}?periodo=12m&tipo=melhoria&equipe=fluig&sistema=fluig`)).statusCode).toBe(200);
+    expect((await get(app, `/api/v1/metricas/${id}?periodo=abc`)).statusCode).toBe(400);
+    expect((await get(app, `/api/v1/metricas/${id}?periodo=12m&responsavel=x`)).statusCode).toBe(400);
+  }, 60_000);
+
+  it('E8 (R-1 = B): só a contagem de sistemas por faixa, sem nome de sistema nem de pessoa', async () => {
+    const { app } = await montar();
+    const e8 = (await get(app, '/api/v1/metricas/E8?periodo=12m')).json();
+    expect(e8.faixas).toEqual({ uma: expect.any(Number), duas: expect.any(Number), tresOuMais: expect.any(Number) });
+    expect(Object.keys(e8).sort()).toEqual(['base', 'criterios', 'faixas', 'janelaMeses', 'recortePequeno', 'sistemasComEntrega']);
+    expect(JSON.stringify(e8)).not.toMatch(/Protheus|Fluig|Senior|Core 5G/);
+  }, 60_000);
+
+  it('a extensão é lazy: só as métricas do 011 a chamam; sem ela (fonte real) todas devolvem estado vazio, nunca 500', async () => {
+    let chamadas = 0;
+    const gerar = () => { chamadas++; return EXTENSAO_TAMBEM_BM_VAZIA; };
+    const app = await buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', extensaoTambem: gerar });
+    for (const id of ['O1', 'T12', 'E7', 'E9']) await get(app, `/api/v1/metricas/${id}`);
+    expect(chamadas).toBe(0);
+    for (const id of ['E6', 'E8']) expect((await get(app, `/api/v1/metricas/${id}`)).statusCode).toBe(200);
+    expect(chamadas).toBe(2);
+    const real = await buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
+    for (const id of ['E6', 'E8'] as const) {
+      const r = await get(real, `/api/v1/metricas/${id}?periodo=12m&equipe=fluig`);
+      expect(r.statusCode, id).toBe(200);
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success, id).toBe(true);
+    }
+    const e8 = (await get(real, '/api/v1/metricas/E8')).json();
+    expect(e8).toMatchObject({ sistemasComEntrega: 0, faixas: null, recortePequeno: true });
+  }, 90_000);
 });

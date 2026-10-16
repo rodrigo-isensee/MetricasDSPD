@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { businessmap, CALENDARIO_PADRAO } from '@metricas-dspd/metricas'
+import { EXTENSAO_TAMBEM_BM_VAZIA } from '@metricas-dspd/metricas/businessmap'
 import { gerarBaseMock, gerarExtensaoTambemMock, PARAMETROS_SAZONAIS } from '.'
 import { hashJson } from './prng'
 
@@ -30,7 +31,12 @@ describe('B11b: extensão do T11 (entradas sazonais)', () => {
     expect(hashJson(gerarExtensaoTambemMock(gerarBaseMock({ escala: 0.2 })))).not.toBe(
       hashJson(ext),
     )
-    expect(hashJson(ext)).toBe('cdcae971')
+    expect(hashJson(ext)).toBe('91b93a24')
+    // a série do T11 (fase 1) segue idêntica depois da fase 2: cada campo novo tem a sua stream
+    expect(hashJson(ext.entradasSazonais)).toBe('3f86ce75')
+    expect(hashJson(gerarExtensaoTambemMock(gerarBaseMock({ escala: 0.2 })).entradasSazonais)).toBe(
+      'bdb6cd88',
+    )
   })
 
   it('gerar a extensão não altera a base (a base não é tocada)', () => {
@@ -110,6 +116,6 @@ describe('B11b: extensão do T11 (entradas sazonais)', () => {
 
   it('base sem nenhuma demanda: extensão vazia, sem erro', () => {
     const vazia = { ...base, bm: { ...base.bm, cards: [] } }
-    expect(gerarExtensaoTambemMock(vazia)).toEqual({ entradasSazonais: [] })
+    expect(gerarExtensaoTambemMock(vazia)).toEqual(EXTENSAO_TAMBEM_BM_VAZIA)
   })
 })

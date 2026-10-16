@@ -259,6 +259,49 @@ export const resultadoE9 = fechado({
   ),
 })
 
+/**
+ * Fase 2 do pedido 011 (extração nova, primeiro em mock). Mesmas regras da fase 1: objeto `strict`, nenhum campo de
+ * pessoa nem de outra equipe, percentil e percentual só com 20 ou mais (`estatisticaSchema`/`taxaSchema`) e percentil
+ * só dentro de uma classe (por tipo, um bloco por tipo; a interface mostra um por vez).
+ */
+const p50p85 = estatisticaSchema(fechado({ p50: z.number(), p85: z.number() }))
+
+/**
+ * E6 Datas do portfólio (D-7, CA-20). Deslize em dias úteis inteiros entre a data comprometida e a conclusão, com
+ * sinal (negativo = antes; 0 = na data; tolerância zero). Percentual e P50/P85 só com 20 ou mais projetos.
+ * `semData` conta os concluídos sem data comprometida registrada (fora de `projetos` e das estatísticas).
+ */
+export const resultadoE6 = fechado({
+  ...comum,
+  projetos: z.array(
+    fechado({
+      cardId: z.string(),
+      codigo: z.string(),
+      titulo: z.string(),
+      deslizeDiasUteis: z.number().int(),
+      replanejamentos: z.number().int(),
+    }),
+  ),
+  semData: z.number(),
+  naData: taxaSchema,
+  deslize: p50p85,
+})
+
+/**
+ * E8 Concentração de conhecimento (D-3, R-1 = B). Só a contagem de sistemas por faixa de pessoas (1, 2, 3 ou mais):
+ * nenhum nome de sistema nem de pessoa. Com menos de 5 sistemas com entrega, `faixas` é `null` (CA-10).
+ */
+export const resultadoE8 = fechado({
+  ...comum,
+  janelaMeses: z.number().int(),
+  sistemasComEntrega: z.number(),
+  faixas: fechado({ uma: z.number(), duas: z.number(), tresOuMais: z.number() }).nullable(),
+  recortePequeno: z.boolean(),
+})
+
+export type ResultadoE6 = z.infer<typeof resultadoE6>
+export type ResultadoE8 = z.infer<typeof resultadoE8>
+
 export type ResultadoO19 = z.infer<typeof resultadoO19>
 export type ResultadoO20 = z.infer<typeof resultadoO20>
 export type ResultadoO21 = z.infer<typeof resultadoO21>
@@ -288,3 +331,13 @@ export const SCHEMAS_TAMBEM_FASE1 = {
   E9: resultadoE9,
 } as const
 export type CodigoTambemFase1 = keyof typeof SCHEMAS_TAMBEM_FASE1
+
+/** Schemas da fase 2 por código (mesmo papel do mapa da fase 1: insumo do teste de pessoa e do C4). */
+export const SCHEMAS_TAMBEM_FASE2 = {
+  E6: resultadoE6,
+  E8: resultadoE8,
+} as const
+export type CodigoTambemFase2 = keyof typeof SCHEMAS_TAMBEM_FASE2
+
+/** Os 12 ids novos do pedido 011 que têm id próprio (fases 1 e 2). */
+export const SCHEMAS_TAMBEM = { ...SCHEMAS_TAMBEM_FASE1, ...SCHEMAS_TAMBEM_FASE2 } as const

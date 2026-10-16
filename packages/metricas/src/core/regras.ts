@@ -661,6 +661,18 @@ export const REGRAS_METRICA = {
     refBriefing: '06 E5; T2.5 Monte Carlo; T9',
     status: 'ok',
   },
+  E6: {
+    dominio: 'businessmap',
+    segmentacao: [],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa', 'percentis'],
+    granularidade: 'projeto',
+    refBriefing:
+      'pedido 011 E6; D-7 (vale a data registrada no compromisso; tolerância zero), CA-20; deslize em dias úteis com sinal; percentual e P50/P85 do deslize só com 20 ou mais projetos (os pontos saem sempre); mock: extensão datasProjeto, com poucos projetos de propósito (variante lenta)',
+    status: 'ok',
+  },
   E7: {
     dominio: 'businessmap',
     segmentacao: ['sistema', 'natureza-alocacao'],
@@ -670,7 +682,19 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa'],
     granularidade: 'story',
     refBriefing:
-      "pedido 011 E7; D-1' = A e D-2 (peso por contagem de entregas); CA-13 (sem R$ até configurar o custo); CA-23 (naturezaDe do T3)",
+      "pedido 011 E7; D-1' = A e D-2 (peso por contagem de entregas); CA-13 (sem R$ até configurar o custo); D-1' = A e Q-E7-1 (decidida em 2026-10-16: pró-rata por dias corridos de cada vigência dentro do período, custo total do DSPD rateado pela participação nas entregas, só para sistema com 20 ou mais entregas); CA-23 (naturezaDe do T3)",
+    status: 'ok',
+  },
+  E8: {
+    dominio: 'businessmap',
+    segmentacao: [],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 E8; D-3 = A (janela de 12 meses); R-1 = B (só a contagem de sistemas por faixa, sem nome de sistema nem de pessoa); recorte de menos de 5 sistemas não abre as faixas (CA-10); a faixa por sistema vem do agregado (ADR 0020), censo sem percentil',
     status: 'ok',
   },
   E9: {

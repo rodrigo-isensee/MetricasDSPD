@@ -3,7 +3,12 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { CALENDARIO_PADRAO, instanteDeIso } from '../core/calendario'
 import { NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO } from '../core/criterios'
-import { calcularT11, type EntradaSazonal, type ExtensaoTambemBM } from './index'
+import {
+  calcularT11,
+  EXTENSAO_TAMBEM_BM_VAZIA,
+  type EntradaSazonal,
+  type ExtensaoTambemBM,
+} from './index'
 import { criarContextoBM } from './indice'
 import { HOJE_TESTE, umaBase } from './testing'
 
@@ -23,7 +28,10 @@ const entrada = (
   sistema: 'Protheus',
   ...extra,
 })
-const extDe = (entradasSazonais: EntradaSazonal[]): ExtensaoTambemBM => ({ entradasSazonais })
+const extDe = (entradasSazonais: EntradaSazonal[]): ExtensaoTambemBM => ({
+  ...EXTENSAO_TAMBEM_BM_VAZIA,
+  entradasSazonais,
+})
 const celula = (r: ReturnType<typeof calcularT11>, ano: number, mes: number) =>
   r.anos.find((a) => a.ano === ano)?.meses.find((m) => m.mes === mes)
 

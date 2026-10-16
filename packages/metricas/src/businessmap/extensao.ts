@@ -47,13 +47,41 @@ export interface EntradaSazonal {
   sistema: string
 }
 
-/**
- * Extensão do pedido 011 (fase 1) só de mock: o histórico de 24 meses que a base mock (18 meses) não tem. Fica separada
- * de `ExtensaoBM` para que a base e a montagem do contexto não paguem por ela (ADR 0003, C1 e C2). Na coleta real o
- * T11 lê `dim_card` e esta extensão não existe. Os outros campos entram com as métricas da fase 2.
- */
-export interface ExtensaoTambemBM {
-  entradasSazonais: EntradaSazonal[]
+/** Datas do projeto concluído (E6): a comprometida no compromisso (D-7), a final e quantas vezes mudou. */
+export interface DatasProjeto {
+  /** Data comprometida no compromisso (instante, ms). */
+  original: number
+  /** Data acordada vigente na conclusão (ms). */
+  final: number
+  replanejamentos: number
 }
 
-export const EXTENSAO_TAMBEM_BM_VAZIA: ExtensaoTambemBM = { entradasSazonais: [] }
+/** Faixa de concentração de um sistema (ADR 0020, item 4): 1, 2 ou 3 (3 = "3 ou mais") pessoas. Nunca o número exato. */
+export type FaixaConhecimento = 1 | 2 | 3
+
+/** Linha do agregado `agg_conhecimento_sistema` (E8): gerada direto no mock, sem pessoas. */
+export interface ConhecimentoSistema {
+  sistema: string
+  faixa: FaixaConhecimento
+  entregas: number
+}
+
+/**
+ * Extensão do pedido 011 só de mock, separada de `ExtensaoBM` para que a base e a montagem do contexto não paguem por ela
+ * (ADR 0003, C1 e C2). Na coleta real cada campo vira coluna ou tabela própria (fase 3) e esta extensão não existe.
+ * Nenhum campo identifica pessoa: `conhecimentoSistema` já é a faixa que sai do coletor (ADR 0020).
+ */
+export interface ExtensaoTambemBM {
+  /** T11 (fase 1): o histórico de 24 meses que a base mock não tem. */
+  entradasSazonais: EntradaSazonal[]
+  /** E6: datas dos projetos concluídos; ausente = sem data comprometida registrada. */
+  datasProjeto: Record<string, DatasProjeto>
+  /** E8: faixa de concentração por sistema na janela de 12 meses que termina em "hoje". */
+  conhecimentoSistema: ConhecimentoSistema[]
+}
+
+export const EXTENSAO_TAMBEM_BM_VAZIA: ExtensaoTambemBM = {
+  entradasSazonais: [],
+  datasProjeto: {},
+  conhecimentoSistema: [],
+}
