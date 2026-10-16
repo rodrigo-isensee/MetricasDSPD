@@ -7,7 +7,8 @@ import {
 } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { diaDeIso, horasUteisEntre, fimDoExpediente } from '../core/calendario'
-import { percentis } from '../core/estatistica'
+import { LIMITE_PARADO_DIAS_UTEIS } from '../core/criterios'
+import { percentis, taxa } from '../core/estatistica'
 import { slug } from '../slug'
 import { amostraBM } from './amostra'
 import {
@@ -89,6 +90,9 @@ export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
     return { tipo, abertos: dele.length, acimaP85, acimaP95, referencia: ref }
   }).filter((x) => x.abertos > 0 || x.referencia.n > 0)
 
+  // O23: "mover" é só mudar de coluna; tempo apontado nunca entra (7.1). Compara o valor já arredondado do item.
+  const parados = itens.filter((i) => i.semMoverHaDiasUteis > LIMITE_PARADO_DIAS_UTEIS)
+
   const comAbertos = tipos.filter((x) => x.abertos > 0)
   const sugerido = ordenarNeutro(comAbertos, (x) => [-x.acimaP85, -x.abertos, x.tipo])[0]
   const acimaP95 = itens.filter((i) => i.situacao === 'acima-p95').length
@@ -106,6 +110,14 @@ export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
     tipoSugerido: sugerido ? sugerido.tipo : null,
     itens,
     acimaP95,
+    parados: {
+      limiteDiasUteis: LIMITE_PARADO_DIAS_UTEIS,
+      taxa: taxa(parados.length, itens.length),
+      porEtapa: etapas.map((etapa) => ({
+        etapa,
+        k: parados.filter((i) => i.etapa === etapa).length,
+      })),
+    },
     statusMeta: !algumaRef ? 'sem-referencia' : acimaP95 === 0 ? 'dentro' : 'fora',
   }
 }

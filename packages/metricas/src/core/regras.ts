@@ -36,6 +36,9 @@ export type ChaveSegmentacao =
   | 'motivo-pendencia'
   | 'sprint'
   | 'pergunta'
+  | 'motivo-bloqueio'
+  | 'fornecedor'
+  | 'mes-do-ano'
 // Proibidas como segmentação: pessoa, responsável, equipe (equipe é só filtro; comparação entre times é proibida, 7.1).
 
 export type GranularidadeRegra = 'story' | 'frente' | 'projeto' | 'chamado' | 'resposta'
@@ -540,6 +543,102 @@ export const REGRAS_METRICA = {
     refBriefing: '06 T8; 7.2 sem alvo de 100%',
     status: 'ok',
   },
+  O19: {
+    dominio: 'businessmap',
+    segmentacao: ['motivo-bloqueio'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['percentis', 'taxa'],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 O19; bloqueio encerrado no período; o n da taxa é o número de bloqueios (R6)',
+    status: 'ok',
+  },
+  T10: {
+    dominio: 'businessmap',
+    segmentacao: ['fornecedor'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['percentis'],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 T10; D-10 = A (sem prazo contratado); R-5 (qualquer motivo com fornecedor informado)',
+    status: 'ok',
+  },
+  O20: {
+    dominio: 'businessmap',
+    segmentacao: [],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 O20; varredura +1/-1 por coluna do O1 (B8); faixa por coluna (uma equipe) ou por papel (R5); contagem diaria, sem estatistica',
+    status: 'ok',
+  },
+  O21: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa', 'percentis'],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 O21; transicoes de retorno ate a conclusao; ciclo do O3 (entreguesDe); par com x sem so dentro do tipo, 20 em cada grupo (regra 7, CA-6); matriz por coluna (uma equipe) ou por papel (R5)',
+    status: 'ok',
+  },
+  O24: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa', 'percentis'],
+    granularidade: 'story',
+    refBriefing:
+      "pedido 011 O24; D-6' = A (fila de cada equipe, só classe Padrão, mesmo tipo; Urgente, Prazo fixo e Intangível fora, CA-17); R-1 = A (espera do ultrapassado, do início do primeiro que passou na frente até o próprio início, CA-37); P50/P85 por tipo (regra 7)",
+    status: 'ok',
+  },
+  O25: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa', 'percentis'],
+    granularidade: 'story',
+    refBriefing:
+      "pedido 011 O25; R-2' = A (descartado = estado nativo discarded ou excluído, instante discarded_at; motivo sem descarte vira aviso); P-1 = A; D-13 (tempo consumido do início ao descarte; antes do início à parte); motivos de descarte = A (porMotivo nulo até ler /discardReasons, CA-44)",
+    status: 'ok',
+  },
+  T11: {
+    dominio: 'businessmap',
+    segmentacao: ['mes-do-ano'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 T11; contagem de demandas criadas por mês (censo, sem percentil), janela fixa de 24 meses fechados mais o corrente, fora do período do filtro (CA-12); mock: série própria da extensão (P-T3 = a)',
+    status: 'ok',
+  },
+  T12: {
+    dominio: 'businessmap',
+    segmentacao: ['area'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 T12; D-8 = A (ida e volta = bloqueio por falta de informação antes do início, ou retorno compromisso -> backlog); área solicitante, nunca equipe',
+    status: 'ok',
+  },
   E4: {
     dominio: 'businessmap',
     segmentacao: ['tipo-projeto'],
@@ -560,6 +659,30 @@ export const REGRAS_METRICA = {
     minimoSobre: ['percentis'],
     granularidade: 'frente',
     refBriefing: '06 E5; T2.5 Monte Carlo; T9',
+    status: 'ok',
+  },
+  E7: {
+    dominio: 'businessmap',
+    segmentacao: ['sistema', 'natureza-alocacao'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'story',
+    refBriefing:
+      "pedido 011 E7; D-1' = A e D-2 (peso por contagem de entregas); CA-13 (sem R$ até configurar o custo); CA-23 (naturezaDe do T3)",
+    status: 'ok',
+  },
+  E9: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo-projeto'],
+    ordem: 'temporal',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['referencia-percentil'],
+    granularidade: 'projeto',
+    refBriefing:
+      'pedido 011 E9; R-6 (criado_em = aprovação); referência P85 por tipo de projeto (regra 7, Q4) importada do E1',
     status: 'ok',
   },
   S8: {

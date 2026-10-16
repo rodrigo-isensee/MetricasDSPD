@@ -9,6 +9,7 @@ import {
   cartaoPorId,
   cartaoPorIdGlobal,
   cartoesDoPainel,
+  idsDoC4,
   preferenciasMetricasSchema,
 } from './cartoes'
 import { METRICA_IDS } from './comum'
@@ -161,5 +162,36 @@ describe('catálogo de cartões', () => {
     expect(new Set(ei.map((c) => c.secaoTitulo))).toEqual(
       new Set(['Quanto do tempo do solicitante fica fora da nossa gestão?']),
     )
+  })
+})
+
+describe('idsDoC4 (fonte única do C4, ADR 0003)', () => {
+  it('Operacional fechada: diária e semanal, sem VISAO_GERAL', () => {
+    expect(idsDoC4('operacional', 'fechada', 'diaria')).toEqual(['O2', 'BLOQUEADOS', 'O1'])
+    expect(idsDoC4('operacional', 'fechada', 'semanal')).toEqual([
+      'O3',
+      'O9',
+      'O4',
+      'O12',
+      'O10',
+      'O7',
+      'O15',
+      'O18',
+      'EI_FL1',
+    ])
+  })
+  it('aberta = fechada + todas as complementares do painel (catálogo e 011)', () => {
+    const f = idsDoC4('operacional', 'fechada', 'diaria')
+    const a = idsDoC4('operacional', 'aberta', 'diaria')
+    expect(a.slice(0, f.length)).toEqual(f)
+    expect(a).toEqual(expect.arrayContaining(['O5', 'O16', 'O19', 'O20', 'O21', 'O24', 'O25']))
+    expect(a).not.toContain('VISAO_GERAL')
+    expect(idsDoC4('tatico', 'aberta')).toEqual(expect.arrayContaining(['T6', 'T10', 'T11', 'T12']))
+    expect(idsDoC4('estrategico', 'aberta')).toEqual(expect.arrayContaining(['E7', 'E9']))
+  })
+  it('painel sem 011 (sustentação) devolve só o catálogo', () => {
+    const a = idsDoC4('sustentacao', 'aberta')
+    expect(a.length).toBeGreaterThan(idsDoC4('sustentacao', 'fechada').length)
+    expect(a).not.toEqual(expect.arrayContaining(['O19']))
   })
 })

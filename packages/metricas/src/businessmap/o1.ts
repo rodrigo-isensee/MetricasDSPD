@@ -4,7 +4,8 @@ import { diaDeIso, diasUteisNoIntervalo, fimDoExpediente, isoDeDia } from '../co
 import { taxa } from '../core/estatistica'
 import { slug } from '../slug'
 import { baseAmostral, criterios, periodoDe, selecionar } from './comum'
-import { estadoEm, serieWip } from './estado'
+import { estadoEm } from './estado'
+import { varreduraPorColuna } from './varredura'
 import type { ContextoBM } from './indice'
 import { ordenarNeutro } from '../core/ordenar'
 
@@ -12,7 +13,7 @@ import { ordenarNeutro } from '../core/ordenar'
 export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
   const periodo = periodoDe(ctx, f)
   const cards = selecionar(ctx, f, 'story', { incluirInativos: true }).filter(
-    (m) => !m.card.eh_subtarefa && m.card.excluido_em === null,
+    (m) => !m.card.eh_subtarefa && !m.excluido,
   )
   const equipesSel =
     f.equipe.length === 0
@@ -24,9 +25,12 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
   )
 
   const dias = diasUteisNoIntervalo(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.cal)
-  const { wip, bloqueados: bloq } = serieWip(
+  const {
+    total: { wip, bloqueados: bloq },
+  } = varreduraPorColuna(
     ctx,
-    cards,
+    f,
+    null,
     dias.map((d) => Math.min(ctx.hoje, fimDoExpediente(d, ctx.cal))),
   )
   const out = dias.map((d, i) => ({

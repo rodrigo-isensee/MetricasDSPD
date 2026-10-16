@@ -1,6 +1,6 @@
 # Contrato da métrica EI_FL1
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica EI_FL1. Público: time (back-end, front-end, QA). Revisão: 2026-10-13.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica EI_FL1. Público: time (back-end, front-end, QA). Revisão: 2026-10-15.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -231,7 +231,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
 ```json
 {
   "base": {
-    "n": 634,
+    "n": 602,
     "unidade": "demandas",
     "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
   },
@@ -246,31 +246,31 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
     {
       "chave": "incidente",
       "rotulo": "Incidente",
-      "n": 81,
+      "n": 80,
       "estatistica": {
         "status": "ok",
-        "n": 81,
-        "valor": {"cliente":2.28,"time":1.91,"indicePct":15.97,"acimaDe50":false},
+        "n": 80,
+        "valor": {"cliente":2.46,"time":1.93,"indicePct":21.71,"acimaDe50":false},
         "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
       },
       "serie": [
-        {"mes":"2026-08","n":79,"cliente":2.4,"time":2,"indicePct":16.46},
-        {"mes":"2026-09","n":76,"cliente":2.25,"time":1.85,"indicePct":17.77}
+        {"mes":"2026-08","n":79,"cliente":2.42,"time":2,"indicePct":17.39},
+        {"mes":"2026-09","n":75,"cliente":2.26,"time":1.86,"indicePct":17.77}
       ]
     },
     {
       "chave": "requisicao",
       "rotulo": "Requisição",
-      "n": 79,
+      "n": 74,
       "estatistica": {
         "status": "ok",
-        "n": 79,
-        "valor": {"cliente":7.45,"time":3.43,"indicePct":53.98,"acimaDe50":true},
+        "n": 74,
+        "valor": {"cliente":8.77,"time":3.35,"indicePct":61.76,"acimaDe50":true},
         "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
       },
       "serie": [
-        {"mes":"2026-08","n":104,"cliente":7.26,"time":3.29,"indicePct":54.65},
-        {"mes":"2026-09","n":90,"cliente":7.4,"time":3.4,"indicePct":54.08}
+        {"mes":"2026-08","n":99,"cliente":7.77,"time":3.29,"indicePct":57.6},
+        {"mes":"2026-09","n":86,"cliente":8.33,"time":3.37,"indicePct":59.57}
       ]
     }
   ]
