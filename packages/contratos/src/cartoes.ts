@@ -5,6 +5,7 @@
  */
 import { z } from 'zod'
 import type { MetricaId } from './comum'
+import { SCHEMAS_TAMBEM_FASE1 } from './tambem'
 
 export const PAINEIS_COM_CARTOES = ['operacional', 'tatico', 'estrategico', 'sustentacao'] as const
 export type PainelComCartoes = (typeof PAINEIS_COM_CARTOES)[number]
@@ -305,4 +306,41 @@ export const PREFERENCIAS_PADRAO: PreferenciasMetricas = {
   versao: 1,
   paineis: {},
   atualizadoEm: '1970-01-01T00:00:00.000Z',
+}
+
+export type CadenciaC4 = 'diaria' | 'semanal'
+export type CondicaoC4 = 'fechada' | 'aberta'
+const PREFIXO_PAINEL: Partial<Record<PainelComCartoes, string>> = {
+  operacional: 'O',
+  tatico: 'T',
+  estrategico: 'E',
+}
+
+/**
+ * Fonte única dos ids de cada medida do C4 (ADR 0003, "Emenda C4"). Fechada: o núcleo que a página pede com
+ * "Mais métricas" fechada (no Operacional, a seção `diaria` ou as demais, por cadência; O23 é bloco do O2).
+ * Aberta: a fechada mais todas as complementares do painel (catálogo mais os ids do 011 ainda sem cartão no
+ * catálogo, `SCHEMAS_TAMBEM_FASE1`, pelo prefixo do painel). `VISAO_GERAL` nunca entra (painel próprio).
+ */
+export function idsDoC4(
+  painel: PainelComCartoes,
+  condicao: CondicaoC4,
+  cadencia: CadenciaC4 = 'semanal',
+): MetricaId[] {
+  const doPainel = CATALOGO_CARTOES.filter((c) => c.painel === painel)
+  const fechada = doPainel.filter(
+    (c) =>
+      c.grupo === 'nucleo' &&
+      (painel !== 'operacional' || (c.secao === 'diaria') === (cadencia === 'diaria')),
+  )
+  const ids = fechada.flatMap((c) => [...c.metricas])
+  if (condicao === 'aberta') {
+    ids.push(...doPainel.filter((c) => c.grupo === 'complementar').flatMap((c) => [...c.metricas]))
+    const prefixo = PREFIXO_PAINEL[painel]
+    if (prefixo)
+      ids.push(
+        ...(Object.keys(SCHEMAS_TAMBEM_FASE1).filter((k) => k.startsWith(prefixo)) as MetricaId[]),
+      )
+  }
+  return [...new Set(ids)]
 }

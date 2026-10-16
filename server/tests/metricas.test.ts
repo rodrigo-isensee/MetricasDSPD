@@ -1,9 +1,11 @@
+import { gzipSync } from 'node:zlib';
 import { METRICA_IDS } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { paginarO2 } from '../src/modulos/metricas/rotas.js';
+import { extensaoTambemMock } from '../src/plataforma/db/extensoes-mock.js';
 import { normalizar, ServicoMetricas, TTL_VERSAO_MS } from '../src/modulos/metricas/index.js';
 import { bancoDoMock } from './base-duble.js';
 import { criarDublePg, type Respondedor } from './duble-pg.js';
@@ -42,7 +44,7 @@ describe('GET /api/v1/metricas/:id', () => {
     expect(r2.body).toBe('');
   });
 
-  it('as 53 métricas respondem 200 dentro do schema e nenhuma chave de pessoa aparece', async () => {
+  it('todas as métricas respondem 200 dentro do schema e nenhuma chave de pessoa aparece', async () => {
     const { app } = await montar();
     const todas = new Set<string>();
     for (const id of METRICA_IDS) {
@@ -52,6 +54,160 @@ describe('GET /api/v1/metricas/:id', () => {
     }
     expect([...todas].filter((k) => PESSOA.test(k))).toEqual([]);
   }, 60_000);
+
+  it('T11 (pedido 011, B11b): 200 no schema, 24 meses mais o corrente, picos de janeiro e julho, período ignorado e sem pessoa', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/T11');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.T11.safeParse(r.json()).success).toBe(true);
+    const t11 = r.json();
+    const meses = (t11.anos as { ano: number; meses: { mes: number; entradas: number | null; emAndamento: boolean }[] }[]).flatMap((a) => a.meses.map((m) => ({ ano: a.ano, ...m })));
+    expect(meses.filter((m) => m.entradas !== null)).toHaveLength(25);
+    expect(meses.filter((m) => m.emAndamento)).toHaveLength(1);
+    expect(t11.mesesComDado).toBe(24);
+    expect(t11.historicoCurto).toBe(false);
+    const media = t11.mediaMensal as number;
+    for (const m of meses.filter((x) => x.entradas !== null && !x.emAndamento && (x.mes === 1 || x.mes === 7))) expect(m.entradas as number).toBeGreaterThanOrEqual(1.25 * media);
+    expect([...chaves(t11)].filter((k) => PESSOA.test(k))).toEqual([]);
+    // CA-12: o período não muda a resposta; equipe, tipo e sistema mudam
+    expect((await get(app, '/api/v1/metricas/T11?periodo=4s')).json()).toEqual(t11);
+    expect((await get(app, '/api/v1/metricas/T11?periodo=abc')).statusCode).toBe(400);
+    const so = await get(app, '/api/v1/metricas/T11?tipo=melhoria');
+    expect(so.statusCode).toBe(200);
+    expect((so.json().base as { n: number }).n).toBeLessThan((t11.base as { n: number }).n);
+  }, 60_000);
+
+  it('T11 (B11b-1): dataReferencia no meio do mês não conta entradas criadas depois do corte', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/T11?dataReferencia=2026-08-10');
+    expect(r.statusCode).toBe(200);
+    const t11 = r.json();
+    const ago = (t11.anos as { ano: number; meses: { mes: number; entradas: number | null; emAndamento: boolean }[] }[]).find((a) => a.ano === 2026)!.meses.find((m) => m.mes === 8)!;
+    const ext = extensaoTambemMock().entradasSazonais;
+    const noMes = ext.filter((e) => e.criado_em >= Date.parse('2026-08-01T00:00:00-03:00') && e.criado_em < Date.parse('2026-09-01T00:00:00-03:00'));
+    const ateCorte = noMes.filter((e) => e.criado_em < Date.parse('2026-08-11T00:00:00-03:00')).length;
+    expect(noMes.length).toBeGreaterThan(ateCorte);
+    expect(ago.emAndamento).toBe(true);
+    expect(ago.entradas).toBe(ateCorte);
+  }, 60_000);
+
+  it('T11: a extensão é lazy (só o T11 a chama) e, sem ela (fonte real), devolve vazio com histórico curto, nunca 500', async () => {
+    let chamadas = 0;
+    const gerar = () => { chamadas++; return { entradasSazonais: [] }; };
+    const montarCom = async (extra: Partial<Parameters<typeof buildApp>[0]>) => buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', ...extra });
+    const app = await montarCom({ extensaoTambem: gerar });
+    await get(app, '/api/v1/metricas/O1');
+    await get(app, '/api/v1/metricas/T12');
+    expect(chamadas).toBe(0);
+    expect((await get(app, '/api/v1/metricas/T11')).statusCode).toBe(200);
+    expect(chamadas).toBe(1);
+    const real = await montarCom({ fonteDados: 'real' });
+    const r = await get(real, '/api/v1/metricas/T11');
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toMatchObject({ anos: [], mesesComDado: 0, mediaMensal: null, historicoCurto: true });
+  });
+
+  it('T12 (pedido 011): 200 no schema, filtros do fluxo, áreas por volume e nenhuma chave de equipe ou pessoa', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/T12?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.T12.safeParse(r.json()).success).toBe(true);
+    const volumes = (r.json().areas as { taxa: { n: number } }[]).map((x) => x.taxa.n);
+    expect(volumes).toEqual([...volumes].sort((a, b) => b - a));
+    expect(Object.keys((r.json().areas as object[])[0] ?? {}).sort()).toEqual(['area', 'taxa']);
+    expect((await get(app, '/api/v1/metricas/T12?periodo=12m&tipo=melhoria')).statusCode).toBe(200);
+    expect((await get(app, '/api/v1/metricas/T12?periodo=abc')).statusCode).toBe(400);
+  });
+
+  it('O20 (pedido 011, B9): 200 no schema, papel em "Todas", coluna com uma equipe, payload gzip < 50 KB no período máximo e nenhum campo de pessoa ou de equipe', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/O20?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O20.safeParse(r.json()).success).toBe(true);
+    expect(r.json().agrupamento).toBe('papel');
+    for (const x of r.json().faixas as { chave: string }[])
+      expect(['backlog', 'compromisso', 'trabalho', 'homologacao', 'entrega']).toContain(x.chave);
+    expect(gzipSync(r.body).length / 1024).toBeLessThan(50);
+    expect(JSON.stringify(r.json())).not.toMatch(/responsave|usuario|"equipe"/);
+    const e = await get(app, '/api/v1/metricas/O20?periodo=12m&equipe=fluig');
+    expect(e.statusCode).toBe(200);
+    expect(e.json().agrupamento).toBe('coluna');
+    expect(SCHEMAS_RESULTADO.O20.safeParse(e.json()).success).toBe(true);
+    expect(gzipSync(e.body).length / 1024).toBeLessThan(50);
+    expect((await get(app, '/api/v1/metricas/O20?periodo=abc')).statusCode).toBe(400);
+  });
+
+  it('O24 (pedido 011, B10): 200 no schema, grupo único, custo por tipo, nenhum campo de pessoa nem de equipe e 400 em filtro inválido', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/O24?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O24.safeParse(r.json()).success).toBe(true);
+    expect(r.json().grupo).toBe('equipe-tipo-padrao');
+    expect(r.json().custo.segmentoPor).toBe('tipo');
+    expect(gzipSync(r.body).length / 1024).toBeLessThan(50);
+    expect(JSON.stringify({ ...r.json(), grupo: undefined })).not.toMatch(/responsave|usuario|equipe/i);
+    const e = await get(app, '/api/v1/metricas/O24?periodo=12m&equipe=fluig');
+    expect(e.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O24.safeParse(e.json()).success).toBe(true);
+    expect((await get(app, '/api/v1/metricas/O24?periodo=abc')).statusCode).toBe(400);
+  });
+
+  it('O21 (pedido 011, B7): 200 no schema, par por tipo, matriz por papel em "Todas" e nenhum campo de pessoa ou de equipe', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/O21?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O21.safeParse(r.json()).success).toBe(true);
+    expect(r.json().segmentoPor).toBe('tipo');
+    expect(r.json().matriz.eixo).toBe('papel');
+    expect(JSON.stringify(r.json())).not.toMatch(/responsave|usuario|"equipe"/);
+    expect((await get(app, '/api/v1/metricas/O21?periodo=12m&tipo=melhoria&equipe=fluig')).statusCode).toBe(200);
+    expect((await get(app, '/api/v1/metricas/O21?periodo=abc')).statusCode).toBe(400);
+  });
+
+  it('O25 (pedido 011): 200 no schema, filtros do fluxo, porMotivo nulo e nenhum campo de pessoa, motivo ou comentário', async () => {
+    const { app } = await montar();
+    const r = await get(app, '/api/v1/metricas/O25?periodo=12m');
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O25.safeParse(r.json()).success).toBe(true);
+    expect(r.json().porMotivo).toBeNull();
+    expect(JSON.stringify(r.json())).not.toMatch(/discard_comment|responsave|usuario|Criado por engano/);
+    expect((await get(app, '/api/v1/metricas/O25?periodo=12m&tipo=melhoria&equipe=fluig')).statusCode).toBe(200);
+    expect((await get(app, '/api/v1/metricas/O25?periodo=abc')).statusCode).toBe(400);
+  });
+
+  it('E7 e E9 (pedido 011, B5): 200 no schema, E7 sem R$ e com 4 naturezas, E9 com faixas fixas e sem pessoa', async () => {
+    const { app } = await montar();
+    const e7 = await get(app, '/api/v1/metricas/E7?periodo=12m');
+    expect(e7.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.E7.safeParse(e7.json()).success).toBe(true);
+    expect(e7.json().custoConfigurado).toBe(false);
+    expect(JSON.stringify(e7.json())).not.toMatch(/"custo(Rateado|PorDemanda)":[0-9]/);
+    expect((e7.json().sistemas as { porNatureza: unknown[] }[])[0]?.porNatureza).toHaveLength(4);
+    expect((await get(app, '/api/v1/metricas/E7?periodo=abc')).statusCode).toBe(400);
+    const e9 = await get(app, '/api/v1/metricas/E9');
+    expect(e9.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.E9.safeParse(e9.json()).success).toBe(true);
+    const faixas = new Set(['0–30', '31–90', '91–180', 'mais de 180']);
+    for (const p of e9.json().projetos as { faixa: string }[]) expect(faixas.has(p.faixa)).toBe(true);
+    // regra 7: uma referência P85 por tipo de projeto, nunca um P85 dos dois juntos
+    expect((e9.json().referenciasP85 as { tipo: string }[]).map((x) => x.tipo)).toEqual(['Iniciativa', 'Melhoria']);
+  });
+
+  it('O19 e T10 (pedido 011): 200 no schema, filtros do fluxo, motivos na ordem do domínio, fornecedor alfabético e sem prazo', async () => {
+    const { app } = await montar();
+    const o19 = await get(app, '/api/v1/metricas/O19?periodo=12m');
+    expect(o19.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.O19.safeParse(o19.json()).success).toBe(true);
+    expect(o19.json().motivos).toHaveLength(7);
+    const t10 = await get(app, '/api/v1/metricas/T10?periodo=12m&tipo=melhoria');
+    expect(t10.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO.T10.safeParse(t10.json()).success).toBe(true);
+    const nomes = (t10.json().fornecedores as { fornecedor: string }[]).map((x) => x.fornecedor);
+    expect(nomes).toEqual([...nomes].sort());
+    expect([...chaves(t10.json())].filter((k) => /prazo|contratad/i.test(k))).toEqual([]);
+    expect(Object.keys((t10.json().fornecedores as object[])[0] ?? {}).sort()).toEqual(['bloqueios', 'diasUteis', 'duracao', 'fornecedor']);
+    expect((await get(app, '/api/v1/metricas/T10?periodo=abc')).statusCode).toBe(400);
+  });
 
   it('complementares: extensões do mock por padrão; sem fonte de extensões o resultado é vazio, nunca erro', async () => {
     const { app } = await montar();

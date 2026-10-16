@@ -206,8 +206,8 @@ const canonico = (v: unknown): string =>
 
 /**
  * Idempotente: se já existe a coleta `seed-mock` com a mesma semente, não faz nada; com semente diferente, recusa
- * (nunca sobrescreve histórico; para outra base, use um banco novo). Uma transação por schema (BM e AC não se misturam);
- * `pg_advisory_xact_lock` por schema impede dois seeds simultâneos de gravarem duas vezes.
+ * (nunca sobrescreve histórico; para outra base, use um banco novo). Uma transação para os dois schemas (BM e AC não se misturam nos dados);
+ * `pg_advisory_xact_lock` único (transação única) impede dois seeds simultâneos de gravarem duas vezes.
  */
 export async function semear(
   pool: PoolLike, base: BaseMock = gerarBaseMock(), S: Esquemas = esquemasDoAmbiente(),
@@ -220,15 +220,18 @@ export async function semear(
     { schema: S.bm, fonte: 'businessmap', mapear: mapearBM },
     { schema: S.ac, fonte: 'acelerato', mapear: mapearAC },
   ];
-  for (const { schema, fonte, mapear } of alvos) {
-    await emTransacao(pool, async (trx: Consultavel) => {
-      await trx.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`dspd:seed:${schema}`]);
+  // Uma transação só, com a trava tomada antes de qualquer schema: com transações separadas, dois seeds simultâneos
+  // intercalavam (A grava BM, B pula BM e grava AC) e ambos devolviam 'semeado' (K-094). Os dados de BM e AC seguem
+  // em schemas e mapeamentos separados; só o commit é conjunto.
+  await emTransacao(pool, async (trx: Consultavel) => {
+    await trx.query('SELECT pg_advisory_xact_lock(hashtext($1))', ['dspd:seed']);
+    for (const { schema, fonte, mapear } of alvos) {
       const ex = await trx.query<{ coleta_id: string; parametros: unknown }>(
         `SELECT coleta_id, parametros FROM ${schema}.ctl_coleta WHERE versao_coletor = $1 LIMIT 1`, [VERSAO_SEED]);
       const atual = ex.rows[0];
       if (atual) {
         if (canonico(atual.parametros) !== canonico(parametros)) throw new Error(`${schema} já semeado com outra base; use um banco novo`);
-        return;
+        continue;
       }
       const r = await trx.query<{ coleta_id: string }>(
         `INSERT INTO ${schema}.ctl_coleta (tarefa, iniciado_em, finalizado_em, status, versao_coletor, parametros)
@@ -247,7 +250,7 @@ export async function semear(
         `INSERT INTO ${schema}.ctl_coleta (tarefa, iniciado_em, finalizado_em, status, versao_coletor)
          VALUES ('coleta_incremental', $1, $1, 'sucesso', $2)`, [iniciado, VERSAO_SEED_COLETA]);
       gravou = true;
-    });
-  }
+    }
+  });
   return gravou ? 'semeado' : 'ja_semeado';
 }

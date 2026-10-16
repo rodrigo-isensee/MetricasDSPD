@@ -1,6 +1,6 @@
 # Contrato da métrica BLOQUEADOS
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica BLOQUEADOS. Público: time (back-end, front-end, QA). Revisão: 2026-10-13.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica BLOQUEADOS. Público: time (back-end, front-end, QA). Revisão: 2026-10-15.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -176,7 +176,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
       "titulo": "Criar pedido de compra (Protheus)",
       "tipo": "Requisição",
       "etapa": "Em desenvolvimento",
-      "motivo": "Dependência de outra demanda",
+      "motivo": "Falta de informação no chamado",
       "fornecedor": null,
       "bloqueadoHaDiasUteis": 0.52
     }
