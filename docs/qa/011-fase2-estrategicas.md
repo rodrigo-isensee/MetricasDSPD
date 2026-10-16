@@ -17,6 +17,8 @@ data: 2026-10-16
 
 Links: plano `docs/qa/011-back-plano.md` (casos E6, E7, E8), arquitetura `docs/architecture/features/metricas-tambem-disponiveis.md` §2, review `docs/reviews/011-fase2-estrategicas.md` (aprovado), segurança `docs/security/011-fase2-estrategicas.md` (aprovado, na `feature/011-fase2-back`, sem commit).
 
+Nota de regravação: parecer regravado pelo papel `qa` (Write) para registrar a autoria (R-QA); conteúdo inalterado.
+
 **Veredito: aprovado.** Zero bug aberto. Escopo incremental: só o diff `f81567e..3aeaa3d`; os casos da fase 1 seguem cobertos pelo parecer `docs/qa/011-back.md` e passam na suíte completa.
 
 ## Execução
