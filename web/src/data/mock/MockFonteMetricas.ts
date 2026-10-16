@@ -70,24 +70,6 @@ export function paginarO2(r: ResultadoDe<'O2'>): ResultadoO2Paginado {
 /** Devolve a thread principal ao navegador entre fases pesadas (tarefa longa < 200 ms, ADR 0003 C6). */
 const ceder = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
 
-/**
- * Cede ao navegador para que cada cálculo seja uma tarefa própria (C6, B11c-1). Microtarefas não abrem tarefa nova:
- * com latência 0 todas as continuações de `obter()` rodariam em sequência. `scheduler.yield` quando existe; senão
- * `MessageChannel`, que não sofre o piso de 4 ms dos timers encadeados.
- */
-export const cederTarefa = (): Promise<void> => {
-  const sched = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler
-  if (typeof sched?.yield === 'function') return sched.yield()
-  return new Promise((resolve) => {
-    const canal = new MessageChannel()
-    canal.port1.onmessage = () => {
-      canal.port1.close()
-      resolve()
-    }
-    canal.port2.postMessage(null)
-  })
-}
-
 export interface OpcoesMock {
   semente?: number
   /** Data de corte ISO com fuso (ex.: 2026-10-09T18:00:00-03:00). */
@@ -194,7 +176,6 @@ export class MockFonteMetricas implements FonteMetricas {
     await this.atraso(sorteio)
     // As extensões das complementares só são geradas quando uma delas é pedida (carga sob demanda).
     const completo = COMPLEMENTARES.has(id) ? { ...ctx, ext: await this.carregarExtensoes() } : ctx
-    await cederTarefa()
     const r = lib.calcularMetrica(id, filtros, completo)
     if (id === 'O2') return paginarO2(r as unknown as ResultadoDe<'O2'>)
     return r

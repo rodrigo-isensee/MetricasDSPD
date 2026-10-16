@@ -119,7 +119,6 @@ sequenceDiagram
     Note over F: ceder() entre fases: tarefa longa < 200 ms
   end
   F->>F: atraso 150-400 ms (PRNG) ou VITE_MOCK_LATENCIA
-  F->>F: cederTarefa() (scheduler.yield ou MessageChannel): cada cálculo é uma tarefa própria
   F->>M: calcularMetrica(id, filtros, ctx) (cache por id+filtros)
   M-->>F: ResultadoDe<'O4'> (DTO de contratos)
   F-->>Q: Promise<DTO>
@@ -129,7 +128,6 @@ sequenceDiagram
 ```
 
 - `QueryClient`: `retry: false`, `staleTime: Infinity`, sem refetch no foco (nada se atualiza sozinho, WCAG 2.2.2). `keepPreviousData` mantém o conteúdo esmaecido ao trocar filtro.
-- **Cálculo fatiado (C6, B11c-1).** Com `VITE_MOCK_LATENCIA=0` as continuações de `obter()` rodariam todas como microtarefas, e o painel inteiro viraria uma tarefa longa. Por isso `obter()` cede ao navegador (`cederTarefa`: `scheduler.yield` quando existe, `MessageChannel` senão, que não tem o piso de 4 ms de `setTimeout` encadeado) antes de cada `calcularMetrica`. O trabalho total é o mesmo; a maior tarefa passa a ser a métrica mais cara a frio. Se a mediana do C6 chegar a 170 ms, o caminho é Web Worker (parecer `docs/architecture/notas/c6-011.md`).
 - "Amostra insuficiente" (< 20 itens) não é estado do cartão: vem por estatística dentro do DTO (`status: 'insuficiente'`), e o cartão mostra `AmostraInsuficiente`.
 - Variáveis de ambiente da fonte padrão (`App.tsx`): `VITE_MOCK_SEMENTE`, `VITE_MOCK_HOJE`, `VITE_MOCK_LATENCIA` (`0` nos E2E).
 
@@ -257,7 +255,6 @@ Plano: `docs/architecture/features/exportar-metricas.md`; UX: `docs/ux/exportar-
 A 375 px com `html { font-size: 200% }` nenhuma página pode passar de 375 px de largura (WCAG 1.4.4 e 1.4.10). Causa raiz: `body { min-width: 20rem }` em `web/src/styles/tokens.css`. Em `rem` o piso de 320 px virava 640 px com a fonte a 200%, e o cabeçalho, o `main` e o rodapé herdavam essa largura (medida com Playwright: `body`, `header`, `main` com 640 px; o botão Menu terminava em x = 538). A tentativa de trocar `flex-nowrap` por `flex-wrap` no cabeçalho não bastava por isso.
 
 Regras que ficam:
-
 - O piso do `body` é em px CSS: `min-width: min(20rem, 320px)`. Nunca use `rem` para um piso de largura de página.
 - O grupo da direita do cabeçalho (`AppShell`) quebra linha (`flex-wrap`); o selo "Dados fictícios", o tema e o Menu continuam todos visíveis.
 - Grupos de ações de cartão (`CartaoT3`, `CartaoS3`, `CartaoMotivos`), o seletor de visão (`SeletorCadencia`, grade 2x2 abaixo de 400 px, MOB-CA-12), os três números do `CartaoEI` (`auto-fit` com mínimo de 6 rem), a lista de `FaixaAtencao` e o link da faixa de calibração (`Calibracao`) quebram linha em vez de impor largura (`flex-wrap`, `min-w-0`, `max-w-full`, sem `whitespace-nowrap`).
