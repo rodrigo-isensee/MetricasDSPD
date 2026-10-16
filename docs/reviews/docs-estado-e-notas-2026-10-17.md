@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: docs-estado-e-notas-2026-10-17
 branch: docs/estado-e-notas-2026-10-17
-commit: HEAD
+commit: 6ff5489
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
