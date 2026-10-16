@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import {
   CATALOGO_CARTOES,
+  COM_EXTENSAO_MOCK,
+  type FiltroFluxoChave,
   type BaseAmostral,
   type CriteriosResultado,
   type MetricaId,
@@ -40,6 +42,8 @@ interface Props<D extends Dto> {
   semTabela?: boolean
   /** O campo ausente atinge só uma parte do cartão: o resto é real e continua visível (o corpo trata `campoDisponivel`). */
   semFonteParcial?: boolean
+  /** Filtros que atuam, quando diferem da aplicabilidade do contrato (E9 e E8 ignoram o período). */
+  aplicaveis?: readonly FiltroFluxoChave[]
   className?: string
   children: (d: D) => ReactNode
 }
@@ -59,11 +63,14 @@ export function CartaoComplementar<D extends Dto>({
   acoes,
   semTabela,
   semFonteParcial,
+  aplicaveis,
   className = 'lg:col-span-6',
   children,
 }: Props<D>) {
   const m = entradaDoCatalogo(id)
-  const ficticio = CATALOGO_CARTOES.find((c) => c.id === id.toLowerCase())?.status === 'mock'
+  // Sem entrada no catálogo, vale a lista de campos de extração mockada (E6 e E8: dado só em mock até a coleta real).
+  const doCatalogo = CATALOGO_CARTOES.find((c) => c.id === id.toLowerCase())
+  const ficticio = doCatalogo ? doCatalogo.status === 'mock' : COM_EXTENSAO_MOCK.has(id)
   const d = q.dados
   const semFonte = d?.campoDisponivel === false && !semFonteParcial
   return (
@@ -81,7 +88,7 @@ export function CartaoComplementar<D extends Dto>({
       meta={m.meta}
       fonte={m.fonte}
       granularidade={m.granularidade}
-      {...(m.fonte === 'BusinessMap' ? { aplicaveis: aplicaveisDe(id) } : {})}
+      {...(m.fonte === 'BusinessMap' ? { aplicaveis: aplicaveis ?? aplicaveisDe(id) } : {})}
       selos={ficticio ? <SeloFicticio /> : undefined}
       acoes={acoes}
       {...(semTabela || semFonte ? { semTabela: true } : {})}

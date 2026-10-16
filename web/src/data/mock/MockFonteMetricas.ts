@@ -47,6 +47,9 @@ const COMPLEMENTARES: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S12',
 ])
 
+/** Métricas do pedido 011 que leem a extensão `ctx.tambem` (campos de extração nova, só em mock). */
+const COM_TAMBEM: ReadonlySet<MetricaId> = new Set<MetricaId>(['E6', 'E8'])
+
 /** Itens do O2 por página: o mesmo da API (`pageSize=200`, página 1). */
 const PAGINA_O2 = 200
 
@@ -93,6 +96,9 @@ export class MockFonteMetricas implements FonteMetricas {
   private coletas: Promise<import('@metricas-dspd/mock').ColetasMock> | null = null
 
   private extensoes: Promise<import('@metricas-dspd/metricas').ExtensoesMetricas> | null = null
+
+  private tambem: Promise<import('@metricas-dspd/metricas/businessmap').ExtensaoTambemBM> | null =
+    null
 
   private readonly opcoes: OpcoesMock
 
@@ -163,6 +169,18 @@ export class MockFonteMetricas implements FonteMetricas {
     return this.extensoes
   }
 
+  /** Extensão do pedido 011 (E6, E8): lazy e separada das demais, como no servidor (ADR 0003, C1 e C2). */
+  private carregarTambem(): Promise<
+    import('@metricas-dspd/metricas/businessmap').ExtensaoTambemBM
+  > {
+    this.tambem ??= this.carregar().then(async ({ base }) => {
+      const mock = await import('@metricas-dspd/mock')
+      await ceder()
+      return mock.gerarExtensaoTambemMock(base)
+    })
+    return this.tambem
+  }
+
   private async atraso(sorteio: () => number): Promise<void> {
     const ms = this.opcoes.latenciaMs ?? sorteio()
     if (ms > 0) await new Promise((r) => setTimeout(r, ms))
@@ -175,7 +193,10 @@ export class MockFonteMetricas implements FonteMetricas {
     const { ctx, lib, sorteio } = await this.carregar()
     await this.atraso(sorteio)
     // As extensões das complementares só são geradas quando uma delas é pedida (carga sob demanda).
-    const completo = COMPLEMENTARES.has(id) ? { ...ctx, ext: await this.carregarExtensoes() } : ctx
+    const comExt = COMPLEMENTARES.has(id) ? { ...ctx, ext: await this.carregarExtensoes() } : ctx
+    const completo = COM_TAMBEM.has(id)
+      ? { ...comExt, tambem: await this.carregarTambem() }
+      : comExt
     const r = lib.calcularMetrica(id, filtros, completo)
     if (id === 'O2') return paginarO2(r as unknown as ResultadoDe<'O2'>)
     return r

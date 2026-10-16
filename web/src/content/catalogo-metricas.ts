@@ -536,23 +536,77 @@ const PERCEPCAO: readonly EntradaCatalogo[] = [
   },
 ]
 
+/**
+ * E6 a E9 (pedido 011, lote das estratégicas). Ficam fora de `CATALOGO` de propósito: a página /metricas e o catálogo de
+ * cartões do `contratos` (`CATALOGO_CARTOES`) listam as métricas em par, e este ainda não tem os quatro (o ajuste cabe
+ * ao tech-lead, fora do escopo do front). Quando entrarem lá, mova esta lista para `COMPLEMENTARES`.
+ */
+const COMPLEMENTARES_011: readonly Compl[] = [
+  [
+    'E6',
+    'Datas do portfólio',
+    'Quando comprometemos uma data de projeto, ela se confirma?',
+    'estrategico',
+    'BusinessMap',
+    'projeto',
+    'Sem meta numérica',
+  ],
+  [
+    'E7',
+    'Capacidade por sistema',
+    'Quanto da nossa capacidade vai para manter cada sistema do parque?',
+    'estrategico',
+    'BusinessMap',
+    'sistema',
+    'Sem meta numérica',
+  ],
+  [
+    'E8',
+    'Concentração de conhecimento',
+    'Quantos sistemas dependem de uma única pessoa?',
+    'estrategico',
+    'BusinessMap',
+    'sistema',
+    'Sem meta numérica',
+  ],
+  [
+    'E9',
+    'Projetos aguardando início',
+    'Quanto tempo uma decisão aprovada espera para virar trabalho?',
+    'estrategico',
+    'BusinessMap',
+    'projeto',
+    'Sem meta numérica',
+  ],
+]
+
+const aEntrada = ([
+  id,
+  nome,
+  pergunta,
+  painel,
+  fonte,
+  granularidade,
+  meta,
+]: Compl): EntradaCatalogo => ({
+  id,
+  codigo: id,
+  nome,
+  pergunta,
+  painel,
+  fonte,
+  granularidade,
+  meta,
+})
+
 export const CATALOGO: readonly EntradaCatalogo[] = [
   ...NUCLEO,
   ...PERCEPCAO,
-  ...COMPLEMENTARES.map(([id, nome, pergunta, painel, fonte, granularidade, meta]) => ({
-    id,
-    codigo: id,
-    nome,
-    pergunta,
-    painel,
-    fonte,
-    granularidade,
-    meta,
-  })),
+  ...COMPLEMENTARES.map(aEntrada),
 ]
 
 export function entradaDoCatalogo(id: MetricaId): EntradaCatalogo {
-  const e = CATALOGO.find((x) => x.id === id)
+  const e = [...CATALOGO, ...COMPLEMENTARES_011.map(aEntrada)].find((x) => x.id === id)
   if (!e) throw new Error(`Métrica fora do catálogo: ${id}`)
   return e
 }
