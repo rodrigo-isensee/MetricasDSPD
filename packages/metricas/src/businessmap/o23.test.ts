@@ -70,8 +70,8 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
   })
 
   it('B11b: o T11 nasceu depois do descarte nativo e sai do `afeta` das duas versões que compartilham a lista, com a lista nominal', () => {
-    // T11 (B11b) e as da fase 2 (E6, E8) nasceram depois do descarte nativo
-    expect(NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO).toEqual(['T11', 'E6', 'E8'])
+    // T11 (B11b) e as da fase 2 (T13, T14, E6, E8) nasceram depois do descarte nativo
+    expect(NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO).toEqual(['T11', 'T13', 'T14', 'E6', 'E8'])
     expect(fonteDaMetrica('T11')).toBe('businessmap')
     expect(METRICA_IDS).toContain('T11')
     for (const v of [VERSAO_CRITERIO_DESCARTE_NATIVO, VERSAO_CRITERIO_EXCLUIDO_ENTREGUE]) {
@@ -80,7 +80,7 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
     }
     // sem T11 na lista nominal ele entraria: o teste de igualdade acima é a trava
     const semNominal = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
-    expect(semNominal).toHaveLength(48)
+    expect(semNominal).toHaveLength(50)
     for (const id of NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO)
       expect(marcacoesNoPeriodo(id, { inicio: '2026-10-01', fim: '2026-10-16' }, []), id).toEqual(
         [],

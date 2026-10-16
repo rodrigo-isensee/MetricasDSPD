@@ -17,7 +17,7 @@ flowchart TB
     ambm["amostra.ts<br/>amostraBM(granularidade)"]
     desc["descartado.ts<br/>descartado / descartadoNativo / instanteDoDescarte"]
     var["varredura.ts<br/>varredura +1/-1 por coluna e da vida (memoizada)"]
-    mbm["o1 ... o25, t1 ... t12, e1 ... e9, ei"]
+    mbm["o1 ... o25, t1 ... t14, e1 ... e9, ei"]
   end
   subgraph col["coletor/ (fora da entrada pública, ADR 0020)"]
     htr["faixaConcentracao<br/>recebe um inteiro já contado, devolve a faixa"]
@@ -149,7 +149,7 @@ interface Amostra<D extends Dominio, G extends string> {
 - Monte Carlo: ver 3.11 (`core/montecarlo.ts`, K-059).
 
 ### 3.9.1 Extensão do pedido 011 e custo (`businessmap/extensao.ts`, `businessmap/custo.ts`)
-- `ExtensaoTambemBM` (só mock, gerada por `gerarExtensaoTambemMock`, lazy e fora da montagem do contexto) carrega o que a base ainda não tem: `entradasSazonais` (T11), `datasProjeto` (E6) e `conhecimentoSistema` (E8). Nenhum campo é pessoa: são instantes e faixas já agregados, como o coletor os entregaria (ADR 0020, item 8). `ContextosMetricas.tambem` a recebe; sem ela, cada métrica devolve o estado vazio (nunca erro).
+- `ExtensaoTambemBM` (só mock, gerada por `gerarExtensaoTambemMock`, lazy e fora da montagem do contexto) carrega o que a base ainda não tem: `entradasSazonais` (T11), `vinculos` (T13), `datasProjeto` (E6), `conhecimentoSistema` (E8), `equipeResponsavel`, `outrosPublicavel` e `configEquipes` (T14). Nenhum campo é pessoa: são instantes, faixas e booleanos já agregados, como o coletor os entregaria (ADR 0020, item 8). `ContextosMetricas.tambem` a recebe; sem ela, cada métrica devolve o estado vazio (nunca erro), e o T13 trata tudo como "sem dado", nunca como "0".
 - `custoDoPeriodo(config, periodo)`: custo total do DSPD do período, por pró-rata em dias corridos de cada vigência dentro de cada mês (ou ano) (Q-E7-1); `null` quando nenhuma vigência cobre o período. `ContextosMetricas.custo` só chega por fixture de teste (no mock não há custo, CA-13).
 
 ### 3.10 Contextos e índices
@@ -185,7 +185,7 @@ As regras do briefing como dados executáveis, uma linha por `MetricaId` (`satis
 | `refBriefing` | onde a regra está no briefing |
 | `status` | `pendente-usuario` se e somente se alguma célula for pendente (verificado por teste) |
 
-Estado atual (cartões novos do pedido 011): O19, O21, O24, O25, T10, T12, E6, E7, E8 e E9 não têm pendência (`status: 'ok'`; a decidida Q-E7-1 vale como regra do E7). Nas propriedades eles aparecem como exceções nominais onde a chave vive fora do card ou do conjunto (ver 4.1). 7 linhas com `status: 'pendente-usuario'`, todas pela P1 (arquivado sem desfecho): O1, O2, BLOQUEADOS, O10, T4, T7, T9.
+Estado atual (cartões novos do pedido 011): O19, O21, O24, O25, T10, T12, T13, E6, E7, E8 e E9 não têm pendência (`status: 'ok'`; a decidida Q-E7-1 vale como regra do E7); o **T14** é a única com `status: 'pendente-usuario'` (cardinalidade do campo "Time responsável" e Q-T14-2, 3, 4, 7, 8, 9 e 10). Nas propriedades eles aparecem como exceções nominais onde a chave vive fora do card ou do conjunto (ver 4.1). 7 linhas com `status: 'pendente-usuario'`, todas pela P1 (arquivado sem desfecho): O1, O2, BLOQUEADOS, O10, T4, T7, T9.
 
 ### 4.1 As 6 propriedades (`regras.property.test.ts`)
 Cada propriedade itera a matriz com fast-check sobre a base mock (escala 0,5, semente fixa) e lista as exceções **nominalmente**, com motivo.
@@ -210,9 +210,9 @@ flowchart LR
   MT -->|"falha"| X[pnpm run pronto vermelho]
 ```
 
-## 5. Catálogo das 44 métricas
+## 5. Catálogo das 46 métricas
 
-As 33 do núcleo e as 11 do pedido 011 com cálculo próprio (fase 1: O19, O20, O21, O24, O25, T10, T12, E7, E9, mais o bloco O23 dentro do O2 e a T11, descrita em `docs/api/metricas.md`; fase 2, em mock: E6, E8). Todas as novas são só BusinessMap e nenhuma tem campo de pessoa ou de equipe; o contrato de cada uma está em `docs/contratos/metricas/`.
+As 33 do núcleo e as 13 do pedido 011 com cálculo próprio (fase 1: O19, O20, O21, O24, O25, T10, T12, E7, E9, mais o bloco O23 dentro do O2 e a T11, descrita em `docs/api/metricas.md`; fase 2, em mock: T13, T14, E6, E8). Todas as novas são só BusinessMap e nenhuma tem campo de pessoa ou de equipe; o contrato de cada uma está em `docs/contratos/metricas/`.
 
 Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Classe" é a primeira chave de segmentação (estatística calculada dentro dela). A referência é o `refBriefing` da matriz.
 
@@ -250,6 +250,8 @@ Legenda de unidade: DU = dias úteis; HU = horas úteis; DC = dias corridos. "Cl
 | T7 | `calcularT7` | frentes abertas por projeto vs limite; idade de cada frente vs P85/P95 do ciclo das frentes concluídas; histograma de frentes | projeto (granularidade frente) | DU | 20 (percentis) | 06 T7; 02; 7.3; P2 |
 | T10 | `calcularT10` | bloqueios encerrados com fornecedor informado, de qualquer motivo: contagem e soma em DU por fornecedor (censo no período), P50/P85/P95 **na janela de 12 semanas** (opção A até o usuário decidir); sem prazo contratado nem status (D-10 = A) | fornecedor | DU | 20 (percentis, por fornecedor) | pedido 011 T10; D-10 = A; R-5; B3-1 |
 | T12 | `calcularT12` | demandas criadas no período com "ida e volta" = bloqueio "Falta de informação no chamado" antes do início (ou card nunca iniciado) OU retorno compromisso para backlog (D-8 = A, conta uma vez); k de n por área, em ordem de volume | área solicitante | % | 20 (taxa, total e por área) | pedido 011 T12; D-8 = A |
+| T13 | `calcularT13` | entregas do período que dependeram de outro quadro (vínculo `predecessor`, vigente antes da entrega, inclusive removido; quadro desconhecido = `semDado`), em blocos de demanda e de frente, nunca juntos; par com x sem do lead time do T1 (`blocosDe`) por tipo, 20 em cada grupo; só o booleano agregado | tipo; granularidade em blocos | %; DU | 20 (taxa; 20 em cada grupo do par) | pedido 011 T13; D-14' = A; R-4; CA-6; CA-8 |
+| T14 | `calcularT14` | por projeto em andamento no período (ligado a sistema do meu time ou com 1 card dele): `meuTime` = k de n (n = cards com time informado), `semTime` fora do denominador, `outrosTimes` = n - k, ou `null` quando o booleano `outrosPublicavel` (calculado fora, R-1 = B) é falso; só com uma equipe no filtro; nunca nome de outra equipe nem contagem de pessoas | (nenhuma); granularidade em blocos | %; itens | 20 (taxa, por projeto e total) | pedido 011 T14; Q-T14-1 = B, Q-T14-5 = D, Q-T14-6 = A, R-1 = B; CA-27 a CA-34 |
 | T9 | `calcularT9` | por projeto em andamento: avanço = frentes concluídas / total; crescimento de escopo = adicionadas / originais | projeto (granularidade frente) | % (censo) | 0 | 06 T9; 7.1 |
 | EI_FL2 | `calcularEIBM(..., 'FL2')` | espera invisível de frentes: cliente = entrada a entrega; time = compromisso a entrega; segmento único | (nenhuma) | %; DU | 20 (mediana) | T3.4; 02 |
 

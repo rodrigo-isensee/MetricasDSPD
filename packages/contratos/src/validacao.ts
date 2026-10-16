@@ -13,6 +13,8 @@ import {
   resultadoO20,
   resultadoO21,
   resultadoO24,
+  resultadoT13,
+  resultadoT14,
   resultadoE6,
   resultadoE8,
 } from './tambem'
@@ -55,6 +57,8 @@ export const SCHEMAS_RESULTADO: { [K in MetricaId]: z.ZodType<ResultadoDe<K>> } 
   T10: resultadoT10,
   T11: resultadoT11,
   T12: resultadoT12,
+  T13: resultadoT13,
+  T14: resultadoT14,
   E1: s.resultadoE1,
   E2: s.resultadoE2,
   E3: s.resultadoE3,

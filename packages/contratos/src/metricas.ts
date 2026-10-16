@@ -13,6 +13,8 @@ import type {
   ResultadoO20,
   ResultadoO21,
   ResultadoO24,
+  ResultadoT13,
+  ResultadoT14,
   ResultadoE6,
   ResultadoE8,
 } from './tambem'
@@ -117,6 +119,8 @@ export interface ContratoMetricas {
   T10: Fluxo<ResultadoT10>
   T11: Fluxo<ResultadoT11>
   T12: Fluxo<ResultadoT12>
+  T13: Fluxo<ResultadoT13>
+  T14: Fluxo<ResultadoT14>
   E1: Fluxo<ResultadoE1>
   E2: Fluxo<ResultadoE2>
   E3: Fluxo<ResultadoE3>
@@ -235,6 +239,9 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   // T11: janela fixa de 24 meses mais o corrente; o período é aceito e ignorado (CA-12, "Não afetado por: Período"), como no E9.
   T11: ['equipe', 'tipo', 'sistema', 'periodo'],
   T12: ['equipe', 'tipo', 'sistema', 'periodo'],
+  T13: ['equipe', 'tipo', 'sistema', 'periodo'],
+  // T14: a equipe só diz qual é "meu time" e não recorta a população (recortar apagaria os outros times); tipo não se aplica.
+  T14: ['equipe', 'sistema', 'periodo'],
   E4: ['sistema', 'periodo'],
   E5: ['sistema', 'periodo'],
   E6: ['sistema', 'periodo'],
