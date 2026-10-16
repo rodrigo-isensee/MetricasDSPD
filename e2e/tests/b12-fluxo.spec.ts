@@ -62,8 +62,10 @@ test.describe('K-006 Operacional diário', () => {
     await expect(page).toHaveURL(/o2=/);
   });
 
-  test('OP-05/24 Bloqueados: colunas do domínio, sem responsável, base = linhas, sem agregação por motivo', async ({ painel }) => {
+  test('OP-05/24 Bloqueados: colunas do domínio, sem responsável, base = linhas, sem agregação por motivo', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=diaria');
+    // Gráficos montam pela fila (K-102): espera algum gráfico da página antes de afirmar a ausência no Bloqueados.
+    await expect(page.locator('svg[role="application"], svg[role="img"]').first()).toBeAttached();
     const b = painel.cartao('BLOQUEADOS');
     await b.esperarPronto();
     for (const c of ['Card', 'Tipo', 'Motivo', 'Fornecedor']) await expect(b.raiz.getByRole('columnheader', { name: new RegExp(c) })).toBeVisible();
