@@ -74,7 +74,7 @@ const CADENCIAS: Record<PainelFluxo, readonly CadenciaC4[]> = {
   tatico: ['semanal'],
   estrategico: ['semanal'],
 }
-/** Ids do 011 (fases 1 e 2), do contrato. T11, T13, E6, E8 e T14 só calculam com a extensão do 011. */
+/** Ids do 011 (fases 1 e 2), do contrato. T11, O22, O26, T13, E6, E8 e T14 só calculam com a extensão do 011. */
 const TODAS_NOVAS = Object.keys(SCHEMAS_TAMBEM) as MetricaId[]
 
 const base = gerarBaseMock()

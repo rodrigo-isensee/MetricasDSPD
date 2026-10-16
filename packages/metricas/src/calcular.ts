@@ -13,7 +13,7 @@ export interface ContextosMetricas {
   /** Extensões das métricas complementares (mock). Sem elas, o cálculo complementar devolve vazio/insuficiente. */
   ext?: ExtensoesMetricas
   /**
-   * Extensão só de mock do pedido 011 (T11, T13, E6, E8 e T14). Sem ela, essas métricas devolvem vazio ou
+   * Extensão só de mock do pedido 011 (T11, O22, O26, T13, E6, E8 e T14). Sem ela, essas métricas devolvem vazio ou
    * insuficiente, nunca erro.
    */
   tambem?: BM.ExtensaoTambemBM
@@ -49,6 +49,8 @@ const CALCULOS: {
   O14: (f, c) => BM.calcularO14(c.bm, f),
   O16: (f, c) => BM.calcularO16(c.bm, f),
   O19: (f, c) => BM.calcularO19(c.bm, f),
+  O22: (f, c) => BM.calcularO22(c.bm, f, c.tambem),
+  O26: (f, c) => BM.calcularO26(c.bm, f, c.tambem),
   T1: (f, c) => BM.calcularT1(c.bm, f),
   T2: (f, c) => BM.calcularT2(c.bm, f),
   T3: (f, c) => BM.calcularT3(c.bm, f),

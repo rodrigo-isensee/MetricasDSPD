@@ -29,7 +29,7 @@ const HOJE = base.config.hoje
 const hojeMs = businessmap.criarContextoBM(base.bm, HOJE, CALENDARIO_PADRAO).hoje
 
 const EXT = gerarExtensoesMock(base)
-// Extensão do pedido 011 (fase 2): sem ela as métricas novas devolvem vazio e as propriedades nada provam.
+// Extensão do pedido 011 (fase 2): sem ela as seis métricas novas devolvem vazio e as propriedades nada provam.
 const TAMBEM = gerarExtensaoTambemMock(base)
 const PESQ = gerarPesquisaMock(base.config)
 const ctxPesq = (p: BasePesquisa) => pesquisa.criarContextoPesquisa(p, HOJE)

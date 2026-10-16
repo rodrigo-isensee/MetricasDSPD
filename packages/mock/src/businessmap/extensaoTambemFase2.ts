@@ -13,21 +13,30 @@ import {
   ordenarNeutro,
   proximoDiaUtil,
   slug,
+  somarHorasUteis,
   somarMeses,
 } from '@metricas-dspd/metricas/core'
 import { chaveOutrosPublicavel } from '@metricas-dspd/metricas/businessmap'
-import { bernoulli, escolha, inteiro, uniforme } from '../distribuicoes'
+import { bernoulli, escolha, inteiro, lognormal, poisson, uniforme } from '../distribuicoes'
 import type { ConfigMock } from '../config'
 import { derivar, type Prng } from '../prng'
 
 /**
- * Fase 2 da extensão só de mock do pedido 011 (T13, E6, E8 e T14). Cada campo tem a sua stream
+ * Fase 2 da extensão só de mock do pedido 011 (O22, O26, T13, E6, E8 e T14). Cada campo tem a sua stream
  * (`derivar(semente, 'businessmap/tambem:<campo>')`), então um campo nunca desloca os sorteios de outro e o hash da base
- * e das extensões anteriores não muda. ADR 0020, item 8: `conhecimentoSistema` sai DIRETO como
+ * e das extensões anteriores não muda. ADR 0020, item 8: `passagens` e `conhecimentoSistema` saem DIRETO como inteiro e
  * faixa, sem pessoas, e este arquivo NUNCA lê `responsaveis` nem `usuario` (um teste confere o texto do arquivo).
  * Valores FICTÍCIOS. Função pura de (base, semente), lazy como a fase 1.
  */
 export const PARAMETROS_FASE2 = {
+  /** O22: mediana (dias úteis) e sigma do atraso até o primeiro toque; teto da cauda. */
+  toque: { mediana: 0.7, sigma: 1.1, tetoDiasUteis: 15 },
+  /** O22: pedidos abertos mantidos sem nenhum toque (de 5 a 8), sorteados entre os criados nos últimos dias úteis abaixo. */
+  semToque: { minimo: 5, maximo: 8, recentesDiasUteis: 12 },
+  /** O26: chance de o card não ter `passagens` (entrega anterior à coleta). */
+  passagensSemDado: 0.03,
+  /** O26: média de passagens de quem tem o menor ciclo e de quem tem o maior (Poisson em r², r = posto do ciclo). */
+  passagensLambda: { base: 0.35, acrescimo: 2.6 },
   /** T13: chance de dependência de outro quadro de quem tem o menor e o maior ciclo (média cerca de 35% nas demandas e 50% nas frentes). */
   vinculoStory: { base: 0.15, acrescimo: 0.4 },
   vinculoFrente: { base: 0.3, acrescimo: 0.4 },
@@ -103,6 +112,48 @@ export function gerarFase2(base: EntradaFase2): Fase2 {
   }
   const dozeMeses = instanteDe(somarMeses(diaLocal(hoje, cal), -12), 0, cal)
   const P = PARAMETROS_FASE2
+
+  // O22: primeiro comentário humano. Só o instante; nunca autor nem texto.
+  const rT = derivar(config.semente, 'businessmap/tambem:primeiro-toque')
+  const primeiroToque: Record<string, number | null> = {}
+  const abertos = stories.filter(
+    (c) => ativa(c) && c.tipo !== 'Bug interno' && c.concluido_em === null,
+  )
+  // Criados nos últimos `recentesDiasUteis` dias úteis (aproximados em dias corridos).
+  const inicioRecente = hoje - Math.ceil((P.semToque.recentesDiasUteis * 7) / 5) * 86_400_000
+  const recentes = abertos.filter((c) => c.criado_em >= inicioRecente && c.criado_em <= hoje)
+  const quantos = inteiro(rT, P.semToque.minimo, P.semToque.maximo)
+  const semToque = new Set(
+    embaralhar(rT, recentes)
+      .slice(0, quantos)
+      .map((c) => c.card_id),
+  )
+  for (const c of stories) {
+    if (c.tipo === 'Bug interno') continue
+    if (semToque.has(c.card_id)) {
+      primeiroToque[c.card_id] = null
+      continue
+    }
+    const atrasoDu = Math.min(lognormal(rT, P.toque.mediana, P.toque.sigma), P.toque.tetoDiasUteis)
+    let t = somarHorasUteis(c.criado_em, atrasoDu * cal.horasPorDia, cal)
+    // Antes de entregar o card já teve toque; e quem ainda está aberto não pode ter toque no futuro.
+    const teto = c.concluido_em ?? hoje
+    if (t > teto) t = c.criado_em + (teto - c.criado_em) * uniforme(rT, 0.1, 0.8)
+    primeiroToque[c.card_id] = Math.min(t, hoje)
+  }
+
+  // O26: número de passagens por entrega, direto como inteiro (0 a 6), correlacionado ao ciclo. Sem ler responsáveis.
+  const rP = derivar(config.semente, 'businessmap/tambem:passagens')
+  const passagens: Record<string, number> = {}
+  for (const c of stories) {
+    const r = posto.get(c.card_id)
+    if (r === undefined) continue
+    if (bernoulli(rP, P.passagensSemDado)) continue
+    passagens[c.card_id] = Math.min(
+      6,
+      poisson(rP, P.passagensLambda.base + P.passagensLambda.acrescimo * r * r),
+    )
+  }
 
   // T13: vínculos `predecessor`, só os que a coleta lê. Uma granularidade (story, frente) por vez, nunca cruzando.
   const rV = derivar(config.semente, 'businessmap/tambem:vinculos')
@@ -313,6 +364,8 @@ export function gerarFase2(base: EntradaFase2): Fase2 {
     }
 
   return {
+    primeiroToque,
+    passagens,
     vinculos,
     datasProjeto,
     conhecimentoSistema,
