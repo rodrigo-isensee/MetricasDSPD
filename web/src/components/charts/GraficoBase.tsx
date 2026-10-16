@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useVezDoGrafico } from './filaDeGraficos'
 import { TabelaDados, useModoTabela, type TabelaDadosProps } from '../ui'
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
  */
 export function GraficoBase({ tabela, altura = 260, densa = false, legenda, children }: Props) {
   const { modo, idLeitura, legenda: cap, codigo } = useModoTabela()
+  const vez = useVezDoGrafico()
   if (modo === 'tabela') return <TabelaDados {...(codigo ? { codigo } : {})} {...tabela} />
   return (
     <figure aria-describedby={idLeitura} className="m-0">
@@ -27,7 +29,7 @@ export function GraficoBase({ tabela, altura = 260, densa = false, legenda, chil
         aria-hidden={densa || undefined}
         className="w-full text-xs"
       >
-        {children}
+        {vez ? children : null}
       </div>
       {legenda}
     </figure>
