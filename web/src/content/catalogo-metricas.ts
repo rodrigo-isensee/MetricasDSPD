@@ -520,28 +520,6 @@ const COMPLEMENTARES: readonly Compl[] = [
     'chamado',
     'Sem meta; por sistema, nunca por pessoa',
   ],
-]
-
-/** Pesquisa trimestral de percepção (terceira fonte): nem BusinessMap, nem Acelerato. */
-const PERCEPCAO: readonly EntradaCatalogo[] = [
-  {
-    id: 'PV1',
-    codigo: 'PV1',
-    nome: 'Percepção de valor do serviço',
-    pergunta: 'Os gestores das áreas atendidas sentem que o serviço entrega valor?',
-    painel: 'sustentacao',
-    fonte: 'Pesquisa de percepção',
-    granularidade: 'resposta agregada',
-    meta: 'Sem meta de satisfação',
-  },
-]
-
-/**
- * E6 a E9 (pedido 011, lote das estratégicas). Ficam fora de `CATALOGO` de propósito: a página /metricas e o catálogo de
- * cartões do `contratos` (`CATALOGO_CARTOES`) listam as métricas em par, e este ainda não tem os quatro (o ajuste cabe
- * ao tech-lead, fora do escopo do front). Quando entrarem lá, mova esta lista para `COMPLEMENTARES`.
- */
-const COMPLEMENTARES_011: readonly Compl[] = [
   [
     'E6',
     'Datas do portfólio',
@@ -580,6 +558,20 @@ const COMPLEMENTARES_011: readonly Compl[] = [
   ],
 ]
 
+/** Pesquisa trimestral de percepção (terceira fonte): nem BusinessMap, nem Acelerato. */
+const PERCEPCAO: readonly EntradaCatalogo[] = [
+  {
+    id: 'PV1',
+    codigo: 'PV1',
+    nome: 'Percepção de valor do serviço',
+    pergunta: 'Os gestores das áreas atendidas sentem que o serviço entrega valor?',
+    painel: 'sustentacao',
+    fonte: 'Pesquisa de percepção',
+    granularidade: 'resposta agregada',
+    meta: 'Sem meta de satisfação',
+  },
+]
+
 const aEntrada = ([
   id,
   nome,
@@ -606,7 +598,7 @@ export const CATALOGO: readonly EntradaCatalogo[] = [
 ]
 
 export function entradaDoCatalogo(id: MetricaId): EntradaCatalogo {
-  const e = [...CATALOGO, ...COMPLEMENTARES_011.map(aEntrada)].find((x) => x.id === id)
+  const e = CATALOGO.find((x) => x.id === id)
   if (!e) throw new Error(`Métrica fora do catálogo: ${id}`)
   return e
 }

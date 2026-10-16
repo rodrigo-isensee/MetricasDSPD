@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import {
   CATALOGO_CARTOES,
-  COM_EXTENSAO_MOCK,
   type FiltroFluxoChave,
   type BaseAmostral,
   type CriteriosResultado,
@@ -68,9 +67,7 @@ export function CartaoComplementar<D extends Dto>({
   children,
 }: Props<D>) {
   const m = entradaDoCatalogo(id)
-  // Sem entrada no catálogo, vale a lista de campos de extração mockada (E6 e E8: dado só em mock até a coleta real).
-  const doCatalogo = CATALOGO_CARTOES.find((c) => c.id === id.toLowerCase())
-  const ficticio = doCatalogo ? doCatalogo.status === 'mock' : COM_EXTENSAO_MOCK.has(id)
+  const ficticio = CATALOGO_CARTOES.some((c) => c.id === id.toLowerCase() && c.status === 'mock')
   const d = q.dados
   const semFonte = d?.campoDisponivel === false && !semFonteParcial
   return (
