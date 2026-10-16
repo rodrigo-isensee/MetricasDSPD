@@ -6,6 +6,10 @@ import { flushSync } from 'react-dom'
  * montar todos os gráficos Recharts no mesmo commit vira uma tarefa longa (200 ms ou mais, TBT do
  * Lighthouse). A fila libera um gráfico por tarefa do navegador: o cartão, a frase de leitura e a tabela
  * aparecem na hora, e cada gráfico entra na sua vez dentro da caixa de altura já reservada (sem salto de layout).
+ *
+ * Atenção: o flushSync tem prioridade síncrona e interrompe transições em andamento (cada gráfico da fila
+ * faz o render da transição recomeçar). Quem adotar startTransition/useTransition/useDeferredValue precisa
+ * reavaliar esta fila.
  */
 type Pedido = () => void
 const fila: Pedido[] = []
@@ -33,8 +37,12 @@ function servir() {
     return
   }
   // flushSync: o commit deste gráfico acontece nesta tarefa, e o próximo só na seguinte.
-  flushSync(pedido)
-  proximaTarefa(servir)
+  // try/finally: uma exceção no pedido não pode parar a fila do app inteiro.
+  try {
+    flushSync(pedido)
+  } finally {
+    proximaTarefa(servir)
+  }
 }
 
 function entrar(pedido: Pedido): () => void {

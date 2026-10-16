@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { ModoTabelaContext } from '../ui'
 import { definirFilaImediata } from './filaDeGraficos'
 import {
@@ -17,6 +17,7 @@ import {
 
 // Estes testes olham o desenho do gráfico; a fila (filaDeGraficos.test.tsx) tem teste próprio.
 beforeAll(() => definirFilaImediata(true))
+afterAll(() => definirFilaImediata(false))
 
 const pontos = [
   { x: '2026-09-01', valores: { a: 3, b: 5 } },

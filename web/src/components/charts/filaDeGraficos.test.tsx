@@ -27,14 +27,17 @@ describe('fila de montagem dos gráficos (K-102)', () => {
     caixas.forEach((c) => expect(c.style.height).toBe('300px'))
     expect(screen.queryByTestId('g1')).toBeNull()
 
-    // Cada liberação é uma tarefa: a contagem de gráficos sobe de um em um, nunca de três de uma vez.
-    const contagens = new Set<number>()
-    await waitFor(() => {
-      contagens.add(container.querySelectorAll('svg').length)
-      expect(container.querySelectorAll('svg')).toHaveLength(3)
+    // Cada liberação é uma tarefa: um MutationObserver (entrega por microtask, depois de cada tarefa) registra
+    // a contagem de gráficos após cada mudança, que deve subir 1, 2, 3 e nunca saltar de 0 para 3.
+    const contagens: number[] = []
+    const obs = new MutationObserver(() => {
+      const n = container.querySelectorAll('svg').length
+      if (contagens[contagens.length - 1] !== n) contagens.push(n)
     })
-    expect(Math.max(...contagens)).toBe(3)
-    expect(contagens.size).toBeGreaterThan(1)
+    obs.observe(container, { childList: true, subtree: true })
+    await waitFor(() => expect(container.querySelectorAll('svg')).toHaveLength(3))
+    obs.disconnect()
+    expect(contagens).toEqual([1, 2, 3])
   })
 
   it('gráfico desmontado antes da vez sai da fila sem erro', async () => {
