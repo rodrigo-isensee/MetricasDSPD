@@ -9,13 +9,13 @@ const params = { semente: base.config.semente, hoje: base.config.hoje, escala: b
 const embaralhado = Object.fromEntries(Object.entries(params).reverse());
 
 describe('semear (dublê de banco)', () => {
-  it('base vazia: uma transação por schema, lock, INSERT da coleta com RETURNING e lotes parametrizados', async () => {
+  it('base vazia: uma transação (os dois schemas), lock, INSERT da coleta com RETURNING e lotes parametrizados', async () => {
     const { pool, chamadas } = criarDublePg((c) => (c.texto.includes('RETURNING coleta_id') ? [{ coleta_id: '9' }] : c.texto.includes('RETURNING versao_id') ? [{ versao_id: '5' }] : []));
     expect(await semear(pool, base)).toBe('semeado');
     const t = chamadas.map((c) => c.texto);
-    expect(t.filter((x) => x === 'BEGIN')).toHaveLength(2);
-    expect(t.filter((x) => x === 'COMMIT')).toHaveLength(2);
-    expect(t.filter((x) => x.startsWith('SELECT pg_advisory_xact_lock'))).toHaveLength(2);
+    expect(t.filter((x) => x === 'BEGIN')).toHaveLength(1);
+    expect(t.filter((x) => x === 'COMMIT')).toHaveLength(1);
+    expect(t.filter((x) => x.startsWith('SELECT pg_advisory_xact_lock'))).toHaveLength(1);
     expect(t.some((x) => x.startsWith(`INSERT INTO ${S_PADRAO.bm}.dim_card`))).toBe(true);
     expect(t.some((x) => x.startsWith(`INSERT INTO ${S_PADRAO.ac}.dim_chamado`))).toBe(true);
     expect(t.join('\n')).not.toMatch(/ON CONFLICT|DELETE|TRUNCATE/);
