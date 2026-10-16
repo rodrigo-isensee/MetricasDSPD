@@ -74,6 +74,7 @@ d('seed contra PostgreSQL 17', () => {
       `SELECT (extract(epoch FROM criado_em) * 1000)::bigint AS ms, responsaveis AS resp FROM ${E.bm}.dim_card WHERE card_id = $1`, [c.card_id]);
     expect(Number(t.rows[0]!.ms)).toBe(c.criado_em);
     expect(t.rows[0]!.resp).toEqual([]);
-    expect(await n(`${E.bm}.fato_transicao WHERE usuario IS NOT NULL`)).toBe(0);
+    const col = await db.query(`SELECT 1 FROM information_schema.columns WHERE table_schema = $1 AND table_name = 'fato_transicao' AND column_name = 'usuario'`, [E.bm]);
+    expect(col.rowCount).toBe(0); // K-096: coluna removida (migração 0015)
   });
 });
