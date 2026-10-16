@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 011-fase2-estrategicas
 branch: feature/011-fase2-estrategicas
-commit: 53a6495
+commit: 1193689
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
@@ -63,6 +63,13 @@ Nota para a fase 3, sem achado neste lote: a ADR 0020, item 2, prevê a entrada 
 ## Fora deste review
 - **Segurança** (E1.3/E2.3, `security-engineer`, gatilho: dado pessoal no E8): não refeito aqui.
 - **QA** (E1.4/E2.4), **UX** (E3.2) e o PR (pedido 020).
+
+## Revalidação sobre `1193689` (2026-10-16)
+O merge da `develop` (`48b909a`, K-102) na branch deixou este parecer desatualizado (`commit_vale`). O patch do lote **não mudou**:
+- os arquivos que o merge trouxe (`git diff --name-only ac1519e 1193689`, 13 arquivos do K-102 em `web/`, `e2e/` e `docs/`) não têm nenhum em comum com os do lote (`git diff --name-only 48b909a 1193689`); `comm -12` vazio;
+- o diff do lote em `packages/`, `server/`, `docs/api`, `docs/contratos`, `docs/architecture` e `docs/tecnica` é idêntico byte a byte antes e depois (`git diff f81567e 3aeaa3d` × `git diff 48b909a 1193689`, `cmp` rc=0).
+
+Os commits entre `3aeaa3d` e `1193689` são só pareceres (QA, segurança) e o merge. Veredito e achados mantidos; `pronto` local não rodado (teto de 2 agentes), a CI do PR #104 é a prova de ferramenta.
 
 ## Commits
 `53a6495 feat(metricas): back da fase 2 do pedido 011, lote das estratégicas (E6, E7 com R$, E8), em mock`. A mensagem segue Conventional Commits em português, com o cartão e as linhas de atribuição. O conteúdo é o dos commits do autor, recortado por nível.
