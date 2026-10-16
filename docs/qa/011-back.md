@@ -17,6 +17,23 @@ data: 2026-10-16
 
 Links: plano `docs/qa/011-back-plano.md` (80 casos, 10 invariantes, 9 de T2.6, API, mutação, desempenho), especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md`, pedido `docs/pedidos/011-metricas-tambem-disponiveis.md` (decisões de 2026-10-16), review `docs/reviews/011-back.md` (revalidado em 4c7efee), contrato `docs/api/metricas.md`, pergunta registrada `docs/qa/bugs/B11-001-t10-fornecedor-diferencia-caixa-do-nome.md`.
 
+# Revalidação: merge do #93 (só docs)
+
+commit: 8908d92
+data: 2026-10-16
+
+**Conferência do diff `4c7efee..8908d92` (`server packages web e2e`): o código NÃO ficou igual ao testado.** A premissa "só o que veio do #93" não se confirma. O merge da `develop` trouxe também o K-094 (#91, commit `0b78b1e`), que muda código de produção e de teste:
+- `server/src/plataforma/db/seed.ts`: `semear` passa a usar uma transação e uma trava única para os dois schemas (BM e AC), em vez de uma por schema.
+- `server/tests/seed.duble.test.ts` e `server/tests/seed.pg.test.ts`: ajustes e 1 teste novo do seed concorrente.
+
+O restante do diff é documentação: o #93 (`7a4a955`, só `docs/`), `cf70b25` (evidência do hash da base em `docs/qa/evidencias/`) e `a4ee375` (este parecer).
+
+**O que isso significa para o parecer 011-back:**
+- O parecer de `4c7efee` continua válido para o código que ele testou. Não cobre a mudança do seed (K-094), que entrou depois.
+- O K-094 tem parecer próprio, `docs/qa/k094-seed-concorrente.md`, sobre o commit do #91 (desenvolvido e revisado fora deste branch). Não o reexamino aqui.
+- Reexecutei no HEAD `8908d92` (worktree limpa, sem alterações de código): `server/tests/seed.duble.test.ts`, **6 de 6 passam** (`pnpm exec vitest run tests/seed.duble.test.ts --coverage.enabled=false`, EXIT=0). Não rodei `seed.pg.test.ts` (exige Postgres do `test:pg`) nem a suíte completa (`pnpm run pronto`, `test:pg`, E2E) sobre `8908d92`. Se o `tech-lead` quiser o parecer do back fechado sobre o HEAD do PR, é preciso rodar o `pronto` e o `test:pg` sobre `8908d92`.
+- O cabeçalho do parecer continua com `commit: 4c7efee`, porque é esse o HEAD que a suíte completa testou.
+
 # Revalidação: revert do a1 e merge do #88
 
 commit: 4c7efee
