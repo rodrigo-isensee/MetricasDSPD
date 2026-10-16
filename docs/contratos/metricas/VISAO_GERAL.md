@@ -1,6 +1,6 @@
 # Contrato da métrica VISAO_GERAL
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica VISAO_GERAL. Público: time (back-end, front-end, QA). Revisão: 2026-10-14.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica VISAO_GERAL. Público: time (back-end, front-end, QA). Revisão: 2026-10-15.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -137,6 +137,11 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.VISAO_GERAL`); a fotografia versio
                     "O14",
                     "O16",
                     "O17",
+                    "O19",
+                    "O20",
+                    "O21",
+                    "O24",
+                    "O25",
                     "T1",
                     "T2",
                     "T3",
@@ -146,11 +151,16 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.VISAO_GERAL`); a fotografia versio
                     "T9",
                     "T6",
                     "T8",
+                    "T10",
+                    "T11",
+                    "T12",
                     "E1",
                     "E2",
                     "E3",
                     "E4",
                     "E5",
+                    "E7",
+                    "E9",
                     "S1",
                     "S2",
                     "S3",
@@ -303,13 +313,13 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
     "sustentacao": {"inicio":"2026-04-10","fim":"2026-10-09"}
   },
   "alertas": [
-    {"nivel":"operacional","metrica":"O2","ancora":"o2","codigo":"O2_ACIMA_P95","valor":1,"de":89},
+    {"nivel":"operacional","metrica":"O2","ancora":"o2","codigo":"O2_ACIMA_P95","valor":11,"de":89},
     {
       "nivel": "operacional",
       "metrica": "O1",
       "ancora": "o1",
       "codigo": "O1_WIP_ACIMA_LIMITE",
-      "valor": 46,
+      "valor": 44,
       "de": 59
     }
   ],
@@ -322,7 +332,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
         {
           "metrica": "O2",
           "codigo": "O2",
-          "valor": 1,
+          "valor": 11,
           "de": 89,
           "base": {"n":89,"unidade":"itens abertos"},
           "status": "fora",
@@ -331,7 +341,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
         {
           "metrica": "O1",
           "codigo": "O1",
-          "valor": 77.96610169491525,
+          "valor": 74.57627118644068,
           "de": 59,
           "base": {"n":59,"unidade":"dias úteis"},
           "status": "fora",
@@ -349,7 +359,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
           "codigo": "T2",
           "valor": 1,
           "de": 3,
-          "base": {"n":634,"unidade":"demandas entregues"},
+          "base": {"n":602,"unidade":"demandas entregues"},
           "status": "fora",
           "amostra": null
         },
@@ -358,7 +368,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
           "codigo": "T4",
           "valor": 3,
           "de": 3,
-          "base": {"n":1228,"unidade":"chegadas e entregas"},
+          "base": {"n":1181,"unidade":"chegadas e entregas"},
           "status": "fora",
           "amostra": null
         }
@@ -376,8 +386,8 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
           "rotulo": "Incidente",
           "estatistica": {
             "status": "ok",
-            "n": 81,
-            "valor": {"cliente":2.28,"time":1.91,"indicePct":15.97,"acimaDe50":false},
+            "n": 80,
+            "valor": {"cliente":2.46,"time":1.93,"indicePct":21.71,"acimaDe50":false},
             "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
           }
         },
@@ -386,8 +396,8 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
           "rotulo": "Requisição",
           "estatistica": {
             "status": "ok",
-            "n": 79,
-            "valor": {"cliente":7.45,"time":3.43,"indicePct":53.98,"acimaDe50":true},
+            "n": 74,
+            "valor": {"cliente":8.77,"time":3.35,"indicePct":61.76,"acimaDe50":true},
             "janela": {"inicio":"2026-07-18","fim":"2026-10-09","unidade":"semanas","quantidade":12}
           }
         }

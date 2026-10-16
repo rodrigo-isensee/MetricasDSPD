@@ -1,0 +1,251 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                },
+                "unidade": {
+                  "type": "string",
+                  "enum": [
+                    "semanas",
+                    "meses"
+                  ]
+                },
+                "quantidade": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "agrupamento": {
+      "type": "string",
+      "enum": [
+        "coluna",
+        "papel"
+      ]
+    },
+    "faixas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "chave": {
+            "type": "string"
+          },
+          "rotulo": {
+            "type": "string"
+          },
+          "ordem": {
+            "type": "number"
+          },
+          "tipoColuna": {
+            "type": "string",
+            "enum": [
+              "fila",
+              "execucao"
+            ]
+          }
+        },
+        "required": [
+          "chave",
+          "rotulo",
+          "ordem",
+          "tipoColuna"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "dias": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dia": {
+            "type": "string"
+          },
+          "contagens": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "emProgresso": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "dia",
+          "contagens",
+          "emProgresso"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "destaque": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "faixa": {
+              "type": "string"
+            },
+            "de": {
+              "type": "number"
+            },
+            "para": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "faixa",
+            "de",
+            "para"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "mudancasCriterio": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "data",
+          "descricao"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "agrupamento",
+    "faixas",
+    "dias",
+    "destaque",
+    "mudancasCriterio"
+  ],
+  "additionalProperties": false
+}

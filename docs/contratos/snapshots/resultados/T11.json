@@ -1,0 +1,218 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "number"
+        },
+        "unidade": {
+          "type": "string"
+        },
+        "janela": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "type": "string"
+                },
+                "fim": {
+                  "type": "string"
+                },
+                "unidade": {
+                  "type": "string",
+                  "enum": [
+                    "semanas",
+                    "meses"
+                  ]
+                },
+                "quantidade": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "inicio",
+                "fim"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "complemento": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "number"
+            },
+            "unidade": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "n",
+            "unidade"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "n",
+        "unidade",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "criterios": {
+      "type": "object",
+      "properties": {
+        "serie": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "janela": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              },
+              "descricao": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "data",
+              "descricao"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "serie",
+        "janela"
+      ],
+      "additionalProperties": false
+    },
+    "anos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ano": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "meses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "mes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 12
+                },
+                "entradas": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "emAndamento": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "mes",
+                "entradas",
+                "emAndamento"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "ano",
+          "meses"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "marcacoes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          },
+          "descricao": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "data",
+          "descricao"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "mesesComDado": {
+      "type": "number"
+    },
+    "mediaMensal": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "historicoCurto": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "base",
+    "criterios",
+    "anos",
+    "marcacoes",
+    "mesesComDado",
+    "mediaMensal",
+    "historicoCurto"
+  ],
+  "additionalProperties": false
+}

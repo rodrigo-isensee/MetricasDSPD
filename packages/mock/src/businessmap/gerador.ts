@@ -43,6 +43,7 @@ import {
   uniforme,
 } from '../distribuicoes'
 import { CRITERIOS_MOCK } from '../criterios'
+import { aplicarTambemFase1, type PassoTambem } from './tambem'
 import { derivar, type Prng } from '../prng'
 import {
   AREAS_EXTERNAS,
@@ -121,7 +122,10 @@ const MULT_TIPO: Record<TipoCard, number> = {
   'Dívida técnica': 2,
 }
 
-export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
+export function gerarBaseBusinessMap(
+  cfg: ConfigMock,
+  opcoes: { tambem?: boolean; omitir?: readonly PassoTambem[] } = {},
+): BaseBM {
   const hoje = instanteDeIso(cfg.hoje, cal)
   const hojeDia = diaLocal(hoje, cal)
   const diaInicioHist = somarMeses(hojeDia, -cfg.mesesHistorico)
@@ -721,6 +725,31 @@ export function gerarBaseBusinessMap(cfg: ConfigMock): BaseBM {
   // limites de WIP por fluxo (uma linha por equipe)
   const limiteFluxo: Record<string, number> = {}
   for (const e of EQUIPES) limiteFluxo[e.nome] = 14
+
+  // B11a (pedido 011): ajuste da fase 1 sobre a base pronta, em streams próprias (ver `tambem.ts`).
+  if (opcoes.tambem !== false)
+    aplicarTambemFase1({
+      omitir: opcoes.omitir ?? [],
+      semente: cfg.semente,
+      hoje,
+      hojeDia,
+      diaInicioHist,
+      cards,
+      transicoes,
+      bloqueios,
+      proxId,
+      novoProjeto: (id, titulo, sistema, criado) =>
+        novaDim({
+          card_id: id,
+          titulo,
+          tipo: 'Melhoria',
+          sistema,
+          criado_em: criado,
+          granularidade: 'projeto',
+          equipe: 'Portfólio',
+          quadro_id: 'quadro-gerencia',
+        }),
+    })
 
   return {
     cards,

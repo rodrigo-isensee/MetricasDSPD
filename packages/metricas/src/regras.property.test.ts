@@ -100,6 +100,11 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
       O13: 'o resultado é série mensal de contagem de defeitos sobre a vazão total; o tipo é a definição, sem nó rotulado por tipo',
       O14: 'a chave é área solicitante (classificador por área não implementado); a distribuição é de contagem por nome, com top 10 e demais',
       O16: 'primeira chave é faixa de idade (derivada do instante, sem classificador de item); severidade é contagem de abertos',
+      O19: 'primeira chave é motivo do bloqueio, que vive no fato_bloqueio (um card tem vários motivos): isolar por card não isola o motivo; pctDoTotal é participação no total, por definição',
+      T10: 'primeira chave é fornecedor, que vive no fato_bloqueio (um card pode ter bloqueios de mais de um fornecedor): isolar por card não isola o fornecedor',
+      T11: 'a chave é o mês do ano, derivado do instante de criação na extensão (sem classificador de item no harness); o T11 não lê os cards do harness e o recorte por tipo, equipe e sistema é provado em t11.test.ts',
+      T12: 'primeira chave é a área solicitante (campo do card, sem classificador de item no harness); o isolamento da área e a ordem por volume são provados em t12.test.ts (R5, CA-11), e a taxa por área vem do mesmo conjunto de demandas',
+      E7: 'primeira chave é o sistema (campo do card, sem classificador de item no harness) e a participação é fração do total, por definição; o isolamento por sistema e a natureza pelo T3 são provados em e7.test.ts e e7.natureza.test.ts (CA-23)',
       O17: 'primeira chave é causa raiz, que vive na extensão (mapa por chamado), sem classificador de item no modelo do núcleo',
       E4: 'série trimestral de contagem de projetos; o tipo de projeto não é rótulo de nó no resultado',
       S8: 'a prioridade atua só como filtro; o resultado é série mensal sem nó por prioridade',
@@ -117,7 +122,9 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
     nome: 'fronteira de amostra 19/20',
     aplica: (_id, r) => r.minimo === 20 && r.dominio !== 'pesquisa',
     excecoes: {
+      T10: 'percentis na janela de 12 semanas (B3-1): com a base de escala 0,5 nenhum fornecedor chega a 20 bloqueios na janela, então não há nó ok para varrer; a fronteira 19/20 e o corte do dia 84/85 são provados em bloqueios.test.ts',
       E1: 'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer; coberto em businessmap.test.ts',
+      E9: 'nível de projeto: o mock não publica 20 projetos concluídos na janela de 12 semanas, então não há nó ok para varrer; a fronteira 19/20 da referência P85 é provada em e9.test.ts',
       EI_FL3:
         'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer',
     },
@@ -462,7 +469,12 @@ function nosDeEstatistica(no: unknown, caminho: string, out: No[] = []): No[] {
     else if ((o.status === 'ok' || o.status === 'insuficiente') && typeof baseN === 'number')
       out.push({ caminho, n: baseN, status: o.status, noBruto: {} })
     // S5/S6: pct de cada motivo é nulo quando o total do conjunto tem menos de 20 itens.
-    if (Array.isArray(o.motivos) && typeof baseN === 'number')
+    // (O19 também tem `motivos`, mas cada motivo carrega `pctDoTotal` e `duracao` próprios, nós já varridos abaixo.)
+    if (
+      Array.isArray(o.motivos) &&
+      typeof baseN === 'number' &&
+      (o.motivos as object[]).every((m) => 'pct' in m)
+    )
       out.push({
         caminho: `${caminho}.motivos`,
         n: baseN,
