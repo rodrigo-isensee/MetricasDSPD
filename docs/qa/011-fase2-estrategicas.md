@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 011-fase2-estrategicas
 branch: feature/011-fase2-estrategicas
-commit: 3aeaa3d
+commit: 1193689
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -18,6 +18,8 @@ data: 2026-10-16
 Links: plano `docs/qa/011-back-plano.md` (casos E6, E7, E8), arquitetura `docs/architecture/features/metricas-tambem-disponiveis.md` §2, review `docs/reviews/011-fase2-estrategicas.md` (aprovado), segurança `docs/security/011-fase2-estrategicas.md` (aprovado, na `feature/011-fase2-back`, sem commit).
 
 Nota de regravação: parecer regravado pelo papel `qa` (Write) para registrar a autoria (R-QA); conteúdo inalterado.
+
+Nota de revalidação (2026-10-16): o parecer foi dado sobre `3aeaa3d`; o HEAD passou a `1193689` pelo merge da develop (48b909a, K-102). Conferido com `git diff 3aeaa3d 1193689 --name-only`: os 13 arquivos trazidos são do K-102 (`web/src/components/charts/*`, `e2e/tests/b12-fluxo.spec.ts`, `e2e/tests/b3-sust-ei-vg.spec.ts`, docs do K-102) mais os docs do próprio lote (este parecer e o de segurança). Nenhum arquivo de `packages/`, `server/` ou `tools/` mudou (0 arquivos), logo o patch do lote não mudou e os resultados abaixo seguem válidos. Sem nova execução local (teto de 2 agentes a pedido do usuário); a CI do PR #104 passou.
 
 **Veredito: aprovado.** Zero bug aberto. Escopo incremental: só o diff `f81567e..3aeaa3d`; os casos da fase 1 seguem cobertos pelo parecer `docs/qa/011-back.md` e passam na suíte completa.
 
