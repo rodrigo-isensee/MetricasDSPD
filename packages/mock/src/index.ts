@@ -16,9 +16,12 @@ export function gerarBaseMock(parcial: Partial<ConfigMock> = {}): BaseMock {
   return { bm: gerarBaseBusinessMap(config), ac: gerarBaseAcelerato(config), config }
 }
 
-export { derivar, type Prng } from './prng'
+export { derivar, hashJson, type Prng } from './prng'
+export { PASSOS_TAMBEM, PARAMETROS_TAMBEM, type PassoTambem } from './businessmap/tambem'
 export { LATENCIA_MAX_MS, LATENCIA_MIN_MS, sortearLatencia } from './latencia'
 export { CONFIG_PADRAO, type ConfigMock }
 export { gerarColetasMock, type ColetasMock } from './coletas'
 export { gerarExtensoesMock } from './complementares'
+export { gerarExtensaoTambemMock, PARAMETROS_SAZONAIS } from './businessmap/extensaoTambem'
 export { gerarPesquisaMock } from './pesquisa'
+export { gerarBaseBusinessMap } from './businessmap'

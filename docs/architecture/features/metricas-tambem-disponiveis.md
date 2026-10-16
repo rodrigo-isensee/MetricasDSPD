@@ -35,7 +35,7 @@ Insumos: `01-cobertura.md`, `02-especificacao.md`, `04-decisoes.md` (UX); `data-
 - **Biblioteca:** todo tempo, percentil e taxa vem de `core/` (`calendario`, `percentil`, `estatistica`, `histograma`, `series`, `janela`).
 - **Amostra mínima:** abaixo de 20 não se publica estatística (`MINIMO_AMOSTRA`).
 - **Histórico:** append-only preservado. Os dados novos são projeções derivadas ou tabelas novas, sem `UPDATE` em evento.
-- **T2.6:** pelos mecanismos que já existem (A8, detalhe em O23): na biblioteca, parâmetro numa **constante única** e cada mudança de valor registrada como nova `VersaoCriterio` em `core/criterios`; na base, valor configurável em tabela `ref_` com vigência (`vigente_de`, `vigente_ate`), e cada vigência nova gera `VersaoCriterio`. Nenhum literal espalhado. Todo DTO de série devolve `marcacoes` (`praticas.md` §3).
+- **T2.6:** os critérios novos têm limite e prazo versionados, nunca como literal solto no código. A versão vive em um de dois lugares (A8, ajustado em 2026-10-15): na base (`ref_versao_criterio`, via `ref:sync`) ou, quando o critério nasce na própria biblioteca, em `VERSOES_DA_BIBLIOTECA` (`packages/metricas/src/core/criterios.ts`), que `marcacoesNoPeriodo` soma às da base sem repetir id. O critério do estoque parado (O23, `LIMITE_PARADO_DIAS_UTEIS`, `VERSAO_CRITERIO_PARADOS_V1`) usa a segunda via. Todo DTO de série devolve `marcacoes` (`praticas.md` §3).
 - **Métricas proibidas (7.1):** nenhuma usa horas apontadas. O R$ do E7 é o rateio do custo total do DSPD pela participação nas entregas (D-1' = A), nunca esforço; a proposta de usar horas apontadas foi sinalizada e não adotada.
 
 ## 1. Códigos finais
@@ -109,7 +109,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - Faixa = `PapelColuna`, quando o filtro é "Todas".
   - A frase de leitura usa o maior crescimento absoluto nas faixas de fila (`tipo_coluna = 'fila'`).
   - As mudanças de critério do período vêm de `core/criterios`.
-- **Contrato:** `{ agrupamento: 'coluna' | 'papel', faixas: [{ chave, rotulo, ordem, tipoColuna }], dias: [{ dia, contagens: number[] }], destaque: { faixa, de, para } | null, mudancasCriterio }`.
+- **Contrato:** `{ agrupamento: 'coluna' | 'papel', faixas: [{ chave, rotulo, ordem, tipoColuna }], dias: [{ dia, contagens: number[] }], destaque: { faixa, de, para } | null, mudancasCriterio }` (sem mudança no B9; `destaque.faixa` é a `chave`; só há faixa para item em progresso, a varredura do B8; ver `docs/api/metricas.md`).
 - **Mock:** a base já tem a história. Para a faixa que cresce nas últimas 4 semanas, o mock **não** altera a base. Se a base não mostrar crescimento, a frase cai em "Nenhuma etapa acumulou", que é um estado válido.
 - **Mínimo:** contagem diária (censo), sem estatística. Sem transição no período, o estado é vazio.
 
@@ -121,7 +121,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - A matriz conta pares (origem → destino) de retorno, agregados por papel quando o filtro é "Todas".
   - A linha "reaberto" junta os retornos com origem de papel `entrega`.
   - O par com × sem compara o tempo de ciclo do tipo escolhido. Reaproveita a função de marcos e de ciclo do O3; não recalcula o ciclo.
-- **Contrato:** `{ entregas: taxaSchema, matriz: { eixo: 'coluna'|'papel', celulas: [{ origem, destino, retornos }] }, reaberturas, comparacao: { tipo, com: estatistica, sem: estatistica } }`.
+- **Contrato:** `{ entregas: taxaSchema, matriz: { eixo: 'coluna'|'papel', celulas: [{ origem, destino, retornos, reaberto }] }, reaberturas, segmentoPor: 'tipo', comparacoes: [{ tipo, com: estatistica, sem: estatistica, grupoAbaixoDoMinimo: 'com'|'sem'|'ambos'|null }] }` (ajuste de 2026-10-15 no B7: o par é por tipo, regra 7, CA-6, e a célula marca a reabertura).
 - **Mock:** a base atual já tem os retornos. Medir quantos são: a spec pede cerca de 25% das entregas. Se a base tiver menos, o cartão mostra o que existe; não se mexe na base.
 - **Mínimo:**
   - percentual com n ≥ 20 entregas;
@@ -150,7 +150,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Dado:** existe. `semMoverHaDiasUteis` já é calculado por item em `o2.ts`.
 - **Cálculo:** dentro de `o2.ts`, sem módulo novo.
   - `k` = itens em andamento com `semMover > limite`; `n` = WIP atual; quebra por etapa (papel ou coluna, a mesma do O2).
-  - O limite (5 dias úteis, U-11) segue o mecanismo que já existe (A8): **constante única** no módulo (como `DURACAO_CALIBRACAO_DIAS`), com a `VersaoCriterio` v1 registrada em `core/criterios` (`afeta` inclui `o2`). Mudar o valor é mudar a constante **e** registrar nova `VersaoCriterio` no mesmo commit, o que gera a marcação no gráfico (T2.6). `VersaoCriterio` (`{id, data, descricao, afeta}`) continua sem campo de valor.
+  - O limite (5 dias úteis, U-11) entra como constante única `LIMITE_PARADO_DIAS_UTEIS` com `VersaoCriterio` v1 em `VERSOES_DA_BIBLIOTECA` (T2.6, A8); mudar o limite exige nova versão no mesmo commit.
   - **Por que não um "parâmetro versionado com valor e vigência" agora:** seria mecanismo novo (campo de valor em `VersaoCriterio` ou tabela de parâmetros lida pela biblioteca), e o existente basta: a constante é lida num lugar só, e a `VersaoCriterio` já dá data, descrição e marcação. Valor que o usuário configura sem deploy (custo do DSPD do E7, prazo de fornecedor do T10) já tem padrão próprio, a tabela `ref_` com vigência. **Critério para propor ADR de parâmetro:** um limite da biblioteca precisar mudar por configuração, sem deploy, ou dois valores do mesmo limite precisarem valer em períodos diferentes do mesmo cálculo.
 - **Contrato:** acréscimo compatível em `ResultadoO2`: `parados: { limiteDiasUteis, taxa: taxaSchema, porEtapa: [{ etapa, k }] }` (o `k` e o `n` ficam dentro da `taxa`). É campo novo no schema zod (ADR 0007: acréscimo, não quebra).
 - **Mock:** a base atual. Medir a parcela acima de 5 dias úteis; a spec pede 20% a 30%, mas sem mexer na base.
@@ -164,7 +164,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - Para cada início no período, verifica se havia no mesmo grupo um card criado antes, ainda não iniciado e não descartado nem arquivado naquele instante (`arquivadoAte`). Se houver, é "fora de ordem".
   - Algoritmo: para cada grupo, ordenar por `criado_em` e varrer os inícios em ordem temporal com um conjunto ordenado dos não iniciados. O custo é O(n log n) por grupo.
   - Custo da ultrapassagem **decidido (R-1 = A, 2026-10-14):** para cada ultrapassado, dias úteis (`core/calendario`) entre o início do **primeiro** item que passou na frente dele e o seu próprio início. P50/P85 por tipo (`core/percentil`). Texto do cartão: "esperaram, depois de ultrapassados, X dias úteis até começar" (nunca "dias a mais"). Ultrapassado ainda não iniciado fica fora da estatística até iniciar.
-- **Contrato:** `{ inicios: taxaSchema, meses: [{ mes, emOrdem, foraDeOrdem, emAndamento }], marcacoes, custo: { tipo, estatistica } | null, grupo: 'equipe-tipo-padrao' }`. O `grupo` é literal único (sem alternativas no contrato). `marcacoes` são as versões de critério que cruzam a série (A9).
+- **Contrato:** `{ inicios: taxaSchema, meses: [{ mes, emOrdem, foraDeOrdem, emAndamento }], custo: { segmentoPor: 'tipo', porTipo: [{ tipo, ultrapassados, estatistica }] }, marcacoes, grupo: 'equipe-tipo-padrao' }`. O `grupo` é literal único (sem alternativas no contrato). No B10 o `custo` único virou `porTipo` (regra 7, mesmo ajuste do O25); ver `docs/api/metricas.md`. `marcacoes` são as versões de critério que cruzam a série (A9).
 - **Mock:** a base atual. Medir a parcela fora de ordem na classe Padrão; a spec pede cerca de 25%. Não se mexe na base. As pendências D-6 e R-1 deixam de ser `pendente-usuario` em `REGRAS_METRICA`.
 - **Testes próprios (B10):** CA-17 e CA-37; Urgente, Prazo fixo e Intangível fora; ultrapassado não iniciado fora da estatística.
 - **Mínimo:** a taxa com ≥ 20 inícios; P50/P85 do custo com ≥ 20 ultrapassados no tipo.
@@ -191,7 +191,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - `porMotivo = null` também no mock, pela CA-44: os 4 valores do gerador não são o catálogo nativo e não são publicados como motivo.
 - **Mínimo:**
   - taxa com ≥ 20 encerrados;
-  - P50/P85 do consumido com ≥ 20 descartados após o início (raro);
+  - P50/P85 do consumido **por tipo** (regra 7; ajuste de 2026-10-15), com ≥ 20 descartados após o início no tipo (raro);
   - fora isso, soma e contagem.
 
 ### O26 Passagens de mão
@@ -312,10 +312,21 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Dado:** existe. Cards `granularidade = 'projeto'` com `iniciado_em = null`, não descartados e não arquivados (`descartado`, `arquivadoSemDesfecho`).
 - **Cálculo:** módulo novo `businessmap/e9.ts`.
   - É o retrato de `hoje`: idade em dias úteis desde `criado_em` (`core/calendario`), com as faixas fixas da spec.
-  - A referência é o P85 do "antes do início" **importado do `e1.ts`** (não recalculado), e só aparece quando o E1 tem ≥ 20 projetos.
-- **Contrato:** `{ projetos: [{ cardId, codigo, titulo, criadoEm, idadeDiasUteis, faixa }], referenciaP85: estatistica }`.
+  - A referência é o P85 do "antes do início" **importado do `e1.ts`** (não recalculado), **por tipo** (`referenciasP85`), e só aparece no tipo que tem ≥ 20 projetos concluídos.
+  - O E9 não calcula deslize nem "na data": `deslizeDiasUteis` e `naData` são do E6 (correção de 2026-10-15, review do B2 a B10).
+- **Contrato:** `{ projetos: [{ cardId, codigo, titulo, tipo, criadoEm, idadeDiasUteis, faixa }], segmentoPor: 'tipo', referenciasP85: [{ tipo, referenciaP85: estatistica }] }` (uma referência por tipo, mínimo 20 por tipo; ajuste de 2026-10-15, regra 7 e Q4).
 - **Mock:** a base atual. Medir quantos projetos estão abertos e não iniciados. Se forem menos de 6, ou nenhum passar de 180 dias úteis, a extensão **não** cria projeto (mexeria em E1 e E4); o cartão mostra o que existe.
 - **Mínimo:** censo dos abertos; a referência de percentil só com ≥ 20 concluídos.
+
+### Aceites de contrato (política de mudança §5, ratificação do architect, 2026-10-15)
+Ratifico, junto com o tech-lead, os aceites de mudança incompatível do lote B2 a B10:
+- enum `indicadores[].metrica` do `VISAO_GERAL`: O19, T10, T12, E7, E9, O25, O21, O20, O24;
+- E7, `participacao` anulável;
+- contratos de E9 (`e9085e7`), O25, O21 e O24 (por tipo, regra 7), e O20 (`emProgresso` obrigatório).
+
+Motivo: nenhum desses contratos está publicado e nenhum consumidor os lê. No `VISAO_GERAL`, o enum só cresce e `visaoGeral.ts` emite apenas ids do núcleo, então a resposta não muda. São, portanto, ajustes de desenho antes da publicação, sem custo de migração. Sem discordância. Exigência de processo, vinda do tech-lead: daqui em diante, toda mudança incompatível passa pelo aceite de uso único, mesmo em contrato não publicado.
+
+Alinhamento de texto: o plano escreve `{ k, n, taxa }` (O24, O25, T12, O21) e `{ natureza, itens, pct }` (E7); o código usa `taxaSchema` (`k`, `n`, `pct`, com `pct` só quando n ≥ 20). É a mesma informação, com o mínimo garantido pelo tipo; vale o `taxaSchema` e `docs/api/metricas.md`.
 
 ## 3. Proteção de pessoa (O26, E8 e O22)
 

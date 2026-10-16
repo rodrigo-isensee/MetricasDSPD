@@ -39,13 +39,13 @@ describe('Espera invisível por nível, segmentada', () => {
     expect(within(el).getByTestId('ei-cliente-fl1-incidente')).toBeInTheDocument()
     expect(within(el).getByTestId('ei-time-fl1-incidente')).toBeInTheDocument()
     expect(within(el).getByTestId('ei-indice-fl1-incidente')).toHaveTextContent(
-      'Espera invisível: 16%',
+      'Espera invisível: 22%',
     )
     expect(within(el).queryByText('Acima de 50%')).toBeNull()
     await userEvent.click(within(el).getByRole('tab', { name: /Requisição/ }))
     expect(roteador.state.location.search).toContain('ei_fl1=requisicao')
     expect(within(el).queryByTestId('ei-indice-fl1-incidente')).toBeNull()
-    expect(within(el).getByTestId('ei-indice-fl1-requisicao')).toHaveTextContent('54%')
+    expect(within(el).getByTestId('ei-indice-fl1-requisicao')).toHaveTextContent('62%')
     // selo com ícone + texto acima de 50%
     expect(within(el).getByText('Acima de 50%')).toBeInTheDocument()
     expect(within(el).getByTestId('ei-segmento-fl1-requisicao')).toHaveTextContent(
