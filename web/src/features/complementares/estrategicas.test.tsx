@@ -49,7 +49,10 @@ describe('E9 Projetos aguardando início', () => {
     const abas = within(el).getAllByRole('tab')
     expect(abas.length).toBeGreaterThanOrEqual(2)
     expect(within(el).getByTestId('e9-sem-referencia')).toHaveTextContent(
-      /Sem referência: menos de 20 projetos concluídos/,
+      /Sem referência: menos de 20 projetos concluídos.*É esperado concluir poucos projetos\./,
+    )
+    expect(within(el).getByTestId('e9-mostrando')).toHaveTextContent(
+      /Mostrando \d+ de 7 projetos \(tipo \w+\)\. A tabela abaixo lista todos\./,
     )
     await userEvent.setup().click(abas[1]!)
     expect(abas[1]).toHaveAttribute('aria-selected', 'true')
@@ -111,7 +114,7 @@ describe('E6 Datas do portfólio', () => {
     })
     const el = await abrir('E6', <CartaoE6 filtros={FILTROS_FLUXO} />, fonte)
     expect(within(el).getByTestId('e6-estatistica')).toHaveTextContent(
-      /33,3% na data comprometida \(8 de 24\)\. Deslize: P50 5 dias úteis e P85 20 dias úteis\./,
+      /33,3% dos projetos concluídos saíram na data comprometida \(8 de 24\)\. Deslize: P50 5 dias úteis e P85 20 dias úteis\./,
     )
     expect(within(el).queryByTestId('amostra-insuficiente-E6')).not.toBeInTheDocument()
   })
@@ -130,7 +133,7 @@ describe('E7 Capacidade por sistema (participação percentual, sem valores em r
     expect(linhas[0]).toHaveTextContent(/Protheus\s*\d+(,\d)?%\s*\d+/)
     const ultima = linhas.at(-1)!
     expect(ultima).toHaveTextContent(/\d+ de \d+ \(percentual não publicado, menos de 20\)/)
-    expect(el).toHaveTextContent(/Protheus: \d+(,\d)?% das entregas do período/)
+    expect(el).toHaveTextContent(/O sistema Protheus ficou com \d+(,\d)?% das entregas do período/)
     expect(el).toHaveTextContent('Não inclui os chamados da sustentação (Acelerato)')
   })
 
@@ -302,5 +305,151 @@ describe('ramos de leitura dos cartões', () => {
     })
     const b = await abrir('E7', <CartaoE7 filtros={FILTROS_FLUXO} />, semSust)
     expect(b).toHaveTextContent(/das entregas do período\./)
+  })
+
+  it('E9 ordena a tabela do mais antigo ao mais novo, mesmo com a API em outra ordem', async () => {
+    const fonte = new FonteAjustada({
+      E9: (r: ResultadoDe<'E9'>) => {
+        r.projetos = [...r.projetos].sort((a, b) => a.idadeDiasUteis - b.idadeDiasUteis)
+      },
+    })
+    const el = await abrir('E9', <CartaoE9 filtros={FILTROS_FLUXO} />, fonte)
+    const linhas = within(
+      within(el).getByRole('table', { name: /Projetos aprovados e ainda não iniciados/ }),
+    )
+      .getAllByRole('row')
+      .slice(1)
+    const esperas = linhas.map((l) =>
+      Number(within(l).getAllByRole('cell').at(-1)!.textContent.replace(/\./g, '')),
+    )
+    expect(esperas).toEqual([...esperas].sort((a, b) => b - a))
+  })
+
+  it('E9 com P85 publicado diz a unidade e o tipo na linha de referência', async () => {
+    const fonte = new FonteAjustada({
+      E9: (r: ResultadoDe<'E9'>) => {
+        r.referenciasP85 = r.referenciasP85.map((x) => ({
+          tipo: x.tipo,
+          referenciaP85: {
+            status: 'ok',
+            n: 24,
+            valor: { p85: 60 },
+            janela: { inicio: '2026-07-18', fim: '2026-10-09', unidade: 'semanas', quantidade: 12 },
+          },
+        })) as never
+      },
+    })
+    const el = await abrir('E9', <CartaoE9 filtros={FILTROS_FLUXO} />, fonte)
+    expect(el).toHaveTextContent(
+      /P85 do tempo antes do início dos projetos concluídos do tipo \(E1\): 60 dias úteis/,
+    )
+  })
+
+  it('E6 ordena do menor ao maior deslize e a tabela diz isso', async () => {
+    const fonte = new FonteAjustada({
+      E6: (r: ResultadoDe<'E6'>) => {
+        r.projetos = r.projetos.map((p, i) => ({ ...p, deslizeDiasUteis: i % 2 === 0 ? 9 : 2 }))
+      },
+    })
+    const el = await abrir(
+      'E6',
+      <CartaoE6 filtros={{ ...FILTROS_FLUXO, periodo: { tipo: '12m' } }} />,
+      fonte,
+    )
+    const tabela = within(el).getByRole('table', { name: /do menor para o maior/ })
+    const d = within(tabela)
+      .getAllByRole('row')
+      .slice(1)
+      .map((l) => Number(within(l).getAllByRole('cell')[0]!.textContent))
+    expect(d).toEqual([...d].sort((a, b) => a - b))
+  })
+
+  it('E6 com todos atrasados não diz "o outro" nem "os demais"', async () => {
+    const mesmo = new FonteAjustada({
+      E6: (r: ResultadoDe<'E6'>) => {
+        r.projetos = r.projetos.map((p) => ({ ...p, deslizeDiasUteis: 8 }))
+      },
+    })
+    const a = await abrir(
+      'E6',
+      <CartaoE6 filtros={{ ...FILTROS_FLUXO, periodo: { tipo: '12m' } }} />,
+      mesmo,
+    )
+    expect(a).toHaveTextContent(/Nenhum dos \d+ projetos concluídos no período saiu na data/)
+    expect(a).toHaveTextContent(/Todos atrasaram 8 dias úteis;/)
+  })
+
+  it('E6 com todos atrasados em valores diferentes e com um só projeto atrasado', async () => {
+    const varios = new FonteAjustada({
+      E6: (r: ResultadoDe<'E6'>) => {
+        r.projetos = r.projetos.map((p, i) => ({ ...p, deslizeDiasUteis: 3 + i }))
+      },
+    })
+    const b = await abrir(
+      'E6',
+      <CartaoE6 filtros={{ ...FILTROS_FLUXO, periodo: { tipo: '12m' } }} />,
+      varios,
+    )
+    expect(b).toHaveTextContent(/Todos atrasaram de 3 a \d+ dias úteis;/)
+  })
+
+  it('E6 com um só projeto, atrasado', async () => {
+    const um = new FonteAjustada({
+      E6: (r: ResultadoDe<'E6'>) => {
+        r.projetos = r.projetos.slice(0, 1).map((p) => ({ ...p, deslizeDiasUteis: 8 }))
+      },
+    })
+    const c = await abrir(
+      'E6',
+      <CartaoE6 filtros={{ ...FILTROS_FLUXO, periodo: { tipo: '12m' } }} />,
+      um,
+    )
+    expect(c).toHaveTextContent(
+      /O projeto concluído no período não saiu na data comprometida\. Ele atrasou 8 dias úteis;/,
+    )
+  })
+
+  it('E7 com total de 20 ou mais e nenhum sistema com 20 não diz "abaixo de 20"', async () => {
+    const fonte = new FonteAjustada({
+      E7: (r: ResultadoDe<'E7'>) => {
+        r.total = 60
+        r.base.n = 60
+        r.sistemas = r.sistemas.slice(0, 6).map((s) => ({
+          ...s,
+          entregas: 10,
+          participacao: null,
+          porNatureza: s.porNatureza.map((x) => ({
+            ...x,
+            taxa: { status: 'insuficiente', k: 1, n: 10, minimo: 20 },
+          })),
+        })) as never
+      },
+    })
+    const el = await abrir('E7', <CartaoE7 filtros={FILTROS_FLUXO} />, fonte)
+    expect(el).toHaveTextContent(
+      /60 entregas no período, mas nenhum sistema chegou a 20 entregas: só a contagem por sistema é publicada\./,
+    )
+    expect(el.textContent).not.toMatch(/abaixo de 20, só a contagem/)
+    expect(el.textContent).not.toMatch(/\d%/)
+  })
+
+  it('E7 com mais de 10 sistemas desenha os 10 maiores e resume os demais, a tabela lista todos', async () => {
+    const fonte = new FonteAjustada({
+      E7: (r: ResultadoDe<'E7'>) => {
+        const base = r.sistemas[0]!
+        r.sistemas = Array.from({ length: 14 }, (_, i) => ({
+          ...base,
+          sistema: `Sistema ${i + 1}`,
+          entregas: 30 - i,
+        }))
+        r.total = 500
+      },
+    })
+    const el = await abrir('E7', <CartaoE7 filtros={FILTROS_FLUXO} />, fonte)
+    expect(within(el).getByTestId('e7-demais')).toHaveTextContent(
+      /Demais 4 sistemas: 74 de 500 entregas\./,
+    )
+    const tabela = within(el).getByRole('table', { name: /Entregas e participação por sistema/ })
+    expect(within(tabela).getAllByRole('row')).toHaveLength(15)
   })
 })

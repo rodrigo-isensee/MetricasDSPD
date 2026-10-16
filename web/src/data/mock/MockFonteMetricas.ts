@@ -47,7 +47,11 @@ const COMPLEMENTARES: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S12',
 ])
 
-/** Métricas do pedido 011 que leem a extensão `ctx.tambem` (campos de extração nova, só em mock). */
+/**
+ * Métricas do pedido 011 que leem a extensão `ctx.tambem` (campos de extração nova, só em mock). É o subconjunto
+ * E6/E8 de `COM_EXTENSAO_MOCK` (em `contratos`): ao entrar métrica nova dos lotes 2 e 3 (O22, O26, T13, T14),
+ * atualize as duas listas juntas.
+ */
 const COM_TAMBEM: ReadonlySet<MetricaId> = new Set<MetricaId>(['E6', 'E8'])
 
 /** Itens do O2 por página: o mesmo da API (`pageSize=200`, página 1). */

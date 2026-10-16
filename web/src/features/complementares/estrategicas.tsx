@@ -16,6 +16,8 @@ const dias = (n: number) => `${fmtInteiro(n)} ${plural(n, 'dia útil', 'dias út
 
 /** Faixas de espera do E9, na ordem do contrato (limite superior inclusivo). */
 const FAIXAS_E9 = ['0–30', '31–90', '91–180', 'mais de 180'] as const
+/** Coluna da faixa, derivada da idade (limites do contrato: 30, 90 e 180), não do texto da faixa. */
+const colunaE9 = (idade: number): number => (idade > 180 ? 3 : idade > 90 ? 2 : idade > 30 ? 1 : 0)
 const formaE9 = (idade: number): FormaPonto =>
   idade > 180 ? 'triangulo' : idade > 90 ? 'losango' : 'circulo'
 
@@ -50,6 +52,9 @@ export function CartaoE9({ filtros }: P) {
           tipos.find((t) => t === tipo) ??
           tipos.find((t) => r.projetos.some((p) => p.tipo === t)) ??
           tipos[0]
+        const maisAntigosPrimeiro = [...r.projetos].sort(
+          (a, b) => b.idadeDiasUteis - a.idadeDiasUteis,
+        )
         const doTipo = r.projetos.filter((p) => p.tipo === atual)
         const ref = r.referenciasP85.find((x) => x.tipo === atual)?.referenciaP85
         const referencias =
@@ -57,21 +62,25 @@ export function CartaoE9({ filtros }: P) {
             ? [
                 {
                   valor: ref.valor.p85,
-                  rotulo: `P85 do tempo antes do início (E1): ${fmtNumero(ref.valor.p85, 0)}`,
+                  rotulo: `P85 do tempo antes do início dos projetos concluídos do tipo (E1): ${fmtNumero(ref.valor.p85, 0)} dias úteis`,
                   traco: 'tracejado' as const,
                 },
               ]
             : []
         const grafico = (
           <div className="mt-3 flex flex-col gap-3">
+            <p className="text-sm text-texto-2" data-testid="e9-mostrando">
+              Mostrando {fmtInteiro(doTipo.length)} de {fmtInteiro(r.projetos.length)} projetos
+              (tipo {atual}). A tabela abaixo lista todos.
+            </p>
             {doTipo.length > 0 && (
               <Dispersao
-                descricao={`Idade em dias úteis dos ${fmtInteiro(doTipo.length)} projetos aguardando início, por faixa de espera`}
+                descricao={`Idade em dias úteis dos ${fmtInteiro(doTipo.length)} projetos do tipo ${atual} (de ${fmtInteiro(r.projetos.length)} no total) aguardando início, por faixa de espera`}
                 eixoX={{ tipo: 'categorias', categorias: FAIXAS_E9 }}
                 rotuloY="Espera (dias úteis)"
                 pontos={doTipo.map((p) => ({
                   id: p.cardId,
-                  x: Math.max(0, FAIXAS_E9.indexOf(p.faixa as (typeof FAIXAS_E9)[number])),
+                  x: colunaE9(p.idadeDiasUteis),
                   y: p.idadeDiasUteis,
                   forma: formaE9(p.idadeDiasUteis),
                   rotulo: `${p.codigo} ${p.titulo}`,
@@ -92,7 +101,7 @@ export function CartaoE9({ filtros }: P) {
               >
                 <Icone nome="info" className="size-4" />
                 Sem referência: menos de 20 projetos concluídos ({atual}, {fmtInteiro(ref.n)} de
-                20).
+                20). É esperado concluir poucos projetos.
               </p>
             )}
           </div>
@@ -125,7 +134,7 @@ export function CartaoE9({ filtros }: P) {
                 { chave: 'a', titulo: 'Aprovado em' },
                 { chave: 'e', titulo: 'Espera (dias úteis)', alinhar: 'direita' },
               ]}
-              linhas={r.projetos.map((p) => ({
+              linhas={maisAntigosPrimeiro.map((p) => ({
                 p: `${p.codigo} ${p.titulo}`,
                 t: p.tipo,
                 a: fmtData(p.criadoEm),
@@ -153,17 +162,29 @@ function leituraE6(d: ResultadoE6): string | undefined {
   const atrasos = d.projetos.filter((p) => p.deslizeDiasUteis > 0).map((p) => p.deslizeDiasUteis)
   const replan = d.projetos.filter((p) => p.replanejamentos > 0).length
   const naData = n - atrasos.length
-  const parte1 = `${fmtInteiro(naData)} de ${fmtInteiro(n)} ${plural(n, 'projeto concluído', 'projetos concluídos')} no período ${plural(n, 'saiu', 'saíram')} na data comprometida.`
+  const parte1 =
+    naData === 0
+      ? n === 1
+        ? 'O projeto concluído no período não saiu na data comprometida.'
+        : `Nenhum dos ${fmtInteiro(n)} projetos concluídos no período saiu na data comprometida.`
+      : `${fmtInteiro(naData)} de ${fmtInteiro(n)} ${plural(n, 'projeto concluído', 'projetos concluídos')} no período ${plural(n, 'saiu', 'saíram')} na data comprometida.`
+  const todos = naData === 0
   const menor = atrasos.reduce((a, b) => Math.min(a, b), Infinity)
   const maior = atrasos.reduce((a, b) => Math.max(a, b), -Infinity)
   const parte2 =
     atrasos.length === 0
       ? ' Nenhum atrasou;'
       : menor === maior
-        ? ` ${plural(atrasos.length, 'O outro atrasou', 'Os demais atrasaram')} ${dias(maior)};`
-        : ` Os demais atrasaram de ${fmtInteiro(menor)} a ${dias(maior)};`
+        ? ` ${todos ? (n === 1 ? 'Ele atrasou' : 'Todos atrasaram') : plural(atrasos.length, 'O outro atrasou', 'Os demais atrasaram')} ${dias(maior)};`
+        : ` ${todos ? 'Todos atrasaram' : 'Os demais atrasaram'} de ${fmtInteiro(menor)} a ${dias(maior)};`
   return `${parte1}${parte2} ${fmtInteiro(replan)} ${plural(replan, 'teve', 'tiveram')} a data replanejada ao menos uma vez.`
 }
+
+/** Do menor para o maior deslize (o contrato não traz a data de conclusão); empate pelo código, ordem estável. */
+const ordenarPorDeslize = <T extends { deslizeDiasUteis: number; cardId: string }>(
+  l: readonly T[],
+) =>
+  [...l].sort((a, b) => a.deslizeDiasUteis - b.deslizeDiasUteis || a.cardId.localeCompare(b.cardId))
 
 /** E6: deslize de cada projeto concluído em relação à data comprometida (a registrada no compromisso). */
 export function CartaoE6({ filtros }: P) {
@@ -179,85 +200,88 @@ export function CartaoE6({ filtros }: P) {
       className="lg:col-span-12"
       leitura={d ? leituraE6(d) : undefined}
     >
-      {(r) => (
-        <div className="flex flex-col gap-3">
-          {r.naData.status === 'ok' ? (
-            <p className="text-sm" data-testid="e6-estatistica">
-              {textoTaxa(r.naData)} na data comprometida ({fmtInteiro(r.naData.k)} de{' '}
-              {fmtInteiro(r.naData.n)}).
-              {r.deslize.status === 'ok' &&
-                ` Deslize: P50 ${dias(r.deslize.valor.p50)} e P85 ${dias(r.deslize.valor.p85)}.`}
-            </p>
-          ) : (
-            <AmostraInsuficiente
-              n={r.naData.n}
+      {(r) => {
+        const projetos = ordenarPorDeslize(r.projetos)
+        return (
+          <div className="flex flex-col gap-3">
+            {r.naData.status === 'ok' ? (
+              <p className="text-sm" data-testid="e6-estatistica">
+                {textoTaxa(r.naData)} dos projetos concluídos saíram na data comprometida (
+                {fmtInteiro(r.naData.k)} de {fmtInteiro(r.naData.n)}).
+                {r.deslize.status === 'ok' &&
+                  ` Deslize: P50 ${dias(r.deslize.valor.p50)} e P85 ${dias(r.deslize.valor.p85)}.`}
+              </p>
+            ) : (
+              <AmostraInsuficiente
+                n={r.naData.n}
+                codigo="E6"
+                oQue="O percentual e os percentis do deslize"
+                variante="lenta"
+                entidade="projetos"
+                {...(r.base.janela
+                  ? {
+                      janela: {
+                        unidade: 'semanas' as const,
+                        quantidade: semanasDoIntervalo(r.base.janela),
+                      },
+                    }
+                  : {})}
+              />
+            )}
+            {projetos.length > 0 && (
+              <Dispersao
+                descricao={`Deslize em dias úteis de ${fmtInteiro(projetos.length)} projetos concluídos em relação à data comprometida`}
+                eixoX={{ tipo: 'categorias', categorias: projetos.map((p) => p.codigo) }}
+                rotuloY="Deslize (dias úteis)"
+                pontos={projetos.map((p, i) => ({
+                  id: p.cardId,
+                  x: i,
+                  y: p.deslizeDiasUteis,
+                  forma: formaE6(p.replanejamentos),
+                  rotulo: `${p.codigo} ${p.titulo} · ${p.replanejamentos} ${plural(p.replanejamentos, 'replanejamento', 'replanejamentos')}`,
+                }))}
+                referencias={[{ valor: 0, rotulo: 'data comprometida', traco: 'solido' }]}
+                legendaFormas={{
+                  circulo: 'nenhum replanejamento',
+                  losango: '1 replanejamento',
+                  triangulo: '2 ou mais',
+                }}
+                altura={280}
+              />
+            )}
+            <TabelaDados
               codigo="E6"
-              oQue="O percentual e os percentis do deslize"
-              variante="lenta"
-              entidade="projetos"
-              {...(r.base.janela
-                ? {
-                    janela: {
-                      unidade: 'semanas' as const,
-                      quantidade: semanasDoIntervalo(r.base.janela),
-                    },
-                  }
-                : {})}
-            />
-          )}
-          {r.projetos.length > 0 && (
-            <Dispersao
-              descricao={`Deslize em dias úteis de ${fmtInteiro(r.projetos.length)} projetos concluídos em relação à data comprometida`}
-              eixoX={{ tipo: 'categorias', categorias: r.projetos.map((p) => p.codigo) }}
-              rotuloY="Deslize (dias úteis)"
-              pontos={r.projetos.map((p, i) => ({
-                id: p.cardId,
-                x: i,
-                y: p.deslizeDiasUteis,
-                forma: formaE6(p.replanejamentos),
-                rotulo: `${p.codigo} ${p.titulo} · ${p.replanejamentos} ${plural(p.replanejamentos, 'replanejamento', 'replanejamentos')}`,
+              legenda="Deslize por projeto concluído, do menor para o maior (negativo = antes da data comprometida; 0 = na data)"
+              colunas={[
+                { chave: 'p', titulo: 'Projeto' },
+                { chave: 'd', titulo: 'Deslize (dias úteis)', alinhar: 'direita' },
+                { chave: 'r', titulo: 'Replanejamentos', alinhar: 'direita' },
+              ]}
+              linhas={projetos.map((p) => ({
+                p: `${p.codigo} ${p.titulo}`,
+                d: fmtInteiro(p.deslizeDiasUteis),
+                r: fmtInteiro(p.replanejamentos),
               }))}
-              referencias={[{ valor: 0, rotulo: 'data comprometida', traco: 'solido' }]}
-              legendaFormas={{
-                circulo: 'nenhum replanejamento',
-                losango: '1 replanejamento',
-                triangulo: '2 ou mais',
-              }}
-              altura={280}
             />
-          )}
-          <TabelaDados
-            codigo="E6"
-            legenda="Deslize por projeto concluído (negativo = antes da data comprometida; 0 = na data)"
-            colunas={[
-              { chave: 'p', titulo: 'Projeto' },
-              { chave: 'd', titulo: 'Deslize (dias úteis)', alinhar: 'direita' },
-              { chave: 'r', titulo: 'Replanejamentos', alinhar: 'direita' },
-            ]}
-            linhas={r.projetos.map((p) => ({
-              p: `${p.codigo} ${p.titulo}`,
-              d: fmtInteiro(p.deslizeDiasUteis),
-              r: fmtInteiro(p.replanejamentos),
-            }))}
-          />
-          {r.semData > 0 && (
+            {r.semData > 0 && (
+              <Leia>
+                {fmtInteiro(r.semData)}{' '}
+                {plural(
+                  r.semData,
+                  'projeto concluído sem data comprometida registrada ficou',
+                  'projetos concluídos sem data comprometida registrada ficaram',
+                )}{' '}
+                fora desta conta.
+              </Leia>
+            )}
             <Leia>
-              {fmtInteiro(r.semData)}{' '}
-              {plural(
-                r.semData,
-                'projeto concluído sem data comprometida registrada ficou',
-                'projetos concluídos sem data comprometida registrada ficaram',
-              )}{' '}
-              fora desta conta.
+              Data comprometida: a registrada no compromisso; mudanças posteriores contam como
+              replanejamentos. Tolerância zero: entregar até a data é cumprir. Leia junto com a
+              previsão de término (E5) e o avanço real e escopo (T9).
             </Leia>
-          )}
-          <Leia>
-            Data comprometida: a registrada no compromisso; mudanças posteriores contam como
-            replanejamentos. Tolerância zero: entregar até a data é cumprir. Leia junto com a
-            previsão de término (E5) e o avanço real e escopo (T9).
-          </Leia>
-        </div>
-      )}
+          </div>
+        )
+      }}
     </CartaoComplementar>
   )
 }
@@ -272,11 +296,16 @@ const NATUREZAS = [
 function leituraE7(d: ResultadoE7): string | undefined {
   const s = d.sistemas[0]
   if (!s) return undefined
-  if (s.participacao?.status !== 'ok')
+  if (d.total < 20)
     return `${fmtInteiro(d.total)} ${plural(d.total, 'entrega', 'entregas')} no período: abaixo de 20, só a contagem por sistema é publicada.`
+  if (s.participacao?.status !== 'ok')
+    return `${fmtInteiro(d.total)} entregas no período, mas nenhum sistema chegou a 20 entregas: só a contagem por sistema é publicada.`
   const sust = s.porNatureza.find((x) => x.natureza === 'Sustentação')?.taxa
-  return `${s.sistema}: ${textoTaxa(s.participacao)} das entregas do período${sust?.status === 'ok' ? `, ${textoTaxa(sust)} delas de sustentação` : ''}.`
+  return `O sistema ${s.sistema} ficou com ${textoTaxa(s.participacao)} das entregas do período${sust?.status === 'ok' ? `, ${textoTaxa(sust)} delas de sustentação` : ''}.`
 }
+
+/** Sistemas desenhados no gráfico do E7; o restante vai só para a tabela e para a linha "demais". */
+const MAX_SISTEMAS_E7 = 10
 
 /**
  * E7: participação de cada sistema nas entregas do período (decisão D2 = A: sem valores monetários, mesmo que a
@@ -299,6 +328,8 @@ export function CartaoE7({ filtros }: P) {
           s.participacao?.status === 'ok'
             ? `${s.sistema} · ${textoTaxa(s.participacao)} (${fmtInteiro(s.entregas)})`
             : `${s.sistema} · ${fmtInteiro(s.entregas)} de ${fmtInteiro(r.total)}`
+        const noGrafico = r.sistemas.slice(0, MAX_SISTEMAS_E7)
+        const demais = r.sistemas.slice(MAX_SISTEMAS_E7)
         return (
           <div className="flex flex-col gap-3">
             {r.total < 20 && (
@@ -311,8 +342,8 @@ export function CartaoE7({ filtros }: P) {
                 modo="percentual"
                 unidade="% das entregas do sistema"
                 larguraRotulos={190}
-                altura={60 + 34 * r.sistemas.length}
-                categorias={r.sistemas.map((s) => ({
+                altura={60 + 34 * noGrafico.length}
+                categorias={noGrafico.map((s) => ({
                   rotulo: rotulo(s),
                   valores: Object.fromEntries(
                     NATUREZAS.map((n) => {
@@ -328,6 +359,13 @@ export function CartaoE7({ filtros }: P) {
                   padrao: n.padrao,
                 }))}
               />
+            )}
+            {demais.length > 0 && (
+              <p className="text-sm text-texto-2" data-testid="e7-demais">
+                Demais {fmtInteiro(demais.length)} sistemas:{' '}
+                {fmtInteiro(demais.reduce((t, x) => t + x.entregas, 0))} de {fmtInteiro(r.total)}{' '}
+                entregas. A tabela lista todos os sistemas.
+              </p>
             )}
             <TabelaDados
               codigo="E7"
@@ -402,7 +440,7 @@ export function CartaoE8({ filtros }: P) {
             </div>
           ) : (
             <>
-              <dl className="grid grid-cols-3 gap-3" data-testid="e8-faixas">
+              <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3" data-testid="e8-faixas">
                 {[
                   ['Sistemas com entregas de 1 pessoa', r.faixas.uma],
                   ['de 2 pessoas', r.faixas.duas],
