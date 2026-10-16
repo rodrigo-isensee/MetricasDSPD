@@ -3,13 +3,15 @@ tipo: review
 contrato: 1
 pedido: k102-perf-semanal
 branch: fix/perf-visao-semanal
-commit: 1599a77
+commit: 4bad6e6
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
 ---
 
 # Code review: K-102, fila de montagem dos gráficos (perf da visão semanal)
+
+Este arquivo tem duas voltas. A volta 1 vem logo abaixo e revisou `1599a77`. A volta 2, no fim do arquivo, revisou os ajustes R1 a R5 (`47a628f`, `0650926` e `4bad6e6`). O frontmatter aponta para o HEAD da volta 2.
 
 **Escopo:** commit `1599a77` sobre `5eaf202` (develop). São 6 arquivos, com 138 linhas a mais e 3 a menos: `web/src/components/charts/filaDeGraficos.ts` (novo), `GraficoBase.tsx`, um teste novo, dois testes ajustados e a seção 10 de `docs/tecnica/arquitetura-front.md`.
 **Contexto:** o portão `perf` do PR de release #90 reprovou `/operacional?cadencia=semanal` com nota 0,88 a 0,89. O TBT foi de 256 a 263 ms, por causa de duas tarefas longas de render em `react-*.js` (222 e 119 ms). Diagnóstico em `docs/devops/homolog-2026-10-16.md`, seção 1a.
@@ -94,3 +96,54 @@ Notas para o QA, sem ajuste no código: SUS-08 (`b3-sust-ei-vg.spec.ts:51`) prec
    - leitor de tela (NVDA ou Orca) no O4: frase e legenda anunciadas.
 4. axe sem violações nos E2E das três rotas.
 5. Depois do merge na `develop`, promover para `homolog` e conferir o `perf-homolog` do mesmo SHA, que é o que destrava o PR de release #90.
+
+---
+
+# Volta 2: ajustes R1 a R5 e E2E (b3, b12)
+
+**Escopo:** `47a628f`, `0650926` e `4bad6e6` sobre `1a18d8e` (o parecer da volta 1). São 7 arquivos, com 32 linhas a mais e 13 a menos: `filaDeGraficos.ts`, três testes unitários, a seção 10 de `arquitetura-front.md`, `b12-fluxo.spec.ts` e `b3-sust-ei-vg.spec.ts`.
+**Veredito:** **aprovado**. Os cinco ajustes foram atendidos e nenhum resultado de cálculo mudou. Ficam duas recomendações para os E2E (V2-1 e V2-2), que não bloqueiam e o QA pode resolver no próprio roteiro, sem nova volta de review.
+
+## Ferramentas (citadas, não refeitas)
+- O `pnpm run pronto` completo sobre `4bad6e6` não foi rodado neste review, por R-TETO: o node-backend roda vitest em outra worktree. Ele é o passo 1 do roteiro do QA. A volta 1 tem EXIT=0 sobre `1599a77`.
+- Rodado aqui, sob `flock /tmp/metricas-pesado.lock nice -n 19`, três vezes seguidas: `vitest run` de `filaDeGraficos.test.tsx`, `graficos.test.tsx` e `graficos-composicao.test.tsx`. Resultado: 3 arquivos e 35 testes passaram nas três execuções, sem instabilidade.
+- `eslint` nos arquivos do diff (charts e as duas specs E2E): limpo.
+- `prettier --check` acusa `b12-fluxo.spec.ts`, `b3-sust-ei-vg.spec.ts` e `arquitetura-front.md`, mas isso não é achado. O `format:check` do `pronto` só cobre `web packages tools`, e o `b12` já estava fora do formato em `1a18d8e`.
+
+## Ajustes da volta 1
+
+| # | Commit | Atendido? | Leitura |
+|---|---|---|---|
+| R1 | `47a628f` | sim | `flushSync(pedido)` está dentro de `try/finally`, e o `finally` agenda o próximo turno. A exceção continua subindo até o `onmessage` e cai no `reportError`, sem sumir. Não há teste do caminho de exceção. No React 19 é difícil fazer o `flushSync` lançar, porque o erro de render não é relançado. Aceito sem teste. |
+| R2 | `0650926` | sim | A exceção do `GraficoMensal` está registrada com motivo, e o critério de reversão está escrito: TBT da semanal acima de 200 ms na CI com a fila, ou gráfico que deixa de aparecer. |
+| R3 | `47a628f` | sim | Os dois arquivos ganharam o `afterAll(() => definirFilaImediata(false))`, simétrico ao `beforeAll`. |
+| R4 | `47a628f`, `0650926` | sim | A nota sobre transições está no docblock do módulo e na seção 10, com os três hooks citados. |
+| R5 | `47a628f` | sim | Ver a decisão abaixo. |
+
+### R5: a sequência `[1, 2, 3]` prova "um por tarefa"?
+**Prova o que importa, e não precisa de ajuste.**
+- **Por que o 0 não aparece:** o `MutationObserver` é ligado depois do primeiro commit e só registra a contagem depois de uma mutação. O estado 0 já está afirmado logo antes, por `queryByTestId('g1')` nulo e pelas três caixas com 300 px. Na prática, a asserção cobre a sequência 0, 1, 2, 3, que é a que a volta 1 pediu. Se alguma mutação estranha acontecesse com zero gráficos, a lista sairia `[0, 1, 2, 3]` e o teste falharia. É um falso negativo possível, nunca um falso positivo, e o teste rodou estável três vezes.
+- **O que a sequência detecta:** o observador entrega as mutações num microtask, no fim da tarefa que as causou. Se dois ou três gráficos montassem no mesmo commit, ou em commits síncronos dentro da mesma tarefa, ele veria um salto (`[3]`, `[2, 3]` ou `[1, 3]`) e o teste falharia. Essa é a regressão que a volta 1 apontou, e ela fica coberta.
+- **O que não detecta:** a diferença entre uma tarefa por gráfico e um microtask por gráfico. Se `proximaTarefa` trocasse o `MessageChannel` por `queueMicrotask`, o observador ainda rodaria entre um gráfico e outro e veria 1, 2, 3, mas todos cairiam na mesma tarefa do navegador, e o TBT voltaria. Essa troca seria uma reescrita deliberada do módulo, e o comentário de `proximaTarefa` explica por que é tarefa. Quem prova a granularidade de tarefa é o portão `perf` (passo 2 do roteiro do QA: nenhuma tarefa longa de `react-*.js` acima de 100 ms). Espiar `MessagePort.prototype.postMessage` só acrescentaria acoplamento à implementação. Não peço.
+
+## E2E (notas da volta 1)
+
+| # | Arquivo:linha | Problema | Sugestão | Severidade |
+|---|---|---|---|---|
+| V2-1 | `e2e/tests/b3-sust-ei-vg.spec.ts:52-55` | A espera aceita o primeiro `rect[fill]` ou `path[fill]` do S4. Esse elemento pode ser um elemento de fundo, de grade ou de eixo com `fill="none"`, que existe antes das barras. Se for, `fills` sai vazio depois do filtro, e `length <= 2` volta a passar sem testar nada, que é o caso que o comentário diz evitar. | Afirmar também o mínimo: `expect(fills.length).toBeGreaterThanOrEqual(1)`. Outra opção é esperar `.recharts-bar-rectangle` em vez de qualquer `rect`/`path`. | recomendado |
+| V2-2 | `e2e/tests/b12-fluxo.spec.ts:67-68,75` | Esperar "algum gráfico da página" não garante que a vez de um gráfico em BLOQUEADOS já passou, porque a fila não tem ordem entre cartões. A ausência no fim continua dependendo do tempo. | Tornar a ausência independente da fila: o `GraficoBase` desenha o `figure` já no primeiro commit, então incluir `figure` no localizador da ausência (`b.raiz.locator('figure, svg[role="application"], svg[role="img"], canvas')` com `toHaveCount(0)`) prova "só tabela" sem esperar nada. Antes, confirmar que a `TabelaDados` do cartão não usa `figure`. | recomendado |
+
+Item 11 do checklist (teste de ausência relido): o texto procurado nas duas specs ainda existe. V2-1 é o caso do "mínimo de itens" que falta.
+
+## Checklist de leitura (praticas.md, seções 2, 4 e 5)
+- Seção 2: sem `any`, sem spread em `Math.max` (o `Math.max(...contagens)` antigo saiu do teste), nomes em português e nenhum `catch` vazio (é `try/finally`, sem `catch`). Ok.
+- Seção 4: o teste é determinístico, sem hora atual (o rAF e o `MessageChannel` do jsdom são a fonte de ordem) e estável em três execuções.
+- Seção 5: a alternativa em tabela e o `figcaption` não foram tocados, e o bundle não mudou (sem import novo).
+- Regras invioláveis: nenhum cálculo tocado.
+- Commits: três commits coerentes (código, doc e E2E), em Conventional Commits em português, com o cartão no corpo. Para o squash do PR: `fix(web): fila de montagem dos gráficos para o TBT da visão semanal (K-102)`.
+
+## Integração com a develop
+A branch está 7 commits atrás de `origin/develop` (`b73bad3`). `git merge-tree --write-tree HEAD origin/develop` não aponta conflito. Pela R-FLUXO, a develop entra uma vez antes do review. Isso não foi feito nesta delegação. O merge pode ficar para o envio, e como não há conflito o patch não diverge e este parecer continua valendo. Quem confirma é o `forge-check pr`.
+
+## Próximo passo
+QA do K-102 com o roteiro da volta 1, aplicando V2-1 e V2-2 nas specs se o QA concordar. Depois vem a revisão curta de UX.
