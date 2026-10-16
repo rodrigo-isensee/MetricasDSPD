@@ -72,7 +72,8 @@ test.describe('K-006 Operacional diário', () => {
     const n = await b.raiz.locator('tbody tr').count();
     await expect(b.raiz).toContainText(`Base: ${n} itens bloqueados`);
     expect(await b.raiz.innerText()).not.toMatch(FOCO_TEXTOS_PESSOA);
-    await expect(b.raiz.locator('svg[role="application"], svg[role="img"], canvas')).toHaveCount(0);
+    // O GraficoBase desenha o figure no primeiro commit: incluí-lo prova "só tabela" sem depender da fila.
+    await expect(b.raiz.locator('figure, svg[role="application"], svg[role="img"], canvas')).toHaveCount(0);
   });
 
   test('OP-06 Bloqueados vazio é estado positivo', async ({ painel }) => {
