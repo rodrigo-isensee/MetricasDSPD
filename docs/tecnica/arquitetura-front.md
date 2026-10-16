@@ -260,3 +260,21 @@ Regras que ficam:
 - Grupos de ações de cartão (`CartaoT3`, `CartaoS3`, `CartaoMotivos`), o seletor de visão (`SeletorCadencia`, grade 2x2 abaixo de 400 px, MOB-CA-12), os três números do `CartaoEI` (`auto-fit` com mínimo de 6 rem), a lista de `FaixaAtencao` e o link da faixa de calibração (`Calibracao`) quebram linha em vez de impor largura (`flex-wrap`, `min-w-0`, `max-w-full`, sem `whitespace-nowrap`).
 - Teste: `e2e/tests/cabecalho-fonte-200.spec.ts` mede `scrollWidth <= clientWidth` do documento e do cabeçalho nas rotas `/`, `/tatico`, `/operacional?cadencia=semanal` e `?cadencia=sustentacao`.
 - O redesenho mobile completo do cabeçalho (uma linha, tema na gaveta, MOB-CA-9) é do K-075 e não foi antecipado aqui.
+
+## 10. Fila de montagem dos gráficos (K-102)
+
+O Lighthouse de `/operacional?cadencia=semanal` ficou em 0,88 a 0,89 na CI (PR de release #90), com TBT de 256 a 263 ms contra 23 a 56 ms na diária. Causa provada por perfil de CPU (build sem minificação, mock com latência): as respostas dos cartões chegam juntas (latência de 150 a 400 ms por chamada) e os gráficos Recharts de todos os cartões montavam no mesmo commit do React (`completeRoot`, `commitHookEffectListMount`, seletores do Recharts), em duas tarefas longas de cerca de 200 e 120 ms. Escalonar a montagem das *seções* não resolve (testado: sem ganho), porque o que concentra o custo é a chegada dos dados, não a montagem dos cartões.
+
+Correção: `web/src/components/charts/filaDeGraficos.ts`, usada por `GraficoBase`, que atende todos os gráficos, exceto o `GraficoMensal` (usado em `SerieMensal`, resumo operacional): ele não passa pelo `GraficoBase`, monta fora da fila e foi mantido assim porque o perf medido (três rotas verdes) não pedia mais e para não ampliar o escopo do K-102.
+- O cartão, a frase de leitura, a legenda e a tabela de dados aparecem no primeiro commit. O desenho do gráfico espera a vez numa fila global e entra um por tarefa (`MessageChannel` + `flushSync`; o primeiro turno espera o paint).
+- A caixa do gráfico (`height` e `min-height` do `GraficoBase`) já existe no primeiro commit, então a reserva de altura do SNO-004 continua valendo e não há salto de layout (CLS inalterado: 0,018 na semanal, 0,004 na diária, 0,067 na Sustentação, os mesmos de antes).
+- A tabela equivalente continua sendo a alternativa textual (ADR 0001); gráfico desmontado antes da vez sai da fila.
+- Testes de gráfico isolado usam `definirFilaImediata(true)`; o comportamento da fila tem teste próprio (`filaDeGraficos.test.tsx`).
+- A fila usa `flushSync` e por isso interrompe transições do React; hoje não há `startTransition`, `useTransition` nem `useDeferredValue` em `web/src`, e quem adotar um deles deve reavaliar a fila.
+- Critério de reversão: remover o `useVezDoGrafico` do `GraficoBase` se o TBT da semanal na CI voltar a ficar acima de 200 ms com a fila, ou se algum gráfico deixar de aparecer.
+- Não há ordem entre cartões: vale a ordem de montagem. Não use a fila para conteúdo que carregue o LCP (o LCP da semanal é o texto do cartão O3, não o gráfico).
+
+Medição local (mesmo preset e build da CI: `pnpm run build` sem `VITE_*`, mock com latência, `lhci`, 3 execuções), `?cadencia=semanal`:
+- antes: notas 0,95 / 0,93 / 0,93, TBT 155 / 188 / 186 ms, LCP 977 a 996 ms, tarefas longas de 181 a 193 ms (react) e 125 a 135 ms;
+- depois: notas 0,99 / 0,99 / 0,99, TBT 22 / 21 / 23 ms, LCP 856 a 895 ms, maior tarefa do React com 71 ms (a de ~155 ms que sobra é a geração do mock, igual nas três rotas).
+Diária: 0,99 antes e depois. Sustentação: 0,98 antes e depois (TBT de 52 a 82 ms para 9 a 31 ms).
