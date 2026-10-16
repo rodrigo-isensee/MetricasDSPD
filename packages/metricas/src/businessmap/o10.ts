@@ -19,7 +19,7 @@ function idadesNaoIniciados(ctx: ContextoBM, cards: readonly MarcosCard[], d: nu
     if (m.card.criado_em > t) continue
     if (arquivadoAte(m.card, t)) continue
     if (m.inicio !== null && m.inicio <= t) continue
-    if (m.card.excluido_em !== null) continue
+    if (m.excluido) continue
     if (estadoEm(ctx, m, t).papel === 'entrega') continue
     out.push({ idade: d - diaLocal(m.entrada, ctx.cal), m })
   }

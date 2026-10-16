@@ -8,7 +8,7 @@ import {
 } from '../core/calendario'
 import type { VersaoCriterio } from '../core/criterios'
 import { slug } from '../slug'
-import { arquivadoSemDesfecho, descartado } from './descartado'
+import { arquivadoSemDesfecho, descartado, entregueAntesDeExcluir } from './descartado'
 import type { BaseBM, DimCard, DimColuna, FatoBloqueio, FatoTransicao } from './modelo'
 import { ordenarNeutro } from '../core/ordenar'
 
@@ -28,8 +28,10 @@ export interface MarcosCard {
    * preenchido, 4.2/4.5). Arquivado NÃO tira o card (7.3): entregue e arquivado é o fim normal.
    */
   ativo: boolean
-  /** Descartado: tem `motivo_descarte` (decisão Q6). */
+  /** Descartado nativo (P-1 = A); entregue e depois excluído não é descarte (O25(b) = B). */
   descartado: boolean
+  /** Excluído e não entregue antes da exclusão (O25(b) = B): quem foi entregue e depois excluído continua nos cálculos. */
+  excluido: boolean
   /**
    * Arquivado sem ter sido entregue e sem `motivo_descarte` (decisão P1): não conta como trabalho
    * aberto, mas continua na base e é contado à parte (higiene, T6.4). Nunca é tratado como descartado.
@@ -143,10 +145,12 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
       }
     }
     if (aberto) segmentos.push(aberto)
-    const foiDescartado = descartado(card)
-    const ativo = card.excluido_em === null && !card.eh_subtarefa && !foiDescartado
     const entrega = entregue ? (trs[trs.length - 1] as FatoTransicao).timestamp : null
-    const semDesfecho = arquivadoSemDesfecho(card, entrega !== null)
+    const foiDescartado = descartado(card, entrega)
+    // Excluído de verdade: excluído e não entregue antes (O25(b) = B: entregue e depois excluído segue nos cálculos).
+    const excluido = card.excluido_em !== null && !entregueAntesDeExcluir(card, entrega)
+    const ativo = !excluido && !card.eh_subtarefa && !foiDescartado
+    const semDesfecho = arquivadoSemDesfecho(card, entrega)
     const emAndamento = segmentos.length > 0 && segmentos[segmentos.length - 1]?.fim === null
     const cicloHU =
       entrega !== null && !emAndamento
@@ -159,6 +163,7 @@ function construir(base: BaseBM, cal: Calendario): IndiceBM {
       slugSistema: slug(card.sistema),
       ativo,
       descartado: foiDescartado,
+      excluido,
       arquivadoSemDesfecho: semDesfecho,
       entrada: card.criado_em,
       compromisso: card.comprometido_em,

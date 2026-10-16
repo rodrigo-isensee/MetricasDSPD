@@ -1,11 +1,11 @@
 {
-  "layout": "web",
-  "mock": "web/src/mock/index.ts",
+  "layout": "pacotes",
+  "mock": "packages/mock/src/index.ts",
   "semente": 20261009,
-  "hashBase": "924448d4",
-  "hashBusinessMap": "f780e90f",
+  "hashBase": "68a67741",
+  "hashBusinessMap": "4540bc56",
   "hashAcelerato": "0113e077",
-  "cards": 5788,
+  "cards": 5792,
   "chamados": 6062,
-  "geracaoMs": 154
+  "geracaoMs": 170
 }

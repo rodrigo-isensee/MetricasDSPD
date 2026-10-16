@@ -124,6 +124,10 @@ export const CAUSAS_RAIZ = [
 ] as const
 export type CausaRaiz = (typeof CAUSAS_RAIZ)[number]
 
+/** Naturezas de entrega do T3, reaproveitadas pelo E7 (`naturezaDe`, CA-23): lista única. */
+export const NATUREZAS_ENTREGA = ['Sustentação', 'Evolução', 'Projetos', 'Dívida técnica'] as const
+export type NaturezaEntrega = (typeof NATUREZAS_ENTREGA)[number]
+
 export const NATUREZAS_PROJETO = ['Manter', 'Evoluir'] as const
 export type NaturezaProjeto = (typeof NATUREZAS_PROJETO)[number]
 
@@ -154,6 +158,11 @@ export const METRICA_IDS = [
   'O14',
   'O16',
   'O17',
+  'O19',
+  'O20',
+  'O21',
+  'O24',
+  'O25',
   'T1',
   'T2',
   'T3',
@@ -163,11 +172,16 @@ export const METRICA_IDS = [
   'T9',
   'T6',
   'T8',
+  'T10',
+  'T11',
+  'T12',
   'E1',
   'E2',
   'E3',
   'E4',
   'E5',
+  'E7',
+  'E9',
   'S1',
   'S2',
   'S3',
