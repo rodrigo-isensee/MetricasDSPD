@@ -27,10 +27,18 @@ export const VERSAO_CRITERIO_PARADOS_V1: VersaoCriterio = {
 /**
  * Ids nascidas depois de 2026-10-15 (data da versão do descarte nativo): não entram no `afeta` dela nem no da versão
  * "excluído entregue" (a lista vale para as duas, que compartilham `METRICAS_DO_DESCARTE_NATIVO`), mesmo sendo do
- * BusinessMap. Quem criar uma métrica nova a lista aqui, nominalmente (T14...).
+ * BusinessMap. Quem criar uma métrica nova a lista aqui, nominalmente.
  * T11 (B11b): conta demandas criadas por mês, não usa `descartado()` nem o `ativo` do descarte.
+ * Fase 2 do pedido 011 (O22, O26, T13 e E6): nasceram com o descarte nativo já vigente (nunca existiram com o
+ * critério anterior), então nenhuma marcação de "mudou o critério" faz sentido nelas.
  */
-export const NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO: readonly MetricaId[] = ['T11']
+export const NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO: readonly MetricaId[] = [
+  'T11',
+  'O22',
+  'O26',
+  'T13',
+  'E6',
+]
 
 /** `afeta` do descarte nativo, derivado do catálogo: toda métrica de fonte BusinessMap, menos as nascidas depois. */
 const METRICAS_DO_DESCARTE_NATIVO: MetricaId[] = METRICA_IDS.filter(

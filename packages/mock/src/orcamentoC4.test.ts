@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { idsDoC4, fonteDaMetrica, SCHEMAS_TAMBEM_FASE1 } from '@metricas-dspd/contratos'
+import { idsDoC4, fonteDaMetrica, SCHEMAS_TAMBEM } from '@metricas-dspd/contratos'
 import type { CadenciaC4, MetricaId } from '@metricas-dspd/contratos'
 import { loadavg } from 'node:os'
 import { acelerato, businessmap, calcularMetrica, pesquisa } from '@metricas-dspd/metricas'
@@ -74,8 +74,8 @@ const CADENCIAS: Record<PainelFluxo, readonly CadenciaC4[]> = {
   tatico: ['semanal'],
   estrategico: ['semanal'],
 }
-/** Ids do 011 (fase 1), do contrato. T11 só calcula com a extensão do 011. */
-const TODAS_NOVAS = Object.keys(SCHEMAS_TAMBEM_FASE1) as MetricaId[]
+/** Ids do 011 (fases 1 e 2), do contrato. T11, O22, O26, T13 e E6 só calculam com a extensão do 011. */
+const TODAS_NOVAS = Object.keys(SCHEMAS_TAMBEM) as MetricaId[]
 
 const base = gerarBaseMock()
 const PESQUISA = gerarPesquisaMock(base.config)

@@ -47,13 +47,49 @@ export interface EntradaSazonal {
   sistema: string
 }
 
-/**
- * Extensão do pedido 011 (fase 1) só de mock: o histórico de 24 meses que a base mock (18 meses) não tem. Fica separada
- * de `ExtensaoBM` para que a base e a montagem do contexto não paguem por ela (ADR 0003, C1 e C2). Na coleta real o
- * T11 lê `dim_card` e esta extensão não existe. Os outros campos entram com as métricas da fase 2.
- */
-export interface ExtensaoTambemBM {
-  entradasSazonais: EntradaSazonal[]
+/** Vínculo `predecessor` de um card (D-14' = A). `outro_quadro` nulo = quadro do relacionado desconhecido (sem permissão). */
+export interface VinculoPredecessor {
+  card_id: string
+  relacionado_id: string
+  tipo: 'predecessor'
+  outro_quadro: boolean | null
+  /** Instante em que o vínculo passou a existir (derivado das revisões; `fato_vinculo.criado_em`). */
+  criado_em: number
+  /** Instante da remoção, ou `null` se segue vigente. Remover nunca apaga o evento (R-4). */
+  removido_em: number | null
 }
 
-export const EXTENSAO_TAMBEM_BM_VAZIA: ExtensaoTambemBM = { entradasSazonais: [] }
+/** Datas do projeto concluído (E6): a comprometida no compromisso (D-7), a final e quantas vezes mudou. */
+export interface DatasProjeto {
+  /** Data comprometida no compromisso (instante, ms). */
+  original: number
+  /** Data acordada vigente na conclusão (ms). */
+  final: number
+  replanejamentos: number
+}
+
+/**
+ * Extensão do pedido 011 só de mock, separada de `ExtensaoBM` para que a base e a montagem do contexto não paguem por ela
+ * (ADR 0003, C1 e C2). Na coleta real cada campo vira coluna ou tabela própria (fase 3) e esta extensão não existe.
+ * Nenhum campo identifica pessoa: `passagens` já é o inteiro que sai do coletor (ADR 0020) e `primeiroToque` é só o instante.
+ */
+export interface ExtensaoTambemBM {
+  /** T11 (fase 1): o histórico de 24 meses que a base mock não tem. */
+  entradasSazonais: EntradaSazonal[]
+  /** O22: instante do primeiro comentário humano; `null` = ainda sem toque; ausente = sem dado. */
+  primeiroToque: Record<string, number | null>
+  /** O26: número de passagens de mão por card entregue (inteiro >= 0); ausente = sem dado. */
+  passagens: Record<string, number>
+  /** T13: vínculos `predecessor` (só os que a coleta lê; pai/filho e relativo não entram). */
+  vinculos: VinculoPredecessor[]
+  /** E6: datas dos projetos concluídos; ausente = sem data comprometida registrada. */
+  datasProjeto: Record<string, DatasProjeto>
+}
+
+export const EXTENSAO_TAMBEM_BM_VAZIA: ExtensaoTambemBM = {
+  entradasSazonais: [],
+  primeiroToque: {},
+  passagens: {},
+  vinculos: [],
+  datasProjeto: {},
+}

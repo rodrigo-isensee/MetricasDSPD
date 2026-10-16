@@ -11,7 +11,8 @@ import { criarDublePg } from './duble-pg.js'
 /**
  * QA do back do pedido 011, fase 1 (docs/qa/011-back.md): A-2, A-5, A-6, A-11 e A-12 do plano. O que as suítes
  * `api.sistemico-intensivo` e `metricas.paridade` já varrem nas 60 ids (A-1, A-3, A-4, A-7, A-9) não se repete aqui.
- * B11b: o T11 entra em A-2 (não é 404), T11-5 e no corte no meio do mês (T11-B11b-1), por API. A fase 2 e 3 segue sem rota.
+ * B11b: o T11 entra em A-2 (não é 404), T11-5 e no corte no meio do mês (T11-B11b-1), por API. As quatro ids da fase 2 (E1) entraram
+ * com o cálculo (A-2 mudou de 404 para 200); T14 e E8 seguem sem rota até o E2.
  */
 const AGORA = new Date('2026-10-10T15:00:00Z')
 const base = gerarBaseMock({ escala: 0.25 })
@@ -53,19 +54,24 @@ function violacoes(x: unknown, caminho = '$', out: string[] = []): string[] {
   return out
 }
 
-describe('A-2: ids das fases 2 e 3 não têm rota (nenhum dado inventado)', () => {
-  it.each(['O22', 'O26', 'T13', 'T14', 'E6', 'E8'])(
-    '%s: 404 METRICA_NAO_ENCONTRADA',
+describe('A-2: cada id entra com o seu cálculo (nenhum dado inventado)', () => {
+  // Fase 2 (E1 do back): as quatro entraram com o cálculo, o contrato e o mock; antes disso eram 404.
+  it.each(['O22', 'O26', 'T13', 'E6'] as const)(
+    '%s: existe no catálogo e responde 200 no schema',
     async (id) => {
-      expect(
-        (METRICA_IDS as readonly string[]).includes(id),
-        `${id} não pode estar no catálogo`,
-      ).toBe(false)
+      expect((METRICA_IDS as readonly string[]).includes(id), `${id} no catálogo`).toBe(true)
+      const r = await app.inject(url(id, 'equipe=fluig'))
+      expect(r.statusCode).toBe(200)
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success).toBe(true)
+    },
+  )
+  it('id que ainda não tem cálculo (T14 e E8, do E2) ou inexistente: 404 METRICA_NAO_ENCONTRADA', async () => {
+    for (const id of ['T14', 'E8', 'O27']) {
       const r = await app.inject(url(id))
       expect(r.statusCode).toBe(404)
       expect(r.json().error.code).toBe('METRICA_NAO_ENCONTRADA')
-    },
-  )
+    }
+  })
 })
 
 describe('A-5 / A-6: recorte pequeno e recorte vazio nas 10 ids da fase 1', () => {

@@ -2,6 +2,7 @@ import { gzipSync } from 'node:zlib';
 import { METRICA_IDS } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { gerarBaseMock, gerarExtensoesMock } from '@metricas-dspd/mock';
+import { EXTENSAO_TAMBEM_BM_VAZIA } from '@metricas-dspd/metricas/businessmap';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { paginarO2 } from '../src/modulos/metricas/rotas.js';
@@ -93,7 +94,7 @@ describe('GET /api/v1/metricas/:id', () => {
 
   it('T11: a extensão é lazy (só o T11 a chama) e, sem ela (fonte real), devolve vazio com histórico curto, nunca 500', async () => {
     let chamadas = 0;
-    const gerar = () => { chamadas++; return { entradasSazonais: [] }; };
+    const gerar = () => { chamadas++; return EXTENSAO_TAMBEM_BM_VAZIA; };
     const montarCom = async (extra: Partial<Parameters<typeof buildApp>[0]>) => buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', ...extra });
     const app = await montarCom({ extensaoTambem: gerar });
     await get(app, '/api/v1/metricas/O1');
@@ -522,4 +523,56 @@ describe('ServicoMetricas: carga, versão e cache', () => {
     const s = new ServicoMetricas({ db: criarDublePg(bancoDoMock(base)).pool });
     await expect(s.calcular('T1', FL, { dataReferencia: '2026-10-11' }, AGORA)).rejects.toMatchObject({ code: 'VALIDATION_ERROR', status: 400 });
   });
+});
+
+describe('fase 2 do pedido 011 (E1): O22, O26, T13 e E6 em mock', () => {
+  const NOVAS = ['O22', 'O26', 'T13', 'E6'] as const;
+
+  it.each(NOVAS)('%s: 200 no schema, filtros do fluxo, cabeçalhos e nenhum campo de pessoa', async (id) => {
+    const { app } = await montar();
+    const r = await get(app, `/api/v1/metricas/${id}?periodo=12m`);
+    expect(r.statusCode).toBe(200);
+    expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success).toBe(true);
+    expect(r.headers['cache-control']).toBe('private, max-age=60');
+    expect([...chaves(r.json())].filter((k) => PESSOA.test(k))).toEqual([]);
+    expect((await get(app, `/api/v1/metricas/${id}?periodo=12m&tipo=melhoria&equipe=fluig&sistema=fluig`)).statusCode).toBe(200);
+    expect((await get(app, `/api/v1/metricas/${id}?periodo=abc`)).statusCode).toBe(400);
+    expect((await get(app, `/api/v1/metricas/${id}?periodo=12m&responsavel=x`)).statusCode).toBe(400);
+  }, 60_000);
+
+  it('O22: P50/P85/P95 por tipo e sem toque; O26: histograma por faixa e P85 do ciclo; sem nome de pessoa', async () => {
+    const { app } = await montar();
+    const o22 = (await get(app, '/api/v1/metricas/O22?periodo=12m')).json();
+    expect(o22.porTipo.length).toBeGreaterThan(0);
+    expect(Object.keys(o22.porTipo[0]).sort()).toEqual(['distribuicao', 'histograma', 'semToque', 'tipo']);
+    const o26 = (await get(app, '/api/v1/metricas/O26?periodo=12m')).json();
+    expect(o26.porTipo[0].faixas.map((f: { faixa: string }) => f.faixa)).toEqual(['0', '1', '2', '3', '4+']);
+    expect(JSON.stringify([o22, o26])).not.toMatch(/Pessoa \d/);
+  }, 60_000);
+
+  it('T13: um bloco por granularidade (demanda e frente), só o booleano agregado e sem o quadro do outro lado', async () => {
+    const { app } = await montar();
+    const t13 = (await get(app, '/api/v1/metricas/T13?periodo=12m')).json();
+    expect(t13.porGranularidade.map((g: { granularidade: string }) => g.granularidade)).toEqual(['story', 'frente']);
+    expect([...chaves(t13)].filter((k) => /quadro|equipe|relacionado/i.test(k))).toEqual([]);
+  }, 60_000);
+
+  it('a extensão é lazy: só as cinco métricas do 011 a chamam; sem ela (fonte real) todas devolvem estado vazio, nunca 500', async () => {
+    let chamadas = 0;
+    const gerar = () => { chamadas++; return EXTENSAO_TAMBEM_BM_VAZIA; };
+    const app = await buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', extensaoTambem: gerar });
+    for (const id of ['O1', 'T12', 'E7', 'E9']) await get(app, `/api/v1/metricas/${id}`);
+    expect(chamadas).toBe(0);
+    for (const id of ['O22', 'O26', 'T13', 'E6']) expect((await get(app, `/api/v1/metricas/${id}`)).statusCode).toBe(200);
+    expect(chamadas).toBe(4);
+    const real = await buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
+    for (const id of ['O22', 'O26', 'T13', 'E6'] as const) {
+      const r = await get(real, `/api/v1/metricas/${id}?periodo=12m&equipe=fluig`);
+      expect(r.statusCode, id).toBe(200);
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success, id).toBe(true);
+    }
+    const o26 = (await get(real, '/api/v1/metricas/O26?periodo=12m')).json();
+    // sem a extensão nenhuma entrega vira "0 passagens": é tudo semDado
+    expect(o26.porTipo.every((t: { entregas: number; semDado: number }) => t.entregas === 0 && t.semDado > 0)).toBe(true);
+  }, 90_000);
 });

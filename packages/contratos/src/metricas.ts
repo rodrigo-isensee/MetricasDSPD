@@ -13,6 +13,10 @@ import type {
   ResultadoO20,
   ResultadoO21,
   ResultadoO24,
+  ResultadoO22,
+  ResultadoO26,
+  ResultadoT13,
+  ResultadoE6,
 } from './tambem'
 
 export type ResultadoO1 = z.infer<typeof s.resultadoO1>
@@ -102,7 +106,9 @@ export interface ContratoMetricas {
   O20: Fluxo<ResultadoO20>
   O21: Fluxo<ResultadoO21>
   O24: Fluxo<ResultadoO24>
+  O22: Fluxo<ResultadoO22>
   O25: Fluxo<ResultadoO25>
+  O26: Fluxo<ResultadoO26>
   T1: Fluxo<ResultadoT1>
   T2: Fluxo<ResultadoT2>
   T3: Fluxo<ResultadoT3>
@@ -115,11 +121,13 @@ export interface ContratoMetricas {
   T10: Fluxo<ResultadoT10>
   T11: Fluxo<ResultadoT11>
   T12: Fluxo<ResultadoT12>
+  T13: Fluxo<ResultadoT13>
   E1: Fluxo<ResultadoE1>
   E2: Fluxo<ResultadoE2>
   E3: Fluxo<ResultadoE3>
   E4: Fluxo<ResultadoE4>
   E5: Fluxo<ResultadoE5>
+  E6: Fluxo<ResultadoE6>
   E7: Fluxo<ResultadoE7>
   E9: Fluxo<ResultadoE9>
   S1: Sust<ResultadoS1>
@@ -224,15 +232,19 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   O20: ['equipe', 'tipo', 'sistema', 'periodo'],
   O21: ['equipe', 'tipo', 'sistema', 'periodo'],
   O24: ['equipe', 'tipo', 'sistema', 'periodo'],
+  O22: ['equipe', 'tipo', 'sistema', 'periodo'],
   O25: ['equipe', 'tipo', 'sistema', 'periodo'],
+  O26: ['equipe', 'tipo', 'sistema', 'periodo'],
   T6: ['equipe', 'sistema', 'periodo'],
   T8: ['equipe', 'sistema', 'periodo'],
   T10: ['equipe', 'tipo', 'sistema', 'periodo'],
   // T11: janela fixa de 24 meses mais o corrente; o período é aceito e ignorado (CA-12, "Não afetado por: Período"), como no E9.
   T11: ['equipe', 'tipo', 'sistema', 'periodo'],
   T12: ['equipe', 'tipo', 'sistema', 'periodo'],
+  T13: ['equipe', 'tipo', 'sistema', 'periodo'],
   E4: ['sistema', 'periodo'],
   E5: ['sistema', 'periodo'],
+  E6: ['sistema', 'periodo'],
   E7: ['sistema', 'periodo'],
   // E9 é retrato do dia: o período é aceito e ignorado ("Não afetado por: Período"), como nas demais métricas de retrato.
   E9: ['sistema', 'periodo'],
