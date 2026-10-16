@@ -36,6 +36,8 @@ interface Props {
   gerar: (selecionados: readonly ItemExportavel[]) => Promise<ArquivoGerado>
   /** Relógio injetado (nome do arquivo na prévia). */
   agora: () => Date
+  /** Na personalizada, chaves (`nivel:cartao`) que já nascem marcadas, dentro do limite do arquivo e só se visíveis. */
+  preSelecionar?: readonly string[]
 }
 
 const TITULO: Record<'visao-geral' | 'personalizada' | 'painel', string> = {
@@ -44,12 +46,26 @@ const TITULO: Record<'visao-geral' | 'personalizada' | 'painel', string> = {
   painel: 'Exportar métricas',
 }
 
+/** O Operacional e a visão Sustentação dizem de que fonte é o arquivo (as duas moram na mesma página). */
+const TITULO_DO_NIVEL: Partial<Record<BaseExportacao, string>> = {
+  operacional: 'Exportar · Operacional (fluxo de projeto)',
+  sustentacao: 'Exportar · Operacional · Sustentação',
+}
+
 /**
  * Diálogo de exportação (pedido 008): marca as métricas visíveis, mostra a prévia do arquivo e gera o PDF.
  * No "Exportar" do painel nasce com tudo marcado; na personalizada, vazio, nível a nível. A Visão geral
  * não tem escolha: exporta o resumo inteiro. Foco preso, Esc e retorno do foco vêm do Radix.
  */
-export function DialogoExportar({ base, itens, mock, carregando = false, gerar, agora }: Props) {
+export function DialogoExportar({
+  base,
+  itens,
+  mock,
+  carregando = false,
+  gerar,
+  agora,
+  preSelecionar,
+}: Props) {
   const [aberto, setAberto] = useState(false)
   const [sel, setSel] = useState<string[]>([])
   const [estado, setEstado] = useState<Estado>(OCIOSO)
@@ -74,7 +90,13 @@ export function DialogoExportar({ base, itens, mock, carregando = false, gerar, 
   const abrir = (v: boolean) => {
     descartar.current = !v
     if (v) {
-      setSel(personalizada || visaoGeral ? [] : selecaoInicial(itens))
+      setSel(
+        personalizada && preSelecionar
+          ? selecaoInicial(itens.filter((i) => preSelecionar.includes(i.chave)))
+          : personalizada || visaoGeral
+            ? []
+            : selecaoInicial(itens),
+      )
       setEstado(OCIOSO)
     }
     setAberto(v)
@@ -120,7 +142,8 @@ export function DialogoExportar({ base, itens, mock, carregando = false, gerar, 
         >
           <div className="min-h-0 flex-1 overflow-y-auto p-4" data-testid="exportar-corpo">
             <Dialog.Title className="text-lg font-bold">
-              {TITULO[visaoGeral || personalizada ? base : 'painel']}
+              {TITULO_DO_NIVEL[base as 'operacional' | 'sustentacao'] ??
+                TITULO[visaoGeral || personalizada ? base : 'painel']}
             </Dialog.Title>
             <Dialog.Description className="mt-1 text-sm text-texto-2">
               Gera um arquivo PDF só com o que está visível na tela, com base, janela, filtros e

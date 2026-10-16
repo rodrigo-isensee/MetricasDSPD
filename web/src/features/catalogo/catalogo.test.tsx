@@ -20,7 +20,12 @@ describe('Catálogo de métricas (/metricas)', () => {
       ],
       ['Espera invisível · Tático', 'Tático', 'BusinessMap', '/tatico#ei-fl2'],
       ['Espera invisível · Estratégico', 'Estratégico', 'BusinessMap', '/estrategico#ei-fl3'],
-      ['Espera invisível · Sustentação', 'Sustentação', 'Acelerato', '/sustentacao#ei-sust'],
+      [
+        'Espera invisível · Sustentação',
+        'Operacional · Sustentação',
+        'Acelerato',
+        '/operacional?cadencia=sustentacao#ei-sust',
+      ],
     ])
     expect(l.some((x) => (x.painel as string) === 'espera-invisivel')).toBe(false)
     expect(l.some((x) => x.codigo === 'BLOQUEADOS')).toBe(false)
@@ -28,7 +33,7 @@ describe('Catálogo de métricas (/metricas)', () => {
     expect(pv1).toMatchObject({
       fonte: 'Pesquisa de percepção',
       grupo: 'Núcleo',
-      destino: '/sustentacao#pv1',
+      destino: '/operacional?cadencia=sustentacao#pv1',
     })
   })
 
@@ -38,9 +43,29 @@ describe('Catálogo de métricas (/metricas)', () => {
     const o3 = l.find((x) => x.codigo === 'O3')
     expect(o3?.destino).toBe('/operacional?cadencia=semanal#o3')
     expect(l.find((x) => x.codigo === 'T1')?.destino).toBe('/tatico#t1')
-    // a faixa do dia existe só na visão diária (padrão): sem cadencia=semanal
-    expect(l.find((x) => x.codigo === 'O1')?.destino).toBe('/operacional#o1')
-    expect(l.find((x) => x.codigo === 'O2')?.destino).toBe('/operacional#o2')
+    // a faixa do dia existe só na visão diária; a Sustentação vive na visão dela (hash → visão)
+    expect(l.find((x) => x.codigo === 'O1')?.destino).toBe('/operacional?cadencia=diaria#o1')
+    expect(l.find((x) => x.codigo === 'O2')?.destino).toBe('/operacional?cadencia=diaria#o2')
+    for (const c of [
+      'S1',
+      'S2',
+      'S3',
+      'S4',
+      'S5',
+      'S6',
+      'S7',
+      'S8',
+      'S9',
+      'S10',
+      'S11',
+      'S12',
+      'O17',
+      'PV1',
+    ]) {
+      const x = l.find((y) => y.codigo === c)
+      expect(x?.destino, c).toBe(`/operacional?cadencia=sustentacao#${c.toLowerCase()}`)
+      expect(x?.painelRotulo, c).toBe('Operacional · Sustentação')
+    }
   })
 
   it('mostra a tabela com status escrito e link que abre o cartão; filtros por painel e grupo', async () => {
@@ -70,6 +95,11 @@ describe('Catálogo de métricas (/metricas)', () => {
     )
     await u.selectOptions(screen.getByLabelText('Grupo'), 'Complementar')
     expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('17 de 49 métricas')
+    const opcoes = within(screen.getByLabelText('Painel'))
+      .getAllByRole('option')
+      .map((o) => o.textContent)
+    expect(opcoes).toContain('Operacional · Sustentação')
+    expect(opcoes).not.toContain('Sustentação')
     await u.selectOptions(screen.getByLabelText('Painel'), 'sustentacao')
     expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('6 de 49 métricas')
   })

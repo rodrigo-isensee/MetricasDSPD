@@ -35,8 +35,8 @@ describe('gerarArquivo (cache novo: lê tudo pela fonte)', () => {
   it('a espera invisível sai pelo painel do nível: a da Sustentação só com Acelerato e filtros dela', async () => {
     const r = await gerarArquivo({
       ...base(),
-      pathname: '/sustentacao',
-      params: new URLSearchParams('periodo=12m'),
+      pathname: '/operacional',
+      params: new URLSearchParams('sust_periodo=12m&periodo=4s'),
       base: 'sustentacao',
       itens: itensDoNivel('sustentacao', []).filter((i) => i.metrica === 'EI_SUST'),
     })

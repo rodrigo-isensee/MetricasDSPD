@@ -82,7 +82,9 @@ Qualquer erro que não seja o conflito da chave natural é falha do item (`ctl_c
 |---|---|---|---|
 | `dim_card_versao` (SCD2) | 1 versão por mudança de atributo | (`card_id`, `vigente_de`) | todos os atributos de `dim_card` exceto marcos, inclusive `responsaveis` (§9); `vigente_de`, `stg_card_sk` |
 | `evt_card` | ciclo de vida | (`card_id`, `tipo`, `ocorrido_em`) | `tipo CHECK IN ('criado','arquivado','desarquivado','excluido_detectado','restaurado')` |
-| `fato_transicao` | 1 linha por movimentação (4.5) | (`fonte`, `id_origem`); índice (`card_id`, `ocorrido_em`) | `quadro_id` (prov.), `coluna_origem_id`, `coluna_destino_id`, `tipo_coluna CHECK IN ('fila','execucao')`, `direcao CHECK IN ('avanco','retorno')`, `fonte CHECK IN ('revision','webhook')`, `id_origem varchar(64)`, **`usuario text NULL`** (4.5, §9) |
+| `fato_transicao` | 1 linha por movimentação (4.5) | (`fonte`, `id_origem`); índice (`card_id`, `ocorrido_em`) | `quadro_id` (prov.), `coluna_origem_id`, `coluna_destino_id`, `tipo_coluna CHECK IN ('fila','execucao')`, `direcao CHECK IN ('avanco','retorno')`, `fonte CHECK IN ('revision','webhook')`, `id_origem varchar(64)` |
+
+> **K-096 (2026-10-16, ADR 0020 R-2 = B):** a coluna `usuario` (4.5) foi **removida** pela migração `0015_bm_remove_usuario_transicao` (a migração aborta se houver valor gravado; o `down` recria a coluna vazia). A decisão de 2026-10-10 (§8) fica revista só nesta coluna.
 | `rec_transicao_par` | casamento webhook × revision | (`transicao_webhook_sk`) UNIQUE, (`transicao_revision_sk`) UNIQUE | `delta_ms`, `casado_em` |
 | `evt_bloqueio` | início e fim de bloqueio | (`card_id`, `id_origem`, `tipo CHECK IN ('inicio','fim')`) | `motivo_codigo`, `coluna_id`, `fornecedor_codigo`, `ocorrido_em` |
 
@@ -326,24 +328,24 @@ O teste de grants (CI, job `db`) lê `information_schema.role_table_grants`/`col
 
 ## 9. Dados pessoais (LGPD) e "nenhuma visão individual" no modelo
 
-**Decisões do usuário:** L-1 (2026-10-10, §3): nomes não são pseudonimizados. §8 (2026-10-10 15:14): **nomes também nas tabelas analíticas**, como no modelo 4.5 do briefing (`responsaveis`, `usuario`); o usuário de banco da API **não lê** essas colunas; nenhuma view, rota, DTO ou tela agrega ou exibe por pessoa.
+**Decisões do usuário:** L-1 (2026-10-10, §3): nomes não são pseudonimizados. §8 (2026-10-10 15:14): **nomes também nas tabelas analíticas**, como no modelo 4.5 do briefing (`responsaveis`; `usuario` foi removida em 2026-10-16, K-096); o usuário de banco da API **não lê** essas colunas; nenhuma view, rota, DTO ou tela agrega ou exibe por pessoa.
 
 | Dado de pessoa | Onde fica | Quem lê |
 |---|---|---|
 | Responsáveis do card | staging (payload) + **`dim_card.responsaveis`**, **`dim_card_versao.responsaveis`** (`text[]`) | `dspd_coletor`, `dspd_migrador`; **nunca `dspd_api`** |
-| Usuário da transição | staging (revision, webhook) + **`fato_transicao.usuario`** | idem |
+| Usuário da transição | **não é guardado** (K-096: coluna removida; fora da staging pela ADR 0020) | ninguém |
 | Autores de comentário, tempo apontado | só staging | idem; horas apontadas nunca viram esforço (7.1) |
 | Solicitante, atendente/agente, e-mail (Acelerato) | só staging (o modelo 4.5 não os traz para o analítico; trazer exige nova decisão do usuário) | `dspd_coletor`, `dspd_migrador` |
 | Texto livre (título, justificativa de reclassificação) | título projetado (prov., L-2); justificativa só no staging (T5.5, pessoa autorizada); no analítico, apenas o booleano derivado `dim_chamado.justificativa_informada` ("campo não vazio"; o texto nunca é gravado) | — |
 | Identidade de quem acessa o painel | sessão | HMAC do `sub`, sem nome (ADR 0009) |
 
 Garantias (cada uma verificada por teste ou privilégio):
-1. **Colunas de pessoa só numa lista fechada.** Fonte única em `server/src/plataforma/db/lgpd.ts`: `SEGMENTO_PESSOA` (regex), `COLUNAS_PESSOA` (colunas de pessoa **permitidas** no analítico, por `schema.tabela.coluna`: `dspd_bm.dim_card.responsaveis`, `dspd_bm.dim_card_versao.responsaveis`, `dspd_bm.fato_transicao.usuario`), `EXCECOES_PESSOA` (falsos positivos: `dspd_bm.dim_card.area_solicitante`, `dspd_bm.dim_card_versao.area_solicitante`, área organizacional, briefing 4.5) e `violaLgpd`. Fora de `stg_`, qualquer coluna cujo nome, dividido por `_`, tenha segmento casando `^(pessoa|responsav\w*|usuario\w*|user\w*|agente\w*|atendente\w*|solicitante\w*|autor\w*|criador\w*|email\w*|login\w*|assignee\w*|justificativa\w*)$` e não esteja em `COLUNAS_PESSOA` nem em `EXCECOES_PESSOA` reprova. Usada pelo teste estático das migrações (`ddl(S)`), pelo teste do seed e pelo teste de catálogo no CI. Nenhum teste copia a lista. Entrada nova em qualquer das duas listas só com alteração desta seção e revisão de modelagem (arquiteto + tech-lead).
+1. **Colunas de pessoa só numa lista fechada.** Fonte única em `server/src/plataforma/db/lgpd.ts`: `SEGMENTO_PESSOA` (regex), `COLUNAS_PESSOA` (colunas de pessoa **permitidas** no analítico, por `schema.tabela.coluna`: `dspd_bm.dim_card.responsaveis`, `dspd_bm.dim_card_versao.responsaveis`), `EXCECOES_PESSOA` (falsos positivos: `dspd_bm.dim_card.area_solicitante`, `dspd_bm.dim_card_versao.area_solicitante`, área organizacional, briefing 4.5) e `violaLgpd`. Fora de `stg_`, qualquer coluna cujo nome, dividido por `_`, tenha segmento casando `^(pessoa|responsav\w*|usuario\w*|user\w*|agente\w*|atendente\w*|solicitante\w*|autor\w*|criador\w*|email\w*|login\w*|assignee\w*|justificativa\w*)$` e não esteja em `COLUNAS_PESSOA` nem em `EXCECOES_PESSOA` reprova. Usada pelo teste estático das migrações (`ddl(S)`), pelo teste do seed e pelo teste de catálogo no CI. Nenhum teste copia a lista. Entrada nova em qualquer das duas listas só com alteração desta seção e revisão de modelagem (arquiteto + tech-lead).
 2. **Privilégio:** `dspd_api` não tem `SELECT` em nenhuma coluna de `COLUNAS_PESSOA` (GRANT por coluna) nem em `stg_`; consulta que tente ler a coluna falha com `42501`, mesmo com bug no código. Por isso `SELECT *` é proibido nos repositórios da API.
 3. **Views:** todas `security_invoker` e com colunas explícitas; nenhuma `vw_` seleciona, agrupa ou ordena por coluna de pessoa (teste sobre `information_schema.view_column_usage`); `equipe` existe só como filtro, e nenhuma view agrupa por equipe para comparar times (7.1).
 4. **Contrato da API:** nenhuma rota, DTO ou schema zod tem campo de pessoa, nem como saída nem como filtro ou agrupamento; entrada `strict` recusa parâmetro desconhecido (ADR 0007); nenhum endpoint agrega por pessoa.
 5. **Telas:** nenhuma tela mostra, filtra ou ordena por pessoa (testes de UI e E2E).
-6. **Biblioteca:** `DimCard.responsaveis` e `FatoTransicao.usuario` continuam **fora** dos tipos de `@metricas-dspd/metricas` e do mock (nenhuma métrica os usa). O repositório da API não os seleciona; o projetor os grava a partir do staging.
+6. **Biblioteca:** `DimCard.responsaveis` e `FatoTransicao.usuario` continuam **fora** dos tipos de `@metricas-dspd/metricas` e do mock (nenhuma métrica os usa). O repositório da API não os seleciona. `fato_transicao.usuario` deixou de existir no banco (K-096); o campo `usuario` do tipo em memória da biblioteca é só resíduo de fidelidade ao 4.5, sempre `''` no caminho do banco e nunca persistido.
 
 Uso permitido das colunas de pessoa: reconciliação e auditoria por pessoa autorizada, com o papel `dspd_coletor`/`dspd_migrador`, fora da API. Retenção a definir com o DPO (I-12).
 

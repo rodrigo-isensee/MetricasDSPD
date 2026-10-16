@@ -60,6 +60,8 @@ export const SCHEMAS_RESULTADO: { [K in MetricaId]: z.ZodType<ResultadoDe<K>> } 
   EI_FL3: s.resultadoEI,
   EI_SUST: s.resultadoEI,
   VISAO_GERAL: s.resultadoVisaoGeral,
+  TENDENCIA_FLUXO: s.resultadoTendenciaFluxo,
+  TENDENCIA_SUST: s.resultadoTendenciaSust,
 }
 
 /** Metadados de paginação do O2 (`itensMeta`): a API pagina só `itens`; o resto é do conjunto completo. */

@@ -12,7 +12,7 @@ for (const [w, h] of TELAS) {
     test(`acabamento-ux: cartão PV1 ${w} ${t}`, async ({ page, painel }) => {
       await page.setViewportSize({ width: w, height: h });
       await page.addInitScript((tt) => localStorage.setItem('metricas-dspd:tema', tt), t);
-      await painel.ir('/sustentacao');
+      await painel.ir('/operacional?cadencia=sustentacao');
       await painel.esperarCartoesProntos();
       const cartao = page.getByTestId('metrica-PV1');
       await expect(cartao.getByTestId('pv1-participacao')).toBeVisible();

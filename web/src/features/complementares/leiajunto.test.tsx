@@ -10,7 +10,7 @@ const URL_DO_PAINEL = {
   operacional: '/operacional?cadencia=semanal',
   tatico: '/tatico',
   estrategico: '/estrategico',
-  sustentacao: '/sustentacao',
+  sustentacao: '/operacional?cadencia=sustentacao',
 } as const
 
 const comPares = CATALOGO_CARTOES.filter(
@@ -31,7 +31,14 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
         const esperado = (c.leiaJunto ?? [])
           .map((x) => cartaoPorIdGlobal(x))
           .filter((x) => x?.grupo === 'complementar' || x?.grupo === 'percepcao')
-          .map((x) => `${x?.codigo} ${x?.rotulo}`)
+          .map(
+            (x) =>
+              `${x?.codigo} ${x?.rotulo}${
+                painel === 'operacional' && x?.painel === 'sustentacao'
+                  ? ' · visão Sustentação, fonte Acelerato'
+                  : ''
+              }`,
+          )
         expect(
           within(leia)
             .getAllByRole('link')
@@ -66,9 +73,29 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     const u = userEvent.setup()
     const a = renderizarApp('/operacional?cadencia=semanal')
     const leia = await screen.findByTestId('leia-junto-o15')
-    await u.click(within(leia).getByRole('link', { name: /O17 .*painel Sustentação/ }))
+    const link17 = within(leia).getByRole('link', {
+      name: /O17 .*visão Sustentação, fonte Acelerato/,
+    })
+    // O rótulo diz a visão e a fonte (leia junto não é calcular junto)
+    expect(link17).toHaveTextContent(
+      'O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato',
+    )
+    // WCAG 2.5.3: o nome acessível contém o texto visível
+    expect(link17).toHaveAccessibleName(
+      /^O17 Defeitos por causa raiz e sistema · visão Sustentação, fonte Acelerato\. Abre Mais métricas da visão Sustentação\.$/,
+    )
+    expect(link17).toHaveAttribute('href', '/operacional?cadencia=sustentacao#o17')
+    await u.click(link17)
     expect(await screen.findByTestId('metrica-O17')).toBeInTheDocument()
-    expect(a.roteador.state.location.pathname).toBe('/sustentacao')
+    expect(a.roteador.state.location.pathname).toBe('/operacional')
+    expect(a.roteador.state.location.search).toContain('cadencia=sustentacao')
+    expect(a.roteador.state.location.hash).toBe('#o17')
+    expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId('metrica-O17')).getByRole('heading', { level: 3 }),
+      ).toHaveFocus(),
+    )
     a.unmount()
     const b = renderizarApp('/tatico')
     const leia9 = await screen.findByTestId('leia-junto-t9')

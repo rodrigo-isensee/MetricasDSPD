@@ -23,13 +23,14 @@ const S = montarEsquemas(prefixo);
 
 await migrar(urlMigrador, { prefixo });
 const migrador = criarPool(urlMigrador);
-const base = gerarBaseMock();
+// MOCK_MESES_HISTORICO (opcional): ajusta o volume do seed (a medição A1/A2 da ADR 0003 pede o equivalente a 2 anos = 24).
+const base = gerarBaseMock(process.env.MOCK_MESES_HISTORICO ? { mesesHistorico: Number(process.env.MOCK_MESES_HISTORICO) } : {});
 await semear(migrador, base, S);
 await migrador.end();
 
 const pool = criarPool(urlDoPapel(urlMigrador, 'dspd_api', process.env.DSPD_PWD_API ?? 'api_dev'), { statementTimeoutMs: 10_000 });
 // Relógio fixo na data da base: `historico.fim` e a data de referência dependem de "hoje" e o mock tem a sua data fixa.
-const app = await buildApp({ db: pool, S, agora: () => new Date(base.config.hoje), nivelLog: 'silent', fonteDados: 'mock' });
+const app = await buildApp({ db: pool, S, agora: () => new Date(base.config.hoje), nivelLog: 'silent', fonteDados: 'mock', aquecer: true });
 
 let encerrando = false;
 const encerrar = async (): Promise<void> => {

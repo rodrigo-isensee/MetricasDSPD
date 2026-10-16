@@ -21,7 +21,7 @@ const NEGACOES = /nunca em ranking|Sem meta de \S+|^Meta:/gim
 const PESSOA = /(@|e-?mail|usuarioKey|coment[aá]rio)/i
 
 async function abrir(page: Page, painel: { ir: (r: string) => Promise<void>; esperarCartoesProntos: () => Promise<void> }) {
-  await painel.ir('/sustentacao')
+  await painel.ir('/operacional?cadencia=sustentacao')
   await painel.esperarCartoesProntos()
   const cartao = page.getByTestId('metrica-PV1')
   await expect(cartao).toBeVisible()
@@ -146,7 +146,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
     const antes = await cartao.innerText()
     const faixa = page.getByTestId('faixa-atencao')
     if (await faixa.count()) await expect(faixa).not.toContainText(/\bPV1\b|percepção/i)
-    await painel.ir('/sustentacao?periodo=30d')
+    await painel.ir('/operacional?cadencia=sustentacao&periodo=30d')
     await painel.esperarCartoesProntos()
     const depois = page.getByTestId('metrica-PV1')
     await expect(depois.getByTestId('pv1-participacao')).toBeVisible()
@@ -154,7 +154,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
   })
 
   test('LV-10 CT-19 "Leia junto" de S1 e S2 leva a PV1; ocultar pv1 nas preferências remove link e seção', async ({ page, painel }) => {
-    await painel.ir('/sustentacao')
+    await painel.ir('/operacional?cadencia=sustentacao')
     await painel.esperarCartoesProntos()
     for (const id of ['s1', 's2']) {
       const leia = page.getByTestId(`leia-junto-${id}`)
@@ -167,7 +167,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
         localStorage.setItem(chave, JSON.stringify({ versao: 1, paineis: { sustentacao: { ocultar: ['pv1'] } }, atualizadoEm: '2026-10-10T00:00:00.000Z' })),
       [CHAVE] as const,
     )
-    await painel.ir('/sustentacao')
+    await painel.ir('/operacional?cadencia=sustentacao')
     await painel.esperarCartoesProntos()
     await expect(page.getByTestId('metrica-PV1')).toHaveCount(0)
     await expect(page.getByTestId('leia-junto-s1').getByRole('link', { name: /PV1/ })).toHaveCount(0)
@@ -175,7 +175,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
 
   // Estados forçados pelo parâmetro oculto ?mock= (pesquisa:sem, pesquisa:insuficiente): o mock é em memória, não há rota para interceptar.
   test('LV-11 CT-21 sem pesquisa: mensagem orientando a carga, sem botão de upload', async ({ page, painel }) => {
-    await painel.ir('/sustentacao', { mock: 'pesquisa:sem' })
+    await painel.ir('/operacional?cadencia=sustentacao', { mock: 'pesquisa:sem' })
     await painel.esperarCartoesProntos()
     const cartao = page.getByTestId('metrica-PV1')
     await expect(cartao.getByText(/Nenhuma pesquisa carregada/)).toBeVisible()
@@ -185,7 +185,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
   })
 
   test('LV-12 CT-05 base insuficiente: só o total de respostas, sem faixas nem percentual (U2)', async ({ page, painel }) => {
-    await painel.ir('/sustentacao', { mock: 'pesquisa:insuficiente' })
+    await painel.ir('/operacional?cadencia=sustentacao', { mock: 'pesquisa:insuficiente' })
     await painel.esperarCartoesProntos()
     const cartao = page.getByTestId('metrica-PV1')
     await expect(cartao.getByText('Base insuficiente: 4 respostas. Mínimo 5 para publicar.').first()).toBeVisible()

@@ -11,7 +11,7 @@ const PAINEIS = [
   { rota: '/operacional?cadencia=semanal', n: 7, ids: ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16'] },
   { rota: '/tatico', n: 2, ids: ['T6', 'T8'] },
   { rota: '/estrategico', n: 2, ids: ['E4', 'E5'] },
-  { rota: '/sustentacao', n: 6, ids: ['O17', 'S8', 'S9', 'S10', 'S11', 'S12'] },
+  { rota: '/operacional?cadencia=sustentacao', n: 6, ids: ['O17', 'S8', 'S9', 'S10', 'S11', 'S12'] },
 ] as const
 
 const TELAS = [
@@ -46,7 +46,7 @@ for (const tela of TELAS) {
         await painel.ir(p.rota)
         await painel.esperarCartoesProntos()
         const det = page.getByTestId('mais-metricas')
-        await expect(det.getByText(new RegExp(`Mais métricas deste painel · ${p.n} complementares`))).toBeVisible()
+        await expect(det.getByText(new RegExp(`Mais métricas (deste painel|desta visão) · ${p.n} complementares`))).toBeVisible()
         await expect(det).not.toHaveAttribute('open', '')
         for (const id of p.ids) await expect(page.getByTestId(`metrica-${id}`)).toHaveCount(0)
         await det.locator('summary').click()
@@ -137,7 +137,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
   })
 
   test('COMP-06 link direto #s9 abre a seção no cartão', async ({ page }) => {
-    await page.goto('/sustentacao#s9')
+    await page.goto('/operacional?cadencia=sustentacao#s9')
     await expect(page.getByTestId('metrica-S9')).toBeVisible()
     await expect(page.getByTestId('mais-metricas')).toHaveAttribute('open', '')
   })
@@ -200,7 +200,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
   })
 
   test('COMP-12 S8 e S12: denominador dos informados na tabela; cobertura "n de N" só quando parcial', async ({ page, painel }) => {
-    await painel.ir('/sustentacao')
+    await painel.ir('/operacional?cadencia=sustentacao')
     await painel.esperarCartoesProntos()
     const det = page.getByTestId('mais-metricas')
     if ((await det.getAttribute('open')) === null) await det.locator('summary').click()
@@ -221,7 +221,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
       '/operacional?cadencia=semanal': { o3: ['O5', 'O6', 'O8'], o4: ['O8'], o10: ['O11'], o15: ['O13', 'O16', 'O17'] },
       '/tatico': { t1: ['T6'], t4: ['T8'], t5: ['O14'], t9: ['T6', 'E5'] },
       '/estrategico': { e1: ['E4', 'E5'] },
-      '/sustentacao': { s1: ['S9', 'S10', 'PV1'], s2: ['S8', 'S12', 'PV1'], s3: ['S8', 'S12'], s5: ['S11'], s7: ['S11'] },
+      '/operacional?cadencia=sustentacao': { s1: ['S9', 'S10', 'PV1'], s2: ['S8', 'S12', 'PV1'], s3: ['S8', 'S12'], s5: ['S11'], s7: ['S11'] },
     }
     for (const [rota, cartoes] of Object.entries(esperado)) {
       await painel.ir(rota)
@@ -247,7 +247,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(o14.getByRole('heading', { level: 3 })).toBeFocused()
     await painel.esperarCartoesProntos()
     await page.getByTestId('leia-junto-o15').getByRole('link', { name: /O17/ }).click()
-    await expect(page).toHaveURL(/\/sustentacao(\?[^#]*)?#o17$/)
+    await expect(page).toHaveURL(/\/operacional\?[^#]*cadencia=sustentacao[^#]*#o17$/)
     const o17 = page.getByTestId('metrica-O17')
     await expect(o17).toBeVisible({ timeout: 20_000 })
     await painel.esperarCartoesProntos()

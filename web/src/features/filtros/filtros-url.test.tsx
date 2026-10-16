@@ -137,7 +137,9 @@ describe('filtros ↔ URL', () => {
   it('filtros do fluxo não são herdados pela Sustentação e vice-versa', async () => {
     const r = renderizarBarra('/sustentacao?equipe=fluig&prioridade=p2')
     expect(
-      await screen.findByRole('button', { name: 'Remover filtro Equipe: SSSC FLUIG' }),
+      await screen.findByRole('button', {
+        name: 'Remover filtro Equipe de sustentação: SSSC FLUIG',
+      }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Remover filtro Prioridade: P2' }),

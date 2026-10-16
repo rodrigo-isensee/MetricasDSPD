@@ -102,5 +102,36 @@ Base: código da worktree `MetricasDSPD-sust` no commit 9ab5ece (leitura dos arq
 
 Observação sobre D-05 (c): a região viva única da página fica como único canal de voz no carregamento; os erros por bloco seguem com `role="alert"` próprio, o que está correto.
 
-### Veredito final
+### Veredito final (antes do SNO-001)
 **Aprovado.** Os desvios D-01, D-02, D-03, D-05 a D-09 estão corrigidos, e a mensagem da A6 e o SNO-002 estão conforme a decisão e o 2.5.3. Nenhum item novo foi encontrado nas partes lidas. Ficam **D-04 e SNO-001 para o K-075**, ambos de severidade baixa e dependentes de medição visual a 375 e fonte 200%; não bloqueiam o merge. A reconferência do SNO-004 (CLS) não foi feita aqui, por depender de medição no Lighthouse.
+
+## 8. SNO-001: efeito a 375 px (2026-10-15)
+Base: leitura do código da worktree após o commit 26ad55b. Não rodei servidor e **não consegui executar `git show`/`git diff` neste ambiente**: avaliei o estado final dos arquivos, não o diff, e não sei quais `flex-wrap` e quais ajustes do seletor são do commit e quais já existiam. Medidas de largura abaixo são estimativas de leitura, marcadas como hipótese.
+
+### O que mudou de fato
+Com `body { min-width: min(20rem, 320px) }`, o piso deixa de dobrar com a fonte a 200% (640 px). A página passa a ter 375 px de largura útil, e tudo o que antes "cabia" porque a página tinha 640 px agora precisa quebrar linha. Efeito colateral inevitável e correto (1.4.4 e 1.4.10): telas fora do pedido ficam **mais altas e mais estreitas** com fonte a 200%. A 100% de fonte nada muda (piso de 320 px é o mesmo). Atenção: com 200% o `px-4` do `main` (rem) já consome 64 px dos 375, restando cerca de 311 px.
+
+### Avaliação por ponto (375 px, fonte a 200%)
+| Ponto | Leitura do código | Situação |
+|---|---|---|
+| Cabeçalho (`AppShell.tsx:102-127`) | `flex-wrap` nos três níveis; logo com `whitespace-nowrap` (cerca de 250 px a 200%, cabe em 311); Menu, aviso de dados fictícios e tema vão para linhas seguintes. Abaixo de `md` não é sticky, então a altura extra não cobre o conteúdo. Sem estouro. | Aceitável. MOB-CA-9 (uma linha de até 56 px) vale a 100% e não é possível a 200%; a quebra é a degradação certa. Hipótese: o tema continua no cabeçalho (`SeletorTema` sem `hidden`), de modo que o cabeçalho pode já quebrar em 2 linhas a 100%; o MOB-CA-9 não parece entregue nesse ponto, mas isso não vem do SNO-001 e não foi medido. |
+| Seletor 2x2 abaixo de 400 px (`SeletorCadencia.tsx:36-43`) | Grade de 2 colunas de `minmax(0,1fr)` com `px-3` e `text-sm` em rem. Cada coluna fica com cerca de 155 px, menos 48 px de padding e, no item marcado, cerca de 40 px de ícone: sobram 65 a 107 px para palavras de 105 a 165 px ("Semanal", "Sustentação"). `[overflow-wrap:anywhere]` impede o estouro. O breakpoint `min-[400px]` é em px de viewport e não acompanha a fonte. | Funciona sem rolagem horizontal, mas **degrada a legibilidade** (ver "Sustentação" abaixo). |
+| Ações com quebra: T3, S3 e Motivos | T3: `fieldset flex-wrap` com "Contar por:", dois rádios com `alvo` e a Dica; S3 e Motivos: `div flex-wrap` de botões `alvo`. Todos quebram em linhas e mantêm alvo de 44 px (toque) ou 24 px. Sem `min-w-0` no `fieldset` do T3, mas o conteúdo é feito de texto que quebra, então o `min-content` é uma palavra. | Conforme. T3 vira 2 a 3 linhas dentro do cabeçalho do cartão; aceitável. Hipótese: confirmar visualmente que o `fieldset` não impõe largura mínima. |
+| `FaixaAtencao` (`FaixaAtencao.tsx:137-172`) | Lista `flex-wrap`; cada item é `inline-flex flex-wrap` com `span min-w-0` para o texto e o link "Ver X" que desce para a linha seguinte quando falta espaço. Item de alerta ocupa a largura toda e cresce em altura. | Conforme, e é o ponto que mais se beneficia da correção. MOB-CA-8 (título do primeiro alerta visível na primeira tela) é medido a 100% e não se aplica a 200%. |
+| Faixa de calibração (`Calibracao.tsx:92-105`) | `flex-wrap`, mas o parágrafo é `min-w-0 flex-1` (base zero): fica ao lado do ícone, numa coluna de cerca de 220 px, e o link "Saiba mais" desce sozinho. O texto de cerca de 190 caracteres vira uma coluna estreita de mais de 10 linhas. | Sem estouro e legível, porém **pouco elegante**. Fix pequeno: dar ao parágrafo `basis` mínimo (ex.: `min-w-[12rem]`) para ele descer sob o ícone. Hipótese de medição. |
+| `CartaoEI` com `auto-fit` (`CartaoEI.tsx:126`) | `minmax(6rem,1fr)`: 6 rem vira 192 px a 200%, e com o cartão útil de cerca de 245 px a grade cai para **1 coluna** (3 números empilhados). A 100% (96 px mínimos), com cerca de 295 px úteis, são 2 colunas mais 1, ou 3 apertadas: não mudou. | Esperado e correto: antes a página de 640 px dava 3 colunas. Mais alto, mas lê melhor. Sem ação. |
+| "Sustentação" quebrando no meio da palavra | Consequência direta de `[overflow-wrap:anywhere]` no rótulo do seletor com a coluna estreita (acima). Acontece no item marcado (ícone ocupa espaço) e, provavelmente, em "Sustentação" também desmarcado. | **Não é falha de WCAG** (1.4.4 e 1.4.10 cumpridos: nada se perde, nada rola), mas é a palavra mais importante da demanda e o primeiro controle da tela. Quebra no meio da palavra prejudica a leitura, sobretudo para quem usa a fonte ampliada por necessidade. O 2.5.3 segue cumprido: o nome acessível é o texto inteiro. |
+
+### Veredito
+**Aprovado para merge do SNO-001. Nada bloqueia agora.** A correção cumpre o que o bug pede (sem rolagem horizontal a 375 px e 200%), não altera a aparência a 100% e as telas "fora do pedido" só ficaram mais altas, sem perda de conteúdo nem de função. Os efeitos listados são de acabamento.
+
+**Bloqueia agora:** nada.
+
+**Vai para o K-075 (severidade baixa, em ordem de valor):**
+1. **Seletor de Visão a 200%.** Trocar `grid-cols-[repeat(2,minmax(0,1fr))]` por uma grade que dependa do espaço em vez de px, por exemplo `grid-cols-[repeat(auto-fit,minmax(min(100%,7.5rem),1fr))]` (2x2 a 100% e 375 px, 1 coluna a 200%), mantendo o 2x2 do MOB-CA-12 a 100%. Alternativa mais simples: `px-2` e sem `mr-1` no ícone abaixo de 400 px. Medir visualmente que "Sustentação" e "Semanal" não quebram.
+2. **Faixa de calibração:** dar base mínima ao parágrafo para que ele desça sob o ícone em vez de formar coluna estreita.
+3. **Cabeçalho a 100% em 375 px:** medir altura e número de linhas e comparar com o MOB-CA-9; decidir se o tema sai do cabeçalho (decisão do usuário se mudar a spec).
+4. **Tablet (768 a 1023 px) a 200%:** o cabeçalho é `md:sticky` e pode ficar alto; conferir que cabeçalho mais barra de filtros não passam de cerca de 40% da altura e que o foco não fica coberto (2.4.11). Hipótese não medida.
+5. Reconferir D-04 (grade de números do Resumo a 375) nessa mesma rodada, pois o piso novo muda o cálculo de largura dos cartões.
+
+**Riscos:** (a) minhas estimativas de largura vêm de leitura, sem render; o K-075 deve começar por capturas a 375 px, 200% e 100% das telas Resumo, T3, S3, Motivos e do cabeçalho. (b) Sem o diff, não separei o que o commit alterou do que já existia. (c) O breakpoint em px do seletor não acompanha a fonte; se alguém voltar a usar rem aqui, o 2x2 muda a 100%.

@@ -41,8 +41,8 @@ const o2 = (itens: unknown[], referencia: unknown, extra: Record<string, unknown
 })
 
 describe('Operacional diária: ordem, pergunta e link', () => {
-  it('abre na cadência diária: ordem O2, Bloqueados, O1, pergunta da daily e link para a semanal', async () => {
-    renderizarApp('/operacional')
+  it('abre na visão diária: ordem O2, Bloqueados, O1, pergunta da daily e link para a semanal', async () => {
+    renderizarApp('/operacional?cadencia=diaria')
     await cartao('O2')
     const ids = screen
       .getAllByTestId(/^metrica-/)
@@ -57,7 +57,7 @@ describe('Operacional diária: ordem, pergunta e link', () => {
   })
 
   it('alternar para Semanal grava a URL e mostra O3 e O4, sem os cartões da daily', async () => {
-    const { roteador } = renderizarApp('/operacional')
+    const { roteador } = renderizarApp('/operacional?cadencia=diaria')
     await cartao('O2')
     await userEvent.click(screen.getByRole('radio', { name: 'Semanal' }))
     await cartao('O3')
@@ -83,7 +83,7 @@ describe('O1 WIP e limite (A1, A2)', () => {
   })
   it('A1/A2: bloqueado conta no WIP; excedido é dito em texto e no status, não só em cor', async () => {
     renderizarApp(
-      '/operacional?equipe=fluig',
+      '/operacional?cadencia=diaria&equipe=fluig',
       new FonteFixa({
         O1: dto([
           { coluna: 'Execução', tipoColuna: 'execucao', itens: 3, bloqueados: 1, limite: 3 },
@@ -104,7 +104,7 @@ describe('O1 WIP e limite (A1, A2)', () => {
     expect(tab).toHaveTextContent('limite 3')
   })
   it('sem coluna única: "Fila" x "Execução" e a mensagem de selecionar uma equipe; "k de n dias" sem percentual', async () => {
-    renderizarApp('/operacional', new FonteFixa({ O1: dto(null) }))
+    renderizarApp('/operacional?cadencia=diaria', new FonteFixa({ O1: dto(null) }))
     const el = await cartao('O1')
     expect(within(el).getByTestId('o1-selecione-equipe')).toHaveTextContent(
       'Selecione uma equipe para ver por coluna. Limite somado de 2 equipes.',
@@ -126,7 +126,7 @@ describe('O2 idade (B1 a B3)', () => {
   ]
   it('B3: ordem do mais velho ao mais novo, sinalização acima do P95, sem coluna de pessoa; ordena por "Sem mover há"', async () => {
     renderizarApp(
-      '/operacional',
+      '/operacional?cadencia=diaria',
       new FonteFixa({ O2: o2(itens, ok(87, { p50: 4, p85: 9, p95: 15 })) }),
     )
     const lista = await screen.findByTestId('o2-lista')
@@ -146,7 +146,7 @@ describe('O2 idade (B1 a B3)', () => {
     )
   })
   it('B2: com menos de 20 concluídos no tipo, mostra "Amostra insuficiente", sem linhas de percentil, e a lista fica', async () => {
-    renderizarApp('/operacional', new FonteFixa({ O2: o2(itens, insuf(12)) }))
+    renderizarApp('/operacional?cadencia=diaria', new FonteFixa({ O2: o2(itens, insuf(12)) }))
     const el = await cartao('O2')
     expect(await within(el).findByTestId('amostra-insuficiente-O2')).toHaveTextContent(
       '12 de 20 itens mínimos',
@@ -170,7 +170,7 @@ describe('Bloqueados agora (E1)', () => {
       bloqueadoHaDiasUteis: ha,
     })
     renderizarApp(
-      '/operacional',
+      '/operacional?cadencia=diaria',
       new FonteFixa({
         BLOQUEADOS: {
           ...COMUM,
@@ -189,7 +189,7 @@ describe('Bloqueados agora (E1)', () => {
   })
   it('zero bloqueados é sucesso: "Nenhum item bloqueado hoje."', async () => {
     renderizarApp(
-      '/operacional',
+      '/operacional?cadencia=diaria',
       new FonteFixa({
         BLOQUEADOS: { ...COMUM, base: { n: 0, unidade: 'itens bloqueados', janela: J }, itens: [] },
       }),
@@ -202,7 +202,7 @@ describe('Bloqueados agora (E1)', () => {
 
 describe('Faixa "Pede atenção hoje"', () => {
   it('lista itens acima do P95, bloqueados e WIP acima do limite, cada um com link ao cartão', async () => {
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=diaria')
     const faixa = await screen.findByTestId('faixa-atencao')
     await waitFor(() => expect(within(faixa).getAllByRole('link').length).toBeGreaterThan(0))
     for (const l of within(faixa).getAllByRole('link'))

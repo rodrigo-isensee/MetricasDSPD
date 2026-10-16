@@ -8,10 +8,11 @@ export type NivelId = Alerta['nivel']
 export type SegmentoEI = ResultadoVisaoGeral['esperaInvisivel'][number]['segmentos'][number]
 
 export const ROTA_DO_NIVEL: Record<NivelId, string> = {
-  operacional: '/operacional',
+  // O padrão de `/operacional` agora é o Resumo: os links da Visão geral levam a uma visão de detalhe (nunca ao Resumo).
+  operacional: '/operacional?cadencia=diaria',
   tatico: '/tatico',
   estrategico: '/estrategico',
-  sustentacao: '/sustentacao',
+  sustentacao: '/operacional?cadencia=sustentacao',
 }
 
 export const NOME_DO_NIVEL: Record<NivelId, string> = {

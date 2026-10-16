@@ -70,6 +70,6 @@ d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
 
   it('a dspd_api não lê as colunas de pessoa (nem por engano)', async () => {
     await expect(api.query(`SELECT responsaveis FROM ${E.bm}.dim_card LIMIT 1`)).rejects.toThrow(/permission denied/);
-    await expect(api.query(`SELECT usuario FROM ${E.bm}.fato_transicao LIMIT 1`)).rejects.toThrow(/permission denied/);
+    await expect(api.query(`SELECT usuario FROM ${E.bm}.fato_transicao LIMIT 1`)).rejects.toThrow(/column .*usuario.* does not exist/); // K-096: coluna removida
   });
 });

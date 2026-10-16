@@ -115,7 +115,7 @@ describe('gerarGrants', () => {
   const cat: Catalogo = {
     bm: {
       stg_card: ['stg_sk'], stg_webhook_evento: ['webhook_sk', 'payload_sha256'], dim_card: ['card_id', 'responsaveis', 'titulo'],
-      fato_transicao: ['transicao_sk', 'usuario', 'card_id'], rec_transicao_par: ['par_sk'], evt_card: ['evt_sk'],
+      fato_transicao: ['transicao_sk', 'card_id'], rec_transicao_par: ['par_sk'], evt_card: ['evt_sk'],
       dim_card_versao: ['responsaveis'], ref_quadro: ['quadro_id', 'vigente_ate'], ref_x: ['a'], ctl_coleta: ['coleta_id'],
       ctl_coleta_contagem: ['coleta_id'], vw_transicao_canonica: ['card_id'],
     },
@@ -135,7 +135,7 @@ describe('gerarGrants', () => {
     expect(api.filter((x) => /stg_|evt_|_versao( |$)/.test(x))).toEqual([]);
     expect(api.join('\n')).not.toMatch(/responsaveis|usuario/);
     expect(api).toContain('GRANT SELECT (card_id, titulo) ON t_dspd_bm.dim_card TO dspd_api');
-    expect(api).toContain('GRANT SELECT (transicao_sk, card_id) ON t_dspd_bm.fato_transicao TO dspd_api');
+    expect(api).toContain('GRANT SELECT ON t_dspd_bm.fato_transicao TO dspd_api'); // K-096: sem coluna de pessoa, o GRANT volta a ser da tabela
     expect(api).toContain('GRANT SELECT ON t_dspd_bm.vw_transicao_canonica TO dspd_api');
     expect(api).toContain('GRANT SELECT ON t_dspd_bm.rec_transicao_par TO dspd_api');
     expect(api.some((x) => /pgmigrations|outbox/.test(x))).toBe(false);

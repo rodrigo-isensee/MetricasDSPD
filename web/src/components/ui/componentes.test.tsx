@@ -430,6 +430,18 @@ describe('FaixaAtencao', () => {
     expect(screen.getByText('Nada pede atenção')).toBeInTheDocument()
   })
 
+  it('carregando não vira região viva: a página já anuncia, o aria-busy basta (D-05c)', () => {
+    wrap(<FaixaAtencao titulo="Atenção" itens={[]} estado="carregando" />)
+    expect(screen.getByTestId('faixa-atencao-carregando')).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  it('nivel h3 vira h3 e a região segue nomeada pelo título (D-01)', () => {
+    wrap(<FaixaAtencao titulo="Atenção" nivel="h3" itens={[]} />)
+    expect(screen.getByRole('heading', { level: 3, name: 'Atenção' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Atenção' })).toBeInTheDocument()
+  })
+
   it('carregando e erro nunca afirmam que nada pede atenção; erro oferece tentar de novo', async () => {
     const tentar = vi.fn()
     const { rerender } = wrap(
