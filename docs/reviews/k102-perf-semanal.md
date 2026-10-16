@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: k102-perf-semanal
 branch: fix/perf-visao-semanal
-commit: 36975e6
+commit: dddcf0a
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
@@ -11,7 +11,7 @@ data: 2026-10-16
 
 # Code review: K-102, fila de montagem dos gráficos (perf da visão semanal)
 
-Este arquivo tem duas voltas e uma revalidação. A volta 1 vem logo abaixo e revisou `1599a77`. A volta 2 revisou os ajustes R1 a R5 (`47a628f`, `0650926` e `4bad6e6`). A revalidação, no fim do arquivo, confere os ajustes V2-1 e V2-2 do QA (`28ddea2`) e o commit do parecer do QA (`36975e6`). O frontmatter aponta para `36975e6`.
+Este arquivo tem duas voltas e duas revalidações. A volta 1 vem logo abaixo e revisou `1599a77`. A volta 2 revisou os ajustes R1 a R5 (`47a628f`, `0650926` e `4bad6e6`). A primeira revalidação confere os ajustes V2-1 e V2-2 do QA (`28ddea2`) e o commit do parecer do QA (`36975e6`). A segunda, no fim do arquivo, confere o merge da `develop` (`dddcf0a`). O frontmatter aponta para `dddcf0a`.
 
 **Escopo:** commit `1599a77` sobre `5eaf202` (develop). São 6 arquivos, com 138 linhas a mais e 3 a menos: `web/src/components/charts/filaDeGraficos.ts` (novo), `GraficoBase.tsx`, um teste novo, dois testes ajustados e a seção 10 de `docs/tecnica/arquitetura-front.md`.
 **Contexto:** o portão `perf` do PR de release #90 reprovou `/operacional?cadencia=semanal` com nota 0,88 a 0,89. O TBT foi de 256 a 263 ms, por causa de duas tarefas longas de render em `react-*.js` (222 e 119 ms). Diagnóstico em `docs/devops/homolog-2026-10-16.md`, seção 1a.
@@ -165,3 +165,14 @@ QA do K-102 com o roteiro da volta 1, aplicando V2-1 e V2-2 nas specs se o QA co
 - Item 11 do checklist: as duas ausências foram relidas. O texto procurado ainda existe, e V2-1 trouxe o mínimo de itens.
 - Ferramentas: não rodadas aqui (teto de 2 agentes, 2026-10-17). O QA rodou o E2E, e a evidência está no parecer dele.
 - Integração: a `develop` (`f81567e`) ainda não entrou na branch. `git merge-tree --write-tree HEAD origin/develop` não aponta conflito. O merge fica para o envio (pedido 018).
+
+# Revalidação sobre `dddcf0a` (merge da `develop` f81567e)
+
+**Escopo:** `36975e6..dddcf0a`. O `06f93c0` só acrescenta o parecer de UX (`docs/ux/`). O `dddcf0a` é o merge de `origin/develop` (`f81567e`, pedidos 011 a 018), sem conflito.
+**Motivo:** o `forge-check pr k102-perf-semanal` acusava review e QA desatualizados por causa do `06f93c0`, porque não isenta `docs/ux/`.
+**Veredito:** **aprovado**, sem ajuste novo.
+
+- O patch de produção do K-102 não mudou: `git diff origin/develop...HEAD -- web server packages tools` tem o mesmo hash antes e depois do merge (`dea8f10`), com os mesmos 5 arquivos de `web/src/components/charts/`.
+- Nenhum arquivo do K-102 foi tocado pela `develop`. Os testes que a `develop` trouxe em `web/` (`visao-geral.test.tsx`, `espera-invisivel.test.tsx`, `lint.meta.test.ts`) não mudam nenhuma linha que leia `svg`, `figure` ou gráfico, então a fila de montagem não os afeta. Quem confirma é a CI do PR.
+- Ferramentas: não rodadas aqui (teto de 2 agentes, 2026-10-17). O portão é a CI do PR.
+- Pendente: revalidação do parecer do QA sobre `dddcf0a` (E1.3).
