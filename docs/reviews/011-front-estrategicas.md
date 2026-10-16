@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: 919554b
-parecer: reprovado
+commit: ccb9443
+parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
 ---
@@ -14,7 +14,47 @@ data: 2026-10-16
 - Referências: `docs/pedidos/021-front-do-011-por-nivel.md`, `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§3, §4, §5 do E6 ao E9, §10), `docs/engineering/praticas.md` (§2 a §5 e §8), contratos `docs/contratos/metricas/E6.md` a `E9.md`.
 - Ferramentas: o `praticas.md` não marca nenhuma regra como "decidida por: `<comando>`". Cito a saída do autor sem refazê-la: `pnpm run pronto` com rc=0 no `919554b` (o brief dispensou a execução local, com o teto de 2 agentes). Lint, tipos, cobertura de 100%, `docs:check` e E2E estão no `pronto`.
 
-## Parecer
+## Volta 2 (2026-10-16): aprovado
+
+- Escopo: diff `515714c..8d6999c` (ajustes do autor, `fix(web,contratos)`) e o commit `ccb9443` (`docs(ux)`: especificação alinhada às decisões e revisão de UX, sem código). O `commit` do frontmatter é o `ccb9443`, a ponta revisada.
+- Ferramentas: cito o autor sem refazer, `pnpm run pronto` com rc=0 no `8d6999c`. O brief desta volta dispensa a execução local (teto de 3 agentes, uma tarefa pesada por vez).
+
+### Bloqueantes da volta 1
+
+| # | Situação | Evidência |
+|---|---|---|
+| B-1 | Resolvido | `leituraE7` agora decide primeiro pelo `d.total < 20` (frase "abaixo de 20" só nesse caso). Com total ≥ 20 e o primeiro sistema sem participação publicada, diz "N entregas no período, mas nenhum sistema chegou a 20 entregas: só a contagem por sistema é publicada." Teste novo em `estrategicas.test.tsx`: "E7 com total de 20 ou mais e nenhum sistema com 20 não diz 'abaixo de 20'". |
+| B-2 | Resolvido | `docs/tecnica/arquitetura-front.md` §11 reescrita: as entradas estão em `COMPLEMENTARES` e no `CATALOGO_CARTOES`; o selo vem só do catálogo, sem fallback no `CartaoComplementar`; a "Dependência aberta" saiu e deu lugar ao estado atual do catálogo (seção nova, contador "+6") e aos ajustes desta volta. |
+
+### Diff dos ajustes
+
+- **Título e id da seção (título = A, pedido 021):** `packages/contratos/src/cartoes.ts` troca `custo-do-parque` por `concentracao-do-parque` e o título por "Onde o parque se concentra, e qual o risco de continuidade?". `E7.md` e `E8.md` mudam só entre as marcas `gerado`. Fora de `docs/` históricos, não sobra referência ao id antigo no código nem nos E2E (busca por `custo-do-parque` e pelo título antigo).
+- **E9 ordenado (A-4 da UX):** a tabela ordena por `idadeDiasUteis` decrescente sobre uma cópia do vetor, então a legenda "do mais antigo para o mais novo" não depende mais da API. Teste com a API em outra ordem. Também entraram a linha "Mostrando N de M projetos (tipo X)" (A-3), a unidade e o "do tipo" na referência P85 (A-5) e o "É esperado concluir poucos projetos." (A-13).
+- **E7 com no máximo 10 sistemas (A-12):** `MAX_SISTEMAS_E7 = 10` no gráfico, linha `e7-demais` com a contagem dos demais e a tabela continua com `r.sistemas` inteiro. A ordem continua a do back, por volume (regra 9 da §3). Teste com mais de 10 sistemas.
+- **R-2:** resolvido. A coluna do E9 vem de `colunaE9(idadeDiasUteis)`, com os limites 30, 90 e 180, e não mais do texto da faixa.
+- **R-3:** resolvido como sugerido: um comentário em `COM_TAMBEM` liga a lista ao `COM_EXTENSAO_MOCK` e pede atualização conjunta nos lotes 2 e 3.
+- **Leitura do E6:** cobre "nenhum na data" no singular e no plural, sem "o outro" nem "os demais" quando todos atrasaram, com quatro testes novos. O E8 ganha `grid-cols-1 sm:grid-cols-3` (A-14).
+- **Regras invioláveis:** continuam conformes. Os ajustes não leem campo de custo (D2 = A), não nomeiam sistema no E8 (R-1 = B), não ordenam por pessoa nem por time e não calculam estatística no front, porque ordenar e contar são censo.
+
+### A-4 do E6 (ordem por deslize): aceito como provisório
+
+Aceito a ordem do menor para o maior deslize até o back expor a data de conclusão no contrato do E6. O critério é declarado na legenda da tabela, a ordem é estável (desempate por `cardId`) e a unidade é o projeto, não pessoa nem time, então não há ranking proibido. O que fica: quando o contrato trouxer `concluidoEm`, o eixo X passa à ordem cronológica de conclusão, como no protótipo. Isso vira cartão para o back, no pedido 024 ou num cartão próprio, e o Jarvis registra no quadro. Critério de reversão: com o campo no contrato, troca-se `ordenarPorDeslize` pela ordem de conclusão e a legenda é ajustada.
+
+### Recomendados novos (não bloqueiam)
+
+| # | Arquivo:linha | Problema | Sugestão |
+|---|---|---|---|
+| R-4 | `web/src/features/complementares/estrategicas.tsx` (`ordenarPorDeslize`, comentário) | O comentário diz "empate pelo código", mas o desempate usa `cardId`. | Alinhar o comentário ao código, ou desempatar por `codigo`. |
+| R-5 | `web/src/features/complementares/estrategicas.tsx` (linha `e7-demais`) | Com 11 sistemas a frase sai "Demais 1 sistemas". | Usar `plural(demais.length, 'sistema', 'sistemas')`. |
+| R-6 | `docs/api/metricas.md:157` | A nota do B5 ainda cita o título antigo da seção do E7. É registro histórico, mas quem procura a seção acha o nome velho. | Acrescentar "(título revisto no pedido 021: 'Onde o parque se concentra, e qual o risco de continuidade?')". |
+
+O R-1 da volta 1 (aplicabilidade do E8 e do E9 em `contratos`) segue aberto e vai para o pedido 024, fora deste escopo. O nome do E7 ("Entregas por sistema", A-10 da UX) aguarda a confirmação do usuário e não foi aplicado, o que está correto.
+
+### Próximo passo
+
+A branch vai para o QA (E1.3) no `ccb9443`. A UX reconfere os ajustes da interface (E1.2). R-4 a R-6 podem entrar numa volta do autor ou num cartão, a critério do Jarvis: não reabrem o review.
+
+## Volta 1: parecer
 
 **Ajustes necessários (reprovado nesta rodada).** São 2 bloqueantes pequenos: uma frase de leitura do E7 que fica falsa num caso comum e a documentação técnica do front que descreve o estado do primeiro commit, não o do segundo. As regras invioláveis, a D2 = A e a R-1 = B estão conformes.
 
