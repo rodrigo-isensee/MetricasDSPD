@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: k094-seed-concorrente
 branch: fix/seed-concorrente
-commit: 68d030b
+commit: 1c9ae5c
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-15
@@ -30,4 +30,13 @@ data: 2026-10-15
 **Sem necessidade de parecer do `security-engineer`.** O gatilho "banco" é de esquema, GRANT, papéis, colunas de pessoa ou credenciais. Este commit não toca em nenhum deles. É só o escopo da transação e o nome de uma trava consultiva no seed do mock. Os dados, os papéis e as colunas gravadas são os mesmos, e nenhuma fronteira de dados de pessoa muda.
 
 ## Resumo
-Aprovado. R1 fica como recomendação.
+Aprovado. R1 fica como recomendação (atendida na volta 2).
+
+## Volta 2: teste R1 (6e3ab28)
+**Veredito:** **aprovado**, R1 atendido. HEAD revisado: `1c9ae5c`.
+
+- **Determinístico.** Uma conexão segura `pg_advisory_xact_lock(hashtext('dspd:seed'))` e o teste espera, com `expect.poll` (sem espera fixa), uma trava consultiva não concedida em `pg_locks`. Só então confere que `semear` não terminou e que `ctl_coleta` está vazia nos dois schemas. Depois do COMMIT, exige `semeado` e as contagens completas. Não depende de intercalação nem de tempo.
+- **Falha no código anterior.** A trava antiga tinha outro nome, então `semear` não ficaria bloqueado: o poll não veria trava pendente e estouraria em 10 s. É a regressão que faltava.
+- **Limpeza.** O `finally` faz ROLLBACK (inofensivo após o COMMIT), solta a conexão do detentor, aguarda o `semear` pendente (se o poll falhar, o ROLLBACK libera a trava e o seed termina) e derruba os três schemas de prefixo próprio. Não deixa trava nem conexão presa.
+- **Estabilidade na CI.** Prefixo próprio isola os schemas. Ressalva menor, não bloqueia: o poll conta travas consultivas pendentes em todo o banco; outra suíte com trava consultiva pendente poderia antecipar o sinal. Isso só enfraquece a asserção (o teste não falha por isso), e as asserções de `ctl_coleta` e do COMMIT continuam valendo. Timeout de 10 s é folgado.
+- Código de teste apenas, sem impacto de segurança.
