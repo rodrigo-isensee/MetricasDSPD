@@ -13,7 +13,7 @@ export interface ContextosMetricas {
   /** Extensões das métricas complementares (mock). Sem elas, o cálculo complementar devolve vazio/insuficiente. */
   ext?: ExtensoesMetricas
   /**
-   * Extensão só de mock do pedido 011 (T11, O22, O26, T13 e E6). Sem ela, essas métricas devolvem vazio ou
+   * Extensão só de mock do pedido 011 (T11, O22, O26, T13, E6, E8 e T14). Sem ela, essas métricas devolvem vazio ou
    * insuficiente, nunca erro.
    */
   tambem?: BM.ExtensaoTambemBM
@@ -64,6 +64,7 @@ const CALCULOS: {
   T11: (f, c) => BM.calcularT11(c.bm, f, c.tambem),
   T12: (f, c) => BM.calcularT12(c.bm, f),
   T13: (f, c) => BM.calcularT13(c.bm, f, c.tambem),
+  T14: (f, c) => BM.calcularT14(c.bm, f, c.tambem),
   O20: (f, c) => BM.calcularO20(c.bm, f),
   O21: (f, c) => BM.calcularO21(c.bm, f),
   O24: (f, c) => BM.calcularO24(c.bm, f),
@@ -75,6 +76,7 @@ const CALCULOS: {
   E5: (f, c) => BM.calcularE5(c.bm, f),
   E6: (f, c) => BM.calcularE6(c.bm, f, c.tambem),
   E7: (f, c) => BM.calcularE7(c.bm, f, c.custo),
+  E8: (f, c) => BM.calcularE8(c.bm, f, c.tambem),
   E9: (f, c) => BM.calcularE9(c.bm, f),
   EI_FL1: (f, c) => BM.calcularEIBM(c.bm, f, 'FL1'),
   EI_FL2: (f, c) => BM.calcularEIBM(c.bm, f, 'FL2'),

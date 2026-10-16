@@ -13,12 +13,14 @@ import {
   marcacaoCriterioSchema,
   percentisSchema,
   taxaSchema,
+  resultadoE8,
   resultadoO26,
+  resultadoT14,
   type CodigoTambemFase2,
 } from '.'
 import { SCHEMAS_RESULTADO } from './validacao'
 
-/** Contratos da fase 2 do pedido 011 (E1 e E2): O22, O26, T13 e E6. Mesmas travas da fase 1. */
+/** Contratos da fase 2 do pedido 011 (E1 e E2): O22, O26, T13, E6, E8 e T14. Mesmas travas da fase 1. */
 const janela = { inicio: '2026-07-01', fim: '2026-09-30' }
 const comum = {
   base: { n: 30, unidade: 'cards', janela },
@@ -89,12 +91,54 @@ const EXEMPLOS: Record<CodigoTambemFase2, unknown> = {
     naData: taxaPouca,
     deslize: { status: 'insuficiente', n: 12, minimo: 20, janela },
   },
+  E8: {
+    ...comum,
+    janelaMeses: 12,
+    sistemasComEntrega: 8,
+    faixas: { uma: 2, duas: 3, tresOuMais: 3 },
+    recortePequeno: false,
+  },
+  T14: {
+    ...comum,
+    equipe: 'Time Azul',
+    semEquipe: false,
+    porGranularidade: [
+      {
+        granularidade: 'story',
+        total: taxaOk,
+        projetos: [
+          {
+            projetoId: 'P-1',
+            codigo: 'P-1',
+            titulo: 'Projeto',
+            total: 40,
+            meuTime: taxaOk,
+            outrosTimes: 25,
+            semTime: 2,
+          },
+          {
+            projetoId: 'P-2',
+            codigo: 'P-2',
+            titulo: 'Outro',
+            total: 10,
+            meuTime: taxaPouca,
+            outrosTimes: null,
+            semTime: 1,
+          },
+        ],
+      },
+    ],
+  },
 }
 const CODIGOS = Object.keys(SCHEMAS_TAMBEM_FASE2) as CodigoTambemFase2[]
 
-/** Nomes que identificam pessoa ou comparam times: proibidos em qualquer contrato (briefing 7.1, P-T6). */
+/**
+ * Nomes que identificam pessoa ou comparam times. No T14 a `equipe` é o "meu time" do filtro (um nome só, o que a pessoa
+ * escolheu) e `semEquipe` é o estado de "falta escolher": são os dois únicos campos com essa palavra, liberados por nome.
+ */
 const NOME_DE_PESSOA =
   /respons[aá]vel|responsaveis|usuario|usu[aá]rio|pessoa|autor|owner|assignee|agente|analista|desenvolvedor|^e-?mail$|user_?id|ranking|equipe|quadro|^times?$|^time_?id|por_?times?|nome_?time/i
+const LIBERADOS_T14 = new Set(['equipe', 'semEquipe'])
 
 function nomesDeCampo(js: unknown, out: string[] = []): string[] {
   if (Array.isArray(js)) for (const x of js) nomesDeCampo(x, out)
@@ -146,9 +190,9 @@ const jsonDe = (schema: z.ZodType) =>
   z.toJSONSchema(schema, { io: 'output', unrepresentable: 'any' })
 
 describe('contratos da fase 2 do pedido 011', () => {
-  it('os quatro códigos da fase 2 (E1), os dez da fase 1 e a união com 14 ids novos em METRICA_IDS', () => {
-    expect(CODIGOS).toEqual(['O22', 'O26', 'T13', 'E6'])
-    expect(Object.keys(SCHEMAS_TAMBEM)).toHaveLength(14)
+  it('os seis códigos da fase 2, os dez da fase 1 e a união com 16 ids novos em METRICA_IDS', () => {
+    expect(CODIGOS).toEqual(['O22', 'O26', 'T13', 'T14', 'E6', 'E8'])
+    expect(Object.keys(SCHEMAS_TAMBEM)).toHaveLength(16)
     for (const c of Object.keys(SCHEMAS_TAMBEM_FASE1)) expect(c in SCHEMAS_TAMBEM_FASE2).toBe(false)
     for (const c of Object.keys(SCHEMAS_TAMBEM)) {
       expect(METRICA_IDS as readonly string[], c).toContain(c)
@@ -188,7 +232,9 @@ describe('contratos da fase 2 do pedido 011', () => {
 
   it.each(CODIGOS)('%s: rejeita campo de pessoa em objeto aninhado', (codigo) => {
     const ex = structuredClone(EXEMPLOS[codigo]) as Record<string, unknown>
-    const alvo = primeiroObjetoDeLista(ex)
+    const alvo =
+      primeiroObjetoDeLista(ex) ??
+      (codigo === 'E8' ? (ex.faixas as Record<string, unknown>) : undefined)
     expect(alvo, `${codigo} sem objeto aninhado no exemplo`).toBeDefined()
     if (alvo === undefined) return
     alvo.responsavel = 'fulano'
@@ -199,12 +245,20 @@ describe('contratos da fase 2 do pedido 011', () => {
     it.each(CODIGOS)(
       '%s: nenhum campo com nome de pessoa ou de comparação entre times',
       (codigo) => {
-        const ruins = nomesDeCampo(jsonDe(SCHEMAS_TAMBEM_FASE2[codigo])).filter((n) =>
-          NOME_DE_PESSOA.test(n),
+        const ruins = nomesDeCampo(jsonDe(SCHEMAS_TAMBEM_FASE2[codigo])).filter(
+          (n) => NOME_DE_PESSOA.test(n) && !(codigo === 'T14' && LIBERADOS_T14.has(n)),
         )
         expect(ruins).toEqual([])
       },
     )
+
+    it('só o T14 tem `equipe`/`semEquipe`, e nenhum outro contrato novo', () => {
+      for (const c of CODIGOS.filter((x) => x !== 'T14'))
+        expect(
+          nomesDeCampo(jsonDe(SCHEMAS_TAMBEM_FASE2[c])).filter((n) => LIBERADOS_T14.has(n)),
+          c,
+        ).toEqual([])
+    })
 
     it.each(CODIGOS)('%s: todo objeto próprio é strict', (codigo) => {
       const ignorar = new Set<string>()
@@ -221,6 +275,57 @@ describe('contratos da fase 2 do pedido 011', () => {
   })
 
   describe('regras de cada contrato', () => {
+    it('E8, R-1 = B: sem lista de sistemas, sem nome de sistema e sem número de pessoas', () => {
+      const nomes = nomesDeCampo(jsonDe(resultadoE8))
+      for (const n of ['sistemasUmaPessoa', 'sistemas', 'pessoas', 'sistema'])
+        expect(nomes).not.toContain(n)
+      expect(
+        resultadoE8.safeParse({ ...(EXEMPLOS.E8 as object), sistemasUmaPessoa: [] }).success,
+      ).toBe(false)
+      expect(
+        resultadoE8.safeParse({ ...(EXEMPLOS.E8 as object), faixas: null, recortePequeno: true })
+          .success,
+      ).toBe(true)
+      expect(
+        resultadoE8.safeParse({
+          ...(EXEMPLOS.E8 as object),
+          faixas: { uma: 1, duas: 1, tresOuMais: 1, quatro: 1 },
+        }).success,
+      ).toBe(false)
+    })
+
+    it('T14, R-1 = B: outrosTimes é inteiro ou null, nunca nome nem lista; sem contagem de pessoas', () => {
+      const ex = EXEMPLOS.T14 as { porGranularidade: { projetos: Record<string, unknown>[] }[] }
+      const com = (outros: unknown) => {
+        const c = structuredClone(ex)
+        ;(
+          c.porGranularidade[0] as { projetos: Record<string, unknown>[] }
+        ).projetos[0]!.outrosTimes = outros
+        return c
+      }
+      expect(resultadoT14.safeParse(com(25)).success).toBe(true)
+      expect(resultadoT14.safeParse(com(null)).success).toBe(true)
+      expect(resultadoT14.safeParse(com('Time Verde')).success).toBe(false)
+      expect(resultadoT14.safeParse(com(['Time Verde'])).success).toBe(false)
+      expect(resultadoT14.safeParse(com(undefined)).success).toBe(false)
+      const nomes = nomesDeCampo(jsonDe(resultadoT14))
+      for (const n of ['pessoas', 'numeroDePessoas', 'outrosTimesPublicavel', 'times', 'porEquipe'])
+        expect(nomes).not.toContain(n)
+    })
+
+    it('T14: o percentual do meu time só existe com 20 ou mais (taxaSchema), e o estado sem equipe tem lista vazia', () => {
+      const ex = EXEMPLOS.T14 as Record<string, unknown>
+      const pouca = structuredClone(ex) as {
+        porGranularidade: { projetos: { meuTime: unknown }[] }[]
+      }
+      pouca.porGranularidade[0]!.projetos[0]!.meuTime = { status: 'ok', k: 1, n: 19, pct: 5 }
+      expect(resultadoT14.safeParse(pouca).success).toBe(false)
+      expect(
+        resultadoT14.safeParse({ ...ex, equipe: null, semEquipe: true, porGranularidade: [] })
+          .success,
+      ).toBe(true)
+    })
+
     it('O26: faixa só 0, 1, 2, 3 ou 4+; P85 e percentual só com 20 ou mais', () => {
       const ex = structuredClone(EXEMPLOS.O26) as {
         porTipo: { faixas: Record<string, unknown>[] }[]

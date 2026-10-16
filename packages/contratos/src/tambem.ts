@@ -363,10 +363,53 @@ export const resultadoE6 = fechado({
   deslize: p50p85,
 })
 
+/**
+ * E8 Concentração de conhecimento (D-3, R-1 = B). Só a contagem de sistemas por faixa de pessoas (1, 2, 3 ou mais):
+ * nenhum nome de sistema nem de pessoa. Com menos de 5 sistemas com entrega, `faixas` é `null` (CA-10).
+ */
+export const resultadoE8 = fechado({
+  ...comum,
+  janelaMeses: z.number().int(),
+  sistemasComEntrega: z.number(),
+  faixas: fechado({ uma: z.number(), duas: z.number(), tresOuMais: z.number() }).nullable(),
+  recortePequeno: z.boolean(),
+})
+
+/**
+ * T14 Participação do meu time no projeto (Q-T14-1 = B, Q-T14-5 = D, Q-T14-6 = A revista pela R-1 = B). "Meu time" é a
+ * equipe do filtro (exatamente uma). Os outros times são um inteiro só: sem nome, tempo, vazão nem ranking;
+ * `outrosTimes` é `null` quando os outros times somam menos de 2 pessoas (R-1 = B). Nenhum campo traz outra equipe nem
+ * número de pessoas. Um bloco por granularidade (story e frente); com `semEquipe`, a lista de blocos é vazia (CA-28).
+ */
+export const resultadoT14 = fechado({
+  ...comum,
+  equipe: z.string().nullable(),
+  semEquipe: z.boolean(),
+  porGranularidade: z.array(
+    fechado({
+      granularidade: z.enum(['story', 'frente']),
+      total: taxaSchema,
+      projetos: z.array(
+        fechado({
+          projetoId: z.string(),
+          codigo: z.string(),
+          titulo: z.string(),
+          total: z.number(),
+          meuTime: taxaSchema,
+          outrosTimes: z.number().nullable(),
+          semTime: z.number(),
+        }),
+      ),
+    }),
+  ),
+})
+
 export type ResultadoO22 = z.infer<typeof resultadoO22>
 export type ResultadoO26 = z.infer<typeof resultadoO26>
 export type ResultadoT13 = z.infer<typeof resultadoT13>
 export type ResultadoE6 = z.infer<typeof resultadoE6>
+export type ResultadoE8 = z.infer<typeof resultadoE8>
+export type ResultadoT14 = z.infer<typeof resultadoT14>
 
 export type ResultadoO19 = z.infer<typeof resultadoO19>
 export type ResultadoO20 = z.infer<typeof resultadoO20>
@@ -403,7 +446,9 @@ export const SCHEMAS_TAMBEM_FASE2 = {
   O22: resultadoO22,
   O26: resultadoO26,
   T13: resultadoT13,
+  T14: resultadoT14,
   E6: resultadoE6,
+  E8: resultadoE8,
 } as const
 export type CodigoTambemFase2 = keyof typeof SCHEMAS_TAMBEM_FASE2
 

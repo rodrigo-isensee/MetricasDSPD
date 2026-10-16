@@ -43,7 +43,7 @@ export const PARAMETROS_SAZONAIS = {
 
 /** Só o que a série precisa da base: os cards do BusinessMap (perfil) e a configuração (semente, "hoje", escala). */
 export interface BaseParaExtensaoTambem {
-  bm: Pick<BaseBM, 'cards'>
+  bm: Pick<BaseBM, 'cards'> & { config: Pick<BaseBM['config'], 'equipes'> }
   config: ConfigMock
 }
 
@@ -83,9 +83,10 @@ export function gerarExtensaoTambemMock(base: BaseParaExtensaoTambem): ExtensaoT
     d = ultimoDiaDoMes(m) + 1
   }
   entradas.sort((a, b) => a.criado_em - b.criado_em)
-  // Fase 2: campos de extração nova (O22, O26, T13 e E6), com stream própria cada um.
+  // Fase 2: campos de extração nova (O22, O26, T13, E6, E8, T14), com stream própria cada um.
   const fase2 = gerarFase2({
     cards: base.bm.cards,
+    equipes: base.bm.config.equipes,
     config: base.config,
   })
   return { entradasSazonais: entradas, ...fase2 }

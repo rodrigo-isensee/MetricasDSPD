@@ -3,7 +3,7 @@
 Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-16.
 
 <!-- gerado:inicio -->
-Gerado por `pnpm run docs:gerar`. 67 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
+Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
 
 | Métrica | Nome | Domínio | Rota | Granularidade | Mínimo | Status das regras |
 |---|---|---|---|---|---|---|
@@ -46,6 +46,7 @@ Gerado por `pnpm run docs:gerar`. 67 métricas, uma página cada. Regras gerais,
 | [`T11`](T11.md) | - | businessmap | `/api/v1/metricas/T11` | story | 0 | ok |
 | [`T12`](T12.md) | - | businessmap | `/api/v1/metricas/T12` | story | 20 | ok |
 | [`T13`](T13.md) | - | businessmap | `/api/v1/metricas/T13` | story | 20 | ok |
+| [`T14`](T14.md) | - | businessmap | `/api/v1/metricas/T14` | story | 20 | pendente-usuario |
 | [`E1`](E1.md) | Lead time de projetos | businessmap | `/api/v1/metricas/E1` | projeto | 20 | ok |
 | [`E2`](E2.md) | Capacidade por objetivo estratégico | businessmap | `/api/v1/metricas/E2` | story | 20 | ok |
 | [`E3`](E3.md) | Entrega × resultado | businessmap | `/api/v1/metricas/E3` | projeto | 0 | ok |
@@ -53,6 +54,7 @@ Gerado por `pnpm run docs:gerar`. 67 métricas, uma página cada. Regras gerais,
 | [`E5`](E5.md) | Previsão de término | businessmap | `/api/v1/metricas/E5` | frente | 20 | ok |
 | [`E6`](E6.md) | - | businessmap | `/api/v1/metricas/E6` | projeto | 20 | ok |
 | [`E7`](E7.md) | - | businessmap | `/api/v1/metricas/E7` | story | 20 | ok |
+| [`E8`](E8.md) | - | businessmap | `/api/v1/metricas/E8` | story | 0 | ok |
 | [`E9`](E9.md) | - | businessmap | `/api/v1/metricas/E9` | projeto | 20 | ok |
 | [`S1`](S1.md) | Primeiro atendimento e restauração | acelerato | `/api/v1/metricas/S1` | chamado | 20 | ok |
 | [`S2`](S2.md) | Aderência ao SLA | acelerato | `/api/v1/metricas/S2` | chamado | 20 | ok |

@@ -68,10 +68,21 @@ export interface DatasProjeto {
   replanejamentos: number
 }
 
+/** Faixa de concentração de um sistema (ADR 0020, item 4): 1, 2 ou 3 (3 = "3 ou mais") pessoas. Nunca o número exato. */
+export type FaixaConhecimento = 1 | 2 | 3
+
+/** Linha do agregado `agg_conhecimento_sistema` (E8): gerada direto no mock, sem pessoas. */
+export interface ConhecimentoSistema {
+  sistema: string
+  faixa: FaixaConhecimento
+  entregas: number
+}
+
 /**
  * Extensão do pedido 011 só de mock, separada de `ExtensaoBM` para que a base e a montagem do contexto não paguem por ela
  * (ADR 0003, C1 e C2). Na coleta real cada campo vira coluna ou tabela própria (fase 3) e esta extensão não existe.
- * Nenhum campo identifica pessoa: `passagens` já é o inteiro que sai do coletor (ADR 0020) e `primeiroToque` é só o instante.
+ * Nenhum campo identifica pessoa: `passagens` e `conhecimentoSistema` já são os inteiros e as faixas que saem do coletor
+ * (ADR 0020), e `equipeResponsavel` é o valor do campo "Time responsável" (unidade organizacional, não pessoa).
  */
 export interface ExtensaoTambemBM {
   /** T11 (fase 1): o histórico de 24 meses que a base mock não tem. */
@@ -84,6 +95,25 @@ export interface ExtensaoTambemBM {
   vinculos: VinculoPredecessor[]
   /** E6: datas dos projetos concluídos; ausente = sem data comprometida registrada. */
   datasProjeto: Record<string, DatasProjeto>
+  /** E8: faixa de concentração por sistema na janela de 12 meses que termina em "hoje". */
+  conhecimentoSistema: ConhecimentoSistema[]
+  /**
+   * T14: valor do campo "Time responsável" por card (nome da equipe; lista se o campo for de múltipla escolha, Q-T14-9 = A);
+   * `null` ou lista vazia = campo vazio; ausente = sem time.
+   */
+  equipeResponsavel: Record<string, string | readonly string[] | null>
+  /**
+   * T14 (R-1 = B): "outros times" publicável? Um booleano por `<projetoId>|<slug da equipe>|<granularidade>`, calculado fora
+   * da biblioteca (no mock, gerado direto; na coleta real, pelo projetor). A biblioteca nunca conta pessoas.
+   * Chave ausente = não publicável (o mais restritivo).
+   */
+  outrosPublicavel: Record<string, boolean>
+  /**
+   * T14 (Q-T14-5 = D): equipes e os sistemas ligados a cada uma (`ConfigBM.equipes[].sistemas`). A base lida do banco
+   * ainda não guarda essa configuração (o mapeamento equipe -> sistema é da WS1 e vem na fase 3), então o mock a
+   * entrega aqui. Vazio = a biblioteca usa o `ConfigBM` da própria base.
+   */
+  configEquipes: { nome: string; sistemas: readonly string[] }[]
 }
 
 export const EXTENSAO_TAMBEM_BM_VAZIA: ExtensaoTambemBM = {
@@ -92,4 +122,15 @@ export const EXTENSAO_TAMBEM_BM_VAZIA: ExtensaoTambemBM = {
   passagens: {},
   vinculos: [],
   datasProjeto: {},
+  conhecimentoSistema: [],
+  equipeResponsavel: {},
+  outrosPublicavel: {},
+  configEquipes: [],
 }
+
+/** Chave de `outrosPublicavel`. */
+export const chaveOutrosPublicavel = (
+  projetoId: string,
+  slugEquipe: string,
+  granularidade: 'story' | 'frente',
+): string => `${projetoId}|${slugEquipe}|${granularidade}`

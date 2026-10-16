@@ -31,7 +31,7 @@ describe('B11b: extensão do T11 (entradas sazonais)', () => {
     expect(hashJson(gerarExtensaoTambemMock(gerarBaseMock({ escala: 0.2 })))).not.toBe(
       hashJson(ext),
     )
-    expect(hashJson(ext)).toBe('c02c175a')
+    expect(hashJson(ext)).toBe('9159f65b')
     // a série do T11 (fase 1) segue idêntica depois da fase 2: cada campo novo tem a sua stream
     expect(hashJson(ext.entradasSazonais)).toBe('3f86ce75')
     expect(hashJson(gerarExtensaoTambemMock(gerarBaseMock({ escala: 0.2 })).entradasSazonais)).toBe(

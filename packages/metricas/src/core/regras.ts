@@ -676,6 +676,28 @@ export const REGRAS_METRICA = {
       "pedido 011 T13; D-14' = A (só vínculo predecessor com card de outro quadro, CA-40; pai/filho fora, CA-21) e R-4 = sim (vigente em algum momento antes da entrega); granularidade story ou frente, um bloco cada (CA-8); quadro desconhecido vai para semDado; par com x sem do lead time do T1, por tipo e com 20 em cada grupo (CA-6); só o booleano, nunca o quadro nem a equipe do outro lado",
     status: 'ok',
   },
+  T14: {
+    dominio: 'businessmap',
+    segmentacao: [],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['taxa'],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 T14; Q-T14-1 = B (campo "Time responsável" do card), Q-T14-5 = D (projetos ligados a sistema do meu time, mesmo com 0%, mais os com 1 ou mais card do meu time), Q-T14-6 = A revista pela R-1 = B (outros times é um inteiro só, sem nome, tempo, vazão nem ranking, e fica oculto quando somar menos de 2 pessoas); o filtro de equipe só diz qual é "meu time" e não recorta a população; exige exatamente uma equipe (CA-28); ordem pelo total de cards (CA-30); percentual só com 20 ou mais cards com time informado (CA-31)',
+    status: 'pendente-usuario',
+    pendencias: [
+      'Cardinalidade do campo "Time responsável" (escolha única ou múltipla) e nome exato, a confirmar na integração (Q-T14-1 = B); vale a Q-T14-9 = A até lá',
+      'Q-T14-2: nível de card contado (demanda por padrão, frente por seletor), suposição do time',
+      'Q-T14-3: entram os cards não descartados, abertos e entregues, suposição do time',
+      'Q-T14-4: o projeto inteiro, com o período escolhendo quais projetos aparecem, suposição do time',
+      'Q-T14-7: card sem time entra no total e fica fora do denominador do percentual, suposição do time',
+      'Q-T14-8: vale o time na entrega (para o aberto, o atual), suposição do time',
+      'Q-T14-9: com mais de um time no card, conta como meu time se o meu estiver entre os marcados, suposição do time',
+      'Q-T14-10: quem conta nas "2 pessoas" que liberam "outros times" (R-1 = B): responsáveis distintos dos cards de outros times, leitura adotada até a resposta',
+    ],
+  },
   E4: {
     dominio: 'businessmap',
     segmentacao: ['tipo-projeto'],
@@ -720,6 +742,18 @@ export const REGRAS_METRICA = {
     granularidade: 'story',
     refBriefing:
       "pedido 011 E7; D-1' = A e D-2 (peso por contagem de entregas); CA-13 (sem R$ até configurar o custo); D-1' = A e Q-E7-1 (decidida em 2026-10-16: pró-rata por dias corridos de cada vigência dentro do período, custo total do DSPD rateado pela participação nas entregas, só para sistema com 20 ou mais entregas); CA-23 (naturezaDe do T3)",
+    status: 'ok',
+  },
+  E8: {
+    dominio: 'businessmap',
+    segmentacao: [],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 0,
+    minimoSobre: [],
+    granularidade: 'story',
+    refBriefing:
+      'pedido 011 E8; D-3 = A (janela de 12 meses); R-1 = B (só a contagem de sistemas por faixa, sem nome de sistema nem de pessoa); recorte de menos de 5 sistemas não abre as faixas (CA-10); a faixa por sistema vem do agregado (ADR 0020), censo sem percentil',
     status: 'ok',
   },
   E9: {

@@ -53,14 +53,14 @@ export function normalizar(f: FiltrosMetrica): string {
 /** Métricas complementares (catálogo de cartões): as únicas que leem as extensões (dados fictícios até a coleta real). */
 const COMPLEMENTARES = new Set<MetricaId>(CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').flatMap((c) => c.metricas));
 
-/** Métricas do pedido 011 que leem a extensão separada `ExtensaoTambemBM` (T11 da fase 1; O22, O26, T13 e E6 da fase 2). */
-const COM_EXTENSAO_TAMBEM = new Set<MetricaId>(['T11', 'O22', 'O26', 'T13', 'E6']);
+/** Métricas do pedido 011 que leem a extensão separada `ExtensaoTambemBM` (T11 da fase 1; O22, O26, T13, E6, E8 e T14 da fase 2). */
+const COM_EXTENSAO_TAMBEM = new Set<MetricaId>(['T11', 'O22', 'O26', 'T13', 'E6', 'E8', 'T14']);
 
 export type DepsServico = {
   db: Consultavel; S?: Esquemas; maxResultados?: number;
   /** Fonte das extensões das métricas complementares (hoje só o mock; vira tabelas em T1.3/T1.4/T4.2). Sem ela, o cálculo devolve vazio/insuficiente. */
   extensoes?: () => ExtensoesMetricas;
-  /** Extensão do pedido 011 (T11 e as quatro da fase 2), só de mock e lazy: chamada só quando uma dessas métricas é pedida. Sem ela, elas devolvem vazio ou insuficiente. */
+  /** Extensão do pedido 011 (T11 e as seis da fase 2), só de mock e lazy: chamada só quando uma dessas métricas é pedida. Sem ela, elas devolvem vazio ou insuficiente. */
   extensaoTambem?: () => ExtensaoTambemBM;
   /** Fonte da pesquisa de percepção (PV1): mock agora; no B4, as tabelas `pesq_*`. Sem ela, a PV1 devolve `sem-pesquisa`. */
   pesquisa?: FontePesquisa;

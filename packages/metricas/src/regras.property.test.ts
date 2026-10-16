@@ -132,6 +132,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
       EI_FL3:
         'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer',
       E6: 'nível de projeto: o mock tem de 11 a 14 projetos concluídos com data comprometida (variante lenta, de propósito), então não há nó ok para varrer; a fronteira 19/20 do percentual e do P50/P85 do deslize é provada em e6.test.ts',
+      T14: 'exige exatamente uma equipe no filtro ("meu time"); com os filtros padrão desta propriedade o resultado é semEquipe e não há nó para varrer; a fronteira 19/20 do n com time informado, inclusive total >= 20 com n < 20, é provada em t14.test.ts (CA-31)',
     },
   },
   p5: {
