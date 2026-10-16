@@ -182,6 +182,23 @@ describe('T2.6 / CR-1 a CR-5 e CR-9: marcações das versões de critério em to
   })
 })
 
+describe('T2.6 / CR-1 a CR-4: a tendência do fluxo (fora do loop das 44 ids) é marcada quando a janela cruza as datas', () => {
+  const marcasT = (hoje: string): string =>
+    JSON.stringify(
+      businessmap.calcularTendenciaFluxo(
+        businessmap.criarContextoBM(base.bm, hoje, CALENDARIO_PADRAO),
+      ).criterios,
+    )
+  it('janela termina em 30/09 (hoje 20/10): sem marcação; hoje 20/11: traz descarte-nativo e excluido-entregue', () => {
+    expect(marcasT('2026-10-20T18:00:00-03:00')).not.toContain(
+      'criterio-2026-10-15-descarte-nativo',
+    )
+    const s = marcasT('2026-11-20T18:00:00-03:00')
+    expect(s).toContain('criterio-2026-10-15-descarte-nativo')
+    expect(s).toContain('criterio-2026-10-16-excluido-entregue')
+  })
+})
+
 describe('AL-1 / INV-9: nenhum indicador da fase 1 pede atenção na Visão geral', () => {
   it('o enum de alertas não tem id da fase 1 e a Visão geral do mock não traz indicador da fase 1', () => {
     // O2 é o pai do O23 (bloco `parados`) e já tinha o alerta O2_ACIMA_P95 antes da fase 1: o que se afirma é o O23 não alertar.
