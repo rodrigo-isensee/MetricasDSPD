@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { METRICA_IDS } from '@metricas-dspd/contratos'
 import { fonteDaMetrica } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { ehVazio } from '../vazio'
 import { aplicarSimulacao, ErroSimulado, lerModoMock } from '../simulacao'
-import { MockFonteMetricas, paginarO2 } from './MockFonteMetricas'
+import { cederTarefa, MockFonteMetricas, paginarO2 } from './MockFonteMetricas'
 
 /** Latência 0: os testes não esperam o atraso simulado (D7). */
 const fonte = new MockFonteMetricas({ latenciaMs: 0 })
@@ -238,5 +238,41 @@ describe('paginarO2', () => {
     expect(publicadas(2)?.length).toBeGreaterThan(0)
     expect(publicadas(3)).toEqual([])
     expect(publicadas(4)?.length).toBeGreaterThan(0)
+  })
+})
+
+describe('cederTarefa (C6, B11c-1)', () => {
+  it('só resolve depois das microtarefas pendentes, em tarefa nova', async () => {
+    const ordem: string[] = []
+    const cedeu = cederTarefa().then(() => ordem.push('tarefa'))
+    await Promise.resolve().then(() => ordem.push('micro1'))
+    await Promise.resolve().then(() => ordem.push('micro2'))
+    await cedeu
+    expect(ordem).toEqual(['micro1', 'micro2', 'tarefa'])
+  })
+
+  it('usa scheduler.yield quando o navegador o oferece', async () => {
+    const yieldSpy = vi.fn(() => Promise.resolve())
+    vi.stubGlobal('scheduler', { yield: yieldSpy })
+    try {
+      await cederTarefa()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+    expect(yieldSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('duas métricas pedidas juntas não calculam na mesma tarefa', async () => {
+    const f = new MockFonteMetricas({ latenciaMs: 0 })
+    await f.obter('O4', fluxo({ tipo: '12s' }))
+    let tarefaNova = false
+    const canal = new MessageChannel()
+    canal.port1.onmessage = () => {
+      tarefaNova = true
+      canal.port1.close()
+    }
+    const a = f.obter('O4', fluxo({ tipo: '12m' })).then(() => tarefaNova)
+    canal.port2.postMessage(null)
+    expect(await a).toBe(true)
   })
 })
