@@ -376,7 +376,6 @@
  "dspd_bm.fato_transicao.fonte text NOT NULL",
  "dspd_bm.fato_transicao.id_origem character varying(64) NOT NULL",
  "dspd_bm.fato_transicao.ocorrido_em timestamp with time zone NOT NULL",
- "dspd_bm.fato_transicao.usuario text NULL",
  "dspd_bm.fato_transicao.coletado_em timestamp with time zone NOT NULL",
  "dspd_bm.fato_transicao.coleta_id bigint NOT NULL",
  "dspd_bm.fato_transicao.sistema_origem text NOT NULL DEFAULT 'businessmap'::text",

@@ -48,6 +48,8 @@ O parecer de segurança mostrou que a primeira versão desta ADR deixava três p
 8. Na fase de mock, a extensão gera `passagens` e `conhecimentoSistema` **diretamente** como inteiros e faixas, sem pessoas, e não lê `responsaveis`.
 
 ## Decisão do usuário pendente
+
+> **Decidido em 2026-10-16: R-2 = (b).** `fato_transicao.usuario` foi removida pela migração `0015_bm_remove_usuario_transicao` e saiu de `COLUNAS_PESSOA` (K-096). Texto original abaixo, para registro.
 **R-2: decisão do usuário. Fonte de `fato_transicao.usuario`.** Em 2026-10-10 (`data-model.md` §9, decisão do §8) o usuário decidiu que os nomes ficam também nas tabelas analíticas, como no modelo 4.5 do briefing: `responsaveis` e `usuario`, sem leitura pela API. A única fonte de `usuario` é o `user_id` da revisão (e o autor no corpo do webhook), e esta ADR tira os dois da staging (M-2, M-3). Para `responsaveis` a decisão continua atendida pelo caminho em memória (4b). Para `usuario`, não há caminho que a atenda inteira, e a escolha é do usuário:
 - **(a) Manter, pela memória do coletor.** O coletor lê o `user_id` da revisão e o projetor grava `fato_transicao.usuario` na mesma execução, sem staging. Atende a decisão de 2026-10-10 só em parte: transição que chega só pelo webhook fica com `usuario` nulo, e reconstruir a coluna exige reler a API.
 - **(b) Revogar a coluna.** `fato_transicao.usuario` deixa de ser gravada (ou é removida, saindo de `COLUNAS_PESSOA`). Nenhuma métrica, rota ou tela perde nada: nenhuma lê a coluna (`data-model.md` §9, garantia 6). A auditoria de quem moveu o card passa a ser feita no próprio BusinessMap. Muda a decisão de 2026-10-10.

@@ -11,7 +11,6 @@ export const SEGMENTO_PESSOA =
 export const COLUNAS_PESSOA: readonly string[] = [
   'dspd_bm.dim_card.responsaveis',
   'dspd_bm.dim_card_versao.responsaveis',
-  'dspd_bm.fato_transicao.usuario',
 ];
 
 /** Exceções por `schema.tabela.coluna`, com justificativa. Sem curinga nem prefixo. Nova exceção exige mudar o data-model §9. */

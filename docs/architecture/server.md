@@ -74,13 +74,13 @@ flowchart TD
 ```mermaid
 flowchart TD
   S["pnpm db:seed"] --> G["gerarBaseMock(semente)"]
-  G --> M["mapearBM / mapearAC<br/>epoch ms -> timestamptz UTC, ids ASCII,<br/>responsaveis = '{}', usuario = NULL"]
+  G --> M["mapearBM / mapearAC<br/>epoch ms -> timestamptz UTC, ids ASCII,<br/>responsaveis = '{}'"]
   M --> X{"ctl_coleta 'seed-mock' já existe no schema?"}
   X -- "mesma semente" --> N["ja_semeado: nada é gravado"]
   X -- "outra semente" --> R["erro: use db:reset"]
   X -- não --> T["transação por schema:<br/>1 ctl_coleta + INSERT multi-linha em lotes de 500"]
 ```
-- Grava `dim_card`, `fato_transicao` (`fonte = 'revision'`, `id_origem = seed-N`), `fato_bloqueio`, `ref_coluna` (BM) e `dim_chamado`, `fato_etapa_chamado` (AC). Arquivados e excluídos entram como estão. Determinístico (sem relógio). O mock não traz nomes: `responsaveis` vazio e `usuario` nulo.
+- Grava `dim_card`, `fato_transicao` (`fonte = 'revision'`, `id_origem = seed-N`), `fato_bloqueio`, `ref_coluna` (BM) e `dim_chamado`, `fato_etapa_chamado` (AC). Arquivados e excluídos entram como estão. Determinístico (sem relógio). O mock não traz nomes: `responsaveis` vazio (a coluna `usuario` não existe mais, K-096).
 - Nunca apaga nem sobrescreve (sem `ON CONFLICT DO UPDATE`, `DELETE`). `coluna_id` = `c<ordem>`; `data_acordada` com a data civil em America/Sao_Paulo.
 - Fora do seed (não inferido): `ref_quadro`, `ref_dominio`, `ref_alvo_prioridade`, calendário, staging, `*_versao`, `evt_*` e `fato_etapa_chamado.totalizador`. Variáveis: `PG_MIGRADOR_URL`, `MOCK_SEMENTE` (opcional).
 - Critério de pronto do port: mesmo hash da base mock lida do Postgres que o hash lido do MySQL antes (ou do mock direto, se o MySQL não estiver disponível).
@@ -138,7 +138,7 @@ Primeiro uso: `cp .env.example .env`, ajuste as senhas, `pnpm db:up && pnpm db:m
 3. Conferir com `docker compose version` e `docker run --rm hello-world`.
 
 ## Regra LGPD de colunas (`src/db/lgpd.ts` → `plataforma/db/lgpd.ts`)
-Módulo único com `SEGMENTO_PESSOA`, `COLUNAS_PESSOA` (as colunas de pessoa permitidas no analítico: `dim_card.responsaveis`, `dim_card_versao.responsaveis`, `fato_transicao.usuario`), `EXCECOES_PESSOA` (`area_solicitante`) e `violaLgpd`. Usado pelos testes estáticos das migrações e do seed, pelo teste de catálogo e por `gerarGrants` (que tira as colunas de `COLUNAS_PESSOA` do `SELECT` da `dspd_api`). Regra completa em `data-model.md` §9.
+Módulo único com `SEGMENTO_PESSOA`, `COLUNAS_PESSOA` (as colunas de pessoa permitidas no analítico: `dim_card.responsaveis`, `dim_card_versao.responsaveis`; `fato_transicao.usuario` saiu na K-096), `EXCECOES_PESSOA` (`area_solicitante`) e `violaLgpd`. Usado pelos testes estáticos das migrações e do seed, pelo teste de catálogo e por `gerarGrants` (que tira as colunas de `COLUNAS_PESSOA` do `SELECT` da `dspd_api`). Regra completa em `data-model.md` §9.
 
 ## Staging de card
 `gravarStgCard(cliente, entrada)` recebe `quadroId`, `arquivado` e `excluidoDetectado` do coletor; deduplica contra a última versão com `ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk` e relê em caso de corrida (`data-model.md` §3.1). `fato_transicao.id_origem` é `varchar(64)` (SHA-256 hex do webhook).
@@ -170,7 +170,7 @@ Módulo único com `SEGMENTO_PESSOA`, `COLUNAS_PESSOA` (as colunas de pessoa per
 
 
 ## Módulo `metricas`, fontes e webhook (S-11, S-12)
-- **Fluxo:** `repositorio.ts` lê as projeções com colunas explícitas (nunca `responsaveis`/`usuario`; BM e AC em consultas separadas) -> `mapa.ts` monta `BaseBM`/`BaseAC` (nomes de coluna pelo `ref_coluna` vigente; pessoa sempre vazia) -> `servico.ts` calcula só por `calcularMetrica` da biblioteca -> `rotas.ts` (uma rota por métrica, entrada por domínio, saída = DTO do contrato). Cache e invalidação em `docs/api/metricas.md`.
+- **Fluxo:** `repositorio.ts` lê as projeções com colunas explícitas (nunca `responsaveis`; BM e AC em consultas separadas) -> `mapa.ts` monta `BaseBM`/`BaseAC` (nomes de coluna pelo `ref_coluna` vigente; pessoa sempre vazia) -> `servico.ts` calcula só por `calcularMetrica` da biblioteca -> `rotas.ts` (uma rota por métrica, entrada por domínio, saída = DTO do contrato). Cache e invalidação em `docs/api/metricas.md`.
 - **Convenções provisórias de `ref_*` (confirmar com o usuário):** valor global grava `equipe = '*'` (`ref_limite_frentes`, `ref_sle`, `ref_alocacao_acordada`); SLE = percentil 85; natureza da alocação na coluna `classe_servico`; objetivos e áreas internas em `ref_dominio` (`objetivo_estrategico`, `area_interna`); limite de WIP do fluxo em `ref_limite_wip_fluxo` (tabela nova, migração 0012); calendário = `CALENDARIO_PADRAO` da biblioteca (P2); `data_acordada` (coluna `date`) vale até o fim do expediente do dia. Coluna sem tipo/papel em `ref_coluna` não entra (papel não se infere); cartão sem `criado_em`/`granularidade`/`tipo` fica de fora (carga parcial).
 - **Paridade:** `tests/metricas.paridade.test.ts` (linhas do seed num banco falso) e `tests/metricas.pg.test.ts` (seed real, papel `dspd_api`) comparam as 33 métricas com o mock em memória "como o banco o representa" (`tests/base-duble.ts`): sem pessoa, `data_acordada` em fim de expediente, duração de bloqueio com 2 casas, ids de critério do banco. Sem essa normalização divergem O12 e os critérios (S7, VISAO_GERAL): o mock usa instante para `data_acordada`, o modelo guarda data.
 - **Desempenho (pedido 009, item 4):** `tests/pg/desempenho.ts` gera ~5x o mock (27.798 cards, 226.571 transições, 30.057 chamados, 223.097 etapas; 24 meses). p95 das consultas que montam as amostras (10 execuções, dspd_api): dim_card 151-162 ms, fato_transicao 344-354 ms, fato_bloqueio 26-32 ms, ref_coluna 1-2 ms, dim_chamado 227-251 ms, fato_etapa_chamado 251-283 ms (orçamento 500 ms). Carga completa BM+AC com índice da biblioteca: ~1,7 s por versão de carga (não por requisição). API: p95 1 ms com cache; 143-149 ms sem cache de resultado (base já em memória); orçamento 300 ms. Ajuste que fez diferença: sem `ORDER BY` em transições e etapas (a biblioteca ordena; o sort ia a disco: p95 558/589 ms -> 354/283 ms) e instantes dessas duas tabelas como epoch ms (`float8`).

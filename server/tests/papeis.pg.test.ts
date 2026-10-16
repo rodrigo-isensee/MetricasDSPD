@@ -18,8 +18,8 @@ d('papéis e privilégios (conectando como cada papel)', () => {
     coleta = await novaColeta(dono, S.bm);
     await coletor.query(`INSERT INTO ${S.bm}.dim_card (card_id, titulo, responsaveis, coletado_em, atualizado_por_coleta_id)
       VALUES ($1, 'T', ARRAY['Fulana de Tal'], now(), $2)`, [card, coleta]);
-    await coletor.query(`INSERT INTO ${S.bm}.fato_transicao (card_id, coluna_destino_id, fonte, id_origem, ocorrido_em, usuario, coletado_em, coleta_id)
-      VALUES ($1, 'c1', 'revision', $2, now(), 'Fulana', now(), $3)`, [card, card, coleta]);
+    await coletor.query(`INSERT INTO ${S.bm}.fato_transicao (card_id, coluna_destino_id, fonte, id_origem, ocorrido_em, coletado_em, coleta_id)
+      VALUES ($1, 'c1', 'revision', $2, now(), now(), $3)`, [card, card, coleta]);
   });
   afterAll(async () => { await Promise.all(papeis().map((p) => p.end())); });
 
@@ -27,7 +27,8 @@ d('papéis e privilégios (conectando como cada papel)', () => {
     expect((await api.query(`SELECT card_id, titulo FROM ${S.bm}.dim_card WHERE card_id = $1`, [card])).rows).toEqual([{ card_id: card, titulo: 'T' }]);
     await expect(api.query(`SELECT responsaveis FROM ${S.bm}.dim_card`)).rejects.toMatchObject({ code: '42501' });
     await expect(api.query(`SELECT * FROM ${S.bm}.dim_card`)).rejects.toMatchObject({ code: '42501' });
-    await expect(api.query(`SELECT usuario FROM ${S.bm}.fato_transicao`)).rejects.toMatchObject({ code: '42501' });
+    // K-096: `fato_transicao.usuario` foi removida (migração 0015); nem existe coluna para pedir.
+    await expect(api.query(`SELECT usuario FROM ${S.bm}.fato_transicao`)).rejects.toMatchObject({ code: '42703' });
   });
   it('api lê a transição canônica pela view (security_invoker) e nunca vê o usuário', async () => {
     const r = await api.query(`SELECT * FROM ${S.bm}.vw_transicao_canonica WHERE card_id = $1`, [card]);
