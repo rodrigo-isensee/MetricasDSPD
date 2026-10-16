@@ -3,19 +3,48 @@ tipo: qa
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis-back
 branch: feature/011-metricas-tambem-back
-commit: 03b6176
+commit: 4c7efee
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-10-15
+data: 2026-10-16
 ---
 
 # QA: back do pedido 011 (K-078, cartões B1 a B12)
 
-Links: plano `docs/qa/011-back-plano.md` (80 casos, 10 invariantes, 9 de T2.6, API, mutação, desempenho), especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md`, pedido `docs/pedidos/011-metricas-tambem-disponiveis.md` (decisões de 2026-10-16), review `docs/reviews/011-back.md` (aprovado em a212d12), contrato `docs/api/metricas.md`, pergunta registrada `docs/qa/bugs/B11-001-t10-fornecedor-diferencia-caixa-do-nome.md`.
+Links: plano `docs/qa/011-back-plano.md` (80 casos, 10 invariantes, 9 de T2.6, API, mutação, desempenho), especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md`, pedido `docs/pedidos/011-metricas-tambem-disponiveis.md` (decisões de 2026-10-16), review `docs/reviews/011-back.md` (revalidado em 4c7efee), contrato `docs/api/metricas.md`, pergunta registrada `docs/qa/bugs/B11-001-t10-fornecedor-diferencia-caixa-do-nome.md`.
+
+# Revalidação: revert do a1 e merge do #88
+
+commit: 4c7efee
+pedido: 011-metricas-tambem-disponiveis-back
+
+Este trecho revalida o parecer depois de três commits entrarem na branch após o parecer de 03b6176: o revert do a1 (`d73474a`, devolve `MockFonteMetricas` ao código medido), o merge do #88 (`4e6b29c`, K-096 e K-097, que têm QA próprio em `docs/qa/k096-k097.md`) e o review revalidado (`4c7efee`, só documentação). O código de produção do 011 não mudou.
+
+**Veredito da revalidação: aprovado, escopo completo mantido.** Zero bug crítico, alto, médio ou baixo aberto. O que mudou no diff `03b6176..4c7efee`:
+- `web/src/data/mock/MockFonteMetricas.ts` e `.test.ts`: o revert do a1 tira o `cederTarefa` (C6, B11c-1). O estado do mock volta ao que foi medido no parecer de 03b6176.
+- `server/src/modulos/metricas/repositorio.ts`, `server/src/plataforma/db/lgpd.ts`, `server/src/plataforma/db/seed.ts`, migração `0015_bm_remove_usuario_transicao.ts` e `checksums.json`: do #88 (K-096), que tira `fato_transicao.usuario` das leituras e da lista de colunas de pessoa. São mudanças de consulta e de lista, sem efeito nas métricas do 011.
+- `docs/` (ADR 0020, data-model, server, segurança K-096/K-097, review): documentação.
+
+**Onde rodei:** a worktree `/home/rodrigoisensee/MetricasDSPD-011-back`, limpa, no HEAD `4c7efee`. Tudo pesado sob `flock /tmp/metricas-pesado.lock nice -n 19`.
+
+| Comando | Resultado |
+|---|---|
+| `pnpm run pronto` | **EXIT=0** (log em `/tmp/claude-1000/-home-rodrigoisensee-MetricasDSPD/d48e2c6b-73ac-47f2-9ee3-664a2a4ab172/scratchpad/pronto-4c7efee.log`) |
+| `env -u DSPD_PWD_PESQUISA pnpm run test:pg` | **EXIT=0**, 15 arquivos, 83 testes passam (log em `.../scratchpad/testpg-4c7efee.log`) |
+
+Por suíte, no `pronto`: lint, prettier e typecheck verdes; contratos 120 de 120; metricas 937 de 937 (cobertura 100% mantida); mock 206 de 206 (hashes da base sem mudança); server 562 passam e 83 pulados (`*.pg.test.ts`, cobertos pelo `test:pg` acima); spec-check 14 de 14; homolog 73 de 73; pesquisa 33 de 33; web 1.045 de 1.045; docs-contratos 102 de 102 com `docs:check` ok (442 páginas Markdown, 63 métricas, 2 eventos).
+
+**Não reexecutei nesta revalidação:** E2E (incluindo axe), desempenho (ADR 0003) e mutação. O revert do a1 mexe no mock do front, que o E2E usa; o E2E que vale para o código medido continua o do parecer de 03b6176 e o do review. Se o `tech-lead` quiser o E2E sobre `4c7efee` antes do PR, é uma rodada de ~37 min com 1 worker.
+
+**Ponto aberto que o revert reabre:** o B11c-1 (C6: a maior tarefa longa do painel, 235 a 466 ms no review sob carga) volta a ficar sem correção na branch, como estava no parecer de 03b6176. Não é bug de produção deste QA e não entra na contagem de bugs; segue com o `software-architect`, e a ADR 0003 trata o C6 como bloqueante do PR.
+
+Os testes de correção e de regra deste parecer (`QA011 T2.6`, `QA011-API corte no meio do mês`, o INV-F7 e o EI-03) não mudaram; passam em `4c7efee` no `pronto`.
+
+---
 
 # B11b + B12 + merge da develop (QA final do back)
 
