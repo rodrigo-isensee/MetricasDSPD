@@ -8,7 +8,7 @@ const busca = (r: { roteador: { state: { location: { search: string; pathname: s
   new URLSearchParams(r.roteador.state.location.search)
 
 describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
-  it('navegação com exatamente os 7 destinos na ordem e aria-current na rota atual', async () => {
+  it('navegação com exatamente os 6 destinos (a Sustentação é uma visão do Operacional) na ordem e aria-current na rota atual', async () => {
     renderizarApp('/operacional')
     await screen.findByRole('heading', { level: 1, name: 'Operacional' })
     const nav = screen.getAllByRole('navigation', { name: 'Navegação principal' })[0] as HTMLElement
@@ -20,7 +20,6 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
       'Operacional',
       'Tático',
       'Estratégico',
-      'Sustentação',
       'Catálogo de métricas',
       'Dados e coletas',
     ])
@@ -93,8 +92,8 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
     expect(screen.getByRole('main')).toHaveFocus()
   })
 
-  it('links entre painéis de fluxo preservam os filtros; para Sustentação e Visão geral vão limpos', async () => {
-    renderizarApp('/operacional?equipe=fluig&tipo=melhoria&periodo=4s')
+  it('links entre painéis de fluxo preservam os filtros; para a Visão geral vão limpos; não há item Sustentação', async () => {
+    renderizarApp('/operacional?cadencia=semanal&equipe=fluig&tipo=melhoria&periodo=4s')
     await screen.findByRole('heading', { level: 1, name: 'Operacional' })
     const nav = screen.getAllByRole('navigation', { name: 'Navegação principal' })[0] as HTMLElement
     await waitFor(() =>
@@ -103,9 +102,7 @@ describe('shell: navegação, estrutura e aviso de dados fictícios', () => {
       ),
     )
     expect(within(nav).queryByRole('link', { name: 'Espera invisível' })).toBeNull()
-    expect(within(nav).getByRole('link', { name: 'Sustentação' }).getAttribute('href')).toBe(
-      '/sustentacao',
-    )
+    expect(within(nav).queryByRole('link', { name: 'Sustentação' })).toBeNull()
     expect(within(nav).getByRole('link', { name: 'Visão geral' }).getAttribute('href')).toBe('/')
   })
 

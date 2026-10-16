@@ -1,5 +1,5 @@
 import type { ResultadoO4 } from '@metricas-dspd/contratos'
-import { TIPOS_CARD } from '@metricas-dspd/contratos'
+import { TIPOS_CARD, type TipoCard } from '@metricas-dspd/contratos'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { diaDeIso, diaLocal } from '../core/calendario'
 import { estatistica, medianaDe } from '../core/estatistica'
@@ -10,17 +10,22 @@ import { baseAmostral, criterios, ehDemanda, periodoDe, selecionar } from './com
 import { amostraBM } from './amostra'
 import type { ContextoBM } from './indice'
 
+/** Itens de demanda concluídos (dia local da conclusão e tipo): a seleção do O4, reusada pela tendência mensal. */
+export function concluidosDeDemanda(
+  ctx: ContextoBM,
+  f: FiltrosFluxo,
+): { dia: number; tipo: TipoCard }[] {
+  return selecionar(ctx, f, 'story')
+    .filter(ehDemanda)
+    .filter((m) => m.entrega !== null)
+    .map((m) => ({ dia: diaLocal(m.entrega as number, ctx.cal), tipo: m.card.tipo }))
+}
+
 /** O4: vazão semanal com faixa (mín a máx) e mediana das semanas completas da janela. */
 export function calcularO4(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO4 {
   const periodo = periodoDe(ctx, f)
   const janela = janelaMovelDia(diaDeIso(periodo.fim), JANELA_POR_GRANULARIDADE.story)
-  const cards = selecionar(ctx, f, 'story')
-    .filter(ehDemanda)
-    .filter((m) => m.entrega !== null)
-  const itens = cards.map((m) => ({
-    dia: diaLocal(m.entrega as number, ctx.cal),
-    tipo: m.card.tipo,
-  }))
+  const itens = concluidosDeDemanda(ctx, f)
 
   const semanas = semanasEntre(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.hojeDia).map(
     (s) => {

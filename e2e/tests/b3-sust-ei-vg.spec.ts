@@ -5,7 +5,7 @@ const SUST = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'EI-SUST'];
 
 test.describe('K-008 Sustentacao', () => {
   test.beforeEach(async ({ painel, page }) => {
-    await painel.ir('/sustentacao');
+    await painel.ir('/operacional?cadencia=sustentacao');
     await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
   });
 
@@ -67,7 +67,7 @@ test.describe('K-008 Sustentacao', () => {
   });
 
   test('SUS-17 recorte visivel com filtro aplicado', async ({ page, painel }) => {
-    await painel.ir('/sustentacao?periodo=30d');
+    await painel.ir('/operacional?cadencia=sustentacao&periodo=30d');
     await expect(page.getByTestId('recorte-sustentacao')).toBeVisible();
   });
 });
@@ -77,7 +77,7 @@ test.describe('K-025 Espera invisivel dentro de cada painel', () => {
     ['EI-FL1', '/operacional?cadencia=semanal'],
     ['EI-FL2', '/tatico'],
     ['EI-FL3', '/estrategico'],
-    ['EI-SUST', '/sustentacao'],
+    ['EI-SUST', '/operacional?cadencia=sustentacao'],
   ] as const;
 
   test('EI-02 cada painel traz so o cartao do proprio nivel', async ({ page, painel }) => {
@@ -114,16 +114,16 @@ test.describe('K-025 Espera invisivel dentro de cada painel', () => {
   });
 
   test('EI-09 texto da Sustentacao: nao compare com BusinessMap', async ({ page, painel }) => {
-    await painel.ir('/sustentacao');
+    await painel.ir('/operacional?cadencia=sustentacao');
     await expect(page.getByTestId('metrica-EI-SUST')).toContainText(/não comparável com os níveis do BusinessMap/i);
   });
 
   test('EI-05 a Sustentacao nao herda filtro de fluxo', async ({ page, painel }) => {
-    await painel.ir('/sustentacao');
+    await painel.ir('/operacional?cadencia=sustentacao');
     await expect(page.getByTestId('metrica-EI-SUST')).toBeVisible();
     await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
     const base = await page.getByTestId('base-EI-SUST').innerText();
-    await painel.ir('/sustentacao?tipo=incidente&equipe=fl1');
+    await painel.ir('/operacional?cadencia=sustentacao&tipo=incidente&equipe=fl1');
     await expect(page.getByTestId('metrica-EI-SUST')).toBeVisible();
     expect(await page.getByTestId('base-EI-SUST').innerText()).toBe(base);
   });
@@ -144,11 +144,11 @@ test.describe('K-026 Visao geral', () => {
   });
 
   test('VG-02 ate 3 indicadores por nivel e link Abrir painel', async ({ page }) => {
-    const alvo: Record<string, string> = { operacional: '/operacional', tatico: '/tatico', estrategico: '/estrategico', sustentacao: '/sustentacao' };
+    const alvo: Record<string, string> = { operacional: '/operacional?cadencia=diaria', tatico: '/tatico', estrategico: '/estrategico', sustentacao: '/operacional?cadencia=sustentacao' };
     for (const [n, rota] of Object.entries(alvo)) {
       const nivel = page.getByTestId(`nivel-${n}`);
       expect(await nivel.locator('[data-testid^="indicador-"]').count()).toBeLessThanOrEqual(3);
-      await expect(nivel.getByRole('link', { name: /^Abrir / })).toHaveAttribute('href', new RegExp(`${rota}$`));
+      await expect(nivel.getByRole('link', { name: /^Abrir / })).toHaveAttribute('href', new RegExp(`${rota.replace('?', '\\?')}$`));
     }
   });
 
@@ -172,11 +172,12 @@ test.describe('K-026 Visao geral', () => {
     await expect(page.getByTestId('ei-fonte-sust')).toContainText(/Fonte diferente/);
   });
 
-  test('VG-06 tabela Por reuniao com 6 linhas e links', async ({ page }) => {
+  test('VG-06 tabela Por reuniao com 7 linhas e links', async ({ page }) => {
     const sec = page.getByRole('region', { name: 'Por reunião' });
     const hrefs = await sec.getByRole('link').evaluateAll((a) => a.map((x) => x.getAttribute('href')));
-    for (const h of ['/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/tatico#t2', '/tatico#t4', '/estrategico#e1', '/estrategico#e3']) expect(hrefs).toContain(h);
-    await expect(sec.getByRole('listitem')).toHaveCount(6);
+    // 7 reuniões: a Revisão da sustentação · semanal entrou na demanda da Sustentação no Operacional (CA-16)
+    for (const h of ['/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/operacional?cadencia=sustentacao', '/tatico#t2', '/tatico#t4', '/estrategico#e1', '/estrategico#e3']) expect(hrefs).toContain(h);
+    await expect(sec.getByRole('listitem')).toHaveCount(7);
   });
 
   test('VG-07 no maximo 6 alertas visiveis; expandir confere N', async ({ page }) => {
@@ -192,7 +193,7 @@ test.describe('K-026 Visao geral', () => {
 
   test('VG-10 consistencia: indicador O2 igual ao cartao do painel', async ({ page }) => {
     const vg = (await page.getByTestId('indicador-O2').innerText()).match(/\d+(?:,\d+)?/g) ?? [];
-    await page.goto('/operacional');
+    await page.goto('/operacional?cadencia=diaria');
     await expect(page.getByTestId('metrica-O2')).toBeVisible();
     await expect(page.getByTestId('metrica-O2')).not.toHaveAttribute('aria-busy', 'true');
     const painelTxt = await page.getByTestId('metrica-O2').innerText();

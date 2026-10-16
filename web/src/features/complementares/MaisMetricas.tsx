@@ -18,6 +18,10 @@ export function MaisMetricas({
   return p ? <Conteudo p={p} fonte={fonte} renderizar={renderizar} /> : null
 }
 
+/** O Operacional (e a Sustentação, que é uma visão dele) fala em "visão"; os outros níveis, em "painel". */
+const escopo = (painel: PreferenciasPainel['painel']): string =>
+  painel === 'operacional' || painel === 'sustentacao' ? 'desta visão' : 'deste painel'
+
 function Conteudo({
   p,
   fonte,
@@ -58,7 +62,7 @@ function Conteudo({
       id="mais-metricas"
     >
       <summary className="alvo cursor-pointer px-4 py-3 text-base font-bold">
-        Mais métricas deste painel · {fmtInteiro(visiveis.length)}{' '}
+        Mais métricas {escopo(p.painel)} · {fmtInteiro(visiveis.length)}{' '}
         {plural(visiveis.length, 'complementar', 'complementares')}
       </summary>
       {aberta && (

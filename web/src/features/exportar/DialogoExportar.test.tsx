@@ -52,7 +52,9 @@ describe('Exportar de um painel', () => {
     const itens = itensDoNivel('operacional', ['o9', 'o10'])
     const { gerar, user } = montar('operacional', itens)
     const dlg = await abrir(user)
-    expect(within(dlg).getByRole('heading', { name: 'Exportar métricas' })).toBeInTheDocument()
+    expect(
+      within(dlg).getByRole('heading', { name: 'Exportar · Operacional (fluxo de projeto)' }),
+    ).toBeInTheDocument()
     expect(within(dlg).queryByRole('checkbox', { name: /O9/ })).not.toBeInTheDocument()
     const marcadas = within(dlg)
       .getAllByRole('checkbox')
@@ -234,7 +236,7 @@ describe('Exportação personalizada', () => {
     expect(
       within(dlg).getByRole('heading', { name: 'Exportação personalizada' }),
     ).toBeInTheDocument()
-    for (const nivel of ['Operacional', 'Tático', 'Sustentação'])
+    for (const nivel of ['Operacional', 'Tático', 'Operacional · Sustentação'])
       expect(within(dlg).getByRole('group', { name: nivel })).toBeInTheDocument()
     expect(within(dlg).getByRole('group', { name: 'Estratégico' })).toHaveTextContent(
       'Nenhuma métrica visível neste nível.',

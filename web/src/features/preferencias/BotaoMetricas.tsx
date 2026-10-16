@@ -76,7 +76,11 @@ export function BotaoMetricas() {
           className="fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-auto rounded-t-lg border border-borda-controle bg-superficie p-4 shadow-xl lg:inset-x-auto lg:bottom-auto lg:right-6 lg:top-40 lg:w-[26rem] lg:max-h-[70dvh] lg:rounded-lg"
           data-testid="popover-metricas"
         >
-          <Dialog.Title className="text-lg font-bold">Métricas deste painel</Dialog.Title>
+          <Dialog.Title className="text-lg font-bold">
+            {p.painel === 'operacional' || p.painel === 'sustentacao'
+              ? 'Métricas desta visão'
+              : 'Métricas deste painel'}
+          </Dialog.Title>
           <Dialog.Description className="mt-1 text-sm text-texto-2">
             Marque o que aparece. Vale para esta visita; o padrão se edita em{' '}
             <Link to="/preferencias" className="text-acento underline">

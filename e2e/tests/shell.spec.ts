@@ -1,14 +1,15 @@
 import { test, expect } from '../fixtures/base';
 
-const ROTAS_PAINEL = ['/', '/operacional', '/tatico', '/estrategico', '/sustentacao', '/ajuda'];
-const DESTINOS = ['Visão geral', 'Operacional', 'Tático', 'Estratégico', 'Sustentação', 'Catálogo de métricas', 'Dados e coletas'];
+const ROTAS_PAINEL = ['/', '/operacional', '/tatico', '/estrategico', '/ajuda'];
+const VISOES_OPERACIONAL = ['/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/operacional?cadencia=sustentacao'];
+const DESTINOS = ['Visão geral', 'Operacional', 'Tático', 'Estratégico', 'Catálogo de métricas', 'Dados e coletas'];
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
-test('NAV-01/02 entrada em / e 7 destinos na ordem, aria-current só na rota atual @smoke', async ({ painel, page }) => {
+test('NAV-01/02 entrada em / e 6 destinos na ordem (sem Sustentação: é uma visão do Operacional), aria-current só na rota atual @smoke', async ({ painel, page }) => {
   await painel.ir('/');
   expect(await painel.cabecalho.destinos()).toEqual(DESTINOS);
-  for (const [i, rota] of ROTAS_PAINEL.slice(0, 5).entries()) {
+  for (const [i, rota] of ROTAS_PAINEL.slice(0, 4).entries()) {
     await painel.ir(rota);
     await expect(painel.cabecalho.nav.locator('[aria-current="page"]')).toHaveCount(1);
     expect(await painel.cabecalho.itemAtual()).toBe(DESTINOS[i]);
@@ -26,7 +27,7 @@ test('NAV-03 rota desconhecida mostra 404 com link para a Visão geral', async (
 });
 
 test('NAV-04 um h1 por rota e título termina em "Métricas DSPD · Dados fictícios"', async ({ painel, page }) => {
-  for (const r of [...ROTAS_PAINEL, '/nada']) {
+  for (const r of [...ROTAS_PAINEL, ...VISOES_OPERACIONAL, '/nada']) {
     await page.goto(r);
     await expect(painel.h1).toHaveCount(1);
     await expect(page).toHaveTitle(/Métricas DSPD · Dados fictícios$/);
@@ -44,7 +45,7 @@ test('NAV-04/12 foco no h1 ao trocar de painel por clique e por Voltar', async (
 });
 
 test('NAV-05 skip link é o primeiro focável e leva ao main', async ({ painel, page }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   await page.keyboard.press('Tab');
   await expect(painel.cabecalho.pularConteudo).toBeFocused();
   await page.keyboard.press('Enter');
@@ -72,7 +73,7 @@ test('NAV-09 /ajuda tem âncoras de regras e critérios', async ({ page }) => {
 });
 
 test('AVI-01/02/03 aviso de dados fictícios e rodapé em todas as rotas e estados, sem controle de fechar', async ({ painel, page }) => {
-  for (const r of [...ROTAS_PAINEL, '/nada', '/operacional?mock=erro', '/operacional?mock=carregando', '/operacional?mock=vazio']) {
+  for (const r of [...ROTAS_PAINEL, ...VISOES_OPERACIONAL, '/nada', '/operacional?cadencia=diaria&mock=erro', '/operacional?cadencia=diaria&mock=carregando', '/operacional?cadencia=diaria&mock=vazio']) {
     await page.goto(r);
     await painel.cabecalho.esperarAvisoFicticio();
     await expect(painel.cabecalho.aviso.getByRole('button', { name: /fechar|dispensar|ocultar/i })).toHaveCount(0);
@@ -84,7 +85,7 @@ test('AVI-01/02/03 aviso de dados fictícios e rodapé em todas as rotas e estad
 });
 
 test('A11Y-14 tema: escolha persiste, aplica data-theme e não pisca', async ({ painel, page }) => {
-  await painel.ir('/operacional');
+  await painel.ir('/operacional?cadencia=diaria');
   await page.getByTestId('seletor-tema').selectOption('escuro');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.reload();
@@ -106,7 +107,7 @@ test('A11Y-14 tema "Sistema" respeita prefers-color-scheme e o atributo existe a
 });
 
 test('A11Y-15 estrutura: lang, marcos e nav rotulado', async ({ page }) => {
-  await page.goto('/operacional');
+  await page.goto('/operacional?cadencia=diaria');
   await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
   await expect(page.getByRole('banner')).toHaveCount(1);
   await expect(page.getByRole('main')).toHaveCount(1);
@@ -114,8 +115,8 @@ test('A11Y-15 estrutura: lang, marcos e nav rotulado', async ({ page }) => {
   await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toBeVisible();
 });
 
-test('ST-13 console limpo em todas as rotas', async ({ page, problemas }) => {
-  for (const r of ROTAS_PAINEL) {
+test('ST-13 console limpo em todas as rotas e visões', async ({ page, problemas }) => {
+  for (const r of [...ROTAS_PAINEL, ...VISOES_OPERACIONAL]) {
     await page.goto(r);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   }

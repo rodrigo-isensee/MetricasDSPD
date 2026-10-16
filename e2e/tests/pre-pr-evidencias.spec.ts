@@ -43,7 +43,7 @@ for (const [w, h, t] of [[1280, 800, 'claro'], [375, 812, 'escuro']] as const) {
     await page.goto('/operacional?cadencia=semanal&periodo=4s');
     await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
     await page.getByRole('button', { name: 'Exportar', exact: true }).click();
-    const dlg = page.getByRole('dialog', { name: 'Exportar métricas' });
+    const dlg = page.getByRole('dialog', { name: 'Exportar · Operacional (fluxo de projeto)' });
     await expect(dlg).toBeVisible();
     await page.screenshot({ path: `${OUT}/exportar-dialogo-${w}-${t}.png` });
     if (w === 1280) {

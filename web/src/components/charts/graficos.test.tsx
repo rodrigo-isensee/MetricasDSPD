@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { ModoTabelaContext } from '../ui'
 import {
   AreaEmpilhada,
+  GraficoMensal,
   Legenda,
   TooltipTema,
   corNaPosicao,
@@ -160,5 +161,48 @@ describe('Legenda', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(8)
     expect(container.querySelectorAll('line')).toHaveLength(3)
     expect(container.querySelectorAll('pattern')).toHaveLength(5)
+  })
+})
+
+describe('GraficoMensal', () => {
+  const dados = [
+    { mes: '2026-04', valor: 8 },
+    { mes: '2026-05', valor: null },
+    { mes: '2026-06', valor: 9 },
+  ]
+  it('linha: meses sem valor viram marcador vazado, com a legenda "poucos itens" no eixo', () => {
+    const { container } = render(
+      <div style={{ width: 640, height: 160 }}>
+        <GraficoMensal dados={dados} forma="linha" unidade="dias úteis" marcas={[]} />
+      </div>,
+    )
+    expect(container.querySelector('svg')).not.toBeNull()
+    expect(container.querySelector('[data-testid="marcador-vazado"]')).not.toBeNull()
+  })
+  it('linha com teto do eixo e linha de mudança de critério; barras sem marcador', () => {
+    const a = render(
+      <div style={{ width: 640, height: 160 }}>
+        <GraficoMensal
+          dados={dados}
+          forma="linha"
+          unidade="prioridades"
+          eixoMax={5}
+          marcas={[{ id: 'c', mes: '2026-05', data: '2026-05-10' }]}
+        />
+      </div>,
+    )
+    expect(a.container.querySelector('svg')).not.toBeNull()
+    a.unmount()
+    const b = render(
+      <div style={{ width: 640, height: 160 }}>
+        <GraficoMensal
+          dados={dados.map((d) => ({ ...d, valor: d.valor ?? 0 }))}
+          forma="barras"
+          unidade="itens"
+          marcas={[]}
+        />
+      </div>,
+    )
+    expect(b.container.querySelector('svg')).not.toBeNull()
   })
 })

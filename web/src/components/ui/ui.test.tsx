@@ -6,6 +6,7 @@ import {
   BadgeBase,
   CartaoMetrica,
   ProvedorContextoPainel,
+  SeletorCadencia,
   SeletorLocal,
   StatusMeta,
   TabelaDados,
@@ -268,5 +269,37 @@ describe('StatusMeta, TabelaDados e SeletorLocal', () => {
       'true',
     )
     expect(screen.getByText('conteúdo b')).toBeInTheDocument()
+  })
+})
+
+describe('SeletorCadencia', () => {
+  const opcoes = [
+    { valor: 'a', rotulo: 'Aaa' },
+    { valor: 'b', rotulo: 'Bbb' },
+  ] as const
+  it('rótulo padrão "Cadência"; escolher chama onChange; sem onIntencao, ponteiro e foco não fazem nada', async () => {
+    const onChange = vi.fn()
+    render(<SeletorCadencia valor="a" onChange={onChange} opcoes={opcoes} />)
+    expect(screen.getByRole('radiogroup', { name: 'Cadência' })).toBeInTheDocument()
+    await userEvent.hover(screen.getByText('Bbb'))
+    await userEvent.click(screen.getByRole('radio', { name: 'Bbb' }))
+    expect(onChange).toHaveBeenCalledWith('b')
+  })
+  it('onIntencao avisa com o valor sob o ponteiro e sob o foco (pré-carga antes do clique)', async () => {
+    const onIntencao = vi.fn()
+    render(
+      <SeletorCadencia
+        rotulo="Visão"
+        valor="a"
+        onChange={() => undefined}
+        opcoes={opcoes}
+        onIntencao={onIntencao}
+      />,
+    )
+    await userEvent.hover(screen.getByText('Bbb'))
+    expect(onIntencao).toHaveBeenLastCalledWith('b')
+    onIntencao.mockClear()
+    await userEvent.tab()
+    expect(onIntencao).toHaveBeenCalledWith('a')
   })
 })

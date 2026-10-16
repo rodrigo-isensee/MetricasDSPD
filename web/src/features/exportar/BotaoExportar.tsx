@@ -11,7 +11,14 @@ import { NIVEIS, itensDoNivel, type NivelExportacao } from './selecao'
  * "Exportar" do painel (e da Visão geral) e "Exportação personalizada" (todos os níveis): liga o diálogo
  * às preferências do pedido 007 (só as métricas visíveis), à fonte de dados e ao cache dos cartões.
  */
-export function BotaoExportar({ base }: { base: BaseExportacao }) {
+export function BotaoExportar({
+  base,
+  preSelecionar,
+}: {
+  base: BaseExportacao
+  /** Só na personalizada: chaves (`nivel:cartao`) já marcadas ao abrir (no Resumo, os cartões dos números-chave). */
+  preSelecionar?: readonly string[]
+}) {
   const fonte = useFonte()
   const clienteQuery = useQueryClient()
   const prefs = usePreferencias()
@@ -27,6 +34,7 @@ export function BotaoExportar({ base }: { base: BaseExportacao }) {
       itens={itens}
       mock={fonte.tipo === 'mock'}
       carregando={!prefs.pronto}
+      {...(preSelecionar ? { preSelecionar } : {})}
       agora={() => new Date()}
       gerar={(selecionados) =>
         gerarArquivo({

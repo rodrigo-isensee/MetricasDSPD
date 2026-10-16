@@ -152,7 +152,11 @@ describe('parâmetro oculto ?mock=', () => {
   })
   it('vazio força o resultado sem itens em todas as métricas (O1 mantém os dias úteis como base)', async () => {
     // A pesquisa não tem itens a esvaziar: sem carga ela mostra o estado próprio "sem pesquisa" (testado à parte).
-    for (const id of METRICA_IDS.filter((i) => i !== 'VISAO_GERAL' && i !== 'PV1')) {
+    // As tendências do Resumo (TENDENCIA_*) só aceitam `dataReferencia`: nenhum filtro as esvazia (ADR 0019); o estado
+    // vazio delas é a série sem nenhum mês (teste abaixo).
+    const semFiltro = (i: string) =>
+      i === 'VISAO_GERAL' || i === 'PV1' || i.startsWith('TENDENCIA_')
+    for (const id of METRICA_IDS.filter((i) => !semFiltro(i))) {
       const f = fonteDaMetrica(id) === 'acelerato' ? sust({ tipo: '6m' }) : fluxo({ tipo: '12s' })
       const r = await aplicarSimulacao('vazio', id, f, (x) => fonte.obter(id, x as never))
       expect(ehVazio(id, r), id).toBe(true)
@@ -197,5 +201,42 @@ describe('paginarO2', () => {
     expect(r.itens.slice(0, 5).map((i) => i.cardId)).toStrictEqual(['C', 'A', 'B', 'B', 'Z0'])
     expect(r.itens).toHaveLength(200)
     expect(r.itensMeta).toStrictEqual({ page: 1, pageSize: 200, total: 254 })
+  })
+
+  it('vazio nas tendências: série sem nenhum mês e nenhum filtro vai para a consulta (a API real daria 400)', async () => {
+    for (const id of ['TENDENCIA_FLUXO', 'TENDENCIA_SUST'] as const) {
+      const recebidos: unknown[] = []
+      const r = await aplicarSimulacao('vazio', id, { dataReferencia: '2026-10-09' }, (f) => {
+        recebidos.push(f)
+        return fonte.obter(id, f)
+      })
+      expect(recebidos).toEqual([{ dataReferencia: '2026-10-09' }])
+      expect((r as { meses: unknown[] }).meses).toEqual([])
+      expect(SCHEMAS_RESULTADO[id].safeParse(r).success).toBe(true)
+    }
+  })
+
+  it('tendencia-poucos: junho do fluxo sem valor (n=14) e na Sustentação, junho sem a P2 e julho sem nenhuma prioridade', async () => {
+    expect(lerModoMock('Tendencia-Poucos')).toBe('tendencia-poucos')
+    const f = await aplicarSimulacao('tendencia-poucos', 'TENDENCIA_FLUXO', {}, (x) =>
+      fonte.obter('TENDENCIA_FLUXO', x),
+    )
+    expect(SCHEMAS_RESULTADO.TENDENCIA_FLUXO.safeParse(f).success).toBe(true)
+    expect(
+      f.meses[2]?.p85PorTipo.every((c) => c.estatistica.status === 'insuficiente' && c.n === 14),
+    ).toBe(true)
+    expect(f.meses[3]?.p85PorTipo.some((c) => c.estatistica.status === 'ok')).toBe(true)
+    const s = await aplicarSimulacao('tendencia-poucos', 'TENDENCIA_SUST', {}, (x) =>
+      fonte.obter('TENDENCIA_SUST', x),
+    )
+    expect(SCHEMAS_RESULTADO.TENDENCIA_SUST.safeParse(s).success).toBe(true)
+    const publicadas = (i: number) =>
+      s.meses[i]?.prioridades
+        .filter((p) => p.restauracao.taxa.status === 'ok')
+        .map((p) => p.prioridade)
+    expect(publicadas(2)).not.toContain('P2')
+    expect(publicadas(2)?.length).toBeGreaterThan(0)
+    expect(publicadas(3)).toEqual([])
+    expect(publicadas(4)?.length).toBeGreaterThan(0)
   })
 })

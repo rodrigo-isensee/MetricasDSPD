@@ -6,11 +6,13 @@ import {
   CHAVE_PREFERENCIAS,
   PREFERENCIAS_PADRAO,
   cartoesDoPainel,
+  type CartaoCatalogo,
   type PainelComCartoes,
   type PreferenciasMetricas,
 } from '@metricas-dspd/contratos'
+import { destinoDoCartao } from '@/lib/destinoCartao'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
-import type { FontePreferencias } from './fonte'
+import { ErroVersaoMaisNova, type FontePreferencias } from './fonte'
 
 /** Perfil pré-carregado no navegador (o que a pessoa já salvou em /preferencias). */
 function guardar(paineis: Partial<Record<PainelComCartoes, string[]>>) {
@@ -36,8 +38,15 @@ describe('perfil /preferencias', () => {
     expect(
       screen.getByText(/Suas escolhas ficam salvas neste navegador\. Ninguém as vê/),
     ).toBeInTheDocument()
-    for (const nome of ['Operacional', 'Tático', 'Estratégico', 'Sustentação'])
+    for (const nome of ['Operacional', 'Operacional · Sustentação', 'Tático', 'Estratégico'])
       expect(screen.getByRole('group', { name: nome })).toBeInTheDocument()
+    // A visão Sustentação vem logo depois do Operacional (a chave gravada continua `sustentacao`).
+    expect(screen.getAllByTestId(/^grupo-/).map((g) => g.getAttribute('data-testid'))).toEqual([
+      'grupo-operacional',
+      'grupo-sustentacao',
+      'grupo-tatico',
+      'grupo-estrategico',
+    ])
     expect(screen.getAllByRole('checkbox')).toHaveLength(CATALOGO_CARTOES.length)
     for (const c of screen.getAllByRole('checkbox')) expect(c).toBeChecked()
     expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
@@ -136,6 +145,20 @@ describe('perfil /preferencias', () => {
     expect(caixa).not.toBeChecked()
   })
 
+  it('perfil salvo por versão mais nova: avisa que não será alterado (A6)', async () => {
+    const u = userEvent.setup()
+    const f: FontePreferencias = {
+      origem: 'navegador',
+      obter: () => Promise.resolve(PREFERENCIAS_PADRAO),
+      salvar: () => Promise.reject(new ErroVersaoMaisNova()),
+    }
+    renderizarApp('/preferencias', fonteDeTeste, f)
+    await u.click(await screen.findByRole('checkbox', { name: /O9 Os três relógios/ }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Suas preferências foram salvas por uma versão mais nova do sistema e não serão alteradas aqui.',
+    )
+  })
+
   it('mostra um esqueleto enquanto lê as preferências', async () => {
     const f: FontePreferencias = {
       origem: 'navegador',
@@ -184,13 +207,13 @@ describe('perfil /preferencias', () => {
 describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
   it('o botão mostra N de M e abre o popover com as caixas do painel; Esc fecha e devolve o foco', async () => {
     const u = userEvent.setup()
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=diaria')
     const botao = await screen.findByRole('button', {
       name: 'Métricas: 12 de 12 (+7 complementares)',
     })
     expect(screen.queryByTestId('faixa-ocultas')).not.toBeInTheDocument()
     await u.click(botao)
-    const dlg = await screen.findByRole('dialog', { name: 'Métricas deste painel' })
+    const dlg = await screen.findByRole('dialog', { name: 'Métricas desta visão' })
     expect(within(dlg).getAllByRole('checkbox')).toHaveLength(19)
     await u.click(within(dlg).getByRole('checkbox', { name: /O3 Tempo de ciclo/ }))
     expect(screen.getByTestId('botao-metricas')).toHaveTextContent(
@@ -209,7 +232,7 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
 
   it('mudança no popover vale só na visita: o perfil continua intacto', async () => {
     const u = userEvent.setup()
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=diaria')
     await u.click(
       await screen.findByRole('button', { name: 'Métricas: 12 de 12 (+7 complementares)' }),
     )
@@ -220,7 +243,7 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
   it('popover: "Mostrar todas", "Usar minhas preferências" e "Fechar"', async () => {
     const u = userEvent.setup()
     guardar({ operacional: ['o9'] })
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=diaria')
     await u.click(
       await screen.findByRole('button', { name: 'Métricas: 11 de 12 (+7 complementares)' }),
     )
@@ -311,7 +334,7 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
 
   it('perfil guardado esconde os cartões já na primeira tela, sem piscar', async () => {
     guardar({ operacional: ['o2'] })
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=diaria')
     expect(await screen.findByTestId('metrica-O1')).toBeInTheDocument()
     expect(screen.queryByTestId('metrica-O2')).not.toBeInTheDocument()
   })
@@ -329,7 +352,7 @@ describe('painel: o que nunca é recortado', () => {
   it('"Pede atenção" mantém o alerta de métrica oculta, com selo e "Mostrar nesta visita"', async () => {
     const u = userEvent.setup()
     guardar({ operacional: ['o1', 'o2', 'bloqueados'] })
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=diaria')
     const faixa = await screen.findByTestId('faixa-atencao')
     await waitFor(() =>
       expect(within(faixa).queryByTestId('faixa-atencao-carregando')).not.toBeInTheDocument(),
@@ -345,7 +368,7 @@ describe('painel: o que nunca é recortado', () => {
   })
 
   it('o alerta que sobra no mesmo painel mantém o link "Ver" quando a métrica está visível', async () => {
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=diaria')
     const faixa = await screen.findByTestId('faixa-atencao')
     await waitFor(() =>
       expect(within(faixa).queryByTestId('faixa-atencao-carregando')).not.toBeInTheDocument(),
@@ -361,7 +384,7 @@ describe('painel: o que nunca é recortado', () => {
     )
     expect(alvo).toBeDefined()
     guardar({ [alvo?.painel as PainelComCartoes]: [alvo?.id as string] })
-    renderizarApp(`/${alvo?.painel}`)
+    renderizarApp(destinoDoCartao(alvo as CartaoCatalogo).split('#')[0] as string)
     const avisos = await screen.findByTestId('avisos-criterio-ocultas')
     expect(avisos).toHaveTextContent(`Critério alterado em ${alvo?.codigo} (oculta) em`)
     await u.click(
@@ -399,7 +422,7 @@ describe('painel: o que nunca é recortado', () => {
   it('na visão diária, os três cartões ocultos mostram a orientação sem título de seção', async () => {
     const u = userEvent.setup()
     guardar({ operacional: ['o1', 'o2', 'bloqueados'] })
-    renderizarApp('/operacional')
+    renderizarApp('/operacional?cadencia=diaria')
     const msg = await screen.findByTestId('secao-oculta')
     await u.click(within(msg).getByRole('button', { name: 'Mostrar métricas' }))
     expect(await screen.findByTestId('metrica-O2')).toBeInTheDocument()

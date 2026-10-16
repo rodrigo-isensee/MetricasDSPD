@@ -5,7 +5,7 @@ import { test, expect, rodarAxe } from '../fixtures/base';
 // QA B12: axe (WCAG 2.2 AA) nos dois temas em /operacional (diária e semanal), /tatico e /estrategico (1280 e 375) + PNGs para a UX.
 const DIR = resolve(import.meta.dirname, '../../docs/qa/evidencias/b12');
 const ROTAS = [
-  ['operacional-diaria', '/operacional'],
+  ['operacional-diaria', '/operacional?cadencia=diaria'],
   ['operacional-semanal', '/operacional?cadencia=semanal'],
   ['tatico', '/tatico'],
   ['estrategico', '/estrategico'],
@@ -39,9 +39,9 @@ for (const [slug, rota] of ROTAS) {
 }
 
 const ESTADOS: [string, string, string][] = [
-  ['operacional-diaria', '/operacional', 'carregando'],
-  ['operacional-diaria', '/operacional', 'erro:o2'],
-  ['operacional-diaria', '/operacional', 'vazio'],
+  ['operacional-diaria', '/operacional?cadencia=diaria', 'carregando'],
+  ['operacional-diaria', '/operacional?cadencia=diaria', 'erro:o2'],
+  ['operacional-diaria', '/operacional?cadencia=diaria', 'vazio'],
   ['operacional-semanal', '/operacional?cadencia=semanal', 'erro:o3'],
   ['tatico', '/tatico', 'erro:t2'],
   ['estrategico', '/estrategico', 'vazio'],

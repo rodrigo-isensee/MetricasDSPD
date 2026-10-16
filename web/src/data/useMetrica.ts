@@ -37,11 +37,13 @@ export interface MetricaQuery<R> {
 
 /**
  * Consome uma métrica pela fonte de dados. O resultado já vem calculado: nenhum componente calcula.
- * Respeita o parâmetro oculto `?mock=` (spec 6.6; ver `simulacao.ts`).
+ * Respeita o parâmetro oculto `?mock=` (spec 6.6; ver `simulacao.ts`). `habilitada: false` adia a consulta
+ * (o estado fica "carregando" até ela começar).
  */
 export function useMetrica<K extends MetricaId>(
   id: K,
   filtros: FiltrosDe<K>,
+  { habilitada = true }: { habilitada?: boolean } = {},
 ): MetricaQuery<ResultadoDe<K>> {
   const fonte = useFonte()
   const [params] = useSearchParams()
@@ -53,6 +55,8 @@ export function useMetrica<K extends MetricaId>(
     queryFn: ({ signal }) =>
       aplicarSimulacao(modo, id, filtros, (f) => fonte.obter(id, f, { signal }), jaFalhou),
     placeholderData: keepPreviousData,
+    // Desabilitada (ex.: a tendência espera os números do bloco): sem dados, o estado é "carregando".
+    enabled: habilitada,
   })
   let estado: EstadoMetrica = 'ok'
   if (q.isError) estado = 'erro'

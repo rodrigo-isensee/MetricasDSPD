@@ -5,7 +5,7 @@ import { mkdirSync } from 'node:fs';
 // Q1: axe nos dois temas (incl. /dados) e pacote de evidências para a UX.
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag22aa'];
 const SAIDA = '../docs/qa/evidencias/integracao-real';
-const ROTAS = ['/dados', '/dados?fonte=ac', '/dados?mock=coleta-erro:bm', '/dados?mock=coleta-vazia:ac', '/sustentacao', '/operacional?mock=coleta-atrasada:bm', '/operacional?mock=coleta-erro:bm', '/operacional'];
+const ROTAS = ['/dados', '/dados?fonte=ac', '/dados?mock=coleta-erro:bm', '/dados?mock=coleta-vazia:ac', '/operacional?cadencia=sustentacao', '/operacional?cadencia=diaria&mock=coleta-atrasada:bm', '/operacional?cadencia=diaria&mock=coleta-erro:bm', '/operacional?cadencia=diaria'];
 const TEMAS = ['light', 'dark'] as const;
 
 for (const tema of TEMAS) {
@@ -24,9 +24,9 @@ for (const tema of TEMAS) {
 const SHOTS = [
   { n: 'dados-bm', rota: '/dados' },
   { n: 'dados-ac', rota: '/dados?fonte=ac' },
-  { n: 'faixa-calibracao', rota: '/sustentacao' },
-  { n: 'selo-atrasado', rota: '/operacional?mock=coleta-atrasada:bm' },
-  { n: 'selo-falha', rota: '/operacional' },
+  { n: 'faixa-calibracao', rota: '/operacional?cadencia=sustentacao' },
+  { n: 'selo-atrasado', rota: '/operacional?cadencia=diaria&mock=coleta-atrasada:bm' },
+  { n: 'selo-falha', rota: '/operacional?cadencia=diaria' },
 ];
 const VPS = [
   { v: '1280-claro', w: 1280, tema: 'light' },
@@ -49,7 +49,7 @@ for (const vp of VPS) {
     mkdirSync(SAIDA, { recursive: true });
     await page.setViewportSize({ width: vp.w, height: 900 });
     await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), vp.tema);
-    await page.goto('/operacional');
+    await page.goto('/operacional?cadencia=diaria');
     const aviso = page.getByText(/Coleta falhou em .*Mostrando dados de/);
     await expect(aviso).toBeVisible();
     await expect(page.getByText('Falha', { exact: true }).first()).toBeVisible();
@@ -60,7 +60,7 @@ for (const vp of VPS) {
     mkdirSync(SAIDA, { recursive: true });
     await page.setViewportSize({ width: vp.w, height: 900 });
     await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), vp.tema);
-    await page.goto('/sustentacao');
+    await page.goto('/operacional?cadencia=sustentacao');
     const aviso = page.getByTestId('atencao-omitidos-calibracao');
     await expect(aviso).toBeVisible();
     await expect(page.getByText(/Verificando o que pede atenção/)).toHaveCount(0);

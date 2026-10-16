@@ -72,6 +72,9 @@ export const querySustentacaoSchema = z.object({
 export const queryVisaoGeralSchema = z.object({ dataReferencia: data.optional() }).strict()
   .transform((q): ConsultaCalculo<Record<string, never>> => (q.dataReferencia === undefined ? { filtros: {} } : { filtros: {}, dataReferencia: q.dataReferencia }));
 
+/** Tendência mensal do Resumo (TENDENCIA_FLUXO e TENDENCIA_SUST): sem filtros; só a data de referência (ADR 0019). */
+export const queryTendenciaSchema = queryVisaoGeralSchema;
+
 /** Pesquisa de percepção (PV1): só a data de referência; equipe, prioridade e período não se aplicam. */
 export const queryPesquisaSchema = z.object({ dataReferencia: data.optional() }).strict()
   .transform((q): ConsultaCalculo<Record<string, never>> => (q.dataReferencia === undefined ? { filtros: {} } : { filtros: {}, dataReferencia: q.dataReferencia }));

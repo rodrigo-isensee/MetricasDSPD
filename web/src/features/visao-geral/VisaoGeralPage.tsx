@@ -33,8 +33,14 @@ const intervalo = (j: { inicio: string; fim: string }) => `${fmtData(j.inicio)} 
 
 /** O10 e O12 só existem na cadência semanal do Operacional: o link já a seleciona (VG-03). */
 const CADENCIA_SEMANAL = new Set(['O10', 'O12'])
-const destinoAlerta = (a: { nivel: keyof typeof ROTA_DO_NIVEL; metrica: string; ancora: string }) =>
-  `${ROTA_DO_NIVEL[a.nivel]}${a.nivel === 'operacional' && CADENCIA_SEMANAL.has(a.metrica) ? '?cadencia=semanal' : ''}#${a.ancora}`
+const destinoAlerta = (a: {
+  nivel: keyof typeof ROTA_DO_NIVEL
+  metrica: string
+  ancora: string
+}) =>
+  a.nivel === 'operacional' && CADENCIA_SEMANAL.has(a.metrica)
+    ? `/operacional?cadencia=semanal#${a.ancora}`
+    : `${ROTA_DO_NIVEL[a.nivel]}#${a.ancora}`
 
 function StatusIndicador({ i }: { i: Indicador }) {
   // Em calibração a meta não é avaliada: nada de Dentro/Fora (CA-05).
@@ -96,7 +102,7 @@ function CartaoNivel({ n }: { n: Nivel }) {
         to={ROTA_DO_NIVEL[n.nivel]}
         className="alvo w-fit rounded text-sm font-medium text-acento underline"
       >
-        Abrir {nome}
+        {n.nivel === 'sustentacao' ? 'Abrir Operacional · Sustentação' : `Abrir ${nome}`}
       </Link>
     </section>
   )
@@ -123,7 +129,7 @@ const EI_NIVEIS = {
   },
   SUST: {
     rotulo: 'Sustentação',
-    rota: '/sustentacao#ei-sust',
+    rota: '/operacional?cadencia=sustentacao#ei-sust',
     link: 'Ver todas as prioridades',
     entidade: 'chamados',
   },
@@ -169,6 +175,11 @@ const REUNIOES = [
     'Revisão de fluxo semanal',
     'O que mudou na nossa distribuição de tempo?',
     '/operacional?cadencia=semanal',
+  ],
+  [
+    'Revisão da sustentação · semanal',
+    'Estamos atendendo e restaurando dentro do combinado?',
+    '/operacional?cadencia=sustentacao',
   ],
   ['Reunião de serviço', 'Estamos cumprindo o que publicamos?', '/tatico#t2'],
   ['Reposição e priorização', 'O que entra, e o que sai da fila para isso caber?', '/tatico#t4'],

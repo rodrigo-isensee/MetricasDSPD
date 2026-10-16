@@ -12,7 +12,7 @@ import { emTransacao, type Consultavel, type PoolLike } from './pool.js';
  * referência da config do mock (`ref_*`, convenções do módulo `metricas`: valor global com equipe = '*', SLE no percentil 85,
  * natureza em `classe_servico`), as versões de critério de cada fonte (`dspd_core`) e uma `coleta_incremental` por fonte
  * (sem ela o estado da coleta diz "Nenhuma coleta concluída").
- * Não grava `responsaveis`, `usuario`, `justificativa_ajuste` (data-model §9). Nunca apaga nem sobrescreve.
+ * Não grava `responsaveis`, `justificativa_ajuste` (data-model §9). Nunca apaga nem sobrescreve.
  */
 export const VERSAO_SEED = 'seed-mock';
 export const VERSAO_SEED_COLETA = 'seed-mock-coleta';

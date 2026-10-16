@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Operacional · Diária · Métricas DSPD (protótipo)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-texto:#fff;--acento-fundo:#e6effc;--alerta:#b42318;--atencao:#8a5a00;--atencao-fundo:#fff4dc;--serie:#0072b2}
+.escuro{--fundo:#0f1420;--superficie:#161c2a;--superficie-2:#1e2638;--texto:#e8ecf4;--texto-2:#aab3c5;--borda:#2a3347;--borda-controle:#8590a6;--acento:#6aa8ff;--acento-texto:#0f1420;--acento-fundo:#1c2d4a;--alerta:#ff8a80;--atencao:#e0b040;--atencao-fundo:#3a2e0f;--serie:#6aa8ff}
+*{box-sizing:border-box}
+html{scroll-padding-top:130px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+body{margin:0;background:var(--fundo);color:var(--texto);font:14px/1.45 Inter,ui-sans-serif,system-ui,"Segoe UI",Roboto,Arial,sans-serif;padding-bottom:48px}
+.aviso{background:#8a5a00;color:#fff;padding:6px 16px;font-weight:600;font-size:13px}
+svg{width:16px;height:16px;flex:none}
+button,.bt,select{font:inherit;color:var(--texto);background:var(--superficie);border:1px solid var(--borda-controle);border-radius:6px;min-height:32px;padding:4px 10px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible+span,[tabindex]:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
+@media (max-width:767px){button,.bt,select{min-height:44px}}
+a{color:var(--acento)}
+header.app{display:flex;align-items:center;gap:16px;min-height:52px;padding:0 16px;background:var(--superficie);border-bottom:1px solid var(--borda);flex-wrap:wrap}
+header.app nav a{color:var(--texto-2);text-decoration:none;margin-right:12px}
+header.app nav a[aria-current]{color:var(--texto);font-weight:700;border-bottom:2px solid var(--acento)}
+.fic{border:1px solid var(--atencao);background:var(--atencao-fundo);color:var(--atencao);border-radius:6px;padding:2px 8px;font-weight:600;white-space:nowrap}
+main{max-width:1280px;margin:0 auto;padding:12px 16px}
+h1{font-size:24px;margin:0}h2{font-size:18px;margin:0}h3{font-size:16px;margin:0;font-weight:600}
+.mini{color:var(--texto-2);font-size:13px}
+.topo{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline}
+.linha{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-top:10px}
+/* Seletor "Visão" (radiogroup, como o SeletorCadencia) */
+.seletor{display:inline-flex;border:1px solid var(--borda-controle);border-radius:6px;overflow:hidden}
+.seletor label{position:relative;display:inline-flex;align-items:center;min-height:32px;padding:4px 12px;cursor:pointer;background:var(--superficie)}
+.seletor label+label{border-left:1px solid var(--borda-controle)}
+.seletor input{position:absolute;opacity:0;width:1px;height:1px}
+.seletor label:has(input:checked){background:var(--acento);color:var(--acento-texto);font-weight:700}
+.seletor label:has(input:focus-visible){outline:2px solid var(--acento);outline-offset:-4px}
+@media (max-width:767px){.seletor label{min-height:44px;padding:4px 10px}}
+.fixa{position:sticky;top:0;z-index:5;background:var(--fundo);border-bottom:1px solid var(--borda);padding:8px 0;margin-top:10px}
+fieldset.filtros{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+fieldset.filtros legend{float:left;font-weight:700;margin-right:8px;font-size:13px}
+.indice{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0;list-style:none;padding:0}
+.indice a{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 10px;border:1px solid var(--borda);border-radius:999px;background:var(--superficie);color:var(--texto);text-decoration:none}
+.indice .res{font-size:12px;color:var(--texto-2)}
+.indice .res.al{color:var(--alerta)}
+.movel{display:none}
+@media (max-width:767px){.desk{display:none!important}.movel{display:flex;gap:8px;align-items:center;flex-wrap:wrap}}
+.faixa{margin-top:12px;border:1px solid var(--borda);background:var(--superficie);border-radius:8px;padding:12px}
+.faixa h2{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--texto-2)}
+.faixa ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.faixa li{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+.ico-alerta{color:var(--alerta)}
+.cruzada{margin:8px 0 0;padding:8px 12px;border-left:3px solid var(--borda-controle);background:var(--superficie-2);border-radius:0 6px 6px 0;min-height:40px}
+.recorte{border:1px solid var(--borda);background:var(--superficie);border-radius:6px;padding:10px;margin-top:12px}
+section.secao{margin-top:28px}
+.sec-tit{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;margin-bottom:8px}
+.grade{display:grid;gap:16px}
+@media (min-width:1280px){.grade.par{grid-template-columns:1fr 1fr}}
+.cartao{background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:16px}
+.cartao:focus{outline:2px solid var(--acento);outline-offset:2px}
+.cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px}
+.cod{background:var(--acento-fundo);color:var(--acento);font-weight:700;font-size:12px;border-radius:4px;padding:1px 8px;margin-right:6px}
+.selo{font-size:12px;border:1px solid var(--borda-controle);border-radius:999px;padding:1px 8px;color:var(--texto-2);white-space:nowrap}
+.graf{display:flex;align-items:flex-end;gap:6px;height:140px;margin-top:12px;border-left:1px solid var(--borda-controle);border-bottom:1px solid var(--borda-controle);padding:4px}.graf i{flex:1;background:var(--serie);opacity:.85;border-radius:2px 2px 0 0}
+.rodape{margin-top:8px;font-size:12px;color:var(--texto-2)}
+.marcador{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;min-height:40px;padding:6px 12px;border:1px dashed var(--borda-controle);border-radius:8px;background:var(--superficie-2);color:var(--texto-2)}
+details.mais{margin-top:28px;border:1px solid var(--borda);border-radius:8px;background:var(--superficie)}
+details.mais summary{padding:12px 16px;font-weight:700;cursor:pointer;min-height:44px}
+details.mais .corpo{padding:0 16px 16px}
+.roteiro{margin-top:32px;background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:16px}
+.roteiro li{margin:4px 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+.bloco{margin-top:24px;background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:16px}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0 0}
+.num{border:1px solid var(--borda);border-radius:8px;padding:12px;background:var(--superficie)}
+.num dt{font-weight:600;color:var(--texto-2);font-size:13px}.num dd{margin:4px 0;font-size:14px}.num dd b{font-size:28px}
+.num p{margin:2px 0}.sit{font-size:13px;display:flex;gap:6px;align-items:center}.sit.al{color:var(--alerta)}
+.serie{border:1px solid var(--borda);border-radius:8px;padding:12px}
+.serie svg.graf2{width:100%;height:auto;max-height:200px;display:block}
+.serie details summary{cursor:pointer;min-height:32px;margin-top:6px;color:var(--acento)}
+.serie table{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}.serie th,.serie td{border-bottom:1px solid var(--borda);padding:4px 8px;text-align:left}
+.bt.primario{background:var(--acento);color:var(--acento-texto);border-color:var(--acento);text-decoration:none;font-weight:700}
+a.bt{text-decoration:none;color:var(--texto)}
+@media (max-width:767px){.nums{grid-template-columns:1fr 1fr}.cab .selo{white-space:normal}}
+</style></head>
+<body>
+<svg style="display:none" aria-hidden="true"><symbol id="alerta" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3l10 18H2zM12 10v5M12 18v.5"/></symbol>
+<symbol id="olho-off" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A10 10 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-3.2 4.1M6.1 6.1A17 17 0 0 0 2.5 12S6 19 12 19a9.8 9.8 0 0 0 5.9-1.9"/></symbol>
+<symbol id="filtro" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 5h18l-7 8v6l-4-2v-4z"/></symbol></svg>
+
+<div class="aviso" role="note">Protótipo descartável · Sustentação dentro do Operacional (alternativa D: visões por reunião). Dados fictícios. Não é base para o front-end.</div>
+<header class="app"><b>Métricas DSPD</b>
+  <nav aria-label="Principal" class="desk"><a href="#">Visão geral</a><a href="#" aria-current="page">Operacional</a><a href="#">Tático</a><a href="#">Estratégico</a><a href="#">Dados e coletas</a></nav>
+  <span style="flex:1"></span><span class="fic">Dados fictícios</span><button type="button" id="tema">Tema</button></header>
+
+<main>
+<div class="topo">
+  <h1>Operacional</h1>
+  <p class="mini" style="margin:0" id="frescor">BusinessMap até 09/10/2026 · Acelerato até 09/10/2026</p>
+</div>
+<p style="margin:4px 0 0" id="pergunta">Estamos bem?</p>
+
+<div class="linha">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <span class="mini" id="rot-visao" style="font-weight:600">Visão:</span>
+    <div class="seletor" role="radiogroup" aria-labelledby="rot-visao">
+      <label><input type="radio" name="visao" value="resumo" checked>Resumo</label>
+      <label><input type="radio" name="visao" value="diaria">Diária</label>
+      <label><input type="radio" name="visao" value="semanal">Semanal</label>
+      <label><input type="radio" name="visao" value="sustentacao">Sustentação</label>
+    </div>
+  </div>
+  <p class="mini" style="margin:0" id="publico"></p>
+</div>
+<div class="linha"><button type="button" id="bt-metricas">Métricas desta visão</button><button type="button" id="bt-exportar">Exportar · Operacional (fluxo de projeto)</button><button type="button">Exportar vários painéis</button></div>
+<p class="sr" aria-live="polite" id="anuncio"></p>
+
+<!-- Barra fixa: filtros da fonte da visão + índice -->
+<div class="fixa" id="fixa">
+  <fieldset class="filtros desk" id="filtros-fluxo"><legend>Filtros do fluxo de projeto · BusinessMap</legend>
+    <span class="bt">Equipe: <b>Alfa</b> ▾</span><span class="bt">Tipo de demanda: <b>Todos</b> ▾</span><span class="bt">Sistema: <b>Todos</b> ▾</span><span class="bt">Período: <b>Últimas 4 semanas</b> ▾</span></fieldset>
+  <fieldset class="filtros desk" id="filtros-sust" hidden><legend>Filtros da Sustentação · Acelerato</legend>
+    <span class="bt">Equipe de sustentação: <b>Todas</b> ▾</span><span class="bt">Prioridade: <b id="chip-prio">Todas</b> ▾</span><span class="bt">Período: <b>Últimos 6 meses</b> ▾</span></fieldset>
+  <nav aria-label="Seções da visão" id="nav-indice">
+    <ul class="indice desk" id="indice"></ul>
+    <div class="movel"><span class="bt" id="bt-filtros-movel"><svg><use href="#filtro"/></svg>Filtros do fluxo (2)</span>
+      <label class="mini" for="sel-secao" id="rot-secao">Seção</label><select id="sel-secao"></select></div>
+  </nav>
+</div>
+<p class="mini" id="guardados" style="margin:6px 0 0"></p>
+
+<!-- ===== Visão Resumo (dois blocos, um por fonte) ===== -->
+<div id="v-resumo">
+  <p class="mini" style="margin:6px 0 0">Os filtros guardados (fluxo de projeto: 2 ativos) não se aplicam ao Resumo: ele usa todas as equipes e a janela de 12 semanas.</p>
+
+  <section class="bloco" id="resumo-fluxo" aria-labelledby="rf-t">
+    <div class="cab"><h2 id="rf-t">Fluxo de projeto · BusinessMap</h2><span class="selo">Fonte: BusinessMap · Dados até 09/10/2026 · 12 semanas · dias úteis</span></div>
+    <div class="faixa" style="margin-top:12px"><h3 style="font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--texto-2)">Pede atenção · Fluxo de projeto (BusinessMap)</h3><ul>
+      <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>3 itens acima do P95 <a href="#o2">Ver O2 na Diária</a></li>
+      <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>16 vencidos por causa interna <a href="#o12">Ver O12 na Semanal</a></li>
+      <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>41 itens do backlog com mais de 180 dias <a href="#o10">Ver O10 na Semanal</a></li></ul></div>
+    <dl class="nums">
+      <div class="num"><dt>P85 do tempo de ciclo</dt><dd><b>14</b> dias úteis</dd><p class="mini">Base: 803 itens concluídos. P50: 6 dias úteis.</p><p class="sit al"><svg aria-hidden="true"><use href="#alerta"/></svg>Acima da última janela (+7%)</p><a href="#o3">Ver O3 na Semanal</a></div>
+      <div class="num"><dt>Vazão</dt><dd><b>11</b> itens na última semana</dd><p class="mini">Faixa das 12 semanas: 8 a 15.</p><p class="sit">Dentro da faixa</p><a href="#o4">Ver O4 na Semanal</a></div>
+      <div class="num"><dt>Itens abertos acima do P95</dt><dd><b>3</b> itens</dd><p class="mini">Meta: nenhum sem plano.</p><p class="sit al"><svg aria-hidden="true"><use href="#alerta"/></svg>Fora da meta</p><a href="#o2">Ver O2 na Diária</a></div>
+      <div class="num"><dt>Vencidos por causa interna</dt><dd><b>16</b> itens</dd><p class="mini">Meta: zero.</p><p class="sit al"><svg aria-hidden="true"><use href="#alerta"/></svg>Fora da meta</p><a href="#o12">Ver O12 na Semanal</a></div>
+    </dl>
+    <h3 id="tendencia-fluxo" style="margin-top:20px">Tendência · últimos 6 meses</h3>
+    <p class="mini" style="margin:2px 0 8px">Cada ponto de percentil = janela de 12 semanas até o fim do mês. Mês com menos de 20 itens não é publicado.</p>
+    <div class="grade par"><div class="serie" data-serie="f1"></div><div class="serie" data-serie="f2"></div></div>
+    <p class="linha"><a class="bt primario" href="#" data-ir="semanal">Ver na Semanal</a><a class="bt" href="#" data-ir="diaria">Ver na Diária</a></p>
+  </section>
+
+  <section class="bloco" id="resumo-sustentacao" aria-labelledby="rs-t">
+    <div class="cab"><h2 id="rs-t">Sustentação · Acelerato</h2><span class="selo">Fonte: Acelerato · Dados até 09/10/2026 · 12 semanas · horas úteis</span></div>
+    <div class="faixa" style="margin-top:12px"><h3 style="font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--texto-2)">Pede atenção · Sustentação (Acelerato)</h3><ul>
+      <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>Aderência ao SLA abaixo de 90% em 2 prioridades <a href="#s2">Ver S2 na Sustentação</a></li>
+      <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>Mediana acima do alvo em 1 prioridade <a href="#s1">Ver S1 na Sustentação</a></li></ul></div>
+    <dl class="nums">
+      <div class="num"><dt>Aderência ao SLA abaixo de 90%</dt><dd><b>2</b> de 5 prioridades</dd><p class="mini">Meta: acima de 90% em cada prioridade.</p><p class="sit al"><svg aria-hidden="true"><use href="#alerta"/></svg>Fora da meta</p><a href="#s2">Ver S2 na Sustentação</a></div>
+      <div class="num"><dt>Mediana acima do alvo</dt><dd><b>1</b> de 5 prioridades</dd><p class="mini">Alvo: matriz de prioridade vigente.</p><p class="sit al"><svg aria-hidden="true"><use href="#alerta"/></svg>Fora do alvo</p><a href="#s1">Ver S1 na Sustentação</a></div>
+      <div class="num"><dt>Volume de chamados</dt><dd><b>214</b> chamados</dd><p class="mini">P1+P2: 6% (proporção estável).</p><p class="sit">Estável</p><a href="#s3">Ver S3 na Sustentação</a></div>
+    </dl>
+    <h3 id="tendencia-sustentacao" style="margin-top:20px">Tendência · últimos 6 meses</h3>
+    <p class="mini" style="margin:2px 0 8px">Cada ponto de aderência = janela de 12 semanas até o fim do mês. Mês com menos de 20 chamados fechados não é publicado. Recorte da aderência: todas as prioridades (pendente: Q3).</p>
+    <div class="grade par"><div class="serie" data-serie="s1"></div><div class="serie" data-serie="s2"></div></div>
+    <p class="linha"><a class="bt primario" href="#" data-ir="sustentacao">Ver na Sustentação</a></p>
+  </section>
+</div>
+
+<!-- ===== Visão Diária (BusinessMap) ===== -->
+<div id="v-diaria" hidden>
+  <section class="faixa" aria-labelledby="fa-d"><h2 id="fa-d">Pede atenção hoje · Fluxo de projeto (BusinessMap)</h2><ul>
+    <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>3 itens acima do P95 <a href="#o2">Ver Idade do trabalho em progresso (O2)</a></li>
+    <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>2 bloqueados <a href="#bloqueados">Ver Bloqueados agora</a></li></ul></section>
+  <div class="grade" style="margin-top:16px">
+    <article class="cartao" id="o2" tabindex="-1"><div class="cab"><h3><span class="cod">O2</span>Idade do trabalho em progresso</h3><span class="selo">Fonte: BusinessMap</span></div><div class="graf" aria-hidden="true"><i style="height:30%"></i><i style="height:45%"></i><i style="height:60%"></i><i style="height:90%"></i><i style="height:20%"></i></div><p class="rodape">Filtros aplicados: Equipe Alfa · Últimas 4 semanas · Não afetado por: Sistema</p></article>
+    <article class="cartao" id="bloqueados" tabindex="-1"><div class="cab"><h3><span class="cod">BLOQUEADOS</span>Bloqueados agora</h3><span class="selo">Fonte: BusinessMap</span></div><p class="mini">2 itens bloqueados (lista sem nomes de pessoas).</p></article>
+    <article class="cartao" id="o1" tabindex="-1"><div class="cab"><h3><span class="cod">O1</span>Trabalho em progresso e limite</h3><span class="selo">Fonte: BusinessMap</span></div><div class="graf" aria-hidden="true"><i style="height:70%"></i><i style="height:72%"></i><i style="height:68%"></i><i style="height:80%"></i></div></article>
+  </div>
+</div>
+
+<!-- ===== Visão Semanal (BusinessMap) ===== -->
+<div id="v-semanal" hidden>
+  <section class="faixa" aria-labelledby="fa-s"><h2 id="fa-s">Pede atenção na semana · Fluxo de projeto (BusinessMap)</h2><ul>
+    <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>P85 do tempo de ciclo subiu: Requisição (+7%) <a href="#o3">Ver Tempo de ciclo (O3)</a></li>
+    <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>16 vencidos por causa interna <a href="#o12">Ver Acordos e vencidos (O12)</a></li>
+    <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>41 itens do backlog com mais de 180 dias <a href="#o10">Ver Envelhecimento do backlog (O10)</a></li></ul></section>
+  <section class="secao" id="tempo"><div class="sec-tit"><h2>Tempo</h2></div><div class="grade">
+    <article class="cartao" id="o3" tabindex="-1"><div class="cab"><h3><span class="cod">O3</span>Tempo de ciclo</h3><span class="selo">Fonte: BusinessMap</span></div><p class="mini">Base: 803 itens concluídos · dias úteis</p><div class="graf" aria-hidden="true"><i style="height:30%"></i><i style="height:60%"></i><i style="height:85%"></i><i style="height:70%"></i><i style="height:45%"></i><i style="height:18%"></i></div></article>
+    <article class="cartao" id="o9" tabindex="-1"><div class="cab"><h3><span class="cod">O9</span>Os três relógios do pedido</h3><span class="selo">Fonte: BusinessMap</span></div></article>
+  </div></section>
+  <section class="secao" id="fluxo"><div class="sec-tit"><h2>Fluxo</h2></div><article class="cartao" id="o4" tabindex="-1"><div class="cab"><h3><span class="cod">O4</span>Vazão semanal</h3><span class="selo">Fonte: BusinessMap</span></div></article></section>
+  <section class="secao" id="compromissos"><div class="sec-tit"><h2>Compromissos</h2></div><article class="cartao" id="o12" tabindex="-1"><div class="cab"><h3><span class="cod">O12</span>Acordos e vencidos</h3><span class="selo">Fonte: BusinessMap</span></div></article></section>
+  <section class="secao" id="backlog"><div class="sec-tit"><h2>Backlog</h2></div><div class="grade par">
+    <article class="cartao" id="o10" tabindex="-1"><div class="cab"><h3><span class="cod">O10</span>Envelhecimento do backlog</h3><span class="selo">Fonte: BusinessMap</span></div></article>
+    <article class="cartao" id="o7" tabindex="-1"><div class="cab"><h3><span class="cod">O7</span>Entrada × saída por tipo</h3><span class="selo">Fonte: BusinessMap</span></div></article></div></section>
+  <section class="secao" id="qualidade"><div class="sec-tit"><h2>Qualidade</h2></div><div class="grade par">
+    <article class="cartao" id="o15" tabindex="-1"><div class="cab"><h3><span class="cod">O15</span>Onde os bugs são encontrados</h3><span class="selo">Fonte: BusinessMap</span></div><p class="rodape">Leia junto: <a href="#o17" data-ir="sustentacao" data-alvo="o17">Defeitos por causa raiz e sistema (O17) · visão Sustentação, fonte Acelerato</a></p></article>
+    <article class="cartao" id="o18" tabindex="-1"><div class="cab"><h3><span class="cod">O18</span>Entregas com e sem bug</h3><span class="selo">Fonte: BusinessMap</span></div></article></div></section>
+  <section class="secao" id="espera-invisivel"><div class="sec-tit"><h2>Quanto do tempo do solicitante fica fora da nossa gestão?</h2></div>
+    <article class="cartao" id="ei-fl1" tabindex="-1"><div class="cab"><h3><span class="cod">EI-FL1</span>Espera invisível · Operacional</h3><span class="selo">Fonte: BusinessMap · dias úteis</span></div></article></section>
+  <details class="mais"><summary>Mais métricas desta visão · 7 complementares</summary><div class="corpo mini">Aprofundam as perguntas do núcleo. Não entram em "Pede atenção" e não têm meta própria. Fonte: BusinessMap.</div></details>
+</div>
+
+<!-- ===== Visão Sustentação (Acelerato) ===== -->
+<div id="v-sustentacao" hidden>
+  <p class="recorte mini">Chamados da organização DSPD Sustentação, tipo DSPD - SSSC, equipes SSSC TOTVS, SENIOR e FLUIG, excluídos os removidos. Tempos e aderência usam somente chamados fechados. Chamados com exceção de SLA por registro posterior ficam fora destas apurações.</p>
+  <section class="faixa" aria-labelledby="fa-u"><h2 id="fa-u">Pede atenção na semana · Sustentação (Acelerato)</h2><ul>
+    <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>Aderência ao SLA abaixo de 90% em 2 prioridades <a href="#s2">Ver Aderência ao SLA (S2)</a></li>
+    <li><svg class="ico-alerta" aria-hidden="true"><use href="#alerta"/></svg>Mediana acima do alvo em 1 prioridade <a href="#s1">Ver Primeiro atendimento e restauração (S1)</a></li></ul></section>
+  <section class="secao" id="prazos"><div class="sec-tit"><h2>Prazos</h2><span class="mini">Cumprimos o combinado, em cada prioridade?</span></div><div class="grade par">
+    <article class="cartao" id="s2" tabindex="-1"><div class="cab"><h3><span class="cod">S2</span>Aderência ao SLA</h3><span class="selo">Fonte: Acelerato</span></div><p class="mini">Por prioridade, primeiro atendimento e restauração separados · horas úteis</p><div class="graf" aria-hidden="true"><i style="height:94%"></i><i style="height:86%"></i><i style="height:91%"></i><i style="height:88%"></i><i style="height:97%"></i></div><p class="rodape">Filtros aplicados: <span class="f-prio">Todas as prioridades</span> · Últimos 6 meses · Não afetado por: Equipe de sustentação</p></article>
+    <article class="cartao" id="s1" tabindex="-1"><div class="cab"><h3><span class="cod">S1</span>Primeiro atendimento e restauração</h3><span class="selo">Fonte: Acelerato</span></div><p class="mini">Mediana e P85 por prioridade · horas úteis</p><div class="graf" aria-hidden="true"><i style="height:20%"></i><i style="height:35%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:85%"></i></div></article></div></section>
+  <section class="secao" id="volume"><div class="sec-tit"><h2>Volume e resolução</h2><span class="mini">Quanto chega e onde é resolvido?</span></div><div class="grade par">
+    <article class="cartao" id="s3" tabindex="-1"><div class="cab"><h3><span class="cod">S3</span>Volume mensal por prioridade</h3><span class="selo">Fonte: Acelerato</span></div></article>
+    <article class="cartao" id="s4" tabindex="-1"><div class="cab"><h3><span class="cod">S4</span>Onde o chamado foi resolvido</h3><span class="selo">Fonte: Acelerato</span></div></article></div></section>
+  <section class="secao" id="causas"><div class="sec-tit"><h2>Escalação, encerramento e reclassificação</h2><span class="mini">· 2 de 3 visíveis</span></div><div class="grade par">
+    <article class="cartao" id="s5" tabindex="-1"><div class="cab"><h3><span class="cod">S5</span>Motivos da escalação</h3><span class="selo">Fonte: Acelerato</span></div></article>
+    <div class="marcador" id="s6"><span><svg aria-hidden="true"><use href="#olho-off"/></svg> <b style="color:var(--texto)">Motivos de encerramento</b> (S6) · oculta</span><button type="button">Mostrar</button></div>
+    <article class="cartao" id="s7" tabindex="-1"><div class="cab"><h3><span class="cod">S7</span>Reclassificação</h3><span class="selo">Fonte: Acelerato</span></div></article></div></section>
+  <section class="secao" id="espera"><div class="sec-tit"><h2>Quanto do tempo do solicitante fica fora da nossa gestão?</h2></div>
+    <article class="cartao" id="ei-sust" tabindex="-1"><div class="cab"><h3><span class="cod">EI-SUST</span>Espera invisível · Sustentação</h3><span class="selo">Fonte: Acelerato · horas úteis</span></div><p class="mini">Fonte diferente (Acelerato), em horas úteis. Não comparável com os níveis do BusinessMap (FL1 a FL3).</p></article></section>
+  <details class="mais" id="mais-sust"><summary>Mais métricas desta visão · 6 complementares</summary><div class="corpo">
+    <p class="mini">Aprofundam as perguntas do núcleo. Não entram em "Pede atenção" e não têm meta própria. Fonte: Acelerato.</p>
+    <h3 id="compl-sust-por-que-demora" style="margin-top:12px">Por que demora?</h3><p class="mini">S9 Tempo em pendência · S10 Fila de atribuição</p>
+    <h3 id="compl-sust-qualidade" style="margin-top:12px">Qualidade</h3>
+    <article class="cartao" id="o17" tabindex="-1" style="margin-top:8px"><div class="cab"><h3><span class="cod">O17</span>Defeitos por causa raiz e sistema</h3><span class="selo">Fonte: Acelerato</span></div><p class="mini">S8 Taxa de reabertura e S11 Avaliação de Problema seguem na mesma seção.</p></article>
+    <h3 id="compl-sust-o-que-entra" style="margin-top:12px">O que entra?</h3><p class="mini">S12 Volume por sistema</p>
+  </div></details>
+  <section class="secao" id="percepcao"><div class="sec-tit"><h2>Percepção de valor · pesquisa trimestral</h2><span class="mini">Leia ao lado de S1 e S2, sem cálculo cruzado.</span></div>
+    <article class="cartao" id="pv1" tabindex="-1"><div class="cab"><h3><span class="cod">PV1</span>Percepção de valor do serviço</h3><span class="selo">Fonte: Pesquisa de percepção</span></div><p class="rodape">Não afetado pelos filtros (pesquisa trimestral).</p></article></section>
+</div>
+
+<section class="roteiro" aria-labelledby="rt"><h2 id="rt">Roteiro de validação</h2>
+<ol>
+  <li>No <b>Resumo</b> (padrão): em um minuto você sabe se "estamos bem" em cada fonte? Os números escolhidos são os certos? Os dois blocos parecem separados o bastante (sem sugerir comparação)?</li>
+  <li>Na <b>tendência</b>, veja o mês de abril (fluxo) e maio (sustentação): ficou claro que o valor não é publicado por haver menos de 20 itens? A legenda "janela de 12 semanas até o fim do mês" faz sentido? Abra "Ver como tabela".</li>
+  <li>Use os links "Ver ... na Semanal / Sustentação": você chega ao cartão certo e entende que mudou de visão?</li>
+  <li>Abra a visão <b>Sustentação</b>. Você acha os prazos por prioridade (S2, S1) sem procurar no menu?</li>
+  <li>Volte à <b>Semanal</b>: os filtros Equipe Alfa e 4 semanas continuam lá? Na Sustentação, ficou claro que Prioridade só vale ali e Tipo/Sistema só no fluxo?</li>
+  <li>Teste um link antigo: <button type="button" id="simular">Simular /sustentacao?prioridade=P1#s2</button> (cai na visão Sustentação com P1 e o S2 em foco).</li>
+  <li>No O15 (Semanal), use o "Leia junto" do O17: ficou claro que você mudou de visão e de fonte?</li>
+  <li>No celular (375 px): troque de visão e de seção pelo seletor.</li>
+</ol>
+<p><b>Já decididas:</b> D1 (Resumo padrão + Diária, Semanal, Sustentação), D2 (sem linha "Também nesta aba"), D3 (revisão da sustentação semanal).</p>
+<p><b>Perguntas abertas do Resumo</b> (especificacao.md, 5.9.8): Q1 ponto mensal = janela de 12 semanas até o fim do mês (aqui) ou só o mês-calendário · Q2 regra de 20 itens em proporções e contagens · Q3 recorte da aderência mensal e agregação de prioridades · Q4 mês em curso fora (aqui) ou parcial · Q5 Resumo sem filtros, e janela de 12 semanas também na Sustentação · Q6 séries da tendência e exportação · Q7 O3 sem segmentar ou por tipo.</p>
+</section>
+</main>
+
+<script>
+(function(){
+  var V={
+    resumo:{titulo:'Resumo',pergunta:'Estamos bem?',publico:'Para coordenadores e líderes · uma leitura rápida das duas fontes, em blocos separados.',fonte:'BusinessMap e Acelerato (separadas)',exportar:'Exportar vários painéis',secoes:[],resumo:true},
+    diaria:{titulo:'Diária',pergunta:'O trabalho está fluindo?',publico:'Para times · diária e semanal. Pergunta da daily: "Qual item mais velho não andou desde ontem?"',fonte:'BusinessMap',exportar:'Exportar · Operacional (fluxo de projeto)',secoes:[]},
+    semanal:{titulo:'Semanal',pergunta:'O trabalho está fluindo?',publico:'Para times · diária e semanal. Pergunta: "O que mudou na nossa distribuição de tempo?"',fonte:'BusinessMap',exportar:'Exportar · Operacional (fluxo de projeto)',
+      secoes:[['tempo','Tempo','1 pede atenção'],['fluxo','Fluxo',''],['compromissos','Compromissos','1 pede atenção'],['backlog','Backlog','1 pede atenção'],['qualidade','Qualidade',''],['espera-invisivel','Espera invisível',''],['mais','Mais métricas','7']]},
+    sustentacao:{titulo:'Sustentação',pergunta:'Estamos atendendo e restaurando dentro do combinado?',publico:'Para o líder da sustentação · semanal e mensal.',fonte:'Acelerato',exportar:'Exportar · Operacional · Sustentação',
+      secoes:[['prazos','Prazos','2 pedem atenção'],['volume','Volume e resolução',''],['causas','Escalação, encerramento e reclassificação','1 oculta'],['espera','Espera invisível',''],['mais-sust','Mais métricas','6'],['percepcao','Percepção de valor','']]}
+  };
+  var DONO={o2:'diaria',bloqueados:'diaria',o1:'diaria',o3:'semanal',o9:'semanal',o4:'semanal',o12:'semanal',o10:'semanal',o7:'semanal',o15:'semanal',o18:'semanal','ei-fl1':'semanal',s1:'sustentacao',s2:'sustentacao',s3:'sustentacao',s4:'sustentacao',s5:'sustentacao',s7:'sustentacao','ei-sust':'sustentacao',pv1:'sustentacao',o17:'sustentacao'};
+  var radios=[].slice.call(document.querySelectorAll('input[name=visao]'));
+  var atual='resumo';
+  var MESES=['Abr','Mai','Jun','Jul','Ago','Set'];
+  // v=valor (null = mês com menos de 20 itens, não publicado), n=itens na base do ponto
+  var SERIES={
+    f1:{t:'P85 do tempo de ciclo (dias úteis)',tipo:'linha',un:'dias úteis',v:[null,15,16,14,16,14],n:[14,31,36,41,38,34]},
+    f2:{t:'Itens concluídos no mês',tipo:'barra',un:'itens',v:[22,48,41,53,47,44],n:[22,48,41,53,47,44]},
+    s1:{t:'Aderência ao SLA (%, todas as prioridades)',tipo:'linha',un:'%',v:[91,null,92,88,90,87],n:[58,17,71,66,69,64]},
+    s2:{t:'Volume de chamados no mês',tipo:'barra',un:'chamados',v:[74,69,81,77,72,70],n:[74,69,81,77,72,70]}
+  };
+  function ns(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);return e}
+  function frase(s){var v=s.v,i=5;if(v[i]==null)return 'Em setembro: poucos itens, valor não publicado.';var p=v[4];var txt='Em setembro: '+v[i]+' '+s.un;if(p!=null){var d=v[i]-p;txt+=d===0?', igual a agosto.':', '+Math.abs(d)+(d>0?' a mais':' a menos')+' que em agosto.'}else txt+='.';return txt}
+  function desenhaSerie(el){
+    var s=SERIES[el.dataset.serie],W=360,H=180,L=36,B=26,T=10,max=0;
+    s.v.forEach(function(x){if(x!=null&&x>max)max=x});max=Math.ceil(max*1.15/5)*5;
+    var base=s.tipo==='barra'?0:Math.floor(Math.min.apply(null,s.v.filter(function(x){return x!=null}))*0.8/5)*5;
+    function y(x){return T+(H-T-B)*(1-(x-base)/(max-base))}
+    function x(i){return L+(W-L-8)*(i+.5)/6}
+    var svg=ns('svg',{viewBox:'0 0 '+W+' '+H,'class':'graf2',role:'img','aria-label':s.t+', últimos 6 meses. '+frase(s)});
+    [base,(base+max)/2,max].forEach(function(g){var l=ns('line',{x1:L,x2:W-8,y1:y(g),y2:y(g),stroke:'var(--borda)'});svg.appendChild(l);var t=ns('text',{x:L-4,y:y(g)+4,'text-anchor':'end','font-size':10,fill:'var(--texto-2)'});t.textContent=Math.round(g);svg.appendChild(t)});
+    var pts=[];
+    s.v.forEach(function(val,i){
+      var t=ns('text',{x:x(i),y:H-8,'text-anchor':'middle','font-size':10,fill:'var(--texto-2)'});t.textContent=MESES[i]+(val==null?' · n='+s.n[i]:'');svg.appendChild(t);
+      if(val==null){svg.appendChild(ns('circle',{cx:x(i),cy:H-B-6,r:5,fill:'var(--superficie)',stroke:'var(--texto-2)','stroke-width':2,'stroke-dasharray':'2 2'}));pts.push(null);return}
+      if(s.tipo==='barra'){svg.appendChild(ns('rect',{x:x(i)-14,y:y(val),width:28,height:y(base)-y(val),fill:'var(--serie)'}))}
+      else{pts.push([x(i),y(val)])}
+      var lb=ns('text',{x:x(i),y:y(val)-6,'text-anchor':'middle','font-size':10,fill:'var(--texto)'});lb.textContent=val;svg.appendChild(lb);
+    });
+    if(s.tipo==='linha'){var seg=[];pts.concat([null]).forEach(function(p){if(p)seg.push(p);else{if(seg.length>1)svg.appendChild(ns('polyline',{points:seg.map(function(q){return q.join(',')}).join(' '),fill:'none',stroke:'var(--serie)','stroke-width':2}));seg.forEach(function(q){svg.appendChild(ns('circle',{cx:q[0],cy:q[1],r:4,fill:'var(--serie)'}))});seg=[]}})}
+    el.innerHTML='<h4 style="margin:0 0 6px;font-size:14px">'+s.t+'</h4>';el.appendChild(svg);
+    var p=document.createElement('p');p.className='mini';p.style.margin='6px 0 0';p.textContent=frase(s);el.appendChild(p);
+    var d=document.createElement('details'),rows=s.v.map(function(val,i){return '<tr><td>'+MESES[i]+'</td><td>'+(val==null?'não publicado (poucos itens)':val+' '+s.un)+'</td><td>'+s.n[i]+'</td></tr>'}).join('');
+    d.innerHTML='<summary>Ver como tabela</summary><table><caption class="sr">'+s.t+'</caption><thead><tr><th>Mês</th><th>Valor</th><th>Itens (n)</th></tr></thead><tbody>'+rows+'</tbody></table>';el.appendChild(d);
+  }
+  [].forEach.call(document.querySelectorAll('.serie'),desenhaSerie);
+  function trocar(v,anunciar){
+    atual=v;var c=V[v];
+    ['resumo','diaria','semanal','sustentacao'].forEach(function(k){document.getElementById('v-'+k).hidden=k!==v});
+    document.getElementById('fixa').hidden=!!c.resumo;
+    document.getElementById('bt-metricas').hidden=!!c.resumo;
+    document.getElementById('guardados').hidden=!!c.resumo;
+    radios.forEach(function(r){r.checked=r.value===v});
+    document.getElementById('pergunta').textContent=c.pergunta;
+    document.getElementById('publico').textContent=c.publico;
+    document.getElementById('frescor').textContent=c.resumo?'BusinessMap até 09/10/2026 · Acelerato até 09/10/2026':'Dados até 09/10/2026 · Fonte: '+c.fonte;
+    document.getElementById('bt-exportar').textContent=c.exportar;
+    var sust=v==='sustentacao';
+    document.getElementById('filtros-fluxo').hidden=sust;
+    document.getElementById('filtros-sust').hidden=!sust;
+    document.getElementById('bt-filtros-movel').lastChild.textContent=sust?'Filtros da Sustentação ('+(document.getElementById('chip-prio').textContent==='Todas'?0:1)+')':'Filtros do fluxo (2)';
+    document.getElementById('guardados').textContent=sust?'Os filtros do fluxo de projeto (2 ativos) continuam guardados para as visões Diária e Semanal.':(document.getElementById('chip-prio').textContent!=='Todas'?'Os filtros da Sustentação (1 ativo) continuam guardados para a visão Sustentação.':'');
+    var ind=document.getElementById('indice'),sel=document.getElementById('sel-secao');ind.innerHTML='';sel.innerHTML='';
+    document.getElementById('nav-indice').hidden=c.secoes.length===0;
+    c.secoes.forEach(function(s){
+      var li=document.createElement('li'),a=document.createElement('a');a.href='#'+s[0];a.textContent=s[1]+' ';
+      if(s[2]){var r=document.createElement('span');r.className='res'+(/atenção/.test(s[2])?' al':'');r.textContent='· '+s[2];a.appendChild(r)}
+      li.appendChild(a);ind.appendChild(li);
+      var o=document.createElement('option');o.value=s[0];o.textContent=s[1]+(s[2]?' · '+s[2]:'');sel.appendChild(o);
+    });
+    document.title='Operacional · '+c.titulo+' · Métricas DSPD (protótipo)';
+    if(anunciar)document.getElementById('anuncio').textContent='Visão '+c.titulo+'. '+(c.resumo?'Fontes: BusinessMap e Acelerato, em blocos separados.':'Fonte: '+c.fonte+'.');
+  }
+  function irPara(id){
+    var dono=DONO[id];if(dono&&dono!==atual)trocar(dono,true);
+    var el=document.getElementById(id);if(!el)return;
+    var d=el.closest('details');if(d)d.open=true;
+    el.scrollIntoView({block:'start'});el.focus({preventScroll:true});
+  }
+  radios.forEach(function(r){r.addEventListener('change',function(){trocar(r.value,true)})});
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a[data-ir]');if(!a)return;e.preventDefault();
+    trocar(a.dataset.ir,true);
+    if(a.dataset.alvo)irPara(a.dataset.alvo);else window.scrollTo(0,0);
+  });
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a[href^="#"]');if(!a||a.dataset.ir)return;var id=a.getAttribute('href').slice(1);
+    if(id==='mais'||id==='mais-sust'){var d=document.querySelector('#v-'+atual+' details');if(d){e.preventDefault();d.open=true;d.scrollIntoView({block:'start'});d.querySelector('summary').focus()}return}
+    if(DONO[id]){e.preventDefault();irPara(id)}
+  });
+  document.getElementById('sel-secao').addEventListener('change',function(e){var id=e.target.value;var el=document.getElementById(id==='mais'?'':id)||document.querySelector('#v-'+atual+' details');el.scrollIntoView({block:'start'})});
+  document.getElementById('simular').addEventListener('click',function(){
+    document.getElementById('chip-prio').textContent='P1';
+    [].forEach.call(document.querySelectorAll('.f-prio'),function(s){s.textContent='Prioridade P1'});
+    trocar('sustentacao',true);irPara('s2');
+  });
+  document.getElementById('tema').addEventListener('click',function(){document.body.classList.toggle('escuro')});
+  trocar('resumo',false);
+})();
+</script>
+</body></html>
