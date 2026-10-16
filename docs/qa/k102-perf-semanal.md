@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: k102-perf-semanal
 branch: fix/perf-visao-semanal
-commit: 28ddea2
+commit: 51bb652
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -98,3 +98,6 @@ Não executado: este agente não tem navegador interativo nem leitor de tela. Co
 
 ## Parecer
 Aprovado. Nenhum bug aberto. O K-102 reduz o TBT em relação à base em todas as comparações pareadas, sem mudar CLS nem resultado de cálculo, e o pronto passou. As ressalvas 1 e 2 e os quatro itens manuais ficam como confirmação pela CI do PR e pela revisão de UX; se o `perf` da CI mostrar TBT da semanal acima de 200 ms, o critério de reversão da seção 10 se aplica.
+
+## Revalidação sobre o HEAD final (51bb652)
+Desde 36975e6 entraram o parecer de UX, a revalidação do review e o merge da develop (f81567e). O patch do K-102 não mudou: `git diff 5eaf202 36975e6 -- web e2e` e `git diff origin/develop HEAD -- web e2e` têm os mesmos 7 arquivos e as mesmas linhas alteradas. O merge tocou só `e2e/tests/b3-sust-ei-vg.spec.ts` (remoção do EI-03, região distinta do SUS-08). Rodados uma vez, com o mínimo necessário: unitários de `web/src/components/charts/` (3 arquivos, 35 testes, verdes) e E2E b3 e b12 (`--project=chromium --workers=1`, 59 testes, verdes; bibliotecas do Chromium via LD_LIBRARY_PATH de `~/.local/chromium-libs`). `pronto` completo, E2E inteiro e perf não foram repetidos (a CI do PR roda tudo). Parecer mantido: aprovado. O primeiro arranque de b3 falhou só por falta de libnspr4 no ambiente (sem as libs locais); a execução com as libs passou.
