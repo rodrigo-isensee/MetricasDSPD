@@ -90,6 +90,8 @@ describe.each(CENARIOS)('varredura de filtros (%s)', (_nome, ctx) => {
         }
       }
     },
+    // Folga explícita: cada id tem o próprio tempo, e a suíte do mock disputa CPU no `pnpm -r`.
+    30_000,
   )
 
   // Uma execução por métrica (it.each): a varredura inteira numa só passava de 15 s com a máquina carregada;

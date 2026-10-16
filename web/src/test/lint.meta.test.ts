@@ -19,7 +19,11 @@ beforeAll(async () => {
     default: Linter.Config[]
   }
   const regras = mod.default.filter(
-    (c) => c.rules && ('no-restricted-imports' in c.rules || 'no-restricted-syntax' in c.rules),
+    (c) =>
+      c.rules &&
+      ('no-restricted-imports' in c.rules ||
+        'no-restricted-syntax' in c.rules ||
+        'no-restricted-properties' in c.rules),
   )
   eslint = new ESLint({
     cwd: RAIZ,
@@ -108,6 +112,24 @@ const DEVE_FALHAR: [string, string, string, RegExp][] = [
     'packages/metricas/src/businessmap/x.ts',
     'export const d = (c: { arquivado_em: number | null }) => c.arquivado_em',
     /descartado\(card\)/,
+  ],
+  [
+    'leitura de responsaveis em businessmap (P-T6)',
+    'packages/metricas/src/businessmap/x.ts',
+    'export const d = (c: { responsaveis: string[] }) => c.responsaveis.length',
+    /nenhuma métrica serve para avaliação individual/,
+  ],
+  [
+    'leitura de usuario em businessmap (P-T6)',
+    'packages/metricas/src/businessmap/x.ts',
+    "export const d = (c: { usuario: string }) => c['usuario']",
+    /nenhuma métrica serve para avaliação individual/,
+  ],
+  [
+    'desestruturação de responsaveis em businessmap (P-T6)',
+    'packages/metricas/src/businessmap/x.ts',
+    'export const d = (c: { responsaveis: string[] }) => { const { responsaveis } = c; return responsaveis }',
+    /nenhuma métrica serve para avaliação individual/,
   ],
   [
     'criarAmostraInterna fora de amostra.ts',
@@ -217,6 +239,11 @@ describe('lint: fixtures que devem falhar', () => {
 
 describe('lint: fixtures que devem passar (sem falso positivo)', () => {
   const DEVE_PASSAR: [string, string, string][] = [
+    [
+      'modelo.ts só declara responsaveis (tipo), sem ler',
+      'packages/metricas/src/businessmap/modelo.ts',
+      'export interface C { responsaveis: string[]; usuario: string }',
+    ],
     [
       'descartado.ts lê motivo_descarte',
       'packages/metricas/src/businessmap/descartado.ts',

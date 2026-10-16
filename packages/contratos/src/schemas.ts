@@ -15,6 +15,7 @@ import {
   MOTIVOS_BLOQUEIO,
   MOTIVOS_ENCERRAMENTO,
   MOTIVOS_ESCALACAO,
+  NATUREZAS_ENTREGA,
   NIVEIS_RESOLUCAO,
   ORIGENS_DEMANDA,
   PRIORIDADES,
@@ -33,6 +34,7 @@ import {
   taxaSchema,
 } from './comum'
 import { trimestreSchema } from './pesquisa'
+import { paradosSchema } from './tambem'
 
 const iso = z.string() // AAAA-MM-DD
 const mes = z.string() // AAAA-MM
@@ -132,6 +134,8 @@ export const resultadoO2 = z.object({
   ),
   acimaP95: z.number(),
   statusMeta: statusMetaSchema,
+  /** O23 (pedido 011, B2): bloco do O2; obrigatório desde que o cálculo o devolve. */
+  parados: paradosSchema,
 })
 
 const serieP85 = z.array(z.object({ semana: iso, n: z.number(), p85: z.number().nullable() }))
@@ -383,7 +387,7 @@ export const resultadoT2 = z.object({
   ),
 })
 
-const natureza = z.enum(['Sustentação', 'Evolução', 'Projetos', 'Dívida técnica'])
+const natureza = z.enum(NATUREZAS_ENTREGA)
 const medidaAlocacao = z.object({
   /** itens ou horas úteis em execução. */
   quantidade: z.number(),

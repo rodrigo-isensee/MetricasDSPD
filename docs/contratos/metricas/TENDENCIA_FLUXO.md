@@ -1,6 +1,6 @@
 # Contrato da métrica TENDENCIA_FLUXO
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_FLUXO. Público: time (back-end, front-end, QA). Revisão: 2026-10-14.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_FLUXO. Público: time (back-end, front-end, QA). Revisão: 2026-10-15.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -210,7 +210,7 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
 
 ```json
 {
-  "base": {"n":1412,"unidade":"itens concluídos","janela":{"inicio":"2026-04-01","fim":"2026-09-30"}},
+  "base": {"n":1342,"unidade":"itens concluídos","janela":{"inicio":"2026-04-01","fim":"2026-09-30"}},
   "criterios": {"serie":[],"janela":[]},
   "meses": [
     {
@@ -220,26 +220,26 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
       "p85PorTipo": [
         {
           "tipo": "Incidente",
-          "n": 70,
+          "n": 67,
           "estatistica": {
             "status": "ok",
-            "n": 70,
-            "valor": {"p50":1.5632638541666668,"p85":2.339086786458333},
+            "n": 67,
+            "valor": {"p50":1.5553527430555556,"p85":2.3191158090277777},
             "janela": {"inicio":"2026-02-06","fim":"2026-04-30","unidade":"semanas","quantidade":12}
           }
         },
         {
           "tipo": "Requisição",
-          "n": 80,
+          "n": 77,
           "estatistica": {
             "status": "ok",
-            "n": 80,
-            "valor": {"p50":2.5713486284722222,"p85":4.020030934027778},
+            "n": 77,
+            "valor": {"p50":2.556332048611111,"p85":4.033975402777777},
             "janela": {"inicio":"2026-02-06","fim":"2026-04-30","unidade":"semanas","quantidade":12}
           }
         }
       ],
-      "concluidos": 322
+      "concluidos": 304
     },
     {
       "mes": "2026-05",
@@ -248,26 +248,26 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
       "p85PorTipo": [
         {
           "tipo": "Incidente",
-          "n": 67,
+          "n": 64,
           "estatistica": {
             "status": "ok",
-            "n": 67,
-            "valor": {"p50":1.4602041319444445,"p85":2.1941138784722223},
+            "n": 64,
+            "valor": {"p50":1.4565304861111112,"p85":2.220181800347222},
             "janela": {"inicio":"2026-03-09","fim":"2026-05-31","unidade":"semanas","quantidade":12}
           }
         },
         {
           "tipo": "Requisição",
-          "n": 85,
+          "n": 80,
           "estatistica": {
             "status": "ok",
-            "n": 85,
-            "valor": {"p50":2.598784861111111,"p85":3.5741096111111106},
+            "n": 80,
+            "valor": {"p50":2.598423072916667,"p85":3.5557562517361108},
             "janela": {"inicio":"2026-03-09","fim":"2026-05-31","unidade":"semanas","quantidade":12}
           }
         }
       ],
-      "concluidos": 267
+      "concluidos": 252
     }
   ]
 }

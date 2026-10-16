@@ -176,3 +176,56 @@ test.describe('fonte api: falhas da API (page.route)', () => {
     await expect(painel.cartao('O4').raiz).toHaveAttribute('data-estado', ESTADOS_COM_DADO);
   });
 });
+
+// EI-03 (011-back, R-2 do plano QA): o que a tela mostra de cliente, time e índice é comparado com o valor exato da API
+// (EI_FL1, segmento incidente), formatado como a tela formata. Sem tolerância derivada do arredondamento: o índice
+// mostrado é o `indicePct` da API arredondado a 0 casas; as medianas, a 1 casa.
+// Vermelho provado de forma permanente em EI-03b: com `page.route` adulterando a resposta que a tela recebe, a mesma
+// comparação tem de apontar diferença (mutar a fórmula do índice na UI cai no mesmo caso).
+const brNum = (v: number, casas: number) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas }).format(v);
+const URL_EI = /\/api\/v1\/metricas\/EI_FL1\?/;
+
+async function diferencasEI(page: import('@playwright/test').Page, painel: { ir(r: string): Promise<unknown> }, request: import('@playwright/test').APIRequestContext) {
+  const pedido = page.waitForResponse((r) => URL_EI.test(r.url()));
+  await painel.ir('/operacional?cadencia=semanal');
+  const url = (await pedido).url();
+  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
+  const real = await (await request.get(url)).json();
+  const seg = real.segmentos.find((s: { chave: string }) => s.chave === 'incidente');
+  expect(seg, 'segmento incidente na API').toBeTruthy();
+  expect(seg.estatistica.status, 'o segmento precisa publicar as duas visões').toBe('ok');
+  const v = seg.estatistica.valor as { cliente: number; time: number; indicePct: number };
+  expect(v.cliente, 'divisão por zero: mediana do cliente').toBeGreaterThan(0);
+  // O número grande visível (`p[aria-hidden]`) e o texto acessível (`p.sr-only`) são conferidos à parte: o `innerText` do
+  // contêiner mistura os dois e deixaria passar um número visível errado se o texto acessível estivesse certo.
+  const caixa = (id: string) => page.getByTestId(`ei-${id}-fl1-incidente`);
+  const visivel = async (id: string) => (await caixa(id).locator('p[aria-hidden="true"]').first().innerText()).trim();
+  const acessivel = async (id: string) => (await caixa(id).locator('p.sr-only').innerText()).replace(/\s+/g, ' ');
+  const esperado = { cliente: brNum(v.cliente, 1), time: brNum(v.time, 1), indice: `${brNum(v.indicePct, 0)}%` };
+  const diffs: string[] = [];
+  for (const [id, valor] of [['cliente', esperado.cliente], ['time', esperado.time], ['indice', esperado.indice]] as const) {
+    const [vis, acc] = [await visivel(id), await acessivel(id)];
+    if (vis !== valor) diffs.push(`${id === 'indice' ? 'índice' : id} visível: tela "${vis}", API ${valor}`);
+    if (!acc.includes(valor)) diffs.push(`${id === 'indice' ? 'índice' : id} acessível: tela "${acc}", API ${valor}`);
+  }
+  // a API é coerente consigo mesma: índice = (cliente - time) / cliente, com folga só do arredondamento das medianas devolvidas
+  expect(Math.abs(((v.cliente - v.time) / v.cliente) * 100 - v.indicePct), 'índice da API contra a fórmula').toBeLessThan(0.5);
+  return diffs;
+}
+
+test.describe('EI-03 índice da espera invisível confere com a API', () => {
+  test('EI-03 cliente, time e índice da tela são os da API (sem tolerância derivada)', async ({ page, painel, request }) => {
+    expect(await diferencasEI(page, painel, request)).toEqual([]);
+  });
+
+  test('EI-03b vermelho: resposta adulterada no caminho (page.route) faz a comparação apontar diferença', async ({ page, painel, request }) => {
+    await page.route(URL_EI, async (route) => {
+      const resp = await route.fetch();
+      const corpo = await resp.json();
+      for (const s of corpo.segmentos) if (s.estatistica.status === 'ok') s.estatistica.valor.indicePct = (s.estatistica.valor.indicePct + 10) % 100;
+      await route.fulfill({ response: resp, json: corpo });
+    });
+    const diffs = await diferencasEI(page, painel, request);
+    expect(diffs.some((d) => d.startsWith('índice visível')) && diffs.some((d) => d.startsWith('índice acessível')), `diferenças: ${diffs.join(' | ')}`).toBe(true);
+  });
+});

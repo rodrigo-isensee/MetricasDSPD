@@ -3,6 +3,7 @@ import {
   type Estatistica,
   type Intervalo,
   type Percentis,
+  type PctDiasUteis,
   type PercentisComMedia,
   type Taxa,
 } from '@metricas-dspd/contratos'
@@ -54,6 +55,27 @@ export function resumoComMedia(a: Amostra): Estatistica<PercentisComMedia> {
 export function taxa(k: number, n: number): Taxa {
   if (!publicavel(n)) return { status: 'insuficiente', k, n, minimo: MINIMO_AMOSTRA }
   return { status: 'ok', k, n, pct: (k / n) * 100 }
+}
+
+/**
+ * Participação em dias úteis (O19-pct = B, 2026-10-16): `diasUteis` da causa sobre `totalDiasUteis`, em dias úteis
+ * já arredondados para publicação. O mínimo de 20 vale sobre o número de `bloqueios` da causa, nunca sobre os dias.
+ * Total zero com 20 ou mais bloqueios (todos fora do expediente) publica 0%.
+ */
+export function pctDiasUteis(
+  bloqueios: number,
+  diasUteis: number,
+  totalDiasUteis: number,
+): PctDiasUteis {
+  if (!publicavel(bloqueios))
+    return { status: 'insuficiente', bloqueios, diasUteis, totalDiasUteis, minimo: MINIMO_AMOSTRA }
+  return {
+    status: 'ok',
+    bloqueios,
+    diasUteis,
+    totalDiasUteis,
+    pct: totalDiasUteis === 0 ? 0 : (diasUteis / totalDiasUteis) * 100,
+  }
 }
 
 /** Percentual simples ou null abaixo do mínimo. */

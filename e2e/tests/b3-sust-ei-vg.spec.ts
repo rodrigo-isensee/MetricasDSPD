@@ -104,17 +104,8 @@ test.describe('K-025 Espera invisivel dentro de cada painel', () => {
     }
   });
 
-  test('EI-03 indice confere com as duas medianas visiveis', async ({ page, painel }) => {
-    await painel.ir('/operacional?cadencia=semanal');
-    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
-    const seg = page.getByTestId('ei-segmento-fl1-incidente');
-    const n = (s: string) => parseFloat(s.replace(/[^\d,]/g, '').replace(',', '.'));
-    const cli = n((await page.getByTestId('ei-cliente-fl1-incidente').innerText()).match(/[\d.,]+/)![0]);
-    const tim = n((await page.getByTestId('ei-time-fl1-incidente').innerText()).match(/[\d.,]+/)![0]);
-    const idx = (await page.getByTestId('ei-indice-fl1-incidente').innerText()).match(/(\d+(?:,\d+)?)\s*%/);
-    expect(idx, await seg.innerText()).not.toBeNull();
-    expect(Math.abs(((cli - tim) / cli) * 100 - n(idx![1]!))).toBeLessThan(1.5);
-  });
+  // EI-03 (índice confere com as medianas) mudou para e2e/tests-api/api.spec.ts: no mock embutido não há resposta HTTP
+  // para comparar nem para adulterar (page.route), e a tolerância derivada da tela deixava o teste sem dentes.
 
   test('EI-09 texto da Sustentacao: nao compare com BusinessMap', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=sustentacao');

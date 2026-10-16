@@ -20,7 +20,7 @@ export function calcularO7(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO7 {
   const periodo = { inicio: isoDeDia(inicioDia), fim: periodoEscolhido.fim }
   const meses = mesesEntre(inicioDia, diaDeIso(periodo.fim), ctx.hojeDia)
   const cards = selecionar(ctx, f, 'story', { incluirInativos: true }).filter(
-    (m) => !m.card.eh_subtarefa && m.card.excluido_em === null,
+    (m) => !m.card.eh_subtarefa && !m.excluido,
   )
   // F4: saldo acumulado = chegadas - saídas dentro do período filtrado (inclui a semana parcial do início, sem dias após o fim).
   const iniDia = diaDeIso(periodoEscolhido.inicio)

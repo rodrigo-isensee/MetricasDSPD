@@ -150,7 +150,7 @@ describe('tela Visão geral', () => {
     const fl1 = within(ei).getByTestId('ei-resumo-fl1')
     // mock: Requisição (54%) tem o maior índice entre os tipos com n >= 20
     expect(fl1).toHaveTextContent(
-      /Requisição: cliente .* time .* espera invisível 54% \(79 demandas\)/,
+      /Requisição: cliente .* time .* espera invisível 62% \(74 demandas\)/,
     )
     expect(within(fl1).getByRole('link', { name: 'Ver todos os tipos' })).toHaveAttribute(
       'href',

@@ -12,6 +12,8 @@ export interface ContextosMetricas {
   ac: AC.ContextoAC
   /** Extensões das métricas complementares (mock). Sem elas, o cálculo complementar devolve vazio/insuficiente. */
   ext?: ExtensoesMetricas
+  /** Extensão só de mock do pedido 011 (T11: histórico de 24 meses). Sem ela, o T11 devolve vazio. */
+  tambem?: BM.ExtensaoTambemBM
   /** Contexto da pesquisa de percepção (terceira fonte, separada). Sem ele, a PV1 devolve `sem-pesquisa`. */
   pesq?: PESQ.ContextoPesquisa
 }
@@ -41,6 +43,7 @@ const CALCULOS: {
   O13: (f, c) => BM.calcularO13(c.bm, f),
   O14: (f, c) => BM.calcularO14(c.bm, f),
   O16: (f, c) => BM.calcularO16(c.bm, f),
+  O19: (f, c) => BM.calcularO19(c.bm, f),
   T1: (f, c) => BM.calcularT1(c.bm, f),
   T2: (f, c) => BM.calcularT2(c.bm, f),
   T3: (f, c) => BM.calcularT3(c.bm, f),
@@ -50,11 +53,20 @@ const CALCULOS: {
   T9: (f, c) => BM.calcularT9(c.bm, f),
   T6: (f, c) => BM.calcularT6(c.bm, f),
   T8: (f, c) => BM.calcularT8(c.bm, f, c.ext?.bm),
+  T10: (f, c) => BM.calcularT10(c.bm, f),
+  T11: (f, c) => BM.calcularT11(c.bm, f, c.tambem),
+  T12: (f, c) => BM.calcularT12(c.bm, f),
+  O20: (f, c) => BM.calcularO20(c.bm, f),
+  O21: (f, c) => BM.calcularO21(c.bm, f),
+  O24: (f, c) => BM.calcularO24(c.bm, f),
+  O25: (f, c) => BM.calcularO25(c.bm, f),
   E1: (f, c) => BM.calcularE1(c.bm, f),
   E2: (f, c) => BM.calcularE2(c.bm, f),
   E3: (f, c) => BM.calcularE3(c.bm, f),
   E4: (f, c) => BM.calcularE4(c.bm, f, c.ext?.bm),
   E5: (f, c) => BM.calcularE5(c.bm, f),
+  E7: (f, c) => BM.calcularE7(c.bm, f),
+  E9: (f, c) => BM.calcularE9(c.bm, f),
   EI_FL1: (f, c) => BM.calcularEIBM(c.bm, f, 'FL1'),
   EI_FL2: (f, c) => BM.calcularEIBM(c.bm, f, 'FL2'),
   EI_FL3: (f, c) => BM.calcularEIBM(c.bm, f, 'FL3'),

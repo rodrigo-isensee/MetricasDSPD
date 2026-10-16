@@ -4,6 +4,7 @@ Substitui o `estado-2026-10-14-tarde.md` no que for diferente. O usuário foi do
 ## Regras
 - Valem as do arquivo da tarde.
 - Agentes: com o usuário ausente, até 4 de forma equilibrada, sempre dentro do R-TETO.
+- **Usuário (2026-10-16): o Jarvis pode subir mais de um tech-lead em paralelo quando precisar (ajustado no Forge). Cada instância cuida de uma entrega diferente.**
 - Suposições provisórias (P-1, Q-a, Q-b, Q-E7-1) estão no pedido 011. Levar ao usuário na volta.
 
 ## Frentes e próximo passo
@@ -100,3 +101,35 @@ Pontos a revisar:
 5. Docs soltos do diretório principal (quadro, pedido 011, `04-decisoes`): PR só de docs.
 6. Promoção develop → homolog pelo tech-lead (PR com merge commit), portão da CI verde.
 7. O release homolog → main fica com o usuário.
+- QA: plano do 011-back gravado (docs/qa/011-back-plano.md, 80 casos). Leu um estado anterior: B11a-1, B11a-3 e o O20 já foram resolvidos em a310864 e 29b762f. Fila do node-backend, nesta ordem: SNO-005, B11b (T11), K-096, K-097. O B12 vem depois do merge da develop e da emenda C4.
+- **Sustentação, volta 6 do review: reprovada** (branch atualizada com a develop em 54c4ebf; EXIT=0).
+  - Bloqueante V6-1 (node-backend): o aquecimento roda no `onReady`, que tem prazo de 10 s. Se o aquecimento passar disso, a API não sobe. Correção: limitar a espera do hook a cerca de 5 s, terminar o aquecimento em segundo plano e testar com banco lento.
+  - Recomendados: V6-2 e V6-3 (back); V6-4, borda das refs de foco (front).
+  - V6-5: a recarga depois de cada coleta ainda leva de 160 a 560 ms. Vira o cartão K-098.
+  - UX: revisar as telas a 375 px depois do SNO-001.
+  - Ordem: o node-backend faz o V6-1 antes do B11b. O front e o UX entram quando houver vaga no R-TETO (a carga está em 12).
+- Sustentação: UX aprovou o efeito do SNO-001 a 375 px (seção 8 de 06-revisao-implementada.md na worktree -sust, sem commit; o tech-lead commita na volta 7). Pendências para o K-075: seletor 2x2, faixa de calibração, cabeçalho a 100% (MOB-CA-9), tablet a 200%, D-04.
+- K-096 e K-097: segurança aprovada (6a88742). Falta o QA (depois da Sustentação), depois o PR. Ressalva R-A (devops): repetir a contagem das stg_ antes da primeira coleta real fora do ambiente local. Entra no checklist da fase 3.
+- K-096 e K-097: QA aprovado (40bba2f). Falta o tech-lead renovar o review, que o forge-check acusa como desatualizado (ADR 0020), e depois o PR. Recomendação do QA, não bloqueante: teste automatizado para o aborto da 0015; vira cartão K-099 depois do merge, para não invalidar os pareceres agora.
+- **Melhoria de fábrica (Forge), segunda ocorrência:** o `diff_efetivo` do forge-check compara os cabeçalhos `@@`. Quando um merge da develop só desloca a numeração de linhas, o parecer é acusado de desatualizado (K-096: `server.md`, 162 → 170). Proposta: ignorar o número de linha dos `@@` e comparar só o conteúdo. Junta com a melhoria anterior, de invalidar o parecer só pelo escopo da entrega.
+- 011: o review do B11b + B12 reprovou só pelo B11b-1 (o T11 conta entradas depois do corte). O B12 foi aprovado. O node-backend está corrigindo.
+- Cartão novo K-100: adaptador da fonte real do T11 (`dim_card` e carga de 24 meses). Na fonte real, o T11 fica vazio até isso existir.
+- B11c-1: o node-backend parou na regra de escalada. O núcleo do BM levou 165 ms de CPU, medido sob carga de 4 a 5 e já existente antes do 011; o B11a leva 42 ms e o Acelerato 106 ms. A API gerarBaseMockEmFases está pronta, sem commit e sem pronto rodado. O Jarvis espera a medição do C6 do front com o (a1) e as fases para levar os dois números ao architect, que decide entre fatiar e Web Worker.
+- **Homolog (2026-10-17 00:50):** portão e CI de push verdes (ddf0af1). O PR de release #90 (homolog → main) foi aberto. O "Homologação aprovada" ficou verde depois do rerun (era corrida). O `perf` do #90 falhou duas vezes: Lighthouse em `/operacional?cadencia=semanal` deu 0,87 a 0,89, contra o mínimo de 0,9. É defeito real, por margem pequena.
+  - Plano: a correção (a1) do B11c-1, que faz o navegador ceder antes de cada cálculo no MockFonteMetricas, não depende do 011 e deve reduzir a tarefa longa e o TBT. Se a medição do front confirmar, ela vira uma branch `fix/` a partir da develop e segue develop → homolog. Depois, o QA da candidata.
+  - O merge do #90 é do usuário. Conferir se o `perf` é check exigido na main.
+  - K-101: rodada noturna da main falhou em 2026-10-15; investigar (o K-094 é candidato).
+- **C6 e perf do #90 (2026-10-17 01:30), decisão do architect (`notas/c6-011.md`):** caminho (b), Web Worker para a geração, o contexto e o cálculo do mock no front. O a1 não teve ganho e o a2 fica guardado como referência.
+  - O Worker leva **de 2 a 3 dias**: o #90 e o 011 não ficam verdes esta noite. **Prazo ameaçado: levar ao usuário de manhã (reunião extraordinária, só o resumo).**
+  - Passos 1 em paralelo:
+    - 1a: devops, TBT ou LCP no artefato do Lighthouse;
+    - 1b: QA, sonda `perf-api` e perfil do navegador;
+    - 1c: architect, ADR do Worker como proposta;
+    - 1d: node-backend, guardar o a2 e medir a primeira métrica a frio e o `gerarExtensoesMock`.
+  - Depois: 2, o architect confirma o caminho; 3, `fix/` pelo tech-lead; 4, Worker pelo react-frontend; 5, review, QA, develop e homolog; 6, rebase do 011.
+  - Se o 1a mostrar LCP, a correção do #90 é de render, numa `fix/` separada e mais rápida.
+- #90: o devops provou que a causa é TBT de render (duas long-tasks do React, 222 e 119 ms, nos blocos da visão semanal), não a geração. Caminho (c), K-102: o react-frontend fatia ou adia o render da semanal na branch fix/perf-visao-semanal, a partir da develop. É mais rápido que o Worker e destrava o release. O Worker continua para o C6 do 011.
+- K-094: review aprovado (a4718eb; a cópia na worktree foi por cp, com risco de autoria K-077). Falta o QA, que vem depois do QA final do 011, e depois o PR. Recomendação R1, não bloqueante: um teste de banco determinístico da trava. As 7 falhas do pesquisa.pg voltaram na -k094 porque o .env copiado tem a senha divergente (ação do usuário no K-095).
+- **011 (2026-10-17 manhã):** a1 revertido (d73474a), com referência em `ref/c6-cede-por-metrica`; merge do #88 (4e6b29c); pronto EXIT=0 e test:pg EXIT=0; review revalidado (4c7efee). Falta o QA regravar `docs/qa/011-back.md` sobre 4e6b29c, com Write no diretório principal, depois cópia e commit. Em seguida: PR e merge.
+  - O tech-lead trocou o `pedido:` do review para `011-metricas-tambem-disponiveis-back`, o mesmo id do QA desta branch, porque o forge-check pega o parecer mais recente do pedido em todas as branches pelo nome. **Informar o usuário.** Melhoria para o Forge: o cmd_pr deveria filtrar os pareceres pela branch (é a terceira observação do mesmo problema).
+  - Card possível: `FatoTransicao.usuario` continua no mock, mas não existe mais no banco.

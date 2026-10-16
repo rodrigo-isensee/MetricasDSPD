@@ -82,3 +82,47 @@
 - 2026-10-16 — **R-1 = B** (usuário): o E8 mostra só a **contagem** de sistemas com 1 pessoa, sem nomear os sistemas. Na T14, "outros times" fica oculto quando somar menos de 2 pessoas (mostra só "meu time: k de n"). Ajustar spec (UX), contrato e cálculo (fase 2 do E8 e T14), e a ADR 0020 (architect).
 - 2026-10-16 — **R-2 = B** (usuário): a coluna `fato_transicao.usuario` é desativada (revê a decisão de 2026-10-10). Nenhuma métrica a lê. Ajuste: migração e data-model (node-backend e architect), ADR 0020.
 - 2026-10-16 — **Dados antigos = A** (usuário): o time levanta nos bancos local e de homologação local (contagem e chaves, sem ler conteúdo) se há payload antigo nas stg_. Se achar dado de pessoa, recria o ambiente. Dono: node-backend, com parecer do security-engineer.
+- 2026-10-16 — **Para o usuário na volta, B11-001 (T10):** o nome do fornecedor deve ignorar maiúsculas e minúsculas? Hoje "Totvs", "TOTVS" e "totvs" viram 3 linhas. Recomendação: sim, normalizar caixa e espaços (é o mesmo fornecedor). Se o campo for de domínio fechado na WS1, o problema some. Não bloqueia.
+
+## Retomada 2026-10-17 (sessão Forge 0.16.0)
+- **Modo:** implementar (já validado pelo usuário no protótipo; a fase 1 do back está na main desde o release #96).
+- **Prioridade do usuário (2026-10-16):** o front do 011 primeiro; depois K-074 e K-075.
+
+### Escopo
+- **E1:** back da fase 2 em mock: E6 (`datasProjeto`), T13 (`vinculos`), O22 (`primeiroToque`), O26 (`passagens`, Q-a = 1 passagem, Q-b = conta) e E7 com R$ por fixture (D-1' = A, Q-E7-1 = pró-rata por dias corridos). Plano §2, §4 e §5 "Fase 2".
+- **E2:** back da fase 2 em mock: E8 (`conhecimentoSistema`) e T14 (`equipeResponsavel`), já com a decisão **R-1 = B** (2026-10-16): o E8 mostra só a contagem de sistemas com 1 pessoa, sem nomear os sistemas; na T14, "outros times" fica oculto quando somar menos de 2 pessoas.
+- **E3:** documentação da R-1 = B e das decisões de 2026-10-16 na ADR 0020, no plano (§2 E8 e T14, §4, pendências de `REGRAS_METRICA`) e na especificação (CAs do E8, da T14 e do destaque do O20 = A).
+- **E4:** front do 011: as 10 métricas da fase 1 (O19–O21, O23–O25, T10–T12, E9) e, quando o back da fase 2 estiver na develop, as 7 da fase 2. Protótipo em `~/MetricasDSPD-local/prototipos/metricas-tambem-disponiveis/`.
+
+### Etapas
+- E1.1 (forge:node-backend): implementar E1 na worktree `-011-fase2`, branch `feature/011-fase2-back`.
+- E2.1 (forge:node-backend): implementar E2 depois de E3.1.
+- E3.1 (forge:software-architect): ADR 0020 e plano.
+- E3.2 (forge:ux-designer): CAs na especificação.
+- E1.2/E2.2 (forge:tech-lead): code review.
+- E1.3/E2.3 (forge:security-engineer): review de segurança (gatilho: dados pessoais no O22, O26, E8 e T14).
+- E1.4/E2.4 (forge:qa-engineer): QA do back da fase 2.
+- E4.1 (forge:react-frontend): front, depois do K-102.
+- E4.2 (forge:ux-designer): revisão da interface implementada.
+- E4.3 (forge:qa-engineer): QA do front.
+- E9.1 (forge:tech-lead): PR para a develop e promoção para a homolog.
+- E9.2 (dono): merge na main.
+
+### Fora do escopo
+- Fase 3 (coleta real, K-100, guarda B-K1, releitura da ADR 0020 pelo security-engineer).
+- K-074 e K-075.
+
+### Suposições
+- A worktree `-011-fase2` não tem commits além da develop: a fase 2 recomeça do zero. Base: `git rev-list origin/develop..HEAD` = 0 e árvore limpa em 2026-10-17.
+- A R-1 = B ainda não está na ADR 0020, no plano nem na especificação. Base: grep nos três arquivos da develop (b73bad3).
+
+### Decisão do usuário (2026-10-17)
+- **Ordem por nível, em lotes separados** (usuário: "Das métricas que faltam desenvolva tudo primeiro das estratégicas, depois táticas e por último operacionais isso em lotes diferentes"):
+  - Lote 1, estratégicas: E6, E7 (R$), E8, mais o front do E9 (e do E6, E7 e E8).
+  - Lote 2, táticas: T13, T14, mais o front do T10, T11 e T12 (e do T13 e T14).
+  - Lote 3, operacionais: O22, O26, mais o front do O19, O20, O21, O23, O24 e O25 (e do O22 e O26).
+  - Cada lote tem o seu ciclo de review, segurança (quando houver gatilho), QA, UX e PR para a develop. O lote seguinte só vai para o PR depois do anterior.
+  - Back da fase 2: o K-103 já estava em andamento com a ordem anterior quando a decisão chegou. A implementação segue no brief em curso, e a entrega (review, QA e PR) sai nos 3 lotes, nesta ordem. Os próximos briefs já seguem a ordem nova.
+
+### Perguntas ao usuário (2026-10-17)
+- **Q-T14-10** (levantada pelo architect no K-104; não bloqueia a fase 2 em mock): na T14, "outros times" fica oculto quando somar menos de 2 pessoas (R-1 = B). Quem conta como pessoa? O sistema não tem cadastro de membros de time. Leitura adotada até a resposta (suposição do architect, plano §9.5): os responsáveis distintos dos cards contados em "outros times".

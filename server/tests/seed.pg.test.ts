@@ -32,6 +32,35 @@ d('seed contra PostgreSQL 17', () => {
     expect(await cont()).toEqual(antes);
   });
 
+  it('o seed espera a trava única "dspd:seed" e só grava depois que ela é solta (K-094, determinístico)', async () => {
+    const p3 = prefixoDeTeste();
+    const E3 = montarEsquemas(p3);
+    await migrar(url!, { prefixo: p3 });
+    const detentor = await db.connect();
+    let pendente: Promise<string> | undefined;
+    try {
+      await detentor.query('BEGIN');
+      await detentor.query("SELECT pg_advisory_xact_lock(hashtext('dspd:seed'))");
+      let terminou = false;
+      pendente = semear(db, base, E3).finally(() => { terminou = true; });
+      // sinal observável (sem espera fixa): existe uma sessão bloqueada pedindo trava consultiva
+      await expect.poll(async () => Number((await db.query<{ n: string }>(
+        "SELECT count(*) AS n FROM pg_locks WHERE locktype = 'advisory' AND NOT granted")).rows[0]!.n), { timeout: 10_000 }).toBeGreaterThan(0);
+      expect(terminou).toBe(false);
+      expect(await n(`${E3.bm}.ctl_coleta`)).toBe(0);
+      expect(await n(`${E3.ac}.ctl_coleta`)).toBe(0);
+      await detentor.query('COMMIT');
+      expect(await pendente).toBe('semeado');
+      expect(await n(`${E3.bm}.dim_card`)).toBe(base.bm.cards.length);
+      expect(await n(`${E3.ac}.dim_chamado`)).toBe(base.ac.chamados.length);
+    } finally {
+      await detentor.query('ROLLBACK').catch(() => undefined);
+      detentor.release();
+      await pendente?.catch(() => undefined);
+      for (const s of [E3.bm, E3.ac, E3.core]) await db.query(`DROP SCHEMA IF EXISTS ${s} CASCADE`);
+    }
+  });
+
   it('justificativa_informada: indicador igual a "campo não vazio" do mock; o texto não está em nenhuma coluna (FA-003)', async () => {
     const esperado = base.ac.chamados.filter((c) => c.justificativa_ajuste !== null && c.justificativa_ajuste.trim() !== '').length;
     expect(esperado).toBeGreaterThan(0);
