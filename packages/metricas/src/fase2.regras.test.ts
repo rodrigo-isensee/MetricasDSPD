@@ -45,12 +45,12 @@ describe('regras da fase 2 (REGRAS_METRICA)', () => {
       'Q-T14-7',
       'Q-T14-8',
       'Q-T14-9',
-      'Q-T14-10',
       'Cardinalidade',
     ])
       expect(texto, q).toContain(q)
-    // as decididas (Q-T14-1, 5 e 6) não voltam como pendência
-    for (const q of ['Q-T14-1:', 'Q-T14-5:', 'Q-T14-6:']) expect(texto, q).not.toContain(q)
+    // as decididas (Q-T14-1, 5, 6 e 10) não voltam como pendência
+    for (const q of ['Q-T14-1:', 'Q-T14-5:', 'Q-T14-6:', 'Q-T14-10'])
+      expect(texto, q).not.toContain(q)
   })
 
   it('o código das quatro não lê responsaveis nem usuario, e não importa nada do Acelerato', () => {

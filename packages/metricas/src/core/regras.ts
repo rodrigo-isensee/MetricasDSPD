@@ -660,7 +660,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa'],
     granularidade: 'story',
     refBriefing:
-      'pedido 011 T14; Q-T14-1 = B (campo "Time responsável" do card), Q-T14-5 = D (projetos ligados a sistema do meu time, mesmo com 0%, mais os com 1 ou mais card do meu time), Q-T14-6 = A revista pela R-1 = B (outros times é um inteiro só, sem nome, tempo, vazão nem ranking, e fica oculto quando somar menos de 2 pessoas); o filtro de equipe só diz qual é "meu time" e não recorta a população; exige exatamente uma equipe (CA-28); ordem pelo total de cards (CA-30); percentual só com 20 ou mais cards com time informado (CA-31)',
+      'pedido 011 T14; Q-T14-1 = B (campo "Time responsável" do card), Q-T14-5 = D (projetos ligados a sistema do meu time, mesmo com 0%, mais os com 1 ou mais card do meu time), Q-T14-10 = B (decidida pelo usuário: cadastro de membros por time, na fase 3), Q-T14-6 = A revista pela R-1 = B (outros times é um inteiro só, sem nome, tempo, vazão nem ranking, e fica oculto quando somar menos de 2 pessoas); o filtro de equipe só diz qual é "meu time" e não recorta a população; exige exatamente uma equipe (CA-28); ordem pelo total de cards (CA-30); percentual só com 20 ou mais cards com time informado (CA-31)',
     status: 'pendente-usuario',
     pendencias: [
       'Cardinalidade do campo "Time responsável" (escolha única ou múltipla) e nome exato, a confirmar na integração (Q-T14-1 = B); vale a Q-T14-9 = A até lá',
@@ -670,7 +670,6 @@ export const REGRAS_METRICA = {
       'Q-T14-7: card sem time entra no total e fica fora do denominador do percentual, suposição do time',
       'Q-T14-8: vale o time na entrega (para o aberto, o atual), suposição do time',
       'Q-T14-9: com mais de um time no card, conta como meu time se o meu estiver entre os marcados, suposição do time',
-      'Q-T14-10: quem conta nas "2 pessoas" que liberam "outros times" (R-1 = B): responsáveis distintos dos cards de outros times, leitura adotada até a resposta',
     ],
   },
   E4: {
