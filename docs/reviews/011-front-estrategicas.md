@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: ccb9443
+commit: c5e379b
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
@@ -14,9 +14,41 @@ data: 2026-10-16
 - Referências: `docs/pedidos/021-front-do-011-por-nivel.md`, `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§3, §4, §5 do E6 ao E9, §10), `docs/engineering/praticas.md` (§2 a §5 e §8), contratos `docs/contratos/metricas/E6.md` a `E9.md`.
 - Ferramentas: o `praticas.md` não marca nenhuma regra como "decidida por: `<comando>`". Cito a saída do autor sem refazê-la: `pnpm run pronto` com rc=0 no `919554b` (o brief dispensou a execução local, com o teto de 2 agentes). Lint, tipos, cobertura de 100%, `docs:check` e E2E estão no `pronto`.
 
+## Volta 3 (2026-10-16): aprovado
+
+- Escopo: diff `9465709..c5e379b`, três commits do autor: `075a5a8` (`fix(web)`, bug 011F-001 do QA), `65fcd72` (`fix(web)`, R-4 e R-5) e `c5e379b` (`docs(api)`, R-6). O `commit` do frontmatter passa a `c5e379b`, a ponta revisada. A `develop` continua em `1607a5f`, ancestral da branch, então não houve nova integração.
+- Ferramentas: cito o autor sem refazer, `pnpm run pronto` com rc=0 no `c5e379b`. O brief desta volta dispensa a execução local (teto de 3 agentes, uma tarefa pesada por vez).
+
+### 011F-001 (troca de tipo do E9 sem anúncio): resolvido
+
+- `web/src/components/ui/SeletorLocal.tsx`: prop opcional `anuncio?: string`, documentada no tipo. Só quando ela é passada o componente renderiza um `div` `sr-only` com `role="status"` e `aria-live="polite"` (e `data-testid="anuncio-<codigo>"`). Sem a prop, a saída é a mesma de antes. Dos 15 usos do `SeletorLocal` no `web/src`, só o E9 passa `anuncio` (busca por `anuncio=`), então os demais não mudam. O padrão é o mesmo do anúncio de preferências (`ProvedorPainelPreferencias.tsx:175`).
+- `web/src/features/complementares/estrategicas.tsx:117`: o E9 anuncia "Tipo X: N de M projetos.", com os mesmos números da linha visível "Mostrando N de M projetos". O seletor só aparece com 2 ou mais tipos, então M é sempre 2 ou mais e o plural "projetos" é sempre correto.
+- Teste (`web/src/components/ui/ui.test.tsx`): o teste já existente ganha `queryByRole('status')` nulo, que prova que sem a prop não há região. O teste novo prova que com a prop a região tem `aria-live="polite"`, mostra o texto inicial e muda ao trocar de aba pelo teclado (`End`). Cobre os dois ramos da condição. Não há outro `role="status"` nos E2E do Estratégico que entre em conflito com o seletor de papel.
+- Observação, sem ajuste: uma região viva montada já com texto em geral não é lida na montagem, só nas mudanças. É o comportamento desejado (anunciar a troca), e o bug pede exatamente isso. A reconferência com leitor de tela fica com o QA (E1.3).
+
+### Recomendados da volta 2
+
+| # | Situação | Evidência |
+|---|---|---|
+| R-4 | Resolvido | O comentário de `ordenarPorDeslize` agora diz "empate pelo id do card (`cardId`)", igual ao código. |
+| R-5 | Resolvido | A linha `e7-demais` usa `plural(demais.length, 'sistema', 'sistemas')`. |
+| R-6 | Resolvido | `docs/api/metricas.md:157` acrescenta "(título revisto no pedido 021: 'Onde o parque se concentra, e qual o risco de continuidade?')" e mantém o registro histórico. |
+
+### Regras invioláveis e decisões
+
+Conformes. O diff não lê campo de custo (D2 = A), não toca no E8 (R-1 = B), não cria visão por pessoa nem por time e não calcula estatística no front. O nome do E7 continua sem mudança, à espera da confirmação do usuário (pedido 021), como deve ser.
+
+### Commits
+
+São três commits coerentes, em Conventional Commits em português, e cada um cita o bug ou o recomendado que resolve.
+
+### Próximo passo
+
+A branch volta ao QA (E1.3) no `c5e379b`, que reconfere o 011F-001. O R-1 da volta 1 (aplicabilidade do E8 e do E9 em `contratos`) e a ordem cronológica do E6 (A-4) seguem fora deste escopo, como registrado na volta 2.
+
 ## Volta 2 (2026-10-16): aprovado
 
-- Escopo: diff `515714c..8d6999c` (ajustes do autor, `fix(web,contratos)`) e o commit `ccb9443` (`docs(ux)`: especificação alinhada às decisões e revisão de UX, sem código). O `commit` do frontmatter é o `ccb9443`, a ponta revisada.
+- Escopo: diff `515714c..8d6999c` (ajustes do autor, `fix(web,contratos)`) e o commit `ccb9443` (`docs(ux)`: especificação alinhada às decisões e revisão de UX, sem código). O `commit` do frontmatter era o `ccb9443`, a ponta revisada naquela volta.
 - Ferramentas: cito o autor sem refazer, `pnpm run pronto` com rc=0 no `8d6999c`. O brief desta volta dispensa a execução local (teto de 3 agentes, uma tarefa pesada por vez).
 
 ### Bloqueantes da volta 1
