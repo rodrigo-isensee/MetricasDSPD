@@ -298,7 +298,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
   - A natureza vem da função **`naturezaDe` do T3** (`t3.ts:14`), com as 4 naturezas (CA-23), sem um segundo mapeamento.
   - Sistemas com menos de 20 entregas vão para o fim, com "k de n".
   - Sem cálculo de custo: a interface mostra a participação e as entregas, sem aviso de rateio (o aviso do CA-35 saiu com o R$).
-- **Contrato:** `{ total, sistemas: [{ sistema, entregas, participacao: taxaSchema, porNatureza: [{ natureza, taxa: taxaSchema }] }] }`. Os campos de custo do desenho anterior saíram (D2 = A); ver `docs/api/metricas.md` para o contrato vigente.
+- **Contrato:** `{ total, sistemas: [{ sistema, entregas, participacao: taxaSchema | null, porNatureza: [{ natureza, taxa: taxaSchema }] }] }`. Os campos de custo do desenho anterior saíram (D2 = A); ver `docs/api/metricas.md` para o contrato vigente.
 - **Mock:** a base atual (18 a 20 sistemas). Sem custo (CA-13): nenhum R$ em mock, fixture ou configuração.
 - **Mínimo:** participação com ≥ 20 entregas no total; por sistema, abaixo de 20 só "k de n".
 
