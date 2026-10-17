@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: c5e379b
+commit: d542aa9
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
@@ -13,6 +13,35 @@ data: 2026-10-16
 - Cartão K-109, pedido 021 (etapa E1.4). Branch `feature/011-front-estrategicas`, commits `4c5d6f5` e `919554b` sobre a `develop` `1607a5f` (a ponta atual de `origin/develop`, então a integração já está feita).
 - Referências: `docs/pedidos/021-front-do-011-por-nivel.md`, `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§3, §4, §5 do E6 ao E9, §10), `docs/engineering/praticas.md` (§2 a §5 e §8), contratos `docs/contratos/metricas/E6.md` a `E9.md`.
 - Ferramentas: o `praticas.md` não marca nenhuma regra como "decidida por: `<comando>`". Cito a saída do autor sem refazê-la: `pnpm run pronto` com rc=0 no `919554b` (o brief dispensou a execução local, com o teto de 2 agentes). Lint, tipos, cobertura de 100%, `docs:check` e E2E estão no `pronto`.
+
+## Volta 4 (2026-10-16): aprovado
+
+- Escopo: diff `0a75f63..d542aa9` em `e2e`, `web`, `packages` e `server`. Só mudou `e2e/tests/estrategico-011-lote1.spec.ts` (+5 linhas, commit `d542aa9` do QA). Não há código de produção no diff. O resto do commit é o parecer do QA e a ficha do bug 011F-001, que não são deste review. O `commit` do frontmatter passa a `d542aa9`. A `develop` continua em `1607a5f`, então não houve nova integração.
+- Ferramentas: não rodei nada local, porque o brief dispensa (teto de 3 agentes, uma tarefa pesada por vez). Cito o QA: `playwright test --project=chromium estrategico-011-lote1` deu 10 de 10, com o ET-06 já afirmando a região, e `ui.test.tsx` deu 18 de 18. O `pronto` completo vai rodar no envio (pedido 028).
+
+### O diff do ET-06
+
+- A região é localizada por `e9.getByRole('status')`, dentro do cartão do E9. No `web/src`, o único `role="status"` do cartão é o do `SeletorLocal` (`SeletorLocal.tsx:100`), que só existe com a prop `anuncio`. O localizador não é ambíguo, e o QA confirmou isso na execução.
+- `toHaveAttribute('aria-live', 'polite')` confere o atributo que o leitor de tela usa.
+- O texto inicial é conferido contra `/^Tipo .+: \d+ de \d+ projetos\.$/`, o mesmo formato montado em `estrategicas.tsx:117`. É um teste de presença: o alvo existe e bate com o código atual (item 11 do checklist).
+- Depois do `Home`, `not.toHaveText(anuncioAntes)` prova que a troca de tipo muda o texto anunciado. Essa asserção falharia sem a correção do 011F-001: sem a prop não há região, e o localizador não acharia nada. Ela usa a espera automática do Playwright, igual à linha `e9-mostrando` logo acima, então não depende de tempo fixo.
+- O teste é determinístico. Roda sobre o mock (2 abas de tipo no E9) e não depende de hora nem de ordem de execução.
+
+### Observação, sem ajuste
+
+O `\d+` do regex não aceita separador de milhar, e o `fmtInteiro` formata "1.234". Com o mock (7 projetos), isso não acontece. Só seria um problema se o mesmo E2E rodasse com dados que tenham mil ou mais projetos de um tipo, o que não está previsto. Não abro recomendado.
+
+### Regras invioláveis e decisões
+
+Conformes. O diff é só de teste: não toca no cálculo, no custo (D2 = A), no E8 (R-1 = B) nem no nome do E7, que segue pendente da confirmação do usuário.
+
+### Commits
+
+O `d542aa9` (`docs(qa)`) junta o parecer do QA e a asserção nova do E2E. Teria ficado melhor com `test(e2e)` em separado, mas a asserção é só a evidência da reconferência do 011F-001, então aceito como está.
+
+### Próximo passo
+
+O QA revalida o parecer dele sobre `d542aa9` (o `forge-check` ainda acusa o parecer do QA de desatualizado e sem registro de autoria). Depois, o PR sai pelo pedido 028.
 
 ## Volta 3 (2026-10-16): aprovado
 
