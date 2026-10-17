@@ -60,4 +60,4 @@ Acessibilidade: o delta de interface é só texto de título e catálogo; os tes
 
 ## Resultado da execução
 
-Data 2026-10-17, ambiente CI do GitHub (run acima), head `781e171`. Suíte da CI: verde. E2E: não executado nesta etapa (só em PR). Bugs críticos, altos e médios abertos: 0.
+Data 2026-10-17, ambiente CI do GitHub (run acima), head testado `781e171` (o parecer vai no commit seguinte, só de documentação). Suíte da CI: verde. E2E: não executado nesta etapa (só em PR). Bugs críticos, altos e médios abertos: 0.
