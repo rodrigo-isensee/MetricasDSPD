@@ -63,12 +63,16 @@ export function calcularT13(
     if (l) l.push(v)
     else porCard.set(v.card_id, [v])
   }
-  const duracao = (valores: readonly number[]) =>
-    estatistica(valores.length, janela, () => {
-      const p = percentisDe(amostraBM('story', valores, janela))
-      return { p50: r2(p.p50), p85: r2(p.p85), p95: r2(p.p95) }
-    })
+  const duracaoDe =
+    (granularidade: Granularidade, janelaDoBloco: typeof janela) => (valores: readonly number[]) =>
+      estatistica(valores.length, janelaDoBloco, () => {
+        const p = percentisDe(amostraBM(granularidade, valores, janelaDoBloco))
+        return { p50: r2(p.p50), p85: r2(p.p85), p95: r2(p.p95) }
+      })
   const blocos = GRANULARIDADES_T13.map((granularidade) => {
+    // R1: a janela e a amostra levam o rótulo da própria granularidade (a trava de classe não aceita story e frente juntas).
+    const janelaDoBloco = janelaPercentis(ctx, f, granularidade)
+    const duracao = duracaoDe(granularidade, janelaDoBloco)
     const entregues = selecionar(ctx, f, granularidade)
       .filter((m) => granularidade !== 'story' || ehDemanda(m))
       .filter((m) => m.entrega !== null)
@@ -84,7 +88,9 @@ export function calcularT13(
     const comDado = doPeriodo.filter((e) => e.s !== 'sem-dado')
     // Lead time (T1) só de quem tem compromisso; o par é por tipo e dentro da janela.
     const lead = (m: MarcosCard): number | null => blocosDe(ctx, m)?.total ?? null
-    const naJanela = entregues.filter((e) => e.s !== 'sem-dado' && dentro(ctx, e.m.entrega, janela))
+    const naJanela = entregues.filter(
+      (e) => e.s !== 'sem-dado' && dentro(ctx, e.m.entrega, janelaDoBloco),
+    )
     const tipos = TIPOS_CARD.filter((t) => naJanela.some((e) => e.m.card.tipo === t))
     return {
       granularidade,

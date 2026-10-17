@@ -15,6 +15,7 @@ import {
   slug,
   somarMeses,
 } from '@metricas-dspd/metricas/core'
+import { chaveOutrosPublicavel } from '@metricas-dspd/metricas/businessmap'
 import { bernoulli, escolha, inteiro, uniforme } from '../distribuicoes'
 import type { ConfigMock } from '../config'
 import { derivar, type Prng } from '../prng'
@@ -307,7 +308,7 @@ export function gerarFase2(base: EntradaFase2): Fase2 {
           pub = false
           forcouFalso = true
         }
-        outrosPublicavel[`${p}|${meu}|${g}`] = pub
+        outrosPublicavel[chaveOutrosPublicavel(p, meu, g)] = pub
       }
     }
 
