@@ -1,4 +1,9 @@
-import type { BaseBM, EntradaSazonal, ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap'
+import {
+  EXTENSAO_TAMBEM_BM_VAZIA,
+  type BaseBM,
+  type EntradaSazonal,
+  type ExtensaoTambemBM,
+} from '@metricas-dspd/metricas/businessmap'
 import {
   CALENDARIO_PADRAO as cal,
   diaLocal,
@@ -12,6 +17,7 @@ import {
 import { escolha, inteiro, uniforme } from '../distribuicoes'
 import type { ConfigMock } from '../config'
 import { derivar } from '../prng'
+import { gerarFase2 } from './extensaoTambemFase2'
 
 /**
  * Extensão só de mock do pedido 011 (B11b, P-T3 = a): o histórico de entradas dos 24 meses fechados mais o corrente
@@ -37,7 +43,7 @@ export const PARAMETROS_SAZONAIS = {
 
 /** Só o que a série precisa da base: os cards do BusinessMap (perfil) e a configuração (semente, "hoje", escala). */
 export interface BaseParaExtensaoTambem {
-  bm: Pick<BaseBM, 'cards'>
+  bm: Pick<BaseBM, 'cards'> & { config: Pick<BaseBM['config'], 'equipes'> }
   config: ConfigMock
 }
 
@@ -52,7 +58,7 @@ export function gerarExtensaoTambemMock(base: BaseParaExtensaoTambem): ExtensaoT
     .filter((c) => c.granularidade === 'story' && c.tipo !== 'Bug interno' && !c.eh_subtarefa)
     .map((c) => ({ tipo: c.tipo, equipe: c.equipe, sistema: c.sistema }))
   const entradas: EntradaSazonal[] = []
-  if (perfis.length === 0) return { entradasSazonais: entradas }
+  if (perfis.length === 0) return { ...EXTENSAO_TAMBEM_BM_VAZIA }
 
   for (let d = inicio; d <= hoje;) {
     const m = mesDeDia(d)
@@ -77,5 +83,11 @@ export function gerarExtensaoTambemMock(base: BaseParaExtensaoTambem): ExtensaoT
     d = ultimoDiaDoMes(m) + 1
   }
   entradas.sort((a, b) => a.criado_em - b.criado_em)
-  return { entradasSazonais: entradas }
+  // Fase 2: campos de extração nova (O22, O26, T13, E6, E8, T14), com stream própria cada um.
+  const fase2 = gerarFase2({
+    cards: base.bm.cards,
+    equipes: base.bm.config.equipes,
+    config: base.config,
+  })
+  return { entradasSazonais: entradas, ...fase2 }
 }

@@ -37,7 +37,11 @@ describe('ramos dos componentes complementares', () => {
       'metricas-dspd:preferencias:v1',
       JSON.stringify({
         versao: 1,
-        paineis: { estrategico: { ocultar: ['e1', 'e2', 'e3', 'ei-fl3', 'e4', 'e5'] } },
+        paineis: {
+          estrategico: {
+            ocultar: ['e1', 'e2', 'e3', 'ei-fl3', 'e4', 'e5', 'e6', 'e7', 'e8', 'e9'],
+          },
+        },
         atualizadoEm: '2026-10-10T00:00:00.000Z',
       }),
     )
@@ -45,7 +49,7 @@ describe('ramos dos componentes complementares', () => {
     await screen.findByTestId('painel-oculto-vazio')
     expect(screen.queryByTestId('mais-metricas')).not.toBeInTheDocument()
     expect(screen.getByTestId('mais-metricas-ocultas')).toHaveTextContent(
-      '2 complementares ocultas pelas suas preferências',
+      '6 complementares ocultas pelas suas preferências',
     )
   })
 

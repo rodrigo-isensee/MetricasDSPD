@@ -23,5 +23,6 @@ export { CONFIG_PADRAO, type ConfigMock }
 export { gerarColetasMock, type ColetasMock } from './coletas'
 export { gerarExtensoesMock } from './complementares'
 export { gerarExtensaoTambemMock, PARAMETROS_SAZONAIS } from './businessmap/extensaoTambem'
+export { PARAMETROS_FASE2 } from './businessmap/extensaoTambemFase2'
 export { gerarPesquisaMock } from './pesquisa'
 export { gerarBaseBusinessMap } from './businessmap'

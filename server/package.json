@@ -34,13 +34,13 @@
     "@metricas-dspd/contratos": "workspace:*",
     "@metricas-dspd/metricas": "workspace:*",
     "@metricas-dspd/mock": "workspace:*",
-    "fastify": "^5.12.5",
+    "fastify": "^5.12.7",
     "fastify-type-provider-zod": "^7.0.0",
     "node-pg-migrate": "^9.0.0",
     "pg": "^8.23.1",
     "pino": "^10.4.0",
     "tsx": "^4.23.15",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
