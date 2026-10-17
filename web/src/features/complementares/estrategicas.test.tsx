@@ -192,7 +192,7 @@ describe('E8 Concentração de conhecimento (só contagens, sem nomear sistemas)
     expect(el).toHaveTextContent('Dados fictícios')
   })
 
-  it('manda ler junto com as entregas por sistema (E7), nome vigente', async () => {
+  it('manda ler junto com o nome vigente do E7', async () => {
     const el = await abrir('E8', <CartaoE8 filtros={FILTROS_FLUXO} />)
     expect(el).toHaveTextContent('Leia junto com as entregas por sistema (E7).')
   })
