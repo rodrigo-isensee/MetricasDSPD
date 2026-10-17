@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: d542aa9
+commit: 59dfb37
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
@@ -14,9 +14,41 @@ data: 2026-10-16
 - Referências: `docs/pedidos/021-front-do-011-por-nivel.md`, `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§3, §4, §5 do E6 ao E9, §10), `docs/engineering/praticas.md` (§2 a §5 e §8), contratos `docs/contratos/metricas/E6.md` a `E9.md`.
 - Ferramentas: o `praticas.md` não marca nenhuma regra como "decidida por: `<comando>`". Cito a saída do autor sem refazê-la: `pnpm run pronto` com rc=0 no `919554b` (o brief dispensou a execução local, com o teto de 2 agentes). Lint, tipos, cobertura de 100%, `docs:check` e E2E estão no `pronto`.
 
+## Volta 5 (2026-10-16): aprovado
+
+- Escopo: diff `89b755c..59dfb37` em `e2e`, `web`, `packages` e `server`. Mudou só `e2e/tests/intensivo-sistemico.spec.ts` (2 linhas, commit `59dfb37`, `test(e2e)`). Não há código de produção no diff. O `commit` do frontmatter passa a `59dfb37`. A `develop` não foi reintegrada nesta volta.
+- Motivo: o check `e2e` do PR #106 falhou no SIS-CONS-01. O catálogo tem 53 linhas depois dos cartões E6 a E9 e o teste ainda esperava 49.
+- Ferramentas: não rodei nada local, porque o brief dispensa (teto de 3 agentes, uma tarefa pesada por vez). A prova é a CI do PR #106, que roda a suíte E2E completa.
+
+### O diff
+
+- O título do teste passa de "46 linhas" para "53 linhas" e o `toHaveLength(49)` passa a `toHaveLength(53)`. Os dois números batem com o catálogo do lote 1: 49 mais os 4 cartões novos (E9, E6, E7 e E8), a mesma contagem que os E2E `complementares.spec.ts` e `lacuna-de-valor.spec.ts` já afirmam desde a volta 1 (49 para 53).
+- O título antigo dizia 46 enquanto a asserção dizia 49: já estava desatualizado antes desta branch. A correção deixa os dois alinhados.
+- A asserção mantém o formato de contagem exata (não é só um mínimo), então um cartão perdido ou duplicado continua falhando (item 11 do checklist). Nenhuma regra inviolável é tocada.
+
+### Por que o furo passou
+
+O review (voltas 1 a 4) e o QA rodaram o spec do lote (`estrategico-011-lote1`, `complementares`, `lacuna-de-valor`) e a leitura do diff. O `intensivo-sistemico.spec.ts` não faz parte desse conjunto e só é executado na suíte E2E completa. O autor dispensou o `pronto` local pelo teto de recursos, então a primeira execução da suíte inteira foi a da CI do PR. Eu também citei a contagem 49 para 53 nos dois E2E que conferi na volta 1, mas não busquei por outros testes que dependam do tamanho do catálogo. A lição para o review é buscar por `toHaveLength` e pelas contagens do catálogo (`49`, `45`, `46`) quando o diff altera `cartoes.ts`, e a lição para o QA é incluir os specs que leem o catálogo inteiro (`intensivo-sistemico`) quando a contagem muda. Isso vale como recomendação ao QA e ao agile-coach, sem exigir mecanismo novo agora.
+
+### Comentário desatualizado em `CatalogoPage.tsx:10`
+
+O JSDoc diz "49 linhas" e agora são 53 (além de falar em "45 métricas do briefing + 1 de percepção", que também mudou). É comentário de código, sem efeito em comportamento, em teste ou em contrato, e o `docs:check` não o cobre. Não bloqueia. Fica como ressalva baixa: o `react-frontend` corrige na próxima vez que tocar no arquivo, ou o comentário passa a não citar o número (por exemplo, "uma linha por métrica do catálogo, com a espera invisível por nível"), o que evita a repetição do problema. Não abro nova volta só por isso.
+
+### Regras invioláveis e decisões
+
+Conformes. O diff é só de teste: não toca no cálculo, no custo (D2 = A), no E8 (R-1 = B) nem no nome do E7, que segue pendente da confirmação do usuário.
+
+### Commits
+
+Um commit, `test(e2e)`, coerente, com o cartão K-109 na mensagem.
+
+### Próximo passo
+
+O QA revalida o parecer dele sobre `59dfb37`. Depois, o PR #106 segue pelo pedido 028, com o check `e2e` verde na CI.
+
 ## Volta 4 (2026-10-16): aprovado
 
-- Escopo: diff `0a75f63..d542aa9` em `e2e`, `web`, `packages` e `server`. Só mudou `e2e/tests/estrategico-011-lote1.spec.ts` (+5 linhas, commit `d542aa9` do QA). Não há código de produção no diff. O resto do commit é o parecer do QA e a ficha do bug 011F-001, que não são deste review. O `commit` do frontmatter passa a `d542aa9`. A `develop` continua em `1607a5f`, então não houve nova integração.
+- Escopo: diff `0a75f63..d542aa9` em `e2e`, `web`, `packages` e `server`. Só mudou `e2e/tests/estrategico-011-lote1.spec.ts` (+5 linhas, commit `d542aa9` do QA). Não há código de produção no diff. O resto do commit é o parecer do QA e a ficha do bug 011F-001, que não são deste review. O `commit` do frontmatter passou a `d542aa9`. A `develop` continua em `1607a5f`, então não houve nova integração.
 - Ferramentas: não rodei nada local, porque o brief dispensa (teto de 3 agentes, uma tarefa pesada por vez). Cito o QA: `playwright test --project=chromium estrategico-011-lote1` deu 10 de 10, com o ET-06 já afirmando a região, e `ui.test.tsx` deu 18 de 18. O `pronto` completo vai rodar no envio (pedido 028).
 
 ### O diff do ET-06
@@ -45,7 +77,7 @@ O QA revalida o parecer dele sobre `d542aa9` (o `forge-check` ainda acusa o pare
 
 ## Volta 3 (2026-10-16): aprovado
 
-- Escopo: diff `9465709..c5e379b`, três commits do autor: `075a5a8` (`fix(web)`, bug 011F-001 do QA), `65fcd72` (`fix(web)`, R-4 e R-5) e `c5e379b` (`docs(api)`, R-6). O `commit` do frontmatter passa a `c5e379b`, a ponta revisada. A `develop` continua em `1607a5f`, ancestral da branch, então não houve nova integração.
+- Escopo: diff `9465709..c5e379b`, três commits do autor: `075a5a8` (`fix(web)`, bug 011F-001 do QA), `65fcd72` (`fix(web)`, R-4 e R-5) e `c5e379b` (`docs(api)`, R-6). O `commit` do frontmatter passou a `c5e379b`, a ponta revisada. A `develop` continua em `1607a5f`, ancestral da branch, então não houve nova integração.
 - Ferramentas: cito o autor sem refazer, `pnpm run pronto` com rc=0 no `c5e379b`. O brief desta volta dispensa a execução local (teto de 3 agentes, uma tarefa pesada por vez).
 
 ### 011F-001 (troca de tipo do E9 sem anúncio): resolvido
