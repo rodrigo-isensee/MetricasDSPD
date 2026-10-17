@@ -1,7 +1,7 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-17 10:00 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
-> WIP: pausa a pedido do usuário (2026-10-17) para atualizar o Forge; só terminam o QA do #108 e a conferência do brief do merge · Bloqueados: 0
+> Atualizado em: 2026-10-17 08:25 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> WIP: retomada na sessão do Forge 0.19.0 (dia: teto de 2 agentes, uma tarefa pesada por vez) · Bloqueados: 0
 > Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
 # Upstream — descoberta (Design Thinking)
@@ -11,20 +11,17 @@
 |---|---|---|---|---|---|---|
 | K-112 | Cadastro de membros por time (Q-T14-10 = B): ADR 0020 e plano §9.5 | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Com o security-engineer. Antes da fase 3 |
 | K-113 | C6 do perf do PR sem margem (188 a 215 ms contra 200) | 014 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Propor medida com margem sem afrouxar o orçamento (ADR 0003) |
-| K-109 | Front do 011, lote 1 (estratégicas): E9, E6, E7, E8 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | Ordem do usuário (2026-10-17): estratégicas → táticas → operacionais, em lotes. Entra depois do K-102 |
 | K-110 | Front do 011, lote 2 (táticas): T10, T11, T12, T13, T14 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | Depois do PR do lote 1 |
 | K-111 | Front do 011, lote 3 (operacionais): O19, O20, O21, O23, O24, O25, O22, O26 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | Depois do PR do lote 2 |
-| K-107 | [teste] montecarlo.test.ts instável por semente aleatória (E1) | 015 | forge:node-backend | 2026-10-17 | 2026-10-17 06:30 | Falhou no #96 (parecer de devops de 2026-10-16). Depois do K-103 ou numa vaga |
+| K-107 | [teste] montecarlo.test.ts instável por semente aleatória (E1) | 015 | forge:node-backend | 2026-10-17 | 2026-10-17 06:30 | Falhou no #96 (parecer de devops de 2026-10-16) e de novo no push do #108 em 2026-10-17 (semente 1324607460, contraexemplo [[2,0,6,5,0,7,0,8],29], 12 >= 12.15; passou ao rerrodar). Depois do K-103 ou numa vaga |
 | K-108 | homolog-aprovada espera o portão terminar (E1) | 016 | forge:devops-engineer | 2026-10-17 | 2026-10-17 06:30 | Corrida vista no #90 e no #96 |
 | K-091 | [teste] IFA-001: o IF-A não verifica cartão no /operacional padrão nem no /estrategico | qa-intensivo | forge:qa-engineer | 2026-10-15 | 2026-10-15 02:00 | Médio, já existia antes. Lacuna de cobertura do teste; o time escolhe filtros que exibam "Não afetado por". Decisão técnica, não vai ao usuário |
 | K-092 | [teste] IF-U-operacional instável sob carga (timeout de 30 s) | qa-intensivo | forge:react-frontend | 2026-10-15 | 2026-10-15 02:00 | 1 falha em 2 rodadas no QA do K-083 |
 | K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-15 02:00 | Baixo, já existia antes. O usuário aceita ou prioriza na volta |
-| K-085 | [segurança] GRANT por coluna: agg_ sem entregas; ref_conta_automacao fora do dspd_api (M-4, B-3) | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020. Antes da fase 3 |
 | K-086 | [segurança] Erro e log sem valor do payload (B-4) | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
 | K-087 | Spike B-5: tipo do campo Time responsável e domínio fechado | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020; junto com a integração |
 | K-088 | [segurança] Lint do coletor resistente a contorno (B-2) | 011 | forge:tech-lead | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
 | K-089 | [segurança] Teste da allow-list com a lista de campos proibidos escrita no próprio teste (B-1) | 011 | forge:qa-engineer | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
-| K-084 | [segurança] Coletor: allow-list na stg_card e no webhook (M-1, M-2) e lista fechada na stg_revision (M-3) | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 21:30 | Parecer de segurança da ADR 0020. Antes da fase 3 do 011 |
 | K-081 | Registro da versão 0.13.0 do Forge na develop | processo | usuário | 2026-10-14 | 2026-10-14 19:00 | Branch local chore/forge-0.13.0-versao. O arquivo de versão do Forge só o usuário altera (R-CONFORMIDADE); fica como ação dele |
 | K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | Validado (`docs/ux/revisao-geral-usabilidade/04-decisoes.md`). Entra depois de K-073 (mesmas telas). O protótipo HTML vai junto com a feature |
 | K-075 | Compatibilidade com celular, iPad e tablet (3 fatias, MOB-CA-1 a 27) | 010 | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | O discovery está pronto. O usuário delegou as decisões ao time (D1 = B). Entra depois de K-074; o software-architect inclui o orçamento móvel na ADR 0003 |
@@ -76,6 +73,9 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-109 | Front do 011, lote 1 (estratégicas): E9, E6, E7, E8 | 011/021/028 | forge:tech-lead | 2026-10-17 | 2026-10-17 09:45 | #108 (d83024b) na develop; ressalvas baixas da UX: "Demais 1 sistema" e teste manual com leitor de tela |
+| K-084 | [segurança] Coletor: allow-list (M-1, M-2, M-3) | 011 | forge:node-backend | 2026-10-14 | 2026-10-17 08:26 | #77 (0fe209a) na develop |
+| K-085 | [segurança] GRANT por coluna (M-4, B-3) | 011 | forge:node-backend | 2026-10-14 | 2026-10-17 08:26 | #80 (f9d1079) na develop |
 | K-102 | perf da visão semanal (fila de montagem dos gráficos) | 012/018 | forge:tech-lead | 2026-10-17 | 2026-10-17 12:05 | #103 mesclado na develop (48b909a). TBT da semanal a confirmar no perf-homolog; 4 itens manuais para a validação do usuário |
 | K-106 | Checks do #101 (homolog → main) | 014 | usuário | 2026-10-17 | 2026-10-17 09:50 | #101 mesclado na main pelo usuário |
 | K-083 | [bug] E2E IF-A vermelho na CI da develop (intensivo-filtros.spec.ts:401) | qa-intensivo | forge:tech-lead | 2026-10-14 | 2026-10-15 09:20 | #75 mesclado na develop (b5ac4f5) |

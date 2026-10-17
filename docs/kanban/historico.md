@@ -245,3 +245,20 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-10-17 — K-103: lote 3 (operacionais) mesclado na develop (#109, 5ad02ea); branches apagadas. Os 3 lotes do back da fase 2 estão na develop.
 - 2026-10-17 — Usuário: "Depois que você acabar o que está em andamento não comece mais nada quero atualizar a versão da forge". Em andamento: QA do #108 (revalidação) e conferência do brief do merge do #108. Nada novo é delegado depois disso; o merge do #108, o 024 e a promoção esperam a atualização do Forge.
 - 2026-10-17 — K-109: QA revalidado sobre 65f46c1 (e850788), aprovado, forge-check limpo. Pausa: nada novo até a atualização do Forge.
+- 2026-10-17 (antes de 08:27) — Retomada na sessão do Forge 0.19.0 (PR #113 do usuário, aberto). Teto de dia: 2 agentes. Próximo: merge do #108 (pedido 028, brief 4 em conferência), depois o 024 e a promoção para a homolog (pedido 023).
+- 2026-10-17 (antes de 08:27; hora antes estimada, corrigida) — K-109: brief 4 do merge do #108 aprovado pelo conferente, com aviso: a UX não foi reconferida sobre o commit final (075a5a8 e 65fcd72 vieram depois da seção 9). Etapa E1.2 acrescentada ao pedido 028; ux-designer reconfere o delta. O merge espera o veredito.
+- 2026-10-17 (antes de 08:27; hora antes estimada, corrigida) — K-109: UX reconferiu o delta do #108 sobre e850788 e aprovou (seção 10, sem commit; ressalvas baixas: "Demais 1 sistema" e teste manual com leitor de tela). Brief 5 do merge (commit da UX, CI, merge) em conferência.
+- 2026-10-17 (antes de 08:27; hora antes estimada, corrigida) — K-109: brief 5 aprovado pelo conferente (sha256 b5490b9c688c1ddeb6bc955fa505851141cf09f85c9e8d5f0cacfabaad3013f0, base-sha 5ad02ea4e927c5d6799b5fc7f71e6a37cc39fd92); tech-lead commita a UX, espera a CI e mescla o #108.
+| 2026-10-17T08:26:56-03:00 | K-084 | Entrada | Pronto | limpeza: mesclado no #77 (0fe209a), cartão esquecido na Entrada |
+| 2026-10-17T08:26:56-03:00 | K-085 | Entrada | Pronto | limpeza: mesclado no #80 (f9d1079), cartão esquecido na Entrada |
+| 2026-10-17T08:26:56-03:00 | K-109 | Entrada | Em andamento | merge do #108 com o tech-lead (pedido 028, brief 5) |
+| 2026-10-17T08:29:45-03:00 | K-109 | Em andamento | Code review | forge-check pr invalidou review e QA pelo commit de docs da UX (b13dfe6); volta 8 do review |
+- 2026-10-17 08:30 — K-109: entrega do brief 5 conferida: não cumpriu (PQ-1 b13dfe6 ok; merge parado pelo forge-check, review e QA desatualizados pelo commit da UX), igual ao bloco Provas. Brief 6 (volta 8 do review) em conferência.
+- 2026-10-17 08:35 — K-109: volta 8 do review aprovada (3d48780, cb68ace; 2 commits, o segundo para registrar a autoria pela ferramenta Edit). Sobra só o QA desatualizado. Entrega da volta 8 e brief do QA em conferência.
+- 2026-10-17 08:36 — K-109: entrega da volta 8 conferida: PQs cumpridos; escopo fora só pelo diff acumulado da branch (falso positivo, aceito e registrado no pedido 028 e em melhorias). QA revalidando (espera a CI do cb68ace).
+| 2026-10-17T08:36:17-03:00 | K-109 | Code review | QA | volta 8 aprovada (cb68ace); QA revalida sobre a CI do PR |
+- 2026-10-17 09:07 — K-109: QA revalidou sobre cb68ace (8555520, be2a342; run 39029217011 success); forge-check pr sem pendência. Entrega do QA em conferência; brief 7 do merge pronto.
+- 2026-10-17 09:10 — K-109: entrega do QA conferida: cumpriu (ressalvas: delta tinha o próprio parecer anterior do QA, relatado; segundo commit docs(qa) só de autoria). Bate com o bloco Provas. CI do be2a342 em andamento; brief 7 do merge em conferência.
+| 2026-10-17T09:45:33-03:00 | K-109 | QA | Pronto | #108 mesclado na develop (d83024b), branch e worktree apagadas |
+- 2026-10-17 09:45 — K-109: #108 mesclado na develop (d83024b) pelo tech-lead; branch e worktree apagadas. testes do push falhou uma vez no montecarlo.test.ts (semente 1324607460) e passou ao rerrodar: registrado no K-107. Entrega do merge em conferência. Próximo: pedido 024 (E1.5, tech-lead).
+- 2026-10-17 09:46 — K-109: entrega do merge do #108 conferida: cumpriu (PQ-1 a PQ-3), igual ao bloco Provas. Pedido 028 concluído. Brief E1.5 do pedido 024 (tech-lead: commit A-5 e merge da develop) em conferência.

@@ -5,15 +5,16 @@
 - **Modo:** implementar. O lote 1, com o E7 em R$, já está na develop (#105, 1607a5f).
 
 ## Escopo
-- **E1:** back: tirar o custo em R$ do E7 (`custoRateado`, `custoPorDemanda`, configuração de custo e fixtures) e publicar a participação percentual por sistema (entregas do sistema ÷ entregas do período), com o mínimo de 20 entregas por sistema ("k de n" abaixo disso); contrato, OpenAPI, `docs/api`, `regras-metricas`, registro da mudança de critério com data (T2.6).
-- **E3:** os contratos do E8 e do E9 dizem que o filtro de período atua, mas o back usa janela fixa; alinhar o contrato à janela que o cálculo usa. (acrescentado em 2026-10-17, R-1 do review do front; correção 2026-10-17: estava por engano sob "Fora do escopo").
-- **E4:** o contrato do E6 passa a trazer a data de conclusão de cada projeto (`concluidoEm`), para o front ordenar por data; até lá, o front ordena por deslize (aceito como provisório no review). (acrescentado em 2026-10-17, A-4 do review do front do lote 1).
-- **E2:** documentação: plano do 011 (§2 E7) e ADR afetada, sem R$; CA da especificação do E7.
+- E1. back: tirar o custo em R$ do E7 (`custoRateado`, `custoPorDemanda`, configuração de custo e fixtures) e publicar a participação percentual por sistema (entregas do sistema ÷ entregas do período), com o mínimo de 20 entregas por sistema ("k de n" abaixo disso); contrato, OpenAPI, `docs/api`, `regras-metricas`, registro da mudança de critério com data (T2.6). · `confirmado`
+- E3. os contratos do E8 e do E9 dizem que o filtro de período atua, mas o back usa janela fixa; alinhar o contrato à janela que o cálculo usa. (acrescentado em 2026-10-17, R-1 do review do front; correção 2026-10-17: estava por engano sob "Fora do escopo"). · `técnico`
+- E4. o contrato do E6 passa a trazer a data de conclusão de cada projeto (`concluidoEm`), para o front ordenar por data; até lá, o front ordena por deslize (aceito como provisório no review). (acrescentado em 2026-10-17, A-4 do review do front do lote 1). · `técnico`
+- E2. documentação: plano do 011 (§2 E7) e ADR afetada, sem R$; CA da especificação do E7. · `confirmado`
 
 ## Etapas
 - E1.1 (forge:node-backend): E7 sem R$, com participação percentual.
 - E3.1 (forge:node-backend): contrato do E8 e do E9 alinhado à janela do cálculo.
 - E4.1 (forge:node-backend): `concluidoEm` no contrato do E6.
+- E1.5 (forge:tech-lead): commitar a correção A-5 do arquiteto (plano, linha 301) e trazer a develop, já com o #108, para a branch, por merge (acrescentada em 2026-10-17: pré-condição do E1.4 e da rodada 2 do review).
 - E1.4 (forge:react-frontend): ajustar o teste do front que lê `custoConfigurado`, depois de trazer a develop com o #108 (acrescentada em 2026-10-17, risco do review rodada 1).
 - E1.2 (forge:tech-lead): review.
 - E1.3 (forge:qa-engineer): QA.
