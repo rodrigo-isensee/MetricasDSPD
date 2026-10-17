@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: 65f46c1
+commit: cb68ace
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -16,6 +16,8 @@ data: 2026-10-17
 # QA do front do lote 1 do 011 (Estratégico: E9, E6, E7 sem R$, E8)
 
 Cartão K-109, pedido 021 (etapa E1.3). Base: `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§10, com CA-46 e as revogações CA-18, CA-25 e CA-35), review aprovado (`docs/reviews/011-front-estrategicas.md`, volta 7) e reconferência da UX (`docs/ux/revisao-011-front-estrategicas.md`, seção 9).
+
+Revalidação de 2026-10-17 sobre cb68ace (testado: 65f46c1 passou a cb68ace): o delta desde 65f46c1 é só documentação. Tocou a pasta de UX (b13dfe6, seção 10 da reconferência), a pasta de pareceres de review (3d48780 e cb68ace, volta 8) e o parecer de QA anterior (e850788, sem código); nenhum código nem teste mudou. A prova da suíte é o run da CI do PR #108 no head cb68ace: https://github.com/rodrigo-isensee/MetricasDSPD/actions/runs/39029217011 (conclusão success; testes 7m38s, rapida 1m43s, banco 1m8s, e2e 28m11s, build, openapi, imagem, seguranca e filtro pass). Rodada local não repetida (nada de código mudou). Parecer segue aprovado, zero bug aberto.
 
 Nota do merge da develop (revalidação 2026-10-17, commit testado: 79c3df5 passou a 65f46c1): o tech-lead trouxe a develop para a branch (a9c2348, #108), com os lotes 2 e 3 do back (#107 e #109: O22 e O26, só back), e revisou o merge na volta 7 (65f46c1, só documentação). O merge não alterou o código do front do lote 1. A prova da suíte completa sobre o novo head é o check `e2e` da CI do PR #108 (pass, 28m5s); localmente rodei só o spec do lote (10 de 10, load 0,82 antes), pela regra de uma tarefa pesada por vez.
 
