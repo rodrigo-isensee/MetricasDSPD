@@ -25,11 +25,11 @@ describe('regras da fase 2 (REGRAS_METRICA)', () => {
     }
   })
 
-  it('Q-E7-1 (E7) está decidida: a linha não tem pendência e diz a regra', () => {
+  it('D2 = A (E7) está decidida: a linha não tem pendência e diz a regra, sem R$', () => {
     expect(REGRAS_METRICA.E7.status).toBe('ok')
     expect((REGRAS_METRICA.E7 as RegraMetrica).pendencias).toBeUndefined()
-    expect(REGRAS_METRICA.E7.refBriefing).toMatch(/Q-E7-1/)
-    expect(REGRAS_METRICA.E7.refBriefing).toMatch(/pró-rata por dias corridos/)
+    expect(REGRAS_METRICA.E7.refBriefing).toMatch(/D2 = A/)
+    expect(REGRAS_METRICA.E7.refBriefing).toMatch(/sem R\$/)
   })
 
   it('só o T14 tem pendência com o usuário: cardinalidade do campo e Q-T14-2, 3, 4, 7 e 8; a Q-T14-9 e a Q-T14-10 estão decididas', () => {

@@ -714,7 +714,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa'],
     granularidade: 'story',
     refBriefing:
-      "pedido 011 E7; D-1' = A e D-2 (peso por contagem de entregas); CA-13 (sem R$ até configurar o custo); D-1' = A e Q-E7-1 (decidida em 2026-10-16: pró-rata por dias corridos de cada vigência dentro do período, custo total do DSPD rateado pela participação nas entregas, só para sistema com 20 ou mais entregas); CA-23 (naturezaDe do T3)",
+      'pedido 011 E7; D2 = A (2026-10-17, pedido 024): participação percentual de cada sistema pelas entregas do período, sem R$ (revê a D-1\' e a Q-E7-1); D-2 (peso por contagem de entregas); percentual só para sistema com 20 ou mais entregas, abaixo disso "k de n"; CA-23 (naturezaDe do T3)',
     status: 'ok',
   },
   E8: {

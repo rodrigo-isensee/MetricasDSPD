@@ -127,11 +127,8 @@ const EXEMPLOS: Record<CodigoTambemFase1, unknown> = {
         entregas: 25,
         participacao: taxaOk,
         porNatureza: [{ natureza: 'Evolução', taxa: taxaPouca }],
-        custoRateado: null,
-        custoPorDemanda: null,
       },
     ],
-    custoConfigurado: false,
   },
   E9: {
     ...comum,
@@ -341,20 +338,20 @@ describe('contratos da fase 1 do pedido 011 (B1)', () => {
       ).toBe(false)
     })
 
-    it('E7 aceita custo nulo e valorado, e custoPorDemanda existe (CA-35)', () => {
+    it('E7 não tem campo de valor em dinheiro: o schema estrito recusa custo (D2 = A)', () => {
       const ex = EXEMPLOS.E7 as { sistemas: Record<string, unknown>[] }
-      const com = {
-        ...ex,
-        custoConfigurado: true,
-        sistemas: [{ ...ex.sistemas[0], custoRateado: 1000, custoPorDemanda: 40 }],
-      }
-      expect(SCHEMAS_TAMBEM_FASE1.E7.safeParse(com).success).toBe(true)
-      expect(
-        SCHEMAS_TAMBEM_FASE1.E7.safeParse({
-          ...ex,
-          sistemas: [{ ...ex.sistemas[0], custoRateado: undefined }],
-        }).success,
-      ).toBe(false)
+      expect(SCHEMAS_TAMBEM_FASE1.E7.safeParse(ex).success).toBe(true)
+      for (const campo of ['custoRateado', 'custoPorDemanda'])
+        expect(
+          SCHEMAS_TAMBEM_FASE1.E7.safeParse({
+            ...ex,
+            sistemas: [{ ...ex.sistemas[0], [campo]: 1000 }],
+          }).success,
+          campo,
+        ).toBe(false)
+      expect(SCHEMAS_TAMBEM_FASE1.E7.safeParse({ ...ex, custoConfigurado: false }).success).toBe(
+        false,
+      )
     })
 
     it('O25 aceita porMotivo preenchido e exige o aviso de preenchimento e o instante aproximado', () => {

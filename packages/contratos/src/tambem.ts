@@ -217,7 +217,10 @@ export const resultadoT12 = fechado({
   areas: z.array(fechado({ area: z.string(), taxa: taxaSchema })),
 })
 
-/** E7 Capacidade por sistema. Participação por contagem de entregas (D-2); o custo é anulável (CA-35, CA-13). */
+/**
+ * E7 Capacidade por sistema. Participação percentual por contagem de entregas (D-2; D2 = A, sem R$: nenhum campo de
+ * valor em dinheiro, pedido 024).
+ */
 export const resultadoE7 = fechado({
   ...comum,
   total: z.number(),
@@ -228,11 +231,8 @@ export const resultadoE7 = fechado({
       /** `taxa(entregas, total)` com 20 ou mais entregas no sistema; `null` abaixo (a interface monta o "k de n" com `entregas` e `total`). */
       participacao: taxaSchema.nullable(),
       porNatureza: z.array(fechado({ natureza: z.enum(NATUREZAS_ENTREGA), taxa: taxaSchema })),
-      custoRateado: z.number().nullable(),
-      custoPorDemanda: z.number().nullable(),
     }),
   ),
-  custoConfigurado: z.boolean(),
 })
 
 /** E9 Projetos aguardando início. Projeto tem código e título; não é pessoa. Os P85 vêm do E1, um por tipo. */
@@ -304,6 +304,8 @@ export const resultadoE6 = fechado({
       cardId: z.string(),
       codigo: z.string(),
       titulo: z.string(),
+      /** Dia da conclusão (AAAA-MM-DD, America/Sao_Paulo): o front ordena os projetos por ele. */
+      concluidoEm: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       deslizeDiasUteis: z.number().int(),
       replanejamentos: z.number().int(),
     }),

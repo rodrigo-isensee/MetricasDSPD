@@ -17,8 +17,6 @@ export interface ContextosMetricas {
    * insuficiente, nunca erro.
    */
   tambem?: BM.ExtensaoTambemBM
-  /** Custo total do DSPD (E7, D-1' = A). Só chega por fixture de teste no mock (CA-13); sem ele o E7 não traz R$. */
-  custo?: BM.ConfigCustoDspd
   /** Contexto da pesquisa de percepção (terceira fonte, separada). Sem ele, a PV1 devolve `sem-pesquisa`. */
   pesq?: PESQ.ContextoPesquisa
 }
@@ -73,7 +71,7 @@ const CALCULOS: {
   E4: (f, c) => BM.calcularE4(c.bm, f, c.ext?.bm),
   E5: (f, c) => BM.calcularE5(c.bm, f),
   E6: (f, c) => BM.calcularE6(c.bm, f, c.tambem),
-  E7: (f, c) => BM.calcularE7(c.bm, f, c.custo),
+  E7: (f, c) => BM.calcularE7(c.bm, f),
   E8: (f, c) => BM.calcularE8(c.bm, f, c.tambem),
   E9: (f, c) => BM.calcularE9(c.bm, f),
   EI_FL1: (f, c) => BM.calcularEIBM(c.bm, f, 'FL1'),

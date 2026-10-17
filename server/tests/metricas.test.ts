@@ -181,8 +181,7 @@ describe('GET /api/v1/metricas/:id', () => {
     const e7 = await get(app, '/api/v1/metricas/E7?periodo=12m');
     expect(e7.statusCode).toBe(200);
     expect(SCHEMAS_RESULTADO.E7.safeParse(e7.json()).success).toBe(true);
-    expect(e7.json().custoConfigurado).toBe(false);
-    expect(JSON.stringify(e7.json())).not.toMatch(/"custo(Rateado|PorDemanda)":[0-9]/);
+    expect(JSON.stringify(e7.json())).not.toMatch(/"custo/);
     expect((e7.json().sistemas as { porNatureza: unknown[] }[])[0]?.porNatureza).toHaveLength(4);
     expect((await get(app, '/api/v1/metricas/E7?periodo=abc')).statusCode).toBe(400);
     const e9 = await get(app, '/api/v1/metricas/E9');

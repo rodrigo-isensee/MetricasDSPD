@@ -96,6 +96,18 @@ export const VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO: VersaoCriterio = {
   afeta: ['T10'],
 }
 
+/**
+ * D2 = A (pedido 011, decisão de 2026-10-17; pedido 024): o E7 deixou de trazer custo em R$ e passou a mostrar só a
+ * participação percentual de cada sistema pelas entregas do período. Revê a D-1' e a Q-E7-1.
+ */
+export const VERSAO_CRITERIO_E7_SEM_REAIS: VersaoCriterio = {
+  id: 'criterio-2026-10-17-e7-sem-reais',
+  data: '2026-10-17',
+  descricao:
+    'Capacidade por sistema passou a mostrar só a participação percentual nas entregas do período, sem custo em R$',
+  afeta: ['E7'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -104,6 +116,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O19_PCT_DIAS,
   VERSAO_CRITERIO_O20_DESTAQUE_V2,
   VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO,
+  VERSAO_CRITERIO_E7_SEM_REAIS,
 ]
 
 /**

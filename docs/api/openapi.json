@@ -29139,6 +29139,10 @@
                           "titulo": {
                             "type": "string"
                           },
+                          "concluidoEm": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
                           "deslizeDiasUteis": {
                             "type": "integer",
                             "minimum": -9007199254740991,
@@ -29154,6 +29158,7 @@
                           "cardId",
                           "codigo",
                           "titulo",
+                          "concluidoEm",
                           "deslizeDiasUteis",
                           "replanejamentos"
                         ],
@@ -29913,41 +29918,23 @@
                               ],
                               "additionalProperties": false
                             }
-                          },
-                          "custoRateado": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
-                          },
-                          "custoPorDemanda": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
                           }
                         },
                         "required": [
                           "sistema",
                           "entregas",
                           "participacao",
-                          "porNatureza",
-                          "custoRateado",
-                          "custoPorDemanda"
+                          "porNatureza"
                         ],
                         "additionalProperties": false
                       }
-                    },
-                    "custoConfigurado": {
-                      "type": "boolean"
                     }
                   },
                   "required": [
                     "base",
                     "criterios",
                     "total",
-                    "sistemas",
-                    "custoConfigurado"
+                    "sistemas"
                   ],
                   "additionalProperties": false
                 }

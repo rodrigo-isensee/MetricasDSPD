@@ -28,8 +28,38 @@ const varios = (
   extra: (i: number) => Partial<EspecCard> = () => ({}),
 ) => Array.from({ length: n }, (_, i) => entregue(`${sistema}-${i}`, { sistema, ...extra(i) }))
 
-describe('E7: capacidade por sistema, sem R$ (D-2, CA-13, CA-23)', () => {
-  it('participação por contagem de entregas; a de maior volume primeiro; sem R$ e com custoConfigurado falso', () => {
+/** Nomes de campo que indicariam valor em dinheiro; se qualquer um voltar à saída do E7, o teste falha (D2 = A). */
+const CHAVE_DE_DINHEIRO =
+  /custo|rateio|rateado|valor|preco|preço|reais|brl|dinheiro|orcamento|orçamento|moeda/i
+
+function chaves(v: unknown, saida: string[] = []): string[] {
+  if (Array.isArray(v)) v.forEach((x) => chaves(x, saida))
+  else if (v !== null && typeof v === 'object')
+    for (const [k, x] of Object.entries(v)) {
+      saida.push(k)
+      chaves(x, saida)
+    }
+  return saida
+}
+
+describe('E7: capacidade por sistema, sem R$ (D2 = A, D-2, CA-23)', () => {
+  it('nenhum campo de valor em dinheiro na saída, no mock e em fixture; o schema estrito recusa um campo de custo', () => {
+    const mock = gerarBaseMock()
+    const ctxMock = criarContextoBM(mock.bm, mock.config.hoje, CALENDARIO_PADRAO)
+    const saidas = [
+      calcularE7(ctxMock, F),
+      calcularE7(ctxDe([...varios(30, 'Protheus'), ...varios(25, 'Fluig')]), F),
+    ]
+    for (const r of saidas) {
+      expect(chaves(r).filter((k) => CHAVE_DE_DINHEIRO.test(k))).toEqual([])
+      expect(JSON.stringify(r)).not.toMatch(/R\$/)
+    }
+    const s = saidas[1]
+    const comCusto = { ...s, sistemas: [{ ...s?.sistemas[0], custoRateado: 1 }] }
+    expect(SCHEMAS_RESULTADO.E7.safeParse(comCusto).success).toBe(false)
+  })
+
+  it('participação por contagem de entregas; a de maior volume primeiro; sem R$', () => {
     const r = calcularE7(
       ctxDe([...varios(30, 'Protheus'), ...varios(50, 'Fluig'), ...varios(20, 'Senior')]),
       F,
@@ -41,11 +71,6 @@ describe('E7: capacidade por sistema, sem R$ (D-2, CA-13, CA-23)', () => {
       ['Senior', 20],
     ])
     expect(r.sistemas[0]?.participacao).toEqual({ status: 'ok', k: 50, n: 100, pct: 50 })
-    expect(r.custoConfigurado).toBe(false)
-    for (const s of r.sistemas) {
-      expect(s.custoRateado).toBeNull()
-      expect(s.custoPorDemanda).toBeNull()
-    }
     expect(JSON.stringify(r)).not.toMatch(/R\$/)
     expect(SCHEMAS_RESULTADO.E7.safeParse(r).success).toBe(true)
   })
