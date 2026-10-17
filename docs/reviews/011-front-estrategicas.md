@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: a9c2348
+commit: b13dfe6
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-17
@@ -13,6 +13,14 @@ data: 2026-10-17
 - Cartão K-109, pedido 021 (etapa E1.4). Branch `feature/011-front-estrategicas`, commits `4c5d6f5` e `919554b` sobre a `develop` `1607a5f` (a ponta atual de `origin/develop`, então a integração já está feita).
 - Referências: `docs/pedidos/021-front-do-011-por-nivel.md`, `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§3, §4, §5 do E6 ao E9, §10), `docs/engineering/praticas.md` (§2 a §5 e §8), contratos `docs/contratos/metricas/E6.md` a `E9.md`.
 - Ferramentas: o `praticas.md` não marca nenhuma regra como "decidida por: `<comando>`". Cito a saída do autor sem refazê-la: `pnpm run pronto` com rc=0 no `919554b` (o brief dispensou a execução local, com o teto de 2 agentes). Lint, tipos, cobertura de 100%, `docs:check` e E2E estão no `pronto`.
+
+## Volta 8 (2026-10-17): aprovado
+
+- Escopo: só o commit `b13dfe6` (`docs(ux)`, seção 10 da reconferência de UX), posterior ao parecer, que deixou o review e o QA desatualizados no `forge-check pr` (pedido 028, decisão técnica do time de 2026-10-17). O `commit` do frontmatter passa a `b13dfe6`.
+- Diff: 14 linhas acrescentadas em `docs/ux/revisao-011-front-estrategicas.md`; nenhum código, teste ou contrato mudou. Não há regra de `praticas.md` de leitura que alcance o diff além de conteúdo e commit limpo.
+- Leitura: a seção 10 reconfere o delta de interface (anúncio do E9, plural do E7, comentário de `ordenarPorDeslize`) e aprova, sem achado novo; coerente com o que revisei nas voltas 6 e 7. Commit com mensagem convencional.
+- Ferramentas: nada a rodar (só documentação). Suíte e E2E ficam com a CI do PR #108.
+- Veredito: aprovado. Resta a revalidação do QA sobre o head (E1.4).
 
 ## Volta 7 (2026-10-17): aprovado
 
