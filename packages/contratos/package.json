@@ -15,6 +15,6 @@
     "pronto": "pnpm run typecheck && pnpm run cobertura"
   },
   "dependencies": {
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   }
 }
