@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: 0a75f63
+commit: d542aa9
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -16,6 +16,8 @@ data: 2026-10-16
 # QA do front do lote 1 do 011 (Estratégico: E9, E6, E7 sem R$, E8)
 
 Cartão K-109, pedido 021 (etapa E1.3). Base: `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§10, com CA-46 e as revogações CA-18, CA-25 e CA-35), review aprovado na volta 2 (`docs/reviews/011-front-estrategicas.md`) e reconferência da UX (`docs/ux/revisao-011-front-estrategicas.md`, seção 9), commitada antes dos testes.
+
+Nota de revalidação: o commit testado passou de 0a75f63 para d542aa9. O d542aa9 só acrescenta a asserção do `aria-live` ao ET-06 (`e2e/tests/estrategico-011-lote1.spec.ts`) sobre o que foi testado em 0a75f63; nenhum código de produção mudou. O veredito e o `aceite_usuario: nao` não mudam. Os resultados abaixo valem para esse conjunto.
 
 ## Parecer
 
@@ -70,7 +72,7 @@ Vermelho antes do verde: não executado para ET-02 e ET-03. Mostrar o teste falh
 
 Diff 9465709..0a75f63: `SeletorLocal` ganhou a prop opcional `anuncio` (região `sr-only`, `role="status"`, `aria-live="polite"`, só renderizada se a prop existir); só o E9 (`estrategicas.tsx:117`) a passa; os demais usos do `SeletorLocal` (T1, T4, T5, O2, O3, O9, O10, S4, E1, EI, ParEspera, fluxo, previsão, sustentação) não a passam e não ganham a região (teste `queryByRole('status')` nulo no `ui.test.tsx`; `grep anuncio=` só acha o E9). Também entraram R-4 a R-6 (comentário, plural "demais sistemas", nota do B5 no contrato), sem alteração de comportamento além do plural.
 
-Como o ET-06 não afirmava a região, acrescentei a ele: `role="status"` com `aria-live="polite"` dentro do E9, texto inicial no formato `Tipo X: N de M projetos.` e texto diferente depois do `Home`.
+Como o ET-06 não afirmava a região, acrescentei a ele: `role="status"` com `aria-live="polite"` dentro do E9, texto inicial no formato `Tipo X: N de M projetos.` e texto diferente depois do `Home`. Essa asserção é a que o commit d542aa9 traz.
 
 | Verificação | Resultado |
 |---|---|
