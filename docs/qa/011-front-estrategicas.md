@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: 79c3df5
+commit: 65f46c1
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -15,46 +15,50 @@ data: 2026-10-17
 ---
 # QA do front do lote 1 do 011 (Estratégico: E9, E6, E7 sem R$, E8)
 
-Cartão K-109, pedido 021 (etapa E1.3). Base: `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§10, com CA-46 e as revogações CA-18, CA-25 e CA-35), review aprovado (`docs/reviews/011-front-estrategicas.md`, volta 6) e reconferência da UX (`docs/ux/revisao-011-front-estrategicas.md`, seção 9).
+Cartão K-109, pedido 021 (etapa E1.3). Base: `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§10, com CA-46 e as revogações CA-18, CA-25 e CA-35), review aprovado (`docs/reviews/011-front-estrategicas.md`, volta 7) e reconferência da UX (`docs/ux/revisao-011-front-estrategicas.md`, seção 9).
 
-Nota de revalidação 2026-10-17 (commit testado: 3d2ee5b passou a 79c3df5): a suíte E2E completa local, rodada duas vezes sobre 3d2ee5b, deu 704 passaram e 1 falhou (IF-I01, teto de 30 s estourado sob paralelismo local), aberto como bug baixo 011F-002. O react-frontend corrigiu em 357936b (`test.setTimeout(120_000)` só no IF-I01, saída (a) da decisão técnica de 2026-10-18 do pedido 021, sem aceite do usuário) e o tech-lead aprovou na volta 6 (79c3df5, só documentação). Desde d542aa9 nenhum código de produção mudou; mudaram só testes E2E (contagem do SIS-CONS-01 e o teto do IF-I01). O 011F-002 está fechado.
+Nota do merge da develop (revalidação 2026-10-17, commit testado: 79c3df5 passou a 65f46c1): o tech-lead trouxe a develop para a branch (a9c2348, #108), com os lotes 2 e 3 do back (#107 e #109: O22 e O26, só back), e revisou o merge na volta 7 (65f46c1, só documentação). O merge não alterou o código do front do lote 1. A prova da suíte completa sobre o novo head é o check `e2e` da CI do PR #108 (pass, 28m5s); localmente rodei só o spec do lote (10 de 10, load 0,82 antes), pela regra de uma tarefa pesada por vez.
+
+Nota de revalidação anterior (3d2ee5b para 79c3df5): a suíte E2E completa local, duas vezes sobre 3d2ee5b, deu 704 passaram e 1 falhou (IF-I01, teto de 30 s estourado sob paralelismo local), bug baixo 011F-002, corrigido em 357936b (`test.setTimeout(120_000)` só no IF-I01, saída (a) da decisão técnica do pedido 021, sem aceite do usuário) e aprovado pelo tech-lead. O 011F-002 está fechado.
 
 ## Parecer
 
-**Aprovado** para o front do lote 1. Zero bug aberto de qualquer severidade. As regras D2 = A (E7 sem R$) e R-1 = B (E8 sem nome de sistema) estão cumpridas, medidas no navegador. O nome do E7 ("Capacidade por sistema") segue o da especificação, pendente da confirmação do usuário; não é critério de reprovação. A prova de verde da suíte E2E inteira é o check `e2e` da CI do PR #106 em 79c3df5 (pass, 27m28s); a suíte completa local não foi repetida (teto de uma tarefa pesada por vez).
+**Aprovado** para o front do lote 1 sobre 65f46c1. Zero bug aberto de qualquer severidade. As regras D2 = A (E7 sem R$) e R-1 = B (E8 sem nome de sistema) estão cumpridas, medidas no navegador. O nome do E7 ("Capacidade por sistema") segue o da especificação, pendente da confirmação do usuário; não é critério de reprovação. A suíte completa local não foi repetida (teto de uma tarefa pesada por vez); a prova é o check `e2e` da CI.
 
-Nota K-115: IF-U-operacional e o axe do CA-19 são instáveis só sob carga local (pré-existentes, fora deste PR pela decisão técnica de 2026-10-18); a CI não os reprovou. Não são bug deste diff e seguem no cartão K-115.
+Nota K-115: IF-U-operacional e o axe do CA-19 são instáveis só sob carga local (pré-existentes, fora deste PR); a CI não os reprovou. Seguem no cartão K-115.
 
 ## Suíte completa e reteste
 
 | Verificação | Resultado |
 |---|---|
+| Check `e2e` da CI no PR #108 em 65f46c1 (`gh pr checks 108`) | pass (28m5s); nenhum outro check vermelho |
+| `pnpm exec playwright test tests/estrategico-011-lote1.spec.ts` (de `e2e/`, load 0,82 antes, Chromium) sobre 65f46c1 | 10 de 10 passaram (12,5 s), rc=0 |
 | `pnpm run e2e` local sobre 3d2ee5b, rodadas 1 e 2 | 704 passaram, 1 falhou (IF-I01), rc=1 nas duas (19,0 e 20,4 min) |
-| SIS-CONS-01 (catálogo com 53 linhas) | passou nas duas rodadas |
-| Reteste do 011F-002 sobre 79c3df5: `pnpm exec playwright test tests/intensivo-filtros.spec.ts -g "IF-I01" --repeat-each=3` (de `e2e/`, load 0,10 antes) | 3 de 3 passaram (25,1 a 25,7 s), rc=0; antes da correção 3 de 3 falhavam em 30 s |
+| SIS-CONS-01 (catálogo com 53 linhas) | passou nas duas rodadas locais e na CI |
+| Reteste do 011F-002 sobre 79c3df5: `pnpm exec playwright test tests/intensivo-filtros.spec.ts -g "IF-I01" --repeat-each=3` | 3 de 3 passaram (25,1 a 25,7 s), rc=0; antes da correção 3 de 3 falhavam em 30 s |
 | Check `e2e` da CI no PR #106 em 79c3df5 | pass (27m28s) |
 
 Não marquei teste algum como `skip`. A correção do 011F-002 é de orçamento de tempo do teste, não de produto.
 
-## Execução da validação anterior (sobre d542aa9; vale para o código de produção atual)
+## Execução da validação anterior (sobre d542aa9; vale para o código de produção do front, que não mudou)
 
 | Verificação | Resultado |
 |---|---|
 | `pnpm run pronto` (raiz da worktree, com o spec novo presente) | rc=0: lint, format, tipos, cobertura 100% (web 1075 testes, contratos 134, métricas 985, mock 221, server 569 e 84 pulados do banco real, ferramentas) e `docs:check` ok (478 páginas, 65 métricas) |
-| E2E novo `e2e/tests/estrategico-011-lote1.spec.ts` (ET-01 a ET-10) | 10 de 10 (também dentro das 704 da suíte completa) |
+| E2E novo `e2e/tests/estrategico-011-lote1.spec.ts` (ET-01 a ET-10) | 10 de 10 (também em 65f46c1) |
 | E2E existentes do Estratégico e acessibilidade: `complementares`, `a11y`, `responsivo`, `espera-invisivel-nos-paineis` (Chromium) | 95 de 95, axe AA sem violação crítica ou séria |
 | Perf C6 (tarefa longa, `/estrategico`, seção fechada, mediana de 15) | 136 ms (< 200 ms); com a seção aberta (E6 a E9 montados), mediana de 7 cargas: 130 ms (pico 177 ms) |
-| Perf demais (`pnpm run test:perf`) | 19 de 19: CLS `/estrategico` 0,001 a 1366 e 0,000 a 375; INP 64 ms; F4 p95 54 ms; F5 p95 430 ms; heap 20,9 MB (os `[perf]` também passaram na suíte completa) |
+| Perf demais (`pnpm run test:perf`) | 19 de 19: CLS `/estrategico` 0,001 a 1366 e 0,000 a 375; INP 64 ms; F4 p95 54 ms; F5 p95 430 ms; heap 20,9 MB |
 | Lighthouse `/estrategico` (desktop, 3 execuções) | Performance 0,99 nas três; Acessibilidade 1,00; LCP 829 a 876 ms; CLS 0,007 (F10: 90 e 95) |
 
-Observação de método: o Lighthouse e o C6 do `test:perf` medem a página com a seção "Mais métricas" recolhida; por isso medi o C6 também com ela aberta (script descartável, não versionado). Lighthouse com a seção aberta não foi medido. O `pronto` completo não foi repetido nas revalidações: os diffs posteriores são só de testes E2E.
+Observação de método: o Lighthouse e o C6 do `test:perf` medem a página com a seção "Mais métricas" recolhida; por isso medi o C6 também com ela aberta (script descartável, não versionado). Lighthouse com a seção aberta não foi medido. O `pronto` completo não foi repetido nas revalidações: os diffs posteriores são só de testes E2E, documentação e o back dos lotes 2 e 3 (testado pelo back e pela CI).
 
 ## Critério, teste, resultado
 
 | Critério | Teste | Fronteira protegida | Resultado |
 |---|---|---|---|
 | CA-3 (seção com título A, E9/E4/E6/E5/E7/E8) | ET-01 (e `complementares` COMP-01, 6 cartões) | título antigo ausente | passou |
-| CA-3 e catálogo (53 linhas depois de E6 a E9) | SIS-CONS-01 (`intensivo-sistemico.spec.ts`, corrigido em 59dfb37) | contagem do catálogo | passou (suíte completa, 2 rodadas; CI) |
+| CA-3 e catálogo (53 linhas depois de E6 a E9) | SIS-CONS-01 (`intensivo-sistemico.spec.ts`, corrigido em 59dfb37) | contagem do catálogo | passou (suíte completa local, 2 rodadas; CI) |
 | CA-13 e D2 = A (E7 sem R$, sem custo) | ET-02: texto do cartão e da tabela sem `R$`, "reais", "custo", "rateio" | nenhum valor em dinheiro; selo fictício ausente | passou |
 | CA-46, CA-9 e R-1 = B (E8 sem nome de sistema ou pessoa) | ET-03: nomes de sistema da tabela do E7 não aparecem no E8; só a legenda "1 pessoa, 2 pessoas, 3 ou mais"; sem tabela, sem `@`; três `dt` | nenhuma lista de sistemas | passou |
 | CA-18, CA-25 e CA-35 (revogados) | ET-02 e ET-03 (ausência) | n/a | passou |
