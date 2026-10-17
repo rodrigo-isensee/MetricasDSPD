@@ -92,23 +92,21 @@
 - **E1:** back da fase 2 em mock: E6 (`datasProjeto`), T13 (`vinculos`), O22 (`primeiroToque`), O26 (`passagens`, Q-a = 1 passagem, Q-b = conta) e E7 com R$ por fixture (D-1' = A, Q-E7-1 = pró-rata por dias corridos). Plano §2, §4 e §5 "Fase 2".
 - **E2:** back da fase 2 em mock: E8 (`conhecimentoSistema`) e T14 (`equipeResponsavel`), já com a decisão **R-1 = B** (2026-10-16): o E8 mostra só a contagem de sistemas com 1 pessoa, sem nomear os sistemas; na T14, "outros times" fica oculto quando somar menos de 2 pessoas.
 - **E3:** documentação da R-1 = B e das decisões de 2026-10-16 na ADR 0020, no plano (§2 E8 e T14, §4, pendências de `REGRAS_METRICA`) e na especificação (CAs do E8, da T14 e do destaque do O20 = A).
-- **E4:** front do 011: as 10 métricas da fase 1 (O19–O21, O23–O25, T10–T12, E9) e, quando o back da fase 2 estiver na develop, as 7 da fase 2. Protótipo em `~/MetricasDSPD-local/prototipos/metricas-tambem-disponiveis/`.
+- (O antigo E4, o front, passou para o pedido 021 em 2026-10-17.)
 
 ### Etapas
 - E1.1 (forge:node-backend): implementar E1 na worktree `-011-fase2`, branch `feature/011-fase2-back`.
 - E2.1 (forge:node-backend): implementar E2 depois de E3.1.
 - E3.1 (forge:software-architect): ADR 0020 e plano.
 - E3.2 (forge:ux-designer): CAs na especificação.
-- E1.2/E2.2 (forge:tech-lead): code review.
+- E1.2/E2.2 (forge:tech-lead): code review do back da fase 2 e separação em 3 branches por nível (estratégicas, táticas, operacionais), uma por PR.
 - E1.3/E2.3 (forge:security-engineer): review de segurança (gatilho: dados pessoais no O22, O26, E8 e T14).
 - E1.4/E2.4 (forge:qa-engineer): QA do back da fase 2.
-- E4.1 (forge:react-frontend): front, depois do K-102.
-- E4.2 (forge:ux-designer): revisão da interface implementada.
-- E4.3 (forge:qa-engineer): QA do front.
-- E9.1 (forge:tech-lead): PR para a develop e promoção para a homolog.
 - E9.2 (dono): merge na main.
 
 ### Fora do escopo
+- O front do 011 (E4), em 3 lotes por nível: pedido 021.
+- Os PRs do back da fase 2 (3, por nível) e a promoção para a homolog: pedido 020 (uma etapa do tech-lead por pedido, por causa da regra de corte do conferente).
 - Fase 3 (coleta real, K-100, guarda B-K1, releitura da ADR 0020 pelo security-engineer).
 - K-074 e K-075.
 
@@ -126,3 +124,18 @@
 
 ### Perguntas ao usuário (2026-10-17)
 - **Q-T14-10** (levantada pelo architect no K-104; não bloqueia a fase 2 em mock): na T14, "outros times" fica oculto quando somar menos de 2 pessoas (R-1 = B). Quem conta como pessoa? O sistema não tem cadastro de membros de time. Leitura adotada até a resposta (suposição do architect, plano §9.5): os responsáveis distintos dos cards contados em "outros times".
+
+### Decisões do usuário (2026-10-17, depois da retomada)
+- **Q-T14-10 = B, confirmada** ("2-2", depois "2 e o B"): na regra "menos de 2 pessoas" da T14, conta como pessoa quem está num cadastro de membros por time, mantido na configuração (WS1). O cadastro é dado de pessoa: há gatilho de segurança, e ele fica fora do alcance do `dspd_api`. A fase 2 em mock não muda (o booleano `outrosPublicavel` é gerado direto). Antes da fase 3: architect + security-engineer atualizam a ADR 0020 e o plano §9.5 (cartão K-112).
+- **B11-001 = sim** ("3 -sim"): o nome do fornecedor no T10 ignora maiúsculas, minúsculas e espaços. Entra no lote 2 (táticas).
+- **Ordem do back da fase 2 = seguir** ("4-seguir"): o K-103 terminou no ritmo em que estava, e a entrega sai em 3 PRs por nível.
+
+### Pergunta ao usuário (2026-10-17, segurança das táticas, M-1)
+- **T14-M1** (não bloqueia a fase 2; vale antes da fase 3 do T14): quando "outros times" fica oculto (R-1 = B), o `meuTime` ainda publica `k` e `n`, e `n − k` dá os cards dos outros times. Quando os outros times somam uma pessoa, isso mostra os cards dela no projeto. Opções do security-engineer: (a) aceitar, ciente, com aceite escrito em `docs/security/aceites/011-fase2-taticas.md`; (b) com "outros times" oculto, mostrar "k de total" sem o total exato, recomendada; (c) mostrar só se o time atua, sem números.
+- **T14-M1 = B** (usuário, 2026-10-17, resposta "D1 - B"): quando "outros times" estiver oculto (R-1 = B), a T14 mostra só a fatia do meu time, sem o total exato do projeto. Assim não dá para calcular n − k. Vale antes da fase 3 da T14. Ajustes: contrato e cálculo da T14 (node-backend), CA da especificação (ux-designer), ADR 0020 (architect, junto com o K-112). O mock e a fase 2 não mudam até o cartão do ajuste.
+- **D2 = A** (usuário, 2026-10-17, depois de "o custo por demanda é o percentual de horas gastas para cada sistema, e não valor em dinheiro"; o Jarvis recusou e sinalizou o uso de horas apontadas, regra 7.1 do briefing): o E7 deixa de mostrar R$. Passa a mostrar a participação percentual de cada sistema pelas entregas do período (ex.: "Fluig: 23% das entregas"). Revê a D-1' (custo em R$) e a Q-E7-1 (pró-rata do custo), que deixam de valer. Mudança de critério registrada com data (T2.6). Ajuste no pedido 024.
+
+### Perguntas para a manhã (2026-10-17, noite)
+- **T14-ordem** (levantada pelo UX no E3.2; não bloqueia a fase 2): com "outros times" oculto (T14-M1 = B), a T14 ainda ordena os projetos pelo total de cards (CA-30), sem mostrar o total. A posição na lista ainda revela algo sobre o tamanho do projeto. Fechar? Opções a preparar com o UX e a segurança.
+- **E7-nome**: confirmar se "E3 pode renomear" era o E7 → "Entregas por sistema".
+- 2026-10-17 (noite) — Pré-condição nova da fase 3 (segurança, revalidação do lote 2, M-1a): aplicar a T14-M1 = B também ao agregado do bloco da T14 (`total: taxa(k, n)`) e à `base.n`, porque eles permitem achar o n e o k de um projeto oculto por subtração; com teste de propriedade. Entra no cartão do ajuste da T14-M1, junto com o K-112.
