@@ -81,12 +81,16 @@ export interface ConhecimentoSistema {
 /**
  * Extensão do pedido 011 só de mock, separada de `ExtensaoBM` para que a base e a montagem do contexto não paguem por ela
  * (ADR 0003, C1 e C2). Na coleta real cada campo vira coluna ou tabela própria (fase 3) e esta extensão não existe.
- * Nenhum campo identifica pessoa: `conhecimentoSistema` já é a faixa que sai do coletor (ADR 0020), e
- * `equipeResponsavel` é o valor do campo "Time responsável" (unidade organizacional, não pessoa).
+ * Nenhum campo identifica pessoa: `passagens` e `conhecimentoSistema` já são os inteiros e as faixas que saem do coletor
+ * (ADR 0020), e `equipeResponsavel` é o valor do campo "Time responsável" (unidade organizacional, não pessoa).
  */
 export interface ExtensaoTambemBM {
   /** T11 (fase 1): o histórico de 24 meses que a base mock não tem. */
   entradasSazonais: EntradaSazonal[]
+  /** O22: instante do primeiro comentário humano; `null` = ainda sem toque; ausente = sem dado. */
+  primeiroToque: Record<string, number | null>
+  /** O26: número de passagens de mão por card entregue (inteiro >= 0); ausente = sem dado. */
+  passagens: Record<string, number>
   /** T13: vínculos `predecessor` (só os que a coleta lê; pai/filho e relativo não entram). */
   vinculos: VinculoPredecessor[]
   /** E6: datas dos projetos concluídos; ausente = sem data comprometida registrada. */
@@ -114,6 +118,8 @@ export interface ExtensaoTambemBM {
 
 export const EXTENSAO_TAMBEM_BM_VAZIA: ExtensaoTambemBM = {
   entradasSazonais: [],
+  primeiroToque: {},
+  passagens: {},
   vinculos: [],
   datasProjeto: {},
   conhecimentoSistema: [],

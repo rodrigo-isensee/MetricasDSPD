@@ -53,7 +53,7 @@ type Def = readonly [
  * Complementares que ainda dependem de campo sem fonte real (extensão): só estas são rotuladas "Dados
  * fictícios". O17 fica 'mock' até a coleta real do campo causa raiz (Metabase). As demais derivam
  * só de `BaseBM`/`BaseAC` e são 'disponivel'. Fase 2 do pedido 011 (extração nova, só em mock até a fase 3):
- * T13, T14, E6 e E8. T11 (fase 1) e E7 (sem custo no mock, CA-13) não entram, como manda o plano §4.
+ * O22, O26, T13, T14, E6 e E8. T11 (fase 1) e E7 (sem custo no mock, CA-13) não entram, como manda o plano §4.
  */
 export const COM_EXTENSAO_MOCK: ReadonlySet<string> = new Set([
   'O17',
@@ -62,6 +62,8 @@ export const COM_EXTENSAO_MOCK: ReadonlySet<string> = new Set([
   'S8',
   'S11',
   'S12',
+  'O22',
+  'O26',
   'T13',
   'T14',
   'E6',
@@ -128,7 +130,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['T3', 'Alocação da capacidade'],
   ]),
   ...secao('tatico', 'projetos', 'Os projetos estão avançando de verdade?', [
-    ['T9', 'Avanço real e escopo', undefined, ['t6', 'e5']],
+    ['T9', 'Avanço real e escopo', undefined, ['t6', 'e5', 'e6']],
     ['T7', 'Fluxo de frentes'],
   ]),
   ...secao(
@@ -138,10 +140,10 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     [['EI-FL2', 'Espera invisível · Tático', ['EI_FL2']]],
   ),
   ...secao('estrategico', 'prazo', 'Quanto tempo leva decidir e entregar?', [
-    ['E1', 'Lead time de projetos', undefined, ['e4', 'e5']],
+    ['E1', 'Lead time de projetos', undefined, ['e4', 'e5', 'e9']],
   ]),
   ...secao('estrategico', 'apostas', 'As entregas refletem as prioridades e geram resultado?', [
-    ['E2', 'Capacidade por objetivo estratégico'],
+    ['E2', 'Capacidade por objetivo estratégico', undefined, ['e7']],
     ['E3', 'Entrega × resultado'],
   ]),
   ...secao(
@@ -225,14 +227,30 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     'estrategico',
     'terminando-ou-comecando',
     'Estamos terminando ou só começando?',
-    [['E4', 'Iniciadas × concluídas']],
+    [
+      ['E9', 'Projetos aguardando início'],
+      ['E4', 'Iniciadas × concluídas'],
+    ],
     'complementar',
   ),
   ...secao(
     'estrategico',
     'quando-termina',
     'Quando termina?',
-    [['E5', 'Previsão de término']],
+    [
+      ['E5', 'Previsão de término'],
+      ['E6', 'Datas do portfólio', undefined, ['e5', 't9']],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'estrategico',
+    'concentracao-do-parque',
+    'Onde o parque se concentra, e qual o risco de continuidade?',
+    [
+      ['E7', 'Capacidade por sistema', undefined, ['e8', 't3', 'e2']],
+      ['E8', 'Concentração de conhecimento', undefined, ['e7']],
+    ],
     'complementar',
   ),
   ...secao(

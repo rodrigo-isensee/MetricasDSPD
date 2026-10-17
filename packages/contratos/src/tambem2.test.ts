@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
+  FAIXAS_PASSAGENS,
+  FAIXAS_PRIMEIRO_TOQUE,
   METRICA_IDS,
   SCHEMAS_TAMBEM,
   SCHEMAS_TAMBEM_FASE1,
@@ -12,12 +14,13 @@ import {
   percentisSchema,
   taxaSchema,
   resultadoE8,
+  resultadoO26,
   resultadoT14,
   type CodigoTambemFase2,
 } from '.'
 import { SCHEMAS_RESULTADO } from './validacao'
 
-/** Contratos da fase 2 do pedido 011 (E1 e E2): T13, E6, E8 e T14. Mesmas travas da fase 1. */
+/** Contratos da fase 2 do pedido 011 (E1 e E2): O22, O26, T13, E6, E8 e T14. Mesmas travas da fase 1. */
 const janela = { inicio: '2026-07-01', fim: '2026-09-30' }
 const comum = {
   base: { n: 30, unidade: 'cards', janela },
@@ -29,6 +32,41 @@ const duracaoOk = { status: 'ok', n: 25, valor: { p50: 2, p85: 5, p95: 8 }, jane
 const duracaoPouca = { status: 'insuficiente', n: 4, minimo: 20, janela }
 
 const EXEMPLOS: Record<CodigoTambemFase2, unknown> = {
+  O22: {
+    ...comum,
+    segmentoPor: 'tipo',
+    porTipo: [
+      {
+        tipo: 'Requisição',
+        distribuicao: duracaoOk,
+        histograma: FAIXAS_PRIMEIRO_TOQUE.map((faixa) => ({ faixa, itens: 4 })),
+        semToque: { itens: 2, maisAntigoDiasUteis: 9 },
+      },
+      {
+        tipo: 'Melhoria',
+        distribuicao: duracaoPouca,
+        histograma: null,
+        semToque: { itens: 0, maisAntigoDiasUteis: null },
+      },
+    ],
+  },
+  O26: {
+    ...comum,
+    segmentoPor: 'tipo',
+    porTipo: [
+      {
+        tipo: 'Melhoria',
+        entregas: 40,
+        semDado: 3,
+        faixas: FAIXAS_PASSAGENS.map((faixa) => ({
+          faixa,
+          itens: 8,
+          pct: taxaOk,
+          cicloP85: { status: 'ok', n: 25, valor: { p85: 7 }, janela },
+        })),
+      },
+    ],
+  },
   T13: {
     ...comum,
     segmentoPor: 'tipo',
@@ -159,9 +197,9 @@ const jsonDe = (schema: z.ZodType) =>
   z.toJSONSchema(schema, { io: 'output', unrepresentable: 'any' })
 
 describe('contratos da fase 2 do pedido 011', () => {
-  it('os quatro códigos da fase 2, os dez da fase 1 e a união com 14 ids novos em METRICA_IDS', () => {
-    expect(CODIGOS).toEqual(['T13', 'T14', 'E6', 'E8'])
-    expect(Object.keys(SCHEMAS_TAMBEM)).toHaveLength(14)
+  it('os seis códigos da fase 2, os dez da fase 1 e a união com 16 ids novos em METRICA_IDS', () => {
+    expect(CODIGOS).toEqual(['O22', 'O26', 'T13', 'T14', 'E6', 'E8'])
+    expect(Object.keys(SCHEMAS_TAMBEM)).toHaveLength(16)
     for (const c of Object.keys(SCHEMAS_TAMBEM_FASE1)) expect(c in SCHEMAS_TAMBEM_FASE2).toBe(false)
     for (const c of Object.keys(SCHEMAS_TAMBEM)) {
       expect(METRICA_IDS as readonly string[], c).toContain(c)
@@ -293,6 +331,30 @@ describe('contratos da fase 2 do pedido 011', () => {
         resultadoT14.safeParse({ ...ex, equipe: null, semEquipe: true, porGranularidade: [] })
           .success,
       ).toBe(true)
+    })
+
+    it('O26: faixa só 0, 1, 2, 3 ou 4+; P85 e percentual só com 20 ou mais', () => {
+      const ex = structuredClone(EXEMPLOS.O26) as {
+        porTipo: { faixas: Record<string, unknown>[] }[]
+      }
+      ex.porTipo[0]!.faixas[0]!.faixa = '5'
+      expect(resultadoO26.safeParse(ex).success).toBe(false)
+      const ok = structuredClone(EXEMPLOS.O26) as {
+        porTipo: { faixas: Record<string, unknown>[] }[]
+      }
+      ok.porTipo[0]!.faixas[0]!.cicloP85 = { status: 'ok', n: 12, valor: { p85: 3 }, janela }
+      expect(resultadoO26.safeParse(ok).success).toBe(false)
+      ok.porTipo[0]!.faixas[0]!.cicloP85 = duracaoPouca
+      expect(resultadoO26.safeParse(ok).success).toBe(true)
+      ok.porTipo[0]!.faixas[0]!.pct = { status: 'ok', k: 3, n: 19, pct: 15.8 }
+      expect(resultadoO26.safeParse(ok).success).toBe(false)
+    })
+
+    it('O22: histograma nulo abaixo de 20 e as faixas fixas da especificação', () => {
+      expect(FAIXAS_PRIMEIRO_TOQUE).toEqual(['0–0,5', '0,5–1', '1–2', '2–5', '5–10', '10+'])
+      expect(FAIXAS_PASSAGENS).toEqual(['0', '1', '2', '3', '4+'])
+      const ex = EXEMPLOS.O22 as { porTipo: unknown[] }
+      expect(SCHEMAS_TAMBEM_FASE2.O22.safeParse(ex).success).toBe(true)
     })
 
     it('T13: só o booleano agregado: sem quadro, sem card relacionado e sem equipe do outro lado', () => {

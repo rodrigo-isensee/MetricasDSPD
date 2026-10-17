@@ -55,7 +55,7 @@ const codigos = (page: Page): Promise<string[]> =>
 test.describe('SIS-CONS consistência entre painéis, catálogo e exportação', () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test('SIS-CONS-01 catálogo: cada uma das 46 linhas leva a um cartão existente, com o mesmo código, nome e fonte', async ({ page }) => {
+  test('SIS-CONS-01 catálogo: cada uma das 53 linhas leva a um cartão existente, com o mesmo código, nome e fonte', async ({ page }) => {
     test.setTimeout(400_000);
     await page.goto('/metricas');
     const linhas = page.locator('[data-testid="tabela-catalogo"] tbody tr, table tbody tr');
@@ -67,7 +67,7 @@ test.describe('SIS-CONS consistência entre painéis, catálogo e exportação',
         return { codigo: td[0] ?? '', nome: td[1] ?? '', painel: td[2] ?? '', fonte: td[4] ?? '', gran: td[5] ?? '', href: a?.getAttribute('href') ?? '' };
       }),
     );
-    expect(dados).toHaveLength(49);
+    expect(dados).toHaveLength(53);
     const problemas: string[] = [];
     for (const d of dados) {
       await page.goto(d.href);

@@ -265,6 +265,56 @@ export const resultadoE9 = fechado({
  * só dentro de uma classe (por tipo, um bloco por tipo; a interface mostra um por vez).
  */
 const p50p85 = estatisticaSchema(fechado({ p50: z.number(), p85: z.number() }))
+const p85 = estatisticaSchema(fechado({ p85: z.number() }))
+
+/** Faixas fixas do histograma do O22, em dias úteis (spec 02, O22). */
+export const FAIXAS_PRIMEIRO_TOQUE = ['0–0,5', '0,5–1', '1–2', '2–5', '5–10', '10+'] as const
+
+/**
+ * O22 Primeiro toque (D-9', CA-43): dias úteis da criação ao primeiro comentário humano. P50/P85/P95 e histograma por
+ * tipo (nunca misturados), só com 20 ou mais pedidos tocados do tipo na janela (abaixo, `histograma` é `null`).
+ * `semToque` é retrato de hoje: pedidos abertos sem nenhuma reação e a idade do mais antigo.
+ */
+export const resultadoO22 = fechado({
+  ...comum,
+  segmentoPor: z.literal('tipo'),
+  porTipo: z.array(
+    fechado({
+      tipo,
+      distribuicao: duracao,
+      histograma: z.array(fechado({ faixa: z.string(), itens: z.number() })).nullable(),
+      semToque: fechado({ itens: z.number(), maisAntigoDiasUteis: z.number().nullable() }),
+    }),
+  ),
+})
+
+/** Faixas de passagens de mão do O26 (D-5' = B): 0, 1, 2, 3 e 4 ou mais. */
+export const FAIXAS_PASSAGENS = ['0', '1', '2', '3', '4+'] as const
+
+/**
+ * O26 Passagens de mão (D-5' = B; Q-a = 1 passagem; Q-b = conta). Só o inteiro `passagens` por card, nunca quem.
+ * Histograma de entregas por faixa (contagem sempre; percentual com 20 ou mais) e P85 do ciclo por faixa (20 ou mais).
+ * `semDado` conta as entregas sem `passagens` (anteriores à coleta). Por tipo, um bloco por tipo.
+ */
+export const resultadoO26 = fechado({
+  ...comum,
+  segmentoPor: z.literal('tipo'),
+  porTipo: z.array(
+    fechado({
+      tipo,
+      entregas: z.number(),
+      semDado: z.number(),
+      faixas: z.array(
+        fechado({
+          faixa: z.enum(FAIXAS_PASSAGENS),
+          itens: z.number(),
+          pct: taxaSchema,
+          cicloP85: p85,
+        }),
+      ),
+    }),
+  ),
+})
 
 /**
  * T13 Dependências entre quadros (D-14' = A, R-4 = sim). Só o booleano "dependeu de outro quadro": a resposta não traz
@@ -356,6 +406,8 @@ export const resultadoT14 = fechado({
   ),
 })
 
+export type ResultadoO22 = z.infer<typeof resultadoO22>
+export type ResultadoO26 = z.infer<typeof resultadoO26>
 export type ResultadoT13 = z.infer<typeof resultadoT13>
 export type ResultadoE6 = z.infer<typeof resultadoE6>
 export type ResultadoE8 = z.infer<typeof resultadoE8>
@@ -393,6 +445,8 @@ export type CodigoTambemFase1 = keyof typeof SCHEMAS_TAMBEM_FASE1
 
 /** Schemas da fase 2 por código (mesmo papel do mapa da fase 1: insumo do teste de pessoa e do C4). */
 export const SCHEMAS_TAMBEM_FASE2 = {
+  O22: resultadoO22,
+  O26: resultadoO26,
   T13: resultadoT13,
   T14: resultadoT14,
   E6: resultadoE6,
@@ -400,5 +454,5 @@ export const SCHEMAS_TAMBEM_FASE2 = {
 } as const
 export type CodigoTambemFase2 = keyof typeof SCHEMAS_TAMBEM_FASE2
 
-/** Os 14 ids novos do pedido 011 que têm id próprio (fases 1 e 2). */
+/** Os 16 ids novos do pedido 011 que têm id próprio (fases 1 e 2). */
 export const SCHEMAS_TAMBEM = { ...SCHEMAS_TAMBEM_FASE1, ...SCHEMAS_TAMBEM_FASE2 } as const

@@ -5,11 +5,11 @@ import { describe, expect, it } from 'vitest'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { businessmap, CALENDARIO_PADRAO } from '@metricas-dspd/metricas'
-import { gerarBaseMock, gerarExtensaoTambemMock } from '.'
+import { gerarBaseMock, gerarExtensaoTambemMock, PARAMETROS_FASE2 } from '.'
 import { hashJson } from './prng'
 
 /**
- * Fase 2 do pedido 011 (E1 e E2): os campos novos da extensão só de mock (T13, E6, E8 e T14) com hash próprio
+ * Fase 2 do pedido 011 (E1 e E2): os campos novos da extensão só de mock (O22, O26, T13, E6, E8 e T14) com hash próprio
  * por campo, os alvos da especificação (seção 8) medidos com o cálculo real, e a garantia da ADR 0020 (item 8): a
  * extensão não lê pessoa. Valores de faixa em comentário vêm da base padrão (semente 20261009, escala 1).
  */
@@ -24,6 +24,8 @@ const cardPorId = new Map(base.bm.cards.map((c) => [c.card_id, c]))
 
 describe('extensão do 011, fase 2: hash por campo e determinismo', () => {
   it('cada campo novo tem hash próprio e estável (uma stream por campo)', () => {
+    expect(hashJson(ext.primeiroToque)).toBe('1a3574f8')
+    expect(hashJson(ext.passagens)).toBe('c661a29f')
     expect(hashJson(ext.vinculos)).toBe('027c2361')
     expect(hashJson(ext.datasProjeto)).toBe('c09a7436')
     expect(hashJson(ext.conhecimentoSistema)).toBe('2356c445')
@@ -35,11 +37,11 @@ describe('extensão do 011, fase 2: hash por campo e determinismo', () => {
   it('determinística, e outra semente muda os campos novos', () => {
     expect(hashJson(gerarExtensaoTambemMock(base))).toBe(hashJson(ext))
     const outra = gerarExtensaoTambemMock(gerarBaseMock({ semente: 7, escala: 0.2 }))
-    expect(hashJson(outra.datasProjeto)).not.toBe(hashJson(ext.datasProjeto))
-    expect(hashJson(outra.conhecimentoSistema)).not.toBe(hashJson(ext.conhecimentoSistema))
+    expect(hashJson(outra.primeiroToque)).not.toBe(hashJson(ext.primeiroToque))
+    expect(hashJson(outra.passagens)).not.toBe(hashJson(ext.passagens))
   })
 
-  it('o gerador lazy continua dentro do orçamento (200 ms, CI 600 ms) mesmo com os campos novos', () => {
+  it('o gerador lazy continua dentro do orçamento (200 ms, CI 600 ms) mesmo com os seis campos novos', () => {
     gerarExtensaoTambemMock(base)
     const amostras: number[] = []
     for (let i = 0; i < 3; i++) {
@@ -63,6 +65,8 @@ describe('ADR 0020, item 8: a extensão não lê pessoa', () => {
     const pessoas = new Set<string>()
     for (const c of base.bm.cards) for (const r of c.responsaveis) pessoas.add(r)
     const txt = JSON.stringify([
+      ext.primeiroToque,
+      ext.passagens,
       ext.vinculos,
       ext.datasProjeto,
       ext.conhecimentoSistema,
@@ -79,6 +83,67 @@ describe('ADR 0020, item 8: a extensão não lê pessoa', () => {
       expect(Object.keys(l).sort()).toEqual(['entregas', 'faixa', 'sistema'])
       expect([1, 2, 3]).toContain(l.faixa)
     }
+  })
+})
+
+describe('ALVO DO O22: primeiro toque', () => {
+  const r = businessmap.calcularO22(ctx, F, ext)
+  it('mediana abaixo de 1 dia útil e cauda até 15; no schema', () => {
+    const publicados = r.porTipo.flatMap((t) =>
+      t.distribuicao.status === 'ok' ? [t.distribuicao.valor] : [],
+    )
+    expect(publicados.length).toBeGreaterThanOrEqual(2)
+    for (const v of publicados) {
+      expect(v.p50).toBeLessThan(1)
+      expect(v.p95).toBeLessThanOrEqual(PARAMETROS_FASE2.toque.tetoDiasUteis)
+    }
+    expect(SCHEMAS_RESULTADO.O22.safeParse(r).success).toBe(true)
+  })
+  it('de 5 a 8 pedidos abertos sem toque, e a idade do mais antigo', () => {
+    const total = r.porTipo.reduce((s, t) => s + t.semToque.itens, 0)
+    expect(total).toBeGreaterThanOrEqual(5)
+    expect(total).toBeLessThanOrEqual(8)
+    const idade = Math.max(...r.porTipo.map((t) => t.semToque.maisAntigoDiasUteis ?? 0))
+    expect(idade).toBeGreaterThan(0)
+    expect(idade).toBeLessThanOrEqual(13)
+  })
+  it('há um tipo com menos de 20 tocados (exercita insuficiente) e histograma só nos outros', () => {
+    const abaixo = r.porTipo.filter((t) => t.distribuicao.status === 'insuficiente')
+    expect(abaixo.length).toBeGreaterThanOrEqual(1)
+    for (const t of abaixo) expect(t.histograma).toBeNull()
+    for (const t of r.porTipo.filter((x) => x.distribuicao.status === 'ok'))
+      expect(t.histograma).not.toBeNull()
+  })
+  it('nenhum toque antes da criação nem depois de hoje', () => {
+    const hoje = Date.parse(base.config.hoje)
+    for (const [id, t] of Object.entries(ext.primeiroToque)) {
+      if (t === null) continue
+      expect(t, id).toBeGreaterThanOrEqual(cardPorId.get(id)?.criado_em ?? 0)
+      expect(t, id).toBeLessThanOrEqual(hoje)
+    }
+  })
+})
+
+describe('ALVO DO O26: passagens', () => {
+  const r = businessmap.calcularO26(ctx, F12M, ext)
+  it('inteiros de 0 a 6 por entrega e algumas sem dado (anteriores à coleta)', () => {
+    for (const p of Object.values(ext.passagens)) {
+      expect(Number.isInteger(p)).toBe(true)
+      expect(p).toBeGreaterThanOrEqual(0)
+      expect(p).toBeLessThanOrEqual(6)
+    }
+    expect(Math.max(...Object.values(ext.passagens))).toBe(6)
+    expect(r.porTipo.reduce((s, t) => s + t.semDado, 0)).toBeGreaterThan(0)
+    expect(SCHEMAS_RESULTADO.O26.safeParse(r).success).toBe(true)
+  })
+  it('correlação positiva com o tempo de ciclo: o P85 do ciclo cresce com a faixa em Melhoria', () => {
+    const m = r.porTipo.find((t) => t.tipo === 'Melhoria')
+    const p85 = m?.faixas.map((f) => (f.cicloP85.status === 'ok' ? f.cicloP85.valor.p85 : null))
+    expect(p85?.every((v) => v !== null)).toBe(true)
+    const v = p85 as number[]
+    expect(v[3]).toBeGreaterThan(v[0] as number)
+    expect(v[4]).toBeGreaterThan(v[0] as number)
+    expect(v[2]).toBeGreaterThan(v[0] as number)
   })
 })
 

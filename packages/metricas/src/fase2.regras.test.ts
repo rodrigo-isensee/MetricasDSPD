@@ -7,8 +7,10 @@ import { REGRAS_METRICA, type RegraMetrica } from './core/regras'
 
 /** Fase 2 do pedido 011 (E1 e E2): regras decididas pelo usuário saem de `pendente-usuario`; o T14 segue com as suas. */
 const AQUI = dirname(fileURLToPath(import.meta.url))
-const FASE2 = ['T13', 'T14', 'E6', 'E8'] as const satisfies readonly MetricaId[]
+const FASE2 = ['O22', 'O26', 'T13', 'T14', 'E6', 'E8'] as const satisfies readonly MetricaId[]
 const ARQUIVO: Record<(typeof FASE2)[number], string> = {
+  O22: 'businessmap/o22.ts',
+  O26: 'businessmap/o26.ts',
   T13: 'businessmap/t13.ts',
   T14: 'businessmap/t14.ts',
   E6: 'businessmap/e6.ts',
@@ -16,7 +18,7 @@ const ARQUIVO: Record<(typeof FASE2)[number], string> = {
 }
 
 describe('regras da fase 2 (REGRAS_METRICA)', () => {
-  it('as quatro são BusinessMap, sem segmentação por pessoa nem por equipe', () => {
+  it('as seis são BusinessMap, sem segmentação por pessoa nem por equipe', () => {
     for (const id of FASE2) {
       expect(fonteDaMetrica(id), id).toBe('businessmap')
       expect(REGRAS_METRICA[id].dominio, id).toBe('businessmap')
@@ -25,9 +27,14 @@ describe('regras da fase 2 (REGRAS_METRICA)', () => {
     }
   })
 
-  it('D2 = A (E7) está decidida: a linha não tem pendência e diz a regra, sem R$', () => {
-    expect(REGRAS_METRICA.E7.status).toBe('ok')
-    expect((REGRAS_METRICA.E7 as RegraMetrica).pendencias).toBeUndefined()
+  it('Q-a, Q-b (O26) e D2 = A (E7) estão decididas: as linhas não têm pendência e dizem a regra', () => {
+    for (const id of ['O26', 'E7'] as const) {
+      expect(REGRAS_METRICA[id].status, id).toBe('ok')
+      expect((REGRAS_METRICA[id] as RegraMetrica).pendencias, id).toBeUndefined()
+    }
+    expect(REGRAS_METRICA.O26.refBriefing).toMatch(/Q-a = 1 passagem/)
+    expect(REGRAS_METRICA.O26.refBriefing).toMatch(/Q-b = conta/)
+    expect(REGRAS_METRICA.O26.segmentacao).toEqual(['tipo', 'faixa-passagens'])
     expect(REGRAS_METRICA.E7.refBriefing).toMatch(/D2 = A/)
     expect(REGRAS_METRICA.E7.refBriefing).toMatch(/sem R\$/)
   })
@@ -45,7 +52,7 @@ describe('regras da fase 2 (REGRAS_METRICA)', () => {
       expect(texto, q).not.toContain(q)
   })
 
-  it('o código das quatro não lê responsaveis nem usuario, e não importa nada do Acelerato', () => {
+  it('o código das seis não lê responsaveis nem usuario, e não importa nada do Acelerato', () => {
     for (const id of FASE2) {
       const codigo = readFileSync(join(AQUI, ARQUIVO[id]), 'utf8')
         .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -54,10 +61,11 @@ describe('regras da fase 2 (REGRAS_METRICA)', () => {
     }
   })
 
-  it('nenhuma chave de segmentação nova de pessoa', () => {
+  it('nenhuma chave de segmentação nova de pessoa: a única nova é faixa-passagens', () => {
     const todas = new Set(
       Object.values(REGRAS_METRICA).flatMap((r) => r.segmentacao as readonly string[]),
     )
+    expect(todas.has('faixa-passagens')).toBe(true)
     for (const k of todas) expect(k).not.toMatch(/^(pessoa|responsavel|equipe)$/)
   })
 })

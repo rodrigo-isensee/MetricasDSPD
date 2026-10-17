@@ -11,7 +11,7 @@ import { criarDublePg } from './duble-pg.js'
 /**
  * QA do back do pedido 011, fase 1 (docs/qa/011-back.md): A-2, A-5, A-6, A-11 e A-12 do plano. O que as suítes
  * `api.sistemico-intensivo` e `metricas.paridade` já varrem nas 60 ids (A-1, A-3, A-4, A-7, A-9) não se repete aqui.
- * B11b: o T11 entra em A-2 (não é 404), T11-5 e no corte no meio do mês (T11-B11b-1), por API. As ids da fase 2 entraram
+ * B11b: o T11 entra em A-2 (não é 404), T11-5 e no corte no meio do mês (T11-B11b-1), por API. As seis ids da fase 2 entraram
  * com o cálculo (A-2 mudou de 404 para 200); a fase 3 não cria id novo.
  */
 const AGORA = new Date('2026-10-10T15:00:00Z')
@@ -55,8 +55,8 @@ function violacoes(x: unknown, caminho = '$', out: string[] = []): string[] {
 }
 
 describe('A-2: cada id entra com o seu cálculo (nenhum dado inventado)', () => {
-  // Fase 2 (E1 e E2 do back): as deste lote entraram com o cálculo, o contrato e o mock; antes disso eram 404.
-  it.each(['T13', 'T14', 'E6', 'E8'] as const)(
+  // Fase 2 (E1 e E2 do back): as seis entraram com o cálculo, o contrato e o mock; antes disso eram 404.
+  it.each(['O22', 'O26', 'T13', 'T14', 'E6', 'E8'] as const)(
     '%s: existe no catálogo, responde 200 no schema e, sem a extensão do mock, o estado vazio',
     async (id) => {
       expect((METRICA_IDS as readonly string[]).includes(id), `${id} no catálogo`).toBe(true)
@@ -65,8 +65,8 @@ describe('A-2: cada id entra com o seu cálculo (nenhum dado inventado)', () => 
       expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success).toBe(true)
     },
   )
-  it('id de lote seguinte (operacionais), da fase 3 ou inexistente: 404 METRICA_NAO_ENCONTRADA', async () => {
-    for (const id of ['O22', 'O26', 'O27', 'T15', 'E10']) {
+  it('id da fase 3 ou inexistente: 404 METRICA_NAO_ENCONTRADA', async () => {
+    for (const id of ['O27', 'T15', 'E10']) {
       const r = await app.inject(url(id))
       expect(r.statusCode).toBe(404)
       expect(r.json().error.code).toBe('METRICA_NAO_ENCONTRADA')

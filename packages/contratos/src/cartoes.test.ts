@@ -45,8 +45,12 @@ describe('catálogo de cartões', () => {
       t1: ['t6'],
       t4: ['t8'],
       t5: ['o14'],
-      t9: ['t6', 'e5'],
-      e1: ['e4', 'e5'],
+      t9: ['t6', 'e5', 'e6'],
+      e1: ['e4', 'e5', 'e9'],
+      e2: ['e7'],
+      e6: ['e5', 't9'],
+      e7: ['e8', 't3', 'e2'],
+      e8: ['e7'],
       s1: ['s9', 's10'],
       s2: ['s8', 's12'],
       s3: ['s8', 's12'],
@@ -63,7 +67,7 @@ describe('catálogo de cartões', () => {
       for (const p of c.leiaJunto ?? []) expect(cartaoPorIdGlobal(p)?.grupo).toBe('nucleo')
   })
 
-  it('classifica os cartões: mock só onde falta fonte real (O17, T8, E4, S8, S11, S12)', () => {
+  it('classifica os cartões: mock só onde falta fonte real (O17, T8, E4, E6, E8, S8, S11, S12)', () => {
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar')
     expect(compl.map((c) => c.codigo).sort()).toEqual(
       [
@@ -79,6 +83,10 @@ describe('catálogo de cartões', () => {
         'T8',
         'E4',
         'E5',
+        'E6',
+        'E7',
+        'E8',
+        'E9',
         'S8',
         'S9',
         'S10',
@@ -86,17 +94,23 @@ describe('catálogo de cartões', () => {
         'S12',
       ].sort(),
     )
-    const mock = ['O17', 'T8', 'E4', 'S8', 'S11', 'S12']
+    const mock = ['O17', 'T8', 'E4', 'E6', 'E8', 'S8', 'S11', 'S12']
     for (const c of compl) expect(c.status).toBe(mock.includes(c.codigo) ? 'mock' : 'disponivel')
     for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'nucleo'))
       expect(c.status).toBe('disponivel')
     expect(CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo')).toHaveLength(32)
   })
 
-  it('torna as 17 complementares alcançáveis por "leia junto" a partir do núcleo', () => {
-    const alcancadas = new Set(
-      CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo').flatMap((c) => c.leiaJunto ?? []),
+  it('torna as 21 complementares alcançáveis por "leia junto" a partir do núcleo (em cadeia)', () => {
+    const alcancadas = new Set<string>()
+    const fila = CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo').flatMap(
+      (c) => c.leiaJunto ?? [],
     )
+    for (let id = fila.pop(); id; id = fila.pop()) {
+      if (alcancadas.has(id)) continue
+      alcancadas.add(id)
+      fila.push(...(CATALOGO_CARTOES.find((c) => c.id === id)?.leiaJunto ?? []))
+    }
     for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'complementar'))
       expect(alcancadas.has(c.id), c.codigo).toBe(true)
   })
@@ -167,8 +181,9 @@ describe('catálogo de cartões', () => {
 })
 
 describe('COM_EXTENSAO_MOCK (pedido 011, fase 2)', () => {
-  it('recebe T13, T14, E6 e E8; T11 e E7 não entram (sem extração nova nem custo no mock)', () => {
-    for (const c of ['T13', 'T14', 'E6', 'E8']) expect(COM_EXTENSAO_MOCK.has(c), c).toBe(true)
+  it('recebe O22, O26, T13, T14, E6 e E8; T11 e E7 não entram (sem extração nova nem custo no mock)', () => {
+    for (const c of ['O22', 'O26', 'T13', 'T14', 'E6', 'E8'])
+      expect(COM_EXTENSAO_MOCK.has(c), c).toBe(true)
     for (const c of ['T11', 'E7', 'O19', 'T10']) expect(COM_EXTENSAO_MOCK.has(c), c).toBe(false)
   })
 })
@@ -192,7 +207,9 @@ describe('idsDoC4 (fonte única do C4, ADR 0003)', () => {
     const f = idsDoC4('operacional', 'fechada', 'diaria')
     const a = idsDoC4('operacional', 'aberta', 'diaria')
     expect(a.slice(0, f.length)).toEqual(f)
-    expect(a).toEqual(expect.arrayContaining(['O5', 'O16', 'O19', 'O20', 'O21', 'O24', 'O25']))
+    expect(a).toEqual(
+      expect.arrayContaining(['O5', 'O16', 'O19', 'O20', 'O21', 'O22', 'O24', 'O25', 'O26']),
+    )
     expect(a).not.toContain('VISAO_GERAL')
     expect(idsDoC4('tatico', 'aberta')).toEqual(
       expect.arrayContaining(['T6', 'T10', 'T11', 'T12', 'T13', 'T14']),
