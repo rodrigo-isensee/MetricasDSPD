@@ -131,3 +131,17 @@ Por leitura do código; interface não executada no navegador.
 Pendências sem bloqueio: A-9 (links do S12 no E7) segue sem link, baixo; A-11 (modo percentual com unidade "sistemas" no E8 e estado de zero sistemas) não alterado, baixo, verificar no navegador; ícone `info` sem `aria-hidden` explícito no código visto (verificar no componente `Icone`); A-10 segue com o usuário.
 
 **Veredito final: aprovado com ressalvas** (apenas itens baixos e verificações em navegador). Pode ir ao QA.
+
+## 10. Reconferência sobre e850788 (2026-10-17)
+
+Escopo: o delta de interface depois da seção 9 (commits 075a5a8 e 65fcd72, `SeletorLocal.tsx`, `ui.test.tsx`, `estrategicas.tsx`). Por leitura do diff; interface não executada no navegador.
+
+| Mudança | Veredito | Base |
+|---|---|---|
+| Anúncio do tipo do E9 ao leitor de tela (`anuncio` opcional no `SeletorLocal`; região `role="status"` `aria-live="polite"` com `sr-only`, fora do painel da aba; texto "Tipo X: n de m projetos.") | Aprovado. Fecha a verificação pendente da seção 5 (anúncio da troca de tipo) | WCAG 4.1.3 (mensagens de status): a troca de aba agora é anunciada sem mover o foco. Educada (`polite`) não interrompe a leitura. Opcional e sem `anuncio` nada é renderizado (teste cobre `queryByRole('status')` nulo), então não afeta outros usos. Texto repete a contagem do A-3 (n de m). `sr-only` já é usado em 26 arquivos do projeto. O teste cobre teclado (End) e o conteúdo |
+| Plural "Demais N sistema/sistemas" no E7 (`plural(...)`) | Aprovado | Corrige "1 sistemas" (correção de microcopy, A-12 mantido). Nota baixa: "Demais 1 sistema" soa levemente estranho em português ("Demais" pede plural), mas é gramatical e raro; não bloqueia |
+| Comentário sobre `cardId` em `ordenarPorDeslize` | Sem efeito de interface | Só documentação do código; coerente com o A-4 (E6) aceito como provisório |
+
+Observações baixas, sem bloqueio: (1) a região só fala quando o texto muda; se o filtro global alterar a contagem sem trocar o tipo, haverá anúncio também (aceitável, é informação útil). (2) Verificar no navegador com leitor de tela (NVDA ou VoiceOver) que a troca por seta anuncia uma vez só. (3) As pendências da seção 9 continuam: A-9, A-11, `aria-hidden` do ícone `info`, A-10 e o nome do E7 com o usuário.
+
+**Veredito final sobre e850788: aprovado.** Nenhum achado novo de severidade crítica, alta ou média; UX liberada para o merge.
