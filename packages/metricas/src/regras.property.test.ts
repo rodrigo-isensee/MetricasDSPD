@@ -9,6 +9,7 @@ import { METRICA_IDS, MINIMO_AMOSTRA, type MetricaId } from '@metricas-dspd/cont
 import { fonteDaMetrica, resultadoPV1 } from '@metricas-dspd/contratos'
 import {
   gerarBaseMock,
+  gerarExtensaoTambemMock,
   gerarExtensoesMock,
   gerarPesquisaMock,
   type BaseMock,
@@ -16,6 +17,7 @@ import {
 import { calcularMetrica, type ContextosMetricas } from './calcular'
 import { acelerato, businessmap, pesquisa } from '.'
 import type { BasePesquisa } from './pesquisa'
+import { slug } from './slug'
 import { CALENDARIO_PADRAO } from './core/calendario'
 import { REGRAS_METRICA, type ChaveSegmentacao, type RegraMetrica } from './core/regras'
 import type { BaseBM } from './businessmap/modelo'
@@ -27,10 +29,13 @@ const HOJE = base.config.hoje
 const hojeMs = businessmap.criarContextoBM(base.bm, HOJE, CALENDARIO_PADRAO).hoje
 
 const EXT = gerarExtensoesMock(base)
+// Extensão do pedido 011 (fase 2): sem ela as seis métricas novas devolvem vazio e as propriedades nada provam.
+const TAMBEM = gerarExtensaoTambemMock(base)
 const PESQ = gerarPesquisaMock(base.config)
 const ctxPesq = (p: BasePesquisa) => pesquisa.criarContextoPesquisa(p, HOJE)
 const ctxDe = (bm: BaseBM, ac: BaseAC, pesq: BasePesquisa = PESQ): ContextosMetricas => ({
   ext: EXT,
+  tambem: TAMBEM,
   pesq: ctxPesq(pesq),
   bm: businessmap.criarContextoBM(bm, HOJE, CALENDARIO_PADRAO),
   ac: acelerato.criarContextoAC(ac, HOJE, CALENDARIO_PADRAO),
@@ -127,6 +132,8 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
       E9: 'nível de projeto: o mock não publica 20 projetos concluídos na janela de 12 semanas, então não há nó ok para varrer; a fronteira 19/20 da referência P85 é provada em e9.test.ts',
       EI_FL3:
         'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer',
+      E6: 'nível de projeto: o mock tem de 11 a 14 projetos concluídos com data comprometida (variante lenta, de propósito), então não há nó ok para varrer; a fronteira 19/20 do percentual e do P50/P85 do deslize é provada em e6.test.ts',
+      T14: 'exige exatamente uma equipe no filtro ("meu time"); com os filtros padrão desta propriedade o resultado é semEquipe e não há nó para varrer; a fronteira 19/20 do n com time informado, inclusive total >= 20 com n < 20, é provada em t14.test.ts (CA-31)',
     },
   },
   p5: {
@@ -388,19 +395,20 @@ describe(`P3: ${P.p3.nome}`, () => {
       // A pesquisa é a terceira fonte: troca-se BM e AC juntos e a PV1 não muda.
       const ctx: ContextosMetricas =
         fonteDaMetrica(id) === 'pesquisa'
-          ? { bm: v.bm, ac: v.ac, ext: EXT, pesq: ctxPesq(PESQ) }
+          ? { bm: v.bm, ac: v.ac, ext: EXT, tambem: TAMBEM, pesq: ctxPesq(PESQ) }
           : eAC
-            ? { bm: v.bm, ac: CTX.ac, ext: EXT, pesq: ctxPesq(PESQ) }
-            : { bm: CTX.bm, ac: v.ac, ext: EXT, pesq: ctxPesq(PESQ) }
+            ? { bm: v.bm, ac: CTX.ac, ext: EXT, tambem: TAMBEM, pesq: ctxPesq(PESQ) }
+            : { bm: CTX.bm, ac: v.ac, ext: EXT, tambem: TAMBEM, pesq: ctxPesq(PESQ) }
       expect(plano(calc(id, ctx)), `${id} com ${nome}`).toEqual(ref)
     }
     // E nenhuma outra métrica lê a pesquisa.
     if (fonteDaMetrica(id) !== 'pesquisa') {
       const outra = { ...CTX, pesq: ctxPesq(gerarPesquisaMock({ ...base.config, semente: 7 })) }
       expect(plano(calc(id, outra)), `${id} com outra pesquisa`).toEqual(ref)
-      expect(plano(calc(id, { bm: CTX.bm, ac: CTX.ac, ext: EXT })), `${id} sem pesquisa`).toEqual(
-        ref,
-      )
+      expect(
+        plano(calc(id, { bm: CTX.bm, ac: CTX.ac, ext: EXT, tambem: TAMBEM })),
+        `${id} sem pesquisa`,
+      ).toEqual(ref)
     }
     marcar('p3', id)
   })
@@ -624,6 +632,31 @@ describe(`P6: ${P.p6.nome}`, () => {
     varrer(plano(calc(id, CTX)), id, falhas)
     expect(falhas.slice(0, 4)).toEqual([])
     marcar('p6', id)
+  })
+})
+
+// B-1 (segurança, lote das táticas): o T14 sem equipe responde `semEquipe` e a varredura acima não via nada.
+// Com UMA equipe no filtro a resposta carrega valores (títulos, equipe, taxas); nenhum pode ser nome de pessoa.
+describe('P6 (B-1): T14 com equipe no filtro, nenhum valor nem chave por pessoa', () => {
+  const equipes = base.bm.config.equipes.map((e) => slug(e.nome))
+  const rodar = (equipe: string) =>
+    calcularMetrica('T14', { ...filtrosDe('T14'), equipe: [equipe] } as never, CTX)
+
+  it('a base tem equipes, e ao menos uma devolve projetos (a varredura não roda no vazio)', () => {
+    expect(equipes.length).toBeGreaterThanOrEqual(2)
+    const comProjetos = equipes.filter((e) =>
+      (plano(rodar(e)) as { porGranularidade: { projetos: unknown[] }[] }).porGranularidade.some(
+        (b) => b.projetos.length > 0,
+      ),
+    )
+    expect(comProjetos.length).toBeGreaterThanOrEqual(1)
+  })
+  it.each(equipes)('equipe %s', (equipe) => {
+    const falhas: string[] = []
+    const r = plano(rodar(equipe))
+    expect((r as { semEquipe: boolean }).semEquipe).toBe(false)
+    varrer(r, 'T14', falhas)
+    expect(falhas.slice(0, 4)).toEqual([])
   })
 })
 
