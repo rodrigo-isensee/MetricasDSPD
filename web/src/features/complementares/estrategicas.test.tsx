@@ -125,7 +125,7 @@ describe('E6 Datas do portfólio', () => {
   })
 })
 
-describe('E7 Capacidade por sistema (participação percentual, sem valores em reais)', () => {
+describe('E7 Entregas por sistema (participação percentual, sem valores em reais)', () => {
   it('mostra a participação por sistema, ordenada por volume, com "k de n" abaixo de 20 entregas', async () => {
     const el = await abrir('E7', <CartaoE7 filtros={FILTROS_FLUXO} />)
     const tabela = within(el).getByRole('table', { name: /Entregas e participação por sistema/ })
@@ -140,7 +140,6 @@ describe('E7 Capacidade por sistema (participação percentual, sem valores em r
   it('nunca mostra valor em reais, mesmo que a API devolva os campos de custo', async () => {
     const fonte = new FonteAjustada({
       E7: (r: ResultadoDe<'E7'>) => {
-        r.custoConfigurado = true
         for (const s of r.sistemas)
           Object.assign(s, { [CAMPOS_CUSTO[0]!]: 123456, [CAMPOS_CUSTO[1]!]: 789 })
       },
