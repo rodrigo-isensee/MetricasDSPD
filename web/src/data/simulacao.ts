@@ -193,6 +193,12 @@ export async function aplicarSimulacao<F, R>(
     return sustComPoucos((await obter(filtros)) as ResultadoTendenciaSust) as R
   // Tendência sem histórico: o resultado real, sem nenhum mês (nenhum filtro vai para a API).
   if (modo === 'vazio' && ehTendencia(id)) return { ...(await obter(filtros)), meses: [] }
+  // E8 ignora equipe e sistema (filtrar por sistema apontaria a pessoa): nenhum filtro o esvazia, então o vazio é o
+  // resultado real sem nenhum sistema com entrega.
+  if (modo === 'vazio' && id === 'E8') {
+    const r = (await obter(filtros)) as { base: object }
+    return { ...r, base: { ...r.base, n: 0 }, sistemasComEntrega: 0, faixas: null } as R
+  }
   if (modo === 'vazio' && id !== 'VISAO_GERAL') return obter(filtrosSemDados(id, filtros))
   return obter(filtros)
 }

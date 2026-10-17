@@ -2,7 +2,7 @@
 
 Base: `01-cobertura.md`. Protótipo: `03-prototipo/`. Decisões: `04-decisoes.md`. Segue o padrão do discovery das complementares (`docs/ux/metricas-fora-do-nucleo/`), o design system (`docs/ux/design-system.md`) e o checklist por cartão (`docs/ux/checklist-cartao.md`).
 
-**Status: todas as decisões de produto e de regra do pedido 011 estão tomadas (2026-10-14); resta a validação do usuário no protótipo** (ponto de compromisso). O que depende da integração com o BusinessMap está marcado "a confirmar na integração": nome e cardinalidade do campo "Time responsável" (T14), se a API registra nas revisões a troca de responsável (O26) e a mudança de vínculo (T13), e o catálogo de motivos de descarte (O25). Decisões e datas: `04-decisoes.md` e pedido 011.
+**Status: todas as decisões de produto e de regra do pedido 011 estão tomadas (2026-10-14, revistas em 2026-10-16 e 2026-10-17, ver §11); resta a validação do usuário no protótipo** (ponto de compromisso). O que depende da integração com o BusinessMap está marcado "a confirmar na integração": nome e cardinalidade do campo "Time responsável" (T14), se a API registra nas revisões a troca de responsável (O26) e a mudança de vínculo (T13), e o catálogo de motivos de descarte (O25). Decisões e datas: `04-decisoes.md` e pedido 011.
 
 **Acréscimo de 2026-10-14 (K-078):** a métrica T14 "Participação do meu time no projeto" entrou no escopo por decisão do usuário (pedido 011). Total: 17 métricas (16 cartões complementares e o bloco O23). Onde o texto abaixo disser "os 16", leia 17.
 
@@ -14,19 +14,19 @@ As mesmas das complementares (`metricas-fora-do-nucleo/01-empatia.md`): time e c
 
 ## 3. Regras transversais (valem para os 17; a T14 foi acrescentada em 2026-10-14, K-078)
 1. **Onde entram:** como complementares (`grupo: 'complementar'`), dentro da seção recolhida "Mais métricas deste painel", agrupadas por pergunta. Exceção: O23 é um bloco do cartão O2 (núcleo).
-2. **Status:** `mock` ("Dados fictícios") até existir coleta real do dado; entram em `COM_EXTENSAO_MOCK` as que dependem de dado novo (O22, O26, T13, T14, E6 com replanejamento, E7 com custo, E8).
+2. **Status:** `mock` ("Dados fictícios") até existir coleta real do dado; entram em `COM_EXTENSAO_MOCK` as que dependem de dado novo (O22, O26, T13, T14, E6 com replanejamento, E8). O E7 não depende de dado novo: não tem custo (D2 = A, 2026-10-17).
 3. **Sem alertas** em "Pede atenção" (decisão D-3 das complementares). Nenhuma tem meta numérica nesta fase: o rodapé mostra "Sem meta numérica" com ícone "i".
 4. **Fonte única por cartão:** todos os 17 são **BusinessMap**. Nenhum soma, compara no mesmo eixo ou divide por dado do Acelerato.
 5. **Granularidade única por gráfico:** Operacional e Tático em demanda (story); T13 e T14 permitem trocar para frente por seletor local (uma por vez; no T14 o projeto é só o agrupador); Estratégico em projeto, exceto E7 (demanda entregue, agregada por sistema) e E8 (sistema).
 6. **Mínimo de 20:** percentil (P50/P85/P95) e percentual só com n ≥ 20 na classe; abaixo, "k de n" e o componente AmostraInsuficiente. Projetos usam a variante `lenta` (pontos por projeto e contagem visíveis). Contagens e somas (censo) são publicadas com BadgeBase.
 7. **Percentil só dentro da classe:** toda distribuição de tempo é por tipo de demanda (SeletorLocal, um tipo por vez). Comparação "com × sem" (O21, T13) só entre dois grupos do **mesmo** tipo, cada um com n ≥ 20.
-8. **Pessoas e times:** nenhum cartão mostra, filtra, ordena ou exporta por pessoa. O26 e E8 recebem só contagens já agregadas. Nenhum cartão lista, nomeia ou ordena times uns contra os outros: a T14 mostra só "meu time" e "outros times" somados.
+8. **Pessoas e times:** nenhum cartão mostra, filtra, ordena ou exporta por pessoa. O26 e E8 recebem só contagens já agregadas; o E8 mostra só a contagem de sistemas por faixa e **nunca nomeia sistema** (R-1 = B, 2026-10-16). Nenhum cartão lista, nomeia ou ordena times uns contra os outros: a T14 mostra só "meu time" e "outros times" somados (e, quando "outros times" fica oculto, só a fatia do meu time; T14-M1 = B, 2026-10-17).
 9. **Ordenação neutra:** listas por área (T12), fornecedor (T10) e sistema (E7, E8) ordenam por volume ou alfabeticamente, nunca por "pior desempenho"; sem pódio, sem medalhas, sem "top 3".
 10. **Cálculo:** tempo, percentil e taxa pela biblioteca compartilhada (T2.5); dias úteis; janela de percentis vem do parâmetro único.
 11. **Anatomia:** a do CartaoMetrica (design system 2.2), com "Como ler e como é calculado" (cinco seções) e "Ver como tabela" em todos.
 12. **Horas apontadas nunca entram** em nenhum dos 16 (briefing 7.1), embora o briefing liste "tempo apontado" entre os recursos da API (B:57).
 13. **Ordem de implementação** (D-12, resolvida por B:20, B:344, P:563):
-    - Primeiro as que usam dado já no modelo: O19, O20, O21, O23, O24, O25 sem tabela por motivo, T11, T12, E9, T10 sem prazo contratado e E7 sem R$.
+    - Primeiro as que usam dado já no modelo: O19, O20, O21, O23, O24, O25 sem tabela por motivo, T11, T12, E9, T10 sem prazo contratado e E7 (só participação nas entregas; sem custo, D2 = A).
     - Depois as de coleta nova: O22, O26, T13, T14, replanejamentos do E6, agregado do E8.
     - Partes que dependem de configuração do WS1 (domínio do motivo de descarte; cobertura de `fornecedor`, `area_solicitante`, `sistema_afetado`) só depois dela.
 
@@ -41,7 +41,9 @@ As mesmas das complementares (`metricas-fora-do-nucleo/01-empatia.md`): time e c
 | Tático | De quem depende o prazo? | T10, T13, T14 | sim |
 | Estratégico | Estamos terminando ou só começando? | E9 (junto de E4) | não |
 | Estratégico | Quando termina? | E6 (junto de E5) | não |
-| Estratégico | O que custa manter o parque, e de quem depende? | E7, E8 | sim |
+| Estratégico | Onde o parque se concentra, e qual o risco de continuidade? | E7, E8 | sim |
+
+> Título revisto em 2026-10-16 (revisão de UX do front do lote 1): a seção deixou de falar em custo porque o E7 não mostra mais valor em dinheiro (D2 = A). O título antigo, "O que custa manter o parque, e de quem depende?", fica substituído; aguarda confirmação do usuário. Alternativas na revisão `docs/ux/revisao-011-front-estrategicas.md`.
 
 Contador do seletor "Métricas": Operacional passa de "+8" para "+15" complementares, Tático de "+2" para "+7", Estratégico de "+2" para "+6".
 
@@ -52,7 +54,7 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 ### O19 Bloqueios por causa
 - **Pergunta:** O que mais trava o trabalho, e quanto isso custa em dias?
 - **Painel/seção:** Operacional · Por que demora?
-- **Visual:** barras horizontais, uma por motivo do domínio fechado (7), comprimento = dias úteis bloqueados somados na janela; rótulo à direita "64 d úteis · 12 bloqueios"; padrão de preenchimento por barra. Abaixo, tabela P50/P85 da duração por motivo (só motivos com ≥ 20 bloqueios; os demais "— amostra insuficiente"). Ordem: por dias somados, decrescente (motivo não é pessoa).
+- **Visual:** barras horizontais, uma por motivo do domínio fechado (7), comprimento = dias úteis bloqueados somados na janela; rótulo à direita "64 d úteis · 12 bloqueios"; padrão de preenchimento por barra. Abaixo, tabela P50/P85 da duração por motivo (só motivos com ≥ 20 bloqueios; os demais "— amostra insuficiente"). Ordem: por dias somados, decrescente (motivo não é pessoa). **O percentual de cada causa é sobre os dias úteis bloqueados (O19-pct = B, 2026-10-16)**; o mínimo de 20 continua sobre o número de bloqueios da causa.
 - **Leitura:** "Aguardando validação do negócio somou 64 dias úteis de bloqueio nas últimas 12 semanas, 38% do total."
 - **Leia junto:** BLOQUEADOS (o que está bloqueado agora), O5 (eficiência de fluxo).
 - **Alerta:** nenhum.
@@ -66,6 +68,7 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 - **Visual:** área empilhada diária (CFD). Com uma equipe filtrada: uma faixa por coluna do quadro. Com "Todas": faixas por papel da coluna (Backlog, Pronto para, Em execução, Homologação, Entregue), igual ao agrupamento do O2. Cada faixa com cor e hachura; legenda com os dois. Linha vertical tracejada para mudança de critério (T2.6).
 - **Leitura:** "Nas últimas 4 semanas a faixa 'Aguardando homologação' cresceu de 6 para 15 itens enquanto as entregas ficaram estáveis: o acúmulo está na homologação."
   - Regra da frase: aponta a faixa de fila com maior crescimento absoluto entre o início e o fim do período; se nenhuma cresceu, "Nenhuma etapa acumulou trabalho no período."
+  - **O20-destaque = A (2026-10-16):** o destaque considera só as filas **a partir do compromisso**. O Backlog continua desenhado como faixa do gráfico, mas nunca é o destaque (nem com "Todas"); se só o Backlog cresceu, vale "Nenhuma etapa acumulou trabalho no período."
 - **Leia junto:** O1 (WIP e limite), O7 (entrada × saída).
 - **Alerta:** nenhum.
 - **Filtros:** Equipe, Tipo, Sistema, Período.
@@ -130,7 +133,8 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 - **Filtros:** Equipe, Tipo, Sistema, Período.
 - **Mínimo:** taxa com ≥ 20 encerrados (entregues + descartados) no período; P50/P85 do tempo consumido com ≥ 20 descartados após o início (raro: o normal é mostrar soma e contagem).
 - **Fonte/dado:** BusinessMap · estado nativo `discarded` do card (e card excluído), `iniciado_em`, `discarded_at` · **já no modelo** (a confirmar na integração: leitura do estado nativo e do catálogo de motivos).
-  - Descartado = card com estado nativo `discarded` do BusinessMap e também o card excluído (P:564, B:59). Instante: `discarded_at`; no excluído, o instante da exclusão ou, sem ele, a última revisão, marcada como aproximada (decisão do usuário, 2026-10-14). Motivo preenchido sem descarte nem exclusão vira aviso de preenchimento e fica fora da taxa.
+  - **O25(b) = B (2026-10-16):** card entregue e depois excluído **não** conta como descarte; continua como entrega na vazão e no ciclo.
+  - Descartado = card com estado nativo `discarded` do BusinessMap e também o card excluído que não tinha sido entregue (P:564, B:59). Instante: `discarded_at`; no excluído, o instante da exclusão ou, sem ele, a última revisão, marcada como aproximada (decisão do usuário, 2026-10-14). Motivo preenchido sem descarte nem exclusão vira aviso de preenchimento e fica fora da taxa.
   - Tempo consumido = do início (primeira entrada em execução) até o descarte. Descartado antes de iniciar consome zero e aparece à parte (B:106, B:110, P:251).
   - Motivos: o domínio é o catálogo nativo do BusinessMap (`/discardReasons`, `reason_id`), com mudanças versionadas (T2.6); `discard_comment` nunca entra (**a confirmar na integração**). Até a integração ler o catálogo, `porMotivo = null` e o cartão publica só taxa e tempo consumido. "Criado por engano" não existe nos documentos e fica fora do mock.
 
@@ -155,7 +159,7 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 - **Leia junto:** BLOQUEADOS, O12 (atrasos de responsabilidade "Terceiro"), O19.
 - **Alerta:** nenhum nesta fase.
 - **Filtros:** Equipe, Tipo, Sistema, Período.
-- **Mínimo:** P50/P85 por fornecedor com ≥ 20 bloqueios encerrados, senão "— amostra insuficiente" na célula e só contagem e soma. Janela: para fornecedor o volume é baixo; o período padrão do cartão é o do painel, e a nota sugere "12 meses" quando faltar amostra.
+- **Mínimo:** P50/P85 por fornecedor com ≥ 20 bloqueios encerrados, senão "— amostra insuficiente" na célula e só contagem e soma. Janela (T10-janela = A, 2026-10-16): os percentis ficam na janela móvel de 12 semanas (regra inviolável) e a contagem segue o período do painel; não há exceção de 12 meses para fornecedor, e a nota de amostra insuficiente não sugere outra janela. **B11-001 = sim (2026-10-17):** o nome do fornecedor ignora maiúsculas, minúsculas e espaços ("Totvs", "TOTVS" e "totvs" são uma linha só).
 - **Fonte/dado:** BusinessMap · `fato_bloqueio` com o campo `fornecedor` preenchido, de qualquer motivo (B:126, P:614; inclui "Aguardando licença ou contrato") · **já no modelo**. Prazo contratado: fora desta fase (decisão do usuário, 2026-10-14). Quando os contratos forem informados, entra como configuração versionada (T2.6), com comparação do P85 ao prazo, em nova entrega. Não usa S9 (Acelerato).
 
 ### T11 Sazonalidade da chegada
@@ -212,7 +216,9 @@ Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078); entra na fase 3 (colet
   - **Item contado (suposição do time):** demanda (story), a unidade de B:110, com seletor local para frente (uma granularidade por vez, nunca juntas, como no T13). Projeto é só o agrupador.
   - **Escopo (suposição do time):** cards não descartados, em qualquer estado ("quanto do projeto" é do escopo todo). Vale o time do card na entrega ou, antes dela, o time atual.
   - **Sem time responsável (suposição do time):** o card sem o campo preenchido entra no total de demandas do projeto como "Sem time informado", fora do denominador do percentual, com a contagem visível como aviso de dado.
-  - **"Outros times" (decisão do usuário, 2026-10-14):** soma única, publicada mesmo quando o projeto tem um único outro time; sempre sem nome, sem tempo, sem vazão e sem ranking. Participação de cards no projeto não é comparação de desempenho entre times (7.1). O sistema nunca lista, nomeia nem ordena times, nem na tabela alternativa nem na exportação.
+  - **"Outros times" (decisão do usuário, Q-T14-6 = A, 2026-10-14; refinada pela R-1 = B, 2026-10-16):** soma única, publicada mesmo quando o projeto tem um único outro time, **só quando esses outros times somam 2 pessoas ou mais**; sempre sem nome, sem tempo, sem vazão e sem ranking. Participação de cards no projeto não é comparação de desempenho entre times (7.1). O sistema nunca lista, nomeia nem ordena times, nem na tabela alternativa nem na exportação.
+  - **Quem conta como pessoa (Q-T14-10 = B, 2026-10-17):** quem está no cadastro de membros por time, mantido na configuração (WS1); o cadastro é dado de pessoa e fica fora do alcance do `dspd_api`. À interface só chega o indicador "outros times publicável: sim/não".
+  - **"Outros times" oculto (T14-M1 = B, 2026-10-17):** quando o indicador é "não", a linha mostra só a fatia do meu time ("meu time: k demandas", barra só com essa fatia e, se houver, "Sem time informado"), **sem o total exato do projeto, sem "k de n" e sem percentual**, para que n − k não possa ser calculado. O destaque do recorte e a ordenação por total de demandas (CA-30) seguem usando o total internamente; o projeto com "outros times" oculto é posicionado sem mostrar o total.
   - Só BusinessMap: nenhuma parcela vem de chamados do Acelerato.
 
 ### E6 Datas do portfólio
@@ -229,12 +235,11 @@ Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078); entra na fase 3 (colet
   - Tolerância zero: entregue até a data = no prazo, igual a "vencido" no O12 (P:173).
 
 ### E7 Capacidade por sistema
-- **Pergunta:** Quanto da nossa capacidade vai para manter cada sistema do parque?
-- **Painel/seção:** Estratégico · O que custa manter o parque, e de quem depende?
+- **Pergunta:** Quanto da nossa capacidade vai para manter cada sistema do parque? (capacidade medida pelas entregas, não por custo)
+- **Painel/seção:** Estratégico · Onde o parque se concentra, e qual o risco de continuidade?
 - **Visual:** barras horizontais 100% por sistema (ordem por participação), divididas por natureza (as 4 do T3: Sustentação, Evolução, Projetos e Dívida técnica, pela mesma função do T3; R-3 resolvida por B:369) com cor + hachura; rótulo "% das entregas · n itens".
-  - A métrica é de custo (P:402: "Quanto custa manter cada sistema", origem "Extração + custo de capacidade").
-  - Custo de capacidade = custo total do DSPD no período, rateado pela participação por sistema (entregas). "Por demanda" = custo do sistema ÷ entregas do sistema (decisão do usuário, 2026-10-14). Colunas "custo rateado" e "custo por demanda" com o aviso "Rateio do custo total do DSPD, não esforço medido". Nunca por equipe nem por pessoa; horas apontadas não entram (7.1).
-  - Enquanto o custo total não for informado em configuração (dado externo, P:561), o cartão mostra só participação e contagem (CA-13).
+  - **Decisão do usuário D2 = A (revê a D-1' e a Q-E7-1):** o E7 não mostra nenhum valor em dinheiro, nem custo rateado, nem custo dividido por demanda, em nenhuma variante e com ou sem custo total configurado. Mostra só a participação percentual de cada sistema pelas entregas e a contagem. A origem "custo de capacidade" de P:402 não se aplica; o custo total do DSPD deixa de ser dado de entrada deste cartão.
+  - O selo "Rateio do custo total do DSPD, não esforço medido." deixa de existir. No lugar, a nota fixa: "Participação por contagem de demandas entregues, não esforço medido nem valor em dinheiro." Horas apontadas não entram (7.1); nunca por equipe nem por pessoa.
 - **Leitura:** "O sistema Folha concentrou 22% das entregas do trimestre, 81% delas de sustentação."
 - **Leia junto:** T3 (alocação da capacidade), E2 (capacidade por objetivo).
 - **Alerta:** nenhum.
@@ -242,13 +247,13 @@ Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078); entra na fase 3 (colet
 - **Mínimo:** percentual com ≥ 20 entregas no total; sistemas com menos de 20 entregas mostram "k de n" e ficam agrupados no fim.
 - **Fonte/dado:** BusinessMap · `sistema`, `tipo`, `concluido_em` (granularidade demanda, subtarefa fora) · **já no modelo**.
   - Peso = contagem de demandas entregues (D-2, resolvida por B:110 e P:629).
-  - Custo total do DSPD: configuração externa versionada (T2.6), com valor, período e quem informa registrados.
+  - Custo total do DSPD: **não é mais necessário no E7** (D2 = A); o campo de custo da API, se existir, não é lido pela interface.
   - **Nunca horas apontadas** (B:409). Chamados do Acelerato por sistema seguem só no S12; o cartão diz "Não inclui os chamados da sustentação (Acelerato), que estão no S12" com link.
 
 ### E8 Concentração de conhecimento
 - **Pergunta:** Quantos sistemas dependem de uma única pessoa?
-- **Painel/seção:** Estratégico · O que custa manter o parque, e de quem depende?
-- **Visual:** três números grandes lado a lado: "Sistemas com entregas de 1 pessoa: 4", "de 2 pessoas: 6", "de 3 ou mais: 9" (de 19 sistemas com entregas na janela); barra 100% com as três faixas (cor + hachura). Abaixo, a lista dos sistemas na faixa "1 pessoa", em ordem alfabética, sem nenhuma pessoa (D-4 = B, decisão do usuário). Selo fixo: "Mede risco de continuidade do parque. Não mostra nem avalia pessoas."
+- **Painel/seção:** Estratégico · Onde o parque se concentra, e qual o risco de continuidade?
+- **Visual:** três números grandes lado a lado: "Sistemas com entregas de 1 pessoa: 4", "de 2 pessoas: 6", "de 3 ou mais: 9" (de 19 sistemas com entregas na janela); barra 100% com as três faixas (cor + hachura). **Só a contagem: o cartão não lista nem nomeia os sistemas da faixa "1 pessoa"** (R-1 = B, 2026-10-16, que revoga a listagem da D-4 = B de 2026-10-14), porque o nome do sistema e a lista de membros do time reidentificariam a pessoa. Selo fixo: "Mede risco de continuidade do parque. Não mostra nem avalia pessoas."
 - **Leitura:** "4 dos 19 sistemas com entregas nos últimos 12 meses tiveram todas as entregas feitas por uma única pessoa."
 - **Leia junto:** E7.
 - **Alerta:** nenhum.
@@ -285,7 +290,6 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 | `time_responsavel` (campo customizado "Time responsável"; nome e cardinalidade **a confirmar na integração**), a ligação demanda > frente > projeto e `ConfigBM.equipes[].sistemas` | T14 | **extração nova**; só o rótulo "meu time / outros / sem informação" sobe à API, nunca o nome de outro time |
 | `data_acordada_original`, `replanejamentos` | E6 | **derivação nova** das revisões já coletadas (valor no compromisso e alterações posteriores) |
 | Prazo contratado por fornecedor | T10 | fora desta fase; configuração versionada (T2.6) numa entrega futura, quando os contratos forem informados |
-| Custo total do DSPD para rateio | E7 | **dado externo** (P:561), configuração versionada (T2.6): valor, período, quem informa |
 | `agg_conhecimento_sistema` (pessoas distintas em `responsaveis` das entregas por sistema, 12 meses) | E8 | **agregado novo** no coletor; API nunca lê pessoa |
 | Histórico de 24 meses de `criado_em` | T11 | carga histórica (coletor e mock) |
 
@@ -303,18 +307,18 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 11. **Projetos:** 11 a 14 projetos concluídos em 12 meses com `data_acordada`, data original e 0 a 3 replanejamentos (menos de 20, para exercitar a variante `lenta`); 6 a 8 projetos aprovados não iniciados, um acima de 180 dias úteis.
 12. **Sistemas:** 18 a 20 sistemas com entregas, natureza por tipo; `agg_conhecimento_sistema` com 4 sistemas em 1 pessoa, 6 em 2, o resto em 3 ou mais. O mock gera o agregado diretamente, sem pessoas.
 14. **T14:** 6 projetos em andamento (dois com menos de 20 demandas, um deles ligado a um sistema do meu time com 0% de atuação), 12 a 62 demandas cada, três times fictícios por projeto no mínimo (nunca exibidos), participação do meu time de 12% a 66%, 1 a 2 demandas por projeto sem time responsável.
-13. **Configuração:** nenhum prazo contratado (T10 mostra "Prazo contratado não informado"); custo total do DSPD fictício para exercitar a variante com R$ do E7, e ausente para o estado só em %.
+13. **Configuração:** nenhum prazo contratado (T10 mostra "Prazo contratado não informado"). O mock não gera custo total do DSPD: o E7 mostra só participação e contagem (D2 = A, 2026-10-17).
 
 ## 9. Microcopy comum
-- Seções: "Onde o trabalho acumula?", "Onde se perde esforço?", "O que entra, e quando?", "De quem depende o prazo?", "O que custa manter o parque, e de quem depende?".
-- Selos: "Conta trocas, nunca quem." (O26) · "Mede risco de continuidade do parque. Não mostra nem avalia pessoas." (E8) · "Rateio do custo total do DSPD, não esforço medido." (E7, com o custo total informado).
+- Seções: "Onde o trabalho acumula?", "Onde se perde esforço?", "O que entra, e quando?", "De quem depende o prazo?", "Onde o parque se concentra, e qual o risco de continuidade?".
+- Selos: "Conta trocas, nunca quem." (O26) · "Mede risco de continuidade do parque. Não mostra nem avalia pessoas." (E8). O selo "Rateio do custo total do DSPD..." do E7 foi retirado (D2 = A).
 - Célula sem amostra: "— amostra insuficiente".
 - Rodapé: "Fonte: BusinessMap" · "Granularidade: demanda | frente | projeto | sistema" · "Sem meta numérica".
 
 ## 10. Critérios de aceite (EARS)
 - `CA-1` QUANDO a pessoa abre "Mais métricas deste painel" no Operacional O SISTEMA DEVE exibir as seções "Por que demora?", "Onde o trabalho acumula?" e "Onde se perde esforço?" com os cartões O19, O22, O20, O24, O21, O25 e O26 nas seções da tabela 4.
 - `CA-2` QUANDO a pessoa abre "Mais métricas deste painel" no Tático O SISTEMA DEVE exibir T11 e T12 em "O que entra, e quando?" e T10, T13 e T14 em "De quem depende o prazo?".
-- `CA-3` QUANDO a pessoa abre "Mais métricas deste painel" no Estratégico O SISTEMA DEVE exibir E9 com E4, E6 com E5 e E7 e E8 em "O que custa manter o parque, e de quem depende?".
+- `CA-3` QUANDO a pessoa abre "Mais métricas deste painel" no Estratégico O SISTEMA DEVE exibir E9 com E4, E6 com E5 e E7 e E8 em "Onde o parque se concentra, e qual o risco de continuidade?".
 - `CA-4` QUANDO o cartão O2 carrega com itens em andamento O SISTEMA DEVE exibir a linha "k de n itens em andamento sem mover há mais de 5 dias úteis", com o percentual só se n ≥ 20.
 - `CA-5` SE uma classe tem menos de 20 itens ENTÃO O SISTEMA DEVE substituir percentil e percentual por AmostraInsuficiente ou "k de n", sem mostrar o número.
 - `CA-6` SE um grupo do par "com × sem" (O21, T13) tem menos de 20 itens no tipo ENTÃO O SISTEMA DEVE não exibir a comparação e indicar qual grupo está abaixo do mínimo.
@@ -324,29 +328,36 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 - `CA-10` QUANDO o recorte de E8 tem menos de 5 sistemas O SISTEMA DEVE exibir "Recorte pequeno demais para mostrar a concentração sem identificar pessoas." e ocultar as faixas.
 - `CA-11` O SISTEMA DEVE ordenar T10 por nome do fornecedor, T12 por volume de demandas e E7 por participação, sem destaque de "pior" ou "melhor".
 - `CA-12` QUANDO a pessoa abre T11 O SISTEMA DEVE exibir o chip "Não afetado por: Período" e a janela fixa de 24 meses mais o mês corrente listrado.
-- `CA-13` ENQUANTO E7 não tiver custo total do DSPD configurado O SISTEMA DEVE exibir só participação percentual e contagem, sem valores em R$.
-- `CA-35` QUANDO o custo total do DSPD está configurado O SISTEMA DEVE exibir no E7 o custo rateado por sistema (custo total × participação nas entregas), o custo por demanda (custo do sistema ÷ entregas do sistema) e o aviso "Rateio do custo total do DSPD, não esforço medido.", sem custo por equipe nem por pessoa.
+- `CA-13` O SISTEMA DEVE exibir no E7 só a participação percentual e a contagem de entregas por sistema, sem nenhum valor em dinheiro, esteja o custo total do DSPD configurado ou não (D2 = A, 2026-10-16).
+- `CA-35` ~~Custo rateado no E7~~ **Revogado por D2 = A (2026-10-16):** o E7 não exibe custo; vale o CA-13.
 - `CA-36` O SISTEMA DEVE exibir no T10 a linha "Prazo contratado não informado" e não exibir coluna de prazo contratado nem status "dentro/acima do contratado".
 - `CA-37` O SISTEMA DEVE calcular no O24 a espera do ultrapassado como os dias úteis entre o início do primeiro item que passou na frente e o início dele próprio, na fila da mesma equipe, e exibi-la como "esperaram, depois de ultrapassados, X dias úteis até começar".
 - `CA-38` O SISTEMA DEVE contar como passagem no O26 só a troca em que alguém sai e outro entra ou o conjunto de responsáveis é substituído, e não contar a inclusão de co-responsável sem saída.
 - `CA-39` O SISTEMA DEVE contar como "ida e volta" no T12 o bloqueio com motivo "Falta de informação no chamado" antes do início ou o retorno do card da coluna de compromisso ao backlog.
 - `CA-40` O SISTEMA DEVE contar no T13 só o vínculo `predecessor` com card de outro quadro, inclusive o removido antes da entrega que esteve vigente antes dela.
 - `CA-41` O SISTEMA DEVE listar no T14 os projetos ligados a um sistema do meu time, mesmo com 0% de atuação, e os projetos com pelo menos 1 card do meu time.
-- `CA-42` O SISTEMA DEVE exibir "Outros times" no T14 mesmo quando o projeto tem um único outro time, sem nome, tempo, vazão nem ranking.
+- `CA-42` (alinhado à R-1 = B, 2026-10-16, que refina a Q-T14-6 = A) O SISTEMA DEVE exibir "Outros times" no T14 mesmo quando o projeto tem um único outro time, desde que os outros times somem 2 pessoas ou mais, sem nome, tempo, vazão nem ranking.
+- `CA-45` (T14-M1 = B, 2026-10-17) SE os outros times de um projeto somam menos de 2 pessoas (cadastro de membros, Q-T14-10 = B) ENTÃO O SISTEMA DEVE ocultar "Outros times" no T14 e exibir só a fatia do meu time, sem o total exato do projeto, sem "k de n" e sem percentual, na barra, na tabela alternativa e na exportação.
 - `CA-43` O SISTEMA DEVE considerar o primeiro toque do O22 só como o primeiro comentário humano posterior à criação do card.
 - `CA-14` O SISTEMA DEVE não incluir nenhum dos 17 cartões na faixa "Pede atenção".
 - `CA-15` QUANDO a pessoa abre a página "Métricas" O SISTEMA DEVE listar "Retrabalho e reincidência" com status "Coberta por outras métricas" e links para O13, T5, O21, S8 e S12, sem cartão próprio.
 - `CA-16` O SISTEMA DEVE exibir em cada um dos 17 cartões "Como ler e como é calculado", "Ver como tabela" com os mesmos números do gráfico e o selo "Dados fictícios" enquanto o status for `mock`.
 - `CA-17` O SISTEMA DEVE calcular O24 só com cards da classe Padrão, comparando cada início com pedidos mais antigos do mesmo tipo, e excluir as classes Urgente, Prazo fixo e Intangível.
-- `CA-18` QUANDO o recorte de E8 tem 5 sistemas ou mais O SISTEMA DEVE listar, em ordem alfabética, os sistemas da faixa "1 pessoa", sem nenhum nome, e-mail ou identificador de pessoa.
+- `CA-18` ~~Listar os sistemas da faixa "1 pessoa" no E8~~ **Revogado por R-1 = B (2026-10-16):** o E8 mostra só a contagem de sistemas por faixa e nunca nomeia sistema; vale o CA-46.
 - `CA-19` O SISTEMA DEVE calcular o tempo consumido do O25 do início (primeira entrada em execução) até o descarte e mostrar à parte os descartados antes do início, com tempo zero.
 - `CA-20` O SISTEMA DEVE usar em E6, como data comprometida, o valor de `data_acordada` registrado no compromisso e exibir o número de alterações posteriores como replanejamentos.
 - `CA-21` O SISTEMA DEVE excluir vínculos pai/filho da contagem de dependências do T13.
 - `CA-22` O SISTEMA DEVE não usar tempo apontado em nenhum dos 17 cartões.
 - `CA-23` O SISTEMA DEVE dividir as barras do E7 nas quatro naturezas do T3 (Sustentação, Evolução, Projetos, Dívida técnica), pela mesma função de classificação do T3.
 - `CA-24` O SISTEMA DEVE incluir no T10 todo bloqueio encerrado com fornecedor informado, qualquer que seja o motivo, e excluir o bloqueio sem fornecedor.
-- `CA-25` QUANDO o recorte de E8 tem 4 sistemas ou menos O SISTEMA DEVE não exibir a lista dos sistemas da faixa "1 pessoa" (complementa CA-10 e CA-18).
-- `CA-27` QUANDO a pessoa abre o T14 com uma equipe no filtro O SISTEMA DEVE exibir, para cada projeto em andamento, a contagem de demandas do meu time, de outros times (somados) e sem time informado, em barra com cor e hachura e rótulo "k de n".
+- `CA-25` ~~Não listar sistemas com recorte de 4 ou menos~~ **Revogado por R-1 = B (2026-10-16):** a lista não existe em nenhum recorte; vale o CA-46 (o recorte pequeno segue no CA-10).
+- `CA-46` (R-1 = B, 2026-10-16) O SISTEMA DEVE exibir no E8, em qualquer recorte, só a contagem de sistemas nas faixas "1 pessoa", "2 pessoas" e "3 ou mais", sem nomear nem listar nenhum sistema, na tela, na tabela alternativa e na exportação.
+- `CA-47` (O20-destaque = A, 2026-10-16) QUANDO o O20 compõe a frase de destaque O SISTEMA DEVE considerar só as faixas de fila a partir do compromisso e nunca apontar o Backlog como a etapa que mais acumulou, embora o desenhe como faixa do gráfico.
+- `CA-48` (O19-pct = B, 2026-10-16) O SISTEMA DEVE calcular no O19 o percentual de cada causa sobre os dias úteis bloqueados e aplicar o mínimo de 20 sobre o número de bloqueios da causa.
+- `CA-49` (O25(b) = B, 2026-10-16) O SISTEMA DEVE não contar como descarte no O25 o card entregue e depois excluído, mantendo-o como entrega na vazão e no ciclo.
+- `CA-50` (T10-janela = A, 2026-10-16) O SISTEMA DEVE calcular no T10 os percentis P50/P85 na janela móvel de 12 semanas, e a contagem e a soma pelo período do painel.
+- `CA-51` (B11-001 = sim, 2026-10-17) O SISTEMA DEVE tratar no T10 como o mesmo fornecedor os nomes que diferem só por maiúsculas, minúsculas ou espaços.
+- `CA-27` QUANDO a pessoa abre o T14 com uma equipe no filtro O SISTEMA DEVE exibir, para cada projeto em andamento, a contagem de demandas do meu time, de outros times (somados) e sem time informado, em barra com cor e hachura e rótulo "k de n", exceto no projeto com "outros times" oculto (CA-45).
 - `CA-28` SE o filtro de Equipe está em "Todas" ou tem mais de uma equipe ENTÃO O SISTEMA DEVE exibir "Escolha uma equipe para ver a participação do meu time." no T14 e não calcular nenhum valor.
 - `CA-29` O SISTEMA DEVE não listar, nomear, filtrar nem ordenar nenhum outro time no T14, na tabela alternativa e na exportação; "outros times" é uma única soma.
 - `CA-30` O SISTEMA DEVE ordenar os projetos do T14 pelo total de demandas do projeto, do maior para o menor, e não pela participação do meu time.
@@ -356,3 +367,16 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 - `CA-34` O SISTEMA DEVE exibir no T14 o selo "Só mostra meu time e os outros somados. Não compara times." e aplicar o filtro de Período à escolha dos projetos, contando sempre o projeto inteiro.
 - `CA-26` O SISTEMA DEVE contar como descartados no O25 os cards com estado nativo `discarded` e os excluídos, usando `discarded_at` (no excluído, o instante da exclusão ou, sem ele, a última revisão, marcada como aproximada), e listar à parte, fora da taxa, o card com motivo de descarte sem estar descartado nem excluído.
 - `CA-44` ENQUANTO a integração não ler o catálogo de motivos de descarte do BusinessMap O SISTEMA DEVE exibir no O25 só a taxa e o tempo consumido, sem divisão por motivo, e nunca usar o comentário do descarte.
+
+## 11. Registro de alinhamentos às decisões do usuário (E3.2, 2026-10-17)
+| Decisão | Data | O que mudou nesta especificação |
+|---|---|---|
+| R-1 = B (reidentificação no E8 e na T14; não é a R-1 = A do O24) | 2026-10-16 | E8 sem lista de sistemas (§3 item 8, §5 E8, CA-18 e CA-25 revogados, CA-46); T14 com "outros times" só com 2 pessoas ou mais (§5 T14, CA-42) |
+| T14-M1 = B | 2026-10-17 | T14 com "outros times" oculto mostra só a fatia do meu time, sem o total (§3 item 8, §5 T14, CA-45, CA-27 ressalvado) |
+| Q-T14-10 = B | 2026-10-17 | "Pessoa" = membro no cadastro por time da configuração (§5 T14) |
+| D2 = A | 2026-10-17 | E7 sem custo: §3 itens 2 e 13, §5 E7, §7 (linha do custo total removida), §8 item 13, CA-13, CA-35 |
+| O20-destaque = A | 2026-10-16 | §5 O20, CA-47 |
+| O19-pct = B | 2026-10-16 | §5 O19, CA-48 |
+| O25(b) = B | 2026-10-16 | §5 O25, CA-49 |
+| T10-janela = A | 2026-10-16 | §5 T10, CA-50 |
+| B11-001 = sim | 2026-10-17 | §5 T10, CA-51 |

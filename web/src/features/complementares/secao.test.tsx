@@ -7,7 +7,7 @@ import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 const PAINEIS = [
   ['/operacional?cadencia=semanal', 7, ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16']],
   ['/tatico', 2, ['T6', 'T8']],
-  ['/estrategico', 2, ['E4', 'E5']],
+  ['/estrategico', 6, ['E9', 'E4', 'E5', 'E6', 'E7', 'E8']],
   ['/operacional?cadencia=sustentacao', 6, ['S9', 'S10', 'S8', 'S11', 'O17', 'S12']],
 ] as const
 

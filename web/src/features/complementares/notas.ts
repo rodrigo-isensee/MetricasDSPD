@@ -13,6 +13,10 @@ type Id =
   | 'T8'
   | 'E4'
   | 'E5'
+  | 'E6'
+  | 'E7'
+  | 'E8'
+  | 'E9'
   | 'S8'
   | 'S9'
   | 'S10'
@@ -175,5 +179,47 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     comoLer: 'Reincidência alta em um sistema sugere olhar a causa.',
     meta: 'Sem meta; por sistema, nunca por pessoa.',
     cuidados: 'Reincidência depende do preenchimento do campo.',
+  },
+  E6: {
+    oQueE: 'Se a data comprometida de um projeto se confirma: o deslize de cada projeto concluído.',
+    comoSeCalcula:
+      'Dias úteis entre a data comprometida (a registrada no compromisso) e a conclusão, com sinal: negativo é antes, 0 é na data. Tolerância zero: entregar até a data é cumprir. Alterações posteriores da data contam como replanejamentos. Percentual e P50/P85 só com 20 projetos ou mais; abaixo, os pontos e o "k de n".',
+    comoLer:
+      'Cada ponto é um projeto; a forma mostra os replanejamentos (círculo 0, losango 1, triângulo 2 ou mais). Leia junto com a previsão de término (E5) e o avanço real (T9).',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'Poucos projetos terminam por ano: é esperado ficar abaixo de 20. Projeto concluído sem data comprometida registrada fica fora da conta e é contado à parte. Dado fictício até a coleta real.',
+  },
+  E7: {
+    oQueE:
+      'Quanto das entregas do período vai para cada sistema do parque, por natureza do trabalho.',
+    comoSeCalcula:
+      'Contagem de demandas entregues por sistema ÷ total de entregas do período, sem subtarefa, dividida nas quatro naturezas do T3 (Sustentação, Evolução, Projetos, Dívida técnica). Percentual só com 20 entregas ou mais no sistema; abaixo, "k de n". Sistemas de menos volume ficam no fim.',
+    comoLer:
+      'Mostra onde as entregas se concentram, em ordem de volume. Leia junto com a alocação da capacidade (T3) e a capacidade por objetivo (E2).',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'É participação nas entregas, não esforço medido nem valor em dinheiro. Nunca horas apontadas, nunca por equipe nem por pessoa. Não inclui os chamados da sustentação (Acelerato), que estão no S12.',
+  },
+  E8: {
+    oQueE:
+      'Quantos sistemas tiveram as entregas feitas por uma só pessoa, por duas, ou por três ou mais.',
+    comoSeCalcula:
+      'Contagem de sistemas por faixa de pessoas distintas nas entregas dos últimos 12 meses. O número de pessoas por sistema chega já contado; com menos de 5 sistemas com entregas, as faixas não são mostradas.',
+    comoLer:
+      'Mede o risco de continuidade do parque. Mostra só quantos sistemas estão em cada faixa, sem nomear sistema nem pessoa.',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'Não mostra nem avalia pessoas. Não há filtro por equipe nem por sistema, para não apontar quem entrega. Dado fictício até a coleta real.',
+  },
+  E9: {
+    oQueE: 'Quanto tempo um projeto aprovado espera para começar.',
+    comoSeCalcula:
+      'Retrato do dia dos projetos aprovados e ainda não iniciados, com a espera em dias úteis desde a criação do card de projeto (que nasce com a aprovação na comissão), em faixas de 0–30, 31–90, 91–180 e mais de 180. A linha de referência é o P85 do tempo antes do início dos projetos concluídos do mesmo tipo (E1), só com 20 projetos concluídos no tipo.',
+    comoLer:
+      'Cada ponto é um projeto; a forma indica a faixa. Um tipo de projeto por vez. Leia junto com o lead time de projetos (E1) e as iniciadas × concluídas (E4).',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'O filtro de período não se aplica: é o retrato de hoje. Iniciativa e Melhoria nunca entram no mesmo P85.',
   },
 }

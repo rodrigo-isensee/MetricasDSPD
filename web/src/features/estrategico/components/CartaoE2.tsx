@@ -2,6 +2,7 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { Barras } from '@/components/charts'
 import { CartaoMetrica, NumeroGrande } from '@/components/ui'
 import { useMetrica } from '@/data'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 import { propsCartao } from '@/features/painel/propsCartao'
 import { fmtInteiro, fmtPct, fmtTrimestre } from '@/lib/formatar'
 import { NOTAS_ESTRATEGICO } from '../notas'
@@ -84,6 +85,7 @@ export function CartaoE2({ filtros }: { filtros: FiltrosFluxo }) {
               ))}
             </ul>
           )}
+          <LeiaJunto id="e2" />
         </div>
       )}
     </CartaoMetrica>

@@ -501,6 +501,9 @@ test('IF-D5 Visão geral, catálogo e dados aceitam parâmetros de filtro sem er
 // IF-I: interação
 // ---------------------------------------------------------------------------------------------
 test('IF-I01 marcar todas (uma a uma) e desmarcar todas, em cada filtro múltiplo', async ({ page }) => {
+  // Cinco rotas, cada uma com navegação, assentar do painel e dezenas de cliques: o teto padrão de 30 s vale para o teste
+  // inteiro e estourava na suíte completa local (bug 011F-002); mesmo padrão do IF-A (K-083).
+  test.setTimeout(120_000);
   const casos: [string, string, string[]][] = [
     ['/operacional?cadencia=diaria', 'equipe', EQUIPES],
     ['/operacional?cadencia=diaria', 'tipo', TIPOS],

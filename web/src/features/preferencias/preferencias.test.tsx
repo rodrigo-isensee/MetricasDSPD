@@ -81,7 +81,7 @@ describe('perfil /preferencias', () => {
       '8 de 8 do núcleo e 2 de 2 complementares visíveis',
     )
     expect(screen.getByTestId('contador-estrategico')).toHaveTextContent(
-      '4 de 4 do núcleo e 2 de 2 complementares visíveis',
+      '4 de 4 do núcleo e 6 de 6 complementares visíveis',
     )
     expect(screen.getByTestId('contador-sustentacao')).toHaveTextContent(
       '0 de 8 do núcleo e 0 de 6 complementares visíveis',
@@ -523,7 +523,7 @@ describe('outras telas', () => {
     unmount()
     const e = renderizarApp('/estrategico')
     expect(
-      await screen.findByRole('button', { name: 'Métricas: 4 de 4 (+2 complementares)' }),
+      await screen.findByRole('button', { name: 'Métricas: 4 de 4 (+6 complementares)' }),
     ).toBeInTheDocument()
     e.unmount()
     renderizarApp('/tatico')
