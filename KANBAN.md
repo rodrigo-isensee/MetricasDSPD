@@ -1,7 +1,7 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-17 06:30 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
-> WIP: Pronto para fazer 0/5 · Em andamento: react-frontend 1 (K-102), node-backend 1 (K-103), tech-lead 1 (K-105), devops-engineer 1 (K-106) · Code review 0/2 · QA 0/2 · Aguardando sua validação 1 PR (#101) · Bloqueados: 0
+> Atualizado em: 2026-10-17 10:00 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> WIP: pausa a pedido do usuário (2026-10-17) para atualizar o Forge; só terminam o QA do #108 e a conferência do brief do merge · Bloqueados: 0
 > Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
 # Upstream — descoberta (Design Thinking)
@@ -9,6 +9,8 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-112 | Cadastro de membros por time (Q-T14-10 = B): ADR 0020 e plano §9.5 | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Com o security-engineer. Antes da fase 3 |
+| K-113 | C6 do perf do PR sem margem (188 a 215 ms contra 200) | 014 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Propor medida com margem sem afrouxar o orçamento (ADR 0003) |
 | K-109 | Front do 011, lote 1 (estratégicas): E9, E6, E7, E8 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | Ordem do usuário (2026-10-17): estratégicas → táticas → operacionais, em lotes. Entra depois do K-102 |
 | K-110 | Front do 011, lote 2 (táticas): T10, T11, T12, T13, T14 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | Depois do PR do lote 1 |
 | K-111 | Front do 011, lote 3 (operacionais): O19, O20, O21, O23, O24, O25, O22, O26 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | Depois do PR do lote 2 |
@@ -48,15 +50,15 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-115 | [teste] E2E instável sob carga local: IF-U-operacional e CA-19 axe (sustentação no operacional) estouram 30 s na suíte completa | 021 | forge:qa-engineer | 2026-10-18 | 2026-10-18 02:10 | Pré-existentes; passam sozinhos e na CI. Depois da homolog, junto do K-107 |
 
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-102 | perf da visão semanal: ajustes R1 a R5 do review, depois QA, UX e PR (E1) | 012 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | worktree: -perf-semanal · branch fix/perf-visao-semanal |
-| K-103 | Back da fase 2 do 011: E6, E7 R$, E8, T13, T14, O22, O26 (E1, E2); entrega em 3 lotes por nível | 011 | forge:node-backend | 2026-10-17 | 2026-10-17 06:30 | worktree: -011-fase2 · branch feature/011-fase2-back. E8 e T14 (E2) depois do K-104 |
-| K-104 | Docs da R-1 = B e das decisões de 2026-10-16: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 06:45 | Feito, sem commit (vai no próximo PR de docs). Q-T14-10 aberta com o usuário. CAs da especificação (ux-designer) em seguida |
-| K-105 | Limpeza de worktrees e PR de docs (E1, E2) | 013 | forge:tech-lead | 2026-10-17 | 2026-10-17 06:30 | Diretório principal na develop |
-| K-106 | Checks vermelhos do #101 (homolog → main) (E1) | 014 | forge:devops-engineer | 2026-10-17 | 2026-10-17 06:30 | O merge é do usuário |
+| K-114 | E7 sem R$: participação percentual por entregas (D2 = A) | 024 | forge:node-backend | 2026-10-17 | 2026-10-18 05:40 | worktree: -024 · branch feature/024-e7-sem-reais. E1 + E3 (janela E8/E9) + E4 (concluidoEm no E6). Antes da homolog |
+| K-103 | Back da fase 2 do 011: E6, E7 R$, E8, T13, T14, O22, O26 (E1, E2) | 011 | forge:tech-lead | 2026-10-17 | 2026-10-17 10:00 | worktree: -011-fase2 · os 3 lotes na develop: #105, #107 (8516ff8), #109 (5ad02ea). Falta a promoção para a homolog (pedido 023), depois do #108 e do 024 |
+| K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
+| K-105 | Limpeza de worktrees e docs da retomada | 013/017/019 | usuário | 2026-10-17 | 2026-10-17 10:00 | -011-back e -demo removidas; docs na develop (#102). Falta remover a -qa com --force (ação do usuário; protótipos copiados para ~/MetricasDSPD-local/prototipos) |
 | K-077 | Melhoria do Forge: autoria do parecer gravado pelo Bash | processo | usuário | 2026-10-14 | 2026-10-14 15:30 | Ação do usuário: push e PR pelo terminal dele |
 
 ## Code review (WIP 2)
@@ -74,6 +76,8 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-102 | perf da visão semanal (fila de montagem dos gráficos) | 012/018 | forge:tech-lead | 2026-10-17 | 2026-10-17 12:05 | #103 mesclado na develop (48b909a). TBT da semanal a confirmar no perf-homolog; 4 itens manuais para a validação do usuário |
+| K-106 | Checks do #101 (homolog → main) | 014 | usuário | 2026-10-17 | 2026-10-17 09:50 | #101 mesclado na main pelo usuário |
 | K-083 | [bug] E2E IF-A vermelho na CI da develop (intensivo-filtros.spec.ts:401) | qa-intensivo | forge:tech-lead | 2026-10-14 | 2026-10-15 09:20 | #75 mesclado na develop (b5ac4f5) |
 | K-082 | PR de docs: orçamento móvel na ADR 0003 (K-075) | 010 | forge:tech-lead | 2026-10-14 | 2026-10-15 09:20 | #74 mesclado na develop |
 | K-090 | Alinhar data-model §3.1/§9 e businessmap-api-configuracao à ADR 0020 | 011 | forge:software-architect | 2026-10-14 | 2026-10-14 22:20 | Feito, sem commit; vai no próximo PR de docs |
