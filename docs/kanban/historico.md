@@ -315,3 +315,4 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-10-17 15:24 — Pedido 023: entrega da promoção conferida e aceita (falsos positivos de Base-sha e escopo). #113 mesclado pelo dono na develop; fica para a próxima promoção. Brief do PR de release homolog → main vai à conferência.
 - 2026-10-17 15:25 — Pedido 030: feature/030-dependabot-develop enviada (523372c: target-branch develop + parecer de devops). Entrega em conferência; próximo: parecer de segurança.
 - 2026-10-17 15:26 — Pedido 031 aberto (develop com o que está pronto, limpeza de branches, nova promoção e PR para a main). Brief 8 do 023 (release) substituído. Pedido 030: entrega do devops conferida.
+- 2026-10-17 15:27 — Pedido 031: dono escolheu A (tag de arquivo e apagar), só depois de conferir que o conteúdo das seis branches já está na develop.
