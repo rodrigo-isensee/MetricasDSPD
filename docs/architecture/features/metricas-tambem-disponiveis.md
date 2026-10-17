@@ -62,7 +62,7 @@ Os códigos provisórios do UX ficam **confirmados**, sem colisão: hoje o fluxo
 | T12 | Qualidade da entrada por área | sim |
 | T13 | Dependências entre quadros | sim |
 | E6 | Datas do portfólio | sim |
-| E7 | Capacidade por sistema | sim |
+| E7 | Entregas por sistema | sim |
 | E8 | Concentração de conhecimento | sim |
 | E9 | Projetos aguardando início | sim |
 | T14 | Participação do meu time no projeto | sim (acrescentada em 2026-10-14, decisão "T14 nova = A"; desenho em §9) |
@@ -288,7 +288,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Mock:** extensão `datasProjeto: Record<card_id, { original: number, final: number, replanejamentos: 0..3 }>` para 11 a 14 projetos concluídos em 12 meses. Ficam abaixo de 20 de propósito, para a variante `lenta`.
 - **Mínimo:** taxa e P50/P85 com ≥ 20 projetos; abaixo, AmostraInsuficiente `lenta` com os pontos e "k de n".
 
-### E7 Capacidade por sistema
+### E7 Entregas por sistema
 - **Fonte:** BM.
 - **Dado:** existe. `sistema`, `tipo`, `concluido_em`, demanda sem subtarefa. Nada de horas apontadas.
 - **Sem R$ (D2 = A, usuário, 2026-10-17; CA-35, CA-13):** o E7 mostra a **participação percentual de cada sistema pelas entregas do período** (ex.: "Fluig: 23% das entregas"), sem valor em dinheiro. Nunca por área, equipe ou pessoa; horas apontadas não entram (briefing 7.1). Mudança de critério registrada com data (T2.6).

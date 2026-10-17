@@ -136,7 +136,7 @@ Regras: percentis 50/85/95 na janela de 12 semanas e abaixo de 20 itens sem esta
 | T10 Tempo de terceiros | `fornecedores[{ fornecedor, bloqueios, diasUteis, duracao }]`, `totalDiasUteis`. **Sem** `prazoDiasUteis`, `status` nem `prazoFornecedor` (D-10 = A) |
 | T11 Sazonalidade da chegada | `anos[{ ano, meses[{ mes (1..12), entradas \| null, emAndamento }] }]`, `marcacoes`, `mesesComDado`, `mediaMensal \| null`, `historicoCurto` |
 | T12 Qualidade da entrada por área | `total` (taxa), `areas[{ area, taxa }]` |
-| E7 Capacidade por sistema | `total`, `sistemas[{ sistema, entregas, participacao (taxa \| null), porNatureza[{ natureza, taxa }] }]` (sem R$, D2 = A) |
+| E7 Entregas por sistema | `total`, `sistemas[{ sistema, entregas, participacao (taxa \| null), porNatureza[{ natureza, taxa }] }]` (sem R$, D2 = A) |
 | E9 Projetos aguardando início | `projetos[{ cardId, codigo, titulo, tipo, criadoEm, idadeDiasUteis, faixa }]`, `segmentoPor: 'tipo'`, `referenciasP85[{ tipo, referenciaP85 }]` (uma por tipo de projeto, `Iniciativa` e `Melhoria`; cada `referenciaP85` é estatistica só com `p85`, importada do E1) |
 
 ### O19 e T10 (B3): rotas ativas

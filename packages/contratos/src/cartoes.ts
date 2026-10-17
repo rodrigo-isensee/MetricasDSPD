@@ -248,7 +248,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     'concentracao-do-parque',
     'Onde o parque se concentra, e qual o risco de continuidade?',
     [
-      ['E7', 'Capacidade por sistema', undefined, ['e8', 't3', 'e2']],
+      ['E7', 'Entregas por sistema', undefined, ['e8', 't3', 'e2']],
       ['E8', 'Concentração de conhecimento', undefined, ['e7']],
     ],
     'complementar',

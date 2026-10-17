@@ -1,6 +1,6 @@
 # Contratos por métrica: índice
 
-Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-16.
+Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-17.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
@@ -53,7 +53,7 @@ Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais,
 | [`E4`](E4.md) | Iniciadas × concluídas | businessmap | `/api/v1/metricas/E4` | projeto | 0 | ok |
 | [`E5`](E5.md) | Previsão de término | businessmap | `/api/v1/metricas/E5` | frente | 20 | ok |
 | [`E6`](E6.md) | Datas do portfólio | businessmap | `/api/v1/metricas/E6` | projeto | 20 | ok |
-| [`E7`](E7.md) | Capacidade por sistema | businessmap | `/api/v1/metricas/E7` | story | 20 | ok |
+| [`E7`](E7.md) | Entregas por sistema | businessmap | `/api/v1/metricas/E7` | story | 20 | ok |
 | [`E8`](E8.md) | Concentração de conhecimento | businessmap | `/api/v1/metricas/E8` | story | 0 | ok |
 | [`E9`](E9.md) | Projetos aguardando início | businessmap | `/api/v1/metricas/E9` | projeto | 20 | ok |
 | [`S1`](S1.md) | Primeiro atendimento e restauração | acelerato | `/api/v1/metricas/S1` | chamado | 20 | ok |

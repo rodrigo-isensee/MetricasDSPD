@@ -218,7 +218,7 @@ export const resultadoT12 = fechado({
 })
 
 /**
- * E7 Capacidade por sistema. Participação percentual por contagem de entregas (D-2; D2 = A, sem R$: nenhum campo de
+ * E7 Entregas por sistema. Participação percentual por contagem de entregas (D-2; D2 = A, sem R$: nenhum campo de
  * valor em dinheiro, pedido 024).
  */
 export const resultadoE7 = fechado({
