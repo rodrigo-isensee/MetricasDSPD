@@ -244,3 +244,4 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-10-17 — K-109: #106 fechado (fora de ordem), #108 aberto e verde, mas BEHIND (a develop exige branch atualizada). Ordem: #109 → atualizar #108 e revalidar → #108 → 024.
 - 2026-10-17 — K-103: lote 3 (operacionais) mesclado na develop (#109, 5ad02ea); branches apagadas. Os 3 lotes do back da fase 2 estão na develop.
 - 2026-10-17 — Usuário: "Depois que você acabar o que está em andamento não comece mais nada quero atualizar a versão da forge". Em andamento: QA do #108 (revalidação) e conferência do brief do merge do #108. Nada novo é delegado depois disso; o merge do #108, o 024 e a promoção esperam a atualização do Forge.
+- 2026-10-17 — K-109: QA revalidado sobre 65f46c1 (e850788), aprovado, forge-check limpo. Pausa: nada novo até a atualização do Forge.
