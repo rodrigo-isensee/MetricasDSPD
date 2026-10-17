@@ -117,7 +117,7 @@ A-7 volta ao react-frontend (prova: `pnpm --filter web test` do arquivo e typech
 
 **Escopo:** só `8a4a5a7` (commit de testes do QA, E1.7): quatro arquivos de teste, nenhum código de produção. Cobre as lacunas G1, G2 e G3 achadas no QA.
 
-**Veredito (rodada 4, `8a4a5a7`): aprovado.** Os testes falham se a regra quebrar e não mexem em produção.
+**Veredito (rodada 4, `8a4a5a7`): aprovado.** Os testes falham se a regra quebrar e não mexem em código de produção.
 
 ### Ferramentas (citadas, não refeitas)
 - `pnpm run pronto` e E2E: não rodados (restrição do usuário de 2026-10-17: uma tarefa pesada por vez); ficam com o QA e com a CI.
