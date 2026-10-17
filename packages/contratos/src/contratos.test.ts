@@ -131,8 +131,11 @@ describe('metas, janela e aplicabilidade', () => {
   it('sustentação e fluxo não se misturam: nenhuma métrica S/EI_SUST tem aplicabilidade de fluxo', () => {
     for (const id of METRICAS_SUSTENTACAO) expect(APLICABILIDADE_FLUXO[id]).toBeUndefined()
     expect(METRICAS_SUSTENTACAO).toHaveLength(15)
-    for (const [, chaves] of Object.entries(APLICABILIDADE_FLUXO))
-      expect(chaves).toContain('periodo')
+    // E8 (janela fixa de 12 meses) e E9 (retrato de hoje): o período é aceito e ignorado, então não consta como filtro que atua (pedido 024, E3).
+    const SEM_PERIODO = ['E8', 'E9']
+    for (const [id, chaves] of Object.entries(APLICABILIDADE_FLUXO))
+      if (SEM_PERIODO.includes(id)) expect(chaves, id).not.toContain('periodo')
+      else expect(chaves, id).toContain('periodo')
   })
 })
 
