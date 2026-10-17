@@ -3,6 +3,7 @@ import type { FiltrosFluxo, TipoCard } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
 import { CALENDARIO_PADRAO } from '../core/calendario'
+import { VERSAO_CRITERIO_E7_SEM_REAIS, VERSOES_DA_BIBLIOTECA } from '../core/criterios'
 import { calcularE7 } from './index'
 import { criarContextoBM } from './indice'
 import { HOJE_TESTE, trilhaSimples, umaBase, type EspecCard } from './testing'
@@ -206,5 +207,20 @@ describe('L3: marcação de critério cruzando o período (E7)', () => {
     const r = calcularE7(criarContextoBM(base, HOJE_TESTE, CALENDARIO_PADRAO), F)
     expect(r.criterios.serie.map((c) => c.id)).toEqual(['c-dentro'])
     expect(r.criterios.janela.map((c) => c.id)).toEqual(['c-dentro'])
+  })
+})
+
+describe('T2.6: critério "E7 sem reais" na biblioteca real (D2 = A)', () => {
+  it('a versão de 2026-10-17 afeta o E7, está na biblioteca e aparece na série e na janela sem critérios fictícios', () => {
+    expect(VERSAO_CRITERIO_E7_SEM_REAIS).toMatchObject({ data: '2026-10-17', afeta: ['E7'] })
+    expect(VERSOES_DA_BIBLIOTECA).toContain(VERSAO_CRITERIO_E7_SEM_REAIS)
+    const base = umaBase([])
+    expect(base.config.criterios).toEqual([])
+    // hoje depois da data da mudança, para ela cruzar o período
+    const ctx = criarContextoBM(base, '2026-10-20T18:00:00-03:00', CALENDARIO_PADRAO)
+    const r = calcularE7(ctx, F)
+    const ids = (l: { id: string }[]) => l.map((c) => c.id)
+    expect(ids(r.criterios.serie)).toContain(VERSAO_CRITERIO_E7_SEM_REAIS.id)
+    expect(ids(r.criterios.janela)).toContain(VERSAO_CRITERIO_E7_SEM_REAIS.id)
   })
 })

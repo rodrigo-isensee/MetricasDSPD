@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { FiltrosDe, MetricaId, ResultadoDe } from '@metricas-dspd/contratos'
+import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { MockFonteMetricas } from '@/data'
 import { FILTROS_FLUXO, FonteAjustada } from '@/features/painel/testes/fonteFixa'
 import { renderizarCartao } from '@/test/helpers'
@@ -455,5 +456,14 @@ describe('ramos de leitura dos cartões', () => {
     )
     const tabela = within(el).getByRole('table', { name: /Entregas e participação por sistema/ })
     expect(within(tabela).getAllByRole('row')).toHaveLength(15)
+  })
+})
+
+describe('nome do E7 na tela (decisão do dono, pedido 021)', () => {
+  it('catálogo e título do cartão dizem "Entregas por sistema", nunca o nome antigo', async () => {
+    expect(entradaDoCatalogo('E7').nome).toBe('Entregas por sistema')
+    const el = await abrir('E7', <CartaoE7 filtros={FILTROS_FLUXO} />)
+    expect(within(el).getByText('Entregas por sistema')).toBeInTheDocument()
+    expect(el.textContent).not.toMatch(/capacidade por sistema/i)
   })
 })
