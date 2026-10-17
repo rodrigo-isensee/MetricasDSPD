@@ -1,5 +1,5 @@
 # 011F-002 - IF-I01 estoura o teto de 30 s na suíte E2E completa local
-- Estado: aberto
+- Estado: fechado (2026-10-17, pela saída (a): orçamento de tempo próprio no teste, 357936b)
 - Severidade: baixa (teste, não produto; a CI está verde no mesmo commit)
 - Responsável sugerido: autor do teste (`e2e/tests/intensivo-filtros.spec.ts`, K-083 trouxe o orçamento próprio do IF-A); o QA não corrige a suíte do lote anterior sem pedido
 - Ambiente: `feature/011-front-estrategicas` (3d2ee5b), Chromium (Playwright), WSL 8 GB, mock
@@ -19,3 +19,8 @@ Duas rodadas completas seguidas: 704 passaram e 1 falhou (IF-I01), rc=1. Erro: `
 - A branch não toca `intensivo-filtros.spec.ts` nem o filtro de prioridade (diff contra a develop: `Chips.tsx` ganha só o literal 'sistema', `simulacao.ts` só o ramo do E8).
 - Check `e2e` da CI no PR #106 no mesmo commit (3d2ee5b): passou, 21 min 33 s.
 - Não confirmei se o mesmo teste falha na develop local (não toquei outras worktrees).
+
+## Fechamento
+- Correção do react-frontend em 357936b (`test.setTimeout(120_000)` no IF-I01), aprovada pelo tech-lead na volta 6 (79c3df5).
+- Reteste em 79c3df5, load 0,10 no início: `pnpm exec playwright test tests/intensivo-filtros.spec.ts -g "IF-I01" --repeat-each=3` (de `e2e/`): 3 de 3 passaram (25,1 s a 25,7 s, workers em paralelo), rc=0. Antes da correção as mesmas 3 execuções falhavam em 30 s.
+- Prova da suíte completa: check `e2e` da CI do PR #106 em 79c3df5: pass (27m28s).
