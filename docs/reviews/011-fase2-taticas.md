@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 011-fase2-taticas
 branch: feature/011-fase2-taticas
-commit: 3c9a9cd
+commit: bfe0b2d
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
@@ -15,7 +15,7 @@ data: 2026-10-16
 
 **Separação por nível** (decisão do usuário de 2026-10-17): este lote é o commit `ee552d9`. Ele sai da `feature/011-fase2-estrategicas` (`3aeaa3d`), para não haver conflito nos arquivos compartilhados, e por isso o PR deste lote só abre depois do merge do lote 1. O commit acrescenta só T13 e T14 aos arquivos compartilhados (`METRICA_IDS`, `APLICABILIDADE_FLUXO`, `COM_EXTENSAO_MOCK`, `REGRAS_METRICA`, `NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO`, `ExtensaoTambemBM`, gerador do mock, OpenAPI, fotografias, `docs/api`, `docs/tecnica`, `regras-metricas.md` e as contagens dos testes). Os hashes por campo da extensão continuam os do autor (`vinculos`, `equipeResponsavel`, `outrosPublicavel`, `configEquipes`); só o hash da extensão inteira mudou (`64d76236`). Nenhuma lógica foi alterada na separação.
 
-**Veredito (rodada 1, `ee552d9`):** **aprovado**, com 3 ajustes recomendados e uma pendência de escopo do lote para o Jarvis. Nada bloqueia o QA. **A rodada 2 e depois a rodada 3 (abaixo) substituem este veredito; o que vale é o da rodada 3.**
+**Veredito (rodada 1, `ee552d9`):** **aprovado**, com 3 ajustes recomendados e uma pendência de escopo do lote para o Jarvis. Nada bloqueia o QA. **As rodadas 2, 3 e 4 (abaixo) substituem este veredito; o que vale é o da rodada 4.**
 
 ## Ferramentas (citadas, não refeitas)
 - `pnpm run pronto` na raiz da worktree, nesta branch, sobre `ee552d9` mais este parecer: **rc=0** (2026-10-16 11:26, load 0,76 no início). Cobre lint, `format:check`, tipos, testes com cobertura de 100% em todos os pacotes, `docs:check`, `spec:check`, build e tamanho do web.
@@ -130,3 +130,27 @@ O delta não toca em nenhum dado de pessoa, nas regras de mínimo de 20, na sepa
 
 ### Commits
 `c3ac1ca fix(metricas): registra a versão de critério do T10 e documenta a normalização (R4, R5, R7)`, `bb5e920 fix(metricas): Q-T14-9 vira decisão do usuário e Q-T14-4 explícita (R6, R2)` e `3c9a9cd fix(metricas): T13 rotula a amostra pela granularidade e o mock usa chaveOutrosPublicavel (R1, R3)`. Os três seguem Conventional Commits em português, cada um com os achados que fecha, e trazem as linhas de atribuição.
+
+## Rodada 4: revalidação sobre `bfe0b2d` (R8; pedido 027)
+
+**Escopo revisto:** só o delta `git diff 226bb33 bfe0b2d` (2 arquivos, +8/−7): `docs/architecture/regras-metricas.md` e um comentário JSDoc de `packages/metricas/src/businessmap/t10.ts`. Nenhuma linha de lógica, teste, contrato ou dado.
+
+**Veredito:** **aprovado**, sem achados novos. O R8 e a observação do O19 estão resolvidos. Nada pendente deste review antes do PR (pedido 022).
+
+### Ferramentas (citadas, não refeitas)
+- `pnpm run pronto` rodado pelo autor sobre `bfe0b2d`: **rc=0** (relatado no pedido 027). Não rodei de novo, por causa do teto de recursos: o QA roda o pronto e os E2E do front em outra worktree. O `format:check` coberto pelo pronto vale também para o alinhamento da tabela, que ficou irregular nas três linhas editadas e não tem efeito no Markdown renderizado.
+
+### R8 e a observação do O19
+| Item | Situação na rodada 4 | Evidência |
+|---|---|---|
+| T10 (`regras-metricas.md:117`) | **resolvido** | A célula de fonte passa a citar "B11-001". A versão de critério de 2026-10-17 aparece na nota do O19 e do T10 (`:135`), com a regra de agrupamento pelo nome normalizado e a exibição pela grafia mais frequente, o que coincide com `criterio-2026-10-17-t10-fornecedor-normalizado` |
+| T14 (`:121`) | **resolvido** | Cita "Q-T14-9 = A, Q-T14-10 = B, T14-M1 = B". O status continua `pendente-usuario`, que está certo: a cardinalidade do campo "Time responsável" e as Q-T14-2, 3, 4, 7 e 8 seguem abertas |
+| Parágrafo da fase 2 (`:143`) | **resolvido** | A lista de pendências fica "Q-T14-2, 3, 4, 7 e 8" mais a cardinalidade. Q-T14-9 = A, Q-T14-10 = B e T14-M1 = B passam a decisões do usuário, com a T14-M1 descrita como "só a fatia do meu time, sem o total exato" e válida antes da fase 3. Isso está de acordo com a decisão |
+| O19 (`:131` e `:135`, observação da rodada 3) | **resolvido** | O `pctDoTotal` passa a ser a parcela dos dias úteis bloqueados de cada motivo, com o mínimo de 20 ainda contado em bloqueios, e o critério anterior aparece como substituído. Isso coincide com `docs/api/metricas.md:145` e com o teste `bloqueios.test.ts:88` |
+| `t10.ts:15` | **resolvido** | O comentário ficou inteiro e com acentos: "Fornecedor igual a menos de diferenças de maiúsculas e espaços (B11-001) é um só, exibido pela grafia mais frequente" |
+
+### O que este delta não mexeu
+O delta não toca em código executável, em dados de pessoa, nas regras de mínimo de 20, na separação entre story, frente e projeto nem no BusinessMap × Acelerato. A segurança (E2.3) revalida depois desta rodada, e o QA (E2.4) vem depois da segurança.
+
+### Commits
+`bfe0b2d docs(metricas): regras-metricas registra B11-001, Q-T14-9/10, T14-M1 e O19-pct (R8)`. Segue Conventional Commits em português e traz as linhas de atribuição. O tipo `docs` está certo, porque a mudança em `t10.ts` é só de comentário.
