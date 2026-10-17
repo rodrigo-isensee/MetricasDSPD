@@ -41,4 +41,4 @@ Pareceres de segurança presentes na develop para #105, #107 e #109. Revisões d
 
 Não refaz os reviews individuais. O parecer de QA da promoção (E1.4) e a CI da develop como prova são de outro papel. Lacunas conhecidas, já registradas nos bugs de `docs/qa/bugs/`, seguem como pendências do QA, não bloqueiam esta promoção.
 
-Parecer: aprovado.
+Parecer: aprovado (revisor: tech-lead).
