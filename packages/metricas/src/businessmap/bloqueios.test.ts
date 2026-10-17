@@ -238,6 +238,17 @@ describe('T10: tempo de terceiros (só o praticado)', () => {
     expect(SCHEMAS_RESULTADO.T10.safeParse(r).success).toBe(true)
   })
 
+  it('B11-001: no empate de grafias aparece a primeira em ordem neutra (ALFA antes de Alfa)', () => {
+    const bl = [
+      ...muitos(10, 'Aguardando fornecedor', 'ALFA'),
+      ...muitos(10, 'Aguardando fornecedor', 'Alfa'),
+    ]
+    for (const ordem of [bl, [...bl].reverse()]) {
+      const r = calcularT10(ctxDe([card('A')], ordem), F)
+      expect(r.fornecedores.map((x) => [x.fornecedor, x.bloqueios])).toEqual([['ALFA', 20]])
+    }
+  })
+
   it('CA-11: ordem alfabética, independente da ordem de entrada', () => {
     const bl = [
       ...muitos(1, 'Aguardando fornecedor', 'Fornecedor Gama'),

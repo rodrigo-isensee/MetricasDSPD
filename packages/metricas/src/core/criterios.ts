@@ -87,6 +87,15 @@ export const VERSAO_CRITERIO_O20_DESTAQUE_V2: VersaoCriterio = {
   afeta: ['O20'],
 }
 
+/** B11-001 = sim (pedido 011, 2026-10-17): o fornecedor do T10 é agrupado pelo nome normalizado (caixa e espaços). */
+export const VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO: VersaoCriterio = {
+  id: 'criterio-2026-10-17-t10-fornecedor-normalizado',
+  data: '2026-10-17',
+  descricao:
+    'Fornecedor agrupado sem diferença de maiúsculas, minúsculas e espaços; exibe a grafia mais frequente',
+  afeta: ['T10'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -94,6 +103,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_EXCLUIDO_ENTREGUE,
   VERSAO_CRITERIO_O19_PCT_DIAS,
   VERSAO_CRITERIO_O20_DESTAQUE_V2,
+  VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO,
 ]
 
 /**

@@ -13,16 +13,15 @@ const soma = (xs: readonly number[]): number => xs.reduce((s, x) => s + x, 0)
  * T10: tempo de terceiros, só o praticado (D-10 = A): sem prazo contratado e sem status. Entra todo bloqueio
  * encerrado com fornecedor informado, de qualquer motivo (R-5, CA-24); sem fornecedor fica fora. Uma linha por
  * fornecedor em ordem alfabética (CA-11), com P50/P85 só com n >= 20 por fornecedor, na janela móvel de 12 semanas. Fornecedor igual a menos de
- * maiusculas e espacos e um so (B11-001). O fornecedor é
- * dimensão permitida, nunca pessoa.
+ * maiúsculas e espaços (B11-001), exibido pela grafia mais frequente. O fornecedor é dimensão permitida, nunca pessoa.
  */
 export function calcularT10(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT10 {
   const periodo = periodoDe(ctx, f)
   const cards = selecionar(ctx, f, 'story')
   // Percentis na janela móvel de 12 semanas (opção A, até o usuário decidir a janela do T10); o censo segue no período.
   const janela = janelaPercentis(ctx, f, 'story')
-  // B11-001 (usuario): o fornecedor e agrupado pelo nome normalizado (sem diferenca de maiusculas e minusculas nem de
-  // espacos nas pontas e repetidos); a exibicao usa a grafia mais frequente do grupo no periodo (empate: ordem neutra).
+  // B11-001 (usuário): o fornecedor é agrupado pelo nome normalizado (sem diferença de maiúsculas e minúsculas nem de
+  // espaços nas pontas e repetidos); a exibição usa a grafia mais frequente do grupo no período (empate: ordem neutra).
   const agrupar = (periodoOuJanela: typeof periodo) => {
     const mapa = new Map<string, { horas: number[]; grafias: Map<string, number> }>()
     for (const b of bloqueiosDoPeriodo(ctx, cards, periodoOuJanela).encerrados) {
