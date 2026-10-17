@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 011-fase2-taticas
 branch: feature/011-fase2-taticas
-commit: bfe0b2d
+commit: 0d9f296
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
@@ -154,3 +154,24 @@ O delta não toca em código executável, em dados de pessoa, nas regras de mín
 
 ### Commits
 `bfe0b2d docs(metricas): regras-metricas registra B11-001, Q-T14-9/10, T14-M1 e O19-pct (R8)`. Segue Conventional Commits em português e traz as linhas de atribuição. O tipo `docs` está certo, porque a mudança em `t10.ts` é só de comentário.
+
+## Rodada 5: revalidação sobre `0d9f296` (teste da P6 com equipe no filtro, B-1 da segurança)
+
+**Escopo revisto:** só o delta `git diff 6eda1cc..0d9f296 -- packages server web e2e`: 1 arquivo, +26/−0, `packages/metricas/src/regras.property.test.ts` (commit `a1c0ee0`). Nenhum código de produção, contrato nem dado. O commit `967cb2c` (parecer de segurança) e `0d9f296` (parecer de QA) são só documentos.
+
+**Veredito:** **aprovado**, sem achados novos. Nada pendente deste review antes do PR (pedido 022).
+
+### Ferramentas (citadas, não refeitas)
+- `pnpm run pronto` rodado pelo QA sobre `0d9f296`: **rc=0** (relatado na delegação). Não rodei de novo, por causa do teto de recursos.
+
+### O teste novo (E1, E2)
+| Item | Situação | Evidência |
+|---|---|---|
+| Fecha o B-1 | ok | O T14 sem equipe responde `semEquipe` e a varredura da P6 não via valores. O bloco novo roda `calcularMetrica('T14', ...)` com uma equipe no filtro, que é o caso em que a resposta carrega títulos, equipe e taxas, e passa o resultado por `varrer(r, 'T14', falhas)`, a mesma varredura de nomes de pessoa da P6 |
+| Não roda no vazio (item 11 do checklist) | ok | O primeiro teste afirma pelo menos 2 equipes na base e pelo menos uma com projetos em alguma granularidade. Cada equipe afirma `semEquipe === false`, então uma resposta vazia por filtro inválido não passa |
+| Chave da equipe | ok | O filtro usa `slug(e.nome)` das equipes da própria base, o mesmo caminho de `filtrosDe`; o import novo (`./slug`) é usado e o lint não acusa |
+| Determinismo e custo | ok | A base é a já construída pelo arquivo, sem hora atual nem aleatório novo; o custo é um cálculo do T14 por equipe |
+| Regras do `CLAUDE.md` | ok | O teste só reforça "nenhum dado de pessoa fora da allow-list"; não toca em comparação entre times, mínimo de 20 nem BusinessMap × Acelerato |
+
+### Commits
+`a1c0ee0 test(metricas): a P6 alcança o T14 com uma equipe no filtro (B-1 da segurança, 011 lote 2)`. Segue Conventional Commits em português.
