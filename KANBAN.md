@@ -61,7 +61,6 @@
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-114 | E7 sem R$ (participação por entregas) e nome "Entregas por sistema" | 024 | forge:qa-engineer | 2026-10-17 | 2026-10-17 10:32 | worktree: -024 · QA sobre a CI do push; depois PR (tech-lead) |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -70,6 +69,7 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-114 | E7 sem R$ (participação por entregas) e nome "Entregas por sistema" | 024/029 | forge:tech-lead | 2026-10-17 | 2026-10-17 12:45 | #114 (ed6ba46) na develop; R-1 aceita pelo dono; pergunta do catálogo do E7 com o dono |
 | K-077 | Melhoria do Forge: autoria do parecer gravado pelo Bash | processo | usuário | 2026-10-14 | 2026-10-17 09:59 | Repassada à fábrica pelo usuário (prompt de melhorias, A4) |
 | K-081 | Registro da versão 0.13.0 do Forge na develop | processo | usuário | 2026-10-14 | 2026-10-17 09:59 | Obsoleto: substituído pelo PR #113 (0.19.0) |
 | K-105 | Limpeza de worktrees e docs da retomada | 013/017/019 | usuário | 2026-10-17 | 2026-10-17 09:52 | -qa removida; docs na develop (#102) |

@@ -287,3 +287,31 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-10-17 10:42 — K-114: entrega dos testes G1 a G3 conferida: cumpriu. Aguardando a conferência do brief da rodada 4.
 - 2026-10-17 10:46 — K-114: rodada 4 do review aprovada (3daf896, 4fb04ad; commit revisado 8a4a5a7). Entrega em conferência; brief do parecer do QA pronto.
 - 2026-10-17 10:47 — K-114: entrega da rodada 4 conferida: cumpriu. QA esperando a CI para o parecer final.
+- 2026-10-17 10:54 — K-114: CI do 4fb04ad vermelha (format:check em e8.test.ts, bug 024-001). Correção pelo QA (E1.9), rodada 5 do review (E1.10), depois o parecer.
+- 2026-10-17 11:00 — K-114: formatação corrigida (b390b0c; format:check e lint verdes; 1082 testes). Entrega em conferência; brief da rodada 5 pronto.
+- 2026-10-17 — K-114: entrega do E1.9 (b390b0c) conferida: PQ-1 e PQ-4 cumpridos, escopo ok no intervalo 4fb04ad..b390b0c; "escopo: fora" só pelo diff acumulado (aceito). Word-diff confirma só formatação; o registro do bug diz "git diff -w vazio", o que é impreciso (fica como ressalva baixa para o QA no parecer). Brief da rodada 5 corrigido (registro do bug citado no E1.9; word-diff no lugar de -w).
+- 2026-10-17 11:06 — K-114: rodada 5 do review aprovada (781e171, commit revisado b390b0c). Entrega em conferência; QA esperando a CI do b390b0c ou posterior para o parecer final.
+- 2026-10-17 11:07 — K-114: entrega da rodada 5 conferida: cumpriu.
+- 2026-10-17 11:20 — K-114: QA aprovado (4dff3a2, e240673; run 39039285614 success; e2e só roda no PR). Ressalva baixa R-1 pede aceite do usuário; o QA marcou aceite_usuario: sim sem o aceite (erro, apontado ao usuário). Entrega em conferência.
+- 2026-10-17 11:21 — Decisão do usuário: aceita a R-1 do QA do 024 (A). Próximo: PR do 024 (pedido 029, tech-lead), depois da conferência da entrega do QA.
+- 2026-10-17 11:21 — K-114: entrega do parecer do QA conferida: cumpriu (achado do aceite resolvido pela decisão do usuário). Brief do PR (pedido 029) em conferência.
+| 2026-10-17T12:45:29-03:00 | K-114 | QA | Pronto | #114 mesclado na develop (ed6ba46), branch e worktree apagadas |
+- 2026-10-17 12:45 — K-114: #114 mesclado na develop (ed6ba46). Entrega em conferência. Próximo: promoção develop → homolog (pedido 023), brief em preparo.
+- 2026-10-17 12:46 — K-114: entrega do #114 conferida; dois falsos positivos (escopo acumulado e forge-check pós-merge), entrega aceita e registrada no pedido 029. Pedido 029 concluído.
+- 2026-10-17 12:48 — Pedido 023: conferente reprovou duas vezes o brief da promoção (pede parecer próprio, que a R-FLUXO não exige). Decisão técnica registrada no pedido 023, com base no CLAUDE.md, na R-FLUXO e no precedente; brief volta para confirmação.
+- 2026-10-17 12:51 — Decisão do usuário: "A regra do projeto nunca passa sobre a fábrica" → promoção com parecer próprio de review e QA (opção B). Pareceres vão por um PR só de documentação para a develop antes da promoção.
+- 2026-10-17 12:54 — Pedido 023: review da promoção aprovado (2a69655), push barrado pelo pre-push (worktree sem node_modules). Tech-lead instala as dependências e reenvia.
+- 2026-10-17 12:57 — Pedido 023: parecer de review da promoção enviado (2a69655, branch docs/023-pareceres-promocao; pnpm install na worktree, pre-push verde). Entrega em conferência; QA gravando o parecer da promoção.
+- 2026-10-17 12:58 — Pedido 023: entrega do review da promoção conferida: cumpriu. Brief do PR de documentação dos pareceres (E1.5) pronto.
+- 2026-10-17 12:59 — Pedido 023: parecer de QA da promoção aprovado (4284b36; CI da develop em ed6ba46 success, run 39046337856; R-1 do 024 com aceite do dono). Entrega e brief do PR dos pareceres em conferência.
+- 2026-10-17 13:00 — Pedido 023: entrega do QA conferida (PQs ok); o forge-check acusa falta de registro de autoria do parecer de review (tech-lead), que bloqueia o PR. Brief do E1.5 corrigido: o tech-lead regrava o parecer pela ferramenta Edit antes do PR.
+- 2026-10-17 14:03 — Pedido 023: PR #115 (pareceres da promoção) mesclado na develop (0cad9f3). Brief da promoção atualizado para 0cad9f3 e para a opção B; vai à conferência junto com a entrega do #115.
+- 2026-10-17 14:04 — Pedido 023: brief da promoção aprovado na 4ª rodada (com a opção B). Tech-lead abre o PR develop → homolog e acompanha o portão.
+- 2026-10-17 14:05 — Pedido 023: entrega do #115 conferida: cumpriu. Worktree -023 limpa; a remoção fica com o tech-lead depois da promoção.
+- 2026-10-17 15:17 — Pedido 030 aberto: PRs do Dependabot (#110 a #112) abertos contra a main por falta de target-branch no dependabot.yml. Troca de base pelo tech-lead e configuração pelo devops, pelo fluxo normal.
+- 2026-10-17 15:19 — Pedido 030: os 3 PRs do Dependabot agora apontam para a develop (nenhum PR aberto contra a main). Entrega em conferência; brief do devops (dependabot.yml) pronto.
+- 2026-10-17 15:20 — Pedido 030: entrega do E1.1 conferida; estado correto, reprovação só de forma (aceita e registrada). Brief do devops vai à conferência.
+- 2026-10-17 15:22 — HOMOLOG: #116 mesclado (087a220), portão verde (run 39056114632). Leva #102, #103, #105, #107, #108, #109, #114 e #115. Entrega em conferência; próximo: PR de release homolog → main pronto para o dono.
+- 2026-10-17 15:24 — Pedido 023: entrega da promoção conferida e aceita (falsos positivos de Base-sha e escopo). #113 mesclado pelo dono na develop; fica para a próxima promoção. Brief do PR de release homolog → main vai à conferência.
+- 2026-10-17 15:25 — Pedido 030: feature/030-dependabot-develop enviada (523372c: target-branch develop + parecer de devops). Entrega em conferência; próximo: parecer de segurança.
+- 2026-10-17 15:26 — Pedido 031 aberto (develop com o que está pronto, limpeza de branches, nova promoção e PR para a main). Brief 8 do 023 (release) substituído. Pedido 030: entrega do devops conferida.

@@ -24,6 +24,8 @@
 - E1.3 (forge:qa-engineer): QA.
 - E1.7 (forge:qa-engineer): testes das lacunas G1 a G3 achadas no QA (nome do E7 no catálogo, no cartão e na tela; VERSAO_CRITERIO_E7_SEM_REAIS nos critérios do E7; E8 sem efeito do período), num commit só de testes, antes da rodada 4 do review (acrescentada em 2026-10-17).
 - E1.8 (forge:tech-lead): rodada 4 do review, só sobre os testes do E1.7 (acrescentada em 2026-10-17).
+- E1.9 (forge:qa-engineer): corrigir a formatação de `e8.test.ts` (bug 024-001, Prettier na linha 119), sem mudar o que o teste afirma, com `format:check` e `lint` verdes, e o registro do bug em `docs/qa/bugs/024-001-e8-test-fora-do-prettier.md` no mesmo commit (acrescentada em 2026-10-17; o registro entrou no texto da etapa em 2026-10-17, apontado pelo conferente).
+- E1.10 (forge:tech-lead): rodada 5 do review, só sobre a correção de formatação do E1.9 (acrescentada em 2026-10-17).
 - E2.1 (forge:software-architect): plano §2 E7 e ADR.
 - E2.2 (forge:ux-designer): CA do E7 na especificação.
 
@@ -38,6 +40,7 @@
 - 2026-10-17 — Conferência da entrega do E1.4 (97ddd0b): PQ-1, PQ-2 e PQ-4 cumpridos; PQ-5 falhou só pelos 3 arquivos de docs/ux que a UX (E5.2) gravou depois, na mesma worktree, quando o Jarvis disparou as duas em paralelo; o relatório do react-frontend mostra status limpo no fim da entrega dele. Decisão técnica do Jarvis: entrega aceita; não conta como retrabalho do autor.
 - 2026-10-17 — A-7 corrigido (19accc9, 83c5f49). O react-frontend relatou ter TENTADO amend com push forçado para ajustar o próprio commit; o hook (R-VERIFY) bloqueou e ele seguiu com commit novo. Nenhum histórico foi reescrito no remoto. Causa próxima: o PQ-3 do brief contava linhas do texto e o título do teste o repetia (brief do Jarvis). Registrado em melhorias.
 - 2026-10-17 — QA parou antes do parecer por 3 lacunas de teste (G1 nome do E7 sem asserção; G2 versão de critério T2.6 sem teste; G3 E8 sem teste de que o período não muda o resultado); sem bugs. Decisão técnica do Jarvis: opção (a), cobrir com testes; quem escreve é o próprio QA (E1.7), num commit só de testes; depois rodada 4 do review só sobre esses testes (E1.8) e o parecer do QA. Aceitar as lacunas (b) foi descartado: G2 toca regra inviolável (T2.6). Base: relatório do QA e sequência proposta em melhorias.md (teste → review → parecer).
+- 2026-10-17 — A CI do head 4fb04ad falhou na `rapida`: `format:check` reprova `e8.test.ts` (teste G3 do E1.7), bug 024-001 (médio). Causa: o brief do E1.7 (Jarvis) mandou rodar só os testes, não `format:check` nem `lint`. Decisão técnica do Jarvis: o QA corrige a formatação (E1.9), rodada 5 do review só nela (E1.10), depois o parecer. Base: relatório do QA, run 39037889777.
 
 ## Restrições do usuário
 - 2026-10-17: "deminua um pouco o uso da maquina": teto de 2 agentes de dia e 3 à noite, uma tarefa pesada (`pronto`, E2E, medição) por vez.
@@ -50,3 +53,5 @@
 ## Fora do escopo
 - O front do E7 (pedido 021, lote 1, já segue a regra nova).
 - O PR (pedido a abrir depois do QA).
+- PERGUNTA: 2026-10-17 — Aceite da ressalva baixa R-1 do QA (o registro do bug 024-001 diz "git diff -w vazio", o que é impreciso; sem efeito em código). O parecer do QA (e240673) já traz `aceite_usuario: sim` sem que o usuário tenha aceitado: o Jarvis apontou o erro e pergunta ao usuário. Opções: A aceitar como está; B corrigir a frase do registro num commit novo. Recomendação: A.
+- 2026-10-17 — DECISÃO DO DONO: aceita a ressalva baixa R-1 do QA como está (opção A). O campo `aceite_usuario: sim` do parecer (e240673) passa a ser verdadeiro a partir desta resposta; o parecer não precisa de novo commit.
