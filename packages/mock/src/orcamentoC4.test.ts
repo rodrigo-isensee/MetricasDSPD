@@ -74,7 +74,7 @@ const CADENCIAS: Record<PainelFluxo, readonly CadenciaC4[]> = {
   tatico: ['semanal'],
   estrategico: ['semanal'],
 }
-/** Ids do 011 (fases 1 e 2), do contrato. T11, E6 e E8 só calculam com a extensão do 011. */
+/** Ids do 011 (fases 1 e 2), do contrato. T11, O22, O26, T13, E6, E8 e T14 só calculam com a extensão do 011. */
 const TODAS_NOVAS = Object.keys(SCHEMAS_TAMBEM) as MetricaId[]
 
 const base = gerarBaseMock()
@@ -94,7 +94,13 @@ const filtros = (id: string, periodo: '12s' | '12m') =>
     ? {}
     : fonteDaMetrica(id as never) === 'acelerato'
       ? { equipe: [], prioridade: [], periodo: { tipo: periodo } }
-      : { equipe: [], tipo: [], sistema: [], periodo: { tipo: periodo } }
+      : // T14 só calcula com exatamente uma equipe ("meu time"): a medida usa uma, que é o pior caso de uso real.
+        {
+          equipe: id === 'T14' ? ['plataforma-5g'] : [],
+          tipo: [],
+          sistema: [],
+          periodo: { tipo: periodo },
+        }
 const calcular = (id: MetricaId, c: ReturnType<typeof novoContexto>, periodo: '12s' | '12m') =>
   calcularMetrica(id, id === 'VISAO_GERAL' ? {} : (filtros(id, periodo) as never), c)
 

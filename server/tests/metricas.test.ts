@@ -525,8 +525,8 @@ describe('ServicoMetricas: carga, versão e cache', () => {
   });
 });
 
-describe('fase 2 do pedido 011 (E1 e E2): E6 e E8 em mock', () => {
-  const NOVAS = ['E6', 'E8'] as const;
+describe('fase 2 do pedido 011 (E1 e E2): O22, O26, T13, E6, E8 e T14 em mock', () => {
+  const NOVAS = ['O22', 'O26', 'T13', 'E6', 'E8'] as const;
 
   it.each(NOVAS)('%s: 200 no schema, filtros do fluxo, cabeçalhos e nenhum campo de pessoa', async (id) => {
     const { app } = await montar();
@@ -540,6 +540,23 @@ describe('fase 2 do pedido 011 (E1 e E2): E6 e E8 em mock', () => {
     expect((await get(app, `/api/v1/metricas/${id}?periodo=12m&responsavel=x`)).statusCode).toBe(400);
   }, 60_000);
 
+  it('O22: P50/P85/P95 por tipo e sem toque; O26: histograma por faixa e P85 do ciclo; sem nome de pessoa', async () => {
+    const { app } = await montar();
+    const o22 = (await get(app, '/api/v1/metricas/O22?periodo=12m')).json();
+    expect(o22.porTipo.length).toBeGreaterThan(0);
+    expect(Object.keys(o22.porTipo[0]).sort()).toEqual(['distribuicao', 'histograma', 'semToque', 'tipo']);
+    const o26 = (await get(app, '/api/v1/metricas/O26?periodo=12m')).json();
+    expect(o26.porTipo[0].faixas.map((f: { faixa: string }) => f.faixa)).toEqual(['0', '1', '2', '3', '4+']);
+    expect(JSON.stringify([o22, o26])).not.toMatch(/Pessoa \d/);
+  }, 60_000);
+
+  it('T13: um bloco por granularidade (demanda e frente), só o booleano agregado e sem o quadro do outro lado', async () => {
+    const { app } = await montar();
+    const t13 = (await get(app, '/api/v1/metricas/T13?periodo=12m')).json();
+    expect(t13.porGranularidade.map((g: { granularidade: string }) => g.granularidade)).toEqual(['story', 'frente']);
+    expect([...chaves(t13)].filter((k) => /quadro|equipe|relacionado/i.test(k))).toEqual([]);
+  }, 60_000);
+
   it('E8 (R-1 = B): só a contagem de sistemas por faixa, sem nome de sistema nem de pessoa', async () => {
     const { app } = await montar();
     const e8 = (await get(app, '/api/v1/metricas/E8?periodo=12m')).json();
@@ -548,21 +565,44 @@ describe('fase 2 do pedido 011 (E1 e E2): E6 e E8 em mock', () => {
     expect(JSON.stringify(e8)).not.toMatch(/Protheus|Fluig|Senior|Core 5G/);
   }, 60_000);
 
-  it('a extensão é lazy: só as métricas do 011 a chamam; sem ela (fonte real) todas devolvem estado vazio, nunca 500', async () => {
+  it('T14: exige uma equipe ("meu time"); com "Todas" ou duas, semEquipe; com uma, projetos, e nunca o nome de outro time', async () => {
+    const { app } = await montar();
+    const todas = (await get(app, '/api/v1/metricas/T14')).json();
+    expect(todas).toMatchObject({ semEquipe: true, equipe: null, porGranularidade: [] });
+    const duas = (await get(app, '/api/v1/metricas/T14?equipe=fluig,senior')).json();
+    expect(duas.semEquipe).toBe(true);
+    const r = await get(app, '/api/v1/metricas/T14?equipe=plataforma-5g&periodo=12m');
+    expect(r.statusCode).toBe(200);
+    const t14 = r.json();
+    expect(SCHEMAS_RESULTADO.T14.safeParse(t14).success).toBe(true);
+    expect(t14).toMatchObject({ semEquipe: false, equipe: 'Plataforma 5G' });
+    expect(t14.porGranularidade[0].projetos.length).toBeGreaterThan(0);
+    const txt = JSON.stringify(t14);
+    // só os nomes de equipe que não coincidem com nome de sistema (o título do projeto cita o sistema, como "Fluig" e "Senior")
+    for (const outro of ['ERP Protheus', 'Marketing e Vendas']) expect(txt).not.toContain(outro);
+    expect([...chaves(t14)].filter((k) => PESSOA.test(k))).toEqual([]);
+    // filtro de tipo não se aplica ao T14 (o recorte vem do projeto): a rota o aceita e o resultado não muda
+    expect((await get(app, '/api/v1/metricas/T14?equipe=plataforma-5g&periodo=12m&tipo=melhoria')).json()).toEqual(t14);
+  }, 60_000);
+
+  it('a extensão é lazy: só as sete métricas do 011 a chamam; sem ela (fonte real) todas devolvem estado vazio, nunca 500', async () => {
     let chamadas = 0;
     const gerar = () => { chamadas++; return EXTENSAO_TAMBEM_BM_VAZIA; };
     const app = await buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', extensaoTambem: gerar });
     for (const id of ['O1', 'T12', 'E7', 'E9']) await get(app, `/api/v1/metricas/${id}`);
     expect(chamadas).toBe(0);
-    for (const id of ['E6', 'E8']) expect((await get(app, `/api/v1/metricas/${id}`)).statusCode).toBe(200);
-    expect(chamadas).toBe(2);
+    for (const id of ['O22', 'O26', 'T13', 'E6', 'E8']) expect((await get(app, `/api/v1/metricas/${id}`)).statusCode).toBe(200);
+    expect(chamadas).toBe(5);
     const real = await buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
-    for (const id of ['E6', 'E8'] as const) {
+    for (const id of ['O22', 'O26', 'T13', 'E6', 'E8', 'T14'] as const) {
       const r = await get(real, `/api/v1/metricas/${id}?periodo=12m&equipe=fluig`);
       expect(r.statusCode, id).toBe(200);
       expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success, id).toBe(true);
     }
     const e8 = (await get(real, '/api/v1/metricas/E8')).json();
     expect(e8).toMatchObject({ sistemasComEntrega: 0, faixas: null, recortePequeno: true });
+    const o26 = (await get(real, '/api/v1/metricas/O26?periodo=12m')).json();
+    // sem a extensão nenhuma entrega vira "0 passagens": é tudo semDado
+    expect(o26.porTipo.every((t: { entregas: number; semDado: number }) => t.entregas === 0 && t.semDado > 0)).toBe(true);
   }, 90_000);
 });

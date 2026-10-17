@@ -13,7 +13,7 @@ export interface ContextosMetricas {
   /** Extensões das métricas complementares (mock). Sem elas, o cálculo complementar devolve vazio/insuficiente. */
   ext?: ExtensoesMetricas
   /**
-   * Extensão só de mock do pedido 011 (T11, E6 e E8). Sem ela, essas métricas devolvem vazio ou
+   * Extensão só de mock do pedido 011 (T11, O22, O26, T13, E6, E8 e T14). Sem ela, essas métricas devolvem vazio ou
    * insuficiente, nunca erro.
    */
   tambem?: BM.ExtensaoTambemBM
@@ -49,6 +49,8 @@ const CALCULOS: {
   O14: (f, c) => BM.calcularO14(c.bm, f),
   O16: (f, c) => BM.calcularO16(c.bm, f),
   O19: (f, c) => BM.calcularO19(c.bm, f),
+  O22: (f, c) => BM.calcularO22(c.bm, f, c.tambem),
+  O26: (f, c) => BM.calcularO26(c.bm, f, c.tambem),
   T1: (f, c) => BM.calcularT1(c.bm, f),
   T2: (f, c) => BM.calcularT2(c.bm, f),
   T3: (f, c) => BM.calcularT3(c.bm, f),
@@ -61,6 +63,8 @@ const CALCULOS: {
   T10: (f, c) => BM.calcularT10(c.bm, f),
   T11: (f, c) => BM.calcularT11(c.bm, f, c.tambem),
   T12: (f, c) => BM.calcularT12(c.bm, f),
+  T13: (f, c) => BM.calcularT13(c.bm, f, c.tambem),
+  T14: (f, c) => BM.calcularT14(c.bm, f, c.tambem),
   O20: (f, c) => BM.calcularO20(c.bm, f),
   O21: (f, c) => BM.calcularO21(c.bm, f),
   O24: (f, c) => BM.calcularO24(c.bm, f),

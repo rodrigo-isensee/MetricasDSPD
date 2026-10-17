@@ -16,7 +16,7 @@ const baseMock = (): ReturnType<typeof gerarBaseMock> => (base ??= gerarBaseMock
 export const extensoesMock = (): ExtensoesMetricas => (memo ??= gerarExtensoesMock(baseMock()));
 
 /**
- * Extensão do pedido 011 (entradas sazonais do T11 e os campos da fase 2: E6 e E8), só de mock e lazy como a anterior. Separada de propósito:
+ * Extensão do pedido 011 (entradas sazonais do T11 e os campos da fase 2: O22, O26, T13, E6, E8 e T14), só de mock e lazy como a anterior. Separada de propósito:
  * a montagem do contexto e as demais métricas não pagam por ela (ADR 0003, C1 e C2).
  */
 export const extensaoTambemMock = (): ExtensaoTambemBM => (memoTambem ??= gerarExtensaoTambemMock(baseMock()));

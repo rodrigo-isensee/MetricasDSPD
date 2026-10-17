@@ -17,6 +17,7 @@ import {
 import { calcularMetrica, type ContextosMetricas } from './calcular'
 import { acelerato, businessmap, pesquisa } from '.'
 import type { BasePesquisa } from './pesquisa'
+import { slug } from './slug'
 import { CALENDARIO_PADRAO } from './core/calendario'
 import { REGRAS_METRICA, type ChaveSegmentacao, type RegraMetrica } from './core/regras'
 import type { BaseBM } from './businessmap/modelo'
@@ -28,7 +29,7 @@ const HOJE = base.config.hoje
 const hojeMs = businessmap.criarContextoBM(base.bm, HOJE, CALENDARIO_PADRAO).hoje
 
 const EXT = gerarExtensoesMock(base)
-// Extensão do pedido 011 (fase 2): sem ela as métricas novas devolvem vazio e as propriedades nada provam.
+// Extensão do pedido 011 (fase 2): sem ela as seis métricas novas devolvem vazio e as propriedades nada provam.
 const TAMBEM = gerarExtensaoTambemMock(base)
 const PESQ = gerarPesquisaMock(base.config)
 const ctxPesq = (p: BasePesquisa) => pesquisa.criarContextoPesquisa(p, HOJE)
@@ -132,6 +133,7 @@ const P: Record<'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7', Propriedade> = {
       EI_FL3:
         'nível de projeto: o mock não publica n >= 20 por tipo de projeto (decisão Q4), então não há nó ok para varrer',
       E6: 'nível de projeto: o mock tem de 11 a 14 projetos concluídos com data comprometida (variante lenta, de propósito), então não há nó ok para varrer; a fronteira 19/20 do percentual e do P50/P85 do deslize é provada em e6.test.ts',
+      T14: 'exige exatamente uma equipe no filtro ("meu time"); com os filtros padrão desta propriedade o resultado é semEquipe e não há nó para varrer; a fronteira 19/20 do n com time informado, inclusive total >= 20 com n < 20, é provada em t14.test.ts (CA-31)',
     },
   },
   p5: {
@@ -630,6 +632,31 @@ describe(`P6: ${P.p6.nome}`, () => {
     varrer(plano(calc(id, CTX)), id, falhas)
     expect(falhas.slice(0, 4)).toEqual([])
     marcar('p6', id)
+  })
+})
+
+// B-1 (segurança, lote das táticas): o T14 sem equipe responde `semEquipe` e a varredura acima não via nada.
+// Com UMA equipe no filtro a resposta carrega valores (títulos, equipe, taxas); nenhum pode ser nome de pessoa.
+describe('P6 (B-1): T14 com equipe no filtro, nenhum valor nem chave por pessoa', () => {
+  const equipes = base.bm.config.equipes.map((e) => slug(e.nome))
+  const rodar = (equipe: string) =>
+    calcularMetrica('T14', { ...filtrosDe('T14'), equipe: [equipe] } as never, CTX)
+
+  it('a base tem equipes, e ao menos uma devolve projetos (a varredura não roda no vazio)', () => {
+    expect(equipes.length).toBeGreaterThanOrEqual(2)
+    const comProjetos = equipes.filter((e) =>
+      (plano(rodar(e)) as { porGranularidade: { projetos: unknown[] }[] }).porGranularidade.some(
+        (b) => b.projetos.length > 0,
+      ),
+    )
+    expect(comProjetos.length).toBeGreaterThanOrEqual(1)
+  })
+  it.each(equipes)('equipe %s', (equipe) => {
+    const falhas: string[] = []
+    const r = plano(rodar(equipe))
+    expect((r as { semEquipe: boolean }).semEquipe).toBe(false)
+    varrer(r, 'T14', falhas)
+    expect(falhas.slice(0, 4)).toEqual([])
   })
 })
 

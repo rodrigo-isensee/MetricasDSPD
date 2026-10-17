@@ -3,7 +3,7 @@
 Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-16.
 
 <!-- gerado:inicio -->
-Gerado por `pnpm run docs:gerar`. 65 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
+Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
 
 | Métrica | Nome | Domínio | Rota | Granularidade | Mínimo | Status das regras |
 |---|---|---|---|---|---|---|
@@ -29,8 +29,10 @@ Gerado por `pnpm run docs:gerar`. 65 métricas, uma página cada. Regras gerais,
 | [`O19`](O19.md) | - | businessmap | `/api/v1/metricas/O19` | story | 20 | ok |
 | [`O20`](O20.md) | - | businessmap | `/api/v1/metricas/O20` | story | 0 | ok |
 | [`O21`](O21.md) | - | businessmap | `/api/v1/metricas/O21` | story | 20 | ok |
+| [`O22`](O22.md) | - | businessmap | `/api/v1/metricas/O22` | story | 20 | ok |
 | [`O24`](O24.md) | - | businessmap | `/api/v1/metricas/O24` | story | 20 | ok |
 | [`O25`](O25.md) | - | businessmap | `/api/v1/metricas/O25` | story | 20 | ok |
+| [`O26`](O26.md) | - | businessmap | `/api/v1/metricas/O26` | story | 20 | ok |
 | [`T1`](T1.md) | Lead time ponta a ponta | businessmap | `/api/v1/metricas/T1` | story | 20 | ok |
 | [`T2`](T2.md) | Aderência ao SLE | businessmap | `/api/v1/metricas/T2` | story | 20 | ok |
 | [`T3`](T3.md) | Alocação da capacidade | businessmap | `/api/v1/metricas/T3` | story | 20 | ok |
@@ -43,6 +45,8 @@ Gerado por `pnpm run docs:gerar`. 65 métricas, uma página cada. Regras gerais,
 | [`T10`](T10.md) | - | businessmap | `/api/v1/metricas/T10` | story | 20 | ok |
 | [`T11`](T11.md) | - | businessmap | `/api/v1/metricas/T11` | story | 0 | ok |
 | [`T12`](T12.md) | - | businessmap | `/api/v1/metricas/T12` | story | 20 | ok |
+| [`T13`](T13.md) | - | businessmap | `/api/v1/metricas/T13` | story | 20 | ok |
+| [`T14`](T14.md) | - | businessmap | `/api/v1/metricas/T14` | story | 20 | pendente-usuario |
 | [`E1`](E1.md) | Lead time de projetos | businessmap | `/api/v1/metricas/E1` | projeto | 20 | ok |
 | [`E2`](E2.md) | Capacidade por objetivo estratégico | businessmap | `/api/v1/metricas/E2` | story | 20 | ok |
 | [`E3`](E3.md) | Entrega × resultado | businessmap | `/api/v1/metricas/E3` | projeto | 0 | ok |

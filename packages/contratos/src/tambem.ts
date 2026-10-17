@@ -265,6 +265,82 @@ export const resultadoE9 = fechado({
  * só dentro de uma classe (por tipo, um bloco por tipo; a interface mostra um por vez).
  */
 const p50p85 = estatisticaSchema(fechado({ p50: z.number(), p85: z.number() }))
+const p85 = estatisticaSchema(fechado({ p85: z.number() }))
+
+/** Faixas fixas do histograma do O22, em dias úteis (spec 02, O22). */
+export const FAIXAS_PRIMEIRO_TOQUE = ['0–0,5', '0,5–1', '1–2', '2–5', '5–10', '10+'] as const
+
+/**
+ * O22 Primeiro toque (D-9', CA-43): dias úteis da criação ao primeiro comentário humano. P50/P85/P95 e histograma por
+ * tipo (nunca misturados), só com 20 ou mais pedidos tocados do tipo na janela (abaixo, `histograma` é `null`).
+ * `semToque` é retrato de hoje: pedidos abertos sem nenhuma reação e a idade do mais antigo.
+ */
+export const resultadoO22 = fechado({
+  ...comum,
+  segmentoPor: z.literal('tipo'),
+  porTipo: z.array(
+    fechado({
+      tipo,
+      distribuicao: duracao,
+      histograma: z.array(fechado({ faixa: z.string(), itens: z.number() })).nullable(),
+      semToque: fechado({ itens: z.number(), maisAntigoDiasUteis: z.number().nullable() }),
+    }),
+  ),
+})
+
+/** Faixas de passagens de mão do O26 (D-5' = B): 0, 1, 2, 3 e 4 ou mais. */
+export const FAIXAS_PASSAGENS = ['0', '1', '2', '3', '4+'] as const
+
+/**
+ * O26 Passagens de mão (D-5' = B; Q-a = 1 passagem; Q-b = conta). Só o inteiro `passagens` por card, nunca quem.
+ * Histograma de entregas por faixa (contagem sempre; percentual com 20 ou mais) e P85 do ciclo por faixa (20 ou mais).
+ * `semDado` conta as entregas sem `passagens` (anteriores à coleta). Por tipo, um bloco por tipo.
+ */
+export const resultadoO26 = fechado({
+  ...comum,
+  segmentoPor: z.literal('tipo'),
+  porTipo: z.array(
+    fechado({
+      tipo,
+      entregas: z.number(),
+      semDado: z.number(),
+      faixas: z.array(
+        fechado({
+          faixa: z.enum(FAIXAS_PASSAGENS),
+          itens: z.number(),
+          pct: taxaSchema,
+          cicloP85: p85,
+        }),
+      ),
+    }),
+  ),
+})
+
+/**
+ * T13 Dependências entre quadros (D-14' = A, R-4 = sim). Só o booleano "dependeu de outro quadro": a resposta não traz
+ * o quadro nem a equipe do outro lado. Uma granularidade por bloco (story e frente nunca no mesmo cálculo; a interface
+ * troca entre os blocos, CA-8). `semDado` = entregas cujo vínculo tem quadro desconhecido (nunca "não dependeu").
+ * O par com × sem é por tipo e exige 20 em cada grupo (CA-6).
+ */
+export const resultadoT13 = fechado({
+  ...comum,
+  segmentoPor: z.literal('tipo'),
+  porGranularidade: z.array(
+    fechado({
+      granularidade: z.enum(['story', 'frente']),
+      entregas: taxaSchema,
+      semDado: z.number(),
+      comparacoes: z.array(
+        fechado({
+          tipo,
+          com: duracao,
+          sem: duracao,
+          grupoAbaixoDoMinimo: z.enum(['com', 'sem', 'ambos']).nullable(),
+        }),
+      ),
+    }),
+  ),
+})
 
 /**
  * E6 Datas do portfólio (D-7, CA-20). Deslize em dias úteis inteiros entre a data comprometida e a conclusão, com
@@ -299,8 +375,41 @@ export const resultadoE8 = fechado({
   recortePequeno: z.boolean(),
 })
 
+/**
+ * T14 Participação do meu time no projeto (Q-T14-1 = B, Q-T14-5 = D, Q-T14-6 = A revista pela R-1 = B). "Meu time" é a
+ * equipe do filtro (exatamente uma). Os outros times são um inteiro só: sem nome, tempo, vazão nem ranking;
+ * `outrosTimes` é `null` quando os outros times somam menos de 2 pessoas (R-1 = B). Nenhum campo traz outra equipe nem
+ * número de pessoas. Um bloco por granularidade (story e frente); com `semEquipe`, a lista de blocos é vazia (CA-28).
+ */
+export const resultadoT14 = fechado({
+  ...comum,
+  equipe: z.string().nullable(),
+  semEquipe: z.boolean(),
+  porGranularidade: z.array(
+    fechado({
+      granularidade: z.enum(['story', 'frente']),
+      total: taxaSchema,
+      projetos: z.array(
+        fechado({
+          projetoId: z.string(),
+          codigo: z.string(),
+          titulo: z.string(),
+          total: z.number(),
+          meuTime: taxaSchema,
+          outrosTimes: z.number().nullable(),
+          semTime: z.number(),
+        }),
+      ),
+    }),
+  ),
+})
+
+export type ResultadoO22 = z.infer<typeof resultadoO22>
+export type ResultadoO26 = z.infer<typeof resultadoO26>
+export type ResultadoT13 = z.infer<typeof resultadoT13>
 export type ResultadoE6 = z.infer<typeof resultadoE6>
 export type ResultadoE8 = z.infer<typeof resultadoE8>
+export type ResultadoT14 = z.infer<typeof resultadoT14>
 
 export type ResultadoO19 = z.infer<typeof resultadoO19>
 export type ResultadoO20 = z.infer<typeof resultadoO20>
@@ -334,10 +443,14 @@ export type CodigoTambemFase1 = keyof typeof SCHEMAS_TAMBEM_FASE1
 
 /** Schemas da fase 2 por código (mesmo papel do mapa da fase 1: insumo do teste de pessoa e do C4). */
 export const SCHEMAS_TAMBEM_FASE2 = {
+  O22: resultadoO22,
+  O26: resultadoO26,
+  T13: resultadoT13,
+  T14: resultadoT14,
   E6: resultadoE6,
   E8: resultadoE8,
 } as const
 export type CodigoTambemFase2 = keyof typeof SCHEMAS_TAMBEM_FASE2
 
-/** Os 12 ids novos do pedido 011 que têm id próprio (fases 1 e 2). */
+/** Os 16 ids novos do pedido 011 que têm id próprio (fases 1 e 2). */
 export const SCHEMAS_TAMBEM = { ...SCHEMAS_TAMBEM_FASE1, ...SCHEMAS_TAMBEM_FASE2 } as const
