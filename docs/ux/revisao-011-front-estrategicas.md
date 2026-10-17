@@ -109,3 +109,25 @@ Aplicado na especificação (§4, E7 da §5, CA-3, CA-13, CA-35, §9). No códig
 ## 8. Decisão pendente do usuário
 
 Confirmar o título da seção (opção A recomendada) e, se quiser, o nome "Entregas por sistema" para o E7 (A-10).
+
+## 9. Reconferência (2026-10-16, branch ae3ea92, K-109)
+
+Por leitura do código; interface não executada no navegador.
+
+| Achado | Veredito | Evidência |
+|---|---|---|
+| A-2 | Resolvido | `cartoes.ts` 244-245: id `concentracao-do-parque`, título da opção A |
+| A-3 | Resolvido | `estrategicas.tsx` 72-75 "Mostrando N de M projetos (tipo X)" e `descricao` com "de M no total" |
+| A-4 (E9) | Resolvido | cópia ordenada por idade decrescente (55-57) |
+| A-4 (E6) | Aceito como provisório | ordem por deslize, empate por código (183-187), legenda coerente ("do menor para o maior"); voltar à ordem cronológica quando o contrato trouxer a data de conclusão |
+| A-5 | Resolvido | rótulo com "do tipo (E1)" e "dias úteis" (65) |
+| A-6 | Resolvido | casos 0 na data, 1 projeto e vários tratados (159-181) |
+| A-7 | Resolvido | frase com sujeito "dos projetos concluídos saíram na data comprometida (k de n)" (209-210) |
+| A-8 | Resolvido | "O sistema X ficou com p% das entregas do período" (304) |
+| A-12 | Resolvido | máx. 10 sistemas no gráfico, linha "Demais N sistemas", tabela lista todos (308, 331-369) |
+| A-13 | Resolvido | "É esperado concluir poucos projetos." (104); sem o componente, aceitável |
+| A-14 | Resolvido | `grid-cols-1 sm:grid-cols-3` (443) |
+
+Pendências sem bloqueio: A-9 (links do S12 no E7) segue sem link, baixo; A-11 (modo percentual com unidade "sistemas" no E8 e estado de zero sistemas) não alterado, baixo, verificar no navegador; ícone `info` sem `aria-hidden` explícito no código visto (verificar no componente `Icone`); A-10 segue com o usuário.
+
+**Veredito final: aprovado com ressalvas** (apenas itens baixos e verificações em navegador). Pode ir ao QA.
