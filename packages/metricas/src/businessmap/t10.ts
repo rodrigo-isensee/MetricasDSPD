@@ -12,8 +12,9 @@ const soma = (xs: readonly number[]): number => xs.reduce((s, x) => s + x, 0)
 /**
  * T10: tempo de terceiros, só o praticado (D-10 = A): sem prazo contratado e sem status. Entra todo bloqueio
  * encerrado com fornecedor informado, de qualquer motivo (R-5, CA-24); sem fornecedor fica fora. Uma linha por
- * fornecedor em ordem alfabética (CA-11), com P50/P85 só com n >= 20 por fornecedor, na janela móvel de 12 semanas. Fornecedor igual a menos de
- * maiúsculas e espaços (B11-001), exibido pela grafia mais frequente. O fornecedor é dimensão permitida, nunca pessoa.
+ * fornecedor em ordem alfabética (CA-11), com P50/P85 só com n >= 20 por fornecedor, na janela móvel de 12 semanas.
+ * Fornecedor igual a menos de diferenças de maiúsculas e espaços (B11-001) é um só, exibido pela grafia mais
+ * frequente. O fornecedor é dimensão permitida, nunca pessoa.
  */
 export function calcularT10(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT10 {
   const periodo = periodoDe(ctx, f)
