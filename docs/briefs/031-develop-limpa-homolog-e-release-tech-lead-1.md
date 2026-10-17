@@ -3,7 +3,7 @@ Pedido: docs/pedidos/031-develop-limpa-homolog-e-release.md
 Branch: docs/jarvis-quadro-2026-10-17-noite   Base: develop   Base-sha: 6b3db45c0bff84802f0b5eb12b0cdb24ba3a659f
 
 ## Objetivo
-Levar à develop o que está pronto (a branch só de documentação do quadro, `docs/jarvis-quadro-2026-10-17-noite`) e apagar as branches já incorporadas, pelo pedido do usuário de 2026-10-17 ("atualize tudo que esta pronto na develop e apague as branchs"). Etapas E1 e E2 do pedido 031. A partir de `/home/rodrigoisensee/MetricasDSPD`.
+Levar à develop o que está pronto (a branch só de documentação do quadro, `docs/jarvis-quadro-2026-10-17-noite`) e apagar as branches já incorporadas ou conferidas, pelo pedido do usuário de 2026-10-17 ("atualize tudo que esta pronto na develop e apague as branchs"). Etapas E1.1, E2.1 e E3.2 do pedido 031. A partir de `/home/rodrigoisensee/MetricasDSPD`.
 
 ## Ler
 - `docs/pedidos/031-develop-limpa-homolog-e-release.md` (Inventário, Escopo e Fora do escopo).
