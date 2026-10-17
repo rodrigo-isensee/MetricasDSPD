@@ -20,7 +20,7 @@ data: 2026-10-17
 - Diff: 14 linhas acrescentadas em `docs/ux/revisao-011-front-estrategicas.md`; nenhum código, teste ou contrato mudou. Não há regra de `praticas.md` de leitura que alcance o diff além de conteúdo e commit limpo.
 - Leitura: a seção 10 reconfere o delta de interface (anúncio do E9, plural do E7, comentário de `ordenarPorDeslize`) e aprova, sem achado novo; coerente com o que revisei nas voltas 6 e 7. Commit com mensagem convencional.
 - Ferramentas: nada a rodar (só documentação). Suíte e E2E ficam com a CI do PR #108.
-- Veredito: aprovado. Resta a revalidação do QA sobre o head (E1.4).
+- Veredito: aprovado. Resta a revalidação do QA sobre o head (E1.4); o commit do parecer em si só toca este arquivo.
 
 ## Volta 7 (2026-10-17): aprovado
 
