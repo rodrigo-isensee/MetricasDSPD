@@ -392,22 +392,18 @@ describe('T10-7 (baixa): fornecedor em branco e a caixa do nome', () => {
   })
 })
 
-describe('E7-2 / E7-4: sem R$ enquanto o custo não está configurado; natureza pela função do T3', () => {
-  it('E7-2: em vários períodos nenhum custo não nulo e custoConfigurado falso', () => {
+describe('E7-2 / E7-4: sem R$; natureza pela função do T3', () => {
+  it('E7-2: em vários períodos nenhuma chave de custo na saída (D2 = A, sem R$)', () => {
     const ctx = ctxMock(base.config.hoje)
     let sistemas = 0
     for (const tipo of ['4s', '12s', '6m', '12m'] as const) {
       const r = calcularE7(ctx.bm, { ...F12S, periodo: { tipo } })
-      expect(r.custoConfigurado).toBe(false)
-      for (const s of r.sistemas) {
-        expect(s.custoRateado).toBeNull()
-        expect(s.custoPorDemanda).toBeNull()
-        sistemas++
-      }
-      expect(JSON.stringify(r)).not.toMatch(/"custo(?:Rateado|PorDemanda)":\s*[-\d]/)
+      sistemas += r.sistemas.length
+      expect(JSON.stringify(r)).not.toMatch(/"custo/)
     }
     expect(sistemas).toBeGreaterThan(8)
   })
+
   it('E7-4: o e7.ts importa naturezaDe do T3 e não redefine a classificação', () => {
     const src = fonte('businessmap/e7.ts')
     expect(src).toMatch(/import \{ naturezaDe \} from '\.\/t3'/)

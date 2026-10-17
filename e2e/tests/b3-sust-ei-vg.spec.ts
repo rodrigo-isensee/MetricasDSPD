@@ -48,8 +48,11 @@ test.describe('K-008 Sustentacao', () => {
   });
 
   test('SUS-08 S4 barras de cor unica', async ({ page }) => {
+    // O gráfico entra na fila de montagem (K-102): espera o SVG antes de medir, senão a lista vazia passaria.
+    await expect(page.getByTestId('metrica-S4').locator('svg rect[fill], svg path[fill]').first()).toBeAttached();
     const fills = await page.getByTestId('metrica-S4').locator('svg rect[fill], svg path[fill]').evaluateAll((els) =>
       [...new Set(els.map((e) => getComputedStyle(e).fill).filter((f) => f !== 'none' && f !== 'rgba(0, 0, 0, 0)'))]);
+    expect(fills.length, 'sem preenchimento medido, o teste não provaria nada').toBeGreaterThanOrEqual(1);
     expect(fills.length, JSON.stringify(fills)).toBeLessThanOrEqual(2);
     await expect(page.getByTestId('metrica-S4')).toContainText(/sem meta isolada/i);
   });

@@ -5,7 +5,7 @@
  */
 import { z } from 'zod'
 import type { MetricaId } from './comum'
-import { SCHEMAS_TAMBEM_FASE1 } from './tambem'
+import { SCHEMAS_TAMBEM } from './tambem'
 
 export const PAINEIS_COM_CARTOES = ['operacional', 'tatico', 'estrategico', 'sustentacao'] as const
 export type PainelComCartoes = (typeof PAINEIS_COM_CARTOES)[number]
@@ -52,9 +52,23 @@ type Def = readonly [
 /**
  * Complementares que ainda dependem de campo sem fonte real (extensão): só estas são rotuladas "Dados
  * fictícios". O17 fica 'mock' até a coleta real do campo causa raiz (Metabase). As demais derivam
- * só de `BaseBM`/`BaseAC` e são 'disponivel'.
+ * só de `BaseBM`/`BaseAC` e são 'disponivel'. Fase 2 do pedido 011 (extração nova, só em mock até a fase 3):
+ * O22, O26, T13, T14, E6 e E8. T11 (fase 1) e E7 (sem custo no mock, CA-13) não entram, como manda o plano §4.
  */
-const COM_EXTENSAO_MOCK: ReadonlySet<string> = new Set(['O17', 'T8', 'E4', 'S8', 'S11', 'S12'])
+export const COM_EXTENSAO_MOCK: ReadonlySet<string> = new Set([
+  'O17',
+  'T8',
+  'E4',
+  'S8',
+  'S11',
+  'S12',
+  'O22',
+  'O26',
+  'T13',
+  'T14',
+  'E6',
+  'E8',
+])
 
 function secao(
   painel: PainelComCartoes,
@@ -116,7 +130,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     ['T3', 'Alocação da capacidade'],
   ]),
   ...secao('tatico', 'projetos', 'Os projetos estão avançando de verdade?', [
-    ['T9', 'Avanço real e escopo', undefined, ['t6', 'e5']],
+    ['T9', 'Avanço real e escopo', undefined, ['t6', 'e5', 'e6']],
     ['T7', 'Fluxo de frentes'],
   ]),
   ...secao(
@@ -126,10 +140,10 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     [['EI-FL2', 'Espera invisível · Tático', ['EI_FL2']]],
   ),
   ...secao('estrategico', 'prazo', 'Quanto tempo leva decidir e entregar?', [
-    ['E1', 'Lead time de projetos', undefined, ['e4', 'e5']],
+    ['E1', 'Lead time de projetos', undefined, ['e4', 'e5', 'e9']],
   ]),
   ...secao('estrategico', 'apostas', 'As entregas refletem as prioridades e geram resultado?', [
-    ['E2', 'Capacidade por objetivo estratégico'],
+    ['E2', 'Capacidade por objetivo estratégico', undefined, ['e7']],
     ['E3', 'Entrega × resultado'],
   ]),
   ...secao(
@@ -213,14 +227,30 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     'estrategico',
     'terminando-ou-comecando',
     'Estamos terminando ou só começando?',
-    [['E4', 'Iniciadas × concluídas']],
+    [
+      ['E9', 'Projetos aguardando início'],
+      ['E4', 'Iniciadas × concluídas'],
+    ],
     'complementar',
   ),
   ...secao(
     'estrategico',
     'quando-termina',
     'Quando termina?',
-    [['E5', 'Previsão de término']],
+    [
+      ['E5', 'Previsão de término'],
+      ['E6', 'Datas do portfólio', undefined, ['e5', 't9']],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'estrategico',
+    'concentracao-do-parque',
+    'Onde o parque se concentra, e qual o risco de continuidade?',
+    [
+      ['E7', 'Entregas por sistema', undefined, ['e8', 't3', 'e2']],
+      ['E8', 'Concentração de conhecimento', undefined, ['e7']],
+    ],
     'complementar',
   ),
   ...secao(
@@ -320,7 +350,7 @@ const PREFIXO_PAINEL: Partial<Record<PainelComCartoes, string>> = {
  * Fonte única dos ids de cada medida do C4 (ADR 0003, "Emenda C4"). Fechada: o núcleo que a página pede com
  * "Mais métricas" fechada (no Operacional, a seção `diaria` ou as demais, por cadência; O23 é bloco do O2).
  * Aberta: a fechada mais todas as complementares do painel (catálogo mais os ids do 011 ainda sem cartão no
- * catálogo, `SCHEMAS_TAMBEM_FASE1`, pelo prefixo do painel). `VISAO_GERAL` nunca entra (painel próprio).
+ * catálogo, `SCHEMAS_TAMBEM`, pelo prefixo do painel). `VISAO_GERAL` nunca entra (painel próprio).
  */
 export function idsDoC4(
   painel: PainelComCartoes,
@@ -338,9 +368,7 @@ export function idsDoC4(
     ids.push(...doPainel.filter((c) => c.grupo === 'complementar').flatMap((c) => [...c.metricas]))
     const prefixo = PREFIXO_PAINEL[painel]
     if (prefixo)
-      ids.push(
-        ...(Object.keys(SCHEMAS_TAMBEM_FASE1).filter((k) => k.startsWith(prefixo)) as MetricaId[]),
-      )
+      ids.push(...(Object.keys(SCHEMAS_TAMBEM).filter((k) => k.startsWith(prefixo)) as MetricaId[]))
   }
   return [...new Set(ids)]
 }

@@ -1087,8 +1087,10 @@
                                 "O19",
                                 "O20",
                                 "O21",
+                                "O22",
                                 "O24",
                                 "O25",
+                                "O26",
                                 "T1",
                                 "T2",
                                 "T3",
@@ -1101,12 +1103,16 @@
                                 "T10",
                                 "T11",
                                 "T12",
+                                "T13",
+                                "T14",
                                 "E1",
                                 "E2",
                                 "E3",
                                 "E4",
                                 "E5",
+                                "E6",
                                 "E7",
+                                "E8",
                                 "E9",
                                 "S1",
                                 "S2",
@@ -1169,8 +1175,10 @@
                           "O19",
                           "O20",
                           "O21",
+                          "O22",
                           "O24",
                           "O25",
+                          "O26",
                           "T1",
                           "T2",
                           "T3",
@@ -1183,12 +1191,16 @@
                           "T10",
                           "T11",
                           "T12",
+                          "T13",
+                          "T14",
                           "E1",
                           "E2",
                           "E3",
                           "E4",
                           "E5",
+                          "E6",
                           "E7",
+                          "E8",
                           "E9",
                           "S1",
                           "S2",
@@ -1610,8 +1622,10 @@
                             "O19",
                             "O20",
                             "O21",
+                            "O22",
                             "O24",
                             "O25",
+                            "O26",
                             "T1",
                             "T2",
                             "T3",
@@ -1624,12 +1638,16 @@
                             "T10",
                             "T11",
                             "T12",
+                            "T13",
+                            "T14",
                             "E1",
                             "E2",
                             "E3",
                             "E4",
                             "E5",
+                            "E6",
                             "E7",
+                            "E8",
                             "E9",
                             "S1",
                             "S2",
@@ -15747,6 +15765,599 @@
         }
       }
     },
+    "/api/v1/metricas/O22": {
+      "get": {
+        "summary": "Métrica O22",
+        "tags": [
+          "metricas"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tipo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sistema",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "12s",
+              "type": "string",
+              "enum": [
+                "4s",
+                "12s",
+                "6m",
+                "12m",
+                "custom"
+              ]
+            },
+            "in": "query",
+            "name": "periodo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "de",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "ate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "dataReferencia",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "unidade": {
+                          "type": "string"
+                        },
+                        "janela": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                },
+                                "unidade": {
+                                  "type": "string",
+                                  "enum": [
+                                    "semanas",
+                                    "meses"
+                                  ]
+                                },
+                                "quantidade": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "complemento": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "unidade": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "unidade",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "criterios": {
+                      "type": "object",
+                      "properties": {
+                        "serie": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "janela": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "serie",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "segmentoPor": {
+                      "type": "string",
+                      "enum": [
+                        "tipo"
+                      ]
+                    },
+                    "porTipo": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "type": "string",
+                            "enum": [
+                              "Incidente",
+                              "Requisição",
+                              "Melhoria",
+                              "Iniciativa",
+                              "Bug interno",
+                              "Defeito em produção",
+                              "Dívida técnica"
+                            ]
+                          },
+                          "distribuicao": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "ok"
+                                    ]
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": 20,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "valor": {
+                                    "type": "object",
+                                    "properties": {
+                                      "p50": {
+                                        "type": "number"
+                                      },
+                                      "p85": {
+                                        "type": "number"
+                                      },
+                                      "p95": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "p50",
+                                      "p85",
+                                      "p95"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "janela": {
+                                    "type": "object",
+                                    "properties": {
+                                      "inicio": {
+                                        "type": "string"
+                                      },
+                                      "fim": {
+                                        "type": "string"
+                                      },
+                                      "unidade": {
+                                        "type": "string",
+                                        "enum": [
+                                          "semanas",
+                                          "meses"
+                                        ]
+                                      },
+                                      "quantidade": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "inicio",
+                                      "fim"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "status",
+                                  "n",
+                                  "valor",
+                                  "janela"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "insuficiente"
+                                    ]
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 19
+                                  },
+                                  "minimo": {
+                                    "type": "number",
+                                    "enum": [
+                                      20
+                                    ]
+                                  },
+                                  "janela": {
+                                    "type": "object",
+                                    "properties": {
+                                      "inicio": {
+                                        "type": "string"
+                                      },
+                                      "fim": {
+                                        "type": "string"
+                                      },
+                                      "unidade": {
+                                        "type": "string",
+                                        "enum": [
+                                          "semanas",
+                                          "meses"
+                                        ]
+                                      },
+                                      "quantidade": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "inicio",
+                                      "fim"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "status",
+                                  "n",
+                                  "minimo",
+                                  "janela"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          },
+                          "histograma": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "faixa": {
+                                      "type": "string"
+                                    },
+                                    "itens": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "faixa",
+                                    "itens"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "semToque": {
+                            "type": "object",
+                            "properties": {
+                              "itens": {
+                                "type": "number"
+                              },
+                              "maisAntigoDiasUteis": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "itens",
+                              "maisAntigoDiasUteis"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "tipo",
+                          "distribuicao",
+                          "histograma",
+                          "semToque"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "base",
+                    "criterios",
+                    "segmentoPor",
+                    "porTipo"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/metricas/O24": {
       "get": {
         "summary": "Métrica O24",
@@ -17100,6 +17711,645 @@
                     "instanteAproximado",
                     "avisoPreenchimento",
                     "porMotivo"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metricas/O26": {
+      "get": {
+        "summary": "Métrica O26",
+        "tags": [
+          "metricas"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tipo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sistema",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "12s",
+              "type": "string",
+              "enum": [
+                "4s",
+                "12s",
+                "6m",
+                "12m",
+                "custom"
+              ]
+            },
+            "in": "query",
+            "name": "periodo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "de",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "ate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "dataReferencia",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "unidade": {
+                          "type": "string"
+                        },
+                        "janela": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                },
+                                "unidade": {
+                                  "type": "string",
+                                  "enum": [
+                                    "semanas",
+                                    "meses"
+                                  ]
+                                },
+                                "quantidade": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "complemento": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "unidade": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "unidade",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "criterios": {
+                      "type": "object",
+                      "properties": {
+                        "serie": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "janela": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "serie",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "segmentoPor": {
+                      "type": "string",
+                      "enum": [
+                        "tipo"
+                      ]
+                    },
+                    "porTipo": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tipo": {
+                            "type": "string",
+                            "enum": [
+                              "Incidente",
+                              "Requisição",
+                              "Melhoria",
+                              "Iniciativa",
+                              "Bug interno",
+                              "Defeito em produção",
+                              "Dívida técnica"
+                            ]
+                          },
+                          "entregas": {
+                            "type": "number"
+                          },
+                          "semDado": {
+                            "type": "number"
+                          },
+                          "faixas": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "faixa": {
+                                  "type": "string",
+                                  "enum": [
+                                    "0",
+                                    "1",
+                                    "2",
+                                    "3",
+                                    "4+"
+                                  ]
+                                },
+                                "itens": {
+                                  "type": "number"
+                                },
+                                "pct": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "ok"
+                                          ]
+                                        },
+                                        "k": {
+                                          "type": "number"
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": 20,
+                                          "maximum": 9007199254740991
+                                        },
+                                        "pct": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "k",
+                                        "n",
+                                        "pct"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "insuficiente"
+                                          ]
+                                        },
+                                        "k": {
+                                          "type": "number"
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": -9007199254740991,
+                                          "maximum": 19
+                                        },
+                                        "minimo": {
+                                          "type": "number",
+                                          "enum": [
+                                            20
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "k",
+                                        "n",
+                                        "minimo"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                },
+                                "cicloP85": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "ok"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": 20,
+                                          "maximum": 9007199254740991
+                                        },
+                                        "valor": {
+                                          "type": "object",
+                                          "properties": {
+                                            "p85": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "p85"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "janela": {
+                                          "type": "object",
+                                          "properties": {
+                                            "inicio": {
+                                              "type": "string"
+                                            },
+                                            "fim": {
+                                              "type": "string"
+                                            },
+                                            "unidade": {
+                                              "type": "string",
+                                              "enum": [
+                                                "semanas",
+                                                "meses"
+                                              ]
+                                            },
+                                            "quantidade": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "inicio",
+                                            "fim"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "n",
+                                        "valor",
+                                        "janela"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "insuficiente"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": -9007199254740991,
+                                          "maximum": 19
+                                        },
+                                        "minimo": {
+                                          "type": "number",
+                                          "enum": [
+                                            20
+                                          ]
+                                        },
+                                        "janela": {
+                                          "type": "object",
+                                          "properties": {
+                                            "inicio": {
+                                              "type": "string"
+                                            },
+                                            "fim": {
+                                              "type": "string"
+                                            },
+                                            "unidade": {
+                                              "type": "string",
+                                              "enum": [
+                                                "semanas",
+                                                "meses"
+                                              ]
+                                            },
+                                            "quantidade": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "inicio",
+                                            "fim"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "n",
+                                        "minimo",
+                                        "janela"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "faixa",
+                                "itens",
+                                "pct",
+                                "cicloP85"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "tipo",
+                          "entregas",
+                          "semDado",
+                          "faixas"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "base",
+                    "criterios",
+                    "segmentoPor",
+                    "porTipo"
                   ],
                   "additionalProperties": false
                 }
@@ -24707,6 +25957,1374 @@
         }
       }
     },
+    "/api/v1/metricas/T13": {
+      "get": {
+        "summary": "Métrica T13",
+        "tags": [
+          "metricas"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tipo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sistema",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "12s",
+              "type": "string",
+              "enum": [
+                "4s",
+                "12s",
+                "6m",
+                "12m",
+                "custom"
+              ]
+            },
+            "in": "query",
+            "name": "periodo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "de",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "ate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "dataReferencia",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "unidade": {
+                          "type": "string"
+                        },
+                        "janela": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                },
+                                "unidade": {
+                                  "type": "string",
+                                  "enum": [
+                                    "semanas",
+                                    "meses"
+                                  ]
+                                },
+                                "quantidade": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "complemento": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "unidade": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "unidade",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "criterios": {
+                      "type": "object",
+                      "properties": {
+                        "serie": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "janela": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "serie",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "segmentoPor": {
+                      "type": "string",
+                      "enum": [
+                        "tipo"
+                      ]
+                    },
+                    "porGranularidade": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "granularidade": {
+                            "type": "string",
+                            "enum": [
+                              "story",
+                              "frente"
+                            ]
+                          },
+                          "entregas": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "ok"
+                                    ]
+                                  },
+                                  "k": {
+                                    "type": "number"
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": 20,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "pct": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "status",
+                                  "k",
+                                  "n",
+                                  "pct"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "insuficiente"
+                                    ]
+                                  },
+                                  "k": {
+                                    "type": "number"
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 19
+                                  },
+                                  "minimo": {
+                                    "type": "number",
+                                    "enum": [
+                                      20
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "status",
+                                  "k",
+                                  "n",
+                                  "minimo"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          },
+                          "semDado": {
+                            "type": "number"
+                          },
+                          "comparacoes": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "tipo": {
+                                  "type": "string",
+                                  "enum": [
+                                    "Incidente",
+                                    "Requisição",
+                                    "Melhoria",
+                                    "Iniciativa",
+                                    "Bug interno",
+                                    "Defeito em produção",
+                                    "Dívida técnica"
+                                  ]
+                                },
+                                "com": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "ok"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": 20,
+                                          "maximum": 9007199254740991
+                                        },
+                                        "valor": {
+                                          "type": "object",
+                                          "properties": {
+                                            "p50": {
+                                              "type": "number"
+                                            },
+                                            "p85": {
+                                              "type": "number"
+                                            },
+                                            "p95": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "p50",
+                                            "p85",
+                                            "p95"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "janela": {
+                                          "type": "object",
+                                          "properties": {
+                                            "inicio": {
+                                              "type": "string"
+                                            },
+                                            "fim": {
+                                              "type": "string"
+                                            },
+                                            "unidade": {
+                                              "type": "string",
+                                              "enum": [
+                                                "semanas",
+                                                "meses"
+                                              ]
+                                            },
+                                            "quantidade": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "inicio",
+                                            "fim"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "n",
+                                        "valor",
+                                        "janela"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "insuficiente"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": -9007199254740991,
+                                          "maximum": 19
+                                        },
+                                        "minimo": {
+                                          "type": "number",
+                                          "enum": [
+                                            20
+                                          ]
+                                        },
+                                        "janela": {
+                                          "type": "object",
+                                          "properties": {
+                                            "inicio": {
+                                              "type": "string"
+                                            },
+                                            "fim": {
+                                              "type": "string"
+                                            },
+                                            "unidade": {
+                                              "type": "string",
+                                              "enum": [
+                                                "semanas",
+                                                "meses"
+                                              ]
+                                            },
+                                            "quantidade": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "inicio",
+                                            "fim"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "n",
+                                        "minimo",
+                                        "janela"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                },
+                                "sem": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "ok"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": 20,
+                                          "maximum": 9007199254740991
+                                        },
+                                        "valor": {
+                                          "type": "object",
+                                          "properties": {
+                                            "p50": {
+                                              "type": "number"
+                                            },
+                                            "p85": {
+                                              "type": "number"
+                                            },
+                                            "p95": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "p50",
+                                            "p85",
+                                            "p95"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "janela": {
+                                          "type": "object",
+                                          "properties": {
+                                            "inicio": {
+                                              "type": "string"
+                                            },
+                                            "fim": {
+                                              "type": "string"
+                                            },
+                                            "unidade": {
+                                              "type": "string",
+                                              "enum": [
+                                                "semanas",
+                                                "meses"
+                                              ]
+                                            },
+                                            "quantidade": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "inicio",
+                                            "fim"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "n",
+                                        "valor",
+                                        "janela"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "insuficiente"
+                                          ]
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": -9007199254740991,
+                                          "maximum": 19
+                                        },
+                                        "minimo": {
+                                          "type": "number",
+                                          "enum": [
+                                            20
+                                          ]
+                                        },
+                                        "janela": {
+                                          "type": "object",
+                                          "properties": {
+                                            "inicio": {
+                                              "type": "string"
+                                            },
+                                            "fim": {
+                                              "type": "string"
+                                            },
+                                            "unidade": {
+                                              "type": "string",
+                                              "enum": [
+                                                "semanas",
+                                                "meses"
+                                              ]
+                                            },
+                                            "quantidade": {
+                                              "type": "number"
+                                            }
+                                          },
+                                          "required": [
+                                            "inicio",
+                                            "fim"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "n",
+                                        "minimo",
+                                        "janela"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                },
+                                "grupoAbaixoDoMinimo": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "com",
+                                        "sem",
+                                        "ambos"
+                                      ]
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "tipo",
+                                "com",
+                                "sem",
+                                "grupoAbaixoDoMinimo"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "granularidade",
+                          "entregas",
+                          "semDado",
+                          "comparacoes"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "base",
+                    "criterios",
+                    "segmentoPor",
+                    "porGranularidade"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metricas/T14": {
+      "get": {
+        "summary": "Métrica T14",
+        "tags": [
+          "metricas"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tipo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sistema",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "12s",
+              "type": "string",
+              "enum": [
+                "4s",
+                "12s",
+                "6m",
+                "12m",
+                "custom"
+              ]
+            },
+            "in": "query",
+            "name": "periodo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "de",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "ate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "dataReferencia",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "unidade": {
+                          "type": "string"
+                        },
+                        "janela": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                },
+                                "unidade": {
+                                  "type": "string",
+                                  "enum": [
+                                    "semanas",
+                                    "meses"
+                                  ]
+                                },
+                                "quantidade": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "complemento": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "unidade": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "unidade",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "criterios": {
+                      "type": "object",
+                      "properties": {
+                        "serie": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "janela": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "serie",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "equipe": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "semEquipe": {
+                      "type": "boolean"
+                    },
+                    "porGranularidade": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "granularidade": {
+                            "type": "string",
+                            "enum": [
+                              "story",
+                              "frente"
+                            ]
+                          },
+                          "total": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "ok"
+                                    ]
+                                  },
+                                  "k": {
+                                    "type": "number"
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": 20,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "pct": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "status",
+                                  "k",
+                                  "n",
+                                  "pct"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "insuficiente"
+                                    ]
+                                  },
+                                  "k": {
+                                    "type": "number"
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": -9007199254740991,
+                                    "maximum": 19
+                                  },
+                                  "minimo": {
+                                    "type": "number",
+                                    "enum": [
+                                      20
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "status",
+                                  "k",
+                                  "n",
+                                  "minimo"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          },
+                          "projetos": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "projetoId": {
+                                  "type": "string"
+                                },
+                                "codigo": {
+                                  "type": "string"
+                                },
+                                "titulo": {
+                                  "type": "string"
+                                },
+                                "total": {
+                                  "type": "number"
+                                },
+                                "meuTime": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "ok"
+                                          ]
+                                        },
+                                        "k": {
+                                          "type": "number"
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": 20,
+                                          "maximum": 9007199254740991
+                                        },
+                                        "pct": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "k",
+                                        "n",
+                                        "pct"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "enum": [
+                                            "insuficiente"
+                                          ]
+                                        },
+                                        "k": {
+                                          "type": "number"
+                                        },
+                                        "n": {
+                                          "type": "integer",
+                                          "minimum": -9007199254740991,
+                                          "maximum": 19
+                                        },
+                                        "minimo": {
+                                          "type": "number",
+                                          "enum": [
+                                            20
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "status",
+                                        "k",
+                                        "n",
+                                        "minimo"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  ]
+                                },
+                                "outrosTimes": {
+                                  "type": [
+                                    "number",
+                                    "null"
+                                  ]
+                                },
+                                "semTime": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "projetoId",
+                                "codigo",
+                                "titulo",
+                                "total",
+                                "meuTime",
+                                "outrosTimes",
+                                "semTime"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "granularidade",
+                          "total",
+                          "projetos"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "base",
+                    "criterios",
+                    "equipe",
+                    "semEquipe",
+                    "porGranularidade"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/metricas/E1": {
       "get": {
         "summary": "Métrica E1",
@@ -27517,6 +30135,627 @@
         }
       }
     },
+    "/api/v1/metricas/E6": {
+      "get": {
+        "summary": "Métrica E6",
+        "tags": [
+          "metricas"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tipo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sistema",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "12s",
+              "type": "string",
+              "enum": [
+                "4s",
+                "12s",
+                "6m",
+                "12m",
+                "custom"
+              ]
+            },
+            "in": "query",
+            "name": "periodo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "de",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "ate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "dataReferencia",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "unidade": {
+                          "type": "string"
+                        },
+                        "janela": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                },
+                                "unidade": {
+                                  "type": "string",
+                                  "enum": [
+                                    "semanas",
+                                    "meses"
+                                  ]
+                                },
+                                "quantidade": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "complemento": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "unidade": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "unidade",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "criterios": {
+                      "type": "object",
+                      "properties": {
+                        "serie": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "janela": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "serie",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "projetos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "cardId": {
+                            "type": "string"
+                          },
+                          "codigo": {
+                            "type": "string"
+                          },
+                          "titulo": {
+                            "type": "string"
+                          },
+                          "concluidoEm": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "deslizeDiasUteis": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "replanejamentos": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "cardId",
+                          "codigo",
+                          "titulo",
+                          "concluidoEm",
+                          "deslizeDiasUteis",
+                          "replanejamentos"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "semData": {
+                      "type": "number"
+                    },
+                    "naData": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "ok"
+                              ]
+                            },
+                            "k": {
+                              "type": "number"
+                            },
+                            "n": {
+                              "type": "integer",
+                              "minimum": 20,
+                              "maximum": 9007199254740991
+                            },
+                            "pct": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "status",
+                            "k",
+                            "n",
+                            "pct"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "insuficiente"
+                              ]
+                            },
+                            "k": {
+                              "type": "number"
+                            },
+                            "n": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 19
+                            },
+                            "minimo": {
+                              "type": "number",
+                              "enum": [
+                                20
+                              ]
+                            }
+                          },
+                          "required": [
+                            "status",
+                            "k",
+                            "n",
+                            "minimo"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "deslize": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "ok"
+                              ]
+                            },
+                            "n": {
+                              "type": "integer",
+                              "minimum": 20,
+                              "maximum": 9007199254740991
+                            },
+                            "valor": {
+                              "type": "object",
+                              "properties": {
+                                "p50": {
+                                  "type": "number"
+                                },
+                                "p85": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "p50",
+                                "p85"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "janela": {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                },
+                                "unidade": {
+                                  "type": "string",
+                                  "enum": [
+                                    "semanas",
+                                    "meses"
+                                  ]
+                                },
+                                "quantidade": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "status",
+                            "n",
+                            "valor",
+                            "janela"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "insuficiente"
+                              ]
+                            },
+                            "n": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 19
+                            },
+                            "minimo": {
+                              "type": "number",
+                              "enum": [
+                                20
+                              ]
+                            },
+                            "janela": {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                },
+                                "unidade": {
+                                  "type": "string",
+                                  "enum": [
+                                    "semanas",
+                                    "meses"
+                                  ]
+                                },
+                                "quantidade": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "status",
+                            "n",
+                            "minimo",
+                            "janela"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "base",
+                    "criterios",
+                    "projetos",
+                    "semData",
+                    "naData",
+                    "deslize"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/metricas/E7": {
       "get": {
         "summary": "Métrica E7",
@@ -27917,41 +31156,450 @@
                               ],
                               "additionalProperties": false
                             }
-                          },
-                          "custoRateado": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
-                          },
-                          "custoPorDemanda": {
-                            "type": [
-                              "number",
-                              "null"
-                            ]
                           }
                         },
                         "required": [
                           "sistema",
                           "entregas",
                           "participacao",
-                          "porNatureza",
-                          "custoRateado",
-                          "custoPorDemanda"
+                          "porNatureza"
                         ],
                         "additionalProperties": false
                       }
-                    },
-                    "custoConfigurado": {
-                      "type": "boolean"
                     }
                   },
                   "required": [
                     "base",
                     "criterios",
                     "total",
-                    "sistemas",
-                    "custoConfigurado"
+                    "sistemas"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metricas/E8": {
+      "get": {
+        "summary": "Métrica E8",
+        "tags": [
+          "metricas"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "tipo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sistema",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "12s",
+              "type": "string",
+              "enum": [
+                "4s",
+                "12s",
+                "6m",
+                "12m",
+                "custom"
+              ]
+            },
+            "in": "query",
+            "name": "periodo",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "de",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "ate",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "dataReferencia",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "in": "query",
+            "name": "page",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "in": "query",
+            "name": "pageSize",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base": {
+                      "type": "object",
+                      "properties": {
+                        "n": {
+                          "type": "number"
+                        },
+                        "unidade": {
+                          "type": "string"
+                        },
+                        "janela": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "inicio": {
+                                  "type": "string"
+                                },
+                                "fim": {
+                                  "type": "string"
+                                },
+                                "unidade": {
+                                  "type": "string",
+                                  "enum": [
+                                    "semanas",
+                                    "meses"
+                                  ]
+                                },
+                                "quantidade": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "inicio",
+                                "fim"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "complemento": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "number"
+                            },
+                            "unidade": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "n",
+                        "unidade",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "criterios": {
+                      "type": "object",
+                      "properties": {
+                        "serie": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "janela": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "descricao": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "data",
+                              "descricao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "serie",
+                        "janela"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "janelaMeses": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "sistemasComEntrega": {
+                      "type": "number"
+                    },
+                    "faixas": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "uma": {
+                              "type": "number"
+                            },
+                            "duas": {
+                              "type": "number"
+                            },
+                            "tresOuMais": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "uma",
+                            "duas",
+                            "tresOuMais"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "recortePequeno": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "base",
+                    "criterios",
+                    "janelaMeses",
+                    "sistemasComEntrega",
+                    "faixas",
+                    "recortePequeno"
                   ],
                   "additionalProperties": false
                 }
@@ -39555,8 +43203,10 @@
                                     "O19",
                                     "O20",
                                     "O21",
+                                    "O22",
                                     "O24",
                                     "O25",
+                                    "O26",
                                     "T1",
                                     "T2",
                                     "T3",
@@ -39569,12 +43219,16 @@
                                     "T10",
                                     "T11",
                                     "T12",
+                                    "T13",
+                                    "T14",
                                     "E1",
                                     "E2",
                                     "E3",
                                     "E4",
                                     "E5",
+                                    "E6",
                                     "E7",
+                                    "E8",
                                     "E9",
                                     "S1",
                                     "S2",

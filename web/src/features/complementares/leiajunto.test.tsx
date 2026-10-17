@@ -48,10 +48,16 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     },
   )
 
-  it('os links do núcleo alcançam as 17 complementares', () => {
-    const alcancadas = new Set(comPares.flatMap((c) => c.leiaJunto ?? []))
+  it('os links do núcleo alcançam as 21 complementares (em cadeia)', () => {
+    const alcancadas = new Set<string>()
+    const fila = comPares.flatMap((c) => c.leiaJunto ?? [])
+    for (let id = fila.pop(); id; id = fila.pop()) {
+      if (alcancadas.has(id)) continue
+      alcancadas.add(id)
+      fila.push(...(cartaoPorIdGlobal(id)?.leiaJunto ?? []))
+    }
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').map((c) => c.id)
-    expect(compl).toHaveLength(17)
+    expect(compl).toHaveLength(21)
     expect(compl.filter((id) => !alcancadas.has(id))).toEqual([])
   })
 

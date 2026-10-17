@@ -283,41 +283,23 @@
               ],
               "additionalProperties": false
             }
-          },
-          "custoRateado": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "custoPorDemanda": {
-            "type": [
-              "number",
-              "null"
-            ]
           }
         },
         "required": [
           "sistema",
           "entregas",
           "participacao",
-          "porNatureza",
-          "custoRateado",
-          "custoPorDemanda"
+          "porNatureza"
         ],
         "additionalProperties": false
       }
-    },
-    "custoConfigurado": {
-      "type": "boolean"
     }
   },
   "required": [
     "base",
     "criterios",
     "total",
-    "sistemas",
-    "custoConfigurado"
+    "sistemas"
   ],
   "additionalProperties": false
 }
