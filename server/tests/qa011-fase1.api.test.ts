@@ -56,7 +56,7 @@ function violacoes(x: unknown, caminho = '$', out: string[] = []): string[] {
 
 describe('A-2: cada id entra com o seu cálculo (nenhum dado inventado)', () => {
   // Fase 2 (E1 e E2 do back): as deste lote entraram com o cálculo, o contrato e o mock; antes disso eram 404.
-  it.each(['E6', 'E8'] as const)(
+  it.each(['T13', 'T14', 'E6', 'E8'] as const)(
     '%s: existe no catálogo, responde 200 no schema e, sem a extensão do mock, o estado vazio',
     async (id) => {
       expect((METRICA_IDS as readonly string[]).includes(id), `${id} no catálogo`).toBe(true)
@@ -65,8 +65,8 @@ describe('A-2: cada id entra com o seu cálculo (nenhum dado inventado)', () => 
       expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success).toBe(true)
     },
   )
-  it('id de lote seguinte (táticas e operacionais), da fase 3 ou inexistente: 404 METRICA_NAO_ENCONTRADA', async () => {
-    for (const id of ['O22', 'O26', 'T13', 'T14', 'O27', 'T15', 'E10']) {
+  it('id de lote seguinte (operacionais), da fase 3 ou inexistente: 404 METRICA_NAO_ENCONTRADA', async () => {
+    for (const id of ['O22', 'O26', 'O27', 'T15', 'E10']) {
       const r = await app.inject(url(id))
       expect(r.statusCode).toBe(404)
       expect(r.json().error.code).toBe('METRICA_NAO_ENCONTRADA')

@@ -28,7 +28,7 @@ export type DepsApp = {
   nivelLog?: string;
   /** Extensões das métricas complementares; padrão = mock. */
   extensoes?: () => ExtensoesMetricas;
-  /** Extensão do pedido 011 (T11, E6 e E8); padrão = mock quando `fonteDados !== 'real'`. */
+  /** Extensão do pedido 011 (T11, T13, E6, E8 e T14); padrão = mock quando `fonteDados !== 'real'`. */
   extensaoTambem?: () => ExtensaoTambemBM;
   /** Fonte da pesquisa de percepção (PV1); padrão = mock quando `fonteDados !== 'real'` e a leitura de `pesq_*` quando 'real'. */
   pesquisa?: FontePesquisa;

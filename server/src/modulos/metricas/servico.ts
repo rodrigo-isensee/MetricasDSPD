@@ -53,8 +53,8 @@ export function normalizar(f: FiltrosMetrica): string {
 /** Métricas complementares (catálogo de cartões): as únicas que leem as extensões (dados fictícios até a coleta real). */
 const COMPLEMENTARES = new Set<MetricaId>(CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').flatMap((c) => c.metricas));
 
-/** Métricas do pedido 011 que leem a extensão separada `ExtensaoTambemBM` (T11 da fase 1; E6 e E8 da fase 2). */
-const COM_EXTENSAO_TAMBEM = new Set<MetricaId>(['T11', 'E6', 'E8']);
+/** Métricas do pedido 011 que leem a extensão separada `ExtensaoTambemBM` (T11 da fase 1; T13, E6, E8 e T14 da fase 2). */
+const COM_EXTENSAO_TAMBEM = new Set<MetricaId>(['T11', 'T13', 'E6', 'E8', 'T14']);
 
 export type DepsServico = {
   db: Consultavel; S?: Esquemas; maxResultados?: number;

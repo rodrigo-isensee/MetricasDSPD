@@ -29,10 +29,16 @@ export const VERSAO_CRITERIO_PARADOS_V1: VersaoCriterio = {
  * "excluído entregue" (a lista vale para as duas, que compartilham `METRICAS_DO_DESCARTE_NATIVO`), mesmo sendo do
  * BusinessMap. Quem criar uma métrica nova a lista aqui, nominalmente.
  * T11 (B11b): conta demandas criadas por mês, não usa `descartado()` nem o `ativo` do descarte.
- * Fase 2 do pedido 011 (E6 e E8): nasceram com o descarte nativo já vigente (nunca existiram com o
+ * Fase 2 do pedido 011 (T13, T14, E6 e E8): nasceram com o descarte nativo já vigente (nunca existiram com o
  * critério anterior), então nenhuma marcação de "mudou o critério" faz sentido nelas.
  */
-export const NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO: readonly MetricaId[] = ['T11', 'E6', 'E8']
+export const NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO: readonly MetricaId[] = [
+  'T11',
+  'T13',
+  'T14',
+  'E6',
+  'E8',
+]
 
 /** `afeta` do descarte nativo, derivado do catálogo: toda métrica de fonte BusinessMap, menos as nascidas depois. */
 const METRICAS_DO_DESCARTE_NATIVO: MetricaId[] = METRICA_IDS.filter(
@@ -81,6 +87,15 @@ export const VERSAO_CRITERIO_O20_DESTAQUE_V2: VersaoCriterio = {
   afeta: ['O20'],
 }
 
+/** B11-001 = sim (pedido 011, 2026-10-17): o fornecedor do T10 é agrupado pelo nome normalizado (caixa e espaços). */
+export const VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO: VersaoCriterio = {
+  id: 'criterio-2026-10-17-t10-fornecedor-normalizado',
+  data: '2026-10-17',
+  descricao:
+    'Fornecedor agrupado sem diferença de maiúsculas, minúsculas e espaços; exibe a grafia mais frequente',
+  afeta: ['T10'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -88,6 +103,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_EXCLUIDO_ENTREGUE,
   VERSAO_CRITERIO_O19_PCT_DIAS,
   VERSAO_CRITERIO_O20_DESTAQUE_V2,
+  VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO,
 ]
 
 /**

@@ -175,6 +175,8 @@ export const METRICA_IDS = [
   'T10',
   'T11',
   'T12',
+  'T13',
+  'T14',
   'E1',
   'E2',
   'E3',
