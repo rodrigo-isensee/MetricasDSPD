@@ -62,15 +62,18 @@ test.describe('K-006 Operacional diário', () => {
     await expect(page).toHaveURL(/o2=/);
   });
 
-  test('OP-05/24 Bloqueados: colunas do domínio, sem responsável, base = linhas, sem agregação por motivo', async ({ painel }) => {
+  test('OP-05/24 Bloqueados: colunas do domínio, sem responsável, base = linhas, sem agregação por motivo', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=diaria');
+    // Gráficos montam pela fila (K-102): espera algum gráfico da página antes de afirmar a ausência no Bloqueados.
+    await expect(page.locator('svg[role="application"], svg[role="img"]').first()).toBeAttached();
     const b = painel.cartao('BLOQUEADOS');
     await b.esperarPronto();
     for (const c of ['Card', 'Tipo', 'Motivo', 'Fornecedor']) await expect(b.raiz.getByRole('columnheader', { name: new RegExp(c) })).toBeVisible();
     const n = await b.raiz.locator('tbody tr').count();
     await expect(b.raiz).toContainText(`Base: ${n} itens bloqueados`);
     expect(await b.raiz.innerText()).not.toMatch(FOCO_TEXTOS_PESSOA);
-    await expect(b.raiz.locator('svg[role="application"], svg[role="img"], canvas')).toHaveCount(0);
+    // O GraficoBase desenha o figure no primeiro commit: incluí-lo prova "só tabela" sem depender da fila.
+    await expect(b.raiz.locator('figure, svg[role="application"], svg[role="img"], canvas')).toHaveCount(0);
   });
 
   test('OP-06 Bloqueados vazio é estado positivo', async ({ painel }) => {

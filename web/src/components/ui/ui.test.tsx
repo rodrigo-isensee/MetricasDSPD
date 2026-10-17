@@ -269,6 +269,35 @@ describe('StatusMeta, TabelaDados e SeletorLocal', () => {
       'true',
     )
     expect(screen.getByText('conteúdo b')).toBeInTheDocument()
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  it('com `anuncio`, a troca de aba atualiza uma região aria-live educada', async () => {
+    function Exemplo() {
+      const [v, setV] = useState('a')
+      return (
+        <SeletorLocal
+          codigo="e9"
+          rotulo="Tipo"
+          valor={v}
+          onChange={setV}
+          anuncio={`Tipo ${v}: 1 projeto.`}
+          itens={[
+            { valor: 'a', rotulo: 'A' },
+            { valor: 'b', rotulo: 'B' },
+          ]}
+        >
+          <p>x</p>
+        </SeletorLocal>
+      )
+    }
+    render(<Exemplo />)
+    const regiao = screen.getByRole('status')
+    expect(regiao).toHaveAttribute('aria-live', 'polite')
+    expect(regiao).toHaveTextContent('Tipo a: 1 projeto.')
+    screen.getByRole('tab', { name: 'A' }).focus()
+    await userEvent.keyboard('{End}')
+    expect(regiao).toHaveTextContent('Tipo b: 1 projeto.')
   })
 })
 

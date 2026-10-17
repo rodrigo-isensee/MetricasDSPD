@@ -8,6 +8,7 @@ import {
   VERSAO_CRITERIO_EXCLUIDO_ENTREGUE,
   VERSAO_CRITERIO_PARADOS_V1,
   marcacoesNoPeriodo,
+  VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO,
 } from '../core/criterios'
 import { gerarBaseMock } from '@metricas-dspd/mock'
 import { calcularO2 } from './index'
@@ -69,8 +70,28 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
     expect(marcacoesNoPeriodo('S1', nova, [])).toEqual([])
   })
 
+  it('B11-001: a mudança de critério do T10 é marcada só no T10 e só a partir de 2026-10-17', () => {
+    const v = VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO
+    expect(v.afeta).toEqual(['T10'])
+    const nova = { inicio: '2026-10-16', fim: '2026-10-17' }
+    expect(marcacoesNoPeriodo('T10', nova, []).map((m) => m.id)).toContain(v.id)
+    expect(
+      marcacoesNoPeriodo('T10', { inicio: '2026-10-01', fim: '2026-10-16' }, []).map((m) => m.id),
+    ).not.toContain(v.id)
+    expect(marcacoesNoPeriodo('O19', nova, []).map((m) => m.id)).not.toContain(v.id)
+  })
+
   it('B11b: o T11 nasceu depois do descarte nativo e sai do `afeta` das duas versões que compartilham a lista, com a lista nominal', () => {
-    expect(NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO).toEqual(['T11'])
+    // T11 (B11b) e as seis da fase 2 (O22, O26, T13, T14, E6, E8) nasceram depois do descarte nativo
+    expect(NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO).toEqual([
+      'T11',
+      'O22',
+      'O26',
+      'T13',
+      'T14',
+      'E6',
+      'E8',
+    ])
     expect(fonteDaMetrica('T11')).toBe('businessmap')
     expect(METRICA_IDS).toContain('T11')
     for (const v of [VERSAO_CRITERIO_DESCARTE_NATIVO, VERSAO_CRITERIO_EXCLUIDO_ENTREGUE]) {
@@ -79,8 +100,11 @@ describe('O23: estoque parado dentro do WIP (bloco parados do O2)', () => {
     }
     // sem T11 na lista nominal ele entraria: o teste de igualdade acima é a trava
     const semNominal = METRICA_IDS.filter((id) => fonteDaMetrica(id) === 'businessmap')
-    expect(semNominal).toHaveLength(46)
-    expect(marcacoesNoPeriodo('T11', { inicio: '2026-10-01', fim: '2026-10-16' }, [])).toEqual([])
+    expect(semNominal).toHaveLength(52)
+    for (const id of NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO)
+      expect(marcacoesNoPeriodo(id, { inicio: '2026-10-01', fim: '2026-10-16' }, []), id).toEqual(
+        [],
+      )
   })
 
   it('abaixo de 20 itens devolve "k de n" sem percentual; só mudança de coluna conta como mover', () => {
