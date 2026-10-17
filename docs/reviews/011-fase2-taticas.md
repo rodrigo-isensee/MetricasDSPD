@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 011-fase2-taticas
 branch: feature/011-fase2-taticas
-commit: d845d88
-parecer: reprovado
+commit: 3c9a9cd
+parecer: aprovado
 revisor: tech-lead
 data: 2026-10-16
 ---
@@ -15,7 +15,7 @@ data: 2026-10-16
 
 **Separação por nível** (decisão do usuário de 2026-10-17): este lote é o commit `ee552d9`. Ele sai da `feature/011-fase2-estrategicas` (`3aeaa3d`), para não haver conflito nos arquivos compartilhados, e por isso o PR deste lote só abre depois do merge do lote 1. O commit acrescenta só T13 e T14 aos arquivos compartilhados (`METRICA_IDS`, `APLICABILIDADE_FLUXO`, `COM_EXTENSAO_MOCK`, `REGRAS_METRICA`, `NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO`, `ExtensaoTambemBM`, gerador do mock, OpenAPI, fotografias, `docs/api`, `docs/tecnica`, `regras-metricas.md` e as contagens dos testes). Os hashes por campo da extensão continuam os do autor (`vinculos`, `equipeResponsavel`, `outrosPublicavel`, `configEquipes`); só o hash da extensão inteira mudou (`64d76236`). Nenhuma lógica foi alterada na separação.
 
-**Veredito (rodada 1, `ee552d9`):** **aprovado**, com 3 ajustes recomendados e uma pendência de escopo do lote para o Jarvis. Nada bloqueia o QA. **A rodada 2 (revalidação, abaixo) substitui este veredito.**
+**Veredito (rodada 1, `ee552d9`):** **aprovado**, com 3 ajustes recomendados e uma pendência de escopo do lote para o Jarvis. Nada bloqueia o QA. **A rodada 2 e depois a rodada 3 (abaixo) substituem este veredito; o que vale é o da rodada 3.**
 
 ## Ferramentas (citadas, não refeitas)
 - `pnpm run pronto` na raiz da worktree, nesta branch, sobre `ee552d9` mais este parecer: **rc=0** (2026-10-16 11:26, load 0,76 no início). Cobre lint, `format:check`, tipos, testes com cobertura de 100% em todos os pacotes, `docs:check`, `spec:check`, build e tamanho do web.
@@ -97,3 +97,36 @@ A linha `regras.ts:672` diz "suposição do time", mas a Q-T14-9 = A é do usuá
 
 ### Commits
 `9e83bf5` (merge reconstruído, com a mensagem explicando a origem), `942c26a fix(metricas): T10 agrupa o fornecedor pelo nome normalizado (B11-001)` e `d845d88 fix(metricas): T14 deixa de listar a Q-T14-10 como pendente (R2 do review)`. Seguem Conventional Commits em português e trazem as linhas de atribuição.
+
+## Rodada 3: revalidação sobre `3c9a9cd` (ajustes R1 a R7; pedido 027)
+
+**Escopo revisto:** só o delta `git diff 0eb8404 3c9a9cd` (11 arquivos, +61/−31), commits `c3ac1ca` (R4, R5, R7), `bb5e920` (R6, R2) e `3c9a9cd` (R1, R3).
+
+**Veredito:** **aprovado**. O bloqueante R4 está resolvido, e R1, R2, R3, R6 e R7 também. O R5 está resolvido no que eu pedi para a API, o `refBriefing`, o contrato gerado e os comentários. Sobra um ajuste recomendado de documentação (R8): ele não bloqueia o QA, mas entra antes do PR (pedido 022).
+
+### Ferramentas (citadas, não refeitas)
+- `pnpm run pronto` rodado pelo autor sobre `3c9a9cd`: **rc=0** (relatado no pedido 027). Não rodei de novo, por causa do teto de recursos: o QA roda o pronto e os E2E do front em outra worktree.
+
+### Achados das rodadas anteriores
+| # | Situação na rodada 3 | Evidência |
+|---|---|---|
+| R4 (bloqueia) | **resolvido** | `criterios.ts:91` cria `VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO` (`id: criterio-2026-10-17-t10-fornecedor-normalizado`, `data: 2026-10-17`, `afeta: ['T10']`) e a inclui em `VERSOES_DA_BIBLIOTECA`. Isso basta para a marcação chegar ao T10: `marcacoesNoPeriodo` soma as versões da biblioteca, e `t10.ts:70` passa por `criterios('T10', ...)`. O teste novo (`o23.test.ts:73`) afirma `afeta = ['T10']`, a marcação num período que inclui 2026-10-17, a ausência dela num período que termina em 2026-10-16 e a ausência no O19 |
+| R5 | **resolvido**, com o resto passado para o R8 | `docs/api/metricas.md:146` e o `refBriefing` do T10 (`regras.ts:567`) trazem o B11-001. `docs/contratos/metricas/T10.md` foi regenerado com revisão de 2026-10-17. Os comentários de `t10.ts` voltaram a ter acentos. Minha premissa estava errada em um ponto: o `refBriefing` não gera a `regras-metricas.md`, que é mantida à mão (ver R8) |
+| R6 | **resolvido** | A Q-T14-9 saiu das pendências e entrou no `refBriefing` como "Q-T14-9 = A (usuário, provisória até confirmar a cardinalidade do campo)". O contrato do T14 foi regenerado. O teste (`fase2.regras.test.ts:44`) troca `'Q-T14-9'` para a lista que não pode voltar (`'Q-T14-9:'`). Reli o teste de ausência (item 11 do checklist): a linha antiga começava com `Q-T14-9:`, então o teste a teria pego. A pendência da cardinalidade cita "Q-T14-9 = A", sem dois-pontos, e passa |
+| R7 | **resolvido** | `bloqueios.test.ts:241`: 10 `ALFA` e 10 `Alfa`, nas duas ordens de entrada, saem numa linha `['ALFA', 20]`. Fica travado que o empate é desfeito pela ordem neutra (o código de `A` maiúsculo vem antes) |
+| R1 | **resolvido** | `t13.ts:73-75`: cada bloco calcula `janelaPercentis(ctx, f, granularidade)` e `amostraBM(granularidade, ...)`, e o filtro `naJanela` usa a janela do bloco. A `janela` story que sobra em `t13.ts:59` serve só ao `criterios('T13', ...)` de `:131`. Ali ela é usada apenas pelas datas e não entra em nenhuma amostra, então não fere a trava de classe |
+| R2 | **resolvido** | A pendência da Q-T14-4 (`regras.ts`) agora diz "em andamento no período = iniciado até o fim do período e não concluído antes do início (CA-27)" e que o projeto ainda não iniciado fica fora |
+| R3 | **resolvido** | `extensaoTambemFase2.ts:311` usa `chaveOutrosPublicavel(p, meu, g)`, importada de `@metricas-dspd/metricas/businessmap` |
+
+### Achado da rodada 3
+| # | Arquivo:linha | Problema | Sugestão | Severidade |
+|---|---|---|---|---|
+| R8 | `docs/architecture/regras-metricas.md:117`, `:121` e `:143`; `packages/metricas/src/businessmap/t10.ts:15` | A `regras-metricas.md` é escrita à mão e ficou para trás. A linha do T10 (`:117`) não cita o B11-001 nem a versão de critério de 2026-10-17. A do T14 (`:121`) não cita a Q-T14-9 = A nem a Q-T14-10 = B. O parágrafo da fase 2 (`:143`) ainda lista "Q-T14-2, 3, 4, 7, 8, 9 e 10" como pendentes, quando 9 e 10 já foram decididas pelo usuário. Nenhuma ferramenta pega isso, porque o `docs:check` não compara esse texto com o `REGRAS_METRICA`. Em `t10.ts:15`, a frase "Fornecedor igual a menos de maiúsculas e espaços" ficou truncada | Acrescentar "B11-001 = sim (critério de 2026-10-17)" na linha do T10, "Q-T14-9 = A, Q-T14-10 = B" na do T14, e em `:143` deixar só "Q-T14-2, 3, 4, 7 e 8" mais a cardinalidade. Em `t10.ts:15`, reescrever como "Fornecedores que diferem só em maiúsculas, minúsculas e espaços são um só" | recomendado (antes do PR do pedido 022) |
+
+**Observação fora do delta (não conta para este lote):** em `regras-metricas.md:135`, o O19 ainda diz que o `pctDoTotal` é "k de n em bloqueios, nunca em dias úteis". Isso contradiz a O19-pct = B (`criterio-2026-10-16-o19-pct-em-dias-uteis`), que está documentada em `docs/api/metricas.md:146`. Fica para o autor corrigir junto com o R8, porque é o mesmo arquivo.
+
+### O que este delta não mexeu
+O delta não toca em nenhum dado de pessoa, nas regras de mínimo de 20, na separação entre story, frente e projeto nem no BusinessMap × Acelerato. O lote 1 continua intacto: nenhum arquivo do E6, do E7 ou do E8 aparece no delta. A segurança (E2.3) revalida depois desta rodada, e o QA (E2.4) vem depois da segurança.
+
+### Commits
+`c3ac1ca fix(metricas): registra a versão de critério do T10 e documenta a normalização (R4, R5, R7)`, `bb5e920 fix(metricas): Q-T14-9 vira decisão do usuário e Q-T14-4 explícita (R6, R2)` e `3c9a9cd fix(metricas): T13 rotula a amostra pela granularidade e o mock usa chaveOutrosPublicavel (R1, R3)`. Os três seguem Conventional Commits em português, cada um com os achados que fecha, e trazem as linhas de atribuição.
