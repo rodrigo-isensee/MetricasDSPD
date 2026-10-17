@@ -3,7 +3,7 @@ Pedido: docs/pedidos/031-develop-limpa-homolog-e-release.md
 Branch: docs/jarvis-quadro-2026-10-17-noite   Base: develop   Base-sha: 6b3db45c0bff84802f0b5eb12b0cdb24ba3a659f
 
 ## Objetivo
-Levar à develop o que está pronto (a branch só de documentação do quadro, `docs/jarvis-quadro-2026-10-17-noite`) e apagar as branches já incorporadas ou conferidas, pelo pedido do usuário de 2026-10-17 ("atualize tudo que esta pronto na develop e apague as branchs"). Etapas E1.1, E2.1 e E3.2 do pedido 031. A partir de `/home/rodrigoisensee/MetricasDSPD`.
+Levar à develop o que está pronto (a branch só de documentação do quadro, `docs/jarvis-quadro-2026-10-17-noite`) e apagar as branches já incorporadas ou conferidas, pelo pedido do usuário de 2026-10-17 ("atualize tudo que esta pronto na develop e apague as branchs"). Etapas E1.1, E2.1 e E3.2 do pedido 031 (a promoção e o PR de release ficaram no pedido 032). A partir de `/home/rodrigoisensee/MetricasDSPD`.
 
 ## Ler
 - `docs/pedidos/031-develop-limpa-homolog-e-release.md` (Inventário, Escopo e Fora do escopo).
@@ -16,13 +16,15 @@ Levar à develop o que está pronto (a branch só de documentação do quadro, `
 
 ## Fora do escopo
 - "E3.1 (dono): decidir o destino das seis branches com trabalho fora da develop (pergunta em Andamento)." · etapa do dono, já decidida (opção A com a condição de conferir antes; ver o item E3 do Entregar).
-- "E4.2 (forge:qa-engineer): parecer de QA da nova promoção." e "E4.4 (dono): validar a homolog e mesclar o PR de release na `main`." · etapas de outro papel; a promoção e o PR de release vêm depois, por outros briefs.
+- A nova promoção develop → homolog e o PR de release (pedido 032, por outros briefs).
 - A worktree `-030` e a branch `feature/030-dependabot-develop` (pedido 030, em andamento); os PRs do Dependabot.
 - Nunca apagar `develop`, `homolog` nem `main`.
 
 ## Decisões e restrições
 - Pedido do usuário (pedido 031, 2026-10-17): "atualize tyudo que esta pronto na develop e apague as branchs. Depois atualize a hml e deixe o pr aberto para main".
+- DECISÃO DO DONO (pedido 031, 2026-10-17): opção A (arquivar com tag `arquivo/<nome>` e apagar a branch), com a condição: "anters de fazer a A verifique se tudo que esta ali ja esta na develop".
 - DECISÃO DO DONO (pedido 023, 2026-10-17): "A regra do projeto nunca passa sobre a fábrica".
+- O PR do E1 é só de documentação (`.md`): R-QA, "Documentação não passa por testes nem QA"; o hook `parecer` libera PR só de `.md` (desvio "só documentação" em `hooks/parecer.py`), com a `develop` local atualizada. Por isso não há parecer de review nem de QA para o pedido 031.
 - R-FLUXO: depois do merge, limpe tudo; nunca apague `develop`, `homolog` nem `main`. R-MAIN: nada na `main`. R-VERIFY: sem `--no-verify` nem `--force`; sem `--admin`. R-CONFORMIDADE: bloqueio não se contorna; vira relato.
 - Teto: 2 agentes de dia, uma tarefa pesada por vez (restrição do usuário de 2026-10-17, pedido 024, "Restrições do usuário"): nada pesado.
 

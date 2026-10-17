@@ -15,17 +15,12 @@
 - E1. PR só de documentação da branch `docs/jarvis-quadro-2026-10-17-noite` para a develop, mesclado; branch apagada. · `confirmado`
 - E2. Apagar as branches já incorporadas e a worktree `-023`. · `confirmado`
 - E3. Branches com trabalho fora da develop: tratamento conforme a resposta do dono (pergunta abaixo). · `suposição` até a resposta
-- E4. Promover a develop para a homolog (com os pareceres próprios da promoção, pela decisão do dono de 2026-10-17 no pedido 023) e abrir o PR de release homolog → main, sem mesclar. · `confirmado`
 
 ## Etapas
 - E1.1 (forge:tech-lead): PR só de documentação da branch do quadro para a develop, mesclado, branch remota apagada.
 - E2.1 (forge:tech-lead): apagar as branches já incorporadas e a worktree `-023`.
 - E3.1 (dono): decidir o destino das seis branches com trabalho fora da develop (pergunta em Andamento).
 - E3.2 (forge:tech-lead): executar a decisão do dono sobre as seis branches.
-- E4.1 (forge:tech-lead): parecer de review da nova promoção develop → homolog.
-- E4.2 (forge:qa-engineer): parecer de QA da nova promoção.
-- E4.3 (forge:tech-lead): PR de documentação dos pareceres, promoção develop → homolog e PR de release homolog → main aberto.
-- E4.4 (dono): validar a homolog e mesclar o PR de release na `main`.
 
 ## Fora do escopo
 - Mesclar os PRs do Dependabot (#110 a #112) e o pedido 030: não estão prontos.
@@ -35,3 +30,4 @@
 - 2026-10-17 — Recibo ao usuário: vou fazer: levar à develop a branch de documentação do quadro, apagar as branches já incorporadas, promover a develop para a homolog com os pareceres e deixar o PR para a main aberto; não vou fazer: mesclar o Dependabot e o pedido 030, que não estão prontos; o PR de release que eu ia abrir agora (brief 8 do pedido 023) fica substituído pelo desta nova promoção.
 - PERGUNTA: 2026-10-17 — As seis branches locais com commits fora da develop: A arquivar cada uma com uma tag `arquivo/<nome>` e apagar a branch (reversível); B apagar sem guardar; C manter. Recomendação: A.
 - 2026-10-17 — DECISÃO DO DONO: opção A (arquivar com tag `arquivo/<nome>` e apagar a branch), com a condição: "anters de fazer a A verifique se tudo que esta ali ja esta na develop". O tech-lead confere cada uma das seis branches por conteúdo (não só por hash) e só arquiva e apaga as que estiverem inteiras na develop; o que faltar volta ao dono antes de qualquer remoção.
+- ESCOPO-: 2026-10-17 — O antigo E4 (nova promoção develop → homolog com pareceres e PR de release aberto) sai deste pedido e vai para o pedido 032, porque o conferente não aceita duas etapas do tech-lead em momentos diferentes no mesmo pedido (melhoria B1 já mandada à fábrica). Nada do pedido do usuário é cortado: continua no 032.
