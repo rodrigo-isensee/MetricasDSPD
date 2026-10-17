@@ -479,8 +479,8 @@ export function CartaoE8({ filtros }: P) {
           )}
           <Leia>
             Janela de {fmtInteiro(r.janelaMeses)} meses, fixa. O número de pessoas por sistema chega
-            já contado: nenhum nome de pessoa nem de sistema aparece aqui. Leia junto com a
-            capacidade por sistema (E7).
+            já contado: nenhum nome de pessoa nem de sistema aparece aqui. Leia junto com as
+            entregas por sistema (E7).
           </Leia>
         </div>
       )}
