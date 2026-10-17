@@ -23,15 +23,15 @@
     "@metricas-dspd/contratos": "workspace:*",
     "@metricas-dspd/metricas": "workspace:*",
     "@metricas-dspd/mock": "workspace:*",
-    "@tanstack/react-query": "^5.104.1",
+    "@tanstack/react-query": "^5.104.2",
     "clsx": "^2.1.1",
     "jspdf": "^4.2.1",
-    "radix-ui": "^1.7.0",
+    "radix-ui": "^1.8.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router": "^7.18.4",
     "recharts": "^3.10.1",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
