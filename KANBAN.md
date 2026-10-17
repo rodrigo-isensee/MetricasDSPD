@@ -17,12 +17,11 @@
 | K-108 | homolog-aprovada espera o portão terminar (E1) | 016 | forge:devops-engineer | 2026-10-17 | 2026-10-17 06:30 | Corrida vista no #90 e no #96 |
 | K-091 | [teste] IFA-001: o IF-A não verifica cartão no /operacional padrão nem no /estrategico | qa-intensivo | forge:qa-engineer | 2026-10-15 | 2026-10-15 02:00 | Médio, já existia antes. Lacuna de cobertura do teste; o time escolhe filtros que exibam "Não afetado por". Decisão técnica, não vai ao usuário |
 | K-092 | [teste] IF-U-operacional instável sob carga (timeout de 30 s) | qa-intensivo | forge:react-frontend | 2026-10-15 | 2026-10-15 02:00 | 1 falha em 2 rodadas no QA do K-083 |
-| K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-15 02:00 | Baixo, já existia antes. O usuário aceita ou prioriza na volta |
+| K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-15 02:00 | Baixo, já existia antes. Decisão do usuário de 2026-10-16: corrigir (SNO = C) |
 | K-086 | [segurança] Erro e log sem valor do payload (B-4) | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
 | K-087 | Spike B-5: tipo do campo Time responsável e domínio fechado | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020; junto com a integração |
 | K-088 | [segurança] Lint do coletor resistente a contorno (B-2) | 011 | forge:tech-lead | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
 | K-089 | [segurança] Teste da allow-list com a lista de campos proibidos escrita no próprio teste (B-1) | 011 | forge:qa-engineer | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
-| K-081 | Registro da versão 0.13.0 do Forge na develop | processo | usuário | 2026-10-14 | 2026-10-14 19:00 | Branch local chore/forge-0.13.0-versao. O arquivo de versão do Forge só o usuário altera (R-CONFORMIDADE); fica como ação dele |
 | K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | Validado (`docs/ux/revisao-geral-usabilidade/04-decisoes.md`). Entra depois de K-073 (mesmas telas). O protótipo HTML vai junto com a feature |
 | K-075 | Compatibilidade com celular, iPad e tablet (3 fatias, MOB-CA-1 a 27) | 010 | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | O discovery está pronto. O usuário delegou as decisões ao time (D1 = B). Entra depois de K-074; o software-architect inclui o orçamento móvel na ADR 0003 |
 
@@ -52,11 +51,8 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-114 | E7 sem R$: participação percentual por entregas (D2 = A) | 024 | forge:node-backend | 2026-10-17 | 2026-10-18 05:40 | worktree: -024 · branch feature/024-e7-sem-reais. E1 + E3 (janela E8/E9) + E4 (concluidoEm no E6). Antes da homolog |
 | K-103 | Back da fase 2 do 011: E6, E7 R$, E8, T13, T14, O22, O26 (E1, E2) | 011 | forge:tech-lead | 2026-10-17 | 2026-10-17 10:00 | worktree: -011-fase2 · os 3 lotes na develop: #105, #107 (8516ff8), #109 (5ad02ea). Falta a promoção para a homolog (pedido 023), depois do #108 e do 024 |
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
-| K-105 | Limpeza de worktrees e docs da retomada | 013/017/019 | usuário | 2026-10-17 | 2026-10-17 10:00 | -011-back e -demo removidas; docs na develop (#102). Falta remover a -qa com --force (ação do usuário; protótipos copiados para ~/MetricasDSPD-local/prototipos) |
-| K-077 | Melhoria do Forge: autoria do parecer gravado pelo Bash | processo | usuário | 2026-10-14 | 2026-10-14 15:30 | Ação do usuário: push e PR pelo terminal dele |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -65,6 +61,7 @@
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-114 | E7 sem R$ (participação por entregas) e nome "Entregas por sistema" | 024 | forge:qa-engineer | 2026-10-17 | 2026-10-17 10:32 | worktree: -024 · QA sobre a CI do push; depois PR (tech-lead) |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -73,6 +70,9 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-077 | Melhoria do Forge: autoria do parecer gravado pelo Bash | processo | usuário | 2026-10-14 | 2026-10-17 09:59 | Repassada à fábrica pelo usuário (prompt de melhorias, A4) |
+| K-081 | Registro da versão 0.13.0 do Forge na develop | processo | usuário | 2026-10-14 | 2026-10-17 09:59 | Obsoleto: substituído pelo PR #113 (0.19.0) |
+| K-105 | Limpeza de worktrees e docs da retomada | 013/017/019 | usuário | 2026-10-17 | 2026-10-17 09:52 | -qa removida; docs na develop (#102) |
 | K-109 | Front do 011, lote 1 (estratégicas): E9, E6, E7, E8 | 011/021/028 | forge:tech-lead | 2026-10-17 | 2026-10-17 09:45 | #108 (d83024b) na develop; ressalvas baixas da UX: "Demais 1 sistema" e teste manual com leitor de tela |
 | K-084 | [segurança] Coletor: allow-list (M-1, M-2, M-3) | 011 | forge:node-backend | 2026-10-14 | 2026-10-17 08:26 | #77 (0fe209a) na develop |
 | K-085 | [segurança] GRANT por coluna (M-4, B-3) | 011 | forge:node-backend | 2026-10-14 | 2026-10-17 08:26 | #80 (f9d1079) na develop |

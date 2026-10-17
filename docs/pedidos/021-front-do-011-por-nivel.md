@@ -26,3 +26,5 @@
 ## Decisões do usuário
 - 2026-10-17 — **Título da seção nova do Estratégico = A** (usuário: "A"): "Onde o parque se concentra, e qual o risco de continuidade?". Recomendação do UX, na revisão `revisao-011-front-estrategicas.md`, porque o E7 deixou de mostrar custo (D2 = A).
 - 2026-10-17 — **Renomear o E7: pendente de confirmação** (usuário respondeu "E3 pode renomear"; o Jarvis lê como o E7, que era a pergunta em aberto, mas só aplica depois de o usuário confirmar): se confirmado, o E7 passa a se chamar "Entregas por sistema" (sugestão A-10 da revisão de UX). Até lá, nada muda no código nem na especificação.
+- PERGUNTA: 2026-10-17 — Nome do E7 ("E3 pode renomear" era sobre o E7?): opções A "Entregas por sistema", B manter o nome atual, C outro nome; recomendação A (sugestão A-10 da UX). 1 decisão e 3 ações na fila.
+- 2026-10-17 — DECISÃO DO DONO: o E7 passa a se chamar "Entregas por sistema" (opção A da pergunta de 2026-10-17; confirma que "E3 pode renomear" era sobre o E7). Aplicado no pedido 024 (E5).

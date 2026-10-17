@@ -262,3 +262,28 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-17T09:45:33-03:00 | K-109 | QA | Pronto | #108 mesclado na develop (d83024b), branch e worktree apagadas |
 - 2026-10-17 09:45 — K-109: #108 mesclado na develop (d83024b) pelo tech-lead; branch e worktree apagadas. testes do push falhou uma vez no montecarlo.test.ts (semente 1324607460) e passou ao rerrodar: registrado no K-107. Entrega do merge em conferência. Próximo: pedido 024 (E1.5, tech-lead).
 - 2026-10-17 09:46 — K-109: entrega do merge do #108 conferida: cumpriu (PQ-1 a PQ-3), igual ao bloco Provas. Pedido 028 concluído. Brief E1.5 do pedido 024 (tech-lead: commit A-5 e merge da develop) em conferência.
+- 2026-10-17 09:50 — K-114: entrega do E1.5 conferida: não cumpriu (PQ-2, merge abortado por conflito em contrato e teste, como o brief manda), igual ao bloco Provas; segue pelo E1.6 (node-backend), brief em conferência. Usuário pediu as pendências uma a uma: começo pelo nome do E7.
+- 2026-10-17 09:51 — Decisão do usuário: E7 = "Entregas por sistema" (A). Entra no pedido 024 como E5 (E5.1 node-backend, E5.2 ux-designer, testes no E1.4).
+- 2026-10-17 — Usuário pulou a pendência 2 (PR #113, registro do Forge 0.19.0): fica aberta; a promoção para a homolog sai sem o registro, se ele não mesclar antes.
+| 2026-10-17T09:52:22-03:00 | K-105 | Em andamento | Pronto | worktree -qa já removida (conferido em 2026-10-17) |
+- 2026-10-17 09:55 — K-114: merge da develop no 024 feito (d4c0821, 5 conflitos resolvidos, testes de pacote verdes), push barrado pelo teste do front (E1.4). Conferido; aceito. Próximo: E5.1 (node-backend, nome do E7), depois E1.4 (react-frontend, teste e push).
+- 2026-10-17 09:56 — Pendência 3 (melhorias do Forge paradas): o usuário pediu um prompt para repassar à fábrica; prompt gerado com os itens de docs/kanban/melhorias.md e as 3 branches de ~/.forge-contrib. K-077 segue com o usuário.
+- 2026-10-17 09:58 — K-114: E5.1 feito (de018c6, nome do E7 no back e na doc técnica, testes de pacote verdes), conferido e aceito (escopo acumulado é falso positivo). Brief do E1.4 (react-frontend) em conferência; brief do E5.2 (UX) pronto.
+| 2026-10-17T09:59:09-03:00 | K-077 | Em andamento | Pronto | repassada à fábrica pelo usuário (prompt de melhorias, item A4) |
+| 2026-10-17T09:59:09-03:00 | K-081 | Entrada | Pronto | obsoleto: substituído pelo registro da 0.19.0 (PR #113) |
+- 2026-10-17 09:59 — Usuário repassou as melhorias à fábrica: K-077 sai para Pronto. K-081 fechado como obsoleto (PR #113). K-093 corrigido no quadro: decisão SNO = C de 2026-10-16. Pendência do usuário que resta: PR #113 (pulada antes).
+- 2026-10-17 10:04 — K-114: E1.4 feito (97ddd0b, teste do E7 sem custoConfigurado, nome no catálogo; web 1076 testes ok; branch enviada). E5.2 feito pela UX (3 arquivos em docs/ux, sem commit). Entrega do E1.4 e brief da rodada 2 do review em conferência.
+| 2026-10-17T10:09:24-03:00 | K-114 | Em andamento | Code review | rodada 2 do review com o tech-lead (brief 3 aprovado, sha256 849f0815) |
+- 2026-10-17 10:09 — K-114: brief da rodada 2 do review aprovado (3 rodadas de conferência; contradição do conferente registrada em melhorias). Review com o tech-lead (opus).
+- 2026-10-17 10:15 — K-114: rodada 2 do review reprovada só pelo A-7 (texto do E8 com o nome antigo do E7 na tela); A-8 e A-9 recomendados. UX commitada antes do parecer (092d0d1), parecer 191015e. Entrega conferida: bate com o bloco Provas. Ajustes voltam ao react-frontend (A-7) e ao node-backend (A-8, A-9), em sequência.
+- 2026-10-17 10:23 — K-114: A-7 corrigido (19accc9, 83c5f49; web 1077 testes). Tentativa de push forçado barrada pelo hook (registrada). Próximo: node-backend A-8/A-9, em paralelo com a conferência da entrega do A-7 (faixa fixa 191015e..83c5f49).
+- 2026-10-17 10:24 — K-114: entrega do A-7 conferida: cumpriu (191015e..83c5f49, sem reescrita no remoto). Node-backend no A-8/A-9.
+- 2026-10-17 10:27 — K-114: A-8/A-9 feitos (d0fcb7b), conferidos: cumpriu. Rodada 3 do review com o tech-lead.
+- 2026-10-17 10:30 — K-114: rodada 3 do review aprovada (052d9a8, 928dba1; commit revisado d0fcb7b). Próximo: QA (brief em conferência).
+- 2026-10-17 10:31 — K-114: entrega da rodada 3 do review conferida: cumpriu. Aguardando a conferência do brief do QA.
+| 2026-10-17T10:32:22-03:00 | K-114 | Code review | QA | rodada 3 do review aprovada (928dba1); QA com a CI do push |
+- 2026-10-17 10:33 — K-114: QA parou em 3 lacunas de teste (G1 a G3), sem bugs. Decisão técnica: o QA escreve os testes (E1.7), rodada 4 do review só neles (E1.8), depois o parecer.
+- 2026-10-17 10:41 — K-114: testes G1 a G3 feitos pelo QA (8a4a5a7; metricas 1082, contratos 161, web 1078). Entrega em conferência; brief da rodada 4 pronto.
+- 2026-10-17 10:42 — K-114: entrega dos testes G1 a G3 conferida: cumpriu. Aguardando a conferência do brief da rodada 4.
+- 2026-10-17 10:46 — K-114: rodada 4 do review aprovada (3daf896, 4fb04ad; commit revisado 8a4a5a7). Entrega em conferência; brief do parecer do QA pronto.
+- 2026-10-17 10:47 — K-114: entrega da rodada 4 conferida: cumpriu. QA esperando a CI para o parecer final.
