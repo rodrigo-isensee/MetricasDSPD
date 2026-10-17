@@ -3,10 +3,10 @@ tipo: review
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: 59dfb37
+commit: 357936b
 parecer: aprovado
 revisor: tech-lead
-data: 2026-10-16
+data: 2026-10-18
 ---
 # Code review: front do pedido 011, lote 1 (E9, E6, E7 sem R$, E8)
 
@@ -14,9 +14,34 @@ data: 2026-10-16
 - Referências: `docs/pedidos/021-front-do-011-por-nivel.md`, `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§3, §4, §5 do E6 ao E9, §10), `docs/engineering/praticas.md` (§2 a §5 e §8), contratos `docs/contratos/metricas/E6.md` a `E9.md`.
 - Ferramentas: o `praticas.md` não marca nenhuma regra como "decidida por: `<comando>`". Cito a saída do autor sem refazê-la: `pnpm run pronto` com rc=0 no `919554b` (o brief dispensou a execução local, com o teto de 2 agentes). Lint, tipos, cobertura de 100%, `docs:check` e E2E estão no `pronto`.
 
+## Volta 6 (2026-10-18): aprovado
+
+- Escopo: diff `3d2ee5b..357936b` em `e2e`, `web`, `packages` e `server`. Mudou só `e2e/tests/intensivo-filtros.spec.ts` (3 linhas, commit `357936b`, `test(e2e)`). Não há código de produção no diff. O `commit` do frontmatter passa a `357936b`. A `develop` não foi reintegrada nesta volta.
+- Motivo: o QA abriu o bug 011F-002 (o IF-I01 estoura os 30 s padrão na suíte E2E completa local), e o autor deu ao teste um orçamento de tempo próprio. Isso desatualizou o parecer da volta 5.
+- Ferramentas: não rodei nada local, porque o brief dispensa (teto de 3 agentes, uma tarefa pesada por vez). A prova da suíte completa é o check `e2e` da CI do PR #106.
+
+### O diff
+
+- `test.setTimeout(120_000)` no começo do IF-I01, com um comentário que explica a causa (cinco rotas, cada uma com navegação, assentar do painel e dezenas de cliques; o teto de 30 s vale para o teste inteiro) e cita o bug 011F-002.
+- É o mesmo padrão e o mesmo valor do IF-A (K-083), que está na linha 410 do mesmo arquivo (`test.setTimeout(120_000)`); o IF-I01 fica na linha 506. Não é mecanismo novo.
+- O teste não é pulado nem enfraquecido: o corpo e as asserções ficam como estavam, então a cobertura de "marcar todas e desmarcar todas" continua a mesma (item 11 do checklist: nada de ausência que mudou de alvo). O teto de 120 s só dá folga sob carga; em máquina normal o teste termina bem antes.
+- Decisão do time (pedido 021, 2026-10-18): saída (a), orçamento próprio, sem skip. A instabilidade de outros testes sob carga local vira o K-115, fora deste PR.
+
+### Regras invioláveis e decisões
+
+Conformes. O diff é só de teste: não toca no cálculo, no custo (D2 = A), no E8 (R-1 = B) nem no nome do E7, que segue pendente da confirmação do usuário.
+
+### Commits
+
+Um commit, `test(e2e)`, coerente, com o bug 011F-002 na mensagem. Os PNGs de `docs/qa/evidencias/` regenerados pela suíte E2E ficam sem commit e fora deste review; o QA os restaura na etapa dele.
+
+### Próximo passo
+
+O QA revalida o parecer dele sobre `357936b`. Depois, o PR #106 segue pelo pedido 028, com o check `e2e` verde na CI como prova da suíte completa.
+
 ## Volta 5 (2026-10-16): aprovado
 
-- Escopo: diff `89b755c..59dfb37` em `e2e`, `web`, `packages` e `server`. Mudou só `e2e/tests/intensivo-sistemico.spec.ts` (2 linhas, commit `59dfb37`, `test(e2e)`). Não há código de produção no diff. O `commit` do frontmatter passa a `59dfb37`. A `develop` não foi reintegrada nesta volta.
+- Escopo: diff `89b755c..59dfb37` em `e2e`, `web`, `packages` e `server`. Mudou só `e2e/tests/intensivo-sistemico.spec.ts` (2 linhas, commit `59dfb37`, `test(e2e)`). Não há código de produção no diff. O `commit` do frontmatter passou a `59dfb37`. A `develop` não foi reintegrada nesta volta.
 - Motivo: o check `e2e` do PR #106 falhou no SIS-CONS-01. O catálogo tem 53 linhas depois dos cartões E6 a E9 e o teste ainda esperava 49.
 - Ferramentas: não rodei nada local, porque o brief dispensa (teto de 3 agentes, uma tarefa pesada por vez). A prova é a CI do PR #106, que roda a suíte E2E completa.
 
