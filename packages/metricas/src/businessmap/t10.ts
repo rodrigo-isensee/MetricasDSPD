@@ -12,7 +12,8 @@ const soma = (xs: readonly number[]): number => xs.reduce((s, x) => s + x, 0)
 /**
  * T10: tempo de terceiros, só o praticado (D-10 = A): sem prazo contratado e sem status. Entra todo bloqueio
  * encerrado com fornecedor informado, de qualquer motivo (R-5, CA-24); sem fornecedor fica fora. Uma linha por
- * fornecedor em ordem alfabética (CA-11), com P50/P85 só com n >= 20 por fornecedor, na janela móvel de 12 semanas. O fornecedor é
+ * fornecedor em ordem alfabética (CA-11), com P50/P85 só com n >= 20 por fornecedor, na janela móvel de 12 semanas. Fornecedor igual a menos de
+ * maiusculas e espacos e um so (B11-001). O fornecedor é
  * dimensão permitida, nunca pessoa.
  */
 export function calcularT10(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT10 {
@@ -20,22 +21,33 @@ export function calcularT10(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT10 {
   const cards = selecionar(ctx, f, 'story')
   // Percentis na janela móvel de 12 semanas (opção A, até o usuário decidir a janela do T10); o censo segue no período.
   const janela = janelaPercentis(ctx, f, 'story')
+  // B11-001 (usuario): o fornecedor e agrupado pelo nome normalizado (sem diferenca de maiusculas e minusculas nem de
+  // espacos nas pontas e repetidos); a exibicao usa a grafia mais frequente do grupo no periodo (empate: ordem neutra).
   const agrupar = (periodoOuJanela: typeof periodo) => {
-    const mapa = new Map<string, number[]>()
+    const mapa = new Map<string, { horas: number[]; grafias: Map<string, number> }>()
     for (const b of bloqueiosDoPeriodo(ctx, cards, periodoOuJanela).encerrados) {
-      const nome = b.fornecedor?.trim()
-      if (!nome) continue
-      const l = mapa.get(nome)
-      if (l) l.push(b.duracao_horas_uteis)
-      else mapa.set(nome, [b.duracao_horas_uteis])
+      const grafia = b.fornecedor?.trim().replace(/\s+/g, ' ')
+      if (!grafia) continue
+      const chave = grafia.toLowerCase()
+      const g = mapa.get(chave) ?? { horas: [], grafias: new Map<string, number>() }
+      g.horas.push(b.duracao_horas_uteis)
+      g.grafias.set(grafia, (g.grafias.get(grafia) ?? 0) + 1)
+      mapa.set(chave, g)
     }
     return mapa
   }
+  const grafiaMaisFrequente = (grafias: ReadonlyMap<string, number>): string =>
+    (ordenarNeutro([...grafias.entries()], ([g, n]) => [-n, g])[0] as readonly [string, number])[0]
   const porFornecedor = agrupar(periodo)
   const naJanela = agrupar(janela)
-  const fornecedores = ordenarNeutro([...porFornecedor.entries()], ([nome]) => [nome]).map(
-    ([fornecedor, horas]) => {
-      const daJanela = naJanela.get(fornecedor) ?? []
+  const linhas = [...porFornecedor.entries()].map(([chave, g]) => ({
+    chave,
+    fornecedor: grafiaMaisFrequente(g.grafias),
+    horas: g.horas,
+  }))
+  const fornecedores = ordenarNeutro(linhas, (l) => [l.fornecedor]).map(
+    ({ chave, fornecedor, horas }) => {
+      const daJanela = (naJanela.get(chave) ?? { horas: [] }).horas
       return {
         fornecedor,
         bloqueios: horas.length,
@@ -53,7 +65,7 @@ export function calcularT10(ctx: ContextoBM, f: FiltrosFluxo): ResultadoT10 {
       }
     },
   )
-  const todas = [...porFornecedor.values()].flat()
+  const todas = [...porFornecedor.values()].flatMap((g) => g.horas)
   return {
     base: baseAmostral(todas.length, 'bloqueios encerrados com fornecedor', periodo),
     criterios: criterios('T10', periodo, janela, ctx),

@@ -218,6 +218,26 @@ describe('T10: tempo de terceiros (só o praticado)', () => {
     expect(SCHEMAS_RESULTADO.T10.safeParse(r).success).toBe(true)
   })
 
+  it('B11-001: o fornecedor e agrupado pelo nome normalizado e exibe a grafia mais frequente do grupo', () => {
+    const bl = [
+      ...muitos(12, 'Aguardando fornecedor', 'Fornecedor Alfa'),
+      ...muitos(5, 'Aguardando fornecedor', 'fornecedor alfa'),
+      ...muitos(4, 'Aguardando fornecedor', '  FORNECEDOR   ALFA '),
+      ...muitos(3, 'Aguardando fornecedor', 'Fornecedor Beta'),
+    ]
+    const r = calcularT10(ctxDe([card('A')], bl), F)
+    expect(r.fornecedores.map((x) => [x.fornecedor, x.bloqueios])).toEqual([
+      ['Fornecedor Alfa', 21],
+      ['Fornecedor Beta', 3],
+    ])
+    // as 21 ocorrencias somadas passam do minimo de 20: nenhuma grafia sozinha passaria
+    expect(r.fornecedores[0]?.duracao).toMatchObject({ status: 'ok', n: 21 })
+    expect(r.fornecedores[1]?.duracao).toMatchObject({ status: 'insuficiente', n: 3 })
+    expect(r.totalDiasUteis).toBe(24)
+    expect(calcularT10(ctxDe([card('A')], [...bl].reverse()), F)).toEqual(r)
+    expect(SCHEMAS_RESULTADO.T10.safeParse(r).success).toBe(true)
+  })
+
   it('CA-11: ordem alfabética, independente da ordem de entrada', () => {
     const bl = [
       ...muitos(1, 'Aguardando fornecedor', 'Fornecedor Gama'),
