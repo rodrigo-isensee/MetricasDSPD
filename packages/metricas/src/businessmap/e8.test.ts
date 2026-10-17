@@ -116,7 +116,13 @@ describe('E8: concentração de conhecimento (D-3, R-1 = B)', () => {
   })
 
   it('G3: variar o período não muda o resultado (a janela é fixa em 12 meses)', () => {
-    const ext = extDe([linha('A', 1), linha('B', 2), linha('C', 3), linha('D', 3), linha('E', 1, 25)])
+    const ext = extDe([
+      linha('A', 1),
+      linha('B', 2),
+      linha('C', 3),
+      linha('D', 3),
+      linha('E', 1, 25),
+    ])
     const base = calcularE8(ctx, F, ext)
     expect(base.sistemasComEntrega).toBe(5)
     for (const tipo of ['4s', '12s', '12m'] as const) {
