@@ -111,4 +111,4 @@ A-7 volta ao react-frontend (prova: `pnpm --filter web test` do arquivo e typech
 - Busca sem diferenciar maiúsculas por "capacidade por sistema" em `.ts`, `.tsx` e `.md` fora de `docs/qa/`, `docs/reviews/` e `criterios.ts`: só restam `docs/ux/revisao-011-front-estrategicas.md` (registro histórico) e `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (lista de temas), ambos já aceitos na rodada 2.
 
 ### Riscos e pendências
-- Segue o QA (E1.3). Sem gatilho de segurança no delta.
+- Segue o QA (E1.3), que roda `pronto` e E2E. Sem gatilho de segurança no delta.
