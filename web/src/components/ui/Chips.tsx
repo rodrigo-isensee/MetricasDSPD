@@ -7,7 +7,7 @@ const base =
 
 export type FonteDoCartao = 'BusinessMap' | 'Acelerato' | 'Pesquisa de percepção'
 export type GranularidadeDoCartao =
-  'demanda' | 'frente' | 'projeto' | 'chamado' | 'resposta agregada'
+  'demanda' | 'frente' | 'projeto' | 'sistema' | 'chamado' | 'resposta agregada'
 
 export function ChipFonte({ fonte }: { fonte: FonteDoCartao }) {
   return (

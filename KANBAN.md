@@ -1,14 +1,19 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-14 15:30 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
-> WIP: Validação do usuário 1 (K-078) · Pronto para fazer 0/5 · Em andamento: agile-coach 1 (K-077), software-architect 1 (K-079), qa-engineer 1 (K-080) · Code review 0/2 · QA 0/2 · Aguardando sua validação 0 PRs · Bloqueados: 0
-> O estado detalhado, as decisões e os próximos passos estão em `docs/kanban/estado-2026-10-14-tarde.md`. Os cartões até K-064 foram concluídos e arquivados; o registro está em `docs/kanban/historico.md`. O quadro ficou parado de 2026-10-10 a 2026-10-14 e foi reconstruído em 2026-10-14.
+> Atualizado em: 2026-10-17 06:30 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> WIP: Pronto para fazer 0/5 · Em andamento: react-frontend 1 (K-102), node-backend 1 (K-103), tech-lead 1 (K-105), devops-engineer 1 (K-106) · Code review 0/2 · QA 0/2 · Aguardando sua validação 1 PR (#101) · Bloqueados: 0
+> Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
 # Upstream — descoberta (Design Thinking)
 
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-109 | Front do 011, lote 1 (estratégicas): E9, E6, E7, E8 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | Ordem do usuário (2026-10-17): estratégicas → táticas → operacionais, em lotes. Entra depois do K-102 |
+| K-110 | Front do 011, lote 2 (táticas): T10, T11, T12, T13, T14 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | Depois do PR do lote 1 |
+| K-111 | Front do 011, lote 3 (operacionais): O19, O20, O21, O23, O24, O25, O22, O26 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | Depois do PR do lote 2 |
+| K-107 | [teste] montecarlo.test.ts instável por semente aleatória (E1) | 015 | forge:node-backend | 2026-10-17 | 2026-10-17 06:30 | Falhou no #96 (parecer de devops de 2026-10-16). Depois do K-103 ou numa vaga |
+| K-108 | homolog-aprovada espera o portão terminar (E1) | 016 | forge:devops-engineer | 2026-10-17 | 2026-10-17 06:30 | Corrida vista no #90 e no #96 |
 | K-091 | [teste] IFA-001: o IF-A não verifica cartão no /operacional padrão nem no /estrategico | qa-intensivo | forge:qa-engineer | 2026-10-15 | 2026-10-15 02:00 | Médio, já existia antes. Lacuna de cobertura do teste; o time escolhe filtros que exibam "Não afetado por". Decisão técnica, não vai ao usuário |
 | K-092 | [teste] IF-U-operacional instável sob carga (timeout de 30 s) | qa-intensivo | forge:react-frontend | 2026-10-15 | 2026-10-15 02:00 | 1 falha em 2 rodadas no QA do K-083 |
 | K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-15 02:00 | Baixo, já existia antes. O usuário aceita ou prioriza na volta |
@@ -47,11 +52,12 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-072+K-073 | Sustentação no Operacional: back B1–B3 e front F1–F8 | sust-no-operacional | forge:react-frontend | 2026-10-14 | 2026-10-15 00:40 | QA aprovado com ressalvas (80d2fbf, 18d8327, 032c470). Correções: SNO-002, SNO-004 e texto da A6; SNO-001 e SNO-005 já existiam antes. Revisão de UX em paralelo |
-| K-078 | Pedido 011: 17 métricas (O19–O26, T10–T14, E6–E9; T14 nova a pedido do usuário) | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 21:00 | Back fase 1, B1 a B12 (ata da revisão de desenho). B1 em andamento na worktree -011-back. Plano vigente; ADR 0020 proposta (falta o review de segurança antes da fase 2). Front depois de K-074 e K-075 |
-| K-077 | Retrospectiva + melhoria do Forge: parecer gravado pelo Bash fica sem autoria e trava o merge | processo | forge:agile-coach | 2026-10-14 | 2026-10-14 15:30 | Retro 002 e proposta (a, b, c) prontas. 3 PRs prontos e commitados em ~/.forge-contrib/MetricasDSPD, mas o push foi barrado pelo pre-push do Forge, que não roda dentro do Claude. Ação do usuário: push e PR pelo terminal dele |
-| K-079 | Pedido 011: ajustes técnicos (T10, O25) e confirmações da API do BusinessMap (responsáveis nas revisões, tipos de vínculo, spike P-T1) | 011 | forge:software-architect | 2026-10-14 | 2026-10-14 15:30 | Feito em 2026-10-14 (plano §8). Abertas ao usuário: D-14', bordas Q-a/Q-b da D-5', motivos de descarte do O25 |
-| K-080 | Plano de testes da Sustentação no Operacional (a partir da especificação, em paralelo ao review) | sust-no-operacional | forge:qa-engineer | 2026-10-14 | 2026-10-14 15:30 | Plano pronto (77 casos, 10 ambiguidades A1–A10 enviadas ao UX). A execução entra quando o review aprovar |
+| K-102 | perf da visão semanal: ajustes R1 a R5 do review, depois QA, UX e PR (E1) | 012 | forge:react-frontend | 2026-10-17 | 2026-10-17 06:30 | worktree: -perf-semanal · branch fix/perf-visao-semanal |
+| K-103 | Back da fase 2 do 011: E6, E7 R$, E8, T13, T14, O22, O26 (E1, E2); entrega em 3 lotes por nível | 011 | forge:node-backend | 2026-10-17 | 2026-10-17 06:30 | worktree: -011-fase2 · branch feature/011-fase2-back. E8 e T14 (E2) depois do K-104 |
+| K-104 | Docs da R-1 = B e das decisões de 2026-10-16: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 06:45 | Feito, sem commit (vai no próximo PR de docs). Q-T14-10 aberta com o usuário. CAs da especificação (ux-designer) em seguida |
+| K-105 | Limpeza de worktrees e PR de docs (E1, E2) | 013 | forge:tech-lead | 2026-10-17 | 2026-10-17 06:30 | Diretório principal na develop |
+| K-106 | Checks vermelhos do #101 (homolog → main) (E1) | 014 | forge:devops-engineer | 2026-10-17 | 2026-10-17 06:30 | O merge é do usuário |
+| K-077 | Melhoria do Forge: autoria do parecer gravado pelo Bash | processo | usuário | 2026-10-14 | 2026-10-14 15:30 | Ação do usuário: push e PR pelo terminal dele |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
