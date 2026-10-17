@@ -42,7 +42,7 @@ function chaves(v: unknown, saida: string[] = []): string[] {
   return saida
 }
 
-describe('E7: capacidade por sistema, sem R$ (D2 = A, D-2, CA-23)', () => {
+describe('E7: entregas por sistema, sem R$ (D2 = A, D-2, CA-23)', () => {
   it('nenhum campo de valor em dinheiro na saída, no mock e em fixture; o schema estrito recusa um campo de custo', () => {
     const mock = gerarBaseMock()
     const ctxMock = criarContextoBM(mock.bm, mock.config.hoje, CALENDARIO_PADRAO)

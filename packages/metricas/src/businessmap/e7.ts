@@ -11,7 +11,7 @@ import type { ContextoBM } from './indice'
 import { naturezaDe } from './t3'
 
 /**
- * E7: capacidade por sistema, sem R$ (D2 = A, pedido 011 de 2026-10-17; pedido 024). Peso = contagem de demandas
+ * E7: entregas por sistema, sem R$ (D2 = A, pedido 011 de 2026-10-17; pedido 024). Peso = contagem de demandas
  * entregues no período (D-2); subtarefa, frente e projeto ficam fora. A natureza vem de `naturezaDe` do T3 (CA-23): este
  * módulo não tem mapeamento próprio. `participacao` = entregas do sistema / entregas do período (`taxa` da biblioteca),
  * só para sistema com 20 ou mais entregas; abaixo disso é `null` (um "k de k" seria tautológico) e a interface monta o
