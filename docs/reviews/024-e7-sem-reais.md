@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 024-e7-sem-reais
 branch: feature/024-e7-sem-reais
-commit: 092d0d1
-parecer: reprovado
+commit: d0fcb7b
+parecer: aprovado
 revisor: tech-lead
 data: 2026-10-17
 ---
@@ -93,3 +93,22 @@ A-7 volta ao react-frontend (prova: `pnpm --filter web test` do arquivo e typech
 ### Riscos e pendências
 - A pendência de integração da rodada 1 (`custoConfigurado` no teste do front) ficou resolvida pelo `97ddd0b`; a do custo fictício na `02-especificacao.md` chegou com a develop (a linha 17 já diz que o E7 não entra em `COM_EXTENSAO_MOCK`).
 - Sem gatilho de segurança: não há dado de pessoa, autenticação, segredo nem banco no delta.
+
+## Rodada 3 (2026-10-17)
+
+**Escopo:** de `191015e` a `d0fcb7b`: `19accc9` e `83c5f49` (A-7, react-frontend) e `d0fcb7b` (A-8 e A-9, node-backend). Cinco arquivos, 10 linhas inseridas e 5 removidas; nada além dos três achados.
+
+**Veredito (rodada 3, `d0fcb7b`): aprovado.** A-7, A-8 e A-9 estão resolvidos e o diff não traz mais nada.
+
+### Ferramentas (citadas, não refeitas)
+- `pnpm run docs:check` da raiz da worktree, no `d0fcb7b`: rc=0 ("492 páginas Markdown, 69 métricas, 2 eventos").
+- `pnpm run pronto` e E2E: não rodados (restrição do usuário de 2026-10-17: uma tarefa pesada por vez); ficam com o QA e com a CI.
+
+### Achados
+- **A-7** (`estrategicas.tsx:483`): resolvido. O "Leia junto" do E8 diz "Leia junto com as entregas por sistema (E7).". O teste novo "manda ler junto com o nome vigente do E7" (`estrategicas.test.tsx`) abre o cartão E8 e afirma esse texto com `toHaveTextContent`, ou seja, lê o que a tela mostra. O título do teste não repete o texto lido (`83c5f49`).
+- **A-8** (`e7.ts:14`, `e7.test.ts:45`): resolvido. JSDoc e `describe` dizem "E7: entregas por sistema".
+- **A-9** (`docs/api/metricas.md:159`): resolvido. "Os três campos", com maiúscula.
+- Busca sem diferenciar maiúsculas por "capacidade por sistema" em `.ts`, `.tsx` e `.md` fora de `docs/qa/`, `docs/reviews/` e `criterios.ts`: só restam `docs/ux/revisao-011-front-estrategicas.md` (registro histórico) e `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (lista de temas), ambos já aceitos na rodada 2.
+
+### Riscos e pendências
+- Segue o QA (E1.3). Sem gatilho de segurança no delta.
