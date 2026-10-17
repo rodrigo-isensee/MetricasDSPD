@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 024-e7-sem-reais
 branch: feature/024-e7-sem-reais
-commit: 8a4a5a7
+commit: b390b0c
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-17
@@ -130,3 +130,21 @@ A-7 volta ao react-frontend (prova: `pnpm --filter web test` do arquivo e typech
 
 ### Riscos e pendências
 - Segue o parecer do QA. Sem gatilho de segurança no delta.
+
+## Rodada 5 (2026-10-17)
+
+**Escopo:** só `b390b0c` (correção de formatação de `e8.test.ts`, E1.9, bug 024-001): reformatação pelo Prettier da chamada `extDe([...])` do G3, na linha 119, mais o registro `docs/qa/bugs/024-001-e8-test-fora-do-prettier.md`. Nenhuma asserção, dado ou código de produção muda.
+
+**Veredito (rodada 5, `b390b0c`): aprovado.** A correção é só de formatação e o registro do bug está no lugar.
+
+### Ferramentas (citadas, não refeitas)
+- Word-diff de `packages/metricas/src/businessmap/e8.test.ts` entre `4fb04ad` e `b390b0c` (`git diff --word-diff=plain`): só quebra de linha, vírgula final e indentação na chamada `extDe([...])`; os mesmos tokens e asserções. Comparação sem espaços e vírgulas: idêntica.
+- `pnpm run format:check` da raiz da worktree, no `b390b0c`: rc=0 ("All matched files use Prettier code style!").
+- `pnpm run lint` da raiz da worktree, no `b390b0c`: rc=0.
+- `pnpm run pronto` e E2E: não rodados (restrição do usuário de 2026-10-17: uma tarefa pesada por vez); ficam com o QA (E1.3) e com a CI.
+
+### Achados
+- Nenhum. O commit não toca nada além do que o bug 024-001 pede, e o registro do bug segue o padrão de `docs/qa/bugs/`.
+
+### Riscos e pendências
+- Segue o parecer do QA (E1.3), que roda `pronto` e E2E. Sem gatilho de segurança no delta.
