@@ -242,7 +242,7 @@ describe('OpenAPI', () => {
     const caminhos = Object.keys(JSON.parse(gerado).paths);
     expect(caminhos.slice(0, 8)).toEqual(['/health/live', '/health/ready', '/health', '/api/v1/filtros/{dominio}', '/api/v1/referencia',
       '/api/v1/fontes/{dominio}/estado', '/api/v1/fontes/{dominio}/coletas', '/api/v1/criterios']);
-    expect(caminhos.filter((c) => c.startsWith('/api/v1/metricas/'))).toHaveLength(68); // 67 métricas + o 404 genérico
+    expect(caminhos.filter((c) => c.startsWith('/api/v1/metricas/'))).toHaveLength(70); // 69 métricas + o 404 genérico
     expect(caminhos).toContain('/webhooks/businessmap');
   });
 });

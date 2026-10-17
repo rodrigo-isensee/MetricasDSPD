@@ -29,11 +29,13 @@ export const VERSAO_CRITERIO_PARADOS_V1: VersaoCriterio = {
  * "excluído entregue" (a lista vale para as duas, que compartilham `METRICAS_DO_DESCARTE_NATIVO`), mesmo sendo do
  * BusinessMap. Quem criar uma métrica nova a lista aqui, nominalmente.
  * T11 (B11b): conta demandas criadas por mês, não usa `descartado()` nem o `ativo` do descarte.
- * Fase 2 do pedido 011 (T13, T14, E6 e E8): nasceram com o descarte nativo já vigente (nunca existiram com o
+ * Fase 2 do pedido 011 (O22, O26, T13, T14, E6 e E8): nasceram com o descarte nativo já vigente (nunca existiram com o
  * critério anterior), então nenhuma marcação de "mudou o critério" faz sentido nelas.
  */
 export const NASCIDAS_DEPOIS_DO_DESCARTE_NATIVO: readonly MetricaId[] = [
   'T11',
+  'O22',
+  'O26',
   'T13',
   'T14',
   'E6',

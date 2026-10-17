@@ -53,7 +53,7 @@ type Def = readonly [
  * Complementares que ainda dependem de campo sem fonte real (extensão): só estas são rotuladas "Dados
  * fictícios". O17 fica 'mock' até a coleta real do campo causa raiz (Metabase). As demais derivam
  * só de `BaseBM`/`BaseAC` e são 'disponivel'. Fase 2 do pedido 011 (extração nova, só em mock até a fase 3):
- * T13, T14, E6 e E8. T11 (fase 1) e E7 (sem custo no mock, CA-13) não entram, como manda o plano §4.
+ * O22, O26, T13, T14, E6 e E8. T11 (fase 1) e E7 (sem custo no mock, CA-13) não entram, como manda o plano §4.
  */
 export const COM_EXTENSAO_MOCK: ReadonlySet<string> = new Set([
   'O17',
@@ -62,6 +62,8 @@ export const COM_EXTENSAO_MOCK: ReadonlySet<string> = new Set([
   'S8',
   'S11',
   'S12',
+  'O22',
+  'O26',
   'T13',
   'T14',
   'E6',

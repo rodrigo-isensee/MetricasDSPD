@@ -39,6 +39,7 @@ export type ChaveSegmentacao =
   | 'motivo-bloqueio'
   | 'fornecedor'
   | 'mes-do-ano'
+  | 'faixa-passagens'
 // Proibidas como segmentação: pessoa, responsável, equipe (equipe é só filtro; comparação entre times é proibida, 7.1).
 
 export type GranularidadeRegra = 'story' | 'frente' | 'projeto' | 'chamado' | 'resposta'
@@ -603,6 +604,18 @@ export const REGRAS_METRICA = {
       "pedido 011 O24; D-6' = A (fila de cada equipe, só classe Padrão, mesmo tipo; Urgente, Prazo fixo e Intangível fora, CA-17); R-1 = A (espera do ultrapassado, do início do primeiro que passou na frente até o próprio início, CA-37); P50/P85 por tipo (regra 7)",
     status: 'ok',
   },
+  O22: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['percentis'],
+    granularidade: 'story',
+    refBriefing:
+      "pedido 011 O22; D-9' (só o primeiro comentário humano, CA-43); dias úteis da criação ao primeiro toque, P50/P85/P95 e histograma por tipo na janela de 12 semanas (regra 7); sem toque é retrato de hoje; mock: extensão primeiroToque (instante, sem autor nem texto)",
+    status: 'ok',
+  },
   O25: {
     dominio: 'businessmap',
     segmentacao: ['tipo'],
@@ -613,6 +626,18 @@ export const REGRAS_METRICA = {
     granularidade: 'story',
     refBriefing:
       "pedido 011 O25; R-2' = A (descartado = estado nativo discarded ou excluído, instante discarded_at; motivo sem descarte vira aviso); P-1 = A; D-13 (tempo consumido do início ao descarte; antes do início à parte); motivos de descarte = A (porMotivo nulo até ler /discardReasons, CA-44)",
+    status: 'ok',
+  },
+  O26: {
+    dominio: 'businessmap',
+    segmentacao: ['tipo', 'faixa-passagens'],
+    ordem: 'neutra',
+    incluiArquivados: true,
+    minimo: 20,
+    minimoSobre: ['percentis', 'taxa'],
+    granularidade: 'story',
+    refBriefing:
+      "pedido 011 O26; D-5' = B (troca = alguém sai e outro entra, ou o conjunto é substituído; incluir co-responsável não conta, CA-38); Q-a = 1 passagem (uma por revisão) e Q-b = conta (com o card sem responsável no meio compara com o último conjunto não vazio), decididas em 2026-10-16; só o inteiro passagens chega à biblioteca (ADR 0020); histograma sempre, percentual e P85 do ciclo por faixa com 20 ou mais",
     status: 'ok',
   },
   T11: {
