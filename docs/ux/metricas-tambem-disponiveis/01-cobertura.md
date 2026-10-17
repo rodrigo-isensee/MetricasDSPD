@@ -44,7 +44,7 @@ Das 16 que ficam, 15 viram cartão complementar novo e 1 (Estoque parado dentro 
 | # | Métrica da proposta | Cobertura | O que já existe | O que falta | Destino |
 |---|---|---|---|---|---|
 | 14 | Previsibilidade do portfólio | Parcial | O12 mede datas acordadas de **demandas**; E5 projeta datas; O6 (nome parecido) é P85 ÷ P50, outra coisa. | Para **projetos**: a data comprometida se confirmou? Quanto deslizou e quantas vezes foi replanejada? | **E6** Datas do portfólio (nome trocado para não confundir com O6) |
-| 15 | Custo por demanda e por sistema | Parcial | T3 (alocação por natureza), O14 e S12 (volume por sistema). | Participação de cada sistema na capacidade entregue. Custo em R$ depende de decisão (04, D-1): a forma da proposta "custo de capacidade" não pode virar horas apontadas (7.1). | **E7** Capacidade por sistema |
+| 15 | Custo por demanda e por sistema | Parcial | T3 (alocação por natureza), O14 e S12 (volume por sistema). | Participação de cada sistema na capacidade entregue. Custo em R$ depende de decisão (04, D-1): a forma da proposta "custo de capacidade" não pode virar horas apontadas (7.1). | **E7** Entregas por sistema |
 | 16 | Concentração de conhecimento | Não | Nenhum. Só o BusinessMap pode responder: no Acelerato os ids de pessoa não chegam à base (allow-list). | Quantos sistemas tiveram entregas feitas por uma única pessoa na janela. Só contagem agregada. | **E8** Concentração de conhecimento |
 | 17 | Envelhecimento de iniciativas paradas | Parcial | E1 decompõe o tempo antes do início, mas só de projetos **concluídos**; O10 envelhece o backlog de **demandas**. | Projetos aprovados que ainda não começaram e há quanto tempo esperam. | **E9** Projetos aguardando início |
 
