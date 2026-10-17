@@ -3,14 +3,14 @@ tipo: qa
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: dc2c9c0
-parecer: aprovado-com-ressalvas
+commit: 0a75f63
+parecer: aprovado
 escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
-bugs_baixos: 1
-aceite_usuario: sim
+bugs_baixos: 0
+aceite_usuario: nao
 data: 2026-10-16
 ---
 # QA do front do lote 1 do 011 (Estratégico: E9, E6, E7 sem R$, E8)
@@ -19,7 +19,7 @@ Cartão K-109, pedido 021 (etapa E1.3). Base: `docs/ux/metricas-tambem-disponive
 
 ## Parecer
 
-**Aprovado com ressalvas.** Zero bug crítico, alto ou médio. Um bug baixo aberto (011F-001) e itens de UX já conhecidos, por isso o aceite do usuário. As regras D2 = A (E7 sem R$) e R-1 = B (E8 sem nome de sistema) estão cumpridas, medidas no navegador. O nome do E7 ("Capacidade por sistema") segue o da especificação, pendente da confirmação do usuário; não é critério de reprovação.
+**Aprovado** (revalidado sobre 0a75f63 após a correção do 011F-001; antes: aprovado com ressalvas sobre dc2c9c0). Zero bug aberto de qualquer severidade; o 011F-001 está fechado. Sem bug médio ou baixo aberto, o aceite do usuário não é necessário (`aceite_usuario: nao`; a marca "sim" anterior estava errada, o usuário não aceitou nada). Os itens de UX das notas são conhecidos e não são bugs. As regras D2 = A (E7 sem R$) e R-1 = B (E8 sem nome de sistema) estão cumpridas, medidas no navegador. O nome do E7 ("Capacidade por sistema") segue o da especificação, pendente da confirmação do usuário; não é critério de reprovação.
 
 ## Execução
 
@@ -51,7 +51,7 @@ Observação de método: o Lighthouse e o C6 do `test:perf` medem a página com 
 | Reflow 360 px (WCAG 1.4.10) | ET-10: sem rolagem horizontal; E8 com as 3 faixas empilhadas (`grid-cols-1`); cada cartão cabe na largura | 360 px | passou |
 | `aria-hidden` do ícone `info` (UX) | ET-04: `svg` do selo do E8 com `aria-hidden="true"` | n/a | passou |
 | Foco visível e teclado no seletor do E9 (UX) | ET-06: `Home` move o foco, `aria-selected` muda, a linha "Mostrando N de M" muda; outline 2 px | só teclado | passou |
-| Anúncio da troca de tipo (`aria-live`) (UX) | leitura do componente e snapshot | n/a | **011F-001 (baixo)** |
+| Anúncio da troca de tipo (`aria-live`) (UX) | ET-06 (reforçado na reconferência) e `ui.test.tsx` (SeletorLocal) | troca de aba muda o texto da região | passou (011F-001 fechado) |
 | Falha da API de um cartão | ET-09: E7 abortado, o painel e os demais cartões seguem | falha de rede | passou |
 | Permissão | n/a: sem autenticação neste painel, sem dado de pessoa | n/a | n/a |
 
@@ -60,11 +60,25 @@ Vermelho antes do verde: não executado para ET-02 e ET-03. Mostrar o teste falh
 ## Notas e ressalvas (nenhuma bloqueia)
 
 1. **CA-16 literal:** o cartão do E6, E7 e E9 mostra a tabela equivalente sempre aberta, sem o botão "Ver como tabela" no cabeçalho (`semTabela`), padrão dos demais cartões complementares. O E8 não tem tabela (três números em `dl`). A intenção do CA (mesmos números, alternativa ao gráfico) está atendida; o texto "Ver como tabela" não. Decisão de UX: manter ou alinhar o texto do CA.
-2. **011F-001 (baixo, aberto):** troca de tipo do E9 sem anúncio da mudança de conteúdo.
+2. **011F-001: fechado** na reconferência (seção abaixo).
 3. **Itens baixos da UX sem alteração:** A-9 (links do S12 no E7), A-11 (E8: `modo="percentual"` com unidade "sistemas" e o estado de zero sistemas), A-10 (nome do E7, com o usuário).
 4. **Do review, não bloqueantes:** R-4 (comentário de desempate), R-5 ("Demais 1 sistemas" com 11 sistemas), R-6 (`docs/api/metricas.md:157`).
 5. **Dependência do back:** o eixo do E6 segue a ordem por deslize até o contrato trazer a data de conclusão (aceito como provisório no review).
 6. **Dados fictícios:** todo o E2E roda no mock; E6 e E8 trazem o selo "Dados fictícios". A validação com dado real depende da coleta.
+
+## Reconferência sobre 0a75f63 (correção do 011F-001)
+
+Diff 9465709..0a75f63: `SeletorLocal` ganhou a prop opcional `anuncio` (região `sr-only`, `role="status"`, `aria-live="polite"`, só renderizada se a prop existir); só o E9 (`estrategicas.tsx:117`) a passa; os demais usos do `SeletorLocal` (T1, T4, T5, O2, O3, O9, O10, S4, E1, EI, ParEspera, fluxo, previsão, sustentação) não a passam e não ganham a região (teste `queryByRole('status')` nulo no `ui.test.tsx`; `grep anuncio=` só acha o E9). Também entraram R-4 a R-6 (comentário, plural "demais sistemas", nota do B5 no contrato), sem alteração de comportamento além do plural.
+
+Como o ET-06 não afirmava a região, acrescentei a ele: `role="status"` com `aria-live="polite"` dentro do E9, texto inicial no formato `Tipo X: N de M projetos.` e texto diferente depois do `Home`.
+
+| Verificação | Resultado |
+|---|---|
+| `playwright test --project=chromium estrategico-011-lote1` (uma vez, 2 workers) | 10 de 10, ET-06 com a região |
+| `vitest run web/src/components/ui/ui.test.tsx` (SeletorLocal, uma vez) | 18 de 18 |
+| Evidências regravadas pelo E2E em `docs/qa/evidencias/` | restauradas com `git checkout` |
+
+Não rodei de novo o `pronto` completo nem a/y/perf da seção anterior: o diff é uma região `sr-only` opcional e um plural, sem efeito de layout. O `pronto` completo da entrega é do tech-lead no envio. Vermelho antes do verde da asserção nova: não executado (exigiria reverter `web/src`, fora do meu escopo); o teste unitário do autor cobre as duas pontas (com e sem `anuncio`).
 
 ## Dados de teste e arquivos
 

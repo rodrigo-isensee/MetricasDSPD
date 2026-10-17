@@ -75,6 +75,10 @@ test.describe('Estratégico, lote 1 do 011 (E6 a E9)', () => {
     expect(await abas.count(), 'o mock tem mais de um tipo de projeto').toBeGreaterThanOrEqual(2)
     await e9.getByRole('tab', { selected: true }).focus()
     const antes = await e9.getByTestId('e9-mostrando').innerText()
+    const regiao = e9.getByRole('status')
+    await expect(regiao).toHaveAttribute('aria-live', 'polite')
+    const anuncioAntes = await regiao.innerText()
+    expect(anuncioAntes, '011F-001: a região anuncia o tipo atual').toMatch(/^Tipo .+: \d+ de \d+ projetos\.$/)
     await page.keyboard.press('Home')
     await expect(abas.first()).toBeFocused()
     const contorno = await abas.first().evaluate((el) => {
@@ -84,6 +88,7 @@ test.describe('Estratégico, lote 1 do 011 (E6 a E9)', () => {
     expect(contorno.estilo !== 'none' && contorno.largura > 0 || contorno.sombra !== 'none', JSON.stringify(contorno)).toBe(true)
     await expect(abas.first()).toHaveAttribute('aria-selected', 'true')
     await expect(e9.getByTestId('e9-mostrando')).not.toHaveText(antes)
+    await expect(regiao, '011F-001: a troca de tipo muda o texto da região aria-live').not.toHaveText(anuncioAntes)
   })
 
   test('ET-07 axe AA com a seção aberta e sem erros de console', async ({ page, painel, problemas }) => {

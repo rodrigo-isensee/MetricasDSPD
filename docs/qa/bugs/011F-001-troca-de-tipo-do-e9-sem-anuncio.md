@@ -1,4 +1,5 @@
 # 011F-001 - Troca de tipo no E9 não é anunciada a leitor de tela
+- Estado: **fechado** em 0a75f63 (correção 65fcd72; reconferido pelo QA: região `role="status"` `aria-live="polite"` do E9 muda de texto na troca de tipo, ET-06 e `ui.test.tsx`; demais usos do `SeletorLocal` sem a região).
 - Severidade: baixa
 - Responsável sugerido: react-frontend
 - Ambiente: `feature/011-front-estrategicas` (dc2c9c0), Chromium (Playwright), mock
