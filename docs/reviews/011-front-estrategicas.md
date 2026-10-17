@@ -3,16 +3,42 @@ tipo: review
 contrato: 1
 pedido: 011-front-estrategicas
 branch: feature/011-front-estrategicas
-commit: 357936b
+commit: a9c2348
 parecer: aprovado
 revisor: tech-lead
-data: 2026-10-18
+data: 2026-10-17
 ---
 # Code review: front do pedido 011, lote 1 (E9, E6, E7 sem R$, E8)
 
 - Cartão K-109, pedido 021 (etapa E1.4). Branch `feature/011-front-estrategicas`, commits `4c5d6f5` e `919554b` sobre a `develop` `1607a5f` (a ponta atual de `origin/develop`, então a integração já está feita).
 - Referências: `docs/pedidos/021-front-do-011-por-nivel.md`, `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (§3, §4, §5 do E6 ao E9, §10), `docs/engineering/praticas.md` (§2 a §5 e §8), contratos `docs/contratos/metricas/E6.md` a `E9.md`.
 - Ferramentas: o `praticas.md` não marca nenhuma regra como "decidida por: `<comando>`". Cito a saída do autor sem refazê-la: `pnpm run pronto` com rc=0 no `919554b` (o brief dispensou a execução local, com o teto de 2 agentes). Lint, tipos, cobertura de 100%, `docs:check` e E2E estão no `pronto`.
+
+## Volta 7 (2026-10-17): aprovado
+
+- Escopo: integração da `develop` na branch (pedido 028, decisão técnica do time de 2026-10-17). Merge commit `a9c2348` (`origin/develop` em `5ad02ea`, que já tem o #107, táticas `8516ff8`, e o #109, operacionais), sobre o `4f9f229`. O `commit` do frontmatter passa a `a9c2348`. Olhei só o que o merge trouxe para o front: os contratos de O22, O26, T13 e T14 (lotes 2 e 3 do back, já revisados nos PRs deles) e o catálogo de cartões.
+- Conflitos: nenhum. O merge correu automático (sem rebase, sem `--force`), então não houve resolução a registrar.
+- Ferramentas: `uptime` antes (load 0,06). Da raiz da worktree: `pnpm run typecheck` rc=0 (metricas, contratos, server, web). `@metricas-dspd/contratos` test: 7 arquivos, 160 testes passaram. `@metricas-dspd/web` test: 75 arquivos, 1076 testes passaram. O E2E e a suíte completa ficam com a CI do PR #108.
+
+### O que o merge trouxe para o front
+
+- `web/`: nada. O diff `4f9f229..a9c2348` em `web/` é vazio, então nenhum arquivo do front (E6 a E9) mudou, e não houve reescrita por conflito.
+- `packages/contratos`: `comum.ts` e `metricas.ts` ganham os ids O22, O26, T13 e T14 (`METRICA_IDS`, `ContratoMetricas`, `APLICABILIDADE_FLUXO`); `tambem.ts` ganha os resultados deles; `validacao.ts` os valida; `cartoes.ts` muda só `COM_EXTENSAO_MOCK`, que passa a listar O22, O26, T13 e T14 (mais o E6 e o E8 que a branch já tinha) e o comentário que a descreve.
+- Catálogo de cartões: a lista `CATALOGO_CARTOES` não mudou. As quatro métricas novas entram apenas no conjunto `COM_EXTENSAO_MOCK`, não como linhas do catálogo. Logo o catálogo continua com 53 linhas, e a contagem que o E2E `intensivo-sistemico` afirma (53, volta 5) segue valendo; o `cartoes.test.ts` passou. Os cartões desses quatro vêm no front do lote 2 e do lote 3 (pedido 011, fases seguintes), fora deste PR.
+- Sem colisão com o lote 1: a união do conjunto `COM_EXTENSAO_MOCK` mantém E6 e E8 com o selo de mock, e E7 e E9 continuam fora dele (E7 sem custo, D2 = A; E9 disponível), como na volta 2.
+- `docs/contratos/metricas/` (O22, O26, T13, T14, README, VISAO_GERAL) e `docs/contratos/snapshots/resultados/`: arquivos gerados que vieram do back. Não editei.
+
+### Regras invioláveis e decisões
+
+Conformes. O merge não toca no cálculo, no custo (D2 = A), no E8 (R-1 = B), não cria visão por pessoa nem por time, e o nome do E7 segue pendente da confirmação do usuário.
+
+### Commits
+
+O merge é um commit só, `chore:` com mensagem clara e as atribuições. Nenhum outro commit de código nesta volta.
+
+### Próximo passo
+
+O QA revalida o parecer dele sobre o novo head (R-QA: o merge mudou o head). Depois, o merge do #108 e a limpeza saem numa delegação seguinte do pedido 028; em seguida o pedido 024.
 
 ## Volta 6 (2026-10-18): aprovado
 
