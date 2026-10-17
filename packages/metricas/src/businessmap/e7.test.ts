@@ -55,7 +55,7 @@ describe('E7: capacidade por sistema, sem R$ (D2 = A, D-2, CA-23)', () => {
       expect(JSON.stringify(r)).not.toMatch(/R\$/)
     }
     const s = saidas[1]
-    const comCusto = { ...s, sistemas: [{ ...s?.sistemas[0], custoRateado: 1 }] }
+    const comCusto = { ...s, sistemas: [{ ...s?.sistemas[0], custoTotal: 1 }] }
     expect(SCHEMAS_RESULTADO.E7.safeParse(comCusto).success).toBe(false)
   })
 

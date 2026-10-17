@@ -341,7 +341,7 @@ describe('contratos da fase 1 do pedido 011 (B1)', () => {
     it('E7 não tem campo de valor em dinheiro: o schema estrito recusa custo (D2 = A)', () => {
       const ex = EXEMPLOS.E7 as { sistemas: Record<string, unknown>[] }
       expect(SCHEMAS_TAMBEM_FASE1.E7.safeParse(ex).success).toBe(true)
-      for (const campo of ['custoRateado', 'custoPorDemanda'])
+      for (const campo of ['custoTotal', 'valorPorDemanda'])
         expect(
           SCHEMAS_TAMBEM_FASE1.E7.safeParse({
             ...ex,
