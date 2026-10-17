@@ -27,16 +27,16 @@ describe('regras da fase 2 (REGRAS_METRICA)', () => {
     }
   })
 
-  it('Q-a, Q-b (O26) e Q-E7-1 (E7) estão decididas: as linhas não têm pendência e dizem a regra', () => {
+  it('Q-a, Q-b (O26) e D2 = A (E7) estão decididas: as linhas não têm pendência e dizem a regra', () => {
     for (const id of ['O26', 'E7'] as const) {
       expect(REGRAS_METRICA[id].status, id).toBe('ok')
       expect((REGRAS_METRICA[id] as RegraMetrica).pendencias, id).toBeUndefined()
     }
     expect(REGRAS_METRICA.O26.refBriefing).toMatch(/Q-a = 1 passagem/)
     expect(REGRAS_METRICA.O26.refBriefing).toMatch(/Q-b = conta/)
-    expect(REGRAS_METRICA.E7.refBriefing).toMatch(/Q-E7-1/)
-    expect(REGRAS_METRICA.E7.refBriefing).toMatch(/pró-rata por dias corridos/)
     expect(REGRAS_METRICA.O26.segmentacao).toEqual(['tipo', 'faixa-passagens'])
+    expect(REGRAS_METRICA.E7.refBriefing).toMatch(/D2 = A/)
+    expect(REGRAS_METRICA.E7.refBriefing).toMatch(/sem R\$/)
   })
 
   it('só o T14 tem pendência com o usuário: cardinalidade do campo e Q-T14-2, 3, 4, 7 e 8; a Q-T14-9 e a Q-T14-10 estão decididas', () => {

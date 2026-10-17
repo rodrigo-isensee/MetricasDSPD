@@ -84,11 +84,19 @@ describe('E6: datas do portfólio (D-7, CA-20)', () => {
       extDe({ 'p-1': datas('2026-09-29', 2), 'p-2': datas('2026-10-02', 0) }),
     )
     expect(r.projetos).toEqual([
-      { cardId: 'p-1', codigo: 'p-1', titulo: 'Card p-1', deslizeDiasUteis: 1, replanejamentos: 2 },
+      {
+        cardId: 'p-1',
+        codigo: 'p-1',
+        titulo: 'Card p-1',
+        concluidoEm: '2026-09-30',
+        deslizeDiasUteis: 1,
+        replanejamentos: 2,
+      },
       {
         cardId: 'p-2',
         codigo: 'p-2',
         titulo: 'Card p-2',
+        concluidoEm: '2026-09-30',
         deslizeDiasUteis: -2,
         replanejamentos: 0,
       },
@@ -187,9 +195,17 @@ describe('E6: datas do portfólio (D-7, CA-20)', () => {
     expect(Object.keys(r.projetos[0] ?? {}).sort()).toEqual([
       'cardId',
       'codigo',
+      'concluidoEm',
       'deslizeDiasUteis',
       'replanejamentos',
       'titulo',
     ])
+  })
+
+  it('cada projeto traz concluidoEm: o dia da conclusão (AAAA-MM-DD), conforme o contrato', () => {
+    const r = calcularE6(ctxDe([concluido('P1')]), F12S, extDe({ P1: datas('2026-09-25') }))
+    expect(r.projetos).toHaveLength(1)
+    expect(r.projetos[0]?.concluidoEm).toBe('2026-09-30')
+    expect(SCHEMAS_RESULTADO.E6.safeParse(r).success).toBe(true)
   })
 })

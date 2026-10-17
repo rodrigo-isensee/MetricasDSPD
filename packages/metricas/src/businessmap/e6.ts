@@ -1,5 +1,5 @@
 import type { FiltrosFluxo, ResultadoE6 } from '@metricas-dspd/contratos'
-import { diaLocal, diasUteisNoIntervalo } from '../core/calendario'
+import { diaLocal, diasUteisNoIntervalo, isoDeDia } from '../core/calendario'
 import { estatistica, percentisDe, taxa } from '../core/estatistica'
 import { ordenarNeutro } from '../core/ordenar'
 import { amostraBM } from './amostra'
@@ -53,6 +53,7 @@ export function calcularE6(ctx: ContextoBM, f: FiltrosFluxo, ext?: ExtensaoTambe
         cardId: p.m.card.card_id,
         codigo: p.m.card.card_id,
         titulo: p.m.card.titulo,
+        concluidoEm: isoDeDia(diaLocal(p.m.entrega as number, ctx.cal)),
         deslizeDiasUteis: p.deslize,
         replanejamentos: p.replanejamentos,
       })),

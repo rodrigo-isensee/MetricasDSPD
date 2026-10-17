@@ -252,10 +252,10 @@ export const APLICABILIDADE_FLUXO: Partial<Record<MetricaId, readonly FiltroFlux
   E5: ['sistema', 'periodo'],
   E6: ['sistema', 'periodo'],
   E7: ['sistema', 'periodo'],
-  // E8: janela fixa de 12 meses sobre o agregado por sistema (D-3); equipe e sistema não atuam (filtrar por sistema apontaria a pessoa).
-  E8: ['periodo'],
-  // E9 é retrato do dia: o período é aceito e ignorado ("Não afetado por: Período"), como nas demais métricas de retrato.
-  E9: ['sistema', 'periodo'],
+  // E8: janela fixa de 12 meses até a data de corte sobre o agregado por sistema (D-3); nenhum filtro atua (filtrar por sistema apontaria a pessoa). O período é aceito e ignorado.
+  E8: [],
+  // E9 é retrato do dia: só o sistema atua; o período é aceito e ignorado ("Não afetado por: Período").
+  E9: ['sistema'],
   // EI-FL1 e EI-FL3: o tipo é a dimensão (abas, um por vez), não filtro. EI-FL2 não usa tipo (tipos são de story); EI-FL3 tem o tipo de projeto como dimensão (abas).
   EI_FL1: ['equipe', 'sistema', 'periodo'],
   EI_FL2: ['equipe', 'sistema', 'periodo'],

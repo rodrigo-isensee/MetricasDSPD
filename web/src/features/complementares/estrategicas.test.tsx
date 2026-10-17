@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { FiltrosDe, MetricaId, ResultadoDe } from '@metricas-dspd/contratos'
+import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { MockFonteMetricas } from '@/data'
 import { FILTROS_FLUXO, FonteAjustada } from '@/features/painel/testes/fonteFixa'
 import { renderizarCartao } from '@/test/helpers'
@@ -125,7 +126,7 @@ describe('E6 Datas do portfólio', () => {
   })
 })
 
-describe('E7 Capacidade por sistema (participação percentual, sem valores em reais)', () => {
+describe('E7 Entregas por sistema (participação percentual, sem valores em reais)', () => {
   it('mostra a participação por sistema, ordenada por volume, com "k de n" abaixo de 20 entregas', async () => {
     const el = await abrir('E7', <CartaoE7 filtros={FILTROS_FLUXO} />)
     const tabela = within(el).getByRole('table', { name: /Entregas e participação por sistema/ })
@@ -140,7 +141,6 @@ describe('E7 Capacidade por sistema (participação percentual, sem valores em r
   it('nunca mostra valor em reais, mesmo que a API devolva os campos de custo', async () => {
     const fonte = new FonteAjustada({
       E7: (r: ResultadoDe<'E7'>) => {
-        r.custoConfigurado = true
         for (const s of r.sistemas)
           Object.assign(s, { [CAMPOS_CUSTO[0]!]: 123456, [CAMPOS_CUSTO[1]!]: 789 })
       },
@@ -191,6 +191,11 @@ describe('E8 Concentração de conhecimento (só contagens, sem nomear sistemas)
     expect(el).toHaveTextContent(/tiveram todas as entregas feitas por uma única pessoa|teve todas/)
     expect(el.textContent).not.toMatch(/Protheus|Fluig|Senior|Core 5G|CRM|Data Lake|Pessoa \d/)
     expect(el).toHaveTextContent('Dados fictícios')
+  })
+
+  it('manda ler junto com o nome vigente do E7', async () => {
+    const el = await abrir('E8', <CartaoE8 filtros={FILTROS_FLUXO} />)
+    expect(el).toHaveTextContent('Leia junto com as entregas por sistema (E7).')
   })
 
   it('recorte com menos de 5 sistemas: mensagem fixa e faixas ocultas', async () => {
@@ -451,5 +456,14 @@ describe('ramos de leitura dos cartões', () => {
     )
     const tabela = within(el).getByRole('table', { name: /Entregas e participação por sistema/ })
     expect(within(tabela).getAllByRole('row')).toHaveLength(15)
+  })
+})
+
+describe('nome do E7 na tela (decisão do dono, pedido 021)', () => {
+  it('catálogo e título do cartão dizem "Entregas por sistema", nunca o nome antigo', async () => {
+    expect(entradaDoCatalogo('E7').nome).toBe('Entregas por sistema')
+    const el = await abrir('E7', <CartaoE7 filtros={FILTROS_FLUXO} />)
+    expect(within(el).getByText('Entregas por sistema')).toBeInTheDocument()
+    expect(el.textContent).not.toMatch(/capacidade por sistema/i)
   })
 })

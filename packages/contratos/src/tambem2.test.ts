@@ -85,7 +85,14 @@ const EXEMPLOS: Record<CodigoTambemFase2, unknown> = {
   E6: {
     ...comum,
     projetos: [
-      { cardId: 'P-1', codigo: 'P-1', titulo: 'Projeto', deslizeDiasUteis: -3, replanejamentos: 1 },
+      {
+        cardId: 'P-1',
+        codigo: 'P-1',
+        titulo: 'Projeto',
+        concluidoEm: '2026-09-30',
+        deslizeDiasUteis: -3,
+        replanejamentos: 1,
+      },
     ],
     semData: 2,
     naData: taxaPouca,

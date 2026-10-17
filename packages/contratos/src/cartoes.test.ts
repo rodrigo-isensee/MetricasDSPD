@@ -224,3 +224,12 @@ describe('idsDoC4 (fonte única do C4, ADR 0003)', () => {
     expect(a).not.toEqual(expect.arrayContaining(['O19']))
   })
 })
+
+describe('nome do E7 (decisão do dono, pedido 021)', () => {
+  it('o cartão E7 se chama "Entregas por sistema", nunca o nome antigo', () => {
+    const e7 = CATALOGO_CARTOES.filter((c) => c.codigo === 'E7')
+    expect(e7).toHaveLength(1)
+    expect(e7[0]!.rotulo).toBe('Entregas por sistema')
+    expect(e7[0]!.rotulo).not.toMatch(/capacidade/i)
+  })
+})

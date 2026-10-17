@@ -13,7 +13,7 @@ Estado: **vigente** desde 2026-10-14. O protótipo foi validado pelo usuário (p
 
 **Decisões do usuário incorporadas** (2026-10-14, `docs/pedidos/011-metricas-tambem-disponiveis.md`; onde entraram: §8 d):
 - **D-8 = A** (T12), **D-5' = B** (O26), **D-6' = A** e **R-1 = A** (O24);
-- **D-1' = A** (E7, custo total do DSPD rateado), **D-10 = A** (T10 sem prazo contratado, R-7 = P85 para quando houver contratos);
+- **D-1' = A** (E7, custo total do DSPD rateado; **revista pela D2 = A, 2026-10-17**: o E7 mostra a participação percentual pelas entregas, sem R$), **D-10 = A** (T10 sem prazo contratado, R-7 = P85 para quando houver contratos);
 - **R-2' = A** e **motivos de descarte = A** (O25);
 - **D-9'** (O22, só o primeiro comentário humano);
 - **D-14' = A** e **R-4 = sim** (T13);
@@ -22,7 +22,7 @@ Estado: **vigente** desde 2026-10-14. O protótipo foi validado pelo usuário (p
 **Decisões do usuário de 2026-10-14 (21:15) e 2026-10-16** (pedido 011, "Decisões do usuário"; registradas no plano em 2026-10-16, K-104):
 - **P-1 = A** (2026-10-14 21:15): a R-2' vale em todas as métricas, como mudança de critério com data (T2.6) (O25, §2);
 - **O19-pct = B** (O19), **O20-destaque = A** (O20), **O25(b) = B** (O25), **T10-janela = A** (T10, já implementado);
-- **Q-a = 1 passagem**, **Q-b = conta (1 passagem)** (O26, §8 a) e **Q-E7-1 = pró-rata por dias corridos** (E7);
+- **Q-a = 1 passagem**, **Q-b = conta (1 passagem)** (O26, §8 a) e **Q-E7-1 = pró-rata por dias corridos** (E7; **revista pela D2 = A, 2026-10-17**: sem custo, a conversão deixou de valer);
 - **R-1 = B** (E8 e T14; revê a D-4 = B e, com menos de 2 pessoas, a Q-T14-6 = A) e **R-2 = B** (`fato_transicao.usuario` removida, #88), as duas na ADR 0020 (item 9 e "Decisões do usuário").
 
 **Pendências que este plano não fecha:**
@@ -41,7 +41,7 @@ Insumos: `01-cobertura.md`, `02-especificacao.md`, `04-decisoes.md` (UX); `data-
 - **Amostra mínima:** abaixo de 20 não se publica estatística (`MINIMO_AMOSTRA`).
 - **Histórico:** append-only preservado. Os dados novos são projeções derivadas ou tabelas novas, sem `UPDATE` em evento.
 - **T2.6:** os critérios novos têm limite e prazo versionados, nunca como literal solto no código. A versão vive em um de dois lugares (A8, ajustado em 2026-10-15): na base (`ref_versao_criterio`, via `ref:sync`) ou, quando o critério nasce na própria biblioteca, em `VERSOES_DA_BIBLIOTECA` (`packages/metricas/src/core/criterios.ts`), que `marcacoesNoPeriodo` soma às da base sem repetir id. O critério do estoque parado (O23, `LIMITE_PARADO_DIAS_UTEIS`, `VERSAO_CRITERIO_PARADOS_V1`) usa a segunda via. Todo DTO de série devolve `marcacoes` (`praticas.md` §3).
-- **Métricas proibidas (7.1):** nenhuma usa horas apontadas. O R$ do E7 é o rateio do custo total do DSPD pela participação nas entregas (D-1' = A), nunca esforço; a proposta de usar horas apontadas foi sinalizada e não adotada.
+- **Métricas proibidas (7.1):** nenhuma usa horas apontadas. O E7 mostra só a participação percentual de cada sistema pelas entregas do período, sem R$ (D2 = A, 2026-10-17, que revê a D-1' = A); a proposta de usar horas apontadas foi sinalizada e não adotada.
 
 ## 1. Códigos finais
 
@@ -62,7 +62,7 @@ Os códigos provisórios do UX ficam **confirmados**, sem colisão: hoje o fluxo
 | T12 | Qualidade da entrada por área | sim |
 | T13 | Dependências entre quadros | sim |
 | E6 | Datas do portfólio | sim |
-| E7 | Capacidade por sistema | sim |
+| E7 | Entregas por sistema | sim |
 | E8 | Concentração de conhecimento | sim |
 | E9 | Projetos aguardando início | sim |
 | T14 | Participação do meu time no projeto | sim (acrescentada em 2026-10-14, decisão "T14 nova = A"; desenho em §9) |
@@ -158,7 +158,7 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Cálculo:** dentro de `o2.ts`, sem módulo novo.
   - `k` = itens em andamento com `semMover > limite`; `n` = WIP atual; quebra por etapa (papel ou coluna, a mesma do O2).
   - O limite (5 dias úteis, U-11) entra como constante única `LIMITE_PARADO_DIAS_UTEIS` com `VersaoCriterio` v1 em `VERSOES_DA_BIBLIOTECA` (T2.6, A8); mudar o limite exige nova versão no mesmo commit.
-  - **Por que não um "parâmetro versionado com valor e vigência" agora:** seria mecanismo novo (campo de valor em `VersaoCriterio` ou tabela de parâmetros lida pela biblioteca), e o existente basta: a constante é lida num lugar só, e a `VersaoCriterio` já dá data, descrição e marcação. Valor que o usuário configura sem deploy (custo do DSPD do E7, prazo de fornecedor do T10) já tem padrão próprio, a tabela `ref_` com vigência. **Critério para propor ADR de parâmetro:** um limite da biblioteca precisar mudar por configuração, sem deploy, ou dois valores do mesmo limite precisarem valer em períodos diferentes do mesmo cálculo.
+  - **Por que não um "parâmetro versionado com valor e vigência" agora:** seria mecanismo novo (campo de valor em `VersaoCriterio` ou tabela de parâmetros lida pela biblioteca), e o existente basta: a constante é lida num lugar só, e a `VersaoCriterio` já dá data, descrição e marcação. Valor que o usuário configura sem deploy (por exemplo, o prazo de fornecedor do T10; o custo do DSPD do E7 saiu pela D2 = A, 2026-10-17) já tem padrão próprio, a tabela `ref_` com vigência. **Critério para propor ADR de parâmetro:** um limite da biblioteca precisar mudar por configuração, sem deploy, ou dois valores do mesmo limite precisarem valer em períodos diferentes do mesmo cálculo.
 - **Contrato:** acréscimo compatível em `ResultadoO2`: `parados: { limiteDiasUteis, taxa: taxaSchema, porEtapa: [{ etapa, k }] }` (o `k` e o `n` ficam dentro da `taxa`). É campo novo no schema zod (ADR 0007: acréscimo, não quebra).
 - **Mock:** a base atual. Medir a parcela acima de 5 dias úteis; a spec pede 20% a 30%, mas sem mexer na base.
 - **Mínimo:** censo do WIP. A taxa só sai com n ≥ 20; abaixo, "k de n".
@@ -288,19 +288,18 @@ Os contratos estão em alto nível; o detalhe zod é do `node-backend`. Todo res
 - **Mock:** extensão `datasProjeto: Record<card_id, { original: number, final: number, replanejamentos: 0..3 }>` para 11 a 14 projetos concluídos em 12 meses. Ficam abaixo de 20 de propósito, para a variante `lenta`.
 - **Mínimo:** taxa e P50/P85 com ≥ 20 projetos; abaixo, AmostraInsuficiente `lenta` com os pontos e "k de n".
 
-### E7 Capacidade por sistema
+### E7 Entregas por sistema
 - **Fonte:** BM.
 - **Dado:** existe. `sistema`, `tipo`, `concluido_em`, demanda sem subtarefa. Nada de horas apontadas.
-- **Custo decidido (D-1' = A, 2026-10-14; CA-35, CA-13):** custo de capacidade = **custo total do DSPD no período**, rateado pela participação de cada sistema nas entregas (D-2). Um valor só, do DSPD inteiro: nunca por área, equipe ou pessoa. O `ref_custo_area` da versão anterior deste plano saiu.
-  - Configuração versionada (T2.6): tabela `ref_custo_dspd (valor, periodicidade, vigente_de, vigente_ate)`, no padrão `ref_` com vigência; cada vigência nova gera `VersaoCriterio` e marcação. O schema (proposta: `dspd_core`, porque não é dado de origem) e os tipos ficam para a revisão de modelagem da fase 3. O valor é dado externo, informado por pessoa (P:561).
-  - Conversão do valor configurado para o custo do período: **decidida (Q-E7-1, usuário, 2026-10-16): pró-rata por dias corridos** de cada vigência dentro do período. Entra em `REGRAS_METRICA` como regra, não como pendência.
+- **Sem R$ (D2 = A, usuário, 2026-10-17; CA-35, CA-13):** o E7 mostra a **participação percentual de cada sistema pelas entregas do período** (ex.: "Fluig: 23% das entregas"), sem valor em dinheiro. Nunca por área, equipe ou pessoa; horas apontadas não entram (briefing 7.1). Mudança de critério registrada com data (T2.6).
+  - **Histórico (revisto pela D2 = A):** a D-1' = A (2026-10-14) fazia o E7 ratear o **custo total do DSPD** pela participação nas entregas, com a tabela `ref_custo_dspd` e as saídas `custoRateado` e `custoPorDemanda`; a Q-E7-1 (2026-10-16) fixava a conversão do valor para o período em pró-rata por dias corridos. Nenhuma das duas vale mais. A tabela `ref_custo_dspd` não será criada, e o `ref_custo_area` da versão anterior já tinha saído.
 - **Cálculo:** módulo novo `businessmap/e7.ts`.
   - Entregas do período por sistema; participação = entregas do sistema ÷ total (`core/estatistica`). Peso pela D-2 (contagem).
   - A natureza vem da função **`naturezaDe` do T3** (`t3.ts:14`), com as 4 naturezas (CA-23), sem um segundo mapeamento.
   - Sistemas com menos de 20 entregas vão para o fim, com "k de n".
-  - Com custo configurado (fase 2, por fixture): `custoRateado` = custo do período × participação; `custoPorDemanda` = `custoRateado` ÷ entregas do sistema. Os dois calculados na biblioteca. A interface mostra o aviso "Rateio do custo total do DSPD, não esforço medido." (CA-35).
-- **Contrato:** `{ total, sistemas: [{ sistema, entregas, participacao: taxaSchema, porNatureza: [{ natureza, taxa: taxaSchema }], custoRateado | null, custoPorDemanda | null }], custoConfigurado: boolean }`. `custoRateado` e `custoPorDemanda` são anuláveis desde o B1.
-- **Mock:** a base atual (18 a 20 sistemas). **Sem custo** (CA-13): nenhum R$ no mock. O R$ é exercitado só por fixture de teste na fase 2.
+  - Sem cálculo de custo: a interface mostra a participação e as entregas, sem aviso de rateio (o aviso do CA-35 saiu com o R$).
+- **Contrato:** `{ total, sistemas: [{ sistema, entregas, participacao: taxaSchema | null, porNatureza: [{ natureza, taxa: taxaSchema }] }] }`. Os campos de custo do desenho anterior saíram (D2 = A); ver `docs/api/metricas.md` para o contrato vigente.
+- **Mock:** a base atual (18 a 20 sistemas). Sem custo (CA-13): nenhum R$ em mock, fixture ou configuração.
 - **Mínimo:** participação com ≥ 20 entregas no total; por sistema, abaixo de 20 só "k de n".
 
 ### E8 Concentração de conhecimento
@@ -395,7 +394,7 @@ Segue o precedente das complementares sem mexer em `BaseBM`/`gerarBaseMock`. O h
 - Gerador **separado** (P-T4, decidido): `gerarExtensaoTambemMock(base)`, com streams `derivar(semente, 'tambem:<campo>')`. Assim o hash das extensões existentes (`fbddcf28`) **não muda**, e o novo ganha teste de hash próprio e de determinismo.
 - `ContextosMetricas` ganha `tambem?: ExtensaoTambemBM`. Os cálculos que dependem dele devolvem `insuficiente`/vazio quando ele falta, nunca 500.
 - Geração **lazy**: só quando a seção "Mais métricas" abre ou no primeiro cálculo que precise dela, nunca em C1.
-- `COM_EXTENSAO_MOCK` (`cartoes.ts:55`) recebe T11 na fase 1 e O22, O26, T13, E6, E8 e T14 na fase 2. T10 e E7 não entram (sem prazo e sem custo de mock).
+- `COM_EXTENSAO_MOCK` (`cartoes.ts:55`) recebe T11 na fase 1 e O22, O26, T13, E6, E8 e T14 na fase 2. T10 e E7 não entram (sem prazo e, pela D2 = A, sem custo).
 - **`pendencias` em `REGRAS_METRICA`** (atualizado em 2026-10-16): só o que segue aberto com o usuário entra como `status: 'pendente-usuario'`, e hoje isso é só o **T14**: a cardinalidade do campo "Time responsável", as suposições Q-T14-2, 3, 4, 7, 8 e 9 do pedido e a **Q-T14-10** (quem conta nas "2 pessoas"), cada uma com a recomendação de §9.5 valendo até confirmação. Saem da lista as decididas pelo usuário: **P-1 = A** (2026-10-14), **Q-a**, **Q-b** e **Q-E7-1** (2026-10-16), que passam a regra em `REGRAS_METRICA` do O25 (e das que usam `descartado`), do O26 e do E7. Também não entram as demais decididas (D-1', D-4 revista pela R-1 = B, D-5', D-6', D-8, D-9', D-10, D-14', R-1 do O24, R-1 = B de pessoa, R-2', R-4, motivos de descarte, O19-pct = B, O20-destaque = A, O25(b) = B, T10-janela = A, Q-T14-1, Q-T14-5, Q-T14-6) nem as resolvidas pelos documentos (D-7, D-13, R-3, R-5, R-6).
 
 ## 5. Ordem de implementação recomendada
@@ -407,7 +406,7 @@ Sem coleta nova, sem migração e sem tocar em `gerarBaseMock`. Métricas: **O19
 
 | Cartão | Conteúdo (resumo; o critério de pronto é o da ata) |
 |---|---|
-| B1 | Contratos zod `strict` dos 10 resultados e de `ResultadoO2.parados`, com os ajustes de A2, A3, A1 e A9 (T10 sem prazo, O25 com aviso e `porMotivo` anulável, E7 com `custoPorDemanda` anulável, `marcacoes` em toda série); chaves `'motivo-bloqueio'`, `'fornecedor'`, `'mes-do-ano'`; regra de lint de `responsaveis`/`usuario` (P-T6). Nenhum id em `METRICA_IDS`. |
+| B1 | Contratos zod `strict` dos 10 resultados e de `ResultadoO2.parados`, com os ajustes de A2, A3, A1 e A9 (T10 sem prazo, O25 com aviso e `porMotivo` anulável, E7 com `custoPorDemanda` anulável (campo retirado pela D2 = A, 2026-10-17), `marcacoes` em toda série); chaves `'motivo-bloqueio'`, `'fornecedor'`, `'mes-do-ano'`; regra de lint de `responsaveis`/`usuario` (P-T6). Nenhum id em `METRICA_IDS`. |
 | B2 | O23 no O2, constante única mais `VersaoCriterio` v1 (A8). |
 | B3 | O19 e T10. |
 | B4 | T12. |
@@ -432,14 +431,14 @@ Começa depois do B12 e com a **ADR 0020 `vigente`**. Cada uma com o seu campo e
 - **O26:** `passagens`, função pura `houveTroca` com property test (CA-38); chave `'faixa-passagens'`; Q-a = 1 passagem e Q-b = conta (decididas em 2026-10-16).
 - **E8:** `conhecimentoSistema` gerado direto como agregado, recorte de 5 sistemas e só a contagem de sistemas por faixa, sem nomes (D-3; R-1 = B, que revê a D-4 = B; CA-9, CA-10; os CAs do E8 são atualizados pelo UX).
 - **T14:** `equipeResponsavel` (Q-T14-1 = B) e o booleano de publicação de "outros times" (R-1 = B), CA-27 a CA-34, CA-41 e CA-42 (Q-T14-5 = D, Q-T14-6 = A revista pela R-1 = B). Desenho em §9.
-- **E7 com R$:** custo total do DSPD como configuração versionada (D-1' = A), rateio e custo por demanda (CA-35), exercitado só por fixture. O mock segue sem custo (CA-13).
+- **E7 sem R$ (D2 = A, 2026-10-17):** participação percentual por entregas, sem custo. A versão anterior (custo total do DSPD como configuração versionada, rateio e custo por demanda, D-1' = A) foi revista e não será feita.
 
 ### Fase 3: coleta real e integração
 Depende do coletor real do BusinessMap (WS2) e da configuração da WS1.
 - Spike P-T1 no card real (§8 a e b): troca de responsável e vínculo geram revisão? Qual o instante? Como fica o card relacionado em quadro sem permissão? O campo "Time responsável" (nome, cardinalidade)? Com resultado negativo, O26, T13 ou T14 voltam ao usuário.
 - **Revisão de modelagem (architect + tech-lead) antes de qualquer migração:**
   - `dim_card`: `primeiro_toque_em`, `passagens`, `data_acordada_original`, `replanejamentos`, `equipe_responsavel` (também em `dim_card_versao`), e o instante e o motivo nativos de descarte (`discarded_at`, `reason_id`);
-  - `stg_comentario_instante`, `stg_vinculo_relacao`, `fato_vinculo`, `agg_conhecimento_sistema`, `ref_conta_automacao`, o catálogo de `/discardReasons` (ref com vigência) e `ref_custo_dspd`;
+  - `stg_comentario_instante`, `stg_vinculo_relacao`, `fato_vinculo`, `agg_conhecimento_sistema`, `ref_conta_automacao`, o catálogo de `/discardReasons` (ref com vigência) (a `ref_custo_dspd` saiu, D2 = A);
   - `gerarGrants`, `lgpd.ts` e os índices de §6.
   - **Pré-condição da migração que cria `agg_conhecimento_sistema` e `ref_conta_automacao` (K-085, B-K1 a B-K3):**
     - manter exatamente esses nomes e o schema `dspd_bm`: a exclusão da API é por nome (`TABELAS_FORA_DA_API`, `COLUNAS_FORA_DA_API`), e outro nome ou schema abriria acesso em silêncio;
@@ -502,7 +501,7 @@ Depende do coletor real do BusinessMap (WS2) e da configuração da WS1.
 | R-6 | E9 | Resolvida pelos documentos: o card de projeto nasce com a aprovação (nota do marco no cartão) | E9 |
 | R-7 | T10 | Decidida com a D-10: P85 contra o prazo, só quando houver contratos | T10 |
 | Q-a, Q-b | O26 | Decididas (2026-10-16): Q-a = 1 passagem; Q-b = conta 1 | §8 a |
-| Q-E7-1 | E7 | Decidida (2026-10-16): pró-rata por dias corridos de cada vigência dentro do período | E7 |
+| Q-E7-1 | E7 | Decidida (2026-10-16): pró-rata por dias corridos de cada vigência dentro do período. **Revista pela D2 = A (2026-10-17):** sem custo, não se aplica | E7 |
 | Cardinalidade de "Time responsável" | T14 | Aberta, a confirmar na integração (Q-T14-1 = B); vale a Q-T14-9 = A | §9 |
 | Q-T14-10 | T14 | **Nova, com o usuário:** quem conta nas "2 pessoas" da R-1 = B. Leitura adotada até a resposta: responsáveis distintos dos cards de "outros times". `pendente-usuario` | §9.5 |
 
@@ -550,7 +549,7 @@ Depende do coletor real do BusinessMap (WS2) e da configuração da WS1.
 | D-5' = B | O26 (§2), §3 e item a acima, com as bordas Q-a e Q-b |
 | D-6' = A (por equipe, classe Padrão, mesmo tipo) | O24 (§2): grupo `equipe-tipo-padrao`, B10 |
 | R-1 = A | O24 (§2): custo da ultrapassagem e texto do cartão |
-| D-1' = A | E7 (§2): custo total do DSPD, `ref_custo_dspd`, `custoRateado` e `custoPorDemanda` (CA-35); fase 2 |
+| D-1' = A (revista pela D2 = A, 2026-10-17) | E7 (§2): era custo total do DSPD rateado; hoje só participação percentual por entregas, sem R$ (CA-35) |
 | D-4 = B | E8 (§2): revista pela R-1 = B (2026-10-16); o E8 não nomeia sistemas |
 | R-1 = B, R-2 = B (2026-10-16) | E8 (§2), §3, §9.3 e ADR 0020 (item 9 e "Decisões do usuário") |
 | P-1 = A, O19-pct = B, O20-destaque = A, O25(b) = B, T10-janela = A, Q-a, Q-b, Q-E7-1 | §2 de cada métrica e §7 |
@@ -672,4 +671,5 @@ A coluna "Recomendação" é a da análise original; a coluna "Situação" é a 
 ## Histórico do plano
 
 - 2026-10-16 (K-104): decisões do usuário de 2026-10-16 (R-1 = B, R-2 = B, O19-pct = B, O20-destaque = A, O25(b) = B, T10-janela = A, Q-a, Q-b, Q-E7-1) e a P-1 = A (2026-10-14) registradas em O19, O20, O25, O26, E7, E8, §3, §4, §5, §7, §8 e §9; contrato do E8 sem `sistemasUmaPessoa`; `outrosTimes` do T14 anulável; Q-T14-10 nova.
+- 2026-10-17 (pedido 024, K-114): decisão do usuário D2 = A: E7 sem R$, com a participação percentual por entregas. D-1' e Q-E7-1 revistas (histórico mantido); `ref_custo_dspd`, `custoRateado`, `custoPorDemanda` e `custoConfigurado` saem do plano.
 - 2026-10-14: forma dos percentuais alinhada ao `taxaSchema` implementado no B1 (`tambem.ts`), sem mudar decisão nem cartão: O19, O21, O23 (`parados`), O24, O25, T12 e E7 passam a descrever `taxa: taxaSchema` (`{ status, k, n, pct }` ou `{ status, k, n, minimo }`), e o `{ itens, pct }` do E7 vira `taxa: taxaSchema` (review B1, item 5).

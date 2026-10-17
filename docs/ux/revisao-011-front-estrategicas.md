@@ -145,3 +145,7 @@ Escopo: o delta de interface depois da seção 9 (commits 075a5a8 e 65fcd72, `Se
 Observações baixas, sem bloqueio: (1) a região só fala quando o texto muda; se o filtro global alterar a contagem sem trocar o tipo, haverá anúncio também (aceitável, é informação útil). (2) Verificar no navegador com leitor de tela (NVDA ou VoiceOver) que a troca por seta anuncia uma vez só. (3) As pendências da seção 9 continuam: A-9, A-11, `aria-hidden` do ícone `info`, A-10 e o nome do E7 com o usuário.
 
 **Veredito final sobre e850788: aprovado.** Nenhum achado novo de severidade crítica, alta ou média; UX liberada para o merge.
+
+## 11. Nota de 2026-10-17: A-10 aceita
+
+O dono aceitou a A-10 (pedido 021, opção A): o E7 passa a se chamar "Entregas por sistema". A mudança foi aplicada no pedido 024 (especificação e cobertura em `docs/ux/metricas-tambem-disponiveis/`, cartão e contratos no código). O texto das seções anteriores, que ainda cita "Capacidade por sistema", não se reescreve: é registro histórico.
