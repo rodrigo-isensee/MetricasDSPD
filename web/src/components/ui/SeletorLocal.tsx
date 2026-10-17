@@ -16,6 +16,8 @@ interface Props {
   valor: string
   onChange: (valor: string) => void
   itens: readonly ItemSeletor[]
+  /** Texto lido ao trocar de aba (região `aria-live` educada, só para leitor de tela). Sem ele, nada é anunciado. */
+  anuncio?: string
   children: ReactNode
 }
 
@@ -23,7 +25,7 @@ interface Props {
  * Abas locais (tipo, classe...). Uma distribuição por vez: o conteúdo do painel muda com a aba.
  * Setas movem o foco e selecionam; Tab sai para o conteúdo (spec 8.5).
  */
-export function SeletorLocal({ codigo, rotulo, valor, onChange, itens, children }: Props) {
+export function SeletorLocal({ codigo, rotulo, valor, onChange, itens, anuncio, children }: Props) {
   const base = useId()
   const refs = useRef<(HTMLButtonElement | null)[]>([])
   const idx = Math.max(
@@ -94,6 +96,11 @@ export function SeletorLocal({ codigo, rotulo, valor, onChange, itens, children 
       >
         {children}
       </div>
+      {anuncio !== undefined && (
+        <div className="sr-only" role="status" aria-live="polite" data-testid={`anuncio-${codigo}`}>
+          {anuncio}
+        </div>
+      )}
     </div>
   )
 }
