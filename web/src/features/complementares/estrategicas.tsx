@@ -114,6 +114,7 @@ export function CartaoE9({ filtros }: P) {
                 rotulo="Tipo de projeto"
                 valor={atual}
                 onChange={setTipo}
+                anuncio={`Tipo ${atual}: ${fmtInteiro(doTipo.length)} de ${fmtInteiro(r.projetos.length)} projetos.`}
                 itens={tipos.map((t) => ({
                   valor: t,
                   rotulo: t,
@@ -180,7 +181,7 @@ function leituraE6(d: ResultadoE6): string | undefined {
   return `${parte1}${parte2} ${fmtInteiro(replan)} ${plural(replan, 'teve', 'tiveram')} a data replanejada ao menos uma vez.`
 }
 
-/** Do menor para o maior deslize (o contrato não traz a data de conclusão); empate pelo código, ordem estável. */
+/** Do menor para o maior deslize (o contrato não traz a data de conclusão); empate pelo id do card (`cardId`), ordem estável. */
 const ordenarPorDeslize = <T extends { deslizeDiasUteis: number; cardId: string }>(
   l: readonly T[],
 ) =>
@@ -362,7 +363,7 @@ export function CartaoE7({ filtros }: P) {
             )}
             {demais.length > 0 && (
               <p className="text-sm text-texto-2" data-testid="e7-demais">
-                Demais {fmtInteiro(demais.length)} sistemas:{' '}
+                Demais {fmtInteiro(demais.length)} {plural(demais.length, 'sistema', 'sistemas')}:{' '}
                 {fmtInteiro(demais.reduce((t, x) => t + x.entregas, 0))} de {fmtInteiro(r.total)}{' '}
                 entregas. A tabela lista todos os sistemas.
               </p>
