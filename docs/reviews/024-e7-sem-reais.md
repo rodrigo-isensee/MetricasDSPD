@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 024-e7-sem-reais
 branch: feature/024-e7-sem-reais
-commit: d0fcb7b
+commit: 8a4a5a7
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-17
@@ -112,3 +112,21 @@ A-7 volta ao react-frontend (prova: `pnpm --filter web test` do arquivo e typech
 
 ### Riscos e pendências
 - Segue o QA (E1.3), que roda `pronto` e E2E. Sem gatilho de segurança no delta.
+
+## Rodada 4 (2026-10-17)
+
+**Escopo:** só `8a4a5a7` (commit de testes do QA, E1.7): quatro arquivos de teste, nenhum código de produção. Cobre as lacunas G1, G2 e G3 achadas no QA.
+
+**Veredito (rodada 4, `8a4a5a7`): aprovado.** Os testes falham se a regra quebrar e não mexem em produção.
+
+### Ferramentas (citadas, não refeitas)
+- `pnpm run pronto` e E2E: não rodados (restrição do usuário de 2026-10-17: uma tarefa pesada por vez); ficam com o QA e com a CI.
+
+### Achados
+- **G1** (`cartoes.test.ts`, `estrategicas.test.tsx`): cobre. O catálogo de cartões tem exatamente um E7, com rótulo "Entregas por sistema" e sem "capacidade"; o teste da tela afirma a entrada do catálogo web e o título renderizado do cartão (`getByText`) e a ausência de "capacidade por sistema". Voltar ao nome antigo em qualquer das três fontes quebra o teste.
+- **G2** (`e7.test.ts`): cobre, com a biblioteca real. Afirma `data` e `afeta` da constante, sua presença em `VERSOES_DA_BIBLIOTECA` e, com `base.config.criterios` vazio (sem critério fictício), o id em `criterios.serie` e `criterios.janela`. Tirar a constante da lista, mudar `afeta` ou a data quebra o teste. O `hoje` fixo (2026-10-20, três dias depois da mudança, período 12s) fica longe das bordas, mas não esconde nada: a regra do intervalo (`d > início` e `d <= fim`) já tem seu teste de borda na L3 do mesmo arquivo.
+- **G3** (`e8.test.ts`): cobre. Compara o resultado de `4s`, `12s` e `12m` com a referência, afirmando antes `sistemasComEntrega = 5` para o caso não ser vazio; incluir o período no cálculo do E8 quebra o teste.
+- Teste de ausência relido (item 11): os alvos ("capacidade", "capacidade por sistema") existem em outras telas legítimas, mas os testes olham só o cartão E7, então não são vacuamente verdadeiros; o positivo ao lado garante isso.
+
+### Riscos e pendências
+- Segue o parecer do QA. Sem gatilho de segurança no delta.
