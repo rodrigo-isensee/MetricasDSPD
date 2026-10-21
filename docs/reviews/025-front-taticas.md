@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: 35686fdc2b7058d77836dfc71a0c9e19e461c80d
+commit: 5108fcd
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-21
@@ -51,6 +51,20 @@ Escopo lido: `568ea48...32a509f` (07969c8 e 32a509f), 20 arquivos, 1.490 linhas 
 - **Documentação:** `docs/tecnica/arquitetura-front.md` §12 e `docs/contratos/metricas/` foram atualizados no mesmo intervalo. **Ok**, salvo a frase de A6.
 - **Commits:** Conventional Commits em português, com `Cartão: K-110` e as linhas de atribuição. **Ok.**
 
+## Revisão incremental `b6c7673..5108fcd` (f06a6fb, 9e11071, 5108fcd)
+
+**Veredito: aprovado, sem bloqueante.** Delta lido: 15 arquivos, 735 linhas a mais e 21 a menos. O que já estava lido (o front do primeiro review) não foi relido. O `pnpm run pronto` do 5108fcd é prova do autor e do QA, não refeito aqui (regra 5 da economia de tokens).
+
+- **E2E novos (`tatico-011-lote2.spec.ts`, `t10-grafias.spec.ts`):** determinísticos. O dado vem do mock semeado, que é fixo, e o cabeçalho do arquivo declara o caso conhecido (P-0039 oculto em demandas com equipe=erp-protheus). Não há `waitForTimeout`, `.skip`, `fixme` nem `.only` (grep no arquivo novo). As esperas são por estado (`esperarCartoesProntos`, `toBeVisible`). A ordem alfabética do T10 é comparada com `localeCompare('pt-BR')`, sem número solto. O TT-04 simula a lista vazia por `page.route` sobre a resposta real, sem mexer no mock.
+- **Ajustes em `complementares.spec.ts`, `intensivo-sistemico.spec.ts`, `lacuna-de-valor.spec.ts`:** só contagens (53 para 58; Complementar 21 para 26; `/tatico` de 2 para 7 cartões; T13 e T14 no conjunto `MOCK`; "Leia junto" de T1, T4, T9 e Bloqueados). Nenhuma asserção foi retirada nem afrouxada: cada uma foi trocada pela equivalente com o número novo, e os números batem com o catálogo do primeiro review (5 novas, 26 complementares, 7 do tático).
+- **`E2E_PORTA` e `E2E_PORTA_ALT`:** padrão 4173 e 4174, igual ao que era; só evita servir o build de outra worktree. Sem efeito na CI.
+- **Servidor de teste das grafias:** `MOCK_FORNECEDOR_GRAFIAS` só age em `server/tests/pg/servidor-api-mock.ts` (arquivo de teste), reescreve o fornecedor da base semeada em "TOTVS", "Totvs" e " totvs ", e nenhum arquivo de produção é tocado. O projeto `chromium-api-grafias` fica fora do `chromium-api` por `testIgnore`, então a suíte comum não depende da variável. O teste diz no cabeçalho que falha de propósito sem ela.
+- **L2T-001 (T13 em Frentes):** `baseDoCartao` (nova prop opcional do `CartaoComplementar`) troca só o `n` e a unidade do selo quando o grupo exibido é insuficiente e a granularidade não é demandas. Nos demais casos devolve `x.base`, então o comportamento anterior fica. O `complemento` é descartado, como deve, porque o texto era das demandas. O `n` vem do DTO (`bg.entregas.n`), sem cálculo no front. O teste novo afirma "11 de 20 itens mínimos" e que "88" não aparece. Conforme.
+- **L2T-002 (plural na T14, E3):** a linha oculta agora diz "Meu time: 1 demanda", "2 demandas", "1 frente" pelo `plural` já usado no arquivo. O texto continua sem `n`, total, percentual nem "sem time": o teste afirma `textContent` exato e que 53, 47, 59 e 43 não aparecem no cartão. T14-M1 = B preservado. Conforme.
+- **E2 e E4:** `outrosOculto` e a normalização do fornecedor não estão no delta (nenhum hunk em `taticas.tsx` fora de T13 e do texto da linha oculta). R-1 = B e B11-001 não mudaram, e o teste de B11-001 segue no `taticas.test.tsx`; o E2E de grafias o confirma contra o back.
+- **Perf (`perf-tatico-lote2`):** o caso mede o CLS que a seção soma depois de aberta e o C6 em mediana, e registra o CLS total da página. Ele não cobre o CLS de 0,073 a 0,100 que `/tatico?equipe=` já tinha antes de abrir (L2T-003, herdado, cartão próprio, pendência do PR). Isso fica claro no comentário e é limite do caso, não defeito. Ver A8.
+- **Commits:** Conventional Commits em português. O 9e11071 só corrige o parecer do QA para apontar ao head testado.
+
 ## Achados
 - A1 (recomendado) web/src/data/mock/MockFonteMetricas.ts:55 · COM_TAMBEM sem T11, T13 e T14, contra o comentário das linhas 51-54; no mock só do navegador o T13 e o T14 saem sem vínculo e sem time. Cartão no quadro, depois do 037 (nucleoMock.ts); não fere a ficha
 - A2 (recomendado) web/src/features/complementares/taticas.tsx:168 · a leitura do T11 não traz a frase de picos da ficha, porque o contrato não a fornece e o front não deve calcular. Cartão para o back pôr os meses de pico no DTO, ou a UX ajusta a ficha no E1.6
@@ -59,3 +73,4 @@ Escopo lido: `568ea48...32a509f` (07969c8 e 32a509f), 20 arquivos, 1.490 linhas 
 - A5 (recomendado) web/src/features/complementares/taticas.tsx:533 · o destaque "k de n com time informado (p%)" da ficha T14 existe só como leitura, sem o bloco acima da lista que o T13 tem, e sem "as outras N estão em outros times". A UX confere no E1.6
 - A6 (recomendado) docs/tecnica/arquitetura-front.md:302 · a doc diz que a leitura sai com projeto oculto "em qualquer granularidade", mas o código (taticas.tsx:533) olha só a granularidade exibida. Sem vazamento, porque a outra granularidade mostra todos os n; alinhar o texto
 - A7 (recomendado) web/src/features/complementares/taticas.tsx:625 · `Number(p.outrosTimes)` depende do comentário para garantir o não nulo. Trocar `outrosOculto` por um type guard deixa o compilador provar o caso
+- A8 (recomendado) e2e/perf/perf.spec.ts:203 · o caso de perf subtrai o CLS anterior à abertura, então não prova sozinho F2 < 0,1 em /tatico com equipe (ADR 0003); a pendência é L2T-003, cartão K-133, e deve estar no PR. Não bloqueia esta entrega
