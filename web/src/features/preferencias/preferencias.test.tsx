@@ -78,7 +78,7 @@ describe('perfil /preferencias', () => {
       '0 de 12 do núcleo e 0 de 7 complementares visíveis',
     )
     expect(screen.getByTestId('contador-tatico')).toHaveTextContent(
-      '8 de 8 do núcleo e 2 de 2 complementares visíveis',
+      '8 de 8 do núcleo e 7 de 7 complementares visíveis',
     )
     expect(screen.getByTestId('contador-estrategico')).toHaveTextContent(
       '4 de 4 do núcleo e 6 de 6 complementares visíveis',
@@ -93,7 +93,7 @@ describe('perfil /preferencias', () => {
     )
     await u.click(screen.getByRole('button', { name: 'Aplicar sugestão do papel Coordenador' }))
     expect(screen.getByTestId('contador-tatico')).toHaveTextContent(
-      '8 de 8 do núcleo e 2 de 2 complementares visíveis',
+      '8 de 8 do núcleo e 7 de 7 complementares visíveis',
     )
   })
 
@@ -528,7 +528,7 @@ describe('outras telas', () => {
     e.unmount()
     renderizarApp('/tatico')
     expect(
-      await screen.findByRole('button', { name: 'Métricas: 8 de 8 (+2 complementares)' }),
+      await screen.findByRole('button', { name: 'Métricas: 8 de 8 (+7 complementares)' }),
     ).toBeInTheDocument()
   })
 
