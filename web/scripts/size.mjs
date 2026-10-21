@@ -20,7 +20,12 @@ const linhas = arquivos.map((f) => {
   else if (/^(exportar-pdf|desenhista)-/.test(f)) tipo = 'exportar'
   // Dependências opcionais do jsPDF (html(), SVG): nunca pedidas pelo app; só informativas.
   else if (/^(purify\.es|html2canvas|index\.es)-/.test(f)) tipo = 'opcional'
-  else if (/^(mock|metrics)-/.test(f) || /gerarBaseMock|mulberry32/.test(codigo)) tipo = 'mock'
+  // O núcleo do mock (chunk do Worker e fallback em processo, ADR 0021) é mock/biblioteca (F9), nunca inicial (F6).
+  else if (
+    /^(mock|metrics|nucleoMock(\.worker)?)-/.test(f) ||
+    /gerarBaseMock|mulberry32/.test(codigo)
+  )
+    tipo = 'mock'
   return { f, tipo, gz }
 })
 const soma = (t) => linhas.filter((l) => l.tipo === t).reduce((s, l) => s + l.gz, 0)

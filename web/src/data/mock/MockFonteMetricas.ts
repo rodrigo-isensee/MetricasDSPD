@@ -5,77 +5,11 @@ import type {
   PaginaColetas,
   VersaoCriterio,
 } from '@metricas-dspd/contratos'
-import {
-  EQUIPES_SUSTENTACAO_ID,
-  NOME_EQUIPE_SUSTENTACAO,
-  TIPO_ID,
-  type OpcoesFiltro,
-} from '@metricas-dspd/contratos'
+import type { OpcoesFiltro } from '@metricas-dspd/contratos'
 import type { ContratoMetricas, ResultadoDe } from '@metricas-dspd/contratos'
-import { TIPOS_FILTRO, PRIORIDADES } from '@metricas-dspd/contratos'
-import type { ResultadoO2Paginado } from '@metricas-dspd/contratos/validacao'
 import type { FonteMetricas } from '../FonteMetricas'
-
-type Carregado = {
-  ctx: import('@metricas-dspd/metricas').ContextosMetricas
-  /** Critérios da pesquisa (dominio 'pesquisa', T2.6), lidos do contexto da terceira fonte. */
-  criteriosPesquisa: VersaoCriterio[]
-  lib: typeof import('@metricas-dspd/metricas')
-  base: import('@metricas-dspd/mock').BaseMock
-  /** Sorteio da latência: derivado da semente, determinístico. */
-  sorteio: () => number
-}
-
-/** Métricas complementares: as únicas que precisam das extensões mockadas. */
-const COMPLEMENTARES: ReadonlySet<MetricaId> = new Set<MetricaId>([
-  'O5',
-  'O6',
-  'O8',
-  'O11',
-  'O13',
-  'O14',
-  'O16',
-  'O17',
-  'T6',
-  'T8',
-  'E4',
-  'E5',
-  'S8',
-  'S9',
-  'S10',
-  'S11',
-  'S12',
-])
-
-/**
- * Métricas do pedido 011 que leem a extensão `ctx.tambem` (campos de extração nova, só em mock). É o subconjunto
- * E6/E8 de `COM_EXTENSAO_MOCK` (em `contratos`): ao entrar métrica nova dos lotes 2 e 3 (O22, O26, T13, T14),
- * atualize as duas listas juntas.
- */
-const COM_TAMBEM: ReadonlySet<MetricaId> = new Set<MetricaId>(['E6', 'E8'])
-
-/** Itens do O2 por página: o mesmo da API (`pageSize=200`, página 1). */
-const PAGINA_O2 = 200
-
-/**
- * O2 no formato da API (R3 do plano front-via-api): `itens` da página 1 (até 200), ordenados por idade
- * decrescente com desempate por `cardId`, e `itensMeta` com o total do conjunto completo.
- */
-export function paginarO2(r: ResultadoDe<'O2'>): ResultadoO2Paginado {
-  const ordenados = [...r.itens].sort(
-    (a, b) =>
-      b.idadeDiasUteis - a.idadeDiasUteis ||
-      (a.cardId < b.cardId ? -1 : a.cardId > b.cardId ? 1 : 0),
-  )
-  return {
-    ...r,
-    itens: ordenados.slice(0, PAGINA_O2),
-    itensMeta: { page: 1, pageSize: PAGINA_O2, total: ordenados.length },
-  }
-}
-
-/** Devolve a thread principal ao navegador entre fases pesadas (tarefa longa < 200 ms, ADR 0003 C6). */
-const ceder = (): Promise<void> => new Promise((r) => setTimeout(r, 0))
+import type { ArgsPorMetodo, Metodo, Pedido, Resposta } from './protocolo'
+import type { EstadoWorker } from './nucleoMock'
 
 export interface OpcoesMock {
   semente?: number
@@ -86,212 +20,150 @@ export interface OpcoesMock {
    * pelo PRNG com semente. `0` desliga (testes unitários e E2E); outro número fixa o atraso.
    */
   latenciaMs?: number
+  /**
+   * Onde o cálculo roda (ADR 0021). Sem valor: `'worker'` quando existe `Worker` no ambiente, senão `'processo'`
+   * (jsdom do Vitest). `'processo'` chama o mesmo núcleo na thread principal; `'worker'` exige `Worker`.
+   */
+  transporte?: Transporte
+}
+
+/** Espera da latência simulada (D7); `0` não cede a thread. */
+const esperar = (ms: number): Promise<void> | undefined =>
+  ms > 0 ? new Promise((r) => setTimeout(r, ms)) : undefined
+
+export type Transporte = 'worker' | 'processo'
+
+/** Ligação por RPC com id (FIFO) a um Worker de módulo. Falha no Worker rejeita tudo, sem cair em silêncio. */
+class ClienteWorker {
+  private readonly worker: Worker
+  private readonly pendentes = new Map<
+    number,
+    { resolver: (r: Resposta) => void; rejeitar: (e: Error) => void }
+  >()
+  private falha: Error | null = null
+
+  constructor() {
+    // O arquivo próprio da mesma origem satisfaz a CSP (`default-src 'self'`): nunca `blob:` nem Worker inline.
+    this.worker = new Worker(new URL('./nucleoMock.worker.ts', import.meta.url), {
+      type: 'module',
+    })
+    this.worker.onmessage = (e: MessageEvent<Resposta>) => {
+      const p = this.pendentes.get(e.data.id)
+      this.pendentes.delete(e.data.id)
+      p?.resolver(e.data)
+    }
+    const aoFalhar = (detalhe: string) => {
+      this.falha = new Error(`Falha no Worker do mock: ${detalhe}`)
+      for (const p of this.pendentes.values()) p.rejeitar(this.falha)
+      this.pendentes.clear()
+    }
+    this.worker.onerror = (e) => aoFalhar(e.message || 'erro sem tratamento')
+    this.worker.onmessageerror = () => aoFalhar('mensagem não clonável')
+  }
+
+  enviar(pedido: Pedido): Promise<Resposta> {
+    if (this.falha) return Promise.reject(this.falha)
+    return new Promise((resolver, rejeitar) => {
+      this.pendentes.set(pedido.id, { resolver, rejeitar })
+      this.worker.postMessage(pedido)
+    })
+  }
 }
 
 /**
- * Fonte de dados fictícios. Gera a base uma única vez (memoizada) e calcula cada métrica com a
- * biblioteca única. O gerador e a biblioteca são carregados por `import()` dinâmico para não
- * pesar no chunk inicial. Também é assíncrona, para a troca por API ser transparente.
+ * Fonte de dados fictícios. A base é gerada uma única vez e cada métrica é calculada com a biblioteca única, dentro
+ * de um Web Worker (ADR 0021): a thread principal só renderiza e não importa o mock nem a biblioteca. Sem `Worker`
+ * no ambiente (jsdom), o mesmo núcleo roda em processo, por `import()` dinâmico. A interface é assíncrona, para a
+ * troca por API ser transparente.
  */
 export class MockFonteMetricas implements FonteMetricas {
   readonly tipo = 'mock' as const
-  private carregado: Promise<Carregado> | null = null
-
-  private coletas: Promise<import('@metricas-dspd/mock').ColetasMock> | null = null
-
-  private extensoes: Promise<import('@metricas-dspd/metricas').ExtensoesMetricas> | null = null
-
-  private tambem: Promise<import('@metricas-dspd/metricas/businessmap').ExtensaoTambemBM> | null =
-    null
+  /** Transporte em uso (marcação para a paridade E2E, ADR 0021 seção 3, item 4). */
+  readonly transporte: Transporte
 
   private readonly opcoes: OpcoesMock
+  private cliente: ClienteWorker | null = null
+  private nucleoMod: Promise<typeof import('./nucleoMock')> | null = null
+  private readonly estado: EstadoWorker = {}
+  private boot: Promise<number> | null = null
+  private seq = 0
 
   constructor(opcoes: OpcoesMock = {}) {
+    const validos: readonly unknown[] = ['worker', 'processo']
+    if (opcoes.transporte !== undefined && !validos.includes(opcoes.transporte))
+      throw new Error(`Transporte do mock inválido: ${opcoes.transporte}`)
     this.opcoes = opcoes
+    this.transporte = opcoes.transporte ?? (typeof Worker === 'undefined' ? 'processo' : 'worker')
   }
 
-  private carregar(): Promise<Carregado> {
-    this.carregado ??= (async () => {
-      const [mock, lib] = await Promise.all([
-        import('@metricas-dspd/mock'),
-        import('@metricas-dspd/metricas'),
-      ])
-      const parcial: { semente?: number; hoje?: string } = {}
-      if (this.opcoes.semente !== undefined) parcial.semente = this.opcoes.semente
-      if (this.opcoes.hoje !== undefined) parcial.hoje = this.opcoes.hoje
-      await ceder()
-      const gerada = mock.gerarBaseMock(parcial)
-      // `data_acordada` é uma data (briefing: tipo Data; coluna `date` no banco) que vale até o fim do expediente do dia (P2):
-      // o gerador sorteia um instante, e a API só tem o dia. Normaliza aqui (o gerador e o hash da base ficam como estão)
-      // para o mock e a API calcularem o O12 sobre o mesmo valor (FA-003).
-      const cal = lib.CALENDARIO_PADRAO
-      const base = {
-        ...gerada,
-        bm: {
-          ...gerada.bm,
-          cards: gerada.bm.cards.map((c) =>
-            c.data_acordada === null
-              ? c
-              : {
-                  ...c,
-                  data_acordada: lib.fimDoExpediente(lib.diaLocal(c.data_acordada, cal), cal),
-                },
-          ),
+  /** Duração (ms) da geração da base e dos contextos, medida dentro de quem calcula. Informativo (C2). */
+  duracaoBoot(): Promise<number> {
+    this.boot ??= this.despachar({
+      id: ++this.seq,
+      metodo: 'iniciar',
+      args: [
+        {
+          ...(this.opcoes.semente !== undefined && { semente: this.opcoes.semente }),
+          ...(this.opcoes.hoje !== undefined && { hoje: this.opcoes.hoje }),
         },
-      }
-      await ceder()
-      const bm = lib.businessmap.criarContextoBM(base.bm, base.config.hoje, lib.CALENDARIO_PADRAO)
-      await ceder()
-      const ac = lib.acelerato.criarContextoAC(base.ac, base.config.hoje, lib.CALENDARIO_PADRAO)
-      const pesq = lib.pesquisa.criarContextoPesquisa(
-        mock.gerarPesquisaMock(base.config),
-        base.config.hoje,
-      )
-      const ctx = { bm, ac, pesq }
-      // A Visão geral usa uma só data de corte: os dois contextos têm de concordar (review B13).
-      if (ctx.bm.hojeIso !== ctx.ac.hojeIso)
-        throw new Error(`Datas de corte divergentes: ${ctx.bm.hojeIso} x ${ctx.ac.hojeIso}`)
-      const rng = mock.derivar(base.config.semente, 'latencia')
-      return {
-        ctx,
-        criteriosPesquisa: pesq.base.criterios,
-        lib,
-        base,
-        sorteio: () => mock.sortearLatencia(rng),
-      }
-    })()
-    return this.carregado
+      ],
+    }).then((b) => (b as { bootMs: number }).bootMs)
+    return this.boot
   }
 
-  /** Extensões mockadas (causa raiz, sprint, natureza, reabertura...), fora da base: o hash dela não muda. */
-  private carregarExtensoes(): Promise<import('@metricas-dspd/metricas').ExtensoesMetricas> {
-    this.extensoes ??= this.carregar().then(async ({ base }) => {
-      const mock = await import('@metricas-dspd/mock')
-      await ceder()
-      return mock.gerarExtensoesMock(base)
-    })
-    return this.extensoes
+  /** Envia ao Worker (RPC) ou ao núcleo em processo; os dois dão o mesmo valor e erro de mesma mensagem. */
+  private async despachar(pedido: Pedido): Promise<unknown> {
+    let r: Resposta
+    if (this.transporte === 'worker') {
+      this.cliente ??= new ClienteWorker()
+      r = await this.cliente.enviar(pedido)
+    } else {
+      const m = await (this.nucleoMod ??= import('./nucleoMock'))
+      r = await m.tratarPedido(this.estado, pedido)
+    }
+    if (r.ok) return r.valor
+    const erro = new Error(r.erro.mensagem)
+    erro.name = r.erro.nome
+    throw erro
   }
 
-  /** Extensão do pedido 011 (E6, E8): lazy e separada das demais, como no servidor (ADR 0003, C1 e C2). */
-  private carregarTambem(): Promise<
-    import('@metricas-dspd/metricas/businessmap').ExtensaoTambemBM
-  > {
-    this.tambem ??= this.carregar().then(async ({ base }) => {
-      const mock = await import('@metricas-dspd/mock')
-      await ceder()
-      return mock.gerarExtensaoTambemMock(base)
-    })
-    return this.tambem
-  }
-
-  private async atraso(sorteio: () => number): Promise<void> {
-    const ms = this.opcoes.latenciaMs ?? sorteio()
-    if (ms > 0) await new Promise((r) => setTimeout(r, ms))
+  private async chamar<M extends Exclude<Metodo, 'iniciar'>>(
+    metodo: M,
+    ...args: ArgsPorMetodo[M]
+  ): Promise<unknown> {
+    await this.duracaoBoot()
+    return this.despachar({ id: ++this.seq, metodo, args } as Pedido)
   }
 
   async obter<K extends MetricaId>(
     id: K,
     filtros: ContratoMetricas[K]['filtros'],
   ): Promise<ResultadoDe<K>> {
-    const { ctx, lib, sorteio } = await this.carregar()
-    await this.atraso(sorteio)
-    // As extensões das complementares só são geradas quando uma delas é pedida (carga sob demanda).
-    const comExt = COMPLEMENTARES.has(id) ? { ...ctx, ext: await this.carregarExtensoes() } : ctx
-    const completo = COM_TAMBEM.has(id)
-      ? { ...comExt, tambem: await this.carregarTambem() }
-      : comExt
-    const r = lib.calcularMetrica(id, filtros, completo)
-    if (id === 'O2') return paginarO2(r as unknown as ResultadoDe<'O2'>)
-    return r
+    // A espera da latência (D7) fica na thread principal; o sorteio vem do núcleo, na ordem das chamadas.
+    const ms = this.opcoes.latenciaMs ?? ((await this.chamar('latencia')) as number)
+    await esperar(ms)
+    return (await this.chamar('obter', id, filtros)) as ResultadoDe<K>
   }
 
   async opcoesFiltro<D extends Dominio>(
     dominio: D,
   ): Promise<Extract<OpcoesFiltro, { dominio: D }>> {
-    const { lib, base } = await this.carregar()
-    const historico = {
-      inicio: lib.dataIso(lib.minimo(base.bm.cards.map((c) => c.criado_em)), lib.CALENDARIO_PADRAO),
-      fim: lib.dataIso(
-        lib.instanteDeIso(base.config.hoje, lib.CALENDARIO_PADRAO),
-        lib.CALENDARIO_PADRAO,
-      ),
-    }
-    const r: OpcoesFiltro =
-      dominio === 'businessmap'
-        ? {
-            dominio: 'businessmap',
-            // Em ordem alfabética, como a API (as equipes do banco vêm ordenadas por nome).
-            equipes: base.bm.config.equipes
-              .map((e) => ({ id: lib.slug(e.nome), nome: e.nome }))
-              .sort((x, y) => x.nome.localeCompare(y.nome, 'pt-BR')),
-            tipos: TIPOS_FILTRO.map((t) => ({ id: TIPO_ID[t], nome: t })),
-            sistemas: base.bm.config.sistemas.map((s) => ({ id: lib.slug(s), nome: s })),
-            historico,
-          }
-        : {
-            dominio: 'acelerato',
-            equipes: EQUIPES_SUSTENTACAO_ID.map((id) => ({
-              id,
-              nome: NOME_EQUIPE_SUSTENTACAO[id],
-            })),
-            prioridades: PRIORIDADES.map((p) => ({ id: p.toLowerCase(), nome: p })),
-            historico: {
-              inicio: lib.dataIso(
-                lib.minimo(base.ac.chamados.map((c) => c.aberto_em)),
-                lib.CALENDARIO_PADRAO,
-              ),
-              fim: historico.fim,
-            },
-          }
-    return r as Extract<OpcoesFiltro, { dominio: D }>
+    return (await this.chamar('opcoesFiltro', dominio)) as Extract<OpcoesFiltro, { dominio: D }>
   }
 
   async criterios(): Promise<VersaoCriterio[]> {
-    const { base, criteriosPesquisa } = await this.carregar()
-    const vistos = new Map<string, VersaoCriterio>()
-    for (const v of [
-      ...base.bm.config.criterios,
-      ...base.ac.config.criterios,
-      ...criteriosPesquisa,
-    ])
-      vistos.set(v.id, v)
-    return [...vistos.values()].sort((a, b) => a.data.localeCompare(b.data))
+    return (await this.chamar('criterios')) as VersaoCriterio[]
   }
 
   async dataReferencia(): Promise<string> {
-    const { lib, base } = await this.carregar()
-    return lib.dataIso(
-      lib.instanteDeIso(base.config.hoje, lib.CALENDARIO_PADRAO),
-      lib.CALENDARIO_PADRAO,
-    )
-  }
-
-  /** Coletas fictícias (fora da base: o hash da base não muda), geradas sob demanda e memoizadas. */
-  private carregarColetas(): Promise<import('@metricas-dspd/mock').ColetasMock> {
-    this.coletas ??= this.carregar().then(async ({ base }) => {
-      const mock = await import('@metricas-dspd/mock')
-      return mock.gerarColetasMock(base)
-    })
-    return this.coletas
+    return (await this.chamar('dataReferencia')) as string
   }
 
   async estadoColeta(dominio: Dominio): Promise<EstadoColeta> {
-    const [{ lib, base }, coletas, versoes] = await Promise.all([
-      this.carregar(),
-      this.carregarColetas(),
-      this.criterios(),
-    ])
-    return lib.montarEstadoColeta(
-      dominio,
-      coletas[dominio],
-      versoes,
-      lib.instanteDeIso(base.config.hoje, lib.CALENDARIO_PADRAO),
-    )
+    return (await this.chamar('estadoColeta', dominio)) as EstadoColeta
   }
 
   async historicoColetas(dominio: Dominio, pagina: number): Promise<PaginaColetas> {
-    const [{ lib }, coletas] = await Promise.all([this.carregar(), this.carregarColetas()])
-    return lib.paginarColetas(coletas[dominio], pagina)
+    return (await this.chamar('historicoColetas', dominio, pagina)) as PaginaColetas
   }
 }
