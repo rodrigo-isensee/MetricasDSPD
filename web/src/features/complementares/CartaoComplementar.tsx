@@ -35,6 +35,8 @@ interface Props<D extends Dto> {
   leitura?: string | undefined
   /** `insuficiente` quando a estatística principal não é publicada (o corpo explica). */
   baseVariante?: 'ok' | 'insuficiente' | 'censo'
+  /** Base do cabeçalho quando ela difere da base do DTO (ex.: T13 em Frentes: n das frentes, não das demandas). */
+  baseDoCartao?: (d: D) => BaseAmostral
   janelaPercentis?: { unidade: 'semanas' | 'meses'; quantidade: number } | undefined
   periodo?: Periodo
   acoes?: ReactNode
@@ -59,6 +61,7 @@ export function CartaoComplementar<D extends Dto>({
   q,
   leitura,
   baseVariante,
+  baseDoCartao,
   janelaPercentis,
   periodo,
   acoes,
@@ -80,7 +83,12 @@ export function CartaoComplementar<D extends Dto>({
       pergunta={m.pergunta}
       estado={q.estado}
       atualizando={q.atualizando}
-      {...(d ? { criterios: d.criterios, ...(semFonte || semBase ? {} : { base: d.base }) } : {})}
+      {...(d
+        ? {
+            criterios: d.criterios,
+            ...(semFonte || semBase ? {} : { base: baseDoCartao ? baseDoCartao(d) : d.base }),
+          }
+        : {})}
       {...(d && !semFonte && !semBase && baseVariante ? { baseVariante } : {})}
       {...(leitura && !semFonte ? { leitura } : {})}
       {...(janelaPercentis && periodo && !semFonte ? { janelaPercentis, periodo } : {})}

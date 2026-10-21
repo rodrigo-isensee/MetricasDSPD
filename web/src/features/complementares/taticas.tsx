@@ -413,6 +413,13 @@ export function CartaoT13({ filtros }: P) {
       q={q}
       semTabela
       baseVariante={b0?.entregas.status === 'ok' ? 'ok' : 'insuficiente'}
+      baseDoCartao={(x) => {
+        const bg = x.porGranularidade.find((y) => y.granularidade === gran)
+        if (!bg || bg.entregas.status === 'ok' || gran === 'story') return x.base
+        // Em Frentes o selo de insuficiência usa o n das frentes, nunca o das demandas (L2T-001).
+        const { complemento: _c, ...resto } = x.base
+        return { ...resto, n: bg.entregas.n, unidade: SUBSTANTIVO_GRAN[gran] }
+      }}
       className="lg:col-span-6"
       leitura={d ? leituraT13(d, gran) : undefined}
     >
@@ -609,7 +616,10 @@ export function CartaoT14({ filtros }: P) {
                     </span>
                     {outrosOculto(p) ? (
                       <span className="text-sm text-texto-2" data-testid={`t14-fatia-${p.codigo}`}>
-                        Meu time: {fmtInteiro(p.meuTime.k)} {SUBSTANTIVO_GRAN[gran]}
+                        Meu time: {fmtInteiro(p.meuTime.k)}{' '}
+                        {gran === 'story'
+                          ? plural(p.meuTime.k, 'demanda', 'demandas')
+                          : plural(p.meuTime.k, 'frente', 'frentes')}
                       </span>
                     ) : (
                       <>

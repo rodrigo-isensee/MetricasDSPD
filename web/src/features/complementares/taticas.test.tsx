@@ -365,6 +365,11 @@ describe('T13 Dependências entre quadros', () => {
       '4 de 11 entregas dependeram de outro quadro (percentual não publicado, menos de 20)',
     )
     expect(within(el).queryByText(/31 de 88/)).not.toBeInTheDocument()
+    // L2T-001: o selo usa o n das frentes (11), nunca o das demandas (88).
+    expect(within(el).getByTestId('base-T13')).toHaveTextContent(
+      'Amostra insuficiente: 11 de 20 itens mínimos',
+    )
+    expect(within(el).getByTestId('base-T13')).not.toHaveTextContent(/88/)
     expect(within(el).getByTestId('t13-sem-par')).toBeInTheDocument()
   })
 
@@ -495,6 +500,24 @@ describe('T14 Participação do meu time no projeto', () => {
     expect(linha.textContent).not.toMatch(/%/)
     // O projeto com os outros times publicáveis segue com a barra completa.
     expect(el).toHaveTextContent('4 de 34 (11,8%) meu time')
+  })
+
+  it('L2T-002: "Meu time: k" usa o plural certo (1 demanda, 1 frente, 2 demandas) sem n nem total', async () => {
+    const um = projeto('PRJ-081', 53, taxaOk(1, 47), null, 6)
+    const dois = projeto('PRJ-082', 59, taxaOk(2, 43), null, 6)
+    const d = dto([um, dois])
+    d.porGranularidade[1] = {
+      granularidade: 'frente',
+      total: taxaOk(1, 83),
+      projetos: [projeto('PRJ-091', 83, taxaOk(1, 79), null, 4)],
+    }
+    const el = await abrir('T14', <CartaoT14 filtros={filtros} />, new FonteFixa({ T14: d }))
+    const u = within(el).getByTestId('t14-fatia-PRJ-081')
+    expect(u.textContent).toBe('Meu time: 1 demanda')
+    expect(within(el).getByTestId('t14-fatia-PRJ-082').textContent).toBe('Meu time: 2 demandas')
+    expect(el.textContent).not.toMatch(/\b53\b|\b47\b|\b59\b|\b43\b/)
+    await userEvent.setup().click(within(el).getByRole('tab', { name: 'Frentes' }))
+    expect(within(el).getByTestId('t14-fatia-PRJ-091').textContent).toBe('Meu time: 1 frente')
   })
 
   it('o total também some quando o projeto oculto está só na outra granularidade (frentes)', async () => {
