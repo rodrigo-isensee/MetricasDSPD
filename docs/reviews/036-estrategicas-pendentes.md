@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 036-estrategicas-pendentes
 branch: feature/036-estrategicas-pendentes
-commit: a7113710e53650f36f8872bbaf3d29a751818196
+commit: 90d35a62eba38f81d6ab096d80be740c5d677c53
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-20
@@ -31,3 +31,7 @@ data: 2026-10-20
 ## Veredito
 
 Aprovado. Segue para o QA (E1.4) sobre o head deste parecer.
+
+## Revalidação (delta)
+
+`forge-check delta` sobre o parecer anterior listou só `docs/ux/revisao-036-e7-pergunta.md` (+31, linhas 1-31), a revisão de UX (E1.6), documento novo, sem código: lido inteiro, veredito do UX aprovado e zero achado bloqueante. Já lido e mantido: o restante da branch (E2, E3 e commits `bf137a9` a `a711371`). Parecer segue aprovado (HEAD revisado `90d35a6`).
