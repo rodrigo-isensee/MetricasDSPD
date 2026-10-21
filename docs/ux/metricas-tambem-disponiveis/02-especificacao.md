@@ -235,7 +235,8 @@ Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078); entra na fase 3 (colet
   - Tolerância zero: entregue até a data = no prazo, igual a "vencido" no O12 (P:173).
 
 ### E7 Entregas por sistema
-- **Pergunta:** Quanto da nossa capacidade vai para manter cada sistema do parque? (capacidade medida pelas entregas, não por custo)
+- **Pergunta:** Qual a participação de cada sistema nas nossas entregas?
+  - Mudança em 2026-10-20 (decisão do dono, pedido 036, opção A): a pergunta anterior falava em "capacidade"; agora pergunta pela participação nas entregas, que é o que o cartão mede (contagem, não custo).
 - **Painel/seção:** Estratégico · Onde o parque se concentra, e qual o risco de continuidade?
 - **Visual:** barras horizontais 100% por sistema (ordem por participação), divididas por natureza (as 4 do T3: Sustentação, Evolução, Projetos e Dívida técnica, pela mesma função do T3; R-3 resolvida por B:369) com cor + hachura; rótulo "% das entregas · n itens".
   - **Decisão do usuário D2 = A (revê a D-1' e a Q-E7-1):** o E7 não mostra nenhum valor em dinheiro, nem custo rateado, nem custo dividido por demanda, em nenhuma variante e com ou sem custo total configurado. Mostra só a participação percentual de cada sistema pelas entregas e a contagem. A origem "custo de capacidade" de P:402 não se aplica; o custo total do DSPD deixa de ser dado de entrada deste cartão.
@@ -380,4 +381,5 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 | O25(b) = B | 2026-10-16 | §5 O25, CA-49 |
 | T10-janela = A | 2026-10-16 | §5 T10, CA-50 |
 | B11-001 = sim | 2026-10-17 | §5 T10, CA-51 |
-| Nome novo do E7 (decisão do dono no pedido 021, opção A = A-10 da revisão de UX; aplicada no pedido 024) | 2026-10-17 | Título do E7 na §5 e linha 15 do catálogo em `01-cobertura.md`; a pergunta e os critérios de aceite não mudam (CA-3, CA-11, CA-13 e CA-23 citam só "E7") |
+| Nome novo do E7 (decisão do dono no pedido 021, opção A = A-10 da revisão de UX; aplicada no pedido 024) | 2026-10-17 | Título do E7 na §5 e linha 15 do catálogo em `01-cobertura.md`; nesta data a pergunta não mudou (trocada em 2026-10-20, ver a linha abaixo); os critérios de aceite não mudam (CA-3, CA-11, CA-13 e CA-23 citam só "E7") |
+| Pergunta do E7 = opção A (decisão do dono, pedido 036) | 2026-10-20 | §5 E7: pergunta passa a pedir a participação de cada sistema nas entregas (texto exato na ficha do E7; antes falava em capacidade); catálogo `web/src/content/catalogo-metricas.ts` trocado em bf137a9; critérios de aceite não mudam |
