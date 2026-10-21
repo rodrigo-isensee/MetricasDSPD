@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: 5108fcd
+commit: af1fa41
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -109,8 +109,8 @@ O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não d
 - **D2 (baixa, K-132)**: 9 E2E instáveis com 8 workers (carga). Nesta branch usei 3 workers e nenhum flaky apareceu.
 
 ## Achados
-- A1 (recomendado, resolvido em 5108fcd) web/src/features/complementares/taticas.tsx:411 · L2T-001: com "Frentes" no T13 a base mostra "Amostra insuficiente: 147 de 20 itens mínimos"; a base deve acompanhar a granularidade exibida
-- A2 (recomendado, resolvido em 5108fcd) web/src/features/complementares/taticas.tsx:612 · L2T-002: "Meu time: 1 demandas" (e "1 frentes"); usar singular quando k = 1 e ajustar a expectativa do TT-11 e do TT-12
+- A1 (recomendado) web/src/features/complementares/taticas.tsx:411 · L2T-001, resolvido em 5108fcd: com "Frentes" no T13 a base mostra "Amostra insuficiente: 147 de 20 itens mínimos"; a base deve acompanhar a granularidade exibida
+- A2 (recomendado) web/src/features/complementares/taticas.tsx:612 · L2T-002, resolvido em 5108fcd: "Meu time: 1 demandas" (e "1 frentes"); usar singular quando k = 1 e ajustar a expectativa do TT-11 e do TT-12
 - A3 (recomendado) e2e/playwright.config.ts:6 · conferir o D1 do 037 (K-131) com E2E_PORTA próprio antes de reescrever testes: o preview do 037 na 4173 pode ter servido build alheio
 - A4 (recomendado) web/src/data/mock/MockFonteMetricas.ts:55 · herdado do review (A1): no mock do navegador T11, T13 e T14 saem vazios ou sem vínculo; só a API os mostra de verdade
 
