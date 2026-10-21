@@ -9,6 +9,30 @@ import { CartaoT10, CartaoT11, CartaoT12, CartaoT13, CartaoT14 } from './taticas
 
 vi.setConfig({ testTimeout: 45000 })
 
+/** Quando ligado, a base do mock sai com todo fornecedor de bloqueio grafado de 3 jeitos (B11-001). */
+const grafias = vi.hoisted(() => ({ variar: false }))
+vi.mock('@metricas-dspd/mock', async (importar) => {
+  const real = await importar<typeof import('@metricas-dspd/mock')>()
+  return {
+    ...real,
+    gerarBaseMock: (...args: Parameters<typeof real.gerarBaseMock>) => {
+      const base = real.gerarBaseMock(...args)
+      if (!grafias.variar) return base
+      const variantes = ['TOTVS', 'Totvs', ' totvs ']
+      let i = 0
+      return {
+        ...base,
+        bm: {
+          ...base.bm,
+          bloqueios: base.bm.bloqueios.map((b) =>
+            b.fornecedor === null ? b : { ...b, fornecedor: variantes[i++ % 3]! },
+          ),
+        },
+      }
+    },
+  }
+})
+
 async function abrir(codigo: string, ui: React.ReactElement, fonte?: MockFonteMetricas) {
   renderizarCartao(ui, fonte ? { fonte } : {})
   const el = await screen.findByTestId(`metrica-${codigo}`)
@@ -105,6 +129,24 @@ describe('T10 Tempo de terceiros', () => {
     expect(linhas).toHaveLength(1)
     expect(linhas[0]).toHaveTextContent(/^Totvs\s*41/)
     expect(el.textContent).not.toMatch(/TOTVS|totvs /)
+  })
+
+  it('B11-001 pelo caminho real: o mock com "TOTVS", "Totvs" e " totvs " mostra uma linha só', async () => {
+    grafias.variar = true
+    try {
+      // Fonte nova: a base é gerada (e memoizada) por instância, já com as grafias trocadas.
+      const el = await abrir(
+        'T10',
+        <CartaoT10 filtros={FILTROS_FLUXO} />,
+        new MockFonteMetricas({ latenciaMs: 0 }),
+      )
+      const nomes = within(within(el).getByTestId('tabela-T10')).getAllByRole('rowheader')
+      expect(nomes).toHaveLength(1)
+      expect(nomes[0]!.textContent).toMatch(/^totvs$/i)
+      expect(nomes[0]!.textContent).toBe(nomes[0]!.textContent.trim())
+    } finally {
+      grafias.variar = false
+    }
   })
 
   it('sem fornecedor no período: mensagem própria e "Prazo contratado não informado"', async () => {
