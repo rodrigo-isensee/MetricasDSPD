@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 037-pr-131-release-com-falhas
 branch: feature/037-c6-operacional
-commit: 9ee640f
+commit: 35bfd72
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-21
@@ -56,6 +56,14 @@ O delta tem dois arquivos: `e2e/tests/mock-transporte-worker.spec.ts` (71 linhas
 - **Aderência ao projeto.** Usa a fixture `base` e `ROTAS` (as três rotas existem em `e2e/fixtures/constantes.ts`). Nada de `skip`. O comentário de cabeçalho explica a obrigação.
 - **D1 e D2 do QA.** Já existem na `develop` (K-131 e K-132, decisão do dono: acompanham o PR como pendência listada). Não são regressão deste diff.
 - Não rodei o E2E: a execução e a medição são do QA, citadas no parecer dele.
+
+## Revisão incremental: `9ee640f..35bfd72` (W037-001, diagrama e merge da develop)
+Parecer continua **aprovado**, sem achado novo. Delta lido: `e2e/pages/PainelPage.ts`, `intensivo-filtros.spec.ts`, `intensivo-filtros-bordas.spec.ts`, o diagrama de `docs/tecnica/arquitetura-front.md` e a seção "Causa raiz e correção" do bug W037-001. Já lido e não relido: o código de produção (`0bde5eb`) e o spec de paridade.
+- **Correção do W037-001.** Os quatro pontos de espera (`PainelPage.ir`, `PainelPage.esperarCartoesProntos`, `esperarPronto`, `pronto`) passam a aguardar `aguardando-coleta` com `toHaveCount(0)`, que é o estado real do painel (`Casca` mostra só esse bloco até o estado de coleta chegar do Worker). Sem `waitForTimeout`. Nenhuma asserção foi retirada: só foram acrescentadas linhas. O timeout não foi aumentado como correção: nos dois specs intensivos a linha nova usa os mesmos 30 s das asserções vizinhas, e em `PainelPage` fica no padrão. O produto não mudou, o que confere com a causa descrita (janela que não existia com o cálculo síncrono).
+- **Diagrama Mermaid.** O delta contra `9ee640f` troca os `;` por vírgulas em duas notas e numa linha de `F->>F`, sem mudar o conteúdo. Está de acordo com os três commits de correção anteriores.
+- **Merge da develop (`04e529f`).** Traz só documentação de outros pedidos, o E2E intensivo da develop e a troca de um texto em `web/src/content/catalogo-metricas.ts` (pergunta de E7, pedido 036). Nenhuma interseção com `web/src/data/mock/`. Não há conflito resolvido à mão no diff.
+- **Evidência de execução** (citada, não refeita): 220 E2E passam e 0 falham com `--retries=0` e porta própria, segundo o bug W037-001. A reconfirmação é do QA.
+- **Pendência:** D1 (K-131) e D2 (K-132) seguem como pendências do PR, conforme a decisão do dono de 2026-10-21.
 
 ## Pendências fora deste review
 - QA (E2.3, já em `9ee640f`; o QA atualiza o commit do parecer dele): C5 somando o heap do Worker, medição do pronto (mediana < 150 ms nas 7 rotas, 2 execuções), F6 sem aumento além de 2 KB gzip contra a `develop` e F5/F3/F1 sem regressão.
