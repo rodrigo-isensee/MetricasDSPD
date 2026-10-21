@@ -3,12 +3,12 @@ tipo: qa
 contrato: 1
 pedido: 037-pr-131-release-com-falhas
 branch: feature/037-c6-operacional
-commit: 9ee640f
-parecer: aprovado
+commit: 85d1896
+parecer: reprovado
 escopo: completo
 bugs_criticos: 0
-bugs_altos: 0
-bugs_medios: 1
+bugs_altos: 1
+bugs_medios: 0
 bugs_baixos: 1
 aceite_usuario: sim
 data: 2026-10-21
@@ -18,7 +18,7 @@ data: 2026-10-21
 
 Propósito: medir o Worker da ADR 0021 (entrega `0bde5eb`) contra o critério de pronto da proposta 037 (seção 6, "O que o QA mede depois", itens 1, 2, 3, 5 e 6) e dar o parecer de QA (`R-QA`). O HEAD de código testado é `9ee640f`: em relação a `d549417` (onde rodou o `pronto` completo) ele soma só o spec E2E de paridade e este parecer; `6fdebb0`, depois dele, só mexe em `docs/reviews/` (revisão do tech-lead, sem código). Review: `docs/reviews/037-c6-operacional.md` (aprovado, 4 achados recomendados). Item 4 (CI do PR e do portão) fica com o tech-lead, na promoção.
 
-**Parecer: aprovado.** C6 ficou em 0 ms de mediana nas 7 rotas, nas execuções limpas e nas sujas, contra 213 a 287 ms na `develop` na mesma sessão. Nenhuma regressão atribuível ao Worker. Há dois defeitos abertos que **já existem na `develop`** (testes E2E defasados e instabilidade de E2E sob carga), sem relação com esta entrega. Decisão do dono (2026-10-21, opção A): D1 e D2 acompanham as entregas do 037 e do 025 como pendências listadas no PR, corrigidas depois nos cartões K-131 e K-132; por isso `aceite_usuario: sim`.
+**Parecer: reprovado (E2.3c, head 85d1896).** A medição E2E com porta e build próprios por lado mostra 101 falhas no head contra 3 na develop: o D1 abaixo era artefato de porta compartilhada e o Worker quebra o E2E (W037-001). O C6 em 0 ms segue valendo. Texto original, de 9ee640f: aprovado. C6 ficou em 0 ms de mediana nas 7 rotas, nas execuções limpas e nas sujas, contra 213 a 287 ms na `develop` na mesma sessão. Nenhuma regressão atribuível ao Worker. Há dois defeitos abertos que **já existem na `develop`** (testes E2E defasados e instabilidade de E2E sob carga), sem relação com esta entrega. Decisão do dono (2026-10-21, opção A): D1 e D2 acompanham as entregas do 037 e do 025 como pendências listadas no PR, corrigidas depois nos cartões K-131 e K-132; por isso `aceite_usuario: sim`.
 
 ## Ambiente
 WSL2 (8 núcleos), Node v24.21.0, `@playwright/test` 1.64.1, Chromium 156.0.8078.4, worktree `MetricasDSPD-037`. Sem `flock` (o hook recusa): antes de cada medição, `pgrep -f 'vitest/vitest.mjs|playwright/cli'` sem processo de outra worktree, uma suíte pesada por vez. A `develop` (`12018de`) foi medida em worktree descartável (`MetricasDSPD-037-dev`, removida ao fim), mesma sessão, intercalada com o Worker.
@@ -97,11 +97,24 @@ Medido em 6 execuções no build do Worker (4 do bloco de 7 rotas e 3 isoladas, 
 | Nenhum Worker `blob:` (CSP) | mesmo arquivo, primeiro teste | origem do Worker igual à da página | passou |
 | Mutação no código alterado | não se aplica: a stack não tem ferramenta de mutação configurada para `web/` e esta passagem não mudou código de produção | n/a | não executada |
 
+## E2E do PR #137 (E2.3c)
+Pergunta: os 101 E2E vermelhos do check `e2e` do PR #137 (run 39677135959) são regressão do Worker ou defeito antigo? Método: quatro specs (`intensivo-filtros`, `b12-fluxo`, `intensivo-filtros-bordas`, `filtros`, 216 testes), projeto `chromium`, `--retries=0`, um lado por vez, cada um com o próprio build e porta exclusiva (develop 794b982 na worktree temporária `MetricasDSPD-037dev`, porta 4373; head 85d1896, porta 4473; config temporária `playwright.porta.config.ts` fora do commit; havia um `vite preview` na 4173 vindo de `MetricasDSPD-037/web`, por isso o `reuseExistingServer` serviu o mesmo build às duas árvores na medição antiga). `pgrep` sem outro playwright/vitest antes de cada rodada; load de 1 min 8,9 a 11 (outros agentes), 8 workers.
+
+| Lado | Passam | Falham |
+|---|---|---|
+| develop `794b982` | 213 | 3 |
+| head `85d1896` | 115 | 101 |
+
+Falhas da develop (instabilidade sob carga, D2): IF-B05 e IF-B17 (`S2=carregando`) e IF-U-operacional. Falhas do head: as 3 acima não são o ponto; 98 `IF-*`, 2 `K-*` e 1 `NAV-06`, quase todas `expect(r2.botoes).toEqual(r.botoes)` (painel lido sem cartões, depois com cartões). Amostra de 3: (1) `b12-fluxo.spec.ts:239` B3-002, `Expected "O12", Received []`; (2) `intensivo-filtros.spec.ts:255` IF-C-operacional-diaria-01, `toEqual` com `Expected - 6 / Received + 1`; (3) `intensivo-filtros.spec.ts:354` IF-U-operacional, `Voltar até o estado 0`. B3-002 repetido 3 vezes: 3/3 vermelho no head, 3/3 verde na develop.
+
+**Veredito: regressão do Worker** (falha só em `85d1896`). O D1 deste parecer fica **retirado** (era artefato da porta 4173 compartilhada); o K-131 deve ser reaberto como defeito da entrega (W037-001), não como pendência da develop. Parecer reprovado; o D2 (instabilidade sob carga) continua pendência. Bug: `docs/qa/bugs/W037-001-e2e-100-vermelhos-com-o-worker.md`.
+
 ## Defeitos
-- **D1 (média, já na `develop`).** 100 testes E2E (96 em `e2e/tests/intensivo-filtros.spec.ts` na linha 255, mais 354, 471, 675 e 701, e 4 em `b12-fluxo.spec.ts:230`, `:379`, `filtros.spec.ts:129` e `intensivo-filtros-bordas.spec.ts:177`) falham na `develop` `12018de`, sem relação com o Worker. Passos: `cd e2e && E2E_SEM_ALT=1 pnpm exec playwright test --project=chromium --workers=2 tests/filtros.spec.ts:129 tests/b12-fluxo.spec.ts:230`. Esperado: verde. Obtido: `expect(page).toHaveURL(/equipe=erp-protheus/)` recebe `http://localhost:4173/tatico`, e `codigosDosCartoes()` volta `[]` esperando `O12`. Responsável sugerido: `forge:qa-engineer`, com `forge:react-frontend` para decidir se o produto ou o teste está certo (a regra de links entre painéis é de UX). Pendência do PR: K-131 (decisão do dono, 2026-10-21, opção A). Não bloqueia este parecer, mas o `pronto` do projeto não inclui o E2E completo, então o portão não vê isso; vale decidir se o E2E `chromium` completo entra no portão.
+- **D1 (RETIRADO em E2.3c; ver W037-001, alta, do Worker).** Texto original, medido com porta compartilhada: 100 testes E2E (96 em `e2e/tests/intensivo-filtros.spec.ts` na linha 255, mais 354, 471, 675 e 701, e 4 em `b12-fluxo.spec.ts:230`, `:379`, `filtros.spec.ts:129` e `intensivo-filtros-bordas.spec.ts:177`) falham na `develop` `12018de`, sem relação com o Worker. Passos: `cd e2e && E2E_SEM_ALT=1 pnpm exec playwright test --project=chromium --workers=2 tests/filtros.spec.ts:129 tests/b12-fluxo.spec.ts:230`. Esperado: verde. Obtido: `expect(page).toHaveURL(/equipe=erp-protheus/)` recebe `http://localhost:4173/tatico`, e `codigosDosCartoes()` volta `[]` esperando `O12`. Responsável sugerido: `forge:qa-engineer`, com `forge:react-frontend` para decidir se o produto ou o teste está certo (a regra de links entre painéis é de UX). Pendência do PR: K-131 (decisão do dono, 2026-10-21, opção A). Não bloqueia este parecer, mas o `pronto` do projeto não inclui o E2E completo, então o portão não vê isso; vale decidir se o E2E `chromium` completo entra no portão.
 - **D2 (baixa).** Instabilidade do E2E sob carga: 9 testes (lista acima) falham com 8 workers e load alto, e passam com 2 a 3 workers. Não marquei nenhum como `skip`. Responsável sugerido: `forge:qa-engineer` (reduzir `workers` local ou esperas). Pendência do PR: K-132 (decisão do dono, 2026-10-21, opção A).
 
 ## Achados
+- A0 (bloqueante) e2e/pages/PainelPage.ts:53 · W037-001: 101 E2E do `chromium` falham só com o Worker (develop 3 falhas); esperar os cartões depois do primeiro paint ou corrigir o estado inicial.
 - A1 (recomendado) e2e/perf/perf.spec.ts:135 · C5 mede só o heap da thread principal; a soma com o Worker (proposta 037, item 5) ficou numa sonda avulsa. Incluir o heap do Worker no teste.
 - A2 (recomendado) web/scripts/size.mjs:24 · F9 em 117,35 de 120 KB soma o chunk do Worker e o do fallback, mas só um é baixado. Medir pelo maior caminho, sem afrouxar o limite.
 - A3 (recomendado) e2e/tests/intensivo-filtros.spec.ts:255 · D1: 96 testes pairwise falham na develop e no Worker; atualizar para a interface atual e decidir se o E2E completo entra no portão.
