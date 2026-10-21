@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 037-pr-131-release-com-falhas
 branch: feature/037-c6-operacional
-commit: d54941763ff6dcb3a87f5bff96fda7d6f45795e3
+commit: 9ee640f
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -16,9 +16,9 @@ data: 2026-10-21
 
 # QA: cálculo do mock em Web Worker (ADR 0021, pedido 037, cartão K-113)
 
-Propósito: medir o Worker da ADR 0021 (entrega `0bde5eb`) contra o critério de pronto da proposta 037 (seção 6, "O que o QA mede depois", itens 1, 2, 3, 5 e 6) e dar o parecer de QA (`R-QA`). O HEAD testado é `d549417`; ele só soma `docs/reviews/` ao código de `0bde5eb` (`git diff --stat 0bde5eb HEAD`: 1 arquivo). Review: `docs/reviews/037-c6-operacional.md` (aprovado, 4 achados recomendados). Item 4 (CI do PR e do portão) fica com o tech-lead, na promoção.
+Propósito: medir o Worker da ADR 0021 (entrega `0bde5eb`) contra o critério de pronto da proposta 037 (seção 6, "O que o QA mede depois", itens 1, 2, 3, 5 e 6) e dar o parecer de QA (`R-QA`). O HEAD de código testado é `9ee640f`: em relação a `d549417` (onde rodou o `pronto` completo) ele soma só o spec E2E de paridade e este parecer; `6fdebb0`, depois dele, só mexe em `docs/reviews/` (revisão do tech-lead, sem código). Review: `docs/reviews/037-c6-operacional.md` (aprovado, 4 achados recomendados). Item 4 (CI do PR e do portão) fica com o tech-lead, na promoção.
 
-**Parecer: aprovado.** C6 ficou em 0 ms de mediana nas 7 rotas, nas execuções limpas e nas sujas, contra 213 a 287 ms na `develop` na mesma sessão. Nenhuma regressão atribuível ao Worker. Há dois defeitos abertos que **já existem na `develop`** (testes E2E defasados e instabilidade de E2E sob carga), sem relação com esta entrega; por isso `aceite_usuario: sim`.
+**Parecer: aprovado.** C6 ficou em 0 ms de mediana nas 7 rotas, nas execuções limpas e nas sujas, contra 213 a 287 ms na `develop` na mesma sessão. Nenhuma regressão atribuível ao Worker. Há dois defeitos abertos que **já existem na `develop`** (testes E2E defasados e instabilidade de E2E sob carga), sem relação com esta entrega. Decisão do dono (2026-10-21, opção A): D1 e D2 acompanham as entregas do 037 e do 025 como pendências listadas no PR, corrigidas depois nos cartões K-131 e K-132; por isso `aceite_usuario: sim`.
 
 ## Ambiente
 WSL2 (8 núcleos), Node v24.21.0, `@playwright/test` 1.64.1, Chromium 156.0.8078.4, worktree `MetricasDSPD-037`. Sem `flock` (o hook recusa): antes de cada medição, `pgrep -f 'vitest/vitest.mjs|playwright/cli'` sem processo de outra worktree, uma suíte pesada por vez. A `develop` (`12018de`) foi medida em worktree descartável (`MetricasDSPD-037-dev`, removida ao fim), mesma sessão, intercalada com o Worker.
@@ -76,7 +76,7 @@ Medido em 6 execuções no build do Worker (4 do bloco de 7 rotas e 3 isoladas, 
 
 ## Item 6: determinismo, paridade e suíte
 - **Hashes e paridade (ADR 0021, seção 3, itens 1 a 3):** `nucleoMock.paridade.test.ts` (hashes `68a67741` da base, `0113e077` do Acelerato e `9159f65b` da extensão, sementes padrão e `12345`, todas as `METRICA_IDS`, forma do DTO, 20 primeiras latências) e `MockFonteMetricas.transporte.test.ts` passaram dentro de `pnpm run pronto`.
-- **`pnpm run pronto` completo no HEAD:** saída 0 (9 min). Web: 77 arquivos e 1100 testes, 100% de cobertura de instruções e ramos; `packages/metricas` 1082 testes; `packages/mock` 244; server 591 passaram e 84 ficaram em `skip` do próprio projeto (testes de banco); `docs:check` ok (618 páginas).
+- **`pnpm run pronto` completo em `d549417`** (código igual ao de `9ee640f`, que só acrescenta o spec E2E de paridade, já rodado no item abaixo): saída 0 (9 min). Web: 77 arquivos e 1100 testes, 100% de cobertura de instruções e ramos; `packages/metricas` 1082 testes; `packages/mock` 244; server 591 passaram e 84 ficaram em `skip` do próprio projeto (testes de banco); `docs:check` ok (618 páginas).
 - **Paridade E2E (item 4 da paridade, escrito por mim):** `e2e/tests/mock-transporte-worker.spec.ts`, 4 testes no Chromium real. (a) O cálculo roda num Web Worker de arquivo da mesma origem, nunca `blob:` nem `data:`. (b) Para `VISAO_GERAL` (`/`), O2 (`/operacional?cadencia=diaria`) e uma complementar do Acelerato (`/operacional?cadencia=sustentacao`), o painel com Worker e o painel sem `Worker` (fallback em processo, forçado por `Object.defineProperty(window, 'Worker', {value: undefined})` num contexto à parte) mostram exatamente o mesmo conteúdo, com a latência desligada. Guardas: painel com mais de 200 caracteres, ao menos 2 cartões fora de `/`, contagem de cartões igual, 0 Worker no fallback. A comparação ignora espaços e quebras de linha (a quebra dos rótulos de gráfico depende da medição de layout) e repete a leitura até a igualdade (os gráficos desenham em tarefa própria); sem isso o teste falhou 4 vezes em 8 por esses dois motivos, que são de renderização e não de dado. Verde: 24 execuções em 24 (`--repeat-each=6`).
 - **Vermelho antes do verde:** o mesmo arquivo rodado contra a `develop` (`12018de`, sem Worker) falha com "nenhum Web Worker: o mock calculou na thread principal" e "o caminho com Worker não usou Worker". Rodado sobre o Worker, passa.
 - **Suíte E2E `chromium` completa (`pnpm run test:chromium`, 8 workers, load até 12):** 545 passaram, 108 falharam, 37 não rodaram. Analisei a divergência contra a `develop` (mesmos testes, mesma máquina):
@@ -98,13 +98,17 @@ Medido em 6 execuções no build do Worker (4 do bloco de 7 rotas e 3 isoladas, 
 | Mutação no código alterado | não se aplica: a stack não tem ferramenta de mutação configurada para `web/` e esta passagem não mudou código de produção | n/a | não executada |
 
 ## Defeitos
-- **D1 (média, já na `develop`).** 100 testes E2E (96 em `e2e/tests/intensivo-filtros.spec.ts` na linha 255, mais 354, 471, 675 e 701, e 4 em `b12-fluxo.spec.ts:230`, `:379`, `filtros.spec.ts:129` e `intensivo-filtros-bordas.spec.ts:177`) falham na `develop` `12018de`, sem relação com o Worker. Passos: `cd e2e && E2E_SEM_ALT=1 pnpm exec playwright test --project=chromium --workers=2 tests/filtros.spec.ts:129 tests/b12-fluxo.spec.ts:230`. Esperado: verde. Obtido: `expect(page).toHaveURL(/equipe=erp-protheus/)` recebe `http://localhost:4173/tatico`, e `codigosDosCartoes()` volta `[]` esperando `O12`. Responsável sugerido: `forge:qa-engineer`, com `forge:react-frontend` para decidir se o produto ou o teste está certo (a regra de links entre painéis é de UX). Não bloqueia este parecer, mas o `pronto` do projeto não inclui o E2E completo, então o portão não vê isso; vale decidir se o E2E `chromium` completo entra no portão.
-- **D2 (baixa).** Instabilidade do E2E sob carga: 9 testes (lista acima) falham com 8 workers e load alto, e passam com 2 a 3 workers. Não marquei nenhum como `skip`. Responsável sugerido: `forge:qa-engineer` (reduzir `workers` local ou esperas).
+- **D1 (média, já na `develop`).** 100 testes E2E (96 em `e2e/tests/intensivo-filtros.spec.ts` na linha 255, mais 354, 471, 675 e 701, e 4 em `b12-fluxo.spec.ts:230`, `:379`, `filtros.spec.ts:129` e `intensivo-filtros-bordas.spec.ts:177`) falham na `develop` `12018de`, sem relação com o Worker. Passos: `cd e2e && E2E_SEM_ALT=1 pnpm exec playwright test --project=chromium --workers=2 tests/filtros.spec.ts:129 tests/b12-fluxo.spec.ts:230`. Esperado: verde. Obtido: `expect(page).toHaveURL(/equipe=erp-protheus/)` recebe `http://localhost:4173/tatico`, e `codigosDosCartoes()` volta `[]` esperando `O12`. Responsável sugerido: `forge:qa-engineer`, com `forge:react-frontend` para decidir se o produto ou o teste está certo (a regra de links entre painéis é de UX). Pendência do PR: K-131 (decisão do dono, 2026-10-21, opção A). Não bloqueia este parecer, mas o `pronto` do projeto não inclui o E2E completo, então o portão não vê isso; vale decidir se o E2E `chromium` completo entra no portão.
+- **D2 (baixa).** Instabilidade do E2E sob carga: 9 testes (lista acima) falham com 8 workers e load alto, e passam com 2 a 3 workers. Não marquei nenhum como `skip`. Responsável sugerido: `forge:qa-engineer` (reduzir `workers` local ou esperas). Pendência do PR: K-132 (decisão do dono, 2026-10-21, opção A).
 
 ## Achados
 - A1 (recomendado) e2e/perf/perf.spec.ts:135 · C5 mede só o heap da thread principal; a soma com o Worker (proposta 037, item 5) ficou numa sonda avulsa. Incluir o heap do Worker no teste.
 - A2 (recomendado) web/scripts/size.mjs:24 · F9 em 117,35 de 120 KB soma o chunk do Worker e o do fallback, mas só um é baixado. Medir pelo maior caminho, sem afrouxar o limite.
 - A3 (recomendado) e2e/tests/intensivo-filtros.spec.ts:255 · D1: 96 testes pairwise falham na develop e no Worker; atualizar para a interface atual e decidir se o E2E completo entra no portão.
+
+## Pendências do PR
+- **K-131 (D1, média):** 100 E2E defasados na `develop` (`12018de`), sem relação com o Worker. Decisão do dono (2026-10-21, opção A): acompanha as entregas do 037 e do 025 e é corrigido depois no cartão K-131 (R-QA).
+- **K-132 (D2, baixa):** 9 E2E instáveis com 8 workers sob carga, já na `develop`. Decisão do dono (2026-10-21, opção A): acompanha as entregas do 037 e do 025 e é corrigido depois no cartão K-132 (R-QA).
 
 ## Pendências fora deste parecer
 Item 4 da proposta (CI do PR e do portão, `perf` e `perf-homolog` com C6 < 150 ms) é do tech-lead e do devops na promoção; o C6 na CI só se confirma lá. Um valor de C6 entre 150 e 200 ms no portão passa, mas volta ao arquiteto antes da release (proposta 037).
