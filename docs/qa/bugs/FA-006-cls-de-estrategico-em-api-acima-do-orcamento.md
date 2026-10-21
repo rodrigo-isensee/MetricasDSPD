@@ -25,3 +25,10 @@ Falha "F2 CLS: expected < 0.1, received 0.1128" em `e2e/perf/perf.spec.ts:88`, n
 - Resultado: CLS de `/estrategico` em `perf-api` = 0,021 em 5 de 5 execuções (antes 0,113). Mock não alterado (a mudança só vale enquanto carrega).
 - Observação: o 0,113 não reapareceu após a correção, mas a causa exata do valor alto (frente aos 10 px) não foi isolada com instrumentação própria; se voltar, reabrir.
 - Status: corrigido e verificado pelo QA (2026-10-13, 0,021 em 3 de 3 execuções do `perf-api` após o merge da develop).
+
+## Reteste 2026-10-20
+- Develop medida: 12018de (branch feature/036-estrategicas-pendentes, que só acrescenta a troca de texto do E7 no catálogo). Chromium headless 1366x768, teste "F2 CLS e C6 tarefa longa em /estrategico".
+- `api` (`scripts/com-api-mock.sh`, projeto `perf-api`, sem `flock`), CLS: 0,021 / 0,021 / 0,021. Os 3 passaram.
+- Mock (`--project=perf`), CLS: 0,001 / 0,001 / 0,001. A execução 1 falhou na asserção C6 (tarefa longa mediana 212 ms; a 2 e a 3 deram 161 e 159 ms e passaram): ruído de C6, não de CLS, fora do escopo deste bug (primeira execução após build frio).
+- Conclusão: não reproduz. Os 3 valores em `api` ficaram abaixo de 0,1 (0,021, igual ao verificado após a correção de 2026-10-13); a correção da reserva da faixa "Pede atenção" segue valendo na develop atual. Sem pedido de correção.
+- Nota de ambiente: preview servers órfãos de outro worktree (011, 3,9 dias) ocupavam a porta 4173 e foram encerrados para a medição em mock.
