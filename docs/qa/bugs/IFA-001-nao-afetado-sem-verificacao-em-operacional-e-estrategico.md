@@ -33,4 +33,4 @@ Acrescentar ao IF-A a afirmação de mínimo de cartões verificados por rota (e
 - Guarda contra lista vazia: a rota ganhou `minimo: 1` em `ROTAS_APLIC` e o teste afirma `verificados.length >= minimo`; lista vazia agora falha.
 - Mutação (`outro?.base !== c.base` para `===`, rodada uma vez e desfeita): `IF-A /estrategico` falhou ("E9 diz 'Não afetado por: Período', mas a base muda"). Antes da correção esse teste passava na mutação.
 - Execução: `pnpm exec playwright test tests/intensivo-filtros.spec.ts -g "IF-A"` com as 4 rotas verdes.
-- Pendente: `/operacional` sem cadência (fica para as operacionais, pedido 036).
+- Pendente: `/operacional` sem cadência (fica para as operacionais, lote 3).
