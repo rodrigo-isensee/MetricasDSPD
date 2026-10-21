@@ -24,7 +24,20 @@ const S = montarEsquemas(prefixo);
 await migrar(urlMigrador, { prefixo });
 const migrador = criarPool(urlMigrador);
 // MOCK_MESES_HISTORICO (opcional): ajusta o volume do seed (a medição A1/A2 da ADR 0003 pede o equivalente a 2 anos = 24).
-const base = gerarBaseMock(process.env.MOCK_MESES_HISTORICO ? { mesesHistorico: Number(process.env.MOCK_MESES_HISTORICO) } : {});
+const baseGerada = gerarBaseMock(process.env.MOCK_MESES_HISTORICO ? { mesesHistorico: Number(process.env.MOCK_MESES_HISTORICO) } : {});
+// MOCK_FORNECEDOR_GRAFIAS=1 (B11-001, E2E do T10): o mesmo fornecedor entra no banco grafado "TOTVS", "Totvs" e " totvs ", e a
+// normalização que o teste observa na tela é a do back (nenhum arquivo de produção é tocado). Só para o E2E `grafias`.
+const base = process.env.MOCK_FORNECEDOR_GRAFIAS
+  ? {
+      ...baseGerada,
+      bm: {
+        ...baseGerada.bm,
+        bloqueios: baseGerada.bm.bloqueios.map((b, i) =>
+          b.fornecedor === null ? b : { ...b, fornecedor: ['TOTVS', 'Totvs', ' totvs '][i % 3]! },
+        ),
+      },
+    }
+  : baseGerada;
 await semear(migrador, base, S);
 await migrador.end();
 

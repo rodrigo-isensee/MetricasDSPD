@@ -196,3 +196,41 @@ test.describe('perf-resumo-reservas', () => {
     });
   }
 });
+
+// Pedido 025 (K-110, lote 2 do 011): T10 a T14 ficam em "Mais métricas deste painel", fechado por padrão; a medição geral de /tatico
+// não os vê. Este caso abre a seção com a equipe escolhida (o T14 só calcula com uma equipe) e mede F2 (CLS, pior carga) e C6
+// (tarefa longa, mediana de todas as cargas, como no caso geral). O CLS da seção é o que se soma DEPOIS da abertura (a página
+// com equipe escolhida já tem 0,073 a 0,100 de CLS antes de abrir, herdado da `develop`; o caso mede só o que a seção traz). Na API (`perf-api`) o T13 e o T14 trazem dado; no mock do navegador, não.
+test.describe('perf-tatico-lote2', () => {
+  test.describe.configure({ mode: 'serial' });
+  test('F2 CLS e C6 em /tatico com a seção "Mais métricas" aberta (T10 a T14)', async ({ page }) => {
+    test.setTimeout(10 * 60_000);
+    await instalarObservadores(page);
+    const painel = new PainelPage(page);
+    const cargas = RODADAS_C6 * N_C6;
+    const cls: number[] = [];
+    const totais: number[] = [];
+    const longas: number[] = [];
+    for (let i = 0; i < cargas; i++) {
+      await painel.ir(comSemLatencia('/tatico?equipe=erp-protheus'));
+      await painel.esperarCartoesProntos();
+      await page.waitForLoadState('networkidle');
+      const antes = (await lerVitais(page)).cls;
+      await page.getByTestId('mais-metricas').locator('summary').click();
+      await expect(page.getByTestId('metrica-T14')).toBeVisible();
+      await painel.esperarCartoesProntos();
+      await page.waitForLoadState('networkidle');
+      await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
+      const v = await lerVitais(page);
+      cls.push(v.cls - antes);
+      totais.push(v.cls);
+      longas.push(v.maiorTarefaLongaMs);
+    }
+    const c6 = resumir(longas);
+    const clsMax = Math.max(...cls);
+    registrar('F2_C6_tatico_lote2', { cls, clsMax, clsTotais: totais, c6 });
+    console.log(`[perf] /tatico com T10 a T14: CLS da seção, pior de ${cargas} cargas=${clsMax.toFixed(3)} (totais da página: ${totais.map((c) => c.toFixed(3)).join(' ')}; da seção: ${cls.map((c) => c.toFixed(3)).join(' ')}) maiorTarefaLonga mediana=${c6.mediana.toFixed(0)} ms (p95=${c6.p95.toFixed(0)}, max=${c6.max.toFixed(0)})`);
+    expect.soft(clsMax, 'F2 CLS acrescentado pela seção (pior carga)').toBeLessThan(ORCAMENTO.F2_cls);
+    expect.soft(c6.mediana, 'C6 tarefa longa (mediana agregada)').toBeLessThan(ORCAMENTO.C6_tarefaLongaMs);
+  });
+});
