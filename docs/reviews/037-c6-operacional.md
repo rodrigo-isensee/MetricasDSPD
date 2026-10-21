@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 037-pr-131-release-com-falhas
 branch: feature/037-c6-operacional
-commit: 0bde5eb4200993311881d1d6207d2ea6f80fb70e
+commit: 9ee640f
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-21
@@ -36,7 +36,7 @@ O diff `12018de...0bde5eb` tem 13 arquivos. O código está em `web/src/data/moc
 - **Item 1** (`nucleoMock.paridade.test.ts`). Cobre todas as `METRICA_IDS`, o filtro padrão e o período máximo (`custom` desde o início do histórico) e as sementes padrão e `12345`. `structuredClone(obtido)` é `toStrictEqual` à biblioteca chamada direto sobre a mesma base. O O2 sai paginado. `opcoesFiltro`, `criterios`, `dataReferencia`, `estadoColeta` e `historicoColetas` também estão cobertos.
 - **Item 2.** `formaInvalida` percorre cada resultado e cada leitura.
 - **Item 3.** Os hashes `68a67741` (base), `0113e077` (Acelerato) e `9159f65b` (extensão `tambem`, o mesmo de `packages/mock/src/extensaoTambem.test.ts`) estão cobertos, assim como as 20 primeiras latências por semente, no núcleo e na fonte com Worker falso.
-- **Item 4** (E2E no Chromium real). É do QA em E2.3, em paralelo (proposta, seção 6, ordem 2), e não faz parte deste diff. A marcação `transporte` exposta na fonte serve a ele. Fica como pendência do parecer de QA: sem o item 4 verde, o PR para a `develop` não abre.
+- **Item 4** (E2E no Chromium real). Entregue pelo QA em `9ee640f` e revisado na seção "Revisão incremental" abaixo.
 - `MockFonteMetricas.transporte.test.ts` testa o transporte com um Worker falso que passa pelo `tratarPedido` real com *structured clone* em outra tarefa. Também cobre o invólucro real (`nucleoMock.worker.ts`).
 
 ## Qualidade
@@ -46,8 +46,17 @@ Os nomes estão em português e as funções são curtas. Os tipos do protocolo 
 - A1 (recomendado) web/src/data/mock/nucleoMock.worker.ts:11 · `postMessage` que lança (DataCloneError) vira rejeição sem tratamento no Worker, sem `error` no objeto Worker: o pedido fica pendente para sempre (contra ADR 0021 §2). Sugestão: `try/catch` respondendo `{ id, ok: false, erro }`, com teste.
 - A2 (recomendado) web/src/data/mock/nucleoMock.ts:299 · `estado.nucleo as NucleoMock` sem guarda: pedido antes do `iniciar` vira TypeError genérico. Sugestão: erro explícito "núcleo do mock não iniciado".
 - A3 (recomendado) web/scripts/size.mjs:24 · O F9 soma o chunk do Worker (71,93 KB) e o do fallback (45,42 KB), mas só um é baixado: 117,35 de 120 KB, alerta falso na próxima engorda. Sugestão: medir pelo maior caminho, sem afrouxar o limite (com o arquiteto).
+- A5 (recomendado) e2e/tests/mock-transporte-worker.spec.ts:62 · A paridade compara o texto do `main`: dado que varie por hora real (data relativa) a tornaria instável. Hoje não varia. Sugestão: manter a data de referência fixa do mock.
 - A4 (recomendado) docs/architecture/adr/0021-calculo-do-mock-em-web-worker.md:3 · ADR ainda `proposta`; a proposta 037 diz na §4 que o estado muda no commit da implementação e na §6 (ordem 6) que muda pelo arquiteto depois do pronto. O arquiteto resolve e registra as leituras.
 
+## Revisão incremental: `d549417..9ee640f` (E2E de paridade, E2.3)
+O delta tem dois arquivos: `e2e/tests/mock-transporte-worker.spec.ts` (71 linhas) e o parecer de QA do pedido. O código de produção não mudou desde `0bde5eb`, então o restante deste parecer continua valendo (já lido, não relido). Do parecer de QA li só as seções D1 e D2.
+- **Cobertura da ADR 0021, seção 3, item 4.** O teste 1 prova Worker de módulo da mesma origem e recusa `blob:` e `data:` (`w.url()` começa por `baseURL/`). Os três testes de paridade abrem dois contextos, um com `window.Worker` anulado por `addInitScript` (fallback em processo), e comparam o texto do `main` e a contagem de cartões para VISAO_GERAL, O2 diária e uma rota do Acelerato (sustentação). Exigem `workers()>=1` no caminho com Worker e `0` no fallback.
+- **Determinismo.** A latência está desligada (`?latencia=0`, aceita pelo `App.tsx`), a semente é a padrão e o fuso é fixado em `America/Sao_Paulo`. Não há `waitForTimeout`: as esperas são `expect`/`expect.poll` sobre estado (cartões sem `aria-busy`, ausência de `estado-carregando-*`). O texto é normalizado sem espaços para não depender da quebra de linha dos gráficos. A guarda de 200 caracteres e de pelo menos 2 cartões impede comparar dois painéis vazios. Contextos fechados em `finally`.
+- **Aderência ao projeto.** Usa a fixture `base` e `ROTAS` (as três rotas existem em `e2e/fixtures/constantes.ts`). Nada de `skip`. O comentário de cabeçalho explica a obrigação.
+- **D1 e D2 do QA.** Já existem na `develop` (K-131 e K-132, decisão do dono: acompanham o PR como pendência listada). Não são regressão deste diff.
+- Não rodei o E2E: a execução e a medição são do QA, citadas no parecer dele.
+
 ## Pendências fora deste review
-- QA (E2.3): item 4 da paridade, C5 somando o heap do Worker, medição do pronto (mediana < 150 ms nas 7 rotas, 2 execuções), F6 sem aumento além de 2 KB gzip contra a `develop` e F5/F3/F1 sem regressão.
+- QA (E2.3, já em `9ee640f`; o QA atualiza o commit do parecer dele): C5 somando o heap do Worker, medição do pronto (mediana < 150 ms nas 7 rotas, 2 execuções), F6 sem aumento além de 2 KB gzip contra a `develop` e F5/F3/F1 sem regressão.
 - Critério de reversão: o da ADR 0021 (C6 com o Worker ≥ 170 ms) e o da proposta 037 (< 150 ms de margem). O caminho em processo continua no código como fallback, então a reversão é trocar o transporte padrão.
