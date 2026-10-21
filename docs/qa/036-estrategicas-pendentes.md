@@ -37,4 +37,4 @@ Observações: (1) a tela do catálogo `/metricas` mostra só código, título, 
 
 ## Parecer
 
-Aprovado, zero bug aberto.
+Aprovado, zero bug aberto, sobre o commit cc88922.
