@@ -14,3 +14,109 @@
 | 2026-10-20 21:22 | docs/pedidos/035-resolver-prs-do-dependabot-124-125-126.md | 035-resolver-prs-do-dependabot-124-125-126-tech-lead-4 | brief | 2 | reprovado | s | PR de docs sem parecer de review (R-REVIEW); QA isento por ser só .md |
 | 2026-10-20 21:24 | docs/pedidos/035-resolver-prs-do-dependabot-124-125-126.md | 035-resolver-prs-do-dependabot-124-125-126-tech-lead-4 | brief | 3 | reprovado | s | etapa fora de ordem: PR e merge no mesmo brief do parecer de review; separar em dois briefs |
 | 2026-10-20 21:25 | docs/pedidos/035-resolver-prs-do-dependabot-124-125-126.md | 035-resolver-prs-do-dependabot-124-125-126-tech-lead-4 | brief | 4 | aprovado | s | avisos: contagem de commits no push (merge gera um terceiro) |
+| 2026-10-20 21:30 | docs/pedidos/035-resolver-prs-do-dependabot-124-125-126.md | 035-resolver-prs-do-dependabot-124-125-126-tech-lead-4 | entrega | 1 | não cumpriu | n | commits do autor batem com o brief; fora = commit 1e6e52a do Jarvis (citado no E3 do pedido, ausente do Entregar): falha do brief, não retrabalho; PQ-3 não verificável (hook do conferente recusa git ls-tree) |
+| 2026-10-20 21:33 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-1 | brief | 1 | aprovado | s |  |
+| 2026-10-20 21:34 | docs/pedidos/035-resolver-prs-do-dependabot-124-125-126.md | 035-resolver-prs-do-dependabot-124-125-126-tech-lead-5 | brief | 1 | reprovado | parcial | forge-check pr pede QA (sem isenção para só .md); devops/segurança eram falso alarme da develop local atrasada (com origin/develop só falta QA); limpeza da branch além do E3 |
+| 2026-10-20 21:36 | docs/pedidos/035-resolver-prs-do-dependabot-124-125-126.md | 035-resolver-prs-do-dependabot-124-125-126-qa-engineer-1 | brief | 1 | aprovado | s |  |
+| 2026-10-20 21:37 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-react-frontend-1 | brief | 1 | reprovado | s | E3.2 do próprio destino citada no Fora do escopo (etapas E3.2/E3.3 na mesma linha do pedido) |
+| 2026-10-20 21:38 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-react-frontend-1 | brief | 2 | reprovado | n | tardio: E1.2 (mesmo papel, outro momento) não mudou desde a rodada 1; contraria R-BRIEF (corte sai do forge-check, que deu etapa ok) |
+| 2026-10-20 21:39 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-react-frontend-1 | brief | 3 | aprovado | s |  |
+| 2026-10-20 21:41 | docs/pedidos/035-resolver-prs-do-dependabot-124-125-126.md | 035-resolver-prs-do-dependabot-124-125-126-qa-engineer-1 | entrega | 1 | cumpriu | s |  |
+| 2026-10-20 21:48 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-react-frontend-1 | entrega | 1 | cumpriu | s |  |
+| 2026-10-20 21:50 | docs/pedidos/035-resolver-prs-do-dependabot-124-125-126.md | 035-resolver-prs-do-dependabot-124-125-126-tech-lead-5 | brief | 2 | aprovado | s | volta não verificável: brief anterior sobrescrito no mesmo arquivo |
+| 2026-10-20 21:50 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-2 | brief | 1 | reprovado | n | corte por leitura contra o forge-check (E2.1 mesmo papel, outro momento, R-WIP); R-BRIEF: corte sai do forge-check (M16) |
+| 2026-10-20 21:50 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-devops-engineer-1 | brief | 1 | aprovado | s |  |
+| 2026-10-20 21:51 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-2 | brief | 2 | aprovado | s |  |
+| 2026-10-20 21:59 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-2 | entrega | 1 | cumpriu | s |  |
+| 2026-10-20 22:00 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-ux-designer-1 | brief | 1 | aprovado | s |  |
+| 2026-10-20 22:01 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-3 | brief | 1 | reprovado | n | M16 de novo: etapas do mesmo papel em outro momento (E1.1 cumprida, E1.4 depois do review) contra o forge-check |
+| 2026-10-20 22:01 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-ux-designer-1 | entrega | 1 | não cumpriu | n | sem conferente: ux-designer sem Bash não podia commitar; falha do brief do Jarvis |
+| 2026-10-20 22:02 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-3 | brief | 2 | aprovado | s |  |
+| 2026-10-20 22:07 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-devops-engineer-1 | entrega | 1 | não cumpriu | n | falhas do brief do Jarvis: PQ-3 com campo inexistente no gh e Base-sha da main que não é ancestral da homolog; o trabalho (uma reexecução por run) foi feito e confirmado pelo gh |
+| 2026-10-20 22:08 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-3 | entrega | 1 | não cumpriu | parcial | só a mensagem de 154f43a sem 'Cartão: K-091' (praticas §9); sem reescrever commit enviado (R-VERIFY): a linha entra na mensagem do squash do PR (E1.5) |
+| 2026-10-20 22:09 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-tech-lead-1 | brief | 1 | aprovado | s |  |
+| 2026-10-20 22:11 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-qa-engineer-1 | brief | 1 | aprovado | s |  |
+| 2026-10-20 22:22 | docs/pedidos/035-resolver-prs-do-dependabot-124-125-126.md | 035-resolver-prs-do-dependabot-124-125-126-tech-lead-5 | entrega | 1 | não cumpriu | n | PQ-1 a PQ-3 cumpriram (#132, bbbc70c); só o PQ-4 (diretório principal na develop) falhou, por arquivos do Jarvis e pelo hook que recusa avançar a develop local (M18): sem retrabalho do autor |
+| 2026-10-20 22:24 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-tech-lead-1 | entrega | 1 | cumpriu | s |  |
+| 2026-10-20 22:24 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-4 | brief | 1 | aprovado | s |  |
+| 2026-10-20 22:31 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-qa-engineer-1 | entrega | 1 | cumpriu | s |  |
+| 2026-10-20 22:33 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-software-architect-1 | brief | 1 | aprovado | s |  |
+| 2026-10-20 22:39 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-qa-engineer-2 | brief | 1 | reprovado | n | M16: E1.2 do mesmo papel, já cumprida (1f715e8, conferida), contra o forge-check |
+| 2026-10-20 22:40 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-qa-engineer-2 | brief | 2 | aprovado | s |  |
+| 2026-10-20 22:45 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-ux-designer-2 | brief | 1 | aprovado | s |  |
+| 2026-10-20 22:45 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-4 | entrega | 1 | cumpriu | s |  |
+| 2026-10-20 22:47 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-tech-lead-2 | brief | 1 | aprovado | s |  |
+| 2026-10-20 22:52 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-qa-engineer-2 | entrega | 1 | não cumpriu | n | erro do Jarvis: etapa qa na mensagem; a sonda é medição (etapa codigo, como o E1.2); PQ-1 a PQ-3 e escopo ok |
+| 2026-10-20 22:52 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-5 | brief | 1 | aprovado | s |  |
+| 2026-10-20 22:54 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-qa-engineer-2 | entrega | 2 | cumpriu | s | aviso: execução 3 com carga de outra suíte (load 4,96); o pior caso veio da execução 2 |
+| 2026-10-20 22:54 | docs/pedidos/037-pr-131-release-com-falhas.md | 037-pr-131-release-com-falhas-react-frontend-1 | brief | 1 | aprovado | s |  |
+| 2026-10-20 22:57 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-qa-engineer-5 | entrega | 1 | não cumpriu | s | falhas do Jarvis: Base-sha bbbc70c fora da branch e intervalo Desde com commits do tech-lead (90d35a6, fe6a50a) ainda sem conferência; o trabalho do QA (0e4fbf7, PQ-1 a PQ-3) cumpriu; não é retrabalho; a branch inteira é conferida no merge-integracao |
+| 2026-10-20 22:57 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-tech-lead-3 | brief | 1 | reprovado | parcial | limpeza marcada (E1) em vez da etapa E1.5 e R-FLUXO (procede; o texto veio do tech-lead-2, aprovado: tardio); M16 na E1.3 (contra o forge-check) |
+| 2026-10-20 22:59 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-tech-lead-3 | brief | 2 | reprovado | parcial | tardio: K-118 atribuído ao A1 (texto igual desde a rodada 1; procede); M16 na E1.3 de novo |
+| 2026-10-20 23:00 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-tech-lead-3 | brief | 3 | aprovado | s |  |
+| 2026-10-20 23:13 | docs/pedidos/025-front-do-011-lote2.md | 025-front-do-011-lote2-react-frontend-1 | brief | 1 | aprovado | s |  |
+| 2026-10-20 23:16 | docs/pedidos/036-estrategicas-pendentes.md | 036-estrategicas-pendentes-tech-lead-3 | entrega | 1 | não cumpriu | s | achados 2-4 (K-118 fora do squash, merge antes dos checks, etapa fora de ordem) causados pelo merge pela conta do dono via web (Update branch + squash, 23:03), não pelo autor; achado 1 (revisao-036 fora do Entregar) é do brief tech-lead-2, onde estava no Entregar; CI da develop verde; sem retrabalho possível (já mesclado) |
+| 2026-10-21 10:10 | 038-atualizar-forge-0-27-0 | 038-atualizar-forge-0-27-0-tech-lead-1 | brief | 1 | aprovado | s |  |
+| 2026-10-21 13:13 | 025-front-do-011-lote2 | 025-front-do-011-lote2-react-frontend-1 | entrega | 1 | nao cumpriu | parcial | escopo: cartoes.ts, CartaoBloqueados, preferencias.test; E4 sem teste de variantes; brief sem decisão de 2026-10-21 |
+| 2026-10-21 13:13 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-1 | entrega | 1 | nao cumpriu | s | escopo: arquitetura-front.md, eslint.config.js, vite.config.ts fora do Entregar (config do Worker) |
+| 2026-10-21 13:13 | 039-limpar-branches-mescladas | 039-limpar-branches-mescladas-tech-lead-1 | brief | 1 | aprovado | s |  |
+| 2026-10-21 13:16 | 025-front-do-011-lote2 | 025-front-do-011-lote2-react-frontend-2 | brief | 1 | reprovado | s | Objetivo copiado da volta manda criar a worktree que já existe |
+| 2026-10-21 13:17 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-2 | brief | 1 | reprovado | s | Objetivo copiado da volta com head eeb59fa |
+| 2026-10-21 13:18 | 025-front-do-011-lote2 | 025-front-do-011-lote2-react-frontend-2 | brief | 2 | enviado | — | reescrito sem Volta-de; E4 esclarecido |
+| 2026-10-21 13:18 | 025-front-do-011-lote2 | 025-front-do-011-lote2-react-frontend-2 | brief | 2 | aprovado | s |  |
+| 2026-10-21 13:19 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-2 | brief | 2 | aprovado | s |  |
+| 2026-10-21 13:20 | 039-limpar-branches-mescladas | 039-limpar-branches-mescladas-tech-lead-1 | entrega | 1 | nao cumpriu | parcial | formal: Base=Branch no brief (limpeza sem branch), PQ-2 por 011 mantida (agora coberta pela decisão A); apagadas sem perda de conteúdo (conferido por árvore); homolog local nunca existiu |
+| 2026-10-21 13:20 | 039-limpar-branches-mescladas | 039-limpar-branches-mescladas-tech-lead-2 | brief | 1 | aprovado | s |  |
+| 2026-10-21 13:21 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-2 | entrega | 2 | nao cumpriu | n | erro do Jarvis: brief -2 reescrito sem o Entregar da implementação do -1 |
+| 2026-10-21 13:23 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-2 | entrega | 3 | nao cumpriu | n | uniao -1 e -2; so MockFonteMetricas.test.ts (+2 -1, troca de import) fora do Entregar |
+| 2026-10-21 13:24 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-3 | brief | 1 | reprovado | n | mensagem abreviada pelo Jarvis; texto do arquivo aprovado |
+| 2026-10-21 13:28 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-3 | brief | 2 | aprovado | s |  |
+| 2026-10-21 13:39 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-3 | entrega | 1 | cumpriu | s |  |
+| 2026-10-21 13:42 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-1 | brief | 1 | aprovado | s |  |
+| 2026-10-21 13:42 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-3 | brief | 1 | aprovado | s |  |
+| 2026-10-21 13:43 | 025-front-do-011-lote2 | 025-front-do-011-lote2-react-frontend-2 | entrega | 2 | nao cumpriu | n | só formal: brief -1 aprovado em 2026-10-20 23:13 (conferencias.md:57) não traz a decisão de 2026-10-21, posterior a ele; escopo, E4 e PQs ok |
+| 2026-10-21 13:45 | 025-front-do-011-lote2 | 025-front-do-011-lote2-react-frontend-2 | entrega | 3 | nao cumpriu | n | brief -1 sem a decisão de 2026-10-21 não vale na união; vai brief -3 único |
+| 2026-10-21 13:52 | 025-front-do-011-lote2 | 025-front-do-011-lote2-react-frontend-3 | brief | 1 | aprovado | s |  |
+| 2026-10-21 14:04 | 025-front-do-011-lote2 | 025-front-do-011-lote2-react-frontend-3 | entrega | 1 | cumpriu | s |  |
+| 2026-10-21 14:06 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-1 | brief | 1 | reprovado | parcial | COM_TAMBEM citado com caminho do repositório principal (a seção 12 só existe na branch) |
+| 2026-10-21 14:07 | 025-front-do-011-lote2 | 025-front-do-011-lote2-security-engineer-1 | brief | 1 | aprovado | s |  |
+| 2026-10-21 14:07 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-1 | entrega | 1 | nao cumpriu | s | só 'um commit só do parecer': 2 commits (51ba511, d549417), o 2º para o forge-check docs |
+| 2026-10-21 14:08 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-1 | entrega | 2 | cumpriu | s |  |
+| 2026-10-21 14:08 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-1 | brief | 2 | aprovado | s |  |
+| 2026-10-21 14:18 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-1 | entrega | 1 | cumpriu | s | conferida junto com security-engineer-1 |
+| 2026-10-21 16:15 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-1 | brief | 1 | reprovado | s | regra D1 sem origem no pedido |
+| 2026-10-21 16:15 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-3 | entrega | 1 | nao cumpriu | parcial | etapa: E2E novo (9ee640f) depois do review d549417; aceite_usuario marcado pelo QA sem decisão do dono |
+| 2026-10-21 16:19 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-2 | brief | 1 | reprovado | parcial | tardio: E2.4 fora por prosa (texto igual ao tech-lead-1 aprovado); E2.4 dividida em E2.4a/E2.4b no pedido |
+| 2026-10-21 16:19 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-1 | brief | 2 | aprovado | s |  |
+| 2026-10-21 16:20 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-2 | brief | 2 | reprovado | parcial | decisão dos dois commits sem limite escrito no pedido |
+| 2026-10-21 16:22 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-2 | brief | 3 | reprovado | parcial | tardio: etapa do mesmo papel em outro momento (E2.4b) sem lugar na R-BRIEF; etapas reordenadas |
+| 2026-10-21 16:24 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-2 | brief | 4 | aprovado | s | corte pelo forge-check (R-BRIEF linha 13) |
+| 2026-10-21 16:58 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-4 | brief | 1 | aprovado | s |  |
+| 2026-10-21 16:58 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-2 | entrega | 1 | nao cumpriu | parcial | achado 1 falso (12018de é ancestral de origin/develop, conferido pelo Jarvis); achado 2 válido: brief qa-3 sem a decisão D1/D2 não entra na união |
+| 2026-10-21 17:04 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-5 | brief | 1 | reprovado | s | Entregar sem separar o feito (registro) do trabalho da rodada |
+| 2026-10-21 17:05 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-5 | brief | 2 | aprovado | s |  |
+| 2026-10-21 17:09 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-5 | entrega | 1 | cumpriu | s | conferida junto com tech-lead-2 |
+| 2026-10-21 17:14 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-3 | brief | 1 | reprovado | s | forge-check pr: autoria do parecer de review sem registro (gravado por script no Bash) |
+| 2026-10-21 17:42 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-3 | brief | 2 | aprovado | s |  |
+| 2026-10-21 17:46 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-1 | entrega | 1 | nao cumprido | parcial | review desatualizado e sem autoria; 2 commits; E2E_PORTA fora do Entregar (decisões técnicas registradas) |
+| 2026-10-21 18:40 | 025-front-do-011-lote2 | 025-front-do-011-lote2-react-frontend-4 | brief | 1 | aprovado | s |  |
+| 2026-10-21 18:44 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-6 | brief | 1 | aprovado | s |  |
+| 2026-10-21 19:04 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-1 | entrega | 2 | nao cumpriu | parcial | brief qa-1 sem a decisão L2T; parecer de QA com decisões pendentes já tomadas e sem reteste de 5108fcd; review antes do QA |
+| 2026-10-21 19:05 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-5 | brief | 1 | reprovado | n | E2.2 (mesmo papel, cumprida) no Fora sem marca; forge-check deu corte ok |
+| 2026-10-21 19:06 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-2 | brief | 1 | aprovado | s |  |
+| 2026-10-21 19:07 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-5 | brief | 2 | aprovado | s |  |
+| 2026-10-21 19:37 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-2 | brief | 1 | reprovado | s | retirar D1 contradiz decisão do dono |
+| 2026-10-21 19:39 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-2 | brief | 2 | aprovado | s |  |
+| 2026-10-21 19:47 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-5 | entrega | 1 | nao cumpriu | n | Mermaid do tech-lead sem cobertura (decisão técnica registrada); ROTAS_APLIC veio da develop (568ea48, #133) pelo merge 04e529f, não do autor |
+| 2026-10-21 19:49 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-react-frontend-5 | entrega | 2 | cumpriu | s |  |
+| 2026-10-21 19:50 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-3 | brief | 1 | aprovado | s |  |
+| 2026-10-21 19:51 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-4 | brief | 1 | reprovado | s | frase de reclassificação do D1 sem decisão do dono |
+| 2026-10-21 19:53 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-4 | brief | 2 | aprovado | s |  |
+| 2026-10-21 19:55 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-3 | brief | 1 | reprovado | s | 'rodar testes de novo' x decisão do pronto |
+| 2026-10-21 19:57 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-3 | brief | 2 | aprovado | s |  |
+| 2026-10-21 19:58 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-7 | brief | 1 | reprovado | parcial | D1: decisão do dono (pendência) x Andamento 19:30 (premissa falsa); conferentes divergem; vai ao dono |
+| 2026-10-21 20:45 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-7 | brief | 2 | reprovado | s |  |
+| 2026-10-21 20:47 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-7 | brief | 3 | aprovado | s |  |
+| 2026-10-21 20:49 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-4 | brief | 1 | reprovado | parcial | push e D1 procedentes; Base-sha improcedente (merge-base = 568ea48) |
+| 2026-10-21 20:56 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-4 | brief | 2 | reprovado | n | forma: modo ausente (nota do Jarvis antes do modo:) |
+| 2026-10-21 20:58 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-4 | brief | 3 | aprovado | s | Base-sha contestado e confirmado |

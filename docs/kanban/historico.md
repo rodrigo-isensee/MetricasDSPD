@@ -318,3 +318,49 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-10-17 15:27 — Pedido 031: dono escolheu A (tag de arquivo e apagar), só depois de conferir que o conteúdo das seis branches já está na develop.
 | 2026-10-20T21:20:07-03:00 | K-116 | Entrada | Em andamento | pedido 035, E3.1 |
 | 2026-10-20T21:20:07-03:00 | K-117 | Entrada | Pronto para fazer | pedido 035, E4, depois do K-116 |
+| 2026-10-20T21:30:53-03:00 | K-091 | Entrada | Em andamento | pedido 036, E2 |
+| 2026-10-20T21:30:53-03:00 | K-118 | Entrada | Em andamento | pedido 036, E1 |
+| 2026-10-20T21:30:53-03:00 | K-103 | Em andamento | Pronto | 3 lotes na main; quadro estava desatualizado |
+| 2026-10-20T21:31:18-03:00 | K-091 | Em andamento | Pronto para fazer | R-WIP: mesmo agente do K-118, entra depois |
+| 2026-10-20T21:34:41-03:00 | K-118 | Em andamento | Bloqueado | Aguardando o dono: libs de sistema do Chromium (libnspr4.so), precisa de sudo |
+| 2026-10-20T21:39:22-03:00 | K-119 | Entrada | Em andamento | pedido 036, E3.2 |
+| 2026-10-20T21:51:40-03:00 | K-118 | Bloqueado | Em andamento | dono instalou as libs do Chromium; reteste delegado |
+| 2026-10-20T21:58:26-03:00 | K-120 | Entrada | Pronto para fazer | melhoria vista (QA, pedido 036) |
+| 2026-10-20T21:59:27-03:00 | K-118 | Em andamento | Pronto | FA-006 não reproduz (f3a2995) |
+| 2026-10-20T21:59:27-03:00 | K-091 | Pronto para fazer | Em andamento | pedido 036, E2.1 |
+| 2026-10-20T22:09:48-03:00 | K-119 | Em andamento | Code review | pedido 036, E1.3 |
+| 2026-10-20T22:09:48-03:00 | K-091 | Em andamento | Code review | pedido 036, E1.3 |
+| 2026-10-20T22:20:52-03:00 | K-116 | Em andamento | Pronto | #132 mesclado (bbbc70c) |
+| 2026-10-20T22:22:46-03:00 | K-121 | Entrada | Pronto para fazer | melhoria vista (review 036) |
+| 2026-10-20T22:24:40-03:00 | K-119 | Code review | QA | review aprovado (fc9ecf2) |
+| 2026-10-20T22:24:40-03:00 | K-091 | Code review | QA | review aprovado (fc9ecf2) |
+| 2026-10-20T22:33:09-03:00 | K-113 | Entrada | Em andamento | pedido 037, E1.5 (#131) |
+| 2026-10-20T22:55:03-03:00 | K-113 | Em andamento | Em andamento | E2.2 delegado ao react-frontend (Worker da ADR 0021), S0 conferida eeb59fa |
+| 2026-10-20T23:11:40-03:00 | K-110 | Entrada | Pronto para fazer | recibo do pedido 025 aceito (sim) |
+| 2026-10-20T23:13:58-03:00 | K-110 | Pronto para fazer | Em andamento | E1.1 delegado ao react-frontend (2ª instância), worktree MetricasDSPD-025 |
+| 2026-10-20T23:16:34-03:00 | K-091 | QA | Pronto | #133 na develop (568ea48) |
+| 2026-10-20T23:16:34-03:00 | K-119 | QA | Pronto | #133 na develop (568ea48) |
+| 2026-10-20T23:35:35-03:00 | K-113 | Em andamento | Em andamento | E2.2 relançado após interrupção por limite de uso (trabalho parcial sem commit na -037) |
+| 2026-10-20T23:35:35-03:00 | K-110 | Em andamento | Em andamento | E1.1 relançado após interrupção por limite de uso (trabalho parcial sem commit na -025) |
+| 2026-10-21T10:03:25-03:00 | K-122 | Entrada | Em andamento | pedido 038 aberto; E1.1 ao tech-lead |
+| 2026-10-21T10:03:25-03:00 | K-113 | Em andamento | Em andamento | retomada em 2026-10-21 (sessão Forge 0.27.0) |
+| 2026-10-21T10:03:25-03:00 | K-110 | Em andamento | Em andamento | retomada em 2026-10-21 (sessão Forge 0.27.0) |
+| 2026-10-21T10:11:08-03:00 | K-122 | Em andamento | Aguardando o dono | hook: so o dono altera .forge/versao |
+| 2026-10-21T11:56:52-03:00 | K-122 | Aguardando o dono | Pronto | dono mesclou o 134 na develop (794b982); falta limpeza da branch |
+| 2026-10-21T13:10:44-03:00 | K-123 | — | Entrada | melhoria vista no E2.2 do 037 |
+| 2026-10-21T13:12:49-03:00 | K-124 | Entrada | Em andamento | pedido 039 aberto |
+| 2026-10-21T13:21:15-03:00 | K-124 | Em andamento | Pronto | limpeza feita; 2 branches do 011 mantidas (K-125) |
+| 2026-10-21T13:21:15-03:00 | K-125 | — | Entrada | decisão A do pedido 039 |
+| 2026-10-21T13:39:53-03:00 | K-113 | Em andamento | Code review | E2.2 conferida 0bde5eb; E2.3 QA e review em paralelo |
+| 2026-10-21T14:04:05-03:00 | K-110 | Em andamento | Code review | E1.1 conferida 32a509f; review e segurança em paralelo |
+| 2026-10-21T14:06:32-03:00 | K-126 | — | Entrada | achados recomendados A1/A2 do review 037 |
+| 2026-10-21T14:06:32-03:00 | K-127 | — | Entrada | achados recomendados A3/A4 do review 037 |
+| 2026-10-21T14:16:48-03:00 | K-128 | — | Entrada | review 025 A1 |
+| 2026-10-21T14:16:48-03:00 | K-129 | — | Entrada | review 025 A2 |
+| 2026-10-21T14:16:48-03:00 | K-130 | — | Entrada | segurança 025: API da T14 |
+| 2026-10-21T14:18:04-03:00 | K-110 | Code review | QA | review e segurança aprovados e conferidos (b6c7673); QA espera o QA do 037 |
+| 2026-10-21T16:14:57-03:00 | K-131 | — | Entrada | D1 do QA 037 |
+| 2026-10-21T16:14:57-03:00 | K-132 | — | Entrada | D2 do QA 037 |
+| 2026-10-21T18:40:12-03:00 | K-133 | — | Entrada | L2T-003, decisão A do dono |
+| 2026-10-21T20:07:14-03:00 | K-134 | — | Entrada | melhoria vista QA 025 |
+| 2026-10-21T20:07:14-03:00 | K-135 | — | Entrada | melhoria vista 037 |
