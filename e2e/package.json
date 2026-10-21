@@ -22,10 +22,10 @@
     "perf:tudo": "pnpm run size && pnpm run test:perf && pnpm run lighthouse"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.0",
+    "@axe-core/playwright": "^4.14.0",
     "@lhci/cli": "^0.15.1",
     "@mermaid-js/mermaid-cli": "12.0.0",
-    "@playwright/test": "^1.50.0",
+    "@playwright/test": "^1.64.1",
     "pdfjs-dist": "^6.4.299"
   }
 }
