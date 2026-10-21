@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: 5108fcd
+commit: af1fa41
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-21
@@ -65,6 +65,16 @@ Escopo lido: `568ea48...32a509f` (07969c8 e 32a509f), 20 arquivos, 1.490 linhas 
 - **Perf (`perf-tatico-lote2`):** o caso mede o CLS que a seção soma depois de aberta e o C6 em mediana, e registra o CLS total da página. Ele não cobre o CLS de 0,073 a 0,100 que `/tatico?equipe=` já tinha antes de abrir (L2T-003, herdado, cartão próprio, pendência do PR). Isso fica claro no comentário e é limite do caso, não defeito. Ver A8.
 - **Commits:** Conventional Commits em português. O 9e11071 só corrige o parecer do QA para apontar ao head testado.
 
+## Revisão incremental `5108fcd..af1fa41` (reteste do QA)
+
+**Veredito: aprovado, sem bloqueante.** Delta lido com `git diff 222a0a8..af1fa41`: 4 arquivos, sendo o parecer do QA, dois registros de bug (L2T-001 e L2T-002) e `e2e/tests-api/tatico-011-lote2.spec.ts` (12 linhas). Nenhum arquivo de `web/`, `server/` ou `packages/` mudou, então o código de produção revisado em 5108fcd é o mesmo. O que já estava lido não foi relido; o `pnpm run pronto` não foi refeito (regra 5 da economia de tokens).
+
+- **TT-07 (L2T-001):** o caso lê o texto do T13 em Frentes até "Filtros aplicados:" e, se aparecer "Amostra insuficiente: N de 20 itens mínimos", exige N < 20. Determinístico: dado do mock semeado, sem espera por tempo. Limite: a guarda é condicional, então se o texto não aparecer o caso passa sem provar nada. Isso é aceitável aqui, porque o teste unitário do front já afirma "11 de 20 itens mínimos" e a ausência de "88"; ver A9.
+- **TT-11 e TT-12 (L2T-002):** a expectativa passou a usar "demanda"/"frente" quando k = 1 e o plural nos demais casos, na linha e no `t14-fatia-<código>`. A decisão vem do `k` lido da própria API, sem número fixo. Continua exato (`toBe` e regex ancorada em `$`), então não afrouxou. Não há `waitForTimeout`, `.skip`, `.only` nem `fixme` no arquivo (grep). Nenhuma asserção foi retirada: as quatro mudanças trocam o texto esperado e a TT-07 só acrescenta.
+- **E3, T14-M1 = B:** TT-11 e TT-12 ainda provam a T14 sem `n` nem total: a fatia não casa `/ de |%|sem time|outros/i`, o resto da linha não casa `%|sem time informado|outros times|\d+ de \d+`, e a linha oculta não tem marca gráfica (`span[aria-hidden]` = 0). As asserções do total e do `n` fora do trecho alterado seguem intactas.
+- **E2 e E4:** R-1 = B (`outrosOculto`) e B11-001 (nome do fornecedor sem diferença de caixa e espaços) não estão no delta e não mudaram.
+- **Commits:** o af1fa41 é do QA, em Conventional Commits em português.
+
 ## Achados
 - A1 (recomendado) web/src/data/mock/MockFonteMetricas.ts:55 · COM_TAMBEM sem T11, T13 e T14, contra o comentário das linhas 51-54; no mock só do navegador o T13 e o T14 saem sem vínculo e sem time. Cartão no quadro, depois do 037 (nucleoMock.ts); não fere a ficha
 - A2 (recomendado) web/src/features/complementares/taticas.tsx:168 · a leitura do T11 não traz a frase de picos da ficha, porque o contrato não a fornece e o front não deve calcular. Cartão para o back pôr os meses de pico no DTO, ou a UX ajusta a ficha no E1.6
@@ -74,3 +84,4 @@ Escopo lido: `568ea48...32a509f` (07969c8 e 32a509f), 20 arquivos, 1.490 linhas 
 - A6 (recomendado) docs/tecnica/arquitetura-front.md:302 · a doc diz que a leitura sai com projeto oculto "em qualquer granularidade", mas o código (taticas.tsx:533) olha só a granularidade exibida. Sem vazamento, porque a outra granularidade mostra todos os n; alinhar o texto
 - A7 (recomendado) web/src/features/complementares/taticas.tsx:625 · `Number(p.outrosTimes)` depende do comentário para garantir o não nulo. Trocar `outrosOculto` por um type guard deixa o compilador provar o caso
 - A8 (recomendado) e2e/perf/perf.spec.ts:203 · o caso de perf subtrai o CLS anterior à abertura, então não prova sozinho F2 < 0,1 em /tatico com equipe (ADR 0003); a pendência é L2T-003, cartão K-133, e deve estar no PR. Não bloqueia esta entrega
+- A9 (recomendado) e2e/tests-api/tatico-011-lote2.spec.ts:170 · a guarda da L2T-001 é um `if` e passa sem asserir quando a frase não aparece; o unitário cobre o caso, então não bloqueia. Tornar a asserção incondicional se o texto ficar fixo
