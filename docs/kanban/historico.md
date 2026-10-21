@@ -316,3 +316,5 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-10-17 15:25 — Pedido 030: feature/030-dependabot-develop enviada (523372c: target-branch develop + parecer de devops). Entrega em conferência; próximo: parecer de segurança.
 - 2026-10-17 15:26 — Pedido 031 aberto (develop com o que está pronto, limpeza de branches, nova promoção e PR para a main). Brief 8 do 023 (release) substituído. Pedido 030: entrega do devops conferida.
 - 2026-10-17 15:27 — Pedido 031: dono escolheu A (tag de arquivo e apagar), só depois de conferir que o conteúdo das seis branches já está na develop.
+| 2026-10-20T21:20:07-03:00 | K-116 | Entrada | Em andamento | pedido 035, E3.1 |
+| 2026-10-20T21:20:07-03:00 | K-117 | Entrada | Pronto para fazer | pedido 035, E4, depois do K-116 |
