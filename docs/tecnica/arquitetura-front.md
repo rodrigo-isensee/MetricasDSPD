@@ -111,7 +111,7 @@ sequenceDiagram
   S->>S: ?mock= força carregando/erro/vazio?
   S->>F: obter(id, filtros)
   alt primeira chamada (memoizada)
-    F->>F: Worker de módulo (nucleoMock.worker.ts); sem Worker (jsdom), import('./nucleoMock') em processo
+    F->>F: Worker de módulo (nucleoMock.worker.ts), ou, sem Worker (jsdom), import('./nucleoMock') em processo
     Note over F: no Worker: import do mock e da biblioteca, geração, contextos e cálculo (ADR 0021); a thread principal só renderiza
     F->>G: gerarBaseMock({semente, hoje})
     G-->>F: BaseMock {bm, ac, config}
