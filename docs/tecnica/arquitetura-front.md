@@ -117,7 +117,7 @@ sequenceDiagram
     G-->>F: BaseMock {bm, ac, config}
     F->>X: criarContextoBM(base.bm, hoje), criarContextoAC(base.ac, hoje)
     X-->>F: ctx {bm, ac} (mesma data de corte, senão erro)
-    Note over F: RPC com id; resultados atravessam como DTO simples (structured clone)
+    Note over F: RPC com id, e os resultados atravessam como DTO simples (structured clone)
   end
   F->>F: atraso 150-400 ms (PRNG) ou VITE_MOCK_LATENCIA
   F->>M: calcularMetrica(id, filtros, ctx) (cache por id+filtros)
