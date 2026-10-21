@@ -1,6 +1,6 @@
 # Quadro Kanban
 
-> Atualizado em: 2026-10-17 08:25 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> Atualizado em: 2026-10-20 21:25 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
 > WIP: retomada na sessão do Forge 0.19.0 (dia: teto de 2 agentes, uma tarefa pesada por vez) · Bloqueados: 0
 > Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
@@ -46,11 +46,13 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-117 | Promoção develop → homolog (#128) com review e QA próprios, e PR de release homolog → main (E4) | 035 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:25 | Depois do K-116. O dono mescla na main |
 | K-115 | [teste] E2E instável sob carga local: IF-U-operacional e CA-19 axe (sustentação no operacional) estouram 30 s na suíte completa | 021 | forge:qa-engineer | 2026-10-18 | 2026-10-18 02:10 | Pré-existentes; passam sozinhos e na CI. Depois da homolog, junto do K-107 |
 
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-116 | PR de documentação do Jarvis e parecer de segurança do #130 na develop (E3) | 035 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:25 | Branch docs/jarvis-2026-10-17-tarde |
 | K-103 | Back da fase 2 do 011: E6, E7 R$, E8, T13, T14, O22, O26 (E1, E2) | 011 | forge:tech-lead | 2026-10-17 | 2026-10-17 10:00 | worktree: -011-fase2 · os 3 lotes na develop: #105, #107 (8516ff8), #109 (5ad02ea). Falta a promoção para a homolog (pedido 023), depois do #108 e do 024 |
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
 

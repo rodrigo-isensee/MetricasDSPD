@@ -385,11 +385,13 @@ for (const s of SEQUENCIAS) {
 // ---------------------------------------------------------------------------------------------
 // IF-A: "Não afetado por" precisa ser verdade (tabela 2.2 x cálculo), inclusive nas complementares
 // ---------------------------------------------------------------------------------------------
-const ROTAS_APLIC: { rota: string; filtros: Record<string, string> }[] = [
+// `minimo`: rota em que o cenário garante cartões "Não afetado por"; lista vazia falha em vez de passar em branco (IFA-001).
+const ROTAS_APLIC: { rota: string; filtros: Record<string, string>; minimo?: number }[] = [
   { rota: '/operacional?cadencia=diaria', filtros: { equipe: 'fluig,dados', tipo: 'melhoria,divida-tecnica', sistema: 'fluig,data-lake' } },
   { rota: '/operacional?cadencia=semanal', filtros: { equipe: 'fluig,dados', tipo: 'melhoria,divida-tecnica', sistema: 'fluig,data-lake' } },
   { rota: '/tatico', filtros: { equipe: 'fluig,dados', tipo: 'melhoria,divida-tecnica', sistema: 'fluig,data-lake' } },
-  { rota: '/estrategico', filtros: { sistema: 'protheus,crm' } },
+  // Período 6m + sistema: os cartões que só aplicam sistema (ou nenhum filtro) exibem "Não afetado por: Período" (ou Sistema, Período).
+  { rota: '/estrategico', filtros: { sistema: 'protheus,crm', periodo: '6m' }, minimo: 1 },
 ];
 const PARAM_DO_ROTULO: Record<string, string> = { 'Tipo de demanda': 'tipo', Equipe: 'equipe', Sistema: 'sistema', Período: 'periodo' };
 
@@ -425,6 +427,7 @@ for (const caso of ROTAS_APLIC) {
       verificados.push(`${c.codigo} (${rotulos.join('/')})`);
       if (outro?.base !== c.base) divergentes.push(`${c.codigo} diz "Não afetado por: ${rotulos.join(', ')}", mas a base muda: "${c.base}" com o filtro x "${outro?.base}" sem`);
     }
+    if (caso.minimo) expect(verificados.length, `${caso.rota} deve ter cartões "Não afetado por" verificados`).toBeGreaterThanOrEqual(caso.minimo);
     test.info().annotations.push({ type: 'verificados', description: verificados.join('; ') || 'nenhum cartão com "Não afetado por"' });
     expect(divergentes).toEqual([]);
   });

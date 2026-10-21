@@ -26,3 +26,11 @@ Cada teste IF-A verifica ao menos um cartão com "Não afetado por X" (o teste p
 
 ## Próximo passo sugerido
 Acrescentar ao IF-A a afirmação de mínimo de cartões verificados por rota (ex.: `expect(verificados.length).toBeGreaterThan(0)` nas rotas em que o cenário é esperado), ou fixar os filtros de forma que a rota tenha cartões "Não afetado por". Escolha depende de regra de negócio: confirmar com o usuário se /operacional default deve mostrar "Não afetado por" com os filtros do IF-A.
+
+## Correção 2026-10-20 (/estrategico)
+- Filtros escolhidos para `/estrategico`: `sistema=protheus,crm` e `periodo=6m` (o padrão do painel é 12m, então o período fica ativo). Os cartões que só aplicam sistema ou nenhum filtro passam a exibir "Não afetado por".
+- Verificados: 2 cartões, `E9 (Período)` e `E8 (Sistema/Período)`.
+- Guarda contra lista vazia: a rota ganhou `minimo: 1` em `ROTAS_APLIC` e o teste afirma `verificados.length >= minimo`; lista vazia agora falha.
+- Mutação (`outro?.base !== c.base` para `===`, rodada uma vez e desfeita): `IF-A /estrategico` falhou ("E9 diz 'Não afetado por: Período', mas a base muda"). Antes da correção esse teste passava na mutação.
+- Execução: `pnpm exec playwright test tests/intensivo-filtros.spec.ts -g "IF-A"` com as 4 rotas verdes.
+- Pendente: `/operacional` sem cadência (fica para as operacionais, lote 3).

@@ -532,7 +532,7 @@ const COMPLEMENTARES: readonly Compl[] = [
   [
     'E7',
     'Entregas por sistema',
-    'Quanto da nossa capacidade vai para manter cada sistema do parque?',
+    'Qual a participação de cada sistema nas nossas entregas?',
     'estrategico',
     'BusinessMap',
     'sistema',
