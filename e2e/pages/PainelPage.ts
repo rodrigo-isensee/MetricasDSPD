@@ -41,6 +41,8 @@ export class PainelPage {
     if (opcoes.mock) url.searchParams.set('mock', opcoes.mock);
     await this.page.goto(url.pathname + url.search + url.hash);
     await expect(this.h1).toBeVisible();
+    // Com o mock no Worker (ADR 0021) o estado de coleta chega depois do h1; até lá o painel é só o bloco reservado.
+    await expect(this.page.getByTestId('aguardando-coleta')).toHaveCount(0);
   }
 
   /** Códigos dos cartões presentes, na ordem do DOM. */
@@ -52,6 +54,9 @@ export class PainelPage {
   /** Aguarda todos os cartões saírem de carregando/atualizando (sem `waitForTimeout`). */
   async esperarCartoesProntos(): Promise<void> {
     const cartoes = this.page.locator('[data-testid^="metrica-"]');
+    // Fase 0: enquanto o estado de coleta e as preferências não chegam (o mock calcula no Worker, ADR 0021), o painel
+    // mostra só o cabeçalho e o bloco reservado `aguardando-coleta`; os cartões ainda não existem no DOM.
+    await expect(this.page.getByTestId('aguardando-coleta')).toHaveCount(0);
     // Fase A: rotas sem cartões (Visão geral e placeholders) só precisam do h1.
     await expect(cartoes.first().or(this.h1).first()).toBeVisible();
     if ((await cartoes.count()) === 0) return;
