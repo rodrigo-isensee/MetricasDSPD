@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: 32a509f
+commit: 32a509fa4e6798ab43f777dca15823592db67383
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-10-21
@@ -34,10 +34,8 @@ Escopo: leitura estática de `web/src/features/complementares/taticas.tsx` (T10 
 **ok.** O fornecedor é unidade organizacional (empresa), dimensão permitida. O coletor aplica a allow-list e o campo é de domínio fechado (`ref_dominio`; fora do domínio vira `desconhecido`), conforme ADR 0020, 4d, e o meu parecer anterior (B11-001: o agrupamento ignora maiúsculas, minúsculas e espaços e só exibe uma grafia já existente no dado). O contrato do T10 traz `fornecedor` como string de empresa, ao lado de contagem e duração, sem campo de pessoa; a tela exibe só esse texto, em ordem alfabética, sem ranking (`taticas.tsx:55-135`; `t10.ts:24-52`). Ressalva de proporcionalidade: a grafia vem de campo do BusinessMap preenchido por pessoas, e um fornecedor que seja pessoa física individual (autônomo) seria nome de pessoa. Não há caminho comprovado hoje; vale a checagem do domínio fechado na coleta real (fase 3, já pré-condição 3 do parecer 011-fase2-taticas).
 
 ## Achados
-- A1 (recomendado) web/src/features/complementares/taticas.tsx:663 · a legenda da tabela diz "em ordem de volume do projeto" e a ordem (CA-30) posiciona o projeto oculto entre os visíveis, o que dá uma faixa do total dele (baixa; já registrada como T14-ordem no parecer 011). Fechar é decisão do usuário (ordenar o oculto por código); o front não ordena. Dono: Jarvis e ux-designer.
-- A2 (recomendado) web/src/features/complementares/taticas.tsx:610 · a especificação (§5 T14) prevê "Sem time informado, se houver" na fatia oculta; o código não mostra, e isso é mais restritivo e seguro (a soma `k + semTime` não vira total). Manter assim e alinhar o CA-45 ao código, em vez de acrescentar a contagem. Dono: ux-designer.
-
-Nenhum achado bloqueante.
+- A1 (recomendado) web/src/features/complementares/taticas.tsx:663 · a ordem por total (CA-30) posiciona o projeto oculto entre os visíveis e dá só uma faixa do total dele (baixa; T14-ordem do parecer 011); fechar é decisão do usuário (ordenar o oculto por código), o front não ordena
+- A2 (recomendado) web/src/features/complementares/taticas.tsx:610 · a especificação prevê Sem time informado na fatia oculta e o código não mostra, o que é mais seguro; manter e alinhar o CA-45 ao código
 
 ## Fora do front (pré-condição da fase 3, sem efeito hoje)
 O front só esconde: a resposta da API da T14 ainda traz, para o projeto oculto, `total`, `semTime`, `meuTime.n` e o agregado `total` e a `base.n` do bloco (`packages/metricas/src/businessmap/t14.ts:99-132`, fora do escopo deste pedido). Quem abrir a aba de rede obtém `n − k`. Hoje a métrica é mock ("Dados fictícios", `packages/contratos/src/cartoes.ts:56`), e por isso não bloqueia; fica valendo, sem mudança, o M-1/M-1a do parecer `docs/security/011-fase2-taticas.md` como condição antes de a T14 receber dado real (a API precisa deixar de enviar esses campos para o projeto oculto, com teste de propriedade). Este aprovado cobre a tela, não a API.
