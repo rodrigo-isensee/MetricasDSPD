@@ -15,3 +15,6 @@
 
 ## Evidência
 `innerText` do `t14-fatia-P-0039`: "Meu time: 1 demandas" (teste TT-11 compara o texto atual; ao corrigir o plural, ajustar a expectativa `Meu time: ${k} demandas` do TT-11 e do TT-12 para a forma singular quando k = 1).
+
+## Reteste (2026-10-21, head 5108fcd)
+Status: fechado. Corrigido: "Meu time: 1 demanda", "Meu time: 2 demandas", "Meu time: 1 frente"; sem `n` nem total. TT-11 e TT-12 passaram a esperar o singular quando k = 1 (antes do ajuste, os dois falharam contra o head, provando que o texto mudou). 19 de 19 em `tatico-011-lote2.spec.ts`.

@@ -3,21 +3,23 @@ tipo: qa
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: f06a6fb0fc7c2e40c7a0b8848b2b4f51a8141949
+commit: 5108fcd
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 1
-bugs_baixos: 4
+bugs_baixos: 2
 aceite_usuario: sim
 data: 2026-10-21
 ---
 # QA do front das táticas T10 a T14 (pedido 025, etapas E1.2 e E1.5, cartão K-110)
 
-Links: especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (fichas T10 a T14 em §5, estados em §6, critérios em §10), pedido `docs/pedidos/025-front-do-011-lote2.md`, contratos `docs/contratos/metricas/T10.md` a `T14.md`, review `docs/reviews/025-front-taticas.md`, segurança `docs/security/025-t14-reidentificacao.md`. Entrega testada: 32a509f, conferida em b6c7673 (head da branch ao começar; os pareceres de review e segurança só acrescentam documentos). O `commit:` do frontmatter (f06a6fb) é o head testado: b6c7673 mais os testes novos e os ajustes de contagem dos E2E, que este mesmo parecer rodou. Chromium, uma suíte pesada por vez, nenhum playwright de outra worktree em execução (conferido por `pgrep` antes de cada rodada).
+Links: especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (fichas T10 a T14 em §5, estados em §6, critérios em §10), pedido `docs/pedidos/025-front-do-011-lote2.md`, contratos `docs/contratos/metricas/T10.md` a `T14.md`, review `docs/reviews/025-front-taticas.md`, segurança `docs/security/025-t14-reidentificacao.md`. Entrega testada: 32a509f, conferida em b6c7673, mais os testes novos (f06a6fb) e a correção de L2T-001 e L2T-002 (5108fcd, o `commit:` do frontmatter: head de código; depois dele só o parecer de review 222a0a8). Chromium, uma suíte pesada por vez, nenhum playwright de outra worktree em execução (conferido por `pgrep` antes de cada rodada).
 
-**Sobre `aceite_usuario: sim`:** reflete só a decisão do dono de 2026-10-21 ("A") sobre D1 (média) e D2 (baixa), já existentes na `develop`. Os defeitos L2T-001, L2T-002 (baixa, cosméticos desta entrega) e L2T-003 (baixa, já existente) **não** estão cobertos por essa decisão: o dono precisa aceitar ou mandar corrigir (ver "Decisões pendentes").
+**Sobre `aceite_usuario: sim`:** reflete as decisões do dono de 2026-10-21 ("A"): D1 (média) e D2 (baixa), já existentes na `develop`, acompanham o PR como pendências (K-131 e K-132); L2T-001 e L2T-002 foram corrigidos (5108fcd) e L2T-003 segue como pendência do PR no K-133.
+
+**Reteste (head de código 5108fcd):** `tatico-011-lote2.spec.ts` 19 de 19 e `t10-grafias.spec.ts` 1 de 1 (com `MOCK_FORNECEDOR_GRAFIAS=1`), com porta própria (`E2E_PORTA=4283`). A primeira rodada no head deu 2 vermelhos (TT-11 e TT-12 ainda esperavam "1 demandas" e "1 frentes"); as expectativas passaram ao singular quando k = 1 e o TT-07 ganhou a guarda do L2T-001 (vermelho com o `taticas.tsx` de f06a6fb: `Expected: < 20, Received: 147`; verde no head). As demais suítes da tabela de resultados abaixo são de f06a6fb e não foram refeitas; 5108fcd só muda texto e base do T13 e do T14.
 
 ## Escopo
 Coberto: T10 a T14 em `/tatico` (seção "Mais métricas deste painel": estados, microcopy, catálogo, "Leia junto", regras de pessoa e de n < 20), R-1 = B e T14-M1 = B na tela (inclusive em frentes), B11-001 no T10 pelo caminho real do back, acessibilidade (axe AA, teclado, reflow a 360 px), F2 CLS e C6.
@@ -98,8 +100,8 @@ Máquina: WSL, 8 GB e 8 núcleos. Load average (1 min) ao iniciar cada etapa: un
 O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não do lote 2 (L2T-003).
 
 ## Defeitos desta entrega
-- **L2T-001 (baixa)** `docs/qa/bugs/L2T-001-t13-frentes-base-diz-147-de-20-itens-minimos.md`: com "Frentes" no T13, a base diz "Amostra insuficiente: 147 de 20 itens mínimos" (texto contraditório; o `n` é o de demandas).
-- **L2T-002 (baixa)** `docs/qa/bugs/L2T-002-t14-meu-time-1-demandas-plural.md`: "Meu time: 1 demandas" (plural fixo). Cosmético; a regra de reidentificação está cumprida.
+- **L2T-001 (baixa, corrigido em 5108fcd, fechado)** `docs/qa/bugs/L2T-001-t13-frentes-base-diz-147-de-20-itens-minimos.md`: com "Frentes" no T13, a base diz "Amostra insuficiente: 147 de 20 itens mínimos" (texto contraditório; o `n` é o de demandas).
+- **L2T-002 (baixa, corrigido em 5108fcd, fechado)** `docs/qa/bugs/L2T-002-t14-meu-time-1-demandas-plural.md`: "Meu time: 1 demandas" (plural fixo). Cosmético; a regra de reidentificação está cumprida.
 
 ## Já existentes na `develop` (não são defeitos desta entrega; pendências do PR)
 - **L2T-003 (baixa)** `docs/qa/bugs/L2T-003-cls-tatico-com-equipe-0-07-a-0-10.md`: `/tatico` com equipe escolhida tem CLS de 0,073 a 0,100 (API; no mock 0,002) por uma seção do núcleo que cresce 32 px; reproduz com a seção do lote 2 fechada. O F2 do ADR 0003 (rota sem equipe) passa: 0,035.
@@ -107,14 +109,15 @@ O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não d
 - **D2 (baixa, K-132)**: 9 E2E instáveis com 8 workers (carga). Nesta branch usei 3 workers e nenhum flaky apareceu.
 
 ## Achados
-- A1 (recomendado) web/src/features/complementares/taticas.tsx:411 · L2T-001: com "Frentes" no T13 a base mostra "Amostra insuficiente: 147 de 20 itens mínimos"; a base deve acompanhar a granularidade exibida
-- A2 (recomendado) web/src/features/complementares/taticas.tsx:612 · L2T-002: "Meu time: 1 demandas" (e "1 frentes"); usar singular quando k = 1 e ajustar a expectativa do TT-11 e do TT-12
+- A1 (recomendado, resolvido em 5108fcd) web/src/features/complementares/taticas.tsx:411 · L2T-001: com "Frentes" no T13 a base mostra "Amostra insuficiente: 147 de 20 itens mínimos"; a base deve acompanhar a granularidade exibida
+- A2 (recomendado, resolvido em 5108fcd) web/src/features/complementares/taticas.tsx:612 · L2T-002: "Meu time: 1 demandas" (e "1 frentes"); usar singular quando k = 1 e ajustar a expectativa do TT-11 e do TT-12
 - A3 (recomendado) e2e/playwright.config.ts:6 · conferir o D1 do 037 (K-131) com E2E_PORTA próprio antes de reescrever testes: o preview do 037 na 4173 pode ter servido build alheio
 - A4 (recomendado) web/src/data/mock/MockFonteMetricas.ts:55 · herdado do review (A1): no mock do navegador T11, T13 e T14 saem vazios ou sem vínculo; só a API os mostra de verdade
 
-## Decisões pendentes
-1. L2T-001 e L2T-002 (cosméticos desta entrega): aceitar no PR como pendência ou corrigir antes? São correções de uma linha cada no front. Enquanto o dono não decidir, o `aceite_usuario: sim` acima não os cobre.
-2. L2T-003 (CLS de 0,10 em `/tatico` com equipe, herdado da `develop`): entra como cartão próprio ou com K-131 e K-132?
+## Decisões do dono (2026-10-21)
+1. L2T-001 e L2T-002: corrigir agora ("A"); corrigidos em 5108fcd e fechados no reteste.
+2. L2T-003 (CLS de 0,073 a 0,100 em `/tatico` com equipe, herdado da `develop`): pendência do PR, em cartão próprio (K-133).
+3. D1 (média, 100 E2E defasados, K-131) e D2 (baixa, 9 E2E instáveis, K-132): pendências listadas no PR, corrigidas depois nos cartões ("A"). Nota sobre o D1: o E2.3c do pedido 037 o atribuiu ao `reuseExistingServer`, como a hipótese deste parecer; a reavaliação é do K-131.
 
 ## Parecer
-Aprovado sobre f06a6fb (b6c7673 mais os testes novos e os ajustes de contagem dos E2E): zero bug crítico ou alto; os defeitos abertos são médio (D1, já existente) e baixos (D2, L2T-001, L2T-002, L2T-003), nenhum em regra de negócio, regra inviolável ou acessibilidade. R-1 = B e T14-M1 = B cumpridas na tela (provadas por mutação e por controle positivo); B11-001 provado pelo caminho real do back; F2 e C6 dentro do ADR 0003; axe AA sem violação crítica ou séria.
+Aprovado sobre 5108fcd (b6c7673 mais os testes novos e a correção de L2T-001 e L2T-002): zero bug crítico ou alto; os defeitos abertos são médio (D1, já existente) e baixos (D2 e L2T-003, já existentes), nenhum em regra de negócio, regra inviolável ou acessibilidade. R-1 = B e T14-M1 = B cumpridas na tela (provadas por mutação e por controle positivo); B11-001 provado pelo caminho real do back; F2 e C6 dentro do ADR 0003; axe AA sem violação crítica ou séria.

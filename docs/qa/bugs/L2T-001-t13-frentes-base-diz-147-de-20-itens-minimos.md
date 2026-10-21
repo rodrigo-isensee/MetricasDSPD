@@ -16,3 +16,6 @@ O cabeçalho passa a "Amostra insuficiente: 147 de 20 itens mínimos": o selo de
 
 ## Evidência
 Texto do cartão capturado na exploração de 2026-10-21 (innerText do `metrica-T13` com "Frentes" selecionada): "Amostra insuficiente: 147 de 20 itens mínimos · 18/07 a 09/10/2026 · 4 frentes entregues". O mesmo aparece no mock embutido do navegador (onde o T13 sai sem vínculo).
+
+## Reteste (2026-10-21, head 5108fcd)
+Status: fechado. Corrigido: com "Frentes" a base do cartão usa o n das frentes. TT-07 ganhou a guarda (o n de "Amostra insuficiente: n de 20 itens mínimos" é menor que 20). Vermelho: com o `taticas.tsx` de f06a6fb o teste falha com `Expected: < 20, Received: 147`; no head passa. Comando: `E2E_PORTA=4283 E2E_PORTA_ALT=4284 bash scripts/com-api-mock.sh bash -c 'cd e2e && E2E_API_URL=$API_URL pnpm exec playwright test --project=chromium-api tests-api/tatico-011-lote2.spec.ts'`.

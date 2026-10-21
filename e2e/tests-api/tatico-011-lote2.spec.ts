@@ -165,6 +165,10 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     await gran.getByRole('tab', { name: 'Frentes' }).click();
     await expect(gran.getByRole('tab', { selected: true })).toHaveText('Frentes');
     await expect(t13.getByTestId('anuncio-T13')).toHaveText('Contando frentes.');
+    // L2T-001: a base acompanha as frentes; nunca o n de demandas contra o mínimo de 20 ("147 de 20").
+    const textoT13 = (await t13.innerText()).split('Filtros aplicados:')[0];
+    const insuf = textoT13.match(/Amostra insuficiente: (\d+) de 20 itens mínimos/);
+    if (insuf) expect(Number(insuf[1]), 'n abaixo do mínimo de 20').toBeLessThan(20);
     // uma granularidade por vez: o destaque some ou muda, e o texto não mistura as duas contagens.
     await expect(t13.getByTestId('seletor-local-T13').getByRole('tabpanel').first()).toBeVisible();
     // O outro quadro nunca é identificado (evita comparação entre times).
@@ -244,10 +248,10 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     await expect(li).toHaveCount(1);
     const textoLi = (await li.innerText()).replace(/\s+/g, ' ').trim();
     expect(textoLi, 'só o código, o título e a fatia do meu time').toMatch(
-      new RegExp(`^${oculto.codigo} [^\\d]*Meu time: ${oculto.meuTime.k} demandas$`),
+      new RegExp(`^${oculto.codigo} [^\\d]*Meu time: ${oculto.meuTime.k} ${oculto.meuTime.k === 1 ? 'demanda' : 'demandas'}$`),
     );
     const fatia = (await page.getByTestId(`t14-fatia-${oculto.codigo}`).innerText()).trim();
-    expect(fatia).toBe(`Meu time: ${oculto.meuTime.k} demandas`);
+    expect(fatia).toBe(`Meu time: ${oculto.meuTime.k} ${oculto.meuTime.k === 1 ? 'demanda' : 'demandas'}`);
     expect(fatia).not.toMatch(/ de |%|sem time|outros/i);
     expect(textoLi.replace(fatia, '').replace(oculto.codigo, ''), 'o resto da linha é só o título do projeto').not.toMatch(/%|sem time informado|outros times|\d+ de \d+/i);
     // O total do projeto, o n com time informado e o agregado do recorte não aparecem em nenhum lugar do cartão.
@@ -280,9 +284,9 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     for (const o of ocultos) {
       const li = t14.getByTestId('t14-projetos').getByRole('listitem').filter({ hasText: o.codigo });
       const texto = (await li.innerText()).replace(/\s+/g, ' ').trim();
-      expect(texto).toMatch(new RegExp(`Meu time: ${o.meuTime.k} frentes$`));
+      expect(texto).toMatch(new RegExp(`Meu time: ${o.meuTime.k} ${o.meuTime.k === 1 ? 'frente' : 'frentes'}$`));
       const fatia = (await page.getByTestId(`t14-fatia-${o.codigo}`).innerText()).trim();
-      expect(fatia).toBe(`Meu time: ${o.meuTime.k} frentes`);
+      expect(fatia).toBe(`Meu time: ${o.meuTime.k} ${o.meuTime.k === 1 ? 'frente' : 'frentes'}`);
       expect(fatia).not.toMatch(/ de |%|sem time|outros/i);
       expect(texto.replace(fatia, '').replace(o.codigo, ''), 'o resto da linha é só o título do projeto').not.toMatch(/%|sem time informado|outros times|\d+ de \d+/i);
       await expect(li.locator('span[aria-hidden="true"]')).toHaveCount(0);
