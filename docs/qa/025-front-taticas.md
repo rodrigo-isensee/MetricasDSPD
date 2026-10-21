@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: b6c76731f21cfddd320cb3a75a4490f11df688c7
+commit: f06a6fb0fc7c2e40c7a0b8848b2b4f51a8141949
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -15,7 +15,7 @@ data: 2026-10-21
 ---
 # QA do front das táticas T10 a T14 (pedido 025, etapas E1.2 e E1.5, cartão K-110)
 
-Links: especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (fichas T10 a T14 em §5, estados em §6, critérios em §10), pedido `docs/pedidos/025-front-do-011-lote2.md`, contratos `docs/contratos/metricas/T10.md` a `T14.md`, review `docs/reviews/025-front-taticas.md`, segurança `docs/security/025-t14-reidentificacao.md`. Entrega testada: 32a509f, conferida em b6c7673 (head da branch; os pareceres de review e segurança só acrescentam documentos). Chromium, uma suíte pesada por vez, nenhum playwright de outra worktree em execução (conferido por `pgrep` antes de cada rodada).
+Links: especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (fichas T10 a T14 em §5, estados em §6, critérios em §10), pedido `docs/pedidos/025-front-do-011-lote2.md`, contratos `docs/contratos/metricas/T10.md` a `T14.md`, review `docs/reviews/025-front-taticas.md`, segurança `docs/security/025-t14-reidentificacao.md`. Entrega testada: 32a509f, conferida em b6c7673 (head da branch ao começar; os pareceres de review e segurança só acrescentam documentos). O `commit:` do frontmatter (f06a6fb) é o head testado: b6c7673 mais os testes novos e os ajustes de contagem dos E2E, que este mesmo parecer rodou. Chromium, uma suíte pesada por vez, nenhum playwright de outra worktree em execução (conferido por `pgrep` antes de cada rodada).
 
 **Sobre `aceite_usuario: sim`:** reflete só a decisão do dono de 2026-10-21 ("A") sobre D1 (média) e D2 (baixa), já existentes na `develop`. Os defeitos L2T-001, L2T-002 (baixa, cosméticos desta entrega) e L2T-003 (baixa, já existente) **não** estão cobertos por essa decisão: o dono precisa aceitar ou mandar corrigir (ver "Decisões pendentes").
 
@@ -117,4 +117,4 @@ O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não d
 2. L2T-003 (CLS de 0,10 em `/tatico` com equipe, herdado da `develop`): entra como cartão próprio ou com K-131 e K-132?
 
 ## Parecer
-Aprovado sobre b6c7673, com os testes novos e os ajustes de contagem em commits desta branch: zero bug crítico ou alto; os defeitos abertos são médio (D1, já existente) e baixos (D2, L2T-001, L2T-002, L2T-003), nenhum em regra de negócio, regra inviolável ou acessibilidade. R-1 = B e T14-M1 = B cumpridas na tela (provadas por mutação e por controle positivo); B11-001 provado pelo caminho real do back; F2 e C6 dentro do ADR 0003; axe AA sem violação crítica ou séria.
+Aprovado sobre f06a6fb (b6c7673 mais os testes novos e os ajustes de contagem dos E2E): zero bug crítico ou alto; os defeitos abertos são médio (D1, já existente) e baixos (D2, L2T-001, L2T-002, L2T-003), nenhum em regra de negócio, regra inviolável ou acessibilidade. R-1 = B e T14-M1 = B cumpridas na tela (provadas por mutação e por controle positivo); B11-001 provado pelo caminho real do back; F2 e C6 dentro do ADR 0003; axe AA sem violação crítica ou séria.
