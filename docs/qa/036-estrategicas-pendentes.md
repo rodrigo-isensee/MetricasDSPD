@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 036-estrategicas-pendentes
 branch: feature/036-estrategicas-pendentes
-commit: cc88922747e96bb2e948dc2cf4ad2963ef05d3b5
+commit: fe6a50a00c8c4059a56219743d3957288694a201
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -38,3 +38,11 @@ Observações: (1) a tela do catálogo `/metricas` mostra só código, título, 
 ## Parecer
 
 Aprovado, zero bug aberto, sobre o commit cc88922.
+
+## Revalidação (delta)
+
+Data: 2026-10-20. Head revalidado: fe6a50a (cadeia cc88922 → 97f8545 → 90d35a6 → fe6a50a). `forge-check delta --parecer docs/qa/036-estrategicas-pendentes.md` listou só `docs/ux/revisao-036-e7-pergunta.md` (+31 -0): a revisão de UX da pergunta do E7 (E1.6), documento novo, sem código. Confirmado por `git diff cc88922 fe6a50a -- web server e2e`, que deu zero linha. Os demais arquivos do intervalo (`docs/reviews/036-estrategicas-pendentes.md` e `docs/qa/036-estrategicas-pendentes.md`) são pareceres e ficam fora do delta por desenho.
+
+O que mudou: a revisão de UX leu a pergunta do E7 ("Qual a participação de cada sistema nas nossas entregas?") contra a especificação §5 e a §11 e aprovou com zero achado bloqueante e zero recomendado; uma observação informativa (`docs/ux/metricas-tambem-disponiveis/01-cobertura.md`, linha 47, tabela histórica do discovery), sem ação para este PR. A revisão confirma o que o QA já verificou: o texto está no cartão `metrica-E7` e não há valor monetário.
+
+Parecer mantido: aprovado, zero bug aberto. Os achados A1 (recomendado, linha `Cartão: K-091` e `K-119` no squash do E1.5) e A2 (corrigido em cc88922) continuam valendo. Os testes não foram rodados de novo, porque o delta não tem código (regra do pedido).
