@@ -2,6 +2,7 @@
 
 ## 037 (K-113)
 - O PR #139 (substitui o #137, que foi fechado porque nasceu antes dos pareceres) foi **mesclado na develop em 2026-10-22 08:04Z** (head 0822f63). O agente `forge:tech-lead` do E2.4b (brief `docs/briefs/037-pr-131-release-com-falhas-tech-lead-7.md`, aprovado, sha256 f2945e79b94ad7cc2662520474855327eeec0a063bf2085610f1fe1947713c90) ainda rodava na pausa: limpeza da branch e da worktree `/home/rodrigoisensee/MetricasDSPD-037`, sem relatório recebido.
+- **Relatório do tech-lead-7, recebido depois da pausa gravada:** squash na develop **2bb9f687ad87ef9d40ae062b9aca28344838b7e2**; checks com 15 pass e 5 skipping; `e2e` pass (27m36s); #137 CLOSED; branch remota, branch local e worktree -037 apagadas; review corrigido em 0822f63. Falta só a conferência da entrega.
 - Ao retomar: conferir a entrega do tech-lead-7 (`modo: entrega`, etapa `merge-integracao`, Desde 35bfd72ab8d4a66fd4237000e6e83c3619a17bf4), e também a entrega do QA 47c3e66, já conferida como cumprida e com o review corrigido em 0822f63. Gravar a linha `conferida` no Histórico. Fechar o K-131 (condição do D1: o check `e2e` do #139 verde no merge). Ver se a worktree -037 e a branch remota sumiram.
 - Próximo: E2.6 (QA da promoção develop → homolog), E2.7 (review e PR develop → homolog) e E2.8 (PR de release homolog → main para o dono). Pode juntar com o 025 numa promoção só, se o 025 entrar antes.
 
