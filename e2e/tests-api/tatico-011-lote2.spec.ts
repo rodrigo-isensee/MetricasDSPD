@@ -166,7 +166,7 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     await expect(gran.getByRole('tab', { selected: true })).toHaveText('Frentes');
     await expect(t13.getByTestId('anuncio-T13')).toHaveText('Contando frentes.');
     // L2T-001: a base acompanha as frentes; nunca o n de demandas contra o mínimo de 20 ("147 de 20").
-    const textoT13 = (await t13.innerText()).split('Filtros aplicados:')[0];
+    const textoT13 = (await t13.innerText()).split('Filtros aplicados:')[0] ?? '';
     const insuf = textoT13.match(/Amostra insuficiente: (\d+) de 20 itens mínimos/);
     if (insuf) expect(Number(insuf[1]), 'n abaixo do mínimo de 20').toBeLessThan(20);
     // uma granularidade por vez: o destaque some ou muda, e o texto não mistura as duas contagens.
