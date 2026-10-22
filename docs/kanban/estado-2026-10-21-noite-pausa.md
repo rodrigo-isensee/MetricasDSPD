@@ -6,6 +6,14 @@ Pedido do dono: atualizar o Forge para a 0.28.0 e reabrir o Jarvis na versão no
 - **037, `forge:qa-engineer`** (brief `docs/briefs/037-pr-131-release-com-falhas-qa-engineer-7.md`, aprovado na rodada 3, sha256 02b509c5eeff5180181265a1ac9532bc82ba402cffc9fdd44471a89cc25e7e2f). Worktree `/home/rodrigoisensee/MetricasDSPD-037`, head antes do agente: 7700366. Entrega esperada: as 4 specs e a paridade do Worker no head, parecer de QA aprovado com `commit: 35bfd72`, gravado com Write/Edit, `pronto` uma vez, um commit e push.
 - **025, `forge:qa-engineer`** (brief `docs/briefs/025-front-do-011-lote2-qa-engineer-4.md`, aprovado na rodada 3, sha256 87c15f9a9bb5ba86b41f853480e9c514b352977d3b65ba308e161d5df3509b2c). Worktree `/home/rodrigoisensee/MetricasDSPD-025`, head antes do agente: 03d514f. Entrega esperada: correção do TS18048 em `e2e/tests-api/tatico-011-lote2.spec.ts:169-170`, typecheck dos E2E com rc=0, spec rodado, commit do spec, parecer com `commit:` do spec, commit do parecer, **sem push**.
 
+**Resultado do QA do 025 (terminou antes da pausa, entrega ainda não conferida):** 7807199 (spec com `?? ''`), typecheck dos E2E rc=0, spec `tatico-011-lote2` 19/19 no `chromium-api` (porta 4283, via `scripts/com-api-mock.sh`), `pnpm run pronto` rc=0, parecer d8f1c51 com `commit: 7807199`; sem push. A worktree -025 ficou com 61 PNGs de evidência (`docs/qa/evidencias/`) alterados pelas execuções, sem commit: decidir com o QA se descarta ou commita (não são do Jarvis).
+
+**Conferência de entrega pendente no 025:** uma conferência única de b6c76731f21cfddd320cb3a75a4490f11df688c7 até d8f1c51, cobrindo os briefs react-frontend-4, qa-engineer-1 a 4 e tech-lead-2 e 3 (a rodada de 19:04 do qa-1 ficou reprovada e nunca fechou). **No 037:** o review 7700366 (tech-lead-4) e a entrega do QA (qa-engineer-7).
+
+**Processo órfão:** PID 39905, desde 12h17. É um script antigo do front do 025 que espera os testes do 037 terminarem para rodar o Vitest na -025. O classificador nega o kill ao Jarvis, então quem encerra é o dono (`kill 39905`).
+
+**Clone de contribuição:** `~/.forge-contrib/MetricasDSPD` tem o commit local b750da6, de 2026-10-14, sem push e sem PR. Provavelmente ficou obsoleto com os #252, #253 e #263 do Forge. Descartar só com a confirmação do dono.
+
 Ao retomar: ver o `git log` das duas worktrees; se houver commit novo, mandar ao `forge:conferente` no modo `entrega` (o `Desde` vem do `## Histórico` de cada pedido: 037 → 35bfd72ab8d4a66fd4237000e6e83c3619a17bf4; 025 → b6c76731f21cfddd320cb3a75a4490f11df688c7). Se a sessão fechou com o agente no meio, conferir worktree suja e processo órfão (`pgrep -af 'playwright|vitest'`) antes de relançar.
 
 ## Fato novo que precisa ser conciliado
