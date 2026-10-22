@@ -364,3 +364,6 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-21T18:40:12-03:00 | K-133 | — | Entrada | L2T-003, decisão A do dono |
 | 2026-10-21T20:07:14-03:00 | K-134 | — | Entrada | melhoria vista QA 025 |
 | 2026-10-21T20:07:14-03:00 | K-135 | — | Entrada | melhoria vista 037 |
+| 2026-10-22T04:13:13-03:00 | K-110 | Em andamento | Em andamento | QA ajusta D1 no parecer (qa-5) |
+| 2026-10-22T04:18:09-03:00 | K-113 | Em andamento | Em andamento | E2.4b: tech-lead corrige review, PR novo e merge na develop |
+| 2026-10-22T04:23:07-03:00 | K-110 | Em andamento | Em andamento | E1.3 incremental e E1.7: tech-lead review, PR e merge na develop |

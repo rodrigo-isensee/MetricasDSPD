@@ -32,7 +32,8 @@
 - E2.4b (forge:tech-lead): PR para a develop (squash), com D1 e D2 listados como pendências, e merge com os checks verdes; limpeza da branch e da worktree -037 depois do merge.
 - E2.6 (forge:qa-engineer): parecer de QA da promoção develop → homolog.
 - E2.7 (forge:tech-lead): parecer de review da promoção, PR develop → homolog (merge commit) e merge com o portão disparado.
-- E2.5 (dono): mesclar o #136 (homolog → main) com o homolog-aprovada verde.
+- E2.5 (dono): mesclar o #136 (homolog → main) com o homolog-aprovada verde. Feito pelo dono em 2026-10-21 13:10 (merge 17fee18), antes do 037 entrar: a correção do C6 vai na próxima release (E2.8).
+- E2.8 (forge:tech-lead): abrir o PR de release homolog → main com o Worker do 037, depois do E2.7, para o dono validar e mesclar.
 - E1.5 (forge:software-architect): proposta de tratamento do C6 de /operacional sem afrouxar o limite (K-113), a partir da medição 1f715e8, gravada na worktree -037 (sem commit: o arquiteto não tem Bash; o commit vai com a implementação).
 
 ## Decisões do usuário (registro literal)
@@ -67,6 +68,9 @@ DECISÃO DO DONO (2026-10-21): PR #136 (release homolog → main, homolog-aprova
 - 2026-10-21 19:30 — E2.3c (2688e85): regressão do Worker confirmada. Com porta própria, develop 794b982: 213/216 (3 instáveis, D2); head 85d1896: 115/216 (101 falham). O "D1" era artefato do `reuseExistingServer` na 4173 servindo o build do Worker. Bug W037-001 (alto, bloqueante), responsável react-frontend. A premissa da decisão do dono sobre D1 ("já existentes na develop") era falsa: o D1 sai das pendências e vira defeito desta entrega (W037-001); D2 continua pendência. Parecer de QA reprovado. E2.2b aberta.
 
 - 2026-10-21 — Decisão técnica do Jarvis (`técnico`, base: o passo Mermaid do job `e2e` da CI falhava com os `;` do diagrama): a correção de sintaxe do diagrama em `docs/tecnica/arquitetura-front.md` feita pelo tech-lead no PR #137 (3ffed20, 3230067, 85d1896) faz parte do E2 (documentação afetada pela entrega, já coberta pela decisão técnica de 0bde5eb). E a mudança de `ROTAS_APLIC` em `e2e/tests/intensivo-filtros.spec.ts` não é desta entrega: veio da develop (568ea48, PR #133, pedido 036) pelo merge 04e529f.
+
+- 2026-10-22 — O dono mesclou o #136 (homolog → main) em 2026-10-21 13:10 (merge 17fee18), antes do 037. A decisão "esperar o 037" ficou superada pelo ato do dono. A `main` está sem o Worker. O escopo do 037 não muda: a correção do C6 sobe numa próxima release (E2.8). Isso é registro, não pergunta: o ato foi do dono e não altera o que o time entrega.
+- 2026-10-22 — Decisão técnica do Jarvis (`técnico`, base: tabela de etapas do conferente, linha "Qualquer etapa": o PR #137 foi criado em 2026-10-21 20:45Z, antes dos pareceres de review 7700366 e de QA 47c3e66). O #137 é fechado sem merge, e um PR novo da mesma branch é aberto depois do commit da correção do parecer de review. A CI desse commit roda de qualquer jeito, então o custo extra é próximo de zero e nenhum controle é afrouxado. Brief tech-lead-7.
 
 ## Histórico
 - 2026-10-20 22:31: entrega conferida 1f715e8d888f67befb2a6b45f0585422332de26f
