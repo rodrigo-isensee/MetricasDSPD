@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: af1fa41
+commit: 7807199
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -20,6 +20,8 @@ Links: especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md`
 **Sobre `aceite_usuario: sim`:** reflete as decisões do dono de 2026-10-21 ("A"): D1 (média) e D2 (baixa), já existentes na `develop`, acompanham o PR como pendências (K-131 e K-132); L2T-001 e L2T-002 foram corrigidos (5108fcd) e L2T-003 segue como pendência do PR no K-133.
 
 **Reteste (head de código 5108fcd):** `tatico-011-lote2.spec.ts` 19 de 19 e `t10-grafias.spec.ts` 1 de 1 (com `MOCK_FORNECEDOR_GRAFIAS=1`), com porta própria (`E2E_PORTA=4283`). A primeira rodada no head deu 2 vermelhos (TT-11 e TT-12 ainda esperavam "1 demandas" e "1 frentes"); as expectativas passaram ao singular quando k = 1 e o TT-07 ganhou a guarda do L2T-001 (vermelho com o `taticas.tsx` de f06a6fb: `Expected: < 20, Received: 147`; verde no head). As demais suítes da tabela de resultados abaixo são de f06a6fb e não foram refeitas; 5108fcd só muda texto e base do T13 e do T14.
+
+**Correção de tipo (commit 7807199):** o reteste de af1fa41 deixou `e2e/tests-api/tatico-011-lote2.spec.ts` com o erro TS18048 (`textoT13` possivelmente `undefined`, guarda do L2T-001); o `split` agora termina em `?? ''`, sem mudar asserção. `pnpm --filter @metricas-dspd/e2e typecheck` rc=0; `tatico-011-lote2` no `chromium-api` (`E2E_PORTA=4283`, `--retries=0`) 19 de 19; `pnpm run pronto` completo rc=0. As conclusões de R-1 = B, T14-M1 = B e B11-001 seguem como em af1fa41.
 
 ## Escopo
 Coberto: T10 a T14 em `/tatico` (seção "Mais métricas deste painel": estados, microcopy, catálogo, "Leia junto", regras de pessoa e de n < 20), R-1 = B e T14-M1 = B na tela (inclusive em frentes), B11-001 no T10 pelo caminho real do back, acessibilidade (axe AA, teclado, reflow a 360 px), F2 CLS e C6.
