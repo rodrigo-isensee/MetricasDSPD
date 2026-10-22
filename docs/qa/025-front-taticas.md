@@ -8,7 +8,7 @@ parecer: aprovado
 escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
-bugs_medios: 1
+bugs_medios: 0
 bugs_baixos: 2
 aceite_usuario: sim
 data: 2026-10-21
@@ -122,6 +122,6 @@ O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não d
 3. D1 (100 E2E defasados): **não se aplica ao 025** ("A se d1 foi feito e vai subir certo"); no 037 virou o W037-001, encontrado e corrigido (check `e2e` do PR #137 verde, run 39699610730). D2 (baixa, 9 E2E instáveis, K-132): continua pendência listada no PR, corrigida depois no cartão ("A").
 
 ## Parecer
-Aprovado sobre 5108fcd (b6c7673 mais os testes novos e a correção de L2T-001 e L2T-002): zero bug crítico ou alto; os defeitos abertos são médio (D1, já existente) e baixos (D2 e L2T-003, já existentes), nenhum em regra de negócio, regra inviolável ou acessibilidade. R-1 = B e T14-M1 = B cumpridas na tela (provadas por mutação e por controle positivo); B11-001 provado pelo caminho real do back; F2 e C6 dentro do ADR 0003; axe AA sem violação crítica ou séria.
+Aprovado sobre 5108fcd (b6c7673 mais os testes novos e a correção de L2T-001 e L2T-002): zero bug crítico ou alto; os defeitos abertos são baixos (D2 e L2T-003, já existentes; o D1 não se aplica ao 025), nenhum em regra de negócio, regra inviolável ou acessibilidade. R-1 = B e T14-M1 = B cumpridas na tela (provadas por mutação e por controle positivo); B11-001 provado pelo caminho real do back; F2 e C6 dentro do ADR 0003; axe AA sem violação crítica ou séria.
 
 **Revalidação por delta (2026-10-22):** de 7807199 a ea533a3 nada de código nem de teste mudou (`git diff --name-only 7807199 ea533a3 -- web server e2e packages` = 0 arquivos; só `.forge/versao` vindo da develop pelo merge 4fe19af, `docs/qa/`, `docs/reviews/` e `docs/ux/`); veredito, pendências (D2 em K-132, L2T-003 em K-133) e conclusões de R-1 = B, T14-M1 = B e B11-001 inalterados; o `pronto` rodou com rc=0 em 7807199.
