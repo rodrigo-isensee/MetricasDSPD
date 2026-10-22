@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: af1fa41
+commit: 7807199
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-21
@@ -74,6 +74,10 @@ Escopo lido: `568ea48...32a509f` (07969c8 e 32a509f), 20 arquivos, 1.490 linhas 
 - **E3, T14-M1 = B:** TT-11 e TT-12 ainda provam a T14 sem `n` nem total: a fatia não casa `/ de |%|sem time|outros/i`, o resto da linha não casa `%|sem time informado|outros times|\d+ de \d+`, e a linha oculta não tem marca gráfica (`span[aria-hidden]` = 0). As asserções do total e do `n` fora do trecho alterado seguem intactas.
 - **E2 e E4:** R-1 = B (`outrosOculto`) e B11-001 (nome do fornecedor sem diferença de caixa e espaços) não estão no delta e não mudaram.
 - **Commits:** o af1fa41 é do QA, em Conventional Commits em português.
+
+## Revisão incremental `af1fa41..7807199` (correção do TS18048 no E2E)
+
+**Veredito: aprovado, sem bloqueante.** Delta lido com `git show 7807199`: uma linha em `e2e/tests-api/tatico-011-lote2.spec.ts` (TT-07), que acrescenta `?? ''` ao `split('Filtros aplicados:')[0]` para o índice não ser `undefined` sob `noUncheckedIndexedAccess`. O `split` sempre devolve ao menos um elemento, então o valor em execução é o mesmo e a asserção não mudou. Nenhum arquivo de `web/`, `server/` ou `packages/` mudou, nem a T14 nem a T10: R-1 = B, T14-M1 = B e B11-001 seguem como em af1fa41. Commit do QA/autor em Conventional Commits em português, com `Cartão: K-110`. O `pnpm run pronto` não foi refeito (regra 5 da economia de tokens); o typecheck do E2E é o que o commit corrige. O A9 continua valendo.
 
 ## Achados
 - A1 (recomendado) web/src/data/mock/MockFonteMetricas.ts:55 · COM_TAMBEM sem T11, T13 e T14, contra o comentário das linhas 51-54; no mock só do navegador o T13 e o T14 saem sem vínculo e sem time. Cartão no quadro, depois do 037 (nucleoMock.ts); não fere a ficha
