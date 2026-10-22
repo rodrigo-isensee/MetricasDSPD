@@ -11,6 +11,8 @@ test.use({ viewport: { width: 1280, height: 800 } });
 
 async function pronto(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  // Com o mock no Worker (ADR 0021) o estado de coleta chega depois do h1: até lá o painel só tem o bloco reservado.
+  await expect(page.getByTestId('aguardando-coleta')).toHaveCount(0, { timeout: 30_000 });
   await expect(page.locator('[data-testid^="metrica-"][aria-busy="true"]')).toHaveCount(0, { timeout: 30_000 });
   await expect(page.locator('[data-testid^="estado-carregando-"]')).toHaveCount(0, { timeout: 30_000 });
   await expect(page.locator('[data-testid^="metrica-"][data-estado="carregando"], [data-testid^="metrica-"][data-estado="atualizando"]')).toHaveCount(0, { timeout: 30_000 });
