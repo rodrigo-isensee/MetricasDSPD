@@ -111,12 +111,13 @@ sequenceDiagram
   S->>S: ?mock= força carregando/erro/vazio?
   S->>F: obter(id, filtros)
   alt primeira chamada (memoizada)
-    F->>F: import('@metricas-dspd/mock'), import('@metricas-dspd/metricas')
+    F->>F: Worker de módulo (nucleoMock.worker.ts), ou, sem Worker (jsdom), import('./nucleoMock') em processo
+    Note over F: no Worker: import do mock e da biblioteca, geração, contextos e cálculo (ADR 0021), e a thread principal só renderiza
     F->>G: gerarBaseMock({semente, hoje})
     G-->>F: BaseMock {bm, ac, config}
     F->>X: criarContextoBM(base.bm, hoje), criarContextoAC(base.ac, hoje)
     X-->>F: ctx {bm, ac} (mesma data de corte, senão erro)
-    Note over F: ceder() entre fases: tarefa longa < 200 ms
+    Note over F: RPC com id, e os resultados atravessam como DTO simples (structured clone)
   end
   F->>F: atraso 150-400 ms (PRNG) ou VITE_MOCK_LATENCIA
   F->>M: calcularMetrica(id, filtros, ctx) (cache por id+filtros)

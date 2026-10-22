@@ -5,7 +5,8 @@ import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { ehVazio } from '../vazio'
 import { aplicarSimulacao, ErroSimulado, lerModoMock } from '../simulacao'
-import { MockFonteMetricas, paginarO2 } from './MockFonteMetricas'
+import { MockFonteMetricas } from './MockFonteMetricas'
+import { paginarO2 } from './nucleoMock'
 
 /** Latência 0: os testes não esperam o atraso simulado (D7). */
 const fonte = new MockFonteMetricas({ latenciaMs: 0 })
