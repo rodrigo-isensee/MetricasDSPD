@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: 7807199
+commit: 5a0a999
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-21
