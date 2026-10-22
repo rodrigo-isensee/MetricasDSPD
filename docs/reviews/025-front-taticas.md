@@ -79,6 +79,8 @@ Escopo lido: `568ea48...32a509f` (07969c8 e 32a509f), 20 arquivos, 1.490 linhas 
 
 **Veredito: aprovado, sem bloqueante.** Delta lido com `git show 7807199`: uma linha em `e2e/tests-api/tatico-011-lote2.spec.ts` (TT-07), que acrescenta `?? ''` ao `split('Filtros aplicados:')[0]` para o índice não ser `undefined` sob `noUncheckedIndexedAccess`. O `split` sempre devolve ao menos um elemento, então o valor em execução é o mesmo e a asserção não mudou. Nenhum arquivo de `web/`, `server/` ou `packages/` mudou, nem a T14 nem a T10: R-1 = B, T14-M1 = B e B11-001 seguem como em af1fa41. Commit do QA/autor em Conventional Commits em português, com `Cartão: K-110`. O `pnpm run pronto` não foi refeito (regra 5 da economia de tokens); o typecheck do E2E é o que o commit corrige. O A9 continua valendo.
 
+**Integração e UX:** a `develop` foi trazida por merge (4fe19af) e só mudou `.forge/versao` (versão 0.27.0), sem arquivo em comum: nada a reler. A revisão de UX (`docs/ux/revisao-025-front-taticas.md`, aprovada com ressalvas, sem bloqueante) já está na branch; seus recomendados T14-1 e T14-2 seguem como pendência do PR.
+
 ## Achados
 - A1 (recomendado) web/src/data/mock/MockFonteMetricas.ts:55 · COM_TAMBEM sem T11, T13 e T14, contra o comentário das linhas 51-54; no mock só do navegador o T13 e o T14 saem sem vínculo e sem time. Cartão no quadro, depois do 037 (nucleoMock.ts); não fere a ficha
 - A2 (recomendado) web/src/features/complementares/taticas.tsx:168 · a leitura do T11 não traz a frase de picos da ficha, porque o contrato não a fornece e o front não deve calcular. Cartão para o back pôr os meses de pico no DTO, ou a UX ajusta a ficha no E1.6
