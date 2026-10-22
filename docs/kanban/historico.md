@@ -367,3 +367,10 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-22T04:13:13-03:00 | K-110 | Em andamento | Em andamento | QA ajusta D1 no parecer (qa-5) |
 | 2026-10-22T04:18:09-03:00 | K-113 | Em andamento | Em andamento | E2.4b: tech-lead corrige review, PR novo e merge na develop |
 | 2026-10-22T04:23:07-03:00 | K-110 | Em andamento | Em andamento | E1.3 incremental e E1.7: tech-lead review, PR e merge na develop |
+| 2026-10-22T15:01:03-03:00 | K-110 | Em andamento | Em andamento | E1.7 parte 1 e E1.3: tech-lead-6 (merge da develop e review do merge) |
+| 2026-10-22T15:01:03-03:00 | K-136 | — | Aguardando o dono | pedido 040: Docker ausente no computador novo |
+| 2026-10-22T15:02:48-03:00 | K-131 | Entrada | Pronto | condição do D1 cumprida: e2e do #139 verde, squash 2bb9f68 |
+| 2026-10-22T15:02:48-03:00 | K-113 | Em andamento | Pronto para fazer | 037 na develop (2bb9f68); falta a promoção E2.6/E2.7 junto com o 025 |
+| 2026-10-22T15:04:01-03:00 | K-110 | Em andamento | Em andamento | merge d3356a8 e review 43f29b3 locais; push espera pnpm (pedido 040, E4) |
+| 2026-10-22T15:14:27-03:00 | K-136 | Aguardando o dono | Aguardando o dono | pedido 040: recibo e Docker A aceitos; dono instala o Docker Engine (E0.1) |
+| 2026-10-22T15:16:09-03:00 | K-136 | Aguardando o dono | Em andamento | E1.1: devops-engineer (toolchain, .env, banco quando o Docker responder) |

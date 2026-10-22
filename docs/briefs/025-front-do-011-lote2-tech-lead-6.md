@@ -1,17 +1,17 @@
 Agente destino: forge:tech-lead
 Pedido: docs/pedidos/025-front-do-011-lote2.md
-Branch: feature/025-front-taticas   Base: develop   Base-sha: 568ea481bde436e220d23e99142aa2bfe4718e76
+Branch: feature/025-front-taticas   Base: develop   Base-sha: 306cf6ef29db7bbae2509194406e0b7fcc6ab232
 
 ## Objetivo
-Trazer para a branch do 025 a develop com o Worker do 037 (ruleset da develop exige branch atualizada: `strict_required_status_checks_policy: true`, checks `rapida`, `testes`, `build` e `e2e`) e revisar o merge, antes do reteste do QA e do PR. Etapas E1.7, parte 1 (atualizar a branch com a develop e enviá-la; decisão técnica gravada no Andamento do pedido 025 em 2026-10-22), e E1.3 (review incremental do merge) do pedido 025, cartão K-110. Worktree `/home/rodrigoisensee/MetricasDSPD-025`, branch `feature/025-front-taticas` (head 8a97686, sem push; review aprovado com `commit: 5a0a999`, QA aprovado com `commit: ea533a3`).
+Trazer para a branch do 025 a develop com o Worker do 037 (ruleset da develop exige branch atualizada: `strict_required_status_checks_policy: true`, checks `rapida`, `testes`, `build` e `e2e`) e revisar o merge, antes do reteste do QA e do PR. Etapas E1.7, parte 1 (atualizar a branch com a develop e enviá-la; decisão técnica gravada no Andamento do pedido 025 em 2026-10-22), e E1.3 (review incremental do merge) do pedido 025, cartão K-110. Worktree `/home/rodrigoisensee/Metricas/MetricasDSPD-025`, branch `feature/025-front-taticas` (head 8a97686, já no remoto; a worktree não existe neste computador, por causa da troca de máquina em 2026-10-22: criá-la com `git worktree add /home/rodrigoisensee/Metricas/MetricasDSPD-025 feature/025-front-taticas`, a partir de `origin/feature/025-front-taticas`; review aprovado com `commit: 5a0a999`, QA aprovado com `commit: ea533a3`).
 
 ## Ler
-- `git -C /home/rodrigoisensee/MetricasDSPD-025 diff 8a97686...origin/develop --stat` (o que entra com o merge: o squash do 037).
-- `/home/rodrigoisensee/MetricasDSPD-025/docs/reviews/025-front-taticas.md`, frontmatter e a última seção.
-- `/home/rodrigoisensee/MetricasDSPD/docs/qa/bugs/W037-001-e2e-100-vermelhos-com-o-worker.md` na develop (`git show origin/develop:docs/qa/bugs/W037-001-e2e-100-vermelhos-com-o-worker.md`), seção "Causa raiz e correção": as esperas de `aguardando-coleta` que os E2E precisam com o Worker.
+- `git -C /home/rodrigoisensee/Metricas/MetricasDSPD-025 diff 8a97686...origin/develop --stat` (o que entra com o merge: o squash do 037).
+- `/home/rodrigoisensee/Metricas/MetricasDSPD-025/docs/reviews/025-front-taticas.md`, frontmatter e a última seção.
+- `/home/rodrigoisensee/Metricas/MetricasDSPD/docs/qa/bugs/W037-001-e2e-100-vermelhos-com-o-worker.md` na develop (`git show origin/develop:docs/qa/bugs/W037-001-e2e-100-vermelhos-com-o-worker.md`), seção "Causa raiz e correção": as esperas de `aguardando-coleta` que os E2E precisam com o Worker.
 
 ## Entregar
-- (E1, E1.7 parte 1) `git fetch` e merge de `origin/develop` (já com o squash do 037) na branch, nunca rebase nem `--force`; o merge 4fe19af da tl-5 trouxe só a develop de antes do 037 (794b982, `.forge/versao`); conflito em código: pare e relate, sem resolver por conta própria o que muda comportamento; push da branch logo depois do merge, para o commit a revisar estar no remoto.
+- (E1, E1.7 parte 1) `git fetch` e merge de `origin/develop` (já com o squash do 037, 2bb9f68, e o registro da 0.28.0 do Forge, #138) na branch, nunca rebase nem `--force`; o merge 4fe19af da tl-5 trouxe só a develop de antes do 037 (794b982, `.forge/versao`); conflito em código: pare e relate, sem resolver por conta própria o que muda comportamento; push da branch logo depois do merge, para o commit a revisar estar no remoto.
 - (E1) Revisão incremental do merge no parecer `docs/reviews/025-front-taticas.md`: interseção entre o Worker do 037 e o front das táticas (`web/src/features/complementares/`, `e2e/tests-api/tatico-011-lote2.spec.ts`, `e2e/perf/perf.spec.ts`, `e2e/tests-api/t10-grafias.spec.ts`), em especial se os E2E do 025 esperam o fim de `aguardando-coleta` como os corrigidos no W037-001; achado bloqueante em `## Achados` se algum E2E do 025 lê o painel antes disso; frontmatter `commit:` no head do merge; gravar com Write ou Edit, nunca por Bash; validar com o `forge-check docs`; um commit só do parecer, `git add` explícito por caminho, linha `Cartão: K-110`; push da branch.
 - (E1.7, parte 2) PR para a develop (squash), merge e limpeza: não nesta delegação. Pela decisão técnica de 2026-10-22, só depois do reteste do QA no head do merge (E1.5), numa delegação de volta ao tech-lead.
 - (E2, E3, E4) Sem mudança esperada: o merge não toca a T14 nem o T10; se tocar, registre no parecer.
@@ -33,12 +33,12 @@ Trazer para a branch do 025 a develop com o Worker do 037 (ruleset da develop ex
 - DECISÃO DO DONO (2026-10-16): R-1 = B: na T14, "outros times" fica oculto quando somar menos de 2 pessoas (pedido 011, linha 82).
 - DECISÃO DO DONO (2026-10-17): T14-M1 = B ("D1 - B"): quando "outros times" estiver oculto, a T14 mostra só a fatia do meu time, sem o total exato do projeto (pedido 011, linha 135).
 - DECISÃO DO DONO (2026-10-17): B11-001 = sim ("3 -sim"): o nome do fornecedor no T10 ignora maiúsculas, minúsculas e espaços (pedido 011, linha 130).
-- Pré-condição: o PR do 037 (#139) já mesclado na develop; sem isso, não comece.
+- Pré-condição: o PR do 037 (#139) já mesclado na develop (cumprida: squash 2bb9f68 em 2026-10-22).
 - R-MAIN: nada na `main`. R-VERIFY: nunca `--no-verify` nem `--force`; nada de `reset` nem reescrita de histórico.
 
 ## Pronto quando
-- PQ-1 (cmd): `git -C /home/rodrigoisensee/MetricasDSPD-025 merge-base --is-ancestor origin/develop HEAD` · espera: rc=0
-- PQ-2 (sha): `git -C /home/rodrigoisensee/MetricasDSPD-025 log -1 --format=%H -- docs/reviews/025-front-taticas.md` · espera: o sha40 do commit do parecer, depois do merge
+- PQ-1 (cmd): `git -C /home/rodrigoisensee/Metricas/MetricasDSPD-025 merge-base --is-ancestor origin/develop HEAD` · espera: rc=0
+- PQ-2 (sha): `git -C /home/rodrigoisensee/Metricas/MetricasDSPD-025 log -1 --format=%H -- docs/reviews/025-front-taticas.md` · espera: o sha40 do commit do parecer, depois do merge
 - PQ-3 (push): `git ls-remote origin refs/heads/feature/025-front-taticas` igual ao head local
 
 ## Relatório

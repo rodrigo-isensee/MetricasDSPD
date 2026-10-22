@@ -139,3 +139,8 @@
 | 2026-10-22 04:33 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-7 | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-22 04:37 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-6 | brief | 1 | reprovado | parcial | procedente: merge da develop e push sem registro no pedido (decisão técnica gravada); E1.7 sem marca de novo (divergência de leitura): o E1.7 passa ao Entregar como parte 1 | escopo | jarvis |
 | 2026-10-22 04:39 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-6 | brief | 2 | reprovado | s | pré-condição (#139 mesclado) ainda falsa: reenvio depois do merge; review exige commit no remoto: merge e push antes do review | etapa | jarvis |
+| 2026-10-22 15:01 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-6 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-22 15:02 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-7 | entrega | 1 | não cumpriu | parcial | PQ-6 e escopo falsos positivos (develop andou com o #138; squash inclui etapas já conferidas); procedente: linha 57 do review ainda diz que D1 já existia na develop; vai na promoção E2.7 | implementacao | destino |
+| 2026-10-22 15:16 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-devops-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-22 15:17 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-devops-engineer-1 | entrega | 1 | sem entrega (sem commit): bloqueado pelo hook e pelo Docker | parcial | não foi ao conferente: sem commit nem ato no GitHub | ambiente | destino |
+| 2026-10-22 15:19 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
