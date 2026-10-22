@@ -8,6 +8,10 @@ Pedido do dono: atualizar o Forge para a 0.28.0 e reabrir o Jarvis na versão no
 
 **Resultado do QA do 025 (terminou antes da pausa, entrega ainda não conferida):** 7807199 (spec com `?? ''`), typecheck dos E2E rc=0, spec `tatico-011-lote2` 19/19 no `chromium-api` (porta 4283, via `scripts/com-api-mock.sh`), `pnpm run pronto` rc=0, parecer d8f1c51 com `commit: 7807199`; sem push. A worktree -025 ficou com 61 PNGs de evidência (`docs/qa/evidencias/`) alterados pelas execuções, sem commit: decidir com o QA se descarta ou commita (não são do Jarvis).
 
+**Resultado do QA do 037 (terminou antes da pausa; entrega ainda não conferida):** parecer aprovado no commit 47c3e66, com push (`commit: 35bfd72`). Bug W037-001 fechado. Nas 4 specs mais a paridade, 219 de 220 testes passaram. A falha é `IF-U-operacional`, por timeout sob carga: é o D2 (K-132), que passou 4 de 4 com 1 worker. `pronto` rc=0. Na conferência, ver dois pontos:
+- `aceite_usuario: sim`, marcado pelo QA sem decisão do dono. Já foi achado numa rodada anterior.
+- Melhoria vista pelo QA: o `reuseExistingServer` na porta 4173 serve o build de outra worktree. Foi a causa do D1 falso. Proposta: porta por variável de ambiente ou reuso desligado fora da CI. Isso vira cartão.
+
 **Conferência de entrega pendente no 025:** uma conferência única de b6c76731f21cfddd320cb3a75a4490f11df688c7 até d8f1c51, cobrindo os briefs react-frontend-4, qa-engineer-1 a 4 e tech-lead-2 e 3 (a rodada de 19:04 do qa-1 ficou reprovada e nunca fechou). **No 037:** o review 7700366 (tech-lead-4) e a entrega do QA (qa-engineer-7).
 
 **Processo órfão:** PID 39905, desde 12h17. É um script antigo do front do 025 que espera os testes do 037 terminarem para rodar o Vitest na -025. O classificador nega o kill ao Jarvis, então quem encerra é o dono (`kill 39905`).
