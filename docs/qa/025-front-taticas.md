@@ -3,15 +3,15 @@ tipo: qa
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: ea533a3
-parecer: aprovado
+commit: 43f29b3
+parecer: reprovado
 escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 2
 aceite_usuario: sim
-data: 2026-10-21
+data: 2026-10-22
 ---
 # QA do front das táticas T10 a T14 (pedido 025, etapas E1.2 e E1.5, cartão K-110)
 
@@ -111,6 +111,7 @@ O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não d
 - **D2 (baixa, K-132)**: 9 E2E instáveis com 8 workers (carga). Nesta branch usei 3 workers e nenhum flaky apareceu.
 
 ## Achados
+- A5 (bloqueante) e2e/playwright.config.ts:1 · reteste no 43f29b3 não executado: Chromium do Playwright não abre nesta estação (falta libnspr4.so, ENV-025-001); E2E e CLS da L2T-003 sem evidência até a lib ser instalada
 - A1 (recomendado) web/src/features/complementares/taticas.tsx:411 · L2T-001, resolvido em 5108fcd: com "Frentes" no T13 a base mostra "Amostra insuficiente: 147 de 20 itens mínimos"; a base deve acompanhar a granularidade exibida
 - A2 (recomendado) web/src/features/complementares/taticas.tsx:612 · L2T-002, resolvido em 5108fcd: "Meu time: 1 demandas" (e "1 frentes"); usar singular quando k = 1 e ajustar a expectativa do TT-11 e do TT-12
 - A3 (recomendado) e2e/playwright.config.ts:6 · D1 do 037 não se aplica ao 025 (W037-001 corrigido no 037): o preview de outra worktree na 4173 servia build alheio; `E2E_PORTA` próprio evita
@@ -125,3 +126,17 @@ O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não d
 Aprovado sobre 5108fcd (b6c7673 mais os testes novos e a correção de L2T-001 e L2T-002): zero bug crítico ou alto; os defeitos abertos são baixos (D2 e L2T-003, já existentes; o D1 não se aplica ao 025), nenhum em regra de negócio, regra inviolável ou acessibilidade. R-1 = B e T14-M1 = B cumpridas na tela (provadas por mutação e por controle positivo); B11-001 provado pelo caminho real do back; F2 e C6 dentro do ADR 0003; axe AA sem violação crítica ou séria.
 
 **Revalidação por delta (2026-10-22):** de 7807199 a ea533a3 nada de código nem de teste mudou (`git diff --name-only 7807199 ea533a3 -- web server e2e packages` = 0 arquivos; só `.forge/versao` vindo da develop pelo merge 4fe19af, `docs/qa/`, `docs/reviews/` e `docs/ux/`); veredito, pendências (D2 em K-132, L2T-003 em K-133) e conclusões de R-1 = B, T14-M1 = B e B11-001 inalterados; o `pronto` rodou com rc=0 em 7807199.
+
+## Reteste no head 43f29b3 (develop com o Worker do 037, merge d3356a8), 2026-10-22
+
+**Veredito: reprovado por impedimento de ambiente, não por defeito do código.** O reteste dos E2E e do CLS não pôde ser executado: `chrome-headless-shell` (chromium-1248, em `~/.cache/ms-playwright`) sai com código 127 (`error while loading shared libraries: libnspr4.so: cannot open shared object file`). `find / -name 'libnspr4*'` só acha a DLL do Windows em `/mnt/c`; `libnss3` também falta. Instalar exige `apt` com sudo, proibido na delegação. Defeito registrado em `docs/qa/bugs/ENV-025-001-chromium-sem-libnspr4.md`. Nenhum teste foi pulado, e código e specs não mudaram.
+
+| Item | Comando | Resultado |
+|---|---|---|
+| `tatico-011-lote2.spec.ts` (`chromium-api`) | `E2E_PORTA=4283 E2E_PORTA_ALT=4284 bash scripts/com-api-mock.sh bash -c 'cd e2e && E2E_API_URL=$API_URL pnpm exec playwright test --project=chromium-api --retries=0 tests-api/tatico-011-lote2.spec.ts'` | 0 de 19 executados: os 19 falham no `browserType.launch` (libnspr4); nenhuma asserção foi avaliada |
+| `t10-grafias.spec.ts`, `complementares.spec.ts` | não rodados (mesmo impedimento, comprovado pelo primeiro spec) | sem resultado |
+| CLS de `/tatico?equipe=` com API (L2T-003) | não medido (exige navegador) | sem valor novo; o último é 0,073 a 0,100 (5108fcd) |
+| Typecheck dos E2E | `pnpm --filter @metricas-dspd/e2e typecheck` | sem erro |
+| `pnpm run pronto` completo | na worktree, PATH do node 24 | rc=0 (unitários, lint, formato, orçamentos do web, `docs:check` ok) |
+
+Pendências: D2 (K-132) e L2T-003 (K-133) continuam; D1 não se aplica ao 025. O que a leitura do review do merge prevê (nenhum E2E do 025 lê o painel antes do fim de `aguardando-coleta`) segue sem confirmação por execução. Para fechar: instalar `libnspr4`, `libnss3` e dependências (`pnpm exec playwright install-deps chromium`, com sudo, pelo dono) e repetir os specs e a medida do CLS; o parecer volta a aprovado se passarem.
