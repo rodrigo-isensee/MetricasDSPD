@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: 7807199
+commit: ea533a3
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -123,3 +123,5 @@ O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não d
 
 ## Parecer
 Aprovado sobre 5108fcd (b6c7673 mais os testes novos e a correção de L2T-001 e L2T-002): zero bug crítico ou alto; os defeitos abertos são médio (D1, já existente) e baixos (D2 e L2T-003, já existentes), nenhum em regra de negócio, regra inviolável ou acessibilidade. R-1 = B e T14-M1 = B cumpridas na tela (provadas por mutação e por controle positivo); B11-001 provado pelo caminho real do back; F2 e C6 dentro do ADR 0003; axe AA sem violação crítica ou séria.
+
+**Revalidação por delta (2026-10-22):** de 7807199 a ea533a3 nada de código nem de teste mudou (`git diff --name-only 7807199 ea533a3 -- web server e2e packages` = 0 arquivos; só `.forge/versao` vindo da develop pelo merge 4fe19af, `docs/qa/`, `docs/reviews/` e `docs/ux/`); veredito, pendências (D2 em K-132, L2T-003 em K-133) e conclusões de R-1 = B, T14-M1 = B e B11-001 inalterados; o `pronto` rodou com rc=0 em 7807199.
