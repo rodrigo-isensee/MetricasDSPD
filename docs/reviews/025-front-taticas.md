@@ -3,10 +3,10 @@ tipo: review
 contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
-commit: 5a0a999
+commit: d3356a8
 parecer: aprovado
 revisor: tech-lead
-data: 2026-10-21
+data: 2026-10-22
 ---
 
 # Code review: front das táticas T10 a T14 no /tatico (pedido 025, K-110)
@@ -81,8 +81,19 @@ Escopo lido: `568ea48...32a509f` (07969c8 e 32a509f), 20 arquivos, 1.490 linhas 
 
 **Integração e UX:** a `develop` foi trazida por merge (4fe19af) e só mudou `.forge/versao` (versão 0.27.0), sem arquivo em comum: nada a reler. A revisão de UX (`docs/ux/revisao-025-front-taticas.md`, aprovada com ressalvas, sem bloqueante) já está na branch; seus recomendados T14-1 e T14-2 seguem como pendência do PR.
 
+## Revisão incremental do merge `8a97686..d3356a8` (develop com o Worker do 037)
+
+**Veredito: aprovado, sem bloqueante.** O merge d3356a8 trouxe `origin/develop` em 306cf6e (squash 2bb9f68 do 037 e o registro da 0.28.0, #138) sem conflito: 21 arquivos, 1.425 linhas a mais e 243 a menos, a mesma lista de `git diff 8a97686...origin/develop --stat`. O único arquivo que as duas linhas mudaram é `docs/tecnica/arquitetura-front.md`. O git juntou sozinho os hunks, que ficam em pontos diferentes: o 037 muda o diagrama de sequência, perto da linha 111, e o 025 muda a seção das táticas, perto da linha 302. O arquivo não tem marcador de conflito. Delta lido: os quatro arquivos E2E do 037 (`e2e/pages/PainelPage.ts`, `intensivo-filtros.spec.ts`, `intensivo-filtros-bordas.spec.ts` e `mock-transporte-worker.spec.ts`), a seção "Causa raiz e correção" do W037-001 e, em `web/src/data/mock/nucleoMock.ts`, só o `COM_TAMBEM`. Ficou como "já lido": o restante do Worker, que é o review do 037 (`docs/reviews/037-c6-operacional.md`), e o front do 025, que não mudou.
+
+- **Interseção com o front das táticas:** `git diff 8a97686 d3356a8 -- web/src/features e2e/tests-api e2e/perf server` está vazio. O merge não toca `web/src/features/complementares/`, `taticas.tsx`, os E2E do 025 nem o servidor de teste das grafias. O mock passa a calcular no Worker (ADR 0021) pela mesma interface `FonteMetricas`. O 025 não acrescentou método nem tipo ao mock, então o protocolo do Worker cobre o T10 a T14 como cobre as demais métricas.
+- **Espera de `aguardando-coleta` (W037-001) nos E2E do 025:** nenhum E2E do 025 lê o painel antes do fim de `aguardando-coleta`. Todas as entradas em painel de `tatico-011-lote2.spec.ts` (o `abrir`, TT-14, TT-15 e TT-16), de `t10-grafias.spec.ts` e do caso `perf-tatico-lote2` de `e2e/perf/perf.spec.ts` passam por `PainelPage.ir`, por `esperarCartoesProntos` ou pelos dois. Com o merge, esses dois métodos esperam `aguardando-coleta` com contagem 0, e a espera vem só pela classe, sem mudar nada no spec. O `page.reload()` do C6 (perf.spec.ts:75) é seguido de `esperarCartoesProntos`. O único `page.goto` cru do 025 é `/metricas` (TT-16 e COMP-03/COMP-12), e o catálogo não usa a `Casca` nem o bloco `aguardando-coleta`, que só existe em `PainelPagina.tsx` e `VisaoGeralPage.tsx`. Os ajustes do 025 em `complementares.spec.ts` (COMP-10 e COMP-13, por `painel.ir` mais `esperarCartoesProntos`) e em `intensivo-sistemico.spec.ts` (SIS-CONS-01, cujo `prontos` espera ao menos um cartão nas rotas com cartões) também ficam cobertos.
+- **Limite da leitura:** a leitura prova que a espera existe, não que os testes passam. O reteste dos E2E do 025 e do caso de perf no head d3356a8 é do QA (E1.5). Isso inclui o CLS de `/tatico?equipe=` (L2T-003, K-133), porque o momento do primeiro paint mudou com o Worker. Não rodei a suíte: não há pnpm nem node_modules nesta estação (pedido 040), e a regra 5 da economia de tokens vale.
+- **E2, E3 e E4:** o merge não toca a T14 nem o T10. R-1 = B, T14-M1 = B e B11-001 seguem como estavam em 8a97686.
+- **A1:** o `COM_TAMBEM` saiu de `MockFonteMetricas.ts` e foi para `web/src/data/mock/nucleoMock.ts:60`. Ele continua só com E6 e E8. O achado continua valendo, agora no arquivo novo, e a linha abaixo foi atualizada.
+- **Commit:** d3356a8 é merge (`--no-ff`, sem rebase nem `--force`), com mensagem em Conventional Commits e `Cartão: K-110`.
+
 ## Achados
-- A1 (recomendado) web/src/data/mock/MockFonteMetricas.ts:55 · COM_TAMBEM sem T11, T13 e T14, contra o comentário das linhas 51-54; no mock só do navegador o T13 e o T14 saem sem vínculo e sem time. Cartão no quadro, depois do 037 (nucleoMock.ts); não fere a ficha
+- A1 (recomendado) web/src/data/mock/nucleoMock.ts:60 · COM_TAMBEM sem T11, T13 e T14 (antes em MockFonteMetricas.ts:55, movido pelo 037); no mock só do navegador o T13 e o T14 saem sem vínculo e sem time. Cartão no quadro; não fere a ficha
 - A2 (recomendado) web/src/features/complementares/taticas.tsx:168 · a leitura do T11 não traz a frase de picos da ficha, porque o contrato não a fornece e o front não deve calcular. Cartão para o back pôr os meses de pico no DTO, ou a UX ajusta a ficha no E1.6
 - A3 (recomendado) web/src/features/complementares/taticas.tsx:424 · `tipo as never` é um escape de tipo sem comentário (praticas §2). Tipar o estado com o tipo de `comparacoes[].tipo` ou comentar o motivo
 - A4 (recomendado) web/src/features/complementares/taticas.tsx:610 · a linha oculta não tem a barra só com a fatia nem "Sem time informado", que a ficha T14 prevê. É mais seguro (A2 da segurança), mas a UX decide no E1.6 e alinha o CA-45
