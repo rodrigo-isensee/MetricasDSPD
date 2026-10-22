@@ -1,5 +1,5 @@
 # W037-001 - 101 E2E do projeto chromium falham com o Worker (ADR 0021) e passam na develop
-- Status: corrigido (K-113, E2.2b); aguarda reconfirmação do QA
+- Status: corrigido e reconfirmado pelo QA em `35bfd72` (E2.3c, 2026-10-21); fechado
 - Severidade: alta (o E2E `chromium` do portão fica vermelho e bloqueia a promoção; produto ou teste, a decidir)
 - Responsável sugerido: forge:react-frontend (corrigir o Worker/estado inicial se o produto estiver errado), com forge:qa-engineer para a espera nos testes se o erro for do helper
 - Ambiente: head `85d1896` (feature/037-c6-operacional) × develop `794b982`; Playwright 1.64.1, projeto `chromium`, `--retries=0`, build e porta exclusivos por lado (4473 e 4373), load 8 a 11 (outros agentes na máquina)
@@ -27,3 +27,6 @@ Logs da sessão do QA em 2026-10-21 (`head.log`, `dev.log` no scratchpad); trace
 Causa: os helpers de espera dos E2E consideravam o painel "pronto" quando o h1 aparecia e não havia cartão no DOM. Com o mock no Worker (ADR 0021) o estado de coleta (e as preferências) chega depois do primeiro paint, e até lá `Casca` (`web/src/features/painel/PainelPagina.tsx`) mostra só o cabeçalho e o bloco reservado `data-testid="aguardando-coleta"`: sem filtros e sem cartões. Na develop o cálculo era síncrono na thread principal e a janela não existia. A hipótese do QA sobre `PainelPage.esperarCartoesProntos` se confirmou; o mesmo buraco existia nas cópias locais `esperarPronto` (intensivo-filtros), `pronto` (intensivo-filtros-bordas) e em `PainelPage.ir`. O app está correto (o bloco é o estado de carregando do painel); nada mudou no produto.
 Correção: os quatro pontos passam a aguardar `aguardando-coleta` ausente (`toHaveCount(0)`), o estado real, sem `waitForTimeout`, sem retirar asserção e sem aumentar timeout.
 Resultado: 4 specs + paridade `mock-transporte-worker`, `--project=chromium --retries=0`, porta 4473 exclusiva: 220 passam (216 das 4 specs + 4 da paridade), 0 falham.
+
+## Reconfirmação do QA (E2.3c, head de código `35bfd72`)
+Sem mudar arquivo de teste; build e porta 4473 exclusivos desta worktree (config temporária fora do commit, `ss -ltnp` sem outro preview nela), `--project=chromium --retries=0`, 8 workers, load de 1 min de 0,3 a 11. As 4 specs mais `mock-transporte-worker.spec.ts`: 220 testes, **219 passam, 1 falha** (era 101 falhas em `85d1896`). A falha é `IF-U-operacional` (timeout de 30 s em `retrato` na outra aba), a mesma que já falhava na develop `794b982` sob carga (D2, K-132). Isolada: 2 workers, 1 falha (load 7); 1 worker com `--repeat-each=4`, load 1,8 a 3,7: 4 de 4 verdes. Veredito: **W037-001 resolvido**; o resíduo é o D2, não regressão do Worker.

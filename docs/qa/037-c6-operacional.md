@@ -3,11 +3,11 @@ tipo: qa
 contrato: 1
 pedido: 037-pr-131-release-com-falhas
 branch: feature/037-c6-operacional
-commit: 85d1896
-parecer: reprovado
+commit: 35bfd72
+parecer: aprovado
 escopo: completo
 bugs_criticos: 0
-bugs_altos: 1
+bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 1
 aceite_usuario: sim
@@ -18,7 +18,7 @@ data: 2026-10-21
 
 Propósito: medir o Worker da ADR 0021 (entrega `0bde5eb`) contra o critério de pronto da proposta 037 (seção 6, "O que o QA mede depois", itens 1, 2, 3, 5 e 6) e dar o parecer de QA (`R-QA`). O HEAD de código testado é `9ee640f`: em relação a `d549417` (onde rodou o `pronto` completo) ele soma só o spec E2E de paridade e este parecer; `6fdebb0`, depois dele, só mexe em `docs/reviews/` (revisão do tech-lead, sem código). Review: `docs/reviews/037-c6-operacional.md` (aprovado, 4 achados recomendados). Item 4 (CI do PR e do portão) fica com o tech-lead, na promoção.
 
-**Parecer: reprovado (E2.3c, head 85d1896).** A medição E2E com porta e build próprios por lado mostra 101 falhas no head contra 3 na develop: o D1 abaixo era artefato de porta compartilhada e o Worker quebra o E2E (W037-001). O C6 em 0 ms segue valendo. Texto original, de 9ee640f: aprovado. C6 ficou em 0 ms de mediana nas 7 rotas, nas execuções limpas e nas sujas, contra 213 a 287 ms na `develop` na mesma sessão. Nenhuma regressão atribuível ao Worker. Há dois defeitos abertos que **já existem na `develop`** (testes E2E defasados e instabilidade de E2E sob carga), sem relação com esta entrega. Decisão do dono (2026-10-21, opção A): D1 e D2 acompanham as entregas do 037 e do 025 como pendências listadas no PR, corrigidas depois nos cartões K-131 e K-132; por isso `aceite_usuario: sim`.
+**Parecer: aprovado (E2.3c, head de código 35bfd72; depois dele só o parecer de review `7700366`).** A medição com porta e build próprios mostrou 101 falhas E2E em `85d1896` contra 3 na develop: o D1 era artefato de porta compartilhada e o Worker quebrava os helpers de espera (W037-001, alta). A correção `35bfd72` (esperar `aguardando-coleta` ausente, sem afrouxar teste nem limite) foi reconfirmada: 219 de 220 verdes, e a única falha é o D2. O W037-001 foi encontrado e corrigido nesta entrega e está fechado. Condição da decisão do dono (2026-10-21, "A se d1 foi feito e vai subir certo"): o check `e2e` do PR do 037 precisa ficar verde; o K-131 fecha depois do merge. O C6 em 0 ms segue valendo. Texto original, de 9ee640f: aprovado. C6 ficou em 0 ms de mediana nas 7 rotas, nas execuções limpas e nas sujas, contra 213 a 287 ms na `develop` na mesma sessão. Nenhuma regressão atribuível ao Worker. Há dois defeitos abertos que **já existem na `develop`** (testes E2E defasados e instabilidade de E2E sob carga), sem relação com esta entrega. Decisão do dono (2026-10-21, opção A): D1 e D2 acompanham as entregas do 037 e do 025 como pendências listadas no PR, corrigidas depois nos cartões K-131 e K-132; por isso `aceite_usuario: sim`.
 
 ## Ambiente
 WSL2 (8 núcleos), Node v24.21.0, `@playwright/test` 1.64.1, Chromium 156.0.8078.4, worktree `MetricasDSPD-037`. Sem `flock` (o hook recusa): antes de cada medição, `pgrep -f 'vitest/vitest.mjs|playwright/cli'` sem processo de outra worktree, uma suíte pesada por vez. A `develop` (`12018de`) foi medida em worktree descartável (`MetricasDSPD-037-dev`, removida ao fim), mesma sessão, intercalada com o Worker.
@@ -107,20 +107,32 @@ Pergunta: os 101 E2E vermelhos do check `e2e` do PR #137 (run 39677135959) são 
 
 Falhas da develop (instabilidade sob carga, D2): IF-B05 e IF-B17 (`S2=carregando`) e IF-U-operacional. Falhas do head: as 3 acima não são o ponto; 98 `IF-*`, 2 `K-*` e 1 `NAV-06`, quase todas `expect(r2.botoes).toEqual(r.botoes)` (painel lido sem cartões, depois com cartões). Amostra de 3: (1) `b12-fluxo.spec.ts:239` B3-002, `Expected "O12", Received []`; (2) `intensivo-filtros.spec.ts:255` IF-C-operacional-diaria-01, `toEqual` com `Expected - 6 / Received + 1`; (3) `intensivo-filtros.spec.ts:354` IF-U-operacional, `Voltar até o estado 0`. B3-002 repetido 3 vezes: 3/3 vermelho no head, 3/3 verde na develop.
 
-**Veredito: regressão do Worker** (falha só em `85d1896`). O D1 deste parecer fica **retirado** (era artefato da porta 4173 compartilhada); o K-131 deve ser reaberto como defeito da entrega (W037-001), não como pendência da develop. Parecer reprovado; o D2 (instabilidade sob carga) continua pendência. Bug: `docs/qa/bugs/W037-001-e2e-100-vermelhos-com-o-worker.md`.
+**Veredito da medição em `85d1896`: regressão do Worker** (falha só nele). O D1 deste parecer ficou **retirado** (era artefato da porta 4173 compartilhada) e virou o W037-001, defeito da entrega. Bug: `docs/qa/bugs/W037-001-e2e-100-vermelhos-com-o-worker.md`.
+
+### Reconfirmação em `35bfd72` (E2.3c)
+Mesmas 4 specs mais `mock-transporte-worker.spec.ts` (220 testes), sem mudar arquivo de teste, projeto `chromium`, `--retries=0`, 8 workers, build e porta 4473 exclusivos desta worktree (config temporária fora do commit; `ss -ltnp` mostrou só o preview da 4173, de outra worktree), load de 1 min de 0,3 a 11 durante a rodada.
+
+| Rodada | Passam | Falham |
+|---|---|---|
+| head `35bfd72`, 8 workers | 219 | 1 (`IF-U-operacional`, timeout de 30 s na outra aba) |
+| mesmo teste isolado, 2 workers (load 7) | 0 | 1 |
+| mesmo teste, 1 worker, `--repeat-each=4` (load 1,8 a 3,7) | 4 | 0 |
+
+A falha restante é a mesma que a develop `794b982` já tinha sob carga (D2), passa com 1 worker e carga baixa, e não aparece nas 98 falhas `IF-*`, 2 `K-*` e 1 `NAV-06` do W037-001. A paridade `mock-transporte-worker.spec.ts` ficou 4 de 4. `pnpm run pronto` completo em `35bfd72`: saída 0 (a primeira tentativa, com a máquina disputada por outra suíte, estourou o tempo de um teste do Tático e o limite do comando; refeita sozinha, passou; `docs:check` ok, 643 páginas). **W037-001 resolvido** (101 falhas em `85d1896`, 0 atribuíveis ao Worker em `35bfd72`).
 
 ## Defeitos
-- **D1 (RETIRADO em E2.3c; ver W037-001, alta, do Worker).** Texto original, medido com porta compartilhada: 100 testes E2E (96 em `e2e/tests/intensivo-filtros.spec.ts` na linha 255, mais 354, 471, 675 e 701, e 4 em `b12-fluxo.spec.ts:230`, `:379`, `filtros.spec.ts:129` e `intensivo-filtros-bordas.spec.ts:177`) falham na `develop` `12018de`, sem relação com o Worker. Passos: `cd e2e && E2E_SEM_ALT=1 pnpm exec playwright test --project=chromium --workers=2 tests/filtros.spec.ts:129 tests/b12-fluxo.spec.ts:230`. Esperado: verde. Obtido: `expect(page).toHaveURL(/equipe=erp-protheus/)` recebe `http://localhost:4173/tatico`, e `codigosDosCartoes()` volta `[]` esperando `O12`. Responsável sugerido: `forge:qa-engineer`, com `forge:react-frontend` para decidir se o produto ou o teste está certo (a regra de links entre painéis é de UX). Pendência do PR: K-131 (decisão do dono, 2026-10-21, opção A). Não bloqueia este parecer, mas o `pronto` do projeto não inclui o E2E completo, então o portão não vê isso; vale decidir se o E2E `chromium` completo entra no portão.
+- **W037-001 (alta, FECHADO em E2.3c).** 101 E2E vermelhos só com o Worker; causa nos helpers de espera dos E2E; corrigido em `35bfd72` e reconfirmado (219/220; o resíduo é o D2).
+- **D1 (RETIRADO em E2.3c; virou W037-001).** Texto original, medido com porta compartilhada: 100 testes E2E (96 em `e2e/tests/intensivo-filtros.spec.ts` na linha 255, mais 354, 471, 675 e 701, e 4 em `b12-fluxo.spec.ts:230`, `:379`, `filtros.spec.ts:129` e `intensivo-filtros-bordas.spec.ts:177`) falham na `develop` `12018de`, sem relação com o Worker. Passos: `cd e2e && E2E_SEM_ALT=1 pnpm exec playwright test --project=chromium --workers=2 tests/filtros.spec.ts:129 tests/b12-fluxo.spec.ts:230`. Esperado: verde. Obtido: `expect(page).toHaveURL(/equipe=erp-protheus/)` recebe `http://localhost:4173/tatico`, e `codigosDosCartoes()` volta `[]` esperando `O12`. Responsável sugerido: `forge:qa-engineer`, com `forge:react-frontend` para decidir se o produto ou o teste está certo (a regra de links entre painéis é de UX). Pendência do PR: K-131 (decisão do dono, 2026-10-21, opção A). Não bloqueia este parecer, mas o `pronto` do projeto não inclui o E2E completo, então o portão não vê isso; vale decidir se o E2E `chromium` completo entra no portão.
 - **D2 (baixa).** Instabilidade do E2E sob carga: 9 testes (lista acima) falham com 8 workers e load alto, e passam com 2 a 3 workers. Não marquei nenhum como `skip`. Responsável sugerido: `forge:qa-engineer` (reduzir `workers` local ou esperas). Pendência do PR: K-132 (decisão do dono, 2026-10-21, opção A).
 
 ## Achados
-- A0 (bloqueante) e2e/pages/PainelPage.ts:53 · W037-001: 101 E2E do `chromium` falham só com o Worker (develop 3 falhas); esperar os cartões depois do primeiro paint ou corrigir o estado inicial.
+- A0 (recomendado) e2e/pages/PainelPage.ts:53 · W037-001 (resolvido em 35bfd72): os helpers esperam `aguardando-coleta` ausente; 219 de 220 verdes, resíduo D2.
 - A1 (recomendado) e2e/perf/perf.spec.ts:135 · C5 mede só o heap da thread principal; a soma com o Worker (proposta 037, item 5) ficou numa sonda avulsa. Incluir o heap do Worker no teste.
 - A2 (recomendado) web/scripts/size.mjs:24 · F9 em 117,35 de 120 KB soma o chunk do Worker e o do fallback, mas só um é baixado. Medir pelo maior caminho, sem afrouxar o limite.
-- A3 (recomendado) e2e/tests/intensivo-filtros.spec.ts:255 · D1: 96 testes pairwise falham na develop e no Worker; atualizar para a interface atual e decidir se o E2E completo entra no portão.
+- A3 (recomendado) e2e/tests/intensivo-filtros.spec.ts:356 · D2: `IF-U-operacional` instável sob carga (timeout de 30 s); reduzir workers ou revisar a espera, e decidir se o E2E completo entra no portão.
 
 ## Pendências do PR
-- **K-131 (D1, média):** 100 E2E defasados na `develop` (`12018de`), sem relação com o Worker. Decisão do dono (2026-10-21, opção A): acompanha as entregas do 037 e do 025 e é corrigido depois no cartão K-131 (R-QA).
+- **D1 saiu das pendências** (decisão do dono, 2026-10-21, "A se d1 foi feito e vai subir certo"): aparece como W037-001, encontrado e corrigido nesta entrega (`35bfd72`). Condição: a correção sobe certa, isto é, o check `e2e` do PR do 037 fica verde; o K-131 fecha depois do merge.
 - **K-132 (D2, baixa):** 9 E2E instáveis com 8 workers sob carga, já na `develop`. Decisão do dono (2026-10-21, opção A): acompanha as entregas do 037 e do 025 e é corrigido depois no cartão K-132 (R-QA).
 
 ## Pendências fora deste parecer
