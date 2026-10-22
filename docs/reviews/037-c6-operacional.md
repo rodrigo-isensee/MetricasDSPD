@@ -54,7 +54,7 @@ O delta tem dois arquivos: `e2e/tests/mock-transporte-worker.spec.ts` (71 linhas
 - **Cobertura da ADR 0021, seção 3, item 4.** O teste 1 prova Worker de módulo da mesma origem e recusa `blob:` e `data:` (`w.url()` começa por `baseURL/`). Os três testes de paridade abrem dois contextos, um com `window.Worker` anulado por `addInitScript` (fallback em processo), e comparam o texto do `main` e a contagem de cartões para VISAO_GERAL, O2 diária e uma rota do Acelerato (sustentação). Exigem `workers()>=1` no caminho com Worker e `0` no fallback.
 - **Determinismo.** A latência está desligada (`?latencia=0`, aceita pelo `App.tsx`), a semente é a padrão e o fuso é fixado em `America/Sao_Paulo`. Não há `waitForTimeout`: as esperas são `expect`/`expect.poll` sobre estado (cartões sem `aria-busy`, ausência de `estado-carregando-*`). O texto é normalizado sem espaços para não depender da quebra de linha dos gráficos. A guarda de 200 caracteres e de pelo menos 2 cartões impede comparar dois painéis vazios. Contextos fechados em `finally`.
 - **Aderência ao projeto.** Usa a fixture `base` e `ROTAS` (as três rotas existem em `e2e/fixtures/constantes.ts`). Nada de `skip`. O comentário de cabeçalho explica a obrigação.
-- **D1 e D2 do QA.** Já existem na `develop` (K-131 e K-132, decisão do dono: acompanham o PR como pendência listada). Não são regressão deste diff.
+- **D1 e D2 do QA.** Já existem na `develop`; não são regressão deste diff. Depois, o D1 foi tratado como W037-001, encontrado e corrigido nesta entrega (35bfd72); só o D2 (K-132) segue como pendência (decisão do dono de 2026-10-21).
 - Não rodei o E2E: a execução e a medição são do QA, citadas no parecer dele.
 
 ## Revisão incremental: `9ee640f..35bfd72` (W037-001, diagrama e merge da develop)
@@ -63,7 +63,7 @@ Parecer continua **aprovado**, sem achado novo. Delta lido: `e2e/pages/PainelPag
 - **Diagrama Mermaid.** O delta contra `9ee640f` troca os `;` por vírgulas em duas notas e numa linha de `F->>F`, sem mudar o conteúdo. Está de acordo com os três commits de correção anteriores.
 - **Merge da develop (`04e529f`).** Traz só documentação de outros pedidos, o E2E intensivo da develop e a troca de um texto em `web/src/content/catalogo-metricas.ts` (pergunta de E7, pedido 036). Nenhuma interseção com `web/src/data/mock/`. Não há conflito resolvido à mão no diff.
 - **Evidência de execução** (citada, não refeita): 220 E2E passam e 0 falham com `--retries=0` e porta própria, segundo o bug W037-001. A reconfirmação é do QA.
-- **Pendência:** D1 (K-131) e D2 (K-132) seguem como pendências do PR, conforme a decisão do dono de 2026-10-21.
+- **Pendência:** o D1 é o W037-001, encontrado e corrigido nesta entrega (35bfd72), pela decisão do dono de 2026-10-21 (opção A sobre o D1), sob a condição de o check `e2e` do PR ficar verde. Só o D2 (K-132) segue como pendência.
 
 ## Pendências fora deste review
 - QA (E2.3, já em `9ee640f`; o QA atualiza o commit do parecer dele): C5 somando o heap do Worker, medição do pronto (mediana < 150 ms nas 7 rotas, 2 execuções), F6 sem aumento além de 2 KB gzip contra a `develop` e F5/F3/F1 sem regressão.
