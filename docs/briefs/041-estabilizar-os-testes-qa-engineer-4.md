@@ -39,7 +39,7 @@ Terminar o diagnóstico medido das instabilidades (etapa E1.1 do pedido 041, car
 - DECISÃO DO DONO (2026-10-23): "Rode no máximo uma suíte de teste por vez e poucos agentes em paralelo." (depois da segunda queda do WSL por falta de memória).
 - DECISÃO DO DONO (2026-10-23): sessão do Jarvis dentro do jarvis.slice (memória alta em 7 GB e máxima em 9 GB, CPU até 8 núcleos), que vale para tudo o que ele dispara; "Se um processo for morto por falta de memória, rode menos coisas em paralelo e tente de novo."
 - Pedido 041, Fora do escopo: afrouxar limite de performance (C6, F6, F9, ADR 0003) ou de cobertura não entra.
-- R-TETO e R-CONFORMIDADE: bloqueio não se contorna. O hook barra `$`, crase e `?` no Bash: use o PATH `/home/rodrigoisensee/.nvm/versions/node/v24.22.1/bin` como prefixo literal, e o nome da rodada literal no `--unit`.
+- R-TETO e R-CONFORMIDADE: bloqueio não se contorna. O hook barra `$`, crase e `?` no Bash: use o PATH `/home/rodrigoisensee/.nvm/versions/node/v24.22.1/bin` como prefixo literal.
 
 ## Pronto quando
 - PQ-1 (sha): `git -C /home/rodrigoisensee/Metricas/MetricasDSPD-041 log -1 --format=%H -- docs/qa/041-estabilidade.md` · espera: o sha40 do commit do relatório
