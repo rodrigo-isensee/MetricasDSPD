@@ -157,3 +157,5 @@
 | 2026-10-22 22:07 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-7 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-23 06:24 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-23 06:26 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-7 | entrega | 1 | não cumpriu | parcial | PQ cumpridos e nada pendente; escopo da branch inteira no merge (falso positivo); procedente: parecer de segurança da T14 em 32a509f, anterior a 5108fcd (texto da T14): review de segurança incremental antes da promoção | escopo | destino |
+| 2026-10-23 08:38 | 025-front-do-011-lote2 | 025-front-do-011-lote2-security-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 08:38 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-8 | brief | 1 | aprovado | s | aviso: alinhar Andamento 15:02 (linha 57 no E2.7) com E2.5b | — | jarvis |
