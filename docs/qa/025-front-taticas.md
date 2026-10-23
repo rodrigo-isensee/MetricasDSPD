@@ -4,7 +4,7 @@ contrato: 1
 pedido: 025-front-do-011-lote2
 branch: feature/025-front-taticas
 commit: 43f29b3
-parecer: reprovado
+parecer: aprovado
 escopo: completo
 bugs_criticos: 0
 bugs_altos: 0
@@ -111,7 +111,7 @@ O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não d
 - **D2 (baixa, K-132)**: 9 E2E instáveis com 8 workers (carga). Nesta branch usei 3 workers e nenhum flaky apareceu.
 
 ## Achados
-- A5 (bloqueante) e2e/playwright.config.ts:1 · reteste no 43f29b3 não executado: Chromium do Playwright não abre nesta estação (falta libnspr4.so, ENV-025-001); E2E e CLS da L2T-003 sem evidência até a lib ser instalada
+- A5 (recomendado) e2e/playwright.config.ts:1 · resolvido no ambiente: o Chromium não abria (libnspr4.so, ENV-025-001); com as dependências instaladas pelo dono o reteste no 43f29b3 rodou e passou (ver "Reteste no head 43f29b3, segunda execução")
 - A1 (recomendado) web/src/features/complementares/taticas.tsx:411 · L2T-001, resolvido em 5108fcd: com "Frentes" no T13 a base mostra "Amostra insuficiente: 147 de 20 itens mínimos"; a base deve acompanhar a granularidade exibida
 - A2 (recomendado) web/src/features/complementares/taticas.tsx:612 · L2T-002, resolvido em 5108fcd: "Meu time: 1 demandas" (e "1 frentes"); usar singular quando k = 1 e ajustar a expectativa do TT-11 e do TT-12
 - A3 (recomendado) e2e/playwright.config.ts:6 · D1 do 037 não se aplica ao 025 (W037-001 corrigido no 037): o preview de outra worktree na 4173 servia build alheio; `E2E_PORTA` próprio evita
@@ -129,7 +129,7 @@ Aprovado sobre 5108fcd (b6c7673 mais os testes novos e a correção de L2T-001 e
 
 ## Reteste no head 43f29b3 (develop com o Worker do 037, merge d3356a8), 2026-10-22
 
-**Veredito: reprovado por impedimento de ambiente, não por defeito do código.** O reteste dos E2E e do CLS não pôde ser executado: `chrome-headless-shell` (chromium-1248, em `~/.cache/ms-playwright`) sai com código 127 (`error while loading shared libraries: libnspr4.so: cannot open shared object file`). `find / -name 'libnspr4*'` só acha a DLL do Windows em `/mnt/c`; `libnss3` também falta. Instalar exige `apt` com sudo, proibido na delegação. Defeito registrado em `docs/qa/bugs/ENV-025-001-chromium-sem-libnspr4.md`. Nenhum teste foi pulado, e código e specs não mudaram.
+**Veredito desta primeira execução (superado pela segunda, abaixo): reprovado por impedimento de ambiente, não por defeito do código.** O reteste dos E2E e do CLS não pôde ser executado: `chrome-headless-shell` (chromium-1248, em `~/.cache/ms-playwright`) sai com código 127 (`error while loading shared libraries: libnspr4.so: cannot open shared object file`). `find / -name 'libnspr4*'` só acha a DLL do Windows em `/mnt/c`; `libnss3` também falta. Instalar exige `apt` com sudo, proibido na delegação. Defeito registrado em `docs/qa/bugs/ENV-025-001-chromium-sem-libnspr4.md`. Nenhum teste foi pulado, e código e specs não mudaram.
 
 | Item | Comando | Resultado |
 |---|---|---|
@@ -140,3 +140,21 @@ Aprovado sobre 5108fcd (b6c7673 mais os testes novos e a correção de L2T-001 e
 | `pnpm run pronto` completo | na worktree, PATH do node 24 | rc=0 (unitários, lint, formato, orçamentos do web, `docs:check` ok) |
 
 Pendências: D2 (K-132) e L2T-003 (K-133) continuam; D1 não se aplica ao 025. O que a leitura do review do merge prevê (nenhum E2E do 025 lê o painel antes do fim de `aguardando-coleta`) segue sem confirmação por execução. Para fechar: instalar `libnspr4`, `libnss3` e dependências (`pnpm exec playwright install-deps chromium`, com sudo, pelo dono) e repetir os specs e a medida do CLS; o parecer volta a aprovado se passarem.
+
+## Reteste no head 43f29b3, segunda execução (2026-10-22)
+
+**Veredito: aprovado.** O dono instalou as dependências do Chromium (`ldd` do chrome-headless-shell 1248 sem "not found"; abre na 156.0.8078.4): o A5 e o ENV-025-001 estão corrigidos no ambiente. Porta própria (`E2E_PORTA=4283`, `E2E_PORTA_ALT=4284`), `--retries=0`, nenhum playwright de outra worktree em execução (`pgrep` antes), PATH do node 24. Código e specs não mudaram; nenhum teste pulado. A leitura do review do merge (nenhum E2E do 025 lê o painel antes do fim de `aguardando-coleta`) fica confirmada por execução: o Worker do 037 não quebrou nenhum caso.
+
+| Item | Comando | Resultado |
+|---|---|---|
+| `tatico-011-lote2.spec.ts` | `bash scripts/com-api-mock.sh` com `--project=chromium-api` | 19 de 19 passaram (13,7 s) |
+| `t10-grafias.spec.ts` | `MOCK_FORNECEDOR_GRAFIAS=1`, `--project=chromium-api-grafias` (o projeto `chromium-api` o ignora por `testIgnore`) | 1 de 1 passou |
+| `complementares.spec.ts` | `--project=chromium` | 30 de 30 passaram (56,1 s) |
+| Typecheck dos E2E | `pnpm --filter @metricas-dspd/e2e typecheck` | rc=0, sem erro |
+| CLS de `/tatico?equipe=erp-protheus` (L2T-003) | `perf-api`, caso `perf-tatico-lote2`, 15 cargas, seção fechada | totais da página: 0,032 a 0,085 (12 de 15 cargas em 0,073; 0,034, 0,032 e 0,032 nas outras; 0,085 em uma); seção aberta acrescenta 0,000 nas 15 cargas |
+| F2 e C6 gerais de `/tatico` (sem equipe) | `perf-api`, `-g "F2 CLS e C6 tarefa longa em /tatico"` | CLS 0,091 (pior de 15 cargas; antes 0,035), C6 0 ms; passou o orçamento (< 0,1), mas com folga menor |
+| `pnpm run pronto` | na worktree, antes do commit | rc=0 |
+
+**CLS (L2T-003):** antes 0,073 a 0,100; agora 0,032 a 0,085. O pico de 0,100 não reapareceu e o valor típico segue 0,073, então o defeito herdado continua (pendência K-133), um pouco menor no pior caso e sem mudança no valor típico; o Worker não o corrigiu nem o piorou de forma mensurável com equipe. Observação nova, sem bug aberto: o `/tatico` sem equipe passou de 0,035 para 0,091 numa medida de 15 cargas; segue abaixo de 0,1 (ADR 0003), mas perto do limite. Vale remedir no cartão K-133 junto com L2T-003.
+
+**Pendências do PR:** D2 (K-132) e L2T-003 (K-133) continuam abertas; D1 não se aplica ao 025 (W037-001 corrigido no 037). `bugs_baixos: 2` (D2 e L2T-003). `aceite_usuario: sim` mantido, conforme as decisões do dono de 2026-10-21 já registradas acima.
