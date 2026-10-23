@@ -44,9 +44,11 @@ Instabilidades já registradas, em quatro grupos:
 
 ## Decisões do usuário (registro literal)
 DECISÃO DO DONO (2026-10-22): "Jarvis preciso que voce melhore os testes, porque to achando muito estranho algumas instabilidades".
+DECISÃO DO DONO (2026-10-22): recibo do 041 aceito ("Ok"), sem instabilidade específica além das do Diagnóstico.
 
 ## Registro de clareza
 PERGUNTA: nenhuma
 
 ## Histórico
 - 2026-10-22: pedido aberto; recibo enviado ao dono.
+- 2026-10-22 22:15: recibo aceito. Cartão K-138 (E1.1, diagnóstico). As correções (E2 a E4) saem do plano do diagnóstico.

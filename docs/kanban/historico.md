@@ -381,3 +381,6 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-22T21:31:20-03:00 | K-137 | — | Entrada | MELHORIA da retrospectiva do 040 (projeto) |
 | 2026-10-22T21:31:20-03:00 | K-122 | Pronto para fazer | Pronto | acerto do quadro: #134 já na develop |
 | 2026-10-22T21:31:20-03:00 | K-124 | Pronto para fazer | Pronto | acerto do quadro: pedido 039 encerrado |
+| 2026-10-22T21:47:30-03:00 | K-110 | Bloqueado | QA | dependências do Chromium instaladas pelo dono; reteste do qa-8 relançado |
+| 2026-10-22T22:07:03-03:00 | K-110 | QA | Aguardando sua validação | E1.7 parte 2: tech-lead-7 (PR, checks, merge na develop e limpeza) |
+| 2026-10-22T22:24:07-03:00 | K-138 | — | Pronto para fazer | pedido 041, E1.1: diagnóstico medido das instabilidades |
