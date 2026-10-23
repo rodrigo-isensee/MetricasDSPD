@@ -155,3 +155,4 @@
 | 2026-10-22 21:36 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-agile-coach-2 | entrega | 1 | não cumpriu | parcial | PQ-1 a 3 cumpridos, contagens ok; resta a menção ao brief do devops-1 (aprovado) na Leitura da §2; aceita pelo Jarvis: identifica evento de delegação, como a retro do 036 (react-1 r1); desvio de escrita por Bash registrado (F16) | implementacao | destino |
 | 2026-10-22 22:05 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-8 | entrega | 1 | não cumpriu | n | PQ-1 a 3 cumpridos, pendente nenhum, etapa em ordem; fora só pela faixa b6c7673..43f29b3 de briefs anteriores (mesma decisão técnica de 15:40) | escopo | destino |
 | 2026-10-22 22:07 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-7 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 06:24 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |

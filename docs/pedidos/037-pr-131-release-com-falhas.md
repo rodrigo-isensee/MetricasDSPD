@@ -30,6 +30,8 @@
 - E2.3c (forge:qa-engineer): verificar se os 101 E2E vermelhos do PR #137 também falham na develop (794b982), com porta própria (`E2E_PORTA`) e sem preview de outra worktree; registrar no parecer de QA se são regressão do Worker ou defeito antigo.
 - E2.4a (forge:tech-lead): code review da branch (inclusive o que o QA acrescentar), parecer em docs com o commit do head.
 - E2.4b (forge:tech-lead): PR para a develop (squash), com D1 e D2 listados como pendências, e merge com os checks verdes; limpeza da branch e da worktree -037 depois do merge.
+- E2.5b (forge:tech-lead): no PR de documentação do Jarvis (branch `docs/jarvis-2026-10-20-noite`) para a develop, corrigir a linha 57 do parecer `docs/reviews/037-c6-operacional.md` (achado da conferência de 2026-10-22 15:02), revisar o diff só de documentação, abrir o PR e mesclar.
+- E2.5c (forge:qa-engineer): parecer de QA só de documentação (`docs:check`) da branch do Jarvis, antes do merge do E2.5b.
 - E2.6 (forge:qa-engineer): parecer de QA da promoção develop → homolog.
 - E2.7 (forge:tech-lead): parecer de review da promoção, PR develop → homolog (merge commit) e merge com o portão disparado.
 - E2.5 (dono): mesclar o #136 (homolog → main) com o homolog-aprovada verde. Feito pelo dono em 2026-10-21 13:10 (merge 17fee18), antes do 037 entrar: a correção do C6 vai na próxima release (E2.8).
