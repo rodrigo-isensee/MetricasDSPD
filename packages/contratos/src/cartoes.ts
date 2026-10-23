@@ -97,7 +97,7 @@ function secao(
 export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ...secao('operacional', 'diaria', 'Visão diária', [
     ['O2', 'Idade do trabalho em progresso'],
-    ['BLOQUEADOS', 'Bloqueados agora'],
+    ['BLOQUEADOS', 'Bloqueados agora', undefined, ['t10']],
     ['O1', 'Trabalho em progresso e limite'],
   ]),
   ...secao('operacional', 'tempo', 'Tempo', [
@@ -122,15 +122,15 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ),
   ...secao('tatico', 'publicado', 'Estamos cumprindo o que publicamos?', [
     ['T2', 'Aderência ao SLE'],
-    ['T1', 'Lead time ponta a ponta', undefined, ['t4', 't6']],
+    ['T1', 'Lead time ponta a ponta', undefined, ['t4', 't6', 't13']],
     ['T5', 'Demanda de falha', undefined, ['o14']],
   ]),
   ...secao('tatico', 'fila', 'O que entra, e o que sai da fila para isso caber?', [
-    ['T4', 'Demanda × capacidade', undefined, ['t1', 't8']],
+    ['T4', 'Demanda × capacidade', undefined, ['t1', 't8', 't11']],
     ['T3', 'Alocação da capacidade'],
   ]),
   ...secao('tatico', 'projetos', 'Os projetos estão avançando de verdade?', [
-    ['T9', 'Avanço real e escopo', undefined, ['t6', 'e5', 'e6']],
+    ['T9', 'Avanço real e escopo', undefined, ['t6', 'e5', 'e6', 't14']],
     ['T7', 'Fluxo de frentes'],
   ]),
   ...secao(
@@ -195,7 +195,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     'O que entra?',
     [
       ['O11', 'Composição do backlog'],
-      ['O14', 'Origem da demanda'],
+      ['O14', 'Origem da demanda', undefined, ['t12']],
     ],
     'complementar',
   ),
@@ -221,6 +221,27 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     'cumprindo-o-plano',
     'Estamos cumprindo o plano?',
     [['T8', 'Sprint']],
+    'complementar',
+  ),
+  ...secao(
+    'tatico',
+    'o-que-entra-e-quando',
+    'O que entra, e quando?',
+    [
+      ['T11', 'Sazonalidade da chegada', undefined, ['t4', 't6']],
+      ['T12', 'Qualidade da entrada por área', undefined, ['o14', 'o11']],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'tatico',
+    'de-quem-depende-o-prazo',
+    'De quem depende o prazo?',
+    [
+      ['T10', 'Tempo de terceiros', undefined, ['bloqueados', 'o12']],
+      ['T13', 'Dependências entre quadros', undefined, ['t1']],
+      ['T14', 'Participação do meu time no projeto', undefined, ['t13', 't9']],
+    ],
     'complementar',
   ),
   ...secao(
