@@ -36,6 +36,7 @@
 - E2.6b (forge:tech-lead): PR dos pareceres da promoção (QA e review, branch `docs/promocao-2026-10-23`) para a develop, por squash, antes do PR develop → homolog, como no pedido 023 (#115). Decisão técnica do Jarvis de 2026-10-23: o fluxo de homologação (§4, item 4) pede o parecer do QA da candidata em `docs/qa/`.
 - E2.7 (forge:tech-lead): parecer de review da promoção, PR develop → homolog (merge commit) e merge com o portão disparado.
 - E2.5 (dono): mesclar o #136 (homolog → main) com o homolog-aprovada verde. Feito pelo dono em 2026-10-21 13:10 (merge 17fee18), antes do 037 entrar: a correção do C6 vai na próxima release (E2.8).
+- E2.9 (forge:devops-engineer): rodar de novo o check `homolog-aprovada` do PR #144, que falhou por corrida com o portão (K-108), e relatar o resultado.
 - E2.8 (forge:tech-lead): abrir o PR de release homolog → main com o Worker do 037, depois do E2.7, para o dono validar e mesclar.
 - E1.5 (forge:software-architect): proposta de tratamento do C6 de /operacional sem afrouxar o limite (K-113), a partir da medição 1f715e8, gravada na worktree -037 (sem commit: o arquiteto não tem Bash; o commit vai com a implementação).
 
@@ -48,6 +49,7 @@ DECISÃO DO DONO (2026-10-20): C6 do #131, opção A ("A"): medir antes (C6 de /
 DECISÃO DO DONO (2026-10-20): C6, opção A ("A"): seguir com o Web Worker da ADR 0021 (proposta docs/architecture/propostas/037-c6-operacional.md, alternativa A), precedido pela sonda S0; o #131 espera de 2 a 3 dias com o portão vermelho.
 DECISÃO DO DONO (2026-10-21): PR #136 (release homolog → main, homolog-aprovada vermelho: portão não disparou em d722901 e o C6 ainda não corrigido), opção A ("A"): esperar o 037; o #136 fica aberto e, com o Worker na develop (review e QA), o tech-lead promove para a homolog com os pareceres da promoção, o portão roda e o dono mescla o #136.
 DECISÃO DO DONO (2026-10-22): "Vou dormir toque tudo que puder" (ordem ampla: só o que já está confirmado ou delegado segue, R-DECISAO "Complemento"; aqui, E2.6 a E2.8, a promoção com o 025 e o PR de release para o dono validar).
+DECISÃO DO DONO (2026-10-23): homolog-aprovada do #144, opção A ("A"): o devops-engineer roda de novo o check, com o custo de ~7 s de Actions; o merge do #144 na main continua do dono.
 
 ## Fora do escopo
 - Mudar o limite de 200 ms da ADR 0003, desligar check, mexer no #131 ou na main.
@@ -85,3 +87,4 @@ DECISÃO DO DONO (2026-10-22): "Vou dormir toque tudo que puder" (ordem ampla: s
 - 2026-10-21 14:10: entrega conferida d54941763ff6dcb3a87f5bff96fda7d6f45795e3
 - 2026-10-21 17:10: entrega conferida fd3f8519cf7594091204ce5ac8ad4f41b6273c39
 - 2026-10-21 19:50: entrega conferida 35bfd72ab8d4a66fd4237000e6e83c3619a17bf4
+- 2026-10-23 15:00: E2.9 cumprida (devops-2): o `homolog-aprovada` do #144 passou ao rodar de novo (a corrida do K-108 confirmada). O dono mesclou o #144 na main em 2026-10-23 17:28Z. A release leva o 037 (Worker, C6), o 025 (táticas T10 a T14), o Forge 0.28.0 e a documentação. Falta só a retrospectiva.

@@ -47,6 +47,7 @@ DECISÃO DO DONO (2026-10-22): "Jarvis preciso que voce melhore os testes, porqu
 DECISÃO DO DONO (2026-10-22): recibo do 041 aceito ("Ok"), sem instabilidade específica além das do Diagnóstico.
 DECISÃO DO DONO (2026-10-23): "Faca suas recomendacoes": E2E completo no portão (K-131) e religar a rodada noturna da homolog ficam para depois do 041 entregue, porque dependem de a suíte estar estável. Melhorias do Forge: o dono leva o texto (docs/kanban/prompt-jarvis-forge-2026-10-21.md, F1 a F20).
 DECISÃO DO DONO (2026-10-23): "Atenção a consumo: rode as suítes de teste sem paralelismo excessivo, pois o WSL agora tem teto de 14 GB." (depois de o WSL cair sem memória durante o diagnóstico com 8 workers).
+DECISÃO DO DONO (2026-10-23): "Rode no máximo uma suíte de teste por vez e poucos agentes em paralelo." (depois da segunda queda do WSL por falta de memória).
 
 ## Registro de clareza
 PERGUNTA: nenhuma
@@ -55,3 +56,4 @@ PERGUNTA: nenhuma
 - 2026-10-22: pedido aberto; recibo enviado ao dono.
 - 2026-10-22 22:15: recibo aceito. Cartão K-138 (E1.1, diagnóstico). As correções (E2 a E4) saem do plano do diagnóstico.
 - 2026-10-23 11:40: o WSL caiu sem memória durante o diagnóstico (qa-1, segunda execução). Ficou um relatório parcial sem commit na worktree -041: unidade 0/5 falhas; E2E com 8 workers deu 20 falhas (19 timeouts), com 2 workers deu 1 (perf F4); achados F-1 (`pnpm test` dispara o E2E) e F-2 (E2E regrava `docs/qa/evidencias`). Decisão técnica do Jarvis (`técnico`, base: decisão do dono de 2026-10-23 sobre o consumo): a continuação roda com no máximo 2 workers e uma execução de E2E por vez, sem o cenário de 8 workers (o dado da r1 com 8 workers já basta para o K-132), e o cenário "sob carga" vira 2 workers com a unidade em paralelo limitada a 1 pacote. Brief qa-engineer-2.
+- 2026-10-23 15:00: o WSL caiu de novo por falta de memória, agora durante o qa-2 (no máximo 2 workers); o relatório parcial não avançou. Instrução do dono na reconexão: "Rode no máximo uma suíte de teste por vez e poucos agentes em paralelo". Decisão técnica do Jarvis (`técnico`, base: `systemd-run --user --scope -p MemoryMax=...` testado e funcionando neste WSL): a continuação roda cada execução de teste dentro de um escopo com teto de memória (8 GB, sem swap), com 1 worker, sem o cenário "sob carga", encerrando servidores de preview e de API mock entre as rodadas, e registra o pico de memória de cada rodada. Com o teto, só o teste é morto ao estourar, e o WSL fica de pé; o estouro vira achado (consumo de memória da suíte). Brief qa-engineer-3.

@@ -2,7 +2,7 @@
 
 > Computador novo (2026-10-22, Forge 0.28.0): repositório em /home/rodrigoisensee/Metricas/MetricasDSPD, branch do Jarvis docs/jarvis-2026-10-20-noite. Banco local recriado (040). Em espera do dono: dependências do Chromium (K-110) e recibo do 041 (estabilizar os testes). Próximo: reteste do 025 → PR do 025 → promoção do 025 com o 037 para a homolog → release para a main (dono). Prompt de melhorias ao Forge (F1 a F15) em `docs/kanban/prompt-jarvis-forge-2026-10-21.md`.
 > Atualizado em: 2026-10-22 21:35 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
-> WIP: sessão do Forge 0.28.0 (teto adaptativo R-TETO) · Bloqueados: 1 (K-110)
+> WIP: sessão do Forge 0.28.0; WSL com teto de 14 GB: uma suíte de teste por vez e poucos agentes em paralelo (dono, 2026-10-23) · Bloqueados: 0
 > Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
 # Upstream — descoberta (Design Thinking)
@@ -58,7 +58,6 @@
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-138 | [teste] Diagnóstico medido das instabilidades (unidade, E2E com 1/2/8 workers e sob carga): taxa de falha e causa raiz por teste | 041 | forge:qa-engineer | 2026-10-22 | 2026-10-22 22:24 | Pedido 041, E1.1; depois do merge do 025 na develop (código atual). Cobre K-092, K-107, K-115, K-123, K-132, K-135 |
-| K-113 | C6 do perf do PR sem margem (188 a 215 ms contra 200) | 037 | forge:tech-lead | 2026-10-17 | 2026-10-22 15:02 | #139 na develop (2bb9f68). Falta a promoção para a homolog junto com o 025 (E2.6 e E2.7) e corrigir a linha 57 do review |
 | K-121 | [docs] 10 documentos antigos de docs/qa e docs/architecture sem frontmatter (ADR 0004) poluem o forge-check docs e escondem achados novos | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 22:25 | Melhoria vista no review do 036 e no QA do 035 |
 | K-120 | [teste] Preview órfão de outra worktree na porta 4173 bloqueia ou serve build errado no test:perf (playwright.config.ts, reuseExistingServer) | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:58 | Melhoria vista do QA no reteste do FA-006 |
 | K-117 | Promoção develop → homolog (#128) com review e QA próprios, e PR de release homolog → main (E4) | 035 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:25 | Depois do K-116. O dono mescla na main |
@@ -84,6 +83,7 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-113 | C6 do /operacional: Web Worker (ADR 0021) | 037 | forge:tech-lead | 2026-10-17 | 2026-10-23 14:40 | Na main pelo #144 (mesclado pelo dono em 2026-10-23 17:28Z), com o 025 e o Forge 0.28.0; falta a retrospectiva |
 | K-136 | Banco local no computador novo: Docker, `.env`, dependências, PostgreSQL, migrações e seed | 040 | forge:devops-engineer | 2026-10-22 | 2026-10-22 15:33 | healthy, 15 migrações, seed; retrospectiva 7049751 |
 | K-131 | [bug] D1 (média): 100 E2E defasados na develop (W037-001) | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-22 15:02 | Corrigido no #139 (2bb9f68), e2e verde; condição do D1 cumprida |
 | K-124 | Limpar as branches já mescladas na develop (remota, local e worktree) | 039 | forge:tech-lead | 2026-10-21 | 2026-10-21 13:22 | Pedido 039 encerrado |

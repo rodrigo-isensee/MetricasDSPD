@@ -175,3 +175,4 @@
 | 2026-10-23 11:33 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-qa-engineer-10 | entrega | 1 | não cumprido | parcial | PQ-1 a 3 cumpridos, escopo e etapa ok; Desde ausente (F17); #138 sem parecer de QA: decisão técnica do Jarvis, isento (só .forge/versao, arquivo que só o dono altera) | escopo | destino |
 | 2026-10-23 11:34 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-10 | brief | 2 | reprovado | s | PR dos pareceres da promoção sem etapa no pedido; criada E2.6b | escopo | jarvis |
 | 2026-10-23 11:37 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-10 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-23 13:42 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-devops-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
