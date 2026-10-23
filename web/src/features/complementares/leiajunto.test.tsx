@@ -24,7 +24,7 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     '%s: cada cartão mostra os links para os seus complementares',
     async (painel) => {
       renderizarApp(URL_DO_PAINEL[painel])
-      const doPainel = comPares.filter((c) => c.painel === painel)
+      const doPainel = comPares.filter((c) => c.painel === painel && c.id !== 'bloqueados')
       expect(doPainel.length).toBeGreaterThan(0)
       for (const c of doPainel) {
         const leia = await screen.findByTestId(`leia-junto-${c.id}`)
@@ -48,7 +48,17 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     },
   )
 
-  it('os links do núcleo alcançam as 21 complementares (em cadeia)', () => {
+  it('operacional, visão diária: Bloqueados agora leva ao T10 do Tático', async () => {
+    renderizarApp('/operacional?cadencia=diaria')
+    const leia = await screen.findByTestId('leia-junto-bloqueados')
+    expect(
+      within(leia)
+        .getAllByRole('link')
+        .map((a) => a.textContent),
+    ).toEqual(['T10 Tempo de terceiros'])
+  })
+
+  it('os links do núcleo alcançam as 26 complementares (em cadeia)', () => {
     const alcancadas = new Set<string>()
     const fila = comPares.flatMap((c) => c.leiaJunto ?? [])
     for (let id = fila.pop(); id; id = fila.pop()) {
@@ -57,7 +67,7 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
       fila.push(...(cartaoPorIdGlobal(id)?.leiaJunto ?? []))
     }
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').map((c) => c.id)
-    expect(compl).toHaveLength(21)
+    expect(compl).toHaveLength(26)
     expect(compl.filter((id) => !alcancadas.has(id))).toEqual([])
   })
 

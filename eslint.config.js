@@ -224,18 +224,28 @@ export default tseslint.config(
   },
   {
     files: ['web/src/data/mock/**'],
-    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    ignores: ['**/*.test.ts', '**/*.test.tsx', 'web/src/data/mock/nucleoMock*.ts'],
     rules: {
       'no-restricted-imports': ['error', { patterns: [relativoEntrePacotes] }],
       'no-restricted-syntax': [
         'error',
         ...semSpreadEmMinMax,
         ...['ImportDeclaration', 'ExportNamedDeclaration', 'ExportAllDeclaration'].map((tipo) => ({
-          selector: `${tipo}[importKind!='type'][exportKind!='type'][source.value=/^@metricas-dspd.(metricas|mock)/]`,
+          selector: `${tipo}[importKind!='type'][exportKind!='type'][source.value=/^@metricas-dspd.(metricas|mock)|^\\.\\/nucleoMock/]`,
           message:
-            'Em data/mock a biblioteca e o gerador entram por import() dinâmico (ou import type), para ficar fora do chunk inicial.',
+            'Em data/mock a biblioteca, o gerador e o núcleo entram por import() dinâmico (ou import type), para ficar fora do chunk inicial.',
         })),
       ],
+    },
+  },
+  // ADR 0021: o núcleo do mock e o invólucro do Worker rodam fora da thread principal (ou no fallback, por import()
+  // dinâmico a partir de MockFonteMetricas); só neles a biblioteca e o gerador entram por import estático.
+  {
+    files: ['web/src/data/mock/nucleoMock*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [relativoEntrePacotes] }],
+      'no-restricted-syntax': ['error', ...semSpreadEmMinMax],
     },
   },
   // metricas não importa mock fora de testes; o e2e não importa pacotes internos.

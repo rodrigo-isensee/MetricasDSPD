@@ -1,0 +1,160 @@
+---
+tipo: qa
+contrato: 1
+pedido: 025-front-do-011-lote2
+branch: feature/025-front-taticas
+commit: 43f29b3
+parecer: aprovado
+escopo: completo
+bugs_criticos: 0
+bugs_altos: 0
+bugs_medios: 0
+bugs_baixos: 2
+aceite_usuario: sim
+data: 2026-10-22
+---
+# QA do front das táticas T10 a T14 (pedido 025, etapas E1.2 e E1.5, cartão K-110)
+
+Links: especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (fichas T10 a T14 em §5, estados em §6, critérios em §10), pedido `docs/pedidos/025-front-do-011-lote2.md`, contratos `docs/contratos/metricas/T10.md` a `T14.md`, review `docs/reviews/025-front-taticas.md`, segurança `docs/security/025-t14-reidentificacao.md`. Entrega testada: 32a509f, conferida em b6c7673, mais os testes novos (f06a6fb) e a correção de L2T-001 e L2T-002 (5108fcd, o `commit:` do frontmatter: head de código; depois dele só o parecer de review 222a0a8). Chromium, uma suíte pesada por vez, nenhum playwright de outra worktree em execução (conferido por `pgrep` antes de cada rodada).
+
+**Sobre `aceite_usuario: sim`:** reflete as decisões do dono de 2026-10-21 ("A"): o D1 não se aplica ao 025 (W037-001, corrigido no 037) e o D2 (baixa, já existente na `develop`) acompanha o PR como pendência (K-132); L2T-001 e L2T-002 foram corrigidos (5108fcd) e L2T-003 segue como pendência do PR no K-133.
+
+**Reteste (head de código 5108fcd):** `tatico-011-lote2.spec.ts` 19 de 19 e `t10-grafias.spec.ts` 1 de 1 (com `MOCK_FORNECEDOR_GRAFIAS=1`), com porta própria (`E2E_PORTA=4283`). A primeira rodada no head deu 2 vermelhos (TT-11 e TT-12 ainda esperavam "1 demandas" e "1 frentes"); as expectativas passaram ao singular quando k = 1 e o TT-07 ganhou a guarda do L2T-001 (vermelho com o `taticas.tsx` de f06a6fb: `Expected: < 20, Received: 147`; verde no head). As demais suítes da tabela de resultados abaixo são de f06a6fb e não foram refeitas; 5108fcd só muda texto e base do T13 e do T14.
+
+**Correção de tipo (commit 7807199):** o reteste de af1fa41 deixou `e2e/tests-api/tatico-011-lote2.spec.ts` com o erro TS18048 (`textoT13` possivelmente `undefined`, guarda do L2T-001); o `split` agora termina em `?? ''`, sem mudar asserção. `pnpm --filter @metricas-dspd/e2e typecheck` rc=0; `tatico-011-lote2` no `chromium-api` (`E2E_PORTA=4283`, `--retries=0`) 19 de 19; `pnpm run pronto` completo rc=0. As conclusões de R-1 = B, T14-M1 = B e B11-001 seguem como em af1fa41.
+
+## Escopo
+Coberto: T10 a T14 em `/tatico` (seção "Mais métricas deste painel": estados, microcopy, catálogo, "Leia junto", regras de pessoa e de n < 20), R-1 = B e T14-M1 = B na tela (inclusive em frentes), B11-001 no T10 pelo caminho real do back, acessibilidade (axe AA, teclado, reflow a 360 px), F2 CLS e C6.
+Não coberto: a API do T14 (a resposta ainda traz `total`, `meuTime.n` e `semTime` do projeto oculto, pré-condição da fase 3 registrada no parecer de segurança; hoje a métrica é mock); revisão visual da UX (E1.6); O19 nos pares "Leia junto" do T10 e do T13 (a ficha pede, o O19 é do lote 3, pedido 026; o review já registra); lote 3 das operacionais.
+Por que os testes novos rodam contra a API local com o mock semeado (`chromium-api`): o mock embutido no navegador não gera T13 nem T14 (achado A1 do review: T14 sai "vazio" e T13 "0 de 0"), e a regra R-1 = B / T14-M1 = B só se prova com a resposta real da API (projeto oculto vem com `outrosTimes: null`).
+
+## Plano de testes
+Dados: mock semeado padrão (determinístico). Com `equipe=erp-protheus`: T14 em "demandas" tem 9 projetos, P-0039 oculto (total 79, n 73, k 1, sem time 6); em "frentes" os ocultos são P-0038 e P-0008; P-0011 tem n = 15 (< 20). T10 sem equipe: Alfa 17 bloqueios (< 20), Beta 20, Gama 26. Para o B11-001, a API é semeada com `MOCK_FORNECEDOR_GRAFIAS=1` (fornecedor grafado "TOTVS", "Totvs" e " totvs ").
+
+| ID | Cenário | Tipo | Prioridade | Automatizado |
+|---|---|---|---|---|
+| TT-01 | Seções "O que entra, e quando?" e "De quem depende o prazo?" com T11, T12 e T10, T13, T14 na ordem; nenhum na "Pede atenção" | E2E API | Alta | sim |
+| TT-02 | Fonte BusinessMap, "Como ler", tabela equivalente, selo fictício só no T13 e no T14, sem Acelerato | E2E API | Alta | sim |
+| TT-03 | T10: ordem alfabética, "Prazo contratado não informado", sem coluna de contrato nem "dentro/acima", Alfa (17) sem P50/P85, Beta (20) com P50 e P85 | E2E API | Alta | sim |
+| TT-04 | T10 sem fornecedor (resposta com lista vazia): mensagem própria e prazo não informado | E2E API | Média | sim |
+| TT-05 | T11: janela fixa, número escrito em cada célula, mês corrente "em andamento", período não afeta | E2E API | Média | sim |
+| TT-06 | T12: áreas por volume decrescente; percentual só com n >= 20, abaixo "percentual não publicado, menos de 20" | E2E API | Alta | sim |
+| TT-07 | T13: Demandas e Frentes uma por vez, comparação não exibida com grupo < 20, outro quadro não identificado | E2E API | Alta | sim |
+| TT-08 | T14 sem equipe e com duas equipes: pede a equipe e não calcula | E2E API | Alta | sim |
+| TT-09 | T14: selo, legenda de três itens, tabela com 5 colunas fixas (sem coluna por time), ordem do total do projeto conferida contra a API, n < 20 sem percentual | E2E API | Alta | sim |
+| TT-10 | T14: troca para frentes, uma granularidade por vez, nunca conta projeto | E2E API | Alta | sim |
+| TT-11 | R-1 = B e T14-M1 = B em demandas: o projeto oculto mostra só "Meu time: k", sem total, sem n, sem "k de n", sem percentual, sem barra, sem destaque nem base do cartão; tabela com "não exibido" | E2E API | Alta | sim |
+| TT-12 | O mesmo em frentes (dois projetos ocultos) | E2E API | Alta | sim |
+| TT-13 | Controle positivo do TT-11: com a API devolvendo "outros times" publicável, a tela mostra "1 de 73" e a barra (prova que o detector funciona) | E2E API | Alta | sim |
+| TT-14 | Falha da API do T14: erro no cartão, painel segue, "Tentar de novo" recupera | E2E API | Alta | sim |
+| TT-15 | Falha do T10, T12 e T13 juntos: erro por cartão sem derrubar T11 e T14 | E2E API | Média | sim |
+| TT-16 | Catálogo (58, Tático, BusinessMap) e "Leia junto" T1→T13, T4→T11, T9→T14, Bloqueados→T10, notas de T11 e T14 | E2E API | Alta | sim |
+| TT-17 | Axe AA com T10 a T14 abertos, em demandas e em frentes, sem erro de console | E2E API | Alta | sim |
+| TT-18 | Teclado: setas trocam a granularidade do T14 e do T13, foco visível, anúncio muda | E2E API | Alta | sim |
+| TT-19 | 360 px: sem rolagem horizontal da página, cartões dentro da largura, axe AA | E2E API | Alta | sim |
+| T10-G1 | B11-001/CA-51: "TOTVS", "Totvs" e " totvs " viram uma linha só, sem espaço sobrando, com a soma (projeto `chromium-api-grafias`) | E2E API | Alta | sim |
+| PF-1 | F2 CLS e C6 em `/tatico?equipe=erp-protheus` com a seção aberta (`perf-tatico-lote2`), mock e API | Desempenho | Alta | sim |
+| REG-1 | Contagens do catálogo, "Leia junto", preferências e "tudo oculto" atualizadas para 58 métricas e 7 complementares no Tático (COMP-01, COMP-03, COMP-10, COMP-12, COMP-13, LV-14, SIS-CONS-01) | E2E mock | Alta | sim |
+
+## Critério → teste → resultado
+| Critério | Teste | Fronteira protegida | Resultado |
+|---|---|---|---|
+| CA-2 | TT-01 | ordem e seções | passou |
+| CA-5 | TT-03 (T10 Alfa com 17), TT-06 (T12), TT-09 (T14 P-0011, n = 15) | n < 20 não publica | passou |
+| CA-6 | TT-07 | grupo abaixo de 20 | passou |
+| CA-7 | TT-02 | só BusinessMap | passou |
+| CA-8, CA-32 | TT-07, TT-10, TT-18 | uma granularidade por vez; teclado | passou |
+| CA-11 | TT-03, TT-06 | ordem neutra (alfabética, por volume) | passou |
+| CA-12 | TT-05 | janela fixa, mês corrente | passou |
+| CA-14 | TT-01 | fora da "Pede atenção" | passou |
+| CA-16 | TT-02 | "Como ler", tabela, selo fictício | passou |
+| CA-24, CA-36 | TT-03 | sem coluna de prazo contratado | passou |
+| CA-27, CA-30, CA-31, CA-33, CA-34 | TT-09 | ordem pelo total (conferida contra a API), "k de n", selo | passou |
+| CA-28 | TT-08 | sem equipe e com duas equipes | passou |
+| CA-29 | TT-09 | nenhuma coluna ou controle por time | passou |
+| CA-45, R-1 = B, T14-M1 = B | TT-11, TT-12, TT-13 | total, n, "k de n", percentual e barra ausentes; controle positivo | passou |
+| CA-50 | TT-03 | P50/P85 só com 20 ou mais | passou |
+| CA-51, B11-001 | T10-G1 | grafias só em caixa ou espaços | passou (com `MOCK_FORNECEDOR_GRAFIAS=1`) |
+| Estados §6 | TT-04, TT-08, TT-14, TT-15 | vazio, erro, sem equipe | passou |
+| ADR 0003 F2 e C6 | PF-1 | CLS < 0,1; tarefa longa < 200 ms | passou (ver Resultado) |
+| Acessibilidade WCAG 2.2 AA | TT-17, TT-19, TT-18 | axe, teclado, 360 px | passou, zero violação crítica ou séria |
+
+## Vermelho antes do verde e mutação
+- **T10-G1 (B11-001):** troquei `grafia.toLowerCase()` por `grafia` em `packages/metricas/src/businessmap/t10.ts:31` (só na árvore, revertido). Falhou em `expect(linhas).toHaveCount(1)` (três linhas). Com o código original, passou. Comando: `MOCK_FORNECEDOR_GRAFIAS=1 bash scripts/com-api-mock.sh bash -c 'cd e2e && E2E_API_URL=$API_URL pnpm exec playwright test --project=chromium-api-grafias'`. Sem a variável, o teste também falha de propósito (a API traz Alfa, Beta e Gama).
+- **TT-11 e TT-12 (R-1 = B, T14-M1 = B):** troquei `outrosOculto` por `p.outrosTimes === undefined` em `web/src/features/complementares/taticas.tsx` (só na árvore, revertido). TT-11 e TT-12 falharam (a linha do P-0039 passou a mostrar o formato completo); TT-13 (controle positivo) passou, ou seja, o detector enxerga o vazamento. Original: tudo verde.
+- **REG-1:** antes da atualização, o primeiro E2E completo acusou 6 testes vermelhos da própria entrega (contagens 53 e 2 complementares do Tático); depois da atualização, passam.
+
+## Resultado da execução
+Máquina: WSL, 8 GB e 8 núcleos. Load average (1 min) ao iniciar cada etapa: unitários e `pnpm run pronto`: 2,15 (17:04) e 3,94 ao terminar; E2E mock completo (primeira rodada): iniciado sem processo concorrente, subiu até 9 com o `pnpm run lint` do pedido 037 em paralelo; E2E mock completo final: 3,23 ao iniciar (17:14) e 10,4 ao terminar (17:40, com o próprio Chromium de 3 workers); E2E da API e desempenho: 1 a 4 (uma rodada de desempenho a 6 a 10 com o lint do 037 ao lado, descartada e repetida, ver abaixo).
+
+| Suíte | Comando | Resultado |
+|---|---|---|
+| `pnpm run pronto` (lint, formato, typecheck, unitários, cobertura, `docs:check`) | `pnpm run pronto` | rc = 0. web 1110 de 1110 (76 arquivos); metricas 1082 de 1082; mock 244 de 244; contratos 161 de 161; server 591 passaram e 84 ignorados pelo próprio pacote (sem banco, 15 arquivos); homolog 73; spec-check 14; pesquisa 33; docs-contratos 102 + `docs:check` ok (643 páginas) |
+| E2E API (`chromium-api`) | `bash scripts/com-api-mock.sh bash -c 'cd e2e && E2E_API_URL=$API_URL pnpm exec playwright test --project=chromium-api --workers=3'` | 46 de 46 (os 19 novos TT-01 a TT-19 e os 27 já existentes de `api.spec.ts` e `tendencias.spec.ts`) |
+| E2E B11-001 (`chromium-api-grafias`) | comando acima, com `MOCK_FORNECEDOR_GRAFIAS=1` | 1 de 1 |
+| E2E mock (`chromium`), primeira rodada (antes de atualizar as contagens) | `E2E_PORTA=4183 E2E_PORTA_ALT=4184 E2E_SEM_ALT=1 pnpm exec playwright test --project=chromium --workers=3` | 680 de 686; 6 vermelhos, todos contagens defasadas por esta entrega (COMP-01 x2, COMP-10, COMP-12, COMP-13, SIS-CONS-01), corrigidos; os 96 + 4 do D1 **não falharam** (ver D1 abaixo) |
+| E2E mock, reexecução dos arquivos corrigidos | `-g "COMP-\|LV-14\|SIS-CONS-01"` nos três arquivos | 32 de 32 |
+| E2E mock (`chromium`), rodada final completa | mesmo comando | 685 de 686 (25 min, 3 workers). O 1 vermelho é `intensivo-filtros.spec.ts:354` (IF-U-operacional) por `Test timeout of 30000ms` com a máquina em load 8 a 10; reexecutado sozinho com 1 worker, os 4 IF-U passam (17,7 s o mais lento). É a classe do D2 (instável sob carga), não defeito desta entrega |
+| F2 CLS e C6 em `/tatico` com T10 a T14 abertos, API (`perf-api`) | `PERF_VARIANTE=api ... playwright test --project=perf-api perf/perf.spec.ts -g perf-tatico-lote2` | CLS que a seção acrescenta: 0,000 em 15 de 15 cargas; tarefa longa: mediana 0 ms (máx. 94 ms); passou |
+| F2 CLS e C6, mock (`perf`) | `... --project=perf perf/perf.spec.ts -g perf-tatico-lote2`, duas rodadas com a máquina livre (load 2) | CLS 0,001 e 0,002 (pior carga); C6 mediana 173 ms e 158 ms (< 200 ms); passou. Uma rodada anterior com o `pnpm run lint` do 037 ao lado (load 6 a 10) deu CLS 1,31 nas duas primeiras cargas e C6 206 ms; descartada por carga concorrente e repetida sem ela, e registrada aqui |
+| F2 e C6 gerais de `/tatico` (já existentes) | `-g "F2 CLS e C6 tarefa longa em /tatico"` | mock: CLS 0,001 e C6 182 ms; API: CLS 0,035 e C6 0 ms; passou |
+
+O F2 do ADR 0003 em `/tatico` com a seção aberta: o CLS vem do núcleo, não do lote 2 (L2T-003).
+
+## Defeitos desta entrega
+- **L2T-001 (baixa, corrigido em 5108fcd, fechado)** `docs/qa/bugs/L2T-001-t13-frentes-base-diz-147-de-20-itens-minimos.md`: com "Frentes" no T13, a base diz "Amostra insuficiente: 147 de 20 itens mínimos" (texto contraditório; o `n` é o de demandas).
+- **L2T-002 (baixa, corrigido em 5108fcd, fechado)** `docs/qa/bugs/L2T-002-t14-meu-time-1-demandas-plural.md`: "Meu time: 1 demandas" (plural fixo). Cosmético; a regra de reidentificação está cumprida.
+
+## Já existentes na `develop` (não são defeitos desta entrega; pendências do PR)
+- **L2T-003 (baixa)** `docs/qa/bugs/L2T-003-cls-tatico-com-equipe-0-07-a-0-10.md`: `/tatico` com equipe escolhida tem CLS de 0,073 a 0,100 (API; no mock 0,002) por uma seção do núcleo que cresce 32 px; reproduz com a seção do lote 2 fechada. O F2 do ADR 0003 (rota sem equipe) passa: 0,035.
+- **D1 (média): não se aplica ao 025.** Os 100 E2E que o parecer do 037 dava por defasados (96 em `intensivo-filtros.spec.ts` e 4 em `b12-fluxo.spec.ts:230` e `:379`, `filtros.spec.ts:129`, `intensivo-filtros-bordas.spec.ts:177`) **não falharam nesta branch**: na rodada completa do `chromium` com o build próprio, passaram. A causa era o `reuseExistingServer` da `playwright.config.ts` servir o `vite preview` de outra worktree na porta 4173 (build diferente do código testado); para isso acrescentei `E2E_PORTA` e `E2E_PORTA_ALT` (padrões 4173 e 4174). No 037 o defeito virou o W037-001, encontrado e corrigido na entrega (check `e2e` do PR #137 verde, run 39699610730). Decisão do dono de 2026-10-21 ("A se d1 foi feito e vai subir certo"): não é pendência do PR do 025.
+- **D2 (baixa, K-132)**: 9 E2E instáveis com 8 workers (carga). Nesta branch usei 3 workers e nenhum flaky apareceu.
+
+## Achados
+- A5 (recomendado) e2e/playwright.config.ts:1 · resolvido no ambiente: o Chromium não abria (libnspr4.so, ENV-025-001); com as dependências instaladas pelo dono o reteste no 43f29b3 rodou e passou (ver "Reteste no head 43f29b3, segunda execução")
+- A1 (recomendado) web/src/features/complementares/taticas.tsx:411 · L2T-001, resolvido em 5108fcd: com "Frentes" no T13 a base mostra "Amostra insuficiente: 147 de 20 itens mínimos"; a base deve acompanhar a granularidade exibida
+- A2 (recomendado) web/src/features/complementares/taticas.tsx:612 · L2T-002, resolvido em 5108fcd: "Meu time: 1 demandas" (e "1 frentes"); usar singular quando k = 1 e ajustar a expectativa do TT-11 e do TT-12
+- A3 (recomendado) e2e/playwright.config.ts:6 · D1 do 037 não se aplica ao 025 (W037-001 corrigido no 037): o preview de outra worktree na 4173 servia build alheio; `E2E_PORTA` próprio evita
+- A4 (recomendado) web/src/data/mock/MockFonteMetricas.ts:55 · herdado do review (A1): no mock do navegador T11, T13 e T14 saem vazios ou sem vínculo; só a API os mostra de verdade
+
+## Decisões do dono (2026-10-21)
+1. L2T-001 e L2T-002: corrigir agora ("A"); corrigidos em 5108fcd e fechados no reteste.
+2. L2T-003 (CLS de 0,073 a 0,100 em `/tatico` com equipe, herdado da `develop`): pendência do PR, em cartão próprio (K-133).
+3. D1 (100 E2E defasados): **não se aplica ao 025** ("A se d1 foi feito e vai subir certo"); no 037 virou o W037-001, encontrado e corrigido (check `e2e` do PR #137 verde, run 39699610730). D2 (baixa, 9 E2E instáveis, K-132): continua pendência listada no PR, corrigida depois no cartão ("A").
+
+## Parecer
+Aprovado sobre 5108fcd (b6c7673 mais os testes novos e a correção de L2T-001 e L2T-002): zero bug crítico ou alto; os defeitos abertos são baixos (D2 e L2T-003, já existentes; o D1 não se aplica ao 025), nenhum em regra de negócio, regra inviolável ou acessibilidade. R-1 = B e T14-M1 = B cumpridas na tela (provadas por mutação e por controle positivo); B11-001 provado pelo caminho real do back; F2 e C6 dentro do ADR 0003; axe AA sem violação crítica ou séria.
+
+**Revalidação por delta (2026-10-22):** de 7807199 a ea533a3 nada de código nem de teste mudou (`git diff --name-only 7807199 ea533a3 -- web server e2e packages` = 0 arquivos; só `.forge/versao` vindo da develop pelo merge 4fe19af, `docs/qa/`, `docs/reviews/` e `docs/ux/`); veredito, pendências (D2 em K-132, L2T-003 em K-133) e conclusões de R-1 = B, T14-M1 = B e B11-001 inalterados; o `pronto` rodou com rc=0 em 7807199.
+
+## Reteste no head 43f29b3 (develop com o Worker do 037, merge d3356a8), 2026-10-22
+
+**Veredito desta primeira execução (superado pela segunda, abaixo): reprovado por impedimento de ambiente, não por defeito do código.** O reteste dos E2E e do CLS não pôde ser executado: `chrome-headless-shell` (chromium-1248, em `~/.cache/ms-playwright`) sai com código 127 (`error while loading shared libraries: libnspr4.so: cannot open shared object file`). `find / -name 'libnspr4*'` só acha a DLL do Windows em `/mnt/c`; `libnss3` também falta. Instalar exige `apt` com sudo, proibido na delegação. Defeito registrado em `docs/qa/bugs/ENV-025-001-chromium-sem-libnspr4.md`. Nenhum teste foi pulado, e código e specs não mudaram.
+
+| Item | Comando | Resultado |
+|---|---|---|
+| `tatico-011-lote2.spec.ts` (`chromium-api`) | `E2E_PORTA=4283 E2E_PORTA_ALT=4284 bash scripts/com-api-mock.sh bash -c 'cd e2e && E2E_API_URL=$API_URL pnpm exec playwright test --project=chromium-api --retries=0 tests-api/tatico-011-lote2.spec.ts'` | 0 de 19 executados: os 19 falham no `browserType.launch` (libnspr4); nenhuma asserção foi avaliada |
+| `t10-grafias.spec.ts`, `complementares.spec.ts` | não rodados (mesmo impedimento, comprovado pelo primeiro spec) | sem resultado |
+| CLS de `/tatico?equipe=` com API (L2T-003) | não medido (exige navegador) | sem valor novo; o último é 0,073 a 0,100 (5108fcd) |
+| Typecheck dos E2E | `pnpm --filter @metricas-dspd/e2e typecheck` | sem erro |
+| `pnpm run pronto` completo | na worktree, PATH do node 24 | rc=0 (unitários, lint, formato, orçamentos do web, `docs:check` ok) |
+
+Pendências: D2 (K-132) e L2T-003 (K-133) continuam; D1 não se aplica ao 025. O que a leitura do review do merge prevê (nenhum E2E do 025 lê o painel antes do fim de `aguardando-coleta`) segue sem confirmação por execução. Para fechar: instalar `libnspr4`, `libnss3` e dependências (`pnpm exec playwright install-deps chromium`, com sudo, pelo dono) e repetir os specs e a medida do CLS; o parecer volta a aprovado se passarem.
+
+## Reteste no head 43f29b3, segunda execução (2026-10-22)
+
+**Veredito: aprovado.** O dono instalou as dependências do Chromium (`ldd` do chrome-headless-shell 1248 sem "not found"; abre na 156.0.8078.4): o A5 e o ENV-025-001 estão corrigidos no ambiente. Porta própria (`E2E_PORTA=4283`, `E2E_PORTA_ALT=4284`), `--retries=0`, nenhum playwright de outra worktree em execução (`pgrep` antes), PATH do node 24. Código e specs não mudaram; nenhum teste pulado. A leitura do review do merge (nenhum E2E do 025 lê o painel antes do fim de `aguardando-coleta`) fica confirmada por execução: o Worker do 037 não quebrou nenhum caso.
+
+| Item | Comando | Resultado |
+|---|---|---|
+| `tatico-011-lote2.spec.ts` | `bash scripts/com-api-mock.sh` com `--project=chromium-api` | 19 de 19 passaram (13,7 s) |
+| `t10-grafias.spec.ts` | `MOCK_FORNECEDOR_GRAFIAS=1`, `--project=chromium-api-grafias` (o projeto `chromium-api` o ignora por `testIgnore`) | 1 de 1 passou |
+| `complementares.spec.ts` | `--project=chromium` | 30 de 30 passaram (56,1 s) |
+| Typecheck dos E2E | `pnpm --filter @metricas-dspd/e2e typecheck` | rc=0, sem erro |
+| CLS de `/tatico?equipe=erp-protheus` (L2T-003) | `perf-api`, caso `perf-tatico-lote2`, 15 cargas, seção fechada | totais da página: 0,032 a 0,085 (12 de 15 cargas em 0,073; 0,034, 0,032 e 0,032 nas outras; 0,085 em uma); seção aberta acrescenta 0,000 nas 15 cargas |
+| F2 e C6 gerais de `/tatico` (sem equipe) | `perf-api`, `-g "F2 CLS e C6 tarefa longa em /tatico"` | CLS 0,091 (pior de 15 cargas; antes 0,035), C6 0 ms; passou o orçamento (< 0,1), mas com folga menor |
+| `pnpm run pronto` | na worktree, antes do commit | rc=0 |
+
+**CLS (L2T-003):** antes 0,073 a 0,100; agora 0,032 a 0,085. O pico de 0,100 não reapareceu e o valor típico segue 0,073, então o defeito herdado continua (pendência K-133), um pouco menor no pior caso e sem mudança no valor típico; o Worker não o corrigiu nem o piorou de forma mensurável com equipe. Observação nova, sem bug aberto: o `/tatico` sem equipe passou de 0,035 para 0,091 numa medida de 15 cargas; segue abaixo de 0,1 (ADR 0003), mas perto do limite. Vale remedir no cartão K-133 junto com L2T-003.
+
+**Pendências do PR:** D2 (K-132) e L2T-003 (K-133) continuam abertas; D1 não se aplica ao 025 (W037-001 corrigido no 037). `bugs_baixos: 2` (D2 e L2T-003). `aceite_usuario: sim` mantido, conforme as decisões do dono de 2026-10-21 já registradas acima.

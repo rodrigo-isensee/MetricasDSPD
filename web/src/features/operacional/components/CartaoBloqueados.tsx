@@ -3,6 +3,7 @@ import { CartaoMetrica, Icone, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtDiasUteis, fmtInteiro, plural } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 import { propsCartao } from '@/features/painel/propsCartao'
 
 /** Bloqueados agora: lista (sem responsável), do mais antigo ao mais novo. Zero bloqueados é sucesso, não "vazio". */
@@ -55,6 +56,7 @@ export function CartaoBloqueados({ filtros }: { filtros: FiltrosFluxo }) {
           }))}
         />
       )}
+      <LeiaJunto id="bloqueados" />
     </CartaoMetrica>
   )
 }

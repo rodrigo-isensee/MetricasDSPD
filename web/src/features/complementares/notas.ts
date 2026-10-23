@@ -10,6 +10,11 @@ type Id =
   | 'O16'
   | 'O17'
   | 'T6'
+  | 'T10'
+  | 'T11'
+  | 'T12'
+  | 'T13'
+  | 'T14'
   | 'T8'
   | 'E4'
   | 'E5'
@@ -179,6 +184,56 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     comoLer: 'Reincidência alta em um sistema sugere olhar a causa.',
     meta: 'Sem meta; por sistema, nunca por pessoa.',
     cuidados: 'Reincidência depende do preenchimento do campo.',
+  },
+  T10: {
+    oQueE:
+      'Quanto tempo o trabalho fica bloqueado esperando cada fornecedor e quantas vezes isso aconteceu.',
+    comoSeCalcula:
+      'Bloqueios encerrados com fornecedor informado, de qualquer motivo, por fornecedor (maiúsculas, minúsculas e espaços não separam o mesmo nome). Contagem e dias úteis somados pelo período do painel; P50 e P85 da duração na janela móvel de 12 semanas, só com 20 bloqueios ou mais no fornecedor. Bloqueio sem fornecedor fica de fora.',
+    comoLer:
+      'A barra vai até o P85 e a marca indica o P50. Os fornecedores aparecem em ordem alfabética, sem ordem de melhor ou pior. Leia junto com os bloqueados agora e os acordos e vencidos (O12).',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'Nesta fase não há prazo contratado: o cartão não compara com contrato nem diz "dentro" ou "acima". Não vale como nota do fornecedor nem de pessoa.',
+  },
+  T11: {
+    oQueE: 'Quantas demandas chegam em cada mês, ano a ano, para ver o que se repete.',
+    comoSeCalcula:
+      'Contagem (censo) de demandas criadas por mês, nos 24 meses fechados mais o mês corrente. O período do painel não atua: a janela é fixa. A média mensal é só uma referência de contagem, não estatística de tempo.',
+    comoLer:
+      'O número está em cada célula; a cor só reforça. Um tipo de demanda por vez ou todos. O mês corrente é parcial. Leia junto com demanda × capacidade (T4) e a previsão (T6).',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'Com menos de dois anos de histórico, ainda não dá para separar padrão de acaso. Mostra chegada de demanda, não desempenho.',
+  },
+  T12: {
+    oQueE: 'Quanto das demandas de cada área precisou de ida e volta antes de começar.',
+    comoSeCalcula:
+      '"Ida e volta" é o bloqueio com motivo "Falta de informação no chamado" antes do início, ou o retorno do card da coluna de compromisso para o backlog. Por área solicitante, em ordem de volume. Percentual só com 20 demandas ou mais na área; abaixo, "k de n".',
+    comoLer:
+      'Mede a clareza do pedido que chega, para combinar com a área o que um pedido precisa trazer. Não é nota da área.',
+    meta: 'Sem meta numérica.',
+    cuidados: 'Não compara áreas nem times. Leia junto com a origem da demanda (O14).',
+  },
+  T13: {
+    oQueE: 'Quanto das entregas dependeu de trabalho de outro quadro.',
+    comoSeCalcula:
+      'Entregas com vínculo predecessor com card de outro quadro (pai/filho e relacionado não contam; o vínculo removido antes da entrega conta). Percentual só com 20 entregas ou mais. O par P50/P85 do lead time com × sem dependência é por tipo, só se cada grupo tiver 20 ou mais. Demandas ou frentes, uma granularidade por vez.',
+    comoLer:
+      'Mostra o peso da dependência no prazo. O outro quadro não é identificado, para não virar comparação entre times. Leia junto com o lead time ponta a ponta (T1).',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'Entregas com quadro do vínculo desconhecido ficam à parte, nunca contam como "não dependeu". Dado fictício até a coleta real.',
+  },
+  T14: {
+    oQueE: 'Que parte de cada projeto em andamento é do meu time.',
+    comoSeCalcula:
+      'Demandas do projeto (frentes, se escolhido) pelo campo "Time responsável" do card: meu time, outros times (somados) e sem time informado. Percentual só com 20 demandas ou mais com time informado. A equipe escolhida no filtro define "meu time". Projetos ordenados pelo total de demandas.',
+    comoLer:
+      'Mostra a parte do projeto que é do meu time, para entender a cobrança por entregas em que atuo pouco. Quando os outros times somam poucas pessoas, só a fatia do meu time é mostrada, sem o total do projeto.',
+    meta: 'Sem meta numérica; não existe participação mínima esperada.',
+    cuidados:
+      'Não é nota do time nem comparação: nenhum outro time é nomeado, listado nem ordenado. Dado fictício até a coleta real.',
   },
   E6: {
     oQueE: 'Se a data comprometida de um projeto se confirma: o deslize de cada projeto concluído.',

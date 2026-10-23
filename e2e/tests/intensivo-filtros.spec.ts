@@ -142,6 +142,8 @@ interface Retrato {
 
 async function esperarPronto(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  // Com o mock no Worker (ADR 0021) o estado de coleta chega depois do h1: até lá o painel só tem o bloco reservado.
+  await expect(page.getByTestId('aguardando-coleta')).toHaveCount(0, { timeout: 30_000 });
   await expect(page.locator('[data-testid^="metrica-"]').first().or(page.getByTestId('painel-visao-geral')).or(page.getByTestId('painel-dados')).or(page.locator('h1')).first()).toBeVisible();
   await expect(page.locator('[data-testid^="metrica-"][aria-busy="true"]')).toHaveCount(0, { timeout: 30_000 });
   await expect(page.locator('[data-testid^="estado-carregando-"]')).toHaveCount(0, { timeout: 30_000 });
