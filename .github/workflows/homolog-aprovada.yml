@@ -4,6 +4,8 @@ name: Homologação aprovada
 # verde (a rodada noturna é informativa por enquanto: EXIGIR_NOTURNA em aprovacao.ts), lido das EXECUÇÕES do
 # workflow homolog.yml, não de status de commit. `hotfix/*` exige saída da ponta da main, poucos commits e o CI completo verde. Não substitui a aprovação
 # do usuário. Depois do CI do hotfix (ou da noturna, se religada), reexecute este check.
+# Corrida (K-108): se o portão do mesmo sha ainda roda (ou está na fila), o check espera até 45 min e só então
+# avalia; o critério é o mesmo (a avaliação continua sendo do aprovacao.ts). Sem execução pendente, não espera.
 # A regra vem do código da BASE do PR (main), nunca da branch candidata.
 on:
   pull_request:
@@ -18,7 +20,7 @@ jobs:
   homolog-aprovada:
     name: homolog-aprovada
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -32,10 +34,26 @@ jobs:
           SHA_CANDIDATO: ${{ github.event.pull_request.head.sha }}
           BRANCH_ORIGEM: ${{ github.event.pull_request.head.ref }}
           REPO_ORIGEM: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO_BASE: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Primeira release: a regra ainda não existe na main. A base não é controlável pelo candidato.
           if [ ! -f tools/homolog/src/main.ts ]; then
             echo '::warning::A regra de homolog-aprovada ainda não está na main (primeira release): conferência manual do usuário.'
             exit 0
           fi
+          # Espera o portão do mesmo sha terminar (limite de 45 min; o portão leva cerca de 30). Só aguarda execução
+          # push do homolog.yml ainda pendente; terminando sem sucesso, a avaliação abaixo falha como sempre.
+          pendentes() {
+            gh api "repos/$REPO_BASE/actions/workflows/homolog.yml/runs?head_sha=$SHA_CANDIDATO&event=push&per_page=20" \
+              --jq '[.workflow_runs[] | select(.status != "completed")] | length'
+          }
+          limite=$(( $(date +%s) + 2700 ))
+          n="$(pendentes)"
+          while [ "$n" -gt 0 ] && [ "$(date +%s)" -lt "$limite" ]; do
+            echo "Portão de $SHA_CANDIDATO ainda em execução ($n pendente); aguardando 60 s."
+            sleep 60
+            n="$(pendentes)"
+          done
+          if [ "$n" -gt 0 ]; then echo '::warning::Limite de espera esgotado com o portão ainda em execução; a avaliação seguinte tende a falhar.'; fi
           node tools/homolog/src/main.ts aprovacao --sha "$SHA_CANDIDATO" --origem "$BRANCH_ORIGEM" --repo-origem "$REPO_ORIGEM"
