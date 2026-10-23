@@ -1,16 +1,15 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { writeFileSync } from 'node:fs';
 import { test, expect, rodarAxe } from '../fixtures/base';
+import { pastaEvidencias } from '../fixtures/evidencias';
 
 // QA B3: axe (WCAG 2.2 AA) nos dois temas na visão Sustentação do /operacional, /espera-invisivel e / (1280 e 375) + screenshots para a UX.
-const DIR = resolve(import.meta.dirname, '../../docs/qa/evidencias/b3');
+const DIR = pastaEvidencias('b3');
 const ROTAS = [['sustentacao', '/operacional?cadencia=sustentacao'], ['visao-geral', '/']] as const;
 const VPS = [['1280', 1280, 800], ['375', 375, 812]] as const;
 const TEMAS = [['claro', 'claro'], ['escuro', 'escuro']] as const;
 const ESTADOS = ['erro', 'vazio', 'carregando'] as const;
 const resumo: Record<string, unknown> = {};
 test.describe.configure({ mode: 'serial' });
-mkdirSync(DIR, { recursive: true });
 test.afterAll(() => {
   writeFileSync(`${DIR}/axe-resumo.json`, JSON.stringify({ commit: 'e4ccab7', tags: ['wcag2a', 'wcag2aa', 'wcag22aa'], resultados: resumo }, null, 1));
 });

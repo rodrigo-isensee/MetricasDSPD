@@ -5,7 +5,8 @@
   "description": "Testes E2E e de acessibilidade do dashboard de métricas (Playwright + axe)",
   "type": "module",
   "scripts": {
-    "test": "playwright test",
+    "test:e2e": "playwright test",
+    "test:evidencias-qa": "E2E_EVIDENCIAS=qa playwright test",
     "test:chromium": "playwright test --project=chromium --project=chromium-semente-alt",
     "test:smoke": "playwright test --grep @smoke",
     "report": "playwright show-report",

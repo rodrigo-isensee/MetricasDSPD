@@ -1,6 +1,6 @@
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { writeFileSync } from 'node:fs';
 import { test, expect, rodarAxe } from '../fixtures/base';
+import { pastaEvidencias } from '../fixtures/evidencias';
 
 // Axe WCAG 2.2 AA em todas as rotas e estados, nos dois temas. Escreve o resumo em docs/qa/evidencias/fase-a/axe-resumo.json.
 const ROTAS = ['/', '/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/tatico', '/estrategico', '/operacional?cadencia=sustentacao', '/ajuda', '/rota-inexistente'];
@@ -12,8 +12,7 @@ test.describe.configure({ mode: 'serial' });
 test.use({ viewport: { width: 1280, height: 800 } });
 
 test.afterAll(() => {
-  const dir = resolve(import.meta.dirname, '../../docs/qa/evidencias/fase-a');
-  mkdirSync(dir, { recursive: true });
+  const dir = pastaEvidencias('fase-a');
   writeFileSync(`${dir}/axe-resumo.json`, JSON.stringify({ tags: ['wcag2a', 'wcag2aa', 'wcag22aa'], resultados: resumo }, null, 1));
 });
 
