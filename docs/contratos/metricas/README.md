@@ -1,6 +1,6 @@
 # Contratos por métrica: índice
 
-Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-17.
+Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-21.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
@@ -42,11 +42,11 @@ Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais,
 | [`T9`](T9.md) | Avanço real e escopo | businessmap | `/api/v1/metricas/T9` | frente | 0 | ok |
 | [`T6`](T6.md) | Previsão probabilística | businessmap | `/api/v1/metricas/T6` | story | 20 | ok |
 | [`T8`](T8.md) | Sprint | businessmap | `/api/v1/metricas/T8` | story | 20 | ok |
-| [`T10`](T10.md) | - | businessmap | `/api/v1/metricas/T10` | story | 20 | ok |
-| [`T11`](T11.md) | - | businessmap | `/api/v1/metricas/T11` | story | 0 | ok |
-| [`T12`](T12.md) | - | businessmap | `/api/v1/metricas/T12` | story | 20 | ok |
-| [`T13`](T13.md) | - | businessmap | `/api/v1/metricas/T13` | story | 20 | ok |
-| [`T14`](T14.md) | - | businessmap | `/api/v1/metricas/T14` | story | 20 | pendente-usuario |
+| [`T10`](T10.md) | Tempo de terceiros | businessmap | `/api/v1/metricas/T10` | story | 20 | ok |
+| [`T11`](T11.md) | Sazonalidade da chegada | businessmap | `/api/v1/metricas/T11` | story | 0 | ok |
+| [`T12`](T12.md) | Qualidade da entrada por área | businessmap | `/api/v1/metricas/T12` | story | 20 | ok |
+| [`T13`](T13.md) | Dependências entre quadros | businessmap | `/api/v1/metricas/T13` | story | 20 | ok |
+| [`T14`](T14.md) | Participação do meu time no projeto | businessmap | `/api/v1/metricas/T14` | story | 20 | pendente-usuario |
 | [`E1`](E1.md) | Lead time de projetos | businessmap | `/api/v1/metricas/E1` | projeto | 20 | ok |
 | [`E2`](E2.md) | Capacidade por objetivo estratégico | businessmap | `/api/v1/metricas/E2` | story | 20 | ok |
 | [`E3`](E3.md) | Entrega × resultado | businessmap | `/api/v1/metricas/E3` | projeto | 0 | ok |

@@ -41,11 +41,18 @@ describe('catálogo de cartões', () => {
       o3: ['o5', 'o6', 'o8'],
       o4: ['o8'],
       o10: ['o11'],
+      bloqueados: ['t10'],
+      o14: ['t12'],
       o15: ['o13', 'o16', 'o17'],
-      t1: ['t6'],
-      t4: ['t8'],
+      t1: ['t6', 't13'],
+      t4: ['t8', 't11'],
       t5: ['o14'],
-      t9: ['t6', 'e5', 'e6'],
+      t9: ['t6', 'e5', 'e6', 't14'],
+      t10: ['bloqueados', 'o12'],
+      t11: ['t4', 't6'],
+      t12: ['o14', 'o11'],
+      t13: ['t1'],
+      t14: ['t13', 't9'],
       e1: ['e4', 'e5', 'e9'],
       e2: ['e7'],
       e6: ['e5', 't9'],
@@ -67,7 +74,7 @@ describe('catálogo de cartões', () => {
       for (const p of c.leiaJunto ?? []) expect(cartaoPorIdGlobal(p)?.grupo).toBe('nucleo')
   })
 
-  it('classifica os cartões: mock só onde falta fonte real (O17, T8, E4, E6, E8, S8, S11, S12)', () => {
+  it('classifica os cartões: mock só onde falta fonte real (O17, T8, E4, E6, E8, T13, T14, S8, S11, S12)', () => {
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar')
     expect(compl.map((c) => c.codigo).sort()).toEqual(
       [
@@ -81,6 +88,11 @@ describe('catálogo de cartões', () => {
         'O17',
         'T6',
         'T8',
+        'T10',
+        'T11',
+        'T12',
+        'T13',
+        'T14',
         'E4',
         'E5',
         'E6',
@@ -94,14 +106,14 @@ describe('catálogo de cartões', () => {
         'S12',
       ].sort(),
     )
-    const mock = ['O17', 'T8', 'E4', 'E6', 'E8', 'S8', 'S11', 'S12']
+    const mock = ['O17', 'T8', 'E4', 'E6', 'E8', 'T13', 'T14', 'S8', 'S11', 'S12']
     for (const c of compl) expect(c.status).toBe(mock.includes(c.codigo) ? 'mock' : 'disponivel')
     for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'nucleo'))
       expect(c.status).toBe('disponivel')
     expect(CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo')).toHaveLength(32)
   })
 
-  it('torna as 21 complementares alcançáveis por "leia junto" a partir do núcleo (em cadeia)', () => {
+  it('torna as 26 complementares alcançáveis por "leia junto" a partir do núcleo (em cadeia)', () => {
     const alcancadas = new Set<string>()
     const fila = CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo').flatMap(
       (c) => c.leiaJunto ?? [],

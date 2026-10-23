@@ -1,15 +1,15 @@
 import { test, expect, rodarAxe } from '../fixtures/base'
 import type { Page } from '@playwright/test'
 
-// QA metricas-complementares: seção "Mais métricas deste painel", Leia junto, catálogo (53), preferências, axe AA a 375 e 1280.
+// QA metricas-complementares: seção "Mais métricas deste painel", Leia junto, catálogo (58), preferências, axe AA a 375 e 1280.
 const CHAVE = 'metricas-dspd:preferencias:v1'
 
 // Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios".
-const MOCK = new Set(['O17', 'T8', 'E4', 'E6', 'E8', 'S8', 'S11', 'S12'])
+const MOCK = new Set(['O17', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8', 'S11', 'S12'])
 
 const PAINEIS = [
   { rota: '/operacional?cadencia=semanal', n: 7, ids: ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16'] },
-  { rota: '/tatico', n: 2, ids: ['T6', 'T8'] },
+  { rota: '/tatico', n: 7, ids: ['T6', 'T8', 'T11', 'T12', 'T10', 'T13', 'T14'] },
   { rota: '/estrategico', n: 6, ids: ['E9', 'E4', 'E5', 'E6', 'E7', 'E8'] },
   { rota: '/operacional?cadencia=sustentacao', n: 6, ids: ['O17', 'S8', 'S9', 'S10', 'S11', 'S12'] },
 ] as const
@@ -74,15 +74,15 @@ for (const tela of TELAS) {
       await expect(page.getByTestId('metrica-E4')).toHaveCount(0)
     })
 
-    test('COMP-03 catálogo: 53 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico), grupo Complementar tem 21, axe AA', async ({ page }) => {
+    test('COMP-03 catálogo: 58 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático), grupo Complementar tem 26, axe AA', async ({ page }) => {
       await page.goto('/metricas')
       await expect(page.getByRole('heading', { level: 1, name: 'Catálogo de métricas' })).toBeVisible()
       const contagem = page.getByTestId('contagem-catalogo')
-      await expect(contagem).toHaveText('53 de 53 métricas')
+      await expect(contagem).toHaveText('58 de 58 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
-      await expect(contagem).toHaveText('21 de 53 métricas')
+      await expect(contagem).toHaveText('26 de 58 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Núcleo')
-      await expect(contagem).toHaveText('32 de 53 métricas')
+      await expect(contagem).toHaveText('32 de 58 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
       const r = await rodarAxe(page)
       expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
@@ -127,12 +127,12 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(cartao.getByRole('heading', { name: 'Eficiência de fluxo' })).toBeFocused()
   })
 
-  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Fictícios" para as 53 (decisão 20)', async ({ page }) => {
+  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Fictícios" para as 58 (decisão 20)', async ({ page }) => {
     await page.goto('/metricas')
     await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText('Fictícios')
     await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Fictícios')
     await expect(page.getByRole('row', { name: /^O3 / })).toContainText('Fictícios')
-    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(53)
+    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(58)
     await expect(page.getByRole('cell', { name: 'Da coleta', exact: true })).toHaveCount(0)
   })
 
@@ -180,11 +180,11 @@ test.describe('complementares: fluxos a 1280 px', () => {
   })
 
   test('COMP-10 tudo oculto: a seção vira uma linha de aviso, nunca some calada', async ({ page, painel }) => {
-    await guardar(page, { tatico: ['t6', 't8'] })
+    await guardar(page, { tatico: ['t6', 't8', 't10', 't11', 't12', 't13', 't14'] })
     await painel.ir('/tatico')
     await painel.esperarCartoesProntos()
     await expect(page.getByTestId('mais-metricas')).toHaveCount(0)
-    await expect(page.getByTestId('mais-metricas-ocultas')).toHaveText('2 complementares ocultas pelas suas preferências.')
+    await expect(page.getByTestId('mais-metricas-ocultas')).toHaveText('7 complementares ocultas pelas suas preferências.')
   })
 
   test('COMP-11 "Restaurar padrão" volta tudo e abre a seção no painel', async ({ page, painel }) => {
@@ -219,7 +219,8 @@ test.describe('complementares: fluxos a 1280 px', () => {
   test('COMP-13 "Leia junto" em todos os cartões do núcleo que têm complementares', async ({ page, painel }) => {
     const esperado: Record<string, Record<string, string[]>> = {
       '/operacional?cadencia=semanal': { o3: ['O5', 'O6', 'O8'], o4: ['O8'], o10: ['O11'], o15: ['O13', 'O16', 'O17'] },
-      '/tatico': { t1: ['T6'], t4: ['T8'], t5: ['O14'], t9: ['T6', 'E5', 'E6'] },
+      '/tatico': { t1: ['T6', 'T13'], t4: ['T8', 'T11'], t5: ['O14'], t9: ['T6', 'E5', 'E6', 'T14'] },
+      '/operacional?cadencia=diaria': { bloqueados: ['T10'] },
       '/estrategico': { e1: ['E4', 'E5', 'E9'], e2: ['E7'] },
       '/operacional?cadencia=sustentacao': { s1: ['S9', 'S10', 'PV1'], s2: ['S8', 'S12', 'PV1'], s3: ['S8', 'S12'], s5: ['S11'], s7: ['S11'] },
     }

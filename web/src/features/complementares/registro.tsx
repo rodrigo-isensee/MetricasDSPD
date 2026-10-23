@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { CartaoO11, CartaoO13, CartaoO14, CartaoO16, CartaoO5, CartaoO6, CartaoO8 } from './fluxo'
 import { CartaoE6, CartaoE7, CartaoE8, CartaoE9 } from './estrategicas'
+import { CartaoT10, CartaoT11, CartaoT12, CartaoT13, CartaoT14 } from './taticas'
 import { CartaoE4, CartaoE5, CartaoT6, CartaoT8 } from './previsao'
 import { CartaoO17, CartaoS10, CartaoS11, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
 
@@ -15,6 +16,11 @@ const FLUXO: Record<string, ComponentType<{ filtros: FiltrosFluxo }>> = {
   o14: CartaoO14,
   o16: CartaoO16,
   t6: CartaoT6,
+  t10: CartaoT10,
+  t11: CartaoT11,
+  t12: CartaoT12,
+  t13: CartaoT13,
+  t14: CartaoT14,
   t8: CartaoT8,
   e4: CartaoE4,
   e5: CartaoE5,
