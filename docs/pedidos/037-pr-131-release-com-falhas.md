@@ -37,6 +37,7 @@
 - E2.7 (forge:tech-lead): parecer de review da promoção, PR develop → homolog (merge commit) e merge com o portão disparado.
 - E2.5 (dono): mesclar o #136 (homolog → main) com o homolog-aprovada verde. Feito pelo dono em 2026-10-21 13:10 (merge 17fee18), antes do 037 entrar: a correção do C6 vai na próxima release (E2.8).
 - E2.9 (forge:devops-engineer): rodar de novo o check `homolog-aprovada` do PR #144, que falhou por corrida com o portão (K-108), e relatar o resultado.
+- R.1 (forge:agile-coach): retrospectiva do pedido 037.
 - E2.8 (forge:tech-lead): abrir o PR de release homolog → main com o Worker do 037, depois do E2.7, para o dono validar e mesclar.
 - E1.5 (forge:software-architect): proposta de tratamento do C6 de /operacional sem afrouxar o limite (K-113), a partir da medição 1f715e8, gravada na worktree -037 (sem commit: o arquiteto não tem Bash; o commit vai com a implementação).
 

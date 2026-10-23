@@ -21,6 +21,8 @@
 - E1.5 (forge:qa-engineer): QA e parecer.
 - E1.6 (forge:ux-designer): revisão da interface implementada contra a especificação.
 - E1.7 (forge:tech-lead): PR para a develop (squash) e merge; limpeza da branch.
+- E1.8 (forge:ux-designer): ajustar a ficha da T14 na especificação ao que a tela mostra (só "Meu time: k" com o projeto oculto), sem mudar a tela, pela decisão T14-1 = A (K-139).
+- R.1 (forge:agile-coach): retrospectiva do pedido 025.
 
 ## Fora do escopo
 - Operacionais (pedido 026, K-111) e integrações oficiais (fase 3): vêm depois, nesta ordem.

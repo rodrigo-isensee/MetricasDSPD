@@ -181,3 +181,4 @@
 | 2026-10-23 17:56 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-5 | brief | 1 | reprovado | n | E2.1/E4.1 como não nesta delegação: mesma forma aprovada no qa-2 r2, qa-3 e qa-4 (F18); contestado | escopo | jarvis |
 | 2026-10-23 17:58 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-5 | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-23 20:07 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:12 | 025-front-do-011-lote2 | 025-front-do-011-lote2-agile-coach-1 | brief | 1 | aprovado | s |  | — | jarvis |
