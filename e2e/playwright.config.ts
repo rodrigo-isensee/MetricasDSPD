@@ -1,8 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // E2E contra `vite preview` de ../web (ADR 0001). Nada de dados reais: o app usa o mock.
-const PORTA = 4173;
-const PORTA_ALT = 4174; // build com outra semente (critério C80)
+// E2E_PORTA / E2E_PORTA_ALT: outra worktree pode ter um `vite preview` de outro build na 4173 (reuseExistingServer serviria o build errado).
+const PORTA = Number(process.env.E2E_PORTA ?? 4173);
+const PORTA_ALT = Number(process.env.E2E_PORTA_ALT ?? 4174); // build com outra semente (critério C80)
 const CI = !!process.env.CI;
 // FA-5: com E2E_API_URL (API real local, `scripts/com-api-mock.sh`) a suíte roda só os projetos `*-api`, contra a SPA
 // buildada com VITE_FONTE=api, servida pelo `vite preview` com /api encaminhado à API (mesma origem, sem CORS).
@@ -56,6 +57,14 @@ export default defineConfig({
     {
       name: 'chromium-api',
       testDir: './tests-api',
+      testIgnore: /grafias/, // `grafias` precisa da API com MOCK_FORNECEDOR_GRAFIAS=1 (projeto abaixo)
+      use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${PORTA_API}` },
+    },
+    {
+      // B11-001 (T10): rode com `MOCK_FORNECEDOR_GRAFIAS=1 bash scripts/com-api-mock.sh bash -c 'cd e2e && E2E_API_URL=$API_URL pnpm exec playwright test --project=chromium-api-grafias'`.
+      name: 'chromium-api-grafias',
+      testDir: './tests-api',
+      testMatch: /grafias/,
       use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${PORTA_API}` },
     },
     {
