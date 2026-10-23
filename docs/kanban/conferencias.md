@@ -177,3 +177,4 @@
 | 2026-10-23 11:37 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-tech-lead-10 | brief | 3 | aprovado | s |  | — | jarvis |
 | 2026-10-23 13:42 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-devops-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-23 14:42 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 14:53 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
