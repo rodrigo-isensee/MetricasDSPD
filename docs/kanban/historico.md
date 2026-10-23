@@ -395,3 +395,7 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-23T20:33:38-03:00 | K-123 | Entrada | Em andamento | 041 E2.2, node-backend-1 |
 | 2026-10-23T20:40:51-03:00 | K-113 | Aguardando sua validação | Pronto | release #144 na main; retrospectiva 1d0b8ed |
 | 2026-10-23T20:40:51-03:00 | K-139 | Em andamento | Code review | ficha da T14 ajustada (E1.8), commit e review no PR de docs |
+| 2026-10-23T20:45:17-03:00 | K-134 | Entrada | Em andamento | 041 E3.1, tech-lead-1 |
+| 2026-10-23T20:45:17-03:00 | K-107 | Em andamento | Code review | E2.2 entregue a999345, review na E5.1 |
+| 2026-10-23T20:45:17-03:00 | K-123 | Em andamento | Code review | E2.2 entregue f61db60, review na E5.1 |
+| 2026-10-23T20:47:12-03:00 | K-108 | Entrada | Em andamento | 041 E3.2, devops-engineer-1, worktree: MetricasDSPD-041b |
