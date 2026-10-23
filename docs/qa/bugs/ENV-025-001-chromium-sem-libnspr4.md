@@ -1,5 +1,5 @@
 # ENV-025-001 - Chromium do Playwright não abre: falta libnspr4.so
-- Severidade: média (bloqueia o reteste do 025; não é defeito do produto)
+- Severidade: média (bloqueou o reteste do 025; não era defeito do produto). Estado: corrigido no ambiente (dono instalou as dependências; chrome-headless-shell 1248 abre sem "not found" no ldd)
 - Responsável sugerido: dono da estação (instalação de pacote do sistema com sudo)
 - Ambiente: feature/025-front-taticas em 43f29b3, WSL2, node 24.22.1, chromium-1248
 
