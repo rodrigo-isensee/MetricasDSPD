@@ -1,8 +1,8 @@
 # Quadro Kanban
 
-> Retomada 2026-10-20 22:35 (sessão Forge 0.26.0): em voo: QA final do pedido 036 (forge:qa-engineer, worktree -030, branch feature/036-estrategicas-pendentes, depois PR e merge pelo tech-lead com 'Cartão: K-091, K-119' no squash); proposta do C6 de /operacional do pedido 037 (forge:software-architect, worktree -037, docs/architecture/propostas/037-c6-operacional.md; depois implementação pelo react-frontend, review, QA, promoção e o #131 verde para o dono). Próximo: táticas (pedido 025, K-110: front de T10 a T14; back já na main) com recibo ao dono antes de acionar; depois operacionais (026, K-111) e por fim integrações (fase 3). Diretório principal na branch docs/jarvis-2026-10-20-noite (de origin/develop), com quadro, pedidos 036 e 037 e briefs sem commit. Prompt de melhorias ao Forge (M1 a M18) em /tmp/claude-1000/-home-rodrigoisensee-MetricasDSPD/fcc322bd-e180-45cd-a290-9782de4f5226/scratchpad/prompt-jarvis-forge.md (o dono leva ao Forge).
-> Atualizado em: 2026-10-20 22:35 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
-> WIP: sessão do Forge 0.26.0 (teto adaptativo R-TETO) (dia: teto de 2 agentes, uma tarefa pesada por vez) · Bloqueados: 0
+> Computador novo (2026-10-22, Forge 0.28.0): repositório em /home/rodrigoisensee/Metricas/MetricasDSPD, branch do Jarvis docs/jarvis-2026-10-20-noite. Banco local recriado (040). Em espera do dono: dependências do Chromium (K-110) e recibo do 041 (estabilizar os testes). Próximo: reteste do 025 → PR do 025 → promoção do 025 com o 037 para a homolog → release para a main (dono). Prompt de melhorias ao Forge (F1 a F15) em `docs/kanban/prompt-jarvis-forge-2026-10-21.md`.
+> Atualizado em: 2026-10-22 21:35 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> WIP: sessão do Forge 0.28.0 (teto adaptativo R-TETO) · Bloqueados: 1 (K-110)
 > Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
 # Upstream — descoberta (Design Thinking)
@@ -17,7 +17,7 @@
 | K-128 | [025 review A1] COM_TAMBEM da MockFonteMetricas sem T11, T13 e T14 (no mock, T13/T14 sem vínculo e sem time); depois do 037 (arquivo agora em nucleoMock.ts) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Limite do mock, não fere a ficha (review 025) |
 | K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-21 | Recomendado no review 025 |
 | K-130 | [025 segurança] API da T14 envia total, semTime, meuTime.n e agregado do projeto oculto (n − k pela aba de rede): M-1/M-1a antes de dado real | 025 | forge:node-backend | 2026-10-21 | 2026-10-21 | Condição antes da fase 3; parecer docs/security/025-t14-reidentificacao.md |
-| K-131 | [bug] D1 (média): 100 E2E defasados na develop (96 em intensivo-filtros.spec.ts:255, 4 em b12-fluxo, filtros e intensivo-filtros-bordas); E2E completo fora do pronto e do portão | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-21 | QA do 037; pôr o E2E completo no portão é decisão do dono (minutos de CI) |
+| K-137 | [docs] Checklist de "computador novo" no README do projeto: Docker, `.env`, `pnpm install`, `playwright install-deps` (sudo, dono), grupo docker antes de abrir o Claude Code | 040 | forge:tech-lead | 2026-10-22 | 2026-10-22 21:35 | MELHORIA da retrospectiva do 040 (parte do projeto; a parte da fábrica é o F13) |
 | K-132 | [teste] D2 (baixa): 9 E2E instáveis com 8 workers (passam com 2 a 3); suíte E2E regrava docs/qa/evidencias a cada execução | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-21 | QA do 037 |
 | K-133 | [bug] L2T-003 (baixa): CLS de 0,073 a 0,100 em /tatico com equipe na API (herdado; reproduz com a seção do lote 2 fechada) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Pendência do PR do 025 por decisão do dono (A) |
 | K-134 | [teste] `pnpm run pronto` não roda o typecheck do e2e; o pre-push deixa passar falha com árvore suja (um erro TS em e2e/tests-api chegou à branch do 025) | 025 | forge:tech-lead | 2026-10-21 | 2026-10-21 | Melhoria vista do QA do 025; parte do pre-push pode ir ao Forge |
@@ -56,8 +56,7 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-124 | Limpar as branches já mescladas na develop (remota, local e worktree) | 039 | forge:tech-lead | 2026-10-21 | 2026-10-21 | Pedido 039, E1.1 |
-| K-122 | Registrar o Forge 0.27.0 no repositório: destravar o #134 (conflito), review, QA e merge | 038 | forge:tech-lead | 2026-10-21 | 2026-10-21 | Pedido 038, E1.1 · worktree: -038 (branch forge/upgrade-0.27.0) |
+| K-113 | C6 do perf do PR sem margem (188 a 215 ms contra 200) | 037 | forge:tech-lead | 2026-10-17 | 2026-10-22 15:02 | #139 na develop (2bb9f68). Falta a promoção para a homolog junto com o 025 (E2.6 e E2.7) e corrigir a linha 57 do review |
 | K-121 | [docs] 10 documentos antigos de docs/qa e docs/architecture sem frontmatter (ADR 0004) poluem o forge-check docs e escondem achados novos | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 22:25 | Melhoria vista no review do 036 e no QA do 035 |
 | K-120 | [teste] Preview órfão de outra worktree na porta 4173 bloqueia ou serve build errado no test:perf (playwright.config.ts, reuseExistingServer) | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:58 | Melhoria vista do QA no reteste do FA-006 |
 | K-117 | Promoção develop → homolog (#128) com review e QA próprios, e PR de release homolog → main (E4) | 035 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:25 | Depois do K-116. O dono mescla na main |
@@ -75,8 +74,6 @@
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-113 | C6 do perf do PR sem margem (188 a 215 ms contra 200) | 037 | forge:react-frontend | 2026-10-17 | 2026-10-20 22:55 | Pedido 037, E2.2: Web Worker da ADR 0021 (S0 eeb59fa: 113 ms, sem render fatiado) · worktree: -037 |
-| K-110 | Front do 011, lote 2 (táticas): T10, T11, T12, T13, T14 | 025 | forge:react-frontend | 2026-10-17 | 2026-10-20 23:13 | Pedido 025, E1.1 (2ª instância do react-frontend) · worktree: -025 (branch feature/025-front-taticas) |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -85,6 +82,10 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-136 | Banco local no computador novo: Docker, `.env`, dependências, PostgreSQL, migrações e seed | 040 | forge:devops-engineer | 2026-10-22 | 2026-10-22 15:33 | healthy, 15 migrações, seed; retrospectiva 7049751 |
+| K-131 | [bug] D1 (média): 100 E2E defasados na develop (W037-001) | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-22 15:02 | Corrigido no #139 (2bb9f68), e2e verde; condição do D1 cumprida |
+| K-124 | Limpar as branches já mescladas na develop (remota, local e worktree) | 039 | forge:tech-lead | 2026-10-21 | 2026-10-21 13:22 | Pedido 039 encerrado |
+| K-122 | Registrar o Forge 0.27.0 no repositório | 038 | forge:tech-lead | 2026-10-21 | 2026-10-21 | #134 na develop (794b982) |
 | K-091 | [teste] IFA-001: o IF-A verifica cartão em /estrategico (parte do /operacional fica para o lote 3) | 036 | forge:qa-engineer | 2026-10-15 | 2026-10-20 23:16 | #133 na develop (568ea48) |
 | K-119 | E7 no catálogo: "Qual a participação de cada sistema nas nossas entregas?" (decisão do dono, A) | 036 | forge:qa-engineer | 2026-10-20 | 2026-10-20 23:16 | #133 na develop (568ea48); review, QA e UX aprovados |
 | K-116 | PR de documentação do Jarvis e parecer de segurança do #130 na develop (E3) | 035 | forge:tech-lead | 2026-10-20 | 2026-10-20 22:20 | #132 mesclado na develop (bbbc70c), com review e QA; branch apagada |
@@ -114,6 +115,7 @@
 ## Bloqueado
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-110 | Front do 011, lote 2 (táticas): T10, T11, T12, T13, T14 | 025 | forge:qa-engineer | 2026-10-17 | 2026-10-22 17:34 | Aguardando o dono: dependências do Chromium (libnspr4, libnss3; ENV-025-001). Branch em 43f29b3 no remoto, parecer d586518 local · worktree: -025 |
 
 ## Políticas locais (acrescentadas na auditoria K-021)
 - **Entrada é o backlog:** cartão com dependência aberta de outro cartão fica em Entrada; só entra em "Pronto para fazer" o que pode ser puxado agora (a espera por ata de reunião em andamento é a única exceção, e deve constar em Obs.).

@@ -54,3 +54,28 @@ Observação: a lista anterior (M1 a M21, de 2026-10-20) ficou num scratchpad te
 - Problema: o prompt de melhorias M1 a M21 ficou no scratchpad da sessão e sumiu na sessão seguinte.
 - Sugestão: o Jarvis grava documentos que o dono vai levar adiante num caminho persistente (ex.: docs/kanban/ ou ~/), nunca só no scratchpad.
 - Medida: artefatos perdidos entre sessões = 0.
+
+## F11. Brief de ambiente mandado a papel que o hook barra (retrospectiva do 040)
+- Problema: o Jarvis mandou ao devops-engineer o `pnpm install` e a criação do `.env`, e o hook de conformidade barrou os dois ("pnpm install é de dev/qa/tech-lead"; "ler .env expõe segredos").
+- Sugestão: um roteiro de "ambiente novo" no Forge que já aponte quem faz cada passo (dono: sudo e `.env`; tech-lead: `pnpm install`; devops: banco), ou o `forge-check brief` avisar quando o Entregar pede ao destino um comando que o hook barra para aquele papel.
+- Medida: briefs barrados pelo hook por papel errado = 0.
+
+## F12. Claude Code sem o grupo docker depois do usermod (retrospectiva do 040)
+- Problema: o processo do Claude Code (`--remote-control`) não herda o grupo novo, e o `newgrp` não afeta um processo que já está rodando. Foi preciso um `setfacl` no socket.
+- Sugestão: documentar no roteiro de primeiro uso: instalar o Docker antes de abrir o Claude Code, ou reiniciar o processo do Claude Code num shell novo.
+- Medida: sessões com "permission denied" no docker.sock depois da instalação = 0.
+
+## F13. Checklist de computador novo sem as dependências do navegador (retrospectiva do 040)
+- Problema: o `libnspr4` e o `libnss3` do Chromium faltaram em dois computadores (K-118 no pedido 036 e o reteste do 025), e o QA só descobriu na hora de rodar os testes.
+- Sugestão: um passo `playwright install-deps` (ação do dono, com sudo) no checklist de ambiente novo da fábrica e uma verificação do doutor do Forge antes de qualquer E2E.
+- Medida: E2E travado por biblioteca de sistema = 0.
+
+## F14. Etapas e itens de escopo desalinhados (retrospectiva do 040)
+- Problema: o `forge-check brief` liga as etapas aos itens pelo prefixo (E4 → E4.x), e o Jarvis renumerou à mão (E1.2 → E4.1) para o corte passar.
+- Sugestão: o modelo de pedido gerar as etapas a partir dos itens, ou o `forge-check` aceitar a etapa que cite o item no texto.
+- Medida: renumerações manuais por pedido = 0.
+
+## F15. Esperas de pessoa fora do histórico (retrospectiva do 040)
+- Problema: cerca de 19 min de espera pelo dono dentro de "Em andamento" ficaram sem linha no histórico, e o tempo bloqueado sai subestimado.
+- Sugestão: o Jarvis move o cartão para "Aguardando o dono" sempre que pede uma ação, mesmo curta.
+- Medida: diferença entre o tempo bloqueado medido e o declarado = 0.

@@ -148,3 +148,5 @@
 | 2026-10-22 15:33 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-devops-engineer-2 | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-22 15:35 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-6 | entrega | 1 | não cumpriu | parcial | PQ-1 a 3 cumpridos e nada pendente; fora só pela faixa b6c7673..8a97686 de briefs anteriores (qa-4 a 7, tl-5, UX), nunca conferida | escopo | destino |
 | 2026-10-22 15:36 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-8 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-22 21:27 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-agile-coach-1 | brief | 1 | reprovado | s | libnspr4 sem registro no pedido 040; registrado no Andamento | escopo | jarvis |
+| 2026-10-22 21:28 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-agile-coach-1 | brief | 2 | aprovado | s |  | — | jarvis |

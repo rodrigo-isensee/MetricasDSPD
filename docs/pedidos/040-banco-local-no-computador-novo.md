@@ -26,6 +26,7 @@
 - E4.1 (forge:tech-lead): `pnpm install --frozen-lockfile` na raiz (E4); o hook atribui `pnpm install` a dev, qa e tech-lead.
 - E1.3 (forge:devops-engineer): E1 (db:up e db:migrate), depois do E0.1, do E3.1 e do E4.1 (ex-E1.2).
 - E2.1 (forge:devops-engineer): E2 (db:seed e a consulta de prova), junto com o E1.3.
+- R.1 (forge:agile-coach): retrospectiva do pedido, com as linhas MELHORIA.
 
 ## Andamento
 - 2026-10-22 15:25 — devops-1: o pnpm 10.34.6 responde pelo PATH do nvm. O hook `conformidade` barrou o `pnpm install` ("pnpm install é de dev/qa/tech-lead (papel: devops)") e a criação do `.env` ("ler .env expõe segredos"). O Docker ainda não existe. Decisão técnica do Jarvis (`técnico`, base: mensagens do hook e README linha 18): o E3 passa ao dono (E3.1), o E4 ao tech-lead (E1.2) e o E1 e o E2 continuam com o devops (E1.3). Seguir o papel que o hook indica não é contorno.
@@ -33,6 +34,7 @@
 - 2026-10-22 15:25 — E1.2 cumprida (tech-lead-1, sem commit): `pnpm install --frozen-lockfile` na raiz e na worktree -025, lockfile sem divergência e pnpm já no PATH do shell interativo (o `~/.bashrc` carrega o nvm). Os builds de core-js e puppeteer foram ignorados pelo pnpm 10, sem `approve-builds`; isso só vira assunto se algum E2E precisar. Próximo passo: o dono reinicia a sessão e, em seguida, vem o E1.3 com o E2.1 (devops), usando o brief `040-...-devops-engineer-2`.
 - 2026-10-22 15:40 — O processo do Claude Code (`--remote-control`, iniciado às 14:56) não herda o grupo `docker`, e o `newgrp` não muda o processo que já roda. O dono deu acesso ao socket só para o próprio usuário (`setfacl -m user:rodrigoisensee:rw /var/run/docker.sock`, pacote `acl`), que vale até o Docker reiniciar. Agora o Docker 29.1.3 responde, sem nenhum container: o banco não existia (E1 verificado). Renumeração técnica: o E1.2 passa a ser E4.1, para a etapa ficar no item E4.
 - 2026-10-22 15:36 — E1.3 e E2.1 cumpridas pelo devops-2 (sem commit): container `metricasdspd-postgres-1` saudável, 15 migrações (0001 a 0015) e 165 GRANTs aplicados, seed "semeado". O Jarvis rodou de novo os PQ-1 (`healthy`) e PQ-2 (`t`), com o mesmo resultado. Entrega sem commit nem ato no GitHub, por isso não passa pelo conferente de entrega (R-PROVA). Pedido concluído; a retrospectiva fica na rodada conjunta com 025, 037, 038 e 039.
+- 2026-10-22 17:34 — Lacuna do ambiente novo, vista depois do fechamento: o computador não tinha as dependências de sistema do Chromium do Playwright (`libnspr4`, `libnss3`), e o reteste do 025 travou (pedido 025, Andamento 16:10; bug ENV-025-001). É o mesmo bloqueio do K-118 no computador anterior (retrospectiva do 036). O E4 do 040 (toolchain) não cobriu o navegador. A instalação é ação do dono (sudo) e está registrada no 025. Este pedido só a usa como evidência da retrospectiva (R.1).
 - MELHORIA: 2026-10-22 · ao Forge: o brief de ambiente local para o devops esbarra no hook (pnpm install e .env). Ou o roteiro de "ambiente novo" já aponta os papéis certos, ou o Forge prevê `.env.example` → `.env` sem leitura.
 
 ## Fora do escopo

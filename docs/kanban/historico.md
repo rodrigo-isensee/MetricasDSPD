@@ -378,3 +378,6 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-22T15:33:57-03:00 | K-136 | Em andamento | Pronto | banco local no ar: healthy, 15 migrações, seed carregado |
 | 2026-10-22T15:36:42-03:00 | K-110 | Em andamento | QA | E1.5: reteste do QA no head 43f29b3 (qa-8) |
 | 2026-10-22T17:34:43-03:00 | K-110 | QA | Aguardando o dono | Chromium sem libnspr4/libnss3: dono instala as dependências de sistema |
+| 2026-10-22T21:31:20-03:00 | K-137 | — | Entrada | MELHORIA da retrospectiva do 040 (projeto) |
+| 2026-10-22T21:31:20-03:00 | K-122 | Pronto para fazer | Pronto | acerto do quadro: #134 já na develop |
+| 2026-10-22T21:31:20-03:00 | K-124 | Pronto para fazer | Pronto | acerto do quadro: pedido 039 encerrado |
