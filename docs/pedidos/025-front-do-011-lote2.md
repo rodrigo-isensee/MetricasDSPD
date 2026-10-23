@@ -77,3 +77,4 @@ DECISÃO DO DONO (2026-10-23): "Faca suas recomendacoes": T14-1 = A, ajustar a f
 ## Histórico
 - 2026-10-21 13:58: entrega conferida 32a509fa4e6798ab43f777dca15823592db67383
 - 2026-10-21 14:20: entrega conferida b6c76731f21cfddd320cb3a75a4490f11df688c7
+- 2026-10-23 20:40: R.1 (retrospectiva) em `docs/retrospectivas/2026-10-23-025-taticas-lote2.md` (a10136b, e4801a4, 736362b). Decisão técnica do Jarvis (`técnico`): a terceira conferência de entrega (20:39) cumpriu PQ-1 a PQ-4 (7 MELHORIA, nenhuma instância de agente); o "não cumpriu" restante não tem mérito (faixa da branch compartilhada do Jarvis, F17/F19; a linha 92 nomeia o arquivo de instrução do Forge que a melhoria muda, não atribui defeito). A retrospectiva fica aceita e segue no PR de documentação do Jarvis, com o QA de docs. E1.8 (K-139): ficha da T14 ajustada pelo ux-designer, sem commit, vai no mesmo PR.

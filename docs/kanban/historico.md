@@ -389,3 +389,9 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-23T11:13:18-03:00 | K-110 | Aguardando sua validação | Pronto | #140 na develop (c4db73e); vai na promoção |
 | 2026-10-23T11:37:45-03:00 | K-113 | Pronto para fazer | Em andamento | E2.7/E2.6b/E2.8: tech-lead-10, promoção para a homolog e PR de release |
 | 2026-10-23T14:40:17-03:00 | K-113 | Em andamento | Pronto | #144 mesclado pelo dono na main (2026-10-23 17:28Z) |
+| 2026-10-23T20:20:15-03:00 | K-139 | Entrada | Em andamento | ux-designer-2 (E1.8) |
+| 2026-10-23T20:29:40-03:00 | K-138 | Em andamento | Pronto para fazer | E1.1 conferida 8d8bdfd; correções E2/E3 a seguir |
+| 2026-10-23T20:33:38-03:00 | K-107 | Entrada | Em andamento | 041 E2.2, node-backend-1 |
+| 2026-10-23T20:33:38-03:00 | K-123 | Entrada | Em andamento | 041 E2.2, node-backend-1 |
+| 2026-10-23T20:40:51-03:00 | K-113 | Aguardando sua validação | Pronto | release #144 na main; retrospectiva 1d0b8ed |
+| 2026-10-23T20:40:51-03:00 | K-139 | Em andamento | Code review | ficha da T14 ajustada (E1.8), commit e review no PR de docs |

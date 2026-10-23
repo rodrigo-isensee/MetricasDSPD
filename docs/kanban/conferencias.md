@@ -182,3 +182,19 @@
 | 2026-10-23 17:58 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-5 | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-23 20:07 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-6 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-23 20:12 | 025-front-do-011-lote2 | 025-front-do-011-lote2-agile-coach-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:18 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-agile-coach-1 | brief | 1 | reprovado | s | decisão do #136 sem a marca de superada | decisao | jarvis |
+| 2026-10-23 20:20 | 025-front-do-011-lote2 | 025-front-do-011-lote2-ux-designer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:20 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-agile-coach-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:21 | 025-front-do-011-lote2 | 025-front-do-011-lote2-agile-coach-1 | entrega | 1 | não cumpriu | parcial | custo e comportamento por agente na retro (procede); Desde squashado (F17, técnico) | decisao | destino |
+| 2026-10-23 20:23 | 025-front-do-011-lote2 | 025-front-do-011-lote2-agile-coach-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:29 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-agile-coach-1 | entrega | 1 | não cumpriu | n | faixa da branch compartilhada do Jarvis e Desde inexistente (F17/F19); frase literal não exigida; volta por decisão técnica do Jarvis: custo e rodadas por agente na retro | escopo | destino |
+| 2026-10-23 20:29 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-6 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-10-23 20:29 | 025-front-do-011-lote2 | 025-front-do-011-lote2-agile-coach-2 | entrega | 2 | não cumpriu | parcial | tardio; rodadas por instância de agente nas tabelas e nas MELHORIA; faixa da branch compartilhada (F17/F19) sem mérito | decisao | destino |
+| 2026-10-23 20:32 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-agile-coach-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:33 | 025-front-do-011-lote2 | 025-front-do-011-lote2-agile-coach-3 | brief | 1 | reprovado | parcial | tardio; faltavam linhas 24, 31, 33 e 48 com instância de agente (procede); PQ-4 estrutural (F17/F19) | decisao | jarvis |
+| 2026-10-23 20:33 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-node-backend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:35 | 025-front-do-011-lote2 | 025-front-do-011-lote2-agile-coach-3 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:36 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-agile-coach-2 | entrega | 2 | não cumpriu | parcial | linhas 35, 54, 73 e 95 atribuem a papel (procede em parte); gravação por script contra o brief; faixa da branch sem mérito | decisao | destino |
+| 2026-10-23 20:38 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-agile-coach-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:39 | 025-front-do-011-lote2 | 025-front-do-011-lote2-agile-coach-3 | entrega | 3 | não cumpriu | n | PQ-1 a PQ-4 cumpriram; linha 92 nomeia o arquivo de instrução do Forge a mudar (alvo da melhoria, não defeito atribuído); faixa da branch (F17/F19); mensagem sem cópia do brief (erro do Jarvis, forma) | escopo | destino |
+| 2026-10-23 20:40 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-agile-coach-3 | entrega | 3 | não cumpriu | n | PQ-1 a PQ-4 cumpriram, pendente nenhum; só a faixa da branch compartilhada e o Desde ausente (F17/F19) | escopo | destino |
