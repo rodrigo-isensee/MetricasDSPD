@@ -1,4 +1,4 @@
-Jarvis, sou o dono. Trago melhorias de fábrica observadas no projeto MetricasDSPD (Forge 0.27.0), em 2026-10-20 e 2026-10-21. Cada uma vale para todos os projetos. Abra um cartão por melhoria e um PR por melhoria para a develop do Forge (skill contribuir-com-o-forge), com o problema, a evidência e como medir o efeito. O que mudar processo, custo ou controle volta para mim como decisão, uma por vez, com recomendação.
+Jarvis, sou o dono. Trago melhorias de fábrica observadas no projeto MetricasDSPD (Forge 0.27.0 e 0.28.0), de 2026-10-20 a 2026-10-23. Cada uma vale para todos os projetos. Abra um cartão por melhoria e um PR por melhoria para a develop do Forge (skill contribuir-com-o-forge), com o problema, a evidência e como medir o efeito. O que mudar processo, custo ou controle volta para mim como decisão, uma por vez, com recomendação.
 
 Observação: a lista anterior (M1 a M21, de 2026-10-20) ficou num scratchpad temporário e se perdeu. As melhorias abaixo foram reconstruídas dos pedidos e da retrospectiva; se algum item já estiver no Forge, só confirme.
 
@@ -84,3 +84,23 @@ Observação: a lista anterior (M1 a M21, de 2026-10-20) ficou num scratchpad te
 - Problema: três entregas no mesmo dia (QA do 025 com o qa-8, a retrospectiva do 040 na versão original e na volta) gravaram o arquivo por script Python via Bash, apesar do brief exigir Write ou Edit, que é o que registra a autoria. Todos declararam o desvio no relatório.
 - Sugestão: o hook de conformidade barra escrita em `docs/qa/`, `docs/reviews/` e `docs/retrospectivas/` feita por Bash, ou o agente tem a regra na própria instrução, não só no brief.
 - Medida: desvios "gravei por script" por semana = 0.
+
+## F17. O Desde da conferência aponta para commit que sumiu no squash (2026-10-23)
+- Problema: a linha `conferida` do Histórico guarda o sha de um commit da branch de feature. Depois do merge por squash, esse objeto some do clone, e o `forge-check entrega --desde` falha com "sem conferência anterior". Foram 4 conferências reprovadas só por isso em 2026-10-23 (037 tech-lead-8, qa-9; 025 tech-lead-7, security-2).
+- Sugestão: depois do merge, o Jarvis grava uma linha `conferida` com o sha do squash na base, ou o `forge-check` aceita o squash como substituto quando o sha da branch não existe mais.
+- Medida: conferências reprovadas só por `--desde` ausente = 0.
+
+## F18. R-BRIEF ambíguo para "etapa do mesmo papel em outro momento" (pedido 025)
+- Problema: dois conferentes deram vereditos opostos para a mesma forma de brief. O 037 tech-lead-7 foi aprovado, e o 025 tech-lead-4 foi reprovado nas rodadas 3 e 4 por citar no Fora do escopo, sem a marca de corte, uma etapa do próprio destino feita em outro momento.
+- Sugestão: escrever em R-BRIEF e na instrução do conferente que a etapa do mesmo papel em outro momento vai no Fora do escopo citada de `## Etapas`, sem a marca.
+- Medida: reprovações de corte por etapa do mesmo papel = 0.
+
+## F19. R-PROVA não prevê fechar uma faixa de várias entregas sem conferência (pedido 025)
+- Problema: depois de uma pausa, a faixa b6c7673..43f29b3 juntou commits de 6 briefs diferentes que nunca foram conferidos. Toda conferência seguinte reprovou o "escopo: fora" por arquivos dessa faixa, mesmo com a entrega nova correta (3 reprovações em 2026-10-22 e 2026-10-23).
+- Sugestão: um modo `entrega` de faixa, com a lista dos briefs da faixa, ou o `forge-check entrega --brief` aceitar vários briefs.
+- Medida: reprovações só por faixa sem conferência = 0.
+
+## F20. Pre-push lento em push só de documentação, e ferramentas fora do PATH dos agentes
+- Problema: o pre-push roda lint e typecheck de todos os pacotes mesmo quando o diff é só `.md`, e passa de 120 s, o tempo-limite da ferramenta do agente. Além disso, o `forge-check` não está no PATH dos agentes, e o hook barra `$` e `$?`, o que custa tentativas.
+- Sugestão: o modelo de pre-push da fábrica pula lint e typecheck quando o diff não toca código; o `forge-check` entra no PATH da sessão; o modelo de brief traz os comandos já no formato que o hook aceita (`&& echo ok`).
+- Medida: pushes só de documentação acima de 60 s = 0; tentativas barradas por formato de comando por entrega.

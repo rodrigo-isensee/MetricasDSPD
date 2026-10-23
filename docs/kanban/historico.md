@@ -385,3 +385,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-22T22:07:03-03:00 | K-110 | QA | Aguardando sua validação | E1.7 parte 2: tech-lead-7 (PR, checks, merge na develop e limpeza) |
 | 2026-10-22T22:24:07-03:00 | K-138 | — | Pronto para fazer | pedido 041, E1.1: diagnóstico medido das instabilidades |
 | 2026-10-23T06:24:44-03:00 | K-138 | Pronto para fazer | Em andamento | qa-1: diagnóstico medido (worktree -041) |
+| 2026-10-23T10:44:48-03:00 | K-139 | — | Entrada | T14-1 = A: ajustar a ficha da T14 à tela (decisão do dono 2026-10-23) |
+| 2026-10-23T11:13:18-03:00 | K-110 | Aguardando sua validação | Pronto | #140 na develop (c4db73e); vai na promoção |
