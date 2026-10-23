@@ -374,3 +374,7 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-22T15:04:01-03:00 | K-110 | Em andamento | Em andamento | merge d3356a8 e review 43f29b3 locais; push espera pnpm (pedido 040, E4) |
 | 2026-10-22T15:14:27-03:00 | K-136 | Aguardando o dono | Aguardando o dono | pedido 040: recibo e Docker A aceitos; dono instala o Docker Engine (E0.1) |
 | 2026-10-22T15:16:09-03:00 | K-136 | Aguardando o dono | Em andamento | E1.1: devops-engineer (toolchain, .env, banco quando o Docker responder) |
+| 2026-10-22T15:32:29-03:00 | K-110 | Em andamento | Em andamento | push 43f29b3 (merge da develop e review); conferência e QA do E1.5 |
+| 2026-10-22T15:33:57-03:00 | K-136 | Em andamento | Pronto | banco local no ar: healthy, 15 migrações, seed carregado |
+| 2026-10-22T15:36:42-03:00 | K-110 | Em andamento | QA | E1.5: reteste do QA no head 43f29b3 (qa-8) |
+| 2026-10-22T17:34:43-03:00 | K-110 | QA | Aguardando o dono | Chromium sem libnspr4/libnss3: dono instala as dependências de sistema |

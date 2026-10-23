@@ -1,0 +1,52 @@
+# Pedido 041: estabilizar os testes (instabilidades)
+
+- **Data:** 2026-10-22
+- **Origem:** usuário: "Jarvis preciso que voce melhore os testes, porque to achando muito estranho algumas instabilidades".
+- **Modo:** implementar
+- **Objetivo:** acabar com as falhas intermitentes da suíte (unidade, E2E e CI), atacando a causa raiz em vez de rodar de novo ou aumentar timeout.
+- **Clareza:** 1 confirmado, 3 técnicos, 2 suposições; 0 perguntas.
+
+## Diagnóstico inicial (Jarvis, a partir do quadro)
+Instabilidades já registradas, em quatro grupos:
+- **Carga e tempo:** K-092 e K-115 (IF-U-operacional e CA-19 axe estouram 30 s na suíte completa), K-132 (9 E2E falham com 8 workers e passam com 2 ou 3) e K-123 ("gerador < 1,5 s" falha com load ~10).
+- **Aleatoriedade:** K-107 (montecarlo.test.ts com semente aleatória: falhou no #96 e no push do #108).
+- **Esperas frágeis no E2E:** K-135 (espera de "painel pronto" duplicada em 4 lugares, por onde passou o W037-001); o `reuseExistingServer` na porta 4173 já serviu o build de outra worktree (corrigido com `E2E_PORTA`; falta conferir se cobre tudo).
+- **Portões que deixam passar ou correm:** K-134 (o `pronto` não roda o typecheck do e2e), K-108 (`homolog-aprovada` não espera o portão terminar) e K-132, segunda parte (a suíte regrava `docs/qa/evidencias` a cada execução e suja a árvore).
+
+## Escopo
+- E1. Diagnóstico medido: rodar as suítes repetidas vezes (unidade, E2E em 1, 2 e 8 workers, sob carga) e registrar a taxa de falha por teste e a causa raiz de cada instável. · `técnico`
+- E2. Corrigir a causa de cada teste instável dos grupos acima, sem aumentar timeout e sem retry como solução, mantendo a cobertura de cada asserção. · `confirmado`
+- E3. Fechar os buracos dos portões: typecheck do e2e no `pronto` (K-134), `homolog-aprovada` esperando o portão (K-108) e evidências de QA fora do caminho versionado nas execuções comuns (K-132). · `técnico`
+- E4. Um teste de regressão de estabilidade: os testes corrigidos rodando N vezes seguidas sem falha, como prova da entrega. · `técnico`
+
+## Etapas
+- E1.1 (forge:qa-engineer): diagnóstico medido (E1), em `docs/qa/041-estabilidade.md`, com a lista de causas e um plano de correção por grupo.
+- E2.1 (forge:qa-engineer): esperas do E2E e helper único de "painel pronto" (K-135, K-092, K-115, K-132).
+- E2.2 (forge:node-backend): semente fixa ou propriedade determinística no montecarlo (K-107) e limite de tempo do gerador que não dependa da carga da máquina (K-123).
+- E3.1 (forge:tech-lead): typecheck do e2e no `pronto` (K-134).
+- E3.2 (forge:devops-engineer): `homolog-aprovada` espera o portão (K-108) e parecer de devops.
+- E4.1 (forge:qa-engineer): prova de estabilidade (E4) e parecer de QA.
+- E5.1 (forge:tech-lead): code review e PRs para a develop.
+
+## Fora do escopo
+- Afrouxar limite de performance (C6, F6, F9, ADR 0003) ou de cobertura. · `confirmado` · base: regras do projeto
+- Os defeitos de produto (L2T-003 CLS, K-126 a K-129). · `suposição` · base: o pedido fala de instabilidade de teste
+- Mudar a suíte de outros projetos ou do Forge (o que for de fábrica vira MELHORIA). · `técnico`
+
+## Suposições
+- "instabilidades" = os testes que passam e falham sem mudança de código (lista do Diagnóstico); se o dono viu outra, ela entra no E1. · `suposição` · base: cartões K-092, K-107, K-115, K-123, K-132 e K-135
+- O 025 em QA não espera por este pedido: o reteste dele segue, e as instabilidades que aparecerem lá entram no E1. · `suposição` · base: ordem do dono de 2026-10-20 (táticas antes)
+
+## Critério de pronto
+- PQ-1 cada teste corrigido roda 20 vezes seguidas sem falha, com 8 workers e sob carga · prova: cmd · `técnico`
+- PQ-2 `pnpm run pronto` falha quando há erro de tipo no e2e · prova: cmd · `técnico`
+- PQ-3 nenhum timeout aumentado e nenhum retry novo no diff · prova: cmd · `confirmado`
+
+## Decisões do usuário (registro literal)
+DECISÃO DO DONO (2026-10-22): "Jarvis preciso que voce melhore os testes, porque to achando muito estranho algumas instabilidades".
+
+## Registro de clareza
+PERGUNTA: nenhuma
+
+## Histórico
+- 2026-10-22: pedido aberto; recibo enviado ao dono.

@@ -144,3 +144,7 @@
 | 2026-10-22 15:16 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-devops-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-22 15:17 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-devops-engineer-1 | entrega | 1 | sem entrega (sem commit): bloqueado pelo hook e pelo Docker | parcial | não foi ao conferente: sem commit nem ato no GitHub | ambiente | destino |
 | 2026-10-22 15:19 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-22 15:29 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-devops-engineer-2 | brief | 1 | reprovado | s | cabeçalho Branch develop x Objetivo na branch do Jarvis | forma | jarvis |
+| 2026-10-22 15:33 | 040-banco-local-no-computador-novo | 040-banco-local-no-computador-novo-devops-engineer-2 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-22 15:35 | 025-front-do-011-lote2 | 025-front-do-011-lote2-tech-lead-6 | entrega | 1 | não cumpriu | parcial | PQ-1 a 3 cumpridos e nada pendente; fora só pela faixa b6c7673..8a97686 de briefs anteriores (qa-4 a 7, tl-5, UX), nunca conferida | escopo | destino |
+| 2026-10-22 15:36 | 025-front-do-011-lote2 | 025-front-do-011-lote2-qa-engineer-8 | brief | 1 | aprovado | s |  | — | jarvis |

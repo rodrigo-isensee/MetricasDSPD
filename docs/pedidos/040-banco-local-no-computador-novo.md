@@ -23,14 +23,16 @@
 - E0.1 (dono): instalar o Docker neste computador (precisa de sudo ou de instalador do Windows), conforme a decisão sobre a forma de instalação.
 - E1.1 (forge:devops-engineer): E3, E4, E1 e E2, com o relatório do que ficou de pé (banco no ar, migrações aplicadas, seed carregado, consulta de prova). Feita em parte: pnpm 10.34.6 ok; E3 e E4 barrados pelo hook (ver Andamento).
 - E3.1 (dono): `cp .env.example .env` na raiz (E3), como manda o README; o hook não deixa agente tocar no `.env`.
-- E1.2 (forge:tech-lead): `pnpm install --frozen-lockfile` na raiz (E4); o hook atribui `pnpm install` a dev, qa e tech-lead.
-- E1.3 (forge:devops-engineer): E1 (db:up e db:migrate), depois do E0.1, do E3.1 e do E1.2.
+- E4.1 (forge:tech-lead): `pnpm install --frozen-lockfile` na raiz (E4); o hook atribui `pnpm install` a dev, qa e tech-lead.
+- E1.3 (forge:devops-engineer): E1 (db:up e db:migrate), depois do E0.1, do E3.1 e do E4.1 (ex-E1.2).
 - E2.1 (forge:devops-engineer): E2 (db:seed e a consulta de prova), junto com o E1.3.
 
 ## Andamento
 - 2026-10-22 15:25 — devops-1: o pnpm 10.34.6 responde pelo PATH do nvm. O hook `conformidade` barrou o `pnpm install` ("pnpm install é de dev/qa/tech-lead (papel: devops)") e a criação do `.env` ("ler .env expõe segredos"). O Docker ainda não existe. Decisão técnica do Jarvis (`técnico`, base: mensagens do hook e README linha 18): o E3 passa ao dono (E3.1), o E4 ao tech-lead (E1.2) e o E1 e o E2 continuam com o devops (E1.3). Seguir o papel que o hook indica não é contorno.
 - 2026-10-22 15:20 — Dono: "pronto" (E0.1 e E3.1). O Docker 2.40.3 está instalado e o grupo `docker` inclui rodrigoisensee, mas a sessão do Claude Code começou antes do `usermod`, por isso ela e os agentes recebem "permission denied" no `docker.sock`. Para o E1.3, o dono precisa reiniciar a sessão (`/exit` e `claude --continue`) depois que o tech-lead-1 (pnpm install) terminar. O `.env` não pode ser verificado pelo Jarvis (o hook barra), e o `db:up` vai confirmar.
 - 2026-10-22 15:25 — E1.2 cumprida (tech-lead-1, sem commit): `pnpm install --frozen-lockfile` na raiz e na worktree -025, lockfile sem divergência e pnpm já no PATH do shell interativo (o `~/.bashrc` carrega o nvm). Os builds de core-js e puppeteer foram ignorados pelo pnpm 10, sem `approve-builds`; isso só vira assunto se algum E2E precisar. Próximo passo: o dono reinicia a sessão e, em seguida, vem o E1.3 com o E2.1 (devops), usando o brief `040-...-devops-engineer-2`.
+- 2026-10-22 15:40 — O processo do Claude Code (`--remote-control`, iniciado às 14:56) não herda o grupo `docker`, e o `newgrp` não muda o processo que já roda. O dono deu acesso ao socket só para o próprio usuário (`setfacl -m user:rodrigoisensee:rw /var/run/docker.sock`, pacote `acl`), que vale até o Docker reiniciar. Agora o Docker 29.1.3 responde, sem nenhum container: o banco não existia (E1 verificado). Renumeração técnica: o E1.2 passa a ser E4.1, para a etapa ficar no item E4.
+- 2026-10-22 15:36 — E1.3 e E2.1 cumpridas pelo devops-2 (sem commit): container `metricasdspd-postgres-1` saudável, 15 migrações (0001 a 0015) e 165 GRANTs aplicados, seed "semeado". O Jarvis rodou de novo os PQ-1 (`healthy`) e PQ-2 (`t`), com o mesmo resultado. Entrega sem commit nem ato no GitHub, por isso não passa pelo conferente de entrega (R-PROVA). Pedido concluído; a retrospectiva fica na rodada conjunta com 025, 037, 038 e 039.
 - MELHORIA: 2026-10-22 · ao Forge: o brief de ambiente local para o devops esbarra no hook (pnpm install e .env). Ou o roteiro de "ambiente novo" já aponta os papéis certos, ou o Forge prevê `.env.example` → `.env` sem leitura.
 
 ## Fora do escopo
