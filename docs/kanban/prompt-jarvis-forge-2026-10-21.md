@@ -79,3 +79,8 @@ Observação: a lista anterior (M1 a M21, de 2026-10-20) ficou num scratchpad te
 - Problema: cerca de 19 min de espera pelo dono dentro de "Em andamento" ficaram sem linha no histórico, e o tempo bloqueado sai subestimado.
 - Sugestão: o Jarvis move o cartão para "Aguardando o dono" sempre que pede uma ação, mesmo curta.
 - Medida: diferença entre o tempo bloqueado medido e o declarado = 0.
+
+## F16. Agentes gravam pareceres e documentos por script no Bash, contra o brief (2026-10-22)
+- Problema: três entregas no mesmo dia (QA do 025 com o qa-8, a retrospectiva do 040 na versão original e na volta) gravaram o arquivo por script Python via Bash, apesar do brief exigir Write ou Edit, que é o que registra a autoria. Todos declararam o desvio no relatório.
+- Sugestão: o hook de conformidade barra escrita em `docs/qa/`, `docs/reviews/` e `docs/retrospectivas/` feita por Bash, ou o agente tem a regra na própria instrução, não só no brief.
+- Medida: desvios "gravei por script" por semana = 0.

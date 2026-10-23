@@ -60,3 +60,12 @@ PERGUNTA: 2026-10-22 · Docker: instalar o Docker Engine dentro do WSL (apt, de 
 
 ## Histórico
 - 2026-10-22: pedido aberto; diagnóstico feito; recibo e pergunta sobre o Docker enviados ao dono.
+- 2026-10-22 21:37: retrospectiva feita (7049751, corrigida em 1eb2525). A conferência da volta deu "não cumpriu" só pela menção "o brief do devops-1 (aprovado)" na Leitura da §2. Decisão técnica do Jarvis (`técnico`, base: a retrospectiva do 036, modelo do brief, identifica as rodadas pelo nome do brief, como "react-1 r1"): a menção identifica uma delegação e não mede um agente, então é aceita. Melhorias: F11 a F16 no prompt ao Forge e o K-137 no projeto. Pedido 040 encerrado.
+
+## Pedido × entregue
+| Item | Entregue | Prova |
+|---|---|---|
+| E1 criar o banco | container saudável, 15 migrações, 165 GRANTs | PQ-1 `healthy` (Jarvis, 15:36) |
+| E2 recarregar os dados | seed nas bases bm e ac | PQ-2 `t` (Jarvis, 15:36) |
+| E3 `.env` | criado pelo dono | `db:up` sem variável faltando |
+| E4 toolchain | pnpm 10.34.6 e dependências instaladas | `node_modules/.modules.yaml` |
