@@ -178,3 +178,6 @@
 | 2026-10-23 13:42 | 037-pr-131-release-com-falhas | 037-pr-131-release-com-falhas-devops-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-23 14:42 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-3 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-23 14:53 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-23 17:56 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-5 | brief | 1 | reprovado | n | E2.1/E4.1 como não nesta delegação: mesma forma aprovada no qa-2 r2, qa-3 e qa-4 (F18); contestado | escopo | jarvis |
+| 2026-10-23 17:58 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-5 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-23 20:07 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-6 | brief | 1 | aprovado | s |  | — | jarvis |
