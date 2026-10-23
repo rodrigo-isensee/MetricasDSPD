@@ -21,12 +21,12 @@ Terminar o diagnóstico medido das instabilidades (etapa E1.1 do pedido 041, car
   Se a memória livre (`free -g`, coluna available) cair abaixo de 3 GB, pare a rodada e registre isso.
 - (E1) Completar o relatório: para cada teste instável, arquivo e nome, taxa de falha por cenário, mensagem de erro, causa raiz provável com a evidência e o grupo (carga e tempo, aleatoriedade, espera frágil, portão). Para cada grupo, a correção proposta e quem a faz (E2 a E4 do pedido), sem aumentar timeout nem ligar retry. Registre também como achado o consumo de memória da E2E com 8 workers, que foi a causa da queda. O frontmatter precisa refletir o diagnóstico: `parecer:` e contagens conforme o que foi achado, sem "aprovado" por padrão.
 - (E1) Gravar só com Write ou Edit, nunca por script no Bash. Um commit só do relatório, com `git add` explícito por caminho, a linha `Cartão: K-138` e mensagem conforme a seção de commits do `docs/engineering/praticas.md`. Sem push.
+- (E2, E2.1) Esperas do E2E e helper único de "painel pronto" (K-135, K-092, K-115, K-132): não nesta delegação. Vêm numa delegação seguinte ao qa-engineer, pelo plano que este diagnóstico propuser.
+- (E4, E4.1) Prova de estabilidade e parecer de QA: não nesta delegação. Vêm depois das correções do E2 e do E3.
 
 ## Fora do escopo
-- "E2.1 (forge:qa-engineer): esperas do E2E e helper único de "painel pronto" (K-135, K-092, K-115, K-132)." · etapa do mesmo papel, depois desta, pelo plano deste diagnóstico.
 - "E2.2 (forge:node-backend): semente fixa ou propriedade determinística no montecarlo (K-107) e limite de tempo do gerador que não dependa da carga da máquina (K-123)." · etapa de outro papel.
 - "E3.1 (forge:tech-lead): typecheck do e2e no `pronto` (K-134)." e "E3.2 (forge:devops-engineer): `homolog-aprovada` espera o portão (K-108) e parecer de devops." · etapas de outro papel.
-- "E4.1 (forge:qa-engineer): prova de estabilidade (E4) e parecer de QA." · etapa do mesmo papel, depois das correções.
 - "E5.1 (forge:tech-lead): code review e PRs para a develop." · etapa de outro papel.
 - Mudar código, testes, configuração ou limites; o quadro; push; PR.
 
