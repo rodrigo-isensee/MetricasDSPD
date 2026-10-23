@@ -24,7 +24,8 @@
 - E2.2 (forge:tech-lead): review dos três PRs.
 - E2.3 (forge:qa-engineer): QA dos três PRs.
 - E2.4 (forge:tech-lead): PR de documentação com os pareceres e merge dos três PRs na develop.
-- E3.1 (forge:tech-lead): PR só de documentação do Jarvis para a develop, mesclado.
+- E3.1 (forge:tech-lead): PR só de documentação do Jarvis para a develop, mesclado, com a limpeza da branch depois do merge (R-FLUXO, "Depois do merge").
+- E3.2 (forge:qa-engineer): parecer de QA da branch de documentação (`pnpm run docs:check`), antes do PR: o `forge-check pr` exige QA também para diff só de `.md`.
 - E4.1 (forge:tech-lead): parecer de review da promoção, promoção develop → homolog e PR de release aberto.
 - E4.2 (forge:qa-engineer): parecer de QA da promoção.
 - E4.3 (dono): validar e mesclar o PR de release na `main`.
@@ -56,3 +57,10 @@
 - 2026-10-20 — Brief do review do #130 (`docs/briefs/035-resolver-prs-do-dependabot-124-125-126-tech-lead-3.md`, sha256 2dffa13fb20ff74a5684f7bad3530774886d4844dc5bc8dedd644c74b190973e) aprovado pelo conferente na rodada 3, ainda não delegado. A sessão rodava o Forge 0.19 (plugin carregado antes da instalação da 0.26); o dono vai reabrir a sessão. Retomada: delegar esse brief ao forge:tech-lead (E2.2), depois QA (E2.3), PR de documentação com pareceres e docs do Jarvis (E2.4 e E3.1), merge do #130, promoção (E4).
 - 2026-10-20 — Sessão reaberta no Forge 0.26.0 (plugin de usuário e de projeto em 0.26.0, `forge-check` do cache 0.26.0). Usuário: "quero que voce continue o trabalho mas garantindo que todos os agentes e tudo esta rodando da versao 26". O brief 3 do tech-lead passou de novo no `forge-check brief` 0.26 (mesmo sha256).
 - 2026-10-20 — O dono mesclou o #130 na develop à mão (00:19Z, 12018de). O review (E2.2, brief 3) e o QA (E2.3) do #130 antes do merge perderam o objeto e não serão delegados; o conteúdo do #130 é revisado e testado na promoção (E4.1 e E4.2). O E2 fica cumprido por ato do dono, como no #124 e no #126. Próximo: E3.1 (PR de documentação, levando também o parecer de segurança do #130), depois E4.
+- 2026-10-20 — E3: commit de documentação 387da84 e parecer de review 3d7b90b na branch (conferência de entrega: o "fora" era o commit 1e6e52a do Jarvis, já citado no E3; falha do brief). O brief do PR (tech-lead-5) foi reprovado: o `forge-check pr --base origin/develop` exige parecer de QA. Entra o E3.2 (QA da branch de documentação) antes do PR.
+
+## Histórico
+- 2026-10-20 21:42: entrega conferida 0f830bcb39971bcfd851046005c3761df20a29db
+- 2026-10-20 — O dono mesclou o #128 (develop → homolog) às 00:30Z, sem os pareceres próprios da promoção (decisão do pedido 023); registrado como ato do dono. O dono abriu o #131 (homolog → main); o E4 passa a acompanhar o #131 (pedido 037).
+- 2026-10-20 — E3.1: PR #132 (documentação) mesclado por squash na develop (bbbc70c); branch remota apagada. O diretório principal foi para a branch nova docs/jarvis-2026-10-20-noite (de origin/develop), levando os arquivos do Jarvis sem commit; a branch local antiga foi apagada pelo Jarvis (o `git switch develop` do tech-lead parou porque a develop local estava atrás e o hook recusa mover a develop).
+- 2026-10-20 — Conferência do E3.1: PQ-1 a PQ-3 cumpridos (#132 mesclado, bbbc70c, branch remota apagada). O PQ-4 (diretório principal na develop) não se cumpriu por causa do Jarvis (arquivos sem commit) e do hook que recusa avançar a develop local (M18, sugestão ao Forge); o diretório principal fica na branch docs/jarvis-2026-10-20-noite, saída de origin/develop. Sem retrabalho do autor. E3 cumprido.
