@@ -17,6 +17,7 @@
 - E1.2 (forge:qa-engineer): plano de testes e E2E do lote 2 a partir da especificação, em paralelo com o E1.1.
 - E1.3 (forge:tech-lead): code review.
 - E1.4 (forge:security-engineer): review de segurança da tela da T14 (reidentificação: R-1 = B e T14-M1 = B na exibição), em paralelo com o E1.3.
+- E1.4b (forge:security-engineer): review de segurança incremental do que mudou na T14 depois de 32a509f (L2T-002, textos "Meu time: k", 4 arquivos), já na develop em c4db73e; parecer novo (`docs/security/025-t14-reidentificacao-incremental.md`) na branch de documentação do Jarvis, antes da promoção para a homolog (achado da conferência de 2026-10-23 06:26).
 - E1.5 (forge:qa-engineer): QA e parecer.
 - E1.6 (forge:ux-designer): revisão da interface implementada contra a especificação.
 - E1.7 (forge:tech-lead): PR para a develop (squash) e merge; limpeza da branch.
