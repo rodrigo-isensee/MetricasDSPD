@@ -40,6 +40,8 @@ Severidade: bloqueante, recomendado, baixo. Nenhum bloqueante.
 
 **T14-1 · Projeto oculto não mostra "Sem time informado" nem a barra da fatia.** Onde: `taticas.tsx` linhas 617 a 624 e a ficha (§5 T14, "barra só com essa fatia e, se houver, 'Sem time informado'"; CA-45 pede só "a fatia do meu time"). Por quê: o código mostra apenas "Meu time: k"; a ficha prevê a fatia em barra e a contagem sem time informado (que não revela o total, pois não inclui os outros times). Mostrar menos é o lado seguro e o QA validou (TT-11: "sem barra"), então não é bloqueante, mas a especificação e a tela divergem. Correção: ou o dono aceita a tela como está e a ficha é ajustada ("só o texto da fatia"), ou se acrescenta a barra só com a fatia e "· k sem time informado" (cuidado: a barra só pode usar `meuTime.k` e `semTime`, nunca `total`). Recomendo ajustar a ficha (menos superfície de reidentificação), o que depende de decisão do dono (R-DECISAO).
 
+Resolvido em 2026-10-23: T14-1 = A, ficha ajustada (K-139)
+
 **T14-2 · Posição na ordem revela uma faixa do total do projeto oculto.** Onde: `comoSeCalcula` da nota ("Projetos ordenados pelo total de demandas") e a ordem da lista. Por quê: o projeto oculto fica entre dois projetos visíveis com total exibido, então o leitor deduz que seu total está entre os dois. A ficha aceita ("posicionado sem mostrar o total", CA-30), então é risco residual conhecido e não defeito. Correção possível, se o dono quiser fechar: colocar os projetos ocultos no fim da lista. Fica como registro para o parecer de segurança; não alterei nada.
 
 ### Baixo

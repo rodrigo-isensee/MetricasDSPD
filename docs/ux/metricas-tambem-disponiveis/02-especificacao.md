@@ -218,7 +218,7 @@ Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078); entra na fase 3 (colet
   - **Sem time responsável (suposição do time):** o card sem o campo preenchido entra no total de demandas do projeto como "Sem time informado", fora do denominador do percentual, com a contagem visível como aviso de dado.
   - **"Outros times" (decisão do usuário, Q-T14-6 = A, 2026-10-14; refinada pela R-1 = B, 2026-10-16):** soma única, publicada mesmo quando o projeto tem um único outro time, **só quando esses outros times somam 2 pessoas ou mais**; sempre sem nome, sem tempo, sem vazão e sem ranking. Participação de cards no projeto não é comparação de desempenho entre times (7.1). O sistema nunca lista, nomeia nem ordena times, nem na tabela alternativa nem na exportação.
   - **Quem conta como pessoa (Q-T14-10 = B, 2026-10-17):** quem está no cadastro de membros por time, mantido na configuração (WS1); o cadastro é dado de pessoa e fica fora do alcance do `dspd_api`. À interface só chega o indicador "outros times publicável: sim/não".
-  - **"Outros times" oculto (T14-M1 = B, 2026-10-17):** quando o indicador é "não", a linha mostra só a fatia do meu time ("meu time: k demandas", barra só com essa fatia e, se houver, "Sem time informado"), **sem o total exato do projeto, sem "k de n" e sem percentual**, para que n − k não possa ser calculado. O destaque do recorte e a ordenação por total de demandas (CA-30) seguem usando o total internamente; o projeto com "outros times" oculto é posicionado sem mostrar o total.
+  - **"Outros times" oculto (T14-M1 = B, 2026-10-17):** quando o indicador é "não", a linha do projeto mostra só o texto "Meu time: k" (k demandas do meu time), **sem barra, sem "Sem time informado", sem o total exato do projeto, sem "k de n" e sem percentual**, para que n − k não possa ser calculado (ficha alinhada à tela em 2026-10-23, T14-1 = A). O destaque do recorte e a ordenação por total de demandas (CA-30) seguem usando o total internamente; o projeto com "outros times" oculto é posicionado sem mostrar o total.
   - Só BusinessMap: nenhuma parcela vem de chamados do Acelerato.
 
 ### E6 Datas do portfólio
@@ -338,7 +338,7 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 - `CA-40` O SISTEMA DEVE contar no T13 só o vínculo `predecessor` com card de outro quadro, inclusive o removido antes da entrega que esteve vigente antes dela.
 - `CA-41` O SISTEMA DEVE listar no T14 os projetos ligados a um sistema do meu time, mesmo com 0% de atuação, e os projetos com pelo menos 1 card do meu time.
 - `CA-42` (alinhado à R-1 = B, 2026-10-16, que refina a Q-T14-6 = A) O SISTEMA DEVE exibir "Outros times" no T14 mesmo quando o projeto tem um único outro time, desde que os outros times somem 2 pessoas ou mais, sem nome, tempo, vazão nem ranking.
-- `CA-45` (T14-M1 = B, 2026-10-17) SE os outros times de um projeto somam menos de 2 pessoas (cadastro de membros, Q-T14-10 = B) ENTÃO O SISTEMA DEVE ocultar "Outros times" no T14 e exibir só a fatia do meu time, sem o total exato do projeto, sem "k de n" e sem percentual, na barra, na tabela alternativa e na exportação.
+- `CA-45` (T14-M1 = B, 2026-10-17) SE os outros times de um projeto somam menos de 2 pessoas (cadastro de membros, Q-T14-10 = B) ENTÃO O SISTEMA DEVE ocultar "Outros times" no T14 e exibir só o texto "Meu time: k", sem barra, sem "Sem time informado", sem o total exato do projeto, sem "k de n" e sem percentual, na tela, na tabela alternativa e na exportação (texto alinhado pela T14-1 = A, 2026-10-23).
 - `CA-43` O SISTEMA DEVE considerar o primeiro toque do O22 só como o primeiro comentário humano posterior à criação do card.
 - `CA-14` O SISTEMA DEVE não incluir nenhum dos 17 cartões na faixa "Pede atenção".
 - `CA-15` QUANDO a pessoa abre a página "Métricas" O SISTEMA DEVE listar "Retrabalho e reincidência" com status "Coberta por outras métricas" e links para O13, T5, O21, S8 e S12, sem cartão próprio.
@@ -374,6 +374,7 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 |---|---|---|
 | R-1 = B (reidentificação no E8 e na T14; não é a R-1 = A do O24) | 2026-10-16 | E8 sem lista de sistemas (§3 item 8, §5 E8, CA-18 e CA-25 revogados, CA-46); T14 com "outros times" só com 2 pessoas ou mais (§5 T14, CA-42) |
 | T14-M1 = B | 2026-10-17 | T14 com "outros times" oculto mostra só a fatia do meu time, sem o total (§3 item 8, §5 T14, CA-45, CA-27 ressalvado) |
+| T14-1 = A | 2026-10-23 | ficha da T14 alinhada à tela: projeto oculto mostra só 'Meu time: k' (§5 T14, CA-45) |
 | Q-T14-10 = B | 2026-10-17 | "Pessoa" = membro no cadastro por time da configuração (§5 T14) |
 | D2 = A | 2026-10-17 | E7 sem custo: §3 itens 2 e 13, §5 E7, §7 (linha do custo total removida), §8 item 13, CA-13, CA-35 |
 | O20-destaque = A | 2026-10-16 | §5 O20, CA-47 |
