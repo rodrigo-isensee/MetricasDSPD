@@ -57,3 +57,11 @@ DEVOLVIDA: nenhuma
 ## Histórico
 - 2026-10-27 12:26: pedido aberto; diagnóstico; recibo e ações do dono enviados.
 - 2026-10-27 12:35: dono pediu atualizar o banco (E2.3) e liberou o paralelismo disponível (registro literal em Decisões).
+- 2026-10-27 12:50: dono: "pronto" (forge-upgrade feito em ~/MetricasDSPD-upgrade, branch forge/upgrade-0.30.3, commit 67f57e1, sem push; Docker 29.1.3 com Compose 2.40 e usuário no grupo docker; .env copiado do .env.example, "preencha o que faltar com o dono"; Node v24.22.1 via nvm, pnpm não instalado; dependências do Chromium instaladas; forge doutor ainda aponta proteção do git desligada, sandbox desligado e homolog sem branch local; WSL com 8 GB) e "Siga a fila com o maximo de agentes que a maquina aguentar". A sessão recebeu "permission denied" no docker.sock e vê 7 GB.
+- 2026-10-27 12:55: dono pediu reinício da sessão para ganhar o grupo docker. ESTADO SALVO PARA A RETOMADA:
+  - Agentes em curso: nenhum.
+  - Worktrees: MetricasDSPD (docs/jarvis-2026-10-23, Jarvis), MetricasDSPD-041 (feature/041-estabilidade, ADR 0003 da E2.3 alterada SEM commit, vai no commit da E2.1), MetricasDSPD-041b (feature/041-homolog-aprovada, 54c1a7f), MetricasDSPD-upgrade (forge/upgrade-0.30.3, 67f57e1).
+  - Briefs aprovados no forge-check e AINDA NÃO enviados ao conferente (rodada 1): 042-forge-0-30-3-e-retomada-tech-lead-1 (E2.2), 042-forge-0-30-3-e-retomada-tech-lead-2 (E1.2), 041-estabilizar-os-testes-devops-engineer-2 (041 E3.2, opção B). Na retomada: brief mensagem de cada um, conferente dos três em paralelo, delegar.
+  - Depois: E2.3 (devops, banco) assim que o pnpm install terminar; E1.3 (QA do PR da 0.30.3); 041 E2.1 (qa, novo brief com caminhos da -041; commita a ADR 0003), E4.1 e E5.1; E3.3 (PR de docs do Jarvis com K-139, dependabot 145/146/147, K-125).
+  - Ações pendentes do dono: proteção do git (pelo forge doutor), sandbox, branch homolog local, wsl --shutdown para valer os 8 GB; variáveis do .env o devops confirma no db:up.
+  - Decisões pendentes do dono: nenhuma.

@@ -1,7 +1,7 @@
 # Quadro Kanban
 
 > Máquina nova (2026-10-27, plugin Forge 0.30.3, projeto ainda em 0.28.0): repositório em /home/rodrigoisensee/MetricasDSPD, branch do Jarvis docs/jarvis-2026-10-23. Sem Node, Docker, `.env` e dependências: K-140 (versão, dono roda `forge-upgrade`) e K-141 (ambiente, dono) bloqueiam a fila do 041. Pedido 042.
-> Atualizado em: 2026-10-27 12:27 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> Atualizado em: 2026-10-27 12:55 (estado da retomada no Histórico do pedido 042) · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
 > WIP: plugin Forge 0.30.3; WSL com 7 GB visíveis nesta máquina: uma suíte de teste por vez e poucos agentes em paralelo (dono, 2026-10-23) · Bloqueados: 2 (K-140, K-141)
 > Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
