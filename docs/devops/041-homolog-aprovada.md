@@ -3,34 +3,43 @@ tipo: revisao-devops
 contrato: 1
 pedido: 041-estabilizar-os-testes
 branch: feature/041-homolog-aprovada
-commit: 31fc37055cf5650b652d6b5d6dc66290681bf051
+commit: 72ca360d32db96f25d04a99e6dfecaff34ec3044
 parecer: aprovado
 revisor: devops-engineer
-data: 2026-10-23
+data: 2026-10-27
 ---
 
-# homolog-aprovada sem corrida com o portão (K-108)
+# homolog-aprovada sem corrida com o portão (K-108), opção B
 
-## Mudança
+## Mudança (substitui a sondagem do commit 31fc370)
 
-`homolog-aprovada.yml`: antes de chamar `aprovacao`, o passo consulta (`gh api`, `actions: read`) as execuções `push` do `homolog.yml` para o sha do candidato. Enquanto houver alguma não concluída (fila ou em curso), espera com sondagem de 60 s, limite de 45 min; `timeout-minutes` de 5 para 50. Depois chama `aprovacao`, que é quem decide, com o mesmo critério. `fluxo-homologacao.md` atualizado.
+- `homolog-aprovada.yml`: sem sondagem nem `sleep`; `timeout-minutes` de volta a 5. O passo chama `aprovacao` (critério inalterado, do código da base do PR). Se falhar, consulta uma vez as execuções `push` do `homolog.yml` do sha: com execução em curso, `::error::` "Portão ainda não terminou ... será reexecutado sozinho"; sem execução em curso (ausente, ainda não listada pela API, ou concluída sem sucesso), `::error::` equivalente. Sempre sai 1.
+- `homolog-reavalia.yml` (novo): `workflow_run` do workflow `Homologação`, tipo `completed`, só `event == push` e `head_branch == homolog`. Acha o PR aberto para a `main` com o mesmo head sha, acha a execução `pull_request` de `homolog-aprovada.yml` desse sha e faz `POST /actions/runs/{id}/rerun`. Como é reexecução da mesma execução, o resultado atualiza o check do próprio PR (o problema de um `workflow_run` isolado, que publicaria o check no sha da branch padrão, não existe aqui).
+- `fluxo-homologacao.md` atualizado.
 
-## Por que não há corrida
+## Por que não há corrida nem execução perdida
 
-- O resultado nunca é decidido pelo YAML: a avaliação continua em `tools/homolog/src/aprovacao.ts`, da base do PR. A espera só adia a leitura até o portão do mesmo sha concluir.
-- Portão concluído com falha ou cancelado: sai do laço e `aprovacao` falha, como hoje. Estouro do limite: aviso e falha pela avaliação (portão sem sucesso). Nada vira verde por tempo.
-- Sem execução pendente (sha que não é ponta de `homolog`, portão já concluído): não espera; o comportamento é o de antes.
-- Alternativa descartada: `workflow_run`. O check exigido do PR precisa ser publicado no head do PR; um `workflow_run` roda no contexto da branch padrão e não se associa ao PR, deixando o check obrigatório pendente.
+- O `portao` é o último job do `homolog.yml` (depende de todos): `workflow_run completed` só dispara com o portão concluído e listado. A reavaliação roda depois, então a avaliação vê o portão no estado final.
+- Check avaliou antes do fim (portão em curso, na fila ou ainda não listado na API, a brecha vista): falha, e o fim do portão dispara a reexecução. Nenhuma execução de portão fica sem reavaliação, pois o gatilho é o evento de término, não uma leitura da API.
+- Check avaliou depois do fim: passa direto; a reexecução, se vier, repete o mesmo resultado.
+- Reexecução recusada porque a execução do PR ainda está terminando (janela de segundos): o laço tenta 6 vezes com 10 s; se esgotar, falha o job com instrução de "Re-run jobs".
+- Portão que termina vermelho também reexecuta: o check passa a mostrar a causa real, em vez de "ainda não terminou". Nada vira verde por tempo nem por exceção.
+- PR aberto ou sha novo depois do portão: o `pull_request` (opened/synchronize) avalia já com o portão concluído.
 
 ## Checklist de workflow
 
-- `permissions` inalteradas (`contents: read`, `actions: read`). Entradas não confiáveis (`BRANCH_ORIGEM`, sha, repo) seguem por variável de ambiente; `GH_TOKEN` é o token do job, só neste passo; `REPO_BASE` vem de `github.repository`. Nenhuma ação nova; sem escrita em `main`, sem `continue-on-error`, sem retry de teste.
-- Custo (`R-CUSTO`): minutos de runner só enquanto o portão roda (até 45 min, o portão leva cerca de 30 nas últimas execuções), apenas em PR para `main` (poucos por release), dentro da franquia. Cada sincronização do PR durante o portão repete a espera.
-- Risco residual: o limite de 45 min é medido contra um portão de cerca de 30 min; se o portão passar disso, o check falha e pede re-run, como hoje.
+- `homolog-reavalia.yml`: `permissions` `contents: read`, `actions: write` (necessário para rerun), `pull-requests: read`; sem checkout nem código de branch; `head_sha` por variável de ambiente (não interpolado no `run`), `github.token` só no passo; sem ação de terceiros; `timeout-minutes: 5`; sem `continue-on-error`; não escreve na `main`.
+- `homolog-aprovada.yml`: permissões inalteradas (`contents: read`, `actions: read`).
+- Custo (`R-CUSTO`): segundos de runner por release, sem espera paga.
 
-## Validação (nada rodou no GitHub)
+## Limites e prova que falta
 
-- `actionlint`: não está no PATH (lacuna registrada).
-- YAML carregado com `yaml.safe_load` sem erro; o script do passo `run` extraído e conferido com `shellcheck -s bash`: sem achados.
-- Leitura do diff: aspas nas expansões, `$(( ))` aritmético, `set` padrão do `bash -e` do Actions: erro de `gh api` falha o passo (visível, não mascarado).
-- Primeira execução real só ocorre no próximo PR `homolog` para `main`; mudança em `.github/` exige o rótulo `afrouxa-regra` do dono (catraca) e o envio do workflow é do dono (token do bot sem `workflow`).
+- Nada rodou no GitHub (regra desta entrega): a premissa de que reexecutar a execução `pull_request` atualiza o check do PR é o comportamento documentado do endpoint de rerun, mas só se prova na primeira release real. Se não funcionar, a opção A volta ao dono.
+- `workflow_run` só dispara com o arquivo na branch padrão: na primeira release (arquivo ainda fora da `main`), vale "Re-run jobs" manual depois do portão. A reexecução usa o código do workflow e da regra da base, como antes.
+- O token com `actions: write` pode reexecutar qualquer workflow do repositório; mitigado por ser só neste job, sem entrada não confiável e sem checkout.
+- Mudança em `.github/` exige o rótulo `afrouxa-regra` do dono (catraca) e envio do workflow pelo dono (token do bot sem `workflow`). `homolog-reavalia` não afrouxa critério.
+
+## Validação
+
+- `actionlint` e `shellcheck`: não estão no PATH (lacuna registrada).
+- YAML dos dois arquivos carregado com `yaml.safe_load`; scripts dos passos `run` conferidos com `bash -n`: sem erro. Leitura do YAML: aspas nas expansões, erro de `gh api` fora do `if` falha o passo.
