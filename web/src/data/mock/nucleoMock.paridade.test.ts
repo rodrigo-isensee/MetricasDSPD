@@ -64,7 +64,7 @@ const COM_EXT = new Set<MetricaId>([
   'S11',
   'S12',
 ])
-const COM_TAMBEM = new Set<MetricaId>(['E6', 'E8'])
+const COM_TAMBEM = new Set<MetricaId>(['E6', 'E8', 'O22', 'O26'])
 
 const SEM_FILTRO = (id: MetricaId) => id === 'VISAO_GERAL' || id === 'PV1'
 

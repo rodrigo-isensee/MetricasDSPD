@@ -6,10 +6,10 @@ import { renderizarApp } from '@/test/helpers'
 import { linhasDoCatalogo } from './linhas'
 
 describe('Catálogo de métricas (/metricas)', () => {
-  it('lista 58 linhas (45 do briefing + a PV1 + 3 níveis extras de espera invisível; 26 complementares), espera invisível uma por nível', () => {
+  it('lista 65 linhas (45 do briefing + a PV1 + 3 níveis extras de espera invisível; 33 complementares), espera invisível uma por nível', () => {
     const l = linhasDoCatalogo()
-    expect(l).toHaveLength(58)
-    expect(l.filter((x) => x.grupo === 'Complementar')).toHaveLength(26)
+    expect(l).toHaveLength(65)
+    expect(l.filter((x) => x.grupo === 'Complementar')).toHaveLength(33)
     const ei = l.filter((x) => x.codigo === 'EI')
     expect(ei.map((x) => [x.nome, x.painelRotulo, x.fonte, x.destino])).toEqual([
       [
@@ -72,7 +72,7 @@ describe('Catálogo de métricas (/metricas)', () => {
     const u = userEvent.setup()
     renderizarApp('/metricas')
     await screen.findByRole('heading', { level: 1, name: 'Catálogo de métricas' })
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('58 de 58 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('65 de 65 métricas')
     const tabela = screen.getByRole('table')
     const linha = within(tabela).getByRole('row', { name: /O5 Eficiência de fluxo/ })
     expect(linha).toHaveTextContent('Complementar')
@@ -87,21 +87,21 @@ describe('Catálogo de métricas (/metricas)', () => {
     )
     expect(within(tabela).queryByText('Da coleta')).not.toBeInTheDocument()
     const linhas = within(tabela).getAllByRole('row').slice(1)
-    expect(linhas).toHaveLength(58)
+    expect(linhas).toHaveLength(65)
     for (const l of linhas) expect(l).toHaveTextContent('Fictícios')
     expect(within(tabela).getByRole('row', { name: /^O17 / })).toHaveTextContent('Sustentação')
     expect(within(tabela).getByRole('row', { name: /^PV1 / })).toHaveTextContent(
       'Pesquisa de percepção',
     )
     await u.selectOptions(screen.getByLabelText('Grupo'), 'Complementar')
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('26 de 58 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('33 de 65 métricas')
     const opcoes = within(screen.getByLabelText('Painel'))
       .getAllByRole('option')
       .map((o) => o.textContent)
     expect(opcoes).toContain('Operacional · Sustentação')
     expect(opcoes).not.toContain('Sustentação')
     await u.selectOptions(screen.getByLabelText('Painel'), 'sustentacao')
-    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('6 de 58 métricas')
+    expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('6 de 65 métricas')
   })
 
   it('o link do catálogo leva ao painel com a seção aberta no cartão', async () => {

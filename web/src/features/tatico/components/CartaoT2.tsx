@@ -4,6 +4,7 @@ import { CartaoMetrica, StatusMeta } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtData, fmtDiasUteis, fmtInteiro, fmtPct } from '@/lib/formatar'
 import { META_ADERENCIA_SLE_PCT } from '@metricas-dspd/contratos'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 import { NOTAS_TATICO } from '../notas'
 import { propsCartao } from '@/features/painel/propsCartao'
 
@@ -90,6 +91,7 @@ export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
           )}
         </div>
       )}
+      <LeiaJunto id="t2" />
     </CartaoMetrica>
   )
 }

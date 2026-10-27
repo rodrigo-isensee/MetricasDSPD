@@ -9,6 +9,13 @@ type Id =
   | 'O14'
   | 'O16'
   | 'O17'
+  | 'O19'
+  | 'O20'
+  | 'O21'
+  | 'O22'
+  | 'O24'
+  | 'O25'
+  | 'O26'
   | 'T6'
   | 'T10'
   | 'T11'
@@ -184,6 +191,73 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     comoLer: 'Reincidência alta em um sistema sugere olhar a causa.',
     meta: 'Sem meta; por sistema, nunca por pessoa.',
     cuidados: 'Reincidência depende do preenchimento do campo.',
+  },
+  O19: {
+    oQueE: 'Quantos dias úteis de bloqueio cada causa somou e quantas vezes ela travou o trabalho.',
+    comoSeCalcula:
+      'Bloqueios encerrados no período, por motivo do domínio fechado (7). Soma em dias úteis e contagem sempre; o percentual é sobre os dias úteis bloqueados e, com P50 e P85 da duração, só com 20 bloqueios ou mais na causa. Bloqueios ainda abertos ficam fora da soma (estão em "Bloqueados agora").',
+    comoLer:
+      'As causas aparecem da que mais somou dias para a que menos somou: o motivo não é pessoa. Leia junto com os bloqueados agora e a eficiência de fluxo (O5).',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'Mostra onde o fluxo trava, não quem bloqueou. Não vale como nota de pessoa nem de time.',
+  },
+  O20: {
+    oQueE:
+      'Quantos itens estão em cada etapa do quadro, dia a dia, para ver onde o trabalho se acumula.',
+    comoSeCalcula:
+      'Contagem diária (censo) de itens por coluna, com uma equipe filtrada, ou por papel da coluna, com "Todas". A frase de leitura aponta a fila a partir do compromisso com maior crescimento no período; o Backlog nunca é o destaque. Cards arquivados e excluídos permanecem até o instante do arquivamento.',
+    comoLer:
+      'Uma faixa que engorda enquanto as entregas ficam estáveis indica acúmulo naquela etapa. A linha tracejada marca mudança de critério de cálculo. Leia junto com o WIP e o limite (O1) e a entrada × saída (O7).',
+    meta: 'Sem meta numérica.',
+    cuidados: 'Não é estatística: é contagem. Sem transição no período, não há o que mostrar.',
+  },
+  O21: {
+    oQueE: 'Quanto das entregas voltou para uma etapa anterior e por onde essa volta acontece.',
+    comoSeCalcula:
+      'Entregas do período com ao menos uma transição de retorno até a conclusão. Matriz de origem e destino só com retornos; o retorno a partir de "Entregue" é a reabertura. P50 e P85 do ciclo com × sem retorno, por tipo, só se cada grupo tiver 20 entregas ou mais. Percentual só com 20 entregas ou mais.',
+    comoLer:
+      'Mostra o peso do retrabalho no prazo, não de quem errou. Com "Todas" as equipes, a matriz usa o papel da coluna. Leia junto com a vazão de defeitos (O13) e a eficiência de fluxo (O5).',
+    meta: 'Sem meta numérica.',
+    cuidados: 'Abaixo de 20 entregas, só "k de n". Não compara times.',
+  },
+  O22: {
+    oQueE: 'Quanto tempo um pedido espera até alguém reagir a ele.',
+    comoSeCalcula:
+      'Dias úteis da criação ao primeiro comentário humano, por tipo. P50, P85 e P95 na janela móvel de 12 semanas, só com 20 pedidos tocados no tipo. Mudança de coluna e atribuição não contam como toque; comentário de automação também não. Guarda-se só o instante, nunca quem comentou nem o texto.',
+    comoLer:
+      'Um tipo por vez. O bloco "Ainda sem toque" é o retrato de hoje: pedidos abertos sem nenhuma reação e a idade do mais antigo. Leia junto com os três relógios (O9) e o envelhecimento do backlog (O10).',
+    meta: 'Sem meta numérica.',
+    cuidados: 'Não mede quem reage, só o tempo da fila. Dado fictício até a coleta real.',
+  },
+  O24: {
+    oQueE:
+      'Quantos pedidos começaram antes de outros mais antigos e quanto esperaram os que foram ultrapassados.',
+    comoSeCalcula:
+      'Só classe Padrão, mesmo tipo, na fila de cada equipe. Um início é "fora de ordem" se havia um pedido mais antigo ainda não iniciado. Espera: dias úteis entre o início do primeiro item que passou na frente e o início do ultrapassado. Percentual só com 20 inícios; P50 e P85 só com 20 ultrapassados no tipo.',
+    comoLer:
+      'A ordem de chegada é a política da classe Padrão. Urgente, Prazo fixo e Intangível têm regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro. Leia junto com o envelhecimento do backlog (O10) e a aderência ao SLE (T2).',
+    meta: 'Sem meta numérica.',
+    cuidados: 'Não aponta quem escolheu o que começar.',
+  },
+  O25: {
+    oQueE: 'Quanto do que encerrou foi descartado e quanto esforço já tinha sido consumido.',
+    comoSeCalcula:
+      'Descartados (estado nativo "descartado" e card excluído sem entrega) ÷ encerrados (entregues + descartados) no período, só com 20 encerrados ou mais. Tempo consumido: do início ao descarte, em dias úteis, separando antes e depois do início. O mês corrente é parcial. Motivo preenchido sem descarte vira aviso de preenchimento e fica fora da taxa.',
+    comoLer:
+      'Descartar cedo é saudável; o custo está no que foi descartado depois de começar. Leia junto com a vazão (O4) e a entrada × saída (O7).',
+    meta: 'Sem meta numérica.',
+    cuidados:
+      'Nesta fase não há divisão por motivo: ela só entra quando a integração ler o catálogo de motivos do BusinessMap.',
+  },
+  O26: {
+    oQueE: 'Quantas vezes o responsável por uma demanda mudou até ela ser entregue.',
+    comoSeCalcula:
+      'Número de trocas de responsável por card entregue (alguém sai e outro entra, ou o conjunto é substituído; incluir um co-responsável não conta). Histograma por faixa (0, 1, 2, 3, 4 ou mais) e P85 do ciclo por faixa, por tipo; percentual e P85 só com 20 entregas ou mais na faixa. Entregas sem a contagem ficam à parte.',
+    comoLer:
+      'Conta trocas, nunca quem. Não existe filtro nem abertura por pessoa. Leia junto com a eficiência de fluxo (O5) e o tempo de ciclo (O3).',
+    meta: 'Sem meta numérica.',
+    cuidados: 'Não é avaliação de pessoa nem de time. Dado fictício até a coleta real.',
   },
   T10: {
     oQueE:

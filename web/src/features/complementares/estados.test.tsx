@@ -6,6 +6,15 @@ import { MockFonteMetricas } from '@/data'
 import { FILTROS_FLUXO, FILTROS_SUSTENTACAO } from '@/features/painel/testes/fonteFixa'
 import { fonteDeTeste, renderizarCartao } from '@/test/helpers'
 import { CartaoO11, CartaoO13, CartaoO14, CartaoO16, CartaoO5, CartaoO6, CartaoO8 } from './fluxo'
+import {
+  CartaoO19,
+  CartaoO20,
+  CartaoO21,
+  CartaoO22,
+  CartaoO24,
+  CartaoO25,
+  CartaoO26,
+} from './operacionais'
 import { CartaoE4, CartaoE5, CartaoT6, CartaoT8 } from './previsao'
 import { CartaoO17, CartaoS10, CartaoS11, CartaoS12, CartaoS8, CartaoS9 } from './sustentacao'
 
@@ -66,6 +75,13 @@ const CARTOES: [string, ComponentType<{ filtros: never }>, 'fluxo' | 'sust'][] =
   ['O13', CartaoO13, 'fluxo'],
   ['O14', CartaoO14, 'fluxo'],
   ['O16', CartaoO16, 'fluxo'],
+  ['O19', CartaoO19, 'fluxo'],
+  ['O20', CartaoO20, 'fluxo'],
+  ['O21', CartaoO21, 'fluxo'],
+  ['O22', CartaoO22, 'fluxo'],
+  ['O24', CartaoO24, 'fluxo'],
+  ['O25', CartaoO25, 'fluxo'],
+  ['O26', CartaoO26, 'fluxo'],
   ['O17', CartaoO17, 'sust'],
   ['T6', CartaoT6, 'fluxo'],
   ['T8', CartaoT8, 'fluxo'],
@@ -78,7 +94,7 @@ const CARTOES: [string, ComponentType<{ filtros: never }>, 'fluxo' | 'sust'][] =
   ['S12', CartaoS12, 'sust'],
 ] as never
 
-const SEM_MINIMO = new Set(['O11', 'O14', 'O16', 'O17', 'E4'])
+const SEM_MINIMO = new Set(['O11', 'O14', 'O16', 'O17', 'E4', 'O20'])
 
 const ESTADO: Record<Modo, RegExp> = {
   insuficiente: /^ok$/,

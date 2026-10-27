@@ -4,6 +4,7 @@ import { AmostraInsuficiente, CartaoMetrica, SeletorLocal, TabelaDados } from '@
 import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
 import { fmtInteiro, fmtMes, fmtNumero } from '@/lib/formatar'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 import { NOTAS_OPERACIONAL } from '../notas'
 import { propsCartao, slug } from '@/features/painel/propsCartao'
 
@@ -157,6 +158,7 @@ export function CartaoO9({ filtros }: { filtros: FiltrosFluxo }) {
           )}
         </SeletorLocal>
       )}
+      <LeiaJunto id="o9" />
     </CartaoMetrica>
   )
 }
