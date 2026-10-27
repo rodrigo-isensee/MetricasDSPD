@@ -193,3 +193,38 @@ Pré-requisitos: ter este PR mesclado em `develop` e criar a branch `homolog` a 
    - Allowed merge methods: **Merge commit**.
 4. **Permissões:** o tech-lead precisa de permissão de escrita para mesclar em `develop` e `homolog`; ninguém além do usuário mescla na `main` (Restrict who can merge, se disponível). Em **Settings > Actions > General**, confirme "Workflow permissions: Read repository contents" (os workflows só pedem leitura; `homolog-aprovada` usa `actions: read`).
 5. **Conferência:** abra um PR de teste `develop` → `homolog` e veja os checks; depois de mesclado, confira em **Actions** a execução do workflow "Homologação" para o commit da `homolog` (job `portao <sha>` verde).
+
+## 15. Checks obrigatórios na `develop` (pedido 042, K-148)
+
+Decisão do dono (2026-10-27): a `develop` só aceita merge com os checks da CI verdes, para que um PR com a CI vermelha ou em curso (caso do #133, pedido 036) não entre mais.
+
+**Checks exigidos** (nomes dos jobs de `.github/workflows/ci.yml`): `rapida`, `testes`, `filtro`, `banco`, `openapi`, `imagem`, `build`, `e2e`, `seguranca`.
+
+- `banco` fica "skipped" quando o filtro de caminho não vê mudança em `server/`, `packages/` ou migrações; o GitHub conta check pulado como sucesso, então ele não trava o PR.
+- `perf` **não** entra: só roda em PR para `homolog`/`main`, no `schedule` e no `workflow_dispatch`; exigi-lo travaria todo PR para a `develop`, porque ele nunca é produzido.
+- "Up to date com a base" (`strict`) fica desligado, para não forçar nova rodada de CI de cerca de 25 min a cada merge anterior.
+- Nada mais da proteção muda: force push e deleção bloqueados; histórico linear, revisão obrigatória, `enforce_admins` e restrição de quem mescla continuam desligados.
+
+**Por quê:** hoje a `develop` não tem check obrigatório, então o GitHub aceita o merge de PR com CI vermelha ou ainda rodando.
+
+**Como aplicar ou mudar (administrador do repositório, `R-CONFORMIDADE`):** Settings > Branches > regra da `develop` > "Require status checks to pass before merging", ou pela API (o PUT substitui a proteção inteira, por isso o corpo repete as regras atuais):
+
+```
+gh api -X PUT repos/rodrigo-isensee/MetricasDSPD/branches/develop/protection --input - <<'JSON'
+{
+  "required_status_checks": {"strict": false, "contexts": ["rapida","testes","filtro","banco","openapi","imagem","build","e2e","seguranca"]},
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "required_linear_history": false,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "block_creations": false,
+  "required_conversation_resolution": false,
+  "lock_branch": false,
+  "allow_fork_syncing": false
+}
+JSON
+```
+
+Conferência: `gh api repos/rodrigo-isensee/MetricasDSPD/branches/develop/protection --jq '.required_status_checks.contexts'`. Renomear, criar ou remover job no `ci.yml` exige atualizar esta lista junto (job renomeado deixa o check esperado para sempre e trava os PRs). Rollback: `gh api -X DELETE repos/rodrigo-isensee/MetricasDSPD/branches/develop/protection/required_status_checks`.
