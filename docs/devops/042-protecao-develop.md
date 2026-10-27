@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 042-forge-0-30-3-e-retomada
 branch: feature/042-protecao-develop
-commit: e342a2cd71c46df5acf60b756637ebf5a6c84709
+commit: a9b35204943b6cd50734abb77497cdec7cdc89c7
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-10-27
@@ -13,7 +13,8 @@ data: 2026-10-27
 ## Parecer
 Aprovado, com a aplicação pendente do dono. A entrega é o texto da regra (`docs/engineering/fluxo-homologacao.md`, seção 15) e o comando exato; nenhum workflow mudou.
 
-- Lista de checks conferida contra `.github/workflows/ci.yml` e contra os checks reais do PR #142 (base `develop`): `rapida`, `testes`, `filtro`, `banco`, `openapi`, `imagem`, `build`, `e2e`, `seguranca`. No #142, `banco` saiu "skipping" (filtro de caminho) e conta como sucesso.
+- Lista de checks conferida contra `.github/workflows/ci.yml` e contra os checks reais do PR #142 (base `develop`): `rapida`, `testes`, `filtro`, `banco`, `openapi`, `imagem`, `build`, `e2e`, `seguranca`. No #142, `banco` saiu "skipping" (filtro de caminho) só no run de PR (no de push rodou e passou) e conta como sucesso. Push e PR geram checks de mesmo nome no mesmo sha (`e2e` pulado no push, passou no PR); não provado que isso segure o caso do #133, então a conferência pós-aplicação inclui abrir um PR e ver o merge bloqueado enquanto o `e2e` do PR roda.
+- `seguranca` segue informativo (`continue-on-error`); exigi-lo só garante que rodou. `enforce_admins` desligado é risco conhecido, do dono ao aplicar (seção 15).
 - `perf` excluído de propósito: só roda em PR para `homolog`/`main`, schedule e dispatch; exigi-lo travaria todo PR para a `develop`.
 - `strict` desligado (sem rodada extra de cerca de 25 min por merge). Nenhuma outra regra da proteção muda.
 - recomendado: ao renomear job no `ci.yml`, atualizar a lista (job renomeado trava PRs).
