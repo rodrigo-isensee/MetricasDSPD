@@ -1,4 +1,4 @@
-import { test, expect, rodarAxe } from '../fixtures/base';
+import { test, expect, rodarAxe } from '../fixtures/base'
 import { PainelPage } from '../pages/PainelPage';
 import type { Page } from '@playwright/test';
 
@@ -285,16 +285,16 @@ test.describe('Sustentação no Operacional: redirecionamentos, hash, preferênc
 
 test.describe('Sustentação no Operacional: acessibilidade, layout e desempenho', () => {
   for (const largura of [375, 1280] as const) {
-    test(`CA-19 axe sem violações sérias nas quatro visões a ${largura} px`, async ({ page, painel }) => {
-      await page.setViewportSize({ width: largura, height: 900 });
-      for (const [visao, url] of VISOES) {
+    // Um teste por visão (cada um sozinho bem abaixo do orçamento, sem aumentar timeout).
+    for (const [visao, url] of VISOES) {
+      test(`CA-19 axe sem violações sérias na visão ${visao} a ${largura} px`, async ({ page, painel }) => {
+        await page.setViewportSize({ width: largura, height: 900 });
         await painel.ir(url);
-        if (visao === 'resumo') await new PainelPage(page).esperarPronto({ resumo: true });
-        else await new PainelPage(page).esperarPronto();
+        await painel.esperarPronto({ resumo: visao === 'resumo' });
         const r = await rodarAxe(page);
         expect(r.bloqueantes, `${visao} @${largura}: ${JSON.stringify(r.bloqueantes)}`).toEqual([]);
-      }
-    });
+      });
+    }
 
     test(`CA-20 sem rolagem horizontal e seletor com alvos de 44 px a 375 (${largura} px)`, async ({ page, painel }) => {
       await page.setViewportSize({ width: largura, height: 900 });
