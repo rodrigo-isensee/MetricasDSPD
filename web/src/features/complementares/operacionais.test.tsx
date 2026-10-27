@@ -164,6 +164,20 @@ describe('O20 Fluxo cumulativo', () => {
     expect(within(el).getByTestId('marcacoes-criterio')).toHaveTextContent(
       'Novo critério de início',
     )
+    expect(el).toHaveTextContent('o acúmulo está nessa etapa.')
+  })
+
+  it('marca a mudança de critério no gráfico com linha vertical e rótulo acessível', async () => {
+    const el = await abrir(
+      'O20',
+      <CartaoO20 filtros={FILTROS_FLUXO} />,
+      new FonteFixa({ O20: dto({ faixa: 'homolog', de: 6, para: 15 }) }),
+    )
+    const linha = el.querySelector('.marca-criterio')
+    expect(linha).not.toBeNull()
+    expect(linha?.querySelector('title')?.textContent).toBe(
+      'Mudança de critério em 02/10/2026: Novo critério de início',
+    )
   })
 
   it('sem destaque: "Nenhuma etapa acumulou trabalho no período."', async () => {
@@ -232,6 +246,38 @@ describe('O21 Fluxo reverso', () => {
     expect(linhas).toHaveTextContent(/Sem retorno\s*40\s*4\s*8/)
   })
 
+  it('a "volta mais comum" ignora a reabertura, mesmo quando ela é a maior célula', async () => {
+    const o21 = dto([comp('Melhoria', dur(25, 5, 14), dur(40, 4, 8))])
+    o21.matriz.celulas = [
+      { origem: 'Em teste', destino: 'Em desenvolvimento', retornos: 3, reaberto: false },
+      { origem: 'Entregue', destino: 'Em desenvolvimento', retornos: 9, reaberto: true },
+    ]
+    const el = await abrir(
+      'O21',
+      <CartaoO21 filtros={FILTROS_FLUXO} />,
+      new FonteFixa({ O21: o21 }),
+    )
+    expect(el).toHaveTextContent(
+      'A volta mais comum é de "Em teste" para "Em desenvolvimento" (3 vezes)',
+    )
+    expect(el.textContent).not.toContain('A volta mais comum é de "Entregue"')
+    expect(within(el).getByTestId('o21-reaberturas')).toBeInTheDocument()
+  })
+
+  it('só com reabertura, a frase "A volta mais comum" não aparece', async () => {
+    const o21 = dto([comp('Melhoria', dur(25, 5, 14), dur(40, 4, 8))])
+    o21.matriz.celulas = [
+      { origem: 'Entregue', destino: 'Em desenvolvimento', retornos: 9, reaberto: true },
+    ]
+    const el = await abrir(
+      'O21',
+      <CartaoO21 filtros={FILTROS_FLUXO} />,
+      new FonteFixa({ O21: o21 }),
+    )
+    expect(el.textContent).not.toContain('A volta mais comum')
+    expect(within(el).getByTestId('o21-reaberturas')).toBeInTheDocument()
+  })
+
   it('grupo abaixo de 20: o par não sai e mostra a amostra insuficiente', async () => {
     const el = await abrir(
       'O21',
@@ -248,14 +294,14 @@ describe('O21 Fluxo reverso', () => {
     )
     expect(within(el).queryByTestId('tabela-O21')).toBeNull()
     expect(within(el).getByTestId('o21-grupo-abaixo')).toHaveTextContent(
-      'o grupo com retorno tem menos de 20 itens',
+      'Comparação não exibida em Melhoria: o grupo com retorno tem menos de 20 itens no tipo.',
     )
   })
 
   it.each([
-    ['sem', 'o grupo sem retorno tem menos de 20 itens'],
-    ['ambos', 'o grupo com e sem retorno tem menos de 20 itens'],
-    [null, 'o grupo com e sem retorno tem menos de 20 itens'],
+    ['sem', 'o grupo sem retorno tem menos de 20 itens no tipo.'],
+    ['ambos', 'os dois grupos, com e sem retorno, têm menos de 20 itens no tipo.'],
+    [null, 'os dois grupos, com e sem retorno, têm menos de 20 itens no tipo.'],
   ] as const)('diz qual grupo do par está abaixo de 20: %s', async (g, texto) => {
     const el = await abrir(
       'O21',
@@ -308,7 +354,7 @@ describe('O22 Primeiro toque', () => {
       }),
     )
     expect(el).toHaveTextContent(
-      'Metade dos pedidos de Requisição recebe a primeira reação em até 0,8 dias úteis; 85% em até 3,5. Há 6 pedidos ainda sem nenhuma reação, o mais antigo há 9 dias úteis.',
+      'Metade dos pedidos de Requisição recebe a primeira reação em até 0,8 dia útil; 85% em até 3,5. Há 6 pedidos ainda sem nenhuma reação, o mais antigo há 9 dias úteis.',
     )
     expect(within(el).getByTestId('o22-faixa')).toHaveTextContent(
       'P50 0,8 · P85 3,5 · P95 5,5 dias úteis',
@@ -331,6 +377,28 @@ describe('O22 Primeiro toque', () => {
     expect(within(el).getByTestId('o22-sem-toque')).toHaveTextContent(
       '1 pedido aberto sem nenhuma reação',
     )
+  })
+
+  it('com 1 pedido tocado a frase concorda no singular', async () => {
+    const el = await abrir(
+      'O22',
+      <CartaoO22 filtros={FILTROS_FLUXO} />,
+      new FonteFixa({
+        O22: dto([bloco('Incidente', insuf(1), null, { itens: 0, maisAntigoDiasUteis: null })]),
+      }),
+    )
+    expect(el).toHaveTextContent('Em Incidente, só 1 pedido foi tocado:')
+  })
+
+  it('com vários pedidos tocados abaixo de 20 a frase concorda no plural', async () => {
+    const el = await abrir(
+      'O22',
+      <CartaoO22 filtros={FILTROS_FLUXO} />,
+      new FonteFixa({
+        O22: dto([bloco('Incidente', insuf(8), null, { itens: 0, maisAntigoDiasUteis: null })]),
+      }),
+    )
+    expect(el).toHaveTextContent('Em Incidente, só 8 pedidos foram tocados:')
   })
 
   it('um tipo por vez, trocado pelo seletor', async () => {
@@ -457,6 +525,9 @@ describe('O25 Descarte', () => {
     expect(within(el).queryByTestId('tabela-O25')).toBeNull()
     expect(el).toHaveTextContent('Nesta fase não há divisão por motivo.')
     expect(el).toHaveTextContent('Descartar cedo é saudável')
+    expect(within(el).getByTestId('o25-meses-sem-taxa')).toHaveTextContent(
+      'Meses com menos de 20 encerrados não mostram a taxa.',
+    )
   })
 
   it('avisos de preenchimento e de instante aproximado só aparecem quando existem', async () => {
@@ -593,6 +664,33 @@ describe('O23, bloco do O2: estoque parado', () => {
     )
     expect(within(el).queryByRole('button', { name: 'Ver os parados' })).toBeNull()
   })
+
+  it('cada etapa da lista leva o quadrado de cor da barra', async () => {
+    const el = await abrir(
+      'O2',
+      <CartaoO2 filtros={FILTROS_FLUXO} />,
+      comParados({
+        limiteDiasUteis: 5,
+        taxa: taxaOk(7, 31),
+        porEtapa: [
+          { etapa: 'Em teste', k: 4 },
+          { etapa: 'Em desenvolvimento', k: 3 },
+        ],
+      }),
+    )
+    const itens = within(within(el).getByTestId('o23-parados')).getAllByRole('listitem')
+    expect(itens).toHaveLength(2)
+    for (const li of itens) expect(li.querySelector('span[aria-hidden="true"]')).not.toBeNull()
+  })
+
+  it('sem nenhum item em andamento: "Nenhum item em andamento"', async () => {
+    const el = await abrir(
+      'O2',
+      <CartaoO2 filtros={FILTROS_FLUXO} />,
+      comParados({ limiteDiasUteis: 5, taxa: taxaInsuf(0, 0), porEtapa: [] }),
+    )
+    expect(within(el).getByTestId('o23-destaque')).toHaveTextContent('Nenhum item em andamento')
+  })
 })
 
 describe('ramos de borda dos complementares operacionais', () => {
@@ -708,6 +806,9 @@ describe('ramos de borda dos complementares operacionais', () => {
       }),
     )
     expect(within(el).queryByTestId('o24-destaque')).not.toBeNull()
+    expect(within(el).getByTestId('o24-sem-ultrapassado')).toHaveTextContent(
+      'Nenhum pedido ultrapassado no período.',
+    )
   })
 
   it('O25: percentis publicados com 20 descartes depois do início e tabela por motivo quando vier', async () => {
@@ -739,6 +840,7 @@ describe('ramos de borda dos complementares operacionais', () => {
       'P50 3 e P85 8 dias úteis consumidos',
     )
     expect(within(el).getByTestId('tabela-O25')).toHaveTextContent('Duplicado')
+    expect(within(el).queryByTestId('o25-meses-sem-taxa')).toBeNull()
     expect(el).not.toHaveTextContent(/divisão por motivo\./)
   })
 
@@ -758,7 +860,62 @@ describe('ramos de borda dos complementares operacionais', () => {
         },
       }),
     )
-    expect(um).toHaveTextContent('a faixa mais comum é a de 1 passagem de mão: 60 (86%).')
+    expect(um).toHaveTextContent(
+      'Em Melhoria, 70 entregas; o mais comum é 1 passagem de mão: 60 entregas (86%).',
+    )
+  })
+
+  it.each([
+    ['0', 'nenhuma passagem de mão'],
+    ['2', '2 passagens de mão'],
+    ['4+', '4 ou mais passagens de mão'],
+  ])('O26: a faixa %s é lida como "%s"', async (f, rotulo) => {
+    const el = await abrir(
+      'O26',
+      <CartaoO26 filtros={FILTROS_FLUXO} />,
+      new FonteFixa({
+        O26: {
+          ...base(87, 'entregas'),
+          segmentoPor: 'tipo',
+          porTipo: [
+            {
+              tipo: 'Melhoria',
+              entregas: 87,
+              semDado: 0,
+              faixas: [{ faixa: f, itens: 1, pct: taxaInsuf(1, 87), cicloP85: insuf(1) }],
+            },
+          ],
+        },
+      }),
+    )
+    expect(el).toHaveTextContent(`o mais comum é ${rotulo}: 1 entrega.`)
+  })
+
+  it('O26: no empate vale a faixa de menor número e o exemplo da ficha sai por extenso', async () => {
+    const el = await abrir(
+      'O26',
+      <CartaoO26 filtros={FILTROS_FLUXO} />,
+      new FonteFixa({
+        O26: {
+          ...base(87, 'entregas'),
+          segmentoPor: 'tipo',
+          porTipo: [
+            {
+              tipo: 'Melhoria',
+              entregas: 87,
+              semDado: 0,
+              faixas: [
+                { faixa: '1', itens: 36, pct: taxaOk(36, 87), cicloP85: p85(36, 5) },
+                { faixa: '2', itens: 36, pct: taxaOk(36, 87), cicloP85: p85(36, 8) },
+              ],
+            },
+          ],
+        },
+      }),
+    )
+    expect(el).toHaveTextContent(
+      'Em Melhoria, 87 entregas; o mais comum é 1 passagem de mão: 36 entregas (41%).',
+    )
   })
 
   it('O26: tipo com entregas mas sem nenhuma faixa não gera leitura', async () => {
@@ -773,6 +930,6 @@ describe('ramos de borda dos complementares operacionais', () => {
         },
       }),
     )
-    expect(el).not.toHaveTextContent('a faixa mais comum')
+    expect(el).not.toHaveTextContent('o mais comum é')
   })
 })

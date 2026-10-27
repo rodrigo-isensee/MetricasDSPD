@@ -228,7 +228,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     comoLer:
       'Um tipo por vez. O bloco "Ainda sem toque" é o retrato de hoje: pedidos abertos sem nenhuma reação e a idade do mais antigo. Leia junto com os três relógios (O9) e o envelhecimento do backlog (O10).',
     meta: 'Sem meta numérica.',
-    cuidados: 'Não mede quem reage, só o tempo da fila. Dado fictício até a coleta real.',
+    cuidados: 'Não mede quem reage, só o tempo da fila.',
   },
   O24: {
     oQueE:
@@ -248,7 +248,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Descartar cedo é saudável; o custo está no que foi descartado depois de começar. Leia junto com a vazão (O4) e a entrada × saída (O7).',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Nesta fase não há divisão por motivo: ela só entra quando a integração ler o catálogo de motivos do BusinessMap.',
+      'A divisão por motivo só aparece quando a integração lê o catálogo de motivos do BusinessMap; sem ela, o cartão mostra a taxa e o tempo consumido.',
   },
   O26: {
     oQueE: 'Quantas vezes o responsável por uma demanda mudou até ela ser entregue.',
@@ -257,7 +257,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     comoLer:
       'Conta trocas, nunca quem. Não existe filtro nem abertura por pessoa. Leia junto com a eficiência de fluxo (O5) e o tempo de ciclo (O3).',
     meta: 'Sem meta numérica.',
-    cuidados: 'Não é avaliação de pessoa nem de time. Dado fictício até a coleta real.',
+    cuidados: 'Não é avaliação de pessoa nem de time.',
   },
   T10: {
     oQueE:
@@ -297,7 +297,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Mostra o peso da dependência no prazo. O outro quadro não é identificado, para não virar comparação entre times. Leia junto com o lead time ponta a ponta (T1).',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Entregas com quadro do vínculo desconhecido ficam à parte, nunca contam como "não dependeu". Dado fictício até a coleta real.',
+      'Entregas com quadro do vínculo desconhecido ficam à parte, nunca contam como "não dependeu"..',
   },
   T14: {
     oQueE: 'Que parte de cada projeto em andamento é do meu time.',
@@ -307,7 +307,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Mostra a parte do projeto que é do meu time, para entender a cobrança por entregas em que atuo pouco. Quando os outros times somam poucas pessoas, só a fatia do meu time é mostrada, sem o total do projeto.',
     meta: 'Sem meta numérica; não existe participação mínima esperada.',
     cuidados:
-      'Não é nota do time nem comparação: nenhum outro time é nomeado, listado nem ordenado. Dado fictício até a coleta real.',
+      'Não é nota do time nem comparação: nenhum outro time é nomeado, listado nem ordenado..',
   },
   E6: {
     oQueE: 'Se a data comprometida de um projeto se confirma: o deslize de cada projeto concluído.',
@@ -317,7 +317,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Cada ponto é um projeto; a forma mostra os replanejamentos (círculo 0, losango 1, triângulo 2 ou mais). Leia junto com a previsão de término (E5) e o avanço real (T9).',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Poucos projetos terminam por ano: é esperado ficar abaixo de 20. Projeto concluído sem data comprometida registrada fica fora da conta e é contado à parte. Dado fictício até a coleta real.',
+      'Poucos projetos terminam por ano: é esperado ficar abaixo de 20. Projeto concluído sem data comprometida registrada fica fora da conta e é contado à parte..',
   },
   E7: {
     oQueE:
@@ -339,7 +339,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Mede o risco de continuidade do parque. Mostra só quantos sistemas estão em cada faixa, sem nomear sistema nem pessoa.',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Não mostra nem avalia pessoas. Não há filtro por equipe nem por sistema, para não apontar quem entrega. Dado fictício até a coleta real.',
+      'Não mostra nem avalia pessoas. Não há filtro por equipe nem por sistema, para não apontar quem entrega..',
   },
   E9: {
     oQueE: 'Quanto tempo um projeto aprovado espera para começar.',

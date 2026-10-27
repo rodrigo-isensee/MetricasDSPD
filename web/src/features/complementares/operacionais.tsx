@@ -29,12 +29,13 @@ interface P {
 }
 
 const num = (n: number) => fmtNumero(n, n % 1 === 0 ? 0 : 1)
-const dias = (n: number) => `${num(n)} ${plural(n, 'dia útil', 'dias úteis')}`
+/** pt-BR: abaixo de 2 é singular (0,8 dia útil, 1 dia útil, 2 dias úteis). */
+const dias = (n: number) => `${num(n)} ${n > 0 && n < 2 ? 'dia útil' : 'dias úteis'}`
 const SEM_AMOSTRA = '— amostra insuficiente'
 const GRUPO_ABAIXO: Record<'com' | 'sem' | 'ambos', string> = {
-  com: 'com retorno',
-  sem: 'sem retorno',
-  ambos: 'com e sem retorno',
+  com: 'o grupo com retorno tem',
+  sem: 'o grupo sem retorno tem',
+  ambos: 'os dois grupos, com e sem retorno, têm',
 }
 
 function AvisoInfo({ children, testid }: { children: React.ReactNode; testid: string }) {
@@ -191,7 +192,7 @@ function leituraO20(d: ResultadoO20): string | undefined {
   if (!d.destaque) return 'Nenhuma etapa acumulou trabalho no período.'
   const f = d.faixas.find((x) => x.chave === d.destaque?.faixa)
   const nome = f?.rotulo ?? d.destaque.faixa
-  return `No período, a faixa "${nome}" cresceu de ${fmtInteiro(d.destaque.de)} para ${fmtInteiro(d.destaque.para)} itens: o acúmulo está aí.`
+  return `No período, a faixa "${nome}" cresceu de ${fmtInteiro(d.destaque.de)} para ${fmtInteiro(d.destaque.para)} itens: o acúmulo está nessa etapa.`
 }
 
 /** O20: fluxo cumulativo diário. Uma faixa por coluna (uma equipe) ou por papel ("Todas"). */
@@ -220,6 +221,7 @@ export function CartaoO20({ filtros }: P) {
                 unidade="itens"
                 formatarX={(x) => fmtDataCurta(x)}
                 series={faixas.map((f) => ({ chave: f.chave, rotulo: f.rotulo }))}
+                marcacoes={r.mudancasCriterio}
                 pontos={r.dias.map((dia) => ({
                   x: dia.dia,
                   valores: Object.fromEntries(
@@ -250,7 +252,10 @@ const destaqueTaxa = (t: ResultadoO21['entregas'], o: string) =>
 
 function leituraO21(d: ResultadoO21): string | undefined {
   if (d.entregas.n === 0) return undefined
-  const maior = [...d.matriz.celulas].sort((a, b) => b.retornos - a.retornos)[0]
+  // A reabertura (origem "Entregue") tem linha própria e fica fora da "volta mais comum" (decisão do dono, R8).
+  const maior = [...d.matriz.celulas]
+    .filter((c) => !c.reaberto)
+    .sort((a, b) => b.retornos - a.retornos)[0]
   const t1 =
     d.entregas.status === 'ok'
       ? `${fmtNumero(d.entregas.pct, 0)}% das entregas voltaram ao menos uma vez.`
@@ -342,9 +347,8 @@ export function CartaoO21({ filtros }: P) {
                 ) : (
                   <div data-testid="o21-par-insuficiente" className="flex flex-col gap-2">
                     <AvisoInfo testid="o21-grupo-abaixo">
-                      Comparação não exibida em {comp.tipo}: o grupo{' '}
-                      {GRUPO_ABAIXO[comp.grupoAbaixoDoMinimo ?? 'ambos']} tem menos de 20 itens no
-                      tipo.
+                      Comparação não exibida em {comp.tipo}:{' '}
+                      {GRUPO_ABAIXO[comp.grupoAbaixoDoMinimo ?? 'ambos']} menos de 20 itens no tipo.
                     </AvisoInfo>
                     <AmostraInsuficiente
                       n={Math.min(comp.com.n, comp.sem.n)}
@@ -462,7 +466,7 @@ function leituraO22(d: ResultadoO22, tipo: string | null): string | undefined {
         }.`
       : ''
   if (b.distribuicao.status !== 'ok')
-    return `Em ${b.tipo}, só ${fmtInteiro(b.distribuicao.n)} pedidos foram tocados: o tempo até a primeira reação não é publicado.${t2}`
+    return `Em ${b.tipo}, só ${fmtInteiro(b.distribuicao.n)} ${plural(b.distribuicao.n, 'pedido foi tocado', 'pedidos foram tocados')}: o tempo até a primeira reação não é publicado.${t2}`
   return `Metade dos pedidos de ${b.tipo} recebe a primeira reação em até ${dias(b.distribuicao.valor.p50)}; 85% em até ${num(b.distribuicao.valor.p85)}.${t2}`
 }
 
@@ -623,7 +627,11 @@ export function CartaoO24({ filtros }: P) {
                   />
                 )}
               </PorTipo>
-            ) : null}
+            ) : (
+              <AvisoInfo testid="o24-sem-ultrapassado">
+                Nenhum pedido ultrapassado no período.
+              </AvisoInfo>
+            )}
             <Leia>
               A ordem de chegada é a política da classe Padrão. Urgente, Prazo fixo e Intangível têm
               regra própria e ficam fora. O cartão mostra o custo de passar na frente, não um erro.
@@ -687,6 +695,11 @@ export function CartaoO25({ filtros }: P) {
               }))}
               series={[{ chave: 'taxa', rotulo: 'Taxa de descarte' }]}
             />
+            {r.meses.some((m) => m.taxa.status !== 'ok') && (
+              <p className="text-sm text-texto-2" data-testid="o25-meses-sem-taxa">
+                Meses com menos de 20 encerrados não mostram a taxa.
+              </p>
+            )}
             <Marcacoes itens={r.marcacoes} />
             <div
               className="rounded-md border border-borda bg-superficie-2 p-3 text-sm"
@@ -764,13 +777,23 @@ export function CartaoO25({ filtros }: P) {
 
 /* ---------------------------------------------------------------- O26 */
 
+const rotuloPassagens = (faixa: string): string =>
+  faixa === '0'
+    ? 'nenhuma passagem de mão'
+    : faixa === '1'
+      ? '1 passagem de mão'
+      : faixa === '4+'
+        ? '4 ou mais passagens de mão'
+        : `${faixa} passagens de mão`
+
 function leituraO26(d: ResultadoO26, tipo: string | null): string | undefined {
   const b = d.porTipo.find((x) => x.tipo === tipo)
   if (!b || b.entregas === 0) return undefined
+  // Empate: vale a faixa de menor número (ordem do contrato; o sort é estável).
   const maior = [...b.faixas].sort((x, y) => y.itens - x.itens)[0]
   if (!maior) return undefined
   const pct = maior.pct.status === 'ok' ? ` (${fmtNumero(maior.pct.pct, 0)}%)` : ''
-  return `Em ${b.tipo}, ${fmtInteiro(b.entregas)} ${plural(b.entregas, 'entrega', 'entregas')}; a faixa mais comum é a de ${maior.faixa} ${maior.faixa === '1' ? 'passagem' : 'passagens'} de mão: ${fmtInteiro(maior.itens)}${pct}.`
+  return `Em ${b.tipo}, ${fmtInteiro(b.entregas)} ${plural(b.entregas, 'entrega', 'entregas')}; o mais comum é ${rotuloPassagens(maior.faixa)}: ${fmtInteiro(maior.itens)} ${plural(maior.itens, 'entrega', 'entregas')}${pct}.`
 }
 
 /** O26: histograma de entregas por número de trocas de responsável; conta trocas, nunca quem. */

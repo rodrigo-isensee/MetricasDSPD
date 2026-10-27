@@ -225,9 +225,11 @@ function BlocoParados({
       data-testid="o23-parados"
     >
       <p className="text-sm font-semibold" data-testid="o23-destaque">
-        {taxa.status === 'ok'
-          ? `${fmtInteiro(taxa.k)} de ${fmtInteiro(taxa.n)} itens em andamento (${fmtNumero(taxa.pct, 0)}%) sem mover há mais de ${fmtInteiro(limiteDiasUteis)} dias úteis`
-          : `${fmtInteiro(taxa.k)} de ${fmtInteiro(taxa.n)} itens em andamento sem mover há mais de ${fmtInteiro(limiteDiasUteis)} dias úteis (percentual não publicado, menos de 20)`}
+        {taxa.n === 0
+          ? 'Nenhum item em andamento'
+          : taxa.status === 'ok'
+            ? `${fmtInteiro(taxa.k)} de ${fmtInteiro(taxa.n)} itens em andamento (${fmtNumero(taxa.pct, 0)}%) sem mover há mais de ${fmtInteiro(limiteDiasUteis)} dias úteis`
+            : `${fmtInteiro(taxa.k)} de ${fmtInteiro(taxa.n)} itens em andamento sem mover há mais de ${fmtInteiro(limiteDiasUteis)} dias úteis (percentual não publicado, menos de 20)`}
       </p>
       {total > 0 && (
         <>
@@ -248,8 +250,13 @@ function BlocoParados({
             ))}
           </div>
           <ul className="m-0 flex list-none flex-wrap gap-x-3 p-0 text-xs text-texto-2">
-            {etapas.map((e) => (
-              <li key={e.etapa}>
+            {etapas.map((e, i) => (
+              <li key={e.etapa} className="inline-flex items-center gap-1">
+                <span
+                  aria-hidden="true"
+                  className="inline-block size-2.5 shrink-0 rounded-sm"
+                  style={{ background: `var(--serie-${(i % 4) + 1})` }}
+                />
                 {e.etapa}: {fmtInteiro(e.k)}
               </li>
             ))}

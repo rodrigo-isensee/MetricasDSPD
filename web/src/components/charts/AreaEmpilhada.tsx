@@ -3,12 +3,14 @@ import {
   Area,
   CartesianGrid,
   ComposedChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
-import { fmtInteiro } from '@/lib/formatar'
+import type { MarcacaoCriterio } from '@metricas-dspd/contratos'
+import { fmtData, fmtDataCurta, fmtInteiro } from '@/lib/formatar'
 import { GraficoBase } from './GraficoBase'
 import { Legenda, type ItemLegenda } from './Legenda'
 import { PadroesSvg } from './PadroesSvg'
@@ -40,7 +42,14 @@ interface Props {
   formatar?: (v: number) => string
   unidade: string
   descricao: string
+  /** Mudanças de critério (T2.6): linha vertical tracejada no primeiro ponto em/depois da data. */
+  marcacoes?: readonly MarcacaoCriterio[]
   altura?: number
+}
+
+function pontoDaMarcacao(pontos: readonly PontoSerie[], m: MarcacaoCriterio): string | null {
+  for (const p of pontos) if (p.x >= m.data.slice(0, p.x.length)) return p.x
+  return null
 }
 
 /** Área empilhada (ex.: fluxo acumulado/CFD): uma faixa por classe, com cor + padrão + legenda. */
@@ -51,6 +60,7 @@ export function AreaEmpilhada({
   formatar = (v) => fmtInteiro(v),
   unidade,
   descricao,
+  marcacoes = [],
   altura = 260,
 }: Props) {
   const uid = uidSvg(useId())
@@ -60,6 +70,9 @@ export function AreaEmpilhada({
     padrao: s.padrao ?? (PADROES[(i + 1) % PADROES.length] as Padrao),
   }))
   const dados = pontos.map((p) => ({ __x: p.x, ...p.valores }))
+  const marcadas = marcacoes
+    .map((m) => ({ m, x: pontoDaMarcacao(pontos, m) }))
+    .filter((x): x is { m: MarcacaoCriterio; x: string } => x.x !== null)
   const legenda: ItemLegenda[] = cfg.map((s) => ({
     rotulo: s.rotulo,
     cor: s.cor,
@@ -111,6 +124,22 @@ export function AreaEmpilhada({
               <TooltipTema formatar={(v) => formatar(v)} rotuloX={(x) => formatarX(String(x))} />
             }
           />
+          {marcadas.map(({ m, x }) => (
+            <ReferenceLine
+              key={m.id}
+              x={x}
+              className="marca-criterio"
+              stroke="var(--atencao)"
+              strokeDasharray="4 3"
+              strokeWidth={2}
+              label={({ viewBox }: { viewBox: { x: number; y: number } }) => (
+                <text x={viewBox.x + 4} y={viewBox.y + 12} fill="var(--atencao)" fontSize={11}>
+                  <title>{`Mudança de critério em ${fmtData(m.data)}: ${m.descricao}`}</title>
+                  {`⚑ ${fmtDataCurta(m.data)}`}
+                </text>
+              )}
+            />
+          ))}
           {cfg.map((s) => (
             <Area
               key={s.chave}
