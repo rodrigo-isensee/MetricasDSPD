@@ -224,7 +224,7 @@ Parecer: **aprovado**. A1 e A2 do parecer anterior estão resolvidos pela mediç
 
 ## Achados
 
-- A1 (bloqueante, resolvido) e2e/tests/complementares.spec.ts:45 · COMP-01 a 1280 px em `/operacional?cadencia=sustentacao`: 0 falhas em 40 execuções, sem violação de axe (antes 5/5 com `target-size`). Resolvido pelo E6.1.
-- A2 (bloqueante, resolvido) e2e/perf/perf.spec.ts:174 · F2 CLS a 375 px em `/operacional` e no Resumo (`:195`): 0,021 em 5/5 repetições (antes 0,115, limite 0,1). Resolvido pelo E6.1.
+- A1 (bloqueante) e2e/tests/complementares.spec.ts:45 · COMP-01 a 1280 px em `/operacional?cadencia=sustentacao`: 0 falhas em 40 execuções, sem violação de axe (antes 5/5 com `target-size`). Resolvido pelo E6.1 (K-149).
+- A2 (bloqueante) e2e/perf/perf.spec.ts:174 · F2 CLS a 375 px em `/operacional` e no Resumo (`:195`): 0,021 em 5/5 repetições (antes 0,115, limite 0,1). Resolvido pelo E6.1.
 - A3 (recomendado) e2e/pages/PainelPage.ts:64 · `{ timeout: 30_000 }` do `esperarPronto` vale também para perf e api, que usavam 5 s; a falha aparece como timeout do teste. Nenhuma falha o exerceu (review A3).
 - A4 (recomendado) docs/qa/041-estabilidade.md:11 · pico de memória do `jarvis.slice` não medido (sem slice no cgroup da sessão); a prova usou `free -m`. Medir de dentro do slice na próxima prova longa.
