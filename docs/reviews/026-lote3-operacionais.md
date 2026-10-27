@@ -3,13 +3,35 @@ tipo: review
 contrato: 1
 pedido: 026-front-do-011-lote3
 branch: feature/026-lote3-operacionais
-commit: eedcafcb114f62d26f8b9252f8735ddb5f1160dd
+commit: dd9a91dd21ab6bf2619b1ea32e3167d10e306162
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-27
 ---
 
 # Code review: front do lote 3 (O19 a O26) no /operacional (pedido 026, K-111)
+
+## Revalidação (E1.4, depois da UX): 78c6fcb..dd9a91d
+
+**Veredito: aprovado.** As mudanças pedidas pela revisão de UX estão aplicadas em `8f6b32d` e `dd9a91d`: A7, A10 (opção A), A11, R1 a R6, R8 (opção A), R9 e R10. Nenhuma delas traz regra de negócio nova para o front. Não há bloqueante novo. Ficam dois recomendados de documentação (A12 e A13), que vão para a UX e não devolvem a entrega.
+
+**Delta lido:** `forge-check delta --parecer docs/reviews/026-lote3-operacionais.md` (intervalo `eedcafc..dd9a91d`; o `78c6fcb` só tem o parecer) listou 12 arquivos. Li o diff de código e teste inteiro (`AreaEmpilhada.tsx`, `graficos.test.tsx`, `notas.ts`, `notas.test.ts`, `operacionais.tsx`, `operacionais.test.tsx`, `taticas.tsx`, `taticas.test.tsx`, `CartaoO2.tsx`), a §13 de `arquitetura-front.md` (311-318) e as linhas 157 e 400-413 de `02-especificacao.md`. As outras linhas da especificação são só reformatação de tabelas pelo prettier e a correção da numeração 13/14 da §8, sem mudança de conteúdo. Fica como "já lido" o resto da branch até `eedcafc`. Não rodei nada local: o brief dispensa, e o dono pediu uma suíte por vez.
+
+| Ponto | Situação | Evidência |
+|---|---|---|
+| Nada calculado na tela | conforme | O que é novo é escolha de texto. `rotuloPassagens` (O26) só dá nome à faixa. O filtro `!c.reaberto` (O21, R8) só escolhe qual célula do contrato aparece na frase. O `some(status !== 'ok')` (O25) só decide se o aviso aparece. O `pontoDaMarcacao` (O20) só posiciona a linha no eixo. Percentual, P85 e mínimo de 20 continuam vindo prontos do contrato. |
+| O22 e O26 sem pessoa nem ranking | conforme | Nenhum campo, filtro ou ordenação por pessoa entrou. A ordenação da leitura do O26 continua pela contagem da faixa, e no empate vale a ordem do contrato (o sort é estável, e há teste do empate). As notas mantêm "Não mede quem reage" e "Não é avaliação de pessoa nem de time". O R9 tirou "Dado fictício" só das notas do O22 e do O26, porque o selo do molde (`CartaoComplementar.tsx:76`, status `mock`) já faz esse papel. |
+| Abaixo de 20, sem estatística | conforme | O O22 com n < 20 só diz quantos pedidos foram tocados, com concordância (testes com 1 e com 8). O O25 diz por que um mês não tem taxa. O O26 mostra `pct` só com `status === 'ok'`. O O23 com n = 0 diz "Nenhum item em andamento", sem percentual. |
+| Restauração do aviso (`dd9a91d`) | conforme | O `8f6b32d` tinha tirado "Dado fictício" de T13, T14, E6 e E8, que estão fora do R9, e deixado ".." no fim. O `dd9a91d` devolve as quatro frases ao texto de `78c6fcb`. O `notas.test.ts` agora barra ".." em qualquer nota. |
+| O2 e CLS (ADR 0003) | conforme | O delta não muda o perfil de altura do bloco O23. O "Nenhum item em andamento" ocupa a mesma linha do destaque. O quadrado de cor (`size-2.5`, 10 px) fica dentro da altura de linha do `text-xs`, com `inline-flex items-center`. Nada novo entra depois da carga fora do bloco que já existia. A cor de cada item usa o mesmo índice da barra (`--serie-${(i % 4) + 1}`), e o teste garante um quadrado por item. |
+| T2.6 no O20 (R1) | conforme | `AreaEmpilhada` ganhou `marcacoes` opcional, com default `[]`, e por isso os outros usos não mudam. A linha é tracejada e tem `<title>` com a data e a descrição. A marcação que cai depois do último ponto é ignorada, e há teste disso. A lista "⚑ data" continua como texto equivalente. |
+| Doc técnica | conforme | A §13 de `arquitetura-front.md` cobre R8, A11, R1, o singular de `dias()`, O22, O24/O25, A7, a leitura do O26 (A10) e o R9. |
+| Testes | conforme | Cada mudança de texto ou de ramo tem teste novo ou ajustado: R8 com e sem célula comum, R4 no singular e no plural, R5, R2 nos dois lados, R6 nos itens e no n = 0, as faixas 0, 2 e 4+ do O26 e o empate, e A11 também no T13. O teste de ausência do O26 (`not.toHaveTextContent('o mais comum é')`) foi atualizado para o texto novo. |
+| Commits | conforme | São dois commits do autor, em Conventional Commits em português, com `Cartão: K-111`. Os escopos `ui` e `web` são os usuais do §9 do `praticas.md`. Não há código morto, `console.log` nem dependência nova. |
+
+**Ferramentas:** o autor relata `pnpm run pronto` verde no pedido 026. A CI do push de `dd9a91d` é a do QA (E1.3). Não refiz nada.
+
+**Teto (M14):** a recontagem sobre `origin/develop...HEAD`, sem `.md`, deu **2.311 linhas** (o intervalo desta volta tem 312). A exceção continua aceita pelo mesmo motivo, e a linha do PR passa a ser `teto: excedido, 2311 linhas, lote 3 indivisível: 7 cartões e o O23 sobre o mesmo catálogo e as mesmas contagens`. Recontar se o E1.3 mexer nas E2E (A4).
 
 ## Revalidação (E1.4): eedcafc
 
@@ -79,6 +101,8 @@ Escopo lido: `e342a2c...b143858`, um commit do autor com 28 arquivos, 1.988 linh
 - A9 (recomendado) packages/contratos/src/cartoes.test.ts:145 · A exceção nominal do O21 na alcançabilidade é aceita, porque o O21 aparece pela seção (CA-1) e pela página Métricas (CA-15). Se a UX ligar O13 ou O5 ao O21 no E1.2, tire a exceção.
 - A10 (recomendado) web/src/features/complementares/operacionais.tsx:759 · A leitura do O26 dá a faixa mais comum, não "x% com 2 ou mais" e o P85 de 3+ contra até 1 da ficha, que exigiria somar faixas na tela; o autor fez certo em não calcular. Leve à UX (E1.2) ou peça o campo ao contrato.
 - A11 (recomendado) web/src/features/complementares/operacionais.tsx:346 · Com 'ambos' ou nulo, o aviso do O21 diz "o grupo com e sem retorno tem menos de 20" (singular para dois grupos). O texto vem do T13 (taticas.tsx:463). Leve à UX (E1.2) e, se mudar, ajuste os dois cartões.
+- A12 (recomendado) docs/ux/metricas-tambem-disponiveis/02-especificacao.md:157 · A ficha do O26 diz "percentual só quando há 20 entregas ou mais na faixa". O mínimo vale sobre as entregas do tipo com dado (`o26.ts:74`, `taxa(itens, dado.length)`), não sobre a faixa. Destino: UX.
+- A13 (recomendado) docs/ux/metricas-tambem-disponiveis/02-especificacao.md:400 · A tabela de decisões não tem as linhas de 2026-10-27: A10 (leitura do O26, opção A) e R8 (volta mais comum sem reabertura). Só a ficha do O26 cita a decisão. Destino: UX.
 
 ## Commits
 
