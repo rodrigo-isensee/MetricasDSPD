@@ -1,9 +1,9 @@
 ---
 tipo: qa
 contrato: 1
-pedido: 041-estabilidade
+pedido: 041-estabilizar-os-testes
 branch: feature/041-estabilidade
-commit: 83aa9fa6f41bcfc0b526d1c17c988d256e0b1dce
+commit: 4b249bca8ee8b653878b6cb96d100f965203bfc9
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -16,6 +16,8 @@ data: 2026-10-27
 # Diagnóstico medido das instabilidades (E1.1 do pedido 041, K-138)
 
 As seções 1 a 10 são o diagnóstico (E1.1, base c4db73e). A seção 11 é a prova de estabilidade e o parecer de QA da entrega (E4.1), sobre o commit 6d40d68. A seção 12 é o reteste das 3 falhas pré-existentes depois da correção do E6.1 (K-149), sobre o commit 83aa9fa; o parecer vigente (frontmatter e `## Achados`) é o da seção 12.
+
+Delta 83aa9fa..4b249bca8ee8b653878b6cb96d100f965203bfc9: só documentação (ADR 0003 com a leitura de 2026-10-27 e pareceres), sem mudança de código, teste ou limite; sem reteste. O veredito é o da seção 12, testada em 83aa9fa.
 
 Este documento é diagnóstico (etapa E1.1), não parecer de entrega: o parecer de QA do 041 é a etapa E4.1, depois das correções. O `parecer: reprovado` do frontmatter só diz que há instabilidades abertas (seção 8) e os 5 `bugs_medios` são os cinco testes instáveis dos achados A1 a A5. Medições das seções 3 a 7: qa-6, em 2026-10-23 a partir das 20:08, `jarvis.slice`, 1 worker, `--retries=0`, uma suíte por vez; seções 1 e 2 vêm do relatório parcial anterior (qa-1 e qa-4).
 
