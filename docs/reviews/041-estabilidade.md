@@ -1,9 +1,9 @@
 ---
 tipo: review
 contrato: 1
-pedido: 041-estabilidade
+pedido: 041-estabilizar-os-testes
 branch: feature/041-estabilidade
-commit: ea54fbffd51ed146cc14b32bd9f2b15428ea9d89
+commit: 4b249bca8ee8b653878b6cb96d100f965203bfc9
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-27
@@ -118,3 +118,7 @@ O corpo do PR vai levar `teto: excedido, 543 linhas, estabilização do 041 com 
 - A5 (recomendado) e2e/tests/sustentacao-no-operacional.spec.ts:1 · o import perdeu o `;`, num arquivo que usa ponto e vírgula, e o `e2e` fica fora do Prettier. Também há `new PainelPage(page)` onde a fixture `painel` já existe. Ambos são cosméticos.
 - A6 (recomendado) web/src/features/coleta/FrescorFonte.tsx:53 · a reserva some no erro da consulta: existe carregando e não em `isError`, e o cabeçalho sobe. Uma condição só fora do `e &&` (`reservarFalha && !(e?.selo === 'falha' && e?.ultimaTentativa)`) cobre o erro e tira a duplicação.
 - A7 (recomendado) web/src/features/complementares/MaisMetricas.tsx:64 · `scroll-mt-72` (18 rem) está acoplado à altura atual do cartão P1 (437 px) e soma-se ao `scroll-padding-top` global. Se o cartão crescer, o COMP-01 volta a falhar. Registrar a dependência no comentário da classe.
+
+## Revisão da linha nova da ADR 0003 (2026-10-27)
+
+Leitura datada do commit 4b249bc (K-138): uma linha no quadro de leituras do F4 (primeira medição acima de 100 ms em 9 de 10 repetições, mediana cerca de 126 ms; 2ª condição do critério de reversão não cumprida). Não muda limite, regra nem critério; fonte e decisão do dono citadas. Sem defeito: veredito e achados seguem como estão.
