@@ -314,10 +314,11 @@ async function escolherPeriodo(page: Page, rotulo: string): Promise<void> {
   await page.keyboard.press('Escape');
 }
 
-const SEQUENCIAS: { id: string; rota: string; passos: ((p: Page) => Promise<void>)[] }[] = [
+const SEQUENCIAS: { id: string; rota: string; passos: ((p: Page) => Promise<void>)[]; janela?: number }[] = [
   {
     id: 'operacional',
     rota: '/operacional?cadencia=semanal',
+    janela: 1, // a visão semanal recalcula em ~1,4 s por estado: 2 passos por teste passavam de 10 s
     passos: [
       (p) => marcar(p, 'equipe', ['fluig', 'dados']),
       (p) => marcar(p, 'tipo', ['melhoria']),
@@ -342,35 +343,83 @@ const SEQUENCIAS: { id: string; rota: string; passos: ((p: Page) => Promise<void
   },
 ];
 
+/** Passos de UI por janela de teste (padrão): cada interação espera o painel recalcular (~1,2 s no mock), então 2 por teste cabem em < 10 s. */
+const PASSOS_POR_JANELA = 2;
+
+/**
+ * Aplica os passos da sequência. Os anteriores a `de` só avançam o estado (cada ação precisa mudar a URL); a partir de
+ * `de`, cada estado tem retrato (inclusive o de partida). Devolve só os estados da janela [de, de + janela].
+ */
+async function percorrer(page: Page, s: (typeof SEQUENCIAS)[number], de: number): Promise<{ url: string; r: Retrato }[]> {
+  await page.goto(s.rota);
+  let ultima = page.url();
+  for (const passo of s.passos.slice(0, de)) {
+    await passo(page);
+    await expect.poll(() => page.url()).not.toBe(ultima);
+    ultima = page.url();
+  }
+  const estados = [{ url: ultima, r: await retrato(page) }];
+  for (const passo of s.passos.slice(de, de + (s.janela ?? PASSOS_POR_JANELA))) {
+    await passo(page);
+    await expect.poll(() => page.url()).not.toBe(estados[estados.length - 1]!.url);
+    estados.push({ url: page.url(), r: await retrato(page) });
+  }
+  return estados;
+}
+
+// Um teste por comportamento (ida e volta pela URL, Voltar/Avançar, outra aba), cada um sozinho bem abaixo do orçamento,
+// sem aumentar timeout: as sequências longas se dividem em janelas de 2 passos (todo passo da sequência original continua
+// coberto; a partida da janela é montada pela UI sem retrato).
 for (const s of SEQUENCIAS) {
-  test(`IF-U-${s.id} estado montado na interface: URL ida e volta, Voltar/Avançar, outra aba`, async ({ page, browser, problemas }) => {
-    await page.goto(s.rota);
-    const estados: { url: string; r: Retrato }[] = [{ url: page.url(), r: await retrato(page) }];
-    for (const passo of s.passos) {
-      await passo(page);
-      await expect.poll(() => page.url()).not.toBe(estados[estados.length - 1]!.url);
-      estados.push({ url: page.url(), r: await retrato(page) });
+  const tam = s.janela ?? PASSOS_POR_JANELA;
+  const janelas = Array.from({ length: Math.ceil(s.passos.length / tam) }, (_, k) => k * tam);
+  test.describe(`IF-U-${s.id} estado montado na interface`, () => {
+    for (const de of janelas) {
+      const rotulo = `IF-U-${s.id} passos ${de + 1} a ${Math.min(de + tam, s.passos.length)}`;
+      test(`${rotulo}: URL ida e volta, cada ação grava uma URL nova e abri-la reproduz o estado`, async ({ page, problemas }) => {
+        const estados = await percorrer(page, s, de);
+        expect(new Set(estados.map((e) => e.url)).size, 'cada ação gera uma URL diferente').toBe(estados.length);
+        await page.goto(estados[0]!.url);
+        expect(await retrato(page), 'abrir a URL do estado de partida').toEqual(estados[0]!.r);
+        expect(page.url()).toBe(estados[0]!.url);
+        expect(problemas).toEqual([]);
+      });
+
+      test(`${rotulo}: Voltar e Avançar percorrem os estados, uma entrada de histórico por ação`, async ({ page, problemas }) => {
+        const estados = await percorrer(page, s, de);
+        // cada ação = exatamente uma entrada no histórico: Voltar percorre os estados na ordem inversa
+        for (let i = estados.length - 2; i >= 0; i--) {
+          await page.goBack();
+          await expect.poll(() => page.url()).toBe(estados[i]!.url);
+          expect(await retrato(page), `Voltar até o estado ${i}`).toEqual(estados[i]!.r);
+        }
+        for (let i = 1; i < estados.length; i++) {
+          await page.goForward();
+          await expect.poll(() => page.url()).toBe(estados[i]!.url);
+          expect(await retrato(page), `Avançar até o estado ${i}`).toEqual(estados[i]!.r);
+        }
+        expect(problemas).toEqual([]);
+      });
     }
-    // cada ação = exatamente uma entrada no histórico: Voltar percorre os estados na ordem inversa
-    for (let i = estados.length - 2; i >= 0; i--) {
-      await page.goBack();
-      await expect.poll(() => page.url()).toBe(estados[i]!.url);
-      expect(await retrato(page), `Voltar até o estado ${i}`).toEqual(estados[i]!.r);
-    }
-    for (let i = 1; i < estados.length; i++) {
-      await page.goForward();
-      await expect.poll(() => page.url()).toBe(estados[i]!.url);
-      expect(await retrato(page), `Avançar até o estado ${i}`).toEqual(estados[i]!.r);
-    }
-    // abrir a URL final em um contexto novo (sem memória de sessão) reproduz o mesmo estado
-    const final = estados[estados.length - 1]!;
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' });
-    const outra = await ctx.newPage();
-    await outra.goto(final.url);
-    expect(await retrato(outra)).toEqual(final.r);
-    expect(outra.url()).toBe(final.url);
-    await ctx.close();
-    expect(problemas).toEqual([]);
+
+    test(`IF-U-${s.id} outra aba: abrir a URL final em um contexto novo reproduz o mesmo estado`, async ({ page, browser, problemas }) => {
+      await page.goto(s.rota);
+      let ultima = page.url();
+      for (const passo of s.passos) {
+        await passo(page);
+        await expect.poll(() => page.url()).not.toBe(ultima);
+        ultima = page.url();
+      }
+      const final = { url: ultima, r: await retrato(page) };
+      // contexto novo, sem memória de sessão
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' });
+      const outra = await ctx.newPage();
+      await outra.goto(final.url);
+      expect(await retrato(outra)).toEqual(final.r);
+      expect(outra.url()).toBe(final.url);
+      await ctx.close();
+      expect(problemas).toEqual([]);
+    });
   });
 }
 
