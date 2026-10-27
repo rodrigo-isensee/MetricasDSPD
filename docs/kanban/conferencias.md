@@ -205,3 +205,4 @@
 | 2026-10-23 20:56 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-1 | entrega | 1 | não cumpriu | n | PQ-1 a PQ-3 cumpriram, pendente nenhum; escopo fora = commits da E2.2 (outro brief) no intervalo desde 8d8bdfd, sem mérito; avisos ao review: comentário do a11y.spec.ts e script evidencias-fase-a | escopo | destino |
 | 2026-10-23 20:56 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-software-architect-1 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-27 12:30 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-software-architect-2 | brief | 1 | reprovado | s | Base-sha antigo contra o Histórico (base e342a2c) | base | jarvis |
+| 2026-10-27 12:31 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-software-architect-2 | brief | 2 | aprovado | s |  | — | jarvis |

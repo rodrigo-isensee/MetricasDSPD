@@ -401,3 +401,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-23T20:47:12-03:00 | K-108 | Entrada | Em andamento | 041 E3.2, devops-engineer-1, worktree: MetricasDSPD-041b |
 | 2026-10-27T12:26:48-03:00 | K-140 | — | Bloqueado | 042 E1.1: aguardando o dono rodar forge-upgrade no terminal |
 | 2026-10-27T12:26:48-03:00 | K-141 | — | Bloqueado | 042 E2.1: aguardando o dono (Docker, .env, Node, Chromium, doutor) |
+| 2026-10-27T12:31:32-03:00 | K-138 | Pronto para fazer | Em andamento | 041 E2.3: software-architect-2 (ADR 0003, F4), worktree: MetricasDSPD-041 |
