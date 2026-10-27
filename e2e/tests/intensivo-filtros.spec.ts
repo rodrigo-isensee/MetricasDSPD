@@ -140,18 +140,8 @@ interface Retrato {
   cartoes: Cartao[];
 }
 
-async function esperarPronto(page: Page): Promise<void> {
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  // Com o mock no Worker (ADR 0021) o estado de coleta chega depois do h1: até lá o painel só tem o bloco reservado.
-  await expect(page.getByTestId('aguardando-coleta')).toHaveCount(0, { timeout: 30_000 });
-  await expect(page.locator('[data-testid^="metrica-"]').first().or(page.getByTestId('painel-visao-geral')).or(page.getByTestId('painel-dados')).or(page.locator('h1')).first()).toBeVisible();
-  await expect(page.locator('[data-testid^="metrica-"][aria-busy="true"]')).toHaveCount(0, { timeout: 30_000 });
-  await expect(page.locator('[data-testid^="estado-carregando-"]')).toHaveCount(0, { timeout: 30_000 });
-  await expect(page.locator('[data-testid^="metrica-"][data-estado="carregando"], [data-testid^="metrica-"][data-estado="atualizando"]')).toHaveCount(0, { timeout: 30_000 });
-}
-
 async function retrato(page: Page): Promise<Retrato> {
-  await esperarPronto(page);
+  await new PainelPage(page).esperarPronto();
   // Estável = duas leituras seguidas iguais, sem cartão ocupado (a troca de filtro dispara a recarga
   // um pouco depois da URL mudar; ler na hora pegaria o estado anterior).
   let anterior = '';
@@ -404,7 +394,7 @@ async function abrirComplementares(page: Page): Promise<void> {
   if ((await det.getAttribute('open')) === null) await det.locator('summary').first().click();
   await expect(det).toHaveAttribute('open', '');
   await expect(det.locator('[data-testid^="metrica-"]').first()).toBeVisible({ timeout: 30_000 });
-  await esperarPronto(page);
+  await new PainelPage(page).esperarPronto();
 }
 
 for (const caso of ROTAS_APLIC) {
@@ -494,7 +484,7 @@ test('IF-D5 Visão geral, catálogo e dados aceitam parâmetros de filtro sem er
   await retrato(page);
   for (const rota of ['/?equipe=fluig&prioridade=p1&periodo=4s', '/metricas?equipe=fluig&tipo=xyz', '/dados?fonte=ac&equipe=fluig&periodo=99', '/dados?fonte=zz']) {
     await page.goto(rota);
-    await esperarPronto(page);
+    await new PainelPage(page).esperarPronto();
     await expect(page.getByRole('heading', { name: 'Não foi possível abrir este painel' })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toHaveCount(0);
     expect(verificarSemPessoa(await page.locator('main').innerText()), rota).toEqual([]);

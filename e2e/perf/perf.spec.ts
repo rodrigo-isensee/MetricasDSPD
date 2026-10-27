@@ -59,7 +59,7 @@ test.describe('perf', () => {
       await instalarObservadores(page);
       const painel = new PainelPage(page);
       await painel.ir(comSemLatencia(rota));
-      await painel.esperarCartoesProntos();
+      await painel.esperarPronto();
       await page.waitForLoadState('networkidle');
       await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
       const v = await lerVitais(page);
@@ -73,7 +73,7 @@ test.describe('perf', () => {
         const daRodada = rodada === 0 ? [v.maiorTarefaLongaMs] : [];
         for (let i = daRodada.length; i < N_C6; i++) {
           await page.reload();
-          await painel.esperarCartoesProntos();
+          await painel.esperarPronto();
           await page.waitForLoadState('networkidle');
           const medida = (await lerVitais(page)).maiorTarefaLongaMs;
           daRodada.push(medida);
@@ -99,7 +99,7 @@ test.describe('perf', () => {
     const falhas: string[] = [];
 
     await painel.ir(comSemLatencia(ROTAS.operacional));
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
 
     // F4 é medido COM a latência simulada ligada; F5 SEM ela (ADR 0003). O mock é o mesmo: se SEM_LATENCIA estiver
     // vazio, F5 inclui a latência simulada e o resultado é reportado como "com latência" (não vale para a pré-entrega).
@@ -136,7 +136,7 @@ test.describe('perf', () => {
     const painel = new PainelPage(page);
     for (const rota of ROTAS_PAINEL) {
       await painel.ir(comSemLatencia(rota));
-      await painel.esperarCartoesProntos();
+      await painel.esperarPronto();
     }
     const cdp = await page.context().newCDPSession(page);
     // IS-007: sem Performance.enable o getMetrics volta vazio.
@@ -162,7 +162,7 @@ test.describe('perf-375', () => {
       await instalarObservadores(page);
       const painel = new PainelPage(page);
       await painel.ir(comSemLatencia(rota));
-      await painel.esperarCartoesProntos();
+      await painel.esperarPronto();
       await page.waitForLoadState('networkidle');
       await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
       const v = await lerVitais(page);
@@ -183,7 +183,7 @@ test.describe('perf-resumo-reservas', () => {
       await instalarObservadores(page);
       const painel = new PainelPage(page);
       await painel.ir(ROTAS.operacionalResumo);
-      await painel.esperarCartoesProntos();
+      await painel.esperarPronto();
       await page.waitForLoadState('networkidle');
       await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
       const v = await lerVitais(page);
@@ -213,12 +213,12 @@ test.describe('perf-tatico-lote2', () => {
     const longas: number[] = [];
     for (let i = 0; i < cargas; i++) {
       await painel.ir(comSemLatencia('/tatico?equipe=erp-protheus'));
-      await painel.esperarCartoesProntos();
+      await painel.esperarPronto();
       await page.waitForLoadState('networkidle');
       const antes = (await lerVitais(page)).cls;
       await page.getByTestId('mais-metricas').locator('summary').click();
       await expect(page.getByTestId('metrica-T14')).toBeVisible();
-      await painel.esperarCartoesProntos();
+      await painel.esperarPronto();
       await page.waitForLoadState('networkidle');
       await page.evaluate(() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r()))));
       const v = await lerVitais(page);

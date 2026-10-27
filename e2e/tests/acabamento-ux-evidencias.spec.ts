@@ -14,7 +14,7 @@ for (const [w, h] of TELAS) {
       await page.setViewportSize({ width: w, height: h });
       await page.addInitScript((tt) => localStorage.setItem('metricas-dspd:tema', tt), t);
       await painel.ir('/operacional?cadencia=sustentacao');
-      await painel.esperarCartoesProntos();
+      await painel.esperarPronto();
       const cartao = page.getByTestId('metrica-PV1');
       await expect(cartao.getByTestId('pv1-participacao')).toBeVisible();
       await expect(cartao).not.toHaveAttribute('aria-busy', 'true');

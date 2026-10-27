@@ -17,14 +17,14 @@ const semRolagemHorizontal = (page: Page) =>
 
 async function abrir(
   page: Page,
-  painel: { ir: (r: string) => Promise<void>; esperarCartoesProntos: () => Promise<void> },
+  painel: { ir: (r: string) => Promise<void>; esperarPronto: () => Promise<void> },
   rota = ROTA,
 ) {
   await painel.ir(rota);
-  await painel.esperarCartoesProntos();
+  await painel.esperarPronto();
   await page.getByTestId('mais-metricas').locator('summary').click();
   await expect(page.getByTestId('metrica-T14')).toBeVisible();
-  await painel.esperarCartoesProntos();
+  await painel.esperarPronto();
 }
 
 interface ProjetoApi {
@@ -351,14 +351,14 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     }
     // Núcleo → complementar: T1 → T13, T4 → T11, T9 → T14 (e T10 a partir do Bloqueados agora; O14 → T12).
     await painel.ir('/tatico');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     const alvos: Record<string, string[]> = { t1: ['T13'], t4: ['T11'], t9: ['T14'] };
     for (const [de, ids] of Object.entries(alvos)) {
       const leia = page.getByTestId(`leia-junto-${de}`);
       for (const id of ids) await expect(leia.getByRole('link', { name: new RegExp(`^${id}\\b`) }), `${de} -> ${id}`).toBeVisible();
     }
     await painel.ir('/operacional?cadencia=diaria');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(page.getByTestId('leia-junto-bloqueados').getByRole('link', { name: /^T10\b/ })).toBeVisible();
     // Complementar → núcleo: cada um dos cinco tem "Leia junto" escrito na nota, com os pares da ficha (O19 é do lote 3).
     await abrir(page, painel);
