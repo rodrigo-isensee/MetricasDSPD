@@ -17,6 +17,9 @@ const ARQ = join(SAIDA, process.env.PERF_VARIANTE ? `resultado-${process.env.PER
 const RODADAS_C6 = Number(process.env.PERF_RODADAS_C6 ?? 3);
 const N_C6 = Number(process.env.PERF_REPETICOES_C6 ?? 5);
 const N = Number(process.env.PERF_REPETICOES ?? ORCAMENTO.repeticoes);
+/** F4 (ADR 0003, 2026-10-23): medições de verdade no p95, fora a primeira (a frio); nunca abaixo de 20. */
+const N_F4 = Math.max(20, N);
+const MAX_TENTATIVAS_F4 = N_F4 * 4 + 1;
 /** Parâmetro opcional que desliga a latência simulada do mock (F5). Mecanismo a definir pelo react-frontend (ADR 0003). */
 const SEM_LATENCIA = process.env.PERF_QUERY_SEM_LATENCIA ?? ''; // ex.: "latencia=0"
 
@@ -104,22 +107,33 @@ test.describe('perf', () => {
     // F4 é medido COM a latência simulada ligada; F5 SEM ela (ADR 0003). O mock é o mesmo: se SEM_LATENCIA estiver
     // vazio, F5 inclui a latência simulada e o resultado é reportado como "com latência" (não vale para a pré-entrega).
     const alternativas = ['Incidente', 'Melhoria'];
-    for (let i = 0; i < N; i++) {
-      const nome = alternativas[i % alternativas.length]!;
+    // ADR 0003, "Medição do F4" (2026-10-23, decisão F4 = A): a primeira medição (a frio) fica fora do p95 e é reportada
+    // à parte; o p95 vale só com N_F4 medições de verdade (trocas que geraram resposta visual). Troca sem medição
+    // (o observador não viu "ocupado" nem chip novo) não conta: o laço segue até juntar a amostra, com teto de tentativas.
+    let aFrio: number | null = null;
+    let tentativas = 0;
+    while (visual.length < N_F4 && tentativas < MAX_TENTATIVAS_F4) {
+      const nome = alternativas[tentativas % alternativas.length]!;
+      tentativas++;
       const m = await medirTrocaFiltro(page, async () => {
         await painel.filtros.botao('tipo').click();
         await page.getByRole('checkbox', { name: nome }).first().click();
       });
       await page.keyboard.press('Escape');
-      if (m.respostaVisualMs !== null) visual.push(m.respostaVisualMs);
+      if (m.motivo) falhas.push(`#${tentativas}: ${m.motivo}`);
       if (m.painelAtualizadoMs !== null) final.push(m.painelAtualizadoMs);
-      if (m.motivo) falhas.push(`#${i + 1}: ${m.motivo}`);
+      if (m.respostaVisualMs === null) continue;
+      if (aFrio === null) aFrio = m.respostaVisualMs;
+      else visual.push(m.respostaVisualMs);
     }
     expect(falhas, 'o painel não sinalizou estado final: falta data-estado/aria-busy (ver plano R2.7)').toEqual([]);
+    console.log(`[perf] F4 a frio (fora do p95): ${aFrio?.toFixed(1) ?? 'n/d'} ms; n=${visual.length} medições em ${tentativas} trocas`);
+    registrar('F4_primeiraAFrio', { ms: aFrio, n: visual.length, tentativas });
+    expect(visual.length, `F4: amostra insuficiente (n=${visual.length} < ${N_F4} em ${tentativas} trocas); o p95 não vale (ADR 0003)`).toBeGreaterThanOrEqual(N_F4);
 
     const rv = resumir(visual);
     const rf = resumir(final);
-    linha('F4 resposta visual', rv, ' ms');
+    linha('F4 resposta visual (sem a primeira, a frio)', rv, ' ms');
     linha(`F5 painel atualizado${SEM_LATENCIA ? '' : ' (COM latência simulada)'}`, rf, ' ms');
     registrar('F4_respostaVisual', rv);
     registrar('F5_painelAtualizado', { ...rf, semLatencia: !!SEM_LATENCIA });
