@@ -66,6 +66,29 @@ describe('FrescorFonte', () => {
     expect(screen.getByRole('link', { name: /Entenda/ })).toHaveAttribute('href', '/dados?fonte=ac')
   })
 
+  it('reservarFalha guarda a linha do aviso de falha em todos os estados, para o cabeçalho não saltar (CLS)', async () => {
+    renderizarCartao(
+      <>
+        <FrescorFonte dominio="businessmap" comNome reservarFalha />
+        <FrescorFonte dominio="acelerato" comNome reservarFalha />
+      </>,
+    )
+    // Carregando: a reserva já existe, invisível e fora da leitura de tela.
+    expect(screen.getByTestId('reserva-falha-businessmap')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.getByTestId('reserva-falha-acelerato')).toHaveClass('invisible')
+    await screen.findByTestId('selo-frescor-acelerato')
+    // Atual (Acelerato): a reserva continua. Em falha (BusinessMap): a linha real a substitui.
+    expect(screen.getByTestId('reserva-falha-acelerato')).toBeInTheDocument()
+    expect(screen.getByTestId('falha-coleta-businessmap')).toBeInTheDocument()
+    expect(screen.queryByTestId('reserva-falha-businessmap')).not.toBeInTheDocument()
+  })
+
+  it('sem reservarFalha não há linha reservada', async () => {
+    renderizarCartao(<FrescorFonte dominio="acelerato" />)
+    await screen.findByTestId('selo-frescor-acelerato')
+    expect(screen.queryByTestId('reserva-falha-acelerato')).not.toBeInTheDocument()
+  })
+
   it('?mock=coleta-atrasada:bm mostra "Atrasado: última coleta há 26 h"', async () => {
     renderizarCartao(<FrescorFonte dominio="businessmap" />, { url: '/?mock=coleta-atrasada:bm' })
     expect(await screen.findByTestId('selo-frescor-businessmap')).toHaveTextContent(

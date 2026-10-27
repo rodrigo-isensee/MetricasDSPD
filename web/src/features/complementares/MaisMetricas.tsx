@@ -61,7 +61,7 @@ function Conteudo({
       data-testid="mais-metricas"
       id="mais-metricas"
     >
-      <summary className="alvo cursor-pointer px-4 py-3 text-base font-bold">
+      <summary className="alvo scroll-mt-72 cursor-pointer px-4 py-3 text-base font-bold">
         Mais métricas {escopo(p.painel)} · {fmtInteiro(visiveis.length)}{' '}
         {plural(visiveis.length, 'complementar', 'complementares')}
       </summary>
