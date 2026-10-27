@@ -3,15 +3,39 @@ tipo: review
 contrato: 1
 pedido: 026-front-do-011-lote3
 branch: feature/026-lote3-operacionais
-commit: b1438586dbac82751d6def23673b870feae88ad9
-parecer: reprovado
+commit: eedcafcb114f62d26f8b9252f8735ddb5f1160dd
+parecer: aprovado
 revisor: tech-lead
 data: 2026-10-27
 ---
 
 # Code review: front do lote 3 (O19 a O26) no /operacional (pedido 026, K-111)
 
-**Veredito: reprovado.** Há quatro achados bloqueantes. A1 a A3 voltam ao `react-frontend`. A4 é das E2E, que pertencem ao `qa-engineer` (§9 do `praticas.md`), e entra no E1.3. Ficam ainda seis recomendados (A5 a A10).
+## Revalidação (E1.4): eedcafc
+
+**Veredito: aprovado.** A1 a A3 (bloqueantes) e A5 a A8 (recomendados) estão resolvidos em `eedcafc` (`fix(web)`, 3 arquivos, +57 -13). A4 continua com o QA (E1.3), e A9 e A10 continuam com a UX (E1.2). Não há bloqueante novo. Fica um recomendado novo (A11), que vai para a UX.
+
+**Delta lido:** `forge-check delta --parecer docs/reviews/026-lote3-operacionais.md` (intervalo `b143858..eedcafc`, que é o `0a03c4b..eedcafc` sem o parecer) listou `docs/tecnica/arquitetura-front.md` 259, 268, 271, 281, 284 e 307-317; `operacionais.test.tsx` 126, 250-267, 454-458 e 742; `operacionais.tsx` 3, 34-38, 343-348, 426, 483, 717 e 754-755. Li só essas linhas. Fica como "já lido" o resto de `e342a2c..b143858`, revisado na 1ª rodada. Não rodei nada local: o brief dispensa, e o dono pediu uma suíte por vez. O autor relata `pnpm run pronto` com rc=0 na 3ª execução (pedido 026, linha de 17:31). O timeout de `plataforma2.test.ts` sob carga virou o K-150 e fica fora daqui.
+
+| Achado | Situação | Evidência |
+|---|---|---|
+| A1 | resolvido | `arquitetura-front.md` §13 (307-317) cobre onde fica, O23 no O2, COM_TAMBEM com E6, E8, O22 e O26 (a §12 marcada como superada), a exceção do O21, O22, O24/O25, O26 e a proteção de pessoa. As linhas 259 a 284 são só reformatação do prettier (linha em branco antes das listas, `_seções_`) e não mudam o conteúdo. |
+| A2 | resolvido | `operacionais.tsx:343-348`: `AvisoInfo` `o21-grupo-abaixo` com `GRUPO_ABAIXO[comp.grupoAbaixoDoMinimo ?? 'ambos']`, no mesmo padrão do T13 (`taticas.tsx:463`). Os testes (`operacionais.test.tsx:250-267`) cobrem com, sem, ambos e nulo. |
+| A3 | resolvido | `operacionais.tsx:483` usa `JANELA_PERCENTIS_PADRAO`, importado em 3. |
+| A5 | resolvido | `operacionais.tsx:426`: `find(...)?.retornos ?? 0`. A tela não soma mais. |
+| A6 | resolvido | `operacionais.tsx:717`: "P50 e P85 não publicados (menos de 20)." O teste em 454 afirma a frase inteira. |
+| A7 | resolvido | `operacionais.tsx:754-755`: a frase só aparece com `porMotivo` nulo ou vazio. Os testes cobrem os dois lados (458 afirma a frase presente, 742 afirma a frase ausente com a tabela "Duplicado"). |
+| A8 | resolvido | `operacionais.test.tsx:126`: o teste agora se chama "estado vazio". |
+
+**Nota do O25 em `notas.ts:251` (ficha, "cuidados"):** o autor a deixou como estava. O texto ("Nesta fase não há divisão por motivo: ela só entra quando a integração ler o catálogo de motivos do BusinessMap") está correto hoje. O `o25.ts:130` de `packages/metricas` devolve `porMotivo: null` até ler `/discardReasons` (CA-44, `regras.ts:628`), então a ficha não contradiz nenhum estado que a fase produz. A frase do cartão já é condicional (A7). **Destino recomendado:** manter. A troca do texto da ficha entra na mesma entrega da integração que preencher `porMotivo` (fase das integrações reais), e quem escreve o texto novo é a UX. Não é achado e não pede volta ao autor. Se a UX quiser antecipar uma redação neutra no E1.2 (por exemplo "A divisão por motivo só aparece quando os motivos de descarte forem lidos do BusinessMap"), ela pode.
+
+**Teto (M14):** a recontagem sobre `origin/develop...HEAD`, sem `.md`, deu **2.053 linhas**. A exceção continua aceita, e a linha do PR passa a ser `teto: excedido, 2053 linhas, lote 3 indivisível: 7 cartões e o O23 sobre o mesmo catálogo e as mesmas contagens` (recontar se o E1.3 mexer nas E2E).
+
+**Commit da volta:** está em Conventional Commits em português, é um commit só e não tem código morto nem dependência nova.
+
+## 1ª rodada (b143858)
+
+**Veredito da 1ª rodada: reprovado.** Há quatro achados bloqueantes. A1 a A3 voltam ao `react-frontend`. A4 é das E2E, que pertencem ao `qa-engineer` (§9 do `praticas.md`), e entra no E1.3. Ficam ainda seis recomendados (A5 a A10).
 
 Escopo lido: `e342a2c...b143858`, um commit do autor com 28 arquivos, 1.988 linhas a mais e 79 a menos. Fontes da leitura: o pedido 026 (Escopo e as linhas do Histórico de 2026-10-27 14:25 e 15:33), a especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (fichas O19 a O26 e os CA-1, CA-6 e CA-15), os schemas de `packages/contratos/src/tambem.ts` e as seções 1, 3, 4, 7, 8 e 9 de `docs/engineering/praticas.md`.
 
@@ -54,6 +78,7 @@ Escopo lido: `e342a2c...b143858`, um commit do autor com 28 arquivos, 1.988 linh
 - A8 (recomendado) web/src/features/complementares/operacionais.test.tsx:126 · O título "estado vazio e erro com 'tentar de novo'" testa só o vazio, e o erro está no teste seguinte. Renomeie para "estado vazio".
 - A9 (recomendado) packages/contratos/src/cartoes.test.ts:145 · A exceção nominal do O21 na alcançabilidade é aceita, porque o O21 aparece pela seção (CA-1) e pela página Métricas (CA-15). Se a UX ligar O13 ou O5 ao O21 no E1.2, tire a exceção.
 - A10 (recomendado) web/src/features/complementares/operacionais.tsx:759 · A leitura do O26 dá a faixa mais comum, não "x% com 2 ou mais" e o P85 de 3+ contra até 1 da ficha, que exigiria somar faixas na tela; o autor fez certo em não calcular. Leve à UX (E1.2) ou peça o campo ao contrato.
+- A11 (recomendado) web/src/features/complementares/operacionais.tsx:346 · Com 'ambos' ou nulo, o aviso do O21 diz "o grupo com e sem retorno tem menos de 20" (singular para dois grupos). O texto vem do T13 (taticas.tsx:463). Leve à UX (E1.2) e, se mudar, ajuste os dois cartões.
 
 ## Commits
 
@@ -61,4 +86,4 @@ Há um commit em Conventional Commits em português, com `Cartão: K-111` e as l
 
 ## Volta
 
-O `react-frontend` corrige A1 a A3 em commit novo `fix(...)` na mesma branch, e A5 a A8 se couberem. O `qa-engineer` atualiza as E2E do A4 no E1.3. A9 e A10 vão para a revisão de UX (E1.2). A revalidação sai por `forge-check delta --parecer docs/reviews/026-lote3-operacionais.md`.
+O `react-frontend` corrige A1 a A3 em commit novo `fix(...)` na mesma branch, e A5 a A8 se couberem. O `qa-engineer` atualiza as E2E do A4 no E1.3. A9 e A10 vão para a revisão de UX (E1.2). A revalidação sai por `forge-check delta --parecer docs/reviews/026-lote3-operacionais.md`. Ela foi feita no E1.4 (seção "Revalidação", acima), e a situação de A1 a A3 e A5 a A8 está lá: resolvidos.
