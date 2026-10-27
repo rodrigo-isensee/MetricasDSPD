@@ -1,8 +1,8 @@
 # Quadro Kanban
 
-> Computador novo (2026-10-22, Forge 0.28.0): repositório em /home/rodrigoisensee/Metricas/MetricasDSPD, branch do Jarvis docs/jarvis-2026-10-20-noite. Banco local recriado (040). Em espera do dono: dependências do Chromium (K-110) e recibo do 041 (estabilizar os testes). Próximo: reteste do 025 → PR do 025 → promoção do 025 com o 037 para a homolog → release para a main (dono). Prompt de melhorias ao Forge (F1 a F15) em `docs/kanban/prompt-jarvis-forge-2026-10-21.md`.
-> Atualizado em: 2026-10-22 21:35 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
-> WIP: sessão do Forge 0.28.0; WSL com teto de 14 GB: uma suíte de teste por vez e poucos agentes em paralelo (dono, 2026-10-23) · Bloqueados: 0
+> Máquina nova (2026-10-27, plugin Forge 0.30.3, projeto ainda em 0.28.0): repositório em /home/rodrigoisensee/MetricasDSPD, branch do Jarvis docs/jarvis-2026-10-23. Sem Node, Docker, `.env` e dependências: K-140 (versão, dono roda `forge-upgrade`) e K-141 (ambiente, dono) bloqueiam a fila do 041. Pedido 042.
+> Atualizado em: 2026-10-27 12:27 · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> WIP: plugin Forge 0.30.3; WSL com 7 GB visíveis nesta máquina: uma suíte de teste por vez e poucos agentes em paralelo (dono, 2026-10-23) · Bloqueados: 2 (K-140, K-141)
 > Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
 # Upstream — descoberta (Design Thinking)
@@ -117,6 +117,8 @@
 ## Bloqueado
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-140 | Registrar o Forge 0.30.3 no projeto (branch forge/upgrade-0.30.3, PR para a develop) | 042 | forge:tech-lead | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono: `forge-upgrade` no terminal (E1.1) |
+| K-141 | Ambiente da máquina nova: Docker, `.env`, Node 24, Chromium, doutor; depois pnpm install e banco | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono (E2.1); depois tech-lead (E2.2) e devops (E2.3) |
 | K-110 | Front do 011, lote 2 (táticas): T10, T11, T12, T13, T14 | 025 | forge:qa-engineer | 2026-10-17 | 2026-10-22 17:34 | Aguardando o dono: dependências do Chromium (libnspr4, libnss3; ENV-025-001). Branch em 43f29b3 no remoto, parecer d586518 local · worktree: -025 |
 
 ## Políticas locais (acrescentadas na auditoria K-021)
