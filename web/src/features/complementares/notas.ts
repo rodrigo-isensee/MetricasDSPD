@@ -297,7 +297,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Mostra o peso da dependência no prazo. O outro quadro não é identificado, para não virar comparação entre times. Leia junto com o lead time ponta a ponta (T1).',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Entregas com quadro do vínculo desconhecido ficam à parte, nunca contam como "não dependeu"..',
+      'Entregas com quadro do vínculo desconhecido ficam à parte, nunca contam como "não dependeu". Dado fictício até a coleta real.',
   },
   T14: {
     oQueE: 'Que parte de cada projeto em andamento é do meu time.',
@@ -307,7 +307,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Mostra a parte do projeto que é do meu time, para entender a cobrança por entregas em que atuo pouco. Quando os outros times somam poucas pessoas, só a fatia do meu time é mostrada, sem o total do projeto.',
     meta: 'Sem meta numérica; não existe participação mínima esperada.',
     cuidados:
-      'Não é nota do time nem comparação: nenhum outro time é nomeado, listado nem ordenado..',
+      'Não é nota do time nem comparação: nenhum outro time é nomeado, listado nem ordenado. Dado fictício até a coleta real.',
   },
   E6: {
     oQueE: 'Se a data comprometida de um projeto se confirma: o deslize de cada projeto concluído.',
@@ -317,7 +317,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Cada ponto é um projeto; a forma mostra os replanejamentos (círculo 0, losango 1, triângulo 2 ou mais). Leia junto com a previsão de término (E5) e o avanço real (T9).',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Poucos projetos terminam por ano: é esperado ficar abaixo de 20. Projeto concluído sem data comprometida registrada fica fora da conta e é contado à parte..',
+      'Poucos projetos terminam por ano: é esperado ficar abaixo de 20. Projeto concluído sem data comprometida registrada fica fora da conta e é contado à parte. Dado fictício até a coleta real.',
   },
   E7: {
     oQueE:
@@ -339,7 +339,7 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
       'Mede o risco de continuidade do parque. Mostra só quantos sistemas estão em cada faixa, sem nomear sistema nem pessoa.',
     meta: 'Sem meta numérica.',
     cuidados:
-      'Não mostra nem avalia pessoas. Não há filtro por equipe nem por sistema, para não apontar quem entrega..',
+      'Não mostra nem avalia pessoas. Não há filtro por equipe nem por sistema, para não apontar quem entrega. Dado fictício até a coleta real.',
   },
   E9: {
     oQueE: 'Quanto tempo um projeto aprovado espera para começar.',
