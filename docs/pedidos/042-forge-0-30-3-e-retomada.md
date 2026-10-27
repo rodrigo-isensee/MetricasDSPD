@@ -43,6 +43,8 @@
 - PQ-1 `.forge/versao` na origin/develop igual a `0.30.3` · prova: merge · `técnico`
 
 ## Decisões do usuário (registro literal)
+DECISÃO DO DONO (2026-10-27): "talvez precise atualizar algo no banco ja quetroquei de maquina" (coberto pelo E2.3: banco recriado do zero, migrações e seed).
+DECISÃO DO DONO (2026-10-27): "pode usar o poder computacional disponivl para paralelizar" (lido como: agentes em paralelo até o teto de R-TETO desta máquina; suítes de teste limitadas pela memória medida, 7 GB visíveis).
 DECISÃO DO DONO (2026-10-27): pedido de origem acima (atualizar para 0.30.3 por branch e PR para a develop; retomar a fila).
 
 ## Registro de clareza
@@ -54,3 +56,4 @@ DEVOLVIDA: nenhuma
 
 ## Histórico
 - 2026-10-27 12:26: pedido aberto; diagnóstico; recibo e ações do dono enviados.
+- 2026-10-27 12:35: dono pediu atualizar o banco (E2.3) e liberou o paralelismo disponível (registro literal em Decisões).
