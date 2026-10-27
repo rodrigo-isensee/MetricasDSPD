@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+  JANELA_PERCENTIS_PADRAO,
   type FiltrosFluxo,
   type ResultadoO19,
   type ResultadoO20,
@@ -30,6 +31,11 @@ interface P {
 const num = (n: number) => fmtNumero(n, n % 1 === 0 ? 0 : 1)
 const dias = (n: number) => `${num(n)} ${plural(n, 'dia útil', 'dias úteis')}`
 const SEM_AMOSTRA = '— amostra insuficiente'
+const GRUPO_ABAIXO: Record<'com' | 'sem' | 'ambos', string> = {
+  com: 'com retorno',
+  sem: 'sem retorno',
+  ambos: 'com e sem retorno',
+}
 
 function AvisoInfo({ children, testid }: { children: React.ReactNode; testid: string }) {
   return (
@@ -334,7 +340,12 @@ export function CartaoO21({ filtros }: P) {
                     ]}
                   />
                 ) : (
-                  <div data-testid="o21-par-insuficiente">
+                  <div data-testid="o21-par-insuficiente" className="flex flex-col gap-2">
+                    <AvisoInfo testid="o21-grupo-abaixo">
+                      Comparação não exibida em {comp.tipo}: o grupo{' '}
+                      {GRUPO_ABAIXO[comp.grupoAbaixoDoMinimo ?? 'ambos']} tem menos de 20 itens no
+                      tipo.
+                    </AvisoInfo>
                     <AmostraInsuficiente
                       n={Math.min(comp.com.n, comp.sem.n)}
                       codigo="O21"
@@ -412,9 +423,7 @@ function MatrizRetornos({
                 {reaberta(o) && <span className="ml-1 font-semibold">(reaberto)</span>}
               </th>
               {destinos.map((x) => {
-                const v = celulas
-                  .filter((c) => c.origem === o && c.destino === x)
-                  .reduce((s, c) => s + c.retornos, 0)
+                const v = celulas.find((c) => c.origem === o && c.destino === x)?.retornos ?? 0
                 return (
                   <td
                     key={x}
@@ -471,7 +480,7 @@ export function CartaoO22({ filtros }: P) {
       q={q}
       baseVariante={b0?.distribuicao.status === 'ok' ? 'ok' : 'insuficiente'}
       periodo={filtros.periodo}
-      janelaPercentis={d?.base.janela && b0 ? { unidade: 'semanas', quantidade: 12 } : undefined}
+      janelaPercentis={d?.base.janela && b0 ? JANELA_PERCENTIS_PADRAO : undefined}
       className="lg:col-span-12"
       leitura={d ? leituraO22(d, atual) : undefined}
     >
@@ -705,8 +714,7 @@ export function CartaoO25({ filtros }: P) {
                     ) : (
                       <p data-testid="o25-percentis">
                         Em {c.tipo}: {fmtInteiro(c.itens)} descartados depois do início, soma{' '}
-                        {dias(c.diasUteis)}. P50 e P85 {SEM_AMOSTRA.replace('— ', '')} (menos de
-                        20).
+                        {dias(c.diasUteis)}. P50 e P85 não publicados (menos de 20).
                       </p>
                     )}
                   </PorTipo>
@@ -743,8 +751,8 @@ export function CartaoO25({ filtros }: P) {
               />
             )}
             <Leia>
-              Descartar cedo é saudável; o custo está no que foi descartado depois de começar. Nesta
-              fase não há divisão por motivo.
+              Descartar cedo é saudável; o custo está no que foi descartado depois de começar.
+              {!(r.porMotivo && r.porMotivo.length > 0) && ' Nesta fase não há divisão por motivo.'}
             </Leia>
             <LeiaJunto id="o25" />
           </div>

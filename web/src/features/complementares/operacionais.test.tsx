@@ -123,7 +123,7 @@ describe('O19 Bloqueios por causa', () => {
     expect(within(el).queryByTestId('o19-abertos')).toBeNull()
   })
 
-  it('estado vazio e erro com "tentar de novo"', async () => {
+  it('estado vazio', async () => {
     renderizarCartao(<CartaoO19 filtros={FILTROS_FLUXO} />, {
       fonte: new FonteFixa({ O19: { ...dto(), base: { ...dto().base, n: 0 } } }),
     })
@@ -247,6 +247,24 @@ describe('O21 Fluxo reverso', () => {
       '7 de 20 itens mínimos',
     )
     expect(within(el).queryByTestId('tabela-O21')).toBeNull()
+    expect(within(el).getByTestId('o21-grupo-abaixo')).toHaveTextContent(
+      'o grupo com retorno tem menos de 20 itens',
+    )
+  })
+
+  it.each([
+    ['sem', 'o grupo sem retorno tem menos de 20 itens'],
+    ['ambos', 'o grupo com e sem retorno tem menos de 20 itens'],
+    [null, 'o grupo com e sem retorno tem menos de 20 itens'],
+  ] as const)('diz qual grupo do par está abaixo de 20: %s', async (g, texto) => {
+    const el = await abrir(
+      'O21',
+      <CartaoO21 filtros={FILTROS_FLUXO} />,
+      new FonteFixa({
+        O21: dto([comp('Melhoria', dur(40, 4, 8), insuf(7), g)], taxaInsuf(7, 12)),
+      }),
+    )
+    expect(within(el).getByTestId('o21-grupo-abaixo')).toHaveTextContent(texto)
   })
 
   it('troca o tipo do par com o seletor local, um por vez', async () => {
@@ -433,8 +451,11 @@ describe('O25 Descarte', () => {
     expect(c).toHaveTextContent(
       'Depois do início (trabalho jogado fora): 3 itens, somando 38 dias úteis',
     )
-    expect(within(el).getByTestId('o25-percentis')).toHaveTextContent('menos de 20')
+    expect(within(el).getByTestId('o25-percentis')).toHaveTextContent(
+      'P50 e P85 não publicados (menos de 20).',
+    )
     expect(within(el).queryByTestId('tabela-O25')).toBeNull()
+    expect(el).toHaveTextContent('Nesta fase não há divisão por motivo.')
     expect(el).toHaveTextContent('Descartar cedo é saudável')
   })
 
@@ -718,6 +739,7 @@ describe('ramos de borda dos complementares operacionais', () => {
       'P50 3 e P85 8 dias úteis consumidos',
     )
     expect(within(el).getByTestId('tabela-O25')).toHaveTextContent('Duplicado')
+    expect(el).not.toHaveTextContent(/divisão por motivo\./)
   })
 
   it('O26: faixa de 1 passagem no singular e tipo sem faixas não gera leitura', async () => {
