@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 041-estabilidade
 branch: feature/041-estabilidade
-commit: 43e0ba09e341a72cbb97228bf7e57f23683bd92b
+commit: ea54fbffd51ed146cc14b32bd9f2b15428ea9d89
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-27
@@ -81,7 +81,33 @@ O timeout de teste do Playwright não mudou: são 30 s nas suítes e 120 s no pr
 - Umas 200 linhas são a troca mecânica dos helpers duplicados pelo helper único.
 - Dividir obrigaria a refazer a prova de estabilidade do QA por PR.
 
-O corpo do PR vai levar `teto: excedido, 543 linhas, estabilização do 041 com troca mecânica do helper único em 20 specs; a prova de estabilidade do QA vale para o conjunto`.
+O corpo do PR vai levar `teto: excedido, 543 linhas, estabilização do 041 com troca mecânica do helper único em 20 specs; a prova de estabilidade do QA vale para o conjunto`. Com o E6.1, o total passa a 592 linhas (ver a seção abaixo), e a linha do PR leva esse número.
+
+## Revisão do E6.1 (K-149)
+
+**Veredito: aprovado**, sem achado bloqueante. O SHA revisado é `ea54fbf` (commit do react-frontend sobre `8715162`).
+
+**Delta lido:** `forge-check delta --parecer docs/reviews/041-estabilidade.md` listou o intervalo `43e0ba0..ea54fbf`. Li só as linhas de código que ele aponta: `FrescorFonte.tsx` 14-16, 21-24, 53-57 e 94-98; `coleta.test.tsx` 69-91; `MaisMetricas.tsx` 64; `secao.test.tsx` 30-32; `arquitetura-front.md` 184. Os commits de documentação entre `43e0ba0` e `8715162` (pareceres de segurança e de QA, A3 encurtado) ficam como "já lido" ou são de outro papel. O restante do parecer acima vale como estava.
+
+**Ferramentas (só nos 4 arquivos de código do delta, com `nice -n 19`):** `eslint` sem saída de erro (ESLINT_OK); `prettier --check` deu "All matched files use Prettier code style!". Nenhuma suíte de teste rodou aqui: o reteste das 3 falhas e a E2E completa são do QA no E6.3.
+
+**A causa foi atacada, sem mexer em regra nem em medição.** O diff não toca `e2e/`, `playwright.config.ts`, a configuração do axe nem a ADR 0003. Nenhuma regra foi desligada e nenhum limite, timeout ou retry mudou.
+- **A2 (CLS a 375 px):** a reserva de altura era de 50 px (1 linha), e o aviso real quebra em 2 linhas a 375 px. A linha invisível com o texto mais longo do aviso (`Coleta falhou em 00/00/0000 00:00. Mostrando dados de 00/00/0000 00:00.`) tem o mesmo comprimento do texto real, porque `fmtDataHora` devolve `dd/mm/aaaa hh:mm`. Assim ela quebra como a real em qualquer largura. É a mesma técnica da reserva da linha "Atualizado em" (IR-001), ou seja, reserva medida pelo próprio texto e não um número fixo.
+- **A1 (axe `target-size`):** o botão já tinha 24 px (`.alvo`). O problema era ele ficar coberto pelo cabeçalho fixo ao abrir "Mais métricas". O `scroll-mt-72` soma-se ao `scroll-padding-top` global (cabeçalho + filtros + 1 rem, `tokens.css:116`), e o resumo para mais abaixo. Isso resolve a cobertura, não o teste. A ressalva sobre o número fixo está em A7.
+
+**Leitor de tela:** a linha reservada tem `aria-hidden="true"` e `invisible` (`visibility: hidden`), então fica fora da árvore de acessibilidade por dois caminhos. Ela não tem `role` nem foco, e o teste unitário confere o `aria-hidden` e a classe. Não vaza.
+
+**Espaço vazio a 375 px (estado "Atual"):** sobram cerca de 44 px em branco abaixo da linha de frescor. Aceito: é o preço de não deslocar o painel quando chega o estado de falha, a doc técnica o registra como escolha, e é menor que o salto que ele evita. A leitura visual é da revisão de UX.
+
+**Folga do `scroll-mt-72`:** aceita como correção. O efeito colateral (o link `#mais-metricas` deixa 18 rem de contexto acima) está documentado. Mas 18 rem é um número acoplado à altura atual do cartão P1 (A7).
+
+**Testes e doc:** dois casos novos em `coleta.test.tsx` cobrem a reserva carregando, no estado "Atual", a troca pela linha real em falha e a ausência sem `reservarFalha`. `secao.test.tsx` fixa a classe. O jsdom não mede altura, então a prova de CLS e do axe continua sendo a E2E (`perf-resumo-reservas`, COMP-01) no E6.3. A seção K-149 de `arquitetura-front.md` explica causa, medição (0,115 para 0,021) e efeitos colaterais.
+- O estado de erro da consulta ficou sem a reserva (A6).
+- A causa da divergência entre 2026-10-23 e 2026-10-27 não foi isolada: o autor relata isso na doc. Não muda o veredito, porque a correção vale para os dois estados medidos.
+
+**Checklist:** escopo igual ao E6.1. Nenhuma regra de produto foi tocada e não há dado de pessoa. O commit está em Conventional Commits.
+
+**Teto M14:** o E6.1 soma 46 linhas de código e teste. A branch fica com 592 linhas contra `e342a2c` (sem `.md`). A exceção continua valendo com o número novo.
 
 ## Achados
 
@@ -90,3 +116,5 @@ O corpo do PR vai levar `teto: excedido, 543 linhas, estabilização do 041 com 
 - A3 (recomendado) e2e/pages/PainelPage.ts:64 · `{ timeout: 30_000 }` vale também para os chamadores antigos de `esperarCartoesProntos` (perf, api), que usavam 5 s. O teste não ganha tempo, mas a falha passa a aparecer como timeout do teste. Registrar no parecer do QA.
 - A4 (recomendado) e2e/tests/a11y.spec.ts:5 · o comentário ainda diz que grava em `docs/qa/evidencias/fase-a`. O mesmo vale para `acabamento-ux-evidencias.spec.ts:6`. Atualizar para `pastaEvidencias` (`e2e/evidencias-local` por padrão).
 - A5 (recomendado) e2e/tests/sustentacao-no-operacional.spec.ts:1 · o import perdeu o `;`, num arquivo que usa ponto e vírgula, e o `e2e` fica fora do Prettier. Também há `new PainelPage(page)` onde a fixture `painel` já existe. Ambos são cosméticos.
+- A6 (recomendado) web/src/features/coleta/FrescorFonte.tsx:53 · a reserva some no erro da consulta: existe carregando e não em `isError`, e o cabeçalho sobe. Uma condição só fora do `e &&` (`reservarFalha && !(e?.selo === 'falha' && e?.ultimaTentativa)`) cobre o erro e tira a duplicação.
+- A7 (recomendado) web/src/features/complementares/MaisMetricas.tsx:64 · `scroll-mt-72` (18 rem) está acoplado à altura atual do cartão P1 (437 px) e soma-se ao `scroll-padding-top` global. Se o cartão crescer, o COMP-01 volta a falhar. Registrar a dependência no comentário da classe.
