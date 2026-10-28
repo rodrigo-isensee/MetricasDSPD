@@ -1,5 +1,6 @@
 # L3-002 - F4 resposta visual do Operacional acima do orçamento
 - Severidade: média
+- Status: resolvido (reteste QA 2026-10-28, 15ad62a)
 - Responsável sugerido: forge:react-frontend (causa não isolada)
 - Ambiente: feature/026-lote3-operacionais, c72b955, Chromium, 1 e 2 workers
 
@@ -14,3 +15,6 @@ F4 p95 < 100 ms (ADR 0003).
 
 ## Evidência
 `perf/perf.spec.ts:126`, `expect.soft(rv.p95, 'F4')`.
+
+## Reteste (2026-10-28, head 15ad62a)
+Pela regra nova da ADR 0003 (primeira medição fora do p95, n >= 20): F4 n=20 em 40 trocas, mediana 37,4 ms, p95 44,1 ms (limite 100 ms). Primeira medição a frio, reportada à parte: 131,5 ms (informativa). As leituras de 134 a 141 ms eram pela regra antiga. Sem regressão na branch, então a develop não precisou ser medida. Resolvido.
