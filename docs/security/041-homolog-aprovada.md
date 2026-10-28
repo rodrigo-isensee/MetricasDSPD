@@ -28,12 +28,17 @@ Propósito: parecer de segurança sobre `homolog-aprovada.yml` (alterado) e `hom
 - **Sem bypass novo por tempo.** Sem `sleep` de espera no check; o laço de 6 x 10 s só repete o pedido de rerun e esgota em falha com instrução (`:33-39`).
 - **Resíduo mantido (não novo).** Em `pull_request`, o arquivo de workflow vem do merge ref; a frase "a regra vem da base" vale para `aprovacao.ts`, não para o YAML do check. A defesa é a de sempre: `homolog` protegida, review e merge do usuário na `main`. Já existia e não piora.
 
-## Achados
-- A1 (recomendado) .github/workflows/homolog-reavalia.yml:29 · o `$SHA` entra dentro do filtro `jq` por interpolação de shell; hoje é um sha hexadecimal vindo do GitHub (sem caminho de ataque), mas `--arg sha "$SHA"` com `.head.sha == $sha` elimina a classe. Baixa, esforço P, dono devops-engineer; não devolve a entrega.
-- A2 (recomendado) .github/workflows/homolog-reavalia.yml:12-15 · `actions: write` permite reexecutar qualquer workflow do repositório; é o mínimo para o rerun e o job não tem entrada não confiável nem checkout, então o risco é aceitável. Informativa, sem correção; manter o job sem checkout nem ação de terceiros nas próximas mudanças. Dono devops-engineer.
-- A3 (recomendado) .github/workflows/homolog-aprovada.yml:27 · o rerun reutiliza o payload original, e portanto a `base.sha` da primeira execução; se a `main` avançar entre a abertura do PR e o fim do portão, o check reavalia com a regra da base antiga. Só a `main` do usuário avança a base e a regra do `aprovacao.ts` muda raramente; informativa, e o "Re-run jobs imediatamente antes do merge" do fluxo (`fluxo-homologacao.md`) não cobre isso, então cabe uma linha lá ou, num PR novo, fechar e reabrir. Dono tech-lead.
-
 Nenhum achado bloqueante.
+
+## Achados
+- A1 (recomendado) .github/workflows/homolog-reavalia.yml:29 · `$SHA` entra no filtro `jq` por interpolação de shell; hoje é sha hexadecimal do GitHub (sem ataque realista); `--arg sha "$SHA"` com `.head.sha == $sha` elimina a classe. Baixa, P, devops-engineer.
+- A2 (recomendado) .github/workflows/homolog-reavalia.yml:12-15 · `actions: write` permite reexecutar qualquer workflow; é o mínimo para o rerun e o job não tem entrada não confiável nem checkout. Informativa, sem correção; manter sem checkout nem ação de terceiros. Dono devops-engineer.
+- A3 (recomendado) .github/workflows/homolog-aprovada.yml:27 · o rerun reusa o payload original e a `base.sha` da 1ª execução; se a `main` avançar antes do fim do portão, vale a regra da base antiga. Informativa; documentar em `fluxo-homologacao.md` ou fechar e reabrir o PR. Dono tech-lead.
+
+## Detalhe dos achados
+- **A1.** A interpolação do `$SHA` no filtro `jq` não tem caminho de ataque hoje, porque o valor é um sha hexadecimal vindo do GitHub. Usar `--arg sha "$SHA"` e `.head.sha == $sha` elimina a classe. Severidade baixa, esforço P, dono devops-engineer; não devolve a entrega.
+- **A2.** `actions: write` permite reexecutar qualquer workflow do repositório. É o mínimo para o rerun, e o job não tem entrada não confiável nem checkout, então o risco é aceitável. Severidade informativa, sem correção; manter o job sem checkout nem ação de terceiros nas próximas mudanças. Dono devops-engineer.
+- **A3.** O rerun reutiliza o payload original e, portanto, a `base.sha` da primeira execução. Se a `main` avançar entre a abertura do PR e o fim do portão, o check reavalia com a regra da base antiga. Só a `main` do usuário avança a base e a regra do `aprovacao.ts` muda raramente. O "Re-run jobs imediatamente antes do merge" do fluxo (`fluxo-homologacao.md`) não cobre isso: cabe uma linha lá ou, num PR novo, fechar e reabrir. Severidade informativa, dono tech-lead.
 
 ## Riscos aceitos
 Nenhum depende de aceite do usuário. A prova de que o rerun atualiza o check do PR, e a primeira release sem o `homolog-reavalia.yml` na `main` (Re-run manual), são limites funcionais já registrados no parecer de devops, não de segurança.
