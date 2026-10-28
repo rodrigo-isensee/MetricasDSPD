@@ -1,14 +1,14 @@
 import { test, expect, rodarAxe } from '../fixtures/base'
 import type { Page } from '@playwright/test'
 
-// QA metricas-complementares: seção "Mais métricas deste painel", Leia junto, catálogo (58), preferências, axe AA a 375 e 1280.
+// QA metricas-complementares: seção "Mais métricas deste painel", Leia junto, catálogo (65), preferências, axe AA a 375 e 1280.
 const CHAVE = 'metricas-dspd:preferencias:v1'
 
 // Só estes cartões têm `status` 'mock' no contrato (falta fonte real): só eles trazem o selo "Dados fictícios".
-const MOCK = new Set(['O17', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8', 'S11', 'S12'])
+const MOCK = new Set(['O17', 'O22', 'O26', 'T8', 'T13', 'T14', 'E4', 'E6', 'E8', 'S8', 'S11', 'S12'])
 
 const PAINEIS = [
-  { rota: '/operacional?cadencia=semanal', n: 7, ids: ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16'] },
+  { rota: '/operacional?cadencia=semanal', n: 14, ids: ['O5', 'O6', 'O8', 'O19', 'O22', 'O20', 'O24', 'O21', 'O25', 'O26', 'O11', 'O13', 'O14', 'O16'] },
   { rota: '/tatico', n: 7, ids: ['T6', 'T8', 'T11', 'T12', 'T10', 'T13', 'T14'] },
   { rota: '/estrategico', n: 6, ids: ['E9', 'E4', 'E5', 'E6', 'E7', 'E8'] },
   { rota: '/operacional?cadencia=sustentacao', n: 6, ids: ['O17', 'S8', 'S9', 'S10', 'S11', 'S12'] },
@@ -74,15 +74,15 @@ for (const tela of TELAS) {
       await expect(page.getByTestId('metrica-E4')).toHaveCount(0)
     })
 
-    test('COMP-03 catálogo: 58 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático), grupo Complementar tem 26, axe AA', async ({ page }) => {
+    test('COMP-03 catálogo: 65 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático + 7 do 011 operacional), grupo Complementar tem 33, axe AA', async ({ page }) => {
       await page.goto('/metricas')
       await expect(page.getByRole('heading', { level: 1, name: 'Catálogo de métricas' })).toBeVisible()
       const contagem = page.getByTestId('contagem-catalogo')
-      await expect(contagem).toHaveText('58 de 58 métricas')
+      await expect(contagem).toHaveText('65 de 65 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
-      await expect(contagem).toHaveText('26 de 58 métricas')
+      await expect(contagem).toHaveText('33 de 65 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Núcleo')
-      await expect(contagem).toHaveText('32 de 58 métricas')
+      await expect(contagem).toHaveText('32 de 65 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
       const r = await rodarAxe(page)
       expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
@@ -93,7 +93,7 @@ for (const tela of TELAS) {
       await page.goto('/preferencias')
       await expect(page.getByRole('heading', { level: 1, name: 'Preferências de métricas' })).toBeVisible()
       await expect(page.getByTestId('contador-sustentacao')).toContainText('6 de 6 complementares')
-      await expect(page.getByTestId('contador-operacional')).toContainText('7 de 7 complementares')
+      await expect(page.getByTestId('contador-operacional')).toContainText('14 de 14 complementares')
       await expect(page.getByTestId('grupo-sustentacao').getByRole('group', { name: 'Complementares' })).toBeVisible()
       const r = await rodarAxe(page)
       expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
@@ -127,12 +127,12 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(cartao.getByRole('heading', { name: 'Eficiência de fluxo' })).toBeFocused()
   })
 
-  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Fictícios" para as 58 (decisão 20)', async ({ page }) => {
+  test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Fictícios" para as 65 (decisão 20)', async ({ page }) => {
     await page.goto('/metricas')
     await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText('Fictícios')
     await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Fictícios')
     await expect(page.getByRole('row', { name: /^O3 / })).toContainText('Fictícios')
-    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(58)
+    await expect(page.getByRole('cell', { name: 'Fictícios', exact: true })).toHaveCount(65)
     await expect(page.getByRole('cell', { name: 'Da coleta', exact: true })).toHaveCount(0)
   })
 
@@ -163,7 +163,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await painel.ir('/operacional?cadencia=semanal')
     await page.getByTestId('mais-metricas').locator('summary').click()
     await page.getByTestId('metrica-O6').getByRole('button', { name: 'Ocultar esta métrica O6' }).click()
-    await expect(page.getByText(/· 6 complementares/)).toBeVisible()
+    await expect(page.getByText(/· 13 complementares/)).toBeVisible()
     await expect(page.getByTestId('leia-junto-o3').getByRole('link', { name: /O6/ })).toHaveCount(0)
   })
 
@@ -218,9 +218,9 @@ test.describe('complementares: fluxos a 1280 px', () => {
 
   test('COMP-13 "Leia junto" em todos os cartões do núcleo que têm complementares', async ({ page, painel }) => {
     const esperado: Record<string, Record<string, string[]>> = {
-      '/operacional?cadencia=semanal': { o3: ['O5', 'O6', 'O8'], o4: ['O8'], o10: ['O11'], o15: ['O13', 'O16', 'O17'] },
+      '/operacional?cadencia=semanal': { o3: ['O5', 'O6', 'O8', 'O26'], o4: ['O8', 'O25'], o9: ['O22'], o7: ['O20', 'O25'], o10: ['O11', 'O22', 'O24'], o15: ['O13', 'O16', 'O17'] },
       '/tatico': { t1: ['T6', 'T13'], t4: ['T8', 'T11'], t5: ['O14'], t9: ['T6', 'E5', 'E6', 'T14'] },
-      '/operacional?cadencia=diaria': { bloqueados: ['T10'] },
+      '/operacional?cadencia=diaria': { bloqueados: ['T10', 'O19'], o1: ['O20'] },
       '/estrategico': { e1: ['E4', 'E5', 'E9'], e2: ['E7'] },
       '/operacional?cadencia=sustentacao': { s1: ['S9', 'S10', 'PV1'], s2: ['S8', 'S12', 'PV1'], s3: ['S8', 'S12'], s5: ['S11'], s7: ['S11'] },
     }

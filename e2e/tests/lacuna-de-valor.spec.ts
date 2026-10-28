@@ -205,9 +205,9 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
     await expect(cartao.getByRole('table').first()).toBeVisible()
   })
 
-  test('LV-14 CT-26 catálogo lista PV1 com fonte "Pesquisa de percepção" e 58 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático)', async ({ page }) => {
+  test('LV-14 CT-26 catálogo lista PV1 com fonte "Pesquisa de percepção" e 65 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático + 7 do 011 operacional)', async ({ page }) => {
     await page.goto('/metricas')
-    await expect(page.getByTestId('contagem-catalogo')).toHaveText('58 de 58 métricas')
+    await expect(page.getByTestId('contagem-catalogo')).toHaveText('65 de 65 métricas')
     await expect(page.getByRole('row', { name: /^PV1 / })).toContainText('Pesquisa de percepção')
   })
 })

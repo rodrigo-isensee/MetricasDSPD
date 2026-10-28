@@ -24,7 +24,7 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     '%s: cada cartão mostra os links para os seus complementares',
     async (painel) => {
       renderizarApp(URL_DO_PAINEL[painel])
-      const doPainel = comPares.filter((c) => c.painel === painel && c.id !== 'bloqueados')
+      const doPainel = comPares.filter((c) => c.painel === painel && c.secao !== 'diaria')
       expect(doPainel.length).toBeGreaterThan(0)
       for (const c of doPainel) {
         const leia = await screen.findByTestId(`leia-junto-${c.id}`)
@@ -48,17 +48,45 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     },
   )
 
-  it('operacional, visão diária: Bloqueados agora leva ao T10 do Tático', async () => {
+  it('operacional, visão diária: Bloqueados agora leva ao T10 do Tático e ao O19; O1 leva ao O20', async () => {
     renderizarApp('/operacional?cadencia=diaria')
     const leia = await screen.findByTestId('leia-junto-bloqueados')
     expect(
       within(leia)
         .getAllByRole('link')
         .map((a) => a.textContent),
-    ).toEqual(['T10 Tempo de terceiros'])
+    ).toEqual(['T10 Tempo de terceiros', 'O19 Bloqueios por causa'])
+    const leiaO1 = await screen.findByTestId('leia-junto-o1')
+    expect(
+      within(leiaO1)
+        .getAllByRole('link')
+        .map((a) => a.textContent),
+    ).toEqual(['O20 Fluxo cumulativo'])
   })
 
-  it('os links do núcleo alcançam as 26 complementares (em cadeia)', () => {
+  it('operacional, visão diária: O19 e O20 só existem na semanal, então o link navega para lá e foca o cartão', async () => {
+    const u = userEvent.setup()
+    const r = renderizarApp('/operacional?cadencia=diaria')
+    const leia = await screen.findByTestId('leia-junto-bloqueados')
+    await u.click(within(leia).getByRole('link', { name: /O19/ }))
+    expect(r.roteador.state.location.search).toContain('cadencia=semanal')
+    expect(r.roteador.state.location.hash).toBe('#o19')
+    const cartao = await screen.findByTestId('metrica-O19')
+    expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
+    await waitFor(() => expect(within(cartao).getByRole('heading', { level: 3 })).toHaveFocus())
+  })
+
+  it('operacional, visão diária: o O1 leva ao O20 na semanal', async () => {
+    const u = userEvent.setup()
+    const r = renderizarApp('/operacional?cadencia=diaria')
+    const leia = await screen.findByTestId('leia-junto-o1')
+    await u.click(within(leia).getByRole('link', { name: /O20/ }))
+    expect(r.roteador.state.location.search).toContain('cadencia=semanal')
+    expect(r.roteador.state.location.hash).toBe('#o20')
+    expect(await screen.findByTestId('metrica-O20')).toBeInTheDocument()
+  })
+
+  it('os links do núcleo alcançam as 33 complementares (em cadeia)', () => {
     const alcancadas = new Set<string>()
     const fila = comPares.flatMap((c) => c.leiaJunto ?? [])
     for (let id = fila.pop(); id; id = fila.pop()) {
@@ -67,8 +95,9 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
       fila.push(...(cartaoPorIdGlobal(id)?.leiaJunto ?? []))
     }
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar').map((c) => c.id)
-    expect(compl).toHaveLength(26)
-    expect(compl.filter((id) => !alcancadas.has(id))).toEqual([])
+    expect(compl).toHaveLength(33)
+    // O21 não tem origem na especificação de UX (CA-15 o liga pela página Métricas).
+    expect(compl.filter((id) => !alcancadas.has(id))).toEqual(['o21'])
   })
 
   it('T5 leva ao O14 no painel Operacional: abre a seção, foca o cartão e mantém o hash na URL', async () => {

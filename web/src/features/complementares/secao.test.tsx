@@ -5,7 +5,11 @@ import { CATALOGO_CARTOES } from '@metricas-dspd/contratos'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 
 const PAINEIS = [
-  ['/operacional?cadencia=semanal', 7, ['O5', 'O6', 'O8', 'O11', 'O13', 'O14', 'O16']],
+  [
+    '/operacional?cadencia=semanal',
+    14,
+    ['O5', 'O6', 'O8', 'O19', 'O22', 'O20', 'O24', 'O21', 'O25', 'O26', 'O11', 'O13', 'O14', 'O16'],
+  ],
   ['/tatico', 7, ['T6', 'T8', 'T11', 'T12', 'T10', 'T13', 'T14']],
   ['/estrategico', 6, ['E9', 'E4', 'E5', 'E6', 'E7', 'E8']],
   ['/operacional?cadencia=sustentacao', 6, ['S9', 'S10', 'S8', 'S11', 'O17', 'S12']],
@@ -71,7 +75,7 @@ describe('Mais métricas deste painel', () => {
     )
   })
 
-  it('"Leia junto" do O3 lista O5, O6 e O8 e o caminho O3 para O5 abre o cartão', async () => {
+  it('"Leia junto" do O3 lista O5, O6, O8 e O26 e o caminho O3 para O5 abre o cartão', async () => {
     const u = userEvent.setup()
     renderizarApp('/operacional?cadencia=semanal')
     const leia = await screen.findByTestId('leia-junto-o3')
@@ -79,7 +83,12 @@ describe('Mais métricas deste painel', () => {
       within(leia)
         .getAllByRole('link')
         .map((a) => a.textContent),
-    ).toEqual(['O5 Eficiência de fluxo', 'O6 Previsibilidade', 'O8 Tamanho das demandas'])
+    ).toEqual([
+      'O5 Eficiência de fluxo',
+      'O6 Previsibilidade',
+      'O8 Tamanho das demandas',
+      'O26 Passagens de mão',
+    ])
     await u.click(within(leia).getByRole('link', { name: /O5 Eficiência de fluxo/ }))
     const cartao = await screen.findByTestId('metrica-O5')
     await waitFor(() =>
@@ -113,7 +122,7 @@ describe('Mais métricas deste painel', () => {
     renderizarApp('/operacional?cadencia=semanal')
     await u.click(await screen.findByRole('link', { name: /O6 Previsibilidade/ }))
     await u.click(await screen.findByRole('button', { name: 'Ocultar esta métrica O6' }))
-    expect(await screen.findByText(/· 6 complementares/)).toBeInTheDocument()
+    expect(await screen.findByText(/· 13 complementares/)).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /O6 Previsibilidade/ })).not.toBeInTheDocument()
   })
 

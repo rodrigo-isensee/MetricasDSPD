@@ -384,7 +384,7 @@ describe('T13 Dependências entre quadros', () => {
     expect(within(el).getByTestId('leitura-T13')).toHaveTextContent('contra 9,5 das que não')
     await userEvent.setup().click(within(el).getByRole('tab', { name: 'Defeito' }))
     expect(within(el).getByTestId('t13-par-insuficiente')).toHaveTextContent(
-      'o grupo com e sem dependência tem menos de 20 itens no tipo.',
+      'os dois grupos, com e sem dependência, têm menos de 20 itens no tipo.',
     )
   })
 

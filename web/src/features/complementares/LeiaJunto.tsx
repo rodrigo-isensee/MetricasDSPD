@@ -1,7 +1,8 @@
 import { cartaoPorIdGlobal, type CartaoCatalogo } from '@metricas-dspd/contratos'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { usePreferenciasPainel, type PreferenciasPainel } from '@/components/ui'
 import { destinoDoCartao } from '@/lib/destinoCartao'
+import { lerVisao, visaoDoHash } from '@/features/navegacao/visao'
 import { usePreferencias } from '@/features/preferencias/ProvedorPreferencias'
 
 /**
@@ -18,6 +19,7 @@ export function LeiaJunto({ id }: { id: string }) {
 function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
   const prefs = usePreferencias()
   const navegar = useNavigate()
+  const { search } = useLocation()
   const pares = (p.cartoes.find((c) => c.id === id)?.leiaJunto ?? []).flatMap((x) => {
     const c = cartaoPorIdGlobal(x)
     if (c?.grupo !== 'complementar' && c?.grupo !== 'percepcao') return []
@@ -27,7 +29,7 @@ function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
   })
   if (pares.length === 0) return null
   const ir = (c: CartaoCatalogo) => {
-    if (c.painel !== p.painel) void navegar(destinoDoCartao(c))
+    if (c.painel !== p.painel || outraVisao(c, search)) void navegar(destinoDoCartao(c))
     else if (c.grupo === 'percepcao') irParaSecaoVisivel(c.id)
     else p.irParaComplementar(c.id)
   }
@@ -70,6 +72,13 @@ function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
       </ul>
     </div>
   )
+}
+
+/** No Operacional o painel tem visões: o par que só existe em outra visão (O19 e O20 na Semanal) pede navegação. */
+function outraVisao(c: CartaoCatalogo, search: string): boolean {
+  if (c.painel !== 'operacional') return false
+  const destino = visaoDoHash(`#${c.id}`)
+  return destino !== null && destino !== lerVisao(new URLSearchParams(search)).visao
 }
 
 /** A pesquisa de percepção já está visível no fim do painel (não fica em "Mais métricas"): rola até ela e leva o foco. */

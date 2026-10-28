@@ -379,9 +379,9 @@ const ROTULO_GRAN: Record<Gran, string> = { story: 'Demandas', frente: 'Frentes'
 const SUBSTANTIVO_GRAN: Record<Gran, string> = { story: 'demandas', frente: 'frentes' }
 
 const GRUPO_ABAIXO: Record<'com' | 'sem' | 'ambos', string> = {
-  com: 'com dependência',
-  sem: 'sem dependência',
-  ambos: 'com e sem dependência',
+  com: 'o grupo com dependência tem',
+  sem: 'o grupo sem dependência tem',
+  ambos: 'os dois grupos, com e sem dependência, têm',
 }
 
 function leituraT13(d: ResultadoT13, g: Gran): string | undefined {
@@ -459,8 +459,8 @@ export function CartaoT13({ filtros }: P) {
               />
             ) : (
               <AvisoInfo testid="t13-par-insuficiente">
-                Comparação não exibida em {comp.tipo}: o grupo{' '}
-                {GRUPO_ABAIXO[comp.grupoAbaixoDoMinimo ?? 'ambos']} tem menos de 20 itens no tipo.
+                Comparação não exibida em {comp.tipo}:{' '}
+                {GRUPO_ABAIXO[comp.grupoAbaixoDoMinimo ?? 'ambos']} menos de 20 itens no tipo.
               </AvisoInfo>
             )}
           </div>

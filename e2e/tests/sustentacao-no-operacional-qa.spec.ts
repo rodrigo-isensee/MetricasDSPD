@@ -639,6 +639,8 @@ test.describe('CT-63, CT-64, CT-65 regras invioláveis na tela', () => {
         .split(/(?<=[.!?\n])/)
         .filter((f) => !/\b(n[aã]o|nunca|sem)\b/i.test(f))
         .join(' ')
+        // O26 (lote 3) conta trocas de responsável por demanda entregue: é o nome da métrica (UX 02-especificacao, ficha do O26), nunca uma pessoa
+        .replace(/trocas? de respons[aá]vel/gi, 'trocas de dono')
       expect(texto.length, `${visao}: texto lido`).toBeGreaterThan(500) // guarda contra varredura vazia
       for (const re of [...PROIBIDO_PESSOA, ...PROIBIDO_METRICA, ...COMPARACAO])
         expect(texto, `${visao} ${re}`).not.toMatch(re)

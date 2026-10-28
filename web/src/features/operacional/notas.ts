@@ -18,7 +18,7 @@ export const NOTAS_OPERACIONAL: Record<
   O2: {
     oQueE: 'A idade de cada item ainda em andamento, posicionado na etapa onde está.',
     comoSeCalcula:
-      'Dias úteis desde o início (primeira entrada em coluna de execução) até a data de corte; percentis calculados com os itens concluídos do tipo na janela de percentis.',
+      'Dias úteis desde o início (primeira entrada em coluna de execução) até a data de corte; percentis calculados com os itens concluídos do tipo na janela de percentis. O destaque "sem mover" conta itens em andamento sem mudar de coluna há mais de 5 dias úteis; o percentual só sai com 20 itens em andamento ou mais, senão "k de n".',
     comoLer:
       'Percorra da direita para a esquerda; comece pelos itens acima da linha de 85%. A pergunta é "o que precisa acontecer hoje para este item andar?".',
     meta: 'Nenhum item acima do P95 sem plano de ação.',

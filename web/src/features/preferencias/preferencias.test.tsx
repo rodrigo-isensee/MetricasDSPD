@@ -50,7 +50,7 @@ describe('perfil /preferencias', () => {
     expect(screen.getAllByRole('checkbox')).toHaveLength(CATALOGO_CARTOES.length)
     for (const c of screen.getAllByRole('checkbox')) expect(c).toBeChecked()
     expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
-      '12 de 12 do núcleo e 7 de 7 complementares visíveis',
+      '12 de 12 do núcleo e 14 de 14 complementares visíveis',
     )
     expect(screen.getByRole('button', { name: 'Restaurar padrão' })).toBeDisabled()
   })
@@ -62,7 +62,7 @@ describe('perfil /preferencias', () => {
     await u.click(within(grupo).getByRole('checkbox', { name: /O9 Os três relógios/ }))
     expect(await screen.findByText('Salvo neste navegador')).toBeInTheDocument()
     expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
-      '11 de 12 do núcleo e 7 de 7 complementares visíveis',
+      '11 de 12 do núcleo e 14 de 14 complementares visíveis',
     )
     expect(guardado().paineis.operacional?.ocultar).toEqual(['o9'])
     await u.click(within(grupo).getByRole('checkbox', { name: /O9 Os três relógios/ }))
@@ -75,7 +75,7 @@ describe('perfil /preferencias', () => {
     await screen.findByTestId('grupo-operacional')
     await u.click(screen.getByRole('button', { name: 'Aplicar sugestão do papel Gerente' }))
     expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
-      '0 de 12 do núcleo e 0 de 7 complementares visíveis',
+      '0 de 12 do núcleo e 0 de 14 complementares visíveis',
     )
     expect(screen.getByTestId('contador-tatico')).toHaveTextContent(
       '8 de 8 do núcleo e 7 de 7 complementares visíveis',
@@ -89,7 +89,7 @@ describe('perfil /preferencias', () => {
     expect(JSON.stringify(guardado())).not.toMatch(/gerente|papel/i)
     await u.click(screen.getByRole('button', { name: 'Aplicar sugestão do papel Time' }))
     expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
-      '12 de 12 do núcleo e 7 de 7 complementares visíveis',
+      '12 de 12 do núcleo e 14 de 14 complementares visíveis',
     )
     await u.click(screen.getByRole('button', { name: 'Aplicar sugestão do papel Coordenador' }))
     expect(screen.getByTestId('contador-tatico')).toHaveTextContent(
@@ -109,12 +109,12 @@ describe('perfil /preferencias', () => {
     )
     await u.click(within(dlg).getByRole('button', { name: 'Cancelar' }))
     expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
-      '11 de 12 do núcleo e 7 de 7 complementares visíveis',
+      '11 de 12 do núcleo e 14 de 14 complementares visíveis',
     )
     await u.click(screen.getByRole('button', { name: 'Restaurar padrão' }))
     await u.click(await screen.findByRole('button', { name: 'Restaurar' }))
     expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
-      '12 de 12 do núcleo e 7 de 7 complementares visíveis',
+      '12 de 12 do núcleo e 14 de 14 complementares visíveis',
     )
     expect(guardado().paineis).toEqual({})
   })
@@ -209,24 +209,24 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     const u = userEvent.setup()
     renderizarApp('/operacional?cadencia=diaria')
     const botao = await screen.findByRole('button', {
-      name: 'Métricas: 12 de 12 (+7 complementares)',
+      name: 'Métricas: 12 de 12 (+14 complementares)',
     })
     expect(screen.queryByTestId('faixa-ocultas')).not.toBeInTheDocument()
     await u.click(botao)
     const dlg = await screen.findByRole('dialog', { name: 'Métricas desta visão' })
-    expect(within(dlg).getAllByRole('checkbox')).toHaveLength(19)
+    expect(within(dlg).getAllByRole('checkbox')).toHaveLength(26)
     await u.click(within(dlg).getByRole('checkbox', { name: /O3 Tempo de ciclo/ }))
     expect(screen.getByTestId('botao-metricas')).toHaveTextContent(
-      'Métricas: 11 de 12 (+7 complementares)',
+      'Métricas: 11 de 12 (+14 complementares)',
     )
     await u.click(within(dlg).getByRole('checkbox', { name: /O3 Tempo de ciclo/ }))
     expect(screen.getByTestId('botao-metricas')).toHaveTextContent(
-      'Métricas: 12 de 12 (+7 complementares)',
+      'Métricas: 12 de 12 (+14 complementares)',
     )
     await u.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(
-      screen.getByRole('button', { name: 'Métricas: 12 de 12 (+7 complementares)' }),
+      screen.getByRole('button', { name: 'Métricas: 12 de 12 (+14 complementares)' }),
     ).toHaveFocus()
   })
 
@@ -234,7 +234,7 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     const u = userEvent.setup()
     renderizarApp('/operacional?cadencia=diaria')
     await u.click(
-      await screen.findByRole('button', { name: 'Métricas: 12 de 12 (+7 complementares)' }),
+      await screen.findByRole('button', { name: 'Métricas: 12 de 12 (+14 complementares)' }),
     )
     await u.click(await screen.findByRole('checkbox', { name: /O3 Tempo de ciclo/ }))
     expect(window.localStorage.getItem(CHAVE_PREFERENCIAS)).toBeNull()
@@ -245,16 +245,16 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     guardar({ operacional: ['o9'] })
     renderizarApp('/operacional?cadencia=diaria')
     await u.click(
-      await screen.findByRole('button', { name: 'Métricas: 11 de 12 (+7 complementares)' }),
+      await screen.findByRole('button', { name: 'Métricas: 11 de 12 (+14 complementares)' }),
     )
     const dlg = await screen.findByRole('dialog')
     await u.click(within(dlg).getByRole('button', { name: 'Mostrar todas' }))
     expect(screen.getByTestId('botao-metricas')).toHaveTextContent(
-      'Métricas: 12 de 12 (+7 complementares)',
+      'Métricas: 12 de 12 (+14 complementares)',
     )
     await u.click(within(dlg).getByRole('button', { name: 'Usar minhas preferências' }))
     expect(screen.getByTestId('botao-metricas')).toHaveTextContent(
-      'Métricas: 11 de 12 (+7 complementares)',
+      'Métricas: 11 de 12 (+14 complementares)',
     )
     await u.click(within(dlg).getByRole('button', { name: 'Fechar' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
@@ -271,7 +271,7 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     )
     expect(screen.getByTestId('faixa-ocultas')).toHaveTextContent('1 métrica oculta: O3')
     expect(
-      screen.getByRole('button', { name: 'Métricas: 11 de 12 (+7 complementares)' }),
+      screen.getByRole('button', { name: 'Métricas: 11 de 12 (+14 complementares)' }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { level: 3, name: /Os três relógios do pedido/ }),
@@ -326,7 +326,7 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     await u.click(within(faixa).getByRole('button', { name: 'Mostrar todas' }))
     expect(screen.queryByTestId('faixa-ocultas')).not.toBeInTheDocument()
     expect(await screen.findByTestId('metrica-O9')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Métricas: 12 de 12 (+7 complementares)' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Métricas: 12 de 12 (+14 complementares)' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Usar minhas preferências' }))
     expect(await screen.findByTestId('faixa-ocultas')).toHaveTextContent('2 métricas ocultas')
     expect(screen.queryByTestId('metrica-O9')).not.toBeInTheDocument()
