@@ -225,6 +225,9 @@ export default function VisaoGeralPage() {
         }
         publico="Consolidado de todas as equipes (o sistema não compara equipes), sem filtros nesta tela."
       />
+      <p className="text-sm text-texto-2" data-testid="recorte-resumo">
+        Recorte fixo das últimas 12 semanas, sem filtros; esta tela mostra todas as métricas.
+      </p>
       <details className="text-sm" data-testid="sobre-esta-tela">
         <summary className="alvo cursor-pointer text-texto-2">Sobre esta tela</summary>
         <div className="mt-1 flex flex-col gap-2 rounded-md border border-borda bg-superficie p-3">

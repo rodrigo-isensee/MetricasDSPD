@@ -23,6 +23,7 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
   const prefs = usePreferenciasPainel()
   const [atual, setAtual] = useState<string | null>(null)
   const [topo, setTopo] = useState(0)
+  const [fixo, setFixo] = useState(false)
   const visiveis = secoes.filter(([id, , ids]) => {
     if (!prefs) return true
     if (id === SECAO_MAIS_METRICAS[0])
@@ -33,8 +34,11 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
   useEffect(() => {
     // Abaixo do cabeçalho fixo (só fixo em telas médias para cima).
     const cab = document.querySelector('header')
-    const medir = () =>
-      setTopo(cab && getComputedStyle(cab).position === 'sticky' ? cab.offsetHeight : 0)
+    const medir = () => {
+      const sticky = !!cab && getComputedStyle(cab).position === 'sticky'
+      setFixo(sticky)
+      setTopo(sticky ? cab.offsetHeight : 0)
+    }
     medir()
     window.addEventListener('resize', medir)
     return () => window.removeEventListener('resize', medir)
@@ -63,7 +67,8 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
     <nav
       aria-label="Ir para"
       data-testid="indice-secoes"
-      style={{ top: topo }}
+      // A BarraFiltros também é sticky logo abaixo do cabeçalho: o índice fica abaixo dela, não sobre ela.
+      style={{ top: fixo ? `calc(${topo}px + var(--h-filtros))` : 0 }}
       className="sticky z-30 -mx-1 flex items-center gap-2 overflow-x-auto border-b border-borda bg-fundo px-1 py-1 text-sm"
     >
       <span className="shrink-0 text-texto-2">Ir para:</span>

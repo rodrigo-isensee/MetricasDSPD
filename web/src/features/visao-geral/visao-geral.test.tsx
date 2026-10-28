@@ -92,6 +92,9 @@ describe('tela Visão geral', () => {
     expect(det.open).toBe(false)
     expect(within(det).getByTestId('preferencias-valem')).toBeInTheDocument()
     await screen.findByTestId('recorte-visao-geral')
+    // Uma linha curta fica à vista, fora do recolhido: o recorte muda a leitura.
+    expect(screen.getByTestId('recorte-resumo')).toBeVisible()
+    expect(det).not.toContainElement(screen.getByTestId('recorte-resumo'))
     expect(det).toContainElement(screen.getByTestId('recorte-visao-geral'))
   })
 

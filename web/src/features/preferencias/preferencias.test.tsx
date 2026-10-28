@@ -116,6 +116,22 @@ describe('perfil /preferencias', () => {
     )
   })
 
+  it('restaurar de novo, sem nada oculto, mantém o Desfazer pendente', async () => {
+    const u = userEvent.setup()
+    guardar({ operacional: ['o9'], tatico: ['t5'] })
+    renderizarApp('/preferencias')
+    await screen.findByTestId('grupo-operacional')
+    await u.click(screen.getByRole('button', { name: 'Restaurar padrão' }))
+    await u.click(await screen.findByRole('button', { name: 'Restaurar' }))
+    await screen.findByRole('button', { name: 'Desfazer' })
+    await u.click(screen.getByRole('button', { name: 'Restaurar padrão' }))
+    const confirmar = screen.queryByRole('button', { name: 'Restaurar' })
+    if (confirmar) await u.click(confirmar)
+    await u.click(await screen.findByRole('button', { name: 'Desfazer' }))
+    expect(guardado().paineis.operacional?.ocultar).toEqual(['o9'])
+    expect(guardado().paineis.tatico?.ocultar).toEqual(['t5'])
+  })
+
   it('com uma só métrica oculta, a confirmação fala no singular', async () => {
     const u = userEvent.setup()
     guardar({ operacional: ['o9'] })

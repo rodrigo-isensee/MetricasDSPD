@@ -275,7 +275,7 @@ describe('índice fixo', () => {
     act(() => {
       window.dispatchEvent(new Event('resize'))
     })
-    expect(screen.getByTestId('indice-secoes').style.top).toBe('48px')
+    expect(screen.getByTestId('indice-secoes').style.top).toBe('calc(48px + var(--h-filtros))')
     const alvo = document.getElementById('a') as HTMLElement
     act(() =>
       chamada(

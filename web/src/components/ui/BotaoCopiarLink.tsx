@@ -35,16 +35,17 @@ export function BotaoCopiarLink() {
   }
 
   return (
-    <>
+    <span className="relative inline-flex items-center gap-2">
       <Botao onClick={() => void copiar()} data-testid="copiar-link" className="text-xs">
         <Icone nome="link" /> Copiar link
         <span className="sr-only sm:not-sr-only"> desta visão</span>
       </Botao>
-      <span role="status" className={aviso ? 'text-sm text-ok' : 'sr-only'}>
+      {/* Espaço reservado: o aviso aparece e some sem refluir a barra (CLS, ADR 0003 F2). */}
+      <span role="status" className={`inline-block min-w-[7rem] text-sm ${aviso ? 'text-ok' : ''}`}>
         {aviso}
       </span>
       {manual && (
-        <label className="flex basis-full flex-col gap-1 text-sm">
+        <label className="absolute right-0 top-full z-40 mt-1 flex w-80 max-w-[90vw] flex-col gap-1 rounded-md border border-borda bg-superficie p-2 text-sm shadow-md">
           Copie o endereço desta visão:
           <input
             ref={campo}
@@ -54,6 +55,6 @@ export function BotaoCopiarLink() {
           />
         </label>
       )}
-    </>
+    </span>
   )
 }

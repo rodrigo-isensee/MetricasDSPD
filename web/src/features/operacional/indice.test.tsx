@@ -38,4 +38,16 @@ describe('IndiceDeSecoes fixo', () => {
     await userEvent.click(screen.getByRole('link', { name: 'Prazos' }))
     expect(screen.getByRole('heading', { name: 'Prazos' })).toHaveFocus()
   })
+
+  it('fica abaixo da barra de filtros: o top soma --h-filtros ao cabeçalho fixo', () => {
+    const cab = document.createElement('header')
+    cab.style.position = 'sticky'
+    document.body.appendChild(cab)
+    try {
+      render(<IndiceDeSecoes secoes={[['prazos', 'Prazos', ['s2']]]} />)
+      expect(screen.getByTestId('indice-secoes').getAttribute('style')).toContain('--h-filtros')
+    } finally {
+      cab.remove()
+    }
+  })
 })

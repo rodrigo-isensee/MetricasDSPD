@@ -153,6 +153,12 @@ describe('CabecalhoPainel', () => {
     }
   })
 
+  it('reserva o espaço do aviso "Link copiado." mesmo vazio, para não refluir a barra', () => {
+    render(<CabecalhoPainel {...props} />)
+    expect(screen.getByRole('status').className).toContain('min-w-')
+    expect(screen.getByRole('status').className).not.toContain('sr-only')
+  })
+
   it('se a Clipboard API falhar, mostra o endereço selecionado num campo; copiar de novo limpa o campo', async () => {
     const escrever = vi.fn().mockRejectedValueOnce(new Error('negado')).mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
@@ -164,6 +170,8 @@ describe('CabecalhoPainel', () => {
     const campo = await screen.findByLabelText<HTMLInputElement>('Copie o endereço desta visão:')
     expect(campo).toHaveAttribute('readonly')
     await waitFor(() => expect(campo.selectionEnd).toBeGreaterThan(0))
+    // Sobreposto: não entra no fluxo da barra nem a faz refluir.
+    expect(campo.closest('label')?.className).toContain('absolute')
     await userEvent.click(screen.getByTestId('copiar-link'))
     await waitFor(() => expect(screen.queryByLabelText('Copie o endereço desta visão:')).toBeNull())
   })

@@ -147,9 +147,11 @@ export function ProvedorPreferencias({
           (soma, p) => soma + ocultosValidos(p, paineis[p]?.ocultar).length,
           0,
         )
-        // Sem nada oculto não há o que desfazer.
-        setAntes(n > 0 ? paineis : null)
-        setRestauradas(n)
+        // Sem nada oculto não há o que desfazer; o Desfazer já pendente (de uma restauração anterior) fica como está.
+        if (n > 0) {
+          setAntes(paineis)
+          setRestauradas(n)
+        }
         gravar({})
         setVisita({})
         setAbertas(Object.fromEntries(PAINEIS_COM_CARTOES.map((p) => [p, true])))
