@@ -436,3 +436,10 @@
 | 2026-10-28 11:42 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-13 | entrega | 1 | não cumpriu | n | só falta Desde; a última conferida (fd66d8f) é de branch mesclada por squash, fora do intervalo | forma | jarvis |
 | 2026-10-28 11:44 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-tech-lead-2 | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-28 11:45 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-14 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 11:47 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-tech-lead-2 | entrega | 1 | não cumpriu | n | escopo da branch inteira (E1.1 sem linha conferida); commit 8cdb5ab só com os dois pareceres | base | jarvis |
+| 2026-10-28 11:47 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 11:49 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-15 | brief | 1 | reprovado | s | dispensa do pronto sem decisão técnica registrada; falta linha NÃO tocar | decisao | jarvis |
+| 2026-10-28 11:51 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-15 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 11:56 | 026-front-do-011-lote3 | 026-front-do-011-lote3-ux-designer-4 | brief | 1 | reprovado | s | A2 deixava aberto não aplicar a decisão R8; caminho do o26.ts errado | decisao | jarvis |
+| 2026-10-28 11:58 | 026-front-do-011-lote3 | 026-front-do-011-lote3-ux-designer-4 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 12:02 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-16.md | brief | 1 | aprovado | s |  | — | jarvis |
