@@ -11,6 +11,7 @@
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-176 | [teste] Trava de suíte única grava cada espera (quem segurava, quanto esperou) para medir o efeito | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:59 | MELHORIA 2 da retro do 045 (docs/retrospectivas/2026-10-28-045-suite-unica.md); só acrescenta registro; depende do K-175 (mesmo script) e o WIP de Pronto para fazer está cheio |
+| K-177 | [ux] Achados médios e baixos da revisão de UX da T14 (M-1 ficha e CA-27/30/45 desatualizados; M-2 leituraT14 cita total sem excluir ocultos; M-3 notas.ts:305 "ordenados pelo total"; B-1 linha oculta sem explicação ao leitor de tela; B-2 teste "todos ocultos"; B-3 axe com oculto) | 048 | forge:react-frontend | 2026-10-28 | 2026-10-28 18:09 | docs/ux/revisao-048-t14.md (aprovada com ressalvas); depende do merge da docs/048-t14-desenho; ficha e CA são do ux-designer |
 | K-165 | [forge] Rodada longa de suíte (mais de 10 min) grava o JSON da E2E de forma incremental, fora de /tmp (skill qa-testing) | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 041 (JSON perdido nas quedas do WSL); vai ao Forge, só propor |
 | K-166 | [forge] Uma etapa numerada por delegação no gabarito do pedido e no `brief gerar` | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 041 (14 de 73 rodadas de brief reprovadas por escopo ou etapa); vai ao Forge, só propor |
 | K-167 | [forge] Opção de decisão sobre ato reservado ao dono põe o dono como quem aplica; leitura da proteção inclui o ruleset | 042 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 042 (5 perguntas para o K-148, 4 reprovações); vai ao Forge, só propor |
@@ -89,7 +90,6 @@
 |---|---|---|---|---|---|---|
 | K-130 | [025 segurança] API da T14 envia total, semTime, meuTime.n e agregado do projeto oculto (n − k pela aba de rede): M-1/M-1a antes de dado real | 025 | forge:node-backend | 2026-10-21 | 2026-10-28 17:45 | 048: QA E5.2 na worktree 048a (docs/048-t14-desenho) |
 | K-112 | Cadastro de membros por time (Q-T14-10 = B): ADR 0020 e plano §9.5 | 011 | forge:software-architect | 2026-10-17 | 2026-10-28 17:45 | 048: QA E5.2 na worktree 048a (docs/048-t14-desenho) |
-| K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-28 17:43 | 048: review aprovado (c984b0f); QA E5.2 na worktree 048b |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -155,6 +155,7 @@
 | K-141 | Ambiente da máquina nova: Docker, `.env`, Node 24, Chromium, doutor; depois pnpm install e banco | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono (E2.1); depois tech-lead (E2.2) e devops (E2.3) |
 | K-152 | [forge] F21: worktree nova sem dependências não quebra o pre-push | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 20:18 | Aguardando o dono: aplicar docs/analises/043-f21-pre-push.patch no clone (docs/analises/043-f21-instrucoes-ao-dono.md); resto do F21 pronto sem commit |
 | K-153 | [forge] F22: PR de release não nasce antes do portão; homolog-aprovada sem corrida | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 22:11 | Aguardando o dono: review, segurança e QA aprovados (0b59505 empurrado), mas o `forge-check pr` não lê o clone do Forge e barra o PR (043, 22:10); decisão de como passar o portão |
+| K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-28 19:18 | Aguardando o dono: pergunta 048-03 (barra de filtros deixa de ser fixa a partir de 768 px; parecer UX 05-parecer-048-03.md). Volta 1 do QA em ba9c002 (048-01, 048-02, A4); re-review e reteste esperam a resposta |
 
 ## Políticas locais (acrescentadas na auditoria K-021)
 - **Entrada é o backlog:** cartão com dependência aberta de outro cartão fica em Entrada; só entra em "Pronto para fazer" o que pode ser puxado agora (a espera por ata de reunião em andamento é a única exceção, e deve constar em Obs.).

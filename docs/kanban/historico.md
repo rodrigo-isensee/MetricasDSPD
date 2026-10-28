@@ -514,3 +514,6 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-28T17:59:08-03:00 | K-175 | Entrada | Pronto para fazer | MELHORIA da retro do 045, entrada direta |
 | 2026-10-28T17:59:08-03:00 | K-176 | Entrada | Pronto para fazer | MELHORIA da retro do 045, entrada direta |
 | 2026-10-28T17:59:36-03:00 | K-176 | Pronto para fazer | Entrada | depende do K-175 (mesmo script); WIP 5 de Pronto para fazer cheio |
+| 2026-10-28T18:09:01-03:00 | K-177 | nenhuma | Entrada | achados médios e baixos da revisão de UX da T14 (048) |
+| 2026-10-28T19:18:51-03:00 | K-074 | Em andamento | Aguardando o dono | pergunta 048-03: barra de filtros fixa a partir de 768 px |
+| 2026-10-28T19:19:03-03:00 | K-074 | QA | Bloqueado | correção da linha anterior: o cartão estava na coluna QA; aguardando o dono (048-03) |

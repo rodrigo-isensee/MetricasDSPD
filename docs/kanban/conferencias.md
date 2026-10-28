@@ -566,3 +566,12 @@
 | 2026-10-28 18:02 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-8 | brief | 1 | aprovado | s |  | — | conferente |
 | 2026-10-28 18:05 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-16 | brief | 1 | aprovado | s |  | — | conferente |
 | 2026-10-28 18:06 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-8 | entrega | 1 | não cumpriu | s | PQ-1 a PQ-4 cumpriram; falta aprovação do software-architect da mudança incompatível (politica-de-mudanca.md §5), não roteada no brief | etapa | jarvis |
+| 2026-10-28 18:09 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-software-architect-3 | brief | 1 | reprovado | n | sem outra equipe nem número de pessoas lido como contra Q-T14-6 = A; texto do desenho 048-t14-mock.md:46 citado sem contexto | citacao | jarvis |
+| 2026-10-28 18:11 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-software-architect-3 | brief | 2 | aprovado | s |  | — | conferente |
+| 2026-10-28 18:14 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-9 | brief | 1 | aprovado | s |  | — | conferente |
+| 2026-10-28 18:46 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-2.md | entrega | 1 | não cumpriu | parcial | Desde de outra branch (limitação conhecida); 5 specs E2E antigos ajustados fora do Entregar; review desatualizado por spec do QA; parecer com commit do código testado | escopo | conferente |
+| 2026-10-28 18:48 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-10.md | brief | 1 | reprovado | s | A4 do QA marcado entra sem decisão no Histórico; DECISÃO TÉCNICA citada às 18:41 está às 18:46 | decisao | conferente |
+| 2026-10-28 18:50 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-10.md | brief | 2 | reprovado | s | tardio: E2E do pacote e2e pedida ao dev contradiz a decisão do dono de 2026-10-21 (só testes do pacote alterado) | decisao | conferente |
+| 2026-10-28 18:53 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-10.md | brief | 3 | aprovado | s |  | — | conferente |
+| 2026-10-28 19:15 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-10 | entrega | 1 | não cumpriu | parcial | PQ ok; scroll-padding de tokens.css sem teste de unidade; --desde de outra branch | prova | destino |
+| 2026-10-28 19:17 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-ux-designer-3 | brief | 1 | aprovado | s |  | — | jarvis |
