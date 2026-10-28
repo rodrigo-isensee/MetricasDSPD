@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 026-front-do-011-lote3
 branch: docs/026-textos-lote3
-commit: 081d2f1f7850959f993e814d67491cf8ec9f87c0
+commit: c9f71f7e8deff2364b20fb89452b93c31c3463b2
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -15,6 +15,8 @@ data: 2026-10-28
 # QA: textos da especificação do lote 3, segunda versão (E1.8, K-154)
 
 Escopo: `git diff d7c74b46..081d2f1f` (só `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` e o parecer de review). Documentação; sem código de produção, sem gatilho de segurança, sem pessoa envolvida. Os textos foram conferidos contra a tela (`web/`), o código do cálculo e os contratos. Vermelho antes do verde e mutação não se aplicam (nenhum teste novo, nenhum código no diff).
+
+Revalidação (E3.5, K-162): o parecer original foi dado sobre 081d2f1f; o head agora é c9f71f7e, porque o `CLAUDE.md` mudou depois dele. O diff do `CLAUDE.md` é uma só linha (passo 4: "enviada" = pull request para a `develop`; push da feature branch liberado antes do parecer) e não toca os textos, a tela nem os contratos que este parecer conferiu; a especificação do lote 3 não consta no diff 081d2f1f..c9f71f7e. Veredito mantido: aprovado.
 
 ## Critério → conferência → resultado
 
@@ -34,7 +36,7 @@ Escopo: `git diff d7c74b46..081d2f1f` (só `docs/ux/metricas-tambem-disponiveis/
 - Working tree limpa antes do parecer; head testado a4c04f70 (conteúdo da especificação idêntico ao de 081d2f1; o review só acrescentou o próprio parecer).
 
 ## Achados
-- A1 (recomendado) docs/contratos/metricas/O26.md:38 · A ficha diz "20 itens por classe" sem separar as duas bases (percentual sobre o total do tipo com dado; P85 sobre a faixa na janela). A decisão do dono (A10 = A) manteve o contrato sem campo novo, então não bloqueia. Destino: software-architect, se quiser a nota de texto na próxima revisão do contrato.
+- A1 (recomendado) docs/contratos/metricas/O26.md:38 · A ficha diz "20 itens por classe" sem separar as bases (percentual sobre o total do tipo; P85 sobre a faixa na janela). A decisão A10 = A manteve o contrato sem campo novo, então não bloqueia. Destino: software-architect, na próxima revisão.
 - A2 (recomendado) docs/contratos/metricas/O21.md:40 · A ficha não registra a R8 (a "volta mais comum" ignora a reabertura). Só texto; o schema já traz `reaberto`. Destino: software-architect, mesma ocasião.
 - A3 (recomendado) docs/ux/metricas-tambem-disponiveis/02-especificacao.md:161 · Cita `o26.ts:74` e `:75` com número de linha, que envelhece (hoje bate). Destino: ux-designer, ao tocar o texto de novo; não devolve sozinho.
 
