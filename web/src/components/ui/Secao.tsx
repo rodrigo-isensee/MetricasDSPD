@@ -5,11 +5,14 @@ export function Secao({
   titulo,
   pergunta,
   id,
+  contagem,
   children,
 }: {
   titulo: string
   pergunta?: string
   id?: string
+  /** "2 de 3 visíveis": só quando alguma métrica da seção está oculta (P1). */
+  contagem?: string
   children: ReactNode
 }) {
   return (
@@ -27,6 +30,11 @@ export function Secao({
         >
           {titulo}
         </h2>
+        {contagem && (
+          <p className="text-sm text-texto-2" data-testid={id ? `contagem-${id}` : undefined}>
+            {contagem}
+          </p>
+        )}
         {pergunta && <p className="text-sm text-texto-2">{pergunta}</p>}
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">{children}</div>

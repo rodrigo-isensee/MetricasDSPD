@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
 import type { CartaoCatalogo, CartaoId, PainelComCartoes } from '@metricas-dspd/contratos'
 
 export interface PreferenciasPainel {
@@ -17,6 +17,17 @@ export interface PreferenciasPainel {
   alvoComplementar: string | null
   irParaComplementar: (id: CartaoId) => void
   alvoAtendido: () => void
+  /** Marcadores de métrica oculta no lugar do cartão (U2); a pessoa pode desligar em Preferências. */
+  marcadores: boolean
+  /** A métrica está oculta no padrão guardado (e não só nesta visita). */
+  ocultaNoPadrao: (id: CartaoId) => boolean
+  /** Cartão oculto a que a pessoa chegou por link: o marcador explica e o foco vai ao "Mostrar". */
+  chegada: CartaoId | null
+  /** Marcador a desenhar no lugar do cartão oculto (`null` com os marcadores desligados). */
+  marcador: (id: CartaoId, className?: string) => ReactNode
+  /** Ids com marcador na tela: o aviso de mudança de critério deles vai dentro do marcador, não no topo. */
+  comMarcador: ReadonlySet<CartaoId>
+  registrarMarcador: (ids: readonly CartaoId[]) => () => void
   /** O painel inteiro está oculto (CA-12). */
   tudoOculto: boolean
   estaOculto: (id: CartaoId) => boolean

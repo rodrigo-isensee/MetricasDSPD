@@ -311,8 +311,13 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   )
 }
 
-/** Métrica oculta pela pessoa não é desenhada (a consulta e os alertas seguem); fora de painel com preferências, sempre. */
+/**
+ * Métrica oculta pela pessoa não é desenhada (a consulta e os alertas seguem): no lugar dela fica o marcador, com o
+ * "Mostrar" (U2); com os marcadores desligados nada fica. Fora de painel com preferências, sempre visível.
+ */
 export function CartaoMetrica(p: CartaoMetricaProps) {
-  const oculto = !useCartaoVisivel(p.codigo.toLowerCase())
-  return oculto ? null : <CartaoMetricaVisivel {...p} />
+  const id = p.codigo.toLowerCase()
+  const prefs = usePreferenciasPainel()
+  if (useCartaoVisivel(id)) return <CartaoMetricaVisivel {...p} />
+  return <>{prefs?.marcador(id, p.className) ?? null}</>
 }

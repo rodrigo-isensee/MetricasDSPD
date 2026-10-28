@@ -6,6 +6,7 @@ import { usePreferenciasPainel } from '@/components/ui'
 export function FaixaOcultas() {
   const p = usePreferenciasPainel()
   if (!p || p.ocultos.size === 0) return null
+  const c = p.chegada ? p.cartoes.find((x) => x.id === p.chegada) : undefined
   const ids = p.cartoes.filter((c) => p.ocultos.has(c.id)).map((c) => c.codigo)
   return (
     <>
@@ -21,6 +22,13 @@ export function FaixaOcultas() {
         <Botao onClick={p.mostrarTodas}>Mostrar todas</Botao>
         <Botao onClick={p.usarMinhas}>Usar minhas preferências</Botao>
       </div>
+      {/* Chegou por link a uma oculta sem marcador na tela: explica e deixa a um clique (não falha em silêncio). */}
+      {c && !p.comMarcador.has(c.id) && (
+        <p className="flex flex-wrap items-center gap-2 text-sm" data-testid="chegada-sem-marcador">
+          Você chegou a uma métrica oculta: {c.rotulo} ({c.codigo}).
+          <Botao onClick={() => p.mostrar(c.id)}>Mostrar {c.codigo}</Botao>
+        </p>
+      )}
       <AvisosCriterioOcultas p={p} />
     </>
   )

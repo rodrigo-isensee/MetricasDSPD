@@ -6,14 +6,20 @@ import {
   type PainelComCartoes,
 } from '@metricas-dspd/contratos'
 import { useLocation } from 'react-router'
-import { Botao, ContextoPreferenciasPainel as Ctx, type PreferenciasPainel } from '@/components/ui'
+import { ContextoPreferenciasPainel as Ctx, type PreferenciasPainel } from '@/components/ui'
+import { MarcadorOculto } from './MarcadorOculto'
 import { usePreferencias } from './ProvedorPreferencias'
 
-type Foco = { tipo: 'indice'; i: number } | { tipo: 'id'; id: string }
+type Foco = { tipo: 'indice'; i: number } | { tipo: 'id'; id: string } | { tipo: 'metricas' }
 
 const TITULOS = 'main [data-cartao-titulo]'
 
 function focar(f: Foco) {
+  if (f.tipo === 'metricas') {
+    // Sem marcador no lugar do cartão, o controle estável mais próximo é o botão que abre as preferências do painel.
+    document.querySelector<HTMLElement>('[data-testid="botao-metricas"]')?.focus()
+    return
+  }
   if (f.tipo === 'id') {
     document.querySelector<HTMLElement>(`[id="${f.id}"] [data-cartao-titulo]`)?.focus()
     return
@@ -24,15 +30,8 @@ function focar(f: Foco) {
   alvo?.focus()
 }
 
-const MS_AVISO = 10_000
-
-interface Aviso {
-  id: CartaoId
-  texto: string
-}
-
 /**
- * Preferências de UM painel: recorte efetivo da visita, ocultar/mostrar com Desfazer, anúncio em
+ * Preferências de UM painel: recorte efetivo da visita, ocultar/mostrar no lugar (o marcador é o desfazer, sem prazo), anúncio em
  * `aria-live` e gestão de foco. O recorte vale só na renderização (a faixa "Pede atenção", os
  * avisos e o payload nunca dependem dele).
  */
@@ -47,9 +46,9 @@ export function ProvedorPainelPreferencias({
   const cartoes = useMemo(() => cartoesDoPainel(painel), [painel])
   const lista = prefs.ocultosNaVisita(painel)
   const ocultos = useMemo(() => new Set(lista), [lista])
-  const [aviso, setAviso] = useState<Aviso | null>(null)
   const [anuncio, setAnuncio] = useState('')
   const [alvo, setAlvo] = useState<string | null>(null)
+  const [comMarcador, setComMarcador] = useState<ReadonlySet<CartaoId>>(new Set())
   const { hash } = useLocation()
   const foco = useRef<Foco | null>(null)
   const { definirNaVisita, definirSecaoAberta, definirSalvos } = prefs
@@ -60,12 +59,6 @@ export function ProvedorPainelPreferencias({
     foco.current = null
     focar(f)
   }, [ocultos])
-
-  useEffect(() => {
-    if (!aviso) return undefined
-    const t = setTimeout(() => setAviso(null), MS_AVISO)
-    return () => clearTimeout(t)
-  }, [aviso])
 
   const definir = useCallback(
     (prox: readonly CartaoId[]) => definirNaVisita(painel, prox),
@@ -82,14 +75,22 @@ export function ProvedorPainelPreferencias({
     [definirSalvos, definirNaVisita, painel],
   )
 
+  const registrarMarcador = useCallback((ids: readonly CartaoId[]) => {
+    setComMarcador((a) => (ids.every((x) => a.has(x)) ? a : new Set([...a, ...ids])))
+    return () =>
+      setComMarcador((a) =>
+        ids.some((x) => a.has(x)) ? new Set([...a].filter((x) => !ids.includes(x))) : a,
+      )
+  }, [])
+
   const irParaComplementar = useCallback(
     (id: CartaoId) => {
-      // Se a pessoa ocultou o cartão, pedir para ir até ele o mostra (e lembra).
-      if (ocultos.has(id)) lembrar(lista.filter((x) => x !== id))
+      // Complementar oculto não tem marcador: ir até ele o mostra só nesta visita, sem mexer no que a pessoa guardou.
+      if (ocultos.has(id)) definir(lista.filter((x) => x !== id))
       definirSecaoAberta(painel, true)
       setAlvo(id)
     },
-    [ocultos, lista, lembrar, definirSecaoAberta, painel],
+    [ocultos, lista, definir, definirSecaoAberta, painel],
   )
 
   // Link direto (`/operacional#o5`, vindo do catálogo): abre a seção e leva ao cartão. O hash de uma seção de
@@ -112,6 +113,13 @@ export function ProvedorPainelPreferencias({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hash, painel])
 
+  // Link para um cartão oculto: cai no marcador e explica, sem mostrar sozinho (respeita a escolha).
+  const idDoLink = hash.slice(1).toLowerCase()
+  const chegadaPorLink =
+    ocultos.has(idDoLink) && cartaoPorId(painel, idDoLink)?.grupo !== 'complementar'
+      ? idDoLink
+      : null
+
   const valor = useMemo<PreferenciasPainel>(() => {
     const nucleo = cartoes.filter((c) => c.grupo === 'nucleo')
     const compl = cartoes.filter((c) => c.grupo === 'complementar')
@@ -121,21 +129,28 @@ export function ProvedorPainelPreferencias({
       if (!c || ocultos.has(id)) return
       const titulos = [...document.querySelectorAll<HTMLElement>(TITULOS)]
       const meu = document.querySelector<HTMLElement>(`[id="${id}"] [data-cartao-titulo]`)
-      foco.current = { tipo: 'indice', i: Math.max(0, meu ? titulos.indexOf(meu) : 0) }
+      foco.current = prefs.marcadores
+        ? { tipo: 'indice', i: Math.max(0, meu ? titulos.indexOf(meu) : 0) }
+        : { tipo: 'metricas' }
       // O contador é do grupo do cartão: núcleo e complementares nunca se somam.
       // A pesquisa de percepção é um cartão à parte: não entra em nenhum dos dois contadores.
       const doGrupo = c.grupo === 'nucleo' ? nucleo : compl
       const restantes = doGrupo.filter((n) => !ocultos.has(n.id) && n.id !== id).length
       const qual = c.grupo === 'nucleo' ? 'métricas' : 'complementares'
-      const resumo =
+      const nome = `${c.rotulo} (${c.codigo})`
+      setAnuncio(
         c.grupo === 'percepcao'
-          ? `${c.codigo} oculta.`
-          : `${c.codigo} oculta. ${restantes} de ${doGrupo.length} ${qual} visíveis.`
-      setAnuncio(`${resumo} Desfazer`)
-      setAviso({ id, texto: resumo })
+          ? `${nome} oculta.`
+          : `${nome} oculta. ${restantes} de ${doGrupo.length} ${qual} visíveis.`,
+      )
       lembrar([...ocultos, id])
     }
-    const mostrar = (id: CartaoId) => lembrar(lista.filter((x) => x !== id))
+    const mostrar = (id: CartaoId) => {
+      const c = cartaoPorId(painel, id)
+      foco.current = { tipo: 'id', id }
+      if (c) setAnuncio(`${c.rotulo} (${c.codigo}) visível de novo.`)
+      lembrar(lista.filter((x) => x !== id))
+    }
     return {
       painel,
       cartoes,
@@ -145,6 +160,13 @@ export function ProvedorPainelPreferencias({
       complementaresVisiveis: compl.filter((c) => !ocultos.has(c.id)).length,
       complementaresTotal: compl.length,
       tudoOculto: ocultos.size === cartoes.length,
+      marcadores: prefs.marcadores,
+      ocultaNoPadrao: (id) => prefs.ocultosSalvos(painel).includes(id),
+      chegada: chegadaPorLink,
+      marcador: (id, className) =>
+        prefs.marcadores ? <MarcadorOculto id={id} {...(className ? { className } : {})} /> : null,
+      comMarcador,
+      registrarMarcador,
       secaoAberta: prefs.secaoAberta(painel),
       definirSecaoAberta: (aberta) => definirSecaoAberta(painel, aberta),
       alvoComplementar: alvo,
@@ -171,14 +193,10 @@ export function ProvedorPainelPreferencias({
     prefs,
     alvo,
     irParaComplementar,
+    chegadaPorLink,
+    comMarcador,
+    registrarMarcador,
   ])
-
-  const desfazer = ({ id }: Aviso) => {
-    foco.current = { tipo: 'id', id }
-    setAnuncio('')
-    setAviso(null)
-    valor.mostrar(id)
-  }
 
   return (
     <Ctx.Provider value={valor}>
@@ -187,15 +205,6 @@ export function ProvedorPainelPreferencias({
       <div role="status" aria-live="polite" className="sr-only" data-testid="anuncio-preferencias">
         {anuncio}
       </div>
-      {aviso && (
-        <div
-          className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md flex-wrap items-center justify-between gap-2 rounded-lg border border-borda-controle bg-superficie p-3 text-sm shadow-lg"
-          data-testid="aviso-desfazer"
-        >
-          <span>{aviso.texto}</span>
-          <Botao onClick={() => desfazer(aviso)}>Desfazer</Botao>
-        </div>
-      )}
     </Ctx.Provider>
   )
 }

@@ -85,7 +85,7 @@ describe('ProvedorPreferencias e ProvedorPainelPreferencias', () => {
     h1.remove()
   })
 
-  it('"Desfazer" sem o cartão na página (id ausente) não quebra', async () => {
+  it('"Mostrar" sem o cartão na página (id ausente) não quebra', async () => {
     const u = userEvent.setup()
     render(
       <MemoryRouter>
@@ -97,7 +97,8 @@ describe('ProvedorPreferencias e ProvedorPainelPreferencias', () => {
       </MemoryRouter>,
     )
     await u.click(await screen.findByRole('button', { name: 'ocultar-o2' }))
-    await u.click(screen.getByRole('button', { name: 'Desfazer' }))
+    expect(screen.getByTestId('n')).toHaveTextContent('11')
+    await u.click(screen.getByRole('button', { name: 'mostrar-o2' }))
     expect(screen.getByTestId('n')).toHaveTextContent('12')
   })
 

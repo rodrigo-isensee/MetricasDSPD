@@ -2,6 +2,7 @@ import { Dialog } from 'radix-ui'
 import { Link } from 'react-router'
 import { Botao, Icone } from '@/components/ui'
 import { usePreferenciasPainel, type PreferenciasPainel } from '@/components/ui'
+import { OpcaoMarcadores } from './OpcaoMarcadores'
 
 /** Seções do painel na ordem do catálogo, com os cartões de cada uma (só do grupo pedido). */
 export function secoesDoPainel(
@@ -106,6 +107,9 @@ export function BotaoMetricas() {
                 cartoes={secoesDoPainel(p, 'percepcao').flatMap((s) => s.cartoes)}
               />
             )}
+          </div>
+          <div className="mt-3">
+            <OpcaoMarcadores />
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Botao onClick={p.mostrarTodasNestaVisita}>Mostrar todas</Botao>

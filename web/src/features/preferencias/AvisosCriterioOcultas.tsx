@@ -3,11 +3,14 @@ import { Botao, Icone } from '@/components/ui'
 import { useCriterios } from '@/data'
 import type { PreferenciasPainel } from '@/components/ui'
 
-/** Mudança de critério em métrica oculta nunca some: gera aviso no painel com "Mostrar X" (CA-11). */
+/**
+ * Mudança de critério em métrica oculta nunca some (CA-11): quando o marcador está na tela o aviso vai dentro dele;
+ * sem marcador (desligado, painel todo oculto, seção resumida) fica aqui, no topo, com "Mostrar X".
+ */
 export function AvisosCriterioOcultas({ p }: { p: PreferenciasPainel }) {
   const versoes = useCriterios().data ?? []
   const avisos = p.cartoes
-    .filter((c) => p.ocultos.has(c.id))
+    .filter((c) => p.ocultos.has(c.id) && !p.comMarcador.has(c.id))
     .flatMap((c) =>
       versoes.filter((v) => v.afeta.some((m) => c.metricas.includes(m))).map((v) => ({ c, v })),
     )

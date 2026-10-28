@@ -540,13 +540,13 @@ describe('painel Sustentação com a PV1', () => {
     const pv1 = await screen.findByTestId('metrica-PV1')
     await u.click(within(pv1).getByRole('button', { name: /Ocultar esta métrica PV1/ }))
     await waitFor(() => expect(screen.queryByTestId('metrica-PV1')).toBeNull())
-    expect(screen.getByTestId('secao-oculta')).toHaveTextContent(
-      'Todas as métricas desta seção estão ocultas.',
-    )
+    expect(screen.getByTestId('secao-oculta')).toHaveTextContent('1 métrica oculta')
     const leia = await screen.findByTestId('leia-junto-s2')
     expect(within(leia).queryByRole('link', { name: /PV1/ })).toBeNull()
-    expect(screen.getByText('PV1 oculta.')).toBeInTheDocument()
-    await u.click(screen.getByRole('button', { name: 'Mostrar métricas da seção' }))
+    expect(screen.getByTestId('anuncio-preferencias')).toHaveTextContent(/\(PV1\) oculta\./)
+    await u.click(
+      within(screen.getByTestId('secao-oculta')).getByRole('button', { name: 'Mostrar' }),
+    )
     expect(await screen.findByTestId('metrica-PV1')).toBeInTheDocument()
     expect(
       within(await screen.findByTestId('leia-junto-s2')).getByRole('link', { name: /PV1/ }),
@@ -584,7 +584,8 @@ describe('Preferências com a PV1', () => {
     expect(
       within(grupo).getByRole('group', { name: 'Percepção de valor (pesquisa)' }),
     ).toBeVisible()
-    expect(screen.getAllByRole('checkbox')).toHaveLength(CATALOGO_CARTOES.length)
+    // + a opção dos marcadores de ocultas
+    expect(screen.getAllByRole('checkbox')).toHaveLength(CATALOGO_CARTOES.length + 1)
     expect(screen.getByTestId('grupo-operacional').textContent).not.toMatch(/pesquisa de percepção/)
     expect(within(grupo).getByTestId('contador-sustentacao')).toHaveTextContent(
       '1 de 1 da pesquisa de percepção',

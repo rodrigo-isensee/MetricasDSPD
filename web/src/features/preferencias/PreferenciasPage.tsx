@@ -9,6 +9,7 @@ import {
   type PainelComCartoes,
 } from '@metricas-dspd/contratos'
 import { Botao, Icone } from '@/components/ui'
+import { OpcaoMarcadores } from './OpcaoMarcadores'
 import { usePreferencias } from './ProvedorPreferencias'
 
 function GrupoPainel({ painel }: { painel: PainelComCartoes }) {
@@ -169,6 +170,18 @@ export default function PreferenciasPage() {
                 </Botao>
               ))}
             </div>
+          </section>
+          <section
+            aria-labelledby="marcadores-titulo"
+            className="flex flex-col gap-2 rounded-lg border border-borda bg-superficie p-4"
+          >
+            <h2 id="marcadores-titulo" className="text-base font-bold">
+              Métricas ocultas nos painéis
+            </h2>
+            <p className="text-sm text-texto-2">
+              O que você oculta num painel continua oculto até você mandar mostrar.
+            </p>
+            <OpcaoMarcadores />
           </section>
           {ORDEM_NA_TELA.map((p) => (
             <GrupoPainel key={p} painel={p} />

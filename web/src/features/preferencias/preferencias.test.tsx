@@ -47,7 +47,8 @@ describe('perfil /preferencias', () => {
       'grupo-tatico',
       'grupo-estrategico',
     ])
-    expect(screen.getAllByRole('checkbox')).toHaveLength(CATALOGO_CARTOES.length)
+    // Uma caixa por métrica, mais a opção dos marcadores de ocultas (ligada por padrão).
+    expect(screen.getAllByRole('checkbox')).toHaveLength(CATALOGO_CARTOES.length + 1)
     for (const c of screen.getAllByRole('checkbox')) expect(c).toBeChecked()
     expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
       '12 de 12 do núcleo e 14 de 14 complementares visíveis',
@@ -214,7 +215,8 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     expect(screen.queryByTestId('faixa-ocultas')).not.toBeInTheDocument()
     await u.click(botao)
     const dlg = await screen.findByRole('dialog', { name: 'Métricas desta visão' })
-    expect(within(dlg).getAllByRole('checkbox')).toHaveLength(26)
+    // 26 métricas + a opção dos marcadores
+    expect(within(dlg).getAllByRole('checkbox')).toHaveLength(27)
     await u.click(within(dlg).getByRole('checkbox', { name: /O3 Tempo de ciclo/ }))
     expect(screen.getByTestId('botao-metricas')).toHaveTextContent(
       'Métricas: 11 de 12 (+14 complementares)',
@@ -260,22 +262,22 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
-  it('"Ocultar esta métrica" some com o cartão, anuncia, mostra a faixa e leva o foco ao próximo título', async () => {
+  it('"Ocultar esta métrica" troca o cartão pelo marcador no lugar, anuncia e leva o foco ao "Mostrar"', async () => {
     const u = userEvent.setup()
     renderizarApp('/operacional?cadencia=semanal')
     await screen.findByTestId('metrica-O3')
     await u.click(screen.getByRole('button', { name: 'Ocultar esta métrica O3' }))
     expect(screen.queryByTestId('metrica-O3')).not.toBeInTheDocument()
     expect(screen.getByTestId('anuncio-preferencias')).toHaveTextContent(
-      'O3 oculta. 11 de 12 métricas visíveis. Desfazer',
+      'Tempo de ciclo (O3) oculta. 11 de 12 métricas visíveis.',
     )
     expect(screen.getByTestId('faixa-ocultas')).toHaveTextContent('1 métrica oculta: O3')
     expect(
       screen.getByRole('button', { name: 'Métricas: 11 de 12 (+14 complementares)' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { level: 3, name: /Os três relógios do pedido/ }),
-    ).toHaveFocus()
+    // U2: o marcador fica no lugar e o foco vai direto ao "Mostrar" dele
+    expect(screen.getByTestId('marcador-O3')).toHaveTextContent('oculta no seu padrão')
+    expect(screen.getByRole('button', { name: 'Mostrar Tempo de ciclo (O3)' })).toHaveFocus()
     // U1: ocultar é lembrado até a pessoa mandar mostrar
     expect(guardado().paineis.operacional?.ocultar).toEqual(['o3'])
   })
@@ -292,41 +294,91 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     expect(screen.getByTestId('faixa-ocultas')).toHaveTextContent('1 métrica oculta: O3')
   })
 
-  it('"Desfazer" devolve o cartão e o foco ao título restaurado', async () => {
+  it('"Mostrar" no marcador devolve o cartão e o foco ao título, sem aviso flutuante nem prazo', async () => {
     const u = userEvent.setup()
     renderizarApp('/operacional?cadencia=semanal')
     await screen.findByTestId('metrica-O3')
     await u.click(screen.getByRole('button', { name: 'Ocultar esta métrica O3' }))
-    const aviso = screen.getByTestId('aviso-desfazer')
-    expect(aviso).toHaveTextContent('O3 oculta. 11 de 12 métricas visíveis.')
-    await u.click(within(aviso).getByRole('button', { name: 'Desfazer' }))
+    expect(screen.queryByTestId('aviso-desfazer')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Desfazer' })).not.toBeInTheDocument()
+    await u.click(screen.getByRole('button', { name: 'Mostrar Tempo de ciclo (O3)' }))
     const cartao = await screen.findByTestId('metrica-O3')
     expect(within(cartao).getByRole('heading', { level: 3 })).toHaveFocus()
-    expect(screen.queryByTestId('aviso-desfazer')).not.toBeInTheDocument()
+    expect(screen.getByTestId('anuncio-preferencias')).toHaveTextContent(
+      'Tempo de ciclo (O3) visível de novo.',
+    )
+    expect(screen.queryByTestId('marcador-O3')).not.toBeInTheDocument()
     expect(screen.queryByTestId('faixa-ocultas')).not.toBeInTheDocument()
   })
 
-  it('ocultar um cartão leva o foco ao título seguinte (a seção de espera invisível, no fim da página)', async () => {
-    const u = userEvent.setup()
-    renderizarApp('/operacional?cadencia=semanal')
-    await screen.findByTestId('metrica-O18')
-    await u.click(screen.getByRole('button', { name: 'Ocultar esta métrica O18' }))
-    expect(
-      screen.getByRole('heading', {
-        level: 2,
-        name: 'Quanto do tempo do solicitante fica fora da nossa gestão?',
-      }),
-    ).toHaveFocus()
-  })
-
-  it('o aviso de desfazer some sozinho depois de alguns segundos', async () => {
+  it('o marcador não tem prazo: continua na tela depois de muito tempo', async () => {
     renderizarApp('/operacional?cadencia=semanal')
     await screen.findByTestId('metrica-O3')
     vi.useFakeTimers()
     fireEvent.click(screen.getByRole('button', { name: 'Ocultar esta métrica O3' }))
-    expect(screen.getByTestId('aviso-desfazer')).toBeInTheDocument()
-    act(() => void vi.advanceTimersByTime(10_000))
+    act(() => void vi.advanceTimersByTime(60_000))
+    expect(screen.getByTestId('marcador-O3')).toBeInTheDocument()
     expect(screen.queryByTestId('aviso-desfazer')).not.toBeInTheDocument()
+  })
+
+  it('U2: o título da seção mostra "N de M visíveis" quando há oculta, e o marcador mantém a posição na grade', async () => {
+    guardar({ operacional: ['o3'] })
+    renderizarApp('/operacional?cadencia=semanal')
+    const marcador = await screen.findByTestId('marcador-O3')
+    expect(marcador).toHaveAttribute('id', 'o3')
+    expect(screen.getByTestId('contagem-tempo')).toHaveTextContent('1 de 2 visíveis')
+    expect(screen.queryByTestId('contagem-fluxo')).not.toBeInTheDocument()
+  })
+
+  it('U2: com os marcadores desligados o cartão some sem marcador e o foco vai ao botão "Métricas"', async () => {
+    const u = userEvent.setup()
+    window.localStorage.setItem('metricas-dspd:marcadores-ocultas', 'desligados')
+    renderizarApp('/operacional?cadencia=semanal')
+    await screen.findByTestId('metrica-O3')
+    await u.click(screen.getByRole('button', { name: 'Ocultar esta métrica O3' }))
+    expect(screen.queryByTestId('marcador-O3')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('metrica-O3')).not.toBeInTheDocument()
+    expect(screen.getByTestId('faixa-ocultas')).toHaveTextContent('1 métrica oculta: O3')
+    expect(screen.getByTestId('botao-metricas')).toHaveFocus()
+    expect(screen.getByTestId('contagem-tempo')).toHaveTextContent('1 de 2 visíveis')
+  })
+
+  it('U2: a opção de marcadores em Preferências liga e desliga, e vale no próximo painel', async () => {
+    const u = userEvent.setup()
+    guardar({ operacional: ['o3'] })
+    const r = renderizarApp('/preferencias')
+    const opcao = await screen.findByRole('checkbox', {
+      name: /Mostrar um marcador no lugar da métrica oculta/,
+    })
+    expect(opcao).toBeChecked()
+    await u.click(opcao)
+    expect(window.localStorage.getItem('metricas-dspd:marcadores-ocultas')).toBe('desligados')
+    r.unmount()
+    renderizarApp('/operacional?cadencia=semanal')
+    await screen.findByTestId('metrica-O4')
+    expect(screen.queryByTestId('marcador-O3')).not.toBeInTheDocument()
+  })
+
+  it('U2: link para cartão oculto cai no marcador, foca o "Mostrar", explica e não mostra sozinho', async () => {
+    guardar({ operacional: ['o3'] })
+    renderizarApp('/operacional?cadencia=semanal#o3')
+    const marcador = await screen.findByTestId('marcador-O3')
+    expect(await screen.findByTestId('chegada-O3')).toHaveTextContent(
+      'Você chegou a uma métrica oculta. Mostrar Tempo de ciclo (O3)',
+    )
+    await waitFor(() =>
+      expect(within(marcador).getByRole('button', { name: /^Mostrar/ })).toHaveFocus(),
+    )
+    expect(screen.queryByTestId('metrica-O3')).not.toBeInTheDocument()
+  })
+
+  it('U2: link para cartão oculto sem marcador explica no topo, com "Mostrar"', async () => {
+    window.localStorage.setItem('metricas-dspd:marcadores-ocultas', 'desligados')
+    guardar({ operacional: ['o3'] })
+    renderizarApp('/operacional?cadencia=semanal#o3')
+    expect(await screen.findByTestId('chegada-sem-marcador')).toHaveTextContent(
+      'Você chegou a uma métrica oculta: Tempo de ciclo (O3).',
+    )
   })
 
   it('a faixa de ocultas tem "Mostrar todas" e "Usar minhas preferências"', async () => {
@@ -386,7 +438,7 @@ describe('painel: o que nunca é recortado', () => {
     expect(within(faixa).queryByText('métrica oculta')).not.toBeInTheDocument()
   })
 
-  it('mudança de critério em métrica oculta gera aviso com "Mostrar X"', async () => {
+  it('mudança de critério em métrica oculta vai para dentro do marcador, com "Mostrar"', async () => {
     const u = userEvent.setup()
     const versoes = await fonteDeTeste.criterios()
     const alvo = CATALOGO_CARTOES.find((c) =>
@@ -395,13 +447,28 @@ describe('painel: o que nunca é recortado', () => {
     expect(alvo).toBeDefined()
     guardar({ [alvo?.painel as PainelComCartoes]: [alvo?.id as string] })
     renderizarApp(destinoDoCartao(alvo as CartaoCatalogo).split('#')[0] as string)
-    const avisos = await screen.findByTestId('avisos-criterio-ocultas')
-    expect(avisos).toHaveTextContent(`Critério alterado em ${alvo?.codigo} (oculta) em`)
+    // Com o marcador na tela o aviso vai dentro dele (nunca some); o topo só repete quando não há marcador.
+    const aviso = await screen.findByTestId(`criterio-no-marcador-${alvo?.id}`)
+    expect(aviso).toHaveTextContent('Critério alterado em')
+    expect(screen.queryByTestId('avisos-criterio-ocultas')).not.toBeInTheDocument()
     await u.click(
-      within(avisos).getAllByRole('button', { name: `Mostrar ${alvo?.codigo}` })[0] as HTMLElement,
+      screen.getByRole('button', { name: new RegExp(`^Mostrar .*\\(${alvo?.codigo}\\)$`) }),
     )
     await waitFor(() =>
-      expect(screen.queryByTestId('avisos-criterio-ocultas')).not.toBeInTheDocument(),
+      expect(screen.queryByTestId(`criterio-no-marcador-${alvo?.id}`)).not.toBeInTheDocument(),
+    )
+  })
+
+  it('sem marcador na tela, o aviso de critério da oculta continua no topo (nunca some)', async () => {
+    window.localStorage.setItem('metricas-dspd:marcadores-ocultas', 'desligados')
+    const versoes = await fonteDeTeste.criterios()
+    const alvo = CATALOGO_CARTOES.find((c) =>
+      versoes.some((v) => v.afeta.some((m) => c.metricas.includes(m))),
+    )
+    guardar({ [alvo?.painel as PainelComCartoes]: [alvo?.id as string] })
+    renderizarApp(destinoDoCartao(alvo as CartaoCatalogo).split('#')[0] as string)
+    expect(await screen.findByTestId('avisos-criterio-ocultas')).toHaveTextContent(
+      `Critério alterado em ${alvo?.codigo} (oculta) em`,
     )
   })
 
@@ -418,23 +485,23 @@ describe('painel: o que nunca é recortado', () => {
     guardar({ operacional: ['o10', 'o7'] })
     renderizarApp('/operacional?cadencia=semanal')
     const secao = await screen.findByRole('region', { name: 'Backlog' })
-    expect(
-      within(secao).getByText('Todas as métricas desta seção estão ocultas.'),
-    ).toBeInTheDocument()
+    expect(within(secao).getByTestId('secao-oculta')).toHaveTextContent(
+      'Backlog · 2 métricas ocultas: Envelhecimento do backlog (O10), Entrada × saída por tipo (O7)',
+    )
     const ir = screen.getByRole('navigation', { name: 'Ir para' })
     expect(within(ir).queryByRole('link', { name: 'Backlog' })).not.toBeInTheDocument()
     expect(within(ir).getByRole('link', { name: 'Tempo' })).toBeInTheDocument()
-    await u.click(within(secao).getByRole('button', { name: 'Mostrar métricas da seção' }))
+    await u.click(within(secao).getByRole('button', { name: 'Mostrar as 2' }))
     expect(await screen.findByTestId('metrica-O10')).toBeInTheDocument()
     expect(await screen.findByTestId('metrica-O7')).toBeInTheDocument()
   })
 
-  it('na visão diária, os três cartões ocultos mostram a orientação sem título de seção', async () => {
+  it('na visão diária, os três cartões ocultos mostram um marcador único sem título de seção', async () => {
     const u = userEvent.setup()
     guardar({ operacional: ['o1', 'o2', 'bloqueados'] })
     renderizarApp('/operacional?cadencia=diaria')
     const msg = await screen.findByTestId('secao-oculta')
-    await u.click(within(msg).getByRole('button', { name: 'Mostrar métricas' }))
+    await u.click(within(msg).getByRole('button', { name: 'Mostrar as 3' }))
     expect(await screen.findByTestId('metrica-O2')).toBeInTheDocument()
   })
 

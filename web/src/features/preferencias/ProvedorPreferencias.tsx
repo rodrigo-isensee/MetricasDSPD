@@ -23,6 +23,17 @@ import {
   type FontePreferencias,
 } from './fonte'
 
+/** Opção do aparelho (como o tema): ligar ou desligar os marcadores de métrica oculta. Padrão: ligados (U2). */
+export const CHAVE_MARCADORES = 'metricas-dspd:marcadores-ocultas'
+
+function lerMarcadores(): boolean {
+  try {
+    return window.localStorage.getItem(CHAVE_MARCADORES) !== 'desligados'
+  } catch {
+    return true
+  }
+}
+
 export type EstadoSalvar = 'ocioso' | 'salvo' | 'erro' | 'versao-nova'
 
 export interface PreferenciasValor {
@@ -37,6 +48,9 @@ export interface PreferenciasValor {
   definirSalvos: (painel: PainelComCartoes, ocultos: readonly CartaoId[]) => void
   aplicarSugestao: (papel: Papel) => void
   restaurarPadrao: () => void
+  /** Marcadores de métrica oculta no lugar do cartão (U2). */
+  marcadores: boolean
+  definirMarcadores: (ligados: boolean) => void
   /** `null` volta ao perfil ("Usar minhas preferências"); lista vazia = "Mostrar todas". */
   definirNaVisita: (painel: PainelComCartoes, ocultos: readonly CartaoId[] | null) => void
   /** Seção "Mais métricas deste painel" aberta na visita (fechada por padrão; vale na sessão, não no perfil). */
@@ -68,6 +82,7 @@ export function ProvedorPreferencias({
   const [estadoSalvar, setEstadoSalvar] = useState<EstadoSalvar>('ocioso')
   const [visita, setVisita] = useState<Partial<Record<PainelComCartoes, readonly CartaoId[]>>>({})
   const [abertas, setAbertas] = useState<Partial<Record<PainelComCartoes, boolean>>>({})
+  const [marcadores, setMarcadores] = useState(lerMarcadores)
   const atual = useRef(prefs)
 
   useEffect(() => {
@@ -104,6 +119,15 @@ export function ProvedorPreferencias({
     [fonte],
   )
 
+  const definirMarcadores = useCallback((ligados: boolean) => {
+    setMarcadores(ligados)
+    try {
+      window.localStorage.setItem(CHAVE_MARCADORES, ligados ? 'ligados' : 'desligados')
+    } catch {
+      // Sem armazenamento a escolha vale só nesta sessão.
+    }
+  }, [])
+
   const valor = useMemo<PreferenciasValor>(() => {
     const salvos = (p: PainelComCartoes) => ocultosValidos(p, prefs.paineis[p]?.ocultar)
     return {
@@ -125,6 +149,8 @@ export function ProvedorPreferencias({
         setVisita({})
         setAbertas(Object.fromEntries(PAINEIS_COM_CARTOES.map((p) => [p, true])))
       },
+      marcadores,
+      definirMarcadores,
       secaoAberta: (p) => abertas[p] ?? false,
       definirSecaoAberta: (p, aberta) => setAbertas((a) => ({ ...a, [p]: aberta })),
       definirNaVisita: (p, ocultos) =>
@@ -134,7 +160,17 @@ export function ProvedorPreferencias({
           return prox
         }),
     }
-  }, [prefs, pronto, estadoSalvar, visita, abertas, fonte.origem, gravar])
+  }, [
+    prefs,
+    pronto,
+    estadoSalvar,
+    visita,
+    abertas,
+    marcadores,
+    definirMarcadores,
+    fonte.origem,
+    gravar,
+  ])
 
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>
 }
