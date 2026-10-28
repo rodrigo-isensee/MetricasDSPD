@@ -2,6 +2,7 @@ import { CabecalhoPainel } from '@/components/ui'
 import { useCriterios, useDataReferencia, useFonte } from '@/data'
 import { JANELA_PERCENTIS_PADRAO } from '@metricas-dspd/contratos'
 import { fmtData, textoJanela } from '@/lib/formatar'
+import { CatalogoMetricas } from '@/features/catalogo/CatalogoMetricas'
 
 const GLOSSARIO: readonly { termo: string; definicao: string }[] = [
   {
@@ -160,6 +161,7 @@ export default function AjudaPage() {
           </tbody>
         </table>
       </section>
+      <CatalogoMetricas />
       <section>
         <h2 className="text-lg font-bold">Sobre os dados</h2>
         <p>

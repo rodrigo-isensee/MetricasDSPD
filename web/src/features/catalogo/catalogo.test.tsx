@@ -5,7 +5,7 @@ import { CHAVE_PREFERENCIAS } from '@metricas-dspd/contratos'
 import { renderizarApp } from '@/test/helpers'
 import { linhasDoCatalogo } from './linhas'
 
-describe('Catálogo de métricas (/metricas)', () => {
+describe('Catálogo de métricas (dentro da Ajuda)', () => {
   it('lista 65 linhas (45 do briefing + a PV1 + 3 níveis extras de espera invisível; 33 complementares), espera invisível uma por nível', () => {
     const l = linhasDoCatalogo()
     expect(l).toHaveLength(65)
@@ -70,10 +70,10 @@ describe('Catálogo de métricas (/metricas)', () => {
 
   it('mostra a tabela com status escrito e link que abre o cartão; filtros por painel e grupo', async () => {
     const u = userEvent.setup()
-    renderizarApp('/metricas')
-    await screen.findByRole('heading', { level: 1, name: 'Catálogo de métricas' })
+    renderizarApp('/ajuda#catalogo')
+    await screen.findByRole('heading', { level: 2, name: 'Catálogo de métricas' })
     expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('65 de 65 métricas')
-    const tabela = screen.getByRole('table')
+    const tabela = screen.getByRole('table', { name: /Catálogo de métricas: código/ })
     const linha = within(tabela).getByRole('row', { name: /O5 Eficiência de fluxo/ })
     expect(linha).toHaveTextContent('Complementar')
     // Decisão 20: todos os dados são fictícios até a coleta real, no núcleo e nos complementares.
@@ -104,9 +104,16 @@ describe('Catálogo de métricas (/metricas)', () => {
     expect(screen.getByTestId('contagem-catalogo')).toHaveTextContent('6 de 65 métricas')
   })
 
+  it('/metricas continua funcionando: leva ao catálogo dentro da Ajuda', async () => {
+    const { roteador } = renderizarApp('/metricas')
+    await screen.findByRole('heading', { level: 2, name: 'Catálogo de métricas' })
+    expect(roteador.state.location.pathname).toBe('/ajuda')
+    expect(roteador.state.location.hash).toBe('#catalogo')
+  })
+
   it('o link do catálogo leva ao painel com a seção aberta no cartão', async () => {
     const u = userEvent.setup()
-    renderizarApp('/metricas')
+    renderizarApp('/ajuda#catalogo')
     await u.click(await screen.findByRole('link', { name: /Ir ao painel de T6/ }))
     expect(await screen.findByTestId('metrica-T6')).toBeInTheDocument()
   })

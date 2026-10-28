@@ -1,4 +1,4 @@
-import { createBrowserRouter, createMemoryRouter, type RouteObject } from 'react-router'
+import { createBrowserRouter, createMemoryRouter, Navigate, type RouteObject } from 'react-router'
 import { AppShell } from './AppShell'
 import { RedirecionaEsperaInvisivel } from './RedirecionaEsperaInvisivel'
 import { RedirecionaSustentacao } from './RedirecionaSustentacao'
@@ -34,7 +34,8 @@ export const ROTAS: RouteObject[] = [
           // Antiga página: só redireciona (síncrono, sem chunk de página).
           { path: 'sustentacao', Component: RedirecionaSustentacao },
           { path: 'espera-invisivel', Component: RedirecionaEsperaInvisivel },
-          { path: 'metricas', lazy: lazy(() => import('@/features/catalogo/CatalogoPage')) },
+          // O catálogo é parte da Ajuda; o endereço antigo continua valendo.
+          { path: 'metricas', element: <Navigate to="/ajuda#catalogo" replace /> },
           { path: 'dados', lazy: lazy(() => import('@/features/dados/DadosPage')) },
           {
             path: 'preferencias',

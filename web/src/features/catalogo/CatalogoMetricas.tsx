@@ -7,10 +7,10 @@ import { linhasDoCatalogo } from './linhas'
 const GRUPOS = ['Todos', 'Núcleo', 'Complementar'] as const
 
 /**
- * `/metricas`: o catálogo das 45 métricas do briefing + 1 de percepção, com a espera invisível em uma linha por nível (49 linhas), com painel, grupo, fonte, status e link para o painel.
+ * Catálogo de métricas, parte da Ajuda (`/ajuda#catalogo`): o catálogo das 45 métricas do briefing + 1 de percepção, com a espera invisível em uma linha por nível (49 linhas), com painel, grupo, fonte, status e link para o painel.
  * Dado estático do bundle (sem endpoint, sem dado pessoal). Nenhuma métrica é plotada aqui.
  */
-export default function CatalogoPage() {
+export function CatalogoMetricas() {
   const todas = useMemo(() => linhasDoCatalogo(), [])
   const [grupo, setGrupo] = useState<(typeof GRUPOS)[number]>('Todos')
   const [painel, setPainel] = useState('todos')
@@ -19,10 +19,8 @@ export default function CatalogoPage() {
     (l) => (grupo === 'Todos' || l.grupo === grupo) && (painel === 'todos' || l.painel === painel),
   )
   return (
-    <div className="flex flex-col gap-4">
-      <h1 tabIndex={-1} data-foco-rota className="text-2xl font-bold">
-        Catálogo de métricas
-      </h1>
+    <section id="catalogo" tabIndex={-1} className="flex flex-col gap-4 outline-none">
+      <h2 className="text-lg font-bold">Catálogo de métricas</h2>
       <p className="text-sm text-texto-2">
         Tudo o que existe no DSPD: 45 métricas do briefing + 1 de percepção (a pesquisa de valor do
         serviço); a espera invisível aparece em uma linha por nível. As complementares ficam na
@@ -91,8 +89,6 @@ export default function CatalogoPage() {
           ),
         }))}
       />
-    </div>
+    </section>
   )
 }
-
-export const handle = { titulo: 'Catálogo de métricas' }
