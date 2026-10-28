@@ -77,6 +77,15 @@ describe('textos', () => {
 })
 
 describe('tela Visão geral', () => {
+  it('"Por reunião" vem logo depois de "Pede atenção" e antes de "Por nível"', async () => {
+    renderizarApp('/')
+    const reuniao = await screen.findByRole('heading', { name: 'Por reunião' })
+    const atencao = screen.getByRole('heading', { name: 'O que pede atenção agora' })
+    const nivel = screen.getByRole('heading', { name: 'Por nível' })
+    expect(atencao.compareDocumentPosition(reuniao) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(reuniao.compareDocumentPosition(nivel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('mostra atenção, quatro níveis (máx. 3 indicadores), espera invisível e por reunião, sem filtros', async () => {
     renderizarApp('/')
     const faixa = await screen.findByTestId('faixa-atencao', undefined, { timeout: 8000 })

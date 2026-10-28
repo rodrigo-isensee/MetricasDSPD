@@ -272,6 +272,21 @@ export default function VisaoGeralPage() {
       {d && (
         <>
           <FaixaAtencao momento="hoje" titulo="O que pede atenção agora" itens={itens} maximo={6} />
+          <section aria-labelledby="vg-reuniao" className="flex flex-col gap-2">
+            <h2 id="vg-reuniao" className="text-lg font-bold">
+              Por reunião
+            </h2>
+            <ul className="grid gap-2 lg:grid-cols-3">
+              {REUNIOES.map(([nome, pergunta, para]) => (
+                <li key={nome} className="rounded-md border border-borda bg-superficie p-3 text-sm">
+                  <Link to={para} className="alvo font-semibold text-acento underline">
+                    {nome}
+                  </Link>
+                  <p className="text-texto-2">{pergunta}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
           <section aria-labelledby="vg-niveis" className="flex flex-col gap-2">
             <h2 id="vg-niveis" className="text-lg font-bold">
               Por nível
@@ -306,21 +321,6 @@ export default function VisaoGeralPage() {
             <ul className="flex flex-col gap-2 text-sm">
               {sust.map((e) => (
                 <LinhaEspera key={e.nivel} e={e} />
-              ))}
-            </ul>
-          </section>
-          <section aria-labelledby="vg-reuniao" className="flex flex-col gap-2">
-            <h2 id="vg-reuniao" className="text-lg font-bold">
-              Por reunião
-            </h2>
-            <ul className="grid gap-2 lg:grid-cols-3">
-              {REUNIOES.map(([nome, pergunta, para]) => (
-                <li key={nome} className="rounded-md border border-borda bg-superficie p-3 text-sm">
-                  <Link to={para} className="alvo font-semibold text-acento underline">
-                    {nome}
-                  </Link>
-                  <p className="text-texto-2">{pergunta}</p>
-                </li>
               ))}
             </ul>
           </section>
