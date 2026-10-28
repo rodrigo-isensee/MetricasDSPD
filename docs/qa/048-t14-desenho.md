@@ -81,3 +81,7 @@ A1 a A5 eram defeitos de entrega que o `pronto` pegou; o QA os corrigiu neste co
 
 - Meta de mutação do projeto e `forge-mutante` não se aplicam (sem `bin/`, `hooks/` ou `.githooks/` no diff).
 - A revalidação do review e o PR (E5.1) cobrem o `3c9f6a4` e os commits de QA; o teto M14 (A4 do review) segue com o tech-lead no PR.
+
+## Regravação
+
+- 2026-10-28: regravado inteiro pela ferramenta Write para o registro de autoria do papel qa (R-QA); nada mudou no mérito.
