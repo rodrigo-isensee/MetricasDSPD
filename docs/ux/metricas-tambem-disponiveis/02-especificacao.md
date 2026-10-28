@@ -86,7 +86,7 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 - **Pergunta:** Por onde o trabalho volta, e quanto isso pesa no prazo?
 - **Painel/seção:** Operacional · Onde se perde esforço?
 - **Visual:** (a) número de destaque "31 de 96 entregas (32%) voltaram ao menos uma vez"; (b) matriz origem × destino só com transições de retorno (`direcao = 'retorno'`), células com número escrito e rampa sequencial; retorno a partir de "Entregue" (reabertura, briefing 4.2) em linha própria e destacada com texto "reaberto"; (c) par de valores do tipo escolhido: P50/P85 do tempo de ciclo das entregas **com** retorno × **sem** retorno.
-- **Leitura:** "32% das entregas voltaram ao menos uma vez. A volta mais comum é de 'Em teste' para 'Em desenvolvimento' (14 vezes). Em Melhoria, quem volta tem P85 de 14 dias úteis contra 8 de quem não volta."
+- **Leitura:** "32% das entregas voltaram ao menos uma vez. A volta mais comum é de 'Em teste' para 'Em desenvolvimento' (14 vezes). Em Melhoria, quem volta tem P85 de 14 dias úteis contra 8 de quem não volta." (regra da frase, decisão do dono 2026-10-27, R8 opção A: "A volta mais comum" ignora a reabertura, isto é, o retorno a partir de "Entregue"; a reabertura segue na linha própria "reaberto" da matriz.)
 - **Leia junto:** O13 (vazão de defeitos), O5 (eficiência de fluxo).
 - **Alerta:** nenhum.
 - **Filtros:** Equipe, Tipo, Sistema, Período. Com "Todas" as equipes, a matriz usa o papel da coluna (os nomes de coluna variam por quadro).
@@ -153,12 +153,12 @@ Formato de cada um: pergunta · painel e seção · visual · frase de leitura �
 
 - **Pergunta:** Quantas trocas de responsável uma demanda sofre até ser entregue?
 - **Painel/seção:** Operacional · Onde se perde esforço?
-- **Visual:** SeletorLocal por tipo; histograma de demandas entregues por número de passagens (0, 1, 2, 3, 4 ou mais); ao lado, P85 do tempo de ciclo em cada faixa (só faixas com ≥ 20). Selo fixo no cabeçalho do gráfico: "Conta trocas, nunca quem."
-- **Leitura:** "Em Melhoria, 87 entregas; o mais comum é 2 passagens de mão: 36 entregas (41%)." (a frase da tela: faixa mais comum, com o percentual só quando há 20 entregas ou mais na faixa; empate vale a faixa de menor número; o P85 por faixa fica no gráfico e na tabela. Decisão do dono, 2026-10-27, opção A.)
+- **Visual:** SeletorLocal por tipo; histograma de demandas entregues por número de passagens (0, 1, 2, 3, 4 ou mais); ao lado, P85 do tempo de ciclo em cada faixa (só faixas com ≥ 20 entregas na janela). Selo fixo no cabeçalho do gráfico: "Conta trocas, nunca quem."
+- **Leitura:** "Em Melhoria, 87 entregas; o mais comum é 2 passagens de mão: 36 entregas (41%)." (a frase da tela: faixa mais comum, com o percentual só quando o tipo tem 20 entregas ou mais com dado de passagens, pois o percentual é a faixa sobre o total dessas entregas e o mínimo de 20 vale sobre esse total, não sobre a faixa; empate vale a faixa de menor número; o P85 por faixa fica no gráfico e na tabela. Decisão do dono, 2026-10-27, opção A.)
 - **Leia junto:** O5 (eficiência de fluxo), O3 (tempo de ciclo).
 - **Alerta:** nenhum.
 - **Filtros:** Equipe, Tipo, Sistema, Período. Não existe e não existirá filtro ou abertura por pessoa.
-- **Mínimo:** histograma (contagem) sempre; percentual e P85 por faixa com ≥ 20.
+- **Mínimo:** histograma (contagem) sempre; percentual das faixas só quando o tipo tem ≥ 20 entregas com dado de passagens (o mínimo vale sobre o total do tipo, não sobre a faixa); P85 de cada faixa só com ≥ 20 entregas na faixa dentro da janela de 12 semanas (`packages/metricas/src/businessmap/o26.ts:74` e `:75`).
 - **Fonte/dado:** BusinessMap · **extração nova**: número de **trocas de responsável** por card (`dim_card.passagens`, P:252), calculado na fronteira do coletor a partir das revisões (B:53). O coletor descarta as identidades e grava só o inteiro.
   - Mudança de equipe ou de quadro não conta.
   - Troca = alguém sai e outro entra, ou o conjunto de responsáveis é substituído. Incluir um co-responsável sem ninguém sair não conta (decisão do usuário, 2026-10-14). **A confirmar na integração:** que as revisões do BusinessMap trazem o campo de responsáveis.
@@ -299,6 +299,8 @@ Aprovada pelo usuário em 2026-10-14 (pedido 011, K-078); entra na fase 3 (colet
 
 Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filtros." + "Limpar filtros") · Erro ("Não foi possível carregar este gráfico." + "Tentar de novo") · Amostra insuficiente (componente padrão; `lenta` em E6 e E9) · Dados fictícios (selo do cabeçalho, status `mock`). Específicos: O22 "Nenhum pedido sem reação." (positivo, com check); E8 recorte pequeno (texto acima); T10 sem fornecedor no período "Nenhum bloqueio por fornecedor no período."; T11 histórico curto (nota acima).
 
+**Sem nenhum item (regra de 2026-10-28):** quando o filtro não deixa nenhum item (zero), o cartão mostra só o estado vazio ("Nenhum item encontrado"/"Sem dados para estes filtros."), sozinho. Não mostra "Amostra insuficiente: 0 de 20", porque amostra insuficiente é de quem tem alguns itens, mas menos de 20. A tela ainda mistura os dois (ver §11).
+
 ## 7. Necessidades de dados (resumo para o arquiteto e o back-end)
 
 | Dado                                                                                                                                                                                | Cartões       | Situação                                                                                                                                                                                                       |
@@ -411,3 +413,6 @@ Carregando (esqueleto com altura reservada) · Vazio ("Sem dados para estes filt
 | B11-001 = sim                                                                                            | 2026-10-17 | §5 T10, CA-51                                                                                                                                                                                                                         |
 | Nome novo do E7 (decisão do dono no pedido 021, opção A = A-10 da revisão de UX; aplicada no pedido 024) | 2026-10-17 | Título do E7 na §5 e linha 15 do catálogo em `01-cobertura.md`; nesta data a pergunta não mudou (trocada em 2026-10-20, ver a linha abaixo); os critérios de aceite não mudam (CA-3, CA-11, CA-13 e CA-23 citam só "E7")              |
 | Pergunta do E7 = opção A (decisão do dono, pedido 036)                                                   | 2026-10-20 | §5 E7: pergunta passa a pedir a participação de cada sistema nas entregas (texto exato na ficha do E7; antes falava em capacidade); catálogo `web/src/content/catalogo-metricas.ts` trocado em bf137a9; critérios de aceite não mudam |
+| A10 = A (leitura do O26; decisão do dono, pedido 026)                                                    | 2026-10-27 | §5 O26: a frase da tela é a da faixa mais comum, com percentual e P85 por faixa só quando há 20 itens ou mais; dois mínimos de 20, sobre bases diferentes: o do percentual vale sobre o total de entregas do tipo com dado de passagens (não sobre a faixa); o do P85 vale sobre as entregas da própria faixa na janela de 12 semanas (review A12, QA A7, 2026-10-28; `packages/metricas/src/businessmap/o26.ts`); sem campo novo no contrato |
+| R8 = A (volta mais comum do O21; decisão do dono, pedido 026)                                            | 2026-10-27 | §5 O21: "A volta mais comum" ignora a reabertura (retorno a partir de "Entregue"), que segue na linha própria "reaberto" |
+| Vazio sem "Amostra insuficiente" (achado A6 do QA, pedido 026)                                           | 2026-10-28 | §6: com zero itens aparece só o estado vazio. Pendência da tela: ela ainda mostra "Amostra insuficiente: 0 de 20" junto de "Nenhum item encontrado" (O21, O22, O24, O25; padrão anterior ao lote 3, no componente `web/src/components/ui/BadgeBase.tsx`); a correção do front vai em cartão próprio |
