@@ -3,13 +3,33 @@ tipo: review
 contrato: 1
 pedido: 026-front-do-011-lote3
 branch: feature/026-lote3-operacionais
-commit: dd9a91dd21ab6bf2619b1ea32e3167d10e306162
+commit: 0e78a55a6c3f317bfc436f5fb43fc8e28430cdb6
 parecer: aprovado
 revisor: tech-lead
-data: 2026-10-27
+data: 2026-10-28
 ---
 
 # Code review: front do lote 3 (O19 a O26) no /operacional (pedido 026, K-111)
+
+## Re-review (E1.4, depois da develop do 041): c72b955..0e78a55
+
+**Veredito: aprovado.** A volta do A1 do QA (L3-001, `e3b9fa4`) corrige o defeito pelo caminho certo e tem teste. O merge da develop (`9d0e4a9`) é limpo. O ajuste ao `esperarPronto` (`0e78a55`) só troca o nome do helper. Não há bloqueante novo nem recomendado novo. O A4 deste parecer está resolvido pelo QA em `adc93fa`.
+
+**Delta lido:** `forge-check delta --parecer docs/reviews/026-lote3-operacionais.md` (intervalo `dd9a91d..0e78a55`) lista, além do lote 3, os arquivos que a develop trouxe do 041 (`.gitignore`, ADR 0003, `fluxo-homologacao.md`, `PainelPage.ts`, specs de perf e E2E). Esses já foram revisados no PR #150 e ficam como "já lidos". Li inteiros: `e3b9fa4` (`LeiaJunto.tsx`, `leiajunto.test.tsx`), `adc93fa` (contagens das E2E, `operacional-lote3.spec.ts`, filtro do CT-63), `0e78a55` e os pontos de contato do merge com o lote 3 (`complementares.spec.ts`, `MaisMetricas.tsx`, `secao.test.tsx`, `PainelPage.esperarPronto`). Não rodei suíte: o brief dispensa, o `pronto` do head já rodou com rc=0 no tech-lead-6 e o reteste é do QA.
+
+| Ponto | Situação | Evidência |
+|---|---|---|
+| Volta do A1 do QA (L3-001) | conforme | `LeiaJunto.tsx`: `outraVisao` compara a visão do cartão de destino (`visaoDoHash`) com a visão da URL (`lerVisao`) e, se forem diferentes, navega por `destinoDoCartao`, que já monta `cadencia=semanal#o19`. A regra fica restrita ao painel `operacional`. Não há cálculo nem regra de negócio nova na tela. |
+| Testes da volta | conforme | `leiajunto.test.tsx` cobre os dois pares do bug, BLOQUEADOS → O19 e O1 → O20 na visão diária. Afirma `cadencia=semanal`, o hash, a seção aberta e o foco no título do O19. O SIS-CONS-02 (E2E), que acusou o bug, fica com o reteste do QA. |
+| Merge da develop (`9d0e4a9`) | conforme | `git merge-tree --write-tree e3b9fa4 9cc84d3` dá a árvore `1a420ab`, que é a mesma do merge. Não houve resolução manual, e `git show --cc` sai vazio. Nas duas pontas, `complementares.spec.ts` recebe as contagens do lote 3 (65, 33, 14) e o `esperarPronto` do 041 sem conflito. `MaisMetricas.tsx` (`scroll-mt-72`) e `secao.test.tsx` chegam da develop como estão. |
+| Ajuste ao `esperarPronto` (`0e78a55`) | conforme | Troca as 2 chamadas restantes de `esperarCartoesProntos` em `operacional-lote3.spec.ts`. `git grep esperarCartoesProntos 0e78a55 -- e2e web` não acha mais nada, então o spec do lote 3 não ficou chamando um helper que a develop removeu. |
+| A4 (E2E nas contagens) | resolvido | `adc93fa` (QA): 65 métricas, 33 complementares e "14 de 14" em `complementares.spec.ts`, `intensivo-sistemico.spec.ts`, `lacuna-de-valor.spec.ts` e `preferencias.spec.ts`, mais o selo fictício de O22 e O26 e os pares do "Leia junto". |
+| Regras invioláveis | conforme | Nada mistura BusinessMap e Acelerato, e não entra visão por pessoa. O filtro novo do CT-63 (`sustentacao-no-operacional-qa.spec.ts`) só tira da varredura de pessoa a expressão "trocas de responsável", que é o nome do O26, e tem comentário. A varredura continua com o guarda de texto mínimo (mais de 500 caracteres). O mínimo de 20 não é tocado. |
+| Commits | conforme, com nota | São Conventional Commits em português. O `e3b9fa4` não traz a linha `Cartão: K-111`, mas os outros trazem. Fica como nota, sem achado: não pede reescrita de histórico já enviado. |
+
+**Achados anteriores:** A1 a A3 e A5 a A8 continuam resolvidos (o delta não toca neles). O A4 agora está resolvido (`adc93fa`). O A9 continua aceito como está. A10 e A11 foram tratados pela UX (A10 na opção A, A11 no texto do O21 e do T13). A12 e A13 continuam recomendados para a UX e não devolvem a entrega.
+
+**Teto (M14):** a recontagem `git diff --shortstat --no-renames origin/develop...HEAD`, sem `.md` (origin/develop = `9cc84d3`), deu **2.521 linhas** (2.437 a mais e 84 a menos). O aumento vem das E2E do QA (A4) e da volta do L3-001. A exceção continua aceita, e a linha do PR passa a ser `teto: excedido, 2521 linhas, lote 3 indivisível: 7 cartões e o O23 sobre o mesmo catálogo e as mesmas contagens`.
 
 ## Revalidação (E1.4, depois da UX): 78c6fcb..dd9a91d
 
@@ -110,4 +130,4 @@ Há um commit em Conventional Commits em português, com `Cartão: K-111` e as l
 
 ## Volta
 
-O `react-frontend` corrige A1 a A3 em commit novo `fix(...)` na mesma branch, e A5 a A8 se couberem. O `qa-engineer` atualiza as E2E do A4 no E1.3. A9 e A10 vão para a revisão de UX (E1.2). A revalidação sai por `forge-check delta --parecer docs/reviews/026-lote3-operacionais.md`. Ela foi feita no E1.4 (seção "Revalidação", acima), e a situação de A1 a A3 e A5 a A8 está lá: resolvidos.
+O `react-frontend` corrige A1 a A3 em commit novo `fix(...)` na mesma branch, e A5 a A8 se couberem. O `qa-engineer` atualiza as E2E do A4 no E1.3. A9 e A10 vão para a revisão de UX (E1.2). A revalidação sai por `forge-check delta --parecer docs/reviews/026-lote3-operacionais.md`. Ela foi feita no E1.4 (seção "Revalidação", acima), e a situação de A1 a A3 e A5 a A8 está lá: resolvidos. O A4 foi resolvido pelo QA em `adc93fa` (seção "Re-review", acima).
