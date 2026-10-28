@@ -22,7 +22,7 @@ test.describe('L3-01 presença e acessibilidade', () => {
     test(`L3-01 os 7 cartões e o bloco O23 aparecem e passam no axe AA a ${largura} px`, async ({ page, painel, problemas }) => {
       await page.setViewportSize({ width: largura, height: 812 })
       await abrir(page, ROTA)
-      await painel.esperarCartoesProntos()
+      await painel.esperarPronto()
       for (const id of IDS) {
         const c = page.getByTestId(`metrica-${id}`)
         await expect(c, id).toBeVisible()
@@ -38,7 +38,7 @@ test.describe('L3-01 presença e acessibilidade', () => {
 
 test('L3-01b O23 é bloco do O2 na visão diária (não é cartão), com destaque textual e axe AA', async ({ page, painel }) => {
   await painel.ir('/operacional?cadencia=diaria')
-  await painel.esperarCartoesProntos()
+  await painel.esperarPronto()
   const bloco = page.getByTestId('o23-parados')
   await expect(bloco).toBeVisible()
   await expect(page.getByTestId('metrica-O2').getByTestId('o23-parados')).toHaveCount(1)
