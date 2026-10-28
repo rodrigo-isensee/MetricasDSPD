@@ -53,7 +53,8 @@ describe('perfil /preferencias', () => {
     expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
       '12 de 12 do núcleo e 14 de 14 complementares visíveis',
     )
-    expect(screen.getByRole('button', { name: 'Restaurar padrão' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Restaurar padrão' })).toBeEnabled()
+    expect(screen.queryByText('Aplicar sugestão do meu papel')).not.toBeInTheDocument()
   })
 
   it('desmarcar aplica na hora, grava no navegador e anuncia "Salvo neste navegador"', async () => {
@@ -68,34 +69,6 @@ describe('perfil /preferencias', () => {
     expect(guardado().paineis.operacional?.ocultar).toEqual(['o9'])
     await u.click(within(grupo).getByRole('checkbox', { name: /O9 Os três relógios/ }))
     expect(guardado().paineis.operacional?.ocultar).toEqual([])
-  })
-
-  it('"Aplicar sugestão do meu papel" só marca caixas e não grava o papel', async () => {
-    const u = userEvent.setup()
-    renderizarApp('/preferencias')
-    await screen.findByTestId('grupo-operacional')
-    await u.click(screen.getByRole('button', { name: 'Aplicar sugestão do papel Gerente' }))
-    expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
-      '0 de 12 do núcleo e 0 de 14 complementares visíveis',
-    )
-    expect(screen.getByTestId('contador-tatico')).toHaveTextContent(
-      '8 de 8 do núcleo e 7 de 7 complementares visíveis',
-    )
-    expect(screen.getByTestId('contador-estrategico')).toHaveTextContent(
-      '4 de 4 do núcleo e 6 de 6 complementares visíveis',
-    )
-    expect(screen.getByTestId('contador-sustentacao')).toHaveTextContent(
-      '0 de 8 do núcleo e 0 de 6 complementares visíveis',
-    )
-    expect(JSON.stringify(guardado())).not.toMatch(/gerente|papel/i)
-    await u.click(screen.getByRole('button', { name: 'Aplicar sugestão do papel Time' }))
-    expect(screen.getByTestId('contador-operacional')).toHaveTextContent(
-      '12 de 12 do núcleo e 14 de 14 complementares visíveis',
-    )
-    await u.click(screen.getByRole('button', { name: 'Aplicar sugestão do papel Coordenador' }))
-    expect(screen.getByTestId('contador-tatico')).toHaveTextContent(
-      '8 de 8 do núcleo e 7 de 7 complementares visíveis',
-    )
   })
 
   it('"Restaurar padrão" pede confirmação nomeando as métricas; cancelar não muda nada', async () => {
@@ -118,6 +91,29 @@ describe('perfil /preferencias', () => {
       '12 de 12 do núcleo e 14 de 14 complementares visíveis',
     )
     expect(guardado().paineis).toEqual({})
+  })
+
+  it('depois de restaurar, "Desfazer" devolve os ocultos, leva o foco e não tem prazo', async () => {
+    const u = userEvent.setup()
+    guardar({ operacional: ['o9'], tatico: ['t5'] })
+    renderizarApp('/preferencias')
+    await screen.findByTestId('grupo-operacional')
+    await u.click(screen.getByRole('button', { name: 'Restaurar padrão' }))
+    await u.click(await screen.findByRole('button', { name: 'Restaurar' }))
+    const desfazer = await screen.findByRole('button', { name: 'Desfazer' })
+    await waitFor(() => expect(desfazer).toHaveFocus())
+    expect(screen.getByTestId('restauracao')).toHaveTextContent(
+      'Padrão restaurado: 2 métricas voltaram a aparecer.',
+    )
+    await new Promise((r) => setTimeout(r, 300))
+    expect(screen.getByRole('button', { name: 'Desfazer' })).toBeInTheDocument()
+    await u.click(desfazer)
+    expect(guardado().paineis.operacional?.ocultar).toEqual(['o9'])
+    expect(guardado().paineis.tatico?.ocultar).toEqual(['t5'])
+    expect(screen.queryByRole('button', { name: 'Desfazer' })).not.toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Restaurar padrão' })).toHaveFocus(),
+    )
   })
 
   it('com uma só métrica oculta, a confirmação fala no singular', async () => {

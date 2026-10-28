@@ -1,10 +1,8 @@
 import { Dialog } from 'radix-ui'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   PAINEIS_COM_CARTOES,
-  PAPEIS,
   ROTULO_PAINEL,
-  ROTULO_PAPEL,
   cartoesDoPainel,
   type PainelComCartoes,
 } from '@metricas-dspd/contratos'
@@ -81,39 +79,98 @@ function GrupoPainel({ painel }: { painel: PainelComCartoes }) {
 }
 
 function RestaurarPadrao({ ocultos }: { ocultos: readonly string[] }) {
-  const { restaurarPadrao } = usePreferencias()
+  const {
+    restaurarPadrao,
+    podeDesfazerRestauracao,
+    restauradas,
+    desfazerRestauracao,
+    dispensarDesfazer,
+  } = usePreferencias()
   const [aberto, setAberto] = useState(false)
+  const gatilho = useRef<HTMLButtonElement>(null)
+  const desfazer = useRef<HTMLButtonElement>(null)
+  const [anuncio, setAnuncio] = useState('')
+  const confirmou = useRef(false)
+  const [focarDepois, setFocarDepois] = useState(false)
+  // Depois de confirmar o foco vai ao "Desfazer" (ou ao gatilho, se nada foi restaurado).
+  useEffect(() => {
+    if (!focarDepois) return
+    ;(desfazer.current ?? gatilho.current)?.focus()
+    setFocarDepois(false)
+  }, [focarDepois, podeDesfazerRestauracao])
+  const sair = (aoFechar: () => void) => {
+    aoFechar()
+    // O botão que tinha o foco some: o foco volta ao "Restaurar padrão".
+    setTimeout(() => gatilho.current?.focus(), 0)
+  }
   return (
-    <Dialog.Root open={aberto} onOpenChange={setAberto}>
-      <Dialog.Trigger asChild>
-        <Botao disabled={ocultos.length === 0}>Restaurar padrão</Botao>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(28rem,92vw)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-borda-controle bg-superficie p-4 shadow-xl">
-          <Dialog.Title className="text-lg font-bold">Restaurar o padrão?</Dialog.Title>
-          <Dialog.Description className="mt-2 text-sm">
-            {ocultos.length === 1 ? 'A métrica oculta' : `As ${ocultos.length} métricas ocultas`} (
-            {ocultos.join(', ')}) {ocultos.length === 1 ? 'volta' : 'voltam'} a aparecer em todos os
-            painéis e a seção "Mais métricas deste painel" volta a abrir.
-          </Dialog.Description>
-          <div className="mt-4 flex justify-end gap-2">
-            <Dialog.Close asChild>
-              <Botao>Cancelar</Botao>
-            </Dialog.Close>
-            <Botao
-              variante="primario"
-              onClick={() => {
-                restaurarPadrao()
-                setAberto(false)
-              }}
-            >
-              Restaurar
+    <>
+      <Dialog.Root open={aberto} onOpenChange={setAberto}>
+        <Dialog.Trigger asChild>
+          <Botao ref={gatilho}>Restaurar padrão</Botao>
+        </Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
+          <Dialog.Content
+            onCloseAutoFocus={(e) => {
+              if (!confirmou.current) return
+              confirmou.current = false
+              e.preventDefault()
+            }}
+            className="fixed left-1/2 top-1/2 z-50 w-[min(28rem,92vw)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-borda-controle bg-superficie p-4 shadow-xl"
+          >
+            <Dialog.Title className="text-lg font-bold">Restaurar o padrão?</Dialog.Title>
+            <Dialog.Description className="mt-2 text-sm">
+              {ocultos.length === 0
+                ? 'Nenhuma métrica está oculta no seu padrão. Os painéis seguem como estão.'
+                : `${ocultos.length === 1 ? 'A métrica oculta' : `As ${ocultos.length} métricas ocultas`} (${ocultos.join(', ')}) ${ocultos.length === 1 ? 'volta' : 'voltam'} a aparecer em todos os painéis e a seção "Mais métricas deste painel" volta a abrir.`}
+              {ocultos.length > 0 && ' Dá para desfazer logo depois.'}
+            </Dialog.Description>
+            <div className="mt-4 flex justify-end gap-2">
+              <Dialog.Close asChild>
+                <Botao>Cancelar</Botao>
+              </Dialog.Close>
+              <Botao
+                variante="primario"
+                onClick={() => {
+                  restaurarPadrao()
+                  setAnuncio(
+                    ocultos.length === 0
+                      ? 'Nada a restaurar.'
+                      : `Padrão restaurado: ${ocultos.length} ${ocultos.length === 1 ? 'métrica voltou' : 'métricas voltaram'} a aparecer.`,
+                  )
+                  setAberto(false)
+                  confirmou.current = true
+                  setFocarDepois(true)
+                }}
+              >
+                Restaurar
+              </Botao>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex items-center gap-2 text-sm"
+        data-testid="restauracao"
+      >
+        {podeDesfazerRestauracao && (
+          <>
+            <span>
+              Padrão restaurado: {restauradas}{' '}
+              {restauradas === 1 ? 'métrica voltou' : 'métricas voltaram'} a aparecer.
+            </span>
+            <Botao ref={desfazer} onClick={() => sair(desfazerRestauracao)}>
+              Desfazer
             </Botao>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+            <Botao onClick={() => sair(dispensarDesfazer)}>Dispensar</Botao>
+          </>
+        )}
+        {!podeDesfazerRestauracao && <span className="sr-only">{anuncio}</span>}
+      </div>
+    </>
   )
 }
 
@@ -148,29 +205,6 @@ export default function PreferenciasPage() {
         </div>
       ) : (
         <>
-          <section
-            aria-labelledby="sugestao-titulo"
-            className="flex flex-col gap-2 rounded-lg border border-borda bg-superficie p-4"
-          >
-            <h2 id="sugestao-titulo" className="text-base font-bold">
-              Aplicar sugestão do meu papel
-            </h2>
-            <p className="text-sm text-texto-2">
-              Atalho opcional: marca as caixas dos painéis do papel e você ajusta depois. O papel
-              não é gravado. Por padrão, todas as métricas aparecem.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {PAPEIS.map((p) => (
-                <Botao
-                  key={p}
-                  aria-label={`Aplicar sugestão do papel ${ROTULO_PAPEL[p]}`}
-                  onClick={() => prefs.aplicarSugestao(p)}
-                >
-                  {ROTULO_PAPEL[p]}
-                </Botao>
-              ))}
-            </div>
-          </section>
           <section
             aria-labelledby="marcadores-titulo"
             className="flex flex-col gap-2 rounded-lg border border-borda bg-superficie p-4"

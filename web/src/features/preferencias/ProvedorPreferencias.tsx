@@ -12,16 +12,10 @@ import {
   PAINEIS_COM_CARTOES,
   PREFERENCIAS_PADRAO,
   type CartaoId,
-  type Papel,
   type PainelComCartoes,
   type PreferenciasMetricas,
 } from '@metricas-dspd/contratos'
-import {
-  ErroVersaoMaisNova,
-  ocultosDaSugestao,
-  ocultosValidos,
-  type FontePreferencias,
-} from './fonte'
+import { ErroVersaoMaisNova, ocultosValidos, type FontePreferencias } from './fonte'
 
 /** Opção do aparelho (como o tema): ligar ou desligar os marcadores de métrica oculta. Padrão: ligados (U2). */
 export const CHAVE_MARCADORES = 'metricas-dspd:marcadores-ocultas'
@@ -46,8 +40,13 @@ export interface PreferenciasValor {
   /** Ocultos na visita atual: o ajuste feito no painel, ou o perfil se não houve ajuste. */
   ocultosNaVisita: (painel: PainelComCartoes) => readonly CartaoId[]
   definirSalvos: (painel: PainelComCartoes, ocultos: readonly CartaoId[]) => void
-  aplicarSugestao: (papel: Papel) => void
   restaurarPadrao: () => void
+  /** Há uma restauração em massa a desfazer (sem prazo: vale até a pessoa dispensar ou sair da sessão). */
+  podeDesfazerRestauracao: boolean
+  /** Quantas métricas a última restauração em massa trouxe de volta. */
+  restauradas: number
+  desfazerRestauracao: () => void
+  dispensarDesfazer: () => void
   /** Marcadores de métrica oculta no lugar do cartão (U2). */
   marcadores: boolean
   definirMarcadores: (ligados: boolean) => void
@@ -84,6 +83,9 @@ export function ProvedorPreferencias({
   const [abertas, setAbertas] = useState<Partial<Record<PainelComCartoes, boolean>>>({})
   const [marcadores, setMarcadores] = useState(lerMarcadores)
   const atual = useRef(prefs)
+  // Retrato do perfil antes de "Restaurar padrão": o desfazer o devolve, sem prazo.
+  const [antes, setAntes] = useState<PreferenciasMetricas['paineis'] | null>(null)
+  const [restauradas, setRestauradas] = useState(0)
 
   useEffect(() => {
     let vivo = true
@@ -138,17 +140,27 @@ export function ProvedorPreferencias({
       ocultosNaVisita: (p) => visita[p] ?? salvos(p),
       definirSalvos: (p, ocultos) =>
         gravar({ ...atual.current.paineis, [p]: { ocultar: ocultosValidos(p, ocultos) } }),
-      aplicarSugestao: (papel) => {
-        const o = ocultosDaSugestao(papel)
-        gravar(Object.fromEntries(Object.entries(o).map(([p, ocultar]) => [p, { ocultar }])))
-        setVisita({})
-      },
       // "Mostrar tudo" inclui os complementares: a seção abre na visita (D-4), sem entrar no perfil.
       restaurarPadrao: () => {
+        const paineis = atual.current.paineis
+        setAntes(paineis)
+        setRestauradas(
+          PAINEIS_COM_CARTOES.reduce(
+            (n, p) => n + ocultosValidos(p, paineis[p]?.ocultar).length,
+            0,
+          ),
+        )
         gravar({})
         setVisita({})
         setAbertas(Object.fromEntries(PAINEIS_COM_CARTOES.map((p) => [p, true])))
       },
+      podeDesfazerRestauracao: antes !== null,
+      restauradas,
+      desfazerRestauracao: () => {
+        if (antes) gravar(antes)
+        setAntes(null)
+      },
+      dispensarDesfazer: () => setAntes(null),
       marcadores,
       definirMarcadores,
       secaoAberta: (p) => abertas[p] ?? false,
@@ -166,6 +178,8 @@ export function ProvedorPreferencias({
     estadoSalvar,
     visita,
     abertas,
+    antes,
+    restauradas,
     marcadores,
     definirMarcadores,
     fonte.origem,

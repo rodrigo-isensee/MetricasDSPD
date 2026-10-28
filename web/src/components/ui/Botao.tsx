@@ -1,9 +1,9 @@
 import clsx from 'clsx'
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 
 type Variante = 'primario' | 'secundario' | 'fantasma'
 
-interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface Props extends ComponentProps<'button'> {
   variante?: Variante
   children: ReactNode
 }
