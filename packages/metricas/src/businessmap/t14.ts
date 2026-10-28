@@ -118,7 +118,7 @@ export function calcularT14(
         outrosTimes: l.n - l.k,
         semTime: l.semTime,
       })),
-      // Q-T14-12 = B (suposição até a resposta do dono): ocultos depois dos visíveis, por código, nunca por total.
+      // Q-T14-12 = B, decidida pelo usuário (2026-10-28): ocultos depois dos visíveis, por código, nunca por total.
       ...ordenarNeutro(ocultos, (l) => [l.p.card.card_id]).map((l): ProjetoT14 => ({
         oculto: true,
         projetoId: l.p.card.card_id,
