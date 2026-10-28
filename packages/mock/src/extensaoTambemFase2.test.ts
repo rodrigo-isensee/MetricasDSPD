@@ -240,6 +240,20 @@ describe('ALVO DO E8: concentração de conhecimento', () => {
 
 describe('ALVO DO T14: participação do meu time', () => {
   const equipes = base.bm.config.equipes
+  const slugDe = (n: string) =>
+    n
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+  const projetoDeCard = (c: (typeof base.bm.cards)[number]): string | null => {
+    let atual: (typeof base.bm.cards)[number] | undefined = c
+    for (let i = 0; i < 4 && atual; i++) {
+      if (atual.granularidade === 'projeto') return atual.card_id
+      atual = atual.card_pai ? cardPorId.get(atual.card_pai) : undefined
+    }
+    return null
+  }
   const meu = (nome: string): FiltrosFluxo => ({
     ...F,
     equipe: [
@@ -267,6 +281,7 @@ describe('ALVO DO T14: participação do meu time', () => {
           const projeto = cardPorId.get(p.projetoId)
           return (
             g.granularidade === 'story' &&
+            !p.oculto &&
             e.sistemas.includes(projeto?.sistema ?? '') &&
             p.meuTime.k === 0 &&
             p.meuTime.n > 0
@@ -280,7 +295,8 @@ describe('ALVO DO T14: participação do meu time', () => {
     const achou = equipes.some((e) =>
       r(e.nome).porGranularidade.some(
         (g) =>
-          g.granularidade === 'story' && g.projetos.some((p) => p.total >= 20 && p.meuTime.n < 20),
+          g.granularidade === 'story' &&
+          g.projetos.some((p) => !p.oculto && p.total >= 20 && p.meuTime.n < 20),
       ),
     )
     expect(achou).toBe(true)
@@ -293,11 +309,32 @@ describe('ALVO DO T14: participação do meu time', () => {
     const nomes = new Set(equipes.map((e) => e.nome))
     for (const v of valores) if (v !== null) expect(nomes.has(v as string)).toBe(true)
   })
-  it('R-1 = B: há projeto com cards de outros times e "outros times" oculto, e projetos com ele publicado', () => {
+  it('R-1 = B e K-130: há projeto oculto com cards de outros times (só k na linha) e projetos com "outros times" publicado', () => {
     const todos = equipes.flatMap((e) => r(e.nome).porGranularidade.flatMap((g) => g.projetos))
-    expect(todos.some((p) => p.outrosTimes === null && p.meuTime.n - p.meuTime.k >= 2)).toBe(true)
-    expect(todos.some((p) => typeof p.outrosTimes === 'number')).toBe(true)
-    // outros com 0 ou 1 card nunca são publicados (menos de 2 pessoas): o booleano nasce falso
-    for (const p of todos) if (p.meuTime.n - p.meuTime.k < 2) expect(p.outrosTimes).toBeNull()
+    expect(todos.some((p) => p.oculto)).toBe(true)
+    expect(todos.some((p) => !p.oculto && typeof p.outrosTimes === 'number')).toBe(true)
+    // o oculto nunca é dedutível: só k (o n e o total do projeto não saem)
+    for (const p of todos) if (p.oculto) expect(Object.keys(p.meuTime)).toEqual(['k'])
+    // pelo menos um oculto tem card de outro time (não só falta de cards): o caso que o K-130 protege
+    const comOutro = equipes.some((e) => {
+      const x = r(e.nome)
+      const meuSlug = x.equipe === null ? '' : slugDe(x.equipe)
+      return x.porGranularidade.some((g) =>
+        g.projetos.some(
+          (p) =>
+            p.oculto &&
+            base.bm.cards.some((c) => {
+              const v = ext.equipeResponsavel[c.card_id]
+              return (
+                c.granularidade === g.granularidade &&
+                projetoDeCard(c) === p.projetoId &&
+                typeof v === 'string' &&
+                slugDe(v) !== meuSlug
+              )
+            }),
+        ),
+      )
+    })
+    expect(comOutro).toBe(true)
   })
 })
