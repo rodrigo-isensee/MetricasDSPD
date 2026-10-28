@@ -29,8 +29,8 @@ describe('extensão do 011, fase 2: hash por campo e determinismo', () => {
     expect(hashJson(ext.vinculos)).toBe('027c2361')
     expect(hashJson(ext.datasProjeto)).toBe('c09a7436')
     expect(hashJson(ext.conhecimentoSistema)).toBe('2356c445')
-    expect(hashJson(ext.equipeResponsavel)).toBe('05fe183b')
-    expect(hashJson(ext.outrosPublicavel)).toBe('12db0950')
+    expect(hashJson(ext.equipeResponsavel)).toBe('8eac5ab5')
+    expect(hashJson(ext.outrosPublicavel)).toBe('0e099f62')
     expect(hashJson(ext.configEquipes)).toBe('60361425')
   })
 
@@ -273,6 +273,19 @@ describe('ALVO DO T14: participação do meu time', () => {
       expect(x.porGranularidade[0]?.projetos.length).toBeGreaterThan(0)
       expect(SCHEMAS_RESULTADO.T14.safeParse(x).success).toBe(true)
     }
+  })
+  it('com menos de 3 equipes não há equipe de 1 membro: nenhum card é reatribuído e o booleano segue sendo só booleano (K-112)', () => {
+    const pequena = {
+      ...base,
+      bm: { ...base.bm, config: { ...base.bm.config, equipes: equipes.slice(0, 2) } },
+    }
+    const e = gerarExtensaoTambemMock(pequena)
+    const valores = Object.values(e.outrosPublicavel)
+    expect(valores.length).toBeGreaterThan(100)
+    expect(valores.every((v) => typeof v === 'boolean')).toBe(true)
+    expect(valores.some((v) => v)).toBe(true)
+    // sem equipe solo não há projeto reatribuído: o mapa de times difere do da base completa, que reatribui o projeto alvo
+    expect(hashJson(e.equipeResponsavel)).not.toBe(hashJson(ext.equipeResponsavel))
   })
   it('Q-T14-5 = D: existe um projeto ligado a um sistema do time com 0% de atuação', () => {
     const achou = equipes.some((e) =>

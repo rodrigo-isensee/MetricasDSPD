@@ -706,8 +706,10 @@ describe('K-130: o projeto com "outros times" oculto não deixa deduzir n - k (T
                 ? []
                 : JSON.stringify(story(r)) + JSON.stringify(r.base)
             }
+            // projeto sem nenhum card (total 0) não é listado por regra (t14.ts: total === 0): fora do domínio da propriedade
+            fc.pre(k + v1 + s1 > 0 && k + v2 + s2 > 0)
             // a base do projeto oculto fica fora da soma: a base é 0 nos dois casos
-            expect(rodar(v1, s1)).toBe(rodar(v2, s2))
+            expect(rodar(v1, s1)).toEqual(rodar(v2, s2))
           },
         ),
         { numRuns: 60 },
