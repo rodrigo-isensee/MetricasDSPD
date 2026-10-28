@@ -4,6 +4,8 @@ name: Homologação aprovada
 # verde (a rodada noturna é informativa por enquanto: EXIGIR_NOTURNA em aprovacao.ts), lido das EXECUÇÕES do
 # workflow homolog.yml, não de status de commit. `hotfix/*` exige saída da ponta da main, poucos commits e o CI completo verde. Não substitui a aprovação
 # do usuário. Depois do CI do hotfix (ou da noturna, se religada), reexecute este check.
+# Corrida (K-108): sem espera paga. O check avalia o estado atual do portão; se ele ainda roda, falha com
+# "portão ainda não terminou", e o fim do portão reexecuta este check (homolog-reavalia.yml). Critério inalterado.
 # A regra vem do código da BASE do PR (main), nunca da branch candidata.
 on:
   pull_request:
@@ -32,10 +34,24 @@ jobs:
           SHA_CANDIDATO: ${{ github.event.pull_request.head.sha }}
           BRANCH_ORIGEM: ${{ github.event.pull_request.head.ref }}
           REPO_ORIGEM: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO_BASE: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Primeira release: a regra ainda não existe na main. A base não é controlável pelo candidato.
           if [ ! -f tools/homolog/src/main.ts ]; then
             echo '::warning::A regra de homolog-aprovada ainda não está na main (primeira release): conferência manual do usuário.'
             exit 0
           fi
-          node tools/homolog/src/main.ts aprovacao --sha "$SHA_CANDIDATO" --origem "$BRANCH_ORIGEM" --repo-origem "$REPO_ORIGEM"
+          # Sem espera: avalia o estado atual do portão do mesmo sha. Em curso ou ainda não listado = falha com
+          # mensagem clara; o fim do portão reexecuta este check (homolog-reavalia.yml), então nada fica perdido.
+          if node tools/homolog/src/main.ts aprovacao --sha "$SHA_CANDIDATO" --origem "$BRANCH_ORIGEM" --repo-origem "$REPO_ORIGEM"; then
+            exit 0
+          fi
+          em_curso="$(gh api "repos/$REPO_BASE/actions/workflows/homolog.yml/runs?head_sha=$SHA_CANDIDATO&event=push&per_page=20" \
+            --jq '[.workflow_runs[] | select(.status != "completed")] | length')"
+          if [ "$em_curso" -gt 0 ]; then
+            echo "::error::Portão ainda não terminou para $SHA_CANDIDATO ($em_curso execução em curso): este check será reexecutado sozinho quando ele terminar."
+          else
+            echo "::error::Sem portão verde concluído para $SHA_CANDIDATO. Se o portão ainda não terminou (ou não foi listado), este check é reexecutado sozinho no fim dele."
+          fi
+          exit 1
