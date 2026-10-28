@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: docs/048-t14-desenho
-commit: 33b5eb99862aa876ed565237ba46cccb29a23bbc
+commit: 3c9f6a42fd782d1a36a36a779b4cb49bb42a1a1d
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-10-28
@@ -32,10 +32,10 @@ Aba de rede, soma e ordem (Q-T14-12 = B): o projeto oculto não traz `n`, `total
 
 ## Achados
 - A1 (recomendado) packages/mock/src/businessmap/membrosSimulados.ts:48 · a contagem de pessoas está em packages/mock; na fase 3 ela deve ir para packages/metricas/src/coletor, só importável do módulo de coleta, com lint de import e teste de bundle (C2)
-- A2 (recomendado) packages/mock/src/businessmap/extensaoTambemFase2.ts:379 · o mapa outrosPublicavel traz um booleano por projeto, equipe e granularidade para todas as equipes; no mock é sintético e aceitável, na fase 3 a API deve receber só o booleano da equipe do filtro
+- A2 (recomendado) packages/mock/src/businessmap/extensaoTambemFase2.ts:373 · o mapa outrosPublicavel traz um booleano por projeto, equipe e granularidade para todas as equipes; no mock é sintético e aceitável, na fase 3 a API deve receber só o booleano da equipe do filtro
 
 ## Perguntas
-Nenhuma. A pergunta 2 do modelo de ameaças (membro em mais de um time) segue como suposição registrada em `regras.ts` e não bloqueia o mock.
+- PERGUNTA: no cadastro de membros, um membro pode estar em mais de um time? Isso muda a regra de "menos de 2 pessoas" em "outros times" (a mesma pessoa em dois times) e o controle C2. Segue aberta com o dono; o código a trata como suposição em `packages/metricas/src/core/regras.ts:698` (no mock cada membro simulado fica num time só; a fase 3 conta ids distintos), sem decisão por inferência e sem bloquear o mock. O commit 3c9f6a4 só mexe em texto (comentário de `t14.ts` e `docs/api/metricas.md`) e não muda o que este parecer avaliou.
 
 ## Riscos aceitos
 Nenhum pedido.
