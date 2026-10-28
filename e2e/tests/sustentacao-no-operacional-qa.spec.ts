@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import type { Download, Page } from '@playwright/test'
 import { test, expect, rodarAxe } from '../fixtures/base'
+import { PainelPage } from '../pages/PainelPage'
 
 // QA da Sustentação no Operacional (docs/qa/sustentacao-no-operacional-plano.md, casos "a escrever (QA)").
 // Complementa `sustentacao-no-operacional.spec.ts` (um teste por CA, dos autores): aqui ficam teclado, abuso do
@@ -16,16 +17,6 @@ const VISOES = [
 
 const grupoVisao = (page: Page) => page.getByRole('radiogroup', { name: 'Visão' })
 const busca = (page: Page) => new URL(page.url()).searchParams
-const aguardar = async (page: Page) => {
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 30_000 })
-}
-const aguardarResumo = async (page: Page) => {
-  await aguardar(page)
-  await expect(page.getByTestId('tendencia-fluxo')).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByTestId('tendencia-sustentacao')).toBeVisible({ timeout: 30_000 })
-  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0)
-}
 const perfil = (ocultar: Record<string, string[]>) =>
   JSON.stringify({
     versao: 1,
@@ -53,7 +44,7 @@ test.describe('CT-03 teclado no seletor de visão', () => {
     painel,
   }) => {
     await painel.ir('/operacional')
-    await aguardarResumo(page)
+    await new PainelPage(page).esperarPronto({ resumo: true })
     // Tab real: percorre a página até o grupo "Visão" receber o foco (no máximo 40 tabulações)
     let chegou = false
     for (let i = 0; i < 40 && !chegou; i++) {
@@ -101,7 +92,7 @@ test.describe('CT-10 e A8: valores inválidos na URL', () => {
     painel,
   }) => {
     await painel.ir('/operacional?cadencia=sustentacao&sust_prioridade=P9')
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     await expect(painel.filtros.invalidos).toContainText('Sustentação')
     await expect(painel.filtros.invalidos).toContainText(/p9/i)
     await expect.poll(() => busca(page).has('sust_prioridade')).toBe(false)
@@ -160,7 +151,7 @@ test.describe('CT-17 e CT-18: hashes sust-* e abuso do redirecionador', () => {
     page,
   }) => {
     await page.goto('/operacional?cadencia=sustentacao')
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     await page.getByTestId('mais-metricas').locator('summary').click()
     const ids = await page.locator('[id^="compl-sust-"]').evaluateAll((els) => els.map((e) => e.id))
     expect(ids.length, 'ids compl-sust-* encontrados').toBeGreaterThanOrEqual(3)
@@ -259,7 +250,7 @@ test.describe('CT-23 perfil do localStorage: antigo, novo, corrompido e versão 
     const lixo = '{"versao":1,"paineis":{'
     await guardarBruto(page, lixo)
     await page.goto('/operacional?cadencia=sustentacao')
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     await expect(page.getByTestId('metrica-S3')).toBeVisible()
     await expect(page.getByTestId('metrica-PV1')).toBeVisible()
     await expect(
@@ -279,7 +270,7 @@ test.describe('CT-23 perfil do localStorage: antigo, novo, corrompido e versão 
     })
     await guardarBruto(page, futuro)
     await page.goto('/operacional?cadencia=sustentacao')
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     await expect(page.getByTestId('metrica-S3')).toBeVisible()
     expect(await lerPrefs(page)).toBe(futuro)
     await page.goto('/preferencias')
@@ -301,7 +292,7 @@ test.describe('CT-23 perfil do localStorage: antigo, novo, corrompido e versão 
       }),
     )
     await page.goto('/operacional?cadencia=sustentacao')
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     await expect(page.getByTestId('metrica-S2')).toBeVisible()
   })
 })
@@ -341,7 +332,7 @@ test.describe('CT-25 e CT-63: conteúdo do arquivo exportado', () => {
       [PREFS, perfil({ sustentacao: ['s3', 'pv1'] })],
     )
     await painel.ir('/operacional?cadencia=sustentacao&sust_prioridade=p1')
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     await page.getByTestId('botao-exportar').click()
     const texto = await baixar(page)
     expect(texto).toContain('Fonte: Acelerato')
@@ -357,7 +348,7 @@ test.describe('CT-25 e CT-63: conteúdo do arquivo exportado', () => {
 
   test('Semanal: o PDF traz só o BusinessMap, sem nenhum código S*', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=semanal')
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     await page.getByTestId('botao-exportar').click()
     const texto = await baixar(page)
     expect(texto).toContain('Fonte: BusinessMap')
@@ -370,7 +361,7 @@ test.describe('CT-25 e CT-63: conteúdo do arquivo exportado', () => {
     painel,
   }) => {
     await painel.ir('/operacional')
-    await aguardarResumo(page)
+    await new PainelPage(page).esperarPronto({ resumo: true })
     await page.getByTestId('botao-exportar-personalizada').click()
     const texto = await baixar(page)
     const bm = texto.indexOf('Fonte: BusinessMap')
@@ -393,9 +384,9 @@ test.describe('CT-29 axe com Mais métricas aberto e com cartão oculto', () => 
       await page.setViewportSize({ width: largura, height: 900 })
       for (const url of ['/operacional?cadencia=sustentacao', '/operacional?cadencia=semanal']) {
         await painel.ir(url)
-        await aguardar(page)
+        await new PainelPage(page).esperarPronto()
         await page.getByTestId('mais-metricas').locator('summary').click()
-        await aguardar(page)
+        await new PainelPage(page).esperarPronto()
         const r = await rodarAxe(page)
         expect(r.bloqueantes, `${url} aberto @${largura}`).toEqual([])
       }
@@ -412,13 +403,13 @@ test.describe('CT-29 axe com Mais métricas aberto e com cartão oculto', () => 
       )
       for (const [visao, url] of VISOES) {
         await painel.ir(url)
-        if (visao === 'resumo') await aguardarResumo(page)
-        else await aguardar(page)
+        if (visao === 'resumo') await new PainelPage(page).esperarPronto({ resumo: true })
+        else await new PainelPage(page).esperarPronto()
         const r = await rodarAxe(page)
         expect(r.bloqueantes, `${visao} oculto @${largura}`).toEqual([])
       }
       await painel.ir('/operacional?cadencia=sustentacao')
-      await aguardar(page)
+      await new PainelPage(page).esperarPronto()
       await expect(page.getByTestId('metrica-S1')).toHaveCount(0)
       await expect(page.getByTestId('faixa-ocultas')).toContainText(
         '3 métricas ocultas: S1, S3, PV1',
@@ -486,8 +477,8 @@ test.describe('CT-32 zoom de 200% e reflow', () => {
       await page.setViewportSize({ width: largura, height: 900 })
       for (const [visao, url] of VISOES) {
         await painel.ir(url)
-        if (visao === 'resumo') await aguardarResumo(page)
-        else await aguardar(page)
+        if (visao === 'resumo') await new PainelPage(page).esperarPronto({ resumo: true })
+        else await new PainelPage(page).esperarPronto()
         const sobra = await page.evaluate(
           () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
         )
@@ -502,7 +493,7 @@ test.describe('CT-32 zoom de 200% e reflow', () => {
   }) => {
     await page.setViewportSize({ width: 375, height: 812 })
     await painel.ir('/operacional?cadencia=sustentacao')
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     await page.addStyleTag({ content: 'html { font-size: 200% !important; }' })
     const rotulos = grupoVisao(page).locator('label')
     await expect(rotulos).toHaveCount(4)
@@ -562,7 +553,7 @@ test.describe('CT-36 e CT-50 erro isolado', () => {
     painel,
   }) => {
     await painel.ir('/operacional', { mock: 'erro:o3' })
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     const erro = page.getByTestId('tendencia-fluxo-p85-erro')
     await expect(erro).toBeVisible({ timeout: 30_000 })
     await expect(erro.getByRole('button', { name: 'Tentar de novo' })).toBeVisible()
@@ -583,7 +574,7 @@ test.describe('CT-51 gráficos e tabela alternativa do Resumo', () => {
     }) => {
       await page.setViewportSize({ width: largura, height: 900 })
       await painel.ir('/operacional')
-      await aguardarResumo(page)
+      await new PainelPage(page).esperarPronto({ resumo: true })
       const graficos = page.locator('[role="img"][data-testid$="-grafico"]')
       expect(await graficos.count(), 'gráficos do Resumo').toBeGreaterThanOrEqual(3)
       for (const label of await graficos.evaluateAll((els) =>
@@ -636,12 +627,12 @@ test.describe('CT-63, CT-64, CT-65 regras invioláveis na tela', () => {
   }) => {
     for (const [visao, url] of VISOES) {
       await painel.ir(url)
-      if (visao === 'resumo') await aguardarResumo(page)
-      else await aguardar(page)
+      if (visao === 'resumo') await new PainelPage(page).esperarPronto({ resumo: true })
+      else await new PainelPage(page).esperarPronto()
       const mais = page.getByTestId('mais-metricas')
       if (await mais.count()) {
         await mais.locator('summary').click()
-        await aguardar(page)
+        await new PainelPage(page).esperarPronto()
       }
       // frases que negam ("Não é um ranking", "nunca em ranking") são a própria regra escrita na tela: ficam fora
       const texto = (await page.locator('body').innerText())
@@ -659,7 +650,7 @@ test.describe('CT-63, CT-64, CT-65 regras invioláveis na tela', () => {
     painel,
   }) => {
     await painel.ir('/operacional')
-    await aguardarResumo(page)
+    await new PainelPage(page).esperarPronto({ resumo: true })
     const fluxo = page.getByTestId('resumo-fluxo')
     const sust = page.getByTestId('resumo-sustentacao')
     await expect(fluxo.getByText(/Fonte: Acelerato/)).toHaveCount(0)
@@ -674,7 +665,7 @@ test.describe('CT-63, CT-64, CT-65 regras invioláveis na tela', () => {
         .count(),
     ).toBe(0)
     await painel.ir('/operacional?cadencia=semanal')
-    await aguardar(page)
+    await new PainelPage(page).esperarPronto()
     const leia = await page.getByTestId('leia-junto-o15').innerText()
     expect(leia).toContain('Acelerato')
     expect(leia.replace(/O17|O15|\b12\b|visão|fonte/gi, '')).not.toMatch(
@@ -693,7 +684,7 @@ test.describe('CT-63, CT-64, CT-65 regras invioláveis na tela', () => {
     })
     for (const [, url] of VISOES) {
       await painel.ir(url)
-      await aguardar(page)
+      await new PainelPage(page).esperarPronto()
     }
     expect(nao_get).toEqual([])
   })
@@ -707,7 +698,7 @@ test.describe('CT-45 a CT-44 data de referência na tendência (mock)', () => {
     painel,
   }) => {
     await painel.ir('/operacional')
-    await aguardarResumo(page)
+    await new PainelPage(page).esperarPronto({ resumo: true })
     await page.getByTestId('tendencia-fluxo-concluidos-alternar').click()
     const meses = await page
       .getByTestId('tendencia-fluxo-concluidos')

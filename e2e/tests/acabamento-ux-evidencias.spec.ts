@@ -1,9 +1,10 @@
 import { writeFile } from 'node:fs/promises';
 import { test, expect, rodarAxe } from '../fixtures/base';
+import { pastaEvidencias } from '../fixtures/evidencias';
 
 // QA do acabamento de UX (L-3 a L-8): screenshots do cartão PV1, axe em claro e escuro e contraste real da rampa azul.
 // Plano e parecer: docs/qa/acabamento-ux.md. Saída: docs/qa/evidencias/acabamento-ux/.
-const OUT = '../docs/qa/evidencias/acabamento-ux';
+const OUT = pastaEvidencias('acabamento-ux');
 const TELAS = [[1280, 800], [375, 812]] as const;
 const TEMAS = ['claro', 'escuro'] as const;
 
@@ -13,7 +14,7 @@ for (const [w, h] of TELAS) {
       await page.setViewportSize({ width: w, height: h });
       await page.addInitScript((tt) => localStorage.setItem('metricas-dspd:tema', tt), t);
       await painel.ir('/operacional?cadencia=sustentacao');
-      await painel.esperarCartoesProntos();
+      await painel.esperarPronto();
       const cartao = page.getByTestId('metrica-PV1');
       await expect(cartao.getByTestId('pv1-participacao')).toBeVisible();
       await expect(cartao).not.toHaveAttribute('aria-busy', 'true');

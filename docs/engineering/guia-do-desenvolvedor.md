@@ -41,13 +41,14 @@ Grafo permitido: `contratos ← metricas ← mock`; `web` importa `contratos`; `
 
 | Comando | Onde | O que faz |
 |---|---|---|
-| `pnpm run pronto` | raiz | lint + Prettier + `pronto` de cada workspace (typecheck + testes; no `web`, também build e `size`). **Rode antes de cada commit.** |
+| `pnpm run pronto` | raiz | lint + Prettier + `pronto` de cada workspace (typecheck, inclusive o do `e2e`, + testes; no `web`, também build e `size`). **Rode antes de cada commit.** |
 | `pnpm run spec:check` | raiz | conferência spec↔teste (`tools/spec-check`); também roda dentro do `pronto` e no job `testes` do CI. No-op (exit 0) enquanto não houver `docs/especificacao` e `siegard-trace.json` |
 | `pnpm run check` | raiz | lint + typecheck + testes + format:check |
 | `pnpm run gate` | `e2e/` | gate do autor: fronteiras BM x AC, hash da base mock e tamanho do bundle; termina em `GATE DO AUTOR: APROVADO\|REPROVADO`. Exige `pnpm run build` antes |
 | `pnpm run test:perf` | `e2e/` | projeto `perf` do Playwright (LCP, CLS, INP, troca de filtro, tarefas longas), contra `vite preview` |
 | `pnpm run lighthouse` | `e2e/` | Lighthouse desktop (Performance >= 90, Acessibilidade >= 95) |
-| `pnpm run e2e` / `pnpm run test:chromium` | raiz / `e2e/` | suíte E2E completa / só Chromium e semente alternativa |
+| `pnpm run test:e2e` (ou `pnpm run e2e`) / `pnpm run test:chromium` | raiz / `e2e/` | suíte E2E completa / só Chromium e semente alternativa. `pnpm test` da raiz não a dispara. Evidências vão para `e2e/evidencias-local/` (ignorada pelo git) |
+| `pnpm run test:evidencias-qa` | `e2e/` | E2E que grava as evidências na pasta versionada do QA; só em execução explícita de QA |
 | `pnpm run hash-base --salvar <arq>` | `e2e/` | regenera a referência da base mock (só com decisão registrada no cartão) |
 
 Testes unitários rodam com `TZ=UTC` (já nos scripts): nunca dependem do fuso nem da hora da máquina.

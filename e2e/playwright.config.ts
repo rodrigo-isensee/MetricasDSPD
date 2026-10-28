@@ -11,7 +11,12 @@ const CI = !!process.env.CI;
 const API_URL = process.env.E2E_API_URL;
 const PORTA_API = 4175;
 
+// Fora da CI o paralelismo é limitado (a máquina local cai sem memória com o padrão de núcleos/2 e um Chromium por worker).
+// E2E_WORKERS sobe o limite quando se quiser; na CI nada muda (o padrão do Playwright). `--workers` na linha de comando prevalece.
+const WORKERS_LOCAL = Number(process.env.E2E_WORKERS ?? 2);
+
 export default defineConfig({
+  workers: CI ? undefined : WORKERS_LOCAL,
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: CI,

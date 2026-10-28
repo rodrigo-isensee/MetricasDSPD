@@ -51,17 +51,27 @@ export class PainelPage {
     return ids.map((id) => id.replace(/^metrica-/, ''));
   }
 
-  /** Aguarda todos os cartões saírem de carregando/atualizando (sem `waitForTimeout`). */
-  async esperarCartoesProntos(): Promise<void> {
+  /**
+   * Helper único de "painel pronto": espera por estado (h1, `aguardando-coleta`, `aria-busy`, `estado-carregando-*`),
+   * nunca por tempo. Com `resumo`, espera também as duas tendências do resumo do Operacional.
+   */
+  async esperarPronto(opcoes: { resumo?: boolean } = {}): Promise<void> {
     const cartoes = this.page.locator('[data-testid^="metrica-"]');
+    const ocupados = this.page.locator('[aria-busy="true"]');
     // Fase 0: enquanto o estado de coleta e as preferências não chegam (o mock calcula no Worker, ADR 0021), o painel
     // mostra só o cabeçalho e o bloco reservado `aguardando-coleta`; os cartões ainda não existem no DOM.
-    await expect(this.page.getByTestId('aguardando-coleta')).toHaveCount(0);
+    await expect(this.page.getByTestId('aguardando-coleta')).toHaveCount(0, { timeout: 30_000 });
     // Fase A: rotas sem cartões (Visão geral e placeholders) só precisam do h1.
     await expect(cartoes.first().or(this.h1).first()).toBeVisible();
-    if ((await cartoes.count()) === 0) return;
-    await expect(this.page.locator('[data-testid^="metrica-"][aria-busy="true"]')).toHaveCount(0);
+    await expect(this.h1).toBeVisible();
+    await expect(ocupados).toHaveCount(0, { timeout: 30_000 });
     await expect(this.page.locator('[data-testid^="estado-carregando-"]')).toHaveCount(0);
+    await expect(this.page.locator('[data-testid^="metrica-"][data-estado="carregando"], [data-testid^="metrica-"][data-estado="atualizando"]')).toHaveCount(0, { timeout: 30_000 });
+    if (opcoes.resumo) {
+      await expect(this.page.getByTestId('tendencia-fluxo')).toBeVisible({ timeout: 30_000 });
+      await expect(this.page.getByTestId('tendencia-sustentacao')).toBeVisible({ timeout: 30_000 });
+      await expect(ocupados).toHaveCount(0);
+    }
   }
 
   /** Foco atual é o h1 (critério 4). */

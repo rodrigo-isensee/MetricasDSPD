@@ -27,6 +27,9 @@ describe('Mais métricas deste painel', () => {
       )
       const det = screen.getByTestId<HTMLDetailsElement>('mais-metricas')
       expect(det.open).toBe(false)
+      // Ao rolar até o resumo (clique, teclado), deixa 18 rem de contexto acima: o cartão do núcleo não fica sob o cabeçalho
+      // fixo, que cobriria seus alvos de toque (axe target-size, COMP-01 a 1280 px).
+      expect(resumo.closest('summary')).toHaveClass('scroll-mt-72')
       await waitFor(() => expect(spy).toHaveBeenCalled())
       for (const id of ids) expect(spy.mock.calls.some((c) => c[0] === id)).toBe(false)
       expect(screen.queryByTestId(`metrica-${ids[0]}`)).not.toBeInTheDocument()
