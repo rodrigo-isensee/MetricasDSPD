@@ -33,4 +33,4 @@ Detalhe do A1: destino o QA (E1.4), que confere que depois de `test:e2e` o `fuse
 
 Detalhe do A2: anotar na retro se uma espera longa confundir.
 
-Autoria: revisão feita pelo `forge:tech-lead`, instância que não implementou o cartão (a implementação foi do `forge:node-backend`, E1.1).
+Autoria: parecer gravado pelo `forge:tech-lead`, instância que não implementou o cartão (a implementação foi do `forge:node-backend`, E1.1).
