@@ -1,5 +1,10 @@
 import { FaixaAtencao, estadoFaixa, type ItemAtencao } from '@/components/ui'
 import { SecaoPainel } from '@/features/preferencias'
+import {
+  IndiceDeSecoes,
+  SECAO_MAIS_METRICAS,
+  type SecaoDoIndice,
+} from '@/features/operacional/IndiceDeSecoes'
 import { useMetrica } from '@/data'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
@@ -64,6 +69,14 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
   )
 }
 
+const SECOES: readonly SecaoDoIndice[] = [
+  ['publicado', 'Publicado', ['t2', 't1', 't5']],
+  ['fila', 'Fila', ['t4', 't3']],
+  ['projetos', 'Projetos', ['t9', 't7']],
+  ['espera-invisivel', 'Espera invisível', ['ei-fl2']],
+  SECAO_MAIS_METRICAS,
+]
+
 export default function TaticoPage() {
   return (
     <PainelFluxo
@@ -76,6 +89,7 @@ export default function TaticoPage() {
       {(filtros) => (
         <>
           <Atencao filtros={filtros} />
+          <IndiceDeSecoes secoes={SECOES} />
           <SecaoPainel
             cartoes={['t2', 't1', 't5']}
             id="publicado"

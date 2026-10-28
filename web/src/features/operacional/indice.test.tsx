@@ -22,3 +22,20 @@ describe('IndiceDeSecoes fora de um painel com preferências', () => {
     expect(screen.getByRole('navigation', { name: 'Ir para' })).toBeInTheDocument()
   })
 })
+
+describe('IndiceDeSecoes fixo', () => {
+  it('fica fixo, leva o foco ao título da seção e avisa quantas ocultas', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event')
+    render(
+      <div>
+        <IndiceDeSecoes secoes={[['prazos', 'Prazos', ['s2']]]} />
+        <section id="prazos">
+          <h2>Prazos</h2>
+        </section>
+      </div>,
+    )
+    expect(screen.getByTestId('indice-secoes').className).toContain('sticky')
+    await userEvent.click(screen.getByRole('link', { name: 'Prazos' }))
+    expect(screen.getByRole('heading', { name: 'Prazos' })).toHaveFocus()
+  })
+})

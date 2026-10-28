@@ -1,5 +1,10 @@
 import { FaixaAtencao, estadoFaixa, type ItemAtencao } from '@/components/ui'
 import { SecaoPainel } from '@/features/preferencias'
+import {
+  IndiceDeSecoes,
+  SECAO_MAIS_METRICAS,
+  type SecaoDoIndice,
+} from '@/features/operacional/IndiceDeSecoes'
 import { useMetrica } from '@/data'
 import { PainelFluxo } from '@/features/painel/PainelPagina'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
@@ -36,6 +41,13 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
   )
 }
 
+const SECOES: readonly SecaoDoIndice[] = [
+  ['prazo', 'Prazo', ['e1']],
+  ['apostas', 'Apostas', ['e2', 'e3']],
+  ['espera-invisivel', 'Espera invisível', ['ei-fl3']],
+  SECAO_MAIS_METRICAS,
+]
+
 export default function EstrategicoPage() {
   return (
     <PainelFluxo
@@ -48,6 +60,7 @@ export default function EstrategicoPage() {
       {(filtros) => (
         <>
           <Atencao filtros={filtros} />
+          <IndiceDeSecoes secoes={SECOES} />
           <SecaoPainel cartoes={['e1']} id="prazo" titulo="Quanto tempo leva decidir e entregar?">
             <CartaoE1 filtros={filtros} />
           </SecaoPainel>
