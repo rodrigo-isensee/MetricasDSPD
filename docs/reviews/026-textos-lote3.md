@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 026-front-do-011-lote3
 branch: docs/026-textos-lote3
-commit: 081d2f1f7850959f993e814d67491cf8ec9f87c0
+commit: d4ba797fe9101a3af5f947e34047fc9e666d5a0c
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-28
@@ -27,3 +27,6 @@ Delta lido: `git diff 8064502..081d2f1`, só a especificação (+3 -3), três li
 
 ## Itens sem achado
 Commits e padrão de mensagem conforme `praticas.md` §9 (`docs(...)`, `Cartão: K-154`, atribuição). Teto M14: só `.md`, fora da contagem. Sem decisão de código nem mecanismo novo (critério de reversão não se aplica). Pipeline e segurança: sem escopo.
+
+## Revalidação (head d4ba797)
+Revalidação: o parecer ficou desatualizado pela edição da linha 48 do arquivo de instruções do projeto na branch `docs/026-claude-md-enviada`, que não toca os textos do lote 3 (a especificação em `docs/ux/metricas-tambem-disponiveis/`). Delta lido: o diff de uma linha entre 4137981 e d4ba797; o restante já lido. Veredito mantido: aprovado.

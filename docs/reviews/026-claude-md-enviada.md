@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 026-front-do-011-lote3
 branch: docs/026-claude-md-enviada
-commit: 4137981e5333bee5b69f3c515b26c64d3a0b71c0
+commit: d4ba797fe9101a3af5f947e34047fc9e666d5a0c
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-28
@@ -20,3 +20,6 @@ Escopo: `git diff` da worktree sobre a develop 4137981 (só `CLAUDE.md`, linha 4
 
 ## Achados
 - A1 (recomendado) CLAUDE.md:48 · O texto liberar "o push da feature branch" não toca a `main`, mas a seção "A main é do usuário" continua valendo; nada a alterar, só observação. Não devolve.
+
+## Revalidação
+Revalidação sobre o head d4ba797: o parecer citava a base 4137981, sem a edição revisada. Delta lido: o diff da linha 48 entre 4137981 e d4ba797. Veredito mantido: aprovado.
