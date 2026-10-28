@@ -430,3 +430,9 @@
 | 2026-10-28 11:28 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-node-backend-1 | entrega | 1 | não cumpriu | n | Base-sha do brief velho (d55db80); a branch saiu de origin/develop d7c74b4 como o brief mandava; contra d7c74b4 só os 4 arquivos do Entregar | base | jarvis |
 | 2026-10-28 11:29 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-13 | brief | 2 | reprovado | s | brief dispensava o pronto antes do commit, contra a decisão de 2026-10-21 | decisao | jarvis |
 | 2026-10-28 11:30 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-13 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-28 11:31 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 11:32 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-security-engineer-1 | brief | 1 | aprovado | s | aviso informativo: teste do script x proibição de suíte | — | jarvis |
+| 2026-10-28 11:41 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-tech-lead-2 | brief | 1 | reprovado | s | brief troca a decisão técnica de 11:31 sem registro que a substitua | decisao | jarvis |
+| 2026-10-28 11:42 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-13 | entrega | 1 | não cumpriu | n | só falta Desde; a última conferida (fd66d8f) é de branch mesclada por squash, fora do intervalo | forma | jarvis |
+| 2026-10-28 11:44 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-tech-lead-2 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 11:45 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-14 | brief | 1 | aprovado | s |  | — | jarvis |
