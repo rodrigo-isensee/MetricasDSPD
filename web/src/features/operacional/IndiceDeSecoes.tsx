@@ -13,7 +13,9 @@ function irPara(id: string) {
   const titulo = alvo.querySelector<HTMLElement>('h2') ?? alvo
   if (!titulo.hasAttribute('tabindex')) titulo.tabIndex = -1
   titulo.focus({ preventScroll: true })
-  alvo.scrollIntoView?.({ block: 'start' })
+  // jsdom não implementa a rolagem.
+  if (typeof (alvo as Partial<HTMLElement>).scrollIntoView === 'function')
+    alvo.scrollIntoView({ block: 'start' })
 }
 
 /**

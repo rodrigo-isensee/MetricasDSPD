@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
-import { cartaoPorId, type CartaoId } from '@metricas-dspd/contratos'
+import { cartaoPorId } from '@metricas-dspd/contratos'
 import {
   Botao,
   Icone,
@@ -45,7 +45,7 @@ function MarcadorDaSecao({
         {cartoes.length === 1 ? 'Mostrar' : `Mostrar as ${cartoes.length}`}
       </Botao>
       {cartoes.map((c) => (
-        <AvisoDentro key={c} id={c as CartaoId} p={p} />
+        <AvisoDentro key={c} id={c} p={p} />
       ))}
     </div>
   )

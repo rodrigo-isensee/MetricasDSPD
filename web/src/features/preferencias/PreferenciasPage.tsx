@@ -1,5 +1,5 @@
 import { Dialog } from 'radix-ui'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   PAINEIS_COM_CARTOES,
   ROTULO_PAINEL,
@@ -91,13 +91,6 @@ function RestaurarPadrao({ ocultos }: { ocultos: readonly string[] }) {
   const desfazer = useRef<HTMLButtonElement>(null)
   const [anuncio, setAnuncio] = useState('')
   const confirmou = useRef(false)
-  const [focarDepois, setFocarDepois] = useState(false)
-  // Depois de confirmar o foco vai ao "Desfazer" (ou ao gatilho, se nada foi restaurado).
-  useEffect(() => {
-    if (!focarDepois) return
-    ;(desfazer.current ?? gatilho.current)?.focus()
-    setFocarDepois(false)
-  }, [focarDepois, podeDesfazerRestauracao])
   const sair = (aoFechar: () => void) => {
     aoFechar()
     // O botão que tinha o foco some: o foco volta ao "Restaurar padrão".
@@ -141,7 +134,8 @@ function RestaurarPadrao({ ocultos }: { ocultos: readonly string[] }) {
                   )
                   setAberto(false)
                   confirmou.current = true
-                  setFocarDepois(true)
+                  // Depois de confirmar o foco vai ao "Desfazer" (ou ao gatilho, se nada foi restaurado).
+                  setTimeout(() => (desfazer.current ?? gatilho.current)?.focus(), 0)
                 }}
               >
                 Restaurar
