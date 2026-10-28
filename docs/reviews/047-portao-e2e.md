@@ -21,5 +21,7 @@ Escopo lido: o diff `4137981..359cec1` (2 arquivos, 26+/4- em `homolog.yml`; tet
 - Padrão idêntico ao do `ci.yml` (`RESULTADO` em `env`, sem interpolação direta em `run`).
 
 ## Achados
-- A1 (recomendado) docs/devops/047-portao-e2e.md:14 · O topo do parecer diz "sem mudança de workflow" e "Há um risco de tempo no portão (achado 1)", e as Evidências (linha 18) ainda descrevem o `e2e-homolog` como job único com `homolog.yml:125-148`; depois do E2.2 o workflow mudou e o achado 1 está RESOLVIDO (linha 27). O texto se contradiz e cita linhas que já não existem. Destino: devops-engineer, ajustar o resumo e as referências de linha ao workflow novo, sem reabrir a entrega.
-- A2 (recomendado) docs/devops/047-portao-e2e.md:7 · `commit:` do frontmatter aponta 403e12b, não o HEAD do parecer; o `forge-check pr` vale pela cobertura do patch, mas convém alinhar ao revisar o A1. Destino: devops-engineer.
+- A1 (recomendado) docs/devops/047-portao-e2e.md:14 · Resumo e evidências do parecer de devops descreviam o workflow antigo (job único). Resolvido no E2.8 (4463338).
+- A2 (recomendado) docs/devops/047-portao-e2e.md:7 · `commit:` do parecer de devops desalinhado. Resolvido no E2.8 (4463338), agora 359cec1.
+
+Nota fora do bloco: o E2.8 (4463338) mudou só `docs/devops/047-portao-e2e.md`, sem código; o veredito segue aprovado e o `commit:` deste parecer continua em 359cec1.
