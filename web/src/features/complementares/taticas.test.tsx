@@ -413,9 +413,10 @@ describe('T14 Participação do meu time no projeto', () => {
     codigo: string,
     total: number,
     meu: ReturnType<typeof taxaOk> | ReturnType<typeof taxaInsuf>,
-    outros: number | null,
+    outros: number,
     semTime: number,
   ) => ({
+    oculto: false as const,
     projetoId: `id-${codigo}`,
     codigo,
     titulo: `Projeto ${codigo}`,
@@ -423,6 +424,14 @@ describe('T14 Participação do meu time no projeto', () => {
     meuTime: meu,
     outrosTimes: outros,
     semTime,
+  })
+  // K-130: a linha oculta só traz a fatia do meu time (sem total, n, outros nem sem time).
+  const ocultoDe = (codigo: string, k: number) => ({
+    oculto: true as const,
+    projetoId: `id-${codigo}`,
+    codigo,
+    titulo: `Projeto ${codigo}`,
+    meuTime: { k },
   })
   const dto = (
     story: unknown[],
@@ -476,21 +485,25 @@ describe('T14 Participação do meu time no projeto', () => {
     expect(within(el).getByTestId('base-T14')).toBeInTheDocument()
   })
 
-  it('R-1 = B e T14-M1 = B: "outros times" oculto mostra só a fatia do meu time, sem n, sem total e sem percentual', async () => {
+  it('K-130: linha oculta mostra só "Meu time: k", sem "sem time informado"; o total é só dos visíveis, com a nota', async () => {
     // Números escolhidos para não coincidir com nenhum outro texto da tela.
-    const oculto = projeto('PRJ-077', 47, taxaOk(5, 41), null, 6)
+    const oculto = ocultoDe('PRJ-077', 5)
     const fonte = new FonteFixa({
       T14: dto([visiveis[1]!, oculto], taxaOk(9, 213), 213),
     })
     const el = await abrir('T14', <CartaoT14 filtros={filtros} />, fonte)
-    expect(within(el).getByTestId('t14-fatia-PRJ-077')).toHaveTextContent('Meu time: 5 demandas')
-    expect(within(el).getByTestId('t14-oculto')).toBeInTheDocument()
-    // O total do projeto e o total do recorte não aparecem em lugar nenhum: nem na leitura, nem na base, nem na tabela.
-    expect(el.textContent).not.toMatch(/\b47\b/)
-    expect(el.textContent).not.toMatch(/\b41\b/)
-    expect(el.textContent).not.toMatch(/\b213\b/)
-    expect(within(el).queryByTestId('base-T14')).not.toBeInTheDocument()
-    expect(within(el).queryByTestId('leitura-T14')).not.toBeInTheDocument()
+    const fatia = within(el).getByTestId('t14-fatia-PRJ-077')
+    expect(fatia.textContent).toBe('Meu time: 5 demandas')
+    expect(fatia.closest('li')).not.toHaveTextContent(/sem time informado/i)
+    expect(fatia.closest('li')).not.toHaveTextContent('%')
+    // O total do bloco (só visíveis) aparece, com a nota de que não inclui os ocultos.
+    expect(within(el).getByTestId('leitura-T14')).toHaveTextContent(
+      '9 de 213 demandas com time informado',
+    )
+    expect(within(el).getByTestId('base-T14')).toBeInTheDocument()
+    expect(within(el).getByTestId('t14-oculto')).toHaveTextContent(
+      'não inclui projetos com outros times ocultos',
+    )
     const linha = within(within(el).getByTestId('tabela-T14')).getByRole('row', {
       name: /PRJ-077/,
     })
@@ -498,44 +511,43 @@ describe('T14 Participação do meu time no projeto', () => {
       /PRJ-077 Projeto PRJ-077\s*5\s*não exibido\s*não exibido\s*não exibido/,
     )
     expect(linha.textContent).not.toMatch(/%/)
-    // O projeto com os outros times publicáveis segue com a barra completa.
+    // O projeto visível segue com a barra completa.
     expect(el).toHaveTextContent('4 de 34 (11,8%) meu time')
   })
 
-  it('L2T-002: "Meu time: k" usa o plural certo (1 demanda, 1 frente, 2 demandas) sem n nem total', async () => {
-    const um = projeto('PRJ-081', 53, taxaOk(1, 47), null, 6)
-    const dois = projeto('PRJ-082', 59, taxaOk(2, 43), null, 6)
-    const d = dto([um, dois])
+  it('sem projeto oculto: nenhuma nota de total sem ocultos', async () => {
+    const el = await abrir(
+      'T14',
+      <CartaoT14 filtros={filtros} />,
+      new FonteFixa({ T14: dto(visiveis) }),
+    )
+    expect(within(el).queryByTestId('t14-oculto')).not.toBeInTheDocument()
+  })
+
+  it('a ordem é a do servidor: visíveis e depois ocultos por código', async () => {
+    const d = dto([visiveis[0]!, visiveis[1]!, ocultoDe('PRJ-005', 3), ocultoDe('PRJ-077', 5)])
+    const el = await abrir('T14', <CartaoT14 filtros={filtros} />, new FonteFixa({ T14: d }))
+    const itens = within(within(el).getByTestId('t14-projetos')).getAllByRole('listitem')
+    expect(itens.map((p) => p.querySelector('span')?.textContent)).toEqual([
+      'PRJ-010 Projeto PRJ-010',
+      'PRJ-031 Projeto PRJ-031',
+      'PRJ-005 Projeto PRJ-005',
+      'PRJ-077 Projeto PRJ-077',
+    ])
+  })
+
+  it('"Meu time: k" usa o plural certo (1 demanda, 1 frente, 2 demandas)', async () => {
+    const d = dto([ocultoDe('PRJ-081', 1), ocultoDe('PRJ-082', 2)])
     d.porGranularidade[1] = {
       granularidade: 'frente',
       total: taxaOk(1, 83),
-      projetos: [projeto('PRJ-091', 83, taxaOk(1, 79), null, 4)],
+      projetos: [ocultoDe('PRJ-091', 1)],
     }
     const el = await abrir('T14', <CartaoT14 filtros={filtros} />, new FonteFixa({ T14: d }))
-    const u = within(el).getByTestId('t14-fatia-PRJ-081')
-    expect(u.textContent).toBe('Meu time: 1 demanda')
+    expect(within(el).getByTestId('t14-fatia-PRJ-081').textContent).toBe('Meu time: 1 demanda')
     expect(within(el).getByTestId('t14-fatia-PRJ-082').textContent).toBe('Meu time: 2 demandas')
-    expect(el.textContent).not.toMatch(/\b53\b|\b47\b|\b59\b|\b43\b/)
     await userEvent.setup().click(within(el).getByRole('tab', { name: 'Frentes' }))
     expect(within(el).getByTestId('t14-fatia-PRJ-091').textContent).toBe('Meu time: 1 frente')
-  })
-
-  it('o total também some quando o projeto oculto está só na outra granularidade (frentes)', async () => {
-    const d = dto(visiveis)
-    d.porGranularidade[1] = {
-      granularidade: 'frente',
-      total: taxaOk(8, 83),
-      projetos: [projeto('PRJ-090', 83, taxaOk(8, 79), null, 4)],
-    }
-    const fonte = new FonteFixa({ T14: d })
-    const el = await abrir('T14', <CartaoT14 filtros={filtros} />, fonte)
-    // A base (n total e o complemento de frentes) é uma só: oculta em ambas as granularidades.
-    expect(within(el).queryByTestId('base-T14')).not.toBeInTheDocument()
-    expect(el.textContent).not.toMatch(/\b83\b|\b79\b/)
-    await userEvent.setup().click(within(el).getByRole('tab', { name: 'Frentes' }))
-    expect(within(el).getByTestId('t14-fatia-PRJ-090')).toHaveTextContent('Meu time: 8 frentes')
-    expect(el.textContent).not.toMatch(/\b83\b|\b79\b/)
-    expect(within(el).queryByTestId('leitura-T14')).not.toBeInTheDocument()
   })
 
   it('sem projeto em andamento: avisa em vez de desenhar uma lista vazia', async () => {
