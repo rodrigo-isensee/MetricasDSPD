@@ -14,7 +14,6 @@ Etapa E2.2 do pedido 042 (cartão K-141): deixar o toolchain do projeto de pé n
 - (E2.2) `corepack enable` e pnpm 10.34.6 (o do `packageManager`) no PATH do nvm.
 - (E2.2) `pnpm install --frozen-lockfile` em `/home/rodrigoisensee/MetricasDSPD-041` (worktree da fila do 041) e em `/home/rodrigoisensee/MetricasDSPD`; lockfile sem mudança.
 - (E2.2) Chromium do Playwright: `pnpm exec playwright install chromium` em `/home/rodrigoisensee/MetricasDSPD-041` (as dependências de sistema o dono já instalou).
-- (E2.2) Uma checagem leve de que o ambiente roda, sem suíte de teste: o typecheck do monorepo em `/home/rodrigoisensee/MetricasDSPD-041`, com o pico de memória observado (`free -m` antes e depois).
 - (E2.2) Sem commit: nada de código muda. Se o install mexer em arquivo versionado, pare e relate.
 - (E1, E3) Versão do Forge e fila do 041: não nesta delegação.
 
@@ -27,7 +26,7 @@ Etapa E2.2 do pedido 042 (cartão K-141): deixar o toolchain do projeto de pé n
 - "E3.1 (forge:software-architect): E2.3 do 041 (ADR 0003, regra do F4), sem depender do ambiente." · já entregue
 - "E3.2 (forge:qa-engineer, forge:devops-engineer, forge:tech-lead): o resto do 041 na ordem do pedido 041, depois do E2." · etapas de outra delegação
 - "E3.3 (forge:tech-lead): PR de docs do Jarvis, PRs do dependabot (#145, #146, #147) e K-125, depois do E2." · etapa de outra delegação
-- `.env` (não ler nem editar), `core.hooksPath`, `pnpm update`, `approve-builds`, suíte de testes completa.
+- `.env` (não ler nem editar), `core.hooksPath`, `pnpm update`, `approve-builds`, typecheck e qualquer suíte de teste.
 
 ## Decisões e restrições
 - DECISÃO DO DONO (2026-10-27): "talvez precise atualizar algo no banco ja quetroquei de maquina" (coberto pelo E2.3: banco recriado do zero, migrações e seed).

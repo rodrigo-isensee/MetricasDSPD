@@ -403,3 +403,54 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-27T12:26:48-03:00 | K-141 | — | Bloqueado | 042 E2.1: aguardando o dono (Docker, .env, Node, Chromium, doutor) |
 | 2026-10-27T12:31:32-03:00 | K-138 | Pronto para fazer | Em andamento | 041 E2.3: software-architect-2 (ADR 0003, F4), worktree: MetricasDSPD-041 |
 | 2026-10-27T13:50:59-03:00 | K-138 | Em andamento | Pronto para fazer | E2.3 entregue sem commit; E2.1 a seguir |
+| 2026-10-27T13:54:31-03:00 | K-108 | Pronto para fazer | Em andamento | volta da E3.2 do 041 (opção B) ao devops |
+| 2026-10-27T13:55:48-03:00 | K-141 | Bloqueado | Em andamento | E2.2 (pnpm install, Chromium) ao tech-lead; Docker e GH ok após reinício |
+| 2026-10-27T13:57:12-03:00 | K-140 | Bloqueado | Em andamento | E1.2 (push e review da 0.30.3) ao tech-lead, instância 2, worktree MetricasDSPD-upgrade |
+| 2026-10-27T14:01:49-03:00 | K-108 | Em andamento | Aguardando o dono | conferência de entrega presa no Desde (pedido com 2 branches); base a fixar pelo dono |
+| 2026-10-27T14:03:29-03:00 | K-141 | Em andamento | Pronto | E2.2 e E2.3 entregues: pnpm, Chromium e banco de pé |
+| 2026-10-27T14:07:04-03:00 | K-135 | Entrada | Em andamento | 041 E2.1 delegada ao qa-engineer (K-092, K-115, K-132 e F4 juntos); worktree: MetricasDSPD-041 |
+| 2026-10-27T14:12:28-03:00 | K-117 | Pronto para fazer | Pronto | #128 mesclado; superado pelo #144 |
+| 2026-10-27T14:12:28-03:00 | K-110 | Bloqueado | Pronto | #140 na develop e na main (#144) |
+| 2026-10-27T14:12:28-03:00 | K-142 | — | Entrada | aberto na auditoria de itens perdidos (042) |
+| 2026-10-27T14:12:28-03:00 | K-143 | — | Entrada | aberto na auditoria de itens perdidos (042) |
+| 2026-10-27T14:12:28-03:00 | K-144 | — | Entrada | aberto na auditoria de itens perdidos (042) |
+| 2026-10-27T14:12:28-03:00 | K-145 | — | Entrada | aberto na auditoria de itens perdidos (042) |
+| 2026-10-27T14:12:28-03:00 | K-146 | — | Entrada | aberto na auditoria de itens perdidos (042) |
+| 2026-10-27T14:12:28-03:00 | K-147 | — | Entrada | aberto na auditoria de itens perdidos (042) |
+| 2026-10-27T14:18:49-03:00 | K-111 | Entrada | Em andamento | 026 E2.1 (node-backend, worktree -026b) e E1.1 (react-frontend, worktree -026) em paralelo |
+| 2026-10-27T14:24:42-03:00 | K-148 | Entrada | Em andamento | 042 E4.1, decisão do dono A (proteção da develop) |
+| 2026-10-27T14:36:37-03:00 | K-148 | Em andamento | Aguardando o dono | quem aplica a proteção da develop (R-CONFORMIDADE) |
+| 2026-10-27T14:37:53-03:00 | K-148 | Aguardando o dono | Em andamento | dono respondeu A: ele aplica a proteção; volta do devops no documento |
+| 2026-10-27T15:27:27-03:00 | K-138 | Revisão | Revisão | E5.2 parecer de segurança iniciado |
+| 2026-10-27T15:39:02-03:00 | K-148 | Em andamento | Bloqueado | PR #148 mesclado; aguardando o dono acrescentar 5 checks ao ruleset 25003880 (E4.4) |
+| 2026-10-27T15:47:39-03:00 | K-111 | Em andamento | Code review | E1.1 entregue (b143858); review E1.4 do tech-lead |
+| 2026-10-27T15:51:20-03:00 | K-107 | Em andamento | QA | 041 E2.2 entregue; E4.1 (prova de estabilidade) |
+| 2026-10-27T15:51:20-03:00 | K-123 | Em andamento | QA | 041 E2.2 entregue; E4.1 (prova de estabilidade) |
+| 2026-10-27T16:03:19-03:00 | K-111 | Code review | Em andamento | review reprovado (A1 a A3); volta ao react-frontend |
+| 2026-10-27T16:47:33-03:00 | K-148 | Bloqueado | Pronto | dono incluiu os 5 checks no ruleset 25003880; 9 checks lidos por GET |
+| 2026-10-27T17:21:43-03:00 | K-149 | Nenhuma | Entrada | E6 do 041, decisão do dono A; espera a volta do 026 |
+| 2026-10-27T17:31:46-03:00 | K-111 | Em andamento | Code review | volta E1.1 do 026 entregue (eedcafc) |
+| 2026-10-27T17:31:46-03:00 | K-149 | Entrada | Em andamento | 041 E6.1 delegado ao react-frontend |
+| 2026-10-27T17:31:46-03:00 | K-150 | Nenhuma | Entrada | melhoria vista na volta do 026 |
+| 2026-10-27T17:47:25-03:00 | K-111 | Code review | Em andamento | volta da revisão de UX ao react-frontend (026 E1.1) |
+| 2026-10-27T17:52:42-03:00 | K-151 | Entrada | Em andamento | develop vermelha (run 40580307663), 042 E3.4 |
+| 2026-10-27T18:00:35-03:00 | K-149 | Em andamento | Aguardando o dono | pergunta 2 de 3 (ADR 0003, medição a frio do F4) ao dono; review E6.2 segue em paralelo |
+| 2026-10-27T18:00:40-03:00 | K-149 | Aguardando o dono | Em andamento | movimento anterior por engano do Jarvis: a pergunta do F4 é do K-138, não bloqueia o K-149 |
+| 2026-10-27T18:40:29-03:00 | K-152 | nenhuma | Entrada | pedido 043 aberto (decisão A) |
+| 2026-10-27T18:40:30-03:00 | K-153 | nenhuma | Entrada | pedido 043 aberto (decisão A) |
+| 2026-10-27T19:03:23-03:00 | K-151 | Em andamento | Code review | E3.4 conferida (2389e62); E3.5 review |
+| 2026-10-27T19:10:15-03:00 | K-151 | Code review | QA | E3.6 delegado ao qa-engineer |
+| 2026-10-27T19:15:40-03:00 | K-111 | Em andamento | Code review | 026 E1.4 re-review delegado ao tech-lead |
+| 2026-10-27T19:18:54-03:00 | K-152 | Entrada | Empatizar e definir | 043 E1.1 discovery F21 |
+| 2026-10-27T19:18:54-03:00 | K-153 | Entrada | Empatizar e definir | 043 E2.1 discovery F22 |
+| 2026-10-27T19:34:14-03:00 | K-152 | Empatizar e definir | Em andamento | 043 E1.3 implementação do F21 pelo tech-lead |
+| 2026-10-27T19:34:14-03:00 | K-111 | Code review | QA | 026 E1.3 QA do lote 3 |
+| 2026-10-27T19:37:06-03:00 | K-152 | Em andamento | Bloqueado | Aguardando o dono: hook R-CONFORMIDADE barra o pre-push do modelo no clone de contribuição |
+| 2026-10-27T19:41:43-03:00 | K-153 | Empatizar e definir | Em andamento | 043 E2.2 implementação do F22 pelo devops-engineer |
+| 2026-10-27T20:18:07-03:00 | K-152 | Bloqueado | Em andamento | decisão A do dono: tech-lead prepara o resto do F21 e o patch do pre-push |
+| 2026-10-27T20:19:45-03:00 | K-151 | QA | Pronto | PR #149 mesclado (7b5732d), develop verde |
+| 2026-10-27T20:51:49-03:00 | K-152 | Em andamento | Bloqueado | Aguardando o dono: patch do pre-push do F21 |
+| 2026-10-27T20:53:33-03:00 | K-153 | Em andamento | Em andamento | E2.2 entregue (0b59505); E2.3 review e push com o forge:tech-lead |
+| 2026-10-27T21:03:31-03:00 | K-111 | QA | Em andamento | QA reprovado (6199302): volta do A1 ao react-frontend |
+| 2026-10-27T21:03:31-03:00 | K-154 | — | Entrada | recomendados A6, A7/A12 e A13 do 026 para a UX |
+| 2026-10-27T22:03:56-03:00 | K-153 | Em andamento | Bloqueado | Aguardando o dono: forge-check pr nao le o clone do Forge (043) |
