@@ -59,6 +59,7 @@ Até a extração (D3, depois do review e do QA da fase A), as mesmas fronteiras
 - Componentes testados pela tabela alternativa e pelo texto, não pelo SVG.
 - Testes de tempo (performance) com limite folgado e explícito, valor real impresso; a medição fina é do QA. Limites de CI do [ADR 0003](../architecture/adr/0003-orcamento-de-performance.md): gerador < 1,5 s (C2); métrica < 150 ms inclusive a frio e painel < 900 ms (3× C3/C4).
 - Memoização e otimização não mudam resultado: testes de métrica e hash da base mock continuam iguais; chave de cache inclui todos os filtros normalizados (inclusive período).
+- **Uma suíte por vez (trava).** `pnpm run pronto`, `pnpm test`, `pnpm run test:e2e` (e `e2e`) e `pnpm run test:pg` passam por `scripts/suite-unica.sh`, que segura uma trava `flock` em `/tmp/metricas-dspd-suite.lock`, comum a todas as worktrees. Com a trava ocupada, o script avisa no terminal e espera; não falha. Chamada aninhada (o `pronto` chamando outro script travado) roda direto. Para ver quem segura: `fuser /tmp/metricas-dspd-suite.lock` ou `lsof /tmp/metricas-dspd-suite.lock`. Não é preciso checar com `pgrep`. Rodar o pacote direto (`pnpm --filter ... test`) contorna a trava e não deve ser feito com outra suíte em curso. O teste do script é `pnpm run test:trava` (shell, sem banco nem navegador; já roda no `pronto`).
 
 ## 5. Acessibilidade e performance (front)
 - **Todo gráfico tem alternativa em tabela** ("Ver dados em tabela") e resumo em `figcaption`. Gráfico novo entra em `components/charts/` já com a tabela.
