@@ -557,3 +557,12 @@
 | 2026-10-28 17:40 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-7 | entrega | 1 | nao cumpriu (so Desde) | s | PQ-1 a PQ-4 ok, escopo ok; Desde por pedido nao modela 2 branches | base | ferramenta |
 | 2026-10-28 17:43 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-2 | brief | 1 | aprovado | s |  | — | conferente |
 | 2026-10-28 17:46 | 026-front-do-011-lote3 | 026-front-do-011-lote3-agile-coach-1 | entrega | 1 | nao cumpriu (so Desde) | s | PQ-1 a PQ-4 ok, delta so a retro; Desde de branch mesclada por squash | base | ferramenta |
+| 2026-10-28 17:49 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-1 | entrega | 1 | nao cumpriu | parcial | artefatos gerados e 2 testes fora do Entregar; parecer de QA sem registro de autoria | escopo | destino |
+| 2026-10-28 17:54 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-3.md | brief | 1 | aprovado | s |  | — | conferente |
+| 2026-10-28 17:55 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-agile-coach-1.md | brief | 1 | aprovado | s |  | — | conferente |
+| 2026-10-28 17:57 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-3.md | entrega | 1 | não cumpriu | s | commit novo só o parecer; intervalo desde f786c9c traz o 4497268 já tratado às 18:10; review desatualizado é o E5.1 | escopo | jarvis |
+| 2026-10-28 17:59 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-ux-designer-2.md | brief | 1 | aprovado | s |  | — | conferente |
+| 2026-10-28 18:01 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-agile-coach-1.md | entrega | 1 | não cumpriu | s | PQ-1 a PQ-4 cumpriram; tl-3 no texto (nome do brief abreviado); intervalo sem Desde não isola o commit | outra | destino |
+| 2026-10-28 18:02 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-8 | brief | 1 | aprovado | s |  | — | conferente |
+| 2026-10-28 18:05 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-16 | brief | 1 | aprovado | s |  | — | conferente |
+| 2026-10-28 18:06 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-8 | entrega | 1 | não cumpriu | s | PQ-1 a PQ-4 cumpriram; falta aprovação do software-architect da mudança incompatível (politica-de-mudanca.md §5), não roteada no brief | etapa | jarvis |

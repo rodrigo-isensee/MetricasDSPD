@@ -10,6 +10,7 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-176 | [teste] Trava de suíte única grava cada espera (quem segurava, quanto esperou) para medir o efeito | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:59 | MELHORIA 2 da retro do 045 (docs/retrospectivas/2026-10-28-045-suite-unica.md); só acrescenta registro; depende do K-175 (mesmo script) e o WIP de Pronto para fazer está cheio |
 | K-165 | [forge] Rodada longa de suíte (mais de 10 min) grava o JSON da E2E de forma incremental, fora de /tmp (skill qa-testing) | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 041 (JSON perdido nas quedas do WSL); vai ao Forge, só propor |
 | K-166 | [forge] Uma etapa numerada por delegação no gabarito do pedido e no `brief gerar` | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 041 (14 de 73 rodadas de brief reprovadas por escopo ou etapa); vai ao Forge, só propor |
 | K-167 | [forge] Opção de decisão sobre ato reservado ao dono põe o dono como quem aplica; leitura da proteção inclui o ruleset | 042 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 042 (5 perguntas para o K-148, 4 reprovações); vai ao Forge, só propor |
@@ -61,10 +62,10 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-175 | [teste] Endurecer a trava de suíte única: A1 a A3 da segurança e A1 do review do 045 (retorno do flock, fd herdado por órfão, variável exportada, espera sem teto) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:58 | MELHORIA 1 da retro do 045; o Histórico de 11:35 apontou para um K-171 que é outro cartão |
 | K-172 | [docs] praticas.md:115 diz pronto verde antes de cada commit; alinhar à decisão do dono de 2026-10-21 (pronto completo uma vez, antes do commit final) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (4 briefs reprovados por essa leitura); alinha texto à decisão, não afrouxa |
 | K-173 | [teste] Teste do O20 lê o SVG de forma síncrona; passou no review e no QA e falhou no check testes do #152 | 026 | forge:react-frontend | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (operacionais.test.tsx:177) |
 | K-174 | [teste] Teste de tools/docs-contratos estoura o timeout de 5 s sob carga e derruba o pronto (sem aumentar timeout nem retry) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (docs/retrospectivas/2026-10-28-026-lote3.md) |
-| K-162 | [docs] CLAUDE.md: "enviada" = PR para a develop; push liberado antes do parecer do QA (E3.1) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | PR #157 mesclado pelo dono (d9a7ea0) |
 | K-144 | [ci] Conferir que o portão da homolog roda a E2E completa (R-FLUXO); noturna segue informativa (dono, 2026-10-28: padrão da Forge) | 047 | forge:devops-engineer | 2026-10-27 | 2026-10-27 14:12 | Dono decidiu seguir o padrão da Forge: noturna não vira portão |
 | K-150 | [teste] "reprova: SELECT *" em server/tests/plataforma2.test.ts:269 estoura o timeout de 30 s quando outra suíte pesada roda junto e quebra o pronto | 047 | forge:node-backend | 2026-10-27 | 2026-10-27 17:31 | Dono confirmou (2026-10-28): corrigir sem aumentar timeout nem retry |
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Dono escolheu B (2026-10-28): só propor ao Forge a parte que não afrouxa |
@@ -97,6 +98,7 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-162 | [docs] CLAUDE.md: "enviada" = PR para a develop; push liberado antes do parecer do QA (E3.1) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | PR #157 mesclado pelo dono (d9a7ea0) |
 | K-154 | [ux] Textos da especificação do lote 3: mínimo de 20 do O26 vale sobre as entregas do tipo, não a faixa (A12 do review = A7 do QA); tabela de decisões da §11 (A13); vazio junto de "Amostra insuficiente: 0 de 20" em mock=vazio (A6 do QA, padrão anterior ao lote 3) | 026 | forge:ux-designer | 2026-10-27 | 2026-10-28 11:19 | PR #155 mesclado na develop (4137981) |
 | K-163 | [teste] Trava `flock` na suíte: uma suíte por vez em todas as worktrees (MELHORIA da retro do 041) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 11:16 | PR #156 mesclado na develop (7873c18); falta a retro E1.6 |
 | K-111 | Front do 011, lote 3 (operacionais): O19, O20, O21, O23, O24, O25, O22, O26 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-28 11:17 | 026 entregue: PR #152 mesclado na develop pelo dono (d7c74b4, 2026-10-28 11:09) |

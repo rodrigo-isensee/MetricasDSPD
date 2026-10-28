@@ -511,3 +511,6 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-28T17:45:43-03:00 | K-173 | Entrada | Pronto para fazer | MELHORIA da retro do 026: teste do O20 com leitura sincrona de SVG |
 | 2026-10-28T17:45:44-03:00 | K-174 | Entrada | Pronto para fazer | MELHORIA da retro do 026: timeout de 5 s do teste de tools/docs-contratos sob carga |
 | 2026-10-28T17:46:45-03:00 | K-111 | Pronto | Pronto | retrospectiva do 026 gravada (592a810); pedido fechado |
+| 2026-10-28T17:59:08-03:00 | K-175 | Entrada | Pronto para fazer | MELHORIA da retro do 045, entrada direta |
+| 2026-10-28T17:59:08-03:00 | K-176 | Entrada | Pronto para fazer | MELHORIA da retro do 045, entrada direta |
+| 2026-10-28T17:59:36-03:00 | K-176 | Pronto para fazer | Entrada | depende do K-175 (mesmo script); WIP 5 de Pronto para fazer cheio |
