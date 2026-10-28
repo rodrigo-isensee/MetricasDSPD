@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 047-pendencias-decididas-2026-10-28
 branch: docs/047-portao-e2e
-commit: 07307872d8f04f7e4ccba4a5ff52737818bea26e
+commit: 9d7eb43a63f0eb30b768ee576390cdc655577497
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-10-28
@@ -29,3 +29,5 @@ Aprovado. O portão do push na `homolog` roda a E2E completa em 2 partes (`--sha
 
 ## Revalidação
 Em 2026-10-28 (E2.11, K-144), sobre o head 07307872d8f04f7e4ccba4a5ff52737818bea26e. Desde o commit anterior (359cec1), `git diff --stat` mostra só `server/tests/plataforma2.test.ts` (teste do E1, vindo da develop) e os pareceres em `docs/qa/`, `docs/reviews/` e `docs/security/`. Nada em `.github/`: o `homolog.yml` que avaliei (matriz `e2e-parte`, agregador `e2e`, portão) está idêntico. Veredito inalterado: aprovado.
+
+Em 2026-10-28 (E2.15, K-144), sobre o head 9d7eb43a63f0eb30b768ee576390cdc655577497. Desde o commit anterior (07307872), `git diff --stat` mostra 1 linha do `CLAUDE.md` e, vindos da develop com o #157 (026), os pareceres `docs/qa/026-*`, `docs/reviews/026-*` e os revalidados de `docs/qa/047-select-timeout.md`, `docs/reviews/047-select-timeout.md` e `docs/security/047-portao-e2e.md`. Nada em `.github/`: o `homolog.yml` que avaliei (matriz `e2e-parte`, agregador `e2e`, portão) está idêntico. Veredito inalterado: aprovado.
