@@ -153,10 +153,12 @@ describe('CabecalhoPainel', () => {
     }
   })
 
-  it('reserva o espaço do aviso "Link copiado." mesmo vazio, para não refluir a barra', () => {
+  it('o aviso "Link copiado." fica fora do fluxo, sem largura reservada: não refluir a barra nem estourar a 375 px (048-02)', () => {
     render(<CabecalhoPainel {...props} />)
-    expect(screen.getByRole('status').className).toContain('min-w-')
-    expect(screen.getByRole('status').className).not.toContain('sr-only')
+    const aviso = screen.getByRole('status')
+    expect(aviso.className).toContain('absolute')
+    expect(aviso.className).not.toMatch(/min-w-/)
+    expect(aviso.className).not.toContain('sr-only')
   })
 
   it('se a Clipboard API falhar, mostra o endereço selecionado num campo; copiar de novo limpa o campo', async () => {

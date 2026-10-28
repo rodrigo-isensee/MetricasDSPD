@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePreferenciasPainel } from '@/components/ui'
+import { useAlturaCss } from '@/lib/useAlturaCss'
 
 export type SecaoDoIndice = readonly [id: string, nome: string, cartoes: readonly string[]]
 
 /** Âncora de "Mais métricas": aparece quando há algum complementar visível. */
 export const SECAO_MAIS_METRICAS: SecaoDoIndice = ['mais-metricas', 'Mais métricas', []]
 
-/** Leva ao título da seção (que recebe o foco), em vez de só rolar a página. */
+/** Leva ao título da seção (que recebe o foco), em vez de só rolar a página. O `scroll-padding-top` da raiz soma a
+ * altura medida do índice (`--h-indice`), então o título para abaixo dele e não sob ele (bug 048-01). */
 function irPara(alvo: HTMLElement) {
   const titulo = alvo.querySelector<HTMLElement>('h2') ?? alvo
   if (!titulo.hasAttribute('tabindex')) titulo.tabIndex = -1
@@ -24,6 +26,10 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
   const [atual, setAtual] = useState<string | null>(null)
   const [topo, setTopo] = useState(0)
   const [fixo, setFixo] = useState(false)
+  // Altura medida de tudo o que fica fixo acima do conteúdo: cabeçalho + filtros (só em telas médias) + o próprio índice.
+  const [reservado, setReservado] = useState(0)
+  const nav = useRef<HTMLElement>(null)
+  useAlturaCss(nav, '--h-indice')
   const visiveis = secoes.filter(([id, , ids]) => {
     if (!prefs) return true
     if (id === SECAO_MAIS_METRICAS[0])
@@ -34,14 +40,25 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
   useEffect(() => {
     // Abaixo do cabeçalho fixo (só fixo em telas médias para cima).
     const cab = document.querySelector('header')
+    const raiz = document.documentElement
     const medir = () => {
       const sticky = !!cab && getComputedStyle(cab).position === 'sticky'
+      const alto = sticky ? cab.offsetHeight : 0
+      const filtros = sticky ? parseFloat(raiz.style.getPropertyValue('--h-filtros')) || 0 : 0
+      const indice = (nav.current as HTMLElement).offsetHeight
       setFixo(sticky)
-      setTopo(sticky ? cab.offsetHeight : 0)
+      setTopo(alto)
+      setReservado(alto + filtros + indice)
     }
     medir()
     window.addEventListener('resize', medir)
-    return () => window.removeEventListener('resize', medir)
+    // --h-filtros e --h-indice mudam quando a barra de filtros ou o índice quebram de linha.
+    const mut = new MutationObserver(medir)
+    mut.observe(raiz, { attributes: true, attributeFilter: ['style'] })
+    return () => {
+      window.removeEventListener('resize', medir)
+      mut.disconnect()
+    }
   }, [])
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return
@@ -55,16 +72,17 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
         }
         setAtual(ordem.find((id) => vistas.has(id)) ?? null)
       },
-      { rootMargin: `-${topo + 56}px 0px -60% 0px` },
+      { rootMargin: `-${reservado}px 0px -60% 0px` },
     )
     for (const id of ordem) {
       const el = document.getElementById(id)
       if (el) obs.observe(el)
     }
     return () => obs.disconnect()
-  }, [chave, topo])
+  }, [chave, reservado])
   return (
     <nav
+      ref={nav}
       aria-label="Ir para"
       data-testid="indice-secoes"
       // A BarraFiltros também é sticky logo abaixo do cabeçalho: o índice fica abaixo dela, não sobre ela.

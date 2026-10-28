@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { IndiceDeSecoes, SECAO_MAIS_METRICAS } from './IndiceDeSecoes'
 
 describe('IndiceDeSecoes fora de um painel com preferências', () => {
@@ -49,5 +49,49 @@ describe('IndiceDeSecoes fixo', () => {
     } finally {
       cab.remove()
     }
+  })
+})
+
+describe('IndiceDeSecoes mede o que fica fixo (bugs 048-01 e A4 do QA)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+    document.documentElement.style.removeProperty('--h-filtros')
+    document.documentElement.style.removeProperty('--h-indice')
+    document.querySelectorAll('header').forEach((h) => h.remove())
+  })
+
+  it('publica a altura medida do índice em --h-indice (o scroll-padding o soma) e a retira ao sair', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      height: 33,
+    } as DOMRect)
+    const { unmount } = render(<IndiceDeSecoes secoes={[['prazos', 'Prazos', ['s2']]]} />)
+    expect(document.documentElement.style.getPropertyValue('--h-indice')).toBe('33px')
+    unmount()
+    expect(document.documentElement.style.getPropertyValue('--h-indice')).toBe('')
+  })
+
+  it('o rootMargin do observador usa cabeçalho + filtros + índice medidos, não um valor fixo', () => {
+    const margens: string[] = []
+    class ObservadorFalso {
+      constructor(_cb: unknown, opcoes?: IntersectionObserverInit) {
+        margens.push(opcoes?.rootMargin ?? '')
+      }
+      observe() {}
+      disconnect() {}
+    }
+    vi.stubGlobal('IntersectionObserver', ObservadorFalso)
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.tagName === 'HEADER' ? 49 : 33
+    })
+    const cab = document.createElement('header')
+    cab.style.position = 'sticky'
+    document.body.appendChild(cab)
+    document.documentElement.style.setProperty('--h-filtros', '136px')
+    render(<IndiceDeSecoes secoes={[['prazos', 'Prazos', ['s2']]]} />)
+    // 49 (cabeçalho) + 136 (filtros) + 33 (índice) = 218; antes era topo + 56 = 105.
+    expect(margens.at(-1)).toBe('-218px 0px -60% 0px')
   })
 })

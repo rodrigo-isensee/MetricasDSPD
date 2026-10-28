@@ -35,13 +35,19 @@ export function BotaoCopiarLink() {
   }
 
   return (
-    <span className="relative inline-flex items-center gap-2">
+    <span className="relative inline-flex items-center">
       <Botao onClick={() => void copiar()} data-testid="copiar-link" className="text-xs">
         <Icone nome="link" /> Copiar link
         <span className="sr-only sm:not-sr-only"> desta visão</span>
       </Botao>
-      {/* Espaço reservado: o aviso aparece e some sem refluir a barra (CLS, ADR 0003 F2). */}
-      <span role="status" className={`inline-block min-w-[7rem] text-sm ${aviso ? 'text-ok' : ''}`}>
+      {/* Sobreposto, fora do fluxo: aparece e some sem refluir a barra (CLS, ADR 0003 F2) e sem largura reservada,
+          que estourava a página a 375 px com fonte a 200% (bug 048-02). */}
+      <span
+        role="status"
+        className={`absolute right-0 top-full z-40 mt-1 w-max max-w-[90vw] text-sm ${
+          aviso ? 'rounded-md border border-borda bg-superficie px-2 py-1 text-ok shadow-md' : ''
+        }`}
+      >
         {aviso}
       </span>
       {manual && (
