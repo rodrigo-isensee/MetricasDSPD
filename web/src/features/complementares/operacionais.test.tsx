@@ -173,8 +173,8 @@ describe('O20 Fluxo cumulativo', () => {
       <CartaoO20 filtros={FILTROS_FLUXO} />,
       new FonteFixa({ O20: dto({ faixa: 'homolog', de: 6, para: 15 }) }),
     )
+    await waitFor(() => expect(el.querySelector('.marca-criterio')).not.toBeNull())
     const linha = el.querySelector('.marca-criterio')
-    expect(linha).not.toBeNull()
     expect(linha?.querySelector('title')?.textContent).toBe(
       'Mudança de critério em 02/10/2026: Novo critério de início',
     )
