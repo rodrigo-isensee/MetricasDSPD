@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo · Revisão de usabilidade (K-074)</title>
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-fundo:#e6effc;--atencao:#8a5a00;--atencao-fundo:#fff4dc}
+@media (prefers-color-scheme:dark){:root{--fundo:#0f1420;--superficie:#161c2a;--superficie-2:#1e2638;--texto:#e8ecf4;--texto-2:#aab3c5;--borda:#2a3347;--borda-controle:#8590a6;--acento:#6aa8ff;--acento-fundo:#1c2d4a;--atencao:#e0b040;--atencao-fundo:#3a2e0f}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--fundo);color:var(--texto)}
+main{max-width:760px;margin:0 auto;padding:16px}
+.proto{background:var(--atencao-fundo);color:var(--atencao);border:1px solid var(--atencao);border-radius:6px;padding:8px 12px;font-size:14px;margin-bottom:16px}
+h1{font-size:24px;margin:0 0 8px}h2{font-size:18px;margin:0 0 4px}
+.card{background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:16px;margin:12px 0}
+.card p{margin:4px 0;color:var(--texto-2)}
+a{color:var(--acento)}a:focus-visible{outline:3px solid var(--acento);outline-offset:2px}
+.tag{display:inline-block;background:var(--acento-fundo);color:var(--acento);border-radius:4px;padding:0 6px;font-size:13px;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<div class="proto" role="note"><strong>Protótipo</strong> descartável, de média fidelidade. Dados fictícios; nenhum número representa a operação real. Não é base para o front-end.</div>
+<h1>Revisão de usabilidade: decisões U1 a U5</h1>
+<p>Protótipo do E4.0 (pedido 048, cartão K-074), já com as decisões do dono de 2026-10-13 (<code>04-decisoes.md</code>). Serve de referência para a implementação em E4.1.</p>
+
+<section class="card"><h2><a href="p1-ocultar-no-lugar.html">P1 · Ocultar no lugar</a> <span class="tag">U1 · U2</span></h2>
+<p>Ocultar é lembrado até mandar mostrar; marcador sempre visível no lugar do cartão (com opção de desligar nas Preferências); "Mostrar" como desfazer sem prazo; foco e <code>aria-live</code>; "N de M visíveis" no título da seção; link para cartão oculto cai no marcador.</p></section>
+
+<section class="card"><h2><a href="p2-topo-enxuto.html">P2 · Topo enxuto</a> <span class="tag">U4 · U5 · Catálogo</span></h2>
+<p>Visão geral com "Pede atenção" na primeira dobra e "Por reunião" logo abaixo; Preferências sem sugestão por papel, com "Restaurar padrão" confirmado e desfazer sem prazo; catálogo de métricas dentro da Ajuda, fora do menu.</p></section>
+
+<section class="card"><h2><a href="p3-indice-por-secao.html">P3 · Índice por seção</a> <span class="tag">U3</span></h2>
+<p>Índice fixo por seção num painel longo, só com o que o "Pede atenção" já publica; seletor fixo no celular. Sem modo resumido (avaliado depois).</p></section>
+
+<p style="color:var(--texto-2);font-size:14px">Regras mantidas em todas as telas: nenhuma métrica individual, nenhuma comparação entre times, nenhuma estatística com menos de 20 itens, fontes sem mistura.</p>
+</main>
+</body>
+</html>

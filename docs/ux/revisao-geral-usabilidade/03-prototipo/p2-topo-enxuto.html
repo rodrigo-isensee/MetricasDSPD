@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo P2 · Topo enxuto, Preferências e Ajuda</title>
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-texto:#fff;--acento-fundo:#e6effc;--alerta:#b42318;--alerta-fundo:#fdecea;--atencao:#8a5a00;--atencao-fundo:#fff4dc;--ok:#0b6b3a;--ok-fundo:#e3f5ec}
+@media (prefers-color-scheme:dark){:root{--fundo:#0f1420;--superficie:#161c2a;--superficie-2:#1e2638;--texto:#e8ecf4;--texto-2:#aab3c5;--borda:#2a3347;--borda-controle:#8590a6;--acento:#6aa8ff;--acento-texto:#0f1420;--acento-fundo:#1c2d4a;--alerta:#ff8a80;--alerta-fundo:#3a1b1b;--atencao:#e0b040;--atencao-fundo:#3a2e0f;--ok:#3ccb9b;--ok-fundo:#0f2f25}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--fundo);color:var(--texto)}
+main{max-width:960px;margin:0 auto;padding:12px 16px}
+.proto{background:var(--atencao-fundo);color:var(--atencao);border:1px solid var(--atencao);border-radius:6px;padding:6px 12px;font-size:14px;margin-bottom:8px}
+h1{font-size:20px;margin:4px 0 0;display:inline}h2{font-size:17px;margin:16px 0 8px}h3{font-size:16px;margin:0}
+button{font:inherit;min-height:44px;min-width:44px;padding:0 14px;border-radius:6px;border:1px solid var(--borda-controle);background:var(--superficie);color:var(--texto);cursor:pointer}
+button.pri{background:var(--acento);color:var(--acento-texto);border-color:var(--acento)}
+a{color:var(--acento)}:focus-visible{outline:3px solid var(--acento);outline-offset:2px}
+nav.menu{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px;border-bottom:1px solid var(--borda)}
+nav.menu button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none}
+nav.menu button[aria-current=page]{border-bottom-color:var(--acento);color:var(--acento);font-weight:600}
+.cab{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.perg{color:var(--texto-2);font-size:14px}
+.fresc{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:14px;color:var(--texto-2);margin:4px 0}
+.selo{background:var(--atencao-fundo);color:var(--atencao);border-radius:9999px;padding:2px 10px;font-size:13px}
+.selook{background:var(--ok-fundo);color:var(--ok);border-radius:9999px;padding:2px 10px;font-size:13px}
+.acoes{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.avisos{background:var(--superficie-2);border-radius:8px;padding:0 12px;font-size:14px}
+.avisos summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.nota{font-size:14px;color:var(--texto-2);margin:4px 0}
+.atencao{background:var(--superficie);border:1px solid var(--borda);border-left:4px solid var(--alerta);border-radius:8px;padding:8px 16px}
+.item{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--borda)}
+.item:first-of-type{border-top:0}
+.item .t{flex:1 1 260px}.item b{display:block}.item span{color:var(--texto-2);font-size:14px}
+.reuniao{display:grid;gap:8px;grid-template-columns:1fr}
+@media (min-width:768px){.reuniao{grid-template-columns:repeat(3,1fr)}}
+.reuniao a{display:block;background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:12px;text-decoration:none;color:var(--texto);min-height:44px}
+.reuniao a b{color:var(--acento)}
+.niveis{display:grid;gap:8px;grid-template-columns:1fr}@media (min-width:768px){.niveis{grid-template-columns:repeat(3,1fr)}}
+.niveis div{background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:12px}
+.cartao{background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:16px;margin:8px 0}
+.lista label{display:flex;gap:8px;align-items:center;min-height:44px}
+.lista input{width:24px;height:24px}
+.status{background:var(--ok-fundo);color:var(--ok);border-radius:6px;padding:8px 12px;margin:8px 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+dialog{border:1px solid var(--borda-controle);border-radius:8px;background:var(--superficie);color:var(--texto);max-width:440px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.cat{width:100%;border-collapse:collapse;font-size:14px}.cat th,.cat td{text-align:left;padding:8px;border-bottom:1px solid var(--borda)}.cat th{background:var(--superficie-2)}
+.sr{position:absolute;left:-9999px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<div class="proto" role="note"><strong>Protótipo</strong> descartável. <span class="selo">Dados fictícios</span> · nenhum número representa a operação real. <a href="index.html">Voltar ao índice</a></div>
+
+<!-- Menu: sem "Catálogo de métricas" (agora dentro da Ajuda) -->
+<nav class="menu" aria-label="Principal">
+  <button type="button" data-tela="visao" aria-current="page">Visão geral</button>
+  <button type="button" data-tela="paineis">Painéis</button>
+  <button type="button" data-tela="pref">Preferências</button>
+  <button type="button" data-tela="ajuda">Ajuda</button>
+</nav>
+<div class="sr" role="status" aria-live="polite" id="live"></div>
+
+<!-- ============ VISÃO GERAL ============ -->
+<section id="visao" data-tela-sec aria-label="Visão geral">
+  <div class="cab"><h1>Visão geral</h1><span class="perg">O que precisa da nossa atenção esta semana?</span></div>
+  <div class="fresc"><span>Dados até 27/10 · Fonte: BusinessMap</span> <span class="selook">Coleta em dia</span>
+    <button type="button" id="detCol" aria-expanded="false" aria-controls="detColTxt">Detalhes da coleta</button></div>
+  <p class="nota" id="detColTxt" hidden>Última coleta concluída em 28/10 às 06:10; 1.240 cards lidos (exemplo). Cards arquivados continuam na base.</p>
+  <div class="acoes" role="toolbar" aria-label="Ações do painel">
+    <button type="button">Cadência: semanal</button><button type="button">Filtros</button><button type="button">Métricas</button><button type="button">Exportar</button><button type="button">Copiar link</button>
+  </div>
+  <p class="nota">Resultado consolidado de 3 times. O sistema não compara times.</p>
+  <details class="avisos"><summary>2 avisos sobre estes dados</summary>
+    <p>Calibração em andamento: a primeira leitura estável sai em 4 semanas.</p>
+    <p>Critério do Tempo de ciclo (O3) alterado em 02/03/2026; veja a linha tracejada no gráfico.</p></details>
+
+  <!-- Pede atenção: na primeira dobra -->
+  <h2 id="pa">Pede atenção</h2>
+  <div class="atencao" aria-labelledby="pa">
+    <div class="item"><div class="t"><b>Tempo de ciclo (O3) acima da meta</b><span>P85 em 12 dias úteis; meta: até 10 (base: 63 itens)</span></div><a href="#">Ver Tempo de ciclo (O3)</a></div>
+    <div class="item"><div class="t"><b>WIP acima do limite (O5)</b><span>13 de 59 dias acima; meta: 90% dos dias dentro</span></div><a href="#">Ver WIP (O5)</a></div>
+  </div>
+
+  <!-- U5: Por reunião logo abaixo de Pede atenção -->
+  <h2>Por reunião</h2>
+  <div class="reuniao">
+    <a href="#"><b>Planejamento</b><br><span class="perg">Backlog, vazão, previsão</span></a>
+    <a href="#"><b>Diária</b><br><span class="perg">Idade do trabalho, WIP</span></a>
+    <a href="#"><b>Retrospectiva</b><br><span class="perg">Tempo de ciclo, retrabalho</span></a>
+  </div>
+
+  <h2>Níveis</h2>
+  <div class="niveis">
+    <div><h3>FL1 Operacional</h3><span class="perg">Fluxo do dia a dia</span></div>
+    <div><h3>FL2 Tático</h3><span class="perg">Tendências e previsão</span></div>
+    <div><h3>FL3 Estratégico</h3><span class="perg">Visão consolidada</span></div>
+  </div>
+</section>
+
+<section id="paineis" data-tela-sec hidden aria-label="Painéis"><h1>Painéis</h1><p class="nota">Tela de exemplo. O catálogo de métricas não aparece mais no menu; está na Ajuda.</p></section>
+
+<!-- ============ PREFERÊNCIAS (U4) ============ -->
+<section id="pref" data-tela-sec hidden aria-label="Preferências">
+  <h1>Preferências</h1>
+  <p class="nota">Todos veem tudo por padrão. Não há sugestão de conjunto por papel.</p>
+  <div class="cartao"><h3>Métricas visíveis</h3>
+    <div class="lista" id="lista"></div>
+    <div class="acoes"><button type="button" id="restaurar">Restaurar padrão</button></div>
+  </div>
+  <div id="statusDesfazer" class="status" hidden>
+    <span id="statusTxt"></span><button type="button" id="desfazer">Desfazer</button><button type="button" id="dispensar" aria-label="Dispensar este aviso">Dispensar</button>
+  </div>
+</section>
+
+<!-- ============ AJUDA com catálogo ============ -->
+<section id="ajuda" data-tela-sec hidden aria-label="Ajuda">
+  <h1>Ajuda</h1>
+  <div class="cartao"><h3>Como ler os painéis</h3><p class="nota">Percentis P50, P85 e P95 numa janela de 12 semanas; abaixo de 20 itens não publicamos estatística.</p></div>
+  <div class="cartao"><h3 id="cat">Catálogo de métricas</h3>
+    <p class="nota">Links diretos para <code>/metricas</code> continuam funcionando e abrem esta mesma lista.</p>
+    <table class="cat"><thead><tr><th>Métrica</th><th>Pergunta que responde</th></tr></thead><tbody>
+      <tr><td><a href="#">Tempo de ciclo (O3)</a></td><td>Quanto tempo um item leva para ser entregue?</td></tr>
+      <tr><td><a href="#">Idade do trabalho (O1)</a></td><td>O que está parado há mais tempo?</td></tr>
+      <tr><td><a href="#">WIP (O5)</a></td><td>Estamos começando mais do que terminamos?</td></tr>
+      <tr><td><a href="#">Retrabalho (O15)</a></td><td>Quanto volta para correção?</td></tr>
+    </tbody></table></div>
+</section>
+
+<dialog id="dlg" aria-labelledby="dlgT">
+  <h2 id="dlgT">Restaurar o padrão?</h2>
+  <p id="dlgP"></p>
+  <div class="acoes"><button type="button" id="cancelar">Cancelar</button><button type="button" class="pri" id="confirmar">Restaurar padrão</button></div>
+</dialog>
+</main>
+
+<script>
+var PAD=['O1 Idade do trabalho','O3 Tempo de ciclo','O4 Os três relógios','O5 WIP','O9 Envelhecimento do backlog','O10 Entrada e saída'];
+var sel=PAD.map(function(_,i){return i!==3&&i!==4}); // exemplo: duas desmarcadas pelo usuário
+var ant=null;
+function live(t){var l=document.getElementById('live');l.textContent='';setTimeout(function(){l.textContent=t},30)}
+function lista(){document.getElementById('lista').innerHTML=PAD.map(function(n,i){return '<label><input type="checkbox" data-i="'+i+'"'+(sel[i]?' checked':'')+'> '+n+'</label>'}).join('')}
+function ir(id){document.querySelectorAll('[data-tela-sec]').forEach(function(s){s.hidden=s.id!==id});document.querySelectorAll('nav.menu button').forEach(function(b){if(b.dataset.tela===id)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}
+document.querySelectorAll('nav.menu button').forEach(function(b){b.onclick=function(){ir(b.dataset.tela)}});
+document.getElementById('detCol').onclick=function(){var t=document.getElementById('detColTxt');t.hidden=!t.hidden;this.setAttribute('aria-expanded',String(!t.hidden))};
+document.getElementById('lista').onchange=function(e){sel[+e.target.dataset.i]=e.target.checked};
+var dlg=document.getElementById('dlg'),origem=null;
+document.getElementById('restaurar').onclick=function(){
+  origem=this;
+  var n=sel.filter(function(v){return !v}).length;
+  if(!n){live('O padrão já está aplicado: todas as métricas visíveis.');return}
+  document.getElementById('dlgP').textContent='Isto vai mostrar de novo '+n+' métricas que você ocultou e voltar tudo ao padrão (todas visíveis). Você poderá desfazer, sem prazo.';
+  dlg.showModal();document.getElementById('cancelar').focus();
+};
+document.getElementById('cancelar').onclick=function(){dlg.close();origem.focus()};
+dlg.addEventListener('cancel',function(){setTimeout(function(){origem&&origem.focus()},0)});
+document.getElementById('confirmar').onclick=function(){
+  ant=sel.slice();var n=sel.filter(function(v){return !v}).length;
+  sel=PAD.map(function(){return true});lista();dlg.close();
+  document.getElementById('statusTxt').textContent='Padrão restaurado: '+n+' métricas voltaram a aparecer.';
+  document.getElementById('statusDesfazer').hidden=false;
+  document.getElementById('desfazer').focus();live('Padrão restaurado. Desfazer disponível.');
+};
+document.getElementById('desfazer').onclick=function(){sel=ant.slice();lista();document.getElementById('statusDesfazer').hidden=true;document.getElementById('restaurar').focus();live('Restauração desfeita.')};
+document.getElementById('dispensar').onclick=function(){document.getElementById('statusDesfazer').hidden=true;document.getElementById('restaurar').focus()};
+lista();
+</script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo P3 · Índice fixo por seção</title>
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-fundo:#e6effc;--alerta:#b42318;--atencao:#8a5a00;--atencao-fundo:#fff4dc;--ok:#0b6b3a}
+@media (prefers-color-scheme:dark){:root{--fundo:#0f1420;--superficie:#161c2a;--superficie-2:#1e2638;--texto:#e8ecf4;--texto-2:#aab3c5;--borda:#2a3347;--borda-controle:#8590a6;--acento:#6aa8ff;--acento-fundo:#1c2d4a;--alerta:#ff8a80;--atencao:#e0b040;--atencao-fundo:#3a2e0f;--ok:#3ccb9b}}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:120px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--fundo);color:var(--texto)}
+main{max-width:960px;margin:0 auto;padding:12px 16px}
+.proto{background:var(--atencao-fundo);color:var(--atencao);border:1px solid var(--atencao);border-radius:6px;padding:6px 12px;font-size:14px}
+h1{font-size:20px;margin:8px 0}h2{font-size:18px;margin:0 0 8px}
+a{color:var(--acento)}:focus-visible{outline:3px solid var(--acento);outline-offset:2px}
+.fixo{position:sticky;top:0;z-index:5;background:var(--fundo);padding:8px 0;border-bottom:1px solid var(--borda)}
+.indice{display:none;gap:4px;flex-wrap:wrap}
+.indice a{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:2px 12px;border:1px solid var(--borda-controle);border-radius:8px;background:var(--superficie);text-decoration:none;color:var(--texto)}
+.indice a small{color:var(--texto-2);font-size:13px}
+.indice a small.at{color:var(--alerta);font-weight:600}
+.indice a[aria-current=true]{background:var(--acento-fundo);border-color:var(--acento);border-width:2px}
+.movel{display:flex;gap:8px;align-items:center}
+.movel label{font-size:14px}.movel select{font:inherit;min-height:44px;flex:1;border:1px solid var(--borda-controle);border-radius:6px;background:var(--superficie);color:var(--texto);padding:0 8px}
+@media (min-width:768px){.indice{display:flex}.movel{display:none}}
+section.s{margin:24px 0}
+.cartao{background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:16px;margin:8px 0}
+.cartao p{margin:4px 0;color:var(--texto-2)}
+.bloco{height:140px;border-radius:4px;background:repeating-linear-gradient(90deg,var(--acento-fundo) 0 18px,var(--superficie-2) 18px 24px)}
+.nota{font-size:14px;color:var(--texto-2)}
+.sr{position:absolute;left:-9999px}
+</style>
+</head>
+<body>
+<main>
+<div class="proto" role="note"><strong>Protótipo</strong> descartável. Dados fictícios; nenhum número representa a operação real. <a href="index.html">Voltar ao índice</a></div>
+<h1>Painel semanal · Tático (exemplo)</h1>
+
+<div class="fixo">
+  <!-- >= 768 px: índice por seção; o texto de cada item vem do "Pede atenção" que já existe -->
+  <nav class="indice" aria-label="Seções do painel" id="indice"></nav>
+  <!-- celular: seletor fixo -->
+  <div class="movel"><label for="sel">Seção:</label><select id="sel"></select></div>
+</div>
+<div class="sr" role="status" aria-live="polite" id="live"></div>
+<p class="nota">Resumo de cada seção: só o que o "Pede atenção" já publica (nenhum indicador novo, sem nota nem cor por time). "ok" significa nenhum alerta publicado.</p>
+
+<div id="corpo"></div>
+</main>
+
+<script>
+// "atencao" = quantidade de itens da seção que o "Pede atenção" já publica; "ocultas" vem do recorte do usuário.
+var S=[
+ {id:'tempo',nome:'Tempo',atencao:1,ocultas:0},
+ {id:'fluxo',nome:'Fluxo',atencao:0,ocultas:0},
+ {id:'qualidade',nome:'Qualidade',atencao:0,ocultas:0},
+ {id:'backlog',nome:'Backlog',atencao:0,ocultas:2},
+ {id:'previsao',nome:'Previsão',atencao:0,ocultas:0}
+];
+function resumo(s){var p=[];if(s.atencao)p.push(s.atencao+' pede atenção');else p.push('ok');if(s.ocultas)p.push(s.ocultas+' ocultas');return p.join(' · ')}
+function resumoTxt(s){return s.nome+': '+resumo(s)}
+document.getElementById('indice').innerHTML=S.map(function(s,i){return '<a href="#s-'+s.id+'" data-id="'+s.id+'"'+(i===0?' aria-current="true"':'')+'>'+s.nome+'<small'+(s.atencao?' class="at"':'')+'>'+(s.atencao?'! ':'')+resumo(s)+'</small></a>'}).join('');
+document.getElementById('sel').innerHTML=S.map(function(s){return '<option value="'+s.id+'">'+resumoTxt(s)+'</option>'}).join('');
+document.getElementById('corpo').innerHTML=S.map(function(s){
+  var h='<section class="s" id="s-'+s.id+'" aria-labelledby="h-'+s.id+'"><h2 id="h-'+s.id+'" tabindex="-1">'+s.nome+'</h2>';
+  for(var k=1;k<=3;k++)h+='<div class="cartao"><strong>Métrica de exemplo '+k+'</strong><p>Leitura de exemplo (base: '+(30+k*7)+' itens).</p><div class="bloco" role="img" aria-label="Gráfico de exemplo"></div></div>';
+  return h+'</section>'}).join('');
+
+// destaca a seção visível
+var links=[].slice.call(document.querySelectorAll('#indice a'));
+function marcar(id){links.forEach(function(a){if(a.dataset.id===id)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')});document.getElementById('sel').value=id}
+if('IntersectionObserver' in window){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)marcar(e.target.id.replace('s-',''))})},{rootMargin:'-120px 0px -60% 0px'});
+  document.querySelectorAll('section.s').forEach(function(s){io.observe(s)});
+}
+// ir para a seção move também o foco (teclado e leitor de tela)
+function irPara(id){var h=document.getElementById('h-'+id);document.getElementById('s-'+id).scrollIntoView();h.focus({preventScroll:true});marcar(id);document.getElementById('live').textContent='Seção '+S.filter(function(s){return s.id===id})[0].nome}
+links.forEach(function(a){a.onclick=function(e){e.preventDefault();irPara(a.dataset.id)}});
+document.getElementById('sel').onchange=function(){irPara(this.value)};
+</script>
+</body>
+</html>

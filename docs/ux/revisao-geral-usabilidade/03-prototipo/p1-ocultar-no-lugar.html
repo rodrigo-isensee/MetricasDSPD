@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo P1 · Ocultar no lugar</title>
+<style>
+:root{--fundo:#f6f7f9;--superficie:#fff;--superficie-2:#eef1f6;--texto:#1a1f2b;--texto-2:#4a5365;--borda:#d5dae3;--borda-controle:#6b7488;--acento:#1f5fbf;--acento-texto:#fff;--acento-fundo:#e6effc;--atencao:#8a5a00;--atencao-fundo:#fff4dc;--ok:#0b6b3a;--ok-fundo:#e3f5ec}
+@media (prefers-color-scheme:dark){:root{--fundo:#0f1420;--superficie:#161c2a;--superficie-2:#1e2638;--texto:#e8ecf4;--texto-2:#aab3c5;--borda:#2a3347;--borda-controle:#8590a6;--acento:#6aa8ff;--acento-texto:#0f1420;--acento-fundo:#1c2d4a;--atencao:#e0b040;--atencao-fundo:#3a2e0f;--ok:#3ccb9b;--ok-fundo:#0f2f25}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--fundo);color:var(--texto)}
+main{max-width:960px;margin:0 auto;padding:16px}
+.proto{background:var(--atencao-fundo);color:var(--atencao);border:1px solid var(--atencao);border-radius:6px;padding:8px 12px;font-size:14px;margin-bottom:12px}
+h1{font-size:22px;margin:8px 0}h2{font-size:18px;margin:0}
+button{font:inherit;min-height:44px;min-width:44px;padding:0 16px;border-radius:6px;border:1px solid var(--borda-controle);background:var(--superficie);color:var(--texto);cursor:pointer}
+button.pri{background:var(--acento);color:var(--acento-texto);border-color:var(--acento)}
+button.peq{min-height:44px;padding:0 12px}
+a{color:var(--acento)}
+:focus-visible{outline:3px solid var(--acento);outline-offset:2px}
+.topo{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14px}
+.topo .txt{flex:1 1 280px;color:var(--texto-2)}
+.selo{background:var(--atencao-fundo);color:var(--atencao);border-radius:9999px;padding:2px 10px;font-size:13px}
+.secao{margin:20px 0}
+.secao header{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.cont{color:var(--texto-2);font-size:14px}
+.grade{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:768px){.grade{grid-template-columns:1fr 1fr}.grade .larga{grid-column:1/-1}}
+.cartao{background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:16px}
+.cartao h3{font-size:16px;margin:0}.cartao h3 span,.marc .nome span{background:var(--acento-fundo);color:var(--acento);border-radius:4px;padding:0 6px;font-size:13px;font-weight:600;margin-left:6px}
+.cabec{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.leitura{color:var(--texto-2);margin:8px 0}
+.barra{height:56px;border-radius:4px;background:repeating-linear-gradient(90deg,var(--acento-fundo) 0 18px,var(--superficie-2) 18px 24px)}
+.status{display:inline-block;background:var(--ok-fundo);color:var(--ok);border-radius:4px;padding:0 8px;font-size:13px}
+.marc{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;min-height:44px;padding:0 12px;border:1px dashed var(--borda-controle);border-radius:8px;background:var(--superficie-2);color:var(--texto-2);font-size:14px}
+.marc .nome{flex:1 1 220px}
+.marc.dest{border:2px solid var(--acento);outline:0}
+.marc .crit{flex-basis:100%;color:var(--atencao);font-size:13px}
+.chegada{background:var(--acento-fundo);border:1px solid var(--acento);border-radius:6px;padding:8px 12px;margin:8px 0;font-size:14px}
+.pref{background:var(--superficie);border:1px solid var(--borda);border-radius:8px;padding:12px 16px;margin:8px 0}
+.pref label{display:flex;gap:8px;align-items:center;min-height:44px}
+.pref input{width:24px;height:24px}
+.demo{background:var(--superficie-2);border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14px}
+.sr{position:absolute;left:-9999px}
+@media (prefers-reduced-motion:no-preference){.marc.dest{transition:border-color .3s}}
+</style>
+</head>
+<body>
+<main>
+<div class="proto" role="note"><strong>Protótipo</strong> descartável. Dados fictícios (<span class="selo">Dados fictícios</span>); nenhum número representa a operação real. <a href="index.html">Voltar ao índice</a></div>
+<h1>Painel semanal · Tático (exemplo)</h1>
+
+<div class="topo" id="topo">
+  <span class="txt" id="topoTxt"></span>
+  <button type="button" id="mostrarTodas" hidden>Mostrar todas</button>
+  <button type="button" id="abrirPref" aria-expanded="false" aria-controls="pref">Preferências</button>
+</div>
+
+<div class="pref" id="pref" hidden>
+  <strong>Preferências · Métricas ocultas</strong>
+  <label><input type="checkbox" id="optMarc" checked> Mostrar marcadores de métricas ocultas no lugar do cartão</label>
+  <p class="cont">Desligado: o cartão some sem marcador; a linha do topo continua informando quantas estão ocultas e o título da seção mostra "N de M visíveis". O que você oculta fica oculto até você mandar mostrar (lembrado neste navegador).</p>
+</div>
+
+<div class="demo">Cenários: <button type="button" class="peq" id="linkOculto">Abrir link direto para "Tempo de ciclo (O3)"</button> <span class="cont">(se estiver oculto, cai no marcador)</span></div>
+
+<div class="sr" role="status" aria-live="polite" id="live"></div>
+<div id="chegada" class="chegada" role="status" hidden></div>
+
+<div id="secoes"></div>
+</main>
+
+<script>
+// Dados fictícios: base de cada gráfico >= 20 itens (regra do produto).
+var SECOES=[
+ {id:'tempo',nome:'Tempo',cards:[
+  {id:'o1',cod:'O1',nome:'Idade do trabalho',leitura:'3 itens acima do percentil 85 (base: 41 itens)',larga:false},
+  {id:'o3',cod:'O3',nome:'Tempo de ciclo',leitura:'P50 4 dias úteis, P85 9, P95 14 (base: 63 itens)',larga:false,crit:'Critério alterado em 02/03/2026'},
+  {id:'o4',cod:'O4',nome:'Os três relógios',leitura:'Espera pesa mais que trabalho ativo (base: 58 itens)',larga:true}]},
+ {id:'backlog',nome:'Backlog',cards:[
+  {id:'o9',cod:'O9',nome:'Envelhecimento do backlog',leitura:'Faixa de 30+ dias com 12 itens (base: 74 itens)',larga:false},
+  {id:'o10',cod:'O10',nome:'Entrada e saída',leitura:'Entrada acima da saída em 5 de 12 semanas',larga:false}]},
+ {id:'qualidade',nome:'Qualidade',cards:[
+  {id:'o15',cod:'O15',nome:'Retrabalho',leitura:'Dentro da meta (base: 52 itens)',larga:false}]}
+];
+var KEY='proto048-p1-ocultas', KEYM='proto048-p1-marcadores';
+var ocultas=[], marcadores=true, ult=null;
+try{ocultas=JSON.parse(localStorage.getItem(KEY)||'[]');marcadores=localStorage.getItem(KEYM)!=='0'}catch(e){}
+function salvar(){try{localStorage.setItem(KEY,JSON.stringify(ocultas));localStorage.setItem(KEYM,marcadores?'1':'0')}catch(e){}}
+function achar(id){for(var i=0;i<SECOES.length;i++)for(var j=0;j<SECOES[i].cards.length;j++)if(SECOES[i].cards[j].id===id)return SECOES[i].cards[j]}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function total(){var n=0;SECOES.forEach(function(s){n+=s.cards.length});return n}
+function anunciar(t){var l=document.getElementById('live');l.textContent='';setTimeout(function(){l.textContent=t},30)}
+
+function render(){
+  var h='';
+  SECOES.forEach(function(s){
+    var M=s.cards.length, vis=s.cards.filter(function(c){return ocultas.indexOf(c.id)<0}), N=vis.length;
+    h+='<section class="secao" aria-labelledby="t-'+s.id+'"><header><h2 id="t-'+s.id+'">'+s.nome+'</h2>'+(N<M?'<span class="cont">'+N+' de '+M+' visíveis</span>':'')+'</header><div class="grade">';
+    if(N===0 && marcadores){
+      h+='<div class="marc larga" style="grid-column:1/-1"><span class="nome">'+s.nome+' · '+M+' métricas ocultas: '+s.cards.map(function(c){return esc(c.nome)+' ('+c.cod+')'}).join(', ')+'</span><button type="button" class="peq" data-secao="'+s.id+'">Mostrar as '+M+'</button></div>';
+    } else {
+      s.cards.forEach(function(c){
+        var oc=ocultas.indexOf(c.id)>=0;
+        if(!oc){
+          h+='<article class="cartao'+(c.larga?' larga':'')+'" id="c-'+c.id+'" aria-labelledby="h-'+c.id+'"><div class="cabec"><h3 id="h-'+c.id+'" tabindex="-1">'+c.nome+'<span>'+c.cod+'</span></h3><button type="button" class="peq" data-ocultar="'+c.id+'" aria-label="Ocultar '+c.nome+' ('+c.cod+')">Ocultar</button></div><p class="leitura">'+c.leitura+'</p><div class="barra" role="img" aria-label="Gráfico de exemplo"></div><p><span class="status">Dentro da meta</span></p></article>';
+        } else if(marcadores){
+          h+='<div class="marc'+(c.larga?' larga':'')+'" id="m-'+c.id+'"><span class="nome">'+esc(c.nome)+'<span>'+c.cod+'</span> · oculta no seu padrão</span><button type="button" class="peq" data-mostrar="'+c.id+'" aria-label="Mostrar '+esc(c.nome)+' ('+c.cod+')">Mostrar</button>'+(c.crit?'<span class="crit">Atenção: '+c.crit+' (o aviso não some mesmo oculta)</span>':'')+'</div>';
+        }
+      });
+    }
+    h+='</div></section>';
+  });
+  document.getElementById('secoes').innerHTML=h;
+  var n=ocultas.length, T=total(), t=document.getElementById('topoTxt');
+  t.textContent='Métricas: '+(T-n)+' de '+T+' visíveis'+(n?' · '+n+' ocultas: '+ocultas.map(function(i){return achar(i).nome}).join(', '):'');
+  document.getElementById('mostrarTodas').hidden=!n;
+}
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b)return;
+  if(b.dataset.ocultar){
+    var c=achar(b.dataset.ocultar); ocultas.push(c.id); salvar(); render();
+    var T=total();
+    anunciar(c.nome+' ('+c.cod+') oculta. '+(T-ocultas.length)+' de '+T+' métricas visíveis.');
+    var m=document.querySelector('[data-mostrar="'+c.id+'"]');
+    if(m)m.focus(); else document.getElementById('abrirPref').focus();   // sem marcador: foco no controle estável mais próximo
+  }
+  else if(b.dataset.mostrar){
+    var c2=achar(b.dataset.mostrar); ocultas=ocultas.filter(function(i){return i!==c2.id}); salvar(); render();
+    document.getElementById('h-'+c2.id).focus();
+    anunciar(c2.nome+' ('+c2.cod+') visível de novo.');
+  }
+  else if(b.dataset.secao){
+    var s=SECOES.filter(function(x){return x.id===b.dataset.secao})[0], ids=s.cards.map(function(c){return c.id});
+    ocultas=ocultas.filter(function(i){return ids.indexOf(i)<0}); salvar(); render();
+    document.getElementById('h-'+ids[0]).focus();
+    anunciar(ids.length+' métricas de '+s.nome+' visíveis de novo.');
+  }
+});
+document.getElementById('mostrarTodas').onclick=function(){ocultas=[];salvar();render();document.getElementById('abrirPref').focus();anunciar('Todas as métricas visíveis.')};
+document.getElementById('abrirPref').onclick=function(){var p=document.getElementById('pref');p.hidden=!p.hidden;this.setAttribute('aria-expanded',String(!p.hidden))};
+document.getElementById('optMarc').checked=marcadores;
+document.getElementById('optMarc').onchange=function(){marcadores=this.checked;salvar();render();anunciar(marcadores?'Marcadores de ocultas ligados.':'Marcadores de ocultas desligados.')};
+document.getElementById('linkOculto').onclick=function(){
+  var c=achar('o3'), ch=document.getElementById('chegada');
+  if(ocultas.indexOf('o3')<0){ch.hidden=false;ch.textContent='Tempo de ciclo (O3) está visível. (Oculte-o e tente de novo para ver o marcador.)';document.getElementById('h-o3').focus();return}
+  var m=document.getElementById('m-o3');
+  if(!m){ch.hidden=false;ch.textContent='Você chegou a uma métrica oculta (Tempo de ciclo, O3), e os marcadores estão desligados nas Preferências. Mostre-a pela linha do topo.';document.getElementById('mostrarTodas').focus();return}
+  ch.hidden=false;ch.textContent='Você chegou a uma métrica oculta. Use "Mostrar" para ver Tempo de ciclo (O3).';
+  m.scrollIntoView({block:'center'});m.classList.add('dest');setTimeout(function(){m.classList.remove('dest')},2000);   // sem animação: apenas borda
+  m.querySelector('button').focus();
+};
+render();
+</script>
+</body>
+</html>
