@@ -464,3 +464,26 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-28T09:18:10-03:00 | K-160 | — | Entrada | Aguardando o dono: acesso para apagar branches mescladas |
 | 2026-10-28T09:18:10-03:00 | K-161 | — | Entrada | MELHORIA da retro do 044; fila de merge e decisao do dono |
 | 2026-10-28T09:19:14-03:00 | K-108 | Entrada | Bloqueado | Aguardando o dono: delegacao do merge do PR 153 negada pelo classificador |
+| 2026-10-28T11:01:18-03:00 | K-108 | Bloqueado | Pronto | PR 153 mesclado pelo dono (f138c80) |
+| 2026-10-28T11:01:19-03:00 | K-140 | Em andamento | Pronto | PR 151 mesclado pelo dono (d55db80) |
+| 2026-10-28T11:07:06-03:00 | K-162 | Entrada | Em andamento | E3.1 do 026 delegada ao tech-lead (brief tech-lead-11) |
+| 2026-10-28T11:08:01-03:00 | K-162 | Em andamento | Bloqueado | Aguardando o dono: hook reserva o CLAUDE.md ao Jarvis; decisao deu ao tech-lead |
+| 2026-10-28T11:10:56-03:00 | K-092 | Entrada | Pronto | 041 entregue (PR 150 e 153); retro acfdcf0 |
+| 2026-10-28T11:10:56-03:00 | K-107 | QA | Pronto | 041 entregue (PR 150 e 153); retro acfdcf0 |
+| 2026-10-28T11:10:56-03:00 | K-115 | Pronto para fazer | Pronto | 041 entregue (PR 150 e 153); retro acfdcf0 |
+| 2026-10-28T11:10:56-03:00 | K-123 | QA | Pronto | 041 entregue (PR 150 e 153); retro acfdcf0 |
+| 2026-10-28T11:10:56-03:00 | K-132 | Entrada | Pronto | 041 entregue (PR 150 e 153); retro acfdcf0 |
+| 2026-10-28T11:10:56-03:00 | K-134 | Entrada | Pronto | 041 entregue (PR 150 e 153); retro acfdcf0 |
+| 2026-10-28T11:10:56-03:00 | K-135 | Em andamento | Pronto | 041 entregue (PR 150 e 153); retro acfdcf0 |
+| 2026-10-28T11:10:56-03:00 | K-138 | Pronto para fazer | Pronto | 041 entregue (PR 150 e 153); retro acfdcf0 |
+| 2026-10-28T11:10:57-03:00 | K-149 | Em andamento | Pronto | 041 entregue (PR 150 e 153); retro acfdcf0 |
+| 2026-10-28T11:14:16-03:00 | K-163 | Entrada | Pronto para fazer | pedido 045 aberto por entrada direta (MELHORIA da retro do 041) |
+| 2026-10-28T11:15:47-03:00 | K-164 | — | Bloqueado | MELHORIA da retrospectiva do 041 |
+| 2026-10-28T11:15:47-03:00 | K-165 | — | Entrada | MELHORIA da retrospectiva do 041 |
+| 2026-10-28T11:15:48-03:00 | K-166 | — | Entrada | MELHORIA da retrospectiva do 041 |
+| 2026-10-28T11:15:48-03:00 | K-167 | — | Entrada | MELHORIA da retrospectiva do 042 |
+| 2026-10-28T11:15:48-03:00 | K-168 | — | Entrada | MELHORIA da retrospectiva do 042 |
+| 2026-10-28T11:15:48-03:00 | K-169 | — | Bloqueado | MELHORIA da retrospectiva do 042 |
+| 2026-10-28T11:15:48-03:00 | K-170 | — | Entrada | MELHORIA da retrospectiva do 042 |
+| 2026-10-28T11:16:01-03:00 | K-163 | Pronto para fazer | Em andamento | brief node-backend-1 aprovado e delegado |
+| 2026-10-28T11:17:06-03:00 | K-111 | Em andamento | Pronto | PR 152 mesclado pelo dono (d7c74b4) |

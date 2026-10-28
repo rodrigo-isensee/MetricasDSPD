@@ -416,3 +416,11 @@
 | 2026-10-28 09:15 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-20.md | brief | 3 | reprovado | n | brief tech-lead-19 sem marca no Fora do escopo | etapa | jarvis |
 | 2026-10-28 09:18 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-21.md | brief | 4 | aprovado | s |  | — | jarvis |
 | 2026-10-28 09:19 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-agile-coach-2.md | entrega | 1 | não cumpriu | parcial | PQ-1 a PQ-4 cumpridos; faixa da branch do Jarvis e Desde de outra branch (K-158) | escopo | jarvis |
+| 2026-10-28 11:05 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-agile-coach-1.md | brief | 1 | aprovado | s | aviso: hora UTC do PR 150 no Objetivo; retro usa a escala do Historico | — | jarvis |
+| 2026-10-28 11:06 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-agile-coach-1.md | brief | 1 | reprovado | s | Objetivo citava merge do 153 nao registrado no pedido 042 | citacao | jarvis |
+| 2026-10-28 11:07 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-11.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 11:08 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-agile-coach-1.md | brief | 2 | reprovado | s | tardio | citacao | jarvis |
+| 2026-10-28 11:09 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-agile-coach-1.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-28 11:12 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-agile-coach-1 | entrega | 1 | não cumpriu | s | K-147: intervalo da branch do Jarvis mede 154 arquivos de outros papéis; PQ-1 a PQ-4 cumpriram e acfdcf0 só toca a retro; aceita por decisão técnica | escopo | jarvis |
+| 2026-10-28 11:16 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-node-backend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 11:17 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-agile-coach-1 | entrega | 1 | não cumpriu | s | K-147: Desde de outra branch (43e4002 não está na docs/jarvis); PQ-1 a PQ-4 cumpriram e a59ceb7 só toca a retro; aceita por decisão técnica; mensagem do Jarvis sem a cópia literal do brief | escopo | jarvis |

@@ -16,6 +16,11 @@
 - E1.3 (forge:qa-engineer): QA do front do lote 3.
 - E1.4 (forge:tech-lead): code review do E1 e do E2.
 - E3.1 (forge:tech-lead): registrar no CLAUDE.md, por PR, a leitura da decisão de 2026-10-27 sobre push antes do QA.
+- E1.5 (forge:tech-lead): worktree `/home/rodrigoisensee/MetricasDSPD-026d` com a branch `docs/026-textos-lote3` a partir da develop com o #152, para o E1.6.
+- E1.6 (forge:ux-designer): textos da especificação do lote 3 (K-154): mínimo de 20 do O26 sobre as entregas do tipo (A12 do review = A7 do QA), tabela de decisões da §11 (A13), vazio junto de "Amostra insuficiente: 0 de 20" em mock=vazio (A6 do QA).
+- E1.7 (forge:tech-lead): code review, commit e push do E1.6; o PR para a develop depois do parecer do QA.
+- E1.8 (forge:qa-engineer): parecer de QA do E1.6 (documentação: textos coerentes com a tela e os contratos).
+- E4.1 (forge:agile-coach): retrospectiva do pedido em `docs/retrospectivas/2026-10-28-026-lote3.md`, com as linhas `MELHORIA:`, depois do E3.1 e do E1.8.
 
 ## Fora do escopo
 - Integrações reais (BusinessMap e Acelerato): só no fim do backlog (decisão do dono de 2026-10-27).
@@ -107,3 +112,9 @@
 - 2026-10-28 09:01: DECISÃO DO DONO (2026-10-28): "Eu estou fora o dia todo então faça tudo que precisar" (ordem ampla: só o que já está confirmado ou delegado; item novo ou irreversível fica para o dono).
 - 2026-10-28 09:02: DECISÃO DO DONO (2026-10-28): "Faça suas recomendações para as decisões até eu voltar para nada ficar parado só registre as decisões tomadas" (R-DECISAO: decisões pendentes viram `delegado`, com a recomendação do time e a base gravadas aqui; custo, acesso, exceção a regra e ato irreversível continuam com o dono).
 - 2026-10-28 09:19: a série de merges parou no PR #153 do 041 (delegação negada pelo classificador de permissões, ação do dono). O PR #152 do lote 3 só recebe a develop depois do #153 e do #151.
+- 2026-10-28 11:01: o dono trouxe a develop ao PR #152 duas vezes (a803374 às 10:07 e 3cea48e às 10:56), depois do #153 e do #151. O PR está mergeable, mas os checks do head 3cea48e ainda rodam (runs 40701144228 e 40701152894). O merge por squash é do dono quando ficarem verdes, como fez com o #153 e o #151. Depois vêm a E3.1 (CLAUDE.md, por PR), o K-154 (UX) e a retrospectiva.
+- 2026-10-28 11:08: brief tech-lead-11 (E3.1: CLAUDE.md com a leitura de "enviada", na branch docs/026-claude-md-enviada a partir de d55db80, worktree MetricasDSPD-026c) aprovado pelo conferente na rodada 1 (sha256 a3fa27e7b4d53f60ba48fda412ce4a3efe258f51bbd71a3b985ed55f87abc577) e delegado ao forge:tech-lead. Cartão K-162. O PR vem depois do parecer do QA.
+- 2026-10-28 11:15: tech-lead-11 não cumpriu, sem commit e sem push. O hook conformidade.py do Forge recusou a edição do CLAUDE.md ("só o jarvis (iniciar-projeto e exceções locais aprovadas pelo usuário)"). A worktree MetricasDSPD-026c ficou limpa em d55db80, com a branch docs/026-claude-md-enviada. Pela R-CONFORMIDADE, o bloqueio não se contorna. A decisão do dono de 2026-10-27 dá a edição ao tech-lead, então trocar o autor é decisão do dono. K-162 vai a Bloqueado.
+  - PERGUNTA: (2026-10-28 11:15) quem grava a leitura de "enviada" no CLAUDE.md? A: o Jarvis edita na worktree -026c (o hook permite), e o tech-lead faz o commit, o push e, depois do QA, o PR. B: o dono edita. Recomendação: A (base: o hook do Forge reserva o CLAUDE.md ao Jarvis; o texto proposto pelo tech-lead vai no relatório).
+  - Texto proposto pelo tech-lead para o passo 4: "O push da feature branch ao `origin` é liberado antes do parecer do QA; "enviada" quer dizer o PR para a `develop`, que só abre com o parecer do QA em `docs/qa/` (decisão do dono, 2026-10-27)."
+- 2026-10-28 11:17: o dono mesclou o PR #152 na develop às 11:09 (d7c74b46203994362147a3fd3d78ec2db9fc0576, por squash), com a e2e-parte (2/2) ainda pendente. K-111 foi para Pronto. Abertas as etapas E1.5 a E1.8, para os textos da especificação (K-154, recomendados do review e do QA), e a E4.1, para a retrospectiva.

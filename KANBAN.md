@@ -10,6 +10,11 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-165 | [forge] Rodada longa de suíte (mais de 10 min) grava o JSON da E2E de forma incremental, fora de /tmp (skill qa-testing) | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 041 (JSON perdido nas quedas do WSL); vai ao Forge, só propor |
+| K-166 | [forge] Uma etapa numerada por delegação no gabarito do pedido e no `brief gerar` | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 041 (14 de 73 rodadas de brief reprovadas por escopo ou etapa); vai ao Forge, só propor |
+| K-167 | [forge] Opção de decisão sobre ato reservado ao dono põe o dono como quem aplica; leitura da proteção inclui o ruleset | 042 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 042 (5 perguntas para o K-148, 4 reprovações); vai ao Forge, só propor |
+| K-168 | [forge] Conferente de brief relata todos os achados na 1ª rodada (3 reprovações tardio) | 042 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 042; vai ao Forge, só propor |
+| K-170 | [forge] `forge-check movimento --de Bloqueado` sem a linha de entrada em Bloqueado deveria recusar | 042 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Melhoria vista do agile-coach na retro do 042 (historico.md 2026-10-28T09:12:05; repete a ação 2 da retro do 025); vai ao Forge, só propor |
 | K-156 | [forge] Autoria do parecer cobrada antes do QA: `forge-check pr` rc=0 como PQ de toda entrega que grava parecer | 044 | forge:tech-lead | 2026-10-28 | 2026-10-28 09:17 | MELHORIA da retro do 044 (cac20b1); vai ao Forge pela skill contribuir-com-o-forge (só propor) |
 | K-157 | [forge] Número de testes em PQ só por comando (`--list`), com data e commit, não de run anterior | 044 | forge:tech-lead | 2026-10-28 | 2026-10-28 09:17 | MELHORIA da retro do 044 (726 x 716); vai ao Forge, só propor |
 | K-158 | [forge] `Desde:` obrigatório no brief de entrega; conferência sem ele mede commits de outros papéis (família K-147) | 044 | forge:tech-lead | 2026-10-28 | 2026-10-28 09:17 | MELHORIA da retro do 044; vai ao Forge, só propor |
@@ -31,11 +36,8 @@
 | K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-21 | Recomendado no review 025 |
 | K-130 | [025 segurança] API da T14 envia total, semTime, meuTime.n e agregado do projeto oculto (n − k pela aba de rede): M-1/M-1a antes de dado real | 025 | forge:node-backend | 2026-10-21 | 2026-10-21 | Condição antes da fase 3; parecer docs/security/025-t14-reidentificacao.md |
 | K-137 | [docs] Checklist de "computador novo" no README do projeto: Docker, `.env`, `pnpm install`, `playwright install-deps` (sudo, dono), grupo docker antes de abrir o Claude Code | 040 | forge:tech-lead | 2026-10-22 | 2026-10-22 21:35 | MELHORIA da retrospectiva do 040 (parte do projeto; a parte da fábrica é o F13) |
-| K-132 | [teste] D2 (baixa): 9 E2E instáveis com 8 workers (passam com 2 a 3); suíte E2E regrava docs/qa/evidencias a cada execução | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-21 | QA do 037 |
 | K-133 | [bug] L2T-003 (baixa): CLS de 0,073 a 0,100 em /tatico com equipe na API (herdado; reproduz com a seção do lote 2 fechada) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Pendência do PR do 025 por decisão do dono (A) |
-| K-134 | [teste] `pnpm run pronto` não roda o typecheck do e2e; o pre-push deixa passar falha com árvore suja (um erro TS em e2e/tests-api chegou à branch do 025) | 025 | forge:tech-lead | 2026-10-21 | 2026-10-21 | Melhoria vista do QA do 025; parte do pre-push pode ir ao Forge |
 | K-125 | Avaliar se as branches feature/011-metricas-tambem-back (3 commits de revalidação depois do #92) e feature/011-fase2-back (2) ainda devem ir à develop; depois apagar | 039 | forge:tech-lead | 2026-10-21 | 2026-10-21 | Decisão A do dono no pedido 039 |
-| K-092 | [teste] IF-U-operacional instável sob carga (timeout de 30 s) | qa-intensivo | forge:react-frontend | 2026-10-15 | 2026-10-15 02:00 | 1 falha em 2 rodadas no QA do K-083 |
 | K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-15 02:00 | Baixo, já existia antes. Decisão do usuário de 2026-10-16: corrigir (SNO = C) |
 | K-086 | [segurança] Erro e log sem valor do payload (B-4) | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
 | K-087 | Spike B-5: tipo do campo Time responsável e domínio fechado | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020; junto com a integração |
@@ -65,18 +67,13 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-138 | [teste] Diagnóstico medido das instabilidades (unidade, E2E com 1/2/8 workers e sob carga): taxa de falha e causa raiz por teste | 041 | forge:qa-engineer | 2026-10-22 | 2026-10-23 20:29 | Pedido 041, E1.1; depois do merge do 025 na develop (código atual). Cobre K-092, K-107, K-115, K-123, K-132, K-135. Diagnóstico entregue e conferido (8d8bdfd); correções E2/E3 em curso |
+| K-163 | [teste] Trava `flock` na suíte: uma suíte por vez em todas as worktrees (MELHORIA da retro do 041) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 11:14 | Entrada direta (R-DECISAO c); brief node-backend-1 na conferência; worktree: MetricasDSPD-045 |
 | K-121 | [docs] 10 documentos antigos de docs/qa e docs/architecture sem frontmatter (ADR 0004) poluem o forge-check docs e escondem achados novos | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 22:25 | Melhoria vista no review do 036 e no QA do 035 |
 | K-120 | [teste] Preview órfão de outra worktree na porta 4173 bloqueia ou serve build errado no test:perf (playwright.config.ts, reuseExistingServer) | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:58 | Melhoria vista do QA no reteste do FA-006 |
-| K-115 | [teste] E2E instável sob carga local: IF-U-operacional e CA-19 axe (sustentação no operacional) estouram 30 s na suíte completa | 021 | forge:qa-engineer | 2026-10-18 | 2026-10-18 02:10 | Pré-existentes; passam sozinhos e na CI. Depois da homolog, junto do K-107 |
 
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-140 | Registrar o Forge 0.30.3 no projeto (branch forge/upgrade-0.30.3, PR para a develop) | 042 | forge:tech-lead | 2026-10-27 | 2026-10-28 09:12 | forge-upgrade feito; PR #151 recebe a develop e entra em série depois do PR #153 (worktree: MetricasDSPD-upgrade) |
-| K-149 | [front] 3 falhas determinísticas da E2E completa (iguais na base e342a2c): axe target-size no botão "Sobre a janela fixa" (COMP-01 sustentação, 1280 px) e CLS 0,115 contra 0,1 a 375 px em /operacional e no Resumo | 041 | forge:react-frontend | 2026-10-27 | 2026-10-27 17:31 | 041 E6.1, decisão do dono = A (17:21); parecer de QA 8715162 A1 e A2 (worktree: MetricasDSPD-041) |
-| K-135 | [teste] Helper único de "painel pronto" em e2e/pages (a espera estava duplicada em 4 lugares e deixou passar o W037-001) | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-27 14:07 | 041 E2.1 com o qa-engineer (K-092, K-115, K-132 e F4 juntos); worktree: MetricasDSPD-041 |
-| K-111 | Front do 011, lote 3 (operacionais): O19, O20, O21, O23, O24, O25, O22, O26 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-27 21:03 | 026 QA reprovado (6199302): volta do A1 (Leia junto O19/O20, L3-001) com o react-frontend; depois merge da develop com o 041 (A2 a A5), re-review e reteste (worktree: MetricasDSPD-026) |
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
 
 ## Code review (WIP 2)
@@ -87,8 +84,6 @@
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-107 | [teste] montecarlo.test.ts instável por semente aleatória (E1) | 015 | forge:qa-engineer | 2026-10-17 | 2026-10-27 15:51 | Falhou no #96 (parecer de devops de 2026-10-16) e de novo no push do #108 em 2026-10-17 (semente 1324607460, contraexemplo [[2,0,6,5,0,7,0,8],29], 12 >= 12.15; passou ao rerrodar). Depois do K-103 ou numa vaga; 041 E2.2 entregue; prova de estabilidade E4.1 do 041 (worktree: MetricasDSPD-041) |
-| K-123 | [teste] "gerador < 1,5 s" em packages/mock/src/mock.test.ts falha sob carga (1786 ms com load ~10) e quebra o pronto | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-27 15:51 | Melhoria vista do react-frontend no E2.2 do 037; limite fixo, os outros testes já têm 90 s; 041 E2.2 entregue; prova de estabilidade E4.1 do 041 (worktree: MetricasDSPD-041) |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -97,6 +92,18 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-111 | Front do 011, lote 3 (operacionais): O19, O20, O21, O23, O24, O25, O22, O26 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-28 11:17 | 026 entregue: PR #152 mesclado na develop pelo dono (d7c74b4, 2026-10-28 11:09) |
+| K-149 | [front] 3 falhas determinísticas da E2E completa (iguais na base e342a2c): axe target-size no botão "Sobre a janela fixa" (COMP-01 sustentação, 1280 px) e CLS 0,115 contra 0,1 a 375 px em /operacional e no Resumo | 041 | forge:react-frontend | 2026-10-27 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
+| K-138 | [teste] Diagnóstico medido das instabilidades (unidade, E2E com 1/2/8 workers e sob carga): taxa de falha e causa raiz por teste | 041 | forge:qa-engineer | 2026-10-22 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
+| K-135 | [teste] Helper único de "painel pronto" em e2e/pages (a espera estava duplicada em 4 lugares e deixou passar o W037-001) | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
+| K-134 | [teste] `pnpm run pronto` não roda o typecheck do e2e; o pre-push deixa passar falha com árvore suja (um erro TS em e2e/tests-api chegou à branch do 025) | 025 | forge:tech-lead | 2026-10-21 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
+| K-132 | [teste] D2 (baixa): 9 E2E instáveis com 8 workers (passam com 2 a 3); suíte E2E regrava docs/qa/evidencias a cada execução | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
+| K-123 | [teste] "gerador < 1,5 s" em packages/mock/src/mock.test.ts falha sob carga (1786 ms com load ~10) e quebra o pronto | 037 | forge:qa-engineer | 2026-10-21 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
+| K-115 | [teste] E2E instável sob carga local: IF-U-operacional e CA-19 axe (sustentação no operacional) estouram 30 s na suíte completa | 021 | forge:qa-engineer | 2026-10-18 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
+| K-107 | [teste] montecarlo.test.ts instável por semente aleatória (E1) | 015 | forge:qa-engineer | 2026-10-17 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
+| K-092 | [teste] IF-U-operacional instável sob carga (timeout de 30 s) | qa-intensivo | forge:react-frontend | 2026-10-15 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
+| K-140 | Registrar o Forge 0.30.3 no projeto (branch forge/upgrade-0.30.3, PR para a develop) | 042 | forge:tech-lead | 2026-10-27 | 2026-10-28 11:01 | PR #151 mesclado na develop pelo dono (d55db80, 2026-10-28 10:56); .forge/versao 0.30.3 na develop; retrospectiva do 042 com o agile-coach |
+| K-108 | homolog-aprovada espera o portão terminar (E1) | 016 | forge:devops-engineer | 2026-10-17 | 2026-10-28 11:01 | PR #153 mesclado na develop pelo dono (f138c80, 2026-10-28 10:07); retrospectiva do 041 com o agile-coach |
 | K-155 | [ci] Job e2e do ci.yml estoura o teto de 30 min (PR #152: 588 de 726 em 28 min; PR #151 cancelado): E2E em 2 partes paralelas com agregador de nome `e2e` | 044 | forge:devops-engineer | 2026-10-28 | 2026-10-28 09:12 | PR #154 mesclado na develop (53675ec); retrospectiva com o agile-coach |
 | K-151 | [ci] develop vermelha depois dos PRs do Dependabot #145 a #147: lint no-deprecated em web/src/test/setup.ts:47-48 e teste percepcao.test.tsx (PV1) | 042 | forge:tech-lead | 2026-10-27 | 2026-10-27 20:19 | 042 E3.5: PR #149 mesclado por squash (7b5732d); develop verde; branch e worktree removidas |
 | K-148 | [ci] A develop exige os checks da CI verdes para aceitar merge (proteção da branch) | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 16:47 | 042 E4.1, decisão 3 do dono = A; dono aplica (decisão A, 14:37); PR #148 mesclado (16e2617) 15:38; dono incluiu os 5 checks (E4.4); ruleset 25003880 com 9 checks, lido por GET às 16:47 |
@@ -136,7 +143,9 @@
 ## Bloqueado
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-108 | homolog-aprovada espera o portão terminar (E1) | 016 | forge:devops-engineer | 2026-10-17 | 2026-10-28 09:19 | Aguardando o dono: o classificador negou a delegação do merge do PR #153 (Git Destructive); ver o pedido 041, 09:19 |
+| K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; não cobrar parecer de branch já mesclada nem revalidar por `.forge/versao`; achado aceita `arquivo:linha-linha` | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Aguardando o dono: muda como o hook confere (R-CONFORMIDADE); MELHORIA das retros do 041 (5 revalidações em 2 PRs) e do 042 (3 "não cumpriu" em 17 min); vai ao Forge, só propor |
+| K-169 | [projeto] PR de dependência (Dependabot) só é mesclado com todos os checks verdes, um por vez | 042 | dono | 2026-10-28 | 2026-10-28 11:15 | Aguardando o dono: a política de merge de dependências é do dono (develop vermelha 2 h 33 min depois do #145 a #147); MELHORIA da retro do 042 |
+| K-162 | [docs] CLAUDE.md: "enviada" = PR para a develop; push liberado antes do parecer do QA (E3.1) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Aguardando o dono: o hook R-CONFORMIDADE só deixa o Jarvis editar o CLAUDE.md, e a decisão de 2026-10-27 dá a edição ao tech-lead; worktree MetricasDSPD-026c limpa em d55db80 |
 | K-141 | Ambiente da máquina nova: Docker, `.env`, Node 24, Chromium, doutor; depois pnpm install e banco | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono (E2.1); depois tech-lead (E2.2) e devops (E2.3) |
 | K-152 | [forge] F21: worktree nova sem dependências não quebra o pre-push | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 20:18 | Aguardando o dono: aplicar docs/analises/043-f21-pre-push.patch no clone (docs/analises/043-f21-instrucoes-ao-dono.md); resto do F21 pronto sem commit |
 | K-153 | [forge] F22: PR de release não nasce antes do portão; homolog-aprovada sem corrida | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 22:11 | Aguardando o dono: review, segurança e QA aprovados (0b59505 empurrado), mas o `forge-check pr` não lê o clone do Forge e barra o PR (043, 22:10); decisão de como passar o portão |
