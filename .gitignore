@@ -27,3 +27,6 @@ e2e/C:*
 *.dump
 ultimo-backup-ok
 .forge/run/
+
+# Evidencias gravadas pela E2E fora de execucao de QA (E2E_EVIDENCIAS=qa grava na pasta versionada)
+e2e/evidencias-local/

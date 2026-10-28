@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { CATALOGO_CARTOES, fonteDaMetrica, type ResultadoPV1 } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { MockFonteMetricas } from '@/data'
@@ -494,6 +494,15 @@ describe('CartaoPV1: carregando e erro', () => {
 
 describe('painel Sustentação com a PV1', () => {
   const fonte = new FonteFixa({ PV1: resultado() })
+
+  // Aquecimento (K-151): a primeira renderização completa do painel (redirecionamento, página lazy e
+  // cartões) é a mais cara do arquivo e, na CI carregada, estourou a espera do primeiro teste.
+  // Paga-se aqui, no hook, e não no relógio do teste.
+  beforeAll(async () => {
+    const r = renderizarApp('/sustentacao', fonte)
+    await screen.findByTestId('metrica-PV1')
+    r.unmount()
+  })
 
   it('a seção fica no fim do painel, depois de S1 e S2 e de "Mais métricas"', async () => {
     renderizarApp('/sustentacao', fonte)

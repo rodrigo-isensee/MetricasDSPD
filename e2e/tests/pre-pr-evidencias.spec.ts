@@ -1,8 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { test, expect } from '../fixtures/base';
+import { pastaEvidencias } from '../fixtures/evidencias';
 
 // Pacote de evidências para a revisão de UX antes do PR (develop -> main). Só gera imagens e a primeira página do PDF.
-const OUT = '../docs/qa/evidencias/pre-pr';
+const OUT = pastaEvidencias('pre-pr');
 const CHAVE = 'metricas-dspd:preferencias:v1';
 
 async function tema(page: import('@playwright/test').Page, t: 'claro' | 'escuro', ocultar?: string[]) {

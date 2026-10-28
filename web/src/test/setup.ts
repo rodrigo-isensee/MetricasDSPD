@@ -44,10 +44,8 @@ if (!window.matchMedia) {
       onchange: null,
       addEventListener() {},
       removeEventListener() {},
-      addListener() {},
-      removeListener() {},
       dispatchEvent: () => false,
-    }) as MediaQueryList
+    }) as unknown as MediaQueryList
 }
 
 Element.prototype.scrollIntoView ??= () => {}
