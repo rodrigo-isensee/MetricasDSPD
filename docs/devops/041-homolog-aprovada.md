@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 041-estabilizar-os-testes
 branch: feature/041-homolog-aprovada
-commit: 72ca360d32db96f25d04a99e6dfecaff34ec3044
+commit: a361c36c0dc6b7d9ffcc46936ba289e873194162
 parecer: aprovado
 revisor: devops-engineer
 data: 2026-10-27
@@ -43,3 +43,5 @@ data: 2026-10-27
 
 - `actionlint` e `shellcheck`: não estão no PATH (lacuna registrada).
 - YAML dos dois arquivos carregado com `yaml.safe_load`; scripts dos passos `run` conferidos com `bash -n`: sem erro. Leitura do YAML: aspas nas expansões, erro de `gh api` fora do `if` falha o passo.
+
+Revalidação (E3.2): `commit:` passa a a361c36c0dc6b7d9ffcc46936ba289e873194162 porque o `.gitignore` (e o resto do PR #150) veio da develop pelo merge a411f9f, e os pareceres de review, segurança e QA mudaram por commits da própria branch; nenhum arquivo em `.github` mudou desde 72ca360. Veredito, `branch:` e achados iguais.
