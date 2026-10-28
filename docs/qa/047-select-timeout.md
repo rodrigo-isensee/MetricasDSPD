@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 047-pendencias-decididas-2026-10-28
 branch: feature/047-select-timeout
-commit: 5ac2e4f05e665c920e31b3b0e6b60513ed2bae78
+commit: 8aa768450381b2a6c64d7661ebfe79c499948619
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -43,6 +43,8 @@ Vermelho antes do verde e mutação: não se aplicam (correção de tempo de tes
 
 ## Revalidação
 Revalidado em 2026-10-28 sobre o head 5ac2e4f (docs/047-portao-e2e, depois do merge da develop). Desde 9a97369 mudaram `.github/workflows/homolog.yml` (divisão da E2E do portão, E2.2), os pareceres do E2 (devops, QA, segurança, review) e o review do E1 revalidado. Nenhum arquivo de `server/` mudou (`git diff --stat 9a97369 5ac2e4f -- server` vazio): `server/tests/plataforma2.test.ts`, o único objeto deste parecer, é o mesmo. O workflow não toca o teste "reprova: SELECT *" nem o aquecimento. Veredito inalterado: aprovado.
+
+Revalidado de novo em 2026-10-28 sobre o head 8aa7684 (merge da develop com o #157, E2.13). Desde 5ac2e4f mudaram 1 linha do `CLAUDE.md` (passo 4 do fluxo: "enviada" quer dizer o PR para a `develop`; push da feature branch liberado antes do parecer), os pareceres do 026 (QA e review), os do E2 (devops, segurança) e os reviews revalidados. `git diff --stat 5ac2e4f 8aa7684 -- server web e2e .github` vazio: o teste "reprova: SELECT *" e o aquecimento são os mesmos, e a linha do `CLAUDE.md` é regra de processo, sem relação com o objeto testado. Veredito inalterado: aprovado.
 
 ## Achados
 - A1 (recomendado) server/tests/plataforma2.test.ts:253 · `aquecer.ts` é nome fictício e não é asserido; aceitável como está, sem devolução (mesma conclusão do review). Destino: nenhum.
