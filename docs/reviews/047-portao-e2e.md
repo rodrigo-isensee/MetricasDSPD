@@ -20,8 +20,9 @@ Escopo lido: o diff `4137981..359cec1` (2 arquivos, 26+/4- em `homolog.yml`; tet
 - Agregador: job id `e2e`, nome `e2e-homolog`, `needs: [escopo, e2e-parte]`, `if: always()` no escopo `codigo`, falha quando `needs.e2e-parte.result` não é `success` (o resultado agregado da matriz é `failure`, `cancelled` ou `skipped` se qualquer parte não passar). O `portao` segue lendo `needs.e2e.result` e exige `success`; no escopo `docs` o agregador fica `skipped` como antes, coberto pelo ramo `docs` do `portao`.
 - Padrão idêntico ao do `ci.yml` (`RESULTADO` em `env`, sem interpolação direta em `run`).
 
+## Revalidação
+O E2.8 (4463338) mudou só `docs/devops/047-portao-e2e.md`, sem código; o veredito segue aprovado e o `commit:` deste parecer continua em 359cec1.
+
 ## Achados
 - A1 (recomendado) docs/devops/047-portao-e2e.md:14 · Resumo e evidências do parecer de devops descreviam o workflow antigo (job único). Resolvido no E2.8 (4463338).
 - A2 (recomendado) docs/devops/047-portao-e2e.md:7 · `commit:` do parecer de devops desalinhado. Resolvido no E2.8 (4463338), agora 359cec1.
-
-Nota fora do bloco: o E2.8 (4463338) mudou só `docs/devops/047-portao-e2e.md`, sem código; o veredito segue aprovado e o `commit:` deste parecer continua em 359cec1.
