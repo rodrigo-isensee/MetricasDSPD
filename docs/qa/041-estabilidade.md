@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 041-estabilizar-os-testes
 branch: feature/041-estabilidade
-commit: c61b6c103faf052c62286fcee14ed89a1f135516
+commit: 89a0bb22cd2f137e3019cdb5df4e215d539e7dff
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -20,6 +20,8 @@ As seções 1 a 10 são o diagnóstico (E1.1, base c4db73e). A seção 11 é a p
 Delta 83aa9fa..4b249bca8ee8b653878b6cb96d100f965203bfc9: só documentação (ADR 0003 com a leitura de 2026-10-27 e pareceres), sem mudança de código, teste ou limite; sem reteste. O veredito é o da seção 12, testada em 83aa9fa.
 
 Delta 4b249bca8ee8b653878b6cb96d100f965203bfc9..c61b6c103faf052c62286fcee14ed89a1f135516 (revalidação E6.3): é a `develop` em 7b5732d trazida no merge c61b6c1 (Dependabot: typescript-eslint 8.72.0, @tanstack/react-query 5.104.5, react-router 8.5.0 e `pnpm-lock.yaml`; K-151 em `web/src/features/percepcao/percepcao.test.tsx`, com `beforeAll` de aquecimento; `web/src/test/setup.ts`, sem `addListener`/`removeListener` no mock de `matchMedia`; K-148 e K-151 em documentação), já mesclada com os pareceres próprios dela. Não toca `e2e/`, os testes de `/operacional`, os limites, timeouts ou retries do 041. Prova: os checks obrigatórios da CI do PR #150 no head c61b6c1 estão em pass (rapida, testes, banco, build, openapi, imagem, seguranca, filtro) e o e2e do run de push 40607924785 passou em 29m57s; e2e e perf do run de PR ficam em skipping por desenho. Pela decisão técnica do Jarvis (Histórico do pedido, 2026-10-27), o reteste das 3 falhas e a E2E completa com 2 workers da seção 12 (sobre 83aa9fa, 736 de 736) não se repetem localmente. Veredito mantido: **aprovado**, sem achado novo.
+
+Revalidação (E3.3): `commit:` passa a 89a0bb22cd2f137e3019cdb5df4e215d539e7dff porque `.github/workflows/homolog-aprovada.yml` mudou depois do parecer; a mudança posterior é do E3.2 (K-108) e está coberta por `docs/qa/041-homolog-aprovada.md`. Veredito e achados iguais.
 
 Este documento é diagnóstico (etapa E1.1), não parecer de entrega: o parecer de QA do 041 é a etapa E4.1, depois das correções. O `parecer: reprovado` do frontmatter só diz que há instabilidades abertas (seção 8) e os 5 `bugs_medios` são os cinco testes instáveis dos achados A1 a A5. Medições das seções 3 a 7: qa-6, em 2026-10-23 a partir das 20:08, `jarvis.slice`, 1 worker, `--retries=0`, uma suíte por vez; seções 1 e 2 vêm do relatório parcial anterior (qa-1 e qa-4).
 
