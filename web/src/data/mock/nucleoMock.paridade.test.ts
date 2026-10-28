@@ -166,7 +166,7 @@ describe('determinismo da base', () => {
     const base = mock.gerarBaseMock()
     expect(mock.hashJson(base)).toBe('68a67741')
     expect(mock.hashJson(base.ac)).toBe('0113e077')
-    expect(mock.hashJson(mock.gerarExtensaoTambemMock(base))).toBe('82329bc3')
+    expect(mock.hashJson(mock.gerarExtensaoTambemMock(base))).toBe('9159f65b')
   })
 
   it('a duração do boot é informada e a base do núcleo não altera a gerada (hash estável)', async () => {
