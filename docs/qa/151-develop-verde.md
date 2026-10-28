@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 042-forge-0-30-3-e-retomada
 branch: fix/151-develop-verde
-commit: b6d8a9d586453cc4ec3a4ba496287afa2646bae6
+commit: 3d648cbf1614086a3d05616c41eab3ddae5218f0
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -14,6 +14,8 @@ data: 2026-10-27
 ---
 
 # Parecer de QA: develop verde após o Dependabot (042, K-151, E3.6)
+
+**Revalidação (2026-10-28, head 3d648cb):** a mudança posterior na branch `forge/upgrade-0.30.3` é só o arquivo de versão do Forge e pareceres (do 042 e a revalidação do review do 151), coberta por `docs/reviews/042-forge-0-30-3.md` e `docs/qa/042-forge-0-30-3.md`; veredito e achados iguais. O corpo abaixo vale para o commit b6d8a9d (fix/151-develop-verde).
 
 Escopo: correção de infraestrutura de teste (2389e62: remoção de `addListener`/`removeListener` do mock de `matchMedia` em `web/src/test/setup.ts` e `beforeAll` de aquecimento em `percepcao.test.tsx`), com review aprovado em b6d8a9d. Sem especificação nova nem `CA-n`; a obrigação é devolver o verde à develop sem afrouxar espera nem ligar retry.
 
