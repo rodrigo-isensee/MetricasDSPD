@@ -108,7 +108,7 @@ export function BotaoMetricas() {
             )}
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Botao onClick={p.mostrarTodas}>Mostrar todas</Botao>
+            <Botao onClick={p.mostrarTodasNestaVisita}>Mostrar todas</Botao>
             <Botao onClick={p.usarMinhas}>Usar minhas preferências</Botao>
             <Dialog.Close asChild>
               <Botao variante="primario">Fechar</Botao>

@@ -424,9 +424,8 @@ describe('Resumo: filtros, preferências e exportação (CA-29, CA-30)', () => {
     )
   })
 
-  it('cartão oculto vira marcador, a série some, "Mostrar" volta, e nenhuma chave nova é gravada', async () => {
+  it('cartão oculto vira marcador, a série some, "Mostrar" volta e é lembrado, sem chave nova', async () => {
     guardarPrefs({ operacional: ['o3'], sustentacao: ['s2'] })
-    const antes = window.localStorage.getItem(CHAVE_PREFERENCIAS)
     renderizarApp('/operacional')
     const p85 = await numero('p85')
     expect(within(p85).getByTestId('numero-p85-oculto')).toHaveTextContent(
@@ -439,10 +438,15 @@ describe('Resumo: filtros, preferências e exportação (CA-29, CA-30)', () => {
     expect(screen.queryByTestId('tendencia-fluxo-p85')).toBeNull()
     expect(screen.queryByTestId('tendencia-sustentacao-sla')).toBeNull()
     expect(screen.getByTestId('tendencia-sustentacao-volume')).toBeInTheDocument()
-    await userEvent.click(within(p85).getByRole('button', { name: 'Mostrar O3 nesta visita' }))
+    await userEvent.click(within(p85).getByRole('button', { name: 'Mostrar O3' }))
     expect(await screen.findByTestId('numero-p85-valor')).toBeInTheDocument()
     expect(await screen.findByTestId('tendencia-fluxo-p85')).toBeInTheDocument()
-    expect(window.localStorage.getItem(CHAVE_PREFERENCIAS)).toBe(antes)
+    // U1: mostrar também é lembrado, no mesmo perfil (nenhuma chave nova).
+    const perfil = JSON.parse(window.localStorage.getItem(CHAVE_PREFERENCIAS) ?? '{}') as {
+      paineis: Record<string, { ocultar: string[] }>
+    }
+    expect(perfil.paineis.operacional?.ocultar).toEqual([])
+    expect(perfil.paineis.sustentacao?.ocultar).toEqual(['s2'])
     expect(window.localStorage.length).toBe(1)
   })
 

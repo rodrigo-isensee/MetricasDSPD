@@ -20,14 +20,17 @@ export interface PreferenciasPainel {
   /** O painel inteiro está oculto (CA-12). */
   tudoOculto: boolean
   estaOculto: (id: CartaoId) => boolean
-  /** "Ocultar esta métrica": anuncia, oferece Desfazer e leva o foco ao próximo título. */
+  /** "Ocultar esta métrica": lembrada até a pessoa mandar mostrar (U1); anuncia e leva o foco. */
   ocultarCartao: (id: CartaoId) => void
-  /** Mostra uma métrica nesta visita, sem anúncio (caixas do popover, "Mostrar O2 nesta visita"). */
+  /** Mostra uma métrica e lembra: continua visível até a pessoa mandar ocultar (U1). */
   mostrar: (id: CartaoId) => void
   /** Mostra várias de uma vez ('Mostrar métricas da seção'). */
   mostrarVarios: (ids: readonly CartaoId[]) => void
   alternar: (id: CartaoId, visivel: boolean) => void
+  /** Mostra todas e lembra (U1). */
   mostrarTodas: () => void
+  /** Mostra todas só nesta visita, sem mexer no perfil (botão do popover "Métricas"). */
+  mostrarTodasNestaVisita: () => void
   usarMinhas: () => void
 }
 

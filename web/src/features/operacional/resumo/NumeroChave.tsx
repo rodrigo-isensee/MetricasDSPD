@@ -38,7 +38,7 @@ export function NumeroChave({ estado, modelo, rotulo, id, codigo, onTentarDeNovo
       <div className="flex flex-col items-start gap-1 text-sm" data-testid={`numero-${id}-oculto`}>
         <span>{codigo} oculta nas suas preferências.</span>
         <Botao className="text-xs" onClick={() => prefs?.mostrar(cartao)}>
-          Mostrar {codigo} nesta visita
+          Mostrar {codigo}
         </Botao>
       </div>
     )

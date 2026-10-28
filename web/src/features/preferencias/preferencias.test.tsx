@@ -276,8 +276,20 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     expect(
       screen.getByRole('heading', { level: 3, name: /Os três relógios do pedido/ }),
     ).toHaveFocus()
-    // vale só na visita
-    expect(window.localStorage.getItem(CHAVE_PREFERENCIAS)).toBeNull()
+    // U1: ocultar é lembrado até a pessoa mandar mostrar
+    expect(guardado().paineis.operacional?.ocultar).toEqual(['o3'])
+  })
+
+  it('o que foi ocultado continua oculto ao reabrir o painel, até mandar mostrar', async () => {
+    const u = userEvent.setup()
+    const { unmount } = renderizarApp('/operacional?cadencia=semanal')
+    await screen.findByTestId('metrica-O3')
+    await u.click(screen.getByRole('button', { name: 'Ocultar esta métrica O3' }))
+    unmount()
+    renderizarApp('/operacional?cadencia=semanal')
+    await screen.findByTestId('metrica-O4')
+    expect(screen.queryByTestId('metrica-O3')).not.toBeInTheDocument()
+    expect(screen.getByTestId('faixa-ocultas')).toHaveTextContent('1 métrica oculta: O3')
   })
 
   it('"Desfazer" devolve o cartão e o foco ao título restaurado', async () => {
@@ -326,10 +338,8 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     await u.click(within(faixa).getByRole('button', { name: 'Mostrar todas' }))
     expect(screen.queryByTestId('faixa-ocultas')).not.toBeInTheDocument()
     expect(await screen.findByTestId('metrica-O9')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Métricas: 12 de 12 (+14 complementares)' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Usar minhas preferências' }))
-    expect(await screen.findByTestId('faixa-ocultas')).toHaveTextContent('2 métricas ocultas')
-    expect(screen.queryByTestId('metrica-O9')).not.toBeInTheDocument()
+    // U1: "Mostrar todas" também é lembrado
+    expect(guardado().paineis.operacional?.ocultar).toEqual([])
   })
 
   it('perfil guardado esconde os cartões já na primeira tela, sem piscar', async () => {
@@ -349,7 +359,7 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
 })
 
 describe('painel: o que nunca é recortado', () => {
-  it('"Pede atenção" mantém o alerta de métrica oculta, com selo e "Mostrar nesta visita"', async () => {
+  it('"Pede atenção" mantém o alerta de métrica oculta, com selo e "Mostrar"', async () => {
     const u = userEvent.setup()
     guardar({ operacional: ['o1', 'o2', 'bloqueados'] })
     renderizarApp('/operacional?cadencia=diaria')
@@ -359,10 +369,10 @@ describe('painel: o que nunca é recortado', () => {
     )
     const ocultos = within(faixa).queryAllByText('métrica oculta')
     expect(ocultos.length).toBeGreaterThan(0)
-    const botao = within(faixa).getAllByRole('button', { name: /^Mostrar .+ nesta visita$/ })[0]
+    const botao = within(faixa).getAllByRole('button', { name: /^Mostrar \S+$/ })[0]
     expect(botao).toBeDefined()
     const rotulo = (botao as HTMLElement).textContent
-    const codigo = /Mostrar (\S+) nesta visita/.exec(rotulo)?.[1] ?? ''
+    const codigo = /Mostrar (\S+)/.exec(rotulo)?.[1] ?? ''
     await u.click(botao as HTMLElement)
     expect(await screen.findByTestId(`metrica-${codigo}`)).toBeInTheDocument()
   })

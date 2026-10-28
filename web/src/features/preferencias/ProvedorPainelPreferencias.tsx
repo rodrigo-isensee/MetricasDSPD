@@ -52,7 +52,7 @@ export function ProvedorPainelPreferencias({
   const [alvo, setAlvo] = useState<string | null>(null)
   const { hash } = useLocation()
   const foco = useRef<Foco | null>(null)
-  const { definirNaVisita, definirSecaoAberta } = prefs
+  const { definirNaVisita, definirSecaoAberta, definirSalvos } = prefs
 
   useEffect(() => {
     const f = foco.current
@@ -72,14 +72,24 @@ export function ProvedorPainelPreferencias({
     [definirNaVisita, painel],
   )
 
+  // U1: ocultar e mostrar pelo cartão (ou pelo marcador) valem para sempre neste navegador, até a pessoa mandar
+  // mostrar; o ajuste só da visita (caixas do popover) é descartado, porque o perfil passa a ser o que ela acabou de fazer.
+  const lembrar = useCallback(
+    (prox: readonly CartaoId[]) => {
+      definirSalvos(painel, prox)
+      definirNaVisita(painel, null)
+    },
+    [definirSalvos, definirNaVisita, painel],
+  )
+
   const irParaComplementar = useCallback(
     (id: CartaoId) => {
-      // Se a pessoa ocultou o cartão, pedir para ir até ele o mostra nesta visita.
-      if (ocultos.has(id)) definir(lista.filter((x) => x !== id))
+      // Se a pessoa ocultou o cartão, pedir para ir até ele o mostra (e lembra).
+      if (ocultos.has(id)) lembrar(lista.filter((x) => x !== id))
       definirSecaoAberta(painel, true)
       setAlvo(id)
     },
-    [ocultos, lista, definir, definirSecaoAberta, painel],
+    [ocultos, lista, lembrar, definirSecaoAberta, painel],
   )
 
   // Link direto (`/operacional#o5`, vindo do catálogo): abre a seção e leva ao cartão. O hash de uma seção de
@@ -123,9 +133,9 @@ export function ProvedorPainelPreferencias({
           : `${c.codigo} oculta. ${restantes} de ${doGrupo.length} ${qual} visíveis.`
       setAnuncio(`${resumo} Desfazer`)
       setAviso({ id, texto: resumo })
-      definir([...ocultos, id])
+      lembrar([...ocultos, id])
     }
-    const mostrar = (id: CartaoId) => definir(lista.filter((x) => x !== id))
+    const mostrar = (id: CartaoId) => lembrar(lista.filter((x) => x !== id))
     return {
       painel,
       cartoes,
@@ -143,9 +153,10 @@ export function ProvedorPainelPreferencias({
       estaOculto: (id) => ocultos.has(id),
       ocultarCartao: ocultar,
       mostrar,
-      mostrarVarios: (ids) => definir(lista.filter((x) => !ids.includes(x))),
+      mostrarVarios: (ids) => lembrar(lista.filter((x) => !ids.includes(x))),
       alternar: (id, visivel) => (visivel ? mostrar(id) : definir([...ocultos, id])),
-      mostrarTodas: () => definir([]),
+      mostrarTodas: () => lembrar([]),
+      mostrarTodasNestaVisita: () => definir([]),
       usarMinhas: () => definirNaVisita(painel, null),
     }
   }, [
@@ -154,6 +165,7 @@ export function ProvedorPainelPreferencias({
     ocultos,
     lista,
     definir,
+    lembrar,
     definirNaVisita,
     definirSecaoAberta,
     prefs,

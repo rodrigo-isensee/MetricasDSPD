@@ -155,7 +155,7 @@ export function FaixaAtencao({
                       onClick={() => prefs.mostrar(i.id)}
                       className="alvo rounded text-acento underline"
                     >
-                      Mostrar {cod} nesta visita
+                      Mostrar {cod}
                     </button>
                   </span>
                 </li>
