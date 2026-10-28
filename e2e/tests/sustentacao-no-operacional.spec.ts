@@ -25,7 +25,7 @@ test.describe('Sustentação no Operacional: menu, seletor e fontes', () => {
 
   test('CA-1 o menu não tem o item Sustentação, em 1280 e em 375', async ({ page, painel }) => {
     await painel.ir('/operacional');
-    expect(await painel.cabecalho.destinos()).toEqual(['Visão geral', 'Operacional', 'Tático', 'Estratégico', 'Catálogo de métricas', 'Dados e coletas']);
+    expect(await painel.cabecalho.destinos()).toEqual(['Visão geral', 'Operacional', 'Tático', 'Estratégico', 'Dados e coletas']);
     await expect(painel.cabecalho.linkPara('Sustentação')).toHaveCount(0);
     await page.setViewportSize({ width: 375, height: 812 });
     await page.getByTestId('abrir-menu').click();

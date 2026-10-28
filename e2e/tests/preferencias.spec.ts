@@ -74,9 +74,13 @@ for (const tela of TELAS) {
       test('PREF-03 painel com todas as métricas ocultas (estado vazio) passa no axe', async ({
         page,
       }) => {
+        // U4 (pedido 048): a sugestão por papel saiu; o painel todo oculto vem de desmarcar as caixas do painel.
         await preparar(page, tema)
         await page.goto('/preferencias')
-        await page.getByRole('button', { name: 'Aplicar sugestão do papel Gerente' }).click()
+        const caixas = page.getByTestId('grupo-operacional').getByRole('checkbox')
+        await expect(caixas.first()).toBeVisible()
+        for (let i = 0, n = await caixas.count(); i < n; i++) await caixas.nth(i).uncheck()
+        await expect(page.getByTestId('contador-operacional')).toContainText('0 de 12 do núcleo e 0 de 14')
         await page.goto('/operacional?cadencia=diaria')
         await expect(page.getByTestId('painel-oculto-vazio')).toBeVisible()
         await expect(page.getByTestId('faixa-atencao')).toBeVisible()
@@ -107,22 +111,21 @@ test.describe('fluxos', () => {
     await expect(page.getByTestId('metrica-O9')).toHaveCount(0)
   })
 
-  test('PREF-11 ocultar no cartão, desfazer e foco; nada vai para a URL nem para o perfil', async ({
+  test('PREF-11 ocultar no cartão, mostrar pelo marcador e foco; nada vai para a URL (a escolha é guardada, U1)', async ({
     page,
   }) => {
     await page.goto('/operacional?cadencia=semanal')
     await expect(page.getByTestId('metrica-O3')).toBeVisible()
     await page.getByRole('button', { name: 'Ocultar esta métrica O3' }).click()
     await expect(page.getByTestId('metrica-O3')).toHaveCount(0)
+    // U1/U2 (pedido 048): o anúncio traz o nome; o marcador no lugar é o desfazer ("Mostrar"), sem prazo; a escolha é guardada.
     await expect(page.getByTestId('anuncio-preferencias')).toHaveText(
-      'O3 oculta. 11 de 12 métricas visíveis. Desfazer',
+      'Tempo de ciclo (O3) oculta. 11 de 12 métricas visíveis.',
     )
-    await expect(
-      page.getByRole('heading', { level: 3, name: /Os três relógios do pedido/ }),
-    ).toBeFocused()
+    await expect(page.getByTestId('marcador-O3').getByRole('button', { name: /^Mostrar / })).toBeFocused()
     expect(page.url()).not.toContain('ocultar')
-    expect(await page.evaluate((c) => localStorage.getItem(c), CHAVE)).toBeNull()
-    await page.getByTestId('aviso-desfazer').getByRole('button', { name: 'Desfazer' }).click()
+    expect(await page.evaluate((c) => localStorage.getItem(c), CHAVE)).toContain('"o3"')
+    await page.getByTestId('marcador-O3').getByRole('button', { name: /^Mostrar / }).click()
     await expect(page.getByTestId('metrica-O3').getByRole('heading', { level: 3 })).toBeFocused()
   })
 
@@ -158,7 +161,7 @@ test.describe('fluxos', () => {
     const faixa = page.getByTestId('faixa-atencao')
     await expect(faixa.getByText('métrica oculta').first()).toBeVisible()
     await faixa
-      .getByRole('button', { name: /^Mostrar .+ nesta visita$/ })
+      .getByRole('button', { name: /^Mostrar [A-Z0-9]+$/ })
       .first()
       .click()
     await expect(page.getByTestId('faixa-ocultas')).toBeVisible()

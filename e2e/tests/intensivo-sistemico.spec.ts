@@ -408,7 +408,7 @@ test.describe('SIS-ROB robustez', () => {
     const nav = page.getByRole('navigation', { name: 'Navegação principal' }).first();
     await expect(nav.getByRole('link').first()).toBeVisible();
     const destinos = await nav.getByRole('link').evaluateAll((as) => as.map((a) => a.getAttribute('href') ?? '').filter((h) => h.startsWith('/')));
-    expect(destinos.length).toBeGreaterThanOrEqual(6); // a Sustentação deixou o menu (CA-1): 6 destinos de painel, mais Preferências e Ajuda quando presentes
+    expect(destinos.length).toBeGreaterThanOrEqual(5); // a Sustentação (CA-1) e o Catálogo (048, na Ajuda) deixaram o menu: 5 destinos de painel, mais Preferências e Ajuda quando presentes
     for (let volta = 0; volta < 4; volta++) for (const d of destinos) await nav.locator(`a[href="${d}"]`).first().click({ noWaitAfter: true });
     await expect(page).toHaveURL(new RegExp(`${destinos.at(-1)!.replace('?', '\\?')}$`));
     await prontos(page);

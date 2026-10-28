@@ -76,7 +76,7 @@ for (const tela of TELAS) {
 
     test('COMP-03 catálogo: 65 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático + 7 do 011 operacional), grupo Complementar tem 33, axe AA', async ({ page }) => {
       await page.goto('/metricas')
-      await expect(page.getByRole('heading', { level: 1, name: 'Catálogo de métricas' })).toBeVisible()
+      await expect(page.getByRole('heading', { level: 2, name: 'Catálogo de métricas' })).toBeVisible()
       const contagem = page.getByTestId('contagem-catalogo')
       await expect(contagem).toHaveText('65 de 65 métricas')
       await page.getByRole('combobox', { name: 'Grupo' }).selectOption('Complementar')
