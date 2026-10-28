@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 041-estabilizar-os-testes
 branch: feature/041-estabilidade
-commit: 4b249bca8ee8b653878b6cb96d100f965203bfc9
+commit: c61b6c103faf052c62286fcee14ed89a1f135516
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-10-27
@@ -29,6 +29,13 @@ Propósito: parecer de segurança sobre os scripts de `package.json` e `e2e/pack
 - **E6.1 (`web/`):** `FrescorFonte.tsx` ganha uma linha invisível (`aria-hidden`, classe `invisible`) com texto constante embutido (`TEXTO_FALHA_RESERVA`, datas `00/00/0000`), só para reservar altura; sem entrada externa, sem HTML injetado, sem dado de pessoa nem chamada nova. `MaisMetricas.tsx` só acrescenta a classe `scroll-mt-72`. Os dois testes acrescentados só afirmam presença e classe.
 - **Docs:** ADR 0003 (uma linha, leitura de 2026-10-27, sem mudar limite) e `arquitetura-front.md` (uma linha); sem efeito de segurança.
 - Nenhum gatilho novo de `R-SEGURANCA` (sem dependência, workflow, script de pacote, credencial ou superfície de API). Veredito do delta: aprovado; A1 a A3 seguem recomendados.
+
+## Delta 4b249bc..c61b6c1 (develop trazida, E5.2)
+- **Origem:** o merge c61b6c1 traz a develop (7b5732d): Dependabot (#145, #146, #147), K-148 (proteção da develop, só docs), K-151 (#149, aquecimento de teste). Os pareceres da develop (042, 151) vieram junto e já foram dados lá.
+- **Dependências (Dependabot):** `typescript-eslint` 8.71.2 para 8.72.0 (raiz e `server`), `@tanstack/react-query` 5.104.2 para 5.104.5, `react-router` 7.18.4 para 8.5.0 (`web`). No `pnpm-lock.yaml` entram `cookie-es@3.1.1` e `ignore@7.0.13` como transitivas; nenhum pacote com `requiresBuild`, `postinstall` ou script de instalação novo. `react-router` 8 é salto de major, mas é lib de roteamento do cliente, sem superfície de servidor usada aqui. Conferência estática; `osv-scanner` e `gitleaks` não estão no PATH (lacuna registrada, a varredura de dependências roda no CI).
+- **Scripts dos `package.json`:** o delta só muda versões; nenhum script, hook de instalação, `overrides` ou `onlyBuiltDependencies` mudou.
+- **Código:** `web/src/test/setup.ts` (polyfill de `matchMedia` de teste, só remove `addListener`/`removeListener` obsoletos e ajusta o cast) e `percepcao.test.tsx` (`beforeAll` de aquecimento): só teste, sem entrada externa, segredo ou dado de pessoa.
+- **Veredito mantido: aprovado.** Sem gatilho novo além de dependência já coberta; A1 a A3 seguem recomendados.
 
 ## Achados
 - A1 (recomendado) e2e/playwright.config.ts:16 · `Number(process.env.E2E_WORKERS ?? 2)` vira `NaN` se a variável for inválida; o Playwright pode falhar de forma obscura. Só disponibilidade local, sem caminho de ataque. Validar e cair em 2.
