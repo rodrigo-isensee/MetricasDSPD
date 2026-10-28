@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 047-pendencias-decididas-2026-10-28
 branch: docs/047-portao-e2e
-commit: 359cec16e357eab59e6e2c28a52a5e454c3e5d20
+commit: 5ee00a9250c4308a293e1c9ca93452a7e74696b8
 parecer: aprovado
 veredito: aprovado
 revisor: forge:security-engineer
@@ -24,6 +24,9 @@ Propósito: parecer de segurança sobre a mudança em `.github/workflows/homolog
 - **Mudança sem efeito de segurança.** O passo Mermaid agora roda só na parte 1 (`if: matrix.parte == 1`); não reduz cobertura de segurança, e a cobertura da E2E fica dividida por `--shard`, que particiona sem omitir (as duas partes são exigidas pelo agregador).
 
 Nenhum achado bloqueante.
+
+## Revalidação
+Em 2026-10-28 (E2.12, K-144), sobre o head `5ee00a9250c4308a293e1c9ca93452a7e74696b8`. Entre o `commit:` anterior (`359cec16e357eab59e6e2c28a52a5e454c3e5d20`) e este head mudaram 7 arquivos: os pareceres em `docs/` (devops, qa, reviews e este) e `server/tests/plataforma2.test.ts` (o teste do E1, K-150, vindo da develop no #158: o `ESLint` passou a ser instanciado e aquecido na coleta do arquivo). `git diff --name-only` sobre `.github` entre os dois commits é vazio: o `homolog.yml` e o job `portao` que este parecer avaliou não mudaram. O teste e os pareceres não tocam permissões, segredos, injeção, ações de terceiros, agregador nem artefatos. Veredito inalterado: aprovado, A1 e A2 seguem como estão.
 
 ## Achados
 - A1 (recomendado) .github/workflows/homolog.yml:151 · os artefatos de falha (`e2e/test-results`, com trace e screenshot) só têm dado sintético hoje; se a semente da E2E passar a usar dado real, o artefato vira vazamento por 3 dias. Informativa, sem correção agora; manter a E2E só com semente sintética e a retenção curta. Dono devops-engineer.
