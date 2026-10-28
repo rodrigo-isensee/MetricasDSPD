@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 026-front-do-011-lote3
 branch: docs/026-textos-lote3
-commit: c9f71f7e8deff2364b20fb89452b93c31c3463b2
+commit: 2a4191afc7fd88c8f2512845ff9023c4973861c6
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -34,6 +34,9 @@ Revalidação (E3.5, K-162): o parecer original foi dado sobre 081d2f1f; o head 
 ## Execução
 - `pnpm run docs:check` na raiz da worktree: `docs:check: ok (759 páginas Markdown, 69 métricas, 2 eventos).` rc=0.
 - Working tree limpa antes do parecer; head testado a4c04f70 (conteúdo da especificação idêntico ao de 081d2f1; o review só acrescentou o próprio parecer).
+
+## Revalidação
+- E3.7, K-162: o head passou de c9f71f7e para 2a4191af (merge da develop, feito pelo GitHub). O diff c9f71f7e..2a4191af traz o aquecimento do ESLint em `server/tests/plataforma2.test.ts` (E1 do 047), os pareceres `docs/qa/047-select-timeout.md` e `docs/reviews/047-select-timeout.md`, e os pareceres deste pedido. `git diff --stat` sobre `docs/ux`, `docs/contratos`, `web` e `CLAUDE.md` nesse intervalo: vazio. Nada toca os textos, a tela nem os contratos que este parecer aprovou. Veredito inalterado: aprovado.
 
 ## Achados
 - A1 (recomendado) docs/contratos/metricas/O26.md:38 · A ficha diz "20 itens por classe" sem separar as bases (percentual sobre o total do tipo; P85 sobre a faixa na janela). A decisão A10 = A manteve o contrato sem campo novo, então não bloqueia. Destino: software-architect, na próxima revisão.
