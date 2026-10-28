@@ -489,3 +489,25 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-28T11:17:06-03:00 | K-111 | Em andamento | Pronto | PR 152 mesclado pelo dono (d7c74b4) |
 | 2026-10-28T11:19:23-03:00 | K-154 | Entrada | Em andamento | E1.5: tech-lead-12 abre a worktree MetricasDSPD-026d |
 | 2026-10-28T11:22:04-03:00 | K-154 | Em andamento | Em andamento | E1.5 entregue; E1.6 com o ux-designer (brief ux-designer-3) |
+| 2026-10-28T13:44:52-03:00 | K-162 | Aguardando o dono | Em andamento | dono escolheu A: Jarvis edita o CLAUDE.md, tech-lead revisa e abre o PR |
+| 2026-10-28T13:47:35-03:00 | K-154 | Em andamento | Pronto | PR 155 mesclado na develop |
+| 2026-10-28T13:47:35-03:00 | K-163 | Em andamento | Pronto | PR 156 mesclado na develop |
+| 2026-10-28T13:48:57-03:00 | K-169 | Bloqueado | Pronto para fazer | dono escolheu A: Dependabot um por vez com checks verdes |
+| 2026-10-28T13:49:40-03:00 | K-171 | Entrada | Pronto para fazer | pedido 046 aberto |
+| 2026-10-28T13:49:56-03:00 | K-164 | Bloqueado | Pronto para fazer | dono escolheu B |
+| 2026-10-28T13:51:16-03:00 | K-150 | Entrada | Pronto para fazer | dono confirmou |
+| 2026-10-28T13:52:25-03:00 | K-144 | Entrada | Pronto para fazer | dono: seguir o padrão da Forge |
+| 2026-10-28T14:00:48-03:00 | K-171 | Pronto para fazer | Em andamento | agile-coach-1 delegado |
+| 2026-10-28T14:00:56-03:00 | K-150 | Pronto para fazer | Em andamento | node-backend-1 delegado |
+| 2026-10-28T16:46:22-03:00 | K-144 | Review | Pronto | PR 159 mesclado na develop |
+| 2026-10-28T16:53:49-03:00 | K-169 | Pronto-para-fazer | Desenvolvimento | E4.1 delegado ao tech-lead |
+| 2026-10-28T17:11:14-03:00 | K-074 | Review | Desenvolvimento | volta do review A1 a A4 |
+| 2026-10-28T17:30:38-03:00 | K-074 | Desenvolvimento | Review | A1 a A4 corrigidos em 2aac602 |
+| 2026-10-28T17:43:08-03:00 | K-074 | Review | QA | review aprovado c984b0f; QA E5.2 da 048b delegado (worktree 048b) |
+| 2026-10-28T17:45:43-03:00 | K-162 | Em andamento | Pronto | PR #157 mesclado pelo dono (d9a7ea0), 2026-10-28T18:34:35Z |
+| 2026-10-28T17:45:43-03:00 | K-112 | Entrada | QA | 048 E1.1 a E1.4 entregues na docs/048-t14-desenho; QA E5.2 da 048a em curso |
+| 2026-10-28T17:45:43-03:00 | K-130 | Entrada | QA | 048 E1.3 e E1.4 entregues; QA E5.2 da 048a em curso |
+| 2026-10-28T17:45:43-03:00 | K-172 | Entrada | Pronto para fazer | MELHORIA da retro do 026: praticas.md:115 alinhado a decisao do dono de 2026-10-21 |
+| 2026-10-28T17:45:43-03:00 | K-173 | Entrada | Pronto para fazer | MELHORIA da retro do 026: teste do O20 com leitura sincrona de SVG |
+| 2026-10-28T17:45:44-03:00 | K-174 | Entrada | Pronto para fazer | MELHORIA da retro do 026: timeout de 5 s do teste de tools/docs-contratos sob carga |
+| 2026-10-28T17:46:45-03:00 | K-111 | Pronto | Pronto | retrospectiva do 026 gravada (592a810); pedido fechado |

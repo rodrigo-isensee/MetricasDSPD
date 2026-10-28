@@ -1,0 +1,138 @@
+# Pedido 047: pendências decididas em 2026-10-28
+
+- **Modo:** implementar
+- **Objetivo:** executar as decisões do dono de 2026-10-28 sobre os cartões K-150, K-144, K-164 e K-169.
+- **Clareza:** 4 confirmado (decisões do dono), 0 perguntas abertas
+- **Depende de:** nenhum
+
+## Escopo
+- E1. K-150: o teste "reprova: SELECT *" de `server/tests/plataforma2.test.ts:269` deixa de estourar o timeout de 30 s quando outra suíte roda junto, sem aumentar o timeout e sem retry, mantendo a asserção · `confirmado`
+- E2. K-144: conferir que o portão da homolog (`.github/workflows/homolog.yml`, push) roda a E2E completa, como manda o R-FLUXO; se não rodar, completar; a noturna segue informativa · `confirmado`
+- E3. K-164: propor ao Forge (PR na `develop` do Forge, só propor, R-CONTRIB) que o hook `parecer` e o `forge-check pr` usem a mesma base e que o achado aceite `arquivo:linha-linha` · `confirmado`
+- E4. K-169: registrar no `docs/engineering/praticas.md` a política: PR do Dependabot mesclado um por vez, só com todos os checks verdes, pelo tech-lead; check vermelho para e avisa o Jarvis · `confirmado`
+
+- E5. K-172: o job `e2e-homolog` do portão da homolog (`.github/workflows/homolog.yml`) roda a E2E em 2 partes com agregador, como o #154 fez na CI do PR, para não passar do teto de 30 min (última rodada 28m29s com 690 testes; hoje são 716) · `técnico` (achado 1 do parecer docs/devops/047-portao-e2e.md; melhoria técnica do projeto, autonomia do time)
+
+## Etapas
+- E1.1 (forge:node-backend): correção do teste (E1) na branch `feature/047-select-timeout`.
+- E1.2 (forge:tech-lead): code review do E1.1.
+- E1.3 (forge:qa-engineer): parecer de QA do E1.1.
+- E1.5 (forge:qa-engineer): corrigir o campo `pedido:` do parecer `docs/qa/047-select-timeout.md` (está `047-select-timeout`; o certo é `047-pendencias-decididas-2026-10-28`), que o `forge-check pr` não acha.
+- E1.7 (forge:qa-engineer): tirar do bloco `## Achados` do parecer `docs/qa/047-select-timeout.md` a linha solta "Sem achado bloqueante.", fora do formato do `forge-check pr`.
+- E1.6 (forge:tech-lead): tirar do bloco `## Achados` do parecer `docs/reviews/047-select-timeout.md` a linha solta "Sem achado bloqueante...", fora do formato do `forge-check pr`, junto com o E1.4.
+- E1.4 (forge:tech-lead): PR para a develop e merge.
+- E2.1 (forge:devops-engineer): conferência do portão (E2), parecer de devops em `docs/devops/047-portao-e2e.md`; mudança no workflow só se faltar a E2E completa.
+- E2.2 (forge:devops-engineer): divisão da E2E do portão da homolog em 2 partes (E5), na mesma branch `docs/047-portao-e2e`, com o parecer atualizado.
+- E2.3 (forge:tech-lead): code review do E2.1 e do E2.2.
+- E2.6 (forge:security-engineer): parecer de segurança do E2.2 (CI/CD, R-SEGURANCA), em paralelo ao E2.3.
+- E2.4 (forge:qa-engineer): parecer de QA do E2.1 e do E2.2.
+- E2.8 (forge:devops-engineer): regravar pela ferramenta Write o parecer `docs/devops/047-portao-e2e.md` (o `forge-check pr` acusa autoria sem registro do papel devops), alinhando o resumo e as linhas ao workflow novo e o `commit:` (A1 e A2 do review e A2 do QA, recomendados), antes do E2.7.
+- E2.7 (forge:tech-lead): encurtar para até 300 caracteres o achado A1 do review `docs/reviews/047-portao-e2e.md` (aviso do conferente no brief qa-4, R-REVIEW), antes do E2.5.
+- E2.9 (forge:tech-lead): revalidar o review `docs/reviews/047-select-timeout.md` (E1, já mesclado no #158) sobre o head da `docs/047-portao-e2e` depois do merge da develop: o `forge-check pr` o acusa desatualizado porque o `homolog.yml` mudou; atualizar o `commit:` e registrar a revalidação, antes do E2.10.
+- E2.10 (forge:qa-engineer): revalidar o parecer `docs/qa/047-select-timeout.md` do mesmo jeito, depois do E2.9 e antes do E2.5.
+- E2.11 (forge:devops-engineer): revalidar o parecer `docs/devops/047-portao-e2e.md` sobre o head da `docs/047-portao-e2e`: o hook `parecer` (sem `--base`) o acusa desatualizado porque o `server/tests/plataforma2.test.ts` entrou pela develop (#158); atualizar o `commit:` e registrar a revalidação, antes do E2.12.
+- E2.12 (forge:security-engineer): revalidar o parecer `docs/security/047-portao-e2e.md` do mesmo jeito, depois do E2.11 e antes do E2.5.
+- E2.13 (forge:tech-lead): trazer a develop com o #157 (d9a7ea0074ac55ab6dc326d7a2ed3087502721bb) para a `docs/047-portao-e2e` por merge, push, rodar o `forge-check pr` sem `--base` e revalidar os pareceres de review que ele acusar (`docs/reviews/047-portao-e2e.md`, `docs/reviews/047-select-timeout.md`), antes do E2.14.
+- E2.14 (forge:qa-engineer): revalidar os pareceres de QA do 047 que o `forge-check pr` acusar depois do E2.13, antes do E2.15.
+- E2.15 (forge:devops-engineer): revalidar o parecer `docs/devops/047-portao-e2e.md` do mesmo jeito, se acusado, antes do E2.16.
+- E2.16 (forge:security-engineer): revalidar o parecer `docs/security/047-portao-e2e.md` do mesmo jeito, se acusado, antes do E2.5.
+- E2.5 (forge:tech-lead): PR da `docs/047-portao-e2e` para a develop e merge.
+- E3.1 (forge:tech-lead): PR de proposta no Forge (E3), pela skill `contribuir-com-o-forge`, clone em `~/.forge-contrib/MetricasDSPD`.
+- E4.1 (forge:tech-lead): política do Dependabot no `praticas.md` (E4), com review, QA e PR.
+- E4.2 (forge:tech-lead): revalidar o review `docs/reviews/047-select-timeout.md` (E1, já mesclado no #158) sobre o head da `docs/047-dependabot` (o `forge-check pr` o acusa desatualizado porque o `praticas.md` mudou) e, em seguida, o PR da `docs/047-dependabot` para a develop e o merge (fecho do E4.1).
+- E5.1 (forge:agile-coach): retrospectiva do pedido em `docs/retrospectivas/2026-10-28-047-pendencias.md`, com as linhas `MELHORIA:`.
+
+## Fora do escopo
+- Religar a rodada noturna como portão (EXIGIR_NOTURNA) · `confirmado` (dono: padrão da Forge)
+- No K-164: deixar de cobrar parecer de branch mesclada e não revalidar por `.forge/versao` · `confirmado` (dono: opção B)
+- Aumentar timeout ou criar retry · `confirmado` (pedido 041, E2)
+
+## Decisões do usuário (registro literal)
+DECISÃO DO DONO (2026-10-28): K-150 confirmado ("150 sim"): o node-backend corrige o teste "reprova: SELECT *" de server/tests/plataforma2.test.ts:269, que estoura 30 s com outra suíte junto, sem aumentar o timeout e sem retry.
+DECISÃO DO DONO (2026-10-28): K-144, "Signs o padrão da forge." / "Siga" (lido como "Siga o padrão da Forge"): o padrão da Forge (R-FLUXO) é a bateria completa no PR e no push da homolog, sem rodada noturna como portão; a noturna segue informativa (EXIGIR_NOTURNA continua false). Resta a parte técnica: o devops confere que o portão da homolog roda a E2E completa.
+DECISÃO DO DONO (2026-10-28): K-164, opção B ("B"): propor ao Forge (PR na develop do Forge, só propor) só a parte que não afrouxa: a mesma base no hook parecer e no forge-check pr, e achado aceitando arquivo:linha-linha. Não cobrar parecer de branch mesclada e não revalidar por .forge/versao ficam fora, para decisão futura com medição.
+DECISÃO DO DONO (2026-10-28): K-169, opção A ("A"): PR do Dependabot é mesclado um por vez, só com todos os checks verdes, pelo tech-lead; check vermelho para e avisa o Jarvis. O tech-lead registra a política no docs/engineering/praticas.md por PR.
+DECISÃO DO DONO (2026-10-23): "Rode no máximo uma suíte de teste por vez e poucos agentes em paralelo." (pedido 041).
+DECISÃO DO DONO (2026-10-21): comando de pronto, opção A ("A"): durante o desenvolvimento só os testes e o typecheck do pacote alterado; `pnpm run pronto` completo uma vez, antes do commit final. Vale para as próximas delegações deste projeto (pedido 025).
+
+## Registro de clareza
+- NAO-ENTENDI: 2026-10-28 · K-144 reexplicado em linguagem simples.
+
+## Histórico
+- 2026-10-28 13:53: pedido aberto com as decisões do dono do dia (K-150, K-144, K-164, K-169).
+- 2026-10-28 14:00: brief node-backend-1 (E1.1, K-150) enviado ao conferente.
+- 2026-10-28 14:00: brief node-backend-1 aprovado pelo conferente na rodada 1 (sha256 91eff67273a7fac5e871758db61209d592801565cec7c6d64c363c39a0382995) e delegado ao forge:node-backend.
+- 2026-10-28 14:12: E1.1 entregue pelo node-backend: commit b42b2610abf65e6ded9ce8db989ac06f4726aaa2 (aquece o ESLint na coleta; teste 447 ms -> 7 ms; estouro de 30 s não reproduzido, causa inferida pelo custo medido), pronto rc=0, push ok; PQ-1, PQ-3 e PQ-4 conferidos pelo Jarvis (K-147). Próximo: E1.2 (review).
+- 2026-10-28 14:10: brief devops-engineer-2 (E2.1) aprovado pelo conferente na rodada 2 (sha bbd066cbc7d4b1769017f79ab2bb62ea5e9dbb11582b6d7eeb2f24051399f129); delegado ao forge:devops-engineer. MELHORIA: o Jarvis renomeou o brief reprovado em vez de criar um novo, e o conferente não pôde conferir o delta com --anterior; brief corrigido sai em arquivo novo, mantendo o anterior.
+- 2026-10-28 14:12: E2.1 entregue pelo devops-engineer: o portão da homolog roda a E2E completa (homolog.yml:140, run 39984250260), migração e smoke; EXIGIR_NOTURNA false; commit 455d3604356085eb0caf3ce11dbd7659b6b8b515 no remoto; PQ-1 a PQ-4 conferidos pelo Jarvis (K-147). Achado 1 (recomendado): e2e-homolog sem divisão, 28m29s com 690 testes contra teto de 30 min, hoje 716.
+- 2026-10-28 14:12: ESCOPO+: E5 (K-172), divisão da E2E do portão da homolog em 2 partes, técnico (achado 1 do parecer de devops; trava a próxima promoção para a homolog). Etapas E2.2 a E2.5 acrescentadas.
+- 2026-10-28 14:12: brief tech-lead-1 (E1.2) aprovado pelo conferente na rodada 1 (sha 5d3cc55ca39141149e2bef95379e40f64d70424092826842b8c5b778ed847169); delegado ao forge:tech-lead.
+- 2026-10-28 14:13: E1.2 entregue pelo tech-lead: review aprovado (A1 recomendado, sem destino), commit 9a973696a83247cb8278a7eb4ddf8a7a58b84ded no remoto; PQs conferidos pelo Jarvis (K-147). Próximo: E1.3 (QA). MELHORIA do tech-lead: docs/reviews/_modelo.md não existe no projeto.
+- 2026-10-28 14:17: briefs devops-engineer-3 (E2.2, sha 14c223dabbda60d1fc3d4d04c39d7e80b4656032f596c7ba09ddf17826c277c2) e qa-engineer-1 (E1.3, sha 5facf774b01eba34b8b6b6e2b269e455e374e4d1b6c5b673147d31c0cbda0c93) enviados ao conferente.
+- 2026-10-28 14:18: brief qa-engineer-1 (E1.3) aprovado pelo conferente na rodada 1 (sha 5facf774b01eba34b8b6b6e2b269e455e374e4d1b6c5b673147d31c0cbda0c93); delegado ao forge:qa-engineer.
+- 2026-10-28 14:18: brief devops-engineer-3 (E2.2, K-172) aprovado pelo conferente na rodada 1 (sha 14c223dabbda60d1fc3d4d04c39d7e80b4656032f596c7ba09ddf17826c277c2); delegado ao forge:devops-engineer.
+- 2026-10-28 14:19: E1.3 entregue pelo qa-engineer: QA aprovado (34 de 34, SELECT * em 7 ms; A1 recomendado sem destino), commit c9ad9777bbb47ad08d52671a5eba6e1134ba77f3 no remoto; PQ-1 a PQ-4 conferidos pelo Jarvis (K-147). Próximo: E1.4 (PR e merge).
+- 2026-10-28 14:19: E2.2 entregue pelo devops-engineer: e2e-homolog em matriz de 2 partes com agregador de id e2e (portao inalterado), commits 403e12b841349dce5c5a5556cd6501075bc2ee79 e 359cec16e357eab59e6e2c28a52a5e454c3e5d20 no remoto; actionlint ausente (achado 3); topo do parecer ainda diz sem mudança de workflow (para o review); PQs conferidos pelo Jarvis (K-147). Próximo: E2.3 e E2.6 em paralelo.
+- 2026-10-28 14:23: forge-check pr da feature/047-select-timeout acusa dois defeitos de forma: parecer de QA com pedido 047-select-timeout e linha solta no bloco Achados do review. Etapas E1.5 (QA) e E1.6 (tech-lead, junto do E1.4) acrescentadas.
+- 2026-10-28 14:26: briefs qa-engineer-2 (E1.5, sha 2f0456f6831417307aa042592946639216ba22f4e8dbb42a806c448bf8583882) e tech-lead-3 (E2.3, sha d7b8f08707967ce8ec107a64a7be5aee9d6fa914ec126583aa54f19be692d606) aprovados pelo conferente na rodada 1; delegados. Brief security-engineer-1 (E2.6) reprovado na rodada 1: etapa review em vez de seguranca; corrigido em security-engineer-2.
+- 2026-10-28 14:26: brief security-engineer-2 (E2.6, etapa seguranca, sha 6966ec1878cd96d5bfa00d8e6ad4f3bdb69dee5e0cc15b76fe5ac18f1a3b6380) enviado ao conferente.
+- 2026-10-28 14:27: E1.5 entregue pelo qa-engineer: commit b1e3c31aff93bdf3f134588f937f8824434add0c no remoto, só o parecer de QA; PQ-1 a PQ-4 conferidos pelo Jarvis (K-147). O forge-check pr agora acusa a linha solta Sem achado bloqueante no Achados do QA também: etapa E1.7 (qa) acrescentada antes do E1.6 e E1.4. MELHORIA do qa: forge-check pr mostra um defeito de forma por rodada; validar o Achados ao gravar o parecer.
+- 2026-10-28 14:28: brief security-engineer-2 (E2.6) aprovado pelo conferente na rodada 2 (sha 6966ec1878cd96d5bfa00d8e6ad4f3bdb69dee5e0cc15b76fe5ac18f1a3b6380); delegado ao forge:security-engineer.
+- 2026-10-28 14:28: E2.3 entregue pelo tech-lead: review aprovado, commit 4820575d0a0375687ba0e344aa21407ffcd9f64e no remoto; A1 e A2 recomendados ao devops (topo e commit do parecer de devops desatualizados); PQs conferidos pelo Jarvis (K-147).
+- 2026-10-28 14:28: brief qa-engineer-3 (E1.7, sha c2718b60c6d434fa87229c847944e8f20f7f0b7944e861809e0d2de582299b84) enviado ao conferente.
+- 2026-10-28 14:29: E2.6 entregue pelo security-engineer: parecer aprovado sem bloqueante (A1 e A2 recomendados ao devops), commit 2315e26b64d3dba83f34f040ff55d81ef4d8a78e no remoto; PQs conferidos pelo Jarvis (K-147). Próximo: E2.4 (QA).
+- 2026-10-28 14:29: brief qa-engineer-3 (E1.7) aprovado pelo conferente na rodada 1 (sha c2718b60c6d434fa87229c847944e8f20f7f0b7944e861809e0d2de582299b84); delegado ao forge:qa-engineer.
+- 2026-10-28 14:30: E1.7 entregue pelo qa-engineer: commit 9fe4d6c057f547e06d2b8fad8be63fd11fb32d53 no remoto, só o parecer de QA; forge-check pr acusa agora só a linha do review (E1.6); PQs conferidos pelo Jarvis (K-147). Próximo: E1.6 e E1.4 (tech-lead).
+- 2026-10-28 14:32: brief tech-lead-2 reescrito só para o E1.6 (forge-check brief barrou juntar E1.4 e E1.6 numa delegação); sha 29c9cd5490a02431aea5fbd88712d8b1465d6323c5948ea9bb18c99447340b26 enviado ao conferente. O E1.4 sai em brief próprio depois.
+- 2026-10-28 14:33: brief qa-engineer-4 (E2.4, sha e98372f373be9bf530359776365893944c20a5fb6e0a143785c9b4c6a55c173c) enviado ao conferente.
+- 2026-10-28 14:34: brief tech-lead-2 (E1.6) aprovado pelo conferente na rodada 1 (sha 29c9cd5490a02431aea5fbd88712d8b1465d6323c5948ea9bb18c99447340b26); delegado ao forge:tech-lead.
+- 2026-10-28 14:35: E1.6 entregue (af14eab525265ba8c3c006fa3da2f05953a51e10); forge-check pr da feature/047-select-timeout limpo. Brief qa-4 (E2.4) aprovado na rodada 1 e delegado ao forge:qa-engineer. Aviso do conferente: A1 do review docs/reviews/047-portao-e2e.md passa de 300 caracteres; corrigir antes do E2.5.
+- 2026-10-28 14:36: etapa E2.7 criada (A1 do review do portão com mais de 300 caracteres, aviso do conferente no brief qa-4); vem antes do E2.5.
+- 2026-10-28 14:37: E2.4 entregue (fa50571737c1ad04549f72483afa55b368522745, QA aprovado, A1 e A2 recomendados; provas conferidas). forge-check pr da docs/047-portao-e2e acusa A1 do review acima de 300 caracteres (E2.7) e autoria do parecer de devops (etapa E2.8 criada, antes do E2.7).
+- 2026-10-28 14:39: brief tl-4 (E1.4, PR e merge da feature/047-select-timeout) aprovado na rodada 1 e delegado ao forge:tech-lead. Brief devops-4 (E2.8) no conferente.
+- 2026-10-28 14:39: brief devops-4 (E2.8) aprovado na rodada 1 e delegado ao forge:devops-engineer.
+- 2026-10-28 14:41: E2.8 entregue (446333842a7c1a654abad112fd149c43e1045968, dois commits só do parecer de devops; provas conferidas). forge-check pr acusa só o A1 do review (E2.7).
+- 2026-10-28 14:44: brief tl-5 (E2.7) reprovado na rodada 1 (Cartão K-172 no commit; o E2.7 é do E2, K-144); tl-6 com Cartão K-144 enviado ao conferente.
+- 2026-10-28 14:47: brief tl-6 (E2.7, sha 7d4667d1523ec729381d5b8b9e3092f4d7de8a5823ef330638e048442c3cfb84) aprovado pelo conferente na rodada 2; delegado ao forge:tech-lead.
+- 2026-10-28 14:48: E2.7 entregue pelo tech-lead (26dfbb5288b3657d715fa642344af5f33e4f675b); PQ-1 a PQ-4 conferidos pelo Jarvis (K-147): forge-check pr limpo. Próximo: E2.5 (PR e merge).
+- 2026-10-28 14:52: brief tl-7 (E2.5, sha f864e86ee4021038f41581a1b664ad618307d888dd55d394c87730f2a9a7bc2b) aprovado pelo conferente na rodada 1; delegado ao forge:tech-lead. K-150 já está na develop (efbc087, PR #158).
+- 2026-10-28 14:53: E2.5 não cumprido (tl-7): o tech-lead trouxe a develop para a branch (9f08ed08e185bbb7f4a60a8abd12017ae00e1255) e o hook parecer barrou o gh pr create: os pareceres do E1 (047-select-timeout, review e QA) ficaram desatualizados porque o homolog.yml mudou. DECISÃO TÉCNICA do Jarvis (técnico; base: R-REVIEW/R-QA pedem novo parecer, e a decisão do dono no K-164 deixou fora o "não cobrar parecer de branch mesclada"): revalidar os dois pareceres (etapas E2.9 e E2.10, em série na mesma worktree) e depois refazer o E2.5. Ocorrência anotada como medição para o K-164.
+- 2026-10-28 14:56: brief tl-8 (E2.9, sha 9633c74627d0b8ec4f4792caa25710783de766deae0c5a191f2a800628304246) aprovado pelo conferente na rodada 1; delegado ao forge:tech-lead.
+- 2026-10-28 14:56: E2.9 entregue pelo tech-lead (5ac2e4f05e665c920e31b3b0e6b60513ed2bae78, review do E1 revalidado sobre 9f08ed0, sem mudança de veredito); PQ-1 a PQ-4 conferidos pelo Jarvis (K-147). Próximo: E2.10 (QA).
+- 2026-10-28 15:02: brief qa-engineer-5 (E2.10, sha c72d326e0ab364456432187904cd7cbe2dc9d17131b0d44151702ba7e53780f6) aprovado pelo conferente na rodada 1; delegado ao forge:qa-engineer.
+- 2026-10-28 15:03: E2.10 entregue pelo qa-engineer (07307872d8f04f7e4ccba4a5ff52737818bea26e, parecer de QA do E1 revalidado, veredito inalterado); PQ-1 a PQ-4 conferidos pelo Jarvis (K-147); forge-check pr limpo. Próximo: E2.5 (brief tech-lead-9).
+- 2026-10-28 15:06: brief tech-lead-9 (E2.5, sha 8b415e610085b0bd0d624970da90dc2e913eccc8633ced8925083b48771872f1) aprovado pelo conferente na rodada 1; delegado ao forge:tech-lead.
+- 2026-10-28 15:07: E2.5 não cumprido (tech-lead-9): o hook parecer, que roda no gh pr create sem --base, acusa desatualizados docs/devops/047-portao-e2e.md e docs/security/047-portao-e2e.md porque server/tests/plataforma2.test.ts entrou pela develop (#158); com --base origin/develop o forge-check pr sai limpo (divergência de base do K-164). DECISÃO TÉCNICA do Jarvis: revalidar os dois pareceres (etapas E2.11 devops e E2.12 security, em série por enviarem para a mesma branch), sem contornar o hook; depois, novo brief do E2.5.
+- 2026-10-28 15:09: E1.4 entregue pelo tech-lead (PR #158 mesclado, efbc0877c33c0d0359e8a0b309731ab23f4269ff, checks verdes; PQ-1, PQ-2 e PQ-4 conferidos pelo Jarvis, K-147). PQ-3 não cumprido: o classificador do modo auto negou git push origin --delete feature/047-select-timeout (head af14eab igual ao headRefOid); vira ação pendente do dono, sem contornar.
+- 2026-10-28 15:10: brief devops-engineer-5 (E2.11) reprovado pelo conferente na rodada 1 (cartão K-172 no commit; o E2 é K-144); refeito como devops-engineer-6.
+- 2026-10-28 15:13: brief devops-6 aprovado pelo conferente (sha 2c2b8425eec4b85a2f79ef9dcf574eb8883cb6fe6e951ffc5df6a68da1894379); E2.11 delegado ao forge:devops-engineer.
+- 2026-10-28 15:14: E2.11 entregue pelo devops-engineer: parecer de devops revalidado sobre 0730787 (veredito aprovado inalterado; desde 359cec1 só mudaram o teste do E1 e pareceres, nada em .github/), commit 5ee00a9250c4308a293e1c9ca93452a7e74696b8 no remoto; PQ-1 a PQ-4 conferidos pelo Jarvis (K-147). forge-check pr sem --base: resta só o parecer de segurança. Próximo: E2.12.
+- 2026-10-28 15:17: brief security-engineer-3 (E2.12) reprovado pelo conferente (etapa: review em vez de seguranca); refeito como security-engineer-4.
+- 2026-10-28 15:19: brief security-engineer-4 (E2.12) aprovado pelo conferente na rodada 2 (sha 794d02d57ef6ac77426f1e9ec5603b61aa38eeedd01831529e2a4ca187795163); delegado ao forge:security-engineer.
+- 2026-10-28 15:21: E2.12 entregue pelo security-engineer: parecer de segurança revalidado sobre 5ee00a9 (aprovado, nada em .github mudou), commit 14ebc32c7a1b7b63d8488320751373e6dc94cf82 no remoto; PQ-1 a PQ-4 conferidos pelo Jarvis (K-147); forge-check pr sem --base limpo. Próximo: E2.5 (tl-10), depois do merge do #157 do 026 (série: a develop andando desatualiza os pareceres do outro).
+- 2026-10-28 15:21: DECISÃO TÉCNICA do Jarvis: a develop exige branch atualizada (strict_required_status_checks_policy=true), então #157 (026) e o PR do E2.5 se mesclam em série; o 026 vai primeiro (2 pareceres a revalidar contra 5 do 047). Depois do merge do #157, o E2.5 traz a develop e o hook vai acusar de novo os pareceres do 047 (CLAUDE.md muda): nova rodada de revalidação antes do PR. Custo registrado como evidência do K-164 (E3.1).
+- 2026-10-28 15:46: o dono mesclou o PR #157 do 026 (d9a7ea0074ac55ab6dc326d7a2ed3087502721bb). DECISÃO TÉCNICA do Jarvis: o E2.5 vira E2.13 (tech-lead traz a develop e revalida os reviews) e E2.14 a E2.16 (QA, devops e segurança revalidam os acusados), antes do PR; custo do K-164.
+- 2026-10-28 15:48: brief tech-lead-10 (E2.13) aprovado pelo conferente na rodada 1 (sha cc6b3a95a45742cd334328a6750913f15f1dce65bb675db3479a074c0874234c); delegado ao forge:tech-lead.
+- 2026-10-28 15:49: E2.13 entregue pelo tech-lead (merge da develop 44cefd7a5817c7f04d59e9a12218da927d9a5ffb, review 047-select-timeout revalidado, head 8aa768450381b2a6c64d7661ebfe79c499948619 no origin); PQ-1 conferido pelo Jarvis (rc=0, K-147), PQ-2 a PQ-4 no relatório. forge-check pr ainda acusa docs/qa/047-select-timeout.md, docs/devops/047-portao-e2e.md e docs/security/047-portao-e2e.md (CLAUDE.md mudou): seguem E2.14, E2.15 e E2.16, em série.
+- 2026-10-28 15:51: brief qa-engineer-6 (E2.14) reprovado pelo conferente (cartão K-150 no commit; o E2 é K-144); refeito como qa-engineer-7.
+- 2026-10-28 15:56: brief qa-engineer-7 (E2.14, Cartão K-144) aprovado pelo conferente na rodada 2, sha bfefd06972b00fe5788a33c6b065e152b1ba9f4a8a8b2bb366a5071a3287f169; delegado ao forge:qa-engineer.
+- 2026-10-28 15:56: E2.14 entregue pelo qa-engineer: parecer de QA revalidado sobre 8aa7684 (aprovado inalterado), commit 9d7eb43a63f0eb30b768ee576390cdc655577497 no remoto; PQ-1 a PQ-4 conferidos pelo Jarvis (K-147). forge-check pr acusa devops e security (CLAUDE.md). Próximo: E2.15.
+- 2026-10-28 15:59: brief devops-engineer-7 (E2.15) aprovado pelo conferente, sha d59a09dfc70870307e85867c6d7b166234e75274ef9292c2da654892f396a6f4; delegado ao forge:devops-engineer.
+- 2026-10-28 16:00: E2.15 entregue pelo devops-engineer: parecer de devops revalidado sobre 9d7eb43 (aprovado inalterado, nada em .github), commit 808694f7a81ff892f8a3a63951d2fe008660c067 no remoto; PQ-1 a PQ-4 conferidos pelo Jarvis (K-147). Resta o parecer de segurança (E2.16).
+- 2026-10-28 16:05: brief security-engineer-5 (E2.16) reprovado na rodada 1 (corte: E2.14 sem linha no Fora do escopo); linha acrescentada, novo sha 3a537e198e4681821dc6f9496a01770fd8ce9c435d02ea7d89d871967bedb83a, rodada 2 no conferente.
+- 2026-10-28 16:06: brief security-engineer-5 (E2.16) aprovado pelo conferente na rodada 2, sha 3a537e198e4681821dc6f9496a01770fd8ce9c435d02ea7d89d871967bedb83a; delegado ao forge:security-engineer (sonnet), worktree 047b.
+- 2026-10-28 16:08: E2.16 entregue pelo security-engineer: parecer de segurança revalidado sobre 808694f (aprovado inalterado, nada em .github), commit bcf64a480f29d05bf5d8a93ddb62fae9f12a50b0 no remoto; PQ-1 a PQ-4 conferidos pelo Jarvis (K-147); forge-check pr sem --base limpo. Próximo: E2.5 (tech-lead-11), sem apagar a branch remota (ação do dono).
+- 2026-10-28 16:10: brief tech-lead-11 (E2.5) aprovado pelo conferente na rodada 1, sha 4df593a31222fe5e2f47a33b0d0174963275985474f748904564be8936800f8a; delegado ao forge:tech-lead (sonnet). A branch remota fica para o dono.
+- 2026-10-28 16:46: E2.5 entregue pelo tech-lead: PR #159 mesclado por squash na develop (be0a8d7978714e091d0f4e776c606333d8f33fc9), checks verdes; branch local e worktree 047b removidas; branch remota docs/047-portao-e2e fica para o dono apagar. Conferência da entrega no conferente. MELHORIA vista: o hook barra gh pr create com --body e aspas ou # na linha; só corpo em arquivo passa.
+- 2026-10-28 16:49: conferência da entrega do E2.5 (merge #159): não cumpriu só por escopo (docs/reviews/047-select-timeout.md e docs/qa/047-select-timeout.md no diff do squash). Leitura do Jarvis: falso positivo, esses commits são das etapas E2.9, E2.10, E2.13 e E2.14, já entregues e conferidas e listadas como entregues no brief tech-lead-11; PQ-1 a PQ-4 cumpridos e checks verdes. O merge não se desfaz e não há o que refazer; vai ao dono como informação, com a recomendação de aceitar. MELHORIA vista: na etapa merge-integracao, o forge-check entrega diz "sem commit" com 25 commits no intervalo, e o conferente cobra os commits de etapas anteriores como anexo.
+- 2026-10-28 16:53: brief tech-lead-13 (E4.1, política do Dependabot, sha256 6f9336a1eee979a6deba66395e393c02abedc215f71c1dd073739e1de4e18455) aprovado na rodada 2 (a 1 cobrou o pronto antes do commit) e delegado ao forge:tech-lead (sonnet), worktree 047c.
+- 2026-10-28 17:02: E4.1 entregue (6983dd8c167f7c24e4761b2dbbbf67e069298561, política K-169 em praticas.md; pronto rc=0). Prettier do praticas.md já vermelho na base be0a8d7 (tabela das linhas 9 a 19), fora do format:check: vira cartão técnico, não volta ao autor. Em conferência de entrega.
+- 2026-10-28 17:03: entrega conferida 6983dd8c167f7c24e4761b2dbbbf67e069298561
+- 2026-10-28 17:03: aviso do conferente: a frase "A revisão semanal do CI (10.1) só confere os pendentes." não está na decisão K-169; fica para o code review avaliar. Próximo: review, QA e PR do E4.1 quando houver tech-lead livre (WIP).
+- 2026-10-28 17:09: brief tech-lead-14 (review do E4.1, docs/047-dependabot) aprovado pelo conferente (sha 2b8aeae68d84b25aadb50f207b5517bf200b102159b2c51f32979c07f996bfdb) e delegado.
+- 2026-10-28 17:10: review do E4.1 entregue (1ea0a9691abdf9412a2b55af810584cb6d4b4beb, aprovado; A1 recomendado: a frase "A revisão semanal do CI (10.1) só confere os pendentes." estende a decisão K-169 sem contradizer). DECISÃO TÉCNICA do Jarvis: a frase fica (coerente com a 10.1, que já tratava os PRs pendentes, e não afrouxa a regra do dono); vai ao dono como informação no resumo. Próximo: QA do E4.1.
+- 2026-10-28 17:11: entrega conferida 1ea0a9691abdf9412a2b55af810584cb6d4b4beb
+- 2026-10-28 17:12: DECISÃO TÉCNICA do Jarvis: o QA do E4.1 fica isento (R-QA: diff só de .md fora do controle, saída do forge-check pr); o "QA" no texto da etapa E4.1 foi escrito pelo Jarvis, não é decisão do dono, e o review segue exigido (feito em 1ea0a96). O forge-check pr (com e sem --base) acusa o review antigo do E1 (047-select-timeout) desatualizado porque o praticas.md mudou (mesmo problema do K-164, parte que o dono deixou fora): nova etapa E4.2 ao tech-lead, revalidar, PR e merge.
+- 2026-10-28 17:30: dono: "Vou viajar por umas horas toque tudo que puder". Leitura do Jarvis: ordem ampla; seguem só etapas já confirmadas ou delegadas dos pedidos abertos, dentro do teto e da trava de suíte única; nada novo nem irreversível sem o dono.
+- 2026-10-28 17:40: brief tech-lead-15 (E4.2) reprovado na rodada 2 (fato: 6 arquivos mudaram desde 44cefd7, não 2); corrigido e em rodada 3, com etapa merge-integracao.
+- 2026-10-28 17:44: brief tech-lead-15 (E4.2) aprovado na rodada 3 (sha 9b8e362cf4cd44fca2673f856aea21783cfd6c82d8c6578e024079b06e022868) e delegado ao forge:tech-lead (sonnet).

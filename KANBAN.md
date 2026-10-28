@@ -21,19 +21,15 @@
 | K-159 | [forge] Modelo de pedido já traz a etapa da retrospectiva em `## Etapas` | 044 | forge:tech-lead | 2026-10-28 | 2026-10-28 09:17 | MELHORIA da retro do 044 (2 reprovações de brief); vai ao Forge, só propor |
 | K-160 | [projeto] Branch de PR mesclado fica no origin: ativar "apagar a branch depois do merge" no repositório ou apagar à mão | 044 | dono | 2026-10-28 | 2026-10-28 09:17 | Aguardando o dono (acesso): opção delete-branch-on-merge do repositório ou exclusão de feature/044-e2e-em-partes e feature/041-estabilidade; MELHORIA da retro do 044 |
 | K-161 | [projeto] Ruleset estrito põe PRs paralelos em BEHIND: merges em série com ordem registrada; avaliar fila de merge (merge queue) com o dono, sem afrouxar o strict | 044 | forge:tech-lead | 2026-10-28 | 2026-10-28 09:17 | MELHORIA da retro do 044; série já adotada (041b, 042, 026); merge queue = decisão do dono (pode custar, mexe no ruleset) |
-| K-150 | [teste] "reprova: SELECT *" em server/tests/plataforma2.test.ts:269 estoura o timeout de 30 s quando outra suíte pesada roda junto e quebra o pronto | 026 | forge:node-backend | 2026-10-27 | 2026-10-27 17:31 | Melhoria vista do react-frontend na volta do 026 (Test timed out in 30000ms); mesma família do K-123; entra depois do 041 |
 | K-147 | [forge] Melhorias de fábrica: Desde por branch quando o pedido tem duas branches; brief gerar propõe PQ cmd a agente sem Bash; --desde cai na base inteira com merge da develop; hook barra caminho em texto de Bash; volta exige Fora do escopo idêntico mesmo com etapa nova (ESCOPO+) | 041 | forge:tech-lead | 2026-10-27 | 2026-10-27 14:12 | Vai para o Forge (contribuir-com-o-forge), PR na develop do Forge; aberto na auditoria de itens perdidos. Mais (042, 14:36): o forge-check brief não avisa que review e seguranca pedem a branch no remoto quando o brief proíbe push; o conferente lê item "não nesta delegação" do Entregar como pendente; devops-engineer recebeu brief de aplicar proteção de branch (R-CONFORMIDADE) sem aviso do forge-check; vigia marca "contorno" em GET de leitura da proteção depois de bloqueio (conferente e devops, 2026-10-27 14:40-14:42; registro de violações do vigia): possível alarme falso |
 | K-146 | [deps] eslint 10 com @eslint/js 10 e TypeScript 6/7 como cartões próprios | 033 | forge:tech-lead | 2026-10-27 | 2026-10-27 14:12 | Decisões do dono de 2026-10-17 (033) e 2026-10-21 (035); aberto na auditoria de itens perdidos |
 | K-145 | [deps] react-router 7 → 8 como cartão próprio (PR #147 do Dependabot) | 033 | forge:react-frontend | 2026-10-27 | 2026-10-27 14:12 | Decisão do dono de 2026-10-17 (033, opção B); aberto na auditoria de itens perdidos |
-| K-144 | [ci] E2E completo no portão (K-131) e religar a rodada noturna da homolog (EXIGIR_NOTURNA) | 041 | forge:devops-engineer | 2026-10-27 | 2026-10-27 14:12 | Decisão do dono de 2026-10-23: depois do 041 entregue; aberto na auditoria de itens perdidos |
 | K-143 | [infra] 1º db:migrate depois do db:up falha por socket: o healthcheck do postgres olha metricas_test antes do banco principal | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 14:12 | MELHORIA da E2.3 do 042; aberto na auditoria de itens perdidos |
 | K-142 | [docs] README manda instalar o Chromium na raiz; o Playwright só existe em e2e/ (comando certo: pnpm --filter ./e2e exec playwright install chromium) | 042 | forge:tech-lead | 2026-10-27 | 2026-10-27 14:12 | MELHORIA da E2.2 do 042; aberto na auditoria de itens perdidos |
-| K-112 | Cadastro de membros por time (Q-T14-10 = B): ADR 0020 e plano §9.5 | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Com o security-engineer. Antes da fase 3 |
 | K-126 | [037 review A1/A2] Worker do mock: pedido pendente para sempre se o postMessage lançar; guarda para pedido antes do iniciar | 037 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Recomendado (não bloqueante) no review 037 |
 | K-127 | [037 review A3/A4] F9 soma os chunks do Worker e do fallback (nunca baixados juntos); ADR 0021 ainda "proposta" | 037 | forge:software-architect | 2026-10-21 | 2026-10-21 | Recomendado no review 037; A3 com o devops/tech-lead no size.mjs |
 | K-128 | [025 review A1] COM_TAMBEM da MockFonteMetricas sem T11, T13 e T14 (no mock, T13/T14 sem vínculo e sem time); depois do 037 (arquivo agora em nucleoMock.ts) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Limite do mock, não fere a ficha (review 025) |
 | K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-21 | Recomendado no review 025 |
-| K-130 | [025 segurança] API da T14 envia total, semTime, meuTime.n e agregado do projeto oculto (n − k pela aba de rede): M-1/M-1a antes de dado real | 025 | forge:node-backend | 2026-10-21 | 2026-10-21 | Condição antes da fase 3; parecer docs/security/025-t14-reidentificacao.md |
 | K-137 | [docs] Checklist de "computador novo" no README do projeto: Docker, `.env`, `pnpm install`, `playwright install-deps` (sudo, dono), grupo docker antes de abrir o Claude Code | 040 | forge:tech-lead | 2026-10-22 | 2026-10-22 21:35 | MELHORIA da retrospectiva do 040 (parte do projeto; a parte da fábrica é o F13) |
 | K-133 | [bug] L2T-003 (baixa): CLS de 0,073 a 0,100 em /tatico com equipe na API (herdado; reproduz com a seção do lote 2 fechada) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Pendência do PR do 025 por decisão do dono (A) |
 | K-125 | Avaliar se as branches feature/011-metricas-tambem-back (3 commits de revalidação depois do #92) e feature/011-fase2-back (2) ainda devem ir à develop; depois apagar | 039 | forge:tech-lead | 2026-10-21 | 2026-10-21 | Decisão A do dono no pedido 039 |
@@ -42,7 +38,6 @@
 | K-087 | Spike B-5: tipo do campo Time responsável e domínio fechado | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020; junto com a integração |
 | K-088 | [segurança] Lint do coletor resistente a contorno (B-2) | 011 | forge:tech-lead | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
 | K-089 | [segurança] Teste da allow-list com a lista de campos proibidos escrita no próprio teste (B-1) | 011 | forge:qa-engineer | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
-| K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | Validado (`docs/ux/revisao-geral-usabilidade/04-decisoes.md`). Entra depois de K-073 (mesmas telas). O protótipo HTML vai junto com a feature |
 | K-075 | Compatibilidade com celular, iPad e tablet (3 fatias, MOB-CA-1 a 27) | 010 | forge:react-frontend | 2026-10-14 | 2026-10-14 08:10 | O discovery está pronto. O usuário delegou as decisões ao time (D1 = B). Entra depois de K-074; o software-architect inclui o orçamento móvel na ADR 0003 |
 
 ## Empatizar e definir (WIP 2)
@@ -66,14 +61,21 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-172 | [docs] praticas.md:115 diz pronto verde antes de cada commit; alinhar à decisão do dono de 2026-10-21 (pronto completo uma vez, antes do commit final) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (4 briefs reprovados por essa leitura); alinha texto à decisão, não afrouxa |
+| K-173 | [teste] Teste do O20 lê o SVG de forma síncrona; passou no review e no QA e falhou no check testes do #152 | 026 | forge:react-frontend | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (operacionais.test.tsx:177) |
+| K-174 | [teste] Teste de tools/docs-contratos estoura o timeout de 5 s sob carga e derruba o pronto (sem aumentar timeout nem retry) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (docs/retrospectivas/2026-10-28-026-lote3.md) |
+| K-162 | [docs] CLAUDE.md: "enviada" = PR para a develop; push liberado antes do parecer do QA (E3.1) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | PR #157 mesclado pelo dono (d9a7ea0) |
+| K-144 | [ci] Conferir que o portão da homolog roda a E2E completa (R-FLUXO); noturna segue informativa (dono, 2026-10-28: padrão da Forge) | 047 | forge:devops-engineer | 2026-10-27 | 2026-10-27 14:12 | Dono decidiu seguir o padrão da Forge: noturna não vira portão |
+| K-150 | [teste] "reprova: SELECT *" em server/tests/plataforma2.test.ts:269 estoura o timeout de 30 s quando outra suíte pesada roda junto e quebra o pronto | 047 | forge:node-backend | 2026-10-27 | 2026-10-27 17:31 | Dono confirmou (2026-10-28): corrigir sem aumentar timeout nem retry |
+| K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Dono escolheu B (2026-10-28): só propor ao Forge a parte que não afrouxa |
+| K-171 | [forge] Resumo de todos os problemas do Forge vividos no projeto, para o Jarvis do Forge (pedido 046) | 046 | forge:agile-coach | 2026-10-28 | 2026-10-28 13:52 | Recibo enviado ao dono |
+| K-169 | [projeto] PR de dependência (Dependabot) só é mesclado com todos os checks verdes, um por vez | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Dono escolheu A (2026-10-28): um PR do Dependabot por vez, só com todos os checks verdes; falta registrar no praticas.md por PR |
 | K-121 | [docs] 10 documentos antigos de docs/qa e docs/architecture sem frontmatter (ADR 0004) poluem o forge-check docs e escondem achados novos | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 22:25 | Melhoria vista no review do 036 e no QA do 035 |
 | K-120 | [teste] Preview órfão de outra worktree na porta 4173 bloqueia ou serve build errado no test:perf (playwright.config.ts, reuseExistingServer) | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:58 | Melhoria vista do QA no reteste do FA-006 |
 
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-154 | [ux] Textos da especificação do lote 3: mínimo de 20 do O26 vale sobre as entregas do tipo, não a faixa (A12 do review = A7 do QA); tabela de decisões da §11 (A13); vazio junto de "Amostra insuficiente: 0 de 20" em mock=vazio (A6 do QA, padrão anterior ao lote 3) | 026 | forge:ux-designer | 2026-10-27 | 2026-10-28 11:19 | E1.5 entregue (worktree limpa em d7c74b4); E1.6 com o ux-designer; worktree: MetricasDSPD-026d |
-| K-163 | [teste] Trava `flock` na suíte: uma suíte por vez em todas as worktrees (MELHORIA da retro do 041) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 11:16 | Brief node-backend-1 aprovado e delegado; worktree: MetricasDSPD-045 |
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
 
 ## Code review (WIP 2)
@@ -84,6 +86,9 @@
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-130 | [025 segurança] API da T14 envia total, semTime, meuTime.n e agregado do projeto oculto (n − k pela aba de rede): M-1/M-1a antes de dado real | 025 | forge:node-backend | 2026-10-21 | 2026-10-28 17:45 | 048: QA E5.2 na worktree 048a (docs/048-t14-desenho) |
+| K-112 | Cadastro de membros por time (Q-T14-10 = B): ADR 0020 e plano §9.5 | 011 | forge:software-architect | 2026-10-17 | 2026-10-28 17:45 | 048: QA E5.2 na worktree 048a (docs/048-t14-desenho) |
+| K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-28 17:43 | 048: review aprovado (c984b0f); QA E5.2 na worktree 048b |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -92,6 +97,8 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-154 | [ux] Textos da especificação do lote 3: mínimo de 20 do O26 vale sobre as entregas do tipo, não a faixa (A12 do review = A7 do QA); tabela de decisões da §11 (A13); vazio junto de "Amostra insuficiente: 0 de 20" em mock=vazio (A6 do QA, padrão anterior ao lote 3) | 026 | forge:ux-designer | 2026-10-27 | 2026-10-28 11:19 | PR #155 mesclado na develop (4137981) |
+| K-163 | [teste] Trava `flock` na suíte: uma suíte por vez em todas as worktrees (MELHORIA da retro do 041) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 11:16 | PR #156 mesclado na develop (7873c18); falta a retro E1.6 |
 | K-111 | Front do 011, lote 3 (operacionais): O19, O20, O21, O23, O24, O25, O22, O26 | 011 | forge:react-frontend | 2026-10-17 | 2026-10-28 11:17 | 026 entregue: PR #152 mesclado na develop pelo dono (d7c74b4, 2026-10-28 11:09) |
 | K-149 | [front] 3 falhas determinísticas da E2E completa (iguais na base e342a2c): axe target-size no botão "Sobre a janela fixa" (COMP-01 sustentação, 1280 px) e CLS 0,115 contra 0,1 a 375 px em /operacional e no Resumo | 041 | forge:react-frontend | 2026-10-27 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
 | K-138 | [teste] Diagnóstico medido das instabilidades (unidade, E2E com 1/2/8 workers e sob carga): taxa de falha e causa raiz por teste | 041 | forge:qa-engineer | 2026-10-22 | 2026-10-28 11:11 | 041 entregue: PR #150 (9cc84d3) e #153 (f138c80) na develop; retrospectiva acfdcf0 (MELHORIA 1) |
@@ -143,9 +150,6 @@
 ## Bloqueado
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; não cobrar parecer de branch já mesclada nem revalidar por `.forge/versao`; achado aceita `arquivo:linha-linha` | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Aguardando o dono: muda como o hook confere (R-CONFORMIDADE); MELHORIA das retros do 041 (5 revalidações em 2 PRs) e do 042 (3 "não cumpriu" em 17 min); vai ao Forge, só propor |
-| K-169 | [projeto] PR de dependência (Dependabot) só é mesclado com todos os checks verdes, um por vez | 042 | dono | 2026-10-28 | 2026-10-28 11:15 | Aguardando o dono: a política de merge de dependências é do dono (develop vermelha 2 h 33 min depois do #145 a #147); MELHORIA da retro do 042 |
-| K-162 | [docs] CLAUDE.md: "enviada" = PR para a develop; push liberado antes do parecer do QA (E3.1) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Aguardando o dono: o hook R-CONFORMIDADE só deixa o Jarvis editar o CLAUDE.md, e a decisão de 2026-10-27 dá a edição ao tech-lead; worktree MetricasDSPD-026c limpa em d55db80 |
 | K-141 | Ambiente da máquina nova: Docker, `.env`, Node 24, Chromium, doutor; depois pnpm install e banco | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono (E2.1); depois tech-lead (E2.2) e devops (E2.3) |
 | K-152 | [forge] F21: worktree nova sem dependências não quebra o pre-push | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 20:18 | Aguardando o dono: aplicar docs/analises/043-f21-pre-push.patch no clone (docs/analises/043-f21-instrucoes-ao-dono.md); resto do F21 pronto sem commit |
 | K-153 | [forge] F22: PR de release não nasce antes do portão; homolog-aprovada sem corrida | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 22:11 | Aguardando o dono: review, segurança e QA aprovados (0b59505 empurrado), mas o `forge-check pr` não lê o clone do Forge e barra o PR (043, 22:10); decisão de como passar o portão |

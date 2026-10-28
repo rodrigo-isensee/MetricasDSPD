@@ -443,3 +443,117 @@
 | 2026-10-28 11:56 | 026-front-do-011-lote3 | 026-front-do-011-lote3-ux-designer-4 | brief | 1 | reprovado | s | A2 deixava aberto não aplicar a decisão R8; caminho do o26.ts errado | decisao | jarvis |
 | 2026-10-28 11:58 | 026-front-do-011-lote3 | 026-front-do-011-lote3-ux-designer-4 | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-28 12:02 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-16.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 12:36 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-tech-lead-3.md | brief | 1 | reprovado | s | parecer de segurança sem autoria; cabeçalho qa com PR e merge | etapa | jarvis |
+| 2026-10-28 12:38 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-security-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 12:40 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-17.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 12:42 | 045-suite-unica-com-trava | 045-suite-unica-com-trava-tech-lead-3.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 12:44 | 026-front-do-011-lote3 | 026-front-do-011-lote3-qa-engineer-6.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 12:47 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-18.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 13:48 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-19 | brief | 1 | aprovado | s | aviso: citar o reordenamento do PR para depois do QA | — | jarvis |
+| 2026-10-28 14:00 | 046-resumo-problemas-para-o-forge | 046-resumo-problemas-para-o-forge-agile-coach-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:00 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-node-backend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:04 | 026-front-do-011-lote3 | 026-front-do-011-lote3-qa-engineer-7 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:08 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-devops-engineer-1 | brief | 1 | reprovado | parcial | falta a linha NAO tocar | forma | jarvis |
+| 2026-10-28 14:08 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-20 | brief | 1 | reprovado | s | review com commit da base; pareceres do 026-textos-lote3 desatualizados | etapa | jarvis |
+| 2026-10-28 14:10 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-devops-engineer-2 | brief | 2 | aprovado | s | anterior renomeado, delta nao conferido | — | jarvis |
+| 2026-10-28 14:12 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:13 | 026-front-do-011-lote3 | 026-front-do-011-lote3-qa-engineer-8 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:18 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:18 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-devops-engineer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:18 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-21 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:26 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-qa-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:26 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:26 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:26 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-security-engineer-1 | brief | 1 | reprovado | s |  | etapa | jarvis |
+| 2026-10-28 14:28 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-security-engineer-2 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:29 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-qa-engineer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:32 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-22 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:34 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:35 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-qa-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:39 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:39 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-devops-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:43 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-software-architect-1 | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-10-28 14:44 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-5 | brief | 1 | reprovado | s |  | escopo | jarvis |
+| 2026-10-28 14:45 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-software-architect-2 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:47 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-6 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:48 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-security-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:52 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-7 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:56 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-8 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 14:58 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-2 | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-10-28 14:59 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-3 | brief | 2 | aprovado | s | Jarvis achou contradicao no Fora do escopo depois; refeito como tl-4 | — | jarvis |
+| 2026-10-28 15:01 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-4 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:02 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-qa-engineer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:06 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-9 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:07 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-9 | entrega | 1 | nao cumpriu | n | hook parecer sem base acusa devops e security desatualizados (K-164) | ambiente | jarvis |
+| 2026-10-28 15:10 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-devops-engineer-5 | brief | 1 | reprovado | s |  | citacao | jarvis |
+| 2026-10-28 15:13 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-devops-engineer-6.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:13 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-1.md | brief | 1 | aprovado | s | observacao: sem linha NAO tocar explicita, nao reprova | — | jarvis |
+| 2026-10-28 15:17 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-security-engineer-3.md | brief | 1 | reprovado | s |  | etapa | jarvis |
+| 2026-10-28 15:18 | 026-front-do-011-lote3 | 026-front-do-011-lote3-qa-engineer-9.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:19 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-security-engineer-4.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:23 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-23.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:27 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-1.md | brief | 1 | reprovado | s | E4.1 sem o protótipo contradiz o recibo com UX e protótipo | decisao | jarvis |
+| 2026-10-28 15:29 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-2.md | brief | 1 | reprovado | s | pronto adiado ao QA lido como contradição da opção A | decisao | jarvis |
+| 2026-10-28 15:31 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-3.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:31 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-ux-designer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:33 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-24.md | brief | 1 | reprovado | s | checks do 157 ainda pendentes; brief sem regra para pendente | etapa | jarvis |
+| 2026-10-28 15:36 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-4.md | brief | 2 | aprovado | s | aviso: decisao tecnica da leitura do 02-propostas fora do bloco de decisoes | — | jarvis |
+| 2026-10-28 15:44 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-25.md | brief | 2 | aprovado | s | nao delegado: PR 157 ja mesclado pelo dono | — | jarvis |
+| 2026-10-28 15:48 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-10.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:50 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-3.md | entrega | 1 | nao cumpriu | s | ancora web/src/data/mock/nucleoMock.paridade.test.ts fora do Entregar; ancoras sao do QA (E5.2) | escopo | jarvis |
+| 2026-10-28 15:51 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-qa-engineer-6.md | brief | 1 | reprovado | s | cartao K-150 no commit; E2.14 e etapa do E2 (K-144) | escopo | jarvis |
+| 2026-10-28 15:51 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-1.md | entrega | 1 | nao cumpriu | parcial | commits do E1.1, E1.2 e E1.5 sem conferencia propria no intervalo; docs/api/metricas.md fora do Entregar | escopo | jarvis |
+| 2026-10-28 15:55 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-react-frontend-5.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:55 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-security-engineer-1.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 15:56 | 047-pendencias-decididas-2026-10-28 | docs/briefs/047-pendencias-decididas-2026-10-28-qa-engineer-7.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 15:57 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-tech-lead-4.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 15:59 | 047-pendencias-decididas-2026-10-28 | docs/briefs/047-pendencias-decididas-2026-10-28-devops-engineer-7.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:01 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-node-backend-2.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:03 | 047-pendencias-decididas-2026-10-28 | docs/briefs/047-pendencias-decididas-2026-10-28-security-engineer-5.md | brief | 1 | reprovado | s |  | etapa | jarvis |
+| 2026-10-28 16:03 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-node-backend-2.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 16:06 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-react-frontend-5.md | entrega | 1 | não cumpriu | n | brief errado: taticas está no react-3 | escopo | jarvis |
+| 2026-10-28 16:06 | 047-pendencias-decididas-2026-10-28 | docs/briefs/047-pendencias-decididas-2026-10-28-security-engineer-5.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:09 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-react-frontend-3.md | entrega | 2 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 16:10 | 047-pendencias-decididas-2026-10-28 | docs/briefs/047-pendencias-decididas-2026-10-28-tech-lead-11.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:12 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-tech-lead-5.md | brief | 1 | reprovado | s |  | citacao | jarvis |
+| 2026-10-28 16:14 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-tech-lead-5.md | brief | 2 | reprovado | s | tardio | citacao | jarvis |
+| 2026-10-28 16:16 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-tech-lead-5.md | brief | 3 | reprovado | s |  | citacao | jarvis |
+| 2026-10-28 16:18 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-tech-lead-5.md | brief | 4 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:22 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-tech-lead-5.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 16:23 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-security-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:26 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-security-engineer-2.md | entrega | 1 | não cumpriu | parcial | etapa da mensagem errada (review/codigo em vez de seguranca), erro do Jarvis; PERGUNTA 2 do modelo de ameaças sem linha PERGUNTA no parecer | forma | jarvis |
+| 2026-10-28 16:27 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-node-backend-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:28 | 048-o-que-falta-em-mock | docs/briefs/048-o-que-falta-em-mock-security-engineer-2.md | entrega | 2 | não cumpriu | s | PERGUNTA 2 (membro em mais de um time) sem linha PERGUNTA no parecer; volta ao autor | implementacao | jarvis |
+| 2026-10-28 16:30 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-4 | entrega | 1 | não cumpriu | parcial | P2 parcial sem marca de corte; brief desatualizado (ADR 0003, E5.4) | escopo | jarvis |
+| 2026-10-28 16:30 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-3 | entrega | 1 | não cumpriu | s | trabalho ok; brief invalidado pela mudança do pedido (ADR 0003 no Histórico) | forma | jarvis |
+| 2026-10-28 16:33 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-security-engineer-3 | brief | 1 | reprovado | n | Jarvis mandou marcador no lugar do brief; reenviado inteiro | forma | jarvis |
+| 2026-10-28 16:33 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-security-engineer-3 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:34 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-4 | brief | 1 | reprovado | parcial | reaprovação sem dizer que o trabalho já está em 3c9f6a4 | forma | jarvis |
+| 2026-10-28 16:37 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-4 | brief | 2 | reprovado | parcial | PQ-2 e PQ-4 medem o HEAD, não 3c9f6a4 | prova | jarvis |
+| 2026-10-28 16:38 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-6 | brief | 1 | reprovado | parcial | decisões de UX do E4.0 incompletas e afirmadas sem registro; ADR 0003 parafraseada; caminho do Botao errado | decisao | jarvis |
+| 2026-10-28 16:39 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-4 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:41 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-7 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:42 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-4 | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 16:45 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-security-engineer-3 | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 16:45 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:49 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-11 | entrega | 1 | não cumpriu | n | anexo: os commits de parecer sao das etapas E2.9, E2.10, E2.13 e E2.14, ja entregues e listadas no brief; PQs cumpridos | escopo | jarvis |
+| 2026-10-28 16:52 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-12 | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-10-28 16:53 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-13 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 16:57 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-7 | entrega | 1 | não cumpriu | parcial | anexo e2e de 1 linha (texto renomeado pelo Entregar) e 44 px relatado como o brief permite | escopo | jarvis |
+| 2026-10-28 17:01 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-6.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 17:03 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-13.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 17:06 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-6.md | entrega | 1 | não cumpriu | parcial | Desde por pedido não modela duas branches; PQ-1 a PQ-4 e escopo cumpridos | base | ferramenta |
+| 2026-10-28 17:07 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-8.md | brief | 1 | reprovado | s | volta exige Objetivo e Relatório iguais ao anterior, que pediam o P2 já entregue | decisao | ferramenta |
+| 2026-10-28 17:09 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-14.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 17:11 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-9.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 17:11 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-14.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 17:30 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-9.md | entrega | 1 | não cumpriu (só Desde) | s | PQ e escopo ok; Desde por pedido não modela 048a e 048b | base | ferramenta |
+| 2026-10-28 17:32 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-15.md | brief | 1 | reprovado | s | checks obrigatórios em vez de todos os checks (K-169) | decisao | jarvis |
+| 2026-10-28 17:33 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-7.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 17:36 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-15 | brief | 2 | reprovado | n | fato errado: 6 arquivos desde 44cefd7, nao 2 | outra | jarvis |
+| 2026-10-28 17:36 | 026-front-do-011-lote3 | 026-front-do-011-lote3-agile-coach-1 | brief | 1 | reprovado | n | nao rode pronto contra decisao de 2026-10-21 | decisao | jarvis |
+| 2026-10-28 17:39 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-15 | brief | 3 | aprovado | s |  | — | conferente |
+| 2026-10-28 17:39 | 026-front-do-011-lote3 | 026-front-do-011-lote3-agile-coach-1 | brief | 2 | aprovado | s |  | — | conferente |
+| 2026-10-28 17:40 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-7 | entrega | 1 | nao cumpriu (so Desde) | s | PQ-1 a PQ-4 ok, escopo ok; Desde por pedido nao modela 2 branches | base | ferramenta |
+| 2026-10-28 17:43 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-2 | brief | 1 | aprovado | s |  | — | conferente |
+| 2026-10-28 17:46 | 026-front-do-011-lote3 | 026-front-do-011-lote3-agile-coach-1 | entrega | 1 | nao cumpriu (so Desde) | s | PQ-1 a PQ-4 ok, delta so a retro; Desde de branch mesclada por squash | base | ferramenta |
