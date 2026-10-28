@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 047-pendencias-decididas-2026-10-28
 branch: feature/047-select-timeout
-commit: b42b2610abf65e6ded9ce8db989ac06f4726aaa2
+commit: 44cefd7a5817c7f04d59e9a12218da927d9a5ffb
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-28
@@ -21,3 +21,8 @@ Diff de `4137981` a `b42b2610`: 6 linhas em `server/tests/plataforma2.test.ts` (
 
 ## Achados
 - A1 (recomendado) server/tests/plataforma2.test.ts:253 · o nome `aquecer.ts` é fictício e não é asserido; aceitável como está, sem devolução. Destino: nenhum.
+
+## Revalidação
+Em 2026-10-28, sobre o head `9f08ed08`, após o merge da develop na `docs/047-portao-e2e`. Delta lido de `b42b2610` a `9f08ed08` (`git diff --stat`): `.github/workflows/homolog.yml` (divisão da E2E do portão, E2.2) e os pareceres de `docs/devops/`, `docs/qa/`, `docs/reviews/` e `docs/security/` do E2. Nenhum arquivo de `server/` nem `server/tests/plataforma2.test.ts` mudou, então nada do que este parecer avaliou foi tocado. Já lido e não relido: o diff do E1.1 acima. Veredito inalterado: aprovado.
+
+Em 2026-10-28, segunda revalidação, sobre o head `44cefd7a` (merge da develop com o #157, E2.13). Delta lido de `14ebc32c` a `44cefd7a` (`git diff --stat`): `CLAUDE.md` (1 linha, passo 4 do fluxo: "enviada" passa a significar o PR para a `develop`) e pareceres do 026 em `docs/qa/` e `docs/reviews/`. Nenhum arquivo de `server/` mudou, e a linha do `CLAUDE.md` é regra de fluxo que este parecer não avaliou. Já lido e não relido: o diff do E1.1 e o delta anterior. Veredito inalterado: aprovado.
