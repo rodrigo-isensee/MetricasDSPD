@@ -14,6 +14,8 @@ data: 2026-10-28
 
 Diff lido: `origin/develop...HEAD`, 4 arquivos (2 workflows, parecer do devops, `fluxo-homologacao.md`). Sem teste local: a CI do push é a prova (brief). Segurança (E5.3) é parecer à parte; pipeline tem parecer próprio do devops (`docs/devops/041-homolog-aprovada.md`), citado e não refeito.
 
+Nenhum achado bloqueante.
+
 ## Leitura
 
 - Aderência à decisão B: sem espera paga, sem `sleep` no check; o fim do portão dispara a reexecução (`workflow_run`). Critério de aprovação intocado (`aprovacao.ts` da base).
@@ -27,11 +29,15 @@ Diff lido: `origin/develop...HEAD`, 4 arquivos (2 workflows, parecer do devops, 
 
 ## Achados
 
-- A1 (recomendado) .github/workflows/homolog-aprovada.yml:55 · a mensagem final ("Sem portão verde concluído... reexecutado sozinho no fim dele") também sai quando o portão já concluiu vermelho, ou para um PR `hotfix/*`, cujo CI não é o `homolog.yml` e que o `homolog-reavalia` ignora (filtra `head_branch == homolog`); a promessa de reexecução automática é falsa nesses casos. Sugestão: texto neutro ("se o portão ainda rodava, reexecute pelo Re-run jobs") ou ramo próprio para `hotfix/*`. Não bloqueia: o check segue vermelho, que é o comportamento correto, e o hotfix já exigia reexecução manual antes.
-- A2 (recomendado) .github/workflows/homolog-reavalia.yml:34 · `rerun` recusado por motivo diferente de "execução em andamento" (permissão, execução expirada) é tratado igual e consome 60 s antes de falhar. Sugestão: registrar a resposta de erro da API no log (hoje vai a `/dev/null`) para facilitar o diagnóstico na primeira release. Não bloqueia.
-- A3 (recomendado) docs/devops/041-homolog-aprovada.md · a prova do rerun só vem na primeira release real; registrar no quadro de leituras que a primeira release é o teste do desenho B, com a opção A como volta. Não bloqueia.
+- A1 (recomendado) .github/workflows/homolog-aprovada.yml:55 · a mensagem final promete reexecução automática, mas também sai com o portão já vermelho ou em PR `hotfix/*` (ignorado pelo `homolog-reavalia`); a promessa é falsa nesses casos. Sugestão: texto neutro ou ramo próprio.
+- A2 (recomendado) .github/workflows/homolog-reavalia.yml:34 · `rerun` recusado por motivo diferente de "execução em andamento" (permissão, execução expirada) consome 60 s antes de falhar. Sugestão: registrar a resposta de erro da API no log (hoje vai a `/dev/null`).
+- A3 (recomendado) docs/devops/041-homolog-aprovada.md:1 · a prova do rerun só vem na primeira release real; registrar no quadro de leituras que ela é o teste do desenho B, com a opção A como volta.
 
-Nenhum achado bloqueante.
+## Detalhe dos achados
+
+- A1: o check segue vermelho, que é o comportamento correto, e o hotfix já exigia reexecução manual antes; por isso não bloqueia. Texto sugerido: "se o portão ainda rodava, reexecute pelo Re-run jobs".
+- A2: não bloqueia; ajuda o diagnóstico na primeira release.
+- A3: não bloqueia.
 
 ## Revalidação
 
