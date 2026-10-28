@@ -454,3 +454,13 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-27T21:03:31-03:00 | K-111 | QA | Em andamento | QA reprovado (6199302): volta do A1 ao react-frontend |
 | 2026-10-27T21:03:31-03:00 | K-154 | — | Entrada | recomendados A6, A7/A12 e A13 do 026 para a UX |
 | 2026-10-27T22:03:56-03:00 | K-153 | Em andamento | Bloqueado | Aguardando o dono: forge-check pr nao le o clone do Forge (043) |
+| 2026-10-28T07:39:39-03:00 | K-155 | Entrada | Em andamento | pedido 044 aberto; e2e da CI estoura 30 min |
+| 2026-10-28T09:12:04-03:00 | K-155 | Em andamento | Pronto | PR 154 mesclado na develop (53675ec); retrospectiva com o agile-coach |
+| 2026-10-28T09:12:05-03:00 | K-140 | Bloqueado | Em andamento | forge-upgrade feito; PR 151 recebe a develop e entra em serie depois do PR 153 |
+| 2026-10-28T09:18:09-03:00 | K-156 | — | Entrada | MELHORIA da retro do 044 |
+| 2026-10-28T09:18:09-03:00 | K-157 | — | Entrada | MELHORIA da retro do 044 |
+| 2026-10-28T09:18:09-03:00 | K-158 | — | Entrada | MELHORIA da retro do 044 |
+| 2026-10-28T09:18:10-03:00 | K-159 | — | Entrada | MELHORIA da retro do 044 |
+| 2026-10-28T09:18:10-03:00 | K-160 | — | Entrada | Aguardando o dono: acesso para apagar branches mescladas |
+| 2026-10-28T09:18:10-03:00 | K-161 | — | Entrada | MELHORIA da retro do 044; fila de merge e decisao do dono |
+| 2026-10-28T09:19:14-03:00 | K-108 | Entrada | Bloqueado | Aguardando o dono: delegacao do merge do PR 153 negada pelo classificador |

@@ -336,3 +336,83 @@
 | 2026-10-27 22:03 | 043-forge-f21-f22 | 043-forge-f21-f22-tech-lead-6.md | brief | 1 | reprovado | s | forge-check pr nao le o clone do Forge | etapa | jarvis |
 | 2026-10-27 22:05 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-11.md | brief | 1 | reprovado | s | tardio | escopo | jarvis |
 | 2026-10-27 22:08 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-11.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:15 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-12.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:15 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-6.md | brief | 1 | reprovado | s |  | etapa | jarvis |
+| 2026-10-28 05:17 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-tech-lead-8.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:17 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-6.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:19 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-11.md | entrega | 1 | não cumpriu | parcial | branch remota negada pela permissão; união de briefs K-147 | ambiente | jarvis |
+| 2026-10-28 05:20 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-12.md | entrega | 1 | não cumpriu | s | Desde de outra branch K-147 | ambiente | jarvis |
+| 2026-10-28 05:21 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-security-engineer-7.md | brief | 1 | reprovado | s |  | etapa | jarvis |
+| 2026-10-28 05:22 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-13.md | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-10-28 05:23 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-security-engineer-7.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:23 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-tech-lead-8.md | entrega | 1 | não cumpriu | s | só o Desde: 43e4002 não é ancestral da branch (K-147); PQ-1 a PQ-5 cumpridos; sem retrabalho | base | jarvis |
+| 2026-10-28 05:24 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-13.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:27 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-13.md | entrega | 1 | não cumpriu | s | só escopo: Desde e342a2c sem conferência anterior na branch (K-147); PQ-1 a PQ-4 e etapa cumpridos; sem retrabalho | base | jarvis |
+| 2026-10-28 05:28 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-qa-engineer-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:29 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-14.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:31 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-14.md | entrega | 1 | não cumpriu | s | só escopo: intervalo sem Desde pega toda a branch (K-147); PQ-1 a PQ-4 e etapa cumpridos; sem retrabalho | base | jarvis |
+| 2026-10-28 05:36 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-security-engineer-8.md | brief | 1 | reprovado | s | Fora do escopo dizia documentação e o Entregar regrava o parecer | escopo | jarvis |
+| 2026-10-28 05:36 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-15.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:37 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-6.md | entrega | 1 | não cumpriu | s | só escopo: e3b9fa4 e adc93fa de entregas anteriores sem conferida (Desde c72b955); merge e 0e78a55 no escopo; PQ cumpridos; sem retrabalho | base | jarvis |
+| 2026-10-28 05:37 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-security-engineer-8.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:40 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-qa-engineer-4.md | brief | 1 | reprovado | s | CI do E1.3 sumiu do brief de volta | escopo | jarvis |
+| 2026-10-28 05:41 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-16.md | brief | 1 | reprovado | s | E3 citado sem item; troca de papel do E5.3 sem a decisão | citacao | jarvis |
+| 2026-10-28 05:44 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-16.md | brief | 2 | reprovado | n | motivo da decisao tecnica nao estava no Historico; linha 05:43 gravada | decisao | jarvis |
+| 2026-10-28 05:44 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-qa-engineer-4.md | brief | 2 | reprovado | n | tardio: install fora do E1.3, texto igual na r1; virou pre-condicao com decisao no Historico 05:43 | escopo | jarvis |
+| 2026-10-28 05:46 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-16.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:47 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-qa-engineer-4.md | brief | 3 | reprovado | n | tardio: PQ-1 pre-decidia o veredito (aviso na r2); agora so a forma | forma | jarvis |
+| 2026-10-28 05:47 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-7.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:49 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-qa-engineer-4.md | brief | 4 | aprovado | s |  | — | jarvis |
+| 2026-10-28 05:53 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-7.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 05:54 | 026-front-do-011-lote3 | 026-front-do-011-lote3-qa-engineer-4.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:02 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-security-engineer-9.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:03 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-qa-engineer-4.md | entrega | 1 | não cumpriu | parcial | K-147: Desde de outra branch; PQ-2 pelo registro do parecer | escopo | jarvis |
+| 2026-10-28 06:07 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-tech-lead-9.md | brief | 1 | reprovado | n |  | etapa | jarvis |
+| 2026-10-28 06:08 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-15.md | brief | 1 | reprovado | n | corte: E3.2 é do devops; etapa E3.3 criada | escopo | jarvis |
+| 2026-10-28 06:08 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-security-engineer-9.md | entrega | 1 | não cumpriu | parcial | K-147: Desde sem conferida da branch; delta b24bf18..73a13b0 ok | escopo | jarvis |
+| 2026-10-28 06:08 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-16.md | entrega | 1 | não cumpriu | parcial | K-147; PQ-1 a PQ-4 cumpridos no head 73a13b0 | escopo | jarvis |
+| 2026-10-28 06:11 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-15.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:13 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-tech-lead-10.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:17 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-qa-engineer-15.md | entrega | 1 | não cumpriu | n | K-147; PQ-2 e PQ-6 por equivalente; forge-check pr limpo rodado pelo Jarvis | escopo | jarvis |
+| 2026-10-28 06:17 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-tech-lead-10.md | entrega | 1 | não cumpriu | n | K-147; versao do Forge da branch, coberta pelos pareceres do E1 | escopo | jarvis |
+| 2026-10-28 06:17 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-qa-engineer-5.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:20 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-17.md | brief | 1 | reprovado | s | erro do Jarvis: mensagem sem o bloco integral do brief; aviso de etapa E5.1 anterior | forma | jarvis |
+| 2026-10-28 06:22 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-qa-engineer-5.md | entrega | 1 | não cumpriu | s | K-147: Desde de outra branch; sem retrabalho | escopo | jarvis |
+| 2026-10-28 06:22 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-tech-lead-9.md | brief | 2 | reprovado | s | Historico sem o registro do qa-5 | decisao | jarvis |
+| 2026-10-28 06:23 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-17.md | brief | 2 | reprovado | s | E5.1 de tl-12,13,15,16 sem marca | etapa | jarvis |
+| 2026-10-28 06:24 | 042-forge-0-30-3-e-retomada | 042-forge-0-30-3-e-retomada-tech-lead-9.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:25 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-17.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:31 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-devops-engineer-3.md | brief | 1 | reprovado | s | linha de revalidacao alem do que o git prova | citacao | jarvis |
+| 2026-10-28 06:31 | 026-front-do-011-lote3 | 026-front-do-011-lote3-qa-engineer-4.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 06:31 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-8.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:33 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-devops-engineer-3.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:37 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-devops-engineer-3.md | entrega | 1 | não cumpriu | s | K-147: Desde ca0905f de outra branch; PQ-1 a PQ-5 cumpridos, escopo do autor ok | escopo | jarvis |
+| 2026-10-28 06:38 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-18.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:46 | 026-front-do-011-lote3 | 026-front-do-011-lote3-react-frontend-8.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 06:56 | 026-front-do-011-lote3 | 026-front-do-011-lote3-react-frontend-8.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 06:57 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-9.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 07:00 | 026-front-do-011-lote3 | 026-front-do-011-lote3-qa-engineer-5.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 07:01 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-9.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 07:07 | 026-front-do-011-lote3 | 026-front-do-011-lote3-qa-engineer-5.md | entrega | 1 | cumpriu | s | aviso: frase da revalidacao omite bugs L3-001 e L3-002 no intervalo; npx vitest | — | jarvis |
+| 2026-10-28 07:07 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-10.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 07:40 | 026-front-do-011-lote3 | 026-front-do-011-lote3-tech-lead-10.md | entrega | 1 | nao cumpriu | n | e2e da CI cancelado no teto de 30 min (run 40669258684); L3-01 passou no retry; sem merge, relatado pelo autor; vai ao pedido 044 | ambiente | jarvis |
+| 2026-10-28 07:41 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-devops-engineer-1.md | brief | 1 | reprovado | s | Mermaid numa parte so nao estava no Escopo do pedido | escopo | jarvis |
+| 2026-10-28 07:42 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-devops-engineer-1.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 08:06 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-devops-engineer-1.md | entrega | 1 | nao cumpriu | parcial | PQ-1: run em b0c0f69, head 19549b9 so acrescenta o parecer; sem retrabalho, o QA (E1.4) prova com run no head final | prova | jarvis |
+| 2026-10-28 08:07 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-security-engineer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 08:07 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-tech-lead-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 08:10 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-tech-lead-1.md | entrega | 1 | cumpriu | s | avisos: contagem de linhas e linha do A1 no parecer | — | jarvis |
+| 2026-10-28 08:10 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-security-engineer-1.md | entrega | 1 | nao cumpriu | s | escopo: ci.yml do devops no intervalo sem Desde (familia K-147); PQs e parecer ok; sem retrabalho | ambiente | jarvis |
+| 2026-10-28 08:10 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-qa-engineer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 08:31 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-devops-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 08:32 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-qa-engineer-1.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 08:34 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-tech-lead-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 08:35 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-devops-engineer-2.md | entrega | 1 | cumpriu | s |  | — | jarvis |
+| 2026-10-28 09:07 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-tech-lead-2.md | entrega | 1 | não cumpriu | parcial | PQ-6 branch remota: exclusão negada pelo classificador | ambiente | jarvis |
+| 2026-10-28 09:07 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-19.md | brief | 1 | reprovado | s | shas citados errados (review b24bf18, ADR 4b249bc) | citacao | jarvis |
+| 2026-10-28 09:12 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-agile-coach-1.md | brief | 1 | reprovado | n | retro fora das Etapas do pedido | etapa | jarvis |
+| 2026-10-28 09:13 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-19.md | brief | 2 | reprovado | n | tardio | escopo | jarvis |
+| 2026-10-28 09:14 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-agile-coach-2.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 09:15 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-20.md | brief | 3 | reprovado | n | brief tech-lead-19 sem marca no Fora do escopo | etapa | jarvis |
+| 2026-10-28 09:18 | 041-estabilizar-os-testes | 041-estabilizar-os-testes-tech-lead-21.md | brief | 4 | aprovado | s |  | — | jarvis |
+| 2026-10-28 09:19 | 044-e2e-da-ci-dentro-do-teto | 044-e2e-da-ci-dentro-do-teto-agile-coach-2.md | entrega | 1 | não cumpriu | parcial | PQ-1 a PQ-4 cumpridos; faixa da branch do Jarvis e Desde de outra branch (K-158) | escopo | jarvis |

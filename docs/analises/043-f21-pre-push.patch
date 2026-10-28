@@ -1,0 +1,20 @@
+diff --git a/templates/projeto/.githooks/pre-push b/templates/projeto/.githooks/pre-push
+--- a/templates/projeto/.githooks/pre-push
++++ b/templates/projeto/.githooks/pre-push
+@@ -33,6 +33,15 @@
+ # Checagem própria do projeto (opcional): crie .githooks/pre-push.local executável (ex.: lint + typecheck).
+ local_hook="$(dirname "$0")/pre-push.local"
+ if [ -x "$local_hook" ]; then
+-  "$local_hook" || exit 1
++  if ! "$local_hook"; then
++    # Dica aditiva (texto fixo, sem variável, sem executar nada): só numa worktree vinculada, onde a cópia
++    # nova ainda pode não ter as dependências. Qualquer falha do rev-parse ou valor vazio significa sem dica.
++    git_dir="$(git rev-parse --path-format=absolute --git-dir 2>/dev/null)"
++    git_comum="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
++    if [ -n "$git_dir" ] && [ -n "$git_comum" ] && [ "$git_dir" != "$git_comum" ]; then
++      echo 'pre-push: a checagem do projeto falhou numa worktree. Leia o erro acima; se a worktree foi criada agora, prepare as dependências com o comando de preparação da stack (stacks/<stack>/pronto.md do Forge) e envie de novo.' >&2
++    fi
++    exit 1
++  fi
+ fi
+ exit 0
