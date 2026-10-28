@@ -2,7 +2,10 @@ import { AvisosCriterioOcultas } from './AvisosCriterioOcultas'
 import { Botao, Icone } from '@/components/ui'
 import { usePreferenciasPainel } from '@/components/ui'
 
-/** Faixa sempre visível com N>0: quantas e quais métricas estão ocultas, e como voltar (CA-6). */
+/**
+ * Faixa de uma linha, sempre visível com N>0: quantas e quais métricas estão ocultas e "Mostrar todas" (CA-6).
+ * "Usar minhas preferências" fica no botão "Métricas" (P2: topo enxuto).
+ */
 export function FaixaOcultas() {
   const p = usePreferenciasPainel()
   if (!p || p.ocultos.size === 0) return null
@@ -11,7 +14,7 @@ export function FaixaOcultas() {
   return (
     <>
       <div
-        className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-borda bg-superficie-2 p-3 text-sm"
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-borda bg-superficie-2 px-3 py-1 text-sm"
         data-testid="faixa-ocultas"
       >
         <Icone nome="info" />
@@ -20,7 +23,6 @@ export function FaixaOcultas() {
           {ids.join(', ')}
         </span>
         <Botao onClick={p.mostrarTodas}>Mostrar todas</Botao>
-        <Botao onClick={p.usarMinhas}>Usar minhas preferências</Botao>
       </div>
       {/* Chegou por link a uma oculta sem marcador na tela: explica e deixa a um clique (não falha em silêncio). */}
       {c && !p.comMarcador.has(c.id) && (

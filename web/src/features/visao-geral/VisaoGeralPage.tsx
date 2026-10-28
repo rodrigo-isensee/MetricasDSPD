@@ -222,12 +222,25 @@ export default function VisaoGeralPage() {
         }
         publico="Consolidado de todas as equipes (o sistema não compara equipes), sem filtros nesta tela."
       />
-      <p className="text-sm text-texto-2" data-testid="preferencias-valem">
-        As preferências de métricas valem para os painéis. Esta tela mostra tudo.{' '}
-        <Link to="/preferencias" className="text-acento underline">
-          Preferências
-        </Link>
-      </p>
+      <details className="text-sm" data-testid="sobre-esta-tela">
+        <summary className="alvo cursor-pointer text-texto-2">Sobre esta tela</summary>
+        <div className="mt-1 flex flex-col gap-2 rounded-md border border-borda bg-superficie p-3">
+          <p className="text-texto-2" data-testid="preferencias-valem">
+            As preferências de métricas valem para os painéis. Esta tela mostra tudo.{' '}
+            <Link to="/preferencias" className="text-acento underline">
+              Preferências
+            </Link>
+          </p>
+          {d && (
+            <p data-testid="recorte-visao-geral">
+              Consolidado de todas as equipes · últimas 12 semanas. Recorte fixo, igual ao dos
+              painéis: Operacional e Tático em {intervalo(d.recortes.fluxo)}; Estratégico em{' '}
+              {intervalo(d.recortes.estrategico)}; Sustentação em{' '}
+              {intervalo(d.recortes.sustentacao)}.
+            </p>
+          )}
+        </div>
+      </details>
       <div className="flex flex-wrap items-center gap-2" data-testid="barra-exportar">
         <BotaoExportar base="visao-geral" />
         <BotaoExportar base="personalizada" />
@@ -237,16 +250,6 @@ export default function VisaoGeralPage() {
           <FaixaCalibracaoFonte dominio="businessmap" />
           <FaixaCalibracaoFonte dominio="acelerato" />
         </>
-      )}
-      {d && (
-        <p
-          className="rounded-md border border-borda bg-superficie p-3 text-sm"
-          data-testid="recorte-visao-geral"
-        >
-          Consolidado de todas as equipes · últimas 12 semanas. Recorte fixo, igual ao dos painéis:
-          Operacional e Tático em {intervalo(d.recortes.fluxo)}; Estratégico em{' '}
-          {intervalo(d.recortes.estrategico)}; Sustentação em {intervalo(d.recortes.sustentacao)}.
-        </p>
       )}
       {aguardando && (
         <div className="min-h-screen" aria-hidden="true" data-testid="aguardando-coleta" />

@@ -377,12 +377,13 @@ describe('painel: botão "Métricas: N de M", ocultar e desfazer', () => {
     )
   })
 
-  it('a faixa de ocultas tem "Mostrar todas" e "Usar minhas preferências"', async () => {
+  it('a faixa de ocultas é de uma linha, com "Mostrar todas"; "Usar minhas preferências" fica no popover', async () => {
     const u = userEvent.setup()
     guardar({ operacional: ['o9', 'o3'] })
     renderizarApp('/operacional?cadencia=semanal')
     const faixa = await screen.findByTestId('faixa-ocultas')
     expect(faixa).toHaveTextContent('2 métricas ocultas: O3, O9')
+    expect(within(faixa).queryByRole('button', { name: 'Usar minhas preferências' })).toBeNull()
     await u.click(within(faixa).getByRole('button', { name: 'Mostrar todas' }))
     expect(screen.queryByTestId('faixa-ocultas')).not.toBeInTheDocument()
     expect(await screen.findByTestId('metrica-O9')).toBeInTheDocument()

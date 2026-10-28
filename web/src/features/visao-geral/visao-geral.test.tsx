@@ -86,6 +86,15 @@ describe('tela Visão geral', () => {
     expect(reuniao.compareDocumentPosition(nivel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
+  it('o topo é enxuto: preferências e recorte ficam recolhidos em "Sobre esta tela"', async () => {
+    renderizarApp('/')
+    const det = await screen.findByTestId<HTMLDetailsElement>('sobre-esta-tela')
+    expect(det.open).toBe(false)
+    expect(within(det).getByTestId('preferencias-valem')).toBeInTheDocument()
+    await screen.findByTestId('recorte-visao-geral')
+    expect(det).toContainElement(screen.getByTestId('recorte-visao-geral'))
+  })
+
   it('mostra atenção, quatro níveis (máx. 3 indicadores), espera invisível e por reunião, sem filtros', async () => {
     renderizarApp('/')
     const faixa = await screen.findByTestId('faixa-atencao', undefined, { timeout: 8000 })
