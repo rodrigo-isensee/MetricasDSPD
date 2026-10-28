@@ -21,5 +21,3 @@ Diff de `4137981` a `b42b2610`: 6 linhas em `server/tests/plataforma2.test.ts` (
 
 ## Achados
 - A1 (recomendado) server/tests/plataforma2.test.ts:253 · o nome `aquecer.ts` é fictício e não é asserido; aceitável como está, sem devolução. Destino: nenhum.
-
-Sem achado bloqueante. Segurança, devops e QA: fora deste parecer (E1.3 segue em outra delegação).
