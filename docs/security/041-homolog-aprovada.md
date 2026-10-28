@@ -32,7 +32,7 @@ Nenhum achado bloqueante.
 
 ## Achados
 - A1 (recomendado) .github/workflows/homolog-reavalia.yml:29 · `$SHA` entra no filtro `jq` por interpolação de shell; hoje é sha hexadecimal do GitHub (sem ataque realista); `--arg sha "$SHA"` com `.head.sha == $sha` elimina a classe. Baixa, P, devops-engineer.
-- A2 (recomendado) .github/workflows/homolog-reavalia.yml:12-15 · `actions: write` permite reexecutar qualquer workflow; é o mínimo para o rerun e o job não tem entrada não confiável nem checkout. Informativa, sem correção; manter sem checkout nem ação de terceiros. Dono devops-engineer.
+- A2 (recomendado) .github/workflows/homolog-reavalia.yml:12 · nas linhas 12 a 15, `actions: write` permite reexecutar qualquer workflow; é o mínimo para o rerun e o job não tem entrada não confiável nem checkout. Informativa, sem correção; manter sem checkout nem ação de terceiros. Dono devops-engineer.
 - A3 (recomendado) .github/workflows/homolog-aprovada.yml:27 · o rerun reusa o payload original e a `base.sha` da 1ª execução; se a `main` avançar antes do fim do portão, vale a regra da base antiga. Informativa; documentar em `fluxo-homologacao.md` ou fechar e reabrir o PR. Dono tech-lead.
 
 ## Detalhe dos achados
