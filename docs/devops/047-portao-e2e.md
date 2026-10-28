@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 047-pendencias-decididas-2026-10-28
 branch: docs/047-portao-e2e
-commit: 4137981e5333bee5b69f3c515b26c64d3a0b71c0
+commit: 403e12b841349dce5c5a5556cd6501075bc2ee79
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-10-28
@@ -22,6 +22,6 @@ Aprovado, sem mudança de workflow. O portão do push na `homolog` roda a E2E co
 - `EXIGIR_NOTURNA = false` em `tools/homolog/src/aprovacao.ts:8`; `fluxo-homologacao.md:55` descreve a noturna como informativa. Não foi alterado.
 
 ## Achados
-1. recomendado (com prazo: antes do próximo push na `homolog`), `.github/workflows/homolog.yml:125-130` e `:140`: o `e2e-homolog` roda a suíte inteira num job só com `timeout-minutes: 30`. A última rodada levou 28 min 29 s com 690 testes (margem de 1 min 31 s). A suíte hoje tem 716 testes (PR #154, run 40677944455: 358 + 358, partes de 12 min 31 s e 16 min 25 s): é o mesmo crescimento que estourou o teto no CI (motivo do #154). Sem prova de falha ainda, porque não houve push em `homolog` depois do #154, mas a próxima rodada tem alta chance de estourar o teto e deixar o `portao` vermelho, o que bloqueia o `homolog-aprovada`. Destino: devops-engineer em pedido próprio, aplicando o mesmo padrão do #154 ao `homolog.yml` (matriz `parte: [1, 2]`, `--shard=N/2`, agregador mantendo o job id `e2e` que o `portao` consome), em branch `melhoria/*` pelo dono (`.github/`, `R-CONFORMIDADE`). Não alterei o workflow aqui: o brief só autoriza mudança se faltasse parte da E2E, e não falta.
+1. RESOLVIDO em 403e12b (E2.2, K-172): o `e2e-homolog` virou matriz `e2e-parte` (`parte: [1, 2]`, `--shard=N/2`, Mermaid só na parte 1, timeout de 30 min por parte, `fail-fast: false`) e o job `e2e` passou a agregador (nome `e2e-homolog`, `needs: [escopo, e2e-parte]`, `if: always()` no escopo código, falha se o resultado das partes não for `success`); o `portao` segue lendo `needs.e2e.result` e só passa com as 2 partes verdes. Achado original: `.github/workflows/homolog.yml:125-130` e `:140`: o `e2e-homolog` roda a suíte inteira num job só com `timeout-minutes: 30`. A última rodada levou 28 min 29 s com 690 testes (margem de 1 min 31 s). A suíte hoje tem 716 testes (PR #154, run 40677944455: 358 + 358, partes de 12 min 31 s e 16 min 25 s): é o mesmo crescimento que estourou o teto no CI (motivo do #154). Sem prova de falha ainda, porque não houve push em `homolog` depois do #154, mas a próxima rodada tem alta chance de estourar o teto e deixar o `portao` vermelho, o que bloqueia o `homolog-aprovada`. Destino: devops-engineer em pedido próprio, aplicando o mesmo padrão do #154 ao `homolog.yml` (matriz `parte: [1, 2]`, `--shard=N/2`, agregador mantendo o job id `e2e` que o `portao` consome), em branch `melhoria/*` pelo dono (`.github/`, `R-CONFORMIDADE`). Não alterei o workflow aqui: o brief só autoriza mudança se faltasse parte da E2E, e não falta.
 2. recomendado, `fluxo-homologacao.md:50` e `:119`: o texto diz que o `e2e-homolog` roda contra o mock e que a E2E contra o ambiente implantado está pendente (H4); continua verdadeiro, sem ação aqui. Destino: tech-lead, se quiser citar o #154 na tabela.
-3. Lacuna: `actionlint` fora do PATH, não executado; nada foi alterado em workflow. Custo de dinheiro zero (`R-CUSTO`).
+3. Lacuna: `actionlint` fora do PATH, não executado (a sintaxe do workflow editado não foi validada por ferramenta; revisada por leitura contra o `ci.yml`). Custo de dinheiro zero (`R-CUSTO`).
