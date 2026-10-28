@@ -1,7 +1,7 @@
 ---
 tipo: qa
 contrato: 1
-pedido: 047-select-timeout
+pedido: 047-pendencias-decididas-2026-10-28
 branch: feature/047-select-timeout
 commit: 9a973696a83247cb8278a7eb4ddf8a7a58b84ded
 parecer: aprovado
