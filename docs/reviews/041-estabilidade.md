@@ -122,3 +122,13 @@ O corpo do PR vai levar `teto: excedido, 543 linhas, estabilização do 041 com 
 ## Revisão da linha nova da ADR 0003 (2026-10-27)
 
 Leitura datada do commit 4b249bc (K-138): uma linha no quadro de leituras do F4 (primeira medição acima de 100 ms em 9 de 10 repetições, mediana cerca de 126 ms; 2ª condição do critério de reversão não cumprida). Não muda limite, regra nem critério; fonte e decisão do dono citadas. Sem defeito: veredito e achados seguem como estão.
+
+## Revalidação do delta 4b249bc..c61b6c1 (2026-10-27)
+
+O delta é a integração da `develop` (7b5732d) em c61b6c1: Dependabot (#145, #146, #147), K-148 (#148, só `docs/`) e K-151 (#149), cada um já mesclado com os pareceres da `develop`. Li só os arquivos fora de `docs/`; o resto ficou como "já lido".
+
+- Manifestos (`package.json`, `server/package.json`, `web/package.json`) e `pnpm-lock.yaml`: só versões (`typescript-eslint` 8.72.0, `@tanstack/react-query` 5.104.5, `react-router` 8.5.0). Nenhum script novo nem dependência nova; o lockfile não traz `postinstall` nem `requiresBuild` novos.
+- `web/src/test/setup.ts` e `web/src/features/percepcao/percepcao.test.tsx` (K-151): um `beforeAll` de aquecimento no painel Sustentação e o ajuste de tipo do `matchMedia`. Não tocam em arquivo do 041 (`e2e/`, `perf.spec.ts`, montecarlo, `PainelPage`); sem conflito.
+- Os checks da CI do PR #150 em c61b6c1 estão em pass (informado no brief); não rodei suíte.
+
+Veredito mantido: **aprovado**, achados A1 a A7 como estão.
