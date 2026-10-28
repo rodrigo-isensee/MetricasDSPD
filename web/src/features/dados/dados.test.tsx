@@ -21,10 +21,13 @@ describe('/dados: rota, navegação e abas', () => {
     await waitFor(() => expect(document.title).toMatch(/^Dados e coletas · Métricas DSPD/))
   })
 
-  it('o link "Entenda" do painel leva à aba da própria fonte', async () => {
+  it('o "Detalhes da coleta" do painel leva à aba da própria fonte', async () => {
     const r = renderizarApp('/sustentacao')
     await userEvent.click(
-      await screen.findByRole('link', { name: 'Entenda a coleta do Acelerato' }),
+      await screen.findByRole('button', { name: 'Detalhes da coleta do Acelerato' }),
+    )
+    await userEvent.click(
+      await screen.findByRole('link', { name: 'Abrir Dados e coletas do Acelerato' }),
     )
     await screen.findByRole('heading', { level: 1, name: 'Dados e coletas' })
     expect(r.roteador.state.location.search).toBe('?fonte=ac')

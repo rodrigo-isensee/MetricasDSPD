@@ -44,7 +44,7 @@ describe('SeloFrescor', () => {
 })
 
 describe('FrescorFonte', () => {
-  it('BusinessMap no cenário padrão: falha de 09/10, dados de 08/10 mantidos e link Entenda', async () => {
+  it('BusinessMap no cenário padrão: falha de 09/10, dados de 08/10 mantidos e Detalhes da coleta', async () => {
     renderizarCartao(<FrescorFonte dominio="businessmap" />)
     const selo = await screen.findByTestId('selo-frescor-businessmap')
     expect(selo).toHaveTextContent('Falha')
@@ -52,18 +52,22 @@ describe('FrescorFonte', () => {
     expect(screen.getByTestId('falha-coleta-businessmap')).toHaveTextContent(
       /Coleta falhou em 09\/10\/2026 06:00\. Mostrando dados de 08\/10\/2026 06:\d\d\./,
     )
-    expect(screen.getByRole('link', { name: 'Entenda a coleta do BusinessMap' })).toHaveAttribute(
-      'href',
-      '/dados?fonte=bm',
-    )
+    await userEvent.click(screen.getByRole('button', { name: 'Detalhes da coleta do BusinessMap' }))
+    expect(
+      await screen.findByRole('link', { name: 'Abrir Dados e coletas do BusinessMap' }),
+    ).toHaveAttribute('href', '/dados?fonte=bm')
   })
 
-  it('Acelerato no cenário padrão: atual, sem aviso de falha e Entenda aponta para a aba certa', async () => {
+  it('Acelerato no cenário padrão: atual, sem aviso de falha e Detalhes da coleta aponta para a aba certa', async () => {
     renderizarCartao(<FrescorFonte dominio="acelerato" comNome />)
     expect(await screen.findByTestId('selo-frescor-acelerato')).toHaveTextContent('Atual')
     expect(screen.queryByTestId('falha-coleta-acelerato')).not.toBeInTheDocument()
     expect(screen.getByText('Acelerato:')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Entenda/ })).toHaveAttribute('href', '/dados?fonte=ac')
+    await userEvent.click(screen.getByRole('button', { name: /Detalhes da coleta/ }))
+    expect(await screen.findByRole('link', { name: /Abrir Dados e coletas/ })).toHaveAttribute(
+      'href',
+      '/dados?fonte=ac',
+    )
   })
 
   it('reservarFalha guarda a linha do aviso de falha em todos os estados, para o cabeçalho não saltar (CLS)', async () => {

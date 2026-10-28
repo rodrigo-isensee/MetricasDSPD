@@ -79,13 +79,14 @@ test.describe('Selo de frescor e calibração nos painéis', () => {
 });
 
 test.describe('Tela /dados', () => {
-  test('CT-16 acesso pela navegação e pelo link Entenda', async ({ page }) => {
+  test('CT-16 acesso pela navegação e pelo Detalhes da coleta', async ({ page }) => {
     await page.goto('/operacional?cadencia=diaria');
     await page.getByRole('link', { name: /Dados e coletas/ }).first().click();
     await expect(page).toHaveURL(/\/dados/);
     await expect(page.getByRole('heading', { level: 1, name: 'Dados e coletas' })).toBeVisible();
     await page.goto('/operacional?cadencia=diaria');
-    await page.getByRole('link', { name: /Entenda/ }).first().click();
+    await page.getByRole('button', { name: /Detalhes da coleta/ }).first().click();
+    await page.getByRole('link', { name: /Abrir Dados e coletas/ }).click();
     await expect(page).toHaveURL(/\/dados/);
   });
 

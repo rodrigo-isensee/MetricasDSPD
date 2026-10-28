@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react'
-import { CabecalhoPainel, ErroPagina, ProvedorContextoPainel } from '@/components/ui'
+import {
+  BarraAcoes,
+  BotaoCopiarLink,
+  CabecalhoPainel,
+  ErroPagina,
+  ProvedorContextoPainel,
+} from '@/components/ui'
 import type { Dominio, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta, useModoMock } from '@/data'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
@@ -87,6 +93,7 @@ function Casca({
             dataCorte={dataCorte}
             fonte={fonte}
             slug={base.slug}
+            copiarLink={false}
             frescor={
               <div className="flex flex-col gap-1">
                 <FrescorFonte dominio={dominio} />
@@ -99,14 +106,17 @@ function Casca({
           ) : (
             <>
               <FaixaCalibracaoFonte dominio={dominio} />
-              {base.extra}
-              <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
-                <BotaoMetricas />
-                <BotaoExportar base={painelDoCorpo} />
-                <BotaoExportar base="personalizada" />
-              </div>
               <BarraFiltros
                 uso={uso}
+                {...(base.extra ? { inicio: base.extra } : {})}
+                acoes={
+                  <BarraAcoes>
+                    <BotaoMetricas />
+                    <BotaoExportar base={painelDoCorpo} />
+                    <BotaoExportar base="personalizada" />
+                    <BotaoCopiarLink />
+                  </BarraAcoes>
+                }
                 {...(estrategico ? { estrategico } : {})}
                 {...(base.legendaFiltros ? { legenda: base.legendaFiltros } : {})}
                 {...(base.ondeFiltros ? { onde: base.ondeFiltros } : {})}

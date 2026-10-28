@@ -1,6 +1,8 @@
 import { Link } from 'react-router'
 import {
+  BarraAcoes,
   Botao,
+  BotaoCopiarLink,
   CabecalhoPainel,
   EsqueletoCartao,
   ErroPagina,
@@ -214,6 +216,7 @@ export default function VisaoGeralPage() {
         dataCorte={data}
         fonte="BusinessMap e Acelerato (blocos separados)"
         slug="visao-geral"
+        copiarLink={false}
         frescor={
           <div className="flex flex-col gap-1" data-testid="frescor-fontes">
             <FrescorFonte dominio="businessmap" comNome />
@@ -241,10 +244,11 @@ export default function VisaoGeralPage() {
           )}
         </div>
       </details>
-      <div className="flex flex-wrap items-center gap-2" data-testid="barra-exportar">
+      <BarraAcoes>
         <BotaoExportar base="visao-geral" />
         <BotaoExportar base="personalizada" />
-      </div>
+        <BotaoCopiarLink />
+      </BarraAcoes>
       {pronta && (
         <>
           <FaixaCalibracaoFonte dominio="businessmap" />

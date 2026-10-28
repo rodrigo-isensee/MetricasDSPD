@@ -1,5 +1,5 @@
 import { Dialog } from 'radix-ui'
-import { useId, useRef, useState } from 'react'
+import { useId, useRef, useState, type ReactNode } from 'react'
 import { Botao, Dica, Icone } from '@/components/ui'
 import { useAlturaCss } from '@/lib/useAlturaCss'
 import type { FiltrosFluxo, FiltrosSustentacao, OpcaoFiltro } from '@metricas-dspd/contratos'
@@ -107,6 +107,8 @@ export function BarraFiltros({
   estrategico = false,
   legenda,
   onde,
+  inicio,
+  acoes,
 }: {
   uso: Uso
   estrategico?: boolean
@@ -114,6 +116,10 @@ export function BarraFiltros({
   legenda?: string
   /** Onde um valor inválido do link não existe ("na Sustentação"), para o aviso citar a fonte. */
   onde?: string
+  /** Antes dos filtros, na mesma barra (Cadência). */
+  inicio?: ReactNode
+  /** Depois dos filtros, na mesma barra (Métricas, Exportar, Copiar link): a barra única de ações (P2). */
+  acoes?: ReactNode
 }) {
   const idLegenda = useId()
   const [folha, setFolha] = useState(false)
@@ -168,9 +174,10 @@ export function BarraFiltros({
       />
       <div
         ref={barra}
-        className="z-30 border-y border-borda bg-fundo py-2 md:sticky md:top-[var(--h-cabecalho)]"
+        className="z-30 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-borda bg-fundo py-2 md:sticky md:top-[var(--h-cabecalho)]"
         data-testid="barra-filtros"
       >
+        {inicio}
         <div
           className="hidden flex-wrap items-center gap-2 md:flex"
           role="group"
@@ -231,6 +238,7 @@ export function BarraFiltros({
             </Dialog.Portal>
           </Dialog.Root>
         </div>
+        {acoes}
       </div>
       {equipes < 2 && reservaAviso && (
         // Reserva a altura do aviso enquanto as opções não chegam: evita salto de layout (ADR 0003 F2).

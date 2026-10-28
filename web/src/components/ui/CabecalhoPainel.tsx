@@ -1,7 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
 import { fmtData } from '@/lib/formatar'
-import { Botao } from './Botao'
-import { Icone } from './Icone'
+import { BotaoCopiarLink } from './BotaoCopiarLink'
 
 interface Props {
   titulo: string
@@ -14,9 +12,9 @@ interface Props {
   /** Fonte de dados do painel; omitida em páginas de texto (Ajuda). */
   fonte?: string
   slug: string
-  /** "Copiar link desta visão" (padrão: sim; páginas de texto não têm visão para copiar). */
+  /** "Copiar link" no cabeçalho (padrão: sim). Painéis com a barra única de ações passam `false` e o põem nela. */
   copiarLink?: boolean
-  /** Frescor da fonte (selo, "Atualizado em", "Entenda"), abaixo da pergunta central. */
+  /** Frescor da fonte (selo, "Atualizado em", "Detalhes da coleta"), abaixo da pergunta central. */
   frescor?: React.ReactNode
   /** Conteúdo extra no cabeçalho (seletor de cadência, recorte). */
   children?: React.ReactNode
@@ -24,7 +22,6 @@ interface Props {
 
 /**
  * `h1` do painel (recebe o foco ao trocar de rota), pergunta central, "Dados até" e "Copiar link".
- * Se a Clipboard API falhar, mostra o endereço selecionado num campo.
  */
 export function CabecalhoPainel({
   titulo,
@@ -37,33 +34,6 @@ export function CabecalhoPainel({
   frescor,
   children,
 }: Props) {
-  const [aviso, setAviso] = useState('')
-  const [manual, setManual] = useState<string | null>(null)
-  const campo = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (!aviso) return undefined
-    const t = setTimeout(() => setAviso(''), 5000)
-    return () => clearTimeout(t)
-  }, [aviso])
-  useEffect(() => {
-    if (manual) campo.current?.select()
-  }, [manual])
-
-  async function copiar() {
-    // O parâmetro oculto `mock` nunca vai no link copiado (spec 6.6).
-    const alvo = new URL(window.location.href)
-    alvo.searchParams.delete('mock')
-    const url = alvo.toString()
-    try {
-      await navigator.clipboard.writeText(url)
-      setManual(null)
-      setAviso('Link copiado.')
-    } catch {
-      setManual(url)
-    }
-  }
-
   return (
     <div className="flex flex-col gap-2" data-testid={`painel-${slug}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -81,28 +51,9 @@ export function CabecalhoPainel({
           {pergunta}
           {publico ? ` ${publico}` : ''}
         </p>
-        {copiarLink && (
-          <Botao onClick={() => void copiar()} data-testid="copiar-link" className="text-xs">
-            <Icone nome="link" /> Copiar link
-            <span className="sr-only sm:not-sr-only"> desta visão</span>
-          </Botao>
-        )}
+        {copiarLink && <BotaoCopiarLink />}
       </div>
       {frescor}
-      <div role="status" className="min-h-5 text-sm text-ok">
-        {aviso}
-      </div>
-      {manual && (
-        <label className="flex flex-col gap-1 text-sm">
-          Copie o endereço desta visão:
-          <input
-            ref={campo}
-            readOnly
-            value={manual}
-            className="w-full rounded-md border border-borda-controle bg-superficie px-2 py-1"
-          />
-        </label>
-      )}
       {children}
     </div>
   )

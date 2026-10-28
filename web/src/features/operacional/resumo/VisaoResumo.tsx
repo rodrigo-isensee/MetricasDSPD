@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useLocation, useNavigate, type Location } from 'react-router'
-import { CabecalhoPainel, ErroPagina } from '@/components/ui'
+import { BarraAcoes, BotaoCopiarLink, CabecalhoPainel, ErroPagina } from '@/components/ui'
 import { useDataReferencia, useErroDePainelSimulado } from '@/data'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
 import { BotaoExportar } from '@/features/exportar'
@@ -46,6 +46,7 @@ export function VisaoResumo({ extra }: { extra: ReactNode }) {
         dataCorte={dataCorte}
         fonte="BusinessMap e Acelerato (blocos separados)"
         slug="operacional"
+        copiarLink={false}
         frescor={
           <div className="flex flex-col gap-1" data-testid="frescor-fontes">
             <FrescorFonte dominio="businessmap" comNome reservarFalha />
@@ -53,14 +54,15 @@ export function VisaoResumo({ extra }: { extra: ReactNode }) {
           </div>
         }
       />
-      {extra}
       <AvisoFiltrosInvalidos
         invalidos={state?.filtrosInvalidos ?? []}
         onEntendi={() => void navigate({ pathname, search, hash }, { replace: true, state: null })}
       />
-      <div className="flex flex-wrap items-center gap-2" data-testid="barra-metricas">
+      <BarraAcoes>
+        {extra}
         <BotaoExportar base="personalizada" preSelecionar={PRE_SELECAO} />
-      </div>
+        <BotaoCopiarLink />
+      </BarraAcoes>
       <LinhaFiltrosGuardados visao="resumo" />
       <BlocoFluxo />
       <BlocoSustentacao />
