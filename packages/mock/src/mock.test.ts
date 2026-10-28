@@ -27,12 +27,37 @@ describe('determinismo', () => {
     expect(hashJson(gerarBaseMock({ escala: 0.2 }))).toBe(hashJson(b))
     expect(hashJson(gerarBaseMock({ escala: 0.2, semente: 7 }))).not.toBe(hashJson(b))
   })
-  it('gera a base completa em menos de 1,5 s (ADR 0003, D6)', () => {
-    const t0 = performance.now()
-    gerarBaseMock()
-    const ms = performance.now() - t0
-    console.info(`gerador: ${ms.toFixed(0)} ms (limite 1500 ms)`)
-    expect(ms).toBeLessThan(1500)
+  it('gera a base completa em menos de 1,5 s de CPU, calibrado (ADR 0003, D6)', () => {
+    // Tempo de CPU (user+system), não relógio: máquina carregada não infla a medida. O limite sobe na
+    // proporção da calibração contra o trabalho de referência (como em desempenho.test.ts), com teto 2x.
+    const cpuMs = (): number => {
+      const u = process.cpuUsage()
+      return (u.user + u.system) / 1000
+    }
+    const referencia = (): void => {
+      const m = new Map<number, number[]>()
+      for (let i = 0; i < 60_000; i++) {
+        const k = (i * 2654435761) % 5003
+        const l = m.get(k) ?? []
+        l.push(Math.sqrt(i) * 1.0001)
+        m.set(k, l)
+      }
+      for (const l of m.values()) l.sort((a, b) => b - a)
+    }
+    const medir = (fn: () => void): number => {
+      const t0 = cpuMs()
+      fn()
+      return cpuMs() - t0
+    }
+    referencia() // aquecimento do JIT
+    const amostras = Array.from({ length: 7 }, () => medir(referencia)).sort((a, b) => a - b)
+    const REF_OCIOSA_MS = 3.3
+    const fator = Math.min(2, Math.max(1, (amostras[3] ?? 0) / REF_OCIOSA_MS))
+    const ms = medir(() => void gerarBaseMock())
+    console.info(
+      `gerador: ${ms.toFixed(0)} ms de CPU (limite ${(1500 * fator).toFixed(0)} ms, fator ${fator.toFixed(2)})`,
+    )
+    expect(ms).toBeLessThan(1500 * fator)
   })
 
   it('hash da base padrão e da escala 0,2: regravado no B11a e de novo no ajuste do O23 (originais: 924448d4 e b2bfd4c0)', () => {

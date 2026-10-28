@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { mkdirSync } from 'node:fs';
+import { pastaEvidencias } from '../fixtures/evidencias';
 
 // Q1: axe nos dois temas (incl. /dados) e pacote de evidências para a UX.
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag22aa'];
-const SAIDA = '../docs/qa/evidencias/integracao-real';
+const SAIDA = pastaEvidencias('integracao-real');
 const ROTAS = ['/dados', '/dados?fonte=ac', '/dados?mock=coleta-erro:bm', '/dados?mock=coleta-vazia:ac', '/operacional?cadencia=sustentacao', '/operacional?cadencia=diaria&mock=coleta-atrasada:bm', '/operacional?cadencia=diaria&mock=coleta-erro:bm', '/operacional?cadencia=diaria'];
 const TEMAS = ['light', 'dark'] as const;
 
@@ -34,7 +34,6 @@ const VPS = [
 ];
 for (const s of SHOTS) for (const vp of VPS) {
   test(`evidencia ${s.n} ${vp.v}`, async ({ page }) => {
-    mkdirSync(SAIDA, { recursive: true });
     await page.setViewportSize({ width: vp.w, height: 900 });
     await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), vp.tema);
     await page.goto(s.rota);
@@ -46,7 +45,6 @@ for (const s of SHOTS) for (const vp of VPS) {
 // UX r1 M-1 e M-2: o selo Falha com "Coleta falhou em..." e o aviso de itens omitidos em "Pede atenção".
 for (const vp of VPS) {
   test(`evidencia M-1 selo falha com aviso de coleta ${vp.v}`, async ({ page }) => {
-    mkdirSync(SAIDA, { recursive: true });
     await page.setViewportSize({ width: vp.w, height: 900 });
     await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), vp.tema);
     await page.goto('/operacional?cadencia=diaria');
@@ -57,7 +55,6 @@ for (const vp of VPS) {
     await page.screenshot({ path: `${SAIDA}/m1-selo-falha-coleta-falhou-${vp.v}.png` });
   });
   test(`evidencia M-2 pede atencao com aviso de omitidos ${vp.v}`, async ({ page }) => {
-    mkdirSync(SAIDA, { recursive: true });
     await page.setViewportSize({ width: vp.w, height: 900 });
     await page.addInitScript((t) => localStorage.setItem('metricas-dspd:tema', t), vp.tema);
     await page.goto('/operacional?cadencia=sustentacao');

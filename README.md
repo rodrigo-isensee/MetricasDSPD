@@ -18,8 +18,8 @@ Também funciona a partir de `web/`: `cd web && pnpm install && pnpm run dev`.
 O banco é PostgreSQL 17 no Docker Compose (custo zero). `cp .env.example .env`, depois `pnpm run db:up && pnpm run db:migrate && pnpm run db:seed`; `pnpm run test:pg` roda os testes de banco no mesmo Postgres, com um conjunto de schemas próprio por execução (removido ao final). Instalação do Docker no WSL2 e detalhes: `docs/architecture/server.md`.
 
 ## Verificar
-- `pnpm run pronto` (raiz): lint, formatação, tipos, testes, build e tamanho do bundle.
-- E2E: `cd e2e && pnpm run chromium:local` (uma vez, baixa o Chromium local) e depois `pnpm test`; `pnpm run gate` para o gate completo.
+- `pnpm run pronto` (raiz): lint, formatação, tipos (inclusive do `e2e`), testes, build e tamanho do bundle. `pnpm test` roda só os testes unitários e de propriedade; a E2E não entra.
+- E2E: `cd e2e && pnpm run chromium:local` (uma vez, baixa o Chromium local) e depois `pnpm run test:e2e` (ou `pnpm run test:e2e` na raiz); `pnpm run gate` para o gate completo. As evidências dos specs `*-evidencias` e do `a11y` vão para `e2e/evidencias-local/` (ignorada pelo git); só `pnpm run test:evidencias-qa` (QA, explícito) grava na pasta versionada de evidências do QA.
 
 ## CI
 

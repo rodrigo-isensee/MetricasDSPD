@@ -41,11 +41,11 @@ Ressalva: `gh pr merge` hoje é "do usuário" para qualquer PR (jarvis.md). Para
 
 ## 4. Gates e checks por branch
 
-Nomes dos jobs obrigatórios atuais **não mudam**: `rapida`, `testes`, `banco`, `build`, `e2e`. Só o *quando* rodam muda. Os demais ficam como estão (`filtro`, `openapi`, `imagem`, `perf`).
+Nomes dos jobs obrigatórios atuais **não mudam**: `rapida`, `testes`, `banco`, `build`, `e2e`. Só o *quando* rodam muda. Na `develop`, a proteção é o ruleset 25003880 da §15 (nove checks, incluindo `filtro`, `openapi`, `imagem` e `seguranca`; sem `perf`); a regra de `homolog` e `main` segue abaixo.
 
 | Gate | Evento | Obrigatório para mesclar | Roda |
 |---|---|---|---|
-| 1. PR → `develop` | `pull_request` base `develop` | `rapida`, `testes`, `build`, `e2e` (os mesmos do PR hoje); `banco` quando o `filtro` detectar mudança | rápido: feedback em minutos |
+| 1. PR → `develop` | `pull_request` base `develop` | os nove checks da §15 (`rapida`, `testes`, `filtro`, `banco`, `openapi`, `imagem`, `build`, `e2e`, `seguranca`); `banco` pulado pelo `filtro` conta como sucesso | rápido: feedback em minutos |
 | 2. PR → `homolog` | `pull_request` base `homolog` | **todos**: `rapida`, `testes`, `banco` (sem o filtro: sempre), `build`, `e2e`, `openapi`, `imagem`, `perf` (perf + Lighthouse; roda em PR para `homolog` e para `main`) | suíte completa; o `banco` com migrações do zero **e** sobre cópia do esquema de homolog (migração forward-only ensaiada) |
 | 2b. após o merge em `homolog` | `push` em `homolog` | portão do `homolog.yml`: qualidade, banco, e2e, perf/Lighthouse, migração e smoke da pilha (E2E contra o ambiente implantado fica pendente, H4) | job `portao <sha>` (não obrigatório para PR; é o que alimenta o gate 3) |
 | 3. PR → `main` | `pull_request` base `main` | `rapida`, `testes`, `banco`, `build`, `e2e`, `perf` (já é assim hoje) **+** o check `homolog-aprovada` (abaixo) | revalidação barata; a prova pesada já foi feita em homolog |
@@ -65,7 +65,7 @@ O check `homolog-aprovada` é um workflow que consulta, pela API de Actions, as 
 |---|---|
 | `main` | já existe (PR + checks). Acrescentar: check `homolog-aprovada` (é ele que confere a origem `homolog` ou `hotfix/*`; o GitHub não tem regra nativa para isso); 1 aprovação do usuário (dono); sem force-push, sem deleção; sem bypass para agentes; histórico linear **não** exigido (usa merge commit). |
 | `homolog` | PR obrigatório; checks do gate 2; sem force-push e sem deleção; branch deletada nunca. Mescla por tech-lead ou usuário. |
-| `develop` | PR obrigatório; checks do gate 1; sem force-push e sem deleção. (Hoje sem checks: passa a ter. É a mudança mais barata e que mais evita develop quebrada.) |
+| `develop` | Ruleset 25003880 "develop: PR, squash, checks" (§15): PR obrigatório (0 aprovações), só squash, nove checks obrigatórios, `strict` ligado; sem force-push e sem deleção. |
 
 Portabilidade (Git corporativo na terça):
 - **GitLab**: branches protegidas + "Merge request approvals" + "Pipelines must succeed"; os jobs viram `.gitlab-ci.yml` com `rules: if $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "homolog"`; cron = pipeline schedule; `environments` + `deploy` para homolog; "Fast-forward merge" disponível (ver §7). Tags protegidas.
@@ -146,7 +146,7 @@ Perguntas que só o usuário responde:
 
 ## 12. Ordem sugerida de implantação
 
-1. Usuário aprova (itens 1–5 acima). 2. Criar `homolog` a partir da `develop` e a proteção. 3. Checks obrigatórios na `develop` (`rapida`, `testes`, `build`, `e2e`). 4. Ajustes no `ci.yml` (§10) com QA. 5. Ambiente de homologação (arquiteto). 6. Primeira promoção de ensaio com tag `v0.x.0-rc.1`. 7. Migração para o Git corporativo, reaplicando §5.
+1. Usuário aprova (itens 1–5 acima). 2. Criar `homolog` a partir da `develop` e a proteção. 3. Checks obrigatórios na `develop` (ruleset 25003880, nove checks, §15). 4. Ajustes no `ci.yml` (§10) com QA. 5. Ambiente de homologação (arquiteto). 6. Primeira promoção de ensaio com tag `v0.x.0-rc.1`. 7. Migração para o Git corporativo, reaplicando §5.
 
 ## 13. O que está implementado e como usar
 
@@ -178,10 +178,8 @@ Observações do desenho:
 Pré-requisitos: ter este PR mesclado em `develop` e criar a branch `homolog` a partir da `develop` (`Branches` > `New branch`). Depois, em **Settings > Branches > Add branch ruleset** (ou "Branch protection rule", se o repositório não tiver rulesets). Os nomes dos checks aparecem na busca depois da primeira execução do workflow.
 
 1. **`develop`** (alvo: `develop`)
-   - Require a pull request before merging; 0 aprovações exigidas (mescla o tech-lead).
-   - Require status checks to pass: `rapida`, `testes`, `build`, `e2e` (e `banco`, que fica "pulado = aprovado" quando o filtro não detecta mudança). Marque "Require branches to be up to date".
-   - Block force pushes; restrict deletions.
-   - Allowed merge methods: **Squash**.
+   - Vale a §15 (única proteção da `develop`): o ruleset 25003880, com PR obrigatório, só squash, os nove checks e "Require branches to be up to date" (`strict`) ligado.
+   - Block force pushes; restrict deletions (já no ruleset).
 2. **`homolog`** (alvo: `homolog`)
    - Require a pull request before merging; apenas de `develop` (ruleset: restrinja a origem se a versão do GitHub permitir; senão, conferência do tech-lead).
    - Require status checks: `rapida`, `testes`, `banco`, `build`, `e2e`, `openapi`, `imagem`, `perf` (no PR de promoção o `banco` roda sempre; `perf` inclui o Lighthouse).
@@ -194,3 +192,27 @@ Pré-requisitos: ter este PR mesclado em `develop` e criar a branch `homolog` a 
    - Allowed merge methods: **Merge commit**.
 4. **Permissões:** o tech-lead precisa de permissão de escrita para mesclar em `develop` e `homolog`; ninguém além do usuário mescla na `main` (Restrict who can merge, se disponível). Em **Settings > Actions > General**, confirme "Workflow permissions: Read repository contents" (os workflows só pedem leitura; `homolog-aprovada` usa `actions: read`).
 5. **Conferência:** abra um PR de teste `develop` → `homolog` e veja os checks; depois de mesclado, confira em **Actions** a execução do workflow "Homologação" para o commit da `homolog` (job `portao <sha>` verde).
+
+## 15. Proteção da `develop`: ruleset 25003880 (pedido 042, K-148)
+
+Decisão do dono (2026-10-27, opção B): vale só o ruleset **25003880 "develop: PR, squash, checks"**; a proteção clássica de branch não é usada e nenhum comando PUT nela se roda. A `develop` só aceita merge com os checks da CI verdes, para que um PR com a CI vermelha ou em curso (caso do #133, pedido 036) não entre mais.
+
+**Estado do ruleset** (lido por GET em 2026-10-27): `deletion` e `non_fast_forward` (sem deleção, sem force push); `pull_request` (0 aprovações, só merge **squash**); `required_status_checks` com `strict` ligado e, hoje, `rapida`, `testes`, `build`, `e2e`; bypass do papel de administrador em modo `pull_request`.
+
+**Checks exigidos** (nomes dos jobs de `.github/workflows/ci.yml`), nove: `rapida`, `testes`, `build`, `e2e`, `filtro`, `banco`, `openapi`, `imagem`, `seguranca`. Faltam os cinco últimos (`filtro`, `banco`, `openapi`, `imagem`, `seguranca`).
+
+- `banco` fica "skipped" **só no run de PR** (no run de push ele roda) quando o filtro de caminho não vê mudança em `server/`, `packages/` ou migrações; o GitHub conta check pulado como sucesso, então ele não trava o PR.
+- O `ci.yml` roda em `push` e em `pull_request`, então o mesmo sha recebe dois check runs de mesmo nome (no #142, `e2e` pulado no push e passou no PR; `banco` o inverso). Não está provado que o GitHub segure o merge pelo `e2e` do PR em curso se o do push já constar como pulado; por isso a conferência abaixo tem um passo de prova.
+- `seguranca` continua **informativo** (`continue-on-error: true` no `ci.yml`, que não muda): exigi-lo só garante que o job rodou, não que não há segredo nem vulnerabilidade. Torná-lo bloqueante é decisão à parte, do dono.
+- `strict` fica **ligado**, como está no ruleset: o PR precisa estar atualizado com a `develop` antes do merge (custo: nova rodada de CI quando outro merge entra antes).
+- Risco conhecido, decidido pelo dono: o ruleset tem bypass do papel de administrador em modo `pull_request`; o administrador (o dono) ou token com esse papel mescla um PR ignorando os checks. Confirmar que o token dos agentes não tem papel de administrador.
+- `perf` **não** entra: só roda em PR para `homolog`/`main`, no `schedule` e no `workflow_dispatch`; exigi-lo travaria todo PR para a `develop`, porque ele nunca é produzido.
+
+**Como aplicar (dono, `R-CONFORMIDADE`; nenhum agente altera a proteção):**
+1. GitHub > repositório > Settings > Rules > Rulesets > "develop: PR, squash, checks".
+2. Na regra "Require status checks to pass", "Add checks" e escolher `filtro`, `banco`, `openapi`, `imagem` e `seguranca` (aparecem na busca por já terem rodado em PRs).
+3. Manter os quatro atuais, `strict` ligado e o resto como está; "Save changes".
+
+**Conferência depois de aplicar:** ler o ruleset (GET em `repos/rodrigo-isensee/MetricasDSPD/rulesets/25003880`) e ver os nove nomes em `required_status_checks`. Depois, abrir um PR para a `develop` e ver o merge bloqueado enquanto o `e2e` do PR está em curso (prova de que o check de push, já pulado no mesmo sha, não o libera). Renomear, criar ou remover job no `ci.yml` exige atualizar a lista do ruleset junto (job renomeado deixa o check esperado para sempre e trava os PRs).
+
+**Rollback:** nas mesmas Settings do ruleset, remover os cinco checks acrescentados (volta aos quatro anteriores).

@@ -140,16 +140,38 @@ describe('propriedades', () => {
   })
 
   it('mais itens nunca terminam antes (mesma semente)', () => {
+    // Determinístico (K-107). Com um PRNG único, a sequência de sorteios de k + 5 se desloca em relação à
+    // de k (cada simulação consome um número diferente de sorteios) e os percentis de duas previsões
+    // independentes podem inverter por ruído (contraexemplo da semente 1324607460, em examples). Aqui cada
+    // simulação s usa o seu próprio fluxo (criarPrng(1000 + s)), igual para k e k + 5: o acoplamento faz
+    // cada simulação de k + 5 consumir o mesmo prefixo de sorteios e mais, então a propriedade é exata.
+    // A asserção é a mesma (p85(k + 5) >= p85(k)); a semente do fast-check também é fixa.
+    const acoplado = (valores: number[], itens: number) => {
+      let sim = -1
+      let feitos = itens
+      let fluxo = criarPrng(0)
+      return () => {
+        if (feitos >= itens) {
+          sim++
+          feitos = 0
+          fluxo = criarPrng(1000 + sim)
+        }
+        const u = fluxo()
+        feitos += valores[Math.min(Math.floor(u * valores.length), valores.length - 1)] as number
+        return u
+      }
+    }
     fc.assert(
       fc.property(vazao, fc.integer({ min: 1, max: 30 }), (v, k) => {
         const a = amostra(v)
-        const p = (n: number) => preverTermino(a, n, 'dia', { prng: criarPrng(9), simulacoes: 60 })
+        const p = (n: number) =>
+          preverTermino(a, n, 'dia', { prng: acoplado(v, n), simulacoes: 60 })
         const x = p(k)
         const y = p(k + 5)
         if (x.status !== 'ok' || y.status !== 'ok') throw new Error('esperado ok')
         expect(y.valor.periodos.p85).toBeGreaterThanOrEqual(x.valor.periodos.p85)
       }),
-      { numRuns: 30 },
+      { numRuns: 30, seed: 1324607460, examples: [[[2, 0, 6, 5, 0, 7, 0, 8], 29]] },
     )
   })
 })
