@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: feature/048-usabilidade
-commit: 2916b052a20801ed55ce3e2cc4fb00467db8c8a4
-parecer: reprovado
+commit: 2aac60225a5927f399b7ef12fe8833b786a022e8
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-28
 ---
@@ -29,10 +29,13 @@ Diff `4137981..2916b05`: 11 commits, 50 arquivos. Por leitura; suíte, `pronto` 
 - Regras de ferramenta do `praticas.md`: o `pronto` completo e o lint rodam no QA e no fechamento (decisão do dono 2026-10-21); sem saída a citar aqui.
 
 ## Achados
-- A1 (bloqueante) web/src/features/operacional/IndiceDeSecoes.tsx:67 · O índice fica sticky no topo (`top` = altura do cabeçalho), igual à BarraFiltros (`top-[var(--h-cabecalho)]`, z-30); ele vem depois e a cobre ao rolar. Somar `--h-filtros` ao `top`; o teste só vê a classe `sticky`.
-- A2 (recomendado) web/src/features/preferencias/ProvedorPreferencias.tsx:151 · Restaurar de novo, com nada oculto, faz `setAntes(null)` e perde o Desfazer pendente; e `gravar(antes)` (:160) apaga o que a pessoa mudou depois. Manter o retrato anterior quando n for 0.
-- A3 (recomendado) web/src/features/visao-geral/VisaoGeralPage.tsx:228 · O recorte de datas e "esta tela mostra tudo" foram para `details` fechado. A "Dados até" e o consolidado seguem à vista, então não é aviso obrigatório, mas o recorte muda a leitura; considerar uma linha curta.
-- A4 (recomendado) web/src/components/ui/BotaoCopiarLink.tsx:43 · "Link copiado." e o campo manual entram na barra em fluxo e podem refluir a linha (CLS pequeno, F2). Reservar espaço ou posicionar sobreposto; o QA mede.
+- A1 (bloqueante) web/src/features/operacional/IndiceDeSecoes.tsx:71 · RESOLVIDO: `top` agora é `calc(topo + var(--h-filtros))` (variável medida em runtime pela BarraFiltros); indice.test.tsx confere `--h-filtros` no style e cobertura.test.tsx:278 o valor.
+- A2 (recomendado) web/src/features/preferencias/ProvedorPreferencias.tsx:150 · RESOLVIDO: `setAntes` e `setRestauradas` só rodam com n > 0; o Desfazer pendente sobrevive. O teste em preferencias.test.tsx falha sem a correção (o Desfazer sumiria).
+- A3 (recomendado) web/src/features/visao-geral/VisaoGeralPage.tsx:228 · RESOLVIDO: linha curta `recorte-resumo` à vista, fora do `details`; o teste confere visível e fora do recolhido.
+- A4 (recomendado) web/src/components/ui/BotaoCopiarLink.tsx:43 · RESOLVIDO: aviso com `min-w-[7rem]` reservado e campo manual `absolute` sobreposto; dois testes. A medição de CLS segue com o QA.
+
+## Revalidação
+Delta lido: `2916b05..2aac602` (9 arquivos, +61/-11), por leitura, sem rodar suíte. Já lido e inalterado: o restante da branch. Sem achado novo; sem regressão de foco, rótulos ou `aria-live` (o `role="status"` do aviso foi mantido); sem métrica individual nem dado de pessoa.
 
 ## Parecer
-Reprovado por A1 (defeito de layout provado pelo CSS: dois sticky no mesmo topo). Volta ao `react-frontend` com A1; A2 a A4 não devolvem. O resto cumpre U1 a U5 e o P2.
+Aprovado. A1 a A4 resolvidos no código e cobertos por teste. Segue ao QA, que mede o CLS (ADR 0003 F2).
