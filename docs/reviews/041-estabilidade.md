@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 041-estabilizar-os-testes
 branch: feature/041-estabilidade
-commit: 4b249bca8ee8b653878b6cb96d100f965203bfc9
+commit: c61b6c103faf052c62286fcee14ed89a1f135516
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-27
