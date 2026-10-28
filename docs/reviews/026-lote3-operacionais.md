@@ -3,13 +3,32 @@ tipo: review
 contrato: 1
 pedido: 026-front-do-011-lote3
 branch: feature/026-lote3-operacionais
-commit: 0e78a55a6c3f317bfc436f5fb43fc8e28430cdb6
+commit: 172d008a94f56ed791e74b9e7553cd9a92bf26e7
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-28
 ---
 
 # Code review: front do lote 3 (O19 a O26) no /operacional (pedido 026, K-111)
+
+## Re-review (E1.4, teste instável do O20): ff5ef98..172d008
+
+**Veredito: aprovado.** O commit `172d008` mexe só em `web/src/features/complementares/operacionais.test.tsx` (1 linha a mais, 1 a menos) e não tem bloqueante nem recomendado novo.
+
+**Delta lido:** `git diff ff5ef98 172d008`, inteiro. Fica como "já lido" o resto da branch até `ff5ef98`.
+
+| Ponto | Situação | Evidência |
+|---|---|---|
+| A espera cobre a corrida | conforme | O `abrir` (linha 22) espera `data-estado="ok"` do cartão, mas o gráfico é desenhado depois disso, e foi aí que o check `testes` do PR #152 leu `.marca-criterio` nulo (run de pull_request 40665029650; o mesmo head passou no run de push). A linha 176 passa a esperar `.marca-criterio` não nulo com `waitFor` antes de ler o SVG. A espera é pela própria marca, não por tempo fixo, e nenhuma leitura de SVG acontece antes dela. |
+| T2.6 segue afirmado | conforme | O teste continua lendo o `<title>` da marca e afirma `Mudança de critério em 02/10/2026: Novo critério de início` (data e descrição), e o teste vizinho da linha 159 afirma a lista em texto. O `not.toBeNull()` saiu da linha 177 porque o `waitFor` já o afirma, e a leitura seguinte (`linha?.querySelector`) falharia no `toBe` se a marca sumisse. A asserção não ficou mais fraca. |
+| Outras leituras síncronas de SVG | conforme | No arquivo, `querySelector` aparece em 3 pontos: 176 e 177 (este teste) e 683. A 683 lê `span[aria-hidden]` de itens de lista (O23), que são renderizados junto com o `data-estado="ok"` e não dependem do gráfico. O autor chegou à mesma conclusão no Histórico (06:55). Não há outra leitura de SVG a corrigir. |
+| Escopo | conforme | Só teste, sem código de produção, sem limite de performance (ADR 0003 não muda) e sem dependência nova. |
+
+**Ferramentas:** o autor relata `pnpm run pronto` com rc=0 no head. Não refiz nada: o brief dispensa suítes e o dono pediu uma suíte por vez.
+
+**Teto (M14):** a mudança é de 2 linhas de teste, então a recontagem de `origin/develop...HEAD` passa de 2.521 para cerca de 2.523 linhas (o 1 a mais e o 1 a menos). A exceção continua aceita, e a linha do PR passa a ser `teto: excedido, 2523 linhas, lote 3 indivisível: 7 cartões e o O23 sobre o mesmo catálogo e as mesmas contagens` (recontar com `git diff --numstat --no-renames` antes de abrir o corpo final do PR).
+
+**Pareceres seguintes:** o parecer do QA (`ff5ef98`/`15ad62a`) precisa ser revalidado em `172d008`, como o Jarvis registrou.
 
 ## Re-review (E1.4, depois da develop do 041): c72b955..0e78a55
 
