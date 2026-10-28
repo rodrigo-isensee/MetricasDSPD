@@ -64,6 +64,28 @@ describe('Leia junto em todos os cartões do núcleo que têm complementares', (
     ).toEqual(['O20 Fluxo cumulativo'])
   })
 
+  it('operacional, visão diária: O19 e O20 só existem na semanal, então o link navega para lá e foca o cartão', async () => {
+    const u = userEvent.setup()
+    const r = renderizarApp('/operacional?cadencia=diaria')
+    const leia = await screen.findByTestId('leia-junto-bloqueados')
+    await u.click(within(leia).getByRole('link', { name: /O19/ }))
+    expect(r.roteador.state.location.search).toContain('cadencia=semanal')
+    expect(r.roteador.state.location.hash).toBe('#o19')
+    const cartao = await screen.findByTestId('metrica-O19')
+    expect(screen.getByTestId<HTMLDetailsElement>('mais-metricas').open).toBe(true)
+    await waitFor(() => expect(within(cartao).getByRole('heading', { level: 3 })).toHaveFocus())
+  })
+
+  it('operacional, visão diária: o O1 leva ao O20 na semanal', async () => {
+    const u = userEvent.setup()
+    const r = renderizarApp('/operacional?cadencia=diaria')
+    const leia = await screen.findByTestId('leia-junto-o1')
+    await u.click(within(leia).getByRole('link', { name: /O20/ }))
+    expect(r.roteador.state.location.search).toContain('cadencia=semanal')
+    expect(r.roteador.state.location.hash).toBe('#o20')
+    expect(await screen.findByTestId('metrica-O20')).toBeInTheDocument()
+  })
+
   it('os links do núcleo alcançam as 33 complementares (em cadeia)', () => {
     const alcancadas = new Set<string>()
     const fila = comPares.flatMap((c) => c.leiaJunto ?? [])
