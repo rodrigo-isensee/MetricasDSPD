@@ -3,13 +3,15 @@ tipo: review
 contrato: 1
 pedido: 042-forge-0-30-3-e-retomada
 branch: fix/151-develop-verde
-commit: 2389e621f92e55e22446cb3f9242c48c10ebef38
+commit: 0ece31d55f7721a5355da3cb1efdc144c3ed0af4
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-27
 ---
 
 # Code review: develop verde após o Dependabot (042, K-151, E3.5)
+
+**Revalidação (2026-10-28, head 0ece31d):** a mudança posterior na branch `forge/upgrade-0.30.3` é só o arquivo de versão do Forge e pareceres do 042, coberta por `docs/reviews/042-forge-0-30-3.md` e `docs/qa/042-forge-0-30-3.md`; veredito, branch e achados iguais. O corpo abaixo vale para o intervalo `3bf1b5e..2389e62`.
 
 **Veredito: aprovado.** O intervalo `3bf1b5e..2389e62` (1 commit, 2 arquivos, +11/-4) trata as duas falhas da CI da develop na run 40580307663: o lint `no-deprecated` no mock de `matchMedia` e a espera estourada no teste da PV1. Não amplia o escopo.
 
