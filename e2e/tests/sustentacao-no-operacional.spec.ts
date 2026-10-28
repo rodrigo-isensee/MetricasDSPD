@@ -1,4 +1,5 @@
-import { test, expect, rodarAxe } from '../fixtures/base';
+import { test, expect, rodarAxe } from '../fixtures/base'
+import { PainelPage } from '../pages/PainelPage';
 import type { Page } from '@playwright/test';
 
 // Sustentação dentro do Operacional (docs/ux/sustentacao-no-operacional/especificacao.md, critérios 1 a 31).
@@ -12,16 +13,6 @@ const VISOES = [
 ] as const;
 
 const grupoVisao = (page: Page) => page.getByRole('radiogroup', { name: 'Visão' });
-const aguardar = async (page: Page) => {
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 30_000 });
-};
-const aguardarResumo = async (page: Page) => {
-  await aguardar(page);
-  await expect(page.getByTestId('tendencia-fluxo')).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByTestId('tendencia-sustentacao')).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
-};
 const guardarPrefs = (page: Page, paineis: Record<string, string[]>) =>
   page.addInitScript(
     ([chave, valor]) => localStorage.setItem(chave as string, valor as string),
@@ -59,7 +50,7 @@ test.describe('Sustentação no Operacional: menu, seletor e fontes', () => {
 
   test('CA-3 uma fonte por visão: só cartões do Acelerato (e O17) na Sustentação; nenhum S, EI-SUST ou PV1 no fluxo', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=sustentacao');
-    await aguardar(page);
+    await new PainelPage(page).esperarPronto();
     await page.getByTestId('mais-metricas').locator('summary').click();
     await expect(page.getByTestId('metrica-O17')).toBeVisible();
     const ids = await page.locator('[data-testid^="metrica-"]').evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')!.replace('metrica-', '')));
@@ -67,7 +58,7 @@ test.describe('Sustentação no Operacional: menu, seletor e fontes', () => {
     expect(ids.filter((i) => /^[TE]\d|^BLOQUEADOS|^EI-FL/.test(i))).toEqual([]);
     for (const url of ['/operacional?cadencia=diaria', '/operacional?cadencia=semanal']) {
       await painel.ir(url);
-      await aguardar(page);
+      await new PainelPage(page).esperarPronto();
       await expect(page.locator('[data-testid^="metrica-S"]')).toHaveCount(0);
       await expect(page.getByTestId('metrica-EI-SUST')).toHaveCount(0);
       await expect(page.getByTestId('metrica-PV1')).toHaveCount(0);
@@ -78,11 +69,11 @@ test.describe('Sustentação no Operacional: menu, seletor e fontes', () => {
     const esperado = (id: string, visao: string) => (id === 'PV1' ? 'Fonte: Pesquisa de percepção' : visao === 'sustentacao' ? 'Fonte: Acelerato' : 'Fonte: BusinessMap');
     for (const [visao, url] of VISOES.slice(1)) {
       await painel.ir(url);
-      await aguardar(page);
+      await new PainelPage(page).esperarPronto();
       const mais = page.getByTestId('mais-metricas');
       if (await mais.count()) {
         await mais.locator('summary').click();
-        await aguardar(page);
+        await new PainelPage(page).esperarPronto();
       }
       const cartoes = await page.locator('[data-testid^="metrica-"]').evaluateAll((els) => els.map((e) => ({ id: e.getAttribute('data-testid')!.replace('metrica-', ''), texto: e.textContent ?? '' })));
       expect(cartoes.length, visao).toBeGreaterThan(2);
@@ -128,7 +119,7 @@ test.describe('Sustentação no Operacional: menu, seletor e fontes', () => {
 
   test('CA-7 o rodapé do cartão só cita filtros da própria fonte', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=sustentacao&sust_prioridade=p1');
-    await aguardar(page);
+    await new PainelPage(page).esperarPronto();
     const rodape = (c: string) => page.getByTestId(`metrica-${c}`).locator('span').filter({ hasText: /^(Filtros aplicados|Não afetado por):/ }).allInnerTexts();
     for (const c of ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']) {
       const t = (await rodape(c)).join(' | ');
@@ -136,7 +127,7 @@ test.describe('Sustentação no Operacional: menu, seletor e fontes', () => {
     }
     expect((await rodape('S2')).join(' ')).toContain('Prioridade');
     await painel.ir('/operacional?cadencia=semanal&tipo=incidente');
-    await aguardar(page);
+    await new PainelPage(page).esperarPronto();
     for (const c of ['O3', 'O4', 'O12']) expect((await rodape(c)).join(' | '), c).not.toMatch(/prioridade/i);
   });
 
@@ -156,7 +147,7 @@ test.describe('Sustentação no Operacional: menu, seletor e fontes', () => {
   test('CA-9 não existe a linha "Também nesta aba" em nenhuma visão', async ({ page, painel }) => {
     for (const [, url] of VISOES) {
       await painel.ir(url);
-      await aguardar(page);
+      await new PainelPage(page).esperarPronto();
       await expect(page.getByText('Também nesta aba')).toHaveCount(0);
     }
   });
@@ -218,7 +209,7 @@ test.describe('Sustentação no Operacional: redirecionamentos, hash, preferênc
   test('CA-14 preferências sem perda: o perfil antigo vale, ocultar grava na mesma chave e a página Preferências ordena', async ({ page }) => {
     await guardarPrefs(page, { sustentacao: ['s3', 'pv1'] });
     await page.goto('/operacional?cadencia=sustentacao');
-    await aguardar(page);
+    await new PainelPage(page).esperarPronto();
     await expect(page.getByTestId('metrica-S3')).toHaveCount(0);
     await expect(page.getByTestId('metrica-PV1')).toHaveCount(0);
     await expect(page.getByTestId('secao-oculta').or(page.getByTestId('faixa-ocultas'))).not.toHaveCount(0);
@@ -234,7 +225,7 @@ test.describe('Sustentação no Operacional: redirecionamentos, hash, preferênc
 
   test('CA-15 exportação: a visão exporta só a fonte dela; vários painéis mostra Operacional · Sustentação', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=sustentacao&sust_prioridade=p1');
-    await aguardar(page);
+    await new PainelPage(page).esperarPronto();
     await page.getByTestId('botao-exportar').click();
     const d = page.getByTestId('dialogo-exportar');
     await expect(d.getByRole('heading', { name: 'Exportar · Operacional · Sustentação' })).toBeVisible();
@@ -245,7 +236,7 @@ test.describe('Sustentação no Operacional: redirecionamentos, hash, preferênc
     await expect(d.getByTestId('exportar-previa')).toContainText('sustentacao');
     await page.keyboard.press('Escape');
     await painel.ir('/operacional?cadencia=semanal');
-    await aguardar(page);
+    await new PainelPage(page).esperarPronto();
     await page.getByTestId('botao-exportar').click();
     await expect(page.getByTestId('dialogo-exportar')).not.toContainText('(Acelerato)');
     await page.keyboard.press('Escape');
@@ -281,7 +272,7 @@ test.describe('Sustentação no Operacional: redirecionamentos, hash, preferênc
 
   test('CA-18 Leia junto cruzado: O15 para O17 diz a visão e a fonte, troca a visão, abre Mais métricas e foca o cartão', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=semanal');
-    await aguardar(page);
+    await new PainelPage(page).esperarPronto();
     const link = page.getByTestId('leia-junto-o15').getByRole('link', { name: /O17/ });
     await expect(link).toContainText('visão Sustentação, fonte Acelerato');
     await link.click();
@@ -294,22 +285,22 @@ test.describe('Sustentação no Operacional: redirecionamentos, hash, preferênc
 
 test.describe('Sustentação no Operacional: acessibilidade, layout e desempenho', () => {
   for (const largura of [375, 1280] as const) {
-    test(`CA-19 axe sem violações sérias nas quatro visões a ${largura} px`, async ({ page, painel }) => {
-      await page.setViewportSize({ width: largura, height: 900 });
-      for (const [visao, url] of VISOES) {
+    // Um teste por visão (cada um sozinho bem abaixo do orçamento, sem aumentar timeout).
+    for (const [visao, url] of VISOES) {
+      test(`CA-19 axe sem violações sérias na visão ${visao} a ${largura} px`, async ({ page, painel }) => {
+        await page.setViewportSize({ width: largura, height: 900 });
         await painel.ir(url);
-        if (visao === 'resumo') await aguardarResumo(page);
-        else await aguardar(page);
+        await painel.esperarPronto({ resumo: visao === 'resumo' });
         const r = await rodarAxe(page);
         expect(r.bloqueantes, `${visao} @${largura}: ${JSON.stringify(r.bloqueantes)}`).toEqual([]);
-      }
-    });
+      });
+    }
 
     test(`CA-20 sem rolagem horizontal e seletor com alvos de 44 px a 375 (${largura} px)`, async ({ page, painel }) => {
       await page.setViewportSize({ width: largura, height: 900 });
       for (const [visao, url] of VISOES) {
         await painel.ir(url);
-        await aguardar(page);
+        await new PainelPage(page).esperarPronto();
         const sobra = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         expect(sobra, `${visao} @${largura}`).toBeLessThanOrEqual(0);
         if (largura === 375) {
@@ -342,7 +333,7 @@ test.describe('Sustentação no Operacional: acessibilidade, layout e desempenho
     });
     for (const url of ['/operacional?cadencia=diaria', '/operacional?cadencia=semanal', '/operacional']) {
       await painel.ir(url);
-      await aguardar(page);
+      await new PainelPage(page).esperarPronto();
     }
     expect(baixados).toEqual([]);
     await grupoVisao(page).locator('label', { hasText: 'Sustentação' }).hover();
@@ -354,7 +345,7 @@ test.describe('Sustentação no Operacional: acessibilidade, layout e desempenho
     await expect(page.getByTestId('sem-dados-acelerato')).toBeVisible();
     for (const url of ['/operacional?cadencia=diaria&mock=coleta-vazia:ac', '/operacional?cadencia=semanal&mock=coleta-vazia:ac']) {
       await painel.ir(url);
-      await aguardar(page);
+      await new PainelPage(page).esperarPronto();
       await expect(page.getByTestId('sem-dados-acelerato')).toHaveCount(0);
       await expect(page.getByTestId('metrica-O2').or(page.getByTestId('metrica-O3')).first()).toBeVisible();
     }
@@ -386,7 +377,7 @@ test.describe('Visão Resumo', () => {
 
   test('CA-25 fontes separadas: selo e frescor por bloco, nenhum código da outra fonte, nenhum total e blocos empilhados', async ({ page, painel }) => {
     await painel.ir('/operacional');
-    await aguardarResumo(page);
+    await new PainelPage(page).esperarPronto({ resumo: true });
     const fluxo = page.getByTestId('resumo-fluxo');
     const sust = page.getByTestId('resumo-sustentacao');
     await expect(fluxo.getByTestId('resumo-fluxo-fonte')).toContainText('Fonte: BusinessMap · Dados até');
@@ -402,7 +393,7 @@ test.describe('Visão Resumo', () => {
 
   test('CA-26 números-chave: O3, O4, O2 e O12; S2, S1 e S3; base, unidade e link; com n menor que 20, sem valor', async ({ page, painel }) => {
     await painel.ir('/operacional');
-    await aguardarResumo(page);
+    await new PainelPage(page).esperarPronto({ resumo: true });
     const esperados: [string, string, string][] = [
       ['p85', 'Ver O3 na Semanal', 'dias úteis'],
       ['vazao', 'Ver O4 na Semanal', 'itens'],
@@ -426,7 +417,7 @@ test.describe('Visão Resumo', () => {
 
   test('CA-27 tendência: 6 meses fechados, mês com poucos itens sem valor e com marcador vazado, tabela e janela escrita', async ({ page, painel }) => {
     await painel.ir('/operacional', { mock: 'tendencia-poucos' });
-    await aguardarResumo(page);
+    await new PainelPage(page).esperarPronto({ resumo: true });
     const p85 = page.getByTestId('tendencia-fluxo-p85');
     await expect(p85).toContainText('janela de 12 semanas até o fim do mês');
     await expect(page.getByTestId('tendencia-sustentacao-sla')).toContainText('janela de 12 semanas até o fim do mês');
@@ -444,7 +435,7 @@ test.describe('Visão Resumo', () => {
 
   test('CA-28 alertas por fonte, com título da fonte; cada link leva à visão dona com o cartão', async ({ page, painel }) => {
     await painel.ir('/operacional', { mock: 'sem-calibracao' });
-    await aguardarResumo(page);
+    await new PainelPage(page).esperarPronto({ resumo: true });
     await expect(page.getByRole('region', { name: 'Pede atenção · Fluxo de projeto (BusinessMap)' })).toBeVisible();
     const faixaS = page.getByRole('region', { name: 'Pede atenção · Sustentação (Acelerato)' });
     await expect(faixaS).toBeVisible();
@@ -459,7 +450,7 @@ test.describe('Visão Resumo', () => {
   test('CA-29 sem barra de filtros; guardados avisados; O3 oculto vira marcador e a série P85 some; nenhuma chave nova', async ({ page, painel }) => {
     await guardarPrefs(page, { operacional: ['o3'] });
     await painel.ir('/operacional?equipe=erp-protheus&sust_prioridade=p1');
-    await aguardarResumo(page);
+    await new PainelPage(page).esperarPronto({ resumo: true });
     await expect(page.getByTestId('barra-filtros')).toHaveCount(0);
     await expect(page.getByTestId('filtros-guardados')).toContainText('não se aplicam ao Resumo');
     await expect(page.getByTestId('numero-p85-oculto')).toContainText('O3 oculta nas suas preferências');
@@ -470,7 +461,7 @@ test.describe('Visão Resumo', () => {
 
   test('CA-30 exportação do Resumo: só "Exportar vários", com os níveis Operacional e Operacional · Sustentação pré-selecionados', async ({ page, painel }) => {
     await painel.ir('/operacional');
-    await aguardarResumo(page);
+    await new PainelPage(page).esperarPronto({ resumo: true });
     await expect(page.getByTestId('botao-exportar')).toHaveCount(0);
     await page.getByTestId('botao-exportar-personalizada').click();
     const d = page.getByTestId('dialogo-exportar');

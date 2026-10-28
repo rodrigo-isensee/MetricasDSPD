@@ -23,7 +23,7 @@ test.describe('fonte api: painéis com dados reais da API', () => {
         }
       });
       await painel.ir(rota);
-      await painel.esperarCartoesProntos();
+      await painel.esperarPronto();
       expect(rejeitadas, 'respostas não 2xx da API').toEqual([]);
       for (const c of cartoes) {
         const cartao = painel.cartao(c);
@@ -41,7 +41,7 @@ test.describe('fonte api: painéis com dados reais da API', () => {
       if (API.test(r.url()) && !r.ok()) rejeitadas.push(`${r.status()} ${r.url().replace(/^.*\/api\/v1/, '')}`);
     });
     await painel.ir(ROTAS.visaoGeral);
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(painel.erroDePainel).toHaveCount(0);
     expect(rejeitadas, 'respostas não 2xx da API').toEqual([]);
     await expect(page).not.toHaveTitle(/Dados fictícios/);
@@ -58,21 +58,21 @@ test.describe('fonte api: painéis com dados reais da API', () => {
       if (API.test(r.url()) && 'access-control-allow-origin' in r.headers()) comCors.push(r.url());
     });
     await painel.ir(ROTAS.operacionalSemanal);
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     expect(fora, 'requisições para outra origem').toEqual([]);
     expect(comCors, 'respostas com Access-Control-Allow-Origin').toEqual([]);
   });
 
   test('FA5-04 a troca de filtro pede a métrica de novo com a query do contrato (tipo=incidente)', async ({ painel, page }) => {
     await painel.ir(ROTAS.operacionalSemanal);
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     const pedido = page.waitForRequest((r) => /\/api\/v1\/metricas\/O4\?/.test(r.url()) && r.url().includes('tipo=incidente'));
     await painel.filtros.botao('tipo').click();
     await page.getByRole('checkbox', { name: 'Incidente' }).first().click();
     const req = await pedido;
     expect(new URL(req.url()).searchParams.get('periodo')).toBeTruthy();
     await page.keyboard.press('Escape');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
   });
 
   test('FA5-05 O2 pede pageSize=200 e a tela mostra o total do conjunto', async ({ painel, page }) => {
@@ -80,7 +80,7 @@ test.describe('fonte api: painéis com dados reais da API', () => {
     await painel.ir(ROTAS.operacional);
     const req = await pedido;
     expect(new URL(req.url()).searchParams.get('pageSize')).toBe('200');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(painel.cartao('O2').raiz).toHaveAttribute('data-estado', ESTADOS_COM_DADO);
   });
 });
@@ -163,7 +163,7 @@ test.describe('fonte api: falhas da API (page.route)', () => {
 
   test('FA5-16 troca de filtro cancela a requisição anterior (sem corrida: o painel termina no último filtro)', async ({ painel, page }) => {
     await painel.ir(ROTAS.operacionalSemanal);
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await page.route(/\/api\/v1\/metricas\/O4\?.*tipo=incidente/, async (route) => {
       await new Promise((r) => setTimeout(r, 1500)); // resposta lenta do filtro antigo
       await route.continue().catch(() => undefined);
@@ -172,7 +172,7 @@ test.describe('fonte api: falhas da API (page.route)', () => {
     await page.getByRole('checkbox', { name: 'Incidente' }).first().click();
     await page.getByRole('checkbox', { name: 'Incidente' }).first().click(); // desmarca: volta ao padrão
     await page.keyboard.press('Escape');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(painel.cartao('O4').raiz).toHaveAttribute('data-estado', ESTADOS_COM_DADO);
   });
 });

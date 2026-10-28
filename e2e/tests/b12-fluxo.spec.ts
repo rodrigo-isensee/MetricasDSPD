@@ -8,7 +8,7 @@ const FOCO_TEXTOS_PESSOA = /respons[aá]vel|assignee|\branking\b|Pessoa \d+/i;
 test.describe('K-006 Operacional diário', () => {
   test('OP-01 abre na cadência Diária, ordem O2, Bloqueados, O1, link para a semanal', async ({ painel, page }) => {
     await painel.ir('/operacional?cadencia=diaria');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O2', 'BLOQUEADOS', 'O1']);
     await expect(page.getByTestId('pergunta-cadencia')).toContainText('Qual item mais velho não andou desde ontem?');
     await expect(page.getByRole('link', { name: /Ver também a visão semanal/ })).toBeVisible();
@@ -19,7 +19,7 @@ test.describe('K-006 Operacional diário', () => {
     await painel.ir('/operacional?cadencia=diaria');
     await painel.cadencia.getByText('Semanal', { exact: true }).click();
     await expect(page).toHaveURL(/cadencia=semanal/);
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect.poll(() => painel.codigosDosCartoes()).toEqual(['O3', 'O9', 'O4', 'O12', 'O10', 'O7', 'O15', 'O18', 'EI-FL1']);
     await painel.cadencia.getByText('Diária', { exact: true }).click();
     await expect(page).toHaveURL(/cadencia=diaria/); // a Diária deixou de ser o padrão: o padrão agora é o Resumo (CA-23)
@@ -28,7 +28,7 @@ test.describe('K-006 Operacional diário', () => {
 
   test('OP-03 faixa "Pede atenção" com itens que levam aos cartões de origem', async ({ painel, page }) => {
     await painel.ir('/operacional?cadencia=diaria');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(painel.faixaAtencao).toContainText(/acima do P95/);
     for (const [nome, id] of [[/Ver O2/, 'o2'], [/Ver BLOQUEADOS/, 'bloqueados'], [/Ver O1/, 'o1']] as const) {
       const link = painel.faixaAtencao.getByRole('link', { name: nome });
@@ -123,7 +123,7 @@ test.describe('K-006 Operacional diário', () => {
 
   test('FIL-12 diária: filtro de equipe recorta O2/O1 e informa filtros aplicados', async ({ painel }) => {
     await painel.ir('/operacional?cadencia=diaria&equipe=erp-protheus');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     for (const c of ['O2', 'O1']) await expect(painel.cartao(c).raiz).toContainText(/Filtros|Equipe/);
   });
 });
@@ -229,19 +229,19 @@ test.describe('K-023 Operacional semanal', () => {
 
   test('B3-002 #o12 existe no painel semanal e a faixa leva a ele', async ({ painel, page }) => {
     await painel.ir(SEM);
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(page.locator('#o12')).toHaveCount(1);
     await expect(painel.faixaAtencao.getByRole('link', { name: /Ver O12/ })).toHaveAttribute('href', /cadencia=semanal.*#o12|#o12/);
     // o hash decide a visão (CA-12): `#o12` sem `cadencia` abre a Semanal, com o O12
     await painel.ir('/operacional#o12');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(page).toHaveURL(/cadencia=semanal/);
     expect(await painel.codigosDosCartoes()).toContain('O12');
   });
 
   test('FIL-14/FIL-12 filtro de sistema/tipo atua e informa nos cartões semanais', async ({ painel }) => {
     await painel.ir(SEM + '&equipe=erp-protheus');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(painel.cartao('O3').raiz).toContainText(/Filtros|Equipe/);
   });
 });
@@ -249,14 +249,14 @@ test.describe('K-023 Operacional semanal', () => {
 test.describe('K-007 Tático', () => {
   test('TAT-01 seções e ordem; faixa Pede atenção', async ({ painel }) => {
     await painel.ir('/tatico');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect.poll(() => painel.codigosDosCartoes()).toEqual(['T2', 'T1', 'T5', 'T4', 'T3', 'T9', 'T7', 'EI-FL2']);
     await expect(painel.faixaAtencao).toBeVisible();
   });
 
   test('TAT-02/03 T1 por classe, Intangível sem SLE/insuficiente, links cruzados T1/T4', async ({ painel, page }) => {
     await painel.ir('/tatico');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(painel.cartao('T2').raiz).toContainText('Sem SLE');
     await expect(painel.cartao('T1').raiz).toContainText(/Intangível: Amostra insuficiente \(\d+ de 20 itens mínimos\), sem barra\./);
     await painel.cartao('T1').raiz.getByRole('link', { name: /Demanda × capacidade \(T4\)/ }).click();
@@ -323,7 +323,7 @@ test.describe('K-007 Tático', () => {
 
   test('Tático sem pessoa nem comparação entre equipes', async ({ painel, page }) => {
     await painel.ir('/tatico');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     expect((await page.getByRole('main').innerText()).replace(/Não é um ranking\./g, '')).not.toMatch(FOCO_TEXTOS_PESSOA);
   });
 });
@@ -331,7 +331,7 @@ test.describe('K-007 Tático', () => {
 test.describe('K-024 Estratégico', () => {
   test('EST-01 E1, E2, E3, EI e faixa; sem filtros de Equipe e Tipo', async ({ painel }) => {
     await painel.ir('/estrategico');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect.poll(() => painel.codigosDosCartoes()).toEqual(['E1', 'E2', 'E3', 'EI-FL3']);
     await expect(painel.faixaAtencao).toBeVisible();
     await expect(painel.filtros.botao('equipe')).toHaveCount(0);
@@ -371,7 +371,7 @@ test.describe('K-024 Estratégico', () => {
 
   test('EST-05 filtro Sistema atua em E1 a E3; período padrão 12m', async ({ painel }) => {
     await painel.ir('/estrategico?sistema=fluig');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     for (const c of ['E1', 'E2', 'E3']) await expect(painel.cartao(c).raiz).toContainText(/Sistema/);
     await expect(page_periodo(painel)).toContainText(/12 meses/);
   });

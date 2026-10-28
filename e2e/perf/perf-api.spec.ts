@@ -51,7 +51,7 @@ test.describe('perf-api A1', () => {
         // o Resumo e a Sustentação montam depois do h1 (chunk sob demanda e consultas em lotes): sem esperar a rede assentar a medição
         // lia a página antes das requisições (Sustentação: 0 amostras; Resumo: 1 de 10 contextos completo)
         await page.waitForLoadState('networkidle');
-        await painel.esperarCartoesProntos();
+        await painel.esperarPronto();
         const d = await page.evaluate(() =>
           performance
             .getEntriesByType('resource')

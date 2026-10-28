@@ -44,7 +44,7 @@ for (const tela of TELAS) {
     for (const p of PAINEIS) {
       test(`COMP-01 ${p.rota}: recolhida, abre com ${p.n} cartões (selo fictício só onde status é mock), axe AA`, async ({ page, painel, problemas }) => {
         await painel.ir(p.rota)
-        await painel.esperarCartoesProntos()
+        await painel.esperarPronto()
         const det = page.getByTestId('mais-metricas')
         await expect(det.getByText(new RegExp(`Mais métricas (deste painel|desta visão) · ${p.n} complementares`))).toBeVisible()
         await expect(det).not.toHaveAttribute('open', '')
@@ -56,7 +56,7 @@ for (const tela of TELAS) {
           if (MOCK.has(id)) await expect(c.getByTestId('selo-ficticio')).toHaveText('Dados fictícios')
           else await expect(c.getByTestId('selo-ficticio')).toHaveCount(0)
         }
-        await painel.esperarCartoesProntos()
+        await painel.esperarPronto()
         const r = await rodarAxe(page)
         expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
         expect(await semRolagemHorizontal(page)).toBe(true)
@@ -107,7 +107,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
 
   test('COMP-05 "Leia junto" no núcleo abre a seção e leva o foco ao cartão', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=semanal')
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     const leia = page.getByTestId('leia-junto-o3')
     await expect(leia).toContainText('Leia junto:')
     await leia.getByRole('link', { name: /O6/ }).click()
@@ -118,7 +118,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
 
   test('COMP-05b "Leia junto" do O3 lista O5, O6 e O8 e o caminho O3 para O5 abre o cartão', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=semanal')
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     const leia = page.getByTestId('leia-junto-o3')
     for (const c of ['O5', 'O6', 'O8']) await expect(leia.getByRole('link', { name: new RegExp(c) })).toBeVisible()
     await leia.getByRole('link', { name: /O5/ }).click()
@@ -145,9 +145,9 @@ test.describe('complementares: fluxos a 1280 px', () => {
   for (const p of PAINEIS) {
     test(`COMP-07 ${p.rota}: complementares fora de "Pede atenção"`, async ({ page, painel }) => {
       await painel.ir(p.rota)
-      await painel.esperarCartoesProntos()
+      await painel.esperarPronto()
       await page.getByTestId('mais-metricas').locator('summary').click()
-      await painel.esperarCartoesProntos()
+      await painel.esperarPronto()
       const faixa = page.getByTestId('faixa-atencao')
       if (await faixa.count()) for (const id of p.ids) await expect(faixa).not.toContainText(new RegExp(`\\b${id}\\b`))
     })
@@ -182,7 +182,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
   test('COMP-10 tudo oculto: a seção vira uma linha de aviso, nunca some calada', async ({ page, painel }) => {
     await guardar(page, { tatico: ['t6', 't8', 't10', 't11', 't12', 't13', 't14'] })
     await painel.ir('/tatico')
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     await expect(page.getByTestId('mais-metricas')).toHaveCount(0)
     await expect(page.getByTestId('mais-metricas-ocultas')).toHaveText('7 complementares ocultas pelas suas preferências.')
   })
@@ -201,7 +201,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
 
   test('COMP-12 S8 e S12: denominador dos informados na tabela; cobertura "n de N" só quando parcial', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=sustentacao')
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     const det = page.getByTestId('mais-metricas')
     if ((await det.getAttribute('open')) === null) await det.locator('summary').click()
     const s8 = page.getByTestId('metrica-S8')
@@ -226,7 +226,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
     }
     for (const [rota, cartoes] of Object.entries(esperado)) {
       await painel.ir(rota)
-      await painel.esperarCartoesProntos()
+      await painel.esperarPronto()
       for (const [id, codigos] of Object.entries(cartoes)) {
         const links = page.getByTestId(`leia-junto-${id}`).getByRole('link')
         await expect(links).toHaveCount(codigos.length)
@@ -237,7 +237,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
 
   test('COMP-14 "Leia junto" entre painéis: T5 leva ao O14 e O15 ao O17, com hash e foco no cartão', async ({ page, painel }) => {
     await painel.ir('/tatico')
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     const t5 = page.getByTestId('leia-junto-t5').getByRole('link', { name: /O14/ })
     await expect(t5).toHaveAttribute('href', '/operacional?cadencia=semanal#o14')
     await t5.click()
@@ -246,12 +246,12 @@ test.describe('complementares: fluxos a 1280 px', () => {
     await expect(o14).toBeVisible()
     await expect(page.getByTestId('mais-metricas')).toHaveAttribute('open', '')
     await expect(o14.getByRole('heading', { level: 3 })).toBeFocused()
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     await page.getByTestId('leia-junto-o15').getByRole('link', { name: /O17/ }).click()
     await expect(page).toHaveURL(/\/operacional\?[^#]*cadencia=sustentacao[^#]*#o17$/)
     const o17 = page.getByTestId('metrica-O17')
     await expect(o17).toBeVisible({ timeout: 20_000 })
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     await expect(o17.getByRole('heading', { level: 3 })).toBeFocused()
   })
 })
