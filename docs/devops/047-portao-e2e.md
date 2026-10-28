@@ -23,6 +23,6 @@ Aprovado. O portão do push na `homolog` roda a E2E completa em 2 partes (`--sha
 - `EXIGIR_NOTURNA = false` em `tools/homolog/src/aprovacao.ts:8`; `fluxo-homologacao.md:55` descreve a noturna como informativa. Não foi alterado.
 
 ## Achados
-- A1 (resolvido) .github/workflows/homolog.yml:125-170 · E2E do portão em job único com teto de 30 min (28 min 29 s medidos) virou matriz de 2 partes com agregador `e2e`, em 403e12b e 359cec1 (E2.2, K-172).
+- A1 (recomendado) .github/workflows/homolog.yml:125 · Já resolvido em 403e12b e 359cec1 (E2.2, K-172): a E2E em job único (28 min 29 s de 30) virou matriz de 2 partes (linhas 125-155) com agregador `e2e` (158-170). Sem ação.
 - A2 (recomendado) docs/engineering/fluxo-homologacao.md:50 · Texto diz que o `e2e-homolog` roda contra o mock e que a E2E no ambiente implantado está pendente (H4); segue verdadeiro. Destino: tech-lead, se quiser citar o #154 e o split.
 - A3 (recomendado) .github/workflows/homolog.yml:146 · `actionlint` fora do PATH, não executado; sintaxe revisada por leitura contra o `ci.yml`. Custo de dinheiro zero (`R-CUSTO`).
