@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 047-pendencias-decididas-2026-10-28
 branch: feature/047-select-timeout
-commit: 9a973696a83247cb8278a7eb4ddf8a7a58b84ded
+commit: 5ac2e4f05e665c920e31b3b0e6b60513ed2bae78
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -40,6 +40,9 @@ O `await eslint.lintText(...)` fica no nível do módulo (linhas 250-254), fora 
 | Regra de lint segue sendo medida | 12 `reprova:` e `aprova o permitido` | passam | n/a |
 
 Vermelho antes do verde e mutação: não se aplicam (correção de tempo de teste, sem regra nova nem código de produção; diff só em teste, fora de `bin/`, `hooks/`, `.githooks/`).
+
+## Revalidação
+Revalidado em 2026-10-28 sobre o head 5ac2e4f (docs/047-portao-e2e, depois do merge da develop). Desde 9a97369 mudaram `.github/workflows/homolog.yml` (divisão da E2E do portão, E2.2), os pareceres do E2 (devops, QA, segurança, review) e o review do E1 revalidado. Nenhum arquivo de `server/` mudou (`git diff --stat 9a97369 5ac2e4f -- server` vazio): `server/tests/plataforma2.test.ts`, o único objeto deste parecer, é o mesmo. O workflow não toca o teste "reprova: SELECT *" nem o aquecimento. Veredito inalterado: aprovado.
 
 ## Achados
 - A1 (recomendado) server/tests/plataforma2.test.ts:253 · `aquecer.ts` é nome fictício e não é asserido; aceitável como está, sem devolução (mesma conclusão do review). Destino: nenhum.
