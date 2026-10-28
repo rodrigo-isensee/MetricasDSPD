@@ -43,5 +43,3 @@ Vermelho antes do verde e mutação: não se aplicam (correção de tempo de tes
 
 ## Achados
 - A1 (recomendado) server/tests/plataforma2.test.ts:253 · `aquecer.ts` é nome fictício e não é asserido; aceitável como está, sem devolução (mesma conclusão do review). Destino: nenhum.
-
-Sem achado bloqueante.
