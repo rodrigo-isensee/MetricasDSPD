@@ -7,15 +7,11 @@ export type SecaoDoIndice = readonly [id: string, nome: string, cartoes: readonl
 export const SECAO_MAIS_METRICAS: SecaoDoIndice = ['mais-metricas', 'Mais métricas', []]
 
 /** Leva ao título da seção (que recebe o foco), em vez de só rolar a página. */
-function irPara(id: string) {
-  const alvo = document.getElementById(id)
-  if (!alvo) return
+function irPara(alvo: HTMLElement) {
   const titulo = alvo.querySelector<HTMLElement>('h2') ?? alvo
   if (!titulo.hasAttribute('tabindex')) titulo.tabIndex = -1
   titulo.focus({ preventScroll: true })
-  // jsdom não implementa a rolagem.
-  if (typeof (alvo as Partial<HTMLElement>).scrollIntoView === 'function')
-    alvo.scrollIntoView({ block: 'start' })
+  alvo.scrollIntoView({ block: 'start' })
 }
 
 /**
@@ -79,10 +75,11 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
             href={`#${id}`}
             aria-current={atual === id ? 'location' : undefined}
             onClick={(e) => {
-              if (!document.getElementById(id)) return
+              const alvo = document.getElementById(id)
+              if (!alvo) return
               e.preventDefault()
               history.replaceState(null, '', `#${id}`)
-              irPara(id)
+              irPara(alvo)
             }}
             className={`alvo inline-flex shrink-0 items-center gap-1 whitespace-nowrap underline ${
               atual === id ? 'font-bold text-texto' : 'text-acento'

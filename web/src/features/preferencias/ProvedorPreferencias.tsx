@@ -143,13 +143,13 @@ export function ProvedorPreferencias({
       // "Mostrar tudo" inclui os complementares: a seção abre na visita (D-4), sem entrar no perfil.
       restaurarPadrao: () => {
         const paineis = atual.current.paineis
-        setAntes(paineis)
-        setRestauradas(
-          PAINEIS_COM_CARTOES.reduce(
-            (n, p) => n + ocultosValidos(p, paineis[p]?.ocultar).length,
-            0,
-          ),
+        const n = PAINEIS_COM_CARTOES.reduce(
+          (soma, p) => soma + ocultosValidos(p, paineis[p]?.ocultar).length,
+          0,
         )
+        // Sem nada oculto não há o que desfazer.
+        setAntes(n > 0 ? paineis : null)
+        setRestauradas(n)
         gravar({})
         setVisita({})
         setAbertas(Object.fromEntries(PAINEIS_COM_CARTOES.map((p) => [p, true])))
