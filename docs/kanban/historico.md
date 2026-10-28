@@ -487,3 +487,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-28T11:15:48-03:00 | K-170 | — | Entrada | MELHORIA da retrospectiva do 042 |
 | 2026-10-28T11:16:01-03:00 | K-163 | Pronto para fazer | Em andamento | brief node-backend-1 aprovado e delegado |
 | 2026-10-28T11:17:06-03:00 | K-111 | Em andamento | Pronto | PR 152 mesclado pelo dono (d7c74b4) |
+| 2026-10-28T11:19:23-03:00 | K-154 | Entrada | Em andamento | E1.5: tech-lead-12 abre a worktree MetricasDSPD-026d |
+| 2026-10-28T11:22:04-03:00 | K-154 | Em andamento | Em andamento | E1.5 entregue; E1.6 com o ux-designer (brief ux-designer-3) |
