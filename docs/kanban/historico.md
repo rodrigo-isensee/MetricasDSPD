@@ -525,3 +525,9 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-29T05:40:22-03:00 | K-112 | Aguardando sua validação | Pronto | PR 161 mesclado na develop (7c94348) |
 | 2026-10-29T05:40:22-03:00 | K-130 | Aguardando sua validação | Pronto | PR 161 mesclado na develop (7c94348) |
 | 2026-10-29T05:46:55-03:00 | K-178 | nenhuma | Entrada | Alerta crítico do Dependabot #12 (dompurify); espera o dono |
+| 2026-10-29T07:44:55-03:00 | K-178 | Entrada | Em andamento | decisão do dono A, retomada 0.30.5 |
+| 2026-10-29T07:44:55-03:00 | K-129 | Entrada | Em andamento | E3.1 do 048 |
+| 2026-10-29T07:44:56-03:00 | K-093 | Entrada | Em andamento | E3.1 do 048 |
+| 2026-10-29T07:44:56-03:00 | K-074 | Bloqueado | Em andamento | 048-03 = A, volta 2 |
+| 2026-10-29T07:44:56-03:00 | K-164 | Bloqueado | Em andamento | push feito pelo dono |
+| 2026-10-29T07:44:56-03:00 | K-179 | — | Em andamento | pedido 049 |

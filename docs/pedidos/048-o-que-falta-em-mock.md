@@ -10,6 +10,7 @@
 - E2. K-130: a API da T14 deixa de permitir deduzir o agregado oculto (M-1/M-1a do parecer docs/security/025-t14-reidentificacao.md) · `confirmado` (recibo)
 - E3. Ajustes em mock: K-129 (meses de pico da T11 no DTO), K-128 (COM_TAMBEM do mock com T11, T13 e T14), K-126 e K-127 (worker do mock), K-133 (CLS do /tatico), K-093 (primeira consulta lenta da sustentação), página de contrato da O23 · `confirmado` (recibo)
 - E4. K-074 (usabilidade) e K-075 (celular e tablet) · `confirmado` (recibo)
+- E6. K-178: alerta crítico do Dependabot #12 no dompurify corrigido (versão 3.4.17), com avaliação do impacto no projeto · `confirmado` (DECISÃO DO DONO 2026-10-29, opção A)
 
 ## Etapas
 - E5.0 (forge:tech-lead): worktrees e branches do pedido a partir da develop: `/home/rodrigoisensee/MetricasDSPD-048a` com `docs/048-t14-desenho` (E1.1 e E1.2) e `/home/rodrigoisensee/MetricasDSPD-048b` com `feature/048-usabilidade` (E4.1), com push das duas.
@@ -30,6 +31,8 @@
 - E5.2 (forge:qa-engineer): parecer de QA de cada entrega.
 - E5.4 (forge:security-engineer): review de segurança de cada entrega com gatilho (R-SEGURANCA), parecer em `docs/security/`, depois do code review e antes do QA.
 - E5.5 (forge:tech-lead): worktrees e branches do E3 a partir da develop depois do PR #161: `/home/rodrigoisensee/MetricasDSPD-048c` com `feature/048-ajustes-back` (E3.1) e `/home/rodrigoisensee/MetricasDSPD-048d` com `feature/048-ajustes-front` (E3.2 e E3.3), com push das duas e `pnpm install --frozen-lockfile` em cada uma, sem testes (sem as dependências os desenvolvedores não rodam testes nem typecheck).
+- E6.1 (forge:tech-lead): worktree `/home/rodrigoisensee/MetricasDSPD-048e` com `feature/048-dompurify` a partir da develop; subir o dompurify para a 3.4.17 (E6) no lockfile (versão mínima que corrige o alerta #12), com `pronto` uma vez, commit e push, sem PR.
+- E6.2 (forge:security-engineer): avaliação do impacto do alerta #12 no projeto (onde o dompurify entra, direto ou transitivo; se o código usa `SAFE_FOR_TEMPLATES`) e review de segurança do E6.1 (E6), num parecer só, `docs/security/048-dompurify.md`; depois code review e QA pelo E5.1 e pelo E5.2, e PR.
 - E5.3 (forge:agile-coach): retrospectiva do pedido em `docs/retrospectivas/2026-10-28-048-mock.md`, com as linhas `MELHORIA:`.
 
 ## Decisões do usuário (registro literal)
@@ -171,3 +174,4 @@ DECISÃO DO DONO (2026-10-21): comando de pronto, opção A ("A"): durante o des
 - 2026-10-29 05:49: conferência da entrega E5.5 (tech-lead-11): não cumpriu só por ambiente. PQ-1 a PQ-5 cumpriram por leitura (duas branches em 7c94348 no origin, status limpo, node_modules presentes, diff vazio contra a base); o `forge-check entrega` foi recusado pelo bloqueio de versão e a branch nova não tem Desde próprio. DECISÃO TÉCNICA do Jarvis: as worktrees 048c e 048d valem para o E3; a conferência formal se refaz depois do `forge atualizar` do dono, junto com o brief node-backend-5.
 - 2026-10-29 07:05: DECISÃO DO DONO (048-03): opção A ("A"). Responde a PERGUNTA de 2026-10-28 19:18. Destrava a volta 2 do E4.1 (react-frontend, BarraFiltros.tsx e IndiceDeSecoes.tsx, CA-A a CA-E) e, depois dela, o re-review e o reteste do QA; a delegação sai depois do `forge atualizar` do dono (bloqueio de versão de 05:47). Próximas decisões ao dono: K-178 (dompurify) e K-153 (portão do F22).
 - 2026-10-29 07:07: DECISÃO DO DONO (K-178): opção A ("A"), corrigir o dompurify já, em branch própria, depois do `forge atualizar`. Item entra no escopo do 048 como ESCOPO+: K-178 (decisão do dono). Próxima decisão ao dono: K-153.
+- 2026-10-29 07:44: retomada no plugin Forge 0.30.5 (dono reiniciou a sessão; o bloqueio de versão do forge-check acabou). ESCOPO+: E6 (K-178), pela DECISÃO DO DONO de 07:07; etapas E6.1 e E6.2. Fila disparada: E3.1 (node-backend-5 reconferido), E4.1 volta 2 (048-03 = A), E6.2 (worktree 048e) e reconferência da entrega do E5.5.

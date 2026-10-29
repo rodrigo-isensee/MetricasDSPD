@@ -10,7 +10,6 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:security-engineer | 2026-10-29 | 2026-10-29 05:46 | Visto no E5.5 (048); item novo sob ordem ampla: espera o dono |
 | K-176 | [teste] Trava de suíte única grava cada espera (quem segurava, quanto esperou) para medir o efeito | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:59 | MELHORIA 2 da retro do 045 (docs/retrospectivas/2026-10-28-045-suite-unica.md); só acrescenta registro; depende do K-175 (mesmo script) e o WIP de Pronto para fazer está cheio |
 | K-177 | [ux] Achados médios e baixos da revisão de UX da T14 (M-1 ficha e CA-27/30/45 desatualizados; M-2 leituraT14 cita total sem excluir ocultos; M-3 notas.ts:305 "ordenados pelo total"; B-1 linha oculta sem explicação ao leitor de tela; B-2 teste "todos ocultos"; B-3 axe com oculto) | 048 | forge:react-frontend | 2026-10-28 | 2026-10-28 18:09 | docs/ux/revisao-048-t14.md (aprovada com ressalvas); depende do merge da docs/048-t14-desenho; ficha e CA são do ux-designer |
 | K-165 | [forge] Rodada longa de suíte (mais de 10 min) grava o JSON da E2E de forma incremental, fora de /tmp (skill qa-testing) | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 041 (JSON perdido nas quedas do WSL); vai ao Forge, só propor |
@@ -32,11 +31,9 @@
 | K-126 | [037 review A1/A2] Worker do mock: pedido pendente para sempre se o postMessage lançar; guarda para pedido antes do iniciar | 037 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Recomendado (não bloqueante) no review 037 |
 | K-127 | [037 review A3/A4] F9 soma os chunks do Worker e do fallback (nunca baixados juntos); ADR 0021 ainda "proposta" | 037 | forge:software-architect | 2026-10-21 | 2026-10-21 | Recomendado no review 037; A3 com o devops/tech-lead no size.mjs |
 | K-128 | [025 review A1] COM_TAMBEM da MockFonteMetricas sem T11, T13 e T14 (no mock, T13/T14 sem vínculo e sem time); depois do 037 (arquivo agora em nucleoMock.ts) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Limite do mock, não fere a ficha (review 025) |
-| K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-21 | Recomendado no review 025 |
 | K-137 | [docs] Checklist de "computador novo" no README do projeto: Docker, `.env`, `pnpm install`, `playwright install-deps` (sudo, dono), grupo docker antes de abrir o Claude Code | 040 | forge:tech-lead | 2026-10-22 | 2026-10-22 21:35 | MELHORIA da retrospectiva do 040 (parte do projeto; a parte da fábrica é o F13) |
 | K-133 | [bug] L2T-003 (baixa): CLS de 0,073 a 0,100 em /tatico com equipe na API (herdado; reproduz com a seção do lote 2 fechada) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Pendência do PR do 025 por decisão do dono (A) |
 | K-125 | Avaliar se as branches feature/011-metricas-tambem-back (3 commits de revalidação depois do #92) e feature/011-fase2-back (2) ainda devem ir à develop; depois apagar | 039 | forge:tech-lead | 2026-10-21 | 2026-10-21 | Decisão A do dono no pedido 039 |
-| K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-15 02:00 | Baixo, já existia antes. Decisão do usuário de 2026-10-16: corrigir (SNO = C) |
 | K-086 | [segurança] Erro e log sem valor do payload (B-4) | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
 | K-087 | Spike B-5: tipo do campo Time responsável e domínio fechado | 011 | forge:node-backend | 2026-10-14 | 2026-10-14 22:00 | ADR 0020; junto com a integração |
 | K-088 | [segurança] Lint do coletor resistente a contorno (B-2) | 011 | forge:tech-lead | 2026-10-14 | 2026-10-14 22:00 | ADR 0020 |
@@ -77,6 +74,12 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:security-engineer | 2026-10-29 | 2026-10-29 07:44 | E6.1 (tech-lead, worktree 048e, feature/048-dompurify) e E6.2 (security-engineer); DECISÃO DO DONO 2026-10-29 07:07 = A · worktree: MetricasDSPD-048e |
+| K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-29 07:44 | E3.1 do 048 (node-backend-5), feature/048-ajustes-back · worktree: MetricasDSPD-048c |
+| K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-29 07:44 | E3.1 do 048 (node-backend-5), junto com K-129 · worktree: MetricasDSPD-048c |
+| K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-29 07:44 | Push feito pelo dono (2026-10-29); conferência da entrega e PR ao Forge (E3.2 a E3.5 do 047) · worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 |
+| K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-29 07:44 | Volta 2 do E4.1 (react-frontend-11): DECISÃO DO DONO 048-03 = A (barra de filtros sem fixação) · worktree: MetricasDSPD-048b |
+| K-179 | [forge] Registrar o Forge 0.30.5 no projeto (branch forge/upgrade-0.30.5, PR para a develop; merge do dono) | 049 | forge:tech-lead | 2026-10-29 | 2026-10-29 07:44 | forge-upgrade feito (5d7c199); push e PR pelo tech-lead · worktree: MetricasDSPD-upg |
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
 
 ## Code review (WIP 2)
@@ -152,11 +155,9 @@
 ## Bloqueado
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 22:39 | worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 · branch melhoria/MetricasDSPD-k164-mesma-base · Aguardando o dono: commit a779854 sem push; o pre-push da fábrica reprova 60 testes que exigem terminal humano (047, 22:39) |
 | K-141 | Ambiente da máquina nova: Docker, `.env`, Node 24, Chromium, doutor; depois pnpm install e banco | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono (E2.1); depois tech-lead (E2.2) e devops (E2.3) |
 | K-152 | [forge] F21: worktree nova sem dependências não quebra o pre-push | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 20:18 | Aguardando o dono: aplicar docs/analises/043-f21-pre-push.patch no clone (docs/analises/043-f21-instrucoes-ao-dono.md); resto do F21 pronto sem commit |
-| K-153 | [forge] F22: PR de release não nasce antes do portão; homolog-aprovada sem corrida | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 22:11 | Aguardando o dono: review, segurança e QA aprovados (0b59505 empurrado), mas o `forge-check pr` não lê o clone do Forge e barra o PR (043, 22:10); decisão de como passar o portão |
-| K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-28 19:18 | Aguardando o dono: pergunta 048-03 (barra de filtros deixa de ser fixa a partir de 768 px; parecer UX 05-parecer-048-03.md). Volta 1 do QA em ba9c002 (048-01, 048-02, A4); re-review e reteste esperam a resposta |
+| K-153 | [forge] F22: PR de release não nasce antes do portão; homolog-aprovada sem corrida | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 22:11 | Aguardando o dono: abrir o PR do F22 pelo terminal (decisão B; a 0.30.5 não lê pedido fora de ~/.forge-contrib, 043 07:44) |
 
 ## Políticas locais (acrescentadas na auditoria K-021)
 - **Entrada é o backlog:** cartão com dependência aberta de outro cartão fica em Entrada; só entra em "Pronto para fazer" o que pode ser puxado agora (a espera por ata de reunião em andamento é a única exceção, e deve constar em Obs.).
