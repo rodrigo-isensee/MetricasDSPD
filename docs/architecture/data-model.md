@@ -332,9 +332,9 @@ O teste de grants (CI, job `db`) lê `information_schema.role_table_grants`/`col
 
 | Dado de pessoa | Onde fica | Quem lê |
 |---|---|---|
-| Responsáveis do card | staging (payload) + **`dim_card.responsaveis`**, **`dim_card_versao.responsaveis`** (`text[]`) | `dspd_coletor`, `dspd_migrador`; **nunca `dspd_api`** |
+| Responsáveis do card | **nunca em `stg_`** (ADR 0020 4b): lidos em memória pelo coletor e gravados só em **`dim_card.responsaveis`**, **`dim_card_versao.responsaveis`** (`text[]`, ids da API; id × nome é a pergunta Q-8 do plano 052) | `dspd_coletor`, `dspd_migrador`; **nunca `dspd_api`** |
 | Usuário da transição | **não é guardado** (K-096: coluna removida; fora da staging pela ADR 0020) | ninguém |
-| Autores de comentário, tempo apontado | só staging | idem; horas apontadas nunca viram esforço (7.1) |
+| Autores de comentário, tempo apontado | **não são guardados** (ADR 0020 4a e 4e: `logged_times`, `last_comment` e autor fora da allow-list; `stg_comentario_instante`, quando existir na fase 3, guarda só `card_id`, `comentario_id` e `criado_em`) | ninguém; horas apontadas nunca viram esforço (7.1) |
 | Solicitante, atendente/agente, e-mail (Acelerato) | só staging (o modelo 4.5 não os traz para o analítico; trazer exige nova decisão do usuário) | `dspd_coletor`, `dspd_migrador` |
 | Texto livre (título, justificativa de reclassificação) | título projetado (prov., L-2); justificativa só no staging (T5.5, pessoa autorizada); no analítico, apenas o booleano derivado `dim_chamado.justificativa_informada` ("campo não vazio"; o texto nunca é gravado) | — |
 | Identidade de quem acessa o painel | sessão | HMAC do `sub`, sem nome (ADR 0009) |

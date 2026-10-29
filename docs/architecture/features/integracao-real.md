@@ -5,6 +5,7 @@ contrato: 0
 
 - Spec: `docs/ux/integracao-real/05-especificacao.md` (CA-01 a CA-22). Decisões: `docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §2 e §5.
 - Escopo: etapa mock. Coleta real (002) fica fora; este plano fixa o contrato que o 002 vai servir.
+- Revisão 2026-10-29 (pedido 052, E1.1): D1 a D6 e o contrato `coletas.ts` continuam valendo e estão implementados no módulo `operacao`. A coleta real do BusinessMap (T2.2 e T2.3) está planejada em fatias em `docs/architecture/features/052-integracao-businessmap.md`, com a ADR 0022 (proposta); D3 (calibração de 60 dias) e a tolerância de "Atrasado" seguem provisórias (pergunta Q-7 do plano 052).
 - Arquitetura do front: `docs/tecnica/arquitetura-front.md` (porta única `FonteMetricas`).
 
 ## 1. Decisões
@@ -74,7 +75,7 @@ interface FonteMetricas {
   - **Acelerato**: primeira coleta ok em 2026-09-15, diárias ok. **Janela de calibração vigente 15/09 a 13/11** para todas as métricas S* e `EI_SUST`. Selo "Atual".
   - Os critérios do mock (03/2026 e 06/2026) já venceram os 60 dias: nenhuma janela por critério no cenário padrão (o caso fica coberto no unitário).
 - `?mock=` (só com `tipo === 'mock'`), novos modos: `coleta-atrasada:bm|ac`, `coleta-vazia:bm|ac`, `coleta-erro:bm|ac` (falha de leitura do recurso, para o "Tentar de novo"), `sem-calibracao` (para testes que verificam status de meta no Acelerato).
-- `HttpFonteMetricas` (futuro): `GET /api/v1/fontes/:dominio/estado`, `GET /api/v1/fontes/:dominio/coletas?pagina=`, `GET /api/v1/criterios`.
+- `HttpFonteMetricas` (implementada; em 2026-10-29 lê o banco preenchido pelo seed, e a troca para dado real é a fatia F6 do plano 052): `GET /api/v1/fontes/:dominio/estado`, `GET /api/v1/fontes/:dominio/coletas?pagina=`, `GET /api/v1/criterios`.
 
 ## 4. Cálculo em `packages/metricas`
 - `core/calibracao.ts`: `DURACAO_CALIBRACAO_DIAS = 60` (único lugar do número); `janelasCalibracao(dominio, primeiraOk, versoes, metricasDoDominio)`; `vigentes(janelas, hojeIso)`; `metricasEmCalibracao(vigentes)`. Critério que afeta as duas fontes abre janela só nas métricas de cada fonte (nunca mistura).

@@ -1,6 +1,6 @@
 # BusinessMap: configuração da integração real (API v2)
 
-Data: 2026-10-11. Complementa `docs/architecture/features/integracao-real.md`. Colunas, seções e tipos de coluna estão em `docs/analises/businessmap-colunas-e-tipos.md` (não repetido aqui).
+Data: 2026-10-11. Revisado em 2026-10-29 (pedido 052, E1.1) contra a ADR 0020 (R-2 = B, migração 0015), a ADR 0022 (proposta) e o código de `server/src/modulos/businessmap`; o plano em fatias da coleta e do webhook está em `docs/architecture/features/052-integracao-businessmap.md`. Complementa `docs/architecture/features/integracao-real.md`. Colunas, seções e tipos de coluna estão em `docs/analises/businessmap-colunas-e-tipos.md` (não repetido aqui).
 
 ## 0. Fontes e legenda
 Fonte principal: a especificação OpenAPI pública da API v2 (`https://demo.kanbanize.com/openapi/json`, 2,2 MB), lida em blocos de 100 mil caracteres por um resumidor automático. Também `https://businessmap.io/api`. A base de conhecimento (`knowledgebase.businessmap.io`) retorna 403: **artigos oficiais não foram lidos**.
@@ -66,7 +66,7 @@ Todos GET.
 Duas rotas [DOC], ambas pedem validação no swagger:
 - **`GET /cards/{card_id}/revisions`** e **`/revisions/{revision}`**: o schema `CardRevision` tem `card_id`, `board_id`, `column_id`, `lane_id`, `revision`, `created_at`, `replaced_at`, `user_id`, `custom_fields`, `subtasks`, `linked_cards`. Cada revisão guarda a posição do card naquele momento; transição = mudança de `column_id` entre revisões consecutivas [INF]. Mapeia para `stg_revision` e `fato_transicao` (`fonte='revision'`). Custo: 1 chamada por card (e por revisão se não vier em lista [INF]).
 - **`expand=transitions` e `expand=block_times` em `GET /cards`**: [DOC] existem como valores de `expand`; **campos de cada item não lidos** [NÃO LIDO]. Se trouxerem coluna e instante de entrada/saída, são a via barata para a carga em lote (poucas chamadas de 1000 cards). Também `lead_time_per_column`. Ação do usuário/Jarvis: chamar um card real com esses `expand` e anexar o JSON (sem dados de pessoa) ao arquivo de análise.
-- `user_id` das revisões é pessoa: não entra na `stg_revision` (allow-list fechada, ADR 0020 4c) e não é relido por nenhum cartão; `fato_transicao.usuario` fica `NULL` até a decisão **R-2** do usuário (ADR 0020, "Decisão do usuário pendente"; data-model §9). Os ids de responsável da revisão são lidos em memória só para o `troca_responsavel` (O26).
+- `user_id` das revisões é pessoa: não entra na `stg_revision` (allow-list fechada, ADR 0020 4c) e não é relido por nenhum cartão; a coluna `fato_transicao.usuario` foi **removida** (decisão R-2 = B do dono em 2026-10-16, migração 0015; data-model §9). Os ids de responsável da revisão são lidos em memória só para o `troca_responsavel` (O26).
 
 ### 4.4 Bloqueios
 - No card: `is_blocked`, `block_reason`, `current_block_time` [DOC]; histórico por `expand=block_times` [DOC; campos não lidos].
@@ -89,12 +89,12 @@ Duas rotas [DOC], ambas pedem validação no swagger:
 ### 4.8 Webhooks
 - Gerenciamento por API: `GET/POST /webhooks`, `GET/PATCH/DELETE /webhooks/{webhook_id}`, `GET /webhooks/history` [DOC]. Criação: corpo com `url` (1 a 65000 caracteres, http/https), `board_id` (obrigatório, **um webhook por quadro**), `is_enabled` [DOC].
 - **Segredo**: não vai no corpo; é devolvido **na resposta de criação**, uma vez ("guardar com segurança") [DOC]. Guardar em `WEBHOOK_BM_SEGREDO`.
-- **[NÃO LIDO / pendente]**: lista de eventos assinados, formato do payload, **como o segredo assina a entrega** (cabeçalho, algoritmo HMAC?) e política de reentrega. A especificação lida não trouxe isso (os "eventos" `created/updated/deleted` do schema são do log de auditoria do próprio webhook). Isso vive na base de conhecimento, que deu 403. **O usuário precisa colar o artigo de webhooks** antes de ligar o receptor; o receptor já existe (`POST /webhooks/businessmap`, `server/src/modulos/businessmap/webhook.ts`) e confere o segredo conforme o ADR/segurança do projeto; conferir que o método coincide com o do BusinessMap.
+- **[NÃO LIDO / pendente]**: lista de eventos assinados, formato do payload, **como o segredo assina a entrega** (cabeçalho, algoritmo HMAC?) e política de reentrega. A especificação lida não trouxe isso (os "eventos" `created/updated/deleted` do schema são do log de auditoria do próprio webhook). Isso vive na base de conhecimento, que deu 403. **O usuário precisa colar o artigo de webhooks** antes de ligar o receptor; o receptor já existe (`POST /webhooks/businessmap`, `server/src/modulos/businessmap/webhook.ts`) e confere um segredo compartilhado no cabeçalho `x-webhook-secret` (SHA-256 e comparação em tempo constante, antes de ler o corpo); os campos que ele lê do corpo (`evento`, `card`, `anterior`, `timestamp`) são **supostos**. Se o BusinessMap assinar o corpo (HMAC) em vez de enviar o segredo, o receptor muda na fatia F7 do plano 052. Não há consumidor de `bm.webhook.recebido` no worker ainda.
 - Requisito de rede: a URL precisa ser alcançável pela internet a partir do BusinessMap (a API do projeto está em `127.0.0.1`): exige reverse proxy/túnel com TLS. **Se isso não for possível, usar só polling** (suficiente: coleta diária às 06:00).
-- Recomendação: **polling é a fonte de verdade** (revisions + `last_modified_from` com sobreposição); webhook é acelerador opcional, reconciliado depois (`rec_transicao_par`), como já está no modelo.
+- Recomendação: **polling é a fonte de verdade** (revisions + `last_modified_from` com sobreposição); webhook é acelerador opcional, reconciliado depois (`rec_transicao_par`), como já está no modelo. Formalizado na ADR 0022 (proposta): webhook só depois de URL pública com TLS, formato confirmado e T2.2 pronta (opção C do plano 052, §3).
 
 ### 4.9 Usuários (sem expor pessoa)
-`GET /users` [DOC] (`user_ids`, `emails`, `usernames`, `fields`, `expand`). **Não é necessário** para nenhuma métrica: não chamar. Resolver `owner_user_id`/`user_id` para nome só se o usuário decidir manter `responsaveis` (data-model §9); nesse caso, restringir `fields=user_id,realname` e gravar só em coluna protegida por GRANT. Também ver `GET /users/{id}/lastActivity` (não usar).
+`GET /users` [DOC] (`user_ids`, `emails`, `usernames`, `fields`, `expand`). **Não é necessário** para nenhuma métrica: não chamar (nem `GET /users/{id}/lastActivity`). Pela ADR 0020 4b (aplicação da decisão do dono de 2026-10-10), `responsaveis` vêm de `owner_user_id`/`co_owner_ids` e são gravados em `dim_card.responsaveis` e `dim_card_versao.responsaveis`, fora da API por GRANT. Nenhuma fatia do plano 052 resolve id para nome; a decisão de 2026-10-10 fala em "nomes" (data-model §9), e a diferença id × nome está como pergunta Q-8 no plano 052, não decidida aqui.
 
 ## 5. O que cada endpoint nos dá versus o modelo
 | Tabela / contrato | Origem | Endpoint | Observação |
@@ -110,7 +110,7 @@ Duas rotas [DOC], ambas pedem validação no swagger:
 | `ConfigBM` (SLE, alocação acordada, limite de frentes) | **não vem da API** | pergunta N-5 | configuração |
 
 ## 6. Variáveis do `.env` (nomes, sem valores)
-Já existentes: `WEBHOOK_BM_SEGREDO`, `PG_WEBHOOK_URL`, `PG_COLETOR_URL`, `LOG_LEVEL`. **Propostas novas** (o `node-backend` valida com zod na partida, em `server/src/plataforma/config.ts`, e atualiza `.env.example`):
+Já existentes: `WEBHOOK_BM_SEGREDO`, `PG_WEBHOOK_URL`, `PG_COLETOR_URL`, `LOG_LEVEL`. **Propostas novas** (em 2026-10-29 nenhuma está em `config.ts`; entram na fatia F0 do plano 052) (o `node-backend` valida com zod na partida, em `server/src/plataforma/config.ts`, e atualiza `.env.example`):
 - `BUSINESSMAP_URL_BASE` (ex.: formato `https://<conta>.kanbanize.com/api/v2`, sem barra final)
 - `BUSINESSMAP_APIKEY`
 - `BUSINESSMAP_QUADROS_IDS` (lista de IDs separados por vírgula; quadros de teste excluídos)
@@ -129,8 +129,8 @@ Mapeamentos de campo customizado (`field_id` para `sistema`, `fornecedor` etc.) 
 5. Informar **quais campos customizados** representam: tipo de demanda, sistema, área solicitante, fornecedor, objetivo estratégico, severidade, causa raiz, fase de detecção, origem, tamanho (nome e `field_id`, obtidos com `GET /customFields`).
 6. Confirmar o **tipo de vínculo** pai/filho usado para story, frente e projeto (§4.5) e quais **colunas** são fila/execução/compromisso/entrega (ver análise de colunas; é decisão do usuário, não minha).
 7. Colar (sem dados de pessoa) um **exemplo de resposta** de um card real com `expand=transitions,block_times,custom_fields` (§4.3) e a página oficial de **webhooks** (eventos e assinatura).
-8. Decidir **webhook ou só polling** (§4.8) e se existe URL pública com TLS para recebê-lo.
-9. Decidir sobre **dados de pessoa** (`responsaveis`, `usuario` das transições): o padrão proposto é não coletar (pergunta de modelagem aberta em data-model §12).
+8. Decidir **webhook ou só polling** (§4.8) e se existe URL pública com TLS para recebê-lo. O dono delegou a recomendação ao time ("facarecomendacao", 2026-10-29): recomendação **C** (polling agora, webhook depois, condicionado), no plano 052 §3 e na ADR 0022, mostrada ao dono antes do código.
+9. **Decidido** (dono, 2026-10-10 e R-2 = B em 2026-10-16; ADR 0020 4b e 4c): `responsaveis` coletados só em memória e gravados em `dim_card`/`dim_card_versao` (ids da API; id × nome na pergunta Q-8 do plano 052), nunca em `stg_`; `usuario` das transições não é coletado (coluna removida na migração 0015).
 10. Rodar os testes de conexão (§8) e entregar o resultado.
 
 ## 8. Testar a conexão (somente leitura)
