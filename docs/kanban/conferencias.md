@@ -586,3 +586,4 @@
 | 2026-10-29 05:43 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-11.md | brief | 1 | reprovado | parcial | pnpm install sem origem na etapa E5.5; etapa atualizada | escopo | jarvis |
 | 2026-10-29 05:44 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-11.md | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-29 05:47 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-5.md | brief | 1 | reprovado | s | forge-check 0.30.3 atrás da 0.30.5: conferência não vale até o dono atualizar | ambiente | jarvis |
+| 2026-10-29 05:48 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-11.md | entrega | 1 | não cumpriu | s | PQ-1 a PQ-5 cumpridos; forge-check bloqueado pela versão 0.30.5 e Desde da branch nova | ambiente | destino |
