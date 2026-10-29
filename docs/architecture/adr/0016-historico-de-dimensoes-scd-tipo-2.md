@@ -127,13 +127,13 @@ Teste de paridade mock × seed no Postgres cobre os sete casos com os mesmos nú
 |---|---|---|---|
 | U-1 | Quando o papel de uma coluna muda por **mudança de processo** (ex.: o time move o ponto de compromisso), os itens anteriores são medidos com a regra antiga ("como foi") ou com a nova ("como é hoje")? | **como foi**, com marcação T2.6 na data; correção de erro de mapeamento sempre vale para todo o período | **como é hoje**: série homogênea, mas o passado muda de valor a cada reorganização do quadro |
 | U-2 | Card que muda de workflow (time) ou de tipo (granularidade): a qual time e granularidade pertence? | a do **instante do evento medido** (entrega para vazão e tempo de ciclo; o dia para WIP e CFD) | sempre a atual do card (simples, mas move a história de um time para outro) |
+| U-3 | Tirar `responsaveis` de `dim_card_versao` (o histórico "quem era responsável quando")? Mantém o nome em `dim_card` e no staging, como decidido em §8 | **sim** (minimização; nenhuma métrica usa; reduz o risco de visão individual) | manter (a decisão §8 do usuário não citou a tabela de versões) |
 
 > **Decidido pelo dono em 2026-10-29 (pedido 052, Q-6; registro literal em `docs/pedidos/052-integracao-businessmap.md`):**
 > - **U-1 = A:** "mudança de processo no quadro mede os cartões anteriores "como foi", com marcação T2.6 na data; correção de erro de mapeamento vale para todo o período."
 > - **U-2 = A:** "card que muda de workflow (time) ou de tipo (granularidade) conta no time e na granularidade do instante do evento medido (entrega para vazão e tempo de ciclo; o dia para WIP e CFD)."
 >
 > As duas seguem a recomendação; o desenho desta ADR não muda. Aplicação: fatias F2 e F4 do plano `docs/architecture/features/052-integracao-businessmap.md`. U-3 não foi perguntada: a ADR 0020 4b (vigente) manteve `responsaveis` em `dim_card_versao`, o que a supera.
-| U-3 | Tirar `responsaveis` de `dim_card_versao` (o histórico "quem era responsável quando")? Mantém o nome em `dim_card` e no staging, como decidido em §8 | **sim** (minimização; nenhuma métrica usa; reduz o risco de visão individual) | manter (a decisão §8 do usuário não citou a tabela de versões) |
 
 Já em aberto e relacionada: I-12 (retenção com o DPO); classificação de cada workflow (`businessmap-estrutura-real.md`, "A confirmar").
 
