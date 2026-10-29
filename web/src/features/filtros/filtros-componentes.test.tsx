@@ -290,6 +290,12 @@ describe('FiltroPeriodo', () => {
 })
 
 describe('BarraFiltros: folha em tela estreita e avisos', () => {
+  it('a barra rola com o conteúdo em todas as larguras: sem classe de fixação (048-03)', async () => {
+    renderizarBarra('/operacional')
+    const barra = await screen.findByTestId('barra-filtros')
+    expect(barra.className).not.toMatch(/sticky/)
+  })
+
   it('a folha mostra a contagem, aplica filtros (uma entrada de histórico), limpa e fecha', async () => {
     const r = renderizarBarra('/operacional?tipo=melhoria')
     const abrir = await screen.findByTestId('abrir-filtros')

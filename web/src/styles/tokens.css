@@ -39,7 +39,6 @@
   --rampa-4-fg: #ffffff;
   --rampa-5-fg: #ffffff;
   --h-cabecalho: 3.5rem;
-  --h-filtros: 0rem;
   --h-indice: 0rem;
 }
 
@@ -102,7 +101,7 @@
     sans-serif;
 }
 
-/* --h-cabecalho, --h-filtros e --h-indice (índice "Ir para", fixo em todas as larguras) são medidos em tempo de execução (useAlturaCss); estes são só o valor inicial.
+/* --h-cabecalho e --h-indice (índice "Ir para", fixo em todas as larguras) são medidos em tempo de execução (useAlturaCss); estes são só o valor inicial.
    Abaixo de 768 px só o índice fica fixo (no topo); o padding é essa altura mais uma folga. */
 html {
   scroll-padding-top: calc(var(--h-indice) + 1rem);
@@ -114,7 +113,7 @@ html {
 
 @media (min-width: 48rem) {
   html {
-    scroll-padding-top: calc(var(--h-cabecalho) + var(--h-filtros) + var(--h-indice) + 1rem);
+    scroll-padding-top: calc(var(--h-cabecalho) + var(--h-indice) + 1rem);
   }
 }
 

@@ -1,7 +1,6 @@
 import { Dialog } from 'radix-ui'
 import { useId, useRef, useState, type ReactNode } from 'react'
 import { Botao, Dica, Icone } from '@/components/ui'
-import { useAlturaCss } from '@/lib/useAlturaCss'
 import type { FiltrosFluxo, FiltrosSustentacao, OpcaoFiltro } from '@metricas-dspd/contratos'
 import { TIPOS_FILTRO } from '@metricas-dspd/contratos'
 import { TIPO_ID } from '@metricas-dspd/contratos'
@@ -127,7 +126,6 @@ export function BarraFiltros({
   const barra = useRef<HTMLDivElement>(null)
   // A folha mobile inteira conta como UMA mudança de histórico: a primeira empilha, as demais substituem.
   const mudouNaFolha = useRef(false)
-  useAlturaCss(barra, '--h-filtros')
   // "Filtros (n)" conta filtros fora do padrão, não valores (Equipe com 3 valores = 1).
   const n = new Set(uso.chips.map((c) => c.chave)).size
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
@@ -174,7 +172,7 @@ export function BarraFiltros({
       />
       <div
         ref={barra}
-        className="z-30 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-borda bg-fundo py-2 md:sticky md:top-[var(--h-cabecalho)]"
+        className="z-30 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-borda bg-fundo py-2"
         data-testid="barra-filtros"
       >
         {inicio}

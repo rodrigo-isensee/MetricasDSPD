@@ -26,7 +26,7 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
   const [atual, setAtual] = useState<string | null>(null)
   const [topo, setTopo] = useState(0)
   const [fixo, setFixo] = useState(false)
-  // Altura medida de tudo o que fica fixo acima do conteúdo: cabeçalho + filtros (só em telas médias) + o próprio índice.
+  // Altura medida de tudo o que fica fixo acima do conteúdo: cabeçalho (só em telas médias) + o próprio índice.
   const [reservado, setReservado] = useState(0)
   const nav = useRef<HTMLElement>(null)
   useAlturaCss(nav, '--h-indice')
@@ -44,15 +44,14 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
     const medir = () => {
       const sticky = !!cab && getComputedStyle(cab).position === 'sticky'
       const alto = sticky ? cab.offsetHeight : 0
-      const filtros = sticky ? parseFloat(raiz.style.getPropertyValue('--h-filtros')) || 0 : 0
       const indice = (nav.current as HTMLElement).offsetHeight
       setFixo(sticky)
       setTopo(alto)
-      setReservado(alto + filtros + indice)
+      setReservado(alto + indice)
     }
     medir()
     window.addEventListener('resize', medir)
-    // --h-filtros e --h-indice mudam quando a barra de filtros ou o índice quebram de linha.
+    // --h-indice muda quando o índice quebra de linha.
     const mut = new MutationObserver(medir)
     mut.observe(raiz, { attributes: true, attributeFilter: ['style'] })
     return () => {
@@ -85,8 +84,8 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
       ref={nav}
       aria-label="Ir para"
       data-testid="indice-secoes"
-      // A BarraFiltros também é sticky logo abaixo do cabeçalho: o índice fica abaixo dela, não sobre ela.
-      style={{ top: fixo ? `calc(${topo}px + var(--h-filtros))` : 0 }}
+      // A barra de filtros rola com o conteúdo (048-03): fixos só o cabeçalho e o índice, logo abaixo dele.
+      style={{ top: fixo ? `${topo}px` : 0 }}
       className="sticky z-30 -mx-1 flex items-center gap-2 overflow-x-auto border-b border-borda bg-fundo px-1 py-1 text-sm"
     >
       <span className="shrink-0 text-texto-2">Ir para:</span>

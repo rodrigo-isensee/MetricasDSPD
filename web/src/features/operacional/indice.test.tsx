@@ -39,13 +39,15 @@ describe('IndiceDeSecoes fixo', () => {
     expect(screen.getByRole('heading', { name: 'Prazos' })).toHaveFocus()
   })
 
-  it('fica abaixo da barra de filtros: o top soma --h-filtros ao cabeçalho fixo', () => {
+  it('fica logo abaixo do cabeçalho fixo: o top é a altura do cabeçalho, sem --h-filtros (048-03)', () => {
     const cab = document.createElement('header')
     cab.style.position = 'sticky'
     document.body.appendChild(cab)
     try {
       render(<IndiceDeSecoes secoes={[['prazos', 'Prazos', ['s2']]]} />)
-      expect(screen.getByTestId('indice-secoes').getAttribute('style')).toContain('--h-filtros')
+      const estilo = screen.getByTestId('indice-secoes').getAttribute('style') ?? ''
+      expect(estilo).not.toContain('--h-filtros')
+      expect(estilo).not.toContain('var(')
     } finally {
       cab.remove()
     }
@@ -56,7 +58,6 @@ describe('IndiceDeSecoes mede o que fica fixo (bugs 048-01 e A4 do QA)', () => {
   afterEach(() => {
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
-    document.documentElement.style.removeProperty('--h-filtros')
     document.documentElement.style.removeProperty('--h-indice')
     document.querySelectorAll('header').forEach((h) => h.remove())
   })
@@ -71,7 +72,7 @@ describe('IndiceDeSecoes mede o que fica fixo (bugs 048-01 e A4 do QA)', () => {
     expect(document.documentElement.style.getPropertyValue('--h-indice')).toBe('')
   })
 
-  it('o rootMargin do observador usa cabeçalho + filtros + índice medidos, não um valor fixo', () => {
+  it('o rootMargin do observador usa cabeçalho + índice medidos, não um valor fixo', () => {
     const margens: string[] = []
     class ObservadorFalso {
       constructor(_cb: unknown, opcoes?: IntersectionObserverInit) {
@@ -89,9 +90,8 @@ describe('IndiceDeSecoes mede o que fica fixo (bugs 048-01 e A4 do QA)', () => {
     const cab = document.createElement('header')
     cab.style.position = 'sticky'
     document.body.appendChild(cab)
-    document.documentElement.style.setProperty('--h-filtros', '136px')
     render(<IndiceDeSecoes secoes={[['prazos', 'Prazos', ['s2']]]} />)
-    // 49 (cabeçalho) + 136 (filtros) + 33 (índice) = 218; antes era topo + 56 = 105.
-    expect(margens.at(-1)).toBe('-218px 0px -60% 0px')
+    // 49 (cabeçalho) + 33 (índice) = 82; a barra de filtros rola e não entra na soma.
+    expect(margens.at(-1)).toBe('-82px 0px -60% 0px')
   })
 })
