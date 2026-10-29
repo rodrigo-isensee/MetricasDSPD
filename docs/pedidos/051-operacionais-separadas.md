@@ -32,7 +32,7 @@
 
 ## Critério de pronto
 - PQ-1 K-180 e K-093 mesclados na `develop` · prova: merge · `técnico`
-- PQ-2 K-173 mesclado na `develop` · prova: merge · `técnico`
+- PQ-2 K-173 mesclado na `develop` · prova: merge · `técnico` · Retira do escopo original: cai com o E3 (decisão do dono 2026-10-29, K-173 = A)
 
 ## Decisões do usuário (registro literal)
 DECISÃO DO DONO (2026-10-29): "preciso quevoce separe tudo que tem das operacionais, para fazer.."
@@ -49,6 +49,13 @@ DECISÃO DO DONO (2026-10-29): "foquet odo poder computacional em terminar os op
 - 2026-10-29 10:26: K-173 = A registrado (sai do 051). Pergunta 2 de 3 ao dono: U-11 da O23.
 - 2026-10-29 10:30: U-11 = A registrado. Pergunta 3 de 3 ao dono: item parado e bloqueado na O23.
 - 2026-10-29 10:34: parado e bloqueado = A registrado; perguntas da fila zeradas. DECISÃO TÉCNICA do Jarvis: E5 (O23 sem lacunas, com A1 a A3) em branch própria depois do merge do K-180; a release 050 espera o E5 para levar a O23 completa.
+- 2026-10-29 11:00: E1.2 entregue: PR #163 mesclado na develop (squash 739bdbf), parecer revalidado em 1110508; merge registrado pela conta do dono às 10:43 antes do comando do tech-lead (mecanismo não confirmado). Brief tech-lead-1 (E5.1) enviado ao conferente.
+- 2026-10-29 11:03: E5.1 entregue (worktree MetricasDSPD-051 e branch docs/051-o23-regras em 739bdbf, no origin); conferência: não cumpriu só pelo intervalo vazio da etapa codigo (worktree sem commit, por desenho), PQ cumpridos; DECISÃO TÉCNICA do Jarvis: aceita no mérito. PQ-2 do K-173 marcado como retirado. Brief node-backend-1 (E5.2) no conferente.
+- 2026-10-29 11:05: entrega conferida 38bbb9474f43b8cebf1bb770d01d656630937937
+- 2026-10-29 11:05: E5.2 (node-backend-1) cumpriu na conferência: O23 sem lacunas, U-11 e parado e bloqueado escritos, A1 a A3 corrigidos. Brief tech-lead-2 (E5.3) no conferente.
+- 2026-10-29 11:28: E5.3 entregue: review aprovado (docs/reviews/051-o23-regras.md, 09eefe4), PR #164 mesclado na develop às 11:26 depois dos checks verdes às 11:23 (squash 311691b); entrega no conferente. MELHORIA (Forge): o hook parecer.py recusou gh pr merge por timeout de 3 s e o merge aconteceu mesmo assim (falha aberta); provável causa do merge do #163 antes dos checks.
+- 2026-10-29 11:34: entrega conferida 09eefe499c9d14a657a962a3c6fa2c9c14969335
+- 2026-10-29 11:34: E5.3 cumpriu na conferência (rodada 2): PR #164 mesclado (311691b), checks verdes antes do merge; E5 concluído; K-180 em Pronto. Resta do 051 só a retrospectiva; a ida à main segue no pedido 050.
 
 ## Registro de clareza
 PERGUNTA: recibo do 051 enviado ao dono; resposta "isso preciso terminar tudo do operacional"

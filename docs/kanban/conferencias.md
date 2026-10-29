@@ -633,3 +633,17 @@
 | 2026-10-29 10:08 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-5 | entrega | 1 | nao cumpriu | s | PQ-1 e PQ-3 a PQ-6 cumpridos no head 7d1a48e; recorte 3db78a9..HEAD so com o Entregar; so Desde por pedido com varias branches; specs do QA sao o Entregar A5 a A7 e voltam ao review na proxima rodada; aceito no merito | base | destino |
 | 2026-10-29 10:16 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-14 | entrega | 1 | não cumpriu (Desde ausente e arquivos de E3.2/E3.3 por base; F9 extraído em web/scripts/f9.mjs, fora do literal) | parcial | aceita no mérito por decisão técnica; o review do E3.4 julga a extração para f9.mjs | base | destino |
 | 2026-10-29 10:26 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-18 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 10:40 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-19 | brief | 1 | aprovado | s | avisos informativos: fonte SNO=C no histórico; instâncias de E5.1 | — | jarvis |
+| 2026-10-29 11:01 | 051-operacionais-separadas | 051-operacionais-separadas-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 11:01 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-19 | entrega | 1 | não cumpriu | parcial | merge 13:43Z antes de build/testes/e2e fecharem (todos SUCCESS depois); sem evento de auto-merge; escopo fora por Desde ausente | etapa | destino |
+| 2026-10-29 11:03 | 051-operacionais-separadas | 051-operacionais-separadas-tech-lead-1 | entrega | 1 | não cumpriu | s | intervalo vazio por desenho (worktree sem commit); PQ cumpridos; push sem -u | etapa | destino |
+| 2026-10-29 11:03 | 051-operacionais-separadas | 051-operacionais-separadas-node-backend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 11:05 | 051-operacionais-separadas | 051-operacionais-separadas-node-backend-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-10-29 11:06 | 051-operacionais-separadas | 051-operacionais-separadas-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 11:30 | 050-release-develop | 050-release-develop-tech-lead-1 | brief | 1 | reprovado | n | molde 037 citado na cópia principal, que está atrás da develop | citacao | jarvis |
+| 2026-10-29 11:30 | 051-operacionais-separadas | 051-operacionais-separadas-tech-lead-2 | entrega | 1 | não cumpriu | s | linha conferida gravada fora do Histórico pelo Jarvis; Desde não aceito; checks verdes antes do merge | escopo | destino |
+| 2026-10-29 11:33 | 050-release-develop | 050-release-develop-tech-lead-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-29 11:34 | 051-operacionais-separadas | 051-operacionais-separadas-tech-lead-2 | entrega | 2 | cumpriu | s |  | — | destino |
+| 2026-10-29 11:37 | 050-release-develop | 050-release-develop-devops-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 11:37 | 050-release-develop | 050-release-develop-security-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 11:37 | 050-release-develop | 050-release-develop-qa-engineer-1 | brief | 1 | aprovado | s | aviso: review com commit da candidata; CHANGELOG depois do parecer (tratar no E1.1) | — | jarvis |

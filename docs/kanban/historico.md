@@ -535,3 +535,8 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-29T08:08:39-03:00 | K-180 | Entrada | Em andamento | aberto para a página da O23 (volta do E3.1) |
 | 2026-10-29T10:26:08-03:00 | K-180 | Em andamento | Aguardando sua validação | 051: PR e merge do K-180 na develop pelo tech-lead (brief tech-lead-18) |
 | 2026-10-29T10:26:37-03:00 | K-173 | Pronto para fazer | Entrada | 051: dono decidiu K-173 = A, fora das operacionais |
+| 2026-10-29T11:03:40-03:00 | K-093 | Em andamento | Pronto | fechado sem código (SNO = C), PR #163 mesclado (739bdbf) |
+| 2026-10-29T11:03:40-03:00 | K-179 | Aguardando sua validação | Pronto | PR #162 mesclado na develop (c292908) |
+| 2026-10-29T11:03:40-03:00 | K-180 | Aguardando sua validação | Em andamento | PR #163 mesclado (739bdbf); E5.2 do 051 (regras da O23) com node-backend |
+| 2026-10-29T11:33:33-03:00 | K-180 | Em andamento | Pronto | PR #164 mesclado na develop (311691b) |
+| 2026-10-29T11:33:33-03:00 | K-181 | Entrada | Em andamento | release 050, E1.0 tech-lead |
