@@ -587,3 +587,8 @@
 | 2026-10-29 05:44 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-11.md | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-29 05:47 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-5.md | brief | 1 | reprovado | s | forge-check 0.30.3 atrás da 0.30.5: conferência não vale até o dono atualizar | ambiente | jarvis |
 | 2026-10-29 05:48 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-11.md | entrega | 1 | não cumpriu | s | PQ-1 a PQ-5 cumpridos; forge-check bloqueado pela versão 0.30.5 e Desde da branch nova | ambiente | destino |
+| 2026-10-29 07:47 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-5.md | brief | 3 | reprovado | s | mensagem com placeholder em vez do texto integral | forma | jarvis |
+| 2026-10-29 07:48 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-11.md | brief | 1 | reprovado | s | mensagem com ponteiro em vez do texto integral | forma | jarvis |
+| 2026-10-29 07:51 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-5.md | brief | 4 | aprovado | s |  | — | jarvis |
+| 2026-10-29 07:51 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-11.md | brief | 2 | aprovado | s | aviso: A4 é do review (2aac602), só rótulo | — | jarvis |
+| 2026-10-29 07:51 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-12.md | brief | 1 | aprovado | s | aviso: terceiro dependente @zenuml/core no lockfile | — | jarvis |
