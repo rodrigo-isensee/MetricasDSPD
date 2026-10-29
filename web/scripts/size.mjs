@@ -3,6 +3,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 import { join } from 'node:path'
+import { calcularF9 } from './f9.mjs'
 
 const dir = new URL('../dist/assets/', import.meta.url).pathname
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8')
@@ -56,11 +57,22 @@ if (x >= limites.exportar || linhas.some((l) => l.tipo === 'exportar' && iniciai
   console.log('F11 FALHOU: chunk acima do orçamento ou no bundle inicial')
   falhou = true
 }
-const m = soma('mock')
+// F9 (ADR 0021 §8): maior caminho baixado (Worker ou processo), nunca a soma dos dois.
+const f9 = calcularF9({ linhas, iniciais, lerCodigo: (f) => readFileSync(join(dir, f), 'utf8') })
+for (const aviso of f9.avisos) console.log(aviso)
+if (f9.worker)
+  console.log(`F9 caminho worker: ${f9.worker.chunks.join(', ')} = ${f9.worker.soma.toFixed(2)} KB`)
+if (f9.processo)
+  console.log(
+    `F9 caminho processo: ${f9.processo.chunks.join(', ')} = ${f9.processo.soma.toFixed(2)} KB`,
+  )
 console.log(
-  `F9 mock + biblioteca: ${m.toFixed(2)} KB (< ${limites.mock}; fora do inicial, alerta de tamanho) ${m < limites.mock ? 'ok' : 'alerta'}`,
+  `F9 mock + biblioteca (maior caminho: ${f9.caminho}): ${f9.max.toFixed(2)} KB (< ${limites.mock}; fora do inicial, alerta de tamanho) ${f9.max < limites.mock ? 'ok' : 'alerta'}`,
 )
-if (linhas.some((l) => l.tipo === 'mock' && iniciais.has(l.f))) {
+console.log(
+  `F9 informativo: soma de todos os chunks mock (medida anterior a 2026-10-29): ${f9.somaTodos.toFixed(2)} KB`,
+)
+if (f9.falhaInicial) {
   console.log('F9 FALHOU: mock no bundle inicial')
   falhou = true
 }
