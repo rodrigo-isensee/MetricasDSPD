@@ -40,6 +40,10 @@
 - E3.1 (forge:tech-lead): PR de proposta no Forge (E3), pela skill `contribuir-com-o-forge`, clone em `~/.forge-contrib/MetricasDSPD`.
 - E4.1 (forge:tech-lead): política do Dependabot no `praticas.md` (E4), com review, QA e PR.
 - E4.2 (forge:tech-lead): revalidar o review `docs/reviews/047-select-timeout.md` (E1, já mesclado no #158) sobre o head da `docs/047-dependabot` (o `forge-check pr` o acusa desatualizado porque o `praticas.md` mudou) e, em seguida, o PR da `docs/047-dependabot` para a develop e o merge (fecho do E4.1).
+- E3.2 (forge:security-engineer): parecer de segurança da branch do E3.1 no clone de contribuição (hooks e `forge-check` são controles do Forge, R-SEGURANCA), antes do E3.5.
+- E3.3 (forge:tech-lead, outra instância): code review da branch do E3.1 (R-REVIEW), antes do E3.2 e do E3.4.
+- E3.4 (forge:qa-engineer): parecer de QA da branch do E3.1 (testes do Forge), antes do E3.5.
+- E3.5 (forge:tech-lead): PR da branch do E3.1 para a develop do Forge, depois do review, da segurança e do QA aprovados; só propor (R-CONTRIB).
 - E5.1 (forge:agile-coach): retrospectiva do pedido em `docs/retrospectivas/2026-10-28-047-pendencias.md`, com as linhas `MELHORIA:`.
 
 ## Fora do escopo
@@ -138,3 +142,6 @@ DECISÃO DO DONO (2026-10-21): comando de pronto, opção A ("A"): durante o des
 - 2026-10-28 17:44: brief tech-lead-15 (E4.2) aprovado na rodada 3 (sha 9b8e362cf4cd44fca2673f856aea21783cfd6c82d8c6578e024079b06e022868) e delegado ao forge:tech-lead (sonnet).
 - 2026-10-28 18:03: E4.2 entregue em parte pelo tech-lead: review revalidado e PR #160 (docs/047-dependabot, head 3250f59aa78b68377e36d941a059c030d71fb7f9) aberto com checks verdes e mergeStateStatus CLEAN; o merge foi recusado pelo hook, que exige o nome da branch em gh pr merge (não o número). DECISÃO TÉCNICA do Jarvis (`técnico`): nova delegação tech-lead-16 só para o merge por nome da branch e a limpeza (branch local e worktree 047c; a remota é do dono). MELHORIA ao Forge: o modelo de brief manda usar o número do PR, mas o hook exige a branch.
 - 2026-10-28 18:05: brief tech-lead-16 (E4.2, merge do PR #160 por nome da branch e limpeza) aprovado pelo conferente na rodada 1 (sha256 2ef8f2f26648cded0eba98df16e3801838d319dc251f9302c2f4be68e8896f91) e delegado ao forge:tech-lead (sonnet).
+- 2026-10-28 21:11: E4.2 entregue pelo tech-lead (brief tech-lead-16): PR #160 mesclado por squash com todos os checks verdes, merge 07f43b97b49b0244763b78ef21396b782e790b59 na develop; worktree 047c e branch local docs/047-dependabot apagadas; a remota fica (ação do dono). Próximo: conferência da entrega (merge-integracao). MELHORIA vista: o brief poderia trazer o PATH no formato `env PATH=...` que o hook aceita.
+- 2026-10-28 21:15: conferência da entrega do E4.2 (tech-lead-16): não cumpriu só pelo escopo do PR (1 linha removida em `docs/reviews/047-select-timeout.md`, trazida pelo commit 3250f59 da revalidação, anterior a esta delegação); PQ-1 a PQ-3 cumpridos (merge 07f43b9 na develop, worktree e branch local apagadas). DECISÃO TÉCNICA do Jarvis: mérito aceito; a linha removida é o `commit:` antigo trocado na revalidação que o hook exigiu, e nada a corrigir. E4 fechado; seguem E3.1 (proposta K-164 ao Forge) e E5.1 (retro).
+- 2026-10-28 21:20: Etapas E3.2 a E3.5 acrescentadas pelo Jarvis (o E3.1 mexe em hook e no `forge-check`, controles do Forge: segurança, review e QA antes do PR, como no pedido 043). O E3.1 passa a ser implementação, commit e push da branch `melhoria/MetricasDSPD-k164-mesma-base` no clone de contribuição, sem PR.

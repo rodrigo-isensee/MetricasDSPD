@@ -71,7 +71,6 @@
 | K-150 | [teste] "reprova: SELECT *" em server/tests/plataforma2.test.ts:269 estoura o timeout de 30 s quando outra suíte pesada roda junto e quebra o pronto | 047 | forge:node-backend | 2026-10-27 | 2026-10-27 17:31 | Dono confirmou (2026-10-28): corrigir sem aumentar timeout nem retry |
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Dono escolheu B (2026-10-28): só propor ao Forge a parte que não afrouxa |
 | K-171 | [forge] Resumo de todos os problemas do Forge vividos no projeto, para o Jarvis do Forge (pedido 046) | 046 | forge:agile-coach | 2026-10-28 | 2026-10-28 13:52 | Recibo enviado ao dono |
-| K-169 | [projeto] PR de dependência (Dependabot) só é mesclado com todos os checks verdes, um por vez | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Dono escolheu A (2026-10-28): um PR do Dependabot por vez, só com todos os checks verdes; falta registrar no praticas.md por PR |
 | K-121 | [docs] 10 documentos antigos de docs/qa e docs/architecture sem frontmatter (ADR 0004) poluem o forge-check docs e escondem achados novos | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 22:25 | Melhoria vista no review do 036 e no QA do 035 |
 | K-120 | [teste] Preview órfão de outra worktree na porta 4173 bloqueia ou serve build errado no test:perf (playwright.config.ts, reuseExistingServer) | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:58 | Melhoria vista do QA no reteste do FA-006 |
 
@@ -98,6 +97,7 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-169 | [projeto] PR de dependência (Dependabot) só é mesclado com todos os checks verdes, um por vez | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 21:15 | Mesclado na develop (PR #160, 07f43b9); política do Dependabot no praticas.md |
 | K-162 | [docs] CLAUDE.md: "enviada" = PR para a develop; push liberado antes do parecer do QA (E3.1) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | PR #157 mesclado pelo dono (d9a7ea0) |
 | K-154 | [ux] Textos da especificação do lote 3: mínimo de 20 do O26 vale sobre as entregas do tipo, não a faixa (A12 do review = A7 do QA); tabela de decisões da §11 (A13); vazio junto de "Amostra insuficiente: 0 de 20" em mock=vazio (A6 do QA, padrão anterior ao lote 3) | 026 | forge:ux-designer | 2026-10-27 | 2026-10-28 11:19 | PR #155 mesclado na develop (4137981) |
 | K-163 | [teste] Trava `flock` na suíte: uma suíte por vez em todas as worktrees (MELHORIA da retro do 041) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 11:16 | PR #156 mesclado na develop (7873c18); falta a retro E1.6 |

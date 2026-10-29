@@ -575,3 +575,5 @@
 | 2026-10-28 18:53 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-10.md | brief | 3 | aprovado | s |  | — | conferente |
 | 2026-10-28 19:15 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-10 | entrega | 1 | não cumpriu | parcial | PQ ok; scroll-padding de tokens.css sem teste de unidade; --desde de outra branch | prova | destino |
 | 2026-10-28 19:17 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-ux-designer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-28 21:15 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-16 | entrega | 1 | não cumpriu | s | PQ-1 a PQ-3 ok; remoção de 1 linha em docs/reviews/047-select-timeout.md vinda da revalidação 3250f59 (commit:) | escopo | destino |
+| 2026-10-28 21:18 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-4.md | brief | 1 | reprovado | parcial | decisões dos pedidos 025 e 041 citados ausentes; pronto antes do commit final | decisao | jarvis |
