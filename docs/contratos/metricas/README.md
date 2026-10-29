@@ -1,6 +1,6 @@
 # Contratos por métrica: índice
 
-Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-27.
+Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-29.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
@@ -77,3 +77,7 @@ Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais,
 | [`TENDENCIA_FLUXO`](TENDENCIA_FLUXO.md) | - | businessmap | `/api/v1/metricas/TENDENCIA_FLUXO` | story | 20 | ok |
 | [`TENDENCIA_SUST`](TENDENCIA_SUST.md) | - | acelerato | `/api/v1/metricas/TENDENCIA_SUST` | chamado | 20 | ok |
 <!-- gerado:fim -->
+
+## Bloco sem rota própria
+
+- [`O23`](O23.md): estoque parado dentro do WIP. Não é uma métrica da API: é o campo `parados` do resultado do O2. Página escrita à mão, fora da tabela gerada acima.
