@@ -225,7 +225,7 @@ Opções (rádio, uma por vez): `Últimas 4 semanas` · `Últimas 12 semanas` ·
 - Controle: botão com rótulo visível "Equipe: Todas ▾" que abre um popover com lista de caixas de seleção (`checkbox`), botão "Limpar" e "Fechar". Esc fecha e devolve o foco ao botão. Clique fora fecha.
 - Aplica na hora a cada marcação; a região `aria-live="polite"` anuncia "Filtros atualizados. Equipe: Protheus e Fluig."
 - Ordem na barra: Equipe, Tipo de demanda, Sistema, Período; depois "Limpar filtros".
-- Barra fixa ao rolar (sticky) em ≥768px; altura ≤ 64px; `scroll-padding-top` iguala a altura do cabeçalho + barra para o foco nunca ficar escondido (WCAG 2.4.11). Em <768px a barra não é fixa e se resume ao botão "Filtros (2)" que abre uma folha (diálogo) com os mesmos controles e o botão "Ver resultados".
+- (decisão 048-03, 2026-10-29, opção A) Em ≥768px a barra **não é fixa**: rola com o conteúdo; ficam fixos só o cabeçalho e o índice "Ir para". O `scroll-padding-top` iguala a altura do cabeçalho + a do índice para o foco nunca ficar escondido (WCAG 2.4.11). Em <768px a barra também não é fixa e se resume ao botão "Filtros (2)" que abre uma folha (diálogo) com os mesmos controles e o botão "Ver resultados".
 - Abaixo da barra, **chips dos filtros ativos** ("Equipe: Protheus ✕", "Período: Últimas 4 semanas ✕"). Cada chip tem botão de remover com rótulo "Remover filtro Equipe: Protheus". Só aparecem filtros fora do padrão.
 - **Limpar filtros:** botão visível apenas se algum filtro estiver fora do padrão; volta tudo ao padrão do painel (inclusive período) e anuncia "Filtros limpos."
 - Mudar filtro atualiza a URL com `history.pushState` (o botão Voltar desfaz a última mudança). Mudar vários filtros dentro do mesmo popover conta como uma mudança só.
@@ -805,7 +805,7 @@ Checklist marcável por cartão: `docs/ux/checklist-cartao.md`.
 |---|---|
 | `AppShell` | Cabeçalho, navegação, selo "Dados fictícios", tema, ajuda, link "Pular para o conteúdo", rodapé com aviso. |
 | `CabecalhoPainel` | `h1`, pergunta central, "Dados até", fonte, "Copiar link". |
-| `BarraFiltros` + `FiltroMulti` + `FiltroPeriodo` + `ChipsFiltros` | Seção 2. Sticky ≥768px; folha em <768px. |
+| `BarraFiltros` + `FiltroMulti` + `FiltroPeriodo` + `ChipsFiltros` | Seção 2. Rola com o conteúdo em ≥768px (sem sticky; decisão 048-03, 2026-10-29); folha em <768px. |
 | `SeletorCadencia` | Grupo de rádio segmentado "Diária / Semanal" (`role="radiogroup"`); altera `cadencia` na URL e o conteúdo; o foco permanece no seletor. |
 | `FaixaAtencao` | Lista de alertas com ícone, texto e link de âncora. Vazio: "Nada pede atenção agora." Nunca esconde alertas por cor. |
 | `CartaoMetrica` | Anatomia 4.0. Variantes: `padrao`, `compacto` (EI, Visão geral). Contém `figure`, `figcaption`, tabela alternativa, nota, base, rodapé e estados. |
@@ -1020,7 +1020,7 @@ O parâmetro oculto `mock` na URL força estados. Não aparece na interface (nem
 - Tudo operável por teclado; ordem de foco = ordem visual = ordem de leitura; sem armadilhas (WCAG 2.1.2).
 - Popovers de filtro: Enter/Espaço abrem, Tab percorre as opções, Esc fecha e devolve o foco; sem arrastar nada (2.5.7); datas com `input type="date"` ou campo digitável.
 - Gaveta e folha de filtros: diálogos modais (`role="dialog"`, `aria-modal`), foco preso, Esc fecha, foco volta ao disparador.
-- Barra de filtros sticky e cabeçalho não podem cobrir o elemento focado (`scroll-padding-top`, WCAG 2.4.11).
+- O cabeçalho e o índice "Ir para" (únicos elementos fixos; a barra de filtros rola com o conteúdo, decisão 048-03, 2026-10-29) não podem cobrir o elemento focado (`scroll-padding-top` = altura do cabeçalho + a do índice, WCAG 2.4.11).
 - Abas (`SeletorLocal`): setas entre abas; Tab sai para o conteúdo.
 - Atalhos de teclado de uma tecla: **não usar** (2.1.4).
 - Nada atualiza sozinho nem se move (2.2.2); sem polling.
@@ -1030,8 +1030,8 @@ O parâmetro oculto `mock` na URL força estados. Não aparece na interface (nem
 | Largura | Layout |
 |---|---|
 | <640 | Uma coluna; barra de filtros vira botão "Filtros (n)" com folha; navegação em gaveta; cartões com gráfico em largura total e altura mínima 240 px; tabelas rolam na horizontal (`tabindex="0"`, rótulo "Tabela de {título}, role para os lados") com primeira coluna fixa; pequenos múltiplos de O7 empilhados; histogramas lado a lado do O10 empilham (cliente depois time, com o mesmo eixo x). |
-| 640–767 | Uma coluna; KPIs em 2 colunas; ainda sem barra sticky. |
-| 768–1023 | Barra de filtros sticky em linha; cartões de largura total; O2 gráfico acima da lista; navegação em gaveta. |
+| 640–767 | Uma coluna; KPIs em 2 colunas; barra de filtros como botão "Filtros (n)" com folha. |
+| 768–1023 | Barra de filtros em linha, rolando com o conteúdo (só cabeçalho e índice fixos; decisão 048-03, 2026-10-29); cartões de largura total; O2 gráfico acima da lista; navegação em gaveta. |
 | 1024–1279 | Grade de 12 colunas conforme a seção 3; navegação horizontal. |
 | ≥1280 | Mesma grade com largura máxima de 1440 px centralizada; gráficos ganham altura, não mais colunas. |
 - Reflow sem rolagem horizontal da página em 320 px (1.4.10); texto escalável até 200% sem perda de conteúdo; espaçamento de texto (1.4.12) sem sobreposição; sem bloqueio de orientação.
@@ -1210,7 +1210,7 @@ Convenção de identificadores para teste (`data-testid`): `painel-{slug}`, `fil
 ### Acessibilidade
 94. Todas as telas passam em axe com **zero violações sérias ou críticas** nos temas claro e escuro. Violações moderadas e menores são relatadas pelo QA e corrigidas quando viável; não bloqueiam a entrega, mas cada uma não corrigida precisa de justificativa registrada (critério 111).
 95. O contraste de texto é ≥ 4,5:1 e de elementos de interface e marcas de gráfico é ≥ 3:1, nos dois temas.
-96. Todo o sistema é operável só por teclado; o foco é sempre visível (contorno de 2 px), a ordem de foco é a ordem visual e o elemento focado nunca fica coberto pela barra sticky.
+96. Todo o sistema é operável só por teclado; o foco é sempre visível (contorno de 2 px), a ordem de foco é a ordem visual e o elemento focado nunca fica coberto pelo cabeçalho nem pelo índice "Ir para", os únicos fixos (a barra de filtros rola com o conteúdo; decisão 048-03, 2026-10-29).
 97. Todo gráfico tem `figure`, `figcaption`, frase de leitura e o botão "Ver como tabela" que mostra uma tabela equivalente com `caption` e `th scope`.
 98. Status e séries nunca dependem só de cor: há ícone, texto, padrão ou rótulo.
 99. Popovers e tooltips fecham com Esc e não somem ao passar o ponteiro sobre eles; gaveta e folha de filtros prendem e devolvem o foco.
