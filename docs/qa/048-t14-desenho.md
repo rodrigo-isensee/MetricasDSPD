@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: docs/048-t14-desenho
-commit: 4497268f36749b17c4b0928f3660551654fa11d4
+commit: aae3901aa2d79bcad10001ec2305a1471447aee1
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -85,3 +85,9 @@ A1 a A5 eram defeitos de entrega que o `pronto` pegou; o QA os corrigiu neste co
 ## Regravação
 
 - 2026-10-28: regravado inteiro pela ferramenta Write para o registro de autoria do papel qa (R-QA); nada mudou no mérito.
+
+## Revalidação
+
+- 2026-10-28: head `aae3901`. `pnpm run pronto` completo, rc=0 no head (cobertura 100%, docs:check ok).
+- Delta conferido, `4497268..aae3901` (19 arquivos): nada em `packages/`, `e2e/` nem em código ou teste da T14. Vieram da `develop` e de documentação: `.github/workflows/homolog.yml` (portão do 047), `server/tests/plataforma2.test.ts` (aquecimento do lint, K-150, fora da T14), `CLAUDE.md` e `praticas.md` (texto), pareceres de outros pedidos (026 e 047), revisão de UX (`docs/ux/revisao-048-t14.md`), aprovação do arquiteto no plano técnico e a revalidação do review.
+- Veredito inalterado (aprovado): o que testei (T14, contrato por `oculto`, mock) não mudou, e o `pronto` verde no head confirma que a integração com a `develop` não o quebrou.
