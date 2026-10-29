@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 050-release-develop
 branch: docs/promocao-2026-10-29
-commit: 311691bace0582d80ea06ffc12f20096f1248b87
+commit: 6aa0ac38c35e8298f50511077527368b53ca08f7
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-29
@@ -53,6 +53,14 @@ Nada de segurança novo identificado no diff dos PRs; o parecer de segurança da
 
 ## Rollback
 Pelo §9 do fluxo: cada promoção é um merge commit único; reverter é `git revert -m 1 <merge da promoção>` por PR (para `develop`, depois `homolog`), nunca reset nem force. Sem migração, não há reversão de esquema nem de dado. Reversão parcial é possível por PR, porque cada um entrou como squash único: #152 (painel O19 a O26), #161 (T14) e #147 (`react-router`) são os mais prováveis. Atenção: o #153 e o #154 se apoiam (o `ci.yml` de um depende do outro), então se revertem juntos.
+
+## Versão 0.2.0
+
+A candidata passa a ser `6aa0ac38c35e8298f50511077527368b53ca08f7` (a `develop` em `311691bace0582d80ea06ffc12f20096f1248b87` mais `CHANGELOG.md` e `package.json`). Li só esses dois arquivos do commit da versão.
+
+- `CHANGELOG.md` (arquivo novo): traz as seções do §8 (Adicionado, Corrigido, Desempenho, Mudanças que quebram, Mudanças de critério de cálculo, Dependências e Forge). A mudança que quebra é a da T14: `resultadoT14` vira união discriminada por `oculto`, aceita pelo dono (T14-M1 = B, Q-T14-12 = B) e sem consumidor publicado. A mudança de critério de 2026-10-28 (T14: `total`, `base.n` e `base.complemento.n` somam só os times visíveis) está datada e bate com o risco já registrado neste parecer. Os PRs citados (#145 a #164) conferem com a tabela acima.
+- `package.json`: só o campo `version`, de `0.1.0` para `0.2.0`; nenhuma dependência nem script mudou.
+- Já lido, sem releitura: todo o resto do diff, coberto pelo parecer da abertura. O veredito não muda.
 
 ## Parecer
 Aprovado. Os 20 PRs têm review aprovado (ou diff lido, no caso dos três Dependabot e do registro do Forge). Segue para a versão `0.2.0` e o CHANGELOG (E2), depois para os pareceres de QA, devops e segurança, e então para o PR `docs/promocao-2026-10-29` na `develop` e o PR `develop` para `homolog`.
