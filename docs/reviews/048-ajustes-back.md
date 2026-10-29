@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: feature/048-ajustes-back
-commit: d9979ee8a2fe742d647738ce73cda4b42cee9e9d
+commit: 95aa669e9ed6415de89d805c2b18e1519e0796dc
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-29
@@ -12,6 +12,8 @@ data: 2026-10-29
 # Code review: página de contrato da O23 (048, E3.1, cartão K-180)
 
 Intervalo revisado: `7c94348b9bdc12850f40bad00cd38669ba8cc0e5..d9979ee8a2fe742d647738ce73cda4b42cee9e9d` (commits 6e917a2 e d9979ee). Dois arquivos, só documentação: `docs/contratos/metricas/O23.md` (novo) e `docs/contratos/metricas/README.md` (entrada manual e data de revisão). Sem código nem teste: teto da M14 não se aplica (0 linhas contadas). O K-093 não teve código e o K-129 está fora desta branch.
+
+Revalidação (2026-10-29): delta 45991e4..95aa669 lido com git diff --stat: merge sem conflito da develop (c292908), só .forge/versao, docs/qa/049-forge-0-30-5.md e docs/reviews/049-forge-0-30-5.md; nada da entrega mudou, e O23.md e README.md seguem como em d9979ee (já lido). Parecer mantido: aprovado.
 
 ## Comandos
 - `pnpm run pronto` (inclui `docs:check`) em d9979ee: verde, relatado pelo autor. Não rodado de novo neste review, por decisão do brief (uma suíte por vez; review por leitura do diff).
