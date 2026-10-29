@@ -533,3 +533,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-29T07:44:56-03:00 | K-179 | — | Em andamento | pedido 049 |
 | 2026-10-29T08:04:05-03:00 | K-179 | Em andamento | Aguardando sua validação | PR 162 aberto e conferido; merge do dono |
 | 2026-10-29T08:08:39-03:00 | K-180 | Entrada | Em andamento | aberto para a página da O23 (volta do E3.1) |
+| 2026-10-29T10:26:08-03:00 | K-180 | Em andamento | Aguardando sua validação | 051: PR e merge do K-180 na develop pelo tech-lead (brief tech-lead-18) |
+| 2026-10-29T10:26:37-03:00 | K-173 | Pronto para fazer | Entrada | 051: dono decidiu K-173 = A, fora das operacionais |
