@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 050-release-develop
 branch: develop
-commit: 311691bace0582d80ea06ffc12f20096f1248b87
+commit: 6aa0ac38c35e8298f50511077527368b53ca08f7
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -17,7 +17,9 @@ data: 2026-10-29
 
 Propósito: dar o parecer de QA da candidata `develop` (`311691bace0582d80ea06ffc12f20096f1248b87`) à `homolog`, critério de promoção do `docs/engineering/fluxo-homologacao.md` §4, para a release que leva as operacionais O19 a O26 à `main`. Esta etapa é de conferência dos pareceres e da CI: não rodei suíte local (a CI do PR de promoção e o portão da `homolog` rodam a suíte completa, o E2E e o `perf`).
 
-**Parecer: aprovado.** Os 20 PRs de `origin/homolog..origin/develop` (#145 a #164) estão cobertos: 12 têm parecer de QA aprovado, sem bug crítico, alto, médio nem baixo aberto; 8 são isentos de parecer de QA pelo motivo dado na tabela (Dependabot, registro do Forge ou só documentação). A CI do push na `develop` no head `311691b` está `success`. Nenhuma ressalva aberta.
+**Parecer: aprovado.** Os 20 PRs de `origin/homolog..origin/develop` (#145 a #164) estão cobertos: 13 têm parecer de QA aprovado, sem bug crítico, alto, médio nem baixo aberto; 7 são isentos de parecer de QA pelo motivo dado na tabela (Dependabot, registro do Forge ou só documentação). A CI do push na `develop` no head `311691b` está `success`. Nenhuma ressalva aberta.
+
+Volta E1.6: a candidata passa a ser o commit da versão `6aa0ac38c35e8298f50511077527368b53ca08f7`, que sobre a `develop` `311691b` só acrescenta `CHANGELOG.md` e muda o `version` do `package.json` (mais o parecer de review em `docs/reviews/`), sem código; o veredito não muda e não rodei suíte.
 
 ## Achados
 (nenhum)
