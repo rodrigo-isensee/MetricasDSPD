@@ -8,5 +8,14 @@ import type { Pedido } from './protocolo'
 const estado: EstadoWorker = {}
 
 self.onmessage = (e: MessageEvent<Pedido>) => {
-  void tratarPedido(estado, e.data).then((resposta) => self.postMessage(resposta))
+  const { id } = e.data
+  void tratarPedido(estado, e.data).then((resposta) => {
+    try {
+      self.postMessage(resposta)
+    } catch (erro) {
+      // Resposta que não atravessa o clone (DataCloneError): sem isto o pedido ficaria pendente para sempre (ADR 0021 §2).
+      const e = erro instanceof Error ? erro : new Error(String(erro))
+      self.postMessage({ id, ok: false, erro: { nome: e.name, mensagem: e.message } })
+    }
+  })
 }

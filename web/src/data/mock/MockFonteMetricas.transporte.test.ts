@@ -197,6 +197,8 @@ describe('opções parciais', () => {
   })
 })
 
+const FalsoLancou = { feito: false }
+
 describe('invólucro do Worker', () => {
   it('responde cada pedido pelo postMessage, com o mesmo id', { timeout: 40000 }, async () => {
     const enviados: unknown[] = []
@@ -211,5 +213,45 @@ describe('invólucro do Worker', () => {
     await vi.waitFor(() => expect(enviados).toHaveLength(2), { timeout: 15000 })
     expect(enviados[1]).toStrictEqual({ id: 2, ok: true, valor: '2026-10-09' })
     self.onmessage = null
+  })
+
+  it.each([
+    [
+      'Error',
+      Object.assign(new Error('não clonável'), { name: 'DataCloneError' }),
+      'DataCloneError',
+      'não clonável',
+    ],
+    ['valor que não é Error', 'texto solto', 'Error', 'texto solto'],
+  ])(
+    'postMessage que lança (%s) responde { id, ok: false, erro } e o pedido não fica pendente (K-126)',
+    async (_rotulo, lancado, nome, mensagem) => {
+      vi.resetModules()
+      const enviados: unknown[] = []
+      vi.spyOn(self, 'postMessage').mockImplementation(((m: unknown) => {
+        if (enviados.length === 0 && !FalsoLancou.feito) {
+          FalsoLancou.feito = true
+          throw lancado as Error // o valor solto também precisa chegar ao catch do invólucro
+        }
+        enviados.push(m)
+      }) as never)
+      FalsoLancou.feito = false
+      await import('./nucleoMock.worker')
+      const onmessage = self.onmessage as unknown as (e: { data: Pedido }) => void
+      onmessage({ data: { id: 7, metodo: 'criterios', args: [] } })
+      await vi.waitFor(() => expect(enviados).toHaveLength(1))
+      expect(enviados[0]).toStrictEqual({ id: 7, ok: false, erro: { nome, mensagem } })
+      self.onmessage = null
+    },
+  )
+})
+
+describe('pedido antes do iniciar (K-126)', () => {
+  it('vira erro explícito, não TypeError genérico', async () => {
+    expect(await tratarPedido({}, { id: 3, metodo: 'criterios', args: [] })).toStrictEqual({
+      id: 3,
+      ok: false,
+      erro: { nome: 'Error', mensagem: 'núcleo do mock não iniciado' },
+    })
   })
 })
