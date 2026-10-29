@@ -524,3 +524,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-28T22:39:42-03:00 | K-164 | Em andamento | Bloqueado | Aguardando o dono: push barrado pelo pre-push da fábrica (testes que exigem terminal humano) |
 | 2026-10-29T05:40:22-03:00 | K-112 | Aguardando sua validação | Pronto | PR 161 mesclado na develop (7c94348) |
 | 2026-10-29T05:40:22-03:00 | K-130 | Aguardando sua validação | Pronto | PR 161 mesclado na develop (7c94348) |
+| 2026-10-29T05:46:55-03:00 | K-178 | nenhuma | Entrada | Alerta crítico do Dependabot #12 (dompurify); espera o dono |
