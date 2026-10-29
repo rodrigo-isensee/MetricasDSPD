@@ -1,12 +1,12 @@
 # 0021 - Cálculo do mock em Web Worker
 
-Estado: proposta. Data: 2026-10-16.
+Estado: vigente desde 2026-10-29 (proposta em 2026-10-16; implementada na `develop` pelo pedido 037, PR #139). Data: 2026-10-16.
 Propósito: tirar da thread principal a geração da base mock, a montagem dos contextos e o cálculo das métricas, para que o C6 (ADR 0003) fique dentro do orçamento com folga. Público: react-frontend, tech-lead, qa-engineer, devops-engineer, node-backend. Revisão: no passo 2 do parecer `docs/architecture/notas/c6-011.md` (depois das medições 1a e 1b) e de novo na entrega da `fix/c6-mock-em-worker`.
 
 - Origem: parecer `docs/architecture/notas/c6-011.md`, seção "Decisão com medições" (passo 1c); achado B11c-1 do review `docs/reviews/011-back.md`.
 - Relacionadas: ADR 0003 (C2, C6, F5, F9 e o remédio "mover geração e cálculo para Web Worker atrás da `MockFonteMetricas`"), ADR 0001 (stack do front), ADR 0002 (monorepo), ADR 0011 (biblioteca única de cálculo).
 - **Não altera a ADR 0003.** Ela já prevê o Worker como remédio. Nenhum limite muda.
-- **Condição para passar a `vigente`:** a sonda 1b (C6 do projeto `perf-api`) dar mediana < 170 ms em `/` e em `/operacional?cadencia=diaria`. Ver "Dependências" no fim da Decisão.
+- **Condição para passar a `vigente`:** a sonda 1b (C6 do projeto `perf-api`) dar mediana < 170 ms em `/` e em `/operacional?cadencia=diaria`. Ver "Dependências" no fim da Decisão. **Cumprida** (sonda S0 de 2026-10-20 e pronto de 2026-10-21; ver "Leituras" e a seção 9).
 
 ## Contexto
 O C6 (maior tarefa longa na thread principal durante o cálculo) tem orçamento de 200 ms e bloqueia a entrega via F3/F5. As medições de 2026-10-16 (mediana de 3 rodadas × 5 cargas, 2 execuções, load de 2 a 5, latência simulada 0):
@@ -75,7 +75,7 @@ O `react-frontend` define a forma exata. O `tech-lead` recusa o review sem os qu
 | **C2** | Nenhum efeito direto: o gerador não muda, e o C2 é medido no Vitest/Node, fora do navegador. O custo de geração dentro do Worker passa a pesar no tempo até o primeiro cartão, não no C6. | O teste do gerador em `packages/mock`, como hoje (< 1,5 s), e o C1 no Node (< 500 ms). Informativo: o Worker devolve, na resposta ao `iniciar`, a duração da geração e dos contextos medida com `performance.now()` dentro dele, e o QA registra o valor. | C2 < 1,5 s e C1 < 500 ms, sem mudança. O tempo de boot no Worker é registrado, não bloqueia. |
 | **F5** | Cada troca de filtro ganha uma ida e volta de mensagem e um *structured clone* (DTO < 50 KB, A3). Custo esperado: alguns ms. O cálculo deixa de disputar a thread com o render. | `perf.spec.ts` (F4/F5), como hoje. | p95 igual ou melhor que a faixa atual da branch (507 a 533 ms). O F5 acima de 500 ms é anterior ao 011 e não é objeto desta ADR. |
 | **F1/F10** | O LCP não deve piorar. O chunk do Worker é baixado na primeira chamada, como o `import()` de hoje. | Lighthouse local nas 8 rotas, inclusive `/operacional?cadencia=semanal`. Na CI, o Lighthouse do job `perf`. | F10 ≥ 90 nas rotas que já passam. A semanal depende de 1a (abaixo). |
-| **F6/F9** | O inicial não muda. O mock e a biblioteca passam a ser dependências do chunk do Worker. | `pnpm --filter web size` (`web/scripts/size.mjs`): o chunk do Worker é classificado como mock (F9) e nunca como inicial (F6). | F6 < 200 KB sem aumento além do RPC (< 2 KB gzip). F9 dentro do limite. |
+| **F6/F9** | O inicial não muda. O mock e a biblioteca passam a ser dependências do chunk do Worker. | `pnpm --filter web size` (`web/scripts/size.mjs`): o chunk do Worker é classificado como mock (F9) e nunca como inicial (F6). O F9 é medido pelo maior caminho baixado, Worker ou processo, nunca pela soma dos dois (seção 8). | F6 < 200 KB sem aumento além do RPC (< 2 KB gzip). F9 dentro do limite (< 120 KB, alerta, sem mudança). |
 
 ### 6. Impacto no E2E e no modo API
 - **E2E mock** (`VITE_MOCK_LATENCIA=0` local, latência ligada na CI): no Chromium real, o Worker é usado. Os testes que dependem de ordem de chegada precisam esperar o estado final (`data-estado`), não o tempo: a resposta passa a chegar em outra tarefa. Projetos WebKit e celular/tablet suportam Worker de módulo, e não há fallback para eles. O build continua um só: nenhuma variável `VITE_*` nova é obrigatória.
@@ -87,6 +87,37 @@ O `react-frontend` define a forma exata. O `tech-lead` recusa o review sem os qu
 - Uma `fix/c6-mock-em-worker` a partir da `develop`, sem o 011, criada pelo `tech-lead` depois do passo 2. O 011 faz rebase sobre ela e herda o Worker: o B11a passa a rodar dentro dele.
 - O commit `6d64255` (a1) não é levado: com o Worker, ele não tem função.
 - A API `gerarBaseMockEmFases()` (a2) fica em `ref/c6-gerador-em-fases`, sem PR. Volta só se for preciso informar progresso por fase de dentro do Worker.
+
+### 8. Como o F9 mede o mock com dois caminhos alternativos (2026-10-29, pedido 048, K-127)
+Origem: achado A3 do review `docs/reviews/037-c6-operacional.md` e A2 do parecer `docs/qa/037-c6-operacional.md`. O `size.mjs` somava o chunk do Worker (71,93 KB) e o do fallback em processo (45,42 KB) e chegava a 117,35 de 120 KB. Só um dos dois é baixado numa mesma sessão: o Worker quando `typeof Worker !== 'undefined'`, o fallback quando não há Worker (seção 4). Assim a soma media um download que nunca acontece e daria alerta falso na próxima engorda.
+
+**Regra:** o F9 é o peso do **maior caminho baixado**, `F9 = max(caminho Worker, caminho processo)`. O limite (< 120 KB gzip, alerta) e a falha por mock no inicial (bloqueia) **não mudam**. O ADR 0003 define o F9 como "chunk do mock + biblioteca, fora do inicial, por `import()` dinâmico", ou seja, o que o navegador baixa sob demanda para ter o mock. A soma de caminhos excludentes não é esse valor, e o maior caminho é o pior caso real. É correção de medida, não afrouxamento.
+
+O que o `web/scripts/size.mjs` calcula (E3.4, `react-frontend`):
+1. **Raízes.** Raiz Worker: o chunk de entrada do Worker (hoje `nucleoMock.worker-*.js`). Raiz processo: o chunk do fallback em processo (hoje `nucleoMock-*.js`, sem `.worker`). Os nomes ficam em constantes no topo do script, com comentário que cita esta seção.
+2. **Fecho de cada caminho.** A partir de cada raiz, segue os imports **estáticos e dinâmicos** para arquivos de `dist/assets` (`import … from "./x.js"`, `export … from "./x.js"`, `import("./x.js")`), até fechar. Seguir também os dinâmicos é a escolha conservadora: conta tudo o que o caminho pode baixar.
+3. **Soma de cada caminho:** gzip de todo chunk do fecho, **exceto os que estão no `index.html`** (já pagos no F6). Um chunk compartilhado pelos dois caminhos conta nos dois.
+4. **Órfãos:** chunk classificado `mock` que não está em nenhum dos dois fechos entra na soma **dos dois** caminhos (nunca some da conta).
+5. **Fallback de segurança:** se alguma raiz não for encontrada (renomeação, mudança do build), o F9 volta a ser a soma de todos os chunks `mock`, como antes, e o script imprime `F9 aviso: raiz <worker|processo> não encontrada; medindo pela soma (conservador)`. O F9 nunca fica menor por falha de classificação.
+6. **Falha por inicial:** continua `F9 FALHOU: mock no bundle inicial` quando um chunk `mock` está no `index.html`, e passa a valer também quando uma das raízes está no `index.html`. O tamanho continua só alerta (código de saída inalterado).
+
+O que o script imprime (no lugar da linha F9 de hoje):
+```
+F9 caminho worker: <chunk>, <chunk>, … = <W> KB
+F9 caminho processo: <chunk>, <chunk>, … = <P> KB
+F9 mock + biblioteca (maior caminho: <worker|processo>): <max> KB (< 120; fora do inicial, alerta de tamanho) <ok|alerta>
+F9 informativo: soma de todos os chunks mock (medida anterior a 2026-10-29): <S> KB
+```
+A linha informativa mantém a série histórica comparável. Chunks do fecho que não são do tipo `mock` aparecem na lista com o tipo entre parênteses (por exemplo `contratos-ab12.js (rota)`), para o review ver o que entrou.
+
+**Pronto do E3.4:** na `develop` de hoje, o caminho Worker fica perto de 71,93 KB e o processo perto de 45,42 KB, mais o que for compartilhado. O `react-frontend` cola as quatro linhas no relatório. O QA confere que a soma informativa bate com a medida anterior (117,35 KB, ou o vigente da branch).
+
+**Critério de reversão desta regra:** um build em que o navegador baixe os dois caminhos na mesma sessão (por exemplo, o fallback passa a ser carregado também com Worker presente, visto na aba de rede do E2E de transporte). Nesse caso o F9 volta à soma.
+
+### 9. Estado e leitura de 2026-10-29 (achado A4 do review do 037)
+- **Divergência na proposta `docs/architecture/propostas/037-c6-operacional.md`:** a §4 dizia que o estado muda "no mesmo commit da implementação", e a §6 (ordem 6) que muda pelo arquiteto depois do pronto. **Vale a §6.** O estado de uma ADR é decisão do arquiteto, tomada sobre leitura medida; o commit da implementação não tinha o pronto do QA nem o review. A §4 fica superada por esta leitura (a proposta é histórica e não é reeditada).
+- **Por que `vigente` agora:** as duas condições foram cumpridas e medidas. S0 (2026-10-20, `docs/qa/bugs/C6-operacional-playwright-1-64.md`): C6 do `perf-api` com mediana 0 ms em `/` e em `/operacional?cadencia=diaria` (< 170) e pior caso de 113 ms em `/operacional` (< 120). Pronto (2026-10-21, `docs/qa/037-c6-operacional.md`, parecer aprovado em 35bfd72): C6 do mock com o Worker em 0 ms de mediana nas 7 rotas e nas 2 execuções, máximo 111 ms, contra 213 a 287 ms na `develop` sem o Worker. Review aprovado (`docs/reviews/037-c6-operacional.md`). A entrega entrou na `develop` (PR #139) e foi promovida a `homolog` (`docs/reviews/037-promocao-2026-10-23.md`).
+- **Ressalva:** nenhuma medição teve load < 2 durante a execução inteira (registrado nos dois pareceres). O critério de reversão continua de pé e é reavaliado na próxima medição de C6 com load < 2.
 
 ### Dependências (passo 2 do parecer)
 - **1b, sonda do teto (`qa-engineer`):** mediana do C6 no `perf-api` < 170 ms nas duas rotas → esta ADR passa a `vigente`. Se der ≥ 170 ms, o gargalo é o render: esta ADR fica `proposta`, o parecer é reaberto com a opção (c) (render fatiado ou adiado dos gráficos) e nenhum código do Worker é escrito. O perfil do navegador da mesma tarefa precisa confirmar que a tarefa de 500 a 630 ms é de cálculo ou de coleta de lixo da base, e não de render.
@@ -105,7 +136,7 @@ O `react-frontend` define a forma exata. O `tech-lead` recusa o review sem os qu
 ## Consequências
 - **Melhora:** o C6 do mock deixa de depender do tamanho da base. A fase 2 do 011 pode engordar a base sem reabrir o C6, mas continua medindo o C2 e o tempo até o primeiro cartão. Os picos de 500 a 630 ms saem da thread principal, e o F3/INP fica protegido durante a carga. Pelo item 1a, o #90 pode ser coberto.
 - **Piora:** há um módulo a mais (núcleo, invólucro e RPC) e dois caminhos de transporte para manter iguais (Worker e processo). Depurar o cálculo no navegador passa a exigir o contexto do Worker no DevTools. Cada resposta paga um *structured clone*, e a memória da base passa a ficar no heap do Worker: o C5 tem de somar os dois heaps.
-- **A manter:** os testes de paridade a cada mudança de DTO; a regra "nada de `blob:` ou inline" por causa da CSP; a classificação do chunk do Worker no `size.mjs`; e todo método novo da `FonteMetricas` que leia a base precisa entrar no núcleo, nunca na thread principal.
+- **A manter:** os testes de paridade a cada mudança de DTO; a regra "nada de `blob:` ou inline" por causa da CSP; a classificação do chunk do Worker no `size.mjs` e a medida do F9 pelo maior caminho (seção 8); e todo método novo da `FonteMetricas` que leia a base precisa entrar no núcleo, nunca na thread principal.
 - **Riscos:**
   - **Render como gargalo** (bug 008: render síncrono dos gráficos). A sonda 1b decide antes do código.
   - **DTO com tipo que não é dado simples.** Os itens 2 e 4 da paridade pegam.
@@ -127,5 +158,6 @@ Ceder só reordena trabalho que continua na mesma thread. A tarefa de 500 a 630 
 | Data | Medida | Veredito (manter, ajustar, reverter) |
 |---|---|---|
 | 2026-10-16 | Sem Worker. C6 na `develop`: `/` 312/214 ms e `/operacional?cadencia=diaria` 232/197 ms. Com (a1): 242/253 e 253/207 ms. Máximos de 500 a 630 ms. Load de 2 a 5. | pendente (1a e 1b) |
-| — | 1b: C6 do `perf-api` (teto do Worker), `/` e `/operacional?cadencia=diaria` | pendente |
-| — | Pronto da `fix/c6-mock-em-worker`: C6 do mock com o Worker, 2 execuções | pendente |
+| 2026-10-20 | 1b (S0 do pedido 037): C6 do `perf-api`, 3 execuções: `/` 0 ms e `/operacional?cadencia=diaria` 0 ms de mediana; `/operacional` 0, 113 e 0 ms. Perfis do Chromium: a maior tarefa é geração e cálculo do mock, não render. Load de 2,15 a 4,96. | manter (seguir para o código) |
+| 2026-10-21 | Pronto (entregue na `feature/037-c6-operacional`, não na `fix/c6-mock-em-worker`): C6 do mock com o Worker, mediana 0 ms nas 7 rotas, 2 execuções limpas e 2 sujas, máximo 111 ms; latência ligada em `/operacional` 0 ms; `develop` na mesma sessão 213 a 287 ms. F9 117,35 KB pela soma dos dois caminhos. | manter |
+| 2026-10-29 | Leitura do arquiteto (A3 e A4 do review do 037): estado a `vigente` (seção 9); F9 passa a ser medido pelo maior caminho, limite inalterado (seção 8). | manter; ajustar a medida do F9 (E3.4) |
