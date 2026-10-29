@@ -38,10 +38,21 @@ describe('catálogo de cartões', () => {
     expect(new Set(ids).size).toBe(ids.length)
     expect(cartaoPorIdGlobal('inexistente')).toBeUndefined()
     const mapa: Record<string, string[]> = {
-      o3: ['o5', 'o6', 'o8'],
-      o4: ['o8'],
-      o10: ['o11'],
-      bloqueados: ['t10'],
+      o1: ['o20'],
+      o3: ['o5', 'o6', 'o8', 'o26'],
+      o4: ['o8', 'o25'],
+      o7: ['o20', 'o25'],
+      o9: ['o22'],
+      o10: ['o11', 'o22', 'o24'],
+      bloqueados: ['t10', 'o19'],
+      o19: ['bloqueados', 'o5'],
+      o20: ['o1', 'o7'],
+      o21: ['o13', 'o5'],
+      o22: ['o9', 'o10'],
+      o24: ['o10', 't2'],
+      o25: ['o4', 'o7'],
+      o26: ['o5', 'o3'],
+      t2: ['o24'],
       o14: ['t12'],
       o15: ['o13', 'o16', 'o17'],
       t1: ['t6', 't13'],
@@ -74,7 +85,7 @@ describe('catálogo de cartões', () => {
       for (const p of c.leiaJunto ?? []) expect(cartaoPorIdGlobal(p)?.grupo).toBe('nucleo')
   })
 
-  it('classifica os cartões: mock só onde falta fonte real (O17, T8, E4, E6, E8, T13, T14, S8, S11, S12)', () => {
+  it('classifica os cartões: mock só onde falta fonte real (O17, T8, E4, E6, E8, O22, O26, T13, T14, S8, S11, S12)', () => {
     const compl = CATALOGO_CARTOES.filter((c) => c.grupo === 'complementar')
     expect(compl.map((c) => c.codigo).sort()).toEqual(
       [
@@ -86,6 +97,13 @@ describe('catálogo de cartões', () => {
         'O14',
         'O16',
         'O17',
+        'O19',
+        'O20',
+        'O21',
+        'O22',
+        'O24',
+        'O25',
+        'O26',
         'T6',
         'T8',
         'T10',
@@ -106,14 +124,14 @@ describe('catálogo de cartões', () => {
         'S12',
       ].sort(),
     )
-    const mock = ['O17', 'T8', 'E4', 'E6', 'E8', 'T13', 'T14', 'S8', 'S11', 'S12']
+    const mock = ['O17', 'T8', 'E4', 'E6', 'E8', 'O22', 'O26', 'T13', 'T14', 'S8', 'S11', 'S12']
     for (const c of compl) expect(c.status).toBe(mock.includes(c.codigo) ? 'mock' : 'disponivel')
     for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'nucleo'))
       expect(c.status).toBe('disponivel')
     expect(CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo')).toHaveLength(32)
   })
 
-  it('torna as 26 complementares alcançáveis por "leia junto" a partir do núcleo (em cadeia)', () => {
+  it('torna as 33 complementares alcançáveis por "leia junto" a partir do núcleo (em cadeia)', () => {
     const alcancadas = new Set<string>()
     const fila = CATALOGO_CARTOES.filter((c) => c.grupo === 'nucleo').flatMap(
       (c) => c.leiaJunto ?? [],
@@ -123,7 +141,8 @@ describe('catálogo de cartões', () => {
       alcancadas.add(id)
       fila.push(...(CATALOGO_CARTOES.find((c) => c.id === id)?.leiaJunto ?? []))
     }
-    for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'complementar'))
+    // O21 não tem origem na especificação de UX (CA-15 o liga pela página Métricas, não por "leia junto").
+    for (const c of CATALOGO_CARTOES.filter((x) => x.grupo === 'complementar' && x.id !== 'o21'))
       expect(alcancadas.has(c.id), c.codigo).toBe(true)
   })
 

@@ -3,6 +3,7 @@ import { Barras } from '@/components/charts'
 import { CartaoMetrica, Icone, TabelaDados } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { diffDias, fmtInteiro, fmtMes } from '@/lib/formatar'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 import { NOTAS_OPERACIONAL } from '../notas'
 import { propsCartao } from '@/features/painel/propsCartao'
 
@@ -89,6 +90,7 @@ export function CartaoO7({ filtros }: { filtros: FiltrosFluxo }) {
           </div>
         </div>
       )}
+      <LeiaJunto id="o7" />
     </CartaoMetrica>
   )
 }

@@ -1,6 +1,6 @@
 # Contratos por métrica: índice
 
-Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-21.
+Propósito: listar as métricas da API com domínio, rota, granularidade, mínimo de amostra e status das regras. Público: time (back-end, front-end, QA, gestão). Revisão: 2026-10-29.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais, erros e cache: [http.md](../http.md).
@@ -26,13 +26,13 @@ Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais,
 | [`O14`](O14.md) | Origem da demanda | businessmap | `/api/v1/metricas/O14` | story | 0 | ok |
 | [`O16`](O16.md) | Estoque e idade de bugs | businessmap | `/api/v1/metricas/O16` | story | 0 | ok |
 | [`O17`](O17.md) | Defeitos por causa raiz e sistema | acelerato | `/api/v1/metricas/O17` | chamado | 0 | ok |
-| [`O19`](O19.md) | - | businessmap | `/api/v1/metricas/O19` | story | 20 | ok |
-| [`O20`](O20.md) | - | businessmap | `/api/v1/metricas/O20` | story | 0 | ok |
-| [`O21`](O21.md) | - | businessmap | `/api/v1/metricas/O21` | story | 20 | ok |
-| [`O22`](O22.md) | - | businessmap | `/api/v1/metricas/O22` | story | 20 | ok |
-| [`O24`](O24.md) | - | businessmap | `/api/v1/metricas/O24` | story | 20 | ok |
-| [`O25`](O25.md) | - | businessmap | `/api/v1/metricas/O25` | story | 20 | ok |
-| [`O26`](O26.md) | - | businessmap | `/api/v1/metricas/O26` | story | 20 | ok |
+| [`O19`](O19.md) | Bloqueios por causa | businessmap | `/api/v1/metricas/O19` | story | 20 | ok |
+| [`O20`](O20.md) | Fluxo cumulativo | businessmap | `/api/v1/metricas/O20` | story | 0 | ok |
+| [`O21`](O21.md) | Fluxo reverso | businessmap | `/api/v1/metricas/O21` | story | 20 | ok |
+| [`O22`](O22.md) | Primeiro toque | businessmap | `/api/v1/metricas/O22` | story | 20 | ok |
+| [`O24`](O24.md) | Ordem de chegada | businessmap | `/api/v1/metricas/O24` | story | 20 | ok |
+| [`O25`](O25.md) | Descarte | businessmap | `/api/v1/metricas/O25` | story | 20 | ok |
+| [`O26`](O26.md) | Passagens de mão | businessmap | `/api/v1/metricas/O26` | story | 20 | ok |
 | [`T1`](T1.md) | Lead time ponta a ponta | businessmap | `/api/v1/metricas/T1` | story | 20 | ok |
 | [`T2`](T2.md) | Aderência ao SLE | businessmap | `/api/v1/metricas/T2` | story | 20 | ok |
 | [`T3`](T3.md) | Alocação da capacidade | businessmap | `/api/v1/metricas/T3` | story | 20 | ok |
@@ -77,3 +77,7 @@ Gerado por `pnpm run docs:gerar`. 69 métricas, uma página cada. Regras gerais,
 | [`TENDENCIA_FLUXO`](TENDENCIA_FLUXO.md) | - | businessmap | `/api/v1/metricas/TENDENCIA_FLUXO` | story | 20 | ok |
 | [`TENDENCIA_SUST`](TENDENCIA_SUST.md) | - | acelerato | `/api/v1/metricas/TENDENCIA_SUST` | chamado | 20 | ok |
 <!-- gerado:fim -->
+
+## Bloco sem rota própria
+
+- [`O23`](O23.md): estoque parado dentro do WIP. Não é uma métrica da API: é o campo `parados` do resultado do O2. Página escrita à mão, fora da tabela gerada acima.

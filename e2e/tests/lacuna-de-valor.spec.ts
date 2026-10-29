@@ -20,12 +20,12 @@ const PROIBIDOS = /\b(m[eé]dia|nota geral|nota [uú]nica|score|NPS|meta|ranking
 const NEGACOES = /nunca em ranking|Sem meta de \S+|^Meta:/gim
 const PESSOA = /(@|e-?mail|usuarioKey|coment[aá]rio)/i
 
-async function abrir(page: Page, painel: { ir: (r: string) => Promise<void>; esperarCartoesProntos: () => Promise<void> }) {
+async function abrir(page: Page, painel: { ir: (r: string) => Promise<void>; esperarPronto: () => Promise<void> }) {
   await painel.ir('/operacional?cadencia=sustentacao')
-  await painel.esperarCartoesProntos()
+  await painel.esperarPronto()
   const cartao = page.getByTestId('metrica-PV1')
   await expect(cartao).toBeVisible()
-  // esperarCartoesProntos pode passar antes do PV1 montar o corpo (carregamento tardio); o conteúdo é a prova de pronto.
+  // esperarPronto pode passar antes do PV1 montar o corpo (carregamento tardio); o conteúdo é a prova de pronto.
   await expect(cartao.getByTestId('pv1-participacao')).toBeVisible()
   await expect(cartao).not.toHaveAttribute('aria-busy', 'true')
   return cartao
@@ -147,7 +147,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
     const faixa = page.getByTestId('faixa-atencao')
     if (await faixa.count()) await expect(faixa).not.toContainText(/\bPV1\b|percepção/i)
     await painel.ir('/operacional?cadencia=sustentacao&periodo=30d')
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     const depois = page.getByTestId('metrica-PV1')
     await expect(depois.getByTestId('pv1-participacao')).toBeVisible()
     await expect.poll(() => depois.innerText()).toBe(antes)
@@ -155,7 +155,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
 
   test('LV-10 CT-19 "Leia junto" de S1 e S2 leva a PV1; ocultar pv1 nas preferências remove link e seção', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=sustentacao')
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     for (const id of ['s1', 's2']) {
       const leia = page.getByTestId(`leia-junto-${id}`)
       await expect(leia.getByRole('link', { name: /PV1/ })).toBeVisible()
@@ -168,7 +168,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
       [CHAVE] as const,
     )
     await painel.ir('/operacional?cadencia=sustentacao')
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     await expect(page.getByTestId('metrica-PV1')).toHaveCount(0)
     await expect(page.getByTestId('leia-junto-s1').getByRole('link', { name: /PV1/ })).toHaveCount(0)
   })
@@ -176,7 +176,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
   // Estados forçados pelo parâmetro oculto ?mock= (pesquisa:sem, pesquisa:insuficiente): o mock é em memória, não há rota para interceptar.
   test('LV-11 CT-21 sem pesquisa: mensagem orientando a carga, sem botão de upload', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=sustentacao', { mock: 'pesquisa:sem' })
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     const cartao = page.getByTestId('metrica-PV1')
     await expect(cartao.getByText(/Nenhuma pesquisa carregada/)).toBeVisible()
     // Os botões que sobram são do cartão ("Como ler", "Ocultar"); nada de carga/envio de arquivo no web.
@@ -186,7 +186,7 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
 
   test('LV-12 CT-05 base insuficiente: só o total de respostas, sem faixas nem percentual (U2)', async ({ page, painel }) => {
     await painel.ir('/operacional?cadencia=sustentacao', { mock: 'pesquisa:insuficiente' })
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     const cartao = page.getByTestId('metrica-PV1')
     await expect(cartao.getByText('Base insuficiente: 4 respostas. Mínimo 5 para publicar.').first()).toBeVisible()
     const distribuicao = cartao.getByRole('region', { name: /Distribuição das respostas por pergunta/ })
@@ -205,9 +205,9 @@ test.describe('lacuna de valor: fluxos a 1280 px', () => {
     await expect(cartao.getByRole('table').first()).toBeVisible()
   })
 
-  test('LV-14 CT-26 catálogo lista PV1 com fonte "Pesquisa de percepção" e 58 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático)', async ({ page }) => {
+  test('LV-14 CT-26 catálogo lista PV1 com fonte "Pesquisa de percepção" e 65 métricas (45 do briefing + PV1 + 3 de espera invisível + 4 do 011 estratégico + 5 do 011 tático + 7 do 011 operacional)', async ({ page }) => {
     await page.goto('/metricas')
-    await expect(page.getByTestId('contagem-catalogo')).toHaveText('58 de 58 métricas')
+    await expect(page.getByTestId('contagem-catalogo')).toHaveText('65 de 65 métricas')
     await expect(page.getByRole('row', { name: /^PV1 / })).toContainText('Pesquisa de percepção')
   })
 })

@@ -5,11 +5,11 @@ import type { Page } from '@playwright/test'
 const semRolagemHorizontal = (page: Page) =>
   page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)
 
-async function abrir(page: Page, painel: { ir: (r: string) => Promise<void>; esperarCartoesProntos: () => Promise<void> }) {
+async function abrir(page: Page, painel: { ir: (r: string) => Promise<void>; esperarPronto: () => Promise<void> }) {
   await painel.ir('/estrategico')
-  await painel.esperarCartoesProntos()
+  await painel.esperarPronto()
   await page.getByTestId('mais-metricas').locator('summary').click()
-  await painel.esperarCartoesProntos()
+  await painel.esperarPronto()
 }
 
 test.describe('Estratégico, lote 1 do 011 (E6 a E9)', () => {
@@ -109,7 +109,7 @@ test.describe('Estratégico, lote 1 do 011 (E6 a E9)', () => {
   test('ET-09 estado de falha: a API do E7 fora do ar mostra erro no cartão sem derrubar o painel', async ({ page, painel }) => {
     await page.route(/\/E7(\?|$)/, (r) => r.abort())
     await painel.ir('/estrategico')
-    await painel.esperarCartoesProntos()
+    await painel.esperarPronto()
     await page.getByTestId('mais-metricas').locator('summary').click()
     await expect(page.getByTestId('metrica-E9')).toBeVisible()
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

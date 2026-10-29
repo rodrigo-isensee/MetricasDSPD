@@ -247,8 +247,12 @@ describe('OpenAPI', () => {
   });
 });
 
+// Custo fixo do primeiro lint (importa a configuração, o typescript-eslint e o typescript): com outra suíte pesada na máquina
+// ele passou de 30 s dentro do primeiro `it` (K-150). Paga-se na coleta do arquivo, que não tem timeout de teste; os `it` só medem a regra.
+const eslint = new ESLint({ cwd: new URL('..', import.meta.url).pathname });
+await eslint.lintText('export const aquecer = 1;', { filePath: new URL('../src/plataforma/aquecer.ts', import.meta.url).pathname });
+
 describe('regras de lint (ADR 0013 §9 e 0014)', () => {
-  const eslint = new ESLint({ cwd: new URL('..', import.meta.url).pathname });
   const regras = async (codigo: string, arquivo: string) =>
     (await eslint.lintText(codigo, { filePath: new URL(`../${arquivo}`, import.meta.url).pathname }))[0]!.messages.map((m) => m.message);
   const casos: [string, string, string, RegExp][] = [

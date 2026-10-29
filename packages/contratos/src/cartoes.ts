@@ -97,18 +97,18 @@ function secao(
 export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
   ...secao('operacional', 'diaria', 'Visão diária', [
     ['O2', 'Idade do trabalho em progresso'],
-    ['BLOQUEADOS', 'Bloqueados agora', undefined, ['t10']],
-    ['O1', 'Trabalho em progresso e limite'],
+    ['BLOQUEADOS', 'Bloqueados agora', undefined, ['t10', 'o19']],
+    ['O1', 'Trabalho em progresso e limite', undefined, ['o20']],
   ]),
   ...secao('operacional', 'tempo', 'Tempo', [
-    ['O3', 'Tempo de ciclo', undefined, ['o5', 'o6', 'o8']],
-    ['O9', 'Os três relógios do pedido'],
+    ['O3', 'Tempo de ciclo', undefined, ['o5', 'o6', 'o8', 'o26']],
+    ['O9', 'Os três relógios do pedido', undefined, ['o22']],
   ]),
-  ...secao('operacional', 'fluxo', 'Fluxo', [['O4', 'Vazão semanal', undefined, ['o8']]]),
+  ...secao('operacional', 'fluxo', 'Fluxo', [['O4', 'Vazão semanal', undefined, ['o8', 'o25']]]),
   ...secao('operacional', 'compromissos', 'Compromissos', [['O12', 'Acordos e vencidos']]),
   ...secao('operacional', 'backlog', 'Backlog', [
-    ['O10', 'Envelhecimento do backlog', undefined, ['o11']],
-    ['O7', 'Entrada × saída por tipo'],
+    ['O10', 'Envelhecimento do backlog', undefined, ['o11', 'o22', 'o24']],
+    ['O7', 'Entrada × saída por tipo', undefined, ['o20', 'o25']],
   ]),
   ...secao('operacional', 'qualidade', 'Qualidade', [
     ['O15', 'Onde os bugs são encontrados', undefined, ['o13', 'o16', 'o17']],
@@ -121,7 +121,7 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
     [['EI-FL1', 'Espera invisível · Operacional', ['EI_FL1']]],
   ),
   ...secao('tatico', 'publicado', 'Estamos cumprindo o que publicamos?', [
-    ['T2', 'Aderência ao SLE'],
+    ['T2', 'Aderência ao SLE', undefined, ['o24']],
     ['T1', 'Lead time ponta a ponta', undefined, ['t4', 't6', 't13']],
     ['T5', 'Demanda de falha', undefined, ['o14']],
   ]),
@@ -186,6 +186,29 @@ export const CATALOGO_CARTOES: readonly CartaoCatalogo[] = [
       ['O5', 'Eficiência de fluxo'],
       ['O6', 'Previsibilidade'],
       ['O8', 'Tamanho das demandas'],
+      ['O19', 'Bloqueios por causa', undefined, ['bloqueados', 'o5']],
+      ['O22', 'Primeiro toque', undefined, ['o9', 'o10']],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'operacional',
+    'onde-acumula',
+    'Onde o trabalho acumula?',
+    [
+      ['O20', 'Fluxo cumulativo', undefined, ['o1', 'o7']],
+      ['O24', 'Ordem de chegada', undefined, ['o10', 't2']],
+    ],
+    'complementar',
+  ),
+  ...secao(
+    'operacional',
+    'onde-perde-esforco',
+    'Onde se perde esforço?',
+    [
+      ['O21', 'Fluxo reverso', undefined, ['o13', 'o5']],
+      ['O25', 'Descarte', undefined, ['o4', 'o7']],
+      ['O26', 'Passagens de mão', undefined, ['o5', 'o3']],
     ],
     'complementar',
   ),
