@@ -113,6 +113,7 @@ Parecer: **aprovado** ou **ajustes necessários**, cada item com `arquivo:linha 
 Fluxo completo, gates, tags e rollback: [`fluxo-homologacao.md`](fluxo-homologacao.md). Resumo:
 - **Fluxo de branches:** `feature/*` / `fix/*` / `docs/*` / `chore/*` (saem da `develop`) → `develop` (PR, **squash**, um commit por cartão) → `homolog` (PR, **merge commit**) → `main` (PR de release, **merge commit**). Nada pula degrau; ninguém commita direto em `develop`, `homolog` nem `main`; sem `rebase` nem `--force` nas três. Defeito achado em homolog volta por `fix/` → `develop`. Hotfix sai da `main` com aprovação do usuário e volta a `homolog` e `develop` por PR de merge.
 - **Quem mescla:** o `tech-lead` mescla em `develop` (após review e QA) e em `homolog`; **somente o usuário** mescla na `main`.
+- **PR do Dependabot (decisão do dono, K-169):** é mesclado um por vez, só com todos os checks verdes, pelo `tech-lead`; check vermelho para e avisa o Jarvis. A revisão semanal do CI (10.1) só confere os pendentes.
 - **Autores** (devs, UX, QA) commitam na própria branch de trabalho (worktree por frente, quando houver paralelismo), commits pequenos, um por mudança coerente, em Conventional Commits em português, referenciando o cartão no corpo (`Cartão: K-0xx`). `pnpm run pronto` verde antes de **cada** commit. Mensagem termina com as linhas de atribuição da sessão (`Co-Authored-By:` e `Claude-Session:`). Autores não fazem merge, rebase, reset, amend de commit já revisado nem push; `git add` explícito por caminho.
 - **Review por cartão:** o tech-lead revisa o intervalo de commits do cartão e registra o parecer em `docs/reviews/`. Ajuste de lógica volta ao autor como commit novo `fix(...)` (nunca reescrita de histórico).
 - **Docs:** `docs/ux/` e `docs/qa/`/`e2e/` são commitados pelo autor (escopos `ux`, `qa`, `e2e`); `docs/architecture/`, pelo `software-architect`; pareceres, `KANBAN.md`, `docs/engineering/` e arquivos de agentes/skills, pelo tech-lead (ou pelo Jarvis, no quadro e na configuração do time). Documentação também passa por `homolog`, onde roda só `docs:check`.
@@ -138,7 +139,7 @@ Dono: `tech-lead`. Toda segunda-feira, ~15 minutos, comparando com a linha de ba
 - [ ] Taxa de falha por job; separar falha real de falha de infraestrutura.
 - [ ] Flakes: testes que passaram só no retry do Playwright (`retries: 1`); abrir cartão para cada um.
 - [ ] Cache hit: `setup-node` (pnpm) e navegadores do Playwright; hit abaixo de 80% pede revisão da chave.
-- [ ] Versões das actions: PRs do Dependabot pendentes; SHAs continuam com comentário da versão.
+- [ ] Versões das actions: PRs do Dependabot pendentes, tratados pela política da seção 9; SHAs continuam com comentário da versão.
 - [ ] Custo de minutos: soma de minutos faturáveis da semana e jobs mais caros (e2e, perf, testes).
 - [ ] Alertas do Dependabot e do job informativo `seguranca` (`pnpm audit --prod`, gitleaks); vulnerabilidade alta vira cartão.
 - [ ] Gates intactos: cobertura 100%, lint, typecheck e e2e nunca afrouxados para ganhar tempo; nomes dos jobs obrigatórios da proteção da `main` (rapida, testes, banco, build, e2e) inalterados.

@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 026-front-do-011-lote3
 branch: docs/026-textos-lote3
-commit: 081d2f1f7850959f993e814d67491cf8ec9f87c0
+commit: f61fae8788867b26f12844d3d0c22eaec379be07
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-28
@@ -27,3 +27,9 @@ Delta lido: `git diff 8064502..081d2f1`, só a especificação (+3 -3), três li
 
 ## Itens sem achado
 Commits e padrão de mensagem conforme `praticas.md` §9 (`docs(...)`, `Cartão: K-154`, atribuição). Teto M14: só `.md`, fora da contagem. Sem decisão de código nem mecanismo novo (critério de reversão não se aplica). Pipeline e segurança: sem escopo.
+
+## Revalidação (head d4ba797)
+Revalidação: o parecer ficou desatualizado pela edição da linha 48 do arquivo de instruções do projeto na branch `docs/026-claude-md-enviada`, que não toca os textos do lote 3 (a especificação em `docs/ux/metricas-tambem-disponiveis/`). Delta lido: o diff de uma linha entre 4137981 e d4ba797; o restante já lido. Veredito mantido: aprovado.
+
+## Revalidação (head f61fae8)
+Revalidação: o parecer ficou desatualizado pelo merge da develop (2a4191a), que trouxe o ajuste de `server/tests/plataforma2.test.ts` (E1 do 047) e os pareceres de 047, 026-claude-md-enviada e QA. Delta lido: `git diff --stat d4ba797..f61fae8` (6 arquivos); nenhum toca a especificação em `docs/ux/metricas-tambem-disponiveis/` nem `o26.ts`. Já lido, sem releitura: os textos do lote 3 e o `o26.ts`. Veredito mantido: aprovado.

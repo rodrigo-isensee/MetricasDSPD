@@ -45,7 +45,7 @@ Este projeto é desenvolvido pela fábrica **Forge** (plugin `forge@forge`, http
 1. `software-architect` + `tech-lead`: plano técnico, modelagem, ADRs e práticas.
 2. `tech-lead` cria a branch; `node-backend` e `react-frontend` implementam; `qa-engineer` prepara os testes em paralelo.
 3. `tech-lead` faz code review de toda entrega.
-4. `qa-engineer` testa — **todo desenvolvimento passa pelo QA**, sem exceção. Nenhuma branch é enviada sem o parecer do QA em `docs/qa/`.
+4. `qa-engineer` testa — **todo desenvolvimento passa pelo QA**, sem exceção. Nenhuma branch é enviada sem o parecer do QA em `docs/qa/`; "enviada" quer dizer o pull request para a `develop`, que só abre com esse parecer. O push da feature branch para o remoto é liberado antes dele (decisão do usuário de 2026-10-27, vale para todas as branches).
 5. `ux-designer` revisa a interface implementada.
 6. `tech-lead` envia a branch e prepara o pull request para a `develop` (squash); mesclado por ele depois de review e QA.
 7. **Homologação** (`docs/engineering/fluxo-homologacao.md`): o `tech-lead` promove `develop` → `homolog` por PR (merge commit); o push em `homolog` dispara o portão da CI (suíte completa, migração a partir da main, smoke) e uma rodada noturna agendada na CI. Documentação passa por `homolog` rodando só `docs:check`. O ambiente local de homologação sobe sob demanda (`pnpm run homolog:subir`).
