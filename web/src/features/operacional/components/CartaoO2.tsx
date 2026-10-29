@@ -12,7 +12,14 @@ import {
 } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { useParametroLocal } from '@/features/filtros'
-import { fmtDiasUteis, fmtInteiro, plural, textoJanela, semanasDoIntervalo } from '@/lib/formatar'
+import {
+  fmtDiasUteis,
+  fmtInteiro,
+  fmtNumero,
+  plural,
+  textoJanela,
+  semanasDoIntervalo,
+} from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
 import { propsCartao, slug } from '@/features/painel/propsCartao'
 
@@ -148,6 +155,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
             )}
           </div>
           <div className="lg:col-span-5" data-testid="o2-lista">
+            <BlocoParados parados={d.parados} aoVer={() => setOrdem('parado')} />
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-sm font-semibold">Itens para olhar primeiro</h4>
               <div className="flex gap-1" role="group" aria-label="Ordenar por">
@@ -193,5 +201,73 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
         </div>
       )}
     </CartaoMetrica>
+  )
+}
+
+/**
+ * O23, bloco do O2: quanto do "em andamento" não muda de coluna há mais de `limiteDiasUteis`. O destaque e a taxa vêm
+ * prontos do contrato (percentual só com 20 itens em andamento; abaixo, "k de n"); a barra mostra só contagens por etapa.
+ */
+function BlocoParados({
+  parados,
+  aoVer,
+}: {
+  parados: ResultadoO2Paginado['parados'] | undefined
+  aoVer: () => void
+}) {
+  if (!parados) return null
+  const { taxa, limiteDiasUteis, porEtapa } = parados
+  const etapas = porEtapa.filter((e) => e.k > 0)
+  const total = etapas.reduce((s, e) => s + e.k, 0)
+  return (
+    <div
+      className="mb-3 flex flex-col gap-2 rounded-md border border-borda bg-superficie-2 p-3"
+      data-testid="o23-parados"
+    >
+      <p className="text-sm font-semibold" data-testid="o23-destaque">
+        {taxa.n === 0
+          ? 'Nenhum item em andamento'
+          : taxa.status === 'ok'
+            ? `${fmtInteiro(taxa.k)} de ${fmtInteiro(taxa.n)} itens em andamento (${fmtNumero(taxa.pct, 0)}%) sem mover há mais de ${fmtInteiro(limiteDiasUteis)} dias úteis`
+            : `${fmtInteiro(taxa.k)} de ${fmtInteiro(taxa.n)} itens em andamento sem mover há mais de ${fmtInteiro(limiteDiasUteis)} dias úteis (percentual não publicado, menos de 20)`}
+      </p>
+      {total > 0 && (
+        <>
+          <div
+            aria-hidden="true"
+            className="flex h-2 w-full overflow-hidden rounded bg-superficie"
+            data-testid="o23-barra"
+          >
+            {etapas.map((e, i) => (
+              <span
+                key={e.etapa}
+                style={{
+                  flexGrow: e.k,
+                  background: `var(--serie-${(i % 4) + 1})`,
+                  borderRight: '1px solid var(--superficie)',
+                }}
+              />
+            ))}
+          </div>
+          <ul className="m-0 flex list-none flex-wrap gap-x-3 p-0 text-xs text-texto-2">
+            {etapas.map((e, i) => (
+              <li key={e.etapa} className="inline-flex items-center gap-1">
+                <span
+                  aria-hidden="true"
+                  className="inline-block size-2.5 shrink-0 rounded-sm"
+                  style={{ background: `var(--serie-${(i % 4) + 1})` }}
+                />
+                {e.etapa}: {fmtInteiro(e.k)}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {taxa.k > 0 && (
+        <Botao className="w-fit" onClick={aoVer}>
+          Ver os parados
+        </Botao>
+      )}
+    </div>
   )
 }

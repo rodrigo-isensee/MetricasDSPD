@@ -3,6 +3,7 @@ import { Barras, SerieLinhas } from '@/components/charts'
 import { CartaoMetrica, NumeroGrande } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtData, fmtDataCurta, fmtInteiro, fmtPct, plural } from '@/lib/formatar'
+import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 import { NOTAS_OPERACIONAL } from '../notas'
 import { propsCartao } from '@/features/painel/propsCartao'
 
@@ -123,6 +124,7 @@ export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
           </p>
         </div>
       )}
+      <LeiaJunto id="o1" />
     </CartaoMetrica>
   )
 }

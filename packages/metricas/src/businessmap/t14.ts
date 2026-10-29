@@ -7,6 +7,8 @@ import { baseAmostral, criterios, periodoDe } from './comum'
 import { chaveOutrosPublicavel, type ExtensaoTambemBM } from './extensao'
 import type { ContextoBM, MarcosCard } from './indice'
 
+type ProjetoT14 = ResultadoT14['porGranularidade'][number]['projetos'][number]
+
 /** Granularidades contadas no T14 (CA-32): demanda por padrão e frente; um bloco cada. O projeto é só o agrupador. */
 const GRANULARIDADES_T14 = ['story', 'frente'] as const satisfies readonly Granularidade[]
 
@@ -18,12 +20,13 @@ const GRANULARIDADES_T14 = ['story', 'frente'] as const satisfies readonly Granu
  * granularidade, `semTime` (campo vazio, fora do denominador, CA-33), `n` = com time informado, `k` = com o meu time
  * (campo múltiplo conta se o meu estiver entre os marcados, Q-T14-9) e a taxa k de n (percentual só com n >= 20, CA-31).
  * Aparecem os projetos ligados a um sistema do meu time, mesmo com 0%, e os com pelo menos 1 card do meu time (Q-T14-5 = D,
- * CA-41). Ordem pelo total de cards, nunca pela participação (CA-30).
+ * CA-41). Ordem dos visíveis pelo total de cards, nunca pela participação (CA-30); os ocultos vêm depois, por código.
  *
  * Outros times: a biblioteca só conta `meu` x `outro` x `sem valor`. Não monta mapa por equipe, nunca devolve o nome de
  * outra equipe e nunca conta pessoas: o booleano de publicação (R-1 = B: oculto quando somar menos de 2 pessoas) vem
- * calculado fora, em `outrosPublicavel`. Falso ou ausente = `outrosTimes: null` (o resto do projeto sai). Sem a
- * extensão, nenhum card tem time e nada passa de "sem time".
+ * calculado fora, em `outrosPublicavel`. Falso ou ausente = projeto oculto (K-130): a linha traz só `meuTime.k`
+ * (sem `total`, `semTime`, `n`, `taxa` nem `outrosTimes`), e o oculto não entra no total do bloco, em `base.n` nem em
+ * `base.complemento.n`. Sem a extensão, nenhum card tem time e todo projeto sai oculto.
  */
 export function calcularT14(
   ctx: ContextoBM,
@@ -96,33 +99,35 @@ export function calcularT14(
       const n = total - semTime
       const publicavel =
         ext?.outrosPublicavel[chaveOutrosPublicavel(p.card.card_id, meu, granularidade)] === true
-      return [
-        {
-          projetoId: p.card.card_id,
-          codigo: p.card.card_id,
-          titulo: p.card.titulo,
-          total,
-          meuTime: taxa(k, n),
-          outrosTimes: publicavel ? n - k : null,
-          semTime,
-          k,
-          n,
-        },
-      ]
+      return [{ p, total, semTime, k, n, publicavel }]
     })
-    const k = lista.reduce((s, p) => s + p.k, 0)
-    const n = lista.reduce((s, p) => s + p.n, 0)
-    return {
-      n,
-      bloco: {
-        granularidade,
-        total: taxa(k, n),
-        projetos: ordenarNeutro(
-          lista.map(({ k: _k, n: _n, ...resto }) => resto),
-          (p) => [-p.total, p.codigo],
-        ),
-      },
-    }
+    // K-130 (M-1 e M-1a): o projeto oculto sai só com `meuTime.k` e nunca entra em soma (total do bloco, `base.n` e
+    // `base.complemento.n`), então o `n` dele não é recuperável por subtração. Falso ou ausente = oculto (fail-closed).
+    const visiveis = lista.filter((l) => l.publicavel)
+    const ocultos = lista.filter((l) => !l.publicavel)
+    const k = visiveis.reduce((s, l) => s + l.k, 0)
+    const n = visiveis.reduce((s, l) => s + l.n, 0)
+    const linhas: ProjetoT14[] = [
+      ...ordenarNeutro(visiveis, (l) => [-l.total, l.p.card.card_id]).map((l): ProjetoT14 => ({
+        oculto: false,
+        projetoId: l.p.card.card_id,
+        codigo: l.p.card.card_id,
+        titulo: l.p.card.titulo,
+        total: l.total,
+        meuTime: taxa(l.k, l.n),
+        outrosTimes: l.n - l.k,
+        semTime: l.semTime,
+      })),
+      // Q-T14-12 = B, decidida pelo usuário (2026-10-28): ocultos depois dos visíveis, por código, nunca por total.
+      ...ordenarNeutro(ocultos, (l) => [l.p.card.card_id]).map((l): ProjetoT14 => ({
+        oculto: true,
+        projetoId: l.p.card.card_id,
+        codigo: l.p.card.card_id,
+        titulo: l.p.card.titulo,
+        meuTime: { k: l.k },
+      })),
+    ]
+    return { n, bloco: { granularidade, total: taxa(k, n), projetos: linhas } }
   })
   const [demandas, frentes] = blocos as [(typeof blocos)[number], (typeof blocos)[number]]
   return {

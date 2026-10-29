@@ -1,0 +1,39 @@
+name: Homologação reavalia
+
+# K-108: quando o portão (push) do homolog.yml termina, reexecuta o check `homolog-aprovada` do PR de release aberto
+# para o mesmo sha, para que ele avalie com o portão já concluído. Não avalia nada aqui: a regra continua no
+# aprovacao.ts da base. Sem checkout, sem código da branch; só chama a API. Só vale com este arquivo na `main`.
+on:
+  workflow_run:
+    workflows: [Homologação]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: write
+  pull-requests: read
+
+jobs:
+  reavalia:
+    name: reavalia-homolog-aprovada
+    if: github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'homolog'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          prs="$(gh api "repos/$REPO/pulls?state=open&base=main&per_page=100" --jq ".[] | select(.head.sha == \"$SHA\") | .number")"
+          if [ -z "$prs" ]; then echo "Sem PR aberto para a main com head $SHA; nada a reavaliar."; exit 0; fi
+          run_id="$(gh api "repos/$REPO/actions/workflows/homolog-aprovada.yml/runs?head_sha=$SHA&event=pull_request&per_page=1" --jq '.workflow_runs[0].id // empty')"
+          if [ -z "$run_id" ]; then echo "Sem execução de homolog-aprovada para $SHA; ela avaliará o portão já concluído quando rodar."; exit 0; fi
+          # O check do PR pode ainda estar terminando (a reexecução é recusada com a execução em curso): tenta por até ~60 s.
+          for tentativa in 1 2 3 4 5 6; do
+            if gh api -X POST "repos/$REPO/actions/runs/$run_id/rerun" >/dev/null 2>&1; then
+              echo "homolog-aprovada (execução $run_id) reexecutada para $SHA."; exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Não foi possível reexecutar homolog-aprovada (execução $run_id): use Re-run jobs no PR."; exit 1

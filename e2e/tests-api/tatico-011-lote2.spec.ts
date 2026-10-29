@@ -3,11 +3,13 @@ import type { Page } from '@playwright/test';
 
 // QA 011 lote 2 (pedido 025, K-110): T10 a T14 no Tático, contra a API real local com o mock semeado (projeto `chromium-api`).
 // Por que na API: o mock embutido no navegador não gera T13 nem T14 (achado A1 do review), e a regra R-1 = B / T14-M1 = B
-// só se prova com a resposta de verdade da API (o projeto oculto vem com `outrosTimes: null`).
+// só se prova com a resposta de verdade da API. Pedido 048 (K-130, Q-T14-12 = B): `projetos[]` é uma união por `oculto`;
+// o oculto traz só `meuTime.k`, o visível traz `outrosTimes` inteiro, os ocultos vêm depois dos visíveis (por código) e
+// o total do bloco soma só os visíveis (TT-20 a TT-23 provam o contrato na resposta; TT-09 a TT-13 provam a tela).
 // Obrigações: CA-2, CA-5, CA-6, CA-7, CA-8, CA-11, CA-12, CA-14, CA-16, CA-24, CA-28, CA-29, CA-30, CA-31, CA-32, CA-34,
 // CA-36, CA-45 (R-1 = B, T14-M1 = B), CA-50, CA-51 (arquivo à parte), regras 7.1 (sem comparar times) e "abaixo de 20 não publica".
-// Dado determinístico do mock: com equipe=erp-protheus, P-0039 está oculto em "demandas" (total 79, n 73, k 1, sem time 6)
-// e P-0038 e P-0008 em "frentes".
+// Dado determinístico do mock (hash da extensão 82329bc3, cadastro de membros simulado): equipe=erp-protheus não tem projeto
+// oculto em "demandas" e tem P-0038 oculto em "frentes"; equipe=plataforma-5g tem P-0012 oculto em "demandas" e P-0004 em "frentes".
 
 const ROTA = '/tatico?equipe=erp-protheus';
 const secoes = ['O que entra, e quando?', 'De quem depende o prazo?'];
@@ -17,26 +19,33 @@ const semRolagemHorizontal = (page: Page) =>
 
 async function abrir(
   page: Page,
-  painel: { ir: (r: string) => Promise<void>; esperarCartoesProntos: () => Promise<void> },
+  painel: { ir: (r: string) => Promise<void>; esperarPronto: () => Promise<void> },
   rota = ROTA,
 ) {
   await painel.ir(rota);
-  await painel.esperarCartoesProntos();
+  await painel.esperarPronto();
   await page.getByTestId('mais-metricas').locator('summary').click();
   await expect(page.getByTestId('metrica-T14')).toBeVisible();
-  await painel.esperarCartoesProntos();
+  await painel.esperarPronto();
 }
 
-interface ProjetoApi {
-  codigo: string;
-  total: number;
-  meuTime: { k: number; n: number };
-  outrosTimes: number | null;
-  semTime: number;
+type MeuTimeApi = { status: 'ok'; k: number; n: number; pct: number } | { status: 'insuficiente'; k: number; n: number; minimo: number };
+type ProjetoApi =
+  | { oculto: false; projetoId: string; codigo: string; titulo: string; total: number; meuTime: MeuTimeApi; outrosTimes: number; semTime: number }
+  | { oculto: true; projetoId: string; codigo: string; titulo: string; meuTime: { k: number } };
+interface BlocoApi {
+  granularidade: 'story' | 'frente';
+  total: { k: number; n: number };
+  projetos: ProjetoApi[];
 }
 interface T14Api {
-  porGranularidade: { granularidade: 'story' | 'frente'; projetos: ProjetoApi[] }[];
+  base: { n: number; complemento?: { n: number } };
+  porGranularidade: BlocoApi[];
 }
+const EQUIPES_T14 = ['erp-protheus', 'plataforma-5g'];
+const porCodigo = (a: { codigo: string }, b: { codigo: string }) => (a.codigo < b.codigo ? -1 : a.codigo > b.codigo ? 1 : 0);
+const visiveis = (b: BlocoApi) => b.projetos.flatMap((p) => (p.oculto ? [] : [p]));
+const ocultosDe = (b: BlocoApi) => b.projetos.flatMap((p) => (p.oculto ? [p] : []));
 async function t14DaApi(page: Page, equipe: string): Promise<T14Api> {
   const r = await page.request.get(`/api/v1/metricas/T14?equipe=${equipe}`);
   expect(r.ok()).toBe(true);
@@ -208,11 +217,14 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     // CA-30: a ordem é a do total de demandas do projeto (vem da API), nunca a da participação.
     const api = await t14DaApi(page, 'erp-protheus');
     const story = api.porGranularidade.find((g) => g.granularidade === 'story')!;
-    const esperados = [...story.projetos].sort((a, b) => b.total - a.total).map((p) => p.codigo);
-    expect(story.projetos.map((p) => p.codigo), 'a API entrega pela ordem do total').toEqual(esperados);
+    const esperados = [
+      ...[...visiveis(story)].sort((a, b) => b.total - a.total || porCodigo(a, b)),
+      ...[...ocultosDe(story)].sort(porCodigo),
+    ].map((p) => p.codigo);
+    expect(story.projetos.map((p) => p.codigo), 'a API entrega pelo total, com os ocultos ao fim').toEqual(esperados);
     const codigosNaTela = (await t14.getByTestId('t14-projetos').getByRole('listitem').allInnerTexts()).map((t) => t.split(' ')[0]);
     expect(codigosNaTela).toEqual(esperados);
-    const pcts = story.projetos.filter((p) => p.outrosTimes !== null).map((p) => p.meuTime.k / p.meuTime.n);
+    const pcts = visiveis(story).map((p) => p.meuTime.k / p.meuTime.n);
     expect(pcts, 'o mock não tem ordem por participação (senão o teste não distingue)').not.toEqual([...pcts].sort((a, b) => b - a));
     // CA-31: com menos de 20 demandas com time informado, "k de n" e a nota, sem percentual.
     const pequeno = t14.getByTestId('t14-projetos').getByRole('listitem').filter({ hasText: 'P-0011' });
@@ -236,85 +248,92 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     expect(await t14.innerText()).not.toMatch(/\bprojetos? contados?\b/i);
   });
 
-  test('TT-11 CA-45, R-1 = B e T14-M1 = B: com "outros times" oculto, só a fatia do meu time, sem total, sem k de n, sem percentual', async ({ page, painel }) => {
-    await abrir(page, painel);
+  test('TT-11 CA-45, R-1 = B, T14-M1 = B e K-130: com "outros times" oculto, só a fatia do meu time; o total do bloco é só dos visíveis', async ({ page, painel }) => {
+    await abrir(page, painel, '/tatico?equipe=plataforma-5g');
     const t14 = page.getByTestId('metrica-T14');
-    const api = await t14DaApi(page, 'erp-protheus');
+    const api = await t14DaApi(page, 'plataforma-5g');
     const story = api.porGranularidade.find((g) => g.granularidade === 'story')!;
-    const ocultos = story.projetos.filter((p) => p.outrosTimes === null);
-    expect(ocultos.map((p) => p.codigo), 'o mock tem um projeto oculto em demandas').toEqual(['P-0039']);
+    const ocultos = ocultosDe(story);
+    expect(ocultos.map((p) => p.codigo), 'o mock tem um projeto oculto em demandas para a plataforma-5g').toEqual(['P-0012']);
     const oculto = ocultos[0]!;
+    const unidade = oculto.meuTime.k === 1 ? 'demanda' : 'demandas';
     const li = t14.getByTestId('t14-projetos').getByRole('listitem').filter({ hasText: oculto.codigo });
     await expect(li).toHaveCount(1);
     const textoLi = (await li.innerText()).replace(/\s+/g, ' ').trim();
-    expect(textoLi, 'só o código, o título e a fatia do meu time').toMatch(
-      new RegExp(`^${oculto.codigo} [^\\d]*Meu time: ${oculto.meuTime.k} ${oculto.meuTime.k === 1 ? 'demanda' : 'demandas'}$`),
-    );
+    expect(textoLi, 'só o código, o título e a fatia do meu time').toMatch(new RegExp(`^${oculto.codigo} .*Meu time: ${oculto.meuTime.k} ${unidade}$`));
     const fatia = (await page.getByTestId(`t14-fatia-${oculto.codigo}`).innerText()).trim();
-    expect(fatia).toBe(`Meu time: ${oculto.meuTime.k} ${oculto.meuTime.k === 1 ? 'demanda' : 'demandas'}`);
+    expect(fatia).toBe(`Meu time: ${oculto.meuTime.k} ${unidade}`);
     expect(fatia).not.toMatch(/ de |%|sem time|outros/i);
     expect(textoLi.replace(fatia, '').replace(oculto.codigo, ''), 'o resto da linha é só o título do projeto').not.toMatch(/%|sem time informado|outros times|\d+ de \d+/i);
-    // O total do projeto, o n com time informado e o agregado do recorte não aparecem em nenhum lugar do cartão.
-    const cartao = await t14.innerText();
-    const html = await t14.innerHTML();
-    for (const proibido of [oculto.total, oculto.meuTime.n]) {
-      expect(cartao, `o total do projeto oculto (${proibido}) vazou no texto`).not.toMatch(new RegExp(`(^|[^\\d])${proibido}([^\\d]|$)`));
-      expect(html, `o total do projeto oculto (${proibido}) vazou no HTML`).not.toMatch(new RegExp(`(^|[^\\d])${proibido}([^\\d]|$)`));
-    }
-    await expect(t14.getByTestId('leitura-T14'), 'sem frase de destaque com total quando há projeto oculto').toHaveCount(0);
-    await expect(t14.getByTestId('base-T14'), 'sem "Base: n" quando há projeto oculto').toHaveCount(0);
-    expect(cartao).not.toMatch(/\bde \d+ demandas com time informado/);
-    await expect(t14.getByTestId('t14-oculto')).toContainText('só a parte do meu time é mostrada');
-    // A tabela alternativa e a exportação seguem a mesma regra: "não exibido" nas três colunas escondidas.
+    // K-130: a ordem da tela é a da API (visíveis por total, o oculto ao fim) e o oculto é o último item da lista.
+    const codigos = (await t14.getByTestId('t14-projetos').getByRole('listitem').allInnerTexts()).map((t) => t.split(' ')[0]);
+    expect(codigos).toEqual(story.projetos.map((p) => p.codigo));
+    expect(codigos.at(-1)).toBe(oculto.codigo);
+    // K-130: o total do bloco e a base somam só os visíveis, então voltam a ser escritos, e o aviso diz isso.
+    const somaN = visiveis(story).reduce((a, p) => a + p.meuTime.n, 0);
+    expect(story.total.n, 'o total do bloco não inclui o projeto oculto').toBe(somaN);
+    await expect(t14.getByTestId('leitura-T14')).toContainText(`${story.total.k} de ${story.total.n} demandas com time informado`);
+    await expect(t14.getByTestId('base-T14')).toBeVisible();
+    await expect(t14.getByTestId('t14-oculto')).toContainText('O total não inclui projetos com outros times ocultos');
+    // A tabela alternativa segue a mesma regra: "não exibido" nas três colunas escondidas.
     const linhaTabela = t14.getByTestId('tabela-T14').getByRole('row').filter({ hasText: oculto.codigo });
     await expect(linhaTabela.getByRole('cell')).toHaveText([String(oculto.meuTime.k), 'não exibido', 'não exibido', 'não exibido']);
     // Nada de barra para o projeto oculto (a barra mostraria a proporção).
     await expect(li.locator('span[aria-hidden="true"]')).toHaveCount(0);
   });
 
-  test('TT-12 CA-45 em frentes: os projetos ocultos da granularidade "frentes" também mostram só a fatia do meu time', async ({ page, painel }) => {
-    await abrir(page, painel);
+  test('TT-12 CA-45 em frentes: os projetos ocultos da granularidade "frentes" também mostram só a fatia do meu time, ao fim da lista', async ({ page, painel }) => {
+    await abrir(page, painel, '/tatico?equipe=plataforma-5g');
     const t14 = page.getByTestId('metrica-T14');
-    const api = await t14DaApi(page, 'erp-protheus');
+    const api = await t14DaApi(page, 'plataforma-5g');
     const frentes = api.porGranularidade.find((g) => g.granularidade === 'frente')!;
-    const ocultos = frentes.projetos.filter((p) => p.outrosTimes === null);
-    expect(ocultos.map((p) => p.codigo).sort(), 'o mock tem dois projetos ocultos em frentes').toEqual(['P-0008', 'P-0038']);
+    const ocultos = ocultosDe(frentes);
+    expect(ocultos.map((p) => p.codigo), 'o mock tem um projeto oculto em frentes para a plataforma-5g').toEqual(['P-0004']);
     await t14.getByTestId('seletor-local-T14').getByRole('tab', { name: 'Frentes' }).click();
     await expect(t14.getByTestId('anuncio-T14')).toHaveText('Contando frentes.');
     for (const o of ocultos) {
+      const unidade = o.meuTime.k === 1 ? 'frente' : 'frentes';
       const li = t14.getByTestId('t14-projetos').getByRole('listitem').filter({ hasText: o.codigo });
       const texto = (await li.innerText()).replace(/\s+/g, ' ').trim();
-      expect(texto).toMatch(new RegExp(`Meu time: ${o.meuTime.k} ${o.meuTime.k === 1 ? 'frente' : 'frentes'}$`));
+      expect(texto).toMatch(new RegExp(`Meu time: ${o.meuTime.k} ${unidade}$`));
       const fatia = (await page.getByTestId(`t14-fatia-${o.codigo}`).innerText()).trim();
-      expect(fatia).toBe(`Meu time: ${o.meuTime.k} ${o.meuTime.k === 1 ? 'frente' : 'frentes'}`);
+      expect(fatia).toBe(`Meu time: ${o.meuTime.k} ${unidade}`);
       expect(fatia).not.toMatch(/ de |%|sem time|outros/i);
       expect(texto.replace(fatia, '').replace(o.codigo, ''), 'o resto da linha é só o título do projeto').not.toMatch(/%|sem time informado|outros times|\d+ de \d+/i);
       await expect(li.locator('span[aria-hidden="true"]')).toHaveCount(0);
     }
-    await expect(t14.getByTestId('leitura-T14')).toHaveCount(0);
-    await expect(t14.getByTestId('base-T14')).toHaveCount(0);
+    const codigos = (await t14.getByTestId('t14-projetos').getByRole('listitem').allInnerTexts()).map((t) => t.split(' ')[0]);
+    expect(codigos).toEqual(frentes.projetos.map((p) => p.codigo));
+    expect(codigos.at(-1)).toBe('P-0004');
+    await expect(t14.getByTestId('leitura-T14')).toContainText(`${frentes.total.k} de ${frentes.total.n} frentes com time informado`);
     const linhas = t14.getByTestId('tabela-T14').getByRole('row').filter({ hasText: 'não exibido' });
     await expect(linhas).toHaveCount(ocultos.length);
   });
 
-  test('TT-13 controle positivo de TT-11: com a API devolvendo "outros times" publicável, a tela mostra k de n e a barra (o detector funciona)', async ({ page, painel }) => {
+  test('TT-13 controle positivo de TT-11: com a API devolvendo o projeto como visível, a tela mostra k de n e a barra (o detector funciona)', async ({ page, painel }) => {
     await page.route(/\/metricas\/T14(\?|$)/, async (rota) => {
       const resp = await rota.fetch();
       const json = (await resp.json()) as T14Api;
       for (const g of json.porGranularidade) {
-        for (const p of g.projetos) if (p.outrosTimes === null) p.outrosTimes = p.total - p.meuTime.k - p.semTime;
+        g.projetos = g.projetos.map((p): ProjetoApi => {
+          if (!p.oculto) return p;
+          const k = p.meuTime.k;
+          const n = k + 5;
+          const meuTime: MeuTimeApi = n >= 20 ? { status: 'ok', k, n, pct: (100 * k) / n } : { status: 'insuficiente', k, n, minimo: 20 };
+          return { oculto: false, projetoId: p.projetoId, codigo: p.codigo, titulo: p.titulo, total: n + 1, meuTime, outrosTimes: 5, semTime: 1 };
+        });
       }
       await rota.fulfill({ response: resp, json });
     });
-    await abrir(page, painel);
+    await abrir(page, painel, '/tatico?equipe=plataforma-5g');
     const li = page
       .getByTestId('metrica-T14')
       .getByTestId('t14-projetos')
       .getByRole('listitem')
-      .filter({ hasText: 'P-0039' });
-    await expect(li).toContainText('1 de 73');
+      .filter({ hasText: 'P-0012' });
+    await expect(li).toContainText('24 de 29');
     await expect(li.locator('span[aria-hidden="true"]')).toHaveCount(1);
-    await expect(page.getByTestId('t14-fatia-P-0039')).toHaveCount(0);
+    await expect(page.getByTestId('t14-fatia-P-0012')).toHaveCount(0);
   });
 
   test('TT-14 estado de falha: a API do T14 fora do ar mostra o erro no cartão, o painel segue e "Tentar de novo" recupera', async ({ page, painel }) => {
@@ -342,7 +361,7 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
 
   test('TT-16 catálogo e "Leia junto": T10 a T14 em /metricas como Tático/BusinessMap e os links de ida e volta com o núcleo', async ({ page, painel }) => {
     await page.goto('/metricas');
-    await expect(page.getByTestId('contagem-catalogo')).toHaveText('58 de 58 métricas');
+    await expect(page.getByTestId('contagem-catalogo')).toHaveText('65 de 65 métricas');
     for (const id of ['T10', 'T11', 'T12', 'T13', 'T14']) {
       const linha = page.getByRole('row').filter({ has: page.getByRole('cell', { name: id, exact: true }).or(page.getByRole('rowheader', { name: id, exact: true })) });
       await expect(linha, id).toHaveCount(1);
@@ -351,14 +370,14 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
     }
     // Núcleo → complementar: T1 → T13, T4 → T11, T9 → T14 (e T10 a partir do Bloqueados agora; O14 → T12).
     await painel.ir('/tatico');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     const alvos: Record<string, string[]> = { t1: ['T13'], t4: ['T11'], t9: ['T14'] };
     for (const [de, ids] of Object.entries(alvos)) {
       const leia = page.getByTestId(`leia-junto-${de}`);
       for (const id of ids) await expect(leia.getByRole('link', { name: new RegExp(`^${id}\\b`) }), `${de} -> ${id}`).toBeVisible();
     }
     await painel.ir('/operacional?cadencia=diaria');
-    await painel.esperarCartoesProntos();
+    await painel.esperarPronto();
     await expect(page.getByTestId('leia-junto-bloqueados').getByRole('link', { name: /^T10\b/ })).toBeVisible();
     // Complementar → núcleo: cada um dos cinco tem "Leia junto" escrito na nota, com os pares da ficha (O19 é do lote 3).
     await abrir(page, painel);
@@ -399,6 +418,104 @@ test.describe('Tático, lote 2 do 011 (T10 a T14)', () => {
       expect((contorno.estilo !== 'none' && contorno.largura > 0) || contorno.sombra !== 'none', JSON.stringify(contorno)).toBe(true);
       await page.keyboard.press('Home');
       await expect(abas.first()).toHaveAttribute('aria-selected', 'true');
+    }
+  });
+});
+
+// Pedido 048 (E5.2, K-130, Q-T14-12 = B): o contrato da T14 na resposta da API real, sem passar pela tela.
+test.describe('T14 na API: união por oculto (pedido 048)', () => {
+  const CHAVES_OCULTO = ['codigo', 'meuTime', 'oculto', 'projetoId', 'titulo'];
+  const CHAVES_VISIVEL = ['codigo', 'meuTime', 'oculto', 'outrosTimes', 'projetoId', 'semTime', 'titulo', 'total'];
+  // Toda chave que pode existir na resposta. Chave fora da lista (nome, e-mail, pessoa, membro, contagem de pessoas) derruba o teste.
+  const CHAVES_PERMITIDAS = new Set([
+    'base', 'criterios', 'equipe', 'semEquipe', 'porGranularidade', 'granularidade', 'total', 'projetos',
+    'oculto', 'projetoId', 'codigo', 'titulo', 'meuTime', 'outrosTimes', 'semTime',
+    'k', 'n', 'pct', 'status', 'minimo', 'unidade', 'janela', 'inicio', 'fim', 'complemento', 'serie',
+  ]);
+  const chavesDe = (v: unknown): string[] =>
+    Array.isArray(v) ? v.flatMap(chavesDe) : v !== null && typeof v === 'object' ? Object.entries(v).flatMap(([k, x]) => [k, ...chavesDe(x)]) : [];
+  const textosDe = (v: unknown): string[] =>
+    typeof v === 'string' ? [v] : Array.isArray(v) ? v.flatMap(textosDe) : v !== null && typeof v === 'object' ? Object.values(v).flatMap(textosDe) : [];
+
+  test('TT-20 K-130: o oculto traz só `meuTime.k` e o visível traz `outrosTimes` inteiro, nunca nulo', async ({ page }) => {
+    let ocultos = 0;
+    let visiveisN = 0;
+    for (const equipe of EQUIPES_T14) {
+      const api = await t14DaApi(page, equipe);
+      for (const g of api.porGranularidade) {
+        for (const p of g.projetos) {
+          if (p.oculto) {
+            ocultos++;
+            expect(Object.keys(p).sort(), `${equipe} ${g.granularidade} ${p.codigo}`).toEqual(CHAVES_OCULTO);
+            expect(Object.keys(p.meuTime), 'a fatia do meu time é só o k').toEqual(['k']);
+            expect(Number.isInteger(p.meuTime.k) && p.meuTime.k >= 0).toBe(true);
+          } else {
+            visiveisN++;
+            expect(Object.keys(p).sort(), `${equipe} ${g.granularidade} ${p.codigo}`).toEqual(CHAVES_VISIVEL);
+            expect(Number.isInteger(p.outrosTimes), 'outrosTimes é inteiro, nunca null').toBe(true);
+            expect(p.outrosTimes).toBe(p.meuTime.n - p.meuTime.k);
+          }
+        }
+      }
+    }
+    expect(ocultos, 'o mock tem projetos ocultos (senão o teste não prova nada)').toBeGreaterThanOrEqual(3);
+    expect(visiveisN, 'o mock tem projetos visíveis').toBeGreaterThanOrEqual(20);
+  });
+
+  test('TT-21 E1/E2: nenhum campo de pessoa e nenhum número de pessoas na resposta (lista fechada de chaves)', async ({ page }) => {
+    let lidos = 0;
+    for (const equipe of [...EQUIPES_T14, '']) {
+      const r = await page.request.get(`/api/v1/metricas/T14${equipe ? `?equipe=${equipe}` : ''}`);
+      expect(r.ok()).toBe(true);
+      const json = await r.json();
+      const chaves = chavesDe(json);
+      lidos += chaves.length;
+      const fora = [...new Set(chaves)].filter((c) => !CHAVES_PERMITIDAS.has(c));
+      expect(fora, `chaves fora da lista fechada (${equipe || 'sem equipe'})`).toEqual([]);
+      const corpo = JSON.stringify(json);
+      expect(corpo, 'nenhum id de membro simulado').not.toMatch(/sim-\d/i);
+      expect(corpo, 'nenhum e-mail').not.toMatch(/@/);
+      expect(corpo, 'nenhuma chave de pessoa, de membro ou da contagem de pessoas').not.toMatch(/"[^"]*(pessoa|membro|usuario|email|e-mail|cadastro|publicavel)[^"]*"\s*:/i);
+      // o único texto livre é o título do projeto e as unidades/nomes do filtro: nada com cara de nome de pessoa/e-mail
+      for (const t of textosDe(json)) expect(t).not.toMatch(/@|sim-\d/);
+    }
+    expect(lidos, 'a guarda de suíte vazia: a resposta tem chaves').toBeGreaterThanOrEqual(150);
+  });
+
+  test('TT-22 Q-T14-12 = B: visíveis por total decrescente e código, ocultos depois dos visíveis e por código', async ({ page }) => {
+    let blocosComOculto = 0;
+    let ocultoComCodigoMenor = 0;
+    for (const equipe of EQUIPES_T14) {
+      const api = await t14DaApi(page, equipe);
+      for (const g of api.porGranularidade) {
+        const vis = visiveis(g);
+        const oc = ocultosDe(g);
+        const esperado = [...[...vis].sort((a, b) => b.total - a.total || porCodigo(a, b)), ...[...oc].sort(porCodigo)];
+        expect(g.projetos.map((p) => p.codigo), `${equipe} ${g.granularidade}`).toEqual(esperado.map((p) => p.codigo));
+        if (oc.length > 0) {
+          blocosComOculto++;
+          const primeiroOculto = g.projetos.findIndex((p) => p.oculto);
+          expect(g.projetos.slice(primeiroOculto).every((p) => p.oculto), 'nenhum visível depois de um oculto').toBe(true);
+          // O mock distingue "ocultos ao fim" de "tudo por código": existe oculto com código menor que o de algum visível.
+          if (vis.some((v) => v.codigo > oc[0]!.codigo)) ocultoComCodigoMenor++;
+        }
+      }
+    }
+    expect(blocosComOculto, 'blocos com oculto no mock').toBeGreaterThanOrEqual(3);
+    expect(ocultoComCodigoMenor, 'o teste distingue a ordem por código global da Q-T14-12 = B').toBeGreaterThanOrEqual(2);
+  });
+
+  test('TT-23 K-130, M-1a: total do bloco e base somam só os visíveis (o `n` do oculto não sai por subtração)', async ({ page }) => {
+    for (const equipe of EQUIPES_T14) {
+      const api = await t14DaApi(page, equipe);
+      const [story, frente] = ['story', 'frente'].map((x) => api.porGranularidade.find((g) => g.granularidade === x)!) as [BlocoApi, BlocoApi];
+      for (const g of [story, frente]) {
+        const vis = visiveis(g);
+        expect(g.total.n, `${equipe} ${g.granularidade}: total.n`).toBe(vis.reduce((a, p) => a + p.meuTime.n, 0));
+        expect(g.total.k, `${equipe} ${g.granularidade}: total.k`).toBe(vis.reduce((a, p) => a + p.meuTime.k, 0));
+      }
+      expect(api.base.n, `${equipe}: base.n é o das demandas visíveis`).toBe(story.total.n);
+      expect(api.base.complemento?.n, `${equipe}: base.complemento.n é o das frentes visíveis`).toBe(frente.total.n);
     }
   });
 });

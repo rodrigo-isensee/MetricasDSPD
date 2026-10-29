@@ -5,9 +5,9 @@ import { test, expect } from '../fixtures/base';
 // Roda só no projeto `chromium-api-grafias`; sem a variável a API traz "Fornecedor Alfa/Beta/Gama" e este teste falha de propósito.
 test('T10-G1 CA-51: fornecedor com grafias só em caixa ou espaços aparece numa linha só, sem espaço sobrando, com a soma dos três', async ({ page, painel }) => {
   await painel.ir('/tatico');
-  await painel.esperarCartoesProntos();
+  await painel.esperarPronto();
   await page.getByTestId('mais-metricas').locator('summary').click();
-  await painel.esperarCartoesProntos();
+  await painel.esperarPronto();
   const t10 = page.getByTestId('metrica-T10');
   const linhas = t10.getByTestId('tabela-T10').getByRole('rowheader');
   await expect(linhas).toHaveCount(1);

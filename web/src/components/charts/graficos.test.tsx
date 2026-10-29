@@ -46,6 +46,23 @@ describe('AreaEmpilhada', () => {
     expect(within(legenda).getByText('Concluído')).toBeInTheDocument()
   })
 
+  it('traça a mudança de critério e ignora a que cai depois do último ponto', () => {
+    const { container } = render(
+      <AreaEmpilhada
+        pontos={pontos}
+        series={series}
+        formatarX={(x) => x.slice(5)}
+        unidade="itens"
+        descricao="Fluxo acumulado"
+        marcacoes={[
+          { id: 'a', data: pontos[1]!.x, descricao: 'Novo critério' },
+          { id: 'b', data: '2099-01-01', descricao: 'Futuro' },
+        ]}
+      />,
+    )
+    expect(container.querySelectorAll('.marca-criterio')).toHaveLength(1)
+  })
+
   it('no modo tabela, mostra os valores formatados e "—" onde não há dado', () => {
     render(
       <ModoTabelaContext.Provider

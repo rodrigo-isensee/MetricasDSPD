@@ -11,10 +11,16 @@ interface Props {
   comNome?: boolean
   /**
    * Reserva a altura da linha extra do aviso de falha ("Coleta falhou em…"), que só aparece nesse estado: com ela o
-   * cabeçalho não desce quando o estado chega (CLS do Resumo do Operacional, ADR 0003).
+   * cabeçalho não desce quando o estado chega (CLS do Resumo do Operacional, ADR 0003). A reserva é uma linha invisível
+   * com o texto mais longo do aviso, que quebra como a real (a 375 px são duas linhas, não uma altura fixa) e fica em
+   * todos os estados, para o cabeçalho também não subir quando o estado é "atual".
    */
   reservarFalha?: boolean
 }
+
+/** Texto mais longo do aviso de falha, só para reservar a altura (invisível). */
+const TEXTO_FALHA_RESERVA =
+  'Coleta falhou em 00/00/0000 00:00. Mostrando dados de 00/00/0000 00:00.'
 
 /**
  * Frescor de UMA fonte no cabeçalho do painel: "Atualizado em", selo, "Entenda" e, em falha, o aviso
@@ -43,6 +49,11 @@ export function FrescorFonte({ dominio, comNome = false, reservarFalha = false }
             <span className="alvo">Entenda</span>
           </p>
         </div>
+      )}
+      {reservarFalha && q.isPending && (
+        <p aria-hidden="true" className="invisible" data-testid={`reserva-falha-${dominio}`}>
+          {TEXTO_FALHA_RESERVA}
+        </p>
       )}
       {q.isError && (
         <p role="alert" className="flex flex-wrap items-center gap-2 text-alerta">
@@ -78,6 +89,11 @@ export function FrescorFonte({ dominio, comNome = false, reservarFalha = false }
             <p className="text-texto-2" data-testid={`falha-coleta-${dominio}`}>
               Coleta falhou em {fmtDataHora(e.ultimaTentativa.inicio)}.
               {e.ultimaOk ? ` Mostrando dados de ${fmtDataHora(e.ultimaOk.fim)}.` : ''}
+            </p>
+          )}
+          {reservarFalha && !(e.selo === 'falha' && e.ultimaTentativa) && (
+            <p aria-hidden="true" className="invisible" data-testid={`reserva-falha-${dominio}`}>
+              {TEXTO_FALHA_RESERVA}
             </p>
           )}
         </>

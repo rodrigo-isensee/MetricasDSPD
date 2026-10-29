@@ -115,6 +115,7 @@ const EXEMPLOS: Record<CodigoTambemFase2, unknown> = {
         total: taxaOk,
         projetos: [
           {
+            oculto: false,
             projetoId: 'P-1',
             codigo: 'P-1',
             titulo: 'Projeto',
@@ -124,14 +125,16 @@ const EXEMPLOS: Record<CodigoTambemFase2, unknown> = {
             semTime: 2,
           },
           {
+            oculto: false,
             projetoId: 'P-2',
             codigo: 'P-2',
             titulo: 'Outro',
             total: 10,
             meuTime: taxaPouca,
-            outrosTimes: null,
+            outrosTimes: 7,
             semTime: 1,
           },
+          { oculto: true, projetoId: 'P-3', codigo: 'P-3', titulo: 'Oculto', meuTime: { k: 4 } },
         ],
       },
     ],
@@ -301,20 +304,33 @@ describe('contratos da fase 2 do pedido 011', () => {
       ).toBe(false)
     })
 
-    it('T14, R-1 = B: outrosTimes é inteiro ou null, nunca nome nem lista; sem contagem de pessoas', () => {
-      const ex = EXEMPLOS.T14 as { porGranularidade: { projetos: Record<string, unknown>[] }[] }
-      const com = (outros: unknown) => {
+    it('T14, R-1 = B e K-130: outrosTimes é inteiro (nunca null, nome nem lista); o oculto traz só meuTime.k; sem contagem de pessoas', () => {
+      type Lista = { porGranularidade: { projetos: Record<string, unknown>[] }[] }
+      const ex = EXEMPLOS.T14 as Lista
+      const com = (i: number, mudanca: Record<string, unknown>) => {
         const c = structuredClone(ex)
-        ;(
-          c.porGranularidade[0] as { projetos: Record<string, unknown>[] }
-        ).projetos[0]!.outrosTimes = outros
+        const projetos = c.porGranularidade[0]!.projetos
+        projetos[i] = { ...projetos[i]!, ...mudanca }
         return c
       }
-      expect(resultadoT14.safeParse(com(25)).success).toBe(true)
-      expect(resultadoT14.safeParse(com(null)).success).toBe(true)
-      expect(resultadoT14.safeParse(com('Time Verde')).success).toBe(false)
-      expect(resultadoT14.safeParse(com(['Time Verde'])).success).toBe(false)
-      expect(resultadoT14.safeParse(com(undefined)).success).toBe(false)
+      expect(resultadoT14.safeParse(ex).success).toBe(true)
+      expect(resultadoT14.safeParse(com(0, { outrosTimes: 25 })).success).toBe(true)
+      for (const outros of [null, undefined, 'Time Verde', ['Time Verde'], 1.5])
+        expect(resultadoT14.safeParse(com(0, { outrosTimes: outros })).success).toBe(false)
+      // união por `oculto`: o oculto não aceita nada além da fatia do meu time (D1, D4)
+      for (const extra of [
+        { total: 9 },
+        { semTime: 1 },
+        { outrosTimes: 3 },
+        { n: 9 },
+        { pessoas: 2 },
+        { meuTime: { k: 4, n: 9 } },
+        { meuTime: taxaOk },
+        { meuTime: { k: 1.5 } },
+      ])
+        expect(resultadoT14.safeParse(com(2, extra)).success, JSON.stringify(extra)).toBe(false)
+      expect(resultadoT14.safeParse(com(2, { oculto: undefined })).success).toBe(false)
+      expect(resultadoT14.safeParse(com(0, { oculto: true })).success).toBe(false)
       const nomes = nomesDeCampo(jsonDe(resultadoT14))
       for (const n of ['pessoas', 'numeroDePessoas', 'outrosTimesPublicavel', 'times', 'porEquipe'])
         expect(nomes).not.toContain(n)
