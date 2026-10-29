@@ -592,3 +592,5 @@
 | 2026-10-29 07:51 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-5.md | brief | 4 | aprovado | s |  | — | jarvis |
 | 2026-10-29 07:51 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-11.md | brief | 2 | aprovado | s | aviso: A4 é do review (2aac602), só rótulo | — | jarvis |
 | 2026-10-29 07:51 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-12.md | brief | 1 | aprovado | s | aviso: terceiro dependente @zenuml/core no lockfile | — | jarvis |
+| 2026-10-29 07:53 | 049-forge-0-30-5 | 049-forge-0-30-5-tech-lead-1.md | brief | 1 | reprovado | n | PR sem review e QA; suposição do pedido errada (autor jarvis) | etapa | jarvis |
+| 2026-10-29 07:55 | 049-forge-0-30-5 | 049-forge-0-30-5-tech-lead-2.md | brief | 2 | aprovado | s | aviso: etapa codigo com review dentro | — | jarvis |
