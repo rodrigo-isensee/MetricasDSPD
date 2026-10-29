@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: docs/048-t14-desenho
-commit: f9c22a673bdfd4df7f0118a9c56a47395e677b2c
+commit: 230b4e92d95973d3b814fe4487474506f4ba625f
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-28
@@ -41,3 +41,6 @@ Lido por leitura: o diff do intervalo sem `docs/qa` e `docs/security`, a seção
 - Mudança incompatível (`politica-de-mudanca.md:45`): união por `oculto`, `outrosTimes` de `["number","null"]` para inteiro e campos removidos do oculto são incompatíveis para o gate. Fluxo seguido: aceite de uso único, fotografia regravada, entrada removida, `docs:check` verde; `aceitas.json` não existe mais na branch, como a política manda. Eu, como tech-lead, ACEITO a mudança: decidida pelo dono (T14-M1 = B e Q-T14-12 = B), desenhada pelo arquiteto (`048-t14-mock.md`, seção 2) e sem consumidor publicado (T14 só em mock, nenhum painel a lê no `/api/v2`). O rastro vai no corpo do PR (A5).
 - Dado de pessoa e métrica individual: nenhum campo novo de pessoa; a resposta é fechada e o spec prova a lista de chaves; sem ranking nem comparação entre times.
 - Regra de ferramenta sem comando rodado neste review: citada só a saída do QA acima.
+
+## Revalidação (f9c22a6..230b4e9)
+Delta lido: só a vinda da `develop` por merge (#157 a #160, entre eles `.github/workflows/homolog.yml`), mais a revisão de UX e a aprovação do arquiteto da T14, ambas só de `docs/`. Nenhum arquivo do diff da T14 mudou. Já lido: todo o restante, no parecer acima. Veredito inalterado: aprovado.
