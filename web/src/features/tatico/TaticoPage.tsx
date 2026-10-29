@@ -13,6 +13,7 @@ import { CartaoT7 } from './components/CartaoT7'
 import { CartaoT9 } from './components/CartaoT9'
 import { MaisMetricas } from '@/features/complementares/MaisMetricas'
 import { cartaoDeFluxo } from '@/features/complementares/registro'
+import { reservaFaixaTatico } from './reservaFaixa'
 
 function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
   const qT2 = useMetrica('T2', filtros)
@@ -59,7 +60,7 @@ function Atencao({ filtros }: { filtros: FiltrosFluxo }) {
       itens={itens}
       estado={estado}
       onTentarDeNovo={recarregar}
-      reserva={{ mobile: 294, desktop: 130 }}
+      reserva={reservaFaixaTatico(filtros)}
     />
   )
 }
