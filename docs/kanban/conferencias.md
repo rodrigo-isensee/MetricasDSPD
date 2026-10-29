@@ -607,3 +607,25 @@
 | 2026-10-29 08:13 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-11.md | entrega | 1 | não cumpriu | parcial | h-filtros ainda lido no e2e; sem teste do scroll-padding; cobertura.test fora do Entregar; Desde ausente | escopo | destino |
 | 2026-10-29 08:14 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-security-engineer-7.md | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-29 08:17 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-12.md | brief | 1 | aprovado | s | aviso PQ-5 se o teste for para web/src/styles | — | jarvis |
+| 2026-10-29 08:20 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-7.md | entrega | 1 | não cumpriu | s | tardio: README do índice (6e917a2) fora do Entregar; aceito pelo mérito | escopo | destino |
+| 2026-10-29 08:21 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-qa-engineer-8.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:23 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-13.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:27 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-software-architect-5.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:28 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-13.md | entrega | 1 | não cumpriu | s | PQ-1 a PQ-5, escopo e etapa ok; brief reprova no forge-check atual só por E3.4 e E3.5, acrescentadas às 08:25, depois da aprovação (08:23) | forma | destino |
+| 2026-10-29 08:28 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-12.md | entrega | 1 | não cumpriu | s | PQ-5 contraditório no brief (proibia web/src/styles, onde o teste cabe); autor relatou PQ-5 cumprido, falso; E3.4/E3.5 acrescentadas depois | forma | destino |
+| 2026-10-29 08:32 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-14.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:33 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-15.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:36 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-19 | brief | 1 | reprovado | parcial | forge-check pr nao ve parecer de contribuicao em outro repositorio | etapa | jarvis |
+| 2026-10-29 08:37 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-15 | entrega | 1 | nao cumpriu | s | Desde por pedido nao modela varias branches; PQ-1 a PQ-4, escopo e etapa cumpriram | base | destino |
+| 2026-10-29 08:38 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-14 | entrega | 1 | nao cumpriu | s | Desde por pedido nao modela varias branches (escopo fora vem dai); A8 acima de 300 caracteres | base | destino |
+| 2026-10-29 08:40 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-ux-designer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:41 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-ux-designer-4 | entrega | 1 | cumpriu | s | sem commit; PQ-1 a PQ-3 conferidos pelo Jarvis | — | destino |
+| 2026-10-29 08:43 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-13 | brief | 1 | reprovado | s | arquitetura-front.md:297 nao registra o adiamento; esta em :302 e :313 | citacao | jarvis |
+| 2026-10-29 08:46 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-16 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:46 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-13 | brief | 2 | reprovado | s | tardio: hora 08:41 da DECISAO TECNICA do E3.4 e 08:40 | citacao | jarvis |
+| 2026-10-29 08:48 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-16 | entrega | 1 | nao cumpriu | s | PQ-1 a PQ-4 cumpridos; so Desde por pedido com varias branches; aceito no merito | base | destino |
+| 2026-10-29 08:49 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-13 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:51 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-17 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:57 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-17 | entrega | 1 | nao cumpriu | s | PQ-1 a PQ-5 cumpridos no head 3db78a9; so Desde por pedido com varias branches; aceito no merito | base | destino |
+| 2026-10-29 08:57 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 09:12 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-13 | entrega | 1 | nao cumpriu | s | PQ-1 e PQ-3 a PQ-5 cumpridos no head 7686aea; escopo do recorte 430dcfe..HEAD ok; so Desde por pedido com varias branches (ADR 0021 entrou no E3.5); aceito no merito | base | destino |
