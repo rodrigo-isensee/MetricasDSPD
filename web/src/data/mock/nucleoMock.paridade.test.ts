@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  COM_EXTENSAO_MOCK,
   METRICA_IDS,
   fonteDaMetrica,
   type Dominio,
@@ -9,12 +10,15 @@ import {
 } from '@metricas-dspd/contratos'
 import * as lib from '@metricas-dspd/metricas'
 import * as mock from '@metricas-dspd/mock'
-import { NucleoMock, paginarO2 } from './nucleoMock'
+import { COM_TAMBEM as COM_TAMBEM_NUCLEO, NucleoMock, paginarO2 } from './nucleoMock'
 
 /**
  * Paridade 1 a 3 da ADR 0021: o núcleo (que roda no Worker e em processo) contra a biblioteca chamada direto sobre a
  * mesma base, atravessando a fronteira de clone. Aqui a "referência" monta os contextos por conta própria, sem o núcleo.
  */
+/** Cópia independente do `COM_TAMBEM` do núcleo (K-128): T11, T13 e T14 entram, como no servidor (`servico.ts:57`). */
+const COM_TAMBEM = new Set<MetricaId>(['T11', 'T13', 'T14', 'E6', 'E8', 'O22', 'O26'])
+
 const SEMENTES: (number | undefined)[] = [undefined, 12345]
 
 function referencia(semente: number | undefined) {
@@ -64,7 +68,6 @@ const COM_EXT = new Set<MetricaId>([
   'S11',
   'S12',
 ])
-const COM_TAMBEM = new Set<MetricaId>(['E6', 'E8', 'O22', 'O26'])
 
 const SEM_FILTRO = (id: MetricaId) => id === 'VISAO_GERAL' || id === 'PV1'
 
@@ -99,6 +102,31 @@ function formaInvalida(v: unknown, caminho: string): string | null {
   }
   return `${caminho}: ${typeof v} fora do formato de dados simples`
 }
+
+describe('COM_TAMBEM do núcleo (K-128)', () => {
+  it('inclui T11, T13 e T14 e todas as métricas de COM_EXTENSAO_MOCK que leem a extensão', () => {
+    expect([...COM_TAMBEM_NUCLEO].sort()).toEqual([...COM_TAMBEM].sort())
+    for (const id of ['T11', 'T13', 'T14'] as const)
+      expect(COM_TAMBEM_NUCLEO.has(id), id).toBe(true)
+    for (const id of ['E6', 'E8', 'O22', 'O26', 'T13', 'T14']) {
+      expect(COM_EXTENSAO_MOCK.has(id), id).toBe(true)
+      expect(COM_TAMBEM_NUCLEO.has(id as MetricaId), id).toBe(true)
+    }
+  })
+
+  it('T13 e T14 chegam ao front com a extensão (vínculos e time responsável), não vazias', async () => {
+    const nucleo = new NucleoMock({})
+    const t13 = JSON.stringify(
+      await nucleo.obter('T13', filtrosDe('T13', referencia(undefined))[0] as never),
+    )
+    const sem = lib.calcularMetrica(
+      'T13',
+      filtrosDe('T13', referencia(undefined))[0] as never,
+      referencia(undefined).ctx,
+    )
+    expect(t13).not.toBe(JSON.stringify(sem))
+  })
+})
 
 describe.each(SEMENTES)('paridade do núcleo, semente %s', (semente) => {
   it('toda MetricaId: o núcleo clonado é idêntico à biblioteca direta, e o DTO é só dado simples', async () => {
