@@ -530,26 +530,22 @@ export function CartaoT13({ filtros }: P) {
 
 /* ---------------------------------------------------------------- T14 */
 
-type ProjetoT14 = ResultadoT14['porGranularidade'][number]['projetos'][number]
-
-/** R-1 = B: o back sinaliza com `outrosTimes: null` que os outros times somam menos de 2 pessoas. */
-const outrosOculto = (p: ProjetoT14) => p.outrosTimes === null
-
 function leituraT14(b: ResultadoT14['porGranularidade'][number], g: Gran): string | undefined {
-  // T14-M1 = B: com algum projeto de "outros times" oculto, nenhum total é escrito (a soma revelaria o do projeto).
-  if (b.projetos.some(outrosOculto) || b.total.n === 0) return undefined
+  // K-130: o total do bloco soma só os projetos visíveis (o oculto nunca entra), então pode ser escrito.
+  if (b.total.n === 0) return undefined
   const nome = SUBSTANTIVO_GRAN[g]
   const parte1 =
     b.total.status === 'ok'
       ? `${fmtInteiro(b.total.k)} de ${fmtInteiro(b.total.n)} ${nome} com time informado (${fmtNumero(b.total.pct, 0)}%) são do meu time.`
       : `${fmtInteiro(b.total.k)} de ${fmtInteiro(b.total.n)} ${nome} com time informado são do meu time.`
   const menor = b.projetos
-    .flatMap((p) => (p.meuTime.status === 'ok' ? [{ p, pct: p.meuTime.pct }] : []))
-    .sort((x, y) => x.pct - y.pct)[0]
-  const parte2 =
-    menor && menor.p.meuTime.status === 'ok'
-      ? ` No ${menor.p.codigo}, ${fmtInteiro(menor.p.meuTime.k)} de ${fmtInteiro(menor.p.meuTime.n)} (${fmtNumero(menor.pct, 0)}%) são do meu time.`
-      : ''
+    .flatMap((p) =>
+      !p.oculto && p.meuTime.status === 'ok' ? [{ codigo: p.codigo, t: p.meuTime }] : [],
+    )
+    .sort((x, y) => x.t.pct - y.t.pct)[0]
+  const parte2 = menor
+    ? ` No ${menor.codigo}, ${fmtInteiro(menor.t.k)} de ${fmtInteiro(menor.t.n)} (${fmtNumero(menor.t.pct, 0)}%) são do meu time.`
+    : ''
   return parte1 + parte2
 }
 
@@ -562,15 +558,14 @@ export function CartaoT14({ filtros }: P) {
   const q = comoOk(q0, d0?.semEquipe === true)
   const d = q.dados
   const b0 = d?.porGranularidade.find((x) => x.granularidade === gran)
-  const algumOculto = !!d?.porGranularidade.some((g) => g.projetos.some(outrosOculto))
   return (
     <CartaoComplementar
       id="T14"
       q={q}
       semTabela
       baseVariante="censo"
-      // O `n` da base é o total com time informado: some quando há projeto com "outros times" oculto (T14-M1 = B).
-      semBase={d?.semEquipe === true || algumOculto}
+      // A base soma só os projetos visíveis (K-130): pode aparecer mesmo com projeto oculto.
+      semBase={d?.semEquipe === true}
       className="lg:col-span-12"
       leitura={b0 ? leituraT14(b0, gran) : undefined}
     >
@@ -592,10 +587,10 @@ export function CartaoT14({ filtros }: P) {
               <Icone nome="info" className="size-4" />
               Só mostra meu time e os outros somados. Não compara times.
             </p>
-            {b.projetos.some(outrosOculto) && (
+            {b.projetos.some((p) => p.oculto) && (
               <AvisoInfo testid="t14-oculto">
-                Em alguns projetos só a parte do meu time é mostrada; a dos outros times não é
-                exibida.
+                O total não inclui projetos com outros times ocultos. Neles só a parte do meu time é
+                mostrada.
               </AvisoInfo>
             )}
             <ul className="flex flex-wrap gap-3 text-sm" aria-label="Legenda das barras">
@@ -614,7 +609,7 @@ export function CartaoT14({ filtros }: P) {
                     <span className="text-sm font-medium">
                       {p.codigo} {p.titulo}
                     </span>
-                    {outrosOculto(p) ? (
+                    {p.oculto ? (
                       <span className="text-sm text-texto-2" data-testid={`t14-fatia-${p.codigo}`}>
                         Meu time: {fmtInteiro(p.meuTime.k)}{' '}
                         {gran === 'story'
@@ -632,7 +627,7 @@ export function CartaoT14({ filtros }: P) {
                             style={{
                               background:
                                 'repeating-linear-gradient(45deg, var(--serie-2) 0 2px, transparent 2px 5px)',
-                              flexGrow: Number(p.outrosTimes), // oculto (null) nunca chega aqui
+                              flexGrow: p.outrosTimes,
                             }}
                           />
                           <span
@@ -653,7 +648,7 @@ export function CartaoT14({ filtros }: P) {
             )}
             <TabelaDados
               codigo="T14"
-              legenda={`Participação do meu time por projeto (${SUBSTANTIVO_GRAN[gran]}), em ordem de volume do projeto`}
+              legenda={`Participação do meu time por projeto (${SUBSTANTIVO_GRAN[gran]}), na ordem da API (projetos com outros times ocultos ao fim)`}
               colunas={[
                 { chave: 'p', titulo: 'Projeto' },
                 { chave: 'm', titulo: 'Meu time', alinhar: 'direita' },
@@ -662,7 +657,7 @@ export function CartaoT14({ filtros }: P) {
                 { chave: 'x', titulo: 'Participação do meu time', alinhar: 'direita' },
               ]}
               linhas={b.projetos.map((p) =>
-                outrosOculto(p)
+                p.oculto
                   ? {
                       p: `${p.codigo} ${p.titulo}`,
                       m: fmtInteiro(p.meuTime.k),
@@ -673,7 +668,7 @@ export function CartaoT14({ filtros }: P) {
                   : {
                       p: `${p.codigo} ${p.titulo}`,
                       m: fmtInteiro(p.meuTime.k),
-                      o: fmtInteiro(Number(p.outrosTimes)),
+                      o: fmtInteiro(p.outrosTimes),
                       s: fmtInteiro(p.semTime),
                       x:
                         p.meuTime.status === 'ok'

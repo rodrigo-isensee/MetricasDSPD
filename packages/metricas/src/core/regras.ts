@@ -685,7 +685,7 @@ export const REGRAS_METRICA = {
     minimoSobre: ['taxa'],
     granularidade: 'story',
     refBriefing:
-      'pedido 011 T14; Q-T14-1 = B (campo "Time responsável" do card), Q-T14-5 = D (projetos ligados a sistema do meu time, mesmo com 0%, mais os com 1 ou mais card do meu time), Q-T14-9 = A (usuário, provisória até confirmar a cardinalidade do campo), Q-T14-10 = B (decidida pelo usuário: cadastro de membros por time, na fase 3), Q-T14-6 = A revista pela R-1 = B (outros times é um inteiro só, sem nome, tempo, vazão nem ranking, e fica oculto quando somar menos de 2 pessoas); o filtro de equipe só diz qual é "meu time" e não recorta a população; exige exatamente uma equipe (CA-28); ordem pelo total de cards (CA-30); percentual só com 20 ou mais cards com time informado (CA-31)',
+      'pedido 011 T14; Q-T14-1 = B (campo "Time responsável" do card), Q-T14-5 = D (projetos ligados a sistema do meu time, mesmo com 0%, mais os com 1 ou mais card do meu time), Q-T14-9 = A (usuário, provisória até confirmar a cardinalidade do campo), Q-T14-10 = B (decidida pelo usuário: cadastro de membros por time; no mock, simulado, na fase 3 vem da configuração) e T14-M1 = B (com outros times oculto, só a fatia do meu time, sem total nem n; K-130), Q-T14-6 = A revista pela R-1 = B (outros times é um inteiro só, sem nome, tempo, vazão nem ranking, e fica oculto quando somar menos de 2 pessoas); o filtro de equipe só diz qual é "meu time" e não recorta a população; exige exatamente uma equipe (CA-28); ordem dos visíveis pelo total de cards (CA-30) e, depois deles, os ocultos por código (Q-T14-12 = B, decidida pelo usuário em 2026-10-28); total do bloco e base só dos visíveis; percentual só com 20 ou mais cards com time informado (CA-31)',
     status: 'pendente-usuario',
     pendencias: [
       'Cardinalidade do campo "Time responsável" (escolha única ou múltipla) e nome exato, a confirmar na integração (Q-T14-1 = B); vale a Q-T14-9 = A (usuário) até lá',
@@ -694,6 +694,8 @@ export const REGRAS_METRICA = {
       'Q-T14-4: o projeto inteiro, com o período escolhendo quais projetos aparecem; "em andamento no período" = iniciado até o fim do período e não concluído antes do início (CA-27), então o projeto ainda não iniciado fica fora mesmo com cards do meu time; suposição do time',
       'Q-T14-7: card sem time entra no total e fica fora do denominador do percentual, suposição do time',
       'Q-T14-8: vale o time na entrega (para o aberto, o atual), suposição do time',
+      'Q-T14-11: na regra de 2 pessoas contam os membros cadastrados das equipes que têm card no projeto e na granularidade (o lado que oculta mais), suposição do desenho 048',
+      'Membro cadastrado em mais de um time (parecer 048-t14-ameacas, pergunta 2): no mock cada membro simulado fica num time só e a fase 3 conta ids distintos, suposição do desenho 048',
     ],
   },
   E4: {

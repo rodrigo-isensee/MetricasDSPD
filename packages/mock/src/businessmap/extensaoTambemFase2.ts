@@ -20,6 +20,7 @@ import { chaveOutrosPublicavel } from '@metricas-dspd/metricas/businessmap'
 import { bernoulli, escolha, inteiro, lognormal, poisson, uniforme } from '../distribuicoes'
 import type { ConfigMock } from '../config'
 import { derivar, type Prng } from '../prng'
+import { gerarMembrosSimulados, outrosPublicavelPorCadastro } from './membrosSimulados'
 
 /**
  * Fase 2 da extensão só de mock do pedido 011 (O22, O26, T13, E6, E8 e T14). Cada campo tem a sua stream
@@ -59,8 +60,6 @@ export const PARAMETROS_FASE2 = {
   semTime: 0.05,
   /** T14: um projeto com 20 ou mais demandas e menos de 20 com time informado: demandas com time informado nele. */
   projetoAbaixoDe20ComTime: 15,
-  /** T14: chance de "outros times" ser publicável quando há 2 ou mais cards de outros times (R-1 = B). */
-  outrosPublicavel: 0.9,
 } as const
 
 export interface EntradaFase2 {
@@ -332,10 +331,46 @@ export function gerarFase2(base: EntradaFase2): Fase2 {
       if (i >= P.projetoAbaixoDe20ComTime) equipeResponsavel[c.card_id] = null
     })
   }
-  // R-1 = B: "outros times" publicável por (projeto, "meu time", granularidade), gerado direto, sem contar pessoas.
-  const outrosPublicavel: Record<string, boolean> = {}
-  let forcouFalso = false
+  // K-112 (Q-T14-10 = B): "outros times" publicável = 2 ou mais membros distintos, no cadastro simulado, nas equipes de
+  // "outros times" que têm card no projeto e na granularidade. O cadastro fica aqui e nunca sai da extensão (C3 e C4).
   const slugs = new Map<string, string>(nomesEquipe.map((n) => [n, slug(n)]))
+  const nomeDoSlug = new Map<string, string>(nomesEquipe.map((n) => [slug(n), n]))
+  const membros = gerarMembrosSimulados(nomesEquipe)
+  const membrosPorEquipe = new Map<string, number>()
+  for (const m of membros) membrosPorEquipe.set(m.equipe, (membrosPorEquipe.get(m.equipe) ?? 0) + 1)
+  // Ao menos um projeto com cards de outro time e "outros times" oculto (plano §9.3): o meu time é o dono do sistema do
+  // projeto e os cards de outro time são só da equipe de 1 membro. Atribuição por posição, sem sorteio.
+  const solo = [...membrosPorEquipe].find(([, quantos]) => quantos === 1)?.[0]
+  const alvo =
+    solo === undefined
+      ? undefined
+      : projetosOrdenados.find((p) => {
+          if (p === zero || p === abaixo || !emAndamento(p)) return false
+          const dono = base.equipes.find((e) =>
+            e.sistemas.includes((porId.get(p) as DimCard).sistema),
+          )
+          if (dono === undefined || slug(dono.nome) === solo) return false
+          const comTime = (porProjeto.get(p) as DimCard[]).filter(
+            (c) =>
+              c.granularidade === 'story' &&
+              ativa(c) &&
+              typeof equipeResponsavel[c.card_id] === 'string',
+          )
+          return comTime.length >= 6
+        })
+  if (alvo !== undefined && solo !== undefined) {
+    const dono = base.equipes.find((e) => e.sistemas.includes((porId.get(alvo) as DimCard).sistema))
+      ?.nome as string
+    const soloNome = nomeDoSlug.get(solo) as string
+    const lista = (porProjeto.get(alvo) as DimCard[]).filter(
+      (c) =>
+        c.granularidade === 'story' && ativa(c) && typeof equipeResponsavel[c.card_id] === 'string',
+    )
+    lista.forEach((c, i) => {
+      equipeResponsavel[c.card_id] = i % 3 === 0 ? dono : soloNome
+    })
+  }
+  const outrosPublicavel: Record<string, boolean> = {}
   for (const p of projetosOrdenados)
     for (const g of ['story', 'frente'] as const) {
       // Os mesmos cards que a biblioteca conta (não descartados, sem subtarefa): o booleano tem de ser coerente com eles.
@@ -344,22 +379,17 @@ export function gerarFase2(base: EntradaFase2): Fase2 {
       )
       for (const nome of nomesEquipe) {
         const meu = slugs.get(nome) as string
-        let k = 0
-        let n = 0
+        const equipesDeOutros = new Set<string>()
         for (const c of cardsDoNivel) {
           const v = equipeResponsavel[c.card_id]
-          if (v === null || v === undefined) continue
-          n++
-          if (slugs.get(v) === meu) k++
+          if (v === undefined || v === null) continue
+          // Q-T14-9 = A: com o meu time entre os marcados o card é meu e não conta para "outros times".
+          if (slugs.get(v) !== meu) equipesDeOutros.add(slugs.get(v) as string)
         }
-        const outros = n - k
-        let pub = outros >= 2 && bernoulli(rE, P.outrosPublicavel)
-        // ao menos um caso com cards de outros times e "outros times" oculto
-        if (!forcouFalso && outros >= 2 && pub) {
-          pub = false
-          forcouFalso = true
-        }
-        outrosPublicavel[chaveOutrosPublicavel(p, meu, g)] = pub
+        outrosPublicavel[chaveOutrosPublicavel(p, meu, g)] = outrosPublicavelPorCadastro(
+          membros,
+          equipesDeOutros,
+        )
       }
     }
 

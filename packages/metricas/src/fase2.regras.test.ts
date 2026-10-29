@@ -39,16 +39,24 @@ describe('regras da fase 2 (REGRAS_METRICA)', () => {
     expect(REGRAS_METRICA.E7.refBriefing).toMatch(/sem R\$/)
   })
 
-  it('só o T14 tem pendência com o usuário: cardinalidade do campo e Q-T14-2, 3, 4, 7 e 8; a Q-T14-9 e a Q-T14-10 estão decididas', () => {
+  it('só o T14 tem pendência com o usuário: cardinalidade do campo e Q-T14-2, 3, 4, 7, 8 e 11; a Q-T14-9, a Q-T14-10 e a Q-T14-12 (ordem dos ocultos) estão decididas', () => {
     for (const id of FASE2.filter((x) => x !== 'T14'))
       expect(REGRAS_METRICA[id].status, id).toBe('ok')
     const t14: RegraMetrica = REGRAS_METRICA.T14
     expect(t14.status).toBe('pendente-usuario')
     const texto = (t14.pendencias ?? []).join('\n')
-    for (const q of ['Q-T14-2', 'Q-T14-3', 'Q-T14-4', 'Q-T14-7', 'Q-T14-8', 'Cardinalidade'])
+    for (const q of [
+      'Q-T14-2',
+      'Q-T14-3',
+      'Q-T14-4',
+      'Q-T14-7',
+      'Q-T14-8',
+      'Q-T14-11',
+      'Cardinalidade',
+    ])
       expect(texto, q).toContain(q)
-    // as decididas (Q-T14-1, 5, 6 e 10) não voltam como pendência
-    for (const q of ['Q-T14-1:', 'Q-T14-5:', 'Q-T14-6:', 'Q-T14-9:', 'Q-T14-10:'])
+    // as decididas (Q-T14-1, 5, 6, 10 e 12) não voltam como pendência
+    for (const q of ['Q-T14-1:', 'Q-T14-5:', 'Q-T14-6:', 'Q-T14-9:', 'Q-T14-10:', 'Q-T14-12'])
       expect(texto, q).not.toContain(q)
   })
 
