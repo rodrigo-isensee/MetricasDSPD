@@ -1,5 +1,6 @@
 import { test, expect, rodarAxe } from '../fixtures/base'
 import type { Page } from '@playwright/test'
+import { AxeBuilder } from '@axe-core/playwright'
 
 // Pedido 048 (K-074): usabilidade U1 a U5, catálogo na Ajuda, barra única de ações (P2) e correções A1 a A4 do review.
 // Fonte: docs/ux/revisao-geral-usabilidade/04-decisoes.md e 02-propostas.md. Mock: nenhum dado real, nenhum dado de pessoa.
@@ -68,7 +69,7 @@ test.describe('U1 e U2: ocultar é lembrado, com marcador no lugar', () => {
   })
 })
 
-test.describe('U3, P3 e A1: índice fixo por seção, abaixo da barra de filtros', () => {
+test.describe('U3, P3 e 048-03 CA-A: índice fixo por seção; a barra de filtros rola com o conteúdo', () => {
   test('USAB-05 índice leva ao título da seção (foco) e marca a seção em vista', async ({ page }) => {
     await page.goto('/tatico')
     const indice = page.getByTestId('indice-secoes')
@@ -78,11 +79,8 @@ test.describe('U3, P3 e A1: índice fixo por seção, abaixo da barra de filtros
     await expect(page).toHaveURL(/#fila$/)
   })
 
-  // Bug 048-01 (docs/qa/bugs/048-01-indice-cobre-titulo.md): depois do clique o título da seção fica sob o índice fixo e o
-  // destaque segue na seção anterior. `test.fail` documenta o defeito aberto sem esconder o teste; quando o front corrigir,
-  // este teste passa e o Playwright o acusa: remova o `test.fail` e mantenha o caso.
+  // Bug 048-01 (docs/qa/bugs/048-01-indice-cobre-titulo.md), corrigido: depois do clique o título não fica sob o índice.
   test('USAB-05b (bug 048-01) após o clique, o título da seção não fica coberto e o destaque vai para ela', async ({ page }) => {
-    test.fail(true, 'bug 048-01 aberto')
     await page.goto('/tatico')
     const indice = page.getByTestId('indice-secoes')
     await indice.getByRole('link', { name: 'Fila' }).click()
@@ -95,24 +93,23 @@ test.describe('U3, P3 e A1: índice fixo por seção, abaixo da barra de filtros
     await expect(indice.getByRole('link', { name: 'Fila' })).toHaveAttribute('aria-current', 'location')
   })
 
-  test('USAB-06 A1: ao rolar, o índice fica abaixo da barra de filtros, sem cobri-la', async ({ page }) => {
+  test('USAB-06 CA-A: ao rolar, ficam fixos só cabeçalho e índice (até 100 px) e a barra de filtros rola', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 })
     await page.goto('/tatico')
     await expect(page.getByTestId('indice-secoes')).toBeVisible()
     await page.evaluate(() => window.scrollTo(0, 600))
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300)
-    const filtros = await page.getByTestId('barra-filtros').boundingBox()
-    const indice = await page.getByTestId('indice-secoes').boundingBox()
-    expect(filtros).not.toBeNull()
-    expect(indice).not.toBeNull()
-    expect(filtros!.height).toBeGreaterThan(10)
-    // a barra de filtros continua à vista (não foi coberta) e o índice começa onde ela termina
-    expect(indice!.y).toBeGreaterThanOrEqual(filtros!.y + filtros!.height - 1)
-    const cobertura = await page.evaluate(() => {
+    const g = await page.evaluate(() => {
+      const h = document.querySelector('header')!.getBoundingClientRect()
+      const i = document.querySelector('[data-testid="indice-secoes"]')!.getBoundingClientRect()
       const b = document.querySelector('[data-testid="barra-filtros"]')!.getBoundingClientRect()
-      const el = document.elementFromPoint(b.x + 8, b.y + b.height / 2)
-      return !!el?.closest('[data-testid="barra-filtros"]')
+      return { hTop: h.top, hBottom: h.bottom, iTop: i.top, iBottom: i.bottom, bBottom: b.bottom }
     })
-    expect(cobertura).toBe(true)
+    expect(g.hTop, 'cabeçalho fixo no topo').toBeLessThanOrEqual(1)
+    expect(g.iTop, 'índice logo abaixo do cabeçalho').toBeGreaterThanOrEqual(g.hBottom - 1)
+    expect(g.iTop, 'índice colado ao cabeçalho').toBeLessThanOrEqual(g.hBottom + 1)
+    expect(g.iBottom, 'altura fixa total (cabeçalho + índice) até 100 px').toBeLessThanOrEqual(100)
+    expect(g.bBottom, 'a barra de filtros rolou para fora, não é fixa').toBeLessThanOrEqual(g.hBottom + 1)
   })
 
   test('USAB-07 seção com métrica oculta diz "N de M visíveis" e o índice conta as ocultas', async ({ page }) => {
@@ -324,4 +321,22 @@ test('USAB-AXE-b diálogo "Restaurar padrão" aberto e campo manual do "Copiar l
   await expect(page.getByRole('dialog')).toBeVisible()
   const r = await rodarAxe(page)
   expect(r.bloqueantes, JSON.stringify(r.bloqueantes)).toEqual([])
+})
+
+// 048-03 CA-B: percorrendo a Sustentação a 1280 px em passos de 100 px, nenhuma posição de rolagem tem violação séria de
+// alvo mínimo (WCAG 2.5.8), com "Mais métricas" aberto (pior caso: página mais longa).
+test('USAB-19 CA-B: passos de 100 px na Sustentação sem violação target-size', async ({ page }) => {
+  test.setTimeout(240_000)
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await page.goto('/operacional?cadencia=sustentacao')
+  await page.getByTestId('mais-metricas').locator('summary').click()
+  const total = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight)
+  expect(total, 'página longa o bastante para o percurso').toBeGreaterThan(1000)
+  const falhas: string[] = []
+  for (let y = 0; y <= total + 99; y += 100) {
+    await page.evaluate((p) => window.scrollTo(0, p), Math.min(y, total))
+    const { violations } = await new AxeBuilder({ page }).withRules(['target-size']).analyze()
+    for (const v of violations) falhas.push(`y=${y} ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
+  }
+  expect(falhas, falhas.join('\n')).toEqual([])
 })

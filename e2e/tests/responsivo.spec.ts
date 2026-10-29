@@ -24,9 +24,9 @@ test('RESP-05 largura máxima de 1440 px centralizada em 1920', async ({ page })
   expect(larg).toBeLessThanOrEqual(1440);
 });
 
-// A7 (UX): cabeçalho não pode quebrar a ponto de a barra sticky ficar coberta, entre 1024 e 1200 px.
+// A7 (UX) e 048-03 CA-A: cabeçalho fixo não pode quebrar a ponto de cobrir a barra de filtros, que rola com o conteúdo, entre 1024 e 1200 px.
 for (const w of [1024, 1100, 1180, 1200]) {
-  test(`A7 cabeçalho e barra de filtros sticky sem sobreposição em ${w} px`, async ({ painel, page }) => {
+  test(`A7 cabeçalho fixo e barra de filtros que rola, sem sobreposição em ${w} px`, async ({ painel, page }) => {
     await page.setViewportSize({ width: w, height: 700 });
     await painel.ir('/operacional?cadencia=semanal');
     await painel.cartao('O4').esperarPronto();
@@ -36,10 +36,11 @@ for (const w of [1024, 1100, 1180, 1200]) {
       const h = document.querySelector('header')!.getBoundingClientRect();
       const b = document.querySelector('[data-testid="barra-filtros"]')!.getBoundingClientRect();
       const css = getComputedStyle(document.documentElement);
-      return { hTop: h.top, hBottom: h.bottom, bTop: b.top, bBottom: b.bottom, hVar: css.getPropertyValue('--h-cabecalho'), fVar: css.getPropertyValue('--h-filtros') };
+      return { hTop: h.top, hBottom: h.bottom, bTop: b.top, bBottom: b.bottom, hVar: css.getPropertyValue('--h-cabecalho') };
     });
     test.info().annotations.push({ type: 'geometria', description: JSON.stringify(g) });
-    expect(g.bTop, 'a barra sticky começa abaixo do fim do cabeçalho').toBeGreaterThanOrEqual(g.hBottom - 1);
+    expect(g.hTop, 'o cabeçalho segue fixo no topo').toBeLessThanOrEqual(1);
+    expect(g.bBottom, 'a barra de filtros rolou com o conteúdo (não é fixa)').toBeLessThanOrEqual(g.hBottom + 1);
     // com o foco no último botão da barra, ele não pode ficar coberto (2.4.11)
     await painel.filtros.botao('periodo').focus();
     const coberto = await page.evaluate(() => {
