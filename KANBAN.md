@@ -69,7 +69,6 @@
 | K-174 | [teste] Teste de tools/docs-contratos estoura o timeout de 5 s sob carga e derruba o pronto (sem aumentar timeout nem retry) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (docs/retrospectivas/2026-10-28-026-lote3.md) |
 | K-144 | [ci] Conferir que o portão da homolog roda a E2E completa (R-FLUXO); noturna segue informativa (dono, 2026-10-28: padrão da Forge) | 047 | forge:devops-engineer | 2026-10-27 | 2026-10-27 14:12 | Dono decidiu seguir o padrão da Forge: noturna não vira portão |
 | K-150 | [teste] "reprova: SELECT *" em server/tests/plataforma2.test.ts:269 estoura o timeout de 30 s quando outra suíte pesada roda junto e quebra o pronto | 047 | forge:node-backend | 2026-10-27 | 2026-10-27 17:31 | Dono confirmou (2026-10-28): corrigir sem aumentar timeout nem retry |
-| K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | Dono escolheu B (2026-10-28): só propor ao Forge a parte que não afrouxa |
 | K-171 | [forge] Resumo de todos os problemas do Forge vividos no projeto, para o Jarvis do Forge (pedido 046) | 046 | forge:agile-coach | 2026-10-28 | 2026-10-28 13:52 | Recibo enviado ao dono |
 | K-121 | [docs] 10 documentos antigos de docs/qa e docs/architecture sem frontmatter (ADR 0004) poluem o forge-check docs e escondem achados novos | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 22:25 | Melhoria vista no review do 036 e no QA do 035 |
 | K-120 | [teste] Preview órfão de outra worktree na porta 4173 bloqueia ou serve build errado no test:perf (playwright.config.ts, reuseExistingServer) | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:58 | Melhoria vista do QA no reteste do FA-006 |
@@ -78,6 +77,7 @@
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
+| K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 21:26 | worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 · branch melhoria/MetricasDSPD-k164-mesma-base · E3.1 (brief tech-lead-17) |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |

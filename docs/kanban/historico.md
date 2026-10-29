@@ -518,3 +518,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-28T19:18:51-03:00 | K-074 | Em andamento | Aguardando o dono | pergunta 048-03: barra de filtros fixa a partir de 768 px |
 | 2026-10-28T19:19:03-03:00 | K-074 | QA | Bloqueado | correção da linha anterior: o cartão estava na coluna QA; aguardando o dono (048-03) |
 | 2026-10-28T21:15:51-03:00 | K-169 | Pronto para fazer | Pronto | PR #160 mesclado na develop (07f43b9) |
+| 2026-10-28T21:26:42-03:00 | K-164 | Pronto para fazer | Em andamento | E3.1 do 047 delegado ao tech-lead (brief tl-17) |
