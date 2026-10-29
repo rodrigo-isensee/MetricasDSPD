@@ -652,3 +652,20 @@
 | 2026-10-29 11:41 | 050-release-develop | 050-release-develop-qa-engineer-1 | entrega | 1 | não cumpriu | parcial | parecer de review desatualizado pelo commit da versão (sequência do Jarvis); package.json é do E1.0; PQ-1 a PQ-3 cumpridos; volta E1.5/E1.6 | etapa | destino |
 | 2026-10-29 11:43 | 050-release-develop | 050-release-develop-tech-lead-2.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-29 11:43 | 050-release-develop | 050-release-develop-security-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 11:46 | 050-release-develop | 050-release-develop-qa-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 11:46 | 050-release-develop | 050-release-develop-tech-lead-2.md | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-10-29 11:47 | 050-release-develop | 050-release-develop-security-engineer-2.md | entrega | 1 | não cumpriu | s | intervalo inclui 172cd22 do E1.5 (outra delegação, já conferida) | escopo | destino |
+| 2026-10-29 11:49 | 050-release-develop | 050-release-develop-security-engineer-2.md | entrega | 2 | não cumpriu | s | Desde lido da anotação 'E1.5 conferida' do Jarvis, que não é linha entrega conferida <sha40>; escopo do review resolvido pela união | escopo | destino |
+| 2026-10-29 11:49 | 050-release-develop | 050-release-develop-qa-engineer-2.md | entrega | 1 | não cumpriu | s | intervalo inclui 172cd22 do E1.5; abertura não literal (13/7 conferem), aviso | escopo | destino |
+| 2026-10-29 11:52 | 050-release-develop | 050-release-develop-security-engineer-2.md | entrega | 3 | cumpriu | s |  | — | destino |
+| 2026-10-29 11:52 | 050-release-develop | 050-release-develop-qa-engineer-2.md | entrega | 2 | cumpriu | s | aviso: seção Critério do parecer de QA ainda diz 12 e 8; não bloqueia | — | destino |
+| 2026-10-29 11:53 | 050-release-develop | 050-release-develop-tech-lead-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 13:13 | 050-release-develop | 050-release-develop-tech-lead-3.md | entrega | 1 | não cumpriu | s | mensagem sem Desde; PQ-1 a PQ-3 cumpriram | forma | destino |
+| 2026-10-29 13:16 | 050-release-develop | 050-release-develop-tech-lead-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-10-29 13:16 | 050-release-develop | 050-release-develop-tech-lead-5 | brief | 1 | reprovado | s | etapa: forge-check pr contra origin/main acusa o parecer de devops desatualizado, CHANGELOG mudou depois de 311691b | etapa | jarvis |
+| 2026-10-29 13:16 | 050-release-develop | 050-release-develop-tech-lead-3 | entrega | 2 | não cumpriu | parcial | PQs cumpriram; pendente: título do PR 165 sem imperativo, já mesclado por squash, a develop não se reescreve | forma | destino |
+| 2026-10-29 13:18 | 050-release-develop | 050-release-develop-devops-engineer-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-10-29 13:21 | 050-release-develop | 050-release-develop-tech-lead-6 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-10-29 13:22 | 050-release-develop | 050-release-develop-devops-engineer-2 | entrega | 1 | não cumpriu | n | PQs e escopo ok; reprova pelo Desde 261a3f1 fora da branch nova, que parte do squash do PR 165, e pela união de briefs na mesma branch | base | destino |
+| 2026-10-29 14:48 | 050-release-develop | 050-release-develop-devops-engineer-2 | entrega | 2 | não cumpriu | n | erro do Jarvis: Desde igual ao Base-sha, que o forge-check recusa por ser ancestral da base; branch nova confere sem Desde | base | destino |
+| 2026-10-29 14:49 | 050-release-develop | 050-release-develop-devops-engineer-2 | entrega | 3 | não cumpriu | n | PQs e escopo ok na branch inteira; regra do Desde sem saída para branch nova depois de squash: lacuna da ferramenta | base | destino |

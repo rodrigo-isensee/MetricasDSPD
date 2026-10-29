@@ -74,7 +74,7 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-181 | [release] Promoção develop (311691b) → homolog → main: versão nova, CHANGELOG e pareceres (operacionais O19 a O26) | 050 | forge:tech-lead | 2026-10-29 | 2026-10-29 11:33 | E1.0 (tech-lead-1) · worktree: MetricasDSPD-050 |
+| K-181 | [release] Promoção develop (311691b) → homolog → main: versão nova, CHANGELOG e pareceres (operacionais O19 a O26) | 050 | forge:tech-lead | 2026-10-29 | 2026-10-29 11:33 | E1.8 aceita (lacuna R-PROVA, decisão do dono); E1.9 (tech-lead-6): develop e homolog; depois tag rc.1 e PR para a main · worktree: MetricasDSPD-050 |
 | K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:security-engineer | 2026-10-29 | 2026-10-29 07:44 | E6.1 (tech-lead, worktree 048e, feature/048-dompurify) e E6.2 (security-engineer); DECISÃO DO DONO 2026-10-29 07:07 = A · worktree: MetricasDSPD-048e |
 | K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-29 07:44 | E3.1 do 048 (node-backend-5), feature/048-ajustes-back · worktree: MetricasDSPD-048c |
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-29 07:44 | Push feito pelo dono (2026-10-29); conferência da entrega e PR ao Forge (E3.2 a E3.5 do 047) · worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 |

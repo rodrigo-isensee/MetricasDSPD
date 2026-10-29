@@ -540,3 +540,7 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-29T11:03:40-03:00 | K-180 | Aguardando sua validação | Em andamento | PR #163 mesclado (739bdbf); E5.2 do 051 (regras da O23) com node-backend |
 | 2026-10-29T11:33:33-03:00 | K-180 | Em andamento | Pronto | PR #164 mesclado na develop (311691b) |
 | 2026-10-29T11:33:33-03:00 | K-181 | Entrada | Em andamento | release 050, E1.0 tech-lead |
+| 2026-10-29T13:22:14-03:00 | K-181 | Em andamento | Aguardando o dono | fixar a base do delta da E1.8 em d3095a7 |
+| 2026-10-29T14:46:35-03:00 | K-181 | Aguardando o dono | Em andamento | dono fixou a base do delta em d3095a7 |
+| 2026-10-29T14:49:55-03:00 | K-181 | Em andamento | Aguardando o dono | lacuna R-PROVA na conferência da E1.8 |
+| 2026-10-29T15:09:33-03:00 | K-181 | Aguardando o dono | Em andamento | dono decidiu A: lacuna R-PROVA registrada |
