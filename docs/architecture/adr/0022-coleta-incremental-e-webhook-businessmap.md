@@ -1,6 +1,6 @@
 # 0022 - Coleta incremental como fonte de verdade do BusinessMap, webhook condicionado e staging negado por padrão
 
-Estado: proposta. Data: 2026-10-29.
+Estado: proposta (segue proposta até a validação do plano 052 pelo dono). Data: 2026-10-29 (revisão E1.6, 2026-10-29: decisões do dono Q-2, Q-4, Q-5 e Q-7b; item 8 pela "facarecomendacao").
 Propósito: fixar como os dados reais do BusinessMap entram na base (polling primeiro, webhook depois) e o que o coletor pode gravar no staging enquanto não há lista fechada. Público: node-backend, security-engineer, tech-lead, QA. Revisão: 2026-11-29.
 
 ## Contexto
@@ -9,13 +9,15 @@ Propósito: fixar como os dados reais do BusinessMap entram na base (polling pri
 - O receptor `POST /webhooks/businessmap` existe (`server/src/modulos/businessmap/webhook.ts`), mas o formato do payload é suposto: o artigo de webhooks da Kanbanize dá 403 (conferido de novo em 2026-10-29). Não há consumidor de `bm.webhook.recebido` no worker.
 - A API escuta em 127.0.0.1 (ADR 0014); expor o webhook exige URL pública com TLS, que não existe hoje.
 - O modelo de ameaças do 052 (`docs/security/052-integracao-businessmap-ameacas.md`, S-2) recomenda só polling na primeira entrega.
+- Decisões do dono de 2026-10-29 que este desenho aplica (registro literal em `docs/pedidos/052-integracao-businessmap.md`): **Q-2 = C** (carga inicial dos últimos 12 meses, mais antigo depois, carga retomável); **Q-4 = A** (a coleta real roda só na máquina do dono, chave no `.env` local e banco local; homologação e servidor ficam fora); **Q-5 = B** (a chave é a do próprio dono, que pode alterar o quadro; risco aceito por ora; troca por usuário de serviço só leitor é pendência antes da coleta agendada em produção); **Q-7b = A** (coleta diária às 06:00; selo "Atrasado" se até 12:00 não houver coleta ok). Item 8 do roteiro (webhook ou só polling): "facarecomendacao", vale a recomendação do time (item 2 abaixo).
 - A ADR 0020 fixou listas fechadas para card, revisão e webhook, mas não para `stg_bloqueio`, `stg_vinculo`, `stg_custom_field` e `stg_coluna`. O achado B-K3 de `docs/security/k084-coletor-allow-list.md` atribuiu ao arquiteto a parte (a): declarar que essas tabelas são negadas por padrão. Isso não estava registrado em nenhuma ADR.
 
 ## Decisão
-1. **Polling é a fonte de verdade.** A coleta incremental diária (com varredura semanal de presença) é o caminho canônico de cards, revisões e transições. A revisão (`/cards/{id}/revisions`) define o instante canônico da transição (`data-model.md` §3.2).
-2. **Webhook é acelerador, condicionado.** O consumidor do webhook e a exposição do receptor só entram depois de três fatos: URL pública com TLS disponível; formato do payload confirmado (artigo lido ou evento real capturado); T2.2 pronta (sete execuções consecutivas sem falha). Até lá, o receptor existente não é exposto fora de 127.0.0.1. Recomendação do time ao dono (opção C do plano 052, §3); vira vigente com a confirmação dele.
-3. **Staging negado por padrão.** O coletor só grava em uma tabela `stg_` que tenha lista fechada de campos registrada em ADR (hoje: `stg_card`, `stg_revision`, `stg_webhook_evento`, pela ADR 0020). `stg_bloqueio`, `stg_vinculo`, `stg_custom_field` e `stg_coluna` ficam sem gravação até a revisão 3 da ADR 0020, escrita a partir da forma real do spike F1 e lida pelo security-engineer. Um teste estrutural garante que todo INSERT em `stg_` passa por uma função `registro*` da allow-list.
-4. **Carga inicial só manual.** A primeira carga (sem marca d'água) roda por comando, com o dono presente, nunca pelo agendador; a tarefa agendada só é registrada no worker depois da WS1 confirmada.
+1. **Polling é a fonte de verdade.** A coleta incremental diária, **às 06:00 (America/Sao_Paulo)** (Q-7b = A), com varredura semanal de presença, é o caminho canônico de cards, revisões e transições. A revisão (`/cards/{id}/revisions`) define o instante canônico da transição (`data-model.md` §3.2). O selo de frescor vira "Atrasado" se até 12:00 não houver coleta ok do dia (folga de 6 h, Q-7b = A).
+2. **Webhook é acelerador, condicionado (recomendação do time, opção C do plano 052 §3, valendo pela decisão "facarecomendacao" do dono de 2026-10-29).** O consumidor do webhook e a exposição do receptor só entram depois de três fatos: URL pública com TLS disponível; formato do payload confirmado (artigo lido ou evento real capturado); T2.2 pronta (sete execuções consecutivas sem falha). Até lá, o receptor existente não é exposto fora de 127.0.0.1. Com a coleta só na máquina do dono (item 5), a topologia da URL pública (túnel até a máquina do dono ou outro ambiente) volta ao dono na liberação.
+3. **Staging negado por padrão.** O coletor só grava em uma tabela `stg_` que tenha lista fechada de campos registrada em ADR (hoje: `stg_card`, `stg_revision`, `stg_webhook_evento`, pela ADR 0020). `stg_bloqueio`, `stg_vinculo`, `stg_custom_field` e `stg_coluna` ficam sem gravação até a revisão 4 da ADR 0020 (a revisão 3, de 2026-10-29, tratou dos nomes dos responsáveis), escrita a partir da forma real do spike F1 e lida pelo security-engineer. Um teste estrutural garante que todo INSERT em `stg_` passa por uma função `registro*` da allow-list.
+4. **Carga inicial só manual, de 12 meses e retomável (Q-2 = C).** A primeira carga (sem marca d'água) traz os **últimos 12 meses**, roda por comando, com o dono presente, nunca pelo agendador, e é **retomável por página** (a última página concluída por estado e quadro fica em `ctl_coleta`). Período mais antigo pode vir depois pela mesma rotina, com outra data de início, sem alterar o que já foi gravado. A tarefa agendada só é registrada no worker depois da WS1 confirmada.
+5. **Onde roda e com que chave (Q-4 = A, Q-5 = B).** Toda coleta real roda **só na máquina do dono**, com a apikey no `.env` local e banco local; homologação, CI e servidor só testam contra servidor falso e nunca recebem a chave nem dado real. A chave é a **do próprio dono** (pode alterar o quadro), risco aceito por ele por ora; mitigação: cliente HTTP só GET com lista fechada de caminhos e teste, e nenhum teste de escrita com essa chave. **Pendência:** trocar por usuário de serviço só leitor antes da coleta agendada em produção (qualquer ambiente fora da máquina do dono).
 
 ## Alternativas
 - **Só polling para sempre (A):** menor superfície, mas não cumpre a T2.3, que é critério de pronto do briefing.
@@ -25,16 +27,17 @@ Propósito: fixar como os dados reais do BusinessMap entram na base (polling pri
 
 ## Consequências
 - Melhora: T2.2 entregue sem depender de infraestrutura pública; nenhum risco de pessoa novo antes da forma real ser vista; o código do receptor já feito é reaproveitado depois.
-- Piora: latência de até 24 h nos painéis até o webhook; bloqueios e vínculos reais só aparecem depois da revisão 3 da ADR 0020 (afeta as métricas de bloqueio no intervalo, que seguem do mock até lá).
-- A manter: o teste estrutural dos INSERT em `stg_`; a lista de condições do item 2 como checklist da fatia F7.
+- Piora: latência de até 24 h nos painéis até o webhook; bloqueios e vínculos reais só aparecem depois da revisão 4 da ADR 0020 (afeta as métricas de bloqueio no intervalo, que seguem do mock até lá; o O19 do painel operacional depende dela). A coleta depende da máquina do dono ligada: sem ela às 06:00, o selo fica "Atrasado" às 12:00 e a coleta seguinte recupera desde a marca d'água (nada se perde, só atrasa). A chave do dono tem poder de escrita: a única barreira é o cliente só GET.
+- A manter: o teste estrutural dos INSERT em `stg_`; o teste do cliente só GET com lista fechada de caminhos; a lista de condições do item 2 como checklist da fatia F7; a pendência do usuário de serviço só leitor (item 5).
 
 ## Por que o existente não basta
 O mecanismo novo é o teste estrutural dos INSERT em `stg_`. O existente: a allow-list de `allow-list.ts` cobre card, revisão e webhook, e seus testes conferem o que essas funções devolvem; nada impede um INSERT direto em `stg_bloqueio` ou `stg_vinculo` sem passar por lista. A evidência é a própria revisão do K-084 (`docs/security/k084-coletor-allow-list.md`, B-K3), que achou as quatro tabelas sem lista e sem barreira. O resto da decisão é ordem de entrega, não mecanismo.
 
 ## Critério de reversão
-Se a semana de operação paralela da T2.3 medir divergência entre webhook e API acima de 1% por atraso ou perda da coleta incremental (e não do webhook), a fonte canônica é revista.
+Se a semana de operação paralela da T2.3 medir divergência entre webhook e API acima de 1% por atraso ou perda da coleta incremental (e não do webhook), a fonte canônica é revista. Para o item 5: se a coleta na máquina do dono não fechar sete execuções diárias consecutivas em 30 dias corridos de tentativa (linhas de `ctl_coleta`), o local de execução volta ao dono (o que traz junto a pendência do usuário de serviço só leitor).
 
 ## Leituras
 | Data | Medida | Veredito (manter, ajustar, reverter) |
 |---|---|---|
-| 2026-11-29 | divergência webhook × API na semana paralela (se F7 liberada); execuções consecutivas sem falha da coleta | pendente |
+| 2026-10-29 | Revisão E1.6: decisões do dono Q-2 = C, Q-4 = A, Q-5 = B e Q-7b = A incorporadas (itens 1, 4 e 5); item 8 pela "facarecomendacao" (item 2); nenhuma coleta real ainda | manter como proposta até a validação do plano pelo dono |
+| 2026-11-29 | divergência webhook × API na semana paralela (se F7 liberada); execuções consecutivas sem falha da coleta na máquina do dono | pendente |

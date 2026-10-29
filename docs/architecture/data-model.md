@@ -328,11 +328,11 @@ O teste de grants (CI, job `db`) lê `information_schema.role_table_grants`/`col
 
 ## 9. Dados pessoais (LGPD) e "nenhuma visão individual" no modelo
 
-**Decisões do usuário:** L-1 (2026-10-10, §3): nomes não são pseudonimizados. §8 (2026-10-10 15:14): **nomes também nas tabelas analíticas**, como no modelo 4.5 do briefing (`responsaveis`; `usuario` foi removida em 2026-10-16, K-096); o usuário de banco da API **não lê** essas colunas; nenhuma view, rota, DTO ou tela agrega ou exibe por pessoa.
+**Decisões do usuário:** L-1 (2026-10-10, §3): nomes não são pseudonimizados. §8 (2026-10-10 15:14): **nomes também nas tabelas analíticas**, como no modelo 4.5 do briefing (`responsaveis`; `usuario` foi removida em 2026-10-16, K-096); o usuário de banco da API **não lê** essas colunas; nenhuma view, rota, DTO ou tela agrega ou exibe por pessoa. Q-8 = B (2026-10-29, pedido 052): confirma os nomes dos responsáveis, resolvidos por `GET /users` (`fields=user_id,realname`), só em colunas de `COLUNAS_PESSOA`, fora do GRANT do `dspd_api`, nenhuma métrica individual (ADR 0020 revisão 3).
 
 | Dado de pessoa | Onde fica | Quem lê |
 |---|---|---|
-| Responsáveis do card | **nunca em `stg_`** (ADR 0020 4b): lidos em memória pelo coletor e gravados só em **`dim_card.responsaveis`**, **`dim_card_versao.responsaveis`** (`text[]`, ids da API; id × nome é a pergunta Q-8 do plano 052) | `dspd_coletor`, `dspd_migrador`; **nunca `dspd_api`** |
+| Responsáveis do card | **nunca em `stg_`** (ADR 0020 4b): lidos em memória pelo coletor e gravados só em **`dim_card.responsaveis`**, **`dim_card_versao.responsaveis`** (`text[]`, ids da API). **Nomes** (Q-8 = B, dono, 2026-10-29; ADR 0020 revisão 3): resolvidos por `GET /users` (`fields=user_id,realname`, só os ids vistos na execução) e gravados só em colunas de `COLUNAS_PESSOA`; proposta: `dim_responsavel (responsavel_id, responsavel_nome, atualizado_em)`, uma linha por pessoa, forma final na revisão de modelagem (garantia 1) | `dspd_coletor`, `dspd_migrador`; **nunca `dspd_api`** |
 | Usuário da transição | **não é guardado** (K-096: coluna removida; fora da staging pela ADR 0020) | ninguém |
 | Autores de comentário, tempo apontado | **não são guardados** (ADR 0020 4a e 4e: `logged_times`, `last_comment` e autor fora da allow-list; `stg_comentario_instante`, quando existir na fase 3, guarda só `card_id`, `comentario_id` e `criado_em`) | ninguém; horas apontadas nunca viram esforço (7.1) |
 | Solicitante, atendente/agente, e-mail (Acelerato) | só staging (o modelo 4.5 não os traz para o analítico; trazer exige nova decisão do usuário) | `dspd_coletor`, `dspd_migrador` |
@@ -369,7 +369,7 @@ Uso permitido das colunas de pessoa: reconciliação e auditoria por pessoa auto
 |---|---|---|---|
 | L-2 | Título de card pode aparecer nas listas (O2, bloqueados)? | sim, com aviso de não escrever nomes no título | mostrar só o código do card |
 | N-3 | Webhook × revision: qual instante vale e qual a tolerância de casamento? | revision é canônica; webhook só antecipa; 120 s | webhook canônico quando houver |
-| N-5 | De onde vêm SLE, alocação acordada, limites de frentes e fichas de resultado? | arquivo versionado no repositório, preenchido pela governança (WS6) | campos/cartões no BusinessMap |
+| N-5 | De onde vêm SLE, alocação acordada, limites de frentes e fichas de resultado? **Decidida pelo dono em 2026-10-29 (Q-7c = A, pedido 052):** arquivo versionado no repositório, preenchido pela governança (WS6) | arquivo versionado no repositório, preenchido pela governança (WS6) | campos/cartões no BusinessMap |
 | N-6 | Quais classes usam calendário de plantão (4.2)? | nenhuma até definição | lista por classe de serviço |
 | L-3 | Nomes de pessoas do Acelerato (solicitante, agente) também no analítico? | não: o §8 citou o modelo 4.5, que só traz `responsaveis` e `usuario` (BM) | trazer para `dim_chamado` com o mesmo GRANT por coluna |
 | — | Filtro por agente na sustentação: já registrada; não implementar | — | — |
