@@ -3,14 +3,14 @@ tipo: revisao-devops
 contrato: 1
 pedido: 050-release-develop
 branch: docs/promocao-2026-10-29
-commit: 311691bace0582d80ea06ffc12f20096f1248b87
+commit: 6aa0ac38c35e8298f50511077527368b53ca08f7
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-10-29
 ---
 # Review de devops: promoção da `develop` à `homolog` (release O19 a O26)
 
-Aprovado, sem achado bloqueante. Escopo: `git diff origin/homolog origin/develop -- .github package.json pnpm-lock.yaml` (`ci.yml`, `homolog-aprovada.yml`, `homolog-reavalia.yml` novo, `homolog.yml`, `package.json`, `pnpm-lock.yaml`), lido por diff, sem rodar workflow nem suíte. Os pareceres de devops dos PRs (041, 044, 047) já aprovaram cada mudança; aqui só a conferência do conjunto.
+Aprovado, sem achado bloqueante. O commit da versão (6aa0ac3) só muda `CHANGELOG.md` e `package.json` (versão 0.1.0 para 0.2.0), sem workflow nem dependência; veredito mantido. Escopo: `git diff origin/homolog origin/develop -- .github package.json pnpm-lock.yaml` (`ci.yml`, `homolog-aprovada.yml`, `homolog-reavalia.yml` novo, `homolog.yml`, `package.json`, `pnpm-lock.yaml`), lido por diff, sem rodar workflow nem suíte. Os pareceres de devops dos PRs (041, 044, 047) já aprovaram cada mudança; aqui só a conferência do conjunto.
 
 ## O que muda nos workflows
 - **#154 e #159, E2E em 2 partes** (`ci.yml:190-253`, `homolog.yml`): o job `e2e` vira matriz `e2e-parte` (`parte: [1, 2]`, `fail-fast: false`, `--shard=N/2`, `timeout-minutes: 30` por parte) e um agregador leve (`timeout-minutes: 5`, `if: always()`) que falha se `needs.e2e-parte.result` não for `success`; o resultado entra por `env`, sem interpolação em `run`. O `docs:mermaid` roda só na parte 1. Artefato de falha por parte (`e2e-relatorio-N`, 3 dias de retenção). Custo: dois jobs em paralelo no lugar de um, mesma franquia gratuita (`R-CUSTO`), tempo de parede menor.
