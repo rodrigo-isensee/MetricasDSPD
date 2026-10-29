@@ -544,3 +544,6 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-29T14:46:35-03:00 | K-181 | Aguardando o dono | Em andamento | dono fixou a base do delta em d3095a7 |
 | 2026-10-29T14:49:55-03:00 | K-181 | Em andamento | Aguardando o dono | lacuna R-PROVA na conferência da E1.8 |
 | 2026-10-29T15:09:33-03:00 | K-181 | Aguardando o dono | Em andamento | dono decidiu A: lacuna R-PROVA registrada |
+| 2026-10-29T15:15:18-03:00 | K-181 | Em andamento | Aguardando o dono | estender a lacuna R-PROVA à E1.10 |
+| 2026-10-29T15:20:05-03:00 | K-181 | Aguardando o dono | Em andamento | dono estendeu a lacuna R-PROVA à E1.10 |
+| 2026-10-29T16:04:44-03:00 | K-182 | nenhuma | Entrada | pedido 052 aberto, recibo enviado |

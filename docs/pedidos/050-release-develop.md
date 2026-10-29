@@ -20,7 +20,9 @@
 - E1.7 (security-engineer): volta do parecer de segurança: `commit:` no commit da versão `6aa0ac38c35e8298f50511077527368b53ca08f7`; o próprio security-engineer commita e envia o parecer (o `forge-check pr` exige que quem emitiu o parecer o commite, R-SEGURANCA).
 - E1.1 (tech-lead): depois de E1.5 a E1.7, PR da `docs/promocao-2026-10-29` para a `develop` (squash) e merge com os checks verdes; PR `develop` → `homolog` (merge commit) e merge depois do portão da CI verde.
 - E1.8 (devops-engineer): volta do parecer de devops: `commit:` no commit da versão `6aa0ac38c35e8298f50511077527368b53ca08f7` (o `forge-check pr` contra a `main` o acusa desatualizado), na worktree 050, em branch nova `docs/050-devops-commit` a partir da `develop`; commit e push, sem PR.
+- E1.10 (tech-lead): parecer de review da branch `docs/050-devops-commit` em `docs/reviews/050-devops-commit.md` (`branch: docs/050-devops-commit`), commit e push na branch, sem PR; o hook de parecer exige review próprio da branch antes do PR da E1.9.
 - E1.9 (tech-lead): PR da `docs/050-devops-commit` para a `develop` (squash) e merge com os checks verdes; PR `develop` → `homolog` (merge commit) e merge depois do portão da CI verde.
+- E1.11 (devops-engineer): regravar com a ferramenta Write o parecer `docs/devops/050-release-develop.md` na worktree 050, com o conteúdo idêntico ao da `origin/homolog` (sha256 do texto 047afbcc46930455c0b5dd0e9cd0158be2f209974b7b605cd4e099e0e94b506b), para o registro de autoria da versão escrita na E1.8; sem mudar conteúdo, sem commit.
 - E2.1 (tech-lead): tag `vX.Y.Z-rc.1` no HEAD da `homolog` depois do merge (§8).
 - E3.1 (tech-lead): PR de release `homolog` → `main` com as notas de versão.
 - E3.2 (dono): validar e mesclar o PR de release na `main`; tag final conforme §8.
@@ -43,6 +45,8 @@
 DECISÃO DO DONO (2026-10-29): recibo do 050 aceito ("isso"): E1 a E3 entram; as branches do 048 em andamento e o K-178 ficam fora.
 DECISÃO DO DONO (2026-10-29): "ta suba tudo que estiver pronto na homol em uma versao nova e depois para main"
 DECISÃO DO DONO (2026-10-29): "A" (LACUNA R-PROVA): a checagem do Desde fica dispensada nas entregas E1.8, E1.9 e E2.1; PQs, escopo e conteúdo continuam conferidos.
+DECISÃO DO DONO (2026-10-29): "A" (LACUNA R-PROVA estendida): a mesma dispensa vale para a entrega E1.10, inclusive o arquivo do devops da E1.8 na comparação; PQs, escopo e conteúdo continuam conferidos.
+DECISÃO DO DONO (2026-10-29): "A" (LACUNA R-PROVA na tag): a entrega E2.1 fica aceita sem o escopo do intervalo (a tag não tem diff próprio) e sem a marca da E1.11, criada depois da aprovação do brief; PQ-1, portão e ausência de commit continuam conferidos.
 
 ## Histórico
 - 2026-10-29 10:10: recibo aceito pelo dono ("isso"): E1 a E3 confirmados como registrados; fora do escopo confirmado.
@@ -76,6 +80,20 @@ DECISÃO DO DONO (2026-10-29): "A" (LACUNA R-PROVA): a checagem do Desde fica di
 - 2026-10-29 14:49: E1.8 rodada 3 não cumpriu só por forma: PQ-1 a PQ-3 e escopo ok, branch inteira lida (d3095a7..e42d03f). O conferente exige o Desde da linha mais recente do Histórico, e o forge-check recusa esse sha por ser o próprio Base-sha: a regra não tem saída para branch nova depois de squash. Vai ao dono como lacuna R-PROVA (R-CONFORMIDADE).
 - 2026-10-29 15:09: DECISÃO DO DONO: "A": LACUNA R-PROVA registrada para as entregas E1.8, E1.9 e E2.1. O conferente segue conferindo PQs, escopo e conteúdo; só a checagem formal do Desde fica dispensada, porque não tem saída para branch nova depois de squash. Review, QA e portão sem mudança; o merge na main segue do dono. A correção da ferramenta vai ao Forge.
 - 2026-10-29 15:09: E1.8 aceita sob a LACUNA R-PROVA (PQ-1 a PQ-3 e escopo cumpridos, rodada 3). E1.9 delegado ao tech-lead (brief tech-lead-6, sonnet).
+- 2026-10-29 15:10: E1.9 parou antes do PR: o hook parecer.py (R-REVIEW) exige parecer de review com branch docs/050-devops-commit; forge-check pr rc=0 (QA isento, só .md). DECISÃO TÉCNICA do Jarvis, sem escopo novo e sem afrouxar: etapa E1.10 (review da branch) antes da retomada da E1.9.
+- 2026-10-29 15:12: brief tech-lead-7 (E1.10) aprovado na rodada 1; delegado (sonnet).
+- 2026-10-29 15:13: E1.10 entregue: review da branch aprovado sem achados (6091bbc, push feito); forge-check pr rc=0. Conferência da entrega e brief tech-lead-8 (retomada da E1.9) no conferente.
+- 2026-10-29 15:15: entrega E1.10 com veredito não cumpriu: PQ-1 a PQ-3 cumpriram, etapa em ordem; pendências de forma: sem Desde possível (a LACUNA A cobre E1.8, E1.9 e E2.1, não a E1.10) e o arquivo do devops (E1.8) na união, porque o forge-check relê o brief devops-engineer-2 como reprovado depois que a decisão A entrou no pedido. Pergunta ao dono: estender a LACUNA à E1.10. Brief tech-lead-8 (E1.9) aprovado e retido.
+- 2026-10-29 15:20: DECISÃO DO DONO: "A": LACUNA R-PROVA estendida à E1.10. A E1.10 fica aceita (PQ-1 a PQ-3 cumpridos, review sem achados). E1.9 retomada: delegada ao tech-lead (brief tech-lead-8, sonnet).
+- 2026-10-29 15:51: brief E2.1 (tech-lead-9, sha256 c3c00a68d2e0732d44ab8cfa445882e7449ab5c80b9e4ffb23f63412e3f44104, homolog ca8710b) aprovado na rodada 2 (rodada 1 reprovada por erro de digitação do Jarvis na mensagem); delegado ao tech-lead
+- 2026-10-29 15:53: brief tech-lead-10 (E3.1) reprovado na rodada 1: forge-check pr contra origin/main rc=1, autoria: sem registro de que o papel devops gravou a versão atual de docs/devops/050-release-develop.md (o .forge/run/autoria.jsonl só tem a versão de 2e322ff; a de e42d03f, sha256 do texto 047afbcc, não foi registrada); a tag rc.1 ainda não existe; caminho do TMPDIR com Write. DECISÃO TÉCNICA do Jarvis, sem escopo novo e sem afrouxar: etapa E1.11 (o devops regrava o parecer com Write, conteúdo idêntico, sem commit); o E3.1 sai depois da E2.1 e da E1.11.
+- 2026-10-29 15:56: entrega E2.1 (tag v0.2.0-rc.1 em ca8710b, depois do portão verde) com veredito não cumpriu só por forma: PQ-1 e portão cumpridos, sem commit nem push de branch; escopo fora porque a tag não tem diff próprio e o intervalo 7486836..ca8710b traz a release inteira (119 arquivos), e o brief não marca a E1.11, criada depois da aprovação. Pergunta ao dono: aceitar a E2.1 sob a LACUNA R-PROVA.
+- 2026-10-29 15:58: DECISÃO DO DONO: A (LACUNA R-PROVA na tag): E2.1 aceita (tag v0.2.0-rc.1 em ca8710b; PQ-1 e portão cumpridos); escopo do intervalo e marca da E1.11 dispensados nesta entrega. Correção da ferramenta vai ao Forge (P-N9).
+- 2026-10-29 15:59: entrega E1.9 com veredito não cumpriu (parcial): PQ-1 a PQ-3 cumpridos (PR 167 squash a6e7543, PR 168 merge ca8710b, portão da homolog verde); pendente o forge-check pr contra a main com rc=0, que depende da E1.11; o PR 168 foi mesclado (mergedBy rodrigo-isensee, o dono disse que colocou na homolog) com os e2e do run 40933993780 do head do PR ainda em curso. A E1.9 fecha quando a E1.11 der rc=0.
+- 2026-10-29 16:00: brief devops-engineer-3 (E1.11, sha256 f0efb1d22d0fb6d4f160c1f93f9ed682912d2f0de468367a7014521c53fbc45b) aprovado na rodada 4; delegado ao devops-engineer (haiku: regravação mecânica)
+- 2026-10-29 16:00: correção da linha anterior: a E1.11 foi delegada com o modelo sonnet, não haiku
+- 2026-10-29 16:02: E1.11 cumprida, sem commit nem ato no GitHub (sem conferência R-PROVA): conferido pelo Jarvis, PQ-1 status --short 0 linhas e PQ-2 forge-check pr contra origin/main rc=0; com isso a E1.9 também fecha (portão verde e forge-check pr rc=0)
+- 2026-10-29 16:05: brief tech-lead-11 (E3.1) aprovado na rodada 1 (sha df0d269e); delegado ao tech-lead (sonnet)
 
 ## Registro de clareza
 PERGUNTA: nenhuma

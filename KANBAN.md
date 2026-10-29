@@ -10,6 +10,7 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-182 | [integração] BusinessMap com dados reais: discovery (T2.1, spike K-087, ameaças), coleta T2.2, webhook T2.3, painéis FL1 a FL3 | 052 | forge:software-architect | 2026-10-29 | 2026-10-29 16:04 | Recibo enviado ao dono; depende do recibo e da release 050 |
 | K-176 | [teste] Trava de suíte única grava cada espera (quem segurava, quanto esperou) para medir o efeito | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:59 | MELHORIA 2 da retro do 045 (docs/retrospectivas/2026-10-28-045-suite-unica.md); só acrescenta registro; depende do K-175 (mesmo script) e o WIP de Pronto para fazer está cheio |
 | K-177 | [ux] Achados médios e baixos da revisão de UX da T14 (M-1 ficha e CA-27/30/45 desatualizados; M-2 leituraT14 cita total sem excluir ocultos; M-3 notas.ts:305 "ordenados pelo total"; B-1 linha oculta sem explicação ao leitor de tela; B-2 teste "todos ocultos"; B-3 axe com oculto) | 048 | forge:react-frontend | 2026-10-28 | 2026-10-28 18:09 | docs/ux/revisao-048-t14.md (aprovada com ressalvas); depende do merge da docs/048-t14-desenho; ficha e CA são do ux-designer |
 | K-165 | [forge] Rodada longa de suíte (mais de 10 min) grava o JSON da E2E de forma incremental, fora de /tmp (skill qa-testing) | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 041 (JSON perdido nas quedas do WSL); vai ao Forge, só propor |
@@ -74,7 +75,7 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-181 | [release] Promoção develop (311691b) → homolog → main: versão nova, CHANGELOG e pareceres (operacionais O19 a O26) | 050 | forge:tech-lead | 2026-10-29 | 2026-10-29 11:33 | E1.8 aceita (lacuna R-PROVA, decisão do dono); E1.9 (tech-lead-6): develop e homolog; depois tag rc.1 e PR para a main · worktree: MetricasDSPD-050 |
+| K-181 | [release] Promoção develop (311691b) → homolog → main: versão nova, CHANGELOG e pareceres (operacionais O19 a O26) | 050 | forge:tech-lead | 2026-10-29 | 2026-10-29 11:33 | E1.8 e E1.10 aceitas (lacuna R-PROVA, decisões do dono); E1.9 (tech-lead-8): develop e homolog; depois tag rc.1 e PR para a main · worktree: MetricasDSPD-050 |
 | K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:security-engineer | 2026-10-29 | 2026-10-29 07:44 | E6.1 (tech-lead, worktree 048e, feature/048-dompurify) e E6.2 (security-engineer); DECISÃO DO DONO 2026-10-29 07:07 = A · worktree: MetricasDSPD-048e |
 | K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-29 07:44 | E3.1 do 048 (node-backend-5), feature/048-ajustes-back · worktree: MetricasDSPD-048c |
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-29 07:44 | Push feito pelo dono (2026-10-29); conferência da entrega e PR ao Forge (E3.2 a E3.5 do 047) · worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 |

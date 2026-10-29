@@ -669,3 +669,16 @@
 | 2026-10-29 13:22 | 050-release-develop | 050-release-develop-devops-engineer-2 | entrega | 1 | não cumpriu | n | PQs e escopo ok; reprova pelo Desde 261a3f1 fora da branch nova, que parte do squash do PR 165, e pela união de briefs na mesma branch | base | destino |
 | 2026-10-29 14:48 | 050-release-develop | 050-release-develop-devops-engineer-2 | entrega | 2 | não cumpriu | n | erro do Jarvis: Desde igual ao Base-sha, que o forge-check recusa por ser ancestral da base; branch nova confere sem Desde | base | destino |
 | 2026-10-29 14:49 | 050-release-develop | 050-release-develop-devops-engineer-2 | entrega | 3 | não cumpriu | n | PQs e escopo ok na branch inteira; regra do Desde sem saída para branch nova depois de squash: lacuna da ferramenta | base | destino |
+| 2026-10-29 15:10 | 050-release-develop | 050-release-develop-tech-lead-6 | entrega | 1 | não cumpriu | n | parou antes do PR: falta parecer de review da branch nova, hook parecer.py; sem ato no GitHub | etapa | destino |
+| 2026-10-29 15:12 | 050-release-develop | 050-release-develop-tech-lead-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-10-29 15:14 | 050-release-develop | 050-release-develop-tech-lead-8 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-10-29 15:15 | 050-release-develop | 050-release-develop-tech-lead-7 | entrega | 1 | não cumpriu | n | PQs ok; sem Desde possível na branch nova e LACUNA do dono não cobre a E1.10; anexo do devops vem da E1.8, cujo brief o forge-check relê como reprovado só porque a decisão A entrou no pedido depois | base | destino |
+| 2026-10-29 15:50 | 050-release-develop | 050-release-develop-tech-lead-9.md | brief | 1 | reprovado | n | erro de digitação do Jarvis na mensagem (Little linha) | forma | jarvis |
+| 2026-10-29 15:51 | 050-release-develop | 050-release-develop-tech-lead-9.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-10-29 15:56 | 050-release-develop | 050-release-develop-devops-engineer-3.md | brief | 1 | reprovado | s | e42d03f citado como na homolog; está pelo squash a6e7543 | citacao | jarvis |
+| 2026-10-29 15:56 | 050-release-develop | 050-release-develop-tech-lead-9.md | entrega | 1 | não cumpriu | parcial | PQ-1 e portão cumpriram; escopo fora: tag sem diff próprio traz a release inteira (119 arquivos); E1.11 sem marca no brief | escopo | destino |
+| 2026-10-29 15:57 | 050-release-develop | 050-release-develop-devops-engineer-3.md | brief | 2 | não verificável | n | nota do Jarvis dizia rodada 2 sem brief anterior em disco (correção no mesmo arquivo) | forma | jarvis |
+| 2026-10-29 15:58 | 050-release-develop | 050-release-develop-devops-engineer-3.md | brief | 3 | aprovado | — | aprovou a versão d20d9cd; arquivo já mudou para f0efb1d (decisão nova do dono); reconferência | — | jarvis |
+| 2026-10-29 15:59 | 050-release-develop | 050-release-develop-tech-lead-8.md | entrega | 1 | não cumpriu | parcial | PQ-1 a PQ-3 cumpriram; forge-check pr contra main rc=1 (autoria devops, vai à E1.11); PR 168 mesclado pelo dono com e2e do PR em curso | etapa | destino |
+| 2026-10-29 16:00 | 050-release-develop | 050-release-develop-devops-engineer-3.md | brief | 4 | aprovado | — |  | — | jarvis |
+| 2026-10-29 16:05 | 050-release-develop | 050-release-develop-tech-lead-11 | brief | 1 | aprovado | s |  | — | jarvis |
