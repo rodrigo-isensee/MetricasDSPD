@@ -580,3 +580,6 @@
 | 2026-10-28 21:24 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-17.md | brief | 1 | reprovado | parcial | E3.1 do pedido ainda dizia PR; etapa atualizada | escopo | jarvis |
 | 2026-10-28 21:24 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-4.md | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-10-28 21:26 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-17.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-28 21:38 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-4.md | entrega | 1 | não cumpriu | s | só escopo pelo Desde de outras entregas; delta da etapa só o parecer de QA; aceito por DECISÃO TÉCNICA | escopo | destino |
+| 2026-10-28 21:40 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-10.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 05:40 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-10.md | entrega | 1 | não verificável | s | PQ-4 e PQ-5 recusados ao conferente pelo hook; Jarvis rodou os literais | prova | destino |

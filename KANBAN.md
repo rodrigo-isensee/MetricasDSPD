@@ -77,7 +77,6 @@
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
-| K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 21:26 | worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 · branch melhoria/MetricasDSPD-k164-mesma-base · E3.1 (brief tech-lead-17) |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -87,8 +86,6 @@
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-130 | [025 segurança] API da T14 envia total, semTime, meuTime.n e agregado do projeto oculto (n − k pela aba de rede): M-1/M-1a antes de dado real | 025 | forge:node-backend | 2026-10-21 | 2026-10-28 17:45 | 048: QA E5.2 na worktree 048a (docs/048-t14-desenho) |
-| K-112 | Cadastro de membros por time (Q-T14-10 = B): ADR 0020 e plano §9.5 | 011 | forge:software-architect | 2026-10-17 | 2026-10-28 17:45 | 048: QA E5.2 na worktree 048a (docs/048-t14-desenho) |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -97,6 +94,8 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-130 | [025 segurança] API da T14 envia total, semTime, meuTime.n e agregado do projeto oculto (n − k pela aba de rede): M-1/M-1a antes de dado real | 025 | forge:tech-lead | 2026-10-21 | 2026-10-29 05:40 | PR #161 mesclado na develop (7c94348) |
+| K-112 | Cadastro de membros por time (Q-T14-10 = B): ADR 0020 e plano §9.5 | 011 | forge:tech-lead | 2026-10-17 | 2026-10-29 05:40 | PR #161 mesclado na develop (7c94348) |
 | K-169 | [projeto] PR de dependência (Dependabot) só é mesclado com todos os checks verdes, um por vez | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 21:15 | Mesclado na develop (PR #160, 07f43b9); política do Dependabot no praticas.md |
 | K-162 | [docs] CLAUDE.md: "enviada" = PR para a develop; push liberado antes do parecer do QA (E3.1) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | PR #157 mesclado pelo dono (d9a7ea0) |
 | K-154 | [ux] Textos da especificação do lote 3: mínimo de 20 do O26 vale sobre as entregas do tipo, não a faixa (A12 do review = A7 do QA); tabela de decisões da §11 (A13); vazio junto de "Amostra insuficiente: 0 de 20" em mock=vazio (A6 do QA, padrão anterior ao lote 3) | 026 | forge:ux-designer | 2026-10-27 | 2026-10-28 11:19 | PR #155 mesclado na develop (4137981) |
@@ -152,6 +151,7 @@
 ## Bloqueado
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-28 22:39 | worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 · branch melhoria/MetricasDSPD-k164-mesma-base · Aguardando o dono: commit a779854 sem push; o pre-push da fábrica reprova 60 testes que exigem terminal humano (047, 22:39) |
 | K-141 | Ambiente da máquina nova: Docker, `.env`, Node 24, Chromium, doutor; depois pnpm install e banco | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono (E2.1); depois tech-lead (E2.2) e devops (E2.3) |
 | K-152 | [forge] F21: worktree nova sem dependências não quebra o pre-push | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 20:18 | Aguardando o dono: aplicar docs/analises/043-f21-pre-push.patch no clone (docs/analises/043-f21-instrucoes-ao-dono.md); resto do F21 pronto sem commit |
 | K-153 | [forge] F22: PR de release não nasce antes do portão; homolog-aprovada sem corrida | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 22:11 | Aguardando o dono: review, segurança e QA aprovados (0b59505 empurrado), mas o `forge-check pr` não lê o clone do Forge e barra o PR (043, 22:10); decisão de como passar o portão |

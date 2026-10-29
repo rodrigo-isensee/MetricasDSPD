@@ -519,3 +519,8 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-28T19:19:03-03:00 | K-074 | QA | Bloqueado | correção da linha anterior: o cartão estava na coluna QA; aguardando o dono (048-03) |
 | 2026-10-28T21:15:51-03:00 | K-169 | Pronto para fazer | Pronto | PR #160 mesclado na develop (07f43b9) |
 | 2026-10-28T21:26:42-03:00 | K-164 | Pronto para fazer | Em andamento | E3.1 do 047 delegado ao tech-lead (brief tl-17) |
+| 2026-10-28T21:40:13-03:00 | K-112 | QA | Aguardando sua validação | 048 E5.1: PR e merge da docs/048-t14-desenho com o tech-lead |
+| 2026-10-28T21:40:13-03:00 | K-130 | QA | Aguardando sua validação | 048 E5.1: PR e merge da docs/048-t14-desenho com o tech-lead |
+| 2026-10-28T22:39:42-03:00 | K-164 | Em andamento | Bloqueado | Aguardando o dono: push barrado pelo pre-push da fábrica (testes que exigem terminal humano) |
+| 2026-10-29T05:40:22-03:00 | K-112 | Aguardando sua validação | Pronto | PR 161 mesclado na develop (7c94348) |
+| 2026-10-29T05:40:22-03:00 | K-130 | Aguardando sua validação | Pronto | PR 161 mesclado na develop (7c94348) |
