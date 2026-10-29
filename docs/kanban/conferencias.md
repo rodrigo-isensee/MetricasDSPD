@@ -594,3 +594,16 @@
 | 2026-10-29 07:51 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-12.md | brief | 1 | aprovado | s | aviso: terceiro dependente @zenuml/core no lockfile | — | jarvis |
 | 2026-10-29 07:53 | 049-forge-0-30-5 | 049-forge-0-30-5-tech-lead-1.md | brief | 1 | reprovado | n | PR sem review e QA; suposição do pedido errada (autor jarvis) | etapa | jarvis |
 | 2026-10-29 07:55 | 049-forge-0-30-5 | 049-forge-0-30-5-tech-lead-2.md | brief | 2 | aprovado | s | aviso: etapa codigo com review dentro | — | jarvis |
+| 2026-10-29 07:57 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-tech-lead-18.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 07:58 | 049-forge-0-30-5 | 049-forge-0-30-5-qa-engineer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 07:58 | 049-forge-0-30-5 | 049-forge-0-30-5-tech-lead-2.md | entrega | 1 | não cumpriu | s | arquivo de versão vem do E1.1 (5d7c199), anterior; PQ-1 a PQ-4 cumpriram | escopo | destino |
+| 2026-10-29 08:00 | 049-forge-0-30-5 | 049-forge-0-30-5-qa-engineer-1.md | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-10-29 08:01 | 049-forge-0-30-5 | 049-forge-0-30-5-tech-lead-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:03 | 049-forge-0-30-5 | 049-forge-0-30-5-tech-lead-3.md | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-10-29 08:05 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-5.md | entrega | 1 | não cumpriu | parcial | O23.md cita catalogo-metricas.ts sem entrada o23; commit sem Cartão | escopo | destino |
+| 2026-10-29 08:07 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-6.md | brief | 1 | reprovado | n | executor diverge da decisão do dono K-178 | decisao | jarvis |
+| 2026-10-29 08:11 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-7.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:13 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-security-engineer-6.md | brief | 1 | reprovado | n | cabeçalho review; E3.2 é seguranca | etapa | jarvis |
+| 2026-10-29 08:13 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-11.md | entrega | 1 | não cumpriu | parcial | h-filtros ainda lido no e2e; sem teste do scroll-padding; cobertura.test fora do Entregar; Desde ausente | escopo | destino |
+| 2026-10-29 08:14 | 047-pendencias-decididas-2026-10-28 | 047-pendencias-decididas-2026-10-28-security-engineer-7.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-29 08:17 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-12.md | brief | 1 | aprovado | s | aviso PQ-5 se o teste for para web/src/styles | — | jarvis |

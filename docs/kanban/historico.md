@@ -531,3 +531,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-29T07:44:56-03:00 | K-074 | Bloqueado | Em andamento | 048-03 = A, volta 2 |
 | 2026-10-29T07:44:56-03:00 | K-164 | Bloqueado | Em andamento | push feito pelo dono |
 | 2026-10-29T07:44:56-03:00 | K-179 | — | Em andamento | pedido 049 |
+| 2026-10-29T08:04:05-03:00 | K-179 | Em andamento | Aguardando sua validação | PR 162 aberto e conferido; merge do dono |
+| 2026-10-29T08:08:39-03:00 | K-180 | Entrada | Em andamento | aberto para a página da O23 (volta do E3.1) |

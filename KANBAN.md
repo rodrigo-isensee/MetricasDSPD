@@ -77,9 +77,9 @@
 | K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:security-engineer | 2026-10-29 | 2026-10-29 07:44 | E6.1 (tech-lead, worktree 048e, feature/048-dompurify) e E6.2 (security-engineer); DECISÃO DO DONO 2026-10-29 07:07 = A · worktree: MetricasDSPD-048e |
 | K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-29 07:44 | E3.1 do 048 (node-backend-5), feature/048-ajustes-back · worktree: MetricasDSPD-048c |
 | K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-29 07:44 | E3.1 do 048 (node-backend-5), junto com K-129 · worktree: MetricasDSPD-048c |
+| K-180 | [doc] Página de contrato da O23 (docs/contratos/metricas/O23.md), volta 1 da conferência | 048 | forge:node-backend | 2026-10-29 | 2026-10-29 08:08 | E3.1 do 048; brief de volta node-backend-7 · worktree: MetricasDSPD-048c |
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-29 07:44 | Push feito pelo dono (2026-10-29); conferência da entrega e PR ao Forge (E3.2 a E3.5 do 047) · worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 |
 | K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-29 07:44 | Volta 2 do E4.1 (react-frontend-11): DECISÃO DO DONO 048-03 = A (barra de filtros sem fixação) · worktree: MetricasDSPD-048b |
-| K-179 | [forge] Registrar o Forge 0.30.5 no projeto (branch forge/upgrade-0.30.5, PR para a develop; merge do dono) | 049 | forge:tech-lead | 2026-10-29 | 2026-10-29 07:44 | forge-upgrade feito (5d7c199); push e PR pelo tech-lead · worktree: MetricasDSPD-upg |
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
 
 ## Code review (WIP 2)
@@ -94,6 +94,7 @@
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-179 | [forge] Registrar o Forge 0.30.5 no projeto (branch forge/upgrade-0.30.5, PR #162 para a develop; merge do dono) | 049 | dono | 2026-10-29 | 2026-10-29 08:03 | review e QA aprovados; PR #162 aberto e conferido; merge do dono (E1.5) · worktree: MetricasDSPD-upg |
 
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
