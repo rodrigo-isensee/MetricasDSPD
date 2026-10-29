@@ -3,13 +3,13 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: docs/052-businessmap-discovery
-commit: c229eea4eec0fd26b58714fe10814622793d7b3c
-parecer: reprovado
+commit: 052a13469b88cab1c9683cf39284a416b5ff61bd
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-29
 ---
 
-# Review: discovery do pedido 052, integração real com o BusinessMap (E1.11, K-182)
+# Review: discovery do pedido 052, integração real com o BusinessMap (E1.11 e E1.13, K-182)
 
 Escopo: o discovery inteiro, da base `a6e7543` (develop) até `c229eea`, que é o commit da E1.10. São 9 arquivos, todos `.md`: o plano `docs/architecture/features/052-integracao-businessmap.md`, as ADRs 0016, 0020 e 0022, `data-model.md`, `integracao-real.md`, `businessmap-api-configuracao.md`, o modelo de ameaças `docs/security/052-integracao-businessmap-ameacas.md` e o delta de UX `docs/ux/integracao-real/06-delta-2026-10-29.md`. Não há código nem migração, então o teto da M14 não se aplica (0 linhas de código e teste).
 
@@ -22,13 +22,24 @@ Escopo: o discovery inteiro, da base `a6e7543` (develop) até `c229eea`, que é 
 - O modelo de ameaças (E1.2 e E1.7) é do `security-engineer` e foi citado, não refeito. O plano incorpora as condições dele (DT-1, casos de abuso de `dim_responsavel`, leituras por fatia na §9).
 
 ## A ressalva retirada do §8 na E1.10
-A E1.10 apagou do §8 a suposição sobre `archived_from`/`discarded_from`, porque a Q-2c a tornou decisão do dono. Com a linha foi embora também a última frase: "Se o spike F1 mostrar que esses filtros não funcionam combinados com `state`, a fatia volta ao arquiteto antes do código, e a troca de filtro vai ao dono." Essa frase não era suposição. Era o caminho de volta quando uma decisão do dono não pode ser implementada como foi decidida. A F1 continua perguntando se os filtros funcionam com `state` e remete ao "(§8)", só que o §8 não fala mais disso. Hoje o plano diz o que verificar e não diz o que fazer se a verificação falhar. Quem fizer a F3 pode trocar para `last_modified_from` por inferência, e essa é justamente a troca que a Q-2c recusou. A frase precisa voltar ao plano, na F1 ou nos riscos (§6). Ver A1.
+A E1.10 apagou do §8 a suposição sobre `archived_from`/`discarded_from`, porque a Q-2c a tornou decisão do dono. Com a linha foi embora também a última frase: "Se o spike F1 mostrar que esses filtros não funcionam combinados com `state`, a fatia volta ao arquiteto antes do código, e a troca de filtro vai ao dono." Essa frase não era suposição. Era o caminho de volta quando uma decisão do dono não pode ser implementada como foi decidida. A F1 continua perguntando se os filtros funcionam com `state` e remete ao "(§8)", só que o §8 não fala mais disso. Hoje o plano diz o que verificar e não diz o que fazer se a verificação falhar. Quem fizer a F3 pode trocar para `last_modified_from` por inferência, e essa é justamente a troca que a Q-2c recusou. A frase precisa voltar ao plano, na F1 ou nos riscos (§6). Esse foi o A1 da primeira rodada, em `c229eea`, e está resolvido na revalidação abaixo.
+
+## Primeira rodada (c229eea): achados que voltaram
+O parecer foi reprovado por um achado bloqueante e dois recomendados, todos atribuídos ao software-architect:
+- A1 (bloqueante, plano, linha 91): a F1 remetia ao "(§8)", mas a ressalva e o caminho de volta tinham saído de lá.
+- A2 (recomendado, plano, linhas 14 e 16): o texto ainda chamava o plano de "proposta", embora ele já estivesse validado e com `estado: vigente`.
+- A3 (recomendado, ADR 0016, linha 131): o bloco "Decidido pelo dono" estava entre as linhas U-2 e U-3 e quebrava a tabela.
+
+## Revalidação (E1.13): correção da E1.12 em 052a134
+Li só o delta que o `forge-check delta --parecer` listou para `c229eea..052a134`: no plano, as linhas 14, 16 e 91; na ADR 0016, as linhas 130 e 136. O resto dos 9 arquivos não mudou e conta como já lido na primeira rodada.
+- A1 resolvido. A ressalva voltou à F1 (plano, linha 91), logo depois da pergunta sobre `archived_from` e `discarded_from` com `state`: se o spike mostrar que os filtros falham, a fatia volta ao arquiteto antes do código e a troca de filtro vai ao dono. A referência "(§8)" saiu. O plano ainda cita um "§8" na linha 165, mas é o §8 do roteiro, dentro do R-8, e não tem relação com esse ponto.
+- A2 resolvido. As linhas 14 e 16 agora dizem "Decisão nova: ADR 0022" e "Este plano foi validado pelo dono em 2026-10-29", e a dependência da E1.4 continua lá. O texto bate com `estado: vigente`.
+- A3 resolvido. A linha U-3 voltou à tabela, logo depois da U-2, e o bloco "Decidido pelo dono" vem depois da tabela, que é renderizada inteira.
+- O delta não trouxe achado novo. O que o dono decidiu (Q-2c, U-1, U-2) continua igual: mudaram só a posição e a redação.
 
 ## Ferramentas
-- `pnpm run docs:check` na raiz da worktree, em `c229eea` mais este parecer: `docs:check: ok (793 páginas Markdown, 69 métricas, 2 eventos).`, rc=0.
-- Sem `pnpm run pronto`: não há código no diff.
+- Primeira rodada, `pnpm run docs:check` em `c229eea`: `docs:check: ok (793 páginas Markdown, 69 métricas, 2 eventos).`, rc=0.
+- Revalidação, `pnpm run docs:check` em `052a134` mais este parecer: `docs:check: ok (793 páginas Markdown, 69 métricas, 2 eventos).`, rc=0.
+- Sem `pnpm run pronto`: o diff não tem código.
 
 ## Achados
-- A1 (bloqueante) docs/architecture/features/052-integracao-businessmap.md:91 · A F1 remete ao "(§8)" para saber se `archived_from` e `discarded_from` filtram junto com `state`, mas a E1.10 tirou do §8 a ressalva e o caminho de volta. O plano não diz mais que, se o filtro falhar no spike, a fatia volta ao arquiteto antes do código e a troca de filtro vai ao dono. Com isso a Q-2c pode virar `last_modified` por inferência, o que vai contra a regra "dúvida de regra de negócio vira pergunta ao dono". Correção (software-architect): pôr a frase na F1, logo depois da pergunta, ou num risco novo em §6, e trocar a referência "(§8)".
-- A2 (recomendado) docs/architecture/features/052-integracao-businessmap.md:16 · O texto diz "Este documento é **proposta**: nada de E2 a E6 começa antes da validação do dono", mas o frontmatter já diz `estado: vigente` e a validação aconteceu em 2026-10-29. Sugestão: dizer que o plano foi validado e manter só a dependência da E1.4 (apikey e WS1). A linha 14 ("Decisão nova proposta: ADR 0022") tem o mesmo problema.
-- A3 (recomendado) docs/architecture/adr/0016-historico-de-dimensoes-scd-tipo-2.md:131 · O bloco "Decidido pelo dono" foi inserido entre as linhas U-2 e U-3 da tabela. Isso quebra a tabela, e a linha U-3 (136) é renderizada como texto solto. Sugestão: mover o bloco para depois da linha U-3.
