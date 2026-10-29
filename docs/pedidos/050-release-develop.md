@@ -15,7 +15,10 @@
 - E1.2 (qa-engineer): parecer do QA da candidata em `docs/qa/050-release-develop.md`, na worktree 050, com commit e push.
 - E1.3 (devops-engineer): parecer de devops da promoção em `docs/devops/050-release-develop.md` (workflows e dependências do diff), na worktree 050, com commit e push.
 - E1.4 (security-engineer): parecer de segurança da promoção em `docs/security/050-release-develop.md`, na worktree 050 (sem Bash; o tech-lead o commita no E1.1).
-- E1.1 (tech-lead): commit do parecer de segurança, PR da `docs/promocao-2026-10-29` para a `develop` (squash) e merge com os checks verdes; PR `develop` → `homolog` (merge commit) e merge depois do portão da CI verde.
+- E1.5 (tech-lead): volta do parecer de review: `commit:` no commit da versão `6aa0ac38c35e8298f50511077527368b53ca08f7` (inclui `CHANGELOG.md` e `package.json`), com a leitura desses dois arquivos no parecer; commit e push.
+- E1.6 (qa-engineer): volta do parecer de QA: `commit:` no commit da versão `6aa0ac38c35e8298f50511077527368b53ca08f7` e a contagem da abertura corrigida (13 PRs com parecer, 7 isentos); commit e push.
+- E1.7 (security-engineer): volta do parecer de segurança: `commit:` no commit da versão `6aa0ac38c35e8298f50511077527368b53ca08f7`; o próprio security-engineer commita e envia o parecer (o `forge-check pr` exige que quem emitiu o parecer o commite, R-SEGURANCA).
+- E1.1 (tech-lead): depois de E1.5 a E1.7, PR da `docs/promocao-2026-10-29` para a `develop` (squash) e merge com os checks verdes; PR `develop` → `homolog` (merge commit) e merge depois do portão da CI verde.
 - E2.1 (tech-lead): tag `vX.Y.Z-rc.1` no HEAD da `homolog` depois do merge (§8).
 - E3.1 (tech-lead): PR de release `homolog` → `main` com as notas de versão.
 - E3.2 (dono): validar e mesclar o PR de release na `main`; tag final conforme §8.
@@ -45,6 +48,12 @@ DECISÃO DO DONO (2026-10-29): "ta suba tudo que estiver pronto na homol em uma 
 - 2026-10-29 11:28: brief tech-lead-1 (E1.0, base 311691b) no conferente.
 - 2026-10-29 11:34: brief tech-lead-1 (E1.0) aprovado na rodada 2 (rodada 1 reprovada: molde 037 citado na cópia principal); delegado ao forge:tech-lead (sonnet); K-181 em andamento.
 - 2026-10-29 11:37: E1.0 entregue pelo tech-lead: review aprovado (89227a2), versão 0.2.0 com CHANGELOG (6aa0ac3), push feito; conferência da entrega em curso. Briefs de devops (E1.3) e segurança (E1.4) aprovados e delegados (sonnet); brief do QA (E1.2) no conferente. O alerta Dependabot 12 citado no push é o dompurify do K-178, fora do 050.
+- 2026-10-29 11:38: E1.4 entregue: parecer de segurança aprovado, sem achado bloqueante (A1 react-router 8.5.0 a confirmar no portão; A2 laço de rerun do homolog-reavalia), gravado na worktree 050 sem commit; o tech-lead o commita no E1.1.
+- 2026-10-29 11:38: E1.3 entregue: parecer de devops aprovado, sem achado bloqueante (2e322ff, push feito); recomendações: re-run manual do homolog-aprovada nesta release (o homolog-reavalia só vale na main) e rótulo afrouxa-regra do dono no PR que toca .github; conferência da entrega em curso.
+- 2026-10-29 11:39: E1.2 entregue: parecer de QA aprovado, 0 bugs (3a20716, push feito); CI da develop em 311691b verde (run 40891567526); ressalva: a frase de abertura conta 12 com parecer e 8 isentos, a tabela dá 13 e 7 (#162 tem parecer 049); não bloqueia.
+- 2026-10-29 11:39: entrega conferida 6aa0ac38c35e8298f50511077527368b53ca08f7
+- 2026-10-29 11:40: etapas E1.5 a E1.7 acrescentadas (decisão técnica do Jarvis, sem escopo novo): o forge-check pr acusa os pareceres de review, QA e segurança desatualizados (CHANGELOG.md mudou depois de 311691b) e o de segurança sem commit do autor; voltas curtas dos três autores para o commit da versão 6aa0ac3; E1.1 deixa de commitar o parecer de segurança.
+- 2026-10-29 11:43: briefs tech-lead-2 (E1.5) e security-engineer-2 (E1.7) aprovados na rodada 1; delegados (sonnet).
 
 ## Registro de clareza
 PERGUNTA: nenhuma

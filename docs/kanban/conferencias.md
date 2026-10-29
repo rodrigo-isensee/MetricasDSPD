@@ -647,3 +647,8 @@
 | 2026-10-29 11:37 | 050-release-develop | 050-release-develop-devops-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-29 11:37 | 050-release-develop | 050-release-develop-security-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-29 11:37 | 050-release-develop | 050-release-develop-qa-engineer-1 | brief | 1 | aprovado | s | aviso: review com commit da candidata; CHANGELOG depois do parecer (tratar no E1.1) | — | jarvis |
+| 2026-10-29 11:39 | 050-release-develop | 050-release-develop-tech-lead-1 | entrega | 1 | cumpriu | s | vale para o snapshot 6aa0ac3; branch compartilhada andou durante a conferência | — | destino |
+| 2026-10-29 11:40 | 050-release-develop | 050-release-develop-devops-engineer-1 | entrega | 1 | não verificável | s | package.json é do E1.0 (tech-lead-1, 837a83b7, conferido em 6aa0ac3); PQ-1 a PQ-3 cumpridos | escopo | destino |
+| 2026-10-29 11:41 | 050-release-develop | 050-release-develop-qa-engineer-1 | entrega | 1 | não cumpriu | parcial | parecer de review desatualizado pelo commit da versão (sequência do Jarvis); package.json é do E1.0; PQ-1 a PQ-3 cumpridos; volta E1.5/E1.6 | etapa | destino |
+| 2026-10-29 11:43 | 050-release-develop | 050-release-develop-tech-lead-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 11:43 | 050-release-develop | 050-release-develop-security-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
