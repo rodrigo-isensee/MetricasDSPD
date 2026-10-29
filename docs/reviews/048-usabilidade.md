@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: feature/048-usabilidade
-commit: 1451778df5d9da9ed380bd0684a0b19960f99006
-parecer: reprovado
+commit: fc1e59fffd58c683be3b5338fc37a37ca3d77452
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-29
 ---
@@ -45,17 +45,20 @@ Intervalo `c984b0f..1451778` (4 commits, 21 arquivos, +725/-40), por leitura, se
 - A2 (recomendado) web/src/features/preferencias/ProvedorPreferencias.tsx:150 · RESOLVIDO: `setAntes` e `setRestauradas` só rodam com n > 0; o Desfazer pendente sobrevive. O teste em preferencias.test.tsx falha sem a correção.
 - A3 (recomendado) web/src/features/visao-geral/VisaoGeralPage.tsx:228 · RESOLVIDO: linha curta `recorte-resumo` à vista, fora do `details`; o teste confere visível e fora do recolhido.
 - A4 (recomendado) web/src/components/ui/BotaoCopiarLink.tsx:46 · RESOLVIDO: o aviso agora é sobreposto (`absolute`), sem largura reservada (bug 048-02); o campo manual segue sobreposto; o CLS segue com o QA.
-- A5 (recomendado) e2e/tests/responsivo.spec.ts:42 · Assert "a barra sticky começa abaixo do fim do cabeçalho" e a anotação `fVar` (`--h-filtros`, :39) ficaram obsoletos pela 048-03: a barra rola. Reescrever no reteste do QA (CA-A).
-- A6 (recomendado) e2e/tests/usabilidade-048.spec.ts:85 · O `test.fail` do USAB-05b segue com o 048-01 corrigido: o teste passa e o Playwright o acusa como falha. Remover o `test.fail` no reteste, mantendo o caso.
-- A7 (recomendado) e2e/tests/usabilidade-048.spec.ts:98 · USAB-06 exige o índice abaixo da barra de filtros visível após rolar 600 px; com a 048-03 a barra sai da tela e o `elementFromPoint` dela não vale. Reescrever no reteste (CA-A), junto do título do describe (:71).
-- A8 (bloqueante) docs/ux/dashboard-metricas/especificacao.md:228 · A spec ainda diz barra de filtros sticky a partir de 768 px (também :1023, :1034, :1213 e docs/ux/design-system.md:51, :53, :101 com `--h-filtros`); a 048-03 muda a spec e o praticas §8 item 10 bloqueia doc desatualizada. Autor: ux-designer.
-- A9 (recomendado) web/src/features/filtros/BarraFiltros.tsx:126 · O ref `barra` ficou sem leitor (o `useAlturaCss` saiu) e o comentário de :166 ainda cita "a barra sticky"; remover o ref e ajustar o comentário.
-- A10 (recomendado) web/src/features/operacional/IndiceDeSecoes.tsx:47 · `nav.current as HTMLElement` sem comentário e `MutationObserver` no `style` da raiz como sinal indireto da altura do índice; preferir guarda de nulo e medir pelo próprio `ResizeObserver` do nav.
+- A5 (recomendado) e2e/tests/responsivo.spec.ts:42 · ABERTO, com o reteste do QA: assert "a barra sticky começa abaixo do fim do cabeçalho" e a anotação `fVar` (`--h-filtros`, :39) ficaram obsoletos pela 048-03: a barra rola. Reescrever no reteste do QA (CA-A).
+- A6 (recomendado) e2e/tests/usabilidade-048.spec.ts:85 · ABERTO, com o reteste do QA: o `test.fail` do USAB-05b segue com o 048-01 corrigido: o teste passa e o Playwright o acusa como falha. Remover o `test.fail` no reteste, mantendo o caso.
+- A7 (recomendado) e2e/tests/usabilidade-048.spec.ts:98 · ABERTO, com o reteste do QA: USAB-06 exige o índice abaixo da barra de filtros visível após rolar 600 px; com a 048-03 a barra sai da tela e o `elementFromPoint` dela não vale. Reescrever no reteste (CA-A), junto do título do describe (:71).
+- A8 (bloqueante) docs/ux/dashboard-metricas/especificacao.md:228 · RESOLVIDO (fc1e59f): a spec (:228, :808, :1023, :1033-1034, :1213) e o design system (:51, :53, :101) dizem barra de filtros rolando a partir de 768 px, fixos só cabeçalho e índice; sem sticky nem `--h-filtros`.
+- A9 (recomendado) web/src/features/filtros/BarraFiltros.tsx:126 · ABERTO, não devolve: o ref `barra` ficou sem leitor (o `useAlturaCss` saiu) e o comentário de :166 ainda cita "a barra sticky"; remover o ref e ajustar o comentário.
+- A10 (recomendado) web/src/features/operacional/IndiceDeSecoes.tsx:47 · ABERTO, não devolve: `nav.current as HTMLElement` sem comentário e `MutationObserver` no `style` da raiz como sinal indireto da altura do índice; preferir guarda de nulo e medir pelo próprio `ResizeObserver` do nav.
+- A11 (recomendado) docs/ux/dashboard-metricas/especificacao.md:1023 · ABERTO, não devolve: a regra geral diz cabeçalho e índice fixos e padding = cabeçalho + índice, mas abaixo de 768 px o cabeçalho não é fixo e o código (`tokens.css:107`) soma só o índice; dizer "a partir de 768 px" ou citar as duas faixas.
 
 ## Revalidação
 Rodada 1 (2026-10-28): delta `2916b05..2aac602` (9 arquivos, +61/-11), por leitura. Sem achado novo.
 
 Rodada 2 (2026-10-29): delta lido `c984b0f..1451778` (21 arquivos, os 4 commits f82b656, ba9c002, d1df428 e 1451778), por leitura, sem rodar suíte. Já lido e inalterado: o restante da branch até `c984b0f`. Lidos também, fora do diff, os pontos que a 048-03 torna obsoletos: `e2e/tests/responsivo.spec.ts`, `docs/ux/dashboard-metricas/especificacao.md` e `docs/ux/design-system.md`.
 
+Rodada 3 (2026-10-29, E5.1): `forge-check delta --parecer` listou `1451778..fc1e59f`, 2 arquivos de documentação: `especificacao.md` (:228, :808, :1023, :1033-1034, :1213; +6 -6) e `design-system.md` (:51, :53, :101; +3 -3), lidos por leitura, sem suíte. Já lido e inalterado: todo o código e os testes até `1451778` (aprovados na rodada 2). `grep` de `sticky` e `h-filtros` nos dois documentos não acha mais a barra fixa. O texto bate com o código aprovado (`AppShell.tsx:100` `md:sticky`, `BarraFiltros` sem sticky, `tokens.css:116` cabeçalho + índice) e com CA-A e CA-E; CA-B a CA-D seguem como medição do reteste do QA, e nada no texto reabre o CLS (ADR 0003). A8 resolvido; A11 novo, recomendado.
+
 ## Parecer
-Reprovado, só pela documentação (A8): o código corrige 048-01, 048-02 e o A4 do QA com teste que falha sem a mudança, e cumpre a 048-03 no que se lê (CA-A e CA-E); CA-B, CA-C e CA-D são do reteste do QA. Volta: o ux-designer atualiza a especificação e o design system para a 048-03; A5 a A7 vão ao reteste do QA; A9 e A10 são recomendação e não devolvem.
+Aprovado. A rodada 2 tinha reprovado só pela documentação (A8); o fc1e59f a corrige (rodada 3). O código corrige 048-01, 048-02 e o A4 do QA com teste que falha sem a mudança, e cumpre a 048-03 no que se lê (CA-A e CA-E); CA-B, CA-C e CA-D ficam com o reteste do QA. A5 a A7 vão ao reteste do QA; A9, A10 e A11 são recomendações e não devolvem.
