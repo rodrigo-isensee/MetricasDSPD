@@ -775,3 +775,19 @@
 | 2026-10-30 09:38 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-1 | brief | 5 | aprovado | s |  | — | jarvis |
 | 2026-10-30 09:55 | 054-trocar-de-computador | 054-trocar-de-computador-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-30 11:23 | 054-trocar-de-computador | 054-trocar-de-computador-tech-lead-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 11:28 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-1.md | entrega | 1 | nao cumpriu: PQ-2 a PQ-7 cumpriram; Desde apontava a conferencia do discovery (outra branch); index.ts (+1, barrel) fora do Entregar | s | Desde errado gerado pelo brief mensagem (erro do Jarvis) | base | destino |
+| 2026-10-30 11:35 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-8.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 11:36 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-5.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 11:46 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-5.md | entrega | 1 | nao cumpriu: PQ-1 a PQ-4 cumpriram; Desde de outra branch; +2 do doc do E1.15 lido como fora | s | Desde do brief mensagem aponta conferida de outra branch (recorrente) | base | destino |
+| 2026-10-30 11:50 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-2.md | brief | 1 | reprovado: A3 contradiz a decisao do dono sem nomes de pessoa; Ler sem o brief -1; A4 no Entregar | s |  | decisao | jarvis |
+| 2026-10-30 11:52 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-8.md | entrega | 1 | nao cumpriu: PQ-1 a PQ-4 cumpriram; Desde de outra branch; codigo do intervalo lido como fora do Entregar do review | s | mesmo Desde errado (3a vez) | base | destino |
+| 2026-10-30 11:54 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-2.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-30 12:18 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-2.md | entrega | 1 | nao cumpriu: so pelo Desde de outra branch; PQ conferiveis cumpriram e os 5 achados conferidos no codigo | s | Desde (4a vez) | base | destino |
+| 2026-10-30 12:23 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-6.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 12:25 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-9.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 12:31 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-6.md | entrega | 1 | nao cumpriu: so pelo Desde de outra branch; PQ-1 a PQ-4 cumpriram; parecer bate com o codigo | s | Desde (5a vez) | base | destino |
+| 2026-10-30 12:39 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 12:57 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-10.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 12:57 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-1.md | entrega | 1 | reprovado so pelo Desde de outra branch; PQ-1 a PQ-4 cumpriram; forge-check pr rc=0 | s | Desde (6a vez) | base | destino |
+| 2026-10-30 13:03 | 055-forge-pareceres-por-branch | 055-forge-pareceres-por-branch-tech-lead-1.md | brief | 1 | reprovado: contagem de conferencias do Objetivo diferente da do pedido | s |  | citacao | jarvis |
+| 2026-10-30 13:05 | 055-forge-pareceres-por-branch | 055-forge-pareceres-por-branch-tech-lead-1.md | brief | 2 | aprovado | s |  | — | jarvis |

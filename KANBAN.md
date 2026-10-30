@@ -10,6 +10,7 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-186 | [052 review A5, QA A1 e A3] diagnostico.ts: limite429 não volta a falso no catch (:151); nenhum teste afirma a frase do cabeçalho (:310); nó raiz da currentStructure sai como "(sem campos permitidos)" (:243) | 052 | forge:node-backend | 2026-10-30 | 2026-10-30 12:34 | Recomendado (baixa) na revalidação do review 052 (780000b) |
 | K-183 | [deps] Remover o override do dompurify (pnpm-workspace.yaml) quando jspdf e mermaid exigirem >= 3.4.17 | 048 | forge:tech-lead | 2026-10-29 | 2026-10-29 20:58 | Recomendação dos pareceres de segurança (6c1dc67) e de review (8e0f8f4) do K-178; conferir na revisão semanal do CI (praticas.md §10.1); depende de versões novas dos pacotes |
 | K-176 | [teste] Trava de suíte única grava cada espera (quem segurava, quanto esperou) para medir o efeito | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:59 | MELHORIA 2 da retro do 045 (docs/retrospectivas/2026-10-28-045-suite-unica.md); só acrescenta registro; depende do K-175 (mesmo script) e o WIP de Pronto para fazer está cheio |
 | K-177 | [ux] Achados médios e baixos da revisão de UX da T14 (M-1 ficha e CA-27/30/45 desatualizados; M-2 leituraT14 cita total sem excluir ocultos; M-3 notas.ts:305 "ordenados pelo total"; B-1 linha oculta sem explicação ao leitor de tela; B-2 teste "todos ocultos"; B-3 axe com oculto) | 048 | forge:react-frontend | 2026-10-28 | 2026-10-28 18:09 | docs/ux/revisao-048-t14.md (aprovada com ressalvas); depende do merge da docs/048-t14-desenho; ficha e CA são do ux-designer |
@@ -61,6 +62,7 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-187 | [Forge] forge-check escolhe parecer e Desde pela branch (lote E1 e E2 do pedido 055) | 055 | forge:tech-lead | 2026-10-30 | 2026-10-30 13:01 | PR de proposta para a develop do Forge; destrava o PR da 048d depois da release · clone ~/.forge-contrib/MetricasDSPD |
 | K-175 | [teste] Endurecer a trava de suíte única: A1 a A3 da segurança e A1 do review do 045 (retorno do flock, fd herdado por órfão, variável exportada, espera sem teto) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:58 | MELHORIA 1 da retro do 045; o Histórico de 11:35 apontou para um K-171 que é outro cartão |
 | K-172 | [docs] praticas.md:115 diz pronto verde antes de cada commit; alinhar à decisão do dono de 2026-10-21 (pronto completo uma vez, antes do commit final) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (4 briefs reprovados por essa leitura); alinha texto à decisão, não afrouxa |
 | K-173 | [teste] Teste do O20 lê o SVG de forma síncrona; passou no review e no QA e falhou no check testes do #152 | 026 | forge:react-frontend | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (operacionais.test.tsx:177) |

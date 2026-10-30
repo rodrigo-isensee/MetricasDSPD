@@ -568,3 +568,12 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-30T08:50:04-03:00 | K-128 | Code review | QA | volta 1: review do delta aprovado (ed5b0c2); QA atualiza commit do parecer |
 | 2026-10-30T08:54:27-03:00 | K-128 | QA | QA | Aguardando o dono: PR bloqueado pelo cmd_pr (parecer de outra branch do pedido) |
 | 2026-10-30T09:18:43-03:00 | K-185 | Entrada | Em andamento | pedido 052, decisão do dono "faca a C"; E1.14 |
+| 2026-10-30T11:35:14-03:00 | K-185 | Em andamento | Code review | E1.17 (tech-lead-8) e E1.16 (security-engineer-5) em paralelo |
+| 2026-10-30T11:54:38-03:00 | K-185 | Code review | Em andamento | volta 1 |
+| 2026-10-30T12:18:26-03:00 | K-185 | Em andamento | Code review | volta 1 entregue (22af869); revalidação de segurança e review |
+| 2026-10-30T12:34:14-03:00 | K-185 | Code review | QA | segurança e review aprovados em 22af869 (1bc1c52, 780000b) |
+| 2026-10-30T12:35:09-03:00 | K-186 | — | Entrada | A5 recomendado na revalidação do review 052 |
+| 2026-10-30T13:01:21-03:00 | K-187 | — | Pronto para fazer | pedido 055, recibo aceito |
+| 2026-10-30T13:05:41-03:00 | K-187 | Pronto para fazer | Em andamento | E1.1 delegada ao tech-lead |
+| 2026-10-30T13:18:13-03:00 | K-185 | QA | Aguardando o dono | PR 173 mesclado (11141d7); E1.20 com o dono |
+| 2026-10-30T13:29:03-03:00 | K-187 | Em andamento | Aguardando o dono | dono: nada do forge deve rodar aqui |
