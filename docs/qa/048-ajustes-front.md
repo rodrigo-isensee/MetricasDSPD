@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: feature/048-ajustes-front
-commit: 7e54ff115c3fcea8d4ce94d1e1005df78f5251b4
+commit: 439ebc79b90e4da3a72527b75482139484bd8e19
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -75,6 +75,7 @@ No head, os mesmos arquivos passam (web: 82 arquivos e 1241 testes). O teste de 
 - E2E (`E2E_PORTA=4181`, `E2E_SEM_ALT=1`, projeto `chromium`): `mock-transporte-worker`, `a11y`, `responsivo`, `espera-invisivel-nos-paineis`, `shell`, `complementares` e `intensivo-filtros`: 250 passaram, 0 falharam, 0 pulados.
 - E2E de desempenho (projeto `perf`): `cls-tatico-equipes`, 8 de 8.
 - Mutação: o Forge só a exige para `bin/`, `hooks/` e afins; esta entrega não os toca.
+- Revalidação no merge da develop (Forge 0.30.7, 9aa6b29): o intervalo c838c1e..439ebc7 não muda `web/`, `server/`, `packages/` nem `e2e/` (diff vazio), então o parecer vale para 439ebc7 sem nova suíte; o `pnpm run pronto` verde em 439ebc7 está no review ed5b0c2.
 
 ## Achados
 
