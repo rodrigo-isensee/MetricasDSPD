@@ -3,6 +3,7 @@ Estado: vigente (a hospedagem na AWS é alvo futuro; o que roda hoje segue a [00
 - Status: **aceita** (decisões do usuário em 2026-10-10, confirmadas ao Jarvis para reconciliação com a `main`)
 - Data: 2026-10-10
 - **Parcialmente substituída pela ADR 0014, revisão 2** (2026-10-10): banco **PostgreSQL** (sai o RDS MySQL); **AWS, Lambdas, API Gateway, RDS e CDK passam a ser alvo futuro, não o plano** (custo zero: tudo em Docker Compose local, P14 respondida assim); Hono → **Fastify 5** em contêiner; Kysely → **`pg` puro** + **node-pg-migrate**; **outbox transacional em `dspd_core.outbox` com polling** no serviço `worker`; npm → **pnpm**; testes com schemas prefixados por execução. **Continuam:** monólito modular, módulos e fronteiras (§2, §3, §9), Metabase como origem do Acelerato (§4), "sem barramento nem fila". Ao retomar a nuvem, uma ADR nova escolhe entre contêiner e Lambda.
+- **§4 substituído pela ADR 0023** (2026-10-30, pedido 056): o Acelerato é lido da tabela MySQL do time de ciência de dados, só leitura, com TLS fixado e consulta de lista fechada ([0023](0023-acelerato-pela-tabela-mysql.md)); o Metabase deixa de ser a origem. O resto desta ADR não muda.
 - Origem: proposta escrita em outra sessão com o usuário, preservada sem alteração em `docs/architecture/propostas/serverless-outra-sessao/` (lá numerada 0004, número que já existia na `main`). Pedidos do usuário, nesta ordem: (1) "arquitetura modular com microsserviços dentro dos módulos, padrão serverless"; (2) "AWS; os dados do Acelerato vêm de uma tabela no Metabase, puxada uma vez ao dia; o SSO será informado"; (3) **"mantenha a arquitetura simples, com o melhor que podemos para Node, mas simples"**. Uma primeira versão (barramento de eventos, outbox, filas, um workspace e uma função por responsabilidade) foi descartada pela instrução (3), antes de qualquer código.
 - Pedido: `docs/pedidos/002-arquitetura-completa.md`
 - **Substitui:** ADR 0006 (processos, agendamento, automações), ADR 0008 (framework e execução), ADR 0010 (implantação e CI), exceto o que está listado em "Continua valendo".
@@ -14,7 +15,7 @@ Estado: vigente (a hospedagem na AWS é alvo futuro; o que roda hoje segue a [00
 - **Carga pequena e previsível:** coleta diária, webhook esporádico do BusinessMap, poucos usuários internos, milhares de cards e chamados (o mock tem cerca de 6 mil de cada). Nenhum problema de escala justifica serviços distribuídos.
 - **Time pequeno:** cada peça a mais (fila, barramento, outbox, deploys independentes) custa mais em operação e depuração do que devolve.
 - **AWS é o provedor** (resposta do usuário, fecha I-1, I-2, I-8, I-10, I-11). Serverless serve porque o sistema fica quase sempre ocioso.
-- **Acelerato via Metabase:** a fonte deixa de ser o MySQL `acelerato_dev_corporativo` e passa a ser uma tabela no Metabase, lida uma vez ao dia, só leitura (substitui I-4).
+- **Acelerato via Metabase:** a fonte deixa de ser o MySQL `acelerato_dev_corporativo` e passa a ser uma tabela no Metabase, lida uma vez ao dia, só leitura (substitui I-4). *Substituído pela ADR 0023 (2026-10-30): a fonte passa a ser a tabela MySQL mantida pelo time de ciência de dados.*
 - **O que já existe na `main` continua:** pacotes `contratos`, `metricas` (biblioteca única, T2.5) e `mock`; o front com a porta `FonteMetricas`; no `server/`, Kysely + `mysql2`, as migrações 0001–0010 dos schemas `dspd_bm`, `dspd_ac`, `dspd_core`, os usuários por papel (`grants.ts`), o seed e o estado de coleta (`src/coletas/`). **Não há servidor HTTP implementado** (nem Fastify), então a troca de framework não tem custo de migração.
 
 ## Decisão
@@ -68,6 +69,8 @@ infra/                AWS CDK em TypeScript, uma stack
 Sem snapshot em S3 nem fila; eventos só pela outbox transacional (ADR 0014). Se a partida a frio estourar S1: primeiro, concorrência provisionada de 1 na `api`; depois, gravar a base montada como blob.
 
 ### 4. Acelerato pelo Metabase
+> **Substituído pela [ADR 0023](0023-acelerato-pela-tabela-mysql.md)** (2026-10-30, pedido 056). O texto abaixo fica como registro; não vale para implementação.
+
 - **API do Metabase** com chave de API (`x-api-key`) de usuário só de leitura, no Secrets Manager (no dev, `.env`). A consulta sai de uma pergunta salva (*card*) com exportação JSON (`POST /api/card/:id/query/json`), sem o limite de 2.000 linhas da consulta interativa.
 - **Histórico sem sobrescrever:** cada linha extraída ganha hash. Linha nova = registro novo; hash diferente = nova versão (SCD2); linha que some = registro de ausência, nunca apagada (data-model §4).
 - **Contrato da tabela:** schema zod por coluna. Coluna faltando, renomeada ou com tipo diferente faz a coleta **falhar com aviso** em `/fontes/acelerato/estado`, sem carregar dado torto. O SQL da pergunta fica versionado em `docs/architecture/fontes/acelerato-metabase.sql`; mudar o SQL é mudança de critério (T2.6).
