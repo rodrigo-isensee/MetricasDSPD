@@ -13,7 +13,7 @@
 | Staging (registro de origem) | `stg_` | payload original + hash + metadados de coleta | **só INSERT** (grant + gatilho de imutabilidade) | não: é a fonte da verdade fora da ferramenta |
 | Eventos / histórico | `evt_`, `dim_*_versao`, `fato_transicao`, `rec_` | eventos normalizados e versões SCD2 | **só INSERT** (grant + gatilho) | sim, a partir do staging |
 | Projeções | `dim_card`, `fato_bloqueio`, `dim_chamado`, `fato_etapa_chamado` | estado atual e intervalos, na forma do briefing 4.5 | substituição por entidade afetada (`DELETE` + `INSERT` na mesma transação) | sim, a partir de eventos + referência |
-| Referência | `ref_` | colunas, domínios fechados, calendário, critérios, alvos | só INSERT de nova vigência; fechar vigência = única UPDATE, por `GRANT UPDATE (vigente_ate)` (§8) | arquivo versionado no repositório (`ref:sync`) |
+| Referência | `ref_` | colunas, domínios fechados, calendário, critérios, alvos | só INSERT de nova vigência; fechar vigência = única UPDATE, por `GRANT UPDATE (vigente_ate)` (§8) | arquivo versionado no repositório (`ref:sync`); **exceção:** `ref_time` e `ref_time_workflow` (tabela de times, §3.4) ficam no banco, sem arquivo (decisão do dono de 2026-10-30 16:44), com carga inicial por migração e edição pela tela do pedido 057 |
 | Controle | `ctl_` | log de coleta, marca d'água, falhas, reconciliação, automações | INSERT; UPDATE por coluna só em `ctl_coleta` (`status`, `finalizado_em`, `marca_dagua_ate`, `erro_resumo`) e em `ctl_coleta_contagem`; demais `ctl_` só INSERT (§8) | não |
 | Operacional | `outbox` (só em `dspd_core`) | eventos internos para o poller | ver §5 | não precisa |
 
@@ -51,8 +51,14 @@ erDiagram
   dim_card ||..o{ evt_bloqueio : "card_id lógico"
   evt_bloqueio }|..|| fato_bloqueio : "inicio e fim, lógico"
   dim_card ||..o{ dim_card : "card_pai lógico"
+  ref_quadro ||..o{ ref_workflow : "quadro_id lógico"
+  ref_workflow ||..o{ ref_coluna : "workflow_id lógico"
   ref_quadro ||..o{ ref_coluna : "quadro_id lógico"
+  ref_coluna ||..o{ ref_coluna : "coluna_mae_id lógico"
   ref_coluna ||..o{ fato_transicao : "quadro_id + coluna_destino_id lógico, vigente no instante"
+  ref_workflow ||..o| ref_time_workflow : "workflow_id lógico, vigente no instante"
+  ref_time ||..o{ ref_time_workflow : "time_id lógico"
+  ref_tipo_card ||..o{ dim_card : "tipo lógico"
   fato_transicao ||--o| rec_transicao_par : "webhook x revision"
   ctl_coleta ||--o{ ctl_coleta_contagem : coleta_id
   ctl_coleta ||--o{ ctl_coleta_falha : coleta_id
@@ -100,16 +106,29 @@ Transição canônica (consumida pela biblioteca) = view `vw_transicao_canonica`
 
 Marcos (`comprometido_em`, `iniciado_em`, `concluido_em`) derivados das transições canônicas por uma função única em `@metricas-dspd/metricas/businessmap` (T2.4), a mesma usada pelo mock; `entrega` = entrada em coluna de papel `entrega`.
 
+**Decisões do dono de 2026-10-30 (pedido 052, revisão E1.22 do plano):**
+- `granularidade` = `ref_workflow.nivel` do workflow em que o card estava no instante do evento medido (H-1, U-2): workflow `type=1` de quadro de coordenador = feature ou pacote; `type=0` = story; quadro 35 = projeto. Card de tipo com `ref_tipo_card.eh_item = false` (Sprint, H-2) não é item: fora de vazão, tempo de ciclo e histograma.
+- `equipe` = `time_id` da tabela de times vigente no instante do evento para o workflow do card (U-2); workflow marcado `fora` (H-7, 057 E3) não entra em métrica do painel operacional. `equipe` continua só filtro (§9, garantia 3).
+- `comprometido_em` = primeira entrada em folha de seção 2 (H-9); `concluido_em` = primeira entrada em folha de seção 4 que não seja "Descartado" (H-10). Entrada em coluna "Descartado" grava `motivo_descarte = 'coluna_descartado'` e o instante, como o descarte nativo (H-11).
+- Categoria do briefing §4.3 (O7, O13, segmentação por tipo) pelo `ref_tipo_card.categoria` (H-17). O8, O12 e O14 a O18 não têm campo no quadro: as colunas `tamanho_declarado`, `data_acordada`, `responsabilidade_atraso`, `area_solicitante`, `sistema`, `fase_deteccao`, `severidade`, `causa_raiz` e `origem_bug` ficam nulas no dado real até a WS1 criar os campos; essas métricas seguem do mock com selo (H-13). `classe_servico` fica nula (H-15).
+- O campo ID Acelerato (field 36) não é coletado e não tem coluna (H-16): nenhuma chave cruza `dspd_bm` × `dspd_ac` (§2).
+
 ### 3.4 Referência BM (vigência `vigente_de date`, `vigente_ate date NULL`)
 | Tabela | Chave | Uso |
 |---|---|---|
-| `ref_quadro` | `quadro_id` + vigência | equipe, nível (time/coordenação/gerência), `eh_teste` (fora de todo cálculo, 4.2) |
-| `ref_coluna` | (`quadro_id`, `coluna_id`, `vigente_de`) | nome, `tipo_coluna`, `papel`, `ordem`, `limite_wip` (T1.1, T1.4) |
+| `ref_quadro` | `quadro_id` + vigência | nome, `eh_teste` (fora de todo cálculo, 4.2). **E1.22:** equipe e nível saem do quadro (um quadro de coordenador tem FL2 e FL1 e dezenas de times, diagnóstico E1.20): nível vai para `ref_workflow`, equipe para a tabela de times |
+| `ref_workflow` (E1.22, H-1) | (`quadro_id`, `workflow_id`, `vigente_de`) | `nome`, `tipo_api smallint CHECK IN (0,1,2)` (0 cards, 1 iniciativas, 2 linha do tempo), `nivel text CHECK IN ('projeto','feature','story','nenhum')` pela regra da H-1 (quadro 35 = projeto; `type=1` = feature; `type=0` = story; `type=2` = nenhum); carregada da API pela F2; mudança de `type` = nova vigência + `ref_versao_criterio` |
+| `ref_coluna` | (`quadro_id`, `coluna_id`, `vigente_de`) | nome, `tipo_coluna`, `papel`, `ordem`, `limite_wip` (T1.1, T1.4). **E1.22:** + `workflow_id`, `coluna_mae_id` (`parent_column_id`, 0 = raiz), `section smallint CHECK (section BETWEEN 1 AND 5)`, `flow_type smallint CHECK IN (1,2)`, `eh_folha boolean`, `eh_descarte boolean`, `motivo text CHECK IN ('processo','correcao')` (U-1); `papel` passa a aceitar `NULL` (coluna não folha ou "Descartado"). Papel só na folha: seção 1 `backlog`, 2 `compromisso`, 3 `trabalho`, 4 e 5 `entrega`; `tipo_coluna` = `flow_type` (2 `fila`, 1 `execucao`, H-8); coluna "Descartado" sem papel e `eh_descarte = true` (H-11); exceções do arquivo de conferência. `limite_wip` = `limit` do quadro, 0 = sem limite (H-12); mudança de limite = nova vigência |
+| `ref_tipo_card` (E1.22, H-2, H-17) | (`tipo_id`, `vigente_de`) | `nome`, `eh_item boolean` (Sprint = `false`), `categoria text CHECK IN ('bug_interno','defeito_producao','requisicao','divida_tecnica','melhoria','produto')`; do arquivo de conferência (`ref:sync`) |
+| `ref_time` (E1.22, decisão de 16:44) | (`time_id`, `vigente_de`) | `nome varchar(80)` (nunca nome de pessoa), `ativo boolean` (desativar não apaga), `vigente_ate`, `motivo CHECK IN ('processo','correcao','carga_inicial')`, `versao_id` (lógico, `ref_versao_criterio`), `registrado_em`, `registrado_por varchar(64)` |
+| `ref_time_workflow` (E1.22, decisão de 16:44) | (`workflow_id`, `vigente_de`) | `quadro_id`, `time_id NULL`, `situacao CHECK IN ('time','fora')`, `motivo_fora CHECK IN ('fora_de_todo_calculo','fora_do_operacional') NULL`, `CHECK ((situacao = 'time') = (time_id IS NOT NULL))`, `vigente_ate`, `motivo CHECK IN ('processo','correcao','carga_inicial')`, `versao_id`, `registrado_em`, `registrado_por varchar(64)`. Um workflow pertence a no máximo um time por vez (vigente única); um time tem um ou mais workflows (casos de mesmo time em quadros diferentes, H-6) |
 | `ref_dominio` | (`campo`, `codigo varchar(80)`, `vigente_de`) | domínios fechados 4.4 e 4.3: `tipo_card`, `classe_servico`, `motivo_bloqueio`, `fase_deteccao`, `causa_raiz`, `origem_demanda`, `area_solicitante`, `sistema_afetado`, `fornecedor`, `objetivo_estrategico`, `severidade`, `responsabilidade_atraso`, `tamanho`; `rotulo varchar(120)`, `ordem` (ordem neutra) |
 | `ref_sle`, `ref_alocacao_acordada`, `ref_limite_frentes` | chave + vigência | `ConfigBM` (origem real: pergunta N-5) |
 | `ref_ficha_resultado` | `card_id` + vigência | `FichaResultado` (E3) |
 
 Vigente única por chave: índice parcial `UNIQUE (chave) WHERE vigente_ate IS NULL` em cada `ref_` com vigência (substitui a coluna gerada do MySQL).
+
+**Tabela de times: histórico e marcação T2.6 (E1.22).** O histórico é a própria cadeia de vigências (só INSERT de nova vigência e UPDATE de `vigente_ate`, como toda `ref_`); nada é apagado, desativar um time é nova vigência com `ativo = false`. Cada mudança grava uma `ref_versao_criterio` (`dominio = 'businessmap'`, métricas do painel operacional afetadas em `ref_versao_criterio_metrica`) e aparece como marca nos gráficos; `motivo = 'processo'` vale da data em diante (cards anteriores "como foi") e `motivo = 'correcao'` vale para todo o período (U-1 = A). A carga inicial (pedido 057 E3) entra por migração com `motivo = 'carga_inicial'`, `vigente_de` = início da carga inicial de 12 meses e uma versão de critério de partida, sem marca nos gráficos. Escrita: `dspd_migrador` na carga inicial; o papel da tela é definido no 057 (E1.2 e E1.3). Leitura: `dspd_coletor` e `dspd_api` (por coluna, sem `registrado_por`, §8). Workflows `fora` na carga inicial: 257, 201, 321, 215, 216 e 196 (`fora_de_todo_calculo`, H-7); 200, 207, 198, 313, 203 e 234 (`fora_do_operacional`, 057 E3).
 
 ## 4. Schema `dspd_ac` (Acelerato)
 
@@ -321,6 +340,7 @@ Nenhum papel tem `TRUNCATE`, `REFERENCES` nem `TRIGGER`. Serviços do compose (A
 - `TABELAS_FORA_DA_API` (tabelas inteiras, por `schema.tabela`): `dspd_bm.ref_conta_automacao`, `dspd_ac.ref_conta_automacao` e `dspd_core.ref_conta_automacao`. Motivo: ids de contas de serviço. Só `dspd_coletor` lê para coletar; `dspd_ref` cadastra (WS1), sem leitura pela API.
 - O filtro de `TABELAS_FORA_DA_API` vale também no `dspd_core` (B-K2): as `ref_` do core são concedidas à API uma a uma, menos as da lista. Sem isso, uma tabela fora da API em outro schema voltaria a ficar visível sem falhar teste.
 - Regra: entrada nova em qualquer uma das duas listas passa por revisão de modelagem e de segurança, como em §9.
+- **Proposta (E1.22, pedido 052; forma final com o security-engineer no pedido 057, E1.3):** `COLUNAS_FORA_DA_API` += `dspd_bm.ref_time.registrado_por` e `dspd_bm.ref_time_workflow.registrado_por` (quem mudou a lista: HMAC do `sub` da sessão, ADR 0009, ou `carga-inicial-057-E3`; nunca nome nem e-mail). A API lê o resto das duas tabelas para o filtro de equipe; `ref_workflow` e `ref_tipo_card` são `na API`.
 
 O teste de grants (CI, job `db`) lê `information_schema.role_table_grants`/`column_privileges` e `has_column_privilege` e compara com `gerarGrants`; verifica também que `dspd_api` não lê nenhuma coluna de `COLUNAS_PESSOA` (nem por view) e não tem nada em `stg_`. Os dois blocos de exclusão têm testes próprios: o bloco "grants: colunas e tabelas fora da API (dspd_api)" de `server/tests/papeis.pg.test.ts` aplica o `aplicarGrants` real em schemas isolados e conecta como cada papel (a API não lê `entregas` nem `ref_conta_automacao`; o coletor lê a ref).
 
