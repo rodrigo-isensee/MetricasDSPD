@@ -378,11 +378,33 @@ export const resultadoE8 = fechado({
 })
 
 /**
- * T14 Participação do meu time no projeto (Q-T14-1 = B, Q-T14-5 = D, Q-T14-6 = A revista pela R-1 = B). "Meu time" é a
- * equipe do filtro (exatamente uma). Os outros times são um inteiro só: sem nome, tempo, vazão nem ranking;
- * `outrosTimes` é `null` quando os outros times somam menos de 2 pessoas (R-1 = B). Nenhum campo traz outra equipe nem
- * número de pessoas. Um bloco por granularidade (story e frente); com `semEquipe`, a lista de blocos é vazia (CA-28).
+ * T14 Participação do meu time no projeto (Q-T14-1 = B, Q-T14-5 = D, Q-T14-6 = A revista pela R-1 = B, T14-M1 = B,
+ * K-130). "Meu time" é a equipe do filtro (exatamente uma). Cada projeto é uma união por `oculto`: o visível traz os
+ * outros times como UM inteiro (sem nome, tempo, vazão nem ranking); o oculto (outros times com menos de 2 pessoas,
+ * R-1 = B) traz só a fatia do meu time, `meuTime.k`, sem `total`, `semTime`, `n`, taxa nem `outrosTimes`, para que
+ * `n - k` não seja dedutível. `total` do bloco e `base` somam só os visíveis. Nenhum campo traz outra equipe nem número
+ * de pessoas. Um bloco por granularidade (story e frente); com `semEquipe`, a lista de blocos é vazia (CA-28).
  */
+export const projetoT14Schema = z.discriminatedUnion('oculto', [
+  fechado({
+    oculto: z.literal(false),
+    projetoId: z.string(),
+    codigo: z.string(),
+    titulo: z.string(),
+    total: z.number(),
+    meuTime: taxaSchema,
+    outrosTimes: z.number().int(),
+    semTime: z.number(),
+  }),
+  fechado({
+    oculto: z.literal(true),
+    projetoId: z.string(),
+    codigo: z.string(),
+    titulo: z.string(),
+    meuTime: fechado({ k: z.number().int().min(0) }),
+  }),
+])
+
 export const resultadoT14 = fechado({
   ...comum,
   equipe: z.string().nullable(),
@@ -391,17 +413,7 @@ export const resultadoT14 = fechado({
     fechado({
       granularidade: z.enum(['story', 'frente']),
       total: taxaSchema,
-      projetos: z.array(
-        fechado({
-          projetoId: z.string(),
-          codigo: z.string(),
-          titulo: z.string(),
-          total: z.number(),
-          meuTime: taxaSchema,
-          outrosTimes: z.number().nullable(),
-          semTime: z.number(),
-        }),
-      ),
+      projetos: z.array(projetoT14Schema),
     }),
   ),
 })

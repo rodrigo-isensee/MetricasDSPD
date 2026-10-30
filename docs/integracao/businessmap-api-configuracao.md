@@ -1,6 +1,6 @@
 # BusinessMap: configuração da integração real (API v2)
 
-Data: 2026-10-11. Complementa `docs/architecture/features/integracao-real.md`. Colunas, seções e tipos de coluna estão em `docs/analises/businessmap-colunas-e-tipos.md` (não repetido aqui).
+Data: 2026-10-11. Revisado em 2026-10-29 (pedido 052, E1.1, e E1.6 com as decisões do dono de 2026-10-29: Q-2, Q-4, Q-5, Q-7, Q-8 e item 8) contra a ADR 0020 (R-2 = B, migração 0015, revisão 3), a ADR 0022 (proposta) e o código de `server/src/modulos/businessmap`; o plano em fatias da coleta e do webhook está em `docs/architecture/features/052-integracao-businessmap.md`. Complementa `docs/architecture/features/integracao-real.md`. Colunas, seções e tipos de coluna estão em `docs/analises/businessmap-colunas-e-tipos.md` (não repetido aqui).
 
 ## 0. Fontes e legenda
 Fonte principal: a especificação OpenAPI pública da API v2 (`https://demo.kanbanize.com/openapi/json`, 2,2 MB), lida em blocos de 100 mil caracteres por um resumidor automático. Também `https://businessmap.io/api`. A base de conhecimento (`knowledgebase.businessmap.io`) retorna 403: **artigos oficiais não foram lidos**.
@@ -14,8 +14,8 @@ Limite desta leitura: o resumidor não devolve o texto bruto; trate nomes de par
 ## 1. Autenticação
 - Chave de API alfanumérica enviada em cabeçalho: **`apikey: <chave>`** [DOC]. A especificação também aceita `Authorization` (OAuth 2.0, token que expira em 1 hora) [DOC]. **Decisão para nós: só `apikey`**, sem OAuth (mais simples, sem renovação).
 - Onde gerar: no BusinessMap, menu "Minha conta" > "API" [DOC, businessmap.io/api]. Há também `POST /my/apiKey/generate` [DOC; gera nova chave, **invalida a anterior [INF]**, não usar no coletor].
-- A chave pertence a um **usuário** e herda as permissões dele [INF]. Não há escopo "somente leitura" na chave [INF, não vi escopos]. Portanto a leitura somente leitura é garantida **pelo papel do usuário**: criar um usuário de serviço (ex.: `svc-metricas`) com papel de **leitor/visualizador** nos quadros coletados, sem permissão de editar, e gerar a chave nele. Os caminhos de escrita (`POST/PATCH/PUT/DELETE`) não são usados e o coletor não deve ter cliente que os exponha (testar: o cliente HTTP só aceita GET).
-- Permissão mínima necessária [INF]: ver cards, histórico/revisões, bloqueios e estrutura dos quadros listados; ler a lista de usuários não é necessário (ver §4.9).
+- A chave pertence a um **usuário** e herda as permissões dele [INF]. Não há escopo "somente leitura" na chave [INF, não vi escopos]. Portanto a leitura somente leitura só é garantida **pelo papel do usuário**: o alvo é um usuário de serviço (ex.: `svc-metricas`) com papel de **leitor/visualizador** nos quadros coletados, sem permissão de editar, com a chave gerada nele. **Por ora (Q-5 = B, dono, 2026-10-29) a chave é a do próprio dono**, com poder de escrita; a troca para o usuário de serviço é pendência antes da coleta agendada em produção (§7 item 1). Os caminhos de escrita (`POST/PATCH/PUT/DELETE`) não são usados e o coletor não deve ter cliente que os exponha (testar: o cliente HTTP só aceita GET).
+- Permissão mínima necessária [INF]: ver cards, histórico/revisões, bloqueios e estrutura dos quadros listados; ler usuários só por `GET /users` com `user_ids` e `fields=user_id,realname`, para os nomes dos responsáveis (Q-8 = B, §4.9).
 - Segredo só em `.env`; nunca em log, erro, URL ou `payload` gravado (redaction do cabeçalho `apikey`).
 
 ## 2. Base URL
@@ -57,7 +57,7 @@ Todos GET.
 - `fields` (restringe colunas) e `expand` [DOC]. Campos selecionáveis relevantes: `card_id`, `title`, `custom_id`, `type_id`, `size`, `priority`, `deadline`, `created_at`, `revision`, `last_modified`, `board_id`, `workflow_id`, `column_id`, `lane_id`, `section`, `last_column_id`, `last_lane_id`, `archived_at`, `reason_id`, `discard_comment`, `discarded_at`, `is_blocked`, `block_reason`, `current_block_time`, `current_cycle_time`, `child_card_stats`, `first_request_time`, `first_start_time`, `first_end_time`, `last_request_time`, `last_start_time`, `last_end_time`.
 - `expand` úteis: **`custom_fields`**, **`transitions`**, **`block_times`**, `linked_cards`, `lead_time_per_column`, `subtasks`, `tag_ids`, `initiative_details`.
 - **Evitar** (pessoa e texto livre): `reporter`, `watcher_ids`, `logged_times`, `last_comment`, `comment_count`, `description`, `discard_comment`, `subtasks`. Usar `fields=` com a allow-list fechada da ADR 0020 item 4a (e filtrar de novo no código antes do `INSERT`) para que o dado de pessoa nem chegue à staging (minimização LGPD).
-- **Responsáveis** (`owner_user_id`, `co_owner_ids`): pedidos à parte da lista de 4a, lidos **só em memória** e entregues ao projetor na mesma execução, que os grava apenas em `dim_card.responsaveis` e `dim_card_versao.responsaveis` (data-model §9, decisão do usuário de 2026-10-10); nunca em `stg_`. Também alimentam, em memória, `houveTroca` (O26) e a faixa do E8 (ADR 0020 4b e 5). A API do projeto nunca devolve visão por pessoa. Pendente com o usuário: **R-1** (reidentificação no E8 e no T14).
+- **Responsáveis** (`owner_user_id`, `co_owner_ids`): pedidos à parte da lista de 4a, lidos **só em memória** e entregues ao projetor na mesma execução, que os grava apenas em `dim_card.responsaveis` e `dim_card_versao.responsaveis` (data-model §9, decisão do usuário de 2026-10-10); nunca em `stg_`. Também alimentam, em memória, `houveTroca` (O26) e a faixa do E8 (ADR 0020 4b e 5). A API do projeto nunca devolve visão por pessoa. **R-1** (reidentificação no E8 e no T14) foi decidida em 2026-10-16 (B, ADR 0020 item 9). Nomes dos responsáveis: §4.9.
 - Campos marcados `[NÃO LIDO]` só entram na lista depois do spike da fase 3; campo novo exige alteração da ADR 0020.
 - Card individual: `GET /cards/{card_id}` [DOC].
 - Exclusão: a API tem `deleteMany`, mas **não há listagem de excluídos** [INF]; usamos a varredura semanal de presença (`stg_card_presenca`, `excluido_detectado`), já no modelo.
@@ -66,7 +66,7 @@ Todos GET.
 Duas rotas [DOC], ambas pedem validação no swagger:
 - **`GET /cards/{card_id}/revisions`** e **`/revisions/{revision}`**: o schema `CardRevision` tem `card_id`, `board_id`, `column_id`, `lane_id`, `revision`, `created_at`, `replaced_at`, `user_id`, `custom_fields`, `subtasks`, `linked_cards`. Cada revisão guarda a posição do card naquele momento; transição = mudança de `column_id` entre revisões consecutivas [INF]. Mapeia para `stg_revision` e `fato_transicao` (`fonte='revision'`). Custo: 1 chamada por card (e por revisão se não vier em lista [INF]).
 - **`expand=transitions` e `expand=block_times` em `GET /cards`**: [DOC] existem como valores de `expand`; **campos de cada item não lidos** [NÃO LIDO]. Se trouxerem coluna e instante de entrada/saída, são a via barata para a carga em lote (poucas chamadas de 1000 cards). Também `lead_time_per_column`. Ação do usuário/Jarvis: chamar um card real com esses `expand` e anexar o JSON (sem dados de pessoa) ao arquivo de análise.
-- `user_id` das revisões é pessoa: não entra na `stg_revision` (allow-list fechada, ADR 0020 4c) e não é relido por nenhum cartão; `fato_transicao.usuario` fica `NULL` até a decisão **R-2** do usuário (ADR 0020, "Decisão do usuário pendente"; data-model §9). Os ids de responsável da revisão são lidos em memória só para o `troca_responsavel` (O26).
+- `user_id` das revisões é pessoa: não entra na `stg_revision` (allow-list fechada, ADR 0020 4c) e não é relido por nenhum cartão; a coluna `fato_transicao.usuario` foi **removida** (decisão R-2 = B do dono em 2026-10-16, migração 0015; data-model §9). Os ids de responsável da revisão são lidos em memória só para o `troca_responsavel` (O26).
 
 ### 4.4 Bloqueios
 - No card: `is_blocked`, `block_reason`, `current_block_time` [DOC]; histórico por `expand=block_times` [DOC; campos não lidos].
@@ -89,12 +89,12 @@ Duas rotas [DOC], ambas pedem validação no swagger:
 ### 4.8 Webhooks
 - Gerenciamento por API: `GET/POST /webhooks`, `GET/PATCH/DELETE /webhooks/{webhook_id}`, `GET /webhooks/history` [DOC]. Criação: corpo com `url` (1 a 65000 caracteres, http/https), `board_id` (obrigatório, **um webhook por quadro**), `is_enabled` [DOC].
 - **Segredo**: não vai no corpo; é devolvido **na resposta de criação**, uma vez ("guardar com segurança") [DOC]. Guardar em `WEBHOOK_BM_SEGREDO`.
-- **[NÃO LIDO / pendente]**: lista de eventos assinados, formato do payload, **como o segredo assina a entrega** (cabeçalho, algoritmo HMAC?) e política de reentrega. A especificação lida não trouxe isso (os "eventos" `created/updated/deleted` do schema são do log de auditoria do próprio webhook). Isso vive na base de conhecimento, que deu 403. **O usuário precisa colar o artigo de webhooks** antes de ligar o receptor; o receptor já existe (`POST /webhooks/businessmap`, `server/src/modulos/businessmap/webhook.ts`) e confere o segredo conforme o ADR/segurança do projeto; conferir que o método coincide com o do BusinessMap.
+- **[NÃO LIDO / pendente]**: lista de eventos assinados, formato do payload, **como o segredo assina a entrega** (cabeçalho, algoritmo HMAC?) e política de reentrega. A especificação lida não trouxe isso (os "eventos" `created/updated/deleted` do schema são do log de auditoria do próprio webhook). Isso vive na base de conhecimento, que deu 403. **O usuário precisa colar o artigo de webhooks** antes de ligar o receptor; o receptor já existe (`POST /webhooks/businessmap`, `server/src/modulos/businessmap/webhook.ts`) e confere um segredo compartilhado no cabeçalho `x-webhook-secret` (SHA-256 e comparação em tempo constante, antes de ler o corpo); os campos que ele lê do corpo (`evento`, `card`, `anterior`, `timestamp`) são **supostos**. Se o BusinessMap assinar o corpo (HMAC) em vez de enviar o segredo, o receptor muda na fatia F7 do plano 052. Não há consumidor de `bm.webhook.recebido` no worker ainda.
 - Requisito de rede: a URL precisa ser alcançável pela internet a partir do BusinessMap (a API do projeto está em `127.0.0.1`): exige reverse proxy/túnel com TLS. **Se isso não for possível, usar só polling** (suficiente: coleta diária às 06:00).
-- Recomendação: **polling é a fonte de verdade** (revisions + `last_modified_from` com sobreposição); webhook é acelerador opcional, reconciliado depois (`rec_transicao_par`), como já está no modelo.
+- Recomendação: **polling é a fonte de verdade** (revisions + `last_modified_from` com sobreposição); webhook é acelerador opcional, reconciliado depois (`rec_transicao_par`), como já está no modelo. Formalizado na ADR 0022 (proposta): webhook só depois de URL pública com TLS, formato confirmado e T2.2 pronta (opção C do plano 052, §3).
 
 ### 4.9 Usuários (sem expor pessoa)
-`GET /users` [DOC] (`user_ids`, `emails`, `usernames`, `fields`, `expand`). **Não é necessário** para nenhuma métrica: não chamar. Resolver `owner_user_id`/`user_id` para nome só se o usuário decidir manter `responsaveis` (data-model §9); nesse caso, restringir `fields=user_id,realname` e gravar só em coluna protegida por GRANT. Também ver `GET /users/{id}/lastActivity` (não usar).
+`GET /users` [DOC] (`user_ids`, `emails`, `usernames`, `fields`, `expand`). Nenhuma métrica usa nome. **Decisão do dono de 2026-10-29 (Q-8 = B):** os responsáveis do card ficam também pelo nome, resolvido por `GET /users`, confirmando a decisão de 2026-10-10 ("nomes" nas tabelas analíticas). Uso permitido, só pelo coletor (ADR 0020 revisão 3): `GET /users?user_ids=<ids de responsável vistos na execução>&fields=user_id,realname`; nunca `emails`, `usernames`, `expand`, nem `GET /users/{id}/lastActivity`; a resposta passa por allow-list (`user_id`, `realname`). Os ids (`owner_user_id`/`co_owner_ids`) continuam em `dim_card.responsaveis` e `dim_card_versao.responsaveis`; os nomes ficam só em colunas de `COLUNAS_PESSOA` (proposta: `dim_responsavel`), fora do GRANT do `dspd_api`, nunca em `stg_` nem em log. Nome do campo `realname` e o efeito real de `fields` a confirmar no spike F1 [INF].
 
 ## 5. O que cada endpoint nos dá versus o modelo
 | Tabela / contrato | Origem | Endpoint | Observação |
@@ -107,10 +107,10 @@ Duas rotas [DOC], ambas pedem validação no swagger:
 | `ref_quadro`, `ref_coluna` | estrutura | workflows + estrutura do quadro | `eh_teste`, equipe e nível **não vêm da API**: configuração humana (WS1) |
 | `ref_dominio` | campos customizados, tipos, motivos | `customFields`, `cardTypes`, `blockReasons`, `discardReasons` | domínios fechados 4.4 |
 | `ctl_coleta*` | nós | n/a | `marca_dagua_ate` = maior `last_modified` visto |
-| `ConfigBM` (SLE, alocação acordada, limite de frentes) | **não vem da API** | pergunta N-5 | configuração |
+| `ConfigBM` (SLE, alocação acordada, limite de frentes) | **não vem da API** | N-5 decidida (Q-7c = A, 2026-10-29): arquivo versionado no repositório, preenchido pela governança (WS6) | configuração |
 
 ## 6. Variáveis do `.env` (nomes, sem valores)
-Já existentes: `WEBHOOK_BM_SEGREDO`, `PG_WEBHOOK_URL`, `PG_COLETOR_URL`, `LOG_LEVEL`. **Propostas novas** (o `node-backend` valida com zod na partida, em `server/src/plataforma/config.ts`, e atualiza `.env.example`):
+Já existentes: `WEBHOOK_BM_SEGREDO`, `PG_WEBHOOK_URL`, `PG_COLETOR_URL`, `LOG_LEVEL`. **Propostas novas** (em 2026-10-29 nenhuma está em `config.ts`; entram na fatia F0 do plano 052) (o `node-backend` valida com zod na partida, em `server/src/plataforma/config.ts`, e atualiza `.env.example`):
 - `BUSINESSMAP_URL_BASE` (ex.: formato `https://<conta>.kanbanize.com/api/v2`, sem barra final)
 - `BUSINESSMAP_APIKEY`
 - `BUSINESSMAP_QUADROS_IDS` (lista de IDs separados por vírgula; quadros de teste excluídos)
@@ -122,19 +122,19 @@ Já existentes: `WEBHOOK_BM_SEGREDO`, `PG_WEBHOOK_URL`, `PG_COLETOR_URL`, `LOG_L
 Mapeamentos de campo customizado (`field_id` para `sistema`, `fornecedor` etc.) são **dado de configuração versionado** (arquivo em `docs/` ou `ref_`), não segredo, e não vão no `.env`.
 
 ## 7. Roteiro: o que o usuário precisa entregar ou fazer
-1. **Criar (ou escolher) um usuário de serviço** no BusinessMap com papel somente de leitura nos quadros da coleta (sem edição, sem administração). Se não for possível, avisar: nesse caso a chave terá os poderes de quem a gerou e o risco vai para `docs/security/`.
-2. Logado nesse usuário, **gerar a apikey**: Minha conta > API. Copiar **direto para o `.env`** da máquina do coletor (`BUSINESSMAP_APIKEY`). **Não colar a chave em chat, issue, commit ou documento.**
+1. **Decidido** (dono, 2026-10-29, Q-5 = B: "por enquanto sera o meu, entao B"): por ora a chave é a **do próprio dono** (MCP e coletor), não de um usuário de serviço só leitor; ela tem os poderes do dono e pode alterar o quadro, risco aceito por ele (registrado em `docs/security/052-integracao-businessmap-ameacas.md`). Mitigação: coletor só GET com lista fechada de caminhos; no MCP, só ferramentas de leitura. **Pendência:** criar um usuário de serviço com papel somente de leitura nos quadros da coleta e trocar a chave antes da coleta agendada em produção.
+2. **Gerar a apikey** (Minha conta > API) e copiá-la **direto para o `.env` da máquina do dono** (`BUSINESSMAP_APIKEY`); a coleta real roda só ali (Q-4 = A, 2026-10-29; homologação e servidor ficam fora). **Não colar a chave em chat, issue, commit ou documento.**
 3. Informar o **host da conta** (o endereço que aparece no navegador e na tela da API) para fixar `BUSINESSMAP_URL_BASE`.
 4. Listar os **IDs dos quadros** a coletar e marcar quais são de teste (fora do cálculo, briefing 4.2). O ID aparece na URL do quadro (`/ctrl_board/<id>`) [INF].
 5. Informar **quais campos customizados** representam: tipo de demanda, sistema, área solicitante, fornecedor, objetivo estratégico, severidade, causa raiz, fase de detecção, origem, tamanho (nome e `field_id`, obtidos com `GET /customFields`).
 6. Confirmar o **tipo de vínculo** pai/filho usado para story, frente e projeto (§4.5) e quais **colunas** são fila/execução/compromisso/entrega (ver análise de colunas; é decisão do usuário, não minha).
 7. Colar (sem dados de pessoa) um **exemplo de resposta** de um card real com `expand=transitions,block_times,custom_fields` (§4.3) e a página oficial de **webhooks** (eventos e assinatura).
-8. Decidir **webhook ou só polling** (§4.8) e se existe URL pública com TLS para recebê-lo.
-9. Decidir sobre **dados de pessoa** (`responsaveis`, `usuario` das transições): o padrão proposto é não coletar (pergunta de modelagem aberta em data-model §12).
+8. **Webhook ou só polling** (§4.8). O dono delegou ao time ("facarecomendacao", 2026-10-29); vale a **recomendação do time C**: polling agora (coleta diária às 06:00), webhook depois de três fatos (URL pública com TLS disponível, artigo de webhooks lido ou payload real capturado, T2.2 pronta com sete execuções sem falha), no plano 052 §3 e na ADR 0022, mostrada ao dono antes do código. Como a coleta roda só na máquina do dono (Q-4 = A), a topologia da URL pública volta ao dono quando a fatia do webhook for liberada.
+9. **Decidido** (dono, 2026-10-10, R-2 = B em 2026-10-16 e Q-8 = B em 2026-10-29; ADR 0020 4b, 4c e revisão 3): `responsaveis` coletados só em memória e gravados em `dim_card`/`dim_card_versao` (ids da API), nunca em `stg_`; os **nomes** dos responsáveis resolvidos por `GET /users` (`fields=user_id,realname`, §4.9) e gravados só em colunas de `COLUNAS_PESSOA`, fora do GRANT do `dspd_api`; `usuario` das transições não é coletado (coluna removida na migração 0015).
 10. Rodar os testes de conexão (§8) e entregar o resultado.
 
 ## 8. Testar a conexão (somente leitura)
-Executar na máquina do coletor, com a chave carregada do `.env` (nunca digitada no comando nem em log de shell compartilhado). Use um arquivo de cabeçalho para não deixar a chave no histórico:
+Executar na máquina do dono (a única onde a coleta real roda, Q-4 = A), com a chave carregada do `.env` (nunca digitada no comando nem em log de shell compartilhado). Use um arquivo de cabeçalho para não deixar a chave no histórico:
 ```bash
 # 1) autenticação e limites (o mais barato; não retorna cards)
 curl -sS -H "apikey: $BUSINESSMAP_APIKEY" "$BUSINESSMAP_URL_BASE/apiLimits"
@@ -145,4 +145,4 @@ curl -sS -H "apikey: $BUSINESSMAP_APIKEY" \
 curl -sS -H "apikey: $BUSINESSMAP_APIKEY" \
   "$BUSINESSMAP_URL_BASE/cards?board_ids=<ID>&state=archived&per_page=1&fields=card_id,archived_at"
 ```
-Leitura dos resultados: HTTP 200 com `data` = autenticado. 401/403 = chave errada ou sem permissão. 429 = respeitar `retry_after`. Confirmar também que uma chamada de escrita **é negada** com esse usuário (ex.: deve falhar ao tentar editar): prova de que a chave é somente leitura.
+Leitura dos resultados: HTTP 200 com `data` = autenticado. 401/403 = chave errada ou sem permissão. 429 = respeitar `retry_after`. **Não testar escrita com a chave do dono** (Q-5 = B): ela pode alterar o quadro, e a tentativa seria uma alteração real. A prova de "escrita negada" só volta quando houver usuário de serviço só leitor (pendência do item 1); até lá, a garantia é o cliente só GET, testado contra servidor falso.

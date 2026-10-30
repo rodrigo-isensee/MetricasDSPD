@@ -5,6 +5,8 @@ contrato: 0
 
 - Spec: `docs/ux/integracao-real/05-especificacao.md` (CA-01 a CA-22). Decisões: `docs/alinhamentos/2026-10-10-decisoes-do-usuario.md` §2 e §5.
 - Escopo: etapa mock. Coleta real (002) fica fora; este plano fixa o contrato que o 002 vai servir.
+- Revisão 2026-10-29 (pedido 052, E1.1): D1 a D6 e o contrato `coletas.ts` continuam valendo e estão implementados no módulo `operacao`. A coleta real do BusinessMap (T2.2 e T2.3) está planejada em fatias em `docs/architecture/features/052-integracao-businessmap.md`, com a ADR 0022 (proposta).
+- Revisão 2026-10-29 (pedido 052, E1.6), decisões do dono de 2026-10-29: **D3 decidida** (Q-7a = A: 60 dias corridos, deixa de ser provisória); **tolerância de "Atrasado" decidida** (Q-7b = A: coleta às 06:00, selo "Atrasado" se até 12:00 não houver coleta ok, ou seja `TOLERANCIA_ATRASO_HORAS = 6`); **D5 superada na F6 do plano 052**: com o painel operacional em dado real e FL2 e FL3 em mock (decisão "i"), o aviso global por `tipo === 'mock'` dá lugar ao selo "Dados fictícios" por cartão mais a nota no cabeçalho com a contagem de cartões fictícios (P-1 = B), a partir de um mapa único de origem por métrica.
 - Arquitetura do front: `docs/tecnica/arquitetura-front.md` (porta única `FonteMetricas`).
 
 ## 1. Decisões
@@ -12,9 +14,9 @@ contrato: 0
 |---|---|---|
 | D1 | **Frescor vai no corpo de um recurso próprio** (`EstadoColeta` por fonte), não em cabeçalho. O `X-Ultima-Coleta` sai do rascunho do 002; o corpo das métricas continua sem envelope. | Cabeçalho não é tipado em `contratos`, não é validável com zod, o mock não o reproduz, exige `Access-Control-Expose-Headers` e repete o mesmo dado em 30 respostas. Um recurso por fonte serve selo, faixa e `/dados` com um só cache do React Query. |
 | D2 | Selo, janela de calibração e `metricasEmCalibracao` são **calculados em `packages/metricas`** e chegam prontos no DTO. O front só exibe. | Regra única (T2.5), servidor e mock usam o mesmo código. |
-| D3 | Janela = **60 dias corridos** (constante única `DURACAO_CALIBRACAO_DIAS`), aberta (a) na primeira coleta ok de cada fonte, para todas as métricas da fonte, e (b) em cada `VersaoCriterio`, só para `afeta` que pertencem à fonte. Intervalo fechado `[inicio, inicio + 59]`. | §5 das decisões (provisória, a confirmar pelo usuário). |
+| D3 | Janela = **60 dias corridos** (constante única `DURACAO_CALIBRACAO_DIAS`), aberta (a) na primeira coleta ok de cada fonte, para todas as métricas da fonte, e (b) em cada `VersaoCriterio`, só para `afeta` que pertencem à fonte. Intervalo fechado `[inicio, inicio + 59]`. | §5 das decisões; confirmada pelo dono em 2026-10-29 (Q-7a = A, pedido 052). |
 | D4 | Coletas do mock ficam **fora da `BaseMock`** (`gerarColetasMock`, PRNG `derivar(semente, 'coletas')`). | Hash da base (`924448d4`, `b2bfd4c0`) não muda. |
-| D5 | Aviso de dados fictícios renderizado só se `useFonte().tipo === 'mock'`. | Corrige a pendência da arquitetura-front §5.3. |
+| D5 | Aviso de dados fictícios renderizado só se `useFonte().tipo === 'mock'`. **Superada na F6 do plano 052** (origem por métrica, P-1 = B, 2026-10-29). | Corrige a pendência da arquitetura-front §5.3. |
 | D6 | `/dados` sem autenticação nesta etapa, como os painéis. Sem estado "sem permissão" agora. | Não há autenticação no produto; entra com a ADR de autenticação. |
 
 ## 2. Contrato novo em `@metricas-dspd/contratos` (`src/coletas.ts`)
@@ -74,11 +76,11 @@ interface FonteMetricas {
   - **Acelerato**: primeira coleta ok em 2026-09-15, diárias ok. **Janela de calibração vigente 15/09 a 13/11** para todas as métricas S* e `EI_SUST`. Selo "Atual".
   - Os critérios do mock (03/2026 e 06/2026) já venceram os 60 dias: nenhuma janela por critério no cenário padrão (o caso fica coberto no unitário).
 - `?mock=` (só com `tipo === 'mock'`), novos modos: `coleta-atrasada:bm|ac`, `coleta-vazia:bm|ac`, `coleta-erro:bm|ac` (falha de leitura do recurso, para o "Tentar de novo"), `sem-calibracao` (para testes que verificam status de meta no Acelerato).
-- `HttpFonteMetricas` (futuro): `GET /api/v1/fontes/:dominio/estado`, `GET /api/v1/fontes/:dominio/coletas?pagina=`, `GET /api/v1/criterios`.
+- `HttpFonteMetricas` (implementada; em 2026-10-29 lê o banco preenchido pelo seed, e a troca para dado real é a fatia F6 do plano 052): `GET /api/v1/fontes/:dominio/estado`, `GET /api/v1/fontes/:dominio/coletas?pagina=`, `GET /api/v1/criterios`.
 
 ## 4. Cálculo em `packages/metricas`
 - `core/calibracao.ts`: `DURACAO_CALIBRACAO_DIAS = 60` (único lugar do número); `janelasCalibracao(dominio, primeiraOk, versoes, metricasDoDominio)`; `vigentes(janelas, hojeIso)`; `metricasEmCalibracao(vigentes)`. Critério que afeta as duas fontes abre janela só nas métricas de cada fonte (nunca mistura).
-- `core/frescor.ts`: `HORARIO_COLETA = '06:00'` (America/Sao_Paulo), `TOLERANCIA_ATRASO_HORAS` (provisória 0, ver §7), `proximaColeta(agora)`, `seloFrescor(ultimaOk, ultimaTentativa, agora)`. Precedência: `sem-coleta` > `falha` (última tentativa falhou) > `atrasado` (agora > próxima prevista após a última ok + tolerância) > `atual`.
+- `core/frescor.ts`: `HORARIO_COLETA = '06:00'` (America/Sao_Paulo), `TOLERANCIA_ATRASO_HORAS` (6, decidida pelo dono em 2026-10-29, Q-7b = A: "Atrasado" se até 12:00 não houver coleta ok), `proximaColeta(agora)`, `seloFrescor(ultimaOk, ultimaTentativa, agora)`. Precedência: `sem-coleta` > `falha` (última tentativa falhou) > `atrasado` (agora > próxima prevista após a última ok + tolerância) > `atual`.
 - `montarEstadoColeta(dominio, eventos, versoes, agora)`: junta tudo e devolve `EstadoColeta`. Usado pelo mock e, depois, pela API.
 
 ## 5. Onde aparece na UI
@@ -100,7 +102,7 @@ interface FonteMetricas {
 - Testes atuais que verificam status de meta no Acelerato passam a usar `?mock=sem-calibracao` ou mudam a expectativa.
 
 ## 7. Riscos e pendências
-- R1: regra de 60 dias e gatilhos são provisórios (§5); a tolerância de "Atrasado" é **pergunta ao usuário** (constante provisória 0 h após a próxima prevista).
+- R1 (regra de 60 dias provisória e tolerância de "Atrasado" em pergunta, 0 h): **fechado em 2026-10-29** (dono, pedido 052): 60 dias corridos confirmados (Q-7a = A); "Atrasado" se até 12:00 não houver coleta ok, 6 h após a coleta das 06:00 (Q-7b = A).
 - R2: calibração do AC no cenário padrão esconde status de meta da Sustentação; impacta testes existentes (ver §6).
 - R3: o 002 precisa persistir `evento_coleta` e servir os três GET; contrato do 002 deve remover `X-Ultima-Coleta` (D1).
 
@@ -121,10 +123,10 @@ interface FonteMetricas {
 | Q1 | qa-engineer | Plano de testes + E2E + axe + ajuste dos testes de meta da Sustentação | plano: B1; execução: F3 a F7 |
 
 ## 9. Respostas às perguntas do UX
-1. Janela: 60 dias corridos, automática, por fonte, aberta na primeira coleta ok e em cada mudança de critério (só métricas afetadas da fonte). Calculada em `packages/metricas`; registrada pelo 002 junto aos eventos de coleta. Provisória até o usuário confirmar (§5).
+1. Janela: 60 dias corridos, automática, por fonte, aberta na primeira coleta ok e em cada mudança de critério (só métricas afetadas da fonte). Calculada em `packages/metricas`; registrada pelo 002 junto aos eventos de coleta. Confirmada pelo dono em 2026-10-29 (Q-7a = A).
 2. Sim: `EventoColeta` por fonte com início, fim, resultado, `tipoErro` seguro e contagens. Histórico nunca é apagado (retém tudo); `falhasRecentes` traz 14 dias; histórico paginado em 20.
 3. Recurso dedicado por fonte (`estadoColeta`), usado pelos painéis e por `/dados`; histórico em chamada separada paginada. Frescor no corpo, não em cabeçalho (D1).
-4. Do agendador: diária às 06:00 (America/Sao_Paulo), `proximaPrevista` no DTO. Tolerância do "Atrasado" é pergunta ao usuário (provisória 0 h).
+4. Do agendador: diária às 06:00 (America/Sao_Paulo), `proximaPrevista` no DTO. Tolerância do "Atrasado": 6 h, até 12:00 (dono, 2026-10-29, Q-7b = A).
 5. Sim: `criterios()` (já existe) com data, descrição e `afeta`.
 6. Parcial: `baseAmostral.n` e `complemento` existem; "n de N" usa os dois; n < 20 já vem como insuficiente.
 7. Sim: as contagens são gravadas no próprio evento de coleta no momento da carga (agregado), sem varrer o histórico.
