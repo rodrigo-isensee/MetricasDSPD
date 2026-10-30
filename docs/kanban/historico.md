@@ -577,3 +577,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-30T13:05:41-03:00 | K-187 | Pronto para fazer | Em andamento | E1.1 delegada ao tech-lead |
 | 2026-10-30T13:18:13-03:00 | K-185 | QA | Aguardando o dono | PR 173 mesclado (11141d7); E1.20 com o dono |
 | 2026-10-30T13:29:03-03:00 | K-187 | Em andamento | Aguardando o dono | dono: nada do forge deve rodar aqui |
+| 2026-10-30T14:31:07-03:00 | K-185 | Aguardando o dono | Aguardando o dono | diagnóstico entregue; falta a explicação da hierarquia |
+| 2026-10-30T14:36:16-03:00 | K-185 | Aguardando o dono | Pronto para fazer | E1.20 feita; E1.21 com o software-architect |

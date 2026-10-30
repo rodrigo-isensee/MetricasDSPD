@@ -27,6 +27,62 @@ DECISÃO DO DONO (2026-10-30): "B" (pergunta 2, o que é a tabela): "o time de c
 DECISÃO DO DONO (2026-10-30): "A" (pergunta 3, prioridade): o Acelerato entra agora, em paralelo ao 052 (discovery e depois código), sem misturar as fontes; supera, só neste ponto, o "Acelerato e sustentação: pedido seguinte" de 2026-10-29 (pedido 052).
 DECISÃO DO DONO (2026-10-30): "sim" (recibo do 056 aceito), com o pedido: "essa e a tabela que tem todos os dados olhe ela e veja como colocar as infos das metricas ai, porque ja tenho um dash que roda em cima so para o acelerato".
 
+## Estrutura da tabela (E3.1, colada pelo dono em 2026-10-30 14:26)
+Só nomes e tipos das colunas (saída do SHOW COLUMNS); nenhuma linha de dado. Total de linhas não informado. Nome da tabela e dados de conexão ficam só no .env do dono.
+
+| Coluna | Tipo | Nulo | Chave |
+|---|---|---|---|
+| ticket_key | bigint | NO | PRI |
+| tipo_ticket_key | int | YES | MUL |
+| tipo_ticket | varchar(255) | YES | |
+| titulo | varchar(1000) | YES | |
+| status_key | int | YES | |
+| status | varchar(255) | YES | MUL |
+| encerrado | tinyint(1) | YES | |
+| categoria_key | int | YES | |
+| categoria | varchar(500) | YES | |
+| organizacao_key | int | YES | |
+| organizacao | varchar(255) | YES | |
+| equipe_key | int | YES | |
+| equipe | varchar(255) | YES | |
+| agente_key | int | YES | |
+| agente | varchar(255) | YES | |
+| agente_email | varchar(255) | YES | |
+| solicitante | varchar(255) | YES | |
+| solicitante_email | varchar(255) | YES | |
+| prioridade | varchar(255) | YES | |
+| origem | varchar(100) | YES | |
+| data_criacao | datetime | YES | |
+| data_atualizacao | datetime | YES | MUL |
+| data_pronto | datetime | YES | |
+| lixeira | tinyint(1) | YES | |
+| arquivado | tinyint(1) | YES | |
+| suspenso | tinyint(1) | YES | |
+| impedido | tinyint(1) | YES | |
+| tempo_vida_dias | int | YES | |
+| tempo_ciclico_dias | int | YES | |
+| url | varchar(500) | YES | |
+| sla_pa_tempo_min | int | YES | |
+| sla_pa_saldo_min | int | YES | |
+| sla_pa_prazo_min | int | YES | |
+| sla_pa_violado | tinyint(1) | YES | |
+| sla_pa_status | varchar(50) | YES | |
+| sla_r_tempo_min | int | YES | |
+| sla_r_saldo_min | int | YES | |
+| sla_r_prazo_min | int | YES | |
+| sla_r_violado | tinyint(1) | YES | |
+| sla_r_status | varchar(50) | YES | |
+| data_primeiro_comentario | datetime | YES | |
+| primeiro_comentario_min_uteis | int | YES | |
+| tempo_workflow_total | varchar(50) | YES | |
+| solicitantes | json | YES | |
+| campos_personalizados | json | YES | |
+| campos_personalizados_etapa | json | YES | |
+| estatisticas | json | YES | |
+| raw | json | YES | |
+| sincronizado_em | datetime | YES | |
+| estatisticas_em | datetime | YES | |
+
 ## Suposições
 - nenhuma
 
@@ -45,3 +101,11 @@ DECISÃO DO DONO (2026-10-30): "sim" (recibo do 056 aceito), com o pedido: "essa
 - 2026-10-30 14:23: DECISÃO DO DONO (pergunta 1 do §6 do modelo de ameaças, onde roda a coleta): "A": a coleta do Acelerato roda só na máquina do dono (credencial no .env local, banco local), como a do BusinessMap (S-3 = Q-4 A do 052); servidor e homologação não tocam o MySQL do time de ciência de dados. Observação do Jarvis: a conexão que funciona hoje usa uma conta de desenvolvimento compartilhada; para olhar a estrutura ela serve, para o coletor fica a recomendação M1 (usuário próprio só com SELECT), pergunta 1 ao time de ciência de dados. Próxima ao dono: pergunta 2 do §6 (credencial do dash).
 - 2026-10-30 14:24: DECISÃO DO DONO (pergunta 2 do §6, credencial): "B": o coletor usa por enquanto a conta de desenvolvimento compartilhada que já conecta; risco M1 aceito pelo dono e registrado; troca por usuário próprio só com SELECT quando o time de ciência de dados criar (pendência antes da coleta agendada, como a chave do BusinessMap). Mitigação do time: consulta fixa só SELECT, parametrizada, sem multi-comando nem LOCAL INFILE, TLS verificado, credencial só no .env. Próxima ao dono: pergunta 3 do §6 (cálculo em memória).
 - 2026-10-30 14:25: DECISÃO DO DONO (pergunta 3 do §6, métrica que dependa de pessoa): "A": mesmo padrão do BusinessMap (ADR 0020): o dado de pessoa só existe em memória durante a coleta e na base vai só o resultado agregado (contagem, sim ou não), sem identificar ninguém; nenhuma métrica individual. Perguntas do §6 ao dono encerradas. Falta a E3.1 (estrutura da tabela) para a E3.2.
+- 2026-10-30 14:26: E3.1 feita pelo dono: estrutura da tabela (50 colunas, só nomes e tipos) gravada na seção "Estrutura da tabela" deste pedido. Segue a E3.2.
+- 2026-10-30 14:30: brief software-architect-1 (E3.2) aprovado pelo conferente na rodada 1; delegado.
+- 2026-10-30 14:34: E3.2 entregue pelo software-architect: docs/architecture/features/056-acelerato-mysql.md na worktree 056 (proposta, sem commit). 50 colunas classificadas (36 lidas, 3 json só em memória por caminho fixo, 11 barradas); 12 métricas mapeadas (S2, S3 e volume da S12 saem hoje; S1 depois de respostas; S5, S6, S7, S11 dependem do json; S4, S8, S9, S10 pendentes sem intervalos de etapa); coletor incremental paginado por data_atualizacao e ticket_key; ADR nova proposta para substituir o §4 da 0013. D-1 (filtro por agente da T5.1) recusado pelo arquiteto por ferir a regra inviolável e a ADR 0020, sinalizado ao dono. PERGUNTA na fila: D-2 a D-6 ao dono (SLA da ferramenta ou recalculado; tempo de SLA; recorrente e reincidência; o que o dash mostra de fato contra o §3.3; reconciliação de 1%). 18 perguntas de dados ao time de ciência de dados (bloqueantes P-DS-1, 2, 4, 5 e 10). Risco: driver MySQL é dependência nova.
+- 2026-10-30 14:36: DECISÃO DO DONO (D-5, o que o dash mostra): "A": o dash atual mostra as 12 métricas de sustentação do briefing (S1 a S12) já calculadas; a §3.3 do briefing (S1 a S12 ainda não existem) está desatualizada nesse ponto. Consequência para a E3.2: o dash vira referência de reconciliação (D-6).
+- 2026-10-30 14:37: DECISÃO DO DONO (D-2, veredito de SLA): "A": o veredito vem das colunas da ferramenta (sla_r_status e sla_pa_status, conferidos com *_violado), como no briefing §3.2; a biblioteca só agrega. Próxima: D-3.
+- 2026-10-30 14:40: DECISÃO DO DONO (D-3, tempos): "A": MTTA e tempo de resolução calculados pela biblioteca a partir dos instantes, em horas úteis; o relógio da ferramenta (sla_*_tempo_min, primeiro_comentario_min_uteis) só para reconciliação. Próxima: D-4.
+- 2026-10-30 14:44: DECISÃO DO DONO (D-4, recorrente na S12): "A": recorrente por categoria (volume alto e repetido na janela de 12 semanas; o limiar exato o dono define na montagem do painel); sem dado de pessoa. A S8 segue pendente do histórico de etapas (P-DS-5, T4.2). Próxima: D-6.
+- 2026-10-30 14:46: DECISÃO DO DONO (D-6, referência da reconciliação de 1%): "A": contra o dash atual, com a condição de o dash usar a mesma população do briefing §3.2 (a confirmar na reconciliação). Perguntas D-2 a D-6 encerradas (D-1 recusado pela regra inviolável). Próximos: o software-architect incorpora as decisões ao plano (E3.2, volta) antes da validação do dono (E1.1); a E2.1 (commit, CLAUDE.md, review e PR) precisa de pnpm install na worktree 056 por causa do pre-push.
