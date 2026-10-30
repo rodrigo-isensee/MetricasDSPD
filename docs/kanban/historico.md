@@ -579,3 +579,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-30T13:29:03-03:00 | K-187 | Em andamento | Aguardando o dono | dono: nada do forge deve rodar aqui |
 | 2026-10-30T14:31:07-03:00 | K-185 | Aguardando o dono | Aguardando o dono | diagnóstico entregue; falta a explicação da hierarquia |
 | 2026-10-30T14:36:16-03:00 | K-185 | Aguardando o dono | Pronto para fazer | E1.20 feita; E1.21 com o software-architect |
+| 2026-10-30T16:08:18-03:00 | K-185 | Pronto para fazer | Em andamento | E1.21 com o software-architect |
