@@ -209,6 +209,26 @@ describe('releitura semanal e saída do recorte', () => {
     expect(banco.estado.contagens.some((c) => c.entidade === 'chamado_ausente' && c.inseridos === 1)).toBe(true);
   });
 
+  it('R2: ausente que reaparece fora do recorte é reconsultado e vira fora_do_recorte; o que continua ausente não conta para a recarga suspeita', async () => {
+    const banco = criarBancoMemoria();
+    const tabela = [linha({ ticket_key: 31 }), linha({ ticket_key: 32 }), ...enchimento(60)];
+    const { deps } = montar(banco, criarMysqlFalso(tabela));
+    await coletarAcelerato(deps, 'releitura');
+    const v = (id: string) => banco.estado.stgChamado.filter((x) => x.id === id);
+    const doze = tabela[1]!;
+    tabela.splice(1, 1); // 32 some da tabela
+    expect(ok(await coletarAcelerato(deps, 'releitura'))).toMatchObject({ ausentes: 1 });
+    expect(v('32').at(-1)).toMatchObject({ ausente: true, fora: false });
+    // continua ausente: nova releitura sem versão nova
+    expect(ok(await coletarAcelerato(deps, 'releitura'))).toMatchObject({ ausentes: 1, semNovidade: true });
+    expect(v('32')).toHaveLength(2);
+    // reaparece, mas fora do recorte
+    tabela.push({ ...doze, organizacao_key: D.organizacaoKeyFora });
+    const r = ok(await coletarAcelerato(deps, 'releitura'));
+    expect(r).toMatchObject({ foraDoRecorte: 1, ausentes: 0 });
+    expect(v('32').at(-1)).toMatchObject({ fora: true, ausente: false });
+  });
+
   it('CT-31: a consulta de saída pede só as 6 colunas, por placeholder, em lotes', async () => {
     const banco = criarBancoMemoria();
     const tabela = [linha({ ticket_key: 21 }), linha({ ticket_key: 22 }), ...enchimento()];

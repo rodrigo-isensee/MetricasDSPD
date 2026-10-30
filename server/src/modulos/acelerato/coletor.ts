@@ -139,9 +139,9 @@ async function ler(s: SessaoMysql, p: PedidoLeitura): Promise<Leitura> {
   return L;
 }
 
-/** Saída do recorte (releitura): ids conhecidos e não vistos, só por chave; presente fora do recorte ou ausente da tabela. */
+/** Saída do recorte (releitura): ids conhecidos e não vistos (inclusive os já ausentes, que podem reaparecer), só por chave; presente fora do recorte ou ausente da tabela. */
 async function lerSaida(s: SessaoMysql, conhecidos: ReadonlyMap<string, MarcasStaging>, listas: ListasRecorte, L: Leitura): Promise<void> {
-  const naoVistos = [...conhecidos.entries()].filter(([id, m]) => !L.presentes.has(id) && !m.ausente).map(([id]) => id);
+  const naoVistos = [...conhecidos.entries()].filter(([id]) => !L.presentes.has(id)).map(([id]) => id);
   for (const lote of lotes(naoVistos, LOTE_IDS)) {
     const linhas = (await s.consultar(expandir(Q5_SAIDA, { ids: lote.length }), lote.map(Number))).map(registroSaida);
     const achados = new Set<string>();
@@ -154,7 +154,9 @@ async function lerSaida(s: SessaoMysql, conhecidos: ReadonlyMap<string, MarcasSt
     for (const id of lote) if (!achados.has(id)) L.saida.ausentes.add(id);
   }
   // Recarga suspeita (M7): acima de 5% (estritamente maior: ausentes * 20 > conhecidos) a coleta para sem gravar as ausências.
-  if (L.saida.ausentes.size * 20 > conhecidos.size) throw new ErroColeta('recarga-suspeita', { entidade: 'chamado' });
+  // Só as ausências NOVAS contam: quem já estava marcado ausente e continua ausente não entra na conta (R2: os ausentes são reconsultados).
+  const novasAusencias = [...L.saida.ausentes].filter((id) => !conhecidos.get(id)!.ausente).length;
+  if (novasAusencias * 20 > conhecidos.size) throw new ErroColeta('recarga-suspeita', { entidade: 'chamado' });
 }
 
 const somar = (a: { lidos: number; inseridos: number; jaExistentes: number }, r: 'inserido' | 'ja_existente'): void => {
