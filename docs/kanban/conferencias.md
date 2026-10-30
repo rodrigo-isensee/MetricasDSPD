@@ -791,3 +791,5 @@
 | 2026-10-30 12:57 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-1.md | entrega | 1 | reprovado so pelo Desde de outra branch; PQ-1 a PQ-4 cumpriram; forge-check pr rc=0 | s | Desde (6a vez) | base | destino |
 | 2026-10-30 13:03 | 055-forge-pareceres-por-branch | 055-forge-pareceres-por-branch-tech-lead-1.md | brief | 1 | reprovado: contagem de conferencias do Objetivo diferente da do pedido | s |  | citacao | jarvis |
 | 2026-10-30 13:05 | 055-forge-pareceres-por-branch | 055-forge-pareceres-por-branch-tech-lead-1.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-30 13:56 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 13:59 | 056-acelerato-mysql | 056-acelerato-mysql-security-engineer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
