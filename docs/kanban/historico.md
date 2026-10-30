@@ -547,3 +547,14 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-29T15:15:18-03:00 | K-181 | Em andamento | Aguardando o dono | estender a lacuna R-PROVA à E1.10 |
 | 2026-10-29T15:20:05-03:00 | K-181 | Aguardando o dono | Em andamento | dono estendeu a lacuna R-PROVA à E1.10 |
 | 2026-10-29T16:04:44-03:00 | K-182 | nenhuma | Entrada | pedido 052 aberto, recibo enviado |
+| 2026-10-29T16:09:51-03:00 | K-181 | Em andamento | Aguardando sua validação | PR #169 aberto, homolog-aprovada verde; aguardando o dono |
+| 2026-10-29T16:46:43-03:00 | K-182 | Entrada | Empatizar e definir | discovery do 052 iniciado (E1.1 a E1.3) |
+| 2026-10-29T17:29:30-03:00 | K-181 | Aguardando sua validação | Pronto | PR 169 mesclado pelo dono (31c11b8) e tag v0.2.0 criada pelo dono as 16:36 |
+| 2026-10-29T17:42:32-03:00 | K-182 | Empatizar e definir | Aguardando o dono | pergunta Q-2b: carga inicial de 12 meses inclui cards ativos mais antigos? |
+| 2026-10-29T19:46:02-03:00 | K-182 | Aguardando o dono | Empatizar e definir | dono respondeu Q-2b = A |
+| 2026-10-29T19:59:18-03:00 | K-182 | Empatizar e definir | Aguardando o dono | Q-2c e validação do plano 052 |
+| 2026-10-29T20:16:01-03:00 | K-182 | Aguardando o dono | Validação do usuário | plano 052 validado pelo dono (A) |
+| 2026-10-29T20:17:10-03:00 | K-182 | Validação do usuário | Pronto para fazer | ponto de compromisso: plano validado; E1.10 e E1.11 antes do PR do discovery |
+| 2026-10-29T20:26:47-03:00 | K-182 | Pronto para fazer | Em andamento | E1.10 com o software-architect |
+| 2026-10-29T21:21:49-03:00 | K-178 | QA | Em andamento | PR e merge na develop com o tech-lead (tl-22) |
+| 2026-10-30T05:16:47-03:00 | K-182 | Em andamento | Bloqueado | aguardando o dono: E1.4 (apikey no .env e WS1); discovery mesclado na develop (PR 170) |

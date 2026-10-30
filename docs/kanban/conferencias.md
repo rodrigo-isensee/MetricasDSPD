@@ -682,3 +682,53 @@
 | 2026-10-29 15:59 | 050-release-develop | 050-release-develop-tech-lead-8.md | entrega | 1 | não cumpriu | parcial | PQ-1 a PQ-3 cumpriram; forge-check pr contra main rc=1 (autoria devops, vai à E1.11); PR 168 mesclado pelo dono com e2e do PR em curso | etapa | destino |
 | 2026-10-29 16:00 | 050-release-develop | 050-release-develop-devops-engineer-3.md | brief | 4 | aprovado | — |  | — | jarvis |
 | 2026-10-29 16:05 | 050-release-develop | 050-release-develop-tech-lead-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 16:08 | 050-release-develop | 050-release-develop-tech-lead-11 | entrega | 1 | reprovado | s | só pela falta de Desde; etapa pr não leva Desde (codigo, review, qa); PQ-1, PQ-2 e conteúdo cumpriram | escopo | destino |
+| 2026-10-29 16:38 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 16:42 | 052-integracao-businessmap | 052-integracao-businessmap-ux-designer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 16:42 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-1 | brief | 1 | reprovado | s | resumo da ADR 0020 contradiz o item 4b | decisao | jarvis |
+| 2026-10-29 16:43 | 052-integracao-businessmap | 052-integracao-businessmap-software-architect-1 | brief | 1 | reprovado | s | K-086, K-088, K-089 sao E5, nao E1 | escopo | jarvis |
+| 2026-10-29 16:45 | 052-integracao-businessmap | 052-integracao-businessmap-software-architect-2 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-29 16:45 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-2 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-29 16:59 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 17:04 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-2 | entrega | 1 | não cumpriu | n | uniao de briefs: so um --brief passado | escopo | destino |
+| 2026-10-29 17:07 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-2 | entrega | 2 | não cumpriu | parcial | documentos anteriores as decisoes do dono de 16:54 a 17:06; mensagens sem Cartao K-182 | decisao | destino |
+| 2026-10-29 17:22 | 052-integracao-businessmap | 052-integracao-businessmap-software-architect-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 17:23 | 052-integracao-businessmap | 052-integracao-businessmap-ux-designer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 17:23 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-3.md | brief | 1 | reprovado | parcial | marca E5 no lugar de E1; S-1 a S-4 sem alvo literal | escopo | jarvis |
+| 2026-10-29 17:25 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-3.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-29 17:33 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-4.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 17:36 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 17:42 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-3.md | entrega | 1 | não cumpriu | s | plano 185: ativos todos sem decisão do dono; dim_responsavel fora do plano; delta UX linha 26 P-2 | decisao | destino |
+| 2026-10-29 19:48 | 052-integracao-businessmap | 052-integracao-businessmap-software-architect-4.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 19:49 | 052-integracao-businessmap | 052-integracao-businessmap-ux-designer-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 19:54 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-4.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 19:59 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-4.md | entrega | 1 | cumpriu | s | volta E1.9; aviso: leitura archived_from/discarded_from vira pergunta Q-2c | — | destino |
+| 2026-10-29 20:18 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-8.md | brief | 1 | reprovado | n | ampliou 3.4.17 para 3.4.17 ou superior; executor vigente não marcado | decisao | jarvis |
+| 2026-10-29 20:21 | docs/pedidos/048-o-que-falta-em-mock.md | 048-o-que-falta-em-mock-node-backend-9.md | brief | 2 | reprovado | s | Objetivo: develop mudou 14 arquivos, não só package.json | citacao | jarvis |
+| 2026-10-29 20:24 | docs/pedidos/048-o-que-falta-em-mock.md | 048-o-que-falta-em-mock-node-backend-10.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-10-29 20:25 | docs/pedidos/052-integracao-businessmap.md | 052-integracao-businessmap-software-architect-5.md | brief | 1 | reprovado | s | Estado: aceita fora do formato Estado: (vigente) | citacao | jarvis |
+| 2026-10-29 20:26 | docs/pedidos/052-integracao-businessmap.md | 052-integracao-businessmap-software-architect-6.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-29 20:31 | docs/pedidos/052-integracao-businessmap.md | 052-integracao-businessmap-tech-lead-5.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 20:38 | docs/pedidos/052-integracao-businessmap.md | 052-integracao-businessmap-tech-lead-5.md | entrega | 1 | nao cumpriu | parcial | PQ-1 a PQ-4 cumpridos; PQ-5 nao cumprido pela parada prevista no Entregar (review reprovado, A1 bloqueante) | implementacao | destino |
+| 2026-10-29 20:41 | docs/pedidos/052-integracao-businessmap.md | 052-integracao-businessmap-software-architect-7.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 20:45 | docs/pedidos/052-integracao-businessmap.md | 052-integracao-businessmap-tech-lead-6.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 20:46 | docs/pedidos/048-o-que-falta-em-mock.md | 048-o-que-falta-em-mock-node-backend-10.md | entrega | 1 | nao cumpriu | s | so pelo Desde (pedido com varias branches; 7ce15c3 nao e ancestral); PQ, escopo e etapa ok; aceita no merito | base | destino |
+| 2026-10-29 20:50 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-security-engineer-4.md | brief | 1 | aprovado | s | decisões não verificável: fonte 05-parecer-048-03.md só na worktree 048b | — | jarvis |
+| 2026-10-29 20:55 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-security-engineer-4.md | entrega | 1 | nao cumprido | s | PQ-1 a PQ-4, escopo e etapa ok; só Desde (7ce15c3 de outra branch, limitação do Desde por pedido); mensagem sem cópia do brief (falha do Jarvis); aceita no mérito | base | destino |
+| 2026-10-29 20:55 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-20.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 21:00 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-20.md | entrega | 1 | nao cumprido | s | PQ-1 a PQ-5, escopo 6c1dc67..HEAD e etapa ok; só Desde (7ce15c3 não ancestral, limitação do Desde por pedido); aceita no mérito | base | destino |
+| 2026-10-29 21:01 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-6.md | brief | 1 | aprovado | s | decisões não verificável: fonte 05-parecer-048-03.md só na worktree 048b | — | jarvis |
+| 2026-10-29 21:10 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-6 | entrega | 1 | nao cumprido | s | PQ-1 a PQ-6 cumpridos; so o Desde 7ce15c3 (docs/048-t14-desenho) nao e ancestral; limitacao conhecida, aceito no merito | base | destino |
+| 2026-10-29 21:12 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-21 | brief | 1 | reprovado | s | forge-check pr rc=1: docs/qa/048-t14-desenho.md desatualizado pelo lockfile do a48aacb; brief atribuia o aviso a develop (erro do Jarvis) | etapa | jarvis |
+| 2026-10-29 21:15 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-7 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 21:19 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-7 | entrega | 1 | nao cumprido | s | PQ-1 a PQ-5 cumpridos; so o Desde 7ce15c3 nao ancestral; limitacao conhecida, aceito no merito | base | destino |
+| 2026-10-29 21:20 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-22 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-29 21:25 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-8 | brief | 1 | reprovado | s | Sem rodar suite contradiz a decisao do pronto completo antes do commit final | decisao | jarvis |
+| 2026-10-29 21:25 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-22 | entrega | 1 | nao cumprido | n | hook parecer recusou gh pr create: pedido 048-dompurify no parecer de QA | etapa | destino |
+| 2026-10-29 21:28 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-9 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-29 21:39 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-9 | entrega | 1 | nao cumprido | parcial | PQ-3 rc=1: autoria do parecer nao registrada (edicao por sed no Bash); 8df0743 enviado, pronto rc=0 | implementacao | destino |
+| 2026-10-29 21:41 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-29 21:43 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-10 | entrega | 1 | cumpriu | s | sem commit; forge-check pr rc=0 conferido pelo Jarvis na worktree 048e, HEAD 8df0743 igual ao remoto | — | destino |
+| 2026-10-29 21:47 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-23 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 05:12 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-6 | entrega | 1 | nao cumprido | n | Jarvis passou só o brief -6 (c229eea é do -5); forge-check pr rodado no checkout principal (versao 0.28.0) e não na worktree 052 (0.30.5, passa) | escopo | destino |
+| 2026-10-30 05:16 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-6 | entrega | 2 | nao cumprido | parcial | entrega do -6 cumprida (PQ ok, forge-check pr limpo na worktree, CI verde, PR 170 mesclado); falha do lado do Jarvis: entrega do -5 (c229eea) nunca foi conferida e o -5 hoje reprova contra o pedido que cresceu (E1.12, E1.13); briefs não rastreados não chegam à worktree | base | destino |

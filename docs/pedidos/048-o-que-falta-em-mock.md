@@ -13,32 +13,32 @@
 - E6. K-178: alerta crítico do Dependabot #12 no dompurify corrigido (versão 3.4.17), com avaliação do impacto no projeto · `confirmado` (DECISÃO DO DONO 2026-10-29, opção A)
 
 ## Etapas
-- E5.0 (forge:tech-lead): worktrees e branches do pedido a partir da develop: `/home/rodrigoisensee/MetricasDSPD-048a` com `docs/048-t14-desenho` (E1.1 e E1.2) e `/home/rodrigoisensee/MetricasDSPD-048b` com `feature/048-usabilidade` (E4.1), com push das duas.
-- E1.1 (forge:software-architect): desenho da T14 em mock (K-112): fechar a ADR 0020 e o plano §9.5 (cadastro de membros por time com membros simulados), o contrato da T14 sem `pendente-usuario` e o desenho do K-130 (E2); regra de negócio aberta vira pergunta ao dono.
-- E1.2 (forge:security-engineer): modelo de ameaças do cadastro de membros e da API da T14 (E1, E2), em paralelo ao E1.1, a partir do parecer 025-t14-reidentificacao.
-- E1.5 (forge:tech-lead): commit e push do E1.1 na `docs/048-t14-desenho` (o software-architect não tem Bash).
-- E1.6 (forge:software-architect): aprovação da mudança incompatível do contrato da T14 (E2), registrada em `docs/architecture/features/048-t14-mock.md` na worktree 048a (`docs/contratos/politica-de-mudanca.md` §5 pede arquiteto e tech-lead), antes do PR do E5.1; o tech-lead a commita no PR.
-- E1.3 (forge:node-backend): cadastro de membros em mock e API da T14 sem o agregado dedutível (E1, E2), num lote, a partir do E1.1 e do E1.2.
-- E1.4 (forge:react-frontend): o que o E1.1 pedir de tela para a T14 (E1), com mock.
-- E3.1 (forge:node-backend): K-129 (meses de pico da T11 no DTO), K-093 (primeira consulta lenta) e a página de contrato da O23 (E3), depois do E1.3.
-- E3.2 (forge:react-frontend): K-128, K-126 e K-133 (E3).
-- E3.3 (forge:software-architect): K-127 (F9 dos chunks e ADR 0021) (E3).
-- E3.4 (forge:react-frontend): na `feature/048-ajustes-front`, o `web/scripts/size.mjs` mede o F9 como o E3.3 decidir (K-127), em delegação própria, depois do E3.2.
-- E3.5 (forge:tech-lead): commit e push do E3.3 na `feature/048-ajustes-front` (o software-architect não tem Bash).
-- E4.0 (forge:ux-designer): refazer o protótipo HTML do K-074 em `docs/ux/revisao-geral-usabilidade/03-prototipo/` na worktree 048b, já com as decisões U1 a U5 e o catálogo na Ajuda de `04-decisoes.md` (o protótipo de 2026-10-13 nunca foi commitado), antes do E4.1 (E4).
-- E4.1 (forge:react-frontend): K-074, usabilidade U1 a U5 (E4), a partir de docs/ux/revisao-geral-usabilidade/04-decisoes.md e do protótipo do E4.0, que vai junto na branch.
-- E4.2 (forge:react-frontend): K-075, celular e tablet em 3 fatias (E4), depois do E4.1.
-- E4.3 (forge:ux-designer): revisão da interface implementada do E1.4, E3.2, E4.1 e E4.2.
-- E4.4 (forge:ux-designer): na worktree 048b, atualizar `docs/ux/dashboard-metricas/especificacao.md` e `docs/ux/design-system.md` para a decisão 048-03 = A (barra de filtros sem sticky a partir de 768 px), achado A8 do review de 2049c39 (E4).
-- E4.5 (forge:tech-lead): commit e push do E4.4 na `feature/048-usabilidade` (o ux-designer não tem Bash) (E4).
-- E5.1 (forge:tech-lead): code review de cada entrega, PRs para a develop e merge.
-- E5.2 (forge:qa-engineer): parecer de QA de cada entrega.
-- E5.4 (forge:security-engineer): review de segurança de cada entrega com gatilho (R-SEGURANCA), parecer em `docs/security/`, depois do code review e antes do QA.
-- E5.5 (forge:tech-lead): worktrees e branches do E3 a partir da develop depois do PR #161: `/home/rodrigoisensee/MetricasDSPD-048c` com `feature/048-ajustes-back` (E3.1) e `/home/rodrigoisensee/MetricasDSPD-048d` com `feature/048-ajustes-front` (E3.2 e E3.3), com push das duas e `pnpm install --frozen-lockfile` em cada uma, sem testes (sem as dependências os desenvolvedores não rodam testes nem typecheck).
-- E6.0 (forge:tech-lead): worktree `/home/rodrigoisensee/MetricasDSPD-048e` com `feature/048-dompurify` a partir da develop 7c94348, com `pnpm install --frozen-lockfile` (feito em 2026-10-29 08:03, sem commit).
-- E6.1 (forge:node-backend; executor decidido pelo dono em 2026-10-29, K-178 executor = A): na worktree `/home/rodrigoisensee/MetricasDSPD-048e`, branch `feature/048-dompurify`, subir o dompurify para a 3.4.17 (E6) no lockfile (versão mínima que corrige o alerta #12), com `pronto` uma vez, commit e push, sem PR.
-- E6.2 (forge:security-engineer): avaliação do impacto do alerta #12 no projeto (onde o dompurify entra, direto ou transitivo; se o código usa `SAFE_FOR_TEMPLATES`) e review de segurança do E6.1 (E6), num parecer só, `docs/security/048-dompurify.md`; depois code review e QA pelo E5.1 e pelo E5.2, e PR.
-- E5.3 (forge:agile-coach): retrospectiva do pedido em `docs/retrospectivas/2026-10-28-048-mock.md`, com as linhas `MELHORIA:`.
+- E5.0 (tech-lead): worktrees e branches do pedido a partir da develop: `/home/rodrigoisensee/MetricasDSPD-048a` com `docs/048-t14-desenho` (E1.1 e E1.2) e `/home/rodrigoisensee/MetricasDSPD-048b` com `feature/048-usabilidade` (E4.1), com push das duas.
+- E1.1 (software-architect): desenho da T14 em mock (K-112): fechar a ADR 0020 e o plano §9.5 (cadastro de membros por time com membros simulados), o contrato da T14 sem `pendente-usuario` e o desenho do K-130 (E2); regra de negócio aberta vira pergunta ao dono.
+- E1.2 (security-engineer): modelo de ameaças do cadastro de membros e da API da T14 (E1, E2), em paralelo ao E1.1, a partir do parecer 025-t14-reidentificacao.
+- E1.5 (tech-lead): commit e push do E1.1 na `docs/048-t14-desenho` (o software-architect não tem Bash).
+- E1.6 (software-architect): aprovação da mudança incompatível do contrato da T14 (E2), registrada em `docs/architecture/features/048-t14-mock.md` na worktree 048a (`docs/contratos/politica-de-mudanca.md` §5 pede arquiteto e tech-lead), antes do PR do E5.1; o tech-lead a commita no PR.
+- E1.3 (node-backend): cadastro de membros em mock e API da T14 sem o agregado dedutível (E1, E2), num lote, a partir do E1.1 e do E1.2.
+- E1.4 (react-frontend): o que o E1.1 pedir de tela para a T14 (E1), com mock.
+- E3.1 (node-backend): K-129 (meses de pico da T11 no DTO), K-093 (primeira consulta lenta) e a página de contrato da O23 (E3), depois do E1.3.
+- E3.2 (react-frontend): K-128, K-126 e K-133 (E3).
+- E3.3 (software-architect): K-127 (F9 dos chunks e ADR 0021) (E3).
+- E3.4 (react-frontend): na `feature/048-ajustes-front`, o `web/scripts/size.mjs` mede o F9 como o E3.3 decidir (K-127), em delegação própria, depois do E3.2.
+- E3.5 (tech-lead): commit e push do E3.3 na `feature/048-ajustes-front` (o software-architect não tem Bash).
+- E4.0 (ux-designer): refazer o protótipo HTML do K-074 em `docs/ux/revisao-geral-usabilidade/03-prototipo/` na worktree 048b, já com as decisões U1 a U5 e o catálogo na Ajuda de `04-decisoes.md` (o protótipo de 2026-10-13 nunca foi commitado), antes do E4.1 (E4).
+- E4.1 (react-frontend): K-074, usabilidade U1 a U5 (E4), a partir de docs/ux/revisao-geral-usabilidade/04-decisoes.md e do protótipo do E4.0, que vai junto na branch.
+- E4.2 (react-frontend): K-075, celular e tablet em 3 fatias (E4), depois do E4.1.
+- E4.3 (ux-designer): revisão da interface implementada do E1.4, E3.2, E4.1 e E4.2.
+- E4.4 (ux-designer): na worktree 048b, atualizar `docs/ux/dashboard-metricas/especificacao.md` e `docs/ux/design-system.md` para a decisão 048-03 = A (barra de filtros sem sticky a partir de 768 px), achado A8 do review de 2049c39 (E4).
+- E4.5 (tech-lead): commit e push do E4.4 na `feature/048-usabilidade` (o ux-designer não tem Bash) (E4).
+- E5.1 (tech-lead): code review de cada entrega, PRs para a develop e merge.
+- E5.2 (qa-engineer): parecer de QA de cada entrega.
+- E5.4 (security-engineer): review de segurança de cada entrega com gatilho (R-SEGURANCA), parecer em `docs/security/`, depois do code review e antes do QA.
+- E5.5 (tech-lead): worktrees e branches do E3 a partir da develop depois do PR #161: `/home/rodrigoisensee/MetricasDSPD-048c` com `feature/048-ajustes-back` (E3.1) e `/home/rodrigoisensee/MetricasDSPD-048d` com `feature/048-ajustes-front` (E3.2 e E3.3), com push das duas e `pnpm install --frozen-lockfile` em cada uma, sem testes (sem as dependências os desenvolvedores não rodam testes nem typecheck).
+- E6.0 (tech-lead): worktree `/home/rodrigoisensee/MetricasDSPD-048e` com `feature/048-dompurify` a partir da develop 7c94348, com `pnpm install --frozen-lockfile` (feito em 2026-10-29 08:03, sem commit).
+- E6.1 (node-backend): executor decidido pelo dono em 2026-10-29 (K-178 executor = A); na worktree `/home/rodrigoisensee/MetricasDSPD-048e`, branch `feature/048-dompurify`, subir o dompurify para a 3.4.17 (E6) no lockfile (versão mínima que corrige o alerta #12), com `pronto` uma vez, commit e push, sem PR.
+- E6.2 (security-engineer): avaliação do impacto do alerta #12 no projeto (onde o dompurify entra, direto ou transitivo; se o código usa `SAFE_FOR_TEMPLATES`) e review de segurança do E6.1 (E6), num parecer só, `docs/security/048-dompurify.md`; depois code review e QA pelo E5.1 e pelo E5.2, e PR.
+- E5.3 (agile-coach): retrospectiva do pedido em `docs/retrospectivas/2026-10-28-048-mock.md`, com as linhas `MELHORIA:`.
 
 ## Decisões do usuário (registro literal)
 DECISÃO DO DONO (2026-10-28): "Mude a seguencia, coloque a integração com dados reais por último": a integração com dados reais (BusinessMap e Acelerato, K-087, K-086, K-088, K-089) entra depois de todo o resto da lista do que falta, feito em mock.
@@ -243,3 +243,27 @@ DECISÃO DO DONO (2026-10-21): comando de pronto, opção A ("A"): durante o des
 - 2026-10-29 10:40: brief tech-lead-19 aprovado pelo conferente (rodada 1) e delegado: revalidar o review do PR #163 e mesclar.
 - 2026-10-29 11:00: tech-lead-19 entregue: parecer revalidado (1110508), PR #163 mesclado (739bdbf); entrega enviada ao conferente.
 - 2026-10-29 11:01: entrega tech-lead-19 conferida: PQ-1 a PQ-3 cumpridos; não cumpriu por etapa (PR #163 mesclado às 13:43Z pela conta do dono com build, testes e e2e ainda rodando; sem evento de auto-merge na timeline; todos fecharam SUCCESS depois) e escopo por Desde ausente. DECISÃO TÉCNICA do Jarvis: aceita no mérito (nenhum check falhou; nada a reverter); autoria do merge perguntada ao dono; sem linha conferida.
+- 2026-10-29 20:15: o dono foi dormir e pediu para tocar outras coisas; o 048 volta a andar. E6.1: só formato da etapa ajustado (papel entre parênteses), sem mudar o conteúdo; brief node-backend-8 (E6.1, K-178) gravado e enviado ao conferente.
+- 2026-10-29 20:24: brief node-backend-10 (E6.1, K-178) aprovado pelo conferente na rodada 3 e delegado
+- 2026-10-29 20:44: E6.1 entregue pelo node-backend (a48aacb na feature/048-dompurify: override dompurify 3.4.17 em pnpm-workspace.yaml; legacy-javascript 0.0.3 para 0.0.4 reresolvido pelo pnpm, para o review); conferência da entrega em curso. Laço de espera do agente (pgrep que casa consigo mesmo) segue vivo; o kill foi recusado pelo classificador e fica com o dono
+- 2026-10-29 20:46: entrega nb-10 (E6.1, a48aacb) conferida: PQ-1, PQ-3 a PQ-5 cumpridos, escopo (pnpm-lock.yaml e pnpm-workspace.yaml) e etapa ok; não cumpriu só no Desde (7ce15c3 da docs/048-t14-desenho não é ancestral; limitação conhecida do Desde por pedido). DECISÃO TÉCNICA do Jarvis: aceita no mérito, como nas conferências de 08:38 a 10:16; sem linha conferida. legacy-javascript 0.0.3 para 0.0.4 vai ao review e à segurança
+- 2026-10-29 20:47: etapas E6.0 a E6.2 com o papel sozinho nos parênteses (sem o prefixo forge:), formato que o forge-check brief gerar lê; conteúdo igual
+- 2026-10-29 20:50: brief security-engineer-4 (E6.2, parecer de segurança do dompurify) aprovado pelo conferente na 1ª rodada (sha 64932ebf541d81fdd8e03505de7b9160d8618d9e76e6fe708fb17af9c86f75a9) e delegado ao forge:security-engineer.
+- 2026-10-29 20:52: etapas E1 a E5 com o papel sozinho nos parênteses (sem o prefixo forge:), formato que o forge-check brief gerar lê; conteúdo igual
+- 2026-10-29 20:55: entrega security-engineer-4 (E6.2, 6c1dc67) conferida: PQ-1 a PQ-4, escopo e etapa ok; não cumpriu só no Desde (7ce15c3 da docs/048-t14-desenho, limitação conhecida do Desde por pedido). A mensagem de entrega saiu sem a cópia do brief (falha do Jarvis; o hash conferiu). DECISÃO TÉCNICA do Jarvis: aceita no mérito; sem linha conferida. Brief tech-lead-20 (E5.1, review do K-178) em conferência.
+- 2026-10-29 20:55: brief tech-lead-20 (E5.1, code review do K-178) aprovado pelo conferente na 1ª rodada (sha b2b6e9c36a588273281ad37e339afe92ceb8e5a5442f7d41b75c7b69bd51b4a7) e delegado ao forge:tech-lead (segunda instância, worktree 048e; a primeira está no K-182).
+- 2026-10-29 21:00: entrega tech-lead-20 (E5.1, review do K-178, 8e0f8f4, aprovado sem achados) conferida: PQ-1 a PQ-5, escopo (6c1dc67..HEAD só o parecer de review) e etapa ok; não cumpriu só no Desde (7ce15c3 não ancestral, limitação conhecida). DECISÃO TÉCNICA do Jarvis: aceita no mérito; sem linha conferida. Recomendação dos pareceres virou o cartão K-183. Brief qa-engineer-6 (E5.2) em conferência.
+- 2026-10-29 21:01: brief qa-engineer-6 (E5.2, QA do K-178) aprovado pelo conferente na 1ª rodada (sha 00c60e4c874f64fe6392ad9127700fc4953496c03635ad388824bb5a1495606b) e delegado ao forge:qa-engineer.
+- 2026-10-29 21:10: entrega qa-engineer-6 (E5.2, QA do K-178, 143b935, aprovado: 1228 testes do web e 15 do E2E de exportação) conferida: PQ-1 a PQ-6, escopo (8e0f8f4..HEAD só o parecer de QA) e etapa ok; não cumpriu só no Desde (limitação conhecida). DECISÃO TÉCNICA do Jarvis: aceita no mérito; sem linha conferida. Brief tech-lead-21 (E5.1, PR e merge) em conferência.
+- 2026-10-29 21:15: brief tech-lead-21 (E5.1, PR e merge do K-178) reprovado pelo conferente: forge-check pr rc=1, docs/qa/048-t14-desenho.md desatualizado pelo lockfile do a48aacb (o brief atribuía o aviso à develop: erro do Jarvis). DECISÃO TÉCNICA do Jarvis: revalidação do parecer pelo qa-engineer (R-FLUXO, quem deu o parecer revalida), brief qa-engineer-7 em conferência; o PR vem num brief tech-lead-22 depois.
+- 2026-10-29 21:20: brief qa-engineer-7 (E5.2, revalidação do parecer da T14 na branch do K-178) aprovado pelo conferente na 1ª rodada (sha a25a8daf65f22c7926cd002283b40e37b305d4c202d972cb7d8b3917d4b3f272) e delegado ao forge:qa-engineer.
+- 2026-10-29 21:25: entrega qa-engineer-7 (E5.2, revalidação do parecer da T14, 112f48e) conferida: PQ-1 a PQ-5, escopo (143b935..HEAD só o parecer) e etapa ok; forge-check pr rc=0; não cumpriu só no Desde (limitação conhecida). DECISÃO TÉCNICA do Jarvis: aceita no mérito; sem linha conferida. Brief tech-lead-22 (E5.1, PR e merge) em conferência.
+- 2026-10-29 21:27: brief tech-lead-22 (E5.1, PR e merge do K-178) aprovado pelo conferente na rodada de confirmação (sha adec86a53c885a586f489af5303032f5b6b6cbb1d9fbfdf3871d13871ccd2845) e delegado ao forge:tech-lead (segunda instância, worktree 048e).
+- 2026-10-29 21:25: tech-lead-22 parou sem PR: o hook parecer recusou o gh pr create porque docs/qa/048-dompurify.md declara pedido 048-dompurify (o hook junta os pedidos dos pareceres com branch feature/048-dompurify). Defeito do parecer de QA (retrabalho do qa-engineer); o diagnóstico do tech-lead (nome da branch) não confere com o forge-check (pedidos_da_branch lê o frontmatter). DECISÃO TÉCNICA do Jarvis: volta ao qa-engineer para corrigir o frontmatter (brief qa-engineer-8, em conferência); depois novo brief de PR ao tech-lead.
+- 2026-10-29 21:27: brief qa-engineer-8 reprovado pelo conferente (classe decisao: o brief dizia sem suite, contra a decisao do pronto completo antes do commit final). Corrigido no qa-engineer-9 (pronto uma vez antes do commit, PQ-7), em conferencia.
+- 2026-10-29 21:28: brief qa-engineer-9 aprovado pelo conferente (sha 8a085892fc821de326ebc0ac9ac8a5cfea211964d87cc47648f02ad2eccf4486) e delegado ao qa-engineer.
+- 2026-10-29 21:39: entrega qa-engineer-9 parcial: 8df0743 (frontmatter corrigido, pronto rc=0, push) mas forge-check pr rc=1 por autoria (o parecer foi editado com sed no Bash, sem registro do papel qa). DECISAO TECNICA do Jarvis: volta qa-engineer-10, regravar o parecer com Write e conteudo identico, sem commit; em conferencia.
+- 2026-10-29 21:41: brief qa-engineer-10 aprovado pelo conferente (sha a628334be93a5fb2c6d880af6c8f85c1ef7cc2ba0ed63bcc85d84bac2ce9d35a) e delegado. Aviso do conferente: regravar com conteudo identico; DECISAO TECNICA do Jarvis: nao e contorno, o texto ja e do proprio qa (8df0743) e o controle pede que o qa o grave pela ferramenta.
+- 2026-10-29 21:43: entrega qa-engineer-10 cumprida (sem commit; forge-check pr rc=0 na worktree 048e, HEAD 8df0743 igual ao remoto, conferido pelo Jarvis). Brief tech-lead-23 de PR e merge em conferencia.
+- 2026-10-29 21:47: brief tech-lead-23 aprovado pelo conferente (sha b6eb141dfcab6e62bf77299144b9e96ed176fd80a915cb0a4d3f12c3eb381304) e delegado (PR e merge do K-178).
+- 2026-10-30 05:29: reinício da sessão do Jarvis pedido pelo dono (Forge 0.30.7). tech-lead-23 interrompido em ponto seguro: PR 171 aberto, head remoto 85e4163, e2e 2/2 rodando; retomada em docs/alinhamentos/2026-10-30-retomada-reinicio.md

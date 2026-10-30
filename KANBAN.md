@@ -10,7 +10,7 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-182 | [integração] BusinessMap com dados reais: discovery (T2.1, spike K-087, ameaças), coleta T2.2, webhook T2.3, painéis FL1 a FL3 | 052 | forge:software-architect | 2026-10-29 | 2026-10-29 16:04 | Recibo enviado ao dono; depende do recibo e da release 050 |
+| K-183 | [deps] Remover o override do dompurify (pnpm-workspace.yaml) quando jspdf e mermaid exigirem >= 3.4.17 | 048 | forge:tech-lead | 2026-10-29 | 2026-10-29 20:58 | Recomendação dos pareceres de segurança (6c1dc67) e de review (8e0f8f4) do K-178; conferir na revisão semanal do CI (praticas.md §10.1); depende de versões novas dos pacotes |
 | K-176 | [teste] Trava de suíte única grava cada espera (quem segurava, quanto esperou) para medir o efeito | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:59 | MELHORIA 2 da retro do 045 (docs/retrospectivas/2026-10-28-045-suite-unica.md); só acrescenta registro; depende do K-175 (mesmo script) e o WIP de Pronto para fazer está cheio |
 | K-177 | [ux] Achados médios e baixos da revisão de UX da T14 (M-1 ficha e CA-27/30/45 desatualizados; M-2 leituraT14 cita total sem excluir ocultos; M-3 notas.ts:305 "ordenados pelo total"; B-1 linha oculta sem explicação ao leitor de tela; B-2 teste "todos ocultos"; B-3 axe com oculto) | 048 | forge:react-frontend | 2026-10-28 | 2026-10-28 18:09 | docs/ux/revisao-048-t14.md (aprovada com ressalvas); depende do merge da docs/048-t14-desenho; ficha e CA são do ux-designer |
 | K-165 | [forge] Rodada longa de suíte (mais de 10 min) grava o JSON da E2E de forma incremental, fora de /tmp (skill qa-testing) | 041 | forge:tech-lead | 2026-10-28 | 2026-10-28 11:15 | MELHORIA da retro do 041 (JSON perdido nas quedas do WSL); vai ao Forge, só propor |
@@ -75,8 +75,7 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-181 | [release] Promoção develop (311691b) → homolog → main: versão nova, CHANGELOG e pareceres (operacionais O19 a O26) | 050 | forge:tech-lead | 2026-10-29 | 2026-10-29 11:33 | E1.8 e E1.10 aceitas (lacuna R-PROVA, decisões do dono); E1.9 (tech-lead-8): develop e homolog; depois tag rc.1 e PR para a main · worktree: MetricasDSPD-050 |
-| K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:security-engineer | 2026-10-29 | 2026-10-29 07:44 | E6.1 (tech-lead, worktree 048e, feature/048-dompurify) e E6.2 (security-engineer); DECISÃO DO DONO 2026-10-29 07:07 = A · worktree: MetricasDSPD-048e |
+| K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:tech-lead | 2026-10-29 | 2026-10-29 21:47 | E6.1 (a48aacb), E6.2 (6c1dc67), review (8e0f8f4), QA (143b935) e revalidação do QA da T14 (112f48e) aprovados; PR e merge na develop com o tech-lead (brief tech-lead-23; frontmatter do QA corrigido em 8df0743) · worktree: MetricasDSPD-048e |
 | K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-29 07:44 | E3.1 do 048 (node-backend-5), feature/048-ajustes-back · worktree: MetricasDSPD-048c |
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-29 07:44 | Push feito pelo dono (2026-10-29); conferência da entrega e PR ao Forge (E3.2 a E3.5 do 047) · worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 |
 | K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-29 07:44 | Volta 2 do E4.1 (react-frontend-11): DECISÃO DO DONO 048-03 = A (barra de filtros sem fixação) · worktree: MetricasDSPD-048b |
@@ -98,6 +97,7 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-181 | [release] Promoção develop (311691b) → homolog → main: versão nova, CHANGELOG e pareceres (operacionais O19 a O26) | 050 | forge:tech-lead | 2026-10-29 | 2026-10-29 16:09 | PR #169 mesclado (31c11b8); tag v0.2.0 (homolog → main, release: v0.2.0) aberto, homolog-aprovada verde; aguardando o dono: rótulo afrouxa-regra, merge na main e tag final v0.2.0 (E3.2) |
 | K-180 | [doc] Página de contrato da O23 sem lacunas (U-11 e parado com bloqueado) | 051 | forge:node-backend | 2026-10-29 | 2026-10-29 11:33 | PR #164 mesclado na develop (311691b); review docs/reviews/051-o23-regras.md |
 | K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-29 11:03 | fechado sem código (SNO = C); PR #163 mesclado (739bdbf) |
 | K-179 | [forge] Registrar o Forge 0.30.5 no projeto (branch forge/upgrade-0.30.5, PR #162 para a develop; merge do dono) | 049 | forge:tech-lead | 2026-10-29 | 2026-10-29 11:03 | PR #162 mesclado na develop (c292908) |
@@ -161,6 +161,7 @@
 | K-141 | Ambiente da máquina nova: Docker, `.env`, Node 24, Chromium, doutor; depois pnpm install e banco | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono (E2.1); depois tech-lead (E2.2) e devops (E2.3) |
 | K-152 | [forge] F21: worktree nova sem dependências não quebra o pre-push | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 20:18 | Aguardando o dono: aplicar docs/analises/043-f21-pre-push.patch no clone (docs/analises/043-f21-instrucoes-ao-dono.md); resto do F21 pronto sem commit |
 | K-153 | [forge] F22: PR de release não nasce antes do portão; homolog-aprovada sem corrida | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 22:11 | Aguardando o dono: abrir o PR do F22 pelo terminal (decisão B; a 0.30.5 não lê pedido fora de ~/.forge-contrib, 043 07:44) |
+| K-182 | [integração] BusinessMap com dados reais: discovery (T2.1, spike K-087, ameaças), coleta T2.2, webhook T2.3, painéis FL1 a FL3 | 052 | forge:tech-lead | 2026-10-29 | 2026-10-30 05:16 | Aguardando o dono: E1.4 (apikey no .env e WS1). Discovery na develop (PR 170, 1a6617e); conferência da entrega não cumprida por falha do Jarvis (brief -5 não conferido), mérito parcial · worktree: MetricasDSPD-052 |
 
 ## Políticas locais (acrescentadas na auditoria K-021)
 - **Entrada é o backlog:** cartão com dependência aberta de outro cartão fica em Entrada; só entra em "Pronto para fazer" o que pode ser puxado agora (a espera por ata de reunião em andamento é a única exceção, e deve constar em Obs.).

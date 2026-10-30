@@ -47,6 +47,7 @@ DECISÃO DO DONO (2026-10-29): "ta suba tudo que estiver pronto na homol em uma 
 DECISÃO DO DONO (2026-10-29): "A" (LACUNA R-PROVA): a checagem do Desde fica dispensada nas entregas E1.8, E1.9 e E2.1; PQs, escopo e conteúdo continuam conferidos.
 DECISÃO DO DONO (2026-10-29): "A" (LACUNA R-PROVA estendida): a mesma dispensa vale para a entrega E1.10, inclusive o arquivo do devops da E1.8 na comparação; PQs, escopo e conteúdo continuam conferidos.
 DECISÃO DO DONO (2026-10-29): "A" (LACUNA R-PROVA na tag): a entrega E2.1 fica aceita sem o escopo do intervalo (a tag não tem diff próprio) e sem a marca da E1.11, criada depois da aprovação do brief; PQ-1, portão e ausência de commit continuam conferidos.
+DECISÃO DO DONO (2026-10-29): "A" (LACUNA R-PROVA no PR de release): a checagem do Desde fica dispensada na entrega E3.1 (PR #169); PQ-1, PQ-2, corpo, ausência de commit e tag, já conferidos na rodada 1, valem.
 
 ## Histórico
 - 2026-10-29 10:10: recibo aceito pelo dono ("isso"): E1 a E3 confirmados como registrados; fora do escopo confirmado.
@@ -94,6 +95,9 @@ DECISÃO DO DONO (2026-10-29): "A" (LACUNA R-PROVA na tag): a entrega E2.1 fica 
 - 2026-10-29 16:00: correção da linha anterior: a E1.11 foi delegada com o modelo sonnet, não haiku
 - 2026-10-29 16:02: E1.11 cumprida, sem commit nem ato no GitHub (sem conferência R-PROVA): conferido pelo Jarvis, PQ-1 status --short 0 linhas e PQ-2 forge-check pr contra origin/main rc=0; com isso a E1.9 também fecha (portão verde e forge-check pr rc=0)
 - 2026-10-29 16:05: brief tech-lead-11 (E3.1) aprovado na rodada 1 (sha df0d269e); delegado ao tech-lead (sonnet)
+- 2026-10-29 16:08: entrega E3.1 (PR #169) reprovada na rodada 1 só pelo Desde: PQ-1, PQ-2, corpo, sem commit e tag conferidos. A etapa pr usa o Desde do Histórico (261a3f1), mas ele não está na homolog (o squash do #165 o trocou por d3095a7) e o forge-check entrega diz '--desde sem conferência anterior'; é a mesma lacuna das E1.8 a E2.1. PERGUNTA ao dono: estender a dispensa do Desde à E3.1 (LACUNA R-PROVA)
+- 2026-10-29 16:09: DECISÃO DO DONO A (LACUNA R-PROVA no PR de release): E3.1 aceita com o mérito da rodada 1; K-181 para Aguardando sua validação; E3.2 é do dono
 
 ## Registro de clareza
 PERGUNTA: nenhuma
+- 2026-10-29 17:29: tag v0.2.0 criada pelo dono (16:36, aponta para 31c11b8); K-181 movido para Pronto.
