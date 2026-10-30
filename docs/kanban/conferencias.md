@@ -794,3 +794,6 @@
 | 2026-10-30 13:56 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-1.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-30 13:59 | 056-acelerato-mysql | 056-acelerato-mysql-security-engineer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-30 14:30 | 056-acelerato-mysql | 056-acelerato-mysql-software-architect-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 15:00 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 15:01 | 056-acelerato-mysql | 056-acelerato-mysql-software-architect-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 15:06 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-2.md | entrega | 1 | nao cumpriu so pela forma: etapa codigo sem commit (delegacao de install e push); PQ-1 a PQ-3 cumpriram | s | brief de install e push marcado como etapa codigo (erro do Jarvis) | etapa | destino |
