@@ -17,6 +17,7 @@ const D = DOMINIO_FIXTURE;
 const LISTAS: ListasRecorte = {
   tipos: new Map([[D.tipoTicketKey, D.tipoTicket]]), organizacoes: new Map([[D.organizacaoKey, D.organizacao]]), equipes: new Map([[D.equipeKey, D.equipe]]),
   etapas: new Set([D.status, 'Aguardando atribuicao']), prioridades: new Set([D.prioridade]),
+  categorias: new Set([D.categoria]), workflows: new Set(['Fluxo Ficticio']),
 };
 /** A linha como a Q1 a devolve: as 35 colunas e `com_agente` (0/1). */
 const projetada = (sobre: Record<string, unknown> = {}): Record<string, unknown> => {
@@ -98,15 +99,16 @@ describe('registroChamado (Q1 -> staging)', () => {
     expect(fora.ticket_key).toBe(900000002);
   });
 
-  it('CT-05: status, prioridade e categoria só entram por domínio fechado ou forma curta; fora vira nulo com contagem, sem o valor', () => {
+  it('CT-05: status, prioridade e categoria só entram por domínio fechado; fora vira nulo com contagem, sem o valor', () => {
     const c = new Contadores();
     const longo = `MARCADOR-056-TEXTO-LIVRE ${'x'.repeat(200)}`;
     const r = lido({ status: longo, prioridade: 'texto livre qualquer', categoria: longo }, c);
     expect(r.payload).toMatchObject({ status: null, prioridade: null, categoria: null });
-    expect(c.entradas()).toEqual([['fora_dominio_prioridade', 1], ['fora_dominio_status', 1], ['fora_forma_categoria', 1]]);
+    expect(c.entradas()).toEqual([['fora_dominio_categoria', 1], ['fora_dominio_prioridade', 1], ['fora_dominio_status', 1]]);
     expect(JSON.stringify(c.entradas())).not.toContain('MARCADOR');
     expect(lido({ status: null, prioridade: null, categoria: null }).payload).toMatchObject({ status: null, categoria: null });
-    expect(lido({ categoria: 'a@b.com' }, c).payload.categoria).toBeNull(); // arroba nunca passa pela forma curta
+    expect(lido({ categoria: 'a@b.com' }, c).payload.categoria).toBeNull();
+    expect(lido({ categoria: 'Maria Souza' }, c).payload.categoria).toBeNull(); // nome curto digitado à mão: não está no domínio (A5)
   });
 
   it('CT-21: NUL e substituto isolado são limpos antes de chegar ao jsonb', () => {
@@ -133,7 +135,7 @@ describe('registroEtapas (Q2)', () => {
     const r = registroEtapas([e({ etapa_key: null }), e(), e({ tempo_sla: 5 }), e({ etapa_key: 7, descricao: 'MARCADOR-056-X', descricao_workflow: 'a@b' })], LISTAS, c);
     expect(r.map((x) => x.idOrigem)).toEqual(['101', '7']);
     expect(r[1]!.payload).toMatchObject({ descricao: null, descricao_workflow: null });
-    expect(c.entradas()).toEqual([['etapa_repetida', 1], ['etapa_sem_chave', 1], ['fora_dominio_etapa', 1], ['fora_forma_workflow', 1]]);
+    expect(c.entradas()).toEqual([['etapa_repetida', 1], ['etapa_sem_chave', 1], ['fora_dominio_etapa', 1], ['fora_dominio_workflow', 1]]);
     expect(registroEtapas([], LISTAS, c)).toEqual([]);
   });
 
@@ -226,6 +228,8 @@ describe('referência (ref_dominio)', () => {
     expect(l.organizacoes.size).toBe(1);
     expect(l.etapas.has(D.status)).toBe(true);
     expect(l.prioridades.has(D.prioridade)).toBe(true);
+    expect(l.categorias.has(D.categoria)).toBe(true);
+    expect(l.workflows.has('Fluxo Ficticio')).toBe(true);
     expect(chamadas[0]!.texto).toContain('vigente_ate IS NULL');
     expect(chamadas[0]!.texto).toContain('dspd_ac.ref_dominio');
   });

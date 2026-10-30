@@ -31,6 +31,8 @@ export const LISTAS_BANCO = [
   { campo: 'etapa', codigo: DOMINIO_FIXTURE.status, rotulo: DOMINIO_FIXTURE.status },
   { campo: 'etapa', codigo: 'Aguardando atribuicao', rotulo: 'Aguardando atribuicao' },
   { campo: 'prioridade', codigo: DOMINIO_FIXTURE.prioridade, rotulo: DOMINIO_FIXTURE.prioridade },
+  { campo: 'categoria', codigo: DOMINIO_FIXTURE.categoria, rotulo: DOMINIO_FIXTURE.categoria },
+  { campo: 'descricao_workflow', codigo: 'Fluxo Ficticio', rotulo: 'Fluxo Ficticio' },
 ];
 
 const chaveData = (l: LinhaMysql): string => String(l.data_atualizacao);

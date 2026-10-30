@@ -17,6 +17,9 @@ export type ListasRecorte = {
   equipes: ReadonlyMap<number, string>;
   etapas: ReadonlySet<string>;
   prioridades: ReadonlySet<string>;
+  /** `ref_dominio` campos `categoria` e `descricao_workflow` (A5 do parecer de segurança): texto livre só por domínio fechado. */
+  categorias: ReadonlySet<string>;
+  workflows: ReadonlySet<string>;
 };
 
 /** Contagens sem valor (`ctl_coleta_contagem`): o que ficou nulo por estar fora do domínio, o que falta, etc. */
@@ -70,9 +73,6 @@ function falhar(e: z.ZodError, entidade: string, idOrigem?: string): never {
   throw new ErroColeta('dados-invalidos', { entidade, ...(idOrigem !== undefined ? { idOrigem } : {}), ...(typeof nome === 'string' ? { coluna: nome } : {}) });
 }
 
-/** Forma curta (A5 do parecer de segurança): sem arroba, sem quebra de linha, até 80 caracteres. */
-const FORMA_CURTA = /^[\p{L}\p{N}][\p{L}\p{N} _\-./()&:+,]{0,79}$/u;
-
 /** Valor que só entra por domínio fechado: fora dele vira nulo, com contagem e sem o valor. */
 function noDominio(valor: string | null, dominio: ReadonlySet<string>, contagem: string, c: Contadores): string | null {
   if (valor === null) return null;
@@ -80,13 +80,6 @@ function noDominio(valor: string | null, dominio: ReadonlySet<string>, contagem:
   c.somar(contagem);
   return null;
 }
-function formaCurta(valor: string | null, contagem: string, c: Contadores): string | null {
-  if (valor === null) return null;
-  if (FORMA_CURTA.test(valor)) return valor;
-  c.somar(contagem);
-  return null;
-}
-
 export type ChamadoLido = {
   idOrigem: string;
   dataAtualizacao: string;
@@ -116,7 +109,7 @@ export function registroChamado(linha: unknown, listas: ListasRecorte, c: Contad
   for (const coluna of COLUNAS_DA_LINHA) payload[coluna] = v[coluna];
   payload.status = noDominio(v.status, listas.etapas, 'fora_dominio_status', c);
   payload.prioridade = noDominio(v.prioridade, listas.prioridades, 'fora_dominio_prioridade', c);
-  payload.categoria = formaCurta(v.categoria, 'fora_forma_categoria', c);
+  payload.categoria = noDominio(v.categoria, listas.categorias, 'fora_dominio_categoria', c);
   return { idOrigem: String(v.ticket_key), dataAtualizacao: v.data_atualizacao, sincronizadoEm: v.sincronizado_em, payload };
 }
 
@@ -138,7 +131,7 @@ export function registroEtapas(linhas: readonly unknown[], listas: ListasRecorte
       idOrigem: id,
       payload: {
         descricao: noDominio(e.descricao, listas.etapas, 'fora_dominio_etapa', c),
-        descricao_workflow: formaCurta(e.descricao_workflow, 'fora_forma_workflow', c),
+        descricao_workflow: noDominio(e.descricao_workflow, listas.workflows, 'fora_dominio_workflow', c),
         tempo_sla_segundos: e.tempo_sla, quantidade_vezes: e.quantidade_vezes,
       },
     });
