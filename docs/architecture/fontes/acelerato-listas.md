@@ -3,7 +3,7 @@
 - Data: 2026-10-30 · Autor: `software-architect` (pedido 056, E4.1) · Público: node-backend, security-engineer, qa-engineer.
 - Decisão: ADR 0023. Plano: `docs/architecture/features/056-acelerato-mysql.md` (citado como "plano §n"). As fontes que o plano cita são citadas como no plano: "resp. n" = `docs/integracao/acelerato-respostas-ciencia-de-dados.md`, item n; "dash §n" = `docs/integracao/acelerato-dash-atual.md`, seção n.
 - Regra: cada item tem a origem. Valor que os documentos não trazem fica **"a preencher na carga inicial com o dono"**, nunca inventado. Nenhuma linha de dado, nome de pessoa, endereço de servidor nem organização cliente aparece aqui.
-- Destino: as listas dos §3 a §10 vão para `ref_dominio` do `dspd_ac` (arquivo versionado, `ref:sync`), com o campo indicado em cada seção; as dos §1 e §2 são constantes do código (`allow-list.ts` e o SQL versionado). Mudar qualquer lista é mudança de critério (T2.6): novo hash em `ctl_coleta.parametros` e entrada em `ref_versao_criterio`.
+- Destino: as listas dos §3 a §10 e do §12 vão para `ref_dominio` do `dspd_ac` (arquivo versionado, `ref:sync`), com o campo indicado em cada seção; as dos §1 e §2 são constantes do código (`allow-list.ts` e o SQL versionado). Mudar qualquer lista é mudança de critério (T2.6): novo hash em `ctl_coleta.parametros` e entrada em `ref_versao_criterio`.
 - Valor fora da lista: nas colunas do recorte (§4 a §6) e nas de vocabulário (§7 a §9), a coleta **falha fechado** (`dados-invalidos`, contagem por coluna, sem o valor), para a lista ser corrigida com o dono; nos campos personalizados (§3), o valor vira nulo com contagem em `ctl_coleta_contagem`, sem o valor (M4 d).
 
 ## 1. Colunas (constante do código; plano §2)
@@ -132,3 +132,31 @@ SELECT 'organizacao', organizacao_key, organizacao, COUNT(*)
 ```
 
 A saída (chaves, nomes do DSPD e contagens) preenche os §4 a §6 por um commit revisado; a escolha da organização antiga (§5) continua sendo do dono. A lista de etapas (§7) sai da primeira coleta, pela contagem de nomes fora do domínio, e é completada com o dono.
+
+## 12. Categoria e descrição do workflow (`ref_dominio` campos `categoria` e `descricao_workflow`; Segurança A5)
+
+Origem: A5 do parecer `docs/security/056-coletor-f1-f2.md` (texto livre só entra por domínio fechado), feito na volta 1 da F2 (E4.12, 3b2f98f). Os documentos não trazem os valores: **as duas listas: a preencher na carga inicial com o dono**.
+
+| Campo no `ref_dominio` | Valor conferido (origem) | Contagem fora do domínio (`ctl_coleta_contagem`) | Lista vazia ou valor fora dela | Uso |
+|---|---|---|---|---|
+| `categoria` | coluna `categoria` (plano §2 linha 9) | `fora_dominio_categoria` | o valor vira nulo, com a contagem e sem o valor; lista vazia = **toda categoria nula** e, por consequência, **a natureza sem valor** em todo chamado (o prefixo do §10 não tem o que ler; contagem `natureza_sem_prefixo`). `categoria_key` continua lida | natureza (§10) e `categoria_sistema` da projeção |
+| `descricao_workflow` | `estatisticas.workflow.etapas[].descricaoWorkflow` (§2) | `fora_dominio_workflow` | o valor vira nulo, com a contagem e sem o valor; lista vazia = toda descrição do workflow nula no staging das etapas | só staging das etapas; nenhuma métrica da F2 o lê |
+
+Formato da linha: `codigo` e `rotulo` são conferidos os dois contra o valor (`referencia.ts`); para estas listas, use o próprio texto nos dois (na `categoria` o `codigo` pode ser a `categoria_key` em texto decimal, com o nome no `rotulo`). Lista vazia não impede a coleta (só as do recorte, §4 a §6, impedem); por isso o painel não se publica com `fora_dominio_categoria` maior que zero sem o dono ter visto a contagem.
+
+Consulta da carga inicial (E4.8), na mesma conta e no terminal do dono: só valores distintos com a contagem, nenhuma linha de dado, no mesmo recorte do §11 (nenhuma organização cliente entra no filtro):
+
+```sql
+SELECT 'categoria' AS lista, categoria_key AS chave, categoria AS nome, COUNT(*) AS n
+  FROM ACELERATO_CHAMADOS
+ WHERE tipo_ticket = 'DSPD - SSSC' AND equipe IN ('SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG') AND organizacao LIKE 'UNIFIQUE - DSPD%'
+ GROUP BY categoria_key, categoria
+UNION ALL
+SELECT 'descricao_workflow', NULL, e.descricao_workflow, COUNT(*)
+  FROM ACELERATO_CHAMADOS c,
+       JSON_TABLE(c.estatisticas, '$.workflow.etapas[*]' COLUMNS (descricao_workflow VARCHAR(255) PATH '$.descricaoWorkflow')) e
+ WHERE c.tipo_ticket = 'DSPD - SSSC' AND c.equipe IN ('SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG') AND c.organizacao LIKE 'UNIFIQUE - DSPD%'
+ GROUP BY e.descricao_workflow
+```
+
+O caminho `json` é o mesmo da Q2 (`sql.ts`). O dono confere a saída antes do commit: valor que traga nome de pessoa ou de organização cliente fica fora da lista (vira nulo com contagem), não entra no `ref_dominio`. A saída preenche o §12 por um commit revisado; mudar a lista depois é mudança de critério (T2.6), como as demais.
