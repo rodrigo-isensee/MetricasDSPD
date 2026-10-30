@@ -43,8 +43,16 @@ export interface ConfigDiagnostico {
 const OBRIGATORIAS = ['BUSINESSMAP_URL_BASE', 'BUSINESSMAP_APIKEY'] as const;
 
 const vazioParaUndefined = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
+/** https sempre; http só em loopback (a chave vai no cabeçalho e não pode trafegar em claro). */
+function urlSegura(valor: string): boolean {
+  const u = URL.canParse(valor) ? new URL(valor) : undefined;
+  if (!u) return false;
+  if (u.protocol === 'https:') return true;
+  return u.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(u.hostname);
+}
+
 const esquemaEnv = z.object({
-  BUSINESSMAP_URL_BASE: z.string().url(),
+  BUSINESSMAP_URL_BASE: z.string().url().refine(urlSegura),
   BUSINESSMAP_APIKEY: z.string().min(1),
   BUSINESSMAP_QUADROS_IDS: z.preprocess(vazioParaUndefined, z.string().regex(/^\d+(,\d+)*$/).optional()),
   BUSINESSMAP_LIMITE_POR_MINUTO: z.preprocess(vazioParaUndefined, z.coerce.number().int().min(1).max(1000).default(25)),
@@ -125,6 +133,7 @@ export function criarCliente(cfg: ConfigDiagnostico, deps: DepsCliente = {}) {
     const alvo = caminho + consulta;
     let falhas = 0;
     let esperas = 0;
+    let limite429 = false;
     for (;;) {
       await espacar();
       let falha: { tipo: 'indisponivel' | 'tempo-esgotado'; detalhe: string };
@@ -139,6 +148,7 @@ export function criarCliente(cfg: ConfigDiagnostico, deps: DepsCliente = {}) {
           continue;
         }
         if (r.status === 429 || r.status >= 500) {
+          limite429 = r.status === 429;
           falha = { tipo: 'indisponivel', detalhe: `HTTP ${r.status}` };
         } else if (r.status >= 400) {
           throw new ErroDiagnostico('http', `GET ${caminho} respondeu ${r.status}`);
@@ -160,7 +170,7 @@ export function criarCliente(cfg: ConfigDiagnostico, deps: DepsCliente = {}) {
         };
       }
       falhas += 1;
-      if (falhas >= 3) throw new ErroDiagnostico(falha.tipo, limpar(`GET ${caminho}: ${falha.detalhe} (3 tentativas)`));
+      if (falhas >= 3) throw new ErroDiagnostico(falha.tipo, limpar(`GET ${caminho}: ${falha.detalhe} (${limite429 ? 'limite de 429 esgotado' : '3 tentativas'})`));
       await dormir(falhas === 1 ? 1000 : 4000);
     }
   }
@@ -297,7 +307,7 @@ export async function diagnosticar(deps: DepsDiagnostico): Promise<ResultadoDiag
     const partes = [
       '# Diagnóstico da estrutura do BusinessMap',
       '',
-      `Gerado em ${new Date((deps.agora ?? Date.now)()).toISOString()}. Só leitura: sem cards, sem pessoas, sem valores de campos.`,
+      `Gerado em ${new Date((deps.agora ?? Date.now)()).toISOString()}. Só leitura: sem cards, sem campos de pessoa, sem valores de campos; confira os nomes de quadro, coluna e raia antes de colar.`,
     ];
     for (const s of secoes) {
       partes.push('', `## ${s.titulo}`, '');

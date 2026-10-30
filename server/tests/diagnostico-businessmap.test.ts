@@ -282,11 +282,34 @@ describe('429 e limite por minuto', () => {
   it('429 sem fim: após 5 esperas a seção diz indisponivel', async () => {
     const s = await servir((c, q, n) => (c === '/cardTypes' ? { status: 429, corpo: { retry_after: 1 } } : estrutura(c, q, n)));
     const r = await diagnosticar({ env: env(s.urlBase), dormir: dormirFalso() });
-    expect(r.saida).toContain('> indisponivel: GET /cardTypes: HTTP 429 (3 tentativas)');
+    expect(r.saida).toContain('> indisponivel: GET /cardTypes: HTTP 429 (limite de 429 esgotado)');
+  });
+});
+
+describe('redirecionamento', () => {
+  it('302 para outro host: o segundo servidor não recebe pedido nem chave e a seção diz indisponivel', async () => {
+    const outro = await servir(estrutura);
+    const s = await servir((c, q, n) =>
+      c === '/workspaces' ? { status: 302, cabecalhos: { location: `${outro.urlBase}/workspaces` } } : estrutura(c, q, n));
+    const r = await diagnosticar({ env: env(s.urlBase), dormir: dormirFalso() });
+    expect(outro.requisicoes).toHaveLength(0);
+    expect(r.saida).toContain('> indisponivel: GET /workspaces: erro de rede');
+    semChaveNemPessoa(r.saida);
   });
 });
 
 describe('configuração', () => {
+  it('recusa http fora de loopback e aceita https e loopback', async () => {
+    for (const u of ['http://bm.exemplo/api/v2', 'http://10.0.0.1/api/v2', 'ftp://127.0.0.1/x']) {
+      const r = await diagnosticar({ env: env(u) });
+      expect(r.codigo).toBe(2);
+      expect(r.erro).toBe('variável inválida: BUSINESSMAP_URL_BASE');
+    }
+    for (const u of ['https://bm.exemplo', 'http://127.0.0.1:1', 'http://localhost:1', 'http://[::1]:1']) {
+      expect(lerConfig(env(u)).urlBase).toBe(u);
+    }
+  });
+
   it.each(['BUSINESSMAP_URL_BASE', 'BUSINESSMAP_APIKEY'])('falta %s: código 2 e mensagem com o nome, sem valor', async (nome) => {
     const e = env('http://127.0.0.1:1' + PREFIXO) as Record<string, string | undefined>;
     delete e[nome];
