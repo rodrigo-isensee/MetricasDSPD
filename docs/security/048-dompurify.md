@@ -3,15 +3,21 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: feature/048-dompurify
-commit: a48aacb53e3a852e410590b87f1327f679a69712
+commit: 2ee99f43d078f246acec9bea57508542bc5a4d1e
 parecer: aprovado
 revisor: forge:security-engineer
-data: 2026-10-29
+data: 2026-10-30
 ---
 # Review de segurança: 048-dompurify (K-178, alerta Dependabot #12)
 
 ## Gatilhos
 Cadeia de suprimentos: dependência com alerta crítico e mudança de lockfile e de override (`pnpm-workspace.yaml`). Sem toque em código, dado pessoal, credencial ou pipeline.
+
+## Revalidação por delta (2026-10-30)
+Intervalo revisado: a48aacb53e3a852e410590b87f1327f679a69712..2ee99f43d078f246acec9bea57508542bc5a4d1e (`forge-check delta --parecer`). O que entrou veio da develop pelos merges bc63128 e 85e4163 (`gh pr update-branch`), mais os pareceres de QA e de review da própria branch. Arquivos tocados: `.forge/versao` (0.30.3 para 0.30.5), `package.json:4` (versão 0.1.0 para 0.2.0), `CHANGELOG.md`, ADRs 0016, 0020 e 0022, `docs/architecture/`, `docs/contratos/`, `docs/integracao/` e `docs/ux/`. Só documentação, a marcação de versão do Forge e a versão do pacote raiz.
+- Não mudaram: `pnpm-lock.yaml`, `pnpm-workspace.yaml` (override do dompurify 3.4.17), código em `server/`, `web/`, `packages/` e `e2e/`, `.github/` e hooks (busca por esses caminhos no diff do intervalo, sem resultado).
+- `.forge/versao` é só o registro da versão instalada (uma linha), sem conteúdo executável; nenhum arquivo de controle do Forge (hook, regra, script) foi tocado.
+- A conclusão sobre o alerta #12 permanece: dompurify só transitivo, `.html()` do jsPDF e `SAFE_FOR_TEMPLATES` sem uso, correção barata e correta.
 
 ## Achados
 
