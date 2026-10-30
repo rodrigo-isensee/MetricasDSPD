@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: docs/048-t14-desenho
-commit: aae3901aa2d79bcad10001ec2305a1471447aee1
+commit: 143b9358f40d5a66c07baa44ad132f5792668881
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -91,3 +91,9 @@ A1 a A5 eram defeitos de entrega que o `pronto` pegou; o QA os corrigiu neste co
 - 2026-10-28: head `aae3901`. `pnpm run pronto` completo, rc=0 no head (cobertura 100%, docs:check ok).
 - Delta conferido, `4497268..aae3901` (19 arquivos): nada em `packages/`, `e2e/` nem em código ou teste da T14. Vieram da `develop` e de documentação: `.github/workflows/homolog.yml` (portão do 047), `server/tests/plataforma2.test.ts` (aquecimento do lint, K-150, fora da T14), `CLAUDE.md` e `praticas.md` (texto), pareceres de outros pedidos (026 e 047), revisão de UX (`docs/ux/revisao-048-t14.md`), aprovação do arquiteto no plano técnico e a revalidação do review.
 - Veredito inalterado (aprovado): o que testei (T14, contrato por `oculto`, mock) não mudou, e o `pronto` verde no head confirma que a integração com a `develop` não o quebrou.
+
+## Revalidação 2026-10-29
+
+- Head `143b9358`. Diff `7c94348..HEAD` conferido: no lockfile só dompurify 3.4.16 para 3.4.17 (override) e `legacy-javascript` 0.0.3 para 0.0.4 (transitivo de ferramenta de desenvolvimento), mais `pnpm-workspace.yaml` e pareceres, tudo do K-178; nada em `packages/`, `server/`, `web/` nem `e2e/`, nada da T14 nem do contrato por `oculto`.
+- Testes do web (1228) e E2E de exportação (15) nesta HEAD: `docs/qa/048-dompurify.md`, aprovado. Suíte da T14 não rodada de novo, pois o código dela não mudou.
+- Veredito inalterado: aprovado. Bloco `## Achados` intacto.
