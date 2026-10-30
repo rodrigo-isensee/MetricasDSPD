@@ -732,3 +732,45 @@
 | 2026-10-29 21:47 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-23 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-10-30 05:12 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-6 | entrega | 1 | nao cumprido | n | Jarvis passou só o brief -6 (c229eea é do -5); forge-check pr rodado no checkout principal (versao 0.28.0) e não na worktree 052 (0.30.5, passa) | escopo | destino |
 | 2026-10-30 05:16 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-6 | entrega | 2 | nao cumprido | parcial | entrega do -6 cumprida (PQ ok, forge-check pr limpo na worktree, CI verde, PR 170 mesclado); falha do lado do Jarvis: entrega do -5 (c229eea) nunca foi conferida e o -5 hoje reprova contra o pedido que cresceu (E1.12, E1.13); briefs não rastreados não chegam à worktree | base | destino |
+| 2026-10-30 05:36 | 053-forge-0-30-7 | 053-forge-0-30-7-tech-lead-1 | brief | 1 | reprovado | n | Etapa: codigo em brief de review | etapa | jarvis |
+| 2026-10-30 05:37 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-24 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 05:39 | 053-forge-0-30-7 | 053-forge-0-30-7-tech-lead-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-30 05:42 | 053-forge-0-30-7 | 053-forge-0-30-7-tech-lead-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-10-30 05:44 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-25 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 05:45 | 053-forge-0-30-7 | 053-forge-0-30-7-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 05:50 | 053-forge-0-30-7 | 053-forge-0-30-7-qa-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-10-30 05:50 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-25 | entrega | 1 | não cumpriu (só Desde de outra branch) | s | Desde 7ce15c3 não ancestral; delta ok no mérito | base | destino |
+| 2026-10-30 05:50 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-security-engineer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 05:53 | 053-forge-0-30-7 | 053-forge-0-30-7-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 05:55 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-security-engineer-5 | entrega | 1 | não cumprido (só Desde de outra branch) | s | Desde 7ce15c3 não ancestral; delta ff26c0e ok no mérito | base | destino |
+| 2026-10-30 05:56 | 053-forge-0-30-7 | 053-forge-0-30-7-tech-lead-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-10-30 05:56 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 06:01 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-26 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 06:01 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-11 | entrega | 1 | não cumpriu | s | só o Desde 7ce15c3 não é ancestral da branch; PQ-1 a PQ-4 cumpridos; aceito no mérito | base | destino |
+| 2026-10-30 07:04 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-26 | entrega | 1 | não cumpriu | s | PQ-1 a PQ-3 cumpridos, PR 171 mesclado (0dcf9ba); reprova pelo Desde de outra branch e pelo intervalo inteiro da branch (forge-check entrega x forge-check pr divergem no parecer de review); aceito no mérito | base | destino |
+| 2026-10-30 07:16 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-ux-designer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 07:16 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-15 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 07:17 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-27 | brief | 1 | reprovado | s | pronto antes do commit do parecer | decisao | jarvis |
+| 2026-10-30 07:21 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-28 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 07:23 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-29 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-30 07:26 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-28 | entrega | 1 | não cumpriu (intervalo vazio na etapa codigo, sem commit esperado; PQ-1 a PQ-5 no disco) | s | etapa operacional sem commit marcada como codigo porque o gerar recusa merge-integracao para worktree; Desde 7ce15c3 de outra branch | etapa | destino |
+| 2026-10-30 07:43 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-react-frontend-15 | entrega | 1 | não cumpriu (A3 sem commit, parada prevista no brief; cobertura.test.tsx fora do Entregar; E3.6 e E5.6 entraram no pedido depois do brief) | s | A3 parou como o brief manda (CA-B inalcançável, vai ao dono); mock do cobertura.test.tsx é consequência direta da correção do A1, aceito no mérito; Desde 7ce15c3 de outra branch | escopo | destino |
+| 2026-10-30 07:47 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-node-backend-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 07:55 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-29 | entrega | 1 | não cumpriu | s | só o Desde 7ce15c3 de outra branch; PQ-1 a PQ-4 cumpriram, escopo ok sem Desde | base | destino |
+| 2026-10-30 07:58 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-12 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 08:21 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-12 | entrega | 1 | não cumpriu | parcial | spec e2e/perf/cls-tatico-equipes.spec.ts fora do Entregar deixa review e QA desatualizados no forge-check pr; Desde de outra branch | escopo | destino |
+| 2026-10-30 08:25 | 053-forge-0-30-7 | 053-forge-0-30-7-tech-lead-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 08:30 | 053-forge-0-30-7 | 053-forge-0-30-7-tech-lead-3 | entrega | 1 | não cumpriu | s | só o Desde 3ebdf81 da forge/upgrade-0.30.7; PQ-1 a PQ-12 cumpriram | base | destino |
+| 2026-10-30 08:33 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-30 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 08:48 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-tech-lead-30 | entrega | 1 | não cumpriu | s | Desde 7ce15c3 de outra branch; PQ-1,3,4,5 cumpriram, escopo e merge ok; aceita no mérito | base | destino |
+| 2026-10-30 08:49 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-13 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-10-30 08:54 | 048-o-que-falta-em-mock | 048-o-que-falta-em-mock-qa-engineer-13 | entrega | 1 | não cumpriu | s | Desde 7ce15c3 de outra branch; PQ-1 a 5 e delta ok; aceita no mérito | base | destino |
+| 2026-10-30 09:23 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-7.md | brief | 1 | reprovado | s | recibo WS1 fora sem registro da substituicao pelo faca a C | decisao | jarvis |
+| 2026-10-30 09:26 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-1.md | brief | 1 | reprovado | parcial | ESCOPO+ apontado como ausente mas esta no brief; decisao 2026-10-23 sem registro no 052 procede | decisao | jarvis |
+| 2026-10-30 09:27 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-7.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-10-30 09:30 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-1.md | brief | 2 | reprovado | s | doc do paragrafo 8 sem cobertura no pedido; contagem de valores permitidos contradiz sem allowedValues | escopo | jarvis |
+| 2026-10-30 09:32 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-7 | entrega | 1 | nao cumpriu: PQ-1 a PQ-5 cumpriram; intervalo vazio na etapa codigo (entrega sem commit por desenho); brief sem a decisao de 2026-10-23 copiada ao pedido depois da aprovacao | parcial | mensagem de entrega enviada sem a copia do brief (erro do Jarvis) | escopo | destino |
+| 2026-10-30 09:32 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-1 | brief | 3 | reprovado: instrucao do Jarvis (pronto uma vez no fim) atribuida a DECISAO DO DONO de 2026-10-23 | s |  | decisao | jarvis |
+| 2026-10-30 09:36 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-1 | brief | 4 | reprovado: variaveis opcionais e /workspaces sem decisao registrada | s | tardio | escopo | jarvis |
+| 2026-10-30 09:38 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-1 | brief | 5 | aprovado | s |  | — | jarvis |
+| 2026-10-30 09:55 | 054-trocar-de-computador | 054-trocar-de-computador-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |

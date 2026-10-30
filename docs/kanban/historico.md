@@ -558,3 +558,13 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-29T20:26:47-03:00 | K-182 | Pronto para fazer | Em andamento | E1.10 com o software-architect |
 | 2026-10-29T21:21:49-03:00 | K-178 | QA | Em andamento | PR e merge na develop com o tech-lead (tl-22) |
 | 2026-10-30T05:16:47-03:00 | K-182 | Em andamento | Bloqueado | aguardando o dono: E1.4 (apikey no .env e WS1); discovery mesclado na develop (PR 170) |
+| 2026-10-30T05:32:50-03:00 | K-184 | — | Em andamento | pedido 053 |
+| 2026-10-30T05:56:21-03:00 | K-184 | Em andamento | Aguardando sua validação | Aguardando o dono: merge do PR #172 (E1.5) |
+| 2026-10-30T07:04:03-03:00 | K-178 | Em andamento | Pronto | PR 171 mesclado na develop (0dcf9ba) |
+| 2026-10-30T07:58:14-03:00 | K-128 | Entrada | QA | lote 048d em QA (qa-engineer-12) |
+| 2026-10-30T08:25:27-03:00 | K-184 | Aguardando sua validação | Em andamento | PR #172 mesclado; E2.1 |
+| 2026-10-30T08:30:17-03:00 | K-184 | Em andamento | Pronto | E2.1 entregue |
+| 2026-10-30T08:33:46-03:00 | K-128 | QA | Code review | volta 1 |
+| 2026-10-30T08:50:04-03:00 | K-128 | Code review | QA | volta 1: review do delta aprovado (ed5b0c2); QA atualiza commit do parecer |
+| 2026-10-30T08:54:27-03:00 | K-128 | QA | QA | Aguardando o dono: PR bloqueado pelo cmd_pr (parecer de outra branch do pedido) |
+| 2026-10-30T09:18:43-03:00 | K-185 | Entrada | Em andamento | pedido 052, decisão do dono "faca a C"; E1.14 |

@@ -31,7 +31,6 @@
 | K-142 | [docs] README manda instalar o Chromium na raiz; o Playwright só existe em e2e/ (comando certo: pnpm --filter ./e2e exec playwright install chromium) | 042 | forge:tech-lead | 2026-10-27 | 2026-10-27 14:12 | MELHORIA da E2.2 do 042; aberto na auditoria de itens perdidos |
 | K-126 | [037 review A1/A2] Worker do mock: pedido pendente para sempre se o postMessage lançar; guarda para pedido antes do iniciar | 037 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Recomendado (não bloqueante) no review 037 |
 | K-127 | [037 review A3/A4] F9 soma os chunks do Worker e do fallback (nunca baixados juntos); ADR 0021 ainda "proposta" | 037 | forge:software-architect | 2026-10-21 | 2026-10-21 | Recomendado no review 037; A3 com o devops/tech-lead no size.mjs |
-| K-128 | [025 review A1] COM_TAMBEM da MockFonteMetricas sem T11, T13 e T14 (no mock, T13/T14 sem vínculo e sem time); depois do 037 (arquivo agora em nucleoMock.ts) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Limite do mock, não fere a ficha (review 025) |
 | K-137 | [docs] Checklist de "computador novo" no README do projeto: Docker, `.env`, `pnpm install`, `playwright install-deps` (sudo, dono), grupo docker antes de abrir o Claude Code | 040 | forge:tech-lead | 2026-10-22 | 2026-10-22 21:35 | MELHORIA da retrospectiva do 040 (parte do projeto; a parte da fábrica é o F13) |
 | K-133 | [bug] L2T-003 (baixa): CLS de 0,073 a 0,100 em /tatico com equipe na API (herdado; reproduz com a seção do lote 2 fechada) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-21 | Pendência do PR do 025 por decisão do dono (A) |
 | K-125 | Avaliar se as branches feature/011-metricas-tambem-back (3 commits de revalidação depois do #92) e feature/011-fase2-back (2) ainda devem ir à develop; depois apagar | 039 | forge:tech-lead | 2026-10-21 | 2026-10-21 | Decisão A do dono no pedido 039 |
@@ -75,8 +74,8 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:tech-lead | 2026-10-29 | 2026-10-29 21:47 | E6.1 (a48aacb), E6.2 (6c1dc67), review (8e0f8f4), QA (143b935) e revalidação do QA da T14 (112f48e) aprovados; PR e merge na develop com o tech-lead (brief tech-lead-23; frontmatter do QA corrigido em 8df0743) · worktree: MetricasDSPD-048e |
-| K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-29 07:44 | E3.1 do 048 (node-backend-5), feature/048-ajustes-back · worktree: MetricasDSPD-048c |
+| K-185 | [integração] Diagnóstico da WS1: script só leitura que lista a estrutura do BusinessMap (quadros, colunas, raias, campos), o dono roda e cola a saída | 052 | forge:tech-lead | 2026-10-30 | 2026-10-30 09:18 | E1.14 (worktree 052b, feature/052-ws1-estrutura), depois E1.15 node-backend; gatilho de segurança · worktree: MetricasDSPD-052b |
+| K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-29 07:44 | E3.1 e E3.6 do 048, feature/048-k129-pico (develop 0dcf9ba, E5.6 entregue 2026-10-30 07:26) · worktree: MetricasDSPD-048f |
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-29 07:44 | Push feito pelo dono (2026-10-29); conferência da entrega e PR ao Forge (E3.2 a E3.5 do 047) · worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 |
 | K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-29 07:44 | Volta 2 do E4.1 (react-frontend-11): DECISÃO DO DONO 048-03 = A (barra de filtros sem fixação) · worktree: MetricasDSPD-048b |
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
@@ -89,6 +88,7 @@
 ## QA (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-128 | [025 review A1] COM_TAMBEM da MockFonteMetricas sem T11, T13 e T14 (no mock, T13/T14 sem vínculo e sem time); depois do 037 (arquivo agora em nucleoMock.ts) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-30 08:49 | Lote 048d (K-128, K-126, K-133, K-127), feature/048-ajustes-front; volta 1: review do delta aprovado (ed5b0c2); QA atualiza o commit do parecer, brief qa-engineer-13 · worktree: MetricasDSPD-048d |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -97,6 +97,8 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-184 | [forge] Projeto no Forge 0.30.7: registro da versão por PR para a develop e develop levada às worktrees em uso | 053 | forge:tech-lead | 2026-10-30 | 2026-10-30 08:30 | E1 PR #172 (9aa6b29) e E2.1 merges 439ebc7, 737bf20, 20af7d7; retrospectiva pendente (junto com a do 048) |
+| K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:tech-lead | 2026-10-29 | 2026-10-30 07:04 | PR #171 mesclado na develop com squash (0dcf9ba); review 2ee99f4, segurança ff26c0e e QA 256991a revalidados por delta; branch remota e worktree 048e: limpeza do dono |
 | K-181 | [release] Promoção develop (311691b) → homolog → main: versão nova, CHANGELOG e pareceres (operacionais O19 a O26) | 050 | forge:tech-lead | 2026-10-29 | 2026-10-29 16:09 | PR #169 mesclado (31c11b8); tag v0.2.0 (homolog → main, release: v0.2.0) aberto, homolog-aprovada verde; aguardando o dono: rótulo afrouxa-regra, merge na main e tag final v0.2.0 (E3.2) |
 | K-180 | [doc] Página de contrato da O23 sem lacunas (U-11 e parado com bloqueado) | 051 | forge:node-backend | 2026-10-29 | 2026-10-29 11:33 | PR #164 mesclado na develop (311691b); review docs/reviews/051-o23-regras.md |
 | K-093 | [bug] SNO-005: primeira consulta depois de subir a API passa de 300 ms | sust-no-operacional | forge:node-backend | 2026-10-15 | 2026-10-29 11:03 | fechado sem código (SNO = C); PR #163 mesclado (739bdbf) |
@@ -161,7 +163,7 @@
 | K-141 | Ambiente da máquina nova: Docker, `.env`, Node 24, Chromium, doutor; depois pnpm install e banco | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono (E2.1); depois tech-lead (E2.2) e devops (E2.3) |
 | K-152 | [forge] F21: worktree nova sem dependências não quebra o pre-push | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 20:18 | Aguardando o dono: aplicar docs/analises/043-f21-pre-push.patch no clone (docs/analises/043-f21-instrucoes-ao-dono.md); resto do F21 pronto sem commit |
 | K-153 | [forge] F22: PR de release não nasce antes do portão; homolog-aprovada sem corrida | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 22:11 | Aguardando o dono: abrir o PR do F22 pelo terminal (decisão B; a 0.30.5 não lê pedido fora de ~/.forge-contrib, 043 07:44) |
-| K-182 | [integração] BusinessMap com dados reais: discovery (T2.1, spike K-087, ameaças), coleta T2.2, webhook T2.3, painéis FL1 a FL3 | 052 | forge:tech-lead | 2026-10-29 | 2026-10-30 05:16 | Aguardando o dono: E1.4 (apikey no .env e WS1). Discovery na develop (PR 170, 1a6617e); conferência da entrega não cumprida por falha do Jarvis (brief -5 não conferido), mérito parcial · worktree: MetricasDSPD-052 |
+| K-182 | [integração] BusinessMap com dados reais: discovery (T2.1, spike K-087, ameaças), coleta T2.2, webhook T2.3, painéis FL1 a FL3 | 052 | forge:tech-lead | 2026-10-29 | 2026-10-30 05:16 | Aguardando o dono: E1.4, apikey ok e conexão testada (2026-10-30); falta a confirmação da WS1. Discovery na develop (PR 170, 1a6617e); conferência da entrega não cumprida por falha do Jarvis (brief -5 não conferido), mérito parcial · worktree: MetricasDSPD-052 |
 
 ## Políticas locais (acrescentadas na auditoria K-021)
 - **Entrada é o backlog:** cartão com dependência aberta de outro cartão fica em Entrada; só entra em "Pronto para fazer" o que pode ser puxado agora (a espera por ata de reunião em andamento é a única exceção, e deve constar em Obs.).
