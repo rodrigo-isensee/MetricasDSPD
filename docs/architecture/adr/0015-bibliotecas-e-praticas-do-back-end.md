@@ -47,7 +47,7 @@ O que está bom e **fica como está**: config com Zod validada na partida, citan
 | OpenTelemetry, Prometheus, Sentry | Sem coletor nem consumidor hoje, e o Sentry teria custo e enviaria dado para fora. Logs Pino estruturados bastam. Reavaliar quando houver hospedagem (ADR futura). |
 | `@fastify/helmet` na API | A API só serve JSON atrás do nginx, que já define os cabeçalhos dos estáticos. Entra se a API passar a servir HTML. |
 | Biblioteca de datas no servidor (`date-fns`, `luxon`, `dayjs`) | Todo cálculo de tempo passa pela biblioteca compartilhada (T2.5). O servidor só lida com instantes `Date`. |
-| `lodash`, `class-validator`, `dotenv`, `axios` | Já cobertos pela linguagem, pelo Zod, pelo Node 24 ou pelo ky. |
+| `lodash`, `class-validator`, `dotenv`, `axios` | Já cobertos pela linguagem, pelo Zod ou pelo Node 24 (o `axios`, pelo `fetch` nativo; revisão 1). |
 | Compilar para JS (`tsc`/`tsdown`) no lugar de `node --import tsx` | Os pacotes do workspace são consumidos como TypeScript. Trocar mexe no monorepo inteiro sem ganho medido. Reavaliar se o tempo de partida ou o tamanho da imagem virar problema. |
 
 ### Critérios para uma dependência nova (todos obrigatórios; o `node-backend` cita no PR)
@@ -103,7 +103,7 @@ Esforço: **P** até meio dia, **M** 1 a 2 dias, **G** 3 dias ou mais. Cada cart
 - **Decisão:** o cliente HTTP de saída do BusinessMap usa `fetch` nativo, com limitador por janela móvel de 60 s, timeout por `AbortSignal.timeout`, nova tentativa limitada só em GET (5xx, tempo esgotado, falha de rede), espera de 429 por `retry_after` e interrupção da execução em 401/403. ky e p-throttle não entram como dependência.
 - **Motivo:** (1) nenhuma dependência nova num cliente cuja chave pode escrever no quadro (Q-5 = B do 052: a chave é a do dono, e o cliente é a única barreira contra escrita); (2) os controles do plano 052 (F0) exigiriam no ky `hooks` e configuração de tamanho comparável ao código próprio; (3) o limitador precisa contar também as novas tentativas e as esperas de 429, o que o p-throttle sozinho não faz. O código cabe em cerca de 150 linhas de lógica, coberto por testes com servidor falso e relógio injetado.
 - **Alcance:** só o cliente do BusinessMap. Não é base genérica para outros coletores: um cliente de saída novo (Metabase ou outro) decide a biblioteca quando existir, por esta ADR (critérios de dependência nova) e não por herança deste cliente.
-- **Critério de reversão (fato observável):** volta-se a ky (e a um limitador de biblioteca) se (a) um segundo cliente de saída precisar dos mesmos controles (o código seria duplicado), ou (b) a F1 ou a F3 do 052 registrarem defeito no limitador ou na nova tentativa (falha em `ctl_coleta_falha` com código 429 repetido ou execução que excede a cota de 30/min da API).
+- **Critério de reversão (fato observável):** volta-se a ky (e a um limitador de biblioteca) se (a) um segundo cliente de saída precisar dos mesmos controles (o código seria duplicado), ou (b) a F1 ou a F3 do 052 registrarem defeito no limitador ou na nova tentativa (falha em `ctl_coleta_falha` com código 429 repetido ou execução que excede a cota de 30/min da API). Em qualquer volta, a biblioteca escolhida precisa manter os dois controles pedidos pela segurança da F0 (`docs/security/052-f0-fundacoes.md`, ffa261f): redirect não seguido (`redirect: 'manual'`, 3xx vira erro, para que o cabeçalho `apikey` não vá a outro host) e erro sem `cause` (nem corpo da resposta). Sem os dois, a volta não acontece.
 - **Alternativas consideradas:** manter ky + p-throttle como no desenho original (rejeitada pelos três motivos acima); `undici` direto (dependência sem ganho sobre o `fetch` do Node 24).
 - **Consequências:** zero dependência nova no caminho da chave; o limitador e a nova tentativa passam a ser código nosso, com cobertura de 100% obrigatória; a seção "Não adotar" deixa de ter o ky como cobertura do `axios` para o BusinessMap (o `axios` segue não adotado).
 
@@ -111,6 +111,7 @@ Esforço: **P** até meio dia, **M** 1 a 2 dias, **G** 3 dias ou mais. Cada cart
 |---|---|---|
 | Review da F0 do 052, achado A1 e item "Troca de ky e p-throttle" | `docs/reviews/052-f0-fundacoes.md` (branch `feature/052-f0-fundacoes`) | 2026-10-30 |
 | Cliente da F0 | `server/src/plataforma/http.ts` (cabeçalho de controles, limitador, laço de tentativas) | 2026-10-30 |
+| Parecer de segurança da F0, item "Troca de ky e p-throttle" | `docs/security/052-f0-fundacoes.md` (ffa261f, branch `feature/052-f0-fundacoes`) | 2026-10-30 |
 
 ## Alternativas consideradas
 - **Manter `pg` puro (0014 rev. 2):** zero dependência a mais, mas mantém tipos de linha à mão, a mistura BM × AC detectada só por lint e o SQL interpolado com `${S}`. O usuário liberou a troca.
