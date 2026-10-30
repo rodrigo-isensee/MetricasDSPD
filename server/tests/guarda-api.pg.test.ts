@@ -18,6 +18,11 @@ const CLASSIFICACAO_API: Record<string, Classe> = {
   'dspd_bm.ref_limite_wip_fluxo': 'na API',
   'dspd_bm.ref_quadro': 'na API',
   'dspd_bm.ref_sle': 'na API',
+  // Pedido 052, F0: `ref_workflow` e `ref_tipo_card` são lidas inteiras; a tabela de times é lida por coluna (sem `registrado_por`).
+  'dspd_bm.ref_workflow': 'na API',
+  'dspd_bm.ref_tipo_card': 'na API',
+  'dspd_bm.ref_time': 'por coluna',
+  'dspd_bm.ref_time_workflow': 'por coluna',
   'dspd_ac.ref_alvo_prioridade': 'na API',
   'dspd_core.ref_calendario': 'na API',
   'dspd_core.ref_calendario_aplicacao': 'na API',

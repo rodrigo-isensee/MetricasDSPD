@@ -40,7 +40,7 @@ d('catálogo do esquema (testes de catálogo do CI)', () => {
     const com = new Set(r.rows.map((x) => x.t));
     const tabelas = (await db.query<{ t: string }>(
       `SELECT c.relname AS t FROM pg_class c JOIN pg_namespace s ON s.oid = c.relnamespace WHERE s.nspname = ANY($1) AND c.relkind = 'r'`, [[S.bm, S.ac]])).rows.map((x) => x.t);
-    for (const t of tabelas) expect(com.has(t), t).toBe(/^(stg_|evt_|rec_)|_versao$|^fato_transicao$/.test(t));
+    for (const t of tabelas) expect(com.has(t), t).toBe(/^(stg_|evt_|rec_)|_versao$|^fato_transicao$|^ref_(workflow|tipo_card|time|time_workflow)$/.test(t));
     for (const x of r.rows) expect(Number(x.n), x.t).toBe(2);
   });
 
