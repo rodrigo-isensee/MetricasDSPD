@@ -66,12 +66,15 @@ export function IndiceDeSecoes({ secoes }: { secoes: readonly SecaoDoIndice[] })
     const obs = new IntersectionObserver(
       (entradas) => {
         for (const e of entradas) {
-          if (e.isIntersecting) vistas.add(e.target.id)
+          // Seção que só encosta na borda da faixa (área zero) não está em vista: sem isso, "Publicado" (que termina
+          // exatamente onde a faixa começa) ganha de "Fila" depois do clique (bug 048-01).
+          if (e.isIntersecting && e.intersectionRect.height > 0) vistas.add(e.target.id)
           else vistas.delete(e.target.id)
         }
         setAtual(ordem.find((id) => vistas.has(id)) ?? null)
       },
-      { rootMargin: `-${reservado}px 0px -60% 0px` },
+      // Limiares finos: avisa quando a seção passa de "encostando" (altura 0) para "com área visível".
+      { rootMargin: `-${reservado}px 0px -60% 0px`, threshold: [0, 0.0001, 0.001, 0.01] },
     )
     for (const id of ordem) {
       const el = document.getElementById(id)

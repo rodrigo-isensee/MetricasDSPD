@@ -94,4 +94,45 @@ describe('IndiceDeSecoes mede o que fica fixo (bugs 048-01 e A4 do QA)', () => {
     // 49 (cabeçalho) + 33 (índice) = 82; a barra de filtros rola e não entra na soma.
     expect(margens.at(-1)).toBe('-82px 0px -60% 0px')
   })
+
+  it('o destaque ignora a seção que só encosta na faixa (área zero) e vai para a seguinte (bug 048-01)', async () => {
+    let aviso: ((e: unknown[]) => void) | undefined
+    class ObservadorFalso {
+      constructor(cb: (e: unknown[]) => void) {
+        aviso = cb
+      }
+      observe() {}
+      disconnect() {}
+    }
+    vi.stubGlobal('IntersectionObserver', ObservadorFalso)
+    render(
+      <div>
+        <IndiceDeSecoes
+          secoes={[
+            ['publicado', 'Publicado', ['t1']],
+            ['fila', 'Fila', ['t2']],
+          ]}
+        />
+        <section id="publicado" />
+        <section id="fila" />
+      </div>,
+    )
+    const { act } = await import('@testing-library/react')
+    act(() =>
+      aviso?.([
+        {
+          target: document.getElementById('publicado'),
+          isIntersecting: true,
+          intersectionRect: { height: 0 },
+        },
+        {
+          target: document.getElementById('fila'),
+          isIntersecting: true,
+          intersectionRect: { height: 120 },
+        },
+      ]),
+    )
+    expect(screen.getByRole('link', { name: 'Fila' })).toHaveAttribute('aria-current', 'location')
+    expect(screen.getByRole('link', { name: 'Publicado' })).not.toHaveAttribute('aria-current')
+  })
 })

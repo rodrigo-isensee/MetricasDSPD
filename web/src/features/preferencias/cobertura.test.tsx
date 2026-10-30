@@ -279,7 +279,13 @@ describe('índice fixo', () => {
     const alvo = document.getElementById('a') as HTMLElement
     act(() =>
       chamada(
-        [{ isIntersecting: true, target: alvo } as unknown as IntersectionObserverEntry],
+        [
+          {
+            isIntersecting: true,
+            intersectionRect: { height: 100 },
+            target: alvo,
+          } as unknown as IntersectionObserverEntry,
+        ],
         {} as IntersectionObserver,
       ),
     )
