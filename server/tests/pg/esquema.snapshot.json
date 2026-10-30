@@ -147,6 +147,7 @@
  "dspd_ac.stg_chamado.sistema_origem text NOT NULL DEFAULT 'acelerato'::text",
  "dspd_ac.stg_chamado.coletado_em timestamp with time zone NOT NULL",
  "dspd_ac.stg_chamado.coleta_id bigint NOT NULL",
+ "dspd_ac.stg_chamado.fora_do_recorte boolean NOT NULL DEFAULT false",
  "dspd_ac.stg_etapa.stg_sk bigint NOT NULL",
  "dspd_ac.stg_etapa.chamado_id character varying(32) NOT NULL",
  "dspd_ac.stg_etapa.id_origem character varying(32) NOT NULL",
