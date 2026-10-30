@@ -15,6 +15,8 @@ export type ConexaoMysql = {
   query(sql: string): Promise<unknown>;
   end(): Promise<void>;
   destroy(): void;
+  /** O `Connection` do driver é um EventEmitter; opcional para os duplos de teste. */
+  on?(evento: 'error', ouvinte: (e: unknown) => void): unknown;
 };
 export type OpcoesConexao = Record<string, unknown>;
 export type Conectar = (opcoes: OpcoesConexao) => Promise<ConexaoMysql>;
@@ -41,6 +43,8 @@ export function opcoesConexao(config: ConfigAcelerato, tls: TlsPreparado): Opcoe
     host: config.host, port: config.porta, database: config.banco, user: config.usuario, password: config.senha,
     ssl: opcoesSsl(tls),
     multipleStatements: false, permitLocalInfile: false, compress: false, allowPublicKeyRetrieval: false,
+    // Sem redirecionamento a outro host e só os dois plugins de autenticação esperados (parecer de segurança, A1).
+    permitRedirect: false, restrictedAuth: ['caching_sha2_password', 'mysql_native_password'],
     connectTimeout: TEMPO_CONEXAO_MS,
     // Datas como texto da origem; inteiros grandes como número (chaves cabem em 2^53); sem coerção implícita de tipo.
     dateStrings: true, bigIntAsNumber: true, insertIdAsNumber: true, checkNumberRange: true,
@@ -90,6 +94,9 @@ export async function comSessaoMysql<T>(
   try {
     conexao = await comTempo(conectar(opcoesConexao(config, tls)));
     const aberta = conexao;
+    // O driver emite `error` sem checar ouvinte; sem tratador, erro com a conexão ociosa derrubaria o processo com o texto cru
+    // do driver. O tratador não imprime nada: a falha chega à operação em curso, já traduzida (parecer de segurança, A2).
+    aberta.on?.('error', () => undefined);
     const sessao: SessaoMysql = {
       consultar: async <R extends Record<string, unknown>>(sql: string, valores: readonly unknown[]): Promise<R[]> =>
         (await comTempo(aberta.execute(sql, [...valores]))) as R[],

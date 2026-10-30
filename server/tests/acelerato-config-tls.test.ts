@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { classificarErroDriver, comSessaoMysql, opcoesConexao } from '../src/modulos/acelerato/cliente-mysql.js';
 import { carregarConfigAcelerato, ErroColeta, prepararTls, VARIAVEIS_ACELERATO } from '../src/modulos/acelerato/index.js';
 import { Q5_SAIDA, expandir } from '../src/modulos/acelerato/sql.js';
@@ -114,6 +114,24 @@ describe('CT-17/20: opções e sessão do cliente (driver simulado)', () => {
     });
     expect(o.ssl).toMatchObject({ rejectUnauthorized: true });
     expect(o).not.toHaveProperty('infileStreamFactory');
+  });
+
+  it('segurança A1: sem redirecionamento e só os dois plugins de autenticação esperados', () => {
+    expect(opcoesConexao(CONFIG, TLS)).toMatchObject({ permitRedirect: false, restrictedAuth: ['caching_sha2_password', 'mysql_native_password'] });
+  });
+
+  it('segurança A2: a conexão recebe um tratador de error que não derruba o processo nem imprime nada', async () => {
+    const ouvintes: ((e: unknown) => void)[] = [];
+    const saidas: unknown[] = [];
+    const escreve = vi.spyOn(process.stderr, 'write').mockImplementation((...a: unknown[]) => { saidas.push(a); return true; });
+    const conectar = () => Promise.resolve({
+      query: () => Promise.resolve([]), execute: () => Promise.resolve([]), end: () => Promise.resolve(), destroy: () => undefined,
+      on: (_e: 'error', f: (e: unknown) => void) => { ouvintes.push(f); },
+    });
+    await comSessaoMysql(CONFIG, TLS, async () => { ouvintes[0]!(new Error('SENHA-DE-TESTE-056')); return 1; }, { conectar });
+    escreve.mockRestore();
+    expect(ouvintes).toHaveLength(1);
+    expect(saidas).toEqual([]);
   });
 
   it('uma conexão por execução; READ ONLY e teto antes da primeira consulta; ROLLBACK (nunca COMMIT) e fechamento ao fim', async () => {
