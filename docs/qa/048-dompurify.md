@@ -1,7 +1,7 @@
 ---
 tipo: qa
 contrato: 1
-pedido: 048-dompurify
+pedido: 048-o-que-falta-em-mock
 branch: feature/048-dompurify
 commit: 8e0f8f4e4568dcfb7d5b93223dcda238350453b9
 parecer: aprovado
