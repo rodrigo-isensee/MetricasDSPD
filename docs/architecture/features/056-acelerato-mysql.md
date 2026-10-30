@@ -2,7 +2,7 @@
 tipo: plano-tecnico
 contrato: 1
 pedido: 056
-estado: pronto-para-validacao
+estado: vigente
 ux: n/a (fonte de dados; o painel de sustentação já existe em mock, sem mudança de interface nesta etapa)
 adrs: [0013, 0014, 0020]
 agentes: [node-backend, qa-engineer, tech-lead, security-engineer]
@@ -13,7 +13,7 @@ gatilhos_seguranca: [credencial-externa, dados-pessoais, banco, dependencia-nova
 
 Etapa E3.2 do pedido 056 (2026-10-30), revista na E3.4 (decisões D-2 a D-6 e doc do dash) e fechada na E3.5 com as decisões D-7 a D-10 e com as 19 respostas do time de ciência de dados (`docs/integracao/acelerato-respostas-ciencia-de-dados.md`, citadas daqui em diante como "resp. n"). Outras entradas: `docs/integracao/acelerato-dash-atual.md` ("doc do dash §n"), estrutura da tabela (E3.1, 50 colunas), catálogo de sustentação do briefing (S1 a S12, §3.2 a §3.4, T5.1 a T5.4), `data-model.md` §4 e §6, ADR 0013 §4, `docs/integracao/metabase-acelerato-configuracao.md` e o modelo de ameaças (`docs/security/056-acelerato-mysql-ameacas.md`, M1 a M10, revisto em paralelo na E3.6). Nenhuma linha de dado foi lida; nenhum agente conectou no MySQL nem leu o `.env`.
 
-Estado: **pronto para validação do dono (E1.1)**. As perguntas que sobram (§6) não bloqueiam a fatia F1 (coletor e staging); cada uma bloqueia só as métricas indicadas.
+Estado: **validado pelo dono em 2026-10-30**. As perguntas que sobram (§6) não bloqueiam a fatia F1 (coletor e staging); cada uma bloqueia só as métricas indicadas.
 
 **Conferência com a constituição:** o projeto não tem `docs/constituicao.md`. Conferido contra as regras invioláveis do `CLAUDE.md`: **conforme, com quatro pontos sinalizados**. (1) A regra de leitura do Acelerato só pela API muda pela decisão do dono de 2026-10-30 ("B"); o texto novo é da E2.1. (2) O filtro por agente da T5.1 e os itens por agente do dash não entram (D-1, ADR 0020); o `agente_key` só vira um booleano calculado no próprio MySQL (D-9). (3) O briefing §3.2 (população) e §3.3 (dash) estão desatualizados (D-8, D-5). (4) O tempo por etapa vem do relógio da ferramenta (D-7), exceção à D-3 registrada em `ref_versao_criterio` e marcada nos gráficos (T2.6). O resto: Acelerato só em `dspd_ac`; nenhuma coluna de pessoa ou texto livre na base; staging append-only; percentis, janela e mínimo de 20 só pela biblioteca (T2.5).
 
