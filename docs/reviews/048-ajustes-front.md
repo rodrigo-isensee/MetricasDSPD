@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 048-o-que-falta-em-mock
 branch: feature/048-ajustes-front
-commit: 832541d4a2350751ca6275ef866a752e179515bb
+commit: 439ebc79b90e4da3a72527b75482139484bd8e19
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-30
@@ -60,11 +60,29 @@ O lint, o prettier e o typecheck estão dentro do `pronto`. Não os refiz por le
 - Nenhuma métrica ganhou cálculo próprio.
 - Os commits seguem o Conventional Commits em português, com a linha `Cartão:` e a atribuição.
 
+## Revisão do delta (7e54ff1..439ebc7)
+**Veredito do delta: aprovado.** O que entrou depois da 1a revisão:
+- `c838c1e`, `e2e/perf/cls-tatico-equipes.spec.ts` (36 linhas, do QA). Mede o F2 da ADR 0003 em /tatico sem equipe e nas 6 equipes de `SLUGS.equipesFluxo`, com 5 cargas por caso e a pior carga contra `ORCAMENTO.F2_cls`. É o que o A1 pedia. Não depende de tempo fixo: espera `esperarPronto`, rede ociosa e dois quadros de animação, como os outros specs de `e2e/perf/`. Tem guarda contra lista vazia (ao menos 5 equipes). Não há dado de pessoa: equipe é time. Fica no projeto `perf` do Playwright (`testDir: './perf'`), fora do `pronto`, e roda no job `perf` do CI em PR para `homolog` e `main`.
+- `439ebc7`, merge da develop `9aa6b29` (Forge 0.30.7). Não houve conflito resolvido à mão: `git merge-tree --write-tree c838c1e 9aa6b29` dá a árvore `39bf67e`, igual à do merge. Contra a develop, o diff é só o da branch (16 arquivos). Contra `c838c1e`, entram só os 32 arquivos da develop, sem nada em `web/`, `server/` nem `packages/`.
+
+O `pnpm run pronto` foi rodado uma vez na raiz da worktree, no head `439ebc7`, e terminou com rc=0:
+- web: 1241 testes.
+- metricas: 1092.
+- mock: 258.
+- server: 591, com 84 pulados.
+- contratos: 161.
+- docs-contratos: 102.
+- `docs:check`: ok.
+- F6: 192.31 KB.
+- F9 pelo maior caminho: 72.39 KB.
+
+Já lido, e não relido: o intervalo `7c94348..832541d`.
+
 ## Achados
-- A1 (recomendado) web/src/features/tatico/reservaFaixa.ts:14 · 88 px com equipe vale para 4 das 5 equipes do mock; na que quebra em duas linhas a faixa cresce cerca de 42 px ao carregar e desloca o núcleo. O QA mede o F2 de /tatico nas cinco equipes; se passar de 0,1, volta ao autor.
+- A1 (recomendado) web/src/features/tatico/reservaFaixa.ts:14 · fechado em c838c1e. Na equipe de faixa em duas linhas, a reserva de 88 px podia deslocar o núcleo. O spec cls-tatico-equipes do QA mede o F2 nas 6 equipes e sem equipe: o pior caso é 0,060, abaixo de 0,1.
 - A2 (recomendado) web/scripts/f9.mjs:44 · a terceira condição de falhaInicial repete a segunda (raiz no inicial); e o teste em web/src/test/f9-size.test.ts:78 usa raiz do tipo mock, então a regra "raiz no index.html" não é exercida sozinha. Remover a linha 44 e testar raiz não mock no inicial.
 - A3 (recomendado) web/src/data/mock/nucleoMock.worker.ts:17 · `const e` no catch sombreia o parâmetro `e` (MessageEvent) do onmessage; renomear para `falha` evita leitura ambígua.
-- A4 (recomendado) web/src/test/f9-size.test.ts:1 · teto M14: 324 linhas de código e teste e quatro cartões. A branch registra o Forge 0.30.3 (teto 400), dentro. Se o PR sair já no 0.30.7 (pedido 053), o corpo leva `teto: excedido, 324 linhas, <motivo>` e o Jarvis decide antes se divide.
+- A4 (recomendado) web/src/test/f9-size.test.ts:1 · teto M14 no Forge 0.30.7: são 360 linhas de código e teste (324 mais as 36 do spec) e quatro cartões, acima de 150. O corpo do PR leva `teto: excedido, 360 linhas, <motivo>`, ou o Jarvis divide antes. Sem essa linha, o PR passa a ter achado bloqueante.
 - A5 (recomendado) web/src/data/mock/nucleoMock.paridade.test.ts:20 · a lista esperada é cópia à mão; nada pega o servidor (servico.ts:57) mudando sozinho. Um teste do contrato ou do server que compare as duas listas fecharia a deriva.
 
 ## Encaminhamentos
