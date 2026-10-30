@@ -37,7 +37,7 @@ export type UltimoSucesso = { marca: Date | null; parametros: Partial<Parametros
 
 export async function ultimoSucesso(db: Consultavel, S: Esquemas): Promise<UltimoSucesso> {
   const p = await db.query<{ parametros: Partial<ParametrosColeta> | null }>(
-    `SELECT parametros FROM ${S.ac}.ctl_coleta WHERE status = 'sucesso' ORDER BY coleta_id DESC LIMIT 1`);
+    `SELECT parametros FROM ${S.ac}.ctl_coleta WHERE status = 'sucesso' AND tarefa IN ('coleta_incremental', 'varredura') ORDER BY coleta_id DESC LIMIT 1`);
   const m = await db.query<{ marca: Date | null }>(
     `SELECT max(marca_dagua_ate) AS marca FROM ${S.ac}.ctl_coleta WHERE tarefa = 'coleta_incremental' AND status = 'sucesso'`);
   return { marca: m.rows[0]?.marca ?? null, parametros: p.rows[0]?.parametros ?? null };
