@@ -33,3 +33,8 @@ Pedido do dono: reiniciar a sessão para carregar o Forge 0.30.7. Estado salvo a
 - Parecer de outra branch fica desatualizado por mudança de lockfile; parecer de QA com `pedido` errado (só o hook do PR pegou); edição de parecer por `sed` não registra autoria.
 - Checkout principal com `.forge/versao` defasado invalida o `forge-check` do Jarvis.
 - O Jarvis escreveu horas sem `date`.
+
+## Atualização 05:31: o tech-lead-23 terminou antes do reinício
+- Parou antes do merge: PR #171 CLEAN, todos os checks verdes; o hook `parecer` recusou `gh pr merge feature/048-dompurify --squash` com "R-CONFORMIDADE: forge-check 0.30.5 atrás do repositório; a conferência não vale; peça à pessoa: `forge atualizar`". Não contornou. O agente terminou (nada em curso).
+- Fez `gh pr update-branch` duas vezes (merge, sem conflito); PQ-1 rc=0 antes do PR; PQ-2 não cumprido (sem merge).
+- **Retomar com o 0.30.7:** registrar a entrega do tl-23 como não cumprida (classe ambiente) e delegar ao tech-lead um brief de retomada só com o merge: conferir `gh pr view 171`; na worktree 048e, `git fetch` e `git merge --ff-only origin/feature/048-dompurify`; rodar de novo `forge-check pr 048-o-que-falta-em-mock`; depois `gh pr merge feature/048-dompurify --squash`. Se a develop andou: `gh pr update-branch` e esperar os checks.

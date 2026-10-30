@@ -267,3 +267,4 @@ DECISÃO DO DONO (2026-10-21): comando de pronto, opção A ("A"): durante o des
 - 2026-10-29 21:43: entrega qa-engineer-10 cumprida (sem commit; forge-check pr rc=0 na worktree 048e, HEAD 8df0743 igual ao remoto, conferido pelo Jarvis). Brief tech-lead-23 de PR e merge em conferencia.
 - 2026-10-29 21:47: brief tech-lead-23 aprovado pelo conferente (sha b6eb141dfcab6e62bf77299144b9e96ed176fd80a915cb0a4d3f12c3eb381304) e delegado (PR e merge do K-178).
 - 2026-10-30 05:29: reinício da sessão do Jarvis pedido pelo dono (Forge 0.30.7). tech-lead-23 interrompido em ponto seguro: PR 171 aberto, head remoto 85e4163, e2e 2/2 rodando; retomada em docs/alinhamentos/2026-10-30-retomada-reinicio.md
+- 2026-10-30 05:31: tech-lead-23 parou antes do merge: PR 171 CLEAN e verde, merge recusado pelo hook parecer (forge-check 0.30.5 atrás do repositório); retomar o merge depois do reinício com o 0.30.7
