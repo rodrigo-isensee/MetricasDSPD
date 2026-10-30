@@ -43,7 +43,7 @@ export interface Chamado {
   status: 'Concluído' | 'Aberto'
   impacto: 'Alto' | 'Médio' | 'Baixo'
   urgencia: 'Alta' | 'Média' | 'Baixa'
-  prioridade: Prioridade
+  prioridade?: Prioridade
   prioridade_ajustada_manualmente: boolean
   justificativa_ajuste: string | null
   /** Indicador derivado "justificativa preenchida", para quando o texto não está disponível (S7; o banco não guarda o texto). */

@@ -88,7 +88,7 @@ export const lerChamados = async (db: Consultavel, S: Esquemas = esquemasDoAmbie
             motivo_encerramento, avaliacao_problema, excecao_sla_registro_posterior, incidente_critico_coordenado,
             nivel_resolucao, com_agente, reincidente_90d
        FROM ${S.ac}.dim_chamado
-      WHERE aberto_em IS NOT NULL AND equipe IS NOT NULL AND prioridade IS NOT NULL AND fora_do_recorte = false
+      WHERE aberto_em IS NOT NULL AND equipe IS NOT NULL AND fora_do_recorte = false
       ORDER BY chamado_id`)).rows;
 
 /** Sem ORDER BY: a biblioteca ordena as etapas de cada chamado (entrada, etapa). */

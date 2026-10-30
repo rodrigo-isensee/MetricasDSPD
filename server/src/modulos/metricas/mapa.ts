@@ -108,7 +108,8 @@ export function chamadoDe(l: LinhaChamado): Chamado {
   return {
     chamado_id: l.chamado_id, organizacao: campo(l.organizacao), tipo_fila: campo(l.tipo), equipe: campo(l.equipe),
     natureza: campo(l.natureza), categoria_sistema: l.categoria_sistema ?? '', excluido: l.excluido, status: campo(l.status),
-    impacto: campo(l.impacto), urgencia: campo(l.urgencia), prioridade: campo(l.prioridade),
+    impacto: campo(l.impacto), urgencia: campo(l.urgencia),
+    ...(l.prioridade === null ? {} : { prioridade: campo(l.prioridade) }),
     prioridade_ajustada_manualmente: l.prioridade_ajustada_manualmente, justificativa_ajuste: null,
     justificativa_informada: l.justificativa_informada,
     aberto_em: (l.aberto_em as Date).getTime(), primeiro_atendimento_em: ms(l.primeiro_atendimento_em),

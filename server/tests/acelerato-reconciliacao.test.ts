@@ -73,6 +73,7 @@ describe('agregadosDoPainel', () => {
     expect(d.chamadas).toHaveLength(1);
     const sql = d.chamadas[0]!.texto;
     expect(sql).toContain('NOT excluido AND NOT fora_do_recorte');
+    expect(sql).not.toContain('prioridade'); // chamado fora da escala P conta na reconciliação (D-8, D-12)
     expect(sql).not.toMatch(/INSERT|UPDATE|DELETE|agente_key|\*|GROUP BY/);
   });
 });

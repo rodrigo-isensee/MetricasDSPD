@@ -71,3 +71,32 @@ describe('API (fonte real): D-9 no S2 e D-10 no S8', () => {
     expect(r.campoDisponivel).toBe(true);
   });
 });
+
+describe('chamado com prioridade fora da escala P (D-8, D-12)', () => {
+  const semPrioridade = (i: number): boolean => i % 4 === 0;
+  const bancoSemP = (): Respondedor => {
+    const mock = bancoComF2(() => false, () => false);
+    return (c) => {
+      const r = mock(c);
+      if (!c.texto.includes('FROM dspd_ac.dim_chamado') || !Array.isArray(r)) return r;
+      return r.map((l, i) => (semPrioridade(i) ? { ...(l as object), prioridade: null } : l));
+    };
+  };
+  it('a leitura não filtra por prioridade', async () => {
+    const d = criarDublePg(bancoSemP());
+    const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
+    await app.inject('/api/v1/metricas/S2');
+    const sql = d.chamadas.find((c) => c.texto.includes('FROM dspd_ac.dim_chamado'))!.texto;
+    expect(sql).not.toContain('prioridade IS NOT NULL');
+  });
+  it('o chamado sem prioridade fica na base: conta no S2 e no S3 como se tivesse prioridade', async () => {
+    const com = (await get(bancoComF2(() => false, () => false), '/api/v1/metricas/S2', 'real')).json();
+    const sem = await get(bancoSemP(), '/api/v1/metricas/S2', 'real');
+    expect(sem.statusCode).toBe(200);
+    expect(totalS2(sem.json())).toBe(totalS2(com));
+    expect(totalS2(sem.json())).toBeGreaterThan(0);
+    const s3a = (await get(bancoComF2(() => false, () => false), '/api/v1/metricas/S3', 'real')).json();
+    const s3b = (await get(bancoSemP(), '/api/v1/metricas/S3', 'real')).json();
+    expect(s3b.base.n).toBe(s3a.base.n);
+  });
+});
