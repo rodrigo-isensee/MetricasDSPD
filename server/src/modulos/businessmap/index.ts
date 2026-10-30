@@ -4,3 +4,4 @@ export {
 } from './webhook.js';
 export { CAMPOS_CARD, CAMPOS_REVISAO, CAMPOS_WEBHOOK, TIPOS_WEBHOOK_BM_GRAVADOS, extrairResponsaveis, registroCard, registroRevisao, registroWebhook, serializar } from './allow-list.js';
 export { gravarResponsaveis } from './responsaveis.js';
+export { diagnosticar, type ResultadoDiagnostico } from './diagnostico.js';
