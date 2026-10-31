@@ -3,14 +3,14 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 056-acelerato-mysql
 branch: feature/056-coletor-acelerato
-commit: 11141d7516b7a71418b3ec069473e3449453fe81
+commit: 65f5a640ac5f450302220227647e8c6692c58c72
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-10-30
 ---
 # Revisão de segurança antes do código: listas fechadas e driver MySQL (056, E4.2)
 
-Escopo: revisão de documento, sem código do coletor. O commit acima é a base da worktree 056c; o plano, o modelo de ameaças e o review citados estão na worktree 056 (branch de discovery, ainda não mesclada). Nada foi instalado, conectado ao MySQL nem lido do `.env`. A ADR 0023 e as listas da E4.1 ainda não existem em disco: a conferência final das listas contra a constante de código fica para o review da F1 (E4.5).
+Escopo: revisão de documento, sem código do coletor. Na E4.2 o commit revisado era a base da worktree 056c (11141d7); o commit acima é o da revalidação por delta da E4.17 (seção Revalidação); o plano, o modelo de ameaças e o review citados estão na worktree 056 (branch de discovery, ainda não mesclada). Nada foi instalado, conectado ao MySQL nem lido do `.env`. A ADR 0023 e as listas da E4.1 ainda não existem em disco: a conferência final das listas contra a constante de código fica para o review da F1 (E4.5).
 
 ## Gatilhos
 Dado pessoal e texto livre na fronteira, credencial externa nova, banco, dependência nova, consulta SQL escrita pelo projeto e mudança de regra do `CLAUDE.md` (R-SEGURANCA).
@@ -56,6 +56,15 @@ Dono da edição: tech-lead (o Jarvis leva ao dono, R-DECISAO, por ser mudança 
 
 ### (d) A3 do review (`com_agente`)
 Posição: derivar no SELECT, como o plano. Motivo: o id de agente é dado de pessoa (ADR 0020); o que não sai do MySQL não vaza para memória, log nem erro (M8). A forma "em memória" do modelo de ameaças (linhas 88 e 90) é mais fraca e deve ceder. O teste CA-13 vale nas duas formas, com `agente_key` de marcador na fixture e a asserção de que o SELECT não pede a coluna. Esforço: P; dono: security-engineer, na próxima edição do modelo (esta entrega não o toca).
+
+## Revalidação por delta (E4.17, 2026-10-30)
+Motivo: o `.env.example` mudou depois do commit da E4.2 (11141d7). Delta lido: `git diff 11141d7 65f5a64 -- .env.example`, um só commit no intervalo (ed631c0, F1 do coletor), 12 linhas acrescentadas, nenhuma removida.
+- Variáveis novas, todas comentadas: `ACELERATO_MYSQL_HOST`, `_PORT`, `_DATABASE`, `_USER`, `_PASSWORD`, `_TLS_SHA256`, `_TLS_CERT_FILE`, `_MAX_EXEC_MS`, `_MARGEM_HORAS`.
+- As sete primeiras estão vazias: sem host, banco, usuário, senha, impressão nem caminho de certificado reais. As duas últimas trazem só números de operação (tempo máximo de consulta e margem em horas), que não são credencial.
+- Credencial em variáveis separadas, sem URL com senha embutida; o comentário manda preencher só no `.env`. Coerente com a regra do `CLAUDE.md` sobre credenciais e com a ADR 0023 (TLS fixado por impressão SHA-256 e PEM obrigatórios).
+- Leitura sem ferramenta de segredo (`gitleaks` fora do PATH): conferência visual das 12 linhas, sem valor sensível.
+
+Resultado: sem achado novo; parecer `aprovado` mantido sobre o commit 65f5a64. O resto do parecer não foi relido: as listas e o driver foram revisados no código pela E4.7 e pela E4.14 em `docs/security/056-coletor-f1-f2.md`, inclusive a troca do driver para `mariadb` decidida na ADR 0023, que substitui a análise do `mysql2` da seção (b) acima.
 
 ## Riscos aceitos e ferramentas
 Nenhum risco novo aceito. O R-1 (conta compartilhada, host aberto) segue o registro do modelo de ameaças §8; o aceite formal do dono, ligado ao parecer do commit final da F1 e da F2, continua pendente e será pedido ao Jarvis quando esse parecer existir. Ferramentas: `pnpm view` e `gh api` (leitura da base de avisos). Faltaram no PATH: `osv-scanner`, `gitleaks`, `semgrep`.
