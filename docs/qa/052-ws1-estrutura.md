@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: da4919acc3e469e61b2922ef1e3ae993234c20c3
+commit: cc8c0cf38e51be7df6b256d318ca5cba39b19280
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -48,6 +48,14 @@ Veredito: aprovado, mantido. O parecer ficou desatualizado porque, na F2, mudou 
 Conferido que o script da WS1 segue igual: `git diff f24c3a9..da4919a` sobre `server/src/modulos/businessmap/diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh` e `server/tests/diagnostico-businessmap.test.ts` não traz nenhuma linha (stat vazio); `bm:diagnostico` continua no `package.json` da raiz (linha 33, `bash scripts/bm-diagnostico.sh`). As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações.
 
 Sem suíte, sem mutantes e sem chamada ao BusinessMap, como pedido. O `.env` não foi lido.
+
+## Renovação por delta (E2.49, depois da F3)
+Veredito: aprovado, mantido. O `forge-check pr` deu o parecer por desatualizado porque `docs/architecture/adr/0020-protecao-de-pessoa-no-coletor.md` mudou (a F3 somou o item 4c das transições e a forma final de `dim_responsavel`). Delta lido (`git diff da4919a..cc8c0cf`, só os caminhos que este parecer cobre):
+- ADR 0020: texto da F3 (transições de coluna, `revision_id`, forma final de `dim_responsavel`); não toca o script da WS1 nem a regra de que o diagnóstico não lê cards nem usuários.
+- `server/package.json`: uma linha nova, `bm:coleta`; `bm:diagnostico` e os outros scripts não mudaram.
+- `server/src/modulos/businessmap/index.ts`: exports novos da F3 (`CAMPOS_TRANSICAO`, `registroTransicao`, `revisionIdDaTransicao`, `transicoesDoCard`, `lerConferencia`, `coletarCards` e afins, `analisarArgumentos`, `etapaReferencia`, `executarColeta`, `projetarUsuarios`, `resolverResponsaveis`); `diagnosticar` e `ResultadoDiagnostico` seguem iguais.
+
+`git diff` sobre `diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh` e `server/tests/diagnostico-businessmap.test.ts`: vazio. Reexecução: `vitest run --project unit` dos testes do diagnóstico e dos da F3 (6 arquivos, 99 testes) passou. Sem mutante novo e sem chamada ao BusinessMap; o `.env` não foi lido. O parecer da F3 (`docs/qa/052-f3-coleta.md`) cobre o coletor novo.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).
