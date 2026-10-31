@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 056-acelerato-mysql
 branch: feature/056-coletor-acelerato
-commit: 414533fd428987551cc78b86af8bdf079f601188
+commit: 9b39924a1af89504320ad7702a2f1f967f70b70a
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -51,6 +51,12 @@ Itens que o brief pediu conferir:
 - Chamado sem prioridade contando em S2 e S3: `metricas-acelerato-f2.test.ts:92` passa ("o chamado sem prioridade fica na base: conta no S2 e no S3"); o A1 do review (filtro `prioridade IS NOT NULL`) está resolvido (nenhuma ocorrência no `server/src`).
 - Recarga suspeita: limiar "estritamente maior que 5%" no código, teste do coletor passa.
 - Vermelho antes do verde: os testes do coletor são novos e o módulo `server/src/modulos/acelerato/` não existe na base (11141d7), então falham por ausência do módulo; não rodei `forge-testes --vermelho` (ferramenta do Forge, fora do escopo deste brief); mutação (stryker) também não rodada: ver A1.
+
+## Revalidação por delta (E4.21, K-190)
+
+Frontmatter `commit:` renovado de 414533f para 9b39924 (ponta de leitura 9d803e5, que só somou o parecer de segurança). No que este parecer cobre, mudou um arquivo: `docs/architecture/fontes/acelerato-listas.md`, uma linha (E4.16, e6fd5fd), a regra de valor fora das listas. Texto de documento, sem código: não rodei a suíte (o código testado em 414533f não mudou neste intervalo, conforme o brief).
+
+Leitura do delta contra a tabela acima: status, prioridade e etapa fora da lista viram nulo com contagem em `ctl_coleta_contagem`, que é o que a linha CA-1b já registra ("fora da lista vira nulo contado"); chamado fora do recorte (tipo, organização, equipe) falha fechado com `fora-do-recorte`, que é o comportamento do CA-7 e do filtro de origem. O documento passou a dizer o que o código faz; nenhum critério mudou. Veredito mantido: aprovado, sem achado novo; A1 segue como recomendação.
 
 ## Achados
 
