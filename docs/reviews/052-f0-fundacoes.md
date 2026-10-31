@@ -3,12 +3,12 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f0-fundacoes
-commit: 746aae599b9cdb5c1029ed83e366f5646635b083
-parecer: reprovado
+commit: 051c46e29ef8b04f19cfb1024a02e11b0d638bdb
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-30
 ---
-# Review: 052-integracao-businessmap (E2.4, F0 do coletor do BusinessMap, K-182)
+# Review: 052-integracao-businessmap (E2.4 e revalidação E2.9, F0 do coletor do BusinessMap, K-182)
 
 Escopo: `11141d7516b7a71418b3ec069473e3449453fe81..746aae599b9cdb5c1029ed83e366f5646635b083`, 2 commits (`2303cd2` cliente HTTP e config; `746aae5` referência, tabela de times, carga inicial e conferência), 22 arquivos, 1365 linhas a mais e 11 a menos. Lidos: o diff inteiro, a seção F0 e a "Tabela de times" do plano `docs/architecture/features/052-integracao-businessmap.md` (worktree 052, revisão da E1.22 com as respostas de 19:33), as seções 2, 3, 4, 6, 7, 8 e 9 do `docs/engineering/praticas.md`, a ADR 0015 (S-22) e o `data-model.md` §3.4 desta branch. O `.env.example` não foi lido: a regra de permissão da sessão o barra. O conteúdo fica com a segurança (E2.3) e o QA.
 
@@ -76,6 +76,24 @@ Os dois commits são comportamentos independentes: o cliente HTTP não depende d
 - A6 (recomendado) server/src/plataforma/http.ts:168 · fields só vale em /users, mas a F3 do plano lê /cards com fields explícito (I-2 do k084). Na F3, ampliar por caminho como decisão revista, com teste, e não como ajuste de passagem.
 - A7 (recomendado) server/migrations/0017_bm_carga_inicial_times.ts:65 · a vigência de partida é o dia da migração menos 12 meses, e card aberto antigo (Q-2b) tem eventos anteriores a vigente_de, sem time. A F4 precisa de regra e teste para instante anterior à vigência de partida.
 - A8 (recomendado) docs/architecture/features/052-integracao-businessmap.md:166 · o plano (R-9) põe B-K1 e B-K2 na F0, mas a delegação da E2.2 não os listou, e o diff não toca o coletor. Não bloqueia, porque a F0 não grava staging. Precisam entrar antes de a F3 gravar stg_ (Jarvis decide a etapa).
+- A9 (recomendado) server/src/plataforma/http.ts:160 · a janela de 1 h vive no cliente (uma execução); retomar a carga na mesma hora começa do zero e pode passar dos 600/h da conta. Na F3, intervalo mínimo entre execuções ou contagem persistida, com teste.
+- A10 (recomendado) server/src/plataforma/http.ts:27 · expand saiu da lista geral, mas o plano (linha 129, F1) lê /cards com expand=custom_fields,transitions,block_times,linked_cards. Na F1 ou F3, expand por caminho como decisão revista, com teste (mesmo caminho do A6).
+- A11 (recomendado) docs/architecture/adr/0015-bibliotecas-e-praticas-do-back-end.md:103 · a revisão 1 (branch docs/052-plano-hierarquia) descreve só a janela de 60 s; faltam a janela de 1 h com parada (550), a parada por retry_after acima de 120 s e o teto de 10 MB. Registrar na próxima passada da ADR.
+
+## Revalidação (E2.9, volta 1)
+Delta lido (`forge-check delta --parecer`, intervalo `746aae5..051c46e`, commits `474f9bd` e `051c46e` da E2.7): `server/src/plataforma/http.ts` (+89 -29), `log.ts` (+3), `referencia/repositorio.ts` (+7 -2) e os testes `http.test.ts`, `coletas.test.ts`, `log.test.ts` (novo) e `referencia-times.pg.test.ts`. Já lido na rodada anterior e fora do delta: as migrações 0016 e 0017, a config, a conferência e o resto dos testes. Os achados de segurança (A1 a A5 do `docs/security/052-f0-fundacoes.md`) ficam com a E2.8, em paralelo; aqui li o código só pelo que toca o review.
+
+- **A1 resolvido fora desta branch:** ADR 0015 revista em `52dfb30` e `485df6a` (branch `docs/052-plano-hierarquia`, review `d699885` aprovado): linhas 32, 96 e a seção "Revisão 1" (101 a 108) trazem `fetch` nativo, motivo, alcance só BusinessMap e critério de reversão com fato observável. Condição da E2.6, como no A2: o PR da F0 só mescla depois da E1.26 (a revisão já na `develop`). Defasagem com o código da volta vira A11, recomendado.
+- **A4 resolvido:** `coletas.test.ts:81` afirma o filtro no texto do SQL (o dublê ignora o SQL), e o `.pg` (`referencia-times.pg.test.ts:203` a `:220`) prova no banco que a versão de partida da 0017 fica fora de `lerVersoes` e que uma versão com métrica entra.
+- **A5 resolvido:** `repositorio.ts:42` aplica o mesmo critério (`versao_id IN (SELECT ... ref_versao_criterio_metrica)`), com teste unitário e `.pg`; nenhuma mudança em `docs/api/metricas.md` é precisa, porque o comportamento passou a ser o mesmo de `/criterios`.
+- **Suposição do autor, teto de 550 por hora com parada:** aceita. Fica abaixo dos 600/h do roteiro de configuração (plano linha 266, não reconferido), conta novas tentativas e esperas de 429, e parar em vez de esperar 1 h combina com a carga retomável (R-3 do plano). O estado é por execução (A9).
+- **Suposição do autor, `expand` fora da lista geral:** aceita para a F0, que não lê cards; ninguém no diff usa `expand`. A F1 precisa dele (A10).
+- **Suposição do autor, `lotesDeUserIds` de 200:** aceita. É o mesmo limite de `LISTA_IDS` (`http.ts:23`), então todo lote passa pelo cliente, e a lista inteira acima disso é recusada (teste). O limite da própria API para `user_ids` não está confirmado; se a F3 achar outro, a mudança é uma constante (`LOTE_USER_IDS`, `http.ts:51`).
+- **Leitura do resto da volta:** `requisitar` deixou de ser exportado (o cliente devolve só `get` e `listarPaginas`) e valida o caminho antes do log e da checagem de parada; `parada` guarda o erro e o repete nas chamadas seguintes; `lerCorpo` aplica o teto por `content-length` e por blocos, inclusive no 429. Sem achado de código.
+- **Testes focados** (`nice -n 19 pnpm exec vitest run tests/http.test.ts tests/coletas.test.ts tests/log.test.ts`, em `server/`): `Test Files 3 passed (3)`, `Tests 48 passed (48)`. O `.pg` fica com o QA (E2.5); `pronto` não rodou nesta etapa (decisão técnica do Jarvis, E2.8 e E2.9 sem suíte).
+- **Teto M14 (A3 atualizado):** `474f9bd` soma 234 linhas ao cliente (925 no total, com `2303cd2`), e `051c46e` soma 47 à referência (622 com `746aae5`). Na E2.6, os dois PRs ficam: cliente com `2303cd2` e `474f9bd`, referência com `746aae5` e `051c46e`, cada um com a linha de teto excedido.
 
 ## Parecer
-Reprovado no commit `746aae5`, só pelo A1. O código cumpre a F0 do plano, as decisões H e as regras invioláveis, e nenhum achado pede mudança de lógica neste commit. A volta é de documentação: a revisão da S-22 da ADR 0015, pelo software-architect, nesta branch ou na `docs/052-plano-hierarquia`, antes do PR. Eu revalido pelo delta. A2 e A3 são condições que eu mesmo aplico na E2.6. A4 e A5 são ajustes pequenos de teste e de consistência, que o Jarvis pode juntar à volta, se quiser. A6 a A8 ficam para a F3 e a F4.
+**Aprovado** na revalidação (E2.9), no commit `051c46e`: A1 resolvido pela revisão 1 da ADR 0015 (`485df6a`), A4 e A5 resolvidos no código, com teste. A2 e A3 são condições que eu aplico na E2.6 (ordem de merge depois da E1.26 e dois PRs). A6 a A11 são recomendações para a F1, a F3 e a próxima passada da ADR, e não devolvem. Segue para o QA (E2.5), junto com o parecer da segurança (E2.8).
+
+Rodada anterior (E2.4, commit `746aae5`): reprovado no commit `746aae5`, só pelo A1. O código cumpre a F0 do plano, as decisões H e as regras invioláveis, e nenhum achado pede mudança de lógica neste commit. A volta é de documentação: a revisão da S-22 da ADR 0015, pelo software-architect, nesta branch ou na `docs/052-plano-hierarquia`, antes do PR. Eu revalido pelo delta. A2 e A3 são condições que eu mesmo aplico na E2.6. A4 e A5 são ajustes pequenos de teste e de consistência, que o Jarvis pode juntar à volta, se quiser. A6 a A8 ficam para a F3 e a F4.
