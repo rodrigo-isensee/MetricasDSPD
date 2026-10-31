@@ -3,16 +3,24 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f2-referencia
-commit: 75ee95308d6aad2227ddf1605bac7d69d932796a
+commit: da4919acc3e469e61b2922ef1e3ae993234c20c3
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-10-31
 ---
-# Review de segurança: F2 do coletor do BusinessMap, referência real do quadro (pedido 052, E2.33 e E2.38, K-182)
+# Review de segurança: F2 do coletor do BusinessMap, referência real do quadro (pedido 052, E2.33, E2.38 e E2.42, K-182)
 
-Propósito: parecer de segurança da E2.32 (carga da referência real com vigência, função única de papel por folha, exceções de trabalho no arquivo de conferência e identidade por id em `mapa.ts`) e, por delta, da volta 1 (E2.37). Gatilhos: integração externa, dados de pessoa e histórico (R-SEGURANCA). Público: node-backend (dono do código), tech-lead (E2.34, E2.39), qa-engineer (E2.35), Jarvis.
+Propósito: parecer de segurança da E2.32 (carga da referência real com vigência, função única de papel por folha, exceções de trabalho no arquivo de conferência e identidade por id em `mapa.ts`) e, por delta, da volta 1 (E2.37) e da volta 2 (E2.40). Gatilhos: integração externa, dados de pessoa e histórico (R-SEGURANCA). Público: node-backend (dono do código), tech-lead (E2.34, E2.39, E2.43), qa-engineer (E2.35, E2.41), Jarvis.
 
-**Veredito: aprovado** em `75ee953` (rodada 1 aprovada em `5a75265`). Não há achado bloqueante. Fica um recomendado aberto (A2, para o comando da F3); o A1 foi resolvido. Revisão estática. Nada foi chamado no BusinessMap e o `.env` não foi lido. As execuções foram `server/tests/referencia-businessmap.test.ts` e `server/tests/conferencia.test.ts`, contra o servidor falso e o banco simulado (32 testes na revalidação, todos passaram).
+**Veredito: aprovado** em `da4919a` (volta 1 aprovada em `75ee953`, rodada 1 em `5a75265`). Não há achado bloqueante. Fica um recomendado aberto (A2, para o comando da F3); o A1 foi resolvido. Revisão estática. Nada foi chamado no BusinessMap e o `.env` não foi lido. As execuções das rodadas anteriores foram `server/tests/referencia-businessmap.test.ts` e `server/tests/conferencia.test.ts`, contra o servidor falso e o banco simulado.
+
+## Renovação (E2.42, volta 2 da F2, delta `75ee953..da4919a`)
+Delta de 2 arquivos: `referencia.ts` (+1 -1) e `referencia-businessmap.pg.test.ts` (+370, novo, do QA). Sem migração, sem GRANT, sem dependência nova.
+
+- **`referencia.ts:291`.** A única mudança é a tipagem dos parâmetros no SELECT: `$1::bigint` e `$2::varchar`. Os valores seguem em `[id, m]`, sem concatenação e sem SQL dinâmico novo; o nome do esquema continua vindo só de `S.core`. O INSERT segue só acrescentando vínculo (idempotente pelo NOT EXISTS), sem UPDATE nem DELETE: o histórico segue intacto. O delta não toca grant nem leitura.
+- **Testes .pg novos.** Sem dado de pessoa: só o quadro de teste 9025, nomes de coluna e de tipo de card fictícios, sem e-mail, chave nem credencial. A conexão vem do `url` e do `poolDe` do contexto de teste (papéis `dspd_ref` e `dspd_coletor`, sem segredo no arquivo). As escritas rodam em `BEGIN` com `ROLLBACK` no `finally` (`referencia-businessmap.pg.test.ts:58-68`); fora da transação só entra a coleta aberta por `novaColeta`, no esquema de teste e sem dado de pessoa. Os testes reforçam os controles: UPDATE fora de `vigente_ate`, DELETE e TRUNCATE recusados (42501 e 55000) e `dspd_coletor` sem INSERT nas `ref_`.
+- **A2.** Segue aberto, recomendado, para a F3; os testes .pg do QA cobrem em parte o rollback e o 42501 do coletor.
+- **Varreduras.** `gitleaks`, `osv-scanner` e `semgrep` seguem fora do PATH (lacuna registrada). Não executei a suíte .pg (exige o banco local; o autor e o QA a rodam).
 
 ## Revalidação (E2.38, volta 1 da F2, delta `0db2de1..75ee953`)
 Delta de 2 arquivos: `referencia.ts` (+15 -5) e `referencia-businessmap.test.ts` (+66 -2). Sem migração, sem GRANT novo, sem caminho novo na lista fechada.
