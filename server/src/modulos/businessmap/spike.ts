@@ -5,7 +5,7 @@ import { criarClienteHttp, CAMPOS_USERS, type ClienteHttp, type DepsHttp, type E
 import { analisarConferencia, type Conferencia } from './conferencia.js';
 import { lerConfig } from './diagnostico.js';
 import { caminhosComNome, desembrulhar, linhasDeForma, linhasDeVinculos, somarForma, type Forma } from './spike-forma.js';
-import { montarLista, renderizarLista } from './spike-lista.js';
+import { contarColunas, montarLista, renderizarLista } from './spike-lista.js';
 
 // F1 do plano 052 (K-182, ADR 0022): spike de leitura da FORMA do quadro real. CLI manual, nunca agendada, só GET pelo
 // cliente da F0 (lista fechada de caminhos e de parâmetros). A saída bruta (com o que o quadro devolve, inclusive
@@ -73,7 +73,8 @@ async function prepararSaida(dir: string): Promise<void> {
 }
 
 const dia = (d: Date): string => d.toISOString().slice(0, 10);
-const doisFormatos = (d: Date): string[] => [dia(d), `${dia(d)}T00:00:00Z`];
+/** A API real recusa a data simples (400, execução de 2026-10-31): a data com hora vai primeiro e a simples fica de reserva. */
+const doisFormatos = (d: Date): string[] => [`${dia(d)}T00:00:00Z`, dia(d)];
 
 export type VeredictoFiltro = 'filtra' | 'nao-filtra' | 'indeterminado';
 
@@ -203,17 +204,23 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
     inicio12m.setUTCFullYear(inicio12m.getUTCFullYear() - 1);
     const amanha = new Date(agora.getTime() + 86_400_000);
     let formato: string | undefined;
-    /** Contagem de arquivados/descartados com data; tenta a data simples e, se recusada, a data com hora. */
+    const notaRecusa: string[] = [];
+    /** Contagem de arquivados/descartados com data; tenta a data com hora e, se recusada, a data simples. */
     const comData = async (rotulo: string, state: 'archived' | 'discarded', campo: string, d: Date, q: number): Promise<number | undefined> => {
       const formatos = doisFormatos(d);
-      const tentativas = formato === undefined ? formatos : [formatos[formato === 'AAAA-MM-DD' ? 0 : 1]!];
+      const tentativas = formato === undefined ? formatos : [formatos[formato === 'AAAA-MM-DD' ? 1 : 0]!];
+      const recusadas: string[] = [];
       for (const valor of tentativas) {
         const antes = avisos.length;
         const r = await contar(rotulo, { board_ids: String(q), state, [campo]: valor });
         if (avisos.length === antes) {
           formato = valor.includes('T') ? 'AAAA-MM-DDTHH:mm:ssZ' : 'AAAA-MM-DD';
+          // Recusa de um formato seguida de aceite do outro é a sonda do formato, não falha: sai dos avisos e vai para a nota.
+          if (recusadas.length > 0 && !notaRecusa.includes(recusadas[0]!)) notaRecusa.push(recusadas[0]!);
+          for (const r2 of recusadas) avisos.splice(avisos.indexOf(r2), 1); // cada recusa foi empilhada logo antes
           return r;
         }
+        recusadas.push(avisos[avisos.length - 1]!);
       }
       return undefined;
     };
@@ -274,7 +281,14 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
       }
     }
 
-    // Relatório de forma (sem valor de pessoa) e lista de conferência.
+    // Lista de conferência primeiro: zero folhas com colunas presentes vira aviso no relatório e código de saída 3.
+    const linhasLista = montarLista(estruturas, conf);
+    const totalColunas = contarColunas(estruturas);
+    const semFolhas = linhasLista.length === 0 && totalColunas > 0;
+    if (semFolhas) {
+      avisos.push(`lista de conferência vazia: ${totalColunas} colunas lidas e nenhuma folha derivada (bottom_columns, child_columns e columns); a forma de currentStructure mudou?`);
+    }
+    // Relatório de forma (sem valor de pessoa).
     const veredicto = veredictoFiltro(
       contagens.flatMap((c) => [
         { total: c.arquivadosTotal, futuro: c.arquivadosFuturo },
@@ -298,6 +312,7 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
       `- Tipos de card por workflow (caminhos com tipo na resposta de /workflows): ${caminhosComNome(formaWorkflows, /type/i).join(', ') || '(nenhum)'}.`,
       `- Campos de estado no card: ${estado.join('; ')}.`,
       `- Formato de data aceito nos filtros de arquivamento e descarte: ${formato ?? 'nenhum aceito'}.`,
+      ...notaRecusa.map((a) => `- Formato de data recusado pela API na sonda (400, não é falha do programa): ${a}.`),
       `- Filtros archived_from e discarded_from com state: ${veredicto} (controle: data de amanhã deve zerar a contagem).`,
       `- GET /users com fields=${CAMPOS_USERS}: ${usersRestringe}.`,
       `- Troca de responsável nas revisões (P-T1): chaves de nome parecido com pessoa nas revisões: ${revPessoa.join(', ') || '(nenhuma)'}.`,
@@ -327,9 +342,10 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
       ...(avisos.length > 0 ? avisos.map((a) => `- ${a}`) : ['(nenhum)']),
       '',
     ].join('\n');
-    const lista = renderizarLista(montarLista(estruturas, conf), conf, quadros);
+    const lista = renderizarLista(linhasLista, conf, quadros);
     await writeFile(join(dir, 'relatorio-forma.md'), relatorio, { flag: 'wx', mode: 0o600 });
     await writeFile(join(dir, 'lista-conferencia-colunas.md'), lista, { flag: 'wx', mode: 0o600 });
+    if (semFolhas) return { codigo: 3, saida: `${relatorio}\n---\n\n${lista}`, erro: `aviso: ${avisos[avisos.length - 1]}` };
     return { codigo: 0, saida: `${relatorio}\n---\n\n${lista}`, erro: '' };
   } catch (e) {
     const erro = e as ErroBusinessMap;

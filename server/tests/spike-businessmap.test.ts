@@ -8,7 +8,7 @@ import { analisarConferencia } from '../src/modulos/businessmap/conferencia.js';
 import { CAMINHOS_PERMITIDOS, criarClienteHttp } from '../src/plataforma/http.js';
 import { executarSpike, foraDoRepositorio, veredictoFiltro, veredictoPaginacao, type DepsSpike } from '../src/modulos/businessmap/spike.js';
 import { caminhosComNome, chaveSegura, desembrulhar, linhasDeForma, linhasDeVinculos, somarForma } from '../src/modulos/businessmap/spike-forma.js';
-import { excecoesSemColuna, montarLista, papelDaSecao, renderizarLista, tipoDoFlow } from '../src/modulos/businessmap/spike-lista.js';
+import { contarColunas, excecoesSemColuna, montarLista, papelDaSecao, renderizarLista, tipoDoFlow } from '../src/modulos/businessmap/spike-lista.js';
 
 // Servidor falso local: nenhuma chamada ao BusinessMap real, e o `.env` nunca é lido. Cada servidor guarda o que recebeu.
 const KEY = 'chave-spike-de-teste-0123456789';
@@ -21,6 +21,9 @@ interface Opcoes {
   customFields?: 'normal' | 'pagina' | 'ignora' | 'falha' | 'falha2';
   filtroDeData?: boolean;
   rejeitaDataSimples?: boolean;
+  rejeitaDataComHora?: boolean;
+  /** 'sem-folhas': colunas no mapa mas `bottom_columns` vazio; 'sem-colunas': estrutura sem colunas. */
+  estrutura?: 'sem-folhas' | 'sem-colunas';
   rejeitaDatas?: boolean;
   semDonos?: boolean;
   cardsSemId?: boolean;
@@ -31,47 +34,67 @@ interface Opcoes {
 }
 
 const pessoa = { owner_user_id: 5, co_owner_ids: [6], email: 'pessoa@exemplo.com' };
-const colunas = (cs: Record<string, unknown>[]) => Object.fromEntries(cs.map((c) => [String(c.column_id), c]));
-const estruturaDe = (quadro: number): unknown => ({
-  data: {
-    board_id: quadro,
-    ...pessoa,
-    workflows:
-      quadro === 10
-        ? {
-            '100': {
-              workflow_id: 100,
-              name: 'WF',
-              columns: colunas([
-                { column_id: 1001, name: 'Backlog', section: 1, flow_type: 2, parent_column_id: null, ...pessoa },
-                { column_id: 1002, name: 'Comprometido', section: 2, flow_type: 2, parent_column_id: null },
-                { column_id: 1003, name: 'Pronto (Dev)', section: 3, flow_type: 1, parent_column_id: null },
-                { column_id: 1004, name: 'Aguardando Revisão', section: 3, flow_type: 1, parent_column_id: null },
-                { column_id: 1005, name: 'Em Homologação', section: 3, flow_type: 1, parent_column_id: null },
-                { column_id: 1006, name: 'Encerrado', section: 4, flow_type: 1, parent_column_id: null },
-                { column_id: 1007, name: 'Concluído', section: 4, flow_type: 1, parent_column_id: 1006 },
-                { column_id: 1008, name: 'Descartado', section: 4, flow_type: 1, parent_column_id: null },
-              ]),
-              lanes: [{ lane_id: 5, name: 'Raia' }],
-            },
-          }
-        : {
-            '101': {
-              workflow_id: 101,
-              name: 'WF2',
-              columns: [
-                { column_id: 2001, name: 'Descartado', section: 4, flow_type: 1, parent_column_id: null },
-                { column_id: 2002, name: 'Pre-Release', section: 4, flow_type: 1, parent_column_id: null },
-                { column_id: 2003, name: 'Sem seção', flow_type: 1, parent_column_id: null },
-                { column_id: 2004, name: 'Trabalho sem tipo', section: 3, flow_type: 0, parent_column_id: null },
-                { column_id: 2005, name: 'Publicado', section: 5, flow_type: 1, parent_column_id: null },
-                { column_id: 2006, section: 1, flow_type: 2, parent_column_id: null },
-                { column_id: 2007, name: 'Filha sem seção', flow_type: 2, parent_column_id: 2006 },
-              ],
-            },
-          },
-  },
-});
+interface ColunaReal { id: number; name?: string; section?: number; flow_type?: number; pai?: number; extra?: Record<string, unknown> }
+/**
+ * Estrutura sintética na forma real de `currentStructure` (execução de 2026-10-31): `columns` é mapa por id (sem `column_id`
+ * dentro), `child_columns` é mapa de id do pai para lista de ids, `workflows[id].bottom_columns` traz as folhas. Ids e nomes inventados.
+ */
+const estruturaReal = (wfs: Record<number, ColunaReal[]>, raiz: Record<string, unknown> = {}): Record<string, unknown> => {
+  const columns: Record<string, unknown> = {};
+  const child_columns: Record<string, number[]> = {};
+  const workflows: Record<string, unknown> = {};
+  for (const [wid, cs] of Object.entries(wfs)) {
+    for (const c of cs) {
+      columns[String(c.id)] = {
+        ...(c.name === undefined ? {} : { name: c.name }),
+        ...(c.section === undefined ? {} : { section: c.section }),
+        ...(c.flow_type === undefined ? {} : { flow_type: c.flow_type }),
+        parent_column_id: c.pai ?? 0,
+        workflow_id: Number(wid),
+        limit: 0,
+        ...c.extra,
+      };
+      if (c.pai !== undefined) (child_columns[String(c.pai)] ??= []).push(c.id);
+    }
+    const folhas = cs.filter((c) => !cs.some((o) => o.pai === c.id)).map((c) => c.id);
+    workflows[wid] = { name: 'WF', top_columns: cs.filter((c) => c.pai === undefined).map((c) => c.id), bottom_columns: folhas, section_columns: {}, bottom_lanes: [5] };
+  }
+  return { data: { allow_exceeding: 0, ...raiz, columns, child_columns, workflows } };
+};
+const estruturaDe = (quadro: number): unknown =>
+  estruturaReal(
+    quadro === 10
+      ? {
+          100: [
+            { id: 1001, name: 'Backlog', section: 1, flow_type: 2, extra: pessoa },
+            { id: 1002, name: 'Comprometido', section: 2, flow_type: 2 },
+            { id: 1003, name: 'Pronto (Dev)', section: 3, flow_type: 1 },
+            { id: 1004, name: 'Aguardando Revisão', section: 3, flow_type: 1 },
+            { id: 1005, name: 'Em Homologação', section: 3, flow_type: 1 },
+            { id: 1006, name: 'Encerrado', section: 4, flow_type: 1 },
+            { id: 1007, name: 'Concluído', section: 4, flow_type: 1, pai: 1006 },
+            { id: 1008, name: 'Descartado', section: 4, flow_type: 1 },
+          ],
+        }
+      : {
+          101: [
+            { id: 2001, name: 'Descartado', section: 4, flow_type: 1 },
+            { id: 2002, name: 'Pre-Release', section: 4, flow_type: 1 },
+            { id: 2003, name: 'Sem seção', flow_type: 1 },
+            { id: 2004, name: 'Trabalho sem tipo', section: 3, flow_type: 0 },
+            { id: 2005, name: 'Publicado', section: 5, flow_type: 1 },
+            { id: 2006, section: 1, flow_type: 2 },
+            { id: 2007, name: 'Filha sem seção', flow_type: 2, pai: 2006 },
+          ],
+        },
+    pessoa,
+  );
+const estruturaModo = (o: Opcoes, quadro: number): unknown => {
+  const e = estruturaDe(quadro) as { data: { workflows: Record<string, { bottom_columns: number[] }>; columns: unknown } };
+  if (o.estrutura !== undefined) for (const w of Object.values(e.data.workflows)) w.bottom_columns = [];
+  if (o.estrutura === 'sem-colunas') e.data.columns = {};
+  return e;
+};
 const card = (id: number, semDonos: boolean, semId = false): unknown => ({
   ...(semId ? {} : { card_id: id }),
   title: 'TITULO-MARCADOR',
@@ -94,7 +117,7 @@ const responder = (o: Opcoes, p: Pedido): { status: number; corpo: unknown } => 
   if (forcado !== undefined) return { status: forcado, corpo: {} };
   const q = p.consulta;
   let m: RegExpMatchArray | null;
-  if ((m = /^\/boards\/(\d+)\/currentStructure$/.exec(p.caminho))) return { status: 200, corpo: estruturaDe(Number(m[1])) };
+  if ((m = /^\/boards\/(\d+)\/currentStructure$/.exec(p.caminho))) return { status: 200, corpo: estruturaModo(o, Number(m[1])) };
   if (/^\/boards\/\d+\/workflows$/.test(p.caminho)) {
     return { status: 200, corpo: { data: [{ workflow_id: 100, name: 'WF', type: 0, card_type_ids: [1, 2], ...pessoa }] } };
   }
@@ -111,7 +134,7 @@ const responder = (o: Opcoes, p: Pedido): { status: number; corpo: unknown } => 
   if (p.caminho === '/cards') {
     const datas = ['archived_from', 'discarded_from'].map((k) => q.get(k)).filter((v): v is string => v !== null);
     const state = q.get('state');
-    if (datas.length > 0 && (o.rejeitaDatas || (o.rejeitaDataSimples && !datas[0]!.includes('T')))) return { status: 400, corpo: {} };
+    if (datas.length > 0 && (o.rejeitaDatas || (o.rejeitaDataSimples && !datas[0]!.includes('T')) || (o.rejeitaDataComHora && datas[0]!.includes('T')))) return { status: 400, corpo: {} };
     if (q.get('per_page') === '25' && o.semPagina) return { status: 404, corpo: {} };
     if (q.get('per_page') === '25') {
       const base = Number(q.get('board_ids')) * 100;
@@ -277,11 +300,36 @@ describe('F1: execução completa contra o servidor falso', () => {
     const hora = await subir({ rejeitaDataSimples: true });
     const rh = await rodar(hora, { dirSaida: join(tmp, 'b') });
     expect(rh.saida).toContain('Formato de data aceito nos filtros de arquivamento e descarte: AAAA-MM-DDTHH:mm:ssZ');
+    // o formato com hora vai primeiro: a API real recusa a data simples e o programa não a envia mais (400 do quadro 35)
+    expect(hora.pedidos.filter((p) => p.consulta.get('archived_from') === '2025-10-31')).toEqual([]);
+    expect(rh.saida).not.toContain('respondeu 400');
+    // reserva: se a API recusar a data com hora e aceitar a simples, a recusa é nota da sonda e não aviso
+    const simples = await rodar(await subir({ rejeitaDataComHora: true }), { dirSaida: join(tmp, 'b2') });
+    expect(simples.saida).toContain('Formato de data aceito nos filtros de arquivamento e descarte: AAAA-MM-DD.');
+    expect(simples.saida).toContain('Formato de data recusado pela API na sonda (400, não é falha do programa): quadro-10-contagem-arquivados-12m: http: GET /cards respondeu 400.');
+    expect(simples.saida.split('## Avisos')[1]).toContain('(nenhum)');
     expect(rh.saida).toContain('Filtros archived_from e discarded_from com state: filtra');
     const nenhuma = await rodar(await subir({ rejeitaDatas: true }), { dirSaida: join(tmp, 'c') });
     expect(nenhuma.saida).toContain('Formato de data aceito nos filtros de arquivamento e descarte: nenhum aceito');
     expect(nenhuma.saida).toContain('Filtros archived_from e discarded_from com state: indeterminado');
     expect(nenhuma.saida).toContain('| 10 | 7 | n/d | n/d | 5 | 5 | n/d | n/d |');
+  });
+
+  it('zero folhas com colunas presentes: aviso no relatório e código 3 (execução de 2026-10-31)', async () => {
+    const f = await subir({ estrutura: 'sem-folhas' });
+    const r = await rodar(f);
+    expect(r.codigo).toBe(3);
+    expect(r.erro).toContain('lista de conferência vazia');
+    expect(r.saida).toContain('## Avisos');
+    expect(r.saida).toContain('lista de conferência vazia: 15 colunas lidas e nenhuma folha derivada');
+    expect(r.saida).toContain('Folhas: 0.');
+    expect(readFileSync(join(tmp, 'saida', 'lista-conferencia-colunas.md'), 'utf8')).toContain('Folhas: 0.');
+  });
+
+  it('sem colunas na estrutura (quadro vazio) não é erro: código 0', async () => {
+    const r = await rodar(await subir({ estrutura: 'sem-colunas' }));
+    expect(r.codigo).toBe(0);
+    expect(r.saida).not.toContain('lista de conferência vazia');
   });
 
   it('/users: sem ids na amostra, com campos extras e com resposta vazia', async () => {
@@ -586,37 +634,72 @@ describe('lista de conferência: regra e entradas fora do padrão', () => {
     expect([2, 1, 0, undefined].map(tipoDoFlow)).toEqual(['fila', 'execucao', 'sem_tipo', 'sem_tipo']);
   });
 
-  it('estrutura fora do formato não derruba a lista; id de workflow cai para a chave', () => {
+  it('estrutura fora do formato não derruba a lista; id de workflow não numérico vira <chave>', () => {
     const l = montarLista(
       new Map<number, unknown>([
-        [3, { data: { workflows: { '77': { name: 'sem id', columns: [{ column_id: 1, name: 'Fila', section: 3, flow_type: 2 }, { column_id: 3 }] }, '78': 'lixo' } } }],
+        [3, { data: { columns: { '1': { name: 'Fila', section: 3, flow_type: 2, parent_column_id: 0 } }, workflows: { '77': { name: 'sem id', bottom_columns: [1, 3] }, '78': 'lixo', 'a|b`c': { bottom_columns: [1] } } } }],
         [2, { data: { workflows: [] } }],
         [1, { data: 'x' }],
         [6, { data: [1] }],
-        [4, { data: { workflows: { '80': { workflow_id: 80, columns: 'x' } } } }],
-        [5, { data: { workflows: { '81': { workflow_id: 81, columns: [{ column_id: 9, name: 'Espera', section: 3, flow_type: 1 }, { column_id: 8, name: 'Aguardando', section: 3, flow_type: 1 }] } } } }],
+        [4, { data: { workflows: { '80': { bottom_columns: 'x' } }, columns: 'x' } }],
+        [5, estruturaReal({ 81: [{ id: 9, name: 'Espera', section: 3, flow_type: 1 }, { id: 8, name: 'Aguardando', section: 3, flow_type: 1 }] })],
       ]),
       conf,
     );
-    expect(l.map((x) => [x.quadro, x.workflow, x.coluna])).toEqual([[3, '<id>', '1'], [3, '<id>', '3'], [5, '81', '8'], [5, '81', '9']]);
-    expect(l[0]).toMatchObject({ papel: 'trabalho', tipo: 'fila' });
-    expect(l[0]!.marca).toBe('CONFERIR: workflow sem folha na seção 2 nem na 4, o marco cai na seção seguinte (H-23)');
-    expect(l[1]).toMatchObject({ nome: '', secao: undefined, flowType: undefined, papel: 'sem_papel', tipo: 'sem_tipo', marca: 'CONFERIR: folha sem seção' });
-    expect(l[2]!.marca).toContain('CANDIDATA');
-    expect(l[3]!.marca).toContain('(H-23)');
+    expect(l.map((x) => [x.quadro, x.workflow, x.coluna])).toEqual([[3, '<chave>', '1'], [3, '77', '1'], [3, '77', '3'], [5, '81', '8'], [5, '81', '9']]);
+    expect(l[1]).toMatchObject({ papel: 'trabalho', tipo: 'fila' });
+    expect(l[1]!.marca).toBe('CONFERIR: workflow sem folha na seção 2 nem na 4, o marco cai na seção seguinte (H-23)');
+    expect(l[2]).toMatchObject({ nome: '', secao: undefined, flowType: undefined, papel: 'sem_papel', tipo: 'sem_tipo', marca: 'CONFERIR: folha sem seção' });
+    expect(l[3]!.marca).toContain('CANDIDATA');
+    expect(l[4]!.marca).toContain('(H-23)');
     expect(renderizarLista(l, conf, [3, 5])).toContain('|  | - | - | sem_papel | sem_tipo | CONFERIR: folha sem seção |');
     expect(excecoesSemColuna(l, conf)).toEqual([]);
-    expect(l[0]!.coluna).toBe('1');
     expect(renderizarLista([], conf, [3])).toContain('Nenhuma.');
     expect(renderizarLista([], conf, [3])).toContain('Folhas: 0.');
   });
 
-  it('A3 da segurança: workflow sem workflow_id e coluna sem column_id inteiro não levam texto da resposta para a lista', () => {
+  it('forma real: folhas vêm de bottom_columns, pai de child_columns, seção da filha cai para a do pai', () => {
     const l = montarLista(
-      new Map<number, unknown>([[1, { data: { workflows: { 'a|b`c': { columns: [{ column_id: 'x|y', name: 'Fila', section: 3, flow_type: 2 }] } } } }]]),
+      new Map<number, unknown>([
+        [7, estruturaReal({
+          500: [
+            { id: 5001, name: 'Pai A', section: 3, flow_type: 1 },
+            { id: 5002, name: 'Filha 1', flow_type: 2, pai: 5001 },
+            { id: 5003, name: 'Filha 2', section: 3, flow_type: 1, pai: 5001 },
+            { id: 5004, name: 'Compromisso', section: 2, flow_type: 2 },
+            { id: 5005, name: 'Entregue', section: 4, flow_type: 1 },
+          ],
+          501: [{ id: 6001, name: 'Outro', section: 2, flow_type: 2 }, { id: 6002, name: 'Fim', section: 4, flow_type: 1 }],
+        })],
+      ]),
       conf,
     );
-    expect(l[0]).toMatchObject({ workflow: '<chave>', coluna: '<id?>' });
+    expect(l.map((x) => [x.workflow, x.coluna, x.papel])).toEqual([
+      ['500', '5002', 'trabalho'], ['500', '5003', 'trabalho'], ['500', '5004', 'compromisso'], ['500', '5005', 'entrega'],
+      ['501', '6001', 'compromisso'], ['501', '6002', 'entrega'],
+    ]);
+    expect(l[0]).toMatchObject({ quadro: 7, secao: 3, flowType: 2, tipo: 'fila' });
+    expect(l.some((x) => x.coluna === '5001')).toBe(false); // pai não é folha
+  });
+
+  it('forma real: id de pai listado em bottom_columns não vira folha', () => {
+    const e = estruturaReal({ 600: [{ id: 7001, name: 'Pai', section: 3, flow_type: 1 }, { id: 7002, name: 'Filha', section: 3, flow_type: 1, pai: 7001 }] }) as { data: { workflows: Record<string, { bottom_columns: number[] }> } };
+    e.data.workflows['600']!.bottom_columns = [7001, 7002];
+    expect(montarLista(new Map<number, unknown>([[1, e]]), conf).map((x) => x.coluna)).toEqual(['7002']);
+  });
+
+  it('contarColunas conta o mapa columns de todos os quadros lidos', () => {
+    const e = estruturaReal({ 1: [{ id: 1, section: 1 }, { id: 2, section: 2 }], 2: [{ id: 3, section: 3 }] });
+    expect(contarColunas(new Map<number, unknown>([[1, e], [2, { data: { columns: 'x' } }], [3, 'x']]))).toBe(3);
+    expect(contarColunas(new Map())).toBe(0);
+  });
+
+  it('A3 da segurança: workflow de chave não numérica e coluna sem id inteiro não levam texto da resposta para a lista', () => {
+    const l = montarLista(
+      new Map<number, unknown>([[1, { data: { columns: { 'x|y': { name: 'Fila', section: 3, flow_type: 2 } }, workflows: { 'a|b`c': { bottom_columns: ['x|y'] } } } }]]),
+      conf,
+    );
+    expect(l[0]).toMatchObject({ workflow: '<chave>', coluna: '<id?>', nome: '' });
     expect(l[0]!.marca).toContain('CONFERIR: coluna sem id inteiro');
     expect(renderizarLista(l, conf, [1])).not.toMatch(/a\|b|x\|y/);
   });
@@ -624,11 +707,11 @@ describe('lista de conferência: regra e entradas fora do padrão', () => {
   it('H-11: coluna listada em colunas_descartado é descarte mesmo com outro nome, com marca; fora do arquivo só o nome marca', () => {
     const l = montarLista(
       new Map<number, unknown>([
-        [1, { data: { workflows: { '100': { workflow_id: 100, columns: [
-          { column_id: 1, name: 'Compromisso', section: 2, flow_type: 2 },
-          { column_id: 1008, name: 'Descartados', section: 4, flow_type: 1 },
-          { column_id: 1009, name: 'Concluído', section: 4, flow_type: 1 },
-        ] } } } }],
+        [1, estruturaReal({ 100: [
+          { id: 1, name: 'Compromisso', section: 2, flow_type: 2 },
+          { id: 1008, name: 'Descartados', section: 4, flow_type: 1 },
+          { id: 1009, name: 'Concluído', section: 4, flow_type: 1 },
+        ] })],
       ]),
       conf,
     );
@@ -639,14 +722,13 @@ describe('lista de conferência: regra e entradas fora do padrão', () => {
   });
 
   it('H-23: marca o workflow sem folha na seção 2 ou na 4 (só Descartado na 4 não vale), e não marca o completo', () => {
-    const wf = (id: number, colunas: Record<string, unknown>[]) => ({ [String(id)]: { workflow_id: id, columns: colunas } });
     const l = montarLista(
       new Map<number, unknown>([
-        [1, { data: { workflows: {
-          ...wf(300, [{ column_id: 1, name: 'A', section: 2, flow_type: 2 }, { column_id: 2, name: 'B', section: 4, flow_type: 1 }]),
-          ...wf(301, [{ column_id: 3, name: 'A', section: 2, flow_type: 2 }, { column_id: 4, name: 'Descartado', section: 4, flow_type: 1 }]),
-          ...wf(302, [{ column_id: 5, name: 'A', section: 1, flow_type: 2 }, { column_id: 6, name: 'B', section: 4, flow_type: 1 }]),
-        } } }],
+        [1, estruturaReal({
+          300: [{ id: 1, name: 'A', section: 2, flow_type: 2 }, { id: 2, name: 'B', section: 4, flow_type: 1 }],
+          301: [{ id: 3, name: 'A', section: 2, flow_type: 2 }, { id: 4, name: 'Descartado', section: 4, flow_type: 1 }],
+          302: [{ id: 5, name: 'A', section: 1, flow_type: 2 }, { id: 6, name: 'B', section: 4, flow_type: 1 }],
+        })],
       ]),
       conf,
     );
@@ -662,10 +744,10 @@ describe('lista de conferência: regra e entradas fora do padrão', () => {
   it('H-26: folha de homologação ganha a marca, entra nos itens a conferir e confere o flow_type', () => {
     const l = montarLista(
       new Map<number, unknown>([
-        [1, { data: { workflows: { '400': { workflow_id: 400, columns: [
-          { column_id: 1, name: 'Em Homologação', section: 3, flow_type: 1 },
-          { column_id: 2, name: 'Homologação 2', section: 3, flow_type: 0 },
-        ] } } } }],
+        [1, estruturaReal({ 400: [
+          { id: 1, name: 'Em Homologação', section: 3, flow_type: 1 },
+          { id: 2, name: 'Homologação 2', section: 3, flow_type: 0 },
+        ] })],
       ]),
       conf,
     );

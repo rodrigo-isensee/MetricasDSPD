@@ -1,5 +1,5 @@
 import type { Conferencia } from './conferencia.js';
-import { chaveSegura, desembrulhar } from './spike-forma.js';
+import { desembrulhar } from './spike-forma.js';
 
 // Spike F1 (plano 052): lista de conferência das colunas folha. Aplica a regra das H-8 a H-11 (e a H-26, homologação)
 // à estrutura lida e marca as candidatas a exceção. É proposta para o dono conferir: não grava nada, não decide
@@ -23,7 +23,6 @@ export interface LinhaConferencia {
 
 type Obj = Record<string, unknown>;
 const ehObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
-const emLista = (v: unknown): Obj[] => (Array.isArray(v) ? v : ehObj(v) ? Object.values(v) : []).filter(ehObj);
 const inteiro = (v: unknown): number | undefined => (typeof v === 'number' && Number.isInteger(v) ? v : undefined);
 const idTexto = (v: unknown): string | undefined => (inteiro(v) === undefined ? undefined : String(v));
 const normalizar = (t: string): string => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
@@ -49,18 +48,23 @@ export function montarLista(estruturas: ReadonlyMap<number, unknown>, conf: Conf
   const linhas: LinhaConferencia[] = [];
   for (const [quadro, corpo] of estruturas) {
     for (const estrutura of desembrulhar(corpo).itens) {
-      for (const [chave, wf] of Object.entries(ehObj(estrutura) && ehObj(estrutura.workflows) ? estrutura.workflows : {})) {
+      // Forma real de `currentStructure`: `columns` é mapa por id; `child_columns` é mapa de id do pai para lista de ids;
+      // `workflows[id].bottom_columns` traz os ids das folhas do workflow (as chaves dos mapas são os ids).
+      const raiz = ehObj(estrutura) ? estrutura : {};
+      const mapaColunas = ehObj(raiz.columns) ? raiz.columns : {};
+      const mapaFilhas = ehObj(raiz.child_columns) ? raiz.child_columns : {};
+      for (const [chave, wf] of Object.entries(ehObj(raiz.workflows) ? raiz.workflows : {})) {
         if (!ehObj(wf)) continue;
-        const workflow = idTexto(wf.workflow_id) ?? chaveSegura(chave);
+        const workflow = /^\d+$/.test(chave) ? chave : '<chave>';
         const doWorkflow: LinhaConferencia[] = [];
-        const colunas = emLista(wf.columns);
-        const porId = new Map(colunas.map((c) => [String(c.column_id), c]));
-        const pais = new Set(colunas.map((c) => String(c.parent_column_id)));
-        for (const c of colunas) {
-          const idBruto = String(c.column_id);
-          if (pais.has(idBruto)) continue; // só folhas
-          const coluna = idTexto(c.column_id) ?? '<id?>';
-          const pai = porId.get(String(c.parent_column_id));
+        for (const idBruto of Array.isArray(wf.bottom_columns) ? wf.bottom_columns : []) {
+          const coluna = idTexto(idBruto) ?? '<id?>';
+          if (coluna !== '<id?>' && Array.isArray(mapaFilhas[coluna]) && mapaFilhas[coluna].length > 0) continue; // só folhas
+          const achada = coluna === '<id?>' ? undefined : mapaColunas[coluna];
+          const c: Obj = ehObj(achada) ? achada : {};
+          const paiBruto = inteiro(c.parent_column_id);
+          const paiAchado = paiBruto === undefined ? undefined : mapaColunas[String(paiBruto)];
+          const pai: Obj | undefined = ehObj(paiAchado) ? paiAchado : undefined;
           const nome = String(c.name ?? '').replace(/[\r\n|`]+/g, ' ').slice(0, 80);
           const norm = normalizar(nome);
           const secao = inteiro(c.section) ?? inteiro(pai?.section);
@@ -109,6 +113,17 @@ export function montarLista(estruturas: ReadonlyMap<number, unknown>, conf: Conf
   }
   const num = (a: string, b: string): number => a.localeCompare(b, 'en', { numeric: true });
   return linhas.sort((a, b) => a.quadro - b.quadro || num(a.workflow, b.workflow) || num(a.coluna, b.coluna));
+}
+
+/** Quantas colunas (objetos do mapa `columns`) as estruturas lidas trazem, para avisar quando há colunas e nenhuma folha. */
+export function contarColunas(estruturas: ReadonlyMap<number, unknown>): number {
+  let total = 0;
+  for (const corpo of estruturas.values()) {
+    for (const estrutura of desembrulhar(corpo).itens) {
+      if (ehObj(estrutura) && ehObj(estrutura.columns)) total += Object.values(estrutura.columns).filter(ehObj).length;
+    }
+  }
+  return total;
 }
 
 /** Exceções do arquivo cujo workflow foi lido, mas cuja coluna não está entre as folhas lidas. */
