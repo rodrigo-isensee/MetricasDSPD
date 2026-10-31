@@ -1,11 +1,5 @@
 ---
-tipo: plano-tecnico
-contrato: 1
-pedido: 056-acelerato-mysql
-estado: proposta
-ux: nenhuma
-adrs: [0023, 0020]
-agentes: [qa-engineer, node-backend]
+contrato: 0
 ---
 
 # Plano de testes - coletor do Acelerato pela tabela MySQL (F1 e F2)
