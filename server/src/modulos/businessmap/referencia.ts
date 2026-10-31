@@ -186,7 +186,12 @@ export interface Plano {
   metricasMarcadas: string[];
   inicial: boolean;
   workflowsIgnorados: number;
+  /** Chaves vigentes que não vêm mais no quadro (A3). A vigência delas não é fechada: fechar ou não é decisão do arquiteto. */
+  ausentes: Ausentes;
+  /** Folhas lidas sem papel e sem ser descarte (por exemplo, sem seção): ficam com papel nulo e o comando da F3 mostra (A5). */
+  folhasSemPapel: number;
 }
+export interface Ausentes { ref_coluna: number; ref_workflow: number; ref_tipo_card: number }
 
 const igual = (a: Valor | undefined, b: Valor | undefined): boolean => (a ?? null) === (b ?? null);
 const chaveDe = (e: Esp, l: Linha): string => e.chave.map((k) => String(l[k])).join('|');
@@ -208,10 +213,16 @@ export function planejar(lida: ReferenciaLida, vigentes: Vigentes, conf: Confere
   const inicial = vigentes.ref_coluna.length === 0;
   const listadas = new Set([...conf.excecoes_papel_coluna, ...conf.excecoes_papel_trabalho, ...conf.colunas_descartado].map((c) => c.coluna_id));
   const semConferencia: string[] = [];
+  const ausentes: Ausentes = { ref_coluna: 0, ref_workflow: 0, ref_tipo_card: 0 };
+  const folhasSemPapel = desejadas.ref_coluna.filter((l) => l.eh_folha === true && l.eh_descarte !== true && l.papel === null).length;
 
   for (const e of ESP) {
     const atuais = new Map(vigentes[e.tabela].map((l) => [chaveDe(e, l), l]));
     const vazia = atuais.size === 0;
+    if (e.tabela !== 'ref_quadro') {
+      const vistas = new Set(desejadas[e.tabela].map((l) => chaveDe(e, l)));
+      ausentes[e.tabela] = [...atuais.keys()].filter((k) => !vistas.has(k)).length;
+    }
     for (const nova of desejadas[e.tabela]) {
       const chave = chaveDe(e, nova);
       const atual = atuais.get(chave);
@@ -236,7 +247,7 @@ export function planejar(lida: ReferenciaLida, vigentes: Vigentes, conf: Confere
       }
     }
   }
-  return { operacoes, mudancas, semConferencia, pendentes, metricasMarcadas: [...marcadas], inicial, workflowsIgnorados: wf.reduce((s, w) => s + w.ignorados, 0) };
+  return { operacoes, mudancas, semConferencia, pendentes, metricasMarcadas: [...marcadas], inicial, workflowsIgnorados: wf.reduce((s, w) => s + w.ignorados, 0), ausentes, folhasSemPapel };
 }
 
 const listaDe = (t: Esp['tabela']): string => {
@@ -258,6 +269,7 @@ export async function carregarVigentes(db: Consultavel, quadros: readonly number
 
 export interface Resultado {
   inseridas: number; fechadas: number; mudancas: Mudanca[]; semConferencia: number; marca: boolean; workflowsIgnorados: number;
+  ausentes: Ausentes; folhasSemPapel: number;
 }
 
 async function registrarVersao(
@@ -321,7 +333,7 @@ export async function sincronizarReferencia(
       referencia: `plano-052-F2:processo:${o.hoje}`, metricas: plano.metricasMarcadas,
     }, agora);
   }
-  return { inseridas: plano.operacoes.length, fechadas, mudancas: plano.mudancas, semConferencia: plano.semConferencia.length, marca, workflowsIgnorados: plano.workflowsIgnorados };
+  return { inseridas: plano.operacoes.length, fechadas, mudancas: plano.mudancas, semConferencia: plano.semConferencia.length, marca, workflowsIgnorados: plano.workflowsIgnorados, ausentes: plano.ausentes, folhasSemPapel: plano.folhasSemPapel };
 }
 
 /** Contagem da folha sem conferência na coleta (papel `dspd_coletor`: `ctl_coleta_contagem`); só número, sem id de coluna nem nome. */
@@ -373,8 +385,6 @@ export function folhasDoMarco(colunas: readonly Linha[], marco: 'compromisso' | 
   const escolhidas =
     marco === 'entrega'
       ? folhas.filter((c) => c.papel === 'entrega') // H-23: sem folha na seção 4, a primeira entrada é na 5 (também entrega)
-      : folhas.some((c) => c.papel === 'compromisso')
-        ? folhas.filter((c) => c.papel === 'compromisso')
-        : folhas.filter((c) => c.section === 3 && (c.papel === 'trabalho' || c.papel === 'homologacao')); // H-23: marco na seção 3
+      : folhas.filter((c) => c.papel === 'compromisso' || (c.section === 3 && (c.papel === 'trabalho' || c.papel === 'homologacao'))); // H-23 por card: quem pula a seção 2 tem o marco na primeira entrada na seção 3
   return escolhidas.sort((a, b) => Number(a.ordem) - Number(b.ordem));
 }

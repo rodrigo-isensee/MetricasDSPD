@@ -152,10 +152,15 @@ describe('F2: leitura da referência (só GET) e regras por folha', () => {
     expect(folhasDoMarco(regra, 'entrega').map((l) => l.coluna_id)).toEqual(['2532', '2534']);
   });
 
-  it('H-23: sem folha na seção 2 o compromisso é a primeira entrada na seção 3', async () => {
+  it('H-23 por card: o compromisso é a primeira entrada na folha da seção 2 ou na seção 3; quem pula a seção 2 não fica sem marco', async () => {
     const { lida } = await ler();
     const colunas = linhasColuna('25', lida.estruturas.get(25), conf);
-    expect(folhasDoMarco(colunas.filter((l) => l.workflow_id === '191'), 'compromisso').map((l) => l.coluna_id)).toEqual(['2531']);
+    // 191 tem seção 2 (2531); o card que vai de 2530 direto para 2533 (seção 3) tem o compromisso em 2533
+    const marcos191 = folhasDoMarco(colunas.filter((l) => l.workflow_id === '191'), 'compromisso').map((l) => l.coluna_id);
+    expect(marcos191).toEqual(['2531', '2533']);
+    const primeira = (trajeto: string[]): string | undefined => trajeto.find((id) => marcos191.includes(id));
+    expect(primeira(['2530', '2533', '2534'])).toBe('2533');
+    expect(primeira(['2530', '2531', '2533', '2534'])).toBe('2531');
     expect(folhasDoMarco(colunas.filter((l) => l.workflow_id === '192'), 'compromisso').map((l) => l.coluna_id)).toEqual(['2541']);
     const so3 = [
       { coluna_id: 'b', eh_folha: true, section: 3, papel: 'homologacao', ordem: 1 }, { coluna_id: 'a', eh_folha: true, section: 3, papel: 'trabalho', ordem: 0 },
@@ -405,5 +410,64 @@ describe('F2: mapa.ts, identidade por id da coluna (ADR 0016)', () => {
     const n = nomesDeColuna(ls);
     expect([...n.values()]).toEqual(['Backlog (1)', 'Backlog (2)', 'Fazendo', 'Backlog']);
     expect(colunasDe(ls).map((c) => c.coluna)).toEqual(['Backlog (1)', 'Backlog (2)', 'Fazendo', 'Backlog']);
+  });
+});
+
+describe('F2 volta 1: chaves ausentes, folhas sem papel e campo de pessoa', () => {
+  it('A3: chave vigente que some do quadro é contada no Resultado e a vigência dela não é fechada', async () => {
+    const { lida } = await ler();
+    const vig = comoVigentes(planejar(lida, vazio, conf, opts));
+    const { lida: depois } = await ler((c) => {
+      c['/boards/25/currentStructure'] = estrutura({ 191: WF191.filter((x) => x.id !== 2530), 192: WF192 });
+      c['/cardTypes'] = { data: TIPOS.filter((t) => t.type_id !== 5) };
+      c['/boards/25/workflows'] = { data: [{ workflow_id: 191, name: 'Iniciativas', type: 1 }] };
+    });
+    const p = planejar(depois, vig, conf, { hoje: '2026-11-09', inicioCarga: INICIO });
+    expect(p.ausentes).toEqual({ ref_coluna: 1, ref_workflow: 2, ref_tipo_card: 1 });
+    expect(p.operacoes.filter((o) => o.fechar !== undefined && ['2530', '5'].includes(String(o.linha.coluna_id ?? o.linha.tipo_id)))).toEqual([]);
+    const db = dubleCom(vig);
+    const r = await sincronizarReferencia(db.pool, depois, conf, { hoje: '2026-11-09', inicioCarga: INICIO, motivo: 'correcao' }, S);
+    expect(r.ausentes).toEqual({ ref_coluna: 1, ref_workflow: 2, ref_tipo_card: 1 });
+    expect(escritas(db.chamadas).some((c) => c.texto.startsWith('UPDATE') && c.valores.includes('2530'))).toBe(false);
+  });
+
+  it('A5: folha sem papel (sem seção) é contada no Resultado; descarte não conta', async () => {
+    const { lida: base } = await ler();
+    expect(planejar(base, vazio, conf, opts).folhasSemPapel).toBe(0);
+    const { lida } = await ler((c) => {
+      c['/boards/35/currentStructure'] = estrutura({ 300: [...WF300, { id: 3009, nome: 'Fora de seção', secao: 9, flow: 1 }] });
+    });
+    const p = planejar(lida, vazio, conf, opts);
+    expect(p.folhasSemPapel).toBe(1);
+    const r = await sincronizarReferencia(dubleCom(vazio).pool, lida, conf, { ...opts, agora: new Date('2026-11-02T09:00:00Z') }, S);
+    expect(r.folhasSemPapel).toBe(1);
+  });
+
+  it('A1 da segurança: campo de pessoa na resposta (owner, e-mail, nome) não chega às escritas nem ao erro', async () => {
+    const pessoa = { owner_user_id: 'MARCA-OWNER-9', email: 'MARCA-EMAIL@x.test', realname: 'MARCA-NOME', username: 'MARCA-USER' };
+    const { lida } = await ler((c) => {
+      const ce = (c['/boards/25/currentStructure'] as { data: Record<string, Record<string, unknown>> }).data;
+      Object.assign(ce, pessoa);
+      for (const col of Object.values(ce.columns as Record<string, Record<string, unknown>>)) Object.assign(col, pessoa);
+      for (const w of Object.values(ce.workflows as Record<string, Record<string, unknown>>)) Object.assign(w, pessoa);
+      c['/boards/25/workflows'] = { data: [{ workflow_id: 191, name: 'Iniciativas', type: 1, ...pessoa }, { workflow_id: 192, name: 'Time A', type: 0, ...pessoa }] };
+      c['/cardTypes'] = { data: TIPOS.map((t) => ({ ...t, ...pessoa })) };
+    });
+    const db = dubleCom(vazio);
+    await sincronizarReferencia(db.pool, lida, conf, { ...opts, agora: new Date('2026-11-02T09:00:00Z') }, S);
+    const texto = JSON.stringify(escritas(db.chamadas).map((c) => [c.texto, c.valores]));
+    expect(texto).not.toMatch(/MARCA-|@x\.test/);
+    const vig = comoVigentes(planejar(lida, vazio, conf, opts));
+    const { lida: muda } = await ler((c) => {
+      c['/boards/35/currentStructure'] = estrutura({ 300: [{ id: 3001, nome: 'Fazendo', secao: 4, flow: 1, ...pessoa } as never, ...WF300.slice(1)] });
+    });
+    let msg = '';
+    try {
+      await sincronizarReferencia(dubleCom(vig).pool, muda, conf, { hoje: '2026-11-09', inicioCarga: INICIO }, S);
+    } catch (e) {
+      msg = e instanceof Error ? e.message : String(e);
+    }
+    expect(msg).not.toBe('');
+    expect(msg).not.toMatch(/MARCA-|@x\.test/);
   });
 });
