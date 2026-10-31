@@ -1,5 +1,8 @@
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { REFERENCIA_VERSAO } from '../migrations/0017_bm_carga_inicial_times.js';
+import { lerVersoes } from '../src/modulos/operacao/repositorio.js';
+import { lerVersaoCriterioVigente } from '../src/modulos/referencia/repositorio.js';
 import { poolDe, S, unico, url } from './pg/ctx.js';
 
 const d = describe.skipIf(!url);
@@ -195,6 +198,24 @@ d('referência do quadro real e tabela de times (plano 052, F0)', () => {
       const down = ddl(S).down;
       await c.query(INS_TIME, [904, '2026-01-01', 'posterior', 'processo', 1, 'teste']);
       await expect(c.query(down[0]!)).rejects.toThrow(/vigências posteriores/);
+    });
+  });
+
+  it('a versão de partida da 0017 (sem métrica) fica fora de /criterios e de versaoCriterio; versão com métrica entra', async () => {
+    const partida = await dono.query<{ versao_id: string }>(
+      `SELECT versao_id FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia = $1`, [REFERENCIA_VERSAO]);
+    expect(partida.rows).toHaveLength(1);
+    const id = String(partida.rows[0]!.versao_id);
+    expect((await lerVersoes(dono, 'businessmap', S)).map((v) => v.id)).not.toContain(id);
+    expect(await lerVersaoCriterioVigente(dono, '9999-12-31', S)).not.toBe(id);
+    await emTransacao(async (c) => {
+      const nova = await c.query<{ versao_id: string }>(
+        `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
+         VALUES ('1999-01-01', 'businessmap', 'com métrica', 'teste', 'teste-5-review', now()) RETURNING versao_id`);
+      const novaId = String(nova.rows[0]!.versao_id);
+      await c.query(`INSERT INTO ${S.core}.ref_versao_criterio_metrica (versao_id, metrica_id) VALUES ($1, 'O2')`, [novaId]);
+      expect((await lerVersoes(c, 'businessmap', S)).map((v) => v.id)).toContain(novaId);
+      expect(await lerVersaoCriterioVigente(c, '2000-01-01', S)).toBe(novaId);
     });
   });
 });
