@@ -3,13 +3,23 @@ tipo: review
 contrato: 1
 pedido: 056-acelerato-mysql
 branch: feature/056-coletor-acelerato
-commit: 3b2f98f41e130c9f7c11799701efb0dee29c81fb
+commit: e6fd5fd3116216ae3eef60a2446d59cf590c64a1
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-30
 ---
 
 # Code review: F1 e F2 do coletor do Acelerato (056, E4.9 e E4.13, K-190)
+
+## Renovação por delta (E4.11, 2026-10-30)
+
+**Veredito: aprovado** sobre `e6fd5fd`. O parecer estava desatualizado porque `docs/architecture/fontes/acelerato-listas.md` mudou na E4.15 (`63e09f7`) e na E4.16 (`e6fd5fd`).
+
+Delta lido: `forge-check delta --parecer` deu o intervalo `3b2f98f..e6fd5fd`, só `docs/architecture/fontes/acelerato-listas.md`, linhas 6-7 e 135-162. Li as linhas 6-7 (E4.16). Fica como "já lido" o trecho 135-162 (§12, E4.15, lido na E4.13) e os pareceres do intervalo (QA, segurança e este), que cito sem refazer. Nenhum arquivo de código mudou desde `3b2f98f`; as saídas de ferramenta abaixo seguem valendo.
+
+- **R6: resolvido** (`e6fd5fd`). A linha 7 diz agora que status, prioridade e etapa fora da lista viram nulo com contagem e que o recorte (§4 a §6) falha com `fora-do-recorte`, como `allow-list.ts:96`, `110-111` e `133`.
+- **R7 (recomendado, novo):** a mesma linha põe o §9 no grupo que vira nulo, mas o §9 são os status de SLA, recusados pelo schema (`allow-list.ts:46`, `dados-invalidos`). Só texto, sem efeito no código.
+- Segurança: `docs/security/056-coletor-f1-f2.md` (`c86e6b3`, `riscos-aceitos` pelo R-1, aceito pelo dono na conversa) e `docs/security/056-coletor-listas-e-driver.md` (E4.17, aprovado). QA: `docs/qa/056-coletor-f1-f2.md` (aprovado, `414533f`).
 
 ## Revalidação sobre a volta 1 (E4.13, 2026-10-30)
 
@@ -83,10 +93,11 @@ O bloco abaixo traz o estado em `3b2f98f`. A2 e A3 não são código e não volt
 - R1 (recomendado) server/src/modulos/acelerato/coletor.ts:195 · `--reconhecer-mudanca` libera mudança de SQL, colunas ou campos sem entrada em ref_versao_criterio (ADR 0023 item 6; T2.6). Para sql/colunas/campos, exija a versão de critério e deixe a opção só para host, banco e TLS. Vira bloqueante no PR da Q4 (F3).
 - R4 (recomendado) docs/architecture/data-model.md:148 · O documento diz que vw_populacao_sssc filtra `fora_do_recorte = false`, mas a view da 0009 não mudou: só lerChamados filtra. Recriar a view numa migração ou corrigir o texto.
 - R5 (recomendado) server/migrations/0016_ac_stg_chamado_recorte.ts:14 · A 0016 traz duas mudanças (coluna e CHECK), e a 0017 traz colunas e índice. A prática §6 pede uma mudança por migração. Vale a partir das próximas; não editar estas se já tiverem sido aplicadas em algum ambiente.
-- R6 (recomendado) docs/architecture/fontes/acelerato-listas.md:7 · Diz que valor fora das listas §7 a §9 faz a coleta falhar fechado (`dados-invalidos`); o código anula e conta em status, prioridade e etapa (allow-list.ts:110-111, 133; CT-05) e o recorte falha com `fora-do-recorte`. Corrigir o texto antes da E4.8.
+- R7 (recomendado) docs/architecture/fontes/acelerato-listas.md:7 · Põe o §9 (status de SLA) no grupo que vira nulo com contagem; o schema recusa valor fora do §9 (allow-list.ts:46, dados-invalidos). Separar o §9 na frase.
+- R6 (recomendado) docs/architecture/fontes/acelerato-listas.md:7 · Resolvido em e6fd5fd. Dizia que valor fora dos §7 a §9 falha fechado; o código anula e conta status, prioridade e etapa (allow-list.ts:110-111, 133) e o recorte falha com `fora-do-recorte`.
 
 ## O que ainda falta (sem volta ao autor do código)
 
 - qa-engineer (E4.10): A2 no plano de testes, junto do QA.
 - tech-lead (E4.11): A3, na abertura dos dois PRs, com a linha do teto recontada.
-- software-architect: R6, antes da carga inicial (E4.8).
+- software-architect: R7 (texto do §9), quando convier; não bloqueia a E4.8.
