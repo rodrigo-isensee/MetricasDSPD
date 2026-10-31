@@ -3,14 +3,45 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f2-referencia
-commit: 5a75265de1b84f6bf81c5f147a65dc433f98f04f
-parecer: reprovado
+commit: 75ee95308d6aad2227ddf1605bac7d69d932796a
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-31
 ---
 # Review: 052-integracao-businessmap (E2.34, F2 do coletor do BusinessMap, referência real do quadro, K-182)
 
-**Veredito: reprovado** em `5a75265`, por um achado bloqueante (A1: o marco de compromisso de `folhasDoMarco` não segue a H-23 por card). Ficam seis recomendados (A2 a A7). O resto confere com o plano e com as decisões do dono.
+**Veredito: aprovado** em `75ee953` (revalidação da E2.39, abaixo). O A1 bloqueante, o A3 e o A5 foram resolvidos na volta da E2.37. Os recomendados A2, A4, A6 e A7 continuam, já destinados pela decisão técnica do Jarvis.
+
+Veredito anterior: reprovado em `5a75265` (E2.34), pelo A1.
+
+## Revalidação por delta (E2.39, volta 1, `75ee953`)
+
+`forge-check delta --parecer docs/reviews/052-f2-referencia.md` deu o intervalo `5a75265..a64695a`. Os trechos listados foram estes:
+- `referencia.ts` nas linhas 189-192, 194, 216-217, 222-225, 250, 272, 336 e 388;
+- `referencia-businessmap.test.ts` nas linhas 155, 158-163 e 415-473.
+
+O commit `a64695a` é só o parecer de segurança. Li só esse delta, que é `0db2de1..75ee953` no código. O resto do parecer, abaixo, fica como "já lido" em `5a75265`. Rodei `vitest run` de `referencia-businessmap.test.ts`, `conferencia.test.ts` e `metricas.mapa.test.ts`: 3 arquivos, 40 testes, todos passaram (antes eram 37, e os 3 novos são os da volta).
+
+- **A1, resolvido.** Em `referencia.ts:388`, o compromisso agora é a união das folhas `compromisso` com as folhas `trabalho` e `homologacao` da seção 3. Isso dá a mesma forma da entrega, por card. A folha `trabalho` da seção 4 (as exceções de publicação) fica fora, porque o filtro pede a seção 3. O comentário foi ajustado. O teste da `:155` prova a regra no workflow 191, que tem seção 2:
+  - o marco é `['2531', '2533']`;
+  - o trajeto 2530 → 2533 tem o marco em 2533;
+  - o trajeto 2530 → 2531 → 2533 tem o marco em 2531;
+  - o 192 e o caso só com a seção 3 continuam iguais.
+- **A3, resolvido.** O `Plano` e o `Resultado` ganharam `ausentes` por tabela (coluna, workflow e tipo). A conta é: chave vigente que não está entre as desejadas. A vigência não é fechada, e por isso fechar ou não continua decisão do arquiteto, sem inferência. O teste de `:416` remove a coluna 2530, o tipo 5 e os workflows 192 e 193 e confere a contagem `{1, 2, 1}`. Ele também confere que não há operação de fechar nem UPDATE com 2530.
+- **A5, resolvido.** `folhasSemPapel` conta as folhas que não são descarte e têm `papel` nulo, no `Plano` e no `Resultado`. O teste de `:433` confere 0 na base, que tem a coluna Descartado, e 1 com uma folha de seção 9.
+- **A1 da segurança.** Há um teste negativo de `:446` com os campos `owner_user_id`, `email`, `realname` e `username` marcados no quadro, nas colunas, nos workflows e nos tipos. Ele confere que nada disso chega ao texto nem aos valores das escritas, nem à mensagem de erro da mudança sem motivo. A segurança revalidou em `a64695a` (aprovado), e eu só cito.
+- **Fora dos achados.** O delta não traz SQL nova, escrita nova nem leitura de pessoa. BusinessMap e Acelerato continuam separados.
+
+Teto recontado: `git diff --numstat --no-renames 64644b1..75ee953`, só código e teste, dá **943 linhas**, o mesmo número que o autor relatou:
+- `referencia.ts`: 390;
+- o teste: 473;
+- `spike-lista.ts`: 45;
+- `mapa.ts`: 24;
+- `conferencia.ts`: 5;
+- `index.ts`: 4;
+- `conferencia.test.ts`: 2.
+
+O comportamento continua um só. O PR da E2.36 leva a linha `teto: excedido, 943 linhas, F2 do plano 052: referência do quadro por id (carga com vigência, papel único por folha e consumo em mapa.ts)`.
 
 ## Escopo e o que foi lido
 
@@ -72,10 +103,7 @@ Conto um comportamento só: a referência do quadro passa a ser identificada por
 O PR da E2.36 deve trazer a linha `teto: excedido, <n> linhas, F2 do plano 052: referência do quadro por id (carga com vigência, papel único por folha e consumo em mapa.ts)`, com o `<n>` medido depois da volta. Sem essa linha, ou com um número antigo, o teto vira achado bloqueante quando o PR for aberto.
 
 ## Achados
-- A1 (bloqueante) server/src/modulos/businessmap/referencia.ts:376 · H-23 por card: card que pula a seção 2 num workflow que a tem fica sem compromisso (prova no parecer). Compromisso = folhas compromisso mais trabalho e homologação da seção 3, como a entrega já faz; teste do card que pula.
 - A2 (recomendado) server/src/modulos/businessmap/referencia.ts:230 · Um só motivo por execução vale para todas as mudanças de significado; processo e correção na mesma carga não se expressam. Sugestão: motivo por chave no comando da F3, ou erro que liste todas as chaves.
-- A3 (recomendado) server/src/modulos/businessmap/referencia.ts:215 · Coluna, workflow ou tipo que some do quadro segue vigente para sempre, sem contagem. Sugestão: contar as chaves ausentes no Resultado; fechar ou não a vigência vira pergunta ao arquiteto, sem inferir.
 - A4 (recomendado) docs/architecture/fontes/businessmap-conferencia.json:24 · 242/2314 e 248/2326 sem nome e uma folha por workflow, mas a pergunta 2 cita três nomes. Sugestão: arquiteto confere na lista da E2.28 que nenhuma outra folha desses nomes antecede na seção 4 (ordem do 191).
-- A5 (recomendado) server/src/modulos/businessmap/referencia.ts:133 · Folha sem seção é gravada com papel NULL sem contagem no Resultado; o Pronto da F2 pede nenhuma folha sem papel ou sem motivo. Sugestão: contar folhas sem papel no Resultado e mostrar no comando da F3.
 - A6 (recomendado) docs/architecture/features/052-integracao-businessmap.md:143 · O plano lista ref_dominio e o mapa field_id para domínio na F2, que a E2.32 não pediu nem trouxe. Sugestão: software-architect registra a fatia onde entram (F3 ou F3b).
 - A7 (recomendado) server/src/modulos/metricas/mapa.ts:31 · O rótulo Nome (id) vai aparecer muito nos cartões e na exportação do quadro real, e a contagem inclui colunas mãe. Sugestão: ux-designer confere na F6; contar só folhas.
