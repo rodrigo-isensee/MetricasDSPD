@@ -133,7 +133,7 @@ export function mapearAC(base: BaseMock, coletaId: number, S: Esquemas = esquema
   const dimChamado = base.ac.chamados.map((c): Linha => ({
     chamado_id: c.chamado_id, natureza: c.natureza, equipe: c.equipe, organizacao: c.organizacao,
     tipo: c.tipo_fila, categoria_sistema: c.categoria_sistema, excluido: c.excluido, status: c.status,
-    impacto: c.impacto, urgencia: c.urgencia, prioridade: c.prioridade,
+    impacto: c.impacto, urgencia: c.urgencia, prioridade: c.prioridade ?? null,
     prioridade_ajustada_manualmente: c.prioridade_ajustada_manualmente,
     justificativa_informada: justificado(c.justificativa_ajuste), aberto_em: dt(c.aberto_em),
     primeiro_atendimento_em: dtn(c.primeiro_atendimento_em), restaurado_em: dtn(c.restaurado_em),
