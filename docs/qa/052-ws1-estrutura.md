@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 0714135ff3685074ea4ba775d9b3004d28879865
+commit: da4919acc3e469e61b2922ef1e3ae993234c20c3
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -38,6 +38,16 @@ Veredito: aprovado, mantido. O parecer ficou desatualizado porque, na F1, mudara
 Conferido que o script da WS1 e suas variáveis seguem iguais: `git diff f24c3a9..0714135` sobre `server/src/modulos/businessmap/diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh`, `server/tests/diagnostico-businessmap.test.ts` e `.env.example` não traz nenhuma linha; `bm:diagnostico` continua no `package.json` da raiz (linha 33, `bash scripts/bm-diagnostico.sh`). As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações.
 
 Sem suíte, sem mutantes e sem chamada ao BusinessMap (o `bm:spike` não foi rodado), como pedido; o `bm:spike` é coberto pelo parecer `docs/qa/052-f1-spike.md`. O `.env` não foi lido.
+
+## Renovação por delta (E2.41, depois da F2)
+Veredito: aprovado, mantido. O parecer ficou desatualizado porque, na F2, mudou `server/src/modulos/businessmap/index.ts`. Delta lido (`64644b1..da4919a`, só `index.ts`, `server/package.json` e `docs/architecture/fontes/businessmap-conferencia.json`, ferramenta `git diff`):
+- `server/src/modulos/businessmap/index.ts`: um bloco de exports novo, da F2, de `referencia.js` (`sincronizarReferencia`, `lerReferenciaReal`, `planejar`, `registrarFolhasSemConferencia`, `vigenteEm`, `contextoDoEvento`, `folhasDoMarco`, `nivelDoWorkflow`, `ErroReferencia`, `ResultadoReferencia`). O export de `diagnosticar` e `ResultadoDiagnostico` segue igual.
+- `server/package.json`: sem nenhuma linha no delta (o `bm:spike` já estava em 64644b1).
+- `docs/architecture/fontes/businessmap-conferencia.json`: entrou `excecoes_papel_trabalho` (6 folhas dos workflows 191, 212, 242, 248, 250 e 202, decisão do dono de 2026-10-31, pergunta 2) e duas linhas de nota. É da F1/F2 (lista de conferência de colunas), não da WS1.
+
+Conferido que o script da WS1 segue igual: `git diff f24c3a9..da4919a` sobre `server/src/modulos/businessmap/diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh` e `server/tests/diagnostico-businessmap.test.ts` não traz nenhuma linha (stat vazio); `bm:diagnostico` continua no `package.json` da raiz (linha 33, `bash scripts/bm-diagnostico.sh`). As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações.
+
+Sem suíte, sem mutantes e sem chamada ao BusinessMap, como pedido. O `.env` não foi lido.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).

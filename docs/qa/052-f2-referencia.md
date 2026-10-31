@@ -3,11 +3,11 @@ tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f2-referencia
-commit: 9c6bb3a1d231c9fde721ff84369d177bbf50f4be
-parecer: reprovado
-escopo: completo
+commit: da4919acc3e469e61b2922ef1e3ae993234c20c3
+parecer: aprovado
+escopo: incremental
 bugs_criticos: 0
-bugs_altos: 1
+bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
 data: 2026-10-31
@@ -16,7 +16,7 @@ data: 2026-10-31
 
 Links: plano `docs/architecture/features/052-integracao-businessmap.md` (F2), review `docs/reviews/052-f2-referencia.md` (aprovado), segurança `docs/security/052-f2-referencia.md` (aprovado), bug `docs/qa/bugs/052-F2-001-versao-de-criterio-com-metrica-falha-no-postgres.md`.
 
-**Parecer: reprovado.** A gravação contra PostgreSQL real tem um defeito alto: toda carga com mudança de processo (a que grava a versão de critério com métricas, marca T2.6) falha. O resto da gravação passou. O código é o de 75ee953 (o HEAD 9c6bb3a só soma pareceres).
+**Parecer: aprovado (revalidação E2.41 sobre da4919a; o veredito reprovado de 407497d está no histórico abaixo).** Bug 052-F2-001 resolvido, ver "Revalidação (E2.41)". Texto original da E2.35: a gravação contra PostgreSQL real tem um defeito alto: toda carga com mudança de processo (a que grava a versão de critério com métricas, marca T2.6) falha. O resto da gravação passou. O código é o de 75ee953 (o HEAD 9c6bb3a só soma pareceres).
 
 ## Escopo e método
 Sem especificação de UX (tarefa de dados). Os critérios são o "Pronto" da F2 do plano e os 7 pontos do review. Plano e testes: `server/tests/referencia-businessmap.pg.test.ts` (11 testes contra o PostgreSQL 17 do Compose, schemas de teste, nenhum dado fica: cada teste roda em transação desfeita, porque as tabelas de vigência não aceitam DELETE). Papéis reais: `dspd_ref` (o da F3), `dspd_coletor`, dono dos objetos. Nenhuma chamada ao BusinessMap e o `.env` não foi lido.
@@ -48,9 +48,22 @@ CT-6 também cobre a parte "correção" do critério U-1. Pontos 2, 3 e 4 do rev
 ## Bugs
 - 052-F2-001 (alta, node-backend): a versão de critério com métricas falha no PostgreSQL. Detalhes e passos em `docs/qa/bugs/052-F2-001-versao-de-criterio-com-metrica-falha-no-postgres.md`. Efeito: sem a correção, a primeira mudança de processo no quadro real abortaria a carga (sem perda de dado, a transação desfaz).
 
-## Achados
-- A1 (bloqueante) server/src/modulos/businessmap/referencia.ts:290 · registrarVersao: SELECT $1, $2 não tem tipo para $2 no PostgreSQL; use $1::bigint e $2::varchar. CT-5 e CT-6 do teste .pg provam. Dono: node-backend.
-- A2 (recomendado) server/tests/referencia-businessmap.pg.test.ts:1 · O teste .pg não roda no pronto (sem PG_TESTE_URL); o gate de CI com banco o roda. Sem ação de código.
+### Achados da rodada E2.35 (histórico, ver o bloco vigente no fim)
+- Bloqueante da E2.35, corrigido em da4919a: registrarVersao com parâmetro sem tipo (bug 052-F2-001). Dono: node-backend.
+- Recomendado da E2.35: o teste .pg não roda no pronto; segue como recomendação no bloco vigente.
 
-## Revalidação
-Depois da correção do A1: rodar de novo `referencia-businessmap.pg.test.ts` e a suíte `.pg`; a expectativa é 11 de 11 e 117 de 117, e o delta cabe numa linha de SQL.
+## Revalidação (E2.41, depois da E2.40)
+Veredito: aprovado. O A1 e o A2 da tabela acima são da rodada E2.35 (407497d); o `## Achados` vigente é o do fim deste parecer.
+
+Delta lido (`407497d..da4919a`): um arquivo, `server/src/modulos/businessmap/referencia.ts`, uma linha (291): `SELECT $1, $2 WHERE NOT EXISTS` virou `SELECT $1::bigint, $2::varchar WHERE NOT EXISTS`, exatamente a correção sugerida no bug. O HEAD local `bd4af7f` só soma o parecer de segurança (`git diff da4919a..HEAD`: só `docs/security/052-f2-referencia.md`), então o código testado é o de da4919a.
+
+Execução real, PostgreSQL 17 do Compose (healthy), `PG_TESTE_URL` do migrador de teste, `nice -n 19`, uma suíte por vez, nenhum `.env` lido:
+- `vitest run --project pg tests/referencia-businessmap.pg.test.ts`: 1 arquivo, **11 de 11 passaram**. CT-5 (12 métricas, inclui EI_FL1, sem duplicar no mesmo dia) e CT-6 (só O1 com marca; correção sem marca, motivo `correcao`) passaram, antes vermelhos por `inconsistent types deduced for parameter $2`; CT-1 a CT-4 e CT-7 a CT-11 seguem verdes.
+- `pnpm --filter @metricas-dspd/server run test:pg` (suíte .pg inteira): rc=0, **19 arquivos e 117 de 117 passaram** (antes: 115 de 117, 2 falhos).
+- Vermelho antes do verde: já registrado na E2.35 (CT-5 e CT-6 vermelhos em 407497d com o erro acima); o mesmo teste, sem alteração, está verde em da4919a. Teste e fixture não mudaram entre as duas rodadas.
+- Não rodei o `pronto` completo: o delta é uma linha de SQL só exercitada com banco, e o pronto não roda o `.pg`; a suíte do E2.35 (server 931 passaram, cobertura 100%) segue válida para o resto do código, que não mudou. Nenhum skip. Mutação: não aplicável (mesmo motivo da E2.35).
+
+Bug 052-F2-001: resolvido, arquivo `docs/qa/bugs/052-F2-001-versao-de-criterio-com-metrica-falha-no-postgres.md` atualizado (status e evidência). A2 (recomendado) segue: o `.pg` não roda no `pronto`; o gate de CI com banco o roda.
+
+## Achados
+- A1 (recomendado) server/tests/referencia-businessmap.pg.test.ts:1 · o teste .pg não roda no pronto (sem PG_TESTE_URL); o gate de CI com banco o roda. Sem ação de código.

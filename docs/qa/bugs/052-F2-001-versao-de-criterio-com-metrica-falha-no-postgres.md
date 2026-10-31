@@ -1,6 +1,7 @@
 # 052-F2-001 - Marca de mudança de processo falha no PostgreSQL (tipo do parâmetro $2)
 - Severidade: alta
 - Responsável sugerido: node-backend
+- Estado: resolvido em da4919a (E2.40), revalidado pelo QA na E2.41
 - Ambiente: `feature/052-f2-referencia` em 9c6bb3a (código em 75ee953), PostgreSQL 17 do Compose, schemas de teste
 
 ## Passos para reproduzir
@@ -16,3 +17,4 @@ A carga fecha a vigência, abre a nova e grava a versão de critério com as mé
 ## Evidência
 - HEAD: CT-5 e CT-6 vermelhos, 9 de 11 verdes; `pnpm --filter @metricas-dspd/server run test:pg`: 2 falhos de 117.
 - Cópia descartável fora do repositório, só com `SELECT $1::bigint, $2::varchar WHERE NOT EXISTS` no lugar do trecho: 11 de 11 verdes. A correção sugerida é essa (conversão explícita dos dois parâmetros).
+- Revalidação (E2.41, da4919a, `referencia.ts:291` com `$1::bigint` e `$2::varchar`): `referencia-businessmap.pg.test.ts` 11 de 11 (CT-5 e CT-6 verdes) e `test:pg` 19 arquivos, 117 de 117, rc=0. Bug fechado.
