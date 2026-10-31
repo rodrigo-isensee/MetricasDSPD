@@ -1,6 +1,6 @@
 ---
 tipo: qa
-contrato: 0
+contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f0-fundacoes
 commit: ba3ddffbee7c05c8d13f520220cfd4a276ed3572
