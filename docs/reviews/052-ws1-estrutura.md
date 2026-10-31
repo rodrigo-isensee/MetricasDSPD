@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: f24c3a9b98722b2bf62961ef3ea8cf75e11de291
+commit: 0714135ff3685074ea4ba775d9b3004d28879865
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-31
@@ -11,6 +11,15 @@ data: 2026-10-31
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.30, 2026-10-31)
+
+Motivo: o mesmo das renovações anteriores, parecer desatualizado por arquivo da WS1 que mudou depois dele; aqui, a F1 mexeu no `server/package.json` e no `server/src/modulos/businessmap/index.ts`. Delta lido, e só ele: `git diff f24c3a9..0714135 -- server/package.json server/src/modulos/businessmap/index.ts`.
+
+- `server/package.json`: uma linha nova, o script `bm:spike` (`tsx src/entradas/spike-businessmap.ts`). O `bm:diagnostico` da WS1 segue igual; nenhuma dependência nova.
+- `server/src/modulos/businessmap/index.ts`: dois exports novos (`executarSpike` com o tipo `ResultadoSpike`, e `ARQUIVO_CONFERENCIA`). O export do `diagnosticar` segue igual, e o `index.ts` continua sem efeito colateral ao importar.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código novo da F1 tem parecer próprio (`docs/reviews/052-f1-spike.md`, aprovado em `d242f2a`). O QA renovou o dele sobre o mesmo commit (`docs/qa/052-ws1-estrutura.md`, E2.29, `29f3d38`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `0714135`.
 
 ## Renovação por delta (E2.21, 2026-10-31)
 
