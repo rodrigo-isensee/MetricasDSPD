@@ -3,14 +3,14 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 056-acelerato-mysql
 branch: feature/056-coletor-acelerato
-commit: 65f5a640ac5f450302220227647e8c6692c58c72
+commit: 9b39924a1af89504320ad7702a2f1f967f70b70a
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-10-30
 ---
 # Revisão de segurança antes do código: listas fechadas e driver MySQL (056, E4.2)
 
-Escopo: revisão de documento, sem código do coletor. Na E4.2 o commit revisado era a base da worktree 056c (11141d7); o commit acima é o da revalidação por delta da E4.17 (seção Revalidação); o plano, o modelo de ameaças e o review citados estão na worktree 056 (branch de discovery, ainda não mesclada). Nada foi instalado, conectado ao MySQL nem lido do `.env`. A ADR 0023 e as listas da E4.1 ainda não existem em disco: a conferência final das listas contra a constante de código fica para o review da F1 (E4.5).
+Escopo: revisão de documento, sem código do coletor. Na E4.2 o commit revisado era a base da worktree 056c (11141d7); o commit acima é o da revalidação por delta da E4.20 (seções Revalidação); o plano, o modelo de ameaças e o review citados estão na worktree 056 (branch de discovery, ainda não mesclada). Nada foi instalado, conectado ao MySQL nem lido do `.env`. A ADR 0023 e as listas da E4.1 ainda não existem em disco: a conferência final das listas contra a constante de código fica para o review da F1 (E4.5).
 
 ## Gatilhos
 Dado pessoal e texto livre na fronteira, credencial externa nova, banco, dependência nova, consulta SQL escrita pelo projeto e mudança de regra do `CLAUDE.md` (R-SEGURANCA).
@@ -66,5 +66,14 @@ Motivo: o `.env.example` mudou depois do commit da E4.2 (11141d7). Delta lido: `
 
 Resultado: sem achado novo; parecer `aprovado` mantido sobre o commit 65f5a64. O resto do parecer não foi relido: as listas e o driver foram revisados no código pela E4.7 e pela E4.14 em `docs/security/056-coletor-f1-f2.md`, inclusive a troca do driver para `mariadb` decidida na ADR 0023, que substitui a análise do `mysql2` da seção (b) acima.
 
+## Revalidação por delta (E4.20, 2026-10-30)
+Motivo: `docs/architecture/fontes/acelerato-listas.md` mudou na E4.16. Delta lido: `git diff 65f5a64 9b39924 -- docs/architecture/fontes/acelerato-listas.md`, um só commit no intervalo (e6fd5fd), uma linha trocada (linha 7, regra de valor fora das listas), só texto, sem código.
+- Antes: valor fora da lista nas colunas do recorte (§4 a §6) e nas de vocabulário (§7 a §9) fazia a coleta falhar fechado.
+- Agora: nas de vocabulário (status, prioridade e etapa), o valor vira nulo com contagem por coluna em `ctl_coleta_contagem`, sem o valor; chamado fora do recorte (tipo, organização ou equipe) segue falhando fechado com `fora-do-recorte`; campos personalizados sem mudança.
+- Leitura de segurança: a população (quem entra na base) continua negada por padrão e o filtro de origem não mudou. A troca nas de vocabulário é a forma que o A5 deste parecer recomendou (nulo com contagem, sem o texto no log): o valor desconhecido não chega à base nem ao log, e a contagem dá o sinal para corrigir a lista. Nenhum dado de pessoa, texto livre ou credencial passa a entrar.
+- A mudança alinha o documento ao código já revisado (E4.7 e E4.14 em `docs/security/056-coletor-f1-f2.md`); o código não foi relido aqui (fora do delta).
+
+Resultado: sem achado novo; parecer `aprovado` mantido sobre o commit 9b39924.
+
 ## Riscos aceitos e ferramentas
-Nenhum risco novo aceito. O R-1 (conta compartilhada, host aberto) segue o registro do modelo de ameaças §8; o aceite formal do dono, ligado ao parecer do commit final da F1 e da F2, continua pendente e será pedido ao Jarvis quando esse parecer existir. Ferramentas: `pnpm view` e `gh api` (leitura da base de avisos). Faltaram no PATH: `osv-scanner`, `gitleaks`, `semgrep`.
+Nenhum risco novo aceito. O R-1 (conta compartilhada, host aberto) segue o registro do modelo de ameaças §8; o aceite formal do dono, ligado ao parecer do commit final da F1 e da F2, continua pendente e será pedido ao Jarvis quando esse parecer existir. Ferramentas: `pnpm view` e `gh api` (leitura da base de avisos), `git diff` nas revalidações. Faltaram no PATH: `osv-scanner`, `gitleaks`, `semgrep`.
