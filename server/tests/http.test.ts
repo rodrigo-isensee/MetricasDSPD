@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { criarClienteHttp, ErroBusinessMap, type ConfigHttp, type EventoHttp } from '../src/plataforma/http.js';
+import { criarClienteHttp, ErroBusinessMap, lotesDeUserIds, LOTE_USER_IDS, type ConfigHttp, type EventoHttp } from '../src/plataforma/http.js';
 
 // Servidor falso local: nenhuma chamada ao BusinessMap real. Cada servidor guarda o que recebeu.
 const CHAVE = 'chave-secreta-de-teste-0123456789';
@@ -83,13 +83,11 @@ describe('cliente HTTP do BusinessMap: só GET, lista fechada e host fixo', () =
     expect(e.message).not.toContain('board_id');
   });
 
-  it('método diferente de GET é recusado antes da rede', async () => {
+  it('o cliente expõe só get e listarPaginas (sem método genérico) e todo pedido sai como GET', async () => {
     const c = criarClienteHttp(cfg(f.url));
-    for (const m of ['POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'get']) {
-      expect((await falhaDe(c.requisitar(m, '/cards/1'))).tipo, m).toBe('metodo');
-    }
-    expect(f.pedidos).toEqual([]);
-    expect(Object.keys(c).sort()).toEqual(['get', 'limitePorMinuto', 'listarPaginas', 'requisitar']);
+    expect(Object.keys(c).sort()).toEqual(['get', 'listarPaginas']);
+    await c.get('/cards/1');
+    expect(f.pedidos.map((p) => p.metodo)).toEqual(['GET']);
   });
 
   it('todo pedido que chega ao servidor é GET (a lista inteira)', async () => {
@@ -118,9 +116,12 @@ describe('cliente HTTP do BusinessMap: só GET, lista fechada e host fixo', () =
     expect(f.pedidos).toEqual([]);
   });
 
-  it('/users só com fields=user_id,realname; fields não vale em outro caminho', async () => {
+  it('/users só com fields=user_id,realname e user_ids; qualquer outro parâmetro é recusado; fields não vale em outro caminho', async () => {
     const c = criarClienteHttp(cfg(f.url));
-    const ruins: Record<string, string>[] = [{}, { fields: 'user_id,realname,email' }, { fields: 'user_id' }, { fields: 'realname,user_id' }, { fields: '*' }, { user_ids: '1' }];
+    const F = 'user_id,realname';
+    const ruins: Record<string, string | number>[] = [{}, { fields: 'user_id,realname,email' }, { fields: 'user_id' }, { fields: 'realname,user_id' }, { fields: '*' }, { user_ids: '1' },
+      { fields: F }, { fields: F, user_ids: '1,a' }, { fields: F, user_ids: '1', expand: 'custom_fields' }, { fields: F, user_ids: '1', page: 1 },
+      { fields: F, user_ids: '1', per_page: 100 }, { fields: F, user_ids: '1', is_archived: 1 }, { fields: `${F}\n`, user_ids: '1' }];
     for (const consulta of ruins) {
       expect((await falhaDe(c.get('/users', { consulta }))).tipo, JSON.stringify(consulta)).toBe('consulta');
     }
@@ -128,6 +129,19 @@ describe('cliente HTTP do BusinessMap: só GET, lista fechada e host fixo', () =
     expect(f.pedidos).toEqual([]);
     await c.get('/users', { consulta: { fields: 'user_id,realname', user_ids: '10,11' } });
     expect(f.pedidos[0]!.url).toBe('/users?fields=user_id%2Crealname&user_ids=10%2C11');
+    expect((await falhaDe(c.listarPaginas('/users', { consulta: { fields: F, user_ids: '1' } }))).tipo).toBe('consulta');
+    expect(f.pedidos).toHaveLength(1);
+  });
+
+  it('lista grande de ids vai em lotes de user_ids que o cliente aceita', async () => {
+    const ids = Array.from({ length: LOTE_USER_IDS * 2 + 5 }, (_, i) => i + 1);
+    const lotes = lotesDeUserIds(ids);
+    expect(lotes.map((l) => l.split(',').length)).toEqual([LOTE_USER_IDS, LOTE_USER_IDS, 5]);
+    expect(lotesDeUserIds([])).toEqual([]);
+    const c = criarClienteHttp(cfg(f.url));
+    for (const l of lotes) await c.get('/users', { consulta: { fields: 'user_id,realname', user_ids: l } });
+    expect(f.pedidos).toHaveLength(3);
+    expect((await falhaDe(c.get('/users', { consulta: { fields: 'user_id,realname', user_ids: ids.join(',') } }))).tipo).toBe('consulta');
   });
 
   it('parâmetro de consulta fora da lista ou com valor fora do formato é recusado', async () => {
@@ -138,7 +152,8 @@ describe('cliente HTTP do BusinessMap: só GET, lista fechada e host fixo', () =
       expect((await falhaDe(c.get('/cards', { consulta }))).tipo, JSON.stringify(consulta)).toBe('consulta');
     }
     expect(f.pedidos).toEqual([]);
-    await c.get('/cards', { consulta: { page: 2, expand: 'custom_fields,transitions', archived_from: '2025-10-30', is_archived: 1 } });
+    await c.get('/cards', { consulta: { page: 2, archived_from: '2025-10-30', is_archived: 1 } });
+    expect((await falhaDe(c.get('/cards', { consulta: { expand: 'custom_fields' } }))).tipo).toBe('consulta');
     expect(f.pedidos).toHaveLength(1);
   });
 
@@ -233,7 +248,10 @@ describe('cliente HTTP: 401, 403 e 429', () => {
     expect((await falhaDe(c.get('/cards'))).tipo).toBe('autenticacao');
     expect((await falhaDe(c.listarPaginas('/cards'))).tipo).toBe('autenticacao');
     expect(f.pedidos).toHaveLength(1);
-    expect(eventos.some((x) => x.evento === 'interrompido')).toBe(true);
+    expect(eventos.at(-1)).toEqual({ evento: 'interrompido', caminho: '/cards' });
+    expect(eventos.some((x) => x.caminho.includes('/admin'))).toBe(false);
+    expect((await falhaDe(c.get('/admin?apikey=segredo'))).tipo).toBe('caminho');
+    expect(eventos.every((x) => !x.caminho.includes('segredo'))).toBe(true);
   });
 
   it('429 espera o retry_after do corpo e tenta de novo', async () => {
@@ -249,7 +267,7 @@ describe('cliente HTTP: 401, 403 e 429', () => {
       [(_q, r) => { r.writeHead(429, { 'retry-after': '3' }); r.end('não é json'); }, 3000],
       [(_q, r) => { r.writeHead(429); r.end(); }, 60_000],
       [(_q, r) => json(r, 429, { retry_after: 0 }), 1000],
-      [(_q, r) => json(r, 429, { retry_after: 9999 }), 120_000],
+      [(_q, r) => json(r, 429, { retry_after: 120 }), 120_000],
       [(_q, r) => { r.writeHead(429, { 'retry-after': 'logo' }); r.end('{}'); }, 60_000],
     ];
     for (const [resp, esperado] of casos) {
@@ -259,6 +277,23 @@ describe('cliente HTTP: 401, 403 e 429', () => {
       await criarClienteHttp(cfg(f.url), k).get('/boards');
       expect(k.esperas).toEqual([esperado]);
     }
+  });
+
+  it.each([
+    ['corpo', (_q: IncomingMessage, r: ServerResponse) => json(r, 429, { retry_after: 121 })],
+    ['cabeçalho', (_q: IncomingMessage, r: ServerResponse) => { r.writeHead(429, { 'retry-after': '9999' }); r.end('{}'); }],
+  ])('429 com retry_after acima de 120 s (%s) interrompe a execução: sem espera e sem nova chamada', async (_nome, resp) => {
+    const f = await novo(resp);
+    const k = relogio();
+    const eventos: EventoHttp[] = [];
+    const c = criarClienteHttp(cfg(f.url), { ...k, log: (e) => eventos.push(e) });
+    const e = await falhaDe(c.get('/boards'));
+    expect(e).toMatchObject({ tipo: 'limite-requisicoes', status: 429 });
+    expect(k.esperas).toEqual([]);
+    expect(f.pedidos).toHaveLength(1);
+    expect((await falhaDe(c.get('/cards'))).tipo).toBe('limite-requisicoes');
+    expect(f.pedidos).toHaveLength(1);
+    expect(eventos.at(-1)).toEqual({ evento: 'interrompido', caminho: '/cards' });
   });
 
   it('sem dependências injetadas (fetch, relógio e espera reais): 429 com retry_after de 1 s espera de verdade', async () => {
@@ -291,6 +326,38 @@ describe('cliente HTTP: limitador e páginas', () => {
     expect(k.esperas.length).toBeGreaterThan(0);
   });
 
+  it('janela horária: ao chegar no limite a execução para; a hora seguinte libera, e o padrão é abaixo de 600', async () => {
+    const f = await novo((_q, r) => json(r, 200, {}));
+    const k = relogio();
+    const c = criarClienteHttp(cfg(f.url, { limitePorMinuto: 100, limitePorHora: 4 }), k);
+    for (let i = 0; i < 4; i += 1) await c.get('/boards');
+    const e = await falhaDe(c.get('/boards'));
+    expect(e).toMatchObject({ tipo: 'limite-requisicoes' });
+    expect(e.message).toContain('4 requisições por hora');
+    expect(f.pedidos).toHaveLength(4);
+    expect(k.esperas).toEqual([]);
+    expect((await falhaDe(c.get('/cards'))).tipo).toBe('limite-requisicoes');
+    expect(f.pedidos).toHaveLength(4);
+    // janela vencida (sem execução parada): novo cliente, relógio que passa de 1 h, as requisições antigas saem da janela
+    const k2 = relogio();
+    const c2 = criarClienteHttp(cfg(f.url, { limitePorMinuto: 100, limitePorHora: 2 }), k2);
+    await c2.get('/boards');
+    await c2.get('/boards');
+    await k2.dormir(3_600_000);
+    await c2.get('/boards');
+    expect(f.pedidos).toHaveLength(7);
+    const padrao = criarClienteHttp(cfg(f.url, { limitePorMinuto: 10_000 }), relogio());
+    let feitas = 0;
+    const antes = f.pedidos.length;
+    try {
+      for (;;) { await padrao.get('/boards'); feitas += 1; }
+    } catch (err) {
+      expect((err as ErroBusinessMap).tipo).toBe('limite-requisicoes');
+    }
+    expect(feitas).toBeLessThan(600);
+    expect(f.pedidos.length - antes).toBe(feitas);
+  });
+
   it('o padrão da configuração é 25 por minuto: a 26ª requisição espera', async () => {
     const f = await novo((_q, r) => json(r, 200, {}));
     const k = relogio();
@@ -307,7 +374,7 @@ describe('cliente HTTP: limitador e páginas', () => {
       json(r, 200, { data: { data: [{ card_id: pagina }], pagination: { all_pages: 3 } } });
     });
     const c = criarClienteHttp(cfg(f.url, { paginaTamanho: 50 }), relogio());
-    const itens = await c.listarPaginas('/cards', { consulta: { expand: 'custom_fields' }, esquemaItem: z.object({ card_id: z.number() }) });
+    const itens = await c.listarPaginas('/cards', { consulta: { is_archived: 0 }, esquemaItem: z.object({ card_id: z.number() }) });
     expect(itens).toEqual([{ card_id: 1 }, { card_id: 2 }, { card_id: 3 }]);
     expect(f.pedidos.map((p) => new URL(p.url, 'http://x').searchParams.get('per_page'))).toEqual(['50', '50', '50']);
     expect(f.pedidos).toHaveLength(3);
@@ -321,6 +388,24 @@ describe('cliente HTTP: limitador e páginas', () => {
     expect(f.pedidos[0]!.url).toContain('per_page=100');
     const g = await novo((_q, r) => json(r, 200, { data: { data: [{ a: 1 }] } }));
     expect(await criarClienteHttp(cfg(g.url)).listarPaginas('/cards')).toEqual([{ a: 1 }]);
+  });
+
+  it('corpo acima do teto de bytes: erro limite-bytes, com o cabeçalho de tamanho ou lendo em blocos', async () => {
+    const grande = await novo((_q, r) => r.end('x'.repeat(200)));
+    const e = await falhaDe(criarClienteHttp(cfg(grande.url, { tetoBytes: 100 })).get('/boards'));
+    expect(e).toMatchObject({ tipo: 'limite-bytes', status: 200 });
+    expect(e.message).not.toContain('xxx');
+    const blocos = await novo((_q, r) => { r.write('a'.repeat(60)); setTimeout(() => r.end('b'.repeat(60)), 20); });
+    expect((await falhaDe(criarClienteHttp(cfg(blocos.url, { tetoBytes: 100 })).get('/boards'))).tipo).toBe('limite-bytes');
+    const no429 = await novo((_q, r) => { r.writeHead(429); r.end('y'.repeat(200)); });
+    expect((await falhaDe(criarClienteHttp(cfg(no429.url, { tetoBytes: 100 }), relogio()).get('/boards'))).tipo).toBe('limite-bytes');
+    const ok = await novo((_q, r) => json(r, 200, { data: 'z'.repeat(50) }));
+    expect(await criarClienteHttp(cfg(ok.url, { tetoBytes: 100 })).get('/boards')).toEqual({ data: 'z'.repeat(50) });
+  });
+
+  it('resposta sem corpo (204) é erro de formato, não de limite', async () => {
+    const f = await novo((_q, r) => { r.writeHead(204); r.end(); });
+    expect((await falhaDe(criarClienteHttp(cfg(f.url)).get('/boards'))).tipo).toBe('formato');
   });
 
   it('teto de páginas por execução: para antes de passar do teto', async () => {
