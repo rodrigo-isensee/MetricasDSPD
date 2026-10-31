@@ -3,13 +3,29 @@ tipo: review
 contrato: 1
 pedido: 056-acelerato-mysql
 branch: feature/056-coletor-acelerato
-commit: e6fd5fd3116216ae3eef60a2446d59cf590c64a1
+commit: b3055ac01a6b34f83f94d7ccf6e52540372c91b0
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-30
 ---
 
 # Code review: F1 e F2 do coletor do Acelerato (056, E4.9 e E4.13, K-190)
+
+## Forma do PR e teto (E4.11, retomada, 2026-10-30)
+
+**Veredito: aprovado** sobre `b3055ac`. Desde `e6fd5fd` só entraram pareceres (`9b39924`, este; `9d803e5`, segurança; `b3055ac`, QA): nenhum arquivo de código, teste ou documento técnico mudou. `forge-check pr 056-acelerato-mysql --ref feature/056-coletor-acelerato --base origin/develop`: rc=0, sem saída.
+
+**A2: resolvido** em `65f5a64` (E4.10). O plano de testes traz só `contrato: 0`, e o `forge-check docs` não lista mais nenhum arquivo do 056.
+
+**A3: revisto. Um PR único** da `feature/056-coletor-acelerato`, com a linha de teto excedido no corpo. Critério mudou: na E4.9 contei a F1 e a F2 como dois comportamentos. Revendo pelo que o PR entrega:
+
+- A F1 sozinha só grava o staging, que nada lê. O comportamento que o dono observa é um só: o chamado do Acelerato chega às métricas de sustentação. A carga inicial (E4.8) precisa das duas fases juntas.
+- Para dividir, seria preciso uma branch parcial até `ed631c0`, e os três pareceres (segurança, QA e este) cobrem a branch inteira. Depois do squash da F1, a F2 teria de ser refeita sobre a `develop`, o que invalida tudo de novo e pede mais duas rodadas de revalidação, sem ganho de leitura: o intervalo inteiro já foi lido na E4.9 e na E4.13.
+- Nenhum portão afrouxa: os três pareceres cobrem a mesma branch que vai para o PR, e o `forge-check pr` dá verde nela.
+
+**Teto (M14), recontado agora:** `git diff --numstat --no-renames origin/develop...HEAD`, sem `.md`, sem `tests/fixtures/` e sem o `pnpm-lock.yaml`, dá **4.184 linhas** (4.166 a mais e 18 a menos) em 58 arquivos. A exceção fica **aceita** com a linha `teto: excedido, 4184 linhas, <motivo>` no corpo do PR. Motivo: a fatia mínima do coletor de ponta a ponta (coleta, staging, projeção), com os testes de fronteira e de pessoa juntos.
+
+Segurança: `docs/security/056-coletor-f1-f2.md` (`c86e6b3`, `riscos-aceitos` pelo R-1, aceito pelo dono na conversa; o arquivo de aceite é do dono) e `docs/security/056-coletor-listas-e-driver.md` (`9d803e5`, aprovado). QA: `docs/qa/056-coletor-f1-f2.md` (`b3055ac`, aprovado). O R7 fica para depois do merge, em cartão próprio.
 
 ## Renovação por delta (E4.11, 2026-10-30)
 
@@ -88,8 +104,8 @@ O bloco abaixo traz o estado em `3b2f98f`. A2 e A3 não são código e não volt
 
 ## Achados
 
-- A2 (bloqueante) docs/qa/056-coletor-plano-de-testes.md:2 · O `forge-check docs` recusa `tipo: plano-tecnico` em docs/qa (ADR-0004). Correção: trocar o frontmatter inteiro por `contrato: 0`, como em docs/qa/integracao-real.md. Remetido à E4.10 (qa-engineer), dono do arquivo.
-- A3 (bloqueante) server/src/modulos/acelerato/projetor.ts:1 · Dois comportamentos num PR (M14): a F1 (coleta até o staging) e a F2 (projeção, métricas e a volta 1). Dois PRs em sequência: o primeiro até ed631c0, o segundo com o resto. Cada corpo leva a linha do teto. Cumpre-se na E4.11.
+- A2 (bloqueante) docs/qa/056-coletor-plano-de-testes.md:2 · Resolvido em 65f5a64 (E4.10): o frontmatter traz só `contrato: 0`, e o `forge-check docs` aceita o arquivo.
+- A3 (bloqueante) server/src/modulos/acelerato/projetor.ts:1 · Revisto na E4.11, critério mudou: a F1 sozinha só grava o staging, que nada lê; o comportamento é um só (chamado até as métricas). Um PR, com teto excedido aceito (4184 linhas). Ver a seção da E4.11.
 - R1 (recomendado) server/src/modulos/acelerato/coletor.ts:195 · `--reconhecer-mudanca` libera mudança de SQL, colunas ou campos sem entrada em ref_versao_criterio (ADR 0023 item 6; T2.6). Para sql/colunas/campos, exija a versão de critério e deixe a opção só para host, banco e TLS. Vira bloqueante no PR da Q4 (F3).
 - R4 (recomendado) docs/architecture/data-model.md:148 · O documento diz que vw_populacao_sssc filtra `fora_do_recorte = false`, mas a view da 0009 não mudou: só lerChamados filtra. Recriar a view numa migração ou corrigir o texto.
 - R5 (recomendado) server/migrations/0016_ac_stg_chamado_recorte.ts:14 · A 0016 traz duas mudanças (coluna e CHECK), e a 0017 traz colunas e índice. A prática §6 pede uma mudança por migração. Vale a partir das próximas; não editar estas se já tiverem sido aplicadas em algum ambiente.
@@ -98,6 +114,4 @@ O bloco abaixo traz o estado em `3b2f98f`. A2 e A3 não são código e não volt
 
 ## O que ainda falta (sem volta ao autor do código)
 
-- qa-engineer (E4.10): A2 no plano de testes, junto do QA.
-- tech-lead (E4.11): A3, na abertura dos dois PRs, com a linha do teto recontada.
 - software-architect: R7 (texto do §9), quando convier; não bloqueia a E4.8.
