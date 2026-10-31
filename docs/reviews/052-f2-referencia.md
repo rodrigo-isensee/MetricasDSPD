@@ -3,16 +3,37 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f2-referencia
-commit: 75ee95308d6aad2227ddf1605bac7d69d932796a
+commit: da4919acc3e469e61b2922ef1e3ae993234c20c3
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-31
 ---
 # Review: 052-integracao-businessmap (E2.34, F2 do coletor do BusinessMap, referência real do quadro, K-182)
 
-**Veredito: aprovado** em `75ee953` (revalidação da E2.39, abaixo). O A1 bloqueante, o A3 e o A5 foram resolvidos na volta da E2.37. Os recomendados A2, A4, A6 e A7 continuam, já destinados pela decisão técnica do Jarvis.
+**Veredito: aprovado** em `da4919a` (renovação da E2.43, abaixo). O A1 bloqueante, o A3 e o A5 foram resolvidos na volta da E2.37, e o bug 052-F2-001 do QA, na volta 2 (E2.40). Os recomendados A2, A4, A6 e A7 continuam, já destinados pela decisão técnica do Jarvis.
 
 Veredito anterior: reprovado em `5a75265` (E2.34), pelo A1.
+
+## Renovação por delta (E2.43, volta 2, `da4919a`)
+
+`forge-check delta --parecer docs/reviews/052-f2-referencia.md` deu o intervalo `75ee953..55adf52` e listou só dois trechos de código, que li:
+- `referencia.ts:291`, uma linha trocada;
+- `server/tests/referencia-businessmap.pg.test.ts`, arquivo novo do QA (E2.35), 370 linhas, inteiro.
+
+Os demais commits do intervalo (`bd4af7f`, `55adf52`) são só pareceres de segurança e de QA, que cito e não refaço. Já lido e fora do delta: o resto do parecer, em `75ee953`.
+
+- **Correção do 052-F2-001 (`referencia.ts:291`).** O `SELECT $1, $2 WHERE NOT EXISTS (... versao_id = $1 AND metrica_id = $2)` dava tipos inconsistentes ao PostgreSQL para o mesmo parâmetro. Agora o SELECT tem `$1::bigint` e `$2::varchar`, e o `WHERE NOT EXISTS` fica como estava. Os tipos batem com `versao_id` e `metrica_id` que o INSERT recebe. O comportamento, a idempotência e os valores gravados não mudam, e não há SQL nova, escrita nova nem leitura de pessoa. A causa estava fora do alcance do dublê, e o `.pg` a provou, como o review da volta 1 pedia ("Testes do gravador contra PostgreSQL").
+- **Testes `.pg` do QA (CT-1 a CT-11).** Lidos por inteiro. Cobrem os 7 pontos que o review pediu ao QA:
+  - carga nas 4 tabelas com o papel `dspd_ref` (CT-1) e CHECKs (CT-2);
+  - grant de UPDATE só em `vigente_ate` e gatilho `55000` (CT-3), e o coletor sem escrita (CT-4);
+  - mudança de processo com as 12 métricas e `EI_FL1`, e a segunda execução sem duplicar (CT-5, que é o caso do bug);
+  - correção sem marca (CT-6) e `ErroReferencia` de vigência com a data em texto, nunca a PK (CT-7);
+  - `registrarFolhasSemConferencia` pelo coletor (CT-8), os contadores da volta 1 (CT-9), rollback por erro real do banco (CT-10) e o rótulo "Nome (id)" por `lerColunas` e `montarBaseBM` (CT-11).
+  O quadro 9025 é de teste, a transação é desfeita no fim e o `skipIf(!url)` mantém o teste fora do `pronto` sem banco. Ressalva: o `pronto` não roda `.pg` (melhoria já registrada pelo Jarvis); o verde do `.pg` com banco é do QA (parecer `55adf52`) e do relatório da E2.40 (117 de 117), que cito sem refazer.
+- **Efeito no número do PR.** O teste `.pg` conta como teste do projeto: `git diff --numstat --no-renames 64644b1..da4919a`, só `server/src` e `server/tests`, dá **1313 linhas** (943 do parecer anterior mais 370 do `.pg`). O comportamento é o mesmo (a referência do quadro por id) e o teste é prova dele, então a exceção continua aceita. A linha do PR da E2.36 passa a ser `teto: excedido, 1313 linhas, F2 do plano 052: referência do quadro por id (carga com vigência, papel único por folha, consumo em mapa.ts e testes contra PostgreSQL)`.
+- **Segurança e QA.** Pareceres próprios (`docs/security/052-f2-referencia.md`, `docs/qa/052-f2-referencia.md`), citados e não refeitos.
+
+Conclusão: aprovado em `da4919a`; nenhum achado novo, e os recomendados A2, A4, A6 e A7 seguem como estão.
 
 ## Revalidação por delta (E2.39, volta 1, `75ee953`)
 
