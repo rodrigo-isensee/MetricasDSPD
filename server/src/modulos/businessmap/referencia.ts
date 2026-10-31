@@ -196,7 +196,9 @@ export interface Ausentes { ref_coluna: number; ref_workflow: number; ref_tipo_c
 const igual = (a: Valor | undefined, b: Valor | undefined): boolean => (a ?? null) === (b ?? null);
 const chaveDe = (e: Esp, l: Linha): string => e.chave.map((k) => String(l[k])).join('|');
 
-export interface OpcoesPlano { hoje: string; inicioCarga: string; motivo?: Motivo | undefined }
+/** Motivo por chave (A2 do review da F2): `<tabela> <chave>` (a chave como em `Mudanca.chave`, ex.: `ref_coluna 25|2532`) para `processo` ou `correcao`. */
+export type MotivosPorChave = ReadonlyMap<string, Motivo>;
+export interface OpcoesPlano { hoje: string; inicioCarga: string; motivo?: Motivo | MotivosPorChave | undefined }
 
 export function planejar(lida: ReferenciaLida, vigentes: Vigentes, conf: Conferencia, o: OpcoesPlano): Plano {
   const wf = lida.quadros.map((q) => linhasWorkflow(String(q), lida.workflows.get(q)));
@@ -237,8 +239,9 @@ export function planejar(lida: ReferenciaLida, vigentes: Vigentes, conf: Confere
       const auto = diferentes.some((c) => e.auto.includes(c));
       const m: Mudanca = { tabela: e.tabela, chave, classe: sem ? 'semantica' : auto ? 'processo' : 'rotulo' };
       mudancas.push(m);
-      if (sem && o.motivo === undefined) pendentes.push(m);
-      const motivo: Motivo | null = sem ? (o.motivo ?? null) : auto ? 'processo' : e.comMotivo === true ? 'correcao' : null;
+      const informado = typeof o.motivo === 'string' ? o.motivo : o.motivo?.get(`${m.tabela} ${m.chave}`);
+      if (sem && informado === undefined) pendentes.push(m);
+      const motivo: Motivo | null = sem ? (informado ?? null) : auto ? 'processo' : e.comMotivo === true ? 'correcao' : null;
       if (String(atual.vigente_de) >= o.hoje) throw new ErroReferencia('vigencia', `${e.tabela}: já existe vigência aberta em ${o.hoje} para a mesma chave; repita depois dessa data`);
       operacoes.push({ esp: e, linha: nova, vigenteDe: o.hoje, motivo, fechar: atual });
       if (motivo === 'processo') {
@@ -305,7 +308,7 @@ export async function sincronizarReferencia(
 ): Promise<Resultado> {
   const plano = planejar(lida, await carregarVigentes(db, lida.quadros, S), conf, o);
   if (plano.pendentes.length > 0) {
-    throw new ErroReferencia('motivo', `${plano.pendentes.length} mudança(s) de significado sem motivo (processo ou correcao): ${plano.pendentes.slice(0, 5).map((m) => `${m.tabela} ${m.chave}`).join(', ')}`);
+    throw new ErroReferencia('motivo', `${plano.pendentes.length} mudança(s) de significado sem motivo (processo ou correcao): ${plano.pendentes.slice(0, 100).map((m) => `${m.tabela} ${m.chave}`).join(', ')}`);
   }
   const agora = o.agora ?? new Date();
   const vc = conf.versao_criterio;

@@ -11,3 +11,7 @@ export {
   sincronizarReferencia, lerReferenciaReal, planejar, registrarFolhasSemConferencia, vigenteEm, contextoDoEvento, folhasDoMarco, nivelDoWorkflow,
   ErroReferencia, type Resultado as ResultadoReferencia,
 } from './referencia.js';
+export { lerConferencia } from './conferencia.js';
+export { coletarCards, codigoDe, inicioDaCarga, dominiosDaColeta, ErroColetaBm, ESTADOS, SOBREPOSICAO_S, VERSAO_COLETOR, type DepsColeta, type ModoColeta, type ResultadoColeta } from './coleta.js';
+export { analisarArgumentos, etapaReferencia, executarColeta, type ArgsColeta, type DepsComando } from './coleta-comando.js';
+export { projetarUsuarios, resolverResponsaveis, PRAZO_RELEITURA_DIAS, type ResultadoUsuarios } from './usuarios.js';
