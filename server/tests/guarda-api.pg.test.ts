@@ -40,6 +40,8 @@ const CLASSIFICACAO_API: Record<string, Classe> = {
   'dspd_bm.ref_conta_automacao': 'fora da API',
   'dspd_ac.ref_conta_automacao': 'fora da API',
   'dspd_core.ref_conta_automacao': 'fora da API',
+  // Pedido 052, F3 (Q-8 = B, ADR 0020 revisão 3): nome do responsável por GET /users; escrita só pelo coletor, nenhum GRANT ao dspd_api.
+  'dspd_bm.dim_responsavel': 'fora da API',
   // Por coluna (ADR 0020, M-4): a API lê tem_entrega e faixa_concentracao, nunca a contagem `entregas`.
   'dspd_bm.agg_conhecimento_sistema': 'por coluna',
 };
@@ -58,7 +60,7 @@ d('guarda da API: toda agg_/ref_ classificada e privilégio verificado no banco 
     dono = poolDe();
     const r = await dono.query<{ table_schema: string; table_name: string }>(
       `SELECT table_schema, table_name FROM information_schema.tables
-       WHERE table_schema = ANY($1) AND (table_name LIKE 'agg\\_%' OR table_name LIKE 'ref\\_%')`,
+       WHERE table_schema = ANY($1) AND (table_name LIKE 'agg\\_%' OR table_name LIKE 'ref\\_%' OR table_name = 'dim_responsavel')`,
       [['dspd_bm', 'dspd_core', 'dspd_ac'].map((s) => `${prefixo}${s}`)]);
     tabelas = r.rows.map((x) => ({ schema: x.table_schema, tabela: x.table_name }));
   });
@@ -68,7 +70,7 @@ d('guarda da API: toda agg_/ref_ classificada e privilégio verificado no banco 
     expect(tabelas.length).toBeGreaterThan(10);
   });
 
-  it('toda tabela agg_ e ref_ de qualquer schema está classificada', () => {
+  it('toda tabela agg_ e ref_ de qualquer schema (e dim_responsavel) está classificada', () => {
     const sem = tabelas.map((t) => id(t.schema, t.tabela)).filter((n) => !(n in CLASSIFICACAO_API));
     expect(sem, `classifique em CLASSIFICACAO_API (na API, fora da API ou por coluna): ${sem.join(', ')}`).toEqual([]);
   });
