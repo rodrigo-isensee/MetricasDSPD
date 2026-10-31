@@ -11,7 +11,7 @@ const nomes = Object.keys(MIGRACOES);
 const ddls = nomes.map((n) => ({ n, ...MIGRACOES[n]!.ddl(S_PADRAO) }));
 const todoSql = ddls.flatMap((d) => d.up);
 /** Única migração com INSERT: a carga inicial da tabela de times (plano 052, F0). As demais seguem a regra da ADR 0014. */
-const CARGA_INICIAL = '0017_bm_carga_inicial_times';
+const CARGA_INICIAL = '0019_bm_carga_inicial_times';
 const sqlSemCarga = ddls.filter((d) => d.n !== CARGA_INICIAL).flatMap((d) => d.up);
 
 /** Extrai (tabela, coluna, definição) de cada CREATE TABLE (e ALTER TABLE ... ADD/DROP COLUMN): separa por vírgula de nível 0 e ignora restrições. */
@@ -43,8 +43,9 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 436;
+const COLUNAS_FORA_STG_ESPERADAS = 446; // 0017 do Acelerato: 5 colunas em cada uma das duas dimensões do chamado; 0018 e 0019 do BusinessMap (F0 do 052)
 
+const COLUNAS_F2 = ['arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte', 'categoria_key'];
 describe('migrações e singleTransaction', () => {
   it('nenhuma migração usa CONCURRENTLY (incompatível com o `up` em transação única)', () => {
     expect(todoSql.filter((q) => /CONCURRENTLY/i.test(q))).toEqual([]);
@@ -154,11 +155,12 @@ describe('migrações (análise estática, sem banco)', () => {
       .filter((k) => k !== 'justificativa_ajuste').map((k) => (k === 'tipo_fila' ? 'tipo' : k));
     chamado.push('etapa'); // etapa atual: extensão do data-model §4, fora da interface Chamado
     chamado.push('justificativa_informada'); // 0014 (FA-003): só o indicador, fora de ATRIBUTOS_CHAMADO (0008/0009 imutáveis)
+    chamado.push('arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte', 'categoria_key'); // 0017 (F2 do Acelerato): fora de ATRIBUTOS_CHAMADO
     chamado.sort();
     const cols = colunas.filter((c) => c.tabela === `${S_PADRAO.ac}.dim_chamado`).map((c) => c.coluna);
     expect(cols.filter((c) => !['chamado_id', 'coletado_em', 'atualizado_por_coleta_id', 'sistema_origem'].includes(c)).sort()).toEqual(
       chamado.filter((c) => c !== 'chamado_id'));
-    expect(ATRIBUTOS_CHAMADO.map(([n]) => n).sort()).toEqual(chamado.filter((c) => c !== 'chamado_id' && c !== 'justificativa_informada'));
+    expect(ATRIBUTOS_CHAMADO.map(([n]) => n).sort()).toEqual(chamado.filter((c) => c !== 'chamado_id' && c !== 'justificativa_informada' && !COLUNAS_F2.includes(c)));
     expect(cols).not.toContain('justificativa_ajuste');
     expect(colunas.filter((c) => c.tabela === `${S_PADRAO.ac}.stg_chamado`).map((c) => c.coluna)).toContain('ausente_na_extracao');
   });

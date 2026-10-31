@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { analisarConferencia, ErroConferencia, lerConferencia } from '../src/modulos/businessmap/conferencia.js';
-import { DEMAIS_TIMES, FORA_DE_TODO_CALCULO, FORA_DO_OPERACIONAL, TIMES, TIMES_PROPRIOS } from '../migrations/0017_bm_carga_inicial_times.js';
+import { DEMAIS_TIMES, FORA_DE_TODO_CALCULO, FORA_DO_OPERACIONAL, TIMES, TIMES_PROPRIOS } from '../migrations/0019_bm_carga_inicial_times.js';
 
 const real = lerConferencia();
 const texto = (mudar: (c: Record<string, unknown>) => void): string => {

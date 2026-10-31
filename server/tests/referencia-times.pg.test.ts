@@ -1,6 +1,6 @@
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { REFERENCIA_VERSAO } from '../migrations/0017_bm_carga_inicial_times.js';
+import { REFERENCIA_VERSAO } from '../migrations/0019_bm_carga_inicial_times.js';
 import { lerVersoes } from '../src/modulos/operacao/repositorio.js';
 import { lerVersaoCriterioVigente } from '../src/modulos/referencia/repositorio.js';
 import { poolDe, S, unico, url } from './pg/ctx.js';
@@ -194,7 +194,7 @@ d('referência do quadro real e tabela de times (plano 052, F0)', () => {
 
   it('down da carga recusa quando há vigência posterior (nada de histórico se perde)', async () => {
     await emTransacao(async (c) => {
-      const { ddl } = await import('../migrations/0017_bm_carga_inicial_times.js');
+      const { ddl } = await import('../migrations/0019_bm_carga_inicial_times.js');
       const down = ddl(S).down;
       await c.query(INS_TIME, [904, '2026-01-01', 'posterior', 'processo', 1, 'teste']);
       await expect(c.query(down[0]!)).rejects.toThrow(/vigências posteriores/);

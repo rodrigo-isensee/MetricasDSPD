@@ -4,15 +4,15 @@ import {
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, pesquisa, type ContextosMetricas, type ExtensoesMetricas,
 } from '@metricas-dspd/metricas';
-import type { BaseAC } from '@metricas-dspd/metricas/acelerato';
-import type { ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
+import type { BaseAC, ExtensaoAC } from '@metricas-dspd/metricas/acelerato';
+import { EXTENSAO_BM_VAZIA, type ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
 import { AppError } from '../../plataforma/erros.js';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
 import { dataCivil, lerEquipesBM, lerSistemasBM, lerVersaoCriterioVigente } from '../referencia/index.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
-import { montarBaseAC, montarBaseBM, type RefBM } from './mapa.js';
+import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
   lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerDominio, lerEtapas, lerFichas, lerLimiteFrentes,
   lerLimitesWip, lerSle, lerTransicoes,
@@ -31,6 +31,10 @@ export const TTL_VERSAO_MS = 60_000;
 export const MAX_RESULTADOS = 500;
 /** Métricas que leem `config.alvos` (prazos por prioridade); sem a referência o cálculo não tem o que comparar. */
 const METRICAS_COM_ALVOS: readonly MetricaId[] = ['S1', 'VISAO_GERAL'];
+/** Métricas de SLA que não contam os chamados sem agente (D-9 do plano 056): a biblioteca recebe a base sem eles. */
+const METRICAS_SEM_AGENTE: readonly MetricaId[] = ['S2', 'TENDENCIA_SUST'];
+/** Por base carregada: a base sem os chamados sem agente (D-9) e a extensão do S8 (D-10). Só da fonte real; a base semeada tem tudo com agente. */
+const EXTRAS_AC = new WeakMap<BaseAC, ExtrasAC>();
 const BASE_AC_VAZIA: BaseAC = { chamados: [], etapas: [], config: { alvos: [], criterios: [] } };
 const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], fichas: [], config: {
   limite_wip_fluxo: {}, limite_frentes: 0, sle: [], alocacao: [], objetivos: [], criterios: [], equipes: [], sistemas: [], areas_internas: [],
@@ -123,6 +127,7 @@ export class ServicoMetricas {
     const base = montarBaseAC({
       chamados, etapas: await lerEtapas(db, S), alvos: await lerAlvos(db, S), criterios: await lerVersoes(db, 'acelerato', S),
     });
+    EXTRAS_AC.set(base, extrasAC(base, chamados));
     const primeiro = chamados.reduce<number | null>((a, c) => (a === null || (c.aberto_em as Date).getTime() < a ? (c.aberto_em as Date).getTime() : a), null);
     return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO) };
   }
@@ -237,9 +242,14 @@ export class ServicoMetricas {
     }
     const pronto = mapa.get(chave);
     if (pronto !== undefined) return { resultado: pronto, dataReferencia, versaoCriterio, chave };
+    const extras = ac === null ? undefined : EXTRAS_AC.get(ac.base);
+    const baseAC = ac === null ? BASE_AC_VAZIA : METRICAS_SEM_AGENTE.includes(id) && extras !== undefined ? extras.semAgenteFora : ac.base;
+    // S8 na fonte real (D-10): o campo dos 90 dias vira a extensão da biblioteca; com extensões mockadas (fonte `mock`) vale o mock.
+    const extReal: ExtensaoAC | undefined = id === 'S8' && this.deps.extensoes === undefined ? extras?.extensao : undefined;
     const ctx: ContextosMetricas = {
       bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, CALENDARIO_PADRAO),
-      ac: acelerato.criarContextoAC(ac?.base ?? BASE_AC_VAZIA, corte, CALENDARIO_PADRAO),
+      ac: acelerato.criarContextoAC(baseAC, corte, CALENDARIO_PADRAO),
+      ...(extReal !== undefined ? { ext: { bm: EXTENSAO_BM_VAZIA, ac: extReal } } : {}),
       ...(COMPLEMENTARES.has(id) && this.deps.extensoes ? { ext: this.deps.extensoes() } : {}),
       ...(COM_EXTENSAO_TAMBEM.has(id) && this.deps.extensaoTambem ? { tambem: this.deps.extensaoTambem() } : {}),
     };

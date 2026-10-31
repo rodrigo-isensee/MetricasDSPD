@@ -37,6 +37,8 @@ export type LinhaChamado = {
   motivo_escalacao: Texto; motivo_pendencia_atual: Texto; previsao_retorno: Instante; motivo_encerramento: Texto;
   avaliacao_problema: Texto; excecao_sla_registro_posterior: boolean; incidente_critico_coordenado: boolean;
   nivel_resolucao: Texto;
+  /** F2 do Acelerato (ADR 0023): só o booleano (D-9) e o campo dos 90 dias (D-10); opcionais para a base semeada e os dublês antigos. */
+  com_agente?: boolean; reincidente_90d?: Texto;
 };
 /** Instantes das tabelas grandes vêm como epoch ms (float8): o parser de `timestamptz` do driver custa mais que a consulta. */
 export type LinhaEtapa = { chamado_id: string; etapa: string; entrada: number; saida: number | null; motivo_pendencia: Texto };
@@ -84,9 +86,9 @@ export const lerChamados = async (db: Consultavel, S: Esquemas = esquemasDoAmbie
             prioridade, prioridade_ajustada_manualmente, justificativa_informada, aberto_em, primeiro_atendimento_em, restaurado_em,
             data_finalizado, status_sla_r, status_sla_pa, motivo_escalacao, motivo_pendencia_atual, previsao_retorno,
             motivo_encerramento, avaliacao_problema, excecao_sla_registro_posterior, incidente_critico_coordenado,
-            nivel_resolucao
+            nivel_resolucao, com_agente, reincidente_90d
        FROM ${S.ac}.dim_chamado
-      WHERE aberto_em IS NOT NULL AND equipe IS NOT NULL AND prioridade IS NOT NULL
+      WHERE aberto_em IS NOT NULL AND equipe IS NOT NULL AND fora_do_recorte = false
       ORDER BY chamado_id`)).rows;
 
 /** Sem ORDER BY: a biblioteca ordena as etapas de cada chamado (entrada, etapa). */
