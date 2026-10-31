@@ -4,10 +4,10 @@ import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { ErroBusinessMap, type ClienteHttp } from '../../plataforma/http.js';
 import { fecharColeta, type StatusFinal } from '../operacao/index.js';
-import { CAMPOS_CARD, extrairResponsaveis, type DominiosCamposCustomizados } from './allow-list.js';
+import { CAMPOS_CARD, extrairResponsaveis, revisionIdDaTransicao, transicoesDoCard, type DominiosCamposCustomizados } from './allow-list.js';
 import { ErroReferencia } from './referencia.js';
 import { desembrulhar } from './spike-forma.js';
-import { gravarStgCard } from './staging.js';
+import { gravarStgCard, gravarStgRevision } from './staging.js';
 import { resolverResponsaveis, type ResultadoUsuarios } from './usuarios.js';
 
 // F3 do plano 052 (K-182): coleta dos cards do BusinessMap para o staging, incremental e carga inicial de 12 meses. Só GET, pelo
@@ -28,7 +28,8 @@ export type EstadoCard = (typeof ESTADOS)[number];
  * (ID Acelerato, H-16) e 42 (Responsável CR, pessoa) não têm entrada no mapa e nunca entram.
  */
 export const CAMPOS_PEDIDO_CARDS = [...CAMPOS_CARD, 'owner_user_id', 'co_owner_ids', 'block_reason', 'child_card_stats'].join(',');
-export const EXPAND_COLETA = 'custom_fields,linked_cards';
+/** `transitions` (E2.46): histórico de colunas na própria listagem, sem GET por card; `block_times` fica fora (F3b, negado por padrão). */
+export const EXPAND_COLETA = 'custom_fields,linked_cards,transitions';
 export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
 
 /** Mapa `field_id` -> domínio (ADR 0020, 4d). Vazio: ainda não há mapa (A6 da F2); campo sem entrada não é gravado. */
@@ -62,7 +63,8 @@ export interface DepsColeta {
   etapaReferencia?: (coletaId: number) => Promise<unknown>;
 }
 
-export interface ResumoStream { quadro: number; estado: EstadoCard; lidos: number; inseridos: number; jaExistentes: number; falhas: number }
+export interface ContagemTransicoes { lidas: number; inseridas: number; jaExistentes: number; invalidas: number }
+export interface ResumoStream { quadro: number; estado: EstadoCard; lidos: number; inseridos: number; jaExistentes: number; falhas: number; transicoes: ContagemTransicoes }
 export interface ResultadoColeta {
   coletaId: number;
   modo: ModoColeta['tipo'];
@@ -185,6 +187,18 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
         }, x.S);
         if (r === 'inserido') c.inseridos += 1;
         else c.jaExistentes += 1;
+        for (const t of transicoesDoCard(card) ?? []) {
+          c.transicoes.lidas += 1;
+          const revisionId = revisionIdDaTransicao(t);
+          if (revisionId === null) {
+            c.transicoes.invalidas += 1;
+            x.falhas.push('transicao-invalida');
+            await registrarFalha(db, x.S, x.coletaId, entidade, id, 'transicao-invalida');
+            continue;
+          }
+          if (await gravarStgRevision(db, { cardId: id, revisionId, revisao: t, tipo: 'transicao', coletaId: x.coletaId, agora }, x.S)) c.transicoes.inseridas += 1;
+          else c.transicoes.jaExistentes += 1;
+        }
       }
       await db.query(
         `UPDATE ${x.S.bm}.ctl_coleta SET parametros = jsonb_set(parametros, ARRAY['paginas', $2::text], jsonb_build_object('ultima', $3::int, 'total', $4::int), true) WHERE coleta_id = $1`,
@@ -258,7 +272,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
         if (fatal) break;
         const anterior = paginas[`${quadro}|${estado}`];
         if (anterior !== undefined && anterior.total > 0 && anterior.ultima >= anterior.total) continue;
-        const c: ResumoStream = { quadro, estado, lidos: 0, inseridos: 0, jaExistentes: 0, falhas: 0 };
+        const c: ResumoStream = { quadro, estado, lidos: 0, inseridos: 0, jaExistentes: 0, falhas: 0, transicoes: { lidas: 0, inseridas: 0, jaExistentes: 0, invalidas: 0 } };
         try {
           await lerStream(x, quadro, estado, Math.max(1, anterior?.ultima ?? 1), c);
         } catch (e) {
@@ -270,6 +284,8 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
         }
         streams.push(c);
         await registrarContagem(d.pool, S, coletaId, `card_${quadro}_${estado}`, c);
+        await registrarContagem(d.pool, S, coletaId, `transicao_${quadro}_${estado}`,
+          { lidos: c.transicoes.lidas, inseridos: c.transicoes.inseridas, jaExistentes: c.transicoes.jaExistentes, falhas: c.transicoes.invalidas });
       }
     }
 

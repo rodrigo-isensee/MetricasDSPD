@@ -90,6 +90,7 @@ export interface OpcoesBanco {
 export interface EstadoBanco {
   aberta?: { params: readonly unknown[]; parametros: Record<string, unknown> };
   stg: { idOrigem: string; quadro: string; arquivado: boolean; payload: string; coleta: unknown }[];
+  revisoes: { cardId: string; revisionId: string; payload: string; coleta: unknown }[];
   checkpoints: { chave: string; ultima: number; total: number }[];
   falhas: { entidade: string; idOrigem: unknown; erro: string }[];
   contagens: { entidade: string; lidos: number; inseridos: number; jaExistentes: number; falhas: number }[];
@@ -100,7 +101,7 @@ export interface EstadoBanco {
 
 /** Banco falso, com estado, para `coletarCards`. Responde pelo texto do SQL (as consultas são as do módulo). */
 export function bancoFalso(op: OpcoesBanco = {}) {
-  const estado: EstadoBanco = { stg: [], checkpoints: [], falhas: [], contagens: [], usuarios: [], fechamentos: [] };
+  const estado: EstadoBanco = { stg: [], revisoes: [], checkpoints: [], falhas: [], contagens: [], usuarios: [], fechamentos: [] };
   let sk = 100;
   const ultimas = new Map<string, { stg_sk: string; payload_sha256: Buffer }>();
   const responder = (c: Chamada): Resposta => {
@@ -124,6 +125,12 @@ export function bancoFalso(op: OpcoesBanco = {}) {
       ultimas.set(v[0] as string, { stg_sk: String(sk), payload_sha256: v[2] as Buffer });
       estado.stg.push({ idOrigem: v[0] as string, quadro: v[4] as string, arquivado: v[5] as boolean, payload: v[3] as string, coleta: v[8] });
       return [{ stg_sk: String(sk) }];
+    }
+    if (t.startsWith('INSERT INTO dspd_bm.stg_revision')) {
+      // UNIQUE (card_id, revision_id) com ON CONFLICT DO NOTHING
+      if (estado.revisoes.some((r) => r.cardId === v[0] && r.revisionId === v[1])) return [];
+      estado.revisoes.push({ cardId: v[0] as string, revisionId: v[1] as string, payload: v[3] as string, coleta: v[5] });
+      return [{ revision_sk: String(estado.revisoes.length) }];
     }
     if (t.includes("SET parametros = jsonb_set(parametros, ARRAY['paginas'")) {
       estado.checkpoints.push({ chave: v[1] as string, ultima: v[2] as number, total: v[3] as number });

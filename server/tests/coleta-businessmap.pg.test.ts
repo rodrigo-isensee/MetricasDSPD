@@ -108,6 +108,30 @@ d('F3 do plano 052: coleta contra PostgreSQL (papéis, CHECKs, staging, dim_resp
     expect(await n(`SELECT count(*)::int AS n FROM ${S.bm}.stg_card WHERE quadro_id = $1`, [String(Q)])).toBe(5);
   });
 
+  it('E2.46: transições do card vão a stg_revision pela allow-list, o coletor grava, a recoleta não duplica e a fechada é fato novo (append-only)', async () => {
+    const c = card({ transitions: [
+      { board_id: Q, workflow_id: 90270, lane_id: 1, column_id: 90271, section: 3, start: '2026-10-01 10:00:00', end: '2026-10-02 09:00:00', user_id: 5, author: 'PESSOA-MARCADOR' },
+      { board_id: Q, workflow_id: 90270, lane_id: 1, column_id: 90272, section: 4, start: '2026-10-02 09:00:00', end: null },
+    ] });
+    const id = String(c.card_id);
+    const m = await montar({ ...cenarioVazio(), cards: { [`${Q}|active`]: [c] } });
+    const r1 = await coletarCards(m.deps, { tipo: 'carga_inicial', inicio: '2025-02-02' });
+    expect(r1.streams[0]!.transicoes).toEqual({ lidas: 2, inseridas: 2, jaExistentes: 0, invalidas: 0 });
+    const rev = () => dono.query<{ revision_id: string; payload: Record<string, unknown> }>(`SELECT revision_id, payload FROM ${S.bm}.stg_revision WHERE card_id = $1 ORDER BY revision_sk`, [id]);
+    const l1 = await rev();
+    expect(l1.rows).toHaveLength(2);
+    expect(l1.rows[0]!.payload).toEqual({ board_id: Q, card_id: id, column_id: 90271, end: '2026-10-02 09:00:00', lane_id: 1, section: 3, start: '2026-10-01 10:00:00', workflow_id: 90270 });
+    expect(JSON.stringify(l1.rows)).not.toMatch(/PESSOA-MARCADOR|user_id|author/);
+    const r2 = await coletarCards(m.deps, { tipo: 'carga_inicial', inicio: '2025-02-03' });
+    expect(r2.streams[0]!.transicoes).toEqual({ lidas: 2, inseridas: 0, jaExistentes: 2, invalidas: 0 });
+    expect((await rev()).rows).toHaveLength(2);
+    (c.transitions as Cartao[])[1] = { ...(c.transitions as Cartao[])[1]!, end: '2026-10-05 08:00:00' };
+    await coletarCards(m.deps, { tipo: 'carga_inicial', inicio: '2025-02-04' });
+    expect((await rev()).rows).toHaveLength(3);
+    expect(await n(`SELECT count(*)::int AS n FROM ${S.bm}.ctl_coleta_contagem WHERE coleta_id = $1 AND entidade = $2 AND inseridos = 2`, [r1.coletaId, `transicao_${Q}_active`])).toBe(1);
+    await expect(falhaDoBanco(coletor, `UPDATE ${S.bm}.stg_revision SET payload = '{}' WHERE card_id = $1`, [id])).resolves.toMatchObject({ code: '42501' });
+  });
+
   it('execução que morreu sem fechar é fechada como falha; falha de card só com código e id nulo', async () => {
     const aberta = await dono.query<{ coleta_id: string }>(
       `INSERT INTO ${S.bm}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('coleta_incremental', now(), 'em_andamento', 'bm-f3/1') RETURNING coleta_id`);
