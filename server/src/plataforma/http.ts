@@ -40,6 +40,13 @@ export const CONSULTA_PERMITIDA: Readonly<Record<string, RegExp>> = {
   last_modified_to: DATA,
 };
 
+/** Só em `/cards` (listagem): estado do card e `expand` com valores de uma lista fechada (spike F1, plano 052). */
+export const EXPAND_CARDS = /^(custom_fields|transitions|block_times|linked_cards)(,(custom_fields|transitions|block_times|linked_cards)){0,3}$/;
+export const CONSULTA_CARDS: Readonly<Record<string, RegExp>> = {
+  state: /^(active|archived|discarded)$/,
+  expand: EXPAND_CARDS,
+};
+
 /** ADR 0020, revisão 3 (R3-1 e R3-4): `/users` aceita só estes dois parâmetros, e `fields` com exatamente este valor. */
 export const CAMPOS_USERS = 'user_id,realname';
 export const CONSULTA_USERS: Readonly<Record<string, RegExp>> = {
@@ -193,7 +200,7 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
     if (!CAMINHOS_PERMITIDOS.some((p) => p.test(caminho))) throw new ErroBusinessMap('caminho', `caminho fora da lista fechada: ${caminho.slice(0, 60)}`);
     // `/users` só devolve id e nome (ADR 0020 rev. 3): exige `fields` e `user_ids` e recusa qualquer outro parâmetro.
     const ehUsers = caminho === '/users';
-    const permitida = ehUsers ? CONSULTA_USERS : CONSULTA_PERMITIDA;
+    const permitida = ehUsers ? CONSULTA_USERS : caminho === '/cards' ? { ...CONSULTA_PERMITIDA, ...CONSULTA_CARDS } : CONSULTA_PERMITIDA;
     const params = new URLSearchParams();
     for (const [nome, bruto] of Object.entries(consulta)) {
       const valor = String(bruto);

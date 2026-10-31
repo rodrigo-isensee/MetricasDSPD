@@ -5,3 +5,5 @@ export {
 export { CAMPOS_CARD, CAMPOS_REVISAO, CAMPOS_WEBHOOK, TIPOS_WEBHOOK_BM_GRAVADOS, extrairResponsaveis, registroCard, registroRevisao, registroWebhook, serializar } from './allow-list.js';
 export { gravarResponsaveis } from './responsaveis.js';
 export { diagnosticar, type ResultadoDiagnostico } from './diagnostico.js';
+export { executarSpike, type ResultadoSpike } from './spike.js';
+export { ARQUIVO_CONFERENCIA } from './conferencia.js';
