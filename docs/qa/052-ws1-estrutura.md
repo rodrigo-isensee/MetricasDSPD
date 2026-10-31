@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: f24c3a9b98722b2bf62961ef3ea8cf75e11de291
+commit: 0714135ff3685074ea4ba775d9b3004d28879865
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -29,6 +29,15 @@ Veredito: aprovado, mantido. Este parecer foi dado sobre `780000b` e ficou desat
 Só o `.env.example` foi relido (ferramenta Read, no head `f24c3a9`): bloco do BusinessMap nas linhas 25 a 32 (`BUSINESSMAP_URL_BASE`, `BUSINESSMAP_APIKEY`, `BUSINESSMAP_QUADROS_IDS` e os três de limite, tempo e página) e bloco do Acelerato nas linhas 33 a 44 (`ACELERATO_MYSQL_*`, comentados), separados por linhas de comentário próprias, sem mistura. As variáveis que o script lê continuam as mesmas e sem valor no exemplo; nenhuma chave nem senha no arquivo. O `.env` não foi lido.
 
 Reexecução: `pnpm --dir /home/rodrigoisensee/MetricasDSPD-052c run pronto` rc=0 (server 869 testes passaram e 106 pulados, cobertura do server 100%; os 30 testes do diagnóstico estão entre eles), o mesmo run registrado no parecer `docs/qa/052-f0-fundacoes.md`. Sem mutante novo: o código do script não mudou, e A1 e A2 do parecer anterior seguem como recomendações.
+
+## Renovação por delta (E2.29, depois da E2.24)
+Veredito: aprovado, mantido. O parecer ficou desatualizado porque, na F1, mudaram dois arquivos que ele cobre: `server/package.json` e `server/src/modulos/businessmap/index.ts`. Delta lido (`f24c3a9..0714135`, só esses dois caminhos, ferramenta Read e `git diff`):
+- `server/package.json`: entrou uma linha, o script `bm:spike` (`tsx src/entradas/spike-businessmap.ts`). É da F1, não da WS1; nenhum script existente mudou.
+- `server/src/modulos/businessmap/index.ts`: dois exports novos, `executarSpike`/`ResultadoSpike` (de `spike.js`) e `ARQUIVO_CONFERENCIA` (de `conferencia.js`). O export de `diagnosticar` e `ResultadoDiagnostico` segue igual.
+
+Conferido que o script da WS1 e suas variáveis seguem iguais: `git diff f24c3a9..0714135` sobre `server/src/modulos/businessmap/diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh`, `server/tests/diagnostico-businessmap.test.ts` e `.env.example` não traz nenhuma linha; `bm:diagnostico` continua no `package.json` da raiz (linha 33, `bash scripts/bm-diagnostico.sh`). As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações.
+
+Sem suíte, sem mutantes e sem chamada ao BusinessMap (o `bm:spike` não foi rodado), como pedido; o `bm:spike` é coberto pelo parecer `docs/qa/052-f1-spike.md`. O `.env` não foi lido.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).
