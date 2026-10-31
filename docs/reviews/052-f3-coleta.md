@@ -3,12 +3,41 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f3-coleta
-commit: e2ad47ba722d6f4f9ca6930d12cded84add4f7b6
-parecer: reprovado
+commit: ad7cde3aadf94927f315650230aaf1b1f7360a61
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-31
 ---
 # Review: 052-integracao-businessmap (E2.48, F3 do coletor do BusinessMap, coleta dos cards para o staging, K-182)
+
+## Revalidação (E2.53, 2026-10-31): aprovado em `ad7cde3`
+
+**Veredito: aprovado** em `ad7cde3`. Os dois bloqueantes fecharam: A1 pelo código da E2.51 (`a4021d0`) e A2 pelos documentos da E2.52 (`ad7cde3`, commit meu). Os recomendados A3 a A6 seguem como recomendados, com o destino da decisão técnica do Histórico do pedido (2026-10-31 18:36).
+
+**Delta lido.** Rodei `forge-check delta --parecer docs/reviews/052-f3-coleta.md`, intervalo `e2ad47b..ad7cde3`. Li tudo o que ele listou:
+- código e teste (E2.51, `f891ab3..a4021d0`): `coleta-businessmap.ts:13-14`, `coleta.ts:77-78, 158, 258, 267, 314`, `referencia.ts:20, 311-313`, `coleta-businessmap.test.ts:340-346`, `coleta-comando-businessmap.test.ts:132-153`;
+- documentos (E2.52): `adr/0020-protecao-de-pessoa-no-coletor.md:3, 33-35, 94, 149`, `data-model.md:4, 17, 71, 105, 298-314, 349-383`, `server.md:180-185`.
+
+Ficou como "já lido": o resto da F3, revisado em `e2ad47b` neste parecer (abaixo), que o delta não mudou.
+
+**A1 (fechado, `a4021d0`).** `ErroReferencia` ganhou `pendentes` (`tabela:chave`, até 100), montado de `plano.pendentes` em `referencia.ts:311-313`. A coleta copia essas chaves para `ResultadoColeta.motivosPendentes` (`coleta.ts:267`), e a entrada imprime o resultado inteiro em JSON. As chaves são de referência (quadro, workflow, coluna, tipo), não valores de pessoa. O banco continua só com o código: o teste `coleta-businessmap.test.ts:346` prova que `2532` não está no estado do banco. O teste do comando prova a volta inteira (`coleta-comando-businessmap.test.ts:132-135`): a chave sai no formato do `--motivo-chave`, `analisarArgumentos` a aceita (a regex de `coleta-comando.ts:21` aceita `|` na chave) e o JSON não traz nome nem e-mail. Também prova a lista vazia com `--motivo` global e a chave que segue pendente quando o motivo dado é de outra chave. Rodei `vitest run` nos dois arquivos de teste do delta: 2 arquivos, 48 testes, todos passaram.
+
+**A2 (fechado, `ad7cde3`).** `pnpm run docs:check` deu ok (822 páginas Markdown, 69 métricas, 2 eventos) com os três documentos. Cada item do A2 confere com o código:
+- `data-model.md` §1 e §8: `GRANT UPDATE (parametros)` só em `dspd_bm`, e `dim_responsavel` com `SELECT, INSERT, UPDATE`, sem `DELETE`;
+- `data-model.md` §3.3: `dim_responsavel` vigente, com as CHECKs da migração `0020`;
+- `data-model.md` §6: o formato de `parametros` (`tipo`, `host_sha256`, `quadros_sha256`, `inicio_carga`, `iniciada_em`, `paginas`), igual a `coleta.ts:250-251`, com a regra de retomada e o risco do A4;
+- `data-model.md` §9: as duas colunas novas em `COLUNAS_PESSOA`;
+- ADR 0020, item 4c: `CAMPOS_TRANSICAO`, o `revision_id` com a saída e por que a raia fica fora (A5);
+- ADR 0020, R3-2: a forma final;
+- `server.md`: o `bm:coleta`, com opções, ordem da execução, saída com `motivosPendentes` e códigos de saída 0, 2, 3 e 1, iguais a `coleta-businessmap.ts:21, 42, 47`.
+
+A suposição do autor (o hash cobre coluna, entrada e saída, e o card fica na chave única) é o que o código faz e o que este parecer já tinha conferido.
+
+**Teto recontado (decisão M14).** `git diff --numstat --no-renames 0783caa..ad7cde3`, sem `.md`: 1924 linhas. Tirando os 4 de `tests/pg/esquema.snapshot.json` (fixture), ficam **1920 linhas** de código e teste. A exceção continua aceita, um comportamento só (abaixo). O PR da E2.50 leva `teto: excedido, 1920 linhas, F3 do plano 052: coleta manual dos cards para o staging (três estados, retomada por página, transições, nomes por /users e referência no comando)`.
+
+Segurança por delta (E2.54) e QA (E2.49) vêm depois deste commit. Cito e não refaço.
+
+## Review original (E2.48, sobre `e2ad47b`)
 
 **Veredito: reprovado** em `e2ad47b`, por dois bloqueantes:
 - A1: o motivo por chave não dá para usar, porque o comando não mostra quais chaves pedem motivo.
@@ -59,9 +88,9 @@ O `praticas.md` não traz regra de teto, então vale a M14 do Forge. A conta foi
 O comportamento é um só, a F3 do plano: a coleta manual para o staging, com cards, transições e nomes na mesma execução, e a referência no comando. Isso segue o precedente da F0 à F2 e a decisão do Jarvis de revisar E2.45 e E2.46 juntas. Aceito a exceção. O PR da E2.50 leva a linha `teto: excedido, <n> linhas, F3 do plano 052: coleta manual dos cards para o staging (três estados, retomada por página, transições, nomes por /users e referência no comando)`, com o `<n>` recontado depois da volta.
 
 ## Achados
-- A1 (bloqueante) server/src/modulos/businessmap/coleta.ts:264 · O erro de motivo lista até 100 chaves (referencia.ts:311), mas a coleta guarda só o código e o comando não mostra as chaves; sem elas o --motivo-chave não se usa (A2 da F2). Entregar: chaves pendentes no resultado do comando, sem valor de pessoa, com teste.
-- A2 (bloqueante) docs/architecture/data-model.md:331 · Doc do back sem a F3 (praticas §7 item 7): grant UPDATE (parametros), dim_responsavel ainda proposta (:357), CAMPOS_TRANSICAO e revision_id fora da ADR 0020 4c, formato de parametros.paginas e bm:coleta. Entregar: software-architect atualiza data-model, ADR 0020 e server.md.
-- A3 (recomendado) server/src/modulos/businessmap/coleta.ts:301 · Transição inválida persistente deixa todo incremental parcial e a marca d'água parada; e a carga retomada pula as leituras já concluídas e fecha sucesso sem reler a inválida. Sugestão: arquiteto decide e registra o tratamento.
-- A4 (recomendado) server/src/modulos/businessmap/coleta.ts:277 · Retomada por número de página: se a lista de ativos muda entre as tentativas, cards não modificados podem sair da página relida e ficar fora até a varredura da F5. Sugestão: registrar o risco no plano e cobrir pela F5.
-- A5 (recomendado) server/src/modulos/businessmap/allow-list.ts:157 · revision_id sem lane_id: troca de raia com mesma coluna, entrada e saída cai no uq_stg_revision como já existente. Sugestão: QA ou arquiteto confere na forma real se troca de raia gera transição nova; se não, a raia entra no hash.
-- A6 (recomendado) server/src/modulos/businessmap/coleta-comando.ts:249 · Na retomada, a referência recebe o início de hoje e não o da carga retomada; hoje não muda nada, porque a tabela já não está vazia. Sugestão: passar o início gravado em ctl_coleta, ou comentar por que não importa.
+- A1 (recomendado) server/src/modulos/businessmap/coleta.ts:267 · Fechado em a4021d0: chaves pendentes em motivosPendentes (tabela:chave, até 100), aceitas pelo --motivo-chave, fora do banco, com teste (coleta-comando-businessmap.test.ts:132). Era bloqueante em e2ad47b.
+- A2 (recomendado) docs/architecture/data-model.md:298 · Fechado em ad7cde3: data-model (§1, §3.3, §6, §8, §9), ADR 0020 (4c e R3-2) e server.md (bm:coleta) com a F3, conferidos contra o código; docs:check ok. Era bloqueante em e2ad47b.
+- A3 (recomendado) server/src/modulos/businessmap/coleta.ts:304 · Transição inválida persistente deixa todo incremental parcial e a marca d'água parada; a carga retomada pula as leituras concluídas e fecha sucesso sem reler a inválida. Destino: F4 (decisão técnica, 2026-10-31 18:36).
+- A4 (recomendado) server/src/modulos/businessmap/coleta.ts:280 · Retomada por número de página: card não modificado que muda de página entre as tentativas fica fora até a varredura da F5. Risco registrado em data-model §6. Destino: F5 (decisão técnica, 2026-10-31 18:36).
+- A5 (recomendado) server/src/modulos/businessmap/allow-list.ts:157 · revision_id sem lane_id: troca de raia com mesma coluna, entrada e saída cai no uq_stg_revision como já existente. Destino: fica como está (decisão técnica, 2026-10-31 18:36; ADR 0020 4c).
+- A6 (recomendado) server/src/modulos/businessmap/coleta-comando.ts:249 · Na retomada, a referência recebe o início de hoje e não o da carga retomada; hoje sem efeito, porque a tabela já não está vazia. Destino: F4 (decisão técnica, 2026-10-31 18:36).
