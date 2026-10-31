@@ -79,7 +79,8 @@ d('seed contra PostgreSQL 17', () => {
     expect(await n(`${E.bm}.ref_limite_wip_fluxo`)).toBe(base.bm.config.equipes.length);
     expect(await n(`${E.bm}.ref_ficha_resultado`)).toBe(base.bm.fichas.length);
     expect(await q(`${E.bm}.ref_dominio`, "campo = 'sistema'")).toBe(base.bm.config.sistemas.length);
-    expect(await q(`${E.core}.ref_versao_criterio`, "dominio = 'businessmap'")).toBe(1);
+    // A migração 0017 grava a versão de partida da tabela de times (sem métrica); o seed grava só as versões do mock.
+    expect(await q(`${E.core}.ref_versao_criterio`, "dominio = 'businessmap' AND referencia LIKE 'mock:%'")).toBe(1);
     expect(await q(`${E.core}.ref_versao_criterio`, "dominio = 'acelerato'")).toBe(1);
     for (const s of [E.bm, E.ac]) expect(await q(`${s}.ctl_coleta`, "tarefa = 'coleta_incremental' AND status = 'sucesso'")).toBe(1);
   });

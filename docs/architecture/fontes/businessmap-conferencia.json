@@ -1,0 +1,62 @@
+{
+  "versao": 1,
+  "versao_criterio": {
+    "dominio": "businessmap",
+    "descricao": "Regras de papel de coluna (H-8 a H-11) e mapa de tipos (H-2, H-17) do quadro real",
+    "motivo": "Conferência proposta pelo arquiteto no plano 052 (§10), aceita pelo dono em 2026-10-30",
+    "referencia": "pedido 052, plano 052 §10 e Histórico de 2026-10-30"
+  },
+  "excecoes_papel_coluna": [
+    { "workflow_id": "222", "coluna_id": "1998", "nome": "Pronto (Dev)", "papel": "fila", "base": "H-8" },
+    { "workflow_id": "222", "coluna_id": "2001", "nome": "Deploy Pronto", "papel": "fila", "base": "H-8" },
+    { "workflow_id": "222", "coluna_id": "2006", "nome": "Pronto CR", "papel": "fila", "base": "H-8" },
+    { "workflow_id": "222", "coluna_id": "2008", "nome": "Aguardando Gmud", "papel": "fila", "base": "H-8" },
+    { "workflow_id": "221", "coluna_id": "1989", "nome": "Pronto Deploy", "papel": "fila", "base": "H-8" },
+    { "workflow_id": "221", "coluna_id": "2163", "nome": "Pronto (Dev)", "papel": "fila", "base": "H-8" },
+    { "workflow_id": "221", "coluna_id": "2166", "nome": "Pronto (CR)", "papel": "fila", "base": "H-8" },
+    { "workflow_id": "245", "coluna_id": "2281", "nome": "Pronto (Dev)", "papel": "fila", "base": "H-8" },
+    { "workflow_id": "245", "coluna_id": "2283", "nome": "Pronto Deploy", "papel": "fila", "base": "H-8" },
+    { "workflow_id": "245", "coluna_id": "2286", "nome": "Pronto (CR)", "papel": "fila", "base": "H-8" }
+  ],
+  "excecoes_compromisso": [],
+  "excecoes_entrega": [],
+  "colunas_descartado": [
+    { "workflow_id": "105", "coluna_id": "1307" },
+    { "workflow_id": "177", "coluna_id": "1358" },
+    { "workflow_id": "65", "coluna_id": "1403" },
+    { "workflow_id": "232", "coluna_id": "2159" },
+    { "workflow_id": "243", "coluna_id": "2268" },
+    { "workflow_id": "251", "coluna_id": "2369" },
+    { "workflow_id": "271", "coluna_id": "2637" },
+    { "workflow_id": "76", "coluna_id": "1631" },
+    { "workflow_id": "202", "coluna_id": "1723" },
+    { "workflow_id": "205", "coluna_id": "1768" },
+    { "workflow_id": "206", "coluna_id": "2312" },
+    { "workflow_id": "324", "coluna_id": "3118" },
+    { "workflow_id": "326", "coluna_id": "3141" },
+    { "workflow_id": "311", "coluna_id": "2919" },
+    { "workflow_id": "321", "coluna_id": "3068" }
+  ],
+  "mapa_tipos": {
+    "padrao": { "eh_item": true, "categoria": "produto" },
+    "tipos": [
+      { "nome": "Bug", "eh_item": true, "categoria": "bug_interno" },
+      { "nome": "Bug de Equipe", "eh_item": true, "categoria": "bug_interno" },
+      { "nome": "Bug Interno", "eh_item": true, "categoria": "bug_interno" },
+      { "nome": "Bug de Produção", "eh_item": true, "categoria": "defeito_producao" },
+      { "nome": "Incidente de Produção", "eh_item": true, "categoria": "defeito_producao" },
+      { "nome": "Chamado", "eh_item": true, "categoria": "requisicao" },
+      { "nome": "Débito técnico", "eh_item": true, "categoria": "divida_tecnica" },
+      { "nome": "Kaizen", "eh_item": true, "categoria": "melhoria" },
+      { "nome": "Processos", "eh_item": true, "categoria": "melhoria" },
+      { "nome": "Otimização processo", "eh_item": true, "categoria": "melhoria" },
+      { "nome": "Sprint", "eh_item": false, "categoria": null }
+    ]
+  },
+  "notas": [
+    "Workflow 323, coluna 3098 (Comprometido, seção 2, flow_type 1): sem exceção; o workflow 323 está fora do painel operacional (H-22 = A).",
+    "Exceções de compromisso (H-9) e de entrega (H-10): nenhuma por ora; o dono pode acrescentar (Pre-Release, publicação nas lojas, filhas de Encerrado).",
+    "A coluna 3068 (Descartado, workflow 321) pertence a workflow fora de todo cálculo (H-7).",
+    "Tipo não listado em mapa_tipos.tipos vale como o padrão (trabalho de produto, sem categoria especial)."
+  ]
+}

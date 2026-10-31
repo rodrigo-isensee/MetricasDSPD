@@ -9,7 +9,10 @@ export const CAMINHOS_REDIGIDOS = [
   'res.headers["set-cookie"]',
   '*.password',
   '*.senha',
+  'apikey',
   '*.apikey',
+  '*.headers.apikey',
+  '*.*.headers.apikey',
   '*.token',
   '*.connectionString',
 ];

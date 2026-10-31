@@ -11,7 +11,12 @@ export const PAPEIS = ['dspd_coletor', 'dspd_api', 'dspd_ref', 'dspd_webhook', '
  * Lista própria, separada de `COLUNAS_PESSOA`, para não distorcer o catálogo LGPD. `agg_conhecimento_sistema.entregas`
  * entra aqui quando a tabela existir (fase 3 do pedido 011): a API lê `tem_entrega`, nunca a contagem.
  */
-export const COLUNAS_FORA_DA_API: readonly string[] = ['dspd_bm.agg_conhecimento_sistema.entregas'];
+export const COLUNAS_FORA_DA_API: readonly string[] = [
+  'dspd_bm.agg_conhecimento_sistema.entregas',
+  // Pedido 052, F0 (data-model §8): quem mudou a lista de times (HMAC do `sub` ou `carga-inicial-057-E3`; nunca nome nem e-mail).
+  'dspd_bm.ref_time.registrado_por',
+  'dspd_bm.ref_time_workflow.registrado_por',
+];
 
 /** Tabelas inteiras que a API não lê, por `schema.tabela` (ADR 0020, B-3): só o `dspd_coletor` lê `ref_conta_automacao`. */
 export const TABELAS_FORA_DA_API: readonly string[] = ['dspd_bm.ref_conta_automacao', 'dspd_ac.ref_conta_automacao', 'dspd_core.ref_conta_automacao'];

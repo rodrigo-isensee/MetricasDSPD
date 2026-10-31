@@ -31,10 +31,15 @@ export async function lerInicioAC(db: Consultavel, S: Esquemas = esquemasDoAmbie
   return r.rows[0]?.inicio ?? null;
 }
 
-/** Id da versão de critério mais recente já vigente em `ate` (AAAA-MM-DD), de qualquer fonte; `null` se não há. */
+/**
+ * Id da versão de critério mais recente já vigente em `ate` (AAAA-MM-DD), de qualquer fonte; `null` se não há. Só conta
+ * versão que afeta alguma métrica, o mesmo critério de `lerVersoes`: a versão de partida da tabela de times (migração
+ * 0017) não leva métrica e não vira `versaoCriterio`.
+ */
 export async function lerVersaoCriterioVigente(db: Consultavel, ate: string, S: Esquemas = esquemasDoAmbiente()): Promise<string | null> {
   const r = await db.query<{ versao_id: string }>(
     `SELECT versao_id FROM ${S.core}.ref_versao_criterio
-     WHERE vigente_desde <= $1 ORDER BY vigente_desde DESC, versao_id DESC LIMIT 1`, [ate]);
+     WHERE vigente_desde <= $1 AND versao_id IN (SELECT versao_id FROM ${S.core}.ref_versao_criterio_metrica)
+     ORDER BY vigente_desde DESC, versao_id DESC LIMIT 1`, [ate]);
   return r.rows[0] === undefined ? null : String(r.rows[0].versao_id);
 }

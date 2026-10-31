@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { agregarContagens, classificarErro, eventoDeLinhas, type LinhaColeta } from '../src/modulos/operacao/eventos.js';
 import { lerEventos, lerVersoes } from '../src/modulos/operacao/repositorio.js';
 import { estadoColeta, historicoColetas } from '../src/modulos/operacao/servico.js';
+import { lerVersaoCriterioVigente } from '../src/modulos/referencia/repositorio.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { criarDublePg } from './duble-pg.js';
 
@@ -66,20 +67,32 @@ describe('lerEventos', () => {
 });
 
 describe('lerVersoes', () => {
-  it('agrupa métricas por versão, ignora ids desconhecidos ou nulos e parametriza o domínio', async () => {
+  it('agrupa métricas por versão, ignora ids desconhecidos e parametriza o domínio', async () => {
     const { pool, chamadas } = criarDublePg(() => [
       { versao_id: '1', vigente_desde: '2026-09-01', descricao: 'a', metrica_id: 'O2' },
       { versao_id: '1', vigente_desde: '2026-09-01', descricao: 'a', metrica_id: 'O3' },
       { versao_id: '1', vigente_desde: '2026-09-01', descricao: 'a', metrica_id: 'XX' },
-      { versao_id: '2', vigente_desde: '2026-09-02', descricao: 'b', metrica_id: null },
+      { versao_id: '2', vigente_desde: '2026-09-02', descricao: 'b', metrica_id: 'XX' },
     ]);
     const v = await lerVersoes(pool, 'businessmap');
     expect(chamadas[0]!.valores).toEqual(['businessmap']);
     expect(chamadas[0]!.texto).toContain('dspd_core.ref_versao_criterio');
+    // filtro novo: só versão que afeta alguma métrica (o dublê ignora o SQL, então o filtro é afirmado no texto)
+    expect(chamadas[0]!.texto).toContain('m.metrica_id IS NOT NULL');
     expect(v).toHaveLength(2);
     expect(v[0]).toMatchObject({ id: '1', data: '2026-09-01' });
     expect(v[0]!.afeta).toHaveLength(2);
     expect(v[1]!.afeta).toEqual([]);
+  });
+});
+
+describe('lerVersaoCriterioVigente', () => {
+  it('aplica o mesmo critério do lerVersoes (só versão com métrica) e parametriza a data', async () => {
+    const { pool, chamadas } = criarDublePg(() => [{ versao_id: '9' }]);
+    expect(await lerVersaoCriterioVigente(pool, '2026-10-01')).toBe('9');
+    expect(chamadas[0]!.valores).toEqual(['2026-10-01']);
+    expect(chamadas[0]!.texto).toMatch(/versao_id IN \(SELECT versao_id FROM dspd_core\.ref_versao_criterio_metrica\)/);
+    expect(await lerVersaoCriterioVigente(criarDublePg(() => []).pool, '2026-10-01')).toBeNull();
   });
 });
 

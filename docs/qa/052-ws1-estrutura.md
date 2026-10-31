@@ -3,14 +3,14 @@ tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 780000bfbc9075d4a8a089fb6a5ecb7201aed484
+commit: f24c3a9b98722b2bf62961ef3ea8cf75e11de291
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-10-30
+data: 2026-10-31
 ---
 # QA: 052-integracao-businessmap (E1.18, script de diagnóstico da WS1, K-185)
 
@@ -22,6 +22,13 @@ Método: caixa-preta. Servidor falso próprio em `node:http` (127.0.0.1, portas 
 - A1 (recomendado) server/tests/diagnostico-businessmap.test.ts:1 · nenhum teste afirma o cabeçalho "sem campos de pessoa; confira os nomes de quadro, coluna e raia antes de colar" (mutante que o encurta sobrevive). A frase existe e saiu certa na execução real; cartão K-186 pode somar a guarda.
 - A2 (recomendado) server/src/modulos/businessmap/diagnostico.ts:98 · a redação da chave (`limpar`, também em :281) não tem teste que a faça falhar: as mensagens são montadas só de texto fixo e código de erro filtrado, então hoje é defesa em profundidade sem caminho vivo. Manter e justificar.
 - A3 (recomendado) server/src/modulos/businessmap/diagnostico.ts:243 · o nó raiz de `currentStructure` sai como `- (sem campos permitidos)` seguido dos filhos; correto, mas confunde o dono ao ler a seção. Estético.
+
+## Renovação por delta (E2.22, depois da E2.19)
+Veredito: aprovado, mantido. Este parecer foi dado sobre `780000b` e ficou desatualizado porque o `.env.example` mudou depois dele: o commit `2303cd2` (F0 do 052) somou o bloco do BusinessMap e o merge `f24c3a9` (E2.19) somou o bloco do Acelerato da develop. Delta conferido (`780000b..f24c3a9`): `server/src/modulos/businessmap/diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh` e `server/tests/diagnostico-businessmap.test.ts` não mudaram, então as obrigações e os resultados das tabelas abaixo continuam valendo.
+
+Só o `.env.example` foi relido (ferramenta Read, no head `f24c3a9`): bloco do BusinessMap nas linhas 25 a 32 (`BUSINESSMAP_URL_BASE`, `BUSINESSMAP_APIKEY`, `BUSINESSMAP_QUADROS_IDS` e os três de limite, tempo e página) e bloco do Acelerato nas linhas 33 a 44 (`ACELERATO_MYSQL_*`, comentados), separados por linhas de comentário próprias, sem mistura. As variáveis que o script lê continuam as mesmas e sem valor no exemplo; nenhuma chave nem senha no arquivo. O `.env` não foi lido.
+
+Reexecução: `pnpm --dir /home/rodrigoisensee/MetricasDSPD-052c run pronto` rc=0 (server 869 testes passaram e 106 pulados, cobertura do server 100%; os 30 testes do diagnóstico estão entre eles), o mesmo run registrado no parecer `docs/qa/052-f0-fundacoes.md`. Sem mutante novo: o código do script não mudou, e A1 e A2 do parecer anterior seguem como recomendações.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).

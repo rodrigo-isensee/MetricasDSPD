@@ -10,6 +10,9 @@ import { arquivosDeMigracao, MIGRACOES } from './migracoes.js';
 const nomes = Object.keys(MIGRACOES);
 const ddls = nomes.map((n) => ({ n, ...MIGRACOES[n]!.ddl(S_PADRAO) }));
 const todoSql = ddls.flatMap((d) => d.up);
+/** Única migração com INSERT: a carga inicial da tabela de times (plano 052, F0). As demais seguem a regra da ADR 0014. */
+const CARGA_INICIAL = '0019_bm_carga_inicial_times';
+const sqlSemCarga = ddls.filter((d) => d.n !== CARGA_INICIAL).flatMap((d) => d.up);
 
 /** Extrai (tabela, coluna, definição) de cada CREATE TABLE (e ALTER TABLE ... ADD/DROP COLUMN): separa por vírgula de nível 0 e ignora restrições. */
 function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: string }[] {
@@ -40,7 +43,7 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 406; // 0017: 5 colunas em cada uma das duas dimensões do chamado
+const COLUNAS_FORA_STG_ESPERADAS = 446; // 0017 do Acelerato: 5 colunas em cada uma das duas dimensões do chamado; 0018 e 0019 do BusinessMap (F0 do 052)
 
 const COLUNAS_F2 = ['arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte', 'categoria_key'];
 describe('migrações e singleTransaction', () => {
@@ -71,7 +74,12 @@ describe('migrações (análise estática, sem banco)', () => {
     }
   });
   it('proíbe INSERT, TRUNCATE, ON CONFLICT e SELECT * nas migrações (ADR 0014)', () => {
-    expect(todoSql.join('\n')).not.toMatch(/INSERT\s+INTO|TRUNCATE\s+TABLE|ON\s+CONFLICT|SELECT\s+\*|\w\.\*/i);
+    expect(sqlSemCarga.join('\n')).not.toMatch(/INSERT\s+INTO|TRUNCATE\s+TABLE|ON\s+CONFLICT|SELECT\s+\*|\w\.\*/i);
+    // A carga inicial só insere (nada de ON CONFLICT, TRUNCATE nem SELECT *), e só nas três tabelas esperadas.
+    const carga = ddls.find((d) => d.n === CARGA_INICIAL)!.up.join('\n');
+    expect(carga).not.toMatch(/TRUNCATE\s+TABLE|ON\s+CONFLICT|SELECT\s+\*|\w\.\*/i);
+    expect([...carga.matchAll(/INSERT\s+INTO\s+(\S+)/g)].map((m) => m[1])).toEqual([
+      `${S_PADRAO.core}.ref_versao_criterio`, `${S_PADRAO.bm}.ref_time`, `${S_PADRAO.bm}.ref_time_workflow`]);
   });
   it('só tabelas stg_ têm colunas de pessoa, e só as permitidas (LGPD, data-model §9): varre TODAS as colunas', () => {
     const fora = colunas.filter((c) => !/\.stg_/.test(c.tabela));
@@ -157,7 +165,8 @@ describe('migrações (análise estática, sem banco)', () => {
     expect(colunas.filter((c) => c.tabela === `${S_PADRAO.ac}.stg_chamado`).map((c) => c.coluna)).toContain('ausente_na_extracao');
   });
   it('ref_ com vigência têm índice parcial único da vigente (BM, AC e core)', () => {
-    for (const t of ['ref_quadro', 'ref_coluna', 'ref_dominio', 'ref_sle', 'ref_alocacao_acordada', 'ref_limite_frentes', 'ref_ficha_resultado'])
+    for (const t of ['ref_quadro', 'ref_coluna', 'ref_dominio', 'ref_sle', 'ref_alocacao_acordada', 'ref_limite_frentes', 'ref_ficha_resultado',
+      'ref_workflow', 'ref_tipo_card', 'ref_time', 'ref_time_workflow'])
       expect(todoSql.some((s) => s.startsWith(`CREATE UNIQUE INDEX uq_${t}_vigente ON ${S_PADRAO.bm}.${t} `) && s.endsWith('WHERE vigente_ate IS NULL')), t).toBe(true);
     for (const t of ['ref_calendario_turno', 'ref_calendario_aplicacao'])
       expect(todoSql.some((s) => s.startsWith(`CREATE UNIQUE INDEX uq_${t}_vigente ON ${S_PADRAO.core}.${t} `)), t).toBe(true);

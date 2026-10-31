@@ -140,8 +140,8 @@ d('pesquisa de percepção (PV1): tabelas, papéis e carga', () => {
       const existe = async (t: string): Promise<boolean> => (await q(dono, `SELECT to_regclass($1) IS NOT NULL AS ok`, [`${e.core}.${t}`])).rows[0]!.ok as boolean;
       expect(await existe('pesq_carga')).toBe(true);
       await q(dono, `INSERT INTO ${e.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em) VALUES ('2026-01-01', 'pesquisa', 'v', 'm', 'r', now())`);
-      const b = await migrar(url!, { prefixo: p, direcao: 'down', quantas: 5 }); // 0014 a 0017 vêm depois da 0013
-      expect(b.migracoes).toEqual(['0017_ac_projecao_f2', '0016_ac_stg_chamado_recorte', '0015_bm_remove_usuario_transicao', '0014_ac_justificativa_informada', '0013_core_pesquisa']);
+      const b = await migrar(url!, { prefixo: p, direcao: 'down', quantas: 7 }); // 0014 a 0019 vêm depois da 0013
+      expect(b.migracoes).toEqual(['0019_bm_carga_inicial_times', '0018_bm_referencia_workflow_tipo_times', '0017_ac_projecao_f2', '0016_ac_stg_chamado_recorte', '0015_bm_remove_usuario_transicao', '0014_ac_justificativa_informada', '0013_core_pesquisa']);
       for (const t of ['pesq_carga', 'pesq_resultado', 'pesq_participacao', 'ref_pesq_area', 'ref_pesq_pergunta', 'vw_pesq_vigente']) expect(await existe(t), t).toBe(false);
       expect(await existe('ref_versao_criterio')).toBe(true);
       expect((await q(dono, `SELECT count(*) AS n FROM ${e.core}.ref_versao_criterio WHERE dominio = 'pesquisa'`)).rows[0]).toEqual({ n: '0' });
