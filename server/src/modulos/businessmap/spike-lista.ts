@@ -1,5 +1,5 @@
 import type { Conferencia } from './conferencia.js';
-import { desembrulhar } from './spike-forma.js';
+import { chaveSegura, desembrulhar } from './spike-forma.js';
 
 // Spike F1 (plano 052): lista de conferência das colunas folha. Aplica a regra das H-8 a H-11 (e a H-26, homologação)
 // à estrutura lida e marca as candidatas a exceção. É proposta para o dono conferir: não grava nada, não decide
@@ -51,42 +51,64 @@ export function montarLista(estruturas: ReadonlyMap<number, unknown>, conf: Conf
     for (const estrutura of desembrulhar(corpo).itens) {
       for (const [chave, wf] of Object.entries(ehObj(estrutura) && ehObj(estrutura.workflows) ? estrutura.workflows : {})) {
         if (!ehObj(wf)) continue;
-        const workflow = idTexto(wf.workflow_id) ?? chave;
+        const workflow = idTexto(wf.workflow_id) ?? chaveSegura(chave);
+        const doWorkflow: LinhaConferencia[] = [];
         const colunas = emLista(wf.columns);
         const porId = new Map(colunas.map((c) => [String(c.column_id), c]));
         const pais = new Set(colunas.map((c) => String(c.parent_column_id)));
         for (const c of colunas) {
-          const coluna = String(c.column_id);
-          if (pais.has(coluna)) continue; // só folhas
+          const idBruto = String(c.column_id);
+          if (pais.has(idBruto)) continue; // só folhas
+          const coluna = idTexto(c.column_id) ?? '<id?>';
           const pai = porId.get(String(c.parent_column_id));
           const nome = String(c.name ?? '').replace(/[\r\n|`]+/g, ' ').slice(0, 80);
           const norm = normalizar(nome);
           const secao = inteiro(c.section) ?? inteiro(pai?.section);
           const flowType = inteiro(c.flow_type);
           const ref = `${workflow}/${coluna}`;
-          const descarte = norm === 'descartado';
+          const noArquivo = descartadas.has(ref);
+          const descarte = norm === 'descartado' || noArquivo;
           const papel = descarte ? 'descarte' : papelDaSecao(secao, norm);
           const tipoExcecao = excecoes.get(ref);
           const marcas: string[] = [];
           if (tipoExcecao !== undefined) marcas.push('exceção do arquivo (H-8)');
-          if (descarte) marcas.push(descartadas.has(ref) ? 'Descartado do arquivo (H-11)' : 'CANDIDATA: Descartado fora do arquivo (H-11)');
+          if (descarte) {
+            marcas.push(
+              !noArquivo
+                ? 'CANDIDATA: Descartado fora do arquivo (H-11)'
+                : norm === 'descartado'
+                  ? 'Descartado do arquivo (H-11)'
+                  : 'Descartado do arquivo com nome diferente de Descartado (H-11)',
+            );
+          }
           if (!descarte && papel === 'trabalho' && flowType === 1 && tipoExcecao === undefined && ESPERA.test(norm)) {
             marcas.push('CANDIDATA: nome de espera com flow_type 1 (H-8)');
           }
           if ((secao === 2 || secao === 4) && MARCO.test(norm)) marcas.push('CANDIDATA: exceção de marco (H-9 ou H-10)');
           if (pai !== undefined && normalizar(String(pai.name ?? '')) === 'encerrado') marcas.push('CANDIDATA: filha de Encerrado (H-10)');
           if (papel === 'sem_papel') marcas.push('CONFERIR: folha sem seção');
-          if (papel === 'trabalho' && tipoDoFlow(flowType) === 'sem_tipo') marcas.push('CONFERIR: flow_type fora de 1 e 2 na seção 3');
-          linhas.push({
+          if (papel === 'homologacao') marcas.push('regra H-26: Homologação no nome da folha da seção 3');
+          if ((papel === 'trabalho' || papel === 'homologacao') && tipoDoFlow(flowType) === 'sem_tipo') marcas.push('CONFERIR: flow_type fora de 1 e 2 na seção 3');
+          if (coluna === '<id?>') marcas.push('CONFERIR: coluna sem id inteiro');
+          doWorkflow.push({
             quadro, workflow, coluna, nome, secao, flowType, papel,
             tipo: tipoExcecao ?? tipoDoFlow(flowType),
             marca: marcas.join('; '),
           });
         }
+        // H-23: sem folha na seção 2 ou na 4, o marco de todo card cai na entrada da seção seguinte.
+        const faltam = [2, 4].filter((n) => !doWorkflow.some((l) => l.secao === n && l.papel !== 'descarte'));
+        const primeira = doWorkflow[0];
+        if (primeira !== undefined && faltam.length > 0) {
+          const aviso = `CONFERIR: workflow sem folha na seção ${faltam.join(' nem na ')}, o marco cai na seção seguinte (H-23)`;
+          primeira.marca = primeira.marca === '' ? aviso : `${primeira.marca}; ${aviso}`;
+        }
+        linhas.push(...doWorkflow);
       }
     }
   }
-  return linhas.sort((a, b) => a.quadro - b.quadro || Number(a.workflow) - Number(b.workflow) || Number(a.coluna) - Number(b.coluna));
+  const num = (a: string, b: string): number => a.localeCompare(b, 'en', { numeric: true });
+  return linhas.sort((a, b) => a.quadro - b.quadro || num(a.workflow, b.workflow) || num(a.coluna, b.coluna));
 }
 
 /** Exceções do arquivo cujo workflow foi lido, mas cuja coluna não está entre as folhas lidas. */
@@ -100,7 +122,7 @@ export function excecoesSemColuna(linhas: readonly LinhaConferencia[], conf: Con
 
 /** Tabela Markdown da lista, com o resumo por papel e as candidatas no topo. */
 export function renderizarLista(linhas: readonly LinhaConferencia[], conf: Conferencia, quadrosLidos: readonly number[]): string {
-  const candidatas = linhas.filter((l) => l.marca.includes('CANDIDATA') || l.marca.includes('CONFERIR'));
+  const candidatas = linhas.filter((l) => l.marca.includes('CANDIDATA') || l.marca.includes('CONFERIR') || l.marca.includes('H-26'));
   const porPapel = new Map<string, number>();
   for (const l of linhas) porPapel.set(l.papel, (porPapel.get(l.papel) ?? 0) + 1);
   const sem = excecoesSemColuna(linhas, conf);
@@ -114,7 +136,7 @@ export function renderizarLista(linhas: readonly LinhaConferencia[], conf: Confe
   return [
     '# Lista de conferência das colunas folha (proposta)',
     '',
-    `Quadros lidos: ${quadrosLidos.join(', ')}. Regra: seção 1 backlog, 2 compromisso, 3 trabalho (com "Homologação" no nome, homologacao), 4 e 5 entrega; tipo pelo flow_type (2 fila, 1 execução); coluna "Descartado" é descarte (H-11). Proposta para o dono conferir: nada aqui está em vigor.`,
+    `Quadros lidos: ${quadrosLidos.join(', ')}. Regra: seção 1 backlog, 2 compromisso, 3 trabalho (com "Homologação" no nome, homologacao, H-26), 4 e 5 entrega; workflow sem folha na seção 2 ou 4 é marcado, o marco cai na seção seguinte (H-23); tipo pelo flow_type (2 fila, 1 execução); coluna "Descartado" é descarte (H-11). Proposta para o dono conferir: nada aqui está em vigor.`,
     '',
     `Folhas: ${linhas.length}. ${[...porPapel.entries()].sort().map(([p, n]) => `${p}: ${n}`).join(', ')}. Candidatas e itens a conferir: ${candidatas.length}.`,
     ...(sem.length > 0 ? ['', `Exceções do arquivo sem folha correspondente na estrutura lida (workflow/coluna): ${sem.join(', ')}.`] : []),

@@ -67,3 +67,25 @@ export function desembrulhar(corpo: unknown): { itens: unknown[]; paginas: numbe
   }
   return { itens: [], paginas: undefined, chavesPaginacao: [] };
 }
+
+/** Por tipo de vínculo (`link_type`, enumeração), quantos cards o têm e quantos vínculos por card; `<tipo>` fora do padrão. */
+export function linhasDeVinculos(listas: readonly unknown[]): string[] {
+  const porTipo = new Map<string, { cards: number; min: number; max: number; comMaisDeUm: number }>();
+  for (const lista of listas) {
+    if (!Array.isArray(lista)) continue;
+    const doCard = new Map<string, number>();
+    for (const v of lista) {
+      const t = Object(v).link_type;
+      const tipo = typeof t === 'string' ? chaveSegura(t) : '(ausente)';
+      doCard.set(tipo, (doCard.get(tipo) ?? 0) + 1);
+    }
+    for (const [tipo, qtd] of doCard) {
+      const a = porTipo.get(tipo) ?? { cards: 0, min: Infinity, max: 0, comMaisDeUm: 0 };
+      porTipo.set(tipo, { cards: a.cards + 1, min: Math.min(a.min, qtd), max: Math.max(a.max, qtd), comMaisDeUm: a.comMaisDeUm + (qtd > 1 ? 1 : 0) });
+    }
+  }
+  if (porTipo.size === 0) return ['(sem vínculos)'];
+  return [...porTipo.entries()].sort((x, y) => (x[0] < y[0] ? -1 : 1)).map(
+    ([t, a]) => `- link_type \`${t}\`: ${a.cards} cards com o tipo; ${a.min} a ${a.max} vínculos por card; ${a.comMaisDeUm} cards com mais de um`,
+  );
+}

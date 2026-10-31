@@ -1,13 +1,13 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { analisarConferencia } from '../src/modulos/businessmap/conferencia.js';
 import { CAMINHOS_PERMITIDOS, criarClienteHttp } from '../src/plataforma/http.js';
 import { executarSpike, foraDoRepositorio, veredictoFiltro, veredictoPaginacao, type DepsSpike } from '../src/modulos/businessmap/spike.js';
-import { caminhosComNome, chaveSegura, desembrulhar, linhasDeForma, somarForma } from '../src/modulos/businessmap/spike-forma.js';
+import { caminhosComNome, chaveSegura, desembrulhar, linhasDeForma, linhasDeVinculos, somarForma } from '../src/modulos/businessmap/spike-forma.js';
 import { excecoesSemColuna, montarLista, papelDaSecao, renderizarLista, tipoDoFlow } from '../src/modulos/businessmap/spike-lista.js';
 
 // Servidor falso local: nenhuma chamada ao BusinessMap real, e o `.env` nunca é lido. Cada servidor guarda o que recebeu.
@@ -331,13 +331,20 @@ describe('F1: execução completa contra o servidor falso', () => {
   });
 
   it('falha de gravação fora da rede (saída bruta ou relatório) encerra com código 1 sem vazar a chave', async () => {
-    mkdirSync(join(tmp, 'saida', 'relatorio-forma.md'), { recursive: true });
-    const r = await rodar(await subir({}));
+    // O item aparece na pasta durante a execução (depois da checagem inicial): o flag wx recusa e não sobrescreve.
+    const ocupar = (f: Falso, caminho: string, pasta: string, nome: string) =>
+      f.server.on('request', (req: IncomingMessage) => {
+        if (req.url?.startsWith(caminho)) mkdirSync(join(tmp, pasta, nome), { recursive: true });
+      });
+    const f1 = await subir({});
+    ocupar(f1, '/users', 'saida', 'relatorio-forma.md');
+    const r = await rodar(f1);
     expect(r.codigo).toBe(1);
     expect(r.erro).toMatch(/^erro: /);
     expect(r.erro).not.toContain(KEY);
-    mkdirSync(join(tmp, 'saida2', 'cardTypes.json'), { recursive: true });
-    const r2 = await rodar(await subir({}), { dirSaida: join(tmp, 'saida2') });
+    const f2 = await subir({});
+    ocupar(f2, '/cardTypes', 'saida2', 'cardTypes.json');
+    const r2 = await rodar(f2, { dirSaida: join(tmp, 'saida2') });
     expect(r2.codigo).toBe(1);
   });
 
@@ -391,6 +398,88 @@ describe('F1: execução completa contra o servidor falso', () => {
     expect(f.pedidos).toEqual([]);
   });
 
+  it('saída por link simbólico que aponta para dentro do clone é recusada: sem rede e sem arquivo no clone', async () => {
+    const f = await subir({});
+    mkdirSync(join(raiz, 'dentro'));
+    symlinkSync(join(raiz, 'dentro'), join(tmp, 'atalho'));
+    const a = await rodar(f, { dirSaida: join(tmp, 'atalho', 'saida') });
+    expect(a).toEqual({ codigo: 2, saida: '', erro: 'diretório da saída bruta dentro do repositório recusado' });
+    const b = await rodar(f, { dirSaida: join(tmp, 'atalho') });
+    expect(b.codigo).toBe(2);
+    expect(f.pedidos).toHaveLength(0);
+    expect(readdirSync(join(raiz, 'dentro'))).toEqual([]);
+    expect(readdirSync(raiz)).toEqual(['dentro']);
+  });
+
+  it('saída que já existe e é link (mesmo para fora do clone ou quebrado) é recusada', async () => {
+    const f = await subir({});
+    mkdirSync(join(tmp, 'fora'));
+    symlinkSync(join(tmp, 'fora'), join(tmp, 'link-fora'));
+    symlinkSync(join(tmp, 'nao-existe'), join(tmp, 'link-quebrado'));
+    const a = await rodar(f, { dirSaida: join(tmp, 'link-fora') });
+    expect(a.codigo).toBe(2);
+    expect(a.erro).toContain('link simbólico');
+    const b = await rodar(f, { dirSaida: join(tmp, 'link-quebrado') });
+    expect(b.codigo).toBe(2);
+    expect(b.erro).toContain('link simbólico');
+    const c = await rodar(f, { dirSaida: join(tmp, 'link-quebrado', 'sub') });
+    expect(c.codigo).toBe(2);
+    expect(f.pedidos).toHaveLength(0);
+    expect(readdirSync(join(tmp, 'fora'))).toEqual([]);
+  });
+
+  it('clone alcançado por link: a saída dentro dele continua recusada', () => {
+    symlinkSync(raiz, join(tmp, 'clone-link'));
+    expect(() => foraDoRepositorio(join(raiz, 'saida'), join(tmp, 'clone-link'))).toThrow('dentro do repositório');
+    expect(() => foraDoRepositorio(join(tmp, 'clone-link', 'x', 'y'), raiz)).toThrow('dentro do repositório');
+    expect(foraDoRepositorio(join(tmp, 'novo', 'a'), join(tmp, 'clone-link'))).toBe(join(tmp, 'novo', 'a'));
+  });
+
+  it('modos: pasta nova em 0700 e arquivos em 0600; pasta existente vazia vira 0700; não vazia é recusada', async () => {
+    const f = await subir({});
+    const novo = join(tmp, 'novo', 'saida');
+    const a = await rodar(f, { dirSaida: novo });
+    expect(a.codigo).toBe(0);
+    expect(statSync(novo).mode & 0o777).toBe(0o700);
+    const arquivos = readdirSync(novo);
+    expect(arquivos.length).toBeGreaterThan(5);
+    for (const nome of arquivos) expect(statSync(join(novo, nome)).mode & 0o777, nome).toBe(0o600);
+    const aberta = join(tmp, 'aberta');
+    mkdirSync(aberta, { mode: 0o755 });
+    chmodSync(aberta, 0o755);
+    const b = await rodar(f, { dirSaida: aberta });
+    expect(b.codigo).toBe(0);
+    expect(statSync(aberta).mode & 0o777).toBe(0o700);
+    const antes = f.pedidos.length;
+    const c = await rodar(f, { dirSaida: aberta });
+    expect(c).toEqual({ codigo: 2, saida: '', erro: 'diretório da saída bruta já existe e não está vazio: recusado' });
+    expect(f.pedidos).toHaveLength(antes);
+  });
+
+  it('saída que não é pasta ou que não pode ser criada: código 2 com mensagem limpa, sem rede', async () => {
+    const f = await subir({});
+    writeFileSync(join(tmp, 'arquivo'), 'x');
+    const a = await rodar(f, { dirSaida: join(tmp, 'arquivo') });
+    expect(a).toEqual({ codigo: 2, saida: '', erro: 'diretório da saída bruta existe e não é pasta: recusado' });
+    const b = await rodar(f, { dirSaida: join(tmp, 'arquivo', 'sub') });
+    expect(b.codigo).toBe(2);
+    expect(b.erro).toMatch(/^diretório da saída bruta inacessível \(ENOTDIR\)$/);
+    if (process.getuid?.() !== 0) {
+      mkdirSync(join(tmp, 'travada'), { mode: 0o500 });
+      chmodSync(join(tmp, 'travada'), 0o500);
+      const c = await rodar(f, { dirSaida: join(tmp, 'travada', 'sub') });
+      chmodSync(join(tmp, 'travada'), 0o700);
+      expect(c).toEqual({ codigo: 2, saida: '', erro: 'não foi possível preparar o diretório da saída bruta (EACCES)' });
+    }
+    expect(f.pedidos).toHaveLength(0);
+  });
+
+  it('linked_cards: conta por card os valores de link_type', async () => {
+    const r = await rodar(await subir({}));
+    expect(r.saida).toContain('Vínculos por tipo (link_type), contados por card:');
+    expect(r.saida).toContain('- link_type `parent`: 4 cards com o tipo; 2 a 2 vínculos por card; 4 cards com mais de um');
+  });
+
   it('a lista gerada aplica a regra da H-8 a H-11 e marca as candidatas', async () => {
     const r = await rodar(await subir({}));
     const lista = readFileSync(join(tmp, 'saida', 'lista-conferencia-colunas.md'), 'utf8');
@@ -436,6 +525,22 @@ describe('forma: só nomes de campo, tipos e contagens', () => {
     expect(linhasDeForma(f, (c) => c.startsWith('$.extra'))).toEqual(['- `$.extra`: object (1x)', '- `$.extra.x`: boolean (1x)']);
     expect(caminhosComNome(f, /^ex/)).toEqual(['$.extra']);
     expect(caminhosComNome(f, /^zzz/)).toEqual([]);
+  });
+
+  it('linhasDeVinculos: conta por card o link_type, sem valor fora do padrão', () => {
+    expect(linhasDeVinculos([])).toEqual(['(sem vínculos)']);
+    expect(linhasDeVinculos([undefined, null, 'x', []])).toEqual(['(sem vínculos)']);
+    const l = linhasDeVinculos([
+      [{ link_type: 'parent' }, { link_type: 'parent' }, { link_type: 'child' }],
+      [{ link_type: 'parent' }, {}, { link_type: 'Nome Livre | x' }],
+      [{ link_type: 'parent' }],
+    ]);
+    expect(l).toEqual([
+      '- link_type `(ausente)`: 1 cards com o tipo; 1 a 1 vínculos por card; 0 cards com mais de um',
+      '- link_type `<chave>`: 1 cards com o tipo; 1 a 1 vínculos por card; 0 cards com mais de um',
+      '- link_type `child`: 1 cards com o tipo; 1 a 1 vínculos por card; 0 cards com mais de um',
+      '- link_type `parent`: 3 cards com o tipo; 1 a 2 vínculos por card; 1 cards com mais de um',
+    ]);
   });
 
   it('desembrulhar: as formas de envelope', () => {
@@ -493,14 +598,81 @@ describe('lista de conferência: regra e entradas fora do padrão', () => {
       ]),
       conf,
     );
-    expect(l.map((x) => [x.quadro, x.workflow, x.coluna])).toEqual([[3, '77', '1'], [3, '77', '3'], [5, '81', '8'], [5, '81', '9']]);
-    expect(l[0]).toMatchObject({ papel: 'trabalho', tipo: 'fila', marca: '' });
+    expect(l.map((x) => [x.quadro, x.workflow, x.coluna])).toEqual([[3, '<id>', '1'], [3, '<id>', '3'], [5, '81', '8'], [5, '81', '9']]);
+    expect(l[0]).toMatchObject({ papel: 'trabalho', tipo: 'fila' });
+    expect(l[0]!.marca).toBe('CONFERIR: workflow sem folha na seção 2 nem na 4, o marco cai na seção seguinte (H-23)');
     expect(l[1]).toMatchObject({ nome: '', secao: undefined, flowType: undefined, papel: 'sem_papel', tipo: 'sem_tipo', marca: 'CONFERIR: folha sem seção' });
     expect(l[2]!.marca).toContain('CANDIDATA');
+    expect(l[3]!.marca).toContain('(H-23)');
     expect(renderizarLista(l, conf, [3, 5])).toContain('|  | - | - | sem_papel | sem_tipo | CONFERIR: folha sem seção |');
     expect(excecoesSemColuna(l, conf)).toEqual([]);
     expect(l[0]!.coluna).toBe('1');
     expect(renderizarLista([], conf, [3])).toContain('Nenhuma.');
     expect(renderizarLista([], conf, [3])).toContain('Folhas: 0.');
+  });
+
+  it('A3 da segurança: workflow sem workflow_id e coluna sem column_id inteiro não levam texto da resposta para a lista', () => {
+    const l = montarLista(
+      new Map<number, unknown>([[1, { data: { workflows: { 'a|b`c': { columns: [{ column_id: 'x|y', name: 'Fila', section: 3, flow_type: 2 }] } } } }]]),
+      conf,
+    );
+    expect(l[0]).toMatchObject({ workflow: '<chave>', coluna: '<id?>' });
+    expect(l[0]!.marca).toContain('CONFERIR: coluna sem id inteiro');
+    expect(renderizarLista(l, conf, [1])).not.toMatch(/a\|b|x\|y/);
+  });
+
+  it('H-11: coluna listada em colunas_descartado é descarte mesmo com outro nome, com marca; fora do arquivo só o nome marca', () => {
+    const l = montarLista(
+      new Map<number, unknown>([
+        [1, { data: { workflows: { '100': { workflow_id: 100, columns: [
+          { column_id: 1, name: 'Compromisso', section: 2, flow_type: 2 },
+          { column_id: 1008, name: 'Descartados', section: 4, flow_type: 1 },
+          { column_id: 1009, name: 'Concluído', section: 4, flow_type: 1 },
+        ] } } } }],
+      ]),
+      conf,
+    );
+    const por = (c: string) => l.find((x) => x.coluna === c)!;
+    expect(por('1008')).toMatchObject({ papel: 'descarte' });
+    expect(por('1008').marca).toBe('Descartado do arquivo com nome diferente de Descartado (H-11)');
+    expect(por('1009')).toMatchObject({ papel: 'entrega', marca: '' });
+  });
+
+  it('H-23: marca o workflow sem folha na seção 2 ou na 4 (só Descartado na 4 não vale), e não marca o completo', () => {
+    const wf = (id: number, colunas: Record<string, unknown>[]) => ({ [String(id)]: { workflow_id: id, columns: colunas } });
+    const l = montarLista(
+      new Map<number, unknown>([
+        [1, { data: { workflows: {
+          ...wf(300, [{ column_id: 1, name: 'A', section: 2, flow_type: 2 }, { column_id: 2, name: 'B', section: 4, flow_type: 1 }]),
+          ...wf(301, [{ column_id: 3, name: 'A', section: 2, flow_type: 2 }, { column_id: 4, name: 'Descartado', section: 4, flow_type: 1 }]),
+          ...wf(302, [{ column_id: 5, name: 'A', section: 1, flow_type: 2 }, { column_id: 6, name: 'B', section: 4, flow_type: 1 }]),
+        } } }],
+      ]),
+      conf,
+    );
+    const marcaDe = (w: string) => l.filter((x) => x.workflow === w).map((x) => x.marca).filter((m) => m.includes('H-23'));
+    expect(marcaDe('300')).toEqual([]);
+    expect(marcaDe('301')).toEqual(['CONFERIR: workflow sem folha na seção 4, o marco cai na seção seguinte (H-23)']);
+    expect(marcaDe('302')).toEqual(['CONFERIR: workflow sem folha na seção 2, o marco cai na seção seguinte (H-23)']);
+    const texto = renderizarLista(l, conf, [1]);
+    expect(texto).toContain('(H-23)');
+    expect(texto.split('## Todas as folhas')[0]).toContain('workflow sem folha na seção 2');
+  });
+
+  it('H-26: folha de homologação ganha a marca, entra nos itens a conferir e confere o flow_type', () => {
+    const l = montarLista(
+      new Map<number, unknown>([
+        [1, { data: { workflows: { '400': { workflow_id: 400, columns: [
+          { column_id: 1, name: 'Em Homologação', section: 3, flow_type: 1 },
+          { column_id: 2, name: 'Homologação 2', section: 3, flow_type: 0 },
+        ] } } } }],
+      ]),
+      conf,
+    );
+    expect(l[0]).toMatchObject({ papel: 'homologacao' });
+    expect(l[0]!.marca).toContain('regra H-26');
+    expect(l[1]!.marca).toContain('regra H-26');
+    expect(l[1]!.marca).toContain('CONFERIR: flow_type fora de 1 e 2 na seção 3');
+    expect(renderizarLista(l, conf, [1]).split('## Todas as folhas')[0]).toContain('regra H-26');
   });
 });

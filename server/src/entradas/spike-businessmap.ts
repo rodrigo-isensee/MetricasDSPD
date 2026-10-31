@@ -10,8 +10,12 @@ import { ARQUIVO_CONFERENCIA, executarSpike } from '../modulos/businessmap/index
 const raiz = fileURLToPath(new URL('../../../', import.meta.url));
 try {
   process.loadEnvFile(join(raiz, '.env'));
-} catch {
-  // sem .env: vale o ambiente que já existe
+} catch (e) {
+  // sem .env (ENOENT): vale o ambiente que já existe; qualquer outra falha encerra, sem imprimir o conteúdo do arquivo
+  if ((e as NodeJS.ErrnoException).code !== 'ENOENT') {
+    process.stderr.write(`falha ao ler o .env (${(e as NodeJS.ErrnoException).code ?? 'erro'})\n`);
+    process.exit(2);
+  }
 }
 const carimbo = new Date().toISOString().replace(/[:.]/g, '-');
 const dirSaida = process.env.BM_SPIKE_SAIDA ?? join(homedir(), 'metricas-dspd-spike-bm', carimbo);

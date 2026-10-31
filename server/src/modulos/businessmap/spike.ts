@@ -1,9 +1,10 @@
-import { mkdir, writeFile } from 'node:fs/promises';
-import { isAbsolute, join, relative, resolve } from 'node:path';
+import { lstatSync, realpathSync } from 'node:fs';
+import { chmod, lstat, mkdir, readdir, writeFile } from 'node:fs/promises';
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { criarClienteHttp, CAMPOS_USERS, type ClienteHttp, type DepsHttp, type ErroBusinessMap } from '../../plataforma/http.js';
 import { analisarConferencia, type Conferencia } from './conferencia.js';
 import { lerConfig } from './diagnostico.js';
-import { caminhosComNome, desembrulhar, linhasDeForma, somarForma, type Forma } from './spike-forma.js';
+import { caminhosComNome, desembrulhar, linhasDeForma, linhasDeVinculos, somarForma, type Forma } from './spike-forma.js';
 import { montarLista, renderizarLista } from './spike-lista.js';
 
 // F1 do plano 052 (K-182, ADR 0022): spike de leitura da FORMA do quadro real. CLI manual, nunca agendada, só GET pelo
@@ -17,12 +18,58 @@ const REVISOES_DE = 3;
 const FATAIS = new Set(['autenticacao', 'limite-requisicoes', 'limite-paginas', 'limite-bytes', 'configuracao']);
 const CHAVE_PESSOA = /owner|user|assignee|contributor|responsible|member|author|creator|reporter/i;
 
-/** O diretório da saída bruta não pode estar dentro do clone (nem ser o clone). */
+const codigoFs = (e: unknown): string => String(Object(e).code);
+
+/** `realpath` do ancestral mais próximo que existe mais o resto do caminho (o destino pode ainda não existir). */
+function realDoMaisProximo(caminho: string): string {
+  const resto: string[] = [];
+  let atual = resolve(caminho);
+  for (;;) {
+    try {
+      return resto.length === 0 ? realpathSync(atual) : join(realpathSync(atual), ...resto.reverse());
+    } catch (e) {
+      if (codigoFs(e) !== 'ENOENT') throw new Error(`diretório da saída bruta inacessível (${codigoFs(e)})`);
+      if (existeSemSeguir(atual)) throw new Error('diretório da saída bruta com link simbólico quebrado recusado');
+      resto.push(basename(atual));
+      atual = dirname(atual);
+    }
+  }
+}
+
+/** `lstat` não segue link: um link quebrado existe, mesmo que o destino não. */
+function existeSemSeguir(caminho: string): boolean {
+  try {
+    lstatSync(caminho);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** O diretório da saída bruta não pode estar dentro do clone (nem ser o clone), comparando caminhos reais (links resolvidos). */
 export function foraDoRepositorio(dir: string, raiz: string): string {
   const alvo = resolve(dir);
-  const rel = relative(resolve(raiz), alvo);
+  if (existeSemSeguir(alvo) && lstatSync(alvo).isSymbolicLink()) throw new Error('diretório da saída bruta é link simbólico: recusado');
+  const real = realDoMaisProximo(alvo);
+  const rel = relative(realDoMaisProximo(raiz), real);
   if (rel === '' || (!rel.startsWith('..') && !isAbsolute(rel))) throw new Error('diretório da saída bruta dentro do repositório recusado');
-  return alvo;
+  return real;
+}
+
+/** Cria a pasta da saída (0700); se já existe, só aceita vazia e a deixa em 0700. Erro de sistema vira mensagem limpa. */
+async function prepararSaida(dir: string): Promise<void> {
+  const st = await lstat(dir).catch(() => undefined);
+  if (st !== undefined && !st.isDirectory()) throw new Error('diretório da saída bruta existe e não é pasta: recusado');
+  try {
+    if (st === undefined) await mkdir(dir, { recursive: true, mode: 0o700 });
+    else {
+      if ((await readdir(dir)).length > 0) throw new Error('diretório da saída bruta já existe e não está vazio: recusado');
+      await chmod(dir, 0o700);
+    }
+  } catch (e) {
+    if ((e as Error).message.startsWith('diretório')) throw e;
+    throw new Error(`não foi possível preparar o diretório da saída bruta (${codigoFs(e)})`);
+  }
 }
 
 const dia = (d: Date): string => d.toISOString().slice(0, 10);
@@ -83,9 +130,10 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
   try {
     const cfg = lerConfig(deps.env);
     if (cfg.quadrosIds === undefined) throw new Error('variável obrigatória ausente: BUSINESSMAP_QUADROS_IDS');
-    quadros = cfg.quadrosIds;
+    quadros = [...new Set(cfg.quadrosIds)];
     apikey = cfg.apikey;
     dir = foraDoRepositorio(deps.dirSaida, deps.raizRepositorio);
+    await prepararSaida(dir);
     conf = analisarConferencia(deps.textoConferencia);
     cliente = criarClienteHttp(
       { urlBase: cfg.urlBase, apikey, limitePorMinuto: cfg.limitePorMinuto, timeoutMs: cfg.timeoutMs },
@@ -98,7 +146,6 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
   const agora = new Date((deps.agora ?? Date.now)());
   const avisos: string[] = [];
 
-  await mkdir(dir, { recursive: true, mode: 0o700 });
   /** GET com a resposta bruta gravada fora do clone; falha não fatal vira aviso e `undefined`. */
   const ler = async (rotulo: string, caminho: string, consulta: Record<string, string | number> = {}): Promise<unknown> => {
     let corpo: unknown;
@@ -110,7 +157,7 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
       avisos.push(limpar(`${rotulo}: ${erro.tipo}: ${erro.message}`));
       return undefined;
     }
-    await writeFile(join(dir, `${nomeSeguro(rotulo)}.json`), JSON.stringify(corpo, null, 2), { mode: 0o600 });
+    await writeFile(join(dir, `${nomeSeguro(rotulo)}.json`), JSON.stringify(corpo, null, 2), { flag: 'wx', mode: 0o600 });
     return corpo;
   };
   /** Contagem exata pelo truque de `per_page=1` (as páginas são os cards); `undefined` se a resposta não disser. */
@@ -149,6 +196,7 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
 
     // 3. Uma página de /cards por quadro com o expand da F1 (estado aberto) e as contagens do recorte.
     const formaCards: Forma = new Map();
+    const vinculos: unknown[] = [];
     const exemplos: { quadro: number; id: number; donos: number[] }[] = [];
     const contagens: Contagens[] = [];
     const inicio12m = new Date(agora);
@@ -176,6 +224,7 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
       if (pagina1 !== undefined) {
         for (const card of desembrulhar(pagina1).itens) {
           somarForma(card, formaCards);
+          vinculos.push(Object(card).linked_cards);
           const c = Object(card) as { card_id?: unknown; owner_user_id?: unknown; co_owner_ids?: unknown };
           if (typeof c.card_id === 'number') {
             const donos = [c.owner_user_id, ...(Array.isArray(c.co_owner_ids) ? c.co_owner_ids : [])].filter((x): x is number => typeof x === 'number');
@@ -262,6 +311,10 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
       ...secao('Forma de transitions', formaCards, (c) => c.includes('.transitions')),
       ...secao('Forma de block_times', formaCards, (c) => c.includes('.block_times')),
       ...secao('Forma de linked_cards (tamanho da lista = vínculos por card)', formaCards, (c) => c.includes('.linked_cards')),
+      '',
+      'Vínculos por tipo (link_type), contados por card:',
+      '',
+      ...linhasDeVinculos(vinculos),
       ...secao('Forma de /boards/{id}/workflows', formaWorkflows),
       ...secao('Forma de /boards/{id}/currentStructure', formaEstrutura),
       ...secao('Forma de /cardTypes', formaTipos),
@@ -275,8 +328,8 @@ export async function executarSpike(deps: DepsSpike): Promise<ResultadoSpike> {
       '',
     ].join('\n');
     const lista = renderizarLista(montarLista(estruturas, conf), conf, quadros);
-    await writeFile(join(dir, 'relatorio-forma.md'), relatorio, { mode: 0o600 });
-    await writeFile(join(dir, 'lista-conferencia-colunas.md'), lista, { mode: 0o600 });
+    await writeFile(join(dir, 'relatorio-forma.md'), relatorio, { flag: 'wx', mode: 0o600 });
+    await writeFile(join(dir, 'lista-conferencia-colunas.md'), lista, { flag: 'wx', mode: 0o600 });
     return { codigo: 0, saida: `${relatorio}\n---\n\n${lista}`, erro: '' };
   } catch (e) {
     const erro = e as ErroBusinessMap;
