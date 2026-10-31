@@ -1,5 +1,6 @@
 ---
-contrato: 0
+tipo: qa
+contrato: 1
 pedido: 056-acelerato-mysql
 branch: feature/056-coletor-acelerato
 commit: 414533fd428987551cc78b86af8bdf079f601188
