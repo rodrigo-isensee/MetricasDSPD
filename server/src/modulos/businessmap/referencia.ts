@@ -288,7 +288,7 @@ async function registrarVersao(
   for (const m of v.metricas) {
     await db.query(
       `INSERT INTO ${S.core}.ref_versao_criterio_metrica (versao_id, metrica_id)
-       SELECT $1, $2 WHERE NOT EXISTS (SELECT 1 FROM ${S.core}.ref_versao_criterio_metrica WHERE versao_id = $1 AND metrica_id = $2)`,
+       SELECT $1::bigint, $2::varchar WHERE NOT EXISTS (SELECT 1 FROM ${S.core}.ref_versao_criterio_metrica WHERE versao_id = $1 AND metrica_id = $2)`,
       [id, m]);
   }
 }
