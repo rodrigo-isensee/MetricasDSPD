@@ -167,6 +167,16 @@ describe('gerarGrants', () => {
     expect(g).toContain('GRANT SELECT, INSERT, DELETE ON t_dspd_core.outbox TO dspd_coletor');
     expect(g.some((x) => x.startsWith('GRANT UPDATE (status, tentativas') && x.endsWith('TO dspd_coletor'))).toBe(true);
   });
+  it('F3 do 052: dim_responsavel só para o coletor (sem DELETE) e nada para a API; `parametros` de ctl_coleta só no BusinessMap', () => {
+    const g4 = gerarGrants(S, { ...cat, bm: { ...cat.bm, dim_responsavel: ['responsavel_id', 'responsavel_nome', 'atualizado_em'] } });
+    expect(g4).toContain('GRANT SELECT, INSERT, UPDATE ON t_dspd_bm.dim_responsavel TO dspd_coletor');
+    expect(g4.filter((x) => x.includes('dim_responsavel') && !x.endsWith('TO dspd_coletor'))).toEqual([]);
+    expect(g4.filter((x) => x.includes('dim_responsavel') && /DELETE/.test(x))).toEqual([]);
+    expect(g.some((x) => x.includes('dim_responsavel'))).toBe(false);
+    expect(g).toContain('GRANT UPDATE (parametros) ON t_dspd_bm.ctl_coleta TO dspd_coletor');
+    expect(g.filter((x) => x.includes('t_dspd_ac.ctl_coleta ') && x.includes('parametros'))).toEqual([]);
+    expect(gerarGrants(S, { ...cat, bm: { stg_card: ['stg_sk'] } }).join('\n')).not.toMatch(/parametros/);
+  });
   it('ref fecha vigência por coluna (também no core); webhook só insere e lê o hash', () => {
     expect(g).toContain('GRANT UPDATE (vigente_ate) ON t_dspd_bm.ref_quadro TO dspd_ref');
     expect(g).toContain('GRANT UPDATE (vigente_ate) ON t_dspd_core.ref_calendario_turno TO dspd_ref');

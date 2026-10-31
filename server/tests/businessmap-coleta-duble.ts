@@ -1,0 +1,164 @@
+import { createServer, type Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
+import { criarDublePg, type Chamada, type Resposta } from './duble-pg.js';
+
+// Servidor falso do BusinessMap e banco falso da F3 (plano 052, K-182). Nenhuma chamada ao BusinessMap real; ids, nomes, e-mails e
+// campos customizados são inventados (marcadores de teste). O servidor aplica os filtros de data e a paginação como a API faz.
+
+export type Cartao = Record<string, unknown>;
+export interface Pedido { metodo: string; caminho: string; consulta: URLSearchParams }
+export interface Cenario {
+  /** `quadro|estado` -> cards devolvidos (antes dos filtros de data). */
+  cards: Record<string, Cartao[]>;
+  porPagina: number;
+  /** `user_id` -> objeto completo que a API devolve (com e-mail, `attributes` etc.). */
+  users: Record<string, Record<string, unknown>>;
+  /** `quadro|estado` ou `users` -> status HTTP forçado. */
+  status: Record<string, number>;
+  /** Corpos por caminho (referência: estrutura, workflows, tipos). */
+  corpos: Record<string, unknown>;
+  /** A resposta de /cards vem como lista simples, sem o bloco de paginação. */
+  semPaginacao?: boolean;
+}
+export const cenarioVazio = (): Cenario => ({ cards: {}, porPagina: 100, users: {}, status: {}, corpos: {} });
+
+export interface ServidorBm { url: string; pedidos: Pedido[]; cenario: Cenario; fechar: () => Promise<void> }
+
+const quando = (v: unknown): number => (typeof v === 'string' ? Date.parse(v) : Number.NEGATIVE_INFINITY);
+
+/** Aplica o filtro de data do pedido como a API: `archived_from` só no estado archived, `discarded_from` no discarded, `last_modified_from` em todos. */
+function filtrar(cards: Cartao[], estado: string, q: URLSearchParams): Cartao[] {
+  const af = q.get('archived_from');
+  const df = q.get('discarded_from');
+  const lm = q.get('last_modified_from');
+  return cards.filter((c) =>
+    (af === null || estado !== 'archived' || quando(c.archived_at) >= Date.parse(af))
+    && (df === null || estado !== 'discarded' || quando(c.discarded_at) >= Date.parse(df))
+    && (lm === null || quando(c.last_modified) >= Date.parse(lm)));
+}
+
+export async function subirServidorBm(cenario: Cenario = cenarioVazio()): Promise<ServidorBm> {
+  const pedidos: Pedido[] = [];
+  const server: Server = createServer((req, res) => {
+    const u = new URL(req.url ?? '', 'http://x');
+    pedidos.push({ metodo: req.method ?? '', caminho: u.pathname, consulta: u.searchParams });
+    const enviar = (status: number, corpo: unknown): void => {
+      res.writeHead(status, { 'content-type': 'application/json' });
+      res.end(JSON.stringify(corpo));
+    };
+    if (u.pathname === '/cards') {
+      const estado = u.searchParams.get('state') ?? '';
+      const chave = `${u.searchParams.get('board_ids')}|${estado}`;
+      const forcado = cenario.status[chave];
+      if (forcado !== undefined) return enviar(forcado, {});
+      const todos = filtrar(cenario.cards[chave] ?? [], estado, u.searchParams);
+      const pagina = Number(u.searchParams.get('page') ?? '1');
+      const paginas = Math.max(1, Math.ceil(todos.length / cenario.porPagina));
+      const itens = todos.slice((pagina - 1) * cenario.porPagina, pagina * cenario.porPagina);
+      return enviar(200, cenario.semPaginacao === true ? { data: itens } : { data: { data: itens, pagination: { all_pages: paginas, current_page: pagina } } });
+    }
+    if (u.pathname === '/users') {
+      if (cenario.status.users !== undefined) return enviar(cenario.status.users, {});
+      const ids = (u.searchParams.get('user_ids') ?? '').split(',');
+      // a API devolve o objeto inteiro (com `attributes`), mesmo com `fields`
+      return enviar(200, { data: ids.flatMap((i) => (cenario.users[i] === undefined ? [] : [cenario.users[i]])) });
+    }
+    const corpo = cenario.corpos[u.pathname];
+    return enviar(corpo === undefined ? 404 : 200, corpo ?? {});
+  });
+  await new Promise<void>((ok) => server.listen(0, '127.0.0.1', ok));
+  return {
+    url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`, pedidos, cenario,
+    fechar: async () => { server.closeAllConnections(); await new Promise<void>((ok) => server.close(() => ok())); },
+  };
+}
+
+export interface OpcoesBanco {
+  /** `ctl_coleta` interrompidas (em andamento) de uma execução anterior. */
+  interrompidas?: string[];
+  ultimaCarga?: { status: string; parametros: unknown };
+  marca?: Date | null;
+  /** ids de responsável com linha recente em `dim_responsavel`. */
+  frescos?: string[];
+  /** Falha o INSERT em `stg_card` (erro de banco). */
+  falharAoGravar?: boolean;
+  /** Outra coleta do BusinessMap segura a trava da fonte. */
+  travaOcupada?: boolean;
+  coletaId?: string;
+}
+
+export interface EstadoBanco {
+  aberta?: { params: readonly unknown[]; parametros: Record<string, unknown> };
+  stg: { idOrigem: string; quadro: string; arquivado: boolean; payload: string; coleta: unknown }[];
+  revisoes: { cardId: string; revisionId: string; payload: string; coleta: unknown }[];
+  checkpoints: { chave: string; ultima: number; total: number }[];
+  falhas: { entidade: string; idOrigem: unknown; erro: string }[];
+  contagens: { entidade: string; lidos: number; inseridos: number; jaExistentes: number; falhas: number }[];
+  usuarios: { ids: string[]; nomes: string[]; agora: unknown }[];
+  marca?: { coletaId: unknown; ate: unknown };
+  fechamentos: { coletaId: unknown; status: unknown; erro: unknown }[];
+}
+
+/** Banco falso, com estado, para `coletarCards`. Responde pelo texto do SQL (as consultas são as do módulo). */
+export function bancoFalso(op: OpcoesBanco = {}) {
+  const estado: EstadoBanco = { stg: [], revisoes: [], checkpoints: [], falhas: [], contagens: [], usuarios: [], fechamentos: [] };
+  let sk = 100;
+  const ultimas = new Map<string, { stg_sk: string; payload_sha256: Buffer }>();
+  const responder = (c: Chamada): Resposta => {
+    const t = c.texto;
+    const v = c.valores;
+    if (t.includes('pg_try_advisory_lock')) return [{ ok: op.travaOcupada !== true }];
+    if (t.includes("status = 'em_andamento' AND versao_coletor")) return (op.interrompidas ?? []).map((coleta_id) => ({ coleta_id }));
+    if (t.includes("parametros ->> 'tipo' = 'carga_inicial'")) return op.ultimaCarga === undefined ? [] : [op.ultimaCarga];
+    if (t.includes('max(marca_dagua_ate)')) return [{ marca: op.marca ?? null }];
+    if (t.startsWith('INSERT INTO dspd_bm.ctl_coleta (')) {
+      estado.aberta = { params: v, parametros: JSON.parse(v[4] as string) as Record<string, unknown> };
+      return [{ coleta_id: op.coletaId ?? '77' }];
+    }
+    if (t.includes('FROM dspd_bm.stg_card WHERE id_origem')) {
+      const u = ultimas.get(v[0] as string);
+      return u === undefined ? [] : [u];
+    }
+    if (t.startsWith('INSERT INTO dspd_bm.stg_card')) {
+      if (op.falharAoGravar === true) return new Error('falha simulada do banco');
+      sk += 1;
+      ultimas.set(v[0] as string, { stg_sk: String(sk), payload_sha256: v[2] as Buffer });
+      estado.stg.push({ idOrigem: v[0] as string, quadro: v[4] as string, arquivado: v[5] as boolean, payload: v[3] as string, coleta: v[8] });
+      return [{ stg_sk: String(sk) }];
+    }
+    if (t.startsWith('INSERT INTO dspd_bm.stg_revision')) {
+      // UNIQUE (card_id, revision_id) com ON CONFLICT DO NOTHING
+      if (estado.revisoes.some((r) => r.cardId === v[0] && r.revisionId === v[1])) return [];
+      estado.revisoes.push({ cardId: v[0] as string, revisionId: v[1] as string, payload: v[3] as string, coleta: v[5] });
+      return [{ revision_sk: String(estado.revisoes.length) }];
+    }
+    if (t.includes("SET parametros = jsonb_set(parametros, ARRAY['paginas'")) {
+      estado.checkpoints.push({ chave: v[1] as string, ultima: v[2] as number, total: v[3] as number });
+      return [];
+    }
+    if (t.startsWith('INSERT INTO dspd_bm.ctl_coleta_falha')) {
+      estado.falhas.push({ entidade: v[1] as string, idOrigem: v[2], erro: v[3] as string });
+      return [];
+    }
+    if (t.startsWith('INSERT INTO dspd_bm.ctl_coleta_contagem')) {
+      estado.contagens.push({ entidade: v[1] as string, lidos: v[2] as number, inseridos: v[3] as number, jaExistentes: v[4] as number, falhas: v[5] as number });
+      return [];
+    }
+    if (t.includes('FROM dspd_bm.dim_responsavel WHERE')) return (op.frescos ?? []).map((responsavel_id) => ({ responsavel_id }));
+    if (t.startsWith('INSERT INTO dspd_bm.dim_responsavel')) {
+      estado.usuarios.push({ ids: v[0] as string[], nomes: v[1] as string[], agora: v[2] });
+      return [];
+    }
+    if (t.includes('SET marca_dagua_ate')) {
+      estado.marca = { coletaId: v[0], ate: v[1] };
+      return [];
+    }
+    if (t.includes('SET status = $2, finalizado_em')) {
+      estado.fechamentos.push({ coletaId: v[0], status: v[1], erro: v[3] });
+      return { rows: [], rowCount: 1 };
+    }
+    if (t.includes('INSERT INTO dspd_core.outbox')) return [{ evento_id: '1' }];
+    return [];
+  };
+  return { ...criarDublePg(responder), estado };
+}

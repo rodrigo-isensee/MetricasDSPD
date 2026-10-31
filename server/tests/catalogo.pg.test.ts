@@ -80,7 +80,7 @@ d('catálogo do esquema (testes de catálogo do CI)', () => {
       `SELECT has_table_privilege('dspd_api', c.oid, 'SELECT') OR EXISTS (SELECT 1 FROM pg_attribute a WHERE a.attrelid = c.oid AND a.attnum > 0
          AND has_column_privilege('dspd_api', c.oid, a.attnum, 'SELECT')) AS ok, c.relname AS t
        FROM pg_class c JOIN pg_namespace s ON s.oid = c.relnamespace WHERE s.nspname = ANY($1) AND c.relkind IN ('r', 'v')`, [[S.bm, S.ac, S.core]]);
-    for (const x of r.rows) expect(x.ok, x.t).toBe(!/^(stg_|evt_|.*_versao$|outbox|pgmigrations|rec_transicao_par)/.test(x.t) || x.t === 'rec_transicao_par');
+    for (const x of r.rows) expect(x.ok, x.t).toBe(!/^(stg_|evt_|.*_versao$|outbox|pgmigrations|rec_transicao_par|dim_responsavel)/.test(x.t) || x.t === 'rec_transicao_par');
     expect((await db.query(`SELECT has_column_privilege('dspd_api', $1, 'titulo', 'SELECT') AS ok`, [`${S.bm}.dim_card`])).rows[0]).toEqual({ ok: true });
   });
 

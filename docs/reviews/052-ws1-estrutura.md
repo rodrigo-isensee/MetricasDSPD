@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: da4919acc3e469e61b2922ef1e3ae993234c20c3
+commit: 3ad39f80bd36024d7e5819d2844070d7d95b1bb8
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-31
@@ -11,6 +11,16 @@ data: 2026-10-31
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.50, 2026-10-31)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref origin/feature/052-f3-coleta --base origin/develop` marcou este parecer como desatualizado porque a ADR 0020 mudou depois dele (`ad7cde3`, E2.52 da F3). O `forge-check delta --parecer` não roda aqui (`da4919a` não é ancestral de `3ad39f8`); o delta lido foi `git diff 0783caa..3ad39f8 -- docs/architecture/adr/0020-protecao-de-pessoa-no-coletor.md server/package.json server/src/modulos/businessmap/index.ts`, e só ele.
+
+- ADR 0020: a linha `Estado:` ganha o complemento da F3; o item 4c ganha as transições de `expand=transitions` (`CAMPOS_TRANSICAO`) e o `revision_id` determinístico com a saída; a R3-2 registra a forma final de `dim_responsavel` (migração 0020); uma linha nova na tabela de revisões. Tudo trata da coleta de cards e de `/users`, que o script da WS1 não faz (sem cards, sem `/users`, nada gravado na base).
+- `server/package.json`: uma linha nova, o script `bm:coleta`. O `bm:diagnostico` segue igual; nenhuma dependência nova.
+- `server/src/modulos/businessmap/index.ts`: exports novos da F3 (allow-list das transições, `lerConferencia`, coleta, comando e usuários). O export do `diagnosticar` segue igual, e o `index.ts` continua sem efeito colateral ao importar. O código novo tem parecer próprio (`docs/reviews/052-f3-coleta.md`, aprovado em `cc8c0cf`).
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança desde `0783caa`. Segurança e QA da F3 têm pareceres próprios (`docs/security/052-f3-coleta.md`, `c088778`; `docs/qa/052-f3-coleta.md`, `3ad39f8`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `3ad39f8`.
 
 ## Renovação por delta (E2.43, 2026-10-31)
 

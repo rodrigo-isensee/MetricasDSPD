@@ -68,6 +68,10 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
     if (ctl.includes('ctl_coleta'))
       out.push(`GRANT UPDATE (status, finalizado_em, marca_dagua_ate, erro_resumo) ON ${schema}.ctl_coleta TO dspd_coletor`);
     if (ctl.includes('ctl_coleta_contagem')) out.push(`GRANT UPDATE ON ${schema}.ctl_coleta_contagem TO dspd_coletor`);
+    // Pedido 052, F3: a carga inicial do BusinessMap guarda a última página concluída em `parametros` (retomável por página).
+    if (chave === 'bm' && ctl.includes('ctl_coleta')) out.push(`GRANT UPDATE (parametros) ON ${schema}.ctl_coleta TO dspd_coletor`);
+    // `dim_responsavel` (F3): projeção de valor atual escrita só pelo coletor; nunca vai à API (fora de `paraApi`). Sem DELETE: o apagamento a pedido do titular é do migrador (DT-3).
+    if (tabs.includes('dim_responsavel')) g('SELECT, INSERT, UPDATE', schema, ['dim_responsavel'], 'dspd_coletor');
     g('SELECT', schema, COM(tabs, 'ref_'), 'dspd_coletor');
     // API: projeções, views, ref_ e ctl_; nunca stg_, evt_, *_versao. Tabela com coluna de pessoa: só as demais colunas.
     const paraApi = [...tabs.filter((n) => PROJECAO.test(n) || n === 'fato_transicao' || n === 'rec_transicao_par' || n === 'agg_conhecimento_sistema'),

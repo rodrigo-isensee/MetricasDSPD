@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { carregarConfigBusinessMap } from '../src/plataforma/config.js';
+import { carregarConfigBusinessMap, carregarConfigColetaBusinessMap } from '../src/plataforma/config.js';
 
 const base = { BUSINESSMAP_URL_BASE: 'https://exemplo.kanbanize.com/api/v2', BUSINESSMAP_APIKEY: 'chave-de-teste' };
 
@@ -24,5 +24,23 @@ describe('config do coletor do BusinessMap (F0 do plano 052)', () => {
     ];
     for (const env of ruins) expect(() => carregarConfigBusinessMap(env)).toThrow(/^Configuração inválida \(variáveis: BUSINESSMAP_[A-Z_, ]+\)$/);
     expect(() => carregarConfigBusinessMap({ ...base, BUSINESSMAP_URL_BASE: 'https://u:senha-secreta@exemplo.com' })).not.toThrow(/senha-secreta/);
+  });
+});
+
+describe('config do comando da coleta (F3 do plano 052)', () => {
+  const coletor = 'postgres://dspd_coletor:coletor_dev@127.0.0.1:5432/metricas';
+  it('a URL do papel de referência vem de PG_REF_URL ou, sem ela, do coletor trocando papel e senha por DSPD_PWD_REF', () => {
+    const derivada = carregarConfigColetaBusinessMap({ ...base, PG_COLETOR_URL: coletor, DSPD_PWD_REF: 'ref_dev' });
+    expect(derivada.PG_REF_URL).toBe('postgres://dspd_ref:ref_dev@127.0.0.1:5432/metricas');
+    expect(derivada.PG_COLETOR_URL).toBe(coletor);
+    const explicita = carregarConfigColetaBusinessMap({ ...base, PG_COLETOR_URL: coletor, PG_REF_URL: 'postgres://dspd_ref:outra@127.0.0.1:5432/metricas', DSPD_PWD_REF: '' });
+    expect(explicita.PG_REF_URL).toBe('postgres://dspd_ref:outra@127.0.0.1:5432/metricas');
+    expect(explicita.BUSINESSMAP_PAGINA_TAMANHO).toBe(100);
+  });
+  it('recusa sem a URL do coletor ou sem como chegar ao papel de referência; a mensagem cita só nomes', () => {
+    expect(() => carregarConfigColetaBusinessMap({ ...base, DSPD_PWD_REF: 'ref_dev' })).toThrow(/PG_COLETOR_URL/);
+    expect(() => carregarConfigColetaBusinessMap({ ...base, PG_COLETOR_URL: coletor })).toThrow(/^Configuração inválida \(variáveis: PG_REF_URL\)$/);
+    expect(() => carregarConfigColetaBusinessMap({ ...base, PG_COLETOR_URL: coletor, PG_REF_URL: 'nao-url' })).toThrow(/PG_REF_URL/);
+    expect(() => carregarConfigColetaBusinessMap({ ...base, PG_COLETOR_URL: coletor, DSPD_PWD_REF: 'senha-secreta', BUSINESSMAP_APIKEY: '' })).not.toThrow(/senha-secreta/);
   });
 });
