@@ -135,28 +135,34 @@ A saída (chaves, nomes do DSPD e contagens) preenche os §4 a §6 por um commit
 
 ## 12. Categoria e descrição do workflow (`ref_dominio` campos `categoria` e `descricao_workflow`; Segurança A5)
 
-Origem: A5 do parecer `docs/security/056-coletor-f1-f2.md` (texto livre só entra por domínio fechado), feito na volta 1 da F2 (E4.12, 3b2f98f). Os documentos não trazem os valores: **as duas listas: a preencher na carga inicial com o dono**.
+Origem: A5 do parecer `docs/security/056-coletor-f1-f2.md` (texto livre só entra por domínio fechado), feito na volta 1 da F2 (E4.12, 3b2f98f). Valores: consulta de valores distintos abaixo, rodada só leitura na máquina do dono em 2026-10-31 (pedido 056, E4.22; saída fora do repositório, sem linha de chamado), e **decisão do dono de 2026-10-31 19:01**: entram todas as 136 categorias devolvidas, inclusive inativas e variantes de grafia, **menos TESTADEV444**, e todas as 19 descrições do workflow. Totais: **135 categorias** e **19 descrições do workflow**, no arquivo versionado `docs/architecture/fontes/acelerato-dominio.json` (campos `categoria` e `descricao_workflow`, na ordem da saída da consulta; a lista não é copiada aqui). Variantes de grafia (por exemplo, hífen e travessão, com e sem acento) e nomes iguais com chaves diferentes ficam como linhas distintas, porque a conferência é por igualdade exata.
 
 | Campo no `ref_dominio` | Valor conferido (origem) | Contagem fora do domínio (`ctl_coleta_contagem`) | Lista vazia ou valor fora dela | Uso |
 |---|---|---|---|---|
 | `categoria` | coluna `categoria` (plano §2 linha 9) | `fora_dominio_categoria` | o valor vira nulo, com a contagem e sem o valor; lista vazia = **toda categoria nula** e, por consequência, **a natureza sem valor** em todo chamado (o prefixo do §10 não tem o que ler; contagem `natureza_sem_prefixo`). `categoria_key` continua lida | natureza (§10) e `categoria_sistema` da projeção |
 | `descricao_workflow` | `estatisticas.workflow.etapas[].descricaoWorkflow` (§2) | `fora_dominio_workflow` | o valor vira nulo, com a contagem e sem o valor; lista vazia = toda descrição do workflow nula no staging das etapas | só staging das etapas; nenhuma métrica da F2 o lê |
 
-Formato da linha: `codigo` e `rotulo` são conferidos os dois contra o valor (`referencia.ts`); para estas listas, use o próprio texto nos dois (na `categoria` o `codigo` pode ser a `categoria_key` em texto decimal, com o nome no `rotulo`). Lista vazia não impede a coleta (só as do recorte, §4 a §6, impedem); por isso o painel não se publica com `fora_dominio_categoria` maior que zero sem o dono ter visto a contagem.
+Formato da linha: `codigo` e `rotulo` são conferidos os dois contra o valor (`referencia.ts`); na `categoria`, `codigo` = `categoria_key` em texto decimal e `rotulo` = o nome exato; na `descricao_workflow`, o próprio texto nos dois. `ordem` = a posição no arquivo. Lista vazia não impede a coleta (só as do recorte, §4 a §6, impedem); por isso o painel não se publica com `fora_dominio_categoria` maior que zero sem o dono ter visto a contagem.
 
-Consulta da carga inicial (E4.8), na mesma conta e no terminal do dono: só valores distintos com a contagem, nenhuma linha de dado, no mesmo recorte do §11 (nenhuma organização cliente entra no filtro):
+Consulta de valores distintos, na mesma conta e no terminal do dono: só valores distintos com a contagem, nenhuma linha de dado, no mesmo recorte do §11 (nenhuma organização cliente entra no filtro). A versão com `UNION ALL` das duas metades **falha no servidor com o erro 1271** (mistura ilegal de intercalações no `UNION`: as duas metades devolvem texto com intercalações diferentes, a coluna `categoria` da tabela e a coluna gerada pelo `JSON_TABLE`; observado na E4.22); por isso o texto fica em **duas consultas**, cada uma com o mesmo SQL da metade correspondente, rodadas em separado:
+
+Consulta 12a (categoria):
 
 ```sql
 SELECT 'categoria' AS lista, categoria_key AS chave, categoria AS nome, COUNT(*) AS n
   FROM ACELERATO_CHAMADOS
  WHERE tipo_ticket = 'DSPD - SSSC' AND equipe IN ('SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG') AND organizacao LIKE 'UNIFIQUE - DSPD%'
  GROUP BY categoria_key, categoria
-UNION ALL
-SELECT 'descricao_workflow', NULL, e.descricao_workflow, COUNT(*)
+```
+
+Consulta 12b (descrição do workflow):
+
+```sql
+SELECT 'descricao_workflow' AS lista, NULL AS chave, e.descricao_workflow AS nome, COUNT(*) AS n
   FROM ACELERATO_CHAMADOS c,
        JSON_TABLE(c.estatisticas, '$.workflow.etapas[*]' COLUMNS (descricao_workflow VARCHAR(255) PATH '$.descricaoWorkflow')) e
  WHERE c.tipo_ticket = 'DSPD - SSSC' AND c.equipe IN ('SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG') AND c.organizacao LIKE 'UNIFIQUE - DSPD%'
  GROUP BY e.descricao_workflow
 ```
 
-O caminho `json` é o mesmo da Q2 (`sql.ts`). O dono confere a saída antes do commit: valor que traga nome de pessoa ou de organização cliente fica fora da lista (vira nulo com contagem), não entra no `ref_dominio`. A saída preenche o §12 por um commit revisado; mudar a lista depois é mudança de critério (T2.6), como as demais.
+O caminho `json` é o mesmo da Q2 (`sql.ts`). Na 12b, `n` conta etapas do workflow (uma linha por etapa do `JSON_TABLE`), não chamados. O dono confere a saída antes do commit: valor que traga nome de pessoa ou de organização cliente fica fora da lista (vira nulo com contagem), não entra no `ref_dominio`. A saída de 2026-10-31 preencheu o arquivo versionado acima (E4.25), que entra por um commit revisado; mudar a lista depois é mudança de critério (T2.6), como as demais. Alternativa equivalente a duas consultas: manter o `UNION ALL` com `COLLATE` explícito na coluna de texto das duas metades; não foi rodada, por isso não é o texto vigente.
