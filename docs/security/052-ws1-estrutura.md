@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 22af8695311a303f81760fbaac79c307664760d5
+commit: f24c3a9b98722b2bf62961ef3ea8cf75e11de291
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-10-30
@@ -12,7 +12,14 @@ data: 2026-10-30
 
 Propósito: parecer de segurança sobre o script de diagnóstico da WS1 (E1.15), gatilhos segredo (apikey do dono) e integração externa (R-SEGURANCA). Público: node-backend (dono do código), tech-lead (E1.17, em paralelo), qa-engineer (E1.18), Jarvis.
 
-**Veredito: aprovado** em `22af869`. Os três achados da rodada 1 (A1 bloqueante, A2 e A3 recomendados) foram resolvidos na volta 1 da E1.15, sem regressão no resto. Revisão estática; nada foi executado contra o BusinessMap, o `.env` não foi lido.
+**Veredito: aprovado** em `22af869`, renovado por delta em `f24c3a9` (E2.20, 2026-10-31). Os três achados da rodada 1 (A1 bloqueante, A2 e A3 recomendados) foram resolvidos na volta 1 da E1.15, sem regressão no resto. Revisão estática; nada foi executado contra o BusinessMap, o `.env` não foi lido.
+
+## Renovação por delta (E2.20, 2026-10-31)
+Motivo: o `.env.example` mudou depois de `22af869` (commits `2303cd2`, F0 do 052, e `4e7a180`, coletor do Acelerato, PR 175, unidos no merge `f24c3a9`). O `forge-check delta --parecer` não roda aqui (`22af869 não é ancestral de f24c3a9`: a WS1 entrou na develop pelo squash `11141d7`); o delta lido foi só o `.env.example` em `f24c3a9`, mais a confirmação de que o código da WS1 não mudou desde o squash (`git diff --stat 22af869 f24c3a9` vazio em `server/src/modulos/businessmap/diagnostico.ts`, `scripts/bm-diagnostico.sh` e `server/tests/diagnostico-businessmap.test.ts`).
+- **Bloco do BusinessMap (linhas 25-32):** só nomes, sem valor (`BUSINESSMAP_URL_BASE`, `BUSINESSMAP_APIKEY`, `BUSINESSMAP_QUADROS_IDS`, `BUSINESSMAP_LIMITE_POR_MINUTO`, `BUSINESSMAP_TIMEOUT_MS`, `BUSINESSMAP_PAGINA_TAMANHO`); o comentário lembra que a chave é a do dono e nunca é versionada. As duas variáveis que o script lê (`BUSINESSMAP_URL_BASE` e `BUSINESSMAP_APIKEY`) continuam vazias no exemplo.
+- **Bloco do Acelerato (linhas 33-44):** separado do BusinessMap, todo comentado e sem valor, salvo os tetos numéricos `120000` e `24`, que não são credencial. Nenhuma variável é compartilhada entre as duas fontes.
+- **Resto do arquivo (linhas 1-24):** anterior a este parecer e fora do delta; as senhas `*_dev` e `troque-me-postgres` são do Compose local de desenvolvimento.
+- Sem achado novo. `gitleaks` continua fora do PATH (lacuna registrada); leitura manual sem segredo real.
 
 ## Revalidação (volta 1, intervalo c2f2038..22af869)
 Delta conferido com `forge-check delta --parecer` (intervalo efetivo `27d32b2..22af869`; os commits intermediários `cee192d` e `c2f2038` são só pareceres). Arquivos tocados: `server/src/modulos/businessmap/diagnostico.ts`, `server/tests/diagnostico-businessmap.test.ts` e `docs/integracao/businessmap-api-configuracao.md` (linha 150).
