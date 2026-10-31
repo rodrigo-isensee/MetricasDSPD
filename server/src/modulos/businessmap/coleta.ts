@@ -74,6 +74,8 @@ export interface ResultadoColeta {
   streams: ResumoStream[];
   usuarios: ResultadoUsuarios | null;
   referencia: unknown;
+  /** Chaves da referência que pedem motivo (`tabela:chave`, até 100), no formato do `--motivo-chave`; vazio se não houve pendência. */
+  motivosPendentes: string[];
   /** Códigos das falhas (nunca mensagens), com a contagem. */
   falhas: Record<string, number>;
 }
@@ -153,7 +155,7 @@ async function marcaDagua(db: Consultavel, S: Esquemas): Promise<Date | null> {
 
 interface Execucao {
   d: DepsColeta; S: Esquemas; coletaId: number; filtro: (estado: EstadoCard) => Record<string, string>;
-  dominios: DominiosCamposCustomizados; vistos: Set<string>; falhas: string[];
+  dominios: DominiosCamposCustomizados; vistos: Set<string>; falhas: string[]; motivosPendentes: string[];
 }
 
 /** Uma leitura (quadro e estado): página por página, cada página numa transação com a marca da página (retomável). */
@@ -253,7 +255,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
      VALUES ('coleta_incremental', $1, 'em_andamento', $2, $3, $4, $5::jsonb) RETURNING coleta_id`,
     [inicio, marcaDe, modo.tipo === 'incremental' ? SOBREPOSICAO_S : 0, VERSAO_COLETOR, JSON.stringify(parametros)]);
   const coletaId = Number(aberta.rows[0]!.coleta_id);
-  const x: Execucao = { d, S, coletaId, filtro, dominios: dominiosDaColeta(), vistos: new Set(), falhas: [] };
+  const x: Execucao = { d, S, coletaId, filtro, dominios: dominiosDaColeta(), vistos: new Set(), falhas: [], motivosPendentes: [] };
 
   try {
     let referencia: unknown = null;
@@ -262,6 +264,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
         referencia = await d.etapaReferencia(coletaId);
       } catch (e) {
         x.falhas.push(codigoDe(e));
+        if (e instanceof ErroReferencia) x.motivosPendentes.push(...e.pendentes);
         await registrarFalha(d.pool, S, coletaId, 'referencia', null, codigoDe(e));
       }
     }
@@ -308,7 +311,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
     });
     const falhas: Record<string, number> = {};
     for (const f of x.falhas) falhas[f] = (falhas[f] ?? 0) + 1;
-    return { coletaId, modo: modo.tipo, estado, inicioCarga, retomada, streams, usuarios, referencia, falhas };
+    return { coletaId, modo: modo.tipo, estado, inicioCarga, retomada, streams, usuarios, referencia, motivosPendentes: x.motivosPendentes, falhas };
   } catch (e) {
     // erro de banco ou de programação: fecha como falha (sem a mensagem, que pode trazer valor) e repassa
     await emTransacao(d.pool, (db) => fecharColeta(db, { fonte: 'businessmap', coletaId, status: 'falha', erroResumo: 'desconhecido: erro-interno', agora: d.agora() }, S)).catch(() => undefined);

@@ -129,12 +129,17 @@ describe('executarColeta: trava, referência em transação do papel de referên
     const sem = await montar(cenario(), {}, bancoRef(vigentes));
     const rSem = await executarColeta(sem.deps, { modo: 'carga-inicial' });
     expect(rSem.falhas).toEqual({ 'referencia-motivo': 1 });
+    // A1 do review da F3: a chave pendente sai no resultado, no formato do --motivo-chave, e a linha de volta é aceita pelo analisador
+    expect(rSem.motivosPendentes).toEqual(['ref_tipo_card:1']);
+    expect(analisarArgumentos(['carga-inicial', `--motivo-chave=${rSem.motivosPendentes[0]}=processo`]).motivo).toEqual(new Map([['ref_tipo_card 1', 'processo']]));
+    expect(JSON.stringify(rSem)).not.toMatch(/Story|NOME-MARCADOR|pessoa@exemplo.com/);
     expect(insertsRef(sem.ref.chamadas)).toEqual([]);
     expect(comandos(sem.ref.chamadas)).toEqual(['BEGIN', 'ROLLBACK']);
 
     const global = await montar(cenario(), {}, bancoRef(vigentes));
     const rg = await executarColeta(global.deps, { modo: 'carga-inicial', motivo: 'correcao' });
     expect(rg.falhas).toEqual({});
+    expect(rg.motivosPendentes).toEqual([]);
     expect(rg.referencia).toMatchObject({ fechadas: 1, marca: false });
 
     const chave = await montar(cenario(), {}, bancoRef(vigentes));
@@ -145,6 +150,7 @@ describe('executarColeta: trava, referência em transação do papel de referên
     const outra = await montar(cenario(), {}, bancoRef(vigentes));
     const ro = await executarColeta(outra.deps, { modo: 'carga-inicial', motivo: new Map([['ref_tipo_card 99', 'processo']]) });
     expect(ro.falhas).toEqual({ 'referencia-motivo': 1 });
+    expect(ro.motivosPendentes).toEqual(['ref_tipo_card:1']);
   });
 
   it('a etapa devolve o resultado e conta as folhas sem conferência só pelo dspd_coletor', async () => {

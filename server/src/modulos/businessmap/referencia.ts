@@ -17,7 +17,7 @@ export const ENTIDADE_SEM_CONFERENCIA = 'folha_sem_conferencia';
 export const REGISTRADO_POR_F2 = 'f2-referencia';
 
 export class ErroReferencia extends Error {
-  constructor(readonly tipo: 'motivo' | 'vigencia' | 'formato', mensagem: string) {
+  constructor(readonly tipo: 'motivo' | 'vigencia' | 'formato', mensagem: string, readonly pendentes: readonly string[] = []) {
     super(mensagem);
     this.name = 'ErroReferencia';
   }
@@ -308,7 +308,9 @@ export async function sincronizarReferencia(
 ): Promise<Resultado> {
   const plano = planejar(lida, await carregarVigentes(db, lida.quadros, S), conf, o);
   if (plano.pendentes.length > 0) {
-    throw new ErroReferencia('motivo', `${plano.pendentes.length} mudança(s) de significado sem motivo (processo ou correcao): ${plano.pendentes.slice(0, 100).map((m) => `${m.tabela} ${m.chave}`).join(', ')}`);
+    throw new ErroReferencia('motivo', `${plano.pendentes.length} mudança(s) de significado sem motivo (processo ou correcao): ${plano.pendentes.slice(0, 100).map((m) => `${m.tabela} ${m.chave}`).join(', ')}`,
+      // `tabela:chave`, a forma que `--motivo-chave=tabela:chave=processo|correcao` aceita (A1 do review da F3); chave de referência, nunca valor de pessoa
+      plano.pendentes.slice(0, 100).map((m) => `${m.tabela}:${m.chave}`));
   }
   const agora = o.agora ?? new Date();
   const vc = conf.versao_criterio;

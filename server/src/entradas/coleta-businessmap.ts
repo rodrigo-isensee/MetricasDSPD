@@ -10,7 +10,8 @@ import { opcoesLog } from '../plataforma/log.js';
 
 // Entrada do `pnpm --filter @metricas-dspd/server run bm:coleta carga-inicial|incremental` (F3, K-182): manual, sem registro na
 // agenda (H-20 = C), só GET no BusinessMap. O `.env` da raiz é lido só aqui, pelo programa; nada dele é impresso. A saída em JSON
-// traz só contagens e códigos (nunca nome, id de pessoa, chave, URL nem texto de erro do driver ou da API).
+// traz contagens, códigos e as chaves de referência que pedem motivo (`motivosPendentes`, `tabela:chave`; nunca nome, id de pessoa,
+// URL nem texto de erro do driver ou da API).
 const raiz = fileURLToPath(new URL('../../../', import.meta.url));
 try {
   process.loadEnvFile(join(raiz, '.env'));

@@ -337,13 +337,13 @@ describe('F3: referência da F2 chamada pelo comando', () => {
 
   it('falha da referência (mudança sem motivo) não impede a coleta dos cards: parcial, só com o código', async () => {
     const m = await montar({ cards: { '35|active': [card(1)] }, porPagina: 100, users: {}, status: {}, corpos: {} }, {}, [35], {
-      etapaReferencia: () => Promise.reject(new ErroReferencia('motivo', '1 mudança(s) de significado sem motivo: ref_coluna 25|2532')),
+      etapaReferencia: () => Promise.reject(new ErroReferencia('motivo', '1 mudança(s) de significado sem motivo: ref_coluna 25|2532', ['ref_coluna:25|2532'])),
     });
     const r = await coletarCards(m.deps, carga);
-    expect(r).toMatchObject({ estado: 'parcial', referencia: null, falhas: { 'referencia-motivo': 1 } });
+    expect(r).toMatchObject({ estado: 'parcial', referencia: null, motivosPendentes: ['ref_coluna:25|2532'], falhas: { 'referencia-motivo': 1 } });
     expect(m.banco.estado.falhas).toEqual([{ entidade: 'referencia', idOrigem: null, erro: 'referencia-motivo' }]);
     expect(m.banco.estado.stg).toHaveLength(1);
-    expect(JSON.stringify(m.banco.estado)).not.toContain('2532');
+    expect(JSON.stringify(m.banco.estado)).not.toContain('2532'); // as chaves vão só ao resultado, nunca ao banco
   });
 
   it('ErroColetaBm carrega o código', () => {
