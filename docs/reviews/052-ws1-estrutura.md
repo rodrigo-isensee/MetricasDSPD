@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 22af8695311a303f81760fbaac79c307664760d5
+commit: 47ea60ba0533d677c268dbf12721e9a84a475055
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-30
@@ -11,6 +11,14 @@ data: 2026-10-30
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E1.26, 2026-10-30)
+
+Motivo: o `forge-check pr 052-integracao-businessmap` marcou este parecer como desatualizado porque a ADR 0015 mudou depois dele (revisão 1 da S-22, commits `52dfb30` e `485df6a` da `docs/052-plano-hierarquia`). O `forge-check delta --parecer` não roda aqui (`22af869` não é ancestral da branch, que nasceu do squash `11141d7`); o delta lido foi `git diff 11141d7 47ea60b -- docs/architecture/adr/0015-bibliotecas-e-praticas-do-back-end.md`, e só ele.
+
+Lido: a linha "Revisão 1" do cabeçalho, a linha "HTTP de saída do BusinessMap" da tabela, a linha do `axios` em "Não adotar", o item "Timeouts em tudo", a linha S-22 e a seção "Revisão 1 (2026-10-30)" com o critério de reversão. Já lido e fora do delta: todo o código e os testes da WS1 (rodadas anteriores), sem mudança desde `11141d7`.
+
+Conferência do script da WS1 contra a revisão: `diagnostico.ts` já usa `fetch` nativo, sem ky e sem p-throttle (`server/package.json` não tem nenhum dos dois); não segue redirect (`redirect: 'error'`, :112, mesmo efeito do 3xx em erro que a ADR exige numa volta); o erro de rede lê só o `code` do `cause` (:165) e não o propaga; só GET. O alcance da revisão 1 é o cliente do coletor em `plataforma/http.ts` (F0); o script de diagnóstico é manual, anterior à F0 e fora desse alcance. Conclusão: a mudança da ADR 0015 não afeta o script da WS1; nenhum achado novo.
 
 ## Revalidação (volta 1, delta)
 
