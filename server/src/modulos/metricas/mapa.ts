@@ -12,7 +12,7 @@ import type {
 /**
  * Linhas das projeções -> base em memória da biblioteca (`@metricas-dspd/metricas`). Mapeamento puro, sem regra de
  * cálculo. Pessoa nunca entra: `responsaveis = []` e `usuario = ''` (as colunas nem são lidas).
- * Colunas de referência viram nomes pelo `ref_coluna` vigente (o modelo da biblioteca usa o nome da coluna).
+ * Colunas de referência viram rótulos pelo `ref_coluna` vigente, por id (o modelo da biblioteca usa o nome da coluna como chave).
  */
 const ms = (d: Date | null): number | null => (d === null ? null : d.getTime());
 /** `data_acordada` é data civil (coluna `date`): vale até o fim do expediente desse dia (calendário padrão, P2). */
@@ -21,8 +21,16 @@ const fimDoDia = (iso: string | null): number | null =>
 const campo = <T>(v: string | null): T => v as T;
 
 export type NomesColuna = Map<string, string>;
-export const nomesDeColuna = (colunas: LinhaColuna[]): NomesColuna =>
-  new Map(colunas.map((c) => [`${c.quadro_id}|${c.coluna_id}`, c.nome]));
+/**
+ * Identidade por id (ADR 0016): a chave de cada coluna é `quadro|coluna_id`, e o rótulo que a biblioteca usa como nome é o nome da
+ * coluna quando ele é único no quadro; nome repetido no mesmo quadro (workflows diferentes com "Backlog" ou "Concluído") ganha o id
+ * ao lado, para duas colunas nunca virarem uma. Sem repetição o rótulo é o nome de sempre, e as métricas não mudam.
+ */
+export function nomesDeColuna(colunas: LinhaColuna[]): NomesColuna {
+  const vezes = new Map<string, number>();
+  for (const c of colunas) vezes.set(`${c.quadro_id}|${c.nome}`, (vezes.get(`${c.quadro_id}|${c.nome}`) ?? 0) + 1);
+  return new Map(colunas.map((c) => [`${c.quadro_id}|${c.coluna_id}`, vezes.get(`${c.quadro_id}|${c.nome}`)! > 1 ? `${c.nome} (${c.coluna_id})` : c.nome]));
+}
 /** Id sem `ref_coluna` vigente fica como está (o nome é a única referência que sobrou). */
 const nome = (nomes: NomesColuna, quadro: string | null, id: string | null): string | null =>
   id === null ? null : (nomes.get(`${quadro ?? ''}|${id}`) ?? id);
@@ -62,12 +70,14 @@ export function bloqueioDe(l: LinhaBloqueio, nomes: NomesColuna, quadros: Map<st
 
 const PAPEIS: readonly string[] = ['backlog', 'compromisso', 'trabalho', 'homologacao', 'entrega'];
 /** Coluna sem tipo ou papel conhecido não entra em `colunas` (não se infere o papel). */
-export const colunasDe = (ls: LinhaColuna[]): DimColuna[] =>
-  ls.filter((c) => (c.tipo_coluna === 'fila' || c.tipo_coluna === 'execucao') && c.papel !== null && PAPEIS.includes(c.papel))
+export const colunasDe = (ls: LinhaColuna[]): DimColuna[] => {
+  const rotulos = nomesDeColuna(ls);
+  return ls.filter((c) => (c.tipo_coluna === 'fila' || c.tipo_coluna === 'execucao') && c.papel !== null && PAPEIS.includes(c.papel))
     .map((c) => ({
-      quadro_id: c.quadro_id, coluna: c.nome, tipo_coluna: campo(c.tipo_coluna), papel: campo(c.papel), ordem: c.ordem,
-      limite_wip: c.limite_wip,
+      quadro_id: c.quadro_id, coluna: rotulos.get(`${c.quadro_id}|${c.coluna_id}`)!, tipo_coluna: campo(c.tipo_coluna),
+      papel: campo(c.papel), ordem: c.ordem, limite_wip: c.limite_wip,
     }));
+};
 
 export type RefBM = {
   equipes: string[]; sistemas: LinhaDominio[]; limitesWip: { equipe: string; limite: number }[]; limiteFrentes: number | null;

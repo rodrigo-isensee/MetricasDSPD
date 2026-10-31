@@ -12,6 +12,10 @@ const id = z.string().regex(/^\d{1,12}$/);
 const unicos = <T>(lista: readonly T[], chave: (x: T) => string): boolean => new Set(lista.map(chave)).size === lista.length;
 const coluna = z.object({ workflow_id: id, coluna_id: id, nome: z.string().min(1).max(80), papel: z.enum(['fila', 'execucao']), base: z.string().min(1) }).strict();
 const colunaDescartado = z.object({ workflow_id: id, coluna_id: id }).strict();
+// Exceção de papel (pergunta 2 do dono, 2026-10-31): a folha de seção 4 conta como trabalho; o tipo segue o flow_type. `nome` é só rótulo.
+const colunaTrabalho = z
+  .object({ workflow_id: id, coluna_id: id, nome: z.string().min(1).max(80).optional(), papel: z.literal('trabalho'), base: z.string().min(1) })
+  .strict();
 const tipo = z
   .object({ nome: z.string().min(1).max(80), eh_item: z.boolean(), categoria: z.enum(CATEGORIAS).nullable() })
   .strict()
@@ -29,6 +33,7 @@ export const esquemaConferencia = z
       })
       .strict(),
     excecoes_papel_coluna: z.array(coluna).refine((l) => unicos(l, (c) => c.coluna_id), 'coluna repetida'),
+    excecoes_papel_trabalho: z.array(colunaTrabalho).refine((l) => unicos(l, (c) => c.coluna_id), 'coluna repetida').default([]),
     excecoes_compromisso: z.array(colunaDescartado),
     excecoes_entrega: z.array(colunaDescartado),
     colunas_descartado: z.array(colunaDescartado).refine((l) => unicos(l, (c) => c.coluna_id), 'coluna repetida'),

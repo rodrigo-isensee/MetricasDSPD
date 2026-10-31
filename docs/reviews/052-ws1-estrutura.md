@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 0714135ff3685074ea4ba775d9b3004d28879865
+commit: da4919acc3e469e61b2922ef1e3ae993234c20c3
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-10-31
@@ -11,6 +11,16 @@ data: 2026-10-31
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.43, 2026-10-31)
+
+Motivo: parecer desatualizado por arquivos da WS1 que mudaram na F2 depois dele. O `forge-check delta` não roda aqui (`0714135` não é ancestral da ponta); o delta lido foi `git diff 64644b1..da4919a -- server/src/modulos/businessmap/index.ts server/package.json docs/architecture/fontes/businessmap-conferencia.json`, e só ele.
+
+- `server/src/modulos/businessmap/index.ts`: um bloco novo de exports da F2 (`sincronizarReferencia`, `lerReferenciaReal`, `planejar`, `registrarFolhasSemConferencia`, `vigenteEm`, `contextoDoEvento`, `folhasDoMarco`, `nivelDoWorkflow`, `ErroReferencia` e o tipo `ResultadoReferencia`). O export do `diagnosticar` segue igual, e o `index.ts` continua sem efeito colateral ao importar. O código novo tem parecer próprio (`docs/reviews/052-f2-referencia.md`).
+- `server/package.json`: sem mudança desde `64644b1` (o diff vem vazio); nenhuma dependência nova.
+- `docs/architecture/fontes/businessmap-conferencia.json`: o campo novo `excecoes_papel_trabalho` (6 exceções da pergunta 2 do dono, 2026-10-31) e duas notas. É dado de configuração da F2; o script da WS1 não lê esse arquivo.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. Segurança e QA renovam os pareceres deles em paralelo (E2.41 e E2.42). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `da4919a`.
 
 ## Renovação por delta (E2.30, 2026-10-31)
 
