@@ -41,10 +41,32 @@ export function papelDaSecao(secao: number | undefined, nomeNormalizado: string)
 /** `flow_type` 2 = fila, 1 = execução (H-8); qualquer outro valor fica sem tipo. */
 export const tipoDoFlow = (flowType: number | undefined): TipoColuna => (flowType === 2 ? 'fila' : flowType === 1 ? 'execucao' : 'sem_tipo');
 
+export interface EntradaFolha { workflow: string; coluna: string; nomeNormalizado: string; secao: number | undefined; flowType: number | undefined }
+export interface PapelDaFolha {
+  papel: PapelColuna;
+  tipo: TipoColuna;
+  descarteNoArquivo: boolean;
+  /** Exceção do arquivo que muda o tipo (fila ou execução) ou o papel (trabalho, pergunta 2 de 2026-10-31). */
+  tipoNoArquivo: boolean;
+  trabalhoNoArquivo: boolean;
+}
+
+/**
+ * Função única de papel e tipo de uma folha (H-8 a H-11, H-26 e o arquivo de conferência), usada pela lista da F1 e pela carga da F2.
+ * Ordem: descarte (nome ou arquivo, H-11) > exceção de trabalho do arquivo > seção. O tipo é o da exceção ou o do flow_type.
+ */
+export function papelDaFolha(f: EntradaFolha, conf: Conferencia): PapelDaFolha {
+  const ehDela = (l: { workflow_id: string; coluna_id: string }): boolean => l.workflow_id === f.workflow && l.coluna_id === f.coluna;
+  const descarteNoArquivo = conf.colunas_descartado.some(ehDela);
+  const trabalhoNoArquivo = conf.excecoes_papel_trabalho.some(ehDela);
+  const tipoArquivo = conf.excecoes_papel_coluna.find(ehDela)?.papel;
+  const descarte = f.nomeNormalizado === 'descartado' || descarteNoArquivo;
+  const papel = descarte ? 'descarte' : trabalhoNoArquivo ? 'trabalho' : papelDaSecao(f.secao, f.nomeNormalizado);
+  return { papel, tipo: tipoArquivo ?? tipoDoFlow(f.flowType), descarteNoArquivo, tipoNoArquivo: tipoArquivo !== undefined, trabalhoNoArquivo };
+}
+
 /** Linhas da lista a partir das respostas de `currentStructure` (uma por quadro lido). */
 export function montarLista(estruturas: ReadonlyMap<number, unknown>, conf: Conferencia): LinhaConferencia[] {
-  const excecoes = new Map(conf.excecoes_papel_coluna.map((e) => [`${e.workflow_id}/${e.coluna_id}`, e.papel]));
-  const descartadas = new Set(conf.colunas_descartado.map((c) => `${c.workflow_id}/${c.coluna_id}`));
   const linhas: LinhaConferencia[] = [];
   for (const [quadro, corpo] of estruturas) {
     for (const estrutura of desembrulhar(corpo).itens) {
@@ -69,13 +91,14 @@ export function montarLista(estruturas: ReadonlyMap<number, unknown>, conf: Conf
           const norm = normalizar(nome);
           const secao = inteiro(c.section) ?? inteiro(pai?.section);
           const flowType = inteiro(c.flow_type);
-          const ref = `${workflow}/${coluna}`;
-          const noArquivo = descartadas.has(ref);
-          const descarte = norm === 'descartado' || noArquivo;
-          const papel = descarte ? 'descarte' : papelDaSecao(secao, norm);
-          const tipoExcecao = excecoes.get(ref);
+          const r = papelDaFolha({ workflow, coluna, nomeNormalizado: norm, secao, flowType }, conf);
+          const { papel, tipo } = r;
+          const noArquivo = r.descarteNoArquivo;
+          const descarte = papel === 'descarte';
+          const tipoExcecao = r.tipoNoArquivo ? tipo : undefined;
           const marcas: string[] = [];
           if (tipoExcecao !== undefined) marcas.push('exceção do arquivo (H-8)');
+          if (r.trabalhoNoArquivo) marcas.push('exceção do arquivo: trabalho (pergunta 2, 2026-10-31)');
           if (descarte) {
             marcas.push(
               !noArquivo
@@ -88,7 +111,7 @@ export function montarLista(estruturas: ReadonlyMap<number, unknown>, conf: Conf
           if (!descarte && papel === 'trabalho' && flowType === 1 && tipoExcecao === undefined && ESPERA.test(norm)) {
             marcas.push('CANDIDATA: nome de espera com flow_type 1 (H-8)');
           }
-          if ((secao === 2 || secao === 4) && MARCO.test(norm)) marcas.push('CANDIDATA: exceção de marco (H-9 ou H-10)');
+          if ((secao === 2 || secao === 4) && MARCO.test(norm) && !r.trabalhoNoArquivo) marcas.push('CANDIDATA: exceção de marco (H-9 ou H-10)');
           if (pai !== undefined && normalizar(String(pai.name ?? '')) === 'encerrado') marcas.push('CANDIDATA: filha de Encerrado (H-10)');
           if (papel === 'sem_papel') marcas.push('CONFERIR: folha sem seção');
           if (papel === 'homologacao') marcas.push('regra H-26: Homologação no nome da folha da seção 3');
@@ -96,12 +119,12 @@ export function montarLista(estruturas: ReadonlyMap<number, unknown>, conf: Conf
           if (coluna === '<id?>') marcas.push('CONFERIR: coluna sem id inteiro');
           doWorkflow.push({
             quadro, workflow, coluna, nome, secao, flowType, papel,
-            tipo: tipoExcecao ?? tipoDoFlow(flowType),
+            tipo,
             marca: marcas.join('; '),
           });
         }
         // H-23: sem folha na seção 2 ou na 4, o marco de todo card cai na entrada da seção seguinte.
-        const faltam = [2, 4].filter((n) => !doWorkflow.some((l) => l.secao === n && l.papel !== 'descarte'));
+        const faltam = [2, 4].filter((n) => !doWorkflow.some((l) => l.secao === n && l.papel !== 'descarte' && !(n === 4 && l.papel === 'trabalho')));
         const primeira = doWorkflow[0];
         if (primeira !== undefined && faltam.length > 0) {
           const aviso = `CONFERIR: workflow sem folha na seção ${faltam.join(' nem na ')}, o marco cai na seção seguinte (H-23)`;
@@ -130,7 +153,7 @@ export function contarColunas(estruturas: ReadonlyMap<number, unknown>): number 
 export function excecoesSemColuna(linhas: readonly LinhaConferencia[], conf: Conferencia): string[] {
   const workflows = new Set(linhas.map((l) => l.workflow));
   const folhas = new Set(linhas.map((l) => `${l.workflow}/${l.coluna}`));
-  return conf.excecoes_papel_coluna
+  return [...conf.excecoes_papel_coluna, ...conf.excecoes_papel_trabalho]
     .filter((e) => workflows.has(e.workflow_id) && !folhas.has(`${e.workflow_id}/${e.coluna_id}`))
     .map((e) => `${e.workflow_id}/${e.coluna_id}`);
 }

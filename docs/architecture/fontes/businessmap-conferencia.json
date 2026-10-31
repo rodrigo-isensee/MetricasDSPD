@@ -18,6 +18,14 @@
     { "workflow_id": "245", "coluna_id": "2283", "nome": "Pronto Deploy", "papel": "fila", "base": "H-8" },
     { "workflow_id": "245", "coluna_id": "2286", "nome": "Pronto (CR)", "papel": "fila", "base": "H-8" }
   ],
+  "excecoes_papel_trabalho": [
+    { "workflow_id": "191", "coluna_id": "2532", "nome": "Aguardando Publicação", "papel": "trabalho", "base": "Decisão do dono de 2026-10-31 (lista de colunas, pergunta 2)" },
+    { "workflow_id": "212", "coluna_id": "2027", "nome": "Publicação APPLE e GOOGLE", "papel": "trabalho", "base": "Decisão do dono de 2026-10-31 (lista de colunas, pergunta 2)" },
+    { "workflow_id": "242", "coluna_id": "2314", "papel": "trabalho", "base": "Decisão do dono de 2026-10-31 (lista de colunas, pergunta 2)" },
+    { "workflow_id": "248", "coluna_id": "2326", "papel": "trabalho", "base": "Decisão do dono de 2026-10-31 (lista de colunas, pergunta 2)" },
+    { "workflow_id": "250", "coluna_id": "2346", "nome": "Pre-Release", "papel": "trabalho", "base": "Decisão do dono de 2026-10-31 (lista de colunas, pergunta 2)" },
+    { "workflow_id": "202", "coluna_id": "1721", "nome": "Pre-release", "papel": "trabalho", "base": "Decisão do dono de 2026-10-31 (lista de colunas, pergunta 2)" }
+  ],
   "excecoes_compromisso": [],
   "excecoes_entrega": [],
   "colunas_descartado": [
@@ -57,6 +65,8 @@
     "Workflow 323, coluna 3098 (Comprometido, seção 2, flow_type 1): sem exceção; o workflow 323 está fora do painel operacional (H-22 = A).",
     "Exceções de compromisso (H-9) e de entrega (H-10): nenhuma por ora; o dono pode acrescentar (Pre-Release, publicação nas lojas, filhas de Encerrado).",
     "A coluna 3068 (Descartado, workflow 321) pertence a workflow fora de todo cálculo (H-7).",
+    "Pergunta 2 do dono (2026-10-31): nos workflows 191, 212, 242, 248, 250 e 202 as folhas listadas em excecoes_papel_trabalho contam como trabalho (tipo pelo flow_type) e a entrega é a entrada na folha seguinte da seção 4; a lista fica à parte de excecoes_papel_coluna, cujo campo papel guarda fila ou execução.",
+    "Perguntas 1 e 3 do dono (2026-10-31) não geram exceção: vale a regra da seção e o flow_type da coluna (pergunta 1: nos workflows de liberação a entrega é a entrada em qualquer folha da seção 4; pergunta 3: as folhas de nome de espera com flow_type 1 seguem execução).",
     "Tipo não listado em mapa_tipos.tipos vale como o padrão (trabalho de produto, sem categoria especial)."
   ]
 }

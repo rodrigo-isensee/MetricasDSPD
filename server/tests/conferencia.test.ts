@@ -14,6 +14,8 @@ describe('arquivo de conferência do BusinessMap (docs/architecture/fontes)', ()
     expect(real.versao_criterio.dominio).toBe('businessmap');
     expect(real.excecoes_papel_coluna.map((c) => c.coluna_id)).toEqual(['1998', '2001', '2006', '2008', '1989', '2163', '2166', '2281', '2283', '2286']);
     expect(real.excecoes_papel_coluna.every((c) => c.papel === 'fila')).toBe(true);
+    expect(real.excecoes_papel_trabalho.map((c) => `${c.workflow_id}/${c.coluna_id}`)).toEqual(['191/2532', '212/2027', '242/2314', '248/2326', '250/2346', '202/1721']);
+    expect(real.excecoes_papel_trabalho.every((c) => c.papel === 'trabalho' && c.base.includes('2026-10-31'))).toBe(true);
     expect(real.colunas_descartado).toHaveLength(15);
     const mapa = new Map(real.mapa_tipos.tipos.map((t) => [t.nome, t]));
     expect(mapa.get('Sprint')).toEqual({ nome: 'Sprint', eh_item: false, categoria: null });
