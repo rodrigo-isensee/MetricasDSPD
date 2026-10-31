@@ -7,3 +7,7 @@ export { gravarResponsaveis } from './responsaveis.js';
 export { diagnosticar, type ResultadoDiagnostico } from './diagnostico.js';
 export { executarSpike, type ResultadoSpike } from './spike.js';
 export { ARQUIVO_CONFERENCIA } from './conferencia.js';
+export {
+  sincronizarReferencia, lerReferenciaReal, planejar, registrarFolhasSemConferencia, vigenteEm, contextoDoEvento, folhasDoMarco, nivelDoWorkflow,
+  ErroReferencia, type Resultado as ResultadoReferencia,
+} from './referencia.js';
