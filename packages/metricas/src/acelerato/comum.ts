@@ -29,7 +29,9 @@ export function selecionarAC(
     (x) =>
       !x.c.excluido &&
       (f.equipe.length === 0 || f.equipe.includes(x.equipeId)) &&
-      (o.semPrioridade || f.prioridade.length === 0 || f.prioridade.includes(x.c.prioridade)),
+      (o.semPrioridade ||
+        f.prioridade.length === 0 ||
+        (x.c.prioridade !== undefined && f.prioridade.includes(x.c.prioridade))),
   )
 }
 

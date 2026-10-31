@@ -14,6 +14,8 @@
   "0013_core_pesquisa": "c6934832e4c8c35e2f23ae080a38ed6574c7ba8b49c5adfe948f64fb2b7ec04f",
   "0014_ac_justificativa_informada": "37648bda14e5d33add537b7488a9c235d1009004254270f72a5cdb55d9f87026",
   "0015_bm_remove_usuario_transicao": "45d4a21d19d26e11d4c450bc92fb0d7c6432cbc99ce28418306b35ddd9a6052e",
-  "0016_bm_referencia_workflow_tipo_times": "5f427f7f6c8e86971ee1295ff75c554f69ce356534b31601f9edd2cc15069e80",
-  "0017_bm_carga_inicial_times": "80d4011ef8576c475f77654c1ddd2094426097e413b078558d33ee373c594482"
+  "0016_ac_stg_chamado_recorte": "3cf01fef5c4b5fad7ef685ca04b78955b5f06268dbda6ae77256229e6c2bf52d",
+  "0017_ac_projecao_f2": "cc2ae17286f4dad16a38b38c323d9c73c7bf38c25f785c2688e3575cc71b6481",
+  "0018_bm_referencia_workflow_tipo_times": "5f427f7f6c8e86971ee1295ff75c554f69ce356534b31601f9edd2cc15069e80",
+  "0019_bm_carga_inicial_times": "80d4011ef8576c475f77654c1ddd2094426097e413b078558d33ee373c594482"
 }

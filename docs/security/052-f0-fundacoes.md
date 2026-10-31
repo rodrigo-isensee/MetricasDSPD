@@ -3,16 +3,27 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f0-fundacoes
-commit: 051c46e29ef8b04f19cfb1024a02e11b0d638bdb
+commit: f24c3a9b98722b2bf62961ef3ea8cf75e11de291
 parecer: aprovado
 revisor: forge:security-engineer
-data: 2026-10-30
+data: 2026-10-31
 ---
-# Review de segurança: F0 do coletor do BusinessMap (pedido 052, E2.3 e E2.8, K-182)
+# Review de segurança: F0 do coletor do BusinessMap (pedido 052, E2.3, E2.8 e E2.20, K-182)
 
-Propósito: parecer de segurança da F0 (cliente HTTP só GET, configuração, referência do quadro, tabela de times e carga inicial, grants), gatilhos segredo, integração externa, banco e dados pessoais (R-SEGURANCA). Público: node-backend (dono do código), tech-lead (E2.9, em paralelo), qa-engineer (E2.5), Jarvis.
+Propósito: parecer de segurança da F0 (cliente HTTP só GET, configuração, referência do quadro, tabela de times e carga inicial, grants), gatilhos segredo, integração externa, banco e dados pessoais (R-SEGURANCA). Público: node-backend (dono do código), tech-lead (E2.9 e E2.21), qa-engineer (E2.5 e E2.22), Jarvis.
 
-**Veredito: aprovado** em `051c46e` (revalidação E2.8, delta `ffa261f..051c46e`, conferido também com `forge-check delta` sobre `746aae5`). Os cinco achados da rodada 1 (A1 bloqueante, A2 a A5 recomendados) foram resolvidos na volta E2.7, sem achado novo. Revisão estática; nada foi executado contra o BusinessMap, o `.env` não foi lido e nenhuma suíte foi rodada (decisão técnica de 2026-10-30: E2.8 sem suíte).
+**Veredito: aprovado** em `f24c3a9` (revalidação por delta E2.20, depois do merge da develop e da renumeração das migrações, E2.19). Antes: aprovado em `051c46e` (revalidação E2.8, delta `ffa261f..051c46e`, conferido também com `forge-check delta` sobre `746aae5`). Os cinco achados da rodada 1 (A1 bloqueante, A2 a A5 recomendados) foram resolvidos na volta E2.7, sem achado novo. Revisão estática; nada foi executado contra o BusinessMap, o `.env` não foi lido e nenhuma suíte foi rodada (decisão técnica de 2026-10-30: E2.8 sem suíte).
+
+## Revalidação por delta depois da E2.19 (E2.20, 2026-10-31)
+Delta lido: `git diff e86e8d5..f24c3a9` (merge da develop `4e7a180`, PR 175, e renumeração), conferido com `forge-check delta --parecer` (intervalo `051c46e..f24c3a9`; os commits intermediários `ba3ddff`, `c15c1ab`, `e018d85` e `e86e8d5` são só pareceres). Para separar o que é da F0 do que veio da develop, li também `git diff 4e7a180..f24c3a9` (lado da F0 sobre a develop) e listei os arquivos que diferem dos dois pais do merge.
+- **Renumeração 0016 e 0017 para 0018 e 0019, conteúdo igual.** `git diff -M` dá rename 100% nos dois arquivos; os checksums em `server/migrations/checksums.json` são os mesmos de antes (`5f427f7f...` e `80d4011e...`), só a chave mudou. O lado da F0 sobre a develop traz só `0018`, `0019`, `checksums.json`, `grants.ts` e o bloco do BusinessMap no `.env.example`. As migrações do Acelerato (`0016_ac_stg_chamado_recorte`, `0017_ac_projecao_f2`) não criam função, gatilho nem grant com nome da F0; `proibir_alteracao_vigencia` segue só na `0018` (`0018_bm_referencia_workflow_tipo_times.ts:25`). Nenhuma referência ativa aos nomes antigos em `server`, `scripts`, `packages` ou `.github`; a ordem do `down` em `server/tests/pesquisa.pg.test.ts:144` e o import em `server/tests/referencia-times.pg.test.ts:3` usam os nomes novos.
+- **Grants depois do merge.** `server/src/plataforma/db/grants.ts` em `f24c3a9` é o da F0: `dspd_bm.ref_time.registrado_por` e `dspd_bm.ref_time_workflow.registrado_por` seguem em `COLUNAS_FORA_DA_API` (`grants.ts:17-18`); o merge não perdeu nem somou entrada. As migrações da F0 não têm GRANT literal; o grant segue gerado por `gerarGrants`.
+- **`COLUNAS_PESSOA` depois do merge.** `server/src/plataforma/db/lgpd.ts` em `f24c3a9` é idêntico ao da develop: `COLUNAS_PESSOA` continua só com `responsaveis` de `dim_card` e `dim_card_versao` (`lgpd.ts:12-13`); a develop somou duas exceções do Acelerato (`com_agente`, booleano, `lgpd.ts:22-23`), já revisadas no pedido 056. As tabelas da F0 não têm coluna de pessoa (`nome` é de workflow, tipo e time; `registrado_por` é rótulo de carga ou HMAC, fora da API).
+- **`.env.example` com os blocos separados.** Sobre a develop, o lado da F0 só soma 8 linhas (+8 -0) e, sobre a F0, a develop só soma 12 (+12 -0): nenhuma linha removida de um lado nem de outro. Bloco do BusinessMap nas linhas 25-32 (nomes sem valor) e bloco do Acelerato nas linhas 33-44 (comentado, sem valor; só os dois tetos numéricos `120000` e `24`, que não são credencial). Nenhuma variável mistura as duas fontes.
+- **Resto do delta:** código do Acelerato, `scripts/coleta.sh`, dependência nova e documentos vieram da develop sem mudança no merge (já revisados em `docs/security/056-coletor-f1-f2.md` e `docs/security/056-coletor-listas-e-driver.md`); não fazem parte desta revalidação. Nenhum arquivo do cliente HTTP, da configuração ou do log da F0 mudou.
+- **Para o tech-lead (estilo, sem efeito de segurança):** comentários ainda citam a numeração antiga em `server/tests/referencia-times.pg.test.ts:11` e `:204` e em `server/tests/conferencia.test.ts:53`.
+- **Observação:** um banco local que já aplicou a F0 com os nomes antigos falha na verificação de checksum da `0016` (falha fechada, só disponibilidade local); a F0 nunca chegou à develop nem à homologação.
+- **Varreduras:** `gitleaks`, `osv-scanner` e `semgrep` continuam fora do PATH (lacuna registrada). Leitura manual do `.env.example`: sem segredo real (as senhas `*_dev` e `troque-me-postgres` das linhas 3-14 são do Compose local e anteriores a esta branch).
 
 ## Revalidação da volta (E2.8)
 - **A1 resolvido.** `/users` tem lista própria, `CONSULTA_USERS`, só com `fields` (valor exato `user_id,realname`) e `user_ids` (`server/src/plataforma/http.ts:45-48`); o caminho exato `/users` troca de lista (`http.ts:195-196`) e exige os dois parâmetros (`http.ts:205`). `user_ids`, `fields` e `expand` saíram da lista geral, então não valem em outro caminho. `page` e `per_page` são recusados em `/users`: `listarPaginas('/users')` sempre os põe e falha antes da rede, o que cumpre a decisão técnica de 2026-10-30 (ADR 0020, R3-1 e R3-4). Lista grande vai em lotes de até 200 ids (`lotesDeUserIds`), cada lote ainda validado por `LISTA_IDS`. Testes em `server/tests/http.test.ts` (casos de `/users` e de lotes).
@@ -29,7 +40,7 @@ Propósito: parecer de segurança da F0 (cliente HTTP só GET, configuração, r
 - **Apikey fora de log, erro e URL:** só no cabeçalho `apikey`; `EventoHttp` sem campo de chave nem de consulta; `ErroBusinessMap` sem `cause` e sem corpo; erro de rede reduzido a código `[A-Z_]`; config valida sem ecoar valor.
 - **401 e 403 interrompem:** nenhuma chamada seguinte sai, em qualquer caminho.
 - **`registrado_por` fora da API:** em `COLUNAS_FORA_DA_API` nas duas tabelas de times (`server/src/plataforma/db/grants.ts:14-19`); teste 42501. O valor é rótulo fixo de carga ou HMAC do `sub`, nunca nome nem e-mail.
-- **Gatilho de vigência:** `proibir_alteracao_vigencia` só deixa passar o UPDATE que fecha a vigência, barra DELETE e TRUNCATE nas quatro tabelas novas; o `down` da 0017 recusa se houver vigência posterior.
+- **Gatilho de vigência:** `proibir_alteracao_vigencia` só deixa passar o UPDATE que fecha a vigência, barra DELETE e TRUNCATE nas quatro tabelas novas; o `down` da 0017 (hoje 0019) recusa se houver vigência posterior.
 - **Grants:** `dspd_ref` com SELECT e INSERT em `ref_` e UPDATE só de `vigente_ate`; `dspd_coletor` só lê `ref_`; sem DELETE para papel de aplicação.
 - **Migrações sem injeção:** SQL só de constantes do código; nenhum nome de pessoa na carga nem no arquivo de conferência.
 - **Times só como filtro:** nenhuma view usa as tabelas de times.
@@ -38,7 +49,7 @@ Propósito: parecer de segurança da F0 (cliente HTTP só GET, configuração, r
 ## Achados
 
 ## Plano em cartões
-- K-182: nada a corrigir na F0 pela segurança; segue para o QA (E2.5) e o PR (E2.6).
+- K-182: nada a corrigir na F0 pela segurança depois da E2.19; segue para a E2.21, a E2.22 e o PR (E2.6).
 
 ## Casos de abuso para o QA (E2.5)
 Do modelo de ameaças (`052-integracao-businessmap-ameacas.md` §7), cobertos pela F0: CA-2, CA-3, CA-4 (partida com http e redirect) e CA-9 (páginas e bytes). No CA-3: `GET /users?fields=user_id,realname` sem `user_ids` recusado antes da rede; com `expand`, `is_archived`, `page` ou `per_page` recusado; só `fields` + `user_ids` passa. No limite de requisições: janela horária e `retry_after` acima de 120 s param a execução sem nova chamada.

@@ -3,10 +3,10 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f0-fundacoes
-commit: 051c46e29ef8b04f19cfb1024a02e11b0d638bdb
+commit: f24c3a9b98722b2bf62961ef3ea8cf75e11de291
 parecer: aprovado
 revisor: forge:tech-lead
-data: 2026-10-30
+data: 2026-10-31
 ---
 # Review: 052-integracao-businessmap (E2.4 e revalidação E2.9, F0 do coletor do BusinessMap, K-182)
 
@@ -69,16 +69,17 @@ Os dois commits são comportamentos independentes: o cliente HTTP não depende d
 
 ## Achados
 - A1 (bloqueante) docs/architecture/adr/0015-bibliotecas-e-praticas-do-back-end.md:95 · S-22 (e :31, :69) ainda diz ky + p-throttle; o código usa fetch nativo com limitador próprio. A troca fica; falta revisar a ADR (praticas §7 item 7, §8 item 10): o software-architect revê S-22 com o motivo, o critério de reversão e o cliente só do BusinessMap.
-- A2 (recomendado) server/migrations/0016_bm_referencia_workflow_tipo_times.ts:6 · cita o data-model §3.4 com as tabelas novas, que só existe na worktree 052, sem commit (E1.24). Condição da E2.6: o PR da F0 só mescla com essa revisão já na develop (E1.26); sem isso, o achado vira bloqueante.
+- A2 (recomendado) server/migrations/0018_bm_referencia_workflow_tipo_times.ts:6 · cita o data-model §3.4 com as tabelas novas. Condição da E2.6 cumprida na E2.21: a revisão está na develop (PR 174, c892137) e entrou nesta branch pelo merge da E2.19 (data-model.md:123 e :124).
 - A3 (recomendado) server/src/plataforma/http.ts:1 · M14: 699 linhas em 2303cd2 (cliente) e 575 em 746aae5 (referência e times), dois comportamentos. Na E2.6, dois PRs, um por commit, cada um com a linha de teto excedido e o motivo; um PR único com os dois vira bloqueante (M14).
 - A4 (recomendado) server/tests/coletas.test.ts:69 · o teste de lerVersoes ainda afirma que versão sem métrica volta com afeta vazio (o dublê ignora o SQL), o contrário do filtro novo em repositorio.ts:53, e nenhum .pg prova o filtro. Ajustar o caso e afirmar no .pg que a versão da 0017 fica fora de /criterios.
 - A5 (recomendado) server/src/modulos/referencia/repositorio.ts:37 · lerVersaoCriterioVigente não tem o filtro novo: sem o seed mock, a versão de partida da 0017 vira o versaoCriterio de /referencia, embora fique escondida de /criterios. Aplicar o mesmo critério ou registrar a diferença em docs/api/metricas.md:76.
 - A6 (recomendado) server/src/plataforma/http.ts:168 · fields só vale em /users, mas a F3 do plano lê /cards com fields explícito (I-2 do k084). Na F3, ampliar por caminho como decisão revista, com teste, e não como ajuste de passagem.
-- A7 (recomendado) server/migrations/0017_bm_carga_inicial_times.ts:65 · a vigência de partida é o dia da migração menos 12 meses, e card aberto antigo (Q-2b) tem eventos anteriores a vigente_de, sem time. A F4 precisa de regra e teste para instante anterior à vigência de partida.
+- A7 (recomendado) server/migrations/0019_bm_carga_inicial_times.ts:65 · a vigência de partida é o dia da migração menos 12 meses, e card aberto antigo (Q-2b) tem eventos anteriores a vigente_de, sem time. A F4 precisa de regra e teste para instante anterior à vigência de partida.
 - A8 (recomendado) docs/architecture/features/052-integracao-businessmap.md:166 · o plano (R-9) põe B-K1 e B-K2 na F0, mas a delegação da E2.2 não os listou, e o diff não toca o coletor. Não bloqueia, porque a F0 não grava staging. Precisam entrar antes de a F3 gravar stg_ (Jarvis decide a etapa).
 - A9 (recomendado) server/src/plataforma/http.ts:160 · a janela de 1 h vive no cliente (uma execução); retomar a carga na mesma hora começa do zero e pode passar dos 600/h da conta. Na F3, intervalo mínimo entre execuções ou contagem persistida, com teste.
 - A10 (recomendado) server/src/plataforma/http.ts:27 · expand saiu da lista geral, mas o plano (linha 129, F1) lê /cards com expand=custom_fields,transitions,block_times,linked_cards. Na F1 ou F3, expand por caminho como decisão revista, com teste (mesmo caminho do A6).
 - A11 (recomendado) docs/architecture/adr/0015-bibliotecas-e-praticas-do-back-end.md:103 · a revisão 1 (branch docs/052-plano-hierarquia) descreve só a janela de 60 s; faltam a janela de 1 h com parada (550), a parada por retry_after acima de 120 s e o teto de 10 MB. Registrar na próxima passada da ADR.
+- A12 (recomendado) server/src/plataforma/db/migrar.ts:91 · com checkOrder, banco local que já aplicou 0016_bm e 0017_bm (antes da renumeração) recusa migrar. Só alcança quem rodou a F0 antes da E2.19: recriar o banco local, passo a registrar no PR da E2.6.
 
 ## Revalidação (E2.9, volta 1)
 Delta lido (`forge-check delta --parecer`, intervalo `746aae5..051c46e`, commits `474f9bd` e `051c46e` da E2.7): `server/src/plataforma/http.ts` (+89 -29), `log.ts` (+3), `referencia/repositorio.ts` (+7 -2) e os testes `http.test.ts`, `coletas.test.ts`, `log.test.ts` (novo) e `referencia-times.pg.test.ts`. Já lido na rodada anterior e fora do delta: as migrações 0016 e 0017, a config, a conferência e o resto dos testes. Os achados de segurança (A1 a A5 do `docs/security/052-f0-fundacoes.md`) ficam com a E2.8, em paralelo; aqui li o código só pelo que toca o review.
@@ -93,7 +94,25 @@ Delta lido (`forge-check delta --parecer`, intervalo `746aae5..051c46e`, commits
 - **Testes focados** (`nice -n 19 pnpm exec vitest run tests/http.test.ts tests/coletas.test.ts tests/log.test.ts`, em `server/`): `Test Files 3 passed (3)`, `Tests 48 passed (48)`. O `.pg` fica com o QA (E2.5); `pronto` não rodou nesta etapa (decisão técnica do Jarvis, E2.8 e E2.9 sem suíte).
 - **Teto M14 (A3 atualizado):** `474f9bd` soma 234 linhas ao cliente (925 no total, com `2303cd2`), e `051c46e` soma 47 à referência (622 com `746aae5`). Na E2.6, os dois PRs ficam: cliente com `2303cd2` e `474f9bd`, referência com `746aae5` e `051c46e`, cada um com a linha de teto excedido.
 
+## Revalidação por delta depois da E2.19 (E2.21, 2026-10-31)
+Delta lido: `e86e8d5..f24c3a9`, o merge da `develop` (`4e7a180`, PR 175, coletor do Acelerato) feito pela E2.19, olhado pela resolução (`git show --remerge-diff f24c3a9`) e pelos arquivos da F0 que ela tocou. O `forge-check delta --parecer` aponta `051c46e..7c52a97`, que inclui todo o conteúdo da `develop` (PRs 174 e 175, com reviews próprios); dele li só o que a E2.19 resolveu ou renomeou. Já lido e fora do delta: o código da F0 em `051c46e`, sem mudança.
+
+- **Os 5 conflitos.** O `remerge-diff` mostra conflito em `.env.example`, `checksums.json`, `migracoes.ts`, `migracoes.estatico.test.ts` e `pesquisa.pg.test.ts`. Todos foram resolvidos mantendo os dois lados, sem mistura:
+  - `.env.example`: bloco do BusinessMap (052) e bloco do Acelerato (056) separados, cada um com o seu comentário;
+  - `checksums.json`: 0016 e 0017 do Acelerato e 0018 e 0019 do BusinessMap;
+  - `migracoes.ts`: os quatro módulos importados e indexados na ordem 0016 a 0019;
+  - `pesquisa.pg.test.ts`: `down` com `quantas: 7` e a lista de 0019 a 0013 na ordem de reversão;
+  - `migracoes.estatico.test.ts`: `COLUNAS_FORA_STG_ESPERADAS = 446`, que fecha com 436 da F0 mais as 10 colunas da 0017 do Acelerato (406 na `develop`, 396 mais 10).
+- **Renumeração.** `0016_bm_*` e `0017_bm_*` viraram `0018_bm_*` e `0019_bm_*` com similaridade de 100% (`git diff -M --numstat`: 0 e 0), e os checksums das duas são os mesmos de antes (`5f427f7f...` e `80d4011e...`). A ADR 0016 continua cumprida, porque o conteúdo não muda.
+- **Referências ajustadas.** `CARGA_INICIAL` do teste estático, os imports de `conferencia.test.ts` e `referencia-times.pg.test.ts` e o `import` dinâmico do teste de `down` da carga apontam para a 0019. Nenhuma referência a `0016_bm` ou `0017_bm` ficou no código (`git grep` em `f24c3a9`); só as linhas A2 e A7 deste parecer, atualizadas agora.
+- **Condições da E2.6.** As condições de A1 e A2 (revisão da ADR 0015 e do data-model na `develop` antes do PR) estão cumpridas: o PR 174 (`c892137`) já está na `develop` e veio para a branch com o merge. A3 continua: o merge soma cerca de 15 linhas de resolução e não muda a divisão em dois PRs.
+- **Achado novo.** A12 (recomendado): banco local que já tinha a numeração antiga recusa migrar por causa do `checkOrder`. Não devolve, porque a F0 nunca foi para a `develop` e os testes `.pg` criam esquema com prefixo novo.
+- **Saída de ferramenta.** Testes focados (`nice -n 19 pnpm exec vitest run tests/migracoes.estatico.test.ts tests/conferencia.test.ts`, em `server/`): `Test Files 2 passed (2)`, `Tests 30 passed (30)`. O autor declarou o pronto verde na E2.19. Os `.pg` contra o PostgreSQL local ficam com o QA (E2.22).
+- **Segurança.** A revalidação da E2.20 (`docs/security/052-f0-fundacoes.md`, `7c52a97`) aprova o mesmo `f24c3a9`. Não refaço essa leitura aqui.
+
 ## Parecer
-**Aprovado** na revalidação (E2.9), no commit `051c46e`: A1 resolvido pela revisão 1 da ADR 0015 (`485df6a`), A4 e A5 resolvidos no código, com teste. A2 e A3 são condições que eu aplico na E2.6 (ordem de merge depois da E1.26 e dois PRs). A6 a A11 são recomendações para a F1, a F3 e a próxima passada da ADR, e não devolvem. Segue para o QA (E2.5), junto com o parecer da segurança (E2.8).
+**Aprovado** na revalidação por delta (E2.21), no commit `f24c3a9`. A resolução do merge mantém BusinessMap e Acelerato separados, e a renumeração não muda o conteúdo das migrações. A12 é recomendação. Segue para o QA (E2.22).
+
+Rodada E2.9: **aprovado** no commit `051c46e`: A1 resolvido pela revisão 1 da ADR 0015 (`485df6a`), A4 e A5 resolvidos no código, com teste. A2 e A3 são condições que eu aplico na E2.6 (ordem de merge depois da E1.26 e dois PRs). A6 a A11 são recomendações para a F1, a F3 e a próxima passada da ADR, e não devolvem. Segue para o QA (E2.5), junto com o parecer da segurança (E2.8).
 
 Rodada anterior (E2.4, commit `746aae5`): reprovado no commit `746aae5`, só pelo A1. O código cumpre a F0 do plano, as decisões H e as regras invioláveis, e nenhum achado pede mudança de lógica neste commit. A volta é de documentação: a revisão da S-22 da ADR 0015, pelo software-architect, nesta branch ou na `docs/052-plano-hierarquia`, antes do PR. Eu revalido pelo delta. A2 e A3 são condições que eu mesmo aplico na E2.6. A4 e A5 são ajustes pequenos de teste e de consistência, que o Jarvis pode juntar à volta, se quiser. A6 a A8 ficam para a F3 e a F4.

@@ -37,6 +37,7 @@
     "@metricas-dspd/mock": "workspace:*",
     "fastify": "^5.12.7",
     "fastify-type-provider-zod": "^7.0.0",
+    "mariadb": "3.5.4",
     "node-pg-migrate": "^9.0.0",
     "pg": "^8.23.1",
     "pino": "^10.4.0",
