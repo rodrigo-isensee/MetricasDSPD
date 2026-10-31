@@ -3,14 +3,63 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f1-spike
-commit: 96b1621df7e30f85f246082b06f01c8fc32f5d75
+commit: 0714135ff3685074ea4ba775d9b3004d28879865
 parecer: aprovado
 revisor: forge:tech-lead
-data: 2026-10-30
+data: 2026-10-31
 ---
 # Review: 052-integracao-businessmap (E2.13, F1 do coletor do BusinessMap, CLI do spike, K-182)
 
-**Veredito: aprovado** em `96b1621` (revalidação E2.17, abaixo). A rodada 1 (E2.13, `47695dc`, reprovada por A1 e A2) fica registrada nas seções seguintes, como foi escrita.
+**Veredito: aprovado** em `0714135` (revalidação E2.26, abaixo). Não há achado bloqueante. Ficam quatro recomendados: A6 e A8, que vêm de antes, e A10 e A11, novos. A revalidação E2.17 (`96b1621`, aprovado) e a rodada 1 (E2.13, `47695dc`, reprovada por A1 e A2) ficam registradas nas seções seguintes, como foram escritas.
+
+## Revalidação E2.26 (volta 2, E2.24, 0714135)
+
+Delta lido: `ec342e6..0714135`, que tem dois commits:
+- `c58d648`: merge da develop com a F0 (PR 178) e o coletor do Acelerato (PR 175);
+- `0714135`: a volta 2.
+
+O `forge-check delta --parecer docs/reviews/052-f1-spike.md` usa o intervalo `96b1621..a62687c`. Ele lista também o que entrou pela develop (ADRs, plano, `data-model.md`, o módulo do Acelerato e as migrações 0016 a 0019), que já tem review próprio nos PRs 174, 175 e 178. Esse conteúdo fica como "já lido". A prova de que o merge não alterou nada fora da F1 é `git diff --stat a4823bb 0714135`: contra a develop, só aparecem os 9 arquivos de código e teste da F1 e os 3 pareceres.
+
+Do código da F1, li o commit `0714135` inteiro:
+- `spike-lista.ts`: 27 linhas a mais e 12 a menos;
+- `spike.ts`: 22 a mais e 6 a menos;
+- `spike-businessmap.test.ts`: 155 a mais e 73 a menos;
+- a remoção de `0016_bm_referencia_workflow_tipo_times.ts` e `0017_bm_carga_inicial_times.ts`.
+
+Também li, no plano da worktree 052d, a seção F1 (linhas 128 a 138) e a regra das H-8 a H-11, H-23 e H-26 (linha 148 e §11). A volta 2 não muda essa regra, só a leitura da forma.
+
+Não li o `.env` nem os JSON brutos, não chamei o BusinessMap e não rodei `bm:spike`. A única execução foi `vitest run tests/spike-businessmap.test.ts` contra o servidor falso (1 arquivo, 36 testes, todos passaram). O verde do `pnpm run pronto` fica com o QA (E2.27). A segurança revalidou a volta em `a62687c` (aprovado, com o recomendado A4 para a F3). Este review cita esse parecer e não o refaz.
+
+### O que a volta 2 mudou
+
+- **Folhas pela forma real** (`spike-lista.ts:50-69`). Por workflow, as folhas vêm de `workflows[id].bottom_columns`. A coluna é lida no mapa `columns` pelo id, e o pai é lido no mesmo mapa por `parent_column_id`. Um id de `bottom_columns` com filhas em `child_columns` é ignorado, por defesa. A seção da filha sem seção cai para a do pai.
+  - A aplicação das H-8 a H-11, H-23 e H-26 (`:70-110`) é a mesma da E2.17, agora sobre a coluna achada no mapa. Confere.
+  - Os testes de H-11, H-23 e H-26 foram reescritos na forma real (`estruturaReal`, ids e nomes inventados, sem pessoa) e continuam provando as mesmas regras.
+  - Testes novos: `:661` (folhas de `bottom_columns`, pai fora da lista e seção do pai), `:685` (pai listado em `bottom_columns` não vira folha) e `:691` (`contarColunas`).
+  - A execução real de 2026-10-31 10:47 deu 859 folhas e 82 candidatas. É a evidência de que a forma bate com o quadro.
+- **Código 3 com zero folhas** (`spike.ts:284-290` e `:348`). Se há colunas e nenhuma folha, o programa registra um aviso no relatório, grava os dois arquivos e sai com código 3. O erro traz o último aviso, que é esse, porque nada é empilhado entre `:288` e `:348`. Sem colunas (quadro vazio), o código é 0. Testes em `:318` e `:329`. A entrada passa o código ao processo (`spike-businessmap.ts:30`). Confere.
+- **Sonda de data com hora primeiro** (`spike.ts:77` e `:205-226`). O formato com hora vai primeiro. Se ele for recusado e a data simples for aceita, a recusa sai dos avisos e vira nota no relatório (`:315`). Se os dois forem recusados, os avisos ficam. Teste em `:300-310`: nenhum pedido com a data simples quando a data com hora é aceita, e a nota sai com `Avisos` igual a "(nenhum)". Confere, com o A10.
+- **Merge da develop.** Os 12 conflitos foram resolvidos pela versão da develop.
+  - `http.ts` difere da develop só pelo bloco `EXPAND_CARDS` e `CONSULTA_CARDS` e pela escolha da consulta permitida em `/cards` (`:43-48` e `:203`). É a mudança já aceita no escopo da F1, e o A6 continua a valer.
+  - O `.env.example` e as migrações são iguais aos da develop (o `git diff a4823bb 0714135` não os lista).
+  - Os arquivos antigos 0016 e 0017 da F0 saíram. Na árvore ficam 0016 e 0017 do Acelerato e 0018 e 0019 da F0, como na develop.
+
+### Estado de cada achado
+
+- **A6 segue recomendado.** É o registro na ADR 0022, com o software-architect, depois do merge da F1.
+- **A8 segue recomendado.** A deduplicação está em `spike.ts:134`, ainda sem teste.
+- **A9 resolvido** por outro caminho (`spike-lista.ts:57`). O id do workflow passa a ser a própria chave do mapa quando ela é numérica, que é a forma real (o objeto do workflow não traz `workflow_id`). Chave fora do padrão vira `<chave>`. Testes em `:637`, onde a chave '77' sai '77', e em `:697`, onde 'a|b`c' sai `<chave>`.
+
+### Achados novos
+
+- **A10 (recomendado).** Em `spike.ts:219-223`, qualquer falha não fatal do primeiro formato vai para a nota "recusado pela API na sonda (400 ...)" quando o segundo formato é aceito, e isso vale também para um 500 ou para um tempo esgotado. O efeito é só no texto do relatório.
+- **A11 (recomendado).** Em `spike-lista.ts:60`, um workflow com colunas e `bottom_columns` vazio ou ausente não gera nenhuma linha nem a marca H-23. Se outros workflows têm folhas, o total fica acima de zero, o código 3 não sai e o dono não vê esse workflow na lista.
+
+A seção da filha cai só um nível, para a do pai. Quando falta a seção na folha e no pai, a folha sai com "CONFERIR: folha sem seção" e fica visível na lista. Por isso não é achado.
+
+### Teto M14 na revalidação
+
+O código e o teste da F1 somam 1435 linhas contra a develop: `git diff --numstat --no-renames a4823bb 0714135`, sem os `.md`, com 1433 linhas a mais e 2 a menos. A exceção continua aceita pelos mesmos motivos: um comportamento só e a mesma CLI. A linha do PR passa a ser `teto: excedido, 1435 linhas, CLI única do spike F1: relatório de forma e lista de conferência saem da mesma execução manual, nunca agendada`. Sem essa linha, ou com um número antigo, o teto vira achado bloqueante quando o PR for aberto.
 
 ## Revalidação E2.17 (volta E2.15, 96b1621)
 
@@ -114,7 +163,11 @@ A linha precisa estar no PR. Sem ela, o teto excedido vira achado bloqueante qua
 
 ## Achados
 - A6 (recomendado) server/src/plataforma/http.ts:45 · state e expand em /cards ainda sem registro na ADR 0022 (ou no k084); fica com o software-architect em cartão próprio, depois do merge da F1.
-- A8 (recomendado) server/src/modulos/businessmap/spike.ts:133 · a deduplicação dos quadros não tem teste; com o wx, um id repetido em BUSINESSMAP_QUADROS_IDS pararia com código 1. Sugestão: teste com '10,10' que confira uma só leitura por quadro e o código 0.
+- A8 (recomendado) server/src/modulos/businessmap/spike.ts:134 · a deduplicação dos quadros não tem teste; com o wx, um id repetido em BUSINESSMAP_QUADROS_IDS pararia com código 1. Sugestão: teste com '10,10' que confira uma só leitura por quadro e o código 0.
+- A10 (recomendado) server/src/modulos/businessmap/spike.ts:219 · qualquer falha não fatal do 1º formato (500, tempo esgotado) vira nota "recusado pela API na sonda (400)" se o 2º passa. Sugestão: só mover para a nota o aviso de 400; o resto fica nos avisos.
+- A11 (recomendado) server/src/modulos/businessmap/spike-lista.ts:60 · workflow com colunas e bottom_columns vazio ou ausente some da lista, sem linha nem marca H-23, e não dispara o código 3 se outro workflow tem folha. Sugestão: aviso ou linha CONFERIR por workflow sem folha, com teste.
+
+## Achados da revalidação E2.17 (96b1621): A9 resolvido em 0714135
 - A9 (recomendado) server/src/modulos/businessmap/spike-lista.ts:54 · sem workflow_id, a chave numérica do workflow vira `<id>`: perde o id, não casa com a exceção do arquivo e iguala workflows. Sugestão: idTexto(chave) antes de chaveSegura(chave).
 
 ## Achados da rodada 1 (E2.13, 47695dc): A1 a A5 e A7 resolvidos em 96b1621, A6 segue acima
