@@ -32,9 +32,12 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
 
 export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 
-export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO = 'aguardando tipo e domínio do campo do chamado (P-DS-19)'
-export const MOTIVO_S9_MOTIVO_PENDENCIA = 'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)'
-export const MOTIVO_S12_REGISTRO_POSTERIOR = 'aguardando fonte do registro posterior de exceção de SLA'
+export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
+  'aguardando tipo e domínio do campo do chamado (P-DS-19)'
+export const MOTIVO_S9_MOTIVO_PENDENCIA =
+  'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)'
+export const MOTIVO_S12_REGISTRO_POSTERIOR =
+  'aguardando fonte do registro posterior de exceção de SLA'
 export const MOTIVO_AGUARDANDO_PRAZOS_SLA = 'aguardando prazos de SLA por prioridade'
 export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
 

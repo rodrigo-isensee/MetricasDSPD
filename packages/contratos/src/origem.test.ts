@@ -33,7 +33,9 @@ describe('origemDaMetrica (H-13)', () => {
       'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
     )
     expect(origemDaMetrica('S12')).toBe('mock')
-    expect(motivoDaOrigemMock('S12')).toBe('aguardando fonte do registro posterior de exceção de SLA')
+    expect(motivoDaOrigemMock('S12')).toBe(
+      'aguardando fonte do registro posterior de exceção de SLA',
+    )
     expect(origemDaMetrica('EI_SUST')).toBe('mock')
     expect(motivoDaOrigemMock('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
   })
