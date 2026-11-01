@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: c71b2d96d89594b5652286c4e0de59dd80a71063
+commit: 13741a407e5ffe2b13ba5a486c5b161f8318ede3
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,15 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.100, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `docs/ux/052-f6-painel-revisao.md` entrou na branch depois dele (`c44bc7b`). Antes de renovar, a `develop` avançou de `81fcd63` para `4a01e39` (PR 182, atualização de dependências de desenvolvimento) e entrou por merge, sem conflito (`13741a4`). Delta lido, e só ele, pelo `forge-check delta --parecer docs/reviews/052-ws1-estrutura.md` (`c71b2d9..13741a4`):
+
+- `docs/ux/052-f6-painel-revisao.md`: parecer de UX da F6, 41 linhas novas, só texto. Não trata do script da WS1.
+- `package.json`, `server/package.json`, `web/package.json`, `tools/docs-contratos/package.json`, `tools/pesquisa/package.json` e `pnpm-lock.yaml`: só versões de dependências de desenvolvimento (`@types/node` 26.6.5 para 26.6.6, `typescript-eslint` 8.72.0 para 8.72.1 e afins), vindas da `develop`. O script `bm:diagnostico` e as dependências de execução seguem iguais.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. Os outros arquivos do intervalo são pareceres de outros papéis (QA, segurança). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `13741a4`.
 
 ## Renovação por delta (E2.97, 2026-11-01)
 
