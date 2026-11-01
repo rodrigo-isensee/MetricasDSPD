@@ -22,6 +22,11 @@ describe('config', () => {
     expect(() => carregarConfigApi({ PG_API_URL: 'mysql://x:senha-secreta@h/d' })).toThrow('variáveis: PG_API_URL');
     try { carregarConfigApi({ PG_API_URL: 'mysql://x:senha-secreta@h/d' }); } catch (e) { expect(String(e)).not.toContain('senha-secreta'); }
     expect(carregarConfigApi({ PG_API_URL: PG, DADOS_FONTE: 'real' }).DADOS_FONTE).toBe('real');
+    // F6 do 052: prefixo da base do seed (modo de duas bases); vazio = ausente; inválido reprova só pelo nome da variável
+    expect(carregarConfigApi({ PG_API_URL: PG }).DSPD_SCHEMA_PREFIXO_SEED).toBeUndefined();
+    expect(carregarConfigApi({ PG_API_URL: PG, DSPD_SCHEMA_PREFIXO_SEED: '' }).DSPD_SCHEMA_PREFIXO_SEED).toBeUndefined();
+    expect(carregarConfigApi({ PG_API_URL: PG, DSPD_SCHEMA_PREFIXO_SEED: 'seed_' }).DSPD_SCHEMA_PREFIXO_SEED).toBe('seed_');
+    expect(() => carregarConfigApi({ PG_API_URL: PG, DSPD_SCHEMA_PREFIXO_SEED: 'Seed;DROP' })).toThrow('variáveis: DSPD_SCHEMA_PREFIXO_SEED');
     expect(() => carregarConfigApi({ PG_API_URL: PG, DADOS_FONTE: 'x' })).toThrow('DADOS_FONTE');
     expect(() => carregarConfigApi({ PG_API_URL: PG, PORT: '0' })).toThrow('PORT');
   });

@@ -11,6 +11,14 @@ export async function lerEquipesBM(db: Consultavel, S: Esquemas = esquemasDoAmbi
   return r.rows.map((x) => x.equipe);
 }
 
+/** Times ativos da tabela de times (vigência aberta): o filtro de equipe do painel operacional real. Nenhuma agregação por time. */
+export async function lerTimesAtivos(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
+  const r = await db.query<{ nome: string }>(
+    `SELECT DISTINCT nome FROM ${S.bm}.ref_time WHERE vigente_ate IS NULL AND ativo = true ORDER BY nome`);
+  return r.rows.map((x) => x.nome);
+}
+
+
 /** Sistemas vigentes do domínio `sistema` da referência do BusinessMap (código -> rótulo). */
 export async function lerSistemasBM(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<OpcaoLinha[]> {
   const r = await db.query<{ codigo: string; rotulo: string }>(

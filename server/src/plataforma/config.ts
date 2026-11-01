@@ -24,6 +24,8 @@ const esquemaApi = z.object({
   // Fonte dos dados: 'mock' (padrão atual, base semeada) liga as extensões mockadas; 'real' as desliga.
   DADOS_FONTE: z.enum(['mock', 'real']).default('mock'),
   HOST: z.string().min(1).default('0.0.0.0'),
+  // F6 do plano 052: prefixo dos schemas da base do SEED. Definido liga o modo de duas bases (DSPD_SCHEMA_PREFIXO = base real).
+  DSPD_SCHEMA_PREFIXO_SEED: vazioIndefinido(z.string().regex(/^[a-z][a-z0-9_]{0,30}$/).optional()),
   // Webhook do BusinessMap (S-12): as duas variáveis juntas ligam a rota; nenhuma, a rota não existe.
   PG_WEBHOOK_URL: vazioIndefinido(urlPg.optional()),
   WEBHOOK_BM_SEGREDO: vazioIndefinido(z.string().min(16, 'segredo curto').optional()),

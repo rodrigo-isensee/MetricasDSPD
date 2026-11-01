@@ -104,7 +104,7 @@ describe('projetarBusinessMap (F4)', () => {
 
   it('SCD2: versão igual não gera versão; atributo mudado gera uma, com vigente_de depois da anterior; o conjunto de responsáveis é copiado', async () => {
     const atual = (id: string, titulo: string, vigente: string) => ({
-      card_id: id, vigente_de: new Date(vigente), responsaveis: ['7'], titulo, tipo: 'bug_interno', granularidade: 'story', equipe: 'Time A', quadro_id: 'Q', coluna_atual_id: '3', card_pai: null,
+      card_id: id, vigente_de: new Date(vigente), responsaveis: ['7'], titulo, tipo: 'Bug interno', granularidade: 'story', equipe: 'Time A', quadro_id: 'Q', coluna_atual_id: '3', card_pai: null,
       motivo_descarte: null,
     });
     const d = montar({
