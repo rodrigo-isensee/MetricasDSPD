@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 802fad35547cc51bce8571ea74bd91cf58b75e60
+commit: 52c201ea9b6949a9188fcea0f18c68e52e5bcfe4
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,14 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.124, 2026-11-01, segunda)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque `e2e/tests/intensivo-filtros.spec.ts` mudou depois dele (E2.132, `52c201e`). Delta lido, e só ele: `git diff a96f4f6..52c201e` (um arquivo, 1 linha a mais e 1 a menos).
+
+- `e2e/tests/intensivo-filtros.spec.ts:21`: a constante `TIPOS` ganha `trabalho-produto` no fim, por causa do tipo novo da ADR 0024. É teste E2E do painel; o script da WS1 (`bm:diagnostico`) não o toca nem é tocado por ele.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. Segurança (`docs/security/052-fix-test-pg.md`, `5d22083`) e QA (`docs/qa/052-ws1-estrutura.md`, `7583385`) renovaram os deles sobre o mesmo commit. Conclusão: nenhum achado novo, e o parecer segue aprovado em `52c201e`.
 
 ## Renovação por delta (E2.124, 2026-11-01)
 
