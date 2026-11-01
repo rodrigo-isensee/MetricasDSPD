@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: ac47bf16c9443bae8cb20cd8f39f3a3a72478c7f
+commit: f763d6acffca29233c78966abe44882be10c1daa
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,15 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.87, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref origin/feature/052-fix-coleta --base origin/develop` marcou este parecer como desatualizado porque o `docs/integracao/businessmap-api-configuracao.md` mudou na correção da coleta real (`f763d6a`, E2.83). O `forge-check delta --parecer` não roda aqui (`ac47bf1` não é ancestral de `c2adacb`, a branch nasceu do squash `55301e0`); o delta lido foi `git diff 55301e0..f763d6a -- docs/integracao/businessmap-api-configuracao.md`, e só ele.
+
+- §4.2 (cards): uma nota de que `archived_from`/`discarded_from` com data pura dão 400 e o coletor manda `AAAA-MM-DDT00:00:00Z`; uma linha nova de que `co_owner_ids` é valor de `expand`, não de `fields`, seguindo só em memória (ADR 0020, 4b e 4c). As duas tratam da listagem de `/cards` da coleta; o script da WS1 não lê cards (`diagnostico.ts` sem `co_owner_ids` nem filtro de data).
+- `.env.example` e `server/package.json` não mudaram na branch (`git diff 55301e0..f763d6a` sem eles); o que mudou desde `ac47bf1` veio do PR 185 do Acelerato (`PG_REF_URL` e `ac:ref-sync`), sem tocar as variáveis nem o `bm:diagnostico` da WS1.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código da correção tem pareceres próprios (`docs/reviews/052-fix-coleta.md`, `docs/security/052-fix-coleta.md`, `docs/qa/052-fix-coleta.md`), e o QA renovou o dele (`docs/qa/052-ws1-estrutura.md`, E2.88, `c2adacb`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `f763d6a`.
 
 ## Renovação por delta (E2.62, 2026-11-01)
 
