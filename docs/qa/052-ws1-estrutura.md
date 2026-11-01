@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f6-painel
-commit: c71b2d96d89594b5652286c4e0de59dd80a71063
+commit: 4ad0045b0226b57a32efd5c45e2c08aac28506c0
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -77,6 +77,9 @@ Veredito: aprovado, mantido. O parecer ficou desatualizado porque `docs/integrac
 Veredito: aprovado, mantido. O parecer ficou desatualizado porque o `.env.example` mudou na `feature/052-f6-painel`. Delta lido (`git diff 8650fb9..HEAD`, só os caminhos que este parecer cobre): `.env.example` ganhou `PG_REF_URL` (papel de referência do Acelerato, pedido 056) e uma linha comentada `DSPD_SCHEMA_PREFIXO_SEED` (modo de duas bases da F6); o bloco do BusinessMap e as variáveis que o script lê não mudaram. `server/package.json` ganhou `ac:ref-sync` (056); `bm:diagnostico` está na raiz e não mudou. Os arquivos `diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh` e `server/tests/diagnostico-businessmap.test.ts` não mudaram no delta, então as obrigações e resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações.
 
 Os testes do diagnóstico estão dentro da suíte do servidor, que rodou verde sobre o head `3e8f3bd` (`.pg` 168 de 168 e web 1254 de 1254, registrados em `docs/qa/052-f6-painel.md`); o diagnóstico em si não mudou, então não houve rodada própria nem mutante novo. Sem chamada ao BusinessMap; o `.env` não foi lido.
+
+## Renovação por delta (E2.106, depois do parecer de UX c44bc7b)
+Veredito: aprovado, mantido. O parecer ficou desatualizado pelo commit do parecer de UX (`c44bc7b`, só `docs/ux/052-f6-painel-revisao.md`). Delta lido (`git diff --stat 757d3b6..4ad0045`): um único arquivo, `docs/security/052-fix-coleta.md`, e `git diff c71b2d9..4ad0045 --stat` mostra só pareceres em `docs/` (qa, reviews, security, ux). Nenhum código, `.env.example`, `server/package.json` nem arquivo do diagnóstico mudou, então as obrigações e resultados das tabelas abaixo continuam valendo e A1 a A3 seguem como recomendações. Sem rodada de suíte nem mutante novo (delta só de documento); o `.env` não foi lido e não houve chamada ao BusinessMap.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).
