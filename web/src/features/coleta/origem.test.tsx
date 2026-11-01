@@ -137,6 +137,20 @@ describe('painel com API real: selo por cartão e nota do cabeçalho', () => {
   })
 })
 
+describe('Visão geral: origem de VISAO_GERAL (A1 do review da F6)', () => {
+  it('com a API real mostra o selo "Dados fictícios", mesmo resumindo métricas reais', async () => {
+    renderizarApp('/', fonteApi())
+    const origem = await screen.findByTestId('origem-visao-geral')
+    expect(within(origem).getByTestId('selo-ficticio')).toHaveTextContent('Dados fictícios')
+  })
+
+  it('com a fonte mock não há selo extra (o aviso global cobre)', async () => {
+    renderizarApp('/')
+    await screen.findByTestId('recorte-visao-geral')
+    expect(screen.queryByTestId('selo-ficticio')).not.toBeInTheDocument()
+  })
+})
+
 describe('painel com todas as métricas ocultas (P-5 = B)', () => {
   it('a faixa "Dados de calibração", o selo de frescor e a nota de fictícios continuam visíveis', async () => {
     ocultarTudo('operacional')

@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { describe, expect, it } from 'vitest'
+import { origemDaMetrica } from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data'
 import { gerarArquivo } from './gerar'
 import { itensDoNivel } from './selecao'
@@ -110,12 +111,13 @@ describe('gerarArquivo: contexto da fonte por cartão (P-4)', () => {
     expect(t).toContain('indispon')
   })
 
-  it('Visão geral com a API real: o nível diz se tem dado fictício e a Espera invisível do FL1 é real', async () => {
+  it('Visão geral com a API real: lê a base do seed (origem de VISAO_GERAL), então todo bloco sai fictício, até a Espera invisível do FL1', async () => {
+    expect(origemDaMetrica('VISAO_GERAL')).toBe('mock')
     const r = await gerarArquivo({ ...base(), fonte: fonteApi(), base: 'visao-geral', itens: [] })
     const t = await r.blob.text()
     expect(r.nome).not.toContain('_ficticio')
     expect(t).toMatch(/Dados fict\S+cios: sim/)
-    expect(t).toMatch(/Dados fict\S+cios: n\S+o/)
+    expect(t).not.toMatch(/Dados fict\S+cios: n\S+o/)
   })
 
   it('com a fonte mock todo cartão sai como dados fictícios', async () => {

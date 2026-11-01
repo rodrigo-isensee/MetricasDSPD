@@ -75,8 +75,7 @@ export async function gerarArquivo(p: ParametrosGeracao): Promise<ArquivoGerado>
     acelerato: await estadoDe('acelerato'),
   }
   const mock = fonte.tipo === 'mock'
-  const ficticioDeMetricas = (metricas: readonly MetricaId[]) =>
-    mock || metricas.some((m) => origemDaMetrica(m) === 'mock')
+  const ficticioDaVisaoGeral = mock || origemDaMetrica('VISAO_GERAL') === 'mock'
   const dominioDaFonte = (f: 'BusinessMap' | 'Acelerato'): Dominio =>
     f === 'Acelerato' ? 'acelerato' : 'businessmap'
   let blocos: BlocoExportacao[]
@@ -90,7 +89,9 @@ export async function gerarArquivo(p: ParametrosGeracao): Promise<ArquivoGerado>
         staleTime: Infinity,
       }),
       (f, metricas) =>
-        contextoDosDados(estados[dominioDaFonte(f)], metricas, ficticioDeMetricas(metricas)),
+        // A Visão geral é um resultado só, de uma origem só: o fictício vem da origem de VISAO_GERAL (base do seed no
+        // modo de duas bases), não da origem das métricas que ela resume.
+        contextoDosDados(estados[dominioDaFonte(f)], metricas, ficticioDaVisaoGeral),
     )
   } else {
     const opcoes: Record<Dominio, OpcoesFiltro | undefined> = {
