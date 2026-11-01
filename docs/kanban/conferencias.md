@@ -991,3 +991,8 @@
 | 2026-10-31 23:43 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-28 | brief | 4 | aprovado | s |  | — | jarvis |
 | 2026-11-01 00:21 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-42 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-01 00:23 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-25 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 02:29 | 052-integracao-businessmap | 052-integracao-businessmap-react-frontend-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 02:44 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-43 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 02:46 | 052-integracao-businessmap | 052-integracao-businessmap-ux-designer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 02:51 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-21 | brief | 1 | reprovado | s | O1 aderência sem origem | escopo | jarvis |
+| 2026-11-01 02:56 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-22 | brief | 2 | aprovado | s |  | — | jarvis |
