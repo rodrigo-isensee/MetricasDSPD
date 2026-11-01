@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f6-painel
-commit: 8650fb9690342fcdf4d17c7d98bc0bf00ce31b94
+commit: c71b2d96d89594b5652286c4e0de59dd80a71063
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -63,6 +63,18 @@ Sem mutante para o nome do time vazar no resultado: não achei linha de produç�
 - A1 (recomendado) packages/contratos/src/origem.ts:30 · O19 a O26 saem fictícias com selo, mas sem motivo próprio (só O8, O12, O14 a O18 têm "aguardando campo no quadro"). Dizer "até a F6b" ao usuário na tela; decisão de UX (E2.74), não devolve a F6.
 - A2 (recomendado) server/src/modulos/metricas/mapa.ts:92 · Soma do limite de WIP por time no O1 segue como pergunta aberta ao dono (regra inferida pelo autor); até a resposta o O1 tende a "fora". Já registrada no review (A2) e na segurança (A3); sem teste novo do QA enquanto a regra não existe.
 - A3 (recomendado) server/tests/painel-real-f6.pg.test.ts:104 · A prova de que FL2, FL3 e Sustentação são "iguais ao mock" compara a resposta da API com a da base do seed, não com o hash do pacote mock antes da F6; é suficiente para a regra (uma origem por métrica), registrado só para quando a F6b mexer na origem.
+
+## Renovação por delta (E2.99, depois do merge da develop c71b2d9)
+Veredito: aprovado, mantido. O parecer foi dado sobre `8650fb9`; a E2.93 trouxe a develop por merge (`c71b2d9`, 7 conflitos). Delta lido (`git diff 8650fb9..HEAD`, fora de `docs/`): normalizador do BusinessMap e os testes do QA da F6 (`qa-f6-painel.test.ts`, `qa-f6-tipo-produto.test.tsx`) sem linha no delta, ou seja, a resolução manteve o lado da F6 (rótulo do contrato em `dim_card.tipo`, guard de times); o que veio da develop é a correção da coleta (`coleta.ts`, `http.ts` com `co_owner_ids` em `EXPAND_CARDS`), o Acelerato (`dominio-acelerato.ts`, `ref-sync-ac.ts`, `config.ts` com `PG_REF_URL`) e a troca de duas dependências do web (`@tanstack/react-query` 5.105.0 e `react-router` 8.5.1). Nada disso toca `origem.ts`, `rotas.ts` nem `mapa.ts` da F6.
+
+Reexecução sobre o head `3e8f3bd` (o mesmo código de `c71b2d9`; os commits depois dele são só de parecer), uma suíte por vez, PostgreSQL local do Compose, BusinessMap real nunca chamado, `.env` não lido:
+| Suíte | Comando | Resultado |
+|---|---|---|
+| Servidor `.pg` | `pnpm run test:pg` | 26 arquivos, 168 testes, todos verdes (38 s); eram 152 em 8650fb9, os 16 a mais vêm da develop (domínio do Acelerato, projetor do QA da F4) |
+| Web | `pnpm --filter @metricas-dspd/web test` | 82 arquivos, 1254 testes, todos verdes (128 s); roda por causa das duas dependências trocadas |
+| Servidor unitário, só o que o delta toca | `vitest run --project unit qa-f6-painel http.test coleta-businessmap` | 3 arquivos, 73 testes verdes |
+
+Obrigações da tabela acima seguem com o mesmo resultado: os testes que as guardam (origem exata, uma base por métrica, abaixo de 20, nada de time comparado, `fetch` proibido, filtro de tipo) estão entre os verdes. Sem mutante novo: nenhuma linha de produção da F6 mudou no merge. A1 a A3 seguem como recomendações.
 
 ## Riscos
 Dado real ainda não foi servido (carga inicial E2.58 por rodar): os testes usam banco falso e `.pg` com fixtures, não o quadro real. P-3 conferida cartão a cartão sobre n = 2; com a carga real o número de cartões "insuficiente" muda, a regra não. `.env.example` sem `DSPD_SCHEMA_PREFIXO_SEED` (segurança A2) fica para o dono.

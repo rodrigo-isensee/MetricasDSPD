@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-fix-coleta
-commit: f763d6acffca29233c78966abe44882be10c1daa
+branch: feature/052-f6-painel
+commit: c71b2d96d89594b5652286c4e0de59dd80a71063
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -72,6 +72,11 @@ Veredito: aprovado, mantido. O parecer ficou desatualizado porque `docs/integrac
 - `server/package.json`: uma linha nova, `ac:ref-sync` (056); `bm:diagnostico` está na `package.json` da raiz e não mudou.
 
 `git diff c0c4aee..f763d6a` sobre `server/src/modulos/businessmap/diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh`, `server/tests/diagnostico-businessmap.test.ts`, `server/src/modulos/businessmap/index.ts` e `docs/architecture/data-model.md`: vazio. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. Sem suíte, sem mutantes e sem chamada ao BusinessMap, como pedido (delta só de documento e configuração alheia ao script); a correção da coleta tem parecer próprio em `docs/qa/052-fix-coleta.md`. O `.env` não foi lido. Parecer regravado pelo papel qa na E2.90, sem mudança de veredito.
+
+## Renovação por delta (E2.99, depois do merge da develop c71b2d9)
+Veredito: aprovado, mantido. O parecer ficou desatualizado porque o `.env.example` mudou na `feature/052-f6-painel`. Delta lido (`git diff 8650fb9..HEAD`, só os caminhos que este parecer cobre): `.env.example` ganhou `PG_REF_URL` (papel de referência do Acelerato, pedido 056) e uma linha comentada `DSPD_SCHEMA_PREFIXO_SEED` (modo de duas bases da F6); o bloco do BusinessMap e as variáveis que o script lê não mudaram. `server/package.json` ganhou `ac:ref-sync` (056); `bm:diagnostico` está na raiz e não mudou. Os arquivos `diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh` e `server/tests/diagnostico-businessmap.test.ts` não mudaram no delta, então as obrigações e resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações.
+
+Os testes do diagnóstico estão dentro da suíte do servidor, que rodou verde sobre o head `3e8f3bd` (`.pg` 168 de 168 e web 1254 de 1254, registrados em `docs/qa/052-f6-painel.md`); o diagnóstico em si não mudou, então não houve rodada própria nem mutante novo. Sem chamada ao BusinessMap; o `.env` não foi lido.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).
