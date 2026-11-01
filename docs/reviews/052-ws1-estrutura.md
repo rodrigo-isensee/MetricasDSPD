@@ -3,14 +3,24 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 3ad39f80bd36024d7e5819d2844070d7d95b1bb8
+commit: ac47bf16c9443bae8cb20cd8f39f3a3a72478c7f
 parecer: aprovado
 revisor: forge:tech-lead
-data: 2026-10-31
+data: 2026-11-01
 ---
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.62, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref origin/feature/052-f4-projetor --base origin/develop` marcou este parecer como desatualizado porque o `docs/architecture/data-model.md` mudou na F4 (`783612d`). O `docs/architecture/data-model.md` de `3ad39f8` é igual ao de `dd15c93` (o squash da F3). Delta lido, e só ele: `git diff dd15c93..ac47bf1 -- docs/architecture/data-model.md server/package.json server/src/modulos/businessmap/index.ts`.
+
+- `docs/architecture/data-model.md`: um bloco novo na §3.3, a projeção do BusinessMap da F4 (`fato_transicao`, `dim_card.tipo`, granularidade e equipe, marcos, descarte, `card_pai`, `dim_card_versao` e a reconstrução que preserva `dim_responsavel`). Trata de tabelas que o script da WS1 não lê nem grava.
+- `server/package.json`: uma linha nova, o script `bm:projetar`. O `bm:diagnostico` segue igual; nenhuma dependência nova.
+- `server/src/modulos/businessmap/index.ts`: o tipo `ResultadoComando` e os exports do projetor e do normalizador. O export do `diagnosticar` segue igual, e o `index.ts` continua sem efeito colateral ao importar.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código novo tem parecer próprio (`docs/reviews/052-f4-projetor.md`, aprovado em `ac47bf1`). O QA renovou o dele (`docs/qa/052-ws1-estrutura.md`, E2.80, `5ec6a4b`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `ac47bf1`.
 
 ## Renovação por delta (E2.50, 2026-10-31)
 
