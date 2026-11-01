@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 056-acelerato-mysql
 branch: feature/056-carga-inicial
-commit: bf5cfd5dc779e6f6d1403bfabdcef72a33175598
+commit: 180f2464dad1e739357ee3162a27d8aa4d306fab
 parecer: aprovado
 revisor: tech-lead
 data: 2026-10-31
@@ -51,4 +51,19 @@ Delta lido: `git diff ee8fca1..bf5cfd5` (8 arquivos, +126 -16: 6e3b062 e bf5cfd5
 
 Teto recontado (`git diff --numstat --no-renames 0783caa...bf5cfd5`, `server/src`, `server/tests`, `server/package.json`): **582 linhas** (era 476; a volta soma 106, com o teste de entrada novo). Mesmo comportamento único, exceção mantida. O PR da E4.31 leva `teto: excedido, 582 linhas, comando ac:ref-sync: sincronização do ref_dominio do Acelerato a partir do arquivo versionado (vigência, versão T2.6, testes contra PostgreSQL)`.
 
-Parecer: **aprovado** em bf5cfd5. Pendem o QA (E4.27) e a segurança por delta (E4.35).
+Parecer em bf5cfd5: aprovado.
+
+## Renovação por delta (E4.36, ponta 180f246)
+Delta lido: `git diff 3317ea9..180f246` (6 arquivos, +165 -24): `acelerato-dominio.json` e `acelerato-listas.md` (180f246, E4.32) e os testes `.qa.` de 6e52cff, mais os pareceres de QA e de segurança, que não revisei. Já lido e não relido: o "O que confere" e a revalidação de bf5cfd5, porque nenhum arquivo de `server/src` mudou no delta.
+
+- **Chaves do recorte (180f246).** O JSON ganha `tipo_recorte` (23), `organizacao_recorte` (3) e `equipe` (7, 9, 332). Os três campos estão em `CAMPOS_DOMINIO` e em `CAMPOS_DE_CHAVE`, e as chaves são numéricas em texto decimal, como o validador exige. A `versao_criterio` e a `regra` foram atualizadas, então o hash muda e a próxima sincronização grava vigência e versão T2.6 novas. É o efeito esperado.
+- **Dado sem pessoa nem cliente.** Só nomes de tipo, de fila e de equipes do DSPD, sem `@`. A organização e as equipes batem com as decisões do dono de 2026-10-31 20:10 e de 2026-11-01 06:51, e a fila antiga ficou fora porque a consulta não a achou (nada foi inferido).
+- **Listas §4 a §6.** As tabelas dizem o mesmo que o JSON (23; 3; 7, 9 e 332). O texto da fila antiga registra o que a consulta achou e que ESCRITORIO DE PROJETO e INTERNO ficam fora. Bate com o `acelerato-dominio.json`.
+- **Testes `.qa.`.** O unitário prova que o comando e o módulo não importam driver MySQL nem outra fonte e que o validador recusa `@` e invisíveis. O `.pg` prova os 42501 do coletor, do `dspd_ref` e da API. O mínimo de itens está afirmado no teste do arquivo real. Sem achado.
+- **Achado novo:** nenhum. A3 segue aberto como recomendado (pergunta ao dono sobre as métricas a marcar), sem travar a carga.
+
+Ferramenta: autor, `test:pg` verde com 21 arquivos e 126 testes (Histórico do pedido, 180f246); não refeita aqui.
+
+Teto recontado (`git diff --numstat --no-renames origin/develop...HEAD`, `server/src`, `server/tests`, `server/package.json`): **659 linhas** (582 mais 77 dos dois testes `.qa.`). Mesmo comportamento único, exceção mantida: o PR da E4.31 leva `teto: excedido, 659 linhas, comando ac:ref-sync: sincronização do ref_dominio do Acelerato a partir do arquivo versionado (vigência, versão T2.6, testes contra PostgreSQL)`.
+
+Parecer: **aprovado** em 180f246. Pendem as renovações da segurança (E4.37) e do QA (E4.38).
