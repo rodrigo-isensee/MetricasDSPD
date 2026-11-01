@@ -40,6 +40,12 @@ d('limpar-seed contra PostgreSQL 17 (seed e carga real juntos no mesmo esquema)'
     await db.query(`INSERT INTO ${E.ac}.dim_chamado (chamado_id, aberto_em, coletado_em, atualizado_por_coleta_id) VALUES ('A9001', now(), now(), $1)`, [realAc]);
     await db.query(`INSERT INTO ${E.ac}.fato_etapa_chamado (chamado_id, etapa, entrada, coletado_em, atualizado_por_coleta_id) VALUES ('A9001', 'aberto', now(), now(), $1)`, [realAc]);
     await db.query(`INSERT INTO ${E.ac}.ref_alvo_prioridade (prioridade, vigente_de, prazo_pa_horas_uteis, prazo_r_horas_uteis) VALUES ('REAL', '2026-03-03', 1, 2)`);
+    // versão de critério real (BusinessMap e Acelerato) com métrica: não pode sair
+    for (const dominio of ['businessmap', 'acelerato']) {
+      const v = await db.query<{ versao_id: string }>(`INSERT INTO ${E.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
+        VALUES ('2026-05-05', $1, 'Mudança real', 'Mudança de processo real', $2, now()) RETURNING versao_id`, [dominio, `real:${dominio}`]);
+      await db.query(`INSERT INTO ${E.core}.ref_versao_criterio_metrica (versao_id, metrica_id) VALUES ($1, 'O1')`, [v.rows[0]!.versao_id]);
+    }
     return { E, real, realAc };
   }
 
@@ -59,12 +65,16 @@ d('limpar-seed contra PostgreSQL 17 (seed e carga real juntos no mesmo esquema)'
       await q(`SELECT * FROM ${E.ac}.fato_etapa_chamado WHERE atualizado_por_coleta_id = $1`, [realAc]),
       await q(`SELECT * FROM ${E.ac}.ref_alvo_prioridade WHERE prioridade = 'REAL'`),
       await q(`SELECT * FROM ${E.ac}.ctl_coleta WHERE coleta_id = $1`, [realAc]),
+      await q(`SELECT * FROM ${E.core}.ref_versao_criterio WHERE referencia LIKE 'real:%' ORDER BY versao_id`),
+      await q(`SELECT m.* FROM ${E.core}.ref_versao_criterio_metrica m JOIN ${E.core}.ref_versao_criterio v USING (versao_id) WHERE v.referencia LIKE 'real:%' ORDER BY m.versao_id`),
     ]);
   }
   const contagens = async (E: Esquemas): Promise<number[]> => [
     ...await Promise.all(['dim_card', 'fato_transicao', 'fato_bloqueio', 'ctl_coleta', 'stg_card', ...ref].map((t) => n(`${E.bm}.${t}`))),
     ...await Promise.all(['dim_chamado', 'fato_etapa_chamado', 'ctl_coleta', 'ref_alvo_prioridade'].map((t) => n(`${E.ac}.${t}`))),
+    ...await Promise.all(['ref_versao_criterio', 'ref_versao_criterio_metrica'].map((t) => n(`${E.core}.${t}`))),
   ];
+  const doSeedNoCore = `motivo = 'seed-mock' AND dominio IN ('businessmap', 'acelerato') AND referencia LIKE 'mock:%'`;
 
   beforeAll(() => { db = poolDe(); });
   afterAll(async () => {
@@ -78,8 +88,17 @@ d('limpar-seed contra PostgreSQL 17 (seed e carga real juntos no mesmo esquema)'
     const antes = await contagens(E);
     expect(await n(`${E.bm}.dim_card`)).toBe(base.bm.cards.length + 1);
 
+    const versoesSeed = await n(`${E.core}.ref_versao_criterio`, doSeedNoCore);
+    const versoesPesquisa = await n(`${E.core}.ref_versao_criterio`, "dominio = 'pesquisa'");
+    const versoesReais = await n(`${E.core}.ref_versao_criterio`, "dominio <> 'pesquisa' AND NOT (motivo = 'seed-mock')");
+    expect(versoesSeed).toBeGreaterThan(0);
+    expect(versoesPesquisa).toBeGreaterThan(0);
+    expect(versoesReais).toBeGreaterThanOrEqual(2);
+
     const sim = await limparSeed(db, { aplicar: false, S: E });
     expect(sim.modo).toBe('simulacao');
+    expect(sim.criterios.tabelas.ref_versao_criterio).toBe(versoesSeed);
+    expect(sim.criterios.tabelas.ref_versao_criterio_metrica).toBeGreaterThan(0);
     expect(sim.fontes[0]).toMatchObject({ fonte: 'businessmap', coletas: 2 });
     expect(sim.fontes[0]!.tabelas).toMatchObject({
       dim_card: base.bm.cards.length, fato_transicao: base.bm.transicoes.length, fato_bloqueio: base.bm.bloqueios.length,
@@ -92,6 +111,13 @@ d('limpar-seed contra PostgreSQL 17 (seed e carga real juntos no mesmo esquema)'
     const ap = await limparSeed(db, { aplicar: true, S: E });
     expect(ap.modo).toBe('aplicado');
     expect(ap.fontes.map((f) => f.tabelas)).toEqual(sim.fontes.map((f) => f.tabelas));
+    expect(ap.criterios).toEqual(sim.criterios);
+    // as versões do seed (businessmap e acelerato) saem com as métricas; a real, a da carga de times e a de pesquisa ficam
+    expect(await n(`${E.core}.ref_versao_criterio`, doSeedNoCore)).toBe(0);
+    expect(await n(`${E.core}.ref_versao_criterio_metrica`, `versao_id NOT IN (SELECT versao_id FROM ${E.core}.ref_versao_criterio)`)).toBe(0);
+    expect(await n(`${E.core}.ref_versao_criterio`, "dominio = 'pesquisa'")).toBe(versoesPesquisa);
+    expect(await n(`${E.core}.ref_versao_criterio`, "dominio <> 'pesquisa' AND NOT (motivo = 'seed-mock')")).toBe(versoesReais);
+    expect(await n(`${E.core}.ref_versao_criterio`, "referencia LIKE 'real:%'")).toBe(2);
     // só a carga real sobra, idêntica, e nenhuma linha de coleta do seed
     expect(await fotoReal(E, real, realAc)).toBe(foto);
     expect(await n(`${E.bm}.dim_card`)).toBe(1);
@@ -109,6 +135,7 @@ d('limpar-seed contra PostgreSQL 17 (seed e carga real juntos no mesmo esquema)'
     const depois = await contagens(E);
     const segunda = await limparSeed(db, { aplicar: true, S: E });
     expect(segunda.fontes).toEqual([{ fonte: 'businessmap', coletas: 0, tabelas: {} }, { fonte: 'acelerato', coletas: 0, tabelas: {} }]);
+    expect(segunda.criterios).toEqual({ tabelas: {} });
     expect(await contagens(E)).toEqual(depois);
     expect(await fotoReal(E, real, realAc)).toBe(foto);
   });
@@ -166,6 +193,35 @@ d('limpar-seed contra PostgreSQL 17 (seed e carga real juntos no mesmo esquema)'
     const antes = await contagens(E);
     await expect(limparSeed(db, { aplicar: true, S: E })).rejects.toThrow(/ref_quadro: 1 linha\(s\) com a chave do seed e conteúdo de outra origem/);
     expect(await contagens(E)).toEqual(antes);
+  });
+
+  it('falha fechada: linha real (ref_time) apontando para versão de critério do seed não deixa remover nada', async () => {
+    const { E } = await cenario();
+    const v = (await db.query<{ versao_id: string }>(`SELECT min(versao_id) AS versao_id FROM ${E.core}.ref_versao_criterio WHERE ${doSeedNoCore}`)).rows[0]!.versao_id;
+    await db.query(`INSERT INTO ${E.bm}.ref_time (time_id, vigente_de, nome, ativo, motivo, versao_id, registrado_por) VALUES (9001, '2026-01-01', 'Time real', true, 'processo', $1, 'teste')`, [v]);
+    const antes = await contagens(E);
+    await expect(limparSeed(db, { aplicar: true, S: E })).rejects.toThrow(/ref_time: 1 linha\(s\) apontam para versões de critério do seed/);
+    expect(await contagens(E)).toEqual(antes);
+  });
+
+  it('trava da tabela não vem: falha fechada (trava) e nada fica pela metade, nem o core', async () => {
+    const { E } = await cenario();
+    const antes = await contagens(E);
+    const preso = await db.connect();
+    try {
+      await preso.query('BEGIN');
+      await preso.query(`LOCK TABLE ${E.bm}.fato_transicao IN ROW EXCLUSIVE MODE`);
+      const t0 = Date.now();
+      await expect(limparSeed(db, { aplicar: true, S: E, lockTimeoutMs: 200 })).rejects.toMatchObject({ codigo: 'trava' });
+      expect(Date.now() - t0).toBeLessThan(5000);
+    } finally {
+      await preso.query('ROLLBACK');
+      preso.release();
+    }
+    expect(await contagens(E)).toEqual(antes);
+    expect(await n('pg_trigger', `tgrelid = '${E.bm}.fato_transicao'::regclass AND NOT tgisinternal AND tgenabled <> 'O'`)).toBe(0);
+    // sem a trava presa, o mesmo comando aplica
+    expect((await limparSeed(db, { aplicar: true, S: E })).modo).toBe('aplicado');
   });
 
   it('a lista de ref_* do comando cobre tudo o que o seed grava em referência (BusinessMap e Acelerato)', async () => {

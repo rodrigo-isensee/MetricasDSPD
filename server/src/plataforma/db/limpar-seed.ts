@@ -15,6 +15,8 @@ import { mapearAC, mapearBM, VERSAO_SEED, type Linha, type Tabela } from './seed
  *  - os `ref_*` saem pelas chaves que o próprio mock gera de novo a partir dos `parametros` gravados na coleta `seed-mock`
  *    (determinístico), com a chave inteira (inclusive `vigente_de`) e, onde dá, o conteúdo igual; chave igual com conteúdo diferente
  *    é linha de outra origem e o comando para;
+ *  - as versões de critério do seed em `dspd_core` (motivo `seed-mock`, referência `mock:%`, domínios businessmap e acelerato; pesquisa fica)
+ *    saem com `ref_versao_criterio_metrica`, com falha fechada se alguma linha de outra tabela apontar para elas;
  *  - FALHA FECHADA: qualquer linha ligada à coleta do seed fora das tabelas que o comando remove, qualquer linha de outra coleta
  *    com card/chamado do seed, qualquer staging com card/chamado do seed (ADR 0022), aborta tudo antes de escrever.
  * Simulação por padrão (transação somente leitura, só contagens); escrita só com `aplicar`, numa transação única para os dois esquemas.
@@ -22,7 +24,7 @@ import { mapearAC, mapearBM, VERSAO_SEED, type Linha, type Tabela } from './seed
  * COMMIT, com conferência do estado; exige o papel dono das tabelas (`dspd_migrador`). Saída só com contagens: nunca id, nome nem título.
  */
 export class ErroLimpezaSeed extends Error {
-  constructor(readonly codigo: 'uso' | 'sem-parametros' | 'ligada-a-dado-real' | 'contagem-divergente' | 'gatilho', mensagem: string) {
+  constructor(readonly codigo: 'uso' | 'sem-parametros' | 'ligada-a-dado-real' | 'contagem-divergente' | 'gatilho' | 'trava', mensagem: string) {
     super(mensagem);
     this.name = 'ErroLimpezaSeed';
   }
@@ -39,6 +41,8 @@ export interface ResultadoFonteLimpeza {
 export interface ResultadoLimpeza {
   modo: 'simulacao' | 'aplicado';
   fontes: ResultadoFonteLimpeza[];
+  /** Versões de critério do seed em `dspd_core` (domínios businessmap e acelerato): linhas por tabela. */
+  criterios: { tabelas: Record<string, number> };
 }
 
 export function analisarArgumentosLimpezaSeed(argv: readonly string[]): { aplicar: boolean } {
@@ -117,8 +121,53 @@ const valoresRef = (cols: string[], ls: Linha[]): string[][] => cols.map((c) => 
 
 interface PlanoFonte { resultado: ResultadoFonteLimpeza; escrever: () => Promise<void> }
 
+/** Espera máxima pela trava do ALTER TABLE (SHARE ROW EXCLUSIVE): na fila ela seguraria as leituras da API sobre a tabela. */
+const LOCK_TIMEOUT_PADRAO_MS = 3000;
+const DOMINIOS_DO_SEED = ['businessmap', 'acelerato'];
+const COLUNAS_DE_VERSAO = ['versao_id', 'incluido_por_versao_id'];
+
+/**
+ * Versões de critério do seed (`dspd_core.ref_versao_criterio`, motivo `seed-mock`, referência `mock:%`, domínios businessmap e
+ * acelerato; o domínio pesquisa fica) e as linhas de `ref_versao_criterio_metrica`. FALHA FECHADA: qualquer tabela dos três esquemas
+ * (por chave estrangeira ou por coluna de versão) com linha apontando para elas aborta antes de escrever.
+ */
+async function planejarCriterios(trx: Consultavel, S: Esquemas): Promise<{ tabelas: Record<string, number>; escrever: () => Promise<void> }> {
+  const core = S.core;
+  const ids = (await linhas<{ versao: string }>(trx,
+    `SELECT versao_id::text AS versao FROM ${core}.ref_versao_criterio WHERE motivo = $1 AND dominio = ANY($2::text[]) AND referencia LIKE 'mock:%' ORDER BY versao_id`,
+    [VERSAO_SEED, DOMINIOS_DO_SEED])).map((l) => Number(l.versao));
+  if (ids.length === 0) return { tabelas: {}, escrever: () => Promise.resolve() };
+
+  const porFk = await linhas<{ esquema: string; tabela: string; coluna: string }>(trx,
+    `SELECT n.nspname AS esquema, k.relname AS tabela, a.attname AS coluna FROM pg_constraint c
+     JOIN pg_class k ON k.oid = c.conrelid JOIN pg_namespace n ON n.oid = k.relnamespace JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+     WHERE c.contype = 'f' AND c.confrelid = $1::regclass AND c.conrelid <> $2::regclass`, [`${core}.ref_versao_criterio`, `${core}.ref_versao_criterio_metrica`]);
+  const porNome = await linhas<{ esquema: string; tabela: string; coluna: string }>(trx,
+    `SELECT col.table_schema AS esquema, col.table_name AS tabela, col.column_name AS coluna FROM information_schema.columns col
+     JOIN information_schema.tables t ON t.table_schema = col.table_schema AND t.table_name = col.table_name AND t.table_type = 'BASE TABLE'
+     WHERE col.table_schema = ANY($1::text[]) AND col.column_name = ANY($2::text[])
+       AND NOT (col.table_schema = $3 AND col.table_name IN ('ref_versao_criterio', 'ref_versao_criterio_metrica'))`, [[S.bm, S.ac, core], COLUNAS_DE_VERSAO, core]);
+  const donos = new Map([...porFk, ...porNome].map((d) => [`${d.esquema}.${d.tabela}.${d.coluna}`, d]));
+  for (const { esquema, tabela, coluna } of donos.values()) {
+    const n = await contar(trx, `SELECT count(*) AS n FROM ${ident(esquema)}.${ident(tabela)} WHERE ${ident(coluna)} = ANY($1::bigint[])`, [ids]);
+    if (n > 0) recusar(`${tabela}: ${n} linha(s) apontam para versões de critério do seed`);
+  }
+
+  const previsto: Record<string, number> = {
+    ref_versao_criterio_metrica: await contar(trx, `SELECT count(*) AS n FROM ${core}.ref_versao_criterio_metrica WHERE versao_id = ANY($1::bigint[])`, [ids]),
+    ref_versao_criterio: ids.length,
+  };
+  const escrever = async (): Promise<void> => {
+    for (const tabela of ['ref_versao_criterio_metrica', 'ref_versao_criterio']) {
+      const r = await trx.query(`DELETE FROM ${core}.${tabela} WHERE versao_id = ANY($1::bigint[])`, [ids]);
+      if (r.rowCount !== previsto[tabela]) throw new ErroLimpezaSeed('contagem-divergente', `${tabela}: removidas ${r.rowCount ?? 0} de ${previsto[tabela]!} previstas; nada foi gravado`);
+    }
+  };
+  return { tabelas: previsto, escrever };
+}
+
 /** Confere tudo (falha fechada) e devolve o plano; nada é escrito até `escrever` ser chamado, depois de TODAS as fontes conferidas. */
-async function planejarFonte(trx: Consultavel, a: Alvo): Promise<PlanoFonte> {
+async function planejarFonte(trx: Consultavel, a: Alvo, lockTimeoutMs: number): Promise<PlanoFonte> {
   const { schema, chave } = a;
   const coletas = await linhas<{ coleta_id: string; versao_coletor: string; parametros: unknown }>(trx,
     `SELECT coleta_id, versao_coletor, parametros FROM ${schema}.ctl_coleta WHERE starts_with(versao_coletor, $1) ORDER BY coleta_id`, [VERSAO_SEED]);
@@ -183,7 +232,16 @@ async function planejarFonte(trx: Consultavel, a: Alvo): Promise<PlanoFonte> {
   };
   const escrever = async (): Promise<void> => {
     for (const p of a.projecoes) {
-      if (p.gatilho) await trx.query(`ALTER TABLE ${schema}.${p.tabela} DISABLE TRIGGER ${ident(p.gatilho)}`);
+      if (p.gatilho) {
+        // trava curta: na fila, o ALTER seguraria as leituras da API; sem a trava, falha fechada e ROLLBACK
+        await trx.query(`SET LOCAL lock_timeout = ${Math.trunc(lockTimeoutMs)}`);
+        try {
+          await trx.query(`ALTER TABLE ${schema}.${p.tabela} DISABLE TRIGGER ${ident(p.gatilho)}`);
+        } catch (e) {
+          if ((e as { code?: string }).code === '55P03') throw new ErroLimpezaSeed('trava', `${p.tabela}: a trava da tabela não veio em ${lockTimeoutMs} ms (há leitura ou escrita em andamento); nada foi gravado`);
+          throw e;
+        }
+      }
       await apagar(p.tabela, `${p.marcador} = ANY($1::bigint[])`, [ids]);
       if (p.gatilho) {
         await trx.query(`ALTER TABLE ${schema}.${p.tabela} ENABLE TRIGGER ${ident(p.gatilho)}`);
@@ -202,14 +260,18 @@ async function planejarFonte(trx: Consultavel, a: Alvo): Promise<PlanoFonte> {
  * Pool do `dspd_migrador` (dono das tabelas). Simulação: transação somente leitura. Aplicação: uma transação para os dois esquemas,
  * com a mesma trava do seed (`dspd:seed`) para não correr junto de um seed.
  */
-export async function limparSeed(pool: PoolLike, opcoes: { aplicar: boolean; S?: Esquemas }): Promise<ResultadoLimpeza> {
+export async function limparSeed(pool: PoolLike, opcoes: { aplicar: boolean; S?: Esquemas; lockTimeoutMs?: number }): Promise<ResultadoLimpeza> {
   const S = opcoes.S ?? esquemasDoAmbiente();
   return emTransacao(pool, async (trx) => {
     if (!opcoes.aplicar) await trx.query('SET TRANSACTION READ ONLY');
     await trx.query('SELECT pg_advisory_xact_lock(hashtext($1))', ['dspd:seed']);
+    const criterios = await planejarCriterios(trx, S);
     const planos: PlanoFonte[] = [];
-    for (const a of alvos(S)) planos.push(await planejarFonte(trx, a));
-    if (opcoes.aplicar) for (const p of planos) await p.escrever();
-    return { modo: opcoes.aplicar ? 'aplicado' : 'simulacao', fontes: planos.map((p) => p.resultado) };
+    for (const a of alvos(S)) planos.push(await planejarFonte(trx, a, opcoes.lockTimeoutMs ?? LOCK_TIMEOUT_PADRAO_MS));
+    if (opcoes.aplicar) {
+      await criterios.escrever();
+      for (const p of planos) await p.escrever();
+    }
+    return { modo: opcoes.aplicar ? 'aplicado' : 'simulacao', fontes: planos.map((p) => p.resultado), criterios: { tabelas: criterios.tabelas } };
   });
 }

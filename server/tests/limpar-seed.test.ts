@@ -146,4 +146,68 @@ describe('analisarArgumentosLimpezaSeed', () => {
     expect(() => analisarArgumentosLimpezaSeed(['--aplicr'])).toThrow(/uso/);
     expect(() => analisarArgumentosLimpezaSeed(['--aplicar', 'x'])).toThrow(ErroLimpezaSeed);
   });
+  describe('versões de critério do seed em dspd_core (A1 do review)', () => {
+    const versoes = (c: Chamada): Resposta | undefined => (c.texto.includes('AS versao FROM') ? [{ versao: '7' }, { versao: '8' }] : undefined);
+
+    it('só os domínios businessmap e acelerato, motivo seed-mock e referência mock: (pesquisa fica); métrica antes da versão, antes de tudo', async () => {
+      const { pool, chamadas } = banco(versoes);
+      const r = await limparSeed(pool, { aplicar: true, S: E });
+      const sel = chamadas.find((c) => c.texto.includes('AS versao FROM'))!;
+      expect(sel.texto).toContain("referencia LIKE 'mock:%'");
+      expect(sel.valores).toEqual(['seed-mock', ['businessmap', 'acelerato']]);
+      expect(r.criterios.tabelas).toEqual({ ref_versao_criterio_metrica: 2, ref_versao_criterio: 2 });
+      const apagadas = textos(chamadas).filter((x) => x.startsWith('DELETE')).map((x) => x.split(' WHERE')[0]!.replace('DELETE FROM ', ''));
+      expect(apagadas.slice(0, 2)).toEqual([`${E.core}.ref_versao_criterio_metrica`, `${E.core}.ref_versao_criterio`]);
+      expect(chamadas.filter((c) => c.texto.startsWith(`DELETE FROM ${E.core}.`)).every((c) => (c.valores[0] as number[]).join() === '7,8')).toBe(true);
+    });
+
+    it('simulação: só contagens, nenhuma escrita', async () => {
+      const { pool, chamadas } = banco(versoes);
+      const r = await limparSeed(pool, { aplicar: false, S: E });
+      expect(r.criterios.tabelas).toEqual({ ref_versao_criterio_metrica: 2, ref_versao_criterio: 2 });
+      expect(textos(chamadas).some((x) => /^(DELETE|ALTER|INSERT|UPDATE|TRUNCATE)/.test(x))).toBe(false);
+    });
+
+    it('sem versão do seed: nada a apagar no core', async () => {
+      const { pool, chamadas } = banco();
+      const r = await limparSeed(pool, { aplicar: true, S: E });
+      expect(r.criterios.tabelas).toEqual({});
+      expect(textos(chamadas).some((x) => x.startsWith(`DELETE FROM ${E.core}.`))).toBe(false);
+    });
+
+    const recusaCore = (nome: string, catalogo: 'pg_constraint' | 'information_schema.columns', trecho: RegExp) => it(`falha fechada: ${nome}`, async () => {
+      const { pool, chamadas } = banco((c) => {
+        if (c.texto.includes(catalogo)) return [{ esquema: E.bm, tabela: 'ref_time', coluna: 'versao_id' }];
+        if (c.texto.includes(`FROM ${E.bm}.ref_time WHERE`)) return [{ n: '3' }];
+        return versoes(c);
+      });
+      const e = await limparSeed(pool, { aplicar: true, S: E }).catch((x: unknown) => x);
+      expect(e).toMatchObject({ codigo: 'ligada-a-dado-real' });
+      expect((e as Error).message).toMatch(trecho);
+      expect(textos(chamadas).some((x) => /^(DELETE|ALTER)/.test(x))).toBe(false);
+      expect(textos(chamadas).at(-1)).toBe('ROLLBACK');
+    });
+    recusaCore('linha real que aponta para a versão do seed por chave estrangeira', 'pg_constraint', /ref_time: 3 linha\(s\) apontam para versões de critério do seed/);
+    recusaCore('linha real que aponta para a versão do seed por coluna de versão (sem chave estrangeira)', 'information_schema.columns', /ref_time: 3/);
+
+    it('contagem divergente no core: desfaz tudo', async () => {
+      const { pool, chamadas } = banco((c) => (c.texto.startsWith(`DELETE FROM ${E.core}.ref_versao_criterio WHERE`) ? { rows: [], rowCount: 1 } : versoes(c)));
+      await expect(limparSeed(pool, { aplicar: true, S: E })).rejects.toMatchObject({ codigo: 'contagem-divergente' });
+      expect(textos(chamadas).at(-1)).toBe('ROLLBACK');
+    });
+  });
+
+  it('trava da tabela não vem (55P03): lock_timeout curto antes do ALTER, falha fechada e ROLLBACK (A2 da segurança)', async () => {
+    const { pool, chamadas } = banco((c) => (c.texto.includes('DISABLE TRIGGER') ? Object.assign(new Error('timeout'), { code: '55P03' }) : undefined));
+    await expect(limparSeed(pool, { aplicar: true, S: E, lockTimeoutMs: 250 })).rejects.toMatchObject({ codigo: 'trava' });
+    const t = textos(chamadas);
+    expect(t.indexOf('SET LOCAL lock_timeout = 250')).toBeGreaterThan(-1);
+    expect(t.indexOf('SET LOCAL lock_timeout = 250')).toBeLessThan(t.findIndex((x) => x.includes('DISABLE TRIGGER')));
+    expect(t.at(-1)).toBe('ROLLBACK');
+  });
+
+  it('outro erro do ALTER não vira "trava": segue como erro interno', async () => {
+    const { pool } = banco((c) => (c.texto.includes('DISABLE TRIGGER') ? Object.assign(new Error('x'), { code: '42501' }) : undefined));
+    await expect(limparSeed(pool, { aplicar: true, S: E })).rejects.not.toBeInstanceOf(ErroLimpezaSeed);
+  });
 });
