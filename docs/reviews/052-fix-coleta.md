@@ -1,7 +1,7 @@
 ---
 tipo: review
 contrato: 1
-pedido: 052-fix-coleta
+pedido: 052-integracao-businessmap
 branch: feature/052-fix-coleta
 commit: f763d6acffca29233c78966abe44882be10c1daa
 parecer: aprovado
