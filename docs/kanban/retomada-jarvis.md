@@ -2,6 +2,16 @@
 
 Salvo em 2026-11-01 por volta das 15:50. O dono trocou o login do Claude Code no WSL, e a sessão é reiniciada com `--continue`. Branch do repositório principal: `docs/jarvis-2026-10-23`, com push até `732f3d3` (este arquivo vai no commit seguinte). Prazo: métricas operacionais funcionando na segunda, 2026-11-02, com o recorte "A": BusinessMap FL1 com dado real (O19 a O26 em mock até a F6b) e Acelerato/sustentação com dado real.
 
+## Atualização 2026-11-01 15:40 (sessão retomada na conta nova)
+- Push da docs/jarvis-2026-10-23 refeito (3e2f3ee). O agente da E2.100 morreu na troca. Ele já tinha aberto o PR 188 como draft (ponta 2efa879, review do ws1 renovado).
+- O check `banco` do PR 188 falha porque a develop está vermelha desde o PR 182 do Dependabot (4a01e39): o `test:pg` não inicia (Startup Error do vitest no jiti); a run da develop 41334017161 também falha.
+- Em curso:
+  - **E2.107** (node-backend, brief node-backend-35, worktree 052e, branch `feature/052-fix-test-pg`): corrige o `test:pg`. Depois vêm review, segurança (dependência), QA e PR para a develop, que o dono mescla.
+  - **E2.102** (tech-lead, brief tech-lead-59, aprovado na 2.ª rodada): review da limpeza do seed.
+- Depois:
+  - o PR 188 sai do draft com os checks verdes (o dono mescla);
+  - E2.103 (QA da limpeza) e E2.104 (PR da limpeza).
+
 ## Ao retomar (primeiro)
 1. Ver se o PR 188 (F6) terminou: `gh pr view 188 --json state,isDraft,mergeable,statusCheckRollup`. O `forge:tech-lead` da E2.100 (brief `docs/briefs/052-integracao-businessmap-tech-lead-57.md`) estava rodando na hora da troca:
    - ele já tinha renovado `docs/reviews/052-ws1-estrutura.md` (2efa879) e aberto o PR 188 como draft;

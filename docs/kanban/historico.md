@@ -675,3 +675,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-01T14:41:43-03:00 | E2.96 | Em andamento | Pronto | 26d097c |
 | 2026-11-01T15:08:18-03:00 | K-182 | Em andamento | Em andamento | E2.105 delegada (security-engineer) |
 | 2026-11-01T15:16:47-03:00 | K-182 | Em andamento | Em andamento | E2.100 delegada (tech-lead, PR da F6) |
+| 2026-11-01T15:37:45-03:00 | K-182 | Em andamento | Em andamento | E2.107 delegada (node-backend, develop vermelha no banco) |
+| 2026-11-01T15:40:20-03:00 | K-182 | Em andamento | Em andamento | E2.102 delegada (tech-lead, review da limpeza) |

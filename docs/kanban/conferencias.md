@@ -1053,3 +1053,5 @@
 | 2026-11-01 15:14 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-29.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-01 15:14 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-31.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-01 15:17 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-58.md | brief | 1 | reprovado | s | ADR 0024 descrita como seed (é o tipo do card); foco sem gatilho append-only e papel migrador | citacao | jarvis |
+| 2026-11-01 15:37 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-35.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 15:40 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-59.md | brief | 2 | aprovado | s |  | — | jarvis |
