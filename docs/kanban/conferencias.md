@@ -1056,3 +1056,16 @@
 | 2026-11-01 15:37 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-35.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-01 15:40 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-59.md | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-11-01 15:53 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-36.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 16:14 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-60.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 16:35 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-37.md | brief | 1 | reprovado | s | decisao i e plano 00d459c superados nao registrados | decisao | jarvis |
+| 2026-11-01 16:35 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-30.md | brief | 1 | reprovado | n | mensagem resumida pelo Jarvis no Fora do escopo | forma | jarvis |
+| 2026-11-01 16:38 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-34.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 16:42 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-38.md | brief | 2 | reprovado | s | EI_SUST condicional era inferencia | decisao | jarvis |
+| 2026-11-01 16:45 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-30.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 16:49 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-39.md | brief | 3 | reprovado | s | EI_SUST e regra de negocio; pergunta ao dono | decisao | jarvis |
+| 2026-11-01 16:51 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-61.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 16:58 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-31.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 17:02 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-33.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 17:03 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-40.md | brief | 4 | reprovado | s | faltou marca de superacao da decisao i e da DT de 17:05 | decisao | jarvis |
+| 2026-11-01 17:11 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-41.md | brief | 5 | aprovado | s |  | — | jarvis |
+| 2026-11-01 17:18 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-32.md | brief | 1 | aprovado | s |  | — | jarvis |

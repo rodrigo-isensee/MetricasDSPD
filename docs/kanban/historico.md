@@ -677,3 +677,12 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-01T15:16:47-03:00 | K-182 | Em andamento | Em andamento | E2.100 delegada (tech-lead, PR da F6) |
 | 2026-11-01T15:37:45-03:00 | K-182 | Em andamento | Em andamento | E2.107 delegada (node-backend, develop vermelha no banco) |
 | 2026-11-01T15:40:20-03:00 | K-182 | Em andamento | Em andamento | E2.102 delegada (tech-lead, review da limpeza) |
+| 2026-11-01T16:08:30-03:00 | K-182 | Em andamento | Em andamento | E2.108 delegada (node-backend, volta da limpeza) |
+| 2026-11-01T16:14:22-03:00 | K-182 | Em andamento | Em andamento | E2.111 delegada (tech-lead, review do fix do test:pg) |
+| 2026-11-01T16:38:20-03:00 | K-182 | Em andamento | Em andamento | E2.112 delegada (security-engineer, fix do test:pg) |
+| 2026-11-01T16:45:50-03:00 | K-182 | Em andamento | Em andamento | E2.113 delegada (qa-engineer, fix do test:pg) |
+| 2026-11-01T16:51:01-03:00 | K-182 | Em andamento | Em andamento | E2.109 delegada (tech-lead, revalidação do review da limpeza) |
+| 2026-11-01T16:58:24-03:00 | K-182 | Em andamento | Em andamento | E2.116 delegada (qa-engineer, QA ws1 no fix do test:pg) |
+| 2026-11-01T17:02:11-03:00 | K-182 | Em andamento | Em andamento | E2.110 delegada (security-engineer, renovação da limpeza) |
+| 2026-11-01T17:11:37-03:00 | K-182 | Em andamento | Em andamento | E2.115 delegada ao node-backend (sustentação real) |
+| 2026-11-01T17:18:32-03:00 | K-182 | Em andamento | Em andamento | E2.103 delegada ao qa-engineer (QA da limpeza do seed) |
