@@ -3,46 +3,44 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-limpa-seed
-commit: 26d097c0a51234e7f1c1ecf4aff9939abfb145e6
-parecer: reprovado
+commit: 6ff43dfd62c05101c32d5bba081dbbcb04afff7f
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
 ---
 # Review: 052-limpa-seed (comando de limpeza do seed mock da base real, E2.96, K-182)
 
-**Veredito (E2.102): reprovado** em `26d097c`. O comando é correto e seguro no que faz: seed escolhido pela versão, falha fechada antes de qualquer escrita, gatilho desligado só dentro da transação e conferido antes do COMMIT, simulação somente leitura e saída só com contagens. Fica de fora uma família de linhas do seed que a decisão do dono manda tirar e que aparece nos painéis reais: as versões de critério do mock em `dspd_core.ref_versao_criterio` (A1, bloqueante). Dois recomendados.
+**Veredito (E2.109, revalidação por delta): aprovado** em `6ff43df`. A volta (E2.108) resolve o A1: as versões de critério do seed dos domínios `businessmap` e `acelerato` saem do `dspd_core` com as linhas de `ref_versao_criterio_metrica`, escolhidas por campo e nunca por id, com falha fechada se alguma linha apontar para elas. O A3 também está resolvido. O A2 fica para o cartão de recomendados depois de segunda, por decisão técnica do Jarvis (2026-11-01 15:46). O teto recontado dá 761 linhas: exceção aceita, com a linha no PR.
 
-## O que li
-`git diff origin/develop...26d097c` (base `81fcd63`, a do brief; o diff de dois pontos traz também o que a develop andou depois, fora desta entrega): `server/src/plataforma/db/limpar-seed.ts`, `server/src/entradas/limpar-seed.ts`, `server/package.json`, `server/eslint.config.js`, `server/tests/limpar-seed.test.ts`, `server/tests/limpar-seed.pg.test.ts` e a seção nova de `docs/architecture/server.md`. Para o contexto: `gravarCriterios` e `mapearBM` em `server/src/plataforma/db/seed.ts:33-180,236-252`, `lerVersoes` em `server/src/modulos/operacao/repositorio.ts:44-62`, `lerVersaoCriterioVigente` em `server/src/modulos/referencia/repositorio.ts:34-45`, as FKs de `ref_versao_criterio` nas migrações 0010 e 0013, os geradores de id do mock (`packages/mock/src/businessmap/gerador.ts:152`, `acelerato/gerador.ts:81`) e a linha E2.96 do Histórico citada no brief.
+Veredito anterior (E2.102): reprovado em `26d097c` (parecer `89073dd`), pelo A1.
 
-## Foco pedido
+## Revalidação por delta (E2.109)
+`forge-check delta --parecer docs/reviews/052-limpa-seed.md` dá o intervalo `26d097c..6ff43df`. Li só o delta que ele lista:
+- `server/src/plataforma/db/limpar-seed.ts`, linhas 18-19, 27, 44-45, 124-168, 170, 235-244, 263, 268 e 270-275;
+- `server/tests/limpar-seed.pg.test.ts`, linhas 43-48, 68-69, 75, 77, 91-97, 100-101, 114-120, 138 e 198-226;
+- `server/tests/limpar-seed.test.ts`, linhas 149-212;
+- `docs/architecture/server.md`, linhas 83, 85, 95-96, 99 e 110.
 
-**Gatilho append-only desligado só dentro da transação e papel `dspd_migrador`.** `DISABLE TRIGGER tg_fato_transicao_imutavel`, o DELETE pela marca da coleta do seed e o `ENABLE` correm na mesma transação de `emTransacao` (`limpar-seed.ts:186-192`); a conferência em `pg_trigger` (todos os gatilhos não internos da tabela em `'O'`) roda antes do COMMIT e lança `gatilho`, o que desfaz tudo. O ALTER é transacional no PostgreSQL, então qualquer falha devolve o gatilho ao estado ativo. O papel é o dono das tabelas (`PG_MIGRADOR_URL`), o único que pode fazer o ALTER, e nenhum GRANT muda. O `.pg` prova o gatilho ativo depois e o DELETE direto barrado, e que o `dspd_coletor` não consegue aplicar nem deixa nada pela metade. Correto. A trava sem `lock_timeout` é o A2 da segurança; não repito.
+Fica como "já lido" (parecer de `26d097c`, sem mudança no delta): a identificação do seed pela versão em `ctl_coleta`, a regra dos `ref_*` por regeração, a falha fechada das fontes, o gatilho append-only dentro da transação, a simulação somente leitura, `entradas/limpar-seed.ts`, `package.json` e `eslint.config.js`. Os pareceres de segurança e de QA na branch não são deste papel e não foram relidos.
 
-**Identificação do seed pela versão em `ctl_coleta`.** `starts_with(versao_coletor, 'seed-mock')` (`limpar-seed.ts:124`) pega `seed-mock` e `seed-mock-coleta`, nunca um id; os coletores reais gravam `bm-*` e `ac-*`. Os ids do mock (`XX-0001`, `CH-00001`, `quadro-<slug>`, `c<ordem>`) não colidem com ids reais do BusinessMap, então a falha fechada por item não deve barrar o dono por coincidência de id. Correto.
+**A1, resolvido.** `planejarCriterios` (`limpar-seed.ts:124-168`) seleciona `motivo = 'seed-mock'`, `dominio` em `businessmap`/`acelerato` e `referencia LIKE 'mock:%'`. O domínio `pesquisa` fica, e também a versão da carga de times da 0019 (referência própria, motivo diferente) e as versões reais. A falha fechada cobre dois casos: toda chave estrangeira para `ref_versao_criterio` (fora a da tabela de métricas) e toda coluna `versao_id` ou `incluido_por_versao_id` dos três esquemas. Isso pega `ref_time` e `ref_time_workflow` (0018 e 0019), o calendário e as tabelas da pesquisa. Conferi nas migrações: todas as colunas com esses nomes guardam versão de critério, então a busca por nome não traz um falso `ligada-a-dado-real`. O plano das versões roda antes do das fontes e a escrita só começa depois de tudo conferido. Ordem: as métricas antes das versões, e as versões antes das fontes. Cada DELETE confere a contagem prevista. A simulação devolve `criterios` sem escrever, e a saída traz só nomes de tabela e contagens (ADR 0020). Os testes provam o recorte, a ordem, a simulação, a ausência de versões do seed, as duas vias da falha fechada e a contagem divergente (unitário). No `.pg`, provam que pesquisa, versões reais e versão da carga de times ficam, que não sobra métrica órfã, que `ref_time` real ligado a uma versão do seed barra tudo e que a reaplicação é idempotente.
 
-**Regra dos `ref_*` pela regeração com os parâmetros da coleta `seed-mock`.** O mock é regerado com os `parametros` gravados (validados por zod; sem eles, `sem-parametros` e nada sai) e só saem linhas de chave inteira igual, `vigente_de` incluído, e conteúdo igual onde há texto ou inteiro; chave igual com conteúdo diferente para o comando (`limpar-seed.ts:165-169`). Como o seed gravou com INSERT simples, nenhuma linha real pôde ocupar a mesma chave depois. O `.pg` prova a lista de `ref_*` coberta (BusinessMap e Acelerato) e o caso de conteúdo divergente. O resíduo é a remoção silenciosa de menos linhas quando o texto não casa (A2 abaixo).
+**A2 da segurança (entrou na volta, citado).** O `SET LOCAL lock_timeout` de 3 s vem antes do `ALTER TABLE`. Um `55P03` vira `trava` e um erro de outro código segue como erro interno. O `.pg` prova que, com a tabela presa, o comando falha em menos de 5 s, nada fica pela metade, nem no core, e o gatilho continua ativo. A conformidade fica com o parecer da segurança (E2.110).
 
-**`fato_bloqueio` removido a mais.** As linhas de `fato_bloqueio` com a marca da coleta do seed são linhas do seed: a decisão do dono manda "apagar do banco só as linhas do seed mock" e deixar a base real "só com dado real"; a lista entre parênteses descreve as coletas 1 e 2, não fecha o conjunto. Sem elas, a própria falha fechada do comando abortaria (a tabela guarda a marca do seed). Coberto pela decisão; a descrição do PR deve dizer ao dono que `fato_bloqueio` sai junto.
+**A3, resolvido.** `server.md:83,85` agora listam o que o seed grava, incluindo os `ref_*` e as versões de critério do `dspd_core`. A seção da limpeza traz o bloco das versões de critério, a trava curta e os limites, e diz que o PR avisa o dono de que `fato_bloqueio` e essas versões saem junto.
 
-**`ref_versao_criterio` do `dspd_core` com motivo `seed-mock`.** É linha do seed coberta pela decisão do dono. O seed a grava em `gravarCriterios` (`seed.ts:171-180`, chamado em `seed.ts:246-248`) com `motivo = 'seed-mock'` e `referencia = 'mock:<id>'`, uma por versão de critério do mock nos domínios `businessmap` e `acelerato` (e `pesquisa`). A decisão nomeia "ref_* do seed" sem restringir esquema. E o efeito é visível na base real: `lerVersoes` (`operacao/repositorio.ts:48-53`) devolve essas versões como marcas T2.6 nos gráficos do FL1 e da sustentação com dado real, e `lerVersaoCriterioVigente` (`referencia/repositorio.ts:39-45`) pode devolver uma versão do mock como `versaoCriterio` vigente. Marca de mudança de critério que não aconteceu fere a T2.6 e o "só dado real" da decisão. Ver A1 para o recorte da correção.
+**Teto (decisão M14), recontado.** `git diff --numstat --no-renames origin/develop...6ff43df` (merge-base `81fcd63`), sem o texto `.md`, soma **761 linhas**: `limpar-seed.ts` 277, `limpar-seed.pg.test.ts` 234, `limpar-seed.test.ts` 213, `entradas/limpar-seed.ts` 34, `eslint.config.js` 2 e `package.json` 1. Continua um comportamento só, tirar o seed da base real: as versões de critério são parte do mesmo seed e da mesma falha fechada. A exceção está aceita, condicionada à linha no corpo do PR da E2.104: `teto: excedido, 761 linhas, comando único de limpeza do seed com a falha fechada e os testes que a provam`. Sem a linha, o PR fica bloqueado pela M14.
 
-**Documentação do passo a passo.** Clara e completa para o dono: backup, simulação com as contagens esperadas da base dele (5792, 46759, 6 e 2), o que fazer com `ligada-a-dado-real`, aplicar, conferir zerado, regenerar o mock no prefixo próprio com o alerta de que o `.env` prevalece sobre o terminal e conferir o FL1. Precisa refletir o A1 (linha 109) e tem duas linhas antigas que agora contradizem a seção nova (A3).
-
-**Teto de linhas (decisão M14).** `git diff --numstat --no-renames origin/develop...26d097c`, sem o `.md`: **579 linhas** (`limpar-seed.ts` 215, `entradas/limpar-seed.ts` 34, testes 178 e 149, `package.json` 1, `eslint.config.js` 2), muito acima de 150. Um comportamento só: tirar o seed da base real; a falha fechada e os testes que a provam não se separam do comando sem deixar um PR que apaga sem a proteção. Aceito a exceção, condicionada à linha no corpo do PR da E2.104, com o número final depois da volta: `teto: excedido, <n> linhas, comando único de limpeza do seed com a falha fechada e os testes que a provam`. Sem a linha, o PR fica bloqueado pela M14.
-
-## Checklist (leitura)
-Faz o que a E2.96 pede, mais o `fato_bloqueio` (coberto) e menos as versões de critério (A1). Respeita as regras invioláveis: BusinessMap e Acelerato com conferência própria cada um, nenhuma linha de coleta real tocada (ADR 0022), nada de pessoa na saída (ADR 0020). Identificadores de tabela vêm de constante ou passam por `ident`; valores sempre em `$n`. Erro de domínio tipado (`ErroLimpezaSeed`) e o resto sai como `erro-interno`, sem `detail` do PostgreSQL. Testes cobrem simulação, aplicação, idempotência, papel sem posse, parâmetros ausentes e as quatro falhas fechadas, com foto da carga real idêntica antes e depois. Commit único, Conventional Commits em português.
+## Foco do parecer anterior (E2.102, em 26d097c)
+Gatilho dentro da transação, identificação do seed pela versão, regra dos `ref_*` pela regeração e `fato_bloqueio` coberto pela decisão do dono: corretos, ver o parecer `89073dd`. A descrição do PR deve dizer ao dono que `fato_bloqueio` e as versões de critério do seed (businessmap e acelerato) saem junto.
 
 ## Outros pareceres e ferramentas (citados, não refeitos)
-- Segurança aprovada em `26d097c` (`docs/security/052-limpa-seed.md`, E2.101, `a217f1e`), com A1 e A2 recomendados.
-- Relatório da E2.96: testes unitários e `.pg` verdes; o QA (E2.103) roda a suíte `.pg`.
-- O `praticas.md` não tem regra "decidida por: `<comando>`": nenhuma saída de ferramenta a citar.
-
-## Entregar na volta (node-backend)
-A1, com teste `.pg`; A2 e A3 entram se couberem sem atrasar a segunda.
+- Segurança: parecer em `docs/security/052-limpa-seed.md`, com renovação sobre a volta em curso (E2.110), em paralelo.
+- Relatório da E2.108: server 1130 testes verdes e test:pg 172 verdes. O QA (E2.103) roda a suíte `.pg` depois.
+- O `praticas.md` não tem regra "decidida por: `<comando>`", então não há saída de ferramenta a citar.
 
 ## Achados
-- A1 (bloqueante) server/src/plataforma/db/limpar-seed.ts:211 · Versões de critério do seed em dspd_core.ref_versao_criterio (motivo seed-mock, referencia mock:%, domínios businessmap e acelerato) ficam e viram marcas T2.6 no FL1 real. Remover com ref_versao_criterio_metrica e falha fechada nas FKs.
-- A2 (recomendado) server/src/plataforma/db/limpar-seed.ts:168 · Se o texto de um ref_* não casar (gerador mudou, DateStyle), a contagem dá 0 e as linhas do seed ficam sem aviso. Recusar quando o mock gera linhas para um ref_* e nenhuma é achada.
-- A3 (recomendado) docs/architecture/server.md:85 · As linhas 83 e 85 dizem que ref_quadro, ref_dominio e ref_alvo_prioridade ficam fora do seed; a seção nova e o teste .pg mostram que o seed as grava. Atualizar as duas linhas.
+- A1 (bloqueante) server/src/plataforma/db/limpar-seed.ts:211 · versões de critério do seed em dspd_core.ref_versao_criterio ficavam e viravam marcas T2.6 no FL1 real. Resolvido em 6ff43df (limpar-seed.ts:124-168), com ref_versao_criterio_metrica, falha fechada e testes .pg.
+- A2 (recomendado) server/src/plataforma/db/limpar-seed.ts:168 · se o texto de um ref_* não casar (gerador mudou, DateStyle), a contagem dá 0 e as linhas do seed ficam sem aviso. Destino: cartão de recomendados depois de segunda (decisão técnica do Jarvis, 2026-11-01 15:46).
+- A3 (recomendado) docs/architecture/server.md:85 · linhas 83 e 85 diziam que ref_quadro, ref_dominio e ref_alvo_prioridade ficavam fora do seed. Resolvido em 6ff43df.
+- A4 (recomendado) server/src/plataforma/db/limpar-seed.ts:237 · o SET LOCAL lock_timeout vale até o fim da transação: um DELETE posterior que espere mais de 3 s por trava de linha sai como erro interno, não como trava. Desfaz tudo igual; ajuste a mensagem ou devolva o timeout depois do ALTER. Não devolve.
