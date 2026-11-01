@@ -8,12 +8,13 @@ Este arquivo é para uma sessão nova do Jarvis que não tem a memória da anter
   - Acelerato: sustentação com dado real.
 
 ## 1. Agentes que estavam rodando na hora da parada (ver o que deixaram antes de relançar)
-- **E2.107 (`forge:node-backend`, brief `docs/briefs/052-integracao-businessmap-node-backend-35.md`):** corrige o `test:pg`, que deixou a develop vermelha.
-  - Worktree `/home/rodrigoisensee/MetricasDSPD-052e`, branch `feature/052-fix-test-pg`.
-  - Na parada, a branch existia só localmente, ainda sem push.
-  - Ao retomar: `git -C /home/rodrigoisensee/MetricasDSPD-052e status -sb` e `log origin/develop..HEAD`.
-    - Se houver commit pronto e testes verdes, só falta o push com `git -C /home/rodrigoisensee/MetricasDSPD-052e push origin HEAD:refs/heads/feature/052-fix-test-pg`.
-    - Se não houver commit, relançar com o mesmo brief: ele está protegido e foi aprovado pelo conferente.
+- **E2.107 CUMPRIDA (16:10):** `feature/052-fix-test-pg` enviada (`4e5958f`), na worktree `/home/rodrigoisensee/MetricasDSPD-052e`.
+  - Causa: o vite 8.3.5, que veio no PR 182, quebra o vitest 5.0.5 com o cache frio do jiti.
+  - Correção: override `vite: "8.3.4"` no `pnpm-workspace.yaml`, mais o lockfile. Testes verdes: .pg 163, server 56, web 1228.
+  - **Próximo, a abrir pela sessão nova:**
+    1. etapas de review (tech-lead), segurança (security-engineer) e QA da correção; a segurança confere se a 8.3.5 trazia correção de segurança, porque isto é downgrade do vite no repositório inteiro;
+    2. o PR da `feature/052-fix-test-pg` para a develop, que o dono mescla;
+    3. depois, rodar de novo os checks do PR 188.
 - **Brief da E2.108** (`docs/briefs/052-integracao-businessmap-node-backend-36.md`, volta da limpeza do seed): **aprovado pelo conferente e registrado; ainda não delegado.**
   - Primeira ação da sessão nova: delegar ao `forge:node-backend` com "Leia e execute literalmente o arquivo /home/rodrigoisensee/Metricas/MetricasDSPD/docs/briefs/052-integracao-businessmap-node-backend-36.md".
   - Antes, mover o cartão com `forge-check movimento K-182 --de "Em andamento" --para "Em andamento" --motivo "E2.108 delegada"`.
