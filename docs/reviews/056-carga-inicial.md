@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 056-acelerato-mysql
 branch: feature/056-carga-inicial
-commit: 521dd1fa2e5a535f83c3e6e42b3e08256cf2f025
-parecer: reprovado
+commit: bf5cfd5dc779e6f6d1403bfabdcef72a33175598
+parecer: aprovado
 revisor: tech-lead
 data: 2026-10-31
 ---
@@ -37,3 +37,18 @@ Escopo: `git diff 0783caa...521dd1f` (10 arquivos, +662 -6), commits 7ec659d (li
 - A3 (recomendado) server/src/modulos/referencia/dominio-acelerato.ts:135 · A versão é gravada sem métrica e `lerVersoes` ignora versão sem métrica, então mudar a lista não marca gráfico. Quais métricas marcar é pergunta ao dono pelo Jarvis, sem inferência. A carga inicial não precisa de marca.
 - A4 (recomendado) server/src/entradas/ref-sync-ac.ts:12 · A regex aceita 2026-02-30; o banco recusa e a saída diz "configuração ou banco inválidos". Validar a data civil antes (Date.UTC e comparar de volta) e devolver uso, código 2.
 - A5 (recomendado) server/src/modulos/referencia/dominio-acelerato.ts:20 · `categoria` também tem chave numérica (§12: codigo = categoria_key) e fica fora da checagem numérica. Incluir na checagem, ou registrar no §12 por que fica fora.
+
+## Revalidação por delta (E4.34, ponta bf5cfd5)
+Delta lido: `git diff ee8fca1..bf5cfd5` (8 arquivos, +126 -16: 6e3b062 e bf5cfd5). Já lido e não relido: o "O que confere" acima (vigência, idempotência, transação, versão por hash, config, arquivo de domínio), que o delta não toca. Ferramenta: autor, `pnpm run pronto` rc=0 e `test:pg` 123 verdes (Histórico do pedido); a segurança renova por delta na E4.35, não refeita aqui.
+
+- **A1 (bloqueante): resolvido.** `docs/architecture/server.md` ganha a seção "Comando de referência do Acelerato" (PG_REF_URL, argumento de data, recusas, idempotência, saída) e a linha 5 passa a dizer que o `ref:sync` ausente é o do BusinessMap; `acelerato-listas.md:6` diz `ac:ref-sync`.
+- **A2 (bloqueante): resolvido.** `planejarDominio` recebe a última vigência do campo (maior entre `vigente_de` e `vigente_ate`, lida no banco) e recusa data menor quando o campo muda; data igual é aceita (períodos contíguos) e sem mudança nada é recusado. Testes: unitário de três casos, dublê com ROLLBACK e `.pg` com vigência fechada (D3, depois D2) sem versão gravada.
+- **A4 (recomendado): resolvido.** `dataCivilValida` (comparação de volta por `toISOString`) na entrada, uso e código 2 antes da configuração; teste por processo e unitário com bissexto.
+- **A5 (recomendado): resolvido.** `categoria` entra em `CAMPOS_DE_CHAVE`, com teste.
+- **A3 (recomendado): segue aberto**, fora desta volta: pergunta ao dono, não trava a carga.
+- **Segurança A1 e A2 (fora dos meus achados):** `textoSeguro` passa a barrar as classes Cf, Zl e Zp do Unicode e vale também para `descricao`, `motivo`, `referencia` e `regra`; o teste cobre os quatro campos. O `.pg` com o arquivo real passa, então o JSON versionado não é barrado.
+- **Achado novo:** nenhum.
+
+Teto recontado (`git diff --numstat --no-renames 0783caa...bf5cfd5`, `server/src`, `server/tests`, `server/package.json`): **582 linhas** (era 476; a volta soma 106, com o teste de entrada novo). Mesmo comportamento único, exceção mantida. O PR da E4.31 leva `teto: excedido, 582 linhas, comando ac:ref-sync: sincronização do ref_dominio do Acelerato a partir do arquivo versionado (vigência, versão T2.6, testes contra PostgreSQL)`.
+
+Parecer: **aprovado** em bf5cfd5. Pendem o QA (E4.27) e a segurança por delta (E4.35).
