@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: f763d6acffca29233c78966abe44882be10c1daa
+commit: 4e5958fe1db79d19a4e7f83d68b654607b21c9d2
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,15 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.114, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `pnpm-lock.yaml` mudou na correção do test:pg (`4e5958f`, K-182). O `forge-check delta --parecer` não roda aqui (a branch nasceu da `develop`, `4a01e39`); o delta lido foi `git diff 4e5958f~1..4e5958f`, e só ele: `pnpm-workspace.yaml` e `pnpm-lock.yaml`.
+
+- `pnpm-workspace.yaml`: um override novo, `vite: "8.3.4"`, com comentário do motivo e da condição de reversão. Dependência de desenvolvimento e de build; nada do código da WS1.
+- `pnpm-lock.yaml`: só a troca de versão do vite e das referências a ele (sem pacote novo). O script da WS1 (`bm:diagnostico`) usa `fetch` nativo e não depende do vite.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código da correção tem pareceres próprios (`docs/reviews/052-fix-test-pg.md`, `docs/security/052-fix-test-pg.md`, `docs/qa/052-fix-test-pg.md`), e o QA renovou o dele (`docs/qa/052-ws1-estrutura.md`, E2.116, `f575cfd`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `4e5958f`.
 
 ## Renovação por delta (E2.87, 2026-11-01)
 
