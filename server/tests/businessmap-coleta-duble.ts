@@ -111,6 +111,13 @@ export function bancoFalso(op: OpcoesBanco = {}) {
     if (t.includes("status = 'em_andamento' AND versao_coletor")) return (op.interrompidas ?? []).map((coleta_id) => ({ coleta_id }));
     if (t.includes("parametros ->> 'tipo' = 'carga_inicial'")) return op.ultimaCarga === undefined ? [] : [op.ultimaCarga];
     if (t.includes('max(marca_dagua_ate)')) return [{ marca: op.marca ?? null }];
+    // F4: o projetor roda na mesma execução (`--projetar`) e lê o que a coleta acabou de gravar no staging
+    if (t.includes("'projecao'")) return [{ coleta_id: '88' }];
+    if (t.startsWith('SELECT DISTINCT id_origem')) return [...new Set(estado.stg.map((x) => x.idOrigem))].filter((i) => i > (v[0] as string)).sort().map((id_origem) => ({ id_origem }));
+    if (t.includes('SELECT DISTINCT ON (id_origem) stg_sk, id_origem, payload')) {
+      return estado.stg.filter((x) => (v[0] as string[]).includes(x.idOrigem))
+        .map((x, i) => ({ stg_sk: String(500 + i), id_origem: x.idOrigem, payload: JSON.parse(x.payload) as unknown, excluido_detectado: false, coletado_em: new Date('2026-11-02T12:00:00Z') }));
+    }
     if (t.startsWith('INSERT INTO dspd_bm.ctl_coleta (')) {
       estado.aberta = { params: v, parametros: JSON.parse(v[4] as string) as Record<string, unknown> };
       return [{ coleta_id: op.coletaId ?? '77' }];

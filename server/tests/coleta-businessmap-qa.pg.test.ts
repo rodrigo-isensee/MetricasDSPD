@@ -118,17 +118,17 @@ d('QA da F3 (E2.49): motivo por chave, transição inválida, incremental com ar
     }
   });
 
-  // ---------- (b) transição inválida: coleta parcial e sem marca d'água ----------
-  it('CT-B: transição sem coluna ou sem entrada vira falha só com o id do card; a coleta fecha parcial, sem marca d\'água; o resto do card e a transição válida ficam', async () => {
+  // ---------- (b) transição inválida: fica no controle, mas não trava a marca d'água (A3 do review da F3) ----------
+  it('CT-B: transição sem coluna ou sem entrada vira falha só com o id do card; a coleta fecha com sucesso e a marca d\'água avança (A3); o resto do card e a transição válida ficam', async () => {
     const c = card({ transitions: [trans(90291, '2026-10-01 10:00:00', null), trans(null, '2026-10-02 10:00:00', null), trans(90292, '', null), trans(90292, null, null)] });
     const outro = card({ transitions: [trans(90291, '2026-10-03 10:00:00', null)] });
     const s = await servidor({ ...cenarioVazio(), cards: { [`${QC}|active`]: [c, outro] } });
     const r = await coletarCards(deps(s, em('2026-11-04T12:00:00Z')), { tipo: 'carga_inicial', inicio: '2025-08-01' });
-    expect(r.estado).toBe('parcial');
-    expect(r.falhas).toEqual({ 'transicao-invalida': 3 });
+    expect(r.estado).toBe('sucesso');
+    expect(r.falhas).toEqual({});
     expect(r.streams.find((x) => x.estado === 'active')!.transicoes).toEqual({ lidas: 5, inseridas: 2, jaExistentes: 0, invalidas: 3 });
     const linha = await dono.query<{ status: string; marca_dagua_ate: Date | null; erro_resumo: string }>(`SELECT status, marca_dagua_ate, erro_resumo FROM ${S.bm}.ctl_coleta WHERE coleta_id = $1`, [r.coletaId]);
-    expect(linha.rows[0]).toEqual({ status: 'parcial', marca_dagua_ate: null, erro_resumo: 'desconhecido: 3 falha(s) (transicao-invalida)' });
+    expect(linha.rows[0]).toEqual({ status: 'sucesso', marca_dagua_ate: new Date('2026-11-04T12:00:00Z'), erro_resumo: null });
     const f = await dono.query<{ entidade: string; id_origem: string; erro: string }>(`SELECT entidade, id_origem, erro FROM ${S.bm}.ctl_coleta_falha WHERE coleta_id = $1`, [r.coletaId]);
     expect(f.rows).toEqual(Array(3).fill({ entidade: `card_${QC}_active`, id_origem: String(c.card_id), erro: 'transicao-invalida' }));
     expect(await n(`SELECT count(*)::int AS n FROM ${S.bm}.stg_card WHERE id_origem = ANY($1::text[])`, [[String(c.card_id), String(outro.card_id)]])).toBe(2);

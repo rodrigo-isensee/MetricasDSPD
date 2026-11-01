@@ -321,6 +321,19 @@ describe('F3: nomes dos responsáveis (Q-8 = B) pela coleta', () => {
   });
 });
 
+describe('F4: responsáveis em memória para o projetor da mesma execução', () => {
+  it('só quando quem chama passa o mapa: ids por card, sem entrada para card sem os campos, e nada disso em banco, log ou resultado', async () => {
+    const responsaveis = new Map<string, string[]>();
+    const m = await montar({ cards: { '35|active': [card(1), card(2, { owner_user_id: undefined, co_owner_ids: undefined })] }, porPagina: 100, users: USUARIOS, status: {}, corpos: {} }, {}, [35], { responsaveis });
+    const r = await coletarCards(m.deps, carga);
+    expect([...responsaveis]).toEqual([['1', ['5', '6', '7']]]);
+    expect(JSON.stringify([m.banco.estado, m.logs, r])).not.toContain('"5","6","7"');
+    // sem o mapa, nada é guardado (o comando só liga com --projetar)
+    const sem = await montar({ cards: { '35|active': [card(1)] }, porPagina: 100, users: USUARIOS, status: {}, corpos: {} });
+    await expect(coletarCards(sem.deps, carga)).resolves.toMatchObject({ estado: 'sucesso' });
+  });
+});
+
 describe('F3: referência da F2 chamada pelo comando', () => {
   it('a etapa roda depois de abrir a coleta e antes dos cards; o resultado vai ao relatório', async () => {
     const ordem: string[] = [];

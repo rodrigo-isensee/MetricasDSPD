@@ -60,7 +60,12 @@ export interface DepsColeta {
   agora: () => Date;
   paginaTamanho?: number;
   /** Etapa da referência da F2 (transação do papel de referência), rodada depois de abrir a coleta e antes dos cards. */
-  etapaReferencia?: (coletaId: number) => Promise<unknown>;
+  etapaReferencia?: (coletaId: number, ctx: { inicioCarga: string | null }) => Promise<unknown>;
+  /**
+   * Responsáveis lidos em memória por card (ids, ADR 0020 4b), para o projetor da MESMA execução (F4, I-2). Nunca vai a log, banco
+   * nem resultado do comando: quem passa o mapa é quem projeta logo depois. Card sem os campos de responsável não entra.
+   */
+  responsaveis?: Map<string, string[]>;
 }
 
 export interface ContagemTransicoes { lidas: number; inseridas: number; jaExistentes: number; invalidas: number }
@@ -182,7 +187,9 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
           await registrarFalha(db, x.S, x.coletaId, entidade, null, 'card-sem-id');
           continue;
         }
-        for (const r of extrairResponsaveis(card) ?? []) x.vistos.add(r);
+        const responsaveis = extrairResponsaveis(card);
+        for (const r of responsaveis ?? []) x.vistos.add(r);
+        if (responsaveis !== null) x.d.responsaveis?.set(id, responsaveis);
         const r = await gravarStgCard(db, {
           idOrigem: id, card, dominios: x.dominios, coletaId: x.coletaId, agora, quadroId: String(quadro),
           arquivado: estado === 'archived', excluidoDetectado: false,
@@ -193,8 +200,9 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
           c.transicoes.lidas += 1;
           const revisionId = revisionIdDaTransicao(t);
           if (revisionId === null) {
+            // A3 do review da F3: transição sem coluna ou entrada fica no controle (código e id do card) e na contagem, mas não torna a
+            // coleta parcial: ela só some quando o card é modificado (e relido), e a repetição dela travaria a marca d'água para sempre.
             c.transicoes.invalidas += 1;
-            x.falhas.push('transicao-invalida');
             await registrarFalha(db, x.S, x.coletaId, entidade, id, 'transicao-invalida');
             continue;
           }
@@ -261,7 +269,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
     let referencia: unknown = null;
     if (d.etapaReferencia !== undefined) {
       try {
-        referencia = await d.etapaReferencia(coletaId);
+        referencia = await d.etapaReferencia(coletaId, { inicioCarga });
       } catch (e) {
         x.falhas.push(codigoDe(e));
         if (e instanceof ErroReferencia) x.motivosPendentes.push(...e.pendentes);
