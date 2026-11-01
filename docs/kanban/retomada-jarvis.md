@@ -1,28 +1,79 @@
-# Retomada do Jarvis (estado salvo antes do reinício para o Forge 0.30.5)
+# Retomada do Jarvis (estado salvo antes da troca de conta do dono)
 
-Salvo em 2026-10-29, depois das decisões do dono das 07:05 a 07:07. Nenhum agente em curso (todos concluídos). Branch do repositório principal: docs/jarvis-2026-10-23.
+Salvo em 2026-11-01 por volta das 15:50. O dono trocou o login do Claude Code no WSL, e a sessão é reiniciada com `--continue`. Branch do repositório principal: `docs/jarvis-2026-10-23`, com push até `732f3d3` (este arquivo vai no commit seguinte). Prazo: métricas operacionais funcionando na segunda, 2026-11-02, com o recorte "A": BusinessMap FL1 com dado real (O19 a O26 em mock até a F6b) e Acelerato/sustentação com dado real.
 
 ## Ao retomar (primeiro)
-1. Confirmar que o plugin carregado é o 0.30.5 (caminho do forge-check passa a ser .../forge/0.30.5/bin/forge-check) e que `.forge/run/versao-nova` não diz mais `defasado: true`. O `.forge/versao` é do dono (atualização via PR numa branch do projeto).
-2. Regerar e reconferir os briefs com o forge-check novo; disparar em paralelo, dentro de R-TETO e da regra do dono "no máximo uma suíte de teste por vez e poucos agentes em paralelo".
+1. Ver se o PR 188 (F6) terminou: `gh pr view 188 --json state,isDraft,mergeable,statusCheckRollup`. O `forge:tech-lead` da E2.100 (brief `docs/briefs/052-integracao-businessmap-tech-lead-57.md`) estava rodando na hora da troca:
+   - ele já tinha renovado `docs/reviews/052-ws1-estrutura.md` (2efa879) e aberto o PR 188 como draft;
+   - faltavam `gh pr ready`, a espera pelos checks e o merge (o sandbox barra `gh pr merge`, e aí o merge é do dono).
+   - Se o agente morreu na troca, relançar a E2.100 com um brief de retomada que vai só do `gh pr ready 188` aos checks, sem reabrir o PR.
+2. Gravar no Histórico do pedido 052 a linha "E2.100 cumprida" ou "parcial", com o número do PR e os checks.
+3. Regerar o brief da E2.102 (detalhes abaixo), mandar ao conferente e delegar.
 
-## Fila (pedido 048, docs/pedidos/048-o-que-falta-em-mock.md)
-- E5.5 (tech-lead-11, sha 2f73095d…): worktrees 048c (`feature/048-ajustes-back`) e 048d (`feature/048-ajustes-front`) em 7c94348; refazer a conferência formal da entrega.
-- E3.1 node-backend-5 (`docs/briefs/048-o-que-falta-em-mock-node-backend-5.md`, sha 309459ef…): mérito aprovado, reprovado só pela versão; regerar blocos e reconferir, depois delegar (K-129, K-093, O23) na 048c.
-- E3.2 react-frontend (K-128, K-126, K-133) e E3.3 software-architect (K-127, ADR 0021) na 048d: briefs a escrever.
-- E4.1 volta 2 (react-frontend) na 048b `feature/048-usabilidade`: DECISÃO DO DONO 048-03 = A (barra de filtros sem sticky a partir de 768 px; só cabeçalho e índice fixos; CA-A a CA-E em docs/ux/revisao-geral-usabilidade/05-parecer-048-03.md). Depois: re-review tech-lead (f82b656..head, inclui bugs 048-01, 048-02, A4 e specs do QA), segurança se gatilho, reteste QA, revisão UX (E4.3), PR. Depois o E4.2 (K-075).
-- K-178 (DECISÃO DO DONO = A): dompurify para 3.4.17 em branch própria; security-engineer avalia impacto, tech-lead sobe versão, review/segurança/QA, PR para develop. Mover cartão da Entrada.
-- E5.3 retro do 048 no fim.
+## Pedido 052 (docs/pedidos/052-integracao-businessmap.md): etapa a etapa
+- **F6, painel FL1 com origem real ou fictícia por métrica.** Worktree `/home/rodrigoisensee/MetricasDSPD-052h`, branch `feature/052-f6-painel`, ponta `2efa879`. **PR 188 aberto, ainda draft.**
+  - Pareceres em dia:
+    - review da F6 e da WS1 (E2.97 e E2.100);
+    - segurança: `052-fix-coleta` renovado na E2.105 (4ad0045) e F6 na E2.98;
+    - QA: WS1 na E2.106 (3578041) e F6 na E2.99;
+    - UX: c44bc7b.
+  - O review aceitou a exceção de tamanho (cerca de 1962 linhas).
+  - Falta: ready, checks verdes, **o dono mescla** (squash).
+- **Limpeza do seed mock da base real** (decisão do dono "A", 2026-11-01 14:25). Worktree `/home/rodrigoisensee/MetricasDSPD-052g`, branch `feature/052-limpa-seed`, ponta `a217f1e`. Comando `pnpm --filter @metricas-dspd/server run db:limpar-seed [--aplicar]`, código em 26d097c.
+  - E2.101, segurança: **aprovada** (a217f1e). Recomendados:
+    - A1: `ref_sle`, `ref_alocacao_acordada`, `ref_ficha_resultado` e `ref_alvo_prioridade` saem só pela chave;
+    - A2: `lock_timeout` curto antes do `ALTER TABLE`.
+  - E2.102, code review: **brief não delegado ainda.**
+    - O `tech-lead-58` foi reprovado pelo conferente por dois motivos: a ADR 0024 aparecia descrita como seed, mas ela trata do tipo do card; e o foco não incluía o gatilho append-only nem o papel `dspd_migrador`.
+    - O script que montava o brief ficava no scratchpad da sessão antiga e não existe mais. Gerar de novo com `forge-check brief gerar --pedido 052-integracao-businessmap --destino forge:tech-lead --branch feature/052-limpa-seed`, com:
+      - ADR 0022: "as linhas da coleta real não são tocadas; só o seed sai";
+      - ADR 0024: "nada muda nesta etapa";
+      - foco: gatilho append-only de `fato_transicao` e papel `dspd_migrador`, identificação do seed pela versão em `ctl_coleta`, regra dos `ref_*`, `fato_bloqueio` removido além do brief, `ref_versao_criterio` do `dspd_core` com motivo seed-mock (está coberto ou não pela decisão do dono), passo a passo e teto;
+      - `commit:` em 26d097c0a51234e7f1c1ecf4aff9939abfb145e6.
+    - Rodada de confirmação: `--anterior docs/briefs/052-integracao-businessmap-tech-lead-58.md --ref origin/feature/052-limpa-seed`.
+  - Depois: E2.103, QA (`docs/qa/052-limpa-seed.md`, suíte .pg com `PG_TESTE_URL`), e E2.104, PR (**o dono mescla**).
+  - Se o review achar que `fato_bloqueio` ou `ref_versao_criterio` estão fora da decisão "A", isso vira pergunta ao dono.
+- **Do dono, depois dos dois merges:**
+  1. no banco dele, `db:limpar-seed` sem opção (simulação, só contagens) e depois com `--aplicar`;
+  2. depois que a F6 estiver mesclada, gerar de novo o mock no esquema próprio, com `DSPD_SCHEMA_PREFIXO_SEED`.
+- Com isso, o FL1 e a sustentação ficam só com dado real (a sustentação já lê o esquema do Acelerato, recarregado em 2026-11-01).
+- **E2.81 (tech-lead):** limpeza das branches já mescladas. Ainda não iniciada.
 
-## Pedido 047 (docs/pedidos/047-pendencias-decididas-2026-10-28.md)
-- K-164: commit local a779854 em ~/.forge-contrib/MetricasDSPD-wt/k164, sem push (pre-push do Forge falhou). AÇÃO DO DONO: push pelo terminal. Depois: conferente, E3.2 a E3.5 e E5.1 (retro).
+## Pedido 056 (docs/pedidos/056-acelerato-mysql.md)
+- PR 187 mesclado (develop 81fcd63). A releitura do dono (E4.47) passou: 5093 chamados e 26590 etapas.
+- Pendente, só depois de segunda:
+  - cartão com os recomendados A1 a A5 do review e A1 da segurança;
+  - o teste do QA guardado em `/tmp/claude-1000/qa-056-e445/`;
+  - a worktree 056 (`feature/056-dominio-listas`), que já foi mesclada e entra na limpeza;
+  - a worktree 056d (destacada em 81fcd63), que é a de execução do dono.
 
-## Pedido 043 (docs/pedidos/043-forge-f21-f22.md)
-- K-153 (DECISÃO DO DONO = B): conferir se o `forge-check pr` da 0.30.5 lê os pareceres no clone de contribuição. Se ler: tech-lead abre o PR do F22. Se não: dono abre pelo terminal com docs/analises/043-f22-corpo-do-pr.md e vira MELHORIA ao Forge.
-- K-152 (F21): aplicar o patch, ação do dono. Arquivos 043 não versionados no repositório principal (docs/devops, qa, reviews, security 043-f22-release, 043-forge-f21-f22-ameacas) e docs/analises/047-k164-corpo-do-pr.md, docs/retrospectivas/2026-10-28-problemas-para-o-forge.md: vêm de outras delegações, não commitados por mim.
+## Worktrees
+- 041 e 041b: antigas, do pedido 041.
+- 052b a 052f: branches já mescladas, aguardam a E2.81.
+- 052g: limpeza do seed, em curso.
+- 052h: F6, PR 188.
+- 056: mesclada.
+- 056d: execução do dono.
+
+## Decisões do dono pendentes
+- Nenhuma bloqueante agora.
+- Pode surgir uma no review da E2.102: se `fato_bloqueio` e `ref_versao_criterio` entram na decisão "A".
+- Opcional: o dono conferir 3 a 5 cards do BusinessMap sem responsável.
 
 ## Ações pendentes do dono
-- push do K-164; encerrar vite preview na porta 4173 (PIDs 2807456, 2807378, 2807331); apagar branch remota docs/048-t14-desenho; K-141 (ambiente da máquina nova); K-152.
+- Mesclar o PR 188 e, depois, o PR da limpeza.
+- Rodar `db:limpar-seed` (simulação, depois `--aplicar`) e gerar o mock de novo.
+- `.env.example` e `.env.homolog.example` estão alterados no clone principal, sem commit, por mudança que não é do Jarvis. O dono decide o que fazer com eles.
+
+## Depois de segunda (sem bloquear)
+- Cartão de triagem para 15 alertas do Dependabot na branch padrão (1 crítico, 3 altos).
+- Recomendados da F6 (A1, A3 e A4) e da limpeza (A1 e A2), e a troca de nome do contador.
+- Conferências de entrega que ficaram puladas.
+- Retrospectiva com o agile-coach.
+- Brief `security-engineer-31`: a mesma descrição errada da ADR 0024 passou pelo conferente. Registrar como tardio.
 
 ## Melhorias para o Forge (lista acumulada)
-`--volta` × etapa nova; Desde por branch; target-size; PATH do pnpm; revalidação por merge da develop; timeout do brief gerar; `gh pr checks --watch` estoura 600 s; pre-push do Forge sem skip em sessão de agente; neutralidade varrendo __pycache__; hook recusa `git branch`/`git worktree list` ao conferente; `forge-check pr` não lê clone de contribuição.
+- `forge-check pr` não devia contar parecer de `docs/ux` (nem de qa, reviews ou security) como mudança relevante: cada parecer commitado força outra rodada de renovações.
+- `docs/security/_modelo.md` citado pelo brief, mas inexistente no projeto.
+- Mensagem ao conferente: o `forge-check brief mensagem` imprime linhas `jarvis-recorrente` antes de `modo: brief`, e o hook do Agent recusa a mensagem.
+- Itens anteriores: `--volta` × etapa nova; Desde por branch; target-size; PATH do pnpm; revalidação por merge da develop; timeout do brief gerar; `gh pr checks --watch` estoura 600 s; pre-push do Forge sem skip em sessão de agente; neutralidade varrendo __pycache__; hook recusa `git branch` e `git worktree list` ao conferente; `forge-check pr` não lê o clone de contribuição.
