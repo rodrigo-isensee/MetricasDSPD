@@ -3,7 +3,7 @@
 - Data: 2026-10-30 · Autor: `software-architect` (pedido 056, E4.1) · Público: node-backend, security-engineer, qa-engineer.
 - Decisão: ADR 0023. Plano: `docs/architecture/features/056-acelerato-mysql.md` (citado como "plano §n"). As fontes que o plano cita são citadas como no plano: "resp. n" = `docs/integracao/acelerato-respostas-ciencia-de-dados.md`, item n; "dash §n" = `docs/integracao/acelerato-dash-atual.md`, seção n.
 - Regra: cada item tem a origem. Valor que os documentos não trazem fica **"a preencher na carga inicial com o dono"**, nunca inventado. Nenhuma linha de dado, nome de pessoa, endereço de servidor nem organização cliente aparece aqui.
-- Destino: as listas dos §3 a §10 e do §12 vão para `ref_dominio` do `dspd_ac` (arquivo versionado, `ref:sync`), com o campo indicado em cada seção; as dos §1 e §2 são constantes do código (`allow-list.ts` e o SQL versionado). Mudar qualquer lista é mudança de critério (T2.6): novo hash em `ctl_coleta.parametros` e entrada em `ref_versao_criterio`.
+- Destino: as listas dos §3 a §10 e do §12 vão para `ref_dominio` do `dspd_ac` (arquivo versionado, `ac:ref-sync`), com o campo indicado em cada seção; as dos §1 e §2 são constantes do código (`allow-list.ts` e o SQL versionado). Mudar qualquer lista é mudança de critério (T2.6): novo hash em `ctl_coleta.parametros` e entrada em `ref_versao_criterio`.
 - Valor fora da lista: nas colunas de vocabulário (§7 a §9: status, prioridade e etapa), o valor vira nulo com contagem por coluna em `ctl_coleta_contagem`, sem o valor, para a lista ser corrigida com o dono; chamado fora do recorte (§4 a §6: tipo, organização ou equipe) faz a coleta **falhar fechado** com `fora-do-recorte`; nos campos personalizados (§3), o valor vira nulo com contagem em `ctl_coleta_contagem`, sem o valor (M4 d).
 
 ## 1. Colunas (constante do código; plano §2)
@@ -53,7 +53,7 @@ Grafia dos nomes: como no plano §2.1 e na resp. 2 e 3. A resp. 3 também cita "
 
 | Código (`tipo_ticket_key`) | Rótulo (`tipo_ticket`) | Origem |
 |---|---|---|
-| a preencher na carga inicial com o dono | DSPD - SSSC | D-8 (plano §0); dash §1 (população base) |
+| 23 | DSPD - SSSC | D-8 (plano §0); dash §1 (população base); consulta só leitura de 2026-11-01 (E4.32), 6907 chamados |
 
 ## 5. Organizações (`ref_dominio` campo `organizacao_recorte`)
 
@@ -61,8 +61,9 @@ D-8: "as duas organizações do DSPD (nova e antiga)". Só as do próprio DSPD a
 
 | Código (`organizacao_key`) | Rótulo (`organizacao`) | Origem |
 |---|---|---|
-| a preencher na carga inicial com o dono | UNIFIQUE - DSPD SUSTENTAÇÃO E PEQUENAS MELHORIAS (fila nova) | dash §1; resp. 9 (as duas fontes concordam) |
-| a preencher na carga inicial com o dono | **a preencher na carga inicial com o dono** (fila antiga) | **os documentos divergem:** o dash §1 chama a antiga de "UNIFIQUE - DSPD SUSTENTACAO (DPTO SISTEMA PD)"; a resp. 9 dá como segunda organização do DSPD "UNIFIQUE - DSPD - INTERNO" (a soma de cerca de 6,3 mil do plano §1.1 usa esta). Não se decide por inferência: pergunta ao dono (qual, ou as duas) |
+| 3 | UNIFIQUE - DSPD SUSTENTAÇÃO E PEQUENAS MELHORIAS (fila nova) | dash §1; resp. 9; consulta só leitura de 2026-11-01 (E4.32), 5278 chamados no tipo 23 |
+
+Fila antiga: a consulta de 2026-11-01 (E4.32) procurou, em qualquer tipo, nomes com "SUSTENTACAO", "SUSTENTAÇÃO" e "DPTO SISTEMA" e não achou "UNIFIQUE - DSPD SUSTENTACAO (DPTO SISTEMA PD)"; a única organização que apareceu é a fila nova (chave 3). Decisão do dono (E4.32): entra só a fila nova. A fila nova tem ainda 7 chamados em outros tipos (chaves 26, 36 e 40), que ficam fora porque só o tipo 23 entra. ESCRITORIO DE PROJETO (chave 8, 63 chamados) e INTERNO (chave 13, 1004 chamados) ficam fora por decisão do dono.
 
 A contagem `fora_organizacoes_recorte` da primeira carga (ADR 0023 item 5) mostra, sem nome, quantos chamados SSSC das 3 equipes ficam fora da lista; maior que zero vira pergunta ao dono antes de publicar o painel.
 
@@ -72,9 +73,9 @@ Nunca para comparação entre times (briefing 7.1).
 
 | Código (`equipe_key`) | Rótulo (`equipe`) | Origem |
 |---|---|---|
-| a preencher na carga inicial com o dono | SSSC TOTVS | dash §1; D-8 |
-| a preencher na carga inicial com o dono | SSSC SENIOR | dash §1; D-8 |
-| a preencher na carga inicial com o dono | SSSC FLUIG | dash §1; D-8 |
+| 7 | SSSC TOTVS | dash §1; D-8; consulta de 2026-11-01 (E4.32), 4114 chamados |
+| 9 | SSSC SENIOR | dash §1; D-8; consulta de 2026-11-01 (E4.32), 1052 chamados |
+| 332 | SSSC FLUIG | dash §1; D-8; consulta de 2026-11-01 (E4.32), 94 chamados |
 
 ## 7. Etapas (`ref_dominio` campo `etapa`; vale para `status` e para `estatisticas.workflow.etapas[].descricao`)
 
@@ -135,28 +136,34 @@ A saída (chaves, nomes do DSPD e contagens) preenche os §4 a §6 por um commit
 
 ## 12. Categoria e descrição do workflow (`ref_dominio` campos `categoria` e `descricao_workflow`; Segurança A5)
 
-Origem: A5 do parecer `docs/security/056-coletor-f1-f2.md` (texto livre só entra por domínio fechado), feito na volta 1 da F2 (E4.12, 3b2f98f). Os documentos não trazem os valores: **as duas listas: a preencher na carga inicial com o dono**.
+Origem: A5 do parecer `docs/security/056-coletor-f1-f2.md` (texto livre só entra por domínio fechado), feito na volta 1 da F2 (E4.12, 3b2f98f). Valores: consulta de valores distintos abaixo, rodada só leitura na máquina do dono em 2026-10-31 (pedido 056, E4.22; saída fora do repositório, sem linha de chamado), e **decisão do dono de 2026-10-31 19:01**: entram todas as 136 categorias devolvidas, inclusive inativas e variantes de grafia, **menos TESTADEV444**, e todas as 19 descrições do workflow. Totais: **135 categorias** e **19 descrições do workflow**, no arquivo versionado `docs/architecture/fontes/acelerato-dominio.json` (campos `categoria` e `descricao_workflow`, na ordem da saída da consulta; a lista não é copiada aqui). Variantes de grafia (por exemplo, hífen e travessão, com e sem acento) e nomes iguais com chaves diferentes ficam como linhas distintas, porque a conferência é por igualdade exata.
 
 | Campo no `ref_dominio` | Valor conferido (origem) | Contagem fora do domínio (`ctl_coleta_contagem`) | Lista vazia ou valor fora dela | Uso |
 |---|---|---|---|---|
 | `categoria` | coluna `categoria` (plano §2 linha 9) | `fora_dominio_categoria` | o valor vira nulo, com a contagem e sem o valor; lista vazia = **toda categoria nula** e, por consequência, **a natureza sem valor** em todo chamado (o prefixo do §10 não tem o que ler; contagem `natureza_sem_prefixo`). `categoria_key` continua lida | natureza (§10) e `categoria_sistema` da projeção |
 | `descricao_workflow` | `estatisticas.workflow.etapas[].descricaoWorkflow` (§2) | `fora_dominio_workflow` | o valor vira nulo, com a contagem e sem o valor; lista vazia = toda descrição do workflow nula no staging das etapas | só staging das etapas; nenhuma métrica da F2 o lê |
 
-Formato da linha: `codigo` e `rotulo` são conferidos os dois contra o valor (`referencia.ts`); para estas listas, use o próprio texto nos dois (na `categoria` o `codigo` pode ser a `categoria_key` em texto decimal, com o nome no `rotulo`). Lista vazia não impede a coleta (só as do recorte, §4 a §6, impedem); por isso o painel não se publica com `fora_dominio_categoria` maior que zero sem o dono ter visto a contagem.
+Formato da linha: `codigo` e `rotulo` são conferidos os dois contra o valor (`referencia.ts`); na `categoria`, `codigo` = `categoria_key` em texto decimal e `rotulo` = o nome exato; na `descricao_workflow`, o próprio texto nos dois. `ordem` = a posição no arquivo. Lista vazia não impede a coleta (só as do recorte, §4 a §6, impedem); por isso o painel não se publica com `fora_dominio_categoria` maior que zero sem o dono ter visto a contagem.
 
-Consulta da carga inicial (E4.8), na mesma conta e no terminal do dono: só valores distintos com a contagem, nenhuma linha de dado, no mesmo recorte do §11 (nenhuma organização cliente entra no filtro):
+Consulta de valores distintos, na mesma conta e no terminal do dono: só valores distintos com a contagem, nenhuma linha de dado, no mesmo recorte do §11 (nenhuma organização cliente entra no filtro). A versão com `UNION ALL` das duas metades **falha no servidor com o erro 1271** (mistura ilegal de intercalações no `UNION`: as duas metades devolvem texto com intercalações diferentes, a coluna `categoria` da tabela e a coluna gerada pelo `JSON_TABLE`; observado na E4.22); por isso o texto fica em **duas consultas**, cada uma com o mesmo SQL da metade correspondente, rodadas em separado:
+
+Consulta 12a (categoria):
 
 ```sql
 SELECT 'categoria' AS lista, categoria_key AS chave, categoria AS nome, COUNT(*) AS n
   FROM ACELERATO_CHAMADOS
  WHERE tipo_ticket = 'DSPD - SSSC' AND equipe IN ('SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG') AND organizacao LIKE 'UNIFIQUE - DSPD%'
  GROUP BY categoria_key, categoria
-UNION ALL
-SELECT 'descricao_workflow', NULL, e.descricao_workflow, COUNT(*)
+```
+
+Consulta 12b (descrição do workflow):
+
+```sql
+SELECT 'descricao_workflow' AS lista, NULL AS chave, e.descricao_workflow AS nome, COUNT(*) AS n
   FROM ACELERATO_CHAMADOS c,
        JSON_TABLE(c.estatisticas, '$.workflow.etapas[*]' COLUMNS (descricao_workflow VARCHAR(255) PATH '$.descricaoWorkflow')) e
  WHERE c.tipo_ticket = 'DSPD - SSSC' AND c.equipe IN ('SSSC TOTVS', 'SSSC SENIOR', 'SSSC FLUIG') AND c.organizacao LIKE 'UNIFIQUE - DSPD%'
  GROUP BY e.descricao_workflow
 ```
 
-O caminho `json` é o mesmo da Q2 (`sql.ts`). O dono confere a saída antes do commit: valor que traga nome de pessoa ou de organização cliente fica fora da lista (vira nulo com contagem), não entra no `ref_dominio`. A saída preenche o §12 por um commit revisado; mudar a lista depois é mudança de critério (T2.6), como as demais.
+O caminho `json` é o mesmo da Q2 (`sql.ts`). Na 12b, `n` conta etapas do workflow (uma linha por etapa do `JSON_TABLE`), não chamados. O dono confere a saída antes do commit: valor que traga nome de pessoa ou de organização cliente fica fora da lista (vira nulo com contagem), não entra no `ref_dominio`. A saída de 2026-10-31 preencheu o arquivo versionado acima (E4.25), que entra por um commit revisado; mudar a lista depois é mudança de critério (T2.6), como as demais. Alternativa equivalente a duas consultas: manter o `UNION ALL` com `COLLATE` explícito na coluna de texto das duas metades; não foi rodada, por isso não é o texto vigente.
