@@ -3,14 +3,34 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f4-projetor
-commit: 7a1907a3895d2727103f7582183e6262840f58b2
-parecer: reprovado
+commit: ac47bf16c9443bae8cb20cd8f39f3a3a72478c7f
+parecer: aprovado
 revisor: forge:tech-lead
-data: 2026-10-31
+data: 2026-11-01
 ---
 # Review: 052-integracao-businessmap (F4 do plano 052, normalizador e projetor, T2.4, K-182)
 
-**Veredito (E2.64, revalidação por delta): reprovado** em `7a1907a`, só pelo A2. A volta E2.63 resolve o A1, o A5 e o A6, e não traz achado novo de código. O A2 (três comportamentos num PR, decisão M14) não depende de código: segue aberto até o dono decidir. Se o dono aceitar a exceção, o parecer vira aprovado sem nova leitura de código. Se ele mandar separar, o A3 e o A6 da F3 saem desta branch e o delta da separação é revalidado.
+**Veredito (E2.62, renovação por delta): aprovado** em `ac47bf1`. O A2 fecha pela decisão do dono de 2026-11-01 06:33 ("A": um PR só da `feature/052-f4-projetor`, com exceção à M14 registrada no PR). O delta desde `7a1907a` traz só teste do QA e pareceres, sem código de produção, e nenhum achado novo.
+
+## Renovação E2.62 (`7a1907a..ac47bf1`)
+
+**Delta lido.** Rodei `forge-check delta --parecer docs/reviews/052-f4-projetor.md`. Ele lista um arquivo de código ou teste: `server/tests/projetor-businessmap-qa.pg.test.ts`, linhas 1 a 168 (arquivo novo do QA, `4f54b8a`). Li o arquivo inteiro. O resto do intervalo é documento: o parecer e o roteiro do QA da F4 (`e7651a2`), a renovação de segurança da F4 (`5ec6a4b`), a do QA da WS1 (`ac47bf1`) e a minha revalidação anterior (`e1e5f86`).
+
+**Já lido.** Todo o código de produção e os testes do autor (`dd15c93..7a1907a`), sem mudança desde a E2.64.
+
+**O teste do QA.** Seis casos contra PostgreSQL em schemas próprios do arquivo (`prefixoDeTeste`), com `afterAll` que derruba os schemas e fecha os pools. Cobre datas com e sem fuso (A5), ordem de gravação diferente da ordem do tempo (H-9 e H-10), "Descartado" sem `concluido_em` (H-11), campos de pessoa e texto livre fora de toda tabela (ADR 0020, com mínimo de tabelas afirmado), reconstrução dupla sem fato nem versão nova (DT-1) e GRANT do `dspd_api`. O SQL interpolado usa só o nome do schema de teste; os valores vão por parâmetro. Ids inventados, nenhum dado real. Sem defeito.
+
+**Achados anteriores:**
+- **A2 resolvido** pela decisão do dono (forma do PR da F4, "A"). O corpo do PR leva a linha de exceção com o número recontado abaixo, aceita por mim.
+- A3 e A4 seguem com o software-architect na F6 (E2.67). A7 segue como pergunta ao dono; o QA o registrou como dependente da resposta. A8 segue como recomendação.
+
+**Outros pareceres, citados e não refeitos.** Segurança da F4 aprovada em `e7651a2` (`docs/security/052-f4-projetor.md`, E2.79). QA da F4 aprovado em `4f54b8a` (`docs/qa/052-f4-projetor.md`): `test:pg` com 23 arquivos e 153 testes, rc=0; unitária do server com 1038 testes. O `praticas.md` continua sem regra "decidida por: `<comando>`".
+
+**Teto recontado (decisão M14).** `git diff --numstat --no-renames origin/develop...HEAD` (base `dd15c93`, develop em `d73f5fc`), sem `.md`: **2062 linhas** (2042 a mais e 20 a menos), 168 delas do teste do QA. O PR leva `teto: excedido, 2062 linhas, F4 do plano 052 (normalizador e projetor) mais A3 e A6 do review da F3, um PR só por decisão do dono de 2026-11-01`.
+
+## Revalidação E2.64 (volta E2.63, `89a50c9..7a1907a`): reprovado só pelo A2
+
+Texto do veredito daquela rodada: **reprovado** em `7a1907a`, só pelo A2. A volta E2.63 resolve o A1, o A5 e o A6, e não traz achado novo de código. O A2 (três comportamentos num PR, decisão M14) não depende de código: segue aberto até o dono decidir. Se o dono aceitar a exceção, o parecer vira aprovado sem nova leitura de código. Se ele mandar separar, o A3 e o A6 da F3 saem desta branch e o delta da separação é revalidado.
 
 ## Revalidação E2.64 (volta E2.63, `89a50c9..7a1907a`)
 
@@ -77,7 +97,7 @@ O `pronto` (rc=0) e o `test:pg` (22 arquivos, 147 testes) ficam com o relatório
 ## Achados
 
 - A1 (bloqueante) server/src/modulos/businessmap/normalizador.ts:174 · granularidade só sai com equipe; a 0019 não dá time a workflow de iniciativa nem do quadro 35, e frente e projeto ficam nulos (H-1). Resolvido em 7a1907a (normalizador.ts:175), com testes.
-- A2 (bloqueante) server/src/modulos/businessmap/coleta.ts:203 · o PR leva três comportamentos: projeção da F4, A3 (transição inválida não torna parcial, com o CT-B) e A6 (coleta-comando.ts:77). Pela M14, um por PR: separe A3 e A6 ou o dono aceita a exceção. Aberto, aguarda o dono.
+- A2 (bloqueante) server/src/modulos/businessmap/coleta.ts:203 · o PR leva três comportamentos: projeção da F4, A3 (transição inválida não torna parcial, com o CT-B) e A6 (coleta-comando.ts:77). Pela M14, um por PR. Resolvido: o dono aceitou um PR só, com a exceção no PR (2026-11-01 06:33).
 - A3 (recomendado) server/src/modulos/businessmap/normalizador.ts:196 · dim_card.tipo recebe código (bug_interno, produto), mas mapa.ts:40 converte para TipoCard (rótulos), e produto não tem rótulo: O7, O13 e o filtro por tipo vazios com dado real. Destino: software-architect antes da F6.
 - A4 (recomendado) server/src/modulos/businessmap/projetor.ts:151 · fato_transicao.tipo_coluna fica congelado (DO NOTHING, reconstruir só limpa dim_card) e a API o lê (repositorio.ts:64): correção U-1 não chega ao WIP nem ao CFD. Destino: software-architect (DT-1 e F5).
 - A5 (recomendado) server/src/modulos/businessmap/normalizador.ts:24 · o `Z` explícito virava FUSO_PADRAO_BM. Resolvido em 7a1907a: `Z` vale +00:00 e a constante só vale sem fuso, com teste.

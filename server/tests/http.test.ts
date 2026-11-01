@@ -163,8 +163,12 @@ describe('cliente HTTP do BusinessMap: só GET, lista fechada e host fixo', () =
     expect(f.pedidos[0]!.metodo).toBe('GET');
     expect(f.pedidos[0]!.url).toContain('expand=custom_fields%2Ctransitions%2Cblock_times%2Clinked_cards');
     expect(f.pedidos[0]!.url).toContain('state=archived');
+    // E2.83: co-responsáveis só por expand em /cards (a API v2 recusa co_owner_ids em fields)
+    await c.get('/cards', { consulta: { expand: 'custom_fields,linked_cards,transitions,co_owner_ids', board_ids: '23' } });
+    expect(f.pedidos[1]!.url).toContain('expand=custom_fields%2Clinked_cards%2Ctransitions%2Cco_owner_ids');
     const ruins: [string, Record<string, string>][] = [
-      ['/cards', { expand: 'subtasks' }], ['/cards', { expand: 'transitions,transitions,transitions,transitions,transitions' }],
+      ['/cards', { expand: 'subtasks' }], ['/cards', { expand: 'watcher_ids' }], ['/cards', { expand: 'co_owner_ids,watcher_ids' }],
+      ['/cards', { expand: 'transitions,transitions,transitions,transitions,transitions,transitions' }], ['/cards/5', { expand: 'co_owner_ids' }],
       ['/cards', { state: 'deleted' }], ['/cards', { state: 'active;drop' }],
       ['/cards/5', { expand: 'custom_fields' }], ['/cards/5', { state: 'active' }], ['/boards', { expand: 'custom_fields' }],
       ['/customFields', { state: 'active' }], ['/users', { expand: 'custom_fields' }],
@@ -172,7 +176,7 @@ describe('cliente HTTP do BusinessMap: só GET, lista fechada e host fixo', () =
     for (const [caminho, consulta] of ruins) {
       expect((await falhaDe(c.get(caminho, { consulta }))).tipo, `${caminho} ${JSON.stringify(consulta)}`).toBe('consulta');
     }
-    expect(f.pedidos).toHaveLength(1);
+    expect(f.pedidos).toHaveLength(2);
   });
 
   it('URL base insegura é recusada na criação: http fora de loopback, credencial, consulta, fragmento, texto qualquer', () => {

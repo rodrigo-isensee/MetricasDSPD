@@ -62,8 +62,18 @@ describe('CT-45 e CT-46: natureza pelo prefixo e prioridade só da escala P', ()
   });
   it.each([
     ['P1 - CRÍTICO', 'P1'], ['P2 - ALTO', 'P2'], ['P3 - MÉDIO', 'P3'], ['P4 - BAIXO', 'P4'], ['P5 - PLANEJADO/MUITO BAIXO', 'P5'],
-    ['SSSC - INCIDENTE - ALTA', null], ['DSPD - REQUISICAO - NORMAL', null], ['P6 - OUTRO', null], ['P1', null], [null, null],
-  ])('%s -> %s (nenhum mapeamento entre vocabulários: D-12 pendente)', (valor, esperado) => { expect(prioridadeDaEscala(valor)).toBe(esperado); });
+    ['P6 - OUTRO', null], ['P1', null], [null, null],
+  ])('%s -> %s (escala P como está)', (valor, esperado) => { expect(prioridadeDaEscala(valor)).toBe(esperado); });
+  it.each([
+    ['URGENTE', 'P1'], ['ALTA', 'P2'], ['MÉDIA', 'P3'], ['NORMAL', 'P4'], ['BAIXA', 'P5'],
+  ])('D-12: as quatro famílias, %s = %s', (nivel, esperado) => {
+    for (const familia of ['SSSC - INCIDENTE', 'SSSC - REQUISIÇÃO', 'DSPD - INCIDENTE', 'DSPD - REQUISIÇÃO']) {
+      expect(prioridadeDaEscala(`${familia} - ${nivel}`)).toBe(esperado);
+    }
+  });
+  it.each([
+    ['SSSC - REQUISICAO - NORMAL'], ['SSSC - INCIDENTE - MEDIA'], ['SSSC - INCIDENTE - alta'], ['SSSC - PADRAO'], ['DHO - ALTA'], ['CONTABILIDADE - PADRAO'], [''],
+  ])('%s: grafia sem acento, caixa diferente, outra área ou vazio ficam sem prioridade', (valor) => { expect(prioridadeDaEscala(valor)).toBeNull(); });
 });
 
 describe('etapas: nome da biblioteca e nível de resolução', () => {

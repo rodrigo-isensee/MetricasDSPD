@@ -50,7 +50,7 @@ describe('projetarAcelerato (F2)', () => {
 
   it('projeta versão (append-only), vigente (upsert) e intervalos por etapa, na mesma transação, com a marca de carga', async () => {
     const d = montar({
-      pendentes: [[stg(10, '1', {}), stg(11, '1', { status: 'Concluído', com_agente: false }), stg(12, '2', { data_pronto: null, prioridade: 'SSSC - INCIDENTE - ALTA' })]],
+      pendentes: [[stg(10, '1', {}), stg(11, '1', { status: 'Concluído', com_agente: false }), stg(12, '2', { data_pronto: null, prioridade: 'DHO - ALTA' })]],
       etapas: [etapaStg('1', '5', 'Pendente', 7200), etapaStg('1', '6', 'Em Atendimento N2', 3600), etapaStg('2', '5', 'Pendente', 900)],
     });
     const r = await projetarAcelerato(d.pool, S, () => AGORA);
@@ -101,7 +101,7 @@ describe('projetarAcelerato (F2)', () => {
   });
 
   it('falha no meio desfaz tudo (ROLLBACK) e propaga', async () => {
-    const d = criarDublePg((q) => (q.texto.includes('INSERT INTO dspd_ac.dim_chamado_versao') ? new Error('falhou') : q.texto.startsWith('SELECT 1 FROM') ? [{ x: 1 }] : q.texto.includes('INSERT INTO dspd_ac.ctl_coleta ') ? [{ coleta_id: '1' }] : q.texto.includes('FROM dspd_ac.stg_chamado s') ? [stg(1, '1', {})] : []));
+    const d = criarDublePg((q) => (q.texto.includes('INSERT INTO dspd_ac.dim_chamado_versao') ? new Error('falhou') : q.texto.includes("campo = 'natureza_prefixo'") ? [{ codigo: 'PFX-I', rotulo: 'incidente' }] : q.texto.startsWith('SELECT 1 FROM') ? [{ x: 1 }] : q.texto.includes('INSERT INTO dspd_ac.ctl_coleta ') ? [{ coleta_id: '1' }] : q.texto.includes('FROM dspd_ac.stg_chamado s') ? [stg(1, '1', {})] : []));
     await expect(projetarAcelerato(d.pool, S, () => AGORA)).rejects.toThrow('falhou');
     expect(d.chamadas.map((x) => x.texto)).toContain('ROLLBACK');
   });
