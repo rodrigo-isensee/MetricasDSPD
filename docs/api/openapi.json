@@ -3882,6 +3882,16 @@
                       ],
                       "additionalProperties": false
                     },
+                    "notas": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "sem-classe",
+                          "sle-nao-definido"
+                        ]
+                      }
+                    },
                     "classes": {
                       "type": "array",
                       "items": {
