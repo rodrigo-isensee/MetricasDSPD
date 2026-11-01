@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: f763d6acffca29233c78966abe44882be10c1daa
+commit: c71b2d96d89594b5652286c4e0de59dd80a71063
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,15 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.97, 2026-11-01)
+
+Motivo: o `forge-check pr` marcou este parecer como desatualizado na `feature/052-f6-painel` porque o `.env.example` mudou depois dele. O `forge-check delta --parecer` não roda aqui (`f763d6a` não é ancestral de `c71b2d9`; a correção da coleta entrou na `develop` em squash, `848aca3`). Delta lido, e só ele: `git diff 81fcd63 c71b2d9 -- .env.example`, uma linha comentada nova (`afe7f56`, F6), trazida pelo merge da `develop` (E2.93).
+
+- A linha documenta `DSPD_SCHEMA_PREFIXO_SEED` (modo de duas bases da F6), comentada e sem valor. Não é credencial e fica fora dos blocos do BusinessMap e do Acelerato.
+- O script da WS1 lê só `BUSINESSMAP_URL_BASE` e `BUSINESSMAP_APIKEY`, com os mesmos nomes de antes.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. A variável nova tem os pareceres da F6 (`docs/reviews/052-f6-painel.md`, `docs/security/052-f6-painel.md`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `c71b2d9`.
 
 ## Renovação por delta (E2.87, 2026-11-01)
 

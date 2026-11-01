@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f6-painel
-commit: db37a4bcc2297e57d32774cbf44efea3768a6489
+commit: c71b2d96d89594b5652286c4e0de59dd80a71063
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -128,7 +128,7 @@ O PR sai depois do merge da F4. O número é recontado contra a `develop` na hor
 
 ## Achados
 
-- A1 (bloqueante, resolvido em db37a4b) web/src/features/exportar/gerar.ts:93 · Com duas bases, VISAO_GERAL lê o seed (servico.ts:98), mas o bloco EI-FL1 exportado sai "Dados fictícios: não" e a tela da Visão geral fica sem selo na fonte api (P-1, P-4). Sugestão: a VG decide pela origem de VISAO_GERAL, com teste.
+- A1 (bloqueante) web/src/features/exportar/gerar.ts:93 · Resolvido em db37a4b. Com duas bases, VISAO_GERAL lê o seed (servico.ts:98), mas o bloco EI-FL1 exportado sai "Dados fictícios: não" e a tela da Visão geral fica sem selo na fonte api (P-1, P-4). Sugestão: a VG decide pela origem de VISAO_GERAL, com teste.
 - A2 (recomendado) server/src/modulos/metricas/mapa.ts:92 · Soma do O1 isolada, troca sem retrabalho. Até a resposta, o O1 compara o WIP do time inteiro (fila e colunas sem limite) com a soma de poucas colunas e tende a "fora". Levar esse efeito junto da pergunta ao dono.
 - A3 (recomendado) server/src/modulos/referencia/servico.ts:25 · O filtro lista times reais também para FL2, FL3 e as fictícias do FL1, que leem o seed com outros nomes: escolher um time deixa esses cartões em "abaixo de 20". Sem mistura nem número falso. Destino: ux-designer (E2.74) e Jarvis.
 - A4 (recomendado) docs/architecture/server.md:167 · DSPD_SCHEMA_PREFIXO_SEED documentada só em docs/api/metricas.md:382. Falta na config por entrada do server.md (autor, na volta) e a linha do .env.example (Jarvis com o dono; autor e revisor não leem o arquivo).
@@ -146,3 +146,19 @@ Delta lido: `forge-check delta` sobre este parecer (`469ee8f..db37a4b`) e o diff
 - **Risco do autor, aceito.** Se a Visão geral passar a ser servida da base real, `VISAO_GERAL` precisa entrar no mapa de origem como real. O `gerar.test.ts` falha nesse dia, o que serve de lembrete.
 - **Recomendados A2 a A6** seguem como estavam e não devolvem. Destinos: A2 junto da pergunta ao dono; A3 à revisão de UX (E2.74); A4 e A6 à E2.77; A5 à F6b.
 - **Teto:** o delta tem 12 linhas de código e 20 de teste. A exceção aceita acima segue valendo; recontar contra a `develop` na abertura do PR.
+
+## Renovação por delta (E2.97, K-182)
+
+**Veredito: aprovado** em `c71b2d9`, o merge da `develop` (`81fcd63`) na branch (E2.93). Nenhuma correção da F4 nem da coleta se perdeu, e nada novo da F6 entrou no merge.
+
+Delta lido: `forge-check delta` sobre este parecer (`db37a4b..c71b2d9`). Fora os 7 arquivos em conflito, o delta é o código da `develop` (F4 em squash, PR 184; correção da coleta, PR 186; Acelerato, PRs 185 e 187), que tem pareceres próprios. Já lido e não relido: o código da F6, que não mudou no merge (`git diff afe7f56 c71b2d9` vazio nos arquivos da F6).
+
+- **Lado da develop intacto.** Todo arquivo que a `develop` mudou desde a base (`dd15c93`) e que a F6 não tocou desde `e1e5f86` chega igual ao da `develop` (`git diff 81fcd63 c71b2d9` vazio em cada um).
+- **Os 5 arquivos de código e teste em conflito** (`normalizador.ts`, `normalizador-businessmap.test.ts`, `projetor-businessmap.test.ts`, `projetor-businessmap.pg.test.ts`, `times-sem-comparacao.test.ts`):
+  - a `develop` traz esses arquivos iguais aos de `e1e5f86` (`git diff e1e5f86 81fcd63` vazio). A volta da F4 (`7a1907a`: A1 da granularidade, A5, A6, A2 da segurança) já estava na F6, e nada da F4 depois de `e1e5f86` nem da coleta tocou neles;
+  - o resultado do merge é igual ao lado da F6 (`git diff afe7f56 c71b2d9` vazio), e o diff contra a `develop` é exatamente o diff próprio da F6 (`e1e5f86..afe7f56`) nesses arquivos. O mesmo vale para `.env.example`, `businessmap/index.ts`, `referencia/index.ts` e `config.ts`, tocados pelos dois lados.
+- **Os 2 pareceres da F4** (`docs/reviews/052-f4-projetor.md`, `docs/security/052-f4-projetor.md`) ficaram iguais aos da `develop`.
+- **ADR 0024:** o mapa `origemDaMetrica` e a escolha da base por métrica não mudaram no merge.
+- **Execução:** rodei `vitest run` nos 3 testes unitários em conflito: 36 testes verdes. O resto fica com o relatório da E2.93 (typecheck ok, server 1127, `.pg` 168/168, web 1254/1254) e com o QA (E2.99). Cito e não refaço.
+- **Recomendados A2 a A6** seguem como estavam. O A4 continua aberto: `docs/architecture/server.md` ainda não cita `DSPD_SCHEMA_PREFIXO_SEED` (a linha do `.env.example` entrou em `afe7f56`).
+- **Teto:** recontado contra a `develop` (`git diff --numstat --no-renames 81fcd63...c71b2d9`, sem `.md`, `docs/`, `pnpm-lock.yaml` e snapshots): **1962 linhas**, com os testes do QA. A exceção aceita acima segue valendo. O PR (E2.100) leva a linha de teto com o número recontado na hora da abertura.
