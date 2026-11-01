@@ -17,6 +17,12 @@ describe('tabela de times: só filtro, nunca comparação entre times (regra inv
     const fonte = readFileSync(join(RAIZ, 'modulos/businessmap/projetor.ts'), 'utf8');
     expect(fonte).not.toMatch(/GROUP BY|count\(|avg\(|sum\(|RANK|ORDER BY .*equipe/i);
   });
+  it('o normalizador (A2 da segurança da F4) também não agrupa, conta nem ordena por time ou equipe: só resolve o nome vigente no dia', () => {
+    const fonte = readFileSync(join(RAIZ, 'modulos/businessmap/normalizador.ts'), 'utf8');
+    expect(fonte).not.toMatch(/GROUP BY|count\(|avg\(|sum\(|RANK|ORDER BY .*equipe/i);
+    expect(fonte).not.toMatch(/\.sort\([^)]*(time|equipe)|ordenarNeutro\([^)]*(time|equipe)|\.reduce\([^)]*(time|equipe)/i);
+    expect(fonte).not.toMatch(/Map<[^>]*equipe|\[equipe\]/);
+  });
   it('nenhuma view de migração seleciona as tabelas de times', () => {
     const migracoes = new URL('../migrations', import.meta.url).pathname;
     const views = readdirSync(migracoes).filter((n) => n.endsWith('.ts')).map((n) => readFileSync(join(migracoes, n), 'utf8'))

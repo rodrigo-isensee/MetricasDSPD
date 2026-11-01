@@ -21,7 +21,7 @@ export function instanteDoBm(texto: unknown): number | null {
   if (typeof texto !== 'string') return null;
   const m = ISO.exec(texto);
   if (m === null) return null;
-  const fuso = m[3] === undefined || m[3] === 'Z' ? FUSO_PADRAO_BM : m[3];
+  const fuso = m[3] === undefined ? FUSO_PADRAO_BM : m[3] === 'Z' ? '+00:00' : m[3]; // `Z` explícito é sempre UTC; a constante só vale sem fuso
   const [, dia, hora] = m as unknown as [string, string, string];
   const [mes, d] = [Number(dia.slice(5, 7)), Number(dia.slice(8, 10))];
   if (mes < 1 || mes > 12 || d < 1 || d > 31 || Number(hora.slice(0, 2)) > 23 || Number(hora.slice(3, 5)) > 59) return null;
@@ -159,7 +159,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
   const quadroDoEvento = passoDoEvento?.quadro ?? quadro;
   const dia = diaDe(instante);
 
-  const tipoRef = noDia(ref.tipos.get(texto(e.card.type_id) ?? ''), diaDe(criado), notas);
+  const tipoRef = noDia(ref.tipos.get(texto(e.card.type_id) ?? ''), dia, notas);
   if (tipoRef === undefined) notas.push('tipo_sem_referencia');
   const eItem = tipoRef?.eh_item === true;
   if (tipoRef !== undefined && !eItem) notas.push('nao_item');
@@ -171,7 +171,8 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
   if (time?.situacao === 'fora') notas.push('workflow_fora');
   const granularidade = nivel === undefined ? null : (NIVEL_PARA_GRANULARIDADE[nivel] ?? null);
   if (nivel === undefined) notas.push('workflow_sem_nivel');
-  const dentro = eItem && granularidade !== null && equipe !== null;
+  // H-1: só o nível story exige equipe; frente e projeto (workflow de iniciativa, quadro 35) não têm time na 0019; `fora` (H-7) segue fora
+  const dentro = eItem && granularidade !== null && time?.situacao !== 'fora' && (granularidade !== 'story' || equipe !== null);
 
   // pai pelo vínculo nativo (`link_type` = parent no card filho); vários pais: o de menor id (contado); pai Sprint não vale (H-2)
   const pais = Array.isArray(e.card.linked_cards)

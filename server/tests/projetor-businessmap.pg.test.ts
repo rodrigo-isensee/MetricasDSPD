@@ -1,5 +1,6 @@
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { TIMES_PROPRIOS } from '../migrations/0019_bm_carga_inicial_times.js';
 import { revisionIdDaTransicao } from '../src/modulos/businessmap/allow-list.js';
 import { coletarCards } from '../src/modulos/businessmap/coleta.js';
 import { projetarBusinessMap, TABELAS_LIMPAS_NA_RECONSTRUCAO } from '../src/modulos/businessmap/projetor.js';
@@ -15,8 +16,10 @@ import { poolDe, url } from './pg/ctx.js';
 // nenhum outro teste). Papel `dspd_coletor` para projetar e `dspd_api` para os grants. O BusinessMap é o servidor falso.
 const d = describe.skipIf(!url);
 const Q = '9101';
-const W1 = '91001'; const WF = '91002'; const WX = '91003'; const W2 = '91004';
-const COL = { B: 91011, C: 91012, F: 91013, P: 91014, E: 91015, D: 91016, A: 91017, FF: 91021, FX: 91031, F2: 91041 };
+const W1 = '91001'; const WF = '91002'; const WX = '91003'; const W2 = '91004'; const WP = '91005';
+// nomes de time das constantes da migração 0019 (não inventados)
+const [TIME_A, TIME_B, TIME_C] = TIMES_PROPRIOS.map((t) => t[2]) as [string, string, string];
+const COL = { B: 91011, C: 91012, F: 91013, P: 91014, E: 91015, D: 91016, A: 91017, FF: 91021, FX: 91031, F2: 91041, FP: 91051 };
 const TIPO = { bug: 91101, produto: 91102, sprint: 91103 };
 const T0 = Date.parse('2026-09-01T12:00:00Z');
 const t = (dias: number, hora = 10): string => new Date(T0 + dias * 86_400_000 + (hora - 12) * 3_600_000).toISOString().replace('T', ' ').slice(0, 19);
@@ -44,7 +47,7 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
       `INSERT INTO ${E.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
        VALUES ('2020-01-01', 'businessmap', 'teste f4', 'teste f4', 'teste-f4', now()) RETURNING versao_id`)).rows[0]!.versao_id;
     const rastro = [`'carga_inicial'`, versao, `'teste'`].join(', ');
-    for (const [id, nome] of [[9001, 'Time A'], [9002, 'Time B'], [9003, 'Time C']] as const) {
+    for (const [id, nome] of [[9001, TIME_A], [9002, TIME_B], [9003, TIME_C]] as const) {
       await dono.query(`INSERT INTO ${E.bm}.ref_time (time_id, vigente_de, nome, ativo, motivo, versao_id, registrado_por) VALUES (${id}, '2020-01-01', '${nome}', true, ${rastro})`);
     }
     const tw = (wf: string, time: string, de: string, ate: string | null, situacao = 'time'): string =>
@@ -54,7 +57,7 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
       tw(W1, '9001', '2020-01-01', null), tw(WF, '9001', '2020-01-01', null), tw(WX, 'NULL', '2020-01-01', null, 'fora'),
       tw(W2, '9002', '2020-01-01', '2026-06-01'), tw(W2, '9003', '2026-06-01', null),
     ]) await dono.query(sql);
-    for (const [w, nivel, tipo] of [[W1, 'story', 0], [WF, 'feature', 1], [WX, 'story', 0], [W2, 'story', 0]] as const) {
+    for (const [w, nivel, tipo] of [[W1, 'story', 0], [WF, 'feature', 1], [WX, 'story', 0], [W2, 'story', 0], [WP, 'projeto', 0]] as const) {
       await dono.query(`INSERT INTO ${E.bm}.ref_workflow (quadro_id, workflow_id, vigente_de, nome, tipo_api, nivel) VALUES ('${Q}', '${w}', '2020-01-01', 'WF ${w}', ${tipo}, '${nivel}')`);
     }
     const coluna = async (id: number, wf: string, section: number, papel: string | null, tipo: string | null, ordem: number, descarte = false): Promise<void> => {
@@ -66,7 +69,7 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     await coluna(COL.F, W1, 3, 'trabalho', 'execucao', 3); await coluna(COL.P, W1, 3, 'trabalho', 'fila', 4);
     await coluna(COL.E, W1, 4, 'entrega', 'execucao', 5); await coluna(COL.D, W1, 4, null, null, 6, true);
     await coluna(COL.A, W1, 5, 'entrega', 'fila', 7); await coluna(COL.FF, WF, 3, 'trabalho', 'execucao', 1);
-    await coluna(COL.FX, WX, 3, 'trabalho', 'execucao', 1); await coluna(COL.F2, W2, 3, 'trabalho', 'execucao', 1);
+    await coluna(COL.FX, WX, 3, 'trabalho', 'execucao', 1); await coluna(COL.FP, WP, 3, 'trabalho', 'execucao', 1); await coluna(COL.F2, W2, 3, 'trabalho', 'execucao', 1);
     for (const [id, nome, item, cat] of [[TIPO.bug, 'Bug', true, 'bug_interno'], [TIPO.produto, 'Story', true, 'produto'], [TIPO.sprint, 'Sprint', false, null]] as const) {
       await dono.query(`INSERT INTO ${E.bm}.ref_tipo_card (tipo_id, vigente_de, nome, eh_item, categoria) VALUES ($1, '2020-01-01', $2, $3, $4)`, [String(id), nome, item, cat]);
     }
@@ -106,7 +109,7 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     const r = await projetar();
     expect(r.transicoes.inseridas).toBeGreaterThanOrEqual(7);
     const c = await dim(id);
-    expect(c).toMatchObject({ tipo: 'bug_interno', granularidade: 'story', equipe: 'Time A', quadro_id: Q, coluna_atual_id: String(COL.F), motivo_descarte: null });
+    expect(c).toMatchObject({ tipo: 'bug_interno', granularidade: 'story', equipe: TIME_A, quadro_id: Q, coluna_atual_id: String(COL.F), motivo_descarte: null });
     expect([iso(c.criado_em), iso(c.comprometido_em), iso(c.iniciado_em), iso(c.concluido_em)]).toEqual([
       '2026-08-20T10:00:00.000Z', `${t(1).replace(' ', 'T')}.000Z`, `${t(2).replace(' ', 'T')}.000Z`, `${t(6).replace(' ', 'T')}.000Z`]);
     const f = (await dono.query<Record<string, unknown>>(`SELECT * FROM ${E.bm}.fato_transicao WHERE card_id = $1 ORDER BY ocorrido_em`, [id])).rows;
@@ -173,16 +176,22 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     const entregueDepoisMudou = await staging(novo(), [transicao(COL.E, t(2)), transicao(COL.FF, t(9), null, WF)]);
     const abertoMudou = await staging(novo(), [transicao(COL.F, t(2)), transicao(COL.FF, t(9), null, WF)]);
     await projetar();
-    expect(await dim(frente)).toMatchObject({ granularidade: 'frente', tipo: 'produto', equipe: 'Time A' });
-    expect(await dim(entregueDepoisMudou)).toMatchObject({ granularidade: 'story', equipe: 'Time A' });
+    expect(await dim(frente)).toMatchObject({ granularidade: 'frente', tipo: 'produto', equipe: TIME_A });
+    expect(await dim(entregueDepoisMudou)).toMatchObject({ granularidade: 'story', equipe: TIME_A });
     expect(await dim(abertoMudou)).toMatchObject({ granularidade: 'frente' });
+  });
+
+  it('A1 do review (H-1): projeto e frente sem time na referência recebem a granularidade, com equipe nula', async () => {
+    const projeto = await staging(novo({ workflow_id: Number(WP), column_id: COL.FP }), [transicao(COL.FP, t(2), null, WP)]);
+    await projetar();
+    expect(await dim(projeto)).toMatchObject({ granularidade: 'projeto', equipe: null });
   });
 
   it('U-1 e U-2: o time da tabela vigente no dia do evento (workflow que mudou de time em 2026-06-01)', async () => {
     const antes = await staging(novo({ workflow_id: Number(W2), column_id: COL.F2 }), [transicao(COL.F2, '2026-05-20 10:00:00', null, W2)]);
     const depois = await staging(novo({ workflow_id: Number(W2), column_id: COL.F2 }), [transicao(COL.F2, '2026-06-20 10:00:00', null, W2)]);
     await projetar();
-    expect([(await dim(antes)).equipe, (await dim(depois)).equipe]).toEqual(['Time B', 'Time C']);
+    expect([(await dim(antes)).equipe, (await dim(depois)).equipe]).toEqual([TIME_B, TIME_C]);
   });
 
   it('H-2: Sprint não é item (sem tipo nem granularidade, fora da leitura da API); filho de Sprint não tem card_pai e filho de outro tem', async () => {
