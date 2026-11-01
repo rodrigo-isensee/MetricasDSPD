@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   CAMPOS_CUSTOMIZADOS_FORA, CAMPOS_PEDIDO_CARDS, EXPAND_COLETA, ErroColetaBm, coletarCards, codigoDe, dominiosDaColeta, inicioDaCarga,
-  type DepsColeta, type ModoColeta,
+  filtroDeData, type DepsColeta, type ModoColeta,
 } from '../src/modulos/businessmap/coleta.js';
 import { ErroReferencia } from '../src/modulos/businessmap/referencia.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
-import { ErroBusinessMap, criarClienteHttp, type EventoHttp } from '../src/plataforma/http.js';
-import { bancoFalso, subirServidorBm, type Cartao, type OpcoesBanco, type ServidorBm } from './businessmap-coleta-duble.js';
+import { EXPAND_CARDS, ErroBusinessMap, criarClienteHttp, type EventoHttp } from '../src/plataforma/http.js';
+import { EXPAND_API_CARDS, FIELDS_API_CARDS, MENSAGEM_400, bancoFalso, consultaValida, subirServidorBm, type Cartao, type OpcoesBanco, type ServidorBm } from './businessmap-coleta-duble.js';
 
 // F3 do plano 052: coleta dos cards contra o servidor falso (nada vai ao BusinessMap real) e o banco falso com estado.
 const CHAVE = 'chave-f3-de-teste-0123456789';
@@ -62,8 +62,8 @@ describe('F3: carga inicial de 12 meses (Q-2, Q-2b, Q-2c)', () => {
     const q = cards(m);
     expect(q.map((x) => x.get('state'))).toEqual(['active', 'archived', 'discarded']);
     expect(q[0]!.has('archived_from') || q[0]!.has('discarded_from') || q[0]!.has('last_modified_from')).toBe(false);
-    expect(q[1]!.get('archived_from')).toBe('2025-11-02');
-    expect(q[2]!.get('discarded_from')).toBe('2025-11-02');
+    expect(q[1]!.get('archived_from')).toBe('2025-11-02T00:00:00Z');
+    expect(q[2]!.get('discarded_from')).toBe('2025-11-02T00:00:00Z');
     expect(q[1]!.has('last_modified_from') || q[1]!.has('discarded_from')).toBe(false);
     for (const x of q) {
       expect(x.get('fields')).toBe(CAMPOS_PEDIDO_CARDS);
@@ -149,7 +149,7 @@ describe('F3: carga retomada e execução interrompida', () => {
     const q = cards(m);
     expect(q.filter((x) => x.get('state') === 'active').map((x) => x.get('page'))).toEqual(['2', '3']);
     expect(q.some((x) => x.get('state') === 'archived')).toBe(false);
-    expect(q.find((x) => x.get('state') === 'discarded')!.get('discarded_from')).toBe('2025-10-15');
+    expect(q.find((x) => x.get('state') === 'discarded')!.get('discarded_from')).toBe('2025-10-15T00:00:00Z');
     expect(r).toMatchObject({ retomada: true, inicioCarga: '2025-10-15', estado: 'sucesso' });
     expect(m.banco.estado.aberta!.parametros).toMatchObject({ inicio_carga: '2025-10-15', iniciada_em: '2026-11-01T08:00:00Z', paginas: { '35|archived': { ultima: 1, total: 1 } } });
     expect(m.banco.estado.marca!.ate).toEqual(new Date('2026-11-01T08:00:00Z'));
@@ -170,7 +170,7 @@ describe('F3: carga retomada e execução interrompida', () => {
     expect(await coletarCards(sucesso.deps, carga)).toMatchObject({ retomada: false, inicioCarga: hoje });
     const outro = await montar({ cards: ativos, porPagina: 2, users: {}, status: {}, corpos: {} }, { ultimaCarga: anterior('parcial') });
     expect(await coletarCards(outro.deps, { tipo: 'carga_inicial', inicio: '2024-11-02' })).toMatchObject({ retomada: false, inicioCarga: '2024-11-02' });
-    expect(cards(outro).find((x) => x.get('state') === 'archived')!.get('archived_from')).toBe('2024-11-02');
+    expect(cards(outro).find((x) => x.get('state') === 'archived')!.get('archived_from')).toBe('2024-11-02T00:00:00Z');
     const igual = await montar({ cards: ativos, porPagina: 2, users: {}, status: {}, corpos: {} }, { ultimaCarga: anterior('parcial') });
     expect(await coletarCards(igual.deps, { tipo: 'carga_inicial', inicio: '2025-10-15' })).toMatchObject({ retomada: true, inicioCarga: '2025-10-15' });
     const ilegivel = await montar({ cards: ativos, porPagina: 2, users: {}, status: {}, corpos: {} }, { ultimaCarga: { status: 'falha', parametros: { tipo: 'carga_inicial' } } });
@@ -321,6 +321,19 @@ describe('F3: nomes dos responsáveis (Q-8 = B) pela coleta', () => {
   });
 });
 
+describe('F4: responsáveis em memória para o projetor da mesma execução', () => {
+  it('só quando quem chama passa o mapa: ids por card, sem entrada para card sem os campos, e nada disso em banco, log ou resultado', async () => {
+    const responsaveis = new Map<string, string[]>();
+    const m = await montar({ cards: { '35|active': [card(1), card(2, { owner_user_id: undefined, co_owner_ids: undefined })] }, porPagina: 100, users: USUARIOS, status: {}, corpos: {} }, {}, [35], { responsaveis });
+    const r = await coletarCards(m.deps, carga);
+    expect([...responsaveis]).toEqual([['1', ['5', '6', '7']]]);
+    expect(JSON.stringify([m.banco.estado, m.logs, r])).not.toContain('"5","6","7"');
+    // sem o mapa, nada é guardado (o comando só liga com --projetar)
+    const sem = await montar({ cards: { '35|active': [card(1)] }, porPagina: 100, users: USUARIOS, status: {}, corpos: {} });
+    await expect(coletarCards(sem.deps, carga)).resolves.toMatchObject({ estado: 'sucesso' });
+  });
+});
+
 describe('F3: referência da F2 chamada pelo comando', () => {
   it('a etapa roda depois de abrir a coleta e antes dos cards; o resultado vai ao relatório', async () => {
     const ordem: string[] = [];
@@ -348,5 +361,63 @@ describe('F3: referência da F2 chamada pelo comando', () => {
 
   it('ErroColetaBm carrega o código', () => {
     expect(new ErroColetaBm('uso', 'x')).toMatchObject({ name: 'ErroColetaBm', codigo: 'uso' });
+  });
+});
+
+describe('E2.83: forma da consulta que a API real aceita (falha da carga do dono em 2026-11-01)', () => {
+  it('o servidor falso recusa com 400 co_owner_ids em fields e a data sem hora, e aceita a forma nova', async () => {
+    const s = await subirServidorBm({ cards: { '35|archived': [card(1, { archived_at: '2026-01-01T00:00:00Z' })] }, porPagina: 100, users: {}, status: {}, corpos: {} });
+    abertos.push(s);
+    const pedir = async (q: Record<string, string>): Promise<{ status: number; texto: string }> => {
+      const r = await fetch(`${s.url}/cards?${new URLSearchParams({ board_ids: '35', state: 'archived', ...q }).toString()}`);
+      return { status: r.status, texto: await r.text() };
+    };
+    const antigaFields = await pedir({ fields: 'card_id,owner_user_id,co_owner_ids' });
+    expect(antigaFields.status).toBe(400);
+    expect(antigaFields.texto).toContain(MENSAGEM_400);
+    expect((await pedir({ archived_from: '2025-11-01' })).status).toBe(400);
+    expect((await pedir({ discarded_from: '2025-11-01' })).status).toBe(400);
+    expect((await pedir({ fields: CAMPOS_PEDIDO_CARDS, expand: EXPAND_COLETA, archived_from: '2025-11-01T00:00:00Z' })).status).toBe(200);
+  });
+
+  it('fields e expand da coleta só com valores dos enums da API; co_owner_ids vai em expand, não em fields', () => {
+    const fields = CAMPOS_PEDIDO_CARDS.split(',');
+    expect(fields).not.toContain('co_owner_ids');
+    expect(fields).toContain('owner_user_id');
+    for (const f of fields) expect(FIELDS_API_CARDS.has(f)).toBe(true);
+    const expand = EXPAND_COLETA.split(',');
+    expect(expand).toContain('co_owner_ids');
+    expect(expand).not.toEqual(expect.arrayContaining(['watcher_ids']));
+    for (const e of expand) expect(EXPAND_API_CARDS.has(e)).toBe(true);
+    expect(EXPAND_CARDS.test(EXPAND_COLETA)).toBe(true);
+    expect(EXPAND_CARDS.test(`${EXPAND_COLETA},watcher_ids`)).toBe(false);
+    expect(filtroDeData('2025-11-02')).toBe('2025-11-02T00:00:00Z');
+  });
+
+  it('carga inicial passa na validação da API nos três estados, sem 400, e os co-responsáveis seguem para responsaveis e /users', async () => {
+    const responsaveis = new Map<string, string[]>();
+    const m = await montar({
+      cards: {
+        '35|active': [card(1, { owner_user_id: 5, co_owner_ids: [6, 7] })],
+        '35|archived': [card(2, { archived_at: '2026-03-01T00:00:00Z', owner_user_id: 5, co_owner_ids: [8] })],
+        '35|discarded': [card(3, { discarded_at: '2026-01-01T00:00:00Z' })],
+      },
+      porPagina: 100, users: USUARIOS, status: {}, corpos: {},
+    }, {}, [35], { responsaveis });
+    const r = await coletarCards(m.deps, carga);
+    expect(r).toMatchObject({ estado: 'sucesso', falhas: {} });
+    for (const q of cards(m)) expect(consultaValida(q)).toBe(true);
+    expect(r.streams.map((x) => x.lidos)).toEqual([1, 1, 1]);
+    expect(Object.fromEntries(responsaveis)).toEqual({ '1': ['5', '6', '7'], '2': ['5', '8'], '3': ['5', '6', '7'] });
+    const users = m.servidor.pedidos.find((p) => p.caminho === '/users')!;
+    expect(users.consulta.get('user_ids')!.split(',').sort()).toEqual(['5', '6', '7', '8']);
+    for (const s of m.banco.estado.stg) expect(s.payload).not.toMatch(/co_owner_ids|owner_user_id/);
+  });
+
+  it('a consulta antiga (co_owner_ids em fields, data pura) seria recusada pelo servidor falso: a regressão aparece no teste', () => {
+    const antiga = new URLSearchParams({ fields: `${CAMPOS_PEDIDO_CARDS},co_owner_ids`, expand: 'custom_fields,linked_cards,transitions', archived_from: '2025-11-02' });
+    expect(consultaValida(antiga)).toBe(false);
+    expect(consultaValida(new URLSearchParams({ fields: CAMPOS_PEDIDO_CARDS, archived_from: '2025-11-02' }))).toBe(false);
+    expect(consultaValida(new URLSearchParams({ fields: CAMPOS_PEDIDO_CARDS, expand: EXPAND_COLETA, archived_from: filtroDeData('2025-11-02') }))).toBe(true);
   });
 });

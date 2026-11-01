@@ -23,13 +23,17 @@ export const ESTADOS = ['active', 'archived', 'discarded'] as const;
 export type EstadoCard = (typeof ESTADOS)[number];
 
 /**
- * `fields=` explícito (I-2): os campos escalares da allow-list do card mais os que a coleta usa só em memória (responsáveis e
- * `block_reason`/`child_card_stats`, reduzidos pela allow-list). `custom_fields` e `linked_cards` vêm por `expand`. Os fields 36
- * (ID Acelerato, H-16) e 42 (Responsável CR, pessoa) não têm entrada no mapa e nunca entram.
+ * `fields=` explícito (I-2): os campos escalares da allow-list do card mais os que a coleta usa só em memória (`owner_user_id` e
+ * `block_reason`/`child_card_stats`, reduzidos pela allow-list). `custom_fields`, `linked_cards` e `co_owner_ids` vêm por `expand`
+ * (E2.83: `co_owner_ids` não é valor de `fields` na API v2 e a API devolve 400). Os fields 36 (ID Acelerato, H-16) e 42
+ * (Responsável CR, pessoa) não têm entrada no mapa e nunca entram.
  */
-export const CAMPOS_PEDIDO_CARDS = [...CAMPOS_CARD, 'owner_user_id', 'co_owner_ids', 'block_reason', 'child_card_stats'].join(',');
-/** `transitions` (E2.46): histórico de colunas na própria listagem, sem GET por card; `block_times` fica fora (F3b, negado por padrão). */
-export const EXPAND_COLETA = 'custom_fields,linked_cards,transitions';
+export const CAMPOS_PEDIDO_CARDS = [...CAMPOS_CARD, 'owner_user_id', 'block_reason', 'child_card_stats'].join(',');
+/**
+ * `transitions` (E2.46): histórico de colunas na própria listagem, sem GET por card; `block_times` fica fora (F3b, negado por padrão).
+ * `co_owner_ids` (E2.83): os co-responsáveis do card (ADR 0020, 4b e 4c), só em memória, para `dim_card.responsaveis` e o O26.
+ */
+export const EXPAND_COLETA = 'custom_fields,linked_cards,transitions,co_owner_ids';
 export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
 
 /** Mapa `field_id` -> domínio (ADR 0020, 4d). Vazio: ainda não há mapa (A6 da F2); campo sem entrada não é gravado. */
@@ -60,7 +64,12 @@ export interface DepsColeta {
   agora: () => Date;
   paginaTamanho?: number;
   /** Etapa da referência da F2 (transação do papel de referência), rodada depois de abrir a coleta e antes dos cards. */
-  etapaReferencia?: (coletaId: number) => Promise<unknown>;
+  etapaReferencia?: (coletaId: number, ctx: { inicioCarga: string | null }) => Promise<unknown>;
+  /**
+   * Responsáveis lidos em memória por card (ids, ADR 0020 4b), para o projetor da MESMA execução (F4, I-2). Nunca vai a log, banco
+   * nem resultado do comando: quem passa o mapa é quem projeta logo depois. Card sem os campos de responsável não entra.
+   */
+  responsaveis?: Map<string, string[]>;
 }
 
 export interface ContagemTransicoes { lidas: number; inseridas: number; jaExistentes: number; invalidas: number }
@@ -91,7 +100,13 @@ const sha256 = (t: string): string => createHash('sha256').update(t).digest('hex
 const iso = (d: Date): string => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
 const dataUtc = (d: Date): string => d.toISOString().slice(0, 10);
 
-/** Hoje menos 12 meses (UTC), no formato do filtro de data da API. */
+/**
+ * Filtro de data com hora em UTC (E2.83): a API recusa `archived_from`/`discarded_from` com data pura (400) e aceita
+ * `AAAA-MM-DDT00:00:00Z`. O recorte não muda: meia-noite UTC do dia de início da carga.
+ */
+export const filtroDeData = (dia: string): string => `${dia}T00:00:00Z`;
+
+/** Hoje menos 12 meses (UTC), como dia (`AAAA-MM-DD`); o filtro da API leva a hora por `filtroDeData`. */
 export function inicioDaCarga(agora: Date, meses = MESES_CARGA): string {
   const d = new Date(agora);
   d.setUTCMonth(d.getUTCMonth() - meses);
@@ -182,7 +197,9 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
           await registrarFalha(db, x.S, x.coletaId, entidade, null, 'card-sem-id');
           continue;
         }
-        for (const r of extrairResponsaveis(card) ?? []) x.vistos.add(r);
+        const responsaveis = extrairResponsaveis(card);
+        for (const r of responsaveis ?? []) x.vistos.add(r);
+        if (responsaveis !== null) x.d.responsaveis?.set(id, responsaveis);
         const r = await gravarStgCard(db, {
           idOrigem: id, card, dominios: x.dominios, coletaId: x.coletaId, agora, quadroId: String(quadro),
           arquivado: estado === 'archived', excluidoDetectado: false,
@@ -193,8 +210,9 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
           c.transicoes.lidas += 1;
           const revisionId = revisionIdDaTransicao(t);
           if (revisionId === null) {
+            // A3 do review da F3: transição sem coluna ou entrada fica no controle (código e id do card) e na contagem, mas não torna a
+            // coleta parcial: ela só some quando o card é modificado (e relido), e a repetição dela travaria a marca d'água para sempre.
             c.transicoes.invalidas += 1;
-            x.falhas.push('transicao-invalida');
             await registrarFalha(db, x.S, x.coletaId, entidade, id, 'transicao-invalida');
             continue;
           }
@@ -211,7 +229,7 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
 
 /**
  * Coleta dos cards nos três estados, por quadro. Carga inicial (Q-2, Q-2b, Q-2c): `active` sem filtro de data, `archived` por
- * `archived_from` e `discarded` por `discarded_from`, a partir de hoje menos 12 meses; retomável pela última página concluída de cada
+ * `archived_from` e `discarded` por `discarded_from` (com hora, `AAAA-MM-DDT00:00:00Z`), a partir de hoje menos 12 meses; retomável pela última página concluída de cada
  * quadro e estado (relê a última, o dedupe cobre). Incremental: `last_modified_from` = marca d'água menos a sobreposição, nos três
  * estados. Marca d'água só em sucesso; a de uma carga retomada é a do início da primeira tentativa (nada modificado no meio se perde).
  */
@@ -236,7 +254,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
     } else {
       inicioCarga = modo.inicio ?? inicioDaCarga(inicio);
     }
-    const desde = inicioCarga;
+    const desde = filtroDeData(inicioCarga);
     filtro = (estado): Record<string, string> =>
       estado === 'archived' ? { archived_from: desde } : estado === 'discarded' ? { discarded_from: desde } : {};
   } else {
@@ -261,7 +279,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
     let referencia: unknown = null;
     if (d.etapaReferencia !== undefined) {
       try {
-        referencia = await d.etapaReferencia(coletaId);
+        referencia = await d.etapaReferencia(coletaId, { inicioCarga });
       } catch (e) {
         x.falhas.push(codigoDe(e));
         if (e instanceof ErroReferencia) x.motivosPendentes.push(...e.pendentes);

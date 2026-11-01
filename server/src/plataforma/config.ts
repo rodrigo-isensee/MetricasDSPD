@@ -43,6 +43,8 @@ const esquemaWorker = z.object({
   WORKER_INTERVALO_MS: z.coerce.number().int().min(1000).default(15_000),
 });
 const esquemaMigrar = z.object({ ...comum, PG_MIGRADOR_URL: urlPg });
+/** Papel de referência (`dspd_ref`): só INSERT de vigência e UPDATE de `vigente_ate` nas tabelas `ref_`. */
+const esquemaRef = z.object({ ...comum, PG_REF_URL: urlPg });
 
 /** https sempre, sem credencial, consulta nem fragmento (a chave vai no cabeçalho e não pode trafegar em claro). */
 const urlHttps = z.string().refine((v) => {
@@ -74,6 +76,9 @@ const esquemaColetaBusinessMap = esquemaBusinessMap
   })
   .transform((v) => ({ ...v, PG_REF_URL: v.PG_REF_URL ?? urlDoPapel(v.PG_COLETOR_URL, 'dspd_ref', v.DSPD_PWD_REF!) }));
 
+/** Projetor do BusinessMap (F4): só o banco do coletor. Não lê a chave nem a URL do BusinessMap: reprojetar nunca chama a API. */
+const esquemaProjetorBusinessMap = z.object({ ...comum, PG_COLETOR_URL: urlPg });
+
 function validar<T extends z.ZodType>(esquema: T, env: NodeJS.ProcessEnv): z.output<T> {
   const r = esquema.safeParse(env);
   if (r.success) return r.data;
@@ -84,10 +89,14 @@ function validar<T extends z.ZodType>(esquema: T, env: NodeJS.ProcessEnv): z.out
 export type ConfigApi = z.output<typeof esquemaApi>;
 export type ConfigWorker = z.output<typeof esquemaWorker>;
 export type ConfigMigrar = z.output<typeof esquemaMigrar>;
+export type ConfigRef = z.output<typeof esquemaRef>;
 export type ConfigBusinessMap = z.output<typeof esquemaBusinessMap>;
+export type ConfigProjetorBusinessMap = z.output<typeof esquemaProjetorBusinessMap>;
 export type ConfigColetaBusinessMap = z.output<typeof esquemaColetaBusinessMap>;
 export const carregarConfigApi = (env: NodeJS.ProcessEnv = process.env): ConfigApi => validar(esquemaApi, env);
 export const carregarConfigWorker = (env: NodeJS.ProcessEnv = process.env): ConfigWorker => validar(esquemaWorker, env);
+export const carregarConfigRef = (env: NodeJS.ProcessEnv = process.env): ConfigRef => validar(esquemaRef, env);
 export const carregarConfigMigrar = (env: NodeJS.ProcessEnv = process.env): ConfigMigrar => validar(esquemaMigrar, env);
 export const carregarConfigColetaBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigColetaBusinessMap => validar(esquemaColetaBusinessMap, env);
 export const carregarConfigBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigBusinessMap => validar(esquemaBusinessMap, env);
+export const carregarConfigProjetorBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigProjetorBusinessMap => validar(esquemaProjetorBusinessMap, env);

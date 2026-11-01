@@ -1,6 +1,7 @@
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { Contadores, type RegistroChamado } from './allow-list.js';
+import { ErroColeta } from './erros.js';
 import { registrarContagens, type Contagem } from './controle.js';
 import { intervalosDasEtapas } from './etapas-sinteticas.js';
 import { normalizarChamado, type EtapaTotal, type Natureza, type NaturezaPorPrefixo, type LinhaProjecao } from './normalizador.js';
@@ -37,6 +38,8 @@ export async function carregarNaturezaPorPrefixo(db: Consultavel, S: Esquemas): 
     `SELECT codigo, rotulo FROM ${S.ac}.ref_dominio WHERE campo = 'natureza_prefixo' AND vigente_ate IS NULL ORDER BY ordem, codigo`);
   const m = new Map<string, Natureza>();
   for (const l of r.rows) if (l.rotulo === 'incidente' || l.rotulo === 'requisicao') m.set(l.codigo, l.rotulo);
+  // Sem prefixo nenhum a natureza sairia nula em todo chamado, em silêncio (E4.39): a projeção não começa.
+  if (m.size === 0) throw new ErroColeta('listas-vazias', { entidade: 'ref_dominio', coluna: 'natureza_prefixo' });
   return m;
 }
 

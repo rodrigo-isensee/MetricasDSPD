@@ -2,15 +2,15 @@
 tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-ws1-estrutura
-commit: cc8c0cf38e51be7df6b256d318ca5cba39b19280
+branch: feature/052-fix-coleta
+commit: f763d6acffca29233c78966abe44882be10c1daa
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-10-31
+data: 2026-11-01
 ---
 # QA: 052-integracao-businessmap (E1.18, script de diagnóstico da WS1, K-185)
 
@@ -56,6 +56,22 @@ Veredito: aprovado, mantido. O `forge-check pr` deu o parecer por desatualizado 
 - `server/src/modulos/businessmap/index.ts`: exports novos da F3 (`CAMPOS_TRANSICAO`, `registroTransicao`, `revisionIdDaTransicao`, `transicoesDoCard`, `lerConferencia`, `coletarCards` e afins, `analisarArgumentos`, `etapaReferencia`, `executarColeta`, `projetarUsuarios`, `resolverResponsaveis`); `diagnosticar` e `ResultadoDiagnostico` seguem iguais.
 
 `git diff` sobre `diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh` e `server/tests/diagnostico-businessmap.test.ts`: vazio. Reexecução: `vitest run --project unit` dos testes do diagnóstico e dos da F3 (6 arquivos, 99 testes) passou. Sem mutante novo e sem chamada ao BusinessMap; o `.env` não foi lido. O parecer da F3 (`docs/qa/052-f3-coleta.md`) cobre o coletor novo.
+
+## Renovação por delta (E2.80, depois da F4)
+Veredito: aprovado, mantido. O `forge-check pr` deu o parecer por desatualizado porque `docs/architecture/data-model.md` mudou na F4. Delta lido (`cc8c0cf..5ec6a4b`, só os caminhos que este parecer cobre, ferramenta `git diff`):
+- `docs/architecture/data-model.md`: 8 linhas novas, o bloco "Projeção do BusinessMap" (normalizador e projetor, `fato_transicao`, marcos, descarte, `dim_card_versao`). Só documento da F4; não toca o diagnóstico da WS1, que não lê cards nem usuários.
+- `server/package.json`: uma linha nova, `bm:projetar`; `bm:diagnostico` está na raiz e não mudou.
+- `server/src/modulos/businessmap/index.ts`: exports novos do projetor e do normalizador e um tipo a mais (`ResultadoComando`); `diagnosticar` e `ResultadoDiagnostico` seguem iguais.
+
+`git diff cc8c0cf..5ec6a4b` sobre `server/src/modulos/businessmap/diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh`, `server/tests/diagnostico-businessmap.test.ts` e `.env.example`: vazio (stat vazio). As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. Sem suíte, sem mutantes e sem chamada ao BusinessMap, como pedido; a suíte da F4 está em `docs/qa/052-f4-projetor.md`. O `.env` não foi lido.
+
+## Renovação por delta (E2.88, depois da correção da coleta)
+Veredito: aprovado, mantido. O parecer ficou desatualizado porque `docs/integracao/businessmap-api-configuracao.md` mudou na E2.83. Delta lido (`c0c4aee..f763d6a`, ferramenta `git diff`, só os caminhos que este parecer cobre):
+- `docs/integracao/businessmap-api-configuracao.md`: duas linhas novas no §4.2, ambas sobre a listagem de `/cards`: `archived_from` e `discarded_from` com data pura dão 400 e o coletor manda data e hora em UTC; `co_owner_ids` é valor de `expand`, não de `fields`. É documento da coleta (F3), sem relação com os pedidos do diagnóstico, que só lê estrutura (§8) e não lê cards.
+- `.env.example`: uma variável nova, `PG_REF_URL` (papel de referência do Acelerato, pedido 056, vindo da develop). O bloco do BusinessMap e as variáveis que o script lê seguem iguais.
+- `server/package.json`: uma linha nova, `ac:ref-sync` (056); `bm:diagnostico` está na `package.json` da raiz e não mudou.
+
+`git diff c0c4aee..f763d6a` sobre `server/src/modulos/businessmap/diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh`, `server/tests/diagnostico-businessmap.test.ts`, `server/src/modulos/businessmap/index.ts` e `docs/architecture/data-model.md`: vazio. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. Sem suíte, sem mutantes e sem chamada ao BusinessMap, como pedido (delta só de documento e configuração alheia ao script); a correção da coleta tem parecer próprio em `docs/qa/052-fix-coleta.md`. O `.env` não foi lido. Parecer regravado pelo papel qa na E2.90, sem mudança de veredito.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).

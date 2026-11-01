@@ -6,7 +6,7 @@ import { ErroColeta } from './erros.js';
 /**
  * Lê as listas VIGENTES de `ref_dominio` (ADR 0023, item 5): `tipo_recorte`, `organizacao_recorte` e `equipe` (código =
  * a chave em texto decimal, rótulo = o nome), e os vocabulários `etapa`, `prioridade`, `categoria` e `descricao_workflow`. Nunca do `.env` e nunca com valor
- * inventado no código (M11). Lista de recorte vazia = a coleta não começa: um recorte vazio esconderia o erro.
+ * inventado no código (M11). Lista de recorte ou de vocabulário vazia = a coleta não começa: uma lista vazia esconderia o erro (todo valor cairia fora do domínio).
  */
 type LinhaDominio = { campo: string; codigo: string; rotulo: string };
 
@@ -31,7 +31,13 @@ export async function carregarListas(db: Consultavel, S: Esquemas): Promise<List
     equipes: paraChaves(r.rows, 'equipe'), etapas: vocabulario('etapa'), prioridades: vocabulario('prioridade'),
     categorias: vocabulario('categoria'), workflows: vocabulario('descricao_workflow'),
   };
-  for (const [nome, lista] of [['tipo_recorte', listas.tipos], ['organizacao_recorte', listas.organizacoes], ['equipe', listas.equipes]] as const) {
+  // Vocabulário vazio também falha fechado: com ele a allow-list anularia status, prioridade, etapa, categoria ou workflow de TODOS
+  // os chamados em silêncio (causa da E4.39). Lista de recorte vazia esconderia o erro do mesmo jeito.
+  const todas: [string, { size: number }][] = [
+    ['tipo_recorte', listas.tipos], ['organizacao_recorte', listas.organizacoes], ['equipe', listas.equipes],
+    ['etapa', listas.etapas], ['prioridade', listas.prioridades], ['categoria', listas.categorias], ['descricao_workflow', listas.workflows],
+  ];
+  for (const [nome, lista] of todas) {
     if (lista.size === 0) throw new ErroColeta('listas-vazias', { entidade: 'ref_dominio', coluna: nome });
   }
   return listas;
