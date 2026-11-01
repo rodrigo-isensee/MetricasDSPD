@@ -74,6 +74,9 @@ const esquemaColetaBusinessMap = esquemaBusinessMap
   })
   .transform((v) => ({ ...v, PG_REF_URL: v.PG_REF_URL ?? urlDoPapel(v.PG_COLETOR_URL, 'dspd_ref', v.DSPD_PWD_REF!) }));
 
+/** Projetor do BusinessMap (F4): só o banco do coletor. Não lê a chave nem a URL do BusinessMap: reprojetar nunca chama a API. */
+const esquemaProjetorBusinessMap = z.object({ ...comum, PG_COLETOR_URL: urlPg });
+
 function validar<T extends z.ZodType>(esquema: T, env: NodeJS.ProcessEnv): z.output<T> {
   const r = esquema.safeParse(env);
   if (r.success) return r.data;
@@ -85,9 +88,11 @@ export type ConfigApi = z.output<typeof esquemaApi>;
 export type ConfigWorker = z.output<typeof esquemaWorker>;
 export type ConfigMigrar = z.output<typeof esquemaMigrar>;
 export type ConfigBusinessMap = z.output<typeof esquemaBusinessMap>;
+export type ConfigProjetorBusinessMap = z.output<typeof esquemaProjetorBusinessMap>;
 export type ConfigColetaBusinessMap = z.output<typeof esquemaColetaBusinessMap>;
 export const carregarConfigApi = (env: NodeJS.ProcessEnv = process.env): ConfigApi => validar(esquemaApi, env);
 export const carregarConfigWorker = (env: NodeJS.ProcessEnv = process.env): ConfigWorker => validar(esquemaWorker, env);
 export const carregarConfigMigrar = (env: NodeJS.ProcessEnv = process.env): ConfigMigrar => validar(esquemaMigrar, env);
 export const carregarConfigColetaBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigColetaBusinessMap => validar(esquemaColetaBusinessMap, env);
 export const carregarConfigBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigBusinessMap => validar(esquemaBusinessMap, env);
+export const carregarConfigProjetorBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigProjetorBusinessMap => validar(esquemaProjetorBusinessMap, env);

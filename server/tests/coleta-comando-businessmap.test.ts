@@ -17,6 +17,12 @@ afterEach(async () => {
 });
 
 describe('analisarArgumentos', () => {
+  it('--projetar (F4): vale nos dois modos, uma vez só', () => {
+    expect(analisarArgumentos(['incremental', '--projetar'])).toEqual({ modo: 'incremental', projetar: true });
+    expect(analisarArgumentos(['carga-inicial', '--inicio=2024-11-02', '--projetar', '--motivo=processo'])).toEqual({ modo: 'carga-inicial', inicio: '2024-11-02', motivo: 'processo', projetar: true });
+    expect(() => analisarArgumentos(['incremental', '--projetar', '--projetar'])).toThrow(/^uso: bm:coleta .*\[--projetar\]$/);
+  });
+
   it('modo, início da carga e motivo global', () => {
     expect(analisarArgumentos(['incremental'])).toEqual({ modo: 'incremental' });
     expect(analisarArgumentos(['carga-inicial'])).toEqual({ modo: 'carga-inicial' });
@@ -151,6 +157,46 @@ describe('executarColeta: trava, referência em transação do papel de referên
     const ro = await executarColeta(outra.deps, { modo: 'carga-inicial', motivo: new Map([['ref_tipo_card 99', 'processo']]) });
     expect(ro.falhas).toEqual({ 'referencia-motivo': 1 });
     expect(ro.motivosPendentes).toEqual(['ref_tipo_card:1']);
+  });
+
+  it('A6 do review da F3: na retomada a referência recebe o início da carga retomada, não o de hoje', async () => {
+    const parametros = { inicio_carga: '2025-08-15', iniciada_em: '2026-11-01T06:00:00Z', paginas: {} };
+    const m = await montar(cenario(), { ultimaCarga: { status: 'parcial', parametros } });
+    const r = await executarColeta(m.deps, { modo: 'carga-inicial' });
+    expect(r).toMatchObject({ retomada: true, inicioCarga: '2025-08-15' });
+    const vigencias = insertsRef(m.ref.chamadas).map((c) => c.valores.at(-1));
+    expect(vigencias.length).toBeGreaterThan(0);
+    expect(vigencias.every((v) => v === '2025-08-15')).toBe(true);
+    // carga nova (sem carga anterior) continua com o início de hoje menos 12 meses; incremental ignora o contexto (a tabela já tem vigência)
+    const nova = await montar(cenario());
+    await executarColeta(nova.deps, { modo: 'carga-inicial' });
+    expect(insertsRef(nova.ref.chamadas).every((c) => c.valores.at(-1) === '2025-11-02')).toBe(true);
+  });
+
+  it('F4, --projetar: projeta na mesma execução e sob a mesma trava, levando os responsáveis lidos em memória; sem a opção ou com coleta em falha, não projeta', async () => {
+    const card = { card_id: 1, title: 'Card 1', created_at: '2026-10-01T10:00:00Z', owner_user_id: 5, co_owner_ids: [6], last_modified: '2026-10-30T10:00:00Z' };
+    const m = await montar(cenario({ cards: { '35|active': [card] } }));
+    const r = await executarColeta(m.deps, { modo: 'carga-inicial', projetar: true });
+    expect(r.projecao).toMatchObject({ coletaId: 88, cards: 1, semCriacao: 0 });
+    const dim = m.coletor.chamadas.find((c) => c.texto.startsWith('INSERT INTO dspd_bm.dim_card '))!;
+    expect(dim.valores).toContainEqual(['5', '6']);
+    // os ids de responsável não saem no resultado do comando
+    expect(JSON.stringify(r)).not.toMatch(/"5"|"6"/);
+    const ordem = m.coletor.chamadas.map((c) => c.texto);
+    expect(ordem.findIndex((t) => t.startsWith('INSERT INTO dspd_bm.stg_card'))).toBeLessThan(ordem.findIndex((t) => t.startsWith('INSERT INTO dspd_bm.dim_card ')));
+    expect(ordem.findIndex((t) => t.startsWith('INSERT INTO dspd_bm.dim_card '))).toBeLessThan(ordem.findIndex((t) => t.includes('pg_advisory_unlock')));
+
+    // sem esquema informado, a coleta e o projetor usam o do ambiente
+    const doAmbiente = await montar(cenario({ cards: { '35|active': [card] } }));
+    const depsSemS: DepsComando = { ...doAmbiente.deps, S: undefined };
+    expect((await executarColeta(depsSemS, { modo: 'carga-inicial', projetar: true })).projecao).toMatchObject({ cards: 1 });
+    const sem = await montar(cenario({ cards: { '35|active': [card] } }));
+    expect((await executarColeta(sem.deps, { modo: 'carga-inicial' })).projecao).toBeNull();
+    expect(sem.coletor.chamadas.some((c) => c.texto.includes("'projecao'"))).toBe(false);
+
+    const falha = await montar(cenario({ status: { '35|active': 404, '35|archived': 404, '35|discarded': 404 } }));
+    const rf = await executarColeta(falha.deps, { modo: 'carga-inicial', projetar: true });
+    expect(rf).toMatchObject({ estado: 'falha', projecao: null });
   });
 
   it('a etapa devolve o resultado e conta as folhas sem conferência só pelo dspd_coletor', async () => {

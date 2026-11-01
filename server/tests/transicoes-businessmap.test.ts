@@ -73,8 +73,24 @@ describe('E2.46: histórico de colunas pela listagem (expand=transitions)', () =
     expect(m.banco.estado.revisoes).toHaveLength(1);
     expect(r.streams[0]!.transicoes).toMatchObject({ lidas: 2, inseridas: 1, invalidas: 1 });
     expect(m.banco.estado.falhas).toEqual([{ entidade: 'card_35_active', idOrigem: '1', erro: 'transicao-invalida' }]);
-    expect(r.estado).toBe('parcial');
+    // A3 do review da F3: a transição inválida fica no controle e na contagem, mas não torna a coleta parcial
+    expect(r.estado).toBe('sucesso');
+    expect(r.falhas).toEqual({});
+    expect(m.banco.estado.contagens.find((c) => c.entidade === 'transicao_35_active')).toMatchObject({ lidos: 2, inseridos: 1, falhas: 1 });
     expect(m.banco.estado.stg.map((s) => s.idOrigem)).toEqual(['1', '2']);
+  });
+});
+
+describe('A3 do review da F3: transição inválida repetida não trava a marca d\'água', () => {
+  it('a mesma transição inválida em coletas seguidas deixa cada uma como sucesso e a marca d\'água avança', async () => {
+    const ruim = card(1, [transicao(7, '2026-10-01 10:00:00', null), { column_id: 9 }]);
+    const banco = bancoFalso({ marca: new Date('2026-10-29T00:00:00Z') });
+    const m = await montar([ruim], banco);
+    const r1 = await coletarCards(m.deps, { tipo: 'incremental' });
+    const r2 = await coletarCards({ ...m.deps, agora: () => new Date('2026-11-03T12:00:00Z') }, { tipo: 'incremental' });
+    expect([r1.estado, r2.estado]).toEqual(['sucesso', 'sucesso']);
+    expect(banco.estado.marca).toMatchObject({ ate: new Date('2026-11-03T12:00:00Z') });
+    expect(banco.estado.falhas.map((f) => f.erro)).toEqual(['transicao-invalida', 'transicao-invalida']);
   });
 });
 
