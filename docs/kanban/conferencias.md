@@ -1001,3 +1001,55 @@
 | 2026-11-01 06:47 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-23 | brief | 1 | não cumpriu | s | Fora do escopo por referência ao brief irmão | forma | jarvis |
 | 2026-11-01 06:50 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-26 | brief | 2 | cumpriu | — |  | — | jarvis |
 | 2026-11-01 06:52 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-23 | brief | 2 | não cumpriu | s | tardio | forma | jarvis |
+| 2026-11-01 07:04 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-24 | brief | 3 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 07:20 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-26 | entrega | 1 | não cumpriu | s | PQ-1 cumpriu, só o parecer no commit; reprovada por base fixada não lida pelo forge-check entrega e E2.81 posterior ao brief | forma | destino |
+| 2026-11-01 07:27 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-45 | brief | 1 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 07:29 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-22 | brief | 1 | não cumpriu | s | delta sem os testes .qa. de 6e52cff; decisão do sandbox sem texto literal do dono | escopo | jarvis |
+| 2026-11-01 07:34 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-23 | brief | 2 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 07:38 | 056-acelerato-mysql | 056-acelerato-mysql-qa-engineer-9 | brief | 1 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 07:38 | 056-acelerato-mysql | 056-acelerato-mysql-security-engineer-13 | brief | 1 | não cumpriu | s | etapa review em vez de seguranca | etapa | jarvis |
+| 2026-11-01 07:41 | 056-acelerato-mysql | 056-acelerato-mysql-security-engineer-14 | brief | 2 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 07:50 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-24 | brief | 1 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 09:21 | 056-acelerato-mysql | 056-acelerato-mysql-node-backend-14 | brief | 1 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 09:21 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-46 | brief | 1 | não cumpriu | s | Fora do escopo resumido pelo Jarvis | forma | jarvis |
+| 2026-11-01 09:26 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-46 | brief | 2 | não cumpriu | s | Base-sha do develop local e Branch develop; decisão do sandbox não registrada no 052 | base | jarvis |
+| 2026-11-01 09:31 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-47 | brief | 3 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 09:32 | 056-acelerato-mysql | 056-acelerato-mysql-node-backend-15 | brief | 1 | não cumpriu | s | SSSC-I/R sem decisão do dono; branch do cabeçalho inexistente | decisao | jarvis |
+| 2026-11-01 09:38 | 056-acelerato-mysql | 056-acelerato-mysql-node-backend-16 | brief | 2 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 09:42 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-29 | brief | 1 | não cumpriu | s | co_owner_ids alimenta responsaveis e O26 (ADR 0020 4b e 4c); paráfrases de ADR | decisao | jarvis |
+| 2026-11-01 09:47 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-30 | brief | 2 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 10:00 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-27 | brief | 1 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 10:04 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-48 | brief | 1 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 10:10 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-25 | brief | 1 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 10:21 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-26 | brief | 1 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 10:26 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-49 | brief | 1 | não cumpriu | s | NÃO tocar os pareceres contradiz a renovação do review do ws1 | forma | jarvis |
+| 2026-11-01 10:32 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-50 | brief | 2 | aprovado | s | avisos: autoria QA ws1, merge-integracao, teto 153 informativos | — | jarvis |
+| 2026-11-01 10:43 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-27 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 10:49 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-51 | brief | 1 | reprovado | s | NÃO tocar do review ws1 contra o Entregar (renovação já feita) | forma | jarvis |
+| 2026-11-01 10:55 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-52 | brief | 2 | aprovado | s | aviso: merge-integracao conferido na entrega | — | jarvis |
+| 2026-11-01 11:02 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-28 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 11:10 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-53 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-01 11:24 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-25 | brief | 1 | reprovado | s | já mesclada: a docs/056-acelerato-discovery não é ancestral da develop | citacao | jarvis |
+| 2026-11-01 11:26 | 056-acelerato-mysql | 056-acelerato-mysql-node-backend-17 | brief | 1 | reprovado | s | E4.41 (branch) ainda não feita | etapa | jarvis |
+| 2026-11-01 11:28 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-26 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 11:33 | 056-acelerato-mysql | 056-acelerato-mysql-node-backend-18 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 11:47 | 056-acelerato-mysql | 056-acelerato-mysql-security-engineer-15 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 11:48 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-27 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 11:56 | 056-acelerato-mysql | 056-acelerato-mysql-qa-engineer-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 12:11 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-28 | brief | 1 | reprovado | s | merge sob Etapa pr; trocar para merge-integracao | etapa | jarvis |
+| 2026-11-01 12:15 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-29 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 12:19 | 056-acelerato-mysql | 056-acelerato-mysql-tech-lead-30 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-01 13:37 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-31 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 14:01 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-32 | brief | 1 | aprovado | s | aviso: agente não abre o .env | — | jarvis |
+| 2026-11-01 14:03 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-33 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 14:10 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-54 | brief | 1 | reprovado | s | mensagem encurtada pelo Jarvis | forma | jarvis |
+| 2026-11-01 14:16 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-56 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 14:19 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-55 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 14:22 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-29 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 14:27 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-34 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 14:30 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-28 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 14:42 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-57 | brief | 1 | aprovado | s | aviso: QA ws1 e segurança fix-coleta desatualizados pelo commit do UX | — | jarvis |
+| 2026-11-01 15:08 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-30.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 15:14 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-29.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 15:14 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-31.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 15:17 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-58.md | brief | 1 | reprovado | s | ADR 0024 descrita como seed (é o tipo do card); foco sem gatilho append-only e papel migrador | citacao | jarvis |

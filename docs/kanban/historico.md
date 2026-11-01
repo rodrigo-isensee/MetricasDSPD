@@ -623,3 +623,55 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-01T06:50:25-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
 | 2026-11-01T06:51:07-03:00 | K-190 | Aguardando o dono | Em andamento | Aguardando o dono |
 | 2026-11-01T06:54:07-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-01T07:14:06-03:00 | K-190 | Aguardando o dono | Em andamento | Aguardando o dono |
+| 2026-11-01T07:16:40-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-01T07:17:52-03:00 | K-190 | Aguardando o dono | Em andamento | Aguardando o dono |
+| 2026-11-01T07:20:06-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-01T07:21:31-03:00 | K-190 | Aguardando o dono | Em andamento | Aguardando o dono |
+| 2026-11-01T07:51:23-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-01T08:09:38-03:00 | K-190 | Aguardando o dono | Em andamento | Aguardando o dono |
+| 2026-11-01T08:28:20-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-01T09:25:10-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-01T09:29:14-03:00 | K-190 | Aguardando o dono | Em andamento | Aguardando o dono |
+| 2026-11-01T09:39:22-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-01T10:32:25-03:00 | E2.87 | Pronto | Em andamento | brief 50 aprovado, delegado ao tech-lead |
+| 2026-11-01T10:43:05-03:00 | E2.90 | Pronto | Em andamento | brief qa-27 aprovado |
+| 2026-11-01T10:44:55-03:00 | E2.90 | Em andamento | Pronto | b07c45c, forge-check pr rc=0 |
+| 2026-11-01T10:58:29-03:00 | E2.87 | Em andamento | Bloqueado | hook parecer: pedido do parecer de segurança; E2.91 |
+| 2026-11-01T11:02:40-03:00 | E2.91 | Pronto | Em andamento | brief sec-28 aprovado |
+| 2026-11-01T11:04:50-03:00 | E2.91 | Em andamento | Pronto | c4c8621 |
+| 2026-11-01T11:10:14-03:00 | E2.87 | Bloqueado | Em andamento | E2.91 feita; brief tl-53 aprovado |
+| 2026-11-01T11:28:28-03:00 | E4.41 | Pronto | Em andamento | brief tl-26 aprovado |
+| 2026-11-01T11:28:55-03:00 | E2.87 | Em andamento | Aguardando o dono | Aguardando o dono: merge do PR 186 |
+| 2026-11-01T11:30:28-03:00 | E4.41 | Em andamento | Pronto | branch no origin 55301e0 |
+| 2026-11-01T11:33:34-03:00 | E4.42 | Pronto | Em andamento | brief nb-18 aprovado |
+| 2026-11-01T11:42:33-03:00 | E4.42 | Em andamento | Pronto | 8865ee7 |
+| 2026-11-01T11:47:57-03:00 | E4.43 | Pronto | Em andamento | brief sec-15 aprovado |
+| 2026-11-01T11:48:07-03:00 | E4.44 | Pronto | Em andamento | brief tl-27 aprovado |
+| 2026-11-01T11:51:16-03:00 | E4.43 | Em andamento | Pronto | aae448d aprovado |
+| 2026-11-01T11:52:49-03:00 | E4.44 | Em andamento | Pronto | ce881d1 aprovado |
+| 2026-11-01T11:56:23-03:00 | E4.45 | Pronto | Em andamento | brief qa-10 aprovado |
+| 2026-11-01T12:07:15-03:00 | E4.45 | Em andamento | Pronto | c699e02 aprovado |
+| 2026-11-01T12:15:01-03:00 | E4.46 | Pronto | Em andamento | brief tl-29 aprovado |
+| 2026-11-01T12:36:25-03:00 | E2.87 | Aguardando o dono | Pronto | Aguardando o dono: fim; PR 186 mesclado 848aca3 |
+| 2026-11-01T13:37:33-03:00 | E2.92 | Pronto | Em andamento | brief nb-31 aprovado |
+| 2026-11-01T13:39:40-03:00 | E2.92 | Em andamento | Pronto | diagnóstico ok |
+| 2026-11-01T13:40:15-03:00 | E4.46 | Em andamento | Aguardando o dono | Aguardando o dono: merge do PR 187 |
+| 2026-11-01T13:54:23-03:00 | E4.46 | Aguardando o dono | Pronto | Aguardando o dono: fim; PR 187 mesclado 81fcd63 |
+| 2026-11-01T13:54:23-03:00 | E4.47 | Pronto | Concluido | releitura do dono ok |
+| 2026-11-01T14:01:07-03:00 | E2.93 | Pronto | Em andamento | brief nb-32 aprovado |
+| 2026-11-01T14:03:03-03:00 | E2.94 | Pronto | Em andamento | brief nb-33 aprovado |
+| 2026-11-01T14:05:37-03:00 | E2.94 | Em andamento | Pronto | investigação ok; pergunta ao dono |
+| 2026-11-01T14:08:15-03:00 | E2.93 | Em andamento | Pronto | c71b2d9 |
+| 2026-11-01T14:16:11-03:00 | E2.95 | Pronto | Em andamento | brief tl-56 aprovado |
+| 2026-11-01T14:19:29-03:00 | E2.95 | Em andamento | Pronto | branch no origin |
+| 2026-11-01T14:19:29-03:00 | E2.97 | Pronto | Em andamento | brief tl-55 aprovado |
+| 2026-11-01T14:22:49-03:00 | E2.98 | Pronto | Em andamento | brief sec-29 aprovado |
+| 2026-11-01T14:24:50-03:00 | E2.97 | Em andamento | Pronto | c44bc7b |
+| 2026-11-01T14:27:56-03:00 | E2.98 | Em andamento | Pronto | 3e8f3bd |
+| 2026-11-01T14:27:56-03:00 | E2.96 | Pronto | Em andamento | brief nb-34 aprovado |
+| 2026-11-01T14:30:33-03:00 | E2.99 | Pronto | Em andamento | brief qa-28 aprovado |
+| 2026-11-01T14:37:09-03:00 | E2.99 | Em andamento | Pronto | 757d3b6 |
+| 2026-11-01T14:41:43-03:00 | E2.96 | Em andamento | Pronto | 26d097c |
+| 2026-11-01T15:08:18-03:00 | K-182 | Em andamento | Em andamento | E2.105 delegada (security-engineer) |
+| 2026-11-01T15:16:47-03:00 | K-182 | Em andamento | Em andamento | E2.100 delegada (tech-lead, PR da F6) |

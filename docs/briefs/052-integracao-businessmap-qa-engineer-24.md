@@ -166,6 +166,7 @@ Renovar por delta o parecer de QA do ws1-estrutura, desatualizado pelo `data-mod
 - "E2.77 (node-backend): volta 1 da F6 com os recomendados A1 da segurança (1b7983b: recusar prefixo do seed igual ao da base real), A3 da segurança (guard de times cobrindo limitesDosTimes) e A4 e A6 do review (DSPD_SCHEMA_PREFIXO_SEED em docs/architecture/server.md; comentário no cast de normalizador.ts:199), depois da E2.76 (uma suíte por vez); commit e push." · etapa de outra delegação; continua no pedido
 - "E2.78 (tech-lead): revalidação por delta do review no mesmo parecer `docs/reviews/052-f6-painel.md` depois da E2.76 (df0afee..db37a4b), em paralelo à E2.74; commit e push." · etapa de outra delegação; continua no pedido
 - "E2.79 (security-engineer): renovação por delta do parecer `docs/security/052-f4-projetor.md` na `feature/052-f4-projetor` (d681a80..e7651a2: o teste do QA da F4 e o parecer de QA), antes do PR da F4; commit e push." · etapa de outra delegação; continua no pedido
+- "E2.81 (tech-lead): limpeza das branches já mescladas na develop (remota, local e worktree), pela regra de depois do merge, sem tocar develop, homolog, main nem as branches em andamento." · etapa de outra delegação; continua no pedido
 - A renovação da segurança (E2.79), o PR e o merge (E2.62); o quadro e o arquivo do pedido.
 
 ## Pronto quando
