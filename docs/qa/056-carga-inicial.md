@@ -3,19 +3,19 @@ tipo: qa
 contrato: 1
 pedido: 056-acelerato-mysql
 branch: feature/056-carga-inicial
-commit: 2f9c4f3b5669ce190668d7688276820ad8318266
+commit: 180f2464dad1e739357ee3162a27d8aa4d306fab
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-10-31
+data: 2026-11-01
 ---
 
 # Parecer de QA - carga inicial do ref_dominio do Acelerato (E4.27, K-190)
 
-Review: `docs/reviews/056-carga-inicial.md` (aprovado em bf5cfd5). Segurança: `docs/security/056-carga-inicial.md` (aprovado, delta em 2f9c4f3). Arquitetura: seção do `ac:ref-sync` em `docs/architecture/server.md` e §4 a §6 e §12 de `docs/architecture/fontes/acelerato-listas.md`. Sem interface: sem E2E de navegador nem acessibilidade. Nada foi conectado ao MySQL e o `.env` não foi aberto. Os §4 a §6 (chaves do recorte) seguem vazios por desenho e ficam para a E4.32.
+Review: `docs/reviews/056-carga-inicial.md` (aprovado em bf5cfd5). Segurança: `docs/security/056-carga-inicial.md` (aprovado, delta em 2f9c4f3). Arquitetura: seção do `ac:ref-sync` em `docs/architecture/server.md` e §4 a §6 e §12 de `docs/architecture/fontes/acelerato-listas.md`. Sem interface: sem E2E de navegador nem acessibilidade. Nada foi conectado ao MySQL e o `.env` não foi aberto. Os §4 a §6 (chaves do recorte) foram preenchidos na E4.32; ver a renovação abaixo.
 
 Veredito: aprovado. Suíte `.pg` verde contra o PostgreSQL local, `pronto` sem erro, todo caso pedido tem teste e os dois arquivos de abuso novos do QA passam e provam a guarda (mutação abaixo).
 
@@ -47,7 +47,25 @@ Não há ferramenta de mutação da stack nesta máquina; mutante manual, em có
 ## Observações
 - Não acho divergência entre o diff e o review. O teto de 582 linhas (exceção do review) e a linha de teto do PR são da E4.31.
 - A3 do review (versão de critério sem métrica, mudar lista não marca gráfico) segue aberto e depende de pergunta ao dono; não afeta a carga inicial.
-- Renovar este parecer por delta depois da E4.32, que preenche os §4 a §6 do arquivo de domínio.
+
+## Renovação por delta depois da E4.32 (E4.38, 6e52cff..180f246)
+
+Delta: só `docs/architecture/fontes/acelerato-dominio.json` (campos `tipo_recorte` 23, `organizacao_recorte` 3, `equipe` 7, 9 e 332, mais texto da versão de critério e da regra) e `docs/architecture/fontes/acelerato-listas.md` (§4 a §6). Sem código e sem teste novo no intervalo (os testes .qa. já estavam no parecer de 6e52cff). A ponta da branch (71d4fc2) só soma o review da E4.36, sem código. Conferido contra o diff: as obrigações da tabela acima seguem valendo, o escopo não mudou. Nada foi conectado ao MySQL e o `.env` não foi aberto.
+
+Saída real (worktree 056d, ponta 180f246 mais o review 71d4fc2, uma suíte por vez):
+- `pnpm run test:pg`: Test Files 21 passed (21); Tests 126 passed (126). O teste `.pg` do arquivo real aceita o arquivo com os 3 campos novos e repete sem mudança.
+- `pnpm run pronto:interno` (o `pronto` abre em lock de `/tmp` sob o sandbox da QA; o corpo é o mesmo): terminou em `Done`, `docs:check: ok (823 páginas Markdown, 69 métricas, 2 eventos)`.
+- Abuso no delta: nenhuma linha adicionada do JSON traz `@` nem caractere invisível (U+200B a U+200F, U+2028 a U+202E, U+FEFF); `referencia.ts` do coletor já lista os três campos novos como chaves.
+
+| Obrigação | Teste | Resultado | Fronteira protegida |
+|---|---|---|---|
+| Chaves do recorte gravadas com vigência | `.pg` "o arquivo real..." sobre o JSON novo | passa | arquivo versionado |
+| Sem `@` nem invisível nos novos textos | QA `dominio-acelerato.qa.test.ts` e conferência do diff | passa | caractere fora da classe |
+| Sem acesso ao MySQL | QA `dominio-acelerato.qa.test.ts` | passa | fonte só leitura |
+
+Mutação e vermelho antes do verde: sem código novo, sem mutante novo; o mutante de `textoSeguro` do parecer anterior segue válido.
+
+Veredito da renovação: aprovado, sem achado novo. A1 segue aberto como recomendado.
 
 ## Achados
 - A1 (recomendado) server/src/modulos/referencia/dominio-acelerato.ts:135 · A3 do review segue aberto: a versão T2.6 sai sem métrica e a mudança de lista não marca gráfico; pergunta ao dono pelo Jarvis, sem inferência.
