@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { carregarConfigRef } from '../src/plataforma/config.js';
 import {
-  ARQUIVO_DOMINIO, CAMPOS_DOMINIO, ErroDominio, analisarDominio, lerDominio, planejarDominio, referenciaDaVersao, sincronizarDominio,
+  ARQUIVO_DOMINIO, CAMPOS_DOMINIO, ErroDominio, analisarDominio, dataCivilValida, lerDominio, planejarDominio, referenciaDaVersao, sincronizarDominio,
   type ArquivoDominio, type LinhaVigente,
 } from '../src/modulos/referencia/dominio-acelerato.js';
 import { criarDublePg } from './duble-pg.js';
@@ -56,6 +56,29 @@ describe('analisarDominio (valida antes de qualquer gravação)', () => {
     expect(recusa(texto({ categoria: [{ codigo: '1', rotulo: 'fulano@empresa.com' }] }))).toContain('dominios.categoria');
     expect(recusa(texto({ categoria: [{ codigo: '1', rotulo: 'a\nb' }] }))).toContain('dominios.categoria');
   });
+  it('a chave da categoria é numérica (como a do recorte)', () => {
+    expect(recusa(texto({ categoria: [{ codigo: 'abc', rotulo: 'a' }] }))).toContain('dominios.categoria');
+    expect(arquivo({ categoria: [{ codigo: '288', rotulo: 'a' }] }).dominios.categoria).toHaveLength(1);
+  });
+  it('separador de linha e de parágrafo e caractere invisível (U+2028, U+2029, U+200B) são recusados no valor', () => {
+    for (const c of ['\u2028', '\u2029', '\u200B', '\u202E']) {
+      expect(recusa(texto({ categoria: [{ codigo: '1', rotulo: `a${c}b` }] }))).toContain('dominios.categoria');
+    }
+  });
+  it('o mesmo filtro vale para descricao, motivo, referencia e regra', () => {
+    const com = (campo: 'descricao' | 'motivo' | 'referencia' | 'regra', valor: string): string => {
+      const b = base({ equipe: [{ codigo: '1', rotulo: 'x' }] }) as { versao_criterio: Record<string, string> } & Record<string, unknown>;
+      if (campo === 'regra') b.regra = valor;
+      else b.versao_criterio[campo] = valor;
+      return JSON.stringify(b);
+    };
+    for (const campo of ['descricao', 'motivo', 'referencia', 'regra'] as const) {
+      for (const ruim of ['a\u2028b', 'a\u2029b', 'a\u200Bb', 'a\nb', 'fulano@empresa.com']) {
+        expect(recusa(com(campo, ruim))).toContain('inválido');
+      }
+      expect(() => analisarDominio(com(campo, 'texto de critério válido'))).not.toThrow();
+    }
+  });
   it('a mensagem não traz o valor recusado', () => {
     expect(recusa(texto({ categoria: [{ codigo: '1', rotulo: 'fulano@empresa.com' }] }))).not.toContain('fulano');
   });
@@ -92,10 +115,37 @@ describe('planejarDominio', () => {
   });
 });
 
+describe('planejarDominio: data retroativa', () => {
+  const lista = arquivo({ categoria: [{ codigo: '1', rotulo: 'A novo' }] });
+  const vig = [vigente('categoria', '1', 'A')];
+  it('data menor que a última vigência do campo (de ou até) é recusada quando o campo muda', () => {
+    expect(() => planejarDominio(lista, vig, '2026-10-15', new Map([['categoria', '2026-11-01']]))).toThrow(/anterior à última vigência/);
+    expect(() => planejarDominio(lista, vig, '2026-10-15', new Map([['categoria', '2026-11-01']]))).toThrow(ErroDominio);
+  });
+  it('data igual ou posterior é aceita; sem mudança a data retroativa não grava nada e não é recusada', () => {
+    expect(planejarDominio(lista, vig, '2026-11-01', new Map([['categoria', '2026-11-01']])).inserir).toHaveLength(1);
+    expect(planejarDominio(lista, vig, '2026-11-02', new Map([['categoria', '2026-11-01']])).inserir).toHaveLength(1);
+    const igual = arquivo({ categoria: [{ codigo: '1', rotulo: 'A' }] });
+    expect(planejarDominio(igual, vig, '2026-10-15', new Map([['categoria', '2026-11-01']]))).toMatchObject({ inserir: [], fechar: [] });
+  });
+  it('só a última vigência do próprio campo conta', () => {
+    expect(planejarDominio(lista, vig, '2026-10-15', new Map([['etapa', '2026-11-01']])).inserir).toHaveLength(1);
+  });
+});
+
+describe('dataCivilValida (argumento do ac:ref-sync)', () => {
+  it('aceita data existente e recusa inexistente, fora do formato e bissexto errado', () => {
+    expect(dataCivilValida('2026-11-02')).toBe(true);
+    expect(dataCivilValida('2028-02-29')).toBe(true);
+    for (const ruim of ['2026-02-30', '2027-02-29', '2026-13-01', '2026-00-10', '2026-04-31', '2026-1-1', '', 'ontem']) expect(dataCivilValida(ruim)).toBe(false);
+  });
+});
+
 describe('sincronizarDominio (dublê de PostgreSQL)', () => {
   const lido = analisarDominio(texto({ equipe: [{ codigo: '10', rotulo: 'SSSC TOTVS' }, { codigo: '11', rotulo: 'SSSC SENIOR' }] }));
   const executar = (vigentes: LinhaVigente[], versaoExiste = false) => {
     const d = criarDublePg((q) => {
+      if (q.texto.includes('max(greatest')) return [];
       if (q.texto.includes('FROM dspd_ac.ref_dominio')) return vigentes;
       if (q.texto.startsWith('SELECT 1')) return versaoExiste ? [{ x: 1 }] : [];
       return [];
@@ -134,6 +184,15 @@ describe('sincronizarDominio (dublê de PostgreSQL)', () => {
     const d = executar([], true);
     expect(await sincronizarDominio(d.pool, S, lido, HOJE, AGORA)).toMatchObject({ inseridas: 2, versaoRegistrada: false });
     expect(gravacoes(d).some((c) => c.texto.includes('ref_versao_criterio'))).toBe(false);
+  });
+  it('data anterior à última vigência do campo (lida do banco): desfaz e não grava nada', async () => {
+    const d = criarDublePg((q) => {
+      if (q.texto.includes('max(greatest')) return [{ campo: 'equipe', ultima: '2026-12-01' }];
+      return [];
+    });
+    await expect(sincronizarDominio(d.pool, S, lido, HOJE, AGORA)).rejects.toThrow(/anterior à última vigência/);
+    expect(gravacoes(d)).toEqual([]);
+    expect(d.chamadas.at(-1)!.texto).toBe('ROLLBACK');
   });
   it('erro de vigência: desfaz (ROLLBACK) e não grava nada', async () => {
     const d = executar([vigente('equipe', '10', 'Antigo', HOJE)]);

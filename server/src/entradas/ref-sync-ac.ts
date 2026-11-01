@@ -3,13 +3,13 @@ import { carregarConfigRef } from '../plataforma/config.js';
 import { criarPool } from '../plataforma/db/pool.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
 import { opcoesLog } from '../plataforma/log.js';
-import { ErroDominio, lerDominio, sincronizarDominio } from '../modulos/referencia/index.js';
+import { ErroDominio, dataCivilValida, lerDominio, sincronizarDominio } from '../modulos/referencia/index.js';
 
 // Entrada `pnpm --filter @metricas-dspd/server run ac:ref-sync [AAAA-MM-DD]`: grava em `dspd_ac.ref_dominio` as listas do arquivo versionado
 // `docs/architecture/fontes/acelerato-dominio.json` (E4.28), com vigência (padrão: hoje, horário de Brasília) e versão de critério (T2.6)
 // com o hash do arquivo. Usa o papel `dspd_ref`; idempotente. Imprime só contagens e o hash: nunca a URL, a senha nem o texto do erro do banco.
 const dia = process.argv[2] ?? new Date(Date.now() - 3 * 3_600_000).toISOString().slice(0, 10);
-if (!/^\d{4}-\d{2}-\d{2}$/.test(dia) || process.argv.length > 3) {
+if (!dataCivilValida(dia) || process.argv.length > 3) {
   process.stderr.write('uso: ac:ref-sync [AAAA-MM-DD]\n');
   process.exit(2);
 }

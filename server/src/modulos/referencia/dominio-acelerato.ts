@@ -16,9 +16,15 @@ export const ARQUIVO_DOMINIO = new URL('../../../../docs/architecture/fontes/ace
 export const CAMPOS_DOMINIO = [
   'tipo_recorte', 'organizacao_recorte', 'equipe', 'etapa', 'prioridade', 'categoria', 'descricao_workflow', 'natureza_prefixo', 'campo_personalizado',
 ] as const;
-/** Listas do recorte: o código é a chave numérica em texto decimal. */
-export const CAMPOS_DE_CHAVE: readonly string[] = ['tipo_recorte', 'organizacao_recorte', 'equipe'];
+/** Listas de chave: o código é a chave numérica em texto decimal (recorte e `categoria_key`). */
+export const CAMPOS_DE_CHAVE: readonly string[] = ['tipo_recorte', 'organizacao_recorte', 'equipe', 'categoria'];
 
+/** Data civil existente no formato AAAA-MM-DD (2026-02-30 não passa). */
+export function dataCivilValida(texto: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(texto)) return false;
+  const d = new Date(`${texto}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === texto;
+}
 export class ErroDominio extends Error {
   constructor(readonly tipo: 'arquivo' | 'vigencia', mensagem: string) {
     super(mensagem);
@@ -26,8 +32,9 @@ export class ErroDominio extends Error {
   }
 }
 
-// Sem controle de linha e sem arroba (um e-mail nunca entra como valor de domínio).
-const textoSeguro = (max: number): z.ZodString => z.string().min(1).max(max).regex(/^[^\p{Cc}@]+$/u, 'caractere não aceito');
+// Sem controle, sem formatação invisível (U+200B, bidi), sem separador de linha ou parágrafo (U+2028, U+2029) e sem arroba
+// (um e-mail nunca entra como valor de domínio). Vale para os valores das listas e para os textos da versão de critério.
+const textoSeguro = (max: number): z.ZodString => z.string().min(1).max(max).regex(/^[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}@]+$/u, 'caractere não aceito');
 const itemDominio = z.object({ codigo: textoSeguro(80), rotulo: textoSeguro(120) }).strict();
 
 export type Item = { codigo: string; rotulo: string };
@@ -40,14 +47,14 @@ export const esquemaDominio = z
     versao_criterio: z
       .object({
         dominio: z.literal('acelerato'),
-        descricao: z.string().min(1).max(300),
-        motivo: z.string().min(1).max(500),
-        referencia: z.string().min(1).max(300),
+        descricao: textoSeguro(300),
+        motivo: textoSeguro(500),
+        referencia: textoSeguro(300),
       })
       .strict(),
     schema: z.literal('dspd_ac'),
     tabela: z.literal('ref_dominio'),
-    regra: z.string().min(1),
+    regra: textoSeguro(2000),
     dominios: z.partialRecord(z.enum(CAMPOS_DOMINIO), z.array(itemDominio).min(1).max(32_000)),
   })
   .strict()
@@ -88,18 +95,24 @@ export const lerDominio = (caminho: URL | string = ARQUIVO_DOMINIO): DominioLido
 export interface LinhaVigente { campo: string; codigo: string; rotulo: string; vigente_de: string }
 export interface Insercao { campo: string; codigo: string; rotulo: string; ordem: number }
 export interface Fechamento { campo: string; codigo: string }
+/** Última data de vigência já registrada por campo (a maior entre `vigente_de` e `vigente_ate`). */
+export type UltimaVigencia = ReadonlyMap<string, string>;
 export interface PlanoDominio { inserir: Insercao[]; fechar: Fechamento[]; campos: number; inicial: boolean }
 
 /**
  * Compara o arquivo com as linhas vigentes dos campos que o arquivo traz. Campo ausente do arquivo não é tocado.
  * Código novo abre vigência; rótulo diferente fecha a anterior e abre a nova; código que saiu da lista só fecha.
  * Só a ordem diferente não muda nada (a posição não altera o significado da lista).
+ * Data menor que a última vigência do campo é recusada quando o campo muda: sem períodos sobrepostos nem versão T2.6 com data passada.
  */
-export function planejarDominio(arquivo: ArquivoDominio, vigentes: readonly LinhaVigente[], hoje: string): PlanoDominio {
+export function planejarDominio(
+  arquivo: ArquivoDominio, vigentes: readonly LinhaVigente[], hoje: string, ultima: UltimaVigencia = new Map(),
+): PlanoDominio {
   const inserir: Insercao[] = [];
   const fechar: Fechamento[] = [];
   const campos = listasDe(arquivo.dominios);
   for (const [campo, itens] of campos) {
+    const antes = inserir.length + fechar.length;
     const atuais = new Map(vigentes.filter((v) => v.campo === campo).map((v) => [v.codigo, v]));
     const desejados = new Set<string>();
     for (const [ordem, item] of itens.entries()) {
@@ -110,6 +123,10 @@ export function planejarDominio(arquivo: ArquivoDominio, vigentes: readonly Linh
       inserir.push({ campo, codigo: item.codigo, rotulo: item.rotulo, ordem });
     }
     for (const codigo of atuais.keys()) if (!desejados.has(codigo)) fechar.push({ campo, codigo });
+    const ultimo = ultima.get(campo);
+    if (ultimo !== undefined && hoje < ultimo && inserir.length + fechar.length > antes) {
+      throw new ErroDominio('vigencia', `ref_dominio ${campo}: a data ${hoje} é anterior à última vigência do campo (${ultimo}); use essa data ou uma posterior`);
+    }
   }
   for (const f of fechar) {
     const atual = vigentes.find((v) => v.campo === f.campo && v.codigo === f.codigo)!;
@@ -142,7 +159,9 @@ export async function sincronizarDominio(
     const campos = Object.keys(lido.arquivo.dominios);
     const vigentes = (await db.query<LinhaVigente>(
       `SELECT campo, codigo, rotulo, vigente_de FROM ${S.ac}.ref_dominio WHERE vigente_ate IS NULL AND campo = ANY($1::text[])`, [campos])).rows;
-    const plano = planejarDominio(lido.arquivo, vigentes, hoje);
+    const ultimas = (await db.query<{ campo: string; ultima: string }>(
+      `SELECT campo, max(greatest(vigente_de, coalesce(vigente_ate, vigente_de)))::text AS ultima FROM ${S.ac}.ref_dominio WHERE campo = ANY($1::text[]) GROUP BY campo`, [campos])).rows;
+    const plano = planejarDominio(lido.arquivo, vigentes, hoje, new Map(ultimas.map((u) => [u.campo, u.ultima])));
     for (const f of plano.fechar) {
       await db.query(`UPDATE ${S.ac}.ref_dominio SET vigente_ate = $1 WHERE vigente_ate IS NULL AND campo = $2 AND codigo = $3`, [hoje, f.campo, f.codigo]);
     }

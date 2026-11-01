@@ -89,6 +89,21 @@ d('ac:ref-sync contra PostgreSQL (papel dspd_ref, vigência e versão de critér
     });
   });
 
+  it('data retroativa é recusada (sem sobreposição nem versão com data passada) e nada é gravado', async () => {
+    await comoRef(async (pool, c) => {
+      await sincronizarDominio(pool, S, analisarDominio(texto([['t1', 'Um']])), D2, AGORA);
+      const v2 = analisarDominio(texto([['t1', 'Um corrigido']]));
+      const antes = await linhas(c);
+      await expect(sincronizarDominio(pool, S, v2, D1, AGORA)).rejects.toThrow(/anterior à última vigência/);
+      expect(await linhas(c)).toEqual(antes);
+      expect(await versoes(c, v2.sha256)).toBe(0);
+      // Vigência já fechada também conta: depois de fechar em D3, D2 é retroativa.
+      await sincronizarDominio(pool, S, v2, '2026-11-04', AGORA);
+      await expect(sincronizarDominio(pool, S, analisarDominio(texto([['t1', 'Terceiro']])), D2, AGORA)).rejects.toBeInstanceOf(ErroDominio);
+      expect(await linhas(c)).toHaveLength(2);
+    });
+  });
+
   it('o arquivo real do repositório entra pelo papel de referência (categoria 135 e descrição do workflow 19)', async () => {
     await comoRef(async (pool, c) => {
       const lido = lerDominio();
