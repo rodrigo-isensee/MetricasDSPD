@@ -30,7 +30,7 @@ describe('E2.46: histórico de colunas pela listagem (expand=transitions)', () =
   it('pede expand=transitions (sem block_times) e grava cada transição em stg_revision pela allow-list, sem chamada por card', async () => {
     const m = await montar([card(1, [transicao(7, '2026-10-01 10:00:00', '2026-10-02 09:00:00', { user_id: 5, author: MARCA, comment: MARCA }), transicao(8, '2026-10-02 09:00:00', null)])]);
     const r = await coletarCards(m.deps, carga);
-    expect(EXPAND_COLETA).toBe('custom_fields,linked_cards,transitions');
+    expect(EXPAND_COLETA).toBe('custom_fields,linked_cards,transitions,co_owner_ids');
     expect(EXPAND_COLETA).not.toContain('block_times');
     const pedidos = m.servidor.pedidos;
     expect(pedidos.every((p) => p.metodo === 'GET')).toBe(true);
