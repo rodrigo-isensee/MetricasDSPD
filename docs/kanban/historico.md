@@ -615,3 +615,11 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-31T22:08:43-03:00 | K-182 | Em andamento | Em andamento | E2.61 QA da F4 iniciado |
 | 2026-11-01T00:24:34-03:00 | K-182 | Em andamento | Em andamento | Aguardando o dono: atualização do Forge (forge-check recusa brief gerar) |
 | 2026-11-01T03:05:43-03:00 | K-182 | Em andamento | Em andamento | Aguardando o dono: A2 do review da F4 (forma do PR) |
+| 2026-11-01T06:33:40-03:00 | K-182 | Em andamento | Em andamento | Aguardando o dono: fim (A2 decidido: um PR só) |
+| 2026-11-01T06:42:44-03:00 | K-190 | Aguardando o dono | Em andamento | Aguardando o dono |
+| 2026-11-01T06:44:11-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-01T06:47:38-03:00 | K-190 | Aguardando o dono | Em andamento | Aguardando o dono |
+| 2026-11-01T06:50:14-03:00 | K-182 | Em andamento | Em andamento | E2.79 delegada |
+| 2026-11-01T06:50:25-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-01T06:51:07-03:00 | K-190 | Aguardando o dono | Em andamento | Aguardando o dono |
+| 2026-11-01T06:54:07-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono |

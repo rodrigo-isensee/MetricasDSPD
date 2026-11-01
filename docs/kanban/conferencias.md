@@ -996,3 +996,8 @@
 | 2026-11-01 02:46 | 052-integracao-businessmap | 052-integracao-businessmap-ux-designer-4 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-01 02:51 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-21 | brief | 1 | reprovado | s | O1 aderência sem origem | escopo | jarvis |
 | 2026-11-01 02:56 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-22 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 06:38 | 056-acelerato-mysql | 056-acelerato-mysql-node-backend-13 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 06:45 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-26 | brief | 1 | não cumpriu | s | mensagem com seções resumidas pelo Jarvis | forma | jarvis |
+| 2026-11-01 06:47 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-23 | brief | 1 | não cumpriu | s | Fora do escopo por referência ao brief irmão | forma | jarvis |
+| 2026-11-01 06:50 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-26 | brief | 2 | cumpriu | — |  | — | jarvis |
+| 2026-11-01 06:52 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-23 | brief | 2 | não cumpriu | s | tardio | forma | jarvis |
