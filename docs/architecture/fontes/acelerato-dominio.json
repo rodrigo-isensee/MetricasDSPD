@@ -2,14 +2,25 @@
   "versao": 1,
   "versao_criterio": {
     "dominio": "acelerato",
-    "descricao": "Listas fechadas de categoria e de descrição do workflow do recorte DSPD - SSSC (acelerato-listas.md §12)",
-    "motivo": "Decisão do dono de 2026-10-31 19:01: todas as 136 categorias da consulta, inclusive inativas e variantes de grafia, menos TESTADEV444; todas as 19 descrições do workflow",
-    "referencia": "pedido 056, E4.22 (consulta de 2026-10-31) e E4.25; docs/architecture/fontes/acelerato-listas.md §12"
+    "descricao": "Listas fechadas do recorte DSPD - SSSC: tipo, organização, equipes, categoria e descrição do workflow (acelerato-listas.md §4 a §6 e §12)",
+    "motivo": "Decisão do dono de 2026-10-31 19:01: todas as 136 categorias da consulta, inclusive inativas e variantes de grafia, menos TESTADEV444; todas as 19 descrições do workflow. Chaves do tipo, da organização e das equipes pela consulta só leitura de 2026-11-01 (E4.32); fila antiga fora por decisão do dono (não existe no tipo 23)",
+    "referencia": "pedido 056, E4.22 (consulta de 2026-10-31), E4.25 e E4.32; docs/architecture/fontes/acelerato-listas.md §4 a §6 e §12"
   },
   "schema": "dspd_ac",
   "tabela": "ref_dominio",
-  "regra": "codigo e rotulo conferidos os dois contra o valor (server/src/modulos/acelerato/referencia.ts); ordem = posição na lista; categoria: codigo = categoria_key em texto decimal, rotulo = nome exato; descricao_workflow: o próprio texto em codigo e rotulo",
+  "regra": "codigo e rotulo conferidos os dois contra o valor (server/src/modulos/acelerato/referencia.ts); ordem = posição na lista; categoria: codigo = categoria_key em texto decimal, rotulo = nome exato; descricao_workflow: o próprio texto em codigo e rotulo; tipo_recorte, organizacao_recorte e equipe: codigo = chave numérica (tipo_ticket_key, organizacao_key, equipe_key) em texto decimal, rotulo = nome de domínio exato",
   "dominios": {
+    "tipo_recorte": [
+      { "codigo": "23", "rotulo": "DSPD - SSSC" }
+    ],
+    "organizacao_recorte": [
+      { "codigo": "3", "rotulo": "UNIFIQUE - DSPD SUSTENTAÇÃO E PEQUENAS MELHORIAS" }
+    ],
+    "equipe": [
+      { "codigo": "7", "rotulo": "SSSC TOTVS" },
+      { "codigo": "9", "rotulo": "SSSC SENIOR" },
+      { "codigo": "332", "rotulo": "SSSC FLUIG" }
+    ],
     "categoria": [
       { "codigo": "288", "rotulo": "SSSC-I - Aplicativo Ponto" },
       { "codigo": "287", "rotulo": "SSSC-I - Adminsitração Pessoal" },

@@ -53,7 +53,7 @@ Grafia dos nomes: como no plano §2.1 e na resp. 2 e 3. A resp. 3 também cita "
 
 | Código (`tipo_ticket_key`) | Rótulo (`tipo_ticket`) | Origem |
 |---|---|---|
-| a preencher na carga inicial com o dono | DSPD - SSSC | D-8 (plano §0); dash §1 (população base) |
+| 23 | DSPD - SSSC | D-8 (plano §0); dash §1 (população base); consulta só leitura de 2026-11-01 (E4.32), 6907 chamados |
 
 ## 5. Organizações (`ref_dominio` campo `organizacao_recorte`)
 
@@ -61,8 +61,9 @@ D-8: "as duas organizações do DSPD (nova e antiga)". Só as do próprio DSPD a
 
 | Código (`organizacao_key`) | Rótulo (`organizacao`) | Origem |
 |---|---|---|
-| a preencher na carga inicial com o dono | UNIFIQUE - DSPD SUSTENTAÇÃO E PEQUENAS MELHORIAS (fila nova) | dash §1; resp. 9 (as duas fontes concordam) |
-| a preencher na carga inicial com o dono | **a preencher na carga inicial com o dono** (fila antiga) | **os documentos divergem:** o dash §1 chama a antiga de "UNIFIQUE - DSPD SUSTENTACAO (DPTO SISTEMA PD)"; a resp. 9 dá como segunda organização do DSPD "UNIFIQUE - DSPD - INTERNO" (a soma de cerca de 6,3 mil do plano §1.1 usa esta). Não se decide por inferência: pergunta ao dono (qual, ou as duas) |
+| 3 | UNIFIQUE - DSPD SUSTENTAÇÃO E PEQUENAS MELHORIAS (fila nova) | dash §1; resp. 9; consulta só leitura de 2026-11-01 (E4.32), 5278 chamados no tipo 23 |
+
+Fila antiga: a consulta de 2026-11-01 (E4.32) procurou, em qualquer tipo, nomes com "SUSTENTACAO", "SUSTENTAÇÃO" e "DPTO SISTEMA" e não achou "UNIFIQUE - DSPD SUSTENTACAO (DPTO SISTEMA PD)"; a única organização que apareceu é a fila nova (chave 3). Decisão do dono (E4.32): entra só a fila nova. A fila nova tem ainda 7 chamados em outros tipos (chaves 26, 36 e 40), que ficam fora porque só o tipo 23 entra. ESCRITORIO DE PROJETO (chave 8, 63 chamados) e INTERNO (chave 13, 1004 chamados) ficam fora por decisão do dono.
 
 A contagem `fora_organizacoes_recorte` da primeira carga (ADR 0023 item 5) mostra, sem nome, quantos chamados SSSC das 3 equipes ficam fora da lista; maior que zero vira pergunta ao dono antes de publicar o painel.
 
@@ -72,9 +73,9 @@ Nunca para comparação entre times (briefing 7.1).
 
 | Código (`equipe_key`) | Rótulo (`equipe`) | Origem |
 |---|---|---|
-| a preencher na carga inicial com o dono | SSSC TOTVS | dash §1; D-8 |
-| a preencher na carga inicial com o dono | SSSC SENIOR | dash §1; D-8 |
-| a preencher na carga inicial com o dono | SSSC FLUIG | dash §1; D-8 |
+| 7 | SSSC TOTVS | dash §1; D-8; consulta de 2026-11-01 (E4.32), 4114 chamados |
+| 9 | SSSC SENIOR | dash §1; D-8; consulta de 2026-11-01 (E4.32), 1052 chamados |
+| 332 | SSSC FLUIG | dash §1; D-8; consulta de 2026-11-01 (E4.32), 94 chamados |
 
 ## 7. Etapas (`ref_dominio` campo `etapa`; vale para `status` e para `estatisticas.workflow.etapas[].descricao`)
 
