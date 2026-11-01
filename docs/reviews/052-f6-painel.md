@@ -3,8 +3,8 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f6-painel
-commit: 469ee8fd28171e9473a7f64d751b521ecedbd7da
-parecer: reprovado
+commit: db37a4bcc2297e57d32774cbf44efea3768a6489
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
 ---
@@ -128,9 +128,21 @@ O PR sai depois do merge da F4. O número é recontado contra a `develop` na hor
 
 ## Achados
 
-- A1 (bloqueante) web/src/features/exportar/gerar.ts:93 · Com duas bases, VISAO_GERAL lê o seed (servico.ts:98), mas o bloco EI-FL1 exportado sai "Dados fictícios: não" e a tela da Visão geral fica sem selo na fonte api (P-1, P-4). Sugestão: a VG decide pela origem de VISAO_GERAL, com teste.
+- A1 (bloqueante, resolvido em db37a4b) web/src/features/exportar/gerar.ts:93 · Com duas bases, VISAO_GERAL lê o seed (servico.ts:98), mas o bloco EI-FL1 exportado sai "Dados fictícios: não" e a tela da Visão geral fica sem selo na fonte api (P-1, P-4). Sugestão: a VG decide pela origem de VISAO_GERAL, com teste.
 - A2 (recomendado) server/src/modulos/metricas/mapa.ts:92 · Soma do O1 isolada, troca sem retrabalho. Até a resposta, o O1 compara o WIP do time inteiro (fila e colunas sem limite) com a soma de poucas colunas e tende a "fora". Levar esse efeito junto da pergunta ao dono.
 - A3 (recomendado) server/src/modulos/referencia/servico.ts:25 · O filtro lista times reais também para FL2, FL3 e as fictícias do FL1, que leem o seed com outros nomes: escolher um time deixa esses cartões em "abaixo de 20". Sem mistura nem número falso. Destino: ux-designer (E2.74) e Jarvis.
 - A4 (recomendado) docs/architecture/server.md:167 · DSPD_SCHEMA_PREFIXO_SEED documentada só em docs/api/metricas.md:382. Falta na config por entrada do server.md (autor, na volta) e a linha do .env.example (Jarvis com o dono; autor e revisor não leem o arquivo).
 - A5 (recomendado) server/src/modulos/businessmap/tipo-coluna.ts:29 · O item 4 do plano pede a mesma função também no projetor, mas ele segue com noDia direto (normalizador.ts:115). A regra é a mesma (vigenteEm), então não devolve. Unificar na F6b.
 - A6 (recomendado) server/src/modulos/businessmap/normalizador.ts:199 · Cast "as CategoriaTipoCard" sem comentário. O ENUM da 0018 garante o valor; deixar isso dito em uma linha ao lado do cast.
+
+## Revalidação por delta (E2.78, K-182)
+
+**Veredito: aprovado** em `db37a4b`. O A1 está resolvido e o delta não trouxe nada novo.
+
+Delta lido: `forge-check delta` sobre este parecer (`469ee8f..db37a4b`) e o diff `df0afee..db37a4b`, 4 arquivos de web, +31 -5. Já lido e não relido: o resto da branch (servidor, contratos, biblioteca, migrações), que não mudou desde `469ee8f`.
+
+- **A1 resolvido.** `VisaoGeralPage.tsx` mostra `SeloOrigem` com a origem de `VISAO_GERAL`, que é mock, e `gerar.ts` decide o "Dados fictícios" do bloco da Visão geral por `origemDaMetrica('VISAO_GERAL')`. A origem é a da Visão geral, não a das métricas que ela resume, como o servidor lê (`servico.ts:98`).
+- **Testes.** `origem.test.tsx` cobre o selo com a API real e a ausência de selo extra na fonte mock. `gerar.test.ts` agora afirma a origem mock e que nenhum bloco sai "não". Rodei os dois arquivos: 23 testes verdes.
+- **Risco do autor, aceito.** Se a Visão geral passar a ser servida da base real, `VISAO_GERAL` precisa entrar no mapa de origem como real. O `gerar.test.ts` falha nesse dia, o que serve de lembrete.
+- **Recomendados A2 a A6** seguem como estavam e não devolvem. Destinos: A2 junto da pergunta ao dono; A3 à revisão de UX (E2.74); A4 e A6 à E2.77; A5 à F6b.
+- **Teto:** o delta tem 12 linhas de código e 20 de teste. A exceção aceita acima segue valendo; recontar contra a `develop` na abertura do PR.
