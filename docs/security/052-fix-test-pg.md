@@ -2,15 +2,15 @@
 tipo: revisao-seguranca
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-fix-test-pg
-commit: 4e5958fe1db79d19a4e7f83d68b654607b21c9d2
+branch: feature/052-f6-painel
+commit: 802fad35547cc51bce8571ea74bd91cf58b75e60
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-01
 ---
 # Review de segurança: 052-fix-test-pg (E2.112, K-182)
 
-**Veredito: aprovado** em `4e5958f`. O downgrade do vite de 8.3.5 para 8.3.4 não reabre nenhum aviso de segurança conhecido: a 8.3.5 não trouxe correção de segurança, a 8.3.4 não tem aviso publicado e o lockfile só troca o vite. Um recomendado, nenhum bloqueante.
+**Veredito: aprovado** em `802fad3` (renovado por delta na E2.130; revisão original em `4e5958f`). O downgrade do vite de 8.3.5 para 8.3.4 não reabre nenhum aviso de segurança conhecido: a 8.3.5 não trouxe correção de segurança, a 8.3.4 não tem aviso publicado e o lockfile só troca o vite. Um recomendado, nenhum bloqueante.
 
 ## Gatilhos
 Cadeia de suprimentos: override novo em `pnpm-workspace.yaml` e lockfile regenerado, com downgrade de dependência de desenvolvimento e de build usada no repositório inteiro (inclusive o build do web). Sem toque em código, dado pessoal, credencial, pipeline nem hook.
@@ -35,3 +35,6 @@ Cadeia de suprimentos: override novo em `pnpm-workspace.yaml` e lockfile regener
 
 ## Riscos aceitos e ferramentas
 Sem riscos aceitos. Ferramentas: leitura estática do diff, do lockfile e dos manifestos instalados; consulta só leitura ao banco de avisos do GitHub (`gh api /advisories`) e às notas da versão. `osv-scanner`, `gitleaks`, `semgrep`, `trivy`, `zizmor` e `actionlint` não estão no PATH (lacuna); a varredura de dependências roda no job `seguranca` da CI, verde no push da branch (run 41339030574, citada no review), e pelo Dependabot.
+
+## Renovação por delta (E2.130, K-182)
+Revisado agora em `802fad3` (`feature/052-f6-painel`, depois do merge da develop `db00570`, que já traz o override do vite 8.3.4 pelo PR 189). O comando acusava o parecer desatualizado só pelo `.env.example`. Delta desde `4e5958f`: o `.env.example` ganhou uma linha comentada (`DSPD_SCHEMA_PREFIXO_SEED`, só texto de documentação, sem valor, credencial nem dado pessoal). `pnpm-workspace.yaml` e `pnpm-lock.yaml` não diferem da develop (`git diff origin/develop..HEAD`: vazio), então o override do vite e o lockfile são os já revisados. Veredito mantido: aprovado; o recomendado A1 segue aberto, sem devolver. `forge-check delta` não se aplica (4e5958f não é ancestral da ponta depois do squash e do merge); a conferência foi por `git diff` direto.
