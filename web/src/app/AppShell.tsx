@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useMatches, type Location } from 'react-rout
 import { Icone, TituloErroContext } from '@/components/ui'
 import { useFonte } from '@/data'
 import { CalibracaoDasFontes } from '@/features/coleta/CalibracaoDasFontes'
+import { OrigemDosCartoes } from '@/features/coleta/OrigemDosCartoes'
 import { useAlturaCss } from '@/lib/useAlturaCss'
 import { AvisoDadosFicticios } from './AvisoDadosFicticios'
 import { NavegacaoGlobal } from './NavegacaoGlobal'
@@ -133,9 +134,11 @@ export function AppShell() {
         className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-4 outline-none sm:px-6"
       >
         <TituloErroContext.Provider value={definirErro}>
-          <CalibracaoDasFontes>
-            <Outlet />
-          </CalibracaoDasFontes>
+          <OrigemDosCartoes>
+            <CalibracaoDasFontes>
+              <Outlet />
+            </CalibracaoDasFontes>
+          </OrigemDosCartoes>
         </TituloErroContext.Provider>
       </main>
       <Rodape />

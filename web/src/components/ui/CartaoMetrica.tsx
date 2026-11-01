@@ -2,8 +2,13 @@ import clsx from 'clsx'
 import { useEffect, useId, useState, type ReactNode } from 'react'
 import {
   JANELA_PERCENTIS_PADRAO,
+  NOTAS_FIXAS_DO_CARTAO,
+  origemDaMetrica,
+  TEXTO_NOTA_CARTAO,
   type BaseAmostral,
   type CriteriosResultado,
+  type MetricaId,
+  type NotaCartaoId,
   type Periodo,
 } from '@metricas-dspd/contratos'
 import type { FiltroFluxoChave } from '@metricas-dspd/contratos'
@@ -15,6 +20,7 @@ import {
   ProvedorCartaoCalibracao,
   SeloCalibracao,
   useCalibracaoPronta,
+  idDeMetrica,
   useEmCalibracao,
 } from './Calibracao'
 import {
@@ -30,7 +36,9 @@ import { useCartaoVisivel, usePreferenciasPainel } from './PreferenciasPainel'
 import { ALTURAS_ESQUELETO, ALTURAS_ESQUELETO_MOBILE } from './alturasEsqueleto'
 import { ALTURA_ESQUELETO_PADRAO, EsqueletoCartao, useEsqueleto } from './EsqueletoCartao'
 import { EstadoErro } from './EstadoErro'
+import { SeloOrigem, useOrigemCartao } from './Ficticios'
 import { EstadoVazio } from './EstadoVazio'
+import { Icone } from './Icone'
 import { ModoTabelaContext, type ModoVisual } from './ModoTabela'
 import { BlocoNota, BotaoNota, type TextoNota } from './NotaMetodologica'
 import { SeloJanela } from './SeloJanela'
@@ -73,6 +81,8 @@ export interface CartaoMetricaProps {
   periodo?: Periodo
   /** Selos extras. */
   selos?: ReactNode
+  /** Notas que o resultado indica para o cartão (ex.: O3 com "SLE não definido", H-24); os textos vêm do contrato. */
+  notasDoCartao?: readonly NotaCartaoId[] | undefined
   /** Controles do cabeçalho do cartão além de "Como ler" e "Ver como tabela". */
   acoes?: ReactNode
   /** Sem alternativa em tabela (listas que já são tabelas). */
@@ -94,6 +104,19 @@ export interface CartaoMetricaProps {
 /** Períodos que coincidem com a janela de percentis (em semanas): nestes o selo "Janela fixa" não aparece. */
 const SEMANAS_DO_PERIODO: Partial<Record<Periodo['tipo'], number>> = { '4s': 4, '12s': 12 }
 
+/**
+ * Notas do cartão que o CONTRATO indica: as fixas da métrica (H-15, só com a métrica em dado real) e as que o
+ * resultado traz (H-24). Os textos vivem em `contratos`; aqui só se escolhe quais mostrar, sem repetir.
+ */
+function notasDoCartaoVisiveis(
+  codigo: string,
+  doResultado: readonly NotaCartaoId[] | undefined,
+): readonly NotaCartaoId[] {
+  const id = idDeMetrica(codigo) as MetricaId
+  const fixas = origemDaMetrica(id) === 'real' ? (NOTAS_FIXAS_DO_CARTAO[id] ?? []) : []
+  return [...new Set([...fixas, ...(doResultado ?? [])])]
+}
+
 function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const [modo, setModo] = useState<ModoVisual>('grafico')
   const [notaAberta, setNotaAberta] = useState(false)
@@ -104,6 +127,8 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const prefs = usePreferenciasPainel()
   const id = p.codigo.toLowerCase()
   const calibrando = useEmCalibracao()(p.codigo)
+  const origem = useOrigemCartao()(p.codigo)
+  const notas = notasDoCartaoVisiveis(p.codigo, p.notasDoCartao)
   const calibracaoPronta = useCalibracaoPronta()
   // O tempo mínimo do esqueleto vive aqui, que continua montado quando os dados chegam (6.1).
   const esq = useEsqueleto(p.estado === 'carregando')
@@ -219,6 +244,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
           {janelaFixa && <SeloJanela janela={janelaTxt} />}
           {calibrando && <SeloCalibracao />}
           {p.selos}
+          <SeloOrigem origem={origem} />
         </div>
         <BlocoNota
           id={idNota}
@@ -230,6 +256,19 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
       </header>
 
       <p className="mt-2 text-sm text-texto-2">{p.pergunta}</p>
+      {notas.length > 0 && (
+        <ul
+          className="mt-1 flex flex-col gap-0.5 text-xs text-texto-2"
+          data-testid={`notas-cartao-${p.codigo}`}
+        >
+          {notas.map((n) => (
+            <li key={n} className="flex items-start gap-1">
+              <Icone nome="info" className="mt-0.5 size-3.5 shrink-0" />
+              {TEXTO_NOTA_CARTAO[n]}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {estado === 'carregando' && (
         <div className="mt-3">

@@ -1,7 +1,9 @@
 import type { QueryClient } from '@tanstack/react-query'
 import {
   fonteDaMetrica,
+  origemDaMetrica,
   type Dominio,
+  type EstadoColeta,
   type FiltrosFluxo,
   type FiltrosSustentacao,
   type MetricaId,
@@ -10,11 +12,13 @@ import {
 } from '@metricas-dspd/contratos'
 import type { FonteMetricas } from '@/data'
 import type { Memoria } from '@/features/filtros/memoria'
+import { origemDoCartao } from '@/features/coleta/OrigemDosCartoes'
 import { carregarPdf } from './carregarPdf'
 import type { ArquivoGerado, BaseExportacao } from './DialogoExportar'
 import {
   blocosVisaoGeral,
   construirBloco,
+  contextoDosDados,
   montarConteudo,
   nomeArquivo,
   type BlocoExportacao,
@@ -57,6 +61,24 @@ export async function gerarArquivo(p: ParametrosGeracao): Promise<ArquivoGerado>
       queryFn: () => fonte.obter(id as 'O3', filtros as FiltrosFluxo),
       staleTime: 60_000,
     })
+  // Estado de coleta pela mesma chave do cache dos painéis; se a leitura falhar, o arquivo diz "indisponível".
+  const estadoDe = (dominio: Dominio): Promise<EstadoColeta | undefined> =>
+    qc
+      .query({
+        queryKey: ['coleta', dominio, null],
+        queryFn: () => fonte.estadoColeta(dominio),
+        staleTime: 60_000,
+      })
+      .catch(() => undefined)
+  const estados: Record<Dominio, EstadoColeta | undefined> = {
+    businessmap: await estadoDe('businessmap'),
+    acelerato: await estadoDe('acelerato'),
+  }
+  const mock = fonte.tipo === 'mock'
+  const ficticioDeMetricas = (metricas: readonly MetricaId[]) =>
+    mock || metricas.some((m) => origemDaMetrica(m) === 'mock')
+  const dominioDaFonte = (f: 'BusinessMap' | 'Acelerato'): Dominio =>
+    f === 'Acelerato' ? 'acelerato' : 'businessmap'
   let blocos: BlocoExportacao[]
   if (p.base === 'visao-geral') {
     const dto = (await obter('VISAO_GERAL', {})) as ResultadoVisaoGeral
@@ -67,6 +89,8 @@ export async function gerarArquivo(p: ParametrosGeracao): Promise<ArquivoGerado>
         queryFn: () => fonte.criterios(),
         staleTime: Infinity,
       }),
+      (f, metricas) =>
+        contextoDosDados(estados[dominioDaFonte(f)], metricas, ficticioDeMetricas(metricas)),
     )
   } else {
     const opcoes: Record<Dominio, OpcoesFiltro | undefined> = {
@@ -102,11 +126,15 @@ export async function gerarArquivo(p: ParametrosGeracao): Promise<ArquivoGerado>
           opcoes: opcoes[dominioDe(item.metrica)],
           nota: notaDaMetrica(item.metrica),
           codigo: item.codigo,
+          contexto: contextoDosDados(
+            estados[dominioDe(item.metrica)],
+            [item.metrica],
+            mock || origemDoCartao(item.codigo, 'api').ficticio,
+          ),
         }),
       )
     }
   }
-  const mock = fonte.tipo === 'mock'
   const conteudo = montarConteudo({
     escopo: rotuloDoEscopo(p.base),
     blocos,

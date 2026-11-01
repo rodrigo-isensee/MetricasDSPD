@@ -131,6 +131,11 @@ export async function gerarPdf(c: ConteudoExportacao): Promise<Blob> {
     garantir(50)
     paragrafo(`${b.codigo} · ${b.titulo}`, { tam: 13, negrito: true })
     paragrafo(`Fonte: ${b.fonte}`, { cor: CINZA })
+    paragrafo(`${b.contexto.atualizadoEm} · Frescor: ${b.contexto.frescor}`, { cor: CINZA })
+    paragrafo(
+      `Em calibração: ${b.contexto.emCalibracao ? 'sim' : 'não'} · Dados fictícios: ${b.contexto.ficticio ? 'sim' : 'não'}`,
+      { cor: b.contexto.emCalibracao || b.contexto.ficticio ? AMBAR : CINZA },
+    )
     paragrafo(`Filtros: ${b.filtros}`)
     if (b.janela) paragrafo(b.janela)
     paragrafo(b.base, { negrito: true })

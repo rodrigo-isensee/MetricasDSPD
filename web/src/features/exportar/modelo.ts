@@ -6,14 +6,15 @@ import {
   type FiltrosSustentacao,
   type MetricaId,
   type OpcoesFiltro,
+  type EstadoColeta,
   type ResultadoE3,
   type ResultadoVisaoGeral,
   type VersaoCriterio,
 } from '@metricas-dspd/contratos'
-import type { FonteDoCartao, TextoNota } from '@/components/ui'
+import { textoSeloFrescor, type FonteDoCartao, type TextoNota } from '@/components/ui'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { ROTULO_FILTRO, ROTULO_PERIODO } from '@/features/filtros/paineis'
-import { fmtData, fmtInteiro, fmtNumero, textoJanela } from '@/lib/formatar'
+import { fmtData, fmtDataHora, fmtInteiro, fmtNumero, textoJanela } from '@/lib/formatar'
 
 /**
  * Modelo puro da exportação (pedido 008): DTO + filtros viram blocos de texto e tabela. Nada é recalculado
@@ -48,12 +49,50 @@ export interface TabelaBloco {
   omitidas: number
 }
 
+/**
+ * Contexto da fonte de UM cartão no arquivo (P-4): fonte, "Atualizado em", selo de frescor, "em calibração" e
+ * "dados fictícios". Tudo vem do estado de coleta e do mapa de origem; nada é recalculado.
+ */
+export interface ContextoDados {
+  /** "Atualizado em 31/10/2026 06:00", "Nenhuma coleta concluída" ou "Atualização indisponível". */
+  atualizadoEm: string
+  /** Texto do selo de frescor ("Atual", "Atrasado: última coleta há 7 h", "Falha", "Sem coleta") ou "indisponível". */
+  frescor: string
+  emCalibracao: boolean
+  ficticio: boolean
+}
+
+/** Estado de coleta + origem do cartão viram o contexto do bloco. `estado` ausente = a leitura falhou. */
+export function contextoDosDados(
+  estado: EstadoColeta | undefined,
+  metricas: readonly MetricaId[],
+  ficticio: boolean,
+): ContextoDados {
+  if (!estado)
+    return {
+      atualizadoEm: 'Atualização indisponível',
+      frescor: 'indisponível',
+      emCalibracao: false,
+      ficticio,
+    }
+  return {
+    atualizadoEm: estado.ultimaOk
+      ? `Atualizado em ${fmtDataHora(estado.ultimaOk.fim)}`
+      : 'Nenhuma coleta concluída',
+    frescor: textoSeloFrescor(estado.selo, estado.horasDesdeUltimaOk),
+    emCalibracao: metricas.some((m) => estado.metricasEmCalibracao.includes(m)),
+    ficticio,
+  }
+}
+
 export interface BlocoExportacao {
   /** Id da métrica (`O3`, `EI_FL1`). */
   id: string
   codigo: string
   titulo: string
   fonte: FonteExportacao
+  /** Fonte, "Atualizado em", frescor, calibração e fictício deste cartão (P-4). */
+  contexto: ContextoDados
   /** Filtros aplicados, em texto. */
   filtros: string
   /** Janela dos dados e, quando há, a janela móvel de percentis. */
@@ -345,6 +384,7 @@ export interface EntradaBloco {
   /** Código exibido (`EI-FL1`); o do catálogo é usado se ausente. */
   codigo?: string
   titulo?: string
+  contexto: ContextoDados
 }
 
 /** Bloco de uma métrica: tudo que o cartão mostra de obrigatório, lido do DTO. */
@@ -356,6 +396,7 @@ export function construirBloco(e: EntradaBloco): BlocoExportacao {
     codigo: e.codigo ?? cat.codigo,
     titulo: e.titulo ?? cat.nome,
     fonte: fonteExportavel(cat.fonte),
+    contexto: e.contexto,
     filtros: textoFiltros(e.id, e.filtros, e.opcoes),
     janela: textoJanelaBloco(d),
     base: textoBase(d.base, e.id === 'E3' ? (e.dto as ResultadoE3).comFicha.k : undefined),
@@ -383,6 +424,7 @@ const NOTA_VISAO_GERAL =
 export function blocosVisaoGeral(
   dto: ResultadoVisaoGeral,
   criterios: readonly VersaoCriterio[],
+  contextoDe: (fonte: FonteExportacao, metricas: readonly MetricaId[]) => ContextoDados,
 ): BlocoExportacao[] {
   const criteriosDe = (ids: readonly string[]) =>
     textoCriterios(criterios.filter((c) => c.afeta.some((a) => ids.includes(a))))
@@ -398,6 +440,10 @@ export function blocosVisaoGeral(
       codigo: NOME_NIVEL[n.nivel],
       titulo: `Visão geral · ${NOME_NIVEL[n.nivel]}`,
       fonte: n.fonte,
+      contexto: contextoDe(
+        n.fonte,
+        n.indicadores.map((i) => i.metrica as MetricaId),
+      ),
       filtros: 'Padrões do painel de origem',
       janela: `Janela dos dados: ${intervalo(recorte)}`,
       base: 'Base: informada em cada indicador',
@@ -414,6 +460,7 @@ export function blocosVisaoGeral(
     codigo: `EI-${e.nivel}`,
     titulo: `Visão geral · Espera invisível (${e.nivel})`,
     fonte: e.fonte,
+    contexto: contextoDe(e.fonte, [`EI_${e.nivel}` as MetricaId]),
     filtros: 'Padrões do painel de origem',
     janela: `Janela dos dados: ${intervalo(dto.recortes[e.fonte === 'Acelerato' ? 'sustentacao' : 'fluxo'])}`,
     base: 'Base: informada em cada segmento',
