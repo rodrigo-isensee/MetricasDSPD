@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: f763d6acffca29233c78966abe44882be10c1daa
+commit: 9aa8ab4e57cfc160179a04058dda16a09458217a
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,16 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.104, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `docs/architecture/server.md` mudou na limpeza do seed (E2.96 e E2.108). O `forge-check delta --parecer` não roda aqui (`f763d6a` não é ancestral de `9aa8ab4`, a base vem do squash `db00570`); o delta lido foi `git diff 55301e0..9aa8ab4 -- docs/architecture/server.md server/package.json server/src/modulos/businessmap/index.ts .env.example docs/integracao/businessmap-api-configuracao.md`, e só ele.
+
+- `docs/architecture/server.md`: a seção nova "Limpeza do seed mock da base real" e o ajuste da lista do que o seed grava. Tratam do comando `db:limpar-seed`, que não toca no script da WS1 nem em coleta real.
+- `server/package.json`: uma linha nova, o script `db:limpar-seed`. O `bm:diagnostico` segue igual; nenhuma dependência nova.
+- `index.ts` do módulo businessmap, `.env.example` e `docs/integracao/businessmap-api-configuracao.md`: sem mudança desde a base (`81fcd63`).
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código novo tem parecer próprio (`docs/reviews/052-limpa-seed.md`, aprovado em `ec00fea`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `9aa8ab4`.
 
 ## Renovação por delta (E2.87, 2026-11-01)
 
