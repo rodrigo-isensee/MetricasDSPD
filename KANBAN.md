@@ -10,6 +10,8 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-191 | [teste] e2e L3-01 (operacional-lote3.spec.ts:22) instável: axe target-size em leia-junto-o15 falhou no PR 180 e passou no rerun | 052 | forge:qa-engineer | 2026-10-31 | 2026-10-31 17:20 | Achado na E2.36 (run 41210173397); conferir com o react-frontend se é layout ou teste |
+| K-188 | [UX] Tela de administração da lista de times (lista no banco, histórico, carga inicial com as decisões do 052) | 057 | forge:ux-designer | 2026-10-30 | 2026-10-30 16:56 | Depois de 2026-11-02 (recorte do dono); tabela e carga inicial entram com o coletor do 052 |
 | K-186 | [052 review A5, QA A1 e A3] diagnostico.ts: limite429 não volta a falso no catch (:151); nenhum teste afirma a frase do cabeçalho (:310); nó raiz da currentStructure sai como "(sem campos permitidos)" (:243) | 052 | forge:node-backend | 2026-10-30 | 2026-10-30 12:34 | Recomendado (baixa) na revalidação do review 052 (780000b) |
 | K-183 | [deps] Remover o override do dompurify (pnpm-workspace.yaml) quando jspdf e mermaid exigirem >= 3.4.17 | 048 | forge:tech-lead | 2026-10-29 | 2026-10-29 20:58 | Recomendação dos pareceres de segurança (6c1dc67) e de review (8e0f8f4) do K-178; conferir na revisão semanal do CI (praticas.md §10.1); depende de versões novas dos pacotes |
 | K-176 | [teste] Trava de suíte única grava cada espera (quem segurava, quanto esperou) para medir o efeito | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:59 | MELHORIA 2 da retro do 045 (docs/retrospectivas/2026-10-28-045-suite-unica.md); só acrescenta registro; depende do K-175 (mesmo script) e o WIP de Pronto para fazer está cheio |
@@ -62,6 +64,7 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-192 | [teste] E2E L3-01 (e2e/tests/operacional-lote3.spec.ts:22, axe target-size em leia-junto-o15) falhou duas vezes no PR 181 sem mudança de front e passou na nova rodada: estabilizar o alvo de toque | 052 | forge:react-frontend | 2026-10-31 | 2026-10-31 20:18 | Melhoria vista do tech-lead na E2.50; run 41249145631 |
 | K-187 | [Forge] forge-check escolhe parecer e Desde pela branch (lote E1 e E2 do pedido 055) | 055 | forge:tech-lead | 2026-10-30 | 2026-10-30 13:01 | PR de proposta para a develop do Forge; destrava o PR da 048d depois da release · clone ~/.forge-contrib/MetricasDSPD |
 | K-175 | [teste] Endurecer a trava de suíte única: A1 a A3 da segurança e A1 do review do 045 (retorno do flock, fd herdado por órfão, variável exportada, espera sem teto) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:58 | MELHORIA 1 da retro do 045; o Histórico de 11:35 apontou para um K-171 que é outro cartão |
 | K-172 | [docs] praticas.md:115 diz pronto verde antes de cada commit; alinhar à decisão do dono de 2026-10-21 (pronto completo uma vez, antes do commit final) | 026 | forge:tech-lead | 2026-10-28 | 2026-10-28 17:45 | MELHORIA da retro do 026 (4 briefs reprovados por essa leitura); alinha texto à decisão, não afrouxa |
@@ -76,6 +79,9 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-190 | [integração] Coletor do Acelerato pela tabela MySQL: F1 (staging, allow-list, TLS fixado) e F2 (normalizador, projetor, painel de sustentação real) | 056 | forge:tech-lead | 2026-10-30 | 2026-10-30 17:17 | E4.0 worktree e branch; depois E4.1 a E4.3 em paralelo; prazo 2026-11-02 · worktree: MetricasDSPD-056c |
+| K-182 | [integração] BusinessMap com dados reais: discovery (T2.1, spike K-087, ameaças), coleta T2.2, webhook T2.3, painéis FL1 a FL3 | 052 | forge:tech-lead | 2026-10-29 | 2026-10-30 17:17 | F0 (PR 178) e F1 (PR 179) na develop; lista de colunas conferida pelo dono; F2: E2.31 worktree e E2.32 código · worktree: MetricasDSPD-052e |
+| K-189 | [integração] Acelerato pela tabela MySQL: discovery validado (plano, ameaças, doc do dash, respostas), CLAUDE.md e PR | 056 | forge:tech-lead | 2026-10-30 | 2026-10-30 17:00 | E2.1; depois ADR 0023 e F1 do coletor · worktree: MetricasDSPD-056 |
 | K-185 | [integração] Diagnóstico da WS1: script só leitura que lista a estrutura do BusinessMap (quadros, colunas, raias, campos), o dono roda e cola a saída | 052 | forge:tech-lead | 2026-10-30 | 2026-10-30 09:18 | E1.14 (worktree 052b, feature/052-ws1-estrutura), depois E1.15 node-backend; gatilho de segurança · worktree: MetricasDSPD-052b |
 | K-129 | [025 review A2] T11: meses de pico da frase da ficha não vêm no DTO (back põe no DTO ou UX ajusta a ficha) | 025 | forge:node-backend | 2026-10-21 | 2026-10-29 07:44 | E3.1 e E3.6 do 048, feature/048-k129-pico (develop 0dcf9ba, E5.6 entregue 2026-10-30 07:26) · worktree: MetricasDSPD-048f |
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-29 07:44 | Push feito pelo dono (2026-10-29); conferência da entrega e PR ao Forge (E3.2 a E3.5 do 047) · worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 |
@@ -165,7 +171,6 @@
 | K-141 | Ambiente da máquina nova: Docker, `.env`, Node 24, Chromium, doutor; depois pnpm install e banco | 042 | forge:devops-engineer | 2026-10-27 | 2026-10-27 12:26 | Aguardando o dono (E2.1); depois tech-lead (E2.2) e devops (E2.3) |
 | K-152 | [forge] F21: worktree nova sem dependências não quebra o pre-push | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 20:18 | Aguardando o dono: aplicar docs/analises/043-f21-pre-push.patch no clone (docs/analises/043-f21-instrucoes-ao-dono.md); resto do F21 pronto sem commit |
 | K-153 | [forge] F22: PR de release não nasce antes do portão; homolog-aprovada sem corrida | 043 | forge:tech-lead | 2026-10-27 | 2026-10-27 22:11 | Aguardando o dono: abrir o PR do F22 pelo terminal (decisão B; a 0.30.5 não lê pedido fora de ~/.forge-contrib, 043 07:44) |
-| K-182 | [integração] BusinessMap com dados reais: discovery (T2.1, spike K-087, ameaças), coleta T2.2, webhook T2.3, painéis FL1 a FL3 | 052 | forge:tech-lead | 2026-10-29 | 2026-10-30 05:16 | Aguardando o dono: E1.4, apikey ok e conexão testada (2026-10-30); falta a confirmação da WS1. Discovery na develop (PR 170, 1a6617e); conferência da entrega não cumprida por falha do Jarvis (brief -5 não conferido), mérito parcial · worktree: MetricasDSPD-052 |
 
 ## Políticas locais (acrescentadas na auditoria K-021)
 - **Entrada é o backlog:** cartão com dependência aberta de outro cartão fica em Entrada; só entra em "Pronto para fazer" o que pode ser puxado agora (a espera por ata de reunião em andamento é a única exceção, e deve constar em Obs.).

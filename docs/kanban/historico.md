@@ -580,3 +580,37 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-10-30T14:31:07-03:00 | K-185 | Aguardando o dono | Aguardando o dono | diagnóstico entregue; falta a explicação da hierarquia |
 | 2026-10-30T14:36:16-03:00 | K-185 | Aguardando o dono | Pronto para fazer | E1.20 feita; E1.21 com o software-architect |
 | 2026-10-30T16:08:18-03:00 | K-185 | Pronto para fazer | Em andamento | E1.21 com o software-architect |
+| 2026-10-30T16:56:24-03:00 | K-188 | — | Pronto para fazer | pedido 057, recibo aceito |
+| 2026-10-30T17:00:59-03:00 | K-189 | — | Em andamento | plano 056 validado; E2.1 com o tech-lead |
+| 2026-10-30T17:17:36-03:00 | K-182 | Bloqueado | Em andamento | Aguardando o dono |
+| 2026-10-30T17:17:36-03:00 | K-188 | Pronto para fazer | Entrada | recorte do dono para 2026-11-02 |
+| 2026-10-30T17:17:36-03:00 | K-190 | Entrada | Em andamento | — |
+| 2026-10-30T17:29:43-03:00 | K-189 | Em andamento | Em andamento | volta 1 |
+| 2026-10-30T17:50:19-03:00 | K-182 | Em andamento | Aguardando sua validação | Aguardando o dono |
+| 2026-10-30T18:06:41-03:00 | K-190 | Em andamento | Em andamento | F1 delegada ao node-backend |
+| 2026-10-30T19:38:20-03:00 | K-182 | Aguardando sua validação | Em andamento | Aguardando o dono |
+| 2026-10-30T19:47:48-03:00 | K-190 | Em andamento | Em andamento | volta 1 |
+| 2026-10-31T02:52:06-03:00 | K-190 | Em andamento | Aguardando o dono | Aguardando o dono: E4.8 carga inicial, branch remota e aceite R-1 |
+| 2026-10-31T03:42:44-03:00 | K-182 | Em andamento | Aguardando o dono | Aguardando o dono: E2.6 negada pelo classificador; rede para a execução real da F1 |
+| 2026-10-31T09:21:29-03:00 | K-182 | Em andamento | Em andamento | F2: E2.31 delegada ao tech-lead |
+| 2026-10-31T09:28:54-03:00 | K-182 | Em andamento | Em andamento | F2: E2.32 delegada ao node-backend |
+| 2026-10-31T10:18:41-03:00 | K-182 | Em andamento | Em andamento | volta 1 F2 (E2.37) ao node-backend |
+| 2026-10-31T10:56:39-03:00 | K-182 | Em andamento | Em andamento | volta 1 (QA da F2, bug 052-F2-001) |
+| 2026-10-31T11:22:02-03:00 | K-182 | Em andamento | Em andamento | QA da F2 aprovado na volta 1 |
+| 2026-10-31T17:19:22-03:00 | K-182 | Em andamento | Em andamento | F2 na develop (PR 180, 0783caa) |
+| 2026-10-31T17:19:36-03:00 | K-191 | - | Entrada | aberto (teste instável no PR 180) |
+| 2026-10-31T17:31:04-03:00 | K-182 | Em andamento | Em andamento | F3: E2.45 delegada ao node-backend |
+| 2026-10-31T18:10:08-03:00 | K-190 | Em andamento | Em andamento | E4.22 consulta das listas (VPN confirmada) |
+| 2026-10-31T18:11:48-03:00 | K-190 | Em andamento | Em andamento | Aguardando o dono: 4 variáveis do Acelerato no .env da 052d (E4.22) |
+| 2026-10-31T18:18:27-03:00 | K-190 | Em andamento | Em andamento | Aguardando o dono (volta): pendência 2 em curso, 4 variáveis ainda pendentes |
+| 2026-10-31T18:18:35-03:00 | K-190 | Em andamento | Em andamento | Aguardando o dono: correção, a linha anterior de volta foi engano; a espera pelas 4 variáveis continua |
+| 2026-10-31T18:36:26-03:00 | K-182 | Code review | Em andamento | volta 1 (review F3: A1 e A2) |
+| 2026-10-31T18:38:18-03:00 | K-190 | Em andamento | Em andamento | Aguardando o dono (volta): variáveis preenchidas; E4.22 relançada |
+| 2026-10-31T18:40:53-03:00 | K-190 | Em andamento | Em andamento | Aguardando o dono: TLS do Acelerato falhou no aperto de mão (E4.22) |
+| 2026-10-31T18:50:39-03:00 | K-190 | Em andamento | Em andamento | Aguardando o dono (volta): servidor, certificado e usuário corrigidos; E4.22 relançada |
+| 2026-10-31T19:23:50-03:00 | K-190 | Em andamento | Em andamento | Aguardando o dono: organizações da carga (E4.28) |
+| 2026-10-31T20:10:23-03:00 | K-190 | Em andamento | Em andamento | Aguardando o dono (volta): organizações respondidas (A) |
+| 2026-10-31T20:18:17-03:00 | K-192 | nova | Pronto para fazer | Melhoria vista E2.50 (e2e instável) |
+| 2026-10-31T20:24:27-03:00 | K-182 | Em andamento | Em andamento | Aguardando o dono (E2.58: carga inicial com o dono presente) |
+| 2026-10-31T22:08:43-03:00 | K-182 | Em andamento | Em andamento | E2.61 QA da F4 iniciado |
+| 2026-11-01T00:24:34-03:00 | K-182 | Em andamento | Em andamento | Aguardando o dono: atualização do Forge (forge-check recusa brief gerar) |
