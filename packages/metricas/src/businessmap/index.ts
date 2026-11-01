@@ -42,6 +42,13 @@ export { calcularEIBM } from './ei'
 export { estadoEm, serieWip, varrerPorColuna, type EstadoEm } from './estado'
 export { varreduraPorColuna } from './varredura'
 export * from './extensao'
+export {
+  derivarMarcos,
+  direcaoDaTransicao,
+  type ColunaDoPasso,
+  type MarcosDerivados,
+  type Passo,
+} from './marcos'
 export { calcularO5 } from './o5'
 export { calcularO6 } from './o6'
 export { calcularO8 } from './o8'
