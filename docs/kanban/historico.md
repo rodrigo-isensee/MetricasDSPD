@@ -686,3 +686,12 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-01T17:02:11-03:00 | K-182 | Em andamento | Em andamento | E2.110 delegada (security-engineer, renovação da limpeza) |
 | 2026-11-01T17:11:37-03:00 | K-182 | Em andamento | Em andamento | E2.115 delegada ao node-backend (sustentação real) |
 | 2026-11-01T17:18:32-03:00 | K-182 | Em andamento | Em andamento | E2.103 delegada ao qa-engineer (QA da limpeza do seed) |
+| 2026-11-01T17:23:41-03:00 | K-182 | Em andamento | Em andamento | E2.114 delegada ao tech-lead (PR do fix do test:pg) |
+| 2026-11-01T17:31:19-03:00 | K-193 | - | Entrada | pedido 059 aberto; decisão do dono A |
+| 2026-11-01T17:44:53-03:00 | K-193 | Entrada | Em andamento | E1.1 branch do discovery (tech-lead) |
+| 2026-11-01T17:47:32-03:00 | K-182 | Em andamento | Em andamento | volta 1 E2.117 sustentação (node-backend) |
+| 2026-11-01T17:48:27-03:00 | K-182 | Em andamento | Aguardando sua validação | Aguardando o dono: merge do PR 189 |
+| 2026-11-01T17:54:13-03:00 | K-182 | Aguardando sua validação | Em andamento | Aguardando o dono: fim (PR 189 mesclado) |
+| 2026-11-01T18:26:22-03:00 | K-182 | Em andamento | Em andamento | volta 2 E2.127 sustentação (Prettier) |
+| 2026-11-01T18:46:43-03:00 | K-182 | Em andamento | Em andamento | Aguardando o dono: escopo da limpeza (fato_bloqueio e versões de critério do seed) |
+| 2026-11-01T18:59:06-03:00 | K-182 | Em andamento | Em andamento | Aguardando o dono: fim (limpeza A) |

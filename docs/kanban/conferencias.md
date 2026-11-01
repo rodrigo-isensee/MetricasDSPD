@@ -1069,3 +1069,45 @@
 | 2026-11-01 17:03 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-40.md | brief | 4 | reprovado | s | faltou marca de superacao da decisao i e da DT de 17:05 | decisao | jarvis |
 | 2026-11-01 17:11 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-41.md | brief | 5 | aprovado | s |  | — | jarvis |
 | 2026-11-01 17:18 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-32.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 17:23 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-62.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 17:31 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-32.md | entrega | 1 | não cumpriu (só pelo intervalo desde a base) | s | PQ-1 e PQ-2 cumpriram; aceita no mérito | base | destino |
+| 2026-11-01 17:38 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-41.md | entrega | 1 | não cumpriu (S9 e S12 reais com campo ausente) | n | volta 1 na E2.117 | implementacao | destino |
+| 2026-11-01 17:41 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-42.md | brief | 1 | reprovado | s | plano 056 fora da develop; apontar ca55f58 | citacao | jarvis |
+| 2026-11-01 17:44 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 17:47 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 17:47 | 059-aba-apontamento | 059-aba-apontamento-ux-designer-1.md | brief | 1 | reprovado | s | blocos e achados além do E1.3; HTML não lido sem registro | escopo | jarvis |
+| 2026-11-01 17:47 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-43.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 17:47 | 059-aba-apontamento | 059-aba-apontamento-software-architect-1.md | brief | 1 | reprovado | s | horas como esforço (7.1) sem decisão do dono; E1.3 citado antigo | decisao | jarvis |
+| 2026-11-01 17:48 | 059-aba-apontamento | 059-aba-apontamento-ux-designer-2.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 17:54 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-62.md | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-01 17:57 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-63.md | brief | 1 | reprovado | s | E2.122 entrou no pedido depois do brief | escopo | jarvis |
+| 2026-11-01 17:57 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-43.md | entrega | 1 | não cumpriu (comentário fora do Entregar; base da branch saída da F6) | s | PQ cumpriram; aceita no mérito | base | destino |
+| 2026-11-01 18:00 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-35.md | brief | 1 | reprovado | s | E2.122 entrou no pedido depois do brief | escopo | jarvis |
+| 2026-11-01 18:01 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-64.md | brief | 1 | reprovado | s | faltavam as decisões que superam a i | decisao | jarvis |
+| 2026-11-01 18:01 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-65.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:03 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-36.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:07 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-66.md | brief | 2 | reprovado | s | PR 188 com conflito; merge é merge-integracao; supersessão do E4 | etapa | jarvis |
+| 2026-11-01 18:10 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-44.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:11 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-44.md | entrega | 1 | não cumpriu (parado no conflito de pareceres, como o brief manda) | s | sem commit; refazer com a decisão técnica | outra | destino |
+| 2026-11-01 18:12 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-33.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:14 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-45.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:19 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-67.md | brief | 1 | reprovado | s | QA da WS1 desatualizado na branch sem etapa que o renove | etapa | jarvis |
+| 2026-11-01 18:21 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-45.md | entrega | 1 | não cumpriu (parado no lint da F6, sem commit) | s | lint já vermelho na F6; E2.126 | implementacao | destino |
+| 2026-11-01 18:24 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-34.md | brief | 1 | reprovado | s | delta não é só documento; condição do pedido tirada | implementacao | jarvis |
+| 2026-11-01 18:27 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-46.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:28 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-35.md | brief | 2 | reprovado | s | tardio: supersessões não copiadas; condição da suíte | decisao | jarvis |
+| 2026-11-01 18:29 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-47.md | brief | 1 | reprovado | s | supersessões não copiadas | decisao | jarvis |
+| 2026-11-01 18:33 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-48.md | brief | 2 | reprovado | s | tardio: superação do recibo não escrita | decisao | jarvis |
+| 2026-11-01 18:33 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-36.md | brief | 3 | reprovado | s | justificativa da suíte reduzida não confere | implementacao | jarvis |
+| 2026-11-01 18:37 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-37.md | brief | 4 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:39 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-49.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:42 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-37.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:43 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-38.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:46 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-68.md | brief | 1 | reprovado | s | tardio: fato_bloqueio e versões de critério além da lista literal do dono | decisao | jarvis |
+| 2026-11-01 18:50 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-39.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 18:52 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-69.md | brief | 1 | reprovado | s | objetivo FL1 inteiro; e2e; worktree | decisao | jarvis |
+| 2026-11-01 18:56 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-70.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 19:03 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-71.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 19:14 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-70.md | entrega | 1 | não cumpriu (e2e-parte vermelhos; review renovado) | s | e2e falham; diagnóstico na E2.131 | ambiente | destino |
+| 2026-11-01 19:19 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-40.md | brief | 1 | reprovado | s | npx fora da decisão do sandbox; decisões do 050 | decisao | jarvis |
+| 2026-11-01 19:22 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-41.md | brief | 2 | aprovado | s |  | — | jarvis |

@@ -10,6 +10,7 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-193 | [doc] Exceção formal à regra de métrica individual para a aba Apontamento (CLAUDE.md e briefing, PR do dono) | 059 | forge:software-architect | 2026-11-01 | 2026-11-01 17:30 | Decisão do dono A (2026-11-01); aguarda o recibo e a pergunta de quem vê a aba; depois de 2026-11-02 |
 | K-191 | [teste] e2e L3-01 (operacional-lote3.spec.ts:22) instável: axe target-size em leia-junto-o15 falhou no PR 180 e passou no rerun | 052 | forge:qa-engineer | 2026-10-31 | 2026-10-31 17:20 | Achado na E2.36 (run 41210173397); conferir com o react-frontend se é layout ou teste |
 | K-188 | [UX] Tela de administração da lista de times (lista no banco, histórico, carga inicial com as decisões do 052) | 057 | forge:ux-designer | 2026-10-30 | 2026-10-30 16:56 | Depois de 2026-11-02 (recorte do dono); tabela e carga inicial entram com o coletor do 052 |
 | K-186 | [052 review A5, QA A1 e A3] diagnostico.ts: limite429 não volta a falso no catch (:151); nenhum teste afirma a frase do cabeçalho (:310); nó raiz da currentStructure sai como "(sem campos permitidos)" (:243) | 052 | forge:node-backend | 2026-10-30 | 2026-10-30 12:34 | Recomendado (baixa) na revalidação do review 052 (780000b) |
