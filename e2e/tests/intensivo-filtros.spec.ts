@@ -18,7 +18,7 @@ test.use({ viewport: { width: 1280, height: 800 } });
 // ---------------------------------------------------------------------------------------------
 const EQUIPES = ['erp-protheus', 'fluig', 'senior', 'marketing-e-vendas', 'dados', 'plataforma-5g'];
 const SISTEMAS = ['protheus', 'fluig', 'senior', 'crm', 'site-marketing', 'data-lake', 'core-5g', 'portal-do-cliente'];
-const TIPOS = ['incidente', 'requisicao', 'melhoria', 'bug-interno', 'defeito-producao', 'divida-tecnica'];
+const TIPOS = ['incidente', 'requisicao', 'melhoria', 'bug-interno', 'defeito-producao', 'divida-tecnica', 'trabalho-produto'];
 const SSSC = ['totvs', 'senior', 'fluig'];
 const PRIORIDADES = ['p1', 'p2', 'p3', 'p4', 'p5'];
 const CUSTOM = { periodo: 'custom', de: '2026-06-01', ate: '2026-08-31' };
