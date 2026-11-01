@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-fix-coleta
-commit: f763d6acffca29233c78966abe44882be10c1daa
+branch: feature/052-limpa-seed
+commit: 6ff43dfd62c05101c32d5bba081dbbcb04afff7f
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -72,6 +72,17 @@ Veredito: aprovado, mantido. O parecer ficou desatualizado porque `docs/integrac
 - `server/package.json`: uma linha nova, `ac:ref-sync` (056); `bm:diagnostico` está na `package.json` da raiz e não mudou.
 
 `git diff c0c4aee..f763d6a` sobre `server/src/modulos/businessmap/diagnostico.ts`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh`, `server/tests/diagnostico-businessmap.test.ts`, `server/src/modulos/businessmap/index.ts` e `docs/architecture/data-model.md`: vazio. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. Sem suíte, sem mutantes e sem chamada ao BusinessMap, como pedido (delta só de documento e configuração alheia ao script); a correção da coleta tem parecer próprio em `docs/qa/052-fix-coleta.md`. O `.env` não foi lido. Parecer regravado pelo papel qa na E2.90, sem mudança de veredito.
+
+## Renovação por delta (E2.125, depois da limpeza do seed)
+Veredito: aprovado, mantido. O `forge-check pr` deu o parecer por desatualizado porque `docs/architecture/server.md` mudou na limpeza do seed (E2.96 e E2.108). O `commit:` anterior (`f763d6a`) não é ancestral desta branch; o delta partiu do merge-base com a develop (`81fcd63`) até a ponta de código da branch (`6ff43df`; os commits seguintes são só pareceres). Delta lido (`git diff 81fcd63 HEAD`, ferramenta Bash e Read):
+- `docs/architecture/server.md`: seção nova da limpeza do seed e ajuste do texto do seed. Documento do comando `db:limpar-seed`; não toca o diagnóstico da WS1.
+- `server/package.json`: uma linha nova, `db:limpar-seed`; `bm:diagnostico` está na `package.json` da raiz e não mudou.
+- `server/eslint.config.js`: `limpar-seed.ts` entrou na lista de exceções da regra de importação (mesma lista do seed).
+- Código novo: `server/src/entradas/limpar-seed.ts`, `server/src/plataforma/db/limpar-seed.ts` e os testes `limpar-seed.test.ts` e `limpar-seed.pg.test.ts`, cobertos pelo parecer `docs/qa/052-limpa-seed.md`, não por este.
+
+`git diff 81fcd63 HEAD --stat` sobre `server/src/modulos/businessmap`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh`, `server/tests/diagnostico-businessmap.test.ts` e `docs/architecture/data-model.md`: vazio; nenhum arquivo `.env.example` no delta (`git diff --name-only | grep -i env`: vazio). As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações.
+
+Suíte (delta com código, então rodada, uma por vez, fora do sandbox, com `free -m` MemAvailable 15048 MB e load 0,49 a 1,68): `pnpm run test` do server em `6ff43df`: 57 arquivos passaram e 26 pulados, 1130 testes passaram e 172 pulados (22,0 s), os 30 do diagnóstico entre eles. `pnpm run test:pg` com `PG_TESTE_URL` do banco de teste do Compose (`metricas_test`): 26 arquivos e 172 testes passaram (37,3 s). Sem mutante novo (o código do script não mudou) e sem chamada ao BusinessMap. O `.env` não foi lido.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).
