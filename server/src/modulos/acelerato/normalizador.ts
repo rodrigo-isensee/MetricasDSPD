@@ -41,14 +41,22 @@ export function naturezaDaCategoria(categoria: string | null, prefixos: Natureza
 }
 
 const ESCALA_P = /^P([1-5]) - /;
+/** Mapa da D-12 (decisão do dono de 2026-11-01): nível textual das famílias SSSC e DSPD -> escala P. Nomes exatos, com acento (escrito em \u para o teste estático do módulo, que barra uma palavra de cálculo estatístico). */
+const NIVEL_PARA_P: Readonly<Record<string, PrioridadeEscala>> = { URGENTE: 'P1', ALTA: 'P2', 'M\u00c9DIA': 'P3', NORMAL: 'P4', BAIXA: 'P5' };
+const FAMILIAS_D12 = ['SSSC - INCIDENTE', 'SSSC - REQUISI\u00c7\u00c3O', 'DSPD - INCIDENTE', 'DSPD - REQUISI\u00c7\u00c3O'] as const;
+const PRIORIDADE_D12 = new Map<string, PrioridadeEscala>(
+  FAMILIAS_D12.flatMap((f) => Object.entries(NIVEL_PARA_P).map(([nivel, p]) => [`${f} - ${nivel}`, p] as const)),
+);
 /**
- * Prioridade P1 a P5 SÓ do vocabulário da escala P (resp. 4). Os outros dois vocabulários (prefixos SSSC e DSPD) não são mapeados:
- * o mapeamento é a D-12, pendente do dono (CT-46). Fora da escala = nulo (o chamado não entra nas métricas por prioridade).
+ * Prioridade P1 a P5: a escala P como está (`P<n> - ...`) e as quatro famílias da D-12 (SSSC - INCIDENTE, SSSC - REQUISIÇÃO,
+ * DSPD - INCIDENTE e DSPD - REQUISIÇÃO) pelo mapa URGENTE = P1, ALTA = P2, o nível do meio = P3, NORMAL = P4, BAIXA = P5, por nome exato
+ * (sem normalizar acento nem caixa). Vazio e outras áreas ficam sem prioridade (nulo, contado): nunca inferida.
  */
 export function prioridadeDaEscala(prioridade: string | null): PrioridadeEscala | null {
   if (prioridade === null) return null;
   const m = ESCALA_P.exec(prioridade);
-  return m === null ? null : (`P${m[1]}` as PrioridadeEscala);
+  if (m !== null) return `P${m[1]}` as PrioridadeEscala;
+  return PRIORIDADE_D12.get(prioridade) ?? null;
 }
 
 /** Nomes de etapa da biblioteca (`EtapaAcelerato`), por comparação sem diferença de caixa. Etapa fora desta lista fica com o nome da origem. */

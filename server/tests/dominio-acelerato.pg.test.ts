@@ -2,6 +2,8 @@ import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ErroDominio, analisarDominio, lerDominio, referenciaDaVersao, sincronizarDominio } from '../src/modulos/referencia/dominio-acelerato.js';
 import type { PoolLike } from '../src/plataforma/db/pool.js';
+import { carregarNaturezaPorPrefixo } from '../src/modulos/acelerato/projetor.js';
+import { carregarListas } from '../src/modulos/acelerato/referencia.js';
 import { poolDe, S, url } from './pg/ctx.js';
 
 const d = describe.skipIf(!url);
@@ -59,6 +61,21 @@ d('ac:ref-sync contra PostgreSQL (papel dspd_ref, vigência e versão de critér
       expect(await versoes(c, lido.sha256)).toBe(1);
       const v = await c.query(`SELECT vigente_desde FROM ${S.core}.ref_versao_criterio WHERE referencia = $1`, [referenciaDaVersao(lido.sha256)]);
       expect(v.rows).toEqual([{ vigente_desde: D1 }]);
+    });
+  });
+
+  it('E4.42: o arquivo real grava etapa, prioridade e natureza_prefixo (nome com acento e prefixo com espaço) e a coleta os lê de volta', async () => {
+    await comoRef(async (pool) => {
+      const real = lerDominio();
+      const r = await sincronizarDominio(pool, S, real, D1, AGORA);
+      expect(r.versaoRegistrada).toBe(true);
+      const listas = await carregarListas(pool, S);
+      const d = real.arquivo.dominios;
+      expect(listas.etapas.size).toBe(d.etapa!.length);
+      expect(listas.prioridades.has('SSSC - REQUISIÇÃO - MÉDIA')).toBe(true);
+      expect(listas.etapas.has('Aguardando Janela de Mudança (Deploy Produção)')).toBe(true);
+      const natureza = await carregarNaturezaPorPrefixo(pool, S);
+      expect([...natureza]).toEqual([['SSSC-I-', 'incidente'], ['SSSC-I ', 'incidente'], ['SSSC-R-', 'requisicao'], ['SSSC-R ', 'requisicao']]);
     });
   });
 
