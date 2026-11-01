@@ -40,6 +40,7 @@ export const TIPOS_CARD = [
   'Bug interno',
   'Defeito em produção',
   'Dívida técnica',
+  'Trabalho de produto',
 ] as const
 export type TipoCard = (typeof TIPOS_CARD)[number]
 
@@ -51,7 +52,29 @@ export const TIPOS_FILTRO = [
   'Bug interno',
   'Defeito em produção',
   'Dívida técnica',
+  'Trabalho de produto',
 ] as const satisfies readonly TipoCard[]
+
+/** Categorias do tipo de card (H-17, `ref_tipo_card.categoria`, migração 0018). */
+export const CATEGORIAS_TIPO_CARD = [
+  'bug_interno',
+  'defeito_producao',
+  'requisicao',
+  'divida_tecnica',
+  'melhoria',
+  'produto',
+] as const
+export type CategoriaTipoCard = (typeof CATEGORIAS_TIPO_CARD)[number]
+
+/** Tabela fechada única categoria -> rótulo de `dim_card.tipo` (ADR 0024). `produto` = trabalho de produto sem categoria especial. */
+export const TIPO_DA_CATEGORIA: Record<CategoriaTipoCard, TipoCard> = {
+  bug_interno: 'Bug interno',
+  defeito_producao: 'Defeito em produção',
+  requisicao: 'Requisição',
+  divida_tecnica: 'Dívida técnica',
+  melhoria: 'Melhoria',
+  produto: 'Trabalho de produto',
+}
 
 export const CLASSES_SERVICO = ['Urgente', 'Prazo fixo', 'Padrão', 'Intangível'] as const
 export type ClasseServico = (typeof CLASSES_SERVICO)[number]
