@@ -85,6 +85,29 @@ flowchart TD
 - Fora do seed (não inferido): `ref_quadro`, `ref_dominio`, `ref_alvo_prioridade`, calendário, staging, `*_versao`, `evt_*` e `fato_etapa_chamado.totalizador`. Variáveis: `PG_MIGRADOR_URL`, `MOCK_SEMENTE` (opcional).
 - Critério de pronto do port: mesmo hash da base mock lida do Postgres que o hash lido do MySQL antes (ou do mock direto, se o MySQL não estiver disponível).
 
+## Limpeza do seed mock da base real (pedido 052, E2.96)
+
+O seed de 2026-10-09 ficou no mesmo esquema da carga real do BusinessMap e entra nas métricas do FL1 (E2.94). Decisão do dono de 2026-11-01 ("A"): tirar só o seed por script revisado e regenerar o mock no esquema próprio da F6 (ADR 0024, `DSPD_SCHEMA_PREFIXO_SEED`).
+
+`pnpm --filter @metricas-dspd/server run db:limpar-seed [--aplicar]` (`src/entradas/limpar-seed.ts`, lógica em `plataforma/db/limpar-seed.ts`). Manual, nunca agendado. Usa o `dspd_migrador` (`PG_MIGRADOR_URL`, dono das tabelas: `fato_transicao` é append-only por gatilho) e o esquema de `DSPD_SCHEMA_PREFIXO`. O `.env` é lido só pelo programa.
+
+- **Simulação por padrão.** Sem `--aplicar` roda numa transação `READ ONLY` e imprime só contagens por tabela (JSON). A escrita exige `--aplicar`; qualquer outra opção é erro de uso (código 2).
+- **O que é do seed.** As coletas do seed são as de `ctl_coleta.versao_coletor` com prefixo `seed-mock` (`seed-mock` e `seed-mock-coleta`), nunca um id fixo. Saem, na ordem: `fato_transicao`, `fato_bloqueio`, `dim_card` (pela marca da coleta do seed), os `ref_*` do seed (BusinessMap: `ref_quadro`, `ref_coluna`, `ref_dominio`, `ref_limite_wip_fluxo`, `ref_limite_frentes`, `ref_sle`, `ref_alocacao_acordada`, `ref_ficha_resultado`) e as linhas de `ctl_coleta` do seed. Os `ref_*` não têm marca de coleta: o comando regera o mock com os `parametros` gravados na coleta `seed-mock` (determinístico) e remove só as linhas de chave inteira igual (inclusive `vigente_de`) e, onde há texto ou inteiro, conteúdo igual; `ref_coluna` ainda exige `workflow_id` e `motivo` nulos (assinatura do seed antes da F2).
+- **Acelerato.** A mesma conferência no esquema `dspd_ac`; só remove ali (`fato_etapa_chamado`, `dim_chamado`, `ref_alvo_prioridade`, `ctl_coleta`) se houver coleta com a versão do seed. BusinessMap e Acelerato não se misturam: cada esquema tem a sua conferência.
+- **Falha fechada (tudo antes de escrever, nada é removido).** Aborta se: alguma tabela fora da lista tiver linha com a marca da coleta do seed (`coleta_id`/`atualizado_por_coleta_id`) ou com card/chamado do seed; houver staging (`stg_card`, `stg_chamado`) com item do seed (ADR 0022); `fato_transicao`/`fato_bloqueio`/`dim_card` (ou o equivalente do Acelerato) tiver linha de outra coleta com item do seed; `rec_transicao_par` apontar para transição do seed; um `ref_*` tiver a chave do seed com conteúdo diferente; a coleta `seed-mock` não tiver parâmetros utilizáveis. As coletas reais nunca são selecionadas.
+- **Escrita.** Uma transação para os dois esquemas, com a trava `dspd:seed` (a mesma do seed). Cada DELETE confere a contagem prevista (divergência desfaz tudo). O gatilho de imutabilidade de `fato_transicao` é desligado só dentro da transação e religado antes do COMMIT, com conferência de que voltou ao estado ativo; se o estado não voltar, a transação desfaz. Reaplicar não faz nada (sem coleta do seed, o resultado traz `coletas: 0`).
+- **Saída.** Só nomes de tabela e contagens; nunca id, nome de pessoa nem título (ADR 0020).
+
+### Passo a passo para o dono (na sua máquina, base local)
+
+1. Backup do banco do dia (como para qualquer `down`).
+2. Simular: `pnpm --filter @metricas-dspd/server run db:limpar-seed`. Conferir as contagens (esperado para o seed de 2026-10-09: 5792 em `dim_card`, 46759 em `fato_transicao`, 6 em `ref_quadro` e 2 coletas em `dspd_bm`). Se aparecer erro `ligada-a-dado-real`, não aplicar: o texto diz qual tabela e quantas linhas; mande para o time.
+3. Aplicar: `pnpm --filter @metricas-dspd/server run db:limpar-seed --aplicar`. Rodar a simulação de novo: tudo zerado (`coletas: 0`).
+4. Regenerar o mock no esquema próprio da F6 (depois do merge da F6): escolha um prefixo diferente do `DSPD_SCHEMA_PREFIXO` (por exemplo `seed_`); rode `migrate` e `seed` com `DSPD_SCHEMA_PREFIXO=seed_` (o `scripts/db.sh` carrega o `.env` e o valor do `.env` prevalece sobre o do terminal; confira que o prefixo efetivo é o do seed antes de rodar, para não semear a base real); depois ponha `DSPD_SCHEMA_PREFIXO_SEED=seed_` no `.env` da API, com `DSPD_SCHEMA_PREFIXO` apontando a base real.
+5. Rodar a projeção e conferir o FL1 só com dado real (WIP e concluídos devem deixar de contar o seed).
+
+Limites: `ref_versao_criterio` do `dspd_core` (versões de critério do mock, `motivo = 'seed-mock'`) não é tocada por este comando: o `dspd_core` é compartilhado e a lista da decisão do dono não o inclui.
+
 ## Papéis e grants (data-model §8; `plataforma/db/grants.ts`)
 | Papel | Pode |
 |---|---|
