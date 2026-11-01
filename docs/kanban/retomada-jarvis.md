@@ -14,10 +14,10 @@ Este arquivo é para uma sessão nova do Jarvis que não tem a memória da anter
   - Ao retomar: `git -C /home/rodrigoisensee/MetricasDSPD-052e status -sb` e `log origin/develop..HEAD`.
     - Se houver commit pronto e testes verdes, só falta o push com `git -C /home/rodrigoisensee/MetricasDSPD-052e push origin HEAD:refs/heads/feature/052-fix-test-pg`.
     - Se não houver commit, relançar com o mesmo brief: ele está protegido e foi aprovado pelo conferente.
-- **Conferente do brief da E2.108** (`docs/briefs/052-integracao-businessmap-node-backend-36.md`, volta da limpeza do seed): o veredito não chegou a ser registrado.
-  - Ao retomar: gerar a mensagem de novo com `forge-check brief mensagem --arquivo docs/briefs/052-integracao-businessmap-node-backend-36.md --pedido 052-integracao-businessmap --destino forge:node-backend --anterior docs/briefs/052-integracao-businessmap-node-backend-34.md --ref origin/feature/052-limpa-seed`.
-  - Mandar ao `forge:conferente` a saída **a partir da linha `modo: brief`**. O hook do Agent recusa a mensagem se ela começar pelas linhas `jarvis-recorrente`.
-  - Aprovado: registrar com `forge-check conferencia registrar` e delegar ao `forge:node-backend` com "Leia e execute literalmente o arquivo <brief>".
+- **Brief da E2.108** (`docs/briefs/052-integracao-businessmap-node-backend-36.md`, volta da limpeza do seed): **aprovado pelo conferente e registrado; ainda não delegado.**
+  - Primeira ação da sessão nova: delegar ao `forge:node-backend` com "Leia e execute literalmente o arquivo /home/rodrigoisensee/Metricas/MetricasDSPD/docs/briefs/052-integracao-businessmap-node-backend-36.md".
+  - Antes, mover o cartão com `forge-check movimento K-182 --de "Em andamento" --para "Em andamento" --motivo "E2.108 delegada"`.
+  - Ao mandar mensagem ao conferente, passe a saída de `forge-check brief mensagem` **a partir da linha `modo: brief`**. O hook do Agent recusa a mensagem se ela começar pelas linhas `jarvis-recorrente`.
 - **E2.100:** o agente morreu na troca de conta. O PR 188 já existe e saiu do draft (`isDraft=false` às 16:00). Não relançar; só acompanhar os checks.
 
 ## 2. Pedido 052 (`docs/pedidos/052-integracao-businessmap.md`): onde cada frente está
