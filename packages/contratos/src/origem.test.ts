@@ -10,28 +10,36 @@ import {
 import { resultadoO3 } from './schemas'
 
 describe('origemDaMetrica (H-13)', () => {
-  it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1 e as 7 da sustentação carregadas', () => {
+  it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1 e as 5 da sustentação carregadas', () => {
     const reais = METRICA_IDS.filter((id) => origemDaMetrica(id) === 'real')
     expect([...reais].sort()).toEqual(
       [
         ...['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
-        ...['S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'],
+        ...['S2', 'S3', 'S4', 'S8', 'S10'],
       ].sort(),
     )
   })
 
-  it('sustentação: S1, S5, S6, S7, S11 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
+  it('sustentação: S1, S5, S6, S7, S9, S11, S12 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
     expect(motivoDaOrigemMock('S1')).toBe('aguardando prazos de SLA por prioridade')
     for (const id of ['S5', 'S6', 'S7', 'S11'] as const) {
       expect(origemDaMetrica(id), id).toBe('mock')
-      expect(motivoDaOrigemMock(id), id).toBe('aguardando campo do chamado no Acelerato')
+      expect(motivoDaOrigemMock(id), id).toBe(
+        'aguardando tipo e domínio do campo do chamado (P-DS-19)',
+      )
     }
+    expect(origemDaMetrica('S9')).toBe('mock')
+    expect(motivoDaOrigemMock('S9')).toBe(
+      'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
+    )
+    expect(origemDaMetrica('S12')).toBe('mock')
+    expect(motivoDaOrigemMock('S12')).toBe('aguardando fonte do registro posterior de exceção de SLA')
     expect(origemDaMetrica('EI_SUST')).toBe('mock')
     expect(motivoDaOrigemMock('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
   })
 
   it('métrica de sustentação real não tem motivo de dado fictício', () => {
-    for (const id of ['S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as const) {
+    for (const id of ['S2', 'S3', 'S4', 'S8', 'S10'] as const) {
       expect(origemDaMetrica(id), id).toBe('real')
       expect(motivoDaOrigemMock(id), id).toBeNull()
     }

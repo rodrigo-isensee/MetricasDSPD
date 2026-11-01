@@ -17,7 +17,7 @@ const CARTAO_POR_ID = new Map(CATALOGO_CARTOES.map((c) => [c.id, c]))
 /**
  * Origem de UM cartão (P-1 = B). Com a API real (`api`) cada cartão vem inteiro de uma origem, e o mapa de origem do contrato
  * é a fonte única: é fictício quando alguma métrica dele é `mock` no mapa (a primeira com motivo dá o motivo). O `status` do
- * catálogo não vale aqui: ele marca o que depende de extensão mockada (S8 e S12, por exemplo) e já foi superado pelo mapa
+ * catálogo não vale aqui: ele marca o que depende de extensão mockada (S8, por exemplo) e já foi superado pelo mapa
  * quando a métrica passa a vir do dado coletado (E2.115). Com a fonte mock o app inteiro é fictício e o aviso global já diz
  * isso: vale só o catálogo.
  */

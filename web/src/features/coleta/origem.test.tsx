@@ -77,8 +77,8 @@ describe('origem do cartão (P-1 = B)', () => {
     expect(origemDoCartao('XX9', 'mock')).toEqual({ ficticio: false, motivo: null })
   })
 
-  it('Sustentação (E2.115): S2, S3, S4, S8, S9, S10 e S12 saem sem selo; S1, S5, S6, S7, S11 e a EI_SUST levam o selo com o motivo do Acelerato', () => {
-    for (const c of ['S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12']) {
+  it('Sustentação (E2.115): S2, S3, S4, S8 e S10 saem sem selo; S1, S5, S6, S7, S9, S11, S12 e a EI_SUST levam o selo com o motivo do Acelerato', () => {
+    for (const c of ['S2', 'S3', 'S4', 'S8', 'S10']) {
       expect(origemDoCartao(c, 'api'), c).toEqual({ ficticio: false, motivo: null })
     }
     expect(origemDoCartao('S1', 'api')).toEqual({
@@ -88,9 +88,17 @@ describe('origem do cartão (P-1 = B)', () => {
     for (const c of ['S5', 'S6', 'S7', 'S11']) {
       expect(origemDoCartao(c, 'api'), c).toEqual({
         ficticio: true,
-        motivo: 'aguardando campo do chamado no Acelerato',
+        motivo: 'aguardando tipo e domínio do campo do chamado (P-DS-19)',
       })
     }
+    expect(origemDoCartao('S9', 'api')).toEqual({
+      ficticio: true,
+      motivo: 'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
+    })
+    expect(origemDoCartao('S12', 'api')).toEqual({
+      ficticio: true,
+      motivo: 'aguardando fonte do registro posterior de exceção de SLA',
+    })
     expect(origemDoCartao('EI-SUST', 'api').ficticio).toBe(true)
     expect(origemDoCartao('S2', 'mock').ficticio).toBe(false)
   })
