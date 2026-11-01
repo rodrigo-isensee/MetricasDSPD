@@ -3,77 +3,84 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f4-projetor
-commit: 783612d50dc4da48d04ab19eb4e91b6abc727a09
+commit: 7a1907a3895d2727103f7582183e6262840f58b2
 parecer: reprovado
 revisor: forge:tech-lead
 data: 2026-10-31
 ---
-# Review: 052-integracao-businessmap (E2.59, F4 do plano 052, normalizador e projetor, T2.4, K-182)
+# Review: 052-integracao-businessmap (F4 do plano 052, normalizador e projetor, T2.4, K-182)
 
-**Veredito: reprovado** em `783612d`, por dois bloqueantes:
-- A1: o nível (granularidade) depende de haver time no workflow. Com a carga real de times (`0019`), todo card de frente (workflow de iniciativa) e de projeto (quadro 35) perde o nível e some da leitura da API. Isso contraria a H-1.
-- A2: o PR carrega três comportamentos (projeção da F4, A3 e A6 do review da F3). A decisão M14 pede um por PR.
+**Veredito (E2.64, revalidação por delta): reprovado** em `7a1907a`, só pelo A2. A volta E2.63 resolve o A1, o A5 e o A6, e não traz achado novo de código. O A2 (três comportamentos num PR, decisão M14) não depende de código: segue aberto até o dono decidir. Se o dono aceitar a exceção, o parecer vira aprovado sem nova leitura de código. Se ele mandar separar, o A3 e o A6 da F3 saem desta branch e o delta da separação é revalidado.
 
-O resto confere com a seção F4 do plano: marcos só pela biblioteca, idempotência, reconstrução (DT-1), grants e I-2. Os recomendados A3 a A7 não devolvem. A3 e A4 precisam de destino antes da F6.
+## Revalidação E2.64 (volta E2.63, `89a50c9..7a1907a`)
 
-## Escopo e o que foi lido
+**Delta lido.** Rodei `forge-check delta --parecer docs/reviews/052-f4-projetor.md`. Ele lista 4 arquivos, 74 linhas a mais e 24 a menos, num commit só (`7a1907a`):
+- `server/src/modulos/businessmap/normalizador.ts`: linhas 24, 162 e 174 e 175;
+- `server/tests/normalizador-businessmap.test.ts`: +46 -12;
+- `server/tests/projetor-businessmap.pg.test.ts`: +18 -9;
+- `server/tests/times-sem-comparacao.test.ts`: +6.
 
-Delta `dd15c93..783612d`, 3 commits (`369d018`, `50b8b51` e `783612d`): 23 arquivos, 1836 linhas a mais e 20 a menos. Li o delta inteiro e a seção "F4. Normalizador e projetor (T2.4)" do plano (linhas 172 a 178), mais as decisões H-1, H-23 e §10. Para conferir contra o que já existe, li também:
-- `0005_bm_historico.ts`: chaves únicas e append-only de `evt_card`, `fato_transicao` e `dim_card_versao`;
-- `0006_bm_projecoes.ts`: `dim_card`;
-- `0018` e `0019`: `ref_time_workflow` e a carga inicial de times;
-- `responsaveis.ts` (`COLUNAS_VERSAO`), `descartado.ts`;
-- `metricas/repositorio.ts` e `mapa.ts`: como a API lê `dim_card` e `fato_transicao`;
-- `contratos/src/comum.ts` (`TIPOS_CARD`).
+Li o delta inteiro. Para entender o contexto, li também `normalizador.ts:140-213` (o cálculo de `dentro` e o retorno de `dim`) e as constantes exportadas da `0019` e o `ENUM situacao` da `0018`.
 
-Execuções (prioridade baixa, uma suíte por vez):
-- `vitest run` em 7 arquivos do server tocados pelo delta (normalizador, projetor sem PG, times, transições, coleta, comando, config): 96 testes, todos passaram;
-- `marcos.test.ts` da biblioteca: 10 testes, todos passaram;
-- `pnpm run docs:check`: ok (825 páginas, 69 métricas, 2 eventos).
+**Já lido.** O resto da branch (`dd15c93..89a50c9`) não mudou desde o review da E2.59. Vale a leitura registrada no Histórico abaixo.
 
-O `pronto` (rc=0, cobertura 100%) e o `test:pg` (22 arquivos, 146 testes) ficam com o relatório do autor e com o QA (E2.61). Cito e não refaço. O `praticas.md` não tem regra "decidida por: `<comando>`", então não há saída de ferramenta a citar.
+**Achados anteriores:**
+- **A1 resolvido.** `normalizador.ts:175` agora exige equipe só no nível `story` e mantém fora quem tem `situacao = 'fora'` (H-7, os dois motivos da `0019`). Frente e projeto sem time recebem a granularidade, com equipe nula. A conferência com a `0019` bate: os workflows do quadro 35 e os de iniciativa não têm linha em `ref_time_workflow`, só 215 e 216 têm, como `fora`. Story sem time continua fora. Os testes cobrem:
+  - frente, projeto e story sem time;
+  - frente em workflow `fora`;
+  - projeto no PostgreSQL (`projetor-businessmap.pg.test.ts:184`).
 
-A segurança deu parecer em `9418d4c` e `88983e0` (`docs/security/052-f4-projetor.md`, aprovado, recomendados A1 e A2). Cito e não refaço: grants de `responsaveis`, a reconstrução, o guard de times e o `bm:projetar`. Não li o `.env` e não chamei o BusinessMap.
+  A frente sem time só tem caso unitário, e isso basta, porque o caminho é o mesmo.
+- **A5 resolvido.** Em `normalizador.ts:24`, o `Z` vale `+00:00` e a constante `FUSO_PADRAO_BM` só vale para data sem fuso. Como a constante hoje também é `+00:00`, o teste de comportamento sozinho não distingue os dois casos. Por isso o autor afirma também sobre o texto da fonte, no mesmo padrão do guard de times. Aceito.
+- **A6 resolvido.** Em `normalizador.ts:162`, a categoria do tipo usa o dia do evento medido (U-2), como já faziam o nível e a equipe. O teste novo cobre a troca de categoria entre a criação e a entrega. O pai (linha 185) continua no dia da criação: ali só se decide se o pai é Sprint, e isso não é medida do card. Fica como está.
 
-## Conferência contra o plano e as decisões
+**Fora dos achados:**
+- **A2 da segurança.** O guard novo (`times-sem-comparacao.test.ts:20`) varre o normalizador sem agrupar, contar nem ordenar por time. Hoje ele passa, porque o único `.sort` do arquivo ordena ids de pai. Quem renova esse ponto é a segurança (E2.65). Cito e não refaço.
+- **Fixtures pela 0019.** Os nomes de time e o workflow `fora` dos testes vêm de `TIMES_PROPRIOS` e de `FORA_DE_TODO_CALCULO`, e o import da migração não tem efeito colateral (só monta `up` e `down`). Achado novo A8: um comentário ficou desatualizado.
 
-- **`derivarMarcos` e `direcaoDaTransicao` (T2.5).** Ficam em `packages/metricas/src/businessmap/marcos.ts`, são puras e ordenam com `ordenarNeutro`. O normalizador só chama a biblioteca e não deriva marco por conta própria. As regras conferem:
-  - H-9: compromisso = primeira entrada na seção 2;
-  - H-23: sem seção 2, a primeira entrada em `trabalho` ou `homologacao` da seção 3; entrega na 5 se pulou a 4, pelo papel `entrega`;
-  - 4.1: início = primeira entrada em execução de `trabalho` ou `homologacao`;
-  - H-10: entrega pelo papel `entrega`, nunca "Descartado";
-  - H-11: descarte na primeira entrada em "Descartado".
+**Execuções** (prioridade baixa, uma suíte por vez):
+- `vitest run` nos 3 arquivos sem PG do delta (normalizador, `times-sem-comparacao`, projetor): 35 testes, todos passaram.
 
-  A direção só dá retorno dentro do mesmo workflow e com as duas ordens conhecidas, sem inferir. Os testes cobrem as bordas: card sem passo, reabertura, coluna sem referência e "Descartado" em seção de execução. Ver A7.
-- **Idempotência.** Fato e evento entram com `ON CONFLICT ... DO NOTHING` pelas chaves únicas. Versão só entra se algum item de `COLUNAS_VERSAO` mudou, com `vigente_de` sempre depois da vigente. O `id_origem` `card:coluna:instante` fica estável quando a transição aberta fecha, e `transicoesDoStaging` fica com a linha mais nova por `coluna|instante`. Testes .pg em `:128` e `:145`.
-- **Reconstrução (DT-1).** `TABELAS_LIMPAS_NA_RECONSTRUCAO = ['dim_card']`. `dim_responsavel` não aparece no projetor. O projetor não tem cliente HTTP, e a configuração dele não lê a chave (`config.ts`, teste em `config-businessmap.test.ts`). O teste .pg `:288` prova que a tabela fica igual e que há zero chamadas a `/users`. A diferença com o texto do plano, que fala em reconstruir também os fatos, está no A4.
-- **I-2 e responsáveis.** O mapa em memória só existe com `--projetar`, nunca vai a banco nem a resultado (teste `coleta-businessmap.test.ts`) e é usado pelo `gravarResponsaveis` da F3. A ordem de precedência (coleta, depois `dim_card`, depois a versão) confere com `server.md`.
-- **A3 do review da F3 (`coleta.ts:203`).** A transição inválida fica em `ctl_coleta_falha` e na contagem, sem tornar a coleta parcial. Os testes provam a marca d'água avançando em duas coletas seguidas. **CT-B do QA:** `369d018` é idêntico ao arquivo do QA em `/tmp/claude-1000/qa-052-f3/` (conferi com `diff`), e a mudança de `783612d` só troca a expectativa de `parcial` para `sucesso`, com a marca d'água e o `erro_resumo` nulo, coerente com o A3. O QA confirma na E2.61 que a intenção do caso dele segue coberta.
-- **A6 do review da F3 (`coleta-comando.ts:74-77`, `coleta.ts:272`).** Na retomada, a referência recebe o `inicioCarga` da carga retomada. Está certo.
-- **Suposições do autor:**
-  - fuso UTC para data sem fuso: aceita como suposição registrada num lugar só, para o roteiro dos 20 cards confirmar; ver A5;
-  - dia antes da primeira vigência usa a primeira: aceita. Bate com a vigência de partida da `0019` (início da carga, válida para todo o período) e fica contada em `nota_referencia_anterior`;
-  - `arquivado_em` guarda o descarte: aceita. É o que `descartado.ts` lê (motivo mais `arquivado_em`, único leitor). O `archived_at` nativo segue no `evt_card` `arquivado`;
-  - `dim_card.tipo` com o código da H-17: não aceita como está, ver A3;
-  - guard de times aberto ao projetor: aceito. O projetor só resolve o nome do time do workflow no dia do evento, a API segue sem `ref_time`, e há teste novo. O limite do guard está no A2 da segurança.
-- **Documentação.** `data-model.md` (projeção do BusinessMap) e `server.md` (`bm:projetar`, `--projetar`, A3, A6) descrevem o que o código faz. Falta alinhar o plano F4 (A4).
-- **Regras invioláveis.** Só `dspd_bm`, sem cruzar com o Acelerato. Nenhuma métrica, agrupamento ou ordenação por pessoa ou por time. Staging intocado. Fatos e versões só com INSERT (teste .pg `:251`).
+O `pronto` (rc=0) e o `test:pg` (22 arquivos, 147 testes) ficam com o relatório do autor (E2.63) e com o QA (E2.61). Cito e não refaço. O `praticas.md` continua sem regra "decidida por: `<comando>`".
 
-**Teto (decisão M14).** `git diff --numstat --no-renames dd15c93...783612d`, sem `.md`: **1844 linhas** de código e teste (1824 a mais e 20 a menos). Para a projeção da F4, aceito a exceção, como foi na F3: biblioteca, normalizador, projetor, comando e testes .pg formam um comportamento só. O PR da E2.62 leva `teto: excedido, <n> linhas, F4 do plano 052: normalizador e projetor do staging para fatos e dimensões, com marcos pela biblioteca`. O que não cabe na exceção são os comportamentos a mais (A2).
+**Teto recontado (decisão M14).** `git diff --numstat --no-renames dd15c93...7a1907a`, sem `.md`, dá **1894 linhas** (1874 a mais e 20 a menos). A exceção aceita para a projeção da F4 continua de pé. O PR da E2.62 leva `teto: excedido, 1894 linhas, F4 do plano 052: normalizador e projetor do staging para fatos e dimensões, com marcos pela biblioteca`, ou o número recontado na hora, se o A2 tirar o A3 e o A6 da F3 da branch.
+
+**Destino dos achados que não mudam aqui:**
+- A2: pergunta ao dono (PERGUNTA de 2026-10-31 21:22).
+- A3 e A4: software-architect, antes da F6 (decisões de 21:23 e 21:29).
+- A7: pergunta ao dono.
+
+## Histórico: review da E2.59 (em `783612d`, reprovado: A1 e A2)
+
+**Escopo lido.** Delta `dd15c93..783612d`, 3 commits (`369d018`, `50b8b51` e `783612d`): 23 arquivos, 1836 linhas a mais e 20 a menos. Li o delta inteiro e a seção F4 do plano (linhas 172 a 178), mais as decisões H-1, H-23 e §10. Para conferir contra o que já existe, li também:
+- `0005`, `0006`, `0018` e `0019`;
+- `responsaveis.ts` e `descartado.ts`;
+- `metricas/repositorio.ts` e `mapa.ts`;
+- `contratos/src/comum.ts`.
+
+**Execuções.** 96 testes do server e 10 de `marcos.test.ts`, todos passaram; `docs:check` ok.
+
+**Segurança.** Parecer em `9418d4c` e `88983e0`, aprovado. Cito e não refaço.
+
+**Conferência.** O que conferiu na E2.59:
+- `derivarMarcos` e `direcaoDaTransicao` puros na biblioteca T2.5, com H-9, H-10, H-11, H-23 e 4.1;
+- idempotência por `ON CONFLICT` e versão só com mudança;
+- reconstrução que só limpa `dim_card` e preserva `dim_responsavel` (DT-1);
+- I-2;
+- A3 e A6 da F3 corretos (CT-B do QA idêntico ao arquivo dele);
+- suposições do autor aceitas, menos `dim_card.tipo` (A3);
+- documentação de `data-model.md` e `server.md` em dia;
+- regras invioláveis: só `dspd_bm`, nada por pessoa ou por time, fatos e versões só com INSERT.
+
+**Teto.** 1844 linhas, exceção aceita só para a projeção.
 
 ## Achados
 
-- A1 (bloqueante) server/src/modulos/businessmap/normalizador.ts:174 · granularidade só sai com equipe; a 0019 não dá time a workflow de iniciativa nem do quadro 35, e frente e projeto ficam nulos (H-1). Exija equipe só no nível story, mantenha fora quem é `fora`; teste com workflow sem time.
-- A2 (bloqueante) server/src/modulos/businessmap/coleta.ts:203 · o PR leva três comportamentos: projeção da F4, A3 (transição inválida não torna parcial, com o CT-B) e A6 (coleta-comando.ts:77). A M14 pede um por PR: separe A3 e A6 num PR a partir da develop, ou o Jarvis leva a exceção ao dono.
-- A3 (recomendado) server/src/modulos/businessmap/normalizador.ts:196 · dim_card.tipo recebe código (bug_interno, produto), mas mapa.ts:40 converte para TipoCard (rótulos, como no seed), e produto não tem rótulo. Com dado real, O7, O13 e o filtro por tipo vêm vazios. Arquiteto decide antes da F6.
-- A4 (recomendado) server/src/modulos/businessmap/projetor.ts:151 · fato_transicao.tipo_coluna fica congelado (DO NOTHING, append-only, reconstruir só limpa dim_card) e a API o lê (repositorio.ts:64): correção U-1 em ref_coluna não chega ao WIP nem ao CFD. Arquiteto: plano F4 (DT-1) e F6.
-- A5 (recomendado) server/src/modulos/businessmap/normalizador.ts:24 · o `Z` explícito também vira FUSO_PADRAO_BM. Se a leitura real trocar a constante para -03:00, as datas com `Z` se deslocam junto. Faça o `Z` valer sempre +00:00 e use a constante só sem fuso, com teste.
-- A6 (recomendado) server/src/modulos/businessmap/normalizador.ts:162 · a categoria do tipo usa a referência do dia da criação, enquanto nível e equipe usam o dia do evento medido (U-2). Use o mesmo dia do evento, ou registre o motivo no data-model.
-- A7 (recomendado) packages/metricas/src/businessmap/marcos.ts:50 · um card que foi da seção 3 para a seção 2 depois fica com o compromisso posterior ao início (teste marcos.test.ts:69). A H-23 não cobre esse caso, e ele foi resolvido por inferência: vira pergunta ao dono pelo Jarvis.
-
-## Destino sugerido (decisão técnica do Jarvis)
-
-- A1 e A2: volta ao node-backend. Para o A2, o tech-lead abre a branch do PR separado, se o Jarvis escolher separar.
-- A3 e A4: software-architect, antes da F6, porque a F6 é quem lê `dim_card.tipo` e `fato_transicao.tipo_coluna` com dado real.
-- A5 e A6: podem entrar na volta do A1, porque tocam o mesmo arquivo.
-- A7: pergunta ao dono. O roteiro dos 20 cards (E2.57) pode mostrar se o caso existe no quadro real.
+- A1 (bloqueante) server/src/modulos/businessmap/normalizador.ts:174 · granularidade só sai com equipe; a 0019 não dá time a workflow de iniciativa nem do quadro 35, e frente e projeto ficam nulos (H-1). Resolvido em 7a1907a (normalizador.ts:175), com testes.
+- A2 (bloqueante) server/src/modulos/businessmap/coleta.ts:203 · o PR leva três comportamentos: projeção da F4, A3 (transição inválida não torna parcial, com o CT-B) e A6 (coleta-comando.ts:77). Pela M14, um por PR: separe A3 e A6 ou o dono aceita a exceção. Aberto, aguarda o dono.
+- A3 (recomendado) server/src/modulos/businessmap/normalizador.ts:196 · dim_card.tipo recebe código (bug_interno, produto), mas mapa.ts:40 converte para TipoCard (rótulos), e produto não tem rótulo: O7, O13 e o filtro por tipo vazios com dado real. Destino: software-architect antes da F6.
+- A4 (recomendado) server/src/modulos/businessmap/projetor.ts:151 · fato_transicao.tipo_coluna fica congelado (DO NOTHING, reconstruir só limpa dim_card) e a API o lê (repositorio.ts:64): correção U-1 não chega ao WIP nem ao CFD. Destino: software-architect (DT-1 e F5).
+- A5 (recomendado) server/src/modulos/businessmap/normalizador.ts:24 · o `Z` explícito virava FUSO_PADRAO_BM. Resolvido em 7a1907a: `Z` vale +00:00 e a constante só vale sem fuso, com teste.
+- A6 (recomendado) server/src/modulos/businessmap/normalizador.ts:162 · a categoria do tipo usava o dia da criação, e nível e equipe o dia do evento (U-2). Resolvido em 7a1907a: mesmo dia do evento, com teste.
+- A7 (recomendado) packages/metricas/src/businessmap/marcos.ts:50 · card que foi da seção 3 para a 2 fica com compromisso depois do início (marcos.test.ts:69); a H-23 não cobre e foi resolvido por inferência. Destino: pergunta ao dono.
+- A8 (recomendado) server/tests/normalizador-businessmap.test.ts:11 · o comentário diz "Ids e nomes inventados; nenhum dado real", mas os nomes de time e o workflow fora agora vêm da 0019. Ajuste o texto na próxima mexida no arquivo; não devolve.
