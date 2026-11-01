@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 /**
  * Allow-list do BusinessMap na fronteira (ADR 0020, itens 4a, 4c, 4d, 4f). Cada entidade tem UMA constante de campos
  * permitidos; o registro gravado é montado só a partir dela. Campo fora da lista é descartado, nunca gravado.
@@ -20,6 +22,12 @@ export const CAMPOS_CARD = [
 
 /** 4c: campos escalares da revisão (`troca_responsavel`, `linked_cards` e `custom_fields` são tratados à parte). */
 export const CAMPOS_REVISAO = ['card_id', 'revision', 'created_at', 'replaced_at', 'board_id', 'column_id', 'lane_id'] as const;
+
+/**
+ * 4c (E2.46): campos escalares de cada transição de coluna da listagem de `/cards` (`expand=transitions`). Sem autor nem outro id de
+ * pessoa; `start` e `end` são texto de data e hora (`end` nulo = ainda na coluna). `card_id` vem do card, não da transição.
+ */
+export const CAMPOS_TRANSICAO = ['board_id', 'workflow_id', 'lane_id', 'column_id', 'section', 'start', 'end'] as const;
 
 /** 4f: tipos de evento do webhook que o receptor grava. Outro tipo recebe 2xx e não é gravado. */
 export const TIPOS_WEBHOOK_BM_GRAVADOS = ['card_moved'] as const;
@@ -95,6 +103,33 @@ export function registroRevisao(
   const campos = reduzirCamposCustomizados(entrada.custom_fields, dominios);
   if (campos) r.custom_fields = campos;
   return r;
+}
+
+/** 4c (E2.46): registro de uma transição de coluna; `cardId` é o do card lido (ordem das chaves fixa: `card_id` e depois a constante). */
+export function registroTransicao(transicao: unknown, cardId: string): Objeto {
+  const entrada = ehObjeto(transicao) ? transicao : {};
+  const r: Objeto = { card_id: cardId };
+  copiarEscalares(entrada, CAMPOS_TRANSICAO, r);
+  return r;
+}
+
+/** Transições do card, na ordem recebida; só objetos (o resto é descartado). `undefined` = o card não trouxe `transitions`. */
+export function transicoesDoCard(card: unknown): unknown[] | undefined {
+  if (!ehObjeto(card) || !Array.isArray(card.transitions)) return undefined;
+  return card.transitions.filter(ehObjeto);
+}
+
+/**
+ * `revision_id` determinístico da transição (E2.46): 32 caracteres hexadecimais (limite de `stg_revision.revision_id`) do hash de
+ * coluna, entrada e saída. A entrada identifica a transição; a saída entra porque uma transição aberta que fecha depois é fato novo
+ * e o staging é append-only (a aberta fica, a fechada é outra linha; a recoleta igual não duplica). `null` = sem coluna ou sem entrada.
+ */
+export function revisionIdDaTransicao(transicao: unknown): string | null {
+  if (!ehObjeto(transicao)) return null;
+  const { column_id: coluna, start, end } = transicao;
+  if ((typeof coluna !== 'number' && typeof coluna !== 'string') || typeof start !== 'string' || start === '') return null;
+  const fim = typeof end === 'string' ? end : '';
+  return createHash('sha256').update(`${String(coluna)}\u0000${start}\u0000${fim}`).digest('hex').slice(0, 32);
 }
 
 /** Serialização canônica (chaves em ordem, em todos os níveis): o hash de dedupe não depende da ordem da resposta da API. */

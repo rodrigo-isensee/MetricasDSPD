@@ -20,6 +20,8 @@
     "seed": "tsx src/plataforma/db/seed-cli.ts",
     "ac:ref-sync": "tsx src/entradas/ref-sync-ac.ts",
     "bm:spike": "tsx src/entradas/spike-businessmap.ts",
+    "bm:coleta": "tsx src/entradas/coleta-businessmap.ts",
+    "bm:projetar": "tsx src/entradas/projetor-businessmap.ts",
     "test:pg": "vitest run --project pg",
     "checksums": "tsx src/plataforma/db/checksums-cli.ts",
     "db:limpar-testes": "tsx src/plataforma/db/limpar-testes-cli.ts",

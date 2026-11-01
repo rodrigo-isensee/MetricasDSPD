@@ -3,14 +3,34 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: da4919acc3e469e61b2922ef1e3ae993234c20c3
+commit: ac47bf16c9443bae8cb20cd8f39f3a3a72478c7f
 parecer: aprovado
 revisor: forge:tech-lead
-data: 2026-10-31
+data: 2026-11-01
 ---
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.62, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref origin/feature/052-f4-projetor --base origin/develop` marcou este parecer como desatualizado porque o `docs/architecture/data-model.md` mudou na F4 (`783612d`). O `docs/architecture/data-model.md` de `3ad39f8` é igual ao de `dd15c93` (o squash da F3). Delta lido, e só ele: `git diff dd15c93..ac47bf1 -- docs/architecture/data-model.md server/package.json server/src/modulos/businessmap/index.ts`.
+
+- `docs/architecture/data-model.md`: um bloco novo na §3.3, a projeção do BusinessMap da F4 (`fato_transicao`, `dim_card.tipo`, granularidade e equipe, marcos, descarte, `card_pai`, `dim_card_versao` e a reconstrução que preserva `dim_responsavel`). Trata de tabelas que o script da WS1 não lê nem grava.
+- `server/package.json`: uma linha nova, o script `bm:projetar`. O `bm:diagnostico` segue igual; nenhuma dependência nova.
+- `server/src/modulos/businessmap/index.ts`: o tipo `ResultadoComando` e os exports do projetor e do normalizador. O export do `diagnosticar` segue igual, e o `index.ts` continua sem efeito colateral ao importar.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código novo tem parecer próprio (`docs/reviews/052-f4-projetor.md`, aprovado em `ac47bf1`). O QA renovou o dele (`docs/qa/052-ws1-estrutura.md`, E2.80, `5ec6a4b`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `ac47bf1`.
+
+## Renovação por delta (E2.50, 2026-10-31)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref origin/feature/052-f3-coleta --base origin/develop` marcou este parecer como desatualizado porque a ADR 0020 mudou depois dele (`ad7cde3`, E2.52 da F3). O `forge-check delta --parecer` não roda aqui (`da4919a` não é ancestral de `3ad39f8`); o delta lido foi `git diff 0783caa..3ad39f8 -- docs/architecture/adr/0020-protecao-de-pessoa-no-coletor.md server/package.json server/src/modulos/businessmap/index.ts`, e só ele.
+
+- ADR 0020: a linha `Estado:` ganha o complemento da F3; o item 4c ganha as transições de `expand=transitions` (`CAMPOS_TRANSICAO`) e o `revision_id` determinístico com a saída; a R3-2 registra a forma final de `dim_responsavel` (migração 0020); uma linha nova na tabela de revisões. Tudo trata da coleta de cards e de `/users`, que o script da WS1 não faz (sem cards, sem `/users`, nada gravado na base).
+- `server/package.json`: uma linha nova, o script `bm:coleta`. O `bm:diagnostico` segue igual; nenhuma dependência nova.
+- `server/src/modulos/businessmap/index.ts`: exports novos da F3 (allow-list das transições, `lerConferencia`, coleta, comando e usuários). O export do `diagnosticar` segue igual, e o `index.ts` continua sem efeito colateral ao importar. O código novo tem parecer próprio (`docs/reviews/052-f3-coleta.md`, aprovado em `cc8c0cf`).
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança desde `0783caa`. Segurança e QA da F3 têm pareceres próprios (`docs/security/052-f3-coleta.md`, `c088778`; `docs/qa/052-f3-coleta.md`, `3ad39f8`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `3ad39f8`.
 
 ## Renovação por delta (E2.43, 2026-10-31)
 

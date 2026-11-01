@@ -18,6 +18,7 @@ import * as m0016 from '../migrations/0016_ac_stg_chamado_recorte.js';
 import * as m0017 from '../migrations/0017_ac_projecao_f2.js';
 import * as m0018 from '../migrations/0018_bm_referencia_workflow_tipo_times.js';
 import * as m0019 from '../migrations/0019_bm_carga_inicial_times.js';
+import * as m0020 from '../migrations/0020_bm_dim_responsavel.js';
 import type { Ddl } from '../src/plataforma/db/ddl.js';
 import type { Esquemas } from '../src/plataforma/db/esquemas.js';
 
@@ -30,7 +31,7 @@ export const MIGRACOES: Record<string, Modulo> = {
   '0008_ac_staging_historico': m0008, '0009_ac_projecoes_referencia': m0009, '0010_core_referencia': m0010,
   '0011_core_outbox': m0011, '0012_bm_limite_wip_fluxo_indices': m0012, '0013_core_pesquisa': m0013,
   '0014_ac_justificativa_informada': m0014, '0015_bm_remove_usuario_transicao': m0015, '0016_ac_stg_chamado_recorte': m0016,
-  '0017_ac_projecao_f2': m0017, '0018_bm_referencia_workflow_tipo_times': m0018, '0019_bm_carga_inicial_times': m0019,
+  '0017_ac_projecao_f2': m0017, '0018_bm_referencia_workflow_tipo_times': m0018, '0019_bm_carga_inicial_times': m0019, '0020_bm_dim_responsavel': m0020,
 };
 
 export const arquivosDeMigracao = (): string[] =>

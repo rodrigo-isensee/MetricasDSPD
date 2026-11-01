@@ -40,11 +40,13 @@ export const CONSULTA_PERMITIDA: Readonly<Record<string, RegExp>> = {
   last_modified_to: DATA,
 };
 
-/** Só em `/cards` (listagem): estado do card e `expand` com valores de uma lista fechada (spike F1, plano 052). */
+/** Só em `/cards` (listagem): estado do card, `fields` e `expand` com valores de uma lista fechada (spike F1 e F3, plano 052). */
 export const EXPAND_CARDS = /^(custom_fields|transitions|block_times|linked_cards)(,(custom_fields|transitions|block_times|linked_cards)){0,3}$/;
 export const CONSULTA_CARDS: Readonly<Record<string, RegExp>> = {
   state: /^(active|archived|discarded)$/,
   expand: EXPAND_CARDS,
+  // F3 (I-2): lista explícita de campos do card, só nomes de campo em minúsculas (a lista em si é constante da coleta).
+  fields: /^[a-z_]{1,40}(,[a-z_]{1,40}){0,59}$/,
 };
 
 /** ADR 0020, revisão 3 (R3-1 e R3-4): `/users` aceita só estes dois parâmetros, e `fields` com exatamente este valor. */

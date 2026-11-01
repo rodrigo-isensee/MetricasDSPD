@@ -11,6 +11,9 @@ export const SEGMENTO_PESSOA =
 export const COLUNAS_PESSOA: readonly string[] = [
   'dspd_bm.dim_card.responsaveis',
   'dspd_bm.dim_card_versao.responsaveis',
+  // Pedido 052, F3 (Q-8 = B, ADR 0020 revisão 3): nome do responsável por GET /users; tabela fora da API, sem GRANT ao dspd_api.
+  'dspd_bm.dim_responsavel.responsavel_id',
+  'dspd_bm.dim_responsavel.responsavel_nome',
 ];
 
 /** Exceções por `schema.tabela.coluna`, com justificativa. Sem curinga nem prefixo. Nova exceção exige mudar o data-model §9. */
