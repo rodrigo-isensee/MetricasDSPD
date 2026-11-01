@@ -33,13 +33,14 @@ Escopo: `git diff origin/develop..8865ee7` (9 arquivos, +334 -17), um commit só
 ## Teto de linhas (M14)
 `git diff --numstat --no-renames origin/develop...8865ee7`, só `server/src` e `server/tests`: **252 linhas** (14 + 3 + 10 + 14 + 4 + 190 + 17). Fora da conta: o JSON de domínio (dado de configuração, como no 056-carga-inicial) e o `.md`. 190 das 252 são o teste de dados reais, que é na maior parte as três listas da E4.40 escritas como esperado. Leio um comportamento só: o domínio do Acelerato casar com a carga real, com as três listas, o mapa da prioridade que dá sentido à lista de prioridade e a recusa da mesma causa quando a lista some. Separar a falha fechada em outro PR atrasaria a releitura do dono sem ganho de leitura. Aceito a exceção: o PR da E4.46 leva a linha `teto: excedido, 252 linhas, domínio do Acelerato para a carga real (etapa, prioridade e natureza_prefixo, mapa D-12 e falha fechada com vocabulário vazio)`, com o número recontado se a branch mudar. Sem essa linha no corpo do PR, o teto vira achado bloqueante.
 
+## Conclusão
+Nenhum bloqueante: as listas batem com a E4.40, o mapa é o da D-12, a falha fechada cobre a causa e os testes provam os valores reais. Os cinco recomendados podem ir junto com o PR ou num cartão seguinte; nenhum muda o resultado da releitura do dono.
+
+Parecer em 8865ee7: aprovado.
+
 ## Achados
 - A1 (recomendado) server/src/modulos/acelerato/normalizador.ts:45 · O escape tira a palavra do alcance do teste estático (`acelerato-estatico.test.ts:138`), e uma média de verdade escrita assim também passaria. Melhor: o teste ignora literais entre aspas, ou o mapa lê os níveis de `ref_dominio`.
 - A2 (recomendado) docs/architecture/fontes/acelerato-listas.md:95 · Ainda diz que a D-12 está pendente e que não há agrupamento, e o parágrafo da linha 106 diz o contrário. Trocar pela referência à decisão de 2026-11-01.
 - A3 (recomendado) server/src/modulos/acelerato/projetor.ts:147 · `VERSAO_PROJETOR` segue `acelerato-f2/1`, mas a projeção passa a dar P1 a P5 às famílias SSSC e DSPD (D-12). Subir para `/2`, para o `ctl_coleta` separar as projeções de antes e de depois do mapa.
 - A4 (recomendado) docs/architecture/fontes/acelerato-listas.md:91 · Fala em 79 pares de chave e nome de etapa; a saída da E4.40 tem 85 pares distintos (44 nomes). O mesmo número está no comentário de `dominio-acelerato-real.test.ts:33`. Corrigir os dois.
 - A5 (recomendado) server/src/modulos/acelerato/erros.ts:23 · A mensagem de `listas-vazias` fala das listas do recorte, e agora o código vale também para os vocabulários e para `natureza_prefixo`. Tirar o "do recorte".
-
-Nenhum bloqueante: as listas batem com a E4.40, o mapa é o da D-12, a falha fechada cobre a causa e os testes provam os valores reais. Os cinco recomendados podem ir junto com o PR ou num cartão seguinte; nenhum muda o resultado da releitura do dono.
-
-Parecer em 8865ee7: aprovado.
