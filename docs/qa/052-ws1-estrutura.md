@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-f6-painel
-commit: 802fad35547cc51bce8571ea74bd91cf58b75e60
+commit: 52c201ea9b6949a9188fcea0f18c68e52e5bcfe4
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -85,6 +85,13 @@ Veredito: aprovado, mantido. O parecer ficou desatualizado porque o `.env.exampl
 - `diagnostico.ts`, `diagnostico-businessmap.ts` (entrada), `scripts/bm-diagnostico.sh`, `diagnostico-businessmap.test.ts`, `server/package.json`, `docs/integracao/businessmap-api-configuracao.md` e `docs/architecture/data-model.md`: sem nenhuma linha no delta.
 
 Reexecução no head `802fad3`: `pnpm run typecheck` do server rc=0; `pnpm run test` do server, 59 arquivos passaram e 26 pulados (os .pg), 1127 testes passaram e 168 pulados, 0 falhos; os 30 testes do diagnóstico estão entre eles. Sem mutantes (o código do script não mudou) e sem chamada ao BusinessMap. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido.
+
+## Renovação por delta (E2.133, depois da correção do teste E2E)
+Veredito: aprovado, mantido. O parecer ficou desatualizado porque `e2e/tests/intensivo-filtros.spec.ts` mudou depois dele. Delta `802fad3..52c201e`, lido com `git diff --stat` e `git diff`: quatro arquivos, nenhum que o script da WS1 leia ou execute.
+- `e2e/tests/intensivo-filtros.spec.ts`: uma linha, `trabalho-produto` somado ao fim da constante `TIPOS` (ADR 0024). Só arquivo de teste E2E de painéis; não toca `diagnostico.ts`, a entrada, o `scripts/bm-diagnostico.sh` nem os 30 testes do diagnóstico.
+- `docs/qa/052-ws1-estrutura.md`, `docs/reviews/052-ws1-estrutura.md` e `docs/security/052-fix-test-pg.md`: só pareceres.
+
+Sem suíte do server, sem mutantes e sem chamada ao BusinessMap, como pedido: o delta é só de documento e de teste E2E de outra frente, e a suíte do server rodou sobre o código do script no head `802fad3` (1127 passaram, 0 falhos) sem nenhuma linha dele mudar depois. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).
