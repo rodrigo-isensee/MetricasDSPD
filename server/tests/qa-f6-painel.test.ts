@@ -1,12 +1,9 @@
-import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { METRICA_IDS, motivoDaOrigemMock, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
-import { ServicoMetricas } from '../src/modulos/metricas/index.js';
-import { colunasDe, configBM, limitesDosTimes, montarBaseBM, type RefBM } from '../src/modulos/metricas/mapa.js';
 import type { LinhaCard, LinhaColunaReal, LinhaTransicao } from '../src/modulos/metricas/repositorio.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { bancoDoMock } from './base-duble.js';
@@ -59,9 +56,6 @@ function banco(o: OpcoesReal = {}): Respondedor {
     return [];
   };
 }
-const leituras = (chamadas: Chamada[], tabela: RegExp): number => chamadas.filter((c) => tabela.test(c.texto)).length;
-const NA_REAL = /FROM r_dspd_bm\.dim_card/;
-const NO_SEED = /FROM dspd_bm\.dim_card/;
 
 async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
   const d = criarDublePg(banco(o));
