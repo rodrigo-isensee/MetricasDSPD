@@ -1,12 +1,9 @@
-import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import { METRICA_IDS, motivoDaOrigemMock, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
-import { ServicoMetricas } from '../src/modulos/metricas/index.js';
-import { colunasDe, configBM, limitesDosTimes, montarBaseBM, type RefBM } from '../src/modulos/metricas/mapa.js';
 import type { LinhaCard, LinhaColunaReal, LinhaTransicao } from '../src/modulos/metricas/repositorio.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { bancoDoMock } from './base-duble.js';
@@ -59,9 +56,6 @@ function banco(o: OpcoesReal = {}): Respondedor {
     return [];
   };
 }
-const leituras = (chamadas: Chamada[], tabela: RegExp): number => chamadas.filter((c) => tabela.test(c.texto)).length;
-const NA_REAL = /FROM r_dspd_bm\.dim_card/;
-const NO_SEED = /FROM dspd_bm\.dim_card/;
 
 async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
   const d = criarDublePg(banco(o));
@@ -102,9 +96,9 @@ describe('QA F6 (CA do selo): origem exata por métrica e motivo', () => {
     const comp = ['O19', 'O20', 'O21', 'O22', 'O23', 'O24', 'O25', 'O26'] as MetricaId[];
     for (const id of ficticiasFL1) { expect(origemDaMetrica(id), id).toBe('mock'); expect(motivoDaOrigemMock(id), id).toBe('aguardando campo no quadro'); }
     for (const id of comp) expect(origemDaMetrica(id), id).toBe('mock');
-    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS].sort());
-    // FL2, FL3 e Sustentação (T, E, S, VISAO_GERAL) nunca reais: Acelerato e tático/estratégico ficam fora do recorte
-    for (const id of METRICA_IDS.filter((m) => /^(T|E|S)\d/.test(m) || m === 'VISAO_GERAL')) expect(origemDaMetrica(id), id).toBe('mock');
+    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, 'S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'].sort());
+    // FL2, FL3 e VISAO_GERAL nunca reais (tático e estratégico ficam fora do recorte); da sustentação, só as 7 do plano 056 (E2.115)
+    for (const id of METRICA_IDS.filter((m) => /^(T|E)\d/.test(m) || m === 'VISAO_GERAL')) expect(origemDaMetrica(id), id).toBe('mock');
   });
 });
 

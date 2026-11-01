@@ -15,9 +15,11 @@ import { plural } from '@/lib/formatar'
 const CARTAO_POR_ID = new Map(CATALOGO_CARTOES.map((c) => [c.id, c]))
 
 /**
- * Origem de UM cartão (P-1 = B). Com a API real (`api`) cada cartão vem inteiro de uma origem: é fictício quando o
- * catálogo diz `mock` ou quando alguma métrica dele é `mock` no mapa de origem do contrato (a primeira com motivo
- * dá o motivo). Com a fonte mock o app inteiro é fictício e o aviso global já diz isso: vale só o catálogo.
+ * Origem de UM cartão (P-1 = B). Com a API real (`api`) cada cartão vem inteiro de uma origem, e o mapa de origem do contrato
+ * é a fonte única: é fictício quando alguma métrica dele é `mock` no mapa (a primeira com motivo dá o motivo). O `status` do
+ * catálogo não vale aqui: ele marca o que depende de extensão mockada (S8 e S12, por exemplo) e já foi superado pelo mapa
+ * quando a métrica passa a vir do dado coletado (E2.115). Com a fonte mock o app inteiro é fictício e o aviso global já diz
+ * isso: vale só o catálogo.
  */
 export function origemDoCartao(codigo: string, tipoFonte: 'mock' | 'api'): OrigemCartao {
   const cartao = CARTAO_POR_ID.get(codigo.toLowerCase())
@@ -26,7 +28,7 @@ export function origemDoCartao(codigo: string, tipoFonte: 'mock' | 'api'): Orige
   const metricas: readonly MetricaId[] = cartao?.metricas ?? [idDeMetrica(codigo) as MetricaId]
   const ficticias = metricas.filter((m) => origemDaMetrica(m) === 'mock')
   return {
-    ficticio: doCatalogo || ficticias.length > 0,
+    ficticio: ficticias.length > 0,
     motivo: ficticias.map(motivoDaOrigemMock).find((m) => m !== null) ?? null,
   }
 }

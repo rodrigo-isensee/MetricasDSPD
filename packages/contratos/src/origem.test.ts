@@ -10,11 +10,31 @@ import {
 import { resultadoO3 } from './schemas'
 
 describe('origemDaMetrica (H-13)', () => {
-  it('é real exatamente para as 11 do FL1 com dado no quadro e a Espera invisível do FL1', () => {
+  it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1 e as 7 da sustentação carregadas', () => {
     const reais = METRICA_IDS.filter((id) => origemDaMetrica(id) === 'real')
     expect([...reais].sort()).toEqual(
-      ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'].sort(),
+      [
+        ...['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
+        ...['S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'],
+      ].sort(),
     )
+  })
+
+  it('sustentação: S1, S5, S6, S7, S11 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
+    expect(motivoDaOrigemMock('S1')).toBe('aguardando prazos de SLA por prioridade')
+    for (const id of ['S5', 'S6', 'S7', 'S11'] as const) {
+      expect(origemDaMetrica(id), id).toBe('mock')
+      expect(motivoDaOrigemMock(id), id).toBe('aguardando campo do chamado no Acelerato')
+    }
+    expect(origemDaMetrica('EI_SUST')).toBe('mock')
+    expect(motivoDaOrigemMock('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
+  })
+
+  it('métrica de sustentação real não tem motivo de dado fictício', () => {
+    for (const id of ['S2', 'S3', 'S4', 'S8', 'S9', 'S10', 'S12'] as const) {
+      expect(origemDaMetrica(id), id).toBe('real')
+      expect(motivoDaOrigemMock(id), id).toBeNull()
+    }
   })
 
   it('é mock, com o motivo, para O8, O12, O14, O15, O16, O17 e O18', () => {
@@ -24,8 +44,8 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('O19 a O26, FL2, FL3 e Sustentação seguem mock, sem motivo próprio', () => {
-    for (const id of ['O19', 'O26', 'T1', 'E1', 'S1', 'EI_SUST'] as const) {
+  it('O19 a O26, FL2, FL3, a Visão geral e a tendência da sustentação seguem mock, sem motivo próprio', () => {
+    for (const id of ['O19', 'O26', 'T1', 'E1', 'VISAO_GERAL', 'TENDENCIA_SUST'] as const) {
       expect(origemDaMetrica(id)).toBe('mock')
       expect(motivoDaOrigemMock(id)).toBeNull()
     }
