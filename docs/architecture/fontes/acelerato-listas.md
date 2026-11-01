@@ -4,7 +4,7 @@
 - Decisão: ADR 0023. Plano: `docs/architecture/features/056-acelerato-mysql.md` (citado como "plano §n"). As fontes que o plano cita são citadas como no plano: "resp. n" = `docs/integracao/acelerato-respostas-ciencia-de-dados.md`, item n; "dash §n" = `docs/integracao/acelerato-dash-atual.md`, seção n.
 - Regra: cada item tem a origem. Valor que os documentos não trazem fica **"a preencher na carga inicial com o dono"**, nunca inventado. Nenhuma linha de dado, nome de pessoa, endereço de servidor nem organização cliente aparece aqui.
 - Destino: as listas dos §3 a §10 e do §12 vão para `ref_dominio` do `dspd_ac` (arquivo versionado, `ac:ref-sync`), com o campo indicado em cada seção; as dos §1 e §2 são constantes do código (`allow-list.ts` e o SQL versionado). Mudar qualquer lista é mudança de critério (T2.6): novo hash em `ctl_coleta.parametros` e entrada em `ref_versao_criterio`.
-- Valor fora da lista: nas colunas de vocabulário (§7 a §9: status, prioridade e etapa), o valor vira nulo com contagem por coluna em `ctl_coleta_contagem`, sem o valor, para a lista ser corrigida com o dono; chamado fora do recorte (§4 a §6: tipo, organização ou equipe) faz a coleta **falhar fechado** com `fora-do-recorte`; nos campos personalizados (§3), o valor vira nulo com contagem em `ctl_coleta_contagem`, sem o valor (M4 d).
+- Valor fora da lista: nas colunas de vocabulário (§7 a §9: status, prioridade e etapa), o valor vira nulo com contagem por coluna em `ctl_coleta_contagem`, sem o valor, para a lista ser corrigida com o dono; chamado fora do recorte (§4 a §6: tipo, organização ou equipe) faz a coleta **falhar fechado** com `fora-do-recorte`; **lista de vocabulário vazia em `ref_dominio` (etapa, prioridade, categoria ou descrição do workflow) também faz a coleta falhar fechado** com `listas-vazias` (E4.42; sem isso todo valor cairia fora do domínio em silêncio, como na carga de 2026-11-01), e a projeção falha com `listas-vazias` se o `natureza_prefixo` não tiver nenhum prefixo; nos campos personalizados (§3), o valor vira nulo com contagem em `ctl_coleta_contagem`, sem o valor (M4 d).
 
 ## 1. Colunas (constante do código; plano §2)
 
@@ -88,6 +88,8 @@ Status = etapa atual (plano §1.1, P-DS-6). Nomes observados na doc do dash, flu
 
 "Em Atendimento N1/N2/N3" aparece abreviado no dash; a grafia separada acima é a leitura da abreviação e é conferida na carga inicial. A classificação de cada etapa (nível N1 a N3 e fornecedor da S4, Pendente da S9, Aguardando atribuição da S10, totalizadores) não é desta lista: segue o briefing §3.4 e a T5.3, e o que o dash classifica de forma diferente não é unificado sem o dono (dash §6, plano §3.3).
 
+**Preenchido na E4.42 (K-190, 2026-11-01), com os nomes exatos da consulta só leitura E4.40:** 44 nomes distintos de etapa (79 pares de chave e nome; o nome se repete por workflow), com `codigo` e `rotulo` iguais ao nome, na ordem da frequência. Os nomes de `status` da carga (38 chaves) são todos nomes dessa lista, e o mesmo vocabulário vale para `status` e para a etapa. Nenhuma normalização de acento ou caixa: a comparação é por igualdade exata (a causa da carga de 2026-11-01 não era grafia, e sim a lista vazia). A lista está em `docs/architecture/fontes/acelerato-dominio.json`, campo `etapa`.
+
 ## 8. Prioridades (`ref_dominio` campo `prioridade`)
 
 Valor bruto em domínio fechado, os três vocabulários juntos (plano §2 linha 19; resp. 4). Vazio é nulo (29 chamados, resp. 4). O mapeamento entre vocabulários é a D-12, pendente: nenhum agrupamento aqui.
@@ -100,6 +102,8 @@ Valor bruto em domínio fechado, os três vocabulários juntos (plano §2 linha 
 | outras áreas | DHO - ALTA, CONTABILIDADE - PADRAO, PROJETO NOVA ERA - PADRAO | resp. 4 |
 
 A resp. 4 escreve as duas primeiras linhas de forma abreviada (`SSSC - REQUISICAO|INCIDENTE - NORMAL/BAIXA/MEDIA/ALTA/URGENTE`); a forma expandida acima é a leitura dessa notação e é conferida na carga inicial com o dono (contagem de fora do domínio, sem o valor).
+
+**Preenchido na E4.42 (K-190, 2026-11-01), com os nomes exatos da consulta só leitura E4.40 e a D-12 do dono:** 23 nomes (a escala P com 5 e as quatro famílias com os níveis que existem na carga; 29 chamados sem prioridade ficam nulos). A grafia real tem acento (`REQUISIÇÃO`, `MÉDIA`); as formas sem acento das linhas acima não ocorrem na carga e não entram. `codigo` e `rotulo` iguais ao nome. O mapa para a escala P é do normalizador (`prioridadeDaEscala`), por nome exato e sem normalizar: URGENTE = P1, ALTA = P2, MÉDIA = P3, NORMAL = P4, BAIXA = P5, para SSSC - INCIDENTE, SSSC - REQUISIÇÃO, DSPD - INCIDENTE e DSPD - REQUISIÇÃO (**decisão D-12 do dono, 2026-11-01**); a escala `P<n> - ...` vale como está; vazio e outras áreas (DHO, CONTABILIDADE, PROJETO NOVA ERA) ficam sem prioridade (contagem `prioridade_fora_da_escala_p`). Mudar o mapa é mudança de critério (T2.6).
 
 ## 9. Status de SLA (`CHECK` de `status_sla_pa` e `status_sla_r` no staging; plano §5.2)
 
@@ -116,6 +120,8 @@ O veredito normalizado (plano §3.1) é função pura no normalizador; nulo fica
 | SSSC-R | requisição | dash §5.1 |
 | SSSC-I | incidente | dash §5.1 |
 | prefixos da fila antiga | a preencher na carga inicial com o dono | o dash classifica o resto como "outro" (dash §5.1); a natureza da fila antiga não está nos documentos |
+
+**Preenchido na E4.42 (K-190, 2026-11-01), pela decisão (c) do dono:** quatro prefixos, como vieram da consulta E4.40 (a categoria usa hífen ou espaço depois da letra): `SSSC-I-` e `SSSC-I ` = incidente; `SSSC-R-` e `SSSC-R ` = requisição. `codigo` = o prefixo, `rotulo` = `incidente` ou `requisicao`. Ficam sem natureza (fora das duas): SSSC-P, PEQUENA, TESTADE e Outros. A linha "prefixos da fila antiga" acima fica sem valor: a fila antiga não existe no tipo 23 e as organizações fora da 3 não entram (decisão b). Sem nenhum prefixo no `ref_dominio`, a projeção não começa (`listas-vazias`).
 
 ## 11. Como o dono preenche as chaves (consulta só de domínio)
 
@@ -140,10 +146,10 @@ Origem: A5 do parecer `docs/security/056-coletor-f1-f2.md` (texto livre só entr
 
 | Campo no `ref_dominio` | Valor conferido (origem) | Contagem fora do domínio (`ctl_coleta_contagem`) | Lista vazia ou valor fora dela | Uso |
 |---|---|---|---|---|
-| `categoria` | coluna `categoria` (plano §2 linha 9) | `fora_dominio_categoria` | o valor vira nulo, com a contagem e sem o valor; lista vazia = **toda categoria nula** e, por consequência, **a natureza sem valor** em todo chamado (o prefixo do §10 não tem o que ler; contagem `natureza_sem_prefixo`). `categoria_key` continua lida | natureza (§10) e `categoria_sistema` da projeção |
-| `descricao_workflow` | `estatisticas.workflow.etapas[].descricaoWorkflow` (§2) | `fora_dominio_workflow` | o valor vira nulo, com a contagem e sem o valor; lista vazia = toda descrição do workflow nula no staging das etapas | só staging das etapas; nenhuma métrica da F2 o lê |
+| `categoria` | coluna `categoria` (plano §2 linha 9) | `fora_dominio_categoria` | o valor vira nulo, com a contagem e sem o valor; lista vazia = a coleta não começa (`listas-vazias`, E4.42; antes toda categoria ficava nula e a natureza sem valor). `categoria_key` continua lida | natureza (§10) e `categoria_sistema` da projeção |
+| `descricao_workflow` | `estatisticas.workflow.etapas[].descricaoWorkflow` (§2) | `fora_dominio_workflow` | o valor vira nulo, com a contagem e sem o valor; lista vazia = a coleta não começa (`listas-vazias`, E4.42) | só staging das etapas; nenhuma métrica da F2 o lê |
 
-Formato da linha: `codigo` e `rotulo` são conferidos os dois contra o valor (`referencia.ts`); na `categoria`, `codigo` = `categoria_key` em texto decimal e `rotulo` = o nome exato; na `descricao_workflow`, o próprio texto nos dois. `ordem` = a posição no arquivo. Lista vazia não impede a coleta (só as do recorte, §4 a §6, impedem); por isso o painel não se publica com `fora_dominio_categoria` maior que zero sem o dono ter visto a contagem.
+Formato da linha: `codigo` e `rotulo` são conferidos os dois contra o valor (`referencia.ts`); na `categoria`, `codigo` = `categoria_key` em texto decimal e `rotulo` = o nome exato; na `descricao_workflow`, o próprio texto nos dois. `ordem` = a posição no arquivo. Lista vazia impede a coleta (E4.42; antes só as do recorte, §4 a §6, impediam, e a lista vazia anulava o valor em silêncio); por isso o painel não se publica com `fora_dominio_categoria` maior que zero sem o dono ter visto a contagem.
 
 Consulta de valores distintos, na mesma conta e no terminal do dono: só valores distintos com a contagem, nenhuma linha de dado, no mesmo recorte do §11 (nenhuma organização cliente entra no filtro). A versão com `UNION ALL` das duas metades **falha no servidor com o erro 1271** (mistura ilegal de intercalações no `UNION`: as duas metades devolvem texto com intercalações diferentes, a coluna `categoria` da tabela e a coluna gerada pelo `JSON_TABLE`; observado na E4.22); por isso o texto fica em **duas consultas**, cada uma com o mesmo SQL da metade correspondente, rodadas em separado:
 
