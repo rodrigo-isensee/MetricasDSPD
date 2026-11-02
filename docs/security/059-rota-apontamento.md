@@ -3,47 +3,33 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 059-aba-apontamento
 branch: feature/059-rota-apontamento
-commit: e38c51983002f195407d98e73fc3adafb1016593
+commit: 1bf3338d43124f711d98a1bc15ac42ffb2123da4
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-02
 ---
-# Review de segurança: rota da aba Apontamento (pedido 059, E2.24, K-193), rodada 2 por delta
+# Review de segurança: rota da aba Apontamento (pedido 059, E2.24 e E2.75, K-193), rodada 3 por delta
 
-Delta revisado: `8a92a49...e38c519` (base fixada pelo dono em 2026-11-02), restrito a `server/src/modulos/apontamento`, `server/src/plataforma`, `server/migrations/0033_bm_apt_pessoa_time.ts`, `server/eslint.config.js` e `docs/api`. O código vai até `abfd287`; `e38c519` só acrescenta o parecer do code review. O código do contrato e da coleta que veio por merge (`dbcb421`, `e7b1c17`) tem parecer próprio (`059-alfa.md` em `ccf9651`, `059-beta.md` em `82d1360`); dele li só o que a rota usa: o refinamento dos rótulos fixos do contrato, o filtro da biblioteca e o caminho da eliminação a pedido até a view. Os acréscimos de `config.ts` (comando do worklog e eliminação) vêm da coleta, já revisados lá. Revisão estática: o `.env` não foi lido, nada foi executado contra banco nem contra o BusinessMap, nenhum nome de pessoa neste documento.
+**Rodada 3 (revalidação por delta, E2.75).** Intervalo pedido: `0b4519c..1bf3338`, o merge da develop (squashes dos PRs 194 e 195, ponta `32ebf3a`) na branch do PR 196. Lido com `forge-check delta --parecer docs/security/059-rota-apontamento.md` (que parte de `e38c519`, a ponta aprovada na rodada 2), `git show --cc --stat 1bf3338`, `git diff origin/develop..origin/feature/059-rota-apontamento -- packages` e a saída do `forge-check pr`, que acusava este parecer desatualizado por `packages/metricas/src/businessmap/index.ts`. A ponta lida foi `cbff473`, que sobre `1bf3338` só acrescenta o parecer do code review. Revisão estática: o `.env` não foi lido, nada foi executado contra banco nem contra o BusinessMap, nenhum nome de pessoa neste documento.
 
-**Veredito: aprovado.** Nenhum bloqueante. A1 e A2 da rodada 1 resolvidos; um recomendado novo (A3, teste). Os itens da rodada 1 fora do delta (papel e GRANTs restantes, 421, interruptor e guarda de partida, no-store, CORS, log) não mudaram e continuam valendo como descritos no parecer em `5f57925`.
+**Veredito: aprovado em 1bf3338.** O merge não traz código: o `diff --stat` de `0b4519c..1bf3338` só mostra quatro pareceres de outras branches e papéis (`docs/qa/059-beta.md`, `docs/qa/059-excecao-apontamento.md`, `docs/reviews/059-beta.md`, `docs/security/059-beta.md`). Em `packages`, `server`, `web`, `e2e` e `.github`, `git diff e38c519 origin/feature/059-rota-apontamento` sai vazio: o código é o mesmo aprovado na rodada 2. Nenhum achado novo; o recomendado A3 segue aberto como estava.
 
 ## Gatilhos
-Dado pessoal (chave opaca e nome real numa rota sem autenticação), GRANT por coluna novo ao papel da aba, view com o privilégio do dono (renumerada), exceções nomeadas nos guardas de view e de coluna de pessoa, regra de lint que protege o pool do papel. R-SEGURANCA.
+Os mesmos da rodada 2 (dado pessoal numa rota sem autenticação, GRANT por coluna do papel da aba, view com o privilégio do dono, exceções nomeadas nos guardas, regra de lint do pool). R-SEGURANCA. O intervalo não toca workflow, compose, nginx, hook nem controle do Forge.
 
 ## Achados
 - A3 (recomendado) server/migrations/0033_bm_apt_pessoa_time.ts:24 · nenhum teste .pg prova que, depois da eliminação a pedido, a view de quem é do time deixa de devolver o pessoa_ref antigo; a garantia hoje é só estrutural (JOIN com dim_responsavel, cuja linha a eliminação apaga).
 
-## Resolução dos achados da rodada 1
-- **A1 (recomendado): resolvido.** `noInlineConfig` passa a valer em todo `**/*.ts` do server (`server/eslint.config.js:46`); `git grep` não acha nenhum `eslint-disable` em `server/src`, `server/tests` nem `server/migrations`. Fora dos módulos, o import de `modulos/apontamento` é proibido por regex (`:21`, `:48-49`) e só os três que montam a API o fazem (`src/app.ts`, `src/entradas/api.ts`, `src/entradas/openapi.ts`, `:22`, `:51`), mantendo para eles as demais restrições (arquivo interno de módulo, biblioteca do coletor, mock). Dentro dos módulos a regra por módulo (`:37`) segue.
-- **A2 (recomendado): resolvido no ramo do discovery** (`9ac2855` em `docs/059-apontamento-discovery`): a R4-5 da ADR 0020 lista `apt_pessoa_time` (só `pessoa_ref` e `vigencia_ate`, lida só pelo papel da aba) e `ref_versao_criterio_metrica` (`:140`), e a alternativa (b) passa a "escolhida" só para essa view, com as alternativas reais deste parecer como não adotadas (`:165`).
+## O que o delta muda (rodada 3)
+- **Por que o `forge-check pr` acusou.** A única diferença da branch para a develop em `packages` é a linha `ordenarPorPessoa` no re-export de `packages/metricas/src/businessmap/index.ts:67`. A função já existe na develop (`businessmap/apontamento/comum.ts:72`, re-exportada em `apontamento/index.ts:27`, sem diferença para a branch) e foi revisada no 059-alfa; o re-export é do `0f582f2` e já estava na ponta aprovada na rodada 2. O que mudou depois do parecer foi a develop, não a branch.
+- **O que o export expõe.** `ordenarPorPessoa` só ordena itens já montados pela rota (ordem neutra alfabética ou por total, com `Outra área` no fim, `apontamento.test.ts:181-199`); não lê banco, não acrescenta campo nem rótulo. O único chamador fora da biblioteca é `server/src/modulos/apontamento/servico.ts:122`, sobre rótulos que já passaram pelo interruptor e pelo `superRefine` do contrato. O `web/` não o importa. Sem caminho novo para pessoa.
+- **Os 8 arquivos do conflito.** Pela decisão técnica do conflito da rota, ficam na versão da branch (ponta da coleta mais a 0033, a view e o export); `git show --cc` do merge não lista nenhum deles, logo cada trecho veio de um dos pais, sem resolução nova. A view, os GRANTs, as exceções nomeadas em `catalogo.pg.test.ts`, `migracoes.estatico.test.ts` e `lgpd.ts` e o snapshot do esquema estão como na rodada 2.
+- **Pareceres 059-beta da coleta.** Ficam na versão da develop, que é o parecer de segurança da coleta da rodada 3 (aprovado em `29c64aa`). A nota dele para esta rota (view de quem é do time sem `pessoa_ref` de pessoa eliminada) já foi conferida na rodada 2 e segue valendo; o teste que a prova de ponta a ponta continua sendo o A3.
+- **Fora do intervalo, desde `e38c519`.** O merge anterior (`0b4519c`) trouxe da develop o registro da exceção no `CLAUDE.md:14` e no briefing §7.1 (PR 193) e o `.forge/versao`. O texto da exceção pede o que a rota já faz (rota única, papel dedicado, ordem neutra, piso de 20, aba fora da exportação) e não afrouxa controle.
 
-## O que foi verificado no delta e está correto
-
-**GRANT de `type_id` ao papel da aba (`server/src/plataforma/db/grants.ts:15`).** Uma coluna a mais em `COLUNAS_API_APONTAMENTO` para `fato_apontamento`, por coluna; `type_id` é o tipo do card no BusinessMap, não dado de pessoa, e não entra em `COLUNAS_PESSOA`. Nada muda para `dspd_api` nem para os outros papéis; a lista segue sem `logged_time_id`, hash, comentário, categoria e `qtd_palavras`.
-
-**Filtro por tipo (`servico.ts:59`, `:143`; `repositorio.ts`).** A recusa 422 sai (`servico.ts` e `rotas.ts`) e o filtro passa a ser aplicado pela biblioteca (`packages/metricas/src/businessmap/apontamento/filtros.ts:53`) sobre `tipo.id`, que agora é o `type_id`. A entrada continua validada pelo contrato antes do banco: lista de dígitos com teto de 50 (`packages/contratos/src/apontamento.ts:141`), consulta estrita e recusa de repetido; o valor nunca vai ao SQL (a consulta de linhas só recebe `de` e `ate` por parâmetro e lê `f.type_id` como coluna). Valor inexistente devolve zero, sem erro que revele o catálogo de tipos (teste `.pg` com `tipo=999`). `opcoes.tipos` só traz `type_id` em dígitos e o rótulo da categoria (`dim_card.tipo`); a linha sem `type_id` soma, mas não vira opção. Sem caminho para pessoa.
-
-**Rótulos fixos com `nomesReais` falso (`servico.ts:115-117`).** Desligado, o rótulo é só `Pessoa n` derivado do próprio `pessoaRef`, e o banco não recebe consulta ao nome; ligado, o nome ou `ROTULO_PESSOA_NAO_IDENTIFICADA` do contrato. A resposta é validada por `respostaApontamentoSchema`, cujo `superRefine` recusa com `nomesReais` falso qualquer rótulo fora de `^Pessoa [1-9]\d{0,8}$`, `Pessoa não identificada` e `Outra área` (`apontamento.ts:169-175`, `:392-400`): um nome que escapasse por erro de código vira 500 genérico, não vazamento. É defesa em profundidade sobre o interruptor.
-
-**Erro da rota (`rotas.ts:70-76`).** Saiu o repasse de `AppError`; toda exceção dentro de `montarApontamento` (que não lança mais nenhuma) vira 500 genérico, com log só da classe e do SQLSTATE. Menos superfície, não mais.
-
-**View renumerada para 0033 (`server/migrations/0033_bm_apt_pessoa_time.ts`).** O SQL é idêntico ao da 0029 revisada na rodada 1 (`git diff` entre as duas sem diferença); só muda o número, para depois das migrações da coleta (0029 a 0032), das quais a view depende (`dim_card_raiz`, `dim_responsavel.pessoa_ref`). O `down` da 0032 desfaz também a 0033 (`abfd287`, teste de migração). As exceções nomeadas seguem presas ao nome exato: `catalogo.pg.test.ts:60` e `:90`, `migracoes.estatico.test.ts:90` e `:131`; a coluna de view em `COLUNAS_PESSOA` segue em `lgpd.ts:22`. A avaliação da rodada 1 (saída mínima, GRANT só ao papel da aba, `search_path` resolvido na criação, predicado sem alcance além das colunas de saída) vale sem mudança.
-
-**A view não devolve `pessoa_ref` de pessoa eliminada (nota do parecer da coleta).** A view só emite `r.pessoa_ref` de `dim_responsavel` por JOIN interno (`0033:24`). A eliminação a pedido apaga a linha de `dim_responsavel` e anula `pessoa_ref` no fato na mesma transação (`server/src/modulos/businessmap/apontamento/eliminacao.ts:86-90`). O único `INSERT` em `dim_responsavel` em `server/src` é `resolverResponsaveis` (`server/src/modulos/businessmap/usuarios.ts:95`), que descarta os ids suprimidos antes de pedir e de inserir e não roda sem o sal com a lista não vazia (`:59-68`, A1 da coleta). Logo, depois da eliminação, a pessoa sai da view, não volta pela coleta, e a rota não a separa do time nem a mostra; as horas dela, com `pessoa_ref` nulo, ficam só no agregado do time. Mesmo que um id fosse recriado por erro, receberia `pessoa_ref` novo, sem vínculo com o fato antigo. Falta só o teste que prove isso de ponta a ponta (A3).
-
-**Documentação da API (`docs/api/apontamento.md`, `openapi.json`).** Coerente com o código: 422 removido da tabela e do OpenAPI, filtro por `type_id` descrito, rótulos fixos com `nomesReais` falso, pseudonimização (não anonimato) mantida. Nenhum exemplo traz nome de pessoa.
-
-## Detalhe dos achados
-
-### A3 (recomendado): falta o teste da view depois da eliminação
-Evidência: `server/migrations/0033_bm_apt_pessoa_time.ts:24` (JOIN com `dim_responsavel`) e `server/src/modulos/businessmap/apontamento/eliminacao.ts:89` (DELETE da linha); `server/tests/apontamento-eliminacao.pg.test.ts` não consulta `apt_pessoa_time`. Caminho: nenhum hoje; o risco é regressão futura (por exemplo, a view passar a ler `pessoa_ref` de outra tabela ou a eliminação trocar o DELETE por anulação do nome), que devolveria à rota a chave de quem pediu eliminação, contra a decisão do dono sobre retenção (P-2, 2026-11-01). Severidade baixa. Correção mínima: no `.pg` da eliminação ou no da rota, eliminar uma pessoa responsável por card do escopo e conferir que `SELECT pessoa_ref FROM apt_pessoa_time` não a devolve e que a resposta da rota não traz o `pessoaRef` antigo em `opcoes.pessoas`. Esforço P. Dono: node-backend (ou qa-engineer no QA da rota).
+## Resolução dos achados anteriores
+- A1 e A2 (recomendados, rodada 1): resolvidos na rodada 2, sem mudança.
+- A3 (recomendado, rodada 2): aberto. `server/tests/apontamento-rota.pg.test.ts:102` cobre o fato com `pessoa_ref` nulo no agregado do time, mas nenhum teste elimina uma pessoa responsável por card do escopo e consulta `apt_pessoa_time` depois.
 
 ## Plano em cartões
 - A3: node-backend ou qa-engineer, junto do QA da rota; não devolve.
@@ -52,4 +38,4 @@ Evidência: `server/migrations/0033_bm_apt_pessoa_time.ts:24` (JOIN com `dim_res
 Nenhum novo. Os da rodada 1 seguem: com o nome real ligado e `APONTAMENTO_REDE_LOCAL`, qualquer máquina da rede local lê a aba sem autenticação (decisões "C" e P-1 do dono, 2026-11-01, até o login pelo AD); `HOST=0.0.0.0` com `APONTAMENTO_PUBLICACAO_LOOPBACK=1` fora do contêiner é declaração do dono que a guarda não confere.
 
 ## Ferramentas e lacunas
-Leitura estática, `git diff` e `git grep`. `gitleaks`, `osv-scanner`, `semgrep`, `zizmor`, `actionlint` e `trivy` não estão no PATH desta estação e não foram rodados; as varreduras ficam no CI do `devops-engineer`. O delta não traz dependência nova nem credencial. Nenhum segredo foi lido ou exibido; nenhum arquivo fora de `docs/security/` foi tocado.
+Leitura estática, `forge-check delta`, `forge-check pr`, `git show --cc`, `git diff` e `git grep`. `gitleaks`, `osv-scanner`, `semgrep`, `zizmor`, `actionlint` e `trivy` não estão no PATH desta estação e não foram rodados; as varreduras ficam no CI do `devops-engineer`. O intervalo não traz dependência nova nem credencial. Suítes não foram rodadas por este papel (o tech-lead relatou pronto verde e checks verdes em `1bf3338`). Nenhum segredo foi lido ou exibido; nenhum arquivo fora de `docs/security/` foi tocado.
