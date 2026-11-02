@@ -28,6 +28,7 @@ describe('consultaParaQuery', () => {
       de: '2026-08-03',
       ate: '2026-10-30',
       diarioDe: '2026-10-05',
+      diarioAte: '2026-10-30',
       nivelMatriz: 'subgrupo',
       anomalos: 'ocultar',
     })
@@ -38,6 +39,8 @@ describe('consultaParaQuery', () => {
       qualidade: 'completo',
       de: '2026-08-03',
       ate: '2026-10-30',
+      diarioDe: '2026-10-05',
+      diarioAte: '2026-10-30',
       nivelMatriz: 'subgrupo',
       anomalos: 'ocultar',
     })

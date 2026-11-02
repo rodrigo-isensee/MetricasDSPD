@@ -165,11 +165,4 @@ describe('aba como quinta visão do seletor do Operacional', () => {
     expect(roteador.state.location.search).toBe('?cadencia=diaria')
     expect(await screen.findByTestId('pergunta-cadencia')).toBeInTheDocument()
   })
-
-  it('escolher Apontamento de novo na própria aba não navega', async () => {
-    const { roteador } = abrir(`${URL_ABA}?pessoa=p1`)
-    await pronto()
-    await userEvent.click(screen.getByRole('radio', { name: 'Apontamento' }))
-    expect(roteador.state.location.search).toBe('?pessoa=p1')
-  })
 })

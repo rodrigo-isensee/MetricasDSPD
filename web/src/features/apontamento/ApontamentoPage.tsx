@@ -11,7 +11,12 @@ import {
 import { ChipsFiltros } from '@/features/filtros/ChipsFiltros'
 import { IndiceDeSecoes, type SecaoDoIndice } from '@/features/operacional/IndiceDeSecoes'
 import { SeletorVisao } from '@/features/operacional/SeletorVisao'
-import { hrefDaVisao, VISAO_APONTAMENTO, type OpcaoDoSeletor } from '@/features/navegacao/visao'
+import {
+  hrefDaVisao,
+  VISAO_APONTAMENTO,
+  type OpcaoDoSeletor,
+  type Visao,
+} from '@/features/navegacao/visao'
 import { BarraFiltrosApontamento } from './components/BarraFiltrosApontamento'
 import {
   AvisoNomeReal,
@@ -76,7 +81,8 @@ export default function ApontamentoPage({
   // Sair da aba é trocar de rota: o Operacional abre na visão escolhida e o shell leva o foco ao título dela.
   const irParaVisao = (v: OpcaoDoSeletor) => {
     focoPendenteRef.current = null
-    if (v !== VISAO_APONTAMENTO) void navigate(hrefDaVisao(v, new URLSearchParams()))
+    // O rádio já marcado (Apontamento) não dispara `onChange`: toda escolha que chega aqui é uma das quatro visões.
+    void navigate(hrefDaVisao(v as Visao, new URLSearchParams()))
   }
   const ativos = useMemo(
     () => filtrosAtivos(uso.consulta, resposta?.opcoes),

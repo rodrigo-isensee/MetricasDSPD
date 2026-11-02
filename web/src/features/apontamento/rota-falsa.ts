@@ -15,11 +15,8 @@ export interface OpcoesFetchFalso {
 /** `fetch` de teste que faz o papel da rota `GET /api/apontamento`. Registra cada URL chamada em `chamadas`. */
 export function criarFetchFalso(opcoes: OpcoesFetchFalso = {}) {
   const chamadas: string[] = []
-  const fetchFalso = vi.fn((entrada: RequestInfo | URL): Promise<Response> => {
-    const url = new URL(
-      entrada instanceof Request ? entrada.url : String(entrada),
-      'http://localhost',
-    )
+  const fetchFalso = vi.fn((entrada: string | URL): Promise<Response> => {
+    const url = new URL(String(entrada), 'http://localhost')
     chamadas.push(`${url.pathname}${url.search}`)
     if (opcoes.rede) return Promise.reject(new TypeError('falha de rede'))
     if (url.searchParams.has('tipo') && (opcoes.tipo ?? '422') === '422')
@@ -29,7 +26,7 @@ export function criarFetchFalso(opcoes: OpcoesFetchFalso = {}) {
           { status: 422 },
         ),
       )
-    const nivel = url.searchParams.get('nivelMatriz') ?? 'tipo'
+    const nivel = url.searchParams.get('nivelMatriz')
     const corpo = opcoes.resposta
       ? opcoes.resposta(url)
       : respostaFicticia({ nivelMatriz: nivel as NivelMatriz, anomalos: 'incluir' })

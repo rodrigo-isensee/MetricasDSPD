@@ -508,10 +508,10 @@ export function respostaComNomesReais(
 export function respostaComOutraArea(
   base: RespostaApontamento = RESPOSTA_FICTICIA,
 ): RespostaApontamento {
-  const deOutra = <T extends { pessoaRef: string }>(ls: T[]): T[] => {
-    const modelo = ls.find((l) => l.pessoaRef === 'p7')
-    return modelo ? [...ls, { ...modelo, pessoaRef: PESSOA_OUTRA_AREA }] : ls
-  }
+  const deOutra = <T extends { pessoaRef: string }>(ls: T[]): T[] => [
+    ...ls,
+    ...ls.filter((l) => l.pessoaRef === 'p7').map((l) => ({ ...l, pessoaRef: PESSOA_OUTRA_AREA })),
+  ]
   return {
     ...base,
     opcoes: {
