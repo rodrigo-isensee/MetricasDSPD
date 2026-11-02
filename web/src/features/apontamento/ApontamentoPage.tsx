@@ -1,4 +1,5 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router'
 import {
   CabecalhoPainel,
   EstadoVazio,
@@ -9,6 +10,8 @@ import {
 } from '@/components/ui'
 import { ChipsFiltros } from '@/features/filtros/ChipsFiltros'
 import { IndiceDeSecoes, type SecaoDoIndice } from '@/features/operacional/IndiceDeSecoes'
+import { SeletorVisao } from '@/features/operacional/SeletorVisao'
+import { hrefDaVisao, VISAO_APONTAMENTO, type OpcaoDoSeletor } from '@/features/navegacao/visao'
 import { BarraFiltrosApontamento } from './components/BarraFiltrosApontamento'
 import {
   AvisoNomeReal,
@@ -23,11 +26,11 @@ import { CartaoMatriz } from './components/CartaoMatriz'
 import { CartaoCapacidadeMensal, CartaoCapacidadePessoa } from './components/CartoesCapacidade'
 import { CartaoQualidadeGeral, CartaoQualidadePessoa } from './components/CartoesQualidade'
 import { ProvedorDadosAba, type DadosAba } from './dados'
-import { fonteFicticia } from './fixture'
+import { fonteHttpApontamento } from './api'
 import { filtrosAtivos, useFiltrosApontamento } from './filtros'
 import { CARREGANDO, SECOES, VAZIO } from './textos'
 import type { FonteApontamento } from './types'
-import { useApontamento } from './useApontamento'
+import { useApontamento, useFiltroTipoDisponivel } from './useApontamento'
 
 const INDICE: readonly SecaoDoIndice[] = [
   ['secao-kpis', 'Quanto foi apontado', []],
@@ -38,17 +41,43 @@ const INDICE: readonly SecaoDoIndice[] = [
   ['secao-diario', 'Dia a dia', []],
 ]
 
-/** Origem dos dados: enquanto a rota não existe (C2), tudo vem da fixture e o selo "Dados fictícios" diz isso. */
-const origemFicticia = () => ({ ficticio: true, motivo: 'aguardando a rota da API' })
+/** Origem dos dados: a rota real (`GET /api/apontamento`); nenhum cartão da aba é fictício. */
+const origemReal = () => ({ ficticio: false, motivo: null })
 
 /**
- * Aba Apontamento (pedido 059, trilha C1): contrato v1 contra fixture tipada. Uma consulta, seis seções; o
+ * Aba Apontamento (pedido 059): contrato v1 pela rota `GET /api/apontamento`. Uma consulta, seis seções; o
  * vazio é tratado uma vez, aqui. Não tem botão de exportar (o4) e não grava pessoa em lugar nenhum além da URL.
  */
-export default function ApontamentoPage({ fonte = fonteFicticia }: { fonte?: FonteApontamento }) {
-  const uso = useFiltrosApontamento()
-  const dados = useApontamento(fonte, uso.consulta)
+export default function ApontamentoPage({
+  fonte = fonteHttpApontamento,
+}: {
+  fonte?: FonteApontamento
+}) {
+  const navigate = useNavigate()
+  const lido = useFiltrosApontamento()
+  const tipoDisponivel = useFiltroTipoDisponivel(fonte)
+  // Enquanto a rota responder 422 `FILTRO_INDISPONIVEL`, `tipo` não vai à consulta e o filtro não é oferecido. O
+  // chip continua na tela (para quem chegou por link poder tirá-lo) e o aviso de valor ignorado diz o que houve.
+  const uso = useMemo(
+    () =>
+      tipoDisponivel || !lido.consulta.tipo
+        ? lido
+        : { ...lido, invalidos: [...lido.invalidos, 'Tipo (filtro ainda indisponível)'] },
+    [lido, tipoDisponivel],
+  )
+  const consultaEnviada = useMemo(() => {
+    if (tipoDisponivel || !uso.consulta.tipo) return uso.consulta
+    const { tipo: _tipo, ...resto } = uso.consulta
+    return resto
+  }, [uso.consulta, tipoDisponivel])
+  const dados = useApontamento(fonte, consultaEnviada)
   const resposta = dados.resposta
+  const focoPendenteRef = useRef<OpcaoDoSeletor | null>(null)
+  // Sair da aba é trocar de rota: o Operacional abre na visão escolhida e o shell leva o foco ao título dela.
+  const irParaVisao = (v: OpcaoDoSeletor) => {
+    focoPendenteRef.current = null
+    if (v !== VISAO_APONTAMENTO) void navigate(hrefDaVisao(v, new URLSearchParams()))
+  }
   const ativos = useMemo(
     () => filtrosAtivos(uso.consulta, resposta?.opcoes),
     [uso.consulta, resposta],
@@ -78,7 +107,7 @@ export default function ApontamentoPage({ fonte = fonteFicticia }: { fonte?: Fon
       removerFiltro={uso.remover}
       limparFiltros={uso.limpar}
     >
-      <ProvedorOrigemCartoes origem={origemFicticia}>
+      <ProvedorOrigemCartoes origem={origemReal}>
         <ProvedorDadosAba valor={valor}>
           <div className="flex flex-col gap-6" data-testid="aba-apontamento">
             {dados.resposta?.nomesReais && <AvisoNomeReal />}
@@ -90,6 +119,11 @@ export default function ApontamentoPage({ fonte = fonteFicticia }: { fonte?: Fon
               slug="apontamento"
               frescor={<FrescorEPeriodo resposta={dados.resposta} />}
             >
+              <SeletorVisao
+                visao={VISAO_APONTAMENTO}
+                onEscolher={irParaVisao}
+                focoPendenteRef={focoPendenteRef}
+              />
               <LegendaFinalidade />
               {resposta ? (
                 <BarraFiltrosApontamento
@@ -97,6 +131,7 @@ export default function ApontamentoPage({ fonte = fonteFicticia }: { fonte?: Fon
                   uso={uso}
                   ativos={ativos}
                   nomesReais={resposta.nomesReais}
+                  tipoDisponivel={tipoDisponivel}
                 />
               ) : (
                 ativos.length > 0 && <ChipsFiltros chips={ativos} onRemover={uso.remover} />

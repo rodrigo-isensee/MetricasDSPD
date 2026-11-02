@@ -85,9 +85,9 @@ describe('lerFiltros', () => {
 
 describe('ordenarPorTotal', () => {
   const linhas = [
-    { n: 'a', t: 1 },
-    { n: 'b', t: 5 },
-    { n: 'c', t: 5 },
+    { pessoaRef: 'p1', n: 'a', t: 1 },
+    { pessoaRef: 'p2', n: 'b', t: 5 },
+    { pessoaRef: 'p3', n: 'c', t: 5 },
   ]
   it('alfabética mantém a ordem recebida; total ordena do maior e desempata pela ordem recebida', () => {
     expect(ordenarPorTotal(linhas, 'alfabetica', (l) => l.t).map((l) => l.n)).toEqual([
@@ -96,6 +96,10 @@ describe('ordenarPorTotal', () => {
       'c',
     ])
     expect(ordenarPorTotal(linhas, 'total', (l) => l.t).map((l) => l.n)).toEqual(['b', 'c', 'a'])
+  })
+  it('"Outra área" fica por último também na ordem por total, mesmo com o maior total', () => {
+    const com = [{ pessoaRef: 'outra-area', n: 'z', t: 99 }, ...linhas]
+    expect(ordenarPorTotal(com, 'total', (l) => l.t).map((l) => l.n)).toEqual(['b', 'c', 'a', 'z'])
   })
   it('não altera a lista recebida', () => {
     const copia = [...linhas]

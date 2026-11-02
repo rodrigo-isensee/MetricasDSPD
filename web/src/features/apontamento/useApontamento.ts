@@ -9,7 +9,7 @@ import type { ConsultaApontamento, FonteApontamento } from './types'
 export function useApontamento(fonte: FonteApontamento, consulta: ConsultaApontamento) {
   const q = useQuery({
     queryKey: ['apontamento', consulta],
-    queryFn: () => fonte.buscar(consulta),
+    queryFn: ({ signal }) => fonte.buscar(consulta, signal),
     placeholderData: keepPreviousData,
   })
   return {
@@ -19,4 +19,19 @@ export function useApontamento(fonte: FonteApontamento, consulta: ConsultaAponta
     atualizando: q.isFetching && q.isPlaceholderData,
     tentarDeNovo: () => void q.refetch(),
   }
+}
+
+/**
+ * O filtro por tipo só aparece quando a rota o aceita. Enquanto responder 422 `FILTRO_INDISPONIVEL` (ou a sonda
+ * falhar, ou a fonte não souber dizer), fica `false`: o filtro some e `tipo` na URL não vai para a consulta.
+ */
+export function useFiltroTipoDisponivel(fonte: FonteApontamento): boolean {
+  const q = useQuery({
+    queryKey: ['apontamento-filtro-tipo'],
+    queryFn: ({ signal }) =>
+      fonte.filtroTipoDisponivel ? fonte.filtroTipoDisponivel(signal) : false,
+    staleTime: Infinity,
+    retry: false,
+  })
+  return q.data === true
 }

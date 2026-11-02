@@ -7,6 +7,7 @@ import type { Ordem } from './ordem'
 import {
   FLAGS_QUALIDADE,
   NIVEIS_MATRIZ,
+  PESSOA_OUTRA_AREA,
   type ConsultaApontamento,
   type FiltroQualidade,
   type NivelMatriz,
@@ -22,7 +23,7 @@ const CHAVES_LISTA = ['pessoa', 'projeto', 'tipo', 'subtarefa', 'subgrupo', 'qua
 export type ChaveLista = (typeof CHAVES_LISTA)[number]
 
 const FORMATO: Record<ChaveLista, (v: string) => boolean> = {
-  pessoa: (v) => /^p[1-9]\d{0,8}$/.test(v),
+  pessoa: (v) => /^p[1-9]\d{0,8}$/.test(v) || v === PESSOA_OUTRA_AREA,
   projeto: (v) => /^\d{1,12}$/.test(v),
   tipo: (v) => /^\d{1,12}$/.test(v),
   subtarefa: (v) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(v) && v.length <= 40,

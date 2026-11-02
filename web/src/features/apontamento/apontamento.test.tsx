@@ -661,10 +661,10 @@ describe('qualidade e distribuição', () => {
     expect(screen.getByTestId('aba-apontamento').textContent).not.toMatch(/Fonte: Acelerato/)
   })
 
-  it('o dado vem da fixture: todo cartão leva o selo "Dados fictícios"', async () => {
+  it('o dado é da rota: nenhum cartão leva o selo "Dados fictícios"', async () => {
     renderizar()
     const kpis = await screen.findByTestId('metrica-AP-KPIS')
-    expect(within(kpis).getByTestId('selo-ficticio')).toBeInTheDocument()
+    expect(within(kpis).queryByTestId('selo-ficticio')).not.toBeInTheDocument()
   })
 
   it('o dicionário que mudou no período aparece como mudança de critério no cartão de subgrupo', async () => {

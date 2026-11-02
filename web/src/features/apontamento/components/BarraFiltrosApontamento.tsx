@@ -26,11 +26,14 @@ export function BarraFiltrosApontamento({
   uso,
   ativos,
   nomesReais,
+  tipoDisponivel,
 }: {
   opcoes: OpcoesApontamento
   uso: UsoFiltrosApontamento
   ativos: readonly AtivoApontamento[]
   nomesReais: boolean
+  /** `false` enquanto a rota responder 422 `FILTRO_INDISPONIVEL`: o filtro por tipo não é oferecido. */
+  tipoDisponivel: boolean
 }) {
   const [aberta, setAberta] = useState(false)
   const idPainel = useId()
@@ -116,14 +119,16 @@ export function BarraFiltrosApontamento({
           genero="m"
           onChange={(ids, r) => uso.definirLista('projeto', ids, r)}
         />
-        <FiltroMulti
-          id="tipo"
-          rotulo="Tipo"
-          opcoes={nomes(opcoes.tipos)}
-          selecionados={c.tipo ?? []}
-          genero="m"
-          onChange={(ids, r) => uso.definirLista('tipo', ids, r)}
-        />
+        {tipoDisponivel && (
+          <FiltroMulti
+            id="tipo"
+            rotulo="Tipo"
+            opcoes={nomes(opcoes.tipos)}
+            selecionados={c.tipo ?? []}
+            genero="m"
+            onChange={(ids, r) => uso.definirLista('tipo', ids, r)}
+          />
+        )}
         <FiltroMulti
           id="subgrupo"
           rotulo="Subgrupo"

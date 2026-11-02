@@ -1,4 +1,5 @@
 import { MINIMO_AMOSTRA, type Taxa } from '@metricas-dspd/contratos'
+import { PESSOA_OUTRA_AREA } from './types'
 import type {
   CapacidadeApontamento,
   ConsultaApontamento,
@@ -17,7 +18,7 @@ import type {
 } from './types'
 
 /**
- * Fixture tipada do contrato v1 (§3.9) com pessoas fictícias, para a aba funcionar antes da rota existir (C1).
+ * Fixture tipada do contrato v1 (§3.9) com pessoas fictícias; hoje só os testes a usam (a aba lê a rota real, `api.ts`).
  * Os números abaixo fazem o papel do servidor: o front nunca os recalcula. Nada aqui é dado real.
  */
 
@@ -501,6 +502,33 @@ export function respostaComNomesReais(
 }
 
 /**
+ * Resposta com a entrada "Outra área" (decisão do dono, 2026-11-02): quem não é do time vem somado numa linha só, com a
+ * chave fixa `outra-area`, sempre por último, sem nome mesmo com `nomesReais` ligado. As linhas copiam as de `p7`.
+ */
+export function respostaComOutraArea(
+  base: RespostaApontamento = RESPOSTA_FICTICIA,
+): RespostaApontamento {
+  const deOutra = <T extends { pessoaRef: string }>(ls: T[]): T[] => {
+    const modelo = ls.find((l) => l.pessoaRef === 'p7')
+    return modelo ? [...ls, { ...modelo, pessoaRef: PESSOA_OUTRA_AREA }] : ls
+  }
+  return {
+    ...base,
+    opcoes: {
+      ...base.opcoes,
+      pessoas: [
+        ...base.opcoes.pessoas,
+        { pessoaRef: PESSOA_OUTRA_AREA, rotulo: 'Outra área', identificada: true },
+      ],
+    },
+    qualidade: { ...base.qualidade, porPessoa: deOutra(base.qualidade.porPessoa) },
+    matriz: { ...base.matriz, linhas: deOutra(base.matriz.linhas) },
+    capacidade: { ...base.capacidade, porPessoa: deOutra(base.capacidade.porPessoa) },
+    diario: { ...base.diario, linhas: deOutra(base.diario.linhas) },
+  }
+}
+
+/**
  * Fonte fictícia: aplica só o filtro de pessoa (os blocos por pessoa e o mapa diário) e a escolha do nível da
  * matriz. Filtro cujo valor não existe nas opções devolve o recorte vazio. A agregação de verdade é do servidor.
  */
@@ -543,4 +571,5 @@ export function respostaFicticia(
 
 export const fonteFicticia: FonteApontamento = {
   buscar: (consulta) => Promise.resolve(respostaFicticia(consulta)),
+  filtroTipoDisponivel: () => Promise.resolve(true),
 }
