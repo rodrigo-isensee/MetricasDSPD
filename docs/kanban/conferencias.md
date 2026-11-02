@@ -1168,3 +1168,11 @@
 | 2026-11-01 22:14 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-50.md | brief | 5 | aprovado | s |  | — | jarvis |
 | 2026-11-01 22:14 | 059-aba-apontamento | 059-aba-apontamento-software-architect-10.md | brief | 3 | aprovado | s |  | — | jarvis |
 | 2026-11-01 22:18 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-75.md | entrega | 1 | não cumpriu (conflito novo com a develop) | s | review renovado; sem merge | ambiente | destino |
+| 2026-11-01 22:24 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-54.md | brief | 1 | reprovado | s | linha solta no Fora do escopo | escopo | jarvis |
+| 2026-11-01 22:29 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-55.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 22:41 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-16.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 22:42 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-55.md | entrega | 1 | não cumpriu (test:pg barrado no sandbox) | s | merge staged, pronto verde | ambiente | destino |
+| 2026-11-01 22:47 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-56.md | brief | 1 | reprovado | s | etapa ainda pedia .pg local | decisao | jarvis |
+| 2026-11-01 22:48 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 22:49 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 22:52 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-57.md | brief | 2 | reprovado | s | passos de merge em curso; decisões do Histórico | decisao | jarvis |
