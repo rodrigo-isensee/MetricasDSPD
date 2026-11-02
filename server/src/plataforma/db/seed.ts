@@ -3,6 +3,7 @@ import { justificativaInformada } from '@metricas-dspd/metricas/acelerato';
 import { slug } from '@metricas-dspd/metricas/core';
 import { gerarBaseMock, gerarPesquisaMock, type BaseMock } from '@metricas-dspd/mock';
 import { esquemasDoAmbiente, type Esquemas } from './esquemas.js';
+import { contarColetasReais, contarItensReais, PREFIXO_COLETA_SEED } from './guarda-seed.js';
 import { emTransacao, type Consultavel, type PoolLike } from './pool.js';
 
 /**
@@ -14,7 +15,7 @@ import { emTransacao, type Consultavel, type PoolLike } from './pool.js';
  * (sem ela o estado da coleta diz "Nenhuma coleta concluída").
  * Não grava `responsaveis`, `justificativa_ajuste` (data-model §9). Nunca apaga nem sobrescreve.
  */
-export const VERSAO_SEED = 'seed-mock';
+export const VERSAO_SEED = PREFIXO_COLETA_SEED;
 export const VERSAO_SEED_COLETA = 'seed-mock-coleta';
 export const TAMANHO_LOTE = 500;
 const OFFSET_CIVIL_MS = -3 * 3600_000; // America/Sao_Paulo (ref_calendario.offset_minutos = -180)
@@ -195,6 +196,14 @@ export function insertLote(t: string, linhas: Linha[]): { texto: string; valores
   return { texto: `INSERT INTO ${t} (${cols.join(', ')}) VALUES ${grupos.join(', ')}`, valores };
 }
 
+/** O esquema alvo do seed já tem coleta real: o seed nunca grava ali (plano 060-sem-mock, P1). */
+export class ErroSeedEmBaseReal extends Error {
+  constructor(mensagem: string) {
+    super(mensagem);
+    this.name = 'ErroSeedEmBaseReal';
+  }
+}
+
 export type ResultadoSeed = 'semeado' | 'ja_semeado';
 
 /** Comparação independente da ordem das chaves (o jsonb reordena). */
@@ -216,15 +225,22 @@ export async function semear(
     escala: base.config.escala, mesesHistorico: base.config.mesesHistorico };
   const iniciado = dt(new Date(base.config.hoje).getTime());
   let gravou = false;
-  const alvos: { schema: string; fonte: 'businessmap' | 'acelerato'; mapear: (b: BaseMock, c: number, s: Esquemas) => Tabela[] }[] = [
-    { schema: S.bm, fonte: 'businessmap', mapear: mapearBM },
-    { schema: S.ac, fonte: 'acelerato', mapear: mapearAC },
+  const alvos: { schema: string; fonte: 'businessmap' | 'acelerato'; itens: 'dim_card' | 'dim_chamado'; mapear: (b: BaseMock, c: number, s: Esquemas) => Tabela[] }[] = [
+    { schema: S.bm, fonte: 'businessmap', itens: 'dim_card', mapear: mapearBM },
+    { schema: S.ac, fonte: 'acelerato', itens: 'dim_chamado', mapear: mapearAC },
   ];
   // Uma transação só, com a trava tomada antes de qualquer schema: com transações separadas, dois seeds simultâneos
   // intercalavam (A grava BM, B pula BM e grava AC) e ambos devolviam 'semeado' (K-094). Os dados de BM e AC seguem
   // em schemas e mapeamentos separados; só o commit é conjunto.
   await emTransacao(pool, async (trx: Consultavel) => {
     await trx.query('SELECT pg_advisory_xact_lock(hashtext($1))', ['dspd:seed']);
+    // P1 do plano 060-sem-mock: antes de escrever em qualquer esquema, recusa os que já têm coleta real (falha fechada; só tabela e contagem).
+    for (const { schema, itens } of alvos) {
+      const coletas = await contarColetasReais(trx, schema);
+      const cards = await contarItensReais(trx, schema, itens);
+      if (coletas > 0 || cards > 0)
+        throw new ErroSeedEmBaseReal(`seed recusado: ${schema}.ctl_coleta: ${coletas} linha(s) de coleta real; ${schema}.${itens}: ${cards} linha(s) de coleta real`);
+    }
     for (const { schema, fonte, mapear } of alvos) {
       const ex = await trx.query<{ coleta_id: string; parametros: unknown }>(
         `SELECT coleta_id, parametros FROM ${schema}.ctl_coleta WHERE versao_coletor = $1 LIMIT 1`, [VERSAO_SEED]);
