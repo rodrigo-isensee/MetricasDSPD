@@ -26,6 +26,10 @@ export const ROTAS: RouteObject[] = [
             path: 'operacional',
             lazy: lazy(() => import('@/features/operacional/OperacionalPage')),
           },
+          {
+            path: 'operacional/apontamento',
+            lazy: lazy(() => import('@/features/apontamento/ApontamentoPage')),
+          },
           { path: 'tatico', lazy: lazy(() => import('@/features/tatico/TaticoPage')) },
           {
             path: 'estrategico',

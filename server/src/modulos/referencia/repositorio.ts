@@ -11,6 +11,14 @@ export async function lerEquipesBM(db: Consultavel, S: Esquemas = esquemasDoAmbi
   return r.rows.map((x) => x.equipe);
 }
 
+/** Times ativos da tabela de times (vigência aberta): o filtro de equipe do painel operacional real. Nenhuma agregação por time. */
+export async function lerTimesAtivos(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
+  const r = await db.query<{ nome: string }>(
+    `SELECT DISTINCT nome FROM ${S.bm}.ref_time WHERE vigente_ate IS NULL AND ativo = true ORDER BY nome`);
+  return r.rows.map((x) => x.nome);
+}
+
+
 /** Sistemas vigentes do domínio `sistema` da referência do BusinessMap (código -> rótulo). */
 export async function lerSistemasBM(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<OpcaoLinha[]> {
   const r = await db.query<{ codigo: string; rotulo: string }>(
@@ -31,10 +39,15 @@ export async function lerInicioAC(db: Consultavel, S: Esquemas = esquemasDoAmbie
   return r.rows[0]?.inicio ?? null;
 }
 
-/** Id da versão de critério mais recente já vigente em `ate` (AAAA-MM-DD), de qualquer fonte; `null` se não há. */
+/**
+ * Id da versão de critério mais recente já vigente em `ate` (AAAA-MM-DD), de qualquer fonte; `null` se não há. Só conta
+ * versão que afeta alguma métrica, o mesmo critério de `lerVersoes`: a versão de partida da tabela de times (migração
+ * 0017) não leva métrica e não vira `versaoCriterio`.
+ */
 export async function lerVersaoCriterioVigente(db: Consultavel, ate: string, S: Esquemas = esquemasDoAmbiente()): Promise<string | null> {
   const r = await db.query<{ versao_id: string }>(
     `SELECT versao_id FROM ${S.core}.ref_versao_criterio
-     WHERE vigente_desde <= $1 ORDER BY vigente_desde DESC, versao_id DESC LIMIT 1`, [ate]);
+     WHERE vigente_desde <= $1 AND versao_id IN (SELECT versao_id FROM ${S.core}.ref_versao_criterio_metrica)
+     ORDER BY vigente_desde DESC, versao_id DESC LIMIT 1`, [ate]);
   return r.rows[0] === undefined ? null : String(r.rows[0].versao_id);
 }

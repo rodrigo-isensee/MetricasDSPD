@@ -487,7 +487,7 @@ test.describe('CT-32 zoom de 200% e reflow', () => {
     })
   }
 
-  test('fonte ampliada a 200% em 375 px: seletor em até 2 linhas, alvos de 44 px e cabe no recipiente', async ({
+  test('fonte ampliada a 200% em 375 px: seletor em até 3 linhas, alvos de 44 px e cabe no recipiente', async ({
     page,
     painel,
   }) => {
@@ -496,7 +496,7 @@ test.describe('CT-32 zoom de 200% e reflow', () => {
     await new PainelPage(page).esperarPronto()
     await page.addStyleTag({ content: 'html { font-size: 200% !important; }' })
     const rotulos = grupoVisao(page).locator('label')
-    await expect(rotulos).toHaveCount(4)
+    await expect(rotulos).toHaveCount(5)
     const caixas = await rotulos.evaluateAll((els) =>
       els.map((e) => {
         const r = e.getBoundingClientRect()
@@ -506,7 +506,7 @@ test.describe('CT-32 zoom de 200% e reflow', () => {
     expect(
       new Set(caixas.map((c) => c.top)).size,
       'linhas do seletor com fonte 200%',
-    ).toBeLessThanOrEqual(2)
+    ).toBeLessThanOrEqual(3)
     for (const c of caixas) expect(c.h).toBeGreaterThanOrEqual(43.5)
     // o seletor cabe no próprio recipiente (a largura da página inteira com fonte 200% depende do cabeçalho global: bug BUG-SNO-QA-01)
     const cabe = await grupoVisao(page).evaluate((g) => {
@@ -518,13 +518,13 @@ test.describe('CT-32 zoom de 200% e reflow', () => {
     expect(cabe).toBe(true)
   })
 
-  test('seletor a 375 px (fonte normal) cabe em até 2 linhas', async ({ page, painel }) => {
+  test('seletor a 375 px (fonte normal) cabe em até 3 linhas', async ({ page, painel }) => {
     await page.setViewportSize({ width: 375, height: 812 })
     await painel.ir('/operacional')
     const tops = await grupoVisao(page)
       .locator('label')
       .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top)))
-    expect(new Set(tops).size).toBeLessThanOrEqual(2)
+    expect(new Set(tops).size).toBeLessThanOrEqual(3)
   })
 })
 

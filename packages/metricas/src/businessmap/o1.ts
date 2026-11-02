@@ -24,6 +24,8 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
     0,
   )
 
+  // H-12: com o limite vindo das colunas, 0 = sem limite; sem esta marca (base semeada) vale a regra de sempre.
+  const semLimite = ctx.idx.base.config.limite_wip_por_coluna === true && limite === 0
   const dias = diasUteisNoIntervalo(diaDeIso(periodo.inicio), diaDeIso(periodo.fim), ctx.cal)
   const {
     total: { wip, bloqueados: bloq },
@@ -38,7 +40,8 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
     wip: wip[i] as number,
     bloqueados: bloq[i] as number,
     limite,
-    acimaDoLimite: (wip[i] as number) > limite,
+    // H-12: limite 0 = coluna(s) sem limite no quadro; o WIP aparece sem limite e nunca fica "acima".
+    acimaDoLimite: !semLimite && (wip[i] as number) > limite,
   }))
 
   // retrato de hoje (referência = fim do período)
@@ -54,7 +57,9 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
       const quadro = `quadro-${slug(eq.nome)}`
       porColuna = ordenarNeutro(
         ctx.idx.base.colunas.filter(
-          (c) => c.quadro_id === quadro && (c.papel === 'trabalho' || c.papel === 'homologacao'),
+          (c) =>
+            (c.equipe === undefined ? c.quadro_id === quadro : c.equipe === eq.nome) &&
+            (c.papel === 'trabalho' || c.papel === 'homologacao'),
         ),
         (c) => [c.ordem, c.coluna],
       ).map((c) => {
@@ -79,7 +84,8 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
   })
 
   const dentro = out.filter((s) => !s.acimaDoLimite).length
-  const diasDentroDoLimite = taxa(dentro, out.length)
+  // Sem limite configurado não há o que aderir: a taxa não é publicada (n = 0 fica abaixo do mínimo).
+  const diasDentroDoLimite = semLimite ? taxa(0, 0) : taxa(dentro, out.length)
   return {
     // Base = dias úteis do período (denominador da taxa); complemento = itens em progresso hoje (spec 4.O1).
     base: baseAmostral(out.length, 'dias úteis', periodo, {
@@ -87,14 +93,14 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
       unidade: 'itens em progresso hoje',
     }),
     criterios: criterios('O1', periodo, periodo, ctx),
-    hoje: { total, limite, bloqueados, acimaDoLimite: Math.max(0, total - limite) },
+    hoje: { total, limite, bloqueados, acimaDoLimite: semLimite ? 0 : Math.max(0, total - limite) },
     porColuna,
     porTipoColuna,
     equipesConsideradas: equipesSel.length,
     serie: out,
     diasDentroDoLimite,
     statusMeta:
-      diasDentroDoLimite.status === 'ok'
+      !semLimite && diasDentroDoLimite.status === 'ok'
         ? diasDentroDoLimite.pct >= 90
           ? 'dentro'
           : 'fora'

@@ -38,6 +38,7 @@ export function CartaoO3({ filtros }: { filtros: FiltrosFluxo }) {
   return (
     <CartaoMetrica
       {...propsCartao('O3', q, NOTAS_OPERACIONAL.O3)}
+      notasDoCartao={d?.notas}
       {...(d && est?.status === 'insuficiente' ? { baseVariante: 'insuficiente' as const } : {})}
       {...(leitura ? { leitura } : {})}
       {...(d ? { janelaPercentis: d.janelaPercentis, periodo: filtros.periodo } : {})}

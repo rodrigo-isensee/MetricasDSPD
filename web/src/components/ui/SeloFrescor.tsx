@@ -17,6 +17,13 @@ const CFG: Record<Selo, { texto: string; icone: NomeIcone; cor: string }> = {
   },
 }
 
+/** Texto do selo, igual na tela e no arquivo exportado (P-4). */
+export function textoSeloFrescor(selo: Selo, horas?: number | null): string {
+  return selo === 'atrasado' && horas != null
+    ? `Atrasado: última coleta há ${Math.round(horas)} h`
+    : CFG[selo].texto
+}
+
 interface Props {
   selo: Selo
   /** Horas desde a última coleta ok: o "Atrasado" diz quantas (CA-03). */
@@ -29,10 +36,7 @@ interface Props {
 /** Selo de frescor da fonte: ícone + texto, nunca só cor (CA-01). */
 export function SeloFrescor({ selo, horas, testid, className }: Props) {
   const c = CFG[selo]
-  const texto =
-    selo === 'atrasado' && horas != null
-      ? `Atrasado: última coleta há ${Math.round(horas)} h`
-      : c.texto
+  const texto = textoSeloFrescor(selo, horas)
   return (
     <span
       className={clsx(

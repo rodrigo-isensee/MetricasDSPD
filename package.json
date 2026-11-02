@@ -30,6 +30,8 @@
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && pnpm run db:up",
     "db:migrate": "bash scripts/db.sh migrate",
+    "bm:diagnostico": "bash scripts/bm-diagnostico.sh",
+    "coleta": "bash scripts/coleta.sh",
     "db:seed": "bash scripts/db.sh seed",
     "test:pg": "bash scripts/suite-unica.sh bash scripts/test-pg.sh",
     "db:limpar-testes": "bash scripts/db.sh limpar-testes",
@@ -45,7 +47,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^9.39.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -54,7 +56,7 @@
     "globals": "^17.13.0",
     "prettier": "^3.9.9",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.72.0",
+    "typescript-eslint": "^8.72.1",
     "vitest": "^5.0.5"
   },
   "packageManager": "pnpm@10.34.6"

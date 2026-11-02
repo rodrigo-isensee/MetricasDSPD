@@ -22,6 +22,10 @@ export type LinhaTransicao = {
   card_id: string; quadro_id: Texto; coluna_origem_id: Texto; coluna_destino_id: string; tipo_coluna: Texto;
   direcao: Texto; ocorrido_em: number;
 };
+/** Coluna da base real: além da definição vigente, o time do workflow dela (`ref_time_workflow` e `ref_time` vigentes). */
+export type LinhaColunaReal = LinhaColuna & { equipe: Texto };
+/** Uma versão de `ref_coluna` (todas as vigências), para o tipo da coluna no dia da transição (A4 da E2.67). */
+export type LinhaVersaoColuna = { quadro_id: string; coluna_id: string; tipo_coluna: Texto; vigente_de: string; vigente_ate: Texto; motivo: Texto };
 export type LinhaBloqueio = {
   card_id: string; motivo: Texto; coluna_em_que_bloqueou: Texto; fornecedor: Texto; inicio: Date; fim: Instante;
   duracao_horas_uteis: Texto;
@@ -37,6 +41,8 @@ export type LinhaChamado = {
   motivo_escalacao: Texto; motivo_pendencia_atual: Texto; previsao_retorno: Instante; motivo_encerramento: Texto;
   avaliacao_problema: Texto; excecao_sla_registro_posterior: boolean; incidente_critico_coordenado: boolean;
   nivel_resolucao: Texto;
+  /** F2 do Acelerato (ADR 0023): só o booleano (D-9) e o campo dos 90 dias (D-10); opcionais para a base semeada e os dublês antigos. */
+  com_agente?: boolean; reincidente_90d?: Texto;
 };
 /** Instantes das tabelas grandes vêm como epoch ms (float8): o parser de `timestamptz` do driver custa mais que a consulta. */
 export type LinhaEtapa = { chamado_id: string; etapa: string; entrada: number; saida: number | null; motivo_pendencia: Texto };
@@ -57,12 +63,13 @@ export const lerCards = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente
  * direto: a mesma transição gravada pela coleta e pelo webhook contaria em dobro (auditoria R1/C1).
  * Sem ORDER BY: a biblioteca ordena as transições de cada card (timestamp, destino, origem); ordenar no banco custaria um sort em disco.
  */
-export const lerTransicoes = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaTransicao[]> =>
+export const lerTransicoes = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente(), opcoes: { tipoResolvidoNaLeitura?: boolean } = {}): Promise<LinhaTransicao[]> =>
   (await db.query<LinhaTransicao>(
+    // Base real (A4 da E2.67): `tipo_coluna` do fato é só auditoria; o tipo vale o da versão da coluna no dia, resolvido depois da leitura.
     `SELECT card_id, quadro_id, coluna_origem_id, coluna_destino_id, tipo_coluna, direcao,
             (extract(epoch FROM ocorrido_em) * 1000)::float8 AS ocorrido_em
        FROM ${S.bm}.vw_transicao_canonica
-      WHERE tipo_coluna IS NOT NULL AND direcao IS NOT NULL`)).rows;
+      WHERE ${opcoes.tipoResolvidoNaLeitura === true ? '' : 'tipo_coluna IS NOT NULL AND '}direcao IS NOT NULL`)).rows;
 
 export const lerBloqueios = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaBloqueio[]> =>
   (await db.query<LinhaBloqueio>(
@@ -78,15 +85,31 @@ export const lerColunas = async (db: Consultavel, S: Esquemas = esquemasDoAmbien
       WHERE vigente_ate IS NULL
       ORDER BY quadro_id, ordem, coluna_id`)).rows;
 
+/** Colunas vigentes da base real com o time do workflow (só quando a situação é `time`); coluna de workflow fora não tem time. */
+export const lerColunasReais = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaColunaReal[]> =>
+  (await db.query<LinhaColunaReal>(
+    `SELECT c.quadro_id, c.coluna_id, c.nome, c.tipo_coluna, c.papel, c.ordem, c.limite_wip, t.nome AS equipe
+       FROM ${S.bm}.ref_coluna c
+       LEFT JOIN ${S.bm}.ref_time_workflow w ON w.workflow_id = c.workflow_id AND w.vigente_ate IS NULL AND w.situacao = 'time'
+       LEFT JOIN ${S.bm}.ref_time t ON t.time_id = w.time_id AND t.vigente_ate IS NULL AND t.ativo = true
+      WHERE c.vigente_ate IS NULL
+      ORDER BY c.quadro_id, c.ordem, c.coluna_id`)).rows;
+
+export const lerVersoesColuna = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaVersaoColuna[]> =>
+  (await db.query<LinhaVersaoColuna>(
+    `SELECT quadro_id, coluna_id, tipo_coluna, vigente_de::text AS vigente_de, vigente_ate::text AS vigente_ate, motivo
+       FROM ${S.bm}.ref_coluna
+      ORDER BY quadro_id, coluna_id, vigente_de`)).rows;
+
 export const lerChamados = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaChamado[]> =>
   (await db.query<LinhaChamado>(
     `SELECT chamado_id, natureza, equipe, organizacao, tipo, categoria_sistema, excluido, status, impacto, urgencia,
             prioridade, prioridade_ajustada_manualmente, justificativa_informada, aberto_em, primeiro_atendimento_em, restaurado_em,
             data_finalizado, status_sla_r, status_sla_pa, motivo_escalacao, motivo_pendencia_atual, previsao_retorno,
             motivo_encerramento, avaliacao_problema, excecao_sla_registro_posterior, incidente_critico_coordenado,
-            nivel_resolucao
+            nivel_resolucao, com_agente, reincidente_90d
        FROM ${S.ac}.dim_chamado
-      WHERE aberto_em IS NOT NULL AND equipe IS NOT NULL AND prioridade IS NOT NULL
+      WHERE aberto_em IS NOT NULL AND equipe IS NOT NULL AND fora_do_recorte = false
       ORDER BY chamado_id`)).rows;
 
 /** Sem ORDER BY: a biblioteca ordena as etapas de cada chamado (entrada, etapa). */

@@ -34,10 +34,10 @@ test.describe('Sustentação no Operacional: menu, seletor e fontes', () => {
     await expect(gaveta.getByRole('link', { name: 'Sustentação' })).toHaveCount(0);
   });
 
-  test('CA-2 seletor Visão com as quatro opções; Resumo marcado; Sustentação grava cadencia com entrada no histórico', async ({ page, painel }) => {
+  test('CA-2 seletor Visão com as cinco opções; Resumo marcado; Sustentação grava cadencia com entrada no histórico', async ({ page, painel }) => {
     await painel.ir('/operacional');
-    await expect(grupoVisao(page).getByRole('radio')).toHaveCount(4);
-    await expect(grupoVisao(page).locator('label')).toHaveText(['Resumo', 'Diária', 'Semanal', 'Sustentação']);
+    await expect(grupoVisao(page).getByRole('radio')).toHaveCount(5);
+    await expect(grupoVisao(page).locator('label')).toHaveText(['Resumo', 'Diária', 'Semanal', 'Sustentação', 'Apontamento']);
     await expect(grupoVisao(page).getByRole('radio', { name: 'Resumo' })).toBeChecked();
     await page.getByRole('radio', { name: 'Sustentação' }).click({ force: true });
     await expect(page).toHaveURL(/cadencia=sustentacao/);

@@ -8,6 +8,12 @@ const bloco = (id: string, fonte: BlocoExportacao['fonte'], extra: Partial<Bloco
     codigo: id,
     titulo: `Titulo ${id}`,
     fonte,
+    contexto: {
+      atualizadoEm: 'Atualizado em 31/10/2026 06:00',
+      frescor: 'Atual',
+      emCalibracao: false,
+      ficticio: false,
+    },
     filtros: 'Equipe: Todos · Período: Últimas 12 semanas',
     janela: 'Janela dos dados: 01/01/2026 a 31/03/2026',
     base: 'Base: 87 itens concluídos',
@@ -46,6 +52,20 @@ describe('limparTexto', () => {
 })
 
 describe('gerarPdf', () => {
+  it('cada cartão leva "Atualizado em", frescor, "em calibração" e "dados fictícios" (P-4)', async () => {
+    const b = bloco('O3', 'BusinessMap', {
+      contexto: {
+        atualizadoEm: 'Atualizado em 31/10/2026 06:00',
+        frescor: 'Atrasado: última coleta há 7 h',
+        emCalibracao: true,
+        ficticio: true,
+      },
+    })
+    const t = await textoDe(await gerarPdf(conteudo([b])))
+    expect(t).toMatch(/Atualizado em 31\/10\/2026 06:00 \S+ Frescor: Atrasado/)
+    expect(t).toMatch(/Em calibra\S+o: sim \S Dados fict\S+cios: sim/)
+  })
+
   it('cria um A4 com título e idioma pt-BR', () => {
     const doc = novoDocumento('Título')
     expect(doc.output()).toContain('/Lang (pt-BR)')
@@ -86,7 +106,8 @@ describe('gerarPdf', () => {
     ])
       expect(t).toContain(s)
     expect(t.indexOf('(Fonte: BusinessMap)')).toBeLessThan(t.indexOf('(Fonte: Acelerato)'))
-    expect(t).not.toContain('Dados fict')
+    expect(t).not.toMatch(/Dados fict\S+cios: sim/)
+    expect(t).not.toContain('base de demonstra')
     expect(t).toContain('(O sistema n')
   })
 

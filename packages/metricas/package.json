@@ -8,6 +8,7 @@
     ".": "./src/index.ts",
     "./core": "./src/core/index.ts",
     "./regras": "./src/core/regras.ts",
+    "./coletor": "./src/coletor/index.ts",
     "./businessmap": "./src/businessmap/index.ts",
     "./acelerato": "./src/acelerato/index.ts",
     "./pesquisa": "./src/pesquisa/index.ts"

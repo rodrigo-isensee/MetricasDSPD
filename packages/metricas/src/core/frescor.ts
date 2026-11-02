@@ -3,8 +3,8 @@ import { CALENDARIO_PADRAO, MS_HORA, MS_MINUTO, dataIso, diaLocal, instanteDe } 
 
 /** Agendador diário (America/Sao_Paulo). */
 export const HORARIO_COLETA = '06:00'
-/** PROVISÓRIO: tolerância do "Atrasado" é pergunta ao usuário (plano §7 R1). */
-export const TOLERANCIA_ATRASO_HORAS = 0
+/** Q-7b (dono, 2026-10-29): a coleta é às 06:00 e o selo vira "Atrasado" se até 12:00 não houver coleta ok (folga de 6 h). */
+export const TOLERANCIA_ATRASO_HORAS = 6
 
 const MIN_COLETA = Number(HORARIO_COLETA.slice(0, 2)) * 60 + Number(HORARIO_COLETA.slice(3))
 

@@ -154,7 +154,8 @@
                         "Iniciativa",
                         "Bug interno",
                         "Defeito em produção",
-                        "Dívida técnica"
+                        "Dívida técnica",
+                        "Trabalho de produto"
                       ]
                     },
                     "entregues": {
@@ -206,7 +207,8 @@
                           "Iniciativa",
                           "Bug interno",
                           "Defeito em produção",
-                          "Dívida técnica"
+                          "Dívida técnica",
+                          "Trabalho de produto"
                         ]
                       },
                       "entregues": {
@@ -272,7 +274,8 @@
                         "Iniciativa",
                         "Bug interno",
                         "Defeito em produção",
-                        "Dívida técnica"
+                        "Dívida técnica",
+                        "Trabalho de produto"
                       ]
                     },
                     "entregues": {
@@ -324,7 +327,8 @@
                           "Iniciativa",
                           "Bug interno",
                           "Defeito em produção",
-                          "Dívida técnica"
+                          "Dívida técnica",
+                          "Trabalho de produto"
                         ]
                       },
                       "entregues": {

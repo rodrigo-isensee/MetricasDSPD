@@ -21,7 +21,7 @@ export interface TabelaDadosProps {
 
 /**
  * Tabela de dados equivalente a um gráfico. A região rola na horizontal, tem rótulo e
- * `tabindex="0"` (critério 101). Primeira coluna como `th scope="row"`.
+ * `tabindex="0"` (critério 101). Primeira coluna como `th scope="row"`, fixa à esquerda (cabeçalho e linhas) quando a tabela rola.
  */
 export function TabelaDados({
   legenda,
@@ -36,11 +36,11 @@ export function TabelaDados({
         <caption className="px-3 py-2 text-left text-xs text-texto-2">{legenda}</caption>
         <thead className="bg-superficie-2">
           <tr>
-            {colunas.map((c) => (
+            {colunas.map((c, j) => (
               <th
                 key={c.chave}
                 scope="col"
-                className={`px-3 py-2 font-semibold ${c.alinhar === 'direita' ? 'text-right' : 'text-left'}`}
+                className={`px-3 py-2 font-semibold ${c.alinhar === 'direita' ? 'text-right' : 'text-left'}${j === 0 ? ' sticky left-0 z-10 bg-superficie-2' : ''}`}
               >
                 {c.titulo}
               </th>

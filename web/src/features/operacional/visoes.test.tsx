@@ -11,14 +11,14 @@ const busca = (r: { roteador: { state: { location: { search: string } } } }) =>
   new URLSearchParams(r.roteador.state.location.search)
 
 describe('seletor Visão (CA-2, CA-19)', () => {
-  it('tem as 4 opções, na ordem, e a visão da URL está marcada', async () => {
+  it('tem as 5 opções, na ordem (a quinta é a aba Apontamento), e a visão da URL está marcada', async () => {
     renderizarApp('/operacional?cadencia=semanal')
     const grupo = await screen.findByRole('radiogroup', { name: 'Visão' })
     expect(
       within(grupo)
         .getAllByRole('radio')
         .map((r) => (r as HTMLInputElement).value),
-    ).toEqual(['resumo', 'diaria', 'semanal', 'sustentacao'])
+    ).toEqual(['resumo', 'diaria', 'semanal', 'sustentacao', 'apontamento'])
     expect(within(grupo).getByRole('radio', { name: 'Semanal' })).toBeChecked()
     expect(screen.getByTestId('pergunta-cadencia')).toHaveTextContent(
       'O que mudou na nossa distribuição de tempo?',

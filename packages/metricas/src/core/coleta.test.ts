@@ -13,7 +13,7 @@ import {
   metricasEmCalibracao,
   vigentes,
 } from './calibracao'
-import { isoLocal, proximaColeta, seloFrescor } from './frescor'
+import { TOLERANCIA_ATRASO_HORAS, isoLocal, proximaColeta, seloFrescor } from './frescor'
 import { montarEstadoColeta, paginarColetas } from './coleta'
 import { diaDeIso, isoDeDia } from './calendario'
 
@@ -100,7 +100,11 @@ describe('frescor', () => {
     expect(seloFrescor(null, falha, 0)).toBe('falha')
     expect(seloFrescor(ok, ok, t('2026-10-09T05:00:00-03:00'))).toBe('atual')
     expect(seloFrescor(ok, ok, t('2026-10-09T06:00:00-03:00'))).toBe('atual')
-    expect(seloFrescor(ok, ok, t('2026-10-09T06:00:01-03:00'))).toBe('atrasado')
+    // Q-7b: folga de 6 h depois das 06:00; "Atrasado" só passando das 12:00
+    expect(TOLERANCIA_ATRASO_HORAS).toBe(6)
+    expect(seloFrescor(ok, ok, t('2026-10-09T06:00:01-03:00'))).toBe('atual')
+    expect(seloFrescor(ok, ok, t('2026-10-09T12:00:00-03:00'))).toBe('atual')
+    expect(seloFrescor(ok, ok, t('2026-10-09T12:00:01-03:00'))).toBe('atrasado')
   })
   it('propriedade: selo é total', () => {
     fc.assert(

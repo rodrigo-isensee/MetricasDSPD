@@ -6,7 +6,7 @@ import type { Consultavel } from '../../plataforma/db/pool.js';
 import { dominioParamsSchema, opcoesFiltroSchema, referenciaSchema, semQuerySchema } from './schemas.js';
 import { opcoesFiltro, referencia } from './servico.js';
 
-export type DepsReferencia = { db: Consultavel; S?: Esquemas; agora: () => Date };
+export type DepsReferencia = { db: Consultavel; S?: Esquemas; agora: () => Date; /** Base real (F6 do 052): o filtro de equipe lista os times ativos. */ times?: boolean };
 
 const CACHE = 'private, max-age=60';
 
@@ -20,7 +20,7 @@ export async function rotasReferencia(app: FastifyInstance, deps: DepsReferencia
     },
   }, async (req, resposta) => {
     void resposta.header('cache-control', CACHE);
-    return opcoesFiltro(deps.db, req.params.dominio, deps.agora(), deps.S);
+    return opcoesFiltro(deps.db, req.params.dominio, deps.agora(), deps.S, { times: deps.times === true });
   });
   r.get('/referencia', {
     schema: {

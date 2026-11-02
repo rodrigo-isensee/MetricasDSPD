@@ -22,6 +22,11 @@ describe('config', () => {
     expect(() => carregarConfigApi({ PG_API_URL: 'mysql://x:senha-secreta@h/d' })).toThrow('variáveis: PG_API_URL');
     try { carregarConfigApi({ PG_API_URL: 'mysql://x:senha-secreta@h/d' }); } catch (e) { expect(String(e)).not.toContain('senha-secreta'); }
     expect(carregarConfigApi({ PG_API_URL: PG, DADOS_FONTE: 'real' }).DADOS_FONTE).toBe('real');
+    // F6 do 052: prefixo da base do seed (modo de duas bases); vazio = ausente; inválido reprova só pelo nome da variável
+    expect(carregarConfigApi({ PG_API_URL: PG }).DSPD_SCHEMA_PREFIXO_SEED).toBeUndefined();
+    expect(carregarConfigApi({ PG_API_URL: PG, DSPD_SCHEMA_PREFIXO_SEED: '' }).DSPD_SCHEMA_PREFIXO_SEED).toBeUndefined();
+    expect(carregarConfigApi({ PG_API_URL: PG, DSPD_SCHEMA_PREFIXO_SEED: 'seed_' }).DSPD_SCHEMA_PREFIXO_SEED).toBe('seed_');
+    expect(() => carregarConfigApi({ PG_API_URL: PG, DSPD_SCHEMA_PREFIXO_SEED: 'Seed;DROP' })).toThrow('variáveis: DSPD_SCHEMA_PREFIXO_SEED');
     expect(() => carregarConfigApi({ PG_API_URL: PG, DADOS_FONTE: 'x' })).toThrow('DADOS_FONTE');
     expect(() => carregarConfigApi({ PG_API_URL: PG, PORT: '0' })).toThrow('PORT');
   });
@@ -235,7 +240,7 @@ describe('OpenAPI', () => {
   it('gerado = versionado (docs/api/openapi.json), sem listen e sem banco', async () => {
     const semBanco = { query: () => Promise.reject(new Error('x')) };
     const pool = { ...semBanco, connect: () => Promise.reject(new Error('x')), end: () => Promise.resolve() };
-    const app = await buildApp({ db: semBanco, agora: () => new Date(0), nivelLog: 'silent', webhook: { pool, segredo: 'so-para-gerar-o-contrato' } });
+    const app = await buildApp({ db: semBanco, agora: () => new Date(0), nivelLog: 'silent', webhook: { pool, segredo: 'so-para-gerar-o-contrato' }, apontamento: { pool, nomesReais: false } });
     const gerado = await gerarOpenapi(app);
     const versionado = await readFile(new URL('../../docs/api/openapi.json', import.meta.url), 'utf8');
     expect(gerado).toBe(versionado);
@@ -244,6 +249,7 @@ describe('OpenAPI', () => {
       '/api/v1/fontes/{dominio}/estado', '/api/v1/fontes/{dominio}/coletas', '/api/v1/criterios']);
     expect(caminhos.filter((c) => c.startsWith('/api/v1/metricas/'))).toHaveLength(70); // 69 métricas + o 404 genérico
     expect(caminhos).toContain('/webhooks/businessmap');
+    expect(caminhos).toContain('/api/apontamento'); // aba Apontamento (pedido 059): única rota fora de /api/v1 com pessoa
   });
 });
 

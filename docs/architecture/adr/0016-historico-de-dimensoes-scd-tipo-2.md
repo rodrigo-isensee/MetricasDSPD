@@ -1,5 +1,5 @@
 # 0016 - Histórico de dimensões: SCD Tipo 2 só onde muda o significado da métrica
-- Status: **proposta** (aguarda revisão de modelagem com o `tech-lead` e as decisões U-1 a U-3 do usuário)
+- Status: **proposta** (aguarda revisão de modelagem com o `tech-lead`; **U-1 e U-2 decididas pelo dono em 2026-10-29**, pedido 052, seguindo a recomendação; U-3 superada pela ADR 0020 4b, que mantém `responsaveis` em `dim_card_versao`)
 - Data: 2026-10-11
 - Relacionadas: `data-model.md` §1–§3.4, §4, §9; ADR 0011 (biblioteca única), 0013 §4 (Metabase), 0014 (Postgres, camadas append-only), 0015 (Kysely); briefing T2.2, T2.4, T2.5, T2.6; `docs/integracao/businessmap-estrutura-real.md`
 - **Não muda:** staging append-only com hash, `dim_card_versao`/`dim_chamado_versao`, `ref_versao_criterio` (T2.6), projeções reconstruíveis, regras invioláveis do `CLAUDE.md`.
@@ -53,8 +53,8 @@ Conclusão honesta: **o projeto já tem SCD2** onde mais importa (staging versio
 
 ### Cálculo
 - **Biblioteca (`@metricas-dspd/metricas`):** `DimColuna` ganha `coluna_id`, `workflow_id`, `secao` e a vigência; `FatoTransicao` passa a referenciar `coluna_id` e `quadro_id`/`workflow_id` **da transição** (não do card). `papelDe(quadro, nome)` vira `classificarNoInstante(quadro, workflow, coluna_id, instante)`. Marcos, WIP, CFD, aging e retornos usam essa função; nenhuma métrica resolve papel por conta própria (T2.5).
-- **Janela de 12 semanas** atravessando uma mudança: cada evento é classificado pela regra do seu instante (se U-1 = "como foi"); a série já recebe a marcação T2.6 pela `ref_versao_criterio`, e o alerta de comparação que cruza a data já existe. Itens com evento "não mapeado" saem da estatística e são contados à parte; a regra de mínimo de 20 vale sobre os mapeados.
-- **Granularidade e time de um card que mudou** (U-2): resolvidos no instante do evento medido (entrega para vazão e tempo de ciclo; o dia para WIP e CFD). Um card conta numa única granularidade por métrica, então story, frente e projeto continuam fora do mesmo histograma.
+- **Janela de 12 semanas** atravessando uma mudança: cada evento é classificado pela regra do seu instante (U-1 = "como foi", decidida em 2026-10-29); a série já recebe a marcação T2.6 pela `ref_versao_criterio`, e o alerta de comparação que cruza a data já existe. Itens com evento "não mapeado" saem da estatística e são contados à parte; a regra de mínimo de 20 vale sobre os mapeados.
+- **Granularidade e time de um card que mudou** (U-2, decidida em 2026-10-29): resolvidos no instante do evento medido (entrega para vazão e tempo de ciclo; o dia para WIP e CFD). Um card conta numa única granularidade por métrica, então story, frente e projeto continuam fora do mesmo histograma.
 - **Hashes e cache:** a chave do cache do `ServicoMetricas` (lru-cache, ADR 0015) inclui a maior `versao_id` de referência do domínio; `ref:sync` invalida. O hash da base mock (critério de paridade da ADR 0002) muda uma vez, no PR que acrescentar os cenários abaixo.
 - **Gráficos:** sem mudança de componente. Renomear não marca. Mudança de papel, de workflow → time, de tipo → granularidade ou de etapa → totalizador marca, porque o `ref:sync` já recusa referência sem `ref_versao_criterio`.
 
@@ -128,6 +128,12 @@ Teste de paridade mock × seed no Postgres cobre os sete casos com os mesmos nú
 | U-1 | Quando o papel de uma coluna muda por **mudança de processo** (ex.: o time move o ponto de compromisso), os itens anteriores são medidos com a regra antiga ("como foi") ou com a nova ("como é hoje")? | **como foi**, com marcação T2.6 na data; correção de erro de mapeamento sempre vale para todo o período | **como é hoje**: série homogênea, mas o passado muda de valor a cada reorganização do quadro |
 | U-2 | Card que muda de workflow (time) ou de tipo (granularidade): a qual time e granularidade pertence? | a do **instante do evento medido** (entrega para vazão e tempo de ciclo; o dia para WIP e CFD) | sempre a atual do card (simples, mas move a história de um time para outro) |
 | U-3 | Tirar `responsaveis` de `dim_card_versao` (o histórico "quem era responsável quando")? Mantém o nome em `dim_card` e no staging, como decidido em §8 | **sim** (minimização; nenhuma métrica usa; reduz o risco de visão individual) | manter (a decisão §8 do usuário não citou a tabela de versões) |
+
+> **Decidido pelo dono em 2026-10-29 (pedido 052, Q-6; registro literal em `docs/pedidos/052-integracao-businessmap.md`):**
+> - **U-1 = A:** "mudança de processo no quadro mede os cartões anteriores "como foi", com marcação T2.6 na data; correção de erro de mapeamento vale para todo o período."
+> - **U-2 = A:** "card que muda de workflow (time) ou de tipo (granularidade) conta no time e na granularidade do instante do evento medido (entrega para vazão e tempo de ciclo; o dia para WIP e CFD)."
+>
+> As duas seguem a recomendação; o desenho desta ADR não muda. Aplicação: fatias F2 e F4 do plano `docs/architecture/features/052-integracao-businessmap.md`. U-3 não foi perguntada: a ADR 0020 4b (vigente) manteve `responsaveis` em `dim_card_versao`, o que a supera.
 
 Já em aberto e relacionada: I-12 (retenção com o DPO); classificação de cada workflow (`businessmap-estrutura-real.md`, "A confirmar").
 

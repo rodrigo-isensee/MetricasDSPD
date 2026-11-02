@@ -9,9 +9,22 @@ export const CAMINHOS_REDIGIDOS = [
   'res.headers["set-cookie"]',
   '*.password',
   '*.senha',
+  'apikey',
   '*.apikey',
+  '*.headers.apikey',
+  '*.*.headers.apikey',
   '*.token',
   '*.connectionString',
+  // Pedido 059 (ADR 0020, revisão 4, R4-2): comentário do apontamento e nome de pessoa, em um e em dois níveis. Defesa secundária: o erro do
+  // coletor carrega só código, entidade e `id_origem`, e nenhum objeto com comentário ou nome chega ao logger.
+  '*.comment',
+  '*.comentario',
+  '*.realname',
+  '*.responsavel_nome',
+  '*.*.comment',
+  '*.*.comentario',
+  '*.*.realname',
+  '*.*.responsavel_nome',
 ];
 
 export const opcoesLog = (level: string): LoggerOptions => ({
