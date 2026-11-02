@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analisarArgumentosEliminacao, eliminarPessoa, type DepsEliminacao } from '../src/modulos/businessmap/apontamento/eliminacao.js';
+import { analisarArgumentosEliminacao, eliminarPessoa, lerUsuarioDaEntrada, type DepsEliminacao } from '../src/modulos/businessmap/apontamento/eliminacao.js';
 import { hmacUsuario } from '../src/modulos/businessmap/apontamento/supressao.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { carregarConfigEliminacaoPessoa } from '../src/plataforma/config.js';
@@ -30,13 +30,41 @@ describe('analisarArgumentosEliminacao', () => {
     expect(analisarArgumentosEliminacao([`--usuario=${USUARIO}`])).toEqual({ usuarioId: USUARIO, confirmar: false });
     expect(analisarArgumentosEliminacao(['--confirmar', `--usuario=${USUARIO}`])).toEqual({ usuarioId: USUARIO, confirmar: true });
   });
+  it('--usuario=- pede o id à entrada padrão (A2 da segurança da coleta): o id não passa pela linha de comando', () => {
+    expect(analisarArgumentosEliminacao(['--usuario=-'])).toEqual({ usuarioId: null, confirmar: false });
+    expect(analisarArgumentosEliminacao(['--confirmar', '--usuario=-'])).toEqual({ usuarioId: null, confirmar: true });
+  });
   it('qualquer outra forma é recusada com a linha de uso, sem eco do valor', () => {
-    for (const ruim of [[], ['--confirmar'], ['--usuario='], ['--usuario=abc'], ['--usuario=0'], ['--usuario=1234567890123'], ['--usuario=1', '--usuario=2'], ['--usuario=1', '--confirmar', '--confirmar'], ['--usuario=1', '--outra'], ['1'], ['--usuario=senha-secreta']]) {
+    for (const ruim of [[], ['--confirmar'], ['--usuario='], ['--usuario=abc'], ['--usuario=0'], ['--usuario=1234567890123'], ['--usuario=1', '--usuario=2'], ['--usuario=1', '--confirmar', '--confirmar'], ['--usuario=1', '--outra'], ['1'], ['--usuario=senha-secreta'], ['--usuario=--'], ['--usuario=-1'], ['--usuario=-', '--usuario=-']]) {
       const e = (() => { try { analisarArgumentosEliminacao(ruim); } catch (x) { return x as Error; } return undefined; })();
       expect(e, JSON.stringify(ruim)).toMatchObject({ codigo: 'uso' });
       expect(e!.message).toMatch(/^uso: bm:eliminar-pessoa --usuario=/);
       expect(e!.message).not.toContain('senha-secreta');
     }
+  });
+});
+
+describe('lerUsuarioDaEntrada (A2 da segurança da coleta)', () => {
+  async function* partes(...p: (string | Uint8Array)[]): AsyncGenerator<string | Uint8Array> { for (const x of p) yield x; }
+  it('lê uma linha só com dígitos, com ou sem quebra de linha, em pedaços de texto ou bytes', async () => {
+    expect(await lerUsuarioDaEntrada(partes(`${USUARIO}\n`))).toBe(USUARIO);
+    expect(await lerUsuarioDaEntrada(partes(`${USUARIO}\r\n`))).toBe(USUARIO);
+    expect(await lerUsuarioDaEntrada(partes(USUARIO))).toBe(USUARIO);
+    expect(await lerUsuarioDaEntrada(partes(Buffer.from(USUARIO.slice(0, 2)), Buffer.from(`${USUARIO.slice(2)}\n`)))).toBe(USUARIO);
+    expect(await lerUsuarioDaEntrada(partes(`  ${USUARIO}  \nresto ignorado\n`))).toBe(USUARIO);
+  });
+  it('vazia, fora do formato ou grande demais: recusa com a linha de uso, sem eco', async () => {
+    for (const ruim of ['', '\n', 'senha-secreta\n', '0\n', '12 34\n', '1234567890123\n', `${'9'.repeat(100)}\n`, '9'.repeat(100)]) {
+      const e = await lerUsuarioDaEntrada(partes(ruim)).then(() => undefined, (x: unknown) => x as Error);
+      expect(e, JSON.stringify(ruim)).toMatchObject({ codigo: 'uso' });
+      expect(e!.message).not.toMatch(/senha-secreta|9999/);
+    }
+  });
+  it('para de ler ao passar do teto (entrada sem fim não é consumida)', async () => {
+    let lidos = 0;
+    async function* infinita(): AsyncGenerator<string> { for (;;) { lidos += 1; yield '9'.repeat(40); } }
+    await expect(lerUsuarioDaEntrada(infinita())).rejects.toMatchObject({ codigo: 'uso' });
+    expect(lidos).toBeLessThanOrEqual(3);
   });
 });
 

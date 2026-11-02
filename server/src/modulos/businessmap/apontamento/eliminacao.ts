@@ -10,20 +10,43 @@ import { hmacUsuario, SAL_MINIMO_BYTES } from './supressao.js';
 // `dspd_coletor` segue sem DELETE e sem UPDATE de pessoa), manual e numa transação: (1) grava o HMAC do `user_id` na lista de supressão,
 // (2) apaga a linha de `dim_responsavel` (o nome e o `user_id`), (3) anula `pessoa_ref` nas linhas de `fato_apontamento`. As horas ficam como
 // agregado do time (nenhuma linha do fato é apagada nem tem valor de hora alterado). A coleta seguinte não recria a pessoa: a supressão é
-// consultada antes de `/users`. Roda sob a trava da fonte do BusinessMap, para não correr junto com uma coleta. Não há prazo nem expurgo
-// automático aqui (o prazo é do DPO, decisão do dono). O `user_id` só existe em memória e na linha de comando; a saída traz só contagens.
+// consultada antes de `/users`, no worklog e na coleta de cards (`resolverResponsaveis`, A1 da segurança da coleta). Roda sob a trava da fonte do BusinessMap, para não correr junto com uma coleta. Não há prazo nem expurgo
+// automático aqui (o prazo é do DPO, decisão do dono). O `user_id` só existe em memória e na entrada padrão (`--usuario=-`, A2 da segurança da coleta; o argumento só para teste); a saída traz só contagens.
 
-const USO = 'uso: bm:eliminar-pessoa --usuario=<id do usuário no BusinessMap> [--confirmar]';
+const USO = 'uso: bm:eliminar-pessoa --usuario=<id do usuário no BusinessMap, ou - para ler da entrada padrão> [--confirmar]';
+const ID_TITULAR = /^[1-9]\d{0,11}$/;
+/** Teto de bytes lidos da entrada padrão: o id tem até 12 dígitos; mais que isso nem é lido. */
+const LEITURA_MAXIMA = 64;
 
 export interface ArgsEliminacao { usuarioId: string; confirmar: boolean }
+/** Argumentos da linha de comando: `usuarioId` nulo quer dizer `--usuario=-` (o id vem da entrada padrão, A2 da segurança da coleta). */
+export interface ArgsEliminacaoCli { usuarioId: string | null; confirmar: boolean }
 
-/** Argumentos do comando; formato fora do esperado é recusado com a linha de uso (sem eco do valor recebido). */
-export function analisarArgumentosEliminacao(argv: readonly string[]): ArgsEliminacao {
+/**
+ * Argumentos do comando; formato fora do esperado é recusado com a linha de uso (sem eco do valor recebido). `--usuario=-` mantém o id
+ * fora da linha de comando (histórico do shell e `ps`); o id por argumento segue aceito, para teste.
+ */
+export function analisarArgumentosEliminacao(argv: readonly string[]): ArgsEliminacaoCli {
   const usuario = argv.filter((a) => a.startsWith('--usuario='));
   const confirmar = argv.filter((a) => a === '--confirmar');
-  const m = usuario.length === 1 ? /^--usuario=([1-9]\d{0,11})$/.exec(usuario[0]!) : null;
+  const m = usuario.length === 1 ? /^--usuario=([1-9]\d{0,11}|-)$/.exec(usuario[0]!) : null;
   if (m === null || confirmar.length > 1 || usuario.length + confirmar.length !== argv.length) throw new ErroColetaBm('uso', USO);
-  return { usuarioId: m[1]!, confirmar: confirmar.length === 1 };
+  return { usuarioId: m[1] === '-' ? null : m[1]!, confirmar: confirmar.length === 1 };
+}
+
+/**
+ * Lê o id do titular da entrada padrão (uma linha, só dígitos). Lê no máximo `LEITURA_MAXIMA` bytes; entrada vazia, longa ou fora do
+ * formato é recusada com a linha de uso, sem eco do que foi lido.
+ */
+export async function lerUsuarioDaEntrada(entrada: AsyncIterable<string | Uint8Array>): Promise<string> {
+  let texto = '';
+  for await (const parte of entrada) {
+    texto += typeof parte === 'string' ? parte : Buffer.from(parte).toString('utf8');
+    if (texto.length > LEITURA_MAXIMA || texto.includes('\n')) break;
+  }
+  const id = texto.split(/\r?\n/, 1)[0]!.trim();
+  if (texto.length > LEITURA_MAXIMA || !ID_TITULAR.test(id)) throw new ErroColetaBm('uso', USO);
+  return id;
 }
 
 export interface DepsEliminacao {

@@ -1,13 +1,13 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pino } from 'pino';
-import { analisarArgumentosEliminacao, eliminarPessoa, ErroColetaBm } from '../modulos/businessmap/index.js';
+import { analisarArgumentosEliminacao, eliminarPessoa, ErroColetaBm, lerUsuarioDaEntrada } from '../modulos/businessmap/index.js';
 import { carregarConfigEliminacaoPessoa } from '../plataforma/config.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
 import { criarPool } from '../plataforma/db/pool.js';
 import { opcoesLog } from '../plataforma/log.js';
 
-// Entrada do `pnpm --filter @metricas-dspd/server run bm:eliminar-pessoa --usuario=<id> [--confirmar]` (pedido 059, A4, CA-AP-10; ADR 0020 R4-6):
+// Entrada do `pnpm --filter @metricas-dspd/server run bm:eliminar-pessoa --usuario=-|<id> [--confirmar]` (pedido 059, A4, CA-AP-10; ADR 0020 R4-6):
 // eliminação a pedido do titular. Manual, com o papel `dspd_migrador` (`PG_MIGRADOR_URL`), nunca na agenda. Sem `--confirmar` só descreve o que
 // seria feito (nada é gravado). Com ele: grava a supressão (HMAC do id com `PESSOA_ELIMINADA_SAL`), apaga o nome (`dim_responsavel`) e anula
 // `pessoa_ref` no fato; as horas ficam como agregado do time. O `.env` da raiz é lido só aqui, pelo programa. A saída traz só contagens: nunca o
@@ -23,7 +23,9 @@ try {
 }
 let pool: ReturnType<typeof criarPool> | undefined;
 try {
-  const args = analisarArgumentosEliminacao(process.argv.slice(2));
+  const cli = analisarArgumentosEliminacao(process.argv.slice(2));
+  // `--usuario=-`: o id do titular vem da entrada padrão, fora do histórico do shell e da lista de processos (A2 da segurança da coleta)
+  const args = { usuarioId: cli.usuarioId ?? (await lerUsuarioDaEntrada(process.stdin)), confirmar: cli.confirmar };
   const cfg = carregarConfigEliminacaoPessoa();
   const log = pino(opcoesLog(cfg.LOG_LEVEL));
   pool = criarPool(cfg.PG_MIGRADOR_URL, { statementTimeoutMs: 120_000, max: 2, log: (msg, ctx) => log.warn(ctx, msg) });
