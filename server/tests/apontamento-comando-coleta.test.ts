@@ -59,6 +59,16 @@ describe('executarColeta: etapa do worklog (059)', () => {
     expect(r.projecao).not.toBeNull();
     expect(r.apontamento).toBe(RESULTADO);
   });
+  it('A9: a etapa recebe o pool do coletor do próprio comando (a entrada não precisa de apelido para a variável de fechamento)', async () => {
+    const servidor = await subirServidorBm(cenario());
+    abertos.push(servidor);
+    const coletor = bancoFalso({ marca: new Date('2026-11-01T00:00:00Z') });
+    const cliente = criarClienteHttp({ urlBase: servidor.url, apikey: 'chave-f3-de-teste-0123456789', limitePorMinuto: 1000, timeoutMs: 2000 }, { dormir: () => Promise.resolve() });
+    let recebido: unknown;
+    const deps: DepsComando = { cliente, poolColetor: coletor.pool, poolRef: bancoRef().pool, conf: lerConferencia(), quadros: [35], hostBase: 'bm.exemplo.test', agora: () => AGORA, S, etapaApontamento: (pool) => { recebido = pool; return Promise.resolve(RESULTADO); } };
+    await executarColeta(deps, { modo: 'incremental', projetar: true });
+    expect(recebido).toBe(coletor.pool);
+  });
   it.each(['sem-marca', 'dicionario', 'configuracao'] as const)('A5: etapa que lança %s (sem carga inicial do worklog, sem dicionário) não derruba o comando: os cards ficam no resultado e o worklog vai por código', async (codigo) => {
     const r = await rodar(cenario(), 'incremental', () => Promise.reject(new ErroColetaBm(codigo, 'texto interno que não deve sair')));
     expect(r.estado).toBe('sucesso');

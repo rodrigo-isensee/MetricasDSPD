@@ -68,9 +68,9 @@ export interface DepsComando {
    * Pedido 059 (ADR 0025 item 3): etapa do worklog, depois dos cards e da projeção e sob a MESMA trava da fonte. Só roda no incremental, com
    * `--projetar` (o escopo e a hierarquia vêm de `dim_card`, que só a projeção atualiza: A6 do review da coleta) e se a coleta de cards não
    * falhou. Falha dela por código (sem carga inicial do worklog, sem dicionário) não derruba o comando: vai em `apontamento.falha` (A5).
-   * Quem monta a etapa (a entrada) liga a função de classificação e o sal da supressão.
+   * Quem monta a etapa (a entrada) liga a função de classificação e o sal da supressão; o pool do coletor chega por argumento, o mesmo da coleta.
    */
-  etapaApontamento?: () => Promise<ResultadoApontamento>;
+  etapaApontamento?: (poolColetor: PoolLike) => Promise<ResultadoApontamento>;
 }
 
 /**
@@ -115,7 +115,7 @@ export async function executarColeta(d: DepsComando, args: ArgsColeta): Promise<
     let apontamento: ResultadoApontamento | FalhaEtapaApontamento | null = null;
     if (args.modo === 'incremental' && args.projetar === true && coleta.estado !== 'falha' && d.etapaApontamento !== undefined) {
       try {
-        apontamento = await d.etapaApontamento();
+        apontamento = await d.etapaApontamento(d.poolColetor);
       } catch (e) {
         // A5 do review: os cards (e a projeção) já foram gravados; a falha conhecida do worklog fica só com o código e não esconde o resultado deles
         if (!(e instanceof ErroColetaBm)) throw e;
