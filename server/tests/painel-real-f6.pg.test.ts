@@ -101,10 +101,25 @@ d('F6 do plano 052: duas bases e tipo da coluna na leitura (PostgreSQL)', () => 
     expect(depois.every((t) => t.tipo_coluna === 'fila')).toBe(true);
   }, 60_000);
 
-  it('(d) FL2, FL3 e Sustentação saem idênticos ao mock: mexer na base real não muda a resposta, que é a da base do seed', async () => {
+  it('(d) FL2, FL3, S1 e Visão geral saem idênticos ao mock: mexer na base real não muda a resposta, que é a da base do seed', async () => {
     const unica = await buildApp({ db: api, S, agora: () => AGORA, nivelLog: 'silent' });
     const duas = await app();
     for (const id of ['T1', 'T7', 'E1', 'E2', 'S1', 'VISAO_GERAL', 'O8', 'O19']) {
+      const a = await unica.inject(`/api/v1/metricas/${id}`);
+      const b = await duas.inject(`/api/v1/metricas/${id}`);
+      expect(b.statusCode, id).toBe(200);
+      expect(b.body, id).toBe(a.body);
+    }
+  }, 60_000);
+
+  it('(e) Sustentação (E2.115): S3 lê a base real do Acelerato; S1, S5, S9, S12 e EI_SUST seguem a do seed; mexer na real muda só as reais', async () => {
+    const unica = await buildApp({ db: api, S, agora: () => AGORA, nivelLog: 'silent' });
+    await mig.query(`UPDATE ${R.ac}.dim_chamado SET categoria_sistema = 'Sistema só da base real'`);
+    const duas = await app();
+    for (const id of ['S3']) {
+      expect((await duas.inject(`/api/v1/metricas/${id}`)).statusCode, id).toBe(200);
+    }
+    for (const id of ['S1', 'S5', 'S9', 'S12', 'EI_SUST']) {
       const a = await unica.inject(`/api/v1/metricas/${id}`);
       const b = await duas.inject(`/api/v1/metricas/${id}`);
       expect(b.statusCode, id).toBe(200);

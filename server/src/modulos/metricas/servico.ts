@@ -277,8 +277,9 @@ export class ServicoMetricas {
     if (pronto !== undefined) return { resultado: pronto, dataReferencia, versaoCriterio, chave };
     const extras = ac === null ? undefined : EXTRAS_AC.get(ac.base);
     const baseAC = ac === null ? BASE_AC_VAZIA : METRICAS_SEM_AGENTE.includes(id) && extras !== undefined ? extras.semAgenteFora : ac.base;
-    // S8 na fonte real (D-10): o campo dos 90 dias vira a extensão da biblioteca; com extensões mockadas (fonte `mock`) vale o mock.
-    const extReal: ExtensaoAC | undefined = id === 'S8' && this.deps.extensoes === undefined ? extras?.extensao : undefined;
+    // S8 na fonte real (D-10): o campo dos 90 dias vira a extensão da biblioteca; no modo de duas bases a métrica real nunca recebe o mock;
+    // com extensões mockadas e base única (fonte `mock`) vale o mock.
+    const extReal: ExtensaoAC | undefined = id === 'S8' && (real || this.deps.extensoes === undefined) ? extras?.extensao : undefined;
     const ctx: ContextosMetricas = {
       bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, CALENDARIO_PADRAO),
       ac: acelerato.criarContextoAC(baseAC, corte, CALENDARIO_PADRAO),

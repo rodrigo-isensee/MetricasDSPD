@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 52c201ea9b6949a9188fcea0f18c68e52e5bcfe4
+commit: 55a33ee3757531885bbf4aec84d0466435ba84a4
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,14 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.121, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque `docs/api/metricas.md` mudou depois dele (sustentação real, E2.117, na `feature/052-sust-real`, após o merge da develop `55a33ee`). Delta lido, e só ele: `git diff 52c201e..55a33ee -- docs/api/metricas.md server/package.json server/src/modulos/businessmap .env.example docs/integracao` (só `docs/api/metricas.md` tem diferença, 1 linha a mais e 1 a menos).
+
+- `docs/api/metricas.md` (seção "Painel operacional com dado real"): a linha "Duas bases, uma por métrica" passa a listar S2, S3, S4, S8 e S10 como reais e as demais da sustentação como mock, com o motivo. É documento da API de métricas; o script da WS1 (`bm:diagnostico`) não o lê.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código novo tem pareceres próprios (`docs/reviews/052-sust-real.md`, `docs/security/052-sust-real.md`, `docs/qa/052-sust-real.md`). O QA renova o dele em paralelo (E2.138). Conclusão: nenhum achado novo, e o parecer segue aprovado em `55a33ee`.
 
 ## Renovação por delta (E2.124, 2026-11-01, segunda)
 

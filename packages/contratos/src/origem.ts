@@ -1,6 +1,6 @@
 /**
- * Origem de cada métrica (plano 052, F6, H-13): `real` = dado da base alimentada pela coleta do BusinessMap;
- * `mock` = dado fictício (base do seed). Cada métrica vem inteira de UMA origem; nunca se misturam.
+ * Origem de cada métrica (plano 052, F6, H-13): `real` = dado da base alimentada pela coleta (BusinessMap no fluxo, Acelerato na
+ * sustentação); `mock` = dado fictício (base do seed). Cada métrica vem inteira de UMA origem; nunca se misturam.
  * Fonte única do selo "Dados fictícios" por cartão, da contagem do cabeçalho e do Exportar (P-1 e P-4).
  */
 import { z } from 'zod'
@@ -8,7 +8,7 @@ import type { MetricaId } from './comum'
 
 export type OrigemDaMetrica = 'real' | 'mock'
 
-/** Painel operacional com dado no quadro (H-13): as 11 do FL1 e a Espera invisível do FL1. */
+/** Métricas com dado real: o painel operacional com dado no quadro (H-13: as 11 do FL1 e a Espera invisível do FL1) e a sustentação carregada do Acelerato. */
 export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O1',
   'O2',
@@ -22,11 +22,32 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O11',
   'O13',
   'EI_FL1',
+  // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S9 e S12 voltaram a mock: dependem de campo que a base real não tem.
+  'S2',
+  'S3',
+  'S4',
+  'S8',
+  'S10',
 ])
 
 export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
 
-/** Fictícias do FL1 com o campo ainda por criar na WS1 (H-13). O19 a O26 seguem mock até a F6b, sem motivo próprio. */
+export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
+  'aguardando tipo e domínio do campo do chamado (P-DS-19)'
+export const MOTIVO_S9_MOTIVO_PENDENCIA =
+  'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)'
+export const MOTIVO_S12_REGISTRO_POSTERIOR =
+  'aguardando fonte do registro posterior de exceção de SLA'
+export const MOTIVO_AGUARDANDO_PRAZOS_SLA = 'aguardando prazos de SLA por prioridade'
+export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
+
+/**
+ * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O19 a O26 seguem mock até a F6b, sem motivo próprio.
+ * Sustentação (plano 056): S5, S6, S7 e S11 esperam o tipo e o domínio dos campos do chamado (P-DS-19); S9 espera o motivo de
+ * pendência (P-DS-19) e S12 o registro posterior de exceção de SLA, sem fonte (decisão do dono de 2026-11-01 17:30: se faltar campo,
+ * segue fictícia); S1 espera os prazos de SLA por
+ * prioridade (`ref_alvo_prioridade`, sem fonte na base real); a EI_SUST não consta do plano 056, então não se calcula por inferência.
+ */
 export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O8: MOTIVO_AGUARDANDO_CAMPO,
   O12: MOTIVO_AGUARDANDO_CAMPO,
@@ -35,6 +56,14 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O16: MOTIVO_AGUARDANDO_CAMPO,
   O17: MOTIVO_AGUARDANDO_CAMPO,
   O18: MOTIVO_AGUARDANDO_CAMPO,
+  S1: MOTIVO_AGUARDANDO_PRAZOS_SLA,
+  S5: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
+  S6: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
+  S7: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
+  S9: MOTIVO_S9_MOTIVO_PENDENCIA,
+  S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
+  S12: MOTIVO_S12_REGISTRO_POSTERIOR,
+  EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
 
 export function origemDaMetrica(id: MetricaId): OrigemDaMetrica {

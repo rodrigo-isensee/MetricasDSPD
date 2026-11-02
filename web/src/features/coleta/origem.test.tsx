@@ -77,6 +77,41 @@ describe('origem do cartão (P-1 = B)', () => {
     expect(origemDoCartao('XX9', 'mock')).toEqual({ ficticio: false, motivo: null })
   })
 
+  it('Sustentação (E2.115): S2, S3, S4, S8 e S10 saem sem selo; S1, S5, S6, S7, S9, S11, S12 e a EI_SUST levam o selo com o motivo do Acelerato', () => {
+    for (const c of ['S2', 'S3', 'S4', 'S8', 'S10']) {
+      expect(origemDoCartao(c, 'api'), c).toEqual({ ficticio: false, motivo: null })
+    }
+    expect(origemDoCartao('S1', 'api')).toEqual({
+      ficticio: true,
+      motivo: 'aguardando prazos de SLA por prioridade',
+    })
+    for (const c of ['S5', 'S6', 'S7', 'S11']) {
+      expect(origemDoCartao(c, 'api'), c).toEqual({
+        ficticio: true,
+        motivo: 'aguardando tipo e domínio do campo do chamado (P-DS-19)',
+      })
+    }
+    expect(origemDoCartao('S9', 'api')).toEqual({
+      ficticio: true,
+      motivo: 'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
+    })
+    expect(origemDoCartao('S12', 'api')).toEqual({
+      ficticio: true,
+      motivo: 'aguardando fonte do registro posterior de exceção de SLA',
+    })
+    expect(origemDoCartao('EI-SUST', 'api').ficticio).toBe(true)
+    expect(origemDoCartao('S2', 'mock').ficticio).toBe(false)
+  })
+
+  it('a contagem do cabeçalho da Sustentação só conta os cartões que ainda não são reais', () => {
+    const n = cartoesDoPainel('sustentacao').filter(
+      (c) => origemDoCartao(c.codigo, 'api').ficticio,
+    ).length
+    expect(contarFicticios('sustentacao', 'api')).toBe(n)
+    expect(n).toBeLessThan(cartoesDoPainel('sustentacao').length)
+    expect(n).toBeGreaterThanOrEqual(6)
+  })
+
   it('com a fonte mock vale só o catálogo: o aviso global do app já diz que tudo é fictício', () => {
     expect(origemDoCartao('O12', 'mock').ficticio).toBe(false)
     expect(contarFicticios('operacional', 'mock')).toBe(0)

@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { ServicoMetricas } from '../src/modulos/metricas/index.js';
 import { colunasDe, configBM, limitesDosTimes, montarBaseBM, type RefBM } from '../src/modulos/metricas/mapa.js';
-import type { LinhaCard, LinhaColunaReal, LinhaTransicao } from '../src/modulos/metricas/repositorio.js';
+import type { LinhaCard, LinhaChamado, LinhaColunaReal, LinhaTransicao } from '../src/modulos/metricas/repositorio.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { bancoDoMock } from './base-duble.js';
 import { criarDublePg, type Chamada, type Respondedor } from './duble-pg.js';
@@ -37,7 +37,17 @@ const VERSOES = COLUNAS.map((c) => ({ quadro_id: '35', coluna_id: c.coluna_id, t
 const tr = (id: string, de: string | null, para: string, iso: string): LinhaTransicao =>
   ({ card_id: id, quadro_id: '35', coluna_origem_id: de, coluna_destino_id: para, tipo_coluna: null, direcao: 'avanco', ocorrido_em: t(iso) });
 
-type OpcoesReal = { sle?: boolean; cards?: LinhaCard[] };
+/** Chamado da base real do Acelerato (E2.115): incidente aberto em setembro, com agente, prioridade P3; só o que a regra de leitura exige. */
+const chamado = (id: string, extra: Partial<LinhaChamado> = {}): LinhaChamado => ({
+  chamado_id: id, natureza: 'incidente', equipe: 'SSSC TOTVS', organizacao: 'Org', tipo: 'Incidente', categoria_sistema: 'Protheus', excluido: false,
+  status: 'Encerrado', impacto: null, urgencia: null, prioridade: 'P3', prioridade_ajustada_manualmente: false, justificativa_informada: false,
+  aberto_em: new Date('2026-09-20T12:00:00Z'), primeiro_atendimento_em: null, restaurado_em: null, data_finalizado: null, status_sla_r: null,
+  status_sla_pa: null, motivo_escalacao: null, motivo_pendencia_atual: null, previsao_retorno: null, motivo_encerramento: null,
+  avaliacao_problema: null, excecao_sla_registro_posterior: false, incidente_critico_coordenado: false, nivel_resolucao: null,
+  com_agente: true, reincidente_90d: 'nao', ...extra,
+});
+
+type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[] };
 /** Banco falso de duas bases: o que é do schema `r_` é a base real mínima; o resto é o seed do mock (schemas sem prefixo). */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
@@ -45,6 +55,7 @@ function banco(o: OpcoesReal = {}): Respondedor {
   return (c: Chamada) => {
     const x = c.texto;
     if (!x.includes('r_dspd')) return doSeed(c);
+    if (x.includes('FROM r_dspd_ac.dim_chamado')) return o.chamados ?? [];
     if (x.includes('FROM r_dspd_bm.dim_card')) return cards;
     if (x.includes('vw_transicao_canonica')) return cards.flatMap((k) => [tr(k.card_id, null, '1', '2026-09-01T12:00:00Z'), tr(k.card_id, '1', '2', '2026-09-02T12:00:00Z'), tr(k.card_id, '2', '3', '2026-09-03T12:00:00Z')]);
     if (x.includes('FROM r_dspd_bm.ref_coluna c')) return COLUNAS;
@@ -60,6 +71,8 @@ function banco(o: OpcoesReal = {}): Respondedor {
 const leituras = (chamadas: Chamada[], tabela: RegExp): number => chamadas.filter((c) => tabela.test(c.texto)).length;
 const NA_REAL = /FROM r_dspd_bm\.dim_card/;
 const NO_SEED = /FROM dspd_bm\.dim_card/;
+const AC_REAL = /FROM r_dspd_ac\.dim_chamado/;
+const AC_SEED = /FROM dspd_ac\.dim_chamado/;
 
 async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
   const d = criarDublePg(banco(o));
@@ -100,6 +113,39 @@ describe('F6: cada métrica vem inteira de uma base (origem do contrato)', () =>
     }
     expect(leituras(d.chamadas, NO_SEED)).toBe(1);
   }, 60_000);
+
+  it('sustentação (E2.115): S2, S3, S4, S8 e S10 leem só a base real do Acelerato; S1, S5, S6, S7, S9, S11, S12 e EI_SUST, só a do seed; nunca as duas', async () => {
+    const { app, d } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
+    for (const id of ['S2', 'S3', 'S4', 'S8', 'S10'] as MetricaId[]) {
+      expect(origemDaMetrica(id), id).toBe('real');
+      const r = await app.inject(`/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success, id).toBe(true);
+    }
+    expect(leituras(d.chamadas, AC_REAL)).toBe(1);
+    expect(leituras(d.chamadas, AC_SEED)).toBe(0);
+    expect(leituras(d.chamadas, NO_SEED)).toBe(0);
+    expect(leituras(d.chamadas, NA_REAL)).toBe(0); // sustentação não lê o BusinessMap (domínios separados)
+    for (const id of ['S1', 'S5', 'S6', 'S7', 'S9', 'S11', 'S12', 'EI_SUST'] as MetricaId[]) {
+      expect(origemDaMetrica(id), id).toBe('mock');
+      expect((await app.inject(`/api/v1/metricas/${id}`)).statusCode, id).toBe(200);
+    }
+    expect(leituras(d.chamadas, AC_SEED)).toBe(1);
+    expect(leituras(d.chamadas, AC_REAL)).toBe(1);
+  }, 60_000);
+
+  it('S8 na base real usa o campo dos 90 dias da coleta (nunca o mock): cobertura e reabertura vêm dos chamados reais', async () => {
+    const { app } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
+    const r = (await app.inject('/api/v1/metricas/S8')).json() as { campoDisponivel: boolean; cobertura: { n: number; total: number } };
+    expect(r.campoDisponivel).toBe(true);
+    expect(r.cobertura).toEqual({ n: 3, total: 3 });
+  });
+
+  it('S8 na base real sem nenhum chamado com o campo projetado sai "sem campo", nunca 0%', async () => {
+    const { app } = await montar({ chamados: [chamado('1', { reincidente_90d: null }), chamado('2', { reincidente_90d: null })] });
+    const r = (await app.inject('/api/v1/metricas/S8')).json() as { campoDisponivel: boolean };
+    expect(r.campoDisponivel).toBe(false);
+  });
 
   it('o aquecimento carrega a base de cada origem uma vez e depois nenhuma métrica volta ao banco', async () => {
     const d = criarDublePg(banco({ sle: true }));
