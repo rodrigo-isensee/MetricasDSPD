@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-limpa-seed
-commit: 6ff43dfd62c05101c32d5bba081dbbcb04afff7f
+commit: 438b276fbf84b8fd124e2a231be71ba8384b9bb1
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-01
@@ -13,6 +13,8 @@ data: 2026-11-01
 Diff revisado: `origin/develop..26d097c` (E2.96): `server/src/plataforma/db/limpar-seed.ts`, `server/src/entradas/limpar-seed.ts`, `server/package.json` (script `db:limpar-seed`), `server/eslint.config.js` (exceção de import do mock), os testes `limpar-seed.test.ts` e `limpar-seed.pg.test.ts` e `docs/architecture/server.md`. Revisão estática; nada foi executado no banco do dono e o `.env` não foi lido.
 
 Renovação por delta (E2.110): `26d097c..6ff43df` (E2.108), lido inteiro: `limpar-seed.ts` (versões de critério do seed em `dspd_core`, `lock_timeout` antes do ALTER, código `trava`), os dois testes e `docs/architecture/server.md`. `forge-check delta` listou só esses arquivos e os pareceres; de `6ff43df` até a ponta da branch só entram pareceres (nenhum código). Veredito mantido: aprovado.
+
+Renovação por delta (E2.140): `6ff43df..438b276`. O código do comando não mudou: o diff de `6ff43df` até a ponta em `server/src/plataforma/db`, `server/src/entradas/limpar-seed.ts`, migrações, `.github` e `docs/architecture/server.md` é vazio. Entram o merge da develop (5c679da: painel, métricas e referência, fora do comando; em `server/package.json` só duas devDependencies em patch, `@types/node` e `typescript-eslint`, sem script nem dependência de produção) e `438b276`, só teste em `server/tests/limpar-seed.test.ts` (+19 linhas): um caso com tabela de FK sem linha apontando (segue sem recusar) e um com `rowCount` nulo no DELETE (vira `contagem-divergente` com ROLLBACK, falha fechada). Os dois testes reforçam controles já aprovados; nenhum achado novo; o A1 segue como recomendação aberta. Veredito mantido: aprovado.
 
 ## Gatilhos
 Controle de integridade do Forge e do projeto: o comando desliga o gatilho append-only de `fato_transicao` (data-model §1) e apaga linhas da base analítica com o papel dono das tabelas (`dspd_migrador`); regra de carga incremental que nunca sobrescreve histórico e ADR 0022 (staging da coleta real intocado), R-SEGURANCA. Na volta, o comando passa a apagar também em `dspd_core` (versões de critério, T2.6).
@@ -46,4 +48,4 @@ Controle de integridade do Forge e do projeto: o comando desliga o gatilho appen
 **`fato_bloqueio` removido a mais.** Sai pela marca `atualizado_por_coleta_id` da coleta do seed, com a mesma falha fechada das outras projeções; consequência da regra "só o seed sai", sem ampliar o alcance sobre dado real. O review registrou que a decisão do dono o cobre e que o PR avisa.
 
 ## Riscos aceitos e ferramentas
-Nenhum novo. Seguem em vigor os aceites do pedido 052 (chave do dono com poder de escrita, coleta só na máquina do dono). Recomendado ao dono, como já está no passo a passo, backup antes do `--aplicar`. Lacuna: `gitleaks`, `osv-scanner` e Semgrep não estão no PATH desta estação e não foram rodados; o delta não toca dependências nem workflow, e a busca manual no diff não achou credencial nem URL de conexão; as varreduras ficam no CI.
+Nenhum novo. Seguem em vigor os aceites do pedido 052 (chave do dono com poder de escrita, coleta só na máquina do dono). Recomendado ao dono, como já está no passo a passo, backup antes do `--aplicar`. Lacuna: `gitleaks`, `osv-scanner` e Semgrep não estão no PATH desta estação e não foram rodados; o delta não toca dependências de produção nem workflow, e a busca manual no diff não achou credencial nem URL de conexão; as varreduras ficam no CI.
