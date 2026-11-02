@@ -12,6 +12,14 @@ const SQL = [
   { selector: `TemplateElement[value.raw=${re}]`, message },
 ]);
 const MSG_INDEX = 'Módulos se conhecem só pelo index.ts (ADR 0013 §9).';
+// Fora dos módulos, o módulo da aba (e por ele o pool do papel da aba) só entra em quem monta a API: app, entrada api e a geração do OpenAPI (A1 do parecer 059-rota-apontamento).
+const FORA_DOS_MODULOS = [
+  { regex: 'modulos/[^/]+/(?!index\\.js$)', message: MSG_INDEX },
+  { group: ['@metricas-dspd/metricas/coletor'], message: 'A biblioteca do coletor só entra em modulos/businessmap (ADR 0020, item 3).' },
+  { group: ['@metricas-dspd/mock', '@metricas-dspd/mock/*'], message: 'Só o seed, as extensões mock e os testes de paridade importam o mock.' },
+];
+const IMPORTA_O_MODULO_DA_ABA = 'modulos/apontamento(/|$)';
+const MONTAM_A_API = ['src/app.ts', 'src/entradas/api.ts', 'src/entradas/openapi.ts'];
 
 export default tseslint.config(
   { ignores: ['node_modules', 'dist', 'coverage'] },
@@ -34,16 +42,13 @@ export default tseslint.config(
       }],
     },
   })),
-  // R4-5 (ADR 0020 revisão 4): a regra do pool não se desliga por diretiva inline no módulo da aba.
-  { files: ['src/modulos/apontamento/**/*.ts'], linterOptions: { noInlineConfig: true } },
-  // Fora dos módulos: nada de arquivo interno de módulo.
-  { files: ['src/*.ts', 'src/plataforma/**/*.ts', 'src/entradas/**/*.ts'], ignores: ['src/plataforma/db/seed.ts', 'src/plataforma/db/seed-cli.ts', 'src/plataforma/db/limpar-seed.ts', 'src/plataforma/db/extensoes-mock.ts', 'src/plataforma/db/pesquisa-mock.ts'], rules: {
-    'no-restricted-imports': ['error', { patterns: [
-      { regex: 'modulos/[^/]+/(?!index\\.js$)', message: MSG_INDEX },
-      { group: ['@metricas-dspd/metricas/coletor'], message: 'A biblioteca do coletor só entra em modulos/businessmap (ADR 0020, item 3).' },
-      { group: ['@metricas-dspd/mock', '@metricas-dspd/mock/*'], message: 'Só o seed, as extensões mock e os testes de paridade importam o mock.' },
-    ] }],
+  // R4-5 (ADR 0020 revisão 4): a regra do pool não se desliga por diretiva inline em lugar nenhum do server (A1 do parecer da rota).
+  { files: ['**/*.ts'], linterOptions: { noInlineConfig: true } },
+  // Fora dos módulos: nada de arquivo interno de módulo, e o módulo da aba só entra em app, entrada api e openapi.
+  { files: ['src/*.ts', 'src/plataforma/**/*.ts', 'src/entradas/**/*.ts'], ignores: ['src/plataforma/db/seed.ts', 'src/plataforma/db/seed-cli.ts', 'src/plataforma/db/limpar-seed.ts', 'src/plataforma/db/extensoes-mock.ts', 'src/plataforma/db/pesquisa-mock.ts', ...MONTAM_A_API], rules: {
+    'no-restricted-imports': ['error', { patterns: [...FORA_DOS_MODULOS, { regex: IMPORTA_O_MODULO_DA_ABA, message: MSG_POOL_APONTAMENTO }] }],
   } },
+  { files: MONTAM_A_API, rules: { 'no-restricted-imports': ['error', { patterns: FORA_DOS_MODULOS }] } },
   // Serviço e repositório não leem o relógio nem sorteiam.
   { files: ['src/modulos/**/servico.ts', 'src/modulos/**/repositorio.ts'], rules: {
     'no-restricted-syntax': ['error', ...SQL,

@@ -85,7 +85,7 @@ describe('arquivos de compose e de CI (R4-5)', () => {
   });
 });
 
-describe('lint do pool (R4-5): só o módulo da aba o conhece; diretiva inline proibida no módulo', () => {
+describe('lint do pool (R4-5): só o módulo da aba o conhece; diretiva inline proibida em todo o server', () => {
   const eslint = new ESLint({ cwd: fileURLToPath(new URL('..', import.meta.url)) });
   const mensagens = async (codigo: string, arquivo: string) => (await eslint.lintText(codigo, { filePath: fileURLToPath(new URL(`../${arquivo}`, import.meta.url)) }))[0]!.messages;
   it('outro módulo importar o módulo da aba (e por ele o pool) falha o lint', async () => {
@@ -94,8 +94,17 @@ describe('lint do pool (R4-5): só o módulo da aba o conhece; diretiva inline p
       expect(m.map((x) => x.ruleId), origem).toContain('no-restricted-imports');
     }
   });
+  it('só app, entrada api e openapi importam o módulo da aba; outra entrada ou plataforma, nem pelo index (A1 do parecer da rota)', async () => {
+    const codigo = (origem: string) => `import { abrirPoolApontamento } from ${origem};\nexport const x = abrirPoolApontamento;\n`;
+    for (const [arquivo, origem] of [['src/entradas/zz-lint.ts', "'../modulos/apontamento/index.js'"], ['src/plataforma/zz-lint.ts', "'../modulos/apontamento/index.js'"], ['src/zz-lint.ts', "'./modulos/apontamento/index.js'"], ['src/entradas/worker.ts', "'../modulos/apontamento/index.js'"]] as const) {
+      expect((await mensagens(codigo(origem), arquivo)).map((x) => x.ruleId), `${arquivo} ${origem}`).toContain('no-restricted-imports');
+    }
+    expect(await mensagens(codigo("'../modulos/apontamento/index.js'"), 'src/entradas/api.ts')).toEqual([]);
+    expect(await mensagens(codigo("'../modulos/apontamento/index.js'"), 'src/entradas/openapi.ts')).toEqual([]);
+    expect(await mensagens(codigo("'./modulos/apontamento/index.js'"), 'src/app.ts')).toEqual([]);
+  });
   it('a entrada api e o app podem importar o index do módulo; arquivo interno dele não', async () => {
-    expect(await mensagens("import { abrirPoolApontamento } from '../modulos/apontamento/index.js';\nexport const x = abrirPoolApontamento;\n", 'src/entradas/zz-lint.ts')).toEqual([]);
+    expect(await mensagens("import { abrirPoolApontamento } from '../modulos/apontamento/index.js';\nexport const x = abrirPoolApontamento;\n", 'src/entradas/api.ts')).toEqual([]);
     const m = await mensagens("import { abrirPoolApontamento } from '../modulos/apontamento/pool.js';\nexport const x = abrirPoolApontamento;\n", 'src/entradas/zz-lint.ts');
     expect(m.map((x) => x.ruleId)).toContain('no-restricted-imports');
   });
@@ -108,5 +117,13 @@ describe('lint do pool (R4-5): só o módulo da aba o conhece; diretiva inline p
   it('no módulo da aba a diretiva eslint-disable é ignorada: o import proibido continua falhando', async () => {
     const m = await mensagens("// eslint-disable-next-line no-restricted-imports\nimport { MASCARA_FLAG } from '@metricas-dspd/metricas/coletor';\nexport const x = MASCARA_FLAG;\n", 'src/modulos/apontamento/zz-lint.ts');
     expect(m.map((x) => x.ruleId)).toContain('no-restricted-imports');
+  });
+  it('em todo o server a diretiva eslint-disable é ignorada: nenhum módulo, entrada ou plataforma desliga a regra do pool', async () => {
+    for (const [arquivo, origem] of [['src/modulos/metricas/zz-lint.ts', "'../apontamento/index.js'"], ['src/entradas/zz-lint.ts', "'../modulos/apontamento/index.js'"], ['src/plataforma/zz-lint.ts', "'../modulos/apontamento/pool.js'"]] as const) {
+      const m = await mensagens(`// eslint-disable-next-line no-restricted-imports\nimport { abrirPoolApontamento } from ${origem};\nexport const x = abrirPoolApontamento;\n`, arquivo);
+      expect(m.map((x) => x.ruleId), arquivo).toContain('no-restricted-imports');
+    }
+    const bloco = await mensagens("/* eslint-disable */\nimport { abrirPoolApontamento } from '../apontamento/index.js';\nexport const x = abrirPoolApontamento;\n", 'src/modulos/operacao/zz-lint.ts');
+    expect(bloco.map((x) => x.ruleId)).toContain('no-restricted-imports');
   });
 });
