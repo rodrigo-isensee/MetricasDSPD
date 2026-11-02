@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { METRICA_IDS } from './comum'
 import {
+  corpoSemDadoReal,
+  ESTADO_SEM_DADO_REAL,
+  METRICAS_ORIGEM_REAL,
+  MOTIVO_FONTE_REAL_NAO_DEFINIDA,
   motivoDaOrigemMock,
+  motivoSemDadoReal,
+  semDadoRealSchema,
   NOTAS_FIXAS_DO_CARTAO,
   notaCartaoIdSchema,
   origemDaMetrica,
@@ -10,11 +16,12 @@ import {
 import { resultadoO3 } from './schemas'
 
 describe('origemDaMetrica (H-13)', () => {
-  it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1 e as 5 da sustentação carregadas', () => {
+  it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1, a PV1 e os BLOQUEADOS (pedido 060) e as 5 da sustentação carregadas', () => {
     const reais = METRICA_IDS.filter((id) => origemDaMetrica(id) === 'real')
     expect([...reais].sort()).toEqual(
       [
         ...['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
+        ...['PV1', 'BLOQUEADOS'],
         ...['S2', 'S3', 'S4', 'S8', 'S10'],
       ].sort(),
     )
@@ -80,5 +87,32 @@ describe('notas de cartão', () => {
     expect(forma.safeParse(undefined).success).toBe(true)
     expect(forma.safeParse(['sle-nao-definido']).success).toBe(true)
     expect(forma.safeParse(['qualquer']).success).toBe(false)
+  })
+})
+
+describe('estado sem dado real (pedido 060, P3)', () => {
+  it('toda métrica fora do mapa real tem motivo não vazio, o do mapa ou o genérico', () => {
+    const fora = METRICA_IDS.filter((id) => !METRICAS_ORIGEM_REAL.has(id))
+    expect(fora.length).toBeGreaterThan(0)
+    for (const id of fora) {
+      expect(motivoSemDadoReal(id).length, id).toBeGreaterThan(0)
+      expect(semDadoRealSchema.safeParse(corpoSemDadoReal(id)).success, id).toBe(true)
+    }
+    expect(motivoSemDadoReal('O8')).toBe('aguardando campo no quadro')
+    expect(motivoSemDadoReal('VISAO_GERAL')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
+    expect(motivoSemDadoReal('T1')).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
+  })
+
+  it('o corpo não carrega número nem campo fora de estado, métrica e motivo', () => {
+    const corpo = corpoSemDadoReal('S1')
+    expect(Object.keys(corpo).sort()).toEqual(['estado', 'metrica', 'motivo'])
+    expect(corpo.estado).toBe(ESTADO_SEM_DADO_REAL)
+    expect(semDadoRealSchema.safeParse({ ...corpo, valor: 1 }).success).toBe(false)
+    expect(semDadoRealSchema.safeParse({ ...corpo, motivo: '' }).success).toBe(false)
+  })
+
+  it('PV1 e BLOQUEADOS não têm motivo de dado fictício', () => {
+    expect(motivoDaOrigemMock('PV1')).toBeNull()
+    expect(motivoDaOrigemMock('BLOQUEADOS')).toBeNull()
   })
 })

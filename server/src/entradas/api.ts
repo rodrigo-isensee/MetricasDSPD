@@ -15,7 +15,7 @@ const poolWebhook = cfg.PG_WEBHOOK_URL === undefined ? null : criarPool(cfg.PG_W
 const webhook = poolWebhook === null ? undefined : { pool: poolWebhook, segredo: cfg.WEBHOOK_BM_SEGREDO as string };
 const poolApontamento = cfg.PG_APONTAMENTO_URL === undefined ? null : abrirPoolApontamento(cfg.PG_APONTAMENTO_URL, avisar);
 const apontamento = poolApontamento === null ? undefined : { pool: poolApontamento, nomesReais: cfg.APONTAMENTO_NOMES === '1', redeLocal: cfg.APONTAMENTO_REDE_LOCAL };
-const app = await buildApp({ db: pool, apontamento, S: montarEsquemas(cfg.DSPD_SCHEMA_PREFIXO), agora: () => new Date(), nivelLog: cfg.LOG_LEVEL, webhook, fonteDados: cfg.DADOS_FONTE, ...(cfg.DSPD_SCHEMA_PREFIXO_SEED === undefined ? {} : { SMock: montarEsquemas(cfg.DSPD_SCHEMA_PREFIXO_SEED) }), aquecer: true });
+const app = await buildApp({ db: pool, apontamento, S: montarEsquemas(cfg.DSPD_SCHEMA_PREFIXO), agora: () => new Date(), nivelLog: cfg.LOG_LEVEL, webhook, modoMock: cfg.DSPD_MODO_MOCK === 'homologacao', aquecer: true });
 const encerrar = async (): Promise<void> => { await app.close(); await pool.end(); await poolWebhook?.end(); await poolApontamento?.end(); };
 process.once('SIGTERM', () => void encerrar());
 process.once('SIGINT', () => void encerrar());

@@ -7,6 +7,16 @@ import type { Consultavel } from './pool.js';
  */
 export const PREFIXO_COLETA_SEED = 'seed-mock';
 
+/**
+ * Trava `dspd:seed` (A1 do review do P1): o seed a toma na transação inteira; a guarda da coleta e a do projetor a tomam antes de contar.
+ * Com a mesma trava, uma guarda e um seed simultâneos no mesmo banco se serializam: quem entra depois enxerga o que o outro gravou.
+ * Trava de transação (`pg_advisory_xact_lock`): vale até o fim da transação em que foi tomada.
+ */
+export const TRAVA_DO_SEED = 'dspd:seed';
+export async function tomarTravaDoSeed(trx: Consultavel): Promise<void> {
+  await trx.query('SELECT pg_advisory_xact_lock(hashtext($1))', [TRAVA_DO_SEED]);
+}
+
 const IDENT = /^[a-z][a-z0-9_]*$/;
 const ident = (nome: string): string => {
   if (!IDENT.test(nome)) throw new Error('identificador inválido');

@@ -43,7 +43,7 @@ function bancoComF2(sem: (i: number) => boolean, sim: (i: number) => boolean): R
   };
 }
 const get = async (db: Respondedor, url: string, fonteDados?: 'real') => {
-  const app = await buildApp({ db: criarDublePg(db).pool, agora: () => AGORA, nivelLog: 'silent', ...(fonteDados === undefined ? {} : { fonteDados }) });
+  const app = await buildApp({ db: criarDublePg(db).pool, agora: () => AGORA, nivelLog: 'silent', modoMock: fonteDados === undefined });
   return app.inject(url);
 };
 const totalS2 = (j: { base: { n: number } }): number => j.base.n;
@@ -84,7 +84,7 @@ describe('chamado com prioridade fora da escala P (D-8, D-12)', () => {
   };
   it('a leitura não filtra por prioridade', async () => {
     const d = criarDublePg(bancoSemP());
-    const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
+    const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'silent' });
     await app.inject('/api/v1/metricas/S2');
     const sql = d.chamadas.find((c) => c.texto.includes('FROM dspd_ac.dim_chamado'))!.texto;
     expect(sql).not.toContain('prioridade IS NOT NULL');

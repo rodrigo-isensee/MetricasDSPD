@@ -12,7 +12,7 @@ const AGORA = new Date('2026-10-10T15:00:00Z');
 const base = gerarBaseMock({ escala: 0.25 });
 const montar = async (aquecer: boolean) => {
   const d = criarDublePg(bancoDoMock(base));
-  const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'silent', aquecer });
+  const app = await buildApp({ modoMock: true, db: d.pool, agora: () => AGORA, nivelLog: 'silent', aquecer });
   return { app, d };
 };
 
@@ -40,7 +40,7 @@ describe('aquecimento da API na subida (SNO-005)', () => {
   it('falha no aquecimento não derruba a subida: a API sobe e registra o aviso com a classe do erro', async () => {
     const linhas: string[] = [];
     const d = criarDublePg(() => new Error('banco fora'));
-    const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'info', aquecer: true, destinoLog: { write: (m) => { linhas.push(m); } } });
+    const app = await buildApp({ modoMock: true, db: d.pool, agora: () => AGORA, nivelLog: 'info', aquecer: true, destinoLog: { write: (m) => { linhas.push(m); } } });
     await expect(app.ready()).resolves.toBeDefined();
     const aviso = linhas.map((l) => JSON.parse(l) as Record<string, unknown>).find((l) => l.msg === 'aquecimento falhou; a primeira consulta carrega a base');
     expect(aviso).toBeDefined();
@@ -52,7 +52,7 @@ describe('aquecimento da API na subida (SNO-005)', () => {
     const linhas: string[] = [];
     const banco = bancoDoMock(base);
     const d = criarDublePg((c) => (c.texto.includes('ref_alvo_prioridade') ? [] : banco(c)));
-    const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'info', aquecer: true, destinoLog: { write: (m) => { linhas.push(m); } } });
+    const app = await buildApp({ modoMock: true, db: d.pool, agora: () => AGORA, nivelLog: 'info', aquecer: true, destinoLog: { write: (m) => { linhas.push(m); } } });
     await app.ready();
     const r = await app.inject('/api/v1/metricas/O1');
     expect(r.statusCode).toBe(200);
@@ -76,7 +76,7 @@ describe('aquecimento da API na subida (SNO-005)', () => {
         connect: d.pool.connect.bind(d.pool),
         end: d.pool.end.bind(d.pool),
       };
-      const app = await buildApp({ db: pool, agora: () => AGORA, nivelLog: 'info', aquecer: true, destinoLog: { write: (m) => { linhas.push(m); } } });
+      const app = await buildApp({ modoMock: true, db: pool, agora: () => AGORA, nivelLog: 'info', aquecer: true, destinoLog: { write: (m) => { linhas.push(m); } } });
       const msgs = () => linhas.map((l) => (JSON.parse(l) as { msg: string }).msg);
       let pronta = false;
       const ready = app.ready().then(() => { pronta = true; });

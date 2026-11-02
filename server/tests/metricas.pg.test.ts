@@ -47,7 +47,7 @@ d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
       bm: businessmap.criarContextoBM(mem.bm, CORTE, CALENDARIO_PADRAO), ac: acelerato.criarContextoAC(mem.ac, CORTE, CALENDARIO_PADRAO),
       ext: gerarExtensoesMock(base),
     };
-    const s = new ServicoMetricas({ db: api, S: E, extensoes: () => gerarExtensoesMock(base) });
+    const s = new ServicoMetricas({ modoMock: true, db: api, S: E, extensoes: () => gerarExtensoesMock(base) });
     for (const id of METRICA_IDS as readonly MetricaId[]) {
       const f = FILTROS_POR_FONTE[fonteDaMetrica(id)];
       const r = await s.calcular(id, f, { dataReferencia: CORTE_DATA }, AGORA);
@@ -56,7 +56,7 @@ d('métricas sobre o PostgreSQL (papel dspd_api)', () => {
   }, 120_000);
 
   it('rotas HTTP: data de referência = coleta do seed; fontes e critérios respondem com o papel dspd_api', async () => {
-    const app = await buildApp({ db: api, S: E, agora: () => AGORA, nivelLog: 'silent' });
+    const app = await buildApp({ modoMock: true, db: api, S: E, agora: () => AGORA, nivelLog: 'silent' });
     const r = await app.inject('/api/v1/metricas/T1');
     expect(r.statusCode).toBe(200);
     expect(r.headers['x-data-referencia']).toBe('2026-10-09');

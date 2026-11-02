@@ -30,11 +30,10 @@ const esquemaApi = z.object({
   ...comum,
   PG_API_URL: urlPg,
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
-  // Fonte dos dados: 'mock' (padrão atual, base semeada) liga as extensões mockadas; 'real' as desliga.
-  DADOS_FONTE: z.enum(['mock', 'real']).default('mock'),
+  // Pedido 060 (P2): a API serve só dado real. O modo mock só sobe por ativação explícita, e só com o nome do ambiente de homologação
+  // (os testes e o E2E ativam por injeção em `buildApp`, nunca por variável). Qualquer outro valor recusa a partida.
+  DSPD_MODO_MOCK: vazioIndefinido(z.literal('homologacao').optional()),
   HOST: z.string().min(1).default('0.0.0.0'),
-  // F6 do plano 052: prefixo dos schemas da base do SEED. Definido liga o modo de duas bases (DSPD_SCHEMA_PREFIXO = base real).
-  DSPD_SCHEMA_PREFIXO_SEED: vazioIndefinido(z.string().regex(/^[a-z][a-z0-9_]{0,30}$/).optional()),
   // Webhook do BusinessMap (S-12): as duas variáveis juntas ligam a rota; nenhuma, a rota não existe.
   PG_WEBHOOK_URL: vazioIndefinido(urlPg.optional()),
   WEBHOOK_BM_SEGREDO: vazioIndefinido(z.string().min(16, 'segredo curto').optional()),
@@ -131,7 +130,16 @@ export type ConfigProjetorBusinessMap = z.output<typeof esquemaProjetorBusinessM
 export type ConfigColetaBusinessMap = z.output<typeof esquemaColetaBusinessMap>;
 export type ConfigApontamentoBusinessMap = z.output<typeof esquemaApontamentoBusinessMap>;
 export type ConfigEliminacaoPessoa = z.output<typeof esquemaEliminacaoPessoa>;
-export const carregarConfigApi = (env: NodeJS.ProcessEnv = process.env): ConfigApi => validar(esquemaApi, env);
+/** Variáveis que ligavam o mock na API e saíram no pedido 060: a presença (mesmo vazia) recusa a partida, para que um `.env` antigo não religue o mock em silêncio. */
+export const VARIAVEIS_REMOVIDAS_API = ['DADOS_FONTE', 'DSPD_SCHEMA_PREFIXO_SEED'] as const;
+
+export const carregarConfigApi = (env: NodeJS.ProcessEnv = process.env): ConfigApi => {
+  const removidas = VARIAVEIS_REMOVIDAS_API.filter((nome) => env[nome] !== undefined);
+  if (removidas.length > 0) {
+    throw new Error(`Configuração inválida (variáveis: ${removidas.join(', ')}): variável removida no pedido 060; a API serve só dado real. Tire a linha do ambiente (o modo demonstração é DSPD_MODO_MOCK=homologacao, só na homologação)`);
+  }
+  return validar(esquemaApi, env);
+};
 export const carregarConfigWorker = (env: NodeJS.ProcessEnv = process.env): ConfigWorker => validar(esquemaWorker, env);
 export const carregarConfigRef = (env: NodeJS.ProcessEnv = process.env): ConfigRef => validar(esquemaRef, env);
 export const carregarConfigMigrar = (env: NodeJS.ProcessEnv = process.env): ConfigMigrar => validar(esquemaMigrar, env);

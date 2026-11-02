@@ -1,7 +1,7 @@
 /**
  * Servidor REAL local para a paridade mock x API (FA-4) e o E2E em `VITE_FONTE=api` (FA-5).
  * Migra um conjunto de schemas com prefixo próprio no banco de teste, semeia o MESMO mock do front
- * (semente e escala padrão), sobe a API (`DADOS_FONTE=mock`) e, ao receber SIGINT/SIGTERM, remove os schemas.
+ * (semente e escala padrão), sobe a API em modo mock explícito (`modoMock: true`, pedido 060) e, ao receber SIGINT/SIGTERM, remove os schemas.
  *
  * Uso: PG_TESTE_URL=postgres://dspd_migrador:...@127.0.0.1:5432/metricas_test PORT=3100 tsx tests/pg/servidor-api-mock.ts
  * Imprime `API_PRONTA <porta>` quando aceita conexões. Só ambiente de desenvolvimento/CI.
@@ -43,7 +43,7 @@ await migrador.end();
 
 const pool = criarPool(urlDoPapel(urlMigrador, 'dspd_api', process.env.DSPD_PWD_API ?? 'api_dev'), { statementTimeoutMs: 10_000 });
 // Relógio fixo na data da base: `historico.fim` e a data de referência dependem de "hoje" e o mock tem a sua data fixa.
-const app = await buildApp({ db: pool, S, agora: () => new Date(base.config.hoje), nivelLog: 'silent', fonteDados: 'mock', aquecer: true });
+const app = await buildApp({ db: pool, S, agora: () => new Date(base.config.hoje), nivelLog: 'silent', modoMock: true, aquecer: true });
 
 let encerrando = false;
 const encerrar = async (): Promise<void> => {

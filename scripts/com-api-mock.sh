@@ -1,5 +1,5 @@
 #!/bin/bash
-# Sobe a API real local com o mock semeado (DADOS_FONTE=mock, schemas temporários no banco de teste), roda o comando
+# Sobe a API real local com o mock semeado (modo mock explícito, schemas temporários no banco de teste), roda o comando
 # recebido com API_URL apontando para ela e derruba tudo ao final (os schemas temporários são removidos).
 # Uso: bash scripts/com-api-mock.sh <comando...>   (FA-4 paridade; FA-5 E2E em VITE_FONTE=api). Rode sob flock.
 set -uo pipefail

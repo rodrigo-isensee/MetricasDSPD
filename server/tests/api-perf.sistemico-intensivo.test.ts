@@ -32,7 +32,7 @@ describe('SIS-PERF-API: orçamento A1 a A3 nas 69 rotas (volume padrão do mock)
     // Melhor de N rodadas, cada uma com um app novo (cache de métricas frio): um pico de contenção (GC, SMT, cobertura
     // sob carga) infla uma rodada, não todas. Uma regressão real infla todas, e o melhor delas continua acima do teto.
     for (let rodada = 0; rodada < RODADAS; rodada++) {
-      const app = await buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent' });
+      const app = await buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent' });
       const frio: Record<string, number> = {};
       const quente: number[] = [];
       const t0 = cpuMs();

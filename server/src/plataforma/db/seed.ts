@@ -3,7 +3,7 @@ import { justificativaInformada } from '@metricas-dspd/metricas/acelerato';
 import { slug } from '@metricas-dspd/metricas/core';
 import { gerarBaseMock, gerarPesquisaMock, type BaseMock } from '@metricas-dspd/mock';
 import { esquemasDoAmbiente, type Esquemas } from './esquemas.js';
-import { contarColetasReais, contarItensReais, PREFIXO_COLETA_SEED } from './guarda-seed.js';
+import { contarColetasReais, contarItensReais, PREFIXO_COLETA_SEED, tomarTravaDoSeed } from './guarda-seed.js';
 import { emTransacao, type Consultavel, type PoolLike } from './pool.js';
 
 /**
@@ -233,13 +233,13 @@ export async function semear(
   // intercalavam (A grava BM, B pula BM e grava AC) e ambos devolviam 'semeado' (K-094). Os dados de BM e AC seguem
   // em schemas e mapeamentos separados; só o commit é conjunto.
   await emTransacao(pool, async (trx: Consultavel) => {
-    await trx.query('SELECT pg_advisory_xact_lock(hashtext($1))', ['dspd:seed']);
+    await tomarTravaDoSeed(trx);
     // P1 do plano 060-sem-mock: antes de escrever em qualquer esquema, recusa os que já têm coleta real (falha fechada; só tabela e contagem).
     for (const { schema, itens } of alvos) {
       const coletas = await contarColetasReais(trx, schema);
-      const cards = await contarItensReais(trx, schema, itens);
-      if (coletas > 0 || cards > 0)
-        throw new ErroSeedEmBaseReal(`seed recusado: ${schema}.ctl_coleta: ${coletas} linha(s) de coleta real; ${schema}.${itens}: ${cards} linha(s) de coleta real`);
+      const itensReais = await contarItensReais(trx, schema, itens);
+      if (coletas > 0 || itensReais > 0)
+        throw new ErroSeedEmBaseReal(`seed recusado: ${schema}.ctl_coleta: ${coletas} linha(s) de coleta real; ${schema}.${itens}: ${itensReais} linha(s) de coleta real`);
     }
     for (const { schema, fonte, mapear } of alvos) {
       const ex = await trx.query<{ coleta_id: string; parametros: unknown }>(
