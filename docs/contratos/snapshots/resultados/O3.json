@@ -151,6 +151,16 @@
       ],
       "additionalProperties": false
     },
+    "notas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sem-classe",
+          "sle-nao-definido"
+        ]
+      }
+    },
     "classes": {
       "type": "array",
       "items": {
@@ -165,7 +175,8 @@
               "Iniciativa",
               "Bug interno",
               "Defeito em produção",
-              "Dívida técnica"
+              "Dívida técnica",
+              "Trabalho de produto"
             ]
           },
           "n": {

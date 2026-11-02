@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-fix-coleta
-commit: 24718e5ffd57bd23141ee9254ad17aecd617ad23
+branch: feature/052-f6-painel
+commit: 52c201ea9b6949a9188fcea0f18c68e52e5bcfe4
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -77,6 +77,21 @@ Veredito: aprovado, mantido. O parecer ficou desatualizado porque `docs/integrac
 Veredito: aprovado, mantido. O parecer ficou desatualizado porque o `pnpm-lock.yaml` mudou. Delta `f763d6a..24718e5`, lido com `git diff --stat`: override `vite: "8.3.4"` no `pnpm-workspace.yaml` e o `pnpm-lock.yaml` (correção do test:pg, com parecer próprio em `docs/qa/052-fix-test-pg.md`); bumps de patch de dependência de desenvolvimento (`@types/node` 26.6.6 e `typescript-eslint` 8.72.1) nos `package.json` da raiz e do server, vindos da develop (PR 182); e o código do Acelerato, também vindo da develop, alheio ao BusinessMap.
 
 `git diff --stat f763d6a..24718e5` sobre `server/src/modulos/businessmap`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh`, `server/tests/diagnostico-businessmap.test.ts`, `docs/architecture/data-model.md` e `docs/integracao/businessmap-api-configuracao.md`: vazio. O `.env.example` não foi comparado (leitura barrada pela regra de acesso); o delta não o inclui na lista de arquivos alterados. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. Sem suíte, sem mutantes e sem chamada ao BusinessMap, como pedido (delta de dependência de desenvolvimento e configuração, já testado na correção: test:pg 163 e web 1228 verdes). O `.env` não foi lido.
+
+## Renovação por delta (E2.129, depois do merge da develop na F6)
+Veredito: aprovado, mantido. O parecer ficou desatualizado porque o `.env.example` mudou depois dele. Delta `24718e5..802fad3`, lido com `git diff` sobre os arquivos que o parecer cobre:
+- `.env.example`: uma linha comentada somada, `DSPD_SCHEMA_PREFIXO_SEED` (modo de duas bases da F6). Sem valor, sem chave, fora das variáveis que o script lê; o bloco do BusinessMap e o do Acelerato seguem separados.
+- `server/src/modulos/businessmap/index.ts`: uma linha de re-export (`indiceTipoDaColuna`, `resolverTipoDasTransicoes` e tipos, de `tipo-coluna.js`), da F6. Não é só documento, por isso a suíte do server rodou; o export de `diagnosticar` segue igual.
+- `diagnostico.ts`, `diagnostico-businessmap.ts` (entrada), `scripts/bm-diagnostico.sh`, `diagnostico-businessmap.test.ts`, `server/package.json`, `docs/integracao/businessmap-api-configuracao.md` e `docs/architecture/data-model.md`: sem nenhuma linha no delta.
+
+Reexecução no head `802fad3`: `pnpm run typecheck` do server rc=0; `pnpm run test` do server, 59 arquivos passaram e 26 pulados (os .pg), 1127 testes passaram e 168 pulados, 0 falhos; os 30 testes do diagnóstico estão entre eles. Sem mutantes (o código do script não mudou) e sem chamada ao BusinessMap. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido.
+
+## Renovação por delta (E2.133, depois da correção do teste E2E)
+Veredito: aprovado, mantido. O parecer ficou desatualizado porque `e2e/tests/intensivo-filtros.spec.ts` mudou depois dele. Delta `802fad3..52c201e`, lido com `git diff --stat` e `git diff`: quatro arquivos, nenhum que o script da WS1 leia ou execute.
+- `e2e/tests/intensivo-filtros.spec.ts`: uma linha, `trabalho-produto` somado ao fim da constante `TIPOS` (ADR 0024). Só arquivo de teste E2E de painéis; não toca `diagnostico.ts`, a entrada, o `scripts/bm-diagnostico.sh` nem os 30 testes do diagnóstico.
+- `docs/qa/052-ws1-estrutura.md`, `docs/reviews/052-ws1-estrutura.md` e `docs/security/052-fix-test-pg.md`: só pareceres.
+
+Sem suíte do server, sem mutantes e sem chamada ao BusinessMap, como pedido: o delta é só de documento e de teste E2E de outra frente, e a suíte do server rodou sobre o código do script no head `802fad3` (1127 passaram, 0 falhos) sem nenhuma linha dele mudar depois. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).

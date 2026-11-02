@@ -29,6 +29,7 @@ export const TIPO_ID: Record<TipoFiltro, string> = {
   'Bug interno': 'bug-interno',
   'Defeito em produção': 'defeito-producao',
   'Dívida técnica': 'divida-tecnica',
+  'Trabalho de produto': 'trabalho-produto',
 }
 
 /**

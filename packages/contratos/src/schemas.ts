@@ -33,6 +33,7 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
+import { notaCartaoIdSchema } from './origem'
 import { trimestreSchema } from './pesquisa'
 import { paradosSchema } from './tambem'
 
@@ -142,6 +143,8 @@ const serieP85 = z.array(z.object({ semana: iso, n: z.number(), p85: z.number().
 export const resultadoO3 = z.object({
   ...comum,
   janelaPercentis: janelaSchema,
+  /** Notas que o cartão mostra por indicação do servidor (H-24: "SLE não definido"); os textos vivem em `origem.ts`. */
+  notas: z.array(notaCartaoIdSchema).optional(),
   classes: z.array(
     z.object({
       tipo,

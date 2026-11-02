@@ -34,6 +34,12 @@ export type DepsApp = {
   pesquisa?: FontePesquisa;
   /** Fonte dos dados: só em 'mock' as extensões mockadas entram; em 'real', sem extensão os campos saem insuficientes. Padrão 'mock'. */
   fonteDados?: 'mock' | 'real';
+  /**
+   * Schemas da base do seed (F6 do plano 052): definido liga o modo de duas bases. `S` passa a ser a base REAL e cada métrica vem inteira
+   * de uma só, pela origem do contrato (`origemDaMetrica`): as reais leem `S`; as demais (FL2, FL3, Sustentação e as fictícias do FL1), estes
+   * schemas, com as extensões mockadas. Sem isto, base única (o comportamento de sempre).
+   */
+  SMock?: Esquemas;
   /** Aquece a base em memória e o código das métricas antes de aceitar requisições (SNO-005). Padrão: desligado (testes). */
   aquecer?: boolean;
   /** Prazo máximo que a subida espera pelo aquecimento (ms). Padrão 5000, bem abaixo do pluginTimeout de 10 s. */
@@ -71,8 +77,12 @@ export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
     transform: jsonSchemaTransform,
   });
   await app.register(async (i) => rotasSaude(i, deps.db));
-  const servico = new ServicoMetricas({ db: deps.db, S: deps.S, extensoes: deps.extensoes ?? (deps.fonteDados === 'real' ? undefined : extensoesMock),
-    extensaoTambem: deps.extensaoTambem ?? (deps.fonteDados === 'real' ? undefined : extensaoTambemMock),
+  const duasBases = deps.SMock !== undefined; // as extensões mockadas só valem para as métricas que leem a base do seed
+  const semMock = deps.fonteDados === 'real' && !duasBases;
+  const servico = new ServicoMetricas({ db: deps.db, S: deps.S, ...(duasBases ? { SMock: deps.SMock } : {}),
+    log: (contexto, mensagem) => { app.log.warn(contexto, mensagem); },
+    extensoes: deps.extensoes ?? (semMock ? undefined : extensoesMock),
+    extensaoTambem: deps.extensaoTambem ?? (semMock ? undefined : extensaoTambemMock),
     pesquisa: deps.pesquisa ?? (deps.fonteDados === 'real' ? criarFontePesquisaReal(deps.db, deps.S) : fontePesquisaMock) });
   if (deps.aquecer === true) {
     // O onReady está sujeito ao pluginTimeout do Fastify (10 s): se o aquecimento passasse disso, ready()/listen falharia
@@ -100,7 +110,7 @@ export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
     });
   }
   await app.register(async (i) => {
-    await rotasReferencia(i, { db: deps.db, S: deps.S, agora: deps.agora });
+    await rotasReferencia(i, { db: deps.db, S: deps.S, agora: deps.agora, times: duasBases });
     await rotasOperacao(i, { db: deps.db, S: deps.S, agora: deps.agora });
     await rotasMetricas(i, { servico, agora: deps.agora });
   }, { prefix: '/api/v1' });

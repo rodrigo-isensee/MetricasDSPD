@@ -1,11 +1,11 @@
-import type { VersaoCriterio } from '@metricas-dspd/contratos';
+import { TIPOS_CARD, type VersaoCriterio } from '@metricas-dspd/contratos';
 import { CALENDARIO_PADRAO, diaDeIso, fimDoExpediente } from '@metricas-dspd/metricas/core';
 import type { BaseAC, Chamado, EtapaChamado, ExtensaoAC } from '@metricas-dspd/metricas/acelerato';
 import type {
   BaseBM, ConfigBM, DimCard, DimColuna, FatoBloqueio, FatoTransicao, FichaResultado,
 } from '@metricas-dspd/metricas/businessmap';
 import type {
-  LinhaAlvo, LinhaBloqueio, LinhaCard, LinhaChamado, LinhaColuna, LinhaDominio, LinhaEtapa, LinhaFicha, LinhaGlobal,
+  LinhaAlvo, LinhaBloqueio, LinhaCard, LinhaChamado, LinhaColuna, LinhaColunaReal, LinhaDominio, LinhaEtapa, LinhaFicha, LinhaGlobal,
   LinhaTransicao,
 } from './repositorio.js';
 
@@ -69,15 +69,34 @@ export function bloqueioDe(l: LinhaBloqueio, nomes: NomesColuna, quadros: Map<st
 }
 
 const PAPEIS: readonly string[] = ['backlog', 'compromisso', 'trabalho', 'homologacao', 'entrega'];
-/** Coluna sem tipo ou papel conhecido não entra em `colunas` (não se infere o papel). */
-export const colunasDe = (ls: LinhaColuna[]): DimColuna[] => {
+/**
+ * Coluna sem tipo ou papel conhecido não entra em `colunas` (não se infere o papel). Base real (`real`, H-12): `limite_wip` 0 = coluna sem
+ * limite (`null`) e a coluna leva o time do workflow dela (quando a leitura o trouxe).
+ */
+export const colunasDe = (ls: (LinhaColuna | LinhaColunaReal)[], real = false): DimColuna[] => {
   const rotulos = nomesDeColuna(ls);
   return ls.filter((c) => (c.tipo_coluna === 'fila' || c.tipo_coluna === 'execucao') && c.papel !== null && PAPEIS.includes(c.papel))
-    .map((c) => ({
-      quadro_id: c.quadro_id, coluna: rotulos.get(`${c.quadro_id}|${c.coluna_id}`)!, tipo_coluna: campo(c.tipo_coluna),
-      papel: campo(c.papel), ordem: c.ordem, limite_wip: c.limite_wip,
-    }));
+    .map((c) => {
+      const equipe = (c as Partial<LinhaColunaReal>).equipe;
+      return {
+        quadro_id: c.quadro_id, coluna: rotulos.get(`${c.quadro_id}|${c.coluna_id}`)!, tipo_coluna: campo<DimColuna['tipo_coluna']>(c.tipo_coluna),
+        papel: campo<DimColuna['papel']>(c.papel), ordem: c.ordem, limite_wip: real && c.limite_wip === 0 ? null : c.limite_wip,
+        ...(real && equipe != null ? { equipe } : {}),
+      };
+    });
 };
+
+/** Papéis cujo limite de WIP conta no limite do time (as colunas de trabalho e de homologação, as mesmas do detalhe por coluna do O1). */
+const PAPEIS_COM_LIMITE: readonly string[] = ['trabalho', 'homologacao'];
+/** H-12: limite de WIP do time na base real = soma dos `limite_wip` maiores que 0 das colunas de trabalho e homologação dele; sem nenhum, o time fica sem limite. */
+export function limitesDosTimes(colunas: readonly DimColuna[]): Record<string, number> {
+  const por: Record<string, number> = {};
+  for (const c of colunas) {
+    if (c.equipe === undefined || !PAPEIS_COM_LIMITE.includes(c.papel) || c.limite_wip === null || c.limite_wip <= 0) continue;
+    por[c.equipe] = (por[c.equipe] ?? 0) + c.limite_wip;
+  }
+  return por;
+}
 
 export type RefBM = {
   equipes: string[]; sistemas: LinhaDominio[]; limitesWip: { equipe: string; limite: number }[]; limiteFrentes: number | null;
@@ -87,9 +106,10 @@ export type RefBM = {
 
 export const fichaDe = (l: LinhaFicha): FichaResultado => ({ ...(l.ficha as Omit<FichaResultado, 'card_id'>), card_id: l.card_id });
 
-export function configBM(r: RefBM): ConfigBM {
+export function configBM(r: RefBM, colunasReais?: readonly DimColuna[]): ConfigBM {
   return {
-    limite_wip_fluxo: Object.fromEntries(r.limitesWip.map((x) => [x.equipe, x.limite])),
+    ...(colunasReais === undefined ? {} : { limite_wip_por_coluna: true }),
+    limite_wip_fluxo: colunasReais === undefined ? Object.fromEntries(r.limitesWip.map((x) => [x.equipe, x.limite])) : limitesDosTimes(colunasReais),
     limite_frentes: r.limiteFrentes ?? 0,
     sle: r.sle.map((x) => ({ classe: campo(x.classe), dias_uteis: Number(x.valor), publicado_em: x.desde })),
     alocacao: r.alocacao.map((x) => ({ natureza: campo(x.classe), pct: Number(x.valor) })),
@@ -100,17 +120,28 @@ export function configBM(r: RefBM): ConfigBM {
 }
 
 export type LinhasBM = {
-  cards: LinhaCard[]; transicoes: LinhaTransicao[]; bloqueios: LinhaBloqueio[]; colunas: LinhaColuna[]; ref: RefBM;
+  cards: LinhaCard[]; transicoes: LinhaTransicao[]; bloqueios: LinhaBloqueio[]; colunas: (LinhaColuna | LinhaColunaReal)[]; ref: RefBM;
+  /** Base real (F6 do 052): limite de WIP pelas colunas (H-12). Ausente = base semeada. */
+  real?: boolean;
 };
+export type OpcoesMontagem = { aoDescartarTipo?: (quantos: number) => void };
 
-export function montarBaseBM(l: LinhasBM): BaseBM {
+const TIPOS_DO_CONTRATO: readonly string[] = TIPOS_CARD;
+
+/**
+ * ADR 0024: card com `tipo` fora de `TIPOS_CARD` não entra no contexto (nunca um cast cego do tipo); só a contagem sai, por `aoDescartarTipo`.
+ */
+export function montarBaseBM(l: LinhasBM, o: OpcoesMontagem = {}): BaseBM {
   const nomes = nomesDeColuna(l.colunas);
+  const cards = l.cards.filter((c) => c.tipo !== null && TIPOS_DO_CONTRATO.includes(c.tipo));
+  if (cards.length < l.cards.length) o.aoDescartarTipo?.(l.cards.length - cards.length);
   const quadros = new Map(l.cards.map((c) => [c.card_id, c.quadro_id ?? '']));
+  const colunas = colunasDe(l.colunas, l.real === true);
   return {
-    cards: l.cards.map((c) => cardDe(c, nomes)),
+    cards: cards.map((c) => cardDe(c, nomes)),
     transicoes: l.transicoes.map((t) => transicaoDe(t, nomes, quadros)),
     bloqueios: l.bloqueios.map((b) => bloqueioDe(b, nomes, quadros)),
-    colunas: colunasDe(l.colunas), fichas: l.ref.fichas.map(fichaDe), config: configBM(l.ref),
+    colunas, fichas: l.ref.fichas.map(fichaDe), config: configBM(l.ref, l.real === true ? colunas : undefined),
   };
 }
 

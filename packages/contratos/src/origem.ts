@@ -1,0 +1,65 @@
+/**
+ * Origem de cada métrica (plano 052, F6, H-13): `real` = dado da base alimentada pela coleta do BusinessMap;
+ * `mock` = dado fictício (base do seed). Cada métrica vem inteira de UMA origem; nunca se misturam.
+ * Fonte única do selo "Dados fictícios" por cartão, da contagem do cabeçalho e do Exportar (P-1 e P-4).
+ */
+import { z } from 'zod'
+import type { MetricaId } from './comum'
+
+export type OrigemDaMetrica = 'real' | 'mock'
+
+/** Painel operacional com dado no quadro (H-13): as 11 do FL1 e a Espera invisível do FL1. */
+export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
+  'O1',
+  'O2',
+  'O3',
+  'O4',
+  'O5',
+  'O6',
+  'O7',
+  'O9',
+  'O10',
+  'O11',
+  'O13',
+  'EI_FL1',
+])
+
+export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
+
+/** Fictícias do FL1 com o campo ainda por criar na WS1 (H-13). O19 a O26 seguem mock até a F6b, sem motivo próprio. */
+export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
+  O8: MOTIVO_AGUARDANDO_CAMPO,
+  O12: MOTIVO_AGUARDANDO_CAMPO,
+  O14: MOTIVO_AGUARDANDO_CAMPO,
+  O15: MOTIVO_AGUARDANDO_CAMPO,
+  O16: MOTIVO_AGUARDANDO_CAMPO,
+  O17: MOTIVO_AGUARDANDO_CAMPO,
+  O18: MOTIVO_AGUARDANDO_CAMPO,
+}
+
+export function origemDaMetrica(id: MetricaId): OrigemDaMetrica {
+  return METRICAS_ORIGEM_REAL.has(id) ? 'real' : 'mock'
+}
+
+/** Motivo do dado fictício, quando o mapa guarda um; null para métrica real ou sem motivo registrado. */
+export function motivoDaOrigemMock(id: MetricaId): string | null {
+  return origemDaMetrica(id) === 'mock' ? (MOTIVO_ORIGEM_MOCK[id] ?? null) : null
+}
+
+/** Notas que o cartão mostra por indicação do contrato (H-15 e H-24). Os textos vivem só aqui. */
+export const TEXTO_NOTA_CARTAO = {
+  'sem-classe': 'Sem separação por classe até o quadro ter o campo.',
+  'sle-nao-definido': 'SLE não definido.',
+} as const
+export type NotaCartaoId = keyof typeof TEXTO_NOTA_CARTAO
+export const NOTA_CARTAO_IDS = [
+  'sem-classe',
+  'sle-nao-definido',
+] as const satisfies readonly NotaCartaoId[]
+export const notaCartaoIdSchema = z.enum(NOTA_CARTAO_IDS)
+
+/** Notas fixas por métrica (H-15: O6 e SLE, o T2). A do O3 (H-24) é dinâmica: vem no resultado (`notas`). */
+export const NOTAS_FIXAS_DO_CARTAO: Partial<Record<MetricaId, readonly NotaCartaoId[]>> = {
+  O6: ['sem-classe'],
+  T2: ['sem-classe'],
+}

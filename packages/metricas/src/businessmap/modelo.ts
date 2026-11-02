@@ -80,6 +80,8 @@ export interface DimColuna {
   papel: PapelColuna
   ordem: number
   limite_wip: number | null
+  /** Time do workflow da coluna (base real, tabela de times). Ausente na base semeada, onde o quadro é `quadro-<slug da equipe>`. */
+  equipe?: string
 }
 
 export interface FichaResultado {
@@ -107,6 +109,8 @@ export interface SlePublicado {
 export interface ConfigBM {
   /** Limite de WIP do fluxo por equipe (nome da equipe). */
   limite_wip_fluxo: Record<string, number>
+  /** Base real (H-12): o limite vem das colunas do quadro e 0 = sem limite (o WIP aparece sem aderência). Ausente = regra anterior. */
+  limite_wip_por_coluna?: boolean
   limite_frentes: number
   sle: SlePublicado[]
   alocacao: AlocacaoAcordada[]

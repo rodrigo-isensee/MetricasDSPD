@@ -1,5 +1,5 @@
 import {
-  CATALOGO_CARTOES, METRICA_IDS, fonteDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  CATALOGO_CARTOES, METRICA_IDS, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, pesquisa, type ContextosMetricas, type ExtensoesMetricas,
@@ -9,13 +9,14 @@ import { EXTENSAO_BM_VAZIA, type ExtensaoTambemBM } from '@metricas-dspd/metrica
 import { AppError } from '../../plataforma/erros.js';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
+import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
-import { dataCivil, lerEquipesBM, lerSistemasBM, lerVersaoCriterioVigente } from '../referencia/index.js';
+import { dataCivil, lerEquipesBM, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
-  lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerDominio, lerEtapas, lerFichas, lerLimiteFrentes,
-  lerLimitesWip, lerSle, lerTransicoes,
+  lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerColunasReais, lerDominio, lerEtapas, lerFichas, lerLimiteFrentes,
+  lerLimitesWip, lerSle, lerTransicoes, lerVersoesColuna,
 } from './repositorio.js';
 
 export type FiltrosMetrica = FiltrosFluxo | FiltrosSustentacao | Record<string, never>;
@@ -41,7 +42,7 @@ const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], f
 } };
 
 type Marca = { versao: string; finalizadoEm: Date | null };
-type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null };
+type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null; sleDefinido?: boolean };
 type Entrada<B> = { lidoEm: number; carga: Promise<Carga<B>> | null; atual: Carga<B> | null };
 
 /** Fonte de dados da métrica: `fonteDaMetrica` é o ponto único (a PV1 é `pesquisa`, nunca BusinessMap nem Acelerato). */
@@ -68,6 +69,13 @@ export type DepsServico = {
   extensaoTambem?: () => ExtensaoTambemBM;
   /** Fonte da pesquisa de percepção (PV1): mock agora; no B4, as tabelas `pesq_*`. Sem ela, a PV1 devolve `sem-pesquisa`. */
   pesquisa?: FontePesquisa;
+  /**
+   * F6 do plano 052: schemas da base do SEED (mock). Definido = modo de duas bases: `S` é a base REAL e cada métrica vem inteira de uma só,
+   * pela origem do contrato (`origemDaMetrica`): `real` lê `S`, `mock` lê estes schemas. Nunca as duas na mesma métrica. Sem isto, base única.
+   */
+  SMock?: Esquemas;
+  /** Registro estruturado (só números e nomes de campo, nunca valor de card). */
+  log?: (contexto: Record<string, unknown>, mensagem: string) => void;
 };
 
 /**
@@ -77,52 +85,71 @@ export type DepsServico = {
  * Os dois domínios têm carga, versão e cache próprios; só a VISAO_GERAL usa os dois, e só dentro da biblioteca.
  */
 export class ServicoMetricas {
-  private readonly cargas: { businessmap: Entrada<ReturnType<typeof montarBaseBM>>; acelerato: Entrada<BaseAC> } = {
-    businessmap: { lidoEm: -Infinity, carga: null, atual: null },
-    acelerato: { lidoEm: -Infinity, carga: null, atual: null },
-  };
+  /** Uma carga por (domínio, base): `businessmap|real`, `businessmap|base`, `acelerato|base`... (`base` = a única ou a do seed). */
+  private readonly cargas = new Map<string, Entrada<unknown>>();
   private readonly resultados = new Map<string, Map<string, unknown>>();
   private readonly criterios = new Map<string, string>();
   private criteriosEm = -Infinity;
 
   constructor(private readonly deps: DepsServico) {}
 
+  /** Origem da métrica no modo de duas bases (F6, H-13): `true` = lê a base real. Na base única, nunca (a regra de sempre). */
+  private ehReal(id: MetricaId): boolean {
+    return this.deps.SMock !== undefined && origemDaMetrica(id) === 'real';
+  }
+
+  /** Schemas de onde a métrica lê: a base real (`S`) ou, no modo de duas bases, a do seed para as que seguem mock. */
+  private esquemasDe(real: boolean): Esquemas | undefined {
+    return this.deps.SMock !== undefined && !real ? this.deps.SMock : this.deps.S;
+  }
+
   /** Versão de critério mais recente já vigente em `data`; relida junto com as marcas (60 s). */
-  private async versaoCriterio(data: string, agora: number): Promise<string> {
+  private async versaoCriterio(data: string, agora: number, real: boolean): Promise<string> {
     if (agora - this.criteriosEm >= TTL_VERSAO_MS) {
       this.criterios.clear();
       this.criteriosEm = agora;
     }
-    const memo = this.criterios.get(data);
+    const k = `${String(real)}|${data}`;
+    const memo = this.criterios.get(k);
     if (memo !== undefined) return memo;
-    const v = (await lerVersaoCriterioVigente(this.deps.db, data, this.deps.S)) ?? '0';
-    this.criterios.set(data, v);
+    const v = (await lerVersaoCriterioVigente(this.deps.db, data, this.esquemasDe(real))) ?? '0';
+    this.criterios.set(k, v);
     return v;
   }
 
   /** Versão de carga: coleta + versão de critério mais recente (nova versão também invalida). Lida ANTES da leitura. */
-  private async marca(dom: Dom): Promise<Marca> {
-    const m = await marcaDagua(this.deps.db, dom, this.deps.S);
-    const v = await lerVersaoCriterioVigente(this.deps.db, '9999-12-31', this.deps.S);
+  private async marca(dom: Dom, real: boolean): Promise<Marca> {
+    const S = this.esquemasDe(real);
+    const m = await marcaDagua(this.deps.db, dom, S);
+    const v = await lerVersaoCriterioVigente(this.deps.db, '9999-12-31', S);
     return { versao: `${m?.coletaId ?? '0'}:${v ?? '0'}`, finalizadoEm: m?.finalizadoEm ?? null };
   }
 
-  private async carregarBM({ versao, finalizadoEm }: Marca): Promise<Carga<ReturnType<typeof montarBaseBM>>> {
-    const { db, S } = this.deps;
-    const [cards, transicoes, bloqueios, colunas] = [await lerCards(db, S), await lerTransicoes(db, S), await lerBloqueios(db, S), await lerColunas(db, S)];
+  private async carregarBM({ versao, finalizadoEm }: Marca, real: boolean): Promise<Carga<ReturnType<typeof montarBaseBM>>> {
+    const { db } = this.deps;
+    const S = this.esquemasDe(real);
+    const [cards, bloqueios] = [await lerCards(db, S), await lerBloqueios(db, S)];
+    // Base real (A4 da E2.67): o tipo da coluna de cada transição é o da versão vigente no dia, resolvido aqui na leitura (o fato não é reescrito).
+    const transicoes = real
+      ? resolverTipoDasTransicoes(await lerTransicoes(db, S, { tipoResolvidoNaLeitura: true }), await lerVersoesColuna(db, S), new Map(cards.map((c) => [c.card_id, c.quadro_id ?? ''])))
+      : await lerTransicoes(db, S);
+    const colunas = real ? await lerColunasReais(db, S) : await lerColunas(db, S);
     const ref: RefBM = {
-      equipes: await lerEquipesBM(db, S), sistemas: (await lerSistemasBM(db, S)).map((x) => ({ codigo: x.id, rotulo: x.nome })), limitesWip: await lerLimitesWip(db, S),
+      equipes: real ? await lerTimesAtivos(db, S) : await lerEquipesBM(db, S), sistemas: (await lerSistemasBM(db, S)).map((x) => ({ codigo: x.id, rotulo: x.nome })), limitesWip: await lerLimitesWip(db, S),
       limiteFrentes: await lerLimiteFrentes(db, S), sle: await lerSle(db, S), alocacao: await lerAlocacao(db, S),
       objetivos: await lerDominio(db, 'objetivo_estrategico', S), areasInternas: await lerDominio(db, 'area_interna', S),
       fichas: await lerFichas(db, S), criterios: await lerVersoes(db, 'businessmap', S),
     };
-    const base = montarBaseBM({ cards, transicoes, bloqueios, colunas, ref });
+    const base = montarBaseBM({ cards, transicoes, bloqueios, colunas, ref, real }, {
+      aoDescartarTipo: (quantos) => this.deps.log?.({ cardsForaDoContrato: quantos }, 'cards com tipo fora de TIPOS_CARD ficaram fora do contexto'),
+    });
     const primeiro = cards.reduce<number | null>((a, c) => (a === null || c.criado_em.getTime() < a ? c.criado_em.getTime() : a), null);
-    return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO) };
+    return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO), sleDefinido: ref.sle.length > 0 };
   }
 
-  private async carregarAC({ versao, finalizadoEm }: Marca): Promise<Carga<BaseAC>> {
-    const { db, S } = this.deps;
+  private async carregarAC({ versao, finalizadoEm }: Marca, real: boolean): Promise<Carga<BaseAC>> {
+    const { db } = this.deps;
+    const S = this.esquemasDe(real);
     const chamados = await lerChamados(db, S);
     const base = montarBaseAC({
       chamados, etapas: await lerEtapas(db, S), alvos: await lerAlvos(db, S), criterios: await lerVersoes(db, 'acelerato', S),
@@ -133,18 +160,20 @@ export class ServicoMetricas {
   }
 
   /** Carga de um domínio: reaproveita a base enquanto a marca d'água não muda; recarrega e descarta o cache quando muda. */
-  private async carga(dom: 'businessmap', agora: number): Promise<Carga<ReturnType<typeof montarBaseBM>>>;
-  private async carga(dom: 'acelerato', agora: number): Promise<Carga<BaseAC>>;
-  private async carga(dom: Dom, agora: number): Promise<Carga<unknown>> {
-    const e = this.cargas[dom] as Entrada<unknown>;
+  private async carga(dom: 'businessmap', agora: number, real: boolean): Promise<Carga<ReturnType<typeof montarBaseBM>>>;
+  private async carga(dom: 'acelerato', agora: number, real: boolean): Promise<Carga<BaseAC>>;
+  private async carga(dom: Dom, agora: number, real: boolean): Promise<Carga<unknown>> {
+    const chave = `${dom}|${real ? 'real' : 'base'}`;
+    const e = this.cargas.get(chave) ?? { lidoEm: -Infinity, carga: null, atual: null };
+    this.cargas.set(chave, e);
     if (e.carga !== null) return e.carga;
     if (e.atual !== null && agora - e.lidoEm < TTL_VERSAO_MS) return e.atual;
     const pendente = (async (): Promise<Carga<unknown>> => {
-      const marca = await this.marca(dom);
+      const marca = await this.marca(dom, real);
       if (e.atual !== null && e.atual.versao === marca.versao) return e.atual;
-      this.resultados.delete(dom);
+      this.resultados.delete(chave);
       this.resultados.delete('ambos');
-      return dom === 'businessmap' ? this.carregarBM(marca) : this.carregarAC(marca);
+      return dom === 'businessmap' ? this.carregarBM(marca, real) : this.carregarAC(marca, real);
     })();
     e.carga = pendente;
     try {
@@ -189,7 +218,10 @@ export class ServicoMetricas {
    */
   async aquecer(agoraDate: Date, filtrosPadrao: (id: MetricaId) => FiltrosMetrica): Promise<{ metricas: number; falhas: { id: MetricaId; erro: string }[] }> {
     const agora = agoraDate.getTime();
-    await Promise.all([this.carga('businessmap', agora), this.carga('acelerato', agora)]);
+    // Cada métrica carrega a base da sua origem; o pré-aquecimento carrega as de todas, uma vez cada.
+    const bases = new Set<string>();
+    for (const id of METRICA_IDS) if (dominioDe(id) !== 'pesquisa') bases.add(`${this.ehReal(id) ? 'real' : 'base'}`);
+    await Promise.all([...bases].flatMap((b) => [this.carga('businessmap', agora, b === 'real'), this.carga('acelerato', agora, b === 'real')]));
     const falhas: { id: MetricaId; erro: string }[] = [];
     let metricas = 0;
     for (const id of METRICA_IDS) {
@@ -212,8 +244,9 @@ export class ServicoMetricas {
       throw new AppError('VALIDATION_ERROR', 'Parâmetros inválidos.', 400, [{ caminho: 'dataReferencia', mensagem: 'Data futura.' }]);
     }
     if (dom === 'pesquisa') return this.calcularPesquisa(id, op.dataReferencia ?? hoje);
-    const bm = dom === 'acelerato' ? null : await this.carga('businessmap', agora);
-    const ac = dom === 'businessmap' ? null : await this.carga('acelerato', agora);
+    const real = this.ehReal(id);
+    const bm = dom === 'acelerato' ? null : await this.carga('businessmap', agora, real);
+    const ac = dom === 'businessmap' ? null : await this.carga('acelerato', agora, real);
     if (ac !== null && ac.base.config.alvos.length === 0 && METRICAS_COM_ALVOS.includes(id)) {
       throw new AppError('REFERENCIA_AUSENTE', 'Referência não carregada: alvos de prioridade (ref_alvo_prioridade).', 503);
     }
@@ -231,10 +264,10 @@ export class ServicoMetricas {
         throw new AppError('PERIODO_FORA_DO_HISTORICO', 'Período fora do histórico.', 422, [{ caminho: 'periodo', mensagem: `Use datas entre ${inicio} e ${dataReferencia}, com de <= ate.` }]);
       }
     }
-    const versaoCriterio = await this.versaoCriterio(dataReferencia, agora);
+    const versaoCriterio = await this.versaoCriterio(dataReferencia, agora, real);
     const versoes = [bm?.versao, ac?.versao].filter((x): x is string => x !== undefined).join('|');
     const chave = `${id}|${versoes}|${versaoCriterio}|${dataReferencia}|${normalizar(filtros)}`;
-    const cacheKey = dom === 'ambos' ? 'ambos' : dom;
+    const cacheKey = dom === 'ambos' ? 'ambos' : `${dom}|${real ? 'real' : 'base'}`;
     let mapa = this.resultados.get(cacheKey);
     if (mapa === undefined) {
       mapa = new Map();
@@ -250,10 +283,12 @@ export class ServicoMetricas {
       bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, CALENDARIO_PADRAO),
       ac: acelerato.criarContextoAC(baseAC, corte, CALENDARIO_PADRAO),
       ...(extReal !== undefined ? { ext: { bm: EXTENSAO_BM_VAZIA, ac: extReal } } : {}),
-      ...(COMPLEMENTARES.has(id) && this.deps.extensoes ? { ext: this.deps.extensoes() } : {}),
-      ...(COM_EXTENSAO_TAMBEM.has(id) && this.deps.extensaoTambem ? { tambem: this.deps.extensaoTambem() } : {}),
+      ...(COMPLEMENTARES.has(id) && this.deps.extensoes && !real ? { ext: this.deps.extensoes() } : {}),
+      ...(COM_EXTENSAO_TAMBEM.has(id) && this.deps.extensaoTambem && !real ? { tambem: this.deps.extensaoTambem() } : {}),
     };
-    const resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
+    let resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
+    // H-24: o SLE do O3 vem da governança (Q-7c); sem ele na base real o O3 sai com os percentis e a nota "SLE não definido".
+    if (id === 'O3' && real && (bm as NonNullable<typeof bm>).sleDefinido !== true) resultado = { ...(resultado as object), notas: ['sle-nao-definido'] };
     mapa.set(chave, resultado);
     if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
     return { resultado, dataReferencia, versaoCriterio, chave };

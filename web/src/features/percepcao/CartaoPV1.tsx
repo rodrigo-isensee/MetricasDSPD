@@ -1,9 +1,7 @@
 import type { ResultadoPV1 } from '@metricas-dspd/contratos'
-import { CATALOGO_CARTOES } from '@metricas-dspd/contratos'
 import { CartaoMetrica, Icone } from '@/components/ui'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import { useMetrica } from '@/data'
-import { SeloFicticio } from '@/features/complementares/CartaoComplementar'
 import { fmtInteiro, fmtPct } from '@/lib/formatar'
 import { BaseInsuficiente, Distribuicao, LegendaFaixas } from './Distribuicao'
 import { Tendencia } from './Tendencia'
@@ -183,7 +181,6 @@ function Corpo({ d }: { d: Ok }) {
 export function CartaoPV1() {
   const q = useMetrica('PV1', SEM_FILTROS)
   const m = entradaDoCatalogo('PV1')
-  const ficticio = CATALOGO_CARTOES.find((c) => c.id === 'pv1')?.status === 'mock'
   const d = q.dados
   const ok = d?.status === 'ok' ? d : null
   return (
@@ -214,7 +211,6 @@ export function CartaoPV1() {
               Pesquisa de {fmtTri(ok.trimestre)}
             </span>
           )}
-          {ficticio && <SeloFicticio />}
         </>
       }
       {...(ok ? {} : { semTabela: true })}

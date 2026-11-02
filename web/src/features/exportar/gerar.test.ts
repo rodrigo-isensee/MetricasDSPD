@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { describe, expect, it } from 'vitest'
+import { origemDaMetrica } from '@metricas-dspd/contratos'
 import { MockFonteMetricas } from '@/data'
 import { gerarArquivo } from './gerar'
 import { itensDoNivel } from './selecao'
@@ -44,5 +45,83 @@ describe('gerarArquivo (cache novo: lê tudo pela fonte)', () => {
     expect(t).toContain('(Fonte: Acelerato)')
     expect(t).not.toContain('(Fonte: BusinessMap)')
     expect(t).toContain('12 meses')
+  })
+})
+
+describe('gerarArquivo: contexto da fonte por cartão (P-4)', () => {
+  const evento = {
+    id: 'c1',
+    inicio: '2026-10-31T09:00:00Z',
+    fim: '2026-10-31T09:05:00Z',
+    duracaoMs: 300000,
+    resultado: 'ok' as const,
+    tipoErro: null,
+    efeito: 'aplicada' as const,
+    contagens: null,
+  }
+  /** Fonte da API real com o painel misto: o estado de coleta é fixo e O3 está em calibração. */
+  const fonteApi = (estadoOk = true) =>
+    Object.create(fonte, {
+      tipo: { value: 'api' },
+      estadoColeta: {
+        value: (dominio: 'businessmap' | 'acelerato') =>
+          estadoOk
+            ? Promise.resolve({
+                dominio,
+                selo: 'atual',
+                horasDesdeUltimaOk: 1,
+                ultimaOk: evento,
+                ultimaTentativa: evento,
+                proximaPrevista: '2026-11-01T09:00:00Z',
+                falhasRecentes: [],
+                calibracao: [],
+                metricasEmCalibracao: ['O3'],
+              })
+            : Promise.reject(new Error('falhou')),
+      },
+    }) as typeof fonte
+
+  const itens = (...ids: string[]) =>
+    itensDoNivel('operacional', []).filter((i) => ids.includes(i.metrica))
+
+  it('O3 (real, em calibração) e O12 (fictício) saem com a situação de cada um', async () => {
+    const r = await gerarArquivo({
+      ...base(),
+      fonte: fonteApi(),
+      base: 'personalizada',
+      itens: itens('O3', 'O12'),
+    })
+    const t = await r.blob.text()
+    expect(t.match(/Em calibra\S+o: sim \S Dados fict\S+cios: n\S+o/g)).toHaveLength(1)
+    expect(t.match(/Em calibra\S+o: n\S+o \S Dados fict\S+cios: sim/g)).toHaveLength(1)
+    expect(t).toContain('Frescor: Atual')
+    expect(t).toMatch(/Atualizado em \d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/)
+    expect(r.nome).not.toContain('_ficticio')
+  })
+
+  it('se o estado de coleta falhar, o arquivo sai e diz que a atualização está indisponível', async () => {
+    const r = await gerarArquivo({
+      ...base(),
+      fonte: fonteApi(false),
+      base: 'personalizada',
+      itens: itens('O3'),
+    })
+    const t = await r.blob.text()
+    expect(t).toContain('Atualiza')
+    expect(t).toContain('indispon')
+  })
+
+  it('Visão geral com a API real: lê a base do seed (origem de VISAO_GERAL), então todo bloco sai fictício, até a Espera invisível do FL1', async () => {
+    expect(origemDaMetrica('VISAO_GERAL')).toBe('mock')
+    const r = await gerarArquivo({ ...base(), fonte: fonteApi(), base: 'visao-geral', itens: [] })
+    const t = await r.blob.text()
+    expect(r.nome).not.toContain('_ficticio')
+    expect(t).toMatch(/Dados fict\S+cios: sim/)
+    expect(t).not.toMatch(/Dados fict\S+cios: n\S+o/)
+  })
+
+  it('com a fonte mock todo cartão sai como dados fictícios', async () => {
+    const r = await gerarArquivo({ ...base(), base: 'personalizada', itens: itens('O3') })
+    expect(await r.blob.text()).toMatch(/Dados fict\S+cios: sim/)
   })
 })

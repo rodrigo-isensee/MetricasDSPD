@@ -8,7 +8,7 @@ import {
 } from '@metricas-dspd/contratos'
 import { diaDeIso, isoDeDia } from './calendario'
 
-/** Único lugar do número (D3; provisório até o usuário confirmar). */
+/** Único lugar do número: 60 dias corridos, confirmado pelo dono (Q-7a, 2026-10-29; a D3 do 006 deixou de ser provisória). */
 export const DURACAO_CALIBRACAO_DIAS = 60
 
 /** Métricas de cada fonte; a Visão geral não pertence a nenhuma (nunca mistura as duas). */

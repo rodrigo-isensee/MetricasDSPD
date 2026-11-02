@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 4e5958fe1db79d19a4e7f83d68b654607b21c9d2
+commit: 52c201ea9b6949a9188fcea0f18c68e52e5bcfe4
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,24 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.124, 2026-11-01, segunda)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque `e2e/tests/intensivo-filtros.spec.ts` mudou depois dele (E2.132, `52c201e`). Delta lido, e só ele: `git diff a96f4f6..52c201e` (um arquivo, 1 linha a mais e 1 a menos).
+
+- `e2e/tests/intensivo-filtros.spec.ts:21`: a constante `TIPOS` ganha `trabalho-produto` no fim, por causa do tipo novo da ADR 0024. É teste E2E do painel; o script da WS1 (`bm:diagnostico`) não o toca nem é tocado por ele.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. Segurança (`docs/security/052-fix-test-pg.md`, `5d22083`) e QA (`docs/qa/052-ws1-estrutura.md`, `7583385`) renovaram os deles sobre o mesmo commit. Conclusão: nenhum achado novo, e o parecer segue aprovado em `52c201e`.
+
+## Renovação por delta (E2.124, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `.env.example` mudou depois dele (`DSPD_SCHEMA_PREFIXO_SEED`, F6, e o merge da develop `8b17664`). Delta lido, e só ele: `git diff 4e5958f..802fad3 -- .env.example server/package.json server/src/modulos/businessmap/index.ts server/src/modulos/businessmap/diagnostico.ts server/tests/diagnostico-businessmap.test.ts docs/integracao docs/architecture/data-model.md`.
+
+- `.env.example`: uma linha comentada nova, `DSPD_SCHEMA_PREFIXO_SEED`, do modo de duas bases da F6; sem valor de credencial. O script da WS1 lê só `BUSINESSMAP_URL_BASE` e `BUSINESSMAP_APIKEY`, que seguem com os mesmos nomes.
+- `server/src/modulos/businessmap/index.ts`: um export novo (`tipo-coluna.js`, da F4). O export do `diagnosticar` segue igual e o `index.ts` continua sem efeito colateral ao importar.
+- `server/package.json`, `diagnostico.ts`, o teste da WS1, `docs/integracao` e `data-model.md`: sem mudança no intervalo (diff vazio).
+
+Já lido e fora do delta: o código e os testes da WS1. O código novo tem pareceres próprios (`docs/reviews/052-f6-painel.md`). Segurança e QA renovaram os deles sobre o mesmo ponto (`docs/security/052-fix-test-pg.md`, `6204717`; `docs/qa/052-ws1-estrutura.md`, `0fbbe53`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `802fad3`.
 
 ## Renovação por delta (E2.114, 2026-11-01)
 

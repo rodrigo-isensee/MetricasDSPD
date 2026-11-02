@@ -22,6 +22,10 @@ export type LinhaTransicao = {
   card_id: string; quadro_id: Texto; coluna_origem_id: Texto; coluna_destino_id: string; tipo_coluna: Texto;
   direcao: Texto; ocorrido_em: number;
 };
+/** Coluna da base real: além da definição vigente, o time do workflow dela (`ref_time_workflow` e `ref_time` vigentes). */
+export type LinhaColunaReal = LinhaColuna & { equipe: Texto };
+/** Uma versão de `ref_coluna` (todas as vigências), para o tipo da coluna no dia da transição (A4 da E2.67). */
+export type LinhaVersaoColuna = { quadro_id: string; coluna_id: string; tipo_coluna: Texto; vigente_de: string; vigente_ate: Texto; motivo: Texto };
 export type LinhaBloqueio = {
   card_id: string; motivo: Texto; coluna_em_que_bloqueou: Texto; fornecedor: Texto; inicio: Date; fim: Instante;
   duracao_horas_uteis: Texto;
@@ -59,12 +63,13 @@ export const lerCards = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente
  * direto: a mesma transição gravada pela coleta e pelo webhook contaria em dobro (auditoria R1/C1).
  * Sem ORDER BY: a biblioteca ordena as transições de cada card (timestamp, destino, origem); ordenar no banco custaria um sort em disco.
  */
-export const lerTransicoes = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaTransicao[]> =>
+export const lerTransicoes = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente(), opcoes: { tipoResolvidoNaLeitura?: boolean } = {}): Promise<LinhaTransicao[]> =>
   (await db.query<LinhaTransicao>(
+    // Base real (A4 da E2.67): `tipo_coluna` do fato é só auditoria; o tipo vale o da versão da coluna no dia, resolvido depois da leitura.
     `SELECT card_id, quadro_id, coluna_origem_id, coluna_destino_id, tipo_coluna, direcao,
             (extract(epoch FROM ocorrido_em) * 1000)::float8 AS ocorrido_em
        FROM ${S.bm}.vw_transicao_canonica
-      WHERE tipo_coluna IS NOT NULL AND direcao IS NOT NULL`)).rows;
+      WHERE ${opcoes.tipoResolvidoNaLeitura === true ? '' : 'tipo_coluna IS NOT NULL AND '}direcao IS NOT NULL`)).rows;
 
 export const lerBloqueios = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaBloqueio[]> =>
   (await db.query<LinhaBloqueio>(
@@ -79,6 +84,22 @@ export const lerColunas = async (db: Consultavel, S: Esquemas = esquemasDoAmbien
        FROM ${S.bm}.ref_coluna
       WHERE vigente_ate IS NULL
       ORDER BY quadro_id, ordem, coluna_id`)).rows;
+
+/** Colunas vigentes da base real com o time do workflow (só quando a situação é `time`); coluna de workflow fora não tem time. */
+export const lerColunasReais = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaColunaReal[]> =>
+  (await db.query<LinhaColunaReal>(
+    `SELECT c.quadro_id, c.coluna_id, c.nome, c.tipo_coluna, c.papel, c.ordem, c.limite_wip, t.nome AS equipe
+       FROM ${S.bm}.ref_coluna c
+       LEFT JOIN ${S.bm}.ref_time_workflow w ON w.workflow_id = c.workflow_id AND w.vigente_ate IS NULL AND w.situacao = 'time'
+       LEFT JOIN ${S.bm}.ref_time t ON t.time_id = w.time_id AND t.vigente_ate IS NULL AND t.ativo = true
+      WHERE c.vigente_ate IS NULL
+      ORDER BY c.quadro_id, c.ordem, c.coluna_id`)).rows;
+
+export const lerVersoesColuna = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaVersaoColuna[]> =>
+  (await db.query<LinhaVersaoColuna>(
+    `SELECT quadro_id, coluna_id, tipo_coluna, vigente_de::text AS vigente_de, vigente_ate::text AS vigente_ate, motivo
+       FROM ${S.bm}.ref_coluna
+      ORDER BY quadro_id, coluna_id, vigente_de`)).rows;
 
 export const lerChamados = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<LinhaChamado[]> =>
   (await db.query<LinhaChamado>(
