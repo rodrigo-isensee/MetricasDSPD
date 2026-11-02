@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 059-aba-apontamento
-branch: feature/059-dicionario-radicais
-commit: 79eebaa2ca9e16c67fca63da1b8418cde065f04e
+branch: feature/059-aba-front
+commit: 4882e16b45de15fbb391c93deee35e67188ca659
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -68,13 +68,14 @@ Intervalo `0b4519c8791705208c4d2b1da133565a127937a2..1bf3338d43124f711d98a1bc15a
 - **Vermelho antes do verde e mutação:** nenhum teste novo nem guarda nova no delta; os mutantes M1 a M8 seguem sobre linhas que o merge não tocou. Interface e acessibilidade: n/a.
 - **Achados:** A1 e A2 do parecer anterior seguem como recomendados, sem mudança (a suíte `.pg` passou com `cfg_pessoa_eliminada` vazia, como antes). Nenhum achado novo, nenhum bug aberto.
 
-## Renovação por delta na branch do dicionário em radicais (E2.84, K-193)
-Base `origin/develop` (31de83f), ponta `79eebaa2ca9e16c67fca63da1b8418cde065f04e`. O `forge-check pr` acusava este parecer porque `docs/architecture/fontes/apontamento-dicionario.json` mudou (versão `2026-11-02-v2`, termos em radicais). Veredito do delta: **aprovado**; a rota segue atendida.
-- **Diff contra a develop:** o dicionário (só `versao` e termos; os 12 códigos e prioridades de subgrupo e as duas regras por tipo ficam iguais), `server/tests/apontamento-dicionario.test.ts`, `docs/architecture/server.md` e pareceres (`059-epsilon`, exceção). Nenhum arquivo de `server/src` nem de `packages` muda.
-- **A rota não depende dos termos:** `server/src/modulos/apontamento/repositorio.ts` lê só `codigo` e `rotulo` de `ref_apontamento_subgrupo`, que não mudam, e as versões de critério; os termos são lidos só pela coleta e pela classificação. Os cenários da rota (CA-AP-1, 3 a 6, 12) e os mutantes M1 a M8 seguem sobre linhas que a branch não toca.
-- **Suíte** (MemAvailable 14 GB, load 3): `pnpm run pronto` não rodou, porque o lock `/tmp/metricas-dspd-suite.lock` fica em sistema de arquivos somente leitura no sandbox e o retorno fora dele foi negado pelo classificador; não contornei. Em seu lugar, rodei no server `vitest run` completo: 76 arquivos passaram e 32 pulados (os `.pg`), 1556 testes passaram e 224 pulados, rc 0; o teste do dicionário tem 45 testes verdes e `docs:check` ok (867 páginas). Contratos, metricas, web e a suíte `.pg` não rodaram: nenhum arquivo deles muda no delta.
-- **Mutação no dicionário:** `apoi` trocado por `apoio` no arquivo: 2 falhas ("o arquivo traz cada radical" e "apoi: apoio, apoios, apoiar, apoiei casam"); arquivo restaurado com `git checkout`.
-- **Achados:** A1 e A2 anteriores seguem como recomendados, sem mudança. Nenhum achado novo, nenhum bug aberto. O `docs/reviews/059-gama.md` aparece modificado na árvore, trabalho do tech-lead (E2.83) que não toquei.
+## Renovação por delta na branch do front (E2.88, K-193)
+Branch `feature/059-aba-front`, base `origin/develop` (31de83f), ponta revisada `4882e16b45de15fbb391c93deee35e67188ca659`. Veredito **aprovado**. Causa do carimbo: `docs/tecnica/arquitetura-front.md` mudou na branch (seção 14, aba Apontamento); a rota não mudou.
+- **Diff contra a develop:** `server` e `packages` sem nenhuma linha de diferença (a rota, o contrato e a biblioteca são os da develop, com os squashes dos PRs 194 a 196). O que a branch muda está em `web` (aba, seletor, router), `e2e`, `docs/ux` (revisões r1 a r4) e `docs/tecnica/arquitetura-front.md`; o diff do arquivo de arquitetura soma só a seção 14 e uma linha do diagrama, sem mudar contrato.
+- **Casos da rota seguem atendidos com o front:** a seção 14 descreve o front como cliente da rota (GET `/api/apontamento`, mesma origem, `no-store`, resposta validada por `respostaApontamentoSchema`, consulta pela mesma `consultaApontamentoSchema` do servidor, filtro por tipo pelo id de `opcoes.tipos`, `outra-area` sem nome); isso bate com CA-AP-6 (consulta estrita), CA-AP-7 (`no-store`), CA-AP-4 (rótulos fixos com interruptor desligado) e com os testes de Outra área e filtro por tipo deste parecer. Nenhum caso da rota perdeu a base.
+- **Prova de suíte:** pela DECISÃO TÉCNICA da prova de suíte na renovação sem código, valem o `pronto` (web 1401) e o `test:e2e` (795, 26,7 min) verdes da E2.78 em `dc3a5b4`. Desde `dc3a5b4` só mudam `docs/qa/059-delta.md` e `docs/reviews/059-gama.md` (`git diff --stat dc3a5b4..HEAD`), nenhum arquivo de código.
+- **Reteste dirigido** (MemAvailable 14 GB, load 0,4; uma suíte por vez; HEAD `4882e16`): web, `api.test.ts`, `ligacao.test.tsx`, `rota.test.tsx` e `exportacao-fora.test.ts`: 4 arquivos, 32 testes, rc 0. Server, projeto `unit`, filtro `apontamento` (rota, hosts, papel, sql, config, classificador, coleta e demais): 16 arquivos, 367 testes, rc 0. Os `.pg` e os 54 testes do QA da rota (A1 abaixo) não foram refeitos: o server não muda desde a rodada da E2.73.
+- **Vermelho antes do verde e mutação:** nenhum teste novo de rota nem guarda nova de rota neste delta; os mutantes M1 a M8 seguem sobre linhas de `server` e `packages` que a branch não toca. Acessibilidade e E2E do front: parecer `059-delta.md`.
+- **Achados:** A1 e A2 seguem como recomendados, sem mudança. Nenhum achado novo, nenhum bug aberto.
 
 ## Bugs
 Nenhum aberto. Nenhum registro em `docs/qa/bugs/`.
