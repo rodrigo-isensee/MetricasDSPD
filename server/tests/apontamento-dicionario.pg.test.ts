@@ -9,16 +9,20 @@ import { montarDepsApontamento } from '../src/modulos/businessmap/apontamento/mo
 import type { PoolLike } from '../src/plataforma/db/pool.js';
 import { criarClienteHttp } from '../src/plataforma/http.js';
 import { cenarioWorklogVazio, registroWorklog, subirServidorWorklog } from './apontamento-duble.js';
-import { novaColeta, poolDe, S, unico, url } from './pg/ctx.js';
+import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
+import { migrar } from '../src/plataforma/db/migrar.js';
+import { novaColeta, poolDe, unico, url } from './pg/ctx.js';
 
 // Pedido 059, E2.19: carga do dicionário por ref:sync contra o PostgreSQL local, com os papéis reais (dspd_ref grava, dspd_coletor lê,
-// dspd_api não vê nada). `ref_tipo_card` é append-only (gatilho de vigência): os tipos de teste têm id e nome únicos e ficam no schema
-// descartável da execução.
+// dspd_api não vê nada). `ref_tipo_card` é append-only (gatilho de vigência) e outros testes supõem a tabela vazia: este arquivo migra os
+// próprios schemas (prefixo único, como o teste da pesquisa) e os derruba no fim, sem deixar nada no schema compartilhado da execução.
 const d = describe.skipIf(!url);
 const DIA = '2026-11-02';
 
 d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
   let dono: pg.Pool, ref: pg.Pool, coletor: pg.Pool, api: pg.Pool;
+  const prefixo = prefixoDeTeste();
+  const S = montarEsquemas(prefixo);
   const sufixo = unico('');
   const kaizen = `Kaizen-${sufixo}`;
   const incidente = `Incidente de Produção ${sufixo}`;
@@ -47,6 +51,7 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
   };
 
   beforeAll(async () => {
+    await migrar(url!, { prefixo });
     dono = poolDe(); ref = poolDe('dspd_ref'); coletor = poolDe('dspd_coletor'); api = poolDe('dspd_api');
     for (const [id, nome] of [[tipoKaizen, kaizen], [tipoIncidente, incidente]] as const) {
       await dono.query(`INSERT INTO ${S.bm}.ref_tipo_card (tipo_id, vigente_de, nome, eh_item, categoria) VALUES ($1, '2020-01-01', $2, false, NULL)`, [id, nome]);
@@ -56,7 +61,7 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
   beforeEach(limpar);
   afterAll(async () => {
     await limpar();
-    await dono.query(`UPDATE ${S.bm}.ctl_coleta SET tarefa = 'reconciliacao' WHERE versao_coletor IN ('ap-teste', 'bm-ap/1')`);
+    for (const e of [S.bm, S.ac, S.core]) await dono.query(`DROP SCHEMA IF EXISTS ${e} CASCADE`);
     await Promise.all([dono, ref, coletor, api].map((p) => p.end()));
   });
 
