@@ -44899,6 +44899,2064 @@
         }
       }
     },
+    "/api/apontamento": {
+      "get": {
+        "summary": "Aba Apontamento: horas apontadas no BusinessMap (capacidade, utilização e distribuição do tempo do time)",
+        "tags": [
+          "apontamento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "de",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "ate",
+            "required": false
+          },
+          {
+            "schema": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^p[1-9]\\d{0,8}$"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "outra-area"
+                    ]
+                  }
+                ]
+              }
+            },
+            "in": "query",
+            "name": "pessoa",
+            "required": false
+          },
+          {
+            "schema": {
+              "maxItems": 200,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^\\d{1,12}$"
+              }
+            },
+            "in": "query",
+            "name": "projeto",
+            "required": false
+          },
+          {
+            "schema": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^\\d{1,12}$"
+              }
+            },
+            "in": "query",
+            "name": "tipo",
+            "required": false
+          },
+          {
+            "schema": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+              }
+            },
+            "in": "query",
+            "name": "subtarefa",
+            "required": false
+          },
+          {
+            "schema": {
+              "maxItems": 50,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 40,
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+              }
+            },
+            "in": "query",
+            "name": "subgrupo",
+            "required": false
+          },
+          {
+            "schema": {
+              "maxItems": 6,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "sem-comentario",
+                  "generico",
+                  "sem-vinculo",
+                  "sem-iniciativa",
+                  "valor-atipico",
+                  "completo"
+                ]
+              }
+            },
+            "in": "query",
+            "name": "qualidade",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "tipo",
+              "type": "string",
+              "enum": [
+                "tipo",
+                "subtarefa",
+                "subgrupo"
+              ]
+            },
+            "in": "query",
+            "name": "nivelMatriz",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "diarioDe",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "diarioAte",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": "incluir",
+              "type": "string",
+              "enum": [
+                "incluir",
+                "ocultar"
+              ]
+            },
+            "in": "query",
+            "name": "anomalos",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "versaoContrato": {
+                      "type": "number",
+                      "enum": [
+                        1
+                      ]
+                    },
+                    "dominio": {
+                      "type": "string",
+                      "enum": [
+                        "businessmap"
+                      ]
+                    },
+                    "periodo": {
+                      "type": "object",
+                      "properties": {
+                        "de": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                        },
+                        "ate": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                        }
+                      },
+                      "required": [
+                        "de",
+                        "ate"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "frescor": {
+                      "type": "object",
+                      "properties": {
+                        "selo": {
+                          "type": "string",
+                          "enum": [
+                            "atual",
+                            "atrasado",
+                            "falha",
+                            "sem-coleta"
+                          ]
+                        },
+                        "ultimaColetaOk": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?([+-]\\d{2}:\\d{2}|Z)$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "selo",
+                        "ultimaColetaOk"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "nomesReais": {
+                      "type": "boolean"
+                    },
+                    "opcoes": {
+                      "type": "object",
+                      "properties": {
+                        "pessoas": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "pessoaRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200
+                              },
+                              "identificada": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "pessoaRef",
+                              "rotulo",
+                              "identificada"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "projetos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              "foraDoEscopo": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo",
+                              "foraDoEscopo"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "tipos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "subtarefas": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "subgrupos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "historico": {
+                          "type": "object",
+                          "properties": {
+                            "inicio": {
+                              "type": "string",
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                            },
+                            "fim": {
+                              "type": "string",
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                            }
+                          },
+                          "required": [
+                            "inicio",
+                            "fim"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "pessoas",
+                        "projetos",
+                        "tipos",
+                        "subtarefas",
+                        "subgrupos",
+                        "historico"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "kpis": {
+                      "type": "object",
+                      "properties": {
+                        "segundos": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "apontamentos": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "pessoasAtivas": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "completos": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "ok"
+                                  ]
+                                },
+                                "k": {
+                                  "type": "number"
+                                },
+                                "n": {
+                                  "type": "integer",
+                                  "minimum": 20,
+                                  "maximum": 9007199254740991
+                                },
+                                "pct": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "status",
+                                "k",
+                                "n",
+                                "pct"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "insuficiente"
+                                  ]
+                                },
+                                "k": {
+                                  "type": "number"
+                                },
+                                "n": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 19
+                                },
+                                "minimo": {
+                                  "type": "number",
+                                  "enum": [
+                                    20
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "status",
+                                "k",
+                                "n",
+                                "minimo"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "atipicos": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "segundos",
+                        "apontamentos",
+                        "pessoasAtivas",
+                        "completos",
+                        "atipicos"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "distribuicao": {
+                      "type": "object",
+                      "properties": {
+                        "base": {
+                          "type": "object",
+                          "properties": {
+                            "n": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 9007199254740991
+                            },
+                            "unidade": {
+                              "type": "string",
+                              "enum": [
+                                "apontamentos"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "n",
+                            "unidade"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "porProjeto": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              "segundos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "apontamentos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "participacao": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "ok"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 20,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pct": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "pct"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "insuficiente"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 19
+                                      },
+                                      "minimo": {
+                                        "type": "number",
+                                        "enum": [
+                                          20
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "minimo"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              },
+                              "foraDoEscopo": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo",
+                              "segundos",
+                              "apontamentos",
+                              "participacao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "porTipo": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              "segundos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "apontamentos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "participacao": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "ok"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 20,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pct": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "pct"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "insuficiente"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 19
+                                      },
+                                      "minimo": {
+                                        "type": "number",
+                                        "enum": [
+                                          20
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "minimo"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              },
+                              "foraDoEscopo": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo",
+                              "segundos",
+                              "apontamentos",
+                              "participacao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "porSubgrupo": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              },
+                              "segundos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "apontamentos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "participacao": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "ok"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 20,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pct": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "pct"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "insuficiente"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 19
+                                      },
+                                      "minimo": {
+                                        "type": "number",
+                                        "enum": [
+                                          20
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "minimo"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              },
+                              "foraDoEscopo": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo",
+                              "segundos",
+                              "apontamentos",
+                              "participacao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "base",
+                        "porProjeto",
+                        "porTipo",
+                        "porSubgrupo"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "qualidade": {
+                      "type": "object",
+                      "properties": {
+                        "geral": {
+                          "type": "object",
+                          "properties": {
+                            "completos": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "ok"
+                                      ]
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": 20,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pct": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "pct"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "insuficiente"
+                                      ]
+                                    },
+                                    "k": {
+                                      "type": "number"
+                                    },
+                                    "n": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 19
+                                    },
+                                    "minimo": {
+                                      "type": "number",
+                                      "enum": [
+                                        20
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "status",
+                                    "k",
+                                    "n",
+                                    "minimo"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            },
+                            "porFlag": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "flag": {
+                                    "type": "string",
+                                    "enum": [
+                                      "sem-comentario",
+                                      "generico",
+                                      "sem-vinculo",
+                                      "sem-iniciativa",
+                                      "valor-atipico"
+                                    ]
+                                  },
+                                  "apontamentos": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "pct": {
+                                    "oneOf": [
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "status": {
+                                            "type": "string",
+                                            "enum": [
+                                              "ok"
+                                            ]
+                                          },
+                                          "n": {
+                                            "type": "integer",
+                                            "minimum": 20,
+                                            "maximum": 9007199254740991
+                                          },
+                                          "pct": {
+                                            "type": "number",
+                                            "minimum": 0
+                                          }
+                                        },
+                                        "required": [
+                                          "status",
+                                          "n",
+                                          "pct"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "status": {
+                                            "type": "string",
+                                            "enum": [
+                                              "insuficiente"
+                                            ]
+                                          },
+                                          "n": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 19
+                                          },
+                                          "minimo": {
+                                            "type": "number",
+                                            "enum": [
+                                              20
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "status",
+                                          "n",
+                                          "minimo"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "flag",
+                                  "apontamentos",
+                                  "pct"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "completos",
+                            "porFlag"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "porPessoa": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "pessoaRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "apontamentos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "completos": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "ok"
+                                        ]
+                                      },
+                                      "k": {
+                                        "type": "number"
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 20,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pct": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "k",
+                                      "n",
+                                      "pct"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "insuficiente"
+                                        ]
+                                      },
+                                      "k": {
+                                        "type": "number"
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": -9007199254740991,
+                                        "maximum": 19
+                                      },
+                                      "minimo": {
+                                        "type": "number",
+                                        "enum": [
+                                          20
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "k",
+                                      "n",
+                                      "minimo"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              },
+                              "porFlag": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "flag": {
+                                      "type": "string",
+                                      "enum": [
+                                        "sem-comentario",
+                                        "generico",
+                                        "sem-vinculo",
+                                        "sem-iniciativa",
+                                        "valor-atipico"
+                                      ]
+                                    },
+                                    "apontamentos": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "pct": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "status": {
+                                              "type": "string",
+                                              "enum": [
+                                                "ok"
+                                              ]
+                                            },
+                                            "n": {
+                                              "type": "integer",
+                                              "minimum": 20,
+                                              "maximum": 9007199254740991
+                                            },
+                                            "pct": {
+                                              "type": "number",
+                                              "minimum": 0
+                                            }
+                                          },
+                                          "required": [
+                                            "status",
+                                            "n",
+                                            "pct"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "status": {
+                                              "type": "string",
+                                              "enum": [
+                                                "insuficiente"
+                                              ]
+                                            },
+                                            "n": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 19
+                                            },
+                                            "minimo": {
+                                              "type": "number",
+                                              "enum": [
+                                                20
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "status",
+                                            "n",
+                                            "minimo"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "flag",
+                                    "apontamentos",
+                                    "pct"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "pessoaRef",
+                              "apontamentos",
+                              "completos",
+                              "porFlag"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "flagsNaoExcludentes": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        }
+                      },
+                      "required": [
+                        "geral",
+                        "porPessoa",
+                        "flagsNaoExcludentes"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "matriz": {
+                      "type": "object",
+                      "properties": {
+                        "nivel": {
+                          "type": "string",
+                          "enum": [
+                            "tipo",
+                            "subtarefa",
+                            "subgrupo"
+                          ]
+                        },
+                        "colunas": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "rotulo": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "rotulo"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "linhas": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "pessoaRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "segundos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "apontamentos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "celulas": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "colunaId": {
+                                      "type": "string"
+                                    },
+                                    "segundos": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "participacao": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "status": {
+                                              "type": "string",
+                                              "enum": [
+                                                "ok"
+                                              ]
+                                            },
+                                            "n": {
+                                              "type": "integer",
+                                              "minimum": 20,
+                                              "maximum": 9007199254740991
+                                            },
+                                            "pct": {
+                                              "type": "number",
+                                              "minimum": 0
+                                            }
+                                          },
+                                          "required": [
+                                            "status",
+                                            "n",
+                                            "pct"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "status": {
+                                              "type": "string",
+                                              "enum": [
+                                                "insuficiente"
+                                              ]
+                                            },
+                                            "n": {
+                                              "type": "integer",
+                                              "minimum": 0,
+                                              "maximum": 19
+                                            },
+                                            "minimo": {
+                                              "type": "number",
+                                              "enum": [
+                                                20
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "status",
+                                            "n",
+                                            "minimo"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "colunaId",
+                                    "segundos",
+                                    "participacao"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "pessoaRef",
+                              "segundos",
+                              "apontamentos",
+                              "celulas"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "nivel",
+                        "colunas",
+                        "linhas"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "capacidade": {
+                      "type": "object",
+                      "properties": {
+                        "horasPorDiaSegundos": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "mensal": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "mes": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+                              },
+                              "capacidadeSegundos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "realizadoSegundos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "apontamentos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "utilizacao": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "ok"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 20,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pct": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "pct"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "insuficiente"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 19
+                                      },
+                                      "minimo": {
+                                        "type": "number",
+                                        "enum": [
+                                          20
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "minimo"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              },
+                              "parcialAte": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "mes",
+                              "capacidadeSegundos",
+                              "realizadoSegundos",
+                              "apontamentos",
+                              "utilizacao",
+                              "parcialAte"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "porPessoa": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "pessoaRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "inicio": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "fim": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "diasUteis": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "capacidadeSegundos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "realizadoSegundos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "apontamentos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "utilizacao": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "ok"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 20,
+                                        "maximum": 9007199254740991
+                                      },
+                                      "pct": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "pct"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  {
+                                    "type": "object",
+                                    "properties": {
+                                      "status": {
+                                        "type": "string",
+                                        "enum": [
+                                          "insuficiente"
+                                        ]
+                                      },
+                                      "n": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 19
+                                      },
+                                      "minimo": {
+                                        "type": "number",
+                                        "enum": [
+                                          20
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "status",
+                                      "n",
+                                      "minimo"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "pessoaRef",
+                              "inicio",
+                              "fim",
+                              "diasUteis",
+                              "capacidadeSegundos",
+                              "realizadoSegundos",
+                              "apontamentos",
+                              "utilizacao"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "leituraRelativa": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        }
+                      },
+                      "required": [
+                        "horasPorDiaSegundos",
+                        "mensal",
+                        "porPessoa",
+                        "leituraRelativa"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "diario": {
+                      "type": "object",
+                      "properties": {
+                        "de": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                        },
+                        "ate": {
+                          "type": "string",
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                        },
+                        "limiteAtipicoSegundos": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "dias": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "data": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "util": {
+                                "type": "boolean"
+                              },
+                              "feriado": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "data",
+                              "util",
+                              "feriado"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "linhas": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "pessoaRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "segundos": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "celulas": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "data": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "segundos": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    "faixa": {
+                                      "type": "string",
+                                      "enum": [
+                                        "zero",
+                                        "ate-4h",
+                                        "4h-a-8h",
+                                        "mais-de-8h"
+                                      ]
+                                    },
+                                    "atipico": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "data",
+                                    "segundos",
+                                    "faixa",
+                                    "atipico"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "pessoaRef",
+                              "segundos",
+                              "celulas"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "de",
+                        "ate",
+                        "limiteAtipicoSegundos",
+                        "dias",
+                        "linhas"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "achados": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "codigo": {
+                                "type": "string",
+                                "enum": [
+                                  "nao-classificado-alto"
+                                ]
+                              },
+                              "valores": {
+                                "type": "object",
+                                "properties": {
+                                  "pct": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  }
+                                },
+                                "required": [
+                                  "pct",
+                                  "n"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "rotuloRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "codigo",
+                              "valores",
+                              "rotuloRef"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "codigo": {
+                                "type": "string",
+                                "enum": [
+                                  "sem-comentario-alto"
+                                ]
+                              },
+                              "valores": {
+                                "type": "object",
+                                "properties": {
+                                  "pct": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  },
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  }
+                                },
+                                "required": [
+                                  "pct",
+                                  "n"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "rotuloRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "codigo",
+                              "valores",
+                              "rotuloRef"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "codigo": {
+                                "type": "string",
+                                "enum": [
+                                  "concentracao-em-projeto"
+                                ]
+                              },
+                              "valores": {
+                                "type": "object",
+                                "properties": {
+                                  "pct": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  }
+                                },
+                                "required": [
+                                  "pct"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "rotuloRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "codigo",
+                              "valores",
+                              "rotuloRef"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "codigo": {
+                                "type": "string",
+                                "enum": [
+                                  "dias-atipicos"
+                                ]
+                              },
+                              "valores": {
+                                "type": "object",
+                                "properties": {
+                                  "n": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "limite": {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  }
+                                },
+                                "required": [
+                                  "n",
+                                  "limite"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "rotuloRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "codigo",
+                              "valores",
+                              "rotuloRef"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "codigo": {
+                                "type": "string",
+                                "enum": [
+                                  "utilizacao-mensal-variou"
+                                ]
+                              },
+                              "valores": {
+                                "type": "object",
+                                "properties": {
+                                  "pctAnterior": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  },
+                                  "pct": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  },
+                                  "mesAnterior": {
+                                    "type": "string",
+                                    "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+                                  },
+                                  "mes": {
+                                    "type": "string",
+                                    "pattern": "^\\d{4}-(0[1-9]|1[0-2])$"
+                                  }
+                                },
+                                "required": [
+                                  "pctAnterior",
+                                  "pct",
+                                  "mesAnterior",
+                                  "mes"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "rotuloRef": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "maxLength": 200
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "codigo",
+                              "valores",
+                              "rotuloRef"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "criterios": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "data": {
+                            "type": "string"
+                          },
+                          "descricao": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "data",
+                          "descricao"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "versaoContrato",
+                    "dominio",
+                    "periodo",
+                    "frescor",
+                    "nomesReais",
+                    "opcoes",
+                    "kpis",
+                    "distribuicao",
+                    "qualidade",
+                    "matriz",
+                    "capacidade",
+                    "diario",
+                    "achados",
+                    "criterios"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/webhooks/businessmap": {
       "post": {
         "summary": "Recebe a entrega de um webhook do BusinessMap (202; sem processar na requisição)",

@@ -18,6 +18,8 @@ export const COLUNAS_PESSOA: readonly string[] = [
   // lista de supressão. Fora do `dspd_api` (nenhuma dessas tabelas está em `paraApi`); só a rota da aba, com papel próprio, lerá `pessoa_ref`.
   'dspd_bm.dim_responsavel.pessoa_ref',
   'dspd_bm.fato_apontamento.pessoa_ref',
+  // E2.21: view definer que diz quem é do time; só a rota da aba a lê (GRANT por coluna), nunca o `dspd_api`.
+  'dspd_bm.apt_pessoa_time.pessoa_ref',
   'dspd_bm.cfg_pessoa_eliminada.hash_usuario',
 ];
 
