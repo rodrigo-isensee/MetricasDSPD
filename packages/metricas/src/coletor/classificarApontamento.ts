@@ -59,7 +59,7 @@ export interface ResultadoApontamento {
 
 /** Máximo de `qtd_palavras smallint` na base. */
 export const MAX_QTD_PALAVRAS = 32767
-/** Comentário genérico: até 3 palavras (seção 5 da especificação). */
+/** Comentário genérico: comentário escrito com até 3 palavras (seção 5 da especificação; vazio não conta). */
 export const LIMITE_GENERICO_PALAVRAS = 3
 
 /**
@@ -115,7 +115,8 @@ export function classificarApontamento(
 
   const flags: FlagQualidade[] = []
   if (semComentario) flags.push('sem-comentario')
-  if (qtdPalavras <= LIMITE_GENERICO_PALAVRAS) flags.push('generico')
+  // genérico vale só para comentário escrito (decisão do dono, 2026-11-02): vazio fica só com sem-comentario
+  if (!semComentario && qtdPalavras <= LIMITE_GENERICO_PALAVRAS) flags.push('generico')
   if (subgrupo === SUBGRUPO_EXECUCAO_TECNICA || subgrupo === SUBGRUPO_NAO_CLASSIFICADO)
     flags.push('sem-vinculo')
 
