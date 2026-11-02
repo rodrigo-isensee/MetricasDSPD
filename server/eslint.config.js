@@ -1,7 +1,8 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
-const MODULOS = ['businessmap', 'acelerato', 'referencia', 'metricas', 'operacao', 'preferencias'];
+const MODULOS = ['businessmap', 'acelerato', 'referencia', 'metricas', 'operacao', 'preferencias', 'apontamento'];
+const MSG_POOL_APONTAMENTO = 'O pool do papel dspd_api_apontamento é aberto e usado só em modulos/apontamento (ADR 0020 revisão 4, R4-5); fora dele só a entrada api e o app o conhecem.';
 const SQL = [
   [/SELECT\s+\*/i, 'SELECT * é proibido: liste as colunas (GRANT por coluna, ADR 0014).'],
   [/ON\s+CONFLICT(?!\s+ON\s+CONSTRAINT)/i, 'ON CONFLICT só com alvo explícito: ON CONFLICT ON CONSTRAINT <uq_nome> DO NOTHING.'],
@@ -24,6 +25,8 @@ export default tseslint.config(
       'no-restricted-imports': ['error', {
         patterns: [
           { regex: `(modulos/|^\\.\\./)(${MODULOS.filter((x) => x !== m).join('|')})/(?!index\\.js$)`, message: MSG_INDEX },
+          ...(m !== 'businessmap' ? [{ group: ['@metricas-dspd/metricas/coletor', '**/metricas/src/coletor', '**/metricas/src/coletor/*'], message: 'A biblioteca do coletor (identidade e comentário em memória) só entra em modulos/businessmap (ADR 0020, item 3).' }] : []),
+          ...(m !== 'apontamento' ? [{ group: ['**/modulos/apontamento', '**/modulos/apontamento/*', '../apontamento', '../apontamento/*'], message: MSG_POOL_APONTAMENTO }] : []),
           ...(m === 'businessmap' ? [{ group: ['**/acelerato', '**/acelerato/*'], message: 'businessmap e acelerato nunca se misturam.' }] : []),
           ...(m === 'acelerato' ? [{ group: ['**/businessmap', '**/businessmap/*'], message: 'businessmap e acelerato nunca se misturam.' }] : []),
           { group: ['@metricas-dspd/mock', '@metricas-dspd/mock/*'], message: 'Só o seed, as extensões mock e os testes de paridade importam o mock.' },
@@ -31,10 +34,13 @@ export default tseslint.config(
       }],
     },
   })),
+  // R4-5 (ADR 0020 revisão 4): a regra do pool não se desliga por diretiva inline no módulo da aba.
+  { files: ['src/modulos/apontamento/**/*.ts'], linterOptions: { noInlineConfig: true } },
   // Fora dos módulos: nada de arquivo interno de módulo.
   { files: ['src/*.ts', 'src/plataforma/**/*.ts', 'src/entradas/**/*.ts'], ignores: ['src/plataforma/db/seed.ts', 'src/plataforma/db/seed-cli.ts', 'src/plataforma/db/limpar-seed.ts', 'src/plataforma/db/extensoes-mock.ts', 'src/plataforma/db/pesquisa-mock.ts'], rules: {
     'no-restricted-imports': ['error', { patterns: [
       { regex: 'modulos/[^/]+/(?!index\\.js$)', message: MSG_INDEX },
+      { group: ['@metricas-dspd/metricas/coletor'], message: 'A biblioteca do coletor só entra em modulos/businessmap (ADR 0020, item 3).' },
       { group: ['@metricas-dspd/mock', '@metricas-dspd/mock/*'], message: 'Só o seed, as extensões mock e os testes de paridade importam o mock.' },
     ] }],
   } },
