@@ -64,6 +64,7 @@ export { ENTRADAS_T6 } from './apoio'
 export {
   calcularApontamento,
   LIMIARES_ACHADO_PADRAO,
+  ordenarPorPessoa,
   type CalculoApontamento,
   type DimApontamento,
   type EntradaApontamento,
