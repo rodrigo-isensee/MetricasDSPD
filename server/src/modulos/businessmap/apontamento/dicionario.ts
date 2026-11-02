@@ -201,7 +201,7 @@ export async function sincronizarDicionario(pool: PoolLike, S: Esquemas, lido: D
       `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
        VALUES ($1, 'businessmap', $2, $3, $4, $5) RETURNING versao_id`,
       [hoje, `Dicionário de classificação do apontamento (aba Apontamento), versão ${lido.arquivo.versao}`,
-        'Carga do dicionário de subgrupo do apontamento por ref:sync (pedido 059); critério da classificação do comentário, versionado com vigência e sem reclassificar o passado.', referencia, agora.toISOString()]);
+        'Carga do dicionário de subgrupo do apontamento por ref:sync (pedido 059); critério da classificação do comentário, versionado com vigência: vale a partir da data e a varredura seguinte reclassifica a janela que reler (90 dias; 12 meses aos domingos) com o dicionário vigente.', referencia, agora.toISOString()]);
     const versaoId = nova.rows[0]!.versao_id;
 
     for (const s of plano.subgrupos.fechar) await db.query(`UPDATE ${S.bm}.ref_apontamento_subgrupo SET vigente_ate = $1 WHERE ${VIGENTE} AND codigo = $2`, [hoje, s.codigo]);

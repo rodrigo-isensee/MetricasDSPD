@@ -5,7 +5,8 @@ import type { Esquemas } from '../src/plataforma/db/esquemas.js';
 /**
  * Pedido 059 (K-193), A1: dicionário de subgrupo do apontamento (plano 059 §3.6; ADR 0020, revisão 4, R4-2). Referência versionada por
  * `ref:sync`: cada linha aponta a versão de critério que a incluiu (`incluido_por_versao_id`, como `ref_time`, sem FK entre schemas).
- * Mudar o dicionário não reclassifica o passado (a staging guarda `versao_dicionario`) e é marcado nos gráficos (T2.6, A9 do review).
+ * O dicionário vale a partir da data da vigência; a varredura de presença reclassifica a janela que relê (90 dias; 12 meses aos domingos) com o
+ * dicionário vigente, e a staging guarda `versao_dicionario` de cada leitura. A mudança é marcada nos gráficos (T2.6, A9 do review).
  * Termo é uma palavra só, já normalizada (minúsculas, sem acento): o casamento é por início de palavra, sem regex do dicionário.
  * `prioridade` única decide o empate entre subgrupos. Fora do `dspd_api` (CA-AP-1): lidas só pelo coletor e pelo papel da aba.
  */
