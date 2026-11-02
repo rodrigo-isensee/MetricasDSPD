@@ -2,13 +2,37 @@
 tipo: review
 contrato: 1
 pedido: 059-aba-apontamento
-branch: feature/059-dicionario-radicais
-commit: f0cd292bfe043911b9b2f67c0a1dd461759732e4
+branch: docs/059-apontamento-discovery
+commit: 1d95dd502ab77463d70ca9c4a2b1aaba4022b3a4
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-02
 ---
 # Review: 059-aba-apontamento, branch da rota da aba (trilha B4, E2.51, K-193)
+
+**Rodada 5 (revalidação por delta na branch do discovery, E2.96). Veredito: aprovado em `1d95dd5`.** A rota mesclada na develop (PR 196, squash `31de83f`) segue a revisão 4 da ADR 0020 nos pontos conferidos abaixo. O delta é só documentação e não muda código. Dois achados novos, os dois recomendados e só no texto da ADR: A6 e A7. A1 a A7 não devolvem.
+
+## Delta lido na rodada 5
+- `forge-check pr 059-aba-apontamento --raiz /home/rodrigoisensee/MetricasDSPD-052c --ref origin/docs/059-apontamento-discovery --base origin/develop` diz o PR isento de QA (só `.md` fora do controle) e acusa este parecer por `docs/architecture/adr/0020-protecao-de-pessoa-no-coletor.md` (base `origin/develop` `e32ee54`).
+- `forge-check delta --parecer docs/reviews/059-gama.md` não calcula o intervalo: `f0cd292 não é ancestral de 1d95dd5` (a rodada 4 foi na branch do dicionário, que entrou na develop por squash, PR 197). No lugar dele: `git diff --stat origin/develop..origin/docs/059-apontamento-discovery` mostra os 10 documentos do discovery (1567 linhas a mais, 1 a menos). O mesmo diff restrito a `server`, `packages`, `web`, `scripts`, `.github` e `e2e` sai vazio.
+- Lido por inteiro: o diff da ADR 0020 (revisão 4, R4-1 a R4-8, alternativas, critério de reversão e as duas linhas do histórico). A última mudança dela na branch é `9ac2855` (R4-5 com a view de quem é do time e a view definer escolhida, E2.30), igual ao texto que a rodada 1 já citou. Os outros 9 documentos (plano, ADR 0025, dicionário, textos e especificação de UX, modelo de ameaças, parecer das ADRs, review de modelagem e plano de testes) não são citados pela rota além do que a rodada 1 leu (plano §3.7 a §3.9) e têm portões próprios (QA documental E2.97, segurança `docs/security/059-adrs.md` aprovado em `114c435`, modelagem `docs/reviews/059-modelagem.md`). Não os reli.
+- **Rota da develop contra a revisão 4, conferida no código de `origin/develop`:**
+  - R4-5, papel e GRANTs: `COLUNAS_API_APONTAMENTO` (`server/src/plataforma/db/grants.ts:14`) bate com a lista da R4-5. De `dim_responsavel`, só `pessoa_ref` e `responsavel_nome`, sem `responsavel_id`. De `fato_apontamento`, sem `logged_time_id`. Entram `apt_pessoa_time` (só `pessoa_ref` e `vigencia_ate`), `ref_versao_criterio_metrica` e o mínimo de `ctl_coleta`. Nada em `stg_` nem `evt_`. O dicionário fica em `TABELAS_FORA_DA_API`.
+  - R4-5, 421: `server/src/modulos/apontamento/hosts.ts` tem lista fechada (`localhost`, `127.0.0.1`, `::1` e a rede local declarada), comparação exata, porta fora e `Origin` só `http(s)`. `rotas.ts:55` e `:62` dão `no-store` e 421 sem corpo, com log só do código.
+  - R4-5, interruptor e guarda de partida: `server/src/plataforma/config.ts:44` a `:52`. Padrão `0`. Rede local só IPv4 privado. `0.0.0.0` só com `APONTAMENTO_PUBLICACAO_LOOPBACK=1`. A mensagem de recusa nomeia a variável.
+  - R4-5, pool e lint: `server/eslint.config.js:5`, `:15` e `:45`, com `noInlineConfig` em todo o server.
+  - R4-3, nome só ligado: `servico.ts:102` lê o nome só com `nomesReais`, e `repositorio.ts:59` é a única leitura de `responsavel_nome`.
+  - R4-2, `redact` em dois níveis: `server/src/plataforma/log.ts:24` e `:26`.
+  - Alternativa (b), view definer só para `apt_pessoa_time`: é a 0033 que a rodada 1 leu.
+- Já lido nas rodadas 1 a 4 e não relido: o código que a rota soma, o dicionário v2 e o encaixe do front.
+
+## Ferramentas e outros pareceres (rodada 5)
+- Branch só de documentação: o autor do merge (E2.95) relata `docs:check` verde. Não refiz. O QA documental é a E2.97, em paralelo.
+- Teto da decisão M14: não se aplica, porque o diff não tem código nem teste.
+
+---
+
+## Histórico: rodada 4
 
 **Rodada 4 (revalidação por delta na branch do dicionário em radicais, E2.91). Veredito: aprovado em `f0cd292`.** A rota continua atendida com o dicionário `2026-11-02-v2`. O delta não muda código da rota. Achado: o recomendado A5, latente (o v2 não o dispara), registrado de novo porque a versão desta branch que o trazia (E2.83, `ab47244`) foi trocada pela da develop no alinhamento (E2.90). A1 a A5 não devolvem.
 
@@ -91,10 +115,13 @@ data: 2026-11-02
 - A3 (recomendado) server/src/modulos/apontamento/servico.ts:144 · opcoes.subtarefas sai de linhas (período mais diário) e as outras opções saem de noRecorte; usar noRecorte, ou comentar por que as duas opções fixas saem sempre
 - A4 (recomendado) server/src/modulos/apontamento/rotas.ts:40 · cast `as never` sem comentário que o explique; tipar o parâmetro como o tratarErro espera ou comentar o escape
 - A5 (recomendado) server/src/modulos/apontamento/repositorio.ts:76 · o comentário diz dicionário vigente, mas o SELECT não filtra vigente_ate IS NULL; se a troca de arquivo mudar o rótulo de um subgrupo, saem duas linhas do mesmo código e o Map fica com a que vier por último; filtrar o vigente
+- A6 (recomendado) docs/architecture/adr/0020-protecao-de-pessoa-no-coletor.md:118 · R4-1 diz que a aba lê só o esquema dspd_bm, mas a R4-5 e o grants.ts:24 a :28 dão ao papel da aba tabelas de dspd_core (calendário, feriado, versões de critério); trocar por "não lê dspd_ac"
+- A7 (recomendado) docs/architecture/adr/0020-protecao-de-pessoa-no-coletor.md:112 · a revisão 4 segue proposta (linhas 3, 112, 209 e 210), mas as duas condições já valem (059-adrs aprovado, PR 193 em 76fffa5) e o código está na develop (31de83f); passar a vigente com a data
 
 ## Encaminhamentos
 - A1: pergunta ao dono pelo Jarvis (dúvida de regra de negócio não se resolve no código). Toca dado de pessoa (nome de quem saiu do time): cartão para o `security-engineer` considerar na renovação do parecer da rota. Se o dono decidir que card encerrado não conta, a view precisa de uma data de encerramento do card (conclusão ou arquivamento) como fim da responsabilidade.
 - A2 a A4: ao `node-backend` numa volta futura, sem bloquear o QA.
 - A5 (rodadas 3 do dicionário e 4): ao `node-backend` numa volta futura, sem bloquear o QA nem o PR do dicionário (o v2 não muda rótulo de subgrupo). O filtro precisa do GRANT de `vigente_ate` ao `dspd_api_apontamento` (`server/src/plataforma/db/grants.ts:20` concede só `codigo`, `rotulo` e `incluido_por_versao_id`), com teste de rótulo trocado. GRANT de coluna é escopo de segurança: cartão ao `security-engineer` quando a volta vier.
+- A6 e A7 (rodada 5): ao `software-architect`, numa edição só de texto da ADR 0020. Pode ir na própria branch do discovery antes do PR da E2.98, ou depois, numa branch própria. Nenhum dos dois muda código.
 - Teto da decisão M14: recontar na hora do PR, com a linha `teto: excedido` no corpo. Hoje, `git diff --numstat --no-renames origin/develop...abfd287` sem `.md`, snapshot e `checksums.json` dá 12964 linhas, com o contrato e a coleta herdados; o que a rota soma sobre a coleta, em `server/` e scripts, sem `limpar-seed`, é cerca de 1678 linhas.
 - Integração: os PRs da aba para a develop esperam o PR da exceção mesclado pelo dono (a revisão 4 da ADR 0020 só vale na branch até lá); depois de mesclados o contrato e a coleta, a rota se atualiza com a develop na hora do merge, e o `forge-check pr` aponta se o parecer precisa de revalidação.
