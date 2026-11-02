@@ -6,6 +6,7 @@ export { CAMPOS_CARD, CAMPOS_REVISAO, CAMPOS_TRANSICAO, CAMPOS_WEBHOOK, TIPOS_WE
 export { gravarResponsaveis } from './responsaveis.js';
 export { diagnosticar, type ResultadoDiagnostico } from './diagnostico.js';
 export { executarSpike, type ResultadoSpike } from './spike.js';
+export { executarSpikeWorklog, type ResultadoSpikeWorklog } from './spike-worklog.js';
 export { ARQUIVO_CONFERENCIA } from './conferencia.js';
 export {
   sincronizarReferencia, lerReferenciaReal, planejar, registrarFolhasSemConferencia, vigenteEm, contextoDoEvento, folhasDoMarco, nivelDoWorkflow,

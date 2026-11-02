@@ -18,6 +18,9 @@ export const CAMINHOS_PERMITIDOS: readonly RegExp[] = [
   /^\/boards\/\d+\/(currentStructure|workflows|columns|lanes)$/,
   /^\/cards\/\d+$/,
   /^\/cards\/\d+\/(revisions|comments)$/,
+  // Pedido 059, E2.3 (spike do worklog, K-193): só leitura do apontamento, com consulta própria (CONSULTA_WORKLOG).
+  /^\/loggedTime(\/history)?$/,
+  /^\/loggedTimeCategories$/,
 ];
 
 const LISTA_IDS = /^\d{1,12}(,\d{1,12}){0,199}$/;
@@ -56,6 +59,24 @@ export const CONSULTA_USERS: Readonly<Record<string, RegExp>> = {
   fields: /^user_id,realname$/,
   user_ids: LISTA_IDS,
 };
+
+/** Pedido 059 (E2.3): `fields` do `/loggedTime` com exatamente este valor (lista fechada da API; o comentário só existe para a classificação). */
+export const CAMPOS_WORKLOG = 'logged_time_id,card_id,parent_card_id,subtask_id,lane_id,column_id,user_id,category_id,date,time,comment,logged_at';
+/** Consulta aceita nos três caminhos do worklog: lista de cards, paginação e, no `/loggedTime`, `fields` fixo e subtarefas. */
+export const CONSULTA_WORKLOG: Readonly<Record<string, RegExp>> = {
+  card_ids: LISTA_IDS,
+  page: /^\d{1,5}$/,
+  per_page: /^\d{1,3}$/,
+  fields: /^logged_time_id,card_id,parent_card_id,subtask_id,lane_id,column_id,user_id,category_id,date,time,comment,logged_at$/,
+  include_logged_time_for_subtasks: /^[01]$/,
+};
+
+/** `fields` e subtarefas só no `/loggedTime`; `card_ids` não vale na lista de categorias (catálogo, sem filtro). */
+function consultaDoWorklog(caminho: string): Readonly<Record<string, RegExp>> {
+  if (caminho === '/loggedTime') return CONSULTA_WORKLOG;
+  const paginacao = { page: CONSULTA_WORKLOG.page!, per_page: CONSULTA_WORKLOG.per_page! };
+  return caminho === '/loggedTime/history' ? { card_ids: CONSULTA_WORKLOG.card_ids!, ...paginacao } : paginacao;
+}
 
 /** Tamanho máximo de `user_ids` por chamada (o mesmo limite de `LISTA_IDS`). */
 export const LOTE_USER_IDS = 200;
@@ -203,7 +224,13 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
     if (!CAMINHOS_PERMITIDOS.some((p) => p.test(caminho))) throw new ErroBusinessMap('caminho', `caminho fora da lista fechada: ${caminho.slice(0, 60)}`);
     // `/users` só devolve id e nome (ADR 0020 rev. 3): exige `fields` e `user_ids` e recusa qualquer outro parâmetro.
     const ehUsers = caminho === '/users';
-    const permitida = ehUsers ? CONSULTA_USERS : caminho === '/cards' ? { ...CONSULTA_PERMITIDA, ...CONSULTA_CARDS } : CONSULTA_PERMITIDA;
+    const permitida = ehUsers
+      ? CONSULTA_USERS
+      : caminho.startsWith('/loggedTime')
+        ? consultaDoWorklog(caminho)
+        : caminho === '/cards'
+          ? { ...CONSULTA_PERMITIDA, ...CONSULTA_CARDS }
+          : CONSULTA_PERMITIDA;
     const params = new URLSearchParams();
     for (const [nome, bruto] of Object.entries(consulta)) {
       const valor = String(bruto);
