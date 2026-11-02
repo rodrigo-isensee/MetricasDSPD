@@ -25,6 +25,7 @@
     "test:pg": "vitest run --project pg",
     "checksums": "tsx src/plataforma/db/checksums-cli.ts",
     "db:limpar-testes": "tsx src/plataforma/db/limpar-testes-cli.ts",
+    "db:limpar-seed": "tsx src/entradas/limpar-seed.ts",
     "dev:api": "tsx watch src/entradas/api.ts",
     "dev:worker": "tsx watch src/entradas/worker.ts",
     "start:api": "tsx src/entradas/api.ts",
