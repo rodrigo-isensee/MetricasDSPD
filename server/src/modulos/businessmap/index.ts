@@ -20,3 +20,4 @@ export {
 } from './projetor.js';
 export { instanteDoBm, projetarCard, FUSO_PADRAO_BM } from './normalizador.js';
 export { projetarUsuarios, resolverResponsaveis, PRAZO_RELEITURA_DIAS, type ResultadoUsuarios } from './usuarios.js';
+export { indiceTipoDaColuna, resolverTipoDasTransicoes, type VersaoTipoColuna, type TipoDaColuna, type TransicaoLida } from './tipo-coluna.js';

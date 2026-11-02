@@ -4,6 +4,7 @@ import type { Dominio, FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/c
 import { useDataReferencia, useErroDePainelSimulado, useEstadoColeta, useModoMock } from '@/data'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
+import { NotaFicticiosPainel } from '@/features/coleta/OrigemDosCartoes'
 import { SemDadosDaFonte } from '@/features/coleta/SemDadosDaFonte'
 import { BotaoExportar } from '@/features/exportar'
 import type { NivelExportacao } from '@/features/exportar/selecao'
@@ -90,6 +91,7 @@ function Casca({
             frescor={
               <div className="flex flex-col gap-1">
                 <FrescorFonte dominio={dominio} />
+                <NotaFicticiosPainel painel={painelDoCorpo} />
               </div>
             }
             {...(base.publico ? { publico: base.publico } : {})}

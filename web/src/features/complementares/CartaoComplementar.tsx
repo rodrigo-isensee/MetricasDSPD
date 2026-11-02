@@ -1,31 +1,17 @@
 import type { ReactNode } from 'react'
 import {
-  CATALOGO_CARTOES,
   type FiltroFluxoChave,
   type BaseAmostral,
   type CriteriosResultado,
   type MetricaId,
   type Periodo,
 } from '@metricas-dspd/contratos'
-import { CartaoMetrica, Icone } from '@/components/ui'
+import { CartaoMetrica } from '@/components/ui'
 import { entradaDoCatalogo } from '@/content/catalogo-metricas'
 import type { MetricaQuery } from '@/data'
 import { aplicaveisDe } from '@/features/painel/propsCartao'
 import { CampoSemFonte } from './comuns'
 import { NOTAS_COMPLEMENTARES } from './notas'
-
-/** Selo "Dados fictícios": a métrica complementar só tem dado mockado até a coleta real existir. */
-export function SeloFicticio() {
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded border border-atencao bg-atencao-fundo px-2 py-0.5 text-xs font-semibold text-atencao"
-      data-testid="selo-ficticio"
-    >
-      <Icone nome="info" className="size-3.5" />
-      Dados fictícios
-    </span>
-  )
-}
 
 type Dto = { base: BaseAmostral; criterios: CriteriosResultado; campoDisponivel?: boolean }
 
@@ -53,8 +39,8 @@ interface Props<D extends Dto> {
 
 /**
  * Molde de cartão complementar: o mesmo cartão do núcleo (estados carregando, erro e sem dados vêm dele),
- * com a nota da métrica, a fonte e a granularidade do catálogo e o selo "Dados fictícios" quando o
- * status do catálogo único é `mock`.
+ * com a nota da métrica, a fonte e a granularidade do catálogo e o selo "Dados fictícios" (que o
+ * `CartaoMetrica` decide pela origem do cartão).
  */
 export function CartaoComplementar<D extends Dto>({
   id,
@@ -73,7 +59,6 @@ export function CartaoComplementar<D extends Dto>({
   children,
 }: Props<D>) {
   const m = entradaDoCatalogo(id)
-  const ficticio = CATALOGO_CARTOES.some((c) => c.id === id.toLowerCase() && c.status === 'mock')
   const d = q.dados
   const semFonte = d?.campoDisponivel === false && !semFonteParcial
   return (
@@ -97,7 +82,6 @@ export function CartaoComplementar<D extends Dto>({
       fonte={m.fonte}
       granularidade={m.granularidade}
       {...(m.fonte === 'BusinessMap' ? { aplicaveis: aplicaveis ?? aplicaveisDe(id) } : {})}
-      selos={ficticio ? <SeloFicticio /> : undefined}
       acoes={acoes}
       {...(semTabela || semFonte ? { semTabela: true } : {})}
       onTentarDeNovo={q.recarregar}

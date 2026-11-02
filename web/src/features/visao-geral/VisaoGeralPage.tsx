@@ -6,9 +6,11 @@ import {
   ErroPagina,
   FaixaAtencao,
   SeloCalibracao,
+  SeloOrigem,
   StatusMeta,
   useCalibracaoPronta,
   useEmCalibracao,
+  useOrigemCartao,
   type ItemAtencao,
 } from '@/components/ui'
 import type { ResultadoVisaoGeral } from '@metricas-dspd/contratos'
@@ -191,6 +193,8 @@ export default function VisaoGeralPage() {
   const data = useDataReferencia()
   const q = useMetrica('VISAO_GERAL', {})
   const pronta = useCalibracaoPronta()
+  // A Visão geral tem uma origem só (a de VISAO_GERAL), não a das métricas que resume.
+  const origemVisaoGeral = useOrigemCartao()('VISAO_GERAL')
   const carregandoSimulado = useModoMock() === 'carregando'
   const aguardando = !pronta && !carregandoSimulado
   if (useErroDePainelSimulado())
@@ -237,6 +241,11 @@ export default function VisaoGeralPage() {
           <FaixaCalibracaoFonte dominio="businessmap" />
           <FaixaCalibracaoFonte dominio="acelerato" />
         </>
+      )}
+      {d && (
+        <div className="flex flex-wrap items-center gap-2" data-testid="origem-visao-geral">
+          <SeloOrigem origem={origemVisaoGeral} />
+        </div>
       )}
       {d && (
         <p

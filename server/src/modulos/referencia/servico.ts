@@ -5,7 +5,7 @@ import { isoLocal, slug } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { marcaDagua, ultimaColetaOk } from '../operacao/index.js';
-import { lerEquipesBM, lerInicioAC, lerInicioBM, lerSistemasBM, lerVersaoCriterioVigente } from './repositorio.js';
+import { lerEquipesBM, lerTimesAtivos, lerInicioAC, lerInicioBM, lerSistemasBM, lerVersaoCriterioVigente } from './repositorio.js';
 import type { OpcoesFiltroDto, ReferenciaDto } from './schemas.js';
 
 /** Data civil de hoje em America/Sao_Paulo (o relógio é sempre parâmetro). */
@@ -15,13 +15,14 @@ export const dataCivil = (agora: Date): string => isoLocal(agora.getTime()).slic
  * Opções dos filtros de UMA fonte. Nunca há opção de pessoa. `historico.fim` é a data de hoje;
  * base vazia: `inicio = fim`.
  */
-export async function opcoesFiltro(db: Consultavel, dominio: Dominio, agora: Date, S?: Esquemas): Promise<OpcoesFiltroDto> {
+export async function opcoesFiltro(db: Consultavel, dominio: Dominio, agora: Date, S?: Esquemas, opcoes: { times?: boolean } = {}): Promise<OpcoesFiltroDto> {
   const fim = dataCivil(agora);
   if (dominio === 'businessmap') {
     const inicio = await lerInicioBM(db, S);
     return {
       dominio,
-      equipes: (await lerEquipesBM(db, S)).map((nome) => ({ id: slug(nome), nome })),
+      // F6 do 052: na base real o filtro de equipe lista os times ativos da tabela de times (só filtro; nada compara times).
+      equipes: (opcoes.times === true ? await lerTimesAtivos(db, S) : await lerEquipesBM(db, S)).map((nome) => ({ id: slug(nome), nome })),
       tipos: TIPOS_FILTRO.map((t) => ({ id: TIPO_ID[t], nome: t })),
       sistemas: (await lerSistemasBM(db, S)).map((s) => ({ id: slug(s.id), nome: s.nome })),
       historico: { inicio: inicio ?? fim, fim },
