@@ -1,7 +1,7 @@
 import { FLAGS_QUALIDADE, type RespostaApontamento } from '@metricas-dspd/contratos'
 import { taxa } from '../../core/estatistica'
 import { ordenarNeutro } from '../../core/ordenar'
-import { agrupar, comPessoa, pctComPiso } from './comum'
+import { agrupar, comPessoa, numeroDe, pctComPiso } from './comum'
 import { flagsEfetivas } from './filtros'
 import type { LinhaApontamento } from './tipos'
 
@@ -40,7 +40,7 @@ export function calcularQualidade(
   }))
   return {
     geral: { completos, porFlag },
-    porPessoa: ordenarNeutro(porPessoa, (p) => [Number(p.pessoaRef.slice(1))]),
+    porPessoa: ordenarNeutro(porPessoa, (p) => [numeroDe(p.pessoaRef)]),
     flagsNaoExcludentes: true,
   }
 }

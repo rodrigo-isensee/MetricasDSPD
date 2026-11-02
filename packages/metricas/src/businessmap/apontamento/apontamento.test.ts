@@ -182,6 +182,22 @@ describe('comum: segundos, piso de 20 e ordem neutra de pessoas', () => {
     // ref desconhecida (p7, rótulo vazio) vem antes; Álvaro vale como "alvaro"
     expect(ref(ordenarPorPessoa(itens, rotulos, true))).toEqual(['p7', 'p2', 'p10', 'p1'])
   })
+
+  it('`outra-area` (soma de quem não é do time) vai sempre por último, com ou sem nomes', () => {
+    const itens = [
+      { pessoaRef: 'outra-area' as const },
+      { pessoaRef: 'p10' as const },
+      { pessoaRef: 'p2' as const },
+    ]
+    const rotulos = new Map([
+      ['p2', 'Zeca'],
+      ['p10', 'Ana'],
+      ['outra-area', 'Aaa Outra área'],
+    ])
+    const ref = (xs: { pessoaRef: string }[]) => xs.map((x) => x.pessoaRef)
+    expect(ref(ordenarPorPessoa(itens, rotulos, false))).toEqual(['p2', 'p10', 'outra-area'])
+    expect(ref(ordenarPorPessoa(itens, rotulos, true))).toEqual(['p10', 'p2', 'outra-area'])
+  })
 })
 
 // ---------- filtros e atípicos ----------

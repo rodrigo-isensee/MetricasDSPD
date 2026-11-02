@@ -9,7 +9,7 @@ import {
   type Calendario,
 } from '../../core/calendario'
 import { ordenarNeutro } from '../../core/ordenar'
-import { agrupar, comPessoa, pctComPiso, SEGUNDOS_POR_HORA, somaSegundos } from './comum'
+import { agrupar, comPessoa, numeroDe, pctComPiso, SEGUNDOS_POR_HORA, somaSegundos } from './comum'
 import type { LinhaApontamento } from './tipos'
 
 type Capacidade = RespostaApontamento['capacidade']
@@ -65,7 +65,7 @@ export function capacidadePessoa(
       utilizacao: utilizacao(realizadoSegundos, capacidadeSegundos, ls.length),
     })
   }
-  return ordenarNeutro(itens, (i) => [Number(i.pessoaRef.slice(1))])
+  return ordenarNeutro(itens, (i) => [numeroDe(i.pessoaRef)])
 }
 
 /**

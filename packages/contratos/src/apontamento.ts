@@ -40,8 +40,15 @@ const codigo = z
 const segundos = z.number().int().nonnegative()
 const contagem = z.number().int().nonnegative()
 
-/** Chave opaca de pessoa (`dim_responsavel.pessoa_ref`), nunca o `user_id` do BusinessMap (ADR 0020, R4-4). */
-export const pessoaRefSchema = z.string().regex(/^p[1-9]\d{0,8}$/)
+/**
+ * Chave opaca de pessoa (`dim_responsavel.pessoa_ref`), nunca o `user_id` do BusinessMap (ADR 0020, R4-4). `outra-area` é a
+ * entrada única que soma quem não é do time (decisão do dono, 2026-11-02): sem nome nem chave de pessoa.
+ */
+export const PESSOA_OUTRA_AREA = 'outra-area'
+export const pessoaRefSchema = z.union([
+  z.string().regex(/^p[1-9]\d{0,8}$/),
+  z.literal(PESSOA_OUTRA_AREA),
+])
 export type PessoaRef = z.infer<typeof pessoaRefSchema>
 
 /** Flags de qualidade (§3.4; não excludentes, M-11 do UX). "completo" = nenhuma flag. */

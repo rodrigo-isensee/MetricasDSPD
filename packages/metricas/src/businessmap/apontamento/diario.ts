@@ -1,7 +1,7 @@
 import { FAIXAS_DIARIO, type FaixaDiario, type RespostaApontamento } from '@metricas-dspd/contratos'
 import { diaDeIso, ehDiaUtil, isoDeDia, type Calendario } from '../../core/calendario'
 import { ordenarNeutro } from '../../core/ordenar'
-import { agrupar, comPessoa, SEGUNDOS_POR_HORA, somaSegundos } from './comum'
+import { agrupar, comPessoa, numeroDe, SEGUNDOS_POR_HORA, somaSegundos } from './comum'
 import type { LinhaApontamento } from './tipos'
 
 type Diario = RespostaApontamento['diario']
@@ -56,6 +56,6 @@ export function calcularDiario(
     ate: janela.ate,
     limiteAtipicoSegundos,
     dias,
-    linhas: ordenarNeutro(porPessoa, (p) => [Number(p.pessoaRef.slice(1))]),
+    linhas: ordenarNeutro(porPessoa, (p) => [numeroDe(p.pessoaRef)]),
   }
 }
