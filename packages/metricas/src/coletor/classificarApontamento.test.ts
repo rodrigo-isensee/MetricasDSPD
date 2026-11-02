@@ -395,7 +395,13 @@ describe('ADR 0020: o comentário não sai nem é público', () => {
     for (const i of ['../index.ts', '../businessmap/index.ts', '../core/index.ts']) {
       expect(fonte(i), i).not.toMatch(/classificarApontamento|coletor/)
     }
-    expect(readFileSync(join(AQUI, '../../package.json'), 'utf8')).not.toMatch(/coletor/)
+    // ADR 0020, item 3: o único caminho é o subcaminho `./coletor`, importado só pelo coletor do servidor (lint do server); nada mais a cita.
+    expect(
+      readFileSync(join(AQUI, '../../package.json'), 'utf8').replace(
+        '"./coletor": "./src/coletor/index.ts",',
+        '',
+      ),
+    ).not.toMatch(/coletor/)
   })
 
   it('o web/ não importa a classificação (nada de comentário no bundle da interface)', () => {
