@@ -205,8 +205,9 @@ describe('normalização e casamento por início de palavra (C-6)', () => {
       regrasPorTipo: [],
     }
     const c = (t: string) => classificarApontamento({ comentario: t, typeId: null }, d).subgrupo
-    for (const t of ['a.b', 'axb', 'c+ ok', '(d', '[ ]', '\\'])
-      expect(c(t)).toBe(SUBGRUPO_EXECUCAO_TECNICA)
+    for (const t of ['a.b', 'axb', 'c+ ok', '(d']) expect(c(t)).toBe(SUBGRUPO_EXECUCAO_TECNICA)
+    // sem nenhuma palavra vale como vazio
+    for (const t of ['[ ]', '\\']) expect(c(t)).toBe(SUBGRUPO_NAO_CLASSIFICADO)
   })
 
   it('A1: letra fora de a-z e 0-9 antes do termo é parte da palavra (øteste não casa teste)', () => {
@@ -237,9 +238,24 @@ describe('normalização e casamento por início de palavra (C-6)', () => {
     expect(nomesDe('teste,carga,geral,ok')).not.toContain('generico')
     expect(classe('a_b c-d').qtdPalavras).toBe(4)
     expect(classe('RDM 1234').qtdPalavras).toBe(2)
-    // marca de quem só tem pontuação: fica como antes até a decisão do dono (pergunta de 06:30)
-    expect(nomesDe('- - -')).toEqual(['generico', 'sem-vinculo'])
+    // só pontuação ou símbolos: zero palavras vale como vazio (decisão do dono, 2026-11-02), nunca genérico
+    expect(nomesDe('- - -')).toEqual(['sem-comentario', 'sem-vinculo'])
     expect(nomesDe('\u200b\u0000')).toEqual(['sem-comentario', 'sem-vinculo'])
+  })
+
+  it('comentário sem nenhuma palavra (só pontuação ou símbolos) recebe só sem-comentario, nunca genérico', () => {
+    for (const c of ['- - -', '...', '?!', '*** ###', '😀']) {
+      expect(nomesDe(c)).toEqual(['sem-comentario', 'sem-vinculo'])
+      expect(classe(c).qtdPalavras).toBe(0)
+    }
+    // com regra por tipo de sem-comentario, a pontuação também é vazio
+    const nomesTipo = (c: string, t: string) => flagsDaMascara(classe(c, t).flags)
+    expect(nomesTipo('- - -', KAIZEN)).toEqual(['sem-comentario'])
+    expect(nomesTipo('...', INCIDENTE)).toEqual(['sem-comentario'])
+    expect(nomesTipo('?!', INCIDENTE)).toEqual(['sem-comentario'])
+    // uma palavra no meio da pontuação volta a ser comentário escrito
+    expect(nomesDe('- ok -')).toContain('generico')
+    expect(nomesDe('- ok -')).not.toContain('sem-comentario')
   })
 
   it('termo vazio (o ref:sync o recusa) casa só quando há alguma palavra', () => {
@@ -251,7 +267,7 @@ describe('normalização e casamento por início de palavra (C-6)', () => {
     const c = (t: string) => classificarApontamento({ comentario: t, typeId: null }, d).subgrupo
     expect(c('qualquer')).toBe('g')
     expect(c('')).toBe(SUBGRUPO_NAO_CLASSIFICADO)
-    expect(c('- -')).toBe(SUBGRUPO_EXECUCAO_TECNICA)
+    expect(c('- -')).toBe(SUBGRUPO_NAO_CLASSIFICADO) // sem palavra vale como vazio
   })
 })
 
@@ -573,7 +589,7 @@ function subgrupoOraculo(texto: string, d: DicionarioApontamento): string {
   const achou = regras.find((r) => r.termos.some((t) => palavras.some((p) => p.startsWith(t))))
   return (
     achou?.subgrupo ??
-    (palavras.length === 0 && !/\S/u.test(texto.replace(/[\p{Cc}\p{Cf}\ud800-\udfff]/gu, ''))
+    (palavras.length === 0 // sem nenhuma palavra vale como vazio (decisão do dono, 2026-11-02)
       ? SUBGRUPO_NAO_CLASSIFICADO
       : SUBGRUPO_EXECUCAO_TECNICA)
   )

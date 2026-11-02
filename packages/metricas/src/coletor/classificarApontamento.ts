@@ -174,8 +174,10 @@ export function classificarApontamento(
   dicionario: DicionarioApontamento,
 ): ResultadoApontamento {
   const normalizado = normalizarTexto(truncar(entrada.comentario ?? ''))
-  const semComentario = normalizado === ''
   const palavras = palavrasDe(normalizado)
+  // vazio = zero palavras depois da normalização (decisão do dono, 2026-11-02): só pontuação ou símbolos, como `- - -`,
+  // vale como vazio e recebe só sem-comentario, nunca genérico
+  const semComentario = palavras.length === 0
   const qtdPalavras = palavras.length
   const ordenadas = ordenarPalavras(palavras)
 
