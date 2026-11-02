@@ -379,6 +379,73 @@ d('059: apontamento (esquema, papéis, coleta) no PostgreSQL', () => {
     expect(await n(`SELECT count(*) AS n FROM ${S.bm}.evt_apontamento WHERE logged_time_id = ANY($1::text[])`, [regs.map((r) => String(r.logged_time_id))])).toBe(0);
   });
 
+  it('A7: carga inicial com um registro recusado de vez (tempo-invalido) fecha sucesso e grava a marca; a recusa fica em ctl_coleta_falha e na contagem; o incremental seguinte roda', async () => {
+    const b = base();
+    await criarCards([{ id: b + 1 }]);
+    const boas = Array.from({ length: 5 }, (_, i) => registroWorklog({ logged_time_id: b + 10 + i, card_id: b + 1, user_id: null }));
+    const ruim = registroWorklog({ logged_time_id: b + 20, card_id: b + 1, user_id: null, time: 0 });
+    const m = await montar({ registros: [...boas, ruim] });
+    const r = await m.rodar(carga);
+    expect(r).toMatchObject({ estado: 'sucesso', inseridos: 5, invalidos: 1, falhas: {}, recusados: { 'tempo-invalido': 1 } });
+    const ctl = await dono.query<{ status: string; marca: Date | null }>(`SELECT status, marca_dagua_ate AS marca FROM ${S.bm}.ctl_coleta WHERE coleta_id = $1`, [r.coletaId]);
+    expect(ctl.rows[0]!.status).toBe('sucesso');
+    expect(ctl.rows[0]!.marca).not.toBeNull();
+    const f = await dono.query<{ entidade: string; id_origem: string | null; erro: string }>(`SELECT entidade, id_origem, erro FROM ${S.bm}.ctl_coleta_falha WHERE coleta_id = $1`, [r.coletaId]);
+    expect(f.rows).toEqual([{ entidade: 'apontamento', id_origem: String(b + 20), erro: 'tempo-invalido' }]);
+    const c = await dono.query<{ lidos: number; inseridos: number; falhas: number }>(`SELECT lidos, inseridos, falhas FROM ${S.bm}.ctl_coleta_contagem WHERE coleta_id = $1 AND entidade = 'apontamento'`, [r.coletaId]);
+    expect(c.rows).toEqual([{ lidos: 6, inseridos: 5, falhas: 1 }]);
+    expect(await n(`SELECT count(*) AS n FROM ${S.bm}.fato_apontamento WHERE logged_time_id = $1`, [String(b + 20)])).toBe(0);
+    // o incremental roda (há marca) e fecha sucesso mesmo com a recusa ainda na origem
+    expect(await m.rodar(incremental)).toMatchObject({ estado: 'sucesso', recusados: { 'tempo-invalido': 1 } });
+    // a origem corrige o registro: entra como versão nova (a varredura o relê)
+    m.servidor.cenario.registros[5] = { ...ruim, time: 600 };
+    expect(await m.rodar(incremental)).toMatchObject({ estado: 'sucesso', inseridos: 1, recusados: {} });
+    expect((await fatos([String(b + 20)]))[0]).toMatchObject({ segundos: 600, versoes: 1 });
+  });
+
+  it('A7: recusa com logged_time_id válido não tira o lote de completo (nada de exclusão falsa); com id inválido tira (nenhuma exclusão naquela execução)', async () => {
+    const b = base();
+    await criarCards([{ id: b + 1 }]);
+    const regs = Array.from({ length: 10 }, (_, i) => registroWorklog({ logged_time_id: b + 10 + i, card_id: b + 1, user_id: null }));
+    const m = await montar({ registros: regs });
+    await m.rodar(carga);
+    // o 15 passa a vir inválido (id válido, horas 0) e o 10 some de verdade: só o 10 é excluído; o 15 continua ativo
+    m.servidor.cenario.registros = regs.slice(1).map((r) => (r.logged_time_id === b + 15 ? { ...r, time: 0 } : r));
+    const com = await m.rodar(incremental);
+    expect(com).toMatchObject({ estado: 'sucesso', excluidos: 1, recusados: { 'tempo-invalido': 1 } });
+    expect((await fatos([String(b + 10)]))[0]!.excluido_em).not.toBeNull();
+    expect((await fatos([String(b + 15)]))[0]!.excluido_em).toBeNull();
+    // um registro com id inválido no lote: não se sabe de quem é, o lote deixa de ser completo e o 11 (que some agora) não é excluído
+    m.servidor.cenario.registros = [...m.servidor.cenario.registros.filter((r) => r.logged_time_id !== b + 11), registroWorklog({ logged_time_id: 'sem-id', card_id: b + 1 })];
+    const sem = await m.rodar(incremental);
+    expect(sem).toMatchObject({ estado: 'sucesso', excluidos: 0 });
+    expect((await fatos([String(b + 11)]))[0]!.excluido_em).toBeNull();
+    expect(await n(`SELECT count(*) AS n FROM ${S.bm}.evt_apontamento WHERE logged_time_id = $1`, [String(b + 11)])).toBe(0);
+  });
+
+  it('A7: guarda recusa_em_massa (mais de 5 por cento dos lidos, com pelo menos 10 recusas) fecha parcial, a marca não anda e o checkpoint da carga fica; classificacao-falhou segue parcial', async () => {
+    const b = base();
+    await criarCards([{ id: b + 1 }]);
+    const boas = Array.from({ length: 150 }, (_, i) => registroWorklog({ logged_time_id: b + 100 + i, card_id: b + 1, user_id: null }));
+    const ruins = Array.from({ length: 10 }, (_, i) => registroWorklog({ logged_time_id: b + 500 + i, card_id: b + 1, user_id: null, time: 0 }));
+    const m = await montar({ registros: [...boas, ...ruins] });
+    const r = await m.rodar(carga);
+    expect(r).toMatchObject({ estado: 'parcial', falhas: { recusa_em_massa: 1 }, recusados: { 'tempo-invalido': 10 }, inseridos: 150 });
+    const ctl = await dono.query<{ status: string; marca: Date | null; lotes: number }>(`SELECT status, marca_dagua_ate AS marca, (parametros ->> 'lotes_concluidos')::int AS lotes FROM ${S.bm}.ctl_coleta WHERE coleta_id = $1`, [r.coletaId]);
+    expect(ctl.rows[0]).toEqual({ status: 'parcial', marca: null, lotes: 0 });
+    const f = await dono.query<{ erro: string; id_origem: string | null }>(`SELECT erro, id_origem FROM ${S.bm}.ctl_coleta_falha WHERE coleta_id = $1 AND erro = 'recusa_em_massa'`, [r.coletaId]);
+    expect(f.rows).toEqual([{ erro: 'recusa_em_massa', id_origem: null }]);
+    // classificação que lança: defeito nosso, não da origem: parcial, com a falha só com código e id
+    const b2 = base();
+    await criarCards([{ id: b2 + 1 }]);
+    const m2 = await montar({ registros: [registroWorklog({ logged_time_id: b2 + 10, card_id: b2 + 1, user_id: null, comment: 'lança' })] });
+    m2.deps.classificar = (e) => { if (e.comentario === 'lança') throw new Error('COMENTARIO-NA-MENSAGEM'); return classificar(e); };
+    const r2 = await m2.rodar(carga);
+    expect(r2).toMatchObject({ estado: 'parcial', falhas: { 'classificacao-falhou': 1 }, recusados: {} });
+    const f2 = await dono.query<{ erro: string; id_origem: string | null }>(`SELECT erro, id_origem FROM ${S.bm}.ctl_coleta_falha WHERE coleta_id = $1`, [r2.coletaId]);
+    expect(f2.rows).toEqual([{ erro: 'classificacao-falhou', id_origem: String(b2 + 10) }]);
+  });
+
   it('supressão: o user_id eliminado não é pedido a /users, não vira linha em dim_responsavel nem pessoa_ref; o outro segue (CT-85, CA-AP-10)', async () => {
     const b = base();
     await criarCards([{ id: b + 1 }]);
