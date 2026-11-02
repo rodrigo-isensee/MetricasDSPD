@@ -40,7 +40,7 @@ d('catálogo do esquema (testes de catálogo do CI)', () => {
     const com = new Set(r.rows.map((x) => x.t));
     const tabelas = (await db.query<{ t: string }>(
       `SELECT c.relname AS t FROM pg_class c JOIN pg_namespace s ON s.oid = c.relnamespace WHERE s.nspname = ANY($1) AND c.relkind = 'r'`, [[S.bm, S.ac]])).rows.map((x) => x.t);
-    for (const t of tabelas) expect(com.has(t), t).toBe(/^(stg_|evt_|rec_)|_versao$|^fato_transicao$|^ref_(workflow|tipo_card|time|time_workflow)$/.test(t));
+    for (const t of tabelas) expect(com.has(t), t).toBe(/^(stg_|evt_|rec_)|_versao$|^fato_transicao$|^ref_(workflow|tipo_card|time|time_workflow|apontamento_subgrupo|apontamento_termo|apontamento_regra_tipo)$/.test(t));
     for (const x of r.rows) expect(Number(x.n), x.t).toBe(2);
   });
 
@@ -80,7 +80,7 @@ d('catálogo do esquema (testes de catálogo do CI)', () => {
       `SELECT has_table_privilege('dspd_api', c.oid, 'SELECT') OR EXISTS (SELECT 1 FROM pg_attribute a WHERE a.attrelid = c.oid AND a.attnum > 0
          AND has_column_privilege('dspd_api', c.oid, a.attnum, 'SELECT')) AS ok, c.relname AS t
        FROM pg_class c JOIN pg_namespace s ON s.oid = c.relnamespace WHERE s.nspname = ANY($1) AND c.relkind IN ('r', 'v')`, [[S.bm, S.ac, S.core]]);
-    for (const x of r.rows) expect(x.ok, x.t).toBe(!/^(stg_|evt_|.*_versao$|outbox|pgmigrations|rec_transicao_par|dim_responsavel)/.test(x.t) || x.t === 'rec_transicao_par');
+    for (const x of r.rows) expect(x.ok, x.t).toBe(!/^(stg_|evt_|.*_versao$|outbox|pgmigrations|rec_transicao_par|dim_responsavel|dim_card_raiz|fato_apontamento|cfg_pessoa_eliminada|ref_apontamento_)/.test(x.t) || x.t === 'rec_transicao_par');
     expect((await db.query(`SELECT has_column_privilege('dspd_api', $1, 'titulo', 'SELECT') AS ok`, [`${S.bm}.dim_card`])).rows[0]).toEqual({ ok: true });
   });
 

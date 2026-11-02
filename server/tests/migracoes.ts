@@ -19,6 +19,18 @@ import * as m0017 from '../migrations/0017_ac_projecao_f2.js';
 import * as m0018 from '../migrations/0018_bm_referencia_workflow_tipo_times.js';
 import * as m0019 from '../migrations/0019_bm_carga_inicial_times.js';
 import * as m0020 from '../migrations/0020_bm_dim_responsavel.js';
+import * as m0021 from '../migrations/0021_bm_ctl_coleta_tarefa_apontamento.js';
+import * as m0022 from '../migrations/0022_bm_stg_apontamento.js';
+import * as m0023 from '../migrations/0023_bm_evt_apontamento.js';
+import * as m0024 from '../migrations/0024_bm_dim_responsavel_pessoa_ref.js';
+import * as m0025 from '../migrations/0025_bm_cfg_pessoa_eliminada.js';
+import * as m0026 from '../migrations/0026_bm_ref_apontamento.js';
+import * as m0027 from '../migrations/0027_bm_dim_card_raiz.js';
+import * as m0028 from '../migrations/0028_bm_fato_apontamento.js';
+import * as m0029 from '../migrations/0029_bm_fato_apontamento_tipo.js';
+import * as m0030 from '../migrations/0030_bm_ref_apontamento_vigencia.js';
+import * as m0031 from '../migrations/0031_bm_cfg_pessoa_eliminada_executado_por.js';
+import * as m0032 from '../migrations/0032_bm_stg_apontamento_versao.js';
 import type { Ddl } from '../src/plataforma/db/ddl.js';
 import type { Esquemas } from '../src/plataforma/db/esquemas.js';
 
@@ -32,6 +44,11 @@ export const MIGRACOES: Record<string, Modulo> = {
   '0011_core_outbox': m0011, '0012_bm_limite_wip_fluxo_indices': m0012, '0013_core_pesquisa': m0013,
   '0014_ac_justificativa_informada': m0014, '0015_bm_remove_usuario_transicao': m0015, '0016_ac_stg_chamado_recorte': m0016,
   '0017_ac_projecao_f2': m0017, '0018_bm_referencia_workflow_tipo_times': m0018, '0019_bm_carga_inicial_times': m0019, '0020_bm_dim_responsavel': m0020,
+  '0021_bm_ctl_coleta_tarefa_apontamento': m0021, '0022_bm_stg_apontamento': m0022, '0023_bm_evt_apontamento': m0023,
+  '0024_bm_dim_responsavel_pessoa_ref': m0024, '0025_bm_cfg_pessoa_eliminada': m0025, '0026_bm_ref_apontamento': m0026,
+  '0027_bm_dim_card_raiz': m0027, '0028_bm_fato_apontamento': m0028,
+  '0029_bm_fato_apontamento_tipo': m0029, '0030_bm_ref_apontamento_vigencia': m0030,
+  '0031_bm_cfg_pessoa_eliminada_executado_por': m0031, '0032_bm_stg_apontamento_versao': m0032,
 };
 
 export const arquivosDeMigracao = (): string[] =>

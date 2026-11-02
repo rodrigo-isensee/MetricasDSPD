@@ -42,6 +42,10 @@ const CLASSIFICACAO_API: Record<string, Classe> = {
   'dspd_core.ref_conta_automacao': 'fora da API',
   // Pedido 052, F3 (Q-8 = B, ADR 0020 revisão 3): nome do responsável por GET /users; escrita só pelo coletor, nenhum GRANT ao dspd_api.
   'dspd_bm.dim_responsavel': 'fora da API',
+  // Pedido 059 (CA-AP-1): o dicionário de subgrupo do apontamento é lido só pelo coletor e pelo papel da aba, nunca pelo dspd_api.
+  'dspd_bm.ref_apontamento_subgrupo': 'fora da API',
+  'dspd_bm.ref_apontamento_termo': 'fora da API',
+  'dspd_bm.ref_apontamento_regra_tipo': 'fora da API',
   // Por coluna (ADR 0020, M-4): a API lê tem_entrega e faixa_concentracao, nunca a contagem `entregas`.
   'dspd_bm.agg_conhecimento_sistema': 'por coluna',
 };

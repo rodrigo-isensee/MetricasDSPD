@@ -45,7 +45,7 @@ export function dominiosDaColeta(): DominiosCamposCustomizados {
 }
 
 export class ErroColetaBm extends Error {
-  constructor(readonly codigo: 'uso' | 'sem-marca' | 'trava' | 'configuracao', mensagem: string) {
+  constructor(readonly codigo: 'uso' | 'sem-marca' | 'trava' | 'configuracao' | 'cards-falhou' | 'dicionario', mensagem: string) {
     super(mensagem);
     this.name = 'ErroColetaBm';
   }
@@ -70,6 +70,11 @@ export interface DepsColeta {
    * nem resultado do comando: quem passa o mapa é quem projeta logo depois. Card sem os campos de responsável não entra.
    */
   responsaveis?: Map<string, string[]>;
+  /**
+   * Sal da lista de supressão (`PESSOA_ELIMINADA_SAL`, pedido 059, A1 da segurança da coleta): a etapa de `/users` descarta quem pediu
+   * eliminação. Sem sal e com a lista não vazia, a etapa não roda e registra a falha `sem-sal`.
+   */
+  sal?: string;
 }
 
 export interface ContagemTransicoes { lidas: number; inseridas: number; jaExistentes: number; invalidas: number }
@@ -312,7 +317,7 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
 
     let usuarios: ResultadoUsuarios | null = null;
     if (!fatal) {
-      usuarios = await resolverResponsaveis(d.pool, d.cliente, x.vistos, d.agora(), S);
+      usuarios = await resolverResponsaveis(d.pool, d.cliente, x.vistos, d.agora(), S, d.sal);
       if (usuarios.falha !== null) await registrarFalha(d.pool, S, coletaId, 'usuario', null, usuarios.falha);
       await registrarContagem(d.pool, S, coletaId, 'usuario_nao_resolvido', { lidos: 0, inseridos: 0, jaExistentes: 0, falhas: usuarios.naoResolvidos });
     }

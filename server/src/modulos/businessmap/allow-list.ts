@@ -34,6 +34,17 @@ export const TIPOS_WEBHOOK_BM_GRAVADOS = ['card_moved'] as const;
 /** 4f: campos do registro do webhook (o corpo bruto nunca é gravado). */
 export const CAMPOS_WEBHOOK = ['card_id', 'board_id', 'workflow_id', 'column_id', 'lane_id', 'column_id_anterior', 'lane_id_anterior'] as const;
 
+/**
+ * 4h (ADR 0020, revisão 4, R4-2; pedido 059): campos do apontamento (worklog, `GET /loggedTime`) que vão à staging, com o nome da API.
+ * `date` e `time` (segundos) viram `data_apontamento` e `segundos`; `logged_at` vira `registrado_em`. NUNCA: `comment` (nem hash, nem
+ * trecho: só a saída da classificação, abaixo), `user_id` (só em memória até o projetor), título, `reporter`, e-mail, campo fora da lista.
+ */
+export const CAMPOS_APONTAMENTO = [
+  'logged_time_id', 'card_id', 'parent_card_id', 'subtask_id', 'lane_id', 'column_id', 'category_id', 'date', 'time', 'logged_at',
+] as const;
+/** 4h: saída da classificação do comentário (lista fechada e inteiros) que acompanha o registro; nunca o texto. */
+export const CAMPOS_CLASSIFICACAO = ['subgrupo_codigo', 'flags_qualidade', 'qtd_palavras', 'versao_dicionario'] as const;
+
 export const VALOR_DESCONHECIDO = 'desconhecido';
 
 const copiarEscalares = (origem: Objeto, campos: readonly string[], destino: Objeto): void => {
