@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: f763d6acffca29233c78966abe44882be10c1daa
+commit: d90b1fec622363e594e1d6a57923791aa4914511
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,50 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.145, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque `docs/architecture/server.md` mudou depois dele (limpeza do seed, E2.96 e E2.108, na `feature/052-limpa-seed`, depois do merge da develop `d90b1fe`). Delta lido, e só ele: `git diff 55a33ee..d90b1fe -- docs/architecture/server.md server/package.json server/src/modulos/businessmap server/tests/diagnostico-businessmap.test.ts docs/integracao docs/api .env.example pnpm-lock.yaml pnpm-workspace.yaml` (só `server.md` e `server/package.json` têm diferença).
+
+- `docs/architecture/server.md`: seção nova "Limpeza do seed mock da base real" e ajuste da lista do seed. Trata do comando `db:limpar-seed` e de tabelas que o script da WS1 não lê nem grava.
+- `server/package.json`: uma linha nova, o script `db:limpar-seed`. O `bm:diagnostico` segue igual; nenhuma dependência nova.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código novo tem pareceres próprios (`docs/reviews/052-limpa-seed.md`, `docs/security/052-limpa-seed.md`). Segurança e QA renovaram os deles sobre o mesmo ponto (`docs/security/052-sust-real.md`, `55ed6a2`; `docs/qa/052-ws1-estrutura.md`, `db8df57`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `d90b1fe`.
+
+## Renovação por delta (E2.121, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque `docs/api/metricas.md` mudou depois dele (sustentação real, E2.117, na `feature/052-sust-real`, após o merge da develop `55a33ee`). Delta lido, e só ele: `git diff 52c201e..55a33ee -- docs/api/metricas.md server/package.json server/src/modulos/businessmap .env.example docs/integracao` (só `docs/api/metricas.md` tem diferença, 1 linha a mais e 1 a menos).
+
+- `docs/api/metricas.md` (seção "Painel operacional com dado real"): a linha "Duas bases, uma por métrica" passa a listar S2, S3, S4, S8 e S10 como reais e as demais da sustentação como mock, com o motivo. É documento da API de métricas; o script da WS1 (`bm:diagnostico`) não o lê.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código novo tem pareceres próprios (`docs/reviews/052-sust-real.md`, `docs/security/052-sust-real.md`, `docs/qa/052-sust-real.md`). O QA renova o dele em paralelo (E2.138). Conclusão: nenhum achado novo, e o parecer segue aprovado em `55a33ee`.
+
+## Renovação por delta (E2.124, 2026-11-01, segunda)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque `e2e/tests/intensivo-filtros.spec.ts` mudou depois dele (E2.132, `52c201e`). Delta lido, e só ele: `git diff a96f4f6..52c201e` (um arquivo, 1 linha a mais e 1 a menos).
+
+- `e2e/tests/intensivo-filtros.spec.ts:21`: a constante `TIPOS` ganha `trabalho-produto` no fim, por causa do tipo novo da ADR 0024. É teste E2E do painel; o script da WS1 (`bm:diagnostico`) não o toca nem é tocado por ele.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. Segurança (`docs/security/052-fix-test-pg.md`, `5d22083`) e QA (`docs/qa/052-ws1-estrutura.md`, `7583385`) renovaram os deles sobre o mesmo commit. Conclusão: nenhum achado novo, e o parecer segue aprovado em `52c201e`.
+
+## Renovação por delta (E2.124, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `.env.example` mudou depois dele (`DSPD_SCHEMA_PREFIXO_SEED`, F6, e o merge da develop `8b17664`). Delta lido, e só ele: `git diff 4e5958f..802fad3 -- .env.example server/package.json server/src/modulos/businessmap/index.ts server/src/modulos/businessmap/diagnostico.ts server/tests/diagnostico-businessmap.test.ts docs/integracao docs/architecture/data-model.md`.
+
+- `.env.example`: uma linha comentada nova, `DSPD_SCHEMA_PREFIXO_SEED`, do modo de duas bases da F6; sem valor de credencial. O script da WS1 lê só `BUSINESSMAP_URL_BASE` e `BUSINESSMAP_APIKEY`, que seguem com os mesmos nomes.
+- `server/src/modulos/businessmap/index.ts`: um export novo (`tipo-coluna.js`, da F4). O export do `diagnosticar` segue igual e o `index.ts` continua sem efeito colateral ao importar.
+- `server/package.json`, `diagnostico.ts`, o teste da WS1, `docs/integracao` e `data-model.md`: sem mudança no intervalo (diff vazio).
+
+Já lido e fora do delta: o código e os testes da WS1. O código novo tem pareceres próprios (`docs/reviews/052-f6-painel.md`). Segurança e QA renovaram os deles sobre o mesmo ponto (`docs/security/052-fix-test-pg.md`, `6204717`; `docs/qa/052-ws1-estrutura.md`, `0fbbe53`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `802fad3`.
+
+## Renovação por delta (E2.114, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `pnpm-lock.yaml` mudou na correção do test:pg (`4e5958f`, K-182). O `forge-check delta --parecer` não roda aqui (a branch nasceu da `develop`, `4a01e39`); o delta lido foi `git diff 4e5958f~1..4e5958f`, e só ele: `pnpm-workspace.yaml` e `pnpm-lock.yaml`.
+
+- `pnpm-workspace.yaml`: um override novo, `vite: "8.3.4"`, com comentário do motivo e da condição de reversão. Dependência de desenvolvimento e de build; nada do código da WS1.
+- `pnpm-lock.yaml`: só a troca de versão do vite e das referências a ele (sem pacote novo). O script da WS1 (`bm:diagnostico`) usa `fetch` nativo e não depende do vite.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código da correção tem pareceres próprios (`docs/reviews/052-fix-test-pg.md`, `docs/security/052-fix-test-pg.md`, `docs/qa/052-fix-test-pg.md`), e o QA renovou o dele (`docs/qa/052-ws1-estrutura.md`, E2.116, `f575cfd`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `4e5958f`.
 
 ## Renovação por delta (E2.87, 2026-11-01)
 

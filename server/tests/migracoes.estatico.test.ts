@@ -43,7 +43,7 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 450; // 0017 do Acelerato: 5 colunas em cada uma das duas dimensões do chamado; 0018 e 0019 do BusinessMap (F0 do 052); 0020 (F3): dim_responsavel, 4 colunas
+const COLUNAS_FORA_STG_ESPERADAS = 512; // 0017 do Acelerato: 5 colunas em cada uma das duas dimensões do chamado; 0018 e 0019 do BusinessMap (F0 do 052); 0020 (F3): dim_responsavel, 4 colunas; 0023 a 0028 (059, A1): evt_apontamento 10, pessoa_ref 1, cfg_pessoa_eliminada 2, ref_apontamento_* 11, dim_card_raiz 8, fato_apontamento 22; 0029 (059, E2.19): type_id em fato_apontamento, 1 (stg_apontamento fica fora da conta); 0030 (059, E2.27): vigente_de e vigente_ate em cada uma das 3 ref_apontamento_*, 6 (vigencia_id, identidade, o contador não vê); 0031 (059, E2.27): executado_por em cfg_pessoa_eliminada, 1
 
 const COLUNAS_F2 = ['arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte', 'categoria_key'];
 describe('migrações e singleTransaction', () => {
@@ -86,7 +86,8 @@ describe('migrações (análise estática, sem banco)', () => {
     expect(fora.length).toBe(COLUNAS_FORA_STG_ESPERADAS);
     expect(fora.filter((c) => violaLgpd(c.tabela, c.coluna)).map((c) => `${c.tabela}.${c.coluna}`)).toEqual([]);
     const permitidas = fora.filter((c) => colunaDePessoa(c.coluna)).map((c) => `${c.tabela}.${c.coluna}`);
-    for (const p of COLUNAS_PESSOA) expect(permitidas, p).toContain(p);
+    // a coluna de view (`apt_pessoa_time`) nao e coluna de tabela: o catalogo real a cobre em `catalogo.pg.test.ts`
+    for (const p of COLUNAS_PESSOA.filter((x) => !x.includes('.apt_pessoa_time.'))) expect(permitidas, p).toContain(p);
     expect(colunas.filter((c) => /\.stg_/.test(c.tabela) && colunaDePessoa(c.coluna))).toEqual([]);
   });
   it('sanidade do parser: dim_chamado_versao tem organizacao e tipo e ignora restrições', () => {
@@ -125,8 +126,11 @@ describe('migrações (análise estática, sem banco)', () => {
   });
   it('toda view é security_invoker e lista colunas (C-views, data-model §2)', () => {
     const views = todoSql.filter((s) => s.startsWith('CREATE VIEW'));
-    expect(views).toHaveLength(7);
-    for (const v of views) expect(v).toMatch(/^CREATE VIEW \S+ WITH \(security_invoker = true\) AS/);
+    expect(views).toHaveLength(8);
+    // unica excecao (059, E2.21): a view do time e definer, para o papel da aba nao precisar ler `responsaveis` nem `responsavel_id`
+    const doTime = views.filter((v) => /^CREATE VIEW \S+\.apt_pessoa_time AS/.test(v));
+    expect(doTime).toHaveLength(1);
+    for (const v of views.filter((x) => !doTime.includes(x))) expect(v).toMatch(/^CREATE VIEW \S+ WITH \(security_invoker = true\) AS/);
   });
   it('C1: origem_demanda e demais códigos de ref_dominio têm o tipo de ref_dominio.codigo (varchar(80))', () => {
     expect(tipoDe(`${S_PADRAO.bm}.ref_dominio`, 'codigo')).toMatch(/codigo varchar\(80\)/);

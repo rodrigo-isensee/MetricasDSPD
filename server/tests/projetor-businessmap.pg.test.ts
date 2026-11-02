@@ -109,7 +109,7 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     const r = await projetar();
     expect(r.transicoes.inseridas).toBeGreaterThanOrEqual(7);
     const c = await dim(id);
-    expect(c).toMatchObject({ tipo: 'bug_interno', granularidade: 'story', equipe: TIME_A, quadro_id: Q, coluna_atual_id: String(COL.F), motivo_descarte: null });
+    expect(c).toMatchObject({ tipo: 'Bug interno', granularidade: 'story', equipe: TIME_A, quadro_id: Q, coluna_atual_id: String(COL.F), motivo_descarte: null });
     expect([iso(c.criado_em), iso(c.comprometido_em), iso(c.iniciado_em), iso(c.concluido_em)]).toEqual([
       '2026-08-20T10:00:00.000Z', `${t(1).replace(' ', 'T')}.000Z`, `${t(2).replace(' ', 'T')}.000Z`, `${t(6).replace(' ', 'T')}.000Z`]);
     const f = (await dono.query<Record<string, unknown>>(`SELECT * FROM ${E.bm}.fato_transicao WHERE card_id = $1 ORDER BY ocorrido_em`, [id])).rows;
@@ -176,7 +176,7 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     const entregueDepoisMudou = await staging(novo(), [transicao(COL.E, t(2)), transicao(COL.FF, t(9), null, WF)]);
     const abertoMudou = await staging(novo(), [transicao(COL.F, t(2)), transicao(COL.FF, t(9), null, WF)]);
     await projetar();
-    expect(await dim(frente)).toMatchObject({ granularidade: 'frente', tipo: 'produto', equipe: TIME_A });
+    expect(await dim(frente)).toMatchObject({ granularidade: 'frente', tipo: 'Trabalho de produto', equipe: TIME_A });
     expect(await dim(entregueDepoisMudou)).toMatchObject({ granularidade: 'story', equipe: TIME_A });
     expect(await dim(abertoMudou)).toMatchObject({ granularidade: 'frente' });
   });
@@ -211,7 +211,7 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
   it('H-7: card de workflow fora de todo cálculo fica na base e nos fatos, sem granularidade nem equipe', async () => {
     const id = await staging(novo({ workflow_id: Number(WX), column_id: COL.FX }), [transicao(COL.FX, t(2), null, WX)]);
     await projetar();
-    expect(await dim(id)).toMatchObject({ granularidade: null, equipe: null, tipo: 'bug_interno' });
+    expect(await dim(id)).toMatchObject({ granularidade: null, equipe: null, tipo: 'Bug interno' });
     expect(await n('fato_transicao', 'card_id = $1', [id])).toBe(1);
   });
 

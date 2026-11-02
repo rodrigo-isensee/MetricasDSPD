@@ -407,6 +407,7 @@ Não implementar, não expor e não derivar. Se alguma dessas aparecer como requ
 - Percentual de conclusão de tarefa.Item 90% pronto entrega zero valor.
 - Média de tempo de ciclo isolada, sem percentis ao lado.
 - Horas apontadascomo proxy de esforço entregue.
+**Exceção registrada (decisão do dono de 2026-11-01, pedido 059): aba Apontamento.** Vale só para essa aba e só para o worklog do BusinessMap. Ali o painel mostra nome e visão por pessoa (horas apontadas, capacidade, utilização, distribuição do tempo e qualidade do apontamento) a qualquer usuário do painel, inclusive fora do time. As horas apontadas são lidas como uso da capacidade do time e de cada pessoa, nunca como esforço de entrega, velocidade, custo de card ou meta. Não se cria meta por pessoa nem comparação entre times, e a visão por pessoa não sai da aba para outra métrica, painel ou exportação. A finalidade é dimensionar capacidade e melhorar a qualidade do apontamento, não avaliar desempenho individual. A sustentação (Acelerato) não entra na exceção. A lista de pessoas vem em ordem neutra (alfabética); ordenar por total é escolha de quem lê. A utilização por pessoa não tem semáforo, faixa de bom ou ruim, nem comparação com a média. Percentual por pessoa só aparece com 20 apontamentos ou mais; abaixo disso, só soma e contagem. A aba fica fora da exportação do painel.
 ### 7.2 Metas que não devem ser criadas
 | Não criar meta de | Porque | Medir no lugar
 | Volume de bugs internos | Cobrado o volume, a equipe para de registrar; o indicador melhora e a qualidade piora | Taxa de escape (O15)

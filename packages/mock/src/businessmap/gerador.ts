@@ -111,6 +111,8 @@ const FILA_ANTES: Record<TipoCard, [number, number]> = {
   'Bug interno': [4, 1.0],
   'Defeito em produção': [6, 1.0],
   'Dívida técnica': [320, 0.9],
+  // O gerador nunca sorteia este tipo (só o dado real o usa); a entrada existe para o Record fechar.
+  'Trabalho de produto': [160, 0.9],
 }
 const MULT_TIPO: Record<TipoCard, number> = {
   Incidente: 0.4,
@@ -120,6 +122,7 @@ const MULT_TIPO: Record<TipoCard, number> = {
   'Bug interno': 0.6,
   'Defeito em produção': 0.8,
   'Dívida técnica': 2,
+  'Trabalho de produto': 1.6,
 }
 
 export function gerarBaseBusinessMap(

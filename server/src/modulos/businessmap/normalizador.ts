@@ -2,6 +2,7 @@ import {
   CALENDARIO_PADRAO, dataIso, instanteDeIso, ordenarNeutro,
 } from '@metricas-dspd/metricas/core';
 import { derivarMarcos, direcaoDaTransicao, type ColunaDoPasso, type Passo } from '@metricas-dspd/metricas/businessmap';
+import { TIPO_DA_CATEGORIA, type CategoriaTipoCard } from '@metricas-dspd/contratos';
 import { vigenteEm } from './referencia.js';
 
 // F4 do plano 052 (K-182): normalizador do BusinessMap. Funções puras do registro do staging (já filtrado pela allow-list) e da
@@ -28,6 +29,7 @@ export function instanteDoBm(texto: unknown): number | null {
   return instanteDeIso(`${dia}T${hora}${fuso}`, CALENDARIO_PADRAO);
 }
 
+// ADR 0024: `dim_card.tipo` guarda o rótulo do contrato (TIPO_DA_CATEGORIA), nunca o código da categoria.
 /** Dia civil (AAAA-MM-DD) no fuso do calendário (-03:00): a resolução da vigência (ADR 0016). */
 export const diaDe = (ms: number): string => dataIso(ms, CALENDARIO_PADRAO);
 
@@ -63,7 +65,7 @@ export function agrupar<T>(linhas: readonly T[], chave: (l: T) => string): Map<s
  * primeira (a referência mais antiga que existe; contada à parte em `referencia_anterior`): sem isso o card aberto há mais tempo que
  * a carga ficaria fora de todo cálculo.
  */
-function noDia<T extends Versao>(versoes: readonly T[] | undefined, dia: string, notas: string[]): T | undefined {
+export function noDia<T extends Versao>(versoes: readonly T[] | undefined, dia: string, notas: string[]): T | undefined {
   if (versoes === undefined || versoes.length === 0) return undefined;
   const v = vigenteEm(versoes, dia);
   if (v !== undefined) return v;
@@ -194,7 +196,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
 
   return {
     dim: {
-      card_id: e.id, tipo: tipoRef?.eh_item === true ? tipoRef.categoria : null, card_pai: pai, criado_em: new Date(criado),
+      card_id: e.id, tipo: tipoRef?.eh_item === true ? TIPO_DA_CATEGORIA[tipoRef.categoria as CategoriaTipoCard] : null, card_pai: pai, criado_em: new Date(criado),
       comprometido_em: data(marcos.comprometido_em), iniciado_em: data(marcos.iniciado_em), concluido_em: data(marcos.concluido_em),
       arquivado_em: data(descartadoEm ?? arquivadoNativo), motivo_descarte: motivo, titulo: titulo === null ? null : titulo.slice(0, 500),
       granularidade: dentro ? granularidade : null, equipe: dentro ? equipe : null, quadro_id: quadro, coluna_atual_id: texto(e.card.column_id),

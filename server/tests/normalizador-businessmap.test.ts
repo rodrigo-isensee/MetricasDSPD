@@ -98,7 +98,7 @@ describe('projetarCard: marcos, transições e eventos (H-9, H-10, H-11, H-23, b
       tr('4', '2026-03-05T10:00:00Z'), tr('3', '2026-03-06T10:00:00Z'), tr('2', '2026-03-07T10:00:00Z'),
     ]);
     expect(p.dim).toMatchObject({
-      card_id: '7', tipo: 'bug_interno', granularidade: 'story', equipe: TIME_A, quadro_id: 'Q', coluna_atual_id: '3', titulo: 'Card de teste', card_pai: null,
+      card_id: '7', tipo: 'Bug interno', granularidade: 'story', equipe: TIME_A, quadro_id: 'Q', coluna_atual_id: '3', titulo: 'Card de teste', card_pai: null,
       motivo_descarte: null, arquivado_em: null, excluido_em: null,
     });
     expect([p.dim.criado_em, p.dim.comprometido_em, p.dim.iniciado_em, p.dim.concluido_em].map(em)).toEqual([
@@ -149,7 +149,7 @@ describe('projetarCard: marcos, transições e eventos (H-9, H-10, H-11, H-23, b
 
 describe('projetarCard: granularidade, equipe, tipo e pai (H-1, H-2, H-7, H-17, U-2)', () => {
   it('H-1: o nível sai do workflow do evento (feature = frente; projeto) e H-17: a categoria sai do tipo', () => {
-    expect(proj(card({ type_id: 11, workflow_id: 'F' }), [tr('11', '2026-03-04T10:00:00Z', { workflow: 'F' })]).dim).toMatchObject({ granularidade: 'frente', tipo: 'produto', equipe: TIME_A });
+    expect(proj(card({ type_id: 11, workflow_id: 'F' }), [tr('11', '2026-03-04T10:00:00Z', { workflow: 'F' })]).dim).toMatchObject({ granularidade: 'frente', tipo: 'Trabalho de produto', equipe: TIME_A });
     const projeto = proj(card({ workflow_id: 'P' }), [], {}, { ...REF, timesDoWorkflow: agrupar([{ ...V, workflow_id: 'P', time_id: 1, situacao: 'time' }], (t) => t.workflow_id) });
     expect(projeto.dim.granularidade).toBe('projeto');
   });
@@ -157,7 +157,7 @@ describe('projetarCard: granularidade, equipe, tipo e pai (H-1, H-2, H-7, H-17, 
   it('A1 do review (H-1): frente e projeto recebem a granularidade sem time (a 0019 não dá time a iniciativa nem ao quadro 35); story sem time fica fora', () => {
     const sem = { ...REF, timesDoWorkflow: new Map() };
     const frente = proj(card({ type_id: 11, workflow_id: 'F' }), [tr('11', '2026-03-04T10:00:00Z', { workflow: 'F' })], {}, sem);
-    expect(frente.dim).toMatchObject({ granularidade: 'frente', equipe: null, tipo: 'produto' });
+    expect(frente.dim).toMatchObject({ granularidade: 'frente', equipe: null, tipo: 'Trabalho de produto' });
     expect(proj(card({ workflow_id: 'P' }), [], {}, sem).dim).toMatchObject({ granularidade: 'projeto', equipe: null });
     expect(proj(card(), [tr('3', '2026-03-04T10:00:00Z', { workflow: 'S' })], {}, sem).dim).toMatchObject({ granularidade: null, equipe: null });
     // workflow fora (H-7) de nível feature continua fora
@@ -171,7 +171,7 @@ describe('projetarCard: granularidade, equipe, tipo e pai (H-1, H-2, H-7, H-17, 
       { vigente_de: '2026-06-01', vigente_ate: null, tipo_id: '10', eh_item: true, categoria: 'melhoria' },
     ], (t) => t.tipo_id);
     const p = proj(card({ created_at: '2026-03-01T12:00:00Z' }), [tr('5', '2026-07-10T10:00:00Z')], {}, { ...REF, tipos });
-    expect(p.dim.tipo).toBe('melhoria');
+    expect(p.dim.tipo).toBe('Melhoria'); // ADR 0024: o rótulo do contrato, não o código
   });
 
   it('U-2: o time e o nível são os do instante da entrega (card entregue depois de mudar de workflow conta no de antes); sem entrega, no de agora', () => {
@@ -198,7 +198,7 @@ describe('projetarCard: granularidade, equipe, tipo e pai (H-1, H-2, H-7, H-17, 
 
   it('H-7: workflow fora de todo cálculo fica na base, sem granularidade nem equipe; nível nenhum e time sem nome também', () => {
     const fora = proj(card(), [tr('21', '2026-03-04T10:00:00Z', { workflow: WF_FORA })]);
-    expect(fora.dim).toMatchObject({ granularidade: null, equipe: null, tipo: 'bug_interno' });
+    expect(fora.dim).toMatchObject({ granularidade: null, equipe: null, tipo: 'Bug interno' });
     expect(fora.notas).toContain('workflow_fora');
     expect(proj(card(), [tr('41', '2026-03-04T10:00:00Z', { workflow: 'N' })]).dim.granularidade).toBeNull();
     const semNome = proj(card(), [tr('51', '2026-03-04T10:00:00Z', { workflow: 'Z' })], {}, { ...REF, workflows: agrupar([wf('Z', 'story')], (w) => `${w.quadro_id}|${w.workflow_id}`) });

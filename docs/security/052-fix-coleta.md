@@ -2,15 +2,27 @@
 tipo: revisao-seguranca
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-fix-coleta
-commit: f763d6acffca29233c78966abe44882be10c1daa
+branch: feature/052-f6-painel
+commit: 757d3b634715c8de3d23dcd261ab9ea7bdec4c5e
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-01
 ---
 # Review de segurança: 052-fix-coleta
 
-Diff revisado: `origin/develop..f763d6a` (E2.83): `coleta.ts`, `http.ts`, o servidor falso, os testes e `businessmap-api-configuracao.md`. Revisão estática; nada foi executado contra o BusinessMap e o `.env` não foi lido.
+Diff revisado originalmente: `origin/develop..f763d6a` (E2.83): `coleta.ts`, `http.ts`, o servidor falso, os testes e `businessmap-api-configuracao.md`, mesclado na develop em squash (848aca3, PR 186). Revisão estática; nada foi executado contra o BusinessMap e o `.env` não foi lido.
+
+## Renovação por delta (E2.105, 2026-11-01)
+Intervalo `c71b2d9..757d3b6` na `feature/052-f6-painel`. O `forge-check delta` sobre este parecer lista só `docs/ux/052-f6-painel-revisao.md` (+41, c44bc7b, parecer de UX da F6); os outros commits do intervalo são pareceres de review, segurança e QA. Nenhum código, configuração, `.env.example`, migração, dependência ou workflow mudou. Li o parecer de UX inteiro: só referências a arquivos do front e tokens de cor, sem segredo, URL de ambiente, nome, e-mail ou id de pessoa. Nada toca a coleta nem controle do Forge.
+
+Veredito mantido: aprovado em 757d3b6. O A1 segue recomendado, sem mudança.
+
+## Renovação por delta (E2.98, 2026-11-01)
+Na `feature/052-f6-painel`, depois do merge da develop (c71b2d9). O `f763d6a` não é ancestral desta branch (squash), então o delta foi medido contra o squash 848aca3 nos arquivos que este parecer cobre: `coleta.ts`, `http.ts`, `allow-list.ts`, `businessmap-coleta-duble.ts`, `coleta-businessmap.test.ts` e `businessmap-api-configuracao.md` estão idênticos ao 848aca3; nenhuma linha da correção se perdeu na resolução dos conflitos. Fora deles, só mudaram:
+- `.env.example:24`: linha comentada `DSPD_SCHEMA_PREFIXO_SEED`, sem valor, com o aviso de usar prefixo diferente do da base real (afe7f56, A2 da segurança da F6). Não é credencial nem URL; não toca a coleta.
+- `config.ts:28`: a validação por regex da mesma variável (F6, já revisada em `docs/security/052-f6-painel.md`).
+
+Veredito mantido: aprovado em c71b2d9. O A1 segue recomendado, sem mudança.
 
 ## Gatilhos
 Integração externa e credencial (cliente HTTP do BusinessMap, allow-list de consulta) e dado de pessoa (`co_owner_ids`), R-SEGURANCA.
@@ -34,4 +46,4 @@ Integração externa e credencial (cliente HTTP do BusinessMap, allow-list de co
 **Documento.** `businessmap-api-configuracao.md` só registra a forma aceita; sem segredo nem dado de pessoa.
 
 ## Riscos aceitos e ferramentas
-Nenhum novo. Seguem em vigor os aceites do pedido 052 (chave do dono com poder de escrita, coleta só na máquina do dono, nomes só em `COLUNAS_PESSOA`). Lacuna: `gitleaks`, `osv-scanner` e Semgrep não foram rodados nesta revisão (o delta não toca dependências nem workflow; as varreduras ficam no CI).
+Nenhum novo. Seguem em vigor os aceites do pedido 052 (chave do dono com poder de escrita, coleta só na máquina do dono, nomes só em `COLUNAS_PESSOA`). Lacuna: `gitleaks`, `osv-scanner` e Semgrep não estão no PATH e não foram rodados (o delta não toca dependências nem workflow; as varreduras ficam no CI).

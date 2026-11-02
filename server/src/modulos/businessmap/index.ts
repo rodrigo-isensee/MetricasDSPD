@@ -2,7 +2,7 @@ export { gravarStgCard, gravarStgRevision } from './staging.js';
 export {
   rotasWebhook, receberWebhook, segredoConfere, CABECALHO_SEGREDO, LIMITE_WEBHOOK_BYTES, TIPO_EVENTO_WEBHOOK, type DepsWebhook, type ResultadoWebhook,
 } from './webhook.js';
-export { CAMPOS_CARD, CAMPOS_REVISAO, CAMPOS_TRANSICAO, CAMPOS_WEBHOOK, TIPOS_WEBHOOK_BM_GRAVADOS, extrairResponsaveis, registroCard, registroRevisao, registroTransicao, registroWebhook, revisionIdDaTransicao, serializar, transicoesDoCard } from './allow-list.js';
+export { CAMPOS_APONTAMENTO, CAMPOS_CLASSIFICACAO, CAMPOS_CARD, CAMPOS_REVISAO, CAMPOS_TRANSICAO, CAMPOS_WEBHOOK, TIPOS_WEBHOOK_BM_GRAVADOS, extrairResponsaveis, registroCard, registroRevisao, registroTransicao, registroWebhook, revisionIdDaTransicao, serializar, transicoesDoCard } from './allow-list.js';
 export { gravarResponsaveis } from './responsaveis.js';
 export { diagnosticar, type ResultadoDiagnostico } from './diagnostico.js';
 export { executarSpike, type ResultadoSpike } from './spike.js';
@@ -20,3 +20,5 @@ export {
 } from './projetor.js';
 export { instanteDoBm, projetarCard, FUSO_PADRAO_BM } from './normalizador.js';
 export { projetarUsuarios, resolverResponsaveis, PRAZO_RELEITURA_DIAS, type ResultadoUsuarios } from './usuarios.js';
+export { indiceTipoDaColuna, resolverTipoDasTransicoes, type VersaoTipoColuna, type TipoDaColuna, type TransicaoLida } from './tipo-coluna.js';
+export * from './apontamento/index.js';

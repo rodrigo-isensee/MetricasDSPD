@@ -14,3 +14,7 @@ overrides:
   katex: "0.18.2"
   # Alerta Dependabot #12 (critico): bypass do SAFE_FOR_TEMPLATES, corrigido na 3.4.17
   dompurify: "3.4.17"
+  # vite 8.3.5 quebra o test:pg (K-182): extractInlineSourceMap chama code.charCodeAt, mas o vitest 5.0.5 entrega o
+  # código do globalSetup como Buffer; qualquer stack que passe por tests/pg/global-setup.ts (jiti do node-pg-migrate
+  # com cache frio, como na CI) cai em "Startup Error". Reverter quando sair vitest com a correção.
+  vite: "8.3.4"
