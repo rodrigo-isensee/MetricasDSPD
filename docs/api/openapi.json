@@ -44929,8 +44929,18 @@
               "maxItems": 200,
               "type": "array",
               "items": {
-                "type": "string",
-                "pattern": "^p[1-9]\\d{0,8}$"
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^p[1-9]\\d{0,8}$"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "outra-area"
+                    ]
+                  }
+                ]
               }
             },
             "in": "query",
@@ -45137,8 +45147,18 @@
                             "type": "object",
                             "properties": {
                               "pessoaRef": {
-                                "type": "string",
-                                "pattern": "^p[1-9]\\d{0,8}$"
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
                               },
                               "rotulo": {
                                 "type": "string",
@@ -45847,8 +45867,18 @@
                             "type": "object",
                             "properties": {
                               "pessoaRef": {
-                                "type": "string",
-                                "pattern": "^p[1-9]\\d{0,8}$"
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
                               },
                               "apontamentos": {
                                 "type": "integer",
@@ -46067,8 +46097,18 @@
                             "type": "object",
                             "properties": {
                               "pessoaRef": {
-                                "type": "string",
-                                "pattern": "^p[1-9]\\d{0,8}$"
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
                               },
                               "segundos": {
                                 "type": "integer",
@@ -46297,8 +46337,18 @@
                             "type": "object",
                             "properties": {
                               "pessoaRef": {
-                                "type": "string",
-                                "pattern": "^p[1-9]\\d{0,8}$"
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
                               },
                               "inicio": {
                                 "type": "string",
@@ -46461,8 +46511,18 @@
                             "type": "object",
                             "properties": {
                               "pessoaRef": {
-                                "type": "string",
-                                "pattern": "^p[1-9]\\d{0,8}$"
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^p[1-9]\\d{0,8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "outra-area"
+                                    ]
+                                  }
+                                ]
                               },
                               "segundos": {
                                 "type": "integer",

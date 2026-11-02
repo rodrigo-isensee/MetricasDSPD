@@ -28,6 +28,9 @@ const catalogo = (S = S_PADRAO): Catalogo => {
   for (const s of ddlDe(S)) {
     const c = /^CREATE TABLE (\w+)\.(\w+) /.exec(s);
     if (c !== null) cat[chave.get(c[1]!)!][c[2]!] = corpoDe(s).map((p) => /^(\w+)/.exec(p)![1]!);
+    // a view do time (E2.21) lista as duas colunas que entrega; o catalogo real e provado em `apontamento-rota.pg.test.ts`
+    const v = /^CREATE VIEW (\w+)\.apt_pessoa_time /.exec(s);
+    if (v !== null) cat[chave.get(v[1]!)!].apt_pessoa_time = ['pessoa_ref', 'vigencia_ate'];
     const a = /^ALTER TABLE (\w+)\.(\w+) ADD COLUMN (\w+)/.exec(s);
     if (a !== null) cat[chave.get(a[1]!)!][a[2]!]?.push(a[3]!);
   }
@@ -54,7 +57,7 @@ describe('papel dspd_api_apontamento (R4-5)', () => {
     const selects = doPapel.filter((g) => !g.startsWith('GRANT USAGE'));
     for (const g of selects) expect(g, g).toMatch(/^GRANT SELECT \([a-z_, ]+\) ON \w+\.\w+ TO dspd_api_apontamento$/);
     expect(selects.map((g) => /ON \w+\.(\w+) TO/.exec(g)![1]).sort()).toEqual([
-      'ctl_coleta', 'dim_card', 'dim_card_raiz', 'dim_responsavel', 'fato_apontamento', 'ref_apontamento_regra_tipo', 'ref_apontamento_subgrupo',
+      'apt_pessoa_time', 'ctl_coleta', 'dim_card', 'dim_card_raiz', 'dim_responsavel', 'fato_apontamento', 'ref_apontamento_regra_tipo', 'ref_apontamento_subgrupo',
       'ref_apontamento_termo', 'ref_calendario', 'ref_calendario_aplicacao', 'ref_feriado', 'ref_versao_criterio',
       'ref_versao_criterio_metrica',
     ]);
@@ -70,7 +73,7 @@ describe('papel dspd_api_apontamento (R4-5)', () => {
       const tabela = /ON \w+\.(\w+) TO/.exec(g)![1]!;
       return /\(([^)]+)\)/.exec(g)![1]!.split(', ').map((c) => `${tabela}.${c}`).filter((id) => COLUNAS_PESSOA.some((p) => p.endsWith(`.${id}`)));
     });
-    expect(pessoa.sort()).toEqual(['dim_responsavel.pessoa_ref', 'dim_responsavel.responsavel_nome', 'fato_apontamento.pessoa_ref']);
+    expect(pessoa.sort()).toEqual(['apt_pessoa_time.pessoa_ref', 'dim_responsavel.pessoa_ref', 'dim_responsavel.responsavel_nome', 'fato_apontamento.pessoa_ref']);
   });
   it('toda coluna concedida existe no catálogo das migrações (nome errado não pode ser descartado em silêncio)', () => {
     const cat = catalogo();

@@ -35,10 +35,10 @@ describe('classificadorDoDicionario', () => {
     expect(s.versaoDicionario).toBe('v1');
     expect(conferirClassificacao(s)).toEqual(s);
   });
-  it('sem comentário: não classificado, com as flags sem-comentario, generico e sem-vinculo na máscara', () => {
+  it('sem comentário: não classificado, com as flags sem-comentario e sem-vinculo na máscara (genérico só vale para comentário escrito)', () => {
     const s = classificar({ comentario: null, typeId: null, categoriaId: null });
     expect(s.subgrupo).toBe('nao-classificado');
-    expect(s.flags).toBe(FLAGS.SEM_COMENTARIO | FLAGS.GENERICO | FLAGS.SEM_VINCULO);
+    expect(s.flags).toBe(FLAGS.SEM_COMENTARIO | FLAGS.SEM_VINCULO);
     expect(conferirClassificacao(s)).not.toBeNull();
   });
   it('o comentário não aparece na saída serializada', () => {
