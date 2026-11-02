@@ -144,7 +144,7 @@ async function processarFolha(x: Execucao, passe: Passe, folha: Folha): Promise<
   const userIds = [...new Set([...lidos.values()].flatMap((v) => (v.userId === null ? [] : [v.userId])))];
   const suprimidos = await usuariosSuprimidos(d.pool, S, d.sal, userIds);
   const resolver = userIds.filter((u) => !suprimidos.has(u));
-  const usuarios = await resolverResponsaveis(d.pool, d.cliente, resolver, agora, S);
+  const usuarios = await resolverResponsaveis(d.pool, d.cliente, resolver, agora, S, d.sal);
   const pessoas = await pessoasResolvidas(d.pool, S, resolver);
   x.r.usuarios.pedidos += usuarios.pedidos;
   x.r.usuarios.resolvidos += usuarios.resolvidos;
