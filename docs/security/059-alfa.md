@@ -3,67 +3,61 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 059-aba-apontamento
 branch: feature/059-contrato-biblioteca
-commit: 6de38da68ba05d7315f5aa0b8fe6cf1094957fe1
-parecer: reprovado
+commit: 51d9ed4fd9ff124a56ae167939cdc649ff8eab9d
+parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-02
 ---
 # Revisão de segurança da trilha B da aba Apontamento: contrato, classificarApontamento e cálculos (pedido 059, E2.18, K-193)
 
-Propósito: revisão estática do diff de `origin/feature/059-contrato-biblioteca` contra a `develop` (base b1c2865, ponta 6de38da, cinco commits: 279f9e2, de66d49, de9e320, ed5b8aa, 6de38da) contra a ADR 0020 revisão 4 (ramo `docs/059-apontamento-discovery`), o plano 059 §3.4 e §3.9 e o parecer `docs/security/059-adrs.md`. Público: node-backend (dono do código), tech-lead, qa-engineer, Jarvis. O `.env` não foi lido; nenhum nome de pessoa neste documento.
+Propósito: renovação por delta do parecer da trilha B sobre a correção dos achados A1 a A6 (E2.25). Intervalo revisado: `6de38da..51d9ed4` (o `commit:` do parecer anterior até a ponta; o commit do parecer anterior, 7254244, só tocou este arquivo), seis commits: 7662098, 63a5262, 90116a2, cb2b3e4, fed52e2, 51d9ed4. Referências: ADR 0020 revisão 4 (R4-2), plano 059 §3.4 e §3.9 no ramo `docs/059-apontamento-discovery`. Público: node-backend, tech-lead, qa-engineer, Jarvis. O `.env` não foi lido; nenhum nome de pessoa neste documento.
 
-**Veredito: reprovado.** A identidade de pessoa fica só como `pessoaRef` opaca na biblioteca, o contrato não tem campo de pessoa além do previsto (`pessoaRef`, `rotulo`, `identificada`) e `classificarApontamento` fica fora do bundle do web; esses três pontos estão corretos. O que devolve é o classificador, um controle que analisa texto livre de origem externa: o código não cumpre o critério do cartão B2 que fechou o bloqueante A3 da leitura das ADRs (casamento sem regex do dicionário, normalização com remoção de controle e direção, palavras por letra e dígito, gerador nas dimensões 1 e 2 e teste de orçamento). Pela regra de analisador, os três vão juntos nesta rodada (A1 a A3). Severidade baixa em todos: nenhum leva o comentário para fora da fronteira; o efeito é classificação e flags divergentes do especificado e um controle sem a guarda que o desenho exigiu.
+**Veredito: aprovado.** Os três bloqueantes (A1 a A3) e os três recomendados (A4 a A6) foram resolvidos como o parecer anterior pedia. O delta só toca o classificador, os seus testes, o contrato e os seus testes; nada muda na fronteira de identidade nem no bundle do web. O comentário só com pontuação (zero palavras) segue com as marcas de antes até a decisão do dono (pergunta de 06:30); o teste fixa esse comportamento (`classificarApontamento.test.ts:240`) e não é achado desta renovação.
 
 ## Achados
-- A1 (bloqueante) packages/metricas/src/coletor/classificarApontamento.ts:91 · casamento por `new RegExp` montada do termo do dicionário, contra ADR 0020 R4-2 e plano §3.4; o lookbehind `[a-z0-9]` difere de palavra por letra e dígito: `øteste` casa `teste`. Trocar por palavras e `startsWith`.
-- A2 (bloqueante) packages/metricas/src/coletor/classificarApontamento.ts:84 · normalização não remove `\p{Cc}`, `\p{Cf}` nem surrogate isolado e conta palavras por espaço (:102): zero-width, RLO ou NUL no meio de `reuniao` escapam do termo; `- - -` conta 3 palavras; `teste,carga,geral,ok` conta 1.
-- A3 (bloqueante) packages/metricas/src/coletor/classificarApontamento.test.ts:278 · gerador só de vocabulário fixo, sem as dimensões 1 (tamanho, 2000 e acima) e 2 (codificação) do plano §3.4, sem o corpus de legítimos completo e sem o teste de orçamento (10 000 comentários em 5 s).
-- A4 (recomendado) packages/metricas/src/coletor/classificarApontamento.ts:98 · a função não trunca a entrada e depende do coletor (trilha A); truncar em 2000 pontos de código também aqui, como defesa em profundidade; medido: 1 MB sem truncar custa cerca de 143 ms por comentário.
-- A5 (recomendado) packages/contratos/src/apontamento.ts:369 · com `nomesReais: false` o contrato aceita qualquer `rotulo` de pessoa (:171); um `superRefine` restrito aos rótulos fixos (Pessoa n, não identificada, Outra área) faz o front recusar nome vazado com o interruptor desligado.
-- A6 (recomendado) packages/contratos/src/apontamento.ts:165 · `opcaoSchema.rotulo` e `linhaDistribuicaoSchema.rotulo` (:181) sem teto de tamanho; limitar a 200 como `rotuloRef` e o rótulo de pessoa (título de card raiz vem da origem).
+- A1 (recomendado) packages/metricas/src/coletor/classificarApontamento.ts:132 · era bloqueante; resolvido em 7662098: sem regex do dicionário, palavras ordenadas e `startsWith` por busca binária (51d9ed4); teste de fonte sem `new RegExp` e `øteste` não casa. Nada a fazer. Dono: node-backend.
+- A2 (recomendado) packages/metricas/src/coletor/classificarApontamento.ts:106 · era bloqueante; resolvido em 7662098: remove surrogate isolado, `\p{Cf}` e `\p{Cc}`; palavras por `\p{L}\p{N}`; `- - -` conta 0 e `teste,carga,geral,ok` conta 4. Nada a fazer. Dono: node-backend.
+- A3 (recomendado) packages/metricas/src/coletor/classificarApontamento.test.ts:491 · era bloqueante; resolvido em 63a5262 e 51d9ed4: gerador das dimensões 1, 2, 3 e 5 com oráculo à parte, corpus de legítimos completo e orçamento (10 000 em 5 s, 5 ms, 1 MB). Nada a fazer. Dono: node-backend.
+- A4 (recomendado) packages/metricas/src/coletor/classificarApontamento.ts:89 · resolvido em 7662098: truncagem em 2000 pontos de código antes de normalizar, por laço sem copiar o texto inteiro; teste de 1 MB abaixo de 50 ms. Nada a fazer. Dono: node-backend.
+- A5 (recomendado) packages/contratos/src/apontamento.ts:392 · resolvido em cb2b3e4: com `nomesReais` falso, `superRefine` só aceita Pessoa n, Pessoa não identificada e Outra área em `opcoes.pessoas`, sem eco do rótulo no erro. Nada a fazer. Dono: node-backend.
+- A6 (recomendado) packages/contratos/src/apontamento.ts:167 · resolvido em 90116a2: `MAX_ROTULO` 200 em `opcaoSchema`, `linhaDistribuicaoSchema`, `rotuloRef` e rótulo de pessoa, com teste por campo. Nada a fazer. Dono: node-backend.
 
-## Detalhe dos achados
+## Detalhe da revalidação
 
-### A1 (bloqueante): regex construída a partir do dicionário
-Evidência: `casaInicioDePalavra` (`:90-91`) monta `new RegExp('(?<![a-z0-9])' + escapar(termo))` a cada termo e a cada comentário. A ADR 0020 R4-2 (`:125` do ramo do discovery) e o plano §3.4 (`:130`) exigem comparar cada palavra por `startsWith`, sem construir expressão regular do dicionário; esse foi o desenho que fechou o A3 de `docs/security/059-adrs.md`. O escape (`:87`) está correto para regex sem flag (testado em `:199`), então não há injeção nem ReDoS: o defeito é de requisito e de semântica. Caminho: uma palavra começada por letra fora de `[a-z0-9]` depois da normalização (`ø`, `ß`, `ł`, grego, cirílico) não conta como letra para o lookbehind, e o termo casa no meio da palavra (réplica fiel da função: `øteste` casa `teste`), divergindo da regra de início de palavra (C-6). Correção mínima: separar palavras por `\p{L}\p{N}` (ver A2) e casar com `palavra.startsWith(termo)`; remover `escapar` e a regex. Esforço P. Dono: node-backend.
+### A1: casamento sem regex do dicionário
+`casaInicioDePalavra` (`:132-143`) recebe as palavras únicas ordenadas por unidade de código e verifica só a primeira palavra maior ou igual ao termo. Correto: na ordem lexicográfica por unidade de código, as palavras que começam com um prefixo formam um bloco contíguo que começa na primeira maior ou igual a ele, então a busca binária equivale a comparar `startsWith` com todas. O oráculo do teste (`:562`) usa a comparação ingênua `palavras.some(p => p.startsWith(t))` e a propriedade compara os dois sobre o produto gerado. `escapar` e a regex saíram; o teste em `:482-487` barra `new RegExp` e `RegExp(` no código sem comentário. Letra fora de `[a-z0-9]` antes do termo agora é parte da palavra (`:212-217`).
 
-### A2 (bloqueante): normalização e contagem de palavras fora do §3.4
-Evidência: `normalizarTexto` (`:83-85`) faz minúsculas, NFD, remove `\p{M}` e colapsa `\s`; não remove `\p{Cc}` e `\p{Cf}` (controle e direção) nem surrogate isolado, como o plano §3.4 (`:129`) exige. `qtdPalavras` (`:102`) é `split(' ')`, não sequências de `\p{L}\p{N}`. Caminho (réplica fiel, entradas sintéticas): `re` + U+200B + `uniao`, `re` + U+202E + `uniao`, `re` + U+00AD + `uniao` e `re` + U+0000 + `uniao` não casam `reuni` (texto colado de outro sistema ou digitado com caractere invisível vira "Execução técnica" com `sem-vinculo`); `- - -` conta 3 palavras e recebe `generico` em vez de ser tratado pela contagem do plano; `teste,carga,geral,ok` conta 1 palavra e recebe `generico` com quatro palavras. Correção mínima: na normalização, remover `\p{Cc}`, `\p{Cf}` e surrogate isolado antes de colapsar; palavras = `match(/[\p{L}\p{N}]+/gu)`; `qtdPalavras` = número delas; `semComentario` = zero palavras ou texto vazio, conforme o node-backend confirmar com o §3.4 e a decisão do dono de 2026-11-02 (item 6); dúvida sobre "só pontuação" contar como sem comentário vai ao dono pelo Jarvis, não por inferência. Esforço P. Dono: node-backend.
+### A2: normalização e contagem
+`normalizarTexto` (`:106-115`): surrogate isolado sai primeiro (regex sem a flag `u`, de propósito, para enxergar as metades), depois minúsculas sem localidade, NFD, remoção de `\p{M}` e `\p{Cf}`, colapso de `\s` e só então remoção de `\p{Cc}`. A ordem preserva tabulação e quebra de linha como separador e faz controle e direção sumirem sem deixar espaço; U+FEFF (que é `\s` no JavaScript) sai antes como `\p{Cf}`, e U+0085 sai como `\p{Cc}`. `palavrasDe` (`:118-120`) usa `[\p{L}\p{N}]+` com a flag `u`. Casos da réplica do parecer anterior (U+200B, U+202E, U+00AD, U+0000 no meio de `reuniao`) cobertos em `:219-223`, com U+200D, U+FEFF e U+0085 a mais.
 
-### A3 (bloqueante): matriz, corpus e orçamento sem teste
-Evidência: o gerador (`:278-286`) sorteia até 8 palavras de 18 fixas; as propriedades (`:288-391`) cobrem caixa, acento, espaço, pureza, lista fechada e não eco, mas não as dimensões 1 e 2 do §3.4 (`:131`) nem o orçamento (`:134`). O que falta, completo, para quem corrige:
-- dimensão 1 (tamanho): vazio, só espaços, 1, 3 e 4 palavras, exatamente 2000 e acima de 2000 pontos de código;
-- dimensão 2 (codificação): ASCII, acento pré-composto e decomposto, caixa mista, `ß`, `İ`, emoji, surrogate isolado, `\u0000`, controle e direção (U+202E);
-- dimensão 3 (posição do termo): início, meio, fim, colado depois de outra palavra (não casa), depois de pontuação, de número e de quebra de linha (casa); hoje coberta em parte (`:189-197`);
-- dimensão 5 (dicionário): vazio, um termo, termos que são prefixo um do outro, empate por prioridade; coberta em parte (`:140-171`);
-- propriedade que falta no gerador: `qtdPalavras` igual à contagem do texto normalizado e truncado, e nunca lança, sobre o produto das dimensões 1, 2, 3 e 5;
-- corpus de legítimos: `Análise do erro`, `reuniao de alinhamento`, `RDM 1234`, `GMUD`, número de chamado, texto com quebra de linha, comentário só com número, Kaizen sem comentário, Incidente sem comentário;
-- orçamento: 10 000 comentários de 2000 pontos de código contra 500 termos em menos de 5 s; um comentário no pior caso em menos de 5 ms.
-Medida informativa (réplica fiel da função atual, 500 termos sem casamento, comentário de 2000 caracteres, Node desta máquina): 10 000 comentários em 3654 ms e o primeiro em 4,42 ms; cabe, mas sem margem e sem teste que o guarde na CI. Correção mínima: acrescentar os casos e o teste de orçamento acima ao arquivo de teste (com a função já corrigida por A1 e A2). Esforço P. Dono: node-backend; o qa-engineer confere contra o plano de testes.
+### A3: matriz, corpus e orçamento
+Conferido contra a lista completa do parecer anterior:
+- dimensão 1: vazio, só espaços, 1, 3 e 4 palavras, exatamente 2000 e 2001 pontos de código (`:623-638`), e tamanhos 0 a 5000 no gerador (`:527`);
+- dimensão 2: pré-composto e decomposto, caixa mista, `ß`, `İ`, emoji, surrogate isolado, `\u0000`, U+202E (`:640-649` e pedaços do gerador em `:511-525`);
+- dimensão 3: início, meio, fim, colado, depois de pontuação, de número e de quebra de linha (`:651-661`);
+- dimensão 5: vazio, um termo, prefixo um do outro, empate por prioridade resolvido pelo código do subgrupo (`:663-694`) e prefixos no gerador (`:534-560`);
+- propriedades sobre o produto 1, 2, 3 e 5 com semente fixa: nunca lança, lista fechada, `qtdPalavras` igual à do oráculo por máquina de estados escrita à parte, determinismo e dicionário inalterado (`:579-621`);
+- corpus de legítimos: os nove casos pedidos e mais dois (Kaizen com comentário nulo e um texto longo) (`:696-739`);
+- orçamento: 10 000 comentários de 2000 pontos contra 500 termos abaixo de 5 s, um comentário no pior caso abaixo de 5 ms (melhor de 7, aquecido) e 1 MB abaixo de 50 ms (`:741-796`).
+Execução local nesta revisão: `classificarApontamento.test.ts` 84 testes verdes em 3,32 s; `apontamento.test.ts` do contrato 28 verdes.
 
-### A4 (recomendado): truncagem só no chamador
-A R4-2 põe a truncagem no coletor, e a trilha A não está nesta branch. Se o coletor esquecer, a função aceita qualquer tamanho; o custo medido é baixo (cerca de 143 ms para 1 MB contra 500 termos), daí recomendação. Correção mínima: truncar em 2000 pontos de código no começo de `classificarApontamento` (por `Array.from` ou laço por ponto de código) e manter a do coletor. Esforço P. Dono: node-backend.
+### A4, A5, A6
+A4: `truncar` (`:89-98`) para no ponto 2000 e fatia por unidades de código acumuladas; o par de surrogate conta como um ponto (teste com emoji em `:321-328`). A5: a expressão `^Pessoa [1-9]\d{0,8}$` está ancorada e sem repetição aninhada; os casos de recusa incluem minúscula, zero, espaço final, `Outra area` sem acento e número de 10 dígitos, e o teste confere que o erro não repete o rótulo. O único lugar da resposta com rótulo de pessoa é `opcoes.pessoas` (os blocos por pessoa só levam `pessoaRef`), então o `superRefine` cobre a superfície inteira. A6: teto aplicado aos quatro tipos de opção e às três distribuições.
 
-### A5 (recomendado): contrato não amarra rótulo ao interruptor
-`pessoaApontamentoSchema.rotulo` aceita qualquer texto até 200 caracteres, com ou sem `nomesReais`. Caminho: um erro na rota que selecione `responsavel_nome` com `APONTAMENTO_NOMES` desligado passa pelo parse do front e mostra nome real (critério de reversão da R4). Correção mínima: `superRefine` em `respostaApontamentoSchema` que, com `nomesReais: false`, aceite em `opcoes.pessoas[].rotulo` só os rótulos fixos que a rota define (Pessoa n, Pessoa não identificada e o de Outra área). Não muda a forma do contrato; a combinação com a E2.21 fica com o node-backend. Esforço P. Dono: node-backend.
+## O que segue correto (fora do delta, sem mudança)
+- `classificarApontamento` e o novo `palavrasDe` ficam só em `coletor/index.ts`; o índice do pacote e o `exports` não citam `coletor` (teste de bundle intacto).
+- A função continua pura: sem log, serialização, hash nem `process.env` (teste de fonte intacto); a saída é só subgrupo, máscara, contagem e versão.
+- Contrato `strict` em todos os níveis; nenhuma identidade nova.
 
-### A6 (recomendado): rótulos sem teto
-`opcaoSchema.rotulo` (`:165`) e `linhaDistribuicaoSchema.rotulo` (`:181`) são `z.string()` sem `max`; o rótulo de projeto é o título do card raiz, texto livre da origem. Correção mínima: `.max(200)`, como `rotuloRef`. Esforço P. Dono: node-backend.
-
-## O que foi verificado e está correto
-- Identidade só em memória e opaca: a biblioteca recebe só `pessoaRef` (`tipos.ts:22`) e os rótulos para a ordem neutra; nada de `user_id`, nome em saída ou comentário; linha com `pessoaRef` nulo (eliminação) fica no agregado do time e fora dos blocos por pessoa (`comum.ts:21-23`).
-- Fora do bundle do web: `classificarApontamento` só em `coletor/index.ts`; os índices do pacote, de `businessmap` e de `core` e o `exports` do `package.json` não a expõem (teste em `classificarApontamento.test.ts:394`); o lint bloqueia `@metricas-dspd/metricas` nas features e caminho relativo entre pacotes; `businessmap/apontamento/` não importa `coletor/`.
-- Comentário na fronteira: a função é pura, devolve só subgrupo, máscara, contagem e versão; teste de não eco com marcador e de ausência de log, serialização, hash e `process.env` (`:313-338`, `:419-424`).
-- Contrato: `strict` em todos os níveis; teste recusa `user_id`, `responsavel_id`, `comentario`, `email` e confere que o JSON Schema não tem identidade, meta, semáforo, média nem ranking; `pessoaRef` só `p<n>` ou `outra-area`; consulta estrita, filtro de pessoa só por chave opaca e mensagem de erro sem eco; domínio fixo `businessmap`.
-- Cláusulas o1 a o3 no código: ordem neutra por pessoa (alfabética com nomes, numérica sem, Outra área por último, nunca por total), sem campo de faixa ou média por pessoa, `pctComPiso` com piso de 20 no contrato e no cálculo; achados sem `pessoaRef`.
-- Sem segredo, credencial ou nome real nas fixtures (pessoas fictícias).
+## Notas para as próximas etapas (não devolvem)
+- Termo vazio no dicionário casaria qualquer comentário com palavra (`:245-256` documenta). A guarda é do `ref:sync` (plano §3.4: recusa termo vazio, de 1 caractere, com espaço, maiúscula, acento, metacaractere ou repetido); a conferência fica no parecer da coleta (`docs/security/059-beta.md`, E2.26).
+- Os testes de orçamento medem tempo de relógio; se oscilarem na CI, o ajuste é do tech-lead e do qa-engineer, sem afrouxar o limite do plano.
 
 ## Plano em cartões
-- A1, A2, A3: node-backend, na mesma volta da branch `feature/059-contrato-biblioteca`; revalidação por delta deste parecer depois.
-- A4, A5, A6: node-backend, quando couber; não devolvem.
+Nenhum cartão novo desta trilha.
 
 ## Riscos aceitos
 Nenhum proposto.
 
 ## Ferramentas e lacunas
-Leitura estática, `git grep` e duas réplicas fiéis da função em Node, com entradas sintéticas, no scratchpad da sessão (fora do repositório). `gitleaks`, `osv-scanner`, `semgrep`, `zizmor`, `actionlint` e `trivy` não estão no PATH desta máquina (lacuna registrada; a branch não muda dependência nem workflow; as varreduras rodam no CI do `devops-engineer`). Nenhum segredo lido ou exibido; nenhum arquivo fora de `docs/security/` tocado.
+Leitura estática do diff, `forge-check delta --parecer`, e execução local de `vitest` nos dois arquivos de teste. `gitleaks`, `osv-scanner`, `semgrep`, `zizmor`, `actionlint` e `trivy` seguem fora do PATH desta máquina (lacuna registrada; o delta não muda dependência nem workflow; as varreduras rodam no CI do `devops-engineer`). Nenhum segredo lido ou exibido; nenhum arquivo fora de `docs/security/` tocado.
