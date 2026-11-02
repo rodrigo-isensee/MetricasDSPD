@@ -1,7 +1,7 @@
 ---
 tipo: revisao-devops
 contrato: 1
-pedido: 060-seed-recusa-real
+pedido: 060-triagem-dependabot
 branch: feature/060-seed-recusa-real
 commit: 63a9d91e8af463757dd373580330f7dc5a7660a8
 parecer: aprovado
