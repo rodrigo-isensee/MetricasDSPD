@@ -570,6 +570,7 @@
  "dspd_bm.stg_apontamento.coletado_em timestamp with time zone NOT NULL",
  "dspd_bm.stg_apontamento.coleta_id bigint NOT NULL",
  "dspd_bm.stg_apontamento.sistema_origem text NOT NULL DEFAULT 'businessmap'::text",
+ "dspd_bm.stg_apontamento.versao smallint NOT NULL",
  "dspd_bm.stg_bloqueio.stg_sk bigint NOT NULL",
  "dspd_bm.stg_bloqueio.card_id character varying(32) NOT NULL",
  "dspd_bm.stg_bloqueio.id_origem character varying(32) NOT NULL",

@@ -198,6 +198,20 @@ describe('incremental: os novos e a varredura de presença (CT-36, CT-76)', () =
     expect(m.e.stg.size).toBe(2);
     expect(m.e.fatos.get('9000000020')).toMatchObject({ versoes: 2 });
   });
+  it('A2: a volta ao valor antigo é uma versão nova (A, B, A vira três linhas, fato A, versoes 3); A relido sobre A não grava (nunca dedup por hash em toda a história)', async () => {
+    const a = registroWorklog({ logged_time_id: 9_000_000_021, time: 600 });
+    const m = await montar({ marca: MARCA }, { registros: [a] });
+    await coletarApontamentos(m.deps, incremental);
+    m.servidor.cenario.registros[0] = { ...a, time: 1200 };
+    expect(await coletarApontamentos(m.deps, incremental)).toMatchObject({ inseridos: 1 });
+    m.servidor.cenario.registros[0] = { ...a, time: 600 };
+    expect(await coletarApontamentos(m.deps, incremental)).toMatchObject({ inseridos: 1 });
+    expect(m.e.stg.size).toBe(3);
+    expect([...m.e.stg.values()].map((r) => [r.versao, r.segundos])).toEqual([[1, 600], [2, 1200], [3, 600]]);
+    expect(m.e.fatos.get('9000000021')).toMatchObject({ versoes: 3 });
+    expect(await coletarApontamentos(m.deps, incremental)).toMatchObject({ inseridos: 0, jaExistentes: 1 });
+    expect(m.e.stg.size).toBe(3);
+  });
   it('dois apontamentos iguais em data, card, pessoa e horas, com ids diferentes, contam ambos (nunca dedup por combinação)', async () => {
     const m = await montar({ marca: MARCA }, { registros: [registroWorklog({ logged_time_id: 9_000_000_030 }), registroWorklog({ logged_time_id: 9_000_000_031 })] });
     await coletarApontamentos(m.deps, incremental);

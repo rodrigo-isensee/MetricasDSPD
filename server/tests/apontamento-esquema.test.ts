@@ -126,6 +126,26 @@ describe('vigência do dicionário (0030, E2.27)', () => {
     expect(MIGRACOES['0031_bm_cfg_pessoa_eliminada_executado_por']!.ddl(S_PADRAO).up.join('\n')).toContain(`ALTER TABLE ${S_PADRAO.bm}.cfg_pessoa_eliminada ADD COLUMN executado_por varchar(63) NOT NULL DEFAULT current_user CHECK (executado_por <> '')`);
     expect(colunaDePessoa('executado_por')).toBe(false);
   });
+  it('versão da staging (0032, A2): coluna versao, chave (logged_time_id, versao) no lugar da do hash, preenchimento com o gatilho desligado só ali, e down que recusa hash repetido', () => {
+    const d = MIGRACOES['0032_bm_stg_apontamento_versao']!.ddl(S_PADRAO);
+    const t = `${S_PADRAO.bm}.stg_apontamento`;
+    const up = d.up.join('\n');
+    expect(up).toContain(`ALTER TABLE ${t} DROP CONSTRAINT uq_stg_apontamento`);
+    expect(up).toContain(`ALTER TABLE ${t} ADD CONSTRAINT uq_stg_apontamento UNIQUE (logged_time_id, versao)`);
+    expect(up).toContain('CHECK (versao >= 1)');
+    expect(up).toContain('row_number() OVER (PARTITION BY logged_time_id ORDER BY stg_sk)');
+    // o gatilho só fica desligado entre o preenchimento e a volta; a ordem importa
+    const i = d.up.findIndex((x) => x.includes('DISABLE TRIGGER tg_stg_apontamento_imutavel'));
+    expect(d.up[i + 1]).toMatch(/^UPDATE .*SET versao = /s);
+    expect(d.up[i + 2]).toContain('ENABLE TRIGGER tg_stg_apontamento_imutavel');
+    expect(d.up.findIndex((x) => x.includes('SET NOT NULL'))).toBeGreaterThan(i + 2);
+    expect(d.up.filter((x) => /\bDELETE\b|TRUNCATE/.test(x))).toEqual([]);
+    const down = d.down.join('\n');
+    expect(down).toContain('RAISE EXCEPTION');
+    expect(d.down[0]).toContain('GROUP BY logged_time_id, registro_sha256 HAVING count(*) > 1');
+    expect(down).toContain(`ALTER TABLE ${t} ADD CONSTRAINT uq_stg_apontamento UNIQUE (logged_time_id, registro_sha256)`);
+    expect(down).toContain('DROP COLUMN versao');
+  });
   it('o dspd_ref ganha só UPDATE (vigente_ate) nas tabelas que têm a coluna; o coletor continua só lendo; a API nada', () => {
     const S = montarEsquemas('');
     const cat = { bm: Object.fromEntries(tabelas.map((t) => [t, [...nomes(t), 'vigente_de', 'vigente_ate', 'vigencia_id']])), ac: {}, core: {} };

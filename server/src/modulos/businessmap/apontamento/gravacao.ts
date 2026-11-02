@@ -38,11 +38,18 @@ export async function pessoasResolvidas(db: Consultavel, S: Esquemas, userIds: r
   return new Map(r.rows.map((l) => [l.responsavel_id, Number(l.pessoa_ref)]));
 }
 
-/** Versões novas na staging (append-only; a mesma versão relida não duplica). Devolve quantas linhas entraram. */
+/**
+ * Versões novas na staging (append-only; decisão A2 do plano, ADR 0025 item 5): a linha nova (`versao` = última + 1, 1 se não há) entra SÓ
+ * quando o hash da leitura difere do da última versão do mesmo `logged_time_id`. A mesma versão relida não grava nada; A, B, A vira três
+ * linhas (a volta ao valor antigo é uma edição real). `ON CONFLICT ON CONSTRAINT uq_stg_apontamento DO NOTHING` (chave `(logged_time_id,
+ * versao)`) segura uma gravação concorrente que disputasse o mesmo número. Devolve quantas linhas entraram.
+ */
 export async function gravarStgApontamento(db: Consultavel, S: Esquemas, linhas: readonly LinhaClassificada[], coletaId: number, agora: Date): Promise<number> {
   const r = await db.query(
-    `INSERT INTO ${S.bm}.stg_apontamento (${SQL_COLUNAS}, coletado_em, coleta_id)
-     SELECT ${SQL_VALORES}, $2::timestamptz, $3::bigint FROM jsonb_to_recordset($1::jsonb) AS v(${DEFINICAO_REGISTRO})
+    `INSERT INTO ${S.bm}.stg_apontamento (${SQL_COLUNAS}, versao, coletado_em, coleta_id)
+     SELECT ${SQL_VALORES}, COALESCE(u.versao, 0) + 1, $2::timestamptz, $3::bigint FROM jsonb_to_recordset($1::jsonb) AS v(${DEFINICAO_REGISTRO})
+     LEFT JOIN LATERAL (SELECT s.versao, s.registro_sha256 FROM ${S.bm}.stg_apontamento s WHERE s.logged_time_id = v.logged_time_id ORDER BY s.versao DESC LIMIT 1) u ON true
+     WHERE u.registro_sha256 IS DISTINCT FROM decode(v.registro_sha256, 'hex')
      ON CONFLICT ON CONSTRAINT uq_stg_apontamento DO NOTHING RETURNING logged_time_id`,
     [JSON.stringify(linhas), agora, coletaId]);
   return r.rows.length;
@@ -50,7 +57,7 @@ export async function gravarStgApontamento(db: Consultavel, S: Esquemas, linhas:
 
 /**
  * Estado atual de cada apontamento lido (`fato_apontamento`), na mesma transação da staging: UPDATE do que mudou (hash novo, pessoa
- * nova ou tipo do card novo) e INSERT do que falta. `pessoa_ref` nunca é apagada por uma leitura sem pessoa (COALESCE), nem `type_id` por uma leitura sem tipo; `versoes` conta as versões da staging;
+ * nova ou tipo do card novo) e INSERT do que falta. `pessoa_ref` nunca é apagada por uma leitura sem pessoa (COALESCE), nem `type_id` por uma leitura sem tipo; `versoes` é a maior `versao` da staging;
  * o bit 8 de `flags_qualidade` (sem-iniciativa, gravado por `atualizarHierarquia`) é preservado, e o 16 (valor-atipico) também, mas está reservado:
  * nada o grava, pois a soma diária é calculada na leitura. A máscara 24 é a soma dos dois bits. Devolve `[atualizados, inseridos]`.
  */
@@ -58,7 +65,7 @@ export async function projetarFatoApontamento(
   db: Consultavel, S: Esquemas, linhas: readonly LinhaComPessoa[], coletaId: number, agora: Date,
 ): Promise<[number, number]> {
   const def = `${DEFINICAO_REGISTRO}, pessoa_ref bigint, type_id text`;
-  const versoes = `(SELECT count(*) FROM ${S.bm}.stg_apontamento s WHERE s.logged_time_id = v.logged_time_id)::smallint`;
+  const versoes = `(SELECT max(s.versao) FROM ${S.bm}.stg_apontamento s WHERE s.logged_time_id = v.logged_time_id)::smallint`;
   const valores = [JSON.stringify(linhas), agora, coletaId];
   const atualizados = await db.query(
     `UPDATE ${S.bm}.fato_apontamento AS f SET
