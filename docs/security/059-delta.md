@@ -3,47 +3,41 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 059-aba-apontamento
 branch: feature/059-aba-front
-commit: 4857ad84ae56bf21a9e81793aa83b1d46a462589
+commit: 2f25c22029492cac8fe00ac6c9eb60a74c58fa2c
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-02
 ---
 # Review de segurança: front da aba Apontamento (pedido 059, E2.32, K-193)
 
-Diff revisado: `origin/feature/059-rota-apontamento...origin/feature/059-aba-front -- web` (o que o front soma à rota; 35 arquivos), na ponta `4857ad8`. Referência: ADR 0020 revisão 4 no ramo `origin/docs/059-apontamento-discovery` (R4-3, R4-4, R4-5, R4-7 e R4-8, e o critério de reversão) e o parecer da rota `docs/security/059-rota-apontamento.md`. Revisão estática: o `.env` não foi lido, nada foi executado, nenhum nome de pessoa neste documento.
+Rodada 2, por delta. Intervalo revisado: `4857ad8..2f25c22` (saída do `forge-check delta` sobre a rodada 1; 7 commits da volta do front, E2.35, mais o parecer do review), com releitura do que o delta toca. Referência: ADR 0020 revisão 4 no ramo do discovery (R4-3, R4-4, R4-5, R4-7, R4-8 e o critério de reversão), o parecer da rota `docs/security/059-rota-apontamento.md` e o contrato `packages/contratos/src/apontamento.ts`. Revisão estática: o `.env` não foi lido, nada foi executado, nenhum nome de pessoa neste documento.
 
-**Veredito: aprovado.** Nenhum bloqueante. Uma recomendação que não devolve (A1).
+**Veredito: aprovado.** Nenhum bloqueante. O recomendado A1 da rodada 1 foi corrigido e sai da lista; nenhum achado novo.
 
 ## Gatilhos
-Tela que mostra nome real de pessoa (exceção da aba, R4-3), filtro por pessoa na URL, cache do navegador, exclusão da exportação (o4). R-SEGURANCA.
+Tela que mostra nome real de pessoa (exceção da aba, R4-3), filtro por pessoa na URL, cache do navegador, exclusão da exportação (o4), componente compartilhado alterado. R-SEGURANCA.
 
 ## Achados
-- A1 (recomendado) web/src/features/exportar/selecao.ts:24 · a aba fica fora da exportação só por não estar no catálogo; o único guarda é o teste de tela sem botão. Falta uma trava estrutural: `features/exportar` nunca importa `features/apontamento` e nenhum código `AP-` entra no catálogo.
 
-## O que foi verificado e está correto
+## O que mudou no delta e foi verificado
 
-**Filtros na URL só com chave opaca (`filtros.ts:22-101`).** Cada chave tem formato fechado: `pessoa` só `p<n>` (1 a 9 dígitos, sem zero à esquerda) ou `outra-area`; `projeto` e `tipo` só dígitos; `subtarefa` e `subgrupo` só minúsculas, dígitos e hífen até 40; `qualidade` da lista fechada; datas `AAAA-MM-DD` válidas e em par ordenado; teto de itens por chave. Valor fora do formato é descartado e o aviso leva só o rótulo do filtro, nunca o valor recebido (testes com nome no lugar de `pessoaRef`, em `pessoa=`, `Pessoa=` e `nome=`, ausente da tela, dos avisos e das chamadas). Os seletores gravam ids, não rótulos (`BarraFiltrosApontamento.tsx:105-154`); os únicos campos livres são `input` de data. A query enviada à rota sai só das chaves do contrato (`api.ts:16-40`), então a consulta estrita da rota nunca recebe nome. "Copiar link" (`CabecalhoPainel`) copia a URL, que só tem a chave opaca; o título do documento é fixo (`ApontamentoPage.tsx:191`).
+**A1 da rodada 1, trava da exportação: corrigido (`web/src/features/apontamento/exportacao-fora.test.ts:1-65`).** O teste lê como texto todos os `.ts` e `.tsx` de `features/exportar/**` e `features/painel/**` (`import.meta.glob` com `?raw`), confere que a varredura enxerga arquivos (mais de 5 e mais de 1, então um glob quebrado não passa vazio) e falha se algum deles importar a aba por alias (`features/apontamento`), por caminho relativo (`../apontamento`), por `export ... from` ou por `import()` dinâmico; o detector tem teste próprio das cinco formas e de um negativo. Também falha se qualquer id ou código do catálogo de cartões, de `METRICA_IDS` ou do catálogo de métricas do web começar com `ap-` (sem diferenciar caixa). É a correção mínima pedida, nos dois braços (import e catálogo). Resíduo aceitável: um import transitivo (exportar importando um módulo neutro que importe a aba) não é pego, mas exigiria montar a aba dentro do PDF por um caminho que o code review vê; não justifica achado.
 
-**`no-store` respeitado (`api.ts:60-67`).** O `fetch` da aba usa `cache: 'no-store'`, somado ao `Cache-Control: no-store` da rota; mesma origem, sem credencial nem CORS. Nenhum service worker nem PWA no `web/`. O corpo inválido vira `RESPOSTA_INVALIDA` sem log do corpo (`api.ts:92-94`); o erro mostrado é só o código.
+**Filtros validados pelo schema do contrato (`filtros.ts:24-31`, `filtros.ts:44-59`, `filtros.ts:76-79`).** As regex e tetos locais saíram; cada item da URL passa por `consultaApontamentoSchema.safeParse({ [chave]: [v] })` e a lista pelo mesmo schema (teto). O schema é `.strict()` e é o mesmo que a rota aplica: `pessoa` só `p<n>` (1 a 9 dígitos, sem zero à esquerda) ou `outra-area`; `projeto` e `tipo` só dígitos até 12; `subtarefa` e `subgrupo` só código minúsculo com hífen até 40; `qualidade` da lista fechada; tetos 200, 200, 50, 50, 50 e 6. Conferi contra a rodada 1: o formato aceito é o mesmo (nada foi afrouxado) e as datas ficaram mais estritas (data inexistente recusada pelo `diaCivil`, par obrigatório, fim depois do início e janela máxima, que antes a tela não conferia). O aviso continua levando só o rótulo do filtro, nunca o valor recebido. O custo cresce linear com o número de itens da URL, como antes (um parse por item); só quem abre o link paga, sem efeito na rota, que recusa acima do teto: sem caminho de ataque.
 
-**Nada de pessoa em armazenamento do navegador.** A resposta vive só no cache em memória do React Query (`useApontamento.ts:18-22`), chave = consulta (só chaves opacas), sem persister: a busca por `persist`, `localStorage`, `sessionStorage`, `indexedDB` e `document.cookie` no diff só acha comentários e testes. Os dois usos de `localStorage` do app (tema e preferências) não recebem nada da aba; testes conferem `localStorage` e `sessionStorage` vazios depois de filtrar por pessoa. O nome só é lido de `opcoes.pessoas[].rotulo` (`dados.tsx:188-200`) e só na tela; o aviso de nome real aparece quando a rota diz `nomesReais`.
+**Nota e exclusão de Outra área (`components/NotaOutraArea.tsx:1-12`, `CartaoDiario.tsx:254-257`, `CartoesCapacidade.tsx:104-106`).** A nota é texto fixo de `textos.ts:35-36` (sem dado da resposta), mostrada quando a chave `outra-area` aparece. O mapa diário e a capacidade por pessoa filtram `outra-area` no front; isso é apresentação (a soma continua a vir da rota) e não expõe nada: `outra-area` não tem nome nem chave de pessoa. A nova linha de ordem nos chips (`BarraFiltrosApontamento.tsx:53-58`) usa constante; o rótulo "Pessoa não identificada" virou constante.
 
-**Aba fora da exportação (o4).** A página não usa `PainelPagina` nem `BotaoExportar` (`ApontamentoPage.tsx:110-188`); nenhum arquivo fora de `features/apontamento` cita os códigos `AP-` dos cartões, e os níveis da exportação (`selecao.ts:24-29`) não incluem a rota `/operacional/apontamento`; a aba também não é uma `Visao` (`visao.ts:11-15`), fica fora de `resolverVisao`, da cadência e do hash. Teste de tela sem botão nem texto de exportação. Resíduo no A1.
+**TabelaDados compartilhado (`web/src/components/ui/TabelaDados.tsx:24`, `:39`, `:43`).** Só a classe do primeiro `th` do cabeçalho ganhou `sticky left-0 z-10 bg-superficie-2`, por índice; nenhuma mudança de dados, de marcação perigosa nem de props. Sem efeito de segurança nos outros painéis.
 
-**Mock e fixture sem nome real.** `fixture.ts` usa "Pessoa 1" a "Pessoa 7" e "Pessoa não identificada", iniciativas e tipos genéricos; os testes usam nomes de exemplo genéricos ("Ana Exemplo") e marcadores ("Maria") só para provar ausência. Nenhum e-mail, id do BusinessMap ou comentário. A fixture só é importada por `rota-falsa.ts`, que importa `vitest` e só é usada por testes: não alcança o bundle de produção. O selo de origem da aba é "real" (`ApontamentoPage.tsx:50`), coerente com a leitura da rota.
+**Sonda do tipo (`api.ts:97-105`, `useApontamento.ts:24-39`).** Agora só o 422 esconde o filtro; rede ou 5xx lançam `ErroApi` com o código do erro (nunca o corpo) e a consulta tenta de novo (2 vezes, validade de 5 min, refeita no foco). A sonda continua mandando só `tipo=1` e chaves de visão; o erro dela não é exibido. Aumento de chamadas à rota desprezível.
 
-**Navegação.** Rota própria `operacional/apontamento` com carga preguiçosa; o seletor só troca de rota, sem levar filtros de um lado ao outro (`OperacionalPage.tsx`, `ApontamentoPage.tsx:82-86`). As âncoras de "Achados" são constantes de `textos.ts`, não vêm da resposta; nenhum `dangerouslySetInnerHTML`, `innerHTML` nem `window.open`. A sonda do filtro por tipo (`api.ts:98-105`) manda só `tipo=1` e chaves de visão.
-
-## Detalhe dos achados
-
-### A1 (recomendado): exclusão da exportação sem trava estrutural
-Hoje a o4 se cumpre porque o catálogo da exportação não conhece os cartões `AP-` e a página não monta `BotaoExportar`; o único teste olha a tela. Caminho: só por erro de código (alguém registrar um cartão da aba no catálogo ou montar a aba dentro do `PainelPagina`) que passasse no code review; o resultado seria nome real num PDF, que a R4-8 e o critério de reversão da R4 proíbem. Severidade baixa. Correção mínima: um teste estático (ou regra `no-restricted-imports`) que recuse import de `@/features/apontamento` em `web/src/features/exportar/**` e em `web/src/features/painel/**`, e que recuse código `AP-` no catálogo de métricas. Esforço P. Dono: react-frontend.
+**Demais pontos do delta.** `aria-label` da seção com o aviso de nome real é constante (`ApontamentoPage.tsx:118-124`); o atalho por âncora foca o título por `getElementById` de constante de `textos.ts` (`CartaoAchados.tsx:41-45`); `rolagem.ts` é só geometria sobre o DOM do próprio mapa; a linha de critério vigente lê `criterios[].data` da resposta já validada pelo schema e só a formata (`CartaoApontamento.tsx:53-62`); `rota-falsa.ts` ganhou a falha de sonda e continua só de teste (importa `vitest`). A doc técnica (`docs/tecnica/arquitetura-front.md:321-332`) descreve o que o código faz, inclusive "sem log do corpo" e nada de pessoa em armazenamento. Busca no delta por `localStorage`, `sessionStorage`, `indexedDB`, `cookie`, `persist`, `innerHTML`, `dangerouslySetInnerHTML`, `window.open` e `console.`: nada novo fora de comentários e testes. Nenhuma dependência nova.
 
 ## Plano em cartões
-- A1: react-frontend, no cartão de recomendados da aba ou na próxima volta do front.
+Nenhum cartão novo.
 
 ## Riscos aceitos
-Nenhum novo. O nome real na tela de qualquer usuário do painel na rede local é consequência das decisões "C" e P-1 do dono (2026-11-01), registrada na R4-5, até o login pelo AD; o cache em memória do React Query guarda a resposta enquanto a aba estiver aberta (descartado ao fechar ou recarregar), o que a R4-7 admite.
+Nenhum novo. Seguem os da rodada 1: nome real na tela de qualquer usuário do painel na rede local, pelas decisões "C" e P-1 do dono (2026-11-01), registrada na R4-5, até o login pelo AD; resposta no cache em memória do React Query enquanto a aba estiver aberta, admitida pela R4-7.
 
 ## Ferramentas e lacunas
-Leitura estática e `grep` sobre o diff. `gitleaks`, `osv-scanner`, `semgrep`, `zizmor`, `actionlint` e `trivy` não estão no PATH desta estação e não foram rodados; as varreduras ficam no CI do `devops-engineer`. O diff do `web/` não traz dependência nova nem credencial. Nenhum segredo foi lido ou exibido; nenhum arquivo fora de `docs/security/` foi tocado.
+`forge-check delta` sobre a rodada 1, leitura estática e `grep` sobre o diff. `gitleaks`, `osv-scanner`, `semgrep`, `zizmor`, `actionlint` e `trivy` não estão no PATH desta estação e não foram rodados; as varreduras ficam no CI do `devops-engineer`. Nenhum segredo foi lido ou exibido; nenhum arquivo fora de `docs/security/` foi tocado.
