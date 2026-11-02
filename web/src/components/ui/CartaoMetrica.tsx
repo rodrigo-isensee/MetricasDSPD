@@ -310,7 +310,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
               {p.leitura && (
                 <p
                   id={idLeitura}
-                  className={clsx('mt-2 text-sm font-medium', esmaece)}
+                  className={clsx('mt-2 text-sm font-medium [overflow-wrap:anywhere]', esmaece)}
                   data-testid={`leitura-${p.codigo}`}
                 >
                   {p.leitura}
