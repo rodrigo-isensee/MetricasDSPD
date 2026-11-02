@@ -1,6 +1,7 @@
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { CAMPOS_USERS, ErroBusinessMap, lotesDeUserIds, type ClienteHttp } from '../../plataforma/http.js';
+import { SAL_MINIMO_BYTES, usuariosSuprimidos } from './apontamento/supressao.js';
 import { desembrulhar } from './spike-forma.js';
 
 // F3 do plano 052 (K-182), Q-8 = B e ADR 0020 (revisão 3): nome do responsável por `GET /users`, gravado só em `dim_responsavel`
@@ -46,12 +47,25 @@ export interface ResultadoUsuarios {
  * Resolve os nomes dos ids vistos na execução. Só pede os ids sem linha ou com `atualizado_em` mais antigo que 30 dias, em lotes.
  * UPSERT com `atualizado_em = agora`. Erro de `/users` interrompe só esta etapa (os ids ficam para a próxima execução);
  * erro de banco sobe ao chamador.
+ *
+ * Pedido 059 (K-193, A1 da segurança da coleta): a lista de supressão (`cfg_pessoa_eliminada`) vale para TODO pedido a `/users`, não só
+ * o do worklog. Com `sal`, os ids suprimidos são descartados antes de pedir e antes de inserir. Sem `sal` (ausente ou curto) e com a
+ * lista não vazia, a etapa não roda e devolve a falha `sem-sal`: pedir `/users` recriaria a pessoa eliminada.
  */
 export async function resolverResponsaveis(
-  db: Consultavel, cliente: Pick<ClienteHttp, 'get'>, vistos: Iterable<string>, agora: Date, S: Esquemas = esquemasDoAmbiente(),
+  db: Consultavel, cliente: Pick<ClienteHttp, 'get'>, vistos: Iterable<string>, agora: Date, S: Esquemas = esquemasDoAmbiente(), sal?: string,
 ): Promise<ResultadoUsuarios> {
-  const ids = [...new Set([...vistos].filter((i) => ID_USUARIO.test(i)))].sort();
-  if (ids.length === 0) return { pedidos: 0, resolvidos: 0, naoResolvidos: 0, falha: null };
+  const validos = [...new Set([...vistos].filter((i) => ID_USUARIO.test(i)))].sort();
+  if (validos.length === 0) return { pedidos: 0, resolvidos: 0, naoResolvidos: 0, falha: null };
+  let ids = validos;
+  if (sal !== undefined && Buffer.byteLength(sal) >= SAL_MINIMO_BYTES) {
+    const suprimidos = await usuariosSuprimidos(db, S, sal, validos);
+    ids = validos.filter((i) => !suprimidos.has(i));
+    if (ids.length === 0) return { pedidos: 0, resolvidos: 0, naoResolvidos: 0, falha: null };
+  } else {
+    const lista = await db.query(`SELECT 1 FROM ${S.bm}.cfg_pessoa_eliminada LIMIT 1`);
+    if (lista.rows.length > 0) return { pedidos: 0, resolvidos: 0, naoResolvidos: 0, falha: 'sem-sal' };
+  }
   const limite = new Date(agora.getTime() - PRAZO_RELEITURA_DIAS * DIA_MS);
   const recentes = await db.query<{ responsavel_id: string }>(
     `SELECT responsavel_id FROM ${S.bm}.dim_responsavel WHERE responsavel_id = ANY($1::text[]) AND atualizado_em >= $2`, [ids, limite]);

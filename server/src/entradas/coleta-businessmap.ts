@@ -41,6 +41,7 @@ try {
   const r = await executarColeta({
     cliente, poolColetor, poolRef, conf: lerConferencia(), quadros: cfg.BUSINESSMAP_QUADROS_IDS, hostBase,
     agora: () => new Date(), paginaTamanho: cfg.BUSINESSMAP_PAGINA_TAMANHO, S,
+    ...(sal === undefined ? {} : { sal }),
     // Pedido 059 (ADR 0025 item 3): no incremental, o worklog entra como etapa, depois dos cards e sob a mesma trava; só com o sal da supressão
     // configurado (sem ele a etapa não existe e `apontamento` sai `null`). A carga inicial do worklog tem o comando próprio `bm:apontamento`.
     ...(sal === undefined ? {} : {
