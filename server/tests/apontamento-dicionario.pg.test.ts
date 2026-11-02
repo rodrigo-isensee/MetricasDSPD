@@ -13,8 +13,8 @@ import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js
 import { migrar } from '../src/plataforma/db/migrar.js';
 import { novaColeta, poolDe, unico, url } from './pg/ctx.js';
 
-// Pedido 059, E2.19: carga do dicionário por ref:sync contra o PostgreSQL local, com os papéis reais (dspd_ref grava, dspd_coletor lê,
-// dspd_api não vê nada). `ref_tipo_card` é append-only (gatilho de vigência) e outros testes supõem a tabela vazia: este arquivo migra os
+// Pedido 059, E2.19 e E2.27: carga do dicionário por ref:sync contra o PostgreSQL local, com os papéis reais (dspd_ref abre e fecha vigência,
+// dspd_coletor lê só o vigente, dspd_api não vê nada). `ref_tipo_card` é append-only (gatilho de vigência) e outros testes supõem a tabela vazia: este arquivo migra os
 // próprios schemas (prefixo único, como o teste da pesquisa) e os derruba no fim, sem deixar nada no schema compartilhado da execução.
 const d = describe.skipIf(!url);
 const DIA = '2026-11-02';
@@ -43,12 +43,16 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
     try { await p.query(sql); } catch (e) { return e as { code?: string }; }
     throw new Error(`esperava falha do banco: ${sql.slice(0, 80)}`);
   };
+  const TABELAS = ['ref_apontamento_regra_tipo', 'ref_apontamento_termo', 'ref_apontamento_subgrupo'];
+  // Os gatilhos de vigência (0030) proíbem DELETE até do dono; a limpeza do teste os desliga e liga de novo (só no schema de teste).
   const limpar = async (): Promise<void> => {
-    await dono.query(`DELETE FROM ${S.bm}.ref_apontamento_regra_tipo`);
-    await dono.query(`DELETE FROM ${S.bm}.ref_apontamento_termo`);
-    await dono.query(`DELETE FROM ${S.bm}.ref_apontamento_subgrupo`);
+    for (const t of TABELAS) await dono.query(`ALTER TABLE ${S.bm}.${t} DISABLE TRIGGER USER`);
+    for (const t of TABELAS) await dono.query(`DELETE FROM ${S.bm}.${t}`);
+    for (const t of TABELAS) await dono.query(`ALTER TABLE ${S.bm}.${t} ENABLE TRIGGER USER`);
     await dono.query(`DELETE FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia LIKE '059:ref-apontamento:%'`);
   };
+  const vigentes = async (tabela: string, colunas: string, ordem = colunas): Promise<Record<string, string>[]> =>
+    (await dono.query<Record<string, string>>(`SELECT ${colunas} FROM ${S.bm}.${tabela} WHERE vigente_ate IS NULL ORDER BY ${ordem}`)).rows;
 
   beforeAll(async () => {
     await migrar(url!, { prefixo });
@@ -67,20 +71,20 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
 
   it('primeira carga com o papel dspd_ref: versão de critério T2.6, linhas com o id dela, rótulo do tipo resolvido e condição com sublinhado', async () => {
     const r = await sincronizarDicionario(como(ref), S, lido(arquivo()), DIA, new Date('2026-11-02T12:00:00Z'));
-    expect(r).toMatchObject({ subgrupos: 3, termos: 2, regras: 2, versaoRegistrada: true });
+    expect(r).toMatchObject({ subgrupos: 3, termos: 2, regras: 2, fechados: { subgrupos: 0, termos: 0, regras: 0 }, versaoRegistrada: true });
     const v = await dono.query<{ versao_id: string; vigente_desde: string; referencia: string }>(
       `SELECT versao_id, vigente_desde::text, referencia FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia LIKE '059:ref-apontamento:%'`);
     expect(v.rows).toHaveLength(1);
     expect(v.rows[0]).toMatchObject({ vigente_desde: DIA, referencia: `059:ref-apontamento:${arquivo().versao}:${r.sha256}` });
-    const regras = await dono.query<{ type_id: string; condicao: string; subgrupo_codigo: string; incluido_por_versao_id: string }>(
-      `SELECT type_id, condicao, subgrupo_codigo, incluido_por_versao_id FROM ${S.bm}.ref_apontamento_regra_tipo ORDER BY type_id`);
+    const regras = await dono.query<{ type_id: string; condicao: string; subgrupo_codigo: string; incluido_por_versao_id: string; vigente_de: string; vigente_ate: string | null }>(
+      `SELECT type_id, condicao, subgrupo_codigo, incluido_por_versao_id, vigente_de::text, vigente_ate::text FROM ${S.bm}.ref_apontamento_regra_tipo ORDER BY type_id`);
     expect(regras.rows).toEqual([
-      { type_id: tipoKaizen, condicao: 'sempre', subgrupo_codigo: 'gestao', incluido_por_versao_id: v.rows[0]!.versao_id },
-      { type_id: tipoIncidente, condicao: 'sem_comentario', subgrupo_codigo: 'execucao-tecnica', incluido_por_versao_id: v.rows[0]!.versao_id },
+      { type_id: tipoKaizen, condicao: 'sempre', subgrupo_codigo: 'gestao', incluido_por_versao_id: v.rows[0]!.versao_id, vigente_de: DIA, vigente_ate: null },
+      { type_id: tipoIncidente, condicao: 'sem_comentario', subgrupo_codigo: 'execucao-tecnica', incluido_por_versao_id: v.rows[0]!.versao_id, vigente_de: DIA, vigente_ate: null },
     ]);
   });
 
-  it('idempotente, aditiva e sem sobrescrever: relida nada muda; termo novo entra com versão nova; retirar ou mudar é recusado e desfaz tudo', async () => {
+  it('idempotente e com a versão de critério a cada carga que muda algo; data anterior à última versão é recusada e nada muda', async () => {
     await sincronizarDicionario(como(ref), S, lido(arquivo()), DIA, new Date());
     expect(await sincronizarDicionario(como(ref), S, lido(arquivo()), DIA, new Date())).toMatchObject({ subgrupos: 0, termos: 0, regras: 0, versaoRegistrada: false });
     expect(await n('ref_apontamento_termo')).toBe(2);
@@ -89,24 +93,95 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
     expect(await n('ref_apontamento_termo')).toBe(3);
     const versoes = await dono.query<{ vigente_desde: string }>(`SELECT vigente_desde::text FROM ${S.core}.ref_versao_criterio WHERE referencia LIKE '059:ref-apontamento:%' ORDER BY versao_id`);
     expect(versoes.rows.map((x) => x.vigente_desde)).toEqual([DIA, '2026-11-03']);
-    // data anterior à última versão
     await expect(sincronizarDicionario(como(ref), S, lido(arquivo({ termos: [{ subgrupo: 'testes', termos: ['teste', 'homolog', 'validac', 'outro'] }] }), 'v3'), DIA, new Date())).rejects.toMatchObject({ tipo: 'vigencia' });
-    // retirar um termo: recusa, nada é apagado
-    await expect(sincronizarDicionario(como(ref), S, lido(arquivo({ termos: [{ subgrupo: 'testes', termos: ['teste'] }] }), 'v4'), '2026-11-04', new Date())).rejects.toMatchObject({ tipo: 'mudanca' });
-    // tipo inexistente: recusa e a transação desfaz (nenhuma versão nova)
+    // tipo inexistente: recusa e a transação desfaz (nenhuma versão nova, nenhuma linha)
     const semTipo = arquivo({ regrasPorTipo: [{ tipoRotulo: 'Tipo que não existe 059', condicao: 'sempre', subgrupo: 'gestao' }] });
-    await expect(sincronizarDicionario(como(ref), S, lido(semTipo, 'v5'), '2026-11-04', new Date())).rejects.toMatchObject({ tipo: 'mudanca' });
+    await expect(sincronizarDicionario(como(ref), S, lido(semTipo, 'v5'), '2026-11-04', new Date())).rejects.toMatchObject({ tipo: 'tipo' });
     expect(await n('ref_apontamento_termo')).toBe(3);
     expect(Number((await dono.query<{ n: string }>(`SELECT count(*) AS n FROM ${S.core}.ref_versao_criterio WHERE referencia LIKE '059:ref-apontamento:%'`)).rows[0]!.n)).toBe(2);
   });
 
-  it('o banco recusa o que a carga não faz: o dspd_ref não atualiza nem apaga, o dspd_api não lê o dicionário, o coletor só lê', async () => {
+  it('termo retirado só fecha: a linha fica com vigente_ate, o histórico permanece e o coletor deixa de ver o termo', async () => {
     await sincronizarDicionario(como(ref), S, lido(arquivo()), DIA, new Date());
+    const r = await sincronizarDicionario(como(ref), S, lido(arquivo({ termos: [{ subgrupo: 'testes', termos: ['teste'] }] }), 'retira'), '2026-11-05', new Date());
+    expect(r).toMatchObject({ subgrupos: 0, termos: 0, regras: 0, fechados: { subgrupos: 0, termos: 1, regras: 0 }, versaoRegistrada: true });
+    expect(await n('ref_apontamento_termo')).toBe(2);
+    expect(await vigentes('ref_apontamento_termo', 'termo_normalizado')).toEqual([{ termo_normalizado: 'teste' }]);
+    const fechado = await dono.query<{ termo_normalizado: string; vigente_de: string; vigente_ate: string }>(
+      `SELECT termo_normalizado, vigente_de::text, vigente_ate::text FROM ${S.bm}.ref_apontamento_termo WHERE vigente_ate IS NOT NULL`);
+    expect(fechado.rows).toEqual([{ termo_normalizado: 'homolog', vigente_de: DIA, vigente_ate: '2026-11-05' }]);
+    const dic = await carregarDicionario(coletor, S);
+    expect(dic.termos).toEqual([{ prioridade: 2, subgrupo: 'testes', termos: ['teste'] }]);
+    expect(dic.versao).toBe(arquivo().versao);
+    // relida a mesma troca de arquivo, nada muda
+    expect(await sincronizarDicionario(como(ref), S, lido(arquivo({ termos: [{ subgrupo: 'testes', termos: ['teste'] }] }), 'retira'), '2026-11-05', new Date())).toMatchObject({ versaoRegistrada: false });
+  });
+
+  it('termo mudado de subgrupo, regra mudada e subgrupo com rótulo e prioridade trocados: fecha a antiga e abre a nova, com as duas vigências no banco', async () => {
+    await sincronizarDicionario(como(ref), S, lido(arquivo()), DIA, new Date());
+    const mudado = arquivo({
+      subgrupos: [{ codigo: 'gestao', rotulo: 'Gestão e rituais', prioridade: 2 }, { codigo: 'testes', rotulo: 'Testes', prioridade: 1 }, { codigo: 'execucao-tecnica', rotulo: 'Execução técnica', prioridade: 3 }],
+      termos: [{ subgrupo: 'gestao', termos: ['homolog'] }, { subgrupo: 'testes', termos: ['teste'] }],
+      regrasPorTipo: [{ tipoRotulo: kaizen, condicao: 'sempre', subgrupo: 'testes' }, { tipoRotulo: incidente, condicao: 'sem-comentario', subgrupo: 'execucao-tecnica' }],
+    });
+    const r = await sincronizarDicionario(como(ref), S, lido(mudado, 'muda'), '2026-11-06', new Date());
+    expect(r).toMatchObject({ subgrupos: 2, termos: 1, regras: 1, fechados: { subgrupos: 2, termos: 1, regras: 1 }, versaoRegistrada: true });
+    expect(await vigentes('ref_apontamento_subgrupo', 'codigo, prioridade::text AS prioridade, rotulo', 'codigo')).toEqual([
+      { codigo: 'execucao-tecnica', prioridade: '3', rotulo: 'Execução técnica' }, { codigo: 'gestao', prioridade: '2', rotulo: 'Gestão e rituais' }, { codigo: 'testes', prioridade: '1', rotulo: 'Testes' }]);
+    expect(await n('ref_apontamento_subgrupo')).toBe(5);
+    expect(await vigentes('ref_apontamento_termo', 'subgrupo_codigo, termo_normalizado')).toEqual([
+      { subgrupo_codigo: 'gestao', termo_normalizado: 'homolog' }, { subgrupo_codigo: 'testes', termo_normalizado: 'teste' }]);
+    expect(await n('ref_apontamento_termo')).toBe(3);
+    const kz = await dono.query<{ subgrupo_codigo: string; vigente_de: string; vigente_ate: string | null }>(
+      `SELECT subgrupo_codigo, vigente_de::text, vigente_ate::text FROM ${S.bm}.ref_apontamento_regra_tipo WHERE type_id = $1 ORDER BY vigencia_id`, [tipoKaizen]);
+    expect(kz.rows).toEqual([{ subgrupo_codigo: 'gestao', vigente_de: DIA, vigente_ate: '2026-11-06' }, { subgrupo_codigo: 'testes', vigente_de: '2026-11-06', vigente_ate: null }]);
+    const dic = await carregarDicionario(coletor, S);
+    expect(dic.termos).toEqual(expect.arrayContaining([{ prioridade: 2, subgrupo: 'gestao', termos: ['homolog'] }, { prioridade: 1, subgrupo: 'testes', termos: ['teste'] }]));
+    expect(dic.regrasPorTipo).toEqual(expect.arrayContaining([{ prioridade: 1, subgrupo: 'testes', typeId: tipoKaizen, condicao: 'sempre' }]));
+    expect(dic.regrasPorTipo).toHaveLength(2);
+    // voltar ao arquivo anterior reabre o que estava fechado como linha nova (a chave é a identidade da vigência, não o termo)
+    const volta = await sincronizarDicionario(como(ref), S, lido(arquivo(), 'volta'), '2026-11-06', new Date());
+    expect(volta).toMatchObject({ subgrupos: 2, termos: 1, regras: 1, fechados: { subgrupos: 2, termos: 1, regras: 1 }, versaoRegistrada: true });
+    expect(await n('ref_apontamento_termo')).toBe(4);
+    expect(await vigentes('ref_apontamento_termo', 'subgrupo_codigo, termo_normalizado')).toEqual([
+      { subgrupo_codigo: 'testes', termo_normalizado: 'homolog' }, { subgrupo_codigo: 'testes', termo_normalizado: 'teste' }]);
+  });
+
+  it('subgrupo reservado não sai do arquivo, e subgrupo retirado fecha com os termos e as regras dele', async () => {
+    await sincronizarDicionario(como(ref), S, lido(arquivo()), DIA, new Date());
+    const semReservado = arquivo({ subgrupos: [{ codigo: 'gestao', rotulo: 'Gestão', prioridade: 1 }, { codigo: 'testes', rotulo: 'Testes', prioridade: 2 }], regrasPorTipo: [{ tipoRotulo: kaizen, condicao: 'sempre', subgrupo: 'gestao' }] });
+    await expect(sincronizarDicionario(como(ref), S, lido(semReservado, 'r'), '2026-11-07', new Date())).rejects.toMatchObject({ tipo: 'mudanca' });
+    expect(await vigentes('ref_apontamento_subgrupo', 'codigo')).toHaveLength(3);
+    const semTestes = arquivo({ subgrupos: [{ codigo: 'gestao', rotulo: 'Gestão', prioridade: 1 }, { codigo: 'execucao-tecnica', rotulo: 'Execução técnica', prioridade: 3 }], termos: [] });
+    expect(await sincronizarDicionario(como(ref), S, lido(semTestes, 't'), '2026-11-07', new Date())).toMatchObject({ subgrupos: 0, termos: 0, regras: 0, fechados: { subgrupos: 1, termos: 2, regras: 0 } });
+    expect(await vigentes('ref_apontamento_termo', 'termo_normalizado')).toEqual([]);
+    expect(await n('ref_apontamento_termo')).toBe(2);
+  });
+
+  it('o banco recusa o que a carga não faz: o dspd_ref só atualiza vigente_ate (uma vez), nunca apaga; ninguém apaga nem reabre; a API não lê; o coletor só lê', async () => {
+    await sincronizarDicionario(como(ref), S, lido(arquivo()), DIA, new Date());
+    // dspd_ref: UPDATE de outra coluna e DELETE sem privilégio
     expect((await falha(ref, `UPDATE ${S.bm}.ref_apontamento_termo SET termo_normalizado = 'zz'`)).code).toBe('42501');
+    expect((await falha(ref, `UPDATE ${S.bm}.ref_apontamento_termo SET vigente_de = '2020-01-01'`)).code).toBe('42501');
     expect((await falha(ref, `DELETE FROM ${S.bm}.ref_apontamento_subgrupo`)).code).toBe('42501');
-    for (const t of ['ref_apontamento_subgrupo', 'ref_apontamento_termo', 'ref_apontamento_regra_tipo']) {
+    // fechar é o único UPDATE aceito, uma vez; fechado não reabre, não muda de data e não é apagado (nem pelo dono: gatilho, 55000)
+    await ref.query(`UPDATE ${S.bm}.ref_apontamento_termo SET vigente_ate = '2026-11-05' WHERE termo_normalizado = 'teste'`);
+    expect((await falha(ref, `UPDATE ${S.bm}.ref_apontamento_termo SET vigente_ate = NULL WHERE termo_normalizado = 'teste'`)).code).toBe('55000');
+    expect((await falha(ref, `UPDATE ${S.bm}.ref_apontamento_termo SET vigente_ate = '2026-11-09' WHERE termo_normalizado = 'teste'`)).code).toBe('55000');
+    expect((await falha(dono, `UPDATE ${S.bm}.ref_apontamento_termo SET termo_normalizado = 'zz' WHERE termo_normalizado = 'homolog'`)).code).toBe('55000');
+    for (const t of TABELAS) {
+      expect((await falha(dono, `DELETE FROM ${S.bm}.${t}`)).code, t).toBe('55000');
+      expect((await falha(dono, `TRUNCATE ${S.bm}.${t}`)).code, t).toBe('55000');
+    }
+    // vigente_ate anterior a vigente_de não existe (CHECK)
+    expect((await falha(ref, `UPDATE ${S.bm}.ref_apontamento_termo SET vigente_ate = '2019-01-01' WHERE termo_normalizado = 'homolog'`)).code).toBe('23514');
+    expect((await falha(dono, `INSERT INTO ${S.bm}.ref_apontamento_termo (subgrupo_codigo, termo_normalizado, incluido_por_versao_id, vigente_de, vigente_ate) VALUES ('testes', 'novo', 1, '2026-11-05', '2026-11-01')`)).code).toBe('23514');
+    // chave natural única só entre as vigentes
+    expect((await falha(dono, `INSERT INTO ${S.bm}.ref_apontamento_termo (subgrupo_codigo, termo_normalizado, incluido_por_versao_id, vigente_de) VALUES ('testes', 'homolog', 1, '2026-11-05')`)).code).toBe('23505');
+    for (const t of TABELAS) {
       expect((await falha(api, `SELECT * FROM ${S.bm}.${t}`)).code, t).toBe('42501');
       expect((await falha(coletor, `INSERT INTO ${S.bm}.${t} DEFAULT VALUES`)).code, t).toBe('42501');
+      expect((await falha(coletor, `UPDATE ${S.bm}.${t} SET vigente_ate = now()`)).code, t).toBe('42501');
     }
   });
 

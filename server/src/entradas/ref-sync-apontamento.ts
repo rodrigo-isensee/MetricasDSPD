@@ -8,9 +8,9 @@ import { opcoesLog } from '../plataforma/log.js';
 import { ErroDicionario, lerDicionario, sincronizarDicionario } from '../modulos/businessmap/index.js';
 import { dataCivilValida } from '../modulos/referencia/index.js';
 
-// Entrada `pnpm --filter @metricas-dspd/server run bm:ref-sync-apontamento [AAAA-MM-DD]` (pedido 059, E2.19): grava em `dspd_bm.ref_apontamento_*`
+// Entrada `pnpm --filter @metricas-dspd/server run bm:ref-sync-apontamento [AAAA-MM-DD]` (pedido 059, E2.19 e E2.27): grava em `dspd_bm.ref_apontamento_*`
 // o dicionário de subgrupo do arquivo versionado `docs/architecture/fontes/apontamento-dicionario.json`, com versão de critério (T2.6) e o hash
-// do arquivo. Usa o papel `dspd_ref` (`PG_REF_URL`); só INSERT, aditivo e idempotente. Imprime só contagens e o hash: nunca a URL, a senha nem o
+// do arquivo. Usa o papel `dspd_ref` (`PG_REF_URL`); INSERT e UPDATE de `vigente_ate`, idempotente: termo novo abre vigência, mudado fecha a antiga e abre a nova, retirado só fecha (nada é apagado). Imprime só contagens e o hash: nunca a URL, a senha nem o
 // texto do erro do banco. O `.env` da raiz é lido só aqui, pelo programa (como nos comandos `bm:*`); nada dele é impresso.
 const raiz = fileURLToPath(new URL('../../../', import.meta.url));
 try {

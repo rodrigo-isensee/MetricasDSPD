@@ -1,16 +1,18 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import type { DicionarioApontamento, RegraPorTermo, RegraPorTipo } from '@metricas-dspd/metricas/coletor';
+import {
+  SUBGRUPO_EXECUCAO_TECNICA, SUBGRUPO_NAO_CLASSIFICADO, type DicionarioApontamento, type RegraPorTermo, type RegraPorTipo,
+} from '@metricas-dspd/metricas/coletor';
 import { z } from 'zod';
 import type { Esquemas } from '../../../plataforma/db/esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../../../plataforma/db/pool.js';
 import { ErroColetaBm } from '../coleta.js';
 
-// Pedido 059 (K-193), E2.19, plano §3.6 e G2: dicionário de subgrupo do apontamento, carregado por `ref:sync` do arquivo versionado
+// Pedido 059 (K-193), E2.19 e E2.27, plano §3.6 e G2: dicionário de subgrupo do apontamento, carregado por `ref:sync` do arquivo versionado
 // `docs/architecture/fontes/apontamento-dicionario.json` (cópia do dicionário do discovery, como está; o dono confere e ajuste posterior é
-// troca de arquivo). Escrito pelo papel `dspd_ref` (só INSERT em `ref_*`): a carga é ADITIVA (subgrupo, termo ou regra novos, com versão de
-// critério T2.6); mudar ou tirar o que já foi carregado não cabe sem coluna de vigência e é recusado, nunca sobrescrito (carga incremental,
-// histórico intocado). O coletor lê o dicionário vigente do banco (`carregarDicionario`) e o liga à função pura da biblioteca.
+// troca de arquivo). Escrito pelo papel `dspd_ref` (INSERT e `UPDATE (vigente_ate)` em `ref_*`). A carga compara o arquivo com o VIGENTE
+// (`vigente_ate IS NULL`): termo novo abre vigência, termo mudado fecha a linha antiga e abre a nova, termo retirado só fecha. Nada é apagado
+// nem sobrescrito (migração 0030). O coletor lê só o vigente (`carregarDicionario`) e o liga à função pura da biblioteca.
 
 export const ARQUIVO_DICIONARIO = new URL('../../../../../docs/architecture/fontes/apontamento-dicionario.json', import.meta.url);
 /** Prefixo de `ref_versao_criterio.referencia` desta carga: `059:ref-apontamento:<versao do arquivo>:<sha256 do arquivo>`. */
@@ -91,9 +93,15 @@ export const lerDicionario = (caminho: URL | string = ARQUIVO_DICIONARIO): Dicio
 export interface SubgrupoBanco { codigo: string; rotulo: string; prioridade: number }
 export interface TermoBanco { subgrupo_codigo: string; termo_normalizado: string }
 export interface RegraBanco { type_id: string; condicao: string; subgrupo_codigo: string }
+/** O que está vigente no banco (`vigente_ate IS NULL`). */
 export interface DicionarioBanco { subgrupos: SubgrupoBanco[]; termos: TermoBanco[]; regras: RegraBanco[] }
 export interface TipoDoCard { tipo_id: string; nome: string }
-export interface PlanoDicionario { subgrupos: SubgrupoBanco[]; termos: TermoBanco[]; regras: RegraBanco[] }
+/** `fechar` = linhas vigentes que ganham `vigente_ate`; `abrir` = linhas novas com `vigente_de`. Mudar uma linha é fechar a antiga e abrir a nova. */
+export interface Mudanca<T> { abrir: T[]; fechar: T[] }
+export interface PlanoDicionario { subgrupos: Mudanca<SubgrupoBanco>; termos: Mudanca<TermoBanco>; regras: Mudanca<RegraBanco> }
+
+/** Subgrupos que a função da biblioteca devolve por conta própria (sem regra que case): não podem sair do dicionário. */
+export const SUBGRUPOS_RESERVADOS: readonly string[] = [SUBGRUPO_EXECUCAO_TECNICA, SUBGRUPO_NAO_CLASSIFICADO];
 
 /** Rótulo do tipo -> `type_id` da referência vigente. Sem adivinhar: rótulo que não existe ou que casa com dois ids recusa a carga. */
 function resolverTipo(rotulo: string, tipos: readonly TipoDoCard[]): string {
@@ -103,105 +111,114 @@ function resolverTipo(rotulo: string, tipos: readonly TipoDoCard[]): string {
   return ids[0]!;
 }
 
+/** Diferença entre duas listas por chave: o que só o arquivo tem abre, o que só o banco tem fecha, e o que mudou de valor fecha e abre. */
+function comparar<T>(noArquivo: readonly T[], noBanco: readonly T[], chave: (i: T) => string, igual: (a: T, b: T) => boolean): Mudanca<T> {
+  const doBanco = new Map(noBanco.map((i) => [chave(i), i]));
+  const doArquivo = new Map(noArquivo.map((i) => [chave(i), i]));
+  const m: Mudanca<T> = { abrir: [], fechar: [] };
+  for (const b of noBanco) if (!doArquivo.has(chave(b))) m.fechar.push(b);
+  for (const a of noArquivo) {
+    const b = doBanco.get(chave(a));
+    if (b === undefined) m.abrir.push(a);
+    else if (!igual(a, b)) { m.fechar.push(b); m.abrir.push(a); }
+  }
+  return m;
+}
+
 /**
- * Compara o arquivo com o que já está no banco. Só o que falta entra (carga aditiva). Recusa, sem gravar nada: subgrupo com rótulo ou
- * prioridade diferente, prioridade que já é de outro subgrupo, termo ou regra que o arquivo deixou de trazer, e regra que mudou de subgrupo.
+ * Compara o arquivo com o dicionário vigente (E2.27, item 4 da decisão do dono de 2026-11-02): termo, regra ou subgrupo novo abre; mudado
+ * (rótulo ou prioridade do subgrupo, subgrupo da regra, termo que trocou de subgrupo) fecha o antigo e abre o novo; retirado só fecha. Recusa,
+ * sem gravar nada, só o que deixaria a classificação sem saída: tirar do arquivo `execucao-tecnica` ou `nao-classificado`, que a função da
+ * biblioteca devolve sozinha. A vigência do termo e da regra segue o `codigo` do subgrupo: trocar rótulo ou prioridade não reabre os termos.
  */
 export function planejarDicionario(arquivo: ArquivoDicionario, banco: DicionarioBanco, tipos: readonly TipoDoCard[]): PlanoDicionario {
-  const recusa = (msg: string): never => { throw new ErroDicionario('mudanca', `${msg}: mudar ou retirar o que já foi carregado exige coluna de vigência (nova migração)`); };
-  const plano: PlanoDicionario = { subgrupos: [], termos: [], regras: [] };
-
-  const noBancoPorCodigo = new Map(banco.subgrupos.map((s) => [s.codigo, s]));
   const doArquivo = new Set(arquivo.subgrupos.map((s) => s.codigo));
-  for (const s of banco.subgrupos) if (!doArquivo.has(s.codigo)) recusa(`o subgrupo ${s.codigo} saiu do arquivo`);
-  for (const s of arquivo.subgrupos) {
-    const atual = noBancoPorCodigo.get(s.codigo);
-    if (atual === undefined) {
-      if (banco.subgrupos.some((b) => b.prioridade === s.prioridade)) recusa(`a prioridade ${s.prioridade} do subgrupo ${s.codigo} já é de outro subgrupo`);
-      plano.subgrupos.push({ codigo: s.codigo, rotulo: s.rotulo, prioridade: s.prioridade });
-    } else if (atual.rotulo !== s.rotulo || atual.prioridade !== s.prioridade) recusa(`o subgrupo ${s.codigo} mudou de rótulo ou de prioridade`);
+  for (const s of banco.subgrupos) {
+    if (!doArquivo.has(s.codigo) && SUBGRUPOS_RESERVADOS.includes(s.codigo)) {
+      throw new ErroDicionario('mudanca', `o subgrupo ${s.codigo} não pode sair do arquivo: a classificação o devolve quando nenhuma regra casa`);
+    }
   }
+  const subgrupos = comparar<SubgrupoBanco>(
+    arquivo.subgrupos.map((s) => ({ codigo: s.codigo, rotulo: s.rotulo, prioridade: s.prioridade })), banco.subgrupos,
+    (s) => s.codigo, (a, b) => a.rotulo === b.rotulo && a.prioridade === b.prioridade);
 
   const termosDoArquivo = arquivo.termos.flatMap((t) => t.termos.map((termo) => ({ subgrupo_codigo: t.subgrupo, termo_normalizado: termo })));
-  const chaveTermo = (t: TermoBanco): string => `${t.termo_normalizado}|${t.subgrupo_codigo}`;
-  const termosNoBanco = new Set(banco.termos.map(chaveTermo));
-  const termosNoArquivo = new Set(termosDoArquivo.map(chaveTermo));
-  for (const t of banco.termos) if (!termosNoArquivo.has(chaveTermo(t))) recusa(`o termo ${t.termo_normalizado} saiu do subgrupo ${t.subgrupo_codigo}`);
-  plano.termos = termosDoArquivo.filter((t) => !termosNoBanco.has(chaveTermo(t)));
+  const termos = comparar<TermoBanco>(termosDoArquivo, banco.termos, (t) => `${t.termo_normalizado}|${t.subgrupo_codigo}`, () => true);
 
   const regrasDoArquivo = arquivo.regrasPorTipo.map((r) => ({
     type_id: resolverTipo(r.tipoRotulo, tipos), condicao: CONDICAO_NO_BANCO[r.condicao], subgrupo_codigo: r.subgrupo,
   }));
-  const chaveRegra = (r: RegraBanco): string => `${r.type_id}|${r.condicao}`;
-  const regrasNoBanco = new Map(banco.regras.map((r) => [chaveRegra(r), r]));
-  const regrasNoArquivo = new Set(regrasDoArquivo.map(chaveRegra));
-  for (const r of banco.regras) if (!regrasNoArquivo.has(chaveRegra(r))) recusa(`a regra do tipo ${r.type_id} (${r.condicao}) saiu do arquivo`);
-  for (const r of regrasDoArquivo) {
-    const atual = regrasNoBanco.get(chaveRegra(r));
-    if (atual === undefined) plano.regras.push(r);
-    else if (atual.subgrupo_codigo !== r.subgrupo_codigo) recusa(`a regra do tipo ${r.type_id} (${r.condicao}) mudou de subgrupo`);
-  }
-  return plano;
+  const regras = comparar<RegraBanco>(regrasDoArquivo, banco.regras, (r) => `${r.type_id}|${r.condicao}`, (a, b) => a.subgrupo_codigo === b.subgrupo_codigo);
+  return { subgrupos, termos, regras };
 }
 
 /* ---------- carga (dspd_ref) ---------- */
 
-export interface ResultadoDicionario {
+export interface Contagem { subgrupos: number; termos: number; regras: number }
+/** `subgrupos`, `termos` e `regras` são as linhas abertas (vigências novas); `fechados` são as que ganharam `vigente_ate`. */
+export interface ResultadoDicionario extends Contagem {
   sha256: string;
   versao: string;
-  subgrupos: number;
-  termos: number;
-  regras: number;
+  fechados: Contagem;
   versaoRegistrada: boolean;
 }
 
 export const referenciaDaVersao = (versao: string, sha256: string): string => `${PREFIXO_REFERENCIA}${versao}:${sha256}`;
 
+const VIGENTE = 'vigente_ate IS NULL';
+
 /**
- * Lê o banco, planeja e grava numa transação só (tudo ou nada). Sem diferença nada é gravado (idempotente); com diferença registra a versão de
- * critério (T2.6, domínio `businessmap`, referência com o hash do arquivo) e grava as linhas novas com `incluido_por_versao_id`. A versão não
- * marca métrica: o dicionário não entra em métrica do painel; a marca nos gráficos da aba é decisão posterior.
+ * Lê o vigente, planeja e grava numa transação só (tudo ou nada): primeiro fecha (`UPDATE vigente_ate`, a única alteração que o `dspd_ref` faz),
+ * depois abre (`INSERT` com `vigente_de`). Sem diferença nada é gravado (idempotente); com diferença registra SEMPRE uma versão de critério nova
+ * (T2.6, domínio `businessmap`, data da carga, referência com a versão e o hash do arquivo), porque cada mudança tem a sua data e o coletor
+ * grava a versão do arquivo em `versao_dicionario`. A versão não marca métrica: o dicionário não entra em métrica do painel; a marca nos
+ * gráficos da aba é decisão posterior.
  */
 export async function sincronizarDicionario(pool: PoolLike, S: Esquemas, lido: DicionarioLido, hoje: string, agora: Date): Promise<ResultadoDicionario> {
   return emTransacao(pool, async (db) => {
     const banco: DicionarioBanco = {
-      subgrupos: (await db.query<SubgrupoBanco>(`SELECT codigo, rotulo, prioridade FROM ${S.bm}.ref_apontamento_subgrupo`)).rows,
-      termos: (await db.query<TermoBanco>(`SELECT subgrupo_codigo, termo_normalizado FROM ${S.bm}.ref_apontamento_termo`)).rows,
-      regras: (await db.query<RegraBanco>(`SELECT type_id, condicao, subgrupo_codigo FROM ${S.bm}.ref_apontamento_regra_tipo`)).rows,
+      subgrupos: (await db.query<SubgrupoBanco>(`SELECT codigo, rotulo, prioridade FROM ${S.bm}.ref_apontamento_subgrupo WHERE ${VIGENTE}`)).rows,
+      termos: (await db.query<TermoBanco>(`SELECT subgrupo_codigo, termo_normalizado FROM ${S.bm}.ref_apontamento_termo WHERE ${VIGENTE}`)).rows,
+      regras: (await db.query<RegraBanco>(`SELECT type_id, condicao, subgrupo_codigo FROM ${S.bm}.ref_apontamento_regra_tipo WHERE ${VIGENTE}`)).rows,
     };
     const tipos = (await db.query<TipoDoCard>(`SELECT tipo_id, nome FROM ${S.bm}.ref_tipo_card WHERE vigente_ate IS NULL`)).rows;
     const plano = planejarDicionario(lido.arquivo, banco, tipos);
+    const abertos: Contagem = { subgrupos: plano.subgrupos.abrir.length, termos: plano.termos.abrir.length, regras: plano.regras.abrir.length };
+    const fechados: Contagem = { subgrupos: plano.subgrupos.fechar.length, termos: plano.termos.fechar.length, regras: plano.regras.fechar.length };
     const base = { sha256: lido.sha256, versao: lido.arquivo.versao };
-    const total = plano.subgrupos.length + plano.termos.length + plano.regras.length;
-    if (total === 0) return { ...base, subgrupos: 0, termos: 0, regras: 0, versaoRegistrada: false };
+    if (Object.values(abertos).concat(Object.values(fechados)).every((n) => n === 0)) {
+      return { ...base, subgrupos: 0, termos: 0, regras: 0, fechados: { subgrupos: 0, termos: 0, regras: 0 }, versaoRegistrada: false };
+    }
 
+    // A vigência nunca volta no tempo: a data não pode ser anterior à da última versão do dicionário nem a de uma linha já fechada ou aberta.
     const ultima = (await db.query<{ ultima: string | null }>(
       `SELECT max(vigente_desde)::text AS ultima FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia LIKE $1`, [`${PREFIXO_REFERENCIA}%`])).rows[0]!.ultima;
     if (ultima !== null && hoje < ultima) {
       throw new ErroDicionario('vigencia', `a data ${hoje} é anterior à última versão do dicionário (${ultima}); use essa data ou uma posterior`);
     }
     const referencia = referenciaDaVersao(lido.arquivo.versao, lido.sha256);
-    const existente = await db.query<{ versao_id: string }>(`SELECT versao_id FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia = $1`, [referencia]);
-    let versaoId = existente.rows[0]?.versao_id;
-    const versaoRegistrada = versaoId === undefined;
-    if (versaoId === undefined) {
-      const nova = await db.query<{ versao_id: string }>(
-        `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
-         VALUES ($1, 'businessmap', $2, $3, $4, $5) RETURNING versao_id`,
-        [hoje, `Dicionário de classificação do apontamento (aba Apontamento), versão ${lido.arquivo.versao}`,
-          'Carga do dicionário de subgrupo do apontamento por ref:sync (pedido 059); critério da classificação do comentário, versionado e sem reclassificar o passado.', referencia, agora.toISOString()]);
-      versaoId = nova.rows[0]!.versao_id;
+    const nova = await db.query<{ versao_id: string }>(
+      `INSERT INTO ${S.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
+       VALUES ($1, 'businessmap', $2, $3, $4, $5) RETURNING versao_id`,
+      [hoje, `Dicionário de classificação do apontamento (aba Apontamento), versão ${lido.arquivo.versao}`,
+        'Carga do dicionário de subgrupo do apontamento por ref:sync (pedido 059); critério da classificação do comentário, versionado com vigência e sem reclassificar o passado.', referencia, agora.toISOString()]);
+    const versaoId = nova.rows[0]!.versao_id;
+
+    for (const s of plano.subgrupos.fechar) await db.query(`UPDATE ${S.bm}.ref_apontamento_subgrupo SET vigente_ate = $1 WHERE ${VIGENTE} AND codigo = $2`, [hoje, s.codigo]);
+    for (const t of plano.termos.fechar) {
+      await db.query(`UPDATE ${S.bm}.ref_apontamento_termo SET vigente_ate = $1 WHERE ${VIGENTE} AND termo_normalizado = $2 AND subgrupo_codigo = $3`, [hoje, t.termo_normalizado, t.subgrupo_codigo]);
     }
-    for (const s of plano.subgrupos) {
-      await db.query(`INSERT INTO ${S.bm}.ref_apontamento_subgrupo (codigo, rotulo, prioridade, incluido_por_versao_id) VALUES ($1, $2, $3, $4)`, [s.codigo, s.rotulo, s.prioridade, versaoId]);
+    for (const r of plano.regras.fechar) await db.query(`UPDATE ${S.bm}.ref_apontamento_regra_tipo SET vigente_ate = $1 WHERE ${VIGENTE} AND type_id = $2 AND condicao = $3`, [hoje, r.type_id, r.condicao]);
+    for (const s of plano.subgrupos.abrir) {
+      await db.query(`INSERT INTO ${S.bm}.ref_apontamento_subgrupo (codigo, rotulo, prioridade, incluido_por_versao_id, vigente_de) VALUES ($1, $2, $3, $4, $5)`, [s.codigo, s.rotulo, s.prioridade, versaoId, hoje]);
     }
-    for (const t of plano.termos) {
-      await db.query(`INSERT INTO ${S.bm}.ref_apontamento_termo (subgrupo_codigo, termo_normalizado, incluido_por_versao_id) VALUES ($1, $2, $3)`, [t.subgrupo_codigo, t.termo_normalizado, versaoId]);
+    for (const t of plano.termos.abrir) {
+      await db.query(`INSERT INTO ${S.bm}.ref_apontamento_termo (subgrupo_codigo, termo_normalizado, incluido_por_versao_id, vigente_de) VALUES ($1, $2, $3, $4)`, [t.subgrupo_codigo, t.termo_normalizado, versaoId, hoje]);
     }
-    for (const r of plano.regras) {
-      await db.query(`INSERT INTO ${S.bm}.ref_apontamento_regra_tipo (type_id, condicao, subgrupo_codigo, incluido_por_versao_id) VALUES ($1, $2, $3, $4)`, [r.type_id, r.condicao, r.subgrupo_codigo, versaoId]);
+    for (const r of plano.regras.abrir) {
+      await db.query(`INSERT INTO ${S.bm}.ref_apontamento_regra_tipo (type_id, condicao, subgrupo_codigo, incluido_por_versao_id, vigente_de) VALUES ($1, $2, $3, $4, $5)`, [r.type_id, r.condicao, r.subgrupo_codigo, versaoId, hoje]);
     }
-    return { ...base, subgrupos: plano.subgrupos.length, termos: plano.termos.length, regras: plano.regras.length, versaoRegistrada };
+    return { ...base, ...abertos, fechados, versaoRegistrada: true };
   });
 }
 
@@ -217,12 +234,12 @@ const REFERENCIA_VALIDA = new RegExp(`^${PREFIXO_REFERENCIA.replaceAll('.', '\\.
 export async function carregarDicionario(db: Consultavel, S: Esquemas): Promise<DicionarioApontamento> {
   const versao = await db.query<{ referencia: string }>(
     `SELECT referencia FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia LIKE $1 ORDER BY versao_id DESC LIMIT 1`, [`${PREFIXO_REFERENCIA}%`]);
-  const subgrupos = (await db.query<SubgrupoBanco>(`SELECT codigo, rotulo, prioridade FROM ${S.bm}.ref_apontamento_subgrupo`)).rows;
+  const subgrupos = (await db.query<SubgrupoBanco>(`SELECT codigo, rotulo, prioridade FROM ${S.bm}.ref_apontamento_subgrupo WHERE ${VIGENTE}`)).rows;
   const lida = REFERENCIA_VALIDA.exec(versao.rows[0]?.referencia ?? '');
   if (lida === null || subgrupos.length === 0) throw new ErroColetaBm('dicionario', 'dicionário do apontamento não carregado: rode bm:ref-sync-apontamento antes da coleta');
   const prioridade = new Map(subgrupos.map((s) => [s.codigo, s.prioridade]));
-  const termos = (await db.query<TermoBanco>(`SELECT subgrupo_codigo, termo_normalizado FROM ${S.bm}.ref_apontamento_termo ORDER BY termo_normalizado`)).rows;
-  const regras = (await db.query<RegraBanco>(`SELECT type_id, condicao, subgrupo_codigo FROM ${S.bm}.ref_apontamento_regra_tipo ORDER BY type_id, condicao`)).rows;
+  const termos = (await db.query<TermoBanco>(`SELECT subgrupo_codigo, termo_normalizado FROM ${S.bm}.ref_apontamento_termo WHERE ${VIGENTE} ORDER BY termo_normalizado`)).rows;
+  const regras = (await db.query<RegraBanco>(`SELECT type_id, condicao, subgrupo_codigo FROM ${S.bm}.ref_apontamento_regra_tipo WHERE ${VIGENTE} ORDER BY type_id, condicao`)).rows;
   const porSubgrupo = new Map<string, string[]>();
   for (const t of termos) porSubgrupo.set(t.subgrupo_codigo, [...(porSubgrupo.get(t.subgrupo_codigo) ?? []), t.termo_normalizado]);
   const regrasDeTermo: RegraPorTermo[] = [...porSubgrupo].map(([subgrupo, lista]) => ({ prioridade: prioridade.get(subgrupo)!, subgrupo, termos: lista }));

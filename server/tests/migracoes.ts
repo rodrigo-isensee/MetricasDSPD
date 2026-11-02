@@ -28,6 +28,7 @@ import * as m0026 from '../migrations/0026_bm_ref_apontamento.js';
 import * as m0027 from '../migrations/0027_bm_dim_card_raiz.js';
 import * as m0028 from '../migrations/0028_bm_fato_apontamento.js';
 import * as m0029 from '../migrations/0029_bm_fato_apontamento_tipo.js';
+import * as m0030 from '../migrations/0030_bm_ref_apontamento_vigencia.js';
 import type { Ddl } from '../src/plataforma/db/ddl.js';
 import type { Esquemas } from '../src/plataforma/db/esquemas.js';
 
@@ -44,7 +45,7 @@ export const MIGRACOES: Record<string, Modulo> = {
   '0021_bm_ctl_coleta_tarefa_apontamento': m0021, '0022_bm_stg_apontamento': m0022, '0023_bm_evt_apontamento': m0023,
   '0024_bm_dim_responsavel_pessoa_ref': m0024, '0025_bm_cfg_pessoa_eliminada': m0025, '0026_bm_ref_apontamento': m0026,
   '0027_bm_dim_card_raiz': m0027, '0028_bm_fato_apontamento': m0028,
-  '0029_bm_fato_apontamento_tipo': m0029,
+  '0029_bm_fato_apontamento_tipo': m0029, '0030_bm_ref_apontamento_vigencia': m0030,
 };
 
 export const arquivosDeMigracao = (): string[] =>

@@ -27,5 +27,6 @@
   "0026_bm_ref_apontamento": "5c576184ad338bb8bd36fc5a820349e993b97e73dca481902291a0d8bbf9bc4c",
   "0027_bm_dim_card_raiz": "3fa797f213cf08b8bfd29a8ee8f5843115877b79fb6b8346a1b1701db0b007f8",
   "0028_bm_fato_apontamento": "eeede97fd5899190caaf9dfd1b44fab406d20d8ec2403c398e3b6adf6c6b38a7",
-  "0029_bm_fato_apontamento_tipo": "8a41c05aafc7111755739a261c8d76b7f0a9f68c9deb1a34dce892e7d2753407"
+  "0029_bm_fato_apontamento_tipo": "8a41c05aafc7111755739a261c8d76b7f0a9f68c9deb1a34dce892e7d2753407",
+  "0030_bm_ref_apontamento_vigencia": "bf7525e98263773aa20fac1384b2067424aa42c75635b47ce08c60cd141e910b"
 }

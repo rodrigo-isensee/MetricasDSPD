@@ -8,7 +8,7 @@ import { ErroColetaBm } from '../src/modulos/businessmap/coleta.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { criarDublePg, type Chamada, type Resposta } from './duble-pg.js';
 
-// Pedido 059, E2.19: carga do dicionário de subgrupo por ref:sync (aditiva, só INSERT) e leitura pelo coletor. Sem banco: o SQL real vai ao .pg.
+// Pedido 059, E2.19: carga do dicionário de subgrupo por ref:sync (com vigência: abre, fecha e nunca apaga) e leitura pelo coletor. Sem banco: o SQL real vai ao .pg.
 const S = montarEsquemas('');
 const TIPOS: TipoDoCard[] = [{ tipo_id: '11', nome: 'Kaizen' }, { tipo_id: '22', nome: 'Incidente de Produção' }, { tipo_id: '33', nome: 'Story' }];
 const arquivoMinimo = (extra: Partial<ArquivoDicionario> = {}): ArquivoDicionario => ({
@@ -110,32 +110,65 @@ describe('analisarDicionario: validação do arquivo (recusa sem eco do valor)',
   });
 });
 
-describe('planejarDicionario: carga aditiva', () => {
+describe('planejarDicionario: carga com vigência (E2.27)', () => {
   const vazio: DicionarioBanco = { subgrupos: [], termos: [], regras: [] };
-  it('primeira carga: tudo entra, o rótulo do tipo vira type_id sem acento nem caixa e sem-comentario vira sem_comentario', () => {
+  const semMudanca = { abrir: [], fechar: [] };
+  const termo = (subgrupo_codigo: string, termo_normalizado: string) => ({ subgrupo_codigo, termo_normalizado });
+  it('primeira carga: tudo abre, o rótulo do tipo vira type_id sem acento nem caixa e sem-comentario vira sem_comentario', () => {
     const arq = arquivoMinimo({ regrasPorTipo: [{ tipoRotulo: 'INCIDENTE DE PRODUCAO', condicao: 'sem-comentario', subgrupo: 'a' }] });
     expect(planejarDicionario(arq, vazio, TIPOS)).toEqual({
-      subgrupos: [{ codigo: 'a', rotulo: 'A', prioridade: 1 }, { codigo: 'b', rotulo: 'B', prioridade: 2 }],
-      termos: [{ subgrupo_codigo: 'b', termo_normalizado: 'teste' }, { subgrupo_codigo: 'b', termo_normalizado: 'homolog' }],
-      regras: [{ type_id: '22', condicao: 'sem_comentario', subgrupo_codigo: 'a' }],
+      subgrupos: { abrir: [{ codigo: 'a', rotulo: 'A', prioridade: 1 }, { codigo: 'b', rotulo: 'B', prioridade: 2 }], fechar: [] },
+      termos: { abrir: [termo('b', 'teste'), termo('b', 'homolog')], fechar: [] },
+      regras: { abrir: [{ type_id: '22', condicao: 'sem_comentario', subgrupo_codigo: 'a' }], fechar: [] },
     });
   });
-  it('idempotente: com o banco igual ao arquivo o plano é vazio (e a ordem dos termos não importa)', () => {
+  it('idempotente: com o vigente igual ao arquivo o plano é vazio (e a ordem dos termos não importa)', () => {
     const banco = bancoDe();
     banco.termos.reverse();
-    expect(planejarDicionario(arquivoMinimo(), banco, TIPOS)).toEqual({ subgrupos: [], termos: [], regras: [] });
+    expect(planejarDicionario(arquivoMinimo(), banco, TIPOS)).toEqual({ subgrupos: semMudanca, termos: semMudanca, regras: semMudanca });
   });
-  it('aditivo: subgrupo, termo e regra novos entram; o que já existe fica', () => {
+  it('termo novo entra: subgrupo, termo e regra novos abrem; o que já está vigente não é tocado', () => {
     const arq = arquivoMinimo({
       subgrupos: [...arquivoMinimo().subgrupos, { codigo: 'c', rotulo: 'C', prioridade: 3 }],
       termos: [{ subgrupo: 'b', termos: ['teste', 'homolog', 'novo'] }, { subgrupo: 'c', termos: ['ccc'] }],
       regrasPorTipo: [...arquivoMinimo().regrasPorTipo, { tipoRotulo: 'Story', condicao: 'sem-comentario', subgrupo: 'c' }],
     });
     expect(planejarDicionario(arq, bancoDe(), TIPOS)).toEqual({
-      subgrupos: [{ codigo: 'c', rotulo: 'C', prioridade: 3 }],
-      termos: [{ subgrupo_codigo: 'b', termo_normalizado: 'novo' }, { subgrupo_codigo: 'c', termo_normalizado: 'ccc' }],
-      regras: [{ type_id: '33', condicao: 'sem_comentario', subgrupo_codigo: 'c' }],
+      subgrupos: { abrir: [{ codigo: 'c', rotulo: 'C', prioridade: 3 }], fechar: [] },
+      termos: { abrir: [termo('b', 'novo'), termo('c', 'ccc')], fechar: [] },
+      regras: { abrir: [{ type_id: '33', condicao: 'sem_comentario', subgrupo_codigo: 'c' }], fechar: [] },
     });
+  });
+  it('termo retirado só fecha, sem abrir nada; termo que trocou de subgrupo fecha a linha antiga e abre a nova', () => {
+    const retirado = planejarDicionario(arquivoMinimo({ termos: [{ subgrupo: 'b', termos: ['teste'] }] }), bancoDe(), TIPOS);
+    expect(retirado.termos).toEqual({ abrir: [], fechar: [termo('b', 'homolog')] });
+    expect(retirado.subgrupos).toEqual(semMudanca);
+    const trocou = planejarDicionario(arquivoMinimo({ termos: [{ subgrupo: 'a', termos: ['homolog'] }, { subgrupo: 'b', termos: ['teste'] }] }), bancoDe(), TIPOS);
+    expect(trocou.termos).toEqual({ abrir: [termo('a', 'homolog')], fechar: [termo('b', 'homolog')] });
+  });
+  it('termo mudado: o que o arquivo traz no lugar fecha o antigo e abre o novo (o termo é a própria chave, então "mudar" é retirar e trazer outro)', () => {
+    const p = planejarDicionario(arquivoMinimo({ termos: [{ subgrupo: 'b', termos: ['teste', 'validac'] }] }), bancoDe(), TIPOS);
+    expect(p.termos).toEqual({ abrir: [termo('b', 'validac')], fechar: [termo('b', 'homolog')] });
+  });
+  it('subgrupo com rótulo ou prioridade mudados fecha e abre o mesmo código, sem mexer nos termos; troca de prioridades entre dois subgrupos também', () => {
+    const rotulo = planejarDicionario(arquivoMinimo({ subgrupos: [{ codigo: 'a', rotulo: 'A novo', prioridade: 1 }, { codigo: 'b', rotulo: 'B', prioridade: 2 }] }), bancoDe(), TIPOS);
+    expect(rotulo.subgrupos).toEqual({ abrir: [{ codigo: 'a', rotulo: 'A novo', prioridade: 1 }], fechar: [{ codigo: 'a', rotulo: 'A', prioridade: 1 }] });
+    expect(rotulo.termos).toEqual(semMudanca);
+    const troca = planejarDicionario(arquivoMinimo({ subgrupos: [{ codigo: 'a', rotulo: 'A', prioridade: 2 }, { codigo: 'b', rotulo: 'B', prioridade: 1 }] }), bancoDe(), TIPOS);
+    expect(troca.subgrupos.fechar.map((x) => x.codigo)).toEqual(['a', 'b']);
+    expect(troca.subgrupos.abrir).toEqual([{ codigo: 'a', rotulo: 'A', prioridade: 2 }, { codigo: 'b', rotulo: 'B', prioridade: 1 }]);
+  });
+  it('subgrupo retirado fecha, junto com os termos e as regras que o arquivo deixou de trazer', () => {
+    const arq = arquivoMinimo({ subgrupos: [{ codigo: 'a', rotulo: 'A', prioridade: 1 }], termos: [], regrasPorTipo: [{ tipoRotulo: 'Kaizen', condicao: 'sempre', subgrupo: 'a' }] });
+    const p = planejarDicionario(arq, bancoDe(), TIPOS);
+    expect(p.subgrupos).toEqual({ abrir: [], fechar: [{ codigo: 'b', rotulo: 'B', prioridade: 2 }] });
+    expect(p.termos).toEqual({ abrir: [], fechar: [termo('b', 'teste'), termo('b', 'homolog')] });
+    expect(p.regras).toEqual(semMudanca);
+  });
+  it('regra retirada só fecha; regra que mudou de subgrupo fecha e abre', () => {
+    expect(planejarDicionario(arquivoMinimo({ regrasPorTipo: [] }), bancoDe(), TIPOS).regras).toEqual({ abrir: [], fechar: [{ type_id: '11', condicao: 'sempre', subgrupo_codigo: 'a' }] });
+    const mudou = planejarDicionario(arquivoMinimo({ regrasPorTipo: [{ tipoRotulo: 'Kaizen', condicao: 'sempre', subgrupo: 'b' }] }), bancoDe(), TIPOS);
+    expect(mudou.regras).toEqual({ abrir: [{ type_id: '11', condicao: 'sempre', subgrupo_codigo: 'b' }], fechar: [{ type_id: '11', condicao: 'sempre', subgrupo_codigo: 'a' }] });
   });
   it('tipo de card inexistente ou ambíguo: recusa a carga, sem adivinhar o id', () => {
     const arq = arquivoMinimo({ regrasPorTipo: [{ tipoRotulo: 'Tipo que não existe', condicao: 'sempre', subgrupo: 'a' }] });
@@ -146,86 +179,115 @@ describe('planejarDicionario: carga aditiva', () => {
     expect(e2).toMatchObject({ tipo: 'tipo' });
     expect(e2.message).toMatch(/mais de um id/);
     // o mesmo tipo vigente listado duas vezes com o mesmo id não é ambiguidade
-    expect(planejarDicionario(arquivoMinimo(), vazio, [...TIPOS, { tipo_id: '11', nome: 'Kaizen' }]).regras).toHaveLength(1);
+    expect(planejarDicionario(arquivoMinimo(), vazio, [...TIPOS, { tipo_id: '11', nome: 'Kaizen' }]).regras.abrir).toHaveLength(1);
   });
-  it('recusa mudar ou tirar o que já foi carregado (exige coluna de vigência), sem gravar nada', () => {
-    const casos: [string, ArquivoDicionario, DicionarioBanco, RegExp][] = [
-      ['subgrupo saiu do arquivo', arquivoMinimo({ subgrupos: [{ codigo: 'a', rotulo: 'A', prioridade: 1 }], termos: [], regrasPorTipo: [] }), bancoDe(), /subgrupo b saiu do arquivo/],
-      ['rótulo mudou', arquivoMinimo({ subgrupos: [{ codigo: 'a', rotulo: 'A novo', prioridade: 1 }, { codigo: 'b', rotulo: 'B', prioridade: 2 }] }), bancoDe(), /mudou de rótulo ou de prioridade/],
-      ['prioridade mudou', arquivoMinimo({ subgrupos: [{ codigo: 'a', rotulo: 'A', prioridade: 5 }, { codigo: 'b', rotulo: 'B', prioridade: 2 }] }), bancoDe(), /mudou de rótulo ou de prioridade/],
-      ['prioridade ocupada', arquivoMinimo({ subgrupos: [...arquivoMinimo().subgrupos, { codigo: 'c', rotulo: 'C', prioridade: 2 }] }), bancoDe(), /prioridade 2 do subgrupo c já é de outro/],
-      ['termo saiu', arquivoMinimo({ termos: [{ subgrupo: 'b', termos: ['teste'] }] }), bancoDe(), /termo homolog saiu do subgrupo b/],
-      ['regra saiu', arquivoMinimo({ regrasPorTipo: [] }), bancoDe(), /regra do tipo 11 \(sempre\) saiu/],
-      ['regra mudou de subgrupo', arquivoMinimo({ regrasPorTipo: [{ tipoRotulo: 'Kaizen', condicao: 'sempre', subgrupo: 'b' }] }), bancoDe(), /regra do tipo 11 \(sempre\) mudou de subgrupo/],
-    ];
-    for (const [nome, arq, banco, re] of casos) {
-      const e = recusa(() => planejarDicionario(arq, banco, TIPOS));
-      expect(e, nome).toMatchObject({ tipo: 'mudanca' });
-      expect(e.message, nome).toMatch(re);
-      expect(e.message, nome).toMatch(/coluna de vigência/);
+  it('recusa só o que deixaria a classificação sem saída: tirar execucao-tecnica ou nao-classificado do arquivo', () => {
+    for (const reservado of ['execucao-tecnica', 'nao-classificado']) {
+      const banco = bancoDe();
+      banco.subgrupos.push({ codigo: reservado, rotulo: 'R', prioridade: 9 });
+      const e = recusa(() => planejarDicionario(arquivoMinimo(), banco, TIPOS));
+      expect(e, reservado).toMatchObject({ tipo: 'mudanca' });
+      expect(e.message, reservado).toContain(reservado);
+      // mudar o rótulo dele continua permitido (fecha e abre o mesmo código)
+      const arq = arquivoMinimo({ subgrupos: [...arquivoMinimo().subgrupos, { codigo: reservado, rotulo: 'R novo', prioridade: 9 }] });
+      expect(planejarDicionario(arq, banco, TIPOS).subgrupos.abrir).toEqual([{ codigo: reservado, rotulo: 'R novo', prioridade: 9 }]);
     }
   });
 });
 
 /** Banco falso do `sincronizarDicionario` e do `carregarDicionario`: responde pelas tabelas e guarda os INSERT. */
-interface EstadoBanco { banco: DicionarioBanco; tipos: TipoDoCard[]; ultima: string | null; versaoExistente: string | null; referencias: string[] }
+interface EstadoBanco { banco: DicionarioBanco; tipos: TipoDoCard[]; ultima: string | null; referencias: string[] }
 function planejarComoBanco(arq: ArquivoDicionario): EstadoBanco {
   const regras = arq.regrasPorTipo.map((r) => ({ type_id: r.tipoRotulo === 'Kaizen' ? '11' : '22', condicao: r.condicao === 'sempre' ? 'sempre' : 'sem_comentario', subgrupo_codigo: r.subgrupo }));
   return {
     banco: { subgrupos: arq.subgrupos.map((s) => ({ ...s })), termos: arq.termos.flatMap((t) => t.termos.map((termo) => ({ subgrupo_codigo: t.subgrupo, termo_normalizado: termo }))), regras },
-    tipos: TIPOS, ultima: null, versaoExistente: null, referencias: [`059:ref-apontamento:${arq.versao}:${'a'.repeat(64)}`],
+    tipos: TIPOS, ultima: null, referencias: [`059:ref-apontamento:${arq.versao}:${'a'.repeat(64)}`],
   };
 }
 const bancoComoResposta = (e: EstadoBanco, inserts: Chamada[] = []) => (c: Chamada): Resposta => {
   const t = c.texto;
-  if (t.startsWith('INSERT INTO') && !t.includes('RETURNING')) { inserts.push(c); return []; }
+  if ((t.startsWith('INSERT INTO') && !t.includes('RETURNING')) || t.startsWith('UPDATE ')) { inserts.push(c); return []; }
   if (t.includes('FROM dspd_bm.ref_apontamento_subgrupo')) return e.banco.subgrupos;
   if (t.includes('FROM dspd_bm.ref_apontamento_termo')) return e.banco.termos;
   if (t.includes('FROM dspd_bm.ref_apontamento_regra_tipo')) return e.banco.regras;
   if (t.includes('FROM dspd_bm.ref_tipo_card')) return e.tipos;
   if (t.includes('max(vigente_desde)')) return [{ ultima: e.ultima }];
-  if (t.includes('SELECT versao_id')) return e.versaoExistente === null ? [] : [{ versao_id: e.versaoExistente }];
   if (t.includes('INSERT INTO dspd_core.ref_versao_criterio')) { inserts.push(c); return [{ versao_id: '77' }]; }
   if (t.includes('SELECT referencia')) return e.referencias.map((referencia) => ({ referencia }));
   return [];
 };
 
-describe('sincronizarDicionario (dspd_ref, só INSERT, numa transação)', () => {
+describe('sincronizarDicionario (dspd_ref: INSERT e UPDATE de vigente_ate, numa transação)', () => {
   const arquivo = (a = arquivoMinimo()) => ({ arquivo: a, sha256: 'b'.repeat(64) });
-  const vazio = (): EstadoBanco => ({ banco: { subgrupos: [], termos: [], regras: [] }, tipos: TIPOS, ultima: null, versaoExistente: null, referencias: [] });
-  it('primeira carga: registra a versão de critério (domínio businessmap, referência com a versão e o hash) e insere com o id dela', async () => {
+  const vazio = (): EstadoBanco => ({ banco: { subgrupos: [], termos: [], regras: [] }, tipos: TIPOS, ultima: null, referencias: [] });
+  const zero = { subgrupos: 0, termos: 0, regras: 0 };
+  it('primeira carga: registra a versão de critério (domínio businessmap, referência com a versão e o hash) e abre as linhas com o id dela e a data', async () => {
     const inserts: Chamada[] = [];
     const db = criarDublePg(bancoComoResposta(vazio(), inserts));
     const r = await sincronizarDicionario(db.pool, S, arquivo(), '2026-11-02', new Date('2026-11-02T12:00:00Z'));
-    expect(r).toEqual({ sha256: 'b'.repeat(64), versao: 'v1', subgrupos: 2, termos: 2, regras: 1, versaoRegistrada: true });
+    expect(r).toEqual({ sha256: 'b'.repeat(64), versao: 'v1', subgrupos: 2, termos: 2, regras: 1, fechados: zero, versaoRegistrada: true });
     const versao = inserts.find((c) => c.texto.includes('ref_versao_criterio'))!;
     expect(versao.valores[0]).toBe('2026-11-02');
     expect(versao.valores[3]).toBe(`059:ref-apontamento:v1:${'b'.repeat(64)}`);
     const linhas = inserts.filter((c) => c.texto.includes('dspd_bm.ref_apontamento_'));
     expect(linhas).toHaveLength(5);
-    for (const l of linhas) expect(l.valores.at(-1)).toBe('77');
+    for (const l of linhas) {
+      expect(l.valores.at(-2)).toBe('77');
+      expect(l.valores.at(-1)).toBe('2026-11-02');
+      expect(l.texto).toContain('vigente_de');
+    }
     const textos = db.chamadas.map((c) => c.texto);
     expect(textos[0]).toBe('BEGIN');
     expect(textos.at(-1)).toBe('COMMIT');
     expect(db.estado.liberados).toBe(1);
-    expect(textos.join('\n')).not.toMatch(/DELETE|UPDATE|DO UPDATE|TRUNCATE/i);
+    expect(textos.join('\n')).not.toMatch(/DELETE|DO UPDATE|TRUNCATE/i);
   });
-  it('idempotente: com o dicionário já carregado nada é gravado nem versão registrada', async () => {
+  it('lê só o vigente: todo SELECT do dicionário filtra vigente_ate IS NULL', async () => {
+    const db = criarDublePg(bancoComoResposta(vazio()));
+    await sincronizarDicionario(db.pool, S, arquivo(), '2026-11-02', new Date());
+    const leituras = db.chamadas.map((c) => c.texto).filter((t) => t.startsWith('SELECT') && t.includes('dspd_bm.ref_apontamento_'));
+    expect(leituras).toHaveLength(3);
+    for (const t of leituras) expect(t).toContain('vigente_ate IS NULL');
+  });
+  it('idempotente: com o dicionário vigente igual ao arquivo nada é gravado nem versão registrada', async () => {
     const e = vazio();
     e.banco = bancoDe();
     const inserts: Chamada[] = [];
     const db = criarDublePg(bancoComoResposta(e, inserts));
-    expect(await sincronizarDicionario(db.pool, S, arquivo(), '2026-11-02', new Date())).toMatchObject({ subgrupos: 0, termos: 0, regras: 0, versaoRegistrada: false });
+    expect(await sincronizarDicionario(db.pool, S, arquivo(), '2026-11-02', new Date())).toMatchObject({ subgrupos: 0, termos: 0, regras: 0, fechados: zero, versaoRegistrada: false });
     expect(inserts).toEqual([]);
   });
-  it('carga aditiva reaproveita a versão já registrada para o mesmo hash', async () => {
+  it('termo retirado só fecha (UPDATE de vigente_ate com a data da carga), registra versão nova e não insere nem apaga', async () => {
     const e = vazio();
-    e.versaoExistente = '55';
+    e.banco = bancoDe();
     const inserts: Chamada[] = [];
     const db = criarDublePg(bancoComoResposta(e, inserts));
-    const r = await sincronizarDicionario(db.pool, S, arquivo(), '2026-11-02', new Date());
-    expect(r.versaoRegistrada).toBe(false);
-    expect(inserts.every((c) => !c.texto.includes('ref_versao_criterio') && c.valores.at(-1) === '55')).toBe(true);
+    const r = await sincronizarDicionario(db.pool, S, arquivo(arquivoMinimo({ termos: [{ subgrupo: 'b', termos: ['teste'] }] })), '2026-11-05', new Date());
+    expect(r).toMatchObject({ subgrupos: 0, termos: 0, regras: 0, fechados: { subgrupos: 0, termos: 1, regras: 0 }, versaoRegistrada: true });
+    const alteracoes = inserts.filter((c) => c.texto.includes('dspd_bm.ref_apontamento_'));
+    expect(alteracoes).toHaveLength(1);
+    expect(alteracoes[0]!.texto).toMatch(/^UPDATE dspd_bm\.ref_apontamento_termo SET vigente_ate = \$1 WHERE vigente_ate IS NULL/);
+    expect(alteracoes[0]!.valores).toEqual(['2026-11-05', 'homolog', 'b']);
+    expect(db.chamadas.map((c) => c.texto).join('\n')).not.toMatch(/DELETE|TRUNCATE/i);
+  });
+  it('subgrupo mudado: fecha antes de abrir (o índice único da prioridade vigente exige) e abre com a versão nova', async () => {
+    const e = vazio();
+    e.banco = bancoDe();
+    const inserts: Chamada[] = [];
+    const db = criarDublePg(bancoComoResposta(e, inserts));
+    const troca = arquivoMinimo({ subgrupos: [{ codigo: 'a', rotulo: 'A', prioridade: 2 }, { codigo: 'b', rotulo: 'B', prioridade: 1 }] });
+    const r = await sincronizarDicionario(db.pool, S, arquivo(troca), '2026-11-05', new Date());
+    expect(r).toMatchObject({ subgrupos: 2, fechados: { subgrupos: 2, termos: 0, regras: 0 } });
+    const ordem = inserts.filter((c) => c.texto.includes('ref_apontamento_subgrupo')).map((c) => c.texto.split(' ')[0]);
+    expect(ordem).toEqual(['UPDATE', 'UPDATE', 'INSERT', 'INSERT']);
+  });
+  it('toda carga que muda algo registra uma versão nova, mesmo com o mesmo hash de uma anterior (cada mudança tem a sua data)', async () => {
+    const inserts: Chamada[] = [];
+    for (const dia of ['2026-11-02', '2026-11-03']) {
+      const db = criarDublePg(bancoComoResposta(vazio(), inserts));
+      expect(await sincronizarDicionario(db.pool, S, arquivo(), dia, new Date())).toMatchObject({ versaoRegistrada: true });
+    }
+    expect(inserts.filter((c) => c.texto.includes('ref_versao_criterio')).map((c) => c.valores[0])).toEqual(['2026-11-02', '2026-11-03']);
   });
   it('data anterior à última versão do dicionário: recusa e desfaz tudo; a mesma data ou posterior passa', async () => {
     const e = vazio();
@@ -237,7 +299,7 @@ describe('sincronizarDicionario (dspd_ref, só INSERT, numa transação)', () =>
     expect(db.chamadas.at(-1)!.texto).toBe('ROLLBACK');
     await expect(sincronizarDicionario(criarDublePg(bancoComoResposta(e)).pool, S, arquivo(), '2026-11-05', new Date())).resolves.toMatchObject({ versaoRegistrada: true });
   });
-  it('recusa do plano (tipo inexistente, mudança) desfaz a transação sem inserir nada', async () => {
+  it('recusa do plano (tipo inexistente, subgrupo reservado) desfaz a transação sem gravar nada', async () => {
     const e = vazio();
     e.tipos = [];
     const inserts: Chamada[] = [];
