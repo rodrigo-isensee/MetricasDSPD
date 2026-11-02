@@ -1,0 +1,35 @@
+{
+  "versao": "2026-11-02-v1",
+  "subgrupos": [
+    { "codigo": "gestao-backlog-rituais", "rotulo": "Gestão de backlog/rituais ágeis", "prioridade": 1 },
+    { "codigo": "testes", "rotulo": "Testes (unitários/integrados)", "prioridade": 2 },
+    { "codigo": "reunioes-comunicacao", "rotulo": "Reuniões/Comunicação com áreas", "prioridade": 3 },
+    { "codigo": "analise-diagnostico", "rotulo": "Análise e diagnóstico", "prioridade": 4 },
+    { "codigo": "gestao-mudanca", "rotulo": "Gestão de mudança (RDM/GMUD)", "prioridade": 5 },
+    { "codigo": "documentacao", "rotulo": "Documentação", "prioridade": 6 },
+    { "codigo": "configuracao-infra", "rotulo": "Configuração/Infraestrutura", "prioridade": 7 },
+    { "codigo": "apoio-areas", "rotulo": "Apoio pontual a áreas de negócio", "prioridade": 8 },
+    { "codigo": "desenvolvimento-correcao", "rotulo": "Desenvolvimento/Correção", "prioridade": 9 },
+    { "codigo": "incidente-sem-detalhe", "rotulo": "Correção de incidente (sem detalhe)", "prioridade": 10 },
+    { "codigo": "execucao-tecnica", "rotulo": "Execução técnica (sem detalhamento no apontamento)", "prioridade": 11 },
+    { "codigo": "nao-classificado", "rotulo": "Não classificado", "prioridade": 12 }
+  ],
+  "termos": [
+    { "subgrupo": "testes", "termos": ["teste", "homolog"] },
+    { "subgrupo": "reunioes-comunicacao", "termos": ["reuni", "call", "meet", "alinhament"] },
+    { "subgrupo": "analise-diagnostico", "termos": ["analise", "diagnostic"] },
+    { "subgrupo": "gestao-mudanca", "termos": ["rdm", "gmud", "mudanca"] },
+    { "subgrupo": "documentacao", "termos": ["document"] },
+    { "subgrupo": "configuracao-infra", "termos": ["configuracao", "infraestrutura", "ambiente"] },
+    { "subgrupo": "apoio-areas", "termos": ["apoio"] },
+    { "subgrupo": "desenvolvimento-correcao", "termos": ["desenvolv", "ajuste", "correcao", "debug", "implement", "criacao", "rotina", "fonte", "script"] }
+  ],
+  "regrasPorTipo": [
+    { "tipoRotulo": "Kaizen", "condicao": "sempre", "subgrupo": "gestao-backlog-rituais" },
+    { "tipoRotulo": "Incidente de Produção", "condicao": "sem-comentario", "subgrupo": "incidente-sem-detalhe" }
+  ],
+  "subtarefa": [
+    { "codigo": "direto-no-card", "rotulo": "Direto no card (sem subtarefa)" },
+    { "codigo": "em-subtarefa", "rotulo": "Em subtarefa" }
+  ]
+}
