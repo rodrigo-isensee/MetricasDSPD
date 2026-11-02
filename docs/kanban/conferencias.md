@@ -1218,3 +1218,24 @@
 | 2026-11-02 04:29 | 059-aba-apontamento | 059-aba-apontamento-node-backend-22.md | brief | 1 | reprovado | s | A3 incompleto; pontuacao sem decisao | escopo | jarvis |
 | 2026-11-02 04:33 | 059-aba-apontamento | 059-aba-apontamento-node-backend-23.md | brief | 2 | reprovado | s | segundo orcamento sem limite | escopo | jarvis |
 | 2026-11-02 04:35 | 059-aba-apontamento | 059-aba-apontamento-node-backend-24.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:41 | 059-aba-apontamento | 059-aba-apontamento-node-backend-25.md | brief | 1 | reprovado | s | atribuicao da vigencia ao dono | decisao | jarvis |
+| 2026-11-02 04:42 | 059-aba-apontamento | 059-aba-apontamento-software-architect-11.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:45 | 059-aba-apontamento | 059-aba-apontamento-node-backend-26.md | brief | 2 | reprovado | s | tardio | decisao | jarvis |
+| 2026-11-02 04:50 | 059-aba-apontamento | 059-aba-apontamento-node-backend-27.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:50 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-20.md | brief | 1 | reprovado | s | delta sobre a rota em vez de contra a develop | escopo | jarvis |
+| 2026-11-02 04:51 | 059-aba-apontamento | 059-aba-apontamento-ux-designer-4.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:51 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-8.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:51 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-19.md | brief | 1 | reprovado | s | Edit sem origem; PQ sem antes e depois | escopo | jarvis |
+| 2026-11-02 04:53 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-21.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:55 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-22.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:57 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-9.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:58 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-23.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:04 | 059-aba-apontamento | 059-aba-apontamento-software-architect-12.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:08 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-11.md | brief | 1 | reprovado | s | A-4 resumia a decisao tecnica | decisao | jarvis |
+| 2026-11-02 05:12 | 059-aba-apontamento | 059-aba-apontamento-node-backend-28.md | brief | 1 | reprovado | s | A3 teto sem mencao | escopo | jarvis |
+| 2026-11-02 05:13 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-12.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:16 | 059-aba-apontamento | 059-aba-apontamento-node-backend-29.md | brief | 2 | reprovado | n | so a linha em branco da propria saida do forge-check | forma | jarvis |
+| 2026-11-02 05:16 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-10.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:19 | 059-aba-apontamento | 059-aba-apontamento-node-backend-29.md | brief | 3 | reprovado | s | tardio faixa de possivel erro | escopo | jarvis |
+| 2026-11-02 05:22 | 059-aba-apontamento | 059-aba-apontamento-node-backend-30.md | brief | 4 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:26 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-24.md | brief | 1 | aprovado | s |  | — | jarvis |
