@@ -84,6 +84,11 @@ d('059: eliminação a pedido (CA-AP-10) no PostgreSQL', () => {
     const lista = await dono.query<{ h: string; eliminada_em: string }>(`SELECT encode(hash_usuario, 'hex') AS h, eliminada_em::text FROM ${S.bm}.cfg_pessoa_eliminada WHERE hash_usuario = decode($1, 'hex')`, [hmacUsuario(SAL, String(b + 100))]);
     expect(lista.rows).toEqual([{ h: hmacUsuario(SAL, String(b + 100)), eliminada_em: '2026-11-04' }]);
     expect(await n(`SELECT count(*) AS n FROM ${S.bm}.cfg_pessoa_eliminada x WHERE x::text LIKE $1`, [`%${b + 100}%`])).toBe(0);
+    // (1b) responsável do procedimento (0031, R4-6): só o papel de banco que executou, nunca pessoa
+    const quem = await dono.query<{ executado_por: string; papel: string }>(
+      `SELECT executado_por, current_user AS papel FROM ${S.bm}.cfg_pessoa_eliminada WHERE hash_usuario = decode($1, 'hex')`, [hmacUsuario(SAL, String(b + 100))]);
+    expect(quem.rows).toEqual([{ executado_por: quem.rows[0]!.papel, papel: quem.rows[0]!.papel }]);
+    expect(quem.rows[0]!.papel).toMatch(/^dspd_/);
     // (2) o nome sai; a outra pessoa fica
     expect(await n(`SELECT count(*) AS n FROM ${S.bm}.dim_responsavel WHERE responsavel_id = $1`, [String(b + 100)])).toBe(0);
     expect(await n(`SELECT count(*) AS n FROM ${S.bm}.dim_responsavel WHERE responsavel_nome = 'PESSOA-FICTICIA-ELIMINAR'`)).toBe(0);

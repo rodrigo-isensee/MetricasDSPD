@@ -122,6 +122,10 @@ describe('vigência do dicionário (0030, E2.27)', () => {
       expect(up, t).toContain(`CREATE TRIGGER tg_${t}_sem_truncate BEFORE TRUNCATE ON ${S_PADRAO.bm}.${t} FOR EACH STATEMENT`);
     }
   });
+  it('responsável do procedimento de eliminação (0031): só o papel de banco que executou, nunca dado de pessoa', () => {
+    expect(MIGRACOES['0031_bm_cfg_pessoa_eliminada_executado_por']!.ddl(S_PADRAO).up.join('\n')).toContain(`ALTER TABLE ${S_PADRAO.bm}.cfg_pessoa_eliminada ADD COLUMN executado_por varchar(63) NOT NULL DEFAULT current_user CHECK (executado_por <> '')`);
+    expect(colunaDePessoa('executado_por')).toBe(false);
+  });
   it('o dspd_ref ganha só UPDATE (vigente_ate) nas tabelas que têm a coluna; o coletor continua só lendo; a API nada', () => {
     const S = montarEsquemas('');
     const cat = { bm: Object.fromEntries(tabelas.map((t) => [t, [...nomes(t), 'vigente_de', 'vigente_ate', 'vigencia_id']])), ac: {}, core: {} };
