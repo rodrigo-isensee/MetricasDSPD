@@ -7,6 +7,23 @@ Este arquivo é para uma sessão nova do Jarvis que não tem a memória da anter
   - BusinessMap: FL1 com dado real; O19 a O26 seguem em mock até a F6b.
   - Acelerato: sustentação com dado real.
 
+## 0. Estado em 2026-11-02 01:05 (pedido 059, prazo 22:00)
+- **Bloqueio novo:** o `forge-check` 0.30.8 está atrás do repositório e não gera mais brief. Ação do dono, antes de tudo: `forge atualizar` no terminal.
+- **Em andamento:** E2.16 (B4, rota), com o `forge:node-backend` na worktree 052g, branch local `feature/059-rota-apontamento`. Ao terminar: conferente modo entrega e registro no Histórico.
+- **Brief 13 (E2.19, resto da trilha A):** reprovado (versão do forge-check e a permissão de main). As decisões técnicas estão no Histórico às 01:00. Para regerar: o script `b59rv2.py nb` do scratchpad, ou o mesmo conteúdo à mão.
+- **E2.17 e E2.18 (review e segurança da trilha B):** o forge-check exige a branch no remoto, então esperam a pergunta 1 (push antes do QA).
+- **Fila do dono, uma por vez:**
+  1. `forge atualizar` (ação);
+  2. push antes do QA;
+  3. varredura de presença;
+  4. A7;
+  5. dicionário até 12:00;
+  6. seletor do Operacional;
+  7. genérico com comentário vazio;
+  8. limiares dos achados;
+  9. fim de semana na capacidade;
+  10. limpeza do seed do 052 na base dele.
+
 ## 1. Agentes que estavam rodando na hora da parada (ver o que deixaram antes de relançar)
 - **E2.107 CUMPRIDA (16:10):** `feature/052-fix-test-pg` enviada (`4e5958f`), na worktree `/home/rodrigoisensee/MetricasDSPD-052e`.
   - Causa: o vite 8.3.5, que veio no PR 182, quebra o vitest 5.0.5 com o cache frio do jiti.

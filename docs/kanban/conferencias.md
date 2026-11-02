@@ -1185,3 +1185,6 @@
 | 2026-11-01 23:16 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-76.md | brief | 1 | reprovado | s | parecer de segurança errado; antes das renovações | etapa | jarvis |
 | 2026-11-01 23:20 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-51.md | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-11-01 23:28 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-77.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 23:53 | 059-aba-apontamento | 059-aba-apontamento-node-backend-11.md | brief | 1 | reprovado | s | Base-sha da develop não é ancestral das trilhas | base | jarvis |
+| 2026-11-01 23:57 | 059-aba-apontamento | 059-aba-apontamento-node-backend-12.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 00:02 | 059-aba-apontamento | 059-aba-apontamento-node-backend-13.md | brief | 1 | reprovado | parcial | versao do forge-check atras; permissao de main contra CLAUDE.md | decisao | jarvis |
