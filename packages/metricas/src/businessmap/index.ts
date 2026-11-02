@@ -61,3 +61,13 @@ export { calcularT8 } from './t8'
 export { calcularE4 } from './e4'
 export { calcularE5 } from './e5'
 export { ENTRADAS_T6 } from './apoio'
+export {
+  calcularApontamento,
+  LIMIARES_ACHADO_PADRAO,
+  type CalculoApontamento,
+  type DimApontamento,
+  type EntradaApontamento,
+  type FiltrosApontamento,
+  type LimiaresAchado,
+  type LinhaApontamento,
+} from './apontamento'
