@@ -4,3 +4,21 @@
  */
 export { contarPassagens, houveTroca } from './houveTroca'
 export { faixaConcentracao } from './faixaConcentracao'
+export {
+  LIMITE_GENERICO_PALAVRAS,
+  MASCARA_FLAG,
+  MAX_PONTOS_DE_CODIGO,
+  MAX_QTD_PALAVRAS,
+  SUBGRUPO_EXECUCAO_TECNICA,
+  SUBGRUPO_NAO_CLASSIFICADO,
+  classificarApontamento,
+  flagsDaMascara,
+  mascaraDeFlags,
+  normalizarTexto,
+  palavrasDe,
+  type DicionarioApontamento,
+  type EntradaApontamento,
+  type RegraPorTermo,
+  type RegraPorTipo,
+  type ResultadoApontamento,
+} from './classificarApontamento'
