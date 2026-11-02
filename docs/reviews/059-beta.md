@@ -3,12 +3,30 @@ tipo: review
 contrato: 1
 pedido: 059-aba-apontamento
 branch: feature/059-coleta-worklog
-commit: 82d136001f371cef0e142426d092e4b1f15e6df3
+commit: 29c64aaed34d84ca3443c49404f188d5ebba4fa9
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-02
 ---
 # Review: 059-aba-apontamento, branch da coleta do worklog (trilha A, E2.37, K-193)
+
+**Rodada 3 (revalidação por delta sobre o merge da develop, E2.69). Veredito: aprovado em `29c64aa`.** O merge não traz código novo da coleta. Nenhum achado novo. O A10 (recomendado) segue aberto e não devolve.
+
+## Delta lido na rodada 3
+- O `forge-check pr 059-aba-apontamento --raiz /home/rodrigoisensee/MetricasDSPD-052d --ref origin/feature/059-coleta-worklog --base origin/develop` acusou este parecer como desatualizado por `packages/contratos/src/apontamento.test.ts`. O `forge-check delta --parecer docs/reviews/059-beta.md` mostra o intervalo `82d1360..29c64aa`, que tem dois merges da develop (`afe05d5` e `29c64aa`) e os commits que só trazem pareceres (`28f92fe`, `6106442`, `d3d50b4`, `2321a1a`).
+- **Merge `2321a1a..29c64aa` (squash do PR 194, trilha B):** 16 arquivos, nenhum em `server/`, `web/`, `e2e/` ou `.github/`. Os 3 pareceres do α e os 12 arquivos de `packages/contratos` e `packages/metricas` (contrato, cálculos da aba, `classificarApontamento.ts`) ficam iguais à `origin/develop`: `git diff origin/develop 29c64aa` nesses caminhos sai vazio. Esses arquivos foram aprovados nos pareceres da trilha B (`docs/reviews/059-alfa.md` e os da segurança e do QA), e não os reli.
+- **Os dois arquivos combinados (decisão técnica do conflito):** `git diff origin/develop..origin/feature/059-coleta-worklog -- packages` mostra só 5 arquivos (14 linhas a mais, 4 a menos). Comparei esse patch com o patch do `70b70a9` em `packages`: os mesmos trechos, só mudam os números de linha e os blobs. Em `coletor/index.ts`, a branch fica com os exports da develop (`MAX_PONTOS_DE_CODIGO`, `palavrasDe`) e com o comentário do `70b70a9` (subcaminho `./coletor`, ADR 0020 item 3). Em `classificarApontamento.test.ts`, fica a versão da develop com o relaxamento do `package.json` reaplicado, igual ao que a rodada 1 aceitou. Não entra nada além disso.
+- **Merge `afe05d5` (feito antes, pelo `gh pr update-branch` da E2.67):** traz da develop o PR 193 (exceção: `CLAUDE.md` e briefing), a limpeza do seed (`limpar-seed.ts` com os testes, a linha no `server/package.json`, o ignore no `server/eslint.config.js` e a seção do `server.md`), `.forge/versao` e os pareceres do 052. Contra a `origin/develop`, `server/eslint.config.js`, `limpar-seed*`, `CLAUDE.md`, briefing e `.forge/versao` saem iguais. Em `server.md` e `server/package.json` sobram só a seção e os três scripts da própria coleta, que a rodada 2 já leu.
+- Já lido nas rodadas 1 e 2 e não relido: todo o código da coleta em `server/` (nenhum arquivo dele mudou no intervalo).
+
+## Ferramentas e outros pareceres (rodada 3)
+- PR 195 com `headRefOid` `29c64aa` e `mergeStateStatus` CLEAN. Todos os checks da ponta estão SUCCESS (rapida, testes, filtro, openapi, imagem, build, seguranca, banco, e2e e as duas partes). Os SKIPPED são os jobs condicionais (perf e a matriz-modelo do e2e). Não refiz a suíte.
+- Segurança (`docs/security/059-beta.md`) e QA da exceção têm renovação própria (E2.70 e E2.71). Não refiz.
+- Teto (A1 da rodada 1): o número da linha `teto: excedido` é recontado na hora do PR, agora sem a trilha B, que ficou igual à develop.
+
+---
+
+## Histórico: rodada 2
 
 **Rodada 2 (revalidação por delta). Veredito: aprovado em `82d1360`.** Os recomendados A3 a A6, A8 e A9 da rodada 1 foram aplicados. A2 e A7 foram implementados como o plano decide (§3.3 e §3.1, ramo do discovery em `5661e86`), e a migração 0032 traz o preenchimento. O bloqueante A1 (teto da decisão M14) fica resolvido pela decisão do dono de 2026-11-02 (teto por PR da aba): um PR para a develop com a linha `teto: excedido` e o motivo no corpo. Sobra um recomendado novo (A10), que não devolve.
 
