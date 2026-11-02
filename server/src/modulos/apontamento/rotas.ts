@@ -65,13 +65,12 @@ export async function rotasApontamento(app: FastifyInstance, deps: DepsApontamen
     i.withTypeProvider<ZodTypeProvider>().get('/api/apontamento', {
       schema: {
         tags: ['apontamento'], summary: 'Aba Apontamento: horas apontadas no BusinessMap (capacidade, utilização e distribuição do tempo do time)',
-        querystring: consultaDaRota, response: { 200: respostaApontamentoSchema, 400: erroSchema, 422: erroSchema, 500: erroSchema },
+        querystring: consultaDaRota, response: { 200: respostaApontamentoSchema, 400: erroSchema, 500: erroSchema },
       },
     }, async (req) => {
       try {
         return await montarApontamento({ db: deps.db, S: deps.S ?? esquemasDoAmbiente(), agora: deps.agora, nomesReais: deps.nomesReais }, req.query);
       } catch (e) {
-        if (e instanceof AppError) throw e;
         // Só a classe e o SQLSTATE vão ao log: a mensagem do driver pode trazer valor (nome, id) e nunca é repassada.
         req.log.error({ erro: (e as Error).constructor.name, sqlstate: (e as { code?: unknown }).code }, 'falha na consulta da aba Apontamento');
         throw new AppError('INTERNAL_ERROR', 'Erro interno.', 500);

@@ -15,9 +15,9 @@ const MARCADOR_NOME = 'PESSOA-FICTICIA-MARCADOR-059';
 const AGORA = new Date('2026-11-02T15:00:00Z'); // 2026-11-02 12:00 em America/Sao_Paulo
 const HOJE = '2026-11-02';
 
-type Linha = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null };
+type Linha = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null; type_id: string | null };
 const linha = (o: Partial<Linha> = {}): Linha => ({
-  data: '2026-10-20', segundos: 3600, subgrupo: 'desenvolvimento', flags: 0, em_subtarefa: false, pessoa_ref: '1', projeto_id: '900', projeto_titulo: 'Projeto Alfa', fora: false, tipo: 'Melhoria', ...o,
+  data: '2026-10-20', segundos: 3600, subgrupo: 'desenvolvimento', flags: 0, em_subtarefa: false, pessoa_ref: '1', projeto_id: '900', projeto_titulo: 'Projeto Alfa', fora: false, tipo: 'Melhoria', type_id: '12', ...o,
 });
 /** 25 apontamentos da pessoa 1 (passa do piso de 20), 3 da pessoa 2 e 1 sem pessoa (eliminada a pedido), em subtarefa. */
 const fixture = (): Linha[] => [
@@ -123,9 +123,9 @@ describe('GET /api/apontamento: resposta', () => {
       { pessoaRef: 'outra-area', rotulo: 'Outra área', identificada: true },
     ]);
     // as pessoas 2, 9 e 10 viram uma só entrada; a chave delas nunca aparece
-    expect(corpo.kpis.pessoasAtivas).toBe(2);
-    expect(corpo.capacidade.porPessoa.map((p) => p.pessoaRef)).toEqual(['p1', 'outra-area']);
-    expect(corpo.capacidade.porPessoa.find((p) => p.pessoaRef === 'outra-area')!.realizadoSegundos).toBe(3 * 3600 + 3600 + 1800);
+    expect(corpo.kpis.pessoasAtivas).toBe(1); // so o time (decisao de 09:20): Outra area nao e pessoa
+    expect(corpo.capacidade.porPessoa.map((p) => p.pessoaRef)).toEqual(['p1']); // Outra area fora dos blocos por pessoa
+    expect(corpo.kpis.segundos).toBeGreaterThan(0);
     for (const chave of ['p2', 'p9', 'p10']) expect(r.body).not.toContain(`"${chave}"`);
     const corte = db.chamadas.find((c) => c.texto.includes('apt_pessoa_time'))!;
     expect(corte.valores).toEqual(['2025-11-02T15:00:00.000Z']); // 12 meses antes de agora, por parâmetro
@@ -147,13 +147,58 @@ describe('GET /api/apontamento: resposta', () => {
     expect(corpo.opcoes.pessoas.map((p) => p.pessoaRef)).toEqual(['p1', 'p2']);
     await app.close();
   });
-  it('o filtro por tipo (type_id) ainda não é atendido: 422 explícito, nunca ignorado em silêncio', async () => {
+  it('o filtro por tipo recebe type_id em dígitos, o mesmo id de opcoes.tipos, e recorta o cálculo (E2.28)', async () => {
+    const { app } = await montar({ linhas: [
+      linha({ type_id: '12', tipo: 'Melhoria', segundos: 3600 }),
+      linha({ type_id: '12', tipo: 'Melhoria', segundos: 3600, data: '2026-10-21' }),
+      linha({ type_id: '34', tipo: 'Incidente', segundos: 7200, data: '2026-10-22' }),
+      linha({ type_id: null, tipo: 'Melhoria', segundos: 1800, data: '2026-10-23' }),
+    ] });
+    const base = '/api/apontamento?de=2026-10-01&ate=2026-10-31';
+    const todos = respostaApontamentoSchema.parse((await get(app, base)).json());
+    expect(todos.opcoes.tipos.map((t) => [t.id, t.rotulo])).toEqual([['34', 'Incidente'], ['12', 'Melhoria']]);
+    expect(todos.kpis.segundos).toBe(3600 + 3600 + 7200 + 1800);
+    const idDaOpcao = todos.opcoes.tipos.find((t) => t.rotulo === 'Melhoria')!.id;
+    const r = await get(app, `${base}&tipo=${idDaOpcao}`);
+    expect(r.statusCode).toBe(200);
+    const so12 = respostaApontamentoSchema.parse(r.json());
+    expect(so12.kpis.segundos).toBe(7200);
+    expect(so12.kpis.apontamentos).toBe(2);
+    const dois = respostaApontamentoSchema.parse((await get(app, `${base}&tipo=12&tipo=34`)).json());
+    expect(dois.kpis.segundos).toBe(14_400);
+    const nenhum = respostaApontamentoSchema.parse((await get(app, `${base}&tipo=99`)).json());
+    expect(nenhum.kpis.segundos).toBe(0);
+    await app.close();
+  });
+  it('type_id fora de dígitos no filtro: 400 do contrato, sem consulta ao banco', async () => {
     const { app, db } = await montar();
-    const r = await get(app, '/api/apontamento?tipo=12');
-    expect(r.statusCode).toBe(422);
-    expect(r.json().error.code).toBe('FILTRO_INDISPONIVEL');
-    expect(r.headers['cache-control']).toBe('no-store');
+    for (const v of ['melhoria', '1%3B2', '12a']) {
+      const r = await get(app, `/api/apontamento?tipo=${v}`);
+      expect(r.statusCode, v).toBe(400);
+      expect(r.headers['cache-control']).toBe('no-store');
+    }
     expect(db.chamadas).toHaveLength(0);
+    await app.close();
+  });
+  it('a consulta lê type_id do fato (coluna concedida ao papel da aba) e o valor do filtro não entra no SQL', async () => {
+    const { app, db } = await montar();
+    await get(app, '/api/apontamento?tipo=12');
+    const c = db.chamadas.find((x) => x.texto.includes('FROM dspd_bm.fato_apontamento f'))!;
+    expect(c.texto).toContain('f.type_id');
+    expect(c.texto).not.toContain('12');
+    await app.close();
+  });
+  it('nomes desligados: só rótulos fixos de pessoa (Pessoa n e Outra área), nunca o nome', async () => {
+    const { app } = await montar({
+      doTime: ['1', '2'],
+      linhas: [linha({ pessoa_ref: '1' }), linha({ pessoa_ref: '2' }), linha({ pessoa_ref: '9' }), linha({ pessoa_ref: null })],
+      nomes: { '1': MARCADOR_NOME, '2': MARCADOR_NOME },
+    });
+    const r = await get(app, '/api/apontamento?de=2026-10-01&ate=2026-10-31');
+    const corpo = respostaApontamentoSchema.parse(r.json());
+    expect(corpo.nomesReais).toBe(false);
+    expect(corpo.opcoes.pessoas.map((p) => p.rotulo).sort()).toEqual(['Outra área', 'Pessoa 1', 'Pessoa 2']);
+    expect(r.body).not.toContain(MARCADOR_NOME);
     await app.close();
   });
   it('sem `apontamento` nas dependências a rota não existe', async () => {
@@ -314,14 +359,15 @@ describe('moldura da resposta: calendário, dimensões, frescor e janelas', () =
     const { app } = await montar({
       linhas: [
         linha({ tipo: 'Tipo Novo', projeto_titulo: null, subgrupo: 'execucao-tecnica', flags: 8 }),
-        linha({ tipo: null, projeto_id: null, projeto_titulo: null, fora: true, subgrupo: 'codigo-sem-rotulo' }),
+        linha({ tipo: null, type_id: null, projeto_id: null, projeto_titulo: null, fora: true, subgrupo: 'codigo-sem-rotulo' }),
+        linha({ tipo: null, type_id: '56', projeto_titulo: null, subgrupo: 'execucao-tecnica', flags: 8, data: '2026-10-21' }),
       ],
     });
     const c = respostaApontamentoSchema.parse((await get(app, '/api/apontamento?de=2026-10-01&ate=2026-10-31')).json());
-    expect(c.opcoes.tipos.map((t) => [t.id, t.rotulo]).sort()).toEqual([['sem-tipo', 'Sem tipo'], ['tipo-novo', 'Tipo Novo']]);
+    expect(c.opcoes.tipos.map((t) => [t.id, t.rotulo]).sort()).toEqual([['12', 'Tipo Novo'], ['56', 'Sem tipo']]);
     expect(c.opcoes.projetos.map((p) => p.rotulo).sort()).toEqual(['Card 900', 'Sem iniciativa']);
     expect(c.opcoes.subgrupos.map((g) => g.rotulo).sort()).toEqual(['Execução técnica', 'codigo-sem-rotulo']);
-    expect(c.qualidade.geral.porFlag.find((f) => f.flag === 'sem-iniciativa')!.apontamentos).toBe(2);
+    expect(c.qualidade.geral.porFlag.find((f) => f.flag === 'sem-iniciativa')!.apontamentos).toBe(3);
     await app.close();
   });
   it('com o nome real ligado e nenhum apontamento, nenhuma consulta de nome é feita', async () => {

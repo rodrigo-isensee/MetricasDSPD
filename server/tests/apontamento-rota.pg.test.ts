@@ -84,14 +84,14 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     await versao(FORA, '2030-12-01T00:00:00Z', [ids.e]);
 
     let n = 0;
-    const fato = async (data: string, segundos: number, pessoaRef: string | null, card: string, extra: { excluido?: boolean; flags?: number; subgrupo?: string; subtask?: string | null } = {}) => {
+    const fato = async (data: string, segundos: number, pessoaRef: string | null, card: string, extra: { excluido?: boolean; flags?: number; subgrupo?: string; subtask?: string | null; tipo?: string } = {}) => {
       const id = String(FAIXA + 1000 + ++n);
       logged.push(id);
       await dono.query(
         `INSERT INTO ${S.bm}.fato_apontamento (logged_time_id, card_id, subtask_id, data_apontamento, segundos, subgrupo_codigo, flags_qualidade, qtd_palavras, versao_dicionario,
-           registro_sha256, iniciativa_card_id, pessoa_ref, versoes, excluido_em, atualizado_em, atualizado_por_coleta_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 5, 'dic-teste', decode($8, 'hex'), $9, $10, 1, $11, now(), $12)`,
-        [id, card, extra.subtask ?? null, data, segundos, extra.subgrupo ?? 'desenvolvimento', extra.flags ?? 0, SHA('d'), card === SOLTO ? null : RAIZ, pessoaRef, extra.excluido === true ? new Date() : null, coleta]);
+           registro_sha256, iniciativa_card_id, pessoa_ref, type_id, versoes, excluido_em, atualizado_em, atualizado_por_coleta_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 5, 'dic-teste', decode($8, 'hex'), $9, $10, $13, 1, $11, now(), $12)`,
+        [id, card, extra.subtask ?? null, data, segundos, extra.subgrupo ?? 'desenvolvimento', extra.flags ?? 0, SHA('d'), card === SOLTO ? null : RAIZ, pessoaRef, extra.excluido === true ? new Date() : null, coleta, card === SOLTO ? null : (extra.tipo ?? '12')]);
     };
     const dias = ['06', '07', '08', '09', '10', '13', '14', '15', '16', '17', '20', '21', '22', '23', '24', '27', '28', '29', '30', '31'];
     for (const dia of dias) await fato(`2031-01-${dia}`, 7200, refs.a, FILHO);
@@ -101,6 +101,10 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     await fato('2031-01-08', 3600, refs.b, FILHO, { excluido: true }); // excluído: fora das somas
     await fato('2031-01-09', 5400, null, FILHO); // sem pessoa (eliminada a pedido): só no agregado do time
     await fato('2031-04-01', 3600, refs.a, FILHO); // fora da janela da consulta
+    // maio de 2031: janela propria do filtro por tipo (type_id 12 e 34 no mesmo card, e uma linha sem tipo)
+    await fato('2031-05-03', 3600, refs.a, FILHO);
+    await fato('2031-05-04', 7200, refs.a, FILHO, { tipo: '34' });
+    await fato('2031-05-05', 1800, refs.a, SOLTO);
     // marco de 2031 (janela propria do teste de Outra area): C, D e E nao sao do time; A e
     await fato('2031-03-03', 3600, refs.c, FILHO);
     await fato('2031-03-04', 7200, refs.d, FILHO);
@@ -189,7 +193,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect(c.nomesReais).toBe(false);
     expect(c.opcoes.pessoas.map((p) => p.rotulo).sort()).toEqual([`Pessoa ${refs.a}`, `Pessoa ${refs.b}`].sort());
     expect(c.opcoes.projetos).toEqual([{ id: RAIZ, rotulo: 'Projeto Raiz Teste 059', foraDoEscopo: false }, { id: 'sem-projeto', rotulo: 'Sem iniciativa', foraDoEscopo: true }].sort((x, y) => c.opcoes.projetos.findIndex((p) => p.id === x.id) - c.opcoes.projetos.findIndex((p) => p.id === y.id)));
-    expect(c.opcoes.tipos.map((t) => t.id).sort()).toEqual(['melhoria', 'sem-tipo']);
+    expect(c.opcoes.tipos.map((t) => t.id).sort()).toEqual(['12']); // type_id em digitos; linha sem tipo soma, mas nao e opcao de filtro
     expect(c.opcoes.subtarefas.map((s) => s.id).sort()).toEqual(['direto-no-card', 'em-subtarefa']);
     // pessoa A: 21 apontamentos = piso de 20 atingido; pessoa B: 2, só contagem
     expect(c.capacidade.porPessoa.find((p) => p.pessoaRef === `p${refs.a}`)!.utilizacao.status).toBe('ok');
@@ -197,6 +201,23 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect(c.frescor.ultimaColetaOk).not.toBeNull();
     // nada de nome, id de usuário, id de apontamento ou título de card fora do rótulo de projeto no corpo
     for (const proibido of [MARCADOR_NOME, 'Outra Pessoa', ids.a, ids.b, 'Card filho', 'Card solto', ...logged]) expect(r.body, proibido).not.toContain(proibido);
+  });
+
+  it('filtro por tipo ponta a ponta com o papel da aba: opcoes.tipos[].id e o type_id que o filtro aceita (E2.28)', async () => {
+    const MAIO = 'de=2031-05-01&ate=2031-05-31&diarioDe=2031-05-01&diarioAte=2031-05-31';
+    const ler = async (filtro: string) => {
+      const r = await consultar(false, `${MAIO}${filtro}`);
+      expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+      return respostaApontamentoSchema.parse(r.json());
+    };
+    const todos = await ler('');
+    expect(todos.opcoes.tipos.map((t) => t.id).sort()).toEqual(['12', '34']);
+    expect(todos.kpis.segundos).toBe(3600 + 7200 + 1800);
+    for (const id of todos.opcoes.tipos.map((t) => t.id)) expect(id).toMatch(/^\d+$/);
+    expect((await ler('&tipo=34')).kpis).toMatchObject({ segundos: 7200, apontamentos: 1 });
+    expect((await ler('&tipo=12')).kpis).toMatchObject({ segundos: 3600, apontamentos: 1 });
+    expect((await ler('&tipo=12&tipo=34')).kpis.segundos).toBe(3600 + 7200);
+    expect((await ler('&tipo=999')).kpis.segundos).toBe(0);
   });
 
   it('com o interruptor ligado o nome só aparece em opcoes.pessoas[].rotulo, uma vez', async () => {
@@ -217,8 +238,8 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
       const c = respostaApontamentoSchema.parse(r.json());
       expect(c.opcoes.pessoas.map((p) => p.pessoaRef).sort()).toEqual([`p${refs.a}`, 'outra-area'].sort());
       expect(c.opcoes.pessoas.find((p) => p.pessoaRef === 'outra-area')).toEqual({ pessoaRef: 'outra-area', rotulo: 'Outra área', identificada: true });
-      expect(c.capacidade.porPessoa.find((p) => p.pessoaRef === 'outra-area')!.realizadoSegundos).toBe(3600 + 7200 + 1800);
-      expect(c.kpis).toMatchObject({ segundos: 3600 + 7200 + 1800 + 3600, apontamentos: 4, pessoasAtivas: 2 });
+      expect(c.capacidade.porPessoa.map((p) => p.pessoaRef)).toEqual([`p${refs.a}`]); // Outra area fora dos blocos por pessoa
+      expect(c.kpis).toMatchObject({ segundos: 3600 + 7200 + 1800 + 3600, apontamentos: 4, pessoasAtivas: 1 });
       for (const proibido of ['Pessoa C Ficticia', 'Pessoa D Ficticia', 'Pessoa E Ficticia', `p${refs.c}"`, `p${refs.d}"`, `p${refs.e}"`, ids.c, ids.d, ids.e])
         expect(r.body, proibido).not.toContain(proibido);
     }

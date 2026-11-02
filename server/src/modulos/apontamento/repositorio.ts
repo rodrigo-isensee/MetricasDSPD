@@ -19,15 +19,17 @@ export interface LinhaBruta {
   foraDoEscopo: boolean;
   /** Rótulo de `dim_card.tipo` do card (ou do pai); `null` fora dos tipos de item. */
   tipo: string | null;
+  /** `type_id` do BusinessMap em dígitos (do card ou do pai); é o valor do filtro `tipo`. `null` nas linhas ainda não relidas pela coleta. */
+  typeId: string | null;
 }
-type Row = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null };
+type Row = { data: string; segundos: number; subgrupo: string; flags: number; em_subtarefa: boolean; pessoa_ref: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean; tipo: string | null; type_id: string | null };
 
 /** Apontamentos ativos (`excluido_em` nulo) com data em `[de, ate]`, com as dimensões resolvidas. Ordem estável (a ordem final é da biblioteca). */
 export async function lerLinhas(db: Consultavel, S: Esquemas, de: string, ate: string): Promise<LinhaBruta[]> {
   const r = await db.query<Row>(
     `SELECT f.data_apontamento AS data, f.segundos, f.subgrupo_codigo AS subgrupo, f.flags_qualidade AS flags, f.subtask_id IS NOT NULL AS em_subtarefa,
             f.pessoa_ref, f.iniciativa_card_id AS projeto_id, pr.titulo AS projeto_titulo,
-            COALESCE(rc.raiz_fora_do_escopo, rp.raiz_fora_do_escopo, true) AS fora, COALESCE(c.tipo, p.tipo) AS tipo
+            COALESCE(rc.raiz_fora_do_escopo, rp.raiz_fora_do_escopo, true) AS fora, COALESCE(c.tipo, p.tipo) AS tipo, f.type_id
      FROM ${S.bm}.fato_apontamento f
      LEFT JOIN ${S.bm}.dim_card_raiz rc ON rc.card_id = f.card_id
      LEFT JOIN ${S.bm}.dim_card_raiz rp ON rp.card_id = f.parent_card_id
@@ -39,7 +41,7 @@ export async function lerLinhas(db: Consultavel, S: Esquemas, de: string, ate: s
     [de, ate]);
   return r.rows.map((l) => ({
     data: l.data, segundos: l.segundos, subgrupo: l.subgrupo, flags: l.flags, emSubtarefa: l.em_subtarefa, pessoaRef: l.pessoa_ref,
-    projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora, tipo: l.tipo,
+    projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora, tipo: l.tipo, typeId: l.type_id,
   }));
 }
 
