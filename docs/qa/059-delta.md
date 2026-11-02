@@ -3,20 +3,28 @@ tipo: qa
 contrato: 1
 pedido: 059-aba-apontamento
 branch: feature/059-aba-front
-commit: d08d785a853b85fc53f0176481858d5aa3369d24
+commit: dc3a5b43bf71c9432561e7c90f37b20e1e63c656
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-11-03
+data: 2026-11-02
 ---
 # QA: 059-aba-apontamento, front da aba (trilha delta; E2.53 e E2.63, K-193)
 
 Links: plano de testes `docs/qa/059-plano-testes.md` (ramo `origin/docs/059-apontamento-discovery`, casos do front: CA-1 a CA-11, o1 a o4, CT-60 a CT-70), especificação de UX `docs/ux/059-aba-apontamento.md`, contrato `docs/api/apontamento.md`, review `docs/reviews/059-delta.md` (renovado e aprovado em `9eb48bc`), segurança `docs/security/059-delta.md` (aprovada sobre `7509a63`, delta `d13cdde`; a volta só muda CSS e testes, sem gatilho), UX `docs/ux/059-revisao-delta-r2.md` e `r3` (aprovadas).
 
 **Parecer: aprovado** (renovação por delta, E2.63), sobre a ponta `d08d785` (código de `9eb48bc`; `eb6d491` e `d08d785` só somam pareceres). Escopo `completo` mantido: o front inteiro contra `origin/develop`, com a rota interceptada (só mock, pessoas fictícias). O delta `48d1157..d08d785` muda duas linhas de CSS (`CartaoMetrica.tsx:313`, `CartaoAchados.tsx:78`), testes e a fixture do QA. Os dois bloqueantes do parecer anterior (A1 e A2) estão resolvidos, com vermelho antes do verde; nenhum bug aberto; zero violação de acessibilidade. Ficam três recomendações (A3 a A5), que não devolvem. O aceite de UX das 3 linhas do seletor é da revisão r4 (E2.64), fora deste parecer.
+
+## Renovação por delta (E2.86, K-193)
+Ponta revisada `dc3a5b43bf71c9432561e7c90f37b20e1e63c656`, intervalo `d08d785..dc3a5b4`. Parecer **aprovado**, sem achado novo. O que mudou: a revisão de UX r4 (`docs/ux/059-revisao-delta-r4.md`, aprovada, só dois baixos R4-1 e R4-2 que não bloqueiam), o code review do front renovado (só documento) e o merge da `origin/develop` sem conflito (traz os squashes dos PRs 194, 195 e 196, `CLAUDE.md`, briefing e `.forge/versao`). O `forge-check delta` lista no intervalo apenas `.forge/versao`, `CLAUDE.md`, o briefing e a r4; nenhum arquivo de `web/`, `e2e/` nem `packages/` mudou desde `d08d785`, então os casos da tabela abaixo seguem válidos sem refazer.
+- **Recursos:** `free -m` com 14 424 MB disponíveis e load 0,69; uma execução por vez; `git pull --ff-only` em dia, árvore limpa.
+- **Suíte completa (prova da E2.78 sobre este mesmo head, não refeita aqui):** `pnpm run pronto` verde (web 1401) e `pnpm run test:e2e` verde (795 passaram, 26,7 min), registrados pelo tech-lead.
+- **Reteste rápido no head** (`playwright test sustentacao-no-operacional-qa apontamento-qa --project=chromium`, filtro CT-32 e CT-70): 7 passaram, 0 falharam. CT-32: seletor a 375 px em até 3 linhas, fonte a 200% com alvos de 44 px dentro do recipiente, sem rolagem a 640 e 320 px. CT-70: rótulo de 200 caracteres com HTML, emoji e RTL sai como texto; rótulo de 100 caracteres sem espaço não faz a página rolar em 1280 nem 375 px.
+- **Aceite da UX r4:** o aceite das 3 linhas do seletor e da quebra de palavra é da r4; o reteste do CT-32 confirma a medição no navegador que a r4 deixou com o QA. R4-1 (palavra "Sustentação" partida a 375 px com fonte a 200%) e R4-2 (quinta opção sozinha na última linha) são baixos de interface do ux-designer, sem defeito de requisito; ficam como recomendação, sem bug aberto.
+- **Vermelho antes do verde e mutação:** nenhum teste novo neste delta (só documentos e o merge); o vermelho e o mutante da quebra de palavra do parecer anterior seguem válidos porque `CartaoMetrica.tsx` e `CartaoAchados.tsx` não mudaram.
 
 ## Achados
 - A1 (recomendado) e2e/tests/sustentacao-no-operacional.spec.ts:39 · resolvido da volta anterior: o CA-2 confere as cinco opções e o CT-32 aceita até 3 linhas em 375 px e a 200% de fonte; verde na suíte completa.
