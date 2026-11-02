@@ -3,12 +3,29 @@ tipo: review
 contrato: 1
 pedido: 059-aba-apontamento
 branch: feature/059-rota-apontamento
-commit: abfd28728b443a40cb53c553583683b1031a4a86
+commit: 1bf3338d43124f711d98a1bc15ac42ffb2123da4
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-02
 ---
 # Review: 059-aba-apontamento, branch da rota da aba (trilha B4, E2.51, K-193)
+
+**Rodada 2 (revalidação por delta sobre o merge da develop, E2.72). Veredito: aprovado em `1bf3338`.** O merge não traz código novo da rota. Não há achado novo. Os recomendados A1 a A4 da rodada 1 seguem abertos e não devolvem.
+
+## Delta lido na rodada 2
+- O `forge-check pr 059-aba-apontamento --raiz /home/rodrigoisensee/MetricasDSPD-052g --ref origin/feature/059-rota-apontamento --base origin/develop` acusou este parecer como desatualizado por `packages/metricas/src/businessmap/index.ts` (base `origin/develop` `32ebf3a`). O mesmo aviso saiu para o QA da rota, o devops e a segurança, que têm renovação própria (E2.73 a E2.75).
+- `forge-check delta --parecer docs/reviews/059-gama.md 1bf3338` dá o intervalo `abfd287..1bf3338`. Fora dos pareceres, só mudam `.forge/versao` (+1 -1), `CLAUDE.md` (linha 14, +1) e o briefing (linha 410, +1). Os três vêm da develop (PRs 192 e 193) e saem iguais à `origin/develop`. Nenhum arquivo de `server/`, `web/`, `packages/`, `e2e/`, `scripts/` ou `.github/` mudou no intervalo.
+- **Merge `0b4519c..1bf3338` (squashes dos PRs 194 e 195):** `git diff --stat 0b4519c 1bf3338` mostra só 4 pareceres da coleta e da exceção (`docs/qa/059-beta.md`, `docs/qa/059-excecao-apontamento.md`, `docs/reviews/059-beta.md`, `docs/security/059-beta.md`), na versão da develop. `git diff 0b4519c 1bf3338 -- . ':!docs'` sai vazio. A trilha B e a coleta já estavam na branch com o mesmo conteúdo, aprovadas nos pareceres delas, e não as reli.
+- **Os arquivos do conflito (decisões técnicas do conflito da rota e da extensão dela):** `git diff origin/develop..origin/feature/059-rota-apontamento -- packages` agora mostra só a linha `ordenarPorPessoa,` no export de `packages/metricas/src/businessmap/index.ts:67`. Esse export veio do `0f582f2`, já lido na rodada 1. Ele é usado só por `server/src/modulos/apontamento/servico.ts:4` e `:122`. A função está em `apontamento/comum.ts:72` na develop, com testes em `apontamento.test.ts:181-199`. Os outros 7 arquivos do conflito (migrações, `checksums.json`, `lgpd.ts`, os três `.pg` e o snapshot) não mudaram no intervalo e ficam na versão da rota, que a rodada 1 leu: a 0033 e a view de quem é do time.
+- Já lido na rodada 1 e não relido: todo o código que a rota soma (`server/src/modulos/apontamento/`, a 0033, grants, config, critérios, lint, testes).
+
+## Ferramentas e outros pareceres (rodada 2)
+- PR 196 com `headRefOid` `1bf3338` e `mergeStateStatus` CLEAN. Os checks da ponta estão todos `pass` (runs `41491565001` e `41491575279`: rapida, testes, filtro, openapi, imagem, build, seguranca, banco, e2e e as duas partes). Os `skipping` são os jobs condicionais (perf e a matriz do e2e no run sem e2e). Não refiz a suíte.
+- Teto da decisão M14: o número da linha `teto: excedido` é recontado na hora do PR, agora sem a trilha B e a coleta, que ficaram iguais à develop.
+
+---
+
+## Histórico: rodada 1
 
 **Rodada 1. Veredito: aprovado em `abfd287`.** Nenhum bloqueante. Quatro recomendados (A1 a A4), que não devolvem; o A1 leva uma pergunta ao dono. O teto da decisão M14 fica coberto pela decisão do dono de 2026-11-02 (teto por PR da aba): o PR da rota para a develop leva no corpo a linha `teto: excedido, <n> linhas, <motivo>`, com o número recontado na hora do PR.
 
