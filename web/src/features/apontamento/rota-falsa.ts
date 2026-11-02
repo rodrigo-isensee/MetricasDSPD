@@ -18,9 +18,15 @@ export function criarFetchFalso(opcoes: OpcoesFetchFalso = {}) {
     chamadas.push(`${url.pathname}${url.search}`)
     if (opcoes.rede) return Promise.reject(new TypeError('falha de rede'))
     const nivel = url.searchParams.get('nivelMatriz')
+    const tipos = url.searchParams.get('tipo')
     const corpo = opcoes.resposta
       ? opcoes.resposta(url)
-      : respostaFicticia({ nivelMatriz: nivel as NivelMatriz, anomalos: 'incluir' })
+      : respostaFicticia({
+          nivelMatriz: nivel as NivelMatriz,
+          anomalos: 'incluir',
+          // Como a rota: `tipo` é lista em CSV de `type_id`; id que não existe nas opções devolve o recorte vazio.
+          ...(tipos !== null && { tipo: tipos.split(',') }),
+        })
     return Promise.resolve(Response.json(corpo))
   })
   return { fetchFalso: fetchFalso as unknown as typeof fetch, chamadas }

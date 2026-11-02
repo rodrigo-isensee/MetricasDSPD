@@ -87,6 +87,62 @@ describe('ligação à rota GET /api/apontamento (C2)', () => {
   })
 })
 
+describe('filtro por tipo (id de opcoes.tipos, type_id em dígitos)', () => {
+  const botaoTipo = () => screen.findByRole('button', { name: /^Tipo: / })
+
+  it('fica sempre visível, sem consulta de sondagem: a primeira chamada é a da aba', async () => {
+    const { chamadas } = abrir()
+    await pronto()
+    expect(await botaoTipo()).toBeInTheDocument()
+    expect(chamadas).toEqual(['/api/apontamento?nivelMatriz=tipo&anomalos=incluir'])
+  })
+
+  it('um tipo: manda o id da opção (type_id em dígitos), não o rótulo, e mostra o chip com o rótulo', async () => {
+    const { chamadas, roteador } = abrir()
+    await pronto()
+    await userEvent.click(await botaoTipo())
+    await userEvent.click(await screen.findByLabelText('Correção'))
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(roteador.state.location.search).toContain('tipo=5'))
+    await waitFor(() => expect(chamadas.some((c) => /[?&]tipo=5(&|$)/.test(c))).toBe(true))
+    expect(chamadas.join()).not.toMatch(/tipo=[^&]*[a-z]/i)
+    expect(await screen.findByText('Tipo: Correção')).toBeInTheDocument()
+    await pronto()
+  })
+
+  it('dois tipos: manda os dois ids na lista, na ordem escolhida', async () => {
+    const { chamadas } = abrir()
+    await pronto()
+    await userEvent.click(await botaoTipo())
+    await userEvent.click(await screen.findByLabelText('Tarefa'))
+    await userEvent.click(await screen.findByLabelText('Melhoria'))
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(chamadas.some((c) => c.includes('tipo=3%2C7'))).toBe(true))
+    expect(await screen.findByText('Tipo: Tarefa')).toBeInTheDocument()
+    expect(await screen.findByText('Tipo: Melhoria')).toBeInTheDocument()
+    await pronto()
+  })
+
+  it('id inexistente (dígitos que a rota não conhece): vai à rota, volta o recorte vazio com orientação, e o chip sai pelo X', async () => {
+    const { chamadas, roteador } = abrir(`${URL_ABA}?tipo=999`)
+    expect(await screen.findByTestId('estado-vazio-AP')).toHaveTextContent(
+      'Nenhum apontamento encontrado',
+    )
+    expect(chamadas.some((c) => /[?&]tipo=999(&|$)/.test(c))).toBe(true)
+    await userEvent.click(screen.getAllByRole('button', { name: /^Remover filtro Tipo/ })[0]!)
+    await waitFor(() => expect(roteador.state.location.search).toBe(''))
+    await pronto()
+  })
+
+  it('valor fora de dígitos na URL (rótulo antigo) é descartado com aviso e nunca vai à rota', async () => {
+    const { chamadas } = abrir(`${URL_ABA}?tipo=melhoria`)
+    await pronto()
+    expect(chamadas.every((c) => !c.includes('tipo='))).toBe(true)
+    expect(screen.getByTestId('filtros-invalidos')).toHaveTextContent('Tipo')
+    expect(screen.getByTestId('filtros-invalidos')).not.toHaveTextContent('melhoria')
+  })
+})
+
 describe('Outra área', () => {
   it('aparece como "Outra área", sem nome, nos filtros e por último nas listas, mesmo ordenando por total', async () => {
     const { roteador } = abrir(`${URL_ABA}?ordem=total`, {
