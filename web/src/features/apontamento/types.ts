@@ -58,6 +58,4 @@ export type AchadoApontamento = RespostaApontamento['achados'][number]
 /** Fonte da aba: a rota `GET /api/apontamento` (ou, nos testes, uma fixture tipada). */
 export interface FonteApontamento {
   buscar: (consulta: ConsultaApontamento, signal?: AbortSignal) => Promise<RespostaApontamento>
-  /** `true` só quando a rota aceita o filtro por tipo; enquanto responder 422 o filtro fica oculto. */
-  filtroTipoDisponivel?: (signal?: AbortSignal) => Promise<boolean>
 }

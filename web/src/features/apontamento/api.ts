@@ -94,16 +94,6 @@ export function criarFonteHttpApontamento({
       if (!r.success) throw new ErroApi(resp.status, 'RESPOSTA_INVALIDA')
       return r.data
     },
-    /**
-     * O filtro por tipo só vale quando a rota o aceita. Só o 422 diz "indisponível"; rede fora do ar, tempo esgotado
-     * ou 5xx não dizem nada sobre o filtro, então a sonda falha (e é tentada de novo) em vez de esconder o filtro.
-     */
-    async filtroTipoDisponivel(signal) {
-      const resp = await chamar('tipo=1&nivelMatriz=tipo&anomalos=incluir', signal)
-      if (resp.ok) return true
-      if (resp.status === 422) return false
-      throw new ErroApi(resp.status, await codigoDoErro(resp))
-    },
   }
 }
 

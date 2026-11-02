@@ -35,7 +35,7 @@ import { fonteHttpApontamento } from './api'
 import { filtrosAtivos, useFiltrosApontamento } from './filtros'
 import { AVISO_NOME_REAL, CARREGANDO, SECOES, VAZIO } from './textos'
 import type { FonteApontamento } from './types'
-import { useApontamento, useFiltroTipoDisponivel } from './useApontamento'
+import { useApontamento } from './useApontamento'
 
 const INDICE: readonly SecaoDoIndice[] = [
   ['secao-kpis', 'Quanto foi apontado', []],
@@ -59,23 +59,8 @@ export default function ApontamentoPage({
   fonte?: FonteApontamento
 }) {
   const navigate = useNavigate()
-  const lido = useFiltrosApontamento()
-  const tipoDisponivel = useFiltroTipoDisponivel(fonte)
-  // Enquanto a rota responder 422 `FILTRO_INDISPONIVEL`, `tipo` não vai à consulta e o filtro não é oferecido. O
-  // chip continua na tela (para quem chegou por link poder tirá-lo) e o aviso de valor ignorado diz o que houve.
-  const uso = useMemo(
-    () =>
-      tipoDisponivel || !lido.consulta.tipo
-        ? lido
-        : { ...lido, invalidos: [...lido.invalidos, 'Tipo (filtro ainda indisponível)'] },
-    [lido, tipoDisponivel],
-  )
-  const consultaEnviada = useMemo(() => {
-    if (tipoDisponivel || !uso.consulta.tipo) return uso.consulta
-    const { tipo: _tipo, ...resto } = uso.consulta
-    return resto
-  }, [uso.consulta, tipoDisponivel])
-  const dados = useApontamento(fonte, consultaEnviada)
+  const uso = useFiltrosApontamento()
+  const dados = useApontamento(fonte, uso.consulta)
   const resposta = dados.resposta
   const focoPendenteRef = useRef<OpcaoDoSeletor | null>(null)
   // Sair da aba é trocar de rota: o Operacional abre na visão escolhida e o shell leva o foco ao título dela.
@@ -143,7 +128,6 @@ export default function ApontamentoPage({
                   uso={uso}
                   ativos={ativos}
                   nomesReais={resposta.nomesReais}
-                  tipoDisponivel={tipoDisponivel}
                 />
               ) : (
                 ativos.length > 0 && <ChipsFiltros chips={ativos} onRemover={uso.remover} />

@@ -17,9 +17,6 @@ function abrir(url: string = URL_ABA, opcoes: OpcoesFetchFalso = {}) {
   return { ...renderizarApp(url), ...falso }
 }
 
-/** Chamadas da consulta da aba, sem a sonda do filtro por tipo (`tipo=1` fixo). */
-const consultas = (chamadas: string[]) => chamadas.filter((c) => !c.includes('tipo=1&'))
-
 async function pronto() {
   const kpis = await screen.findByTestId('metrica-AP-KPIS')
   await waitFor(() => expect(kpis).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
@@ -30,7 +27,7 @@ describe('ligação à rota GET /api/apontamento (C2)', () => {
   it('lê a rota real: chama o caminho da API e nenhum cartão leva o selo "Dados fictícios"', async () => {
     const { chamadas } = abrir()
     await pronto()
-    expect(consultas(chamadas)[0]).toBe('/api/apontamento?nivelMatriz=tipo&anomalos=incluir')
+    expect(chamadas[0]).toBe('/api/apontamento?nivelMatriz=tipo&anomalos=incluir')
     expect(screen.queryByTestId('selo-ficticio')).not.toBeInTheDocument()
   })
 
@@ -90,36 +87,6 @@ describe('ligação à rota GET /api/apontamento (C2)', () => {
   })
 })
 
-describe('filtro por tipo enquanto a rota responde 422', () => {
-  it('fica oculto, e tipo vindo da URL não vai à rota (o aviso diz que foi ignorado e o chip sai pelo X)', async () => {
-    const { chamadas, roteador } = abrir(`${URL_ABA}?tipo=3`)
-    await pronto()
-    expect(screen.queryByRole('button', { name: /^Tipo: / })).not.toBeInTheDocument()
-    expect(consultas(chamadas).length).toBeGreaterThan(0)
-    expect(consultas(chamadas).every((c) => !c.includes('tipo='))).toBe(true)
-    expect(screen.getByTestId('filtros-invalidos')).toHaveTextContent(
-      'Tipo (filtro ainda indisponível)',
-    )
-    await userEvent.click(screen.getByRole('button', { name: /^Remover filtro Tipo/ }))
-    await waitFor(() => expect(roteador.state.location.search).toBe(''))
-  })
-
-  it('aparece quando a rota passa a aceitar o filtro', async () => {
-    abrir(URL_ABA, { tipo: 'aceita' })
-    await pronto()
-    expect(await screen.findByRole('button', { name: /^Tipo: / })).toBeInTheDocument()
-  })
-
-  it('falha passageira da sonda (503) não esconde o filtro: a sonda é tentada de novo', async () => {
-    const { chamadas } = abrir(URL_ABA, { tipo: 'aceita', falhasDaSonda: 1 })
-    await pronto()
-    expect(
-      await screen.findByRole('button', { name: /^Tipo: / }, { timeout: 5000 }),
-    ).toBeInTheDocument()
-    expect(chamadas.filter((c) => c.includes('tipo=1&')).length).toBe(2)
-  })
-})
-
 describe('Outra área', () => {
   it('aparece como "Outra área", sem nome, nos filtros e por último nas listas, mesmo ordenando por total', async () => {
     const { roteador } = abrir(`${URL_ABA}?ordem=total`, {
@@ -141,8 +108,8 @@ describe('Outra área', () => {
       resposta: () => respostaComOutraArea(),
     })
     await pronto()
-    expect(consultas(chamadas)[0]).toContain('pessoa=outra-area')
-    expect(consultas(chamadas)[0]).not.toContain('outra-area2')
+    expect(chamadas[0]).toContain('pessoa=outra-area')
+    expect(chamadas[0]).not.toContain('outra-area2')
     expect(screen.getByTestId('filtros-invalidos')).toBeInTheDocument()
   })
 })

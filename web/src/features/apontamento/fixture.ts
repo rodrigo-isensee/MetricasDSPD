@@ -571,5 +571,4 @@ export function respostaFicticia(
 
 export const fonteFicticia: FonteApontamento = {
   buscar: (consulta) => Promise.resolve(respostaFicticia(consulta)),
-  filtroTipoDisponivel: () => Promise.resolve(true),
 }

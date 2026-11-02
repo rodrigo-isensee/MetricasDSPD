@@ -20,23 +20,3 @@ export function useApontamento(fonte: FonteApontamento, consulta: ConsultaAponta
     tentarDeNovo: () => void q.refetch(),
   }
 }
-
-/** Validade da sonda do tipo: a rota pode ligar o filtro durante a sessão, então a resposta não vale para sempre. */
-export const VALIDADE_SONDA_TIPO_MS = 5 * 60_000
-
-/**
- * O filtro por tipo só aparece quando a rota o aceita. Enquanto responder 422 `FILTRO_INDISPONIVEL` fica `false`: o
- * filtro some e `tipo` na URL não vai para a consulta. Falha de rede ou 5xx não vira "indisponível": a sonda tenta de
- * novo e, se continuar falhando, é refeita ao voltar à aba depois da validade.
- */
-export function useFiltroTipoDisponivel(fonte: FonteApontamento): boolean {
-  const q = useQuery({
-    queryKey: ['apontamento-filtro-tipo'],
-    queryFn: ({ signal }) =>
-      fonte.filtroTipoDisponivel ? fonte.filtroTipoDisponivel(signal) : false,
-    staleTime: VALIDADE_SONDA_TIPO_MS,
-    retry: 2,
-    refetchOnWindowFocus: true,
-  })
-  return q.data === true
-}
