@@ -1,3 +1,7 @@
+import type { Esquemas } from '../../plataforma/db/esquemas.js';
+import { contarColetasDoSeed } from '../../plataforma/db/guarda-seed.js';
+import type { Consultavel } from '../../plataforma/db/pool.js';
+
 /**
  * Erros da coleta do Acelerato (ADR 0023, item 1.6; ameaças M2 e M8). O erro do driver (que carrega configuração,
  * usuário e até trecho de dado) nunca é propagado nem registrado: ele é traduzido para um código fechado, e a
@@ -5,7 +9,7 @@
  */
 export const CODIGOS_ERRO = [
   'configuracao-invalida', 'tls-configuracao', 'tls-impressao-diferente', 'tls', 'autenticacao', 'rede', 'tempo-esgotado',
-  'erro-origem', 'dados-invalidos', 'fora-do-recorte', 'listas-vazias', 'parametros-mudaram', 'recarga-suspeita', 'erro-interno',
+  'erro-origem', 'dados-invalidos', 'fora-do-recorte', 'listas-vazias', 'parametros-mudaram', 'recarga-suspeita', 'esquema-com-seed', 'erro-interno',
 ] as const;
 export type CodigoErro = (typeof CODIGOS_ERRO)[number];
 
@@ -23,6 +27,7 @@ const MENSAGEM: Record<CodigoErro, string> = {
   'listas-vazias': 'Listas fechadas do recorte vazias em ref_dominio',
   'parametros-mudaram': 'Parâmetros da coleta mudaram sem versão de critério',
   'recarga-suspeita': 'Ausentes acima do limite: recarga suspeita da origem',
+  'esquema-com-seed': 'Esquema com coleta do seed (seed-mock): rode o db:limpar-seed antes da coleta real',
   'erro-interno': 'Erro interno da coleta',
 };
 
@@ -62,6 +67,14 @@ export class ErroColeta extends Error {
       ...(this.coluna !== undefined ? { coluna: this.coluna } : {}),
     };
   }
+}
+
+/**
+ * Plano 060-sem-mock, P1: a coleta e o projetor do Acelerato recusam esquema com coleta `seed-mock` (carga real nunca cai em cima de seed).
+ * Roda antes de qualquer escrita (inclusive do registro de falha em `ctl_coleta`); só o código e a entidade saem.
+ */
+export async function exigirEsquemaSemSeed(db: Consultavel, S: Esquemas): Promise<void> {
+  if ((await contarColetasDoSeed(db, S.ac)) > 0) throw new ErroColeta('esquema-com-seed', { entidade: 'ctl_coleta' });
 }
 
 /** Qualquer erro vira `ErroColeta`; o que não for já um dele vira `erro-interno`, sem a mensagem original. */

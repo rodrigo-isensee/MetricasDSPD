@@ -2,7 +2,7 @@ import type { QueryResultRow } from 'pg';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { comTravaDaFonte } from '../../plataforma/db/trava.js';
-import { ErroColetaBm } from './coleta.js';
+import { ErroColetaBm, exigirEsquemaSemSeed } from './coleta.js';
 import { gravarResponsaveis, COLUNAS_VERSAO } from './responsaveis.js';
 import {
   agrupar, instanteDoBm, projetarCard, type CardProjetado, type EntradaCard, type LinhaColuna, type LinhaTime, type LinhaTimeWorkflow,
@@ -199,6 +199,7 @@ async function projetarLote(
 export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoProjecao> {
   const S = d.S ?? esquemasDoAmbiente();
   return emTransacao(d.pool, async (db) => {
+    await exigirEsquemaSemSeed(db, S);
     const inicio = d.agora();
     const ctl = await db.query<{ coleta_id: string }>(
       `INSERT INTO ${S.bm}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('projecao', $1, 'em_andamento', $2) RETURNING coleta_id`, [inicio, VERSAO_PROJETOR]);

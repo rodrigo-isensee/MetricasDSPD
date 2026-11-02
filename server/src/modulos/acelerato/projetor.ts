@@ -1,7 +1,7 @@
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { Contadores, type RegistroChamado } from './allow-list.js';
-import { ErroColeta } from './erros.js';
+import { ErroColeta, exigirEsquemaSemSeed } from './erros.js';
 import { registrarContagens, type Contagem } from './controle.js';
 import { intervalosDasEtapas } from './etapas-sinteticas.js';
 import { normalizarChamado, type EtapaTotal, type Natureza, type NaturezaPorPrefixo, type LinhaProjecao } from './normalizador.js';
@@ -115,6 +115,7 @@ async function projetarLote(
  */
 export async function projetarAcelerato(pool: PoolLike, S: Esquemas, agora: () => Date): Promise<ResultadoProjecao> {
   return emTransacao(pool, async (db) => {
+    await exigirEsquemaSemSeed(db, S);
     if (!(await haPendentes(db, S))) return { coletaId: null, versoes: 0, chamados: 0, etapas: 0, semIntervalo: 0, contagens: {} };
     const inicio = agora();
     const natureza = await carregarNaturezaPorPrefixo(db, S);

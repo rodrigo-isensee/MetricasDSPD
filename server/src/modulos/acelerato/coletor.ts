@@ -9,7 +9,7 @@ import type { ConfigAcelerato } from './config.js';
 import {
   montarParametros, parametrosDiferentes, registrarContagens, registrarFalha, registrarSucesso, ultimoSucesso, type Contagem, type TarefaAcelerato,
 } from './controle.js';
-import { ErroColeta, comoErroColeta, repetivel } from './erros.js';
+import { ErroColeta, comoErroColeta, exigirEsquemaSemSeed, repetivel } from './erros.js';
 import { NOMES_CAMPO_FATIA_F1 } from './listas-fechadas.js';
 import { carregarListas } from './referencia.js';
 import { DATA_MINIMA, Q1_CHAMADOS, Q2_ETAPAS, Q3_CAMPOS, Q4_FORA_ORGANIZACOES, Q5_SAIDA, TAMANHO_PAGINA, expandir } from './sql.js';
@@ -166,6 +166,7 @@ const somar = (a: { lidos: number; inseridos: number; jaExistentes: number }, r:
 
 /** Executa a coleta sob a trava da fonte. Falha vira linha de controle e é relançada como `ErroColeta`. */
 export async function coletarAcelerato(d: DepsColeta, modo: ModoColeta): Promise<ResultadoColeta> {
+  await exigirEsquemaSemSeed(d.pool, d.S);
   const iniciadoEm = d.agora();
   const tarefa: TarefaAcelerato = modo === 'incremental' ? 'coleta_incremental' : 'varredura';
   let tentativas = 1;
