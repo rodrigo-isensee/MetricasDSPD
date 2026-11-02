@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 13741a407e5ffe2b13ba5a486c5b161f8318ede3
+commit: 52c201ea9b6949a9188fcea0f18c68e52e5bcfe4
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -12,23 +12,32 @@ data: 2026-11-01
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
 
-## Renovação por delta (E2.100, 2026-11-01)
+## Renovação por delta (E2.124, 2026-11-01, segunda)
 
-Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `docs/ux/052-f6-painel-revisao.md` entrou na branch depois dele (`c44bc7b`). Antes de renovar, a `develop` avançou de `81fcd63` para `4a01e39` (PR 182, atualização de dependências de desenvolvimento) e entrou por merge, sem conflito (`13741a4`). Delta lido, e só ele, pelo `forge-check delta --parecer docs/reviews/052-ws1-estrutura.md` (`c71b2d9..13741a4`):
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque `e2e/tests/intensivo-filtros.spec.ts` mudou depois dele (E2.132, `52c201e`). Delta lido, e só ele: `git diff a96f4f6..52c201e` (um arquivo, 1 linha a mais e 1 a menos).
 
-- `docs/ux/052-f6-painel-revisao.md`: parecer de UX da F6, 41 linhas novas, só texto. Não trata do script da WS1.
-- `package.json`, `server/package.json`, `web/package.json`, `tools/docs-contratos/package.json`, `tools/pesquisa/package.json` e `pnpm-lock.yaml`: só versões de dependências de desenvolvimento (`@types/node` 26.6.5 para 26.6.6, `typescript-eslint` 8.72.0 para 8.72.1 e afins), vindas da `develop`. O script `bm:diagnostico` e as dependências de execução seguem iguais.
+- `e2e/tests/intensivo-filtros.spec.ts:21`: a constante `TIPOS` ganha `trabalho-produto` no fim, por causa do tipo novo da ADR 0024. É teste E2E do painel; o script da WS1 (`bm:diagnostico`) não o toca nem é tocado por ele.
 
-Já lido e fora do delta: o código e os testes da WS1, sem mudança. Os outros arquivos do intervalo são pareceres de outros papéis (QA, segurança). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `13741a4`.
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. Segurança (`docs/security/052-fix-test-pg.md`, `5d22083`) e QA (`docs/qa/052-ws1-estrutura.md`, `7583385`) renovaram os deles sobre o mesmo commit. Conclusão: nenhum achado novo, e o parecer segue aprovado em `52c201e`.
 
-## Renovação por delta (E2.97, 2026-11-01)
+## Renovação por delta (E2.124, 2026-11-01)
 
-Motivo: o `forge-check pr` marcou este parecer como desatualizado na `feature/052-f6-painel` porque o `.env.example` mudou depois dele. O `forge-check delta --parecer` não roda aqui (`f763d6a` não é ancestral de `c71b2d9`; a correção da coleta entrou na `develop` em squash, `848aca3`). Delta lido, e só ele: `git diff 81fcd63 c71b2d9 -- .env.example`, uma linha comentada nova (`afe7f56`, F6), trazida pelo merge da `develop` (E2.93).
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `.env.example` mudou depois dele (`DSPD_SCHEMA_PREFIXO_SEED`, F6, e o merge da develop `8b17664`). Delta lido, e só ele: `git diff 4e5958f..802fad3 -- .env.example server/package.json server/src/modulos/businessmap/index.ts server/src/modulos/businessmap/diagnostico.ts server/tests/diagnostico-businessmap.test.ts docs/integracao docs/architecture/data-model.md`.
 
-- A linha documenta `DSPD_SCHEMA_PREFIXO_SEED` (modo de duas bases da F6), comentada e sem valor. Não é credencial e fica fora dos blocos do BusinessMap e do Acelerato.
-- O script da WS1 lê só `BUSINESSMAP_URL_BASE` e `BUSINESSMAP_APIKEY`, com os mesmos nomes de antes.
+- `.env.example`: uma linha comentada nova, `DSPD_SCHEMA_PREFIXO_SEED`, do modo de duas bases da F6; sem valor de credencial. O script da WS1 lê só `BUSINESSMAP_URL_BASE` e `BUSINESSMAP_APIKEY`, que seguem com os mesmos nomes.
+- `server/src/modulos/businessmap/index.ts`: um export novo (`tipo-coluna.js`, da F4). O export do `diagnosticar` segue igual e o `index.ts` continua sem efeito colateral ao importar.
+- `server/package.json`, `diagnostico.ts`, o teste da WS1, `docs/integracao` e `data-model.md`: sem mudança no intervalo (diff vazio).
 
-Já lido e fora do delta: o código e os testes da WS1, sem mudança. A variável nova tem os pareceres da F6 (`docs/reviews/052-f6-painel.md`, `docs/security/052-f6-painel.md`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `c71b2d9`.
+Já lido e fora do delta: o código e os testes da WS1. O código novo tem pareceres próprios (`docs/reviews/052-f6-painel.md`). Segurança e QA renovaram os deles sobre o mesmo ponto (`docs/security/052-fix-test-pg.md`, `6204717`; `docs/qa/052-ws1-estrutura.md`, `0fbbe53`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `802fad3`.
+
+## Renovação por delta (E2.114, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `pnpm-lock.yaml` mudou na correção do test:pg (`4e5958f`, K-182). O `forge-check delta --parecer` não roda aqui (a branch nasceu da `develop`, `4a01e39`); o delta lido foi `git diff 4e5958f~1..4e5958f`, e só ele: `pnpm-workspace.yaml` e `pnpm-lock.yaml`.
+
+- `pnpm-workspace.yaml`: um override novo, `vite: "8.3.4"`, com comentário do motivo e da condição de reversão. Dependência de desenvolvimento e de build; nada do código da WS1.
+- `pnpm-lock.yaml`: só a troca de versão do vite e das referências a ele (sem pacote novo). O script da WS1 (`bm:diagnostico`) usa `fetch` nativo e não depende do vite.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código da correção tem pareceres próprios (`docs/reviews/052-fix-test-pg.md`, `docs/security/052-fix-test-pg.md`, `docs/qa/052-fix-test-pg.md`), e o QA renovou o dele (`docs/qa/052-ws1-estrutura.md`, E2.116, `f575cfd`). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `4e5958f`.
 
 ## Renovação por delta (E2.87, 2026-11-01)
 
