@@ -75,7 +75,7 @@ function Achados({ r }: { r: RespostaApontamento }) {
     <ul className="flex flex-col gap-2" data-testid="lista-achados">
       {itens.map((e) => (
         <li key={e.chave} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <span>{e.frase}</span>
+          <span className="min-w-0 [overflow-wrap:anywhere]">{e.frase}</span>
           <Atalho acao={e.acao} rotulo={e.rotulo} />
         </li>
       ))}

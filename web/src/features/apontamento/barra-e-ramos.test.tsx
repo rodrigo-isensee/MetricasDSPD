@@ -216,6 +216,20 @@ describe('achados: atalhos', () => {
     expect(within(lista).queryByRole('button')).toBeNull()
   })
 
+  it('rótulo de projeto longo e sem espaço quebra na frase do achado e na leitura dos cartões', async () => {
+    const longo = 'nome_com_sublinhado_'.repeat(5)
+    const r: RespostaApontamento = {
+      ...RESPOSTA_FICTICIA,
+      achados: [{ codigo: 'concentracao-em-projeto', valores: { pct: 60 }, rotuloRef: longo }],
+    }
+    await pronto(URL_ABA, com(r))
+    const frase = within(screen.getByTestId('lista-achados')).getByText(new RegExp(longo))
+    expect(frase.className).toContain('[overflow-wrap:anywhere]')
+    for (const leitura of screen.getAllByTestId(/^leitura-AP-/)) {
+      expect(leitura.className).toContain('[overflow-wrap:anywhere]')
+    }
+  })
+
   it('o cartão de subgrupo oferece o atalho para os não classificados', async () => {
     const roteador = await pronto()
     const cartao = screen.getByTestId('metrica-AP-SUBGRUPO')
