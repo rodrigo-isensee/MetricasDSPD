@@ -18,9 +18,9 @@ export const CAMINHOS_PERMITIDOS: readonly RegExp[] = [
   /^\/boards\/\d+\/(currentStructure|workflows|columns|lanes)$/,
   /^\/cards\/\d+$/,
   /^\/cards\/\d+\/(revisions|comments)$/,
-  // Pedido 059, E2.3 (spike do worklog, K-193): só leitura do apontamento, com consulta própria (CONSULTA_WORKLOG).
-  /^\/loggedTime(\/history)?$/,
-  /^\/loggedTimeCategories$/,
+  // Pedido 059 (K-193, ADR 0025 item 1): do worklog, SÓ `/loggedTime`, com consulta própria (CONSULTA_WORKLOG). `/loggedTime/history`
+  // (403 para a chave do dono no spike), `/loggedTimeCategories` (`category_id` nulo) e `/loggedTime/{id}` ficam fora da lista.
+  /^\/loggedTime$/,
 ];
 
 const LISTA_IDS = /^\d{1,12}(,\d{1,12}){0,199}$/;
@@ -60,23 +60,28 @@ export const CONSULTA_USERS: Readonly<Record<string, RegExp>> = {
   user_ids: LISTA_IDS,
 };
 
-/** Pedido 059 (E2.3): `fields` do `/loggedTime` com exatamente este valor (lista fechada da API; o comentário só existe para a classificação). */
+/**
+ * Pedido 059 (ADR 0025 item 1, ADR 0020 R4-2): `fields` do `/loggedTime` com exatamente este valor (lista fechada da API; o
+ * comentário e o `user_id` só existem em memória, para a classificação e a pessoa; nunca vão a `stg_`).
+ */
 export const CAMPOS_WORKLOG = 'logged_time_id,card_id,parent_card_id,subtask_id,lane_id,column_id,user_id,category_id,date,time,comment,logged_at';
-/** Consulta aceita nos três caminhos do worklog: lista de cards, paginação e, no `/loggedTime`, `fields` fixo e subtarefas. */
+/** Teto de registros por resposta do `/loggedTime` (a API não pagina: o lote vem inteiro, até `per_page`). */
+export const TETO_WORKLOG = 1000;
+const DIA_CIVIL = /^\d{4}-\d{2}-\d{2}$/;
+/**
+ * Consulta aceita no `/loggedTime`: lista de cards (até 200), `fields` fixo, subtarefas, `per_page` e os filtros de data (`from_date` e
+ * `to_date` = data do apontamento; `logged_from` e `logged_to` = quando foi registrado). Sem `page` (não há paginação), sem `user_ids`.
+ */
 export const CONSULTA_WORKLOG: Readonly<Record<string, RegExp>> = {
   card_ids: LISTA_IDS,
-  page: /^\d{1,5}$/,
-  per_page: /^\d{1,3}$/,
+  per_page: /^(?:[1-9]\d{0,2}|1000)$/,
   fields: /^logged_time_id,card_id,parent_card_id,subtask_id,lane_id,column_id,user_id,category_id,date,time,comment,logged_at$/,
   include_logged_time_for_subtasks: /^[01]$/,
+  from_date: DIA_CIVIL,
+  to_date: DIA_CIVIL,
+  logged_from: DATA,
+  logged_to: DATA,
 };
-
-/** `fields` e subtarefas só no `/loggedTime`; `card_ids` não vale na lista de categorias (catálogo, sem filtro). */
-function consultaDoWorklog(caminho: string): Readonly<Record<string, RegExp>> {
-  if (caminho === '/loggedTime') return CONSULTA_WORKLOG;
-  const paginacao = { page: CONSULTA_WORKLOG.page!, per_page: CONSULTA_WORKLOG.per_page! };
-  return caminho === '/loggedTime/history' ? { card_ids: CONSULTA_WORKLOG.card_ids!, ...paginacao } : paginacao;
-}
 
 /** Tamanho máximo de `user_ids` por chamada (o mesmo limite de `LISTA_IDS`). */
 export const LOTE_USER_IDS = 200;
@@ -226,8 +231,8 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
     const ehUsers = caminho === '/users';
     const permitida = ehUsers
       ? CONSULTA_USERS
-      : caminho.startsWith('/loggedTime')
-        ? consultaDoWorklog(caminho)
+      : caminho === '/loggedTime'
+        ? CONSULTA_WORKLOG
         : caminho === '/cards'
           ? { ...CONSULTA_PERMITIDA, ...CONSULTA_CARDS }
           : CONSULTA_PERMITIDA;
@@ -241,6 +246,10 @@ export function criarClienteHttp(cfg: ConfigHttp, deps: DepsHttp = {}) {
     }
     if (ehUsers && !(params.has('fields') && params.has('user_ids'))) {
       throw new ErroBusinessMap('consulta', `/users exige fields=${CAMPOS_USERS} e user_ids`);
+    }
+    // `/loggedTime` sem `card_ids` devolveria o worklog da conta inteira (minimização, ADR 0025 item 2); sem `fields`, campos fora da lista.
+    if (caminho === '/loggedTime' && !(params.has('card_ids') && params.has('fields'))) {
+      throw new ErroBusinessMap('consulta', '/loggedTime exige card_ids e fields fixo');
     }
     const q = params.toString();
     return `${base.origin}${prefixo}${caminho}${q === '' ? '' : `?${q}`}`;
