@@ -42,14 +42,15 @@ try {
     cliente, poolColetor, poolRef, conf: lerConferencia(), quadros: cfg.BUSINESSMAP_QUADROS_IDS, hostBase,
     agora: () => new Date(), paginaTamanho: cfg.BUSINESSMAP_PAGINA_TAMANHO, S,
     ...(sal === undefined ? {} : { sal }),
-    // Pedido 059 (ADR 0025 item 3): no incremental, o worklog entra como etapa, depois dos cards e sob a mesma trava; só com o sal da supressão
-    // configurado (sem ele a etapa não existe e `apontamento` sai `null`). A carga inicial do worklog tem o comando próprio `bm:apontamento`.
+    // Pedido 059 (ADR 0025 item 3): no incremental com --projetar, o worklog entra como etapa, depois dos cards e sob a mesma trava; só com o sal da
+    // supressão configurado (sem ele a etapa não existe e `apontamento` sai `null`). A carga inicial do worklog tem o comando próprio `bm:apontamento`.
     ...(sal === undefined ? {} : {
       etapaApontamento: async () => coletarApontamentos(await montarDepsApontamento({ cliente, pool: coletor, S, sal, hostBase, agora: () => new Date() }), { tipo: 'incremental' }),
     }),
   }, args);
   process.stdout.write(`${JSON.stringify(r, null, 2)}\n`);
-  process.exitCode = r.estado === 'sucesso' ? 0 : 3;
+  // etapa do worklog que não pôde rodar (`apontamento.falha`): os cards saem no JSON e o código é 3, como em `parcial`
+  process.exitCode = r.estado === 'sucesso' && !(r.apontamento !== null && 'falha' in r.apontamento) ? 0 : 3;
 } catch (e) {
   const codigo = e instanceof ErroColetaBm ? e.codigo : e instanceof ErroBusinessMap ? e.tipo : 'erro-interno';
   // `uso` e `trava` trazem texto fixo nosso; o resto sai só como código
