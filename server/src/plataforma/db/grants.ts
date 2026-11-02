@@ -4,7 +4,27 @@ import type { Esquemas } from './esquemas.js';
 /** Colunas por tabela/view de cada schema, lidas do catálogo (a ordem é a do banco). */
 export type Catalogo = { bm: Record<string, string[]>; ac: Record<string, string[]>; core: Record<string, string[]> };
 
-export const PAPEIS = ['dspd_coletor', 'dspd_api', 'dspd_ref', 'dspd_webhook', 'dspd_automacao', 'dspd_pesquisa'] as const;
+export const PAPEIS = ['dspd_coletor', 'dspd_api', 'dspd_ref', 'dspd_webhook', 'dspd_automacao', 'dspd_pesquisa', 'dspd_api_apontamento'] as const;
+
+/**
+ * Pedido 059 (ADR 0020, revisão 4, R4-5): o papel da aba Apontamento lê SÓ estas colunas (GRANT por coluna, nada de `stg_`, `evt_` nem `ctl_` além do mínimo do
+ * frescor). De `dim_responsavel`, só `pessoa_ref` e o nome (nunca `responsavel_id`); de `fato_apontamento`, sem `logged_time_id`, hash, comentário nem categoria.
+ * Chave `bm.` ou `core.` + tabela; tabela ausente do catálogo é pulada (reaplicável em catálogo antigo).
+ */
+export const COLUNAS_API_APONTAMENTO: Readonly<Record<string, readonly string[]>> = {
+  'bm.fato_apontamento': ['card_id', 'parent_card_id', 'subtask_id', 'data_apontamento', 'segundos', 'subgrupo_codigo', 'flags_qualidade', 'iniciativa_card_id', 'pessoa_ref', 'excluido_em'],
+  'bm.dim_card_raiz': ['card_id', 'raiz_card_id', 'raiz_fora_do_escopo'],
+  'bm.dim_card': ['card_id', 'titulo', 'tipo'],
+  'bm.dim_responsavel': ['pessoa_ref', 'responsavel_nome'],
+  'bm.ref_apontamento_subgrupo': ['codigo', 'rotulo', 'incluido_por_versao_id'],
+  'bm.ref_apontamento_termo': ['incluido_por_versao_id'],
+  'bm.ref_apontamento_regra_tipo': ['incluido_por_versao_id'],
+  'bm.ctl_coleta': ['coleta_id', 'tarefa', 'status', 'iniciado_em', 'finalizado_em'],
+  'core.ref_calendario': ['calendario_id', 'offset_minutos'],
+  'core.ref_calendario_aplicacao': ['dominio', 'classe', 'calendario_id', 'vigente_ate'],
+  'core.ref_feriado': ['calendario_id', 'data', 'incluido_por_versao_id'],
+  'core.ref_versao_criterio': ['versao_id', 'vigente_desde', 'dominio', 'descricao'],
+};
 
 /**
  * Colunas que a API não lê e que NÃO são de pessoa (ADR 0020, M-4), por `schema.tabela.coluna` sem prefixo de teste.
@@ -45,7 +65,7 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
   };
   const usage: Record<(typeof PAPEIS)[number], string[]> = {
     dspd_coletor: [S.bm, S.ac, S.core], dspd_api: [S.bm, S.ac, S.core], dspd_ref: [S.bm, S.ac, S.core],
-    dspd_webhook: [S.bm, S.core], dspd_automacao: [S.ac, S.core], dspd_pesquisa: [S.core],
+    dspd_webhook: [S.bm, S.core], dspd_automacao: [S.ac, S.core], dspd_pesquisa: [S.core], dspd_api_apontamento: [S.bm, S.core],
   };
   for (const schema of [S.bm, S.ac, S.core]) {
     out.push(`REVOKE ALL ON SCHEMA ${schema} FROM PUBLIC, ${papeis}`, `REVOKE ALL ON ALL TABLES IN SCHEMA ${schema} FROM PUBLIC, ${papeis}`);
@@ -109,6 +129,13 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
   g('SELECT, INSERT', S.core, pesq, 'dspd_pesquisa');
   g('SELECT', S.core, COM(Object.keys(cat.core), 'ref_pesq_', 'ref_versao_criterio'), 'dspd_pesquisa');
   g('SELECT', S.core, [...pesq, ...COM(Object.keys(cat.core), 'vw_pesq_')], 'dspd_api');
+  for (const [chave, colunas] of Object.entries(COLUNAS_API_APONTAMENTO)) {
+    const [esquema, tabela] = chave.split('.') as ['bm' | 'core', string];
+    const existentes = cat[esquema][tabela];
+    if (existentes === undefined) continue;
+    const presentes = colunas.filter((c) => existentes.includes(c));
+    if (presentes.length > 0) out.push(`GRANT SELECT (${presentes.join(', ')}) ON ${S[esquema]}.${tabela} TO dspd_api_apontamento`);
+  }
   out.push(`GRANT INSERT ON ${S.bm}.stg_webhook_evento TO dspd_webhook`,
     `GRANT SELECT (webhook_sk, payload_sha256) ON ${S.bm}.stg_webhook_evento TO dspd_webhook`);
   out.push(`GRANT SELECT, INSERT ON ${S.ac}.ctl_automacao TO dspd_automacao`);

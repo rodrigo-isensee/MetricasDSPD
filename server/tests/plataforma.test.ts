@@ -170,7 +170,8 @@ describe('gerarGrants', () => {
   it('F3 do 052: dim_responsavel só para o coletor (sem DELETE) e nada para a API; `parametros` de ctl_coleta só no BusinessMap', () => {
     const g4 = gerarGrants(S, { ...cat, bm: { ...cat.bm, dim_responsavel: ['responsavel_id', 'responsavel_nome', 'atualizado_em'] } });
     expect(g4).toContain('GRANT SELECT, INSERT, UPDATE ON t_dspd_bm.dim_responsavel TO dspd_coletor');
-    expect(g4.filter((x) => x.includes('dim_responsavel') && !x.endsWith('TO dspd_coletor'))).toEqual([]);
+    // além do coletor, só o papel da aba Apontamento, só com o nome (nunca `responsavel_id`, que seria a chave do BusinessMap): pedido 059, R4-5
+    expect(g4.filter((x) => x.includes('dim_responsavel') && !x.endsWith('TO dspd_coletor'))).toEqual(['GRANT SELECT (responsavel_nome) ON t_dspd_bm.dim_responsavel TO dspd_api_apontamento']);
     expect(g4.filter((x) => x.includes('dim_responsavel') && /DELETE/.test(x))).toEqual([]);
     expect(g.some((x) => x.includes('dim_responsavel'))).toBe(false);
     expect(g).toContain('GRANT UPDATE (parametros) ON t_dspd_bm.ctl_coleta TO dspd_coletor');
