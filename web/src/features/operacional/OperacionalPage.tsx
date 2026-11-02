@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useSearchParams, type Location } from 'react-router'
+import { Link, useLocation, useNavigate, useSearchParams, type Location } from 'react-router'
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { EsqueletoCartao } from '@/components/ui'
 import { LinhaFiltrosGuardados } from '@/features/filtros'
@@ -24,7 +24,15 @@ import { IndiceDeSecoes, SECAO_MAIS_METRICAS, type SecaoDoIndice } from './Indic
 import { VisaoResumo } from './resumo/VisaoResumo'
 import { ANUNCIO_DA_VISAO, carregarSustentacao, SeletorVisao } from './SeletorVisao'
 import { useVisaoOperacional } from './useVisaoOperacional'
-import { hrefDaVisao, resolverVisao, ROTULO_VISAO, type Visao } from '@/features/navegacao/visao'
+import {
+  hrefDaVisao,
+  resolverVisao,
+  ROTA_APONTAMENTO,
+  ROTULO_VISAO,
+  VISAO_APONTAMENTO,
+  type OpcaoDoSeletor,
+  type Visao,
+} from '@/features/navegacao/visao'
 
 // A visão Sustentação é um chunk à parte: só baixa quando a pessoa a escolhe, chega por link ou mostra intenção.
 const VisaoSustentacao = lazy(carregarSustentacao)
@@ -118,11 +126,18 @@ export default function OperacionalPage() {
   const { visao, escolher } = useVisaoOperacional()
   const [anuncio, setAnuncio] = useState('')
   const { hash } = useLocation()
-  const focoPendenteRef = useRef<Visao | null>(null)
+  const navigate = useNavigate()
+  const focoPendenteRef = useRef<OpcaoDoSeletor | null>(null)
   // Última visão escolhida pelo seletor; vale para todas as visões comitadas até ela chegar (setas em sequência).
   const viaSeletorRef = useRef<Visao | null>(null)
   const visaoAnterior = useRef(visao)
-  const aoEscolher = (v: Visao) => {
+  const aoEscolher = (v: OpcaoDoSeletor) => {
+    // A aba Apontamento tem rota própria: sai do Operacional (a página troca; o shell leva o foco ao título dela).
+    if (v === VISAO_APONTAMENTO) {
+      focoPendenteRef.current = null
+      void navigate(ROTA_APONTAMENTO)
+      return
+    }
     escolher(v)
     // Voltar à visão já comitada (A, B, A no mesmo quadro): nenhuma troca vai comitar, então nada deve ficar
     // pendente (o efeito do seletor e o do anúncio só rodam quando a visão muda).

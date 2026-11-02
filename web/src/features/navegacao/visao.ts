@@ -8,6 +8,23 @@ import { textoBusca } from '@/features/filtros/codec'
 export const VISOES = ['resumo', 'diaria', 'semanal', 'sustentacao'] as const
 export type Visao = (typeof VISOES)[number]
 
+/**
+ * A aba Apontamento é a quinta opção do seletor, mas não é uma `Visao`: tem rota própria (a página vive em
+ * `features/apontamento` e usa a URL para os próprios filtros) e fica fora de `cadencia`, de `resolverVisao` e do hash.
+ * As quatro visões acima não mudam por causa dela.
+ */
+export const VISAO_APONTAMENTO = 'apontamento' as const
+export type OpcaoDoSeletor = Visao | typeof VISAO_APONTAMENTO
+export const OPCOES_DO_SELETOR: readonly OpcaoDoSeletor[] = [...VISOES, VISAO_APONTAMENTO]
+export const ROTULO_OPCAO: Record<OpcaoDoSeletor, string> = {
+  resumo: 'Resumo',
+  diaria: 'Diária',
+  semanal: 'Semanal',
+  sustentacao: 'Sustentação',
+  apontamento: 'Apontamento',
+}
+export const ROTA_APONTAMENTO = '/operacional/apontamento'
+
 /** O Resumo é o padrão e fica fora da URL canônica. */
 export const VISAO_PADRAO: Visao = 'resumo'
 

@@ -34,7 +34,7 @@ export function calcularEIAcelerato(ctx: ContextoAC, f: FiltrosSustentacao): Res
   const espec = JANELA_POR_GRANULARIDADE.chamado
   const itens: ItemEI[] = []
   for (const x of selecionarAC(ctx, f)) {
-    if (!x.apuravel || x.c.data_finalizado === null) continue
+    if (!x.apuravel || x.c.data_finalizado === null || x.c.prioridade === undefined) continue
     itens.push({
       prioridade: x.c.prioridade,
       dia: diaLocal(x.c.data_finalizado, ctx.cal),

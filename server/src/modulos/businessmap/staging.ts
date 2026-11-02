@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { registroCard, registroRevisao, serializar, type DominiosCamposCustomizados } from './allow-list.js';
+import { registroCard, registroRevisao, registroTransicao, serializar, type DominiosCamposCustomizados } from './allow-list.js';
 
 export type ResultadoStaging = 'inserido' | 'ja_existente';
 
@@ -47,6 +47,8 @@ export async function gravarStgCard(
 export type EntradaStgRevision = {
   cardId: string; revisionId: string; revisao: unknown; /** calculado em memória (`houveTroca`); ausente = não calculado */ trocaResponsavel?: boolean;
   dominios?: DominiosCamposCustomizados; coletaId: number; agora: Date;
+  /** `transicao` (E2.46): `revisao` é uma transição de coluna do `expand=transitions`; padrão `revisao` (4c). */
+  tipo?: 'revisao' | 'transicao';
 };
 
 /**
@@ -56,7 +58,9 @@ export type EntradaStgRevision = {
 export async function gravarStgRevision(
   db: Consultavel, entrada: EntradaStgRevision, S: Esquemas = esquemasDoAmbiente(),
 ): Promise<boolean> {
-  const payload = serializar(registroRevisao(entrada.revisao, entrada.trocaResponsavel, entrada.dominios));
+  const payload = serializar(entrada.tipo === 'transicao'
+    ? registroTransicao(entrada.revisao, entrada.cardId)
+    : registroRevisao(entrada.revisao, entrada.trocaResponsavel, entrada.dominios));
   const sha256 = createHash('sha256').update(payload).digest();
   const r = await db.query(
     `INSERT INTO ${S.bm}.stg_revision (card_id, revision_id, payload_sha256, payload, coletado_em, coleta_id)

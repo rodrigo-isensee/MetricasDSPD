@@ -10,6 +10,9 @@ import { arquivosDeMigracao, MIGRACOES } from './migracoes.js';
 const nomes = Object.keys(MIGRACOES);
 const ddls = nomes.map((n) => ({ n, ...MIGRACOES[n]!.ddl(S_PADRAO) }));
 const todoSql = ddls.flatMap((d) => d.up);
+/** Única migração com INSERT: a carga inicial da tabela de times (plano 052, F0). As demais seguem a regra da ADR 0014. */
+const CARGA_INICIAL = '0019_bm_carga_inicial_times';
+const sqlSemCarga = ddls.filter((d) => d.n !== CARGA_INICIAL).flatMap((d) => d.up);
 
 /** Extrai (tabela, coluna, definição) de cada CREATE TABLE (e ALTER TABLE ... ADD/DROP COLUMN): separa por vírgula de nível 0 e ignora restrições. */
 function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: string }[] {
@@ -40,8 +43,9 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 396;
+const COLUNAS_FORA_STG_ESPERADAS = 512; // 0017 do Acelerato: 5 colunas em cada uma das duas dimensões do chamado; 0018 e 0019 do BusinessMap (F0 do 052); 0020 (F3): dim_responsavel, 4 colunas; 0023 a 0028 (059, A1): evt_apontamento 10, pessoa_ref 1, cfg_pessoa_eliminada 2, ref_apontamento_* 11, dim_card_raiz 8, fato_apontamento 22; 0029 (059, E2.19): type_id em fato_apontamento, 1 (stg_apontamento fica fora da conta); 0030 (059, E2.27): vigente_de e vigente_ate em cada uma das 3 ref_apontamento_*, 6 (vigencia_id, identidade, o contador não vê); 0031 (059, E2.27): executado_por em cfg_pessoa_eliminada, 1
 
+const COLUNAS_F2 = ['arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte', 'categoria_key'];
 describe('migrações e singleTransaction', () => {
   it('nenhuma migração usa CONCURRENTLY (incompatível com o `up` em transação única)', () => {
     expect(todoSql.filter((q) => /CONCURRENTLY/i.test(q))).toEqual([]);
@@ -70,14 +74,20 @@ describe('migrações (análise estática, sem banco)', () => {
     }
   });
   it('proíbe INSERT, TRUNCATE, ON CONFLICT e SELECT * nas migrações (ADR 0014)', () => {
-    expect(todoSql.join('\n')).not.toMatch(/INSERT\s+INTO|TRUNCATE\s+TABLE|ON\s+CONFLICT|SELECT\s+\*|\w\.\*/i);
+    expect(sqlSemCarga.join('\n')).not.toMatch(/INSERT\s+INTO|TRUNCATE\s+TABLE|ON\s+CONFLICT|SELECT\s+\*|\w\.\*/i);
+    // A carga inicial só insere (nada de ON CONFLICT, TRUNCATE nem SELECT *), e só nas três tabelas esperadas.
+    const carga = ddls.find((d) => d.n === CARGA_INICIAL)!.up.join('\n');
+    expect(carga).not.toMatch(/TRUNCATE\s+TABLE|ON\s+CONFLICT|SELECT\s+\*|\w\.\*/i);
+    expect([...carga.matchAll(/INSERT\s+INTO\s+(\S+)/g)].map((m) => m[1])).toEqual([
+      `${S_PADRAO.core}.ref_versao_criterio`, `${S_PADRAO.bm}.ref_time`, `${S_PADRAO.bm}.ref_time_workflow`]);
   });
   it('só tabelas stg_ têm colunas de pessoa, e só as permitidas (LGPD, data-model §9): varre TODAS as colunas', () => {
     const fora = colunas.filter((c) => !/\.stg_/.test(c.tabela));
     expect(fora.length).toBe(COLUNAS_FORA_STG_ESPERADAS);
     expect(fora.filter((c) => violaLgpd(c.tabela, c.coluna)).map((c) => `${c.tabela}.${c.coluna}`)).toEqual([]);
     const permitidas = fora.filter((c) => colunaDePessoa(c.coluna)).map((c) => `${c.tabela}.${c.coluna}`);
-    for (const p of COLUNAS_PESSOA) expect(permitidas, p).toContain(p);
+    // a coluna de view (`apt_pessoa_time`) nao e coluna de tabela: o catalogo real a cobre em `catalogo.pg.test.ts`
+    for (const p of COLUNAS_PESSOA.filter((x) => !x.includes('.apt_pessoa_time.'))) expect(permitidas, p).toContain(p);
     expect(colunas.filter((c) => /\.stg_/.test(c.tabela) && colunaDePessoa(c.coluna))).toEqual([]);
   });
   it('sanidade do parser: dim_chamado_versao tem organizacao e tipo e ignora restrições', () => {
@@ -116,8 +126,11 @@ describe('migrações (análise estática, sem banco)', () => {
   });
   it('toda view é security_invoker e lista colunas (C-views, data-model §2)', () => {
     const views = todoSql.filter((s) => s.startsWith('CREATE VIEW'));
-    expect(views).toHaveLength(7);
-    for (const v of views) expect(v).toMatch(/^CREATE VIEW \S+ WITH \(security_invoker = true\) AS/);
+    expect(views).toHaveLength(8);
+    // unica excecao (059, E2.21): a view do time e definer, para o papel da aba nao precisar ler `responsaveis` nem `responsavel_id`
+    const doTime = views.filter((v) => /^CREATE VIEW \S+\.apt_pessoa_time AS/.test(v));
+    expect(doTime).toHaveLength(1);
+    for (const v of views.filter((x) => !doTime.includes(x))) expect(v).toMatch(/^CREATE VIEW \S+ WITH \(security_invoker = true\) AS/);
   });
   it('C1: origem_demanda e demais códigos de ref_dominio têm o tipo de ref_dominio.codigo (varchar(80))', () => {
     expect(tipoDe(`${S_PADRAO.bm}.ref_dominio`, 'codigo')).toMatch(/codigo varchar\(80\)/);
@@ -146,16 +159,18 @@ describe('migrações (análise estática, sem banco)', () => {
       .filter((k) => k !== 'justificativa_ajuste').map((k) => (k === 'tipo_fila' ? 'tipo' : k));
     chamado.push('etapa'); // etapa atual: extensão do data-model §4, fora da interface Chamado
     chamado.push('justificativa_informada'); // 0014 (FA-003): só o indicador, fora de ATRIBUTOS_CHAMADO (0008/0009 imutáveis)
+    chamado.push('arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte', 'categoria_key'); // 0017 (F2 do Acelerato): fora de ATRIBUTOS_CHAMADO
     chamado.sort();
     const cols = colunas.filter((c) => c.tabela === `${S_PADRAO.ac}.dim_chamado`).map((c) => c.coluna);
     expect(cols.filter((c) => !['chamado_id', 'coletado_em', 'atualizado_por_coleta_id', 'sistema_origem'].includes(c)).sort()).toEqual(
       chamado.filter((c) => c !== 'chamado_id'));
-    expect(ATRIBUTOS_CHAMADO.map(([n]) => n).sort()).toEqual(chamado.filter((c) => c !== 'chamado_id' && c !== 'justificativa_informada'));
+    expect(ATRIBUTOS_CHAMADO.map(([n]) => n).sort()).toEqual(chamado.filter((c) => c !== 'chamado_id' && c !== 'justificativa_informada' && !COLUNAS_F2.includes(c)));
     expect(cols).not.toContain('justificativa_ajuste');
     expect(colunas.filter((c) => c.tabela === `${S_PADRAO.ac}.stg_chamado`).map((c) => c.coluna)).toContain('ausente_na_extracao');
   });
   it('ref_ com vigência têm índice parcial único da vigente (BM, AC e core)', () => {
-    for (const t of ['ref_quadro', 'ref_coluna', 'ref_dominio', 'ref_sle', 'ref_alocacao_acordada', 'ref_limite_frentes', 'ref_ficha_resultado'])
+    for (const t of ['ref_quadro', 'ref_coluna', 'ref_dominio', 'ref_sle', 'ref_alocacao_acordada', 'ref_limite_frentes', 'ref_ficha_resultado',
+      'ref_workflow', 'ref_tipo_card', 'ref_time', 'ref_time_workflow'])
       expect(todoSql.some((s) => s.startsWith(`CREATE UNIQUE INDEX uq_${t}_vigente ON ${S_PADRAO.bm}.${t} `) && s.endsWith('WHERE vigente_ate IS NULL')), t).toBe(true);
     for (const t of ['ref_calendario_turno', 'ref_calendario_aplicacao'])
       expect(todoSql.some((s) => s.startsWith(`CREATE UNIQUE INDEX uq_${t}_vigente ON ${S_PADRAO.core}.${t} `)), t).toBe(true);

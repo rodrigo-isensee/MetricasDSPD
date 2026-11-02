@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import type {
+  EstadoColeta,
   FiltrosFluxo,
   FiltrosSustentacao,
   MetricaId,
@@ -14,6 +15,7 @@ import {
   agruparPorFonte,
   blocosVisaoGeral,
   construirBloco,
+  contextoDosDados,
   dataCivil,
   excedeLimite,
   montarConteudo,
@@ -37,6 +39,8 @@ beforeAll(async () => {
   opcoesAc = await fonte.opcoesFiltro('acelerato')
 }, 60000)
 
+const CONTEXTO = contextoDosDados(undefined, [], false)
+
 const bloco = async (id: MetricaId, filtros: FiltrosFluxo | FiltrosSustentacao = FLUXO) => {
   const dto = await fonte.obter(id as 'O3', filtros as FiltrosFluxo)
   return construirBloco({
@@ -45,6 +49,7 @@ const bloco = async (id: MetricaId, filtros: FiltrosFluxo | FiltrosSustentacao =
     filtros,
     opcoes: id.startsWith('S') || id === 'EI_SUST' ? opcoesAc : opcoesBm,
     nota: notaDaMetrica(id),
+    contexto: CONTEXTO,
   })
 }
 
@@ -172,6 +177,7 @@ describe('bloco de cada família de DTO (nada é recalculado)', () => {
       nota: notaDaMetrica('O4'),
       codigo: 'X',
       titulo: 'Título',
+      contexto: CONTEXTO,
     })
     expect(b.criterios).toEqual(['Critério alterado em 02/03/2026: Novo marco de início'])
     expect(b.base).toBe('Base: 3 itens; 9 semanas')
@@ -257,14 +263,14 @@ describe('Visão geral, seções por fonte e conteúdo', () => {
   it('um bloco por nível e por espera invisível, cada um de UMA fonte, com os critérios do nível', async () => {
     const vg: ResultadoVisaoGeral = await fonte.obter('VISAO_GERAL', {})
     const criterios = await fonte.criterios()
-    const blocos = blocosVisaoGeral(vg, criterios)
+    const blocos = blocosVisaoGeral(vg, criterios, () => CONTEXTO)
     expect(blocos.map((b) => b.fonte)).toContain('Acelerato')
     const sus = blocos.find((b) => b.id === 'VISAO_GERAL_sustentacao')!
     expect(sus.fonte).toBe('Acelerato')
     expect(blocos.filter((b) => b.fonte === 'BusinessMap').length).toBeGreaterThan(0)
     expect(blocos.some((b) => b.id.startsWith('VISAO_GERAL_EI_'))).toBe(true)
     const versao: VersaoCriterio = { id: 'v', data: '2026-02-01', descricao: 'd', afeta: ['S1'] }
-    const comCriterio = blocosVisaoGeral(vg, [versao])
+    const comCriterio = blocosVisaoGeral(vg, [versao], () => CONTEXTO)
     expect(comCriterio.find((b) => b.id === 'VISAO_GERAL_sustentacao')!.criterios).toHaveLength(1)
     expect(comCriterio.find((b) => b.id === 'VISAO_GERAL_operacional')!.criterios).toEqual([])
   })
@@ -311,5 +317,64 @@ describe('base do E3 no PDF (IS-006)', () => {
       ),
     )
     expect(b.base).toMatch(/^Base: \d+ de \d+ iniciativas$/)
+  })
+})
+
+describe('contexto dos dados por cartão (P-4)', () => {
+  const evento = {
+    id: 'c1',
+    inicio: '2026-10-31T09:00:00Z',
+    fim: '2026-10-31T09:05:00Z',
+    duracaoMs: 300000,
+    resultado: 'ok' as const,
+    tipoErro: null,
+    efeito: 'aplicada' as const,
+    contagens: null,
+  }
+  const estado = (extra: Partial<EstadoColeta> = {}): EstadoColeta => ({
+    dominio: 'businessmap',
+    selo: 'atual',
+    horasDesdeUltimaOk: 1,
+    ultimaOk: evento,
+    ultimaTentativa: evento,
+    proximaPrevista: '2026-11-01T09:00:00Z',
+    falhasRecentes: [],
+    calibracao: [],
+    metricasEmCalibracao: ['O3'],
+    ...extra,
+  })
+
+  it('leva "Atualizado em", o texto do selo de frescor, calibração e fictício', () => {
+    const c = contextoDosDados(estado(), ['O3'], false)
+    expect(c.atualizadoEm).toMatch(/^Atualizado em \d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/)
+    expect(c.frescor).toBe('Atual')
+    expect(c.emCalibracao).toBe(true)
+    expect(c.ficticio).toBe(false)
+    expect(contextoDosDados(estado(), ['O1'], true)).toMatchObject({
+      emCalibracao: false,
+      ficticio: true,
+    })
+  })
+
+  it('atrasado diz quantas horas, como o selo da tela; sem coleta concluída não inventa data', () => {
+    expect(
+      contextoDosDados(estado({ selo: 'atrasado', horasDesdeUltimaOk: 7.2 }), [], false).frescor,
+    ).toBe('Atrasado: última coleta há 7 h')
+    const sem = contextoDosDados(
+      estado({ selo: 'sem-coleta', ultimaOk: null, horasDesdeUltimaOk: null }),
+      [],
+      false,
+    )
+    expect(sem.atualizadoEm).toBe('Nenhuma coleta concluída')
+    expect(sem.frescor).toBe('Sem coleta')
+  })
+
+  it('sem o estado da fonte (leitura falhou) o arquivo diz "indisponível" em vez de supor', () => {
+    expect(contextoDosDados(undefined, ['O3'], false)).toEqual({
+      atualizadoEm: 'Atualização indisponível',
+      frescor: 'indisponível',
+      emCalibracao: false,
+      ficticio: false,
+    })
   })
 })

@@ -11,6 +11,16 @@ export const SEGMENTO_PESSOA =
 export const COLUNAS_PESSOA: readonly string[] = [
   'dspd_bm.dim_card.responsaveis',
   'dspd_bm.dim_card_versao.responsaveis',
+  // Pedido 052, F3 (Q-8 = B, ADR 0020 revisão 3): nome do responsável por GET /users; tabela fora da API, sem GRANT ao dspd_api.
+  'dspd_bm.dim_responsavel.responsavel_id',
+  'dspd_bm.dim_responsavel.responsavel_nome',
+  // Pedido 059 (K-193, ADR 0020 revisão 4, R4-4 e R4-6): chave opaca de pessoa (pseudônimo: dado pessoal, LGPD art. 13 §4) e o HMAC da
+  // lista de supressão. Fora do `dspd_api` (nenhuma dessas tabelas está em `paraApi`); só a rota da aba, com papel próprio, lerá `pessoa_ref`.
+  'dspd_bm.dim_responsavel.pessoa_ref',
+  'dspd_bm.fato_apontamento.pessoa_ref',
+  // E2.21: view definer que diz quem é do time; só a rota da aba a lê (GRANT por coluna), nunca o `dspd_api`.
+  'dspd_bm.apt_pessoa_time.pessoa_ref',
+  'dspd_bm.cfg_pessoa_eliminada.hash_usuario',
 ];
 
 /** Exceções por `schema.tabela.coluna`, com justificativa. Sem curinga nem prefixo. Nova exceção exige mudar o data-model §9. */
@@ -19,6 +29,8 @@ export const EXCECOES_PESSOA: Readonly<Record<string, string>> = {
   'dspd_bm.dim_card_versao.area_solicitante': 'área organizacional (briefing 4.5), não pessoa',
   'dspd_ac.dim_chamado.justificativa_informada': 'indicador booleano derivado (FA-003); o texto livre nunca é gravado',
   'dspd_ac.dim_chamado_versao.justificativa_informada': 'indicador booleano derivado (FA-003); o texto livre nunca é gravado',
+  'dspd_ac.dim_chamado.com_agente': 'só o booleano "há agente" (ADR 0020, D-9); o id e o nome do agente nunca saem do MySQL',
+  'dspd_ac.dim_chamado_versao.com_agente': 'só o booleano "há agente" (ADR 0020, D-9); o id e o nome do agente nunca saem do MySQL',
 };
 
 export const segmentos = (coluna: string): string[] => coluna.split('_').filter(Boolean);

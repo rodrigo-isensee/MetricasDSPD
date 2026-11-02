@@ -16,6 +16,7 @@ services:
       DSPD_PWD_WEBHOOK: ${DSPD_PWD_WEBHOOK:-webhook_dev}
       DSPD_PWD_AUTOMACAO: ${DSPD_PWD_AUTOMACAO:-automacao_dev}
       DSPD_PWD_PESQUISA: ${DSPD_PWD_PESQUISA:-pesquisa_dev}
+      DSPD_PWD_APONTAMENTO: ${DSPD_PWD_APONTAMENTO:-apontamento_dev}
     ports: ["127.0.0.1:${PG_PORT:-5432}:5432"]
     volumes:
       - dspd-pg-data:/var/lib/postgresql/data
@@ -44,6 +45,11 @@ services:
       # Webhook do BusinessMap (S-12): só liga com WEBHOOK_BM_SEGREDO (>= 16 caracteres) no .env; papel dspd_webhook (só INSERT).
       PG_WEBHOOK_URL: ${WEBHOOK_BM_SEGREDO:+postgres://dspd_webhook:${DSPD_PWD_WEBHOOK:-webhook_dev}@postgres:5432/metricas}
       WEBHOOK_BM_SEGREDO: ${WEBHOOK_BM_SEGREDO:-}
+      # Aba Apontamento (pedido 059, ADR 0020 revisão 4): papel próprio e interruptor do nome real (padrão desligado). A API escuta 0.0.0.0 no contêiner e a
+      # porta é publicada só em 127.0.0.1, o que `APONTAMENTO_PUBLICACAO_LOOPBACK=1` declara para a guarda de partida.
+      PG_APONTAMENTO_URL: postgres://dspd_api_apontamento:${DSPD_PWD_APONTAMENTO:-apontamento_dev}@postgres:5432/metricas
+      APONTAMENTO_NOMES: ${APONTAMENTO_NOMES:-0}
+      APONTAMENTO_PUBLICACAO_LOOPBACK: "1"
       LOG_LEVEL: ${LOG_LEVEL:-info}
     ports: ["127.0.0.1:${API_PORT:-3000}:3000"]
     depends_on:

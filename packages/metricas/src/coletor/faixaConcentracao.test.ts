@@ -22,6 +22,7 @@ describe('ADR 0020: a contagem de identidade não é pública', () => {
       expect(txt, i).not.toMatch(/coletor|faixaConcentracao/)
     }
     const pacote = readFileSync(join(AQUI, '../../package.json'), 'utf8')
-    expect(pacote).not.toMatch(/coletor/)
+    // ADR 0020, item 3: o único caminho é o subcaminho `./coletor`, importado só pelo coletor do servidor (lint do server); nada mais a cita.
+    expect(pacote.replace('"./coletor": "./src/coletor/index.ts",', '')).not.toMatch(/coletor/)
   })
 })

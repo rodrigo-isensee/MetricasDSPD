@@ -42,12 +42,15 @@ export async function lerEventos(db: Consultavel, dominio: Dominio, S: Esquemas 
   );
 }
 
-/** Versões de critério (T2.6) da fonte (inclui a pesquisa, PV1), de `dspd_core`. */
+/**
+ * Versões de critério (T2.6) da fonte (inclui a pesquisa, PV1), de `dspd_core`. Só entra versão que afeta alguma métrica:
+ * a versão de partida da tabela de times (migração 0017) não leva métrica e não gera marca nos gráficos.
+ */
 export async function lerVersoes(db: Consultavel, dominio: Dominio | 'pesquisa', S: Esquemas = esquemasDoAmbiente()): Promise<VersaoCriterio[]> {
   const r = await db.query<RowVersao>(
     `SELECT v.versao_id, v.vigente_desde, v.descricao, m.metrica_id FROM ${S.core}.ref_versao_criterio v
      LEFT JOIN ${S.core}.ref_versao_criterio_metrica m ON m.versao_id = v.versao_id
-     WHERE v.dominio = $1 ORDER BY v.vigente_desde, v.versao_id`, [dominio]);
+     WHERE v.dominio = $1 AND m.metrica_id IS NOT NULL ORDER BY v.vigente_desde, v.versao_id`, [dominio]);
   const mapa = new Map<string, VersaoCriterio>();
   for (const x of r.rows) {
     const id = String(x.versao_id);

@@ -42,6 +42,13 @@ export { calcularEIBM } from './ei'
 export { estadoEm, serieWip, varrerPorColuna, type EstadoEm } from './estado'
 export { varreduraPorColuna } from './varredura'
 export * from './extensao'
+export {
+  derivarMarcos,
+  direcaoDaTransicao,
+  type ColunaDoPasso,
+  type MarcosDerivados,
+  type Passo,
+} from './marcos'
 export { calcularO5 } from './o5'
 export { calcularO6 } from './o6'
 export { calcularO8 } from './o8'
@@ -54,3 +61,14 @@ export { calcularT8 } from './t8'
 export { calcularE4 } from './e4'
 export { calcularE5 } from './e5'
 export { ENTRADAS_T6 } from './apoio'
+export {
+  calcularApontamento,
+  LIMIARES_ACHADO_PADRAO,
+  ordenarPorPessoa,
+  type CalculoApontamento,
+  type DimApontamento,
+  type EntradaApontamento,
+  type FiltrosApontamento,
+  type LimiaresAchado,
+  type LinhaApontamento,
+} from './apontamento'

@@ -21,6 +21,12 @@ describe('seed (análise estática, sem banco)', () => {
     const distintos = new Set([...base.bm.config.criterios, ...base.ac.config.criterios].map((c) => c.id));
     expect(gravados.sort()).toEqual([...distintos].sort());
   });
+  it('chamado sem prioridade (fora da escala P) vai ao banco com prioridade nula', () => {
+    const b = gerarBaseMock({ escala: 0.05 });
+    const semPrioridade = { ...b.ac.chamados[0]!, prioridade: undefined };
+    const tabela = mapearAC({ ...b, ac: { ...b.ac, chamados: [semPrioridade] } }, 1, S_PADRAO).find((t) => t.tabela === `${S_PADRAO.ac}.dim_chamado`)!;
+    expect(tabela.linhas[0]!.prioridade).toBeNull();
+  });
   it('determinístico pela semente e diferente com outra semente', () => {
     expect(todas(gerarBaseMock({ escala: 0.05 }))).toEqual(todas());
     expect(todas(gerarBaseMock({ escala: 0.05, semente: 7 }))).not.toEqual(todas());

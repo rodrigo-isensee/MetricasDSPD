@@ -1,5 +1,7 @@
 # Configuração da integração real: Acelerato via Metabase
 
+> **Substituído em 2026-10-30** (pedido 056, [ADR 0023](../architecture/adr/0023-acelerato-pela-tabela-mysql.md)): o Acelerato passa a ser lido da tabela MySQL mantida pelo time de ciência de dados, só leitura. Este roteiro nunca foi executado e fica só como registro; não use para configurar a coleta. O roteiro novo será `docs/integracao/acelerato-mysql-configuracao.md`, escrito na fatia de código.
+
 - Data: 2026-10-11 · Autor: `tech-lead` · Público: o usuário e o Jarvis (roteiro de configuração; o time não executa WS1/WS4/WS6).
 - Contexto: o Acelerato é lido de **uma tabela no Metabase, só leitura, 1 vez por dia** (ADR 0013 §4, `docs/architecture/data-model.md` §4). A API **não** pode ler colunas de pessoa. BusinessMap e Acelerato nunca se misturam.
 - Como ler as marcas: **[DOC]** = afirmado na documentação oficial do Metabase (latest), consultada em 2026-10-11 (páginas `people-and-groups/api-keys`, `permissions/data`, `permissions/row-and-column-security`, `questions/exporting-results`, `configuring-metabase/environment-variables` e a especificação OpenAPI `docs/latest/api.json`). **[INF]** = inferência nossa, a confirmar na instância real. **[PROJ]** = decisão já registrada no projeto. A referência de API do Metabase é versionada junto da instância e o Metabase avisa que **não versiona a API**: o endpoint pode mudar; por isso o teste de conexão (§9) roda a cada coleta.
