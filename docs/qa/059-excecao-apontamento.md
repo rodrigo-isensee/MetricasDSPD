@@ -2,10 +2,10 @@
 tipo: qa
 contrato: 1
 pedido: 059-aba-apontamento
-branch: docs/059-excecao-apontamento
-commit: 89f5c9617c7a5c964ce6f2c21d83e3c4cee0c1ad
+branch: feature/059-contrato-biblioteca
+commit: 8027fac2ccf55b507933ed1a8eb94b2c0e73cf8c
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -15,6 +15,15 @@ data: 2026-11-02
 # QA: exceção da aba Apontamento no CLAUDE.md e no briefing (E1.8, K-193)
 
 PR só de documentação. Base conferida: 5c679da (develop). Ponta testada: 89f5c96, igual à origem (`pull --ff-only` sem novidade). O diff contra a base tem 3 arquivos: 1 linha acrescentada em `CLAUDE.md`, 1 em `docs/briefing-execucao-metricas.md` (§7.1) e o parecer de review. Nenhuma linha removida nem alterada nos dois arquivos de regra.
+
+## Renovação por delta (E2.66, K-193)
+
+Ponta testada: 8027fac (branch feature/059-contrato-biblioteca, PR 194, depois do merge da develop 76fffa5, squash do PR 193). O parecer acima foi dado sobre 89f5c96 na branch da exceção, já mesclada; o `forge-check pr` o apontou como desatualizado porque `packages/contratos/src/apontamento.test.ts` mudou na branch do PR 194 (28 testes; a mudança é da trilha B, não da exceção).
+
+- Texto aprovado: `git diff --numstat origin/develop HEAD` nos dois arquivos de regra (`CLAUDE.md` e briefing) sai vazio, e o diff de 89f5c96 até a ponta nos dois também. O item 1.1 e o parágrafo 1.2 com as cláusulas o1 a o4 estão iguais ao aprovado, sem deriva.
+- Testes citados pelo parecer: o único é o CT-07. `pnpm -C` na raiz `run docs:check` na ponta: `docs:check: ok (857 páginas Markdown, 69 métricas, 2 eventos)`. Passou.
+- `packages/contratos/src/apontamento.test.ts` (pedido do brief, mesmo fora do CT-07): `vitest run src/apontamento.test.ts` em packages/contratos: 1 arquivo, 28 testes passaram. O teste cobre o contrato da API da aba e não toca o texto da exceção; o que o parecer aprovou (texto nos dois documentos) não depende dele.
+- Conclusão: a exceção continua valendo na ponta nova. Veredito mantido: aprovado, sem achado novo.
 
 ## Achados
 
