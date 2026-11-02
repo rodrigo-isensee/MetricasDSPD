@@ -411,21 +411,31 @@ describe('A5 e A6 do parecer 059-alfa: rótulos de pessoa fixos sem nomes reais 
     expect(respostaApontamentoSchema.safeParse(r).success).toBe(true)
   })
 
-  it.each(['Maria Silva', 'pessoa 1', 'Pessoa 0', 'Pessoa 1 ', 'Pessoa', 'Pessoa x', 'Outra area', 'Pessoa 1234567890'])(
-    'A5: com nomesReais falso recusa o rótulo %j, sem repeti-lo no erro',
-    (rotulo) => {
-      const r = respostaApontamentoSchema.safeParse(comPessoas(false, [rotulo]))
-      expect(r.success).toBe(false)
-      if (!r.success) {
-        expect(r.error.issues[0]?.path).toEqual(['opcoes', 'pessoas', 0, 'rotulo'])
-        expect(JSON.stringify(r.error.issues)).not.toContain(rotulo.trim() || 'x@@')
-      }
-    },
-  )
+  it.each([
+    'Maria Silva',
+    'pessoa 1',
+    'Pessoa 0',
+    'Pessoa 1 ',
+    'Pessoa',
+    'Pessoa x',
+    'Outra area',
+    'Pessoa 1234567890',
+  ])('A5: com nomesReais falso recusa o rótulo %j, sem repeti-lo no erro', (rotulo) => {
+    const r = respostaApontamentoSchema.safeParse(comPessoas(false, [rotulo]))
+    expect(r.success).toBe(false)
+    if (!r.success) {
+      expect(r.error.issues[0]?.path).toEqual(['opcoes', 'pessoas', 0, 'rotulo'])
+      expect(JSON.stringify(r.error.issues)).not.toContain(rotulo.trim() || 'x@@')
+    }
+  })
 
   it('A5: com nomesReais verdadeiro o rótulo é livre (até 200 caracteres)', () => {
-    expect(respostaApontamentoSchema.safeParse(comPessoas(true, ['Maria Silva'])).success).toBe(true)
-    expect(respostaApontamentoSchema.safeParse(comPessoas(true, ['x'.repeat(201)])).success).toBe(false)
+    expect(respostaApontamentoSchema.safeParse(comPessoas(true, ['Maria Silva'])).success).toBe(
+      true,
+    )
+    expect(respostaApontamentoSchema.safeParse(comPessoas(true, ['x'.repeat(201)])).success).toBe(
+      false,
+    )
   })
 
   it('A6: rótulo de opção e de linha de distribuição tem teto de 200 caracteres', () => {

@@ -525,11 +525,26 @@ const textoGerado = fc
     ),
   )
 const tamanhos = fc.constantFrom(0, 1, 3, 4, 1999, 2000, 2001, 2002, 2500, 5000)
-const textoDeTamanho = fc.tuple(textoGerado, tamanhos).map(([t, n]) => (t + 'x ').repeat(n).slice(0, n || 0))
+const textoDeTamanho = fc
+  .tuple(textoGerado, tamanhos)
+  .map(([t, n]) => (t + 'x ').repeat(n).slice(0, n || 0))
 const comentarioGeral = fc.oneof(textoGerado, textoDeTamanho, fc.constantFrom('', ' ', '\n\t '))
 
 // Dimensão 5 (dicionário): vazio, um termo, prefixos entre termos, empate de prioridade.
-const TERMOS = ['reuni', 'reuniao', 'reun', 'teste', 'analise', 'rdm', 'ana', 'x', 'ss', 'itest', '1234', 'co']
+const TERMOS = [
+  'reuni',
+  'reuniao',
+  'reun',
+  'teste',
+  'analise',
+  'rdm',
+  'ana',
+  'x',
+  'ss',
+  'itest',
+  '1234',
+  'co',
+]
 const dicionarioGerado: fc.Arbitrary<DicionarioApontamento> = fc
   .array(
     fc.record({
@@ -550,7 +565,12 @@ function subgrupoOraculo(texto: string, d: DicionarioApontamento): string {
     (a, b) => a.prioridade - b.prioridade || (a.subgrupo < b.subgrupo ? -1 : 1),
   )
   const achou = regras.find((r) => r.termos.some((t) => palavras.some((p) => p.startsWith(t))))
-  return achou?.subgrupo ?? (palavras.length === 0 && !/\S/u.test(texto.replace(/[\p{Cc}\p{Cf}\ud800-\udfff]/gu, '')) ? SUBGRUPO_NAO_CLASSIFICADO : SUBGRUPO_EXECUCAO_TECNICA)
+  return (
+    achou?.subgrupo ??
+    (palavras.length === 0 && !/\S/u.test(texto.replace(/[\p{Cc}\p{Cf}\ud800-\udfff]/gu, ''))
+      ? SUBGRUPO_NAO_CLASSIFICADO
+      : SUBGRUPO_EXECUCAO_TECNICA)
+  )
 }
 
 describe('A3: matriz do plano §3.4 (dimensões 1, 2, 3 e 5)', () => {
@@ -560,7 +580,11 @@ describe('A3: matriz do plano §3.4 (dimensões 1, 2, 3 e 5)', () => {
     fc.assert(
       fc.property(comentarioGeral, dicionarioGerado, (c, d) => {
         const r = classificarApontamento({ comentario: c, typeId: null }, d)
-        const fechado = [...d.termos.map((t) => t.subgrupo), SUBGRUPO_EXECUCAO_TECNICA, SUBGRUPO_NAO_CLASSIFICADO]
+        const fechado = [
+          ...d.termos.map((t) => t.subgrupo),
+          SUBGRUPO_EXECUCAO_TECNICA,
+          SUBGRUPO_NAO_CLASSIFICADO,
+        ]
         expect(fechado).toContain(r.subgrupo)
         expect(r.qtdPalavras).toBe(palavrasOraculo(c).length)
         expect(r.qtdPalavras).toBeLessThanOrEqual(MAX_PONTOS_DE_CODIGO)
@@ -675,7 +699,13 @@ describe('A3: corpus de comentários legítimos', () => {
     ['sem acento', 'reuniao de alinhamento', TAREFA, 'reunioes-comunicacao', ['generico']],
     ['sigla e número', 'RDM 1234', TAREFA, 'gestao-mudanca', ['generico']],
     ['sigla só', 'GMUD', TAREFA, 'gestao-mudanca', ['generico']],
-    ['número de chamado', 'Chamado 2026-004512', TAREFA, SUBGRUPO_EXECUCAO_TECNICA, ['generico', 'sem-vinculo']],
+    [
+      'número de chamado',
+      'Chamado 2026-004512',
+      TAREFA,
+      SUBGRUPO_EXECUCAO_TECNICA,
+      ['generico', 'sem-vinculo'],
+    ],
     [
       'quebra de linha',
       'Análise do log\nreuniao com a equipe\najuste final',
@@ -702,7 +732,9 @@ describe('A3: corpus de comentários legítimos', () => {
       esperado === SUBGRUPO_EXECUCAO_TECNICA || esperado === SUBGRUPO_NAO_CLASSIFICADO,
     )
     expect(flagsDaMascara(r.flags).includes('generico')).toBe(flags.includes('generico'))
-    expect(flagsDaMascara(r.flags).includes('sem-comentario')).toBe(flags.includes('sem-comentario'))
+    expect(flagsDaMascara(r.flags).includes('sem-comentario')).toBe(
+      flags.includes('sem-comentario'),
+    )
   })
 })
 
@@ -722,7 +754,9 @@ describe('A3: orçamento de tempo (plano §3.4)', () => {
   const pior = Array.from({ length: 600 }, (_, i) => `z${i}`)
     .join(' ')
     .slice(0, MAX_PONTOS_DE_CODIGO)
-  const tipico = 'Análise do erro no ajuste da rotina de carga com a equipe '.repeat(40).slice(0, 2000)
+  const tipico = 'Análise do erro no ajuste da rotina de carga com a equipe '
+    .repeat(40)
+    .slice(0, 2000)
 
   it('o dicionário do teste tem 500 termos e os comentários, 2000 pontos de código', () => {
     expect(dTeto.termos.flatMap((t) => t.termos)).toHaveLength(500)
@@ -734,7 +768,9 @@ describe('A3: orçamento de tempo (plano §3.4)', () => {
   })
 
   it('10 000 comentários de 2000 pontos de código contra 500 termos em até 5 s', () => {
-    const comentarios = Array.from({ length: 10000 }, (_, i) => (i % 2 === 0 ? pior : `${tipico}${i}`))
+    const comentarios = Array.from({ length: 10000 }, (_, i) =>
+      i % 2 === 0 ? pior : `${tipico}${i}`,
+    )
     const t0 = performance.now()
     for (const c of comentarios) classificarApontamento({ comentario: c, typeId: null }, dTeto)
     expect(performance.now() - t0).toBeLessThan(5000)
