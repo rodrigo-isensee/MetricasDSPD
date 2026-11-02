@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 059-aba-apontamento
 branch: feature/059-coleta-worklog
-commit: afe05d521b2c2fa6d33fce855601291789c3f339
+commit: 29c64aaed34d84ca3443c49404f188d5ebba4fa9
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -47,4 +47,16 @@ Branch do PR 195, ponta testada afe05d521b2c2fa6d33fce855601291789c3f339 (develo
 - CT-07 refeito: `docs:check: ok (857 páginas Markdown, 69 métricas, 2 eventos)`.
 - Teste que a branch muda e não afeta a exceção: `packages/contratos/src/apontamento.test.ts`, 16 de 16 passaram (vitest, um arquivo).
 - Mutação e vermelho antes do verde: não se aplicam (nenhum teste novo nesta renovação).
+- Conclusão: a exceção continua valendo na ponta nova, sem achado novo.
+
+## Renovação por delta (E2.71, K-193)
+
+Branch do PR 195, ponta testada 29c64aaed34d84ca3443c49404f188d5ebba4fa9 (merge da develop com o squash do PR 194, 8cd657f). Delta 2321a1aa6dd6c8ffad3b919d4f03698ec35d96fc..29c64aaed34d84ca3443c49404f188d5ebba4fa9: 16 arquivos; 12 de packages passam à versão da develop (trilha B, aprovada em `docs/qa/059-alfa.md`), mais index.ts e classificarApontamento.test.ts combinados com o 70b70a9. O forge-check apontou este parecer desatualizado porque `packages/contratos/src/apontamento.test.ts` mudou; esse arquivo não faz parte do texto da exceção. Depois de 29c64aa a branch só recebeu os pareceres de review e segurança (2 arquivos de docs).
+
+- Texto da exceção intacto: o diff de afe05d5 até a cabeça local em `CLAUDE.md` e `docs/briefing-execucao-metricas.md` sai vazio; as cláusulas o1 a o4 seguem nos dois arquivos (CT-01 a CT-06 inalterados).
+- Combinação conferida: contra a develop, em packages/metricas a branch difere só pelo 70b70a9 (subcaminho ./coletor no package.json, três testes de guarda relaxados e o comentário do index.ts); `apontamento.test.ts` e o contrato são iguais à develop.
+- CT-07 refeito: `docs:check: ok (860 páginas Markdown, 69 métricas, 2 eventos)`.
+- Testes que o merge toca: vitest em `packages/contratos/src/apontamento.test.ts`, `packages/metricas/src/coletor` e `packages/metricas/src/businessmap/apontamento`, 5 arquivos, 193 de 193 passaram.
+- `forge-check pr` sobre `origin/feature/059-coleta-worklog` acusa os três pareceres (review, QA, segurança) por `apontamento.test.ts`, porque a ponta remota ainda é 29c64aa e os pareceres renovados estão só locais; deve sair limpo depois do push.
+- Mutação e vermelho antes do verde: não se aplicam (nenhum teste novo nesta renovação, só versão da develop já testada).
 - Conclusão: a exceção continua valendo na ponta nova, sem achado novo.
