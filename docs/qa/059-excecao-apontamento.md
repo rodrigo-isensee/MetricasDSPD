@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 059-aba-apontamento
-branch: docs/059-excecao-apontamento
-commit: 89f5c9617c7a5c964ce6f2c21d83e3c4cee0c1ad
+branch: feature/059-coleta-worklog
+commit: afe05d521b2c2fa6d33fce855601291789c3f339
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -38,3 +38,13 @@ PR só de documentação. Base conferida: 5c679da (develop). Ponta testada: 89f5
 - CT-07: `docs:check: ok (846 páginas Markdown, 69 métricas, 2 eventos)`. O review registrou 845; a página a mais é o próprio parecer de review.
 - Fora do alcance desta etapa: a validade jurídica da finalidade e a retenção (DPO) e a revisão 4 da ADR 0020, que ficam com a segurança e o dono. O merge é do dono.
 - Mutação e vermelho antes do verde: não se aplicam (sem código nem teste novo).
+
+## Renovação por delta (E2.66, K-193)
+
+Branch do PR 195, ponta testada afe05d521b2c2fa6d33fce855601291789c3f339 (develop 76fffa5 mesclada). O forge-check apontou o parecer desatualizado porque `docs/architecture/fontes/apontamento-dicionario.json` mudou depois de 89f5c96; esse arquivo não faz parte do texto da exceção.
+
+- Texto da exceção intacto: o diff de 89f5c96 até a ponta em `CLAUDE.md` e `docs/briefing-execucao-metricas.md` sai vazio; as cláusulas o1 a o4 seguem nos dois arquivos (CT-01 a CT-04 e CT-06 inalterados).
+- CT-07 refeito: `docs:check: ok (857 páginas Markdown, 69 métricas, 2 eventos)`.
+- Teste que a branch muda e não afeta a exceção: `packages/contratos/src/apontamento.test.ts`, 16 de 16 passaram (vitest, um arquivo).
+- Mutação e vermelho antes do verde: não se aplicam (nenhum teste novo nesta renovação).
+- Conclusão: a exceção continua valendo na ponta nova, sem achado novo.
