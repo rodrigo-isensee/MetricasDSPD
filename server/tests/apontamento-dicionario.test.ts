@@ -270,6 +270,16 @@ describe('sincronizarDicionario (dspd_ref: INSERT e UPDATE de vigente_ate, numa 
     expect(alteracoes[0]!.valores).toEqual(['2026-11-05', 'homolog', 'b']);
     expect(db.chamadas.map((c) => c.texto).join('\n')).not.toMatch(/DELETE|TRUNCATE/i);
   });
+  it('regra retirada só fecha, pelo type_id e pela condição', async () => {
+    const e = vazio();
+    e.banco = bancoDe();
+    const inserts: Chamada[] = [];
+    const db = criarDublePg(bancoComoResposta(e, inserts));
+    const r = await sincronizarDicionario(db.pool, S, arquivo(arquivoMinimo({ regrasPorTipo: [] })), '2026-11-05', new Date());
+    expect(r).toMatchObject({ regras: 0, fechados: { subgrupos: 0, termos: 0, regras: 1 }, versaoRegistrada: true });
+    const alteracoes = inserts.filter((c) => c.texto.includes('dspd_bm.ref_apontamento_'));
+    expect(alteracoes.map((c) => [c.texto.split(' ')[0], c.valores])).toEqual([['UPDATE', ['2026-11-05', '11', 'sempre']]]);
+  });
   it('subgrupo mudado: fecha antes de abrir (o índice único da prioridade vigente exige) e abre com a versão nova', async () => {
     const e = vazio();
     e.banco = bancoDe();
