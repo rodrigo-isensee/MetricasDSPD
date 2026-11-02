@@ -1,6 +1,6 @@
 import type { NivelMatriz, RespostaApontamento } from '@metricas-dspd/contratos'
 import { ordenarNeutro } from '../../core/ordenar'
-import { agrupar, comPessoa, pctComPiso, somaSegundos } from './comum'
+import { agrupar, comPessoa, numeroDe, pctComPiso, somaSegundos } from './comum'
 import type { DimApontamento, LinhaApontamento } from './tipos'
 
 type Matriz = RespostaApontamento['matriz']
@@ -41,6 +41,6 @@ export function calcularMatriz(linhas: readonly LinhaApontamento[], nivel: Nivel
   return {
     nivel,
     colunas: colunas.map(({ id, rotulo }) => ({ id, rotulo })),
-    linhas: ordenarNeutro(porPessoa, (p) => [Number(p.pessoaRef.slice(1))]),
+    linhas: ordenarNeutro(porPessoa, (p) => [numeroDe(p.pessoaRef)]),
   }
 }

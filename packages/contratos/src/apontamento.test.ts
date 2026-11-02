@@ -9,6 +9,7 @@ import {
   achadoApontamentoSchema,
   consultaApontamentoSchema,
   pctComPisoSchema,
+  PESSOA_OUTRA_AREA,
   pessoaRefSchema,
   respostaApontamentoSchema,
   type RespostaApontamento,
@@ -211,6 +212,13 @@ describe('contrato da aba Apontamento (plano 059, §3.9)', () => {
     for (const bom of ['p1', 'p42', 'p123456789'])
       expect(pessoaRefSchema.safeParse(bom).success, bom).toBe(true)
     for (const ruim of ['', 'p0', 'p', '1', 'P1', 'p01', 'p1234567890', 'Maria', 'p1,p2'])
+      expect(pessoaRefSchema.safeParse(ruim).success, ruim).toBe(false)
+  })
+
+  it('`outra-area` é a única chave fixa aceita (soma de quem não é do time); variações não passam', () => {
+    expect(PESSOA_OUTRA_AREA).toBe('outra-area')
+    expect(pessoaRefSchema.safeParse('outra-area').success).toBe(true)
+    for (const ruim of ['Outra-area', 'outra-area ', 'outra_area', 'outra-area2', 'outra área'])
       expect(pessoaRefSchema.safeParse(ruim).success, ruim).toBe(false)
   })
 

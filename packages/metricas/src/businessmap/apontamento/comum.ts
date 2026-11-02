@@ -3,7 +3,12 @@
  * 20 e ordem neutra de pessoas. Domínio BusinessMap: nada daqui toca o Acelerato. Pessoa só entra como `pessoaRef`
  * (chave opaca, ADR 0020); nome, `user_id` e comentário nunca chegam à biblioteca.
  */
-import { MINIMO_AMOSTRA, type PctComPiso, type PessoaRef } from '@metricas-dspd/contratos'
+import {
+  MINIMO_AMOSTRA,
+  PESSOA_OUTRA_AREA,
+  type PctComPiso,
+  type PessoaRef,
+} from '@metricas-dspd/contratos'
 import { publicavel } from '../../core/estatistica'
 import { ordenarNeutro } from '../../core/ordenar'
 
@@ -44,7 +49,9 @@ export function agrupar<T>(itens: readonly T[], chave: (t: T) => string): Map<st
   return m
 }
 
-const numeroDe = (ref: PessoaRef): number => Number(ref.slice(1))
+/** Número da chave `pN`; `outra-area` (entrada que soma quem não é do time) não tem número e vai sempre por último. */
+export const numeroDe = (ref: PessoaRef): number =>
+  /^p\d+$/.test(ref) ? Number(ref.slice(1)) : Number.MAX_SAFE_INTEGER
 
 /** Alfabética sem acento nem caixa (para a ordem dos nomes reais). */
 const chaveAlfabetica = (rotulo: string): string =>
@@ -61,7 +68,11 @@ export function ordenarPorPessoa<T extends { pessoaRef: PessoaRef }>(
 ): T[] {
   return ordenarNeutro(itens, (i) =>
     nomesReais
-      ? [chaveAlfabetica(rotulos.get(i.pessoaRef) ?? ''), numeroDe(i.pessoaRef)]
+      ? [
+          i.pessoaRef === PESSOA_OUTRA_AREA ? 1 : 0,
+          chaveAlfabetica(rotulos.get(i.pessoaRef) ?? ''),
+          numeroDe(i.pessoaRef),
+        ]
       : [numeroDe(i.pessoaRef)],
   )
 }
