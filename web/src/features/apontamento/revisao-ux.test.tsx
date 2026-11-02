@@ -157,6 +157,19 @@ describe('A-9: datas dos critérios vigentes', () => {
     expect(c.getByText(/O mês em andamento vale até 30\/10\/2026\./)).toBeInTheDocument()
   })
 
+  it('com várias versões da família, vale a mais recente, em qualquer ordem', async () => {
+    renderizar(URL_ABA, () => ({
+      ...RESPOSTA_FICTICIA,
+      criterios: [
+        { id: 'dicionario-v1', data: '2026-01-10', descricao: 'v1' },
+        { id: 'dicionario-v3', data: '2026-09-15', descricao: 'v3' },
+        { id: 'dicionario-v2', data: '2026-03-01', descricao: 'v2' },
+      ],
+    }))
+    const c = within(await cartao('AP-QUALIDADE'))
+    expect(c.getByText(/Versão vigente desde 15\/09\/2026\./)).toBeInTheDocument()
+  })
+
   it('sem critério na resposta, a linha fica como estava', async () => {
     renderizar(URL_ABA, () => ({ ...RESPOSTA_FICTICIA, criterios: [] }))
     const c = await cartao('AP-DIARIO')

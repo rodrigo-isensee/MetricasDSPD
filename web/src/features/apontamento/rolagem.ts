@@ -28,7 +28,8 @@ export function rolarCelulaParaVista(celula: HTMLElement): void {
   const regiao = celula.closest<HTMLElement>('[role="region"]')
   const linha = celula.parentElement
   if (!regiao || !linha) return
-  const largura = (el: Element | null) => (el ? el.getBoundingClientRect().width : 0)
+  // A célula é filha da linha, então a linha tem primeira e última coluna (as fixas).
+  const largura = (el: Element | null) => (el as Element).getBoundingClientRect().width
   const d = deslocamentoParaVer(
     celula.getBoundingClientRect(),
     regiao.getBoundingClientRect(),
