@@ -5,18 +5,14 @@ import { useDadosAba, useRotulos } from '../dados'
 import { fmtHoras, pctOuNulo } from '../formatar'
 import { ordenarPorTotal } from '../ordem'
 import { CARTOES } from '../textos'
-import type { PctComPiso, RespostaApontamento } from '../types'
+import { PESSOA_OUTRA_AREA, type PctComPiso, type RespostaApontamento } from '../types'
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
 import { SeloLeituraRelativa } from './SeloLeituraRelativa'
 
-/** "Utilização: 19%" ou, abaixo do piso, só a marca de amostra insuficiente (o3). Nunca cor, faixa nem média. */
+/** "19%" (a coluna já se chama Utilização) ou, abaixo do piso, só a marca de amostra insuficiente (o3). Nunca cor, faixa nem média. */
 function Utilizacao({ u }: { u: PctComPiso }) {
-  return u.status === 'ok' ? (
-    <span>Utilização: {fmtNumero(u.pct, 0)}%</span>
-  ) : (
-    <CelulaInsuficiente />
-  )
+  return u.status === 'ok' ? <span>{fmtNumero(u.pct, 0)}%</span> : <CelulaInsuficiente />
 }
 
 function CapacidadeMensal({ r }: { r: RespostaApontamento }) {
@@ -79,13 +75,21 @@ export function CartaoCapacidadeMensal() {
       ? `A utilização da equipe em ${fmtMes(ultimo.mes)} foi de ${fmtNumero(ultimo.utilizacao.pct, 0)}%.`
       : `Em ${fmtMes(ultimo.mes)} foram ${fmtHoras(ultimo.realizadoSegundos)} apontadas; a utilização aparece com 20 apontamentos ou mais.`
     : undefined
+  const corte = ultimo?.parcialAte
+  const texto = corte
+    ? {
+        ...CARTOES.capacidadeMensal,
+        comoLer: `${CARTOES.capacidadeMensal.comoLer} O mês em andamento vale até ${fmtData(corte)}.`,
+      }
+    : CARTOES.capacidadeMensal
   return (
     <CartaoApontamento
       codigo="AP-CAPACIDADE-MENSAL"
       titulo="Capacidade mensal (equipe)"
-      texto={CARTOES.capacidadeMensal}
+      texto={texto}
       leitura={leitura}
       criterios={(resposta?.criterios ?? []).filter((c) => c.id.startsWith('calendario'))}
+      familiaCriterio="calendario"
       className="lg:col-span-6"
     >
       {(r) => <CapacidadeMensal r={r} />}
@@ -97,7 +101,9 @@ function CapacidadePessoa({ r }: { r: RespostaApontamento }) {
   const { capacidade } = r
   const { ordem } = useDadosAba()
   const rotulos = useRotulos(r)
-  const linhas = ordenarPorTotal(capacidade.porPessoa, ordem, (l) => l.realizadoSegundos)
+  // "Outra área" soma várias pessoas: capacidade e utilização só valem por pessoa (A-4), então ela fica fora.
+  const pessoas = capacidade.porPessoa.filter((l) => l.pessoaRef !== PESSOA_OUTRA_AREA)
+  const linhas = ordenarPorTotal(pessoas, ordem, (l) => l.realizadoSegundos)
   return (
     <div className="flex flex-col gap-3">
       <SeloLeituraRelativa />
@@ -137,6 +143,7 @@ export function CartaoCapacidadePessoa() {
       texto={CARTOES.capacidadePessoa}
       semTabela
       criterios={(resposta?.criterios ?? []).filter((c) => c.id.startsWith('calendario'))}
+      familiaCriterio="calendario"
       className="lg:col-span-6"
     >
       {(r) => <CapacidadePessoa r={r} />}

@@ -186,7 +186,7 @@ describe('achados: atalhos', () => {
       '#ap-diario',
       '#ap-capacidade-mensal',
     ])
-    expect(links.map((l) => l.textContent)).toEqual(['Ver apontamentos', 'Ver capacidade mensal'])
+    expect(links.map((l) => l.textContent)).toEqual(['Ver mapa diário', 'Ver capacidade mensal'])
   })
 
   it('o atalho do projeto filtra pelo id; sem o projeto nas opções não há atalho', async () => {

@@ -16,7 +16,8 @@ import type { RespostaApontamento } from '../types'
 export function FrescorEPeriodo({ resposta }: { resposta: RespostaApontamento | undefined }) {
   if (!resposta)
     return (
-      <p className="text-sm text-texto-2" data-testid="frescor-carregando">
+      // O anúncio fica na região viva da página; este texto é só visual, para não ser lido duas vezes.
+      <p aria-hidden="true" className="text-sm text-texto-2" data-testid="frescor-carregando">
         Carregando apontamentos
       </p>
     )

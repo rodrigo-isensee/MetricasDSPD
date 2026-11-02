@@ -234,7 +234,9 @@ describe('CA-3 e o3: amostra insuficiente', () => {
     expect(linha('Pessoa 7')).toHaveTextContent('amostra insuficiente')
     const cap = screen.getByTestId('tabela-AP-CAPACIDADE-PESSOA-detalhe')
     expect(within(cap).getByRole('row', { name: /^Pessoa 7\b/ })).not.toHaveTextContent('%')
-    expect(within(cap).getByRole('row', { name: /^Pessoa 1\b/ })).toHaveTextContent('Utilização:')
+    expect(within(cap).getByRole('row', { name: /^Pessoa 1\b/ })).toHaveTextContent(
+      /^Pessoa 1.*\d+%/,
+    )
   })
 })
 

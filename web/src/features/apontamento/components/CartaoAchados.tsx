@@ -38,6 +38,11 @@ export function achadosExibidos(r: RespostaApontamento): Exibido[] {
   })
 }
 
+/** O âncora rola a página; o foco vai junto, ao título do cartão (A-12). */
+function irAoTitulo(ancora: string) {
+  document.getElementById(ancora)?.querySelector<HTMLElement>('[data-cartao-titulo]')?.focus()
+}
+
 function Atalho({ acao, rotulo }: { acao: Acao | null; rotulo: string }) {
   const d = useDadosAba()
   if (acao === null) return null
@@ -45,6 +50,7 @@ function Atalho({ acao, rotulo }: { acao: Acao | null; rotulo: string }) {
     return (
       <a
         href={'#' + acao.ancora}
+        onClick={() => irAoTitulo(acao.ancora)}
         className="alvo inline-flex items-center text-xs text-acento underline"
       >
         {rotulo}

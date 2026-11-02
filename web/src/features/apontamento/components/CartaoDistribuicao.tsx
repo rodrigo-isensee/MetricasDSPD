@@ -107,7 +107,9 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
       leitura={leitura}
       base={r ? { n: r.distribuicao.base.n, unidade: 'apontamentos' } : undefined}
       baseInsuficiente={!!r && r.distribuicao.base.n < 20}
-      {...(bloco === 'subgrupo' ? { criterios: marcasDicionario } : {})}
+      {...(bloco === 'subgrupo'
+        ? { criterios: marcasDicionario, familiaCriterio: 'dicionario' as const }
+        : {})}
       {...(bloco === 'subgrupo'
         ? {
             acoes: (

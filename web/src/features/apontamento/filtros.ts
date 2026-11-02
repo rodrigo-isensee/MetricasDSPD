@@ -167,7 +167,7 @@ export function filtrosAtivos(
   return lista
 }
 
-/** Chaves de filtro (não de visão) na URL; `nivelMatriz`, `ordem` e a janela do mapa são de visão e não contam. */
+/** Chaves de filtro (não de visão) na URL; `nivelMatriz` e a janela do mapa são de visão e não contam (a `ordem` sai junto em "Limpar filtros"). */
 const CHAVES_FILTRO = [...CHAVES_LISTA, 'de', 'ate', 'anomalos'] as const
 
 export function useFiltrosApontamento(): UsoFiltrosApontamento {
@@ -254,6 +254,7 @@ export function useFiltrosApontamento(): UsoFiltrosApontamento {
     () =>
       alterar((p) => {
         for (const c of CHAVES_FILTRO) p.delete(c)
+        p.delete('ordem')
       }),
     [alterar],
   )

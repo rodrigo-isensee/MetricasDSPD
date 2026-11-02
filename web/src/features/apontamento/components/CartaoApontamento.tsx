@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { FiltroFluxoChave, MarcacaoCriterio } from '@metricas-dspd/contratos'
 import { CartaoMetrica, type EstadoCartao } from '@/components/ui'
+import { fmtData } from '@/lib/formatar'
 import { useDadosAba } from '../dados'
 import { notaDe, type TextosCartao } from '../textos'
 import type { RespostaApontamento } from '../types'
@@ -18,6 +19,8 @@ interface Props {
   aplicaveis?: readonly string[]
   /** Mudanças de critério que a série atravessa (T2.6). */
   criterios?: readonly MarcacaoCriterio[]
+  /** Família do critério cuja versão vigente (a mais recente de `criterios[]`) é datada na linha "Critério" (A-9). */
+  familiaCriterio?: 'dicionario' | 'calendario'
   acoes?: ReactNode
   semTabela?: boolean
   className: string
@@ -38,6 +41,7 @@ export function CartaoApontamento({
   baseInsuficiente,
   aplicaveis,
   criterios,
+  familiaCriterio,
   acoes,
   semTabela,
   className,
@@ -46,6 +50,16 @@ export function CartaoApontamento({
   const d = useDadosAba()
   const periodo = d.resposta?.periodo
   const estado: EstadoCartao = d.estado
+  const vigente = familiaCriterio
+    ? d.resposta?.criterios
+        .filter((c) => c.id.startsWith(familiaCriterio))
+        .reduce<string | null>((a, c) => (a === null || c.data > a ? c.data : a), null)
+    : null
+  const nota = notaDe(
+    vigente
+      ? { ...texto, criterio: `${texto.criterio} Versão vigente desde ${fmtData(vigente)}.` }
+      : texto,
+  )
   return (
     <CartaoMetrica
       codigo={codigo}
@@ -53,7 +67,7 @@ export function CartaoApontamento({
       pergunta={texto.pergunta}
       estado={estado}
       atualizando={d.atualizando}
-      nota={notaDe(texto)}
+      nota={nota}
       fonte="BusinessMap"
       granularidade="apontamento"
       {...(base && periodo

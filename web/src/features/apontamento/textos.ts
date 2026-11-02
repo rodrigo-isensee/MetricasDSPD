@@ -31,6 +31,10 @@ export const AVISO_NOME_REAL_DETALHE =
 
 export const LINHA_NOMES_OCULTOS = "Pessoas aparecem como 'Pessoa 1', 'Pessoa 2'..."
 
+/** Provisório (decisão do dono de 2026-11-02, A-3 da revisão de UX): o texto é ajustável depois. */
+export const NOTA_OUTRA_AREA =
+  'Outra área: pessoas que não foram responsáveis por card do DSPD nos últimos 12 meses, somadas, sem nome.'
+
 export const PESSOA_NAO_IDENTIFICADA = 'Pessoa não identificada'
 export const DICA_NAO_IDENTIFICADA =
   'Não foi possível ligar este apontamento a uma pessoa. Ele não é somado a outra.'
@@ -63,6 +67,8 @@ export const ANOMALIA = {
   dica: (limiteHoras: number) =>
     `Mais de ${fmtNumero(limiteHoras, 0)} h apontadas por uma pessoa em um dia. O valor foi mantido na soma e marcado para conferência.`,
 } as const
+
+export const ROTULO_CHIP_ORDEM = { rotulo: 'Ordem', valor: 'total de horas' } as const
 
 export const ORDENS = [
   { valor: 'alfabetica', rotulo: 'Alfabética (padrão)' },
@@ -263,7 +269,7 @@ export function fraseDoAchado(a: AchadoLido, rotuloForaDoEscopo = false): FraseD
       if (n === null || limite === null) return null
       return {
         frase: `${fmtNumero(n, 0)} dias com mais de ${fmtNumero(limite, 0)} h apontadas por uma pessoa foram marcados como possível erro de apontamento.`,
-        atalho: { tipo: 'ancora', rotulo: 'Ver apontamentos', ancora: 'ap-diario' },
+        atalho: { tipo: 'ancora', rotulo: 'Ver mapa diário', ancora: 'ap-diario' },
       }
     }
     case 'utilizacao-mensal-variou': {

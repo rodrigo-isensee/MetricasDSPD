@@ -10,9 +10,11 @@ import {
   ORDENS,
   PESSOA_NAO_IDENTIFICADA,
   QUALIDADE_FILTRO_OPCOES,
+  ROTULO_CHIP_ORDEM,
   ROTULO_FILTRO_PESSOA,
 } from '../textos'
 import type { OpcoesApontamento } from '../types'
+import { NotaOutraArea } from './NotaOutraArea'
 
 const nomes = (ls: readonly { id: string; rotulo: string }[]) =>
   ls.map((o) => ({ id: o.id, nome: o.rotulo }))
@@ -48,7 +50,12 @@ export function BarraFiltrosApontamento({
     v ? uso.definirPeriodo(v, ate || opcoes.historico.fim) : uso.definirPeriodo(null, null)
   const mudarAte = (v: string) =>
     v ? uso.definirPeriodo(de || opcoes.historico.inicio, v) : uso.definirPeriodo(null, null)
-  const quantidade = filtrosUnicos(ativos).length
+  // A ordem por total não é filtro, mas quem chega por link precisa ver que a ordem não é a neutra (A-8).
+  const chips: readonly AtivoApontamento[] =
+    uso.ordem === 'total'
+      ? [...ativos, { chave: 'ordem', ...ROTULO_CHIP_ORDEM, valorId: null }]
+      : ativos
+  const quantidade = filtrosUnicos(chips).length
   return (
     <section
       aria-label="Filtros"
@@ -111,6 +118,7 @@ export function BarraFiltrosApontamento({
               {LINHA_NOMES_OCULTOS}
             </p>
           )}
+          <NotaOutraArea linhas={opcoes.pessoas} />
         </div>
         <FiltroMulti
           id="projeto"
@@ -170,9 +178,9 @@ export function BarraFiltrosApontamento({
           opcoes={ORDENS}
         />
       </div>
-      {ativos.length > 0 && (
+      {chips.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <ChipsFiltros chips={ativos} onRemover={uso.remover} />
+          <ChipsFiltros chips={chips} onRemover={uso.remover} />
           <Botao onClick={uso.limpar} className="text-xs">
             Limpar filtros
           </Botao>

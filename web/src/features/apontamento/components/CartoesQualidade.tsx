@@ -7,6 +7,7 @@ import { CARTOES, FLAGS } from '../textos'
 import type { PctComPiso, QualidadePorFlag, RespostaApontamento } from '../types'
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
+import { NotaOutraArea } from './NotaOutraArea'
 
 /** Contagem sempre; percentual só quando a biblioteca o publicou (piso de 20, o3). */
 function ContagemEPct({ ap, pct }: { ap: number; pct: PctComPiso }) {
@@ -95,6 +96,7 @@ export function CartaoQualidadeGeral() {
       base={g ? { n: g.completos.n, unidade: 'apontamentos' } : undefined}
       baseInsuficiente={g?.completos.status === 'insuficiente'}
       criterios={(resposta?.criterios ?? []).filter((c) => c.id.startsWith('dicionario'))}
+      familiaCriterio="dicionario"
       className="lg:col-span-6"
     >
       {(r) => <QualidadeGeral r={r} />}
@@ -141,6 +143,7 @@ function QualidadePessoa({ r }: { r: RespostaApontamento }) {
         }))}
       />
       <NotaNaoIdentificada r={r} />
+      <NotaOutraArea linhas={linhas} />
     </div>
   )
 }
@@ -152,6 +155,7 @@ export function CartaoQualidadePessoa() {
       titulo="Qualidade por pessoa"
       texto={CARTOES.qualidadePessoa}
       semTabela
+      familiaCriterio="dicionario"
       className="lg:col-span-12"
     >
       {(r) => <QualidadePessoa r={r} />}

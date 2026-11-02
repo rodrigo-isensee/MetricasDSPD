@@ -131,8 +131,8 @@ describe('Outra área', () => {
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(roteador.state.location.search).toContain('pessoa=outra-area'))
     expect(await screen.findByText('Pessoa que apontou: Outra área')).toBeInTheDocument()
-    const capacidade = await screen.findByTestId('metrica-AP-CAPACIDADE-PESSOA')
-    expect(within(capacidade).getAllByText('Outra área').length).toBeGreaterThan(0)
+    const matriz = await screen.findByTestId('metrica-AP-MATRIZ')
+    expect(within(matriz).getAllByText('Outra área').length).toBeGreaterThan(0)
     expect(screen.getByTestId('aba-apontamento').textContent).not.toMatch(/outra-area/)
   })
 

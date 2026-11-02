@@ -334,6 +334,7 @@ export function CartaoDiario() {
       texto={CARTOES.diario}
       leitura={leitura}
       aplicaveis={['pessoa']}
+      familiaCriterio="calendario"
       acoes={<SeletorJanela />}
       className="lg:col-span-12"
     >

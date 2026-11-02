@@ -8,6 +8,7 @@ import type { RespostaApontamento } from '../types'
 
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
+import { NotaOutraArea } from './NotaOutraArea'
 
 function Matriz({ r }: { r: RespostaApontamento }) {
   const { ordem } = useDadosAba()
@@ -47,6 +48,7 @@ function Matriz({ r }: { r: RespostaApontamento }) {
         }))}
       />
       <NotaNaoIdentificada r={r} />
+      <NotaOutraArea linhas={linhas} />
     </div>
   )
 }
@@ -67,6 +69,7 @@ export function CartaoMatriz() {
           opcoes={NIVEIS}
         />
       }
+      familiaCriterio="dicionario"
       className="lg:col-span-12"
     >
       {(r) => <Matriz r={r} />}

@@ -33,7 +33,7 @@ import { CartaoQualidadeGeral, CartaoQualidadePessoa } from './components/Cartoe
 import { ProvedorDadosAba, type DadosAba } from './dados'
 import { fonteHttpApontamento } from './api'
 import { filtrosAtivos, useFiltrosApontamento } from './filtros'
-import { CARREGANDO, SECOES, VAZIO } from './textos'
+import { AVISO_NOME_REAL, CARREGANDO, SECOES, VAZIO } from './textos'
 import type { FonteApontamento } from './types'
 import { useApontamento, useFiltroTipoDisponivel } from './useApontamento'
 
@@ -115,12 +115,18 @@ export default function ApontamentoPage({
     >
       <ProvedorOrigemCartoes origem={origemReal}>
         <ProvedorDadosAba valor={valor}>
-          <div className="flex flex-col gap-6" data-testid="aba-apontamento">
+          <section
+            aria-label={
+              dados.resposta?.nomesReais ? `Apontamento. ${AVISO_NOME_REAL}` : 'Apontamento'
+            }
+            className="flex flex-col gap-6"
+            data-testid="aba-apontamento"
+          >
             {dados.resposta?.nomesReais && <AvisoNomeReal />}
             <CabecalhoPainel
               titulo="Apontamento"
               pergunta="Onde o tempo apontado foi gasto e a capacidade acompanha o período?"
-              publico="Para o time e a liderança · fonte única: BusinessMap."
+              publico="Para quem acompanha o painel · fonte única: BusinessMap."
               fonte="BusinessMap"
               slug="apontamento"
               frescor={<FrescorEPeriodo resposta={dados.resposta} />}
@@ -181,7 +187,7 @@ export default function ApontamentoPage({
                 </Secao>
               </>
             )}
-          </div>
+          </section>
         </ProvedorDadosAba>
       </ProvedorOrigemCartoes>
     </ProvedorContextoPainel>
