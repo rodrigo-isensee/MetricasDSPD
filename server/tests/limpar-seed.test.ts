@@ -190,6 +190,25 @@ describe('analisarArgumentosLimpezaSeed', () => {
     recusaCore('linha real que aponta para a versão do seed por chave estrangeira', 'pg_constraint', /ref_time: 3 linha\(s\) apontam para versões de critério do seed/);
     recusaCore('linha real que aponta para a versão do seed por coluna de versão (sem chave estrangeira)', 'information_schema.columns', /ref_time: 3/);
 
+    it('tabela que referencia a versão do seed sem nenhuma linha apontando: não recusa e segue', async () => {
+      const { pool } = banco((c) => {
+        if (c.texto.includes('pg_constraint')) return [{ esquema: E.bm, tabela: 'ref_time', coluna: 'versao_id' }];
+        if (c.texto.includes(`FROM ${E.bm}.ref_time WHERE`)) return [{ n: '0' }];
+        return versoes(c);
+      });
+      const r = await limparSeed(pool, { aplicar: true, S: E });
+      expect(r.modo).toBe('aplicado');
+      expect(r.criterios.tabelas).toEqual({ ref_versao_criterio_metrica: 2, ref_versao_criterio: 2 });
+    });
+
+    it('contagem divergente com rowCount nulo no DELETE: mensagem com 0 removidas e ROLLBACK', async () => {
+      const { pool, chamadas } = banco((c) => (c.texto.startsWith(`DELETE FROM ${E.core}.ref_versao_criterio_metrica WHERE`) ? { rows: [], rowCount: undefined } : versoes(c)));
+      const e = await limparSeed(pool, { aplicar: true, S: E }).catch((x: unknown) => x);
+      expect(e).toMatchObject({ codigo: 'contagem-divergente' });
+      expect((e as Error).message).toMatch(/ref_versao_criterio_metrica: removidas 0 de 2 previstas/);
+      expect(textos(chamadas).at(-1)).toBe('ROLLBACK');
+    });
+
     it('contagem divergente no core: desfaz tudo', async () => {
       const { pool, chamadas } = banco((c) => (c.texto.startsWith(`DELETE FROM ${E.core}.ref_versao_criterio WHERE`) ? { rows: [], rowCount: 1 } : versoes(c)));
       await expect(limparSeed(pool, { aplicar: true, S: E })).rejects.toMatchObject({ codigo: 'contagem-divergente' });
