@@ -3,29 +3,30 @@ tipo: review
 contrato: 1
 pedido: 059-aba-apontamento
 branch: docs/059-apontamento-discovery
-commit: 784659c5efb8eaabeb521772f2a21b105d1c32f8
-parecer: reprovado
+commit: fe8a3608efee17a53466fe3a0a97f99ed8281787
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
 ---
-# Review de modelagem: 059-aba-apontamento (§3.3 do plano, F2 do §7.2)
+# Review de modelagem: 059-aba-apontamento (§3.3 do plano, F2 do §7.2), renovação por delta
 
-Escopo: tabelas, chaves, grants, `pessoa_ref`, `dim_card_raiz` e `ref_apontamento_*` do §3.3 de `docs/architecture/features/059-aba-apontamento.md` (linhas 105 a 116), lidos com a ADR 0025 (renomeada de 0024 nesta entrega), a revisão 4 da ADR 0020 e a convenção das migrações vigentes (`0020_bm_dim_responsavel.ts`: ids `text` com `CHECK` de dígitos, `DT()` para datas). Não há código nem migração nesta entrega; o parecer vale antes da A1 (migrações). `reprovado` quer dizer: A1 e A2 voltam ao arquiteto antes de a migração ser escrita; o resto entra na A1 como ajuste.
+Escopo: §3.3 do plano `docs/architecture/features/059-aba-apontamento.md` (linhas 109 a 123), lido com a ADR 0025 (itens 5 a 8) e a revisão 4 da ADR 0020 (R4-2, R4-3, R4-6). Não há código nem migração nesta entrega; o parecer vale antes da A1 (migrações).
+
+Delta lido (`forge-check delta --parecer`, intervalo 784659c..a2b4287 mais as alterações não commitadas, agora em fe8a360): §3.3 e §3.1/§3.2 do plano, itens 5 a 8 da ADR 0025 e R4-2/R4-3/R4-6 da ADR 0020. Já lido e fora do delta de modelagem: §3.9 (contrato zod), §4 a §7 do plano; o dicionário, os textos do UX, o plano de testes e o parecer de segurança têm parecer próprio.
+
+Resultado do delta:
+- A1 resolvida: `evt_apontamento` ganhou `UNIQUE (logged_time_id, tipo, chave_ocorrencia)` com `ON CONFLICT DO NOTHING`; na varredura a chave é a data civil da detecção, então reexecução e sobreposição no mesmo dia não duplicam, e o teste está declarado (plano linha 113, ADR 0025 item 7).
+- A2 resolvida: `cfg_pessoa_eliminada` (HMAC-SHA256 do `user_id` com sal do `.env`), consultada pelo projetor antes de `/users` e de criar `pessoa_ref`; escrita só do `dspd_migrador`, leitura só do `dspd_coletor` (plano linha 114, ADR 0020 R4-6, ADR 0025 item 8).
+- A3 resolvida: `registro_sha256` só sobre a allow-list gravável com a saída da classificação; edição só de comentário gera versão apenas se a saída mudar (ADR 0025 item 5).
+- A4, A7 e A11 acolhidas no plano (linha 123) e vão para a A1; A7 ficou declarada e a eliminação do titular é do `dspd_migrador`.
+- A10 (view de nomes) fica fora, com razão: conflita com a R3-3 da ADR 0020; vale o GRANT por coluna em `dim_responsavel` com a rota juntando só `pessoa_ref` presentes no fato. Aceito; reabre só com nova leitura do `security-engineer`.
+- A6 decidida aqui: o fato grava `iniciativa_card_id` na mesma transação que refaz `dim_card_raiz`, com teste de igualdade entre os dois; a consulta não junta.
 
 ## Achados
-- A1 (bloqueante) docs/architecture/features/059-aba-apontamento.md:109 · `evt_apontamento` sem chave natural: a sobreposição de 1 h do histórico (§3.2) relê o mesmo evento e duplica a linha. Definir UNIQUE (logged_time_id, tipo, id do evento de origem ou detectado_em truncado) e INSERT ON CONFLICT DO NOTHING.
-- A2 (bloqueante) docs/architecture/features/059-aba-apontamento.md:110 · eliminação a pedido anula `pessoa_ref`, mas a recoleta (reconstrução ou apontamento relido) resolve o `user_id` em memória e recria o vínculo e uma nova `pessoa_ref`. Falta lista de supressão (tabela de chaves de origem eliminadas, hash com sal, lida pelo projetor) e o teste.
-- A3 (recomendado) docs/architecture/features/059-aba-apontamento.md:108 · `registro_sha256` sem definição: calcular só sobre a allow-list gravada (nunca comentário nem user_id), senão vira hash do comentário (ADR 0020 4h). Registrar que edição só de comentário não gera versão.
-- A4 (recomendado) docs/architecture/features/059-aba-apontamento.md:108 · tipos não declarados: seguir a convenção (ids `text` com CHECK de dígitos, `DT()` para datas); CHECK em `segundos` (1 a 86400), `qtd_palavras` (>= 0) e `flags_qualidade` (máscara dentro da lista fechada). Renomear a coluna `data` para `data_apontamento`.
-- A5 (recomendado) docs/architecture/features/059-aba-apontamento.md:110 · sem índices: toda consulta da aba filtra por data e agrupa por pessoa ou iniciativa. Propor (data_apontamento) e (pessoa_ref, data_apontamento) e (iniciativa_card_id, data_apontamento), parciais com excluido_em nulo; índice em card_id e coleta_id na staging; registrar EXPLAIN.
-- A6 (recomendado) docs/architecture/features/059-aba-apontamento.md:110 · `iniciativa_card_id` no fato duplica `dim_card_raiz.raiz_card_id`: duas fontes da mesma verdade. Ou o projetor grava as duas na mesma transação e há teste de igualdade, ou o fato não guarda e a consulta junta.
-- A7 (recomendado) docs/architecture/features/059-aba-apontamento.md:111 · `pessoa_ref` identity: a ordem sequencial revela a ordem de descoberta; aceitável, mas declarar. Eliminação do titular fica com o `dspd_migrador` (como DT-3), não com o `dspd_coletor` sem DELETE e sem UPDATE de pessoa.
-- A8 (recomendado) docs/architecture/features/059-aba-apontamento.md:112 · `dim_card_raiz`: índice em `raiz_card_id`; CHECK de profundidade máxima e proteção contra ciclo em `card_pai`; refeita por substituição por card na transação do projetor.
-- A9 (recomendado) docs/architecture/features/059-aba-apontamento.md:113 · `ref_apontamento_*`: UNIQUE (termo_normalizado, subgrupo_codigo) e prioridade única; `versao_dicionario` na staging referencia `ref_versao_criterio`. O comentário não é guardado, então mudar o dicionário não reclassifica o passado sem nova carga: registrar e marcar o gráfico (T2.6).
-- A10 (recomendado) docs/architecture/features/059-aba-apontamento.md:116 · `dspd_api_apontamento` lê `dim_responsavel` inteira (nomes de quem nunca apontou). Expor por view só das pessoas com apontamento no escopo, com GRANT na view e não na tabela; manter `responsavel_id` e `dim_card.responsaveis` fora do papel.
-- A11 (recomendado) docs/architecture/features/059-aba-apontamento.md:106 · uma mudança por migração: separar em migrações próprias a coluna `pessoa_ref`, `dim_card_raiz`, a staging com eventos e fato, as `ref_*` e o papel com grants, cada uma com `down`. `ref_categoria_tempo` só nasce se a Q-A3 pedir.
+- A1 (recomendado) docs/architecture/features/059-aba-apontamento.md:123 · A5 e A8 (índices parciais com excluido_em nulo, índice em raiz_card_id, CHECK de profundidade e ciclo em card_pai) seguem para a migração da A1 com EXPLAIN registrado; não devolvem.
+- A2 (recomendado) docs/architecture/features/059-aba-apontamento.md:118 · A9: UNIQUE (termo_normalizado, subgrupo_codigo) e prioridade única nas ref_apontamento_*; registrar que mudar o dicionário não reclassifica o passado e marcar o gráfico (T2.6).
 
 ## Parecer
-Reprovado só pelos dois bloqueantes, que têm gatilho real e se resolvem no texto do plano, sem refazer a arquitetura: A1 (idempotência dos eventos, regra de modelagem do `engineering-practices`) e A2 (a eliminação a pedido, decisão do dono "A" de retenção, não se sustenta se a próxima coleta recria o vínculo). O desenho geral está certo: staging sem pessoa nem texto livre, fato como projeção com `pessoa_ref` opaca fora do gatilho, papel dedicado com GRANT por coluna e `dspd_api` sem leitura. Os demais achados são recomendações para a A1; nenhum devolve. Revalidar com `forge-check delta` sobre este parecer depois do ajuste do §3.3.
+Aprovado. Os dois bloqueantes do parecer anterior (idempotência dos eventos e eliminação a pedido que sobrevive à recoleta) estão resolvidos no texto, sem refazer a arquitetura. Os recomendados restantes entram na A1 como ajuste e não devolvem. A forma final das colunas depende do spike (PE-1) e do histórico do worklog, hoje 403: se o dono liberar `/loggedTime/history`, a modelagem de `evt_apontamento` (origem `historico`) volta a este review por delta.
 
-Fora deste review: segurança (parecer próprio do `security-engineer`, `docs/security/059-adrs.md`) e a forma final das colunas depois do spike (PE-1).
+Fora deste review: segurança (parecer próprio, `docs/security/059-adrs.md`, renovação na E2.13).
