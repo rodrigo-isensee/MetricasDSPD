@@ -19,8 +19,12 @@ describe('SQL do apontamento: colunas só da constante e ON CONFLICT com alvo ex
     await gravarStgApontamento(banco.pool, S, [linha], 5, new Date(0));
     const sql = banco.chamadas[0]!.texto;
     const lista = /INSERT INTO dspd_bm\.stg_apontamento \(([^)]*)\)/.exec(sql)![1]!.split(',').map((c) => c.trim());
-    expect(lista).toEqual([...REGISTRO, 'coletado_em', 'coleta_id']);
+    expect(lista).toEqual([...REGISTRO, 'versao', 'coletado_em', 'coleta_id']);
     expect(sql).toContain('ON CONFLICT ON CONSTRAINT uq_stg_apontamento DO NOTHING');
+    // A2: versão = última + 1, e a linha só entra quando o hash difere do da última versão do mesmo id
+    expect(sql).toContain('COALESCE(u.versao, 0) + 1');
+    expect(sql).toContain('ORDER BY s.versao DESC LIMIT 1');
+    expect(sql).toContain("WHERE u.registro_sha256 IS DISTINCT FROM decode(v.registro_sha256, 'hex')");
     expect(banco.chamadas[0]!.valores[0]).not.toMatch(/comment|user_id|pessoa/);
   });
   it('A8 do review: a máscara do UPDATE do fato preserva exatamente os bits 8 (hierarquia) e 16 (reservado); a releitura não apaga nenhum dos dois', async () => {

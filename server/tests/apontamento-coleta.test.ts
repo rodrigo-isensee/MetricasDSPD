@@ -198,6 +198,20 @@ describe('incremental: os novos e a varredura de presença (CT-36, CT-76)', () =
     expect(m.e.stg.size).toBe(2);
     expect(m.e.fatos.get('9000000020')).toMatchObject({ versoes: 2 });
   });
+  it('A2: a volta ao valor antigo é uma versão nova (A, B, A vira três linhas, fato A, versoes 3); A relido sobre A não grava (nunca dedup por hash em toda a história)', async () => {
+    const a = registroWorklog({ logged_time_id: 9_000_000_021, time: 600 });
+    const m = await montar({ marca: MARCA }, { registros: [a] });
+    await coletarApontamentos(m.deps, incremental);
+    m.servidor.cenario.registros[0] = { ...a, time: 1200 };
+    expect(await coletarApontamentos(m.deps, incremental)).toMatchObject({ inseridos: 1 });
+    m.servidor.cenario.registros[0] = { ...a, time: 600 };
+    expect(await coletarApontamentos(m.deps, incremental)).toMatchObject({ inseridos: 1 });
+    expect(m.e.stg.size).toBe(3);
+    expect([...m.e.stg.values()].map((r) => [r.versao, r.segundos])).toEqual([[1, 600], [2, 1200], [3, 600]]);
+    expect(m.e.fatos.get('9000000021')).toMatchObject({ versoes: 3 });
+    expect(await coletarApontamentos(m.deps, incremental)).toMatchObject({ inseridos: 0, jaExistentes: 1 });
+    expect(m.e.stg.size).toBe(3);
+  });
   it('dois apontamentos iguais em data, card, pessoa e horas, com ids diferentes, contam ambos (nunca dedup por combinação)', async () => {
     const m = await montar({ marca: MARCA }, { registros: [registroWorklog({ logged_time_id: 9_000_000_030 }), registroWorklog({ logged_time_id: 9_000_000_031 })] });
     await coletarApontamentos(m.deps, incremental);
@@ -246,17 +260,19 @@ describe('exclusão por presença (CT-72, CT-73, CT-74, CT-75)', () => {
     const zero = await montar({ marca: MARCA, fatos: [] });
     expect(await coletarApontamentos(zero.deps, incremental)).toMatchObject({ estado: 'sucesso', excluidos: 0 });
   });
-  it('lote incompleto nunca gera exclusão: 404 no lote, registro recusado no lote e lote no teto', async () => {
+  it('lote incompleto nunca gera exclusão: 404 no lote, recusa com id inválido no lote e lote no teto', async () => {
     const f = fato(1);
-    for (const cenario of [
-      { statusPorLote: () => 404 } as Partial<CenarioWorklog>,
-      { registros: [registroWorklog({ logged_time_id: 9_500_000_900, time: 0 })] },
-      { registros: Array.from({ length: 1000 }, () => registroWorklog()) },
-    ]) {
+    // a recusa não fecha parcial (A7), então só a falha de lote e o teto exigem estado diferente de sucesso
+    const cenarios: [Partial<CenarioWorklog>, boolean][] = [
+      [{ statusPorLote: () => 404 }, true],
+      [{ registros: [registroWorklog({ logged_time_id: 'abc' })] }, false],
+      [{ registros: Array.from({ length: 1000 }, () => registroWorklog()) }, true],
+    ];
+    for (const [cenario, parcial] of cenarios) {
       const m = await montar({ marca: MARCA, fatos: [f, fato(2)] }, cenario);
       const r = await coletarApontamentos(m.deps, incremental);
       expect(r.excluidos, JSON.stringify(Object.keys(cenario))).toBe(0);
-      expect(r.estado).not.toBe('sucesso');
+      if (parcial) expect(r.estado).not.toBe('sucesso');
       expect(m.e.eventos.size).toBe(0);
     }
   });
@@ -370,19 +386,93 @@ describe('comentário só em memória e validação na fronteira (CA-AP-2, CA-AP
       expect(r).toMatchObject({ estado: 'sucesso', lidos: 3, inseridos: 3 });
     }
   });
-  it('registro recusado (data futura, horas, id): falha só com código e id_origem, a coleta fecha parcial e o resto entra', async () => {
+  it('registro recusado (data futura, horas, id): vai a ctl_coleta_falha e à contagem, mas não segura a marca d\'água (A7); o resto entra', async () => {
     const regs = [
       registroWorklog({ logged_time_id: 9_000_000_060 }), registroWorklog({ logged_time_id: 9_000_000_061, date: '2026-11-05' }),
       registroWorklog({ logged_time_id: 9_000_000_062, time: 86_401 }), registroWorklog({ logged_time_id: 'abc' }), registroWorklog({ logged_time_id: 9_000_000_063, user_id: 'x' }),
     ];
     const m = await montar({}, { registros: regs });
     const r = await coletarApontamentos(m.deps, carga());
-    expect(r).toMatchObject({ estado: 'parcial', lidos: 5, inseridos: 1, invalidos: 4, falhas: { 'data-futura': 1, 'tempo-invalido': 1, 'id-invalido': 2 } });
+    expect(r).toMatchObject({
+      estado: 'sucesso', lidos: 5, inseridos: 1, invalidos: 4, falhas: {}, recusados: { 'data-futura': 1, 'tempo-invalido': 1, 'id-invalido': 2 },
+    });
     expect(m.e.falhas.map((f) => [f.entidade, f.idOrigem, f.erro])).toEqual([
       ['apontamento', '9000000061', 'data-futura'], ['apontamento', '9000000062', 'tempo-invalido'], ['apontamento', null, 'id-invalido'], ['apontamento', '9000000063', 'id-invalido'],
     ]);
+    expect(m.e.contagens.find((c) => c.entidade === 'apontamento')).toMatchObject({ lidos: 5, inseridos: 1, falhas: 4 });
     expect([...m.e.fatos.keys()]).toEqual(['9000000060']);
+    expect(m.e.marca).toEqual({ coletaId: 77, ate: QUARTA });
+    expect(m.e.fechamentos.at(-1)).toMatchObject({ status: 'sucesso', erro: null });
+  });
+  it('os cinco códigos de recusa de registro são da lista fechada e nenhum vira falha de execução', async () => {
+    const regs = [
+      registroWorklog({ logged_time_id: 'x1' }), registroWorklog({ logged_time_id: 9_000_000_080, date: '2026-13-45' }), registroWorklog({ logged_time_id: 9_000_000_081, date: '2026-11-05' }),
+      registroWorklog({ logged_time_id: 9_000_000_082, time: 0 }), registroWorklog({ logged_time_id: 9_000_000_083, logged_at: 'nao-e-data' }),
+    ];
+    const m = await montar({}, { registros: regs });
+    const r = await coletarApontamentos(m.deps, carga());
+    expect(Object.keys(r.recusados).sort()).toEqual(['campo-invalido', 'data-futura', 'data-invalida', 'id-invalido', 'tempo-invalido']);
+    expect(r).toMatchObject({ estado: 'sucesso', falhas: {}, inseridos: 0 });
+  });
+  it('carga inicial com um registro recusado de vez: lote só de recusas conta como concluído, a carga fecha sucesso, grava a marca e o incremental seguinte roda (A7)', async () => {
+    const m = await montar({ escopo: cards(450) }, { registros: [registroWorklog({ logged_time_id: 9_000_000_090, card_id: 9_100_000_005, time: 0 })] });
+    const r = await coletarApontamentos(m.deps, carga());
+    expect(r).toMatchObject({ estado: 'sucesso', lotesConcluidos: 3, inseridos: 0, recusados: { 'tempo-invalido': 1 } });
+    expect(m.e.checkpoints).toEqual([1, 2, 3]);
+    expect(m.e.marca).toEqual({ coletaId: 77, ate: QUARTA });
+    const seguinte = await montar({ marca: QUARTA }, { registros: [registroWorklog({ logged_time_id: 9_000_000_090, time: 0 })] });
+    expect(await coletarApontamentos(seguinte.deps, incremental)).toMatchObject({ estado: 'sucesso', recusados: { 'tempo-invalido': 1 } });
+  });
+  it('a varredura grava a mesma recusa uma vez por execução; o registro corrigido na origem entra como versão nova', async () => {
+    const m = await montar({ marca: MARCA }, { registros: [registroWorklog({ logged_time_id: 9_000_000_091, time: 0 })] });
+    await coletarApontamentos(m.deps, incremental);
+    // dois passes (novos e varredura) leem o mesmo registro: uma linha de falha por leitura, nunca valor
+    expect(m.e.falhas.every((f) => f.erro === 'tempo-invalido' && f.idOrigem === '9000000091')).toBe(true);
+    m.servidor.cenario.registros[0] = registroWorklog({ logged_time_id: 9_000_000_091, time: 600 });
+    expect(await coletarApontamentos(m.deps, incremental)).toMatchObject({ estado: 'sucesso', inseridos: 1, recusados: {} });
+    expect(m.e.fatos.get('9000000091')).toMatchObject({ versoes: 1 });
+  });
+  it('recusa com logged_time_id válido não tira o lote de completo e não gera exclusão falsa; o ausente de verdade segue sendo excluído', async () => {
+    const fs = Array.from({ length: 100 }, (_, i) => fato(i));
+    // o apontamento 5 passa a vir com horas inválidas (recusa com id válido): continua presente na origem, então não é excluído
+    const doServidor = fs.slice(1).map((f) => (f.logged_time_id === fs[5]!.logged_time_id ? registroDoFato(f, { time: 0 }) : registroDoFato(f)));
+    const m = await montar({ marca: MARCA, fatos: fs }, { registros: doServidor });
+    const r = await coletarApontamentos(m.deps, incremental);
+    expect(r).toMatchObject({ estado: 'sucesso', excluidos: 1 });
+    expect([...m.e.eventos.values()].map((x) => x.id)).toEqual([fs[0]!.logged_time_id]);
+    expect(m.e.fatos.get(fs[5]!.logged_time_id)!.excluido_em).toBeNull();
+  });
+  it('recusa com logged_time_id inválido tira o lote de completo naquela execução: nenhuma exclusão, e o estado segue sucesso', async () => {
+    const fs = Array.from({ length: 100 }, (_, i) => fato(i));
+    const m = await montar({ marca: MARCA, fatos: fs }, { registros: [...fs.slice(1).map((f) => registroDoFato(f)), registroWorklog({ logged_time_id: 'sem-id' })] });
+    const r = await coletarApontamentos(m.deps, incremental);
+    expect(r).toMatchObject({ estado: 'sucesso', excluidos: 0, recusados: { 'id-invalido': 1 } });
+    expect(m.e.eventos.size).toBe(0);
+  });
+  it('guarda recusa_em_massa: mais de 5 por cento dos lidos com pelo menos 10 recusas fecha parcial e a marca não anda', async () => {
+    const boas = Array.from({ length: 150 }, (_, i) => registroWorklog({ logged_time_id: 9_000_001_000 + i }));
+    const ruins = (n: number): Registro[] => Array.from({ length: n }, (_, i) => registroWorklog({ logged_time_id: 9_000_002_000 + i, time: 0 }));
+    // 10 de 160 = 6,25 por cento: dispara
+    const m = await montar({}, { registros: [...boas, ...ruins(10)] });
+    const r = await coletarApontamentos(m.deps, carga());
+    expect(r).toMatchObject({ estado: 'parcial', falhas: { recusa_em_massa: 1 }, recusados: { 'tempo-invalido': 10 }, inseridos: 150 });
     expect(m.e.marca).toBeUndefined();
+    expect(m.e.falhas.filter((f) => f.erro === 'recusa_em_massa')).toEqual([{ entidade: 'apontamento', idOrigem: null, erro: 'recusa_em_massa' }]);
+    expect(m.e.fechamentos.at(-1)).toMatchObject({ status: 'parcial' });
+    // o checkpoint da carga não anda sobre a guarda armada
+    expect(m.e.checkpoints).toEqual([]);
+  });
+  it('guarda recusa_em_massa: exatamente 5 por cento, ou menos de 10 recusas, não dispara; os parâmetros são ajustáveis', async () => {
+    const boas = (n: number): Registro[] => Array.from({ length: n }, (_, i) => registroWorklog({ logged_time_id: 9_000_003_000 + i }));
+    const ruins = (n: number): Registro[] => Array.from({ length: n }, (_, i) => registroWorklog({ logged_time_id: 9_000_004_000 + i, time: 0 }));
+    const cinco = await montar({}, { registros: [...boas(190), ...ruins(10)] }); // 10 de 200 = 5 por cento
+    expect(await coletarApontamentos(cinco.deps, carga())).toMatchObject({ estado: 'sucesso', falhas: {} });
+    const poucas = await montar({}, { registros: [...boas(20), ...ruins(9)] }); // 9 de 29 = 31 por cento, mas abaixo de 10 recusas
+    expect(await coletarApontamentos(poucas.deps, carga())).toMatchObject({ estado: 'sucesso', falhas: {} });
+    const ajustado = await montar({}, { registros: [...boas(20), ...ruins(3)] }, { minimoRecusasMassa: 3, limiteRecusaPercentual: 10 });
+    expect(await coletarApontamentos(ajustado.deps, carga())).toMatchObject({ estado: 'parcial', falhas: { recusa_em_massa: 1 } });
+    const folgado = await montar({}, { registros: [...boas(20), ...ruins(10)] }, { limiteRecusaPercentual: 50 });
+    expect(await coletarApontamentos(folgado.deps, carga())).toMatchObject({ estado: 'sucesso' });
   });
   it('soma diária alta não é recusada: 115 h num dia entra (valor_atipico é da projeção pela biblioteca)', async () => {
     const m = await montar({}, { registros: [registroWorklog({ logged_time_id: 9_000_000_064, time: 86_400 }), ...Array.from({ length: 30 }, (_, i) => registroWorklog({ logged_time_id: 9_000_000_100 + i, time: 13_800 }))] });

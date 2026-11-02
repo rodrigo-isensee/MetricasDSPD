@@ -27,6 +27,14 @@ export const JANELA_VARREDURA_DIAS = 90;
 export const MESES_CARGA_APONTAMENTO = 12;
 /** Guarda de exclusão em massa (ADR 0025 item 6): acima disto (em %) dos ativos da janela, nenhuma exclusão da execução é gravada. */
 export const LIMITE_MASSA_PERCENTUAL = 20;
+/**
+ * Guarda `recusa_em_massa` (decisão A7 do plano, ADR 0025 item 10): recusas de registro acima deste percentual dos registros lidos na execução,
+ * com pelo menos `MINIMO_RECUSAS_MASSA` recusas, fecham `parcial` (muitas recusas juntas indicam mudança de contrato da API) e seguram a marca.
+ */
+export const LIMITE_RECUSA_PERCENTUAL = 5;
+export const MINIMO_RECUSAS_MASSA = 10;
+/** Recusa de registro (lista fechada, só dado da origem): vai a `ctl_coleta_falha` e à contagem, mas não é falha de execução (A7). */
+const CODIGOS_DE_RECUSA: ReadonlySet<string> = new Set(['id-invalido', 'data-invalida', 'data-futura', 'tempo-invalido', 'campo-invalido']);
 const FUSO = 'America/Sao_Paulo';
 const DIA_MS = 86_400_000;
 
@@ -46,6 +54,9 @@ export interface DepsApontamento {
   agora: () => Date;
   /** Parâmetro técnico da guarda de massa (padrão 20). */
   limiteMassaPercentual?: number;
+  /** Parâmetros técnicos da guarda `recusa_em_massa` (padrões 5 e 10), ajustáveis sem mudar código. */
+  limiteRecusaPercentual?: number;
+  minimoRecusasMassa?: number;
 }
 
 export interface ResultadoApontamento {
@@ -58,6 +69,7 @@ export interface ResultadoApontamento {
   lidos: number;
   inseridos: number;
   jaExistentes: number;
+  /** Registros que não entraram na staging: recusas de registro e falhas de classificação (a contagem `falhas` de `ctl_coleta_contagem`). */
   invalidos: number;
   excluidos: number;
   reaparecidos: number;
@@ -65,8 +77,10 @@ export interface ResultadoApontamento {
   lotesConcluidos: number;
   /** Ids de usuário pedidos a `/users`, resolvidos e não resolvidos (contagens; nunca id nem nome). */
   usuarios: { pedidos: number; resolvidos: number; naoResolvidos: number };
-  /** Códigos das falhas (nunca mensagens), com a contagem. */
+  /** Códigos das falhas de execução (nunca mensagens), com a contagem: seguram a marca e fecham `parcial` ou `falha`. */
   falhas: Record<string, number>;
+  /** Recusas de registro por código (A7): não seguram a marca nem fecham a coleta `parcial`. */
+  recusados: Record<string, number>;
 }
 
 const ParametrosCarga = z.object({
@@ -103,7 +117,7 @@ interface Passe { filtro: FiltroWorklog; varredura: boolean }
 interface Execucao {
   d: DepsApontamento; S: Esquemas; coletaId: number; hoje: string;
   tipos: ReadonlyMap<string, string | null>; escopo: ReadonlySet<string>;
-  vistos: Set<string>; completos: Set<string>; falhas: string[];
+  vistos: Set<string>; completos: Set<string>; falhas: string[]; recusas: string[];
   r: Pick<ResultadoApontamento, 'lidos' | 'inseridos' | 'jaExistentes' | 'invalidos' | 'excluidos' | 'reaparecidos' | 'usuarios'>;
 }
 
@@ -176,11 +190,18 @@ async function processarFolha(x: Execucao, passe: Passe, folha: Folha): Promise<
 
   x.r.lidos += folha.itens.length;
   x.r.invalidos += rejeitados.length;
-  x.falhas.push(...rejeitados.map((f) => f.codigo));
+  // A7: recusa de registro não é falha de execução; falha de classificação (defeito nosso ou do dicionário) e de lote são
+  for (const f of rejeitados) (CODIGOS_DE_RECUSA.has(f.codigo) ? x.recusas : x.falhas).push(f.codigo);
   if (folha.falha !== null) x.falhas.push(folha.falha);
-  // só lote completo e sem registro recusado pode virar fonte de exclusão
-  if (passe.varredura && folha.completo && rejeitados.length === 0) for (const c of folha.cards) x.completos.add(c);
+  // só lote completo pode virar fonte de exclusão; recusa com `logged_time_id` válido não tira o lote de completo (o id entrou em `vistos`),
+  // recusa com id inválido tira (não se sabe de quem é o registro)
+  if (passe.varredura && folha.completo && rejeitados.every((f) => f.idOrigem !== null)) for (const c of folha.cards) x.completos.add(c);
 }
+
+/** Guarda `recusa_em_massa` (A7): recusas de registro acima do percentual dos lidos, com o mínimo de recusas. */
+const recusaEmMassa = (x: Execucao): boolean =>
+  x.recusas.length >= (x.d.minimoRecusasMassa ?? MINIMO_RECUSAS_MASSA)
+  && x.recusas.length * 100 > (x.d.limiteRecusaPercentual ?? LIMITE_RECUSA_PERCENTUAL) * x.r.lidos;
 
 /**
  * Exclusão por presença (ADR 0025 item 6): apontamento ativo da janela, de cards cujo lote veio COMPLETO, que não voltou na leitura.
@@ -217,7 +238,8 @@ const dividir = <T>(lista: readonly T[], tamanho: number): T[][] => {
 
 /**
  * Coleta do worklog. `incremental` exige uma marca d'água anterior (a carga inicial concluída) e que a coleta de cards mais recente não
- * tenha falhado. Marca d'água só em sucesso (falha de lote, registro recusado ou guarda de massa deixam a execução `parcial` e a marca onde estava).
+ * tenha falhado. Marca d'água só em sucesso (falha de lote, de classificação, `lote_no_teto` e as guardas de massa deixam a execução
+ * `parcial` e a marca onde estava; registro recusado não deixa, decisão A7).
  */
 export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontamento): Promise<ResultadoApontamento> {
   if (Buffer.byteLength(d.sal) < SAL_MINIMO_BYTES) throw new ErroColetaBm('configuracao', `PESSOA_ELIMINADA_SAL ausente ou com menos de ${SAL_MINIMO_BYTES} bytes`);
@@ -273,7 +295,7 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
     const escopoCards = await escopoDoWorklog(d.pool, S);
     const x: Execucao = {
       d, S, coletaId, hoje, tipos: new Map(escopoCards.map((c) => [c.card_id, c.type_id])), escopo: new Set(escopoCards.map((c) => c.card_id)),
-      vistos: new Set(), completos: new Set(), falhas: [],
+      vistos: new Set(), completos: new Set(), falhas: [], recusas: [],
       r: { lidos: 0, inseridos: 0, jaExistentes: 0, invalidos: 0, excluidos: 0, reaparecidos: 0, usuarios: { pedidos: 0, resolvidos: 0, naoResolvidos: 0 } },
     };
     const lotes = dividir(escopoCards.map((c) => c.card_id), LOTE_CARDS);
@@ -285,8 +307,9 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
           if (i < primeiroLote) continue;
           const falhasAntes = x.falhas.length;
           await lerLote(d.cliente, grupo, passe.filtro, (folha) => processarFolha(x, passe, folha));
-          // checkpoint da carga: só avança enquanto os lotes forem concluídos sem falha, em ordem
-          if (modo.tipo === 'carga_inicial' && x.falhas.length === falhasAntes && concluidos === i) {
+          // checkpoint da carga: só avança enquanto os lotes forem concluídos sem falha de execução, em ordem; lote só de recusas de registro
+          // conta como concluído (A7), exceto com a guarda `recusa_em_massa` armada (o checkpoint não anda sobre mudança de contrato)
+          if (modo.tipo === 'carga_inicial' && x.falhas.length === falhasAntes && concluidos === i && !recusaEmMassa(x)) {
             concluidos = i + 1;
             await d.pool.query(`UPDATE ${S.bm}.ctl_coleta SET parametros = jsonb_set(parametros, '{lotes_concluidos}', to_jsonb($2::int), true) WHERE coleta_id = $1`, [coletaId, concluidos]);
           }
@@ -297,6 +320,10 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
       fatal = true;
       x.falhas.push(e.tipo);
       await registrarFalha(d.pool, S, coletaId, 'apontamento', null, e.tipo);
+    }
+    if (recusaEmMassa(x)) {
+      x.falhas.push('recusa_em_massa');
+      await registrarFalha(d.pool, S, coletaId, 'apontamento', null, 'recusa_em_massa');
     }
     if (!fatal && modo.tipo === 'incremental') await detectarExclusoes(x, desde);
     const agoraFim = d.agora();
@@ -319,7 +346,9 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
     });
     const falhas: Record<string, number> = {};
     for (const f of x.falhas) falhas[f] = (falhas[f] ?? 0) + 1;
-    return { coletaId, modo: modo.tipo, estado, desde, retomada, ...r, lotesConcluidos: concluidos, falhas };
+    const recusados: Record<string, number> = {};
+    for (const f of x.recusas) recusados[f] = (recusados[f] ?? 0) + 1;
+    return { coletaId, modo: modo.tipo, estado, desde, retomada, ...r, lotesConcluidos: concluidos, falhas, recusados };
   } catch (e) {
     // erro de banco ou de programação: fecha como falha (sem a mensagem, que pode trazer valor) e repassa
     await emTransacao(d.pool, (db) => fecharColeta(db, { fonte: 'businessmap', coletaId, status: 'falha', erroResumo: 'desconhecido: erro-interno', agora: d.agora() }, S)).catch(() => undefined);

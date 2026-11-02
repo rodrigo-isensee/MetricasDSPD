@@ -1,6 +1,6 @@
 export { analisarArgumentosApontamento, executarApontamento } from './comando.js';
 export {
-  coletarApontamentos, diaCivil, JANELA_VARREDURA_DIAS, LIMITE_MASSA_PERCENTUAL, MESES_CARGA_APONTAMENTO, VERSAO_COLETOR_APONTAMENTO,
+  coletarApontamentos, diaCivil, JANELA_VARREDURA_DIAS, LIMITE_MASSA_PERCENTUAL, LIMITE_RECUSA_PERCENTUAL, MESES_CARGA_APONTAMENTO, MINIMO_RECUSAS_MASSA, VERSAO_COLETOR_APONTAMENTO,
   type DepsApontamento, type ModoApontamento, type ResultadoApontamento,
 } from './coleta.js';
 export { calcularRaizes, PROFUNDIDADE_MAXIMA, type NoCard, type RaizDoCard } from './hierarquia.js';
