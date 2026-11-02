@@ -395,6 +395,38 @@ d('059: apontamento (esquema, papéis, coleta) no PostgreSQL', () => {
     expect(segunda.lotesConcluidos).toBeGreaterThan(primeira.lotesConcluidos);
   });
 
+  it('type_id do fato (0029): vem do tipo do card na staging (ou do pai), é atualizado pela releitura, só aceita dígitos e o coletor o grava', async () => {
+    const b = base();
+    await criarCards([{ id: b + 1 }, { id: b + 2 }]);
+    const coleta = await novaColeta(dono, S.bm);
+    const tipoNoCard = async (id: number, tipo: number | string): Promise<void> => {
+      await dono.query(
+        `INSERT INTO ${S.bm}.stg_card (id_origem, anterior_sk, payload_sha256, payload, quadro_id, arquivado, excluido_detectado, coletado_em, coleta_id)
+         VALUES ($1::text, (SELECT max(stg_sk) FROM ${S.bm}.stg_card WHERE id_origem = $1::text), decode($2, 'hex'), $3::jsonb, '1', false, false, now(), $4)`,
+        [String(id), SHA(`${id}${tipo}`.replace(/\D/g, '').slice(-12)), JSON.stringify({ card_id: id, type_id: tipo, workflow_id: '1' }), coleta]);
+    };
+    await tipoNoCard(b + 1, 7);
+    await tipoNoCard(b + 2, 8);
+    const regs = [
+      registroWorklog({ logged_time_id: b + 11, card_id: b + 1, comment: 'um' }),
+      registroWorklog({ logged_time_id: b + 12, card_id: b + 99, parent_card_id: b + 2, comment: 'dois' }),
+    ];
+    const m = await montar({ registros: regs, users: {} });
+    await m.rodar(carga);
+    const tipos = async (): Promise<(string | null)[]> => (await dono.query<{ type_id: string | null }>(
+      `SELECT type_id FROM ${S.bm}.fato_apontamento WHERE logged_time_id = ANY($1::text[]) ORDER BY logged_time_id`, [[String(b + 11), String(b + 12)]])).rows.map((r) => r.type_id);
+    expect(await tipos()).toEqual(['7', '8']);
+    // o card muda de tipo: a releitura (a varredura) leva o tipo novo ao fato, mesmo sem mudar o apontamento
+    await tipoNoCard(b + 1, 9);
+    expect(await m.rodar(incremental)).toMatchObject({ estado: 'sucesso', inseridos: 0 });
+    expect(await tipos()).toEqual(['9', '8']);
+    // CHECK de dígitos e o coletor (papel real) atualiza a coluna
+    expect((await falha(dono, `UPDATE ${S.bm}.fato_apontamento SET type_id = 'abc' WHERE logged_time_id = '${b + 11}'`)).code).toBe('23514');
+    await coletor.query(`UPDATE ${S.bm}.fato_apontamento SET type_id = '10' WHERE logged_time_id = $1`, [String(b + 11)]);
+    expect(await tipos()).toEqual(['10', '8']);
+    expect((await falha(api, `SELECT type_id FROM ${S.bm}.fato_apontamento LIMIT 1`)).code).toBe('42501');
+  });
+
   it('A5 do review: a consulta por período usa os índices parciais de excluido_em nulo (EXPLAIN)', async () => {
     const plano = async (sql: string): Promise<string> => {
       const c = await dono.connect();

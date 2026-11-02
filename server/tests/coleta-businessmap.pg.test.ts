@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { coletarCards, type DepsColeta } from '../src/modulos/businessmap/coleta.js';
 import { etapaReferencia, executarColeta, type DepsComando } from '../src/modulos/businessmap/coleta-comando.js';
 import { lerConferencia } from '../src/modulos/businessmap/conferencia.js';
+import { hmacUsuario } from '../src/modulos/businessmap/apontamento/supressao.js';
 import { resolverResponsaveis } from '../src/modulos/businessmap/usuarios.js';
 import type { PoolLike } from '../src/plataforma/db/pool.js';
 import { criarClienteHttp } from '../src/plataforma/http.js';
@@ -14,6 +15,7 @@ import { novaColeta, poolDe, S, url } from './pg/ctx.js';
 const d = describe.skipIf(!url);
 const Q = 9027; // quadro de teste: nenhum outro teste nem seed usa; a referência nunca é confirmada (as tabelas de vigência não aceitam DELETE)
 const AGORA = new Date('2026-11-02T12:00:00Z');
+const SAL = 'sal-de-teste-com-pelo-menos-32-bytes!!';
 const base = 900_000_000 + Math.floor(Math.random() * 90_000_000);
 let proximo = 0;
 const card = (extra: Cartao = {}): Cartao => ({
@@ -38,12 +40,14 @@ d('F3 do plano 052: coleta contra PostgreSQL (papéis, CHECKs, staging, dim_resp
   let dono: pg.Pool, coletor: pg.Pool, ref: pg.Pool, api: pg.Pool;
   const servidores: ServidorBm[] = [];
   const idsDeUsuario: string[] = [];
+  const hashesSuprimidos: string[] = [];
   beforeAll(() => { dono = poolDe(); coletor = poolDe('dspd_coletor'); ref = poolDe('dspd_ref'); api = poolDe('dspd_api'); });
   afterEach(async () => { for (const s of servidores.splice(0)) await s.fechar(); });
   afterAll(async () => {
     // as coletas deste arquivo não podem aparecer no estado de coleta dos outros testes (tarefa coleta_incremental); o staging fica (append-only)
     await dono.query(`DELETE FROM ${S.core}.outbox WHERE payload ->> 'coletaId' IN (SELECT coleta_id::text FROM ${S.bm}.ctl_coleta WHERE versao_coletor = 'bm-f3/1')`);
     await dono.query(`UPDATE ${S.bm}.ctl_coleta SET tarefa = 'reconciliacao' WHERE versao_coletor = 'bm-f3/1'`);
+    await dono.query(`DELETE FROM ${S.bm}.cfg_pessoa_eliminada WHERE hash_usuario = ANY(SELECT decode(h, 'hex') FROM unnest($1::text[]) AS h)`, [hashesSuprimidos]);
     if (idsDeUsuario.length > 0) await dono.query(`DELETE FROM ${S.bm}.dim_responsavel WHERE responsavel_id = ANY($1::text[])`, [idsDeUsuario]);
     await Promise.all([dono, coletor, ref, api].map((p) => p.end()));
   });
@@ -291,5 +295,39 @@ d('F3 do plano 052: coleta contra PostgreSQL (papéis, CHECKs, staging, dim_resp
     expect(r.usuarios).toEqual({ pedidos: 1, resolvidos: 1, naoResolvidos: 0, falha: null });
     expect((await dono.query(`SELECT responsavel_nome FROM ${S.bm}.dim_responsavel WHERE responsavel_id = $1`, [dono1])).rows).toEqual([{ responsavel_nome: 'NOME-MARCADOR-CARGA' }]);
     expect(await n(`SELECT count(*)::int AS n FROM ${S.bm}.stg_card WHERE payload::text LIKE '%NOME-MARCADOR-CARGA%' OR payload::text LIKE '%z@exemplo.com%'`)).toBe(0);
+  });
+
+  it('059 A1 (segurança da coleta): depois da eliminação a pessoa não volta pela coleta de cards; sem o sal a etapa de /users não roda e registra a falha por código', async () => {
+    const eliminada = String(base + 4_000_001);
+    const outra = String(base + 4_000_002);
+    idsDeUsuario.push(eliminada, outra);
+    // eliminação feita (o procedimento do dono grava o HMAC e apaga a linha): aqui, a linha de pessoa já saiu e o HMAC está na lista
+    hashesSuprimidos.push(hmacUsuario(SAL, eliminada));
+    await dono.query(`INSERT INTO ${S.bm}.cfg_pessoa_eliminada (hash_usuario, eliminada_em) VALUES (decode($1, 'hex'), '2026-11-02')`, [hmacUsuario(SAL, eliminada)]);
+    const users = {
+      [eliminada]: { user_id: Number(eliminada), realname: 'NOME-MARCADOR-ELIMINADA', email: 'e@exemplo.com' },
+      [outra]: { user_id: Number(outra), realname: 'NOME-MARCADOR-OUTRA' },
+    };
+    const cards = { [`${Q}|active`]: [card({ owner_user_id: Number(eliminada), co_owner_ids: [Number(outra)] })] };
+    const linhas = async (): Promise<string[]> => (await dono.query<{ responsavel_id: string }>(
+      `SELECT responsavel_id FROM ${S.bm}.dim_responsavel WHERE responsavel_id = ANY($1::text[]) ORDER BY responsavel_id`, [[eliminada, outra]])).rows.map((r) => r.responsavel_id);
+    const pedidosDeUsers = (s: ServidorBm): string[] => s.pedidos.filter((p) => p.caminho === '/users').map((p) => p.consulta.get('user_ids') ?? '');
+
+    // sem o sal e com a lista não vazia: /users nem é chamado, ninguém entra em dim_responsavel e a falha fica registrada só com o código
+    const semSal = await montar({ ...cenarioVazio(), cards, users });
+    const r0 = await coletarCards(semSal.deps, { tipo: 'carga_inicial', inicio: '2025-04-04' });
+    expect(r0.usuarios).toEqual({ pedidos: 0, resolvidos: 0, naoResolvidos: 0, falha: 'sem-sal' });
+    expect(pedidosDeUsers(semSal.servidor)).toEqual([]);
+    expect(await linhas()).toEqual([]);
+    expect(await n(`SELECT count(*)::int AS n FROM ${S.bm}.ctl_coleta_falha WHERE coleta_id = $1 AND entidade = 'usuario' AND erro = 'sem-sal' AND id_origem IS NULL`, [r0.coletaId])).toBe(1);
+
+    // com o sal: só a outra pessoa é pedida e gravada; a eliminada não volta, nem com nome nem com pessoa_ref nova
+    const comSal = await montar({ ...cenarioVazio(), cards, users });
+    const r1 = await coletarCards({ ...comSal.deps, sal: SAL }, { tipo: 'carga_inicial', inicio: '2025-04-04' });
+    expect(r1.usuarios).toEqual({ pedidos: 1, resolvidos: 1, naoResolvidos: 0, falha: null });
+    expect(pedidosDeUsers(comSal.servidor)).toEqual([outra]);
+    expect(await linhas()).toEqual([outra]);
+    expect(await n(`SELECT count(*)::int AS n FROM ${S.bm}.dim_responsavel WHERE responsavel_nome = 'NOME-MARCADOR-ELIMINADA'`)).toBe(0);
+    expect(await n(`SELECT count(*)::int AS n FROM ${S.bm}.ctl_coleta_falha WHERE coleta_id = $1 AND entidade = 'usuario'`, [r1.coletaId])).toBe(0);
   });
 });

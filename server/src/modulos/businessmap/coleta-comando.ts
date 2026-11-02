@@ -62,11 +62,15 @@ export interface DepsComando {
   agora: () => Date;
   paginaTamanho?: number;
   S?: Esquemas;
+  /** Sal da lista de supressão, passado à coleta de cards (pedido 059, A1 da segurança): `/users` nunca recria quem foi eliminado. */
+  sal?: string;
   /**
-   * Pedido 059 (ADR 0025 item 3): etapa do worklog, depois dos cards (e da projeção) e sob a MESMA trava da fonte. Só roda no incremental e
-   * se a coleta de cards não falhou. Quem monta a etapa (a entrada) liga a função de classificação e o sal da supressão.
+   * Pedido 059 (ADR 0025 item 3): etapa do worklog, depois dos cards e da projeção e sob a MESMA trava da fonte. Só roda no incremental, com
+   * `--projetar` (o escopo e a hierarquia vêm de `dim_card`, que só a projeção atualiza: A6 do review da coleta) e se a coleta de cards não
+   * falhou. Falha dela por código (sem carga inicial do worklog, sem dicionário) não derruba o comando: vai em `apontamento.falha` (A5).
+   * Quem monta a etapa (a entrada) liga a função de classificação e o sal da supressão; o pool do coletor chega por argumento, o mesmo da coleta.
    */
-  etapaApontamento?: () => Promise<ResultadoApontamento>;
+  etapaApontamento?: (poolColetor: PoolLike) => Promise<ResultadoApontamento>;
 }
 
 /**
@@ -87,7 +91,9 @@ export function etapaReferencia(
 }
 
 /** Executa a coleta sob a trava da fonte; sem a trava, recusa (outra coleta do BusinessMap está rodando). */
-export type ResultadoComando = ResultadoColeta & { projecao: ResultadoProjecao | null; apontamento: ResultadoApontamento | null };
+/** A etapa do worklog não pôde rodar: só o código (`sem-marca`, `dicionario`, `configuracao`...), nunca a mensagem. Os cards já estão gravados. */
+export interface FalhaEtapaApontamento { falha: string }
+export type ResultadoComando = ResultadoColeta & { projecao: ResultadoProjecao | null; apontamento: ResultadoApontamento | FalhaEtapaApontamento | null };
 
 export async function executarColeta(d: DepsComando, args: ArgsColeta): Promise<ResultadoComando> {
   if (d.quadros.length === 0) throw new ErroColetaBm('configuracao', 'BUSINESSMAP_QUADROS_IDS vazio');
@@ -100,12 +106,22 @@ export async function executarColeta(d: DepsComando, args: ArgsColeta): Promise<
       ...(d.paginaTamanho === undefined ? {} : { paginaTamanho: d.paginaTamanho }),
       etapaReferencia: etapaReferencia(d, agora.toISOString().slice(0, 10), args.inicio ?? inicioDaCarga(agora), args.motivo),
       ...(args.projetar === true ? { responsaveis } : {}),
+      ...(d.sal === undefined ? {} : { sal: d.sal }),
     }, modo);
     // F4: com a coleta que gravou staging (sucesso ou parcial), projeta na mesma execução e sob a mesma trava
     const projecao = args.projetar === true && coleta.estado !== 'falha'
       ? await projetarBusinessMap({ pool: d.poolColetor, ...(d.S === undefined ? {} : { S: d.S }), agora: d.agora, responsaveis })
       : null;
-    const apontamento = args.modo === 'incremental' && coleta.estado !== 'falha' && d.etapaApontamento !== undefined ? await d.etapaApontamento() : null;
+    let apontamento: ResultadoApontamento | FalhaEtapaApontamento | null = null;
+    if (args.modo === 'incremental' && args.projetar === true && coleta.estado !== 'falha' && d.etapaApontamento !== undefined) {
+      try {
+        apontamento = await d.etapaApontamento(d.poolColetor);
+      } catch (e) {
+        // A5 do review: os cards (e a projeção) já foram gravados; a falha conhecida do worklog fica só com o código e não esconde o resultado deles
+        if (!(e instanceof ErroColetaBm)) throw e;
+        apontamento = { falha: e.codigo };
+      }
+    }
     return { ...coleta, projecao, apontamento };
   });
   if (!r.executou) throw new ErroColetaBm('trava', 'outra coleta do BusinessMap em andamento');

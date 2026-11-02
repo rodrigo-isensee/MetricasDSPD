@@ -12,13 +12,17 @@ import { instanteDoBm } from '../normalizador.js';
 
 /**
  * Máscara de bits de `flags_qualidade` (lista fechada, 0 a 31), vinda da biblioteca (`MASCARA_FLAG`, ordem de `FLAGS_QUALIDADE` do contrato): o servidor
- * não repete os bits. Os três primeiros vêm da classificação; os dois últimos, da projeção.
+ * não repete os bits. Os três primeiros vêm da classificação; o quarto, da hierarquia; o quinto (`valor-atipico`) está reservado e nada o grava.
  */
 export const FLAGS = {
   SEM_COMENTARIO: MASCARA_FLAG['sem-comentario'], GENERICO: MASCARA_FLAG.generico, SEM_VINCULO: MASCARA_FLAG['sem-vinculo'],
   SEM_INICIATIVA: MASCARA_FLAG['sem-iniciativa'], VALOR_ATIPICO: MASCARA_FLAG['valor-atipico'],
 } as const;
-/** O que a classificação pode ligar (bits 1, 2 e 4); os bits 8 e 16 são da projeção (hierarquia e soma diária), nunca da função. */
+/**
+ * O que a classificação pode ligar (bits 1, 2 e 4). O bit 8 (sem-iniciativa) é da hierarquia: `atualizarHierarquia` o grava no fato. O bit 16
+ * (valor-atipico) está RESERVADO: nada o grava, porque a soma diária é calculada na leitura (biblioteca e rota), nunca na coleta; a máscara
+ * 24 do UPDATE do fato só o preserva para que um gravador futuro não seja apagado pela releitura.
+ */
 export const MASCARA_DA_CLASSIFICACAO = FLAGS.SEM_COMENTARIO | FLAGS.GENERICO | FLAGS.SEM_VINCULO;
 export const SEGUNDOS_POR_DIA = 86_400;
 

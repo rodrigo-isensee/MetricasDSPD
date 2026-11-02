@@ -123,6 +123,8 @@ export interface OpcoesBanco {
   /** Outra coleta do BusinessMap segura a trava da fonte. */
   travaOcupada?: boolean;
   coletaId?: string;
+  /** HMAC (hex) da lista de supressão `cfg_pessoa_eliminada` (059). */
+  suprimidos?: string[];
 }
 
 export interface EstadoBanco {
@@ -145,6 +147,7 @@ export function bancoFalso(op: OpcoesBanco = {}) {
   const responder = (c: Chamada): Resposta => {
     const t = c.texto;
     const v = c.valores;
+    if (/FROM dspd_bm\.cfg_pessoa_eliminada\s+WHERE hash_usuario/.test(t)) return (v[0] as string[]).filter((h) => (op.suprimidos ?? []).includes(h)).map((hash) => ({ hash }));
     if (t.includes('pg_try_advisory_lock')) return [{ ok: op.travaOcupada !== true }];
     if (t.includes("status = 'em_andamento' AND versao_coletor")) return (op.interrompidas ?? []).map((coleta_id) => ({ coleta_id }));
     if (t.includes("parametros ->> 'tipo' = 'carga_inicial'")) return op.ultimaCarga === undefined ? [] : [op.ultimaCarga];

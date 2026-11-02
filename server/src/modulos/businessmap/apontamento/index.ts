@@ -10,3 +10,9 @@ export {
   type ClassificarApontamento, type EntradaClassificacao, type SaidaClassificacao,
 } from './registro.js';
 export { hmacUsuario, SAL_MINIMO_BYTES } from './supressao.js';
+export {
+  analisarDicionario, carregarDicionario, ErroDicionario, lerDicionario, planejarDicionario, sincronizarDicionario, ARQUIVO_DICIONARIO,
+  type ResultadoDicionario,
+} from './dicionario.js';
+export { analisarArgumentosEliminacao, eliminarPessoa, lerUsuarioDaEntrada, type ArgsEliminacao, type ArgsEliminacaoCli, type DepsEliminacao, type ResultadoEliminacao } from './eliminacao.js';
+export { montarDepsApontamento, type EntradaMontagem } from './montagem.js';

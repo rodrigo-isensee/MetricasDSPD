@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PRAZO_RELEITURA_DIAS, projetarUsuarios, resolverResponsaveis } from '../src/modulos/businessmap/usuarios.js';
+import { hmacUsuario } from '../src/modulos/businessmap/apontamento/supressao.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { ErroBusinessMap } from '../src/plataforma/http.js';
 import { criarDublePg, type Chamada } from './duble-pg.js';
@@ -129,5 +130,62 @@ describe('resolverResponsaveis (DT-2): pede só o que falta ou passou de 30 dias
     expect(upserts(db.chamadas)).toEqual([]);
     const bug = clienteCom(() => { throw new Error('bug'); });
     await expect(resolverResponsaveis(db.pool, bug.cliente, ['5'], AGORA, S)).rejects.toThrow('bug');
+  });
+});
+
+describe('resolverResponsaveis com a lista de supressão (059, A1 da segurança da coleta): quem pediu eliminação não volta por /users', () => {
+  const SAL = 'sal-de-teste-com-pelo-menos-32-bytes!!';
+  const comLista = (eliminados: string[], listaVazia = eliminados.length === 0) =>
+    criarDublePg((c: Chamada) => {
+      if (/FROM dspd_bm\.cfg_pessoa_eliminada\s+WHERE hash_usuario/.test(c.texto)) {
+        const hashes = c.valores[0] as string[];
+        return hashes.filter((h) => eliminados.some((e) => hmacUsuario(SAL, e) === h)).map((hash) => ({ hash }));
+      }
+      if (c.texto.includes('FROM dspd_bm.cfg_pessoa_eliminada LIMIT 1')) return listaVazia ? [] : [{ '?column?': 1 }];
+      return [];
+    });
+  const nomes = () => clienteCom((q) => ({ data: String(q.user_ids).split(',').map((i) => ({ user_id: Number(i), realname: `U${i}` })) }));
+
+  it('com o sal, o id suprimido não é pedido a /users nem inserido; os demais seguem normalmente', async () => {
+    const db = comLista(['5']);
+    const { cliente, pedidos } = nomes();
+    const r = await resolverResponsaveis(db.pool, cliente, ['5', '6'], AGORA, S, SAL);
+    expect(pedidos.map((p) => p.consulta.user_ids)).toEqual(['6']);
+    expect(r).toEqual({ pedidos: 1, resolvidos: 1, naoResolvidos: 0, falha: null });
+    expect(upserts(db.chamadas)[0]!.valores[0]).toEqual(['6']);
+    // só o HMAC vai ao banco, nunca o id em claro
+    const consulta = db.chamadas.find((c) => /cfg_pessoa_eliminada\s+WHERE hash_usuario/.test(c.texto))!;
+    expect(JSON.stringify(consulta.valores)).not.toMatch(/"5"|"6"/);
+  });
+
+  it('todos os ids suprimidos: nenhuma consulta de linhas, nenhum /users, nenhuma escrita', async () => {
+    const db = comLista(['5', '6']);
+    const { cliente, pedidos } = nomes();
+    expect(await resolverResponsaveis(db.pool, cliente, ['5', '6'], AGORA, S, SAL)).toEqual({ pedidos: 0, resolvidos: 0, naoResolvidos: 0, falha: null });
+    expect(pedidos).toEqual([]);
+    expect(db.chamadas.some((c) => c.texto.includes('FROM dspd_bm.dim_responsavel'))).toBe(false);
+    expect(upserts(db.chamadas)).toEqual([]);
+  });
+
+  it('sem sal e com a lista não vazia: a etapa não roda e devolve a falha por código (sem-sal)', async () => {
+    const db = comLista(['5']);
+    const { cliente, pedidos } = nomes();
+    expect(await resolverResponsaveis(db.pool, cliente, ['5', '6'], AGORA, S)).toEqual({ pedidos: 0, resolvidos: 0, naoResolvidos: 0, falha: 'sem-sal' });
+    expect(pedidos).toEqual([]);
+    expect(upserts(db.chamadas)).toEqual([]);
+  });
+
+  it('sal curto vale como ausente', async () => {
+    const db = comLista(['5']);
+    const { cliente, pedidos } = nomes();
+    expect((await resolverResponsaveis(db.pool, cliente, ['6'], AGORA, S, 'curto')).falha).toBe('sem-sal');
+    expect(pedidos).toEqual([]);
+  });
+
+  it('sem sal e com a lista vazia: o comportamento é o de antes (pede e grava)', async () => {
+    const db = comLista([]);
+    const { cliente, pedidos } = nomes();
+    expect(await resolverResponsaveis(db.pool, cliente, ['5'], AGORA, S)).toEqual({ pedidos: 1, resolvidos: 1, naoResolvidos: 0, falha: null });
+    expect(pedidos).toHaveLength(1);
   });
 });
