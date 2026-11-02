@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 052-integracao-businessmap
 branch: feature/052-ws1-estrutura
-commit: 52c201ea9b6949a9188fcea0f18c68e52e5bcfe4
+commit: 438b276fbf84b8fd124e2a231be71ba8384b9bb1
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-01
@@ -11,6 +11,15 @@ data: 2026-11-01
 # Review: 052-integracao-businessmap (E1.17, script de diagnóstico da WS1, K-185)
 
 Escopo da primeira rodada: `9aa6b29bddb25ca6189b64537584f8f0a6f8d1a5..27d32b26f346fdfd56d1ab45c5e38579d7c1018a` (1 commit, 7 arquivos, 734 linhas a mais). Lido por leitura: o diff inteiro e as seções 2, 3, 4, 8 e 9 do `docs/engineering/praticas.md`.
+
+## Renovação por delta (E2.141, 2026-11-01)
+
+Motivo: o `forge-check pr 052-integracao-businessmap --ref HEAD --base origin/develop` marcou este parecer como desatualizado porque o `docs/architecture/server.md` mudou depois dele (`26d097c` e `6ff43df`, limpeza do seed, E2.96 e E2.108). O `forge-check delta --parecer` não roda aqui (`52c201e` não é ancestral de `438b276`, a branch trouxe a develop por merge); o delta lido foi `git diff 52c201e..438b276 -- docs/architecture/server.md server/package.json`, mais o diff dos demais arquivos da WS1 (`.env.example`, `index.ts`, `diagnostico.ts`, teste da WS1, `docs/integracao`, `data-model.md`), que veio vazio.
+
+- `docs/architecture/server.md`: a seção do seed ganha a lista de `ref_*` e as versões de critério do mock, e uma seção nova, "Limpeza do seed mock da base real". Trata do comando `db:limpar-seed` (simulação por padrão, falha fechada, transação); o script da WS1 não lê nem grava a base.
+- `server/package.json`: uma linha nova, o script `db:limpar-seed`. O `bm:diagnostico` segue igual; nenhuma dependência nova.
+
+Já lido e fora do delta: o código e os testes da WS1, sem mudança. O código da limpeza tem parecer próprio (`docs/reviews/052-limpa-seed.md`), e a segurança e o QA renovam os deles em paralelo (E2.139 e E2.140). Conclusão: a mudança não afeta o script da WS1; nenhum achado novo, e o parecer segue aprovado em `438b276`.
 
 ## Renovação por delta (E2.124, 2026-11-01, segunda)
 
