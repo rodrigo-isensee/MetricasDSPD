@@ -3,12 +3,20 @@ tipo: revisao-devops
 contrato: 1
 pedido: 059-aba-apontamento
 branch: feature/059-rota-apontamento
-commit: 58ef21982ca6e9ac40734b4ff95c84324d040578
+commit: 1bf3338d43124f711d98a1bc15ac42ffb2123da4
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-02
 ---
 # Review de devops: rota da aba Apontamento (pedido 059, E2.23 e E2.56, K-193)
+
+## Renovação por delta sobre o merge da develop (E2.74)
+Intervalo: `0b4519c8791705208c4d2b1da133565a127937a2..1bf3338d43124f711d98a1bc15ac42ffb2123da4` (merge da develop com os squashes dos PRs 194 e 195); ponta revisada: `1bf3338d43124f711d98a1bc15ac42ffb2123da4`. O parecer segue aprovado.
+- **Infra no intervalo:** o delta tem 4 arquivos, todos pareceres em `docs/` (`docs/qa/059-beta.md`, `docs/qa/059-excecao-apontamento.md`, `docs/reviews/059-beta.md`, `docs/security/059-beta.md`). `git diff --stat` do intervalo em `.github`, `docker`, `docker-compose.yml`, `docker-compose.homolog.yml` e nos quatro exemplos de env volta vazio; contra a develop, esses caminhos seguem com os mesmos 10 arquivos (38 linhas a mais, 12 a menos) do parecer original. Conclusões sem mudança (`R-CUSTO`, `R-MAIN`, `R-VERIFY`).
+- **Código fora da infra:** `git diff --stat origin/develop..origin/feature/059-rota-apontamento -- packages` mostra só `packages/metricas/src/businessmap/index.ts` (uma linha, o export `ordenarPorPessoa`, já visto na renovação anterior); nada de pipeline, imagem ou compose.
+- **Pareceres da ponta:** o HEAD local `cbff473` só soma o parecer de review renovado (`docs/reviews/059-gama.md`) sobre `1bf3338`, sem arquivo de infra.
+- **Ferramentas:** `actionlint` e `docker build` seguem fora do PATH (lacuna, nada instalado); `shellcheck` não rodou de novo porque os scripts não mudaram.
+- **Achados:** os quatro recomendados abaixo seguem como estão; nenhum bloqueante e nenhum achado novo.
 
 ## Renovação por delta (E2.56)
 Base do delta: `8a92a498f5b5a71d7477d30dd12dcc7be995db66` (ponta do parecer anterior); ponta revisada: `58ef21982ca6e9ac40734b4ff95c84324d040578`. O parecer segue aprovado, e o campo `pedido` do frontmatter foi corrigido para `059-aba-apontamento`.
