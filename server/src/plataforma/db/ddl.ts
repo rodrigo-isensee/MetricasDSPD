@@ -14,6 +14,8 @@ export const COD = 'varchar(80)';
 /** Chave natural da origem: ASCII visível, até 32 caracteres (prov., confirmar no T2.1). */
 export const ID = (c: string, nulo = false): string =>
   `${c} varchar(32) ${nulo ? 'NULL' : 'NOT NULL'} CHECK (${c} ~ '^[\\x21-\\x7E]+$')`;
+/** Id do BusinessMap só em dígitos (até 12), em texto: `logged_time_id`, `card_id` e afins do apontamento (A4 do review de modelagem do 059). */
+export const IDN = (c: string, nulo = false): string => `${c} text ${nulo ? 'NULL' : 'NOT NULL'} CHECK (${c} ~ '^[0-9]{1,12}$')`;
 export const DT = (c: string, nulo = false): string => `${c} timestamptz(3) ${nulo ? 'NULL' : 'NOT NULL'}`;
 export const HASH = `payload_sha256 bytea NOT NULL CHECK (octet_length(payload_sha256) = 32)`;
 export const IDENT = (c: string): string => `${c} bigint GENERATED ALWAYS AS IDENTITY`;

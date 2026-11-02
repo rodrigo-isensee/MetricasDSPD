@@ -13,7 +13,15 @@ describe('tabela de times: só filtro, nunca comparação entre times (regra inv
     // as duas tabelas só para gravar `dim_card.equipe`, que continua filtro, no instante do evento (U-2).
     // F6 do plano 052: a API lê a tabela de times só para o FILTRO de equipe do painel operacional real (`referencia/repositorio.ts`: lista dos times
     // ativos) e para dar o time à coluna (`metricas/repositorio.ts`: detalhe do O1 por coluna). Nenhum dos dois agrupa, conta nem ordena por time.
-    expect(usam).toEqual(['modulos/businessmap/projetor.ts', 'modulos/metricas/repositorio.ts', 'modulos/referencia/repositorio.ts', 'plataforma/db/grants.ts']);
+    // Pedido 059 (K-193): o escopo do worklog da aba Apontamento exclui os cards de workflow "fora de todo cálculo" (H-7) com um NOT EXISTS na
+    // referência vigente (`apontamento/gravacao.ts`); nada agrupa, conta nem compara por time (teste abaixo).
+    expect(usam).toEqual(['modulos/businessmap/apontamento/gravacao.ts', 'modulos/businessmap/projetor.ts', 'modulos/metricas/repositorio.ts', 'modulos/referencia/repositorio.ts', 'plataforma/db/grants.ts']);
+  });
+  it('o escopo do worklog só EXCLUI workflow fora de todo cálculo: uma menção a ref_time_workflow, num NOT EXISTS, sem time, nome nem agrupamento', () => {
+    const fonte = readFileSync(join(RAIZ, 'modulos/businessmap/apontamento/gravacao.ts'), 'utf8');
+    expect(fonte.match(/ref_time/g)).toHaveLength(1);
+    expect(fonte).toMatch(/NOT EXISTS \(SELECT 1 FROM \$\{S\.bm\}\.ref_time_workflow w\s+WHERE w\.workflow_id = s\.workflow_id AND w\.vigente_ate IS NULL AND w\.motivo_fora = 'fora_de_todo_calculo'\)/);
+    expect(fonte).not.toMatch(/(?<!logged_)time_id|GROUP BY|equipe/i);
   });
   it('os repositórios da API que leem a tabela de times só listam: sem GROUP BY, contagem, soma, média nem ranking', () => {
     for (const f of ['modulos/metricas/repositorio.ts', 'modulos/referencia/repositorio.ts']) {

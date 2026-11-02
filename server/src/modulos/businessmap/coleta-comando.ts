@@ -3,6 +3,7 @@ import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
 import { comTravaDaFonte } from '../../plataforma/db/trava.js';
 import type { ClienteHttp } from '../../plataforma/http.js';
 import { coletarCards, ErroColetaBm, inicioDaCarga, type ModoColeta, type ResultadoColeta } from './coleta.js';
+import type { ResultadoApontamento } from './apontamento/coleta.js';
 import type { Conferencia } from './conferencia.js';
 import { projetarBusinessMap, type ResultadoProjecao } from './projetor.js';
 import {
@@ -61,6 +62,11 @@ export interface DepsComando {
   agora: () => Date;
   paginaTamanho?: number;
   S?: Esquemas;
+  /**
+   * Pedido 059 (ADR 0025 item 3): etapa do worklog, depois dos cards (e da projeção) e sob a MESMA trava da fonte. Só roda no incremental e
+   * se a coleta de cards não falhou. Quem monta a etapa (a entrada) liga a função de classificação e o sal da supressão.
+   */
+  etapaApontamento?: () => Promise<ResultadoApontamento>;
 }
 
 /**
@@ -81,7 +87,7 @@ export function etapaReferencia(
 }
 
 /** Executa a coleta sob a trava da fonte; sem a trava, recusa (outra coleta do BusinessMap está rodando). */
-export type ResultadoComando = ResultadoColeta & { projecao: ResultadoProjecao | null };
+export type ResultadoComando = ResultadoColeta & { projecao: ResultadoProjecao | null; apontamento: ResultadoApontamento | null };
 
 export async function executarColeta(d: DepsComando, args: ArgsColeta): Promise<ResultadoComando> {
   if (d.quadros.length === 0) throw new ErroColetaBm('configuracao', 'BUSINESSMAP_QUADROS_IDS vazio');
@@ -99,7 +105,8 @@ export async function executarColeta(d: DepsComando, args: ArgsColeta): Promise<
     const projecao = args.projetar === true && coleta.estado !== 'falha'
       ? await projetarBusinessMap({ pool: d.poolColetor, ...(d.S === undefined ? {} : { S: d.S }), agora: d.agora, responsaveis })
       : null;
-    return { ...coleta, projecao };
+    const apontamento = args.modo === 'incremental' && coleta.estado !== 'falha' && d.etapaApontamento !== undefined ? await d.etapaApontamento() : null;
+    return { ...coleta, projecao, apontamento };
   });
   if (!r.executou) throw new ErroColetaBm('trava', 'outra coleta do BusinessMap em andamento');
   return r.valor;

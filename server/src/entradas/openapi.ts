@@ -7,8 +7,8 @@ import { gerarOpenapi } from '../plataforma/openapi.js';
 const ARQUIVO = fileURLToPath(new URL('../../../docs/api/openapi.json', import.meta.url));
 const semBanco = { query: () => Promise.reject(new Error('sem banco')) };
 const pool = { ...semBanco, connect: () => Promise.reject(new Error('sem banco')), end: () => Promise.resolve() };
-// O webhook entra no contrato mesmo sem credencial: o pool e o segredo abaixo nunca são usados.
-const app = await buildApp({ db: semBanco, agora: () => new Date(0), nivelLog: 'silent', webhook: { pool, segredo: 'so-para-gerar-o-contrato' } });
+// O webhook e a aba Apontamento entram no contrato mesmo sem credencial: o pool e o segredo abaixo nunca são usados.
+const app = await buildApp({ db: semBanco, agora: () => new Date(0), nivelLog: 'silent', webhook: { pool, segredo: 'so-para-gerar-o-contrato' }, apontamento: { pool, nomesReais: false } });
 const gerado = await gerarOpenapi(app);
 await app.close();
 if (process.argv.includes('--verificar')) {

@@ -55,16 +55,23 @@ d('catálogo do esquema (testes de catálogo do CI)', () => {
     await expect(db.query(`TRUNCATE ${S.bm}.stg_vinculo`)).rejects.toMatchObject({ code: '55000' });
   });
 
-  it('toda view é security_invoker', async () => {
+  // Unica excecao (059, E2.21): view com os privilegios do dono, que le `responsaveis` e `responsavel_id` para o papel da aba, que nao os le (R4-4).
+  // Entrega so `pessoa_ref` e `vigencia_ate`; o `dspd_api` nao a le. Qualquer outra view segue security_invoker.
+  const VIEW_DO_TIME = 'apt_pessoa_time';
+
+  it('toda view é security_invoker, menos a view do time da aba (059), que e definer e so entrega pessoa_ref e vigencia_ate', async () => {
     const r = await db.query<{ v: string; o: string[] | null }>(
       `SELECT c.relname AS v, c.reloptions AS o FROM pg_class c JOIN pg_namespace s ON s.oid = c.relnamespace WHERE s.nspname = ANY($1) AND c.relkind = 'v'`, [[S.bm, S.ac]]);
-    expect(r.rows).toHaveLength(6);
-    for (const x of r.rows) expect(x.o, x.v).toContain('security_invoker=true');
+    expect(r.rows).toHaveLength(7);
+    for (const x of r.rows.filter((y) => y.v !== VIEW_DO_TIME)) expect(x.o, x.v).toContain('security_invoker=true');
+    expect(r.rows.find((x) => x.v === VIEW_DO_TIME)!.o ?? []).not.toContain('security_invoker=true');
+    const colunas = await db.query<{ c: string }>(`SELECT column_name AS c FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2 ORDER BY ordinal_position`, [S.bm, VIEW_DO_TIME]);
+    expect(colunas.rows.map((x) => x.c)).toEqual(['pessoa_ref', 'vigencia_ate']);
   });
 
   it('nenhuma view seleciona coluna de pessoa (view_column_usage)', async () => {
     const r = await db.query<{ v: string; t: string; c: string }>(
-      `SELECT view_name AS v, table_name AS t, column_name AS c FROM information_schema.view_column_usage WHERE view_schema = ANY($1)`, [[S.bm, S.ac]]);
+      `SELECT view_name AS v, table_name AS t, column_name AS c FROM information_schema.view_column_usage WHERE view_schema = ANY($1) AND view_name <> $2`, [[S.bm, S.ac], VIEW_DO_TIME]);
     expect(r.rows.length).toBeGreaterThan(0);
     expect(r.rows.filter((x) => COLUNAS_PESSOA.some((p) => p.endsWith(`.${x.t}.${x.c}`)))).toEqual([]);
   });
@@ -80,7 +87,7 @@ d('catálogo do esquema (testes de catálogo do CI)', () => {
       `SELECT has_table_privilege('dspd_api', c.oid, 'SELECT') OR EXISTS (SELECT 1 FROM pg_attribute a WHERE a.attrelid = c.oid AND a.attnum > 0
          AND has_column_privilege('dspd_api', c.oid, a.attnum, 'SELECT')) AS ok, c.relname AS t
        FROM pg_class c JOIN pg_namespace s ON s.oid = c.relnamespace WHERE s.nspname = ANY($1) AND c.relkind IN ('r', 'v')`, [[S.bm, S.ac, S.core]]);
-    for (const x of r.rows) expect(x.ok, x.t).toBe(!/^(stg_|evt_|.*_versao$|outbox|pgmigrations|rec_transicao_par|dim_responsavel)/.test(x.t) || x.t === 'rec_transicao_par');
+    for (const x of r.rows) expect(x.ok, x.t).toBe(!/^(stg_|evt_|.*_versao$|outbox|pgmigrations|rec_transicao_par|dim_responsavel|dim_card_raiz|fato_apontamento|apt_pessoa_time|cfg_pessoa_eliminada|ref_apontamento_)/.test(x.t) || x.t === 'rec_transicao_par');
     expect((await db.query(`SELECT has_column_privilege('dspd_api', $1, 'titulo', 'SELECT') AS ok`, [`${S.bm}.dim_card`])).rows[0]).toEqual({ ok: true });
   });
 

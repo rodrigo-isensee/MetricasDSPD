@@ -112,7 +112,7 @@ describe('verificarPapeis (volume anterior à 0013)', () => {
     await expect(migrar('postgres://x', { direcao: 'down' })).resolves.toBeDefined();
   });
   it('sem log informado, o aviso de CONNECT é descartado', async () => {
-    const { cliente } = criarDublePg(() => [{ papel: 'dspd_pesquisa', conecta: false }, ...TODOS.slice(0, -1)]);
+    const { cliente } = criarDublePg(() => [{ papel: 'dspd_pesquisa', conecta: false }, ...TODOS.filter((t) => t.papel !== 'dspd_pesquisa')]);
     await expect(verificarPapeis(cliente)).resolves.toBeUndefined();
   });
 });

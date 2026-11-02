@@ -14,6 +14,7 @@ const SENHAS: Record<string, string | undefined> = {
   dspd_ref: process.env.DSPD_PWD_REF ?? 'ref_dev', dspd_webhook: process.env.DSPD_PWD_WEBHOOK ?? 'webhook_dev',
   dspd_automacao: process.env.DSPD_PWD_AUTOMACAO ?? 'automacao_dev',
   dspd_pesquisa: process.env.DSPD_PWD_PESQUISA ?? 'pesquisa_dev',
+  dspd_api_apontamento: process.env.DSPD_PWD_APONTAMENTO ?? 'apontamento_dev',
 };
 
 /** Pool do migrador (dono dos objetos) ou de um papel de aplicação. */

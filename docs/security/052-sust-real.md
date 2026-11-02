@@ -2,30 +2,28 @@
 tipo: revisao-seguranca
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-sust-real
-commit: 671e8d718c5f2a0f161af60fe4ce05eaaecb9426
+branch: feature/052-limpa-seed
+commit: d90b1fec622363e594e1d6a57923791aa4914511
 parecer: aprovado
 revisor: forge:security-engineer
-data: 2026-11-01
+data: 2026-11-02
 ---
-# Review de segurança: sustentação com dado real do Acelerato (pedido 052, E2.119, K-182)
+# Review de segurança: sustentação com dado real do Acelerato, renovação por delta na limpeza do seed (pedido 052, E2.144, K-182)
 
-Propósito: parecer de segurança do delta `2efa879..671e8d7` (E2.115 e E2.117): S2, S3, S4, S8 e S10 passam a origem `real` no mapa de origem da F6, lendo a base do Acelerato já carregada; S1, S5, S6, S7, S9, S11, S12 e EI_SUST seguem mock com motivo. Gatilhos: dado de pessoa (a API passa a servir chamados reais) e fonte externa (R-SEGURANCA). Público: node-backend (dono), tech-lead, qa-engineer, Jarvis.
+Propósito: renovar o parecer da sustentação real, que veio da develop (squash `b1c2865`) para a `feature/052-limpa-seed` no merge `d90b1fe`, para o PR 190 sair. O parecer anterior era sobre `671e8d7` (E2.119), na `feature/052-sust-real`; o `forge-check pr` o acusa sem registro de autoria do papel e desatualizado por `docs/architecture/server.md`. Gatilhos: dado de pessoa e fonte externa (R-SEGURANCA). Público: tech-lead, node-backend, qa-engineer, Jarvis.
 
-**Veredito: aprovado** em `671e8d7`. Nenhum achado. Revisão estática: li o diff inteiro (9 arquivos, só `origem.ts`, `servico.ts`, `OrigemDosCartoes.tsx`, testes e `docs/api/metricas.md`); o `.env` não foi aberto, nada foi chamado no Acelerato nem no BusinessMap e nenhuma suíte foi executada por mim. Lacuna de ferramenta: `gitleaks`, Semgrep e `osv-scanner` não estão no PATH; o delta não toca dependência, workflow, migração, GRANT nem `.env.example`, e uma busca por `password`, `apikey`, `token`, `secret`, `console.` e `log(` no diff não achou nada.
+**Veredito: aprovado** em `d90b1fe`. Nenhum achado. O `forge-check delta` não serve aqui (`671e8d7` não é ancestral de `d90b1fe`, porque a develop recebeu a sustentação por squash); fiz o delta à mão com `git diff 671e8d7 b1c2865` e li tudo. Revisão estática: o `.env` não foi aberto, nada foi chamado nos sistemas externos, nenhuma suíte foi executada por mim. Lacuna de ferramenta: `gitleaks`, Semgrep e `osv-scanner` não estão no PATH.
 
 ## Gatilhos
-- Dado de pessoa: a base real do Acelerato passa a alimentar respostas da API. Verificado abaixo que nenhuma coluna de pessoa chega à API e que o delta não adiciona leitura nova.
-- Duas fontes (BusinessMap e Acelerato nunca se misturam): verificado abaixo.
+- Dado de pessoa: a API serve chamados reais do Acelerato. O delta não toca `repositorio.ts`, `grants.ts` nem `lgpd.ts`; o GRANT por coluna do `dspd_api` vale como no parecer anterior.
+- BusinessMap e Acelerato nunca se misturam: o delta não altera o roteamento por base (`servico.ts`) revisado antes.
 
 ## O que foi verificado
-- **Leitura do esquema do Acelerato pelo papel `dspd_api`, sem pessoa.** O delta não altera `lerChamados` (`server/src/modulos/metricas/repositorio.ts:104-117`): a mesma consulta, já usada na base do seed, passa a rodar também no esquema real por `esquemasDe(real)` (`servico.ts:102-104`). A lista de colunas não tem nome, e-mail, `usuarioKey`, descrição nem título; `com_agente` é só booleano (exceção registrada em `plataforma/db/lgpd.ts:28-31`, ADR 0020 D-9) e `justificativa_informada` é indicador derivado. O `grants.ts` não mudou, então o GRANT por coluna do `dspd_api` (`grants.ts:52-56`) vale igual nas duas bases. `lgpd.ts` não ganhou coluna nem exceção.
-- **Escolha da base pela origem.** `ehReal(id)` (`servico.ts:97-99`) só é verdadeiro com `SMock` definido e origem `real` no mapa; a base única (sem `DSPD_SCHEMA_PREFIXO_SEED`) mantém o comportamento anterior. Carga, marca-d'água, versão de critério e cache de resultado têm chave por base (`servico.ts:112`, `:166`, `:270`), então S2, S3, S4, S8 e S10 não reaproveitam cache do seed. As cinco reais são de domínio `acelerato`; nenhuma é `ambos`, e VISAO_GERAL e TENDENCIA_SUST seguem mock em `origem.ts`, sem consumir a base real.
-- **S8 sem mock na base real.** `servico.ts:282` passa a usar a extensão só quando `real || extensoes === undefined`; a extensão vem de `extrasAC(base, chamados)` da própria base real (`servico.ts:166`), e as extensões mockadas só entram com `!real` (`servico.ts:287-288`). Sem campo dos 90 dias projetado, o resultado sai "sem campo", não 0% (teste em `painel-real-f6.test.ts`).
-- **Sem mistura BusinessMap e Acelerato.** O teste novo `painel-real-f6.test.ts` conta as leituras por esquema: as cinco reais leem só `r_dspd_ac.dim_chamado` e nunca `dspd_ac`, `dspd_bm` nem `r_dspd_bm`; as mock leem só o seed. O teste .pg (e) confirma por efeito: alterar a base real muda S3 e não muda S1, S5, S9, S12 nem EI_SUST. A sustentação não lê `ref_time` (o guard de times da F6 segue valendo, sem arquivo novo na lista).
-- **Mock com motivo, sem dado inventado como real.** S9 e S12 voltaram a mock (campo ausente), e S5, S6, S7, S11 e S1 têm motivo em `origem.ts:48-63`; o front decide o selo só pelo mapa (`OrigemDosCartoes.tsx:27-33`), sem confiar no `status` do catálogo. Isso evita publicar como real um 0% por campo ausente, alinhado à decisão do dono de 2026-11-01 17:30.
-- **Nada de pessoa em resposta, teste ou log.** As fixtures novas (`painel-real-f6.test.ts`, `chamado(...)`) usam só ids sintéticos, equipe, organização e tipo, sem nome, e-mail nem texto de chamado; o delta não adiciona log, e `docs/api/metricas.md` só documenta a origem. Os textos de motivo no mapa são constantes sem dado.
-- **Sem métrica individual nem comparação.** O delta não cria quebra por pessoa nem por time; só muda a origem de cartões que já existiam e já tinham revisão própria (pedido 011).
+- **Código de produção da sustentação igual ao revisado.** Entre `671e8d7` e a develop, o código de produção mudou só em `packages/contratos/src/origem.ts`: reformatação das três constantes de motivo (quebra de linha do Prettier), sem mudança de texto nem de mapa de origem (S2, S3, S4, S8 e S10 reais; o resto mock). `servico.ts`, `origem.ts` do servidor e `OrigemDosCartoes.tsx` não mudaram.
+- **Testes novos sem pessoa e sem segredo.** `server/tests/qa-sust-real.pg.test.ts` usa a base sintética do mock e esquemas de teste que ele mesmo remove; a busca por nome, e-mail, `password`, `apikey` e `token` no delta não achou nada. `e2e/tests/intensivo-filtros.spec.ts` só ganhou um tipo na lista de filtros.
+- **Cadeia de suprimentos.** `pnpm-workspace.yaml` fixa `vite` em `8.3.4` por override (a `8.3.5` quebra o `test:pg`, com o motivo comentado) e o lockfile troca a resolução para essa versão, com integridade registrada. É versão exata já publicada, só de ferramenta de build e teste; não achei no delta dependência nova, script de instalação nem mudança de workflow. Sem `osv-scanner` no PATH, a consulta de avisos para `8.3.4` fica para a auditoria do CI do projeto.
+- **`docs/architecture/server.md`.** A mudança que o `forge-check pr` acusa é a seção da limpeza do seed (E2.96), já coberta pelo parecer `docs/security/052-limpa-seed.md` (aprovado); não é da sustentação e não altera o que foi aprovado aqui.
+- **Sem métrica individual nem comparação, sem pessoa em saída ou log.** Nada no delta cria quebra por pessoa ou por time nem adiciona log.
 
 ## Achados
 

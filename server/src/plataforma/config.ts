@@ -17,6 +17,15 @@ const comum = {
 export const FONTES = ['businessmap', 'acelerato'] as const;
 export type Fonte = (typeof FONTES)[number];
 
+/**
+ * Endereço único de IPv4 privado (10/8, 172.16/12, 192.168/16) da máquina do dono na rede local (ADR 0020, R4-5). Recusa `0.0.0.0`, `::`, faixa
+ * (CIDR), lista, nome de host e endereço público.
+ */
+const octeto = '(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)';
+const IPV4_PRIVADO = new RegExp(`^(?:10\\.${octeto}\\.${octeto}\\.${octeto}|172\\.(?:1[6-9]|2\\d|3[01])\\.${octeto}\\.${octeto}|192\\.168\\.${octeto}\\.${octeto})$`);
+/** Endereços em que o servidor pode escutar com o nome real ligado (R4-5): só a própria máquina. */
+const HOSTS_LOOPBACK = ['127.0.0.1', '::1'] as const;
+
 const esquemaApi = z.object({
   ...comum,
   PG_API_URL: urlPg,
@@ -29,7 +38,19 @@ const esquemaApi = z.object({
   // Webhook do BusinessMap (S-12): as duas variáveis juntas ligam a rota; nenhuma, a rota não existe.
   PG_WEBHOOK_URL: vazioIndefinido(urlPg.optional()),
   WEBHOOK_BM_SEGREDO: vazioIndefinido(z.string().min(16, 'segredo curto').optional()),
+  // Aba Apontamento (pedido 059, ADR 0020 revisão 4, R4-5). A rota só existe com a URL do papel `dspd_api_apontamento`. `APONTAMENTO_NOMES`
+  // NÃO usa `vazioIndefinido`: valor vazio ou diferente de 0 e 1 recusa a partida (CA-AP-4); ausente = desligado.
+  PG_APONTAMENTO_URL: vazioIndefinido(urlPg.optional()),
+  APONTAMENTO_NOMES: z.enum(['0', '1']).default('0'),
+  APONTAMENTO_REDE_LOCAL: vazioIndefinido(z.string().regex(IPV4_PRIVADO, 'um IPv4 privado específico').optional()),
+  APONTAMENTO_PUBLICACAO_LOOPBACK: vazioIndefinido(z.literal('1').optional()),
 }).superRefine((v, ctx) => {
+  // Guarda de partida (R4-5): com o nome real ligado, a API só escuta onde só o dono (ou a rede local declarada) a alcança.
+  const escutaSegura = (HOSTS_LOOPBACK as readonly string[]).includes(v.HOST) || v.HOST === v.APONTAMENTO_REDE_LOCAL
+    || (v.HOST === '0.0.0.0' && v.APONTAMENTO_PUBLICACAO_LOOPBACK === '1');
+  if (v.APONTAMENTO_NOMES === '1' && !escutaSegura) {
+    ctx.addIssue({ code: 'custom', path: ['HOST'], message: 'APONTAMENTO_NOMES=1 exige HOST em 127.0.0.1, ::1 ou APONTAMENTO_REDE_LOCAL (ou 0.0.0.0 com APONTAMENTO_PUBLICACAO_LOOPBACK=1)' });
+  }
   if ((v.PG_WEBHOOK_URL === undefined) !== (v.WEBHOOK_BM_SEGREDO === undefined)) {
     ctx.addIssue({ code: 'custom', path: [v.PG_WEBHOOK_URL === undefined ? 'PG_WEBHOOK_URL' : 'WEBHOOK_BM_SEGREDO'], message: 'defina as duas do webhook ou nenhuma' });
   }
@@ -72,7 +93,11 @@ const esquemaBusinessMap = z.object({
  * (só a carga da referência). Sem `PG_REF_URL`, a do `dspd_ref` sai da do coletor trocando o papel e a senha (`DSPD_PWD_REF`).
  */
 const esquemaColetaBusinessMap = esquemaBusinessMap
-  .extend({ PG_COLETOR_URL: urlPg, PG_REF_URL: vazioIndefinido(urlPg.optional()), DSPD_PWD_REF: vazioIndefinido(z.string().min(1).optional()) })
+  .extend({
+    PG_COLETOR_URL: urlPg, PG_REF_URL: vazioIndefinido(urlPg.optional()), DSPD_PWD_REF: vazioIndefinido(z.string().min(1).optional()),
+    // Pedido 059 (ADR 0020 revisão 4, R4-6): sal do HMAC da lista de supressão; a coleta do worklog exige 32 caracteres ou mais (sem ele, não roda).
+    PESSOA_ELIMINADA_SAL: vazioIndefinido(z.string().min(32).optional()),
+  })
   .superRefine((v, ctx) => {
     if (v.PG_REF_URL === undefined && v.DSPD_PWD_REF === undefined) ctx.addIssue({ code: 'custom', path: ['PG_REF_URL'], message: 'defina PG_REF_URL ou DSPD_PWD_REF' });
   })

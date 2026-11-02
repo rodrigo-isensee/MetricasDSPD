@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import {
   jsonSchemaTransform, serializerCompiler, validatorCompiler,
 } from 'fastify-type-provider-zod';
+import { rotasApontamento } from './modulos/apontamento/index.js';
 import { rotasWebhook } from './modulos/businessmap/index.js';
 import { ServicoMetricas, criarFontePesquisaReal, filtrosPadraoDe, rotasMetricas, type FontePesquisa } from './modulos/metricas/index.js';
 import type { ExtensoesMetricas } from '@metricas-dspd/metricas';
@@ -25,6 +26,11 @@ export type DepsApp = {
   agora: () => Date;
   /** Receptor do webhook do BusinessMap: pool do papel `dspd_webhook` e segredo. Sem isto a rota não existe. */
   webhook?: { pool: PoolLike; segredo: string };
+  /**
+   * Aba Apontamento (pedido 059, ADR 0020 revisão 4): pool do papel `dspd_api_apontamento` e o interruptor `APONTAMENTO_NOMES`. Sem isto a rota
+   * `GET /api/apontamento` não existe. `redeLocal` = `APONTAMENTO_REDE_LOCAL`, aceito no `Host` e no `Origin` além do loopback.
+   */
+  apontamento?: { pool: Consultavel; nomesReais: boolean; redeLocal?: string };
   nivelLog?: string;
   /** Extensões das métricas complementares; padrão = mock. */
   extensoes?: () => ExtensoesMetricas;
@@ -114,6 +120,7 @@ export async function buildApp(deps: DepsApp): Promise<FastifyInstance> {
     await rotasOperacao(i, { db: deps.db, S: deps.S, agora: deps.agora });
     await rotasMetricas(i, { servico, agora: deps.agora });
   }, { prefix: '/api/v1' });
+  if (deps.apontamento) await rotasApontamento(app, { db: deps.apontamento.pool, S: deps.S, agora: deps.agora, nomesReais: deps.apontamento.nomesReais, redeLocal: deps.apontamento.redeLocal });
   if (deps.webhook) await rotasWebhook(app, { pool: deps.webhook.pool, segredo: deps.webhook.segredo, agora: deps.agora, S: deps.S });
   return app;
 }

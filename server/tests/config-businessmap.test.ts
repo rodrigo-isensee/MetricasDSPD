@@ -45,6 +45,17 @@ describe('config do comando da coleta (F3 do plano 052)', () => {
   });
 });
 
+describe('config do comando da coleta: sal da supressão do apontamento (059, R4-6)', () => {
+  const coletor = 'postgres://dspd_coletor:coletor_dev@127.0.0.1:5432/metricas';
+  const SAL = 'sal-de-teste-com-pelo-menos-32-bytes!!';
+  it('opcional (a coleta dos cards não precisa dele); se vier, exige 32 caracteres ou mais; vazio vale como ausente', () => {
+    expect(carregarConfigColetaBusinessMap({ ...base, PG_COLETOR_URL: coletor, DSPD_PWD_REF: 'ref_dev' }).PESSOA_ELIMINADA_SAL).toBeUndefined();
+    expect(carregarConfigColetaBusinessMap({ ...base, PG_COLETOR_URL: coletor, DSPD_PWD_REF: 'ref_dev', PESSOA_ELIMINADA_SAL: '' }).PESSOA_ELIMINADA_SAL).toBeUndefined();
+    expect(carregarConfigColetaBusinessMap({ ...base, PG_COLETOR_URL: coletor, DSPD_PWD_REF: 'ref_dev', PESSOA_ELIMINADA_SAL: SAL }).PESSOA_ELIMINADA_SAL).toBe(SAL);
+    expect(() => carregarConfigColetaBusinessMap({ ...base, PG_COLETOR_URL: coletor, DSPD_PWD_REF: 'ref_dev', PESSOA_ELIMINADA_SAL: 'curto' })).toThrow(/^Configuração inválida \(variáveis: PESSOA_ELIMINADA_SAL\)$/);
+  });
+});
+
 describe('config do projetor (F4 do plano 052)', () => {
   const coletor = 'postgres://dspd_coletor:coletor_dev@127.0.0.1:5432/metricas';
   it('só o banco do coletor: não exige nem lê a chave nem a URL do BusinessMap', () => {
