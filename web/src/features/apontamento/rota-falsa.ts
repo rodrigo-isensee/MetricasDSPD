@@ -10,15 +10,24 @@ export interface OpcoesFetchFalso {
   tipo?: 'aceita' | '422'
   /** Falha da rede em toda chamada. */
   rede?: boolean
+  /** Quantas primeiras chamadas com `tipo=...` respondem 503 antes de a rota responder como em `tipo`. */
+  falhasDaSonda?: number
 }
 
 /** `fetch` de teste que faz o papel da rota `GET /api/apontamento`. Registra cada URL chamada em `chamadas`. */
 export function criarFetchFalso(opcoes: OpcoesFetchFalso = {}) {
   const chamadas: string[] = []
+  let falhasRestantes = opcoes.falhasDaSonda ?? 0
   const fetchFalso = vi.fn((entrada: string | URL): Promise<Response> => {
     const url = new URL(String(entrada), 'http://localhost')
     chamadas.push(`${url.pathname}${url.search}`)
     if (opcoes.rede) return Promise.reject(new TypeError('falha de rede'))
+    if (url.searchParams.has('tipo') && falhasRestantes > 0) {
+      falhasRestantes -= 1
+      return Promise.resolve(
+        Response.json({ error: { code: 'INDISPONIVEL', message: 'Fora do ar.' } }, { status: 503 }),
+      )
+    }
     if (url.searchParams.has('tipo') && (opcoes.tipo ?? '422') === '422')
       return Promise.resolve(
         Response.json(

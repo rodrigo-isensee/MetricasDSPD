@@ -1,3 +1,4 @@
+import { consultaApontamentoSchema } from '@metricas-dspd/contratos'
 import { describe, expect, it } from 'vitest'
 import { filtrosAtivos, lerFiltros } from './filtros'
 import { RESPOSTA_FICTICIA } from './fixture'
@@ -43,6 +44,38 @@ describe('lerFiltros', () => {
     const ruim = lerFiltros(new URLSearchParams('diarioDe=x&diarioAte=2026-10-20'))
     expect(ruim.consulta.diarioDe).toBeUndefined()
     expect(ruim.invalidos).toEqual(['Período do mapa diário'])
+  })
+
+  it('formato, teto e janela são os do schema do contrato: a tela nunca aceita o que a rota recusaria', () => {
+    const casos = [
+      'pessoa=p1,outra-area',
+      'pessoa=p01',
+      'projeto=123456789012,1234567890123',
+      'subgrupo=reuniao,Reuniao',
+      `subtarefa=${'a'.repeat(41)}`,
+      'qualidade=completo,sem-comentario,xx',
+      'de=2026-01-01&ate=2027-01-02',
+      'de=2026-01-01&ate=2027-01-01',
+      'de=2026-02-30&ate=2026-03-01',
+      'diarioDe=2026-10-01&diarioAte=2026-12-02',
+      'diarioDe=2026-10-01&diarioAte=2026-12-01',
+      'de=2026-01-01',
+    ]
+    for (const q of casos) {
+      const lido = lerFiltros(new URLSearchParams(q))
+      expect(
+        consultaApontamentoSchema.safeParse(lido.consulta).success,
+        `${q} lido como ${JSON.stringify(lido.consulta)}`,
+      ).toBe(true)
+    }
+    const janelaLonga = lerFiltros(new URLSearchParams('de=2026-01-01&ate=2027-01-02'))
+    expect(janelaLonga.consulta.de).toBeUndefined()
+    expect(janelaLonga.invalidos).toEqual(['Período'])
+    expect(lerFiltros(new URLSearchParams('de=2026-01-01&ate=2027-01-01')).consulta.ate).toBe(
+      '2027-01-01',
+    )
+    const mapaLongo = lerFiltros(new URLSearchParams('diarioDe=2026-10-01&diarioAte=2026-12-02'))
+    expect(mapaLongo.invalidos).toEqual(['Período do mapa diário'])
   })
 
   it('o rótulo do valor cai no id quando ele não está nas opções ou quando não há opções', () => {

@@ -9,6 +9,7 @@ import type {
 
 export {
   FAIXAS_DIARIO,
+  consultaApontamentoSchema,
   FLAGS_QUALIDADE,
   NIVEIS_MATRIZ,
   PESSOA_OUTRA_AREA,

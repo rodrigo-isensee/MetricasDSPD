@@ -141,7 +141,7 @@ describe('fonte HTTP da aba', () => {
     await expect(fonte.buscar(PADRAO, c.signal)).rejects.toMatchObject({ name: 'AbortError' })
   })
 
-  it('o filtro por tipo só está disponível quando a rota o aceita (422 e falhas o escondem)', async () => {
+  it('o filtro por tipo só está disponível quando a rota o aceita; só o 422 o esconde', async () => {
     const aceita = criarFetchFalso({ tipo: 'aceita' })
     expect(
       await criarFonteHttpApontamento({ fetchImpl: aceita.fetchFalso }).filtroTipoDisponivel?.(),
@@ -150,9 +150,22 @@ describe('fonte HTTP da aba', () => {
     expect(
       await criarFonteHttpApontamento({ fetchImpl: nega.fetchFalso }).filtroTipoDisponivel?.(),
     ).toBe(false)
+  })
+
+  it('falha de rede ou 5xx na sonda do tipo não é "indisponível": a sonda falha para ser tentada de novo', async () => {
     const rede = criarFetchFalso({ rede: true })
-    expect(
-      await criarFonteHttpApontamento({ fetchImpl: rede.fetchFalso }).filtroTipoDisponivel?.(),
-    ).toBe(false)
+    await expect(
+      criarFonteHttpApontamento({ fetchImpl: rede.fetchFalso }).filtroTipoDisponivel?.(),
+    ).rejects.toMatchObject({ code: 'REDE_INDISPONIVEL' })
+    const quebrada = vi.fn(() =>
+      Promise.resolve(
+        Response.json({ error: { code: 'ERRO_INTERNO', message: 'x' } }, { status: 500 }),
+      ),
+    )
+    await expect(
+      criarFonteHttpApontamento({
+        fetchImpl: quebrada as unknown as typeof fetch,
+      }).filtroTipoDisponivel?.(),
+    ).rejects.toMatchObject({ status: 500, code: 'ERRO_INTERNO' })
   })
 })

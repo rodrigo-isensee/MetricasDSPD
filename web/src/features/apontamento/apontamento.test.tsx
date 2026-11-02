@@ -119,7 +119,7 @@ describe('CA-1: cabeçalho, frescor e período', () => {
     expect(selo).toHaveTextContent('Atual')
     expect(selo.querySelector('svg')).not.toBeNull()
     expect(screen.getByTestId('periodo-dos-dados')).toHaveTextContent(
-      'Dados de 2026-08-03 a 2026-10-30',
+      'Dados de 03/08/2026 a 30/10/2026',
     )
     expect(screen.getByRole('heading', { level: 1, name: 'Apontamento' })).toBeInTheDocument()
   })

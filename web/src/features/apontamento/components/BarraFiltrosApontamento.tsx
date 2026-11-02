@@ -8,6 +8,7 @@ import type { AtivoApontamento, UsoFiltrosApontamento } from '../filtros'
 import {
   LINHA_NOMES_OCULTOS,
   ORDENS,
+  PESSOA_NAO_IDENTIFICADA,
   QUALIDADE_FILTRO_OPCOES,
   ROTULO_FILTRO_PESSOA,
 } from '../textos'
@@ -99,7 +100,7 @@ export function BarraFiltrosApontamento({
             rotulo={ROTULO_FILTRO_PESSOA}
             opcoes={opcoes.pessoas.map((p) => ({
               id: p.pessoaRef,
-              nome: p.identificada ? p.rotulo : 'Pessoa não identificada',
+              nome: p.identificada ? p.rotulo : PESSOA_NAO_IDENTIFICADA,
             }))}
             selecionados={c.pessoa ?? []}
             onChange={(ids, replace) => uso.definirLista('pessoa', ids, replace)}

@@ -1,4 +1,5 @@
 import { SeloFrescor, Icone } from '@/components/ui'
+import { fmtData } from '@/lib/formatar'
 import { useId, useState } from 'react'
 import { horasDesde } from '../formatar'
 import {
@@ -27,7 +28,7 @@ export function FrescorEPeriodo({ resposta }: { resposta: RespostaApontamento | 
         testid="selo-frescor-businessmap"
       />
       <span className="text-sm text-texto-2" data-testid="periodo-dos-dados">
-        Dados de {resposta.periodo.de} a {resposta.periodo.ate}
+        Dados de {fmtData(resposta.periodo.de)} a {fmtData(resposta.periodo.ate)}
       </span>
       {resposta.frescor.selo === 'atrasado' && (
         <span className="flex items-center gap-1 text-sm text-atencao" data-testid="aviso-defasado">

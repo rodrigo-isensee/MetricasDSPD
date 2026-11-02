@@ -5,9 +5,8 @@ import { fmtData } from '@/lib/formatar'
 import { ROTULO_FILTRO_PESSOA } from './textos'
 import type { Ordem } from './ordem'
 import {
-  FLAGS_QUALIDADE,
   NIVEIS_MATRIZ,
-  PESSOA_OUTRA_AREA,
+  consultaApontamentoSchema,
   type ConsultaApontamento,
   type FiltroQualidade,
   type NivelMatriz,
@@ -22,22 +21,14 @@ import {
 const CHAVES_LISTA = ['pessoa', 'projeto', 'tipo', 'subtarefa', 'subgrupo', 'qualidade'] as const
 export type ChaveLista = (typeof CHAVES_LISTA)[number]
 
-const FORMATO: Record<ChaveLista, (v: string) => boolean> = {
-  pessoa: (v) => /^p[1-9]\d{0,8}$/.test(v) || v === PESSOA_OUTRA_AREA,
-  projeto: (v) => /^\d{1,12}$/.test(v),
-  tipo: (v) => /^\d{1,12}$/.test(v),
-  subtarefa: (v) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(v) && v.length <= 40,
-  subgrupo: (v) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(v) && v.length <= 40,
-  qualidade: (v) => [...FLAGS_QUALIDADE, 'completo'].includes(v),
-}
-const TETO: Record<ChaveLista, number> = {
-  pessoa: 200,
-  projeto: 200,
-  tipo: 50,
-  subtarefa: 50,
-  subgrupo: 50,
-  qualidade: 6,
-}
+/**
+ * Formato de cada valor e teto de itens vêm do schema da consulta do contrato (`consultaApontamentoSchema`), o mesmo
+ * que a rota aplica: a tela não repete regex nem limite. Aceitar na URL o que a rota recusaria só geraria erro 400.
+ */
+const itemValido = (chave: ChaveLista, v: string): boolean =>
+  consultaApontamentoSchema.safeParse({ [chave]: [v] }).success
+const cabeNoTeto = (chave: ChaveLista, itens: string[]): boolean =>
+  consultaApontamentoSchema.safeParse({ [chave]: itens }).success
 
 const ROTULOS: Record<ChaveLista | 'periodo' | 'anomalos', string> = {
   pessoa: ROTULO_FILTRO_PESSOA,
@@ -50,20 +41,22 @@ const ROTULOS: Record<ChaveLista | 'periodo' | 'anomalos', string> = {
   anomalos: 'Possíveis erros',
 }
 
-const DATA = /^\d{4}-\d{2}-\d{2}$/
-const dataValida = (v: string | null): v is string =>
-  v !== null && DATA.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`))
-
-/** `de` e `ate` juntos ou nenhum; `de <= ate`. Qualquer outra combinação descarta o par. */
+/** `de` e `ate` juntos ou nenhum, `de <= ate` e dentro da janela máxima: quem decide é o schema do contrato. */
 function lerPar(
   params: URLSearchParams,
-  a: string,
-  b: string,
+  a: 'de' | 'diarioDe',
+  b: 'ate' | 'diarioAte',
 ): [string, string] | 'invalido' | null {
   const de = params.get(a)
   const ate = params.get(b)
   if (de === null && ate === null) return null
-  return dataValida(de) && dataValida(ate) && de <= ate ? [de, ate] : 'invalido'
+  const candidato = {
+    ...(de !== null && { [a]: de }),
+    ...(ate !== null && { [b]: ate }),
+  }
+  return de !== null && ate !== null && consultaApontamentoSchema.safeParse(candidato).success
+    ? [de, ate]
+    : 'invalido'
 }
 
 export interface FiltrosLidos {
@@ -80,10 +73,10 @@ export function lerFiltros(params: URLSearchParams): FiltrosLidos {
     const bruto = params.get(chave)
     if (bruto === null || bruto === '') continue
     const itens = bruto.split(',')
-    const validos = [...new Set(itens.filter(FORMATO[chave]))]
-    if (validos.length !== itens.length || validos.length > TETO[chave])
-      invalidos.push(ROTULOS[chave])
-    if (validos.length > 0 && validos.length <= TETO[chave])
+    const validos = [...new Set(itens.filter((v) => itemValido(chave, v)))]
+    const cabe = validos.length === 0 || cabeNoTeto(chave, validos)
+    if (validos.length !== itens.length || !cabe) invalidos.push(ROTULOS[chave])
+    if (validos.length > 0 && cabe)
       (consulta as unknown as Record<string, string[]>)[chave] = validos
   }
   const periodo = lerPar(params, 'de', 'ate')

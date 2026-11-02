@@ -109,6 +109,15 @@ describe('filtro por tipo enquanto a rota responde 422', () => {
     await pronto()
     expect(await screen.findByRole('button', { name: /^Tipo: / })).toBeInTheDocument()
   })
+
+  it('falha passageira da sonda (503) não esconde o filtro: a sonda é tentada de novo', async () => {
+    const { chamadas } = abrir(URL_ABA, { tipo: 'aceita', falhasDaSonda: 1 })
+    await pronto()
+    expect(
+      await screen.findByRole('button', { name: /^Tipo: / }, { timeout: 5000 }),
+    ).toBeInTheDocument()
+    expect(chamadas.filter((c) => c.includes('tipo=1&')).length).toBe(2)
+  })
 })
 
 describe('Outra área', () => {
