@@ -51,7 +51,8 @@ export async function gravarStgApontamento(db: Consultavel, S: Esquemas, linhas:
 /**
  * Estado atual de cada apontamento lido (`fato_apontamento`), na mesma transação da staging: UPDATE do que mudou (hash novo, pessoa
  * nova ou tipo do card novo) e INSERT do que falta. `pessoa_ref` nunca é apagada por uma leitura sem pessoa (COALESCE), nem `type_id` por uma leitura sem tipo; `versoes` conta as versões da staging;
- * os bits 8 e 16 de `flags_qualidade` (projeção) são preservados. Devolve `[atualizados, inseridos]`.
+ * o bit 8 de `flags_qualidade` (sem-iniciativa, gravado por `atualizarHierarquia`) é preservado, e o 16 (valor-atipico) também, mas está reservado:
+ * nada o grava, pois a soma diária é calculada na leitura. A máscara 24 é a soma dos dois bits. Devolve `[atualizados, inseridos]`.
  */
 export async function projetarFatoApontamento(
   db: Consultavel, S: Esquemas, linhas: readonly LinhaComPessoa[], coletaId: number, agora: Date,
