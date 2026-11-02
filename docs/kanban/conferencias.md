@@ -1261,3 +1261,21 @@
 | 2026-11-02 06:14 | 059-aba-apontamento | 059-aba-apontamento-software-architect-16.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-02 06:14 | 059-aba-apontamento | 059-aba-apontamento-node-backend-34.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-02 06:15 | 059-aba-apontamento | 059-aba-apontamento-node-backend-36.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:16 | 059-aba-apontamento | 059-aba-apontamento-node-backend-35.md | brief | 1 | reprovado | s | A7 sem limite do plano; ADR 0025 sem dizer qual texto prevalece | escopo | jarvis |
+| 2026-11-02 06:18 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-37.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:22 | 059-aba-apontamento | 059-aba-apontamento-node-backend-37.md | brief | 2 | reprovado | n | commit do plano feito durante a conferencia | escopo | jarvis |
+| 2026-11-02 06:25 | 059-aba-apontamento | 059-aba-apontamento-node-backend-38.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:29 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-38.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:30 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-4.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:36 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-12.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:41 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-13.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:42 | 059-aba-apontamento | 059-aba-apontamento-node-backend-36.md | entrega | 1 | nao cumpriu | n | PQs cumpridos; Desde da mensagem e a base; brief envelhecido; ff47cbd saiu depois do inicio da etapa | escopo | destino |
+| 2026-11-02 06:50 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-39.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:56 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-40.md | brief | 1 | reprovado | s | down sem origem no pedido | escopo | jarvis |
+| 2026-11-02 06:57 | 059-aba-apontamento | 059-aba-apontamento-node-backend-39.md | brief | 1 | reprovado | s | NAO tocar codigo contra o Entregar | forma | jarvis |
+| 2026-11-02 06:57 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-13.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:59 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-41.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:03 | 059-aba-apontamento | 059-aba-apontamento-node-backend-40.md | brief | 2 | reprovado | s | criterio de registro.ts ausente | decisao | jarvis |
+| 2026-11-02 07:07 | 059-aba-apontamento | 059-aba-apontamento-node-backend-41.md | brief | 3 | reprovado | s | PQ com sha antigo das branches de origem | forma | jarvis |
+| 2026-11-02 07:09 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-5.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:10 | 059-aba-apontamento | 059-aba-apontamento-node-backend-42.md | brief | 4 | aprovado | s |  | — | jarvis |
