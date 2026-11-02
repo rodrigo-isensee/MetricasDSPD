@@ -5,8 +5,14 @@ import { fmtData, fmtDataCurta, fmtNumero } from '@/lib/formatar'
 import { useDadosAba, useRotulos } from '../dados'
 import { diaMes, fmtHoras } from '../formatar'
 import { ordenarPorTotal } from '../ordem'
+import { rolarCelulaParaVista } from '../rolagem'
 import { ANOMALIA, CARTOES, FAIXAS } from '../textos'
-import type { DiarioApontamento, FaixaDiario, RespostaApontamento } from '../types'
+import {
+  PESSOA_OUTRA_AREA,
+  type DiarioApontamento,
+  type FaixaDiario,
+  type RespostaApontamento,
+} from '../types'
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
 
@@ -52,6 +58,14 @@ function LegendaMapa({ limite }: { limite: number }) {
         Fim de semana ou feriado
       </li>
       <li className="inline-flex items-center gap-1.5">
+        <span
+          aria-hidden="true"
+          className="inline-block size-4 rounded-sm border border-dashed border-texto-2"
+          style={ESTILO_FAIXA['4h-a-8h']}
+        />
+        Apontamento em fim de semana ou feriado
+      </li>
+      <li className="inline-flex items-center gap-1.5">
         <Icone nome="alerta" className="size-4 text-atencao" />
         {ANOMALIA.marca} (mais de {fmtNumero(limite / 3600, 0)} h no dia)
       </li>
@@ -76,7 +90,12 @@ function Mapa({
 }) {
   const rotulos = useRotulos(r)
   const grade = useRef<HTMLTableElement>(null)
-  const [ativa, setAtiva] = useState<[number, number]>([0, 0])
+  const [ativaBruta, setAtiva] = useState<[number, number]>([0, 0])
+  // Depois de filtrar pessoa ou encurtar a janela, a célula ativa não pode ficar fora da grade (Tab sem parada).
+  const ativa: [number, number] = [
+    Math.min(ativaBruta[0], Math.max(0, linhas.length - 1)),
+    Math.min(ativaBruta[1], Math.max(0, diario.dias.length - 1)),
+  ]
   const limiteH = diario.limiteAtipicoSegundos / 3600
   const mover = (e: KeyboardEvent<HTMLTableElement>) => {
     const [l, c] = ativa
@@ -140,9 +159,12 @@ function Mapa({
                 {diario.dias.map((d, j) => {
                   const c = porData.get(d.data)
                   const faixa: FaixaDiario = c?.faixa ?? 'zero'
-                  const util = d.util
-                  const motivo = !util && !c ? (d.feriado ? 'feriado' : 'fim de semana') : null
-                  const rotulo = `${nome}, ${diaMes(d.data)}, ${motivo ? motivo : `${fmtNumero((c?.segundos ?? 0) / 3600, 1)} horas, faixa ${FAIXAS[faixa]}`}${c?.atipico ? `, ${ANOMALIA.marca}` : ''}`
+                  const naoUtil = !d.util
+                  const motivo = naoUtil ? (d.feriado ? 'feriado' : 'fim de semana') : null
+                  // Dia não útil sem apontamento é neutro; com apontamento, mostra a faixa e diz o motivo (A-5).
+                  const neutro = naoUtil && !c
+                  const horas = `${fmtNumero((c?.segundos ?? 0) / 3600, 1)} horas, faixa ${FAIXAS[faixa]}`
+                  const rotulo = `${nome}, ${diaMes(d.data)}, ${neutro ? motivo : `${motivo ? `${motivo}, ` : ''}${horas}`}${c?.atipico ? `, ${ANOMALIA.marca}` : ''}`
                   return (
                     <td
                       key={d.data}
@@ -150,15 +172,23 @@ function Mapa({
                       tabIndex={ativa[0] === i && ativa[1] === j ? 0 : -1}
                       data-lin={i}
                       data-col={j}
-                      data-faixa={motivo ? 'neutro' : faixa}
+                      data-faixa={neutro ? 'neutro' : faixa}
+                      data-nao-util={naoUtil ? 'true' : undefined}
                       data-atipico={c?.atipico ? 'true' : undefined}
                       aria-label={rotulo}
-                      onFocus={() => setAtiva([i, j])}
-                      style={motivo ? undefined : ESTILO_FAIXA[faixa]}
+                      onFocus={(e) => {
+                        setAtiva([i, j])
+                        rolarCelulaParaVista(e.currentTarget)
+                      }}
+                      style={neutro ? undefined : ESTILO_FAIXA[faixa]}
                       className={clsx(
                         'relative h-8 min-w-10 border border-borda px-1 text-center tabular-nums outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-acento',
-                        motivo && 'bg-superficie-2',
-                        !motivo && faixa === 'zero' && 'border-borda-controle bg-superficie',
+                        neutro && 'bg-superficie-2',
+                        !neutro && naoUtil && 'border-dashed border-texto-2',
+                        !neutro &&
+                          !naoUtil &&
+                          faixa === 'zero' &&
+                          'border-borda-controle bg-superficie',
                       )}
                     >
                       {c ? fmtNumero(c.segundos / 3600, 1) : ''}
@@ -221,12 +251,17 @@ function TabelaDoMapa({
   )
 }
 
+/** "Outra área" soma várias pessoas: faixas e limite de possível erro valem por pessoa e dia, então ela fica fora do mapa (A-4). */
+const soPessoas = (d: DiarioApontamento) =>
+  d.linhas.filter((l) => l.pessoaRef !== PESSOA_OUTRA_AREA)
+
 function Diario({ r }: { r: RespostaApontamento }) {
   const { ordem } = useDadosAba()
   const { modo } = useModoTabela()
   const diario = r.diario
-  const linhas = ordenarPorTotal(diario.linhas, ordem, (l) => l.segundos)
-  const temAtipico = diario.linhas.some((l) => l.celulas.some((c) => c.atipico))
+  const pessoas = soPessoas(diario)
+  const linhas = ordenarPorTotal(pessoas, ordem, (l) => l.segundos)
+  const temAtipico = pessoas.some((l) => l.celulas.some((c) => c.atipico))
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm font-medium" data-testid="intervalo-diario">
@@ -288,8 +323,9 @@ function SeletorJanela() {
 export function CartaoDiario() {
   const { resposta } = useDadosAba()
   const dia = resposta?.diario
+  const nPessoas = dia ? soPessoas(dia).length : 0
   const leitura = dia
-    ? `${dia.linhas.length} ${dia.linhas.length === 1 ? 'pessoa' : 'pessoas'} no mapa de ${fmtData(dia.de)} a ${fmtData(dia.ate)}, em faixas fixas de horas.`
+    ? `${nPessoas} ${nPessoas === 1 ? 'pessoa' : 'pessoas'} no mapa de ${fmtData(dia.de)} a ${fmtData(dia.ate)}, em faixas fixas de horas.`
     : undefined
   return (
     <CartaoApontamento
