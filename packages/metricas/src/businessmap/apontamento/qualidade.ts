@@ -1,7 +1,7 @@
 import { FLAGS_QUALIDADE, type RespostaApontamento } from '@metricas-dspd/contratos'
 import { taxa } from '../../core/estatistica'
 import { ordenarNeutro } from '../../core/ordenar'
-import { agrupar, comPessoa, numeroDe, pctComPiso } from './comum'
+import { agrupar, doTime, numeroDe, pctComPiso } from './comum'
 import { flagsEfetivas } from './filtros'
 import type { LinhaApontamento } from './tipos'
 
@@ -29,12 +29,13 @@ function qualidadeDe(
   }
 }
 
+/** A qualidade geral conta todas as linhas; por pessoa, só o time (`outra-area` soma várias pessoas e fica de fora). */
 export function calcularQualidade(
   linhas: readonly LinhaApontamento[],
   atipicos: ReadonlySet<string>,
 ): Qualidade {
   const { completos, porFlag } = qualidadeDe(linhas, atipicos)
-  const porPessoa = [...agrupar(comPessoa(linhas), (l) => l.pessoaRef)].map(([ref, ls]) => ({
+  const porPessoa = [...agrupar(doTime(linhas), (l) => l.pessoaRef)].map(([ref, ls]) => ({
     pessoaRef: ref,
     ...qualidadeDe(ls, atipicos),
   }))

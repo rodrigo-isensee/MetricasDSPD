@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import {
   LIMITE_GENERICO_PALAVRAS,
   MASCARA_FLAG,
+  MAX_PONTOS_DE_CODIGO,
   MAX_QTD_PALAVRAS,
   SUBGRUPO_EXECUCAO_TECNICA,
   SUBGRUPO_NAO_CLASSIFICADO,
@@ -13,6 +14,7 @@ import {
   flagsDaMascara,
   mascaraDeFlags,
   normalizarTexto,
+  palavrasDe,
   type DicionarioApontamento,
 } from './index'
 
@@ -196,17 +198,60 @@ describe('normalização e casamento por início de palavra (C-6)', () => {
     expect(sub('3teste')).toBe(SUBGRUPO_EXECUCAO_TECNICA) // dígito antes também é palavra
   })
 
-  it('termo com caractere especial é tratado como texto, não como expressão regular', () => {
+  it('termo com metacaractere nunca vira expressão regular: não lança e não casa (o ref:sync o recusa)', () => {
     const d: DicionarioApontamento = {
       versao: 'v',
-      termos: [{ prioridade: 1, subgrupo: 'g', termos: ['a.b', 'c+', '(d'] }],
+      termos: [{ prioridade: 1, subgrupo: 'g', termos: ['a.b', 'c+', '(d', '[', '\\'] }],
       regrasPorTipo: [],
     }
     const c = (t: string) => classificarApontamento({ comentario: t, typeId: null }, d).subgrupo
-    expect(c('a.b')).toBe('g')
-    expect(c('axb')).toBe(SUBGRUPO_EXECUCAO_TECNICA)
-    expect(c('c+ ok')).toBe('g')
-    expect(c('(d')).toBe('g')
+    for (const t of ['a.b', 'axb', 'c+ ok', '(d', '[ ]', '\\'])
+      expect(c(t)).toBe(SUBGRUPO_EXECUCAO_TECNICA)
+  })
+
+  it('A1: letra fora de a-z e 0-9 antes do termo é parte da palavra (øteste não casa teste)', () => {
+    for (const t of ['øteste', 'ßteste', 'łteste', 'θteste', 'яteste', 'ᴀteste'])
+      expect(sub(t)).toBe(SUBGRUPO_EXECUCAO_TECNICA)
+    expect(sub('teste')).toBe('testes')
+    expect(sub('øteste teste')).toBe('testes')
+  })
+
+  it('A2: controle, formato e direção no meio do termo não o escondem', () => {
+    for (const c of ['\u200b', '\u202e', '\u0000', '\u00ad', '\u200d', '\ufeff', '\u0085'])
+      expect(sub(`re${c}uniao`)).toBe('reunioes-comunicacao')
+    expect(normalizarTexto('re\u202euniao\u0000')).toBe('reuniao')
+  })
+
+  it('A2: surrogate isolado é removido e par válido (emoji) vira separador', () => {
+    expect(normalizarTexto('re\ud800uniao')).toBe('reuniao')
+    expect(normalizarTexto('re\udc00uniao')).toBe('reuniao')
+    expect(sub('re\ud83d\ude00uniao')).toBe(SUBGRUPO_EXECUCAO_TECNICA) // emoji separa: "re" e "uniao"
+    expect(sub('\ud83d\ude00 reuniao')).toBe('reunioes-comunicacao')
+    expect(sub('\ud83d reuniao')).toBe('reunioes-comunicacao') // alto sem baixo
+    expect(sub('\ude00 reuniao')).toBe('reunioes-comunicacao') // baixo sem alto
+  })
+
+  it('A2: palavras são sequências de letra e dígito, não de espaço', () => {
+    expect(classe('- - -').qtdPalavras).toBe(0)
+    expect(classe('teste,carga,geral,ok').qtdPalavras).toBe(4)
+    expect(nomesDe('teste,carga,geral,ok')).not.toContain('generico')
+    expect(classe('a_b c-d').qtdPalavras).toBe(4)
+    expect(classe('RDM 1234').qtdPalavras).toBe(2)
+    // marca de quem só tem pontuação: fica como antes até a decisão do dono (pergunta de 06:30)
+    expect(nomesDe('- - -')).toEqual(['generico', 'sem-vinculo'])
+    expect(nomesDe('\u200b\u0000')).toEqual(['sem-comentario', 'sem-vinculo'])
+  })
+
+  it('termo vazio (o ref:sync o recusa) casa só quando há alguma palavra', () => {
+    const d: DicionarioApontamento = {
+      versao: 'v',
+      termos: [{ prioridade: 1, subgrupo: 'g', termos: [''] }],
+      regrasPorTipo: [],
+    }
+    const c = (t: string) => classificarApontamento({ comentario: t, typeId: null }, d).subgrupo
+    expect(c('qualquer')).toBe('g')
+    expect(c('')).toBe(SUBGRUPO_NAO_CLASSIFICADO)
+    expect(c('- -')).toBe(SUBGRUPO_EXECUCAO_TECNICA)
   })
 })
 
@@ -267,10 +312,20 @@ describe('flags de qualidade (seção 5)', () => {
     ).toBe(0)
   })
 
-  it('a contagem de palavras tem teto de smallint e a versão do dicionário acompanha o resultado', () => {
+  it('a entrada é truncada em 2000 pontos de código e a versão do dicionário acompanha o resultado (A4)', () => {
     const longo = Array.from({ length: MAX_QTD_PALAVRAS + 10 }, () => 'a').join(' ')
-    expect(classe(longo).qtdPalavras).toBe(MAX_QTD_PALAVRAS)
+    expect(classe(longo).qtdPalavras).toBe(MAX_PONTOS_DE_CODIGO / 2) // "a a a ..." em 2000 pontos = 1000 palavras
     expect(classe('x').versaoDicionario).toBe('teste-v1')
+  })
+
+  it('A4: o que passa de 2000 pontos de código não conta nem casa; emoji conta como um ponto', () => {
+    const base = 'x'.repeat(MAX_PONTOS_DE_CODIGO - 1)
+    expect(sub(`${base} reuniao`)).toBe(SUBGRUPO_EXECUCAO_TECNICA) // o espaço é o ponto 2000, o termo cai fora
+    expect(classe(`${base} reuniao`).qtdPalavras).toBe(1)
+    expect(sub(`${'😀'.repeat(MAX_PONTOS_DE_CODIGO - 8)} reuniao`)).toBe('reunioes-comunicacao') // cabe: 1992 + espaço + 7
+    expect(classe(`${'😀'.repeat(MAX_PONTOS_DE_CODIGO)}z`).qtdPalavras).toBe(0) // truncou antes do z
+    expect(classe('x'.repeat(MAX_PONTOS_DE_CODIGO + 500)).qtdPalavras).toBe(1)
+    expect(classe('y '.repeat(MAX_PONTOS_DE_CODIGO)).qtdPalavras).toBe(MAX_PONTOS_DE_CODIGO / 2)
   })
 })
 
@@ -427,5 +482,321 @@ describe('ADR 0020: o comentário não sai nem é público', () => {
     expect(txt).not.toMatch(
       /console\.|logger|JSON\.stringify|localStorage|createHash|sha256|process\.env/,
     )
+  })
+})
+
+describe('A1: sem expressão regular montada do dicionário', () => {
+  it('o código do classificador não constrói RegExp a partir de dado', () => {
+    const txt = fonte('./classificarApontamento.ts').replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(txt).not.toMatch(/new RegExp|RegExp\(/)
+  })
+})
+
+// ---------- matriz do plano §3.4 (dimensões 1, 2, 3 e 5), corpus e orçamento (A3) ----------
+/** Contagem de palavras do plano §3.4 por máquina de estados, escrita à parte da implementação (oráculo). */
+function palavrasOraculo(texto: string): string[] {
+  const pontos = Array.from(texto).slice(0, MAX_PONTOS_DE_CODIGO)
+  const baixo = pontos.join('').toLowerCase().normalize('NFD')
+  const palavras: string[] = []
+  let atual = ''
+  const fecha = () => {
+    if (atual !== '') palavras.push(atual)
+    atual = ''
+  }
+  for (const p of baixo) {
+    if (/\s/u.test(p)) fecha()
+    else if (/^[\p{M}\p{Cc}\p{Cf}]$/u.test(p) || /^[\ud800-\udfff]$/.test(p)) continue
+    else if (/^[\p{L}\p{N}]$/u.test(p)) atual += p
+    else fecha()
+  }
+  fecha()
+  return palavras
+}
+
+// Dimensão 2 (codificação) e 1 (tamanho, via repetição) nos pedaços; dimensão 3 (posição) nos separadores.
+const PEDACOS = [
+  'reuniao', 'Reunião', 'Reuníao', 'REUNIAO', 'teste', 'TESTE', 'Análise', 'Análise', 'ß', 'İ',
+  'İTESTE', '😀', '\ud800', '\udc00', '\u0000', '‮', '​', '­', '\u0085', 'x', 'ø', 'coreuniao',
+  '1234', 'RDM', 'contestei', '\n', '\t',
+] // prettier-ignore
+const SEPARADORES = ['', ' ', '  ', ',', '.', '-', '1', '\n', '/', '😀']
+const textoGerado = fc
+  .array(fc.tuple(fc.constantFrom(...PEDACOS), fc.constantFrom(...SEPARADORES)), { maxLength: 40 })
+  .chain((partes) =>
+    fc.constantFrom(1, 1, 1, 60, 400).map((rep) =>
+      partes
+        .map(([p, s]) => p + s)
+        .join('')
+        .repeat(rep),
+    ),
+  )
+const tamanhos = fc.constantFrom(0, 1, 3, 4, 1999, 2000, 2001, 2002, 2500, 5000)
+const textoDeTamanho = fc
+  .tuple(textoGerado, tamanhos)
+  .map(([t, n]) => (t + 'x ').repeat(n).slice(0, n || 0))
+const comentarioGeral = fc.oneof(textoGerado, textoDeTamanho, fc.constantFrom('', ' ', '\n\t '))
+
+// Dimensão 5 (dicionário): vazio, um termo, prefixos entre termos, empate de prioridade.
+const TERMOS = [
+  'reuni',
+  'reuniao',
+  'reun',
+  'teste',
+  'analise',
+  'rdm',
+  'ana',
+  'x',
+  'ss',
+  'itest',
+  '1234',
+  'co',
+]
+const dicionarioGerado: fc.Arbitrary<DicionarioApontamento> = fc
+  .array(
+    fc.record({
+      prioridade: fc.integer({ min: 1, max: 4 }),
+      termos: fc.uniqueArray(fc.constantFrom(...TERMOS), { minLength: 1, maxLength: 4 }),
+    }),
+    { maxLength: 6 },
+  )
+  .map((regras) => ({
+    versao: 'gerado',
+    termos: regras.map((r, i) => ({ ...r, subgrupo: `g${i}` })),
+    regrasPorTipo: [],
+  }))
+
+function subgrupoOraculo(texto: string, d: DicionarioApontamento): string {
+  const palavras = palavrasOraculo(texto)
+  const regras = [...d.termos].sort(
+    (a, b) => a.prioridade - b.prioridade || (a.subgrupo < b.subgrupo ? -1 : 1),
+  )
+  const achou = regras.find((r) => r.termos.some((t) => palavras.some((p) => p.startsWith(t))))
+  return (
+    achou?.subgrupo ??
+    (palavras.length === 0 && !/\S/u.test(texto.replace(/[\p{Cc}\p{Cf}\ud800-\udfff]/gu, ''))
+      ? SUBGRUPO_NAO_CLASSIFICADO
+      : SUBGRUPO_EXECUCAO_TECNICA)
+  )
+}
+
+describe('A3: matriz do plano §3.4 (dimensões 1, 2, 3 e 5)', () => {
+  const OPCOES_MATRIZ = { numRuns: 600, seed: 20261102 }
+
+  it('nunca lança, a saída é de lista fechada e qtdPalavras é a contagem do texto normalizado e truncado', () => {
+    fc.assert(
+      fc.property(comentarioGeral, dicionarioGerado, (c, d) => {
+        const r = classificarApontamento({ comentario: c, typeId: null }, d)
+        const fechado = [
+          ...d.termos.map((t) => t.subgrupo),
+          SUBGRUPO_EXECUCAO_TECNICA,
+          SUBGRUPO_NAO_CLASSIFICADO,
+        ]
+        expect(fechado).toContain(r.subgrupo)
+        expect(r.qtdPalavras).toBe(palavrasOraculo(c).length)
+        expect(r.qtdPalavras).toBeLessThanOrEqual(MAX_PONTOS_DE_CODIGO)
+        expect(r.versaoDicionario).toBe('gerado')
+        expect(r.flags).toBeGreaterThanOrEqual(0)
+      }),
+      OPCOES_MATRIZ,
+    )
+  })
+
+  it('o subgrupo é o do oráculo por palavras e startsWith, com a prioridade do dicionário', () => {
+    fc.assert(
+      fc.property(comentarioGeral, dicionarioGerado, (c, d) => {
+        const r = classificarApontamento({ comentario: c, typeId: null }, d)
+        const esperado = subgrupoOraculo(c, d)
+        // O oráculo só distingue "vazio" de "texto sem termo" quando nada casa; o resto é igual.
+        if (esperado === SUBGRUPO_NAO_CLASSIFICADO) expect(r.qtdPalavras).toBe(0)
+        else expect(r.subgrupo).toBe(esperado)
+      }),
+      OPCOES_MATRIZ,
+    )
+  })
+
+  it('é determinista e o dicionário não é alterado', () => {
+    fc.assert(
+      fc.property(comentarioGeral, dicionarioGerado, (c, d) => {
+        const antes = JSON.stringify(d)
+        const a = classificarApontamento({ comentario: c, typeId: null }, d)
+        expect(classificarApontamento({ comentario: c, typeId: null }, d)).toEqual(a)
+        expect(JSON.stringify(d)).toBe(antes)
+      }),
+      OPCOES_MATRIZ,
+    )
+  })
+
+  it('dimensão 1: tamanhos de borda (vazio, só espaços, 1, 3, 4 palavras, 2000 e acima de 2000 pontos)', () => {
+    expect(classe('').qtdPalavras).toBe(0)
+    expect(classe('   ').qtdPalavras).toBe(0)
+    expect(nomesDe('')).toContain('sem-comentario')
+    expect(nomesDe('   ')).toContain('sem-comentario')
+    expect(classe('um').qtdPalavras).toBe(1)
+    expect(nomesDe('um')).toContain('generico')
+    expect(nomesDe('um dois tres')).toContain('generico')
+    expect(nomesDe('um dois tres quatro')).not.toContain('generico')
+    expect(classe('um dois tres quatro').qtdPalavras).toBe(4)
+    const exato = `${'a'.repeat(1998)} b`
+    expect(Array.from(exato)).toHaveLength(2000)
+    expect(classe(exato).qtdPalavras).toBe(2)
+    expect(classe(`${exato}c`).qtdPalavras).toBe(2) // 2001 pontos: o "c" cai fora e o "b" continua
+    expect(classe(`${exato} c`).qtdPalavras).toBe(2)
+  })
+
+  it('dimensão 2: codificação (pré-composto e decomposto, caixa mista, ß, İ, emoji, controle e direção)', () => {
+    expect(sub('Análise')).toBe('analise-diagnostico')
+    expect(sub('Análise')).toBe('analise-diagnostico')
+    expect(sub('AnÁlIsE')).toBe('analise-diagnostico')
+    expect(normalizarTexto('İSTANBUL')).toBe('istanbul') // İ minúsculo = i + ponto combinante, que sai
+    expect(normalizarTexto('ß')).toBe('ß')
+    expect(palavrasDe(normalizarTexto('straße 😀 ok'))).toEqual(['straße', 'ok'])
+    expect(sub('‮reuniao')).toBe('reunioes-comunicacao')
+    expect(sub('\u0000reuniao\u0000')).toBe('reunioes-comunicacao')
+  })
+
+  it('dimensão 3: posição do termo (início, meio, fim, colado, depois de pontuação, número e quebra de linha)', () => {
+    expect(sub('reuniao de status')).toBe('reunioes-comunicacao') // início
+    expect(sub('status da reuniao de hoje')).toBe('reunioes-comunicacao') // meio
+    expect(sub('status da reuniao')).toBe('reunioes-comunicacao') // fim
+    expect(sub('xreuniao')).toBe(SUBGRUPO_EXECUCAO_TECNICA) // colado depois de outra palavra
+    expect(sub('status;reuniao')).toBe('reunioes-comunicacao') // depois de pontuação
+    expect(sub('item 12 reuniao')).toBe('reunioes-comunicacao') // depois de número
+    expect(sub('12reuniao')).toBe(SUBGRUPO_EXECUCAO_TECNICA) // dígito colado é parte da palavra
+    expect(sub('status\nreuniao')).toBe('reunioes-comunicacao') // depois de quebra de linha
+    expect(sub('status\r\n\treuniao')).toBe('reunioes-comunicacao')
+  })
+
+  it('dimensão 5: dicionário vazio, um termo, termos prefixo um do outro e empate de prioridade', () => {
+    const rodar = (d: DicionarioApontamento, c: string) =>
+      classificarApontamento({ comentario: c, typeId: null }, d).subgrupo
+    const vazio: DicionarioApontamento = { versao: 'v', termos: [], regrasPorTipo: [] }
+    expect(rodar(vazio, 'reuniao')).toBe(SUBGRUPO_EXECUCAO_TECNICA)
+    const um: DicionarioApontamento = {
+      versao: 'v',
+      termos: [{ prioridade: 1, subgrupo: 'a', termos: ['reuni'] }],
+      regrasPorTipo: [],
+    }
+    expect(rodar(um, 'reuniao')).toBe('a')
+    const prefixos: DicionarioApontamento = {
+      versao: 'v',
+      termos: [
+        { prioridade: 2, subgrupo: 'longo', termos: ['reuniao'] },
+        { prioridade: 1, subgrupo: 'curto', termos: ['reun'] },
+      ],
+      regrasPorTipo: [],
+    }
+    expect(rodar(prefixos, 'reuniao')).toBe('curto') // os dois casam; vale a prioridade
+    expect(rodar(prefixos, 'reunir')).toBe('curto')
+    const empate: DicionarioApontamento = {
+      versao: 'v',
+      termos: [
+        { prioridade: 1, subgrupo: 'b', termos: ['reun'] },
+        { prioridade: 1, subgrupo: 'a', termos: ['reun'] },
+      ],
+      regrasPorTipo: [],
+    }
+    expect(rodar(empate, 'reuniao')).toBe('a') // empate: pelo código do subgrupo
+  })
+})
+
+describe('A3: corpus de comentários legítimos', () => {
+  const corpus: [string, string | null, string, string, string[]][] = [
+    ['com acento', 'Análise do erro', TAREFA, 'analise-diagnostico', ['generico']],
+    ['sem acento', 'reuniao de alinhamento', TAREFA, 'reunioes-comunicacao', ['generico']],
+    ['sigla e número', 'RDM 1234', TAREFA, 'gestao-mudanca', ['generico']],
+    ['sigla só', 'GMUD', TAREFA, 'gestao-mudanca', ['generico']],
+    [
+      'número de chamado',
+      'Chamado 2026-004512',
+      TAREFA,
+      SUBGRUPO_EXECUCAO_TECNICA,
+      ['generico', 'sem-vinculo'],
+    ],
+    [
+      'quebra de linha',
+      'Análise do log\nreuniao com a equipe\najuste final',
+      TAREFA,
+      'reunioes-comunicacao',
+      [],
+    ],
+    ['só número', '4512', TAREFA, SUBGRUPO_EXECUCAO_TECNICA, ['generico', 'sem-vinculo']],
+    ['Kaizen sem comentário', '', KAIZEN, 'gestao-backlog-rituais', ['sem-comentario']],
+    ['Kaizen sem comentário (nulo)', null, KAIZEN, 'gestao-backlog-rituais', ['sem-comentario']],
+    ['Incidente sem comentário', '', INCIDENTE, 'incidente-sem-detalhe', ['sem-comentario']],
+    [
+      'comentário longo escrito',
+      'Ajuste da rotina de carga para tratar o campo novo do cadastro',
+      TAREFA,
+      'desenvolvimento-correcao',
+      [],
+    ],
+  ]
+  it.each(corpus)('%s', (_n, c, t, esperado, flags) => {
+    const r = classe(c, t)
+    expect(r.subgrupo).toBe(esperado)
+    expect(flagsDaMascara(r.flags).includes('sem-vinculo')).toBe(
+      esperado === SUBGRUPO_EXECUCAO_TECNICA || esperado === SUBGRUPO_NAO_CLASSIFICADO,
+    )
+    expect(flagsDaMascara(r.flags).includes('generico')).toBe(flags.includes('generico'))
+    expect(flagsDaMascara(r.flags).includes('sem-comentario')).toBe(
+      flags.includes('sem-comentario'),
+    )
+  })
+})
+
+describe('A3: orçamento de tempo (plano §3.4)', () => {
+  // Dicionário no teto: 500 termos em 50 regras; nenhum casa, então toda regra é avaliada.
+  const termos500 = Array.from({ length: 500 }, (_, i) => `z${i}q`)
+  const dTeto: DicionarioApontamento = {
+    versao: 'teto',
+    termos: Array.from({ length: 50 }, (_, r) => ({
+      prioridade: r + 1,
+      subgrupo: `g${r}`,
+      termos: termos500.slice(r * 10, r * 10 + 10),
+    })),
+    regrasPorTipo: [],
+  }
+  // Pior caso: palavras distintas que começam como os termos (mesma letra), sem casar; 2000 pontos de código.
+  const pior = Array.from({ length: 600 }, (_, i) => `z${i}`)
+    .join(' ')
+    .slice(0, MAX_PONTOS_DE_CODIGO)
+  const tipico = 'Análise do erro no ajuste da rotina de carga com a equipe '
+    .repeat(40)
+    .slice(0, 2000)
+
+  it('o dicionário do teste tem 500 termos e os comentários, 2000 pontos de código', () => {
+    expect(dTeto.termos.flatMap((t) => t.termos)).toHaveLength(500)
+    expect(Array.from(pior)).toHaveLength(2000)
+    expect(Array.from(tipico)).toHaveLength(2000)
+    expect(classificarApontamento({ comentario: pior, typeId: null }, dTeto).subgrupo).toBe(
+      SUBGRUPO_EXECUCAO_TECNICA,
+    )
+  })
+
+  it('10 000 comentários de 2000 pontos de código contra 500 termos em até 5 s', () => {
+    const comentarios = Array.from({ length: 10000 }, (_, i) =>
+      i % 2 === 0 ? pior : `${tipico}${i}`,
+    )
+    const t0 = performance.now()
+    for (const c of comentarios) classificarApontamento({ comentario: c, typeId: null }, dTeto)
+    expect(performance.now() - t0).toBeLessThan(5000)
+  })
+
+  it('um comentário de 2000 pontos de código com 500 termos em menos de 5 ms (melhor de 7 medidas, já aquecido)', () => {
+    classificarApontamento({ comentario: pior, typeId: null }, dTeto)
+    const medidas = Array.from({ length: 7 }, () => {
+      const t0 = performance.now()
+      classificarApontamento({ comentario: pior, typeId: null }, dTeto)
+      return performance.now() - t0
+    })
+    expect(Math.min(...medidas)).toBeLessThan(5)
+  })
+
+  it('A4: um comentário de 1 MB custa o mesmo que o de 2000 pontos (truncado antes de normalizar)', () => {
+    const enorme = 'z1 reuniao '.repeat(100_000)
+    const t0 = performance.now()
+    const r = classificarApontamento({ comentario: enorme, typeId: null }, dTeto)
+    expect(performance.now() - t0).toBeLessThan(50)
+    expect(r.qtdPalavras).toBe(palavrasOraculo(enorme).length)
   })
 })

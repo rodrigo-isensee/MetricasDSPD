@@ -22,6 +22,14 @@ export type LinhaComPessoa = LinhaApontamento & { pessoaRef: PessoaRef }
 export const comPessoa = (linhas: readonly LinhaApontamento[]): LinhaComPessoa[] =>
   linhas.filter((l): l is LinhaComPessoa => l.pessoaRef !== null)
 
+/**
+ * Só as linhas de pessoa do time: `outra-area` soma várias pessoas e por isso não entra em bloco por pessoa nem por dia
+ * (dia atípico, capacidade, utilização, mapa diário, qualidade por pessoa) nem em medida do time (pessoas ativas).
+ * Ela entra só na distribuição, na matriz e nos totais de horas (decisões técnicas de 2026-11-02 08:05 e 09:20).
+ */
+export const doTime = (linhas: readonly LinhaApontamento[]): LinhaComPessoa[] =>
+  comPessoa(linhas).filter((l) => l.pessoaRef !== PESSOA_OUTRA_AREA)
+
 /** Horas para exibição ou texto; as somas e os totais ficam sempre em segundos inteiros (C-3 do plano). */
 export const horas = (segundos: number): number => segundos / SEGUNDOS_POR_HORA
 

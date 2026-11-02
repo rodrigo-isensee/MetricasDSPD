@@ -219,6 +219,17 @@ describe('valor atípico e filtros', () => {
     expect(ehAtipico(ls[3] as LinhaApontamento, at)).toBe(false) // sem pessoa
   })
 
+  it('outra-area soma várias pessoas: três pessoas de 6 h no mesmo dia não dão dia atípico', () => {
+    const ls = [
+      ...dia('outra-area', [6 * H, 6 * H, 6 * H]), // 18 h somadas de três pessoas
+      ...dia('p1', [17 * H]),
+    ]
+    const at = diasAtipicos(ls, 16 * H)
+    expect([...at]).toEqual(['p1|2026-09-01'])
+    expect(ehAtipico(ls[0] as LinhaApontamento, at)).toBe(false)
+    expect(flagsEfetivas(ls[0] as LinhaApontamento, at)).toEqual([])
+  })
+
   it('flags efetivas: classificação mais sem-iniciativa e valor-atipico, sem repetir', () => {
     const l = linha({ flags: ['generico', 'sem-iniciativa'], semIniciativa: true })
     const at = new Set(['p1|2026-09-01'])
@@ -362,6 +373,13 @@ describe('qualidade: flags não excludentes, completo e o3', () => {
     expect(q.geral.porFlag.find((f) => f.flag === 'valor-atipico')?.apontamentos).toBe(20)
   })
 
+  it('outra-area conta na qualidade geral e não tem linha por pessoa', () => {
+    const ls = [...muitas(20, { pessoaRef: 'outra-area', flags: ['generico'] }), linha()]
+    const q = calcularQualidade(ls, diasAtipicos(ls, 16 * H))
+    expect(q.geral.porFlag.find((f) => f.flag === 'generico')?.apontamentos).toBe(20)
+    expect(q.porPessoa.map((p) => p.pessoaRef)).toEqual(['p1'])
+  })
+
   it('vazio: zero apontamentos, sem pessoa', () => {
     const q = calcularQualidade([], new Set())
     expect(q.geral.completos).toEqual({ status: 'insuficiente', k: 0, n: 0, minimo: 20 })
@@ -444,6 +462,17 @@ describe('capacidade com calendário e feriados', () => {
     expect(capacidadePessoa(ls, CAL).map((p) => p.pessoaRef)).toEqual(['p3'])
   })
 
+  it('outra-area fica fora da capacidade por pessoa (três pessoas de 6 h no mesmo dia)', () => {
+    const ls = [
+      ...muitas(3, { pessoaRef: 'outra-area', data: '2026-09-01', segundos: 6 * H }),
+      ...muitas(20, { pessoaRef: 'p1', data: '2026-09-01', segundos: H }),
+    ]
+    expect(capacidadePessoa(ls, CAL).map((p) => p.pessoaRef)).toEqual(['p1'])
+    expect(capacidadePessoa(muitas(3, { pessoaRef: 'outra-area', segundos: 6 * H }), CAL)).toEqual(
+      [],
+    )
+  })
+
   it('a utilização por pessoa pode passar de 100%', () => {
     const [p] = capacidadePessoa(muitas(30, { data: '2026-09-01', segundos: 2 * H }), CAL)
     expect(p?.diasUteis).toBe(1)
@@ -478,6 +507,24 @@ describe('capacidade com calendário e feriados', () => {
       })
       const soSetembro = capacidadeMensal(ls.slice(2, 4), CAL, periodo, null)
       expect(soSetembro.map((x) => x.mes)).toEqual(['2026-09']) // agosto: ninguém ativo
+    })
+
+    it('outra-area fica fora da capacidade e do realizado do mês (três pessoas de 6 h no mesmo dia)', () => {
+      const com = [
+        ...ls,
+        ...muitas(3, { pessoaRef: 'outra-area', data: '2026-09-01', segundos: 6 * H }),
+      ]
+      expect(capacidadeMensal(com, CAL, periodo, null)).toEqual(
+        capacidadeMensal(ls, CAL, periodo, null),
+      )
+      expect(
+        capacidadeMensal(
+          muitas(3, { pessoaRef: 'outra-area', data: '2026-09-01', segundos: 6 * H }),
+          CAL,
+          periodo,
+          null,
+        ),
+      ).toEqual([])
     })
 
     it('corta na última coleta ok: mês corrente parcial, meses seguintes fora (C-7)', () => {
@@ -534,6 +581,19 @@ describe('mapa diário com faixas fixas', () => {
     expect(faixaDoDia(4 * H + 1)).toBe('4h-a-8h')
     expect(faixaDoDia(8 * H)).toBe('4h-a-8h')
     expect(faixaDoDia(8 * H + 1)).toBe('mais-de-8h')
+  })
+
+  it('outra-area não tem linha no mapa diário (três pessoas de 6 h no mesmo dia)', () => {
+    const ls = muitas(3, { pessoaRef: 'outra-area', data: '2026-09-04', segundos: 6 * H })
+    const d = calcularDiario(
+      ls,
+      CAL,
+      { de: '2026-09-04', ate: '2026-09-04' },
+      16 * H,
+      diasAtipicos(ls, 16 * H),
+    )
+    expect(d.linhas).toEqual([])
+    expect(d.dias).toHaveLength(1)
   })
 
   it('uma coluna por dia (fim de semana e feriado marcados) e célula em todos os dias da pessoa', () => {
@@ -806,6 +866,21 @@ describe('calcularApontamento (blocos da resposta)', () => {
     expect(r.kpis.completos).toMatchObject({ status: 'ok', k: 22, n: 32 })
   })
 
+  it('outra-area não é pessoa ativa: três pessoas de outra área no mesmo dia contam nas horas e não nas pessoas', () => {
+    const ls = [
+      ...muitas(3, { pessoaRef: 'outra-area', segundos: 6 * H }),
+      linha({ pessoaRef: 'p1' }),
+    ]
+    const r = calc(ls)
+    expect(r.kpis).toMatchObject({
+      segundos: 19 * H,
+      apontamentos: 4,
+      pessoasAtivas: 1,
+      atipicos: 0,
+    })
+    expect(r.achados.map((a) => a.codigo)).not.toContain('dias-atipicos')
+  })
+
   it('pessoa sem apontamento atípico no recorte filtrado ainda é marcada pelo dia inteiro', () => {
     // p1 aponta 10 h + 10 h no mesmo dia: atípico; o filtro de tipo deixa só uma linha (10 h), ainda marcada
     const ls = [
@@ -834,6 +909,28 @@ describe('calcularApontamento (blocos da resposta)', () => {
     expect(r.diario.linhas.map((l) => l.pessoaRef)).toEqual(['p1'])
     expect(r.diario.linhas[0]?.segundos).toBe(2 * H) // inclui 31/08 (tipo 8) e 02/09: ignora o filtro de tipo
     expect(r.diario.dias).toHaveLength(3)
+  })
+
+  it('outra-area (três pessoas de 6 h no mesmo dia) entra na distribuição, na matriz e nos totais; fica fora dos blocos por pessoa e dia', () => {
+    const ls = [
+      ...muitas(3, { pessoaRef: 'outra-area', segundos: 6 * H }),
+      ...muitas(20, { pessoaRef: 'p1', data: '2026-09-02', segundos: H / 2 }),
+    ]
+    const r = calc(ls)
+    expect(r.kpis).toMatchObject({
+      segundos: 28 * H,
+      apontamentos: 23,
+      pessoasAtivas: 1,
+      atipicos: 0,
+    })
+    expect(r.distribuicao.porProjeto.map((l) => l.segundos)).toEqual([28 * H])
+    expect(r.matriz.linhas.map((l) => l.pessoaRef)).toEqual(['p1', 'outra-area'])
+    expect(r.qualidade.geral.porFlag.find((f) => f.flag === 'valor-atipico')?.apontamentos).toBe(0)
+    expect(r.qualidade.porPessoa.map((p) => p.pessoaRef)).toEqual(['p1'])
+    expect(r.capacidade.porPessoa.map((p) => p.pessoaRef)).toEqual(['p1'])
+    expect(r.capacidade.mensal.map((m) => m.realizadoSegundos)).toEqual([10 * H])
+    expect(r.diario.linhas.map((l) => l.pessoaRef)).toEqual(['p1'])
+    expect(r.achados.map((a) => a.codigo)).not.toContain('dias-atipicos')
   })
 
   it('o3: nenhuma estatística por pessoa abaixo de 20 apontamentos, em nenhum bloco', () => {
