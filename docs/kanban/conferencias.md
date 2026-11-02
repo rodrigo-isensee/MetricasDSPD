@@ -1165,3 +1165,6 @@
 | 2026-11-01 22:11 | 059-aba-apontamento | 059-aba-apontamento-software-architect-9.md | brief | 2 | reprovado | s | sem fonte x varredura; push copiado | decisao | jarvis |
 | 2026-11-01 22:13 | 059-aba-apontamento | 059-aba-apontamento-node-backend-9.md | brief | 6 | aprovado | s |  | — | jarvis |
 | 2026-11-01 22:13 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-5.md | brief | 5 | aprovado | s |  | — | jarvis |
+| 2026-11-01 22:14 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-50.md | brief | 5 | aprovado | s |  | — | jarvis |
+| 2026-11-01 22:14 | 059-aba-apontamento | 059-aba-apontamento-software-architect-10.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-01 22:18 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-75.md | entrega | 1 | não cumpriu (conflito novo com a develop) | s | review renovado; sem merge | ambiente | destino |
