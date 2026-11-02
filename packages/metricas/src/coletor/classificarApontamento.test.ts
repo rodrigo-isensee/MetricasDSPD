@@ -232,12 +232,12 @@ describe('flags de qualidade (seção 5)', () => {
 
   it('sem comentário: vazio, nulo ou só espaços; a contagem de palavras é 0', () => {
     for (const c of ['', '   ', null]) {
-      expect(nomes(c)).toEqual(['sem-comentario', 'generico', 'sem-vinculo'])
+      expect(nomes(c)).toEqual(['sem-comentario', 'sem-vinculo'])
       expect(classe(c).qtdPalavras).toBe(0)
     }
     // regra por tipo que dá subgrupo com vínculo não traz a flag de vínculo
-    expect(nomes('', KAIZEN)).toEqual(['sem-comentario', 'generico'])
-    expect(nomes('', INCIDENTE)).toEqual(['sem-comentario', 'generico'])
+    expect(nomes('', KAIZEN)).toEqual(['sem-comentario'])
+    expect(nomes('', INCIDENTE)).toEqual(['sem-comentario'])
   })
 
   it('flags não excludentes e máscara de lista fechada na ordem do contrato', () => {
@@ -376,11 +376,11 @@ describe('propriedades da classificação', () => {
     )
   })
 
-  it('genérico se e só se o comentário normalizado tem até 3 palavras', () => {
+  it('genérico se e só se o comentário escrito normalizado tem de 1 a 3 palavras', () => {
     fc.assert(
       fc.property(comentario, (c) => {
         const palavras = normalizarTexto(c).split(' ').filter(Boolean).length
-        expect(nomesDe(c).includes('generico')).toBe(palavras <= 3)
+        expect(nomesDe(c).includes('generico')).toBe(palavras >= 1 && palavras <= 3)
         expect(classe(c).qtdPalavras).toBe(palavras)
       }),
       OPCOES,
