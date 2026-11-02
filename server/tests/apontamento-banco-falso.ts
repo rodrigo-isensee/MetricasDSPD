@@ -91,15 +91,22 @@ export function bancoApontamento(op: OpcoesBancoAp = {}) {
       for (const id of v[0] as string[]) if (!e.dim.has(id)) { proxima += 1; e.dim.set(id, proxima); e.usuariosInseridos.push(id); }
       return [];
     }
+    // decisão A2: linha nova (`versao` = última + 1) só quando o hash difere do da última versão do mesmo `logged_time_id`
+    const ultimaDe = (id: string): { versao: number; registro_sha256: string } | undefined =>
+      [...e.stg.values()].filter((r) => r.logged_time_id === id).map((r) => ({ versao: r.versao as number, registro_sha256: r.registro_sha256 as string })).sort((x, y) => y.versao - x.versao)[0];
     if (t.startsWith('INSERT INTO dspd_bm.stg_apontamento')) {
       const novos: { logged_time_id: string }[] = [];
       for (const r of JSON.parse(v[0] as string) as Record<string, unknown>[]) {
-        const k = `${String(r.logged_time_id)}|${String(r.registro_sha256)}`;
-        if (!e.stg.has(k)) { e.stg.set(k, { ...r, coletado_em: v[1], coleta_id: v[2] }); novos.push({ logged_time_id: String(r.logged_time_id) }); }
+        const id = String(r.logged_time_id);
+        const ultima = ultimaDe(id);
+        if (ultima?.registro_sha256 === r.registro_sha256) continue;
+        const versao = (ultima?.versao ?? 0) + 1;
+        e.stg.set(`${id}|${versao}`, { ...r, versao, coletado_em: v[1], coleta_id: v[2] });
+        novos.push({ logged_time_id: id });
       }
       return novos;
     }
-    const versoesDe = (id: string): number => [...e.stg.keys()].filter((k) => k.startsWith(`${id}|`)).length;
+    const versoesDe = (id: string): number => ultimaDe(id)?.versao ?? 0;
     if (t.startsWith('UPDATE dspd_bm.fato_apontamento AS f SET\n') || t.startsWith('UPDATE dspd_bm.fato_apontamento AS f SET card_id')) {
       let n = 0;
       for (const r of JSON.parse(v[0] as string) as Record<string, unknown>[]) {
