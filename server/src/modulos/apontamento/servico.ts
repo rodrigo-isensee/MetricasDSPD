@@ -1,12 +1,12 @@
 import {
-  FLAGS_QUALIDADE, TIPO_ID, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
+  FLAGS_QUALIDADE, PESSOA_OUTRA_AREA, TIPO_ID, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
 } from '@metricas-dspd/contratos';
 import { calcularApontamento, ordenarPorPessoa, type LinhaApontamento } from '@metricas-dspd/metricas/businessmap';
 import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor, slug } from '@metricas-dspd/metricas/core';
 import { AppError } from '../../plataforma/erros.js';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { lerCalendario, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerRotulosSubgrupo, lerUltimasColetas, type ColetaLida, type LinhaBruta } from './repositorio.js';
+import { lerCalendario, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerPessoasDoTime, lerRotulosSubgrupo, lerUltimasColetas, type ColetaLida, type LinhaBruta } from './repositorio.js';
 
 // Pedido 059 (K-193), rota da aba Apontamento. Este serviço só LÊ e MONTA a moldura da resposta (período, opções, frescor, critérios); todo cálculo
 // (soma, capacidade, utilização, distribuição, qualidade, matriz, diário, achados, piso de 20) é de `calcularApontamento`, da biblioteca T2.5.
@@ -26,7 +26,24 @@ const EFEITO = { sucesso: 'aplicada', parcial: 'parcial-aplicada', falha: 'anter
 
 export interface DepsMontagem { db: Consultavel; S: Esquemas; agora: () => Date; nomesReais: boolean }
 
-const refDe = (pessoaRef: string): PessoaRef => `p${pessoaRef}`;
+const refDe = (pessoaRef: string): PessoaRef => (pessoaRef === PESSOA_OUTRA_AREA ? PESSOA_OUTRA_AREA : `p${pessoaRef}`);
+/** Janela de "ser do time": responsável por card do escopo nos últimos 12 meses (decisão do dono, 2026-11-02). */
+export const MESES_DO_TIME = 12;
+const ROTULO_OUTRA_AREA = 'Outra área';
+
+/**
+ * Quem não é do time entra somado numa entrada única `outra-area`, sem nome nem chave da pessoa (vale com o interruptor de nome ligado).
+ * Pessoa sem de-para (`null`, eliminada a pedido) continua sem pessoa.
+ */
+export function agruparOutraArea(brutas: readonly LinhaBruta[], doTime: ReadonlySet<string>): LinhaBruta[] {
+  return brutas.map((l) => (l.pessoaRef === null || doTime.has(l.pessoaRef) ? l : { ...l, pessoaRef: PESSOA_OUTRA_AREA }));
+}
+
+const mesesAntes = (d: Date, meses: number): Date => {
+  const r = new Date(d.getTime());
+  r.setUTCMonth(r.getUTCMonth() - meses);
+  return r;
+};
 
 /** Flags decididas na classificação (bits 1, 2 e 4 de `flags_qualidade`, na ordem do contrato): `sem-iniciativa` e `valor-atipico` vêm de outro lugar. */
 export function flagsDaMascara(mascara: number): FlagQualidade[] {
@@ -77,10 +94,13 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
   const hoje = dataIso(d.agora().getTime(), CALENDARIO_PADRAO);
   const { periodo, diario } = janelas(c, hoje);
 
-  const brutas = await lerLinhas(db, S, menor(periodo.de, diario.de), maior(periodo.ate, diario.ate));
+  const doTime = await lerPessoasDoTime(db, S, mesesAntes(d.agora(), MESES_DO_TIME));
+  const brutas = agruparOutraArea(await lerLinhas(db, S, menor(periodo.de, diario.de), maior(periodo.ate, diario.ate)), doTime);
   const rotulosSubgrupo = await lerRotulosSubgrupo(db, S);
   const linhas = brutas.map((l) => linhaDaBiblioteca(l, rotulosSubgrupo));
-  const refs = [...new Set(brutas.flatMap((l) => (l.pessoaRef === null ? [] : [l.pessoaRef])))];
+  const todasRefs = [...new Set(brutas.flatMap((l) => (l.pessoaRef === null ? [] : [l.pessoaRef])))];
+  const refs = todasRefs.filter((r) => r !== PESSOA_OUTRA_AREA);
+  const haOutraArea = todasRefs.length > refs.length;
   const nomes = d.nomesReais ? await lerNomes(db, S, refs) : new Map<string, string>();
 
   const calendarioRef = await lerCalendario(db, S);
@@ -92,12 +112,15 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
   const historico = (await lerHistorico(db, S)) ?? { inicio: periodo.de, fim: periodo.ate };
   const criterios = await lerCriterios(db, S);
 
-  const pessoasSemOrdem: PessoaApontamento[] = refs.map((ref) => {
+  const pessoasDoTime: PessoaApontamento[] = refs.map((ref) => {
     const nome = nomes.get(ref);
     return d.nomesReais
       ? { pessoaRef: refDe(ref), rotulo: nome ?? 'Pessoa não identificada', identificada: nome !== undefined }
       : { pessoaRef: refDe(ref), rotulo: `Pessoa ${ref}`, identificada: true };
   });
+  const pessoasSemOrdem: PessoaApontamento[] = haOutraArea
+    ? [...pessoasDoTime, { pessoaRef: PESSOA_OUTRA_AREA, rotulo: ROTULO_OUTRA_AREA, identificada: true }]
+    : pessoasDoTime;
   const pessoas = ordenarPorPessoa(pessoasSemOrdem, new Map(pessoasSemOrdem.map((p) => [p.pessoaRef, p.rotulo])), d.nomesReais);
 
   const unicos = <T extends { id: string }>(itens: readonly T[]): T[] => [...new Map(itens.map((i) => [i.id, i])).values()];

@@ -2,6 +2,8 @@ import { respostaApontamentoSchema } from '@metricas-dspd/contratos';
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
+import { lerCriterios } from '../src/modulos/apontamento/repositorio.js';
+import { registrarCriteriosApontamento } from '../src/modulos/referencia/criterios-apontamento.js';
 import { novaColeta, poolDe, S, url } from './pg/ctx.js';
 
 // Pedido 059, B4 contra o PostgreSQL local: o privilégio do papel `dspd_api_apontamento` (CA-AP-1, R4-5) e a rota ponta a ponta com esse papel
@@ -12,13 +14,15 @@ const FAIXA = 9_710_000_000;
 const RAIZ = String(FAIXA + 1);
 const FILHO = String(FAIXA + 2);
 const SOLTO = String(FAIXA + 3); // card sem hierarquia na referência
+const ANTIGO = String(FAIXA + 5); // card do escopo cujo responsavel saiu antes dos 12 meses
+const FORA = String(FAIXA + 4); // card fora do escopo do DSPD (raiz fora dos quadros coletados)
 const AGORA = new Date('2031-02-10T15:00:00Z');
 const SHA = (c: string): string => c.repeat(64).slice(0, 64);
 
 d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
   let dono: pg.Pool, aba: pg.Pool, api: pg.Pool;
-  const ids = { a: '', b: '' };
-  const refs = { a: '', b: '' };
+  const ids = { a: '', b: '', c: '', d: '', e: '' };
+  const refs = { a: '', b: '', c: '', d: '', e: '' };
   const logged: string[] = [];
 
   const falha = async (p: pg.Pool, sql: string): Promise<{ code?: string }> => {
@@ -44,12 +48,40 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
       dono.query(`INSERT INTO ${S.bm}.dim_card_raiz (card_id, raiz_card_id, profundidade, raiz_eh_iniciativa, raiz_fora_do_escopo, coletado_em, atualizado_por_coleta_id) VALUES ($1, $2, $3, $4, false, now(), $5)`, [c, r, prof, ini, coleta]);
     await raiz(RAIZ, RAIZ, 0, true);
     await raiz(FILHO, RAIZ, 1, true);
+    await card(FORA, null, null, 'Card fora do escopo', null);
+    await card(ANTIGO, null, null, 'Card antigo', null);
+    await dono.query(`INSERT INTO ${S.bm}.dim_card_raiz (card_id, raiz_card_id, profundidade, raiz_eh_iniciativa, raiz_fora_do_escopo, coletado_em, atualizado_por_coleta_id) VALUES ($1, $1, 0, false, false, now(), $2)`, [ANTIGO, coleta]);
+    await dono.query(`INSERT INTO ${S.bm}.dim_card_raiz (card_id, raiz_card_id, profundidade, raiz_eh_iniciativa, raiz_fora_do_escopo, coletado_em, atualizado_por_coleta_id) VALUES ($1, $1, 0, false, true, now(), $2)`, [FORA, coleta]);
     ids.a = String(FAIXA + 101);
     ids.b = String(FAIXA + 102);
     const pessoa = async (id: string, nome: string): Promise<string> =>
       (await dono.query<{ pessoa_ref: string }>(`INSERT INTO ${S.bm}.dim_responsavel (responsavel_id, responsavel_nome, atualizado_em) VALUES ($1, $2, now()) RETURNING pessoa_ref`, [id, nome])).rows[0]!.pessoa_ref;
     refs.a = await pessoa(ids.a, MARCADOR_NOME);
     refs.b = await pessoa(ids.b, 'Outra Pessoa Ficticia');
+    ids.c = String(FAIXA + 103);
+    ids.d = String(FAIXA + 104);
+    ids.e = String(FAIXA + 105);
+    refs.c = await pessoa(ids.c, 'Pessoa C Ficticia'); // responsável só antes dos 12 meses
+    refs.d = await pessoa(ids.d, 'Pessoa D Ficticia'); // nunca responsável
+    refs.e = await pessoa(ids.e, 'Pessoa E Ficticia'); // responsável só de card fora do escopo
+    // versões dos cards (SCD2, só para o dono: o papel da aba nunca lê `responsaveis`); o corte dos 12 meses é 2030-02-10 (AGORA - 12 meses)
+    const anterior = new Map<string, string | null>();
+    let v = 0;
+    const versao = async (cardId: string, vigenteDe: string, responsaveis: string[]) => {
+      const sk = (await dono.query<{ stg_sk: string }>(
+        `INSERT INTO ${S.bm}.stg_card (id_origem, anterior_sk, payload_sha256, payload, quadro_id, arquivado, excluido_detectado, coletado_em, coleta_id)
+         VALUES ($1, $2, decode($3, 'hex'), $4::jsonb, '1', false, false, now(), $5) RETURNING stg_sk`,
+        [cardId, anterior.get(cardId) ?? null, SHA(`a${++v}`), JSON.stringify({ card_id: cardId }), coleta])).rows[0]!.stg_sk;
+      anterior.set(cardId, sk);
+      await dono.query(
+        `INSERT INTO ${S.bm}.dim_card_versao (card_id, vigente_de, stg_card_sk, responsaveis, coletado_em, coleta_id) VALUES ($1, $2, $3, $4::text[], now(), $5)`,
+        [cardId, vigenteDe, sk, responsaveis, coleta]);
+    };
+    await versao(FILHO, '2029-01-01T00:00:00Z', [ids.a]);
+    await versao(FILHO, '2030-12-01T00:00:00Z', [ids.b]); // A deixa o card em 2030-12-01 (dentro dos 12 meses: segue do time); B e o responsavel atual
+    await versao(ANTIGO, '2029-01-01T00:00:00Z', [ids.c]);
+    await versao(ANTIGO, '2029-06-01T00:00:00Z', []); // C deixou o card em 2029-06-01, antes do corte: fora do time
+    await versao(FORA, '2030-12-01T00:00:00Z', [ids.e]);
 
     let n = 0;
     const fato = async (data: string, segundos: number, pessoaRef: string | null, card: string, extra: { excluido?: boolean; flags?: number; subgrupo?: string; subtask?: string | null } = {}) => {
@@ -69,14 +101,19 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     await fato('2031-01-08', 3600, refs.b, FILHO, { excluido: true }); // excluído: fora das somas
     await fato('2031-01-09', 5400, null, FILHO); // sem pessoa (eliminada a pedido): só no agregado do time
     await fato('2031-04-01', 3600, refs.a, FILHO); // fora da janela da consulta
+    // marco de 2031 (janela propria do teste de Outra area): C, D e E nao sao do time; A e
+    await fato('2031-03-03', 3600, refs.c, FILHO);
+    await fato('2031-03-04', 7200, refs.d, FILHO);
+    await fato('2031-03-05', 1800, refs.e, FILHO);
+    await fato('2031-03-06', 3600, refs.a, FILHO);
     await dono.query(`INSERT INTO ${S.bm}.ctl_coleta (tarefa, iniciado_em, finalizado_em, status, versao_coletor) VALUES ('apontamento', now() - interval '1 minute', now(), 'sucesso', 'rota-teste')`);
   });
 
   afterAll(async () => {
     await dono.query(`DELETE FROM ${S.bm}.fato_apontamento WHERE logged_time_id = ANY($1::text[])`, [logged]);
-    await dono.query(`DELETE FROM ${S.bm}.dim_card_raiz WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO]]);
-    await dono.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO]]);
-    await dono.query(`DELETE FROM ${S.bm}.dim_responsavel WHERE responsavel_id = ANY($1::text[])`, [[ids.a, ids.b]]);
+    await dono.query(`DELETE FROM ${S.bm}.dim_card_raiz WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO, FORA, ANTIGO]]);
+    await dono.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [[RAIZ, FILHO, SOLTO, FORA, ANTIGO]]);
+    await dono.query(`DELETE FROM ${S.bm}.dim_responsavel WHERE responsavel_id = ANY($1::text[])`, [[ids.a, ids.b, ids.c, ids.d, ids.e]]);
     await dono.query(`UPDATE ${S.bm}.ctl_coleta SET tarefa = 'reconciliacao' WHERE versao_coletor = 'rota-teste'`);
     await Promise.all([dono, aba, api].map((p) => p.end()));
   });
@@ -95,6 +132,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
       `SELECT dominio, classe, calendario_id, vigente_ate FROM ${S.core}.ref_calendario_aplicacao LIMIT 1`,
       `SELECT calendario_id, data, incluido_por_versao_id FROM ${S.core}.ref_feriado LIMIT 1`,
       `SELECT versao_id, vigente_desde, dominio, descricao FROM ${S.core}.ref_versao_criterio LIMIT 1`,
+      `SELECT versao_id, metrica_id FROM ${S.core}.ref_versao_criterio_metrica LIMIT 1`,
     ]) await expect(aba.query(sql), sql.slice(0, 60)).resolves.toBeDefined();
 
     const negados = [
@@ -169,6 +207,51 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect(c.opcoes.pessoas.find((p) => p.pessoaRef === `p${refs.a}`)).toEqual({ pessoaRef: `p${refs.a}`, rotulo: MARCADOR_NOME, identificada: true });
     expect(r.body.split(MARCADOR_NOME)).toHaveLength(2);
     expect(r.body).not.toContain(ids.a);
+  });
+
+  it('Outra area: quem nao foi responsavel por card do escopo nos ultimos 12 meses entra somado, sem nome nem chave, com o interruptor ligado ou nao', async () => {
+    const MARCO = 'de=2031-03-01&ate=2031-03-31&diarioDe=2031-03-01&diarioAte=2031-03-31';
+    for (const nomesReais of [false, true]) {
+      const r = await consultar(nomesReais, MARCO);
+      expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+      const c = respostaApontamentoSchema.parse(r.json());
+      expect(c.opcoes.pessoas.map((p) => p.pessoaRef).sort()).toEqual([`p${refs.a}`, 'outra-area'].sort());
+      expect(c.opcoes.pessoas.find((p) => p.pessoaRef === 'outra-area')).toEqual({ pessoaRef: 'outra-area', rotulo: 'Outra área', identificada: true });
+      expect(c.capacidade.porPessoa.find((p) => p.pessoaRef === 'outra-area')!.realizadoSegundos).toBe(3600 + 7200 + 1800);
+      expect(c.kpis).toMatchObject({ segundos: 3600 + 7200 + 1800 + 3600, apontamentos: 4, pessoasAtivas: 2 });
+      for (const proibido of ['Pessoa C Ficticia', 'Pessoa D Ficticia', 'Pessoa E Ficticia', `p${refs.c}"`, `p${refs.d}"`, `p${refs.e}"`, ids.c, ids.d, ids.e])
+        expect(r.body, proibido).not.toContain(proibido);
+    }
+  });
+
+  it('a view do time entrega so pessoa_ref e a data de saida ao papel da aba; o responsaveis do card segue negado', async () => {
+    const r = await aba.query<{ pessoa_ref: string; vigencia_ate: Date | null }>(`SELECT pessoa_ref, vigencia_ate FROM ${S.bm}.apt_pessoa_time`);
+    const por = new Map(r.rows.map((l) => [l.pessoa_ref, l.vigencia_ate]));
+    expect(por.get(refs.a)?.toISOString()).toBe('2030-12-01T00:00:00.000Z');
+    expect(por.get(refs.b)).toBeNull(); // versao vigente: ainda e responsavel
+    expect(por.get(refs.c)?.toISOString()).toBe('2029-06-01T00:00:00.000Z');
+    expect(por.has(refs.d)).toBe(false);
+    expect(por.has(refs.e)).toBe(false); // card fora do escopo nao conta
+    expect((await falha(aba, `SELECT responsaveis FROM ${S.bm}.dim_card_versao`)).code).toBe('42501');
+    expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.apt_pessoa_time`)).code).toBe('42501');
+  });
+
+  it('limiares dos achados (T2.6): registrados com data como versao de criterio, uma vez so, e listados em criterios para a aba', async () => {
+    // dentro de uma transacao desfeita: a referencia de versao de criterio e append-only e nao pode sobrar para os outros testes
+    const c = await dono.connect();
+    try {
+      await c.query('BEGIN');
+      expect(await registrarCriteriosApontamento(c, S, '2031-02-10', AGORA)).toEqual(['059:limiares-achados']);
+      expect(await registrarCriteriosApontamento(c, S, '2031-02-11', AGORA)).toEqual([]);
+      const criterios = await lerCriterios(c, S);
+      const achado = criterios.find((x) => x.data === '2031-02-10');
+      expect(achado?.descricao).toContain('não classificado 20%');
+      expect(achado?.descricao).toContain('variação de utilização 10 pontos');
+      expect(criterios.filter((x) => x.data === '2031-02-11')).toEqual([]);
+    } finally {
+      await c.query('ROLLBACK');
+      c.release();
+    }
   });
 
   it('filtro por pessoa e janela sem dados', async () => {

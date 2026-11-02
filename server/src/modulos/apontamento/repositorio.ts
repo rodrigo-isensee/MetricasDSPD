@@ -59,6 +59,16 @@ export async function lerNomes(db: Consultavel, S: Esquemas, refs: readonly stri
   return new Map(r.rows.map((l) => [l.pessoa_ref, l.responsavel_nome]));
 }
 
+/**
+ * Quem é do time (decisão do dono, 2026-11-02): `pessoa_ref` de quem foi responsável por pelo menos um card do escopo do DSPD a partir de `corte`
+ * (12 meses antes de agora). Lê a view `apt_pessoa_time` (definer: o papel da aba não lê `responsavel_id` nem `responsaveis`); só `pessoa_ref` sai.
+ */
+export async function lerPessoasDoTime(db: Consultavel, S: Esquemas, corte: Date): Promise<Set<string>> {
+  const r = await db.query<{ pessoa_ref: string }>(
+    `SELECT pessoa_ref FROM ${S.bm}.apt_pessoa_time WHERE vigencia_ate IS NULL OR vigencia_ate >= $1::timestamptz`, [corte.toISOString()]);
+  return new Set(r.rows.map((l) => l.pessoa_ref));
+}
+
 /** Rótulo de cada subgrupo do dicionário vigente (os dois residuais, `execucao-tecnica` e `nao-classificado`, são do código). */
 export async function lerRotulosSubgrupo(db: Consultavel, S: Esquemas): Promise<Map<string, string>> {
   const r = await db.query<{ codigo: string; rotulo: string }>(`SELECT codigo, rotulo FROM ${S.bm}.ref_apontamento_subgrupo`);

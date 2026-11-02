@@ -253,6 +253,8 @@
  "dspd_ac.vw_populacao_sssc.incidente_critico_coordenado boolean NULL",
  "dspd_ac.vw_populacao_sssc.nivel_resolucao character varying(80) NULL",
  "dspd_ac.vw_populacao_sssc.etapa character varying(80) NULL",
+ "dspd_bm.apt_pessoa_time.pessoa_ref bigint NULL",
+ "dspd_bm.apt_pessoa_time.vigencia_ate timestamp with time zone NULL",
  "dspd_bm.cfg_pessoa_eliminada.hash_usuario bytea NOT NULL",
  "dspd_bm.cfg_pessoa_eliminada.eliminada_em date NOT NULL",
  "dspd_bm.ctl_coleta.coleta_id bigint NOT NULL",

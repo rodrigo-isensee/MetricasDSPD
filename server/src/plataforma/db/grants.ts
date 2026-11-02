@@ -16,6 +16,7 @@ export const COLUNAS_API_APONTAMENTO: Readonly<Record<string, readonly string[]>
   'bm.dim_card_raiz': ['card_id', 'raiz_card_id', 'raiz_fora_do_escopo'],
   'bm.dim_card': ['card_id', 'titulo', 'tipo'],
   'bm.dim_responsavel': ['pessoa_ref', 'responsavel_nome'],
+  'bm.apt_pessoa_time': ['pessoa_ref', 'vigencia_ate'],
   'bm.ref_apontamento_subgrupo': ['codigo', 'rotulo', 'incluido_por_versao_id'],
   'bm.ref_apontamento_termo': ['incluido_por_versao_id'],
   'bm.ref_apontamento_regra_tipo': ['incluido_por_versao_id'],

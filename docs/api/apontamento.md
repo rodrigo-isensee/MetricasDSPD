@@ -37,7 +37,9 @@ Chave desconhecida é 400. Listas separadas por vírgula (ou parâmetro repetido
 - `frescor`: selo da última coleta do worklog (`tarefa = apontamento`): `atual`, `atrasado`, `falha` ou `sem-coleta`, pela regra do núcleo (`seloFrescor`). `ultimaColetaOk` em ISO com `-03:00`, ou `null`.
 - `opcoes`: pessoas na ordem neutra (o1: alfabética pelo rótulo com nomes ligados, por número do `pessoaRef` com nomes desligados); projeto = título da raiz da hierarquia (`dim_card_raiz`), `foraDoEscopo` quando a raiz está fora dos quadros coletados; `sem-projeto` ("Sem iniciativa") quando o card não está na referência; `historico` = primeiro e último dia com apontamento ativo.
 - Apontamento excluído na origem (`excluido_em`) nunca entra nas somas; apontamento sem pessoa (eliminação a pedido) entra só no agregado do time.
-- `criterios`: versões de critério (T2.6) do dicionário de subgrupo e do calendário de feriados, para marcar nos gráficos.
+- `criterios`: versões de critério (T2.6) do dicionário de subgrupo, do calendário de feriados e dos limiares provisórios dos achados (20, 20, 50, 1 dia, 10 pontos; registrados com data, revistos com 4 semanas de dado real), para marcar nos gráficos.
+- Outra área (decisão do dono, 2026-11-02): do time é quem foi responsável por pelo menos um card do escopo do DSPD nos últimos 12 meses. As demais pessoas entram somadas numa entrada única com `pessoaRef: "outra-area"` e `rotulo: "Outra área"` (`identificada: true`), sem nome nem chave da pessoa, também com `nomesReais` ligado. A forma do contrato não muda: `outra-area` é o único valor fixo aceito além de `p<n>`, vem sempre por último na ordem neutra e vale como qualquer `pessoaRef` nos filtros e nas listas. O front mostra o rótulo como vier.
+- Comentário escrito com até 3 palavras recebe a marca `generico`; comentário vazio recebe só `sem-comentario`.
 - Calendário: o da referência (classe `apontamento` do domínio BusinessMap). Sem carga na referência, os cálculos usam dias úteis sem feriados (ver "Pendências").
 
 Exemplo (recortado; nomes desligados):

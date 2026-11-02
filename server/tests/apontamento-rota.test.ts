@@ -28,12 +28,13 @@ const fixture = (): Linha[] => [
 
 interface Opcoes {
   linhas?: Linha[]; falharEm?: string; nomes?: Record<string, string>; coletas?: { ultima?: boolean; ok?: boolean; ultimaFalhou?: boolean };
-  feriados?: string[]; semHistorico?: boolean; S?: typeof S_PADRAO;
+  feriados?: string[]; semHistorico?: boolean; S?: typeof S_PADRAO; doTime?: string[];
 }
 function banco(op: Opcoes = {}) {
   const responder = (c: Chamada): Resposta => {
     const t = c.texto;
     if (op.falharEm !== undefined && t.includes(op.falharEm)) return new Error(`falha do banco com ${MARCADOR_NOME}`);
+    if (t.includes('apt_pessoa_time')) return (op.doTime ?? ['1', '2', '3', '4']).map((pessoa_ref) => ({ pessoa_ref }));
     if (t.includes('ref_versao_criterio')) return [{ versao_id: '5', vigente_desde: '2026-11-01', descricao: 'Dicionário de subgrupo v1' }];
     if (t.includes('FROM dspd_bm.fato_apontamento f')) return op.linhas ?? fixture();
     if (t.includes('min(data_apontamento)')) return [op.semHistorico === true ? { inicio: null, fim: null } : { inicio: '2026-01-05', fim: '2026-10-30' }];
@@ -108,6 +109,42 @@ describe('GET /api/apontamento: resposta', () => {
     const lidas = db.chamadas.find((c) => c.texto.includes('FROM dspd_bm.fato_apontamento f'))!;
     expect(lidas.valores).toEqual(['2026-10-01', '2026-10-31']); // parâmetros, nunca concatenados
     expect(lidas.texto).not.toContain('2026-10-01');
+    await app.close();
+  });
+  it('quem não é do time entra somado em "Outra área" (`outra-area`), sem nome nem chave; pessoa sem de-para segue sem pessoa', async () => {
+    const { app, db } = await montar({
+      doTime: ['1'],
+      linhas: [...fixture(), linha({ data: '2026-10-06', pessoa_ref: '9', segundos: 3600 }), linha({ data: '2026-10-07', pessoa_ref: '10', segundos: 1800 })],
+    });
+    const r = await get(app, '/api/apontamento');
+    const corpo = respostaApontamentoSchema.parse(r.json());
+    expect(corpo.opcoes.pessoas).toEqual([
+      { pessoaRef: 'p1', rotulo: 'Pessoa 1', identificada: true },
+      { pessoaRef: 'outra-area', rotulo: 'Outra área', identificada: true },
+    ]);
+    // as pessoas 2, 9 e 10 viram uma só entrada; a chave delas nunca aparece
+    expect(corpo.kpis.pessoasAtivas).toBe(2);
+    expect(corpo.capacidade.porPessoa.map((p) => p.pessoaRef)).toEqual(['p1', 'outra-area']);
+    expect(corpo.capacidade.porPessoa.find((p) => p.pessoaRef === 'outra-area')!.realizadoSegundos).toBe(3 * 3600 + 3600 + 1800);
+    for (const chave of ['p2', 'p9', 'p10']) expect(r.body).not.toContain(`"${chave}"`);
+    const corte = db.chamadas.find((c) => c.texto.includes('apt_pessoa_time'))!;
+    expect(corte.valores).toEqual(['2025-11-02T15:00:00.000Z']); // 12 meses antes de agora, por parâmetro
+    await app.close();
+  });
+  it('"Outra área" vale também com o interruptor de nome ligado: sem nome, e o nome só é buscado para o time', async () => {
+    const { app, db } = await montar({ nomesReais: true, doTime: ['1'], nomes: { '1': 'Ana Fictícia', '2': MARCADOR_NOME } });
+    const r = await get(app, '/api/apontamento');
+    expect(r.body).not.toContain(MARCADOR_NOME);
+    const corpo = respostaApontamentoSchema.parse(r.json());
+    expect(corpo.opcoes.pessoas.map((p) => [p.pessoaRef, p.rotulo])).toEqual([['p1', 'Ana Fictícia'], ['outra-area', 'Outra área']]);
+    const consultaNomes = db.chamadas.find((c) => c.texto.includes('responsavel_nome'))!;
+    expect(consultaNomes.valores).toEqual([['1']]);
+    await app.close();
+  });
+  it('todos do time: nenhuma entrada "Outra área"', async () => {
+    const { app } = await montar();
+    const corpo = respostaApontamentoSchema.parse((await get(app, '/api/apontamento')).json());
+    expect(corpo.opcoes.pessoas.map((p) => p.pessoaRef)).toEqual(['p1', 'p2']);
     await app.close();
   });
   it('o filtro por tipo (type_id) ainda não é atendido: 422 explícito, nunca ignorado em silêncio', async () => {
