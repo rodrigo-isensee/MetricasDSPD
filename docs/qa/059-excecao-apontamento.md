@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 059-aba-apontamento
-branch: feature/059-coleta-worklog
-commit: 29c64aaed34d84ca3443c49404f188d5ebba4fa9
+branch: feature/059-dicionario-radicais
+commit: 1723a74e13490e45f0cf48c4784e4bd14a7f29de
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -59,4 +59,14 @@ Branch do PR 195, ponta testada 29c64aaed34d84ca3443c49404f188d5ebba4fa9 (merge 
 - Testes que o merge toca: vitest em `packages/contratos/src/apontamento.test.ts`, `packages/metricas/src/coletor` e `packages/metricas/src/businessmap/apontamento`, 5 arquivos, 193 de 193 passaram.
 - `forge-check pr` sobre `origin/feature/059-coleta-worklog` acusa os três pareceres (review, QA, segurança) por `apontamento.test.ts`, porque a ponta remota ainda é 29c64aa e os pareceres renovados estão só locais; deve sair limpo depois do push.
 - Mutação e vermelho antes do verde: não se aplicam (nenhum teste novo nesta renovação, só versão da develop já testada).
+- Conclusão: a exceção continua valendo na ponta nova, sem achado novo.
+
+## Renovação por delta (E2.66, K-193, dicionário em radicais)
+
+Branch do dicionário em radicais, ponta testada 1723a74e13490e45f0cf48c4784e4bd14a7f29de (develop 32ebf3a mesclada, com o squash do PR 195). O forge-check apontou este parecer desatualizado porque `docs/architecture/fontes/apontamento-dicionario.json` mudou (termos em radicais, E2.61); esse arquivo não faz parte do texto da exceção.
+
+- Texto da exceção intacto: o diff de 89f5c96 até a ponta em `CLAUDE.md` e `docs/briefing-execucao-metricas.md` sai vazio; as cláusulas o1 a o4 seguem nos dois arquivos (CT-01 a CT-06 inalterados).
+- CT-07 refeito: `docs:check: ok (862 páginas Markdown, 69 métricas, 2 eventos)`.
+- Testes que o parecer citou: vitest em `packages/contratos/src/apontamento.test.ts`, `packages/metricas/src/coletor` e `packages/metricas/src/businessmap/apontamento`, 5 arquivos, 193 de 193 passaram. A branch não muda nada em `packages/` contra a base do dicionário.
+- Mutação e vermelho antes do verde: não se aplicam (nenhum teste novo nesta renovação; os testes do dicionário da branch são do parecer `docs/qa/059-epsilon.md`).
 - Conclusão: a exceção continua valendo na ponta nova, sem achado novo.

@@ -32,12 +32,12 @@ const recusa = (f: () => unknown): ErroDicionario => {
 describe('arquivo versionado do dicionário (como está no discovery)', () => {
   it('o arquivo do repositório é válido: 12 subgrupos, os termos da seção 4, as duas regras por tipo e os dois códigos de subtarefa', () => {
     const { arquivo, sha256 } = lerDicionario();
-    expect(arquivo.versao).toBe('2026-11-02-v1');
+    expect(arquivo.versao).toBe('2026-11-02-v2');
     expect(arquivo.subgrupos.map((s) => [s.prioridade, s.codigo])).toEqual([
       [1, 'gestao-backlog-rituais'], [2, 'testes'], [3, 'reunioes-comunicacao'], [4, 'analise-diagnostico'], [5, 'gestao-mudanca'], [6, 'documentacao'],
       [7, 'configuracao-infra'], [8, 'apoio-areas'], [9, 'desenvolvimento-correcao'], [10, 'incidente-sem-detalhe'], [11, 'execucao-tecnica'], [12, 'nao-classificado'],
     ]);
-    expect(arquivo.termos.flatMap((t) => t.termos)).toHaveLength(2 + 4 + 2 + 3 + 1 + 3 + 1 + 9);
+    expect(arquivo.termos.flatMap((t) => t.termos)).toHaveLength(2 + 4 + 5 + 3 + 1 + 3 + 1 + 10);
     expect(arquivo.regrasPorTipo).toEqual([
       { tipoRotulo: 'Kaizen', condicao: 'sempre', subgrupo: 'gestao-backlog-rituais' },
       { tipoRotulo: 'Incidente de Produção', condicao: 'sem-comentario', subgrupo: 'incidente-sem-detalhe' },
@@ -58,7 +58,57 @@ describe('arquivo versionado do dicionário (como está no discovery)', () => {
     expect(c(null, '22')).toBe('incidente-sem-detalhe');
     expect(c('algo sem termo', '22')).toBe('execucao-tecnica');
     expect(c(null, '33')).toBe('nao-classificado');
-    expect(dic.versao).toBe('2026-11-02-v1');
+    expect(dic.versao).toBe('2026-11-02-v2');
+  });
+});
+
+describe('termos em radicais (E2.61, A1 do QA da trilha B): o casamento por início de palavra pega as variações', () => {
+  // por termo trocado: subgrupo, variações que passam a casar e palavras de outro sentido que seguem sem casar
+  const RADICAIS: ReadonlyArray<readonly [string, string, readonly string[], readonly string[]]> = [
+    ['test', 'testes', ['testes', 'testar', 'testei', 'testando', 'testado'], ['protesto', 'contesto']],
+    ['analise', 'analise-diagnostico', ['análises', 'analisar', 'analisei', 'analisando', 'analisou'], ['analista', 'paralisia']],
+    ['diagnos', 'analise-diagnostico', ['diagnóstico', 'diagnósticos', 'diagnosticar', 'diagnostiquei'], ['prediagnostico']],
+    ['configur', 'configuracao-infra', ['configuração', 'configurações', 'configurar', 'configurei'], ['confirmar', 'conferir']],
+    ['infraestrutur', 'configuracao-infra', ['infraestrutura', 'infraestruturas', 'infraestrutural'], ['infração', 'infrações']],
+    ['apoi', 'apoio-areas', ['apoio', 'apoios', 'apoiar', 'apoiei'], ['apontamento', 'apostila']],
+    ['ajust', 'desenvolvimento-correcao', ['ajuste', 'ajustes', 'ajustar', 'ajustei'], ['justificativa', 'reajuste']],
+    ['correc', 'desenvolvimento-correcao', ['correção', 'correções'], ['corrente', 'correr']],
+    ['corrig', 'desenvolvimento-correcao', ['corrigir', 'corrigi', 'corrigindo', 'corrigido'], ['correto', 'corretor']],
+    ['criac', 'desenvolvimento-correcao', ['criação', 'criações'], ['criança', 'criativo']],
+    ['rotin', 'desenvolvimento-correcao', ['rotina', 'rotinas', 'rotineiro'], ['rotativo', 'rota']],
+  ];
+  const classificar = async (): Promise<(c: string) => string> => {
+    const { arquivo } = lerDicionario();
+    const db = criarDublePg(bancoComoResposta(planejarComoBanco(arquivo)));
+    const dic = await carregarDicionario(db.pool, S);
+    return (c) => classificarApontamento({ comentario: c, typeId: null }, dic).subgrupo;
+  };
+  it('o arquivo traz cada radical, na versão nova', () => {
+    const { arquivo } = lerDicionario();
+    const termos = arquivo.termos.flatMap((t) => t.termos);
+    for (const [radical] of RADICAIS) expect(termos, radical).toContain(radical === 'analise' ? 'analisa' : radical);
+    expect(arquivo.versao).toBe('2026-11-02-v2');
+  });
+  for (const [radical, subgrupo, casam, naoCasam] of RADICAIS) {
+    it(`${radical}: ${casam.join(', ')} casam em ${subgrupo}; ${naoCasam.join(', ')} não`, async () => {
+      const sub = await classificar();
+      for (const palavra of casam) expect(sub(palavra), palavra).toBe(subgrupo);
+      for (const palavra of naoCasam) expect(sub(palavra), palavra).toBe('execucao-tecnica');
+    });
+  }
+  it('A1 do QA: o plural reunioes e o singular reuniao casam o mesmo radical; com acento, em frase e em maiúsculas também', async () => {
+    const sub = await classificar();
+    for (const c of ['reuniao', 'reunioes', 'Reunião', 'REUNIÕES', 'reunir', 'foi uma reunião com a área']) expect(sub(c), c).toBe('reunioes-comunicacao');
+    expect(sub('coreuniao')).toBe('execucao-tecnica');
+  });
+  it('termos curtos ou de dois sentidos seguem inteiros e casam o próprio plural: rdm, gmud, call, meet, mudanca, fonte, script, ambiente', async () => {
+    const sub = await classificar();
+    for (const [c, esperado] of [
+      ['rdm', 'gestao-mudanca'], ['RDMs', 'gestao-mudanca'], ['gmuds', 'gestao-mudanca'], ['mudanças', 'gestao-mudanca'],
+      ['calls', 'reunioes-comunicacao'], ['meets', 'reunioes-comunicacao'], ['fontes', 'desenvolvimento-correcao'],
+      ['scripts', 'desenvolvimento-correcao'], ['ambientes', 'configuracao-infra'],
+    ] as const) expect(sub(c), c).toBe(esperado);
+    for (const c of ['calendário', 'cálculo', 'font-size', 'mudo']) expect(sub(c), c).toBe('execucao-tecnica');
   });
 });
 

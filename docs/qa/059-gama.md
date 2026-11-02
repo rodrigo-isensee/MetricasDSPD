@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 059-aba-apontamento
-branch: feature/059-aba-front
-commit: 4882e16b45de15fbb391c93deee35e67188ca659
+branch: feature/059-dicionario-radicais
+commit: f0cd292bfe043911b9b2f67c0a1dd461759732e4
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -76,6 +76,14 @@ Branch `feature/059-aba-front`, base `origin/develop` (31de83f), ponta revisada 
 - **Reteste dirigido** (MemAvailable 14 GB, load 0,4; uma suíte por vez; HEAD `4882e16`): web, `api.test.ts`, `ligacao.test.tsx`, `rota.test.tsx` e `exportacao-fora.test.ts`: 4 arquivos, 32 testes, rc 0. Server, projeto `unit`, filtro `apontamento` (rota, hosts, papel, sql, config, classificador, coleta e demais): 16 arquivos, 367 testes, rc 0. Os `.pg` e os 54 testes do QA da rota (A1 abaixo) não foram refeitos: o server não muda desde a rodada da E2.73.
 - **Vermelho antes do verde e mutação:** nenhum teste novo de rota nem guarda nova de rota neste delta; os mutantes M1 a M8 seguem sobre linhas de `server` e `packages` que a branch não toca. Acessibilidade e E2E do front: parecer `059-delta.md`.
 - **Achados:** A1 e A2 seguem como recomendados, sem mudança. Nenhum achado novo, nenhum bug aberto.
+
+## Renovação por delta na branch do dicionário em radicais (E2.92, K-193)
+Branch `feature/059-dicionario-radicais`, base `origin/develop` (60be28a), ponta revisada `f0cd292bfe043911b9b2f67c0a1dd461759732e4` (merge da develop com o squash do PR 198). Veredito **aprovado**. Causa do carimbo: `docs/architecture/fontes/apontamento-dicionario.json` mudou (versão `2026-11-02-v2`, termos em radicais); a rota não mudou.
+- **Diff contra a develop:** soma o dicionário (6 linhas trocadas), um parágrafo de `docs/architecture/server.md`, o teste `server/tests/apontamento-dicionario.test.ts` e pareceres (`059-epsilon` de review e de QA, a renovação da exceção). `server/src` e `packages` sem nenhuma linha de diferença: rota, contrato, biblioteca e classificador são os da develop.
+- **A rota segue atendida com o dicionário novo:** ela não lê o arquivo; só repassa rótulo e código de subgrupo vindos de `ref_apontamento_subgrupo` e `fato_apontamento`, preenchidos pela carga (`ref:sync`) e pela coleta. O contrato `docs/api/apontamento.md` (filtro `subgrupo` por lista de códigos, até 50) não muda: os 12 códigos, as prioridades e as duas regras por tipo são os da v1; só os termos viram radicais. CA-AP-6 (consulta estrita) e o filtro por subgrupo seguem válidos sem mudança de código.
+- **Prova de suíte** (MemAvailable 14 GB, load 0,8; uma por vez; HEAD `f0cd292`): server, `vitest run --project unit apontamento`: 16 arquivos, 381 testes, rc 0 (rota, hosts, papel, sql, config, classificador, coleta e o teste do dicionário). Os `.pg` e os testes do QA da rota (A1 abaixo) não foram refeitos: o server não muda desde a rodada da E2.73. O vermelho antes do verde dos testes novos do dicionário e a mutação dos 19 termos estão em `docs/qa/059-epsilon.md`.
+- **Vermelho antes do verde e mutação:** nenhum teste novo de rota nem guarda nova de rota neste delta; os mutantes M1 a M8 seguem sobre linhas de `server` e `packages` que a branch não toca. Interface e acessibilidade: n/a.
+- **Achados:** A1 e A2 seguem como recomendados, sem mudança. Os recomendados do dicionário (analiso e call) estão em `059-epsilon.md`. Nenhum achado novo, nenhum bug aberto.
 
 ## Bugs
 Nenhum aberto. Nenhum registro em `docs/qa/bugs/`.
