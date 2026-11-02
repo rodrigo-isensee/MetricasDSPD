@@ -695,3 +695,7 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-01T18:26:22-03:00 | K-182 | Em andamento | Em andamento | volta 2 E2.127 sustentação (Prettier) |
 | 2026-11-01T18:46:43-03:00 | K-182 | Em andamento | Em andamento | Aguardando o dono: escopo da limpeza (fato_bloqueio e versões de critério do seed) |
 | 2026-11-01T18:59:06-03:00 | K-182 | Em andamento | Em andamento | Aguardando o dono: fim (limpeza A) |
+| 2026-11-01T20:52:44-03:00 | K-182 | Em andamento | Aguardando sua validação | Aguardando o dono: merge do PR 188 |
+| 2026-11-01T21:09:18-03:00 | K-182 | Aguardando sua validação | Em andamento | Aguardando o dono: fim (PR 188 e 189 mesclados) |
+| 2026-11-01T21:32:50-03:00 | K-193 | Em andamento | Em andamento | F1 spike do worklog (node-backend) e plano até 22h (arquiteto) |
+| 2026-11-01T22:13:23-03:00 | K-193 | Em andamento | Em andamento | trilhas B e C em código local (push espera o dono) |

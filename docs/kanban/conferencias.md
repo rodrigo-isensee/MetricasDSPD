@@ -1111,3 +1111,57 @@
 | 2026-11-01 19:14 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-70.md | entrega | 1 | não cumpriu (e2e-parte vermelhos; review renovado) | s | e2e falham; diagnóstico na E2.131 | ambiente | destino |
 | 2026-11-01 19:19 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-40.md | brief | 1 | reprovado | s | npx fora da decisão do sandbox; decisões do 050 | decisao | jarvis |
 | 2026-11-01 19:22 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-41.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 19:50 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-42.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 20:17 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-38.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 20:18 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-43.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 20:25 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-72.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 20:40 | 059-aba-apontamento | 059-aba-apontamento-software-architect-2.md | brief | 2 | reprovado | s | tardio: CLAUDE.md editado sem PR do dono | decisao | jarvis |
+| 2026-11-01 20:42 | 059-aba-apontamento | 059-aba-apontamento-software-architect-3.md | brief | 3 | reprovado | s | Entregar da etapa mandava gravar no CLAUDE.md | decisao | jarvis |
+| 2026-11-01 20:44 | 059-aba-apontamento | 059-aba-apontamento-software-architect-4.md | brief | 4 | reprovado | s | prazo parafraseado; agora literal | citacao | jarvis |
+| 2026-11-01 20:46 | 059-aba-apontamento | 059-aba-apontamento-software-architect-5.md | brief | 5 | aprovado | s |  | — | jarvis |
+| 2026-11-01 20:55 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-2.md | brief | 1 | reprovado | s | decisão Q-A12 entrou no pedido durante a conferência | decisao | jarvis |
+| 2026-11-01 21:01 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-3.md | brief | 2 | reprovado | s | decisão em bloco entrou depois do brief | decisao | jarvis |
+| 2026-11-01 21:03 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-4.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:04 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-4.md | entrega | 1 | não cumpriu (parado no forge-check docs por achados legados) | s | sem commit | ambiente | destino |
+| 2026-11-01 21:07 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-5.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:13 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-50.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:14 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-7.md | brief | 2 | reprovado | s | ADR rev 4 inexistente; lugar de o1 a o4 | implementacao | jarvis |
+| 2026-11-01 21:15 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-51.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:18 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-8.md | brief | 3 | reprovado | s | redação das cláusulas sem registro; o3 estendida | decisao | jarvis |
+| 2026-11-01 21:21 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-9.md | brief | 4 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:23 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-50.md | entrega | 1 | não cumpriu (cobertura e banco) | s | merge resolvido sem commit | ambiente | destino |
+| 2026-11-01 21:24 | 059-aba-apontamento | 059-aba-apontamento-node-backend-1.md | brief | 1 | reprovado | s | resposta bruta com pessoa em arquivo | decisao | jarvis |
+| 2026-11-01 21:30 | 059-aba-apontamento | 059-aba-apontamento-node-backend-2.md | brief | 2 | reprovado | s | tardio: etapa do pedido falava em saída bruta | decisao | jarvis |
+| 2026-11-01 21:31 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-73.md | brief | 1 | reprovado | s | não mesclar contradiz E2.121 | etapa | jarvis |
+| 2026-11-01 21:32 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-53.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:32 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-44.md | brief | 1 | reprovado | s | condição da suíte e base do delta | implementacao | jarvis |
+| 2026-11-01 21:32 | 059-aba-apontamento | 059-aba-apontamento-node-backend-3.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:37 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-74.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:38 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-45.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:39 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:40 | 059-aba-apontamento | 059-aba-apontamento-software-architect-7.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:40 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-12.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:40 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:40 | 059-aba-apontamento | 059-aba-apontamento-ux-designer-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:41 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-11.md | brief | 2 | reprovado | s | tardio: etapa E1.7 manda PR; separar push e PR | etapa | jarvis |
+| 2026-11-01 21:41 | 059-aba-apontamento | 059-aba-apontamento-node-backend-4.md | brief | 1 | reprovado | s | plano com 3.9 ainda sem commit; NÃO tocar ambíguo | citacao | jarvis |
+| 2026-11-01 21:42 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-1.md | brief | 1 | reprovado | s | plano com 3.9 ainda sem commit | citacao | jarvis |
+| 2026-11-01 21:50 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-13.md | brief | 3 | reprovado | s | tardio: leitura do envio da branch; ADR 0025 dada como vigente | decisao | jarvis |
+| 2026-11-01 21:50 | 059-aba-apontamento | 059-aba-apontamento-node-backend-5.md | brief | 2 | reprovado | s | ADR 0025 dada como vigente | decisao | jarvis |
+| 2026-11-01 21:51 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-75.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:51 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-39.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 21:52 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-2.md | brief | 2 | reprovado | s | tipos iguais ao 3.9 sem a união; ADR 0025 vigente | decisao | jarvis |
+| 2026-11-01 21:52 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-14.md | brief | 4 | reprovado | s | push antes do QA reinterpreta o CLAUDE.md sem decisão do dono | decisao | jarvis |
+| 2026-11-01 21:52 | 059-aba-apontamento | 059-aba-apontamento-node-backend-6.md | brief | 3 | reprovado | s | teste de bundle do web fora da etapa | escopo | jarvis |
+| 2026-11-01 21:53 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-46.md | brief | 1 | reprovado | s | faltavam as decisões do 041 | decisao | jarvis |
+| 2026-11-01 21:56 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-3.md | brief | 3 | reprovado | s | o1 a o4 fora da redação; push antes do QA pendente do dono | decisao | jarvis |
+| 2026-11-01 21:57 | 059-aba-apontamento | 059-aba-apontamento-node-backend-7.md | brief | 4 | reprovado | s | push antes do QA pendente do dono | decisao | jarvis |
+| 2026-11-01 21:58 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-47.md | brief | 2 | reprovado | s | por worktree não era texto do dono | decisao | jarvis |
+| 2026-11-01 22:02 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-48.md | brief | 3 | reprovado | s | limites atribuídos ao dono sem registro | decisao | jarvis |
+| 2026-11-01 22:09 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-49.md | brief | 4 | reprovado | s | superação da suíte única era inferência | decisao | jarvis |
+| 2026-11-01 22:10 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-15.md | brief | 5 | reprovado | s | frase geral do dono não responde à regra; em espera | decisao | jarvis |
+| 2026-11-01 22:10 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-4.md | brief | 4 | reprovado | s | push antes do QA; segue sem push | decisao | jarvis |
+| 2026-11-01 22:10 | 059-aba-apontamento | 059-aba-apontamento-node-backend-8.md | brief | 5 | reprovado | s | push antes do QA; segue sem push | decisao | jarvis |
+| 2026-11-01 22:11 | 059-aba-apontamento | 059-aba-apontamento-software-architect-9.md | brief | 2 | reprovado | s | sem fonte x varredura; push copiado | decisao | jarvis |
+| 2026-11-01 22:13 | 059-aba-apontamento | 059-aba-apontamento-node-backend-9.md | brief | 6 | aprovado | s |  | — | jarvis |
+| 2026-11-01 22:13 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-5.md | brief | 5 | aprovado | s |  | — | jarvis |
