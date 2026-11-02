@@ -2,13 +2,31 @@
 tipo: review
 contrato: 1
 pedido: 059-aba-apontamento
-branch: feature/059-rota-apontamento
-commit: 1bf3338d43124f711d98a1bc15ac42ffb2123da4
+branch: feature/059-aba-front
+commit: dc3a5b43bf71c9432561e7c90f37b20e1e63c656
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-02
 ---
 # Review: 059-aba-apontamento, branch da rota da aba (trilha B4, E2.51, K-193)
+
+**Rodada 3 (revalidação por delta na branch do front, E2.85). Veredito: aprovado em `dc3a5b4`.** A rota continua atendida pelo front. O delta não muda código da rota e não traz achado novo. Os recomendados A1 a A4 da rodada 1 seguem abertos e não devolvem.
+
+## Delta lido na rodada 3
+- `forge-check pr 059-aba-apontamento --raiz /home/rodrigoisensee/MetricasDSPD-052h --ref origin/feature/059-aba-front --base origin/develop` acusou este parecer por `docs/tecnica/arquitetura-front.md` (base `origin/develop` `31de83f`). O mesmo aviso saiu para o QA do front, por `docs/ux/059-revisao-delta-r4.md`, que tem renovação própria (E2.86).
+- `forge-check delta --parecer docs/reviews/059-gama.md` não calcula o intervalo: `1bf3338 não é ancestral de dc3a5b4`, porque a rota entrou na develop por squash (PR 196). No lugar dele: `git diff --stat 1bf3338 31de83f -- . ':!docs'` sai vazio, então o código da rota na develop é o mesmo aprovado na rodada 2. O delta é `git diff origin/develop..origin/feature/059-aba-front` (54 arquivos).
+- **Fora da rota:** esse diff não toca `server/`, `packages/`, `scripts/`, `.github/` nem as migrações. Muda só `web/`, `e2e/`, `docs/ux/`, os pareceres do front e `docs/tecnica/arquitetura-front.md`. O código do front tem review próprio em `docs/reviews/059-delta.md`; aqui li só o encaixe na rota.
+- **`docs/tecnica/arquitetura-front.md` (diagrama e §14):** o texto bate com a rota e com `docs/api/apontamento.md`. A rota é única (`GET /api/apontamento`, mesma origem, `no-store`). Toda resposta 200 passa pelo `respostaApontamentoSchema` importado de `@metricas-dspd/contratos`, sem redeclaração no `web/`. O filtro `tipo` manda o `id` de `opcoes.tipos`, sem a sonda do 422. `outra-area` é a chave fixa, sem nome e sempre por último.
+- **Encaixe conferido no código:** o caminho é o mesmo dos dois lados (`web/src/features/apontamento/api.ts:10` e `server/src/modulos/apontamento/rotas.ts:65`). `consultaParaQuery` (`api.ts:16`) envia só as chaves do contrato, que é estrito. As listas vão em CSV, que o contrato aceita (`packages/contratos/src/apontamento.ts:97`, divisão por vírgula). A pessoa vai só como `pessoaRef`. O erro HTTP lê só `error.code`, sem log do corpo. O front não calcula métrica e não lê o Acelerato.
+- Já lido nas rodadas 1 e 2 e não relido: todo o código que a rota soma.
+
+## Ferramentas e outros pareceres (rodada 3)
+- CI da ponta `dc3a5b4`: o run `41511517953` estava em andamento na hora deste parecer. O autor do merge relata pronto verde (web 1401) e `test:e2e` verde (795) na E2.78. Não refiz a suíte.
+- Teto da decisão M14: a contagem da linha `teto: excedido` vale para o PR do front e é recontada na abertura (E2.65), não neste parecer.
+
+---
+
+## Histórico: rodada 2
 
 **Rodada 2 (revalidação por delta sobre o merge da develop, E2.72). Veredito: aprovado em `1bf3338`.** O merge não traz código novo da rota. Não há achado novo. Os recomendados A1 a A4 da rodada 1 seguem abertos e não devolvem.
 
