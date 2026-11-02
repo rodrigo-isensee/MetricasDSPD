@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-limpa-seed
-commit: 438b276fbf84b8fd124e2a231be71ba8384b9bb1
+branch: feature/052-sust-real
+commit: 55a33ee3757531885bbf4aec84d0466435ba84a4
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -93,13 +93,12 @@ Veredito: aprovado, mantido. O parecer ficou desatualizado porque `e2e/tests/int
 
 Sem suíte do server, sem mutantes e sem chamada ao BusinessMap, como pedido: o delta é só de documento e de teste E2E de outra frente, e a suíte do server rodou sobre o código do script no head `802fad3` (1127 passaram, 0 falhos) sem nenhuma linha dele mudar depois. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido.
 
-## Renovação por delta (E2.139, depois do merge da develop e dos testes de cobertura da limpeza)
-Veredito: aprovado, mantido. O parecer ficou desatualizado porque a branch passou a ser `feature/052-limpa-seed` e o `commit:` anterior (`52c201e`) não é ancestral dela. Delta a partir do `merge-base` entre os dois, `db00570..438b276`, lido com `git diff --stat` e `git diff` sobre os arquivos que o script da WS1 lê ou executa:
-- `.env.example`, `server/package.json` (script `db:limpar-seed` somado), `server/eslint.config.js` (um arquivo da limpeza na lista de exceções) e `server/src/modulos/businessmap/index.ts` (re-export de `tipo-coluna.js`): nenhum muda o que `diagnostico.ts` lê, o script `bm:diagnostico` nem o bloco do BusinessMap do `.env.example`.
-- `diagnostico.ts`, a entrada `diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh` e `diagnostico-businessmap.test.ts`: sem nenhuma linha no delta.
-- Resto do delta: código de outras frentes (F6 do painel, limpeza do seed, contratos, web) e pareceres. O delta não é só de documento, por isso a suíte do server rodou. De `438b276` ao head `048930d` só mudaram dois pareceres (`docs/reviews/052-ws1-estrutura.md` e `docs/security/052-limpa-seed.md`).
+## Renovação por delta (E2.138, depois do merge da develop na sustentação real)
+Veredito: aprovado, mantido. O `forge-check pr` deu o parecer por desatualizado porque `docs/api/metricas.md` mudou depois dele. O `commit:` anterior (`52c201e`, da `feature/052-f6-painel`) não é ancestral da branch (a F6 entrou na develop por squash, `5c679da`); o ponto de partida do `git merge-base` é `db00570`, e o delta de conteúdo foi lido sobre a árvore do próprio `52c201e` contra o head `55a33ee` (`git diff --stat 52c201e HEAD`), para não depender do squash.
 
-Reexecução no head `438b276`: `pnpm run typecheck` do server rc=0; `pnpm run test` do server, 60 arquivos passaram e 27 pulados (os .pg), 1157 testes passaram e 177 pulados, 0 falhos; os 30 testes do diagnóstico, rodados à parte, passaram. Sem mutantes (o código do script não mudou) e sem chamada ao BusinessMap. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido e nada foi rodado no banco do dono.
+Delta nos caminhos que este parecer cobre (`diagnostico.ts`, `server/src/entradas`, `scripts/bm-diagnostico.sh`, `diagnostico-businessmap.test.ts`, `data-model.md`, `businessmap-api-configuracao.md`, `.env.example`, `server/package.json`, `package.json`): só `docs/api/metricas.md`, uma linha, o parágrafo "Duas bases, uma por métrica" do contrato (sustentação real: S2, S3, S4, S8 e S10 lidas da base real, as demais da base do seed). `git diff --stat 52c201e HEAD -- server/src/modulos/businessmap` vazio: o módulo do BusinessMap (inclusive `tipo-coluna.js` re-exportado em `index.ts`) é idêntico ao que o parecer anterior testou. O resto do delta (contratos `origem.ts`, `servico.ts` de métricas, `OrigemDosCartoes.tsx`, testes da sustentação real e pareceres) é da sustentação real, com parecer próprio em `docs/qa/052-sust-real.md`, e não toca o script da WS1.
+
+Sem suíte do server, sem mutantes e sem chamada ao BusinessMap, como pedido: o delta que importa a este parecer é só de documento. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).
