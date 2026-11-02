@@ -1239,3 +1239,25 @@
 | 2026-11-02 05:19 | 059-aba-apontamento | 059-aba-apontamento-node-backend-29.md | brief | 3 | reprovado | s | tardio faixa de possivel erro | escopo | jarvis |
 | 2026-11-02 05:22 | 059-aba-apontamento | 059-aba-apontamento-node-backend-30.md | brief | 4 | aprovado | s |  | — | jarvis |
 | 2026-11-02 05:26 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-24.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:39 | 059-aba-apontamento | 059-aba-apontamento-node-backend-31.md | brief | 1 | reprovado | n | linha em branco da saida do forge-check | forma | jarvis |
+| 2026-11-02 05:43 | 059-aba-apontamento | 059-aba-apontamento-node-backend-32.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:47 | 059-aba-apontamento | 059-aba-apontamento-software-architect-13.md | brief | 1 | reprovado | s | modo de escrita sem origem; papel sem Bash contra a superacao do commit | decisao | jarvis |
+| 2026-11-02 05:48 | 059-aba-apontamento | 059-aba-apontamento-ux-designer-5.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:48 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-25.md | brief | 1 | reprovado | n | linha em branco da saida do forge-check | forma | jarvis |
+| 2026-11-02 05:49 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-11.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:51 | 059-aba-apontamento | 059-aba-apontamento-software-architect-14.md | brief | 2 | reprovado | s | linhas superadas copiadas sem a superacao | decisao | jarvis |
+| 2026-11-02 05:52 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-26.md | brief | 2 | reprovado | s | commit da UX sem etapa propria; revisao r2 | escopo | jarvis |
+| 2026-11-02 05:54 | 059-aba-apontamento | 059-aba-apontamento-software-architect-15.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-02 05:55 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-27.md | brief | 3 | reprovado | s | linha de 11:25 sobre o commit da UX | decisao | jarvis |
+| 2026-11-02 05:56 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-28.md | brief | 1 | reprovado | n | linha em branco da saida do forge-check | forma | jarvis |
+| 2026-11-02 05:59 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-29.md | brief | 4 | reprovado | s | tardio objetivo com a UX; A3 aberto | escopo | jarvis |
+| 2026-11-02 06:00 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-30.md | brief | 2 | reprovado | s | tardio linha superada de 01:00 | decisao | jarvis |
+| 2026-11-02 06:02 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-31.md | brief | 1 | reprovado | parcial | intervalo do review contra a base fixada; K-193 descrito so como excecao | decisao | jarvis |
+| 2026-11-02 06:03 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-33.md | brief | 5 | reprovado | n | decisao do dono nova durante a conferencia | decisao | jarvis |
+| 2026-11-02 06:04 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-34.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:06 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-35.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:08 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-36.md | brief | 6 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:09 | 059-aba-apontamento | 059-aba-apontamento-node-backend-33.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:14 | 059-aba-apontamento | 059-aba-apontamento-software-architect-16.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:14 | 059-aba-apontamento | 059-aba-apontamento-node-backend-34.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 06:15 | 059-aba-apontamento | 059-aba-apontamento-node-backend-36.md | brief | 2 | aprovado | s |  | — | jarvis |
