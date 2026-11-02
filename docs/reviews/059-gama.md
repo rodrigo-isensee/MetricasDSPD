@@ -2,13 +2,30 @@
 tipo: review
 contrato: 1
 pedido: 059-aba-apontamento
-branch: feature/059-aba-front
-commit: dc3a5b43bf71c9432561e7c90f37b20e1e63c656
+branch: feature/059-dicionario-radicais
+commit: f0cd292bfe043911b9b2f67c0a1dd461759732e4
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-02
 ---
 # Review: 059-aba-apontamento, branch da rota da aba (trilha B4, E2.51, K-193)
+
+**Rodada 4 (revalidação por delta na branch do dicionário em radicais, E2.91). Veredito: aprovado em `f0cd292`.** A rota continua atendida com o dicionário `2026-11-02-v2`. O delta não muda código da rota. Achado: o recomendado A5, latente (o v2 não o dispara), registrado de novo porque a versão desta branch que o trazia (E2.83, `ab47244`) foi trocada pela da develop no alinhamento (E2.90). A1 a A5 não devolvem.
+
+## Delta lido na rodada 4
+- `forge-check pr 059-aba-apontamento --raiz /home/rodrigoisensee/MetricasDSPD-052e --ref origin/feature/059-dicionario-radicais --base origin/develop` acusou este parecer (e o QA da rota, renovação própria na E2.92) por `docs/architecture/fontes/apontamento-dicionario.json` (base `origin/develop` `60be28a`).
+- `forge-check delta --parecer docs/reviews/059-gama.md` não calcula o intervalo: `dc3a5b4 não é ancestral de 53fd1a9` (o front entrou na develop por squash, PR 198). No lugar dele: `git diff --stat dc3a5b4 origin/develop -- server packages` sai vazio, então o código da rota na develop é o aprovado nas rodadas 1 a 3. O delta é `git diff origin/develop..origin/feature/059-dicionario-radicais` (6 arquivos).
+- Fora dos pareceres (`docs/qa/059-epsilon.md`, `docs/qa/059-excecao-apontamento.md`, `docs/reviews/059-epsilon.md`, de outros papéis e etapas), o delta muda 3 arquivos: o dicionário (`versao` v1 para v2; termos em radicais `test`, `analisa`, `analisei`, `analisou`, `diagnos`, `configur`, `infraestrutur`, `apoi`, `ajust`, `correc`, `corrig`, `criac`, `rotin`), `docs/architecture/server.md:224` (motivo de cada radical e dos termos inteiros) e `server/tests/apontamento-dicionario.test.ts` (versão, contagem 2+4+5+3+1+3+1+10 e a matriz de radicais). Os 12 subgrupos, a prioridade, os rótulos e as regras por tipo saem iguais. O conteúdo do dicionário e do teste tem review próprio em `docs/reviews/059-epsilon.md`; aqui li só o efeito na rota. `git diff origin/develop origin/feature/059-dicionario-radicais -- server/src packages` sai vazio.
+- **Efeito na rota:** o JSON só é lido por `server/src/modulos/businessmap/apontamento/dicionario.ts:17` e `server/src/entradas/ref-sync-apontamento.ts`, fora do módulo da rota. A rota lê o subgrupo já gravado em `fato_apontamento` na coleta, então linha antiga não muda de subgrupo e nada é sobrescrito. De `ref_apontamento_subgrupo` ela lê só `codigo` e `rotulo` (`repositorio.ts:76`), que o v2 não muda. Em `criterios` (`repositorio.ts:114`) entra a versão aberta pela carga que inclui termo: a troca do arquivo aparece como critério novo com data (T2.6), como a rota prevê. Contrato, filtros e códigos de subgrupo não mudam.
+- Já lido nas rodadas 1 a 3 e não relido: todo o código que a rota soma.
+
+## Ferramentas e outros pareceres (rodada 4)
+- CI da ponta `f0cd292`: runs `41521480411` e `41521469564` em andamento na hora deste parecer; a ponta anterior `d308ab4` saiu `success` (run `41519912512`). O pronto da E2.90 corre em paralelo, com o tech-lead. Não refiz a suíte.
+- Teto da decisão M14: a contagem da linha `teto: excedido` vale para o PR desta branch (197), não para este parecer.
+
+---
+
+## Histórico: rodada 3
 
 **Rodada 3 (revalidação por delta na branch do front, E2.85). Veredito: aprovado em `dc3a5b4`.** A rota continua atendida pelo front. O delta não muda código da rota e não traz achado novo. Os recomendados A1 a A4 da rodada 1 seguem abertos e não devolvem.
 
@@ -73,9 +90,11 @@ data: 2026-11-02
 - A2 (recomendado) server/src/modulos/referencia/criterios-apontamento.ts:31 · os dois INSERT sem transação: falha entre eles deixa a versão sem a ligação à métrica, e a reexecução a pula pela referência, então ela nunca aparece em criterios; envolver o laço em BEGIN e COMMIT
 - A3 (recomendado) server/src/modulos/apontamento/servico.ts:144 · opcoes.subtarefas sai de linhas (período mais diário) e as outras opções saem de noRecorte; usar noRecorte, ou comentar por que as duas opções fixas saem sempre
 - A4 (recomendado) server/src/modulos/apontamento/rotas.ts:40 · cast `as never` sem comentário que o explique; tipar o parâmetro como o tratarErro espera ou comentar o escape
+- A5 (recomendado) server/src/modulos/apontamento/repositorio.ts:76 · o comentário diz dicionário vigente, mas o SELECT não filtra vigente_ate IS NULL; se a troca de arquivo mudar o rótulo de um subgrupo, saem duas linhas do mesmo código e o Map fica com a que vier por último; filtrar o vigente
 
 ## Encaminhamentos
 - A1: pergunta ao dono pelo Jarvis (dúvida de regra de negócio não se resolve no código). Toca dado de pessoa (nome de quem saiu do time): cartão para o `security-engineer` considerar na renovação do parecer da rota. Se o dono decidir que card encerrado não conta, a view precisa de uma data de encerramento do card (conclusão ou arquivamento) como fim da responsabilidade.
 - A2 a A4: ao `node-backend` numa volta futura, sem bloquear o QA.
+- A5 (rodadas 3 do dicionário e 4): ao `node-backend` numa volta futura, sem bloquear o QA nem o PR do dicionário (o v2 não muda rótulo de subgrupo). O filtro precisa do GRANT de `vigente_ate` ao `dspd_api_apontamento` (`server/src/plataforma/db/grants.ts:20` concede só `codigo`, `rotulo` e `incluido_por_versao_id`), com teste de rótulo trocado. GRANT de coluna é escopo de segurança: cartão ao `security-engineer` quando a volta vier.
 - Teto da decisão M14: recontar na hora do PR, com a linha `teto: excedido` no corpo. Hoje, `git diff --numstat --no-renames origin/develop...abfd287` sem `.md`, snapshot e `checksums.json` dá 12964 linhas, com o contrato e a coleta herdados; o que a rota soma sobre a coleta, em `server/` e scripts, sem `limpar-seed`, é cerca de 1678 linhas.
 - Integração: os PRs da aba para a develop esperam o PR da exceção mesclado pelo dono (a revisão 4 da ADR 0020 só vale na branch até lá); depois de mesclados o contrato e a coleta, a rota se atualiza com a develop na hora do merge, e o `forge-check pr` aponta se o parecer precisa de revalidação.
