@@ -162,13 +162,15 @@ export const consultaApontamentoSchema = z
 export type ConsultaApontamento = z.infer<typeof consultaApontamentoSchema>
 
 // ---------- blocos da resposta ----------
-const opcaoSchema = z.object({ id: z.string(), rotulo: z.string() }).strict()
+/** Teto dos rótulos vindos da origem (título de card raiz, tipo, subgrupo); o mesmo de `rotuloRef` e do rótulo de pessoa. */
+export const MAX_ROTULO = 200
+const opcaoSchema = z.object({ id: z.string(), rotulo: z.string().max(MAX_ROTULO) }).strict()
 
 export const pessoaApontamentoSchema = z
   .object({
     pessoaRef: pessoaRefSchema,
     /** Nome real só com `APONTAMENTO_NOMES` ligado (R4-5); senão "Pessoa n". Sem de-para: "Pessoa não identificada" (CA-10). */
-    rotulo: z.string().min(1).max(200),
+    rotulo: z.string().min(1).max(MAX_ROTULO),
     identificada: z.boolean(),
   })
   .strict()
@@ -178,7 +180,7 @@ export type PessoaApontamento = z.infer<typeof pessoaApontamentoSchema>
 const linhaDistribuicaoSchema = z
   .object({
     id: z.string(),
-    rotulo: z.string(),
+    rotulo: z.string().max(MAX_ROTULO),
     segundos,
     apontamentos: contagem,
     participacao: pctComPisoSchema,
@@ -324,7 +326,7 @@ export const CODIGOS_ACHADO = [
 ] as const
 export type CodigoAchado = (typeof CODIGOS_ACHADO)[number]
 
-const rotuloRef = z.string().max(200).nullable() // rótulo de projeto/tipo/subgrupo citado, nunca de pessoa
+const rotuloRef = z.string().max(MAX_ROTULO).nullable() // rótulo de projeto/tipo/subgrupo citado, nunca de pessoa
 const achado = <C extends CodigoAchado, V extends z.ZodRawShape>(cod: C, valores: V) =>
   z.object({ codigo: z.literal(cod), valores: z.object(valores).strict(), rotuloRef }).strict()
 

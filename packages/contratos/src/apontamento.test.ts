@@ -393,3 +393,40 @@ describe('consulta de GET /api/apontamento (CA-AP-6: estrita e sem eco)', () => 
     }
   })
 })
+
+describe('A6 do parecer 059-alfa: teto de tamanho dos rótulos', () => {
+  it('A6: rótulo de opção e de linha de distribuição tem teto de 200 caracteres', () => {
+    const longo = 'x'.repeat(201)
+    const base = resposta()
+    expect(respostaApontamentoSchema.safeParse(base).success).toBe(true)
+    for (const campo of ['projetos', 'tipos', 'subtarefas', 'subgrupos'] as const) {
+      const r = resposta()
+      const opcao =
+        campo === 'projetos'
+          ? { id: 'a', rotulo: 'x'.repeat(200), foraDoEscopo: false }
+          : { id: 'a', rotulo: 'x'.repeat(200) }
+      ;(r.opcoes[campo] as unknown[]) = [opcao]
+      expect(respostaApontamentoSchema.safeParse(r).success, campo).toBe(true)
+      ;(r.opcoes[campo] as unknown[]) = [{ ...opcao, rotulo: longo }]
+      expect(respostaApontamentoSchema.safeParse(r).success, campo).toBe(false)
+    }
+    const l = resposta()
+    const linha = {
+      id: 'a',
+      rotulo: 'x'.repeat(200),
+      segundos: 3600,
+      apontamentos: 1,
+      participacao: { status: 'insuficiente' as const, n: 1, minimo: 20 as const },
+    }
+    l.distribuicao.porProjeto = [linha]
+    expect(respostaApontamentoSchema.safeParse(l).success).toBe(true)
+    l.distribuicao.porProjeto = [{ ...linha, rotulo: longo }]
+    expect(respostaApontamentoSchema.safeParse(l).success).toBe(false)
+    l.distribuicao.porProjeto = []
+    l.distribuicao.porTipo = [{ ...linha, rotulo: longo }]
+    expect(respostaApontamentoSchema.safeParse(l).success).toBe(false)
+    l.distribuicao.porTipo = []
+    l.distribuicao.porSubgrupo = [{ ...linha, rotulo: longo }]
+    expect(respostaApontamentoSchema.safeParse(l).success).toBe(false)
+  })
+})
