@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 059-aba-apontamento
 branch: feature/059-rota-apontamento
-commit: e7abdadc283b51a5aacb98c50b5f1ef50738f316
+commit: 1bf3338d43124f711d98a1bc15ac42ffb2123da4
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -59,6 +59,14 @@ Fixtures só sintéticas (ids na faixa 9 720 000 000, março de 2032, nomes `QA-
 - **Conferência com o review e a segurança:** ambos aprovados na ponta de código; os recomendados A1 a A4 do review (semântica do corte de 12 meses para card encerrado, dois INSERT de critério sem transação, `opcoes.subtarefas` de outro recorte, cast sem comentário) não são bloqueantes e o A1 já está como pergunta ao dono; o A3 da segurança fica provado por este parecer, com a ressalva do A1 acima.
 - **CI do GitHub:** run `41429255932` em `abfd287` com sucesso, citado pelo review, não refeito aqui.
 - **Orçamento e teto:** o teto da decisão M14 é coberto pela decisão do dono de 2026-11-02; o PR da rota leva a linha `teto: excedido` com o número recontado e só abre depois do PR da exceção mesclado. Não é gate do QA.
+
+## Renovação por delta (E2.73, K-193)
+Intervalo `0b4519c8791705208c4d2b1da133565a127937a2..1bf3338d43124f711d98a1bc15ac42ffb2123da4`: merge da develop (squashes dos PRs 194 e 195) na rota. O parecer acima segue valendo para o que a rota entrega; esta seção cobre só o delta, com o veredito **aprovado** sobre `1bf3338` (os commits depois dele, `cbff473`, `2b23fb0` e `4fb983b`, só mexem em pareceres de review, devops e segurança).
+- **Diff do intervalo:** só 4 arquivos de documentação (`docs/qa/059-beta.md`, `docs/qa/059-excecao-apontamento.md`, `docs/reviews/059-beta.md`, `docs/security/059-beta.md`); nenhum arquivo de código muda, porque a rota já continha a coleta e a trilha B.
+- **Diff contra a develop** (`origin/develop..origin/feature/059-rota-apontamento -- packages`): uma linha, o export `ordenarPorPessoa` em `packages/metricas/src/businessmap/index.ts`. A função existe em `apontamento/comum.ts`, já é usada por `apontamento/index.ts` e tem teste (`apontamento.test.ts`, ordem com e sem nome real e com Outra área); é a causa do carimbo desatualizado do `forge-check pr`, sem mudança de comportamento.
+- **Suíte sobre o head** (MemAvailable 14 GB, load 0,8; uma por vez): `pnpm run pronto` rc 0: contratos 199, metricas 1257, mock 258, server 1542 passaram e 224 pulados (os `.pg`), web 1256, homolog 73, pesquisa 33, spec-check 14, docs-contratos 102, `docs:check` ok (865 páginas). `pnpm run test:pg` rc 0: 32 arquivos, 224 testes (o parecer anterior contava 230 com os 6 do QA, que seguem fora do repositório, A1).
+- **Vermelho antes do verde e mutação:** nenhum teste novo nem guarda nova no delta; os mutantes M1 a M8 seguem sobre linhas que o merge não tocou. Interface e acessibilidade: n/a.
+- **Achados:** A1 e A2 do parecer anterior seguem como recomendados, sem mudança (a suíte `.pg` passou com `cfg_pessoa_eliminada` vazia, como antes). Nenhum achado novo, nenhum bug aberto.
 
 ## Bugs
 Nenhum aberto. Nenhum registro em `docs/qa/bugs/`.
