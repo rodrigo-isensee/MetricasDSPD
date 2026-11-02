@@ -1176,3 +1176,12 @@
 | 2026-11-01 22:48 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-01 22:49 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-3.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-01 22:52 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-57.md | brief | 2 | reprovado | s | passos de merge em curso; decisões do Histórico | decisao | jarvis |
+| 2026-11-01 22:57 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-58.md | brief | 3 | reprovado | s | tardio: pull nas restrições; motivo da .pg | decisao | jarvis |
+| 2026-11-01 22:58 | 059-aba-apontamento | 059-aba-apontamento-node-backend-10.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 23:01 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-59.md | brief | 4 | reprovado | s | tardio: forge-check pr e arquivo de mensagem além da etapa | escopo | jarvis |
+| 2026-11-01 23:05 | 052-integracao-businessmap | 052-integracao-businessmap-node-backend-60.md | brief | 5 | aprovado | s |  | — | jarvis |
+| 2026-11-01 23:14 | 052-integracao-businessmap | 052-integracao-businessmap-security-engineer-40.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-01 23:15 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-51.md | brief | 1 | reprovado | parcial | decisões do 050 e 041 vistas como fora do pedido; R-BRIEF manda copiá-las | decisao | jarvis |
+| 2026-11-01 23:16 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-76.md | brief | 1 | reprovado | s | parecer de segurança errado; antes das renovações | etapa | jarvis |
+| 2026-11-01 23:20 | 052-integracao-businessmap | 052-integracao-businessmap-qa-engineer-51.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-01 23:28 | 052-integracao-businessmap | 052-integracao-businessmap-tech-lead-77.md | brief | 2 | aprovado | s |  | — | jarvis |
