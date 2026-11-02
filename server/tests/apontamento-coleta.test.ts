@@ -263,11 +263,12 @@ describe('exclusão por presença (CT-72, CT-73, CT-74, CT-75)', () => {
   it('lote incompleto nunca gera exclusão: 404 no lote, recusa com id inválido no lote e lote no teto', async () => {
     const f = fato(1);
     // a recusa não fecha parcial (A7), então só a falha de lote e o teto exigem estado diferente de sucesso
-    for (const [cenario, parcial] of [
-      [{ statusPorLote: () => 404 } as Partial<CenarioWorklog>, true],
+    const cenarios: [Partial<CenarioWorklog>, boolean][] = [
+      [{ statusPorLote: () => 404 }, true],
       [{ registros: [registroWorklog({ logged_time_id: 'abc' })] }, false],
       [{ registros: Array.from({ length: 1000 }, () => registroWorklog()) }, true],
-    ] as const) {
+    ];
+    for (const [cenario, parcial] of cenarios) {
       const m = await montar({ marca: MARCA, fatos: [f, fato(2)] }, cenario);
       const r = await coletarApontamentos(m.deps, incremental);
       expect(r.excluidos, JSON.stringify(Object.keys(cenario))).toBe(0);

@@ -314,7 +314,7 @@ d('059: apontamento (esquema, papéis, coleta) no PostgreSQL', () => {
       await migrar(url!, { prefixo: p });
       const depois = (await dono.query<{ stg_sk: string; logged_time_id: string; segundos: number; h: string; versao: number }>(
         `SELECT stg_sk, logged_time_id, segundos, encode(registro_sha256, 'hex') AS h, versao FROM ${e.bm}.stg_apontamento ORDER BY stg_sk`)).rows;
-      expect(depois.map(({ versao: _v, ...r }) => r)).toEqual(antes);
+      expect(depois.map((r) => ({ stg_sk: r.stg_sk, logged_time_id: r.logged_time_id, segundos: r.segundos, h: r.h }))).toEqual(antes);
       expect(depois.map((r) => [r.logged_time_id, r.versao])).toEqual([['100', 1], ['200', 1], ['100', 2], ['100', 3], ['300', 1]]);
       // o gatilho voltou: nem o dono altera a staging, e a chave nova vale
       await expect(dono.query(`UPDATE ${e.bm}.stg_apontamento SET segundos = 5`)).rejects.toMatchObject({ code: '55000' });
