@@ -1,9 +1,8 @@
 import {
-  FLAGS_QUALIDADE, PESSOA_OUTRA_AREA, TIPO_ID, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
+  FLAGS_QUALIDADE, PESSOA_OUTRA_AREA, ROTULO_PESSOA_NAO_IDENTIFICADA, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
 } from '@metricas-dspd/contratos';
 import { calcularApontamento, ordenarPorPessoa, type LinhaApontamento } from '@metricas-dspd/metricas/businessmap';
-import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor, slug } from '@metricas-dspd/metricas/core';
-import { AppError } from '../../plataforma/erros.js';
+import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { lerCalendario, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerPessoasDoTime, lerRotulosSubgrupo, lerUltimasColetas, type ColetaLida, type LinhaBruta } from './repositorio.js';
@@ -20,7 +19,8 @@ export const DIAS_DIARIO_PADRAO = 28;
 const ROTULO_RESIDUAL: Readonly<Record<string, string>> = { 'execucao-tecnica': 'Execução técnica', 'nao-classificado': 'Não classificado' };
 const FLAGS_DA_CLASSIFICACAO = FLAGS_QUALIDADE.slice(0, 3);
 const BIT_SEM_INICIATIVA = 8;
-const TIPO_SLUG = TIPO_ID as Record<string, string>;
+/** Tipo sem `type_id` (linha ainda não relida pela coleta): entra nas somas, mas não é opção de filtro (o filtro só aceita `type_id` em dígitos). */
+const TIPO_SEM_ID = 'sem-tipo';
 const RESULTADO = { sucesso: 'ok', parcial: 'parcial', falha: 'falha' } as const;
 const EFEITO = { sucesso: 'aplicada', parcial: 'parcial-aplicada', falha: 'anteriores-mantidos' } as const;
 
@@ -55,7 +55,8 @@ function linhaDaBiblioteca(l: LinhaBruta, rotulosSubgrupo: ReadonlyMap<string, s
     pessoaRef: l.pessoaRef === null ? null : refDe(l.pessoaRef),
     data: l.data,
     segundos: l.segundos,
-    tipo: l.tipo === null ? { id: 'sem-tipo', rotulo: 'Sem tipo' } : { id: TIPO_SLUG[l.tipo] ?? slug(l.tipo), rotulo: l.tipo },
+    // `id` é o `type_id` em dígitos, o mesmo valor que o filtro `tipo` aceita; o rótulo é o da categoria do card (`dim_card.tipo`)
+    tipo: l.typeId === null ? { id: TIPO_SEM_ID, rotulo: 'Sem tipo' } : { id: l.typeId, rotulo: l.tipo ?? 'Sem tipo' },
     projeto: { id: l.projetoId ?? 'sem-projeto', rotulo: l.projetoTitulo ?? (l.projetoId === null ? 'Sem iniciativa' : `Card ${l.projetoId}`), foraDoEscopo: l.foraDoEscopo },
     subgrupo: { id: l.subgrupo, rotulo: rotulosSubgrupo.get(l.subgrupo) ?? ROTULO_RESIDUAL[l.subgrupo] ?? l.subgrupo },
     subtarefa: l.emSubtarefa ? { id: 'em-subtarefa', rotulo: 'Em subtarefa' } : { id: 'direto-no-card', rotulo: 'Direto no card' },
@@ -87,9 +88,6 @@ const menor = (a: string, b: string): string => (a < b ? a : b);
 const maior = (a: string, b: string): string => (a > b ? a : b);
 
 export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento): Promise<RespostaApontamento> {
-  // O filtro por tipo usa `type_id` do BusinessMap, que o fato do apontamento ainda não guarda (só o rótulo da categoria em `dim_card.tipo`):
-  // recusa explícita em vez de ignorar o filtro em silêncio.
-  if ((c.tipo?.length ?? 0) > 0) throw new AppError('FILTRO_INDISPONIVEL', 'O filtro por tipo ainda não está disponível.', 422);
   const { db, S } = d;
   const hoje = dataIso(d.agora().getTime(), CALENDARIO_PADRAO);
   const { periodo, diario } = janelas(c, hoje);
@@ -114,9 +112,9 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
 
   const pessoasDoTime: PessoaApontamento[] = refs.map((ref) => {
     const nome = nomes.get(ref);
-    return d.nomesReais
-      ? { pessoaRef: refDe(ref), rotulo: nome ?? 'Pessoa não identificada', identificada: nome !== undefined }
-      : { pessoaRef: refDe(ref), rotulo: `Pessoa ${ref}`, identificada: true };
+    if (d.nomesReais) return { pessoaRef: refDe(ref), rotulo: nome ?? ROTULO_PESSOA_NAO_IDENTIFICADA, identificada: nome !== undefined };
+    // nomes desligados: só o rótulo fixo "Pessoa n" (a chave `p<n>` e o rótulo seguem o mesmo formato do contrato)
+    return { pessoaRef: refDe(ref), rotulo: `Pessoa ${ref}`, identificada: true };
   });
   const pessoasSemOrdem: PessoaApontamento[] = haOutraArea
     ? [...pessoasDoTime, { pessoaRef: PESSOA_OUTRA_AREA, rotulo: ROTULO_OUTRA_AREA, identificada: true }]
@@ -142,7 +140,7 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
     opcoes: {
       pessoas,
       projetos: emOrdem(noRecorte.map((l) => ({ id: l.projeto.id, rotulo: l.projeto.rotulo, foraDoEscopo: l.projeto.foraDoEscopo }))),
-      tipos: emOrdem(noRecorte.map((l) => l.tipo)),
+      tipos: emOrdem(noRecorte.map((l) => l.tipo).filter((t) => t.id !== TIPO_SEM_ID)),
       subtarefas: emOrdem(linhas.map((l) => l.subtarefa)),
       subgrupos: emOrdem(noRecorte.map((l) => l.subgrupo)),
       historico,

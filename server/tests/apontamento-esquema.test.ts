@@ -69,6 +69,11 @@ describe('esquema do apontamento: lista fechada de colunas (CA-AP-13)', () => {
     expect(tabela('fato_apontamento')).not.toMatch(/jsonb|payload|comment|user_id/);
     expect(todoSql.some((s) => s.includes('tg_fato_apontamento'))).toBe(false);
   });
+  it('type_id do fato (0029): só dígitos, anulável, coluna nova por migração própria (nunca editando a 0028)', () => {
+    expect(todoSql).toContain(`ALTER TABLE ${S_PADRAO.bm}.fato_apontamento ADD COLUMN type_id text NULL CHECK (type_id ~ '^[0-9]{1,12}$')`);
+    expect(tabela('fato_apontamento')).not.toContain('type_id');
+    expect(colunaDePessoa('type_id')).toBe(false);
+  });
   it('índices parciais com excluido_em nulo (A5), índice da raiz (A8) e CHECK de profundidade e raiz própria', () => {
     for (const i of ['ix_fato_apontamento_data', 'ix_fato_apontamento_pessoa', 'ix_fato_apontamento_iniciativa']) {
       expect(todoSql.some((s) => s.startsWith(`CREATE INDEX ${i} ON ${S_PADRAO.bm}.fato_apontamento `) && s.endsWith('WHERE excluido_em IS NULL')), i).toBe(true);
@@ -86,6 +91,51 @@ describe('esquema do apontamento: lista fechada de colunas (CA-AP-13)', () => {
     expect(tabela('ref_apontamento_termo')).toContain('PRIMARY KEY (termo_normalizado, subgrupo_codigo)');
     expect(tabela('ref_apontamento_termo')).toContain("CHECK (termo_normalizado ~ '^[a-z0-9]{2,40}$')");
     for (const t of ['ref_apontamento_subgrupo', 'ref_apontamento_termo', 'ref_apontamento_regra_tipo']) expect(nomes(t)).toContain('incluido_por_versao_id');
+  });
+});
+
+describe('vigência do dicionário (0030, E2.27)', () => {
+  const sql030 = MIGRACOES['0030_bm_ref_apontamento_vigencia']!.ddl(S_PADRAO);
+  const up = sql030.up.join('\n');
+  const tabelas = ['ref_apontamento_subgrupo', 'ref_apontamento_termo', 'ref_apontamento_regra_tipo'];
+  it('cada ref_apontamento_* ganha vigente_de (obrigatória, preenchida pela versão que incluiu) e vigente_ate, com a ordem das datas garantida', () => {
+    for (const t of tabelas) {
+      expect(up, t).toContain(`ALTER TABLE ${S_PADRAO.bm}.${t} ADD COLUMN vigente_de date NULL, ADD COLUMN vigente_ate date NULL`);
+      expect(up, t).toContain(`ALTER TABLE ${S_PADRAO.bm}.${t} ALTER COLUMN vigente_de SET NOT NULL`);
+      expect(up, t).toContain(`CHECK (vigente_ate IS NULL OR vigente_ate >= vigente_de)`);
+      expect(up, t).toContain(`ALTER TABLE ${S_PADRAO.bm}.${t} ADD COLUMN vigencia_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY`);
+    }
+    expect(up.match(/ref_versao_criterio v WHERE v\.versao_id = x\.incluido_por_versao_id/g)).toHaveLength(3);
+  });
+  it('a chave natural passa a valer só entre as linhas vigentes (índice único parcial), inclusive a prioridade do subgrupo', () => {
+    for (const [i, t, c] of [
+      ['uq_ref_apontamento_subgrupo_vigente', 'ref_apontamento_subgrupo', 'codigo'],
+      ['uq_ref_apontamento_subgrupo_prioridade_vigente', 'ref_apontamento_subgrupo', 'prioridade'],
+      ['uq_ref_apontamento_termo_vigente', 'ref_apontamento_termo', 'termo_normalizado, subgrupo_codigo'],
+      ['uq_ref_apontamento_regra_tipo_vigente', 'ref_apontamento_regra_tipo', 'type_id, condicao'],
+    ] as const) expect(sql030.up, i).toContain(`CREATE UNIQUE INDEX ${i} ON ${S_PADRAO.bm}.${t} (${c}) WHERE vigente_ate IS NULL`);
+    expect(up).toContain('DROP CONSTRAINT uq_ref_apontamento_subgrupo_prioridade');
+  });
+  it('nada é apagado nem reaberto: gatilho de vigência (UPDATE, DELETE e TRUNCATE) em cada tabela', () => {
+    for (const t of tabelas) {
+      expect(up, t).toContain(`CREATE TRIGGER tg_${t}_vigencia BEFORE UPDATE OR DELETE ON ${S_PADRAO.bm}.${t} FOR EACH ROW EXECUTE FUNCTION ${S_PADRAO.core}.proibir_alteracao_vigencia()`);
+      expect(up, t).toContain(`CREATE TRIGGER tg_${t}_sem_truncate BEFORE TRUNCATE ON ${S_PADRAO.bm}.${t} FOR EACH STATEMENT`);
+    }
+  });
+  it('responsável do procedimento de eliminação (0031): só o papel de banco que executou, nunca dado de pessoa', () => {
+    expect(MIGRACOES['0031_bm_cfg_pessoa_eliminada_executado_por']!.ddl(S_PADRAO).up.join('\n')).toContain(`ALTER TABLE ${S_PADRAO.bm}.cfg_pessoa_eliminada ADD COLUMN executado_por varchar(63) NOT NULL DEFAULT current_user CHECK (executado_por <> '')`);
+    expect(colunaDePessoa('executado_por')).toBe(false);
+  });
+  it('o dspd_ref ganha só UPDATE (vigente_ate) nas tabelas que têm a coluna; o coletor continua só lendo; a API nada', () => {
+    const S = montarEsquemas('');
+    const cat = { bm: Object.fromEntries(tabelas.map((t) => [t, [...nomes(t), 'vigente_de', 'vigente_ate', 'vigencia_id']])), ac: {}, core: {} };
+    const grants = gerarGrants(S, cat);
+    for (const t of tabelas) {
+      expect(grants, t).toContain(`GRANT UPDATE (vigente_ate) ON ${S.bm}.${t} TO dspd_ref`);
+      expect(grants, t).toContain(`GRANT SELECT, INSERT ON ${S.bm}.${t} TO dspd_ref`);
+      expect(grants.filter((g) => g.includes(`.${t} `) && /TO dspd_(api|coletor)$/.test(g)), t).toEqual([`GRANT SELECT ON ${S.bm}.${t} TO dspd_coletor`]);
+    }
+    expect(grants.filter((g) => /TO dspd_ref$/.test(g) && /UPDATE/.test(g) && !/UPDATE \(vigente_ate\)/.test(g))).toEqual([]);
   });
 });
 

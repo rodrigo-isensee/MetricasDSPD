@@ -8,6 +8,7 @@ export interface FatoFalso {
   logged_time_id: string; card_id: string; parent_card_id: string | null; data_apontamento: string; registro_sha256: string;
   pessoa_ref: number | null; versoes: number; excluido_em: Date | null; flags_qualidade: number; subgrupo_codigo: string;
   iniciativa_card_id: string | null;
+  type_id?: string | null;
 }
 export interface OpcoesBancoAp {
   /** Cards do escopo (`dim_card`), com o `type_id` da staging. */
@@ -104,11 +105,12 @@ export function bancoApontamento(op: OpcoesBancoAp = {}) {
       for (const r of JSON.parse(v[0] as string) as Record<string, unknown>[]) {
         const f = e.fatos.get(String(r.logged_time_id));
         const ref = r.pessoa_ref as number | null;
-        if (f === undefined || !(f.registro_sha256 !== r.registro_sha256 || (ref !== null && f.pessoa_ref !== ref))) continue;
+        const tipo = r.type_id as string | null;
+        if (f === undefined || !(f.registro_sha256 !== r.registro_sha256 || (ref !== null && f.pessoa_ref !== ref) || (tipo !== null && (f.type_id ?? null) !== tipo))) continue;
         Object.assign(f, {
           card_id: r.card_id, parent_card_id: r.parent_card_id, data_apontamento: r.data_apontamento, registro_sha256: r.registro_sha256,
           subgrupo_codigo: r.subgrupo_codigo, flags_qualidade: (r.flags_qualidade as number) | (f.flags_qualidade & 24), pessoa_ref: ref ?? f.pessoa_ref,
-          versoes: versoesDe(f.logged_time_id),
+          type_id: tipo ?? f.type_id ?? null, versoes: versoesDe(f.logged_time_id),
         });
         n += 1;
       }
@@ -121,7 +123,7 @@ export function bancoApontamento(op: OpcoesBancoAp = {}) {
         if (e.fatos.has(id)) continue;
         e.fatos.set(id, {
           logged_time_id: id, card_id: String(r.card_id), parent_card_id: (r.parent_card_id as string | null), data_apontamento: String(r.data_apontamento),
-          registro_sha256: String(r.registro_sha256), pessoa_ref: r.pessoa_ref as number | null, versoes: versoesDe(id), excluido_em: null,
+          registro_sha256: String(r.registro_sha256), pessoa_ref: r.pessoa_ref as number | null, type_id: (r.type_id as string | null), versoes: versoesDe(id), excluido_em: null,
           flags_qualidade: r.flags_qualidade as number, subgrupo_codigo: String(r.subgrupo_codigo), iniciativa_card_id: null,
         });
         n += 1;

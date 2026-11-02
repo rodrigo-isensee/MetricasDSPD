@@ -7,7 +7,7 @@ import { COLUNAS_REGISTRO, DEFINICAO_REGISTRO, type LinhaClassificada } from './
 // de `COLUNAS_REGISTRO`, que nunca vem de entrada externa). Lotes por `jsonb_to_recordset`; `ON CONFLICT` sempre com alvo explícito e
 // `DO NOTHING`; o "upsert" das projeções é UPDATE do que mudou mais INSERT do que falta (o projeto proíbe `DO UPDATE`).
 
-export type LinhaComPessoa = LinhaClassificada & { pessoa_ref: number | null };
+export type LinhaComPessoa = LinhaClassificada & { pessoa_ref: number | null; type_id: string | null };
 export interface CardDoEscopo { card_id: string; type_id: string | null }
 export interface AtivoDaJanela { logged_time_id: string; card_id: string; parent_card_id: string | null }
 
@@ -49,14 +49,15 @@ export async function gravarStgApontamento(db: Consultavel, S: Esquemas, linhas:
 }
 
 /**
- * Estado atual de cada apontamento lido (`fato_apontamento`), na mesma transação da staging: UPDATE do que mudou (hash novo ou pessoa
- * nova) e INSERT do que falta. `pessoa_ref` nunca é apagada por uma leitura sem pessoa (COALESCE); `versoes` conta as versões da staging;
- * os bits 8 e 16 de `flags_qualidade` (projeção) são preservados. Devolve `[atualizados, inseridos]`.
+ * Estado atual de cada apontamento lido (`fato_apontamento`), na mesma transação da staging: UPDATE do que mudou (hash novo, pessoa
+ * nova ou tipo do card novo) e INSERT do que falta. `pessoa_ref` nunca é apagada por uma leitura sem pessoa (COALESCE), nem `type_id` por uma leitura sem tipo; `versoes` conta as versões da staging;
+ * o bit 8 de `flags_qualidade` (sem-iniciativa, gravado por `atualizarHierarquia`) é preservado, e o 16 (valor-atipico) também, mas está reservado:
+ * nada o grava, pois a soma diária é calculada na leitura. A máscara 24 é a soma dos dois bits. Devolve `[atualizados, inseridos]`.
  */
 export async function projetarFatoApontamento(
   db: Consultavel, S: Esquemas, linhas: readonly LinhaComPessoa[], coletaId: number, agora: Date,
 ): Promise<[number, number]> {
-  const def = `${DEFINICAO_REGISTRO}, pessoa_ref bigint`;
+  const def = `${DEFINICAO_REGISTRO}, pessoa_ref bigint, type_id text`;
   const versoes = `(SELECT count(*) FROM ${S.bm}.stg_apontamento s WHERE s.logged_time_id = v.logged_time_id)::smallint`;
   const valores = [JSON.stringify(linhas), agora, coletaId];
   const atualizados = await db.query(
@@ -65,14 +66,15 @@ export async function projetarFatoApontamento(
        category_id = v.category_id, data_apontamento = v.data_apontamento, segundos = v.segundos, registrado_em = v.registrado_em,
        subgrupo_codigo = v.subgrupo_codigo, flags_qualidade = v.flags_qualidade | (f.flags_qualidade & 24), qtd_palavras = v.qtd_palavras,
        versao_dicionario = v.versao_dicionario, registro_sha256 = decode(v.registro_sha256, 'hex'),
-       pessoa_ref = COALESCE(v.pessoa_ref, f.pessoa_ref), versoes = ${versoes}, atualizado_em = $2::timestamptz, atualizado_por_coleta_id = $3::bigint
+       pessoa_ref = COALESCE(v.pessoa_ref, f.pessoa_ref), type_id = COALESCE(v.type_id, f.type_id), versoes = ${versoes}, atualizado_em = $2::timestamptz, atualizado_por_coleta_id = $3::bigint
      FROM jsonb_to_recordset($1::jsonb) AS v(${def})
      WHERE f.logged_time_id = v.logged_time_id
-       AND (f.registro_sha256 IS DISTINCT FROM decode(v.registro_sha256, 'hex') OR (v.pessoa_ref IS NOT NULL AND f.pessoa_ref IS DISTINCT FROM v.pessoa_ref))`,
+       AND (f.registro_sha256 IS DISTINCT FROM decode(v.registro_sha256, 'hex') OR (v.pessoa_ref IS NOT NULL AND f.pessoa_ref IS DISTINCT FROM v.pessoa_ref)
+         OR (v.type_id IS NOT NULL AND f.type_id IS DISTINCT FROM v.type_id))`,
     valores);
   const inseridos = await db.query(
-    `INSERT INTO ${S.bm}.fato_apontamento (${SQL_COLUNAS}, pessoa_ref, versoes, atualizado_em, atualizado_por_coleta_id)
-     SELECT ${SQL_VALORES}, v.pessoa_ref, ${versoes}, $2::timestamptz, $3::bigint FROM jsonb_to_recordset($1::jsonb) AS v(${def})
+    `INSERT INTO ${S.bm}.fato_apontamento (${SQL_COLUNAS}, pessoa_ref, type_id, versoes, atualizado_em, atualizado_por_coleta_id)
+     SELECT ${SQL_VALORES}, v.pessoa_ref, v.type_id, ${versoes}, $2::timestamptz, $3::bigint FROM jsonb_to_recordset($1::jsonb) AS v(${def})
      ON CONFLICT ON CONSTRAINT fato_apontamento_pkey DO NOTHING`,
     valores);
   return [atualizados.rowCount ?? 0, inseridos.rowCount ?? 0];

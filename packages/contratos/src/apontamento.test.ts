@@ -393,3 +393,83 @@ describe('consulta de GET /api/apontamento (CA-AP-6: estrita e sem eco)', () => 
     }
   })
 })
+
+describe('A5 e A6 do parecer 059-alfa: rótulos de pessoa fixos sem nomes reais e teto de tamanho', () => {
+  const comPessoas = (nomesReais: boolean, rotulos: string[]) => {
+    const r = resposta()
+    r.nomesReais = nomesReais
+    r.opcoes.pessoas = rotulos.map((rotulo, i) => ({
+      pessoaRef: `p${i + 1}`,
+      rotulo,
+      identificada: true,
+    }))
+    return r
+  }
+
+  it('A5: com nomesReais falso aceita Pessoa n, Pessoa não identificada e Outra área', () => {
+    const r = comPessoas(false, ['Pessoa 1', 'Pessoa 12', 'Pessoa não identificada', 'Outra área'])
+    expect(respostaApontamentoSchema.safeParse(r).success).toBe(true)
+  })
+
+  it.each([
+    'Maria Silva',
+    'pessoa 1',
+    'Pessoa 0',
+    'Pessoa 1 ',
+    'Pessoa',
+    'Pessoa x',
+    'Outra area',
+    'Pessoa 1234567890',
+  ])('A5: com nomesReais falso recusa o rótulo %j, sem repeti-lo no erro', (rotulo) => {
+    const r = respostaApontamentoSchema.safeParse(comPessoas(false, [rotulo]))
+    expect(r.success).toBe(false)
+    if (!r.success) {
+      expect(r.error.issues[0]?.path).toEqual(['opcoes', 'pessoas', 0, 'rotulo'])
+      expect(JSON.stringify(r.error.issues)).not.toContain(rotulo.trim() || 'x@@')
+    }
+  })
+
+  it('A5: com nomesReais verdadeiro o rótulo é livre (até 200 caracteres)', () => {
+    expect(respostaApontamentoSchema.safeParse(comPessoas(true, ['Maria Silva'])).success).toBe(
+      true,
+    )
+    expect(respostaApontamentoSchema.safeParse(comPessoas(true, ['x'.repeat(201)])).success).toBe(
+      false,
+    )
+  })
+
+  it('A6: rótulo de opção e de linha de distribuição tem teto de 200 caracteres', () => {
+    const longo = 'x'.repeat(201)
+    const base = resposta()
+    expect(respostaApontamentoSchema.safeParse(base).success).toBe(true)
+    for (const campo of ['projetos', 'tipos', 'subtarefas', 'subgrupos'] as const) {
+      const r = resposta()
+      const opcao =
+        campo === 'projetos'
+          ? { id: 'a', rotulo: 'x'.repeat(200), foraDoEscopo: false }
+          : { id: 'a', rotulo: 'x'.repeat(200) }
+      ;(r.opcoes[campo] as unknown[]) = [opcao]
+      expect(respostaApontamentoSchema.safeParse(r).success, campo).toBe(true)
+      ;(r.opcoes[campo] as unknown[]) = [{ ...opcao, rotulo: longo }]
+      expect(respostaApontamentoSchema.safeParse(r).success, campo).toBe(false)
+    }
+    const l = resposta()
+    const linha = {
+      id: 'a',
+      rotulo: 'x'.repeat(200),
+      segundos: 3600,
+      apontamentos: 1,
+      participacao: { status: 'insuficiente' as const, n: 1, minimo: 20 as const },
+    }
+    l.distribuicao.porProjeto = [linha]
+    expect(respostaApontamentoSchema.safeParse(l).success).toBe(true)
+    l.distribuicao.porProjeto = [{ ...linha, rotulo: longo }]
+    expect(respostaApontamentoSchema.safeParse(l).success).toBe(false)
+    l.distribuicao.porProjeto = []
+    l.distribuicao.porTipo = [{ ...linha, rotulo: longo }]
+    expect(respostaApontamentoSchema.safeParse(l).success).toBe(false)
+    l.distribuicao.porTipo = []
+    l.distribuicao.porSubgrupo = [{ ...linha, rotulo: longo }]
+    expect(respostaApontamentoSchema.safeParse(l).success).toBe(false)
+  })
+})

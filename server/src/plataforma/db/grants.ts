@@ -12,7 +12,7 @@ export const PAPEIS = ['dspd_coletor', 'dspd_api', 'dspd_ref', 'dspd_webhook', '
  * Chave `bm.` ou `core.` + tabela; tabela ausente do catálogo é pulada (reaplicável em catálogo antigo).
  */
 export const COLUNAS_API_APONTAMENTO: Readonly<Record<string, readonly string[]>> = {
-  'bm.fato_apontamento': ['card_id', 'parent_card_id', 'subtask_id', 'data_apontamento', 'segundos', 'subgrupo_codigo', 'flags_qualidade', 'iniciativa_card_id', 'pessoa_ref', 'excluido_em'],
+  'bm.fato_apontamento': ['card_id', 'parent_card_id', 'subtask_id', 'data_apontamento', 'segundos', 'subgrupo_codigo', 'flags_qualidade', 'iniciativa_card_id', 'pessoa_ref', 'type_id', 'excluido_em'],
   'bm.dim_card_raiz': ['card_id', 'raiz_card_id', 'raiz_fora_do_escopo'],
   'bm.dim_card': ['card_id', 'titulo', 'tipo'],
   'bm.dim_responsavel': ['pessoa_ref', 'responsavel_nome'],

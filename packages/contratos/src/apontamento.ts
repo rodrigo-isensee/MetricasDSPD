@@ -162,13 +162,23 @@ export const consultaApontamentoSchema = z
 export type ConsultaApontamento = z.infer<typeof consultaApontamentoSchema>
 
 // ---------- blocos da resposta ----------
-const opcaoSchema = z.object({ id: z.string(), rotulo: z.string() }).strict()
+/** Teto dos rótulos vindos da origem (título de card raiz, tipo, subgrupo); o mesmo de `rotuloRef` e do rótulo de pessoa. */
+export const MAX_ROTULO = 200
+const opcaoSchema = z.object({ id: z.string(), rotulo: z.string().max(MAX_ROTULO) }).strict()
+
+/** Rótulos fixos de pessoa com `nomesReais: false` (A5 do parecer 059-alfa): nada além disso é aceito. */
+export const ROTULO_PESSOA_NAO_IDENTIFICADA = 'Pessoa não identificada'
+export const ROTULO_OUTRA_AREA = 'Outra área'
+export const rotuloFixoDePessoa = (rotulo: string): boolean =>
+  /^Pessoa [1-9]\d{0,8}$/.test(rotulo) ||
+  rotulo === ROTULO_PESSOA_NAO_IDENTIFICADA ||
+  rotulo === ROTULO_OUTRA_AREA
 
 export const pessoaApontamentoSchema = z
   .object({
     pessoaRef: pessoaRefSchema,
     /** Nome real só com `APONTAMENTO_NOMES` ligado (R4-5); senão "Pessoa n". Sem de-para: "Pessoa não identificada" (CA-10). */
-    rotulo: z.string().min(1).max(200),
+    rotulo: z.string().min(1).max(MAX_ROTULO),
     identificada: z.boolean(),
   })
   .strict()
@@ -178,7 +188,7 @@ export type PessoaApontamento = z.infer<typeof pessoaApontamentoSchema>
 const linhaDistribuicaoSchema = z
   .object({
     id: z.string(),
-    rotulo: z.string(),
+    rotulo: z.string().max(MAX_ROTULO),
     segundos,
     apontamentos: contagem,
     participacao: pctComPisoSchema,
@@ -324,7 +334,7 @@ export const CODIGOS_ACHADO = [
 ] as const
 export type CodigoAchado = (typeof CODIGOS_ACHADO)[number]
 
-const rotuloRef = z.string().max(200).nullable() // rótulo de projeto/tipo/subgrupo citado, nunca de pessoa
+const rotuloRef = z.string().max(MAX_ROTULO).nullable() // rótulo de projeto/tipo/subgrupo citado, nunca de pessoa
 const achado = <C extends CodigoAchado, V extends z.ZodRawShape>(cod: C, valores: V) =>
   z.object({ codigo: z.literal(cod), valores: z.object(valores).strict(), rotuloRef }).strict()
 
@@ -379,4 +389,16 @@ export const respostaApontamentoSchema = z
     criterios: z.array(marcacaoCriterioSchema),
   })
   .strict()
+  .superRefine((r, ctx) => {
+    // A5: com o interruptor desligado, o front recusa nome vazado (critério de reversão da R4 da ADR 0020).
+    if (r.nomesReais) return
+    r.opcoes.pessoas.forEach((p, i) => {
+      if (!rotuloFixoDePessoa(p.rotulo))
+        ctx.addIssue({
+          code: 'custom',
+          path: ['opcoes', 'pessoas', i, 'rotulo'],
+          message: 'com nomesReais falso só valem os rótulos fixos de pessoa',
+        })
+    })
+  })
 export type RespostaApontamento = z.infer<typeof respostaApontamentoSchema>
