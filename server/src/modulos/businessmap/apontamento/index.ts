@@ -14,4 +14,5 @@ export {
   analisarDicionario, carregarDicionario, ErroDicionario, lerDicionario, planejarDicionario, sincronizarDicionario, ARQUIVO_DICIONARIO,
   type ResultadoDicionario,
 } from './dicionario.js';
+export { analisarArgumentosEliminacao, eliminarPessoa, type ArgsEliminacao, type DepsEliminacao, type ResultadoEliminacao } from './eliminacao.js';
 export { montarDepsApontamento, type EntradaMontagem } from './montagem.js';

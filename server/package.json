@@ -23,6 +23,7 @@
     "bm:coleta": "tsx src/entradas/coleta-businessmap.ts",
     "bm:projetar": "tsx src/entradas/projetor-businessmap.ts",
     "bm:apontamento": "tsx src/entradas/apontamento-businessmap.ts",
+    "bm:eliminar-pessoa": "tsx src/entradas/eliminar-pessoa-apontamento.ts",
     "bm:ref-sync-apontamento": "tsx src/entradas/ref-sync-apontamento.ts",
     "test:pg": "vitest run --project pg",
     "checksums": "tsx src/plataforma/db/checksums-cli.ts",

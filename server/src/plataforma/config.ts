@@ -88,6 +88,9 @@ const esquemaColetaBusinessMap = esquemaBusinessMap
  */
 const esquemaApontamentoBusinessMap = esquemaBusinessMap.extend({ PG_COLETOR_URL: urlPg, PESSOA_ELIMINADA_SAL: z.string().min(32) });
 
+/** Eliminação a pedido (059, A4): só o banco do dono dos objetos (`dspd_migrador`) e o sal da lista de supressão. Não lê a chave do BusinessMap. */
+const esquemaEliminacaoPessoa = z.object({ ...comum, PG_MIGRADOR_URL: urlPg, PESSOA_ELIMINADA_SAL: z.string().min(32) });
+
 /** Projetor do BusinessMap (F4): só o banco do coletor. Não lê a chave nem a URL do BusinessMap: reprojetar nunca chama a API. */
 const esquemaProjetorBusinessMap = z.object({ ...comum, PG_COLETOR_URL: urlPg });
 
@@ -106,6 +109,7 @@ export type ConfigBusinessMap = z.output<typeof esquemaBusinessMap>;
 export type ConfigProjetorBusinessMap = z.output<typeof esquemaProjetorBusinessMap>;
 export type ConfigColetaBusinessMap = z.output<typeof esquemaColetaBusinessMap>;
 export type ConfigApontamentoBusinessMap = z.output<typeof esquemaApontamentoBusinessMap>;
+export type ConfigEliminacaoPessoa = z.output<typeof esquemaEliminacaoPessoa>;
 export const carregarConfigApi = (env: NodeJS.ProcessEnv = process.env): ConfigApi => validar(esquemaApi, env);
 export const carregarConfigWorker = (env: NodeJS.ProcessEnv = process.env): ConfigWorker => validar(esquemaWorker, env);
 export const carregarConfigRef = (env: NodeJS.ProcessEnv = process.env): ConfigRef => validar(esquemaRef, env);
@@ -114,3 +118,4 @@ export const carregarConfigColetaBusinessMap = (env: NodeJS.ProcessEnv = process
 export const carregarConfigBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigBusinessMap => validar(esquemaBusinessMap, env);
 export const carregarConfigProjetorBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigProjetorBusinessMap => validar(esquemaProjetorBusinessMap, env);
 export const carregarConfigApontamentoBusinessMap = (env: NodeJS.ProcessEnv = process.env): ConfigApontamentoBusinessMap => validar(esquemaApontamentoBusinessMap, env);
+export const carregarConfigEliminacaoPessoa = (env: NodeJS.ProcessEnv = process.env): ConfigEliminacaoPessoa => validar(esquemaEliminacaoPessoa, env);
