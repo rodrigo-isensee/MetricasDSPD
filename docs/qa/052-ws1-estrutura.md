@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-f6-painel
-commit: 52c201ea9b6949a9188fcea0f18c68e52e5bcfe4
+branch: feature/052-limpa-seed
+commit: 438b276fbf84b8fd124e2a231be71ba8384b9bb1
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -92,6 +92,14 @@ Veredito: aprovado, mantido. O parecer ficou desatualizado porque `e2e/tests/int
 - `docs/qa/052-ws1-estrutura.md`, `docs/reviews/052-ws1-estrutura.md` e `docs/security/052-fix-test-pg.md`: só pareceres.
 
 Sem suíte do server, sem mutantes e sem chamada ao BusinessMap, como pedido: o delta é só de documento e de teste E2E de outra frente, e a suíte do server rodou sobre o código do script no head `802fad3` (1127 passaram, 0 falhos) sem nenhuma linha dele mudar depois. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido.
+
+## Renovação por delta (E2.139, depois do merge da develop e dos testes de cobertura da limpeza)
+Veredito: aprovado, mantido. O parecer ficou desatualizado porque a branch passou a ser `feature/052-limpa-seed` e o `commit:` anterior (`52c201e`) não é ancestral dela. Delta a partir do `merge-base` entre os dois, `db00570..438b276`, lido com `git diff --stat` e `git diff` sobre os arquivos que o script da WS1 lê ou executa:
+- `.env.example`, `server/package.json` (script `db:limpar-seed` somado), `server/eslint.config.js` (um arquivo da limpeza na lista de exceções) e `server/src/modulos/businessmap/index.ts` (re-export de `tipo-coluna.js`): nenhum muda o que `diagnostico.ts` lê, o script `bm:diagnostico` nem o bloco do BusinessMap do `.env.example`.
+- `diagnostico.ts`, a entrada `diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh` e `diagnostico-businessmap.test.ts`: sem nenhuma linha no delta.
+- Resto do delta: código de outras frentes (F6 do painel, limpeza do seed, contratos, web) e pareceres. O delta não é só de documento, por isso a suíte do server rodou. De `438b276` ao head `048930d` só mudaram dois pareceres (`docs/reviews/052-ws1-estrutura.md` e `docs/security/052-limpa-seed.md`).
+
+Reexecução no head `438b276`: `pnpm run typecheck` do server rc=0; `pnpm run test` do server, 60 arquivos passaram e 27 pulados (os .pg), 1157 testes passaram e 177 pulados, 0 falhos; os 30 testes do diagnóstico, rodados à parte, passaram. Sem mutantes (o código do script não mudou) e sem chamada ao BusinessMap. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido e nada foi rodado no banco do dono.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).
