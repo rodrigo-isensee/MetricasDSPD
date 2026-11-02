@@ -72,7 +72,11 @@ const esquemaBusinessMap = z.object({
  * (só a carga da referência). Sem `PG_REF_URL`, a do `dspd_ref` sai da do coletor trocando o papel e a senha (`DSPD_PWD_REF`).
  */
 const esquemaColetaBusinessMap = esquemaBusinessMap
-  .extend({ PG_COLETOR_URL: urlPg, PG_REF_URL: vazioIndefinido(urlPg.optional()), DSPD_PWD_REF: vazioIndefinido(z.string().min(1).optional()) })
+  .extend({
+    PG_COLETOR_URL: urlPg, PG_REF_URL: vazioIndefinido(urlPg.optional()), DSPD_PWD_REF: vazioIndefinido(z.string().min(1).optional()),
+    // Pedido 059 (ADR 0020 revisão 4, R4-6): sal do HMAC da lista de supressão; a coleta do worklog exige 32 caracteres ou mais (sem ele, não roda).
+    PESSOA_ELIMINADA_SAL: vazioIndefinido(z.string().min(32).optional()),
+  })
   .superRefine((v, ctx) => {
     if (v.PG_REF_URL === undefined && v.DSPD_PWD_REF === undefined) ctx.addIssue({ code: 'custom', path: ['PG_REF_URL'], message: 'defina PG_REF_URL ou DSPD_PWD_REF' });
   })

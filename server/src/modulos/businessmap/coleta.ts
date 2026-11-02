@@ -45,7 +45,7 @@ export function dominiosDaColeta(): DominiosCamposCustomizados {
 }
 
 export class ErroColetaBm extends Error {
-  constructor(readonly codigo: 'uso' | 'sem-marca' | 'trava' | 'configuracao', mensagem: string) {
+  constructor(readonly codigo: 'uso' | 'sem-marca' | 'trava' | 'configuracao' | 'cards-falhou', mensagem: string) {
     super(mensagem);
     this.name = 'ErroColetaBm';
   }
