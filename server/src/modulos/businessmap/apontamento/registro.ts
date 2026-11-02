@@ -1,4 +1,7 @@
 import { createHash } from 'node:crypto';
+import {
+  classificarApontamento, MASCARA_FLAG, type DicionarioApontamento, type EntradaApontamento, type ResultadoApontamento,
+} from '@metricas-dspd/metricas/coletor';
 import { CAMPOS_APONTAMENTO, CAMPOS_CLASSIFICACAO, serializar } from '../allow-list.js';
 import { instanteDoBm } from '../normalizador.js';
 
@@ -7,18 +10,27 @@ import { instanteDoBm } from '../normalizador.js';
 // (só código e `id_origem`), e o comentário e o `user_id` saem separados, SÓ em memória: o comentário vai à classificação e é descartado;
 // o `user_id` vai ao projetor. Nada aqui lê banco, relógio nem ambiente: `hoje` (data civil) é parâmetro.
 
-/** Máscara de bits de `flags_qualidade` (lista fechada, 0 a 31). Os três primeiros vêm da classificação; os dois últimos, da projeção. */
-export const FLAGS = { SEM_COMENTARIO: 1, GENERICO: 2, SEM_VINCULO: 4, SEM_INICIATIVA: 8, VALOR_ATIPICO: 16 } as const;
+/**
+ * Máscara de bits de `flags_qualidade` (lista fechada, 0 a 31), vinda da biblioteca (`MASCARA_FLAG`, ordem de `FLAGS_QUALIDADE` do contrato): o servidor
+ * não repete os bits. Os três primeiros vêm da classificação; os dois últimos, da projeção.
+ */
+export const FLAGS = {
+  SEM_COMENTARIO: MASCARA_FLAG['sem-comentario'], GENERICO: MASCARA_FLAG.generico, SEM_VINCULO: MASCARA_FLAG['sem-vinculo'],
+  SEM_INICIATIVA: MASCARA_FLAG['sem-iniciativa'], VALOR_ATIPICO: MASCARA_FLAG['valor-atipico'],
+} as const;
 /** O que a classificação pode ligar (bits 1, 2 e 4); os bits 8 e 16 são da projeção (hierarquia e soma diária), nunca da função. */
-export const MASCARA_DA_CLASSIFICACAO = 7;
+export const MASCARA_DA_CLASSIFICACAO = FLAGS.SEM_COMENTARIO | FLAGS.GENERICO | FLAGS.SEM_VINCULO;
 export const SEGUNDOS_POR_DIA = 86_400;
 
 /** Entrada da classificação: o comentário (texto livre, só em memória), o tipo do card e a categoria de tempo (nula no worklog real). */
-export interface EntradaClassificacao { comentario: string | null; typeId: string | null; categoriaId: string | null }
-/** Saída da classificação: só lista fechada e inteiros (a assinatura de `classificarApontamento` da trilha B, ADR 0020 R4-2). */
-export interface SaidaClassificacao { subgrupo: string; flags: number; qtdPalavras: number; versaoDicionario: string }
-/** O dicionário já vem ligado à função (a trilha B entrega a função pura; o coletor só a chama e descarta o comentário). */
+export type EntradaClassificacao = EntradaApontamento;
+/** Saída da classificação: só lista fechada e inteiros (`classificarApontamento` da biblioteca, ADR 0020 R4-2). */
+export type SaidaClassificacao = ResultadoApontamento;
+/** O dicionário já vem ligado à função: o coletor só a chama e descarta o comentário. */
 export type ClassificarApontamento = (entrada: EntradaClassificacao) => SaidaClassificacao;
+
+/** Liga a função pura da biblioteca (`classificarApontamento`, a única que vê o comentário) ao dicionário vigente (`ref_apontamento_*`). */
+export const classificadorDoDicionario = (dicionario: DicionarioApontamento): ClassificarApontamento => (entrada) => classificarApontamento(entrada, dicionario);
 
 /** Linha gravável (allow-list + classificação), com os nomes das colunas de `stg_apontamento` e `fato_apontamento`. */
 export interface LinhaApontamento {

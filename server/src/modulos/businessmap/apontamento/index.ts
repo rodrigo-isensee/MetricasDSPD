@@ -6,7 +6,7 @@ export {
 export { calcularRaizes, PROFUNDIDADE_MAXIMA, type NoCard, type RaizDoCard } from './hierarquia.js';
 export { lerLote, LOTE_CARDS, type Folha } from './lotes.js';
 export {
-  classificar, conferirClassificacao, FLAGS, lerApontamento, MASCARA_DA_CLASSIFICACAO,
+  classificadorDoDicionario, classificar, conferirClassificacao, FLAGS, lerApontamento, MASCARA_DA_CLASSIFICACAO,
   type ClassificarApontamento, type EntradaClassificacao, type SaidaClassificacao,
 } from './registro.js';
 export { hmacUsuario, SAL_MINIMO_BYTES } from './supressao.js';
