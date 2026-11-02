@@ -219,6 +219,17 @@ describe('valor atípico e filtros', () => {
     expect(ehAtipico(ls[3] as LinhaApontamento, at)).toBe(false) // sem pessoa
   })
 
+  it('outra-area soma várias pessoas: três pessoas de 6 h no mesmo dia não dão dia atípico', () => {
+    const ls = [
+      ...dia('outra-area', [6 * H, 6 * H, 6 * H]), // 18 h somadas de três pessoas
+      ...dia('p1', [17 * H]),
+    ]
+    const at = diasAtipicos(ls, 16 * H)
+    expect([...at]).toEqual(['p1|2026-09-01'])
+    expect(ehAtipico(ls[0] as LinhaApontamento, at)).toBe(false)
+    expect(flagsEfetivas(ls[0] as LinhaApontamento, at)).toEqual([])
+  })
+
   it('flags efetivas: classificação mais sem-iniciativa e valor-atipico, sem repetir', () => {
     const l = linha({ flags: ['generico', 'sem-iniciativa'], semIniciativa: true })
     const at = new Set(['p1|2026-09-01'])
@@ -444,6 +455,17 @@ describe('capacidade com calendário e feriados', () => {
     expect(capacidadePessoa(ls, CAL).map((p) => p.pessoaRef)).toEqual(['p3'])
   })
 
+  it('outra-area fica fora da capacidade por pessoa (três pessoas de 6 h no mesmo dia)', () => {
+    const ls = [
+      ...muitas(3, { pessoaRef: 'outra-area', data: '2026-09-01', segundos: 6 * H }),
+      ...muitas(20, { pessoaRef: 'p1', data: '2026-09-01', segundos: H }),
+    ]
+    expect(capacidadePessoa(ls, CAL).map((p) => p.pessoaRef)).toEqual(['p1'])
+    expect(capacidadePessoa(muitas(3, { pessoaRef: 'outra-area', segundos: 6 * H }), CAL)).toEqual(
+      [],
+    )
+  })
+
   it('a utilização por pessoa pode passar de 100%', () => {
     const [p] = capacidadePessoa(muitas(30, { data: '2026-09-01', segundos: 2 * H }), CAL)
     expect(p?.diasUteis).toBe(1)
@@ -478,6 +500,24 @@ describe('capacidade com calendário e feriados', () => {
       })
       const soSetembro = capacidadeMensal(ls.slice(2, 4), CAL, periodo, null)
       expect(soSetembro.map((x) => x.mes)).toEqual(['2026-09']) // agosto: ninguém ativo
+    })
+
+    it('outra-area fica fora da capacidade e do realizado do mês (três pessoas de 6 h no mesmo dia)', () => {
+      const com = [
+        ...ls,
+        ...muitas(3, { pessoaRef: 'outra-area', data: '2026-09-01', segundos: 6 * H }),
+      ]
+      expect(capacidadeMensal(com, CAL, periodo, null)).toEqual(
+        capacidadeMensal(ls, CAL, periodo, null),
+      )
+      expect(
+        capacidadeMensal(
+          muitas(3, { pessoaRef: 'outra-area', data: '2026-09-01', segundos: 6 * H }),
+          CAL,
+          periodo,
+          null,
+        ),
+      ).toEqual([])
     })
 
     it('corta na última coleta ok: mês corrente parcial, meses seguintes fora (C-7)', () => {
