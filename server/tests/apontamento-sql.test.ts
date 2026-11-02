@@ -25,7 +25,7 @@ describe('SQL do apontamento: colunas só da constante e ON CONFLICT com alvo ex
   });
   it('nenhum SQL do módulo usa DO UPDATE, SELECT *, DELETE nem ON CONFLICT sem alvo; o SQL só recebe parâmetros posicionais', async () => {
     const banco = criarDublePg();
-    const comPessoa = { ...linha, pessoa_ref: null };
+    const comPessoa = { ...linha, pessoa_ref: null, type_id: null };
     await escopoDoWorklog(banco.pool, S);
     await gravarStgApontamento(banco.pool, S, [linha], 1, new Date(0));
     await projetarFatoApontamento(banco.pool, S, [comPessoa], 1, new Date(0));

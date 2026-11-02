@@ -12,7 +12,7 @@ import {
 } from './gravacao.js';
 import { lerLote, LOTE_CARDS, type FiltroWorklog, type Folha } from './lotes.js';
 import {
-  classificar, conferirClassificacao, lerApontamento, type ClassificarApontamento, type LinhaClassificada, type SaidaClassificacao,
+  classificar, conferirClassificacao, idDoBm, lerApontamento, type ClassificarApontamento, type LinhaClassificada, type SaidaClassificacao,
 } from './registro.js';
 import { SAL_MINIMO_BYTES, usuariosSuprimidos } from './supressao.js';
 
@@ -107,13 +107,16 @@ interface Execucao {
   r: Pick<ResultadoApontamento, 'lidos' | 'inseridos' | 'jaExistentes' | 'invalidos' | 'excluidos' | 'reaparecidos' | 'usuarios'>;
 }
 
+/** Tipo do card do apontamento; apontamento de subtarefa vale o tipo do card pai. Só `type_id` (dígitos), nunca texto. */
+const tipoDoApontamento = (x: Execucao, l: { card_id: string; parent_card_id: string | null }): string | null =>
+  idDoBm(x.tipos.get(l.card_id) ?? x.tipos.get(l.parent_card_id ?? '') ?? null);
+
 /** Classifica em memória (o comentário é descartado aqui). Função que lança ou devolve fora da lista fechada vira `null` (falha só com código). */
 function classificarComSeguranca(
   x: Execucao, l: { linha: { card_id: string; parent_card_id: string | null; category_id: string | null }; comentario: string | null },
 ): SaidaClassificacao | null {
-  const { card_id: card, parent_card_id: pai, category_id: categoria } = l.linha;
   try {
-    return conferirClassificacao(x.d.classificar({ comentario: l.comentario, typeId: x.tipos.get(card) ?? x.tipos.get(pai ?? '') ?? null, categoriaId: categoria }));
+    return conferirClassificacao(x.d.classificar({ comentario: l.comentario, typeId: tipoDoApontamento(x, l.linha), categoriaId: l.linha.category_id }));
   } catch {
     return null;
   }
@@ -159,7 +162,9 @@ async function processarFolha(x: Execucao, passe: Passe, folha: Folha): Promise<
     }
     const linhas = [...lidos.values()].map((v) => v.linha);
     if (linhas.length === 0) return;
-    const comPessoa: LinhaComPessoa[] = [...lidos.values()].map((v) => ({ ...v.linha, pessoa_ref: v.userId === null ? null : (pessoas.get(v.userId) ?? null) }));
+    const comPessoa: LinhaComPessoa[] = [...lidos.values()].map((v) => ({
+      ...v.linha, pessoa_ref: v.userId === null ? null : (pessoas.get(v.userId) ?? null), type_id: tipoDoApontamento(x, v.linha),
+    }));
     const novas = await gravarStgApontamento(db, S, linhas, x.coletaId, agora);
     x.r.inseridos += novas;
     x.r.jaExistentes += linhas.length - novas;

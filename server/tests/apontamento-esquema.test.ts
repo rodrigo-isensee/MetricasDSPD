@@ -69,6 +69,11 @@ describe('esquema do apontamento: lista fechada de colunas (CA-AP-13)', () => {
     expect(tabela('fato_apontamento')).not.toMatch(/jsonb|payload|comment|user_id/);
     expect(todoSql.some((s) => s.includes('tg_fato_apontamento'))).toBe(false);
   });
+  it('type_id do fato (0029): só dígitos, anulável, coluna nova por migração própria (nunca editando a 0028)', () => {
+    expect(todoSql).toContain(`ALTER TABLE ${S_PADRAO.bm}.fato_apontamento ADD COLUMN type_id text NULL CHECK (type_id ~ '^[0-9]{1,12}$')`);
+    expect(tabela('fato_apontamento')).not.toContain('type_id');
+    expect(colunaDePessoa('type_id')).toBe(false);
+  });
   it('índices parciais com excluido_em nulo (A5), índice da raiz (A8) e CHECK de profundidade e raiz própria', () => {
     for (const i of ['ix_fato_apontamento_data', 'ix_fato_apontamento_pessoa', 'ix_fato_apontamento_iniciativa']) {
       expect(todoSql.some((s) => s.startsWith(`CREATE INDEX ${i} ON ${S_PADRAO.bm}.fato_apontamento `) && s.endsWith('WHERE excluido_em IS NULL')), i).toBe(true);

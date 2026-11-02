@@ -412,6 +412,7 @@
  "dspd_bm.fato_apontamento.atualizado_em timestamp with time zone NOT NULL",
  "dspd_bm.fato_apontamento.atualizado_por_coleta_id bigint NOT NULL",
  "dspd_bm.fato_apontamento.sistema_origem text NOT NULL DEFAULT 'businessmap'::text",
+ "dspd_bm.fato_apontamento.type_id text NULL",
  "dspd_bm.fato_bloqueio.bloqueio_sk bigint NOT NULL",
  "dspd_bm.fato_bloqueio.card_id character varying(32) NOT NULL",
  "dspd_bm.fato_bloqueio.id_origem character varying(32) NOT NULL",

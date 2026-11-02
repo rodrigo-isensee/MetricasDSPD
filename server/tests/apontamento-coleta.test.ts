@@ -474,3 +474,29 @@ describe('comando manual', () => {
     expect(ocupada.servidor.pedidos).toHaveLength(0);
   });
 });
+
+describe('tipo do card no fato (E2.19, filtro por tipo)', () => {
+  const tipoDe = (m: Awaited<ReturnType<typeof montar>>, id: number): string | null | undefined => m.e.fatos.get(String(id))!.type_id;
+  it('o fato recebe o type_id do card, ou o do pai na subtarefa; id que não são dígitos ou ausência de tipo viram nulo, nunca texto', async () => {
+    const regs = [
+      registroWorklog({ logged_time_id: 9_000_000_060, card_id: 9_100_000_000 }),
+      registroWorklog({ logged_time_id: 9_000_000_061, card_id: 9_999_999_999, parent_card_id: 9_100_000_000 }),
+      registroWorklog({ logged_time_id: 9_000_000_062, card_id: 9_100_000_001 }),
+      registroWorklog({ logged_time_id: 9_000_000_063, card_id: 9_100_000_002 }),
+    ];
+    const m = await montar({ escopo: [{ card_id: '9100000000', type_id: '7' }, { card_id: '9100000001', type_id: null }, { card_id: '9100000002', type_id: 'texto livre' }] }, { registros: regs, users: {} });
+    await coletarApontamentos(m.deps, carga());
+    expect([60, 61, 62, 63].map((i) => tipoDe(m, 9_000_000_000 + i))).toEqual(['7', '7', null, null]);
+    // a classificação também recebe só dígitos ou nulo
+    expect(m.chamadasClassificador.map((c) => c.typeId)).toEqual(['7', '7', null, null]);
+  });
+  it('a releitura preenche o tipo do fato antigo (mesmo hash, sem tipo) e não o apaga quando o card some do escopo', async () => {
+    const antigo = fato(1);
+    const m = await montar({ marca: MARCA, fatos: [antigo], escopo: [{ card_id: '9100000000', type_id: '12' }] }, { registros: [registroDoFato(antigo)] });
+    await coletarApontamentos(m.deps, incremental);
+    expect(m.e.fatos.get(antigo.logged_time_id)!.type_id).toBe('12');
+    const sem = await montar({ marca: MARCA, fatos: [{ ...antigo, type_id: '12', registro_sha256: 'x' }], escopo: [{ card_id: '9100000000', type_id: null }] }, { registros: [registroDoFato(antigo)] });
+    await coletarApontamentos(sem.deps, incremental);
+    expect(sem.e.fatos.get(antigo.logged_time_id)!.type_id).toBe('12');
+  });
+});
