@@ -36,7 +36,11 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
     subtarefa: [{ codigo: 'direto-no-card', rotulo: 'Direto no card' }],
     ...extra,
   });
-  const lido = (a: ArquivoDicionario, texto = 'x') => ({ arquivo: a, sha256: createHash('sha256').update(`${JSON.stringify(a)}${texto}`).digest('hex') });
+  // A4 do review da coleta: arquivo com outro conteúdo precisa de outro campo `versao`; o `texto` (diferente de 'x') vira sufixo da versão
+  const lido = (a: ArquivoDicionario, texto = 'x') => {
+    const comVersao = texto === 'x' ? a : { ...a, versao: `${a.versao}-${texto}` };
+    return { arquivo: comVersao, sha256: createHash('sha256').update(`${JSON.stringify(comVersao)}${texto}`).digest('hex') };
+  };
   const como = (p: pg.Pool): PoolLike => p as unknown as PoolLike;
   const n = async (tabela: string): Promise<number> => Number((await dono.query<{ n: string }>(`SELECT count(*) AS n FROM ${S.bm}.${tabela}`)).rows[0]!.n);
   const falha = async (p: pg.Pool, sql: string): Promise<{ code?: string }> => {
@@ -101,6 +105,24 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
     expect(Number((await dono.query<{ n: string }>(`SELECT count(*) AS n FROM ${S.core}.ref_versao_criterio WHERE referencia LIKE '059:ref-apontamento:%'`)).rows[0]!.n)).toBe(2);
   });
 
+  it('A4 do review da coleta: arquivo mudado com o campo versao já carregado com outro conteúdo é recusado e nada muda; mesmo conteúdo e versao nova passam', async () => {
+    const um = arquivo();
+    await sincronizarDicionario(como(ref), S, lido(um), DIA, new Date());
+    const mudado = arquivo({ termos: [{ subgrupo: 'testes', termos: ['teste'] }] });
+    // mesma versao do arquivo anterior, outro conteúdo (hash diferente): recusa
+    const mesmaVersao = { arquivo: mudado, sha256: createHash('sha256').update(JSON.stringify(mudado)).digest('hex') };
+    await expect(sincronizarDicionario(como(ref), S, mesmaVersao, '2026-11-05', new Date())).rejects.toMatchObject({ tipo: 'mudanca', message: expect.stringContaining('troque o campo versao') });
+    expect(await n('ref_apontamento_termo')).toBe(2);
+    expect(await vigentes('ref_apontamento_termo', 'termo_normalizado')).toEqual([{ termo_normalizado: 'homolog' }, { termo_normalizado: 'teste' }]);
+    expect(Number((await dono.query<{ n: string }>(`SELECT count(*) AS n FROM ${S.core}.ref_versao_criterio WHERE referencia LIKE '059:ref-apontamento:%'`)).rows[0]!.n)).toBe(1);
+    // com o campo versao trocado, passa
+    expect(await sincronizarDicionario(como(ref), S, lido(mudado, 'nova'), '2026-11-05', new Date())).toMatchObject({ fechados: { termos: 1 }, versaoRegistrada: true });
+    // o texto do critério registrado diz o que a varredura faz com o passado
+    const motivo = await dono.query<{ motivo: string }>(`SELECT motivo FROM ${S.core}.ref_versao_criterio WHERE referencia LIKE '059:ref-apontamento:%' ORDER BY versao_id DESC LIMIT 1`);
+    expect(motivo.rows[0]!.motivo).toContain('reclassifica a janela que reler');
+    expect(motivo.rows[0]!.motivo).not.toContain('sem reclassificar o passado');
+  });
+
   it('termo retirado só fecha: a linha fica com vigente_ate, o histórico permanece e o coletor deixa de ver o termo', async () => {
     await sincronizarDicionario(como(ref), S, lido(arquivo()), DIA, new Date());
     const r = await sincronizarDicionario(como(ref), S, lido(arquivo({ termos: [{ subgrupo: 'testes', termos: ['teste'] }] }), 'retira'), '2026-11-05', new Date());
@@ -112,7 +134,7 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
     expect(fechado.rows).toEqual([{ termo_normalizado: 'homolog', vigente_de: DIA, vigente_ate: '2026-11-05' }]);
     const dic = await carregarDicionario(coletor, S);
     expect(dic.termos).toEqual([{ prioridade: 2, subgrupo: 'testes', termos: ['teste'] }]);
-    expect(dic.versao).toBe(arquivo().versao);
+    expect(dic.versao).toBe(`${arquivo().versao}-retira`);
     // relida a mesma troca de arquivo, nada muda
     expect(await sincronizarDicionario(como(ref), S, lido(arquivo({ termos: [{ subgrupo: 'testes', termos: ['teste'] }] }), 'retira'), '2026-11-05', new Date())).toMatchObject({ versaoRegistrada: false });
   });

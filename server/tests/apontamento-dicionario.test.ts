@@ -211,6 +211,7 @@ const bancoComoResposta = (e: EstadoBanco, inserts: Chamada[] = []) => (c: Chama
   if (t.includes('FROM dspd_bm.ref_apontamento_termo')) return e.banco.termos;
   if (t.includes('FROM dspd_bm.ref_apontamento_regra_tipo')) return e.banco.regras;
   if (t.includes('FROM dspd_bm.ref_tipo_card')) return e.tipos;
+  if (t.includes('starts_with(referencia')) return e.referencias.filter((r) => r.startsWith(String(c.valores[0])) && r !== c.valores[1]).map(() => ({ '?column?': 1 }));
   if (t.includes('max(vigente_desde)')) return [{ ultima: e.ultima }];
   if (t.includes('INSERT INTO dspd_core.ref_versao_criterio')) { inserts.push(c); return [{ versao_id: '77' }]; }
   if (t.includes('SELECT referencia')) return e.referencias.map((referencia) => ({ referencia }));
@@ -298,6 +299,33 @@ describe('sincronizarDicionario (dspd_ref: INSERT e UPDATE de vigente_ate, numa 
       expect(await sincronizarDicionario(db.pool, S, arquivo(), dia, new Date())).toMatchObject({ versaoRegistrada: true });
     }
     expect(inserts.filter((c) => c.texto.includes('ref_versao_criterio')).map((c) => c.valores[0])).toEqual(['2026-11-02', '2026-11-03']);
+  });
+  it('A4 do review: arquivo mudado com o campo versao já usado por outro conteúdo é recusado e nada é gravado; mesmo conteúdo ou versao nova passam', async () => {
+    const e = vazio();
+    e.referencias = [`059:ref-apontamento:v1:${'a'.repeat(64)}`, `059:ref-apontamento:v1_2:${'c'.repeat(64)}`];
+    const inserts: Chamada[] = [];
+    const db = criarDublePg(bancoComoResposta(e, inserts));
+    // v1 já foi carregada com o hash 'a...', e o arquivo de agora (hash 'b...') muda o dicionário com o mesmo rótulo
+    const erro = await sincronizarDicionario(db.pool, S, arquivo(), '2026-11-05', new Date()).then(() => undefined, (x: unknown) => x as Error);
+    expect(erro).toMatchObject({ tipo: 'mudanca' });
+    expect(erro!.message).toContain('troque o campo versao');
+    expect(inserts).toEqual([]);
+    expect(db.chamadas.at(-1)!.texto).toBe('ROLLBACK');
+    const consulta = db.chamadas.find((c) => c.texto.includes('starts_with(referencia'))!;
+    expect(consulta.texto).not.toMatch(/LIKE/);
+    expect(consulta.valores).toEqual(['059:ref-apontamento:v1:', `059:ref-apontamento:v1:${'b'.repeat(64)}`]);
+    // o mesmo conteúdo (mesmo hash) com o mesmo rótulo não é conflito, e rótulo novo também não ('v1_2' não é prefixo de 'v1:')
+    const igual = { arquivo: arquivoMinimo(), sha256: 'a'.repeat(64) };
+    await expect(sincronizarDicionario(criarDublePg(bancoComoResposta(e)).pool, S, igual, '2026-11-05', new Date())).resolves.toMatchObject({ versaoRegistrada: true });
+    await expect(sincronizarDicionario(criarDublePg(bancoComoResposta(e)).pool, S, arquivo(arquivoMinimo({ versao: 'v9' })), '2026-11-05', new Date())).resolves.toMatchObject({ versaoRegistrada: true });
+  });
+  it('sem diferença no dicionário, a versao repetida com outro hash não recusa nada (idempotente)', async () => {
+    const e = vazio();
+    e.banco = bancoDe();
+    e.referencias = [`059:ref-apontamento:v1:${'a'.repeat(64)}`];
+    const inserts: Chamada[] = [];
+    expect(await sincronizarDicionario(criarDublePg(bancoComoResposta(e, inserts)).pool, S, arquivo(), '2026-11-05', new Date())).toMatchObject({ versaoRegistrada: false });
+    expect(inserts).toEqual([]);
   });
   it('data anterior à última versão do dicionário: recusa e desfaz tudo; a mesma data ou posterior passa', async () => {
     const e = vazio();

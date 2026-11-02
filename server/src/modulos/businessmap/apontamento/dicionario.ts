@@ -190,6 +190,16 @@ export async function sincronizarDicionario(pool: PoolLike, S: Esquemas, lido: D
       return { ...base, subgrupos: 0, termos: 0, regras: 0, fechados: { subgrupos: 0, termos: 0, regras: 0 }, versaoRegistrada: false };
     }
 
+    // A4 do review da coleta: `versao_dicionario` (staging e fato) identifica o dicionário pelo rótulo do arquivo. Arquivo mudado com um rótulo
+    // que já foi carregado com outro conteúdo (outro sha256) deixaria duas classificações diferentes com o mesmo rótulo: recusa. `starts_with`,
+    // e não LIKE: `_` e `%` do rótulo não são curinga.
+    const mesmaVersao = await db.query(
+      `SELECT 1 FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND starts_with(referencia, $1) AND referencia <> $2 LIMIT 1`,
+      [`${PREFIXO_REFERENCIA}${lido.arquivo.versao}:`, referenciaDaVersao(lido.arquivo.versao, lido.sha256)]);
+    if (mesmaVersao.rows.length > 0) {
+      throw new ErroDicionario('mudanca', `a versão "${lido.arquivo.versao}" do dicionário já foi carregada com outro conteúdo: troque o campo versao do arquivo`);
+    }
+
     // A vigência nunca volta no tempo: a data não pode ser anterior à da última versão do dicionário nem a de uma linha já fechada ou aberta.
     const ultima = (await db.query<{ ultima: string | null }>(
       `SELECT max(vigente_desde)::text AS ultima FROM ${S.core}.ref_versao_criterio WHERE dominio = 'businessmap' AND referencia LIKE $1`, [`${PREFIXO_REFERENCIA}%`])).rows[0]!.ultima;
