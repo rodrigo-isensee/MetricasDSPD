@@ -165,6 +165,7 @@ export const pessoaApontamentoSchema = z
     identificada: z.boolean(),
   })
   .strict()
+export type PessoaApontamento = z.infer<typeof pessoaApontamentoSchema>
 
 /** Linha de distribuição (projeto, tipo, subgrupo). `participacao` = parte das horas do bloco. */
 const linhaDistribuicaoSchema = z
