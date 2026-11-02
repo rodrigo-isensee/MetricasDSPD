@@ -1,11 +1,15 @@
 import { createHash } from 'node:crypto';
 import type pg from 'pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { executarApontamento } from '../src/modulos/businessmap/apontamento/comando.js';
 import {
   analisarDicionario, carregarDicionario, lerDicionario, sincronizarDicionario, type ArquivoDicionario,
 } from '../src/modulos/businessmap/apontamento/dicionario.js';
+import { montarDepsApontamento } from '../src/modulos/businessmap/apontamento/montagem.js';
 import type { PoolLike } from '../src/plataforma/db/pool.js';
-import { poolDe, S, unico, url } from './pg/ctx.js';
+import { criarClienteHttp } from '../src/plataforma/http.js';
+import { cenarioWorklogVazio, registroWorklog, subirServidorWorklog } from './apontamento-duble.js';
+import { novaColeta, poolDe, S, unico, url } from './pg/ctx.js';
 
 // Pedido 059, E2.19: carga do dicionário por ref:sync contra o PostgreSQL local, com os papéis reais (dspd_ref grava, dspd_coletor lê,
 // dspd_api não vê nada). `ref_tipo_card` é append-only (gatilho de vigência): os tipos de teste têm id e nome únicos e ficam no schema
@@ -52,6 +56,7 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
   beforeEach(limpar);
   afterAll(async () => {
     await limpar();
+    await dono.query(`UPDATE ${S.bm}.ctl_coleta SET tarefa = 'reconciliacao' WHERE versao_coletor IN ('ap-teste', 'bm-ap/1')`);
     await Promise.all([dono, ref, coletor, api].map((p) => p.end()));
   });
 
@@ -125,5 +130,42 @@ d('059: dicionário do apontamento (ref:sync) no PostgreSQL', () => {
     expect(r).toMatchObject({ subgrupos: 12, regras: 2, versaoRegistrada: true });
     expect(await n('ref_apontamento_termo')).toBe(real.arquivo.termos.flatMap((t) => t.termos).length);
     expect(analisarDicionario(JSON.stringify(real.arquivo)).arquivo).toEqual(real.arquivo);
+  });
+
+  it('ponta a ponta do comando: dicionário carregado por ref:sync, montado pelo coletor e aplicado na coleta (subgrupo, versão do arquivo e type_id no fato)', async () => {
+    const b = 9_660_000_000 + Math.floor(Math.random() * 1000) * 1000;
+    await sincronizarDicionario(como(ref), S, lido(arquivo()), DIA, new Date());
+    const coleta = await novaColeta(dono, S.bm);
+    for (const id of [b + 1, b + 2]) {
+      await dono.query(`INSERT INTO ${S.bm}.dim_card (card_id, coletado_em, atualizado_por_coleta_id) VALUES ($1, now(), $2)`, [String(id), coleta]);
+    }
+    await dono.query(
+      `INSERT INTO ${S.bm}.stg_card (id_origem, anterior_sk, payload_sha256, payload, quadro_id, arquivado, excluido_detectado, coletado_em, coleta_id)
+       VALUES ($1, NULL, decode($2, 'hex'), $3::jsonb, '1', false, false, now(), $4)`, [String(b + 1), 'ab'.repeat(32), JSON.stringify({ card_id: b + 1, type_id: Number(tipoKaizen), workflow_id: '1' }), coleta]);
+    await dono.query(`INSERT INTO ${S.bm}.ctl_coleta (tarefa, iniciado_em, finalizado_em, status, versao_coletor) VALUES ('coleta_incremental', now(), now(), 'sucesso', 'ap-teste')`);
+    const servidor = await subirServidorWorklog({
+      ...cenarioWorklogVazio(),
+      registros: [
+        registroWorklog({ logged_time_id: b + 11, card_id: b + 1, user_id: null, comment: 'qualquer coisa escrita' }),
+        registroWorklog({ logged_time_id: b + 12, card_id: b + 2, user_id: null, comment: 'Rodar Teste de homologação' }),
+        registroWorklog({ logged_time_id: b + 13, card_id: b + 2, user_id: null, comment: null }),
+      ],
+    });
+    try {
+      const cliente = criarClienteHttp({ urlBase: servidor.url, apikey: 'chave-do-teste-0123456789', limitePorMinuto: 100_000, timeoutMs: 3000 }, { dormir: () => Promise.resolve() });
+      const deps = await montarDepsApontamento({ cliente, pool: como(coletor), S, sal: 'sal-de-teste-com-pelo-menos-32-bytes!!', hostBase: 'bm.exemplo.test', agora: () => new Date('2026-11-04T15:00:00Z') });
+      const r = await executarApontamento(deps, { tipo: 'carga_inicial' });
+      expect(r).toMatchObject({ estado: 'sucesso', lidos: 3, inseridos: 3 });
+      const f = await dono.query<{ logged_time_id: string; subgrupo_codigo: string; versao_dicionario: string; type_id: string | null }>(
+        `SELECT logged_time_id, subgrupo_codigo, versao_dicionario, type_id FROM ${S.bm}.fato_apontamento WHERE logged_time_id = ANY($1::text[]) ORDER BY logged_time_id`, [[b + 11, b + 12, b + 13].map(String)]);
+      expect(f.rows).toEqual([
+        { logged_time_id: String(b + 11), subgrupo_codigo: 'gestao', versao_dicionario: arquivo().versao, type_id: tipoKaizen },
+        { logged_time_id: String(b + 12), subgrupo_codigo: 'testes', versao_dicionario: arquivo().versao, type_id: null },
+        { logged_time_id: String(b + 13), subgrupo_codigo: 'nao-classificado', versao_dicionario: arquivo().versao, type_id: null },
+      ]);
+    } finally {
+      await servidor.fechar();
+      await dono.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [[String(b + 1), String(b + 2)]]);
+    }
   });
 });

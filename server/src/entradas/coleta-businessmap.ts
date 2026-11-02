@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pino } from 'pino';
-import { analisarArgumentos, ErroColetaBm, executarColeta, lerConferencia } from '../modulos/businessmap/index.js';
+import { analisarArgumentos, coletarApontamentos, ErroColetaBm, executarColeta, lerConferencia, montarDepsApontamento } from '../modulos/businessmap/index.js';
 import { carregarConfigColetaBusinessMap } from '../plataforma/config.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
 import { criarPool } from '../plataforma/db/pool.js';
@@ -34,9 +34,18 @@ try {
     { urlBase: cfg.BUSINESSMAP_URL_BASE, apikey: cfg.BUSINESSMAP_APIKEY, limitePorMinuto: cfg.BUSINESSMAP_LIMITE_POR_MINUTO, timeoutMs: cfg.BUSINESSMAP_TIMEOUT_MS, paginaTamanho: cfg.BUSINESSMAP_PAGINA_TAMANHO },
     { log: (e) => log.debug(e, 'businessmap') },
   );
+  const S = montarEsquemas(cfg.DSPD_SCHEMA_PREFIXO);
+  const hostBase = new URL(cfg.BUSINESSMAP_URL_BASE).host;
+  const sal = cfg.PESSOA_ELIMINADA_SAL;
+  const coletor = poolColetor;
   const r = await executarColeta({
-    cliente, poolColetor, poolRef, conf: lerConferencia(), quadros: cfg.BUSINESSMAP_QUADROS_IDS, hostBase: new URL(cfg.BUSINESSMAP_URL_BASE).host,
-    agora: () => new Date(), paginaTamanho: cfg.BUSINESSMAP_PAGINA_TAMANHO, S: montarEsquemas(cfg.DSPD_SCHEMA_PREFIXO),
+    cliente, poolColetor, poolRef, conf: lerConferencia(), quadros: cfg.BUSINESSMAP_QUADROS_IDS, hostBase,
+    agora: () => new Date(), paginaTamanho: cfg.BUSINESSMAP_PAGINA_TAMANHO, S,
+    // Pedido 059 (ADR 0025 item 3): no incremental, o worklog entra como etapa, depois dos cards e sob a mesma trava; só com o sal da supressão
+    // configurado (sem ele a etapa não existe e `apontamento` sai `null`). A carga inicial do worklog tem o comando próprio `bm:apontamento`.
+    ...(sal === undefined ? {} : {
+      etapaApontamento: async () => coletarApontamentos(await montarDepsApontamento({ cliente, pool: coletor, S, sal, hostBase, agora: () => new Date() }), { tipo: 'incremental' }),
+    }),
   }, args);
   process.stdout.write(`${JSON.stringify(r, null, 2)}\n`);
   process.exitCode = r.estado === 'sucesso' ? 0 : 3;
