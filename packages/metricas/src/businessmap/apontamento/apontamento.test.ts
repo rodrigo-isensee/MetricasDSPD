@@ -846,6 +846,21 @@ describe('calcularApontamento (blocos da resposta)', () => {
     expect(r.kpis.completos).toMatchObject({ status: 'ok', k: 22, n: 32 })
   })
 
+  it('outra-area não é pessoa ativa: três pessoas de outra área no mesmo dia contam nas horas e não nas pessoas', () => {
+    const ls = [
+      ...muitas(3, { pessoaRef: 'outra-area', segundos: 6 * H }),
+      linha({ pessoaRef: 'p1' }),
+    ]
+    const r = calc(ls)
+    expect(r.kpis).toMatchObject({
+      segundos: 19 * H,
+      apontamentos: 4,
+      pessoasAtivas: 1,
+      atipicos: 0,
+    })
+    expect(r.achados.map((a) => a.codigo)).not.toContain('dias-atipicos')
+  })
+
   it('pessoa sem apontamento atípico no recorte filtrado ainda é marcada pelo dia inteiro', () => {
     // p1 aponta 10 h + 10 h no mesmo dia: atípico; o filtro de tipo deixa só uma linha (10 h), ainda marcada
     const ls = [
