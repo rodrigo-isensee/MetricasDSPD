@@ -119,22 +119,25 @@ export function palavrasDe(normalizado: string): string[] {
   return normalizado.match(/[\p{L}\p{N}]+/gu) ?? []
 }
 
-/** Palavras únicas por primeira letra: o casamento só compara termo e palavra que começam igual. */
-function indexarPalavras(palavras: readonly string[]): Map<string, string[]> {
-  const indice = new Map<string, string[]>()
-  for (const palavra of new Set(palavras)) {
-    const chave = palavra.charAt(0)
-    const lista = indice.get(chave)
-    if (lista) lista.push(palavra)
-    else indice.set(chave, [palavra])
-  }
-  return indice
+/** Palavras únicas em ordem de unidade de código: as que começam com um termo ficam juntas, a partir do primeiro >= termo. */
+function ordenarPalavras(palavras: readonly string[]): string[] {
+  return [...new Set(palavras)].sort((x, y) => (x < y ? -1 : 1))
 }
 
-/** Início de palavra (C-6): `startsWith` de cada palavra com o termo, sem expressão regular do dicionário (ADR 0020 R4-2). */
-function casaInicioDePalavra(indice: Map<string, string[]>, termo: string): boolean {
-  if (termo === '') return indice.size > 0
-  return (indice.get(termo.charAt(0)) ?? []).some((palavra) => palavra.startsWith(termo))
+/**
+ * Início de palavra (C-6): `startsWith` entre palavra e termo, sem expressão regular do dicionário (ADR 0020 R4-2). As
+ * palavras que começam com o termo são contíguas na ordem, então basta olhar a primeira palavra >= termo (busca
+ * binária): custo O(log palavras) por termo, e o teto de 2000 pontos de código e 500 termos cabe no orçamento.
+ */
+function casaInicioDePalavra(ordenadas: readonly string[], termo: string): boolean {
+  let lo = 0
+  let hi = ordenadas.length
+  while (lo < hi) {
+    const meio = (lo + hi) >>> 1
+    if ((ordenadas[meio] as string) < termo) lo = meio + 1
+    else hi = meio
+  }
+  return lo < ordenadas.length && (ordenadas[lo] as string).startsWith(termo)
 }
 
 type Regra = ({ tipo: 'termo' } & RegraPorTermo) | ({ tipo: 'tipo' } & RegraPorTipo)
@@ -147,7 +150,7 @@ export function classificarApontamento(
   const semComentario = normalizado === ''
   const palavras = palavrasDe(normalizado)
   const qtdPalavras = palavras.length
-  const indice = indexarPalavras(palavras)
+  const ordenadas = ordenarPalavras(palavras)
 
   const regras: Regra[] = [
     ...dicionario.termos.map((r) => ({ tipo: 'termo' as const, ...r })),
@@ -155,7 +158,7 @@ export function classificarApontamento(
   ]
   const casou = ordenarNeutro(regras, (r) => [r.prioridade, r.subgrupo]).find((r) =>
     r.tipo === 'termo'
-      ? r.termos.some((t) => casaInicioDePalavra(indice, t))
+      ? r.termos.some((t) => casaInicioDePalavra(ordenadas, t))
       : r.typeId === entrada.typeId && (r.condicao === 'sempre' || semComentario),
   )
   const subgrupo =
