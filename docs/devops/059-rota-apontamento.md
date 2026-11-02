@@ -1,15 +1,23 @@
 ---
 tipo: revisao-devops
 contrato: 1
-pedido: 059-rota-apontamento
+pedido: 059-aba-apontamento
 branch: feature/059-rota-apontamento
-commit: 8a92a498f5b5a71d7477d30dd12dcc7be995db66
+commit: 58ef21982ca6e9ac40734b4ff95c84324d040578
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-02
 ---
-# Review de devops: rota da aba Apontamento (pedido 059, E2.23, K-193)
+# Review de devops: rota da aba Apontamento (pedido 059, E2.23 e E2.56, K-193)
 
+## Renovação por delta (E2.56)
+Base do delta: `8a92a498f5b5a71d7477d30dd12dcc7be995db66` (ponta do parecer anterior); ponta revisada: `58ef21982ca6e9ac40734b4ff95c84324d040578`. O parecer segue aprovado, e o campo `pedido` do frontmatter foi corrigido para `059-aba-apontamento`.
+- **Infra no intervalo:** `git diff 8a92a49..58ef219` em `.github`, `docker`, `docker-compose.yml`, `docker-compose.homolog.yml`, `.env.example`, `.env.homolog.example`, `server/.env.example` e `web/.env.example` volta vazio. Workflows, compose, nginx, scripts de papéis e exemplos de env são os mesmos do parecer abaixo, e as conclusões valem sem mudança (`R-CUSTO`, `R-MAIN`, `R-VERIFY`).
+- **Fora desses caminhos (leitura de devops, sem reabrir o mérito dos outros papéis):** `server/package.json` ganha três scripts manuais (`bm:apontamento`, `bm:eliminar-pessoa`, `bm:ref-sync-apontamento`), que nenhum workflow chama; `grants.ts` inclui `type_id` nas colunas do papel da aba; `config.ts` ganha dois esquemas de entrada que exigem `PESSOA_ELIMINADA_SAL`. Nenhum workflow nem compose passa essa variável, então CI e homologação não a usam, e a coleta do worklog não roda lá; o sal fica só no `.env` do dono (documentado em `docs/architecture/server.md`). Migrações 0029 a 0033 não mudam a mecânica de papéis: o `reparar-papeis.sh` continua cobrindo o papel da aba.
+- **Ferramentas:** `shellcheck`, `actionlint` e `docker build` não rodaram de novo porque os arquivos não mudaram; `actionlint` e `docker build` seguem fora do PATH (lacuna, nada instalado).
+- **Achados do parecer anterior:** os três recomendados continuam como estão, mais um novo abaixo; nenhum bloqueante.
+
+## Parecer original (E2.23), sobre 8a92a49
 Aprovado, sem achado bloqueante. Escopo: `git diff origin/develop...origin/feature/059-rota-apontamento` em `.github`, `docker`, `docker-compose.yml`, `docker-compose.homolog.yml` e os exemplos de env (10 arquivos, 38 linhas a mais, 12 a menos), lido por diff, sem rodar workflow nem suíte. Ferramentas: `shellcheck` nos dois scripts de papéis, sem aviso; `actionlint` e `docker build` não estão no PATH (lacuna registrada, nada instalado).
 
 ## O que muda
@@ -30,6 +38,7 @@ Aprovado, sem achado bloqueante. Escopo: `git diff origin/develop...origin/featu
 - docker-compose.yml:52 · `APONTAMENTO_PUBLICACAO_LOOPBACK` fixo em `"1"` declara a publicação em loopback sem derivar do `ports:`; se alguém publicar a API em outro endereço com `APONTAMENTO_NOMES=1`, a guarda de partida confia na declaração · deixar um comentário ao lado do `ports:` da API (`:54`) avisando que os dois andam juntos · recomendado
 - docker-compose.yml:48-52 · com `APONTAMENTO_NOMES=1` a API escuta `0.0.0.0` no contêiner e qualquer outro contêiner da rede do compose alcança `api:3000` sem passar pela porta publicada; a defesa ali é só a validação de Host/Origin (421) · o parecer de segurança E2.24 decide se basta; nenhuma mudança de devops agora · recomendado
 - docker/postgres/reparar-papeis.sh:10 · volume antigo precisa rodar o script com `DSPD_PWD_APONTAMENTO` antes do `db:migrate`, senão a migração que concede GRANT ao papel falha por papel inexistente; já está como ação do dono no relatório da E2.16 · repetir a ordem na descrição do PR de integração · recomendado
+- .env.example · falta a linha `PESSOA_ELIMINADA_SAL=` vazia, exigida por `bm:apontamento` e `bm:eliminar-pessoa` (guarda de partida) · o tech-lead acrescenta na integração, como já decidido; sem valor real no exemplo · recomendado
 
 ## Custo e rollback
 - Custo: nenhum minuto de CI novo, nenhum recurso novo, nenhum serviço pago (`R-CUSTO`).
