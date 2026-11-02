@@ -1279,3 +1279,19 @@
 | 2026-11-02 07:07 | 059-aba-apontamento | 059-aba-apontamento-node-backend-41.md | brief | 3 | reprovado | s | PQ com sha antigo das branches de origem | forma | jarvis |
 | 2026-11-02 07:09 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-5.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-02 07:10 | 059-aba-apontamento | 059-aba-apontamento-node-backend-42.md | brief | 4 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:32 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-42.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:34 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-43.md | brief | 1 | reprovado | s | Ler restrito a server; contagem do teto sem origem | escopo | jarvis |
+| 2026-11-02 07:34 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-14.md | brief | 2 | reprovado | s | tardio migracao 0029 no texto da etapa | escopo | jarvis |
+| 2026-11-02 07:35 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-14.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:38 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-44.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:39 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-15.md | brief | 3 | reprovado | s | tardio base do delta 75bd9d9 contra 8a92a49 | decisao | jarvis |
+| 2026-11-02 07:43 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-16.md | brief | 4 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:46 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-6.md | brief | 1 | reprovado | parcial | QA antes do review e da seguranca renovados na ponta; reenviar depois | etapa | jarvis |
+| 2026-11-02 07:47 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-45.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:49 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-17.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:51 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-7.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:55 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-8.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 07:59 | 059-aba-apontamento | 059-aba-apontamento-ux-designer-6.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 08:15 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-46.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 08:19 | 059-aba-apontamento | 059-aba-apontamento-devops-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 08:28 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-47.md | brief | 1 | aprovado | s |  | — | jarvis |
