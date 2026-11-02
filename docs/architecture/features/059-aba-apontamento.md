@@ -2,10 +2,10 @@
 tipo: plano-tecnico
 contrato: 1
 pedido: 059
-estado: proposta
+estado: vigente
 ux: docs/ux/059-aba-apontamento.md
-adrs: [0011, 0014, 0015, 0016, 0020, 0022]
-agentes: [node-backend, react-frontend, qa-engineer, tech-lead, security-engineer, software-architect]
+adrs: [0011, 0014, 0015, 0016, 0020, 0022, 0025]
+agentes: [node-backend, react-frontend, qa-engineer, tech-lead, security-engineer, software-architect, ux-designer]
 gatilhos_seguranca: [dados-pessoais, credencial-externa, banco]
 ---
 
@@ -21,6 +21,14 @@ Etapa E1.2 do pedido 059 (K-193). Entrada: a especificação do dono "Painel de 
 - `GET /loggedTimeCategories`: catálogo de **categorias de tempo**, domínio fechado do próprio BusinessMap (base da melhoria MA-3).
 - Consequência: a chave única do apontamento existe (`logged_time_id`), a exclusão tem fonte (`logged_time_deleted`) e o resto do AP-6 da segurança passa de "não lido" a "lido na documentação, confirmar no spike" (F1, §7).
 
+## 0. Decisões do dono aplicadas (E2.2, 2026-11-01)
+Revisão E2.2 deste plano: o prazo passou a ser **a aba inteira até 2026-11-02 22:00** (decisão do dono de 2026-11-01 21:09, que supera a fatia "só F0" do §7 original). Aplicado aqui, sem nova inferência:
+- **Exceção e texto (Q-A12 = "A"):** textos 1.1 e 1.2 aprovados com as cláusulas o1 a o4 na redação registrada no pedido em 2026-11-01 21:30 (ver §1.3, que passa a trazer essa redação). Aplicação pela E1.7 (PR do tech-lead, merge do dono).
+- **Recomendações em bloco ("A"):** Q-A1 a Q-A11 deste plano, P-1 a P-7 do UX e P-3 a P-8 da segurança seguem a recomendação registrada em cada pergunta (§6 traz a resposta em cada linha). O dono pode reabrir qualquer item; reabertura muda o item no plano, não o código já mesclado sem nova delegação.
+- **Onde o nome real roda (P-1 da segurança):** nome real **só na máquina do dono ou na rede local sob controle dele**; desligado em qualquer outro ambiente (homologação, CI, servidor). Login pelo AD da empresa é fatia futura, fora deste prazo. Controle técnico: interruptor `APONTAMENTO_NOMES` (ADR 0020, revisão 4, R4-5).
+- **Retenção (P-2 da segurança = "A"):** o vínculo entre horas e pessoa fica enquanto a aba usar o dado; na eliminação a pedido saem o nome (linha de `dim_responsavel`) e o vínculo (`fato_apontamento.pessoa_ref` anulada), e as horas ficam como agregado do time, sem sobrescrever valor de métrica. O prazo exato vai ao DPO **antes** da fatia de retenção (expurgo automático), que fica fora deste prazo; o procedimento de eliminação a pedido entra (§7, trilha A).
+- **Horas apontadas ("A"):** só capacidade, utilização e distribuição do tempo do time e de cada pessoa; nunca esforço de entrega, velocidade, custo de card ou meta (já no texto 1.1 e 1.2).
+
 ## 1. Texto da exceção (proposta literal; aplicada depois por PR que o dono revisa e mescla)
 
 Decisões do dono que o texto traduz (2026-11-01): "A" (registrar a exceção no `CLAUDE.md` e no briefing por PR do dono), "C" (qualquer usuário do painel vê a aba, inclusive fora do time), "A" das horas (horas só para capacidade, utilização e distribuição do tempo do time e de cada pessoa; nunca esforço de entrega, velocidade, custo de card ou meta). Nada nesta etapa edita o `CLAUDE.md` nem o briefing.
@@ -35,8 +43,14 @@ Acrescentar **ao fim da lista** do §7.1, sem alterar os itens existentes (o ite
 
 > **Exceção registrada (decisão do dono de 2026-11-01, pedido 059): aba Apontamento.** Vale só para essa aba e só para o worklog do BusinessMap. Ali o painel mostra nome e visão por pessoa (horas apontadas, capacidade, utilização, distribuição do tempo e qualidade do apontamento) a qualquer usuário do painel, inclusive fora do time. As horas apontadas são lidas como uso da capacidade do time e de cada pessoa, nunca como esforço de entrega, velocidade, custo de card ou meta. Não se cria meta por pessoa nem comparação entre times, e a visão por pessoa não sai da aba para outra métrica, painel ou exportação. A finalidade é dimensionar capacidade e melhorar a qualidade do apontamento, não avaliar desempenho individual. A sustentação (Acelerato) não entra na exceção.
 
-### 1.3 Cláusulas opcionais (cada uma entra no texto só se o dono aceitar)
-Vêm das propostas da segurança (§6 do modelo de ameaças, P-7) e do UX (M-3, M-4, P-2); são regra de negócio e não entram por inferência:
+### 1.3 Cláusulas o1 a o4 (aprovadas pelo dono em 2026-11-01, Q-A12 = "A")
+**Redação aprovada** (a apresentada ao dono e registrada no pedido em 2026-11-01 21:30; é a que a E1.7 aplica nos textos 1.1 e 1.2):
+- (o1) "a lista de pessoas vem em ordem neutra (alfabética); ordenar por total é escolha de quem lê"
+- (o2) "a utilização por pessoa não tem semáforo, faixa de bom ou ruim, nem comparação com a média"
+- (o3) "percentual por pessoa só aparece com 20 apontamentos ou mais; abaixo disso, só soma e contagem"
+- (o4) "a aba fica fora da exportação do painel"
+
+Redação original da proposta, para registro (vem da segurança, §6 do modelo de ameaças, P-7, e do UX, M-3, M-4, P-2):
 - (o1) "A ordem padrão de pessoas é neutra (alfabética ou por equipe); ordenar por total é escolha explícita de quem lê."
 - (o2) "Utilização por pessoa sem semáforo, faixa de bom/ruim nem comparação com a média; é leitura relativa, porque o worklog não cobre a jornada inteira."
 - (o3) "Estatística derivada por pessoa (utilização, percentual de qualidade) só com 20 ou mais apontamentos na janela; abaixo disso, só soma e contagem."
@@ -131,6 +145,277 @@ Nenhum cálculo na rota nem no front. Em `packages/metricas/src/businessmap/apon
 - Consulta: `de` e `ate` (`AAAA-MM-DD`, janela máxima de 12 meses), `pessoa` (lista de `pessoaRef`), `projeto` (`card_id` da raiz), `tipo` (`type_id`), `subgrupo` e `qualidade` (códigos de lista fechada), `categoria` (se Q-A3), `subtarefa` (se P-4), `nivelMatriz` (`tipo|subtarefa|subgrupo`), `diarioDe`/`diarioAte` (janela do mapa, M-7). Nada de texto livre.
 - Resposta (agregada no servidor pela biblioteca; nunca linhas brutas por pessoa e dia além do mapa diário): `pessoas[] { pessoaRef, rotulo }` (rótulo = nome com `APONTAMENTO_NOMES` ligado, senão "Pessoa n"), `kpis`, `distribuicao { projeto, tipo, subgrupo, categoria }`, `qualidade { geral, porPessoa }`, `matriz`, `capacidade { porPessoa, mensal }`, `diario`, `achados[]`, `base { n, insuficiente }` por bloco, `criterios[]` (versões do dicionário e do calendário com data, T2.6), `frescor` (última coleta). Comentário, `user_id` e `responsavel_id` nunca saem.
 - Front: `web/src/features/apontamento/` consome só esta rota; filtro de pessoa por `pessoaRef` na URL, nunca nome; não persiste a pessoa em `localStorage` (AP-8).
+- A forma exata é o schema zod do §3.9; onde este §3.8 e o §3.9 divergirem, vale o §3.9.
+
+### 3.9 Contrato zod da API da aba (versão 1, para o front começar com mock)
+Arquivo de destino: `packages/contratos/src/apontamento.ts` (exportado pelo `index.ts` do pacote de contratos; **não** é o pacote de métricas, então não toca a fronteira `coletor/` da ADR 0020). O node-backend cria o arquivo copiando este bloco e pode ajustar nomes internos, tipos auxiliares e mensagens; **mudar a forma** (campo, enum, nulidade) depois que o front começar é mudança de contrato pela `docs/contratos/politica-de-mudanca.md` e avisa o react-frontend. Princípios que o schema carrega:
+- **Rota única e resposta agregada:** `GET /api/apontamento` devolve tudo o que a aba mostra numa resposta; nada de rota por cartão (AP-2: um módulo, um pool, um papel). Nenhum campo traz `user_id`, `responsavel_id`, comentário, título de subtarefa ou e-mail.
+- **Horas em segundos inteiros** (C-3); o front só formata. Todo percentual vem pronto da biblioteca T2.5, com o piso de 20 (`taxaSchema` e `pctComPisoSchema`); o front não divide nada.
+- **Pessoa só por `pessoaRef`** (`p` + inteiro, chave opaca de `dim_responsavel.pessoa_ref`, ADR 0020 R4-4); o rótulo vem em `pessoas[]`. Blocos por pessoa referem `pessoaRef`, nunca repetem o rótulo.
+- **Ordem neutra (o1):** `pessoas[]` e toda lista por pessoa vêm em ordem alfabética do rótulo (com nomes desligados, "Pessoa n" na ordem de `pessoaRef`); "ordenar por total" é ordenação local do front, sem nova chamada.
+- **Sem semáforo nem média por pessoa (o2):** o schema não tem campo de meta, faixa, status ou média da equipe por pessoa; utilização por pessoa é só número.
+- **Consulta estrita:** parâmetro desconhecido = 400 (CA-AP-6); listas por vírgula, com teto de tamanho; nada de texto livre.
+
+```ts
+import { z } from 'zod'
+import { MINIMO_AMOSTRA, marcacaoCriterioSchema, taxaSchema } from './comum'
+import { seloFrescorSchema } from './coletas'
+
+export const VERSAO_CONTRATO_APONTAMENTO = 1 as const
+
+// ---------- primitivos ----------
+const dataCivil = z.string().regex(/^\d{4}-\d{2}-\d{2}$/) // AAAA-MM-DD, America/Sao_Paulo
+const mesCivil = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/) // AAAA-MM
+const instante = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?([+-]\d{2}:\d{2}|Z)$/)
+const idNumerico = z.string().regex(/^\d{1,12}$/) // card_id, type_id do BusinessMap
+const codigo = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/).max(40) // códigos de lista fechada da referência
+const segundos = z.number().int().nonnegative()
+const contagem = z.number().int().nonnegative()
+
+/** Chave opaca de pessoa (`dim_responsavel.pessoa_ref`), nunca o `user_id` do BusinessMap (ADR 0020, R4-4). */
+export const pessoaRefSchema = z.string().regex(/^p[1-9]\d{0,8}$/)
+export type PessoaRef = z.infer<typeof pessoaRefSchema>
+
+/** Flags de qualidade (§3.4; não excludentes, M-11 do UX). "completo" = nenhuma flag. */
+export const FLAGS_QUALIDADE = ['sem-comentario', 'generico', 'sem-vinculo', 'sem-iniciativa', 'valor-atipico'] as const
+export const flagQualidadeSchema = z.enum(FLAGS_QUALIDADE)
+export const filtroQualidadeSchema = z.enum([...FLAGS_QUALIDADE, 'completo'])
+
+export const NIVEIS_MATRIZ = ['tipo', 'subtarefa', 'subgrupo'] as const // um nível por vez (CA-5)
+export const FAIXAS_DIARIO = ['zero', 'ate-4h', '4h-a-8h', 'mais-de-8h'] as const // faixas fixas (M-6 do UX)
+
+/** Percentual com piso de 20 (o3; P-1 do UX): abaixo do mínimo não há `pct`, só a contagem `n`. */
+export const pctComPisoSchema = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('ok'), n: z.number().int().min(MINIMO_AMOSTRA), pct: z.number().nonnegative() }).strict(),
+  z.object({ status: z.literal('insuficiente'), n: z.number().int().max(MINIMO_AMOSTRA - 1), minimo: z.literal(MINIMO_AMOSTRA) }).strict(),
+])
+export type PctComPiso = z.infer<typeof pctComPisoSchema>
+
+// ---------- consulta ----------
+const lista = <T extends z.ZodTypeAny>(item: T, max: number) =>
+  z.preprocess(
+    (v) => (typeof v === 'string' ? (v === '' ? [] : v.split(',')) : v),
+    z.array(item).max(max),
+  )
+
+/**
+ * Consulta de `GET /api/apontamento`. Sem `de`/`ate`, o servidor usa o período padrão do painel
+ * (P-3 do UX: 12 semanas); janela máxima de 12 meses (366 dias), validada no `superRefine`.
+ * `diarioDe`/`diarioAte`: janela do mapa diário (M-7 do UX, padrão 4 semanas, máximo 62 dias).
+ */
+export const consultaApontamentoSchema = z
+  .object({
+    de: dataCivil.optional(),
+    ate: dataCivil.optional(),
+    pessoa: lista(pessoaRefSchema, 200).optional(),
+    projeto: lista(idNumerico, 200).optional(), // card_id da raiz (dim_card_raiz)
+    tipo: lista(idNumerico, 50).optional(), // type_id
+    subtarefa: lista(codigo, 50).optional(),
+    subgrupo: lista(codigo, 50).optional(),
+    qualidade: lista(filtroQualidadeSchema, 6).optional(),
+    nivelMatriz: z.enum(NIVEIS_MATRIZ).default('tipo'),
+    diarioDe: dataCivil.optional(),
+    diarioAte: dataCivil.optional(),
+    anomalos: z.enum(['incluir', 'ocultar']).default('incluir'), // P-5 da segurança e M-5 do UX: marcar e manter; ocultar é escolha de quem lê
+  })
+  .strict()
+  .superRefine((c, ctx) => {
+    // (de e ate juntos ou nenhum; de <= ate; até 366 dias) e o mesmo para diarioDe/diarioAte (até 62 dias).
+    // Mensagem de erro sem eco do valor recebido (B-4, CA-AP-6).
+  })
+export type ConsultaApontamento = z.infer<typeof consultaApontamentoSchema>
+
+// ---------- blocos da resposta ----------
+const opcaoSchema = z.object({ id: z.string(), rotulo: z.string() }).strict()
+
+export const pessoaApontamentoSchema = z
+  .object({
+    pessoaRef: pessoaRefSchema,
+    /** Nome real só com `APONTAMENTO_NOMES` ligado (R4-5); senão "Pessoa n". Sem de-para: "Pessoa não identificada" (CA-10). */
+    rotulo: z.string().min(1).max(200),
+    identificada: z.boolean(),
+  })
+  .strict()
+
+/** Linha de distribuição (projeto, tipo, subgrupo, subtarefa). `participacao` = parte das horas do bloco. */
+const linhaDistribuicaoSchema = z
+  .object({
+    id: z.string(),
+    rotulo: z.string(),
+    segundos,
+    apontamentos: contagem,
+    participacao: pctComPisoSchema,
+    /** Só em projeto: raiz fora dos quadros coletados (Q-A7). */
+    foraDoEscopo: z.boolean().optional(),
+  })
+  .strict()
+
+const blocoBaseSchema = z.object({ n: contagem, unidade: z.literal('apontamentos') }).strict()
+
+export const kpisApontamentoSchema = z
+  .object({
+    segundos,
+    apontamentos: contagem,
+    pessoasAtivas: contagem,
+    completos: taxaSchema, // k de n apontamentos sem flag; % só com n >= 20
+    atipicos: contagem, // apontamentos com valor-atipico no recorte (CA-7)
+  })
+  .strict()
+
+export const distribuicaoApontamentoSchema = z
+  .object({
+    base: blocoBaseSchema,
+    porProjeto: z.array(linhaDistribuicaoSchema),
+    porTipo: z.array(linhaDistribuicaoSchema),
+    porSubgrupo: z.array(linhaDistribuicaoSchema),
+  })
+  .strict()
+
+const qualidadePorFlagSchema = z.object({ flag: flagQualidadeSchema, apontamentos: contagem, pct: pctComPisoSchema }).strict()
+
+export const qualidadeApontamentoSchema = z
+  .object({
+    geral: z.object({ completos: taxaSchema, porFlag: z.array(qualidadePorFlagSchema) }).strict(),
+    /** o3: percentuais por pessoa só com 20 apontamentos ou mais; abaixo, `taxaSchema`/`pctComPiso` insuficientes (só contagem). */
+    porPessoa: z.array(
+      z.object({ pessoaRef: pessoaRefSchema, apontamentos: contagem, completos: taxaSchema, porFlag: z.array(qualidadePorFlagSchema) }).strict(),
+    ),
+    /** Flags não excludentes: a soma dos percentuais passa de 100% (M-11). */
+    flagsNaoExcludentes: z.literal(true),
+  })
+  .strict()
+
+export const matrizApontamentoSchema = z
+  .object({
+    nivel: z.enum(NIVEIS_MATRIZ),
+    colunas: z.array(opcaoSchema),
+    linhas: z.array(
+      z
+        .object({
+          pessoaRef: pessoaRefSchema,
+          segundos, // soma da linha
+          apontamentos: contagem,
+          celulas: z.array(z.object({ colunaId: z.string(), segundos, participacao: pctComPisoSchema }).strict()),
+        })
+        .strict(),
+    ),
+  })
+  .strict()
+
+/** Utilização = realizadas ÷ capacidade, sem teto (pode passar de 1), leitura relativa (M-4 do UX); piso de 20 (o3). */
+const utilizacaoSchema = pctComPisoSchema
+
+export const capacidadeApontamentoSchema = z
+  .object({
+    horasPorDiaSegundos: segundos, // do calendário (8 h hoje)
+    mensal: z.array(
+      z
+        .object({
+          mes: mesCivil,
+          capacidadeSegundos: segundos, // soma por pessoa-dia útil ativa (C-8, Q-A9)
+          realizadoSegundos: segundos,
+          apontamentos: contagem,
+          utilizacao: utilizacaoSchema,
+          /** Mês corrente cortado na última coleta ok (C-7). */
+          parcialAte: dataCivil.nullable(),
+        })
+        .strict(),
+    ),
+    porPessoa: z.array(
+      z
+        .object({
+          pessoaRef: pessoaRefSchema,
+          inicio: dataCivil, // primeiro apontamento no período (Q-A4, regra da especificação)
+          fim: dataCivil, // último apontamento no período
+          diasUteis: contagem, // com feriados (C-10)
+          capacidadeSegundos: segundos,
+          realizadoSegundos: segundos,
+          apontamentos: contagem,
+          utilizacao: utilizacaoSchema,
+        })
+        .strict(),
+    ),
+    leituraRelativa: z.literal(true), // selo fixo "comparação relativa; não é jornada total"
+  })
+  .strict()
+
+export const diarioApontamentoSchema = z
+  .object({
+    de: dataCivil,
+    ate: dataCivil,
+    limiteAtipicoSegundos: segundos, // 16 h por pessoa e dia (P-4 do UX), configurável
+    dias: z.array(z.object({ data: dataCivil, util: z.boolean(), feriado: z.boolean() }).strict()), // M-8
+    linhas: z.array(
+      z
+        .object({
+          pessoaRef: pessoaRefSchema,
+          segundos,
+          celulas: z.array(
+            z.object({ data: dataCivil, segundos, faixa: z.enum(FAIXAS_DIARIO), atipico: z.boolean() }).strict(),
+          ),
+        })
+        .strict(),
+    ),
+  })
+  .strict()
+
+/** Achados gerados por regra (M-1 do UX, CA-11): código + números; o front monta a frase. Nunca nome ou `pessoaRef`. */
+export const CODIGOS_ACHADO = [
+  'nao-classificado-alto',
+  'sem-comentario-alto',
+  'concentracao-em-projeto',
+  'dias-atipicos',
+  'utilizacao-mensal-variou',
+] as const
+export const achadoApontamentoSchema = z
+  .object({
+    codigo: z.enum(CODIGOS_ACHADO),
+    valores: z.record(z.string().regex(/^[a-z][a-zA-Z0-9]{0,30}$/), z.union([z.number(), dataCivil, mesCivil])),
+    rotuloRef: z.string().max(200).nullable(), // rótulo de projeto/tipo/subgrupo citado, nunca de pessoa
+  })
+  .strict()
+
+export const opcoesApontamentoSchema = z
+  .object({
+    pessoas: z.array(pessoaApontamentoSchema), // mesma ordem neutra (o1)
+    projetos: z.array(opcaoSchema.extend({ foraDoEscopo: z.boolean() }).strict()),
+    tipos: z.array(opcaoSchema),
+    subtarefas: z.array(opcaoSchema),
+    subgrupos: z.array(opcaoSchema),
+    historico: z.object({ inicio: dataCivil, fim: dataCivil }).strict(), // limites do período personalizado
+  })
+  .strict()
+
+// ---------- resposta ----------
+export const respostaApontamentoSchema = z
+  .object({
+    versaoContrato: z.literal(VERSAO_CONTRATO_APONTAMENTO),
+    dominio: z.literal('businessmap'), // nunca Acelerato
+    periodo: z.object({ de: dataCivil, ate: dataCivil }).strict(),
+    frescor: z.object({ selo: seloFrescorSchema, ultimaColetaOk: instante.nullable() }).strict(), // CA-1
+    nomesReais: z.boolean(), // true só com APONTAMENTO_NOMES ligado; o front mostra o aviso de nome real
+    opcoes: opcoesApontamentoSchema,
+    kpis: kpisApontamentoSchema,
+    distribuicao: distribuicaoApontamentoSchema,
+    qualidade: qualidadeApontamentoSchema,
+    matriz: matrizApontamentoSchema,
+    capacidade: capacidadeApontamentoSchema,
+    diario: diarioApontamentoSchema,
+    achados: z.array(achadoApontamentoSchema),
+    /** Mudanças de critério com data (T2.6): versões do dicionário de subgrupo/qualidade e do calendário. */
+    criterios: z.array(marcacaoCriterioSchema),
+  })
+  .strict()
+export type RespostaApontamento = z.infer<typeof respostaApontamentoSchema>
+```
+
+Notas para quem implementa:
+- **Códigos de flag:** o §3.4 usa os nomes de banco (`sem_comentario`, `generico`, `sem_vinculo`, `sem_projeto`, `valor_atipico`); o contrato usa a forma de URL com hífen, e `sem_projeto` passa a `sem-iniciativa` pela Q-A8 (C-9). O node-backend mantém a tabela de tradução num só lugar.
+- **Vazio (CA-2):** recorte sem apontamento devolve 200 com listas vazias e `kpis.apontamentos = 0`; o front mostra `EstadoVazio`. Erro de banco devolve 503 sem corpo de detalhe.
+- **Filtros por cartão (CA-4):** o mapa diário aplica só `pessoa` (UX §1.2); os demais blocos aplicam todos os filtros. A regra é do servidor; o front só declara `aplicaveis` no chip.
+- **`subtarefa`:** códigos do dicionário fechado de subtarefa (§7, ponto de corte C-2); até ele existir, só `em-subtarefa` e `direto-no-card`.
+- **Mock do front:** fixture tipada por `RespostaApontamento`, com pessoas fictícias marcadas ("Pessoa 1" a "Pessoa 8", `nomesReais: false`), passando por `respostaApontamentoSchema.parse` no teste (AP-8: E2E e CI só com mock).
+- **Testes de contrato (QA):** a resposta de qualquer recorte passa no schema; nenhuma chave `user_id`, `responsavel_id`, `comment`, `comentario`, `email` aparece em nenhum nível (varredura recursiva, CA-AP-5); consulta com chave desconhecida, `pessoa` com nome, data inválida ou janela acima do máximo = 400 sem eco (CA-AP-6).
 
 ## 4. Correções e melhorias à especificação
 C = corrige problema; M = melhoria. As de interface estão no UX (M-1 a M-16) e as de segurança no modelo de ameaças (§10); aqui só as de dado e cálculo.
@@ -160,12 +445,16 @@ C = corrige problema; M = melhoria. As de interface estão no UX (M-1 a M-16) e 
 - **R-2. `fields` pode ser ignorado pela API** (já visto em `/users`): a allow-list do código corta; achado vai ao security-engineer.
 - **R-3. Cota:** a releitura por `card_ids` cresce com os cards do escopo; o limitador da F0 segura, e a carga inicial roda em lotes, à mão.
 - **R-4. Reclassificação cara:** mudar o dicionário pede releitura do período (aceito pela P-8 da segurança, a confirmar).
-- **R-5. Exposição de nome sem autenticação no painel:** bloqueio da segurança (P-1, G-1); o nome real só liga com `APONTAMENTO_NOMES` depois da resposta. Não se contorna (`R-CONFORMIDADE`).
+- **R-5. Exposição de nome sem autenticação no painel:** P-1 respondida pelo dono (2026-11-01): nome real só na máquina dele ou na rede local sob controle dele; G-1 fica atendida nesse perímetro pelo bind em `127.0.0.1` (ou endereço de rede local declarado) e pelo interruptor `APONTAMENTO_NOMES`, que a partida recusa ligar fora dele (ADR 0020, R4-5). Qualquer outro ambiente com nome real depende do login pelo AD (fatia futura). Não se contorna (`R-CONFORMIDADE`).
+- **R-7. Numeração da revisão 4 da ADR 0020.** O plano 052 (F3b) e a ADR 0022 item 3 reservavam "revisão 4" para as listas de `stg_bloqueio`, `stg_vinculo`, `stg_custom_field` e `stg_coluna`, que não foi escrita. A revisão 4 passa a ser a da aba Apontamento (esta E2.2); as listas da F3b passam a ser a **revisão 5**, e o "negado por padrão" da ADR 0022 continua valendo para elas até lá (nota na própria revisão 4).
+- **R-8. Prazo.** A aba inteira em cerca de 24 h depende de três esperas fora do time (spike na máquina do dono, merge do PR da exceção, carga real com o dono presente) e de QA serial (uma suíte por vez no teto de 8 GB). Mitigação: trilhas paralelas e a lista de corte do §7.4, decidida em ordem pelo tech-lead com aviso ao dono; nenhum corte remove controle de segurança, QA, review ou regra inviolável.
 - **R-6. Raiz fora dos quadros coletados:** projetos parciais; rótulo explícito (Q-A7).
 - **Dependências:** F0 a F4 do 052 em `develop` (cliente, `dim_card.card_pai`, `dim_responsavel`, `ref_workflow`); PR do texto da exceção mesclado pelo dono antes de qualquer código que mostre pessoa; ADR 0020 revisão 4 com leitura do security-engineer.
-- **Decisões de arquitetura a registrar na E2 (depois da E1.6):** ADR 0020 revisão 4 (texto proposto pela segurança no §4 do modelo de ameaças, mais a allow-list 4h deste §3.1 e a chave opaca do §3.3) e uma ADR nova "Coleta do worklog do BusinessMap" (escopo por `card_ids`, incremental por `logged_at` e histórico, exclusão por evento e varredura). **Por que o existente não basta:** a coleta atual de cards não traz o worklog (o `logged_times` do card está fora da allow-list 4a por ser pessoa e texto livre, e não tem chave por apontamento); o GRANT por coluna do `dspd_api` e o R3-3 proíbem o nome em rota, e a decisão "C" do dono exige que ele saia, então só um papel dedicado (AP-2) atende sem afrouxar o resto da API.
+- **Decisões de arquitetura registradas na E2.2 (2026-11-01, estado proposta até a leitura do security-engineer):** `docs/architecture/adr/0020-protecao-de-pessoa-no-coletor.md`, seção "Revisão 4", e `docs/architecture/adr/0025-coleta-do-worklog-businessmap.md`. Texto do registro anterior: ADR 0020 revisão 4 (texto proposto pela segurança no §4 do modelo de ameaças, mais a allow-list 4h deste §3.1 e a chave opaca do §3.3) e uma ADR nova "Coleta do worklog do BusinessMap" (escopo por `card_ids`, incremental por `logged_at` e histórico, exclusão por evento e varredura). **Por que o existente não basta:** a coleta atual de cards não traz o worklog (o `logged_times` do card está fora da allow-list 4a por ser pessoa e texto livre, e não tem chave por apontamento); o GRANT por coluna do `dspd_api` e o R3-3 proíbem o nome em rota, e a decisão "C" do dono exige que ele saia, então só um papel dedicado (AP-2) atende sem afrouxar o resto da API.
 
 ## 6. Perguntas ao dono (`R-DECISAO`; nenhuma resolvida por inferência)
+**Estado (2026-11-01):** todas respondidas. Q-A1 a Q-A11 pela decisão "A" em bloco (vale a recomendação entre parênteses); Q-A12 = "A" (todas as cláusulas). Q-A3, Q-A5 e Q-A10 dependem de dado: a resposta em bloco vale como regra até o spike (Q-A3: categoria só depois, M-1 fica fora deste prazo; Q-A5: nacionais; Q-A10: sem unificação). UX: P-1 = (a), P-2 = (a), P-3 = sim (período padrão com atalho de mês), P-4 = 16 h, só marca, P-5 = sem agrupamento por equipe até o dado mostrar equipe no BusinessMap, P-6 = não exibir comentário, P-7 = estado atual com histórico preservado. Segurança: P-1 e P-2 decididas à parte (§0), P-3 = fora da exportação (o4), P-4 = alternativa mais segura (subtarefa sem texto livre: código de dicionário fechado ou "em subtarefa/direto no card"), P-5 = marcar e manter na soma (com "ocultar anômalos" à escolha de quem lê), P-6 = piso de 20 (o3), P-7 = limites 1 a 5 aceitos (o1 a o4 e a finalidade na legenda), P-8 = reclassificação só na coleta nova ou no que for relido.
+
 Somam-se às do UX (P-1 a P-7) e da segurança (P-1 a P-8). Recomendação entre parênteses.
 - **Q-A1. Escopo da aba:** quais quadros e workflows? (Os 7 quadros do 052 com todos os workflows, inclusive Kaizen 313, RDM/GMUD 203 e Acompanhamento 234, que ficam fora só do painel operacional; os workflows fora de todo cálculo, H-7, ficam fora.)
 - **Q-A2. Editado e removido no BusinessMap** (responde a P-7 do UX): a aba mostra o estado atual (removido sai da soma, editado vale a última versão) com o histórico preservado na base? (Sim.)
@@ -180,14 +469,58 @@ Somam-se às do UX (P-1 a P-7) e da segurança (P-1 a P-8). Recomendação entre
 - **Q-A11. Normalização de acento e início de palavra** na classificação (C-6)? (Sim; muda contagens, por isso é pergunta.)
 - **Q-A12. Texto da exceção (§1):** aprova os textos 1.1 e 1.2 e quais cláusulas opcionais (o1 a o4) entram? (Todas.)
 
-## 7. Fatias e o que cabe até 2026-11-02
+## 7. Plano de execução até 2026-11-02 22:00 (refeito na E2.2)
 
-| Fatia | Conteúdo | Agentes | Cabe até 2026-11-02? |
-|---|---|---|---|
-| F0 | Discovery (E1.2 a E1.4), validação do dono (E1.6), PR só de documentação com o texto da exceção (§1) no `CLAUDE.md` e no briefing, para o dono mesclar. | arquiteto, UX, segurança, tech-lead | **Sim.** É o que se compromete. |
-| F1 | Spike de `/loggedTime`, `/loggedTime/history` e `/loggedTimeCategories` num lote pequeno de cards, na máquina do dono, com a resposta inspecionada só por forma e contagem (sem nome nem comentário em documento); ADR 0020 revisão 4 e ADR da coleta escritas. | node-backend, arquiteto, segurança | **Talvez**, se a E1.6 sair na manhã de 2026-11-02; é leitura e documento, sem código de produção. |
-| F2 | Cliente com os caminhos novos, allow-list 4h, `classificarApontamento`, staging, eventos, carga inicial e incremental, `fato_apontamento` sem `pessoa_ref` ainda, `dim_card_raiz`, dicionário por `ref:sync`. Testes CA-AP-2, 8, 9, 11, 13. | node-backend, qa-engineer, tech-lead, segurança | Não. |
-| F3 | Biblioteca de cálculo da aba, contrato, papel `dspd_api_apontamento` e rota única com `APONTAMENTO_NOMES` desligado, aba no front com mock de pessoas fictícias e depois com dado real sem nome. Testes CA-AP-1, 3 a 6, 12. | node-backend, react-frontend, qa-engineer, UX, tech-lead, segurança | Não. |
-| F4 | `pessoa_ref` e nome ligado (depois de P-1 e G-1), retenção e eliminação (CA-AP-10), exportação (CA-AP-7), capacidade por vigência (M-5), categorias (M-1). | todos | Não. |
+O §7 original (só a F0 até 2026-11-02) está superado pela decisão do dono de 2026-11-01 21:09. As fatias F1 a F4 viram **quatro PRs em trilhas paralelas**; o que não depende entre si roda ao mesmo tempo, e cada PR passa por parecer de segurança, code review, QA e (no front) revisão de UX antes de ir à `develop` (`R-SEGURANCA`). Horários são metas de 2026-11-02 (America/Sao_Paulo); a noite de 2026-11-01 é usada pelo que não depende do dono.
 
-Ordem e paralelismo: F1 antes de F2 (o formato confirmado define a allow-list); em F2, a biblioteca (`classificarApontamento` e cálculos) e o cliente correm em paralelo; o front de F3 começa com mock assim que o contrato zod existir, em paralelo à rota; o QA escreve os casos CA-AP-* desde F2. Toda fatia com código e dado pessoal passa por parecer de segurança, code review e QA antes do PR (`R-SEGURANCA`).
+### 7.1 O que é "a aba inteira" no prazo
+Pronto às 22:00 quando: (1) os PRs α, β, γ e δ (§7.2) estão mesclados na `develop`, cada um com parecer de segurança em `docs/security/`, review do tech-lead, parecer do QA em `docs/qa/` e, no δ, revisão de UX; (2) `develop` promovida a `homolog` com o portão da CI verde; (3) a carga inicial de 12 meses do worklog rodou na máquina do dono, com ele presente; (4) a aba abre na máquina do dono com dado real, todos os blocos da especificação (KPIs, distribuição, qualidade, matriz, capacidade, achados, diário) e o interruptor de nome real na posição que o dono escolher. O PR de release `homolog` → `main` é do dono e pode ficar para depois das 22:00 sem que a entrega deixe de estar pronta.
+
+### 7.2 Trilhas, agentes e ordem
+| Trilha | Agente | Tarefa (ordem dentro da trilha) | Depende de | Janela | PR |
+|---|---|---|---|---|---|
+| A. Coleta | node-backend (instância A, worktree 052d) | **A0** spike E2.3 (só leitura; pronto para o dono rodar). **A1** migrações do §3.3 (`stg_apontamento`, `evt_apontamento`, `fato_apontamento`, `dim_card_raiz`, `dim_responsavel.pessoa_ref`, `ref_apontamento_*`), grants do `dspd_coletor`, `COLUNAS_PESSOA`. **A2** cliente HTTP com os três caminhos e `fields` fixo, `CAMPOS_APONTAMENTO`, validação na fronteira, `redact` do pino. **A3** coleta incremental e carga inicial (ADR 0025), projetor de `fato_apontamento`, `dim_card_raiz` e `pessoa_ref`, carga do dicionário por `ref:sync`. **A4** procedimento de eliminação a pedido (CA-AP-10, ponto de corte C-4). Testes CA-AP-2, 8, 9, 10, 11, 13 e os do item 7 da ADR 0020. | A0: nada. A1: PE-1, PE-4. A2 e A3: PE-1, PE-2, `classificarApontamento` (B2). Merge: PE-3. | A0 até 01/11 24:00; A1 09:30-11:00; A2 e A3 11:00-15:30; A4 15:30-16:30 | **β** `feature/059-coleta-worklog` |
+| B. Contrato, biblioteca e rota | node-backend (instância B) | **B1** `packages/contratos/src/apontamento.ts` copiado do §3.9, com teste de contrato. **B2** `classificarApontamento` em `packages/metricas/src/coletor/` (§3.4; normalização, início de palavra, flags), com property test e o teste de bundle do `web/`. **B3** cálculos em `packages/metricas/src/businessmap/apontamento/` (§3.7: capacidade com calendário, utilização, distribuição, qualidade, matriz, diário com faixas fixas, achados, piso de 20), 100% de cobertura. **B4** papel `dspd_api_apontamento` no `gerarGrants`, pool e módulo `server/src/modulos/apontamento/`, rota única, interruptor `APONTAMENTO_NOMES` (R4-5), lint do pool, `no-store`. Testes CA-AP-1, 3 a 6, 12. | B1 a B3: nada (fixtures sintéticas). B4: migrações da A1 (empilhada sobre a branch β, rebase depois do merge). Merge do α: PE-3. | B1 01/11 22:00-23:30; B2 23:30-02/11 03:00; B3 03:00-10:00; B4 11:00-16:00 | **α** `feature/059-contrato-biblioteca` (B1 a B3); **γ** `feature/059-rota-apontamento` (B4) |
+| C. Front | react-frontend | **C1** `web/src/features/apontamento/` contra fixture tipada do §3.9 (pessoas fictícias): seções e cartões da E1.3, filtros na URL por `pessoaRef`, estados, tabela alternativa, mapa diário com faixas fixas e rolagem só no bloco, ordem neutra com "ordenar por total" local (o1), utilização sem semáforo (o2), `AmostraInsuficiente` (o3), aba fora da exportação (o4), aviso quando `nomesReais`. **C2** troca da fixture pela rota, sem persistir pessoa em `localStorage`. Testes CA-1 a CA-11. | C1: §3.9 (já existe; o B1 só o torna importável). C2: γ mesclado ou a branch γ. | C1 01/11 22:30-02/11 14:00; C2 17:00-18:30 | **δ** `feature/059-aba-front` |
+| D. QA | qa-engineer | **D1** plano de teste e casos CA-1 a CA-11 e CA-AP-1 a 13, fixtures sintéticas (worklog com marcador no comentário, 115 h, data futura, editado, excluído) e servidor falso dos três caminhos. **D2** execução por PR, na ordem α, β, γ, δ, uma suíte por vez (teto de 8 GB). **D3** E2E da aba só com mock. | D1: nada. D2: cada PR pronto para teste. | D1 01/11 22:00-02/11 09:00; D2 α 10:30-11:30, β 16:30-17:30, γ 17:30-18:30, δ 19:00-20:00 | parecer em `docs/qa/` por PR |
+| E. Segurança | security-engineer | **E1** leitura da revisão 4 da ADR 0020 e da ADR 0025 (PE-2). **E2** parecer por PR: α (identidade em memória, bundle), β (allow-list, comentário, staging, cliente), γ (papel, grants, interruptor, log), δ (URL, cache, exportação, mock). | E1: este plano. E2: cada PR. | E1 01/11 23:00-02/11 09:00; E2 α 10:30, β 16:00, γ 17:30, δ 19:00 | pareceres em `docs/security/` |
+| F. Liderança técnica | tech-lead | **F1** E1.7: PR só de documentação com a exceção (textos 1.1 e 1.2 com o1 a o4), pronto para o dono na manhã. **F2** revisão de modelagem do §3.3 (antes da A1; confirma colunas depois do spike). **F3** branches, worktrees e briefs das trilhas. **F4** code review e merge de α, β, γ, δ (squash). **F5** pontos de controle 12:00 e 16:00 (§7.4). **F6** promoção `develop` → `homolog` e PR de release para o dono. | F1, F2, F3: nada. F4: parecer de segurança e QA de cada PR. F6: os quatro PRs. | F1 e F2 01/11 22:00-02/11 08:00; F4 conforme as trilhas; F6 20:30-21:30 | PR da exceção; PR de release |
+| G. Arquitetura | software-architect | **G1** esta E2.2 (plano, contrato, ADRs). **G2** arquivo versionado de `ref:sync` com o dicionário da seção 4 da especificação (subgrupos, termos normalizados, regras por tipo) e o dicionário fechado de subtarefa, para o dono conferir (PE-5). **G3** `data-model.md` §3, §8 e §9 com as tabelas, depois da F2. **G4** marcas `[DOC]` dos três caminhos na doc de integração e ajuste da ADR 0025 aos fatos do spike. | G2: texto da especificação passado pelo Jarvis (está fora do repositório). G3: F2. G4: PE-1. | G2 01/11 23:30-02/11 03:00; G3 10:30-11:30; G4 09:30-10:30 | entra no α (G2) e num PR de documentação (G3, G4) |
+| H. UX | ux-designer | **H1** textos da aba para o C1: "Como ler" de cada cartão, frase de cada código de achado (`CODIGOS_ACHADO`), legenda da finalidade, aviso de nome real, selo de leitura relativa. **H2** revisão da interface implementada (δ). | H1: §3.9. H2: δ pronto para revisão. | H1 01/11 22:30-02/11 06:00; H2 18:30-19:00 | revisão em `docs/ux/` |
+| Dono | — | Rodar o spike na máquina dele (PE-1); mesclar o PR da exceção (PE-3); conferir o dicionário (PE-5); rodar a carga inicial com o node-backend (PE-6); validar a aba com dado real (PE-8); mesclar o release quando quiser. | — | 08:00-09:30; 17:00-18:30; 21:00-21:45 | — |
+
+**Ordem de merge na `develop`:** α (~12:00) → β (~17:30) → γ (~18:45) → δ (~20:15) → promoção a `homolog` (~21:00). α vai antes porque o β importa `classificarApontamento`; γ depende das migrações do β; δ depende da rota do γ. Nenhum PR com visão por pessoa vai à `develop` antes do PE-3.
+
+**Se o limite de 1 cartão por agente valer por papel** (uma só instância do node-backend): a trilha B corre à noite (B1 a B3, sem esperar nada), a A entra às 09:30 com a A1, e a B4 vai depois da A3; nesse caso o ponto de controle das 12:00 já aplica o corte C-1 e o das 16:00 avalia o C-2 em diante.
+
+### 7.3 Pontos de espera
+| Id | Espera | Quem desbloqueia | Bloqueia | Meta |
+|---|---|---|---|---|
+| PE-1 | Resultado do spike E2.3 (forma e contagens): `fields` restringe ou não; campos do evento de `/loggedTime/history` (há `logged_time_id` em `logged_time_deleted`?); quantos apontamentos têm `category_id` e `subtask_id`; paginação real. **Define a allow-list `CAMPOS_APONTAMENTO`** e confirma ou ajusta a ADR 0025 (itens marcados `[SPIKE]`). | dono (roda na máquina dele) e node-backend A | A1, A2, A3, G4 | 02/11 09:30 |
+| PE-2 | Leitura do security-engineer da revisão 4 da ADR 0020 e da ADR 0025 | security-engineer | início do review do β e do γ | 02/11 09:00 |
+| PE-3 | PR da exceção (E1.7) mesclado pelo dono | dono | merge de α, β, γ, δ na `develop` (as branches seguem antes) | 02/11 10:00 |
+| PE-4 | Revisão de modelagem do §3.3 com o tech-lead | tech-lead | A1 | 02/11 09:30 (confirmação pós-spike) |
+| PE-5 | Dicionário de subgrupo e de subtarefa conferido pelo dono | dono | carga inicial real (PE-6); não bloqueia testes | 02/11 12:00 |
+| PE-6 | Carga inicial de 12 meses na máquina do dono, com ele presente (ADR 0022 item 4, ADR 0025) | dono e node-backend A | dado real na aba, validação PE-8 | 02/11 17:30-18:30 |
+| PE-7 | Parecer de segurança, review, QA e (no δ) UX de cada PR | security-engineer, tech-lead, qa-engineer, ux-designer | merge do PR | conforme §7.2 |
+| PE-8 | Validação do dono na aba com dado real | dono | promoção final e release | 02/11 21:00-21:45 |
+
+### 7.4 Pontos de controle e o que fica para depois se o prazo apertar
+O tech-lead avalia às 12:00 e às 16:00 e aplica os cortes **em ordem**, avisando o dono pelo Jarvis; corte fora desta lista volta ao dono como pergunta. O que é cortado entra numa fatia seguinte com cartão próprio.
+- **Já fora deste prazo (decidido no plano):** capacidade por vigência configurada (M-5, Q-A4), categoria de tempo como fonte do subgrupo (M-1, Q-A3), expurgo automático por prazo (depende do DPO, §0), limite de taxa na rota (dependência nova, passa por devops-engineer e tech-lead; o nome real só roda na máquina do dono), lista "Ver apontamentos" (M-12 do UX), login pelo AD.
+- **C-1** achados gerados (CA-11): o bloco sai da tela; `achados` vem vazio no contrato (forma mantida).
+- **C-2** matriz e filtro por subtarefa com dicionário fechado: ficam só `em-subtarefa` e `direto-no-card` (sem título de subtarefa em lugar nenhum).
+- **C-3** varredura semanal de presença: só se o PE-1 confirmar `logged_time_id` no evento `logged_time_deleted`; sem essa confirmação, a varredura **não** pode ser cortada (a exclusão ficaria sem fonte) e o corte passa ao C-4.
+- **C-4** procedimento de eliminação a pedido (CA-AP-10): vai para a fatia de retenção, junto do prazo do DPO; até lá, o desenho (anular `pessoa_ref`, apagar a linha de `dim_responsavel`) fica na ADR e o nome real só existe na máquina do dono.
+- **C-5** nome real: a aba entrega com o interruptor desligado ("Pessoa n") e liga depois, sem mudança de código.
+- **Nunca se corta:** allow-list e descarte do comentário na fronteira, papel dedicado e testes de grants, `no-store` e consulta estrita, piso de 20 (o3), ordem neutra (o1), sem semáforo (o2), fora da exportação (o4), cálculo pela biblioteca T2.5, carga incremental sem sobrescrever, parecer de segurança, review, QA e revisão de UX.
+- Se às 16:00 o β não estiver em QA, a entrega com dado real não cabe: o tech-lead leva ao dono a escolha entre (a) estender o prazo ou (b) entregar α, γ e δ na `develop` com a rota devolvendo vazio até o β; aba com mock em produção não é opção.
+
+### 7.5 Onde foram parar as fatias originais
+| Fatia original | Onde está agora |
+|---|---|
+| F0 | Cumprida no discovery (E1.2 a E1.5); resta a E1.7 (trilha F, F1) e o PE-3. |
+| F1 | A0 (spike E2.3) e G1 (revisão 4 da ADR 0020 e ADR 0025, esta E2.2). |
+| F2 | Trilha A (PR β) e B2 (`classificarApontamento`, PR α). |
+| F3 | B1, B3 (PR α), B4 (PR γ) e trilha C (PR δ). |
+| F4 | `pessoa_ref` e nome ligado entram já (A1, B4; P-1 respondida); eliminação a pedido na A4 (corte C-4); exportação vira exclusão obrigatória no C1 (o4); vigência (M-5), categorias (M-1) e expurgo ficam para depois (§7.4). |
