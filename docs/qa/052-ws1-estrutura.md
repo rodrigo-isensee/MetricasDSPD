@@ -2,8 +2,8 @@
 tipo: qa
 contrato: 1
 pedido: 052-integracao-businessmap
-branch: feature/052-sust-real
-commit: 55a33ee3757531885bbf4aec84d0466435ba84a4
+branch: feature/052-limpa-seed
+commit: d90b1fec622363e594e1d6a57923791aa4914511
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -99,6 +99,13 @@ Veredito: aprovado, mantido. O `forge-check pr` deu o parecer por desatualizado 
 Delta nos caminhos que este parecer cobre (`diagnostico.ts`, `server/src/entradas`, `scripts/bm-diagnostico.sh`, `diagnostico-businessmap.test.ts`, `data-model.md`, `businessmap-api-configuracao.md`, `.env.example`, `server/package.json`, `package.json`): só `docs/api/metricas.md`, uma linha, o parágrafo "Duas bases, uma por métrica" do contrato (sustentação real: S2, S3, S4, S8 e S10 lidas da base real, as demais da base do seed). `git diff --stat 52c201e HEAD -- server/src/modulos/businessmap` vazio: o módulo do BusinessMap (inclusive `tipo-coluna.js` re-exportado em `index.ts`) é idêntico ao que o parecer anterior testou. O resto do delta (contratos `origem.ts`, `servico.ts` de métricas, `OrigemDosCartoes.tsx`, testes da sustentação real e pareceres) é da sustentação real, com parecer próprio em `docs/qa/052-sust-real.md`, e não toca o script da WS1.
 
 Sem suíte do server, sem mutantes e sem chamada ao BusinessMap, como pedido: o delta que importa a este parecer é só de documento. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido.
+
+## Renovação por delta (E2.143, depois do segundo merge da develop na limpeza do seed)
+Veredito: aprovado, mantido. O `commit:` anterior (`55a33ee`, da `feature/052-sust-real`) não é ancestral da branch `feature/052-limpa-seed`; o `git merge-base` entre ele e a ponta é `5c679da`, e o delta de conteúdo foi lido sobre a árvore do próprio `55a33ee` contra o head `d90b1fe` (`git diff --stat 55a33ee HEAD`), para não depender do squash. O `forge-check pr` deu o parecer por desatualizado depois do merge `d90b1fe` da develop.
+
+Delta nos caminhos que este parecer cobre (`server/src/modulos/businessmap`, `server/src/entradas/diagnostico-businessmap.ts`, `scripts/bm-diagnostico.sh`, `diagnostico-businessmap.test.ts`, `.env.example`, `package.json` da raiz, `data-model.md`, `businessmap-api-configuracao.md`): vazio. Em `server/package.json`, uma linha nova, o script `db:limpar-seed` (limpeza do seed, E2.96); `bm:diagnostico` está na raiz e não mudou. Em `server/eslint.config.js`, um arquivo somado à lista de exceções (`limpar-seed.ts`). O resto do delta é da limpeza do seed (`server/src/plataforma/db/limpar-seed.ts`, `server/src/entradas/limpar-seed.ts`, dois arquivos de teste, `docs/architecture/server.md`) e pareceres, com parecer próprio em `docs/qa/052-limpa-seed.md`; não toca o script da WS1.
+
+Como o delta traz código (não é só documento), a suíte do server rodou sobre o head `d90b1fe`: `pnpm -C server run test`, 60 arquivos passaram e 28 pulados (os .pg), 1160 testes passaram e 179 pulados, 0 falhos; os 30 testes do diagnóstico estão entre eles. Entre `d90b1fe` e a ponta atual da branch (`55ed6a2`) só entrou parecer de segurança. Sem mutantes (o código do script não mudou) e sem chamada ao BusinessMap. As obrigações e os resultados das tabelas abaixo continuam valendo, e A1 a A3 seguem como recomendações. O `.env` não foi lido e nada foi rodado no banco do dono.
 
 ## Critério → teste → resultado
 Obrigação = item do Entregar (`E1.15` e volta 1).
