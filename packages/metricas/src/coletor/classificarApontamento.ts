@@ -121,26 +121,53 @@ export function palavrasDe(normalizado: string): string[] {
 
 /** Palavras únicas em ordem de unidade de código: as que começam com um termo ficam juntas, a partir do primeiro >= termo. */
 function ordenarPalavras(palavras: readonly string[]): string[] {
-  return [...new Set(palavras)].sort((x, y) => (x < y ? -1 : 1))
+  return [...new Set(palavras)].sort()
 }
 
 /**
  * Início de palavra (C-6): `startsWith` entre palavra e termo, sem expressão regular do dicionário (ADR 0020 R4-2). As
- * palavras que começam com o termo são contíguas na ordem, então basta olhar a primeira palavra >= termo (busca
- * binária): custo O(log palavras) por termo, e o teto de 2000 pontos de código e 500 termos cabe no orçamento.
+ * palavras que começam com um termo são contíguas na ordem, então basta olhar a primeira palavra >= termo. Com os
+ * termos também ordenados (uma vez por dicionário), um só caminhar duplo de custo O(palavras + termos) acha todos os
+ * termos que casam; o teto de 2000 pontos de código e 500 termos cabe folgado no orçamento.
  */
-function casaInicioDePalavra(ordenadas: readonly string[], termo: string): boolean {
-  let lo = 0
-  let hi = ordenadas.length
-  while (lo < hi) {
-    const meio = (lo + hi) >>> 1
-    if ((ordenadas[meio] as string) < termo) lo = meio + 1
-    else hi = meio
+function termosQueCasam(
+  palavrasOrdenadas: readonly string[],
+  termosOrdenados: readonly string[],
+): Set<string> {
+  const casados = new Set<string>()
+  let i = 0
+  for (const termo of termosOrdenados) {
+    while (i < palavrasOrdenadas.length && (palavrasOrdenadas[i] as string) < termo) i += 1
+    if (i === palavrasOrdenadas.length) break
+    if ((palavrasOrdenadas[i] as string).startsWith(termo)) casados.add(termo)
   }
-  return lo < ordenadas.length && (ordenadas[lo] as string).startsWith(termo)
+  return casados
 }
 
 type Regra = ({ tipo: 'termo' } & RegraPorTermo) | ({ tipo: 'tipo' } & RegraPorTipo)
+
+interface Preparado {
+  readonly regras: readonly Regra[]
+  readonly termosOrdenados: readonly string[]
+}
+
+/** Regras ordenadas por prioridade e subgrupo e termos únicos ordenados: preparados uma vez por dicionário (objeto). */
+const preparados = new WeakMap<DicionarioApontamento, Preparado>()
+
+function preparar(dicionario: DicionarioApontamento): Preparado {
+  const pronto = preparados.get(dicionario)
+  if (pronto) return pronto
+  const regras: Regra[] = [
+    ...dicionario.termos.map((r) => ({ tipo: 'termo' as const, ...r })),
+    ...dicionario.regrasPorTipo.map((r) => ({ tipo: 'tipo' as const, ...r })),
+  ]
+  const novo: Preparado = {
+    regras: ordenarNeutro(regras, (r) => [r.prioridade, r.subgrupo]),
+    termosOrdenados: ordenarPalavras(dicionario.termos.flatMap((r) => r.termos)),
+  }
+  preparados.set(dicionario, novo)
+  return novo
+}
 
 export function classificarApontamento(
   entrada: EntradaApontamento,
@@ -152,13 +179,11 @@ export function classificarApontamento(
   const qtdPalavras = palavras.length
   const ordenadas = ordenarPalavras(palavras)
 
-  const regras: Regra[] = [
-    ...dicionario.termos.map((r) => ({ tipo: 'termo' as const, ...r })),
-    ...dicionario.regrasPorTipo.map((r) => ({ tipo: 'tipo' as const, ...r })),
-  ]
-  const casou = ordenarNeutro(regras, (r) => [r.prioridade, r.subgrupo]).find((r) =>
+  const { regras, termosOrdenados } = preparar(dicionario)
+  const casados = termosQueCasam(ordenadas, termosOrdenados)
+  const casou = regras.find((r) =>
     r.tipo === 'termo'
-      ? r.termos.some((t) => casaInicioDePalavra(ordenadas, t))
+      ? r.termos.some((t) => casados.has(t))
       : r.typeId === entrada.typeId && (r.condicao === 'sempre' || semComentario),
   )
   const subgrupo =
