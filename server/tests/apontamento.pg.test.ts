@@ -612,10 +612,10 @@ d('059: apontamento (esquema, papéis, coleta) no PostgreSQL', () => {
         c.release();
       }
     };
-    // com as tabelas quase vazias o planejador desempata entre os índices parciais: o que vale é nunca cair em varredura sequencial
+    // com as tabelas quase vazias o planejador desempata entre os índices parciais: o que vale é nunca cair em varredura sequencial (com mais linhas de outros testes o plano vira Bitmap Index Scan, que também usa o índice parcial)
     for (const where of [`data_apontamento BETWEEN '2026-10-01' AND '2026-10-31'`, `pessoa_ref = 3 AND data_apontamento BETWEEN '2026-10-01' AND '2026-10-31'`, `iniciativa_card_id = '5' AND data_apontamento >= '2026-10-01'`]) {
       const p = await plano(`SELECT segundos FROM ${S.bm}.fato_apontamento WHERE excluido_em IS NULL AND ${where}`);
-      expect(p, where).toMatch(/Index (Only )?Scan using ix_fato_apontamento_(data|pessoa|iniciativa)/);
+      expect(p, where).toMatch(/(Index (Only )?Scan using|Bitmap Index Scan on) ix_fato_apontamento_(data|pessoa|iniciativa)/);
       expect(p, where).not.toContain('Seq Scan');
     }
     const defs = await dono.query<{ indexname: string; indexdef: string }>(`SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = $1 AND tablename = 'fato_apontamento' AND indexname LIKE 'ix_fato_apontamento_%'`, [S.bm]);
