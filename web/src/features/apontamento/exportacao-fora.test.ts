@@ -8,16 +8,16 @@ import { CATALOGO } from '@/content/catalogo-metricas'
  * teste: quem registrar um cartão da aba no catálogo ou importar a aba na exportação ou no painel quebra a suíte.
  */
 
-const exportar = import.meta.glob('../exportar/**/*.{ts,tsx}', {
+const exportar = import.meta.glob<string>('../exportar/**/*.{ts,tsx}', {
   query: '?raw',
   import: 'default',
   eager: true,
-}) as Record<string, string>
-const painel = import.meta.glob('../painel/**/*.{ts,tsx}', {
+})
+const painel = import.meta.glob<string>('../painel/**/*.{ts,tsx}', {
   query: '?raw',
   import: 'default',
   eager: true,
-}) as Record<string, string>
+})
 
 /** `import ... from '...apontamento...'`, `import('...apontamento...')` e `export ... from '...apontamento...'`. */
 const IMPORTA_A_ABA = /(?:from|import\s*\()\s*['"][^'"]*features\/apontamento[^'"]*['"]/
