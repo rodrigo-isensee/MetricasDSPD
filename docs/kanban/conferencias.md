@@ -1188,3 +1188,33 @@
 | 2026-11-01 23:53 | 059-aba-apontamento | 059-aba-apontamento-node-backend-11.md | brief | 1 | reprovado | s | Base-sha da develop não é ancestral das trilhas | base | jarvis |
 | 2026-11-01 23:57 | 059-aba-apontamento | 059-aba-apontamento-node-backend-12.md | brief | 2 | aprovado | s |  | — | jarvis |
 | 2026-11-02 00:02 | 059-aba-apontamento | 059-aba-apontamento-node-backend-13.md | brief | 1 | reprovado | parcial | versao do forge-check atras; permissao de main contra CLAUDE.md | decisao | jarvis |
+| 2026-11-02 03:20 | 059-aba-apontamento | 059-aba-apontamento-node-backend-14.md | brief | 2 | reprovado | s | ADR 0020 revisao 4 ainda proposta | decisao | jarvis |
+| 2026-11-02 03:23 | 059-aba-apontamento | 059-aba-apontamento-node-backend-12.md | entrega | 1 | nao cumpriu | parcial | perguntas 5 a 7 resolvidas no codigo da trilha B; filtro tipo 422; brief 12 envelhecido pelas etapas novas | decisao | destino |
+| 2026-11-02 03:23 | 059-aba-apontamento | 059-aba-apontamento-node-backend-15.md | brief | 3 | reprovado | s | vigentes revisoes 1 a 3 e complemento | decisao | jarvis |
+| 2026-11-02 03:29 | 059-aba-apontamento | 059-aba-apontamento-node-backend-16.md | brief | 4 | reprovado | s | tardio | decisao | jarvis |
+| 2026-11-02 03:32 | 059-aba-apontamento | 059-aba-apontamento-node-backend-17.md | brief | 5 | reprovado | s | tardio | escopo | jarvis |
+| 2026-11-02 03:36 | 059-aba-apontamento | 059-aba-apontamento-node-backend-19.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 03:37 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-4.md | brief | 1 | reprovado | s | texto da etapa com sem push | decisao | jarvis |
+| 2026-11-02 03:37 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-6.md | brief | 1 | reprovado | s | outra-area fora do contrato; E2E sem origem | escopo | jarvis |
+| 2026-11-02 03:37 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-3.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 03:38 | 059-aba-apontamento | 059-aba-apontamento-node-backend-18.md | brief | 6 | reprovado | s | grant sem origem; tardio sem push | escopo | jarvis |
+| 2026-11-02 03:42 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-7.md | brief | 2 | reprovado | parcial | Outra area adiada sem registro; linha em branco e da saida do forge-check | decisao | jarvis |
+| 2026-11-02 03:43 | 059-aba-apontamento | 059-aba-apontamento-node-backend-20.md | brief | 7 | reprovado | s | revisao 4: nada vai a develop antes do PR da excecao | decisao | jarvis |
+| 2026-11-02 03:44 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-3.md | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-02 03:44 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-17.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 03:45 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-8.md | brief | 3 | reprovado | parcial | Outra area sem etapa; linha em branco e do forge-check | escopo | jarvis |
+| 2026-11-02 03:47 | 059-aba-apontamento | 059-aba-apontamento-node-backend-21.md | brief | 8 | aprovado | s |  | — | jarvis |
+| 2026-11-02 03:49 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-17.md | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-02 03:53 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-8.md | brief | 4 | reprovado | s | fora do filtro contra a doc da rota | escopo | jarvis |
+| 2026-11-02 03:57 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-10.md | brief | 5 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:02 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-5.md | brief | 2 | reprovado | s | commit local da decisao de 01:00 sem superacao | decisao | jarvis |
+| 2026-11-02 04:04 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-6.md | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:17 | 059-aba-apontamento | 059-aba-apontamento-node-backend-19.md | entrega | 1 | nao cumpriu | n | PQs cumpridos; fora = base das etapas anteriores sem conferida; brief envelhecido por etapa nova | escopo | destino |
+| 2026-11-02 04:20 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-18.md | brief | 1 | reprovado | s | teto de linhas sem origem | escopo | jarvis |
+| 2026-11-02 04:21 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-7.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:21 | 059-aba-apontamento | 059-aba-apontamento-devops-engineer-1.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 04:25 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-6.md | entrega | 1 | nao cumpriu | n | PQ cumprido; fora = codigo de etapas anteriores; brief envelhecido por etapa nova | escopo | destino |
+| 2026-11-02 04:28 | 059-aba-apontamento | 059-aba-apontamento-devops-engineer-1.md | entrega | 1 | nao cumpriu | n | PQ e push cumpridos; mesma base sem conferida e etapa nova | escopo | destino |
+| 2026-11-02 04:29 | 059-aba-apontamento | 059-aba-apontamento-node-backend-22.md | brief | 1 | reprovado | s | A3 incompleto; pontuacao sem decisao | escopo | jarvis |
+| 2026-11-02 04:33 | 059-aba-apontamento | 059-aba-apontamento-node-backend-23.md | brief | 2 | reprovado | s | segundo orcamento sem limite | escopo | jarvis |
+| 2026-11-02 04:35 | 059-aba-apontamento | 059-aba-apontamento-node-backend-24.md | brief | 3 | aprovado | s |  | — | jarvis |

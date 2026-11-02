@@ -699,3 +699,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-01T21:09:18-03:00 | K-182 | Aguardando sua validação | Em andamento | Aguardando o dono: fim (PR 188 e 189 mesclados) |
 | 2026-11-01T21:32:50-03:00 | K-193 | Em andamento | Em andamento | F1 spike do worklog (node-backend) e plano até 22h (arquiteto) |
 | 2026-11-01T22:13:23-03:00 | K-193 | Em andamento | Em andamento | trilhas B e C em código local (push espera o dono) |
+| 2026-11-02T03:17:08-03:00 | K-193 | Em andamento | Em andamento | Aguardando o dono |
+| 2026-11-02T03:18:42-03:00 | K-193 | Em andamento | Em andamento | Aguardando o dono |
