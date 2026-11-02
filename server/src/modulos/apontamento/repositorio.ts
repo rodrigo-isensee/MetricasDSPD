@@ -93,7 +93,7 @@ export async function lerUltimasColetas(db: Consultavel, S: Esquemas): Promise<{
   return { ultima: lida(ultima.rows[0]), ultimaOk: lida(ok.rows[0]) };
 }
 
-/** Versões de critério (T2.6) do dicionário de subgrupo e do calendário de feriados do BusinessMap, em ordem de data. */
+/** Versões de critério (T2.6) do dicionário de subgrupo, do calendário de feriados e dos limiares dos achados (BusinessMap), em ordem de data. */
 export async function lerCriterios(db: Consultavel, S: Esquemas): Promise<{ id: string; data: string; descricao: string }[]> {
   const r = await db.query<{ versao_id: string; vigente_desde: string; descricao: string }>(
     `SELECT v.versao_id, v.vigente_desde, v.descricao FROM ${S.core}.ref_versao_criterio v
@@ -101,7 +101,8 @@ export async function lerCriterios(db: Consultavel, S: Esquemas): Promise<{ id: 
        EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_subgrupo s WHERE s.incluido_por_versao_id = v.versao_id)
        OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_termo t WHERE t.incluido_por_versao_id = v.versao_id)
        OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_regra_tipo g WHERE g.incluido_por_versao_id = v.versao_id)
-       OR EXISTS (SELECT 1 FROM ${S.core}.ref_feriado h WHERE h.incluido_por_versao_id = v.versao_id))
+       OR EXISTS (SELECT 1 FROM ${S.core}.ref_feriado h WHERE h.incluido_por_versao_id = v.versao_id)
+       OR EXISTS (SELECT 1 FROM ${S.core}.ref_versao_criterio_metrica m WHERE m.versao_id = v.versao_id AND m.metrica_id = 'apontamento-achados'))
      ORDER BY v.vigente_desde, v.versao_id`);
   return r.rows.map((l) => ({ id: String(l.versao_id), data: l.vigente_desde, descricao: l.descricao }));
 }

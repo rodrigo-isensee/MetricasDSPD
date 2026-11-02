@@ -56,6 +56,7 @@ describe('papel dspd_api_apontamento (R4-5)', () => {
     expect(selects.map((g) => /ON \w+\.(\w+) TO/.exec(g)![1]).sort()).toEqual([
       'ctl_coleta', 'dim_card', 'dim_card_raiz', 'dim_responsavel', 'fato_apontamento', 'ref_apontamento_regra_tipo', 'ref_apontamento_subgrupo',
       'ref_apontamento_termo', 'ref_calendario', 'ref_calendario_aplicacao', 'ref_feriado', 'ref_versao_criterio',
+      'ref_versao_criterio_metrica',
     ]);
     expect(doPapel.join('\n')).not.toMatch(/INSERT|UPDATE|DELETE|TRUNCATE|stg_|evt_|cfg_|dspd_ac\./);
   });

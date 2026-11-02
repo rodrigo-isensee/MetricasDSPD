@@ -24,6 +24,7 @@ export const COLUNAS_API_APONTAMENTO: Readonly<Record<string, readonly string[]>
   'core.ref_calendario_aplicacao': ['dominio', 'classe', 'calendario_id', 'vigente_ate'],
   'core.ref_feriado': ['calendario_id', 'data', 'incluido_por_versao_id'],
   'core.ref_versao_criterio': ['versao_id', 'vigente_desde', 'dominio', 'descricao'],
+  'core.ref_versao_criterio_metrica': ['versao_id', 'metrica_id'],
 };
 
 /**
