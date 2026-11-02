@@ -1,7 +1,7 @@
 import { FAIXAS_DIARIO, type FaixaDiario, type RespostaApontamento } from '@metricas-dspd/contratos'
 import { diaDeIso, ehDiaUtil, isoDeDia, type Calendario } from '../../core/calendario'
 import { ordenarNeutro } from '../../core/ordenar'
-import { agrupar, comPessoa, SEGUNDOS_POR_HORA, somaSegundos } from './comum'
+import { agrupar, doTime, numeroDe, SEGUNDOS_POR_HORA, somaSegundos } from './comum'
 import type { LinhaApontamento } from './tipos'
 
 type Diario = RespostaApontamento['diario']
@@ -21,7 +21,7 @@ export function faixaDoDia(segundos: number): FaixaDiario {
  * Mapa de calor pessoa x dia com a janela pedida (M-7). Uma coluna por dia da janela, com fim de semana e feriado
  * marcados (M-8, `util` e `feriado`), e uma linha por pessoa com célula em todos os dias (dia sem apontamento = faixa
  * `zero`). `atipico` vem do dia inteiro da pessoa (`atipicos`, chave pessoa e dia). `linhas` já vem filtrada só por
- * pessoa e restrita à janela. Sem linha de pessoa para apontamento sem pessoa. A ordem das linhas é a do chamador (o1).
+ * pessoa e restrita à janela. Sem linha de pessoa para apontamento sem pessoa e sem linha de `outra-area`, que soma várias pessoas e não tem faixa por dia. A ordem das linhas é a do chamador (o1).
  */
 export function calcularDiario(
   linhas: readonly LinhaApontamento[],
@@ -35,7 +35,7 @@ export function calcularDiario(
     const data = isoDeDia(d)
     dias.push({ data, util: ehDiaUtil(d, cal), feriado: cal.feriados.has(data) })
   }
-  const porPessoa = [...agrupar(comPessoa(linhas), (l) => l.pessoaRef)].map(([ref, ls]) => {
+  const porPessoa = [...agrupar(doTime(linhas), (l) => l.pessoaRef)].map(([ref, ls]) => {
     const porDia = agrupar(ls, (l) => l.data)
     return {
       pessoaRef: ref,
@@ -56,6 +56,6 @@ export function calcularDiario(
     ate: janela.ate,
     limiteAtipicoSegundos,
     dias,
-    linhas: ordenarNeutro(porPessoa, (p) => [Number(p.pessoaRef.slice(1))]),
+    linhas: ordenarNeutro(porPessoa, (p) => [numeroDe(p.pessoaRef)]),
   }
 }

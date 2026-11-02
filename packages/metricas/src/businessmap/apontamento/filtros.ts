@@ -1,5 +1,5 @@
 import type { FlagQualidade } from '@metricas-dspd/contratos'
-import { agrupar, comPessoa, somaSegundos } from './comum'
+import { agrupar, doTime, somaSegundos } from './comum'
 import type { FiltrosApontamento, LinhaApontamento } from './tipos'
 
 const chaveDia = (pessoaRef: string, data: string): string => `${pessoaRef}|${data}`
@@ -7,13 +7,13 @@ const chaveDia = (pessoaRef: string, data: string): string => `${pessoaRef}|${da
 /**
  * Pessoa e dia cuja soma passa do limite (P-5 da segurança, M-3 do plano): a anomalia é marcada e mantida, nunca
  * descartada. Calculada sobre TODAS as linhas do dia da pessoa, antes de qualquer filtro; linha sem pessoa (eliminada a
- * pedido) não entra, porque não há como somar o dia de alguém.
+ * pedido) não entra, porque não há como somar o dia de alguém, e `outra-area` também não, porque soma várias pessoas.
  */
 export function diasAtipicos(
   linhas: readonly LinhaApontamento[],
   limiteSegundos: number,
 ): ReadonlySet<string> {
-  const doDia = agrupar(comPessoa(linhas), (l) => chaveDia(l.pessoaRef, l.data))
+  const doDia = agrupar(doTime(linhas), (l) => chaveDia(l.pessoaRef, l.data))
   return new Set([...doDia].filter(([, ls]) => somaSegundos(ls) > limiteSegundos).map(([k]) => k))
 }
 

@@ -9,7 +9,7 @@ import {
   type Calendario,
 } from '../../core/calendario'
 import { ordenarNeutro } from '../../core/ordenar'
-import { agrupar, comPessoa, pctComPiso, SEGUNDOS_POR_HORA, somaSegundos } from './comum'
+import { agrupar, doTime, numeroDe, pctComPiso, SEGUNDOS_POR_HORA, somaSegundos } from './comum'
 import type { LinhaApontamento } from './tipos'
 
 type Capacidade = RespostaApontamento['capacidade']
@@ -24,12 +24,12 @@ export const utilizacao = (
 export const horasPorDiaSegundos = (cal: Calendario): number =>
   Math.round(cal.horasPorDia * SEGUNDOS_POR_HORA)
 
-/** Intervalo da pessoa: do primeiro ao último apontamento do recorte (regra da especificação, Q-A4). */
+/** Intervalo da pessoa do time (sem `outra-area`): do primeiro ao último apontamento do recorte (regra da especificação, Q-A4). */
 function intervalos(
   linhas: readonly LinhaApontamento[],
 ): Map<PessoaRef, { inicio: string; fim: string; ls: LinhaApontamento[] }> {
   const out = new Map<PessoaRef, { inicio: string; fim: string; ls: LinhaApontamento[] }>()
-  for (const [ref, ls] of agrupar(comPessoa(linhas), (l) => l.pessoaRef)) {
+  for (const [ref, ls] of agrupar(doTime(linhas), (l) => l.pessoaRef)) {
     // datas ISO: a ordem de texto é a cronológica
     const inicio = ls.reduce((m, l) => (l.data < m ? l.data : m), (ls[0] as LinhaApontamento).data)
     const fim = ls.reduce((m, l) => (l.data > m ? l.data : m), (ls[0] as LinhaApontamento).data)
@@ -65,7 +65,7 @@ export function capacidadePessoa(
       utilizacao: utilizacao(realizadoSegundos, capacidadeSegundos, ls.length),
     })
   }
-  return ordenarNeutro(itens, (i) => [Number(i.pessoaRef.slice(1))])
+  return ordenarNeutro(itens, (i) => [numeroDe(i.pessoaRef)])
 }
 
 /**
@@ -87,7 +87,7 @@ export function capacidadeMensal(
     ini: diaDeIso(v.inicio),
     fim: diaDeIso(v.fim),
   }))
-  const daPessoa = comPessoa(linhas)
+  const daPessoa = doTime(linhas)
   const meses: Capacidade['mensal'] = []
   for (
     let mes = mesDeDia(dDe);

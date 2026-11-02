@@ -3,7 +3,12 @@
  * 20 e ordem neutra de pessoas. Domínio BusinessMap: nada daqui toca o Acelerato. Pessoa só entra como `pessoaRef`
  * (chave opaca, ADR 0020); nome, `user_id` e comentário nunca chegam à biblioteca.
  */
-import { MINIMO_AMOSTRA, type PctComPiso, type PessoaRef } from '@metricas-dspd/contratos'
+import {
+  MINIMO_AMOSTRA,
+  PESSOA_OUTRA_AREA,
+  type PctComPiso,
+  type PessoaRef,
+} from '@metricas-dspd/contratos'
 import { publicavel } from '../../core/estatistica'
 import { ordenarNeutro } from '../../core/ordenar'
 
@@ -16,6 +21,14 @@ export type LinhaComPessoa = LinhaApontamento & { pessoaRef: PessoaRef }
 /** Só as linhas com pessoa: a linha sem pessoa (eliminada a pedido) fica no agregado do time e fora dos blocos por pessoa. */
 export const comPessoa = (linhas: readonly LinhaApontamento[]): LinhaComPessoa[] =>
   linhas.filter((l): l is LinhaComPessoa => l.pessoaRef !== null)
+
+/**
+ * Só as linhas de pessoa do time: `outra-area` soma várias pessoas e por isso não entra em bloco por pessoa nem por dia
+ * (dia atípico, capacidade, utilização, mapa diário, qualidade por pessoa) nem em medida do time (pessoas ativas).
+ * Ela entra só na distribuição, na matriz e nos totais de horas (decisões técnicas de 2026-11-02 08:05 e 09:20).
+ */
+export const doTime = (linhas: readonly LinhaApontamento[]): LinhaComPessoa[] =>
+  comPessoa(linhas).filter((l) => l.pessoaRef !== PESSOA_OUTRA_AREA)
 
 /** Horas para exibição ou texto; as somas e os totais ficam sempre em segundos inteiros (C-3 do plano). */
 export const horas = (segundos: number): number => segundos / SEGUNDOS_POR_HORA
@@ -44,7 +57,9 @@ export function agrupar<T>(itens: readonly T[], chave: (t: T) => string): Map<st
   return m
 }
 
-const numeroDe = (ref: PessoaRef): number => Number(ref.slice(1))
+/** Número da chave `pN`; `outra-area` (entrada que soma quem não é do time) não tem número e vai sempre por último. */
+export const numeroDe = (ref: PessoaRef): number =>
+  /^p\d+$/.test(ref) ? Number(ref.slice(1)) : Number.MAX_SAFE_INTEGER
 
 /** Alfabética sem acento nem caixa (para a ordem dos nomes reais). */
 const chaveAlfabetica = (rotulo: string): string =>
@@ -61,7 +76,11 @@ export function ordenarPorPessoa<T extends { pessoaRef: PessoaRef }>(
 ): T[] {
   return ordenarNeutro(itens, (i) =>
     nomesReais
-      ? [chaveAlfabetica(rotulos.get(i.pessoaRef) ?? ''), numeroDe(i.pessoaRef)]
+      ? [
+          i.pessoaRef === PESSOA_OUTRA_AREA ? 1 : 0,
+          chaveAlfabetica(rotulos.get(i.pessoaRef) ?? ''),
+          numeroDe(i.pessoaRef),
+        ]
       : [numeroDe(i.pessoaRef)],
   )
 }

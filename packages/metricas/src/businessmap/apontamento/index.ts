@@ -8,14 +8,13 @@
 import type { PessoaRef, RespostaApontamento } from '@metricas-dspd/contratos'
 import { gerarAchados } from './achados'
 import { calcularCapacidade } from './capacidade'
-import { comPessoa, ordenarPorPessoa } from './comum'
+import { doTime, ordenarPorPessoa, somaSegundos } from './comum'
 import { calcularDiario } from './diario'
 import { calcularDistribuicao } from './distribuicao'
 import { diasAtipicos, ehAtipico, filtrar } from './filtros'
 import { calcularMatriz } from './matriz'
 import { calcularQualidade } from './qualidade'
 import type { EntradaApontamento } from './tipos'
-import { somaSegundos } from './comum'
 
 export { gerarAchados, LIMIARES_ACHADO_PADRAO } from './achados'
 export {
@@ -71,11 +70,12 @@ export function calcularApontamento(e: EntradaApontamento): CalculoApontamento {
   const kpis = {
     segundos: somaSegundos(recorte),
     apontamentos: recorte.length,
-    pessoasAtivas: new Set(recorte.map((l) => l.pessoaRef).filter((r) => r !== null)).size,
+    // só o time: `outra-area` soma várias pessoas e não é uma pessoa ativa
+    pessoasAtivas: new Set(doTime(recorte).map((l) => l.pessoaRef)).size,
     completos: qualidade.geral.completos,
     atipicos: marcadas.length,
   }
-  const diasAtipicosNoRecorte = new Set(comPessoa(marcadas).map((l) => `${l.pessoaRef}|${l.data}`))
+  const diasAtipicosNoRecorte = new Set(doTime(marcadas).map((l) => `${l.pessoaRef}|${l.data}`))
     .size
 
   return {
