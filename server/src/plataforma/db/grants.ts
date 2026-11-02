@@ -19,7 +19,11 @@ export const COLUNAS_FORA_DA_API: readonly string[] = [
 ];
 
 /** Tabelas inteiras que a API não lê, por `schema.tabela` (ADR 0020, B-3): só o `dspd_coletor` lê `ref_conta_automacao`. */
-export const TABELAS_FORA_DA_API: readonly string[] = ['dspd_bm.ref_conta_automacao', 'dspd_ac.ref_conta_automacao', 'dspd_core.ref_conta_automacao'];
+export const TABELAS_FORA_DA_API: readonly string[] = [
+  'dspd_bm.ref_conta_automacao', 'dspd_ac.ref_conta_automacao', 'dspd_core.ref_conta_automacao',
+  // Pedido 059 (CA-AP-1): o dicionário do apontamento é lido só pelo coletor e pelo papel da aba, nunca pelo `dspd_api`.
+  'dspd_bm.ref_apontamento_subgrupo', 'dspd_bm.ref_apontamento_termo', 'dspd_bm.ref_apontamento_regra_tipo',
+];
 
 const COM = (nomes: string[], ...prefixos: string[]): string[] => nomes.filter((n) => prefixos.some((p) => n.startsWith(p)));
 const PROJECAO = /^(dim_card|dim_chamado|fato_bloqueio|fato_etapa_chamado)$/;
@@ -72,6 +76,10 @@ export function gerarGrants(S: Esquemas, cat: Catalogo): string[] {
     if (chave === 'bm' && ctl.includes('ctl_coleta')) out.push(`GRANT UPDATE (parametros) ON ${schema}.ctl_coleta TO dspd_coletor`);
     // `dim_responsavel` (F3): projeção de valor atual escrita só pelo coletor; nunca vai à API (fora de `paraApi`). Sem DELETE: o apagamento a pedido do titular é do migrador (DT-3).
     if (tabs.includes('dim_responsavel')) g('SELECT, INSERT, UPDATE', schema, ['dim_responsavel'], 'dspd_coletor');
+    // Pedido 059 (ADR 0020 R4-4 e R4-6, ADR 0025 item 8): projeções do apontamento (sem DELETE; a eliminação a pedido é do migrador) e a
+    // lista de supressão, que o coletor só LÊ (INSERT é do migrador, dono). Nenhuma delas vai à API (fora de `paraApi`).
+    g('SELECT, INSERT, UPDATE', schema, tabs.filter((n) => n === 'fato_apontamento' || n === 'dim_card_raiz'), 'dspd_coletor');
+    g('SELECT', schema, tabs.filter((n) => n === 'cfg_pessoa_eliminada'), 'dspd_coletor');
     g('SELECT', schema, COM(tabs, 'ref_'), 'dspd_coletor');
     // API: projeções, views, ref_ e ctl_; nunca stg_, evt_, *_versao. Tabela com coluna de pessoa: só as demais colunas.
     const paraApi = [...tabs.filter((n) => PROJECAO.test(n) || n === 'fato_transicao' || n === 'rec_transicao_par' || n === 'agg_conhecimento_sistema'),
