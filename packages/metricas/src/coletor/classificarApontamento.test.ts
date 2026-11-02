@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import {
   LIMITE_GENERICO_PALAVRAS,
   MASCARA_FLAG,
+  MAX_PONTOS_DE_CODIGO,
   MAX_QTD_PALAVRAS,
   SUBGRUPO_EXECUCAO_TECNICA,
   SUBGRUPO_NAO_CLASSIFICADO,
@@ -13,6 +14,7 @@ import {
   flagsDaMascara,
   mascaraDeFlags,
   normalizarTexto,
+  palavrasDe,
   type DicionarioApontamento,
 } from './index'
 
@@ -196,17 +198,60 @@ describe('normalização e casamento por início de palavra (C-6)', () => {
     expect(sub('3teste')).toBe(SUBGRUPO_EXECUCAO_TECNICA) // dígito antes também é palavra
   })
 
-  it('termo com caractere especial é tratado como texto, não como expressão regular', () => {
+  it('termo com metacaractere nunca vira expressão regular: não lança e não casa (o ref:sync o recusa)', () => {
     const d: DicionarioApontamento = {
       versao: 'v',
-      termos: [{ prioridade: 1, subgrupo: 'g', termos: ['a.b', 'c+', '(d'] }],
+      termos: [{ prioridade: 1, subgrupo: 'g', termos: ['a.b', 'c+', '(d', '[', '\\'] }],
       regrasPorTipo: [],
     }
     const c = (t: string) => classificarApontamento({ comentario: t, typeId: null }, d).subgrupo
-    expect(c('a.b')).toBe('g')
-    expect(c('axb')).toBe(SUBGRUPO_EXECUCAO_TECNICA)
-    expect(c('c+ ok')).toBe('g')
-    expect(c('(d')).toBe('g')
+    for (const t of ['a.b', 'axb', 'c+ ok', '(d', '[ ]', '\\'])
+      expect(c(t)).toBe(SUBGRUPO_EXECUCAO_TECNICA)
+  })
+
+  it('A1: letra fora de a-z e 0-9 antes do termo é parte da palavra (øteste não casa teste)', () => {
+    for (const t of ['øteste', 'ßteste', 'łteste', 'θteste', 'яteste', 'ᴀteste'])
+      expect(sub(t)).toBe(SUBGRUPO_EXECUCAO_TECNICA)
+    expect(sub('teste')).toBe('testes')
+    expect(sub('øteste teste')).toBe('testes')
+  })
+
+  it('A2: controle, formato e direção no meio do termo não o escondem', () => {
+    for (const c of ['\u200b', '\u202e', '\u0000', '\u00ad', '\u200d', '\ufeff', '\u0085'])
+      expect(sub(`re${c}uniao`)).toBe('reunioes-comunicacao')
+    expect(normalizarTexto('re\u202euniao\u0000')).toBe('reuniao')
+  })
+
+  it('A2: surrogate isolado é removido e par válido (emoji) vira separador', () => {
+    expect(normalizarTexto('re\ud800uniao')).toBe('reuniao')
+    expect(normalizarTexto('re\udc00uniao')).toBe('reuniao')
+    expect(sub('re\ud83d\ude00uniao')).toBe(SUBGRUPO_EXECUCAO_TECNICA) // emoji separa: "re" e "uniao"
+    expect(sub('\ud83d\ude00 reuniao')).toBe('reunioes-comunicacao')
+    expect(sub('\ud83d reuniao')).toBe('reunioes-comunicacao') // alto sem baixo
+    expect(sub('\ude00 reuniao')).toBe('reunioes-comunicacao') // baixo sem alto
+  })
+
+  it('A2: palavras são sequências de letra e dígito, não de espaço', () => {
+    expect(classe('- - -').qtdPalavras).toBe(0)
+    expect(classe('teste,carga,geral,ok').qtdPalavras).toBe(4)
+    expect(nomesDe('teste,carga,geral,ok')).not.toContain('generico')
+    expect(classe('a_b c-d').qtdPalavras).toBe(4)
+    expect(classe('RDM 1234').qtdPalavras).toBe(2)
+    // marca de quem só tem pontuação: fica como antes até a decisão do dono (pergunta de 06:30)
+    expect(nomesDe('- - -')).toEqual(['generico', 'sem-vinculo'])
+    expect(nomesDe('\u200b\u0000')).toEqual(['sem-comentario', 'sem-vinculo'])
+  })
+
+  it('termo vazio (o ref:sync o recusa) casa só quando há alguma palavra', () => {
+    const d: DicionarioApontamento = {
+      versao: 'v',
+      termos: [{ prioridade: 1, subgrupo: 'g', termos: [''] }],
+      regrasPorTipo: [],
+    }
+    const c = (t: string) => classificarApontamento({ comentario: t, typeId: null }, d).subgrupo
+    expect(c('qualquer')).toBe('g')
+    expect(c('')).toBe(SUBGRUPO_NAO_CLASSIFICADO)
+    expect(c('- -')).toBe(SUBGRUPO_EXECUCAO_TECNICA)
   })
 })
 
@@ -267,10 +312,20 @@ describe('flags de qualidade (seção 5)', () => {
     ).toBe(0)
   })
 
-  it('a contagem de palavras tem teto de smallint e a versão do dicionário acompanha o resultado', () => {
+  it('a entrada é truncada em 2000 pontos de código e a versão do dicionário acompanha o resultado (A4)', () => {
     const longo = Array.from({ length: MAX_QTD_PALAVRAS + 10 }, () => 'a').join(' ')
-    expect(classe(longo).qtdPalavras).toBe(MAX_QTD_PALAVRAS)
+    expect(classe(longo).qtdPalavras).toBe(MAX_PONTOS_DE_CODIGO / 2) // "a a a ..." em 2000 pontos = 1000 palavras
     expect(classe('x').versaoDicionario).toBe('teste-v1')
+  })
+
+  it('A4: o que passa de 2000 pontos de código não conta nem casa; emoji conta como um ponto', () => {
+    const base = 'x'.repeat(MAX_PONTOS_DE_CODIGO - 1)
+    expect(sub(`${base} reuniao`)).toBe(SUBGRUPO_EXECUCAO_TECNICA) // o espaço é o ponto 2000, o termo cai fora
+    expect(classe(`${base} reuniao`).qtdPalavras).toBe(1)
+    expect(sub(`${'😀'.repeat(MAX_PONTOS_DE_CODIGO - 8)} reuniao`)).toBe('reunioes-comunicacao') // cabe: 1992 + espaço + 7
+    expect(classe(`${'😀'.repeat(MAX_PONTOS_DE_CODIGO)}z`).qtdPalavras).toBe(0) // truncou antes do z
+    expect(classe('x'.repeat(MAX_PONTOS_DE_CODIGO + 500)).qtdPalavras).toBe(1)
+    expect(classe('y '.repeat(MAX_PONTOS_DE_CODIGO)).qtdPalavras).toBe(MAX_PONTOS_DE_CODIGO / 2)
   })
 })
 
@@ -421,5 +476,12 @@ describe('ADR 0020: o comentário não sai nem é público', () => {
     expect(txt).not.toMatch(
       /console\.|logger|JSON\.stringify|localStorage|createHash|sha256|process\.env/,
     )
+  })
+})
+
+describe('A1: sem expressão regular montada do dicionário', () => {
+  it('o código do classificador não constrói RegExp a partir de dado', () => {
+    const txt = fonte('./classificarApontamento.ts').replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(txt).not.toMatch(/new RegExp|RegExp\(/)
   })
 })

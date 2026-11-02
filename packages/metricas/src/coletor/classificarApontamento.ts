@@ -79,16 +79,62 @@ export function flagsDaMascara(mascara: number): FlagQualidade[] {
   return FLAGS_QUALIDADE.filter((f) => (mascara & MASCARA_FLAG[f]) !== 0)
 }
 
-/** Minúsculas, sem acento (NFD sem diacríticos), espaços colapsados e aparados. */
-export function normalizarTexto(texto: string): string {
-  return texto.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').replace(/\s+/g, ' ').trim()
+/** Entrada limitada (plano §3.4, A4 do parecer): comentário truncado em pontos de código antes de qualquer outro passo. */
+export const MAX_PONTOS_DE_CODIGO = 2000
+
+/** Surrogate isolado: metade de par sem a outra. Sem a flag `u` de propósito, para enxergar as metades. */
+const SURROGATE_ISOLADO = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/g
+
+/** Primeiros `MAX_PONTOS_DE_CODIGO` pontos de código, sem copiar o texto inteiro quando ele é enorme. */
+function truncar(texto: string): string {
+  let pontos = 0
+  let fim = 0
+  for (const ponto of texto) {
+    if (pontos === MAX_PONTOS_DE_CODIGO) break
+    pontos += 1
+    fim += ponto.length
+  }
+  return texto.slice(0, fim)
 }
 
-const escapar = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+/**
+ * Minúsculas sem localidade, NFD, sem marcas combinantes (`\p{M}`), sem os de formato e direção (`\p{Cf}`) e sem
+ * surrogate isolado; o espaço em branco (inclusive quebra de linha e tabulação) vira um espaço colapsado; só então saem
+ * os controles restantes (`\p{Cc}`); aparado.
+ * Controle e direção somem sem deixar espaço: `re` + U+200B + `uniao` continua `reuniao`.
+ */
+export function normalizarTexto(texto: string): string {
+  return texto
+    .replace(SURROGATE_ISOLADO, '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\p{M}\p{Cf}]/gu, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\p{Cc}/gu, '')
+    .trim()
+}
 
-/** Início de palavra (C-6): nada de letra ou dígito logo antes do termo; nada é exigido depois. */
-function casaInicioDePalavra(normalizado: string, termo: string): boolean {
-  return new RegExp(`(?<![a-z0-9])${escapar(termo)}`).test(normalizado)
+/** Palavras: sequências de letra e dígito; todo o resto separa. */
+export function palavrasDe(normalizado: string): string[] {
+  return normalizado.match(/[\p{L}\p{N}]+/gu) ?? []
+}
+
+/** Palavras únicas por primeira letra: o casamento só compara termo e palavra que começam igual. */
+function indexarPalavras(palavras: readonly string[]): Map<string, string[]> {
+  const indice = new Map<string, string[]>()
+  for (const palavra of new Set(palavras)) {
+    const chave = palavra.charAt(0)
+    const lista = indice.get(chave)
+    if (lista) lista.push(palavra)
+    else indice.set(chave, [palavra])
+  }
+  return indice
+}
+
+/** Início de palavra (C-6): `startsWith` de cada palavra com o termo, sem expressão regular do dicionário (ADR 0020 R4-2). */
+function casaInicioDePalavra(indice: Map<string, string[]>, termo: string): boolean {
+  if (termo === '') return indice.size > 0
+  return (indice.get(termo.charAt(0)) ?? []).some((palavra) => palavra.startsWith(termo))
 }
 
 type Regra = ({ tipo: 'termo' } & RegraPorTermo) | ({ tipo: 'tipo' } & RegraPorTipo)
@@ -97,9 +143,11 @@ export function classificarApontamento(
   entrada: EntradaApontamento,
   dicionario: DicionarioApontamento,
 ): ResultadoApontamento {
-  const normalizado = normalizarTexto(entrada.comentario ?? '')
+  const normalizado = normalizarTexto(truncar(entrada.comentario ?? ''))
   const semComentario = normalizado === ''
-  const qtdPalavras = semComentario ? 0 : normalizado.split(' ').length
+  const palavras = palavrasDe(normalizado)
+  const qtdPalavras = palavras.length
+  const indice = indexarPalavras(palavras)
 
   const regras: Regra[] = [
     ...dicionario.termos.map((r) => ({ tipo: 'termo' as const, ...r })),
@@ -107,7 +155,7 @@ export function classificarApontamento(
   ]
   const casou = ordenarNeutro(regras, (r) => [r.prioridade, r.subgrupo]).find((r) =>
     r.tipo === 'termo'
-      ? r.termos.some((t) => casaInicioDePalavra(normalizado, t))
+      ? r.termos.some((t) => casaInicioDePalavra(indice, t))
       : r.typeId === entrada.typeId && (r.condicao === 'sempre' || semComentario),
   )
   const subgrupo =
