@@ -158,6 +158,7 @@ export function criarBancoMemoria(opcoes: { listas?: Linha[]; trava?: boolean; c
       if (marcador) { e.stgChamado.length = marcador.c; e.stgEtapa.length = marcador.e; e.ctl.length = marcador.ctl; e.contagens.length = marcador.n; e.falhas.length = marcador.f; }
       marcador = null; return [];
     }
+    if (t.includes('pg_advisory_xact_lock')) return []; // A1 do review do P1: a guarda toma a trava `dspd:seed` antes de contar
     if (t.includes('pg_try_advisory_lock')) return [{ ok: opcoes.trava !== false }];
     if (t.includes('pg_advisory_unlock')) return [];
     if (t.includes('.ref_dominio')) return opcoes.listas ?? LISTAS_BANCO;

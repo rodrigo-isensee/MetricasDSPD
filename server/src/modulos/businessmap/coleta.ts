@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
-import { contarColetasDoSeed, descreverColetasDoSeed } from '../../plataforma/db/guarda-seed.js';
+import { contarColetasDoSeed, descreverColetasDoSeed, tomarTravaDoSeed } from '../../plataforma/db/guarda-seed.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { ErroBusinessMap, type ClienteHttp } from '../../plataforma/http.js';
 import { fecharColeta, type StatusFinal } from '../operacao/index.js';
@@ -57,9 +57,13 @@ export class ErroColetaBm extends Error {
  * de um seed esquecido. Roda antes de qualquer escrita; a mensagem traz só tabela e contagem (o dono roda o `db:limpar-seed`).
  */
 export async function exigirEsquemaSemSeed(db: Consultavel, S: Esquemas): Promise<void> {
+  await tomarTravaDoSeed(db); // A1 do review do P1: a mesma trava `dspd:seed` do seed; `db` é uma transação, a trava vale até o fim dela
   const n = await contarColetasDoSeed(db, S.bm);
   if (n > 0) throw new ErroColetaBm('esquema-com-seed', descreverColetasDoSeed(S.bm, n));
 }
+
+/** A guarda fora de uma transação (a coleta e o worklog): abre uma transação curta só para tomar a trava `dspd:seed` e contar. */
+export const exigirEsquemaSemSeedNoPool = (pool: PoolLike, S: Esquemas): Promise<void> => emTransacao(pool, (trx) => exigirEsquemaSemSeed(trx, S));
 
 export type ModoColeta = { tipo: 'carga_inicial'; inicio?: string | undefined } | { tipo: 'incremental' };
 
@@ -250,7 +254,7 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
  */
 export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<ResultadoColeta> {
   const S = d.S ?? esquemasDoAmbiente();
-  await exigirEsquemaSemSeed(d.pool, S);
+  await exigirEsquemaSemSeedNoPool(d.pool, S);
   const inicio = d.agora();
   await fecharInterrompidas(d.pool, S, inicio);
 
