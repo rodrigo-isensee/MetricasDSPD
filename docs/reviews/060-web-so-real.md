@@ -3,12 +3,14 @@ tipo: review
 contrato: 1
 pedido: 060-triagem-dependabot
 branch: feature/060-web-so-real
-commit: b85663ed535ec321409938a2812d9e468f9eb2d5
+commit: df21afda697d9b4e4331950adfe31ab8754d15d4
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-03
 ---
 # Review: 060-triagem-dependabot, branch do web com dado real (P4 e a parte de web do P5) (E2.20, K-195)
+
+Histórico: 2026-11-03, commit atualizado para df21afd; o código revisado em b85663e não mudou (depois dele entraram só pareceres, tudo em docs/).
 
 **Veredito: aprovado em `b85663e`.** Sem bloqueante. Revalidação por delta: li `bd6d6f2..b85663e` (11 arquivos, web mais 3 documentos). O resto da branch (P4, P5, contrato sem-dado-real, PDF) é "já lido" no parecer de `bd6d6f2` e não mudou.
 
