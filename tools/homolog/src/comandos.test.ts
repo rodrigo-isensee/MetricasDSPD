@@ -25,7 +25,7 @@ describe('subir', () => {
     const chamadas = vi.mocked(deps.exec).mock.calls
     expect(chamadas[0]?.[1]).toContain('--wait')
     expect(chamadas[1]?.[0]).toBe('pnpm')
-    expect(chamadas[1]?.[2]?.env?.PG_MIGRADOR_URL).toContain('@127.0.0.1:15432/metricas')
+    expect(chamadas[1]?.[2]?.env?.PG_SEED_URL).toContain('@127.0.0.1:15432/metricas')
   })
   it('para sem .env.homolog', async () => {
     const { deps, logs } = criar({ lerArquivo: () => undefined })

@@ -1,0 +1,40 @@
+import type { Consultavel } from './pool.js';
+
+/**
+ * Portas G2 (seed) e coleta do plano 060-sem-mock (P1): seed e coleta real nunca dividem o mesmo esquema. O seed é marcado pelo
+ * prefixo da versão do coletor em `ctl_coleta` (`seed-mock` e `seed-mock-coleta`); o que não tem essa marca é coleta real.
+ * Estes contadores só leem e devolvem números: quem recusa monta a mensagem só com nome de tabela e contagem (ADR 0020).
+ */
+export const PREFIXO_COLETA_SEED = 'seed-mock';
+
+const IDENT = /^[a-z][a-z0-9_]*$/;
+const ident = (nome: string): string => {
+  if (!IDENT.test(nome)) throw new Error('identificador inválido');
+  return nome;
+};
+const contagem = (r: { rows: { n: string | number }[] }): number => Number(r.rows[0]?.n ?? 0);
+
+/** Linhas de `ctl_coleta` do esquema marcadas como seed. */
+export async function contarColetasDoSeed(db: Consultavel, schema: string): Promise<number> {
+  return contagem(await db.query<{ n: string }>(
+    `SELECT count(*) AS n FROM ${ident(schema)}.ctl_coleta WHERE starts_with(versao_coletor, $1)`, [PREFIXO_COLETA_SEED]));
+}
+
+/** Linhas de `ctl_coleta` do esquema que não são do seed (coleta real, projeção real, teste). */
+export async function contarColetasReais(db: Consultavel, schema: string): Promise<number> {
+  return contagem(await db.query<{ n: string }>(
+    `SELECT count(*) AS n FROM ${ident(schema)}.ctl_coleta WHERE NOT coalesce(starts_with(versao_coletor, $1), false)`, [PREFIXO_COLETA_SEED]));
+}
+
+/** Itens (`dim_card` ou `dim_chamado`) cuja última coleta gravadora não é a do seed. */
+export async function contarItensReais(db: Consultavel, schema: string, tabela: 'dim_card' | 'dim_chamado'): Promise<number> {
+  const s = ident(schema);
+  return contagem(await db.query<{ n: string }>(
+    `SELECT count(*) AS n FROM ${s}.${tabela} t WHERE NOT EXISTS (
+       SELECT 1 FROM ${s}.ctl_coleta c WHERE c.coleta_id = t.atualizado_por_coleta_id AND starts_with(c.versao_coletor, $1))`,
+    [PREFIXO_COLETA_SEED]));
+}
+
+/** Mensagem só de nome de tabela e contagem. */
+export const descreverColetasDoSeed = (schema: string, n: number): string =>
+  `${schema}.ctl_coleta: ${n} linha(s) de coleta do seed; rode o db:limpar-seed antes da coleta real`;

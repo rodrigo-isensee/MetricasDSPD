@@ -9,6 +9,8 @@ cd "$(dirname "$0")/.."
 if ! (echo > "/dev/tcp/127.0.0.1/${PG_PORT:-5432}") 2>/dev/null; then docker compose up -d --wait postgres >/dev/null || exit 1; fi
 export PG_TESTE_URL="${PG_TESTE_URL:-postgres://dspd_migrador:${DSPD_PWD_MIGRADOR:-migrador_dev}@127.0.0.1:${PG_PORT:-5432}/metricas_test}"
 export DSPD_PWD_API
+# Plano 060 (P1): o seed só roda com o alvo explícito; aqui é o banco de teste, nunca o da coleta real.
+export PG_SEED_URL="$PG_TESTE_URL"
 case "${PG_TESTE_URL%%\?*}" in
   */*_test) ;;
   *) echo "PG_TESTE_URL deve apontar para um banco de teste (nome terminado em _test)."; exit 1 ;;

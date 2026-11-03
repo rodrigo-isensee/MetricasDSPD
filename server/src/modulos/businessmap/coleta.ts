@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
+import { contarColetasDoSeed, descreverColetasDoSeed } from '../../plataforma/db/guarda-seed.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { ErroBusinessMap, type ClienteHttp } from '../../plataforma/http.js';
 import { fecharColeta, type StatusFinal } from '../operacao/index.js';
@@ -45,10 +46,19 @@ export function dominiosDaColeta(): DominiosCamposCustomizados {
 }
 
 export class ErroColetaBm extends Error {
-  constructor(readonly codigo: 'uso' | 'sem-marca' | 'trava' | 'configuracao' | 'cards-falhou' | 'dicionario', mensagem: string) {
+  constructor(readonly codigo: 'uso' | 'sem-marca' | 'trava' | 'configuracao' | 'cards-falhou' | 'dicionario' | 'esquema-com-seed', mensagem: string) {
     super(mensagem);
     this.name = 'ErroColetaBm';
   }
+}
+
+/**
+ * Plano 060-sem-mock, P1: a coleta e o projetor do BusinessMap recusam esquema com coleta `seed-mock`, para a carga real nunca cair em cima
+ * de um seed esquecido. Roda antes de qualquer escrita; a mensagem traz só tabela e contagem (o dono roda o `db:limpar-seed`).
+ */
+export async function exigirEsquemaSemSeed(db: Consultavel, S: Esquemas): Promise<void> {
+  const n = await contarColetasDoSeed(db, S.bm);
+  if (n > 0) throw new ErroColetaBm('esquema-com-seed', descreverColetasDoSeed(S.bm, n));
 }
 
 export type ModoColeta = { tipo: 'carga_inicial'; inicio?: string | undefined } | { tipo: 'incremental' };
@@ -240,6 +250,7 @@ async function lerStream(x: Execucao, quadro: number, estado: EstadoCard, primei
  */
 export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<ResultadoColeta> {
   const S = d.S ?? esquemasDoAmbiente();
+  await exigirEsquemaSemSeed(d.pool, S);
   const inicio = d.agora();
   await fecharInterrompidas(d.pool, S, inicio);
 
