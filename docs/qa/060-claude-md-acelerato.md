@@ -1,7 +1,7 @@
 ---
 tipo: qa
 contrato: 1
-pedido: 060-claude-md-acelerato
+pedido: 060-triagem-dependabot
 branch: docs/060-claude-md-acelerato
 commit: 475862bddea4af09070ca2e526dc1897fa51fbea
 parecer: aprovado
