@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 060-triagem-dependabot
 branch: feature/060-guardas-seed
-commit: b1104f3b9c148aa40bd870a21a49f77a8dd55476
+commit: 0183e430d6b3df391a60320abc652022d0f17aab
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-03
@@ -34,3 +34,5 @@ Lacuna: `gitleaks`, `semgrep` e `osv-scanner` não estão no PATH desta estaçã
 
 ## Riscos aceitos
 Nenhum.
+
+Histórico: 2026-11-03, commit atualizado para a ponta da branch da API; o código das guardas revisado em b1104f3 não mudou.
