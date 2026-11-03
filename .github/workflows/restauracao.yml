@@ -51,7 +51,7 @@ jobs:
       - name: Migrar e semear (mock)
         run: |
           pnpm --filter @metricas-dspd/server run migrate up
-          pnpm --filter @metricas-dspd/server run seed
+          PG_SEED_URL="$PG_MIGRADOR_URL" pnpm --filter @metricas-dspd/server run seed
       - name: Backup (script real)
         run: DSPD_BACKUP_DIR="$RUNNER_TEMP/backups" bash scripts/db-backup.sh
       - name: Restauração verificada (restaura, migrate up = 0, contagens e catálogo)

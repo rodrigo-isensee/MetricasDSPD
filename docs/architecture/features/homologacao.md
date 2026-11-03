@@ -110,7 +110,7 @@ Nada da lógica fica no YAML. Na migração: trocar `homolog.yml` pelo arquivo d
 
 | Fase | Fonte | Regra |
 |---|---|---|
-| Agora | `pnpm db:seed` sobre o banco de homologação: `gerarBaseMock` com semente e data âncora fixas (as do CI e do gate de hash) | determinístico; o seed nunca apaga nem sobrescreve, então reaplicar é seguro; a etapa "paridade" compara o hash da base mock |
+| Agora | `seed` (`PG_SEED_URL` do banco de homologação, definida pelo `homolog:subir`): `gerarBaseMock` com semente e data âncora fixas (as do CI e do gate de hash) | determinístico; o seed nunca apaga nem sobrescreve, então reaplicar é seguro; a etapa "paridade" compara o hash da base mock |
 | Volume | o mesmo gerador com fator de escala (ex.: 2 anos, 10× cards) num **database separado** `metricas_volume` do Postgres de homologação, criado e destruído pela etapa | nenhuma regra nova no seed (só parâmetro de tamanho); não contamina o banco que o usuário valida |
 | Real (futuro) | coleta real somente leitura pelo `worker` de homologação, com credenciais próprias em `.env.homolog` (conta de serviço só leitura, I-8) | só depois de D-5 (retenção e eliminação), I-13 e decisão do usuário (H-7); só no executor local; nunca no CI hospedado; backups com dado real cifrados e com retenção definida |
 
