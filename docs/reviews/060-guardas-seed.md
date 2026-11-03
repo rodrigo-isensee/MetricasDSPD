@@ -32,7 +32,7 @@ data: 2026-11-03
 - O parecer de segurança (E2.25, `docs/security/`) e o QA (E2.26, `docs/qa/`) são etapas próprias. Não os refaço.
 
 ## Achados
-- A1 (recomendado) server/src/modulos/businessmap/coleta.ts:257 · Na coleta (BM, worklog e Acelerato em coletor.ts:175), a trava dspd:seed solta no commit da transação curta, antes da 1ª escrita. Um seed nessa janela ainda passa. O projetor recusa depois, então o cálculo não mistura. Sugestão: anotar o limite no comentário de tomarTravaDoSeed.
+- A1 (recomendado) server/src/modulos/businessmap/coleta.ts:257 · A trava dspd:seed da coleta (BM, worklog, Acelerato em coletor.ts:175) solta no commit da transação curta, antes da 1ª escrita; um seed nessa janela passa, mas o projetor recusa depois. Sugestão: anotar o limite em tomarTravaDoSeed.
 
 ## Parecer
 Aprovado. O seed conta `stg_webhook_evento` (A3 da ADR 0026) e o receptor do webhook fica como está. A coleta do Acelerato, a do BusinessMap e a do apontamento recusam esquema com seed sob a trava `dspd:seed`, e a do Acelerato faz isso dentro da trava da fonte e sem gravar falha. Os testes cobrem cada recusa. A branch traz um comportamento só e fica dentro do teto de linhas. O A1 é recomendação e não devolve a entrega. A segurança (E2.25) e o QA (E2.26) podem seguir.
