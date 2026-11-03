@@ -105,7 +105,8 @@ export interface BlocoExportacao {
   /** Mudanças de critério de cálculo que afetam a métrica ("Critério alterado em ..."). */
   criterios: string[]
   /** Dados do cartão em tabela (equivalente textual do gráfico); null se o DTO não tem série tabular. */
-  tabela: TabelaBloco | null
+  tabela: TabelaBloco | null /** Pedido 060: a métrica não tem fonte real; é o motivo da API. O bloco sai como "sem dado real", sem número. */
+  semDadoReal?: string
 }
 
 export interface SecaoExportacao {
@@ -407,6 +408,34 @@ export function construirBloco(e: EntradaBloco): BlocoExportacao {
   }
 }
 
+/** Bloco de uma métrica sem fonte real: só o contexto e o motivo; nenhum número, percentil, base nem tabela (pedido 060, P4). */
+export function construirBlocoSemDadoReal(e: {
+  id: string
+  codigo: string
+  titulo: string
+  fonte: FonteExportacao
+  contexto: ContextoDados
+  motivo: string
+  /** Nota metodológica já resumida. */
+  nota: string
+}): BlocoExportacao {
+  return {
+    id: e.id,
+    codigo: e.codigo,
+    titulo: e.titulo,
+    fonte: e.fonte,
+    contexto: e.contexto,
+    filtros: '',
+    janela: null,
+    base: '',
+    amostraInsuficiente: [],
+    nota: e.nota,
+    criterios: [],
+    tabela: null,
+    semDadoReal: e.motivo,
+  }
+}
+
 const NOME_NIVEL: Record<'operacional' | 'tatico' | 'estrategico' | 'sustentacao', string> = {
   operacional: 'Operacional',
   tatico: 'Tático',
@@ -414,7 +443,7 @@ const NOME_NIVEL: Record<'operacional' | 'tatico' | 'estrategico' | 'sustentacao
   sustentacao: 'Sustentação',
 }
 
-const NOTA_VISAO_GERAL =
+export const NOTA_VISAO_GERAL =
   'Resumo dos painéis com os indicadores principais de cada nível. Cada indicador segue a regra da sua métrica; abaixo de 20 itens a estatística não é publicada.'
 
 /**

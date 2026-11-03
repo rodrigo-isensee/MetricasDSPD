@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { JANELA_PERCENTIS_PADRAO, type ResultadoDe } from '@metricas-dspd/contratos'
-import { EstadoErro, usePreferenciasPainel } from '@/components/ui'
-import type { MetricaQuery } from '@/data'
+import { EstadoErro, EstadoSemDadoReal, usePreferenciasPainel } from '@/components/ui'
+import { motivoSemDadoReal, type MetricaQuery } from '@/data'
 import { textoJanela } from '@/lib/formatar'
 import {
   fraseDaSerie,
@@ -71,6 +71,12 @@ export function TendenciaFluxo({
   if (!verP85 && !verConcluidos) return null
   if (q.estado === 'carregando')
     return <EsqueletoTendencia id={id} series={verP85 && verConcluidos ? 2 : 1} />
+  if (q.estado === 'sem-dado-real')
+    return (
+      <div id={id} data-testid={`${id}-sem-dado-real`}>
+        <EstadoSemDadoReal codigo="TENDENCIA" motivo={motivoSemDadoReal(q.erro)} />
+      </div>
+    )
   if (q.estado === 'erro') return <ErroTendencia id={id} onTentarDeNovo={q.recarregar} />
   const t = q.dados as ResultadoDe<'TENDENCIA_FLUXO'>
   const o3 = qO3.dados

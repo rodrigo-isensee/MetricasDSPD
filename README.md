@@ -2,7 +2,7 @@
 
 Sistema de métricas ágeis do DSPD: painéis de fluxo (Operacional, Tático, Estratégico), Espera invisível e Sustentação, a partir do BusinessMap e do Acelerato (nunca misturados). Nenhuma métrica serve para avaliar pessoas ou comparar equipes.
 
-> **Dados fictícios.** Esta versão roda só com dados gerados (mock determinístico). Nada aqui vem do BusinessMap ou do Acelerato reais.
+> **Painel só com dado real (pedido 060).** O painel lê a API por padrão (`VITE_FONTE=api`) e o cartão sem fonte real mostra "Sem dado real" e o motivo, sem número. Os dados fictícios (mock determinístico) só existem por escolha explícita: `VITE_FONTE=mock` (desenvolvimento de interface, testes, E2E) e a homologação, sempre com o selo "Dados fictícios".
 
 ## Pré-requisitos
 Node 24 ou superior (`nvm install 24 && nvm use 24`).

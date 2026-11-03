@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { ProvedorCalibracao } from '@/components/ui'
-import type { MetricaQuery } from '@/data'
+import { SemDadoRealErro, type MetricaQuery } from '@/data'
 import { NumeroChave } from './NumeroChave'
 import type { NumeroModelo } from './modelo'
 import { SerieMensal } from './SerieMensal'
@@ -49,6 +49,33 @@ describe('NumeroChave', () => {
     expect(within(n).getByRole('link', { name: 'Ver O2 na Diária' })).toHaveAttribute(
       'href',
       '/operacional?cadencia=diaria#o2',
+    )
+  })
+  it('sem dado real: texto e motivo da API, sem número nem "Tentar de novo"', () => {
+    noRouter(
+      <dl>
+        <NumeroChave
+          {...props}
+          estado="sem-dado-real"
+          erro={new SemDadoRealErro('O12', 'aguardando campo no quadro')}
+          modelo={null}
+        />
+      </dl>,
+    )
+    const c = screen.getByTestId('numero-acima-p95-sem-dado-real')
+    expect(c).toHaveTextContent('Sem dado real')
+    expect(c).toHaveTextContent('aguardando campo no quadro')
+    expect(screen.queryByTestId('numero-acima-p95-valor')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull()
+  })
+  it('sem dado real e sem motivo no erro: o motivo genérico do contrato', () => {
+    noRouter(
+      <dl>
+        <NumeroChave {...props} estado="sem-dado-real" modelo={null} />
+      </dl>,
+    )
+    expect(screen.getByTestId('numero-acima-p95-sem-dado-real')).toHaveTextContent(
+      'fonte real ainda não definida',
     )
   })
   it('em calibração a meta não é avaliada: o selo toma o lugar do status', () => {
@@ -217,6 +244,18 @@ const q = (estado: MetricaQuery<never>['estado'], dados?: unknown): MetricaQuery
 const J = { inicio: '2026-07-18', fim: '2026-10-09' }
 
 describe('TendenciaFluxo e TendenciaSustentacao (sem painel de preferências)', () => {
+  it('sem dado real mostra o estado com o motivo, no lugar das séries', () => {
+    const e = { ...q('sem-dado-real'), erro: new SemDadoRealErro('TENDENCIA_FLUXO', 'sem fonte') }
+    const a = noRouter(<TendenciaFluxo q={e} qO3={q('ok')} />)
+    expect(
+      within(screen.getByTestId('tendencia-fluxo-sem-dado-real')).getByText('sem fonte'),
+    ).toBeInTheDocument()
+    a.unmount()
+    noRouter(<TendenciaSustentacao q={q('sem-dado-real')} />)
+    expect(screen.getByTestId('tendencia-sustentacao-sem-dado-real')).toHaveTextContent(
+      'fonte real ainda não definida',
+    )
+  })
   it('carregando mostra o esqueleto de altura fixa; erro mostra "Tentar de novo" da série', async () => {
     const a = noRouter(<TendenciaFluxo q={q('carregando')} qO3={q('ok')} />)
     expect(screen.getByTestId('tendencia-fluxo-carregando')).toBeInTheDocument()

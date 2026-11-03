@@ -4,7 +4,10 @@ import { Icone } from './Icone'
 
 /** Situação de origem de UM cartão: dado fictício (com o motivo, quando o contrato o guarda) ou real. */
 export interface OrigemCartao {
+  /** Dado fictício: só na fonte mock (selo "Dados fictícios"). */
   ficticio: boolean
+  /** Sem fonte real (mapa de origem do contrato): na API o cartão mostra "Sem dado real", sem número. */
+  semDadoReal?: boolean
   motivo: string | null
 }
 
@@ -15,6 +18,7 @@ const MOCK_DO_CATALOGO: ReadonlySet<string> = new Set(
 /** Sem provedor (componentes isolados): vale o status do catálogo único de cartões. */
 const porCatalogo = (codigo: string): OrigemCartao => ({
   ficticio: MOCK_DO_CATALOGO.has(codigo.toLowerCase()),
+  semDadoReal: false,
   motivo: null,
 })
 
@@ -46,17 +50,7 @@ export function SeloFicticio() {
   )
 }
 
-/** O selo e, quando o mapa de origem guarda, o motivo ("aguardando campo no quadro"), em texto visível. */
+/** O selo "Dados fictícios" do cartão (só na fonte mock). O motivo da falta de dado vive no estado "Sem dado real". */
 export function SeloOrigem({ origem }: { origem: OrigemCartao }) {
-  if (!origem.ficticio) return null
-  return (
-    <>
-      <SeloFicticio />
-      {origem.motivo && (
-        <span className="text-xs text-texto-2" data-testid="motivo-ficticio">
-          {origem.motivo}
-        </span>
-      )}
-    </>
-  )
+  return origem.ficticio ? <SeloFicticio /> : null
 }

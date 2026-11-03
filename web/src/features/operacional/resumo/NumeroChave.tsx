@@ -7,7 +7,7 @@ import {
   useEmCalibracao,
   usePreferenciasPainel,
 } from '@/components/ui'
-import type { EstadoMetrica } from '@/data'
+import { motivoSemDadoReal, type EstadoMetrica } from '@/data'
 import { ROTULO_VISAO, type Visao } from '@/features/navegacao/visao'
 import { useDestinoNaVisao } from './destinos'
 import type { NumeroModelo } from './modelo'
@@ -23,10 +23,21 @@ interface Props {
   onTentarDeNovo: () => void
   /** Visão dona do cartão de origem (o link "Ver O3 na Semanal"). */
   visao: Visao
+  /** Erro da consulta; no estado `sem-dado-real` traz o motivo da resposta da API. */
+  erro?: Error | null | undefined
 }
 
 /** Um número-chave do Resumo: valor, unidade, base, meta e situação em texto com ícone, e o link para a visão dona. */
-export function NumeroChave({ estado, modelo, rotulo, id, codigo, onTentarDeNovo, visao }: Props) {
+export function NumeroChave({
+  estado,
+  modelo,
+  rotulo,
+  id,
+  codigo,
+  onTentarDeNovo,
+  visao,
+  erro,
+}: Props) {
   const destinoDe = useDestinoNaVisao()
   const prefs = usePreferenciasPainel()
   const emCalibracao = useEmCalibracao()
@@ -40,6 +51,18 @@ export function NumeroChave({ estado, modelo, rotulo, id, codigo, onTentarDeNovo
         <Botao className="text-xs" onClick={() => prefs?.mostrar(cartao)}>
           Mostrar {codigo} nesta visita
         </Botao>
+      </div>
+    )
+  } else if (estado === 'sem-dado-real') {
+    corpo = (
+      <div
+        className="flex flex-col items-start gap-1 text-sm text-texto-2"
+        data-testid={`numero-${id}-sem-dado-real`}
+      >
+        <span className="flex items-center gap-1">
+          <Icone nome="info" /> Sem dado real
+        </span>
+        <span className="text-xs">{motivoSemDadoReal(erro)}</span>
       </div>
     )
   } else if (estado === 'erro') {

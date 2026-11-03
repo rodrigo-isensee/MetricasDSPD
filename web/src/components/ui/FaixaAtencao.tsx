@@ -21,9 +21,9 @@ export const TITULOS_FAIXA = {
   agora: 'Pede atenção agora',
 } as const
 
-export type EstadoFaixa = 'ok' | 'carregando' | 'erro'
+export type EstadoFaixa = 'ok' | 'carregando' | 'erro' | 'sem-dado-real'
 
-/** Combina as consultas que alimentam a faixa: erro vence carregando, que vence ok. */
+/** Combina as consultas que alimentam a faixa: erro vence carregando, que vence ok; todas sem dado real = `sem-dado-real` (nunca "nada pede atenção"). */
 export function estadoFaixa(qs: readonly { estado: string; recarregar?: () => void }[]): {
   estado: EstadoFaixa
   recarregar: () => void
@@ -32,7 +32,9 @@ export function estadoFaixa(qs: readonly { estado: string; recarregar?: () => vo
     ? 'erro'
     : qs.some((q) => q.estado === 'carregando')
       ? 'carregando'
-      : 'ok'
+      : qs.length > 0 && qs.every((q) => q.estado === 'sem-dado-real')
+        ? 'sem-dado-real'
+        : 'ok'
   return { estado, recarregar: () => qs.forEach((q) => q.recarregar?.()) }
 }
 
@@ -113,6 +115,13 @@ export function FaixaAtencao({
           data-testid="faixa-atencao-carregando"
         >
           Verificando o que pede atenção…
+        </p>
+      ) : estado === 'sem-dado-real' ? (
+        <p
+          className="mt-2 flex items-center gap-2 text-sm text-texto-2"
+          data-testid="faixa-atencao-sem-dado-real"
+        >
+          <Icone nome="info" /> Sem dado real para verificar o que pede atenção.
         </p>
       ) : estado === 'erro' ? (
         <div role="alert" className="mt-2 text-sm" data-testid="faixa-atencao-erro">
