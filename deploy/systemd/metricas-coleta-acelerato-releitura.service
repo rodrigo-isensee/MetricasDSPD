@@ -1,7 +1,7 @@
 [Unit]
 Description=Metricas DSPD: releitura semanal do recorte do Acelerato
 Wants=docker.service
-After=docker.service network-online.target
+After=docker.service network-online.target metricas-coleta-acelerato.service
 OnFailure=metricas-coleta-falha@%n.service
 
 [Service]
