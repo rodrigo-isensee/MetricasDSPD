@@ -2,15 +2,15 @@
 tipo: revisao-devops
 contrato: 1
 pedido: 061-coleta-diaria
-branch: docs/061-coleta-diaria
-commit: d05bbfccaba07f5a5d4bdf7932b396291c0e7ee9
+branch: feature/061-coleta-diaria
+commit: 3935bf9fd5be5d413709abe05de8e249a8b134ae
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-02
 ---
 # Coleta diária no ambiente publicado: levantamento e proposta (pedido 061, E1.1, K-196)
 
-Escopo: só leitura do código, dos scripts e da documentação na `develop` (`d05bbfc`). Nada foi agendado, executado, publicado nem mexido em servidor; o `.env` não foi aberto e `.env.example` ficou ilegível para este agente (regra de negação da sessão). As variáveis abaixo vêm do código de configuração. Não há mudança de infra sob revisão, por isso o parecer é `aprovado` por vazio de defeito; o que importa é a seção de recomendação.
+Escopo: só leitura do código, dos scripts e da documentação na `develop` (`d05bbfc`). Nada foi agendado, executado, publicado nem mexido em servidor; o `.env` não foi aberto e `.env.example` ficou ilegível para este agente (regra de negação da sessão). As variáveis abaixo vêm do código de configuração. Não há mudança de infra sob revisão no levantamento; a revisão da implementação está na seção 7.
 
 ## 1. Como cada coleta roda hoje
 
@@ -103,7 +103,35 @@ Para a implementação (pedido próprio): Dockerfile ganha `docs/architecture/fo
 5. Definir a quem o aviso de falha chega (e-mail ou canal) e o horário (06:00 e 06:30 BRT propostos).
 6. Confirmar que a pesquisa de percepção continua manual por trimestre.
 
+Decisões do dono de 2026-11-02 sobre os itens 1 a 6: B1, servidor interno, chave atual do dono, conta compartilhada do MySQL, aviso por e-mail, pesquisa manual (ADR 0022 item 6 e ADR 0023 §8).
+
 ## 6. Observações
 
 - O `CLAUDE.md` descreve o Acelerato como API pública só com GET; o código e o ADR 0023 leem uma tabela MySQL com transação somente leitura. Vale alinhar o texto do `CLAUDE.md` (tema do `tech-lead`, não alterado aqui).
-- Ferramentas (`actionlint`, `docker build`) não foram usadas: nada de workflow ou imagem mudou neste pedido.
+- Ferramentas (`actionlint`, `docker build`) não foram usadas no levantamento: nada de workflow ou imagem mudou naquele pedido.
+
+# Revisão de devops da implementação (pedido 061, E2.2, K-196)
+
+Ponta revisada: `3935bf9fd5be5d413709abe05de8e249a8b134ae` da `feature/061-coleta-diaria`; diff contra `d05bbfc` em `server/Dockerfile`, `.dockerignore`, `docker-compose.yml` e `deploy/systemd/`. As seções 1 a 6 são o levantamento da `develop` (E1.1); o `commit:` do frontmatter vale para esta revisão.
+
+Veredito: **aprovado**, sem achado bloqueante.
+
+## 7. O que foi conferido
+
+- **Dockerfile:** acrescenta só `docs/architecture/fontes` à imagem final, a partir do estágio `deps`, o que fecha a restrição 3 do levantamento. Multi-stage e usuário `node` mantidos.
+- **`.dockerignore`:** `docs` passa a liberar só `docs/architecture/fontes`; `.env` e `.env.*` seguem excluídos (exceto `.env.example`), então nenhum segredo entra no contexto de build.
+- **Serviço `coleta`:** perfil `coleta` (não sobe com `up`), sem `ports`, `restart: "no"`, segredos por `env_file` do host, PEM em volume somente leitura e nada de segredo em `ARG` ou `ENV` da imagem. É o único serviço que recebe a apikey e a senha do MySQL. `docker compose config -q` passa.
+- **Unidades systemd:** três timers em `America/Sao_Paulo` (06:00 BusinessMap, 06:30 Acelerato, domingo 07:30 releitura) com `Persistent=true`; serviços `oneshot` com `TimeoutStartSec` e `OnFailure=metricas-coleta-falha@%n.service`. A releitura roda uma hora depois do incremental, fora da trava da fonte.
+- **`aviso-falha.sh`:** `shellcheck` sem avisos. Valida o nome da unidade (`metricas-coleta-*.service`) e o endereço (lista fechada de caracteres) antes de montar o cabeçalho, sem injeção de cabeçalho de e-mail; o corpo traz só o journal, que é JSON de contagens.
+- **Reversão:** desligar os timers; não há migração. O runbook (`docs/devops/runbook-coleta-diaria.md`) cobre isso, o Compose 2.24 ou mais novo, o clone de dono root e as senhas `_dev` do Compose.
+- **R-CUSTO, R-MAIN, R-VERIFY:** nenhum workflow tocado, nada pago, nada na `main`.
+
+Lacunas: `systemd-analyze verify` não rodou (o sandbox recusa: "Failed to setup working directory: Read-only file system"), então a sintaxe das unidades foi lida, não validada por ferramenta. `actionlint` não se aplica (sem workflow). `docker build` e coleta real não foram feitos, por regra do pedido.
+
+## Achados
+
+Nenhum bloqueante. Recomendações, que não devolvem a entrega:
+
+- **R1:** rodar `systemd-analyze verify deploy/systemd/*` e um `docker compose --profile coleta run --rm coleta` de teste, com o dono, na instalação da VM; cobre a lacuna acima.
+- **R2:** o serviço `coleta` depende só do `postgres` saudável, não do `migrate`; com banco sem migrar, a coleta falha. O runbook manda migrar antes (item 2 dos pré-requisitos); aceitável.
+- **R3:** a base `node:24-slim` está por tag, não por digest, como as demais imagens do repositório; fixar todas em cartão à parte.
