@@ -136,7 +136,7 @@ export const VARIAVEIS_REMOVIDAS_API = ['DADOS_FONTE', 'DSPD_SCHEMA_PREFIXO_SEED
 export const carregarConfigApi = (env: NodeJS.ProcessEnv = process.env): ConfigApi => {
   const removidas = VARIAVEIS_REMOVIDAS_API.filter((nome) => env[nome] !== undefined);
   if (removidas.length > 0) {
-    throw new Error(`Configuração inválida (variáveis: ${removidas.join(', ')}): variável removida no pedido 060; a API serve só dado real. Tire a linha do ambiente (o modo demonstração é DSPD_MODO_MOCK=homologacao, só na homologação)`);
+    throw new Error(`Configuração inválida (variáveis: ${removidas.join(', ')}): variável removida no pedido 060; a API serve só dado real. Tire a linha do ambiente`);
   }
   return validar(esquemaApi, env);
 };
