@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 060-triagem-dependabot
 branch: feature/060-web-so-real
-commit: bd6d6f239916c31e2e90b31870c76ddc4c819c38
+commit: b85663ed535ec321409938a2812d9e468f9eb2d5
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-03
@@ -11,7 +11,9 @@ data: 2026-11-03
 # Review de devops: branch do web com dado real (E2.33, K-195)
 
 ## Parecer
-Aprovado, sem achado bloqueante. Lido por diff `b446021..bd6d6f2` em `docker/web/Dockerfile`, `docker-compose.homolog.yml`, `docker-compose.yml`, `e2e/playwright.config.ts` e `.github`. Nada foi rodado (sem build, sem suíte): só o QA roda pesado nesta rodada.
+Aprovado, sem achado bloqueante. Lido por diff `b446021..bd6d6f2` em `docker/web/Dockerfile`, `docker-compose.homolog.yml`, `docker-compose.yml`, `e2e/playwright.config.ts` e `.github`, e o delta da volta 2 `bd6d6f2..b85663e`. Nada foi rodado (sem build, sem suíte).
+
+A volta 2 (`bd6d6f2..b85663e`) não mudou nada do meu papel: nenhum Dockerfile, compose, e2e/playwright.config.ts ou `.github` no delta (só web/src e pareceres); o parecer anterior vale e só cita a ponta nova.
 
 ## Achados
 - `docker/web/Dockerfile:8` · `ARG VITE_FONTE=api` troca o padrão de `mock` e segue o P4 do plano 060-sem-mock. É variável de build pública da SPA, não segredo; base, estágios e `nginx.conf` sem mudança. Aprovado.
@@ -21,7 +23,7 @@ Aprovado, sem achado bloqueante. Lido por diff `b446021..bd6d6f2` em `docker/web
 - `.github` · sem mudança no diff; permissões, SHAs e `timeout-minutes` intactos.
 - Recomendado, não devolve: nenhum workflow nem teste confere que a imagem de homologação saiu com `mock`; um smoke de selo global no `homolog:subir` fecharia a lacuna.
 
-Ferramentas: `actionlint` e `shellcheck` fora do PATH ou sem alvo (nenhum workflow ou script alterado); `docker build` não rodado, pela restrição de recursos.
+Ferramentas: `actionlint` e `shellcheck` sem alvo (nenhum workflow ou script alterado); `docker build` não rodado, pela restrição de recursos.
 
 ## Custo e rollback
 Sem minuto de CI, serviço ou recurso novo (`R-CUSTO`); nada escreve na `main` (`R-MAIN`); nada desligado ou pulado (`R-VERIFY`). Rollback: reverter a branch na develop e reconstruir a imagem; sem migração nem estado de ambiente.
