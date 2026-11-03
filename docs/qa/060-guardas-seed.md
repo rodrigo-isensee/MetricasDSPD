@@ -18,7 +18,7 @@ Parecer sobre o código em `b1104f3` (os commits seguintes só mexem nos parecer
 
 ## Achados
 - A1 (recomendado) server/tests/seed-recusa-real.pg.test.ts:81 · o teste `test:pg` do webhook não roda aqui (PostgreSQL ausente, 8 pulados); a prova do A3 em banco real fica para a CI do PR, que precisa mostrá-lo verde.
-- A2 (recomendado) server/tests/esquema-com-seed.test.ts:26 · a trava `dspd:seed` só é provada na ordem das chamadas do dublê; a serialização entre guarda e seed simultâneos só se prova em banco real (CI). O A1 do review e o da segurança (trava solta antes do INSERT em ctl_coleta) seguem como cartão técnico.
+- A2 (recomendado) server/tests/esquema-com-seed.test.ts:26 · a trava `dspd:seed` só é provada na ordem das chamadas do dublê; a serialização entre guarda e seed simultâneos só se prova em banco real (CI). O A1 do review e o da segurança (trava solta antes do INSERT) seguem como cartão técnico.
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
