@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 060-triagem-dependabot
 branch: feature/060-web-so-real
-commit: b85663ed535ec321409938a2812d9e468f9eb2d5
+commit: df21afda697d9b4e4331950adfe31ab8754d15d4
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -14,11 +14,13 @@ data: 2026-11-03
 ---
 # QA: 060-triagem-dependabot, branch do web com dado real (E2.21, K-195)
 
-Parecer sobre o código em `b85663e` (HEAD da worktree `f69cda6` só soma o parecer de review). Diff `b446021...b85663e`: 38 arquivos, web mais Dockerfile, compose de homologação e documentos. Sem especificação de UX nova; as obrigações vêm do P4 e P5 do plano `060-sem-mock`, do contrato `docs/api/metricas.md` (estado sem dado real) e da ADR 0026.
+Histórico: 2026-11-03, commit atualizado para a ponta da branch; o código revisado em b85663e não mudou (depois dele entraram só pareceres e o parecer de interface, tudo em docs/).
+
+Parecer sobre o código em `b85663e`. Diff `b446021...b85663e`: 38 arquivos, web mais Dockerfile, compose de homologação e documentos. Sem especificação de UX nova; as obrigações vêm do P4 e P5 do plano `060-sem-mock`, do contrato `docs/api/metricas.md` (estado sem dado real) e da ADR 0026.
 
 ## Achados
 - A1 (recomendado) web/src/features/apontamento/sem-fonte-metricas.test.ts:12 · o glob do teste não vê arquivo novo na pasta enquanto o teste fica em cache: import proibido em `zz-mut.ts` passou local e caiu após tocar o teste. CI com cache frio pega.
-- A2 (recomendado) PR da branch · acima do teto M14, como o review (A3 dele): o PR leva a linha `teto: excedido, <n> linhas, <motivo>`.
+- A2 (recomendado) docs/qa/060-web-so-real.md:1 · PR acima do teto M14, como no review (A3 dele): o PR leva a linha de teto excedido, com o número de linhas e o motivo.
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
