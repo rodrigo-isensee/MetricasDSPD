@@ -23,7 +23,7 @@ const chaves = (v: unknown, out = new Set<string>()): Set<string> => {
 
 async function montar(r: Respondedor = bancoDoMock(base), agora = () => AGORA) {
   const d = criarDublePg(r);
-  const app = await buildApp({ db: d.pool, agora, nivelLog: 'silent' });
+  const app = await buildApp({ modoMock: true, db: d.pool, agora, nivelLog: 'silent' });
   return { app, d };
 }
 const get = async (app: Awaited<ReturnType<typeof montar>>['app'], url: string) => app.inject(url);
@@ -95,14 +95,14 @@ describe('GET /api/v1/metricas/:id', () => {
   it('T11: a extensão é lazy (só o T11 a chama) e, sem ela (fonte real), devolve vazio com histórico curto, nunca 500', async () => {
     let chamadas = 0;
     const gerar = () => { chamadas++; return EXTENSAO_TAMBEM_BM_VAZIA; };
-    const montarCom = async (extra: Partial<Parameters<typeof buildApp>[0]>) => buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', ...extra });
+    const montarCom = async (extra: Partial<Parameters<typeof buildApp>[0]>) => buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', ...extra });
     const app = await montarCom({ extensaoTambem: gerar });
     await get(app, '/api/v1/metricas/O1');
     await get(app, '/api/v1/metricas/T12');
     expect(chamadas).toBe(0);
     expect((await get(app, '/api/v1/metricas/T11')).statusCode).toBe(200);
     expect(chamadas).toBe(1);
-    const real = await montarCom({ fonteDados: 'real' });
+    const real = await montarCom({ extensoes: null, extensaoTambem: null });
     const r = await get(real, '/api/v1/metricas/T11');
     expect(r.statusCode).toBe(200);
     expect(r.json()).toMatchObject({ anos: [], mesesComDado: 0, mediaMensal: null, historicoCurto: true });
@@ -216,17 +216,17 @@ describe('GET /api/v1/metricas/:id', () => {
     expect(a.json().sprints.length).toBeGreaterThan(0);
     expect((await get(app, '/api/v1/metricas/S8')).statusCode).toBe(200);
     const d = criarDublePg(bancoDoMock(base));
-    const sem = new ServicoMetricas({ db: d.pool });
+    const sem = new ServicoMetricas({ modoMock: true, db: d.pool });
     const r = await sem.calcular('T8', { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12m' } }, {}, AGORA);
     expect((r.resultado as { sprints: unknown[] }).sprints).toEqual([]);
-    const com = new ServicoMetricas({ db: d.pool, extensoes: () => gerarExtensoesMock(base) });
+    const com = new ServicoMetricas({ modoMock: true, db: d.pool, extensoes: () => gerarExtensoesMock(base) });
     const r2 = await com.calcular('T8', { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12m' } }, {}, AGORA);
     expect((r2.resultado as { sprints: unknown[] }).sprints.length).toBeGreaterThan(0);
   });
 
   it('fonte real: sem extensões mockadas, S8, S11, S12, O17 e E4 saem sem campo, nunca 0% nem dentro da meta', async () => {
     const d = criarDublePg(bancoDoMock(base));
-    const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
+    const app = await buildApp({ modoMock: true, db: d.pool, agora: () => AGORA, nivelLog: 'silent', extensoes: null, extensaoTambem: null });
     for (const id of ['S8', 'S11', 'S12', 'O17', 'E4']) {
       const r = await get(app, `/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -361,7 +361,7 @@ describe('GET /api/v1/metricas/:id', () => {
     const sem = await get(app, '/api/v1/metricas/S1');
     expect(sem.statusCode).toBe(503);
     expect(sem.json().error.code).toBe('REFERENCIA_AUSENTE');
-    expect((await get(app, '/api/v1/metricas/VISAO_GERAL')).statusCode).toBe(503);
+    expect((await get(app, '/api/v1/metricas/VISAO_GERAL')).statusCode).toBe(503); // modo mock: o portão do mapa real não vale
     expect((await get(app, '/api/v1/metricas/T1?periodo=custom&de=2026-10-01&ate=2026-10-10')).statusCode).toBe(422);
     expect((await get(app, '/api/v1/metricas/T1?periodo=custom&de=2026-10-10&ate=2026-10-10')).statusCode).toBe(200);
   });
@@ -431,7 +431,7 @@ describe('ServicoMetricas: carga, versão e cache', () => {
 
   it('mesma consulta duas vezes: um cálculo, uma carga; dentro de 60 s não relê a marca', async () => {
     const d = criarDublePg(bancoDoMock(base));
-    const s = new ServicoMetricas({ db: d.pool });
+    const s = new ServicoMetricas({ modoMock: true, db: d.pool });
     const a = await s.calcular('T1', FL, {}, AGORA);
     const n = d.chamadas.length;
     const b = await s.calcular('T1', FL, {}, new Date(AGORA.getTime() + TTL_VERSAO_MS - 1));
@@ -443,7 +443,7 @@ describe('ServicoMetricas: carga, versão e cache', () => {
   it('depois de 60 s relê a marca d\'água: igual = reaproveita a base e o cache; diferente = recarrega e descarta', async () => {
     const opcoes: { coletaId?: string; versaoCriterio?: string | null } = { coletaId: '1' };
     const d = criarDublePg(bancoDoMock(base, opcoes));
-    const s = new ServicoMetricas({ db: d.pool });
+    const s = new ServicoMetricas({ modoMock: true, db: d.pool });
     const a = await s.calcular('T1', FL, {}, AGORA);
     const t1 = new Date(AGORA.getTime() + TTL_VERSAO_MS);
     expect((await s.calcular('T1', FL, {}, t1)).resultado).toBe(a.resultado);
@@ -460,7 +460,7 @@ describe('ServicoMetricas: carga, versão e cache', () => {
   it('nova versão de critério também invalida (mesma coleta)', async () => {
     const opcoes: { versaoCriterio?: string | null } = { versaoCriterio: '2' };
     const d = criarDublePg(bancoDoMock(base, opcoes));
-    const s = new ServicoMetricas({ db: d.pool });
+    const s = new ServicoMetricas({ modoMock: true, db: d.pool });
     await s.calcular('T1', FL, {}, AGORA);
     opcoes.versaoCriterio = '3';
     const r = await s.calcular('T1', FL, {}, new Date(AGORA.getTime() + TTL_VERSAO_MS));
@@ -471,7 +471,7 @@ describe('ServicoMetricas: carga, versão e cache', () => {
   it('domínios independentes: carregar o fluxo não carrega a sustentação; a coleta de um não invalida o outro', async () => {
     const opcoes: { coletaId?: string } = { coletaId: '1' };
     const d = criarDublePg(bancoDoMock(base, opcoes));
-    const s = new ServicoMetricas({ db: d.pool });
+    const s = new ServicoMetricas({ modoMock: true, db: d.pool });
     await s.calcular('T1', FL, {}, AGORA);
     expect(consultasA(d, 'dspd_ac.dim_chamado')).toBe(0);
     const ac = await s.calcular('S1', SU, {}, AGORA);
@@ -482,7 +482,7 @@ describe('ServicoMetricas: carga, versão e cache', () => {
 
   it('chamadas simultâneas compartilham uma única carga', async () => {
     const d = criarDublePg(bancoDoMock(base));
-    const s = new ServicoMetricas({ db: d.pool });
+    const s = new ServicoMetricas({ modoMock: true, db: d.pool });
     await Promise.all([s.calcular('T1', FL, {}, AGORA), s.calcular('O1', FL, {}, AGORA), s.calcular('T2', FL, {}, AGORA)]);
     expect(consultasA(d, 'FROM dspd_bm.dim_card')).toBe(1);
   });
@@ -491,7 +491,7 @@ describe('ServicoMetricas: carga, versão e cache', () => {
     let falhar = true;
     const normal = bancoDoMock(base);
     const d = criarDublePg((c) => (falhar && c.texto.includes('dim_card') ? new Error('boom') : normal(c)));
-    const s = new ServicoMetricas({ db: d.pool });
+    const s = new ServicoMetricas({ modoMock: true, db: d.pool });
     await expect(s.calcular('T1', FL, {}, AGORA)).rejects.toThrow('boom');
     falhar = false;
     expect((await s.calcular('T1', FL, {}, AGORA)).resultado).toBeDefined();
@@ -499,7 +499,7 @@ describe('ServicoMetricas: carga, versão e cache', () => {
 
   it('limite de resultados guardados: descarta o mais antigo', async () => {
     const d = criarDublePg(bancoDoMock(base));
-    const s = new ServicoMetricas({ db: d.pool, maxResultados: 2 });
+    const s = new ServicoMetricas({ modoMock: true, db: d.pool, maxResultados: 2 });
     const a = await s.calcular('T1', FL, {}, AGORA);
     await s.calcular('T2', FL, {}, AGORA);
     await s.calcular('T3', FL, {}, AGORA);
@@ -511,7 +511,7 @@ describe('ServicoMetricas: carga, versão e cache', () => {
   it('data de referência = fim da última coleta bem-sucedida; Visão geral usa o corte mais antigo das duas fontes', async () => {
     const opcoes = { finalizadoAC: new Date('2026-10-05T12:00:00Z') };
     const d = criarDublePg(bancoDoMock(base, opcoes));
-    const s = new ServicoMetricas({ db: d.pool });
+    const s = new ServicoMetricas({ modoMock: true, db: d.pool });
     expect((await s.calcular('T1', FL, {}, AGORA)).dataReferencia).toBe('2026-10-09');
     expect((await s.calcular('S1', SU, {}, AGORA)).dataReferencia).toBe('2026-10-05');
     expect((await s.calcular('VISAO_GERAL', {}, {}, AGORA)).dataReferencia).toBe('2026-10-05');
@@ -519,7 +519,7 @@ describe('ServicoMetricas: carga, versão e cache', () => {
   });
 
   it('dataReferencia futura é recusada pelo serviço', async () => {
-    const s = new ServicoMetricas({ db: criarDublePg(bancoDoMock(base)).pool });
+    const s = new ServicoMetricas({ modoMock: true, db: criarDublePg(bancoDoMock(base)).pool });
     await expect(s.calcular('T1', FL, { dataReferencia: '2026-10-11' }, AGORA)).rejects.toMatchObject({ code: 'VALIDATION_ERROR', status: 400 });
   });
 });
@@ -587,12 +587,12 @@ describe('fase 2 do pedido 011 (E1 e E2): O22, O26, T13, E6, E8 e T14 em mock', 
   it('a extensão é lazy: só as sete métricas do 011 a chamam; sem ela (fonte real) todas devolvem estado vazio, nunca 500', async () => {
     let chamadas = 0;
     const gerar = () => { chamadas++; return EXTENSAO_TAMBEM_BM_VAZIA; };
-    const app = await buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', extensaoTambem: gerar });
+    const app = await buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', extensaoTambem: gerar });
     for (const id of ['O1', 'T12', 'E7', 'E9']) await get(app, `/api/v1/metricas/${id}`);
     expect(chamadas).toBe(0);
     for (const id of ['O22', 'O26', 'T13', 'E6', 'E8']) expect((await get(app, `/api/v1/metricas/${id}`)).statusCode).toBe(200);
     expect(chamadas).toBe(5);
-    const real = await buildApp({ db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
+    const real = await buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(base)).pool, agora: () => AGORA, nivelLog: 'silent', extensoes: null, extensaoTambem: null });
     for (const id of ['O22', 'O26', 'T13', 'E6', 'E8', 'T14'] as const) {
       const r = await get(real, `/api/v1/metricas/${id}?periodo=12m&equipe=fluig`);
       expect(r.statusCode, id).toBe(200);

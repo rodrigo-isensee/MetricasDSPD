@@ -10,12 +10,12 @@ import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { bancoDoMock } from './base-duble.js';
 import { criarDublePg, type Chamada, type Respondedor } from './duble-pg.js';
 
-// F6 do plano 052 (E2.69): o servidor escolhe a base por métrica (origem do contrato), nunca as duas na mesma; tipo da coluna resolvido
-// na leitura (A4); O1 contra o limite da coluna (H-12); O3 com nota de SLE não definido (H-24); filtro de equipe pela tabela de times.
+// F6 do plano 052 (E2.69) e pedido 060 (P2 e P3): a API lê só a base real; o mapa de origem do contrato é um portão (métrica fora dele responde
+// "sem dado real" sem ler nada); tipo da coluna resolvido na leitura (A4); O1 contra o limite da coluna (H-12); O3 com nota de SLE não
+// definido (H-24); filtro de equipe pela tabela de times.
 const AGORA = new Date('2026-10-10T15:00:00Z');
 const seed = gerarBaseMock({ escala: 0.25 });
 const REAL = montarEsquemas('r_');
-const SEED = montarEsquemas();
 const t = (iso: string): number => Date.parse(iso);
 
 const card = (id: string, tipo: string | null, extra: Partial<LinhaCard> = {}): LinhaCard => ({
@@ -48,7 +48,7 @@ const chamado = (id: string, extra: Partial<LinhaChamado> = {}): LinhaChamado =>
 });
 
 type OpcoesReal = { sle?: boolean; cards?: LinhaCard[]; chamados?: LinhaChamado[] };
-/** Banco falso de duas bases: o que é do schema `r_` é a base real mínima; o resto é o seed do mock (schemas sem prefixo). */
+/** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e os testes provam que não cai. */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
   const cards = o.cards ?? [card('A', 'Bug interno'), card('B', 'Trabalho de produto', { granularidade: 'story' })];
@@ -77,14 +77,14 @@ const AC_SEED = /FROM dspd_ac\.dim_chamado/;
 async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
   const d = criarDublePg(banco(o));
   const app = await buildApp({
-    db: d.pool, S: REAL, SMock: SEED, agora: () => AGORA, nivelLog: extra.linhas ? 'warn' : 'silent',
+    db: d.pool, S: REAL, agora: () => AGORA, nivelLog: extra.linhas ? 'warn' : 'silent',
     ...(extra.linhas ? { destinoLog: { write: (m: string) => { extra.linhas!.push(m); } } } : {}),
   });
   return { app, d };
 }
 
-describe('F6: cada métrica vem inteira de uma base (origem do contrato)', () => {
-  it('métrica real lê só a base real; métrica fictícia lê só a base do seed; nunca as duas', async () => {
+describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é um portão', () => {
+  it('métrica real lê só a base real; métrica fora do mapa responde "sem dado real" sem ler base nenhuma', async () => {
     const real = await montar();
     const r = await real.app.inject('/api/v1/metricas/O1');
     expect(r.statusCode).toBe(200);
@@ -92,29 +92,69 @@ describe('F6: cada métrica vem inteira de uma base (origem do contrato)', () =>
     expect(leituras(real.d.chamadas, NA_REAL)).toBe(1);
     expect(leituras(real.d.chamadas, NO_SEED)).toBe(0);
 
-    const mock = await montar();
-    const m = await mock.app.inject('/api/v1/metricas/O8');
+    const fora = await montar();
+    const m = await fora.app.inject('/api/v1/metricas/O8');
     expect(m.statusCode).toBe(200);
-    expect(leituras(mock.d.chamadas, NO_SEED)).toBe(1);
-    expect(leituras(mock.d.chamadas, NA_REAL)).toBe(0);
+    expect(m.headers['x-estado-dado']).toBe('sem-dado-real');
+    expect(m.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O8', motivo: 'aguardando campo no quadro' });
+    expect(fora.d.chamadas).toHaveLength(0);
   });
 
-  it('as origens do mapa decidem: O1 a O13 (e EI_FL1) reais; O8, O12, O14 a O18, FL2, FL3 e Sustentação no seed', async () => {
+  it('as origens do mapa decidem: as reais (incluindo BLOQUEADOS) calculam na base real; as demais respondem sem dado real, sem nenhuma leitura de seed', async () => {
     const { app, d } = await montar({ sle: true });
-    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'] as MetricaId[]) {
+    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1', 'BLOQUEADOS'] as MetricaId[]) {
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
+      expect(r.headers['x-estado-dado'], id).toBeUndefined();
       expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success, id).toBe(true);
     }
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
+    const antes = d.chamadas.length;
     for (const id of ['O8', 'O12', 'O14', 'O19', 'T1', 'E1', 'S1', 'VISAO_GERAL'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('mock');
-      expect((await app.inject(`/api/v1/metricas/${id}`)).statusCode, id).toBe(200);
+      const r = await app.inject(`/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      expect(r.json(), id).toMatchObject({ estado: 'sem-dado-real', metrica: id });
     }
-    expect(leituras(d.chamadas, NO_SEED)).toBe(1);
+    expect(d.chamadas.length).toBe(antes);
+    expect(leituras(d.chamadas, NO_SEED)).toBe(0);
   }, 60_000);
 
-  it('sustentação (E2.115): S2, S3, S4, S8 e S10 leem só a base real do Acelerato; S1, S5, S6, S7, S9, S11, S12 e EI_SUST, só a do seed; nunca as duas', async () => {
+  it('a VISAO_GERAL responde "sem dado real" com o motivo, nunca o 503 de referência ausente, mesmo sem alvos de prioridade', async () => {
+    const { app } = await montar({ chamados: [] });
+    const r = await app.inject('/api/v1/metricas/VISAO_GERAL');
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'VISAO_GERAL', motivo: 'fonte real ainda não definida' });
+  });
+
+  it('o estado "sem dado real" leva cache e ETag como as demais, a data pedida vale e data futura segue 400 (nada é lido)', async () => {
+    const { app, d } = await montar();
+    const r = await app.inject('/api/v1/metricas/T1?dataReferencia=2026-10-01');
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['cache-control']).toBe('private, max-age=60');
+    expect(r.headers['x-data-referencia']).toBe('2026-10-01');
+    expect(r.headers['x-versao-criterio']).toBe('0');
+    const etag = String(r.headers.etag);
+    expect((await app.inject({ url: '/api/v1/metricas/T1?dataReferencia=2026-10-01', headers: { 'if-none-match': etag } })).statusCode).toBe(304);
+    expect((await app.inject('/api/v1/metricas/T1?dataReferencia=2026-10-11')).statusCode).toBe(400);
+    expect(d.chamadas).toHaveLength(0);
+  });
+
+  it('toda métrica fora do mapa real tem motivo e nenhuma carrega número (ids do contrato inteiros)', async () => {
+    const { app, d } = await montar();
+    const fora = METRICA_IDS.filter((id) => origemDaMetrica(id) !== 'real');
+    expect(fora.length).toBeGreaterThan(0);
+    for (const id of fora) {
+      const r = await app.inject(`/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      const j = r.json() as { estado: string; motivo: string };
+      expect(Object.keys(j).sort(), id).toEqual(['estado', 'metrica', 'motivo']);
+      expect(j.motivo.length, id).toBeGreaterThan(0);
+    }
+    expect(d.chamadas).toHaveLength(0);
+  }, 60_000);
+
+  it('sustentação (E2.115): S2, S3, S4, S8 e S10 leem só a base real do Acelerato; S1, S5, S6, S7, S9, S11, S12 e EI_SUST respondem sem dado real; nunca o seed', async () => {
     const { app, d } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
     for (const id of ['S2', 'S3', 'S4', 'S8', 'S10'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('real');
@@ -128,9 +168,11 @@ describe('F6: cada métrica vem inteira de uma base (origem do contrato)', () =>
     expect(leituras(d.chamadas, NA_REAL)).toBe(0); // sustentação não lê o BusinessMap (domínios separados)
     for (const id of ['S1', 'S5', 'S6', 'S7', 'S9', 'S11', 'S12', 'EI_SUST'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('mock');
-      expect((await app.inject(`/api/v1/metricas/${id}`)).statusCode, id).toBe(200);
+      const r = await app.inject(`/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      expect(r.json(), id).toMatchObject({ estado: 'sem-dado-real' });
     }
-    expect(leituras(d.chamadas, AC_SEED)).toBe(1);
+    expect(leituras(d.chamadas, AC_SEED)).toBe(0);
     expect(leituras(d.chamadas, AC_REAL)).toBe(1);
   }, 60_000);
 
@@ -147,21 +189,32 @@ describe('F6: cada métrica vem inteira de uma base (origem do contrato)', () =>
     expect(r.campoDisponivel).toBe(false);
   });
 
-  it('o aquecimento carrega a base de cada origem uma vez e depois nenhuma métrica volta ao banco', async () => {
+  it('o aquecimento carrega a base real uma vez, não toca métrica fora do mapa e depois nenhuma métrica volta ao banco', async () => {
     const d = criarDublePg(banco({ sle: true }));
-    const app = await buildApp({ db: d.pool, S: REAL, SMock: SEED, agora: () => AGORA, nivelLog: 'silent', aquecer: true });
+    const app = await buildApp({ db: d.pool, S: REAL, agora: () => AGORA, nivelLog: 'silent', aquecer: true });
     await app.ready();
     const aposSubir = d.chamadas.length;
-    for (const id of METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real')) expect((await app.inject(`/api/v1/metricas/${id}`)).statusCode, id).toBe(200);
+    expect(leituras(d.chamadas, NO_SEED) + leituras(d.chamadas, AC_SEED)).toBe(0);
+    for (const id of METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real' && m !== 'PV1')) expect((await app.inject(`/api/v1/metricas/${id}`)).statusCode, id).toBe(200);
     expect(d.chamadas.length).toBe(aposSubir);
     expect(leituras(d.chamadas, NA_REAL)).toBe(1);
   }, 60_000);
 
-  it('sem base do seed (base única) a regra de sempre: lê S e usa as colunas e a lista de equipes antigas', async () => {
+  it('modo mock explícito (só testes e homologação): lê S como seed, sem o portão do mapa, com as colunas e a lista de equipes antigas, e marca o selo no cabeçalho', async () => {
     const d = criarDublePg(bancoDoMock(seed));
-    const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'silent' });
-    expect((await app.inject('/api/v1/metricas/O1')).statusCode).toBe(200);
+    const app = await buildApp({ modoMock: true, db: d.pool, agora: () => AGORA, nivelLog: 'silent' });
+    const r = await app.inject('/api/v1/metricas/O1');
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-dados-ficticios']).toBe('1');
+    const fora = await app.inject('/api/v1/metricas/O8');
+    expect(fora.statusCode).toBe(200);
+    expect(fora.json()).not.toHaveProperty('estado');
     expect(d.chamadas.some((c) => c.texto.includes('ref_time'))).toBe(false);
+  });
+
+  it('sem o modo mock a resposta não leva o selo de dados fictícios', async () => {
+    const { app } = await montar();
+    expect((await app.inject('/api/v1/metricas/O1')).headers['x-dados-ficticios']).toBeUndefined();
   });
 });
 
@@ -175,7 +228,7 @@ describe('F6: tipo do card, tipo da coluna na leitura e O1 pelo limite da coluna
 
   it('sem coluna com limite (0), o O1 mostra o WIP sem limite', async () => {
     const d = criarDublePg((c) => (/FROM r_dspd_bm\.ref_coluna c/.test(c.texto) ? COLUNAS.map((k) => ({ ...k, limite_wip: 0 })) : banco()(c)));
-    const app = await buildApp({ db: d.pool, S: REAL, SMock: SEED, agora: () => AGORA, nivelLog: 'silent' });
+    const app = await buildApp({ db: d.pool, S: REAL, agora: () => AGORA, nivelLog: 'silent' });
     const r = (await app.inject('/api/v1/metricas/O1?equipe=time-a')).json() as { hoje: { limite: number; acimaDoLimite: number }; statusMeta: string; porColuna: { limite: number | null }[] };
     expect(r.hoje).toMatchObject({ limite: 0, acimaDoLimite: 0 });
     expect(r.statusMeta).toBe('sem-referencia');
@@ -195,33 +248,33 @@ describe('F6: tipo do card, tipo da coluna na leitura e O1 pelo limite da coluna
 
   it('o serviço sozinho (sem log) também deixa o card fora, sem erro', async () => {
     const d = criarDublePg(banco({ cards: [card('S', 'Sprint')] }));
-    const s = new ServicoMetricas({ db: d.pool, S: REAL, SMock: SEED });
+    const s = new ServicoMetricas({ db: d.pool, S: REAL });
     const r = await s.calcular('O1', { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' } }, {}, AGORA);
     expect((r.resultado as { hoje: { total: number } }).hoje.total).toBe(0);
   });
 });
 
 describe('F6: O3 e a nota de SLE não definido (H-24)', () => {
-  it('sem SLE na base real, o O3 sai com os percentis e a nota; com SLE, sem nota; na origem fictícia nunca', async () => {
+  it('sem SLE na base real, o O3 sai com os percentis e a nota; com SLE, sem nota; no modo mock nunca', async () => {
     const sem = await montar();
     const a = (await sem.app.inject('/api/v1/metricas/O3')).json() as { notas?: string[] };
     expect(a.notas).toEqual(['sle-nao-definido']);
     const com = await montar({ sle: true });
     expect((await com.app.inject('/api/v1/metricas/O3')).json()).not.toHaveProperty('notas');
     const base = criarDublePg(bancoDoMock(seed));
-    const unica = await buildApp({ db: base.pool, agora: () => AGORA, nivelLog: 'silent' });
+    const unica = await buildApp({ modoMock: true, db: base.pool, agora: () => AGORA, nivelLog: 'silent' });
     expect((await unica.inject('/api/v1/metricas/O3')).json()).not.toHaveProperty('notas');
   });
 });
 
 describe('F6: filtro de equipe pela tabela de times (só filtro)', () => {
-  it('base real lista os times ativos; base única mantém a lista antiga', async () => {
+  it('base real lista os times ativos; o modo mock mantém a lista antiga', async () => {
     const { app } = await montar();
     const r = (await app.inject('/api/v1/filtros/businessmap')).json() as { equipes: { id: string; nome: string }[]; tipos: { id: string }[] };
     expect(r.equipes).toEqual([{ id: 'time-a', nome: 'Time A' }]);
     expect(r.tipos.map((x) => x.id)).toContain('trabalho-produto');
     const base = criarDublePg(bancoDoMock(seed));
-    const unica = await buildApp({ db: base.pool, agora: () => AGORA, nivelLog: 'silent' });
+    const unica = await buildApp({ modoMock: true, db: base.pool, agora: () => AGORA, nivelLog: 'silent' });
     const u = (await unica.inject('/api/v1/filtros/businessmap')).json() as { equipes: { id: string }[] };
     expect(u.equipes.length).toBe(seed.bm.config.equipes.length);
   });

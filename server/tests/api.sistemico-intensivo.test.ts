@@ -16,7 +16,7 @@ import { criarDublePg } from './duble-pg.js';
 const AGORA = new Date('2026-10-10T15:00:00Z');
 const base = gerarBaseMock({ escala: 0.25 });
 type App = Awaited<ReturnType<typeof buildApp>>;
-const montar = (b: BaseMock): Promise<App> => buildApp({ db: criarDublePg(bancoDoMock(b)).pool, agora: () => AGORA, nivelLog: 'silent' });
+const montar = (b: BaseMock): Promise<App> => buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(b)).pool, agora: () => AGORA, nivelLog: 'silent' });
 const url = (id: string, q: string): string => `/api/v1/metricas/${id}${q ? `?${q}` : ''}`;
 
 const EQUIPE_BM = slug;

@@ -22,6 +22,9 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O11',
   'O13',
   'EI_FL1',
+  // Pedido 060 (Q2 e QV1, decisões do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga) e os bloqueados (a carga real já lê os bloqueios).
+  'PV1',
+  'BLOQUEADOS',
   // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S9 e S12 voltaram a mock: dependem de campo que a base real não tem.
   'S2',
   'S3',
@@ -66,6 +69,24 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
 }
 
+/** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O19 a O26, FL2, FL3, Visão geral e a tendência da sustentação). */
+export const MOTIVO_FONTE_REAL_NAO_DEFINIDA = 'fonte real ainda não definida'
+
+/**
+ * Pedido 060 (P3): estado da métrica fora do mapa real. A API não calcula nada para ela: responde 200 com este corpo, sem número, sem
+ * percentil, sem histograma, só o motivo em texto. `estado` é o discriminante (nenhum DTO de resultado tem esse campo).
+ */
+export const ESTADO_SEM_DADO_REAL = 'sem-dado-real' as const
+export const semDadoRealSchema = z
+  .object({
+    estado: z.literal(ESTADO_SEM_DADO_REAL),
+    metrica: z.string(),
+    motivo: z.string().min(1),
+  })
+  .strict()
+  .meta({ id: 'SemDadoReal' })
+export type SemDadoReal = z.infer<typeof semDadoRealSchema>
+
 export function origemDaMetrica(id: MetricaId): OrigemDaMetrica {
   return METRICAS_ORIGEM_REAL.has(id) ? 'real' : 'mock'
 }
@@ -73,6 +94,16 @@ export function origemDaMetrica(id: MetricaId): OrigemDaMetrica {
 /** Motivo do dado fictício, quando o mapa guarda um; null para métrica real ou sem motivo registrado. */
 export function motivoDaOrigemMock(id: MetricaId): string | null {
   return origemDaMetrica(id) === 'mock' ? (MOTIVO_ORIGEM_MOCK[id] ?? null) : null
+}
+
+/** Motivo do estado "sem dado real": o do mapa, ou o genérico. Nunca vazio. */
+export function motivoSemDadoReal(id: MetricaId): string {
+  return motivoDaOrigemMock(id) ?? MOTIVO_FONTE_REAL_NAO_DEFINIDA
+}
+
+/** Corpo da resposta "sem dado real" da métrica `id` (pedido 060, P3). */
+export function corpoSemDadoReal(id: MetricaId): SemDadoReal {
+  return { estado: ESTADO_SEM_DADO_REAL, metrica: id, motivo: motivoSemDadoReal(id) }
 }
 
 /** Notas que o cartão mostra por indicação do contrato (H-15 e H-24). Os textos vivem só aqui. */

@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 060-triagem-dependabot
 branch: feature/060-guardas-seed
-commit: b1104f3b9c148aa40bd870a21a49f77a8dd55476
+commit: 0183e430d6b3df391a60320abc652022d0f17aab
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -38,3 +38,5 @@ Parecer sobre o código em `b1104f3` (os commits seguintes só mexem nos parecer
 - Vermelho antes do verde e mutação: não executados nesta rodada (sem escrita em código e sem ferramenta de mutação no escopo do brief); a CI do PR e o `test:pg` são a prova restante.
 - Regras do CLAUDE.md: a branch não toca cálculo de métrica, e BusinessMap e Acelerato seguem em esquemas e guardas separados; nenhuma métrica individual.
 - Bugs: nenhum.
+
+Histórico: 2026-11-03, commit atualizado para a ponta da branch da API; o código das guardas revisado em b1104f3 não mudou.

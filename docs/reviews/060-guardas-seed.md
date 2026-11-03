@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 060-triagem-dependabot
 branch: feature/060-guardas-seed
-commit: b1104f3b9c148aa40bd870a21a49f77a8dd55476
+commit: 0183e430d6b3df391a60320abc652022d0f17aab
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-03
@@ -36,3 +36,5 @@ data: 2026-11-03
 
 ## Parecer
 Aprovado. O seed conta `stg_webhook_evento` (A3 da ADR 0026) e o receptor do webhook fica como está. A coleta do Acelerato, a do BusinessMap e a do apontamento recusam esquema com seed sob a trava `dspd:seed`, e a do Acelerato faz isso dentro da trava da fonte e sem gravar falha. Os testes cobrem cada recusa. A branch traz um comportamento só e fica dentro do teto de linhas. O A1 é recomendação e não devolve a entrega. A segurança (E2.25) e o QA (E2.26) podem seguir.
+
+Histórico: 2026-11-03, commit atualizado para a ponta da branch da API; o código das guardas revisado em b1104f3 não mudou.
