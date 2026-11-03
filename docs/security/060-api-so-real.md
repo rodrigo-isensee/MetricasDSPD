@@ -3,35 +3,34 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 060-triagem-dependabot
 branch: feature/060-api-so-real
-commit: 110e4678705dfd44eb72d647c4b2a49d3ebe1981
-parecer: reprovado
+commit: 0183e430d6b3df391a60320abc652022d0f17aab
+parecer: aprovado
 revisor: forge:security-engineer
-data: 2026-11-02
+data: 2026-11-03
 ---
 # Review de segurança: 060-api-so-real (P2, P3 e a parte de servidor do P5 do plano 060-sem-mock)
 
-Diff revisado: `3c284ff...110e467` (E2.12 e voltas 1 a 3, 41 arquivos). Li inteiros `config.ts`, `entradas/api.ts`, `app.ts`, `metricas/servico.ts`, `metricas/rotas.ts`, `contratos/src/origem.ts`, `guarda-seed.ts`, `seed.ts`, as guardas da coleta e do projetor das duas fontes, `docker-compose.homolog.yml` e `scripts/com-api-mock.sh`; os testes e o `openapi.json` (regenerado) por amostra. Contexto conferido fora do diff: `docker-compose.yml`, `scripts/dev.sh`, `grants.ts`, `repositorio-pesquisa.ts`. De `110e467` até a ponta atual entra só o parecer de devops (`docs/devops/`). Revisão estática; nada rodou no banco e nenhum arquivo `.env*` foi lido. Referências: `docs/architecture/060-sem-mock.md` (P2, P3, P5) e a ADR 0026 (worktree 052b).
+Renovação por delta sobre `110e467..0183e43` (`forge-check delta` sobre o parecer anterior): `affccc7` (guarda do modo mock) e o merge da develop `5ac7ace` (guardas do seed, PR 205, e coleta diária do 061, PR 204). Li inteiros `server/src/plataforma/db/guarda-mock.ts`, `server/tests/guarda-mock.test.ts`, o diff de `entradas/api.ts` e `config.ts`, `guarda-seed.ts` (contadores) e `grants.ts` (leitura do `dspd_api` em `ctl_`); do merge, os diffs de `server/Dockerfile`, `.dockerignore` e `docker-compose.yml` e as linhas adicionadas em busca de segredo. O que ficou fora do delta segue como no parecer de `110e467`. Revisão estática; nada rodou no banco e nenhum arquivo `.env*` foi lido.
 
 ## Gatilhos
-Configuração de ambiente (variáveis da API, recusa na partida), banco (trava `dspd:seed` nas guardas, contagem de `stg_webhook_evento` no seed), Docker (compose de homologação), R-SEGURANCA.
+Configuração de ambiente (partida da API no modo mock), banco (leitura de `ctl_coleta` na partida), Docker (imagem e compose trazidos da develop), R-SEGURANCA.
 
 ## Resumo
-1. **Variáveis antigas recusadas.** `config.ts:134-140`: `DADOS_FONTE` e `DSPD_SCHEMA_PREFIXO_SEED` presentes, mesmo vazias, derrubam a partida antes da validação; a mensagem traz só os nomes (teste confere que o valor não aparece). `DSPD_MODO_MOCK` só aceita o literal `homologacao` (`config.ts:35`). Fecha o A1 de `052-f6-painel.md` (a variável do prefixo saiu).
-2. **Mock só por ativação explícita.** `entradas/api.ts:18` liga o modo só com `DSPD_MODO_MOCK=homologacao`; as fontes fictícias entram por import dinâmico só nesse modo (`app.ts:73-76`). O `docker-compose.yml` não repassa a variável (ambiente explícito, sem `env_file`); o de homologação a fixa como literal (`docker-compose.homolog.yml:52`), com banco, volume e portas próprios e webhook desligado. Falta a trava pela base: achado A1.
-3. **Resposta sem dado real.** `servico.ts:248` responde antes de qualquer leitura: corpo de `corpoSemDadoReal(id)` (id e motivo constantes do contrato, schema `strict`), `versaoCriterio` fixo e chave sem dado. Nenhuma consulta ao banco, nenhum dado de pessoa. PV1 lê só `pesq_*` sem coluna de pessoa (`grants.ts:128-133`); BLOQUEADOS expõe o que já era servido na base real (título de card do BusinessMap, sem responsável). O filtro de times segue sendo só filtro.
-4. **Cabeçalho de dados fictícios.** `app.ts:79`: hook `onSend` na raiz, em toda resposta do modo mock (inclusive erro e saúde), ausente no padrão.
-5. **Guardas da coleta e do seed.** BusinessMap (cards e apontamento) e Acelerato tomam a trava `dspd:seed` antes de contar (`guarda-seed.ts:15-18`); o Acelerato agora guarda dentro da trava da fonte e não grava a linha de falha quando o motivo é seed (`coletor.ts:175` e `coletor.ts:185`). Os projetores tomam a trava na transação inteira. O seed conta `stg_webhook_evento` no esquema do BusinessMap (`seed.ts:242`), com o papel migrador, sem grant novo; o receptor do webhook fica sem guarda, como manda o A3 da ADR 0026. Resíduo de janela: A2.
-6. **Segredos.** O diff do compose de homologação e dos scripts não traz credencial nova: só a linha literal `DSPD_MODO_MOCK`. O único valor parecido com segredo nas linhas novas é fictício, num teste que confere que a mensagem não o exibe.
+1. **A1 anterior fechado.** `entradas/api.ts:22-24`: com o modo mock, antes de `buildApp` e de abrir a porta, `exigirMockSemColetaReal` conta `contarColetasReais` em `S.bm` e `S.ac` e recusa a partida se houver coleta real, fechando os pools. Falha fechada: esquema sem `ctl_coleta` faz a consulta lançar e a API não sobe. O identificador do esquema passa pela validação `ident` de `guarda-seed.ts`. Sem permissão nova: o `dspd_api` já lê `ctl_` (`grants.ts:108`) e `ctl_coleta` não tem coluna de pessoa.
+2. **Mensagem.** A recusa traz só esquema, tabela e contagem (`guarda-mock.ts:17`); a dica de `config.ts:139` não cita mais a variável do modo mock. Os dois casos têm teste que confere a ausência do nome (`guarda-mock.test.ts:21` e `:34`).
+3. **Corrida mock × coleta.** Uma coleta real posterior sobre a base de homologação é recusada pela guarda da coleta (esquema com seed, já na develop pelo PR 205); a guarda da partida cobre o sentido inverso.
+4. **Merge da develop sem mudança na leitura da API.** Nenhum arquivo de `app.ts`, `metricas/`, `contratos/` ou `grants.ts` muda no delta; os 11 arquivos das guardas chegam idênticos aos de `110e467`. O serviço `api` do `docker-compose.yml` não muda; o serviço novo `coleta` (perfil próprio, sem porta) é o único que recebe a credencial das fontes, pelo arquivo de ambiente do host, e já tem parecer próprio (`docs/security/061-coleta-diaria.md`).
+5. **Imagem.** `server/Dockerfile:18` e `.dockerignore` passam a copiar `docs/architecture/fontes` (listas, dicionários e a consulta SQL do Acelerato); conferido por leitura: nenhum segredo. O `.dockerignore` segue deixando o resto de `docs` e `.claude` fora.
+6. **Segredos.** As linhas adicionadas no delta não trazem credencial; a única menção é texto de runbook sobre rotação, sem valor. O valor `postgres://u:s@h...` do teste é fictício.
 
 Lacuna: `gitleaks`, `osv-scanner`, `semgrep`, `zizmor`, `actionlint` e `trivy` não estão no PATH desta estação; segredos conferidos por leitura das linhas adicionadas. As varreduras seguem no CI.
 
 ## Achados
-- A1 (bloqueante) server/src/entradas/api.ts:18 · `DSPD_MODO_MOCK=homologacao` liga o mock sobre qualquer base: posto no `.env` da base real (o `dev.sh` o carrega e `config.ts:139` o sugere), extensões fictícias somam ao dado real (caso A12), contra a Q3. Recusar a partida no modo mock se `S` tiver coleta real. Dono: node-backend.
-- A2 (recomendado) server/src/modulos/businessmap/coleta.ts:257 · A trava `dspd:seed` só cobre a transação curta da guarda (idem `acelerato/coletor.ts:175`): um seed logo depois ainda grava antes da primeira linha da coleta. O projetor recusa depois; o resto fica no staging. Opcional: abrir o `ctl_coleta` na transação da guarda. Dono: node-backend.
+- A2 (recomendado) server/src/modulos/businessmap/coleta.ts:257 · A trava `dspd:seed` cobre só a transação curta da guarda (idem `acelerato/coletor.ts:175`): um seed logo depois grava antes da 1ª linha da coleta. Opcional: abrir o `ctl_coleta` na transação da guarda. Dono: node-backend.
 
 ## Plano em cartões
-- A1 (node-backend, esforço P): na partida com `modoMock`, antes de aceitar requisições, contar `contarColetasReais` em `S.bm` e `S.ac` (o `dspd_api` já tem SELECT em `ctl_*`, sem grant novo) e recusar a partida se alguma for maior que zero, com mensagem só de esquema e contagem. Trocar a dica de `config.ts:139` por "tire a linha do ambiente", sem citar `DSPD_MODO_MOCK`. Teste: partida com `modoMock` sobre esquema com coleta real é recusada; sobre esquema só com o seed sobe. O QA cobre o caso de abuso "variável de homologação no ambiente da base real".
-- A2: cartão de recomendados do node-backend, sem prazo (não bloqueia).
+- A1 (anterior): fechado em `affccc7`; o QA cobre o caso de abuso "variável de homologação no ambiente da base real" na E2.16.
+- Recomendado A2: cartão de recomendados do node-backend, sem prazo (não bloqueia; fora do delta, inalterado).
 
 ## Riscos aceitos
 Nenhum.
