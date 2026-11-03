@@ -32,3 +32,7 @@ Parecer próprio do `security-engineer` (E1.3), na mesma branch (commit 77c463c)
 ## Achados
 
 - A1 (recomendado) pnpm-workspace.yaml:23 · o override fixa a versão exata e ficará parado se sair novo patch; remover os dois seletores quando fastify, swagger e type-provider já exigirem a faixa corrigida. Sem devolução.
+
+## Histórico
+
+- 2026-11-03: regravado para registro de autoria (mesmo conteúdo, mesmo veredito, mesmo `commit:`).
