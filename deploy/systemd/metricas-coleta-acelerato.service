@@ -1,0 +1,13 @@
+[Unit]
+Description=Metricas DSPD: coleta do Acelerato (incremental)
+Wants=docker.service
+After=docker.service network-online.target
+OnFailure=metricas-coleta-falha@%n.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/metricas-dspd
+# Segredos ficam no arquivo de ambiente do servico de coleta (COLETA_ENV_FILE do Compose), nunca nesta unidade.
+EnvironmentFile=-/etc/metricas-dspd/host.env
+ExecStart=/usr/bin/docker compose --profile coleta run --rm coleta src/entradas/coleta.ts ac
+TimeoutStartSec=2h
