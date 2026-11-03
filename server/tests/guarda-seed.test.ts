@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contarColetasDoSeed, contarColetasReais, contarItensReais, descreverColetasDoSeed, PREFIXO_COLETA_SEED } from '../src/plataforma/db/guarda-seed.js';
+import { contarColetasDoSeed, contarColetasReais, contarEventosDeWebhook, contarItensReais, descreverColetasDoSeed, PREFIXO_COLETA_SEED } from '../src/plataforma/db/guarda-seed.js';
 import { VERSAO_SEED } from '../src/plataforma/db/seed.js';
 import { criarDublePg } from './duble-pg.js';
 
@@ -13,6 +13,12 @@ describe('guarda do seed (plano 060, P1)', () => {
     expect(await contarColetasReais(pool, 'x_dspd_bm')).toBe(0);
     expect(await contarItensReais(pool, 'x_dspd_bm', 'dim_card')).toBe(5);
     expect(chamadas.every((c) => c.valores[0] === 'seed-mock' && !c.texto.includes('seed-mock'))).toBe(true);
+  });
+  it('conta os eventos de webhook do esquema e recusa identificador inválido', async () => {
+    const { pool, chamadas } = criarDublePg((c) => (c.texto.includes('stg_webhook_evento') ? [{ n: '4' }] : []));
+    expect(await contarEventosDeWebhook(pool, 'x_dspd_bm')).toBe(4);
+    expect(chamadas[0]!.texto).toContain('x_dspd_bm.stg_webhook_evento');
+    await expect(contarEventosDeWebhook(pool, 'x; DROP')).rejects.toThrow('identificador inválido');
   });
   it('identificador de esquema inválido é recusado antes da consulta', async () => {
     const { pool, chamadas } = criarDublePg();

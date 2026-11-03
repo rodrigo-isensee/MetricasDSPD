@@ -45,6 +45,14 @@ export async function contarItensReais(db: Consultavel, schema: string, tabela: 
     [PREFIXO_COLETA_SEED]));
 }
 
+/**
+ * Eventos de webhook do BusinessMap (`stg_webhook_evento`) contam como dado real (ADR 0026, A3): esquema com entrega de webhook não recebe seed.
+ * Só o esquema do BusinessMap tem a tabela. Lido pelo papel migrador do seed; não muda GRANT.
+ */
+export async function contarEventosDeWebhook(db: Consultavel, schema: string): Promise<number> {
+  return contagem(await db.query<{ n: string }>(`SELECT count(*) AS n FROM ${ident(schema)}.stg_webhook_evento`));
+}
+
 /** Mensagem só de nome de tabela e contagem. */
 export const descreverColetasDoSeed = (schema: string, n: number): string =>
   `${schema}.ctl_coleta: ${n} linha(s) de coleta do seed; rode o db:limpar-seed antes da coleta real`;

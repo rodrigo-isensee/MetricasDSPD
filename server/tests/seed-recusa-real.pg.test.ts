@@ -78,6 +78,18 @@ d('P1 do plano 060: seed e coleta real não dividem o esquema (PostgreSQL 17)', 
     await expect(semear(db, base, E)).rejects.toThrow(`${E.bm}.dim_card: 1 linha(s) de coleta real`);
   });
 
+  it('seed recusado com evento de webhook no BusinessMap (A3 da ADR 0026): nada é gravado, e o evento fica intacto', async () => {
+    const E = await novo();
+    await db.query(`INSERT INTO ${E.bm}.stg_webhook_evento (payload_sha256, payload, recebido_em) VALUES (decode($1, 'hex'), '{}'::jsonb, now())`, ['ab'.repeat(32)]);
+    const erro = await semear(db, base, E).catch((e: unknown) => e);
+    expect(erro).toBeInstanceOf(ErroSeedEmBaseReal);
+    expect((erro as Error).message).toBe(`seed recusado: ${E.bm}.ctl_coleta: 0 linha(s) de coleta real; ${E.bm}.dim_card: 0 linha(s) de coleta real; ${E.bm}.stg_webhook_evento: 1 evento(s) de webhook`);
+    expect(await n(`${E.bm}.ctl_coleta`)).toBe(0);
+    expect(await n(`${E.ac}.ctl_coleta`)).toBe(0);
+    expect(await n(`${E.bm}.dim_card`)).toBe(0);
+    expect(await n(`${E.bm}.stg_webhook_evento`)).toBe(1);
+  });
+
   it('coleta e projetor recusam esquema com seed, sem escrever (BusinessMap e Acelerato)', async () => {
     const E = await novo();
     await semear(db, base, E);
