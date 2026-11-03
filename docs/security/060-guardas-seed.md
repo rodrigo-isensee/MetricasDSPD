@@ -27,7 +27,7 @@ A1 do P1: a trava `dspd:seed` agora é tomada na conferência da coleta e do pro
 Lacuna: `gitleaks`, `semgrep` e `osv-scanner` não estão no PATH desta estação; segredos conferidos lendo o diff. As varreduras seguem no CI.
 
 ## Achados
-- A1 (recomendado) server/src/modulos/businessmap/coleta.ts:257 · A trava `dspd:seed` cai antes do INSERT em ctl_coleta (:292; Acelerato idem). Seed na janela, com `PG_SEED_URL` na base real vazia, passa; mistura só em stg/ctl, o projetor recusa. Abrir ctl_coleta na transação da guarda. Dono: node-backend.
+- A1 (recomendado) server/src/modulos/businessmap/coleta.ts:257 · A trava `dspd:seed` cai antes do INSERT em ctl_coleta (:292; Acelerato idem). Com `PG_SEED_URL` na base real vazia, seed passa; só stg/ctl misturam, o projetor recusa. Abrir ctl_coleta na transação da guarda. Dono: node-backend.
 
 ## Plano em cartões
 - A1: cartão de recomendados do node-backend, sem prazo (não bloqueia).
