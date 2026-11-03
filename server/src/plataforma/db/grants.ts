@@ -21,6 +21,8 @@ export const COLUNAS_API_APONTAMENTO: Readonly<Record<string, readonly string[]>
   'bm.ref_apontamento_termo': ['incluido_por_versao_id'],
   'bm.ref_apontamento_regra_tipo': ['incluido_por_versao_id'],
   'bm.ctl_coleta': ['coleta_id', 'tarefa', 'status', 'iniciado_em', 'finalizado_em'],
+  // Pedido 063 (K-200, ADR 0020 R4-5 revista): estado de cobertura por card (sem pessoa nem horas); nunca `ctl_coleta_falha`.
+  'bm.ctl_apontamento_cobertura': ['cobertura_sk', 'card_id', 'estado', 'detectado_em'],
   'core.ref_calendario': ['calendario_id', 'offset_minutos'],
   'core.ref_calendario_aplicacao': ['dominio', 'classe', 'calendario_id', 'vigente_ate'],
   'core.ref_feriado': ['calendario_id', 'data', 'incluido_por_versao_id'],

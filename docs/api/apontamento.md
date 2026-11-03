@@ -42,6 +42,29 @@ Chave desconhecida é 400. Listas separadas por vírgula (ou parâmetro repetido
 - Comentário escrito com até 3 palavras recebe a marca `generico`; comentário vazio recebe só `sem-comentario`.
 - Calendário: o da referência (classe `apontamento` do domínio BusinessMap). Sem carga na referência, os cálculos usam dias úteis sem feriados (ver "Pendências").
 
+### `registroIncompleto` (pedido 063, K-200; campo aditivo, `versaoContrato` segue 1)
+
+Sinal de card do BusinessMap cujo registro de horas está INCOMPLETO na base (a coleta ainda não leu todos os registros dele) e que tem horas ativas no recorte da consulta. Base do aviso de `docs/ux/063-aviso-registro-incompleto.md`. Sempre presente nas respostas deste servidor; o schema o marca como opcional só para tolerar resposta antiga (campo ausente = nada a exibir, nunca "completo").
+
+```json
+"registroIncompleto": {
+  "total": 2,
+  "cards": [
+    { "cardId": "9100000001", "titulo": "Título do card no BusinessMap", "projeto": { "id": "900", "rotulo": "Projeto Alfa", "foraDoEscopo": false } },
+    { "cardId": "9100000002", "titulo": "Outro card", "projeto": { "id": "sem-projeto", "rotulo": "Sem iniciativa", "foraDoEscopo": true } }
+  ],
+  "projetoIds": ["900", "sem-projeto"]
+}
+```
+
+- `total` = `cards.length`. Sem card incompleto no recorte: `{ "total": 0, "cards": [], "projetoIds": [] }` (o front não mostra faixa, selo nem nota).
+- `cards[]`: `cardId` (dígitos), `titulo` (`dim_card.titulo`, até 200 caracteres; sem título na base vira `Card <id>`) e `projeto` (`id`, `rotulo` e `foraDoEscopo`, no mesmo formato de `opcoes.projetos`; card sem iniciativa: `id: "sem-projeto"`, `rotulo: "Sem iniciativa"`). Ordem pelo id do card (neutra, nunca por pessoa nem por horas).
+- `projetoIds`: ids de projeto (os mesmos de `opcoes.projetos[].id` e das linhas de `distribuicao` por projeto, ou `sem-projeto`) que contêm card incompleto, sem repetição. É o que o front usa para o selo "Horas incompletas" da linha do projeto (`ap-projeto`) e para a coluna "Observação" da tabela alternativa.
+- Recorte: o card entra se tem horas ativas (não excluídas) no período `[de, ate]` E nos filtros `projeto` e `tipo`, quando pedidos. Os demais filtros (`pessoa`, `subtarefa`, `subgrupo`, `qualidade`, `anomalos`) NÃO alteram a lista: o card é incompleto para todo mundo e o aviso nunca é por pessoa.
+- Não traz horas faltantes, estimativa, contagem de registros nem pessoa. O único número é `total`.
+- Some sozinho: quando a coleta lê o card inteiro numa passagem que cobre toda a janela da carga (carga inicial, retomada ou varredura longa de domingo), grava o evento `completo` e o card sai da lista no carregamento seguinte; o front não guarda nem decide isso.
+- Origem: `bm.ctl_apontamento_cobertura` (eventos append-only por card; o estado atual é o último evento), lida pelo papel `dspd_api_apontamento` por GRANT de colunas (`cobertura_sk`, `card_id`, `estado`, `detectado_em`).
+
 Exemplo (recortado; nomes desligados):
 
 ```json
@@ -92,6 +115,7 @@ O registro de requisição da aba leva só método e caminho (sem consulta, sem 
 - **Mudança em relação à fixture:** o filtro `tipo` está ligado (deixou de responder 422): ofereça-o com `opcoes.tipos`, mandando de volta o `id` da opção na consulta (`?tipo=12&tipo=34`).
 - `opcoes.tipos[].id` é o `type_id` do BusinessMap em dígitos (não mais o código do rótulo da categoria: `melhoria`, `sem-tipo`... deixaram de existir nas opções); o rótulo mostrado é o da categoria do card. Linhas sem `type_id` não aparecem nas opções.
 - Em desenvolvimento, o proxy do Vite repassa o `Host` do navegador (`localhost`); atrás do nginx do painel, o `Host` original é repassado (`proxy_set_header Host $host`).
+- **063 (K-200), campo novo `registroIncompleto`:** ver a seção acima. Ler só `registroIncompleto.cards`, `.total` e `.projetoIds`; campo ausente: exibir a aba normalmente, sem aviso e sem erro; nunca inferir "completo".
 
 ## Pendências
 
