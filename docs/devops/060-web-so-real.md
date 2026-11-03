@@ -3,12 +3,14 @@ tipo: revisao-devops
 contrato: 1
 pedido: 060-triagem-dependabot
 branch: feature/060-web-so-real
-commit: b85663ed535ec321409938a2812d9e468f9eb2d5
+commit: df21afda697d9b4e4331950adfe31ab8754d15d4
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-03
 ---
 # Review de devops: branch do web com dado real (E2.33, K-195)
+
+Histórico: 2026-11-03, commit atualizado para df21afd; o código revisado em b85663e não mudou (depois dele entraram só pareceres, tudo em docs/)
 
 ## Parecer
 Aprovado, sem achado bloqueante. Lido por diff `b446021..bd6d6f2` em `docker/web/Dockerfile`, `docker-compose.homolog.yml`, `docker-compose.yml`, `e2e/playwright.config.ts` e `.github`, e o delta da volta 2 `bd6d6f2..b85663e`. Nada foi rodado (sem build, sem suíte).
