@@ -35,7 +35,7 @@ Front (`web/`): `src/data/http/HttpFonteMetricas.ts` (novo), `src/data/index.ts`
 
 ## 4. Seleção da fonte e impacto no orçamento (ADR 0003)
 
-**Seleção:** `VITE_FONTE=mock|api` lido em `criarFontePadrao()`. Padrão `mock` em `vite dev` e testes unitários (`fonteDeTeste` e `FonteFixa` seguem explícitas, nenhum teste muda); padrão `api` no build da imagem de homologação (`docker/web/Dockerfile` passa `--build-arg VITE_FONTE=api`). Valor inválido = erro na partida (falha rápida, sem cair no mock em silêncio). `VITE_*` é público: só a escolha da fonte e a base da API (`VITE_API_BASE`, padrão `/api/v1`, relativa, mesma origem); nunca segredo. O aviso permanente de dados fictícios já depende de `tipo === 'mock'`.
+**Seleção:** `VITE_FONTE=mock|api` lido em `criarFontePadrao()`. Padrão `api` em `vite dev`, no build e na imagem (`docker/web/Dockerfile` tem `ARG VITE_FONTE=api`); o mock só com `VITE_FONTE=mock` explícito: nos testes unitários (`fonteDeTeste` e `FonteFixa` seguem explícitas), no E2E `@mock` e na homologação, que segue fictícia com selo (`docker-compose.homolog.yml` declara `VITE_FONTE: mock`). Cartão sem dado real mostra "Sem dado real" e o motivo (pedido 060, ADR 0026). Valor inválido = erro na partida (falha rápida, sem cair no mock em silêncio). `VITE_*` é público: só a escolha da fonte e a base da API (`VITE_API_BASE`, padrão `/api/v1`, relativa, mesma origem); nunca segredo. O aviso permanente de dados fictícios já depende de `tipo === 'mock'`.
 
 **Bundle (F6/F9):** com `import()` dinâmico das duas fontes, o chunk do mock + biblioteca (F9) deixa de ser baixado no modo `api`; o ganho é líquido: tira o cálculo da thread principal (C1 a C6 deixam de valer no navegador; valem A1/A3 e M1 no servidor). A `HttpFonteMetricas` deve ser minúscula (< 5 KB gzip); o Zod já está no bundle (ADR 0001). Teste: `size` confirma que o mock não entra no inicial nos dois modos e que não entra no grafo do modo `api` (tree-shaking por constante de build).
 
@@ -75,7 +75,7 @@ Teste com os dois caminhos sobre a **mesma base**: o gerador `@metricas-dspd/moc
 
 ## 9. Decisões em aberto
 - D1 (usuário não precisa decidir, arquiteto propõe): `staleTime` de `estadoColeta` em 60 s; demais `Infinity`.
-- D2: padrão de `VITE_FONTE` na imagem de homologação = `api` (proposto). O usuário só valida o resultado; mock continua no PR e no dev.
+- D2: padrão de `VITE_FONTE` = `api` (revisto no pedido 060, ADR 0026). O mock só por ativação explícita (`VITE_FONTE=mock`): testes, E2E `@mock` e homologação fictícia com selo.
 - D3 (node-backend confirma): nenhuma rota nova no servidor; só o movimento de schemas (R6).
 
 ## 10. Cartões, ordem e esforço
