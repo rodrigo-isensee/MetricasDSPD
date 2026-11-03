@@ -3,12 +3,14 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 060-triagem-dependabot
 branch: feature/060-web-so-real
-commit: b85663ed535ec321409938a2812d9e468f9eb2d5
+commit: df21afda697d9b4e4331950adfe31ab8754d15d4
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-03
 ---
 # Review de segurança: web só com dado real (pedido 060, E2.34)
+
+Histórico: 2026-11-03, commit atualizado para df21afd; o código revisado em b85663e não mudou (depois dele entraram só pareceres, tudo em docs/).
 
 Escopo: diff de b446021 a b85663e (P4 e a parte de web do P5), com foco em Dockerfile da web, compose de homologação, ausência de dado real na homologação, segredo no build e a nota em `docs/security/041-estabilidade.md`. Revisão estática; nenhuma ferramenta executada, nenhum `.env` aberto.
 
