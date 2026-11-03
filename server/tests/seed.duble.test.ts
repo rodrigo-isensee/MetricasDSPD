@@ -1,6 +1,6 @@
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
-import { mapearBM, semear } from '../src/plataforma/db/seed.js';
+import { ErroSeedEmBaseReal, mapearBM, semear } from '../src/plataforma/db/seed.js';
 import { S_PADRAO } from '../src/plataforma/db/esquemas.js';
 import { criarDublePg } from './duble-pg.js';
 
@@ -31,6 +31,30 @@ describe('semear (dublê de banco)', () => {
   it('semente diferente: recusa sem sobrescrever e desfaz', async () => {
     const { pool, chamadas } = criarDublePg((c) => (c.texto.includes('FROM') ? [{ coleta_id: '1', parametros: { semente: 999 } }] : []));
     await expect(semear(pool, base)).rejects.toThrow('já semeado com outra base');
+    expect(chamadas.some((c) => c.texto.startsWith('INSERT'))).toBe(false);
+    expect(chamadas.at(-1)!.texto).toBe('ROLLBACK');
+  });
+  it('esquema com coleta real: recusa antes de escrever, dentro da trava, só com tabela e contagem (plano 060, P1)', async () => {
+    const { pool, chamadas } = criarDublePg((c) => (c.texto.includes('NOT coalesce(starts_with') ? [{ n: '2' }] : []));
+    const erro = await semear(pool, base).catch((e: unknown) => e);
+    expect(erro).toBeInstanceOf(ErroSeedEmBaseReal);
+    expect((erro as Error).message).toBe(`seed recusado: ${S_PADRAO.bm}.ctl_coleta: 2 linha(s) de coleta real; ${S_PADRAO.bm}.dim_card: 0 linha(s) de coleta real`);
+    const t = chamadas.map((c) => c.texto);
+    expect(t.findIndex((x) => x.startsWith('SELECT pg_advisory_xact_lock'))).toBeLessThan(t.findIndex((x) => x.includes('NOT coalesce')));
+    expect(t.some((x) => x.startsWith('INSERT'))).toBe(false);
+    expect(t.at(-1)).toBe('ROLLBACK');
+  });
+  it('esquema com card ou chamado de coleta real (sem ctl_coleta real): recusa, e o Acelerato é conferido antes de qualquer escrita', async () => {
+    const { pool, chamadas } = criarDublePg((c) => (c.texto.includes(`${S_PADRAO.ac}.dim_chamado t`) ? [{ n: 4 }] : []));
+    await expect(semear(pool, base)).rejects.toThrow(`${S_PADRAO.ac}.dim_chamado: 4 linha(s) de coleta real`);
+    expect(chamadas.some((c) => c.texto.startsWith('INSERT'))).toBe(false);
+  });
+  it('esquema do BusinessMap com evento de webhook: recusa antes de escrever, só com tabela e contagem (ADR 0026, A3)', async () => {
+    const { pool, chamadas } = criarDublePg((c) => (c.texto.includes('stg_webhook_evento') ? [{ n: '3' }] : []));
+    const erro = await semear(pool, base).catch((e: unknown) => e);
+    expect(erro).toBeInstanceOf(ErroSeedEmBaseReal);
+    expect((erro as Error).message).toBe(`seed recusado: ${S_PADRAO.bm}.ctl_coleta: 0 linha(s) de coleta real; ${S_PADRAO.bm}.dim_card: 0 linha(s) de coleta real; ${S_PADRAO.bm}.stg_webhook_evento: 3 evento(s) de webhook`);
+    expect(chamadas.filter((c) => c.texto.includes('stg_webhook_evento')).every((c) => c.texto.includes(`${S_PADRAO.bm}.stg_webhook_evento`))).toBe(true);
     expect(chamadas.some((c) => c.texto.startsWith('INSERT'))).toBe(false);
     expect(chamadas.at(-1)!.texto).toBe('ROLLBACK');
   });

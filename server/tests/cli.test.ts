@@ -74,11 +74,13 @@ describe('cli de migração: trava do down/redo (C2)', () => {
 });
 
 describe('cli de seed', () => {
-  it('exige uma URL', async () => {
-    await expect(import('../src/plataforma/db/seed-cli.js')).rejects.toThrow('PG_SEED_URL');
+  it('exige PG_SEED_URL e não cai no migrador (plano 060, P1)', async () => {
+    process.env.PG_MIGRADOR_URL = 'postgres://base-real';
+    await expect(import('../src/plataforma/db/seed-cli.js')).rejects.toThrow('PG_SEED_URL ausente');
+    expect(semear).not.toHaveBeenCalled();
   });
-  it('usa o migrador como fallback, mock padrão sem semente', async () => {
-    process.env.PG_MIGRADOR_URL = 'postgres://x';
+  it('mock padrão sem semente', async () => {
+    process.env.PG_SEED_URL = 'postgres://x';
     await import('../src/plataforma/db/seed-cli.js');
     expect(semear).toHaveBeenCalledWith(pool, { opcoes: {} });
     expect(console.log).toHaveBeenCalledWith('semeado');

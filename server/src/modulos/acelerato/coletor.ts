@@ -9,7 +9,7 @@ import type { ConfigAcelerato } from './config.js';
 import {
   montarParametros, parametrosDiferentes, registrarContagens, registrarFalha, registrarSucesso, ultimoSucesso, type Contagem, type TarefaAcelerato,
 } from './controle.js';
-import { ErroColeta, comoErroColeta, repetivel } from './erros.js';
+import { ErroColeta, comoErroColeta, exigirEsquemaSemSeedNoPool, repetivel } from './erros.js';
 import { NOMES_CAMPO_FATIA_F1 } from './listas-fechadas.js';
 import { carregarListas } from './referencia.js';
 import { DATA_MINIMA, Q1_CHAMADOS, Q2_ETAPAS, Q3_CAMPOS, Q4_FORA_ORGANIZACOES, Q5_SAIDA, TAMANHO_PAGINA, expandir } from './sql.js';
@@ -170,13 +170,19 @@ export async function coletarAcelerato(d: DepsColeta, modo: ModoColeta): Promise
   const tarefa: TarefaAcelerato = modo === 'incremental' ? 'coleta_incremental' : 'varredura';
   let tentativas = 1;
   try {
-    const r = await comTravaDaFonte(d.pool, 'acelerato', () => executar(d, modo, tarefa, iniciadoEm, (n) => { tentativas = n; }));
+    // A2 do review do P1: a guarda do seed roda dentro da trava da fonte (como a da outra fonte), antes de qualquer leitura da origem ou escrita.
+    const r = await comTravaDaFonte(d.pool, 'acelerato', async () => {
+      await exigirEsquemaSemSeedNoPool(d.pool, d.S);
+      return executar(d, modo, tarefa, iniciadoEm, (n) => { tentativas = n; });
+    });
     if (!r.executou) return { estado: 'em-uso' };
     d.log.info({ modo, coletaId: r.valor.coletaId, chamados: r.valor.chamados, etapas: r.valor.etapas, semNovidade: r.valor.semNovidade }, 'coleta do Acelerato concluída');
     return r.valor;
   } catch (e) {
     const erro = comoErroColeta(e);
     d.log.error(erro.paraLog(), 'coleta do Acelerato falhou');
+    // A guarda do seed recusa antes de escrever: nem a linha de falha entra num esquema com seed (o log acima já guarda o código).
+    if (erro.codigo === 'esquema-com-seed') throw erro;
     // Registro da falha: só código, entidade e id_origem. Se nem isto grava, o log acima já tem o código.
     await registrarFalha(d.pool, d.S, { tarefa, iniciadoEm, finalizadoEm: d.agora(), erro, tentativas })
       .catch(() => { d.log.error({ codigo: erro.codigo }, 'falha da coleta não pôde ser registrada em ctl_coleta'); });

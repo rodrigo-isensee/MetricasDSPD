@@ -1,0 +1,10 @@
+[Unit]
+Description=Metricas DSPD: agenda da releitura semanal do Acelerato (domingo 07:30 Brasilia)
+
+[Timer]
+# Uma hora depois do incremental das 06:30, para nao esbarrar na trava da fonte.
+OnCalendar=Sun *-*-* 07:30:00 America/Sao_Paulo
+Persistent=true
+
+[Install]
+WantedBy=timers.target

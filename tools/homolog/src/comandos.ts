@@ -37,7 +37,7 @@ export async function subir(deps: Dependencias): Promise<number> {
   }
   const url = `postgres://dspd_migrador:${env.DSPD_PWD_MIGRADOR}@127.0.0.1:${p.pg}/metricas`
   const seed = await deps.exec('pnpm', ['--filter', '@metricas-dspd/server', 'run', 'seed'], {
-    env: { PG_MIGRADOR_URL: url },
+    env: { PG_SEED_URL: url },
   })
   if (seed.codigo !== 0) {
     deps.log(`erro: seed falhou\n${seed.saida}`)
