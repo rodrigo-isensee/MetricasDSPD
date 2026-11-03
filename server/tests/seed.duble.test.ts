@@ -49,6 +49,15 @@ describe('semear (dublê de banco)', () => {
     await expect(semear(pool, base)).rejects.toThrow(`${S_PADRAO.ac}.dim_chamado: 4 linha(s) de coleta real`);
     expect(chamadas.some((c) => c.texto.startsWith('INSERT'))).toBe(false);
   });
+  it('esquema do BusinessMap com evento de webhook: recusa antes de escrever, só com tabela e contagem (ADR 0026, A3)', async () => {
+    const { pool, chamadas } = criarDublePg((c) => (c.texto.includes('stg_webhook_evento') ? [{ n: '3' }] : []));
+    const erro = await semear(pool, base).catch((e: unknown) => e);
+    expect(erro).toBeInstanceOf(ErroSeedEmBaseReal);
+    expect((erro as Error).message).toBe(`seed recusado: ${S_PADRAO.bm}.ctl_coleta: 0 linha(s) de coleta real; ${S_PADRAO.bm}.dim_card: 0 linha(s) de coleta real; ${S_PADRAO.bm}.stg_webhook_evento: 3 evento(s) de webhook`);
+    expect(chamadas.filter((c) => c.texto.includes('stg_webhook_evento')).every((c) => c.texto.includes(`${S_PADRAO.bm}.stg_webhook_evento`))).toBe(true);
+    expect(chamadas.some((c) => c.texto.startsWith('INSERT'))).toBe(false);
+    expect(chamadas.at(-1)!.texto).toBe('ROLLBACK');
+  });
   it('semear sem base usa o mock padrão', async () => {
     const { pool } = criarDublePg((c) => (c.texto.includes('FROM') ? [{ coleta_id: '1', parametros: {} }] : []));
     await expect(semear(pool)).rejects.toThrow('outra base');

@@ -1,6 +1,6 @@
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
-import { contarColetasDoSeed } from '../../plataforma/db/guarda-seed.js';
-import type { Consultavel } from '../../plataforma/db/pool.js';
+import { contarColetasDoSeed, tomarTravaDoSeed } from '../../plataforma/db/guarda-seed.js';
+import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 
 /**
  * Erros da coleta do Acelerato (ADR 0023, item 1.6; ameaças M2 e M8). O erro do driver (que carrega configuração,
@@ -74,8 +74,12 @@ export class ErroColeta extends Error {
  * Roda antes de qualquer escrita (inclusive do registro de falha em `ctl_coleta`); só o código e a entidade saem.
  */
 export async function exigirEsquemaSemSeed(db: Consultavel, S: Esquemas): Promise<void> {
+  await tomarTravaDoSeed(db); // A1 do review do P1: a mesma trava `dspd:seed` do seed; `db` é uma transação, a trava vale até o fim dela
   if ((await contarColetasDoSeed(db, S.ac)) > 0) throw new ErroColeta('esquema-com-seed', { entidade: 'ctl_coleta' });
 }
+
+/** A guarda fora de uma transação (a coleta): abre uma transação curta só para tomar a trava `dspd:seed` e contar. */
+export const exigirEsquemaSemSeedNoPool = (pool: PoolLike, S: Esquemas): Promise<void> => emTransacao(pool, (trx) => exigirEsquemaSemSeed(trx, S));
 
 /** Qualquer erro vira `ErroColeta`; o que não for já um dele vira `erro-interno`, sem a mensagem original. */
 export const comoErroColeta = (e: unknown): ErroColeta => (e instanceof ErroColeta ? e : new ErroColeta('erro-interno'));
