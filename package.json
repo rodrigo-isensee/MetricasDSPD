@@ -31,6 +31,7 @@
     "db:reset": "docker compose down -v && pnpm run db:up",
     "db:migrate": "bash scripts/db.sh migrate",
     "bm:diagnostico": "bash scripts/bm-diagnostico.sh",
+    "bm:spike-paginacao": "bash scripts/bm-spike-paginacao.sh",
     "coleta": "bash scripts/coleta.sh",
     "test:pg": "bash scripts/suite-unica.sh bash scripts/test-pg.sh",
     "db:limpar-testes": "bash scripts/db.sh limpar-testes",

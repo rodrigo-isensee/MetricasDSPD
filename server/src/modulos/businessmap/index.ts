@@ -6,6 +6,7 @@ export { CAMPOS_APONTAMENTO, CAMPOS_CLASSIFICACAO, CAMPOS_CARD, CAMPOS_REVISAO, 
 export { gravarResponsaveis } from './responsaveis.js';
 export { diagnosticar, type ResultadoDiagnostico } from './diagnostico.js';
 export { executarSpike, type ResultadoSpike } from './spike.js';
+export { executarSpikePaginacao, type ResultadoSpikePaginacao } from './spike-paginacao.js';
 export { ARQUIVO_CONFERENCIA } from './conferencia.js';
 export {
   sincronizarReferencia, lerReferenciaReal, planejar, registrarFolhasSemConferencia, vigenteEm, contextoDoEvento, folhasDoMarco, nivelDoWorkflow,
