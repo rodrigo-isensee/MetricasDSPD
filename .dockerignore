@@ -8,5 +8,8 @@
 !.env.example
 e2e/test-results
 e2e/playwright-report
-docs
+docs/*
+!docs/architecture
+docs/architecture/*
+!docs/architecture/fontes
 .claude
