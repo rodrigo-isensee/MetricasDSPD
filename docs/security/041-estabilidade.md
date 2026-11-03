@@ -21,7 +21,7 @@ Propósito: parecer de segurança sobre os scripts de `package.json` e `e2e/pack
 
 ## Script `e2e/scripts/evidencias-fase-a.mjs` (volta da E5.2)
 - **O que grava:** 22 PNG (12 `operacional-<largura>-<tema>`, 6 larguras × 2 temas, e 10 `estado-<nome>-<tema>`, 5 estados × 2 temas; `fullPage`) direto em `docs/qa/evidencias/fase-a/` (linha 9), pasta versionada, fora da regra de `E2E_EVIDENCIAS`. O script não mudou nesta branch; é manual (`node scripts/evidencias-fase-a.mjs`), fora de `pronto`, da CI e do `package.json`.
-- **Fonte de dados:** o `vite preview` em `BASE_URL` (padrão `localhost:4173`, linha 8). (Nota 060: hoje o padrão é `api`; o texto abaixo descreve o estado da época, e o mock exige `VITE_FONTE=mock`.) O front usava o mock por padrão; `VITE_FONTE=api` só valia se definida na build (`composicao.test.tsx:25`). Os estados usam `?mock=...` e filtros de equipe e tipo (linha 24).
+- **Fonte de dados:** o `vite preview` em `BASE_URL` (padrão `localhost:4173`, linha 8). O front usa o mock por padrão; `VITE_FONTE=api` só vale se definida na build (`composicao.test.tsx:25`). Os estados usam `?mock=...` e filtros de equipe e tipo (linha 24).
 - **Pessoa ou segredo:** com o mock, não há. A tela de métricas agregadas não traz nome, e-mail nem `usuarioKey` (allow-list, ADR 0020), e o script não lê `.env`, cookie nem cabeçalho de autenticação, só abre páginas e fotografa.
 - **Risco residual:** se o preview for buildado com `VITE_FONTE=api`, ou `BASE_URL` apontar para ambiente real, o PNG leva dado real a um artefato versionado, sem barreira no script. Não há caminho de ataque externo; é higiene (A3).
 

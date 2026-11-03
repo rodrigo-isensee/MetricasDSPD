@@ -14,7 +14,7 @@ export function EstadoSemDadoReal({ codigo, motivo }: { codigo: string; motivo: 
         <Icone nome="info" /> Sem dado real
       </p>
       <p className="text-texto-2" data-testid={`motivo-sem-dado-real-${codigo}`}>
-        {motivo}
+        <span className="font-semibold">Motivo:</span> {motivo}
       </p>
     </div>
   )

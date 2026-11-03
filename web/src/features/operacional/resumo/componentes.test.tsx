@@ -64,7 +64,7 @@ describe('NumeroChave', () => {
     )
     const c = screen.getByTestId('numero-acima-p95-sem-dado-real')
     expect(c).toHaveTextContent('Sem dado real')
-    expect(c).toHaveTextContent('aguardando campo no quadro')
+    expect(c).toHaveTextContent('Motivo: aguardando campo no quadro')
     expect(screen.queryByTestId('numero-acima-p95-valor')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Tentar de novo' })).toBeNull()
   })

@@ -21,9 +21,9 @@ export const TITULOS_FAIXA = {
   agora: 'Pede atenção agora',
 } as const
 
-export type EstadoFaixa = 'ok' | 'carregando' | 'erro' | 'sem-dado-real'
+export type EstadoFaixa = 'ok' | 'carregando' | 'erro' | 'sem-dado-real' | 'parcial'
 
-/** Combina as consultas que alimentam a faixa: erro vence carregando, que vence ok; todas sem dado real = `sem-dado-real` (nunca "nada pede atenção"). */
+/** Combina as consultas que alimentam a faixa: erro vence carregando, que vence ok; todas sem dado real = `sem-dado-real`; parte sem dado real = `parcial` (os alertas das demais aparecem, mas nunca "Nada pede atenção"). */
 export function estadoFaixa(qs: readonly { estado: string; recarregar?: () => void }[]): {
   estado: EstadoFaixa
   recarregar: () => void
@@ -34,7 +34,9 @@ export function estadoFaixa(qs: readonly { estado: string; recarregar?: () => vo
       ? 'carregando'
       : qs.length > 0 && qs.every((q) => q.estado === 'sem-dado-real')
         ? 'sem-dado-real'
-        : 'ok'
+        : qs.some((q) => q.estado === 'sem-dado-real')
+          ? 'parcial'
+          : 'ok'
   return { estado, recarregar: () => qs.forEach((q) => q.recarregar?.()) }
 }
 
@@ -81,7 +83,9 @@ export function FaixaAtencao({
   // Antes de saber o que está em calibração nada é afirmado: nem alerta, nem "Nada pede atenção".
   const calibracaoPronta = useCalibracaoPronta()
   const estado: EstadoFaixa =
-    estadoDaConsulta === 'ok' && !calibracaoPronta ? 'carregando' : estadoDaConsulta
+    (estadoDaConsulta === 'ok' || estadoDaConsulta === 'parcial') && !calibracaoPronta
+      ? 'carregando'
+      : estadoDaConsulta
   // Métrica em calibração não pede atenção: dados de calibração não são para cobrar (CA-05).
   const itens = itensBrutos.filter((i) => !emCalibracao(i.codigo ?? i.id))
   const omitidos = itensBrutos.length - itens.length
@@ -138,6 +142,14 @@ export function FaixaAtencao({
             </button>
           )}
         </div>
+      ) : itens.length === 0 && estado === 'parcial' ? (
+        <p
+          className="mt-2 flex items-center gap-2 text-sm text-texto-2"
+          data-testid="faixa-atencao-sem-dado-real-parcial"
+        >
+          <Icone nome="info" /> Parte das métricas está sem dado real; não dá para afirmar que nada
+          pede atenção.
+        </p>
       ) : itens.length === 0 ? (
         <p className="mt-2 flex items-center gap-2 text-sm text-ok">
           <Icone nome="check" /> {vazio}
@@ -198,22 +210,24 @@ export function FaixaAtencao({
           })}
         </ul>
       )}
-      {estado === 'ok' && omitidos > 0 && (
+      {(estado === 'ok' || estado === 'parcial') && omitidos > 0 && (
         <p className="mt-2 text-xs text-texto-2" data-testid="atencao-omitidos-calibracao">
           Itens de métricas em calibração não aparecem aqui.
         </p>
       )}
-      {estado === 'ok' && maximo !== undefined && itens.length > maximo && (
-        <button
-          type="button"
-          aria-expanded={todos}
-          aria-controls={idLista}
-          onClick={() => setTodos((t) => !t)}
-          className="alvo mt-2 rounded text-sm text-acento underline"
-        >
-          {todos ? 'Mostrar menos alertas' : `Ver todos os alertas (${itens.length})`}
-        </button>
-      )}
+      {(estado === 'ok' || estado === 'parcial') &&
+        maximo !== undefined &&
+        itens.length > maximo && (
+          <button
+            type="button"
+            aria-expanded={todos}
+            aria-controls={idLista}
+            onClick={() => setTodos((t) => !t)}
+            className="alvo mt-2 rounded text-sm text-acento underline"
+          >
+            {todos ? 'Mostrar menos alertas' : `Ver todos os alertas (${itens.length})`}
+          </button>
+        )}
     </section>
   )
 }

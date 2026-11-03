@@ -160,7 +160,7 @@ describe('painel com API real: estado "Sem dado real" por cartão e nota do cabe
     const estado = await within(o12).findByTestId('estado-sem-dado-real-O12')
     expect(estado).toHaveTextContent('Sem dado real')
     expect(within(o12).getByTestId('motivo-sem-dado-real-O12')).toHaveTextContent(
-      'aguardando campo no quadro',
+      'Motivo: aguardando campo no quadro',
     )
     expect(o12).toHaveAttribute('data-estado', 'sem-dado-real')
     expect(within(o12).queryByTestId('selo-ficticio')).not.toBeInTheDocument()

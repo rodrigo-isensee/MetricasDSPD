@@ -105,7 +105,8 @@ export interface BlocoExportacao {
   /** Mudanças de critério de cálculo que afetam a métrica ("Critério alterado em ..."). */
   criterios: string[]
   /** Dados do cartão em tabela (equivalente textual do gráfico); null se o DTO não tem série tabular. */
-  tabela: TabelaBloco | null /** Pedido 060: a métrica não tem fonte real; é o motivo da API. O bloco sai como "sem dado real", sem número. */
+  tabela: TabelaBloco | null
+  /** Pedido 060: a métrica não tem fonte real; é o motivo da API. O bloco sai como "sem dado real", sem número. */
   semDadoReal?: string
 }
 
