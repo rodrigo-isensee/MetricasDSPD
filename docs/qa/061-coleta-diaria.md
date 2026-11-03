@@ -17,7 +17,7 @@ data: 2026-11-02
 Ponta testada: `ce363ba` (`6dece9a` mais o parecer de review; só docs sobre o código). Intervalo: `d05bbfc...ce363ba`, 18 arquivos, só infraestrutura e documentação (Dockerfile, `.dockerignore`, Compose, `deploy/systemd/`, runbook, ADRs 0022 e 0023). Nenhum código de `server/src` mudou. O pedido não tem especificação de UX nem `CA-n`: os critérios são os da entrega do brief (E2.5). Nenhum `.env` aberto, nenhuma coleta rodada, nenhum container contra base real.
 
 ## Achados
-- A1 (recomendado) docs/devops/runbook-coleta-diaria.md:42 · O Compose monta `segredos` com `create_host_path: true`: se o diretório faltar, o Docker cria um vazio como root e a coleta do Acelerato falha só em runtime (`tls`). Vale uma linha no passo 4 mandando conferir `ls /etc/metricas-dspd/segredos/acelerato.pem` antes de ligar os timers.
+- A1 (recomendado) docs/devops/runbook-coleta-diaria.md:42 · `segredos` monta com `create_host_path: true`: sem o diretório, o Docker cria um vazio como root e o Acelerato falha só em runtime (`tls`). Mandar conferir `ls /etc/metricas-dspd/segredos/acelerato.pem` no passo 4.
 - A2 (recomendado) deploy/systemd/aviso-falha.sh:17 · `sendmail` é caminho fixo (`/usr/sbin/sendmail`) e não existe nesta máquina; o runbook já lista MTA como pré-requisito, e o teste do aviso (passo 4) cobre. Com `pipefail`, falha do `journalctl` deixa a unidade de aviso em erro mesmo com o e-mail enviado.
 
 ## Critério → teste → resultado
