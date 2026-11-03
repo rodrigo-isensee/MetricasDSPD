@@ -17,6 +17,9 @@ Também funciona a partir de `web/`: `cd web && pnpm install && pnpm run dev`.
 ## Banco local (Docker)
 O banco é PostgreSQL 17 no Docker Compose (custo zero). `cp .env.example .env`, depois `pnpm run db:up && pnpm run db:migrate` (não há `db:seed` na raiz: o mock só é semeado em homologação, na CI e nos testes, com `PG_SEED_URL` explícita, e o seed recusa esquema com coleta real, plano 060); `pnpm run test:pg` roda os testes de banco no mesmo Postgres, com um conjunto de schemas próprio por execução (removido ao final). Instalação do Docker no WSL2 e detalhes: `docs/architecture/server.md`.
 
+## Coleta diária no servidor interno
+A coleta agendada (BusinessMap 06:00, Acelerato 06:30, releitura de domingo) roda em container chamado por timers systemd da VM. Instalação, segredos, reexecução e rollback: `docs/devops/runbook-coleta-diaria.md`.
+
 ## Verificar
 - `pnpm run pronto` (raiz): lint, formatação, tipos (inclusive do `e2e`), testes, build e tamanho do bundle. `pnpm test` roda só os testes unitários e de propriedade; a E2E não entra.
 - E2E: `cd e2e && pnpm run chromium:local` (uma vez, baixa o Chromium local) e depois `pnpm run test:e2e` (ou `pnpm run test:e2e` na raiz); `pnpm run gate` para o gate completo. As evidências dos specs `*-evidencias` e do `a11y` vão para `e2e/evidencias-local/` (ignorada pelo git); só `pnpm run test:evidencias-qa` (QA, explícito) grava na pasta versionada de evidências do QA.
