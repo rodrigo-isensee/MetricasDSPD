@@ -3,32 +3,27 @@ tipo: review
 contrato: 1
 pedido: 069-lacunas-alta
 branch: feature/069-m1-frescor
-commit: db7a8e19966d1d46963d81d01fa25465c0f56498
+commit: 01f29bc9a5e63e3f8a795120f6ee4862d9066cb7
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-04
 ---
 # Review: 069-lacunas-alta, lote M1-a (frescor.ultimaTentativa e aviso de coleta parcial)
 
-Ponta revisada db7a8e1 (bfaf807 server, db7a8e1 tela) contra a develop b86dd9f. Desenho: `docs/analises/069-desenho.md`, seção "Lote M1-a". Cartão K-220.
+Ponta revisada 01f29bc contra a develop b86dd9f. Desenho: `docs/analises/069-desenho.md`, seção "Lote M1-a". Cartão K-220. Substitui o parecer de db7a8e1.
 
 ## Achados
 
-- A1 (recomendado) server/tests/apontamento-rota.test.ts:382 · o teste novo da coleta parcial não chama `await app.close()`, ao contrário dos vizinhos; fechar o app no fim.
-- A2 (recomendado) server/tests/apontamento-rota.test.ts:84 · o caso "sucesso depois de parcial" do desenho só sai implícito (fixture padrão com última = ok); um caso explícito com parcial antiga e ok mais nova deixaria a intenção legível.
+- A1 (recomendado) web/src/features/apontamento/components/CabecalhoApontamento.tsx:45 · `fimParcial.slice(11, 16)` repete a hora que `fmtDataHoraCurta` já extrai; um helper `fmtHoraCurta` em `lib/formatar` evitaria a duplicação.
 
 ## Parecer
 
-Aprovado. Faz o que o desenho pede, sem mexer no selo nem no cálculo.
+Aprovado. Revalidação por delta: li o que mudou desde db7a8e1 (f50f7dd, 0fb20aa, b1bf7d9, 01f29bc); o resto do lote ficou como já lido no parecer anterior (contrato, serviço, docs da API, selo, segurança).
 
-- Contrato: `frescor.ultimaTentativa` opcional e nullable, `resultado` em `ok | parcial | falha`, `fim` como `instante`, objeto `.strict()`; resposta antiga sem o campo continua válida (teste web "campo ausente"). `docs:check` aceitou a mudança como compatível, sem fotografia nova; `openapi.json` regenerado com o campo fora de `required`.
-- Serviço: `montarApontamento` preenche a partir de `ultima`, já lida, com o mapa `RESULTADO` existente (`sucesso` vira `ok`); `ultimaColetaOk` e o selo seguem só com sucesso, então `parcialAte` da capacidade não muda. Sem consulta nova, sem pessoa.
-- Docs da API: `docs/api/apontamento.md` descreve o campo, diz que parcial não vale como ok e o exemplo traz o campo.
-- Tela: `fimParcialRecente` mostra o aviso só com parcial mais nova que a última ok ou sem ok; falha fica com o selo. Ícone com `aria-hidden`, texto visível, token `text-atencao` existente. Texto provisório fica para a revisão de interface (E1.7).
-- Testes: server cobre ok, sem coleta (`null`) e parcial sem sucesso anterior (selo `sem-coleta`); web cobre aviso presente (com e sem ok) e ausente (parcial antiga, ok, falha, null, campo ausente). O falso do banco devolve `sucesso` para a consulta filtrada e o status pedido para a última, mesma regra do repositório.
-- Rodado aqui: `vitest run tests/apontamento-rota.test.ts` (server) 70 passaram; `vitest run src/features/apontamento/apontamento.test.tsx` (web) 57 passaram, 2 workers.
-- Ferramentas: `pnpm run docs:check`: "docs:check: ok (929 páginas Markdown, 69 métricas, 2 eventos)." `prettier --check` nos arquivos do diff: os dois do server acusam estilo, mas já acusavam na develop e o `format:check` do projeto não cobre `server/`; os de `web/` e `packages/` passam.
-- Teto M14: 92 linhas de código e teste (`git diff --numstat --no-renames origin/develop...db7a8e1`, sem `.md` e sem o `openapi.json` gerado; 121 com ele), dentro de 150; um comportamento só.
-- Segurança: sem gatilho (desenho, tabela de gatilhos: M1-a nenhum); o resultado e o fim da coleta já saem em `/api/v1/fontes`.
-- Critério de reversão presente no desenho ("Decisão do desenho: parcial não vale como coleta ok").
-- Pendência: suíte completa e E2E de API ficam com o QA desta ponta (E1.5) e o CI do PR.
+- Delta do server: os A1 e A2 do parecer anterior foram resolvidos (`app.close()` nos dois testes; caso explícito "coleta ok depois de parcial" com `ultimaTentativa` ok e selo vindo da coleta ok).
+- Delta da tela: texto final do aviso em acordo com a linha nova de `docs/ux/059-aba-apontamento-textos.md`; constante única `AVISO_PARCIAL_FIM`; teste da fronteira (parcial com fim igual ao da última ok não avisa) e texto esperado atualizado.
+- Rodado aqui, 2 workers: server `apontamento-rota.test.ts` 71 passaram; web `apontamento.test.tsx` 58 passaram.
+- Ferramentas: `pnpm run docs:check`: "docs:check: ok (932 páginas Markdown, 69 métricas, 2 eventos)."; `prettier --check` em `web/src/features/apontamento` e `packages/contratos/src/apontamento.ts`: "All matched files use Prettier code style!".
+- Teto M14: 106 linhas de código e teste (contratos 13, serviço 3, teste do server 28, teste web 43, componente 19), sem `.md` e sem o `openapi.json` gerado; dentro de 150; um comportamento só.
+- Segurança: sem gatilho (desenho, tabela de gatilhos); sem pessoa. Parecer de UX do lote em `docs/ux/069-m1-frescor-revisao.md`.
+- Critério de reversão presente no desenho. Pendência: suíte completa e E2E de API ficam com o QA desta ponta (E1.5) e o CI do PR.
