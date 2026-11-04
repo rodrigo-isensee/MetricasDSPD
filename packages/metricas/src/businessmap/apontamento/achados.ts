@@ -12,6 +12,10 @@ export const LIMIARES_ACHADO_PADRAO: LimiaresAchado = {
   variacaoUtilizacaoPp: 10,
 }
 
+/** Limite do dia atípico (decisão do dono, pedido 067, 2026-11-04): a soma do dia da pessoa acima disto é marcada `valor-atipico` (marca, nunca descarta). Antes: 16 h. */
+export const LIMITE_ATIPICO_HORAS_PADRAO = 10
+export const LIMITE_ATIPICO_SEGUNDOS_PADRAO = LIMITE_ATIPICO_HORAS_PADRAO * 3600
+
 export const SUBGRUPO_NAO_CLASSIFICADO_ID = 'nao-classificado'
 
 export interface BaseAchados {
