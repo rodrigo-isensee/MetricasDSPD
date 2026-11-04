@@ -3,19 +3,19 @@ tipo: review
 contrato: 1
 pedido: 063-worklog-cards-acima-do-teto
 branch: feature/063-aviso-incompleto
-commit: 7f4a13d354c046ed49045a1abfd5b7193744b011
-parecer: reprovado
+commit: 46933d4ed5baa08d1c5010c81742f4babfbdad74
+parecer: aprovado
 revisor: tech-lead
-data: 2026-11-03
+data: 2026-11-04
 ---
 
 # Code review: lote do 063 (coleta lendo todas as páginas, sinal na API e aviso na aba), E2.4
 
 Diff lido: `b446021..7f4a13d` (back `3c3740d` mais front e parecer de interface). Parecer de interface `docs/ux/063-revisao-aviso-incompleto.md` commitado nesta ponta (K-200).
 
-**Veredito: reprovado, por 1 achado bloqueante** (completude de consulta paginada perde a recusa com id inválido de página anterior). O resto do lote está correto.
+**Veredito (volta 1, ponta `46933d4`): aprovado.** O A1 bloqueante foi corrigido com teste; A2, A3 e A4 atendidos. Na rodada 1 (`7f4a13d`) o veredito foi reprovado pelo A1.
 
-**Ferramentas (citadas):** `vitest run --maxWorkers=2` do server: 80 arquivos passaram, 1612 testes, 232 pulados (os `.pg`; o `test:pg` e o `pronto` de `3c3740d` deram rc=0 com o dono). Do web: 92 arquivos, 1409 testes, todos passaram.
+**Ferramentas (citadas, rodada 1):** `vitest run --maxWorkers=2` do server: 80 arquivos passaram, 1612 testes, 232 pulados (os `.pg`; o `test:pg` e o `pronto` de `3c3740d` deram rc=0 com o dono). Do web: 92 arquivos, 1409 testes, todos passaram.
 
 ## O que foi conferido
 
@@ -29,11 +29,17 @@ Diff lido: `b446021..7f4a13d` (back `3c3740d` mais front e parecer de interface)
 
 ## Achados
 
-- A1 (bloqueante) server/src/modulos/businessmap/apontamento/coleta.ts:204 · `idsValidos` é medido por página (folha). Recusa com id inválido numa página que não é a última é esquecida: a última, limpa, marca o card em `completos` e `cobertos`. Isso abre exclusão e `completo` indevidos. Guarde o taint por consulta e teste.
-- A2 (recomendado) server/src/modulos/businessmap/apontamento/coleta.ts:301 · carga inicial com `modo.inicio` mais recente que o do card entra como `janelaCheia: true` e pode marcar `completo` sem ter lido o período antigo. Só vale `janelaCheia` com `desde` igual ao início padrão da carga.
-- A3 (recomendado) web/src/features/apontamento/components/AvisoRegistroIncompleto.tsx:70 · o comentário do selo diz que abre por foco, mas o `Dica` não abre por foco simples (médio 1 do UX). Corrija o comentário e o CA-4 para "ao ativar o selo"; o comentário do `Dica.tsx:7` segue a mesma linha.
-- A4 (recomendado) web/src/features/apontamento/components/AvisoRegistroIncompleto.tsx:84 · o "Ir ao aviso" está fixo no JSX; leve a frase para `textos.ts`, onde ficam os demais textos do aviso.
+- A1 (bloqueante) server/src/modulos/businessmap/apontamento/coleta.ts:206 · Resolvido em 48de420. `idsValidos` era medido por página: recusa com id inválido em página anterior era esquecida e a última, limpa, marcava o card completo e coberto. Agora `consultaSuja` vale por consulta, com teste.
+- A2 (recomendado) server/src/modulos/businessmap/apontamento/coleta.ts:305 · Resolvido em 48de420. Carga inicial com início mais recente que o padrão virava janela cheia; agora só com `desde` menor ou igual ao início padrão. Concordo com o menor ou igual (ver Delta).
+- A3 (recomendado) web/src/features/apontamento/components/AvisoRegistroIncompleto.tsx:63 · Resolvido em 46933d4. Os comentários do selo e do `Dica.tsx:6` dizem que abre ao ativar, não por foco simples. O CA-4 da especificação segue na branch de docs (E2.10).
+- A4 (recomendado) web/src/features/apontamento/components/AvisoRegistroIncompleto.tsx:92 · Resolvido em 46933d4. "Ir ao aviso" foi para `INCOMPLETO.irAoAviso` (`textos.ts:315`); o teste busca o link pelo nome.
 
 ## Delta e revalidação
 
-Na volta, rode `forge-check delta --parecer docs/reviews/063-aviso-incompleto.md`; a correção do A1 e o teste novo bastam para aprovar. Médio 2 do UX (375 px) fica com o QA. Segurança e QA citam a ponta `7f4a13d`; se o A1 mudar o código, a ponta muda.
+Rodada 1: diff `b446021..7f4a13d`, reprovado pelo A1.
+
+Volta 1: `forge-check delta --parecer docs/reviews/063-aviso-incompleto.md` listou `7f4a13d..46933d4`: `coleta.ts` 127-128, 206-207, 304-305, 332 e 343; `apontamento-paginas.test.ts` 254-272; `Dica.tsx` 6-7; `aviso-incompleto.test.tsx` 128; `AvisoRegistroIncompleto.tsx` 63 e 92; `textos.ts` 315. Li só esses trechos, mais `lerLote` (`lotes.ts:61-80`) para conferir onde a consulta começa. O resto do lote fica como já lido na rodada 1.
+
+- Correção do A1: `consultaSuja` volta a falso antes de cada `lerLote` (`coleta.ts:343`) e vira verdadeiro com qualquer recusa de id inválido em qualquer página. Quando `lerLote` divide o lote por `limite-bytes`, as metades herdam a marca: fica mais conservador (card incompleto a mais), nunca completo indevido. Aceito. O teste novo põe o id inválido na página 1 com a última limpa e confere zero exclusões e cobertura sem `completo`.
+- Menor ou igual do A2: concordo com a DECISÃO TÉCNICA do Jarvis. Início igual ou anterior ao padrão de 12 meses lê a janela inteira, e a retomada da carga em outro dia recalcula o padrão a partir de `hoje`; com igualdade, a retomada perderia a janela cheia sem motivo. A comparação de texto vale porque `desde` é `AAAA-MM-DD` (regex em `comando.ts` e em `ParametrosCarga`). O teste cobre o início recente e o padrão.
+- Ferramentas: não rodei vitest, test:pg nem pronto nesta volta (o dono roda test:pg e pronto na ponta `46933d4`); o react-frontend relatou o vitest do web rc=0. Médio 2 do UX (375 px) fica com o QA. Segurança e QA citam a ponta `46933d4`.
