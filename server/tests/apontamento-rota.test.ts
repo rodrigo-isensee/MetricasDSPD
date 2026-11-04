@@ -27,7 +27,7 @@ const fixture = (): Linha[] => [
 ];
 
 interface Opcoes {
-  linhas?: Linha[]; falharEm?: string; nomes?: Record<string, string>; coletas?: { ultima?: boolean; ok?: boolean; ultimaFalhou?: boolean };
+  linhas?: Linha[]; falharEm?: string; nomes?: Record<string, string>; coletas?: { ultima?: boolean; ok?: boolean; ultimaFalhou?: boolean; ultimaParcial?: boolean };
   incompletos?: { card_id: string; titulo: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean }[];
   feriados?: string[]; semHistorico?: boolean; S?: typeof S_PADRAO; doTime?: string[];
 }
@@ -45,7 +45,7 @@ function banco(op: Opcoes = {}) {
     if (t.includes('ref_calendario_aplicacao')) return op.feriados === undefined ? [] : [{ calendario_id: '1', offset_minutos: -180 }];
     if (t.includes('FROM dspd_core.ref_feriado WHERE')) return (op.feriados ?? []).map((data) => ({ data }));
     if (t.includes('FROM dspd_bm.ctl_coleta')) {
-      const dado = { coleta_id: '7', status: !t.includes("status = 'sucesso'") && op.coletas?.ultimaFalhou === true ? 'falha' : 'sucesso', iniciado_em: new Date('2026-11-02T09:00:00Z'), finalizado_em: new Date('2026-11-02T09:10:00Z') };
+      const dado = { coleta_id: '7', status: t.includes("status = 'sucesso'") ? 'sucesso' : op.coletas?.ultimaFalhou === true ? 'falha' : op.coletas?.ultimaParcial === true ? 'parcial' : 'sucesso', iniciado_em: new Date('2026-11-02T09:00:00Z'), finalizado_em: new Date('2026-11-02T09:10:00Z') };
       return (t.includes("status = 'sucesso'") ? op.coletas?.ok === false : op.coletas?.ultima === false) ? [] : [dado];
     }
     return [];
@@ -81,7 +81,7 @@ describe('GET /api/apontamento: resposta', () => {
     expect(corpo.kpis.segundos).toBe(25 * 7200 + 3 * 3600 + 1800);
     expect(corpo.kpis.apontamentos).toBe(29);
     expect(corpo.kpis.pessoasAtivas).toBe(2);
-    expect(corpo.frescor).toEqual({ selo: 'atual', ultimaColetaOk: '2026-11-02T06:10:00-03:00' });
+    expect(corpo.frescor).toEqual({ selo: 'atual', ultimaColetaOk: '2026-11-02T06:10:00-03:00', ultimaTentativa: { resultado: 'ok', fim: '2026-11-02T06:10:00-03:00' } });
     expect(corpo.criterios).toEqual([{ id: '5', data: '2026-11-01', descricao: 'Dicionário de subgrupo v1' }]);
     expect(corpo.opcoes.historico).toEqual({ inicio: '2026-01-05', fim: '2026-10-30' });
     expect(corpo.opcoes.subgrupos.map((s) => s.rotulo)).toEqual(['Desenvolvimento', 'Não classificado']);
@@ -90,7 +90,7 @@ describe('GET /api/apontamento: resposta', () => {
   it('sem coleta do worklog: selo "sem-coleta" e `ultimaColetaOk` nulo', async () => {
     const { app } = await montar({ coletas: { ultima: false, ok: false } });
     const corpo = respostaApontamentoSchema.parse((await get(app, '/api/apontamento')).json());
-    expect(corpo.frescor).toEqual({ selo: 'sem-coleta', ultimaColetaOk: null });
+    expect(corpo.frescor).toEqual({ selo: 'sem-coleta', ultimaColetaOk: null, ultimaTentativa: null });
     await app.close();
   });
   it('pessoa com 19 e com 20 apontamentos: percentual só a partir de 20 (CA-AP-12, o3)', async () => {
@@ -378,6 +378,15 @@ describe('moldura da resposta: calendário, dimensões, frescor e janelas', () =
     expect(db.chamadas.some((c) => c.texto.includes('responsavel_nome'))).toBe(false);
     await app.close();
   });
+
+  it('última coleta parcial sem sucesso anterior: selo segue "sem-coleta" e ultimaTentativa diz "parcial" (069 M1-a)', async () => {
+    const { app } = await montar({ coletas: { ultimaParcial: true, ok: false } });
+    const c = respostaApontamentoSchema.parse((await get(app, '/api/apontamento')).json());
+    expect(c.frescor.selo).toBe('sem-coleta');
+    expect(c.frescor.ultimaColetaOk).toBeNull();
+    expect(c.frescor.ultimaTentativa).toEqual({ resultado: 'parcial', fim: '2026-11-02T06:10:00-03:00' });
+  });
+
   it('última tentativa com falha: selo "falha", mantida a última coleta ok', async () => {
     const { app } = await montar({ coletas: { ultimaFalhou: true } });
     const c = respostaApontamentoSchema.parse((await get(app, '/api/apontamento')).json());
