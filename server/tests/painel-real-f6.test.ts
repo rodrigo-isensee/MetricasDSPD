@@ -180,7 +180,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     const { app } = await montar({ chamados: [chamado('1', { reincidente_90d: 'sim' }), chamado('2'), chamado('3', { reincidente_90d: 'sem_resposta' })] });
     const r = (await app.inject('/api/v1/metricas/S8')).json() as { campoDisponivel: boolean; cobertura: { n: number; total: number } };
     expect(r.campoDisponivel).toBe(true);
-    expect(r.cobertura).toEqual({ n: 3, total: 3 });
+    expect(r.cobertura).toEqual({ n: 2, total: 3 }); // o sem_resposta sai (066)
   });
 
   it('S8 na base real sem nenhum chamado com o campo projetado sai "sem campo", nunca 0%', async () => {
