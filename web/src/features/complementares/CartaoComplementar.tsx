@@ -4,6 +4,7 @@ import {
   type BaseAmostral,
   type CriteriosResultado,
   type MetricaId,
+  type NotaCartaoId,
   type Periodo,
 } from '@metricas-dspd/contratos'
 import { CartaoMetrica } from '@/components/ui'
@@ -26,6 +27,8 @@ interface Props<D extends Dto> {
   janelaPercentis?: { unidade: 'semanas' | 'meses'; quantidade: number } | undefined
   periodo?: Periodo
   acoes?: ReactNode
+  /** Notas que o resultado traz (ex.: `bloqueio-sem-dado-real`, pedido 065); os textos vivem em `contratos`. */
+  notasDoCartao?: readonly NotaCartaoId[] | undefined
   semTabela?: boolean
   /** O campo ausente atinge só uma parte do cartão: o resto é real e continua visível (o corpo trata `campoDisponivel`). */
   semFonteParcial?: boolean
@@ -51,6 +54,7 @@ export function CartaoComplementar<D extends Dto>({
   janelaPercentis,
   periodo,
   acoes,
+  notasDoCartao,
   semTabela,
   semFonteParcial,
   semBase,
@@ -83,6 +87,7 @@ export function CartaoComplementar<D extends Dto>({
       granularidade={m.granularidade}
       {...(m.fonte === 'BusinessMap' ? { aplicaveis: aplicaveis ?? aplicaveisDe(id) } : {})}
       acoes={acoes}
+      notasDoCartao={notasDoCartao}
       {...(semTabela || semFonte ? { semTabela: true } : {})}
       onTentarDeNovo={q.recarregar}
       erro={q.erro}
