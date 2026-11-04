@@ -13,6 +13,7 @@ import { slug } from '../slug'
 import { amostraBM } from './amostra'
 import {
   baseAmostral,
+  colunasDaEquipe,
   criterios,
   dentro,
   du,
@@ -49,14 +50,7 @@ export function calcularO2(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO2 {
   if (umaEquipe) {
     const eq = ctx.idx.base.config.equipes.find((e) => slug(e.nome) === f.equipe[0])
     if (eq) {
-      etapas = ordenarNeutro(
-        ctx.idx.base.colunas.filter(
-          (c) =>
-            c.quadro_id === `quadro-${slug(eq.nome)}` &&
-            (c.papel === 'trabalho' || c.papel === 'homologacao'),
-        ),
-        (c) => [c.ordem, c.coluna],
-      ).map((c) => c.coluna)
+      etapas = colunasDaEquipe(ctx, eq.nome).map((c) => c.coluna)
     }
   }
 

@@ -14,6 +14,7 @@ import { JANELA_POR_GRANULARIDADE, janelaMovel } from '../core/janela'
 import { resolverPeriodo } from '../core/series'
 import type { ContextoBM, MarcosCard } from './indice'
 import { ordenarNeutro } from '../core/ordenar'
+import { slug } from '../slug'
 
 export const GRAN_JANELA = {
   story: 'story',
@@ -95,3 +96,19 @@ export const criterios = (id: MetricaId, serie: Intervalo, janela: Intervalo, ct
 
 export const CLASSES_T: readonly ClasseServico[] = ['Urgente', 'Prazo fixo', 'Padrão', 'Intangível']
 export const r2 = (v: number): number => Math.round(v * 100) / 100
+
+/**
+ * Colunas de trabalho e homologação de uma equipe, em ordem. Base real: a coluna diz a equipe do workflow
+ * dela; base semeada (sem `equipe`): vale o quadro `quadro-<slug>`.
+ */
+export function colunasDaEquipe(ctx: ContextoBM, equipe: string) {
+  const quadro = `quadro-${slug(equipe)}`
+  return ordenarNeutro(
+    ctx.idx.base.colunas.filter(
+      (c) =>
+        (c.equipe === undefined ? c.quadro_id === quadro : c.equipe === equipe) &&
+        (c.papel === 'trabalho' || c.papel === 'homologacao'),
+    ),
+    (c) => [c.ordem, c.coluna],
+  )
+}
