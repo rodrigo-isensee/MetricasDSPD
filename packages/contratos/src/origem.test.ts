@@ -5,6 +5,7 @@ import {
   corpoSemDadoReal,
   METRICAS_COM_PARTE_DE_BLOQUEIO,
   MOTIVO_BLOQUEIOS_NAO_COLETADOS,
+  MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS,
   ESTADO_SEM_DADO_REAL,
   METRICAS_ORIGEM_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
@@ -23,7 +24,7 @@ describe('origemDaMetrica (H-13)', () => {
     const reais = METRICA_IDS.filter((id) => origemDaMetrica(id) === 'real')
     expect([...reais].sort()).toEqual(
       [
-        ...['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
+        ...['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10'],
       ].sort(),
@@ -118,10 +119,12 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     expect(motivoDaOrigemMock('PV1')).toBeNull()
   })
 
-  it('C1/C2 (pedido 065): BLOQUEADOS é mock, o mapa real tem 18 ids (eram 19) e o motivo é o próprio, não o genérico', () => {
+  it('C1/C2 (pedido 065): BLOQUEADOS e O5 são mock, o mapa real tem 17 ids (eram 19) e os motivos são próprios, não o genérico', () => {
     expect(origemDaMetrica('BLOQUEADOS')).toBe('mock')
-    expect(METRICAS_ORIGEM_REAL.size).toBe(18)
+    expect(METRICAS_ORIGEM_REAL.size).toBe(17)
     expect(motivoSemDadoReal('BLOQUEADOS')).toBe(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
+    expect(origemDaMetrica('O5')).toBe('mock')
+    expect(motivoSemDadoReal('O5')).toBe(MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS)
     expect(motivoSemDadoReal('BLOQUEADOS')).not.toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
     expect(corpoSemDadoReal('BLOQUEADOS').motivo).toBe(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
   })
@@ -129,7 +132,7 @@ describe('estado sem dado real (pedido 060, P3)', () => {
   it('C3 (pedido 065): O1, O2 e O5 aceitam a nota de bloqueio, recusam id fora do contrato; O1 e O5 aceitam null na parte de bloqueio', () => {
     expect(notaCartaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(true)
     expect(TEXTO_NOTA_CARTAO['bloqueio-sem-dado-real']).toContain(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
-    expect(METRICAS_COM_PARTE_DE_BLOQUEIO).toEqual(['O1', 'O2', 'O5'])
+    expect(METRICAS_COM_PARTE_DE_BLOQUEIO).toEqual(['O1', 'O2'])
     expect(BLOQUEIOS_COM_DADO_REAL).toBe(false)
     for (const r of [resultadoO1, resultadoO2, resultadoO5]) {
       const campo = r.shape.notas

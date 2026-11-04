@@ -68,7 +68,7 @@ async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
 
 const TIMES_ALVO = ['Time A', 'Time B'];
 const colB = (id: string, nome: string, tipo: string, papel: string, ordem: number, limite: number) => col(id, nome, tipo, papel, ordem, limite, 'Time B');
-const REAIS = ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'] as MetricaId[];
+const REAIS = ['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'] as MetricaId[];
 
 /** Banco com dois times reais: serve para provar que nenhum resultado do painel traz o nome de um time (sem comparação, §7.1). */
 function bancoDoisTimes(): Respondedor {

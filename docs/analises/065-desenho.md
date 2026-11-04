@@ -142,3 +142,14 @@ O K-204 (pedido próprio) faz a coleta gravar `fato_bloqueio` e `evt_bloqueio` a
 | E1.4 a E1.6 | tech-lead e qa-engineer | E1.2 e E1.3 | |
 
 Gatilhos de segurança (`R-SEGURANCA`): nenhum. Não muda banco, grant, autenticação, dependência nem dado pessoal.
+
+## 8. Decisão B do dono (2026-11-04, Q-065-1): o O5 inteiro sai do mapa real (volta 1, E1.2)
+
+A Q-065-1 foi respondida "B": o O5 inteiro mostra "Sem dado real" até a coleta gravar bloqueios (K-204), em vez de publicar o percentual com ressalva. Isto substitui, para o O5, as seções 2.3 a 2.5 e a proposta da seção 6.
+
+- `origem.ts`: `'O5'` sai de `METRICAS_ORIGEM_REAL` (17 ids reais) e entra em `MOTIVO_ORIGEM_MOCK` com motivo próprio, `MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS` ("a coleta ainda não grava os bloqueios do quadro; sem eles a eficiência de fluxo sairia inflada"). O server já responde `SemDadoReal` e `x-estado-dado: sem-dado-real` sem ler a base.
+- `METRICAS_COM_PARTE_DE_BLOQUEIO` passa a `['O1', 'O2']`; `semParteDeBloqueio` não trata mais o O5 (sem `null` em `horasBloqueio`, sem nota). O O1 e o O2 seguem como na seção 2.
+- Contrato `resultadoO5` não muda (campo nullable e `notas` ficam sem uso na base real; o K-204 decide se os retira).
+- T2.6: a versão `criterio-2026-11-04-bloqueio-sem-dado-real` mantém `afeta: ['O1', 'O2', 'O5']`; a descrição cita o O5 inteiro.
+- Web (react-frontend): o cartão do O5 usa o estado "Sem dado real" do cartão inteiro; o tratamento parcial sai. Fica resolvido o A1 e o M1 do ux-designer.
+- K-204: ao voltar, `'O5'` retorna a `METRICAS_ORIGEM_REAL` e sai de `MOTIVO_ORIGEM_MOCK`, junto com `'BLOQUEADOS'`.

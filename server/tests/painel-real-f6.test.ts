@@ -1,5 +1,5 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -102,7 +102,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
 
   it('as origens do mapa decidem: as reais calculam na base real; as demais respondem sem dado real, sem nenhuma leitura de seed', async () => {
     const { app, d } = await montar({ sle: true });
-    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'] as MetricaId[]) {
+    for (const id of ['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'] as MetricaId[]) {
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.headers['x-estado-dado'], id).toBeUndefined();
@@ -110,7 +110,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     }
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     const antes = d.chamadas.length;
-    for (const id of ['BLOQUEADOS', 'O8', 'O12', 'O14', 'O19', 'T1', 'E1', 'S1', 'VISAO_GERAL'] as MetricaId[]) {
+    for (const id of ['BLOQUEADOS', 'O5', 'O8', 'O12', 'O14', 'O19', 'T1', 'E1', 'S1', 'VISAO_GERAL'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('mock');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -356,20 +356,17 @@ describe('pedido 065: bloqueios sem dado real na base real', () => {
     expect(SCHEMAS_RESULTADO.O2.safeParse(r).success).toBe(true);
   });
 
-  it('S4: O5 só anula horasBloqueio nos tipos ok e preserva o resto; sem 20 itens não há o que anular', async () => {
-    const { semParteDeBloqueio } = await import('../src/modulos/metricas/parte-sem-dado.js');
-    const valor = { medianaPct: 40, agregadaPct: 35, horasExecucao: 10, horasFila: 12, horasBloqueio: 5 };
-    const entrada = { janelaPercentis: {}, tipos: [{ tipo: 'Bug interno', n: 25, estatistica: { status: 'ok', valor } }, { tipo: 'Outro', n: 3, estatistica: { status: 'insuficiente', n: 3 } }] };
-    const saida = semParteDeBloqueio('O5', entrada) as typeof entrada & { notas: string[] };
-    expect(saida.tipos[0]!.estatistica).toEqual({ status: 'ok', valor: { ...valor, horasBloqueio: null } });
-    expect(saida.tipos[0]!.n).toBe(25);
-    expect(saida.tipos[1]).toEqual(entrada.tipos[1]);
-    expect(saida.notas).toEqual([NOTA]);
-    expect(valor.horasBloqueio).toBe(5);
-    const { app } = await real();
-    const r = (await app.inject('/api/v1/metricas/O5')).json();
-    expect(r.notas).toEqual([NOTA]);
-    expect(SCHEMAS_RESULTADO.O5.safeParse(r).success).toBe(true);
+  it('S4: O5 sai do mapa real: responde sem dado real com o motivo próprio, sem ler a base; no mock segue calculado', async () => {
+    const { app, d } = await real();
+    const r = await app.inject('/api/v1/metricas/O5');
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-estado-dado']).toBe('sem-dado-real');
+    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O5', motivo: MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS });
+    expect(r.json()).not.toHaveProperty('tipos');
+    expect(d.chamadas).toHaveLength(0);
+    const m = (await (await mock()).inject('/api/v1/metricas/O5')).json() as { estado?: string; tipos: unknown[] };
+    expect(m.estado).toBeUndefined();
+    expect(Array.isArray(m.tipos)).toBe(true);
   });
 
   it('S5: O3 sem SLE segue só com sle-nao-definido; a nota nova não vaza e as outras reais não ganham nota', async () => {
@@ -386,6 +383,7 @@ describe('pedido 065: bloqueios sem dado real na base real', () => {
     expect(b.notas).toEqual(['sem-classe', NOTA]);
     const fora = { a: 1 };
     expect(semParteDeBloqueio('O3', fora)).toBe(fora);
+    expect(semParteDeBloqueio('O5', fora)).toBe(fora);
   });
 
   it('S6: modo mock (seed com bloqueios) calcula BLOQUEADOS (sem o estado) e O1 com bloqueados > 0 na série, sem a nota', async () => {
@@ -401,7 +399,7 @@ describe('pedido 065: bloqueios sem dado real na base real', () => {
 
   it('S7: os critérios de O1, O2 e O5 trazem a versão nova (marcada na série/janela quando a data cruza o período)', async () => {
     const { marcacoesNoPeriodo } = await import('@metricas-dspd/metricas');
-    for (const id of ['O1', 'O2', 'O5'] as MetricaId[]) {
+    for (const id of ['O1', 'O2', 'O5'] as MetricaId[]) { // O5 inteiro sem dado real (decisão B): a versão cita o O5 também
       const m = marcacoesNoPeriodo(id, { inicio: '2026-10-01', fim: '2026-11-10' }, []);
       expect(m.map((x) => x.id), id).toContain('criterio-2026-11-04-bloqueio-sem-dado-real');
     }

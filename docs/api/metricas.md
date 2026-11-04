@@ -398,12 +398,12 @@ Plano: `docs/architecture/plano-sustentacao-no-operacional.md`. Decisão: [ADR 0
 - **Filtro de equipe.** Com a base real, `GET /api/v1/filtros/businessmap` lista os times ativos da tabela de times (só filtro; nenhuma rota agrupa nem compara times). Limitação: o filtro é um só por painel, então FL2 e FL3 (mock) recebem os times reais.
 - **Selo de frescor e calibração.** `TOLERANCIA_ATRASO_HORAS = 6` (Q-7b): "Atrasado" só passa das 12:00; vale para as duas fontes. A calibração é de 60 dias corridos (Q-7a) a partir da primeira coleta ok da fonte, e cobre também as complementares.
 
-## Pedido 065 (K-205): parte de bloqueio sem dado real (O1, O2, O5, BLOQUEADOS)
+## Pedido 065 (K-205): parte de bloqueio sem dado real (O1, O2; O5 e BLOQUEADOS inteiros)
 A coleta ainda não grava `fato_bloqueio` (lacuna L1 do 064). Na base real (fora do `modoMock`), enquanto `BLOQUEIOS_COM_DADO_REAL` for `false` no contrato:
 - **BLOQUEADOS** responde 200 `{ "estado": "sem-dado-real", "metrica": "BLOQUEADOS", "motivo": "a coleta ainda não grava os bloqueios do quadro" }` e o cabeçalho `x-estado-dado: sem-dado-real`, sem `itens`.
 - **O1**: `hoje.bloqueados`, `porColuna[].bloqueados`, `porTipoColuna[].bloqueados` e `serie[].bloqueados` passam a `number | null`; vêm `null` (nunca 0). `notas` (opcional) traz `"bloqueio-sem-dado-real"`. WIP, limite, `acimaDoLimite` e demais campos não mudam.
 - **O2**: sem mudança nos itens (`bloqueioMotivo` segue `null`); `notas` traz `"bloqueio-sem-dado-real"`, que é o único sinal de "não sabemos" (o `null` sozinho significa "não bloqueado").
-- **O5**: `tipos[].estatistica.valor.horasBloqueio` passa a `number | null`; vem `null` nos tipos com `status: 'ok'`. `notas` traz `"bloqueio-sem-dado-real"`. Percentuais, `horasExecucao`, `horasFila` e `n` não mudam (a Q-065-1, sobre o percentual, está com o dono).
+- **O5** (decisão B do dono, Q-065-1): sai do mapa real inteiro; responde 200 `{ "estado": "sem-dado-real", "metrica": "O5", "motivo": "a coleta ainda não grava os bloqueios do quadro; sem eles a eficiência de fluxo sairia inflada" }` com `x-estado-dado: sem-dado-real`, sem `tipos`. O contrato de `resultadoO5` fica como está (`horasBloqueio` nullable e `notas` sem uso na base real).
 - `notas` usa o mesmo mecanismo da H-24 (`sle-nao-definido` do O3): ids em `NOTA_CARTAO_IDS`, texto em `TEXTO_NOTA_CARTAO`; a nota nunca repete nem apaga outra.
 - T2.6: versão de critério `criterio-2026-11-04-bloqueio-sem-dado-real` (2026-11-04), `afeta: O1, O2, O5`, marcada nas séries e na janela dessas métricas.
 - Modo mock explícito: nada muda (BLOQUEADOS calculada, O1/O2/O5 com bloqueios do seed, sem nota).

@@ -110,12 +110,12 @@ export const VERSAO_CRITERIO_E7_SEM_REAIS: VersaoCriterio = {
   afeta: ['E7'],
 }
 
-/** Pedido 065 (K-205): a parte de bloqueio do O1, O2 e O5 saiu como "Sem dado real" na base real (antes saía zero). */
+/** Pedido 065 (K-205): a parte de bloqueio do O1 e do O2 e o O5 inteiro saíram como "Sem dado real" na base real (antes saía zero). */
 export const VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL: VersaoCriterio = {
   id: 'criterio-2026-11-04-bloqueio-sem-dado-real',
   data: '2026-11-04',
   descricao:
-    'Na base real, a parte de bloqueio passou a sair como "Sem dado real" (antes saía zero): a coleta ainda não grava os bloqueios',
+    'Na base real, a parte de bloqueio do O1 e do O2 e o O5 inteiro passaram a sair como "Sem dado real" (antes saía zero): a coleta ainda não grava os bloqueios',
   afeta: ['O1', 'O2', 'O5'],
 }
 
