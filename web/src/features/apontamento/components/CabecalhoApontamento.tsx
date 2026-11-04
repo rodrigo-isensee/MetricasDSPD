@@ -1,5 +1,5 @@
 import { SeloFrescor, Icone } from '@/components/ui'
-import { fmtData, fmtDataHoraCurta } from '@/lib/formatar'
+import { fmtData, fmtDataCurta } from '@/lib/formatar'
 import { useId, useState } from 'react'
 import { horasDesde } from '../formatar'
 import {
@@ -40,7 +40,8 @@ export function FrescorEPeriodo({ resposta }: { resposta: RespostaApontamento | 
       {fimParcial && (
         <span className="flex items-center gap-1 text-sm text-atencao" data-testid="aviso-parcial">
           <Icone nome="alerta" className="size-4" /> Última coleta parcial em{' '}
-          {fmtDataHoraCurta(fimParcial)}: o período pode estar incompleto.
+          {fmtDataCurta(fimParcial)} às {fimParcial.slice(11, 16)}: alguns apontamentos podem estar
+          faltando.
         </span>
       )}
       <span className="text-sm text-texto-2" data-testid="periodo-dos-dados">

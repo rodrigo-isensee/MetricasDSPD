@@ -148,7 +148,7 @@ describe('CA-1: cabeçalho, frescor e período', () => {
     it('parcial mais nova que a última ok: mostra o aviso com data e hora', async () => {
       await cartao('AP-KPIS', URL_ABA, comTentativa('parcial', '2026-10-31T07:05:00-03:00'))
       expect(screen.getByTestId('aviso-parcial')).toHaveTextContent(
-        'Última coleta parcial em 31/10 07:05: o período pode estar incompleto',
+        'Última coleta parcial em 31/10 às 07:05: alguns apontamentos podem estar faltando.',
       )
     })
 
@@ -159,6 +159,7 @@ describe('CA-1: cabeçalho, frescor e período', () => {
 
     it.each([
       ['parcial mais antiga que a última ok', comTentativa('parcial', '2026-10-29T07:05:00-03:00')],
+      ['parcial com fim igual à última ok (fronteira)', comTentativa('parcial', OK)],
       ['última tentativa ok', comTentativa('ok', '2026-10-31T07:05:00-03:00')],
       ['última tentativa falha', comTentativa('falha', '2026-10-31T07:05:00-03:00')],
       [
