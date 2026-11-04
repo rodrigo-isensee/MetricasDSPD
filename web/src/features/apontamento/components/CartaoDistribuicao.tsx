@@ -3,8 +3,9 @@ import { AmostraInsuficiente, Botao, CelulaInsuficiente, TabelaDados } from '@/c
 import { fmtInteiro, fmtNumero } from '@/lib/formatar'
 import { useDadosAba } from '../dados'
 import { fmtApontamentos, fmtHoras } from '../formatar'
-import { CARTOES } from '../textos'
+import { CARTOES, INCOMPLETO } from '../textos'
 import type { LinhaDistribuicao, RespostaApontamento } from '../types'
+import { SeloHorasIncompletas, temIncompleto } from './AvisoRegistroIncompleto'
 import { CartaoApontamento } from './CartaoApontamento'
 
 type Bloco = 'projeto' | 'tipo' | 'subgrupo'
@@ -40,6 +41,12 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
   const cfg = CFG[bloco]
   const linhas = r.distribuicao[cfg.chave]
   const n = r.distribuicao.base.n
+  const incompletos = new Set(
+    bloco === 'projeto' && temIncompleto(r.registroIncompleto)
+      ? r.registroIncompleto.projetoIds
+      : [],
+  )
+  const comSelo = linhas.filter((l) => incompletos.has(l.id))
   return (
     <div className="flex flex-col gap-3">
       <Barras
@@ -56,6 +63,20 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
         }))}
         series={[{ chave: 'h', rotulo: 'Horas apontadas', cor: 1 }]}
       />
+      {comSelo.length > 0 && (
+        <ul
+          className="flex flex-col gap-1 text-sm"
+          aria-label={INCOMPLETO.projetosComSelo}
+          data-testid="selos-projeto-incompleto"
+        >
+          {comSelo.map((l) => (
+            <li key={l.id} className="flex flex-wrap items-center gap-2 break-words">
+              <span>{rotuloLinha(l)}</span>
+              <SeloHorasIncompletas />
+            </li>
+          ))}
+        </ul>
+      )}
       {n < 20 && <AmostraInsuficiente n={n} codigo={cfg.codigo} oQue="Os percentuais" />}
       <TabelaDados
         codigo={`${cfg.codigo}-detalhe`}
@@ -65,6 +86,7 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
           { chave: 'h', titulo: 'Horas', alinhar: 'direita' },
           { chave: 'a', titulo: 'Apontamentos', alinhar: 'direita' },
           { chave: 'p', titulo: 'Parte das horas', alinhar: 'direita' },
+          ...(comSelo.length > 0 ? [{ chave: 'o', titulo: INCOMPLETO.colunaObservacao }] : []),
         ]}
         linhas={linhas.map((l) => ({
           r: rotuloLinha(l),
@@ -76,6 +98,7 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
             ) : (
               <CelulaInsuficiente />
             ),
+          o: incompletos.has(l.id) ? INCOMPLETO.selo : '',
         }))}
       />
     </div>
@@ -105,6 +128,9 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
       titulo={cfg.titulo}
       texto={CARTOES[bloco]}
       leitura={leitura}
+      comoLerExtra={
+        bloco === 'projeto' && temIncompleto(r?.registroIncompleto) ? INCOMPLETO.comoLer : undefined
+      }
       base={r ? { n: r.distribuicao.base.n, unidade: 'apontamentos' } : undefined}
       baseInsuficiente={!!r && r.distribuicao.base.n < 20}
       {...(bloco === 'subgrupo'

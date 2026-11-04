@@ -2,8 +2,9 @@ import { AmostraInsuficiente, Icone, NumeroGrande } from '@/components/ui'
 import { fmtInteiro, fmtNumero } from '@/lib/formatar'
 import { useDadosAba } from '../dados'
 import { fmtHoras } from '../formatar'
-import { ANOMALIA, CARTOES } from '../textos'
+import { ANOMALIA, CARTOES, INCOMPLETO } from '../textos'
 import type { RespostaApontamento } from '../types'
+import { NotaKpisIncompleto, temIncompleto } from './AvisoRegistroIncompleto'
 import { CartaoApontamento } from './CartaoApontamento'
 
 function Kpis({ r }: { r: RespostaApontamento }) {
@@ -60,6 +61,7 @@ function Kpis({ r }: { r: RespostaApontamento }) {
           data-testid="kpi-atipicos"
         />
       </div>
+      {temIncompleto(r.registroIncompleto) && <NotaKpisIncompleto />}
       {completos.status === 'insuficiente' && (
         <AmostraInsuficiente n={completos.n} codigo="AP-KPIS" oQue="O percentual de completos" />
       )}
@@ -79,6 +81,7 @@ export function CartaoKpis() {
       titulo="KPIs"
       texto={CARTOES.kpis}
       leitura={leitura}
+      comoLerExtra={temIncompleto(resposta?.registroIncompleto) ? INCOMPLETO.comoLer : undefined}
       base={k ? { n: k.apontamentos, unidade: 'apontamentos' } : undefined}
       baseInsuficiente={k?.completos.status === 'insuficiente'}
       semTabela

@@ -22,6 +22,8 @@ interface Props {
   /** Família do critério cuja versão vigente (a mais recente de `criterios[]`) é datada na linha "Critério" (A-9). */
   familiaCriterio?: 'dicionario' | 'calendario'
   acoes?: ReactNode
+  /** Frase acrescentada ao "Como ler" (063: só com o sinal de registro incompleto). */
+  comoLerExtra?: string | undefined
   semTabela?: boolean
   className: string
   /** Corpo do cartão: só é chamado quando a resposta existe (estado `ok`). */
@@ -43,6 +45,7 @@ export function CartaoApontamento({
   criterios,
   familiaCriterio,
   acoes,
+  comoLerExtra,
   semTabela,
   className,
   children,
@@ -55,10 +58,11 @@ export function CartaoApontamento({
         .filter((c) => c.id.startsWith(familiaCriterio))
         .reduce<string | null>((a, c) => (a === null || c.data > a ? c.data : a), null)
     : null
+  const textoBase = comoLerExtra ? { ...texto, comoLer: `${texto.comoLer} ${comoLerExtra}` } : texto
   const nota = notaDe(
     vigente
-      ? { ...texto, criterio: `${texto.criterio} Versão vigente desde ${fmtData(vigente)}.` }
-      : texto,
+      ? { ...textoBase, criterio: `${texto.criterio} Versão vigente desde ${fmtData(vigente)}.` }
+      : textoBase,
   )
   return (
     <CartaoMetrica

@@ -17,6 +17,7 @@ import {
   type OpcaoDoSeletor,
   type Visao,
 } from '@/features/navegacao/visao'
+import { AvisoRegistroIncompleto, temIncompleto } from './components/AvisoRegistroIncompleto'
 import { BarraFiltrosApontamento } from './components/BarraFiltrosApontamento'
 import {
   AvisoNomeReal,
@@ -122,6 +123,9 @@ export default function ApontamentoPage({
                 focoPendenteRef={focoPendenteRef}
               />
               <LegendaFinalidade />
+              {temIncompleto(resposta?.registroIncompleto) && (
+                <AvisoRegistroIncompleto registro={resposta.registroIncompleto} />
+              )}
               {resposta ? (
                 <BarraFiltrosApontamento
                   opcoes={resposta.opcoes}
