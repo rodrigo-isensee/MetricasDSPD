@@ -161,7 +161,7 @@ Recomendados do review de modelagem (`docs/reviews/059-modelagem.md`), aplicados
 
 ### 3.6 Dicionário configurável e anomalia
 - O dicionário da seção 4 vira a carga inicial das `ref_apontamento_*` num arquivo versionado de `ref:sync` (padrão das exceções de coluna do 052), preparado pelo arquiteto e conferido pelo dono; toda mudança cria uma `ref_versao_criterio` com data (T2.6), marcada nos gráficos.
-- Anomalia: flag `valor_atipico` quando a soma do dia da pessoa passa do limite configurável (proposta do UX: 16 h); calculada na projeção pela biblioteca, nunca descartada; se entra ou não na soma é P-5 da segurança e P-4 do UX.
+- Anomalia: flag `valor_atipico` quando a soma do dia da pessoa passa do limite configurável (proposta do UX: 16 h; decisão do dono em 2026-11-04, pedido 067: 10 h); calculada na projeção pela biblioteca, nunca descartada; se entra ou não na soma é P-5 da segurança e P-4 do UX.
 
 ### 3.7 Cálculos pela biblioteca T2.5
 Nenhum cálculo na rota nem no front. Em `packages/metricas/src/businessmap/apontamento/`:
@@ -376,7 +376,7 @@ export const diarioApontamentoSchema = z
   .object({
     de: dataCivil,
     ate: dataCivil,
-    limiteAtipicoSegundos: segundos, // 16 h por pessoa e dia (P-4 do UX), configurável
+    limiteAtipicoSegundos: segundos, // 10 h por pessoa e dia (era 16 h, P-4 do UX; decisão do dono 2026-11-04, pedido 067), configurável
     dias: z.array(z.object({ data: dataCivil, util: z.boolean(), feriado: z.boolean() }).strict()), // M-8
     linhas: z.array(
       z

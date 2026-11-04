@@ -262,12 +262,13 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     const c = await dono.connect();
     try {
       await c.query('BEGIN');
-      expect(await registrarCriteriosApontamento(c, S, '2031-02-10', AGORA)).toEqual(['059:limiares-achados']);
+      expect(await registrarCriteriosApontamento(c, S, '2031-02-10', AGORA)).toEqual(['059:limiares-achados', '067:limite-dia-atipico']);
       expect(await registrarCriteriosApontamento(c, S, '2031-02-11', AGORA)).toEqual([]);
       const criterios = await lerCriterios(c, S);
       const achado = criterios.find((x) => x.data === '2031-02-10');
       expect(achado?.descricao).toContain('não classificado 20%');
       expect(achado?.descricao).toContain('variação de utilização 10 pontos');
+      expect(criterios.find((x) => x.data === '2031-02-10' && x.descricao.includes('10 h'))?.descricao).toContain('antes: 16 h');
       expect(criterios.filter((x) => x.data === '2031-02-11')).toEqual([]);
     } finally {
       await c.query('ROLLBACK');

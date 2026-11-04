@@ -59,6 +59,8 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
     )
     .slice(0, 10)
   const janela = d?.janelaPercentis
+  // Pedido 065: sem bloqueios coletados, "sem motivo" quer dizer "não sabemos", não "não bloqueado".
+  const semBloqueio = d?.notas?.includes('bloqueio-sem-dado-real') === true
   const leitura = d
     ? d.acimaP95 > 0 && maisAcima
       ? `${fmtInteiro(d.acimaP95)} ${plural(d.acimaP95, 'item está', 'itens estão')} acima do P95 do seu tipo. O mais velho entre eles tem ${fmtDiasUteis(maisAcima.idadeDiasUteis, 0)} e está em "${maisAcima.etapa}".`
@@ -77,6 +79,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
       {...propsCartao('O2', q, NOTAS_OPERACIONAL.O2)}
       {...(leitura ? { leitura } : {})}
       {...(d ? { statusMeta: d.statusMeta } : {})}
+      notasDoCartao={d?.notas}
       {...(janela ? { janelaPercentis: janela, periodo: filtros.periodo } : {})}
       className="lg:col-span-12"
     >
@@ -119,7 +122,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
                   circulo: 'até o P85',
                   losango: 'entre o P85 e o P95',
                   triangulo: 'acima do P95',
-                  anel: 'bloqueado',
+                  ...(semBloqueio ? {} : { anel: 'bloqueado' }),
                 }}
               />
               {ref?.status === 'insuficiente' && (
@@ -194,7 +197,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
                 idade: fmtInteiro(i.idadeDiasUteis),
                 parado: fmtInteiro(i.semMoverHaDiasUteis),
                 situacao: SITUACAO[i.situacao],
-                bloqueio: i.bloqueioMotivo ?? '—',
+                bloqueio: semBloqueio ? 'Sem dado real' : (i.bloqueioMotivo ?? '—'),
               }))}
             />
           </div>

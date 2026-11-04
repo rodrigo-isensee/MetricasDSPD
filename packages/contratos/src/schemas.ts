@@ -52,7 +52,7 @@ export const resultadoO1 = z.object({
   hoje: z.object({
     total: z.number(),
     limite: z.number(),
-    bloqueados: z.number(),
+    bloqueados: z.number().nullable(),
     acimaDoLimite: z.number(),
   }),
   /** Só com exatamente uma equipe selecionada; senão null e usa-se `porTipoColuna`. */
@@ -62,7 +62,7 @@ export const resultadoO1 = z.object({
         coluna: z.string(),
         tipoColuna: z.enum(['fila', 'execucao']),
         itens: z.number(),
-        bloqueados: z.number(),
+        bloqueados: z.number().nullable(),
         limite: z.number().nullable(),
       }),
     )
@@ -71,7 +71,7 @@ export const resultadoO1 = z.object({
     z.object({
       tipoColuna: z.enum(['fila', 'execucao']),
       itens: z.number(),
-      bloqueados: z.number(),
+      bloqueados: z.number().nullable(),
     }),
   ),
   equipesConsideradas: z.number(),
@@ -79,13 +79,15 @@ export const resultadoO1 = z.object({
     z.object({
       data: iso,
       wip: z.number(),
-      bloqueados: z.number(),
+      bloqueados: z.number().nullable(),
       limite: z.number(),
       acimaDoLimite: z.boolean(),
     }),
   ),
   diasDentroDoLimite: taxaSchema,
   statusMeta: statusMetaSchema,
+  /** Pedido 065: nota `bloqueio-sem-dado-real` quando a parte de bloqueio sai `null` (base real sem bloqueios coletados). */
+  notas: z.array(notaCartaoIdSchema).optional(),
 })
 
 export const resultadoBloqueados = z.object({
@@ -137,6 +139,8 @@ export const resultadoO2 = z.object({
   statusMeta: statusMetaSchema,
   /** O23 (pedido 011, B2): bloco do O2; obrigatório desde que o cálculo o devolve. */
   parados: paradosSchema,
+  /** Pedido 065: nota `bloqueio-sem-dado-real` (`bloqueioMotivo` sem motivo vira "não sabemos", não "não bloqueado"). */
+  notas: z.array(notaCartaoIdSchema).optional(),
 })
 
 const serieP85 = z.array(z.object({ semana: iso, n: z.number(), p85: z.number().nullable() }))
