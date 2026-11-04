@@ -1,0 +1,60 @@
+---
+tipo: qa
+contrato: 1
+pedido: 065-bloqueados-sem-dado-real
+branch: feature/065-bloqueados
+commit: 5be8b40530c3dd0777f27e6303b93a8ada68b0d2
+parecer: aprovado
+escopo: completo
+bugs_criticos: 0
+bugs_altos: 0
+bugs_medios: 0
+bugs_baixos: 0
+data: 2026-11-04
+---
+# QA: 065, bloqueados sem dado real (E1.5, K-205)
+
+Código testado: `b02fd50` (a ponta do review) mais o commit de teste `5be8b40` (E2E, API de teste e axe). Entre as duas só há arquivos de `e2e/`. Obrigações: o desenho `docs/analises/065-desenho.md` (seções 1 a 4 e 8) e as decisões do dono (C, "isso", B). Não há especificação de UX com `CA-n`: cada decisão virou um teste.
+
+## Escopo
+- Dentro: BLOQUEADOS e O5 inteiros com Sem dado real; O1 e O2 com só a parte de bloqueio sem dado real (null, nunca 0) e o resto visível; faixa Pede atenção sem afirmar nada bloqueado; versão de critério T2.6; modo mock com bloqueios do seed intactos.
+- Fora: `test:pg` e `pronto` (ficam com o dono; os `.pg.test.ts` aparecem como skipped); Postgres não estava no ar. A base real não foi exercitada neste parecer.
+
+## Critério → teste → resultado
+| Obrigação | Teste | Fronteira protegida | Resultado |
+|---|---|---|---|
+| BLOQUEADOS fora do mapa real, motivo próprio | contrato C1 e C2 (`origem.test.ts`); Q65-01 (E2E); W1 | mapa de 17 ids reais | passou |
+| BLOQUEADOS sem número nem "Nenhum item bloqueado" | Q65-01; W1 | zero falso | passou |
+| O1: bloqueados `null` (nunca 0), nota, WIP intacto | S2 (server); Q65-02; W2 | null no lugar de 0 | passou |
+| O2: nota, itens e percentis intactos, coluna Bloqueado "Sem dado real" | S3; Q65-03; W3 | "não bloqueado" distinto de "não sabemos" | passou |
+| O5 inteiro Sem dado real, sem percentual (decisão B) | Q65-05; W4 | nenhum % publicado | passou |
+| Faixa Pede atenção sem "Nada pede atenção" e sem falar de bloqueado | Q65-04; W5 | falso "tudo bem" | passou |
+| Troca só na base real; mock mantém bloqueios | S6 | modo mock | passou |
+| Outra métrica não recebe a nota (O3 mantém a sua) | S5 e S5b | vazamento entre métricas | passou |
+| T2.6: versão de critério em O1, O2 e O5 | S7; `complementares.test.ts` | marca no gráfico | passou |
+| Acessibilidade das telas mudadas | Q65-06 (Diária) e Q65-07 (Semanal com O5) | axe WCAG 2.2 AA, sérias e críticas | zero violações |
+
+## Execução (ponta 5be8b40)
+- E2E novo, projeto `chromium-api`, 2 workers, contra a SPA em `VITE_FONTE=api` e `e2e/stubs/api-065.ts` (API de teste sem banco: núcleo do mock, regras do mapa real e `semParteDeBloqueio` do servidor importado sem cópia): `7 passed (16.7s)`.
+- contratos e metricas: `42 files, 1257 passed`.
+- server: `80 files passed, 33 skipped; 1622 passed, 232 skipped` (skipped = `.pg.test.ts`, dono).
+- web: `94 files, 1425 passed`.
+- `tsc --noEmit` do e2e: rc 0 (`stubs/` fica fora do tsconfig do e2e, porque importa fontes de web e server).
+
+## Mutação no código alterado (`parte-sem-dado.ts`)
+- `bloqueados: null` trocado por `bloqueados: 0`: 2 testes caem (S2 e um teste de F6). Morto.
+- O2 sem `comNota`: 2 testes caem (S3 e S5b). Morto.
+- Arquivo restaurado depois; árvore sem alteração em código de produção.
+
+## Vermelho antes do verde
+Os testes de unidade (S, W, C) são do autor; vi cair com os dois mutantes acima. Para o E2E novo, o vermelho contra a base `1f1da67` não foi rodado: a API de teste importa `parte-sem-dado.ts`, que não existe na base, então a base nem carrega. Fica como limite desta evidência.
+
+## Achados
+- A1 (recomendado) packages/contratos/src/origem.ts:47 · JSDoc do interruptor `BLOQUEIOS_COM_DADO_REAL` ficou acima da constante do O5; ver o review.
+- A2 (recomendado) web/src/features/complementares/fluxo.tsx:64 · quebra de linha sobrando, já apontada no review.
+- A3 (recomendado) docs/qa/065-bloqueados.md:1 · os `.pg.test.ts` (S1 na base real) não rodaram aqui; o dono roda `test:pg` antes da release.
+
+## Limites declarados
+- O E2E usa API de teste, não a API com banco: prova a SPA e o contrato, não a leitura de `fato_bloqueio` vazia.
+- Contraste do tema escuro (M2 do UX) não medido por mim além do axe, que passou.
+- O parecer de interface cita um commit anterior; o review fica desatualizado e é regravado pelo tech-lead.
