@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { coletarApontamentos, type DepsApontamento, type ModoApontamento } from '../src/modulos/businessmap/apontamento/coleta.js';
+import { registrarCobertura, semearCoberturaDeFalhas } from '../src/modulos/businessmap/apontamento/gravacao.js';
 import { lerLote, paginasDoWorklog, type Folha } from '../src/modulos/businessmap/apontamento/lotes.js';
 import type { EntradaClassificacao, SaidaClassificacao } from '../src/modulos/businessmap/apontamento/registro.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
@@ -94,6 +95,11 @@ describe('lerLote: segue as paginas (063, ADR 0025 revisada)', () => {
     const fs = await ler(c);
     expect(c.consultas).toHaveLength(2);
     expect(fs.map((f) => [f.completo, f.falha])).toEqual([[false, null], [false, 'paginacao_instavel']]);
+  });
+  it('pagina 2 sem `pagination` (a pagina 1 tinha): instavel, nunca completo', async () => {
+    const c = falso([pagina(1000, 2), pagina(5, undefined)]);
+    const fs = await ler(c);
+    expect(fs.at(-1)).toMatchObject({ completo: false, falha: 'paginacao_instavel' });
   });
   it('all_pages cai na ultima pagina: tambem e instavel (nunca completo)', async () => {
     const c = falso([pagina(1000, 2), pagina(5, 1)]);
@@ -244,5 +250,13 @@ describe('coleta incremental com paginas: exclusao so com a consulta inteira', (
     const domingo = await montar({ marca: MARCA, fatos: f, cobertura: [incompleto('9100000000')] }, { registros: doServidor(f), paginar: 1 }, new Date('2026-11-02T01:30:00Z'));
     await coletarApontamentos(domingo.deps, incremental);
     expect(domingo.e.cobertura.map((c) => c.estado)).toEqual(['incompleto', 'completo']);
+  });
+});
+
+describe('gravacao da cobertura: rowCount nulo do driver conta como zero', () => {
+  const db = { query: () => Promise.resolve({ rows: [], rowCount: null }) } as never as Parameters<typeof registrarCobertura>[0];
+  it('semearCoberturaDeFalhas e registrarCobertura devolvem 0', async () => {
+    expect(await semearCoberturaDeFalhas(db, S)).toBe(0);
+    expect(await registrarCobertura(db, S, 'completo', ['9100000000'], 1, MARCA)).toBe(0);
   });
 });
