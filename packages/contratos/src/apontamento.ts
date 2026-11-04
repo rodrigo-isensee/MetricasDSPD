@@ -369,6 +369,29 @@ export const opcoesApontamentoSchema = z
   })
   .strict()
 
+/**
+ * Pedido 063 (K-200): cards do BusinessMap cujo registro de horas está INCOMPLETO e que têm horas no recorte (período, projeto e tipo; nunca
+ * pessoa). Campo aditivo (a versão do contrato segue 1). Sem horas faltantes, sem estimativa, sem contagem de registros e sem pessoa. `total` =
+ * `cards.length`. `projetoIds` = ids de projeto (os mesmos de `opcoes.projetos` e de `distribuicao.projeto`, ou `sem-projeto`) que contêm
+ * card incompleto: é o que o front usa para o selo da linha do projeto. Lista vazia = nada a avisar.
+ */
+export const registroIncompletoSchema = z
+  .object({
+    total: contagem,
+    cards: z.array(
+      z
+        .object({
+          cardId: idNumerico,
+          titulo: z.string().max(MAX_ROTULO), // título do card do BusinessMap (decisão Q-2 do 063)
+          projeto: opcaoSchema.extend({ foraDoEscopo: z.boolean() }).strict(),
+        })
+        .strict(),
+    ),
+    projetoIds: z.array(z.string()),
+  })
+  .strict()
+export type RegistroIncompleto = z.infer<typeof registroIncompletoSchema>
+
 // ---------- resposta ----------
 export const respostaApontamentoSchema = z
   .object({
@@ -387,6 +410,8 @@ export const respostaApontamentoSchema = z
     achados: z.array(achadoApontamentoSchema),
     /** Mudanças de critério com data (T2.6): versões do dicionário de subgrupo/qualidade e do calendário. */
     criterios: z.array(marcacaoCriterioSchema),
+    /** Aditivo (063): ausente em respostas antigas; o front trata a ausência como "nada a exibir", nunca como "completo". */
+    registroIncompleto: registroIncompletoSchema.optional(),
   })
   .strict()
   .superRefine((r, ctx) => {

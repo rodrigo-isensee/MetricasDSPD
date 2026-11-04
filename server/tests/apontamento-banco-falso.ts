@@ -22,6 +22,10 @@ export interface OpcoesBancoAp {
   /** Ids de usuário que já têm linha em `dim_responsavel` (com `pessoa_ref`). */
   pessoas?: Record<string, number>;
   fatos?: FatoFalso[];
+  /** Pedido 063: eventos de cobertura já gravados (em ordem); o estado atual do card é o último. */
+  cobertura?: { card_id: string; estado: 'incompleto' | 'completo'; coleta_id: number }[];
+  /** Pedido 063: `lote_no_teto` de coletas anteriores em `ctl_coleta_falha` (a coleta copia para `incompleto` o card ainda sem cobertura). */
+  falhasAnteriores?: { card_id: string; coleta_id: number }[];
   cards?: { card_id: string; card_pai: string | null; granularidade: string | null }[];
   hierarquiaRowCount?: number;
   coletaId?: string;
@@ -38,6 +42,7 @@ export function bancoApontamento(op: OpcoesBancoAp = {}) {
     fatos: new Map<string, FatoFalso>((op.fatos ?? []).map((f) => [f.logged_time_id, f])),
     eventos: new Map<string, { id: string; tipo: string; chave: string; card: string }>(),
     falhas: [] as { entidade: string; idOrigem: unknown; erro: string }[],
+    cobertura: [...(op.cobertura ?? [])] as { card_id: string; estado: 'incompleto' | 'completo'; coleta_id: number }[],
     contagens: [] as { entidade: string; lidos: number; inseridos: number; jaExistentes: number; falhas: number }[],
     dim: new Map<string, number>(Object.entries(op.pessoas ?? {})),
     usuariosInseridos: [] as string[],
@@ -145,6 +150,24 @@ export function bancoApontamento(op: OpcoesBancoAp = {}) {
       return [...e.fatos.values()].filter((f) => f.excluido_em === null && f.data_apontamento >= (v[0] as string)
         && ((v[1] as string[]).includes(f.card_id) || (f.parent_card_id !== null && (v[1] as string[]).includes(f.parent_card_id))))
         .map((f) => ({ logged_time_id: f.logged_time_id, card_id: f.card_id, parent_card_id: f.parent_card_id }));
+    }
+    if (t.includes('FROM dspd_bm.ctl_apontamento_cobertura ORDER BY card_id, cobertura_sk DESC')) {
+      const ultimo = new Map<string, string>();
+      for (const c of e.cobertura) ultimo.set(c.card_id, c.estado);
+      return [...ultimo].filter(([, st]) => st === 'incompleto').map(([card_id]) => ({ card_id }));
+    }
+    if (t.startsWith('INSERT INTO dspd_bm.ctl_apontamento_cobertura') && t.includes('FROM dspd_bm.ctl_coleta_falha')) {
+      const antes = e.cobertura.length;
+      for (const f of op.falhasAnteriores ?? []) if (!e.cobertura.some((c) => c.card_id === f.card_id)) e.cobertura.push({ card_id: f.card_id, estado: 'incompleto', coleta_id: f.coleta_id });
+      return { rows: [], rowCount: e.cobertura.length - antes };
+    }
+    if (t.startsWith('INSERT INTO dspd_bm.ctl_apontamento_cobertura')) {
+      const [lista, estado, coleta] = v as [string[], 'incompleto' | 'completo', number];
+      let n = 0;
+      for (const card_id of lista) {
+        if (!e.cobertura.some((c) => c.card_id === card_id && c.estado === estado && c.coleta_id === coleta)) { e.cobertura.push({ card_id, estado, coleta_id: coleta }); n += 1; }
+      }
+      return { rows: [], rowCount: n };
     }
     if (t.startsWith('INSERT INTO dspd_bm.evt_apontamento')) {
       const novos: { logged_time_id: string }[] = [];

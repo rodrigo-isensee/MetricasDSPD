@@ -35,6 +35,7 @@ let app: Awaited<ReturnType<typeof buildApp>>
 
 beforeAll(async () => {
   app = await buildApp({
+    modoMock: true,
     db: criarDublePg(bancoDoMock(base)).pool,
     agora: () => AGORA,
     nivelLog: 'silent',

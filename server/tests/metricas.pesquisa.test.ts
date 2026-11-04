@@ -17,7 +17,7 @@ const tocouBmOuAc = (d: { chamadas: { texto: string }[] }): boolean => d.chamada
 describe('PV1 (pesquisa de percepção)', () => {
   it('rota: 200, DTO do contrato, igual ao cálculo da biblioteca sobre o mock, sem ler BusinessMap nem Acelerato', async () => {
     const d = novoDb();
-    const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'silent' });
+    const app = await buildApp({ modoMock: true, db: d.pool, agora: () => AGORA, nivelLog: 'silent' });
     const r = await app.inject('/api/v1/metricas/PV1');
     expect(r.statusCode).toBe(200);
     expect(SCHEMAS_RESULTADO.PV1.safeParse(r.json()).success).toBe(true);
@@ -42,7 +42,7 @@ describe('PV1 (pesquisa de percepção)', () => {
   });
 
   it('rota: só dataReferencia; qualquer outro parâmetro é 400 e data futura também', async () => {
-    const app = await buildApp({ db: novoDb().pool, agora: () => AGORA, nivelLog: 'silent' });
+    const app = await buildApp({ modoMock: true, db: novoDb().pool, agora: () => AGORA, nivelLog: 'silent' });
     expect((await app.inject('/api/v1/metricas/PV1?dataReferencia=2026-09-30')).statusCode).toBe(200);
     for (const q of ['equipe=totvs', 'periodo=12s', 'prioridade=P1', 'responsavel=x', 'dataReferencia=2026-12-01']) {
       expect((await app.inject(`/api/v1/metricas/PV1?${q}`)).statusCode, q).toBe(400);
@@ -50,7 +50,7 @@ describe('PV1 (pesquisa de percepção)', () => {
   });
 
   it('dataReferencia antes da primeira carga: sem dados e versão de critério anterior', async () => {
-    const app = await buildApp({ db: novoDb().pool, agora: () => AGORA, nivelLog: 'silent' });
+    const app = await buildApp({ modoMock: true, db: novoDb().pool, agora: () => AGORA, nivelLog: 'silent' });
     const r = await app.inject('/api/v1/metricas/PV1?dataReferencia=2000-01-01');
     expect(r.statusCode).toBe(200);
     expect(r.headers['x-versao-criterio']).toBe('0');
@@ -87,7 +87,7 @@ describe('PV1 (pesquisa de percepção)', () => {
   });
 
   it('fonte real sem nenhuma carga em pesq_*: sem-pesquisa, nunca dado inventado nem erro', async () => {
-    const app = await buildApp({ db: criarDublePg().pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real' });
+    const app = await buildApp({ db: criarDublePg().pool, agora: () => AGORA, nivelLog: 'silent' });
     const r = await app.inject('/api/v1/metricas/PV1');
     expect(r.statusCode).toBe(200);
     expect(r.json().status).toBe('sem-pesquisa');
@@ -102,12 +102,12 @@ describe('PV1 (pesquisa de percepção)', () => {
 
   it('fonte injetada na app e fonte mock memoizada', async () => {
     expect(await fontePesquisaMock.ler()).toBe(await fontePesquisaMock.ler());
-    const app = await buildApp({ db: novoDb().pool, agora: () => AGORA, nivelLog: 'silent', fonteDados: 'real', pesquisa: fontePesquisaMock });
+    const app = await buildApp({ db: novoDb().pool, agora: () => AGORA, nivelLog: 'silent', pesquisa: fontePesquisaMock });
     expect((await app.inject('/api/v1/metricas/PV1')).json().status).not.toBe('sem-pesquisa');
   });
 
   it('nenhum dado individual na resposta', async () => {
-    const app = await buildApp({ db: novoDb().pool, agora: () => AGORA, nivelLog: 'silent' });
+    const app = await buildApp({ modoMock: true, db: novoDb().pool, agora: () => AGORA, nivelLog: 'silent' });
     expect((await app.inject('/api/v1/metricas/PV1')).body).not.toMatch(/email|e-mail|respondente_id|usuario|responsavel|assignee/i);
   });
 });

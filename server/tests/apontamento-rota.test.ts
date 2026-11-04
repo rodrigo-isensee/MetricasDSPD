@@ -28,6 +28,7 @@ const fixture = (): Linha[] => [
 
 interface Opcoes {
   linhas?: Linha[]; falharEm?: string; nomes?: Record<string, string>; coletas?: { ultima?: boolean; ok?: boolean; ultimaFalhou?: boolean };
+  incompletos?: { card_id: string; titulo: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean }[];
   feriados?: string[]; semHistorico?: boolean; S?: typeof S_PADRAO; doTime?: string[];
 }
 function banco(op: Opcoes = {}) {
@@ -36,6 +37,7 @@ function banco(op: Opcoes = {}) {
     if (op.falharEm !== undefined && t.includes(op.falharEm)) return new Error(`falha do banco com ${MARCADOR_NOME}`);
     if (t.includes('apt_pessoa_time')) return (op.doTime ?? ['1', '2', '3', '4']).map((pessoa_ref) => ({ pessoa_ref }));
     if (t.includes('ref_versao_criterio')) return [{ versao_id: '5', vigente_desde: '2026-11-01', descricao: 'Dicionário de subgrupo v1' }];
+    if (t.includes('ctl_apontamento_cobertura')) return op.incompletos ?? [];
     if (t.includes('FROM dspd_bm.fato_apontamento f')) return op.linhas ?? fixture();
     if (t.includes('min(data_apontamento)')) return [op.semHistorico === true ? { inicio: null, fim: null } : { inicio: '2026-01-05', fim: '2026-10-30' }];
     if (t.includes('responsavel_nome')) return Object.entries(op.nomes ?? {}).map(([pessoa_ref, responsavel_nome]) => ({ pessoa_ref, responsavel_nome }));
@@ -106,7 +108,7 @@ describe('GET /api/apontamento: resposta', () => {
     expect(corpo.kpis.pessoasAtivas).toBe(1);
     expect(corpo.kpis.apontamentos).toBe(3);
     expect(corpo.matriz.nivel).toBe('subgrupo');
-    const lidas = db.chamadas.find((c) => c.texto.includes('FROM dspd_bm.fato_apontamento f'))!;
+    const lidas = db.chamadas.find((c) => c.texto.includes('FROM dspd_bm.fato_apontamento f') && !c.texto.includes('ctl_apontamento_cobertura'))!;
     expect(lidas.valores).toEqual(['2026-10-01', '2026-10-31']); // parâmetros, nunca concatenados
     expect(lidas.texto).not.toContain('2026-10-01');
     await app.close();
@@ -183,7 +185,7 @@ describe('GET /api/apontamento: resposta', () => {
   it('a consulta lê type_id do fato (coluna concedida ao papel da aba) e o valor do filtro não entra no SQL', async () => {
     const { app, db } = await montar();
     await get(app, '/api/apontamento?tipo=12');
-    const c = db.chamadas.find((x) => x.texto.includes('FROM dspd_bm.fato_apontamento f'))!;
+    const c = db.chamadas.find((x) => x.texto.includes('FROM dspd_bm.fato_apontamento f') && !x.texto.includes('ctl_apontamento_cobertura'))!;
     expect(c.texto).toContain('f.type_id');
     expect(c.texto).not.toContain('12');
     await app.close();
@@ -430,6 +432,58 @@ describe('nenhuma outra rota expõe pessoa (CA-AP-5)', () => {
     const sql = db.chamadas.map((c) => c.texto).join('\n');
     expect(sql).not.toContain(S_PADRAO.ac);
     expect(sql).not.toMatch(/\bFROM dspd_bm\.(stg_|evt_|cfg_)/);
+    await app.close();
+  });
+});
+
+describe('registroIncompleto: sinal de card com horas incompletas (063, K-200)', () => {
+  const card = (id: string, o: Partial<NonNullable<Opcoes['incompletos']>[number]> = {}) => ({ card_id: id, titulo: `Card ${id} titulo`, projeto_id: '900', projeto_titulo: 'Projeto Alfa', fora: false, ...o });
+  const ler = async (op: Opcoes, url = '/api/apontamento') => {
+    const { app, db } = await montar(op);
+    const r = await get(app, url);
+    expect(r.statusCode).toBe(200);
+    const corpo = respostaApontamentoSchema.parse(r.json());
+    await app.close();
+    return { corpo, db, bruto: r.body };
+  };
+  it('sem card incompleto: total 0, listas vazias, campo presente (a ausencia nunca vira garantia)', async () => {
+    const { corpo } = await ler({});
+    expect(corpo.registroIncompleto).toEqual({ total: 0, cards: [], projetoIds: [] });
+  });
+  it('lista cards com id, titulo e projeto, os ids de projeto sem repeticao, e total = quantidade de cards', async () => {
+    const { corpo } = await ler({ incompletos: [card('9100000001'), card('9100000002'), card('9100000003', { projeto_id: null, projeto_titulo: null, fora: true })] });
+    expect(corpo.registroIncompleto).toEqual({
+      total: 3,
+      cards: [
+        { cardId: '9100000001', titulo: 'Card 9100000001 titulo', projeto: { id: '900', rotulo: 'Projeto Alfa', foraDoEscopo: false } },
+        { cardId: '9100000002', titulo: 'Card 9100000002 titulo', projeto: { id: '900', rotulo: 'Projeto Alfa', foraDoEscopo: false } },
+        { cardId: '9100000003', titulo: 'Card 9100000003 titulo', projeto: { id: 'sem-projeto', rotulo: 'Sem iniciativa', foraDoEscopo: true } },
+      ],
+      projetoIds: ['900', 'sem-projeto'],
+    });
+  });
+  it('card sem titulo e projeto sem titulo ganham rotulo neutro; titulo acima de 200 caracteres e cortado (nunca 500)', async () => {
+    const { corpo } = await ler({ incompletos: [card('9100000001', { titulo: null, projeto_titulo: null }), card('9100000002', { titulo: 'x'.repeat(500) })] });
+    expect(corpo.registroIncompleto!.cards[0]).toMatchObject({ titulo: 'Card 9100000001', projeto: { rotulo: 'Card 900' } });
+    expect(corpo.registroIncompleto!.cards[1]!.titulo).toHaveLength(200);
+  });
+  it('o recorte e o periodo e os filtros de projeto e tipo, por parametro; o filtro de pessoa nao entra e nenhuma pessoa, hora ou contagem de registros sai', async () => {
+    const { db, bruto } = await ler({ incompletos: [card('9100000001')] }, '/api/apontamento?de=2026-10-01&ate=2026-10-31&projeto=900&tipo=12&pessoa=p1');
+    const c = db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!;
+    expect(c.valores).toEqual(['2026-10-01', '2026-10-31', ['900'], ['12']]);
+    expect(c.texto).not.toMatch(/pessoa|segundos|user_id|responsavel|comentario/i);
+    const sinal = JSON.stringify((JSON.parse(bruto) as { registroIncompleto: unknown }).registroIncompleto);
+    expect(sinal).not.toMatch(/pessoa|segundos|horas|registros|p1/i);
+  });
+  it('sem filtros de projeto e tipo, a consulta recebe null (sem filtro)', async () => {
+    const { db } = await ler({});
+    expect(db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!.valores.slice(2)).toEqual([null, null]);
+  });
+  it('erro do banco na leitura do sinal: 500 generico, sem a mensagem do banco', async () => {
+    const { app } = await montar({ falharEm: 'ctl_apontamento_cobertura' });
+    const r = await get(app, '/api/apontamento');
+    expect(r.statusCode).toBe(500);
+    expect(r.body).not.toContain(MARCADOR_NOME);
     await app.close();
   });
 });

@@ -1,5 +1,5 @@
 import {
-  CATALOGO_CARTOES, METRICA_IDS, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  CATALOGO_CARTOES, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, pesquisa, type ContextosMetricas, type ExtensoesMetricas,
@@ -24,13 +24,18 @@ export type Dom = 'businessmap' | 'acelerato';
 export type OpcoesCalculo = { dataReferencia?: string };
 export type Calculo = {
   resultado: unknown; dataReferencia: string; versaoCriterio: string; chave: string;
+  /** Pedido 060 (P3): `true` = a métrica está fora do mapa real e o `resultado` é o corpo "sem dado real" (motivo, sem número). */
+  semDadoReal?: true;
 };
 
 /** Releitura da marca d'água da coleta (versão de carga): a cada 60 s. */
 export const TTL_VERSAO_MS = 60_000;
 /** Limite de resultados guardados por chave de versão (descarta os mais antigos). */
 export const MAX_RESULTADOS = 500;
-/** Métricas que leem `config.alvos` (prazos por prioridade); sem a referência o cálculo não tem o que comparar. */
+/**
+ * Métricas que leem `config.alvos` (prazos por prioridade); sem a referência o cálculo não tem o que comparar. Só vale no modo mock: no padrão,
+ * o portão do mapa real responde antes ("sem dado real" com o motivo, nunca este 503; pedido 060, Q4). A V1 da Visão geral revê esta lista (V-1).
+ */
 const METRICAS_COM_ALVOS: readonly MetricaId[] = ['S1', 'VISAO_GERAL'];
 /** Métricas de SLA que não contam os chamados sem agente (D-9 do plano 056): a biblioteca recebe a base sem eles. */
 const METRICAS_SEM_AGENTE: readonly MetricaId[] = ['S2', 'TENDENCIA_SUST'];
@@ -70,10 +75,10 @@ export type DepsServico = {
   /** Fonte da pesquisa de percepção (PV1): mock agora; no B4, as tabelas `pesq_*`. Sem ela, a PV1 devolve `sem-pesquisa`. */
   pesquisa?: FontePesquisa;
   /**
-   * F6 do plano 052: schemas da base do SEED (mock). Definido = modo de duas bases: `S` é a base REAL e cada métrica vem inteira de uma só,
-   * pela origem do contrato (`origemDaMetrica`): `real` lê `S`, `mock` lê estes schemas. Nunca as duas na mesma métrica. Sem isto, base única.
+   * Modo mock explícito (pedido 060, P2): `S` é a base semeada, lida como mock (sem o portão do mapa real), e as extensões acima valem.
+   * Ausente (padrão): `S` é a base real e a métrica fora de `METRICAS_ORIGEM_REAL` responde "sem dado real", sem ler nada.
    */
-  SMock?: Esquemas;
+  modoMock?: boolean;
   /** Registro estruturado (só números e nomes de campo, nunca valor de card). */
   log?: (contexto: Record<string, unknown>, mensagem: string) => void;
 };
@@ -85,7 +90,7 @@ export type DepsServico = {
  * Os dois domínios têm carga, versão e cache próprios; só a VISAO_GERAL usa os dois, e só dentro da biblioteca.
  */
 export class ServicoMetricas {
-  /** Uma carga por (domínio, base): `businessmap|real`, `businessmap|base`, `acelerato|base`... (`base` = a única ou a do seed). */
+  /** Uma carga por domínio (`businessmap`, `acelerato`), sempre da base única configurada em `S`. */
   private readonly cargas = new Map<string, Entrada<unknown>>();
   private readonly resultados = new Map<string, Map<string, unknown>>();
   private readonly criterios = new Map<string, string>();
@@ -93,41 +98,35 @@ export class ServicoMetricas {
 
   constructor(private readonly deps: DepsServico) {}
 
-  /** Origem da métrica no modo de duas bases (F6, H-13): `true` = lê a base real. Na base única, nunca (a regra de sempre). */
-  private ehReal(id: MetricaId): boolean {
-    return this.deps.SMock !== undefined && origemDaMetrica(id) === 'real';
-  }
-
-  /** Schemas de onde a métrica lê: a base real (`S`) ou, no modo de duas bases, a do seed para as que seguem mock. */
-  private esquemasDe(real: boolean): Esquemas | undefined {
-    return this.deps.SMock !== undefined && !real ? this.deps.SMock : this.deps.S;
+  /** Leitura da base real (padrão) ou da base semeada lida como mock (modo mock explícito). Uma só por processo: nunca as duas. */
+  private get real(): boolean {
+    return this.deps.modoMock !== true;
   }
 
   /** Versão de critério mais recente já vigente em `data`; relida junto com as marcas (60 s). */
-  private async versaoCriterio(data: string, agora: number, real: boolean): Promise<string> {
+  private async versaoCriterio(data: string, agora: number): Promise<string> {
     if (agora - this.criteriosEm >= TTL_VERSAO_MS) {
       this.criterios.clear();
       this.criteriosEm = agora;
     }
-    const k = `${String(real)}|${data}`;
-    const memo = this.criterios.get(k);
+    const memo = this.criterios.get(data);
     if (memo !== undefined) return memo;
-    const v = (await lerVersaoCriterioVigente(this.deps.db, data, this.esquemasDe(real))) ?? '0';
-    this.criterios.set(k, v);
+    const v = (await lerVersaoCriterioVigente(this.deps.db, data, this.deps.S)) ?? '0';
+    this.criterios.set(data, v);
     return v;
   }
 
   /** Versão de carga: coleta + versão de critério mais recente (nova versão também invalida). Lida ANTES da leitura. */
-  private async marca(dom: Dom, real: boolean): Promise<Marca> {
-    const S = this.esquemasDe(real);
+  private async marca(dom: Dom): Promise<Marca> {
+    const S = this.deps.S;
     const m = await marcaDagua(this.deps.db, dom, S);
     const v = await lerVersaoCriterioVigente(this.deps.db, '9999-12-31', S);
     return { versao: `${m?.coletaId ?? '0'}:${v ?? '0'}`, finalizadoEm: m?.finalizadoEm ?? null };
   }
 
-  private async carregarBM({ versao, finalizadoEm }: Marca, real: boolean): Promise<Carga<ReturnType<typeof montarBaseBM>>> {
-    const { db } = this.deps;
-    const S = this.esquemasDe(real);
+  private async carregarBM({ versao, finalizadoEm }: Marca): Promise<Carga<ReturnType<typeof montarBaseBM>>> {
+    const { db, S } = this.deps;
+    const real = this.real;
     const [cards, bloqueios] = [await lerCards(db, S), await lerBloqueios(db, S)];
     // Base real (A4 da E2.67): o tipo da coluna de cada transição é o da versão vigente no dia, resolvido aqui na leitura (o fato não é reescrito).
     const transicoes = real
@@ -147,9 +146,8 @@ export class ServicoMetricas {
     return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO), sleDefinido: ref.sle.length > 0 };
   }
 
-  private async carregarAC({ versao, finalizadoEm }: Marca, real: boolean): Promise<Carga<BaseAC>> {
-    const { db } = this.deps;
-    const S = this.esquemasDe(real);
+  private async carregarAC({ versao, finalizadoEm }: Marca): Promise<Carga<BaseAC>> {
+    const { db, S } = this.deps;
     const chamados = await lerChamados(db, S);
     const base = montarBaseAC({
       chamados, etapas: await lerEtapas(db, S), alvos: await lerAlvos(db, S), criterios: await lerVersoes(db, 'acelerato', S),
@@ -160,20 +158,20 @@ export class ServicoMetricas {
   }
 
   /** Carga de um domínio: reaproveita a base enquanto a marca d'água não muda; recarrega e descarta o cache quando muda. */
-  private async carga(dom: 'businessmap', agora: number, real: boolean): Promise<Carga<ReturnType<typeof montarBaseBM>>>;
-  private async carga(dom: 'acelerato', agora: number, real: boolean): Promise<Carga<BaseAC>>;
-  private async carga(dom: Dom, agora: number, real: boolean): Promise<Carga<unknown>> {
-    const chave = `${dom}|${real ? 'real' : 'base'}`;
+  private async carga(dom: 'businessmap', agora: number): Promise<Carga<ReturnType<typeof montarBaseBM>>>;
+  private async carga(dom: 'acelerato', agora: number): Promise<Carga<BaseAC>>;
+  private async carga(dom: Dom, agora: number): Promise<Carga<unknown>> {
+    const chave = dom;
     const e = this.cargas.get(chave) ?? { lidoEm: -Infinity, carga: null, atual: null };
     this.cargas.set(chave, e);
     if (e.carga !== null) return e.carga;
     if (e.atual !== null && agora - e.lidoEm < TTL_VERSAO_MS) return e.atual;
     const pendente = (async (): Promise<Carga<unknown>> => {
-      const marca = await this.marca(dom, real);
+      const marca = await this.marca(dom);
       if (e.atual !== null && e.atual.versao === marca.versao) return e.atual;
       this.resultados.delete(chave);
       this.resultados.delete('ambos');
-      return dom === 'businessmap' ? this.carregarBM(marca, real) : this.carregarAC(marca, real);
+      return dom === 'businessmap' ? this.carregarBM(marca) : this.carregarAC(marca);
     })();
     e.carga = pendente;
     try {
@@ -218,14 +216,11 @@ export class ServicoMetricas {
    */
   async aquecer(agoraDate: Date, filtrosPadrao: (id: MetricaId) => FiltrosMetrica): Promise<{ metricas: number; falhas: { id: MetricaId; erro: string }[] }> {
     const agora = agoraDate.getTime();
-    // Cada métrica carrega a base da sua origem; o pré-aquecimento carrega as de todas, uma vez cada.
-    const bases = new Set<string>();
-    for (const id of METRICA_IDS) if (dominioDe(id) !== 'pesquisa') bases.add(`${this.ehReal(id) ? 'real' : 'base'}`);
-    await Promise.all([...bases].flatMap((b) => [this.carga('businessmap', agora, b === 'real'), this.carga('acelerato', agora, b === 'real')]));
+    await Promise.all([this.carga('businessmap', agora), this.carga('acelerato', agora)]);
     const falhas: { id: MetricaId; erro: string }[] = [];
     let metricas = 0;
     for (const id of METRICA_IDS) {
-      if (dominioDe(id) === 'pesquisa') continue;
+      if (dominioDe(id) === 'pesquisa' || this.semDadoReal(id)) continue;
       try {
         await this.calcular(id, filtrosPadrao(id), {}, agoraDate);
         metricas += 1;
@@ -236,6 +231,11 @@ export class ServicoMetricas {
     return { metricas, falhas };
   }
 
+  /** `true` = a métrica não tem dado real hoje: fora de `METRICAS_ORIGEM_REAL` e sem o modo mock explícito. */
+  private semDadoReal(id: MetricaId): boolean {
+    return this.deps.modoMock !== true && origemDaMetrica(id) !== 'real';
+  }
+
   async calcular(id: MetricaId, filtros: FiltrosMetrica, op: OpcoesCalculo, agoraDate: Date): Promise<Calculo> {
     const agora = agoraDate.getTime();
     const dom = dominioDe(id);
@@ -243,10 +243,13 @@ export class ServicoMetricas {
     if (op.dataReferencia !== undefined && op.dataReferencia > hoje) {
       throw new AppError('VALIDATION_ERROR', 'Parâmetros inválidos.', 400, [{ caminho: 'dataReferencia', mensagem: 'Data futura.' }]);
     }
+    // Pedido 060 (P3): o mapa de origem é um portão. Fora dele (e fora do modo mock explícito) nada é lido nem calculado: responde o estado
+    // "sem dado real" com o motivo, sem número.
+    if (this.semDadoReal(id)) return { resultado: corpoSemDadoReal(id), dataReferencia: op.dataReferencia ?? hoje, versaoCriterio: '0', chave: `${id}|sem-dado-real`, semDadoReal: true };
+    const real = this.real;
     if (dom === 'pesquisa') return this.calcularPesquisa(id, op.dataReferencia ?? hoje);
-    const real = this.ehReal(id);
-    const bm = dom === 'acelerato' ? null : await this.carga('businessmap', agora, real);
-    const ac = dom === 'businessmap' ? null : await this.carga('acelerato', agora, real);
+    const bm = dom === 'acelerato' ? null : await this.carga('businessmap', agora);
+    const ac = dom === 'businessmap' ? null : await this.carga('acelerato', agora);
     if (ac !== null && ac.base.config.alvos.length === 0 && METRICAS_COM_ALVOS.includes(id)) {
       throw new AppError('REFERENCIA_AUSENTE', 'Referência não carregada: alvos de prioridade (ref_alvo_prioridade).', 503);
     }
@@ -264,10 +267,10 @@ export class ServicoMetricas {
         throw new AppError('PERIODO_FORA_DO_HISTORICO', 'Período fora do histórico.', 422, [{ caminho: 'periodo', mensagem: `Use datas entre ${inicio} e ${dataReferencia}, com de <= ate.` }]);
       }
     }
-    const versaoCriterio = await this.versaoCriterio(dataReferencia, agora, real);
+    const versaoCriterio = await this.versaoCriterio(dataReferencia, agora);
     const versoes = [bm?.versao, ac?.versao].filter((x): x is string => x !== undefined).join('|');
     const chave = `${id}|${versoes}|${versaoCriterio}|${dataReferencia}|${normalizar(filtros)}`;
-    const cacheKey = dom === 'ambos' ? 'ambos' : `${dom}|${real ? 'real' : 'base'}`;
+    const cacheKey = dom === 'ambos' ? 'ambos' : dom;
     let mapa = this.resultados.get(cacheKey);
     if (mapa === undefined) {
       mapa = new Map();
@@ -277,8 +280,7 @@ export class ServicoMetricas {
     if (pronto !== undefined) return { resultado: pronto, dataReferencia, versaoCriterio, chave };
     const extras = ac === null ? undefined : EXTRAS_AC.get(ac.base);
     const baseAC = ac === null ? BASE_AC_VAZIA : METRICAS_SEM_AGENTE.includes(id) && extras !== undefined ? extras.semAgenteFora : ac.base;
-    // S8 na fonte real (D-10): o campo dos 90 dias vira a extensão da biblioteca; no modo de duas bases a métrica real nunca recebe o mock;
-    // com extensões mockadas e base única (fonte `mock`) vale o mock.
+    // S8 na fonte real (D-10): o campo dos 90 dias vira a extensão da biblioteca; com o modo mock explícito e extensões mockadas vale o mock.
     const extReal: ExtensaoAC | undefined = id === 'S8' && (real || this.deps.extensoes === undefined) ? extras?.extensao : undefined;
     const ctx: ContextosMetricas = {
       bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, CALENDARIO_PADRAO),

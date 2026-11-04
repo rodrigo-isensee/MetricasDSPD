@@ -32,6 +32,7 @@ import * as m0030 from '../migrations/0030_bm_ref_apontamento_vigencia.js';
 import * as m0031 from '../migrations/0031_bm_cfg_pessoa_eliminada_executado_por.js';
 import * as m0032 from '../migrations/0032_bm_stg_apontamento_versao.js';
 import * as m0033 from '../migrations/0033_bm_apt_pessoa_time.js';
+import * as m0034 from '../migrations/0034_bm_ctl_apontamento_cobertura.js';
 import type { Ddl } from '../src/plataforma/db/ddl.js';
 import type { Esquemas } from '../src/plataforma/db/esquemas.js';
 
@@ -50,6 +51,7 @@ export const MIGRACOES: Record<string, Modulo> = {
   '0027_bm_dim_card_raiz': m0027, '0028_bm_fato_apontamento': m0028,
   '0029_bm_fato_apontamento_tipo': m0029, '0030_bm_ref_apontamento_vigencia': m0030,
   '0031_bm_cfg_pessoa_eliminada_executado_por': m0031, '0032_bm_stg_apontamento_versao': m0032, '0033_bm_apt_pessoa_time': m0033,
+  '0034_bm_ctl_apontamento_cobertura': m0034,
 };
 
 export const arquivosDeMigracao = (): string[] =>

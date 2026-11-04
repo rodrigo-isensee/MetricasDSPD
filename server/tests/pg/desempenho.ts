@@ -41,16 +41,16 @@ try {
     ['ref_coluna', () => R.lerColunas(api, E)], ['dim_chamado', () => R.lerChamados(api, E)], ['fato_etapa_chamado', () => R.lerEtapas(api, E)],
   ];
   for (const [n, f] of consultas) linha(n, await med(f, 10));
-  const servico0 = new ServicoMetricas({ db: api, S: E });
+  const servico0 = new ServicoMetricas({ modoMock: true, db: api, S: E });
   const agora = new Date('2026-10-10T15:00:00Z');
   const filtros = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } };
   const sus = { equipe: [], prioridade: [], periodo: { tipo: '12s' as const } };
-  const carga = async (): Promise<void> => { const s = new ServicoMetricas({ db: api, S: E }); await s.calcular('O1', filtros, {}, agora); await s.calcular('S2', sus, {}, agora); };
+  const carga = async (): Promise<void> => { const s = new ServicoMetricas({ modoMock: true, db: api, S: E }); await s.calcular('O1', filtros, {}, agora); await s.calcular('S2', sus, {}, agora); };
   linha('carga completa (BM + AC) + 1 métrica cada', await med(carga, 5));
   void servico0;
 
   console.log('\n== API (Fastify inject, banco real) ==');
-  const app = await buildApp({ db: api, S: E, agora: () => agora, nivelLog: 'silent' });
+  const app = await buildApp({ modoMock: true, db: api, S: E, agora: () => agora, nivelLog: 'silent' });
   const urls = ['O1', 'O2', 'T1', 'T2', 'T4', 'E1', 'S1', 'S2', 'S5', 'VISAO_GERAL'].map((m) => `/api/v1/metricas/${m}`);
   await Promise.all(urls.map((u) => app.inject(u)));
   const quente: number[] = [];

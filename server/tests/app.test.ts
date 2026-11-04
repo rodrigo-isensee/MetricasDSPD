@@ -6,7 +6,7 @@ const AGORA = new Date('2026-10-10T15:00:00Z');
 async function montar(r: Respondedor = () => [{ ok: 1 }]) {
   const d = criarDublePg(r);
   const linhas: string[] = [];
-  const app = await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'info', destinoLog: { write: (m) => { linhas.push(m); } } });
+  const app = await buildApp({ modoMock: true, db: d.pool, agora: () => AGORA, nivelLog: 'info', destinoLog: { write: (m) => { linhas.push(m); } } });
   return { app, d, linhas };
 }
 const responder: Respondedor = (c) => {

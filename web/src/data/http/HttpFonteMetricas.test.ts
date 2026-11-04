@@ -3,6 +3,7 @@ import { MockFonteMetricas } from '../mock/MockFonteMetricas'
 import { ErroApi } from './ErroApi'
 import { filtrosParaQuery } from './filtrosParaQuery'
 import { HttpFonteMetricas } from './HttpFonteMetricas'
+import { motivoSemDadoReal, SemDadoRealErro } from './SemDadoRealErro'
 
 const FLUXO = { equipe: [], tipo: [], sistema: [], periodo: { tipo: '12s' as const } }
 const json = (corpo: unknown, status = 200, id = 'req-12345678') =>
@@ -69,6 +70,25 @@ describe('HttpFonteMetricas', () => {
     const r = await http.obter('O1', { ...FLUXO, equipe: ['a'] })
     expect(r).toStrictEqual(o1)
     expect(fetchImpl.mock.calls[0]?.[0]).toBe('/api/v1/metricas/O1?equipe=a&periodo=12s')
+  })
+
+  it('obter: resposta sem-dado-real (200) vira SemDadoRealErro com o motivo, sem resultado', async () => {
+    const corpo = { estado: 'sem-dado-real', metrica: 'O12', motivo: 'aguardando campo no quadro' }
+    const fetchImpl = vi.fn().mockResolvedValue(json(corpo))
+    const r = new HttpFonteMetricas({ fetchImpl }).obter('O12', FLUXO)
+    await expect(r).rejects.toBeInstanceOf(SemDadoRealErro)
+    await expect(r).rejects.toMatchObject({ motivo: 'aguardando campo no quadro', metrica: 'O12' })
+  })
+
+  it('obter: sem-dado-real sem motivo é resposta fora do contrato, não estado', async () => {
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(json({ estado: 'sem-dado-real', metrica: 'O12', motivo: '' }))
+    await expect(new HttpFonteMetricas({ fetchImpl }).obter('O12', FLUXO)).rejects.toBeInstanceOf(
+      ErroApi,
+    )
+    erro.mockRestore()
   })
 
   it('obter sem filtros não deixa "?" solto', async () => {
@@ -271,5 +291,15 @@ describe('HttpFonteMetricas', () => {
       new HttpFonteMetricas({ fetchImpl: aoContrario }).opcoesFiltro('acelerato'),
     ).rejects.toMatchObject({ code: 'RESPOSTA_INVALIDA' })
     log.mockRestore()
+  })
+})
+
+describe('motivoSemDadoReal', () => {
+  it('é o motivo da API; sem ele (erro comum ou nada), o genérico do contrato', () => {
+    expect(motivoSemDadoReal(new SemDadoRealErro('O12', 'aguardando campo no quadro'))).toBe(
+      'aguardando campo no quadro',
+    )
+    expect(motivoSemDadoReal(new Error('x'))).toBe('fonte real ainda não definida')
+    expect(motivoSemDadoReal(null)).toBe('fonte real ainda não definida')
   })
 })

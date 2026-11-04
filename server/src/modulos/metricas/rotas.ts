@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
-import { METRICA_IDS, METRICAS_TENDENCIA, fonteDaMetrica, type MetricaId, type ResultadoO2 } from '@metricas-dspd/contratos';
+import { METRICA_IDS, METRICAS_TENDENCIA, fonteDaMetrica, semDadoRealSchema, type MetricaId, type ResultadoO2 } from '@metricas-dspd/contratos';
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import type { ZodType } from 'zod';
+import { z, type ZodType } from 'zod';
 import { AppError, erroSchema } from '../../plataforma/erros.js';
 import {
   paramsIdSchema, queryFluxoSchema, queryPesquisaSchema, queryTendenciaSchema, querySustentacaoSchema, queryVisaoGeralSchema, resultadoO2PaginadoSchema,
@@ -36,7 +36,9 @@ export function paginarO2(r: ResultadoO2, page = 1, pageSize?: number): Resultad
  */
 export async function rotasMetricas(app: FastifyInstance, deps: DepsRotasMetricas): Promise<void> {
   for (const id of METRICA_IDS) {
-    const saida: ZodType = id === 'O2' ? resultadoO2PaginadoSchema : SCHEMAS_RESULTADO[id];
+    // Pedido 060 (P3): a métrica fora do mapa real responde 200 com o corpo "sem dado real" (motivo, sem número); o schema de saída aceita os dois.
+    const resultado: ZodType = id === 'O2' ? resultadoO2PaginadoSchema : SCHEMAS_RESULTADO[id];
+    const saida: ZodType = z.union([resultado, semDadoRealSchema]);
     app.get(`/metricas/${id}`, {
       schema: {
         tags: ['metricas'], summary: `Métrica ${id}`, querystring: queryDe(id),
@@ -45,10 +47,11 @@ export async function rotasMetricas(app: FastifyInstance, deps: DepsRotasMetrica
     }, async (req: FastifyRequest, resposta: FastifyReply) => {
       const q = req.query as ConsultaCalculo<FiltrosMetrica>;
       const c = await deps.servico.calcular(id, q.filtros, q.dataReferencia === undefined ? {} : { dataReferencia: q.dataReferencia }, deps.agora());
-      const pagina = id === 'O2' ? { page: q.page ?? 1, pageSize: q.pageSize } : null;
+      const pagina = id === 'O2' && c.semDadoReal !== true ? { page: q.page ?? 1, pageSize: q.pageSize } : null;
       const etag = `W/"${createHash('sha1').update(`${c.chave}|${JSON.stringify(pagina)}`).digest('hex').slice(0, 20)}"`;
       void resposta.header('cache-control', CACHE).header('etag', etag).header('x-data-referencia', c.dataReferencia)
         .header('x-versao-criterio', c.versaoCriterio);
+      if (c.semDadoReal === true) void resposta.header('x-estado-dado', 'sem-dado-real');
       if (req.headers['if-none-match'] === etag) return resposta.code(304).send();
       return pagina === null ? c.resultado : paginarO2(c.resultado as ResultadoO2, pagina.page, pagina.pageSize);
     });

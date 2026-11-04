@@ -2,7 +2,7 @@
 
 Sistema de métricas ágeis do DSPD: painéis de fluxo (Operacional, Tático, Estratégico), Espera invisível e Sustentação, a partir do BusinessMap e do Acelerato (nunca misturados). Nenhuma métrica serve para avaliar pessoas ou comparar equipes.
 
-> **Dados fictícios.** Esta versão roda só com dados gerados (mock determinístico). Nada aqui vem do BusinessMap ou do Acelerato reais.
+> **Painel só com dado real (pedido 060).** O painel lê a API por padrão (`VITE_FONTE=api`) e o cartão sem fonte real mostra "Sem dado real" e o motivo, sem número. Os dados fictícios (mock determinístico) só existem por escolha explícita: `VITE_FONTE=mock` (desenvolvimento de interface, testes, E2E) e a homologação, sempre com o selo "Dados fictícios".
 
 ## Pré-requisitos
 Node 24 ou superior (`nvm install 24 && nvm use 24`).
@@ -15,7 +15,10 @@ pnpm run dev        # na raiz: sobe o painel em http://localhost:5173
 Também funciona a partir de `web/`: `cd web && pnpm install && pnpm run dev`.
 
 ## Banco local (Docker)
-O banco é PostgreSQL 17 no Docker Compose (custo zero). `cp .env.example .env`, depois `pnpm run db:up && pnpm run db:migrate && pnpm run db:seed`; `pnpm run test:pg` roda os testes de banco no mesmo Postgres, com um conjunto de schemas próprio por execução (removido ao final). Instalação do Docker no WSL2 e detalhes: `docs/architecture/server.md`.
+O banco é PostgreSQL 17 no Docker Compose (custo zero). `cp .env.example .env`, depois `pnpm run db:up && pnpm run db:migrate` (não há `db:seed` na raiz: o mock só é semeado em homologação, na CI e nos testes, com `PG_SEED_URL` explícita, e o seed recusa esquema com coleta real, plano 060); `pnpm run test:pg` roda os testes de banco no mesmo Postgres, com um conjunto de schemas próprio por execução (removido ao final). Instalação do Docker no WSL2 e detalhes: `docs/architecture/server.md`.
+
+## Coleta diária no servidor interno
+A coleta agendada (BusinessMap 06:00, Acelerato 06:30, releitura de domingo) roda em container chamado por timers systemd da VM. Instalação, segredos, reexecução e rollback: `docs/devops/runbook-coleta-diaria.md`.
 
 ## Verificar
 - `pnpm run pronto` (raiz): lint, formatação, tipos (inclusive do `e2e`), testes, build e tamanho do bundle. `pnpm test` roda só os testes unitários e de propriedade; a E2E não entra.

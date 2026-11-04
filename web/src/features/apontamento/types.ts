@@ -53,6 +53,7 @@ export type QualidadePorFlag = QualidadeApontamento['geral']['porFlag'][number]
 export type MatrizApontamento = RespostaApontamento['matriz']
 export type CapacidadeApontamento = RespostaApontamento['capacidade']
 export type DiarioApontamento = RespostaApontamento['diario']
+export type RegistroIncompleto = NonNullable<RespostaApontamento['registroIncompleto']>
 export type AchadoApontamento = RespostaApontamento['achados'][number]
 
 /** Fonte da aba: a rota `GET /api/apontamento` (ou, nos testes, uma fixture tipada). */
