@@ -60,7 +60,7 @@ export function AvisoRegistroIncompleto({ registro }: { registro: RegistroIncomp
   )
 }
 
-/** Selo "Horas incompletas" (ícone e texto) com dica focável; abre por foco, toque e Enter, fecha com Esc. */
+/** Selo "Horas incompletas" (ícone e texto) com dica focável; o Dica abre ao ativar o selo (clique, toque, Enter ou Espaço), não por foco simples; fecha com Esc. */
 export function SeloHorasIncompletas() {
   return (
     <Dica texto={INCOMPLETO.dicaSelo}>
@@ -89,7 +89,7 @@ export function NotaKpisIncompleto() {
           el?.focus()
         }}
       >
-        Ir ao aviso
+        {INCOMPLETO.irAoAviso}
       </a>
     </p>
   )

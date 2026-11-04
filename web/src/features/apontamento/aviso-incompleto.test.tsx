@@ -125,7 +125,7 @@ describe('063: aviso de registro de horas incompleto', () => {
     await aba()
     const nota = within(screen.getByTestId('metrica-AP-KPIS')).getByTestId('nota-kpis-incompleto')
     expect(nota).toHaveTextContent(INCOMPLETO.notaKpis)
-    await u.click(within(nota).getByRole('link'))
+    await u.click(within(nota).getByRole('link', { name: INCOMPLETO.irAoAviso }))
     expect(screen.getByTestId('aviso-registro-incompleto')).toHaveFocus()
     expect(screen.queryAllByTestId('nota-kpis-incompleto')).toHaveLength(1)
   })

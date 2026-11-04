@@ -312,6 +312,7 @@ export const INCOMPLETO = {
   dicaSelo:
     'Há card deste projeto com registro de horas incompleto. A soma pode estar abaixo do real.',
   colunaObservacao: 'Observação',
+  irAoAviso: 'Ir ao aviso',
   notaKpis: 'Totais de horas podem estar abaixo do real: veja o aviso no topo.',
   comoLer: 'Cards com registro de horas incompleto entram nos totais só com o que já foi coletado.',
   projetosComSelo: 'Projetos com horas incompletas',
