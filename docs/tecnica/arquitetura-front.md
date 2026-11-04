@@ -208,7 +208,7 @@ export class HttpFonteMetricas implements FonteMetricas {
 Passos:
 
 1. Criar `data/http/` (cai na regra de `data/**`: pode usar `contratos` e `contratos/validacao`, nunca `metricas`/`mock`).
-2. `criarFontePadrao()` escolhe a fonte por variável de ambiente (ex.: `VITE_FONTE=api`); o mock continua disponível para dev e E2E.
+2. `criarFontePadrao()` escolhe a fonte por variável de ambiente ; o padrão é `api` e o mock só com `VITE_FONTE=mock` explícito (testes, E2E `@mock`, homologação fictícia com selo).
 3. Com `tipo: 'api'`, `?mock=` já é ignorado por `useMetrica`. O `AvisoDadosFicticios`, o texto do rodapé e o sufixo do título só aparecem com `useFonte().tipo === 'mock'` (feito na integração real, D5).
 4. Revisar o `QueryClient` para dados reais (retentativa limitada em erro de rede, `staleTime` amarrado à data de corte da carga): decisão aberta, a registrar em ADR junto com o pedido 002.
 5. Os testes de painel usam `fonteFixa` (`features/painel/testes`) e não mudam; a paridade mock × API fica nos testes de contrato (ver [qualidade-e-testes.md](qualidade-e-testes.md)).
