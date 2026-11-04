@@ -16,7 +16,12 @@ import { calcularMatriz } from './matriz'
 import { calcularQualidade } from './qualidade'
 import type { EntradaApontamento } from './tipos'
 
-export { gerarAchados, LIMIARES_ACHADO_PADRAO, LIMITE_ATIPICO_HORAS_PADRAO, LIMITE_ATIPICO_SEGUNDOS_PADRAO } from './achados'
+export {
+  gerarAchados,
+  LIMIARES_ACHADO_PADRAO,
+  LIMITE_ATIPICO_HORAS_PADRAO,
+  LIMITE_ATIPICO_SEGUNDOS_PADRAO,
+} from './achados'
 export {
   calcularCapacidade,
   capacidadeMensal,
