@@ -65,16 +65,18 @@ export const CONSULTA_USERS: Readonly<Record<string, RegExp>> = {
  * comentário e o `user_id` só existem em memória, para a classificação e a pessoa; nunca vão a `stg_`).
  */
 export const CAMPOS_WORKLOG = 'logged_time_id,card_id,parent_card_id,subtask_id,lane_id,column_id,user_id,category_id,date,time,comment,logged_at';
-/** Teto de registros por resposta do `/loggedTime` (a API não pagina: o lote vem inteiro, até `per_page`). */
+/** Tamanho da página do `/loggedTime` (`per_page`). A API PAGINA (spike do 063: `pagination.all_pages`); 1000 é o tamanho da página, não um limite da consulta. */
 export const TETO_WORKLOG = 1000;
 const DIA_CIVIL = /^\d{4}-\d{2}-\d{2}$/;
 /**
  * Consulta aceita no `/loggedTime`: lista de cards (até 200), `fields` fixo, subtarefas, `per_page` e os filtros de data (`from_date` e
- * `to_date` = data do apontamento; `logged_from` e `logged_to` = quando foi registrado). Sem `page` (não há paginação), sem `user_ids`.
+ * `to_date` = data do apontamento; `logged_from` e `logged_to` = quando foi registrado) e `page` (pedido 063, ADR 0015/0025: inteiro de 1 a 9999,
+ * a coleta lê `page=1..all_pages`). Sem `user_ids`.
  */
 export const CONSULTA_WORKLOG: Readonly<Record<string, RegExp>> = {
   card_ids: LISTA_IDS,
   per_page: /^(?:[1-9]\d{0,2}|1000)$/,
+  page: /^[1-9]\d{0,3}$/,
   fields: /^logged_time_id,card_id,parent_card_id,subtask_id,lane_id,column_id,user_id,category_id,date,time,comment,logged_at$/,
   include_logged_time_for_subtasks: /^[01]$/,
   from_date: DIA_CIVIL,

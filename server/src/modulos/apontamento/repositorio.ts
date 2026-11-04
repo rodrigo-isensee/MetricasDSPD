@@ -118,3 +118,43 @@ export async function lerCriterios(db: Consultavel, S: Esquemas): Promise<{ id: 
      ORDER BY v.vigente_desde, v.versao_id`);
   return r.rows.map((l) => ({ id: String(l.versao_id), data: l.vigente_desde, descricao: l.descricao }));
 }
+
+export interface CardIncompleto {
+  cardId: string;
+  titulo: string | null;
+  projetoId: string | null;
+  projetoTitulo: string | null;
+  foraDoEscopo: boolean;
+}
+type RowIncompleto = { card_id: string; titulo: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean };
+
+/**
+ * Pedido 063 (K-200): cards do BusinessMap com registro de horas INCOMPLETO (último evento de `ctl_apontamento_cobertura` = `incompleto`) que
+ * têm horas ativas no recorte: período `[de, ate]` e, quando pedidos, os filtros de projeto (`iniciativa_card_id`) e de tipo (`type_id`). O filtro de
+ * pessoa e os demais não entram (o card é incompleto para todo mundo). Só id, título e projeto do card: nada de pessoa, hora nem contagem de registros.
+ * Os filtros chegam por parâmetro (`null` = sem filtro); nunca se monta SQL com valor da requisição.
+ */
+export async function lerCardsIncompletos(
+  db: Consultavel, S: Esquemas, de: string, ate: string, projetos: readonly string[] | undefined, tipos: readonly string[] | undefined,
+): Promise<CardIncompleto[]> {
+  const r = await db.query<RowIncompleto>(
+    `SELECT cb.card_id, k.titulo, x.projeto_id, pr.titulo AS projeto_titulo, x.fora
+     FROM (SELECT card_id FROM (SELECT DISTINCT ON (card_id) card_id, estado FROM ${S.bm}.ctl_apontamento_cobertura ORDER BY card_id, cobertura_sk DESC) u
+            WHERE estado = 'incompleto') cb
+     JOIN LATERAL (
+       SELECT f.iniciativa_card_id AS projeto_id, COALESCE(rc.raiz_fora_do_escopo, rp.raiz_fora_do_escopo, true) AS fora
+       FROM ${S.bm}.fato_apontamento f
+       LEFT JOIN ${S.bm}.dim_card_raiz rc ON rc.card_id = f.card_id
+       LEFT JOIN ${S.bm}.dim_card_raiz rp ON rp.card_id = f.parent_card_id
+       WHERE f.excluido_em IS NULL AND f.data_apontamento BETWEEN $1::date AND $2::date
+         AND (f.card_id = cb.card_id OR f.parent_card_id = cb.card_id)
+         AND ($3::text[] IS NULL OR f.iniciativa_card_id = ANY($3::text[]))
+         AND ($4::text[] IS NULL OR f.type_id = ANY($4::text[]))
+       ORDER BY f.data_apontamento, f.card_id
+       LIMIT 1) x ON true
+     LEFT JOIN ${S.bm}.dim_card k ON k.card_id = cb.card_id
+     LEFT JOIN ${S.bm}.dim_card pr ON pr.card_id = x.projeto_id
+     ORDER BY length(cb.card_id), cb.card_id`,
+    [de, ate, projetos === undefined || projetos.length === 0 ? null : projetos, tipos === undefined || tipos.length === 0 ? null : tipos]);
+  return r.rows.map((l) => ({ cardId: l.card_id, titulo: l.titulo, projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora }));
+}

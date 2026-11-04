@@ -53,11 +53,11 @@ describe('papel dspd_api_apontamento (R4-5)', () => {
     const usage = doPapel.filter((g) => g.startsWith('GRANT USAGE'));
     expect(usage).toEqual([`GRANT USAGE ON SCHEMA ${S_PADRAO.bm}, ${S_PADRAO.core} TO dspd_api_apontamento`]);
   });
-  it('só SELECT por coluna, em lista fechada de tabelas: nada de stg_, evt_, cfg_, outra ctl_ nem Acelerato; nunca INSERT, UPDATE ou DELETE', () => {
+  it('só SELECT por coluna, em lista fechada de tabelas: nada de stg_, evt_, cfg_, ctl_ além de ctl_coleta e da cobertura por card (063) nem Acelerato; nunca INSERT, UPDATE ou DELETE', () => {
     const selects = doPapel.filter((g) => !g.startsWith('GRANT USAGE'));
     for (const g of selects) expect(g, g).toMatch(/^GRANT SELECT \([a-z_, ]+\) ON \w+\.\w+ TO dspd_api_apontamento$/);
     expect(selects.map((g) => /ON \w+\.(\w+) TO/.exec(g)![1]).sort()).toEqual([
-      'apt_pessoa_time', 'ctl_coleta', 'dim_card', 'dim_card_raiz', 'dim_responsavel', 'fato_apontamento', 'ref_apontamento_regra_tipo', 'ref_apontamento_subgrupo',
+      'apt_pessoa_time', 'ctl_apontamento_cobertura', 'ctl_coleta', 'dim_card', 'dim_card_raiz', 'dim_responsavel', 'fato_apontamento', 'ref_apontamento_regra_tipo', 'ref_apontamento_subgrupo',
       'ref_apontamento_termo', 'ref_calendario', 'ref_calendario_aplicacao', 'ref_feriado', 'ref_versao_criterio',
       'ref_versao_criterio_metrica',
     ]);

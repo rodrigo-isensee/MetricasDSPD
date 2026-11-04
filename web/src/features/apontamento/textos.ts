@@ -298,3 +298,23 @@ export const QUALIDADE_FILTRO_OPCOES: { id: FiltroQualidade; nome: string }[] = 
   { id: 'valor-atipico', nome: FLAGS['valor-atipico'] },
   { id: 'completo', nome: FLAGS.completo },
 ]
+
+/** Aviso de registro de horas incompleto (pedido 063, K-200; UX docs/ux/063-aviso-registro-incompleto.md). Sem prazo (Q-1). */
+export const INCOMPLETO = {
+  titulo: (n: number) => `Registro de horas incompleto em ${n} ${n === 1 ? 'card' : 'cards'}`,
+  corpo:
+    'As horas apontadas nesses cards estão incompletas, então os totais desta aba podem estar abaixo do real. Estamos buscando o restante.',
+  abrirLista: 'Ver quais cards',
+  fecharLista: 'Ocultar lista de cards',
+  colunaCard: 'Card',
+  colunaProjeto: 'Projeto',
+  selo: 'Horas incompletas',
+  dicaSelo:
+    'Há card deste projeto com registro de horas incompleto. A soma pode estar abaixo do real.',
+  colunaObservacao: 'Observação',
+  irAoAviso: 'Ir ao aviso',
+  notaKpis: 'Totais de horas podem estar abaixo do real: veja o aviso no topo.',
+  comoLer: 'Cards com registro de horas incompleto entram nos totais só com o que já foi coletado.',
+  projetosComSelo: 'Projetos com horas incompletas',
+} as const
+export const ID_AVISO_INCOMPLETO = 'aviso-registro-incompleto'

@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// E2E contra `vite preview` de ../web (ADR 0001). Nada de dados reais: o app usa o mock.
+// E2E contra `vite preview` de ../web (ADR 0001). Nada de dados reais: o grupo @mock builda com VITE_FONTE=mock explícito (o padrão do web é a API, pedido 060).
 // E2E_PORTA / E2E_PORTA_ALT: outra worktree pode ter um `vite preview` de outro build na 4173 (reuseExistingServer serviria o build errado).
 const PORTA = Number(process.env.E2E_PORTA ?? 4173);
 const PORTA_ALT = Number(process.env.E2E_PORTA_ALT ?? 4174); // build com outra semente (critério C80)
@@ -41,7 +41,7 @@ export default defineConfig({
     },
   ] : [
     {
-      command: `pnpm --dir ../web run build && pnpm --dir ../web run preview --port ${PORTA} --strictPort`,
+      command: `cd ../web && VITE_FONTE=mock pnpm exec vite build && VITE_FONTE=mock pnpm exec vite preview --port ${PORTA} --strictPort`,
       url: `http://localhost:${PORTA}`,
       reuseExistingServer: !CI,
       timeout: 180_000,
@@ -51,7 +51,7 @@ export default defineConfig({
       : [{
       // semente alternativa: o diretório de saída é separado para não sobrescrever o build padrão
       command:
-        `cd ../web && VITE_MOCK_SEMENTE=7 pnpm exec vite build --outDir dist-alt --emptyOutDir && ` +
+        `cd ../web && VITE_FONTE=mock VITE_MOCK_SEMENTE=7 pnpm exec vite build --outDir dist-alt --emptyOutDir && ` +
         `pnpm exec vite preview --outDir dist-alt --port ${PORTA_ALT} --strictPort`,
       url: `http://localhost:${PORTA_ALT}`,
       reuseExistingServer: !CI,

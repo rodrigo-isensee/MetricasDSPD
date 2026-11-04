@@ -127,6 +127,46 @@ export async function registrarEventos(
   return ids;
 }
 
+/** Cards cujo ÚLTIMO evento de cobertura é `incompleto` (pedido 063, ADR 0025): o estado atual é o último evento do card. Só ids de card. */
+export async function cardsIncompletos(db: Consultavel, S: Esquemas): Promise<Set<string>> {
+  const r = await db.query<{ card_id: string }>(
+    `SELECT card_id FROM (SELECT DISTINCT ON (card_id) card_id, estado FROM ${S.bm}.ctl_apontamento_cobertura ORDER BY card_id, cobertura_sk DESC) u
+     WHERE estado = 'incompleto'`);
+  return new Set(r.rows.map((l) => l.card_id));
+}
+
+/**
+ * Cobertura inicial a partir do registro que já existe (pedido 063, plano C2.1): o card que uma coleta anterior deixou no teto (`ctl_coleta_falha`,
+ * entidade `apontamento`, erro `lote_no_teto`, `id_origem` = card) e que ainda não tem NENHUM evento de cobertura vira `incompleto` (da coleta mais
+ * recente que o registrou). É cópia de dado gravado, não inferência; idempotente (card com evento não é tocado). Está no coletor e não numa
+ * migração porque a ADR 0014 proíbe INSERT em migração. Devolve quantos cards entraram.
+ */
+export async function semearCoberturaDeFalhas(db: Consultavel, S: Esquemas): Promise<number> {
+  const r = await db.query(
+    `INSERT INTO ${S.bm}.ctl_apontamento_cobertura (card_id, estado, coleta_id, detectado_em)
+     SELECT f.id_origem, 'incompleto', f.coleta_id, COALESCE(c.finalizado_em, c.iniciado_em)
+     FROM (SELECT DISTINCT ON (id_origem) id_origem, coleta_id FROM ${S.bm}.ctl_coleta_falha
+            WHERE entidade = 'apontamento' AND erro = 'lote_no_teto' AND id_origem ~ '^[0-9]{1,12}$'
+            ORDER BY id_origem, coleta_id DESC) f
+     JOIN ${S.bm}.ctl_coleta c ON c.coleta_id = f.coleta_id
+     WHERE NOT EXISTS (SELECT 1 FROM ${S.bm}.ctl_apontamento_cobertura k WHERE k.card_id = f.id_origem)
+     ON CONFLICT ON CONSTRAINT uq_ctl_apontamento_cobertura DO NOTHING`);
+  return r.rowCount ?? 0;
+}
+
+/** Grava eventos de cobertura (append-only, sem pessoa e sem horas). Repetir o mesmo card, estado e coleta não duplica. Devolve quantos entraram. */
+export async function registrarCobertura(
+  db: Consultavel, S: Esquemas, estado: 'incompleto' | 'completo', cards: readonly string[], coletaId: number, agora: Date,
+): Promise<number> {
+  if (cards.length === 0) return 0;
+  const r = await db.query(
+    `INSERT INTO ${S.bm}.ctl_apontamento_cobertura (card_id, estado, coleta_id, detectado_em)
+     SELECT c, $2::text, $3::bigint, $4::timestamptz FROM unnest($1::text[]) AS c
+     ON CONFLICT ON CONSTRAINT uq_ctl_apontamento_cobertura DO NOTHING`,
+    [cards, estado, coletaId, agora]);
+  return r.rowCount ?? 0;
+}
+
 /**
  * Refaz `dim_card_raiz` a partir de `dim_card.card_pai` e grava `iniciativa_card_id` e o bit `sem-iniciativa` (8) de cada apontamento, tudo
  * na mesma transação do chamador (A6 do review: o fato e a raiz nunca divergem). Sem DELETE: atualiza o que mudou e insere o que falta.

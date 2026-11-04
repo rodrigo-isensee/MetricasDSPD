@@ -11,6 +11,7 @@ describe('App e composição', () => {
   })
 
   it('a fonte padrão lê semente, data e latência das variáveis públicas', async () => {
+    vi.stubEnv('VITE_FONTE', 'mock')
     vi.stubEnv('VITE_MOCK_SEMENTE', '7')
     vi.stubEnv('VITE_MOCK_HOJE', '2026-10-09')
     vi.stubEnv('VITE_MOCK_LATENCIA', '0')
@@ -18,7 +19,9 @@ describe('App e composição', () => {
     expect(await fonte.dataReferencia()).toBe('2026-10-09')
   })
 
-  it('sem variáveis, usa os padrões: fonte mock', () => {
+  it('sem variáveis, a fonte é a API: o mock só liga com VITE_FONTE=mock explícito (pedido 060)', () => {
+    expect(criarFontePadrao().tipo).toBe('api')
+    vi.stubEnv('VITE_FONTE', 'mock')
     expect(criarFontePadrao().tipo).toBe('mock')
   })
 
@@ -50,6 +53,7 @@ describe('App e composição', () => {
   })
 
   it('monta o aplicativo completo com o roteador do navegador', async () => {
+    vi.stubEnv('VITE_FONTE', 'mock')
     vi.stubEnv('VITE_MOCK_LATENCIA', '0')
     window.history.pushState({}, '', '/ajuda')
     render(<App />)
