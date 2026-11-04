@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 065-bloqueados-sem-dado-real
 branch: feature/065-bloqueados
-commit: 917ee0b3775b4d6cccdf3be1dc1f6d473ade83f5
+commit: 742e4f3fdecb553b2ef2a39305225560f2e1ebb8
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -14,7 +14,7 @@ data: 2026-11-04
 ---
 # QA: 065, bloqueados sem dado real (E1.5, K-205)
 
-Código testado: `b02fd50` (a ponta do review) mais os commits de teste `5be8b40` e `917ee0b` (E2E, API de teste e axe). Entre as duas só há arquivos de `e2e/`. Obrigações: o desenho `docs/analises/065-desenho.md` (seções 1 a 4 e 8) e as decisões do dono (C, "isso", B). Não há especificação de UX com `CA-n`: cada decisão virou um teste.
+Código testado: `742e4f3` (ponta atual). Desde `917ee0b` mudou só a formatação de `web/src/features/complementares/fluxo.tsx` (1 linha); o código de produção e os testes são os mesmos do parecer anterior (`b02fd50` mais os commits de teste `5be8b40` e `917ee0b`). Obrigações: o desenho `docs/analises/065-desenho.md` (seções 1 a 4 e 8) e as decisões do dono (C, "isso", B). Não há especificação de UX com `CA-n`: cada decisão virou um teste.
 
 ## Escopo
 - Dentro: BLOQUEADOS e O5 inteiros com Sem dado real; O1 e O2 com só a parte de bloqueio sem dado real (null, nunca 0) e o resto visível; faixa Pede atenção sem afirmar nada bloqueado; versão de critério T2.6; modo mock com bloqueios do seed intactos.
@@ -34,12 +34,17 @@ Código testado: `b02fd50` (a ponta do review) mais os commits de teste `5be8b40
 | T2.6: versão de critério em O1, O2 e O5 | S7; `complementares.test.ts` | marca no gráfico | passou |
 | Acessibilidade das telas mudadas | Q65-06 (Diária) e Q65-07 (Semanal com O5) | axe WCAG 2.2 AA, sérias e críticas | zero violações |
 
-## Execução (ponta 917ee0b)
+## Regravação na ponta 742e4f3 (E1.5)
+- web (vitest, 2 workers, sem mudar teste): `94 files passed, 1425 passed`.
+- E2E `tests-api/bloqueio-sem-dado-065.spec.ts`, `chromium-api`, 2 workers, contra a API de teste `api-stub-065.ts` (porta 3199): `7 passed (19.5s)`.
+- A2 resolvido: a formatação de `fluxo.tsx` foi commitada em `742e4f3`. Server, contratos, typecheck e lint: sem mudança de código desde a rodada abaixo; não rerodados.
+
+## Execução da rodada anterior (ponta 917ee0b)
 - E2E novo, projeto `chromium-api`, 2 workers, contra a SPA em `VITE_FONTE=api` e `server/tests/pg/api-stub-065.ts` (API de teste sem banco: núcleo do mock, regras do mapa real e `semParteDeBloqueio` do servidor importado sem cópia): `7 passed (16.7s)`.
 - contratos e metricas: `42 files, 1257 passed`.
 - server: `80 files passed, 33 skipped; 1622 passed, 232 skipped` (skipped = `.pg.test.ts`, dono).
 - web: `94 files, 1425 passed`.
-- `pnpm run typecheck` rc 0; `pnpm run lint` limpo (a API de teste saiu de `e2e/` para `server/tests/pg/`, porque o lint do e2e proíbe import por caminho, ADR 0002). `format:check` falha só em `web/src/features/complementares/fluxo.tsx` (arquivo de produção do autor, A2).
+- `pnpm run typecheck` rc 0; `pnpm run lint` limpo (a API de teste saiu de `e2e/` para `server/tests/pg/`, porque o lint do e2e proíbe import por caminho, ADR 0002). `format:check` falhava só em `fluxo.tsx` (A2, resolvido em `742e4f3`).
 
 ## Mutação no código alterado (`parte-sem-dado.ts`)
 - `bloqueados: null` trocado por `bloqueados: 0`: 2 testes caem (S2 e um teste de F6). Morto.
@@ -51,7 +56,7 @@ Os testes de unidade (S, W, C) são do autor; vi cair com os dois mutantes acima
 
 ## Achados
 - A1 (recomendado) packages/contratos/src/origem.ts:47 · JSDoc do interruptor `BLOQUEIOS_COM_DADO_REAL` ficou acima da constante do O5; ver o review.
-- A2 (recomendado) web/src/features/complementares/fluxo.tsx:64 · `format:check` do Prettier falha neste arquivo (quebra de linha sobrando); rode prettier --write antes do PR.
+- A2 (recomendado, resolvido em 742e4f3) web/src/features/complementares/fluxo.tsx:64 · `format:check` do Prettier falhava neste arquivo.
 - A3 (recomendado) docs/qa/065-bloqueados.md:1 · os `.pg.test.ts` (S1 na base real) não rodaram aqui; o dono roda `test:pg` antes da release.
 
 ## Limites declarados
