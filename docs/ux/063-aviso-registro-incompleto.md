@@ -3,7 +3,7 @@
 Especificação de UX do aviso na aba Apontamento. Base: `docs/ux/059-aba-apontamento.md`, `docs/ux/059-aba-apontamento-textos.md` e `web/src/features/apontamento/ApontamentoPage.tsx` (faixa `AvisoNomeReal`, `CabecalhoPainel`, `CartaoDistribuicao`). Aguarda validação do dono (E1.3) antes de qualquer código. Não depende do plano do arquiteto (E1.1): descreve a tela e declara o que precisa dos dados.
 
 ## Objetivo
-Cinco cards do BusinessMap têm mais registros de horas do que a coleta consegue buscar de uma vez, então as horas deles estão incompletas na base. Quem lê a aba precisa saber disso para não tratar o total como completo. O aviso diz o fato, sem estimar quanto falta, e some sozinho quando a coleta por período completar o card.
+Cinco cards do BusinessMap têm mais registros de horas do que a coleta consegue buscar de uma vez, então as horas deles estão incompletas na base. Quem lê a aba precisa saber disso para não tratar o total como completo. O aviso diz o fato, sem estimar quanto falta, e some sozinho quando a coleta, lendo todas as páginas do registro de horas (D-5), completar o card.
 
 ## Personas / contexto de uso
 Qualquer pessoa que acompanha o painel (decisão do 059), em desktop ou celular, ao abrir a aba para olhar horas por projeto, tipo e capacidade. Uso eventual. Ninguém precisa agir: o aviso informa, não cobra.
@@ -71,7 +71,7 @@ Qualquer pessoa que acompanha o painel (decisão do 059), em desktop ou celular,
 Para o back-end (o contrato é do back-end; o sinal e a origem são da E1.1):
 - Na resposta da aba: lista de cards com registro incompleto, cada um com identificador, título e rótulo do projeto (iniciativa raiz, com "Fora dos quadros coletados" onde couber), e o total de cards incompletos no recorte.
 - Por linha do cartão `ap-projeto`: indicador booleano "contém card incompleto".
-- O sinal deve deixar de existir quando a coleta por período marcar o card como completo; o front não guarda nem decide isso.
+- O sinal deve deixar de existir quando a coleta (leitura de todas as páginas, D-5) marcar o card como completo; o front não guarda nem decide isso.
 - Nada de pessoa nem de horas faltantes nesses campos.
 
 ## Microcopy
@@ -89,7 +89,7 @@ Para o back-end (o contrato é do back-end; o sinal e a origem são da E1.1):
 | Como ler (acrescentar em `ap-kpis` e `ap-projeto`, só com sinal) | "Cards com registro de horas incompleto entram nos totais só com o que já foi coletado." |
 
 ## Perguntas ao dono (uma por vez, com recomendação)
-- Q-1 (texto): manter "Estamos buscando o restante" no corpo da faixa? Recomendação: sim, sem prazo; vale só se o pedido de coleta por período for seguir. Se o plano do arquiteto for descartado, trocar por "O restante ainda não pôde ser coletado." (hipótese a decidir na E1.3).
+- Q-1 (texto): manter "Estamos buscando o restante" no corpo da faixa? Recomendação: sim, sem prazo. Decidido pelo dono em 2026-11-03 (E1.3). Pela D-5, a coleta lê todas as páginas de cada consulta e o aviso some quando a coleta completa o card; a divisão por período é só contingência e não muda o texto.
 - Q-2 (conteúdo da lista): exibir título do card do BusinessMap na lista? Recomendação: sim, só identificador mais título; é fonte BusinessMap e não envolve pessoa.
 - Q-3 (lugar): faixa no cabeçalho mais marca no projeto e nota nos KPIs, conforme acima? Recomendação: sim.
 
@@ -99,7 +99,7 @@ Para o back-end (o contrato é do back-end; o sinal e a origem são da E1.1):
 - CA-3 QUANDO um projeto do cartão `ap-projeto` contém card incompleto O SISTEMA DEVE exibir o selo "Horas incompletas" (ícone e texto) na linha dele, sem alterar a ordem nem o tamanho da barra, e a coluna "Observação" na tabela alternativa.
 - CA-4 QUANDO a pessoa ativa o selo (clique, toque, Enter ou Espaço) O SISTEMA DEVE abrir a dica completa ao ativar o selo (e não ao receber foco), e fechá-la com Esc.
 - CA-5 ENQUANTO a faixa está visível O SISTEMA DEVE mantê-la sem botão de dispensa e sem ocultação pela preferência "Ocultar cartões".
-- CA-6 QUANDO a resposta da aba deixa de trazer card incompleto (a coleta por período completou o card) O SISTEMA DEVE remover a faixa, os selos e a nota dos KPIs no mesmo carregamento, sem guardar o aviso no navegador.
+- CA-6 QUANDO a resposta da aba deixa de trazer card incompleto (a coleta completou o card) O SISTEMA DEVE remover a faixa, os selos e a nota dos KPIs no mesmo carregamento, sem guardar o aviso no navegador.
 - CA-7 SE os filtros ativos deixam nenhum card incompleto no recorte ENTÃO O SISTEMA DEVE ocultar a faixa e os selos (sujeito à hipótese de recorte do Lugar 1).
 - CA-8 O SISTEMA DEVE não exibir nos textos do aviso os termos "teto", "lote", "1000", "worklog", "paginação" nem valor estimado de horas, registros ou percentual.
 - CA-9 ONDE a tela tem 375 px de largura O SISTEMA DEVE quebrar o texto da faixa e da lista sem rolagem horizontal da página, com alvo de toque de 44 px no botão "Ver quais cards".
