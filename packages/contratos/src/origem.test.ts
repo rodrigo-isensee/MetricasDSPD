@@ -129,12 +129,12 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     expect(corpoSemDadoReal('BLOQUEADOS').motivo).toBe(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
   })
 
-  it('C3 (pedido 065): O1, O2 e O5 aceitam a nota de bloqueio, recusam id fora do contrato; O1 e O5 aceitam null na parte de bloqueio', () => {
+  it('C3 (pedido 065): O1 e O2 aceitam a nota de bloqueio, recusam id fora do contrato; O1 aceita null na parte de bloqueio; O5 segue no contrato anterior', () => {
     expect(notaCartaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(true)
     expect(TEXTO_NOTA_CARTAO['bloqueio-sem-dado-real']).toContain(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
     expect(METRICAS_COM_PARTE_DE_BLOQUEIO).toEqual(['O1', 'O2'])
     expect(BLOQUEIOS_COM_DADO_REAL).toBe(false)
-    for (const r of [resultadoO1, resultadoO2, resultadoO5]) {
+    for (const r of [resultadoO1, resultadoO2]) {
       const campo = r.shape.notas
       expect(campo.safeParse(['bloqueio-sem-dado-real']).success).toBe(true)
       expect(campo.safeParse(['id-inexistente']).success).toBe(false)
@@ -144,7 +144,6 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     expect(o1.serie.element.shape.bloqueados.safeParse(null).success).toBe(true)
     expect(o1.porTipoColuna.element.shape.bloqueados.safeParse(null).success).toBe(true)
     expect(o1.porColuna.unwrap().element.shape.bloqueados.safeParse(null).success).toBe(true)
-    const o5 = resultadoO5.shape.tipos.element.shape.estatistica
-    expect(o5.safeParse({ status: 'ok' }).success).toBe(false)
+    expect(resultadoO5.shape).not.toHaveProperty('notas') // O5 inteiro sai do mapa real (decisão B): contrato anterior, sem nota nem null
   })
 })

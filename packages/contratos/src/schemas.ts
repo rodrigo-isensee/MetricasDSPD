@@ -857,13 +857,11 @@ export const resultadoO5 = z.object({
           agregadaPct: z.number(),
           horasExecucao: z.number(),
           horasFila: z.number(),
-          horasBloqueio: z.number().nullable(),
+          horasBloqueio: z.number(),
         }),
       ),
     }),
   ),
-  /** Pedido 065: nota `bloqueio-sem-dado-real` quando `horasBloqueio` sai `null`. */
-  notas: z.array(notaCartaoIdSchema).optional(),
 })
 
 /** O6: previsibilidade (P85 ÷ P50 do cycle time) por classe de serviço. */
