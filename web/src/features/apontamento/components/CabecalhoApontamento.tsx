@@ -12,6 +12,8 @@ import {
 } from '../textos'
 import type { RespostaApontamento } from '../types'
 
+const AVISO_PARCIAL_FIM = 'alguns apontamentos podem estar faltando.'
+
 /** Última coleta parcial mais nova que a última ok (ou sem ok): devolve o fim dela; senão, null. */
 function fimParcialRecente(frescor: RespostaApontamento['frescor']): string | null {
   const t = frescor.ultimaTentativa
@@ -40,8 +42,7 @@ export function FrescorEPeriodo({ resposta }: { resposta: RespostaApontamento | 
       {fimParcial && (
         <span className="flex items-center gap-1 text-sm text-atencao" data-testid="aviso-parcial">
           <Icone nome="alerta" className="size-4" /> Última coleta parcial em{' '}
-          {fmtDataCurta(fimParcial)} às {fimParcial.slice(11, 16)}: alguns apontamentos podem estar
-          faltando.
+          {fmtDataCurta(fimParcial)} às {fimParcial.slice(11, 16)}: {AVISO_PARCIAL_FIM}
         </span>
       )}
       <span className="text-sm text-texto-2" data-testid="periodo-dos-dados">
