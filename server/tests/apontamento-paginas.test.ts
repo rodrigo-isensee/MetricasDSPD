@@ -251,6 +251,25 @@ describe('coleta incremental com paginas: exclusao so com a consulta inteira', (
     await coletarApontamentos(domingo.deps, incremental);
     expect(domingo.e.cobertura.map((c) => c.estado)).toEqual(['incompleto', 'completo']);
   });
+  it('A1: recusa com id invalido na pagina 1 e ultima pagina limpa: o card nao vira completo nem coberto, e nada e excluido', async () => {
+    const f = fs(2);
+    const regsA1 = [registroWorklog({ logged_time_id: 'x1', card_id: 9100000000 }), ...doServidor(f)];
+    const domingo = await montar({ marca: MARCA, fatos: f, cobertura: [incompleto('9100000000')] }, { registros: regsA1, paginar: 1 }, new Date('2026-11-02T01:30:00Z'));
+    const r = await coletarApontamentos(domingo.deps, incremental);
+    expect(r.excluidos).toBe(0);
+    expect(domingo.e.cobertura).toEqual([incompleto('9100000000')]);
+  });
+});
+
+describe('coleta: janela cheia da carga inicial (A2)', () => {
+  it('inicio mais recente que o padrao da carga nao prova completude; o inicio padrao prova', async () => {
+    const recente = await montar({ cobertura: [incompleto('9100000000')] }, { registros: regs(2500), paginar: 1000 });
+    await coletarApontamentos(recente.deps, { tipo: 'carga_inicial', inicio: '2026-10-01' });
+    expect(recente.e.cobertura).toEqual([incompleto('9100000000')]);
+    const padrao = await montar({ cobertura: [incompleto('9100000000')] }, { registros: regs(2500), paginar: 1000 });
+    await coletarApontamentos(padrao.deps, { tipo: 'carga_inicial', inicio: '2025-11-04' });
+    expect(padrao.e.cobertura.map((c) => c.estado)).toEqual(['incompleto', 'completo']);
+  });
 });
 
 describe('gravacao da cobertura: rowCount nulo do driver conta como zero', () => {

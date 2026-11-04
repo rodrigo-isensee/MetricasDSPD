@@ -124,6 +124,8 @@ interface Execucao {
   vistos: Set<string>; completos: Set<string>;
   /** Pedido 063: cards que ficaram no teto numa passagem por data (`lote_no_teto`) e cards lidos inteiros numa passagem de janela cheia. */
   noTeto: Set<string>; cobertos: Set<string>; falhas: string[]; recusas: string[];
+  /** A1 (063): a validade dos ids vale por consulta (todas as páginas): recusa com id inválido em qualquer página suja a consulta até o fim. */
+  consultaSuja: boolean;
   r: Pick<ResultadoApontamento, 'lidos' | 'inseridos' | 'jaExistentes' | 'invalidos' | 'excluidos' | 'reaparecidos' | 'usuarios'>;
 }
 
@@ -201,7 +203,8 @@ async function processarFolha(x: Execucao, passe: Passe, folha: Folha): Promise<
   if (folha.falha !== null) x.falhas.push(folha.falha);
   // só lote completo pode virar fonte de exclusão; recusa com `logged_time_id` válido não tira o lote de completo (o id entrou em `vistos`),
   // recusa com id inválido tira (não se sabe de quem é o registro)
-  const idsValidos = rejeitados.every((f) => f.idOrigem !== null);
+  if (rejeitados.some((f) => f.idOrigem === null)) x.consultaSuja = true;
+  const idsValidos = !x.consultaSuja;
   if (passe.varredura && folha.completo && idsValidos) for (const c of folha.cards) x.completos.add(c);
   if (passe.janelaCheia && folha.completo && idsValidos) for (const c of folha.cards) x.cobertos.add(c);
   if (passe.porData && folha.falha === 'lote_no_teto') for (const c of folha.cards) x.noTeto.add(c);
@@ -298,7 +301,8 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
     } else {
       desde = modo.inicio ?? menosMeses(hoje, MESES_CARGA_APONTAMENTO);
     }
-    passes = [{ filtro: { from_date: desde }, varredura: false, porData: true, janelaCheia: true }];
+    // A2: só é janela cheia quando o início não é mais recente que o padrão da carga (início menor ou igual cobre o período inteiro)
+    passes = [{ filtro: { from_date: desde }, varredura: false, porData: true, janelaCheia: desde <= menosMeses(hoje, MESES_CARGA_APONTAMENTO) }];
   } else {
     const m = await d.pool.query<{ marca: Date | null }>(`SELECT max(marca_dagua_ate) AS marca FROM ${S.bm}.ctl_coleta WHERE tarefa = 'apontamento' AND status = 'sucesso'`);
     marcaDe = m.rows[0]?.marca ?? null;
@@ -325,7 +329,7 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
     const escopoCards = await escopoDoWorklog(d.pool, S);
     const x: Execucao = {
       d, S, coletaId, hoje, tipos: new Map(escopoCards.map((c) => [c.card_id, c.type_id])), escopo: new Set(escopoCards.map((c) => c.card_id)),
-      vistos: new Set(), completos: new Set(), noTeto: new Set(), cobertos: new Set(), falhas: [], recusas: [],
+      vistos: new Set(), completos: new Set(), noTeto: new Set(), cobertos: new Set(), falhas: [], recusas: [], consultaSuja: false,
       r: { lidos: 0, inseridos: 0, jaExistentes: 0, invalidos: 0, excluidos: 0, reaparecidos: 0, usuarios: { pedidos: 0, resolvidos: 0, naoResolvidos: 0 } },
     };
     const lotes = dividir(escopoCards.map((c) => c.card_id), LOTE_CARDS);
@@ -336,6 +340,7 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
         for (const [i, grupo] of lotes.entries()) {
           if (i < primeiroLote) continue;
           const falhasAntes = x.falhas.length;
+          x.consultaSuja = false;
           await lerLote(d.cliente, grupo, passe.filtro, (folha) => processarFolha(x, passe, folha));
           // checkpoint da carga: só avança enquanto os lotes forem concluídos sem falha de execução, em ordem; lote só de recusas de registro
           // conta como concluído (A7), exceto com a guarda `recusa_em_massa` armada (o checkpoint não anda sobre mudança de contrato)
