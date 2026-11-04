@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 065-bloqueados-sem-dado-real
 branch: feature/065-bloqueados
-commit: 742e4f3fdecb553b2ef2a39305225560f2e1ebb8
+commit: a6294341107cadb3017da374f3278a5cbb631d2b
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-04
@@ -36,20 +36,29 @@ Diff lido: `1f1da67..21fffba` (back `26692ba`, front `2050521` e `ae729b2`, pare
 ## Achados
 
 - A1 (recomendado) packages/contratos/src/origem.ts:47 · O JSDoc do interruptor ficou acima de `MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS`, empilhado com o do O5; `BLOQUEIOS_COM_DADO_REAL` (linha 51) ficou sem documentação. Mover o comentário da linha 47 para cima da linha 51.
-- A2 (recomendado) web/src/features/complementares/fluxo.tsx:64 · RESOLVIDO em 742e4f3 (linha única de volta, format:check ok). Era sobra da volta 1: o "Leia" do O5 foi só quebrado em duas linhas com `{' '}`, sem mudar o texto. Voltar à linha única para não deixar diff sem efeito.
+- A2 (recomendado) web/src/features/complementares/fluxo.tsx:64 · RESOLVIDO em 742e4f3 (linha única de volta, format:check ok). Era sobra da volta 1: o "Leia" do O5 foi só quebrado em duas linhas com `{' '}`, sem mudar o texto.
 - A3 (recomendado) web/src/components/ui/CartaoMetrica.tsx:270 · M2 do UX segue aberto no O1 e no O2 (nota em `text-xs`). Componente compartilhado, fora deste lote: cartão próprio com o ux-designer.
 - A4 (recomendado) web/src/features/operacional/components/CartaoO1.tsx:107 · B1 a B3 do UX seguem abertos (O1 repete três vezes, O2 repete por linha, motivo técnico). O texto do motivo é decisão de UX; ficam para o PR ou cartão, sem devolver.
-- A5 (recomendado) server/src/modulos/metricas/servico.ts:296 · Lote acima do teto M14 (563 linhas na revalidação, com o E2E e a API de teste do QA). A abertura do PR (E1.6) leva `teto: excedido, <n> linhas, <motivo>`, recontada na abertura; sem a linha vira bloqueante.
+- A5 (recomendado) server/src/modulos/metricas/servico.ts:296 · Lote acima do teto M14 (563 linhas na revalidação anterior, com o E2E e a API de teste do QA; o W2b soma 33 de teste). A abertura do PR (E1.6) leva `teto: excedido, <n> linhas, <motivo>`, recontada na abertura; sem a linha vira bloqueante.
 - A6 (recomendado) server/tests/painel-real-f6.test.ts:413 · O S2 prova a preservação do resto pela função pura com entrada sintética, não pela resposta da API contra o cálculo da biblioteca, como o desenho pedia. Suficiente, porque a função só troca `bloqueados`; o QA pode reforçar.
 - A7 (recomendado) server/tests/pg/api-stub-065.ts:8 · A API de teste importa por caminho relativo entre pacotes (contratos, web, server), o que a ADR 0002 veda; só passa porque server/tests/pg está fora do lint. Sem gatilho: é só de teste e não entra em produção. Preferir @metricas-dspd/contratos onde houver export.
 
-## Revalidação (volta por delta, 21fffba..742e4f3)
+## Revalidação 1 (volta por delta, 21fffba..742e4f3)
 
-O forge-check delta listou 3 arquivos. Lido: o E2E e2e/tests-api/bloqueio-sem-dado-065.spec.ts (1-87), a API de teste server/tests/pg/api-stub-065.ts (1-52) e fluxo.tsx:64. Já lido, não relido: o resto de 1f1da67..21fffba, que segue como no parecer acima.
+Lido: o E2E e2e/tests-api/bloqueio-sem-dado-065.spec.ts (1-87), a API de teste server/tests/pg/api-stub-065.ts (1-52) e fluxo.tsx:64. Já lido, não relido: o resto de 1f1da67..21fffba.
 
-- E2E: 7 casos Q65-01 a Q65-07 cobrem BLOQUEADOS, O1, O2, faixa de atenção, O5 e axe; só importa de ../fixtures, sem pacote interno (regra do e2e respeitada) e roda só com E2E_API_URL. Os testes de ausência procuram textos que a tela ainda tem no modo mock. Sem achado.
-- API de teste: fica em server/tests/pg, fora de src, sem entrar no build nem em produção; aplica semParteDeBloqueio do código do servidor, sem cópia da regra. Segue a ADR 0002 na fronteira do e2e (nada de pacote interno nele), mas não nos imports internos: A7, recomendado.
-- Formatação: fluxo.tsx só junta duas linhas do texto do O5, sem mudar comportamento (A2 do QA resolvido).
+- E2E: 7 casos Q65-01 a Q65-07 cobrem BLOQUEADOS, O1, O2, faixa de atenção, O5 e axe; só importa de ../fixtures, sem pacote interno e roda só com E2E_API_URL. Os testes de ausência procuram textos que a tela ainda tem no modo mock. Sem achado.
+- API de teste: fora de src, sem entrar no build nem em produção; aplica semParteDeBloqueio do código do servidor, sem cópia da regra. Imports internos: A7, recomendado.
+- Formatação: fluxo.tsx só junta duas linhas do texto do O5, sem mudar comportamento.
+
+## Revalidação 2 (volta por delta, 742e4f3..a629434, E1.4 de K-205)
+
+Delta lido: só `web/src/features/operacional/bloqueio-sem-dado.test.tsx` (+33, o teste W2b) e os pareceres do QA. Nenhum arquivo de produção mudou. Já lido, não relido: o resto de 1f1da67..742e4f3.
+
+- W2b: força `porColuna` com duas colunas de `bloqueados: null` (equipe única, quebra por coluna), confere que o O1 mostra `o1-bloqueados-sem-dado`, que não pede equipe, e que a descrição do gráfico na tabela é "WIP por coluna do fluxo" sem "com bloqueados dentro do total". Cobre a ramificação de CartaoO1.tsx:68-69 que estava sem teste.
+- Teste de ausência (item 11): o texto procurado ainda existe no código (CartaoO1.tsx:69 e :93), então o `not.toBeInTheDocument` não passa por vácuo; o par positivo (`findByText('WIP por coluna do fluxo')`) garante que a tabela abriu. O botão é escolhido por papel e nome, sem seletor frágil.
+- Determinismo: sem relógio nem ordem; o `Object.create` só envolve a fonte de teste e devolve a base para os outros ids. Sem achado novo.
+- Cobertura do web em 100% conforme a decisão do Jarvis; não rerodei a suíte, que é do QA (parecer regravado em a629434).
 - Veredito mantido: aprovado, nenhum bloqueante.
 
 ## Pendências fora do código
