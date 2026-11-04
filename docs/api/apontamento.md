@@ -27,7 +27,7 @@ Chave desconhecida é 400. Listas separadas por vírgula (ou parâmetro repetido
 | `qualidade` | lista de `sem-comentario`, `generico`, `sem-vinculo`, `sem-iniciativa`, `valor-atipico`, `completo` | todas | até 6 |
 | `nivelMatriz` | `tipo` \| `subtarefa` \| `subgrupo` | `tipo` | um nível por vez |
 | `diarioDe`, `diarioAte` | `AAAA-MM-DD` | 4 semanas terminando no fim do período | os dois ou nenhum; no máximo 62 dias |
-| `anomalos` | `incluir` \| `ocultar` | `incluir` | valor atípico (soma do dia da pessoa acima de 16 h) é marcado, nunca descartado |
+| `anomalos` | `incluir` \| `ocultar` | `incluir` | valor atípico (soma do dia da pessoa acima de 10 h desde 2026-11-04, antes 16 h; versão de critério `067:limite-dia-atipico`) é marcado, nunca descartado |
 
 ## Resposta 200
 

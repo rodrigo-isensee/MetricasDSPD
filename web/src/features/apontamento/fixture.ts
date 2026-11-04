@@ -211,7 +211,7 @@ export function matrizDoNivel(nivel: NivelMatriz): MatrizApontamento {
 const faixaDe = (segundos: number): FaixaDiario =>
   segundos <= 4 * H ? 'ate-4h' : segundos <= 8 * H ? '4h-a-8h' : 'mais-de-8h'
 
-const LIMITE_ATIPICO = 16 * H
+const LIMITE_ATIPICO = 10 * H
 
 /** Quatro semanas de dias úteis (12/10 é feriado); fins de semana ficam sem célula. */
 function diario(): DiarioApontamento {
@@ -364,7 +364,7 @@ export const RESPOSTA_FICTICIA: RespostaApontamento = {
       valores: { pct: 32 },
       rotuloRef: 'Iniciativa Portal do Cliente',
     },
-    { codigo: 'dias-atipicos', valores: { n: 2, limite: 16 }, rotuloRef: null },
+    { codigo: 'dias-atipicos', valores: { n: 2, limite: 10 }, rotuloRef: null },
     {
       codigo: 'utilizacao-mensal-variou',
       valores: { pctAnterior: 14, pct: 19, mesAnterior: '2026-08', mes: '2026-09' },

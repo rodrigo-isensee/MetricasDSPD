@@ -152,7 +152,7 @@ describe('ramos dos componentes complementares', () => {
     })
     renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
     expect(await screen.findByTestId('cobertura-S8')).toHaveTextContent(
-      'Campo preenchido em 30 de 50 chamados',
+      'Com resposta em 30 de 50 incidentes',
     )
   })
 
@@ -181,9 +181,31 @@ describe('ramos dos componentes complementares', () => {
       within(tabela)
         .getAllByRole('columnheader')
         .map((c) => c.textContent),
-    ).toEqual(['Mês', 'Informados', 'Reincidentes', 'Taxa'])
+    ).toEqual(['Mês', 'Com resposta', 'Reincidentes', 'Taxa'])
     expect(within(tabela).getAllByRole('row')[1]).toHaveTextContent('37')
-    expect(el).toHaveTextContent('com o campo de reincidência informado')
+    expect(el).toHaveTextContent('com resposta no campo de reincidência')
+    expect(screen.queryByTestId('s8-falta-campo')).not.toBeInTheDocument()
+  })
+
+  it('S8 insuficiente: explica que falta preencher o campo no Acelerato e não mostra leitura', async () => {
+    const fonte = new FonteAjustada({
+      S8: (r: Qualquer) => {
+        r.total = { status: 'insuficiente', n: 9 }
+        r.cobertura = { n: 9, total: 195 }
+      },
+    })
+    renderizarCartao(<CartaoS8 filtros={FILTROS_SUSTENTACAO} />, { fonte })
+    const el = await screen.findByTestId('metrica-S8')
+    expect(await within(el).findByTestId('amostra-insuficiente-S8')).toBeInTheDocument()
+    expect(within(el).getByTestId('s8-falta-campo')).toHaveTextContent(
+      'Falta preencher no Acelerato o campo "Este problema já ocorreu nos últimos 90 dias?"',
+    )
+    expect(el).not.toHaveTextContent(
+      'dos incidentes com resposta no campo de reincidência são reincidentes',
+    )
+    expect(within(el).getByTestId('cobertura-S8')).toHaveTextContent(
+      'Com resposta em 9 de 195 incidentes',
+    )
   })
 
   it('S12 mostra a cobertura "n de N" quando o campo não está em todos os chamados', async () => {

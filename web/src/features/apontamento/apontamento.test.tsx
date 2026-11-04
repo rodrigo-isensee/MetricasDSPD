@@ -366,7 +366,7 @@ describe('CA-7 e M-6: mapa diário com faixas fixas e possível erro', () => {
     )
     expect(marcadas[0]!.querySelector('svg')).not.toBeNull()
     expect(
-      within(screen.getByTestId('dica-anomalia')).getByText(/Mais de 16 h apontadas/),
+      within(screen.getByTestId('dica-anomalia')).getByText(/Mais de 10 h apontadas/),
     ).toBeInTheDocument()
     const legenda = screen.getByTestId('legenda-diario')
     for (const t of [
@@ -571,7 +571,7 @@ describe('CA-11: achados gerados dos dados', () => {
       achados: [
         { codigo: 'codigo-novo', valores: { x: 1 }, rotuloRef: null },
         { codigo: 'sem-comentario-alto', valores: { n: 3 }, rotuloRef: null },
-        { codigo: 'dias-atipicos', valores: { n: 2, limite: 16 }, rotuloRef: null },
+        { codigo: 'dias-atipicos', valores: { n: 2, limite: 10 }, rotuloRef: null },
       ],
     } as unknown as RespostaApontamento
     await cartao('AP-ACHADOS', URL_ABA, fonteCom(r))

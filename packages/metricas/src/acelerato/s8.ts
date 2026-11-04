@@ -13,8 +13,8 @@ const SEM_CAMPO = taxa(0, 0)
 /**
  * S8: taxa de reabertura = incidentes com o campo `reincidente` (ticket anterior) preenchido ÷
  * incidentes com o campo informado, por mês de abertura do próprio chamado reincidente (mesma lógica da S12; decisão 14,
- * critério versionado T2.6). Sem intervalo de dias e sem critério de sintoma. Dado fictício até a
- * coleta real do campo. Chamado sem informação do campo (`reincidenteAusente`) nunca vira "não
+ * critério versionado T2.6). Sem intervalo de dias e sem critério de sintoma. Na fonte real (pedido 066,
+ * critério `066:S8-com-resposta`) o informado é o campo dos 90 dias com resposta sim ou não. Chamado sem informação do campo (`reincidenteAusente`) nunca vira "não
  * reincidente" em silêncio: `cobertura` expõe "n de N" (n = incidentes com o campo informado).
  * Sem extensão (campo sem fonte): nada é publicado (insuficiente, sem referência), nunca 0%.
  */
