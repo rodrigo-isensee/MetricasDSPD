@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { ErroColeta } from './erros.js';
-import { COLUNAS_DA_LINHA, DOMINIO_90_DIAS, NOME_CAMPO_90_DIAS, STATUS_SLA, type Reincidente90d } from './listas-fechadas.js';
+import {
+  CAMPOS_ETAPA_F3, COLUNAS_DA_LINHA, DOMINIO_90_DIAS, NOME_CAMPO_90_DIAS, NOMES_ETAPA_LISTA, NOMES_ETAPA_PREENCHIDO, STATUS_SLA, type Reincidente90d,
+} from './listas-fechadas.js';
 import { PADRAO_DATA } from './tempo.js';
 
 /**
@@ -31,7 +33,8 @@ export class Contadores {
 }
 
 type Escalar = string | number | boolean | null;
-export type RegistroChamado = Record<string, Escalar | { reincidente_90d: Reincidente90d | null }>;
+export type CamposChamado = Record<string, Escalar>;
+export type RegistroChamado = Record<string, Escalar | CamposChamado>;
 
 /** Sem NUL (o `jsonb` o recusa) e sem substituto isolado (UTF-16 malformado vira U+FFFD). */
 const SUBSTITUTO_ISOLADO = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
@@ -156,6 +159,53 @@ export function reincidente90d(linhas: readonly unknown[], c: Contadores): Reinc
   const codigo = Object.hasOwn(DOMINIO_90_DIAS, valor) ? DOMINIO_90_DIAS[valor] : undefined;
   if (codigo === undefined) { c.somar('campo_90d_fora_dominio'); return null; }
   return codigo;
+}
+
+/** Domínios dos campos de etapa de tratamento `lista`: chave do campo -> valores permitidos (de `ref_dominio`, só valores). */
+export type DominiosEtapa = ReadonlyMap<string, ReadonlySet<string>>;
+
+/** Linha da Q6 (campo de etapa `lista`): nome só da constante, `valor` de até 80 caracteres ou nulo; booleano, chave extra ou nome de outro tratamento falham. */
+const esquemaEtapaLista = z.strictObject({
+  ticket_key: chave, nome: z.enum(NOMES_ETAPA_LISTA as [string, ...string[]]), tipo: texto(40).nullable(), valor: texto(80).nullable(),
+});
+/** Linha da Q7 (campo de etapa `preenchido`): só o booleano; qualquer coluna `valor` falha fechado. */
+const esquemaEtapaPreenchido = z.strictObject({ ticket_key: chave, nome: z.enum(NOMES_ETAPA_PREENCHIDO as [string, ...string[]]), preenchido: sinal });
+
+/** `tipo` só recusa, nunca libera (A2): a fonte dizendo texto para um nome `lista` anula o valor. */
+const tipoTexto = (tipo: string | null): boolean => tipo !== null && tipo.normalize('NFD').toLowerCase().includes('text');
+
+/**
+ * Linhas da Q6 e da Q7 de UM chamado -> campos de etapa do `payload.campos` (F3). `lista`: o valor só segue se estiver no domínio do
+ * campo (domínio ausente ou vazio = nulo com contagem `fora_dominio_<chave>`) e se o `tipo` não for texto (`tipo_texto_<chave>`);
+ * `preenchido`: só o booleano (qualquer linha verdadeira vale). Sem linha: `lista` nula, `preenchido` falso. Falha fechado sem o valor.
+ */
+export function camposEtapa(listaLinhas: readonly unknown[], preenchidoLinhas: readonly unknown[], dominios: DominiosEtapa, c: Contadores): CamposChamado {
+  const chaveDe = new Map(CAMPOS_ETAPA_F3.map((f) => [f.nome as string, f.chave as string]));
+  const valores = new Map<string, string | null>();
+  const texto_ = new Set<string>();
+  for (const linha of listaLinhas) {
+    const r = esquemaEtapaLista.safeParse(linha);
+    if (!r.success) return falhar(r.error, 'campo_etapa');
+    const k = chaveDe.get(r.data.nome)!;
+    if (tipoTexto(r.data.tipo)) texto_.add(k); else valores.set(k, r.data.valor);
+  }
+  const marcados = new Set<string>();
+  for (const linha of preenchidoLinhas) {
+    const r = esquemaEtapaPreenchido.safeParse(linha);
+    if (!r.success) return falhar(r.error, 'campo_etapa');
+    if (r.data.preenchido) marcados.add(chaveDe.get(r.data.nome)!);
+  }
+  const saida: CamposChamado = {};
+  for (const f of CAMPOS_ETAPA_F3) {
+    if (f.tratamento === 'preenchido') { saida[f.chave] = marcados.has(f.chave); continue; }
+    if (texto_.has(f.chave)) { c.somar(`tipo_texto_${f.chave}`); saida[f.chave] = null; continue; }
+    const v = valores.get(f.chave);
+    if (v === undefined || v === null || v === '') { saida[f.chave] = null; continue; }
+    const dominio = dominios.get(f.chave);
+    if (dominio?.has(v) === true) saida[f.chave] = v;
+    else { c.somar(`fora_dominio_${f.chave}`); saida[f.chave] = null; }
+  }
+  return saida;
 }
 
 /** Linha da consulta de saída do recorte (Q5): só a chave, as 3 chaves do recorte, `lixeira` e a data. */

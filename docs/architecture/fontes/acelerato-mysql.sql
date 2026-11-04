@@ -44,3 +44,17 @@ WHERE tipo_ticket_key IN (<tipos>) AND equipe_key IN (<equipes>) AND organizacao
 SELECT ticket_key, tipo_ticket_key, organizacao_key, equipe_key, lixeira, data_atualizacao
 FROM ACELERATO_CHAMADOS
 WHERE ticket_key IN (<ids>)
+
+-- Q6 campos de etapa de tratamento lista, por nome exato (F3; a lista de nomes é constante do código)
+SELECT c.ticket_key, f.nome, f.tipo, f.valor
+FROM ACELERATO_CHAMADOS c,
+     JSON_TABLE(c.campos_personalizados_etapa, '$[*]' COLUMNS (
+       nome VARCHAR(255) PATH '$.nome', tipo VARCHAR(40) PATH '$.tipo', valor VARCHAR(80) PATH '$.valor')) f
+WHERE c.ticket_key IN (<chaves>) AND f.nome IN (<nomes>)
+
+-- Q7 campos de etapa de tratamento preenchido (F3): só o booleano sai do MySQL, nunca o valor
+SELECT c.ticket_key, f.nome, (f.valor IS NOT NULL AND CHAR_LENGTH(TRIM(f.valor)) > 0) AS preenchido
+FROM ACELERATO_CHAMADOS c,
+     JSON_TABLE(c.campos_personalizados_etapa, '$[*]' COLUMNS (
+       nome VARCHAR(255) PATH '$.nome', valor VARCHAR(4000) PATH '$.valor')) f
+WHERE c.ticket_key IN (<chaves>) AND f.nome IN (<nomes>)
