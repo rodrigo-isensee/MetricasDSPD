@@ -2,12 +2,12 @@
  * API de teste do E2E do pedido 065 (sem banco): serve o contrato /api/v1 com o núcleo do mock (biblioteca única) e aplica
  * as MESMAS regras de publicação do servidor na base real: métrica fora do mapa real responde `sem-dado-real` e a parte de
  * bloqueio do O1 e do O2 passa por `semParteDeBloqueio` (código do servidor, importado sem cópia).
- * Uso: PORT=3199 pnpm exec tsx e2e/stubs/api-065.ts (tsx do server). Só desenvolvimento.
+ * Uso: PORT=3199 pnpm exec tsx tests/pg/api-stub-065.ts. Só desenvolvimento.
  */
 import http from 'node:http'
-import { corpoSemDadoReal, origemDaMetrica, type MetricaId } from '../../packages/contratos/src/index.ts'
-import { NucleoMock, paginarO2 } from '../../web/src/data/mock/nucleoMock.ts'
-import { semParteDeBloqueio } from '../../server/src/modulos/metricas/parte-sem-dado.ts'
+import { corpoSemDadoReal, origemDaMetrica, type MetricaId } from '../../../packages/contratos/src/index.ts'
+import { NucleoMock, paginarO2 } from '../../../web/src/data/mock/nucleoMock.ts'
+import { semParteDeBloqueio } from '../../src/modulos/metricas/parte-sem-dado.ts'
 
 const nucleo = new NucleoMock({})
 const SUST = /^(S\d+|EI_SUST|T_SUST)/

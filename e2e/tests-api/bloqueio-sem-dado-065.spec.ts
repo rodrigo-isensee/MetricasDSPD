@@ -1,7 +1,7 @@
 import { test, expect, rodarAxe } from '../fixtures/base';
 import { ROTAS } from '../fixtures/constantes';
 
-// QA 065 (K-205), plano em docs/qa/065-bloqueados.md. Roda contra a SPA em VITE_FONTE=api e a API de teste `e2e/stubs/api-065.ts`
+// QA 065 (K-205), plano em docs/qa/065-bloqueados.md. Roda contra a SPA em VITE_FONTE=api e a API de teste `server/tests/pg/api-stub-065.ts`
 // (E2E_API_URL=http://127.0.0.1:3199), que aplica as regras de publicação do servidor na base real: BLOQUEADOS e O5 fora do
 // mapa real e a parte de bloqueio do O1 e do O2 anulada com a nota. Sem banco.
 const MOTIVO = 'a coleta ainda não grava os bloqueios do quadro';
