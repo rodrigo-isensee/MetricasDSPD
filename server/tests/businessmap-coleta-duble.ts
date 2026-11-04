@@ -125,6 +125,8 @@ export interface OpcoesBanco {
   coletaId?: string;
   /** HMAC (hex) da lista de supressão `cfg_pessoa_eliminada` (059). */
   suprimidos?: string[];
+  /** Linhas vigentes de `dspd_bm.ref_dominio` (campo_customizado e colunas de lista) que o coletor lê (069 L2-a). */
+  refDominio?: { campo: string; codigo: string; rotulo: string }[];
 }
 
 export interface EstadoBanco {
@@ -193,6 +195,7 @@ export function bancoFalso(op: OpcoesBanco = {}) {
       return [];
     }
     if (t.includes('FROM dspd_bm.dim_responsavel WHERE')) return (op.frescos ?? []).map((responsavel_id) => ({ responsavel_id }));
+    if (t.includes('FROM dspd_bm.ref_dominio')) return op.refDominio ?? [];
     if (t.startsWith('INSERT INTO dspd_bm.dim_responsavel')) {
       estado.usuarios.push({ ids: v[0] as string[], nomes: v[1] as string[], agora: v[2] });
       return [];

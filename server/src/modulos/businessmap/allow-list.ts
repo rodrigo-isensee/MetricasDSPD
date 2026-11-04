@@ -57,6 +57,15 @@ function reduzirVinculos(v: unknown): { card_id: unknown; link_type: unknown }[]
   return v.filter(ehObjeto).map((l) => ({ card_id: ehEscalar(l.card_id) ? l.card_id : null, link_type: ehEscalar(l.link_type) ? l.link_type : null }));
 }
 
+/** Fields do quadro que nunca entram no mapa, nem pelo arquivo nem pelo `ref_dominio`: 36 (ID Acelerato, H-16) e 42 (Responsável CR, pessoa). */
+export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
+
+/** Colunas de lista de `dim_card` que um campo customizado pode alimentar (enum fechado, pedido 069 L2-a; `causa_raiz` só quando houver migração). */
+export const COLUNAS_LISTA = [
+  'classe_servico', 'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
+  'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'severidade',
+] as const;
+
 /**
  * 4d: domínios fechados de campos customizados: `field_id` -> (valor recebido -> código de `ref_dominio`).
  * Sem entrada para o `field_id`, o campo não entra. Valor fora do domínio vira `desconhecido`, nunca o texto recebido.
