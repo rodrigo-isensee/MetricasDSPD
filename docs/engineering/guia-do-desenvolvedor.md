@@ -9,7 +9,7 @@ nvm install 24 && nvm use 24          # engines: node >= 24
 corepack enable                        # uma vez: habilita o pnpm fixado em packageManager (pnpm 10)
 pnpm install                            # na raiz: instala todos os workspaces
 git config core.hooksPath .githooks    # ativa o pre-push que bloqueia a main
-pnpm run dev                            # SPA com dados fictícios (Vite)
+pnpm run dev                            # SPA pela API local (VITE_FONTE=api, padrão); fictício só com VITE_FONTE=mock
 ```
 
 Chromium do Playwright (E2E, perf, Lighthouse):

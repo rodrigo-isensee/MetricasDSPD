@@ -12,6 +12,7 @@ import {
   lerModoMock,
   type ModoMock,
 } from './simulacao'
+import { SemDadoRealErro } from './http/SemDadoRealErro'
 import { ehVazio } from './vazio'
 
 /** Ids que já falharam em `erro-uma-vez`, por cliente de cache: vários cartões da mesma métrica (cartão e faixa) compartilham. */
@@ -22,10 +23,10 @@ function jaFalhouDo(c: QueryClient): Set<string> {
   return s
 }
 
-export type EstadoMetrica = 'carregando' | 'erro' | 'vazio' | 'ok'
+export type EstadoMetrica = 'carregando' | 'erro' | 'vazio' | 'ok' | 'sem-dado-real'
 
 export interface MetricaQuery<R> {
-  /** Estado da tela para o cartão: carregando, erro, vazio (0 itens) ou ok. "Amostra insuficiente" é por estatística, dentro de `dados`. */
+  /** Estado da tela para o cartão: carregando, erro, vazio (0 itens), sem dado real (a API não tem fonte real; `erro` traz o motivo) ou ok. "Amostra insuficiente" é por estatística, dentro de `dados`. */
   estado: EstadoMetrica
   dados: R | undefined
   erro: Error | null
@@ -59,7 +60,7 @@ export function useMetrica<K extends MetricaId>(
     enabled: habilitada,
   })
   let estado: EstadoMetrica = 'ok'
-  if (q.isError) estado = 'erro'
+  if (q.isError) estado = q.error instanceof SemDadoRealErro ? 'sem-dado-real' : 'erro'
   else if (q.data === undefined) estado = 'carregando'
   else if (ehVazio(id, q.data)) estado = 'vazio'
   return {
@@ -136,10 +137,9 @@ export function useMetricasEmCalibracao(dominio: Dominio): ReadonlySet<MetricaId
   return useMemo(() => new Set<MetricaId>(data?.metricasEmCalibracao ?? []), [data])
 }
 
-/** O modo simulado da página atual (spec 6.6), ou null. */
+/** O modo simulado da página atual (spec 6.6), ou null. Só vale com a fonte mock: contra a API, `?mock=` é ignorado. */
 export function useModoMock(): ModoMock | null {
-  const [params] = useSearchParams()
-  return lerModoMock(params.get('mock'))
+  return useModoEfetivo()
 }
 
 /** `mock=erro`: a página inteira falha ("Não foi possível abrir este painel"). */

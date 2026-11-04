@@ -132,6 +132,14 @@ export async function gerarPdf(c: ConteudoExportacao): Promise<Blob> {
     paragrafo(`${b.codigo} · ${b.titulo}`, { tam: 13, negrito: true })
     paragrafo(`Fonte: ${b.fonte}`, { cor: CINZA })
     paragrafo(`${b.contexto.atualizadoEm} · Frescor: ${b.contexto.frescor}`, { cor: CINZA })
+    if (b.semDadoReal !== undefined) {
+      paragrafo('Sem dado real', { negrito: true, cor: AMBAR })
+      paragrafo(`Motivo: ${b.semDadoReal}`)
+      espaco(2)
+      paragrafo(`Nota metodológica (resumo): ${b.nota}`, { tam: 8, cor: CINZA })
+      espaco(7)
+      return
+    }
     paragrafo(
       `Em calibração: ${b.contexto.emCalibracao ? 'sim' : 'não'} · Dados fictícios: ${b.contexto.ficticio ? 'sim' : 'não'}`,
       { cor: b.contexto.emCalibracao || b.contexto.ficticio ? AMBAR : CINZA },

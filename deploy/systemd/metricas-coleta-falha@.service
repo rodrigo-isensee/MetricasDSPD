@@ -1,0 +1,8 @@
+[Unit]
+Description=Metricas DSPD: aviso por e-mail da falha de %i
+
+[Service]
+Type=oneshot
+# O endereco vem de AVISO_EMAIL no arquivo do host (nunca no repositorio).
+EnvironmentFile=/etc/metricas-dspd/host.env
+ExecStart=/opt/metricas-dspd/deploy/systemd/aviso-falha.sh %i

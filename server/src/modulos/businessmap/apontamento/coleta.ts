@@ -4,7 +4,7 @@ import { esquemasDoAmbiente, type Esquemas } from '../../../plataforma/db/esquem
 import { emTransacao, type Consultavel, type PoolLike } from '../../../plataforma/db/pool.js';
 import { ErroBusinessMap, type ClienteHttp } from '../../../plataforma/http.js';
 import { fecharColeta, type StatusFinal } from '../../operacao/index.js';
-import { ErroColetaBm, SOBREPOSICAO_S } from '../coleta.js';
+import { ErroColetaBm, exigirEsquemaSemSeedNoPool, SOBREPOSICAO_S } from '../coleta.js';
 import { resolverResponsaveis } from '../usuarios.js';
 import {
   ativosDaJanela, atualizarHierarquia, escopoDoWorklog, excluidosEntre, gravarStgApontamento, pessoasResolvidas, projetarFatoApontamento,
@@ -244,6 +244,7 @@ const dividir = <T>(lista: readonly T[], tamanho: number): T[][] => {
 export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontamento): Promise<ResultadoApontamento> {
   if (Buffer.byteLength(d.sal) < SAL_MINIMO_BYTES) throw new ErroColetaBm('configuracao', `PESSOA_ELIMINADA_SAL ausente ou com menos de ${SAL_MINIMO_BYTES} bytes`);
   const S = d.S ?? esquemasDoAmbiente();
+  await exigirEsquemaSemSeedNoPool(d.pool, S);
   const inicio = d.agora();
   const hoje = diaCivil(inicio);
   await fecharInterrompidas(d.pool, S, inicio);

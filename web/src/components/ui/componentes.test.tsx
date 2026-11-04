@@ -405,6 +405,23 @@ describe('FaixaAtencao', () => {
     expect(r1).toHaveBeenCalled()
   })
 
+  it('caso misto (parte sem dado real): estadoFaixa dá parcial e a faixa vazia nunca diz "Nada pede atenção"', () => {
+    expect(estadoFaixa([{ estado: 'ok' }, { estado: 'sem-dado-real' }]).estado).toBe('parcial')
+    expect(estadoFaixa([{ estado: 'sem-dado-real' }, { estado: 'sem-dado-real' }]).estado).toBe(
+      'sem-dado-real',
+    )
+    wrap(<FaixaAtencao titulo="Atenção" vazio="Nada pede atenção" itens={[]} estado="parcial" />)
+    expect(screen.queryByText(/Nada pede atenção/)).toBeNull()
+    expect(screen.getByTestId('faixa-atencao-sem-dado-real-parcial')).toHaveTextContent(
+      'Parte das métricas está sem dado real',
+    )
+  })
+
+  it('caso misto com alertas: os alertas das demais métricas continuam aparecendo', () => {
+    wrap(<FaixaAtencao titulo="Atenção" itens={itens} estado="parcial" />)
+    expect(screen.getByRole('link', { name: /Item A/ })).toBeInTheDocument()
+  })
+
   it('lista os alertas com link interno ou de rota e o rótulo padrão; "Ver todos" expande e recolhe', async () => {
     wrap(<FaixaAtencao titulo="Atenção" vazio="Nada" itens={itens} maximo={2} />)
     expect(screen.getByRole('link', { name: /Item A.*Ver O1/ })).toHaveAttribute('href', '#a')

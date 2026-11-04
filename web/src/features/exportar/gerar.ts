@@ -10,7 +10,7 @@ import {
   type OpcoesFiltro,
   type ResultadoVisaoGeral,
 } from '@metricas-dspd/contratos'
-import type { FonteMetricas } from '@/data'
+import { SemDadoRealErro, type FonteMetricas } from '@/data'
 import type { Memoria } from '@/features/filtros/memoria'
 import { origemDoCartao } from '@/features/coleta/OrigemDosCartoes'
 import { carregarPdf } from './carregarPdf'
@@ -18,9 +18,12 @@ import type { ArquivoGerado, BaseExportacao } from './DialogoExportar'
 import {
   blocosVisaoGeral,
   construirBloco,
+  construirBlocoSemDadoReal,
   contextoDosDados,
   montarConteudo,
+  NOTA_VISAO_GERAL,
   nomeArquivo,
+  resumoDaNota,
   type BlocoExportacao,
 } from './modelo'
 import { notaDaMetrica } from './notas'
@@ -78,21 +81,40 @@ export async function gerarArquivo(p: ParametrosGeracao): Promise<ArquivoGerado>
   const ficticioDaVisaoGeral = mock || origemDaMetrica('VISAO_GERAL') === 'mock'
   const dominioDaFonte = (f: 'BusinessMap' | 'Acelerato'): Dominio =>
     f === 'Acelerato' ? 'acelerato' : 'businessmap'
-  let blocos: BlocoExportacao[]
+  let blocos: BlocoExportacao[] = []
   if (p.base === 'visao-geral') {
-    const dto = (await obter('VISAO_GERAL', {})) as ResultadoVisaoGeral
-    blocos = blocosVisaoGeral(
-      dto,
-      await qc.query({
-        queryKey: ['criterios'],
-        queryFn: () => fonte.criterios(),
-        staleTime: Infinity,
-      }),
-      (f, metricas) =>
-        // A Visão geral é um resultado só, de uma origem só: o fictício vem da origem de VISAO_GERAL (base do seed no
-        // modo de duas bases), não da origem das métricas que ela resume.
-        contextoDosDados(estados[dominioDaFonte(f)], metricas, ficticioDaVisaoGeral),
-    )
+    let dto: ResultadoVisaoGeral | null = null
+    try {
+      dto = (await obter('VISAO_GERAL', {})) as ResultadoVisaoGeral
+    } catch (e) {
+      if (!(e instanceof SemDadoRealErro)) throw e
+      // Sem dado real: duas partes, BusinessMap e Acelerato, cada uma com o motivo, sem total geral (decisão P3 do dono).
+      const motivo = e.motivo
+      blocos = (['BusinessMap', 'Acelerato'] as const).map((f) =>
+        construirBlocoSemDadoReal({
+          id: `VISAO_GERAL_${f}`,
+          codigo: 'Visão geral',
+          titulo: `Visão geral · ${f}`,
+          fonte: f,
+          contexto: contextoDosDados(estados[dominioDaFonte(f)], [], false),
+          motivo,
+          nota: NOTA_VISAO_GERAL,
+        }),
+      )
+    }
+    if (dto)
+      blocos = blocosVisaoGeral(
+        dto,
+        await qc.query({
+          queryKey: ['criterios'],
+          queryFn: () => fonte.criterios(),
+          staleTime: Infinity,
+        }),
+        (f, metricas) =>
+          // A Visão geral é um resultado só, de uma origem só: o fictício vem da origem de VISAO_GERAL (base do seed no
+          // modo de duas bases), não da origem das métricas que ela resume.
+          contextoDosDados(estados[dominioDaFonte(f)], metricas, ficticioDaVisaoGeral),
+      )
   } else {
     const opcoes: Record<Dominio, OpcoesFiltro | undefined> = {
       businessmap: await qc.query({
@@ -119,10 +141,34 @@ export async function gerarArquivo(p: ParametrosGeracao): Promise<ArquivoGerado>
       const chave = `${item.metrica}|${JSON.stringify(filtros)}`
       if (vistos.has(chave)) continue
       vistos.add(chave)
+      const contexto = contextoDosDados(
+        estados[dominioDe(item.metrica)],
+        [item.metrica],
+        mock || origemDoCartao(item.codigo, 'api').ficticio,
+      )
+      let dto: unknown
+      try {
+        dto = await obter(item.metrica, filtros)
+      } catch (e) {
+        if (!(e instanceof SemDadoRealErro)) throw e
+        // Sem dado real: o bloco sai com o motivo da API, sem número (pedido 060, P4).
+        blocos.push(
+          construirBlocoSemDadoReal({
+            id: item.metrica,
+            codigo: item.codigo,
+            titulo: item.rotulo,
+            fonte: item.fonte,
+            contexto,
+            motivo: e.motivo,
+            nota: resumoDaNota(notaDaMetrica(item.metrica)),
+          }),
+        )
+        continue
+      }
       blocos.push(
         construirBloco({
           id: item.metrica,
-          dto: await obter(item.metrica, filtros),
+          dto,
           filtros,
           opcoes: opcoes[dominioDe(item.metrica)],
           nota: notaDaMetrica(item.metrica),
