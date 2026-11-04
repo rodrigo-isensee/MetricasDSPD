@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 063-worklog-cards-acima-do-teto
 branch: feature/063-aviso-incompleto
-commit: 46933d4ed5baa08d1c5010c81742f4babfbdad74
+commit: 27bae585b35733537e68c535746ddda3288e36da
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-04
@@ -43,3 +43,11 @@ Volta 1: `forge-check delta --parecer docs/reviews/063-aviso-incompleto.md` list
 - Correção do A1: `consultaSuja` volta a falso antes de cada `lerLote` (`coleta.ts:343`) e vira verdadeiro com qualquer recusa de id inválido em qualquer página. Quando `lerLote` divide o lote por `limite-bytes`, as metades herdam a marca: fica mais conservador (card incompleto a mais), nunca completo indevido. Aceito. O teste novo põe o id inválido na página 1 com a última limpa e confere zero exclusões e cobertura sem `completo`.
 - Menor ou igual do A2: concordo com a DECISÃO TÉCNICA do Jarvis. Início igual ou anterior ao padrão de 12 meses lê a janela inteira, e a retomada da carga em outro dia recalcula o padrão a partir de `hoje`; com igualdade, a retomada perderia a janela cheia sem motivo. A comparação de texto vale porque `desde` é `AAAA-MM-DD` (regex em `comando.ts` e em `ParametrosCarga`). O teste cobre o início recente e o padrão.
 - Ferramentas: não rodei vitest, test:pg nem pronto nesta volta (o dono roda test:pg e pronto na ponta `46933d4`); o react-frontend relatou o vitest do web rc=0. Médio 2 do UX (375 px) fica com o QA. Segurança e QA citam a ponta `46933d4`.
+
+## Revalidação na ponta `27bae58` (E2.12)
+
+Delta lido: `675ed96..27bae58`, o E2E do QA (`a4c9bba`) e o merge da develop. Sem achado novo; o veredito segue aprovado.
+
+- E2E `e2e/tests/apontamento-incompleto-063.spec.ts`: só mock da rota `GET /api/apontamento` com a fixture; nada toca BusinessMap, banco nem `.env`. Cobre CA-4 (foco simples não abre, Enter e Espaço abrem, Esc fecha e devolve o foco ao selo), CA-9 (375 px sem rolagem horizontal, botão com 44 px), axe nos dois tamanhos e CA-6 (sem o sinal não há faixa, selo nem nota, e nada fica no navegador). Os testes de ausência usam testids que existem na aba. Fixture sem pessoa nem horas.
+- Merge `27bae58`: sem conflito (pais `a4c9bba` e `4e755ed`). Traz o PR 208 (060 web) e o PR 203; o código deles foi revisado nos pedidos de origem e não foi relido. Os arquivos do lote (coleta, migração 0034, aviso) não aparecem no diff do merge.
+- Ferramentas: não rodei vitest nem pronto; a E2.11 relatou web 1420 e server 1614 verdes.
