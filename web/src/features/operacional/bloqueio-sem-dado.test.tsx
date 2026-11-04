@@ -27,21 +27,16 @@ function semBloqueio(id: MetricaId, r: Qualquer): Qualquer {
     r.itens = r.itens.map((i: Qualquer) => ({ ...i, bloqueioMotivo: null }))
     r.notas = [NOTA]
   }
-  if (id === 'O5') {
-    for (const t of r.tipos)
-      if (t.estatistica.status === 'ok') t.estatistica.valor.horasBloqueio = null
-    r.notas = [NOTA]
-  }
   return r
 }
 
-/** Fonte da API real: BLOQUEADOS fora do mapa responde `sem-dado-real`; O1, O2 e O5 vêm com a parte de bloqueio nula. */
+/** Fonte da API real: BLOQUEADOS e O5 fora do mapa respondem `sem-dado-real`; O1 e O2 vêm com a parte de bloqueio nula. */
 const fonteApi = () =>
   Object.create(fonteDeTeste, {
     tipo: { value: 'api' },
     obter: {
       value: async (id: MetricaId, ...resto: unknown[]) => {
-        if (id === 'BLOQUEADOS') {
+        if (id === 'BLOQUEADOS' || id === 'O5') {
           const c = corpoSemDadoReal(id)
           throw new SemDadoRealErro(c.metrica, c.motivo)
         }
@@ -91,17 +86,16 @@ describe('parte de bloqueio sem dado real (pedido 065)', () => {
     expect(within(c).getByTestId('notas-cartao-O2')).toHaveTextContent('Bloqueios: sem dado real')
   })
 
-  it('W4: O5 mostra a nota, mantém as barras de eficiência e não diz "fila e bloqueio"', async () => {
+  it('W4: O5 inteiro mostra Sem dado real com o motivo, sem barras nem percentual', async () => {
+    expect(origemDaMetrica('O5')).toBe('mock')
     renderizarCartao(<CartaoO5 filtros={FILTROS_FLUXO} />, { fonte: fonteApi() })
     const c = await screen.findByTestId('metrica-O5')
-    await waitFor(() => expect(c).toHaveAttribute('data-estado', 'ok'))
-    expect(await within(c).findByTestId('notas-cartao-O5')).toHaveTextContent(
-      'Bloqueios: sem dado real',
-    )
-    expect(within(c).getByTestId('leitura-O5').textContent).not.toMatch(/fila e bloqueio/)
-    expect(within(c).queryByText(/Fila e bloqueio contam/)).not.toBeInTheDocument()
-    expect(within(c).getByText(/bloqueio: sem dado real/)).toBeInTheDocument()
-    expect(within(c).getAllByText(/Mediana por item/).length).toBeGreaterThan(0)
+    const estado = await within(c).findByTestId('estado-sem-dado-real-O5')
+    expect(estado).toHaveTextContent('Sem dado real')
+    expect(estado).toHaveTextContent('a coleta ainda não grava os bloqueios do quadro')
+    expect(estado).toHaveTextContent('inflada')
+    expect(within(c).queryByText(/Mediana por item/)).not.toBeInTheDocument()
+    expect(c.textContent).not.toMatch(/\d+\s*%/)
   })
 
   it('W5: a faixa "Pede atenção" fica parcial e nunca afirma que nada pede atenção', async () => {
