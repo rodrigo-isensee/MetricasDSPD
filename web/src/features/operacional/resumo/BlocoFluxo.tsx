@@ -42,7 +42,11 @@ function ConteudoFluxo() {
   ].map((i) => ({ ...i, para: destinoDe(i.para) }))
   const { estado, recarregar } = estadoFaixa([qO2, qBL, qO1, qO3, qO10, qO12])
   const numeros: {
-    q: { estado: Parameters<typeof NumeroChave>[0]['estado']; recarregar: () => void }
+    q: {
+      estado: Parameters<typeof NumeroChave>[0]['estado']
+      erro?: Error | null
+      recarregar: () => void
+    }
     modelo: NumeroModelo | null
     id: NumeroModelo['id']
     codigo: string
@@ -103,6 +107,7 @@ function ConteudoFluxo() {
             rotulo={n.rotulo}
             visao={n.visao}
             estado={n.q.estado}
+            erro={n.q.erro}
             modelo={n.modelo}
             onTentarDeNovo={n.q.recarregar}
           />

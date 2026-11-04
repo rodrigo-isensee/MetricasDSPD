@@ -6,6 +6,7 @@ import {
   ErroPagina,
   FaixaAtencao,
   SeloCalibracao,
+  EstadoSemDadoReal,
   SeloOrigem,
   StatusMeta,
   useCalibracaoPronta,
@@ -17,7 +18,13 @@ import type { ResultadoVisaoGeral } from '@metricas-dspd/contratos'
 import { FaixaCalibracaoFonte } from '@/features/coleta/CalibracaoDasFontes'
 import { FrescorFonte } from '@/features/coleta/FrescorFonte'
 import { BotaoExportar } from '@/features/exportar'
-import { useDataReferencia, useErroDePainelSimulado, useMetrica, useModoMock } from '@/data'
+import {
+  motivoSemDadoReal,
+  useDataReferencia,
+  useErroDePainelSimulado,
+  useMetrica,
+  useModoMock,
+} from '@/data'
 import { fmtData, fmtInteiro, fmtNumero, fmtPct } from '@/lib/formatar'
 import {
   NOME_DO_NIVEL,
@@ -264,6 +271,11 @@ export default function VisaoGeralPage() {
         // Em tela larga reserva uma tela inteira: o conteúdo real é mais alto e o rodapé, ao descer, não gera CLS.
         <div className="lg:min-h-screen">
           <EsqueletoCartao codigo="VISAO_GERAL" titulo="Visão geral" altura={320} />
+        </div>
+      )}
+      {q.estado === 'sem-dado-real' && (
+        <div data-testid="sem-dado-real-VISAO_GERAL">
+          <EstadoSemDadoReal codigo="VISAO_GERAL" motivo={motivoSemDadoReal(q.erro)} />
         </div>
       )}
       {q.estado === 'erro' && (

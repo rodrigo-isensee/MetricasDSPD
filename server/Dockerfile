@@ -14,6 +14,8 @@ WORKDIR /repo
 COPY --from=deps --chown=node:node /repo/node_modules ./node_modules
 COPY --from=deps --chown=node:node /repo/packages ./packages
 COPY --from=deps --chown=node:node /repo/server ./server
+# Listas e dicionários versionados que a coleta lê em tempo de execução (../../docs/architecture/fontes a partir de server/src).
+COPY --from=deps --chown=node:node /repo/docs/architecture/fontes ./docs/architecture/fontes
 COPY --chown=node:node package.json pnpm-workspace.yaml ./
 USER node
 WORKDIR /repo/server

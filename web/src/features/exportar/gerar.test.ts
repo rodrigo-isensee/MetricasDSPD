@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query'
 import { describe, expect, it } from 'vitest'
-import { origemDaMetrica } from '@metricas-dspd/contratos'
-import { MockFonteMetricas } from '@/data'
+import { corpoSemDadoReal, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos'
+import { MockFonteMetricas, SemDadoRealErro } from '@/data'
 import { gerarArquivo } from './gerar'
 import { itensDoNivel } from './selecao'
 
@@ -63,6 +63,16 @@ describe('gerarArquivo: contexto da fonte por cartão (P-4)', () => {
   const fonteApi = (estadoOk = true) =>
     Object.create(fonte, {
       tipo: { value: 'api' },
+      // Como a API (pedido 060, P3): métrica fora do mapa real responde "sem dado real", sem resultado.
+      obter: {
+        value: (id: MetricaId, ...resto: unknown[]) => {
+          if (origemDaMetrica(id) === 'mock') {
+            const c = corpoSemDadoReal(id)
+            return Promise.reject(new SemDadoRealErro(c.metrica, c.motivo))
+          }
+          return (fonte.obter as (...a: unknown[]) => Promise<unknown>)(id, ...resto)
+        },
+      },
       estadoColeta: {
         value: (dominio: 'businessmap' | 'acelerato') =>
           estadoOk
@@ -84,7 +94,7 @@ describe('gerarArquivo: contexto da fonte por cartão (P-4)', () => {
   const itens = (...ids: string[]) =>
     itensDoNivel('operacional', []).filter((i) => ids.includes(i.metrica))
 
-  it('O3 (real, em calibração) e O12 (fictício) saem com a situação de cada um', async () => {
+  it('O3 (real, em calibração) sai com a situação e O12 sai como "sem dado real" com o motivo, sem número', async () => {
     const r = await gerarArquivo({
       ...base(),
       fonte: fonteApi(),
@@ -93,10 +103,34 @@ describe('gerarArquivo: contexto da fonte por cartão (P-4)', () => {
     })
     const t = await r.blob.text()
     expect(t.match(/Em calibra\S+o: sim \S Dados fict\S+cios: n\S+o/g)).toHaveLength(1)
-    expect(t.match(/Em calibra\S+o: n\S+o \S Dados fict\S+cios: sim/g)).toHaveLength(1)
+    expect(t).not.toMatch(/Dados fict\S+cios: sim/)
+    expect(t.match(/Sem dado real/g)).toHaveLength(1)
+    expect(t).toContain('Motivo: aguardando campo no quadro')
     expect(t).toContain('Frescor: Atual')
     expect(t).toMatch(/Atualizado em \d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/)
     expect(r.nome).not.toContain('_ficticio')
+  })
+
+  it('Visão geral sem dado real: duas partes, BusinessMap e Acelerato, cada uma com o motivo, sem total geral', async () => {
+    const r = await gerarArquivo({ ...base(), fonte: fonteApi(), base: 'visao-geral', itens: [] })
+    const t = await r.blob.text()
+    expect(t.match(/Sem dado real/g)).toHaveLength(2)
+    expect(t).toContain('(Fonte: BusinessMap)')
+    expect(t).toContain('(Fonte: Acelerato)')
+    expect(t).toContain('Motivo: fonte real ainda n')
+    expect(r.nome).not.toContain('_ficticio')
+  })
+
+  it('erro que não é "sem dado real" não vira bloco: a geração falha', async () => {
+    const quebrada = Object.create(fonte, {
+      obter: { value: () => Promise.reject(new Error('rede')) },
+    }) as typeof fonte
+    await expect(
+      gerarArquivo({ ...base(), fonte: quebrada, base: 'visao-geral', itens: [] }),
+    ).rejects.toThrow('rede')
+    await expect(
+      gerarArquivo({ ...base(), fonte: quebrada, base: 'personalizada', itens: itens('O3') }),
+    ).rejects.toThrow('rede')
   })
 
   it('se o estado de coleta falhar, o arquivo sai e diz que a atualização está indisponível', async () => {
@@ -109,15 +143,6 @@ describe('gerarArquivo: contexto da fonte por cartão (P-4)', () => {
     const t = await r.blob.text()
     expect(t).toContain('Atualiza')
     expect(t).toContain('indispon')
-  })
-
-  it('Visão geral com a API real: lê a base do seed (origem de VISAO_GERAL), então todo bloco sai fictício, até a Espera invisível do FL1', async () => {
-    expect(origemDaMetrica('VISAO_GERAL')).toBe('mock')
-    const r = await gerarArquivo({ ...base(), fonte: fonteApi(), base: 'visao-geral', itens: [] })
-    const t = await r.blob.text()
-    expect(r.nome).not.toContain('_ficticio')
-    expect(t).toMatch(/Dados fict\S+cios: sim/)
-    expect(t).not.toMatch(/Dados fict\S+cios: n\S+o/)
   })
 
   it('com a fonte mock todo cartão sai como dados fictícios', async () => {

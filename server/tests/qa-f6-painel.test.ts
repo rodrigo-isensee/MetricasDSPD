@@ -9,12 +9,11 @@ import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { bancoDoMock } from './base-duble.js';
 import { criarDublePg, type Chamada, type Respondedor } from './duble-pg.js';
 
-// QA da F6 (E2.75): obrigações do brief sobre o harness de duas bases. F6 do plano 052 (E2.69): o servidor escolhe a base por métrica (origem do contrato), nunca as duas na mesma; tipo da coluna resolvido
+// QA da F6 (E2.75): obrigações do brief sobre o harness da base real (desde o pedido 060, uma base só). F6 do plano 052 (E2.69): o servidor escolhe a base por métrica (origem do contrato), nunca as duas na mesma; tipo da coluna resolvido
 // na leitura (A4); O1 contra o limite da coluna (H-12); O3 com nota de SLE não definido (H-24); filtro de equipe pela tabela de times.
 const AGORA = new Date('2026-10-10T15:00:00Z');
 const seed = gerarBaseMock({ escala: 0.25 });
 const REAL = montarEsquemas('r_');
-const SEED = montarEsquemas();
 const t = (iso: string): number => Date.parse(iso);
 
 const card = (id: string, tipo: string | null, extra: Partial<LinhaCard> = {}): LinhaCard => ({
@@ -37,7 +36,7 @@ const tr = (id: string, de: string | null, para: string, iso: string): LinhaTran
   ({ card_id: id, quadro_id: '35', coluna_origem_id: de, coluna_destino_id: para, tipo_coluna: null, direcao: 'avanco', ocorrido_em: t(iso) });
 
 type OpcoesReal = { sle?: boolean; cards?: LinhaCard[] };
-/** Banco falso de duas bases: o que é do schema `r_` é a base real mínima; o resto é o seed do mock (schemas sem prefixo). */
+/** Banco falso: o que é do schema `r_` é a base real mínima; qualquer leitura fora dele cairia no seed do mock (schemas sem prefixo), e a API não a faz mais (pedido 060). */
 function banco(o: OpcoesReal = {}): Respondedor {
   const doSeed = bancoDoMock(seed);
   const cards = o.cards ?? [card('A', 'Bug interno'), card('B', 'Trabalho de produto', { granularidade: 'story' })];
@@ -60,7 +59,7 @@ function banco(o: OpcoesReal = {}): Respondedor {
 async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
   const d = criarDublePg(banco(o));
   const app = await buildApp({
-    db: d.pool, S: REAL, SMock: SEED, agora: () => AGORA, nivelLog: extra.linhas ? 'warn' : 'silent',
+    db: d.pool, S: REAL, agora: () => AGORA, nivelLog: extra.linhas ? 'warn' : 'silent',
     ...(extra.linhas ? { destinoLog: { write: (m: string) => { extra.linhas!.push(m); } } } : {}),
   });
   return { app, d };
@@ -69,7 +68,7 @@ async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
 
 const TIMES_ALVO = ['Time A', 'Time B'];
 const colB = (id: string, nome: string, tipo: string, papel: string, ordem: number, limite: number) => col(id, nome, tipo, papel, ordem, limite, 'Time B');
-const REAIS = ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'] as MetricaId[];
+const REAIS = ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1', 'BLOQUEADOS'] as MetricaId[];
 
 /** Banco com dois times reais: serve para provar que nenhum resultado do painel traz o nome de um time (sem comparação, §7.1). */
 function bancoDoisTimes(): Respondedor {
@@ -91,12 +90,12 @@ function varrer(o: unknown, aoNodo: (n: Nodo, caminho: string) => void, caminho 
 }
 
 describe('QA F6 (CA do selo): origem exata por métrica e motivo', () => {
-  it('fictícias do painel operacional são exatamente O8, O12, O14 a O18 (com o motivo da H-13) e O19 a O26; as reais são as 12 da H-13', () => {
+  it('fictícias do painel operacional são exatamente O8, O12, O14 a O18 (com o motivo da H-13) e O19 a O26; as reais são as 12 da H-13 mais BLOQUEADOS e PV1 (pedido 060)', () => {
     const ficticiasFL1 = ['O8', 'O12', 'O14', 'O15', 'O16', 'O17', 'O18'] as MetricaId[];
     const comp = ['O19', 'O20', 'O21', 'O22', 'O23', 'O24', 'O25', 'O26'] as MetricaId[];
     for (const id of ficticiasFL1) { expect(origemDaMetrica(id), id).toBe('mock'); expect(motivoDaOrigemMock(id), id).toBe('aguardando campo no quadro'); }
     for (const id of comp) expect(origemDaMetrica(id), id).toBe('mock');
-    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, 'S2', 'S3', 'S4', 'S8', 'S10'].sort());
+    expect(METRICA_IDS.filter((m) => origemDaMetrica(m) === 'real').sort()).toEqual([...REAIS, 'PV1', 'S2', 'S3', 'S4', 'S8', 'S10'].sort());
     // FL2, FL3 e VISAO_GERAL nunca reais (tático e estratégico ficam fora do recorte); da sustentação, só as 7 do plano 056 (E2.115)
     for (const id of METRICA_IDS.filter((m) => /^(T|E)\d/.test(m) || m === 'VISAO_GERAL')) expect(origemDaMetrica(id), id).toBe('mock');
   });
@@ -129,7 +128,7 @@ describe('QA F6 (abaixo de 20 não publica, P-3): todo cartão real com estatís
 describe('QA F6 (nenhum cartão compara times, §7.1)', () => {
   it('com dois times reais, nenhuma métrica do painel sem filtro traz o nome de um time, nem chave por time', async () => {
     const d = criarDublePg(bancoDoisTimes());
-    const app = await buildApp({ db: d.pool, S: REAL, SMock: SEED, agora: () => AGORA, nivelLog: 'silent' });
+    const app = await buildApp({ db: d.pool, S: REAL, agora: () => AGORA, nivelLog: 'silent' });
     for (const id of REAIS) {
       const texto = JSON.stringify((await app.inject(`/api/v1/metricas/${id}`)).json());
       for (const t of TIMES_ALVO) expect(texto, `${id} cita ${t}`).not.toContain(t);
@@ -139,7 +138,7 @@ describe('QA F6 (nenhum cartão compara times, §7.1)', () => {
 
   it('o filtro de equipe só recorta: o total do O1 de um time não vira ranking nem aparece no resultado do outro', async () => {
     const d = criarDublePg(bancoDoisTimes());
-    const app = await buildApp({ db: d.pool, S: REAL, SMock: SEED, agora: () => AGORA, nivelLog: 'silent' });
+    const app = await buildApp({ db: d.pool, S: REAL, agora: () => AGORA, nivelLog: 'silent' });
     const a = JSON.stringify((await app.inject('/api/v1/metricas/O1?equipe=time-a')).json());
     expect(a).not.toContain('Time B');
     expect(a).not.toContain('Dev B');

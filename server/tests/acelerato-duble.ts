@@ -135,7 +135,7 @@ export type EstadoBanco = {
 };
 
 /** PostgreSQL em memória que entende só as instruções do coletor do Acelerato (a ordem dos parâmetros é a do código). */
-export function criarBancoMemoria(opcoes: { listas?: Linha[]; trava?: boolean; falharEm?: (texto: string) => Error | undefined } = {}) {
+export function criarBancoMemoria(opcoes: { listas?: Linha[]; trava?: boolean; coletasDoSeed?: number; falharEm?: (texto: string) => Error | undefined } = {}) {
   const e: EstadoBanco = { stgChamado: [], stgEtapa: [], ctl: [], contagens: [], falhas: [] };
   let seq = 0;
   let marcador: { c: number; e: number; ctl: number; n: number; f: number } | null = null;
@@ -148,6 +148,8 @@ export function criarBancoMemoria(opcoes: { listas?: Linha[]; trava?: boolean; f
   const responder = (c: Chamada): unknown[] | Error => {
     const t = c.texto;
     const v = c.valores;
+    // Guarda do plano 060 (P1): quantas linhas de `ctl_coleta` do seed o esquema falso tem (padrão 0).
+    if (t.startsWith('SELECT count(*) AS n FROM') && t.includes('ctl_coleta WHERE starts_with(versao_coletor')) return [{ n: String(opcoes.coletasDoSeed ?? 0) }];
     const erro = opcoes.falharEm?.(t);
     if (erro) return erro;
     if (t.startsWith('BEGIN')) { marcador = { c: e.stgChamado.length, e: e.stgEtapa.length, ctl: e.ctl.length, n: e.contagens.length, f: e.falhas.length }; return []; }
@@ -156,6 +158,7 @@ export function criarBancoMemoria(opcoes: { listas?: Linha[]; trava?: boolean; f
       if (marcador) { e.stgChamado.length = marcador.c; e.stgEtapa.length = marcador.e; e.ctl.length = marcador.ctl; e.contagens.length = marcador.n; e.falhas.length = marcador.f; }
       marcador = null; return [];
     }
+    if (t.includes('pg_advisory_xact_lock')) return []; // A1 do review do P1: a guarda toma a trava `dspd:seed` antes de contar
     if (t.includes('pg_try_advisory_lock')) return [{ ok: opcoes.trava !== false }];
     if (t.includes('pg_advisory_unlock')) return [];
     if (t.includes('.ref_dominio')) return opcoes.listas ?? LISTAS_BANCO;

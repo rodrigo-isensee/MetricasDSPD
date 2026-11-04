@@ -73,16 +73,18 @@ flowchart TD
 ## Seed (desenvolvimento)
 ```mermaid
 flowchart TD
-  S["pnpm db:seed"] --> G["gerarBaseMock(semente)"]
+  S["seed (PG_SEED_URL explícita)"] --> G["gerarBaseMock(semente)"]
   G --> M["mapearBM / mapearAC<br/>epoch ms -> timestamptz UTC, ids ASCII,<br/>responsaveis = '{}'"]
-  M --> X{"ctl_coleta 'seed-mock' já existe no schema?"}
+  M --> Q{"schema com coleta real?<br/>(ctl_coleta fora de seed-mock, dim_card ou dim_chamado de coleta real)"}
+  Q -- sim --> F["erro: seed recusado (só tabela e contagem), nada é gravado"]
+  Q -- não --> X{"ctl_coleta 'seed-mock' já existe no schema?"}
   X -- "mesma semente" --> N["ja_semeado: nada é gravado"]
   X -- "outra semente" --> R["erro: use db:reset"]
   X -- não --> T["transação por schema:<br/>1 ctl_coleta + INSERT multi-linha em lotes de 500"]
 ```
 - Grava `dim_card`, `fato_transicao` (`fonte = 'revision'`, `id_origem = seed-N`), `fato_bloqueio`, os `ref_*` do BM (`ref_quadro`, `ref_coluna`, `ref_dominio`, `ref_limite_wip_fluxo`, `ref_limite_frentes`, `ref_sle`, `ref_alocacao_acordada`, `ref_ficha_resultado`), `dim_chamado`, `fato_etapa_chamado` e `ref_alvo_prioridade` (AC), e as versões de critério do mock em `dspd_core` (`ref_versao_criterio` e `ref_versao_criterio_metrica`, `motivo = 'seed-mock'`, `referencia = 'mock:<id>'`; pesquisa inclusive). Arquivados e excluídos entram como estão. Determinístico (sem relógio). O mock não traz nomes: `responsaveis` vazio (a coluna `usuario` não existe mais, K-096).
 - Nunca apaga nem sobrescreve (sem `ON CONFLICT DO UPDATE`, `DELETE`). `coluna_id` = `c<ordem>`; `data_acordada` com a data civil em America/Sao_Paulo.
-- Fora do seed (não inferido): calendário, staging, `*_versao`, `evt_*` e `fato_etapa_chamado.totalizador`. Variáveis: `PG_MIGRADOR_URL`, `MOCK_SEMENTE` (opcional).
+- Fora do seed (não inferido): calendário, staging, `*_versao`, `evt_*` e `fato_etapa_chamado.totalizador`. Variáveis: `PG_SEED_URL` (obrigatória, sem fallback para `PG_MIGRADOR_URL`; o alvo é homologação, CI ou banco de teste, nunca a base real) e `MOCK_SEMENTE` (opcional). A recusa de esquema com coleta real roda dentro da trava `dspd:seed`, antes de escrever (plano 060, P1); a coleta e o projetor do BusinessMap e do Acelerato fazem a conferência simétrica (`seed-mock` no esquema) e recusam com `esquema-com-seed`.
 - Critério de pronto do port: mesmo hash da base mock lida do Postgres que o hash lido do MySQL antes (ou do mock direto, se o MySQL não estiver disponível).
 
 ## Limpeza do seed mock da base real (pedido 052, E2.96)
@@ -104,7 +106,7 @@ O seed de 2026-10-09 ficou no mesmo esquema da carga real do BusinessMap e entra
 1. Backup do banco do dia (como para qualquer `down`).
 2. Simular: `pnpm --filter @metricas-dspd/server run db:limpar-seed`. Conferir as contagens (esperado para o seed de 2026-10-09: 5792 em `dim_card`, 46759 em `fato_transicao`, 6 em `ref_quadro` e 2 coletas em `dspd_bm`). Se aparecer erro `ligada-a-dado-real`, não aplicar: o texto diz qual tabela e quantas linhas; mande para o time.
 3. Aplicar: `pnpm --filter @metricas-dspd/server run db:limpar-seed --aplicar`. Rodar a simulação de novo: tudo zerado (`coletas: 0`).
-4. Regenerar o mock no esquema próprio da F6 (depois do merge da F6): escolha um prefixo diferente do `DSPD_SCHEMA_PREFIXO` (por exemplo `seed_`); rode `migrate` e `seed` com `DSPD_SCHEMA_PREFIXO=seed_` (o `scripts/db.sh` carrega o `.env` e o valor do `.env` prevalece sobre o do terminal; confira que o prefixo efetivo é o do seed antes de rodar, para não semear a base real); depois ponha `DSPD_SCHEMA_PREFIXO_SEED=seed_` no `.env` da API, com `DSPD_SCHEMA_PREFIXO` apontando a base real.
+4. Não regenere o mock (revogado pelo pedido 060, plano `060-sem-mock`, P1): o `db:seed` da raiz deixou de existir, o `seed` só roda com `PG_SEED_URL` explícita (homologação, CI e testes), recusa esquema que tenha coleta real (`ctl_coleta` fora de `seed-mock`, `dim_card` ou `dim_chamado` de coleta real) e a coleta e o projetor do BusinessMap e do Acelerato recusam esquema que tenha coleta `seed-mock` (rode o `db:limpar-seed` antes).
 5. Rodar a projeção e conferir o FL1 só com dado real (WIP e concluídos devem deixar de contar o seed).
 
 Limites: no `dspd_core` o comando só toca as versões de critério do seed dos domínios `businessmap` e `acelerato` (as de `pesquisa` e todas as reais ficam). Saem junto, e o PR avisa o dono: `fato_bloqueio` e essas versões de critério.
@@ -145,13 +147,13 @@ O init (só na primeira criação do volume) cria os databases `metricas` e `met
 | `pnpm db:up` / `db:down` | sobe só o `postgres` (aguarda healthcheck) / derruba, mantendo o volume |
 | `pnpm db:reset` | apaga o volume e sobe de novo (reexecuta o init) |
 | `pnpm db:migrate` | migrações + grants + `ref:sync` |
-| `pnpm db:seed` | seed do mock |
+| (sem `db:seed` na raiz) | o seed do mock só roda por `homolog:subir`, pela CI e pelos testes, com `PG_SEED_URL` explícita (plano 060, P1) |
 | `pnpm stack:up` | `docker compose up -d --build` (postgres, migrate, api, worker, web) |
 | `pnpm dev` | `api` e `worker` com `tsx watch` + Vite, contra o `postgres` do compose |
 | `pnpm test:pg` | testes do projeto `pg` num conjunto de schemas por execução |
 | `pnpm db:limpar-testes` | apaga schemas `t%_dspd_%` de execuções interrompidas |
 
-Primeiro uso: `cp .env.example .env`, ajuste as senhas, `pnpm db:up && pnpm db:migrate && pnpm db:seed`; ou `pnpm stack:up` para tudo em contêiner.
+Primeiro uso: `cp .env.example .env`, ajuste as senhas, `pnpm db:up && pnpm db:migrate`; ou `pnpm stack:up` para tudo em contêiner.
 
 ### Testes contra o Postgres (sem Testcontainers)
 `globalSetup` gera o prefixo `t<6 base36>_`, roda as migrações com o `S` prefixado no database `metricas_test` e aplica `gerarGrants(S)` (papéis compartilhados do cluster). `globalTeardown` faz `DROP SCHEMA ... CASCADE` (`DSPD_TESTE_MANTER=1` preserva). Projeto Vitest `pg` sem paralelismo de arquivos; cada teste cria seus dados. Sem `PG_TEST_URL`, os testes `pg` são pulados localmente; no CI são obrigatórios (job `db` sobe o mesmo compose).
@@ -169,7 +171,7 @@ Módulo único com `SEGMENTO_PESSOA`, `COLUNAS_PESSOA` (as colunas de pessoa per
 
 
 ## Estado do port para Postgres (S-01 a S-05)
-- **Comandos:** `pnpm run db:up` (Compose), `db:migrate [up|down N|redo]`, `db:seed`, `db:limpar-testes`, `pnpm run test:pg` (sobe o `postgres`, roda o projeto Vitest `pg` com um conjunto de schemas por execução, `t<6 base36>_dspd_*` em `metricas_test`, removido pelo `globalTeardown`; `DSPD_TESTE_MANTER=1` preserva). `pnpm run pronto` roda typecheck, lint e cobertura 100% (thresholds ligados) sem banco: os testes `*.pg.test.ts` ficam pulados sem `PG_TESTE_URL`.
+- **Comandos:** `pnpm run db:up` (Compose), `db:migrate [up|down N|redo]`, `db:limpar-testes`, `pnpm run test:pg` (sobe o `postgres`, roda o projeto Vitest `pg` com um conjunto de schemas por execução, `t<6 base36>_dspd_*` em `metricas_test`, removido pelo `globalTeardown`; `DSPD_TESTE_MANTER=1` preserva). `pnpm run pronto` roda typecheck, lint e cobertura 100% (thresholds ligados) sem banco: os testes `*.pg.test.ts` ficam pulados sem `PG_TESTE_URL`.
 - **Variáveis:** `PG_MIGRADOR_URL`, `PG_TESTE_URL`, `DSPD_PWD_*`, `DSPD_SCHEMA_PREFIXO` (vazio fora dos testes); ver `.env.example`.
 - **Grants:** `gerarGrants(S, catalogo)` lê tabelas, views e colunas do catálogo e é reaplicado ao fim de todo `migrate`. `dspd_api` recebe `SELECT` por coluna onde há coluna de `COLUNAS_PESSOA` (`responsaveis`, `usuario`); `fato_transicao` e `rec_transicao_par` entram para a API só porque `vw_transicao_canonica` (`security_invoker`) depende delas.
 - **Staging:** `gravarStgCard` usa `ON CONFLICT ON CONSTRAINT uq_stg_card DO NOTHING RETURNING stg_sk` e relê; até 5 tentativas por item. Cada escritor perde no máximo (escritores simultâneos - 1) vezes, então mais de 5 escritores simultâneos sobre o mesmo item podem esgotar as tentativas (falha do item, reprocessada na coleta seguinte). Exige `READ COMMITTED`.
@@ -188,7 +190,7 @@ Módulo único com `SEGMENTO_PESSOA`, `COLUNAS_PESSOA` (as colunas de pessoa per
 - **Lint (`server/eslint.config.js`):** `SELECT *`, `ON CONFLICT` sem `ON CONSTRAINT` e `DO UPDATE` reprovados em literais SQL de `src/` e `migrations/` (seed isento); módulos só pelo `index.ts` (regex de `no-restricted-imports`), `businessmap` e `acelerato` sem import entre si, mock fora do servidor, `servico.ts`/`repositorio.ts` sem `Date.now`, `new Date()` e `Math.random`. `tests/plataforma2.test.ts` roda o ESLint sobre um exemplo proibido de cada regra.
 - **Outbox:** `publicarEvento(cliente, evento)` na transação do chamador. `processarOutbox({ fonte, agora, consumidores, limite })`: transação curta com `FOR UPDATE SKIP LOCKED` marca `processando` (`reservado_ate` = agora + 5 min, `tentativas + 1`), confirma, chama o consumidor fora da transação; sucesso `processado`; erro volta a `pendente` com backoff 30 s x 2^(n-1) (teto 1 h) e `ultimo_erro` = só o nome da classe do erro; 8 tentativas = `falha`; o poller só reserva tipos com consumidor registrado (`RegistroConsumidores.tipos(fonte)`): evento sem consumidor fica `pendente`, sem consumir tentativas; `processado` com mais de 30 dias é apagado ao fim de cada execução. `RegistroConsumidores.registrar(fonte, tipo, fn)` recusa `bm.*` fora de `businessmap` e `ac.*` fora de `acelerato`. `fecharColeta` fecha `ctl_coleta` e publica `coleta.concluida` na mesma transação; o consumidor de `operacao` registra `warn` para `falha`/`parcial`.
 - **Worker:** ciclo a cada `WORKER_INTERVALO_MS` (15 s), por fonte de `WORKER_FONTES` (fonte desconhecida = falha na partida): tarefas devidas (`agenda.ts`, diária e semanal em UTC-3, última execução em memória; repetir é seguro) sob `pg_try_advisory_lock` da fonte, depois o poller. A lista de tarefas está vazia até o coletor (WS2).
-- **Config por entrada:** `api` lê `PG_API_URL` (papel `dspd_api`), `worker` lê `PG_COLETOR_URL`, `migrar` lê `PG_MIGRADOR_URL`; mais `DSPD_SCHEMA_PREFIXO`, `LOG_LEVEL`, `PORT`, `HOST`. A mensagem de erro cita só nomes de variáveis.
+- **Config por entrada:** `api` lê `PG_API_URL` (papel `dspd_api`), `worker` lê `PG_COLETOR_URL`, `migrar` lê `PG_MIGRADOR_URL`; mais `DSPD_SCHEMA_PREFIXO`, `LOG_LEVEL`, `PORT`, `HOST`. A mensagem de erro cita só nomes de variáveis. **Sem mock por padrão (pedido 060, P2 e P3):** a `api` serve só dado real; `DADOS_FONTE` e `DSPD_SCHEMA_PREFIXO_SEED` saíram e a partida é recusada se existirem no ambiente; `DSPD_MODO_MOCK=homologacao` (só a homologação) ou `modoMock: true` injetado em `buildApp` (testes e E2E) liga o modo mock, que lê a base semeada, usa as extensões e a pesquisa fictícias e marca toda resposta com `X-Dados-Ficticios: 1`. Métrica fora de `METRICAS_ORIGEM_REAL` responde 200 com o estado `sem-dado-real` e o motivo (`docs/api/metricas.md`). As guardas de seed da coleta e do projetor tomam a trava `dspd:seed` (a mesma do seed) antes de contar.
 - **Imagem e Compose:** `server/Dockerfile` (multi-stage, usuário `node`, `pnpm install --frozen-lockfile --filter @metricas-dspd/server...`, execução com `node --import tsx`, porque os pacotes workspace e as migrações são TypeScript). Contexto = raiz. Serviços `migrate` (roda e sai), `api` (healthcheck em `/health/ready`), `worker`, `web` (`docker/web/Dockerfile`: build da SPA + nginx com proxy `/api` e `/health` para `api:3000`). `pnpm stack:up` / `docker compose up`. `pnpm dev:full` roda api, worker e Vite fora do contêiner (`scripts/dev.sh`); `pnpm dev` continua só com a web.
 - **Testes:** `tests/app.test.ts` (inject com dublê de pool), `tests/plataforma2.test.ts` (config, outbox, agenda, worker, trava, OpenAPI, lint), `tests/outbox.pg.test.ts` (rollback, dois pollers, backoff, falha após 8, reserva expirada, retenção, rotas com `dspd_api`). Cobertura 100% sobre `src/`, exceto `src/entradas/**` (só ligam config, pool e sinais; exercitadas pelo Compose). CI: jobs `openapi` e `imagem`.
 

@@ -4,11 +4,11 @@ import { esquemasDoAmbiente, type Esquemas } from '../../../plataforma/db/esquem
 import { emTransacao, type Consultavel, type PoolLike } from '../../../plataforma/db/pool.js';
 import { ErroBusinessMap, type ClienteHttp } from '../../../plataforma/http.js';
 import { fecharColeta, type StatusFinal } from '../../operacao/index.js';
-import { ErroColetaBm, SOBREPOSICAO_S } from '../coleta.js';
+import { ErroColetaBm, exigirEsquemaSemSeedNoPool, SOBREPOSICAO_S } from '../coleta.js';
 import { resolverResponsaveis } from '../usuarios.js';
 import {
-  ativosDaJanela, atualizarHierarquia, escopoDoWorklog, excluidosEntre, gravarStgApontamento, pessoasResolvidas, projetarFatoApontamento,
-  registrarEventos, type LinhaComPessoa,
+  ativosDaJanela, atualizarHierarquia, cardsIncompletos, escopoDoWorklog, excluidosEntre, gravarStgApontamento, pessoasResolvidas, projetarFatoApontamento,
+  registrarCobertura, registrarEventos, semearCoberturaDeFalhas, type LinhaComPessoa,
 } from './gravacao.js';
 import { lerLote, LOTE_CARDS, type FiltroWorklog, type Folha } from './lotes.js';
 import {
@@ -112,12 +112,20 @@ async function registrarContagem(db: Consultavel, S: Esquemas, coletaId: number,
     [coletaId, entidade, c.lidos, c.inseridos, c.jaExistentes, c.falhas]);
 }
 
-interface Passe { filtro: FiltroWorklog; varredura: boolean }
+/**
+ * `porData`: passagem por `from_date` (carga e varredura); só ela marca card incompleto no teto. `janelaCheia`: cobre TODA a janela da carga
+ * (carga inicial, retomada ou varredura longa de domingo); só ela prova que o card ficou completo (a de 90 dias não relê o período antigo).
+ */
+interface Passe { filtro: FiltroWorklog; varredura: boolean; porData: boolean; janelaCheia: boolean }
 
 interface Execucao {
   d: DepsApontamento; S: Esquemas; coletaId: number; hoje: string;
   tipos: ReadonlyMap<string, string | null>; escopo: ReadonlySet<string>;
-  vistos: Set<string>; completos: Set<string>; falhas: string[]; recusas: string[];
+  vistos: Set<string>; completos: Set<string>;
+  /** Pedido 063: cards que ficaram no teto numa passagem por data (`lote_no_teto`) e cards lidos inteiros numa passagem de janela cheia. */
+  noTeto: Set<string>; cobertos: Set<string>; falhas: string[]; recusas: string[];
+  /** A1 (063): a validade dos ids vale por consulta (todas as páginas): recusa com id inválido em qualquer página suja a consulta até o fim. */
+  consultaSuja: boolean;
   r: Pick<ResultadoApontamento, 'lidos' | 'inseridos' | 'jaExistentes' | 'invalidos' | 'excluidos' | 'reaparecidos' | 'usuarios'>;
 }
 
@@ -195,7 +203,11 @@ async function processarFolha(x: Execucao, passe: Passe, folha: Folha): Promise<
   if (folha.falha !== null) x.falhas.push(folha.falha);
   // só lote completo pode virar fonte de exclusão; recusa com `logged_time_id` válido não tira o lote de completo (o id entrou em `vistos`),
   // recusa com id inválido tira (não se sabe de quem é o registro)
-  if (passe.varredura && folha.completo && rejeitados.every((f) => f.idOrigem !== null)) for (const c of folha.cards) x.completos.add(c);
+  if (rejeitados.some((f) => f.idOrigem === null)) x.consultaSuja = true;
+  const idsValidos = !x.consultaSuja;
+  if (passe.varredura && folha.completo && idsValidos) for (const c of folha.cards) x.completos.add(c);
+  if (passe.janelaCheia && folha.completo && idsValidos) for (const c of folha.cards) x.cobertos.add(c);
+  if (passe.porData && folha.falha === 'lote_no_teto') for (const c of folha.cards) x.noTeto.add(c);
 }
 
 /** Guarda `recusa_em_massa` (A7): recusas de registro acima do percentual dos lidos, com o mínimo de recusas. */
@@ -222,6 +234,24 @@ async function detectarExclusoes(x: Execucao, desde: string): Promise<void> {
   x.r.excluidos += marcados.length;
 }
 
+/**
+ * Cobertura por card (pedido 063, ADR 0025): `incompleto` para o card que terminou uma passagem por data no teto (`lote_no_teto`, contingência
+ * sem paginação) e `completo` para o card incompleto que uma passagem de janela cheia leu inteiro. Falha transitória (rede, 5xx, página,
+ * `paginacao_instavel`) não grava nada: o card nem entra em `noTeto` nem em `cobertos`. Só muda o estado atual (sem repetir evento).
+ */
+async function registrarCoberturaDaExecucao(x: Execucao): Promise<void> {
+  const { d, S } = x;
+  const atuais = await cardsIncompletos(d.pool, S);
+  const novos = [...x.noTeto].filter((c) => !atuais.has(c));
+  const resolvidos = [...x.cobertos].filter((c) => atuais.has(c) && !x.noTeto.has(c));
+  if (novos.length === 0 && resolvidos.length === 0) return;
+  const agora = d.agora();
+  await emTransacao(d.pool, async (db) => {
+    await registrarCobertura(db, S, 'incompleto', novos, x.coletaId, agora);
+    await registrarCobertura(db, S, 'completo', resolvidos, x.coletaId, agora);
+  });
+}
+
 /** Execução anterior que morreu sem fechar (a trava da fonte garante que não há outra rodando): fecha como falha, sem apagar nada. */
 async function fecharInterrompidas(pool: PoolLike, S: Esquemas, agora: Date): Promise<void> {
   const r = await pool.query<{ coleta_id: string }>(`SELECT coleta_id FROM ${S.bm}.ctl_coleta WHERE tarefa = 'apontamento' AND status = 'em_andamento'`);
@@ -244,9 +274,12 @@ const dividir = <T>(lista: readonly T[], tamanho: number): T[][] => {
 export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontamento): Promise<ResultadoApontamento> {
   if (Buffer.byteLength(d.sal) < SAL_MINIMO_BYTES) throw new ErroColetaBm('configuracao', `PESSOA_ELIMINADA_SAL ausente ou com menos de ${SAL_MINIMO_BYTES} bytes`);
   const S = d.S ?? esquemasDoAmbiente();
+  await exigirEsquemaSemSeedNoPool(d.pool, S);
   const inicio = d.agora();
   const hoje = diaCivil(inicio);
   await fecharInterrompidas(d.pool, S, inicio);
+  // pedido 063: o card que uma coleta anterior deixou no teto e ainda não tem cobertura vira `incompleto` já (antes de qualquer guarda de marca)
+  await semearCoberturaDeFalhas(d.pool, S);
   const cards = await d.pool.query<{ status: string }>(`SELECT status FROM ${S.bm}.ctl_coleta WHERE tarefa = 'coleta_incremental' ORDER BY coleta_id DESC LIMIT 1`);
   if (cards.rows[0]?.status === 'falha') throw new ErroColetaBm('cards-falhou', 'a coleta de cards mais recente falhou: o worklog não roda sem o escopo atualizado');
 
@@ -268,7 +301,8 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
     } else {
       desde = modo.inicio ?? menosMeses(hoje, MESES_CARGA_APONTAMENTO);
     }
-    passes = [{ filtro: { from_date: desde }, varredura: false }];
+    // A2: só é janela cheia quando o início não é mais recente que o padrão da carga (início menor ou igual cobre o período inteiro)
+    passes = [{ filtro: { from_date: desde }, varredura: false, porData: true, janelaCheia: desde <= menosMeses(hoje, MESES_CARGA_APONTAMENTO) }];
   } else {
     const m = await d.pool.query<{ marca: Date | null }>(`SELECT max(marca_dagua_ate) AS marca FROM ${S.bm}.ctl_coleta WHERE tarefa = 'apontamento' AND status = 'sucesso'`);
     marcaDe = m.rows[0]?.marca ?? null;
@@ -276,8 +310,8 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
     // diária: janela curta; aos domingos, a janela longa (a mesma varredura, com início na carga)
     desde = ehDomingo(hoje) ? menosMeses(hoje, MESES_CARGA_APONTAMENTO) : menosDias(hoje, JANELA_VARREDURA_DIAS);
     passes = [
-      { filtro: { logged_from: iso(new Date(marcaDe.getTime() - SOBREPOSICAO_S * 1000)) }, varredura: false },
-      { filtro: { from_date: desde }, varredura: true },
+      { filtro: { logged_from: iso(new Date(marcaDe.getTime() - SOBREPOSICAO_S * 1000)) }, varredura: false, porData: false, janelaCheia: false },
+      { filtro: { from_date: desde }, varredura: true, porData: true, janelaCheia: ehDomingo(hoje) },
     ];
   }
 
@@ -295,7 +329,7 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
     const escopoCards = await escopoDoWorklog(d.pool, S);
     const x: Execucao = {
       d, S, coletaId, hoje, tipos: new Map(escopoCards.map((c) => [c.card_id, c.type_id])), escopo: new Set(escopoCards.map((c) => c.card_id)),
-      vistos: new Set(), completos: new Set(), falhas: [], recusas: [],
+      vistos: new Set(), completos: new Set(), noTeto: new Set(), cobertos: new Set(), falhas: [], recusas: [], consultaSuja: false,
       r: { lidos: 0, inseridos: 0, jaExistentes: 0, invalidos: 0, excluidos: 0, reaparecidos: 0, usuarios: { pedidos: 0, resolvidos: 0, naoResolvidos: 0 } },
     };
     const lotes = dividir(escopoCards.map((c) => c.card_id), LOTE_CARDS);
@@ -306,6 +340,7 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
         for (const [i, grupo] of lotes.entries()) {
           if (i < primeiroLote) continue;
           const falhasAntes = x.falhas.length;
+          x.consultaSuja = false;
           await lerLote(d.cliente, grupo, passe.filtro, (folha) => processarFolha(x, passe, folha));
           // checkpoint da carga: só avança enquanto os lotes forem concluídos sem falha de execução, em ordem; lote só de recusas de registro
           // conta como concluído (A7), exceto com a guarda `recusa_em_massa` armada (o checkpoint não anda sobre mudança de contrato)
@@ -326,6 +361,7 @@ export async function coletarApontamentos(d: DepsApontamento, modo: ModoApontame
       await registrarFalha(d.pool, S, coletaId, 'apontamento', null, 'recusa_em_massa');
     }
     if (!fatal && modo.tipo === 'incremental') await detectarExclusoes(x, desde);
+    await registrarCoberturaDaExecucao(x);
     const agoraFim = d.agora();
     await emTransacao(d.pool, (db) => atualizarHierarquia(db, S, coletaId, agoraFim));
 

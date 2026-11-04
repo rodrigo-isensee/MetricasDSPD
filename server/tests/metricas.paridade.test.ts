@@ -25,7 +25,7 @@ describe('paridade mock x projeções (sem Postgres: linhas do seed num banco fa
     pesq: pesquisa.criarContextoPesquisa(gerarPesquisaMock(base.config), CORTE_DATA),
   };
   const d = criarDublePg(bancoDoMock(base));
-  const servico = new ServicoMetricas({ db: d.pool, extensoes: () => gerarExtensoesMock(base), pesquisa: fontePesquisaMock });
+  const servico = new ServicoMetricas({ modoMock: true, db: d.pool, extensoes: () => gerarExtensoesMock(base), pesquisa: fontePesquisaMock });
   const filtrosDe = (id: MetricaId) => FILTROS_POR_FONTE[fonteDaMetrica(id)];
 
   it.each(METRICA_IDS)('%s: resultado idêntico', async (id) => {

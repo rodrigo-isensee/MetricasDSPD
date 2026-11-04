@@ -19,7 +19,7 @@ const responder: Respondedor = (c) => {
 };
 async function montar() {
   const d = criarDublePg(responder);
-  return { app: await buildApp({ db: d.pool, agora: () => AGORA, nivelLog: 'silent' }), d };
+  return { app: await buildApp({ modoMock: true, db: d.pool, agora: () => AGORA, nivelLog: 'silent' }), d };
 }
 
 describe('/api/v1/fontes/:dominio', () => {

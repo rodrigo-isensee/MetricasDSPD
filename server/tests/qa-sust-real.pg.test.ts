@@ -36,16 +36,16 @@ d('QA 052-sust-real: sustentação real no PostgreSQL', () => {
     await mig.end();
   });
 
-  it('com a base real do Acelerato vazia, S2, S3, S4, S8 e S10 mudam (leem a real) e as mock saem iguais à base do seed', async () => {
-    const unica = await buildApp({ db: api, S, agora: () => AGORA, nivelLog: 'silent' });
-    const antes = await buildApp({ db: api, S: R, SMock: S, agora: () => AGORA, nivelLog: 'silent' });
+  it('com a base real do Acelerato vazia, S2, S3, S4, S8 e S10 mudam (leem a real) e as demais respondem sem dado real (nunca o número do seed)', async () => {
+    const unica = await buildApp({ modoMock: true, db: api, S, agora: () => AGORA, nivelLog: 'silent' });
+    const antes = await buildApp({ db: api, S: R, agora: () => AGORA, nivelLog: 'silent' });
     const corpoAntes: Record<string, string> = {};
     for (const id of REAIS) corpoAntes[id] = (await antes.inject(`/api/v1/metricas/${id}`)).body;
     const chamados = await mig.query(`SELECT count(*)::int AS n FROM ${R.ac}.dim_chamado`);
     expect(chamados.rows[0].n).toBeGreaterThan(0);
 
     await mig.query(`DELETE FROM ${R.ac}.dim_chamado`);
-    const duas = await buildApp({ db: api, S: R, SMock: S, agora: () => AGORA, nivelLog: 'silent' });
+    const duas = await buildApp({ db: api, S: R, agora: () => AGORA, nivelLog: 'silent' });
     for (const id of REAIS) {
       const dep = await duas.inject(`/api/v1/metricas/${id}`);
       expect(dep.statusCode, id).toBe(200);
@@ -55,7 +55,8 @@ d('QA 052-sust-real: sustentação real no PostgreSQL', () => {
       const a = await unica.inject(`/api/v1/metricas/${id}`);
       const b = await duas.inject(`/api/v1/metricas/${id}`);
       expect(b.statusCode, id).toBe(200);
-      expect(b.body, `${id} deveria vir da base do seed`).toBe(a.body);
+      expect(b.json(), `${id} deveria responder sem dado real`).toMatchObject({ estado: 'sem-dado-real', metrica: id });
+      expect(b.body, `${id} nunca traz o número da base do seed`).not.toBe(a.body);
     }
   }, 90_000);
 });

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Sobe a API real local com o mock semeado (DADOS_FONTE=mock, schemas temporários no banco de teste), roda o comando
+# Sobe a API real local com o mock semeado (modo mock explícito, schemas temporários no banco de teste), roda o comando
 # recebido com API_URL apontando para ela e derruba tudo ao final (os schemas temporários são removidos).
 # Uso: bash scripts/com-api-mock.sh <comando...>   (FA-4 paridade; FA-5 E2E em VITE_FONTE=api). Rode sob flock.
 set -uo pipefail
@@ -9,6 +9,8 @@ cd "$(dirname "$0")/.."
 if ! (echo > "/dev/tcp/127.0.0.1/${PG_PORT:-5432}") 2>/dev/null; then docker compose up -d --wait postgres >/dev/null || exit 1; fi
 export PG_TESTE_URL="${PG_TESTE_URL:-postgres://dspd_migrador:${DSPD_PWD_MIGRADOR:-migrador_dev}@127.0.0.1:${PG_PORT:-5432}/metricas_test}"
 export DSPD_PWD_API
+# Plano 060 (P1): o seed só roda com o alvo explícito; aqui é o banco de teste, nunca o da coleta real.
+export PG_SEED_URL="$PG_TESTE_URL"
 case "${PG_TESTE_URL%%\?*}" in
   */*_test) ;;
   *) echo "PG_TESTE_URL deve apontar para um banco de teste (nome terminado em _test)."; exit 1 ;;

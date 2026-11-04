@@ -71,6 +71,28 @@ services:
     depends_on:
       migrate: { condition: service_completed_successfully }
 
+  # Coleta agendada (pedido 061, ADR 0022 item 6 e ADR 0023 §8). Perfil "coleta": não sobe com `up`; o timer do host chama
+  # `docker compose run --rm coleta <script> [args]` (deploy/systemd/). Sem porta publicada. É o ÚNICO serviço que recebe a apikey do
+  # BusinessMap e a senha do MySQL do Acelerato: vêm do arquivo de ambiente do host (COLETA_ENV_FILE, permissão 600), nunca da imagem.
+  coleta:
+    profiles: ["coleta"]
+    build: { context: ., dockerfile: server/Dockerfile }
+    entrypoint: ["node", "--import", "tsx"]
+    command: ["src/entradas/coleta-businessmap.ts", "incremental", "--projetar"]
+    env_file:
+      - path: ${COLETA_ENV_FILE:-/etc/metricas-dspd/coleta.env}
+        required: false
+    environment:
+      PG_COLETOR_URL: postgres://dspd_coletor:${DSPD_PWD_COLETOR:-coletor_dev}@postgres:5432/metricas
+      DSPD_PWD_REF: ${DSPD_PWD_REF:-ref_dev}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    # PEM do certificado do Acelerato: ACELERATO_MYSQL_TLS_CERT_FILE aponta para /segredos/acelerato.pem no arquivo de ambiente.
+    volumes:
+      - ${COLETA_SEGREDOS_DIR:-/etc/metricas-dspd/segredos}:/segredos:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
   web:
     build: { context: ., dockerfile: docker/web/Dockerfile }
     ports: ["127.0.0.1:${WEB_PORT:-8080}:80"]

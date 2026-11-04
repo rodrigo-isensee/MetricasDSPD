@@ -25,6 +25,12 @@ export interface CenarioWorklog {
   formaDireta?: boolean;
   /** Ids de card cujo lote sempre vem incompleto (5xx) quando pedido sozinho. */
   falharCards?: string[];
+  /** Pedido 063: a API paginada. Tamanho da página (registros); `page` do pedido escolhe a página e o corpo traz `pagination`. */
+  paginar?: number;
+  /** Página (1 = primeira) que responde 500 quando `paginar` está ligado. */
+  falharNaPagina?: number;
+  /** `all_pages` informado em cada página (a partir de `paginar`); `undefined` = o valor real. Simula a lista mudando no meio da leitura. */
+  paginasInformadas?: (pagina: number, reais: number) => number | undefined;
   /** Status forçado para um lote de cards (`undefined` = responde normal). */
   statusPorLote?: (cards: string[]) => number | undefined;
 }
@@ -78,6 +84,15 @@ export async function subirServidorWorklog(cenario: CenarioWorklog = cenarioWork
         (cards.includes(ids(r.card_id)) || cards.includes(ids(r.parent_card_id)))
         && (de === null || String(r.date) >= de) && (ate === null || String(r.date) <= ate)
         && (registrado === null || Date.parse(String(r.logged_at)) >= Date.parse(registrado)));
+      if (cenario.paginar !== undefined) {
+        const tamanho = cenario.paginar;
+        const reais = Math.max(1, Math.ceil(lote.length / tamanho));
+        const pagina = Number(q.get('page') ?? '1');
+        if (cenario.falharNaPagina === pagina) return enviar(500, {});
+        const itensPag = lote.slice((pagina - 1) * tamanho, pagina * tamanho).map((r) => (cenario.ignorarFields === true ? r : Object.fromEntries(Object.entries(r).filter(([k]) => campos.includes(k)))));
+        const todas = cenario.paginasInformadas?.(pagina, reais) ?? reais;
+        return enviar(200, { data: { data: itensPag, pagination: { all_pages: todas, current_page: pagina, results_per_page: tamanho } } });
+      }
       const teto = Number(q.get('per_page') ?? '200');
       const itens = lote.slice(0, teto).map((r) => (cenario.ignorarFields === true ? r : Object.fromEntries(Object.entries(r).filter(([k]) => campos.includes(k)))));
       if (cenario.truncarNaChamada === chamadas) {

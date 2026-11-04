@@ -18,3 +18,6 @@ overrides:
   # código do globalSetup como Buffer; qualquer stack que passe por tests/pg/global-setup.ts (jiti do node-pg-migrate
   # com cache frio, como na CI) cai em "Startup Error". Reverter quando sair vitest com a correção.
   vite: "8.3.4"
+  # Alertas Dependabot #18 a #25 (fast-uri, produção via fastify): override de patch na mesma linha maior (pedido 062)
+  "fast-uri@3": "3.1.9"
+  "fast-uri@4": "4.2.3"

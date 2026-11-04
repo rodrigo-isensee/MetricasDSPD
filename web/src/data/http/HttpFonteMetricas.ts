@@ -5,6 +5,7 @@ import {
   opcoesFiltroSustentacaoSchema,
   paginaColetasSchema,
   referenciaSchema,
+  semDadoRealSchema,
   versaoCriterioSchema,
   type ContratoMetricas,
   type Dominio,
@@ -17,6 +18,7 @@ import {
 } from '@metricas-dspd/contratos'
 import type { FonteMetricas, OpcoesObter } from '../FonteMetricas'
 import { ErroApi } from './ErroApi'
+import { SemDadoRealErro } from './SemDadoRealErro'
 import { filtrosParaQuery } from './filtrosParaQuery'
 
 /** Itens do O2 pedidos por página (máximo da API): a tela usa só o total de `itensMeta` e uma amostra. */
@@ -105,7 +107,14 @@ export class HttpFonteMetricas implements FonteMetricas {
     const schema = (o2 ? resultadoO2PaginadoSchema : SCHEMAS_RESULTADO[id]) as z.ZodType<
       ResultadoDe<K>
     >
-    return this.buscar(`/metricas/${id}${q ? `?${q}` : ''}`, schema, opcoes?.signal)
+    // Métrica sem fonte real: a API responde 200 com o estado `sem-dado-real` e o motivo, sem resultado (pedido 060, P3).
+    const r = await this.buscar(
+      `/metricas/${id}${q ? `?${q}` : ''}`,
+      semDadoRealSchema.or(schema),
+      opcoes?.signal,
+    )
+    if ('estado' in r) throw new SemDadoRealErro(r.metrica, r.motivo)
+    return r
   }
 
   opcoesFiltro<D extends Dominio>(dominio: D): Promise<Extract<OpcoesFiltro, { dominio: D }>> {

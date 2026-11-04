@@ -1,6 +1,6 @@
 import { JANELA_PERCENTIS_PADRAO, type ResultadoDe } from '@metricas-dspd/contratos'
-import { usePreferenciasPainel } from '@/components/ui'
-import type { MetricaQuery } from '@/data'
+import { EstadoSemDadoReal, usePreferenciasPainel } from '@/components/ui'
+import { motivoSemDadoReal, type MetricaQuery } from '@/data'
 import { textoJanela } from '@/lib/formatar'
 import { fraseDaSerie, fraseDaSerieSla, marcacoesUnicas, serieSla, serieVolume } from './modelo'
 import { SerieMensal } from './SerieMensal'
@@ -20,6 +20,12 @@ export function TendenciaSustentacao({ q }: { q: MetricaQuery<ResultadoDe<'TENDE
   if (!verSla && !verVolume) return null
   if (q.estado === 'carregando')
     return <EsqueletoTendencia id={id} series={verSla && verVolume ? 2 : 1} />
+  if (q.estado === 'sem-dado-real')
+    return (
+      <div id={id} data-testid={`${id}-sem-dado-real`}>
+        <EstadoSemDadoReal codigo="TENDENCIA" motivo={motivoSemDadoReal(q.erro)} />
+      </div>
+    )
   if (q.estado === 'erro') return <ErroTendencia id={id} onTentarDeNovo={q.recarregar} />
   const t = q.dados as ResultadoDe<'TENDENCIA_SUST'>
   const sla = serieSla(t)
