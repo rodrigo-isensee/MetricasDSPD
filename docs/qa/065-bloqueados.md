@@ -56,7 +56,7 @@ Os testes de unidade (S, W, C) são do autor; vi cair com os dois mutantes acima
 
 ## Achados
 - A1 (recomendado) packages/contratos/src/origem.ts:47 · JSDoc do interruptor `BLOQUEIOS_COM_DADO_REAL` ficou acima da constante do O5; ver o review.
-- A2 (recomendado, resolvido em 742e4f3) web/src/features/complementares/fluxo.tsx:64 · `format:check` do Prettier falhava neste arquivo.
+- A2 (recomendado) web/src/features/complementares/fluxo.tsx:64 · resolvido em 742e4f3: o format:check do Prettier falhava neste arquivo.
 - A3 (recomendado) docs/qa/065-bloqueados.md:1 · os `.pg.test.ts` (S1 na base real) não rodaram aqui; o dono roda `test:pg` antes da release.
 
 ## Limites declarados
