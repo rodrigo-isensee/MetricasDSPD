@@ -75,8 +75,8 @@ export function CartaoS8({ filtros }: P) {
       q={q}
       baseVariante={d?.total.status === 'ok' ? 'ok' : 'insuficiente'}
       leitura={
-        d
-          ? `${textoTaxa(d.total)} dos incidentes com o campo de reincidência informado são reincidentes (chamado com ticket anterior). A taxa usa só os incidentes informados.`
+        d?.total.status === 'ok'
+          ? `${textoTaxa(d.total)} dos incidentes com resposta no campo de reincidência são reincidentes. Sem resposta fica fora da conta.`
           : undefined
       }
     >
@@ -99,16 +99,16 @@ export function CartaoS8({ filtros }: P) {
           />
           {r.cobertura.n < r.cobertura.total && (
             <p className="text-sm text-atencao" data-testid="cobertura-S8">
-              Campo preenchido em {fmtInteiro(r.cobertura.n)} de {fmtInteiro(r.cobertura.total)}{' '}
-              chamados. A taxa considera só o que foi informado.
+              Com resposta em {fmtInteiro(r.cobertura.n)} de {fmtInteiro(r.cobertura.total)}{' '}
+              incidentes. A taxa considera só os que têm resposta (sim ou não).
             </p>
           )}
           <TabelaDados
             codigo="S8-meses"
-            legenda="Incidentes com o campo reincidente informado (denominador da taxa), por mês de abertura"
+            legenda="Incidentes com resposta no campo de reincidência (denominador da taxa), por mês de abertura"
             colunas={[
               { chave: 'm', titulo: 'Mês' },
-              { chave: 'i', titulo: 'Informados', alinhar: 'direita' },
+              { chave: 'i', titulo: 'Com resposta', alinhar: 'direita' },
               { chave: 'r', titulo: 'Reincidentes', alinhar: 'direita' },
               { chave: 't', titulo: 'Taxa', alinhar: 'direita' },
             ]}
@@ -125,7 +125,18 @@ export function CartaoS8({ filtros }: P) {
               texto={r.statusMeta === 'dentro' ? 'Abaixo de 5%' : 'Acima de 5%'}
             />
           ) : (
-            <AmostraInsuficiente n={r.total.n} codigo="S8" oQue="A taxa de reincidência" />
+            <AmostraInsuficiente
+              n={r.total.n}
+              codigo="S8"
+              oQue="A taxa de reincidência"
+              acoes={
+                <span data-testid="s8-falta-campo">
+                  Falta preencher no Acelerato o campo &quot;Este problema já ocorreu nos últimos 90
+                  dias?&quot; dos incidentes. A taxa volta a ser publicada quando houver 20
+                  incidentes com resposta (sim ou não).
+                </span>
+              }
+            />
           )}
         </div>
       )}
