@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 065-bloqueados-sem-dado-real
 branch: feature/065-bloqueados
-commit: a6294341107cadb3017da374f3278a5cbb631d2b
+commit: c1e0c06fb01b0cf162f7f9fbedb302782e4b6bba
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-04
@@ -60,6 +60,16 @@ Delta lido: só `web/src/features/operacional/bloqueio-sem-dado.test.tsx` (+33, 
 - Determinismo: sem relógio nem ordem; o `Object.create` só envolve a fonte de teste e devolve a base para os outros ids. Sem achado novo.
 - Cobertura do web em 100% conforme a decisão do Jarvis; não rerodei a suíte, que é do QA (parecer regravado em a629434).
 - Veredito mantido: aprovado, nenhum bloqueante.
+
+## Revalidação 3 (volta por delta, a629434..c1e0c06, decisão de contrato E1.8/E1.9)
+
+Delta lido: `schemas.ts` (O5 de volta a `z.number()`, sem `notas`), `origem.test.ts` e `complementares.test.ts` (C3 sem O5, cast removido), `aceitas.json`, fotografias O1, O2 e O3, páginas `docs/contratos/metricas/O1` a `O3`, `openapi.json` e `docs/analises/065-decisao-contrato.md`. Já lido, não relido: o resto de 1f1da67..a629434.
+
+- O5 revertido como aprovei: `horasBloqueio` volta a `z.number()` e sai `notas`; sobra um único produtor (`o5.ts:71`) e nenhum leitor. A fotografia do O5 não aparece no diff, ou seja, sem diferença contra o contrato anterior. O teste C3 afirma a ausência de `notas` no O5, e o alvo existe (`schemas.ts`), sem vácuo (item 11).
+- Aceites de O1 e O3: registrados, fotografados e removidos; `aceitas.json` fica vazio no commit (uso único). As fotografias de O1, O2 e O3 e as páginas batem com o schema (`nullable` em quatro pontos do O1, `notas` no O1 e no O2, enum novo no O3). O `openapi.json` só perde o `nullable` e o `notas` do O5, consistente com a reversão. Os `docs-contratos`, `contratos`, `metricas` e `docs:check` verdes são do node-backend; não os rerodei.
+- Pendência para o PR (E1.6): a linha `contrato: incompatível (aceite na v1, docs/analises/065-decisao-contrato.md)` com o motivo de cada aceite, porque a entrada saiu do arquivo.
+- Teto M14: o delta soma 12 linhas de código e teste; o total do lote segue em A5.
+- Sem achado novo. Veredito mantido: aprovado, nenhum bloqueante.
 
 ## Pendências fora do código
 
