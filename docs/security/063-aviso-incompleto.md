@@ -3,16 +3,19 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 063-worklog-cards-acima-do-teto
 branch: feature/063-aviso-incompleto
-commit: 675ed965bfddb152f22b6a797c1deb4ff756c922
+commit: 27bae585b35733537e68c535746ddda3288e36da
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-04
 ---
-# Review de segurança: lote do 063 (coleta lendo todas as páginas, sinal na API e aviso na aba), E2.5, K-200
+# Review de segurança: lote do 063 (coleta lendo todas as páginas, sinal na API e aviso na aba), E2.5 e E2.13, K-200
 
-Diff lido: `b446021..675ed96` (`server/`, `packages/contratos`, `web/src`, `docs/api/apontamento.md`), mais o review `docs/reviews/063-aviso-incompleto.md` (aprovado em `46933d4`; `675ed96` só acrescenta o parecer do review). Revisão estática: nenhum `.env` lido, nenhuma chamada ao BusinessMap, nenhum teste rodado.
+Diff lido: `b446021..675ed96` (`server/`, `packages/contratos`, `web/src`, `docs/api/apontamento.md`), mais o review `docs/reviews/063-aviso-incompleto.md` (aprovado em `46933d4`). Revisão estática: nenhum `.env` lido, nenhuma chamada ao BusinessMap, nenhum teste rodado.
 
 **Veredito: aprovado.** Nenhum bloqueante. Uma recomendação de baixa severidade (A1), sem caminho de ataque a partir de usuário do painel.
+
+## Delta 675ed96..27bae58 (E2.13)
+Sem alteração em `server/` nem `packages/`: a postura abaixo vale como estava. O delta traz (a) o E2E do QA `e2e/tests/apontamento-incompleto-063.spec.ts` (sem segredo, token nem chamada externa na busca textual; roda contra o build mock) e o ajuste de `e2e/playwright.config.ts` (`VITE_FONTE=mock` explícito, sem dado real); (b) o merge da develop com o 060 web (PR 208, parecer próprio em `docs/security/060-web-so-real.md`) e o PR 203 (só docs). Nenhum achado novo; A1 segue recomendado.
 
 ## Gatilhos
 Integração externa com credencial (cliente HTTP do BusinessMap e a lista fechada de consulta, ADR 0015), dado de pessoa na fronteira do coletor (ADR 0020), migração e GRANT por coluna (ADR 0014), contrato novo da API lido pelo navegador. Regras do `CLAUDE.md` do projeto como requisito (sem métrica individual, allow-list na fronteira). R-SEGURANCA.
