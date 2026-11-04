@@ -21,9 +21,12 @@ export function CartaoO5({ filtros }: P) {
   )
   const faltam = (d?.tipos ?? []).filter((t) => t.estatistica.status === 'insuficiente')
   const primeiro = ok[0]
+  // Pedido 065: sem bloqueios coletados, o texto não promete "fila e bloqueio" (a nota do servidor explica).
+  const semBloqueio = d?.notas?.includes('bloqueio-sem-dado-real') === true
   return (
     <CartaoComplementar
       id="O5"
+      notasDoCartao={d?.notas}
       q={q}
       periodo={filtros.periodo}
       janelaPercentis={d?.janelaPercentis}
@@ -31,7 +34,7 @@ export function CartaoO5({ filtros }: P) {
       leitura={
         d
           ? primeiro
-            ? `Em ${primeiro.tipo}, a mediana é ${fmtPct(primeiro.medianaPct, 0)} do ciclo em execução; o restante é fila e bloqueio.`
+            ? `Em ${primeiro.tipo}, a mediana é ${fmtPct(primeiro.medianaPct, 0)} do ciclo em execução; ${semBloqueio ? 'o restante é fila.' : 'o restante é fila e bloqueio.'}`
             : 'Nenhum tipo tem 20 itens: a eficiência não é publicada.'
           : undefined
       }
@@ -61,7 +64,10 @@ export function CartaoO5({ filtros }: P) {
             <ListaInsuficientes itens={faltam.map((t) => ({ rotulo: t.tipo, n: t.n }))} />
           )}
           <Leia>
-            Leia ao lado do tempo de ciclo (O3). Fila e bloqueio contam como não-execução.
+            Leia ao lado do tempo de ciclo (O3).{' '}
+            {semBloqueio
+              ? 'Fila conta como não-execução; bloqueio: sem dado real.'
+              : 'Fila e bloqueio contam como não-execução.'}
           </Leia>
         </div>
       )}
