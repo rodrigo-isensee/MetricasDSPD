@@ -1,4 +1,5 @@
 import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { corpoSemDadoReal, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos'
 import { SemDadoRealErro } from '@/data'
@@ -70,6 +71,38 @@ describe('parte de bloqueio sem dado real (pedido 065)', () => {
     expect(within(c).getByTestId('notas-cartao-O1')).toHaveTextContent('Bloqueios: sem dado real')
     expect(within(c).getByTestId('o1-dias-dentro')).toBeInTheDocument()
     expect(within(c).getByText(/Hoje há \d+/)).toBeInTheDocument()
+  })
+
+  it('W2b: com uma equipe (quebra por coluna), O1 sem bloqueio usa a descrição do gráfico sem "bloqueados dentro do total"', async () => {
+    const base = fonteApi()
+    const fonte = Object.create(base, {
+      obter: {
+        value: async (id: MetricaId, ...resto: unknown[]) => {
+          const r = await (base.obter as (...a: unknown[]) => Promise<Qualquer>)(id, ...resto)
+          if (id === 'O1' && !r.porColuna) {
+            r.porColuna = [
+              {
+                coluna: 'Em execução',
+                tipoColuna: 'execucao',
+                limite: 5,
+                itens: 3,
+                bloqueados: null,
+              },
+              { coluna: 'Fila', tipoColuna: 'fila', limite: null, itens: 2, bloqueados: null },
+            ]
+          }
+          return r
+        },
+      },
+    }) as typeof fonteDeTeste
+    renderizarCartao(<CartaoO1 filtros={FILTROS_FLUXO} />, { fonte })
+    const c = await screen.findByTestId('metrica-O1')
+    await waitFor(() => expect(c).toHaveAttribute('data-estado', 'ok'))
+    expect(await within(c).findByTestId('o1-bloqueados-sem-dado')).toBeInTheDocument()
+    expect(within(c).queryByTestId('o1-selecione-equipe')).not.toBeInTheDocument()
+    await userEvent.click(within(c).getAllByRole('button', { name: 'Ver como tabela' })[0]!)
+    expect(await within(c).findByText('WIP por coluna do fluxo')).toBeInTheDocument()
+    expect(within(c).queryByText(/com bloqueados dentro do total/)).not.toBeInTheDocument()
   })
 
   it('W3: O2 mostra "Sem dado real" na coluna Bloqueado, sem "bloqueado" na legenda; dispersão e P50/P85/P95 ficam', async () => {
