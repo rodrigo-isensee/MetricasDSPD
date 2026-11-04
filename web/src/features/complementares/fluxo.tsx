@@ -61,8 +61,7 @@ export function CartaoO5({ filtros }: P) {
             <ListaInsuficientes itens={faltam.map((t) => ({ rotulo: t.tipo, n: t.n }))} />
           )}
           <Leia>
-            Leia ao lado do tempo de ciclo (O3).{' '}
-            Fila e bloqueio contam como não-execução.
+            Leia ao lado do tempo de ciclo (O3). Fila e bloqueio contam como não-execução.
           </Leia>
         </div>
       )}
