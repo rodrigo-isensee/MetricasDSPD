@@ -56,6 +56,7 @@ function ConteudoSustentacao() {
           rotulo="Prioridades com aderência ao SLA abaixo de 90%"
           visao="sustentacao"
           estado={qS2.estado}
+          erro={qS2.erro}
           modelo={qS2.dados ? numeroS2(qS2.dados) : null}
           onTentarDeNovo={qS2.recarregar}
         />
@@ -65,6 +66,7 @@ function ConteudoSustentacao() {
           rotulo="Prioridades com mediana de restauração acima do alvo"
           visao="sustentacao"
           estado={qS1.estado}
+          erro={qS1.erro}
           modelo={qS1.dados ? numeroS1(qS1.dados) : null}
           onTentarDeNovo={qS1.recarregar}
         />
@@ -74,6 +76,7 @@ function ConteudoSustentacao() {
           rotulo="Volume de chamados na janela"
           visao="sustentacao"
           estado={qS3.estado}
+          erro={qS3.erro}
           modelo={qS3.dados ? numeroS3(qS3.dados) : null}
           onTentarDeNovo={qS3.recarregar}
         />

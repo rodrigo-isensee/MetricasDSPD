@@ -33,11 +33,11 @@ export function baseDaApi(valor: string | undefined): string {
   return valor
 }
 
-/** `VITE_FONTE=mock|api` (padrão `mock`). Valor inválido falha na partida: nunca cai no mock em silêncio. */
+/** `VITE_FONTE=api|mock` (padrão `api`, pedido 060): o mock só liga com `VITE_FONTE=mock` explícito. Valor inválido falha na partida: nunca cai no mock em silêncio. */
 export function criarFontePadrao(): FonteMetricas {
-  const fonte = env.VITE_FONTE ?? 'mock'
+  const fonte = env.VITE_FONTE ?? 'api'
   if (fonte === 'api') return new HttpFonteMetricas({ base: baseDaApi(env.VITE_API_BASE) })
-  if (fonte !== 'mock') throw new Error(`VITE_FONTE inválida: "${fonte}" (use "mock" ou "api")`)
+  if (fonte !== 'mock') throw new Error(`VITE_FONTE inválida: "${fonte}" (use "api" ou "mock")`)
   const semente = env.VITE_MOCK_SEMENTE
   return new MockFonteMetricas({
     ...(semente ? { semente: Number(semente) } : {}),

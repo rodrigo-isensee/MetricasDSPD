@@ -10,8 +10,10 @@ import {
   type MetricaId,
   type NotaCartaoId,
   type Periodo,
+  MOTIVO_FONTE_REAL_NAO_DEFINIDA,
 } from '@metricas-dspd/contratos'
 import type { FiltroFluxoChave } from '@metricas-dspd/contratos'
+import { SemDadoRealErro } from '@/data/http/SemDadoRealErro'
 import { fmtIntervalo } from '@/lib/formatar'
 import { AlternarTabela } from './AlternarTabela'
 import { AvisoCriterio } from './AvisoCriterio'
@@ -37,6 +39,7 @@ import { ALTURAS_ESQUELETO, ALTURAS_ESQUELETO_MOBILE } from './alturasEsqueleto'
 import { ALTURA_ESQUELETO_PADRAO, EsqueletoCartao, useEsqueleto } from './EsqueletoCartao'
 import { EstadoErro } from './EstadoErro'
 import { SeloOrigem, useOrigemCartao } from './Ficticios'
+import { EstadoSemDadoReal } from './EstadoSemDadoReal'
 import { EstadoVazio } from './EstadoVazio'
 import { Icone } from './Icone'
 import { ModoTabelaContext, type ModoVisual } from './ModoTabela'
@@ -45,7 +48,7 @@ import { SeloJanela } from './SeloJanela'
 import { StatusMeta } from './StatusMeta'
 import type { StatusMeta as Status } from '@metricas-dspd/contratos'
 
-export type EstadoCartao = 'carregando' | 'erro' | 'vazio' | 'ok'
+export type EstadoCartao = 'carregando' | 'erro' | 'vazio' | 'ok' | 'sem-dado-real'
 
 export interface CartaoMetricaProps {
   /** Código da métrica (O2, T9, S1, EI). Vira o `id` (minúsculo) e o `data-testid` (`metrica-O2`). */
@@ -135,6 +138,12 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   // Só mostra o cartão quando já se sabe se está em calibração: nenhum Dentro/Fora aparece e some depois (CA-05).
   const estado = esq.mostrar || (p.estado === 'ok' && !calibracaoPronta) ? 'carregando' : p.estado
   const ok = estado === 'ok'
+  const semDadoReal = estado === 'sem-dado-real'
+  // O motivo é o da resposta da API; sem ele (cartão que não repassa o erro), o do mapa de origem do contrato.
+  const motivoSemDadoReal =
+    p.erro instanceof SemDadoRealErro
+      ? p.erro.motivo
+      : (origem.motivo ?? MOTIVO_FONTE_REAL_NAO_DEFINIDA)
   const alturaCorpo = p.alturaEsqueleto ?? ALTURAS_ESQUELETO[p.codigo] ?? ALTURA_ESQUELETO_PADRAO
   const alturaMobile = p.alturaEsqueleto ?? ALTURAS_ESQUELETO_MOBILE[p.codigo] ?? alturaCorpo
   const atualizando = ok && !!p.atualizando
@@ -242,7 +251,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             />
           )}
           {janelaFixa && <SeloJanela janela={janelaTxt} />}
-          {calibrando && <SeloCalibracao />}
+          {calibrando && !semDadoReal && <SeloCalibracao />}
           {p.selos}
           <SeloOrigem origem={origem} />
         </div>
@@ -288,6 +297,11 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             erro={p.erro ?? null}
             {...(p.onTentarDeNovo ? { onTentarDeNovo: p.onTentarDeNovo } : {})}
           />
+        </div>
+      )}
+      {semDadoReal && (
+        <div className="mt-3">
+          <EstadoSemDadoReal codigo={p.codigo} motivo={motivoSemDadoReal} />
         </div>
       )}
       {estado === 'vazio' && (
