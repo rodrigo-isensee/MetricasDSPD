@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 065-bloqueados-sem-dado-real
 branch: feature/065-bloqueados
-commit: a6294341107cadb3017da374f3278a5cbb631d2b
+commit: c1e0c06fb01b0cf162f7f9fbedb302782e4b6bba
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -14,7 +14,7 @@ data: 2026-11-04
 ---
 # QA: 065, bloqueados sem dado real (E1.5, K-205)
 
-Código testado: `a629434` (ponta atual). Desde `742e4f3` mudou só o teste W2b, sem código de produção; o restante da evidência vem de `742e4f3` e `917ee0b` (código de produção e testes iguais, fora o W2b). Obrigações: o desenho `docs/analises/065-desenho.md` (seções 1 a 4 e 8) e as decisões do dono (C, "isso", B). Não há especificação de UX com `CA-n`: cada decisão virou um teste.
+Código testado: `c1e0c06` (ponta atual, depois da volta do contrato K-205: O5 de volta a `z.number()`, aceites de O1 e O3, O2 fotografado, páginas e openapi). Rodada anterior em `a629434`. Desde `742e4f3` mudou só o teste W2b, sem código de produção; o restante da evidência vem de `742e4f3` e `917ee0b` (código de produção e testes iguais, fora o W2b). Obrigações: o desenho `docs/analises/065-desenho.md` (seções 1 a 4 e 8) e as decisões do dono (C, "isso", B). Não há especificação de UX com `CA-n`: cada decisão virou um teste.
 
 ## Escopo
 - Dentro: BLOQUEADOS e O5 inteiros com Sem dado real; O1 e O2 com só a parte de bloqueio sem dado real (null, nunca 0) e o resto visível; faixa Pede atenção sem afirmar nada bloqueado; versão de critério T2.6; modo mock com bloqueios do seed intactos.
@@ -33,6 +33,15 @@ Código testado: `a629434` (ponta atual). Desde `742e4f3` mudou só o teste W2b,
 | Outra métrica não recebe a nota (O3 mantém a sua) | S5 e S5b | vazamento entre métricas | passou |
 | T2.6: versão de critério em O1, O2 e O5 | S7; `complementares.test.ts` | marca no gráfico | passou |
 | Acessibilidade das telas mudadas | Q65-06 (Diária) e Q65-07 (Semanal com O5) | axe WCAG 2.2 AA, sérias e críticas | zero violações |
+
+## Regravação na ponta c1e0c06 (E1.5, volta do contrato)
+- `git pull --ff-only origin feature/065-bloqueados`: Already up to date; HEAD `c1e0c06`.
+- Diff `e6ae9cc..c1e0c06`: 12 arquivos (schemas.ts, origem.test.ts, complementares.test.ts, contratos O1/O2/O3, fotografias, aceitas.json, openapi, decisão de contrato); nenhum código de produção do server nem do web.
+- vitest com `--maxWorkers=2`: contratos `10 files, 204 passed`; docs-contratos `14 files, 102 passed`; server `80 passed, 33 skipped; 1622 passed, 232 skipped` (skipped = `.pg.test.ts`, dono); web `94 files, 1426 passed`.
+- E2E `bloqueio-sem-dado-065.spec.ts`, `chromium-api`, 2 workers, API de teste `api-stub-065.ts` (porta 3199): `7 passed (20.2s)`, incluindo axe das duas telas.
+- `pnpm run docs:check`: `ok (919 páginas Markdown, 69 métricas, 2 eventos)`.
+- O5 em `z.number()` sem notas: Q65-05 e W4 seguem verdes (Sem dado real vem pelo corpo `sem-dado-real`, não pelo schema do O5). Aceites de O1 e O3 saíram do `aceitas.json` e o `docs:check` fecha, então fotografias e contrato estão coerentes.
+- Mutação e vermelho: sem código de produção mudado desde a rodada anterior; valem os resultados abaixo.
 
 ## Regravação na ponta a629434 (E1.5, cobertura do web)
 - `git pull --ff-only origin feature/065-bloqueados`: Already up to date.
