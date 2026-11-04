@@ -385,6 +385,17 @@ describe('moldura da resposta: calendário, dimensões, frescor e janelas', () =
     expect(c.frescor.selo).toBe('sem-coleta');
     expect(c.frescor.ultimaColetaOk).toBeNull();
     expect(c.frescor.ultimaTentativa).toEqual({ resultado: 'parcial', fim: '2026-11-02T06:10:00-03:00' });
+    await app.close();
+  });
+
+  it('coleta ok depois de uma parcial: ultimaTentativa diz "ok" e o selo vem da coleta ok (069 M1-a)', async () => {
+    const { app } = await montar({ coletas: { ultimaParcial: false } });
+    const c = respostaApontamentoSchema.parse((await get(app, '/api/apontamento')).json());
+    expect(c.frescor.ultimaTentativa).toEqual({ resultado: 'ok', fim: '2026-11-02T06:10:00-03:00' });
+    expect(c.frescor.ultimaColetaOk).not.toBeNull();
+    expect(c.frescor.selo).not.toBe('sem-coleta');
+    expect(c.frescor.selo).not.toBe('falha');
+    await app.close();
   });
 
   it('última tentativa com falha: selo "falha", mantida a última coleta ok', async () => {
