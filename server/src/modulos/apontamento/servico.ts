@@ -1,11 +1,11 @@
 import {
-  FLAGS_QUALIDADE, PESSOA_OUTRA_AREA, ROTULO_PESSOA_NAO_IDENTIFICADA, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
+  FLAGS_QUALIDADE, MAX_ROTULO, PESSOA_OUTRA_AREA, ROTULO_PESSOA_NAO_IDENTIFICADA, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
 } from '@metricas-dspd/contratos';
 import { calcularApontamento, ordenarPorPessoa, type LinhaApontamento } from '@metricas-dspd/metricas/businessmap';
 import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { lerCalendario, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerPessoasDoTime, lerRotulosSubgrupo, lerUltimasColetas, type ColetaLida, type LinhaBruta } from './repositorio.js';
+import { lerCalendario, lerCardsIncompletos, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerPessoasDoTime, lerRotulosSubgrupo, lerUltimasColetas, type ColetaLida, type LinhaBruta } from './repositorio.js';
 
 // Pedido 059 (K-193), rota da aba Apontamento. Este serviço só LÊ e MONTA a moldura da resposta (período, opções, frescor, critérios); todo cálculo
 // (soma, capacidade, utilização, distribuição, qualidade, matriz, diário, achados, piso de 20) é de `calcularApontamento`, da biblioteca T2.5.
@@ -131,6 +131,18 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
     filtros: { pessoa: c.pessoa, projeto: c.projeto, tipo: c.tipo, subtarefa: c.subtarefa, subgrupo: c.subgrupo, qualidade: c.qualidade, anomalos: c.anomalos },
   });
 
+  const incompletos = await lerCardsIncompletos(db, S, periodo.de, periodo.ate, c.projeto, c.tipo);
+  const registroIncompleto = {
+    total: incompletos.length,
+    cards: incompletos.map((i) => ({
+      cardId: i.cardId, titulo: (i.titulo ?? `Card ${i.cardId}`).slice(0, MAX_ROTULO),
+      projeto: {
+        id: i.projetoId ?? 'sem-projeto', rotulo: (i.projetoTitulo ?? (i.projetoId === null ? 'Sem iniciativa' : `Card ${i.projetoId}`)).slice(0, MAX_ROTULO), foraDoEscopo: i.foraDoEscopo,
+      },
+    })),
+    projetoIds: [...new Set(incompletos.map((i) => i.projetoId ?? 'sem-projeto'))],
+  };
+
   return {
     versaoContrato: 1,
     dominio: 'businessmap',
@@ -147,5 +159,6 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
     },
     ...calculo,
     criterios,
+    registroIncompleto,
   };
 }

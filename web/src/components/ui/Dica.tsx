@@ -3,8 +3,8 @@ import { useRef, useState, type ReactNode } from 'react'
 import { Icone } from './Icone'
 
 /**
- * Dica de regra (não enfeite): abre por clique, toque ou Enter/Espaço (funciona em celular e
- * tablet), e também por foco e passagem do mouse; fecha com Esc e não some ao passar o ponteiro
+ * Dica de regra (não enfeite): abre ao ativar o gatilho (clique, toque ou Enter/Espaço; funciona em
+ * celular e tablet) e por passagem do mouse; foco simples não abre; fecha com Esc e não some ao passar o ponteiro
  * sobre ela (WCAG 1.4.13: dispensável, persistente, pairável). O foco permanece no gatilho.
  */
 export function Dica({
