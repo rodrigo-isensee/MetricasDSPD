@@ -100,9 +100,9 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(fora.d.chamadas).toHaveLength(0);
   });
 
-  it('as origens do mapa decidem: as reais (incluindo BLOQUEADOS) calculam na base real; as demais respondem sem dado real, sem nenhuma leitura de seed', async () => {
+  it('as origens do mapa decidem: as reais calculam na base real; as demais respondem sem dado real, sem nenhuma leitura de seed', async () => {
     const { app, d } = await montar({ sle: true });
-    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1', 'BLOQUEADOS'] as MetricaId[]) {
+    for (const id of ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'] as MetricaId[]) {
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.headers['x-estado-dado'], id).toBeUndefined();
@@ -110,7 +110,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     }
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     const antes = d.chamadas.length;
-    for (const id of ['O8', 'O12', 'O14', 'O19', 'T1', 'E1', 'S1', 'VISAO_GERAL'] as MetricaId[]) {
+    for (const id of ['BLOQUEADOS', 'O8', 'O12', 'O14', 'O19', 'T1', 'E1', 'S1', 'VISAO_GERAL'] as MetricaId[]) {
       expect(origemDaMetrica(id), id).toBe('mock');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
@@ -223,7 +223,7 @@ describe('F6: tipo do card, tipo da coluna na leitura e O1 pelo limite da coluna
     const { app } = await montar();
     const r = (await app.inject('/api/v1/metricas/O1?equipe=time-a')).json() as { hoje: { total: number; limite: number }; porColuna: { coluna: string; itens: number; limite: number | null }[] };
     expect(r.hoje).toMatchObject({ total: 2, limite: 3 });
-    expect(r.porColuna).toEqual([{ coluna: 'Em desenvolvimento', tipoColuna: 'execucao', itens: 2, bloqueados: 0, limite: 3 }]);
+    expect(r.porColuna).toEqual([{ coluna: 'Em desenvolvimento', tipoColuna: 'execucao', itens: 2, bloqueados: null, limite: 3 }]);
   });
 
   it('sem coluna com limite (0), o O1 mostra o WIP sem limite', async () => {
@@ -311,5 +311,100 @@ describe('F6: mapa da base real', () => {
     n = 0;
     montarBaseBM({ ...base, cards: [card('A', 'Melhoria')] }, { aoDescartarTipo: (q) => { n = q; } });
     expect(n).toBe(0);
+  });
+});
+
+// Pedido 065 (K-205), S1 a S7: BLOQUEADOS fora do mapa real; parte de bloqueio do O1, O2 e O5 sem dado real (null, nunca 0), com nota.
+describe('pedido 065: bloqueios sem dado real na base real', () => {
+  const AGORA_MOCK = AGORA;
+  const mock = async () => buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(seed)).pool, agora: () => AGORA_MOCK, nivelLog: 'silent' });
+  const NOTA = 'bloqueio-sem-dado-real';
+  const real = (o: OpcoesReal = {}) => montar({ ...o, cards: o.cards ?? [card('A', 'Bug interno'), card('B', 'Trabalho de produto')] });
+
+  it('S1: BLOQUEADOS responde sem dado real com o motivo próprio e o cabeçalho, sem itens e sem ler a base', async () => {
+    const { app, d } = await real();
+    const r = await app.inject('/api/v1/metricas/BLOQUEADOS');
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-estado-dado']).toBe('sem-dado-real');
+    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'BLOQUEADOS', motivo: 'a coleta ainda não grava os bloqueios do quadro' });
+    expect(r.json()).not.toHaveProperty('itens');
+    expect(d.chamadas).toHaveLength(0);
+  });
+
+  it('S2: O1 real tem todo bloqueados null, a nota, e o resto igual ao que a biblioteca devolve', async () => {
+    const { app } = await real();
+    const r = (await app.inject('/api/v1/metricas/O1')).json() as {
+      notas: string[]; hoje: Record<string, unknown>; porColuna: { bloqueados: unknown }[] | null; porTipoColuna: { bloqueados: unknown }[]; serie: { bloqueados: unknown; wip: number }[];
+    };
+    expect(r.notas).toContain(NOTA);
+    expect(r.hoje.bloqueados).toBeNull();
+    for (const l of [...(r.porColuna ?? []), ...r.porTipoColuna, ...r.serie]) expect(l.bloqueados).toBeNull();
+    expect(r.serie.length).toBeGreaterThan(0);
+    expect(SCHEMAS_RESULTADO.O1.safeParse(r).success).toBe(true);
+    // A função pura só troca `bloqueados` e anexa a nota: o resto do resultado fica idêntico.
+    const { semParteDeBloqueio } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const base = semParteDeBloqueio('O1', { hoje: { total: 3, limite: 4, bloqueados: 0, acimaDoLimite: 0 }, serie: [{ wip: 2, bloqueados: 0 }], porColuna: null, porTipoColuna: [] }) as { hoje: Record<string, unknown>; serie: Record<string, unknown>[] };
+    expect(base.hoje).toEqual({ total: 3, limite: 4, bloqueados: null, acimaDoLimite: 0 });
+    expect(base.serie).toEqual([{ wip: 2, bloqueados: null }]);
+  });
+
+  it('S3: O2 real traz a nota e não altera itens nem tipos', async () => {
+    const { app } = await real();
+    const r = (await app.inject('/api/v1/metricas/O2')).json() as { notas: string[]; itens: { bloqueioMotivo: unknown }[] };
+    expect(r.notas).toEqual([NOTA]);
+    for (const i of r.itens) expect(i.bloqueioMotivo).toBeNull();
+    expect(SCHEMAS_RESULTADO.O2.safeParse(r).success).toBe(true);
+  });
+
+  it('S4: O5 só anula horasBloqueio nos tipos ok e preserva o resto; sem 20 itens não há o que anular', async () => {
+    const { semParteDeBloqueio } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const valor = { medianaPct: 40, agregadaPct: 35, horasExecucao: 10, horasFila: 12, horasBloqueio: 5 };
+    const entrada = { janelaPercentis: {}, tipos: [{ tipo: 'Bug interno', n: 25, estatistica: { status: 'ok', valor } }, { tipo: 'Outro', n: 3, estatistica: { status: 'insuficiente', n: 3 } }] };
+    const saida = semParteDeBloqueio('O5', entrada) as typeof entrada & { notas: string[] };
+    expect(saida.tipos[0]!.estatistica).toEqual({ status: 'ok', valor: { ...valor, horasBloqueio: null } });
+    expect(saida.tipos[0]!.n).toBe(25);
+    expect(saida.tipos[1]).toEqual(entrada.tipos[1]);
+    expect(saida.notas).toEqual([NOTA]);
+    expect(valor.horasBloqueio).toBe(5);
+    const { app } = await real();
+    const r = (await app.inject('/api/v1/metricas/O5')).json();
+    expect(r.notas).toEqual([NOTA]);
+    expect(SCHEMAS_RESULTADO.O5.safeParse(r).success).toBe(true);
+  });
+
+  it('S5: O3 sem SLE segue só com sle-nao-definido; a nota nova não vaza e as outras reais não ganham nota', async () => {
+    const { app } = await real();
+    expect(((await app.inject('/api/v1/metricas/O3')).json() as { notas: string[] }).notas).toEqual(['sle-nao-definido']);
+    for (const id of ['O4', 'O6', 'O7']) expect(JSON.stringify((await app.inject(`/api/v1/metricas/${id}`)).json())).not.toContain(NOTA);
+  });
+
+  it('S5b: a nota não repete nem apaga outra nota já presente', async () => {
+    const { semParteDeBloqueio } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const a = semParteDeBloqueio('O2', { notas: ['sem-classe'] }) as { notas: string[] };
+    expect(a.notas).toEqual(['sem-classe', NOTA]);
+    const b = semParteDeBloqueio('O2', a) as { notas: string[] };
+    expect(b.notas).toEqual(['sem-classe', NOTA]);
+    const fora = { a: 1 };
+    expect(semParteDeBloqueio('O3', fora)).toBe(fora);
+  });
+
+  it('S6: modo mock (seed com bloqueios) calcula BLOQUEADOS (sem o estado) e O1 com bloqueados > 0 na série, sem a nota', async () => {
+    const app = await mock();
+    const b = (await app.inject('/api/v1/metricas/BLOQUEADOS')).json() as { itens: unknown[]; estado?: string };
+    expect(b.estado).toBeUndefined();
+    expect(Array.isArray(b.itens)).toBe(true);
+    const o1 = (await app.inject('/api/v1/metricas/O1')).json() as { notas?: string[]; hoje: { bloqueados: number }; serie: { bloqueados: number }[] };
+    expect(o1.notas).toBeUndefined();
+    expect(typeof o1.hoje.bloqueados).toBe('number');
+    expect(o1.serie.some((l) => l.bloqueados > 0)).toBe(true);
+  });
+
+  it('S7: os critérios de O1, O2 e O5 trazem a versão nova (marcada na série/janela quando a data cruza o período)', async () => {
+    const { marcacoesNoPeriodo } = await import('@metricas-dspd/metricas');
+    for (const id of ['O1', 'O2', 'O5'] as MetricaId[]) {
+      const m = marcacoesNoPeriodo(id, { inicio: '2026-10-01', fim: '2026-11-10' }, []);
+      expect(m.map((x) => x.id), id).toContain('criterio-2026-11-04-bloqueio-sem-dado-real');
+    }
+    expect(marcacoesNoPeriodo('O3', { inicio: '2026-10-01', fim: '2026-11-10' }, []).map((x) => x.id)).not.toContain('criterio-2026-11-04-bloqueio-sem-dado-real');
   });
 });

@@ -68,7 +68,7 @@ async function montar(o: OpcoesReal = {}, extra: { linhas?: string[] } = {}) {
 
 const TIMES_ALVO = ['Time A', 'Time B'];
 const colB = (id: string, nome: string, tipo: string, papel: string, ordem: number, limite: number) => col(id, nome, tipo, papel, ordem, limite, 'Time B');
-const REAIS = ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1', 'BLOQUEADOS'] as MetricaId[];
+const REAIS = ['O1', 'O2', 'O3', 'O4', 'O5', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'] as MetricaId[];
 
 /** Banco com dois times reais: serve para provar que nenhum resultado do painel traz o nome de um time (sem comparação, §7.1). */
 function bancoDoisTimes(): Respondedor {
@@ -90,7 +90,7 @@ function varrer(o: unknown, aoNodo: (n: Nodo, caminho: string) => void, caminho 
 }
 
 describe('QA F6 (CA do selo): origem exata por métrica e motivo', () => {
-  it('fictícias do painel operacional são exatamente O8, O12, O14 a O18 (com o motivo da H-13) e O19 a O26; as reais são as 12 da H-13 mais BLOQUEADOS e PV1 (pedido 060)', () => {
+  it('fictícias do painel operacional são exatamente O8, O12, O14 a O18 (com o motivo da H-13) e O19 a O26; as reais são as 12 da H-13 mais PV1 (pedido 060)', () => {
     const ficticiasFL1 = ['O8', 'O12', 'O14', 'O15', 'O16', 'O17', 'O18'] as MetricaId[];
     const comp = ['O19', 'O20', 'O21', 'O22', 'O23', 'O24', 'O25', 'O26'] as MetricaId[];
     for (const id of ficticiasFL1) { expect(origemDaMetrica(id), id).toBe('mock'); expect(motivoDaOrigemMock(id), id).toBe('aguardando campo no quadro'); }

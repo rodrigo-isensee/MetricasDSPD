@@ -110,6 +110,15 @@ export const VERSAO_CRITERIO_E7_SEM_REAIS: VersaoCriterio = {
   afeta: ['E7'],
 }
 
+/** Pedido 065 (K-205): a parte de bloqueio do O1, O2 e O5 saiu como "Sem dado real" na base real (antes saía zero). */
+export const VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-04-bloqueio-sem-dado-real',
+  data: '2026-11-04',
+  descricao:
+    'Na base real, a parte de bloqueio passou a sair como "Sem dado real" (antes saía zero): a coleta ainda não grava os bloqueios',
+  afeta: ['O1', 'O2', 'O5'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -119,6 +128,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_O20_DESTAQUE_V2,
   VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO,
   VERSAO_CRITERIO_E7_SEM_REAIS,
+  VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
 ]
 
 /**

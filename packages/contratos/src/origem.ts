@@ -22,9 +22,9 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O11',
   'O13',
   'EI_FL1',
-  // Pedido 060 (Q2 e QV1, decisões do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga) e os bloqueados (a carga real já lê os bloqueios).
+  // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
+  // Pedido 065 (lacuna L1 do 064, K-205): BLOQUEADOS saiu do mapa real, porque a coleta ainda não grava `fato_bloqueio` (volta no K-204).
   'PV1',
-  'BLOQUEADOS',
   // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S9 e S12 voltaram a mock: dependem de campo que a base real não tem.
   'S2',
   'S3',
@@ -43,6 +43,12 @@ export const MOTIVO_S12_REGISTRO_POSTERIOR =
   'aguardando fonte do registro posterior de exceção de SLA'
 export const MOTIVO_AGUARDANDO_PRAZOS_SLA = 'aguardando prazos de SLA por prioridade'
 export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
+/** Pedido 065 (K-205): motivo da BLOQUEADOS fora do mapa real e do "Sem dado real" na parte de bloqueio do O1, O2 e O5. */
+export const MOTIVO_BLOQUEIOS_NAO_COLETADOS = 'a coleta ainda não grava os bloqueios do quadro'
+/** Pedido 065: interruptor que o K-204 vira para `true` quando a coleta gravar `fato_bloqueio` com linhas reais. */
+export const BLOQUEIOS_COM_DADO_REAL = false
+/** Pedido 065: métricas cuja parte de bloqueio sai `null` (nunca 0) com a nota `bloqueio-sem-dado-real` na base real. */
+export const METRICAS_COM_PARTE_DE_BLOQUEIO: readonly MetricaId[] = ['O1', 'O2', 'O5']
 
 /**
  * Fictícias com motivo. FL1: campo ainda por criar na WS1 (H-13); O19 a O26 seguem mock até a F6b, sem motivo próprio.
@@ -67,6 +73,7 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   S12: MOTIVO_S12_REGISTRO_POSTERIOR,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
+  BLOQUEADOS: MOTIVO_BLOQUEIOS_NAO_COLETADOS,
 }
 
 /** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O19 a O26, FL2, FL3, Visão geral e a tendência da sustentação). */
@@ -110,11 +117,13 @@ export function corpoSemDadoReal(id: MetricaId): SemDadoReal {
 export const TEXTO_NOTA_CARTAO = {
   'sem-classe': 'Sem separação por classe até o quadro ter o campo.',
   'sle-nao-definido': 'SLE não definido.',
+  'bloqueio-sem-dado-real': `Bloqueios: sem dado real (${MOTIVO_BLOQUEIOS_NAO_COLETADOS}).`,
 } as const
 export type NotaCartaoId = keyof typeof TEXTO_NOTA_CARTAO
 export const NOTA_CARTAO_IDS = [
   'sem-classe',
   'sle-nao-definido',
+  'bloqueio-sem-dado-real',
 ] as const satisfies readonly NotaCartaoId[]
 export const notaCartaoIdSchema = z.enum(NOTA_CARTAO_IDS)
 
