@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 063-worklog-cards-acima-do-teto
 branch: feature/063-aviso-incompleto
-commit: 675ed965bfddb152f22b6a797c1deb4ff756c922
+commit: 27bae585b35733537e68c535746ddda3288e36da
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -16,7 +16,10 @@ data: 2026-11-04
 
 Links: especificação `docs/ux/063-aviso-registro-incompleto.md` (branch de docs, 12 CA; o CA-4 vale como "abre ao ativar o selo"), revisão de interface `docs/ux/063-revisao-aviso-incompleto.md`, review `docs/reviews/063-aviso-incompleto.md` (aprovado), segurança `docs/security/` do lote (aprovado, commit `9a4effc`).
 
-**Parecer: aprovado**, sem bug aberto, sobre a ponta `675ed96` (os commits depois dela, até `9a4effc`, só trazem pareceres). Diff `b446021..675ed96` conferido contra a lista de CA: nenhum escopo novo. Nenhum teste de produção foi alterado; o QA acrescentou só `e2e/tests/apontamento-incompleto-063.spec.ts`.
+**Parecer: aprovado** (E2.14, regravado na ponta `27bae58`), sem bug aberto. Diff `b446021..675ed96` conferido contra a lista de CA: nenhum escopo novo. Nenhum teste de produção foi alterado; o QA acrescentou só `e2e/tests/apontamento-incompleto-063.spec.ts`.
+
+## Regravação na ponta 27bae58 (E2.14)
+Diff `675ed96..27bae58` (E2E do QA em a4c9bba e merge da develop com o 060 web, PR 208, e o PR 203): sem mudança no E2E. O único arquivo depois de 27bae58 é o parecer de segurança. E2E rodado de novo (Chromium, 2 workers, nice 15, `E2E_PORTA=4183 E2E_SEM_ALT=1`): `apontamento-incompleto-063.spec.ts` mais `apontamento-qa.spec.ts` (aba do apontamento, tocada pelo merge do 060): 56 de 56 passaram em 1,3 min, inclusive axe em 1280 e 375 px e tema escuro. Unitários na ponta: web 1420 e server 1614 verdes pelo tech-lead (E2.11), não repetidos por mim. Sem achado novo; A1 a A3 seguem recomendados. Os números da execução abaixo são da rodada anterior em `675ed96`.
 
 ## Execução (resultado real, máquina com limite: nice 15, no máximo 2 workers)
 - server `vitest run --maxWorkers=2`: 80 arquivos passaram, 33 pulados (os `.pg`, que ficam com o dono); 1614 testes passaram, 232 pulados, 0 falhas.
