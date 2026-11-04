@@ -1,5 +1,5 @@
 import type { FiltrosFluxo } from '@metricas-dspd/contratos'
-import { Barras, SerieLinhas } from '@/components/charts'
+import { Barras, SerieLinhas, type SerieBarra } from '@/components/charts'
 import { CartaoMetrica, NumeroGrande } from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtData, fmtDataCurta, fmtInteiro, fmtPct, plural } from '@/lib/formatar'
@@ -7,20 +7,42 @@ import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 import { NOTAS_OPERACIONAL } from '../notas'
 import { propsCartao } from '@/features/painel/propsCartao'
 
+type Barra = { livres: number; bloqueados?: number }
+/** Sem bloqueio coletado (null) a barra mostra só o total em progresso: null nunca vira 0. */
+const valoresBarra = (itens: number, bloqueados: number | null): Barra =>
+  bloqueados === null ? { livres: itens } : { livres: itens - bloqueados, bloqueados }
+const seriesBarra = (semBloqueio: boolean): SerieBarra[] => [
+  { chave: 'livres', rotulo: 'Em progresso', cor: 1 as const, padrao: 'liso' as const },
+  ...(semBloqueio
+    ? []
+    : [
+        {
+          chave: 'bloqueados',
+          rotulo: 'Bloqueados (contam no WIP)',
+          cor: 2 as const,
+          padrao: 'hachura' as const,
+        },
+      ]),
+]
+
 /** O1: WIP e limite. A quebra por coluna só existe com uma equipe (porColuna != null); sempre mostra o tempo acima do limite. */
 export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
   const q = useMetrica('O1', filtros)
   const d = q.dados
   const h = d?.hoje
+  // Pedido 065: sem bloqueios coletados a parte vem null (nunca 0); o resto do cartão segue igual.
+  const semBloqueio =
+    !!d && (d.hoje.bloqueados === null || d.notas?.includes('bloqueio-sem-dado-real') === true)
   const leitura =
     d && h
-      ? `Hoje há ${fmtInteiro(h.total)} ${plural(h.total, 'item', 'itens')} em progresso para um limite de ${fmtInteiro(h.limite)} (${fmtInteiro(h.acimaDoLimite)} acima), ${fmtInteiro(h.bloqueados)} deles bloqueados. Nos últimos ${fmtInteiro(d.diasDentroDoLimite.n)} dias úteis o WIP ficou dentro do limite em ${fmtInteiro(d.diasDentroDoLimite.k)}.`
+      ? `Hoje há ${fmtInteiro(h.total)} ${plural(h.total, 'item', 'itens')} em progresso para um limite de ${fmtInteiro(h.limite)} (${fmtInteiro(h.acimaDoLimite)} acima), ${h.bloqueados === null ? 'bloqueados: sem dado real' : `${fmtInteiro(h.bloqueados)} deles bloqueados`}. Nos últimos ${fmtInteiro(d.diasDentroDoLimite.n)} dias úteis o WIP ficou dentro do limite em ${fmtInteiro(d.diasDentroDoLimite.k)}.`
       : undefined
   return (
     <CartaoMetrica
       {...propsCartao('O1', q, NOTAS_OPERACIONAL.O1)}
       {...(leitura ? { leitura } : {})}
       {...(d ? { statusMeta: d.statusMeta } : {})}
+      notasDoCartao={d?.notas}
       className="lg:col-span-6"
     >
       {d && h && (
@@ -41,24 +63,20 @@ export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
           />
           {d.porColuna ? (
             <Barras
-              descricao="WIP por coluna do fluxo, com bloqueados dentro do total"
+              descricao={
+                semBloqueio
+                  ? 'WIP por coluna do fluxo'
+                  : 'WIP por coluna do fluxo, com bloqueados dentro do total'
+              }
               orientacao="horizontal"
               modo="empilhado"
               unidade="itens"
               larguraRotulos={190}
               categorias={d.porColuna.map((c) => ({
                 rotulo: `${c.tipoColuna === 'fila' ? 'Fila · ' : ''}${c.coluna} (limite ${c.limite === null ? 'não definido' : fmtInteiro(c.limite)})`,
-                valores: { livres: c.itens - c.bloqueados, bloqueados: c.bloqueados },
+                valores: valoresBarra(c.itens, c.bloqueados),
               }))}
-              series={[
-                { chave: 'livres', rotulo: 'Em progresso', cor: 1, padrao: 'liso' },
-                {
-                  chave: 'bloqueados',
-                  rotulo: 'Bloqueados (contam no WIP)',
-                  cor: 2,
-                  padrao: 'hachura',
-                },
-              ]}
+              series={seriesBarra(semBloqueio)}
             />
           ) : (
             <div>
@@ -69,26 +87,27 @@ export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
                   : ''}
               </p>
               <Barras
-                descricao="WIP em Fila e em Execução, com bloqueados dentro do total"
+                descricao={
+                  semBloqueio
+                    ? 'WIP em Fila e em Execução'
+                    : 'WIP em Fila e em Execução, com bloqueados dentro do total'
+                }
                 orientacao="horizontal"
                 modo="empilhado"
                 unidade="itens"
                 altura={140}
                 categorias={d.porTipoColuna.map((c) => ({
                   rotulo: c.tipoColuna === 'fila' ? 'Fila' : 'Execução',
-                  valores: { livres: c.itens - c.bloqueados, bloqueados: c.bloqueados },
+                  valores: valoresBarra(c.itens, c.bloqueados),
                 }))}
-                series={[
-                  { chave: 'livres', rotulo: 'Em progresso', cor: 1, padrao: 'liso' },
-                  {
-                    chave: 'bloqueados',
-                    rotulo: 'Bloqueados (contam no WIP)',
-                    cor: 2,
-                    padrao: 'hachura',
-                  },
-                ]}
+                series={seriesBarra(semBloqueio)}
               />
             </div>
+          )}
+          {semBloqueio && (
+            <p className="text-sm text-texto-2" data-testid="o1-bloqueados-sem-dado">
+              Bloqueados: sem dado real. O WIP total e o limite seguem valendo.
+            </p>
           )}
           <SerieLinhas
             descricao="WIP total por dia útil, com o limite"

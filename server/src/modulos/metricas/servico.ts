@@ -1,5 +1,5 @@
 import {
-  CATALOGO_CARTOES, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICAS_COM_PARTE_DE_BLOQUEIO, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, pesquisa, type ContextosMetricas, type ExtensoesMetricas,
@@ -12,6 +12,7 @@ import type { Consultavel } from '../../plataforma/db/pool.js';
 import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
 import { dataCivil, lerEquipesBM, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
+import { semParteDeBloqueio } from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
@@ -292,6 +293,8 @@ export class ServicoMetricas {
     let resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
     // H-24: o SLE do O3 vem da governança (Q-7c); sem ele na base real o O3 sai com os percentis e a nota "SLE não definido".
     if (id === 'O3' && real && (bm as NonNullable<typeof bm>).sleDefinido !== true) resultado = { ...(resultado as object), notas: ['sle-nao-definido'] };
+    // Pedido 065 (K-205): a coleta ainda não grava bloqueios; na base real a parte de bloqueio sai `null` com nota, nunca zero. Só publicação: nada é recalculado.
+    if (real && !BLOQUEIOS_COM_DADO_REAL && METRICAS_COM_PARTE_DE_BLOQUEIO.includes(id)) resultado = semParteDeBloqueio(id, resultado);
     mapa.set(chave, resultado);
     if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
     return { resultado, dataReferencia, versaoCriterio, chave };
