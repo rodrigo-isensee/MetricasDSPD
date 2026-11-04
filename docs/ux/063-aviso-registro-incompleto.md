@@ -57,7 +57,7 @@ Qualquer pessoa que acompanha o painel (decisão do 059), em desktop ou celular,
 - Não depende de cor: ícone e texto na faixa e no selo; o tom é neutro e o contraste de texto é de 4.5:1 ou mais, o do ícone e da borda, 3:1 ou mais.
 - Faixa com `role="status"` (anuncia ao entrar sem tirar o foco); o rótulo da seção pode incluir o aviso, como já ocorre com o nome real. Cuidado para não anunciar duas vezes: só um dos dois leva o texto completo.
 - "Ver quais cards": botão nativo, `aria-expanded`, `aria-controls`, operável por Enter e Espaço; foco visível.
-- Dica do selo: aparece ao foco e ao toque, não só ao passar o mouse; fecha com Esc; texto também na coluna "Observação" da tabela.
+- Dica do selo: abre ao ativar o selo (clique, toque, Enter ou Espaço), não ao receber foco nem só ao passar o mouse; fecha com Esc; texto também na coluna "Observação" da tabela.
 - Ordem de foco: faixa, botão da lista, filtros. Respeita `prefers-reduced-motion` (a expansão não anima ou usa animação mínima).
 
 ## Regras de conteúdo
@@ -97,7 +97,7 @@ Para o back-end (o contrato é do back-end; o sinal e a origem são da E1.1):
 - CA-1 QUANDO a resposta da aba traz ao menos um card com registro incompleto no recorte O SISTEMA DEVE exibir, abaixo da legenda da finalidade, a faixa "Registro de horas incompleto em {n} cards" (singular com n = 1) com ícone e o corpo de microcopy.
 - CA-2 QUANDO a pessoa aciona "Ver quais cards" O SISTEMA DEVE expandir a lista com identificador, título e projeto de cada card, marcar `aria-expanded="true"` e não exibir pessoa, horas nem quantidade faltante.
 - CA-3 QUANDO um projeto do cartão `ap-projeto` contém card incompleto O SISTEMA DEVE exibir o selo "Horas incompletas" (ícone e texto) na linha dele, sem alterar a ordem nem o tamanho da barra, e a coluna "Observação" na tabela alternativa.
-- CA-4 QUANDO o selo recebe foco ou toque O SISTEMA DEVE exibir a dica completa, e fechá-la com Esc.
+- CA-4 QUANDO a pessoa ativa o selo (clique, toque, Enter ou Espaço) O SISTEMA DEVE abrir a dica completa ao ativar o selo (e não ao receber foco), e fechá-la com Esc.
 - CA-5 ENQUANTO a faixa está visível O SISTEMA DEVE mantê-la sem botão de dispensa e sem ocultação pela preferência "Ocultar cartões".
 - CA-6 QUANDO a resposta da aba deixa de trazer card incompleto (a coleta por período completou o card) O SISTEMA DEVE remover a faixa, os selos e a nota dos KPIs no mesmo carregamento, sem guardar o aviso no navegador.
 - CA-7 SE os filtros ativos deixam nenhum card incompleto no recorte ENTÃO O SISTEMA DEVE ocultar a faixa e os selos (sujeito à hipótese de recorte do Lugar 1).
