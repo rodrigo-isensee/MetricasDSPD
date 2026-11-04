@@ -1,5 +1,5 @@
 import { SeloFrescor, Icone } from '@/components/ui'
-import { fmtData } from '@/lib/formatar'
+import { fmtData, fmtDataHoraCurta } from '@/lib/formatar'
 import { useId, useState } from 'react'
 import { horasDesde } from '../formatar'
 import {
@@ -12,6 +12,14 @@ import {
 } from '../textos'
 import type { RespostaApontamento } from '../types'
 
+/** Última coleta parcial mais nova que a última ok (ou sem ok): devolve o fim dela; senão, null. */
+function fimParcialRecente(frescor: RespostaApontamento['frescor']): string | null {
+  const t = frescor.ultimaTentativa
+  if (t?.resultado !== 'parcial') return null
+  if (frescor.ultimaColetaOk && Date.parse(t.fim) <= Date.parse(frescor.ultimaColetaOk)) return null
+  return t.fim
+}
+
 /** Selo de frescor da fonte BusinessMap e período dos dados (CA-1); sem resposta, só o aviso de carregamento. */
 export function FrescorEPeriodo({ resposta }: { resposta: RespostaApontamento | undefined }) {
   if (!resposta)
@@ -21,6 +29,7 @@ export function FrescorEPeriodo({ resposta }: { resposta: RespostaApontamento | 
         Carregando apontamentos
       </p>
     )
+  const fimParcial = fimParcialRecente(resposta.frescor)
   return (
     <div className="flex flex-wrap items-center gap-3">
       <SeloFrescor
@@ -28,6 +37,12 @@ export function FrescorEPeriodo({ resposta }: { resposta: RespostaApontamento | 
         horas={horasDesde(resposta.frescor.ultimaColetaOk)}
         testid="selo-frescor-businessmap"
       />
+      {fimParcial && (
+        <span className="flex items-center gap-1 text-sm text-atencao" data-testid="aviso-parcial">
+          <Icone nome="alerta" className="size-4" /> Última coleta parcial em{' '}
+          {fmtDataHoraCurta(fimParcial)}: o período pode estar incompleto.
+        </span>
+      )}
       <span className="text-sm text-texto-2" data-testid="periodo-dos-dados">
         Dados de {fmtData(resposta.periodo.de)} a {fmtData(resposta.periodo.ate)}
       </span>

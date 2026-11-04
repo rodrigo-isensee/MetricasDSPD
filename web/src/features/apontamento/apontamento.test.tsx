@@ -133,6 +133,48 @@ describe('CA-1: cabeçalho, frescor e período', () => {
     expect(screen.getByTestId('kpi-apontamentos')).toBeInTheDocument()
   })
 
+  describe('aviso de última coleta parcial (069 M1-a)', () => {
+    const OK = '2026-10-30T06:10:00-03:00'
+    const comTentativa = (
+      resultado: 'ok' | 'parcial' | 'falha',
+      fim: string,
+      ultimaColetaOk: string | null = OK,
+    ) =>
+      fonteCom({
+        ...RESPOSTA_FICTICIA,
+        frescor: { selo: 'atual', ultimaColetaOk, ultimaTentativa: { resultado, fim } },
+      })
+
+    it('parcial mais nova que a última ok: mostra o aviso com data e hora', async () => {
+      await cartao('AP-KPIS', URL_ABA, comTentativa('parcial', '2026-10-31T07:05:00-03:00'))
+      expect(screen.getByTestId('aviso-parcial')).toHaveTextContent(
+        'Última coleta parcial em 31/10 07:05: o período pode estar incompleto',
+      )
+    })
+
+    it('parcial sem nenhuma coleta ok: mostra o aviso', async () => {
+      await cartao('AP-KPIS', URL_ABA, comTentativa('parcial', '2026-10-31T07:05:00-03:00', null))
+      expect(screen.getByTestId('aviso-parcial')).toBeInTheDocument()
+    })
+
+    it.each([
+      ['parcial mais antiga que a última ok', comTentativa('parcial', '2026-10-29T07:05:00-03:00')],
+      ['última tentativa ok', comTentativa('ok', '2026-10-31T07:05:00-03:00')],
+      ['última tentativa falha', comTentativa('falha', '2026-10-31T07:05:00-03:00')],
+      [
+        'sem tentativa (null)',
+        fonteCom({
+          ...RESPOSTA_FICTICIA,
+          frescor: { selo: 'atual', ultimaColetaOk: OK, ultimaTentativa: null },
+        }),
+      ],
+      ['campo ausente (resposta antiga)', fonteCom(RESPOSTA_FICTICIA)],
+    ])('sem aviso: %s', async (_nome, fonte) => {
+      await cartao('AP-KPIS', URL_ABA, fonte)
+      expect(screen.queryByTestId('aviso-parcial')).toBeNull()
+    })
+  })
+
   it('mostra a legenda da finalidade e o texto longo com as quatro cláusulas', async () => {
     renderizar()
     const legenda = await screen.findByTestId('legenda-finalidade')
