@@ -150,11 +150,11 @@ export const NOTAS_COMPLEMENTARES: Record<Id, TextoNota> = {
     oQueE:
       'A parcela dos incidentes abertos que são reincidentes, isto é, voltaram como novo chamado com o ticket anterior informado.',
     comoSeCalcula:
-      'Reincidentes ÷ incidentes abertos, por mês de abertura; o próprio chamado reincidente conta no mês em que foi aberto. Reincidente = chamado com o campo de reincidência preenchido com o ticket anterior.',
+      'Incidentes com resposta "sim" ÷ incidentes com resposta (sim ou não) no campo "Este problema já ocorreu nos últimos 90 dias?", por mês de abertura. Sem resposta fica fora da conta. Só publica com 20 ou mais incidentes com resposta.',
     comoLer: 'Reabertura alta sugere correção que não resolveu.',
     meta: 'Abaixo de 5%.',
     cuidados:
-      'Depende do preenchimento do campo de reincidência: o cartão mostra em quantos chamados ele foi informado.',
+      'Depende do preenchimento do campo no Acelerato: com menos de 20 incidentes com resposta, o cartão mostra dados insuficientes até o campo ser preenchido.',
   },
   S9: {
     oQueE:

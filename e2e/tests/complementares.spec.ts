@@ -205,8 +205,8 @@ test.describe('complementares: fluxos a 1280 px', () => {
     const det = page.getByTestId('mais-metricas')
     if ((await det.getAttribute('open')) === null) await det.locator('summary').click()
     const s8 = page.getByTestId('metrica-S8')
-    await expect(s8).toContainText('com o campo de reincidência informado')
-    await expect(s8.getByRole('columnheader', { name: 'Informados' })).toBeVisible()
+    await expect(s8).toContainText('com resposta no campo de reincidência')
+    await expect(s8.getByRole('columnheader', { name: 'Com resposta' })).toBeVisible()
     const s12 = page.getByTestId('metrica-S12')
     await expect(s12.getByRole('columnheader', { name: 'Com campo informado' })).toBeVisible()
     // A base fictícia preenche o campo em todos os chamados (cobertura 100%): nenhum aviso de cobertura.
