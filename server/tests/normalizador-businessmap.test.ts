@@ -277,8 +277,7 @@ describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id ->
     expect(com.dim).toEqual(sem.dim);
     expect(com.notas).toEqual(sem.notas);
     for (const c of LISTA) expect(sem.dim[c]).toBeNull();
-    const { classe_servico: _a, sistema: _b, area_solicitante: _c, fornecedor: _d, objetivo_estrategico: _e, tamanho_declarado: _f,
-      responsabilidade_atraso: _g, origem_demanda: _h, fase_deteccao: _i, severidade: _j, ...antes } = sem.dim;
+    const antes = Object.fromEntries(Object.entries(sem.dim).filter(([k]) => !(LISTA as readonly string[]).includes(k)));
     expect(Object.keys(antes)).toEqual(['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em',
       'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em']);
   });
