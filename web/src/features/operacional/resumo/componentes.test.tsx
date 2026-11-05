@@ -238,6 +238,7 @@ const q = (estado: MetricaQuery<never>['estado'], dados?: unknown): MetricaQuery
   estado,
   dados: dados as never,
   erro: null,
+  origem: 'real',
   atualizando: false,
   recarregar: vi.fn(),
 })

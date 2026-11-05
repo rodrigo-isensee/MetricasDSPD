@@ -12,6 +12,13 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - BusinessMap: mapa de campos e `bm:ref-sync` (lote L2-a) (#220) e projeção das colunas de lista do `dim_card` (lote L2-b) (#221).
 - Acelerato: S3 e S2 sem zero falso nos campos que o Acelerato não traz (lote L9-a) (#225) e campos de etapa até o staging (lote L9-b) (#224).
 - Documentação: plano, ADR 0025 e especificação do aviso de registro incompleto (pedido 063) (#212).
+- Referência: calendário por domínio (BusinessMap e Acelerato) em arquivo versionado e `ref:sync-calendario`, começando pelos feriados nacionais 2025-2026 do código (pedido 069, lote L7-a; ADR 0027) (#222).
+- Métricas do fluxo e da sustentação leem o calendário da referência do próprio domínio (pedido 069, lote L7-b) (#232).
+- Painéis: dado simulado por cartão com o selo Simulado onde ainda não há dado real, fora do Resumo, da Visão geral e da exportação (pedido 070, L1 e L2) (#230); E2E de API do simulado e medição C6 no perf-api (pedido 070, L3) (#233).
+- Documentação: ADR 0028 e desenho do 070 passam a vigente (#234).
+
+### Corrigido
+- Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
 
 ### Desempenho
 - Nenhuma mudança nesta versão.
@@ -24,9 +31,11 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - 2026-11-04, S8 (Acelerato): conta só incidentes com resposta; sem resposta sai do denominador e abaixo de 20 não publica (decisão do dono, pedido 066; versão `066:S8-com-resposta`) (#216).
 - Pedido 065: versão de critério registrada em `core/criterios.ts` para BLOQUEADOS e O5 (#214).
 - Lote L9-b: versão `069:L9-b-campos-etapa`, sem métrica afetada (#224). L3-a e L9-a não recalculam e ficam sem versão.
+- Lote L7: o calendário passa a vir da referência; com o arquivo inicial nenhum número muda (teste de paridade); cada mudança do arquivo aplicada pelo `ref:sync-calendario` grava versão de critério do domínio, com data e marca (ADR 0027) (#222, #232). O simulado do 070 não entra em cálculo e fica sem versão.
 
 ### Dependências e Forge
 - `zod` 4 e `ws` 8.22.0 para 8.22.1 (#218).
+- Forge 0.32.0 (#223). Sem dependência nova; `server/package.json` ganha só o script `ref:sync-calendario` (#222).
 
 ## [0.2.0] - 2026-10-29
 

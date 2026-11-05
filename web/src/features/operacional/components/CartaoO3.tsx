@@ -20,7 +20,7 @@ const VALORES = TIPOS_CARD.map(slug)
 
 /** O3: tempo de ciclo, UM tipo por vez. Percentis só com 20 itens ou mais; média nunca é exibida. */
 export function CartaoO3({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O3', filtros)
+  const q = useMetrica('O3', filtros, { simulado: true })
   const d = q.dados
   const maior = d ? tipoPredominante(d)?.tipo : undefined
   const [aba, setAba] = useParametroLocal('o3', VALORES, slug(maior ?? TIPOS_CARD[0]))

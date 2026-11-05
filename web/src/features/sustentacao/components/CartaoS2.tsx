@@ -32,7 +32,7 @@ function Resultado({ c }: { c: Celula }) {
 
 export function CartaoS2({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S2')
-  const q = useMetrica('S2', filtros)
+  const q = useMetrica('S2', filtros, { simulado: true })
   const d = q.dados
   const ref = d?.prioridades.find(
     (p) => p.primeiroAtendimento.taxa.status === 'ok' && p.restauracao.taxa.status === 'ok',

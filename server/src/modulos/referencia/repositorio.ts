@@ -51,3 +51,24 @@ export async function lerVersaoCriterioVigente(db: Consultavel, ate: string, S: 
      ORDER BY vigente_desde DESC, versao_id DESC LIMIT 1`, [ate]);
   return r.rows[0] === undefined ? null : String(r.rows[0].versao_id);
 }
+
+export type CalendarioDaReferencia = { feriados: string[]; offsetMinutos: number };
+
+/**
+ * Calendário vigente de um domínio e classe na referência (`ref_calendario_aplicacao` com `vigente_ate` nulo): feriados e deslocamento.
+ * `null` = sem carga na referência (quem chama decide o padrão). Ponto único de leitura da aba Apontamento e das métricas (pedido 069, L7-b;
+ * ADR 0027): o domínio é sempre parâmetro, então BusinessMap e Acelerato nunca leem o calendário um do outro.
+ */
+export async function lerCalendarioVigente(
+  db: Consultavel, S: Esquemas | undefined, dominio: 'businessmap' | 'acelerato', classe: string,
+): Promise<CalendarioDaReferencia | null> {
+  const E = S ?? esquemasDoAmbiente();
+  const a = await db.query<{ calendario_id: string; offset_minutos: number }>(
+    `SELECT a.calendario_id, c.offset_minutos FROM ${E.core}.ref_calendario_aplicacao a
+     JOIN ${E.core}.ref_calendario c ON c.calendario_id = a.calendario_id
+     WHERE a.dominio = $1 AND a.classe = $2 AND a.vigente_ate IS NULL`, [dominio, classe]);
+  const cal = a.rows[0];
+  if (cal === undefined) return null;
+  const f = await db.query<{ data: string }>(`SELECT data FROM ${E.core}.ref_feriado WHERE calendario_id = $1::smallint ORDER BY data`, [cal.calendario_id]);
+  return { feriados: f.rows.map((x) => x.data), offsetMinutos: cal.offset_minutos };
+}

@@ -1,5 +1,5 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS, origemDaMetrica, podeSimular, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -96,7 +96,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     const m = await fora.app.inject('/api/v1/metricas/O8');
     expect(m.statusCode).toBe(200);
     expect(m.headers['x-estado-dado']).toBe('sem-dado-real');
-    expect(m.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O8', motivo: 'aguardando campo no quadro' });
+    expect(m.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O8', motivo: 'aguardando campo no quadro', simulavel: true });
     expect(fora.d.chamadas).toHaveLength(0);
   });
 
@@ -124,8 +124,24 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     const { app } = await montar({ chamados: [] });
     const r = await app.inject('/api/v1/metricas/VISAO_GERAL');
     expect(r.statusCode).toBe(200);
-    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'VISAO_GERAL', motivo: 'fonte real ainda não definida' });
+    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'VISAO_GERAL', motivo: 'fonte real ainda não definida', simulavel: false });
   });
+
+  it('T-S1: toda métrica fora do mapa real responde 200 com simulavel igual a podeSimular e sem número; a real não tem estado nem simulavel', async () => {
+    const { app } = await montar({ sle: true });
+    for (const id of METRICA_IDS.filter((m) => origemDaMetrica(m) !== 'real')) {
+      const r = await app.inject(`/api/v1/metricas/${id}`);
+      expect(r.statusCode, id).toBe(200);
+      const corpo = r.json();
+      expect(corpo.simulavel, id).toBe(podeSimular(id));
+      expect(Object.keys(corpo).sort(), id).toEqual(['estado', 'metrica', 'motivo', 'simulavel']);
+    }
+    for (const id of ['O3', 'O4'] as MetricaId[]) {
+      const corpo = (await app.inject(`/api/v1/metricas/${id}`)).json();
+      expect(corpo, id).not.toHaveProperty('estado');
+      expect(corpo, id).not.toHaveProperty('simulavel');
+    }
+  }, 60_000);
 
   it('o estado "sem dado real" leva cache e ETag como as demais, a data pedida vale e data futura segue 400 (nada é lido)', async () => {
     const { app, d } = await montar();
@@ -148,7 +164,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       const j = r.json() as { estado: string; motivo: string };
-      expect(Object.keys(j).sort(), id).toEqual(['estado', 'metrica', 'motivo']);
+      expect(Object.keys(j).sort(), id).toEqual(['estado', 'metrica', 'motivo', 'simulavel']);
       expect(j.motivo.length, id).toBeGreaterThan(0);
     }
     expect(d.chamadas).toHaveLength(0);
@@ -326,7 +342,7 @@ describe('pedido 065: bloqueios sem dado real na base real', () => {
     const r = await app.inject('/api/v1/metricas/BLOQUEADOS');
     expect(r.statusCode).toBe(200);
     expect(r.headers['x-estado-dado']).toBe('sem-dado-real');
-    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'BLOQUEADOS', motivo: 'a coleta ainda não grava os bloqueios do quadro' });
+    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'BLOQUEADOS', motivo: 'a coleta ainda não grava os bloqueios do quadro', simulavel: true });
     expect(r.json()).not.toHaveProperty('itens');
     expect(d.chamadas).toHaveLength(0);
   });
@@ -361,7 +377,7 @@ describe('pedido 065: bloqueios sem dado real na base real', () => {
     const r = await app.inject('/api/v1/metricas/O5');
     expect(r.statusCode).toBe(200);
     expect(r.headers['x-estado-dado']).toBe('sem-dado-real');
-    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O5', motivo: MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS });
+    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O5', motivo: MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS, simulavel: true });
     expect(r.json()).not.toHaveProperty('tipos');
     expect(d.chamadas).toHaveLength(0);
     const m = (await (await mock()).inject('/api/v1/metricas/O5')).json() as { estado?: string; tipos: unknown[] };

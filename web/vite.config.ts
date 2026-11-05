@@ -33,6 +33,13 @@ export default defineConfig({
               priority: 15,
               test: /node_modules[\\/](jspdf|fflate|fast-png|iobuffer|svg-pathdata)[\\/]/,
             },
+            // Catálogo de métricas (texto da interface, não é mock nem biblioteca): chunk com nome próprio, para o gate de
+            // tamanho (F9) não o somar ao mock só porque o arquivo se chama "catalogo-metricas" (a classificação é por nome).
+            {
+              name: 'catalogo-textos',
+              priority: 12,
+              test: /src[\\/]content[\\/]catalogo-metricas\.ts$/,
+            },
             {
               name: 'graficos',
               priority: 10,

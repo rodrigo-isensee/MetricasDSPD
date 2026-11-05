@@ -15,6 +15,8 @@ export interface OpcoesMock {
   semente?: number
   /** Data de corte ISO com fuso (ex.: 2026-10-09T18:00:00-03:00). */
   hoje?: string
+  /** Só o dia de referência (AAAA-MM-DD); a hora de corte vem do padrão do gerador, dentro do núcleo. Vale se não houver `hoje`. */
+  dia?: string
   /**
    * Atraso artificial por chamada de métrica (D7). Sem valor: sorteia 150 a 400 ms por chamada
    * pelo PRNG com semente. `0` desliga (testes unitários e E2E); outro número fixa o atraso.
@@ -105,6 +107,7 @@ export class MockFonteMetricas implements FonteMetricas {
         {
           ...(this.opcoes.semente !== undefined && { semente: this.opcoes.semente }),
           ...(this.opcoes.hoje !== undefined && { hoje: this.opcoes.hoje }),
+          ...(this.opcoes.dia !== undefined && { dia: this.opcoes.dia }),
         },
       ],
     }).then((b) => (b as { bootMs: number }).bootMs)

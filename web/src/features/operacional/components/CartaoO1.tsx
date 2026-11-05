@@ -27,7 +27,7 @@ const seriesBarra = (semBloqueio: boolean): SerieBarra[] => [
 
 /** O1: WIP e limite. A quebra por coluna só existe com uma equipe (porColuna != null); sempre mostra o tempo acima do limite. */
 export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O1', filtros)
+  const q = useMetrica('O1', filtros, { simulado: true })
   const d = q.dados
   const h = d?.hoje
   // Pedido 065: sem bloqueios coletados a parte vem null (nunca 0); o resto do cartão segue igual.

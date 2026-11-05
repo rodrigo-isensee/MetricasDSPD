@@ -9,7 +9,7 @@ import { NOTAS_ESTRATEGICO } from '../notas'
 import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 
 export function CartaoE1({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('E1', filtros)
+  const q = useMetrica('E1', filtros, { simulado: true })
   const d = q.dados
   const segmentos = d?.segmentos ?? []
   const chaves = segmentos.map((s) => s.chave)

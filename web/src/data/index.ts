@@ -19,3 +19,13 @@ export { HttpFonteMetricas, PAGINA_O2 } from './http/HttpFonteMetricas'
 export { ErroApi } from './http/ErroApi'
 export { SemDadoRealErro, motivoSemDadoReal } from './http/SemDadoRealErro'
 export { filtrosParaQuery } from './http/filtrosParaQuery'
+export { FonteComSimulado, type CriarMock } from './FonteComSimulado'
+export {
+  ehFonteSimuladora,
+  filtrosSoPeriodo,
+  RegistroSimulados,
+  SEM_SIMULADOS,
+  type FonteSimuladora,
+  type OrigemSimulada,
+  type OrigensSimuladas,
+} from './simulado'
