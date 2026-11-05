@@ -3,6 +3,7 @@ import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { lerCriterios } from '../src/modulos/apontamento/repositorio.js';
+import { analisarCalendario, sincronizarCalendario } from '../src/modulos/referencia/calendario.js';
 import { registrarCriteriosApontamento } from '../src/modulos/referencia/criterios-apontamento.js';
 import { novaColeta, poolDe, S, url } from './pg/ctx.js';
 
@@ -270,6 +271,41 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
       expect(achado?.descricao).toContain('variação de utilização 10 pontos');
       expect(criterios.find((x) => x.data === '2031-02-10' && x.descricao.includes('10 h'))?.descricao).toContain('antes: 16 h');
       expect(criterios.filter((x) => x.data === '2031-02-11')).toEqual([]);
+    } finally {
+      await c.query('ROLLBACK');
+      c.release();
+    }
+  });
+
+  it('069/L7-a: com o calendário carregado, o feriado deixa de contar como dia útil na capacidade e a versão aparece em criterios', async () => {
+    // A pessoa A apontou de 2031-01-06 a 2031-02-03; 2031-01-20 é segunda-feira. A carga e a leitura ficam numa transação desfeita do dono (a
+    // referência é append-only e não pode sobrar para os outros testes); o papel `dspd_ref` tem o teste próprio em calendario-referencia.pg.test.ts.
+    const c = await dono.connect();
+    const consultarCom = async (): Promise<ReturnType<typeof respostaApontamentoSchema.parse>> => {
+      const app = await buildApp({ db: api, S, agora: () => AGORA, nivelLog: 'silent', apontamento: { pool: c, nomesReais: false } });
+      try {
+        const r = await app.inject({ method: 'GET', url: `/api/apontamento?${JANELA}`, headers: { host: 'localhost:3000' } });
+        expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+        return respostaApontamentoSchema.parse(r.json());
+      } finally {
+        await app.close();
+      }
+    };
+    const diasDaA = (r: ReturnType<typeof respostaApontamentoSchema.parse>): number => r.capacidade.porPessoa.find((p) => p.pessoaRef === `p${refs.a}`)!.diasUteis;
+    try {
+      await c.query('BEGIN');
+      const antes = await consultarCom();
+      const texto = JSON.stringify({
+        versao: 1, regra: 'teste', versao_criterio: { descricao: 'Feriados do teste 069', motivo: 'Teste da rota' },
+        calendarios: [{ nome: 'rota-bm', dominio: 'businessmap', offset_minutos: -180, feriados: [{ data: '2031-01-20', escopo: 'nacional', descricao: 'Feriado de teste' }] }],
+        aplicacoes: [{ dominio: 'businessmap', classe: 'apontamento', calendario: 'rota-bm' }],
+      });
+      const pool = { query: (t: string, v?: unknown[]) => c.query(t, v), connect: () => Promise.resolve({ query: (t: string, v?: unknown[]) => (['BEGIN', 'COMMIT', 'ROLLBACK'].includes(t) ? Promise.resolve({ rows: [], rowCount: 0 }) : c.query(t, v)), release: () => undefined }), end: () => Promise.resolve() };
+      await sincronizarCalendario(pool, S, analisarCalendario(texto), '2031-02-10', AGORA);
+      const depois = await consultarCom();
+      expect(diasDaA(depois)).toBe(diasDaA(antes) - 1);
+      expect(antes.criterios.some((x) => x.descricao === 'Feriados do teste 069')).toBe(false);
+      expect(depois.criterios.find((x) => x.descricao === 'Feriados do teste 069')?.data).toBe('2031-02-10');
     } finally {
       await c.query('ROLLBACK');
       c.release();

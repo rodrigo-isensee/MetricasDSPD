@@ -6,3 +6,7 @@ export { CRITERIOS_APONTAMENTO, METRICA_ACHADOS_APONTAMENTO, registrarCriteriosA
 export {
   ARQUIVO_DOMINIO, CAMPOS_DOMINIO, ErroDominio, analisarDominio, dataCivilValida, lerDominio, planejarDominio, sincronizarDominio, type ResultadoDominio,
 } from './dominio-acelerato.js';
+export {
+  ARQUIVO_CALENDARIO, CLASSES_CALENDARIO, ErroCalendario, METRICAS_CALENDARIO, analisarCalendario, lerCalendario, planejarCalendario, sincronizarCalendario,
+  type ResultadoCalendario,
+} from './calendario.js';
