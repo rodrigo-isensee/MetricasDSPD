@@ -5,7 +5,8 @@ import { contarColetasDoSeed, descreverColetasDoSeed, tomarTravaDoSeed } from '.
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { ErroBusinessMap, type ClienteHttp } from '../../plataforma/http.js';
 import { fecharColeta, type StatusFinal } from '../operacao/index.js';
-import { CAMPOS_CARD, extrairResponsaveis, revisionIdDaTransicao, transicoesDoCard, type DominiosCamposCustomizados } from './allow-list.js';
+import { CAMPOS_CARD, CAMPOS_CUSTOMIZADOS_FORA, COLUNAS_LISTA, extrairResponsaveis, revisionIdDaTransicao, transicoesDoCard, type DominiosCamposCustomizados } from './allow-list.js';
+import { CAMPO_CUSTOMIZADO, dominiosDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
 import { ErroReferencia } from './referencia.js';
 import { desembrulhar } from './spike-forma.js';
 import { gravarStgCard, gravarStgRevision } from './staging.js';
@@ -35,14 +36,17 @@ export const CAMPOS_PEDIDO_CARDS = [...CAMPOS_CARD, 'owner_user_id', 'block_reas
  * `co_owner_ids` (E2.83): os co-responsáveis do card (ADR 0020, 4b e 4c), só em memória, para `dim_card.responsaveis` e o O26.
  */
 export const EXPAND_COLETA = 'custom_fields,linked_cards,transitions,co_owner_ids';
-export const CAMPOS_CUSTOMIZADOS_FORA = ['36', '42'] as const;
+export { CAMPOS_CUSTOMIZADOS_FORA };
 
-/** Mapa `field_id` -> domínio (ADR 0020, 4d). Vazio: ainda não há mapa (A6 da F2); campo sem entrada não é gravado. */
-const MAPA_DOMINIOS: DominiosCamposCustomizados = new Map();
-export function dominiosDaColeta(): DominiosCamposCustomizados {
-  const m = new Map(MAPA_DOMINIOS);
-  for (const f of CAMPOS_CUSTOMIZADOS_FORA) m.delete(f);
-  return m;
+/**
+ * Mapa `field_id` -> domínio (ADR 0020, 4d), montado do `ref_dominio` vigente (carregado do arquivo versionado pelo `bm:ref-sync`, pedido 069 L2-a).
+ * Sem linha vigente, o mapa é vazio e nenhum campo é gravado. Os fields 36 e 42 saem do mapa depois da leitura, mesmo que alguém os insira no banco.
+ */
+export async function dominiosDaColeta(db: Consultavel, S: Esquemas): Promise<DominiosCamposCustomizados> {
+  const r = await db.query<LinhaRefDominio>(
+    `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE vigente_ate IS NULL AND campo = ANY($1::text[]) ORDER BY campo, ordem, codigo`,
+    [[CAMPO_CUSTOMIZADO, ...COLUNAS_LISTA]]);
+  return dominiosDeLinhas(r.rows);
 }
 
 export class ErroColetaBm extends Error {
@@ -288,12 +292,13 @@ export async function coletarCards(d: DepsColeta, modo: ModoColeta): Promise<Res
     tipo: modo.tipo, host_sha256: sha256(d.hostBase), quadros_sha256: sha256([...d.quadros].join(',')), paginas,
     ...(inicioCarga === null ? {} : { inicio_carga: inicioCarga, iniciada_em: iso(iniciadaEm) }),
   };
+  const dominios = await dominiosDaColeta(d.pool, S);
   const aberta = await d.pool.query<{ coleta_id: string }>(
     `INSERT INTO ${S.bm}.ctl_coleta (tarefa, iniciado_em, status, marca_dagua_de, sobreposicao_s, versao_coletor, parametros)
      VALUES ('coleta_incremental', $1, 'em_andamento', $2, $3, $4, $5::jsonb) RETURNING coleta_id`,
     [inicio, marcaDe, modo.tipo === 'incremental' ? SOBREPOSICAO_S : 0, VERSAO_COLETOR, JSON.stringify(parametros)]);
   const coletaId = Number(aberta.rows[0]!.coleta_id);
-  const x: Execucao = { d, S, coletaId, filtro, dominios: dominiosDaColeta(), vistos: new Set(), falhas: [], motivosPendentes: [] };
+  const x: Execucao = { d, S, coletaId, filtro, dominios, vistos: new Set(), falhas: [], motivosPendentes: [] };
 
   try {
     let referencia: unknown = null;

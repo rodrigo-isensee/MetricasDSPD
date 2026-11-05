@@ -1,7 +1,7 @@
 import {
   FLAGS_QUALIDADE, MAX_ROTULO, PESSOA_OUTRA_AREA, ROTULO_PESSOA_NAO_IDENTIFICADA, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
 } from '@metricas-dspd/contratos';
-import { calcularApontamento, ordenarPorPessoa, type LinhaApontamento } from '@metricas-dspd/metricas/businessmap';
+import { calcularApontamento, LIMITE_ATIPICO_SEGUNDOS_PADRAO, ordenarPorPessoa, type LinhaApontamento } from '@metricas-dspd/metricas/businessmap';
 import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
@@ -11,8 +11,8 @@ import { lerCalendario, lerCardsIncompletos, lerCriterios, lerHistorico, lerLinh
 // (soma, capacidade, utilização, distribuição, qualidade, matriz, diário, achados, piso de 20) é de `calcularApontamento`, da biblioteca T2.5.
 // Só o BusinessMap. Pessoa só por `pessoaRef` (chave opaca); o nome sai apenas com `nomesReais` (R4-5) e só em `opcoes.pessoas[].rotulo`.
 
-/** Soma do dia da pessoa acima disto vira `valor-atipico` (proposta do UX, P-4: 16 h). Marca, nunca descarta. */
-export const LIMITE_ATIPICO_SEGUNDOS = 16 * 3600;
+/** Soma do dia da pessoa acima disto vira `valor-atipico` (decisão do dono, pedido 067, 2026-11-04: 10 h; antes 16 h). Marca, nunca descarta. */
+export const LIMITE_ATIPICO_SEGUNDOS = LIMITE_ATIPICO_SEGUNDOS_PADRAO;
 /** Período padrão do painel (P-3 do UX): 12 semanas terminando hoje; mapa diário: 4 semanas. */
 export const DIAS_PERIODO_PADRAO = 84;
 export const DIAS_DIARIO_PADRAO = 28;
@@ -147,7 +147,8 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
     versaoContrato: 1,
     dominio: 'businessmap',
     periodo,
-    frescor: { selo: seloFrescor(ultimaOk === null ? null : eventoDe(ultimaOk), ultima === null ? null : eventoDe(ultima), d.agora().getTime()), ultimaColetaOk: fimOk === null ? null : isoLocal(fimOk) },
+    frescor: { selo: seloFrescor(ultimaOk === null ? null : eventoDe(ultimaOk), ultima === null ? null : eventoDe(ultima), d.agora().getTime()), ultimaColetaOk: fimOk === null ? null : isoLocal(fimOk),
+      ultimaTentativa: ultima === null ? null : { resultado: RESULTADO[ultima.status], fim: isoLocal(ultima.finalizadoEm.getTime()) } },
     nomesReais: d.nomesReais,
     opcoes: {
       pessoas,

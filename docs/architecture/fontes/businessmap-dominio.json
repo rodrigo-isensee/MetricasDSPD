@@ -1,0 +1,13 @@
+{
+  "versao": 1,
+  "versao_criterio": {
+    "dominio": "businessmap",
+    "descricao": "Mapa de campos customizados do BusinessMap para colunas de lista de dim_card e seus domínios fechados (vazio de campos até o diagnóstico P-L2-1)",
+    "motivo": "Pedido 069, L2-a (K-220): o mapa deixa de ser constante do código e passa a vir deste arquivo versionado, carregado pelo bm:ref-sync. O arquivo nasce sem campos: o preenchimento é das pessoas e do dono (P-L2-1), em PR próprio com parecer de segurança",
+    "referencia": "pedido 069, E1.2; docs/analises/069-desenho.md (Lote L2-a); docs/security/069-modelo-ameacas.md"
+  },
+  "schema": "dspd_bm",
+  "tabela": "ref_dominio",
+  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna",
+  "campos": []
+}

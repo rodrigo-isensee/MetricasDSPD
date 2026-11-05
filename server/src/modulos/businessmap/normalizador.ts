@@ -3,6 +3,7 @@ import {
 } from '@metricas-dspd/metricas/core';
 import { derivarMarcos, direcaoDaTransicao, type ColunaDoPasso, type Passo } from '@metricas-dspd/metricas/businessmap';
 import { TIPO_DA_CATEGORIA, type CategoriaTipoCard } from '@metricas-dspd/contratos';
+import { COLUNAS_LISTA, VALOR_DESCONHECIDO } from './allow-list.js';
 import { vigenteEm } from './referencia.js';
 
 // F4 do plano 052 (K-182): normalizador do BusinessMap. Funções puras do registro do staging (já filtrado pela allow-list) e da
@@ -52,6 +53,8 @@ export interface Referencia {
   timesDoWorkflow: ReadonlyMap<string, readonly LinhaTimeWorkflow[]>;
   times: ReadonlyMap<string, readonly LinhaTime[]>;
   tipos: ReadonlyMap<string, readonly LinhaTipo[]>;
+  /** `field_id` -> coluna de lista de `dim_card` (L2-b, `ref_dominio campo = 'campo_customizado'`); vazio = nenhuma coluna de lista é preenchida. */
+  camposLista: ReadonlyMap<string, string>;
 }
 
 export function agrupar<T>(linhas: readonly T[], chave: (l: T) => string): Map<string, T[]> {
@@ -99,6 +102,30 @@ export interface LinhaDimCard {
   iniciado_em: Date | null; concluido_em: Date | null; arquivado_em: Date | null; motivo_descarte: string | null;
   titulo: string | null; granularidade: string | null; equipe: string | null; quadro_id: string | null;
   coluna_atual_id: string | null; excluido_em: Date | null;
+  classe_servico: string | null; sistema: string | null; area_solicitante: string | null; fornecedor: string | null; objetivo_estrategico: string | null;
+  tamanho_declarado: string | null; responsabilidade_atraso: string | null; origem_demanda: string | null; fase_deteccao: string | null; severidade: string | null;
+}
+
+const COLUNAS_LISTA_NULAS = Object.fromEntries(COLUNAS_LISTA.map((c) => [c, null])) as Record<(typeof COLUNAS_LISTA)[number], null>;
+
+/**
+ * L2-b: colunas de lista a partir de `custom_fields` do staging (`{ field_id, valor: código }`, já reduzido pela allow-list). Só preenche coluna do enum
+ * e campo do mapa; `desconhecido` (ou valor que não é texto) vira `null` com a nota `campo_fora_do_dominio` (contagem, nunca o valor). Sem mapa, tudo nulo.
+ */
+function colunasDeLista(card: Record<string, unknown>, mapa: ReadonlyMap<string, string>, notas: string[]): Record<(typeof COLUNAS_LISTA)[number], string | null> {
+  const r: Record<(typeof COLUNAS_LISTA)[number], string | null> = { ...COLUNAS_LISTA_NULAS };
+  if (mapa.size === 0 || !Array.isArray(card.custom_fields)) return r;
+  for (const c of card.custom_fields as unknown[]) {
+    const v = c as { field_id?: unknown; valor?: unknown } | null;
+    if (v === null || typeof v !== 'object') continue;
+    const id = texto(v.field_id);
+    const coluna = id === null ? undefined : mapa.get(id);
+    if (coluna === undefined || !(COLUNAS_LISTA as readonly string[]).includes(coluna)) continue;
+    const valor = typeof v.valor === 'string' && v.valor !== '' && v.valor !== VALOR_DESCONHECIDO ? v.valor.slice(0, 80) : null;
+    if (valor === null) notas.push('campo_fora_do_dominio');
+    r[coluna as (typeof COLUNAS_LISTA)[number]] = valor;
+  }
+  return r;
 }
 export interface FatoTransicaoProjetado {
   card_id: string; quadro_id: string | null; coluna_origem_id: string | null; coluna_destino_id: string; tipo_coluna: 'fila' | 'execucao' | null;
@@ -200,7 +227,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       comprometido_em: data(marcos.comprometido_em), iniciado_em: data(marcos.iniciado_em), concluido_em: data(marcos.concluido_em),
       arquivado_em: data(descartadoEm ?? arquivadoNativo), motivo_descarte: motivo, titulo: titulo === null ? null : titulo.slice(0, 500),
       granularidade: dentro ? granularidade : null, equipe: dentro ? equipe : null, quadro_id: quadro, coluna_atual_id: texto(e.card.column_id),
-      excluido_em: e.excluidoDetectado ? e.coletadoEm : null,
+      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, ...colunasDeLista(e.card, ref.camposLista, notas),
     },
     transicoes, eventos, notas,
   };

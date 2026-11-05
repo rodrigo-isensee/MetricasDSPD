@@ -103,10 +103,43 @@ describe('F3: carga inicial de 12 meses (Q-2, Q-2b, Q-2c)', () => {
     expect(CAMPOS_PEDIDO_CARDS).not.toMatch(/custom_fields|linked_cards|description|email/);
   });
 
-  it('fields 36 (ID Acelerato) e 42 (Responsável CR) estão fora do mapa de domínios, mesmo se alguém os puser lá', () => {
+  it('fields 36 (ID Acelerato) e 42 (Responsável CR) estão fora do mapa de domínios, mesmo se alguém os puser lá', async () => {
     expect(CAMPOS_CUSTOMIZADOS_FORA).toEqual(['36', '42']);
-    const m = dominiosDaColeta();
-    for (const f of CAMPOS_CUSTOMIZADOS_FORA) expect(m.has(f)).toBe(false);
+    const linhas = [
+      { campo: 'campo_customizado', codigo: '36', rotulo: 'area_solicitante' }, { campo: 'campo_customizado', codigo: '42', rotulo: 'area_solicitante' },
+      { campo: 'area_solicitante', codigo: 'a1', rotulo: 'Area Um' },
+    ];
+    const m = await dominiosDaColeta(bancoFalso({ refDominio: linhas }).pool, S);
+    for (const f of ['36', '42']) expect(m.has(f)).toBe(false);
+  });
+
+  it('sem linha vigente no ref_dominio o mapa é vazio e nenhum campo customizado entra no staging (igual a antes do 069)', async () => {
+    expect((await dominiosDaColeta(bancoFalso().pool, S)).size).toBe(0);
+    const m = await montar({ cards: { '35|active': [card(1, { custom_fields: [{ field_id: 7, value: 'x' }] })] }, porPagina: 100, users: USUARIOS, status: {}, corpos: {} });
+    await coletarCards(m.deps, carga);
+    expect(JSON.parse(m.banco.estado.stg[0]!.payload)).toMatchObject({ custom_fields: [] });
+  });
+
+  it('069 CA-069-3 e CA-069-4: com 42 e 36 inseridos no ref_dominio por SQL, o staging só tem o campo mapeado, com código ou desconhecido; marcadores fora de tudo', async () => {
+    const refDominio = [
+      { campo: 'campo_customizado', codigo: '7', rotulo: 'area_solicitante' },
+      { campo: 'campo_customizado', codigo: '42', rotulo: 'area_solicitante' },
+      { campo: 'campo_customizado', codigo: '36', rotulo: 'sistema' },
+      { campo: 'area_solicitante', codigo: 'a1', rotulo: 'Area Um' },
+      { campo: 'sistema', codigo: 's1', rotulo: 'ACELERATO-MARCADOR' },
+    ];
+    const m = await montar({
+      cards: { '35|active': [
+        card(1, { custom_fields: [{ field_id: 36, value: 'ACELERATO-MARCADOR' }, { field_id: 42, value: 'Area Um' }, { field_id: 7, value: 'Area Um' }] }),
+        card(2, { custom_fields: [{ field_id: 7, value: 'MARCADOR-PESSOA-069' }, { field_id: 42, value: 'RESPONSAVEL-CR-MARCADOR' }] }),
+      ] },
+      porPagina: 100, users: USUARIOS, status: {}, corpos: {},
+    }, { refDominio });
+    const r = await coletarCards(m.deps, carga);
+    const campos = m.banco.estado.stg.map((s) => (JSON.parse(s.payload) as { custom_fields: unknown }).custom_fields);
+    expect(campos).toEqual([[{ field_id: '7', valor: 'a1' }], [{ field_id: '7', valor: 'desconhecido' }]]);
+    const tudo = `${JSON.stringify(m.logs)}${JSON.stringify(m.banco.estado)}${JSON.stringify(r)}`;
+    for (const marcador of ['MARCADOR-PESSOA-069', 'RESPONSAVEL-CR-MARCADOR', 'ACELERATO-MARCADOR']) expect(tudo).not.toContain(marcador);
   });
 
   it('página por página: cada página guarda a última concluída e o total (retomável)', async () => {

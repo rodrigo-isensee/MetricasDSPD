@@ -4,5 +4,6 @@ export { dataCivil } from './servico.js';
 export { CRITERIOS_ACELERATO, registrarCriteriosAcelerato } from './criterios-acelerato.js';
 export { CRITERIOS_APONTAMENTO, METRICA_ACHADOS_APONTAMENTO, registrarCriteriosApontamento } from './criterios-apontamento.js';
 export {
-  ARQUIVO_DOMINIO, CAMPOS_DOMINIO, ErroDominio, analisarDominio, dataCivilValida, lerDominio, planejarDominio, sincronizarDominio, type ResultadoDominio,
+  ARQUIVO_DOMINIO, CAMPOS_DOMINIO, ErroDominio, analisarDominio, dataCivilValida, lerDominio, planejarDominio, sincronizarDominio, textoSeguro,
+  type LinhaVigente, type ResultadoDominio,
 } from './dominio-acelerato.js';

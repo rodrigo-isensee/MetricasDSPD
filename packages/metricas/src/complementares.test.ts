@@ -164,8 +164,9 @@ describe('O5 eficiência de fluxo', () => {
     if (melhoria?.estatistica.status !== 'ok') return
     const v = melhoria.estatistica.valor
     const ciclo = ctx.idx.marcosPorId.get('C0')?.cicloHU as number
-    expect(v.horasExecucao + v.horasFila + v.horasBloqueio).toBeCloseTo(ciclo * 25, 0)
-    expect(v.horasBloqueio).toBeGreaterThan(0)
+    const horasBloqueio = v.horasBloqueio
+    expect(v.horasExecucao + v.horasFila + horasBloqueio).toBeCloseTo(ciclo * 25, 0)
+    expect(horasBloqueio).toBeGreaterThan(0)
     expect(v.horasFila).toBeGreaterThan(0)
     expect(v.agregadaPct).toBeLessThan(100)
   })

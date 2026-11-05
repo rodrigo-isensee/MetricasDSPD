@@ -16,6 +16,7 @@ import {
 import { criarCalendario } from '../../core/calendario'
 import {
   LIMIARES_ACHADO_PADRAO,
+  LIMITE_ATIPICO_SEGUNDOS_PADRAO,
   calcularApontamento,
   calcularCapacidade,
   calcularDiario,
@@ -111,7 +112,7 @@ function entrada(
     filtros: { anomalos: 'incluir' },
     nivelMatriz: 'tipo',
     calendario: CAL,
-    limiteAtipicoSegundos: 16 * H,
+    limiteAtipicoSegundos: 10 * H,
     ultimaColetaOk: null,
     pessoas: PESSOAS,
     nomesReais: false,
@@ -208,15 +209,21 @@ describe('valor atípico e filtros', () => {
   it('soma do dia da pessoa acima do limite (estrito); linha sem pessoa não entra', () => {
     const ls = [
       ...dia('p1', [9 * H, 9 * H]), // 18 h
-      ...dia('p2', [16 * H]), // exatamente o limite: não é atípico
+      ...dia('p2', [10 * H]), // exatamente o limite: não é atípico
       ...dia(null, [20 * H]),
       ...dia('p3', [10 * H], '2026-09-02'),
     ]
-    const at = diasAtipicos(ls, 16 * H)
+    const at = diasAtipicos(ls, 10 * H)
     expect([...at]).toEqual(['p1|2026-09-01'])
     expect(ehAtipico(ls[0] as LinhaApontamento, at)).toBe(true)
     expect(ehAtipico(ls[2] as LinhaApontamento, at)).toBe(false)
     expect(ehAtipico(ls[3] as LinhaApontamento, at)).toBe(false) // sem pessoa
+  })
+
+  it('pedido 067: o limite padrão é 10 h; 10 h e 1 min do dia é atípico, 10 h exatas não', () => {
+    expect(LIMITE_ATIPICO_SEGUNDOS_PADRAO).toBe(10 * H)
+    const ls = [...dia('p1', [10 * H + 60]), ...dia('p2', [10 * H])]
+    expect([...diasAtipicos(ls, LIMITE_ATIPICO_SEGUNDOS_PADRAO)]).toEqual(['p1|2026-09-01'])
   })
 
   it('outra-area soma várias pessoas: três pessoas de 6 h no mesmo dia não dão dia atípico', () => {
@@ -224,7 +231,7 @@ describe('valor atípico e filtros', () => {
       ...dia('outra-area', [6 * H, 6 * H, 6 * H]), // 18 h somadas de três pessoas
       ...dia('p1', [17 * H]),
     ]
-    const at = diasAtipicos(ls, 16 * H)
+    const at = diasAtipicos(ls, 10 * H)
     expect([...at]).toEqual(['p1|2026-09-01'])
     expect(ehAtipico(ls[0] as LinhaApontamento, at)).toBe(false)
     expect(flagsEfetivas(ls[0] as LinhaApontamento, at)).toEqual([])
@@ -250,7 +257,7 @@ describe('valor atípico e filtros', () => {
     linha({ pessoaRef: null }),
     linha({ pessoaRef: 'p1', data: '2026-09-02', segundos: 20 * H }), // atípico
   ]
-  const at = diasAtipicos(base, 16 * H)
+  const at = diasAtipicos(base, 10 * H)
   const ids = (ls: LinhaApontamento[]) => ls.map((l) => `${l.pessoaRef ?? '-'}@${l.data}`)
 
   it('sem filtro, lista vazia ou chave ausente: tudo passa (inclusive linha sem pessoa)', () => {
@@ -368,14 +375,14 @@ describe('qualidade: flags não excludentes, completo e o3', () => {
 
   it('valor atípico entra como flag e tira o apontamento de "completo"', () => {
     const ls = muitas(20, { pessoaRef: 'p1', segundos: 2 * H })
-    const q = calcularQualidade(ls, diasAtipicos(ls, 16 * H)) // 40 h no mesmo dia
+    const q = calcularQualidade(ls, diasAtipicos(ls, 10 * H)) // 40 h no mesmo dia
     expect(q.geral.completos).toMatchObject({ k: 0, n: 20 })
     expect(q.geral.porFlag.find((f) => f.flag === 'valor-atipico')?.apontamentos).toBe(20)
   })
 
   it('outra-area conta na qualidade geral e não tem linha por pessoa', () => {
     const ls = [...muitas(20, { pessoaRef: 'outra-area', flags: ['generico'] }), linha()]
-    const q = calcularQualidade(ls, diasAtipicos(ls, 16 * H))
+    const q = calcularQualidade(ls, diasAtipicos(ls, 10 * H))
     expect(q.geral.porFlag.find((f) => f.flag === 'generico')?.apontamentos).toBe(20)
     expect(q.porPessoa.map((p) => p.pessoaRef)).toEqual(['p1'])
   })
@@ -589,8 +596,8 @@ describe('mapa diário com faixas fixas', () => {
       ls,
       CAL,
       { de: '2026-09-04', ate: '2026-09-04' },
-      16 * H,
-      diasAtipicos(ls, 16 * H),
+      10 * H,
+      diasAtipicos(ls, 10 * H),
     )
     expect(d.linhas).toEqual([])
     expect(d.dias).toHaveLength(1)
@@ -604,9 +611,9 @@ describe('mapa diário com faixas fixas', () => {
       linha({ pessoaRef: 'p2', data: '2026-09-05', segundos: 20 * H }), // sábado, atípico
       linha({ pessoaRef: null, data: '2026-09-04' }), // sem pessoa: sem linha
     ]
-    const at = diasAtipicos(ls, 16 * H)
-    const d = calcularDiario(ls, CAL, { de: '2026-09-04', ate: '2026-09-08' }, 16 * H, at)
-    expect(d).toMatchObject({ de: '2026-09-04', ate: '2026-09-08', limiteAtipicoSegundos: 16 * H })
+    const at = diasAtipicos(ls, 10 * H)
+    const d = calcularDiario(ls, CAL, { de: '2026-09-04', ate: '2026-09-08' }, 10 * H, at)
+    expect(d).toMatchObject({ de: '2026-09-04', ate: '2026-09-08', limiteAtipicoSegundos: 10 * H })
     expect(d.dias).toEqual([
       { data: '2026-09-04', util: true, feriado: false },
       { data: '2026-09-05', util: false, feriado: false },
@@ -634,7 +641,7 @@ describe('mapa diário com faixas fixas', () => {
   })
 
   it('janela de um dia e sem linhas', () => {
-    const d = calcularDiario([], CAL, { de: '2026-09-01', ate: '2026-09-01' }, 16 * H, new Set())
+    const d = calcularDiario([], CAL, { de: '2026-09-01', ate: '2026-09-01' }, 10 * H, new Set())
     expect(d.dias).toHaveLength(1)
     expect(d.linhas).toEqual([])
   })
@@ -683,7 +690,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
       leituraRelativa: true as const,
     },
     diasAtipicos: 0,
-    limiteAtipicoSegundos: 16 * H,
+    limiteAtipicoSegundos: 10 * H,
     ...o,
   })
 
@@ -743,7 +750,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
     })
     expect(a[3]).toEqual({
       codigo: 'dias-atipicos',
-      valores: { n: 3, limite: 16 },
+      valores: { n: 3, limite: 10 },
       rotuloRef: null,
     })
     expect(a[4]).toEqual({
@@ -1132,7 +1139,7 @@ describe('propriedades do cálculo da aba', () => {
     fc.assert(
       fc.property(fc.array(linhaArb, { maxLength: 60 }), (ls) => {
         const r = rodar(ls)
-        const ats = diasAtipicos(ls, 16 * H)
+        const ats = diasAtipicos(ls, 10 * H)
         const noPeriodo = ls
         expect(r.kpis.completos.n).toBe(r.kpis.apontamentos)
         const comFlag = noPeriodo.filter((l) => flagsEfetivas(l, ats).length > 0).length

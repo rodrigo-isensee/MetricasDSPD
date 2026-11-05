@@ -3,11 +3,10 @@ import type { FiltrosFluxo } from '@metricas-dspd/contratos'
 import { diaDeIso, diasUteisNoIntervalo, fimDoExpediente, isoDeDia } from '../core/calendario'
 import { taxa } from '../core/estatistica'
 import { slug } from '../slug'
-import { baseAmostral, criterios, periodoDe, selecionar } from './comum'
+import { baseAmostral, colunasDaEquipe, criterios, periodoDe, selecionar } from './comum'
 import { estadoEm } from './estado'
 import { varreduraPorColuna } from './varredura'
 import type { ContextoBM } from './indice'
-import { ordenarNeutro } from '../core/ordenar'
 
 /** O1: WIP e aderência ao limite. Fila e bloqueados contam como WIP. */
 export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
@@ -54,15 +53,7 @@ export function calcularO1(ctx: ContextoBM, f: FiltrosFluxo): ResultadoO1 {
   if (f.equipe.length === 1) {
     const eq = equipesSel[0]
     if (eq) {
-      const quadro = `quadro-${slug(eq.nome)}`
-      porColuna = ordenarNeutro(
-        ctx.idx.base.colunas.filter(
-          (c) =>
-            (c.equipe === undefined ? c.quadro_id === quadro : c.equipe === eq.nome) &&
-            (c.papel === 'trabalho' || c.papel === 'homologacao'),
-        ),
-        (c) => [c.ordem, c.coluna],
-      ).map((c) => {
+      porColuna = colunasDaEquipe(ctx, eq.nome).map((c) => {
         const aqui = naRef.filter((x) => x.e.coluna === c.coluna)
         return {
           coluna: c.coluna,

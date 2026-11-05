@@ -24,12 +24,12 @@ describe('extrasAC (D-9 e D-10)', () => {
     expect(e.semAgenteFora).toBe(vazio);
     expect(e.extensao).toBeUndefined();
   });
-  it('sem agente fica fora da base de SLA; sim vira reincidente, não e sem resposta contam como não (denominador = todos os criados)', () => {
+  it('sem agente fica fora da base de SLA; sim vira reincidente, não é informado, sem resposta e nulo ficam fora do denominador (066)', () => {
     const b = montarBaseAC({ chamados: [linha('1'), linha('2'), linha('3'), linha('4')], etapas: [], alvos: [], criterios: [] });
     const e = extrasAC(b, [linha('1', { com_agente: false, reincidente_90d: 'sim' }), linha('2', { reincidente_90d: 'nao' }), linha('3', { reincidente_90d: 'sem_resposta' }), linha('4', { reincidente_90d: null })]);
     expect(e.semAgenteFora.chamados.map((c) => c.chamado_id)).toEqual(['2', '3', '4']);
     expect(b.chamados).toHaveLength(4);
-    expect(e.extensao).toEqual({ causasRaiz: {}, reabertoDe: { '1': '1' }, registroProblema: {} });
+    expect(e.extensao).toEqual({ causasRaiz: {}, reabertoDe: { '1': '1' }, registroProblema: {}, reincidenteAusente: { '3': true, '4': true } });
   });
 });
 
@@ -40,6 +40,17 @@ function bancoComF2(sem: (i: number) => boolean, sim: (i: number) => boolean): R
     const r = mock(c);
     if (!c.texto.includes('FROM dspd_ac.dim_chamado') || !Array.isArray(r)) return r;
     return r.map((l, i) => ({ ...(l as object), com_agente: !sem(i), reincidente_90d: sim(i) ? 'sim' : 'nao' }));
+  };
+}
+/** Incidentes do mock com `reincidente_90d` dado pela ordem do mais recente ao mais antigo (os recentes caem no período da leitura). */
+function respostas(mock: Respondedor, resp: (i: number) => string): Respondedor {
+  return (c) => {
+    const r = mock(c);
+    if (!c.texto.includes('FROM dspd_ac.dim_chamado') || !Array.isArray(r)) return r;
+    type L = { natureza?: string; aberto_em?: Date };
+    const rank = new Map<unknown, number>();
+    (r as L[]).filter((l) => l.natureza === 'incidente').sort((x, y) => +(y.aberto_em ?? 0) - +(x.aberto_em ?? 0)).forEach((l, i) => rank.set(l, i));
+    return (r as L[]).map((l) => ({ ...l, com_agente: true, reincidente_90d: rank.has(l) ? resp(rank.get(l)!) : 'sem_resposta' }));
   };
 }
 const get = async (db: Respondedor, url: string, fonteDados?: 'real') => {
@@ -58,13 +69,30 @@ describe('API (fonte real): D-9 no S2 e D-10 no S8', () => {
     const s3b = (await get(bancoComF2((i) => i % 3 === 0, () => false), '/api/v1/metricas/S3', 'real')).json();
     expect(s3b.base.n).toBe(s3a.base.n);
   });
-  it('S8 com o campo dos 90 dias projetado: campo disponível, taxa pelo denominador de todos os criados; sem o campo projetado, sem campo', async () => {
+  it('S8 com o campo dos 90 dias projetado: campo disponível, taxa pelo denominador dos com resposta; sem o campo projetado, sem campo', async () => {
     const comCampo = (await get(bancoComF2(() => false, (i) => i % 5 === 0), '/api/v1/metricas/S8', 'real')).json();
     expect(comCampo.campoDisponivel).toBe(true);
     expect(comCampo.cobertura.n).toBe(comCampo.cobertura.total);
     expect(comCampo.meses.some((m: { reabertos: number }) => m.reabertos > 0)).toBe(true);
     const semCampo = (await get(bancoDoMock(base), '/api/v1/metricas/S8', 'real')).json();
     expect(semCampo.campoDisponivel).toBe(false);
+  });
+  it('retrato do M5 (066): incidentes quase todos sem resposta, 9 não, 0 sim: insuficiente, nunca 0%', async () => {
+    const mock = bancoDoMock(base);
+    const r = (await get(respostas(mock, (i) => (i < 9 ? 'nao' : 'sem_resposta')), '/api/v1/metricas/S8', 'real')).json();
+    expect(r.campoDisponivel).toBe(true);
+    expect(r.cobertura.n).toBe(9);
+    expect(r.cobertura.total).toBeGreaterThan(9);
+    expect(r.total).toMatchObject({ status: 'insuficiente', n: 9 });
+    expect(r.meses.some((m: { taxa: { status: string } }) => m.taxa.status === 'ok')).toBe(false);
+    expect(r.statusMeta).toBe('sem-referencia');
+  });
+  it('fronteira (066): 20 com resposta publica (2 sim de 20 = 10%), 19 não publica, mesmo com muitos sem resposta', async () => {
+    const mock = bancoDoMock(base);
+    const com20 = (await get(respostas(mock, (i) => (i < 2 ? 'sim' : i < 20 ? 'nao' : 'sem_resposta')), '/api/v1/metricas/S8', 'real')).json();
+    expect(com20.total).toMatchObject({ status: 'ok', k: 2, n: 20, pct: 10 });
+    const com19 = (await get(respostas(mock, (i) => (i < 2 ? 'sim' : i < 19 ? 'nao' : 'sem_resposta')), '/api/v1/metricas/S8', 'real')).json();
+    expect(com19.total).toMatchObject({ status: 'insuficiente', n: 19 });
   });
   it('na fonte mock a extensão mockada continua valendo (nada muda)', async () => {
     const r = (await get(bancoComF2(() => false, () => false), '/api/v1/metricas/S8')).json();

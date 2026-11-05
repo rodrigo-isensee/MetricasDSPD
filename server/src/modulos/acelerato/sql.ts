@@ -48,6 +48,31 @@ export const Q3_CAMPOS = [
   'WHERE c.ticket_key IN (<chaves>) AND f.nome IN (<nomes>)',
 ].join('\n');
 
+/**
+ * Q6 (F3, ADR 0023 item 4; modelo de ameaças do 069, L9-b): campos de etapa de tratamento `lista`, por nome EXATO (a lista de nomes é
+ * constante do código). `valor` limitado a 80 caracteres; `tipo` sai só para a recusa (tipo texto nunca libera valor).
+ * `campos_personalizados_etapa` só aparece dentro de `JSON_TABLE`, nunca inteira.
+ */
+export const Q6_CAMPOS_ETAPA_LISTA = [
+  'SELECT c.ticket_key, f.nome, f.tipo, f.valor',
+  'FROM ACELERATO_CHAMADOS c,',
+  "     JSON_TABLE(c.campos_personalizados_etapa, '$[*]' COLUMNS (",
+  "       nome VARCHAR(255) PATH '$.nome', tipo VARCHAR(40) PATH '$.tipo', valor VARCHAR(80) PATH '$.valor')) f",
+  'WHERE c.ticket_key IN (<chaves>) AND f.nome IN (<nomes>)',
+].join('\n');
+
+/**
+ * Q7 (F3): campos de etapa de tratamento `preenchido` (texto livre na origem). Só o booleano "preenchido" sai do MySQL, decidido
+ * aqui pelo nome, qualquer que seja o `tipo` da fonte: o texto fica dentro do banco e nenhuma coluna `valor` entra no SELECT.
+ */
+export const Q7_CAMPOS_ETAPA_PREENCHIDO = [
+  'SELECT c.ticket_key, f.nome, (f.valor IS NOT NULL AND CHAR_LENGTH(TRIM(f.valor)) > 0) AS preenchido',
+  'FROM ACELERATO_CHAMADOS c,',
+  "     JSON_TABLE(c.campos_personalizados_etapa, '$[*]' COLUMNS (",
+  "       nome VARCHAR(255) PATH '$.nome', valor VARCHAR(4000) PATH '$.valor')) f",
+  'WHERE c.ticket_key IN (<chaves>) AND f.nome IN (<nomes>)',
+].join('\n');
+
 /** Contagem dos chamados SSSC das equipes fora das organizações do recorte (A2 do review). Só um número. */
 export const Q4_FORA_ORGANIZACOES = [
   'SELECT COUNT(*) AS n FROM ACELERATO_CHAMADOS',
@@ -61,7 +86,7 @@ export const Q5_SAIDA = [
   'WHERE ticket_key IN (<ids>)',
 ].join('\n');
 
-export const CONSULTAS = [Q1_CHAMADOS, Q2_ETAPAS, Q3_CAMPOS, Q4_FORA_ORGANIZACOES, Q5_SAIDA] as const;
+export const CONSULTAS = [Q1_CHAMADOS, Q2_ETAPAS, Q3_CAMPOS, Q4_FORA_ORGANIZACOES, Q5_SAIDA, Q6_CAMPOS_ETAPA_LISTA, Q7_CAMPOS_ETAPA_PREENCHIDO] as const;
 
 /** Instruções de controle da sessão (sem parâmetro; o protocolo preparado não aceita transação). Conjunto fechado. */
 export const CONTROLE = {
