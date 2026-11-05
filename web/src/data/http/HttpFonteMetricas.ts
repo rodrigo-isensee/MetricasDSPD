@@ -113,7 +113,7 @@ export class HttpFonteMetricas implements FonteMetricas {
       semDadoRealSchema.or(schema),
       opcoes?.signal,
     )
-    if ('estado' in r) throw new SemDadoRealErro(r.metrica, r.motivo)
+    if ('estado' in r) throw new SemDadoRealErro(r.metrica, r.motivo, r.simulavel === true)
     return r
   }
 

@@ -111,7 +111,7 @@ function leituraO19(d: ResultadoO19): string | undefined {
 
 /** O19: barras por motivo (ordem por dias somados, nunca por pessoa); P50/P85 só com 20 bloqueios na causa. */
 export function CartaoO19({ filtros }: P) {
-  const q = useMetrica('O19', filtros)
+  const q = useMetrica('O19', filtros, { simulado: true })
   const d = q.dados
   return (
     <CartaoComplementar
@@ -197,7 +197,7 @@ function leituraO20(d: ResultadoO20): string | undefined {
 
 /** O20: fluxo cumulativo diário. Uma faixa por coluna (uma equipe) ou por papel ("Todas"). */
 export function CartaoO20({ filtros }: P) {
-  const q = useMetrica('O20', filtros)
+  const q = useMetrica('O20', filtros, { simulado: true })
   const d = q.dados
   return (
     <CartaoComplementar
@@ -273,7 +273,7 @@ function leituraO21(d: ResultadoO21): string | undefined {
 
 /** O21: destaque, matriz origem × destino só de retornos (reabertura em linha própria) e o par com × sem por tipo. */
 export function CartaoO21({ filtros }: P) {
-  const q = useMetrica('O21', filtros)
+  const q = useMetrica('O21', filtros, { simulado: true })
   const [tipo, setTipo] = useState<string | null>(null)
   const d = q.dados
   return (
@@ -472,7 +472,7 @@ function leituraO22(d: ResultadoO22, tipo: string | null): string | undefined {
 
 /** O22: tempo até a primeira reação humana, por tipo (um por vez), e o retrato dos pedidos ainda sem toque. */
 export function CartaoO22({ filtros }: P) {
-  const q = useMetrica('O22', filtros)
+  const q = useMetrica('O22', filtros, { simulado: true })
   const [tipo, setTipo] = useState<string | null>(null)
   const d = q.dados
   const tipos = d?.porTipo.map((t) => t.tipo) ?? []
@@ -571,7 +571,7 @@ function leituraO24(d: ResultadoO24): string | undefined {
 
 /** O24: ordem de chegada na classe Padrão. Mostra o custo de passar na frente, não um erro. */
 export function CartaoO24({ filtros }: P) {
-  const q = useMetrica('O24', filtros)
+  const q = useMetrica('O24', filtros, { simulado: true })
   const [tipo, setTipo] = useState<string | null>(null)
   const d = q.dados
   return (
@@ -658,7 +658,7 @@ function leituraO25(d: ResultadoO25): string | undefined {
 
 /** O25: taxa de descarte e o tempo já consumido, separando "antes do início" (saudável) de "depois do início". */
 export function CartaoO25({ filtros }: P) {
-  const q = useMetrica('O25', filtros)
+  const q = useMetrica('O25', filtros, { simulado: true })
   const [tipo, setTipo] = useState<string | null>(null)
   const d = q.dados
   return (
@@ -798,7 +798,7 @@ function leituraO26(d: ResultadoO26, tipo: string | null): string | undefined {
 
 /** O26: histograma de entregas por número de trocas de responsável; conta trocas, nunca quem. */
 export function CartaoO26({ filtros }: P) {
-  const q = useMetrica('O26', filtros)
+  const q = useMetrica('O26', filtros, { simulado: true })
   const [tipo, setTipo] = useState<string | null>(null)
   const d = q.dados
   const tipos = d?.porTipo.map((t) => t.tipo) ?? []

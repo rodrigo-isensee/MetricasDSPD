@@ -5,6 +5,8 @@ export interface OpcoesNucleo {
   semente?: number
   /** Data de corte ISO com fuso (ex.: 2026-10-09T18:00:00-03:00). */
   hoje?: string
+  /** Só o dia de referência (AAAA-MM-DD): o núcleo completa com a hora de corte do padrão do gerador. Vale se não houver `hoje`. */
+  dia?: string
 }
 
 /** Métodos do núcleo que o RPC aceita, com os argumentos de cada um (objetos JSON simples). */

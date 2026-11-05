@@ -9,7 +9,7 @@ import { TextoInsuficiente } from './comuns'
 
 export function CartaoS6({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S6')
-  const q = useMetrica('S6', filtros)
+  const q = useMetrica('S6', filtros, { simulado: true })
   const d = q.dados
   const t = d?.taxaContorno
   const leitura = d

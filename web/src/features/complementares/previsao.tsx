@@ -19,7 +19,7 @@ type Pct = { p50: number; p85: number; p95: number }
 
 /** T6: previsão probabilística por classe de serviço (Monte Carlo sobre a vazão semanal). */
 export function CartaoT6({ filtros }: P) {
-  const q = useMetrica('T6', filtros)
+  const q = useMetrica('T6', filtros, { simulado: true })
   const [classe, setClasse] = useState<string | null>(null)
   const d = q.dados
   const atual = d?.classes.find((c) => c.classe === classe) ?? d?.classes[0]
@@ -110,7 +110,7 @@ export function CartaoT6({ filtros }: P) {
 
 /** T8: sprint, sempre com a entrada não planejada ao lado e sem alvo de 100%. */
 export function CartaoT8({ filtros }: P) {
-  const q = useMetrica('T8', filtros)
+  const q = useMetrica('T8', filtros, { simulado: true })
   const d = q.dados
   const ag = d?.agregado
   const pct = (t: { status: string; pct?: number }) => (t.status === 'ok' ? (t.pct ?? null) : null)
@@ -177,7 +177,7 @@ export function CartaoT8({ filtros }: P) {
 
 /** E4: projetos iniciados e concluídos por trimestre. */
 export function CartaoE4({ filtros }: P) {
-  const q = useMetrica('E4', filtros)
+  const q = useMetrica('E4', filtros, { simulado: true })
   const d = q.dados
   const ultimo = d?.trimestres.at(-1)
   return (
@@ -226,7 +226,7 @@ export function CartaoE4({ filtros }: P) {
 
 /** E5: previsão de término por projeto, SEMPRE com as frentes adicionadas após o início ao lado. */
 export function CartaoE5({ filtros }: P) {
-  const q = useMetrica('E5', filtros)
+  const q = useMetrica('E5', filtros, { simulado: true })
   const d = q.dados
   const algumaOk = !!d?.projetos.some((p) => p.previsao.status === 'ok')
   return (

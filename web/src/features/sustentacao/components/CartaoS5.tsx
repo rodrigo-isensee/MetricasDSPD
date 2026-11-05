@@ -9,7 +9,7 @@ const FOCO = 'Sem conhecimento técnico no N1'
 
 export function CartaoS5({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S5')
-  const q = useMetrica('S5', filtros)
+  const q = useMetrica('S5', filtros, { simulado: true })
   const d = q.dados
   const dois = d?.motivos.slice(0, 2)
   const leitura = d

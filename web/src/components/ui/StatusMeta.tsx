@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import type { StatusMeta as Status } from '@metricas-dspd/contratos'
 import { SeloCalibracao, useCartaoCalibracao, useStatusOculto } from './Calibracao'
+import { useCartaoSimulado } from './SeloSimulado'
 import { Icone, type NomeIcone } from './Icone'
 
 const CFG: Record<Status, { texto: string; icone: NomeIcone; cor: string }> = {
@@ -21,9 +22,12 @@ export function StatusMeta({ status, texto, className }: Props) {
   // Em calibração a meta não é avaliada: o selo toma o lugar de Dentro/Fora (CA-05).
   const calibrando = useCartaoCalibracao()
   const oculto = useStatusOculto()
+  const simulado = useCartaoSimulado()
   if (calibrando) return <SeloCalibracao testid="selo-calibracao-meta" />
   // Estado de coleta ilegível: não se afirma Dentro/Fora da meta (a falha já aparece no cabeçalho).
   if (oculto) return null
+  // Cartão simulado: sem Dentro/Fora da meta em lugar nenhum, nem no corpo (ADR 0028, R6).
+  if (simulado) return null
   const c =
     status === 'sem-meta'
       ? { texto: 'Sem meta numérica', icone: 'info' as const, cor: 'text-texto-2 bg-superficie-2' }

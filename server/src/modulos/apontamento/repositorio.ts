@@ -1,5 +1,6 @@
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
+import { lerCalendarioVigente, type CalendarioDaReferencia } from '../referencia/index.js';
 
 // Pedido 059 (K-193), rota da aba Apontamento. Só leitura, com o papel `dspd_api_apontamento` (GRANT por coluna, `COLUNAS_API_APONTAMENTO`): nenhuma
 // consulta usa `SELECT *`, `logged_time_id`, `responsavel_id`, comentário ou tabela `stg_`/`evt_`. Nome de schema vem de `Esquemas` (nunca da
@@ -78,16 +79,7 @@ export async function lerRotulosSubgrupo(db: Consultavel, S: Esquemas): Promise<
 }
 
 /** Calendário da aba (classe `apontamento` do domínio BusinessMap, vigente): feriados e deslocamento. `null` = sem carga na referência. */
-export async function lerCalendario(db: Consultavel, S: Esquemas): Promise<{ feriados: string[]; offsetMinutos: number } | null> {
-  const a = await db.query<{ calendario_id: string; offset_minutos: number }>(
-    `SELECT a.calendario_id, c.offset_minutos FROM ${S.core}.ref_calendario_aplicacao a
-     JOIN ${S.core}.ref_calendario c ON c.calendario_id = a.calendario_id
-     WHERE a.dominio = 'businessmap' AND a.classe = 'apontamento' AND a.vigente_ate IS NULL`);
-  const cal = a.rows[0];
-  if (cal === undefined) return null;
-  const f = await db.query<{ data: string }>(`SELECT data FROM ${S.core}.ref_feriado WHERE calendario_id = $1::smallint ORDER BY data`, [cal.calendario_id]);
-  return { feriados: f.rows.map((x) => x.data), offsetMinutos: cal.offset_minutos };
-}
+export const lerCalendario = (db: Consultavel, S: Esquemas): Promise<CalendarioDaReferencia | null> => lerCalendarioVigente(db, S, 'businessmap', 'apontamento');
 
 export interface ColetaLida { id: string; status: 'sucesso' | 'parcial' | 'falha'; iniciadoEm: Date; finalizadoEm: Date }
 type RowColeta = { coleta_id: string; status: ColetaLida['status']; iniciado_em: Date; finalizado_em: Date };
