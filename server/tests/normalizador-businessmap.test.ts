@@ -47,6 +47,7 @@ const REF: Referencia = {
     { ...V, tipo_id: '10', eh_item: true, categoria: 'bug_interno' }, { ...V, tipo_id: '11', eh_item: true, categoria: 'produto' },
     { ...V, tipo_id: '12', eh_item: false, categoria: null },
   ], (t) => t.tipo_id),
+  camposLista: new Map(),
 };
 
 const tr = (coluna: string, inicio: string, extra: Partial<TransicaoStg> = {}): TransicaoStg => ({
@@ -230,5 +231,55 @@ describe('projetarCard: granularidade, equipe, tipo e pai (H-1, H-2, H-7, H-17, 
 
   it('agrupar junta por chave e preserva a ordem', () => {
     expect([...agrupar([1, 2, 3, 4], (n) => (n % 2 === 0 ? 'par' : 'impar'))]).toEqual([['impar', [1, 3]], ['par', [2, 4]]]);
+  });
+});
+
+describe('L2-b: colunas de lista a partir de custom_fields e do mapa field_id -> coluna', () => {
+  const COM_MAPA: Referencia = { ...REF, camposLista: new Map([['501', 'classe_servico'], ['502', 'sistema'], ['503', 'severidade']]) };
+  const LISTA = ['classe_servico', 'sistema', 'area_solicitante', 'fornecedor', 'objetivo_estrategico', 'tamanho_declarado',
+    'responsabilidade_atraso', 'origem_demanda', 'fase_deteccao', 'severidade'] as const;
+  const cf = (...c: { field_id: unknown; valor: unknown }[]) => card({ custom_fields: c });
+
+  it('campo mapeado preenche a coluna; o que não está no mapa fica nulo e não gera nota', () => {
+    const p = proj(cf({ field_id: '501', valor: 'expedita' }, { field_id: 502, valor: 'sis-a' }, { field_id: '999', valor: 'x' }), [], {}, COM_MAPA);
+    expect(p.dim).toMatchObject({ classe_servico: 'expedita', sistema: 'sis-a', severidade: null, area_solicitante: null });
+    expect(p.notas).not.toContain('campo_fora_do_dominio');
+  });
+
+  it('desconhecido (e valor que não é texto) vira nulo com a nota, sem o valor', () => {
+    const p = proj(cf({ field_id: '501', valor: 'desconhecido' }, { field_id: '502', valor: 7 }, { field_id: '503', valor: '' }), [], {}, COM_MAPA);
+    expect(p.dim.classe_servico).toBeNull();
+    expect(p.dim.sistema).toBeNull();
+    expect(p.dim.severidade).toBeNull();
+    expect(p.notas.filter((n) => n === 'campo_fora_do_dominio')).toHaveLength(3);
+    expect(JSON.stringify(p.notas)).not.toContain('desconhecido');
+  });
+
+  it('coluna fora do enum no mapa é recusada (nada é gravado nem entra no dim)', () => {
+    const ruim: Referencia = { ...REF, camposLista: new Map([['501', 'titulo'], ['502', 'responsaveis'], ['503', '__proto__']]) };
+    const p = proj(cf({ field_id: '501', valor: 'x' }, { field_id: '502', valor: 'y' }, { field_id: '503', valor: 'z' }), [], {}, ruim);
+    expect(p.dim.titulo).toBe('Card de teste');
+    expect(Object.keys(p.dim)).not.toContain('responsaveis');
+    expect(Object.keys(p.dim)).not.toContain('__proto__');
+    expect(p.notas).not.toContain('campo_fora_do_dominio');
+  });
+
+  it('entrada malformada em custom_fields é ignorada', () => {
+    for (const cfs of ['x', null, [null, 3, 'a', { valor: 'v' }, { field_id: [1], valor: 'v' }]]) {
+      expect(LISTA.every((c) => proj(card({ custom_fields: cfs }), [], {}, COM_MAPA).dim[c] === null)).toBe(true);
+    }
+  });
+
+  it('paridade: com o mapa vazio, mesmo com custom_fields no staging, o dim é o de antes do lote (todas as colunas de lista nulas)', () => {
+    const t = [tr('3', '2026-03-04T10:00:00Z', { workflow: 'S' })];
+    const sem = proj(card(), t);
+    const com = proj(cf({ field_id: '501', valor: 'expedita' }), t);
+    expect(com.dim).toEqual(sem.dim);
+    expect(com.notas).toEqual(sem.notas);
+    for (const c of LISTA) expect(sem.dim[c]).toBeNull();
+    const { classe_servico: _a, sistema: _b, area_solicitante: _c, fornecedor: _d, objetivo_estrategico: _e, tamanho_declarado: _f,
+      responsabilidade_atraso: _g, origem_demanda: _h, fase_deteccao: _i, severidade: _j, ...antes } = sem.dim;
+    expect(Object.keys(antes)).toEqual(['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em',
+      'motivo_descarte', 'titulo', 'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em']);
   });
 });
