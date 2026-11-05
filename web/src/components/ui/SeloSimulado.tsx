@@ -84,7 +84,7 @@ export function FaixaSimulado({ codigo, motivo }: { codigo: string; motivo: stri
   )
 }
 
-/** Marca d'água diagonal sobre a área do gráfico: decorativa (`aria-hidden`), a informação já está no texto. */
+/** Marca d'água diagonal sobre a área do gráfico: decorativa (`aria-hidden`, desenhada em SVG: não é texto HTML medido pelo axe), a informação já está no texto. */
 export function MarcaDaguaSimulado({ className }: { className?: string }) {
   return (
     <span
@@ -95,9 +95,21 @@ export function MarcaDaguaSimulado({ className }: { className?: string }) {
         className,
       )}
     >
-      <span className="absolute inset-0 flex -rotate-12 items-center justify-center text-4xl font-bold text-atencao opacity-15">
-        SIMULADO
-      </span>
+      <svg
+        focusable="false"
+        className="absolute inset-0 size-full -rotate-12 fill-atencao opacity-15"
+      >
+        <text
+          x="50%"
+          y="50%"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="36"
+          fontWeight="700"
+        >
+          SIMULADO
+        </text>
+      </svg>
     </span>
   )
 }
