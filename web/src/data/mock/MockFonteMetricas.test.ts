@@ -6,7 +6,8 @@ import type { FiltrosFluxo, FiltrosSustentacao } from '@metricas-dspd/contratos'
 import { ehVazio } from '../vazio'
 import { aplicarSimulacao, ErroSimulado, lerModoMock } from '../simulacao'
 import { MockFonteMetricas } from './MockFonteMetricas'
-import { paginarO2 } from './nucleoMock'
+import { comHoraDeCorte, paginarO2 } from './nucleoMock'
+import { CONFIG_PADRAO } from '@metricas-dspd/mock'
 
 /** Latência 0: os testes não esperam o atraso simulado (D7). */
 const fonte = new MockFonteMetricas({ latenciaMs: 0 })
@@ -239,5 +240,32 @@ describe('paginarO2', () => {
     expect(publicadas(2)?.length).toBeGreaterThan(0)
     expect(publicadas(3)).toEqual([])
     expect(publicadas(4)?.length).toBeGreaterThan(0)
+  })
+})
+
+describe('hora de corte do simulado (pedido 070)', () => {
+  it('comHoraDeCorte completa o dia com a hora e o fuso do padrão do gerador', () => {
+    const [diaPadrao, resto] = CONFIG_PADRAO.hoje.split('T')
+    expect(comHoraDeCorte('2026-11-03')).toBe(`2026-11-03T${resto}`)
+    expect(comHoraDeCorte(diaPadrao ?? '')).toBe(CONFIG_PADRAO.hoje)
+  })
+  it('só o dia (opção dia) dá o mesmo resultado que o instante completo; hoje ganha de dia', async () => {
+    const dia = '2026-09-30'
+    const porDia = new MockFonteMetricas({ latenciaMs: 0, dia, transporte: 'processo' })
+    const porHoje = new MockFonteMetricas({
+      latenciaMs: 0,
+      hoje: comHoraDeCorte(dia),
+      transporte: 'processo',
+    })
+    const ambos = new MockFonteMetricas({
+      latenciaMs: 0,
+      hoje: comHoraDeCorte(dia),
+      dia: '2026-01-05',
+      transporte: 'processo',
+    })
+    const f = fluxo({ tipo: '12s' })
+    expect(await porDia.obter('O1', f)).toEqual(await porHoje.obter('O1', f))
+    expect(await ambos.obter('O1', f)).toEqual(await porHoje.obter('O1', f))
+    expect(await porDia.dataReferencia()).toBe(dia)
   })
 })

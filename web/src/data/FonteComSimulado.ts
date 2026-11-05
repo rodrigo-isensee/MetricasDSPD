@@ -22,18 +22,12 @@ import {
 /** Cria a fonte mock, sob demanda, a partir do dia de referência da API (AAAA-MM-DD). Só roda no primeiro cartão simulado. */
 export type CriarMock = (dia: string) => Promise<FonteMetricas>
 
-/** Hora de corte do mock: a do padrão do gerador (`CONFIG_PADRAO.hoje`), sem repetir à mão. A API só conhece o dia. */
-const horaDeCorte = (hojePadrao: string): string => hojePadrao.slice(hojePadrao.indexOf('T'))
-
 const criarMockPadrao: CriarMock = async (dia) => {
-  // O pacote mock inteiro só entra neste chunk sob demanda, nunca na thread principal (A1 do review).
-  const [{ MockFonteMetricas }, { CONFIG_PADRAO }] = await Promise.all([
-    import('./mock/MockFonteMetricas'),
-    import('@metricas-dspd/mock'),
-  ])
-  const hoje = `${dia}${horaDeCorte(CONFIG_PADRAO.hoje)}`
+  // O pacote mock só entra no chunk de MockFonteMetricas, sob demanda, nunca na thread principal (A1 do review).
+  // A hora de corte vem do núcleo do mock, junto do resto do simulado: aqui só o dia.
+  const { MockFonteMetricas } = await import('./mock/MockFonteMetricas')
   // Semente padrão (fixa): o mesmo cartão mostra o mesmo número a cada recarga. Sem latência artificial.
-  return new MockFonteMetricas({ hoje, latenciaMs: 0 })
+  return new MockFonteMetricas({ dia, latenciaMs: 0 })
 }
 
 /**
