@@ -30,6 +30,31 @@ export const COLUNAS_DA_LINHA = [...COLUNAS_LIDAS, COLUNA_DERIVADA] as const;
 export const NOME_CAMPO_90_DIAS = 'Este problema já ocorreu nos últimos 90 dias?';
 export const NOMES_CAMPO_FATIA_F1 = [NOME_CAMPO_90_DIAS] as const;
 
+/**
+ * Campos de `campos_personalizados_etapa` da fatia F3 (ADR 0023 item 4; modelo de ameaças do 069, L9-b, A1 e A2). Os NOMES são constante
+ * do código (nunca de `ref_dominio`: uma linha a mais lá não entra no `IN`), cada um com o tratamento FIXO: `lista` (valor só se estiver no
+ * domínio do campo) ou `preenchido` (só o booleano, calculado no `SELECT`). `chave` é o nome no `payload.campos` e no contador. Fora daqui, de
+ * propósito: "Categoria de solução" (só se o dono a preferir) e "Número do ticket anterior" (até a D-15).
+ */
+export type TratamentoCampoEtapa = 'lista' | 'preenchido';
+export const CAMPOS_ETAPA_F3 = [
+  { nome: 'Motivo da Escalação', chave: 'motivo_escalacao', tratamento: 'lista' },
+  { nome: 'Qual suporte foi acionado?', chave: 'suporte_acionado', tratamento: 'lista' },
+  { nome: 'Motivo de Encerramento', chave: 'motivo_encerramento', tratamento: 'lista' },
+  { nome: 'Classifique o chamado no Tipo de Prioridade corretamente!', chave: 'tipo_prioridade', tratamento: 'lista' },
+  { nome: 'Motivo de Pendência', chave: 'motivo_pendencia', tratamento: 'lista' },
+  { nome: 'Avaliação de Problema', chave: 'avaliacao_problema', tratamento: 'lista' },
+  { nome: 'Prioridade ajustada manualmente?', chave: 'prioridade_ajustada', tratamento: 'lista' },
+  { nome: 'Se a prioridade foi ajustada, justifique', chave: 'justificativa_informada', tratamento: 'preenchido' },
+  { nome: 'Previsão de retorno', chave: 'previsao_retorno_informada', tratamento: 'preenchido' },
+] as const satisfies readonly { nome: string; chave: string; tratamento: TratamentoCampoEtapa }[];
+export type CampoEtapa = (typeof CAMPOS_ETAPA_F3)[number];
+const nomesPor = (t: TratamentoCampoEtapa): string[] => CAMPOS_ETAPA_F3.filter((c) => c.tratamento === t).map((c) => c.nome);
+export const NOMES_ETAPA_LISTA: readonly string[] = nomesPor('lista');
+export const NOMES_ETAPA_PREENCHIDO: readonly string[] = nomesPor('preenchido');
+/** Campo de `ref_dominio` com os VALORES permitidos de um campo de `lista` (nunca os nomes), `varchar(40)`. */
+export const campoDominioEtapa = (chave: string): string => `cpe_${chave}`;
+
 /** Domínio do valor do campo dos 90 dias (§3 da lista). Outra grafia: fora do domínio, nulo com contagem, sem o valor. */
 export const DOMINIO_90_DIAS: Readonly<Record<string, 'sim' | 'nao'>> = { SIM: 'sim', 'NÃO': 'nao', NAO: 'nao' };
 export type Reincidente90d = 'sim' | 'nao' | 'sem_resposta';
