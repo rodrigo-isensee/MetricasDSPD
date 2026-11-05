@@ -315,4 +315,36 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
       await servidor.fechar();
     }
   });
+
+  it('L2-b: o mapa field_id -> coluna do ref_dominio preenche as colunas de lista; desconhecido vira nulo; versão nova só onde o atributo mudou; sem mapa, nulas', async () => {
+    const mapa = new Map([['91201', new Map([['Alta', 'alta']])], ['91202', new Map([['Sis', 'sis-1']])]]);
+    const bruto = (valor: string, extra: Cartao = {}): Cartao => novo({ custom_fields: [{ field_id: 91201, value: valor }, { field_id: 91202, value: 'Sis' }], ...extra });
+    const grava = (c: Cartao, quando = relogio): Promise<void> => gravarStgCard(
+      coletor, { idOrigem: String(c.card_id), card: c, dominios: mapa, coletaId: coletaDeTeste, agora: quando, quadroId: Q, arquivado: false, excluidoDetectado: false }, E).then(() => undefined);
+    const semMapa = bruto('Alta');
+    await grava(semMapa);
+    await projetar();
+    expect(await dim(String(semMapa.card_id))).toMatchObject({ classe_servico: null, sistema: null });
+    const vAntes = await n('dim_card_versao', 'card_id = $1', [String(semMapa.card_id)]);
+
+    const ligacoes: [string, string][] = [['91201', 'classe_servico'], ['91202', 'sistema']];
+    for (const [codigo, coluna] of ligacoes) {
+      await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('campo_customizado', $1, '2020-01-01', $2, 0)`, [codigo, coluna]);
+    }
+    try {
+      const desc = bruto('Fora do dominio');
+      await grava(desc, new Date(relogio.getTime() + 1000));
+      await projetar();
+      // o card antigo ganha as colunas e uma versão nova (atributo mudou); o novo tem o desconhecido como nulo
+      expect(await dim(String(semMapa.card_id))).toMatchObject({ classe_servico: 'alta', sistema: 'sis-1' });
+      expect(await n('dim_card_versao', 'card_id = $1', [String(semMapa.card_id)])).toBe(vAntes + 1);
+      expect(await dim(String(desc.card_id))).toMatchObject({ classe_servico: null, sistema: 'sis-1' });
+      const r = await projetar();
+      expect(r.versoes).toBe(0);
+      expect(r.notas.campo_fora_do_dominio).toBeGreaterThanOrEqual(1);
+      expect(await n('dim_card_versao', 'card_id = $1', [String(semMapa.card_id)])).toBe(vAntes + 1);
+    } finally {
+      await dono.query(`DELETE FROM ${E.bm}.ref_dominio WHERE campo = 'campo_customizado' AND codigo = ANY($1::text[])`, [['91201', '91202']]);
+    }
+  });
 });

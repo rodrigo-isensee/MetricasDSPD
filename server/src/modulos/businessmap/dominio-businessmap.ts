@@ -157,7 +157,11 @@ export interface LinhaRefDominio { campo: string; codigo: string; rotulo: string
  * Ignora linha `campo_customizado` com `field_id` não numérico, coluna fora do enum, field 36 ou 42 (depois da leitura, mesmo que o arquivo os
  * recuse) e `field_id` ligado a duas colunas; ignora valor com código inseguro ou reservado e rótulo que leva a dois códigos. Campo sem valor não entra.
  */
-export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string, Map<string, string>> {
+/**
+ * `field_id` -> coluna de `dim_card` das linhas `campo_customizado` do `ref_dominio`, com a mesma desconfiança do coletor (A4): ignora `field_id` não
+ * numérico, coluna fora do enum, field 36 e 42 e `field_id` ligado a duas colunas. Usada pelo coletor e pelo projetor (pedido 069, L2-b).
+ */
+export function colunasDosCampos(linhas: readonly LinhaRefDominio[]): Map<string, string> {
   const colunas = COLUNAS_LISTA as readonly string[];
   const fora = CAMPOS_CUSTOMIZADOS_FORA as readonly string[];
   const colunaDe = new Map<string, string | null>();
@@ -166,6 +170,14 @@ export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string
     if (fora.includes(l.codigo) || fora.includes(String(Number(l.codigo)))) continue;
     colunaDe.set(l.codigo, colunaDe.has(l.codigo) && colunaDe.get(l.codigo) !== l.rotulo ? null : l.rotulo);
   }
+  const mapa = new Map<string, string>();
+  for (const [id, coluna] of colunaDe) if (coluna !== null) mapa.set(id, coluna);
+  return mapa;
+}
+
+export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string, Map<string, string>> {
+  const colunas = COLUNAS_LISTA as readonly string[];
+  const colunaDe = colunasDosCampos(linhas);
   const porColuna = new Map<string, Map<string, string | null>>();
   for (const l of linhas) {
     if (l.campo === CAMPO_CUSTOMIZADO || !colunas.includes(l.campo)) continue;
@@ -176,7 +188,6 @@ export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string
   }
   const mapa = new Map<string, Map<string, string>>();
   for (const [id, coluna] of colunaDe) {
-    if (coluna === null) continue;
     const dominio = new Map<string, string>();
     for (const [rotulo, codigo] of porColuna.get(coluna) ?? []) if (codigo !== null) dominio.set(rotulo, codigo);
     if (dominio.size > 0) mapa.set(id, dominio);

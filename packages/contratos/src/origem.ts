@@ -49,6 +49,11 @@ export const MOTIVO_BLOQUEIOS_NAO_COLETADOS = 'a coleta ainda não grava os bloq
 export const MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS =
   'a coleta ainda não grava os bloqueios do quadro; sem eles a eficiência de fluxo sairia inflada'
 export const BLOQUEIOS_COM_DADO_REAL = false
+/**
+ * Pedido 069, L9-a (K-220): interruptor que vira `true`, num PR próprio com versão de critério `afeta = ['S3', 'S7']`, quando
+ * `prioridade_ajustada_manualmente` vier da fonte (L9-c) e o dono vir a contagem. Falso: o S3 publica `ajustesManuais: null`.
+ */
+export const AJUSTE_PRIORIDADE_COM_FONTE = false
 /** Pedido 065: métricas cuja parte de bloqueio sai `null` (nunca 0) com a nota `bloqueio-sem-dado-real` na base real. */
 export const METRICAS_COM_PARTE_DE_BLOQUEIO: readonly MetricaId[] = ['O1', 'O2']
 
@@ -152,6 +157,28 @@ export const NOTA_CARTAO_IDS = [
   'bloqueio-sem-dado-real',
 ] as const satisfies readonly NotaCartaoId[]
 export const notaCartaoIdSchema = z.enum(NOTA_CARTAO_IDS)
+
+/**
+ * Pedido 069, L9-a (K-220): notas só da sustentação (S3 e S2), em enum à parte para não mudar o contrato de O1, O2 e O3.
+ * Os textos vivem só aqui, como os de `TEXTO_NOTA_CARTAO`.
+ */
+export const TEXTO_NOTA_SUSTENTACAO = {
+  'ajuste-prioridade-sem-dado-real':
+    'Ajustes manuais de prioridade: sem dado real (a coleta ainda não traz o campo "Prioridade ajustada manualmente?").',
+  'excecao-sla-sem-fonte':
+    'Exceção de SLA por registro posterior sem fonte: todo chamado fechado conta como apurável.',
+} as const
+export type NotaSustentacaoId = keyof typeof TEXTO_NOTA_SUSTENTACAO
+export const NOTA_SUSTENTACAO_IDS = [
+  'ajuste-prioridade-sem-dado-real',
+  'excecao-sla-sem-fonte',
+] as const satisfies readonly NotaSustentacaoId[]
+export const notaSustentacaoIdSchema = z.enum(NOTA_SUSTENTACAO_IDS)
+/** Texto de qualquer nota que o cartão mostra (as dos dois enums). */
+export const TEXTO_NOTA_QUALQUER: Readonly<Record<NotaCartaoId | NotaSustentacaoId, string>> = {
+  ...TEXTO_NOTA_CARTAO,
+  ...TEXTO_NOTA_SUSTENTACAO,
+}
 
 /** Notas fixas por métrica (H-15: O6 e SLE, o T2). A do O3 (H-24) é dinâmica: vem no resultado (`notas`). */
 export const NOTAS_FIXAS_DO_CARTAO: Partial<Record<MetricaId, readonly NotaCartaoId[]>> = {
