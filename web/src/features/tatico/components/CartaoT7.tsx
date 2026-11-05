@@ -13,7 +13,7 @@ import { NOTAS_TATICO } from '../notas'
 import { propsCartao } from '@/features/painel/propsCartao'
 
 export function CartaoT7({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('T7', filtros)
+  const q = useMetrica('T7', filtros, { simulado: true })
   const d = q.dados
   const ref = d?.referencia
   const hist = d?.histograma

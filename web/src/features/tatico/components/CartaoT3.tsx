@@ -10,7 +10,7 @@ import { propsCartao } from '@/features/painel/propsCartao'
 type Contagem = 'itens' | 'tempo'
 
 export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('T3', filtros)
+  const q = useMetrica('T3', filtros, { simulado: true })
   const [contagem, setContagem] = useState<Contagem>('itens')
   const d = q.dados
   const ok = d?.status === 'ok'

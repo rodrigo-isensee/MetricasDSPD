@@ -26,7 +26,7 @@ const VALORES = CLASSES_SERVICO.map(slug)
 
 export function CartaoT1({ filtros }: { filtros: FiltrosFluxo }) {
   const t4Visivel = useCartaoVisivel('t4')
-  const q = useMetrica('T1', filtros)
+  const q = useMetrica('T1', filtros, { simulado: true })
   const d = q.dados
   const [aba, setAba] = useParametroLocal('t1', VALORES, 'padrao')
   const classes = d?.classes ?? []

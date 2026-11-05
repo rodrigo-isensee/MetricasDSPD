@@ -14,7 +14,7 @@ interface P {
 
 /** O5: eficiência de fluxo por tipo (mediana das razões e razão agregada). */
 export function CartaoO5({ filtros }: P) {
-  const q = useMetrica('O5', filtros)
+  const q = useMetrica('O5', filtros, { simulado: true })
   const d = q.dados
   const ok = (d?.tipos ?? []).flatMap((t) =>
     t.estatistica.status === 'ok' ? [{ tipo: t.tipo, ...t.estatistica.valor }] : [],
@@ -71,7 +71,7 @@ export function CartaoO5({ filtros }: P) {
 
 /** O6: previsibilidade (P85 ÷ P50) por classe de serviço, com a referência do briefing. */
 export function CartaoO6({ filtros }: P) {
-  const q = useMetrica('O6', filtros)
+  const q = useMetrica('O6', filtros, { simulado: true })
   const d = q.dados
   const ok = (d?.classes ?? []).flatMap((c) =>
     c.estatistica.status === 'ok' ? [{ classe: c.classe, ...c.estatistica.valor }] : [],
@@ -123,7 +123,7 @@ export function CartaoO6({ filtros }: P) {
 
 /** O8: tamanho das demandas. Mediana e P85 sempre; a média nunca aparece sozinha. */
 export function CartaoO8({ filtros }: P) {
-  const q = useMetrica('O8', filtros)
+  const q = useMetrica('O8', filtros, { simulado: true })
   const d = q.dados
   const ok = (d?.tipos ?? []).flatMap((t) =>
     t.estatistica.status === 'ok' ? [{ ...t, v: t.estatistica.valor }] : [],
@@ -205,7 +205,7 @@ export function CartaoO8({ filtros }: P) {
 
 /** O11: composição do backlog, retrato no fim de cada mês. */
 export function CartaoO11({ filtros }: P) {
-  const q = useMetrica('O11', filtros)
+  const q = useMetrica('O11', filtros, { simulado: true })
   const d = q.dados
   const ultimo = d?.meses.at(-1)
   return (
@@ -247,7 +247,7 @@ export function CartaoO11({ filtros }: P) {
 
 /** O13: defeitos em produção por mês e seu peso na vazão. Sem alvo de volume. */
 export function CartaoO13({ filtros }: P) {
-  const q = useMetrica('O13', filtros)
+  const q = useMetrica('O13', filtros, { simulado: true })
   const d = q.dados
   const ultimo = d?.meses.at(-1)
   return (
@@ -290,7 +290,7 @@ export function CartaoO13({ filtros }: P) {
 
 /** O14: origem da demanda por área solicitante ou por sistema (nunca por pessoa). */
 export function CartaoO14({ filtros }: P) {
-  const q = useMetrica('O14', filtros)
+  const q = useMetrica('O14', filtros, { simulado: true })
   const [dim, setDim] = useState<'area' | 'sistema'>('area')
   const d = q.dados
   const bloco = d ? (dim === 'area' ? d.porArea : d.porSistema) : undefined
@@ -342,7 +342,7 @@ export function CartaoO14({ filtros }: P) {
 
 /** O16: estoque e idade de bugs; os mais antigos pelo id do card, sem pessoa. */
 export function CartaoO16({ filtros }: P) {
-  const q = useMetrica('O16', filtros)
+  const q = useMetrica('O16', filtros, { simulado: true })
   const d = q.dados
   const ultimo = d?.meses.at(-1)
   return (

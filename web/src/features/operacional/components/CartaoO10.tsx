@@ -12,7 +12,7 @@ const VALORES = TIPOS_CARD.map(slug)
 
 /** O10: envelhecimento do backlog (dias corridos). O contador ">180 dias" é contagem e fica com n<20; histogramas e evolução somem. */
 export function CartaoO10({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O10', filtros)
+  const q = useMetrica('O10', filtros, { simulado: true })
   const d = q.dados
   const [aba, setAba] = useParametroLocal('o10', VALORES, slug(TIPOS_CARD[0]))
   const evo = d?.evolucao.find((e) => slug(e.tipo) === aba)

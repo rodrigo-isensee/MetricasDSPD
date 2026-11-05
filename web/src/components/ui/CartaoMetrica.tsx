@@ -45,6 +45,13 @@ import { Icone } from './Icone'
 import { ModoTabelaContext, type ModoVisual } from './ModoTabela'
 import { BlocoNota, BotaoNota, type TextoNota } from './NotaMetodologica'
 import { SeloJanela } from './SeloJanela'
+import {
+  FaixaSimulado,
+  LEGENDA_TABELA_SIMULADO,
+  MarcaDaguaSimulado,
+  PREFIXO_LEITURA_SIMULADO,
+  SeloSimulado,
+} from './SeloSimulado'
 import { StatusMeta } from './StatusMeta'
 import type { StatusMeta as Status } from '@metricas-dspd/contratos'
 
@@ -129,8 +136,9 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const { filtrosAtivos, reportarAtualizando } = useContextoPainel()
   const prefs = usePreferenciasPainel()
   const id = p.codigo.toLowerCase()
-  const calibrando = useEmCalibracao()(p.codigo)
   const origem = useOrigemCartao()(p.codigo)
+  // Calibração é do dado real: o cartão simulado não a mostra.
+  const calibrando = useEmCalibracao()(p.codigo) && origem.simulado !== true
   const notas = notasDoCartaoVisiveis(p.codigo, p.notasDoCartao)
   const calibracaoPronta = useCalibracaoPronta()
   // O tempo mínimo do esqueleto vive aqui, que continua montado quando os dados chegam (6.1).
@@ -139,6 +147,10 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
   const estado = esq.mostrar || (p.estado === 'ok' && !calibracaoPronta) ? 'carregando' : p.estado
   const ok = estado === 'ok'
   const semDadoReal = estado === 'sem-dado-real'
+  // Simulado (pedido 070): o selo vem do contexto de origem, não de prop. Só com o dado na tela (CA-11: carregando e erro não têm selo);
+  // o vazio por filtro mantém o selo. Um cartão é inteiro real ou inteiro simulado.
+  const simulado = origem.simulado === true && (estado === 'ok' || estado === 'vazio')
+  const motivoSimulado = origem.motivo ?? MOTIVO_FONTE_REAL_NAO_DEFINIDA
   // O motivo é o da resposta da API; sem ele (cartão que não repassa o erro), o do mapa de origem do contrato.
   const motivoSemDadoReal =
     p.erro instanceof SemDadoRealErro
@@ -153,16 +165,13 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
     return () => reportarAtualizando(id, false)
   }, [id, atualizando, reportarAtualizando])
 
-  const aplicados = filtrosAtivos.filter(
-    (f) => !p.aplicaveis || p.aplicaveis.includes(f.chave as FiltroFluxoChave),
-  )
-  const naoAfetam = [
-    ...new Set(
-      filtrosAtivos
-        .filter((f) => p.aplicaveis && !p.aplicaveis.includes(f.chave as FiltroFluxoChave))
-        .map((f) => f.rotulo),
-    ),
-  ]
+  // O simulado só segue o período da tela: os filtros de dimensão (equipe, tipo, sistema, prioridade) não o afetam (Q-070-1).
+  const atua = (chave: string) =>
+    simulado
+      ? chave === 'periodo'
+      : !p.aplicaveis || p.aplicaveis.includes(chave as FiltroFluxoChave)
+  const aplicados = filtrosAtivos.filter((f) => atua(f.chave))
+  const naoAfetam = [...new Set(filtrosAtivos.filter((f) => !atua(f.chave)).map((f) => f.rotulo))]
   const textoAplicados = aplicados.map((f) => `${f.rotulo} ${f.valor}`)
 
   const j = p.base?.janela
@@ -198,7 +207,8 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
       aria-busy={estado === 'carregando' || atualizando || undefined}
       data-estado={atualizando ? 'atualizando' : estado}
       className={clsx(
-        'self-start rounded-lg border border-borda bg-superficie text-texto',
+        'self-start rounded-lg bg-superficie text-texto',
+        simulado ? 'border-2 border-dashed border-atencao' : 'border border-borda',
         p.variante === 'compacto' ? 'p-3' : 'p-4',
         p.className,
       )}
@@ -250,6 +260,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
               data-testid={`base-${p.codigo}`}
             />
           )}
+          {simulado && <SeloSimulado codigo={p.codigo} />}
           {janelaFixa && <SeloJanela janela={janelaTxt} />}
           {calibrando && !semDadoReal && <SeloCalibracao />}
           {p.selos}
@@ -264,6 +275,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
         />
       </header>
 
+      {simulado && <FaixaSimulado codigo={p.codigo} motivo={motivoSimulado} />}
       <p className="mt-2 text-sm text-texto-2">{p.pergunta}</p>
       {notas.length > 0 && (
         <ul
@@ -315,7 +327,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
           value={{
             modo,
             idLeitura,
-            legenda: `${p.codigo} ${p.titulo}. ${p.pergunta}`,
+            legenda: `${p.codigo} ${p.titulo}. ${p.pergunta}${simulado ? ` ${LEGENDA_TABELA_SIMULADO}.` : ''}`,
             codigo: p.codigo,
           }}
         >
@@ -327,6 +339,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
                   className={clsx('mt-2 text-sm font-medium [overflow-wrap:anywhere]', esmaece)}
                   data-testid={`leitura-${p.codigo}`}
                 >
+                  {simulado ? PREFIXO_LEITURA_SIMULADO : ''}
                   {p.leitura}
                 </p>
               )}
@@ -342,7 +355,10 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
                   />
                 </div>
               )}
-              <div className={clsx('mt-3', esmaece)}>{p.children}</div>
+              <div className={clsx('relative mt-3', esmaece)}>
+                {p.children}
+                {simulado && <MarcaDaguaSimulado />}
+              </div>
             </div>
           </ProvedorCartaoCalibracao>
         </ModoTabelaContext.Provider>
@@ -353,7 +369,7 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
         {calibrando && ok && (
           <SeloCalibracao texto="Em calibração: sem avaliação de meta" testid="calibracao-meta" />
         )}
-        {p.statusMeta && ok && !calibrando && (
+        {p.statusMeta && ok && !calibrando && !simulado && (
           <StatusMeta status={p.statusMeta} {...(p.textoStatus ? { texto: p.textoStatus } : {})} />
         )}
         <ChipFonte fonte={p.fonte} />

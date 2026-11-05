@@ -8,11 +8,14 @@ import { MOTIVO_FONTE_REAL_NAO_DEFINIDA } from '@metricas-dspd/contratos'
 export class SemDadoRealErro extends Error {
   readonly motivo: string
   readonly metrica: string
-  constructor(metrica: string, motivo: string) {
+  /** A API autoriza a web a mostrar o dado simulado deste cartão (pedido 070). Ausente na resposta = `false`. */
+  readonly simulavel: boolean
+  constructor(metrica: string, motivo: string, simulavel = false) {
     super(`Sem dado real: ${metrica} (${motivo})`)
     this.name = 'SemDadoRealErro'
     this.metrica = metrica
     this.motivo = motivo
+    this.simulavel = simulavel
   }
 }
 

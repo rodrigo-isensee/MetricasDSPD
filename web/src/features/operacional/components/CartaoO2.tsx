@@ -34,7 +34,7 @@ type Ordem = 'idade' | 'parado'
 
 /** O2: idade do WIP. Pontos do tipo escolhido contra as linhas de percentil do tipo; a lista traz todos os tipos. */
 export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O2', filtros)
+  const q = useMetrica('O2', filtros, { simulado: true })
   const d = q.dados
   const sugerido = slug(d?.tipoSugerido ?? d?.tipos[0]?.tipo ?? TIPOS_CARD[0])
   const [aba, setAba] = useParametroLocal('o2', VALORES, sugerido)

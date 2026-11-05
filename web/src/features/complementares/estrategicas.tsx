@@ -23,7 +23,7 @@ const formaE9 = (idade: number): FormaPonto =>
 
 /** E9: projetos aprovados e ainda não iniciados. Retrato do dia; P85 de referência por tipo, um tipo por vez. */
 export function CartaoE9({ filtros }: P) {
-  const q = useMetrica('E9', filtros)
+  const q = useMetrica('E9', filtros, { simulado: true })
   const [tipo, setTipo] = useState<string | null>(null)
   const d = q.dados
   const projetos = d?.projetos ?? []
@@ -189,7 +189,7 @@ const ordenarPorDeslize = <T extends { deslizeDiasUteis: number; cardId: string 
 
 /** E6: deslize de cada projeto concluído em relação à data comprometida (a registrada no compromisso). */
 export function CartaoE6({ filtros }: P) {
-  const q = useMetrica('E6', filtros)
+  const q = useMetrica('E6', filtros, { simulado: true })
   const d = q.dados
   return (
     <CartaoComplementar
@@ -313,7 +313,7 @@ const MAX_SISTEMAS_E7 = 10
  * API ainda devolva os campos de custo; eles nunca são lidos aqui).
  */
 export function CartaoE7({ filtros }: P) {
-  const q = useMetrica('E7', filtros)
+  const q = useMetrica('E7', filtros, { simulado: true })
   const d = q.dados
   return (
     <CartaoComplementar
@@ -405,7 +405,7 @@ function leituraE8(d: ResultadoE8): string | undefined {
 
 /** E8: só a contagem de sistemas por faixa de pessoas (R-1 = B): nenhum sistema nem pessoa é nomeado. */
 export function CartaoE8({ filtros }: P) {
-  const q = useMetrica('E8', filtros)
+  const q = useMetrica('E8', filtros, { simulado: true })
   const d = q.dados
   return (
     <CartaoComplementar

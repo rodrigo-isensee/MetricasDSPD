@@ -12,7 +12,7 @@ const MODOS = ['absoluto', 'proporcao'] as const
 
 export function CartaoS3({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S3')
-  const q = useMetrica('S3', filtros)
+  const q = useMetrica('S3', filtros, { simulado: true })
   const [modo, setModo] = useParametroLocal('s3', MODOS, 'absoluto')
   const d = q.dados
   const prop = modo === 'proporcao'

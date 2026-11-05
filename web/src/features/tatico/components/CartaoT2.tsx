@@ -11,7 +11,7 @@ import { propsCartao } from '@/features/painel/propsCartao'
 const ETAPAS = ['Fila', 'Espera', 'Execução', 'Homologação'] as const
 
 export function CartaoT2({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('T2', filtros)
+  const q = useMetrica('T2', filtros, { simulado: true })
   const d = q.dados
   const classes = d?.classes ?? []
   const publicadas = classes.flatMap((c) =>
