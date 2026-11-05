@@ -11,6 +11,8 @@ import {
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
   motivoDaOrigemMock,
   motivoSemDadoReal,
+  METRICAS_SEM_SIMULACAO,
+  podeSimular,
   semDadoRealSchema,
   NOTAS_FIXAS_DO_CARTAO,
   notaCartaoIdSchema,
@@ -109,10 +111,23 @@ describe('estado sem dado real (pedido 060, P3)', () => {
 
   it('o corpo não carrega número nem campo fora de estado, métrica e motivo', () => {
     const corpo = corpoSemDadoReal('S1')
-    expect(Object.keys(corpo).sort()).toEqual(['estado', 'metrica', 'motivo'])
+    expect(Object.keys(corpo).sort()).toEqual(['estado', 'metrica', 'motivo', 'simulavel'])
     expect(corpo.estado).toBe(ESTADO_SEM_DADO_REAL)
     expect(semDadoRealSchema.safeParse({ ...corpo, valor: 1 }).success).toBe(false)
     expect(semDadoRealSchema.safeParse({ ...corpo, motivo: '' }).success).toBe(false)
+  })
+
+  it('T-C2: o schema aceita o corpo com e sem simulavel e segue strict', () => {
+    const base = {
+      estado: ESTADO_SEM_DADO_REAL,
+      metrica: 'O12',
+      motivo: 'aguardando campo no quadro',
+    }
+    expect(semDadoRealSchema.safeParse(base).success).toBe(true)
+    expect(semDadoRealSchema.safeParse({ ...base, simulavel: true }).success).toBe(true)
+    expect(semDadoRealSchema.safeParse({ ...base, simulavel: false }).success).toBe(true)
+    expect(semDadoRealSchema.safeParse({ ...base, simulavel: 'sim' }).success).toBe(false)
+    expect(semDadoRealSchema.safeParse({ ...base, simulavel: true, valor: 1 }).success).toBe(false)
   })
 
   it('PV1 não tem motivo de dado fictício', () => {
@@ -145,5 +160,29 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     expect(o1.porTipoColuna.element.shape.bloqueados.safeParse(null).success).toBe(true)
     expect(o1.porColuna.unwrap().element.shape.bloqueados.safeParse(null).success).toBe(true)
     expect(resultadoO5.shape).not.toHaveProperty('notas') // O5 inteiro sai do mapa real (decisão B): contrato anterior, sem nota nem null
+  })
+})
+
+describe('simulado por cartão (pedido 070, ADR 0028)', () => {
+  it('T-C1: a lista de exclusão não toca o mapa real e podeSimular é falso para todo id real e para os quatro excluídos', () => {
+    expect([...METRICAS_SEM_SIMULACAO].sort()).toEqual([
+      'EI_SUST',
+      'TENDENCIA_FLUXO',
+      'TENDENCIA_SUST',
+      'VISAO_GERAL',
+    ])
+    for (const id of METRICAS_SEM_SIMULACAO) expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(false)
+    for (const id of METRICAS_ORIGEM_REAL) expect(podeSimular(id), id).toBe(false)
+    for (const id of METRICAS_SEM_SIMULACAO) expect(podeSimular(id), id).toBe(false)
+  })
+
+  it('podeSimular é verdadeiro exatamente para o que está fora do mapa real e fora da exclusão, e o corpo copia o valor', () => {
+    for (const id of METRICA_IDS) {
+      const esperado = !METRICAS_ORIGEM_REAL.has(id) && !METRICAS_SEM_SIMULACAO.has(id)
+      expect(podeSimular(id), id).toBe(esperado)
+      if (!METRICAS_ORIGEM_REAL.has(id)) expect(corpoSemDadoReal(id).simulavel, id).toBe(esperado)
+    }
+    expect(podeSimular('O12')).toBe(true)
+    expect(podeSimular('S1')).toBe(true)
   })
 })

@@ -92,6 +92,8 @@ export const semDadoRealSchema = z
     estado: z.literal(ESTADO_SEM_DADO_REAL),
     metrica: z.string(),
     motivo: z.string().min(1),
+    /** Pedido 070 (ADR 0028): a web pode mostrar o simulado deste cartão, com o selo. Ausente = falso (falha fechada). A API nunca devolve número simulado. */
+    simulavel: z.boolean().optional(),
   })
   .strict()
   .meta({ id: 'SemDadoReal' })
@@ -111,9 +113,30 @@ export function motivoSemDadoReal(id: MetricaId): string {
   return motivoDaOrigemMock(id) ?? MOTIVO_FONTE_REAL_NAO_DEFINIDA
 }
 
-/** Corpo da resposta "sem dado real" da métrica `id` (pedido 060, P3). */
+/**
+ * Pedido 070 (ADR 0028, R5): métricas fora do mapa real que a web NÃO simula. VISAO_GERAL junta BusinessMap e Acelerato; as duas tendências
+ * contradiriam O3, O4, S2 e S3 reais; EI_SUST não tem regra de cálculo definida. A aba Apontamento não usa esta rota e nunca é simulada.
+ */
+export const METRICAS_SEM_SIMULACAO: ReadonlySet<MetricaId> = new Set<MetricaId>([
+  'VISAO_GERAL',
+  'TENDENCIA_FLUXO',
+  'TENDENCIA_SUST',
+  'EI_SUST',
+])
+
+/** Fonte única de "a web pode simular este cartão": sem dado real e fora da lista de exclusão. Nunca verdadeiro para métrica real. */
+export function podeSimular(id: MetricaId): boolean {
+  return origemDaMetrica(id) === 'mock' && !METRICAS_SEM_SIMULACAO.has(id)
+}
+
+/** Corpo da resposta "sem dado real" da métrica `id` (pedido 060, P3; `simulavel` do pedido 070). */
 export function corpoSemDadoReal(id: MetricaId): SemDadoReal {
-  return { estado: ESTADO_SEM_DADO_REAL, metrica: id, motivo: motivoSemDadoReal(id) }
+  return {
+    estado: ESTADO_SEM_DADO_REAL,
+    metrica: id,
+    motivo: motivoSemDadoReal(id),
+    simulavel: podeSimular(id),
+  }
 }
 
 /** Notas que o cartão mostra por indicação do contrato (H-15 e H-24). Os textos vivem só aqui. */
