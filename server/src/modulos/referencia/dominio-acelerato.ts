@@ -34,7 +34,7 @@ export class ErroDominio extends Error {
 
 // Sem controle, sem formatação invisível (U+200B, bidi), sem separador de linha ou parágrafo (U+2028, U+2029) e sem arroba
 // (um e-mail nunca entra como valor de domínio). Vale para os valores das listas e para os textos da versão de critério.
-const textoSeguro = (max: number): z.ZodString => z.string().min(1).max(max).regex(/^[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}@]+$/u, 'caractere não aceito');
+export const textoSeguro = (max: number): z.ZodString => z.string().min(1).max(max).regex(/^[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}@]+$/u, 'caractere não aceito');
 const itemDominio = z.object({ codigo: textoSeguro(80), rotulo: textoSeguro(120) }).strict();
 
 export type Item = { codigo: string; rotulo: string };
@@ -106,7 +106,7 @@ export interface PlanoDominio { inserir: Insercao[]; fechar: Fechamento[]; campo
  * Data menor que a última vigência do campo é recusada quando o campo muda: sem períodos sobrepostos nem versão T2.6 com data passada.
  */
 export function planejarDominio(
-  arquivo: ArquivoDominio, vigentes: readonly LinhaVigente[], hoje: string, ultima: UltimaVigencia = new Map(),
+  arquivo: { dominios: Partial<Record<string, Item[]>> }, vigentes: readonly LinhaVigente[], hoje: string, ultima: UltimaVigencia = new Map(),
 ): PlanoDominio {
   const inserir: Insercao[] = [];
   const fechar: Fechamento[] = [];

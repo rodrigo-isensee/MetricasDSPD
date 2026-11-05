@@ -147,7 +147,8 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
     versaoContrato: 1,
     dominio: 'businessmap',
     periodo,
-    frescor: { selo: seloFrescor(ultimaOk === null ? null : eventoDe(ultimaOk), ultima === null ? null : eventoDe(ultima), d.agora().getTime()), ultimaColetaOk: fimOk === null ? null : isoLocal(fimOk) },
+    frescor: { selo: seloFrescor(ultimaOk === null ? null : eventoDe(ultimaOk), ultima === null ? null : eventoDe(ultima), d.agora().getTime()), ultimaColetaOk: fimOk === null ? null : isoLocal(fimOk),
+      ultimaTentativa: ultima === null ? null : { resultado: RESULTADO[ultima.status], fim: isoLocal(ultima.finalizadoEm.getTime()) } },
     nomesReais: d.nomesReais,
     opcoes: {
       pessoas,
