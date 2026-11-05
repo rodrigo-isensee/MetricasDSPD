@@ -139,12 +139,12 @@ Legenda: retângulo é uma pasta ou arquivo do pacote em `packages/metricas/src/
 - `businessmap/` e `acelerato/`: sem dependência entre si.
 </details>
 
-Onde cada coisa mora: marcos do card (`businessmap/indice.ts`), estado da coleta e frescor (`core/coleta.ts`, `core/frescor.ts`), calendário (`core/calendario.ts`, hoje `CALENDARIO_PADRAO`), critérios (`core/criterios.ts`, `core/calibracao.ts`).
+Onde cada coisa mora: marcos do card (`businessmap/indice.ts`), estado da coleta e frescor (`core/coleta.ts`, `core/frescor.ts`), calendário (`core/calendario.ts`; as métricas leem o calendário vigente da referência por domínio e, sem linha, `CALENDARIO_PADRAO`), critérios (`core/criterios.ts`, `core/calibracao.ts`).
 
 ## O que fica para depois?
 - `modulos/acelerato` e coletor do Acelerato (WS2, WS5).
 - Coletor do BusinessMap: tarefas do worker, normalizador, projetor e consumidor de `bm.webhook.recebido` (WS2).
 - `modulos/preferencias` no servidor, se houver necessidade (hoje a persistência é local no navegador).
-- `ref:sync` e leitura do calendário de `ref_calendario*` (hoje `CALENDARIO_PADRAO`).
+- `ref:sync` e leitura do calendário de `ref_calendario*` (`lerCalendarioVigente`; sem linha, `CALENDARIO_PADRAO`).
 - `HttpFonteMetricas` no web.
 - Autenticação (ADR 0009, pendente de P3).

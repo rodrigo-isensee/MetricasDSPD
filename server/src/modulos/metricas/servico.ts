@@ -2,7 +2,7 @@ import {
   AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICAS_COM_PARTE_DE_BLOQUEIO, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
-  acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, dataIso, isoLocal, pesquisa, type ContextosMetricas, type ExtensoesMetricas,
+  acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, criarCalendario, dataIso, isoLocal, pesquisa, type Calendario, type ContextosMetricas, type ExtensoesMetricas,
 } from '@metricas-dspd/metricas';
 import type { BaseAC, ExtensaoAC } from '@metricas-dspd/metricas/acelerato';
 import { EXTENSAO_BM_VAZIA, type ExtensaoTambemBM } from '@metricas-dspd/metricas/businessmap';
@@ -11,7 +11,7 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
-import { dataCivil, lerEquipesBM, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
+import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
 import { semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
@@ -42,13 +42,21 @@ const METRICAS_COM_ALVOS: readonly MetricaId[] = ['S1', 'VISAO_GERAL'];
 const METRICAS_SEM_AGENTE: readonly MetricaId[] = ['S2', 'TENDENCIA_SUST'];
 /** Por base carregada: a base sem os chamados sem agente (D-9) e a extensão do S8 (D-10). Só da fonte real; a base semeada tem tudo com agente. */
 const EXTRAS_AC = new WeakMap<BaseAC, ExtrasAC>();
+/**
+ * Calendário do domínio (pedido 069, L7-b; ADR 0027): o vigente da referência para a classe; sem linha, `CALENDARIO_PADRAO` (o comportamento anterior).
+ * Turnos e modo ficam os padrão. A construção é da biblioteca (T2.5): aqui só se entregam os feriados e o deslocamento.
+ */
+async function calendarioDaReferencia(db: Consultavel, S: Esquemas | undefined, dominio: Dom, classe: string): Promise<Calendario> {
+  const ref = await lerCalendarioVigente(db, S, dominio, classe);
+  return ref === null ? CALENDARIO_PADRAO : criarCalendario({ feriados: new Set(ref.feriados), offsetMinutos: ref.offsetMinutos });
+}
 const BASE_AC_VAZIA: BaseAC = { chamados: [], etapas: [], config: { alvos: [], criterios: [] } };
 const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], fichas: [], config: {
   limite_wip_fluxo: {}, limite_frentes: 0, sle: [], alocacao: [], objetivos: [], criterios: [], equipes: [], sistemas: [], areas_internas: [],
 } };
 
 type Marca = { versao: string; finalizadoEm: Date | null };
-type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null; sleDefinido?: boolean };
+type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null; cal: Calendario; sleDefinido?: boolean };
 type Entrada<B> = { lidoEm: number; carga: Promise<Carga<B>> | null; atual: Carga<B> | null };
 
 /** Fonte de dados da métrica: `fonteDaMetrica` é o ponto único (a PV1 é `pesquisa`, nunca BusinessMap nem Acelerato). */
@@ -143,8 +151,9 @@ export class ServicoMetricas {
     const base = montarBaseBM({ cards, transicoes, bloqueios, colunas, ref, real }, {
       aoDescartarTipo: (quantos) => this.deps.log?.({ cardsForaDoContrato: quantos }, 'cards com tipo fora de TIPOS_CARD ficaram fora do contexto'),
     });
+    const cal = await calendarioDaReferencia(db, S, 'businessmap', 'fluxo');
     const primeiro = cards.reduce<number | null>((a, c) => (a === null || c.criado_em.getTime() < a ? c.criado_em.getTime() : a), null);
-    return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO), sleDefinido: ref.sle.length > 0 };
+    return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO), cal, sleDefinido: ref.sle.length > 0 };
   }
 
   private async carregarAC({ versao, finalizadoEm }: Marca): Promise<Carga<BaseAC>> {
@@ -154,8 +163,9 @@ export class ServicoMetricas {
       chamados, etapas: await lerEtapas(db, S), alvos: await lerAlvos(db, S), criterios: await lerVersoes(db, 'acelerato', S),
     });
     EXTRAS_AC.set(base, extrasAC(base, chamados));
+    const cal = await calendarioDaReferencia(db, S, 'acelerato', 'sustentacao');
     const primeiro = chamados.reduce<number | null>((a, c) => (a === null || (c.aberto_em as Date).getTime() < a ? (c.aberto_em as Date).getTime() : a), null);
-    return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO) };
+    return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO), cal };
   }
 
   /** Carga de um domínio: reaproveita a base enquanto a marca d'água não muda; recarrega e descarta o cache quando muda. */
@@ -284,8 +294,8 @@ export class ServicoMetricas {
     // S8 na fonte real (D-10): o campo dos 90 dias vira a extensão da biblioteca; com o modo mock explícito e extensões mockadas vale o mock.
     const extReal: ExtensaoAC | undefined = id === 'S8' && (real || this.deps.extensoes === undefined) ? extras?.extensao : undefined;
     const ctx: ContextosMetricas = {
-      bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, CALENDARIO_PADRAO),
-      ac: acelerato.criarContextoAC(baseAC, corte, CALENDARIO_PADRAO),
+      bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, bm?.cal ?? CALENDARIO_PADRAO),
+      ac: acelerato.criarContextoAC(baseAC, corte, ac?.cal ?? CALENDARIO_PADRAO),
       ...(extReal !== undefined ? { ext: { bm: EXTENSAO_BM_VAZIA, ac: extReal } } : {}),
       ...(COMPLEMENTARES.has(id) && this.deps.extensoes && !real ? { ext: this.deps.extensoes() } : {}),
       ...(COM_EXTENSAO_TAMBEM.has(id) && this.deps.extensaoTambem && !real ? { tambem: this.deps.extensaoTambem() } : {}),
