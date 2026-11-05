@@ -118,8 +118,9 @@ d('ref:sync-calendario contra PostgreSQL (papel dspd_ref)', () => {
 
   it('feriado gravado nunca muda: outra descrição no arquivo não sobrescreve, e o papel não tem UPDATE nem DELETE em ref_feriado', async () => {
     await comoRef(ref, async (pool, c) => {
-      await sincronizarCalendario(pool, S, analisarCalendario(texto([['2031-03-03', 'Original']])), D1, AGORA);
-      const r = await sincronizarCalendario(pool, S, analisarCalendario(texto([['2031-03-03', 'Trocada']])), D2, AGORA);
+      await sincronizarCalendario(pool, S, analisarCalendario(texto([['2031-03-03', 'Original']], [])), D1, AGORA);
+      const r = await sincronizarCalendario(pool, S, analisarCalendario(texto([['2031-03-03', 'Trocada']], [])), D2, AGORA);
+      // `texto` repete os feriados nos dois calendários por padrão (daria 2); aqui só o de BusinessMap tem feriado, então diverge 1.
       expect(r.feriadosDivergentes).toBe(1);
       const f = await c.query(`SELECT descricao FROM ${S.core}.ref_feriado f JOIN ${S.core}.ref_calendario k USING (calendario_id) WHERE k.nome = 'teste-bm'`);
       expect(f.rows).toEqual([{ descricao: 'Original' }]);
