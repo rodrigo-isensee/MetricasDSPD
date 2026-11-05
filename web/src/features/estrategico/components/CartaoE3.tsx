@@ -26,7 +26,7 @@ function BarraAtingimento({ pct }: { pct: number }) {
 }
 
 export function CartaoE3({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('E3', filtros)
+  const q = useMetrica('E3', filtros, { simulado: true })
   const d = q.dados
   // Sem ficha primeiro (é o que pede ação); depois pelo nome (ordem neutra).
   const lista = d

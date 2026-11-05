@@ -13,7 +13,7 @@ const VALORES = PRIORIDADES.map(minusculo)
 
 export function CartaoS4({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S4')
-  const q = useMetrica('S4', filtros)
+  const q = useMetrica('S4', filtros, { simulado: true })
   const [aba, setAba] = useParametroLocal('s4', VALORES, 'p1')
   const d = q.dados
   const ativa =

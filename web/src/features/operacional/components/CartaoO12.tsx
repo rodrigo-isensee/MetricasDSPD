@@ -8,7 +8,7 @@ import { propsCartao, textoTaxa } from '@/features/painel/propsCartao'
 
 /** O12: acordos e vencidos por mês, empilhado por responsabilidade do atraso. % só com 20 acordos no mês; abaixo, "k de n". */
 export function CartaoO12({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O12', filtros)
+  const q = useMetrica('O12', filtros, { simulado: true })
   const d = q.dados
   const t = d?.totais
   const leitura =

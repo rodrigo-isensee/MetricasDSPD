@@ -179,7 +179,7 @@ function Corpo({ d }: { d: Ok }) {
  * do anonimato é da biblioteca); o comentário livre nunca chega até aqui.
  */
 export function CartaoPV1() {
-  const q = useMetrica('PV1', SEM_FILTROS)
+  const q = useMetrica('PV1', SEM_FILTROS, { simulado: true })
   const m = entradaDoCatalogo('PV1')
   const d = q.dados
   const ok = d?.status === 'ok' ? d : null

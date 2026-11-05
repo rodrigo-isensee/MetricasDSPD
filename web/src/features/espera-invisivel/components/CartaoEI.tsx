@@ -271,7 +271,7 @@ export function CartaoEIFL1({
   return (
     <CartaoEI
       nivel="FL1"
-      q={useMetrica('EI_FL1', filtros)}
+      q={useMetrica('EI_FL1', filtros, { simulado: true })}
       aplicaveis={aplicaveisDe('EI_FL1')}
       periodo={filtros.periodo}
       {...p}
@@ -285,7 +285,7 @@ export function CartaoEIFL2({
   return (
     <CartaoEI
       nivel="FL2"
-      q={useMetrica('EI_FL2', filtros)}
+      q={useMetrica('EI_FL2', filtros, { simulado: true })}
       aplicaveis={aplicaveisDe('EI_FL2')}
       periodo={filtros.periodo}
       {...p}
@@ -299,7 +299,7 @@ export function CartaoEIFL3({
   return (
     <CartaoEI
       nivel="FL3"
-      q={useMetrica('EI_FL3', filtros)}
+      q={useMetrica('EI_FL3', filtros, { simulado: true })}
       aplicaveis={aplicaveisDe('EI_FL3')}
       periodo={filtros.periodo}
       {...p}
