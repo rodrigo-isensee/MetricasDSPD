@@ -30,7 +30,7 @@ export const ESCOPOS_FERIADO = ['nacional', 'estadual', 'municipal', 'ponto_facu
  */
 export const METRICAS_CALENDARIO: Record<DominioCalendario, readonly string[]> = {
   businessmap: [
-    'O1', 'O2', 'O3', 'O5', 'O9', 'O16', 'O19', 'O20', 'O22', 'O24', 'O25', 'E1', 'E6', 'E9',
+    'O1', 'O2', 'O3', 'O5', 'O6', 'O8', 'O9', 'O16', 'O19', 'O20', 'O21', 'O22', 'O24', 'O25', 'O26', 'E1', 'E6', 'E9',
     'T1', 'T2', 'T3', 'T7', 'T10', 'T13', 'EI_FL1', 'EI_FL2', 'EI_FL3', 'BLOQUEADOS',
   ],
   acelerato: ['S1', 'S4', 'S9', 'S10', 'EI_SUST'],
