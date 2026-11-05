@@ -2,7 +2,7 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import type { ConfigAcelerato } from './config.js';
 import type { ErroColeta } from './erros.js';
-import { COLUNAS_DA_LINHA, NOMES_CAMPO_FATIA_F1, TABELA_ORIGEM } from './listas-fechadas.js';
+import { CAMPOS_ETAPA_F3, COLUNAS_DA_LINHA, NOMES_CAMPO_FATIA_F1, TABELA_ORIGEM } from './listas-fechadas.js';
 import { sha256Texto, sqlSha256 } from './sql.js';
 
 /**
@@ -24,7 +24,7 @@ export const CHAVES_COMPARADAS = ['host_sha256', 'banco_sha256', 'tabela', 'colu
 export function montarParametros(config: ConfigAcelerato, sincronizadoEmMax: string | null): ParametrosColeta {
   return {
     host_sha256: sha256Texto(config.host), banco_sha256: sha256Texto(config.banco), tabela: TABELA_ORIGEM,
-    colunas_sha256: sha256Texto(COLUNAS_DA_LINHA.join(',')), campos_sha256: sha256Texto(NOMES_CAMPO_FATIA_F1.join('\n')),
+    colunas_sha256: sha256Texto(COLUNAS_DA_LINHA.join(',')), campos_sha256: sha256Texto([...NOMES_CAMPO_FATIA_F1, ...CAMPOS_ETAPA_F3.map((c) => `${c.nome}|${c.tratamento}`)].join('\n')),
     sql_sha256: sqlSha256(), tls_sha256: config.tlsSha256, sincronizado_em_max: sincronizadoEmMax,
   };
 }
