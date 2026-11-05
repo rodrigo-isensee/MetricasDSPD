@@ -106,7 +106,7 @@ export interface PlanoDominio { inserir: Insercao[]; fechar: Fechamento[]; campo
  * Data menor que a última vigência do campo é recusada quando o campo muda: sem períodos sobrepostos nem versão T2.6 com data passada.
  */
 export function planejarDominio(
-  arquivo: ArquivoDominio, vigentes: readonly LinhaVigente[], hoje: string, ultima: UltimaVigencia = new Map(),
+  arquivo: { dominios: Partial<Record<string, Item[]>> }, vigentes: readonly LinhaVigente[], hoje: string, ultima: UltimaVigencia = new Map(),
 ): PlanoDominio {
   const inserir: Insercao[] = [];
   const fechar: Fechamento[] = [];
