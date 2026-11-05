@@ -129,6 +129,11 @@ describe('CartaoMetrica simulado (pedido 070, E1.4)', () => {
     expect(marca).toHaveAttribute('aria-hidden', 'true')
     // A-11: o texto girado fica contido na área do gráfico (overflow escondido), sem escapar em 320 px.
     expect(marca).toHaveClass('overflow-hidden')
+    // 070-001: a marca é desenho SVG (não texto HTML), para o axe não medir o contraste de um elemento decorativo.
+    const desenho = marca.querySelector('svg')
+    expect(desenho).not.toBeNull()
+    expect(desenho).toHaveClass('-rotate-12', 'opacity-15')
+    expect(desenho?.querySelector('text')).toHaveTextContent('SIMULADO')
     expect(cartao.className).toMatch(/border-dashed/)
   })
 
