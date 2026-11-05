@@ -27,6 +27,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     motivo: 'Decisão do dono B (pedido 066, 2026-11-04): com 95% dos incidentes sem resposta, a D-10 (denominador = todos os criados) dava 0%. Substitui o denominador da D-10; a série inteira é recalculada pelo critério novo. Afeta S8.',
     metricas: ['S8'],
   },
+  {
+    referencia: '069:L9-b-campos-etapa',
+    descricao: 'Coleta passa a ler, do campo de etapa do Acelerato, os campos da fatia F3 (valor só por domínio; texto livre só como "preenchido")',
+    motivo: 'Pedido 069, lote L9-b (ADR 0023, item 4): o SQL versionado ganha duas consultas e os hashes mudam. Só staging: nenhuma métrica muda neste lote.',
+    metricas: [],
+  },
 ];
 
 /** Registra as que faltam, com a data civil `vigenteDesde` (AAAA-MM-DD). Devolve as referências gravadas agora. */

@@ -177,7 +177,10 @@
             ]
           },
           "ajustesManuais": {
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "required": [
@@ -189,6 +192,16 @@
           "ajustesManuais"
         ],
         "additionalProperties": false
+      }
+    },
+    "notas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "ajuste-prioridade-sem-dado-real",
+          "excecao-sla-sem-fonte"
+        ]
       }
     },
     "janela": {

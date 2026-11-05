@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { METRICA_IDS } from './comum'
 import {
+  AJUSTE_PRIORIDADE_COM_FONTE,
   BLOQUEIOS_COM_DADO_REAL,
+  NOTA_SUSTENTACAO_IDS,
+  notaSustentacaoIdSchema,
+  TEXTO_NOTA_QUALQUER,
   corpoSemDadoReal,
   METRICAS_COM_PARTE_DE_BLOQUEIO,
   MOTIVO_BLOQUEIOS_NAO_COLETADOS,
@@ -145,5 +149,17 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     expect(o1.porTipoColuna.element.shape.bloqueados.safeParse(null).success).toBe(true)
     expect(o1.porColuna.unwrap().element.shape.bloqueados.safeParse(null).success).toBe(true)
     expect(resultadoO5.shape).not.toHaveProperty('notas') // O5 inteiro sai do mapa real (decisão B): contrato anterior, sem nota nem null
+  })
+})
+
+describe('notas só da sustentação (pedido 069, L9-a)', () => {
+  it('enum à parte: os ids novos não entram no enum de O1 a O3 e todo id tem texto', () => {
+    for (const id of NOTA_SUSTENTACAO_IDS) {
+      expect(notaCartaoIdSchema.safeParse(id).success).toBe(false)
+      expect(notaSustentacaoIdSchema.safeParse(id).success).toBe(true)
+      expect(TEXTO_NOTA_QUALQUER[id].length).toBeGreaterThan(0)
+    }
+    expect(notaSustentacaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(false)
+    expect(AJUSTE_PRIORIDADE_COM_FONTE).toBe(false)
   })
 })

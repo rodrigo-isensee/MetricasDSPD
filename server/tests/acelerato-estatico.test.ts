@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ddl as ddl0016 } from '../migrations/0016_ac_stg_chamado_recorte.js';
 import { COLUNAS_DA_LINHA, COLUNAS_LIDAS } from '../src/modulos/acelerato/listas-fechadas.js';
-import { CONSULTAS, Q1_CHAMADOS, Q2_ETAPAS, Q3_CAMPOS, Q4_FORA_ORGANIZACOES, Q5_SAIDA, SET_TETO, sha256Texto, sqlSha256, textoVersionado } from '../src/modulos/acelerato/sql.js';
+import { CONSULTAS, Q1_CHAMADOS, Q2_ETAPAS, Q3_CAMPOS, Q4_FORA_ORGANIZACOES, Q5_SAIDA, Q6_CAMPOS_ETAPA_LISTA, Q7_CAMPOS_ETAPA_PREENCHIDO, SET_TETO, sha256Texto, sqlSha256, textoVersionado } from '../src/modulos/acelerato/sql.js';
 import { COLUNAS_PESSOA } from '../src/plataforma/db/lgpd.js';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { COLUNAS_50, COLUNAS_BARRADAS } from './fixtures/acelerato-linha-50-colunas.js';
@@ -19,9 +19,9 @@ const fontesModulo = arquivos(MODULO);
 const noModulo = (nome: string): string => ler(join(MODULO, nome));
 
 describe('guarda de suíte vazia', () => {
-  it('lê os arquivos do módulo (pelo menos 12) e as 5 consultas', () => {
+  it('lê os arquivos do módulo (pelo menos 12) e as 7 consultas', () => {
     expect(fontesModulo.length).toBeGreaterThanOrEqual(12);
-    expect(CONSULTAS).toHaveLength(5);
+    expect(CONSULTAS).toHaveLength(7);
   });
 });
 
@@ -44,11 +44,13 @@ describe('CT-03/04: lista fechada de colunas na consulta', () => {
       && !['campos_personalizados', 'campos_personalizados_etapa', 'estatisticas'].includes(c))).toEqual(['agente_key']);
   });
 
-  it('colunas json só por caminho: estatisticas e campos_personalizados dentro de JSON_TABLE, campos_personalizados_etapa em lugar nenhum', () => {
+  it('colunas json só por caminho: estatisticas e campos_personalizados dentro de JSON_TABLE, campos_personalizados_etapa só dentro de JSON_TABLE (Q6 e Q7)', () => {
     expect(Q1_CHAMADOS).not.toMatch(/\b(estatisticas|campos_personalizados\w*)\b/);
     expect(Q2_ETAPAS).toContain("JSON_TABLE(c.estatisticas, '$.workflow.etapas[*]'");
     expect(Q3_CAMPOS).toContain("JSON_TABLE(c.campos_personalizados, '$[*]'");
-    expect(CONSULTAS.join('\n')).not.toContain('campos_personalizados_etapa');
+    for (const q of [Q6_CAMPOS_ETAPA_LISTA, Q7_CAMPOS_ETAPA_PREENCHIDO]) expect(q).toContain("JSON_TABLE(c.campos_personalizados_etapa, '$[*]'");
+    for (const q of [Q1_CHAMADOS, Q2_ETAPAS, Q3_CAMPOS, Q4_FORA_ORGANIZACOES, Q5_SAIDA]) expect(q).not.toContain('campos_personalizados_etapa');
+    for (const q of CONSULTAS) expect(q.split('campos_personalizados_etapa').length - 1).toBeLessThanOrEqual(1);
     expect(Q2_ETAPAS).not.toMatch(/impedimentos|tempoSlaHoras/);
   });
 });

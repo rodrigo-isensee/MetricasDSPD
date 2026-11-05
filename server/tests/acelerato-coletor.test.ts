@@ -57,7 +57,9 @@ describe('primeira carga', () => {
     expect(e.ctl[0]!.marcaAte?.toISOString()).toBe('2026-09-02T13:30:00.000Z');
     expect(r.marcaDagua).toBe('2026-09-02T13:30:00.000Z');
     expect(r.sincronizadoEmMax).toBe('2026-09-02 10:40:00');
-    expect(e.contagens.map((c) => c.entidade)).toEqual(['chamado', 'etapa', 'fora_organizacoes_recorte']);
+    expect(e.contagens.map((c) => c.entidade)).toEqual([
+      'chamado', 'etapa', 'fora_dominio_motivo_escalacao', 'fora_dominio_prioridade_ajustada', 'tipo_texto_motivo_encerramento', 'fora_organizacoes_recorte',
+    ]);
   });
 
   it('sem espera injetada (uso real) a primeira tentativa que dá certo não espera nada', async () => {
