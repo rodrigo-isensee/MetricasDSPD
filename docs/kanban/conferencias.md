@@ -2012,3 +2012,6 @@
 | 2026-11-05 18:04 | 070-simulado-por-cartao | 070-simulado-por-cartao-agile-coach-1 | brief | 1 | aprovado | s | retrospectiva do 070 | — | jarvis |
 | 2026-11-05 18:07 | 069-lacunas-alta | 069-lacunas-alta-agile-coach-1 | brief | 1 | aprovado | s | retrospectiva do 069 | — | jarvis |
 | 2026-11-05 18:08 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-1 | brief | 1 | reprovado | n | Ler sugeria worktree e o NÃO tocar proibia worktrees | forma | jarvis |
+| 2026-11-05 18:11 | 070-simulado-por-cartao | 070-simulado-por-cartao-agile-coach-1 | entrega | 1 | não cumpriu | s | retro 59d46a92 conferida; o arquivo do bug 070-001 citado na MELHORIA 1 existe na develop (0377db7f), não na branch do Jarvis, que é de base antiga; DECISÃO TÉCNICA (Jarvis): evidência válida, sem reescrever | base | destino |
+| 2026-11-05 18:11 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-2 | brief | 1 | reprovado | n | tardio: decisões do 069 pelo Depende de | decisao | jarvis |
+| 2026-11-05 18:13 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-2 | brief | 2 | reprovado | n | branch do Jarvis com commit local não enviado (retro do 069) | ambiente | jarvis |

@@ -3,7 +3,7 @@
 - **Modo:** implementar
 - **Objetivo:** fechar as lacunas técnicas que os reviews, a CI e as retrospectivas de 2026-11-05 mostraram, cada uma por PR próprio para a develop
 - **Clareza:** 0 confirmado; 7 técnico; 0 suposição; 0 perguntas (melhoria técnica do projeto, com autonomia dada pelo dono ao time)
-- **Depende de:** 069-lacunas-alta (origem dos achados)
+- **Depende de:** nenhum (os achados vieram dos reviews e retrospectivas dos pedidos 069, 070, 071 e 072, mas nenhum item depende de entrega aberta deles)
 
 ## Escopo
 - E1. K-228: refazer a triagem dos alertas abertos do Dependabot (a triagem da docs/060-triagem-dependabot envelheceu) · `técnico`
@@ -31,3 +31,4 @@
 
 ## Histórico
 - 2026-11-05 18:08: pedido aberto (Jarvis) a partir dos cartões K-224 a K-230. DECISÃO TÉCNICA (Jarvis): começa pela triagem do Dependabot (E1, security-engineer, só leitura) e pelo estado da ADR 0023 (E2, software-architect, sem commit), que não dependem de nada; os itens de código entram um por vez, depois da triagem; o dono é avisado no resumo, sem recibo, por ser melhoria técnica (autonomia dada pelo dono).
+- 2026-11-05 18:11: Ajuste (Jarvis): o Depende de passa a nenhum; os itens só nasceram dos achados de outros pedidos e não dependem de entrega aberta deles.

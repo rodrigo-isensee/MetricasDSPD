@@ -16,6 +16,7 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-231 | [lacuna] L2-c do 069: campo de data do quadro (data_acordada) só se o de-para P-L2-1 mostrar que ele existe; depende das pessoas (WS1) | 069 | forge:software-architect | 2026-11-05 | 2026-11-05 18:12 | Espera a resposta do P-L2-1 (docs/analises/069-desenho.md, linhas 25 e 124) |
 | K-224 | [técnico] Mudança de lista em ref_dominio passa sem a recusa do CA-8 (controle.ts só faz hash das constantes do código) | 069 | forge:node-backend | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
 | K-225 | [técnico] Regra de fronteira do eslint do server vale só para as pastas listadas; pasta nova em src/ escapa sem aviso | 069 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
 | K-226 | [técnico] format:check da raiz não cobre o server/ (o prettier acusa estilo nos arquivos do server) | 069 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
@@ -46,8 +47,6 @@
 | K-217 | S8 (taxa de reabertura) só com incidentes que têm resposta (pedido 066) | 066 | forge:software-architect | 2026-11-04 | 2026-11-04 14:11 | Recibo enviado ao dono |
 | K-218 | Dia atípico do apontamento acima de 10 h (pedido 067) | 067 | forge:node-backend | 2026-11-04 | 2026-11-04 14:13 | Recibo enviado ao dono |
 | K-219 | Release do 065, 066 e 067 e o zod 4 de volta à develop (pedido 068) | 068 | forge:tech-lead | 2026-11-04 | 2026-11-04 17:52 | Em andamento |
-| K-220 | Lacunas de dado real de prioridade alta, K-206 a K-210 (pedido 069) | 069 | forge:software-architect | 2026-11-04 | 2026-11-04 17:52 | Na develop: L3-a, M1-a, L2-a, L2-b, L9-a, L9-b, L7-a, L7-b, L9-c (PR 238, 8a789d43); L2-c só se o campo de data existir (P-L2-1, das pessoas); falta a retrospectiva |
-| K-221 | Dado simulado por cartão onde ainda não há dado real, com selo "Simulado" (pedido 070) | 070 | forge:software-architect, forge:ux-designer | 2026-11-04 | 2026-11-04 21:37 | Na main pela release 071 (PR 237); falta a retrospectiva |
 | K-198 | Corrigir os alertas do fast-uri, produção (pedido 062) | 062 | forge:node-backend | 2026-11-02 | 2026-11-02 20:06 | Override de patch; sem outras dependências |
 | K-199 | CLAUDE.md com a leitura do Acelerato pela ADR 0023 (pedido 060, E4) | 060 | forge:software-architect | 2026-11-02 | 2026-11-02 20:30 | PR para o dono mesclar |
 | K-197 | Desenho da Visão Geral com dado real, para a próxima etapa (pedido 060, E3) | 060 | forge:ux-designer, forge:software-architect | 2026-11-02 | 2026-11-02 19:53 | Modo planejar; nada implementado |
@@ -148,6 +147,8 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-220 | Lacunas de dado real de prioridade alta, K-206 a K-210 (pedido 069) | 069 | forge:software-architect | 2026-11-04 | 2026-11-05 18:12 | Pedido fechado: retrospectiva gravada (069: f90a8dad; 070: 59d46a92) |
+| K-221 | Dado simulado por cartão onde ainda não há dado real, com selo "Simulado" (pedido 070) | 070 | forge:software-architect, forge:ux-designer | 2026-11-04 | 2026-11-05 18:12 | Pedido fechado: retrospectiva gravada (069: f90a8dad; 070: 59d46a92) |
 | K-222 | Release dos lotes do 069 (L7-a, L7-b) e do 070 (simulado por cartão, ADR 0028) até o PR homolog para main (pedido 071) | 071 | forge:tech-lead, forge:qa-engineer, forge:security-engineer | 2026-11-05 | 2026-11-05 16:13 | Release 071 na main: PR 237 mesclado pelo dono (8bb1210b); falta a retrospectiva |
 | K-184 | [forge] Projeto no Forge 0.30.7: registro da versão por PR para a develop e develop levada às worktrees em uso | 053 | forge:tech-lead | 2026-10-30 | 2026-10-30 08:30 | E1 PR #172 (9aa6b29) e E2.1 merges 439ebc7, 737bf20, 20af7d7; retrospectiva pendente (junto com a do 048) |
 | K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:tech-lead | 2026-10-29 | 2026-10-30 07:04 | PR #171 mesclado na develop com squash (0dcf9ba); review 2ee99f4, segurança ff26c0e e QA 256991a revalidados por delta; branch remota e worktree 048e: limpeza do dono |

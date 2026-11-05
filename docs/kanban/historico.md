@@ -765,3 +765,6 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-11-05 18:01 · K-228 · criado em Entrada ([segurança], pedido 072)
 - 2026-11-05 18:01 · K-229 · criado em Entrada ([técnico], pedido 071)
 - 2026-11-05 18:01 · K-230 · criado em Entrada ([docs], pedido 072)
+- 2026-11-05 18:12 · K-231 · criado em Entrada (L2-c do 069, espera o P-L2-1)
+- 2026-11-05 18:12 · K-220 · → Pronto (pedido 069 fechado com a retrospectiva)
+- 2026-11-05 18:12 · K-221 · → Pronto (pedido 070 fechado com a retrospectiva)
