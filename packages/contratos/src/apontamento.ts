@@ -398,7 +398,18 @@ export const respostaApontamentoSchema = z
     versaoContrato: z.literal(VERSAO_CONTRATO_APONTAMENTO),
     dominio: z.literal('businessmap'), // nunca Acelerato
     periodo: z.object({ de: dataCivil, ate: dataCivil }).strict(),
-    frescor: z.object({ selo: seloFrescorSchema, ultimaColetaOk: instante.nullable() }).strict(), // CA-1
+    frescor: z
+      .object({
+        selo: seloFrescorSchema,
+        ultimaColetaOk: instante.nullable(),
+        /** Aditivo (069 M1-a): resultado e fim da última coleta terminada; `parcial` não vale como ok, só é dito. Ausente em respostas antigas. */
+        ultimaTentativa: z
+          .object({ resultado: z.enum(['ok', 'parcial', 'falha']), fim: instante })
+          .strict()
+          .nullable()
+          .optional(),
+      })
+      .strict(), // CA-1
     nomesReais: z.boolean(), // true só com APONTAMENTO_NOMES ligado; o front mostra o aviso de nome real
     opcoes: opcoesApontamentoSchema,
     kpis: kpisApontamentoSchema,

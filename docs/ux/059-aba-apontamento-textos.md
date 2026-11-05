@@ -141,6 +141,7 @@ Para o C1 não improvisar; todos reaproveitam o padrão do painel.
 |---|---|
 | Selo de frescor, atrasado | "Atrasado: última coleta há {n} h" |
 | Selo de frescor, sem coleta | "Sem coleta até agora" |
+| Aviso de última coleta parcial (069 M1-a) | "Última coleta parcial em {dd/mm} às {hh:mm}: alguns apontamentos podem estar faltando." (data e hora locais da coleta; some quando a parcial não é mais nova que a última coleta ok) |
 | Período dos dados | "Dados de {AAAA-MM-DD} a {AAAA-MM-DD}" |
 | Vazio (recorte sem apontamento) | título "Nenhum apontamento encontrado"; corpo "Nenhum apontamento atende aos filtros atuais."; botões "Limpar filtros" e "Remover filtro {nome}" |
 | Erro por cartão | "Não foi possível carregar este cartão. Seus filtros foram mantidos." + botão "Tentar de novo" |
