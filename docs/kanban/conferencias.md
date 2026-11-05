@@ -2020,3 +2020,22 @@
 | 2026-11-05 18:17 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-1 | brief | 1 | reprovado | n | ADR 0013 fora do item E2 | escopo | jarvis |
 | 2026-11-05 18:18 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-2 | brief | 1 | aprovado | s | estado da ADR 0023 | — | jarvis |
 | 2026-11-05 18:19 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-1 | brief | 1 | reprovado | n | faltou a decisão das 18:16 que põe o E4 em paralelo | decisao | jarvis |
+| 2026-11-05 18:21 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-2 | brief | 1 | reprovado | n | ADR 0028 citada no Histórico do 073 depois do brief | decisao | jarvis |
+| 2026-11-05 18:23 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-3 | brief | 1 | aprovado | s | regra de fronteira do eslint (E4) | — | jarvis |
+| 2026-11-05 18:24 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-2 | entrega | 1 | não cumpriu | s | triagem 3478fcfc conferida (PQ ok); o brief aprovado ficou velho porque o pedido ganhou E8 e a citação da ADR 0028 depois; DECISÃO TÉCNICA (Jarvis): aceita pelo mérito | base | destino |
+| 2026-11-05 18:26 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-4 | brief | 1 | reprovado | n | cartão errado, overrides contra a triagem, parecer de segurança do E8 não citado | escopo | jarvis |
+| 2026-11-05 18:28 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-1 | brief | 1 | aprovado | s | review do E4 | — | jarvis |
+| 2026-11-05 18:28 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-5 | brief | 1 | aprovado | s | E8 atualizações por patch | — | jarvis |
+| 2026-11-05 18:29 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-3 | entrega | 1 | cumpriu | s | E4 regra de fronteira em 5af33d34 | — | destino |
+| 2026-11-05 18:31 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-2 | brief | 1 | reprovado | n | etapa E3.2 pede PR e a análise não tem PR; worktree 056d sem decisão no pedido | etapa | jarvis |
+| 2026-11-05 18:32 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-3 | brief | 1 | aprovado | s | análise do format:check (E5.1) | — | jarvis |
+| 2026-11-05 18:33 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-1 | brief | 1 | aprovado | s | QA do E4 | — | jarvis |
+| 2026-11-05 18:33 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-1 | entrega | 1 | cumpriu | s | review do E4 em 5598410a | — | destino |
+| 2026-11-05 19:40 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-4 | brief | 1 | aprovado | s | PR do E4 | — | jarvis |
+| 2026-11-05 19:40 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-1 | entrega | 1 | cumpriu | s | QA do E4 em e4b05d52 | — | destino |
+| 2026-11-05 19:41 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-5 | brief | 1 | reprovado | n | CHANGELOG sem seções por release; E6 parado até decidir a prática | escopo | jarvis |
+| 2026-11-05 19:43 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-7 | brief | 1 | reprovado | n | commit errado do review do 011; regra de manter a develop deixava a revalidação de fora; sem PR sem decisão | base | jarvis |
+| 2026-11-05 19:46 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-8 | brief | 1 | reprovado | n | E7.1 citada com e PR junto do sem PR; data errada da versão do 011 | citacao | jarvis |
+| 2026-11-05 19:47 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-11 | brief | 1 | reprovado | n | faltou a decisão das 19:42 (CI prova os 4 testes) | decisao | jarvis |
+| 2026-11-05 19:48 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-4 | brief | 1 | aprovado | s | segurança da dependência do E8 (E8.1) | — | jarvis |
+| 2026-11-05 19:48 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-5 | entrega | 1 | não cumpriu | s | PQ-1 a PQ-5 e escopo cumpridos; o brief, aprovado às 18:28, reprova hoje só porque o pedido ganhou depois as etapas E5.1, E7.1 e E8.1 | base | destino |

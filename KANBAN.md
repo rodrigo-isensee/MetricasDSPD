@@ -16,6 +16,8 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-233 | [técnico] O format:check da raiz não cobre o e2e/ (46 arquivos fora do estilo) | 073 | forge:tech-lead | 2026-11-05 | 2026-11-05 19:38 | Lacuna irmã do K-226, vista na análise E5.1 |
+| K-232 | [segurança] Atualizar por patch body-parser 1.20.9, qs 6.16.1 e ip-address 10.7.4 no pnpm-lock.yaml (alertas 17, 26 e 13 da triagem) | 073 | forge:node-backend | 2026-11-05 | 2026-11-05 18:26 | Item E8 do pedido 073; parecer de segurança da dependência antes do PR |
 | K-231 | [lacuna] L2-c do 069: campo de data do quadro (data_acordada) só se o de-para P-L2-1 mostrar que ele existe; depende das pessoas (WS1) | 069 | forge:software-architect | 2026-11-05 | 2026-11-05 18:12 | Espera a resposta do P-L2-1 (docs/analises/069-desenho.md, linhas 25 e 124) |
 | K-224 | [técnico] Mudança de lista em ref_dominio passa sem a recusa do CA-8 (controle.ts só faz hash das constantes do código) | 069 | forge:node-backend | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
 | K-225 | [técnico] Regra de fronteira do eslint do server vale só para as pastas listadas; pasta nova em src/ escapa sem aviso | 069 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
