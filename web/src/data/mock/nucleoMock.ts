@@ -59,6 +59,12 @@ const COMPLEMENTARES: ReadonlySet<MetricaId> = new Set<MetricaId>([
  */
 const COM_TAMBEM: ReadonlySet<MetricaId> = new Set<MetricaId>(['E6', 'E8', 'O22', 'O26'])
 
+/** Hora de corte do padrão do gerador (`CONFIG_PADRAO.hoje`) aplicada a um dia: a API só conhece o dia. */
+export function comHoraDeCorte(dia: string): string {
+  const padrao = mock.CONFIG_PADRAO.hoje
+  return `${dia}${padrao.slice(padrao.indexOf('T'))}`
+}
+
 /** Itens do O2 por página: o mesmo da API (`pageSize=200`, página 1). */
 const PAGINA_O2 = 200
 
@@ -111,6 +117,7 @@ export class NucleoMock {
       const parcial: { semente?: number; hoje?: string } = {}
       if (this.opcoes.semente !== undefined) parcial.semente = this.opcoes.semente
       if (this.opcoes.hoje !== undefined) parcial.hoje = this.opcoes.hoje
+      else if (this.opcoes.dia !== undefined) parcial.hoje = comHoraDeCorte(this.opcoes.dia)
       await ceder()
       const gerada = mock.gerarBaseMock(parcial)
       // `data_acordada` é uma data (briefing: tipo Data; coluna `date` no banco) que vale até o fim do expediente do dia (P2):
