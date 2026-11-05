@@ -27,14 +27,14 @@ Chave desconhecida é 400. Listas separadas por vírgula (ou parâmetro repetido
 | `qualidade` | lista de `sem-comentario`, `generico`, `sem-vinculo`, `sem-iniciativa`, `valor-atipico`, `completo` | todas | até 6 |
 | `nivelMatriz` | `tipo` \| `subtarefa` \| `subgrupo` | `tipo` | um nível por vez |
 | `diarioDe`, `diarioAte` | `AAAA-MM-DD` | 4 semanas terminando no fim do período | os dois ou nenhum; no máximo 62 dias |
-| `anomalos` | `incluir` \| `ocultar` | `incluir` | valor atípico (soma do dia da pessoa acima de 16 h) é marcado, nunca descartado |
+| `anomalos` | `incluir` \| `ocultar` | `incluir` | valor atípico (soma do dia da pessoa acima de 10 h desde 2026-11-04, antes 16 h; versão de critério `067:limite-dia-atipico`) é marcado, nunca descartado |
 
 ## Resposta 200
 
-`respostaApontamentoSchema` (`packages/contratos/src/apontamento.ts`): `versaoContrato`, `dominio: "businessmap"`, `periodo`, `frescor { selo, ultimaColetaOk }`, `nomesReais`, `opcoes { pessoas, projetos, tipos, subtarefas, subgrupos, historico }`, `kpis`, `distribuicao`, `qualidade`, `matriz`, `capacidade`, `diario`, `achados`, `criterios`. Horas em segundos inteiros (o front só formata). Pessoa só por `pessoaRef`.
+`respostaApontamentoSchema` (`packages/contratos/src/apontamento.ts`): `versaoContrato`, `dominio: "businessmap"`, `periodo`, `frescor { selo, ultimaColetaOk, ultimaTentativa? }`, `nomesReais`, `opcoes { pessoas, projetos, tipos, subtarefas, subgrupos, historico }`, `kpis`, `distribuicao`, `qualidade`, `matriz`, `capacidade`, `diario`, `achados`, `criterios`. Horas em segundos inteiros (o front só formata). Pessoa só por `pessoaRef`.
 
 - `nomesReais`: `true` só com `APONTAMENTO_NOMES=1`. Desligado (padrão), `opcoes.pessoas[].rotulo` é só um dos rótulos fixos que o contrato aceita (`Pessoa n`, com n = número do `pessoaRef`, ou `Outra área`; o contrato recusa qualquer outro texto com `nomesReais` falso) e o banco nem recebe consulta ao nome. Ligado, o rótulo é o nome real e é o **único** lugar do corpo em que ele aparece; pessoa sem nome na referência vira `Pessoa não identificada` com `identificada: false`. É pseudonimização, não anonimato: nenhuma legenda deve prometer anonimato.
-- `frescor`: selo da última coleta do worklog (`tarefa = apontamento`): `atual`, `atrasado`, `falha` ou `sem-coleta`, pela regra do núcleo (`seloFrescor`). `ultimaColetaOk` em ISO com `-03:00`, ou `null`.
+- `frescor`: selo da última coleta do worklog (`tarefa = apontamento`): `atual`, `atrasado`, `falha` ou `sem-coleta`, pela regra do núcleo (`seloFrescor`). `ultimaColetaOk` em ISO com `-03:00`, ou `null`. `ultimaTentativa` (opcional, aditivo, 069 M1-a): `{ resultado: "ok" | "parcial" | "falha", fim }` da última coleta terminada, ou `null` sem coleta; coleta parcial não vale como ok (o selo e `ultimaColetaOk` seguem só com sucesso), o campo só permite à tela dizer que a última coleta foi parcial.
 - `opcoes`: pessoas na ordem neutra (o1: alfabética pelo rótulo com nomes ligados, por número do `pessoaRef` com nomes desligados); projeto = título da raiz da hierarquia (`dim_card_raiz`), `foraDoEscopo` quando a raiz está fora dos quadros coletados; `sem-projeto` ("Sem iniciativa") quando o card não está na referência; `tipos[].id` = `type_id` do BusinessMap em dígitos (o valor que o filtro `tipo` aceita) e `rotulo` = categoria do card (`dim_card.tipo`); apontamento ainda sem `type_id` (linha não relida pela coleta) soma normalmente e aparece na distribuição como "Sem tipo", mas não é opção de filtro; `historico` = primeiro e último dia com apontamento ativo.
 - Apontamento excluído na origem (`excluido_em`) nunca entra nas somas; apontamento sem pessoa (eliminação a pedido) entra só no agregado do time.
 - `criterios`: versões de critério (T2.6) do dicionário de subgrupo, do calendário de feriados e dos limiares provisórios dos achados (20, 20, 50, 1 dia, 10 pontos; registrados com data, revistos com 4 semanas de dado real), para marcar nos gráficos.
@@ -72,7 +72,7 @@ Exemplo (recortado; nomes desligados):
   "versaoContrato": 1,
   "dominio": "businessmap",
   "periodo": { "de": "2031-01-01", "ate": "2031-02-28" },
-  "frescor": { "selo": "atual", "ultimaColetaOk": "2031-02-10T06:10:00-03:00" },
+  "frescor": { "selo": "atual", "ultimaColetaOk": "2031-02-10T06:10:00-03:00", "ultimaTentativa": { "resultado": "ok", "fim": "2031-02-10T06:10:00-03:00" } },
   "nomesReais": false,
   "opcoes": {
     "pessoas": [{ "pessoaRef": "p1", "rotulo": "Pessoa 1", "identificada": true }],

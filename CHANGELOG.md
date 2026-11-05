@@ -2,6 +2,32 @@
 
 Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemVer (enquanto `0.x`, MINOR absorve o que seria MAJOR). Escrito à mão a partir dos Conventional Commits de `origin/homolog..origin/develop`.
 
+## [Não publicado]
+
+### Adicionado
+- Painel: BLOQUEADOS e O5 sem dado real até a coleta gravar bloqueios (pedido 065) (#214).
+- Aba Apontamento: dia atípico acima de 10 h (pedido 067) (#215) e aviso de coleta parcial (pedido 069, lote M1-a) (#219).
+- Sustentação: S8 conta só incidentes com resposta (pedido 066) (#216).
+- Métricas: O2 e parados por etapa acham as colunas pela equipe (pedido 069, lote L3-a) (#217).
+- BusinessMap: mapa de campos e `bm:ref-sync` (lote L2-a) (#220) e projeção das colunas de lista do `dim_card` (lote L2-b) (#221).
+- Acelerato: S3 e S2 sem zero falso nos campos que o Acelerato não traz (lote L9-a) (#225) e campos de etapa até o staging (lote L9-b) (#224).
+- Documentação: plano, ADR 0025 e especificação do aviso de registro incompleto (pedido 063) (#212).
+
+### Desempenho
+- Nenhuma mudança nesta versão.
+
+### Mudanças que quebram
+- Nenhuma. Sem migração de esquema nesta versão.
+
+### Mudanças de critério de cálculo
+- 2026-11-04, aba Apontamento: limite do dia atípico passa de 16 h para 10 h; só marca, nunca descarta (decisão do dono, pedido 067; versão `067:limite-dia-atipico`) (#215).
+- 2026-11-04, S8 (Acelerato): conta só incidentes com resposta; sem resposta sai do denominador e abaixo de 20 não publica (decisão do dono, pedido 066; versão `066:S8-com-resposta`) (#216).
+- Pedido 065: versão de critério registrada em `core/criterios.ts` para BLOQUEADOS e O5 (#214).
+- Lote L9-b: versão `069:L9-b-campos-etapa`, sem métrica afetada (#224). L3-a e L9-a não recalculam e ficam sem versão.
+
+### Dependências e Forge
+- `zod` 4 e `ws` 8.22.0 para 8.22.1 (#218).
+
 ## [0.2.0] - 2026-10-29
 
 ### Adicionado

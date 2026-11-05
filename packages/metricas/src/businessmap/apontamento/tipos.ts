@@ -50,7 +50,7 @@ export interface EntradaApontamento {
   nivelMatriz: NivelMatriz
   /** Calendário montado da referência com feriados (`criarCalendario({ feriados })`). */
   calendario: Calendario
-  /** Soma do dia da pessoa acima disto vira `valor-atipico` (proposta do UX: 16 h). */
+  /** Soma do dia da pessoa acima disto vira `valor-atipico` (decisão do dono, 2026-11-04: 10 h; padrão `LIMITE_ATIPICO_SEGUNDOS_PADRAO`). */
   limiteAtipicoSegundos: number
   /** Data (AAAA-MM-DD) da última coleta bem-sucedida: o mês corrente corta nela (C-7). `null` = sem corte. */
   ultimaColetaOk: string | null

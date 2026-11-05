@@ -1,4 +1,4 @@
-import { LIMIARES_ACHADO_PADRAO } from '@metricas-dspd/metricas/businessmap';
+import { LIMIARES_ACHADO_PADRAO, LIMITE_ATIPICO_HORAS_PADRAO } from '@metricas-dspd/metricas/businessmap';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 
@@ -18,6 +18,12 @@ export const CRITERIOS_APONTAMENTO: readonly CriterioApontamento[] = [
     descricao: `Limiares provisórios dos achados da aba Apontamento: não classificado ${L.naoClassificadoPct}% das horas, sem comentário ${L.semComentarioPct}%, `
       + `concentração ${L.concentracaoPct}% num projeto, ${L.diasAtipicos} dia(s) atípico(s) ou mais, variação de utilização ${L.variacaoUtilizacaoPp} pontos`,
     motivo: 'Decisão do dono (pedido 059, 2026-11-02, pergunta 7): a especificação não define "alto"; valores provisórios, revistos com 4 semanas de dado real. Afeta só os achados.',
+    metricas: [METRICA_ACHADOS_APONTAMENTO],
+  },
+  {
+    referencia: '067:limite-dia-atipico',
+    descricao: `Limite do dia atípico da aba Apontamento: soma do dia da pessoa acima de ${LIMITE_ATIPICO_HORAS_PADRAO} h é marcada como valor atípico (antes: 16 h). Só marca, nunca descarta`,
+    motivo: 'Decisão do dono (pedido 067, 2026-11-04): "Atipico acima de 10 horas". Muda o total de dias atípicos e o achado de dias atípicos; as demais métricas seguem iguais.',
     metricas: [METRICA_ACHADOS_APONTAMENTO],
   },
 ];

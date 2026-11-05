@@ -133,7 +133,10 @@
           "type": "number"
         },
         "bloqueados": {
-          "type": "number"
+          "type": [
+            "number",
+            "null"
+          ]
         },
         "acimaDoLimite": {
           "type": "number"
@@ -168,7 +171,10 @@
                 "type": "number"
               },
               "bloqueados": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               },
               "limite": {
                 "type": [
@@ -208,7 +214,10 @@
             "type": "number"
           },
           "bloqueados": {
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "required": [
@@ -234,7 +243,10 @@
             "type": "number"
           },
           "bloqueados": {
-            "type": "number"
+            "type": [
+              "number",
+              "null"
+            ]
           },
           "limite": {
             "type": "number"
@@ -319,6 +331,17 @@
         "fora",
         "sem-referencia"
       ]
+    },
+    "notas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "sem-classe",
+          "sle-nao-definido",
+          "bloqueio-sem-dado-real"
+        ]
+      }
     }
   },
   "required": [

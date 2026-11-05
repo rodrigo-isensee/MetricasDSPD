@@ -186,15 +186,20 @@ export type ExtrasAC = { semAgenteFora: BaseAC; extensao: ExtensaoAC | undefined
 /**
  * Extras da base do Acelerato (F2, ADR 0023). `semAgenteFora`: a mesma base sem os chamados sem agente, para as métricas de SLA (D-9; o
  * contador à parte fica em `ctl_coleta_contagem`); é a própria base se todos têm agente. `extensao`: o campo dos 90 dias como a biblioteca o
- * lê (D-10): `sim` = reincidente; `não` e `sem resposta` contam como não reincidentes (denominador = todos os criados). Pessoa nunca entra.
+ * lê (D-10, denominador revisto no pedido 066): `sim` = reincidente; `nao` = informado, não reincidente; `sem_resposta` e sem valor ficam em
+ * `reincidenteAusente` (fora do denominador; a biblioteca não publica abaixo de 20 informados). Pessoa nunca entra.
  */
 export function extrasAC(base: BaseAC, linhas: readonly LinhaChamado[]): ExtrasAC {
   const semAgente = new Set(linhas.filter((l) => l.com_agente === false).map((l) => l.chamado_id));
   const reabertoDe: Record<string, string> = {};
-  for (const l of linhas) if (l.reincidente_90d === 'sim') reabertoDe[l.chamado_id] = l.chamado_id;
+  const reincidenteAusente: Record<string, true> = {};
+  for (const l of linhas) {
+    if (l.reincidente_90d === 'sim') reabertoDe[l.chamado_id] = l.chamado_id;
+    else if (l.reincidente_90d !== 'nao') reincidenteAusente[l.chamado_id] = true;
+  }
   return {
     semAgenteFora: semAgente.size === 0 ? base : { ...base, chamados: base.chamados.filter((c) => !semAgente.has(c.chamado_id)) },
     // Sem nenhum chamado com o campo projetado (base semeada, projeção ainda não rodou): sem extensão, o S8 sai "sem campo", nunca 0%.
-    extensao: linhas.some((l) => l.reincidente_90d != null) ? { causasRaiz: {}, reabertoDe, registroProblema: {} } : undefined,
+    extensao: linhas.some((l) => l.reincidente_90d != null) ? { causasRaiz: {}, reabertoDe, registroProblema: {}, reincidenteAusente } : undefined,
   };
 }
