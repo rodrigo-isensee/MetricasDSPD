@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { renderizarApp } from '@/test/helpers'
+import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 import { fmtTempoPrioridade, fmtHU } from './formatar'
 
 /** A Sustentação está em calibração no cenário padrão (sem Dentro/Fora); estes casos exigem as metas avaliadas. */
@@ -22,6 +22,41 @@ describe('formatação da Sustentação (J2)', () => {
     expect(fmtTempoPrioridade(8, 'P5')).toBe('1 dia útil')
     expect(fmtTempoPrioridade(12, 'P4')).toBe('1,5 dias úteis')
     expect(fmtHU(0.25)).toBe('0,25 h úteis')
+  })
+})
+
+describe('S3 e S2 sem zero falso (pedido 069, L9-a)', () => {
+  it('S3 com ajustesManuais nulo mostra "sem dado" na tabela e a nota; nunca 0', async () => {
+    const fonte = Object.create(fonteDeTeste, {
+      obter: {
+        value: async (id: string, ...resto: unknown[]) => {
+          const r = await (
+            fonteDeTeste.obter as (...a: unknown[]) => Promise<Record<string, unknown>>
+          )(id, ...resto)
+          const c = structuredClone(r) as Record<string, unknown> & { meses: object[] }
+          if (id === 'S3') {
+            c.meses = c.meses.map((m) => ({ ...m, ajustesManuais: null }))
+            c.notas = ['ajuste-prioridade-sem-dado-real']
+          }
+          if (id === 'S2') c.notas = ['excecao-sla-sem-fonte']
+          return c
+        },
+      },
+    }) as typeof fonteDeTeste
+    renderizarApp('/sustentacao?mock=sem-calibracao', fonte)
+    const s3 = await screen.findByTestId('metrica-S3', undefined, { timeout: 8000 })
+    await waitFor(() => expect(s3).toHaveAttribute('data-estado', 'ok'), { timeout: 8000 })
+    const tabela = within(s3).getByTestId('tabela-S3-resumo')
+    expect(tabela).toHaveTextContent('sem dado')
+    expect(within(s3).getByTestId('notas-cartao-S3')).toHaveTextContent(
+      'Ajustes manuais de prioridade: sem dado real',
+    )
+    const s2 = await screen.findByTestId('metrica-S2', undefined, { timeout: 8000 })
+    await waitFor(() =>
+      expect(within(s2).getByTestId('notas-cartao-S2')).toHaveTextContent(
+        'Exceção de SLA por registro posterior sem fonte',
+      ),
+    )
   })
 })
 

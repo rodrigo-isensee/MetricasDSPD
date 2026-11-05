@@ -406,3 +406,50 @@ describe('pedido 065: bloqueios sem dado real na base real', () => {
     expect(marcacoesNoPeriodo('O3', { inicio: '2026-10-01', fim: '2026-11-10' }, []).map((x) => x.id)).not.toContain('criterio-2026-11-04-bloqueio-sem-dado-real');
   });
 });
+
+// Pedido 069, L9-a (K-220): S3 e S2 sem zero falso enquanto `prioridade_ajustada_manualmente` não vem da fonte (ADR 0026).
+describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
+  const NOTA_S3 = 'ajuste-prioridade-sem-dado-real';
+  const NOTA_S2 = 'excecao-sla-sem-fonte';
+  const mock = async () => buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(seed)).pool, agora: () => AGORA, nivelLog: 'silent' });
+
+  it('L1: S3 real sai com ajustesManuais null em todo mês, com a nota, e valida no contrato', async () => {
+    const { app } = await montar({ chamados: [chamado('1'), chamado('2')] });
+    const r = (await app.inject('/api/v1/metricas/S3')).json() as { notas: string[]; meses: { ajustesManuais: unknown; total: number }[] };
+    expect(r.notas).toEqual([NOTA_S3]);
+    expect(r.meses.length).toBeGreaterThan(0);
+    for (const m of r.meses) expect(m.ajustesManuais).toBeNull();
+    expect(r.meses.some((m) => m.total > 0)).toBe(true);
+    expect(SCHEMAS_RESULTADO.S3.safeParse(r).success).toBe(true);
+  }, 60_000);
+
+  it('L2: S2 real traz a nota e o resto do resultado fica igual', async () => {
+    const { app } = await montar({ chamados: [chamado('1'), chamado('2')] });
+    const r = (await app.inject('/api/v1/metricas/S2')).json() as { notas: string[]; prioridades: unknown[] };
+    expect(r.notas).toEqual([NOTA_S2]);
+    expect(r.prioridades.length).toBeGreaterThan(0);
+    expect(SCHEMAS_RESULTADO.S2.safeParse(r).success).toBe(true);
+  }, 60_000);
+
+  it('L3: modo mock mantém o número do S3 e não traz nota; S4 real não ganha nota', async () => {
+    const m = (await (await mock()).inject('/api/v1/metricas/S3')).json() as { notas?: string[]; meses: { ajustesManuais: unknown }[] };
+    expect(m.notas).toBeUndefined();
+    for (const x of m.meses) expect(typeof x.ajustesManuais).toBe('number');
+    const s2 = (await (await mock()).inject('/api/v1/metricas/S2')).json() as { notas?: string[] };
+    expect(s2.notas).toBeUndefined();
+    const { app } = await montar({ chamados: [chamado('1')] });
+    expect(JSON.stringify((await app.inject('/api/v1/metricas/S4')).json())).not.toContain(NOTA_S3);
+  }, 60_000);
+
+  it('L4: a função pura só troca ajustesManuais e anexa a nota, sem repetir nem apagar outra', async () => {
+    const { semParteDeAjusteDePrioridade } = await import('../src/modulos/metricas/parte-sem-dado.js');
+    const a = semParteDeAjusteDePrioridade('S3', { meses: [{ mes: '2026-09', total: 7, ajustesManuais: 0 }], janela: { total: 7 } }) as { meses: Record<string, unknown>[]; janela: unknown; notas: string[] };
+    expect(a.meses).toEqual([{ mes: '2026-09', total: 7, ajustesManuais: null }]);
+    expect(a.janela).toEqual({ total: 7 });
+    expect(a.notas).toEqual([NOTA_S3]);
+    expect((semParteDeAjusteDePrioridade('S3', a) as { notas: string[] }).notas).toEqual([NOTA_S3]);
+    expect((semParteDeAjusteDePrioridade('S2', { prioridades: [] }) as { notas: string[] }).notas).toEqual([NOTA_S2]);
+    const fora = { a: 1 };
+    expect(semParteDeAjusteDePrioridade('S4', fora)).toBe(fora);
+  });
+});

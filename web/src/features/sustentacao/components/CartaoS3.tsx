@@ -32,6 +32,7 @@ export function CartaoS3({ filtros }: { filtros: FiltrosSustentacao }) {
       atualizando={q.atualizando}
       {...(d ? { base: d.base, criterios: d.criterios } : {})}
       {...(leitura ? { leitura } : {})}
+      notasDoCartao={d?.notas}
       nota={NOTAS_SUSTENTACAO.S3 as NonNullable<(typeof NOTAS_SUSTENTACAO)[string]>}
       meta={m.meta}
       fonte={m.fonte}
@@ -111,7 +112,7 @@ export function CartaoS3({ filtros }: { filtros: FiltrosSustentacao }) {
               mes: x.emAndamento ? `${fmtMes(x.mes)} (em andamento)` : fmtMes(x.mes),
               total: fmtInteiro(x.total),
               p1p2: x.p1p2Pct === null ? '— menos de 20 chamados' : fmtPct(x.p1p2Pct, 0),
-              aj: fmtInteiro(x.ajustesManuais),
+              aj: x.ajustesManuais === null ? 'sem dado' : fmtInteiro(x.ajustesManuais),
             }))}
           />
           <LeiaJunto id="s3" />
