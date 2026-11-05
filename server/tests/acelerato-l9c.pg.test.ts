@@ -26,6 +26,14 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
       VALUES ($1, 'X', ${previsao}, now(), $2)`, [id, await novaColeta(dono, E.ac)]);
   };
 
+  let relogio = new Date('2026-11-05T10:00:00Z');
+  const coletar = (t: ReturnType<typeof linha>[], reconhecerMudanca = false) => coletarAcelerato({
+    pool: coletor, config: CONFIG, tls: TLS, S: E, agora: () => relogio, log: { info: () => undefined, error: () => undefined },
+      cliente: { conectar: criarMysqlFalso(t).conectar }, dormir: () => Promise.resolve(), reconhecerMudanca,
+    }, 'releitura');
+    const etapa = (campos: { nome: string; tipo: string; valor: string; kanbanStatusKey?: number }[]) =>
+      linha({ ticket_key: 91, campos_personalizados_etapa: JSON.stringify(campos.map((c) => ({ kanbanStatusKey: 10, ...c, obrigatorio: false }))) });
+
   beforeAll(async () => {
     await migrar(url!, { prefixo: P });
     dono = poolDe();
@@ -73,13 +81,6 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     // Desenho do fluxo (L9-c, decisão "B"): a etapa 20 vem depois da 10. A posição é o `ordem` da linha de `etapa_fluxo`.
     for (const [codigo, ordem] of [['10', 0], ['20', 1]] as const)
       await dono.query(`INSERT INTO ${E.ac}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('etapa_fluxo', $1, '2026-01-01', $2, $3)`, [codigo, `Etapa ${codigo}`, ordem]);
-    let relogio = new Date('2026-11-05T10:00:00Z');
-    const coletar = (t: ReturnType<typeof linha>[]) => coletarAcelerato({
-      pool: coletor, config: CONFIG, tls: TLS, S: E, agora: () => relogio, log: { info: () => undefined, error: () => undefined },
-      cliente: { conectar: criarMysqlFalso(t).conectar }, dormir: () => Promise.resolve(),
-    }, 'releitura');
-    const etapa = (campos: { nome: string; tipo: string; valor: string; kanbanStatusKey?: number }[]) =>
-      linha({ ticket_key: 91, campos_personalizados_etapa: JSON.stringify(campos.map((c) => ({ kanbanStatusKey: 10, ...c, obrigatorio: false }))) });
     await coletar([linha({ ticket_key: 91, campos_personalizados_etapa: '[]' })]);
     await projetarAcelerato(coletor, E, () => relogio);
     const vazia = (await dono.query(`SELECT * FROM ${E.ac}.dim_chamado WHERE chamado_id = '91'`)).rows[0];
@@ -105,6 +106,29 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     expect(tudo).not.toContain('TEXTO-LIVRE-L9C');
     expect(tudo).not.toMatch(/kanban/i); // a chave da etapa só decide o valor; não é gravada na dimensão nem no staging projetado
     expect(JSON.stringify((await dono.query(`SELECT payload FROM ${E.ac}.stg_chamado WHERE id_origem = '91'`)).rows)).not.toMatch(/kanban/i);
+  }, 60_000);
+
+  it('versão nova de critério: a lista etapa_fluxo trocada muda o valor decidido do mesmo chamado, gera versão nova e a antiga fica intacta', async () => {
+    const versoes = async (): Promise<{ motivo_encerramento: string | null; vigente_ate: Date | null }[]> =>
+      (await dono.query(`SELECT motivo_encerramento, vigente_ate FROM ${E.ac}.dim_chamado_versao WHERE chamado_id = '91' ORDER BY vigente_de`)).rows;
+    const antes = await versoes();
+    const atual = (await dono.query(`SELECT motivo_encerramento FROM ${E.ac}.dim_chamado WHERE chamado_id = '91'`)).rows[0].motivo_encerramento;
+    expect(atual).toBe('Beta'); // lista semeada no teste anterior: a etapa 20 vem depois da 10
+    // Lista trocada (semeada aqui): a etapa 10 passa a vir por último. A linha antiga fecha a vigência, a nova abre; nada é apagado.
+    await dono.query(`UPDATE ${E.ac}.ref_dominio SET vigente_ate = '2026-11-05' WHERE campo = 'etapa_fluxo' AND vigente_ate IS NULL`);
+    for (const [codigo, ordem] of [['20', 0], ['10', 1]] as const)
+      await dono.query(`INSERT INTO ${E.ac}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('etapa_fluxo', $1, '2026-11-05', $2, $3)`, [codigo, `Etapa ${codigo}`, ordem]);
+    relogio = new Date('2026-11-05T12:00:00Z');
+    const mesmo = [{ nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Beta', kanbanStatusKey: 20 }, { nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Alfa', kanbanStatusKey: 10 }];
+    await coletar([etapa(mesmo)], true); // a lista mudou: a coleta pede o reconhecimento da mudança de critério (CA-8)
+    await projetarAcelerato(coletor, E, () => relogio);
+    expect((await dono.query(`SELECT motivo_encerramento FROM ${E.ac}.dim_chamado WHERE chamado_id = '91'`)).rows[0].motivo_encerramento).toBe('Alfa');
+    const depois = await versoes();
+    expect(depois).toHaveLength(antes.length + 1);
+    expect(depois.at(-1)).toMatchObject({ motivo_encerramento: 'Alfa', vigente_ate: null });
+    expect(depois.slice(0, antes.length).map((v) => v.motivo_encerramento)).toEqual(antes.map((v) => v.motivo_encerramento)); // valores antigos intactos
+    expect(depois[antes.length - 1]!.vigente_ate).not.toBeNull(); // a versão anterior foi fechada, não sobrescrita
+    expect(depois[antes.length - 1]!.motivo_encerramento).toBe('Beta');
   }, 60_000);
 
   it('paridade: S2, S3, S4, S8 e S10 reais não mudam quando as colunas da F3 mudam (constante de ajuste de prioridade falsa)', async () => {

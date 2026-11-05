@@ -217,8 +217,8 @@ export function camposEtapa(
     if (!r.success) return falhar(r.error, 'campo_etapa');
     const k = chaveDe.get(r.data.nome)!;
     if (tipoTexto(r.data.tipo)) { texto_.add(k); continue; }
-    // Um vazio (nulo ou texto vazio) nunca apaga um valor preenchido: só os preenchidos competem.
-    if (r.data.valor !== null && r.data.valor !== '') candidatos.set(k, [...(candidatos.get(k) ?? []), { valor: r.data.valor, etapa: r.data.kanban_status_key }]);
+    // Um vazio (nulo, texto vazio ou só espaços, como o TRIM da consulta B) nunca apaga um valor preenchido: só os preenchidos competem.
+    if (r.data.valor !== null && r.data.valor.trim() !== '') candidatos.set(k, [...(candidatos.get(k) ?? []), { valor: r.data.valor, etapa: r.data.kanban_status_key }]);
   }
   const marcados = new Set<string>();
   for (const linha of preenchidoLinhas) {

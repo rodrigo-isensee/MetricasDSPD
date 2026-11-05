@@ -43,6 +43,13 @@ describe('campo repetido em várias etapas: vale o valor preenchido da etapa que
     expect(campo([lista(null, 10), lista('B', 20)])).toBe('B');
     expect(campo([lista(null, 10), lista('', 20)])).toBeNull();
   });
+  it('valor só de espaços é vazio (como o TRIM da consulta B): não compete nem apaga o preenchido, e sozinho dá nulo sem contagem', () => {
+    const c = new Contadores();
+    expect(campo([lista('A', 10), lista('   ', 30)], c)).toBe('A');
+    expect(campo([lista(' \t', 30), lista('A', 10), lista('B', 10)], c)).toBeNull(); // empate A/B na posição 1, o branco não entra
+    expect(campo([lista('  ', 10)], c)).toBeNull();
+    expect(c.entradas()).toEqual([['empate_fluxo_motivo_escalacao', 1]]);
+  });
   it('valores iguais ou um só preenchido: o valor segue sem consultar a posição (chave nula ou fora da lista) e nada é contado', () => {
     const c = new Contadores();
     expect(campo([lista('A', null)], c)).toBe('A');

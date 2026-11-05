@@ -1,8 +1,5 @@
 import { z } from 'zod';
-import type { SessaoMysql } from '../modulos/acelerato/cliente-mysql.js';
-import { ErroColeta } from '../modulos/acelerato/erros.js';
-import { NOMES_ETAPA_LISTA } from '../modulos/acelerato/listas-fechadas.js';
-import { expandir } from '../modulos/acelerato/sql.js';
+import { ErroColeta, NOMES_ETAPA_LISTA, expandir, type SessaoMysql } from '../modulos/acelerato/index.js';
 
 /**
  * Comando de apoio do L9-c (pedido 069, P-L9C-3 "A" do dono; `docs/analises/069-l9c-ordem.md` §8). SÓ LEITURA e SÓ CONTAGENS: duas consultas
@@ -14,7 +11,7 @@ import { expandir } from '../modulos/acelerato/sql.js';
  * mesmo campo (os que a ordem do fluxo decide). A consulta C do desenho (chamado com etapas de mais de um workflow) não faz parte desta entrega.
  */
 
-/** Recorte da §8 do desenho (o mesmo da consulta de apoio entregue ao dono), por placeholder: tipo, organização e equipes do SSSC. */
+/** Recorte da §8 do desenho (o mesmo da consulta de apoio entregue ao dono), por placeholder: tipo, organização e equipes do SSSC. É o recorte de 2026-11-05, constante do código: a coleta lê o recorte de ref_dominio, então se a lista do recorte mudar as contagens divergem (A3 do review). */
 export const RECORTE_APOIO = { tipo: 23, organizacao: 3, equipes: [7, 9, 332] } as const;
 
 export const CONSULTA_A = [

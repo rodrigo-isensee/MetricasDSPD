@@ -45,7 +45,7 @@ export default tseslint.config(
   // R4-5 (ADR 0020 revisão 4): a regra do pool não se desliga por diretiva inline em lugar nenhum do server (A1 do parecer da rota).
   { files: ['**/*.ts'], linterOptions: { noInlineConfig: true } },
   // Fora dos módulos: nada de arquivo interno de módulo, e o módulo da aba só entra em app, entrada api e openapi.
-  { files: ['src/*.ts', 'src/plataforma/**/*.ts', 'src/entradas/**/*.ts'], ignores: ['src/plataforma/db/seed.ts', 'src/plataforma/db/seed-cli.ts', 'src/plataforma/db/limpar-seed.ts', 'src/plataforma/db/extensoes-mock.ts', 'src/plataforma/db/pesquisa-mock.ts', ...MONTAM_A_API], rules: {
+  { files: ['src/*.ts', 'src/plataforma/**/*.ts', 'src/entradas/**/*.ts', 'src/apoio/**/*.ts'], ignores: ['src/plataforma/db/seed.ts', 'src/plataforma/db/seed-cli.ts', 'src/plataforma/db/limpar-seed.ts', 'src/plataforma/db/extensoes-mock.ts', 'src/plataforma/db/pesquisa-mock.ts', ...MONTAM_A_API], rules: {
     'no-restricted-imports': ['error', { patterns: [...FORA_DOS_MODULOS, { regex: IMPORTA_O_MODULO_DA_ABA, message: MSG_POOL_APONTAMENTO }] }],
   } },
   { files: MONTAM_A_API, rules: { 'no-restricted-imports': ['error', { patterns: FORA_DOS_MODULOS }] } },
