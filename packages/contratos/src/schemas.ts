@@ -33,7 +33,7 @@ import {
   statusMetaSchema,
   taxaSchema,
 } from './comum'
-import { notaCartaoIdSchema } from './origem'
+import { notaCartaoIdSchema, notaSustentacaoIdSchema } from './origem'
 import { trimestreSchema } from './pesquisa'
 import { paradosSchema } from './tambem'
 
@@ -641,6 +641,8 @@ const prioridadesS2 = z.array(
 export const resultadoS2 = z.object({
   ...comum,
   prioridades: prioridadesS2,
+  /** Pedido 069, L9-a: notas da publicação sem dado (os textos vivem em `origem.ts`). */
+  notas: z.array(notaSustentacaoIdSchema).optional(),
 })
 
 export const resultadoS3 = z.object({
@@ -653,9 +655,11 @@ export const resultadoS3 = z.object({
       porPrioridade: z.array(z.object({ prioridade, n: z.number(), pct: z.number().nullable() })),
       /** P1 + P2 em %, null com menos de 20 chamados no mês. */
       p1p2Pct: z.number().nullable(),
-      ajustesManuais: z.number(),
+      /** `null` enquanto `prioridade_ajustada_manualmente` não vem da fonte (L9-a, ADR 0026): nunca zero falso. */
+      ajustesManuais: z.number().nullable(),
     }),
   ),
+  notas: z.array(notaSustentacaoIdSchema).optional(),
   /**
    * Janela inteira do período filtrado (chamados abertos entre `periodo.inicio` e `periodo.fim`), não a soma de
    * meses: o volume e a proporção de P1+P2 já calculados pela biblioteca (a tela não soma nem divide).

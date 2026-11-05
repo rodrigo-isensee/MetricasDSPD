@@ -1,0 +1,303 @@
+{
+  "versao": 1,
+  "regra": "Calendário de referência por domínio (ADR 0027). Só datas de feriado e nomes de calendário: nenhum dado de pessoa. Feriado gravado nunca muda; para acrescentar, inclua a data aqui e rode o ref:sync-calendario com a data de vigência.",
+  "versao_criterio": {
+    "descricao": "Calendário de feriados da referência (nacionais 2025-2026, BusinessMap e Acelerato em calendários separados)",
+    "motivo": "Pedido 069 (E5/L7-a): os feriados passam a vir da referência versionada, não só do código; muda os dias úteis a partir da vigência."
+  },
+  "calendarios": [
+    {
+      "nome": "dspd-businessmap",
+      "dominio": "businessmap",
+      "offset_minutos": -180,
+      "descricao": "Calendário do BusinessMap (fluxo e apontamento)",
+      "feriados": [
+        {
+          "data": "2025-01-01",
+          "escopo": "nacional",
+          "descricao": "Confraternização Universal"
+        },
+        {
+          "data": "2025-03-03",
+          "escopo": "nacional",
+          "descricao": "Carnaval (segunda-feira)"
+        },
+        {
+          "data": "2025-03-04",
+          "escopo": "nacional",
+          "descricao": "Carnaval (terça-feira)"
+        },
+        {
+          "data": "2025-04-18",
+          "escopo": "nacional",
+          "descricao": "Sexta-feira Santa"
+        },
+        {
+          "data": "2025-04-21",
+          "escopo": "nacional",
+          "descricao": "Tiradentes"
+        },
+        {
+          "data": "2025-05-01",
+          "escopo": "nacional",
+          "descricao": "Dia do Trabalho"
+        },
+        {
+          "data": "2025-06-19",
+          "escopo": "nacional",
+          "descricao": "Corpus Christi"
+        },
+        {
+          "data": "2025-09-07",
+          "escopo": "nacional",
+          "descricao": "Independência do Brasil"
+        },
+        {
+          "data": "2025-10-12",
+          "escopo": "nacional",
+          "descricao": "Nossa Senhora Aparecida"
+        },
+        {
+          "data": "2025-11-02",
+          "escopo": "nacional",
+          "descricao": "Finados"
+        },
+        {
+          "data": "2025-11-15",
+          "escopo": "nacional",
+          "descricao": "Proclamação da República"
+        },
+        {
+          "data": "2025-11-20",
+          "escopo": "nacional",
+          "descricao": "Consciência Negra"
+        },
+        {
+          "data": "2025-12-25",
+          "escopo": "nacional",
+          "descricao": "Natal"
+        },
+        {
+          "data": "2026-01-01",
+          "escopo": "nacional",
+          "descricao": "Confraternização Universal"
+        },
+        {
+          "data": "2026-02-16",
+          "escopo": "nacional",
+          "descricao": "Carnaval (segunda-feira)"
+        },
+        {
+          "data": "2026-02-17",
+          "escopo": "nacional",
+          "descricao": "Carnaval (terça-feira)"
+        },
+        {
+          "data": "2026-04-03",
+          "escopo": "nacional",
+          "descricao": "Sexta-feira Santa"
+        },
+        {
+          "data": "2026-04-21",
+          "escopo": "nacional",
+          "descricao": "Tiradentes"
+        },
+        {
+          "data": "2026-05-01",
+          "escopo": "nacional",
+          "descricao": "Dia do Trabalho"
+        },
+        {
+          "data": "2026-06-04",
+          "escopo": "nacional",
+          "descricao": "Corpus Christi"
+        },
+        {
+          "data": "2026-09-07",
+          "escopo": "nacional",
+          "descricao": "Independência do Brasil"
+        },
+        {
+          "data": "2026-10-12",
+          "escopo": "nacional",
+          "descricao": "Nossa Senhora Aparecida"
+        },
+        {
+          "data": "2026-11-02",
+          "escopo": "nacional",
+          "descricao": "Finados"
+        },
+        {
+          "data": "2026-11-15",
+          "escopo": "nacional",
+          "descricao": "Proclamação da República"
+        },
+        {
+          "data": "2026-11-20",
+          "escopo": "nacional",
+          "descricao": "Consciência Negra"
+        },
+        {
+          "data": "2026-12-25",
+          "escopo": "nacional",
+          "descricao": "Natal"
+        }
+      ]
+    },
+    {
+      "nome": "dspd-acelerato",
+      "dominio": "acelerato",
+      "offset_minutos": -180,
+      "descricao": "Calendário do Acelerato (sustentação)",
+      "feriados": [
+        {
+          "data": "2025-01-01",
+          "escopo": "nacional",
+          "descricao": "Confraternização Universal"
+        },
+        {
+          "data": "2025-03-03",
+          "escopo": "nacional",
+          "descricao": "Carnaval (segunda-feira)"
+        },
+        {
+          "data": "2025-03-04",
+          "escopo": "nacional",
+          "descricao": "Carnaval (terça-feira)"
+        },
+        {
+          "data": "2025-04-18",
+          "escopo": "nacional",
+          "descricao": "Sexta-feira Santa"
+        },
+        {
+          "data": "2025-04-21",
+          "escopo": "nacional",
+          "descricao": "Tiradentes"
+        },
+        {
+          "data": "2025-05-01",
+          "escopo": "nacional",
+          "descricao": "Dia do Trabalho"
+        },
+        {
+          "data": "2025-06-19",
+          "escopo": "nacional",
+          "descricao": "Corpus Christi"
+        },
+        {
+          "data": "2025-09-07",
+          "escopo": "nacional",
+          "descricao": "Independência do Brasil"
+        },
+        {
+          "data": "2025-10-12",
+          "escopo": "nacional",
+          "descricao": "Nossa Senhora Aparecida"
+        },
+        {
+          "data": "2025-11-02",
+          "escopo": "nacional",
+          "descricao": "Finados"
+        },
+        {
+          "data": "2025-11-15",
+          "escopo": "nacional",
+          "descricao": "Proclamação da República"
+        },
+        {
+          "data": "2025-11-20",
+          "escopo": "nacional",
+          "descricao": "Consciência Negra"
+        },
+        {
+          "data": "2025-12-25",
+          "escopo": "nacional",
+          "descricao": "Natal"
+        },
+        {
+          "data": "2026-01-01",
+          "escopo": "nacional",
+          "descricao": "Confraternização Universal"
+        },
+        {
+          "data": "2026-02-16",
+          "escopo": "nacional",
+          "descricao": "Carnaval (segunda-feira)"
+        },
+        {
+          "data": "2026-02-17",
+          "escopo": "nacional",
+          "descricao": "Carnaval (terça-feira)"
+        },
+        {
+          "data": "2026-04-03",
+          "escopo": "nacional",
+          "descricao": "Sexta-feira Santa"
+        },
+        {
+          "data": "2026-04-21",
+          "escopo": "nacional",
+          "descricao": "Tiradentes"
+        },
+        {
+          "data": "2026-05-01",
+          "escopo": "nacional",
+          "descricao": "Dia do Trabalho"
+        },
+        {
+          "data": "2026-06-04",
+          "escopo": "nacional",
+          "descricao": "Corpus Christi"
+        },
+        {
+          "data": "2026-09-07",
+          "escopo": "nacional",
+          "descricao": "Independência do Brasil"
+        },
+        {
+          "data": "2026-10-12",
+          "escopo": "nacional",
+          "descricao": "Nossa Senhora Aparecida"
+        },
+        {
+          "data": "2026-11-02",
+          "escopo": "nacional",
+          "descricao": "Finados"
+        },
+        {
+          "data": "2026-11-15",
+          "escopo": "nacional",
+          "descricao": "Proclamação da República"
+        },
+        {
+          "data": "2026-11-20",
+          "escopo": "nacional",
+          "descricao": "Consciência Negra"
+        },
+        {
+          "data": "2026-12-25",
+          "escopo": "nacional",
+          "descricao": "Natal"
+        }
+      ]
+    }
+  ],
+  "aplicacoes": [
+    {
+      "dominio": "businessmap",
+      "classe": "fluxo",
+      "calendario": "dspd-businessmap"
+    },
+    {
+      "dominio": "businessmap",
+      "classe": "apontamento",
+      "calendario": "dspd-businessmap"
+    },
+    {
+      "dominio": "acelerato",
+      "classe": "sustentacao",
+      "calendario": "dspd-acelerato"
+    }
+  ]
+}
