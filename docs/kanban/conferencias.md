@@ -1996,3 +1996,19 @@
 | 2026-11-05 16:43 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-45 | brief | 1 | aprovado | s | PR do L9-c para a develop | — | jarvis |
 | 2026-11-05 16:49 | 069-lacunas-alta | 069-lacunas-alta-node-backend-21 | brief | 1 | reprovado | n | decisão A do campo repetido lida como regra viva junto da B | decisao | jarvis |
 | 2026-11-05 16:51 | 069-lacunas-alta | 069-lacunas-alta-node-backend-22 | brief | 1 | aprovado | s | terceira volta do L9-c (coluna do teste pg) | — | jarvis |
+| 2026-11-05 17:27 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-46 | brief | 1 | aprovado | s | review do delta da terceira volta do L9-c | — | jarvis |
+| 2026-11-05 17:28 | 069-lacunas-alta | 069-lacunas-alta-node-backend-22 | entrega | 1 | não cumpriu | s | mérito certo (só o teste pg, +5 -4); PQ-1 e PQ-2 mal escritos pelo Jarvis | prova | destino |
+| 2026-11-05 17:30 | 069-lacunas-alta | 069-lacunas-alta-node-backend-23 | brief | 1 | aprovado | s | provas corrigidas da terceira volta | — | jarvis |
+| 2026-11-05 17:33 | 069-lacunas-alta | 069-lacunas-alta-node-backend-23 | entrega | 1 | cumpriu | s | terceira volta b5e9fe48 (head 1477eb91) | — | destino |
+| 2026-11-05 17:34 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-46 | entrega | 1 | cumpriu | s | review da terceira volta em 1477eb91 | — | destino |
+| 2026-11-05 17:34 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-47 | brief | 1 | reprovado | n | ADR 0027 dita como decisão do lote (é do L7-a); faltam QA e segurança do delta | decisao | jarvis |
+| 2026-11-05 17:36 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-15 | brief | 1 | aprovado | s | segurança do delta da terceira volta | — | jarvis |
+| 2026-11-05 17:37 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-24 | brief | 1 | aprovado | s | QA do delta da terceira volta | — | jarvis |
+| 2026-11-05 17:37 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-48 | brief | 1 | reprovado | n | QA e segurança zz7 ainda não existem; reenvio depois que forem gravados | etapa | jarvis |
+| 2026-11-05 17:42 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-15 | entrega | 1 | cumpriu | s | segurança do delta da terceira volta em 2b4a3f25 (conferida 78c172f4; linha gravada depois da conferência do QA) | — | destino |
+| 2026-11-05 17:42 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-48 | brief | 2 | aprovado | s | retomar o PR 238 do L9-c | — | jarvis |
+| 2026-11-05 17:43 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-24 | entrega | 1 | cumpriu | s | QA do delta da terceira volta em 78c172f4 | — | destino |
+| 2026-11-05 18:03 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-48 | entrega | 1 | não verificável | s | PR 238 mesclado em 8a789d43 (squash, head 42c9cc43, banco verde, forge-check pr --pr 238 aprovado); --admin não verificável pela API (os hooks da 0.33.0 recusam --admin); escopo não rodou porque o brief fica fora da worktree | ambiente | destino |
+| 2026-11-05 18:04 | 070-simulado-por-cartao | 070-simulado-por-cartao-agile-coach-1 | brief | 1 | aprovado | s | retrospectiva do 070 | — | jarvis |
+| 2026-11-05 18:07 | 069-lacunas-alta | 069-lacunas-alta-agile-coach-1 | brief | 1 | aprovado | s | retrospectiva do 069 | — | jarvis |
+| 2026-11-05 18:08 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-1 | brief | 1 | reprovado | n | Ler sugeria worktree e o NÃO tocar proibia worktrees | forma | jarvis |

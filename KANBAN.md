@@ -7,6 +7,8 @@
 
 > Recursos (dono, 2026-11-03 13:48, pelo assistente do app; substitui a regra das 08:05 até o dono avisar): núcleos 0-5 (6 de 16, afinidade fixada), nice 15, até ~6 GB; no máximo 1 tarefa pesada por vez (suíte completa, e2e, build), 1 worktree testando, vitest e playwright com no máximo 2 workers; antes de tarefa pesada, MemAvailable acima de 3000 MB e load abaixo de 4; não encerrar o que está em andamento, só não lançar tarefa pesada em paralelo.
 
+> Recursos (dono, 2026-11-05 17:28, literal: "as 18 vou deixar de usar o computador pode subir dai o uso de maneira equilibrada"): a partir das 18:00 de 2026-11-05, com o dono fora da máquina, o time pode subir o uso de forma equilibrada (mais agentes em paralelo, ainda uma suíte pesada por vez e com folga de memória); até as 18:00 vale a regra de recursos acima.
+
 > Retomada 2026-11-02 (noite): aba Apontamento na main (PR 201); base migrada (0021 a 0033), dicionário 2026-11-02-v2 e carga inicial do worklog feita (40583 linhas). Pendências do dono: senha do papel dspd_api_apontamento diferente do .env; 5 cards com mais de 1000 registros incompletos na carga (ADR 0025); campo causa raiz no BusinessMap.
 
 # Upstream — descoberta (Design Thinking)
@@ -14,6 +16,13 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-224 | [técnico] Mudança de lista em ref_dominio passa sem a recusa do CA-8 (controle.ts só faz hash das constantes do código) | 069 | forge:node-backend | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
+| K-225 | [técnico] Regra de fronteira do eslint do server vale só para as pastas listadas; pasta nova em src/ escapa sem aviso | 069 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
+| K-226 | [técnico] format:check da raiz não cobre o server/ (o prettier acusa estilo nos arquivos do server) | 069 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
+| K-227 | [técnico] ADR 0023 ainda marcada como proposta, embora o CLAUDE.md já a trate como vigente | 069 | forge:software-architect | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
+| K-228 | [segurança] Refazer a triagem dos 6 alertas abertos do Dependabot (a triagem antiga envelheceu em branch sem PR) | 072 | forge:security-engineer | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
+| K-229 | [técnico] Seção [Não publicado] do CHANGELOG ainda lista itens da release 068, já na main pelo PR 229 | 071 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
+| K-230 | [docs] PR dos pareceres que faltam na develop: feature/069-l7-calendario (069-zz2-l7a) e feature/011-metricas-tambem-back (revalidação 011-back) | 072 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
 | K-193 | [feature] Aba Apontamento inteira (pedido 059): exceção formal no CLAUDE.md e no briefing, contrato, coleta do worklog, rota, front, pareceres e PRs | 059 | forge:tech-lead | 2026-11-01 | 2026-11-01 17:30 | Decisão do dono A (2026-11-01); aguarda o recibo e a pergunta de quem vê a aba; depois de 2026-11-02 |
 | K-194 | [segurança] Triagem dos 15 alertas do Dependabot (pedido 060) | 060 | forge:security-engineer | 2026-11-02 | 2026-11-02 18:20 | Modo analisar; sem mudar dependência |
 | K-195 | [urgente] Métricas só com dado real: tirar o mock da leitura e bloquear a regeração de fictícios (pedido 060, E2) | 060 | forge:software-architect | 2026-11-02 | 2026-11-02 19:30 | Discovery; base real intocada nesta etapa |
@@ -37,8 +46,8 @@
 | K-217 | S8 (taxa de reabertura) só com incidentes que têm resposta (pedido 066) | 066 | forge:software-architect | 2026-11-04 | 2026-11-04 14:11 | Recibo enviado ao dono |
 | K-218 | Dia atípico do apontamento acima de 10 h (pedido 067) | 067 | forge:node-backend | 2026-11-04 | 2026-11-04 14:13 | Recibo enviado ao dono |
 | K-219 | Release do 065, 066 e 067 e o zod 4 de volta à develop (pedido 068) | 068 | forge:tech-lead | 2026-11-04 | 2026-11-04 17:52 | Em andamento |
-| K-220 | Lacunas de dado real de prioridade alta, K-206 a K-210 (pedido 069) | 069 | forge:software-architect | 2026-11-04 | 2026-11-04 17:52 | Na develop: L3-a, M1-a, L2-a, L2-b, L9-a, L9-b, L7-a, L7-b (PR 232); L9-c em implementação (node-backend) |
-| K-221 | Dado simulado por cartão onde ainda não há dado real, com selo "Simulado" (pedido 070) | 070 | forge:software-architect, forge:ux-designer | 2026-11-04 | 2026-11-04 21:37 | Na develop: L1, L2, volta 3, L3 (PR 233); ADR 0028 vigente em PR (E1.13) |
+| K-220 | Lacunas de dado real de prioridade alta, K-206 a K-210 (pedido 069) | 069 | forge:software-architect | 2026-11-04 | 2026-11-04 17:52 | Na develop: L3-a, M1-a, L2-a, L2-b, L9-a, L9-b, L7-a, L7-b, L9-c (PR 238, 8a789d43); L2-c só se o campo de data existir (P-L2-1, das pessoas); falta a retrospectiva |
+| K-221 | Dado simulado por cartão onde ainda não há dado real, com selo "Simulado" (pedido 070) | 070 | forge:software-architect, forge:ux-designer | 2026-11-04 | 2026-11-04 21:37 | Na main pela release 071 (PR 237); falta a retrospectiva |
 | K-198 | Corrigir os alertas do fast-uri, produção (pedido 062) | 062 | forge:node-backend | 2026-11-02 | 2026-11-02 20:06 | Override de patch; sem outras dependências |
 | K-199 | CLAUDE.md com a leitura do Acelerato pela ADR 0023 (pedido 060, E4) | 060 | forge:software-architect | 2026-11-02 | 2026-11-02 20:30 | PR para o dono mesclar |
 | K-197 | Desenho da Visão Geral com dado real, para a próxima etapa (pedido 060, E3) | 060 | forge:ux-designer, forge:software-architect | 2026-11-02 | 2026-11-02 19:53 | Modo planejar; nada implementado |
