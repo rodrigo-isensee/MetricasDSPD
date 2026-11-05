@@ -122,7 +122,7 @@ d('ref:sync-calendario contra PostgreSQL (papel dspd_ref)', () => {
       const r = await sincronizarCalendario(pool, S, analisarCalendario(texto([['2031-03-03', 'Trocada']], [])), D2, AGORA);
       // `texto` repete os feriados nos dois calendários por padrão (daria 2); aqui só o de BusinessMap tem feriado, então diverge 1.
       expect(r.feriadosDivergentes).toBe(1);
-      const f = await c.query(`SELECT descricao FROM ${S.core}.ref_feriado f JOIN ${S.core}.ref_calendario k USING (calendario_id) WHERE k.nome = 'teste-bm'`);
+      const f = await c.query(`SELECT f.descricao FROM ${S.core}.ref_feriado f JOIN ${S.core}.ref_calendario k USING (calendario_id) WHERE k.nome = 'teste-bm'`);
       expect(f.rows).toEqual([{ descricao: 'Original' }]);
     });
     for (const sql of [`UPDATE ${S.core}.ref_feriado SET descricao = 'x'`, `DELETE FROM ${S.core}.ref_feriado`]) {
