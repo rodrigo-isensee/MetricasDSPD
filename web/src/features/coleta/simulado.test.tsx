@@ -1,6 +1,13 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { corpoSemDadoReal, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos'
+import {
+  corpoSemDadoReal,
+  MOTIVO_AGUARDANDO_CAMPO,
+  MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
+  MOTIVO_S9_MOTIVO_PENDENCIA,
+  origemDaMetrica,
+  type MetricaId,
+} from '@metricas-dspd/contratos'
 import { FonteComSimulado, SemDadoRealErro, type FonteMetricas } from '@/data'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
 import { contarSemDadoReal, motivoSemSigla } from './OrigemDosCartoes'
@@ -99,12 +106,17 @@ describe('painéis com o simulado por cartão (pedido 070, T-W6)', () => {
 
 describe('motivoSemSigla (A-4)', () => {
   it('tira a sigla interna do motivo mostrado na faixa e mantém o resto', () => {
-    expect(motivoSemSigla('aguardando tipo e domínio do campo do chamado (P-DS-19)')).toBe(
+    // Os motivos vêm das constantes de origem.ts (A2 do review): motivo novo com sigla em outro formato não passa.
+    expect(motivoSemSigla(MOTIVO_AGUARDANDO_CAMPO_CHAMADO)).toBe(
       'aguardando tipo e domínio do campo do chamado',
     )
-    expect(
-      motivoSemSigla('aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)'),
-    ).toBe('aguardando o motivo de pendência do chamado (tipo e domínio)')
-    expect(motivoSemSigla('aguardando campo no quadro')).toBe('aguardando campo no quadro')
+    expect(motivoSemSigla(MOTIVO_S9_MOTIVO_PENDENCIA)).toBe(
+      'aguardando o motivo de pendência do chamado (tipo e domínio)',
+    )
+    expect(motivoSemSigla(MOTIVO_AGUARDANDO_CAMPO)).toBe(MOTIVO_AGUARDANDO_CAMPO)
+    for (const m of [MOTIVO_AGUARDANDO_CAMPO_CHAMADO, MOTIVO_S9_MOTIVO_PENDENCIA]) {
+      expect(m).toMatch(/P-[A-Z]+-\d+/)
+      expect(motivoSemSigla(m)).not.toMatch(/P-[A-Z]+-\d+/)
+    }
   })
 })

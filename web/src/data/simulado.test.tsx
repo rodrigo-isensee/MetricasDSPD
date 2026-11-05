@@ -55,7 +55,7 @@ function criarMockEspiao(obterMock?: (id: MetricaId, f: unknown) => Promise<unkn
         (fonteDeTeste.obter as (...a: unknown[]) => Promise<unknown>)(id, f)),
   )
   const mock = Object.create(fonteDeTeste, { obter: { value: obter } }) as FonteMetricas
-  const criarMock = vi.fn((_hoje: string) => Promise.resolve(mock))
+  const criarMock = vi.fn((_dia: string) => Promise.resolve(mock))
   return { criarMock, obter }
 }
 
@@ -108,7 +108,7 @@ describe('useMetrica com a fonte decoradora (pedido 070)', () => {
     expect(result.current.erro).toBeNull()
     expect(result.current.dados?.totais).toBeDefined()
     expect(criarMock).toHaveBeenCalledTimes(1)
-    expect(criarMock).toHaveBeenCalledWith('2026-10-09T18:00:00-03:00')
+    expect(criarMock).toHaveBeenCalledWith('2026-10-09')
     expect(obter).toHaveBeenCalledTimes(1)
     expect(obter).toHaveBeenCalledWith('O12', {
       equipe: [],

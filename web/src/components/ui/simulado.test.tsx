@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
@@ -125,6 +127,8 @@ describe('CartaoMetrica simulado (pedido 070, E1.4)', () => {
     expect(screen.getByTestId('legenda-lida')).toHaveTextContent('Dados de exemplo (simulado)')
     const marca = within(cartao).getByTestId('marca-dagua-simulado')
     expect(marca).toHaveAttribute('aria-hidden', 'true')
+    // A-11: o texto girado fica contido na área do gráfico (overflow escondido), sem escapar em 320 px.
+    expect(marca).toHaveClass('overflow-hidden')
     expect(cartao.className).toMatch(/border-dashed/)
   })
 
@@ -199,11 +203,15 @@ describe('CartaoMetrica simulado (pedido 070, E1.4)', () => {
     expect(screen.getByTestId('marca-dagua-simulado')).toBeInTheDocument()
   })
 
-  it('A-7: o botão "O que é simulado?" tem alvo de 44 px também no desktop', () => {
+  it('A-7/A-10: o botão "O que é simulado?" tem alvo de 44 px também no desktop, sem mexer na regra .alvo', () => {
     montar()
-    expect(screen.getByRole('button', { name: 'O que é simulado?' }).className).toMatch(
-      /min-h-11.*min-w-11|min-w-11.*min-h-11/,
-    )
+    const botao = screen.getByRole('button', { name: 'O que é simulado?' })
+    // jsdom não mede; a classe .alvo-44 (tokens.css) fixa 44 px e vem depois de .alvo, que segue com 24 px.
+    expect(botao).toHaveClass('alvo-44')
+    const css = readFileSync(resolve(__dirname, '../../styles/tokens.css'), 'utf8')
+    expect(css).toMatch(/\.alvo-44\s*{\s*min-height:\s*2\.75rem;\s*min-width:\s*2\.75rem;\s*}/)
+    expect(css).toMatch(/\.alvo\s*{\s*min-height:\s*1\.5rem;\s*min-width:\s*1\.5rem;\s*}/)
+    expect(css.indexOf('.alvo-44')).toBeGreaterThan(css.indexOf('.alvo {'))
   })
 
   it('T-W8: com filtro de equipe ativo, o simulado lista a equipe em "não afetam este cartão" e mantém o período', () => {

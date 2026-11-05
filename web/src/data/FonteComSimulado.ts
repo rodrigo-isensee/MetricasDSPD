@@ -19,14 +19,19 @@ import {
   type OrigensSimuladas,
 } from './simulado'
 
-/** Cria a fonte mock, sob demanda, com a data de corte (ISO com fuso). Só roda no primeiro cartão simulado. */
-export type CriarMock = (hoje: string) => Promise<FonteMetricas>
+/** Cria a fonte mock, sob demanda, a partir do dia de referência da API (AAAA-MM-DD). Só roda no primeiro cartão simulado. */
+export type CriarMock = (dia: string) => Promise<FonteMetricas>
 
 /** Hora de corte do mock: a do padrão do gerador (`CONFIG_PADRAO.hoje`), sem repetir à mão. A API só conhece o dia. */
 const horaDeCorte = (hojePadrao: string): string => hojePadrao.slice(hojePadrao.indexOf('T'))
 
-const criarMockPadrao: CriarMock = async (hoje) => {
-  const { MockFonteMetricas } = await import('./mock/MockFonteMetricas')
+const criarMockPadrao: CriarMock = async (dia) => {
+  // O pacote mock inteiro só entra neste chunk sob demanda, nunca na thread principal (A1 do review).
+  const [{ MockFonteMetricas }, { CONFIG_PADRAO }] = await Promise.all([
+    import('./mock/MockFonteMetricas'),
+    import('@metricas-dspd/mock'),
+  ])
+  const hoje = `${dia}${horaDeCorte(CONFIG_PADRAO.hoje)}`
   // Semente padrão (fixa): o mesmo cartão mostra o mesmo número a cada recarga. Sem latência artificial.
   return new MockFonteMetricas({ hoje, latenciaMs: 0 })
 }
@@ -107,10 +112,9 @@ export class FonteComSimulado implements FonteSimuladora {
 
   private obterMock(): Promise<FonteMetricas> {
     if (!this.mock) {
-      const p = Promise.all([this.real.dataReferencia(), import('@metricas-dspd/mock')])
-        .then(([dia, { CONFIG_PADRAO }]) =>
-          this.criarMock(`${dia}${horaDeCorte(CONFIG_PADRAO.hoje)}`),
-        )
+      const p = this.real
+        .dataReferencia()
+        .then((dia) => this.criarMock(dia))
         .catch((e: unknown) => {
           this.mock = null
           throw e

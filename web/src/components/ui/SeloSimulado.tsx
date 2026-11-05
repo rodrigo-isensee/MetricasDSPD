@@ -68,7 +68,7 @@ export function FaixaSimulado({ codigo, motivo }: { codigo: string; motivo: stri
         onClick={() => setAberta((a) => !a)}
         aria-expanded={aberta}
         aria-controls={idExplicacao}
-        className="mt-2 min-h-11 min-w-11 text-xs"
+        className="alvo-44 mt-2 text-xs"
       >
         {aberta ? 'Fechar explicação' : 'O que é simulado?'}
       </Botao>
@@ -91,11 +91,13 @@ export function MarcaDaguaSimulado({ className }: { className?: string }) {
       aria-hidden="true"
       data-testid="marca-dagua-simulado"
       className={clsx(
-        'pointer-events-none absolute inset-0 flex -rotate-12 items-center justify-center text-4xl font-bold text-atencao opacity-15 select-none',
+        'pointer-events-none absolute inset-0 overflow-hidden select-none',
         className,
       )}
     >
-      SIMULADO
+      <span className="absolute inset-0 flex -rotate-12 items-center justify-center text-4xl font-bold text-atencao opacity-15">
+        SIMULADO
+      </span>
     </span>
   )
 }
