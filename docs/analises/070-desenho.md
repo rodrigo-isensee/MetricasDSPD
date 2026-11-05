@@ -1,6 +1,6 @@
 # 070 · Dado simulado por cartão onde ainda não há dado real: desenho
 
-Pedido 070, etapa E1.1 (K-221). Autor: software-architect. Data: 2026-11-04. Estado: proposta (depende da E1.2, o selo validado pelo dono, e das perguntas Q-070-1 a Q-070-6 abaixo).
+Pedido 070, etapa E1.1 (K-221). Autor: software-architect. Data: 2026-11-04. Estado: vigente desde 2026-11-05 (era proposta, dependente da E1.2 e das perguntas Q-070-1 a Q-070-6; selo validado pelo dono em 2026-11-04 e perguntas respondidas em 2026-11-04 e 2026-11-05, seção 9).
 Decisão registrada na ADR 0028 (`docs/architecture/adr/0028-simulado-por-cartao.md`), que revê a ADR 0026 sem apagá-la.
 
 **Fonte da leitura.** O checkout principal está numa branch de documentação, sem o código. O código foi lido, só para leitura, na worktree `/home/rodrigoisensee/MetricasDSPD-056d` (branch `feature/069-m1-frescor`, aberta da develop). O mapa de origem lido lá já inclui o pedido 065, que tirou BLOQUEADOS e O5 do mapa real. Antes de começar, o node-backend confere `packages/contratos/src/origem.ts` na develop (`d2ec79d`). Se o mapa divergir, a lista da seção 1 segue o código, porque o mapa é a fonte única (ADR 0026). Não consultei a base, as APIs externas nem o `.env`.
@@ -70,7 +70,7 @@ Por que no navegador e não na API:
 Parâmetros do simulado (decididos aqui, técnicos):
 - **Semente fixa** (a padrão do mock). O mesmo cartão mostra o mesmo número a cada recarga. Um número que muda sozinho pareceria dado vivo.
 - **`hoje` = a data de referência real** (`GET /api/v1/referencia`, a mesma que alimenta `useDataReferencia`). Assim a janela e os rótulos de período do simulado batem com os dos cartões reais ao lado.
-- **Período: o mesmo filtro de período da tela.** Os filtros de dimensão (equipe, sistema, área, prioridade e outros) **não se aplicam ao simulado** (proposta, Q-070-1). As equipes e os sistemas do mock são fictícios e não batem com as opções reais de `/api/v1/filtros/:dominio`, então aplicá-los daria cartão vazio ou um recorte enganoso. O cartão lista esses filtros como "não afetam este cartão", pelo mecanismo `naoAfetam` que já existe em `CartaoMetrica.tsx:159-165`.
+- **Período: o mesmo filtro de período da tela.** Os filtros de dimensão (equipe, sistema, área, prioridade e outros) **não se aplicam ao simulado** (Q-070-1, confirmada pelo dono em 2026-11-05, S1). As equipes e os sistemas do mock são fictícios e não batem com as opções reais de `/api/v1/filtros/:dominio`, então aplicá-los daria cartão vazio ou um recorte enganoso. O cartão lista esses filtros como "não afetam este cartão", pelo mecanismo `naoAfetam` que já existe em `CartaoMetrica.tsx:159-165`.
 - **Carga sob demanda.** O Worker e o chunk do mock (F9) só são baixados quando o primeiro cartão simulável recebe `sem-dado-real`. Um painel com todos os cartões reais não baixa nada (teste T-W5).
 
 ## 3. Como o cartão decide entre real e simulado
@@ -93,8 +93,8 @@ Regras (para o react-frontend e o node-backend):
 - **R2. O real sempre ganha.** Se a API devolve o DTO, o cartão não chama o mock. O simulado só existe depois de um `sem-dado-real` com `simulavel: true`.
 - **R3. A troca é sozinha e só pelo mapa.** Quando uma métrica entra em `METRICAS_ORIGEM_REAL` pelo plano dela (ADR 0026 P3, último item), a API passa a mandar o DTO real e o selo some, sem mudança na web. Não há interruptor por cartão na interface nem configuração por ambiente.
 - **R4. O selo é derivado no centro e falha fechado.** A origem `simulado` sai da camada de dados (`web/src/data/`) e chega ao `CartaoMetrica` pelo contexto de origem que já existe (`ProvedorOrigemCartoes` / `useOrigemCartao`), não por uma prop que cada cartão teria de lembrar de passar. Cartão que mostra DTO simulado sem selo é defeito bloqueante (teste T-W3).
-- **R5. Fora da simulação.** Ficam fora: (a) a aba Apontamento e qualquer superfície com pessoa; (b) `VISAO_GERAL`, que junta BusinessMap e Acelerato; (c) `TENDENCIA_FLUXO` e `TENDENCIA_SUST`, que contradiriam O3, O4, S2 e S3 reais ao lado; (d) `EI_SUST`, cuja regra de cálculo não foi definida (simular seria publicar uma regra inferida). A lista vive no contrato (`METRICAS_SEM_SIMULACAO`, seção 4). (b), (c) e (d) são propostas até o dono responder (Q-070-4 a Q-070-6).
-- **R6. O simulado não alimenta nada além do próprio cartão.** As faixas "Pede atenção" (diária, semanal, sustentação), os números-chave e as tendências do Resumo, a contagem de origem do cabeçalho (`OrigemDosCartoes`) e a exportação leem só o real. A faixa continua "parcial" quando um dos cartões dela não tem dado real (`FaixaAtencao.tsx:26-38`). Faixas e Resumo são proposta (Q-070-2), exportação também (Q-070-3).
+- **R5. Fora da simulação.** Ficam fora: (a) a aba Apontamento e qualquer superfície com pessoa; (b) `VISAO_GERAL`, que junta BusinessMap e Acelerato; (c) `TENDENCIA_FLUXO` e `TENDENCIA_SUST`, que contradiriam O3, O4, S2 e S3 reais ao lado; (d) `EI_SUST`, cuja regra de cálculo não foi definida (simular seria publicar uma regra inferida). A lista vive no contrato (`METRICAS_SEM_SIMULACAO`, seção 4). (b), (c) e (d) foram confirmadas pelo dono (Q-070-4 a Q-070-6, seção 9).
+- **R6. O simulado não alimenta nada além do próprio cartão.** As faixas "Pede atenção" (diária, semanal, sustentação), os números-chave e as tendências do Resumo, a contagem de origem do cabeçalho (`OrigemDosCartoes`) e a exportação leem só o real. A faixa continua "parcial" quando um dos cartões dela não tem dado real (`FaixaAtencao.tsx:26-38`). Faixas e Resumo confirmados pelo dono (Q-070-2), exportação também (Q-070-3, S2).
 - **R7. Notas e motivo.** O cartão simulado mostra o motivo da falta de dado real, que é o mesmo `motivo` do `sem-dado-real`, para dizer por que está simulado. As notas fixas de cartão real (`NOTAS_FIXAS_DO_CARTAO`) não se aplicam ao simulado (`notasDoCartaoVisiveis` já filtra pela origem real). O texto e a forma do selo são da E1.2 (ux-designer).
 - **R8. Homologação e modo mock não mudam.** Com `VITE_FONTE=mock` o painel inteiro já é fictício, com o selo global (ADR 0018 e 0026 P5). Ali não há selo por cartão, porque não há cartão real.
 
@@ -157,7 +157,7 @@ Modelo de dados: **nenhuma mudança**. Sem migração, sem tabela, sem grant.
 
 ## 6. Requisitos não funcionais
 
-- **Desempenho (ADR 0003):** F6 (chunk inicial) não muda, porque o mock entra por `import()`. F9 (chunk do mock) passa a ser baixado em produção, mas só quando há cartão simulável na tela. C6: a geração e o cálculo ficam no Worker (ADR 0021). O custo novo é o tempo até o primeiro cartão simulado (geração da base < 1,5 s, C2), que não atrasa os cartões reais, porque eles vêm da API em paralelo. O C5 (memória) soma o heap do Worker. O QA mede no `perf-api` com um painel que tenha simulado (FL2, por exemplo). F6, C6 e F9 no limite são portão do PR.
+- **Desempenho (ADR 0003):** F6 (chunk inicial) não muda, porque o mock entra por `import()`. **Nota de 2026-11-05 (achado A2 do review 070-v4):** a previsão não se confirmou; o F6 subiu 2,33 KB com o L2 e ficou em 197,04 KB, com folga de cerca de 3 KB até o teto de 200 KB. O mock continua fora do chunk inicial; o acréscimo veio do código do L2 que fica no inicial. Registrado também na ADR 0028 (Consequências). F9 (chunk do mock) passa a ser baixado em produção, mas só quando há cartão simulável na tela. C6: a geração e o cálculo ficam no Worker (ADR 0021). O custo novo é o tempo até o primeiro cartão simulado (geração da base < 1,5 s, C2), que não atrasa os cartões reais, porque eles vêm da API em paralelo. O C5 (memória) soma o heap do Worker. O QA mede no `perf-api` com um painel que tenha simulado (FL2, por exemplo). F6, C6 e F9 no limite são portão do PR.
 - **Observabilidade:** um `console.info` sem dado (id da métrica e "simulado") na primeira simulação de cada id ajuda a depurar. Falha do Worker vira "Sem dado real" no cartão e um `console.error` com o nome do erro, nunca um número.
 - **Testabilidade:** o decorador recebe a fonte HTTP e a fábrica do mock por injeção, então os testes de unidade não sobem Worker (jsdom usa o caminho em processo, ADR 0021 seção 4).
 - **CSP:** sem mudança. O Worker já sai como arquivo da mesma origem (ADR 0021 seção 6), coberto por `default-src 'self'`.
@@ -183,8 +183,8 @@ Web (react-frontend):
 E2E `*-api` (qa-engineer, com o servidor de teste da API):
 - **T-E1** em FL1 semanal, O12 mostra o selo "Simulado" e um número; O3 não tem selo.
 - **T-E2** em sustentação, S1 simulado com selo, S2 real sem selo, EI_SUST com "Sem dado real".
-- **T-E3** Resumo: TENDENCIA_FLUXO e TENDENCIA_SUST com "Sem dado real" (enquanto valer a proposta da Q-070-4).
-- **T-E4** `perf-api`: F6 sem aumento, C6 dentro do orçamento num painel com simulado, F9 dentro do limite.
+- **T-E3** Resumo: TENDENCIA_FLUXO e TENDENCIA_SUST com "Sem dado real" (Q-070-4, confirmada pelo dono em 2026-11-05, S3).
+- **T-E4** `perf-api`: F6 sem aumento (medido: +2,33 KB, 197,04 KB, dentro do teto; ver nota da seção 6), C6 dentro do orçamento num painel com simulado, F9 dentro do limite.
 
 ## 8. Divisão em lotes
 
@@ -198,14 +198,14 @@ Um ramo só, `feature/070-simulado-por-cartao`, com L1 antes de L2. O L1 é pequ
 
 ## 9. Perguntas ao dono (R-DECISAO)
 
-Cada uma tem uma proposta conservadora, que vale até a resposta. Nenhuma foi decidida no código.
+Cada uma tinha uma proposta conservadora, que valia até a resposta. Nenhuma foi decidida no código. **Todas respondidas pelo dono, que confirmou a proposta (a) de cada uma:** Q-070-2 e Q-070-6 na decisão "A" de 2026-11-04 (cartão simulado no resumo); Q-070-1, Q-070-3, Q-070-4 e Q-070-5 na decisão "A" de 2026-11-05 (suposições S1 a S3 do pedido 070). As linhas `DECISÃO DO DONO` estão no pedido (`docs/pedidos/070-simulado-por-cartao.md`, `## Decisões`).
 
-- **Q-070-1. Filtros no simulado.** Com um filtro de equipe, sistema ou prioridade ativo, o cartão simulado (a) ignora o filtro e diz isso no cartão (proposta), ou (b) aplica o filtro ao dado fictício, que tem equipes e sistemas inventados e quase sempre sai vazio?
-- **Q-070-2. Faixas e Resumo.** O simulado (a) fica só no cartão; as faixas "Pede atenção" e os números-chave do Resumo continuam "Sem dado real" (proposta), ou (b) aparece também ali, com o selo?
-- **Q-070-3. Exportar.** O arquivo exportado (a) leva só o real e marca o simulado como "simulado na tela, não exportado" (proposta), ou (b) leva o número simulado com a marca?
-- **Q-070-4. Tendências do Resumo.** TENDENCIA_FLUXO e TENDENCIA_SUST derivam de O3, O4, S2 e S3, que já são reais (L4 do 064). Simular a tendência poria uma linha fictícia ao lado de números reais que a contradizem. Proposta: (a) não simular e (b) abrir o plano para elas entrarem no mapa real. O dono quer isso?
-- **Q-070-5. EI_SUST.** A regra de cálculo da espera invisível da sustentação ainda não foi definida. Simular seria mostrar uma regra que ninguém decidiu. Proposta: não simular até a regra existir. Confirma?
-- **Q-070-6. Visão Geral.** Junta BusinessMap e Acelerato, tem desenho validado (E3.3 do 060) e plano próprio. Proposta: não simular; ela fica "Sem dado real" até o plano dela. Confirma?
+- **Q-070-1. Filtros no simulado.** Com um filtro de equipe, sistema ou prioridade ativo, o cartão simulado (a) ignora o filtro e diz isso no cartão (proposta), ou (b) aplica o filtro ao dado fictício, que tem equipes e sistemas inventados e quase sempre sai vazio? **Respondida em 2026-11-05 (S1): (a).**
+- **Q-070-2. Faixas e Resumo.** O simulado (a) fica só no cartão; as faixas "Pede atenção" e os números-chave do Resumo continuam "Sem dado real" (proposta), ou (b) aparece também ali, com o selo? **Respondida em 2026-11-04 (decisão "A" do cartão simulado no resumo): (a).**
+- **Q-070-3. Exportar.** O arquivo exportado (a) leva só o real e marca o simulado como "simulado na tela, não exportado" (proposta), ou (b) leva o número simulado com a marca? **Respondida em 2026-11-05 (S2): (a).**
+- **Q-070-4. Tendências do Resumo.** TENDENCIA_FLUXO e TENDENCIA_SUST derivam de O3, O4, S2 e S3, que já são reais (L4 do 064). Simular a tendência poria uma linha fictícia ao lado de números reais que a contradizem. Proposta: (a) não simular e (b) abrir o plano para elas entrarem no mapa real. O dono quer isso? **Respondida em 2026-11-05 (S3): não simular.** O item (b), o plano para o mapa real, não foi objeto da S3 e segue no L4 do 064.
+- **Q-070-5. EI_SUST.** A regra de cálculo da espera invisível da sustentação ainda não foi definida. Simular seria mostrar uma regra que ninguém decidiu. Proposta: não simular até a regra existir. Confirma? **Respondida em 2026-11-05 (S3): confirmada.**
+- **Q-070-6. Visão Geral.** Junta BusinessMap e Acelerato, tem desenho validado (E3.3 do 060) e plano próprio. Proposta: não simular; ela fica "Sem dado real" até o plano dela. Confirma? **Respondida em 2026-11-04 (decisão "A" do cartão simulado no resumo: o simulado fica fora da Visão geral): confirmada.**
 
 ## 10. Segurança (R-SEGURANCA)
 
