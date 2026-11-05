@@ -177,7 +177,7 @@ const tipoTexto = (tipo: string | null): boolean => tipo !== null && tipo.normal
 /**
  * Linhas da Q6 e da Q7 de UM chamado -> campos de etapa do `payload.campos` (F3). `lista`: o valor só segue se estiver no domínio do
  * campo (domínio ausente ou vazio = nulo com contagem `fora_dominio_<chave>`) e se o `tipo` não for texto (`tipo_texto_<chave>`);
- * `preenchido`: só o booleano (qualquer linha verdadeira vale). Sem linha: `lista` nula, `preenchido` falso. Falha fechado sem o valor.
+ * `preenchido`: só o booleano (qualquer linha verdadeira vale). Nome repetido em várias etapas: vale o último valor preenchido, vazio não apaga. Sem linha: `lista` nula, `preenchido` falso. Falha fechado sem o valor.
  */
 export function camposEtapa(listaLinhas: readonly unknown[], preenchidoLinhas: readonly unknown[], dominios: DominiosEtapa, c: Contadores): CamposChamado {
   const chaveDe = new Map(CAMPOS_ETAPA_F3.map((f) => [f.nome as string, f.chave as string]));
@@ -187,7 +187,10 @@ export function camposEtapa(listaLinhas: readonly unknown[], preenchidoLinhas: r
     const r = esquemaEtapaLista.safeParse(linha);
     if (!r.success) return falhar(r.error, 'campo_etapa');
     const k = chaveDe.get(r.data.nome)!;
-    if (tipoTexto(r.data.tipo)) texto_.add(k); else valores.set(k, r.data.valor);
+    if (tipoTexto(r.data.tipo)) { texto_.add(k); continue; }
+    // Campo repetido em várias etapas (L9-c, decisão do dono de 2026-11-05): vale o valor preenchido da linha mais recente, na ordem da
+    // fonte; um vazio (nulo ou texto vazio) nunca apaga um valor preenchido.
+    if (r.data.valor !== null && r.data.valor !== '') valores.set(k, r.data.valor);
   }
   const marcados = new Set<string>();
   for (const linha of preenchidoLinhas) {

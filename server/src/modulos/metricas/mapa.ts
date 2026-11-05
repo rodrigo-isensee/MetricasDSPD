@@ -156,7 +156,7 @@ export function chamadoDe(l: LinhaChamado): Chamado {
     aberto_em: (l.aberto_em as Date).getTime(), primeiro_atendimento_em: ms(l.primeiro_atendimento_em),
     restaurado_em: ms(l.restaurado_em), data_finalizado: ms(l.data_finalizado), status_sla_r: campo(l.status_sla_r),
     status_sla_pa: campo(l.status_sla_pa), motivo_escalacao: campo(l.motivo_escalacao),
-    motivo_pendencia_atual: campo(l.motivo_pendencia_atual), previsao_retorno: ms(l.previsao_retorno),
+    motivo_pendencia_atual: campo(l.motivo_pendencia_atual), previsao_retorno: null, // a base guarda só "tem previsão" (D-L9-1): sem data, a biblioteca (S9) segue sem previsão
     motivo_encerramento: campo(l.motivo_encerramento), avaliacao_problema: campo(l.avaliacao_problema),
     excecao_sla_registro_posterior: l.excecao_sla_registro_posterior,
     incidente_critico_coordenado: l.incidente_critico_coordenado, nivel_resolucao: campo(l.nivel_resolucao),

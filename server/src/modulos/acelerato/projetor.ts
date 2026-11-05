@@ -21,6 +21,7 @@ type LinhaStaging = { stg_sk: string; id_origem: string; payload: RegistroChamad
 const ATRIBUTOS = [
   'natureza', 'equipe', 'organizacao', 'tipo', 'categoria_sistema', 'categoria_key', 'excluido', 'status', 'etapa', 'prioridade', 'aberto_em',
   'restaurado_em', 'data_finalizado', 'status_sla_r', 'status_sla_pa', 'nivel_resolucao', 'arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte',
+  'justificativa_informada', 'prioridade_ajustada_manualmente', 'motivo_escalacao', 'motivo_encerramento', 'avaliacao_problema', 'motivo_pendencia_atual', 'previsao_retorno',
 ] as const;
 type Atributo = (typeof ATRIBUTOS)[number];
 const valorDe = (l: LinhaProjecao, a: Atributo): string | number | boolean | null => {

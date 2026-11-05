@@ -38,7 +38,7 @@ export type LinhaChamado = {
   excluido: boolean; status: Texto; impacto: Texto; urgencia: Texto; prioridade: Texto;
   prioridade_ajustada_manualmente: boolean; justificativa_informada: boolean; aberto_em: Instante; primeiro_atendimento_em: Instante;
   restaurado_em: Instante; data_finalizado: Instante; status_sla_r: Texto; status_sla_pa: Texto;
-  motivo_escalacao: Texto; motivo_pendencia_atual: Texto; previsao_retorno: Instante; motivo_encerramento: Texto;
+  motivo_escalacao: Texto; motivo_pendencia_atual: Texto; previsao_retorno: boolean | null; motivo_encerramento: Texto;
   avaliacao_problema: Texto; excecao_sla_registro_posterior: boolean; incidente_critico_coordenado: boolean;
   nivel_resolucao: Texto;
   /** F2 do Acelerato (ADR 0023): só o booleano (D-9) e o campo dos 90 dias (D-10); opcionais para a base semeada e os dublês antigos. */
