@@ -2,7 +2,9 @@ import type { QueryResultRow } from 'pg';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { comTravaDaFonte } from '../../plataforma/db/trava.js';
+import { COLUNAS_LISTA } from './allow-list.js';
 import { ErroColetaBm, exigirEsquemaSemSeed } from './coleta.js';
+import { CAMPO_CUSTOMIZADO, colunasDosCampos, type LinhaRefDominio } from './dominio-businessmap.js';
 import { gravarResponsaveis, COLUNAS_VERSAO } from './responsaveis.js';
 import {
   agrupar, instanteDoBm, projetarCard, type CardProjetado, type EntradaCard, type LinhaColuna, type LinhaTime, type LinhaTimeWorkflow,
@@ -58,12 +60,15 @@ export async function carregarReferencia(db: Consultavel, S: Esquemas): Promise<
   const timesDoWorkflow = await linhas<LinhaTimeWorkflow>(db, `SELECT workflow_id, time_id, situacao, motivo, vigente_de, vigente_ate FROM ${S.bm}.ref_time_workflow`);
   const times = await linhas<LinhaTime>(db, `SELECT time_id, nome, motivo, vigente_de, vigente_ate FROM ${S.bm}.ref_time`);
   const tipos = await linhas<LinhaTipo>(db, `SELECT tipo_id, eh_item, categoria, vigente_de, vigente_ate FROM ${S.bm}.ref_tipo_card`);
+  // L2-b: só a ligação `field_id` -> coluna, vigente, validada de novo (A4); os valores já foram reduzidos a código pelo coletor
+  const campos = await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_CUSTOMIZADO]);
   return {
     colunas: agrupar(colunas, (c) => `${c.quadro_id}|${c.coluna_id}`),
     workflows: agrupar(workflows, (w) => `${w.quadro_id}|${w.workflow_id}`),
     timesDoWorkflow: agrupar(timesDoWorkflow, (t) => t.workflow_id),
     times: agrupar(times, (t) => String(t.time_id)),
     tipos: agrupar(tipos, (t) => t.tipo_id),
+    camposLista: colunasDosCampos(campos),
   };
 }
 
@@ -179,7 +184,7 @@ async function projetarLote(
   // dim_card: projeção, refeita por card (a história fica no staging e em dim_card_versao); `responsaveis` nunca vem do staging
   await db.query(`DELETE FROM ${S.bm}.dim_card WHERE card_id = ANY($1::text[])`, [ok]);
   const COLUNAS_DIM = ['card_id', 'tipo', 'card_pai', 'criado_em', 'comprometido_em', 'iniciado_em', 'concluido_em', 'arquivado_em', 'motivo_descarte', 'titulo',
-    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em'] as const;
+    'granularidade', 'equipe', 'quadro_id', 'coluna_atual_id', 'excluido_em', ...COLUNAS_LISTA] as const;
   await inserir(db, `${S.bm}.dim_card`, [...COLUNAS_DIM, 'responsaveis', 'coletado_em', 'atualizado_por_coleta_id'],
     projetados.map(({ p }) => [...COLUNAS_DIM.map((c) => (p.dim as unknown as Record<string, Valor>)[c] ?? null), respDe(p.dim.card_id), inicio, coletaId]), '');
 
