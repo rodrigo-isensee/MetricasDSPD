@@ -259,7 +259,7 @@ export async function sincronizarCalendario(pool: PoolLike, S: Esquemas, lido: C
           await db.query(
             `INSERT INTO ${S.core}.ref_feriado (calendario_id, data, escopo, descricao, incluido_por_versao_id)
              SELECT $1::smallint, x.d, x.e, x.t, $5::bigint FROM unnest($2::date[], $3::text[], $4::text[]) AS x(d, e, t)
-             ON CONFLICT (calendario_id, data) DO NOTHING`,
+             ON CONFLICT ON CONSTRAINT ref_feriado_pkey DO NOTHING`,
             [ids.get(nome), fs.map((f) => f.data), fs.map((f) => f.escopo), fs.map((f) => f.descricao), versaoId]);
         }
         for (const classe of p.fechar) {
