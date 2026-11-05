@@ -109,8 +109,8 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
   }, 60_000);
 
   it('versão nova de critério: a lista etapa_fluxo trocada muda o valor decidido do mesmo chamado, gera versão nova e a antiga fica intacta', async () => {
-    const versoes = async (): Promise<{ motivo_encerramento: string | null; vigente_ate: Date | null }[]> =>
-      (await dono.query(`SELECT motivo_encerramento, vigente_ate FROM ${E.ac}.dim_chamado_versao WHERE chamado_id = '91' ORDER BY vigente_de`)).rows;
+    const versoes = async (): Promise<{ motivo_encerramento: string | null; vigente_de: Date }[]> =>
+      (await dono.query(`SELECT motivo_encerramento, vigente_de FROM ${E.ac}.dim_chamado_versao WHERE chamado_id = '91' ORDER BY vigente_de`)).rows;
     const antes = await versoes();
     const atual = (await dono.query(`SELECT motivo_encerramento FROM ${E.ac}.dim_chamado WHERE chamado_id = '91'`)).rows[0].motivo_encerramento;
     expect(atual).toBe('Beta'); // lista semeada no teste anterior: a etapa 20 vem depois da 10
@@ -125,9 +125,10 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     expect((await dono.query(`SELECT motivo_encerramento FROM ${E.ac}.dim_chamado WHERE chamado_id = '91'`)).rows[0].motivo_encerramento).toBe('Alfa');
     const depois = await versoes();
     expect(depois).toHaveLength(antes.length + 1);
-    expect(depois.at(-1)).toMatchObject({ motivo_encerramento: 'Alfa', vigente_ate: null });
+    expect(depois.at(-1)).toMatchObject({ motivo_encerramento: 'Alfa' });
     expect(depois.slice(0, antes.length).map((v) => v.motivo_encerramento)).toEqual(antes.map((v) => v.motivo_encerramento)); // valores antigos intactos
-    expect(depois[antes.length - 1]!.vigente_ate).not.toBeNull(); // a versão anterior foi fechada, não sobrescrita
+    // SCD2 append-only sem coluna de fim (migração 0008): a anterior segue como está e a nova abre depois dela
+    expect(depois.at(-1)!.vigente_de.getTime()).toBeGreaterThan(depois[antes.length - 1]!.vigente_de.getTime());
     expect(depois[antes.length - 1]!.motivo_encerramento).toBe('Beta');
   }, 60_000);
 
