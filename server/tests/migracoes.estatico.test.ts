@@ -126,7 +126,7 @@ describe('migrações (análise estática, sem banco)', () => {
   });
   it('toda view é security_invoker e lista colunas (C-views, data-model §2)', () => {
     const views = todoSql.filter((s) => s.startsWith('CREATE VIEW'));
-    expect(views).toHaveLength(8);
+    expect(views).toHaveLength(11); // 8 + as 3 views da 0035 (L9-c), recriadas na troca de tipo de previsao_retorno (só o up conta aqui)
     // unica excecao (059, E2.21): a view do time e definer, para o papel da aba nao precisar ler `responsaveis` nem `responsavel_id`
     const doTime = views.filter((v) => /^CREATE VIEW \S+\.apt_pessoa_time AS/.test(v));
     expect(doTime).toHaveLength(1);

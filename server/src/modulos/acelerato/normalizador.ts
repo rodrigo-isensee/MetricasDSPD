@@ -105,12 +105,23 @@ export type LinhaProjecao = {
   com_agente: boolean;
   reincidente_90d: Reincidente90d | null;
   fora_do_recorte: boolean;
+  /** F3 (L9-c, ADR 0023 item 4): campos de etapa. Só o indicador de preenchido (nunca o texto), valores de domínio fechado ou nulo. */
+  justificativa_informada: boolean;
+  prioridade_ajustada_manualmente: boolean;
+  motivo_escalacao: string | null;
+  motivo_encerramento: string | null;
+  avaliacao_problema: string | null;
+  motivo_pendencia_atual: string | null;
+  /** "Tem previsão de retorno" (D-L9-1, decisão do dono): booleano; a data prevista não é coletada. Nulo = versão sem o campo no staging. */
+  previsao_retorno: boolean | null;
 };
 
 export type MarcasSaida = { ausente: boolean; fora: boolean };
 const texto = (v: unknown): string | null => (typeof v === 'string' ? v : null);
 const logico = (v: unknown): boolean | null => (typeof v === 'boolean' ? v : null);
 const numero = (v: unknown): number | null => (typeof v === 'number' ? v : null);
+/** `prioridade_ajustada_manualmente` é `NOT NULL`: só o valor "sim" do domínio vale verdadeiro; "não", nulo e qualquer outro valor ficam `false`. */
+const ehSim = (v: string | null): boolean => v !== null && v.trim().toLocaleUpperCase('pt-BR') === 'SIM';
 
 /**
  * Registro do staging -> linha da projeção. Fechado = `data_pronto` preenchida (D-8); `encerrado` nunca define fechamento. `restaurado_em`
@@ -122,7 +133,10 @@ export function normalizarChamado(
 ): LinhaProjecao {
   const dataPronto = instanteDe(texto(p.data_pronto));
   const fechado = dataPronto !== null;
-  const campos = p.campos as { reincidente_90d: Reincidente90d | null } | undefined;
+  const campos = p.campos as
+    | ({ reincidente_90d: Reincidente90d | null } & Partial<Record<'motivo_escalacao' | 'motivo_encerramento' | 'avaliacao_problema' | 'motivo_pendencia' | 'prioridade_ajustada', unknown>>
+      & Partial<Record<'justificativa_informada' | 'previsao_retorno_informada', unknown>>)
+    | undefined;
   const categoria = texto(p.categoria);
   const prioridade = texto(p.prioridade);
   const comAgente = logico(p.com_agente) ?? true;
@@ -162,5 +176,12 @@ export function normalizarChamado(
     com_agente: comAgente,
     reincidente_90d: campos?.reincidente_90d ?? null,
     fora_do_recorte: marcas.ausente || marcas.fora,
+    justificativa_informada: campos?.justificativa_informada === true,
+    prioridade_ajustada_manualmente: ehSim(texto(campos?.prioridade_ajustada)),
+    motivo_escalacao: texto(campos?.motivo_escalacao),
+    motivo_encerramento: texto(campos?.motivo_encerramento),
+    avaliacao_problema: texto(campos?.avaliacao_problema),
+    motivo_pendencia_atual: texto(campos?.motivo_pendencia),
+    previsao_retorno: logico(campos?.previsao_retorno_informada),
   };
 }
