@@ -88,15 +88,15 @@ export function criarMysqlFalso(tabela: LinhaMysql[], opcoes: OpcoesMysql = {}) 
         (JSON.parse(l.campos_personalizados as string) as { nomeCampo: string; valor: unknown }[])
           .filter((c) => nomes.includes(c.nomeCampo)).map((c) => ({ ticket_key: l.ticket_key, nome: c.nomeCampo, valor: c.valor == null ? null : String(c.valor).slice(0, 80) })));
     }
-    // Q6 e Q7: o MySQL falso aplica o que o SELECT pede. Q6 devolve nome, tipo e valor (80); Q7 devolve só o booleano, o texto não sai.
+    // Q6 e Q7: o MySQL falso aplica o que o SELECT pede. Q6 devolve nome, tipo, valor (80) e a chave inteira da etapa (texto vira nulo, como `NULL ON ERROR`); Q7 devolve só o booleano, o texto não sai.
     if (sql.startsWith(Q6_CAMPOS_ETAPA_LISTA.slice(0, 40)) || sql.startsWith(Q7_CAMPOS_ETAPA_PREENCHIDO.slice(0, 40))) {
       const lista = sql.startsWith(Q6_CAMPOS_ETAPA_LISTA.slice(0, 40));
       const [nc] = numerosDe(sql) as [number, number];
       const ids = v.slice(0, nc); const nomes = v.slice(nc);
       return tabela.filter((l) => ids.includes(l.ticket_key)).flatMap((l) =>
-        (JSON.parse(l.campos_personalizados_etapa as string) as { nome: string; tipo?: unknown; valor?: unknown }[])
+        (JSON.parse(l.campos_personalizados_etapa as string) as { nome: string; tipo?: unknown; valor?: unknown; kanbanStatusKey?: unknown }[])
           .filter((c) => nomes.includes(c.nome)).map((c) => (lista
-            ? { ticket_key: l.ticket_key, nome: c.nome, tipo: c.tipo == null ? null : String(c.tipo).slice(0, 40), valor: c.valor == null ? null : String(c.valor).slice(0, 80) }
+            ? { ticket_key: l.ticket_key, nome: c.nome, tipo: c.tipo == null ? null : String(c.tipo).slice(0, 40), valor: c.valor == null ? null : String(c.valor).slice(0, 80), kanban_status_key: Number.isInteger(c.kanbanStatusKey) ? c.kanbanStatusKey : null }
             : { ticket_key: l.ticket_key, nome: c.nome, preenchido: c.valor != null && String(c.valor).trim().length > 0 ? 1 : 0 })));
     }
     if (sql.startsWith(Q4_FORA_ORGANIZACOES.slice(0, 40))) {

@@ -163,10 +163,16 @@ export function reincidente90d(linhas: readonly unknown[], c: Contadores): Reinc
 
 /** Domínios dos campos de etapa de tratamento `lista`: chave do campo -> valores permitidos (de `ref_dominio`, só valores). */
 export type DominiosEtapa = ReadonlyMap<string, ReadonlySet<string>>;
+/** Posição de cada etapa no desenho do fluxo de atendimento: `kanbanStatusKey` -> posição (maior = vem depois). Lista `etapa_fluxo` de `ref_dominio`, escrita pelas pessoas. */
+export type OrdemFluxo = ReadonlyMap<number, number>;
 
-/** Linha da Q6 (campo de etapa `lista`): nome só da constante, `valor` de até 80 caracteres ou nulo; booleano, chave extra ou nome de outro tratamento falham. */
+/**
+ * Linha da Q6 (campo de etapa `lista`): nome só da constante, `valor` de até 80 caracteres ou nulo, `kanban_status_key` inteiro positivo ou nulo
+ * (texto, decimal ou negativo falham); booleano, chave extra ou nome de outro tratamento falham.
+ */
 const esquemaEtapaLista = z.strictObject({
   ticket_key: chave, nome: z.enum(NOMES_ETAPA_LISTA as [string, ...string[]]), tipo: texto(40).nullable(), valor: texto(80).nullable(),
+  kanban_status_key: chave.nullable(),
 });
 /** Linha da Q7 (campo de etapa `preenchido`): só o booleano; qualquer coluna `valor` falha fechado. */
 const esquemaEtapaPreenchido = z.strictObject({ ticket_key: chave, nome: z.enum(NOMES_ETAPA_PREENCHIDO as [string, ...string[]]), preenchido: sinal });
@@ -174,23 +180,45 @@ const esquemaEtapaPreenchido = z.strictObject({ ticket_key: chave, nome: z.enum(
 /** `tipo` só recusa, nunca libera (A2): a fonte dizendo texto para um nome `lista` anula o valor. */
 const tipoTexto = (tipo: string | null): boolean => tipo !== null && tipo.normalize('NFD').toLowerCase().includes('text');
 
+type Preenchido = { valor: string; etapa: number | null };
+
+/**
+ * Valor de um campo de `lista` repetido em várias etapas (L9-c, decisão "B" do dono de 2026-11-05). Só os valores preenchidos competem (vazio nunca
+ * apaga). Um só valor, ou valores iguais, valem sem consultar a posição. Com valores diferentes vale a etapa de MAIOR posição no desenho do fluxo
+ * (nunca a ordem das linhas); etapa sem posição na lista, ou empate de posição com valores diferentes, deixa o campo nulo com contagem, sem o valor
+ * e sem escolher por palpite (P-L9C-2 "A").
+ */
+function valorDoCampoRepetido(candidatos: readonly Preenchido[], ordem: OrdemFluxo, chaveCampo: string, c: Contadores): string | null {
+  const valores = new Set(candidatos.map((x) => x.valor));
+  if (valores.size <= 1) return candidatos[0]?.valor ?? null;
+  const comPosicao = candidatos.map((x) => ({ valor: x.valor, posicao: x.etapa === null ? undefined : ordem.get(x.etapa) }));
+  const sem = comPosicao.some((x) => x.posicao === undefined);
+  if (sem) { c.somar(`etapa_fora_do_fluxo_${chaveCampo}`); return null; }
+  const maior = Math.max(...comPosicao.map((x) => x.posicao!));
+  const vencedores = new Set(comPosicao.filter((x) => x.posicao === maior).map((x) => x.valor));
+  if (vencedores.size > 1) { c.somar(`empate_fluxo_${chaveCampo}`); return null; }
+  return [...vencedores][0]!;
+}
+
 /**
  * Linhas da Q6 e da Q7 de UM chamado -> campos de etapa do `payload.campos` (F3). `lista`: o valor só segue se estiver no domínio do
  * campo (domínio ausente ou vazio = nulo com contagem `fora_dominio_<chave>`) e se o `tipo` não for texto (`tipo_texto_<chave>`);
- * `preenchido`: só o booleano (qualquer linha verdadeira vale). Nome repetido em várias etapas: vale o último valor preenchido, vazio não apaga. Sem linha: `lista` nula, `preenchido` falso. Falha fechado sem o valor.
+ * `preenchido`: só o booleano (qualquer linha verdadeira vale). Nome repetido em várias etapas: vale o valor preenchido da etapa que vem por
+ * último no desenho do fluxo (`ordemFluxo`), vazio não apaga (ver `valorDoCampoRepetido`). Sem linha: `lista` nula, `preenchido` falso. Falha fechado sem o valor.
  */
-export function camposEtapa(listaLinhas: readonly unknown[], preenchidoLinhas: readonly unknown[], dominios: DominiosEtapa, c: Contadores): CamposChamado {
+export function camposEtapa(
+  listaLinhas: readonly unknown[], preenchidoLinhas: readonly unknown[], dominios: DominiosEtapa, ordemFluxo: OrdemFluxo, c: Contadores,
+): CamposChamado {
   const chaveDe = new Map(CAMPOS_ETAPA_F3.map((f) => [f.nome as string, f.chave as string]));
-  const valores = new Map<string, string | null>();
+  const candidatos = new Map<string, Preenchido[]>();
   const texto_ = new Set<string>();
   for (const linha of listaLinhas) {
     const r = esquemaEtapaLista.safeParse(linha);
     if (!r.success) return falhar(r.error, 'campo_etapa');
     const k = chaveDe.get(r.data.nome)!;
     if (tipoTexto(r.data.tipo)) { texto_.add(k); continue; }
-    // Campo repetido em várias etapas (L9-c, decisão do dono de 2026-11-05): vale o valor preenchido da linha mais recente, na ordem da
-    // fonte; um vazio (nulo ou texto vazio) nunca apaga um valor preenchido.
-    if (r.data.valor !== null && r.data.valor !== '') valores.set(k, r.data.valor);
+    // Um vazio (nulo ou texto vazio) nunca apaga um valor preenchido: só os preenchidos competem.
+    if (r.data.valor !== null && r.data.valor !== '') candidatos.set(k, [...(candidatos.get(k) ?? []), { valor: r.data.valor, etapa: r.data.kanban_status_key }]);
   }
   const marcados = new Set<string>();
   for (const linha of preenchidoLinhas) {
@@ -202,8 +230,8 @@ export function camposEtapa(listaLinhas: readonly unknown[], preenchidoLinhas: r
   for (const f of CAMPOS_ETAPA_F3) {
     if (f.tratamento === 'preenchido') { saida[f.chave] = marcados.has(f.chave); continue; }
     if (texto_.has(f.chave)) { c.somar(`tipo_texto_${f.chave}`); saida[f.chave] = null; continue; }
-    const v = valores.get(f.chave);
-    if (v === undefined || v === null || v === '') { saida[f.chave] = null; continue; }
+    const v = valorDoCampoRepetido(candidatos.get(f.chave) ?? [], ordemFluxo, f.chave, c);
+    if (v === null) { saida[f.chave] = null; continue; }
     const dominio = dominios.get(f.chave);
     if (dominio?.has(v) === true) saida[f.chave] = v;
     else { c.somar(`fora_dominio_${f.chave}`); saida[f.chave] = null; }

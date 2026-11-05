@@ -1,6 +1,6 @@
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
-import type { DominiosEtapa, ListasRecorte } from './allow-list.js';
+import type { DominiosEtapa, ListasRecorte, OrdemFluxo } from './allow-list.js';
 import { ErroColeta } from './erros.js';
 import { CAMPOS_ETAPA_F3, campoDominioEtapa } from './listas-fechadas.js';
 
@@ -57,4 +57,24 @@ export async function carregarDominiosEtapa(db: Consultavel, S: Esquemas): Promi
   return new Map(campos.map(({ chave, campo }) => [
     chave, new Set(r.rows.filter((x) => x.campo === campo).flatMap((x) => [x.codigo, x.rotulo])) as ReadonlySet<string>,
   ]));
+}
+
+/** Campo de `ref_dominio` com a posição de cada etapa no desenho do fluxo de atendimento (L9-c, decisão "B" e P-L9C-1 "A" do dono). */
+export const CAMPO_ETAPA_FLUXO = 'etapa_fluxo';
+
+/**
+ * Posição das etapas no desenho do fluxo: `codigo` = `kanbanStatusKey` em texto decimal, `ordem` = posição (maior = vem depois). A lista é escrita
+ * pelas pessoas que configuram o Acelerato e pelo dono (WS4), nunca pelo time nem inferida; sem linha o mapa fica vazio e todo campo repetido
+ * com valores diferentes sai nulo com contagem (não é erro, como os domínios dos campos de etapa). Código que não é número ou ordem inválida
+ * falham fechado, citando só o campo.
+ */
+export async function carregarOrdemFluxo(db: Consultavel, S: Esquemas): Promise<OrdemFluxo> {
+  const r = await db.query<{ campo: string; codigo: string; ordem: number }>(
+    `SELECT campo, codigo, ordem FROM ${S.ac}.ref_dominio WHERE vigente_ate IS NULL AND campo = $1 ORDER BY codigo`, [CAMPO_ETAPA_FLUXO]);
+  const m = new Map<number, number>();
+  for (const l of r.rows.filter((x) => x.campo === CAMPO_ETAPA_FLUXO)) {
+    if (!/^\d{1,15}$/.test(l.codigo) || !Number.isInteger(l.ordem) || l.ordem < 0) throw new ErroColeta('dados-invalidos', { entidade: 'ref_dominio', coluna: CAMPO_ETAPA_FLUXO });
+    m.set(Number(l.codigo), l.ordem);
+  }
+  return m;
 }

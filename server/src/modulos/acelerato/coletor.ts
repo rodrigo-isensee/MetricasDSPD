@@ -2,7 +2,7 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
 import { comTravaDaFonte } from '../../plataforma/db/trava.js';
 import {
-  Contadores, camposEtapa, registroChamado, registroContagem, registroEtapas, registroSaida, reincidente90d, type ChamadoLido, type DominiosEtapa, type EtapaLida, type ListasRecorte,
+  Contadores, camposEtapa, registroChamado, registroContagem, registroEtapas, registroSaida, reincidente90d, type ChamadoLido, type DominiosEtapa, type EtapaLida, type ListasRecorte, type OrdemFluxo,
 } from './allow-list.js';
 import { comSessaoMysql, type DepsCliente, type SessaoMysql } from './cliente-mysql.js';
 import type { ConfigAcelerato } from './config.js';
@@ -11,7 +11,7 @@ import {
 } from './controle.js';
 import { ErroColeta, comoErroColeta, exigirEsquemaSemSeedNoPool, repetivel } from './erros.js';
 import { NOMES_CAMPO_FATIA_F1, NOMES_ETAPA_LISTA, NOMES_ETAPA_PREENCHIDO } from './listas-fechadas.js';
-import { carregarDominiosEtapa, carregarListas } from './referencia.js';
+import { carregarDominiosEtapa, carregarListas, carregarOrdemFluxo } from './referencia.js';
 import { DATA_MINIMA, Q1_CHAMADOS, Q2_ETAPAS, Q3_CAMPOS, Q4_FORA_ORGANIZACOES, Q5_SAIDA, Q6_CAMPOS_ETAPA_LISTA, Q7_CAMPOS_ETAPA_PREENCHIDO, TAMANHO_PAGINA, expandir } from './sql.js';
 import {
   chamadosConhecidos, gravarChamado, gravarEtapa, ultimasDeChamados, ultimasDeEtapas, type MarcasStaging, type Registro,
@@ -95,7 +95,7 @@ const lotes = <T>(itens: readonly T[], n: number): T[][] => {
 const chaves = (m: ReadonlyMap<number, string>): number[] => [...m.keys()];
 
 type PedidoLeitura = {
-  listas: ListasRecorte; dominiosEtapa: DominiosEtapa; inicio: string; medirForaOrganizacoes: boolean; conhecidos: ReadonlyMap<string, MarcasStaging> | null;
+  listas: ListasRecorte; dominiosEtapa: DominiosEtapa; ordemFluxo: OrdemFluxo; inicio: string; medirForaOrganizacoes: boolean; conhecidos: ReadonlyMap<string, MarcasStaging> | null;
 };
 
 /** Uma passada de leitura da origem, com contadores novos (uma nova tentativa recomeça do zero). */
@@ -123,7 +123,7 @@ async function ler(s: SessaoMysql, p: PedidoLeitura): Promise<Leitura> {
       if (doChamado.length === 0) L.contadores.somar('chamado_sem_etapas');
       chamado.payload.campos = {
         reincidente_90d: reincidente90d(campos.get(chamado.idOrigem) ?? [], L.contadores),
-        ...camposEtapa(etapaLista.get(chamado.idOrigem) ?? [], etapaPreenchido.get(chamado.idOrigem) ?? [], p.dominiosEtapa, L.contadores),
+        ...camposEtapa(etapaLista.get(chamado.idOrigem) ?? [], etapaPreenchido.get(chamado.idOrigem) ?? [], p.dominiosEtapa, p.ordemFluxo, L.contadores),
       };
       L.chamados.push({ chamado, etapas: doChamado });
       L.presentes.add(chamado.idOrigem);
@@ -201,8 +201,10 @@ async function executar(
   const listas = await carregarListas(d.pool, d.S);
   const anterior = await ultimoSucesso(d.pool, d.S);
 
-  // CA-8: mudança de origem, de lista ou de SQL sem reconhecimento recusa a coleta, antes de abrir qualquer conexão.
-  const base = montarParametros(d.config, null);
+  const ordemFluxo = await carregarOrdemFluxo(d.pool, d.S);
+
+  // CA-8: mudança de origem, de lista (inclusive a ordem das etapas do fluxo) ou de SQL sem reconhecimento recusa a coleta, antes de abrir qualquer conexão.
+  const base = montarParametros(d.config, null, ordemFluxo);
   if (anterior.parametros !== null && d.reconhecerMudanca !== true) {
     const mudou = parametrosDiferentes(base, anterior.parametros);
     if (mudou.length > 0) throw new ErroColeta('parametros-mudaram', { coluna: mudou.join(',') });
@@ -214,7 +216,7 @@ async function executar(
   const inicio = inicioInstante === null ? DATA_MINIMA : instanteParaTexto(inicioInstante);
   const conhecidos = modo === 'releitura' ? await chamadosConhecidos(d.pool, d.S) : null;
   const dominiosEtapa = await carregarDominiosEtapa(d.pool, d.S);
-  const pedido: PedidoLeitura = { listas, dominiosEtapa, inicio, medirForaOrganizacoes: modo === 'releitura' || anterior.marca === null, conhecidos };
+  const pedido: PedidoLeitura = { listas, dominiosEtapa, ordemFluxo, inicio, medirForaOrganizacoes: modo === 'releitura' || anterior.marca === null, conhecidos };
 
   const dormir = d.dormir ?? esperar;
   let leitura: Leitura | undefined;
@@ -239,7 +241,7 @@ async function executar(
   }
   const lido = leitura;
   return emTransacao(d.pool, async (db) => {
-    const parametros = montarParametros(d.config, lido.maxSincronizado);
+    const parametros = montarParametros(d.config, lido.maxSincronizado, ordemFluxo);
     const coletaId = await registrarSucesso(db, d.S, {
       tarefa, iniciadoEm, finalizadoEm: d.agora(), marcaDe: inicioInstante, marcaAte,
       sobreposicaoS: modo === 'incremental' ? d.config.margemHoras * 3600 : 0, parametros,

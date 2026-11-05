@@ -16,16 +16,23 @@ export type TarefaAcelerato = 'coleta_incremental' | 'varredura';
 /** Parâmetros registrados: hashes do que identifica a origem e as listas (nunca host, banco ou senha em claro). */
 export type ParametrosColeta = {
   host_sha256: string; banco_sha256: string; tabela: string; colunas_sha256: string; campos_sha256: string;
-  sql_sha256: string; tls_sha256: string; sincronizado_em_max: string | null;
+  sql_sha256: string; tls_sha256: string; fluxo_sha256: string; sincronizado_em_max: string | null;
 };
 /** Mudança de qualquer uma destas, sem versão de critério reconhecida, recusa a coleta (CA-8). */
-export const CHAVES_COMPARADAS = ['host_sha256', 'banco_sha256', 'tabela', 'colunas_sha256', 'campos_sha256', 'sql_sha256', 'tls_sha256'] as const;
+export const CHAVES_COMPARADAS = ['host_sha256', 'banco_sha256', 'tabela', 'colunas_sha256', 'campos_sha256', 'sql_sha256', 'tls_sha256', 'fluxo_sha256'] as const;
 
-export function montarParametros(config: ConfigAcelerato, sincronizadoEmMax: string | null): ParametrosColeta {
+/**
+ * SHA-256 da lista de posições das etapas (`codigo|ordem`, uma por linha, ordenada por `codigo`). Trocar a lista muda o valor decidido dos campos
+ * repetidos, então entra nos parâmetros comparados: mudança sem reconhecimento recusa a coleta (CA-8, T2.6). Só números; nenhum valor de campo.
+ */
+export const fluxoSha256 = (ordem: ReadonlyMap<number, number>): string =>
+  sha256Texto([...ordem].sort(([a], [b]) => a - b).map(([codigo, posicao]) => `${codigo}|${posicao}`).join('\n'));
+
+export function montarParametros(config: ConfigAcelerato, sincronizadoEmMax: string | null, ordemFluxo: ReadonlyMap<number, number>): ParametrosColeta {
   return {
     host_sha256: sha256Texto(config.host), banco_sha256: sha256Texto(config.banco), tabela: TABELA_ORIGEM,
     colunas_sha256: sha256Texto(COLUNAS_DA_LINHA.join(',')), campos_sha256: sha256Texto([...NOMES_CAMPO_FATIA_F1, ...CAMPOS_ETAPA_F3.map((c) => `${c.nome}|${c.tratamento}`)].join('\n')),
-    sql_sha256: sqlSha256(), tls_sha256: config.tlsSha256, sincronizado_em_max: sincronizadoEmMax,
+    sql_sha256: sqlSha256(), tls_sha256: config.tlsSha256, fluxo_sha256: fluxoSha256(ordemFluxo), sincronizado_em_max: sincronizadoEmMax,
   };
 }
 

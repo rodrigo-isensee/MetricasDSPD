@@ -70,13 +70,16 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
       ...F3.flatMap((c) => ['Alfa', 'Beta', 'SIM'].map((v) => ({ campo: campoDominioEtapa(c), codigo: v, rotulo: v })))];
     for (const [i, l] of listas.entries())
       await dono.query(`INSERT INTO ${E.ac}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ($1, $2, '2026-01-01', $3, $4)`, [l.campo, l.codigo, l.rotulo, i]);
+    // Desenho do fluxo (L9-c, decisão "B"): a etapa 20 vem depois da 10. A posição é o `ordem` da linha de `etapa_fluxo`.
+    for (const [codigo, ordem] of [['10', 0], ['20', 1]] as const)
+      await dono.query(`INSERT INTO ${E.ac}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('etapa_fluxo', $1, '2026-01-01', $2, $3)`, [codigo, `Etapa ${codigo}`, ordem]);
     let relogio = new Date('2026-11-05T10:00:00Z');
     const coletar = (t: ReturnType<typeof linha>[]) => coletarAcelerato({
       pool: coletor, config: CONFIG, tls: TLS, S: E, agora: () => relogio, log: { info: () => undefined, error: () => undefined },
       cliente: { conectar: criarMysqlFalso(t).conectar }, dormir: () => Promise.resolve(),
     }, 'releitura');
-    const etapa = (campos: { nome: string; tipo: string; valor: string }[]) =>
-      linha({ ticket_key: 91, campos_personalizados_etapa: JSON.stringify(campos.map((c) => ({ ...c, obrigatorio: false, kanbanStatusKey: 1 }))) });
+    const etapa = (campos: { nome: string; tipo: string; valor: string; kanbanStatusKey?: number }[]) =>
+      linha({ ticket_key: 91, campos_personalizados_etapa: JSON.stringify(campos.map((c) => ({ kanbanStatusKey: 10, ...c, obrigatorio: false }))) });
     await coletar([linha({ ticket_key: 91, campos_personalizados_etapa: '[]' })]);
     await projetarAcelerato(coletor, E, () => relogio);
     const vazia = (await dono.query(`SELECT * FROM ${E.ac}.dim_chamado WHERE chamado_id = '91'`)).rows[0];
@@ -84,8 +87,9 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
 
     relogio = new Date('2026-11-05T11:00:00Z');
     await coletar([etapa([
-      { nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Alfa' }, { nome: 'Motivo da Escalação', tipo: 'lista', valor: '' },
-      { nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Alfa' }, { nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Beta' },
+      { nome: 'Motivo da Escalação', tipo: 'lista', valor: 'Alfa' }, { nome: 'Motivo da Escalação', tipo: 'lista', valor: '', kanbanStatusKey: 20 },
+      // 'Beta' vem primeiro na lista e vence porque a etapa 20 vem por último no desenho do fluxo (a ordem das linhas não decide).
+      { nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Beta', kanbanStatusKey: 20 }, { nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Alfa', kanbanStatusKey: 10 },
       { nome: 'Avaliação de Problema', tipo: 'lista', valor: 'Beta' }, { nome: 'Motivo de Pendência', tipo: 'lista', valor: 'Alfa' },
       { nome: 'Prioridade ajustada manualmente?', tipo: 'lista', valor: 'SIM' },
       { nome: 'Se a prioridade foi ajustada, justifique', tipo: 'texto', valor: 'TEXTO-LIVRE-L9C' }, { nome: 'Previsão de retorno', tipo: 'data', valor: '2026-12-01' },
@@ -99,6 +103,8 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     expect((await dono.query(`SELECT motivo_escalacao FROM ${E.ac}.dim_chamado_versao WHERE chamado_id = '91' ORDER BY vigente_de LIMIT 1`)).rows[0].motivo_escalacao).toBeNull();
     const tudo = JSON.stringify((await dono.query(`SELECT * FROM ${E.ac}.dim_chamado_versao`)).rows) + JSON.stringify((await dono.query(`SELECT * FROM ${E.ac}.dim_chamado`)).rows);
     expect(tudo).not.toContain('TEXTO-LIVRE-L9C');
+    expect(tudo).not.toMatch(/kanban/i); // a chave da etapa só decide o valor; não é gravada na dimensão nem no staging projetado
+    expect(JSON.stringify((await dono.query(`SELECT payload FROM ${E.ac}.stg_chamado WHERE id_origem = '91'`)).rows)).not.toMatch(/kanban/i);
   }, 60_000);
 
   it('paridade: S2, S3, S4, S8 e S10 reais não mudam quando as colunas da F3 mudam (constante de ajuste de prioridade falsa)', async () => {
