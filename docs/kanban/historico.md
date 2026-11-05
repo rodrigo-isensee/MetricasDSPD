@@ -701,3 +701,60 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-01T22:13:23-03:00 | K-193 | Em andamento | Em andamento | trilhas B e C em código local (push espera o dono) |
 | 2026-11-02T03:17:08-03:00 | K-193 | Em andamento | Em andamento | Aguardando o dono |
 | 2026-11-02T03:18:42-03:00 | K-193 | Em andamento | Em andamento | Aguardando o dono |
+| 2026-11-02T09:25:57-03:00 | K-193 | Em andamento | Em andamento | E2.60 merge com update-branch |
+| 2026-11-02T09:46:49-03:00 | K-193 | Em andamento | Em andamento | Aguardando o dono |
+| 2026-11-02T12:18:57-03:00 | K-193 | Em andamento | Em andamento | Aguardando o dono |
+| 2026-11-02T14:59:20-03:00 | K-193 | Em andamento | Em andamento | E2.61 dicionário em paralelo |
+| 2026-11-02T17:35:42-03:00 | K-193 | Em andamento | Em andamento | Aguardando o dono |
+| 2026-11-02T17:41:18-03:00 | K-193 | Em andamento | Em andamento | Aguardando o dono |
+| 2026-11-02T18:07:35-03:00 | K-193 | Em andamento | Homologação | aba inteira na develop |
+| 2026-11-02T18:21:09-03:00 | K-194 | Entrada | Em andamento | triagem do Dependabot |
+| 2026-11-02T19:22:41-03:00 | K-193 | Homologação | Aguardando o dono | Aguardando o dono: merge do PR 200 recusado pelo sandbox |
+| 2026-11-02T19:23:42-03:00 | K-193 | Aguardando o dono | Homologação | Aguardando o dono: PR 200 mesclado (c777c09) |
+| 2026-11-02T19:30:38-03:00 | K-195 | Backlog | Em andamento | discovery do E2 (urgente) |
+| 2026-11-02T19:38:22-03:00 | K-195 | Em andamento | Aguardando o dono | Aguardando o dono: validar o plano P1 |
+| 2026-11-02T19:44:01-03:00 | K-195 | Aguardando o dono | Em andamento | Aguardando o dono: P1 autorizado (A) |
+| 2026-11-02T19:49:16-03:00 | K-196 | Backlog | Em andamento | levantamento da coleta diária |
+| 2026-11-02T19:53:31-03:00 | K-197 | Backlog | Em andamento | discovery da Visão Geral |
+| 2026-11-02T20:06:16-03:00 | K-198 | Backlog | Em andamento | override do fast-uri |
+| 2026-11-02T20:26:06-03:00 | K-193 | Homologação | Pronto | PR 201 mesclado na main pelo dono |
+| 2026-11-02T20:31:01-03:00 | K-199 | Backlog | Em andamento | texto do CLAUDE.md |
+| 2026-11-02T22:02:20-03:00 | K-199 | Em andamento | Aguardando o dono | Aguardando o dono: mesclar o PR 203 |
+| 2026-11-02T23:48:39-03:00 | K-196 | Em andamento | Homologação | PR 204 na develop |
+| 2026-11-03T04:50:52-03:00 | K-198 | Em andamento | Pronto | PR 206 mesclado na develop (c6a75a0) |
+| 2026-11-03T07:02:38-03:00 | K-200 | A fazer | Em andamento | discovery do 063 |
+| 2026-11-03T10:05:07-03:00 | K-200 | Discovery | Em desenvolvimento | E1.6 script de teste com o node-backend |
+| 2026-11-03T10:06:36-03:00 | K-195 | Em desenvolvimento | Em desenvolvimento | Aguardando o dono |
+| 2026-11-03T11:21:09-03:00 | K-195 | Em desenvolvimento | Em desenvolvimento | Aguardando o dono |
+| 2026-11-03T11:39:19-03:00 | K-200 | Em desenvolvimento | Em desenvolvimento | Aguardando o dono |
+| 2026-11-03T11:55:58-03:00 | K-200 | Em desenvolvimento | Em desenvolvimento | Aguardando o dono |
+| 2026-11-03T15:56:24-03:00 | K-200 | Em desenvolvimento | Em desenvolvimento | Aguardando o dono |
+| 2026-11-03T16:11:40-03:00 | K-200 | Em desenvolvimento | Em desenvolvimento | Aguardando o dono |
+| 2026-11-03T18:58:36-03:00 | K-195 | Em desenvolvimento | Em desenvolvimento | volta 1 |
+| 2026-11-03T19:46:47-03:00 | K-200 | Em desenvolvimento | Em desenvolvimento | Aguardando o dono |
+| 2026-11-03T21:20:12-03:00 | K-195 | Em desenvolvimento | Pronto | PR 208 mesclado na develop |
+| 2026-11-04T00:52:02-03:00 | K-200 | Em review | Em desenvolvimento | volta 1 |
+| 2026-11-04T01:21:12-03:00 | K-200 | Em desenvolvimento | Em review | review da volta 1 aprovado |
+| 2026-11-04T01:46:56-03:00 | K-200 | Em review | Em QA | QA aprovado |
+| 2026-11-04T02:59:21-03:00 | K-200 | Em QA | Homologação | PR 209 na develop e PR 210 na homolog |
+| 2026-11-04T03:32:31-03:00 | K-200 | Homologação | Aguardando o dono | Aguardando o dono |
+| 2026-11-04T04:27:53-03:00 | K-202 | Entrada | Em andamento | pedido 064 aberto |
+| 2026-11-04T04:58:54-03:00 | K-202 | Em andamento | Aguardando o dono | Aguardando o dono |
+| 2026-11-04T14:48:44-03:00 | K-205 | Em andamento | Pronto | PR 214 na develop |
+| 2026-11-04T15:05:00-03:00 | K-217 | Em andamento | Em QA | review aprovado |
+| 2026-11-04T16:17:59-03:00 | K-218 | Em andamento | Pronto | PR 215 na develop |
+| 2026-11-04T17:03:35-03:00 | K-217 | Em QA | Pronto | PR 216 na develop |
+| 2026-11-04T19:25:12-03:00 | K-220 | Pronto para fazer | Code review | L3-a mesclado (PR 217); M1-a em review, QA e revisão de interface |
+| 2026-11-04T19:33:22-03:00 | K-220 | Code review | Code review | Aguardando o dono: L7 arquivo inicial de feriados (os outros lotes seguem) |
+| 2026-11-04T20:52:56-03:00 | K-220 | Code review | Code review | Aguardando o dono: fim (resposta A sobre os feriados do L7) |
+| 2026-11-04T20:58:26-03:00 | K-220 | Code review | Code review | M1-a mesclado (PR 219); L2-a para PR; L9-b em QA; L7-a em código |
+| 2026-11-04T21:37:21-03:00 | K-221 | Entrada | Empatizar e definir | pedido 070 aberto (simulado por cartão), discovery com arquiteto e UX |
+| 2026-11-04T21:50:20-03:00 | K-221 | Discovery | Discovery | Aguardando o dono |
+| 2026-11-04T21:50:41-03:00 | K-220 | Em andamento | Em andamento | Aguardando o dono |
+| 2026-11-04T21:54:03-03:00 | K-221 | Discovery | Discovery | Aguardando o dono |
+| 2026-11-04T21:57:35-03:00 | K-221 | Discovery | Em andamento | protótipo validado; L1 do node-backend |
+| 2026-11-04T21:59:05-03:00 | K-220 | Em andamento | Em andamento | Aguardando o dono (fim): PR 220 mesclado |
+| 2026-11-05T03:51:24-03:00 | K-219 | Em andamento | Aguardando sua validação | Aguardando o dono: PR 229 de release para a main · custo do trecho: lacuna |
+- 2026-11-05 13:36 · K-222 · criado em Pronto para fazer (pedido 071, recibo confirmado pelo dono)
+- 2026-11-05 14:34 · K-223 · criado em Em andamento (pedido 072, recibo confirmado pelo dono)
+- 2026-11-05 16:13 · K-222 · Em andamento → Pronto (release 071 na main, PR 237 mesclado pelo dono)

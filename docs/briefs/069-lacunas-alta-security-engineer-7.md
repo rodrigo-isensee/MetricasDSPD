@@ -1,0 +1,56 @@
+Agente destino: forge:security-engineer
+Pedido: 069-lacunas-alta
+Tipo: codigo
+Branch: feature/069-l7-calendario   Base: develop   Base-sha: 69e72a709e0b6f936887cf36753d1bb4c3236768
+Etapa: review   Cobre: E1.8
+
+## Objetivo
+Review de segurança do lote L7-a do 069 depois da volta 3 (só a troca do ON CONFLICT em calendario.ts:260 que destrava o lint) na ponta 73b1809055ffca329581f2238c45e488658cc39a (pedido 069, E1.8, K-220). Worktree `/home/rodrigoisensee/MetricasDSPD-052d`, branch `feature/069-l7-calendario`.
+
+## Ler
+- `git -C /home/rodrigoisensee/MetricasDSPD-052d diff a1ba536..73b1809055ffca329581f2238c45e488658cc39a -- server` (o delta da volta 3; o resto do lote já foi revisto nos pareceres z4 de review e de QA).
+- `/home/rodrigoisensee/MetricasDSPD-052d/docs/security/069-modelo-ameacas.md` (controles e casos de abuso do L2-a).
+
+## Entregar
+- "E1.8 (security-engineer): modelo de ameaças dos lotes com gatilho de segurança (L2-a, L2-c, L9-b) antes deles, e review de segurança desses lotes." (E1.8)
+- (E5) (E1.8) `git -C /home/rodrigoisensee/MetricasDSPD-052d pull --ff-only origin feature/069-l7-calendario`; o lote inteiro em `git -C /home/rodrigoisensee/MetricasDSPD-052d diff origin/develop...73b1809055ffca329581f2238c45e488658cc39a`: a mudança em `server/package.json` (script ref:sync-calendario, sem dependência nova) e a gravação nas tabelas ref_ do core pelo papel dspd_ref (sem GRANT novo, conforme o desenho); arquivo de feriados sem pessoa; parecer em `docs/security/069-z6-l7a.md`; commit só do parecer; push com `git -C /home/rodrigoisensee/MetricasDSPD-052d push origin HEAD:refs/heads/feature/069-l7-calendario`; sem PR.
+- (E1, E2, E3, E4) Nada a entregar aqui: não nesta delegação (outras etapas do pedido).
+
+## Decisões e restrições (linhas `DECISÃO DO DONO` copiadas literalmente do pedido)
+- DECISÃO DO DONO (2026-11-04): "pode comecar voce tem a diretiva de nunca ficar parado" (resposta à pergunta "Quer que o time comece também as lacunas de prioridade alta?"): começar as lacunas de prioridade alta (K-206 a K-210).
+- DECISÃO DO DONO (2026-11-04): "A" (arquivo inicial de feriados do L7): o arquivo de calendário começa com os feriados nacionais 2025-2026 que já estão no código, sem data nova; as pessoas acrescentam 2027 em diante, estaduais e municipais. [Nota do Jarvis: responde à PERGUNTA de 19:33 do Histórico; o item "Preencher dados de configuração (feriados...)" do Fora do escopo segue valendo para tudo além desses feriados do código.]
+- DECISÃO DO DONO (2026-11-04): "Pode esperar. Já prepare a próxima versão para entrar quando a máquina permitir" (resposta à pergunta se a release esperava o L9-b): a release espera o L9-b; a próxima versão começa a ser preparada em paralelo, dentro do teto da máquina.
+### Do registro citado docs/pedidos/064-lacunas-dado-real.md (todas as linhas DECISÃO DO DONO; contexto, não ampliam o Entregar)
+- DECISÃO DO DONO (2026-11-04): "A" (levantamento das lacunas de dado real): o software-architect e o qa-engineer comparam cada tela das operacionais, do apontamento e da sustentação com o dado real da base e listam o que falta, sem mudar código. [Nota do Jarvis: o "sem mudar código" vale para este levantamento; as correções viram pedidos próprios, como o 065, decidido pelo dono na "C".]
+### ADRs citadas no Histórico deste pedido (não no registro 064)
+- ADR 0027 (citada no pedido): é a decisão que este lote implementa
+- ADR 0025 (citada no pedido): citada no Histórico só como molde da ADR 0027; nada nesta entrega
+- ADR 0026 (citada no pedido): não muda
+### Do Histórico deste pedido, docs/pedidos/069-lacunas-alta.md (DECISÃO TÉCNICA do Jarvis; contexto)
+- 2026-11-04 22:46: Volta 3 do L7-a entregue pelo node-backend: feature/069-l7-calendario em 73b1809 (calendario.ts:260 com ON CONFLICT ON CONSTRAINT ref_feriado_pkey DO NOTHING; eslint do server rc=0 com cwd em server/; vitest do server 1663 testes e cobertura 100%; pg não rodou). O PQ-2 do brief (npx --prefix ... eslint de fora de server/) estava errado: a config da raiz ignora server/ e dá rc=2. DECISÃO TÉCNICA (Jarvis): o PQ-2 vale pelo equivalente com cwd em server/ (rc=0), e o pre-push também rodou o lint; os próximos briefs usam o lint com cwd em server/; review e QA z6 conferem o delta a1ba536..73b1809 (uma linha).
+- 2026-11-04 23:05: Brief do PR do L7-a reprovado pelo gatilho de segurança: o lote muda server/package.json (+1 linha, o script ref:sync-calendario), e o forge-check pr cobra parecer de segurança por mudança no manifesto (R-SEGURANCA); a decisão das 21:12 (sem gatilho) não viu o manifesto. DECISÃO TÉCNICA (Jarvis): review de segurança do L7-a pelo security-engineer na ponta 73b1809 (manifesto e a gravação nas tabelas ref_ do core pelo papel dspd_ref, como o desenho descreve), parecer no nome 069-z6-l7a.md; depois o PR. MELHORIA: o desenho e a triagem de gatilho conferem o diff do manifesto, não só o tipo do lote.
+### Restrições
+- O agente não abre, lê nem edita arquivos `.env*`, não chama as APIs externas e não roda nada contra a base real.
+- Recursos: uma tarefa pesada por vez, vitest com no máximo 2 workers, MemAvailable acima de 3000 MB e load abaixo de 4 antes.
+- Recusa de hook, sandbox ou classificador: pare e relate a mensagem literal, sem contornar. O GitHub precisa de `github.com` em `allowed_domains`. R-VERIFY: nunca `--no-verify` nem `--force`.
+- O parecer é gravado inteiro pela ferramenta Write, com `pedido: 069-lacunas-alta`, `branch: feature/069-l7-calendario`, `commit: 73b1809055ffca329581f2238c45e488658cc39a`, veredito e bloco `## Achados` (até 300 caracteres por achado, severidade só entre parênteses, regra citada só pelo ID); o pre-push e o forge-check docs barram frase de regra copiada.
+- Outros pareceres são gravados ao mesmo tempo nesta worktree: `git -C /home/rodrigoisensee/MetricasDSPD-052d pull --ff-only origin feature/069-l7-calendario` antes do commit; `git -C /home/rodrigoisensee/MetricasDSPD-052d add <parecer>` e `git -C /home/rodrigoisensee/MetricasDSPD-052d commit -m <mensagem> -m 'Cartão: K-220' -- <parecer>` (sem heredoc e sem pipe); se der index.lock ou push recusado por estar atrás, espere uns segundos, faça o pull e repita; se o push disser cannot lock ref, confira o `git ls-remote` antes de repetir.
+- NÃO tocar: código, testes, os outros pareceres, o `CLAUDE.md`, os arquivos `.env*`, outras worktrees e a `main`.
+
+## Fora do escopo (outras etapas do pedido, sem a marca; R-BRIEF)
+- "E1.1 (software-architect): desenho das cinco correções (onde muda, contrato, versão de critério quando o cálculo muda, testes), dividido em lotes pequenos." · etapa de outra delegação; continua no pedido
+- "E1.2 (node-backend): implementação por lote." · etapa de outra delegação; continua no pedido
+- "E1.3 (react-frontend): ajustes de tela que o desenho pedir." · etapa de outra delegação; continua no pedido
+- "E1.4 (tech-lead): code review por lote." · etapa de outra delegação; continua no pedido
+- "E1.5 (qa-engineer): QA por lote." · etapa de outra delegação; continua no pedido
+- "E1.6 (tech-lead): PR para a develop e merge por lote." · etapa de outra delegação; continua no pedido
+- "E1.7 (ux-designer): revisão de interface do lote que muda tela, contra a especificação validada." · etapa de outra delegação; continua no pedido
+- "E1.9 (software-architect): proposta de aceite na v1 da mudança de tipo do contrato do lote L9-a (S3 ajustesManuais anulável), em docs/analises/069-l9a-contrato.md, para o tech-lead assinar antes do código." · etapa de outra delegação; continua no pedido
+- "E1.10 (tech-lead): parecer e assinatura da proposta de aceite do contrato do L9-a em docs/analises/069-l9a-contrato.md, antes do código do lote." · etapa de outra delegação; continua no pedido
+- As outras etapas do pedido.
+
+## Pronto quando
+- PQ-1 (cmd): `git -C /home/rodrigoisensee/MetricasDSPD-052d show origin/feature/069-l7-calendario:docs/security/069-z6-l7a.md` · espera: contém 'commit: 73b1809055ffca329581f2238c45e488658cc39a'
+
+## Relatório
+Até 8 linhas, resultado real; depois o bloco `Provas:`, uma linha por `PQ-n` com a saída copiada da ferramenta, ou "não cumprido" e o motivo. Última linha: `Melhoria vista:` com o problema e a evidência, ou `nenhuma` (`R-DECISAO`).

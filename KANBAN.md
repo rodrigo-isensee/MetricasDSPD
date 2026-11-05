@@ -5,12 +5,43 @@
 > WIP: plugin Forge 0.30.3; WSL com 7 GB visíveis nesta máquina: uma suíte de teste por vez e poucos agentes em paralelo (dono, 2026-10-23) · Bloqueados: 1 (K-141)
 > Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
+> Recursos (dono, 2026-11-03 13:48, pelo assistente do app; substitui a regra das 08:05 até o dono avisar): núcleos 0-5 (6 de 16, afinidade fixada), nice 15, até ~6 GB; no máximo 1 tarefa pesada por vez (suíte completa, e2e, build), 1 worktree testando, vitest e playwright com no máximo 2 workers; antes de tarefa pesada, MemAvailable acima de 3000 MB e load abaixo de 4; não encerrar o que está em andamento, só não lançar tarefa pesada em paralelo.
+
+> Retomada 2026-11-02 (noite): aba Apontamento na main (PR 201); base migrada (0021 a 0033), dicionário 2026-11-02-v2 e carga inicial do worklog feita (40583 linhas). Pendências do dono: senha do papel dspd_api_apontamento diferente do .env; 5 cards com mais de 1000 registros incompletos na carga (ADR 0025); campo causa raiz no BusinessMap.
+
 # Upstream — descoberta (Design Thinking)
 
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-193 | [feature] Aba Apontamento inteira (pedido 059): exceção formal no CLAUDE.md e no briefing, contrato, coleta do worklog, rota, front, pareceres e PRs | 059 | forge:tech-lead | 2026-11-01 | 2026-11-01 17:30 | Decisão do dono A (2026-11-01); aguarda o recibo e a pergunta de quem vê a aba; depois de 2026-11-02 |
+| K-194 | [segurança] Triagem dos 15 alertas do Dependabot (pedido 060) | 060 | forge:security-engineer | 2026-11-02 | 2026-11-02 18:20 | Modo analisar; sem mudar dependência |
+| K-195 | [urgente] Métricas só com dado real: tirar o mock da leitura e bloquear a regeração de fictícios (pedido 060, E2) | 060 | forge:software-architect | 2026-11-02 | 2026-11-02 19:30 | Discovery; base real intocada nesta etapa |
+| K-196 | Como programar a coleta diária na publicação (pedido 061) | 061 | forge:devops-engineer | 2026-11-02 | 2026-11-02 19:49 | Modo analisar; nada agendado nesta etapa |
+| K-200 | Registro de horas completo nos 5 cards acima do teto de 1000 (pedido 063) | 063 | dono | 2026-11-03 | 2026-11-04 03:32 | Aguardando o dono: validar e mesclar o PR de release 211 (homolog para main, portão verde na 92c5892, leva o 060); depois publicar na VM (.env, coleta diária, senha do dspd_api_apontamento, db:migrate 0034) e apagar a branch feature/063-aviso-incompleto e a worktree 052h. Time: QA documental e PR da branch de docs, retro |
+| K-202 | Levantamento das lacunas de dado real: operacionais, apontamento e sustentação (pedido 064) | 064 | forge:qa-engineer, forge:software-architect | 2026-11-04 | 2026-11-04 04:27 | Modo analisar; sem código; worktree de leitura 052e |
+| K-203 | [doc] 063: plano sem ctl_coleta_contagem de páginas (A1), GRANT com cobertura_sk (A2), ADR 0025 e plano de proposta para vigente (A3) e texto do parecer de QA do lote (escape 2026-11-04) | 063 | forge:software-architect | 2026-11-04 | 2026-11-04 06:57 | Recomendados do QA documental e escape; depois do PR da branch de docs |
+| K-204 | [coleta] Gravar bloqueios reais (fato_bloqueio e evt_bloqueio a partir do block_reason do staging), parte B da decisão C do 064 | 064 | forge:software-architect | 2026-11-04 | 2026-11-04 08:04 | Depois do 065; pedido próprio |
+| K-205 | Bloqueados fora do mapa real até a coleta gravar bloqueios (pedido 065) | 065 | forge:software-architect | 2026-11-04 | 2026-11-04 08:04 | Recibo enviado ao dono |
+| K-206 | [alta] L2: projetar no dim_card as colunas que o quadro já tem (classe, área, sistema, tamanho, data acordada, origem, fase, severidade, origem do bug, subtarefa); separar o que falta no quadro (WS1) | 064 | forge:software-architect | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-207 | [alta] L9: projetar no dim_chamado as colunas do Acelerato (primeiro atendimento, ajuste manual de prioridade, exceção de SLA, motivos, impacto, urgência); conferir quais existem na tabela MySQL | 064 | forge:software-architect | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-208 | [alta] L3: O2 e parados por etapa com filtro de equipe procuram quadro-<equipe> e a base usa id numérico | 064 | forge:node-backend | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-209 | [alta] M1: aba Apontamento sem coleta com sucesso (1 falha, 1 parcial): conferir se parcial vale para o selo de frescor | 064 | forge:node-backend | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-210 | [alta] L7: carregador de calendário e feriados (ref_calendario_aplicacao, ref_feriado); feriados escritos no código acabam em 2026-12-25; os feriados são definidos por pessoas | 064 | forge:node-backend | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-211 | [média] L4: tendências do fluxo e da sustentação no mapa real (derivam de O3, O4, S2 e S3) | 064 | forge:software-architect | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-212 | [média] M6: carregador do ref_dominio do BusinessMap (filtros de sistema, objetivo e área sem opções); domínios definidos por pessoas (WS1) | 064 | forge:node-backend | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-213 | [média] M7: conferir o significado dos bits de qualidade e do não classificado da aba Apontamento (40% não classificado, 95,8% com flag) | 064 | forge:software-architect | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-214 | [baixa] L5: carregador do ref_sle depois que a governança definir o SLE (T6.2) | 064 | forge:node-backend | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-215 | [baixa] L8: texto do recorte da sustentação ligado ao ref_dominio (hoje coincide) | 064 | forge:react-frontend | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-216 | [deploy] L12 e M8: na VM, PG_APONTAMENTO_URL configurada e a migração 0034 antes da API; rerodar a Q20 depois | 064 | forge:devops-engineer | 2026-11-04 | 2026-11-04 08:17 | Lacuna confirmada no pedido 064 (docs/analises/064-lacunas-dado-real.md) |
+| K-217 | S8 (taxa de reabertura) só com incidentes que têm resposta (pedido 066) | 066 | forge:software-architect | 2026-11-04 | 2026-11-04 14:11 | Recibo enviado ao dono |
+| K-218 | Dia atípico do apontamento acima de 10 h (pedido 067) | 067 | forge:node-backend | 2026-11-04 | 2026-11-04 14:13 | Recibo enviado ao dono |
+| K-219 | Release do 065, 066 e 067 e o zod 4 de volta à develop (pedido 068) | 068 | forge:tech-lead | 2026-11-04 | 2026-11-04 17:52 | Em andamento |
+| K-220 | Lacunas de dado real de prioridade alta, K-206 a K-210 (pedido 069) | 069 | forge:software-architect | 2026-11-04 | 2026-11-04 17:52 | Na develop: L3-a, M1-a, L2-a, L2-b, L9-a, L9-b, L7-a, L7-b (PR 232); L9-c em implementação (node-backend) |
+| K-221 | Dado simulado por cartão onde ainda não há dado real, com selo "Simulado" (pedido 070) | 070 | forge:software-architect, forge:ux-designer | 2026-11-04 | 2026-11-04 21:37 | Na develop: L1, L2, volta 3, L3 (PR 233); ADR 0028 vigente em PR (E1.13) |
+| K-198 | Corrigir os alertas do fast-uri, produção (pedido 062) | 062 | forge:node-backend | 2026-11-02 | 2026-11-02 20:06 | Override de patch; sem outras dependências |
+| K-199 | CLAUDE.md com a leitura do Acelerato pela ADR 0023 (pedido 060, E4) | 060 | forge:software-architect | 2026-11-02 | 2026-11-02 20:30 | PR para o dono mesclar |
+| K-197 | Desenho da Visão Geral com dado real, para a próxima etapa (pedido 060, E3) | 060 | forge:ux-designer, forge:software-architect | 2026-11-02 | 2026-11-02 19:53 | Modo planejar; nada implementado |
 | K-191 | [teste] e2e L3-01 (operacional-lote3.spec.ts:22) instável: axe target-size em leia-junto-o15 falhou no PR 180 e passou no rerun | 052 | forge:qa-engineer | 2026-10-31 | 2026-10-31 17:20 | Achado na E2.36 (run 41210173397); conferir com o react-frontend se é layout ou teste |
 | K-188 | [UX] Tela de administração da lista de times (lista no banco, histórico, carga inicial com as decisões do 052) | 057 | forge:ux-designer | 2026-10-30 | 2026-10-30 16:56 | Depois de 2026-11-02 (recorte do dono); tabela e carga inicial entram com o coletor do 052 |
 | K-186 | [052 review A5, QA A1 e A3] diagnostico.ts: limite429 não volta a falso no catch (:151); nenhum teste afirma a frase do cabeçalho (:310); nó raiz da currentStructure sai como "(sem campos permitidos)" (:243) | 052 | forge:node-backend | 2026-10-30 | 2026-10-30 12:34 | Recomendado (baixa) na revalidação do review 052 (780000b) |
@@ -65,6 +96,7 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-201 | [técnico, prioridade: bloqueia o pronto de todos os agentes] `scripts/suite-unica.sh` grava a trava em /tmp fixo (o tsx também usa /tmp) e o `pnpm run pronto` não roda no sandbox dos agentes; usar `$TMPDIR` (MELHORIA vista na E1.6 do 063) | 063 | forge:devops-engineer | 2026-11-03 | 2026-11-03 10:36 | Melhoria técnica do projeto; não afrouxa portão; PR próprio |
 | K-192 | [teste] E2E L3-01 (e2e/tests/operacional-lote3.spec.ts:22, axe target-size em leia-junto-o15) falhou duas vezes no PR 181 sem mudança de front e passou na nova rodada: estabilizar o alvo de toque | 052 | forge:react-frontend | 2026-10-31 | 2026-10-31 20:18 | Melhoria vista do tech-lead na E2.50; run 41249145631 |
 | K-187 | [Forge] forge-check escolhe parecer e Desde pela branch (lote E1 e E2 do pedido 055) | 055 | forge:tech-lead | 2026-10-30 | 2026-10-30 13:01 | PR de proposta para a develop do Forge; destrava o PR da 048d depois da release · clone ~/.forge-contrib/MetricasDSPD |
 | K-175 | [teste] Endurecer a trava de suíte única: A1 a A3 da segurança e A1 do review do 045 (retorno do flock, fd herdado por órfão, variável exportada, espera sem teto) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:58 | MELHORIA 1 da retro do 045; o Histórico de 11:35 apontou para um K-171 que é outro cartão |
@@ -80,6 +112,7 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-223 | Limpar as branches e worktrees já mescladas na develop e esquecidas; lista ao dono das que não cumprem a regra (pedido 072) | 072 | forge:tech-lead | 2026-11-05 | 2026-11-05 14:34 | Recibo confirmado; brief em conferência |
 | K-190 | [integração] Coletor do Acelerato pela tabela MySQL: F1 (staging, allow-list, TLS fixado) e F2 (normalizador, projetor, painel de sustentação real) | 056 | forge:tech-lead | 2026-10-30 | 2026-10-30 17:17 | E4.0 worktree e branch; depois E4.1 a E4.3 em paralelo; prazo 2026-11-02 · worktree: MetricasDSPD-056c |
 | K-182 | [integração] BusinessMap com dados reais: discovery (T2.1, spike K-087, ameaças), coleta T2.2, webhook T2.3, painéis FL1 a FL3 | 052 | forge:tech-lead | 2026-10-29 | 2026-10-30 17:17 | F0 (PR 178) e F1 (PR 179) na develop; lista de colunas conferida pelo dono; F2: E2.31 worktree e E2.32 código · worktree: MetricasDSPD-052e |
 | K-189 | [integração] Acelerato pela tabela MySQL: discovery validado (plano, ameaças, doc do dash, respostas), CLAUDE.md e PR | 056 | forge:tech-lead | 2026-10-30 | 2026-10-30 17:00 | E2.1; depois ADR 0023 e F1 do coletor · worktree: MetricasDSPD-056 |
@@ -106,6 +139,7 @@
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-222 | Release dos lotes do 069 (L7-a, L7-b) e do 070 (simulado por cartão, ADR 0028) até o PR homolog para main (pedido 071) | 071 | forge:tech-lead, forge:qa-engineer, forge:security-engineer | 2026-11-05 | 2026-11-05 16:13 | Release 071 na main: PR 237 mesclado pelo dono (8bb1210b); falta a retrospectiva |
 | K-184 | [forge] Projeto no Forge 0.30.7: registro da versão por PR para a develop e develop levada às worktrees em uso | 053 | forge:tech-lead | 2026-10-30 | 2026-10-30 08:30 | E1 PR #172 (9aa6b29) e E2.1 merges 439ebc7, 737bf20, 20af7d7; retrospectiva pendente (junto com a do 048) |
 | K-178 | [segurança] Alerta crítico do Dependabot #12: dompurify (runtime, pnpm-lock.yaml), bypass do SAFE_FOR_TEMPLATES; corrigido na 3.4.17 | 048 | forge:tech-lead | 2026-10-29 | 2026-10-30 07:04 | PR #171 mesclado na develop com squash (0dcf9ba); review 2ee99f4, segurança ff26c0e e QA 256991a revalidados por delta; branch remota e worktree 048e: limpeza do dono |
 | K-181 | [release] Promoção develop (311691b) → homolog → main: versão nova, CHANGELOG e pareceres (operacionais O19 a O26) | 050 | forge:tech-lead | 2026-10-29 | 2026-10-29 16:09 | PR #169 mesclado (31c11b8); tag v0.2.0 (homolog → main, release: v0.2.0) aberto, homolog-aprovada verde; aguardando o dono: rótulo afrouxa-regra, merge na main e tag final v0.2.0 (E3.2) |
@@ -181,6 +215,8 @@
 - **Tamanho:** um cartão por conjunto coeso de métricas ou por uma entrega revisável de uma vez; se o review não cabe numa sessão, dividir.
 - **Documentação faz parte da entrega (pedido do usuário, 2026-10-10):** um cartão só sai de Em andamento com a documentação técnica atualizada (`docs/tecnica/` para front e biblioteca; `docs/architecture/` + `docs/api/` para o back) e a de UX (`docs/ux/`) coerente com a tela. O tech-lead verifica no code review (`praticas.md` seções 7 e 8); sem doc, volta ao autor.
 - **Aguardando sua validação:** limite 2 **PRs** (não cartões); os cartões de um mesmo PR contam como 1 unidade de validação. Esclarecimento proposto na retro 001 (M-013), pendente de aprovação do Jarvis.
+
+- **Carga baixa, mais tech-leads (DECISÃO DO DONO, 2026-11-05):** "Quando for assim coloque mais agentes tech lead rodar para entregar rápido" (resposta ao relato de carga 0,13 com o time esperando CI): com a máquina abaixo do teto e trabalho em espera, o Jarvis sobe mais instâncias do tech-lead em paralelo, cada uma na sua worktree e no seu cartão; os merges na develop continuam em série quando um invalidaria os pareceres do outro.
 
 ## Políticas locais: bugs e retrabalho (K-027 a K-029)
 Processo completo na skill `kanban-scrum`, seção "Bugs e retrabalho". Em resumo:

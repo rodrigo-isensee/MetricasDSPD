@@ -1295,3 +1295,702 @@
 | 2026-11-02 08:15 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-46.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-02 08:19 | 059-aba-apontamento | 059-aba-apontamento-devops-engineer-2.md | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-02 08:28 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-47.md | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-02 09:08 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-15.md | brief | 1 | reprovado | n | instrucao na mensagem ao conferente | forma | jarvis |
+| 2026-11-02 09:10 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-48.md | brief | 1 | reprovado | s | rerun sem origem na etapa | escopo | jarvis |
+| 2026-11-02 09:11 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-16.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 09:14 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-49.md | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-02 09:21 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-50.md | brief | 1 | reprovado | s | rerun fora do pedido; E2.59 sem supersessao; sha do squash fora da etapa | escopo | jarvis |
+| 2026-11-02 09:25 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-51.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 10:08 | 059-aba-apontamento | 059-aba-apontamento-react-frontend-16.md | entrega | 1 | não cumpriu | n | PQ-1 e PQ-2 cumpridos; Desde sem base do dono para a branch do front, intervalo traz merges de outras branches | escopo | destino |
+| 2026-11-02 10:09 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-52.md | brief | 1 | reprovado | s | 200% de fonte e frase do achado sem registro no pedido | escopo | jarvis |
+| 2026-11-02 10:13 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-53.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 10:20 | 059-aba-apontamento | 059-aba-apontamento-ux-designer-7.md | brief | 1 | reprovado | s | 200% e frase do achado atribuídos a 22:00 em vez de 23:50 | citacao | jarvis |
+| 2026-11-02 10:20 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-9.md | brief | 1 | aprovado | — | aviso: review do front desatualizado pelo commit da UX r3 | — | jarvis |
+| 2026-11-02 10:22 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-53.md | entrega | 1 | não cumpriu | n | PQ-1 e PQ-2 cumpridos, delta 48d1157..d08d785 dentro do Entregar; Desde sem base do dono para o front; brief envelhecido por E2.63 e E2.64 | base | destino |
+| 2026-11-02 10:22 | 059-aba-apontamento | 059-aba-apontamento-ux-designer-8.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 10:58 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-9.md | entrega | 1 | não cumpriu | n | PQ-1 cumprido; Desde sem base do dono para o front; review desatualizado só por documentos (E2.65); forge-check pr no front acusa também devops e segurança da rota vindos do merge da rota | base | destino |
+| 2026-11-02 10:58 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-54.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 12:18 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-10.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 12:19 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-55.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 12:22 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-11.md | brief | 1 | reprovado | s | E2.66 citava 194, 195 e 196; brief cobre só o 195 | escopo | jarvis |
+| 2026-11-02 12:24 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-56.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 12:24 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-55.md | entrega | 1 | não cumpriu | n | PQ-1 e PQ-2 cumpridos; a etapa merge-integracao cobra pareceres no head, mas a E2.67 só atualizou as branches; renovação do QA no 195 em curso (E2.66) | etapa | destino |
+| 2026-11-02 12:25 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-12.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 12:25 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-10.md | entrega | 1 | não cumpriu | n | PQ-1 e PQ-2 cumpridos; mensagem com Desde no Base-sha em vez da base do dono 6de38da; intervalo traz código já aprovado de outras etapas | base | destino |
+| 2026-11-02 12:31 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-12.md | entrega | 1 | não cumpriu | n | PQ-1 e PQ-2 cumpridos; commit da etapa só no parecer; branch da coleta sem base fixada pelo dono, intervalo é a branch inteira | base | destino |
+| 2026-11-02 12:47 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-57.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 12:47 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-56.md | entrega | 1 | não cumpriu | parcial | PQ-1 cumprido (194 MERGED 8cd657f); PQ-2 e PQ-3 não, conflito do 195 vai na E2.68; Desde no Base-sha em vez da base do dono | base | destino |
+| 2026-11-02 12:48 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-57.md | entrega | 1 | não cumpriu | n | parou como o brief manda: mudança própria em 2 arquivos; sem commit nem ato no GitHub | implementacao | destino |
+| 2026-11-02 12:51 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-58.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 13:23 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-13.md | brief | 1 | reprovado | n | mensagem por caminho em vez de inline; conteúdo sem achado | forma | jarvis |
+| 2026-11-02 13:23 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-18.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 13:23 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-59.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 13:24 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-58.md | entrega | 1 | não cumpriu | n | parou como o brief manda: merge local 29c64aa e push feitos, pareceres desatualizados vão às E2.69 a E2.71; PQs de merge pendentes | etapa | destino |
+| 2026-11-02 13:25 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-13.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 13:32 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-59.md | entrega | 1 | não cumpriu | n | PQ-1 cumprido; Entregar cumprido; branch da coleta sem base fixada pelo dono, intervalo é a branch inteira | base | destino |
+| 2026-11-02 13:33 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-60.md | brief | 1 | reprovado | s | regra do parecer de QA da exceção no conflito sem decisão registrada | decisao | jarvis |
+| 2026-11-02 13:33 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-18.md | entrega | 1 | não cumpriu | n | PQ-1 cumprido; parecer confere com o delta; branch da coleta sem base fixada pelo dono | base | destino |
+| 2026-11-02 13:33 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-13.md | entrega | 1 | não cumpriu | n | PQ-1 cumprido; forge-check pr limpo no head; branch da coleta sem base fixada pelo dono | base | destino |
+| 2026-11-02 13:35 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-61.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 14:04 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-61.md | entrega | 1 | não cumpriu | parcial | PQ-1 cumprido (195 MERGED 32ebf3a); PQ-2 pendente, conflito da rota segue na E2.68; Desde no Base-sha em vez da base do dono | base | destino |
+| 2026-11-02 14:05 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-62.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 14:07 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-62.md | entrega | 1 | não cumpriu | n | parou como o brief manda: export ordenarPorPessoa além da 0033; sem commit | implementacao | destino |
+| 2026-11-02 14:12 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-63.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 14:50 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-63.md | entrega | 1 | não cumpriu | n | parou como o brief manda: merge local 1bf3338, pronto e checks verdes; 4 pareceres desatualizados vão às E2.72 a E2.75 | etapa | destino |
+| 2026-11-02 14:53 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-19.md | brief | 1 | reprovado | s | linha base pnpm fora do sandbox sem origem; intervalo da renovação sem ligar à base do delta fixada | decisao | jarvis |
+| 2026-11-02 14:54 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-14.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 14:54 | 059-aba-apontamento | 059-aba-apontamento-devops-engineer-3.md | brief | 1 | reprovado | s | Etapa seguranca para devops; texto dos arquivos da develop contra a decisão do conflito da rota | etapa | jarvis |
+| 2026-11-02 14:54 | 059-aba-apontamento | 059-aba-apontamento-node-backend-44.md | brief | 1 | reprovado | s | A1 do QA citado ao contrário (reuniao não casa reunioes) | citacao | jarvis |
+| 2026-11-02 14:54 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-64.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 14:58 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-20.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 14:59 | 059-aba-apontamento | 059-aba-apontamento-devops-engineer-4.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 14:59 | 059-aba-apontamento | 059-aba-apontamento-node-backend-45.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 15:09 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-65.md | brief | 1 | reprovado | s | texto da E2.68 ainda manda trazer a develop e mesclar o 195, já feitos | etapa | jarvis |
+| 2026-11-02 15:12 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-66.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 15:13 | 059-aba-apontamento | 059-aba-apontamento-node-backend-45.md | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-02 15:14 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-67.md | brief | 1 | reprovado | parcial | cartão K-193 do commit sem ligação explícita no pedido | citacao | jarvis |
+| 2026-11-02 15:16 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-68.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 15:25 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-15.md | brief | 1 | aprovado | — | aviso: autoria do review epsilon sem registro (sed) | — | jarvis |
+| 2026-11-02 15:25 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-68.md | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-02 15:41 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-71.md | brief | 1 | reprovado | s | regra de conflito do front sem a exceção do parecer de QA e sem a condição de cópia antiga; NÃO tocar pareceres em conflito com a regra | decisao | jarvis |
+| 2026-11-02 15:41 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-70.md | brief | 1 | reprovado | s | QA da exceção desatualizado no dicionário sem etapa; PR e merge na mesma delegação | etapa | jarvis |
+| 2026-11-02 15:42 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-15.md | entrega | 1 | cumpriu | — | aviso: achado A2 do parecer acima de 300 caracteres | — | destino |
+| 2026-11-02 15:43 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-66.md | entrega | 1 | não cumpriu | n | PQ-1 cumprido (196 MERGED 31de83f); Desde no Base-sha em vez da base do dono; merge-integracao sem rótulo de escopo do comando | base | destino |
+| 2026-11-02 15:44 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-16.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 15:45 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-73.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 15:47 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-73.md | entrega | 1 | não cumpriu | n | hook barrou a escolha de versão de parecer de outro papel no merge; merge abortado, sem commit | ambiente | destino |
+| 2026-11-02 15:49 | 059-aba-apontamento | 059-aba-apontamento-devops-engineer-5.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 15:49 | 059-aba-apontamento | 059-aba-apontamento-security-engineer-21.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 15:51 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-74.md | brief | 2 | reprovado | s | tardio | escopo | jarvis |
+| 2026-11-02 15:54 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-75.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 15:55 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-76.md | brief | 1 | reprovado | s | regra de escrita de parecer sem a exceção do alinhamento; conflito em devops e segurança mandado ao tech-lead | decisao | jarvis |
+| 2026-11-02 15:58 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-77.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 16:04 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-75.md | entrega | 1 | não cumpriu | n | parou como o brief manda: pareceres 059-gama acusados depois do merge da develop; merge 79eebaa e push feitos | etapa | destino |
+| 2026-11-02 16:07 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-17.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 16:07 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-78.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 16:18 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-79.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 16:39 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-18.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 16:40 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-80.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 16:46 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-20.md | brief | 1 | reprovado | s | dispensa de suíte do QA sem registro no pedido | decisao | jarvis |
+| 2026-11-02 16:50 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-21.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 16:57 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-81.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 17:02 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-82.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 17:25 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-83.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 17:26 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-83.md | entrega | 1 | não cumpriu | n | parou como o brief manda: PR 197 em conflito com a develop nos pareceres 059-gama; sem ato | etapa | destino |
+| 2026-11-02 17:29 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-22.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 17:33 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-84.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 17:35 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-84.md | entrega | 1 | não cumpriu | n | pronto barrado pela trava em /tmp no sandbox; commits só locais, sem push | ambiente | destino |
+| 2026-11-02 17:44 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-23.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 17:45 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-87.md | brief | 1 | reprovado | s | brief dizia commits só locais, já enviados a pedido do dono | etapa | jarvis |
+| 2026-11-02 17:45 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-86.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 17:47 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-88.md | brief | 2 | reprovado | s | sem push contra a etapa; NÃO tocar pareceres (tardio); head local à frente do remoto | etapa | jarvis |
+| 2026-11-02 17:53 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-89.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 18:11 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-91.md | brief | 1 | aprovado | — | aviso: revisão 4 da ADR 0020 e ADR 0025 fora da develop; homolog espera a E2.93 | — | jarvis |
+| 2026-11-02 18:12 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-90.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 18:15 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-92.md | brief | 1 | reprovado | s | PR antes do QA documental, contra a decisão do push antes do QA | decisao | jarvis |
+| 2026-11-02 18:19 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-94.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 18:22 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-1.md | brief | 1 | reprovado | s | worktree dita livre estava na branch da exceção | ambiente | jarvis |
+| 2026-11-02 18:23 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-2.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 18:27 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-95.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 18:27 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-24.md | brief | 1 | reprovado | s | verificação de dado de pessoa além da etapa | escopo | jarvis |
+| 2026-11-02 18:29 | 059-aba-apontamento | 059-aba-apontamento-qa-engineer-25.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 18:37 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-96.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 18:42 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-97.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 19:31 | 060-triagem-dependabot | 060-triagem-dependabot-software-architect-1.md | brief | 1 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 19:33 | 060-triagem-dependabot | 060-triagem-dependabot-software-architect-2.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 19:45 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-1.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 19:49 | 059-aba-apontamento | 059-aba-apontamento-tech-lead-98.md | brief | 1 | reprovado | s |  | base | jarvis |
+| 2026-11-02 19:50 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-1.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 19:55 | 060-triagem-dependabot | 060-triagem-dependabot-ux-designer-1.md | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-11-02 19:55 | 060-triagem-dependabot | 060-triagem-dependabot-software-architect-3.md | brief | 1 | reprovado | s |  | prova | jarvis |
+| 2026-11-02 19:57 | 060-triagem-dependabot | 060-triagem-dependabot-software-architect-4.md | brief | 2 | reprovado | n | pedido mudou durante a conferencia | decisao | jarvis |
+| 2026-11-02 19:58 | 060-triagem-dependabot | 060-triagem-dependabot-ux-designer-2.md | brief | 2 | reprovado | n | pedido mudou durante a conferencia | decisao | jarvis |
+| 2026-11-02 19:59 | 060-triagem-dependabot | 060-triagem-dependabot-software-architect-5.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:00 | 060-triagem-dependabot | 060-triagem-dependabot-ux-designer-3.md | brief | 3 | reprovado | n | pedido mudou durante a conferencia | decisao | jarvis |
+| 2026-11-02 20:01 | 060-triagem-dependabot | 060-triagem-dependabot-ux-designer-4.md | brief | 4 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:04 | 062-corrige-fast-uri | 062-corrige-fast-uri-node-backend-1.md | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-11-02 20:05 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-1.md | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-02 20:06 | 062-corrige-fast-uri | 062-corrige-fast-uri-node-backend-2.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:08 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-1.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:09 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-1.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:09 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-3.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:18 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-1.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:20 | 062-corrige-fast-uri | 062-corrige-fast-uri-node-backend-2.md | entrega | 1 | não cumpriu | s | erro do brief: overrides ficam em pnpm-workspace.yaml | escopo | destino |
+| 2026-11-02 20:21 | 062-corrige-fast-uri | 062-corrige-fast-uri-node-backend-3.md | brief | 3 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 20:25 | 062-corrige-fast-uri | 062-corrige-fast-uri-node-backend-3.md | brief | 4 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 20:29 | 062-corrige-fast-uri | 062-corrige-fast-uri-node-backend-4.md | brief | 5 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:29 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-2.md | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-11-02 20:30 | 061-coleta-diaria | 061-coleta-diaria-software-architect-1.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:30 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-2.md | brief | 1 | reprovado | s |  | etapa | jarvis |
+| 2026-11-02 20:30 | 060-triagem-dependabot | 060-triagem-dependabot-software-architect-6.md | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-11-02 20:33 | 062-corrige-fast-uri | 062-corrige-fast-uri-node-backend-4.md | entrega | 2 | cumpriu | — |  | — | destino |
+| 2026-11-02 20:33 | 060-triagem-dependabot | 060-triagem-dependabot-software-architect-8.md | brief | 1 | reprovado | s |  | base | jarvis |
+| 2026-11-02 20:34 | 060-triagem-dependabot | 060-triagem-dependabot-software-architect-7.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:34 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-3.md | brief | 2 | reprovado | s | tardio | decisao | jarvis |
+| 2026-11-02 20:36 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-3.md | brief | 1 | reprovado | s |  | etapa | jarvis |
+| 2026-11-02 20:36 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-4.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:36 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-2.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:36 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-4.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:39 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-4.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:40 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-2.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:40 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-2.md | brief | 1 | reprovado | n | vocabulario sem etapa de devops | etapa | jarvis |
+| 2026-11-02 20:42 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-4.md | entrega | 1 | não cumpriu | n | ADR 0026 entrou no pedido depois do brief aprovado | decisao | destino |
+| 2026-11-02 20:48 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-3.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:49 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-6.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 20:49 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-5.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:00 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-6.md | entrega | 2 | não cumpriu | parcial | brief ambiguo sobre credenciais | escopo | destino |
+| 2026-11-02 21:01 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-7.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:12 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-8.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:15 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-7.md | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-02 21:15 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-8.md | entrega | 3 | não cumpriu | n | expressão vem do título da ADR 0023 | escopo | destino |
+| 2026-11-02 21:17 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-9.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:17 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-4.md | entrega | 1 | não cumpriu | parcial |  | implementacao | destino |
+| 2026-11-02 21:20 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-5.md | brief | 1 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 21:23 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-10.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:26 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-3.md | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-11-02 21:27 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-6.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:28 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-5.md | entrega | 1 | não cumpriu | n | etapa E4.5 criada depois do brief | forma | destino |
+| 2026-11-02 21:29 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-4.md | brief | 2 | reprovado | s | tardio | escopo | jarvis |
+| 2026-11-02 21:30 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-2.md | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-02 21:31 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-11.md | brief | 2 | reprovado | s | tardio | escopo | jarvis |
+| 2026-11-02 21:32 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-5.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:33 | 061-coleta-diaria | 061-coleta-diaria-security-engineer-1.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:33 | 061-coleta-diaria | 061-coleta-diaria-tech-lead-1.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:34 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-12.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:43 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-12.md | entrega | 2 | cumpriu | — |  | — | destino |
+| 2026-11-02 21:45 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-13.md | brief | 2 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 21:46 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-6.md | entrega | 2 | não cumpriu | parcial |  | base | destino |
+| 2026-11-02 21:46 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-5.md | entrega | 1 | não cumpriu | s |  | forma | destino |
+| 2026-11-02 21:50 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-3.md | brief | 1 | reprovado | s |  | citacao | jarvis |
+| 2026-11-02 21:50 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-6.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:51 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-7.md | brief | 1 | reprovado | s |  | base | jarvis |
+| 2026-11-02 21:54 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-8.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 21:55 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-4.md | brief | 2 | reprovado | s | tardio | escopo | jarvis |
+| 2026-11-02 22:00 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-5.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:01 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-14.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:02 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-9.md | brief | 1 | reprovado | s | tardio | base | jarvis |
+| 2026-11-02 22:18 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-6.md | brief | 1 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 22:18 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-10.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:21 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-7.md | brief | 2 | reprovado | n | mensagem por ponteiro | forma | jarvis |
+| 2026-11-02 22:23 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-7.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:25 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-10.md | entrega | 1 | não cumpriu | n | Desde por pedido, outra branch | base | destino |
+| 2026-11-02 22:25 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-7.md | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-02 22:27 | 061-coleta-diaria | 061-coleta-diaria-tech-lead-2.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:28 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-10.md | entrega | 2 | cumpriu | — |  | — | destino |
+| 2026-11-02 22:31 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-5.md | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-11-02 22:32 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-15.md | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-11-02 22:33 | 061-coleta-diaria | 061-coleta-diaria-qa-engineer-1.md | brief | 1 | reprovado | s |  | decisao | jarvis |
+| 2026-11-02 22:33 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-4.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:34 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-6.md | brief | 2 | aprovado | — | substituido pela versao 7 | — | jarvis |
+| 2026-11-02 22:34 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-16.md | brief | 2 | reprovado | s | tardio | escopo | jarvis |
+| 2026-11-02 22:34 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-7.md | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:35 | 061-coleta-diaria | 061-coleta-diaria-qa-engineer-2.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:37 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-17.md | brief | 3 | reprovado | n | mensagem por ponteiro | forma | jarvis |
+| 2026-11-02 22:46 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-17.md | brief | 4 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:53 | 061-coleta-diaria | 061-coleta-diaria-qa-engineer-2.md | entrega | 1 | não cumpriu | parcial |  | forma | destino |
+| 2026-11-02 22:56 | 061-coleta-diaria | 061-coleta-diaria-qa-engineer-3.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:56 | 061-coleta-diaria | 061-coleta-diaria-security-engineer-2.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 22:56 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-8.md | brief | 1 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 23:01 | 061-coleta-diaria | 061-coleta-diaria-devops-engineer-9.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 23:02 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-11.md | brief | 1 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 23:08 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-12.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 23:15 | 061-coleta-diaria | 061-coleta-diaria-tech-lead-4.md | brief | 1 | reprovado | s |  | etapa | jarvis |
+| 2026-11-02 23:19 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-12.md | entrega | 1 | não cumpriu | n | duas branches num brief | base | destino |
+| 2026-11-02 23:19 | 061-coleta-diaria | 061-coleta-diaria-tech-lead-5.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 23:21 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-13.md | brief | 1 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 23:23 | 061-coleta-diaria | 061-coleta-diaria-tech-lead-6.md | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-02 23:23 | 061-coleta-diaria | 061-coleta-diaria-tech-lead-5.md | entrega | 1 | não cumpriu | n | anexo com remocao: pareceres renovados pelos donos | escopo | destino |
+| 2026-11-02 23:23 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-14.md | brief | 2 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 23:24 | 061-coleta-diaria | 061-coleta-diaria-tech-lead-6.md | entrega | 1 | não cumpriu | n | PR atrás da develop, parou como manda o brief | base | destino |
+| 2026-11-02 23:26 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-15.md | brief | 3 | reprovado | s |  | escopo | jarvis |
+| 2026-11-02 23:26 | 061-coleta-diaria | 061-coleta-diaria-tech-lead-7.md | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-02 23:29 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-16.md | brief | 1 | reprovado | n | mensagem por ponteiro | forma | jarvis |
+| 2026-11-03 01:14 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-16 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-03 01:17 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-16 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 01:19 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-18 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 01:21 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-8 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 01:27 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-18 | entrega | 1 | não cumpriu | parcial | achado A1 com 346 caracteres | forma | destino |
+| 2026-11-03 01:29 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-19 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 01:30 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-9 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 01:42 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-9 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 01:42 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-19 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 01:44 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-7 | brief | 1 | reprovado | parcial | as três coletas sem origem no pedido | escopo | jarvis |
+| 2026-11-03 01:47 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-8 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-03 01:59 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-8 | entrega | 1 | não cumpriu | parcial | achado A2 acima de 300 caracteres | forma | destino |
+| 2026-11-03 02:01 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-9 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 02:09 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-9 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 02:12 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-20 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 02:35 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-20 | entrega | 1 | não cumprido pelo autor | parcial | PR 205 aberto; job imagem falhou por rede do runner | ambiente | destino |
+| 2026-11-03 02:38 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-21 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 03:00 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-21 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 03:03 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-22 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 03:20 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-22 | entrega | 1 | não cumpriu | parcial | Desde por pedido caiu no Base-sha | base | destino |
+| 2026-11-03 03:23 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-12 | entrega | 2 | não cumpriu | parcial | brief antigo reprova no forge-check após E2.28 e E2.29 | forma | destino |
+| 2026-11-03 03:26 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-17 | brief | 1 | reprovado | s | linha da etapa citada lida como refazer | decisao | jarvis |
+| 2026-11-03 03:29 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-18 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-03 03:32 | 060-triagem-dependabot | 060-triagem-dependabot-node-backend-18 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 03:36 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 03:36 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-23 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 03:36 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 03:48 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-23 | entrega | 1 | não cumpriu | s | pareceres paralelos no mesmo head | escopo | destino |
+| 2026-11-03 03:48 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-5 | entrega | 1 | não cumpriu | s | pareceres paralelos no mesmo head | escopo | destino |
+| 2026-11-03 03:48 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-10 | entrega | 1 | cumpriu | s | união dos 3 briefs paralelos | — | destino |
+| 2026-11-03 03:51 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 03:59 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-10 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 04:02 | 062-corrige-fast-uri | 062-corrige-fast-uri-security-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 04:02 | 062-corrige-fast-uri | 062-corrige-fast-uri-tech-lead-1 | brief | 1 | reprovado | s | parecer da triagem fora da develop | citacao | jarvis |
+| 2026-11-03 04:04 | 062-corrige-fast-uri | 062-corrige-fast-uri-tech-lead-2 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-03 04:11 | 062-corrige-fast-uri | 062-corrige-fast-uri-tech-lead-2 | entrega | 1 | cumpriu | s | paralela com segurança | — | destino |
+| 2026-11-03 04:11 | 062-corrige-fast-uri | 062-corrige-fast-uri-security-engineer-1 | entrega | 1 | cumpriu | s | paralela com review | — | destino |
+| 2026-11-03 04:12 | 062-corrige-fast-uri | 062-corrige-fast-uri-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 04:17 | 062-corrige-fast-uri | 062-corrige-fast-uri-tech-lead-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 04:20 | 062-corrige-fast-uri | 062-corrige-fast-uri-qa-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 04:23 | 062-corrige-fast-uri | 062-corrige-fast-uri-tech-lead-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 04:23 | 062-corrige-fast-uri | 062-corrige-fast-uri-tech-lead-3 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 04:50 | 062-corrige-fast-uri | 062-corrige-fast-uri-tech-lead-4 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-03 06:41 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 06:42 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-25 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 06:42 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 06:49 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-11 | entrega | 1 | cumpriu | s | paralelas E2.30 a E2.32 | — | destino |
+| 2026-11-03 06:49 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-25 | entrega | 1 | cumpriu | s | paralelas E2.30 a E2.32 | — | destino |
+| 2026-11-03 06:49 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-11 | entrega | 1 | cumpriu | s | paralelas E2.30 a E2.32 | — | destino |
+| 2026-11-03 06:52 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-26 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 07:06 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-software-architect-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 07:06 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-ux-designer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-03 07:31 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-26 | entrega | 1 | não verificável | parcial | head do PR ausente no clone; fetch feito | ambiente | destino |
+| 2026-11-03 07:33 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-26 | entrega | 2 | cumpriu | s |  | — | destino |
+| 2026-11-03 10:01 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-node-backend-1 | brief | 1 | reprovado | s | brief pedia até 2 GET; decisão do dono é 1 GET | decisao | jarvis |
+| 2026-11-03 10:02 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-1 | brief | 1 | reprovado | s | Recursos citados como decisão do dono sem registro no pedido | decisao | jarvis |
+| 2026-11-03 10:02 | 060-triagem-dependabot | 060-triagem-dependabot-react-frontend-1 | brief | 1 | reprovado | s | homolog:subir contra compose de homologação em mock | decisao | jarvis |
+| 2026-11-03 10:04 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-node-backend-2 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-03 10:05 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-2 | brief | 2 | reprovado | s | tardio | escopo | jarvis |
+| 2026-11-03 10:06 | 060-triagem-dependabot | 060-triagem-dependabot-react-frontend-2 | brief | 2 | reprovado | s | Q3 x Q5 na homologação vira pergunta ao dono | decisao | jarvis |
+| 2026-11-03 10:07 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-3 | brief | 3 | reprovado | s | tardio | etapa | jarvis |
+| 2026-11-03 10:09 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-4 | brief | 4 | reprovado | s | tardio | decisao | jarvis |
+| 2026-11-03 10:37 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-node-backend-2 | entrega | 1 | não cumpriu | n | etapas E1.7 e E1.8 abertas depois do brief | forma | destino |
+| 2026-11-03 11:24 | 060-triagem-dependabot | 060-triagem-dependabot-react-frontend-3 | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-03 11:42 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-node-backend-3 | brief | 1 | reprovado | parcial | tardio | decisao | jarvis |
+| 2026-11-03 11:43 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-5 | brief | 5 | aprovado | — |  | — | jarvis |
+| 2026-11-03 11:46 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-6 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-03 11:46 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-qa-engineer-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-03 11:48 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-security-engineer-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-03 11:55 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-qa-engineer-1 | entrega | 1 | não cumpriu | parcial | autoria do parecer de QA sem registro; PQs, escopo, base e etapa ok | prova | destino |
+| 2026-11-03 16:07 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-software-architect-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-03 18:55 | 060-triagem-dependabot | 060-triagem-dependabot-react-frontend-3 | entrega | 1 | não cumpriu | s | doc front-via-api.md ainda diz padrão mock | implementacao | destino |
+| 2026-11-03 18:58 | 060-triagem-dependabot | 060-triagem-dependabot-react-frontend-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-03 19:05 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-27 | brief | 1 | reprovado | n | mensagem sem o texto integral; conteúdo ok | forma | jarvis |
+| 2026-11-03 19:05 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-12 | brief | 1 | reprovado | n | mensagem sem o texto integral; conteúdo ok | forma | jarvis |
+| 2026-11-03 19:05 | 060-triagem-dependabot | 060-triagem-dependabot-ux-designer-5 | brief | 1 | reprovado | n | mensagem sem o texto integral; conteúdo ok | forma | jarvis |
+| 2026-11-03 19:05 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-12 | brief | 1 | reprovado | n | mensagem sem o texto integral; conteúdo ok | forma | jarvis |
+| 2026-11-03 19:10 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-27 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-03 19:10 | 060-triagem-dependabot | 060-triagem-dependabot-ux-designer-5 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-03 19:10 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-12 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-03 19:10 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-12 | brief | 2 | reprovado | s | QA antes do review aprovado; QA vai depois do E2.20 | etapa | jarvis |
+| 2026-11-03 19:10 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-6 | brief | 2 | reprovado | s | Lighthouse e gate além do E2.33 | escopo | jarvis |
+| 2026-11-03 19:17 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-7 | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-03 19:21 | 060-triagem-dependabot | 060-triagem-dependabot-react-frontend-5 | brief | 1 | reprovado | s | quantas sem dado real além do pedido; NÃO tocar contra o item (a) | escopo | jarvis |
+| 2026-11-03 19:34 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-28 | brief | 1 | reprovado | s | restrição de pronto e foco desatualizados para a volta 2 | outra | jarvis |
+| 2026-11-03 19:38 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-29 | brief | 2 | reprovado | s | linhas superadas de paralelo e de peso | decisao | jarvis |
+| 2026-11-03 19:40 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-30 | brief | 3 | reprovado | s | vitest no review contra a linha 19:02 | decisao | jarvis |
+| 2026-11-03 19:52 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-31 | brief | 4 | aprovado | — |  | — | jarvis |
+| 2026-11-03 20:09 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-13 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-03 20:17 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-13 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-03 20:17 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-8 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-03 20:17 | 060-triagem-dependabot | 060-triagem-dependabot-ux-designer-6 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-03 20:20 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-32 | brief | 1 | reprovado | s | placeholders no Ler; etapa pr com merge | forma | jarvis |
+| 2026-11-03 20:36 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-33 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-03 20:37 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-node-backend-4 | brief | 1 | reprovado | s | decisão B sem marca de substituída pela D-5 | decisao | jarvis |
+| 2026-11-03 20:43 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-34 | brief | 1 | reprovado | s | premissa falsa: diff tem 5 pareceres, não 1 | base | jarvis |
+| 2026-11-03 20:43 | 060-triagem-dependabot | 060-triagem-dependabot-security-engineer-14 | brief | 1 | reprovado | s | premissa falsa: diff tem 5 pareceres, não 1 | base | jarvis |
+| 2026-11-03 20:43 | 060-triagem-dependabot | 060-triagem-dependabot-devops-engineer-9 | brief | 1 | reprovado | s | premissa falsa: diff tem 5 pareceres, não 1 | base | jarvis |
+| 2026-11-03 20:43 | 060-triagem-dependabot | 060-triagem-dependabot-qa-engineer-14 | brief | 1 | aprovado | — | premissa falsa só como aviso; QA regravou em 4775988 | — | jarvis |
+| 2026-11-03 21:03 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-react-frontend-1 | brief | 1 | reprovado | s | especificação ainda fala em coleta por período | decisao | jarvis |
+| 2026-11-03 21:06 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-react-frontend-2 | brief | 2 | reprovado | s | branch nasce do back fora da develop | base | jarvis |
+| 2026-11-03 21:31 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-react-frontend-3 | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-03 21:33 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-node-backend-6 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-03 21:52 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-03 21:55 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-ux-designer-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 01:01 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-8 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-04 01:01 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-node-backend-7 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:06 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-node-backend-7 | entrega | 1 | não cumpriu | parcial | A2 em menor ou igual; aceito por DECISÃO TÉCNICA | implementacao | destino |
+| 2026-11-04 01:06 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-react-frontend-4 | brief | 1 | reprovado | s | CA-4 da especificação | escopo | jarvis |
+| 2026-11-04 01:14 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-react-frontend-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:14 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-ux-designer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:21 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-react-frontend-5 | entrega | 1 | não cumpriu | n | intervalo inclui 48de420 sem conferida | escopo | destino |
+| 2026-11-04 01:21 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-9 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:24 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-node-backend-7 | entrega | 2 | não cumpriu | n | lote com 3 autores na mesma branch; conferir pela união de briefs | escopo | destino |
+| 2026-11-04 01:28 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-9 | entrega | 1 | cumpriu | s | escopo pela união de 3 briefs do lote | — | destino |
+| 2026-11-04 01:29 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-security-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:32 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-security-engineer-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-04 01:35 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-ux-designer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:41 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:46 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-10 | entrega | 1 | não cumpriu | n | edições da E1.14 e E1.15 lançadas antes da conferência (sequência do Jarvis) | outra | destino |
+| 2026-11-04 01:46 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-ux-designer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:46 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-software-architect-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:46 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-qa-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 01:53 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-qa-engineer-2 | entrega | 1 | não cumpriu | s | E2E novo depois do commit do review | etapa | destino |
+| 2026-11-04 01:53 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 02:03 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-11 | entrega | 1 | não cumpriu | n | intervalo inclui 690b9ff da entrega anterior | escopo | destino |
+| 2026-11-04 02:03 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-12 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 02:11 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-12 | entrega | 1 | não verificável | n | anexo sem hash do brief do QA | citacao | destino |
+| 2026-11-04 02:11 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-13 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 02:11 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-security-engineer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 02:11 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-qa-engineer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 02:59 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-14 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 02:59 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-qa-engineer-3 | entrega | 1 | não cumpriu | parcial | texto do parecer: E2E sem mudança depois de 27bae58 | citacao | destino |
+| 2026-11-04 03:32 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-15 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 04:12 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-16 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 04:23 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-17 | brief | 1 | aprovado | s | rodada 1 em texto anterior; corrigido o critério e a Branch | — | jarvis |
+| 2026-11-04 04:25 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-17 | brief | 2 | reprovado | s | critério contido contra o igual da DECISÃO TÉCNICA | decisao | jarvis |
+| 2026-11-04 04:28 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-17 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-04 04:30 | 064-lacunas-dado-real | 064-lacunas-dado-real-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 04:34 | 064-lacunas-dado-real | 064-lacunas-dado-real-qa-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 04:34 | 064-lacunas-dado-real | 064-lacunas-dado-real-software-architect-1 | brief | 1 | reprovado | s | destino do mapa contraditório; decisões das dependências; PQ arquivo | decisao | jarvis |
+| 2026-11-04 04:36 | 064-lacunas-dado-real | 064-lacunas-dado-real-software-architect-1 | brief | 2 | reprovado | s | tardio: ADR 0026 fora da develop | citacao | jarvis |
+| 2026-11-04 04:48 | 064-lacunas-dado-real | 064-lacunas-dado-real-software-architect-1 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-04 04:51 | 064-lacunas-dado-real | 064-lacunas-dado-real-qa-engineer-3 | brief | 1 | reprovado | s | L1 a L9 contra L1 a L12; PQ fraco | citacao | jarvis |
+| 2026-11-04 04:53 | 064-lacunas-dado-real | 064-lacunas-dado-real-qa-engineer-3 | brief | 2 | reprovado | s | texto da ADR 0026 não é do pedido | decisao | jarvis |
+| 2026-11-04 04:58 | 064-lacunas-dado-real | 064-lacunas-dado-real-qa-engineer-3 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-04 06:57 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-qa-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 07:23 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-tech-lead-18 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 08:09 | 064-lacunas-dado-real | 064-lacunas-dado-real-qa-engineer-4 | brief | 1 | reprovado | s | prioridade além do pedido | escopo | jarvis |
+| 2026-11-04 08:09 | 063-worklog-cards-acima-do-teto | 063-worklog-cards-acima-do-teto-agile-coach-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 08:14 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-software-architect-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 08:15 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-node-backend-1 | brief | 1 | reprovado | s | cobertura além do pedido; decisão A do 064 | decisao | jarvis |
+| 2026-11-04 08:17 | 064-lacunas-dado-real | 064-lacunas-dado-real-qa-engineer-4 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-04 08:21 | 064-lacunas-dado-real | 064-lacunas-dado-real-agile-coach-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 08:36 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-node-backend-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-04 08:56 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-react-frontend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 09:04 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-react-frontend-1 | entrega | 1 | não cumpriu | n | etapa E1.7 criada depois da aprovação do brief | forma | destino |
+| 2026-11-04 09:04 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-ux-designer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 10:14 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-node-backend-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 10:26 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-react-frontend-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 10:44 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-react-frontend-2 | entrega | 1 | não cumpriu | n | docs/api fora do Entregar do brief do back | escopo | destino |
+| 2026-11-04 10:44 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 10:47 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-qa-engineer-1 | brief | 1 | reprovado | s | placeholder W no Ler | forma | jarvis |
+| 2026-11-04 11:13 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-qa-engineer-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-04 11:15 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-react-frontend-3 | brief | 1 | reprovado | s | format:check sem PQ | prova | jarvis |
+| 2026-11-04 11:17 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-react-frontend-3 | brief | 2 | reprovado | s | tardio: decisão A do 064 | decisao | jarvis |
+| 2026-11-04 11:22 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-react-frontend-3 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-04 11:48 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 11:59 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-qa-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 12:04 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-qa-engineer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 12:06 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-tech-lead-3 | brief | 1 | reprovado | s | placeholder W no Ler | forma | jarvis |
+| 2026-11-04 12:16 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-tech-lead-3 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-04 12:31 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-react-frontend-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 12:43 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-tech-lead-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 12:43 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-qa-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 13:19 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-tech-lead-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 13:21 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-node-backend-3 | brief | 1 | reprovado | s | decisão do 064 sem código lida como restrição | decisao | jarvis |
+| 2026-11-04 13:22 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-node-backend-3 | brief | 2 | reprovado | s | nota só no brief, não no registro | decisao | jarvis |
+| 2026-11-04 13:25 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-node-backend-3 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-04 13:30 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-software-architect-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 13:33 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-tech-lead-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 13:42 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-node-backend-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 13:56 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-tech-lead-7 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 13:56 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-qa-engineer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:17 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-software-architect-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:18 | 060-triagem-dependabot | 060-triagem-dependabot-tech-lead-36 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:18 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-tech-lead-8 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:34 | 067-dia-atipico-10h | 067-dia-atipico-10h-node-backend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:35 | 067-dia-atipico-10h | 067-dia-atipico-10h-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:37 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-node-backend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:45 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-react-frontend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:48 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-ux-designer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:50 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 14:51 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-agile-coach-1 | brief | 1 | reprovado | s | objetivo citava 064 | citacao | jarvis |
+| 2026-11-04 15:16 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 15:17 | 067-dia-atipico-10h | 067-dia-atipico-10h-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 15:21 | 067-dia-atipico-10h | 067-dia-atipico-10h-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 15:34 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 15:34 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-agile-coach-1 | brief | 2 | reprovado | s | faltou decisão A do 064 | decisao | jarvis |
+| 2026-11-04 15:39 | 067-dia-atipico-10h | 067-dia-atipico-10h-tech-lead-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 15:43 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-tech-lead-3 | brief | 1 | reprovado | n | conferente leu o 064 sem a nota, que está na linha 25 | decisao | jarvis |
+| 2026-11-04 15:43 | 065-bloqueados-sem-dado-real | 065-bloqueados-sem-dado-real-agile-coach-1 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-04 15:45 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-tech-lead-3 | brief | 2 | reprovado | parcial | linhas de Histórico do 064 e alcance da recusa de autoria | decisao | jarvis |
+| 2026-11-04 15:46 | 067-dia-atipico-10h | 067-dia-atipico-10h-qa-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 16:17 | 067-dia-atipico-10h | 067-dia-atipico-10h-tech-lead-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 16:17 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-tech-lead-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 16:23 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-tech-lead-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 17:03 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-tech-lead-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 18:06 | 068-release-065-067 | 068-release-065-067-tech-lead-1 | brief | 1 | reprovado | s | PR direto da main sem review nem QA | etapa | jarvis |
+| 2026-11-04 18:06 | 069-lacunas-alta | 069-lacunas-alta-software-architect-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 18:15 | 069-lacunas-alta | 069-lacunas-alta-node-backend-1 | brief | 1 | reprovado | s | O1 e commit do desenho além do pedido | escopo | jarvis |
+| 2026-11-04 18:15 | 068-release-065-067 | 068-release-065-067-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 18:27 | 069-lacunas-alta | 069-lacunas-alta-node-backend-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-04 18:27 | 068-release-065-067 | 068-release-065-067-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 18:41 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 18:41 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 18:41 | 068-release-065-067 | 068-release-065-067-qa-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 19:03 | 069-lacunas-alta | 069-lacunas-alta-node-backend-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:03 | 068-release-065-067 | 068-release-065-067-qa-engineer-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:03 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-2 | brief | 1 | reprovado | s | linha do Histórico do 069 sob o título do 064 | citacao | jarvis |
+| 2026-11-04 19:05 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-3 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:06 | 069-lacunas-alta | 069-lacunas-alta-node-backend-2 | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-04 19:08 | 069-lacunas-alta | 069-lacunas-alta-react-frontend-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:16 | 068-release-065-067 | 068-release-065-067-qa-engineer-3 | entrega | 1 | não cumpriu | s | review com pedido 068-zod e falta parecer de segurança da dependência; parecer do QA certo | etapa | destino |
+| 2026-11-04 19:17 | 068-release-065-067 | 068-release-065-067-security-engineer-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:20 | 069-lacunas-alta | 069-lacunas-alta-react-frontend-1 | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-04 19:21 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:22 | 068-release-065-067 | 068-release-065-067-tech-lead-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:26 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-2 | brief | 1 | reprovado | s | Jarvis mandou ponteiro em vez do brief integral | forma | jarvis |
+| 2026-11-04 19:27 | 069-lacunas-alta | 069-lacunas-alta-ux-designer-1 | brief | 1 | aprovado | — | mensagem enviada por ponteiro; o conferente leu o arquivo e conferiu o hash | — | jarvis |
+| 2026-11-04 19:27 | 068-release-065-067 | 068-release-065-067-tech-lead-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:27 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-2 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:29 | 069-lacunas-alta | 069-lacunas-alta-software-architect-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:33 | 069-lacunas-alta | 069-lacunas-alta-node-backend-4 | brief | 1 | reprovado | s | arquivo inicial com feriados contra o Fora do escopo confirmado (feriados por pessoas); vira pergunta ao dono | escopo | jarvis |
+| 2026-11-04 19:44 | 069-lacunas-alta | 069-lacunas-alta-react-frontend-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:45 | 069-lacunas-alta | 069-lacunas-alta-node-backend-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 19:58 | 069-lacunas-alta | 069-lacunas-alta-node-backend-3 | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-04 19:58 | 069-lacunas-alta | 069-lacunas-alta-react-frontend-2 | entrega | 1 | cumpriu | — |  | — | destino |
+| 2026-11-04 20:00 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:00 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:05 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:08 | 068-release-065-067 | 068-release-065-067-tech-lead-2 | entrega | 1 | não cumpriu | — | repositório recusa merge commit na develop | ambiente | destino |
+| 2026-11-04 20:11 | 068-release-065-067 | 068-release-065-067-tech-lead-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:13 | 069-lacunas-alta | 069-lacunas-alta-software-architect-3 | brief | 1 | reprovado | parcial | texto das linhas de ADR 0025 e 0027; a nota do Jarvis existe em 064:25 (conferente errou) | citacao | jarvis |
+| 2026-11-04 20:13 | 068-release-065-067 | 068-release-065-067-tech-lead-4 | entrega | 1 | cumpriu (relato) | — | PR 218 MERGED por squash | — | destino |
+| 2026-11-04 20:15 | 069-lacunas-alta | 069-lacunas-alta-software-architect-3 | brief | 2 | reprovado | s | Jarvis copiou à mão o Base-sha antigo na mensagem | forma | jarvis |
+| 2026-11-04 20:16 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-6 | brief | 1 | reprovado | s | linhas de ADR sob o título do 064 (posição do brief gerar) | citacao | jarvis |
+| 2026-11-04 20:17 | 069-lacunas-alta | 069-lacunas-alta-software-architect-3 | brief | 3 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:18 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-6 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:21 | 069-lacunas-alta | 069-lacunas-alta-node-backend-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:22 | 069-lacunas-alta | 069-lacunas-alta-node-backend-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:39 | 069-lacunas-alta | 069-lacunas-alta-node-backend-5 | entrega | 1 | não cumpriu | parcial | só o nome da consulta (Q6/Q7 em vez de Q4, que já existe); aceito por decisão técnica | escopo | destino |
+| 2026-11-04 20:41 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:42 | 069-lacunas-alta | 069-lacunas-alta-node-backend-4 | entrega | 1 | não cumpriu | parcial | textoSeguro exportado do módulo de referência e constante movida; aceitos por decisão técnica | escopo | destino |
+| 2026-11-04 20:44 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:48 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-7 | entrega | 1 | cumpriu (relato) | — | review L9-b aprovado em b6d9a15; teto 397 linhas aceito com linha no PR | — | destino |
+| 2026-11-04 20:49 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-2 | entrega | 1 | cumpriu (relato) | — | segurança L9-b aprovada em 8a2d1bc, sem bloqueante | — | destino |
+| 2026-11-04 20:50 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:50 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:50 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-4 | brief | 1 | reprovado | s | faltaram CA-069-12, o teste estrutural e o de GRANT | escopo | jarvis |
+| 2026-11-04 20:50 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-8 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:53 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-4 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:54 | 066-s8-so-com-resposta | 066-s8-so-com-resposta-agile-coach-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:54 | 067-dia-atipico-10h | 067-dia-atipico-10h-agile-coach-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:54 | 069-lacunas-alta | 069-lacunas-alta-node-backend-6 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-04 20:56 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-8 | entrega | 1 | cumpriu (relato) | — | review L2-a aprovado em 4dc9bef; teto 677 linhas aceito com linha no PR; A2 a A4 recomendados | — | destino |
+| 2026-11-04 20:58 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-3 | entrega | 1 | cumpriu (relato) | — | segurança L2-a aprovada em 6281601 | — | destino |
+| 2026-11-04 20:58 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-5 | entrega | 1 | cumpriu (relato) | — | QA L2-a aprovado em 177d033 | — | destino |
+| 2026-11-04 20:58 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-6 | entrega | 1 | cumpriu (relato) | — | PR 219 MERGED por squash | — | destino |
+| 2026-11-04 21:05 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-9 | brief | 1 | reprovado | s | forge-check pr escolhe o parecer do L3-a pelo nome; autoria da segurança ausente | etapa | jarvis |
+| 2026-11-04 21:07 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-10 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:07 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-6 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:08 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:12 | 069-lacunas-alta | 069-lacunas-alta-node-backend-6 | entrega | 1 | não cumpriu | parcial | só o export de textoSeguro; aceito por decisão técnica | escopo | destino |
+| 2026-11-04 21:16 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:16 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-12 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:16 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-11 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:19 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-12 | entrega | 1 | não cumpriu | — | PR 220 aberto; forge-check pr escolhe o parecer do M1-a pelo nome depois do update-branch | ambiente | destino |
+| 2026-11-04 21:21 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-11 | entrega | 1 | cumpriu (relato) | — | review L7-a aprovado em 8f6fe7d; teto 730 linhas aceito com linha no PR; parecer no nome 069-lote-l7a, a regravar como 069-z3-l7a | — | destino |
+| 2026-11-04 21:22 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:22 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-13 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:22 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-8 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:26 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-7 | entrega | 1 | cumpriu (relato) | — | QA L7-a aprovado em 272f848; pg não rodou | — | destino |
+| 2026-11-04 21:29 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-14 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:30 | 069-lacunas-alta | 069-lacunas-alta-node-backend-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-04 21:35 | 069-lacunas-alta | 069-lacunas-alta-software-architect-4 | brief | 1 | reprovado | s | ponteiro em vez do texto; ADR 0026 citada depois no Histórico | forma | jarvis |
+| 2026-11-04 21:37 | 069-lacunas-alta | 069-lacunas-alta-software-architect-4 | brief | 2 | reprovado | s | E1.1 cita o desenho e o NÃO tocar proibia o desenho | escopo | jarvis |
+| 2026-11-04 21:40 | 069-lacunas-alta | 069-lacunas-alta-software-architect-4 | brief | 3 | reprovado | s | notas opcional sem decisao citada | escopo | jarvis |
+| 2026-11-04 21:42 | 069-lacunas-alta | 069-lacunas-alta-software-architect-5 | brief | 4 | reprovado | s | tardio | etapa | jarvis |
+| 2026-11-04 21:44 | 069-lacunas-alta | 069-lacunas-alta-software-architect-6 | brief | 5 | reprovado | s |  | etapa | jarvis |
+| 2026-11-04 21:45 | 069-lacunas-alta | 069-lacunas-alta-node-backend-7 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-04 21:47 | 070-simulado-por-cartao | 070-simulado-por-cartao-software-architect-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 21:48 | 069-lacunas-alta | 069-lacunas-alta-software-architect-7 | brief | 6 | aprovado | s |  | — | jarvis |
+| 2026-11-04 21:48 | 070-simulado-por-cartao | 070-simulado-por-cartao-ux-designer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 21:50 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-15 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 21:51 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-9 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 21:57 | 070-simulado-por-cartao | 070-simulado-por-cartao-node-backend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 21:58 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-15 | entrega | 1 | não cumpriu | s | E1.10 aberta depois do brief | forma | destino |
+| 2026-11-04 21:58 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-16 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 21:58 | 070-simulado-por-cartao | 070-simulado-por-cartao-node-backend-1 | entrega | 1 | não cumpriu | n | worktree nova sem pasta pai gravavel | ambiente | destino |
+| 2026-11-04 22:05 | 070-simulado-por-cartao | 070-simulado-por-cartao-node-backend-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:07 | 069-lacunas-alta | 069-lacunas-alta-node-backend-8 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:07 | 069-lacunas-alta | 069-lacunas-alta-node-backend-9 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:08 | 069-lacunas-alta | 069-lacunas-alta-node-backend-10 | brief | 1 | reprovado | s | CartaoS3 fora e condicao (e) sem tratamento | decisao | jarvis |
+| 2026-11-04 22:11 | 069-lacunas-alta | 069-lacunas-alta-node-backend-11 | brief | 2 | reprovado | s | tardio | decisao | jarvis |
+| 2026-11-04 22:14 | 069-lacunas-alta | 069-lacunas-alta-node-backend-12 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:23 | 069-lacunas-alta | 069-lacunas-alta-node-backend-9 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-04 22:24 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-17 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:24 | 070-simulado-por-cartao | 070-simulado-por-cartao-node-backend-2 | entrega | 1 | não cumpriu | n | Base-sha d2ec79d; branch avancou por ff a 97ec7af | base | destino |
+| 2026-11-04 22:24 | 069-lacunas-alta | 069-lacunas-alta-node-backend-8 | entrega | 1 | não cumpriu | n | Desde por pedido; lotes paralelos | base | destino |
+| 2026-11-04 22:25 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:27 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:28 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-18 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:32 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-17 | entrega | 1 | cumpriu | s | conferida 4f23600 espera o push do QA | — | destino |
+| 2026-11-04 22:35 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:36 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:41 | 069-lacunas-alta | 069-lacunas-alta-node-backend-13 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:43 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-19 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:45 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:49 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-20 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:51 | 069-lacunas-alta | 069-lacunas-alta-node-backend-12 | entrega | 1 | não cumpriu | s | CartaoMetrica.tsx tipo; E2E para o QA | escopo | destino |
+| 2026-11-04 22:54 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-21 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:56 | 070-simulado-por-cartao | 070-simulado-por-cartao-react-frontend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 22:57 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-12 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:00 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-13 | brief | 1 | reprovado | s | NAO tocar testes x E2E | forma | jarvis |
+| 2026-11-04 23:02 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-14 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:05 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-22 | brief | 1 | reprovado | s | gatilho de seguranca no package.json | etapa | jarvis |
+| 2026-11-04 23:06 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-19 | entrega | 1 | não cumpriu | s | E2E axe L3-01 no PR 221 | ambiente | destino |
+| 2026-11-04 23:08 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-7 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:09 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-23 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:16 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-24 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:18 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-24 | entrega | 1 | não cumpriu | s | conflito com develop; pareceres novos | ambiente | destino |
+| 2026-11-04 23:25 | 069-lacunas-alta | 069-lacunas-alta-ux-designer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:28 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-23 | entrega | 1 | cumpriu | s | merge 138e012 por squash | — | destino |
+| 2026-11-04 23:29 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-25 | brief | 1 | reprovado | s | pareceres desatualizados pelo E2E; NAO tocar pareceres | etapa | jarvis |
+| 2026-11-04 23:32 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-26 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:34 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-15 | brief | 1 | reprovado | s | delta inclui pareceres z7 | escopo | jarvis |
+| 2026-11-04 23:36 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-26 | entrega | 1 | pendente | s | review z8 ok; forge-check pr pede z9 por docs/ux | outra | destino |
+| 2026-11-04 23:40 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-16 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:41 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-27 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:43 | 070-simulado-por-cartao | 070-simulado-por-cartao-react-frontend-1 | entrega | 1 | não cumpriu | n | arquivos do L1 sem conferida | escopo | destino |
+| 2026-11-04 23:45 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-28 | brief | 1 | reprovado | n | Base-sha copiado errado na mensagem | forma | jarvis |
+| 2026-11-04 23:45 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-17 | brief | 1 | reprovado | n | Base-sha copiado errado na mensagem | forma | jarvis |
+| 2026-11-04 23:45 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-8 | brief | 1 | reprovado | n | Base-sha copiado errado na mensagem | forma | jarvis |
+| 2026-11-04 23:47 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:47 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:49 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-17 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:49 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-8 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-04 23:49 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-28 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:02 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-29 | brief | 1 | reprovado | — | forge-check 0.31.0 atrás do repositório; dono precisa rodar forge atualizar | ambiente | ferramenta |
+| 2026-11-05 00:11 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-29 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:13 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-30 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:15 | 070-simulado-por-cartao | 070-simulado-por-cartao-ux-designer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:21 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-31 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:21 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-18 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:23 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-17 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-05 00:26 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-2 | entrega | 1 | não cumpriu | s | só o intervalo sem conferida anterior; PQ-1 cumpriu | base | ferramenta |
+| 2026-11-05 00:27 | 070-simulado-por-cartao | 070-simulado-por-cartao-react-frontend-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:29 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-31 | entrega | 1 | não cumpriu | s | só o intervalo: Desde por pedido, não por branch; PQ-1 cumpriu | base | ferramenta |
+| 2026-11-05 00:29 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-32 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:41 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-30 | entrega | 1 | não cumpriu | s | forge-check pr aprova e forge-check entrega reprova o mesmo head depois de update-branch; PQ-1 cumpriu | etapa | ferramenta |
+| 2026-11-05 00:42 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-3 | brief | 1 | reprovado | s | preparo do merge citado como E1.8 (PR e merge) | etapa | jarvis |
+| 2026-11-05 00:42 | 070-simulado-por-cartao | 070-simulado-por-cartao-react-frontend-2 | entrega | 1 | não cumpriu | s | só o intervalo do L1 sem conferida; PQ-1 e PQ-2 cumpriram | base | ferramenta |
+| 2026-11-05 00:44 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:59 | 070-simulado-por-cartao | 070-simulado-por-cartao-ux-designer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 00:59 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:00 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:08 | 068-release-065-067 | 068-release-065-067-tech-lead-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:09 | 068-release-065-067 | 068-release-065-067-qa-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:09 | 068-release-065-067 | 068-release-065-067-security-engineer-2 | brief | 1 | reprovado | s | Etapa review em vez de seguranca; branch ainda sem ref no remoto | etapa | jarvis |
+| 2026-11-05 01:13 | 070-simulado-por-cartao | 070-simulado-por-cartao-react-frontend-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:15 | 068-release-065-067 | 068-release-065-067-security-engineer-3 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:23 | 068-release-065-067 | 068-release-065-067-tech-lead-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:30 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:30 | 070-simulado-por-cartao | 070-simulado-por-cartao-ux-designer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:30 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:39 | 068-release-065-067 | 068-release-065-067-tech-lead-7 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:41 | 068-release-065-067 | 068-release-065-067-tech-lead-8 | brief | 1 | reprovado | s | A2 no corpo do PR da E1.10, mas o Histórico manda para a E1.5; head local à frente do remoto | citacao | jarvis |
+| 2026-11-05 01:44 | 068-release-065-067 | 068-release-065-067-tech-lead-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:49 | 068-release-065-067 | 068-release-065-067-tech-lead-9 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-05 01:52 | 068-release-065-067 | 068-release-065-067-tech-lead-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 02:23 | 068-release-065-067 | 068-release-065-067-security-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 02:24 | 068-release-065-067 | 068-release-065-067-qa-engineer-5 | brief | 1 | reprovado | s | etapa cita a branch docs/068-release; a rodada é na docs/068-release-z1 | citacao | jarvis |
+| 2026-11-05 02:26 | 068-release-065-067 | 068-release-065-067-qa-engineer-6 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-05 02:31 | 068-release-065-067 | 068-release-065-067-tech-lead-13 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 02:33 | 068-release-065-067 | 068-release-065-067-tech-lead-14 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 02:55 | 068-release-065-067 | 068-release-065-067-tech-lead-12 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 02:57 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-33 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 03:03 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-8 | brief | 2 | reprovado | s | linha do teto diferente da exigida no review 070-v2 | citacao | jarvis |
+| 2026-11-05 03:06 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-9 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-05 03:45 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-34 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 03:45 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-19 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 03:47 | 068-release-065-067 | 068-release-065-067-tech-lead-15 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 03:51 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-35 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 04:00 | 069-lacunas-alta | 069-lacunas-alta-node-backend-14 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 04:02 | 070-simulado-por-cartao | 070-simulado-por-cartao-react-frontend-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 04:11 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-9 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 04:12 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-20 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 04:12 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-36 | brief | 1 | reprovado | s | Ler dizia uma linha; o delta tem também os pareceres zz1 | citacao | jarvis |
+| 2026-11-05 08:40 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 08:59 | 070-simulado-por-cartao | 070-simulado-por-cartao-ux-designer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 09:00 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 09:00 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 09:03 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-12 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 12:09 | 069-lacunas-alta | 069-lacunas-alta-node-backend-15 | brief | 1 | reprovado | s | E5 sem a parte da aba; PQ-3 eslint fora de server/ | escopo | jarvis |
+| 2026-11-05 12:09 | 070-simulado-por-cartao | 070-simulado-por-cartao-react-frontend-5 | brief | 1 | reprovado | s | L3 citado como E1.4 implementação; é etapa do QA | etapa | jarvis |
+| 2026-11-05 12:12 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-6 | brief | 2 | reprovado | s | troca para o qa-engineer sem linha de decisão no Histórico | decisao | jarvis |
+| 2026-11-05 12:12 | 068-release-065-067 | 068-release-065-067-agile-coach-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 12:13 | 069-lacunas-alta | 069-lacunas-alta-node-backend-16 | brief | 2 | aprovado | s | aba do apontamento já lê ref_feriado na develop (repositorio.ts, servico.ts), conferido pelo Jarvis | — | jarvis |
+| 2026-11-05 12:15 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-7 | brief | 3 | aprovado | s | o 060 (sem número no cartão sem dado real) foi revisado pela DECISÃO DO DONO do 070 e pela ADR 0028 | — | jarvis |
+| 2026-11-05 12:29 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-38 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 12:30 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-21 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 12:33 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-7 | entrega | 1 | não cumpriu | parcial | fixture fora do Entregar; F6 e F9 só no relatório; QA antes do review | escopo | destino |
+| 2026-11-05 12:36 | 070-simulado-por-cartao | 070-simulado-por-cartao-react-frontend-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 12:37 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-7 | entrega | 2 | não cumpriu | parcial | ressalvas mantidas; vira retrabalho, coberto pelo review e QA da ponta com o 070-001 | escopo | destino |
+| 2026-11-05 12:40 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-38 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-05 12:42 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-39 | brief | 1 | aprovado | s | não delegado: autoria do review sem registro, substituído pelo 40 | — | jarvis |
+| 2026-11-05 12:43 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-21 | entrega | 1 | não cumpriu | s | Desde mudou no meio (conferida dc5e3f3 gravada durante a conferência) e autoria do review sem registro; reenvio depois da regravação | base | destino |
+| 2026-11-05 12:45 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-40 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 12:54 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-13 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 12:55 | 070-simulado-por-cartao | 070-simulado-por-cartao-ux-designer-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 12:55 | 070-simulado-por-cartao | 070-simulado-por-cartao-qa-engineer-8 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 12:56 | 070-simulado-por-cartao | 070-simulado-por-cartao-react-frontend-6 | entrega | 1 | não cumpriu | s | mérito ok (PQ-1 e PQ-2 cumpridos); o intervalo sem Desde traz a entrega 3af044c do L3; mesma limitação do Desde por pedido já anotada para o Forge | base | destino |
+| 2026-11-05 13:06 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-40 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-05 13:09 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-15 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 13:11 | 070-simulado-por-cartao | 070-simulado-por-cartao-software-architect-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 13:16 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-14 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 13:17 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-16 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 13:23 | 069-lacunas-alta | 069-lacunas-alta-node-backend-17 | brief | 1 | reprovado | s | migração aditiva contra a troca de tipo decidida; linhas gravadas sem regra | decisao | jarvis |
+| 2026-11-05 13:25 | 069-lacunas-alta | 069-lacunas-alta-node-backend-18 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-05 13:38 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-14 | entrega | 1 | não cumpriu | s | PQ-1 cumprido, checks verdes, etapa em ordem; forge-check entrega não vê o review no head depois do update-branch e forge-check pr aprova o mesmo head: divergência da ferramenta | ambiente | destino |
+| 2026-11-05 13:46 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-41 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 13:46 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-22 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 13:46 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-05 13:54 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-10 | entrega | 1 | cumpriu | s | parecer de segurança do L9-c em f1e35ff6, conferida a4dd982c | — | destino |
+| 2026-11-05 13:55 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-41 | entrega | 1 | cumpriu | s | parecer de review do L9-c (reprovado, A1 ordem da Q6) em a4dd982c; aviso: A1 acima de 300 caracteres | — | destino |
+| 2026-11-05 14:00 | 071-release-069-070 | 071-release-069-070-security-engineer-1 | brief | 1 | reprovado | n | cabeçalho Etapa: review em vez de seguranca (herdado do brief do 068) | forma | jarvis |
+| 2026-11-05 14:00 | 071-release-069-070 | 071-release-069-070-qa-engineer-1 | brief | 1 | aprovado | s | brief do QA da release 071 | — | jarvis |
+| 2026-11-05 14:01 | 070-simulado-por-cartao | 070-simulado-por-cartao-tech-lead-16 | entrega | 1 | não cumpriu | s | PR 234 mesclado (squash 39b761d4, sem --admin, escopo dos 3 arquivos ok); não cumpriu só pela divergência forge-check entrega x forge-check pr no mesmo head, a mesma do PR 233 (MELHORIA do Forge já registrada) | ambiente | destino |
+| 2026-11-05 14:01 | 071-release-069-070 | 071-release-069-070-tech-lead-1 | brief | 1 | reprovado | n | faltaram as linhas DECISÃO DO DONO dos registros de Depende de (069 e 070) | decisao | jarvis |
+| 2026-11-05 14:01 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-22 | entrega | 1 | não cumpriu | s | QA do L9-c rodou em paralelo ao review, que reprovou (A1 ordem da Q6); etapa fora de ordem por decisão do Jarvis; o QA refaz depois da volta e do review aprovado | etapa | destino |
+| 2026-11-05 14:02 | 071-release-069-070 | 071-release-069-070-security-engineer-1 | brief | 2 | aprovado | s | rodada 2 sobre o sha 9a91a257, superada pela rodada 3 com as decisões do Depende de | — | jarvis |
+| 2026-11-05 14:04 | 071-release-069-070 | 071-release-069-070-security-engineer-1 | brief | 3 | reprovado | n | faltou a DECISÃO B do 069 (gravada depois do brief) e ref_calendario_aplicacao na lista do L7-a; segue no -2 | decisao | jarvis |
+| 2026-11-05 14:04 | 071-release-069-070 | 071-release-069-070-tech-lead-1 | brief | 2 | reprovado | n | faltou a DECISÃO B do 069, gravada depois do brief; segue no -2 | decisao | jarvis |
+| 2026-11-05 14:05 | 069-lacunas-alta | 069-lacunas-alta-software-architect-8 | brief | 1 | reprovado | n | hash da mensagem anterior à nota do Jarvis na linha A; rodada 2 já enviada com o hash atual | forma | jarvis |
+| 2026-11-05 14:07 | 071-release-069-070 | 071-release-069-070-tech-lead-2 | brief | 1 | reprovado | n | A e B do L9-c lidas como contraditórias; a linha B do pedido passou a citar a pergunta e a troca de critério; segue no -3 | decisao | jarvis |
+| 2026-11-05 14:07 | 071-release-069-070 | 071-release-069-070-security-engineer-2 | brief | 1 | aprovado | s | brief da segurança da release 071 | — | jarvis |
+| 2026-11-05 14:07 | 069-lacunas-alta | 069-lacunas-alta-software-architect-8 | brief | 2 | aprovado | s | desenho da volta do L9-c (decisão B) | — | jarvis |
+| 2026-11-05 14:09 | 071-release-069-070 | 071-release-069-070-tech-lead-3 | brief | 1 | aprovado | s | brief do review da release 071 | — | jarvis |
+| 2026-11-05 14:23 | 071-release-069-070 | 071-release-069-070-security-engineer-2 | entrega | 1 | cumpriu | s | parecer de segurança da release em 7bfec8fe, conferida fc7f08f3 | — | destino |
+| 2026-11-05 14:25 | 071-release-069-070 | 071-release-069-070-tech-lead-3 | entrega | 1 | não cumpriu | s | só pelo Desde por pedido: a conferida da segurança no mesmo head entrou no Histórico durante a conferência; PQ-0, PQ-1, escopo e etapa cumpridos (MELHORIA do Forge Desde por pedido já registrada) | outra | destino |
+| 2026-11-05 14:37 | 072-limpar-branches | 072-limpar-branches-tech-lead-1 | brief | 1 | aprovado | s | brief da limpeza de branches | — | jarvis |
+| 2026-11-05 14:40 | 071-release-069-070 | 071-release-069-070-tech-lead-4 | brief | 1 | aprovado | s | brief do PR da release para a develop (E1.4); linhas do Depende de conferidas antes nos briefs -3 e security-2, iguais | — | jarvis |
+| 2026-11-05 14:40 | 071-release-069-070 | 071-release-069-070-qa-engineer-1 | entrega | 1 | não cumpriu | s | mensagem sem Desde: com conferida fc7f08f3 no Histórico; reenvio com Desde | forma | destino |
+| 2026-11-05 14:42 | 071-release-069-070 | 071-release-069-070-qa-engineer-1 | entrega | 2 | não cumpriu | s | forge-check entrega recusa sem Desde (diverge do Histórico) e com Desde (sem conferência anterior); mérito cumprido nas duas rodadas; não reenvio: laço da ferramenta | outra | destino |
+| 2026-11-05 14:50 | 072-limpar-branches | 072-limpar-branches-tech-lead-1 | entrega | 1 | não cumpriu | parcial | 5 remotas apagadas conferidas; resto parou no classificador (Git Destructive) e no -D proibido pelo brief (erro do Jarvis); o dono decidiu rodar o resto no terminal (A); cabeçalho Branch=Base=develop não serve à conferência | ambiente | destino |
+| 2026-11-05 14:58 | 072-limpar-branches | 072-limpar-branches-tech-lead-2 | brief | 1 | reprovado | n | 22ª branch sem explicação, rótulo E2 errado, worktrees sem caminho; superado pelo -3 com a decisão 3 | escopo | jarvis |
+| 2026-11-05 15:00 | 072-limpar-branches | 072-limpar-branches-tech-lead-3 | brief | 1 | reprovado | n | contagem 21 contra 22 branches listadas | forma | jarvis |
+| 2026-11-05 15:02 | 072-limpar-branches | 072-limpar-branches-tech-lead-4 | brief | 1 | aprovado | s | E1.4: conferir as 22 branches, triagem do Dependabot e comandos ao dono | — | jarvis |
+| 2026-11-05 15:04 | 071-release-069-070 | 071-release-069-070-tech-lead-4 | entrega | 1 | não cumpriu | s | PR 235 mesclado em c8a55d63, mérito todo cumprido; só o laço do Desde por pedido (mesmo defeito do QA); não reenvio | outra | destino |
+| 2026-11-05 15:06 | 071-release-069-070 | 071-release-069-070-tech-lead-5 | brief | 1 | reprovado | n | PQ não discriminavam (PR 228 e run antigos) e Base-sha fora da homolog | prova | jarvis |
+| 2026-11-05 15:08 | 071-release-069-070 | 071-release-069-070-tech-lead-6 | brief | 1 | aprovado | s | brief da promoção develop para homolog (E1.5) | — | jarvis |
+| 2026-11-05 15:38 | 069-lacunas-alta | 069-lacunas-alta-node-backend-19 | brief | 1 | aprovado | s | volta do L9-c com a ordem pelo desenho do fluxo e o comando de apoio | — | jarvis |
+| 2026-11-05 15:46 | 071-release-069-070 | 071-release-069-070-tech-lead-7 | brief | 1 | reprovado | n | faltaram as 3 decisões novas do 069 (P-L9C-1 a 3) no bloco do Depende de | decisao | jarvis |
+| 2026-11-05 15:47 | 071-release-069-070 | 071-release-069-070-tech-lead-6 | entrega | 1 | não cumpriu | s | promoção PR 236 conferida (merge commit, portão verde); faltou Desde na mensagem; reenvio com Desde = Base-sha pela exceção do squash | forma | destino |
+| 2026-11-05 15:49 | 071-release-069-070 | 071-release-069-070-tech-lead-8 | brief | 1 | aprovado | s | brief do PR de release homolog para main (E1.6) | — | jarvis |
+| 2026-11-05 15:49 | 071-release-069-070 | 071-release-069-070-tech-lead-6 | entrega | 2 | cumpriu | s | promoção PR 236 (9a5705b5), portão verde; Desde = Base-sha pela exceção do squash | — | destino |
+| 2026-11-05 15:53 | 071-release-069-070 | 071-release-069-070-tech-lead-8 | entrega | 1 | não cumpriu | s | PR 237 aberto certo, sem merge; checks do run 42088068248 ainda pendentes na conferência; Desde em laço (Base-sha recusado, conferida = head dá sem conferência anterior); reconfiro quando a CI fechar | etapa | destino |
+| 2026-11-05 15:57 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-11 | brief | 1 | aprovado | s | segurança da volta do L9-c | — | jarvis |
+| 2026-11-05 15:57 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-42 | brief | 1 | aprovado | s | review da volta do L9-c | — | jarvis |
+| 2026-11-05 15:59 | 069-lacunas-alta | 069-lacunas-alta-node-backend-19 | entrega | 1 | cumpriu | s | volta do L9-c em d60f269a | — | destino |
+| 2026-11-05 16:03 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-11 | entrega | 1 | não cumpriu | s | parecer 29fd0f98 conferido; só o laço do Desde (conferida d60f269a do Histórico recusada como sem conferência anterior) | outra | destino |
+| 2026-11-05 16:08 | 069-lacunas-alta | 069-lacunas-alta-node-backend-20 | brief | 1 | aprovado | s | segunda volta do L9-c (A1, A4, A5) | — | jarvis |
+| 2026-11-05 16:08 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-42 | entrega | 1 | cumpriu | s | review da volta (reprovado, A1 fronteira) em a63d07f9; delta só pareceres | — | destino |
+| 2026-11-05 16:13 | 071-release-069-070 | 071-release-069-070-tech-lead-8 | entrega | 2 | não cumpriu | s | PR 237 já mesclado pelo dono quando a rodada 2 rodou; PQ-1 lia PR aberto; mérito conferido | prova | destino |
+| 2026-11-05 16:17 | 071-release-069-070 | 071-release-069-070-agile-coach-1 | brief | 1 | aprovado | s | retrospectiva do 071 | — | jarvis |
+| 2026-11-05 16:19 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-43 | brief | 1 | aprovado | s | review do delta da segunda volta do L9-c | — | jarvis |
+| 2026-11-05 16:20 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-12 | brief | 1 | reprovado | n | faltou dizer que o modelo de ameaças e os lotes L2-a, L2-c e L9-b ficam fora | escopo | jarvis |
+| 2026-11-05 16:21 | 069-lacunas-alta | 069-lacunas-alta-node-backend-20 | entrega | 1 | não cumpriu | s | segunda volta e62f3cd0, delta de 6 arquivos todos no Entregar; só o laço do Desde (conferida a63d07f9 recusada) | outra | destino |
+| 2026-11-05 16:21 | 071-release-069-070 | 071-release-069-070-agile-coach-1 | entrega | 1 | não cumpriu | s | retro 5116a505 conferida (PQ-1, PQ-2, commit só do arquivo); recusas: Desde (laço da ferramenta) e nomes de brief (tech-lead-1 etc.) lidos como métrica individual; DECISÃO TÉCNICA (Jarvis): nome de brief é processo, não pessoa; não reenvio | outra | destino |
+| 2026-11-05 16:22 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-13 | brief | 1 | reprovado | n | Entregar cita a E1.8 inteira e o Fora tira parte dela | escopo | jarvis |
+| 2026-11-05 16:27 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-14 | brief | 1 | aprovado | s | segurança do delta da segunda volta do L9-c | — | jarvis |
+| 2026-11-05 16:27 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-43 | entrega | 1 | não cumpriu | s | review aprovado em d1f7e05e conferido; só o --desde (a63d07f9) recusado | outra | destino |
+| 2026-11-05 16:28 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-23 | brief | 1 | aprovado | s | QA do lote L9-c inteiro em e62f3cd0 | — | jarvis |
+| 2026-11-05 16:31 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-43 | entrega | 2 | cumpriu | s | review da segunda volta em d1f7e05e; com o formato certo da linha conferida o Desde passou | — | destino |
+| 2026-11-05 16:35 | 069-lacunas-alta | 069-lacunas-alta-security-engineer-14 | entrega | 1 | cumpriu | s | segurança da segunda volta em 595ae5bb | — | destino |
+| 2026-11-05 16:40 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-23 | entrega | 1 | cumpriu | s | QA do L9-c em 2b8f71ef | — | destino |
+| 2026-11-05 16:40 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-44 | brief | 1 | reprovado | n | número 574 de teste sem origem no pedido | base | jarvis |
+| 2026-11-05 16:43 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-45 | brief | 1 | aprovado | s | PR do L9-c para a develop | — | jarvis |
