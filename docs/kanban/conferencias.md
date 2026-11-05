@@ -1994,3 +1994,5 @@
 | 2026-11-05 16:40 | 069-lacunas-alta | 069-lacunas-alta-qa-engineer-23 | entrega | 1 | cumpriu | s | QA do L9-c em 2b8f71ef | — | destino |
 | 2026-11-05 16:40 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-44 | brief | 1 | reprovado | n | número 574 de teste sem origem no pedido | base | jarvis |
 | 2026-11-05 16:43 | 069-lacunas-alta | 069-lacunas-alta-tech-lead-45 | brief | 1 | aprovado | s | PR do L9-c para a develop | — | jarvis |
+| 2026-11-05 16:49 | 069-lacunas-alta | 069-lacunas-alta-node-backend-21 | brief | 1 | reprovado | n | decisão A do campo repetido lida como regra viva junto da B | decisao | jarvis |
+| 2026-11-05 16:51 | 069-lacunas-alta | 069-lacunas-alta-node-backend-22 | brief | 1 | aprovado | s | terceira volta do L9-c (coluna do teste pg) | — | jarvis |
