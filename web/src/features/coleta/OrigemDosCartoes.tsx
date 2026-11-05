@@ -34,6 +34,10 @@ export function origemDoCartao(codigo: string, tipoFonte: 'mock' | 'api'): Orige
   }
 }
 
+/** Tira a sigla interna de pendência (ex.: "P-DS-19") do motivo mostrado na faixa: a gerência lê o texto sem jargão. */
+export const motivoSemSigla = (motivo: string): string =>
+  motivo.replace(/\s*\(P-[A-Z]+-\d+\)/g, '').replace(/,\s*P-[A-Z]+-\d+/g, '')
+
 /**
  * Liga o selo e o estado de origem de todo cartão à origem da métrica (mapa do contrato), conforme a fonte de dados.
  * O "simulado" (pedido 070) vem da camada de dados: a fonte decoradora registra quais métricas estão simuladas, e só
@@ -51,7 +55,7 @@ export function OrigemDosCartoes({ children }: { children: ReactNode }) {
       const id = idDeMetrica(codigo) as MetricaId
       // Falha fechada: o selo só vale para cartão sem dado real que o contrato permite simular.
       const sim = real.semDadoReal && podeSimular(id) ? simulados.get(id) : undefined
-      return sim ? { ...real, simulado: true, motivo: sim.motivo } : real
+      return sim ? { ...real, simulado: true, motivo: motivoSemSigla(sim.motivo) } : real
     },
     [tipo, simulados],
   )

@@ -22,8 +22,8 @@ import {
 /** Cria a fonte mock, sob demanda, com a data de corte (ISO com fuso). Só roda no primeiro cartão simulado. */
 export type CriarMock = (hoje: string) => Promise<FonteMetricas>
 
-/** Hora de corte do mock: a mesma do padrão do gerador. A API só conhece o dia. */
-const HORA_DE_CORTE = 'T18:00:00-03:00'
+/** Hora de corte do mock: a do padrão do gerador (`CONFIG_PADRAO.hoje`), sem repetir à mão. A API só conhece o dia. */
+const horaDeCorte = (hojePadrao: string): string => hojePadrao.slice(hojePadrao.indexOf('T'))
 
 const criarMockPadrao: CriarMock = async (hoje) => {
   const { MockFonteMetricas } = await import('./mock/MockFonteMetricas')
@@ -107,9 +107,10 @@ export class FonteComSimulado implements FonteSimuladora {
 
   private obterMock(): Promise<FonteMetricas> {
     if (!this.mock) {
-      const p = this.real
-        .dataReferencia()
-        .then((dia) => this.criarMock(`${dia}${HORA_DE_CORTE}`))
+      const p = Promise.all([this.real.dataReferencia(), import('@metricas-dspd/mock')])
+        .then(([dia, { CONFIG_PADRAO }]) =>
+          this.criarMock(`${dia}${horaDeCorte(CONFIG_PADRAO.hoje)}`),
+        )
         .catch((e: unknown) => {
           this.mock = null
           throw e

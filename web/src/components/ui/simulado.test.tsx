@@ -8,6 +8,7 @@ import { OrigemDosCartoes } from '@/features/coleta/OrigemDosCartoes'
 import {
   CartaoMetrica,
   ProvedorContextoPainel,
+  StatusMeta,
   useModoTabela,
   type CartaoMetricaProps,
 } from '@/components/ui'
@@ -16,7 +17,13 @@ const nota = { oQueE: 'a', comoSeCalcula: 'b', comoLer: 'c', meta: 'd', cuidados
 const NOME_SELO = 'Dados simulados: este cartão mostra números de exemplo, não da operação.'
 
 function Legenda() {
-  return <p data-testid="legenda-lida">{useModoTabela().legenda}</p>
+  return (
+    <>
+      <p data-testid="legenda-lida">{useModoTabela().legenda}</p>
+      {/* Status de meta dentro do corpo, como S1, T2, T3, T4, T7, S7 e o complementar de sustentação fazem. */}
+      <StatusMeta status="fora" texto="Mediana fora do alvo" />
+    </>
+  )
 }
 
 /** Fonte da API que só carrega o registro de simulados (o cartão lê a origem do contexto, nunca de prop). */
@@ -99,6 +106,8 @@ describe('CartaoMetrica simulado (pedido 070, E1.4)', () => {
     const selo = screen.getByTestId('selo-simulado-O12')
     expect(selo).toHaveTextContent('Simulado')
     expect(selo).toHaveAccessibleName(NOME_SELO)
+    // O nome vale para leitor de tela: o selo tem papel (um span solto não tem).
+    expect(screen.getByRole('img', { name: NOME_SELO })).toBe(selo)
     expect(selo.querySelector('svg')).not.toBeNull()
     const faixa = screen.getByRole('note')
     expect(faixa).toHaveTextContent(
@@ -169,6 +178,32 @@ describe('CartaoMetrica simulado (pedido 070, E1.4)', () => {
     unmount()
     montar({}, { simulados: [] })
     expect(screen.getByText(/fora da meta/i)).toBeInTheDocument()
+  })
+
+  it('A-1: o status de meta do corpo (ex.: "Mediana fora do alvo") some no simulado e aparece no real', () => {
+    const { unmount } = montar()
+    expect(screen.getByTestId('legenda-lida')).toBeInTheDocument()
+    expect(screen.queryByText('Mediana fora do alvo')).toBeNull()
+    unmount()
+    montar({}, { simulados: [] })
+    expect(screen.getByText('Mediana fora do alvo')).toBeInTheDocument()
+  })
+
+  it('A-5: a marca d água não aparece no modo "Ver como tabela" e volta no gráfico', async () => {
+    montar()
+    expect(screen.getByTestId('marca-dagua-simulado')).toBeInTheDocument()
+    const alternar = screen.getByRole('button', { name: /ver como tabela/i })
+    await userEvent.click(alternar)
+    expect(screen.queryByTestId('marca-dagua-simulado')).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: /ver (como )?gr[áa]fico/i }))
+    expect(screen.getByTestId('marca-dagua-simulado')).toBeInTheDocument()
+  })
+
+  it('A-7: o botão "O que é simulado?" tem alvo de 44 px também no desktop', () => {
+    montar()
+    expect(screen.getByRole('button', { name: 'O que é simulado?' }).className).toMatch(
+      /min-h-11.*min-w-11|min-w-11.*min-h-11/,
+    )
   })
 
   it('T-W8: com filtro de equipe ativo, o simulado lista a equipe em "não afetam este cartão" e mantém o período', () => {

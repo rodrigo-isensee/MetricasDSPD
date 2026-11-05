@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { corpoSemDadoReal, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos'
 import { FonteComSimulado, SemDadoRealErro, type FonteMetricas } from '@/data'
 import { fonteDeTeste, renderizarApp } from '@/test/helpers'
-import { contarSemDadoReal } from './OrigemDosCartoes'
+import { contarSemDadoReal, motivoSemSigla } from './OrigemDosCartoes'
 
 /**
  * A API real de dublê: o que o mapa de origem dá como real vem do mock (como estand-in do DTO real); o resto responde
@@ -94,5 +94,17 @@ describe('painéis com o simulado por cartão (pedido 070, T-W6)', () => {
     const estado = await screen.findByTestId('estado-sem-dado-real-VISAO_GERAL')
     expect(estado).toHaveTextContent('Sem dado real')
     expect(screen.queryByTestId('selo-simulado-VISAO_GERAL')).toBeNull()
+  })
+})
+
+describe('motivoSemSigla (A-4)', () => {
+  it('tira a sigla interna do motivo mostrado na faixa e mantém o resto', () => {
+    expect(motivoSemSigla('aguardando tipo e domínio do campo do chamado (P-DS-19)')).toBe(
+      'aguardando tipo e domínio do campo do chamado',
+    )
+    expect(
+      motivoSemSigla('aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)'),
+    ).toBe('aguardando o motivo de pendência do chamado (tipo e domínio)')
+    expect(motivoSemSigla('aguardando campo no quadro')).toBe('aguardando campo no quadro')
   })
 })

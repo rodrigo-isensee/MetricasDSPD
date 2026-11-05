@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { createContext, useContext, useId, useState, type ReactNode } from 'react'
 import clsx from 'clsx'
 import { Botao } from './Botao'
 import { Icone } from './Icone'
@@ -14,10 +14,26 @@ export const TEXTO_EXPLICACAO_SIMULADO =
 export const LEGENDA_TABELA_SIMULADO = 'Dados de exemplo (simulado)'
 export const PREFIXO_LEITURA_SIMULADO = 'Exemplo: '
 
+/** O cartão atual é simulado: o `StatusMeta` dentro dele não mostra Dentro/Fora da meta (número inventado não se avalia). */
+const CartaoSimuladoCtx = createContext(false)
+
+export function ProvedorCartaoSimulado({
+  ativo,
+  children,
+}: {
+  ativo: boolean
+  children: ReactNode
+}) {
+  return <CartaoSimuladoCtx.Provider value={ativo}>{children}</CartaoSimuladoCtx.Provider>
+}
+
+export const useCartaoSimulado = (): boolean => useContext(CartaoSimuladoCtx)
+
 /** Selo "Simulado" do cabeçalho: texto real (não imagem) com nome acessível, ícone e borda; nunca só cor. */
 export function SeloSimulado({ codigo }: { codigo: string }) {
   return (
     <span
+      role="img"
       aria-label={NOME_SELO_SIMULADO}
       data-testid={`selo-simulado-${codigo}`}
       className="inline-flex items-center gap-1 rounded-full border-2 border-atencao bg-atencao-fundo px-2.5 py-0.5 text-xs font-bold text-atencao max-sm:basis-full"
@@ -52,7 +68,7 @@ export function FaixaSimulado({ codigo, motivo }: { codigo: string; motivo: stri
         onClick={() => setAberta((a) => !a)}
         aria-expanded={aberta}
         aria-controls={idExplicacao}
-        className="mt-2 text-xs"
+        className="mt-2 min-h-11 min-w-11 text-xs"
       >
         {aberta ? 'Fechar explicação' : 'O que é simulado?'}
       </Botao>

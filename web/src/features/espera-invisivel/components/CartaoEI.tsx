@@ -312,11 +312,6 @@ export function CartaoEISust({
   ...p
 }: { filtros: FiltrosSustentacao } & Omit<Props, 'nivel' | 'q' | 'periodo' | 'aplicaveis'>) {
   return (
-    <CartaoEI
-      nivel="SUST"
-      q={useMetrica('EI_SUST', filtros, { simulado: true })}
-      periodo={filtros.periodo}
-      {...p}
-    />
+    <CartaoEI nivel="SUST" q={useMetrica('EI_SUST', filtros)} periodo={filtros.periodo} {...p} />
   )
 }

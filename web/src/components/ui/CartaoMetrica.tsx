@@ -50,6 +50,7 @@ import {
   LEGENDA_TABELA_SIMULADO,
   MarcaDaguaSimulado,
   PREFIXO_LEITURA_SIMULADO,
+  ProvedorCartaoSimulado,
   SeloSimulado,
 } from './SeloSimulado'
 import { StatusMeta } from './StatusMeta'
@@ -332,34 +333,36 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
           }}
         >
           <ProvedorCartaoCalibracao ativo={calibrando}>
-            <div className="mt-1">
-              {p.leitura && (
-                <p
-                  id={idLeitura}
-                  className={clsx('mt-2 text-sm font-medium [overflow-wrap:anywhere]', esmaece)}
-                  data-testid={`leitura-${p.codigo}`}
-                >
-                  {simulado ? PREFIXO_LEITURA_SIMULADO : ''}
-                  {p.leitura}
-                </p>
-              )}
-              {p.criterios && (
-                <div className="mt-2 flex flex-col gap-2">
-                  <AvisoCriterio marcacoes={p.criterios.serie} />
-                  <AvisoCriterio
-                    marcacoes={p.criterios.janela.filter(
-                      (m) => !p.criterios?.serie.some((s) => s.id === m.id),
-                    )}
-                    tipo="janela"
-                    janela={janelaTxt}
-                  />
+            <ProvedorCartaoSimulado ativo={simulado}>
+              <div className="mt-1">
+                {p.leitura && (
+                  <p
+                    id={idLeitura}
+                    className={clsx('mt-2 text-sm font-medium [overflow-wrap:anywhere]', esmaece)}
+                    data-testid={`leitura-${p.codigo}`}
+                  >
+                    {simulado ? PREFIXO_LEITURA_SIMULADO : ''}
+                    {p.leitura}
+                  </p>
+                )}
+                {p.criterios && (
+                  <div className="mt-2 flex flex-col gap-2">
+                    <AvisoCriterio marcacoes={p.criterios.serie} />
+                    <AvisoCriterio
+                      marcacoes={p.criterios.janela.filter(
+                        (m) => !p.criterios?.serie.some((s) => s.id === m.id),
+                      )}
+                      tipo="janela"
+                      janela={janelaTxt}
+                    />
+                  </div>
+                )}
+                <div className={clsx('relative mt-3', esmaece)}>
+                  {p.children}
+                  {simulado && modo === 'grafico' && <MarcaDaguaSimulado />}
                 </div>
-              )}
-              <div className={clsx('relative mt-3', esmaece)}>
-                {p.children}
-                {simulado && <MarcaDaguaSimulado />}
               </div>
-            </div>
+            </ProvedorCartaoSimulado>
           </ProvedorCartaoCalibracao>
         </ModoTabelaContext.Provider>
       )}
