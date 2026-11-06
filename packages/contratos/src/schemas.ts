@@ -1321,6 +1321,9 @@ export const marcacoes = marcacaoCriterioSchema
 
 /* ---------- Tendência mensal do Resumo do Operacional (ADR 0019) ---------- */
 const mesCivil = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/) // AAAA-MM
+/** Pedido 077, L1a: a janela de 12 semanas do mês começa antes do histórico carregado (sem `.strict()`: A5). */
+const janelaIncompletaTendencia = z.object({ historicoDesde: iso }).optional()
+const SEM_ESTATISTICA = 'mês com janela incompleta não traz estatística'
 /**
  * Um ponto por mês-calendário fechado, no máximo 6. Cada ponto é a métrica de origem calculada na data de
  * referência `fimDoMes` com a janela móvel de 12 semanas (nenhuma fórmula nova); as contagens são do mês.
@@ -1328,35 +1331,45 @@ const mesCivil = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/) // AAAA-MM
 export const resultadoTendenciaFluxo = z.object({
   ...comum,
   meses: z.array(
-    z.object({
-      mes: mesCivil,
-      fimDoMes: iso,
-      janelaPercentis: janelaSchema,
-      /** Igual a `O3.classes` no fim do mês: uma estatística por tipo, nunca entre tipos (sem pontos nem série). */
-      p85PorTipo: z.array(
-        z.object({
-          tipo,
-          n: z.number(),
-          estatistica: estatisticaSchema(z.object({ p50: z.number(), p85: z.number() })),
-        }),
-      ),
-      /** Itens de demanda concluídos no mês-calendário (data de conclusão), sempre publicado. */
-      concluidos: z.number(),
-    }),
+    z
+      .object({
+        mes: mesCivil,
+        fimDoMes: iso,
+        janelaPercentis: janelaSchema,
+        /** Igual a `O3.classes` no fim do mês: uma estatística por tipo, nunca entre tipos (sem pontos nem série). */
+        p85PorTipo: z.array(
+          z.object({
+            tipo,
+            n: z.number(),
+            estatistica: estatisticaSchema(z.object({ p50: z.number(), p85: z.number() })),
+          }),
+        ),
+        /** Itens de demanda concluídos no mês-calendário (data de conclusão), sempre publicado. */
+        concluidos: z.number(),
+        janelaIncompleta: janelaIncompletaTendencia,
+      })
+      .refine((m) => !m.janelaIncompleta || m.p85PorTipo.length === 0, {
+        message: SEM_ESTATISTICA,
+      }),
   ),
 })
 
 export const resultadoTendenciaSust = z.object({
   ...comum,
   meses: z.array(
-    z.object({
-      mes: mesCivil,
-      fimDoMes: iso,
-      janela: janelaSchema,
-      /** Igual a `S2.prioridades` no fim do mês (12 semanas); prioridade com menos de 20 chamados vem insuficiente. */
-      prioridades: prioridadesS2,
-      /** Chamados abertos no mês-calendário (data de abertura, a base do S3), sempre publicado. */
-      volume: z.number(),
-    }),
+    z
+      .object({
+        mes: mesCivil,
+        fimDoMes: iso,
+        janela: janelaSchema,
+        /** Igual a `S2.prioridades` no fim do mês (12 semanas); prioridade com menos de 20 chamados vem insuficiente. */
+        prioridades: prioridadesS2,
+        /** Chamados abertos no mês-calendário (data de abertura, a base do S3), sempre publicado. */
+        volume: z.number(),
+        janelaIncompleta: janelaIncompletaTendencia,
+      })
+      .refine((m) => !m.janelaIncompleta || m.prioridades.length === 0, {
+        message: SEM_ESTATISTICA,
+      }),
   ),
 })
