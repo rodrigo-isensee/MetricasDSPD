@@ -7,7 +7,7 @@ Data: 2026-11-06. Fonte: `docs/pedidos/076-publicacao-local.md` (Histórico), `d
 - Lead time e cycle time: menos de 20 itens, sem percentil. Valor bruto do pedido: 2 h 56 min (aberto até a entrega da E2.1). Vazão: 2 etapas de execução (E1.0, E1.1/E2.1) entregues no dia; K-216 não está em Pronto (depende da VM). Os relógios D-4 (`forge-check voltas`) não foram rodados aqui: não medido.
 - Briefs (de `conferencias.md`): 18 passagens de conferência de brief no 076, 11 reprovadas e 7 aprovadas. Reprovações por classe de causa: decisão 8 (10:35, 10:36, 10:52, 10:54, 11:14, 11:16, 11:18, 11:20), escopo 1 (11:27), forma 1 (13:01), citação 1 (13:32, este brief). Primeiro brief aprovado só às 11:21, 48 min depois da abertura.
 - Entregas: 1 "não cumpriu (etapa)" (11:26, causa ambiente: hook barrou o `pnpm install` no papel devops).
-- Execução: passo 4 falhou 2 vezes (11:30, 13:05) e fechou na terceira (13:19 a 13:26, rc=0). Passos 3, 5 e 6 rc=0 na primeira tentativa em que rodaram.
+- Execução: passo 4 falhou 2 vezes (11:30, 13:05) e fechou na terceira (rc=0 às 13:26, depois da correção do dono às 13:19). Passos 3, 5 e 6 rc=0 na primeira tentativa em que rodaram.
 - Clareza: 2 confirmado, 2 técnico, 0 suposição, 0 perguntas na abertura; no Histórico há 2 `NAO-ENTENDI` (10:36, 11:11) e 2 perguntas ao dono (P-076-1, P-076-2). Escopo depois do início: 0 `ESCOPO+/-`; 1 etapa nova (E1.0, 11:23). Devolvidas: 0 `DEVOLVIDA:`.
 - Retrabalho de cartão e escape: não medido neste pedido (sem cartão devolvido registrado no Histórico; `forge-check escape resumo` não rodado). DORA: não medido (sem PR neste pedido, só publicação local).
 
@@ -15,7 +15,7 @@ Data: 2026-11-06. Fonte: `docs/pedidos/076-publicacao-local.md` (Histórico), `d
 - A decisão B (10:50) e a P-076-2 "A" (11:11) deixaram o dono no controle sem lhe passar a execução; nenhum comando destrutivo rodou (`migrate up` só aplicou a 0034, sem `down`).
 - O devops parou no primeiro erro, como pedido, e registrou o roteiro com 6 passos e o resultado esperado de cada um; a conferência E2.1 fechou a conta da coleta (8769 + 40429 = 49198).
 - O conferente de brief achou os dois desvios de decisão (10:36 recibo, 10:54 `.env` sem script) antes de qualquer execução.
-- A queda de energia do Postgres/WSL foi identificada com causa (13:19) em vez de ficar como "banco inválido".
+- O Postgres parado pela queda do WSL foi identificado com causa (13:19) em vez de ficar como "banco inválido".
 
 ## 3. O que custou tempo (hora de cada evento do Histórico)
 - 10:33 a 11:21: 8 reprovações de brief por decisão. Os briefs repetiam decisões já substituídas, ou estendiam o carregamento do `.env` além do que o dono decidiu. 48 min até o primeiro brief aprovado.
@@ -28,7 +28,7 @@ Data: 2026-11-06. Fonte: `docs/pedidos/076-publicacao-local.md` (Histórico), `d
 
 ## 4. Avaliação dos pontos pedidos
 - Hook no `pnpm install` do devops (11:23): o controle funcionou (papel certo), mas o brief gerador não avisou; custo evitável de 1 etapa e 1 rodada. Causa: classe ambiente/brief.
-- Passo 4 falhou duas vezes sem categoria do erro (11:30 e 13:05), até 13:19 e rc=0 às 13:26: a saída "configuração ou banco inválidos" mistura variável ausente, autenticação e conexão (aqui eram duas causas: variável ausente e Postgres parado). O segundo aviso ao dono foi incompleto porque a primeira hipótese listava só duas variáveis. Medida: voltas por passo, alvo 1.
+- Passo 4 falhou duas vezes sem categoria do erro (11:30 e 13:05), até 13:19 e rc=0 às 13:26: a saída "configuração ou banco inválidos" mistura variável ausente, autenticação e conexão (aqui eram duas causas: variável ausente e Postgres parado). Medida: voltas por passo, alvo 1.
 - Comandos do 13:26 sem aprovação na tela: é desvio da decisão B. O modo da sessão (provável aprovação automática) anulou o controle; só o dono confirma se houve prompt. Não se afrouxa, vira regra de brief/hook.
 - Hook que barra texto de heredoc (13:29): falso positivo em texto que cita o comando; o hook não distingue citação de execução.
 - Queda da sessão anterior: o registro do que ficou pronto (commits locais, push preso) dependeu de reconstrução na retomada.
