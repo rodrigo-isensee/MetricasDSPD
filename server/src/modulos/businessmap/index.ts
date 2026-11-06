@@ -22,4 +22,4 @@ export { instanteDoBm, projetarCard, FUSO_PADRAO_BM } from './normalizador.js';
 export { projetarUsuarios, resolverResponsaveis, PRAZO_RELEITURA_DIAS, type ResultadoUsuarios } from './usuarios.js';
 export { indiceTipoDaColuna, resolverTipoDasTransicoes, type VersaoTipoColuna, type TipoDaColuna, type TransicaoLida } from './tipo-coluna.js';
 export * from './apontamento/index.js';
-export { lerDominioBm, analisarDominioBm, sincronizarDominioBm, dominiosDeLinhas, type ResultadoDominioBm } from './dominio-businessmap.js';
+export { lerDominioBm, analisarDominioBm, sincronizarDominioBm, dominiosDeLinhas, motivosDeLinhas, type ResultadoDominioBm } from './dominio-businessmap.js';
