@@ -27,5 +27,4 @@ Propósito: portão de segurança da dependência do E8 antes do PR. Público: t
 - Os 4 testes de entrada do server, que falham no sandbox (tsx em /tmp), ficam para a CI do PR, conforme o Histórico do pedido.
 
 ## Achados
-Nenhum achado bloqueante.
 - A1 (recomendado) pnpm-lock.yaml:2511 · confirmar na CI do PR a instalação congelada e a varredura de dependências verdes; sem isso a integridade das três versões não foi provada fora do diff.
