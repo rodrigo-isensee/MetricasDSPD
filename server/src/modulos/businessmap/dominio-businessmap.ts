@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
+import { MOTIVOS_BLOQUEIO, type MotivoBloqueio } from '@metricas-dspd/contratos';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
 import { ErroDominio, planejarDominio, textoSeguro, type LinhaVigente } from '../referencia/index.js';
@@ -18,6 +19,8 @@ export const ARQUIVO_DOMINIO_BM = new URL('../../../../docs/architecture/fontes/
 export const TAMANHO_MAXIMO_ARQUIVO = 512 * 1024;
 /** Valor de `ref_dominio.campo` da linha que liga `field_id` (codigo) à coluna (rotulo). */
 export const CAMPO_CUSTOMIZADO = 'campo_customizado';
+/** Valor de `ref_dominio.campo` do mapa `reason_id` (codigo) -> um dos 7 motivos do briefing (rotulo). O mapa é das pessoas (P-075-3). */
+export const CAMPO_MOTIVO_BLOQUEIO = 'motivo_bloqueio';
 
 /**
  * Lista POSITIVA dos `type` de campo customizado aceitos (A3 do modelo de ameaças): só seleção única. Vazia até o diagnóstico (P-L2-1) mostrar os
@@ -40,6 +43,9 @@ const criarCampo = (tipos: readonly string[]) =>
   })
   .strict();
 
+// Só os 7 do briefing: nunca texto livre nem "não classificado" (que é a ausência de mapa). Vários `reason_id` podem levar ao mesmo motivo.
+const valorMotivo = z.object({ codigo: z.string().regex(ID_CAMPO), rotulo: z.enum(MOTIVOS_BLOQUEIO) }).strict();
+
 export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_UNICA) => z
   .object({
     versao: z.literal(1),
@@ -50,9 +56,15 @@ export const criarEsquemaDominioBm = (tipos: readonly string[] = TIPOS_SELECAO_U
     tabela: z.literal('ref_dominio'),
     regra: textoSeguro(2000),
     campos: z.array(criarCampo(tipos)).max(40),
+    motivo_bloqueio: z.array(valorMotivo).max(500).default([]),
   })
   .strict()
   .superRefine((d, ctx) => {
+    const reasons = new Set<string>();
+    for (const [i, m] of d.motivo_bloqueio.entries()) {
+      if (reasons.has(String(Number(m.codigo)))) ctx.addIssue({ code: 'custom', path: ['motivo_bloqueio', i, 'codigo'], message: 'reason_id repetido' });
+      reasons.add(String(Number(m.codigo)));
+    }
     const ids = new Set<string>();
     const colunas = new Set<string>();
     for (const [i, c] of d.campos.entries()) {
@@ -106,6 +118,7 @@ export function listasDoArquivo(a: ArquivoDominioBm): Record<string, { codigo: s
     [CAMPO_CUSTOMIZADO]: a.campos.map((c) => ({ codigo: c.field_id, rotulo: c.coluna })),
   };
   for (const c of a.campos) listas[c.coluna] = c.valores;
+  listas[CAMPO_MOTIVO_BLOQUEIO] = a.motivo_bloqueio;
   return listas;
 }
 
@@ -192,5 +205,22 @@ export function dominiosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string
     for (const [rotulo, codigo] of porColuna.get(coluna) ?? []) if (codigo !== null) dominio.set(rotulo, codigo);
     if (dominio.size > 0) mapa.set(id, dominio);
   }
+  return mapa;
+}
+
+/**
+ * Leitura do mapa para o projetor (lote 4b), com a desconfiança do banco: só `reason_id` numérico e rótulo entre os 7 do briefing; `reason_id` ligado a
+ * dois motivos é ignorado. Sem entrada, o motivo fica sem mapa e a tela mostra "não classificado". Nenhuma tradução no código: o mapa só vem do arquivo.
+ */
+export function motivosDeLinhas(linhas: readonly LinhaRefDominio[]): Map<string, MotivoBloqueio> {
+  const validos = MOTIVOS_BLOQUEIO as readonly string[];
+  const por = new Map<string, MotivoBloqueio | null>();
+  for (const l of linhas) {
+    if (l.campo !== CAMPO_MOTIVO_BLOQUEIO || !ID_CAMPO.test(l.codigo) || !validos.includes(l.rotulo)) continue;
+    const id = String(Number(l.codigo));
+    por.set(id, por.has(id) && por.get(id) !== l.rotulo ? null : (l.rotulo as MotivoBloqueio));
+  }
+  const mapa = new Map<string, MotivoBloqueio>();
+  for (const [id, m] of por) if (m !== null) mapa.set(id, m);
   return mapa;
 }
