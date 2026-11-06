@@ -105,6 +105,11 @@ export const MOTIVOS_BLOQUEIO = [
 ] as const
 export type MotivoBloqueio = (typeof MOTIVOS_BLOQUEIO)[number]
 
+/** Motivo sem mapa para os 7 do briefing (P-075-3); texto exato da UX 075 §1. */
+export const MOTIVO_NAO_CLASSIFICADO = 'não classificado' as const
+export const MOTIVOS_BLOQUEIO_PUBLICADOS = [...MOTIVOS_BLOQUEIO, MOTIVO_NAO_CLASSIFICADO] as const
+export type MotivoBloqueioPublicado = (typeof MOTIVOS_BLOQUEIO_PUBLICADOS)[number]
+
 export const ORIGENS_DEMANDA = [
   'Erro em entrega anterior',
   'Configuração incorreta',
