@@ -136,6 +136,17 @@ describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
       rotulos.forEach((r) => expect(r.textContent).not.toMatch(PESSOA))
     })
 
+    it('sem dias bloqueados no período, não há leitura', async () => {
+      renderizarCartao(<CartaoO19 filtros={FILTROS_FLUXO} />, {
+        fonte: new FonteFixa({
+          O19: { ...COMUM, motivos: [], abertosForaDaSoma: 0, totalDiasUteis: 0 },
+        }),
+      })
+      const el = await screen.findByTestId('metrica-O19')
+      await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'))
+      expect(el).not.toHaveTextContent('de bloqueio no período')
+    })
+
     it('CA-1: só "não classificado" lê "bloqueio sem motivo classificado somou N dias"', async () => {
       renderizarCartao(<CartaoO19 filtros={FILTROS_FLUXO} />, {
         fonte: new FonteFixa({
