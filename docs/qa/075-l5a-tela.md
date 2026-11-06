@@ -18,9 +18,10 @@ Código testado: `6d4a392c`. O HEAD `92c10424` só soma o parecer do review (`do
 
 ## Escopo
 - Dentro: BLOQUEADOS (`CartaoBloqueados.tsx`), coluna "Bloqueado" do O2 (`CartaoO2.tsx`), O19 (`operacionais.tsx`), componente `MotivoBloqueio.tsx`, `TabelaDados` com `descritoPor`.
-- Fora: lote 5b, servidor e contratos, E2E.
+- Fora: lote 5b, servidor e contratos.
+- Acessibilidade: axe do projeto (`@axe-core/playwright`) num caso E2E novo, `e2e/tests-api/motivo-nao-classificado-075-l5a.spec.ts` (seção "Axe" abaixo).
 - `server/` e `packages/`: `git diff da61dbc2..6d4a392c -- server packages` vazio.
-- E2E não exigido por este parecer: o brief pede só se o plano do projeto exigir, e a fixture de E2E não traz motivo "não classificado" nessas telas; a tela é coberta por teste de componente com a fonte ajustada.
+- E2E funcional não exigido por este parecer: a tela é coberta por teste de componente com a fonte ajustada. O E2E novo cobre só a acessibilidade (a fixture de E2E não traz motivo "não classificado" nessas telas; a resposta da API é simulada por `page.route`).
 
 ## Critério → teste → resultado
 Arquivo de teste: `web/src/features/operacional/motivo-nao-classificado.test.tsx` (6 casos).
@@ -44,13 +45,20 @@ Arquivo de teste: `web/src/features/operacional/motivo-nao-classificado.test.tsx
 - Vermelho contra a base (cópia em `$TMPDIR/qa-engineer-075-l5a/`: fontes do lote voltadas a `da61dbc2`, teste novo mantido, `MotivoBloqueio.tsx` removido): 4 de 6 falham (BLOQUEADOS, O2, O19 ordem e O19 só não classificado); os 2 que passam são guardas de regressão (CA-10 e "sem dias bloqueados"), que a base já cumpria. O teste novo só passa com a implementação.
 - Mutação: sem ferramenta gratuita declarada para o `web`; não rodada.
 
-## Contraste (medido pela fórmula de luminância WCAG, a mesma do axe, com os tokens de `web/src/styles/tokens.css`)
+## Axe (`@axe-core/playwright`, ferramenta do projeto; E2E em `e2e/package.json`)
+Caso novo `e2e/tests-api/motivo-nao-classificado-075-l5a.spec.ts` (`Q75-5A-AXE`, temas claro e escuro). Projeto `chromium-api`, Chromium, 2 workers, só esse arquivo, `uptime` com load 2,5 antes. SPA em `VITE_FONTE=api` e o stub `server/tests/pg/api-stub-065.ts` (porta 3199, sem banco), `E2E_API_URL=http://127.0.0.1:3199`. A resposta é simulada por `page.route`, sem tocar em `server/` nem em `web/src`: BLOQUEADOS e O19 com corpos de contrato (o stub os devolve `sem-dado-real`), O2 com o corpo do stub e `bloqueioMotivo` = "não classificado" em todos os itens, sem notas. Os três cartões mostram "não classificado" (conferido por `getByText` visível, `data-estado="ok"`).
+- Regras: `AXE_TAGS` do projeto (`wcag2a`, `wcag2aa`, `wcag22aa`), `include` por cartão (`metrica-BLOQUEADOS`, `metrica-O2` na visão diária; `metrica-O19` em "Mais métricas" da semanal), sem separar por gravidade: qualquer violação reprova.
+- Resultado: BLOQUEADOS, O2 e O19, nos dois temas: zero violações em todas as regras (`2 passed (17.0s)`).
+- Dentes do teste: cópia ad hoc (apagada, não commitada) com `color: #bbb` forçado no texto itálico do tema claro derrubou o caso claro com `color-contrast`; o escuro, onde #bbb tem contraste, passou. A regra roda e reprova quando deve.
+
+## Contraste (regra `color-contrast` do axe, acima, e a conferência anterior pela fórmula de luminância WCAG com os tokens de `web/src/styles/tokens.css`)
+Resultado da ferramenta: zero violações de `color-contrast` nos três cartões, nos dois temas (a regra roda isolada por cartão e exige ao menos uma verificação ou `incomplete`). Os valores abaixo são a conferência por fórmula anterior e batem com o resultado da ferramenta.
 | Token | Tema claro (sobre `superficie` / `fundo` / `superficie-2`) | Tema escuro (sobre `superficie` / `fundo` / `superficie-2`) |
 |---|---|---|
 | `text-texto-2` | 7,73 / 7,21 / 6,83 | 8,08 / 8,73 / 7,17 |
 | série 7 (hachura e legenda) | 5,94 / n/a / 5,25 | 6,71 / n/a / 5,96 |
 
-Todos acima de 4,5:1, mínimo da CA-4. Medição por cálculo sobre os tokens: o E2E com axe real não roda este valor porque a fixture não o traz.
+Todos acima de 4,5:1, mínimo da CA-4. O axe real rodou com o motivo na tela (seção "Axe") e confirmou sem violação.
 
 ## Baixo 5 da revisão de UX (apoio do motivo no O2)
 O apoio ("Motivo ainda sem classificação...") aparece só se houver "não classificado" entre os 10 itens listados (`CartaoO2.tsx:71`), como a especificação e a revisão de UX descrevem. Conferido por teste ad hoc em cópia (não commitado), 3 casos:
@@ -65,6 +73,9 @@ Comportamento aceito; vira linha de teste só se o dono pedir.
 
 ## E4 (P-075-8): O19
 O O19 mostra o "não classificado" como linha da tabela e barra com os dias publicados (70 de `totalDiasUteis` 100 no caso "CA-2 e CA-4"), junto dos demais motivos; a tela não recalcula o total, usa o do contrato (T2.5). O teste não afirma uma linha de total na tela, porque ela não existe: a soma ao total é do servidor (lote 1b, QA próprio).
+
+## Veredito revisto (volta do E1.8, 2026-11-06)
+Aprovado mantido: o axe do projeto e a regra de contraste rodaram nos três cartões com o motivo na tela, nos dois temas, com zero violações. `commit:` segue o código testado (`6d4a392c`).
 
 ## Bugs
 Nenhum aberto (críticos 0, altos 0, médios 0, baixos 0).
