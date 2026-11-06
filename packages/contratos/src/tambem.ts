@@ -10,7 +10,7 @@
 import { z } from 'zod'
 import {
   MINIMO_AMOSTRA,
-  MOTIVOS_BLOQUEIO,
+  MOTIVOS_BLOQUEIO_PUBLICADOS,
   NATUREZAS_ENTREGA,
   TIPOS_CARD,
   baseAmostralSchema,
@@ -68,7 +68,7 @@ export const resultadoO19 = fechado({
   ...comum,
   motivos: z.array(
     fechado({
-      motivo: z.enum(MOTIVOS_BLOQUEIO),
+      motivo: z.enum(MOTIVOS_BLOQUEIO_PUBLICADOS),
       bloqueios: z.number(),
       diasUteis: z.number(),
       pctDoTotal: pctDiasUteisSchema,

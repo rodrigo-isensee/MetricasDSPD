@@ -2891,7 +2891,8 @@
                                       "Dependência de outra demanda",
                                       "Falta de informação no chamado",
                                       "Janela de mudança",
-                                      "Aguardando licença ou contrato"
+                                      "Aguardando licença ou contrato",
+                                      "não classificado"
                                     ]
                                   },
                                   {
@@ -3497,7 +3498,8 @@
                                   "Dependência de outra demanda",
                                   "Falta de informação no chamado",
                                   "Janela de mudança",
-                                  "Aguardando licença ou contrato"
+                                  "Aguardando licença ou contrato",
+                                  "não classificado"
                                 ]
                               },
                               "fornecedor": {
@@ -14265,7 +14267,8 @@
                                   "Dependência de outra demanda",
                                   "Falta de informação no chamado",
                                   "Janela de mudança",
-                                  "Aguardando licença ou contrato"
+                                  "Aguardando licença ou contrato",
+                                  "não classificado"
                                 ]
                               },
                               "bloqueios": {

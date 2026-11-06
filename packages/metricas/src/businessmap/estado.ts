@@ -1,4 +1,4 @@
-import type { MotivoBloqueio } from '@metricas-dspd/contratos'
+import type { MotivoBloqueioPublicado } from '@metricas-dspd/contratos'
 import { horasUteisEntre } from '../core/calendario'
 import { ordenarNeutro } from '../core/ordenar'
 import { arquivadoForaDoAbertoEm, fimDeVidaAberta } from './descartado'
@@ -14,7 +14,7 @@ export interface EstadoEm {
   emWip: boolean
   ultimaTransicao: number | null
   bloqueioAberto: {
-    motivo: MotivoBloqueio
+    motivo: MotivoBloqueioPublicado
     inicio: number
     coluna: string
     fornecedor: string | null
