@@ -16,10 +16,10 @@ export type TarefaAcelerato = 'coleta_incremental' | 'varredura';
 /** Parâmetros registrados: hashes do que identifica a origem e as listas (nunca host, banco ou senha em claro). */
 export type ParametrosColeta = {
   host_sha256: string; banco_sha256: string; tabela: string; colunas_sha256: string; campos_sha256: string;
-  sql_sha256: string; tls_sha256: string; fluxo_sha256: string; sincronizado_em_max: string | null;
+  sql_sha256: string; tls_sha256: string; fluxo_sha256: string; recorte_sha256: string; vocabulario_sha256: string; sincronizado_em_max: string | null;
 };
 /** Mudança de qualquer uma destas, sem versão de critério reconhecida, recusa a coleta (CA-8). */
-export const CHAVES_COMPARADAS = ['host_sha256', 'banco_sha256', 'tabela', 'colunas_sha256', 'campos_sha256', 'sql_sha256', 'tls_sha256', 'fluxo_sha256'] as const;
+export const CHAVES_COMPARADAS = ['host_sha256', 'banco_sha256', 'tabela', 'colunas_sha256', 'campos_sha256', 'sql_sha256', 'tls_sha256', 'fluxo_sha256', 'recorte_sha256', 'vocabulario_sha256'] as const;
 
 /**
  * SHA-256 da lista de posições das etapas (`codigo|ordem`, uma por linha, ordenada por `codigo`). Trocar a lista muda o valor decidido dos campos
@@ -28,11 +28,35 @@ export const CHAVES_COMPARADAS = ['host_sha256', 'banco_sha256', 'tabela', 'colu
 export const fluxoSha256 = (ordem: ReadonlyMap<number, number>): string =>
   sha256Texto([...ordem].sort(([a], [b]) => a - b).map(([codigo, posicao]) => `${codigo}|${posicao}`).join('\n'));
 
-export function montarParametros(config: ConfigAcelerato, sincronizadoEmMax: string | null, ordemFluxo: ReadonlyMap<number, number>): ParametrosColeta {
+/** Campos de `ref_dominio` do recorte (o que entra no WHERE da Q1) e do vocabulário (allow-list de valores); `cpe_*` entram pelas linhas lidas. */
+export const CAMPOS_RECORTE = ['tipo_recorte', 'organizacao_recorte', 'equipe'] as const;
+export const CAMPOS_VOCABULARIO = ['etapa', 'prioridade', 'categoria', 'descricao_workflow'] as const;
+export type LinhaLista = { campo: string; codigo: string; rotulo: string };
+/** Hashes das listas de `ref_dominio` lidas na partida (CA-8, K-224). Só hash: nunca o valor das listas. */
+export type HashesListas = { recorte_sha256: string; vocabulario_sha256: string };
+
+/**
+ * SHA-256 de uma lista de `ref_dominio` vigente: uma linha `campo|codigo|rotulo` por item, ordenada por `campo` e `codigo` (a ordem de chegada e a
+ * `ordem` de exibição não entram). Lista vazia tem hash estável (o da string vazia).
+ */
+export const listasSha256 = (linhas: readonly LinhaLista[]): string =>
+  sha256Texto([...linhas].sort((a, b) => (a.campo < b.campo ? -1 : a.campo > b.campo ? 1 : a.codigo < b.codigo ? -1 : a.codigo > b.codigo ? 1 : 0))
+    .map((l) => `${l.campo}|${l.codigo}|${l.rotulo}`).join('\n'));
+
+/** `recorte_sha256` (tipo, organização, equipe) e `vocabulario_sha256` (etapa, prioridade, categoria, workflow e os domínios `cpe_*`). */
+export function hashesDasListas(linhas: readonly LinhaLista[], linhasDominiosEtapa: readonly LinhaLista[]): HashesListas {
+  const recorte: readonly string[] = CAMPOS_RECORTE, vocab: readonly string[] = CAMPOS_VOCABULARIO;
+  return {
+    recorte_sha256: listasSha256(linhas.filter((l) => recorte.includes(l.campo))),
+    vocabulario_sha256: listasSha256([...linhas.filter((l) => vocab.includes(l.campo)), ...linhasDominiosEtapa]),
+  };
+}
+
+export function montarParametros(config: ConfigAcelerato, sincronizadoEmMax: string | null, ordemFluxo: ReadonlyMap<number, number>, listas: HashesListas): ParametrosColeta {
   return {
     host_sha256: sha256Texto(config.host), banco_sha256: sha256Texto(config.banco), tabela: TABELA_ORIGEM,
     colunas_sha256: sha256Texto(COLUNAS_DA_LINHA.join(',')), campos_sha256: sha256Texto([...NOMES_CAMPO_FATIA_F1, ...CAMPOS_ETAPA_F3.map((c) => `${c.nome}|${c.tratamento}`)].join('\n')),
-    sql_sha256: sqlSha256(), tls_sha256: config.tlsSha256, fluxo_sha256: fluxoSha256(ordemFluxo), sincronizado_em_max: sincronizadoEmMax,
+    sql_sha256: sqlSha256(), tls_sha256: config.tlsSha256, fluxo_sha256: fluxoSha256(ordemFluxo), ...listas, sincronizado_em_max: sincronizadoEmMax,
   };
 }
 
