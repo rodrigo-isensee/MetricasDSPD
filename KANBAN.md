@@ -1,7 +1,7 @@
 # Quadro Kanban
 
 > Máquina nova (2026-10-27, plugin Forge 0.30.3, projeto ainda em 0.28.0): repositório em /home/rodrigoisensee/MetricasDSPD, branch do Jarvis docs/jarvis-2026-10-23. Sem Node, Docker, `.env` e dependências: K-140 (versão, dono roda `forge-upgrade`) e K-141 (ambiente, dono) bloqueiam a fila do 041. Pedido 042.
-> Atualizado em: 2026-10-27 12:55 (estado da retomada no Histórico do pedido 042) · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
+> Atualizado em: 2026-11-06 09:40 (pedido 073; estado no Histórico do pedido) · Mantido pelo Jarvis; políticas do `agile-coach` (skill `kanban-scrum` do Forge).
 > WIP: plugin Forge 0.30.3; WSL com 7 GB visíveis nesta máquina: uma suíte de teste por vez e poucos agentes em paralelo (dono, 2026-10-23) · Bloqueados: 1 (K-141)
 > Retomada de 2026-10-17: pedidos 011 (seção "Retomada"), 012 (K-102), 013 (limpeza e docs), 014 (#101), 015 (montecarlo) e 016 (homolog-aprovada). Até 2026-10-16 o quadro ficou desatualizado; o registro daquele período está em `docs/kanban/estado-2026-10-14-noite.md` e no histórico.
 
@@ -17,7 +17,6 @@
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-233 | [técnico] O format:check da raiz não cobre o e2e/ (46 arquivos fora do estilo) | 073 | forge:tech-lead | 2026-11-05 | 2026-11-05 19:38 | Lacuna irmã do K-226, vista na análise E5.1 |
-| K-234 | [técnico] O coletor do BusinessMap não tem controle CA-8: mudança de lista em dspd_bm.ref_dominio passa sem recusa | 073 | forge:software-architect | 2026-11-05 | 2026-11-05 20:56 | Visto no desenho do E3 (docs/analises/073-e3-desenho.md §5) |
 | K-235 | [técnico] --reconhecer-mudanca libera edição direta no banco sem versão de critério (R1 do review 056) | 073 | forge:node-backend | 2026-11-05 | 2026-11-05 20:56 | Visto no desenho do E3; fica fora do K-224 |
 | K-231 | [lacuna] L2-c do 069: campo de data do quadro (data_acordada) só se o de-para P-L2-1 mostrar que ele existe; depende das pessoas (WS1) | 069 | forge:software-architect | 2026-11-05 | 2026-11-05 18:12 | Espera a resposta do P-L2-1 (docs/analises/069-desenho.md, linhas 25 e 124) |
 | K-226 | [técnico] format:check da raiz não cobre o server/ (o prettier acusa estilo nos arquivos do server) | 069 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
@@ -113,7 +112,6 @@
 | K-171 | [forge] Resumo de todos os problemas do Forge vividos no projeto, para o Jarvis do Forge (pedido 046) | 046 | forge:agile-coach | 2026-10-28 | 2026-10-28 13:52 | Recibo enviado ao dono |
 | K-121 | [docs] 10 documentos antigos de docs/qa e docs/architecture sem frontmatter (ADR 0004) poluem o forge-check docs e escondem achados novos | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 22:25 | Melhoria vista no review do 036 e no QA do 035 |
 | K-120 | [teste] Preview órfão de outra worktree na porta 4173 bloqueia ou serve build errado no test:perf (playwright.config.ts, reuseExistingServer) | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:58 | Melhoria vista do QA no reteste do FA-006 |
-| K-227 | [técnico] ADR 0023 ainda marcada como proposta, embora o CLAUDE.md já a trate como vigente | 069 | forge:software-architect | 2026-11-05 | 2026-11-05 21:13 | Dono decidiu "A": vigente desde 2026-11-04; edição da ADR numa branch de documentação a abrir |
 
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -127,8 +125,8 @@
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-29 07:44 | Push feito pelo dono (2026-10-29); conferência da entrega e PR ao Forge (E3.2 a E3.5 do 047) · worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 |
 | K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-29 07:44 | Volta 2 do E4.1 (react-frontend-11): DECISÃO DO DONO 048-03 = A (barra de filtros sem fixação) · worktree: MetricasDSPD-048b |
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
-| K-224 | [técnico] Mudança de lista em ref_dominio passa sem a recusa do CA-8 (controle.ts só faz hash das constantes do código) | 069 | forge:node-backend | 2026-11-05 | 2026-11-05 21:13 | Desenho pronto (docs/analises/073-e3-desenho.md) e decisões P-E3-1 e P-E3-2 do dono; brief da implementação em conferência |
 | K-229 | [técnico] Seção [Não publicado] do CHANGELOG ainda lista itens da release 068, já na main pelo PR 229 | 071 | forge:tech-lead | 2026-11-05 | 2026-11-05 21:13 | Proposta pronta (docs/analises/073-changelog.md): versões 0.3.0 a 0.6.0 e combinada 0.7.0; seções entram no chore(release) da release combinada |
+| K-234 | [técnico] O coletor do BusinessMap não tem controle CA-8: mudança de lista em dspd_bm.ref_dominio passa sem recusa | 073 | forge:software-architect | 2026-11-05 | 2026-11-06 09:40 | E9 do 073: desenho E9.1 do software-architect (brief software-architect-5 na conferência), só leitura |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -139,7 +137,9 @@
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-128 | [025 review A1] COM_TAMBEM da MockFonteMetricas sem T11, T13 e T14 (no mock, T13/T14 sem vínculo e sem time); depois do 037 (arquivo agora em nucleoMock.ts) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-30 08:49 | Lote 048d (K-128, K-126, K-133, K-127), feature/048-ajustes-front; volta 1: review do delta aprovado (ed5b0c2); QA atualiza o commit do parecer, brief qa-engineer-13 · worktree: MetricasDSPD-048d |
-| K-232 | [segurança] Atualizar por patch body-parser 1.20.9, qs 6.16.1 e ip-address 10.7.4 no pnpm-lock.yaml (alertas 17, 26 e 13 da triagem) | 073 | forge:node-backend | 2026-11-05 | 2026-11-05 21:13 | feature/073-deps-patch: segurança e review aprovados e conferidos (347106ef); QA com o qa-engineer |
+| K-224 | [técnico] Mudança de lista em ref_dominio passa sem a recusa do CA-8 (controle.ts só faz hash das constantes do código) | 069 | forge:node-backend | 2026-11-05 | 2026-11-06 09:40 | Review 50095cef e segurança 2aedc573 aprovados; entrega conferida 2aedc573; QA em curso (brief qa-engineer-6) · worktree: MetricasDSPD-052e |
+| K-227 | [técnico] ADR 0023 ainda marcada como proposta, embora o CLAUDE.md já a trate como vigente | 069 | forge:software-architect | 2026-11-05 | 2026-11-06 09:40 | ADR 0023 vigente (9d0c1b99), review 90fc0097 e QA b369cbae aprovados e conferidos; PR depois do PR 242 (brief tech-lead-28) · worktree: MetricasDSPD-052g |
+| K-232 | [segurança] Atualizar por patch body-parser 1.20.9, qs 6.16.1 e ip-address 10.7.4 no pnpm-lock.yaml (alertas 17, 26 e 13 da triagem) | 073 | forge:node-backend | 2026-11-05 | 2026-11-06 09:40 | Review, segurança e QA conferidos (a8810bf2); PR 242 aberto pelo tech-lead, CI em curso · worktree: MetricasDSPD-052f |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |

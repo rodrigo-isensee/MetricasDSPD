@@ -2077,3 +2077,28 @@
 | 2026-11-06 08:27 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-4 | brief | 1 | aprovado | — | edição da ADR 0023 (E2.2) | — | jarvis |
 | 2026-11-06 08:31 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-25 | brief | 1 | aprovado | — | review da branch de docs | — | jarvis |
 | 2026-11-06 08:33 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-26 | brief | 1 | aprovado | — | review do E3 | — | jarvis |
+| 2026-11-06 09:14 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-11 | brief | 1 | aprovado | — | parecer de segurança do E3 | — | jarvis |
+| 2026-11-06 09:17 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-24 | entrega | 1 | não cumpriu (escopo) | s | entregas paralelas na mesma branch conferidas em separado | escopo | destino |
+| 2026-11-06 09:17 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-10 | entrega | 1 | não cumpriu (escopo) | s | entregas paralelas na mesma branch conferidas em separado | escopo | destino |
+| 2026-11-06 09:17 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-3 | entrega | 2 | não cumpriu (escopo) | s | entregas paralelas na mesma branch conferidas em separado | escopo | destino |
+| 2026-11-06 09:17 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-25 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 09:20 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 09:21 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-24 | entrega | 2 | não cumpriu (escopo) | s | mensagem do Jarvis mandou --branch origin/...; a união compara com a Branch do brief | forma | destino |
+| 2026-11-06 09:21 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-10 | entrega | 2 | não cumpriu (escopo) | s | mensagem do Jarvis mandou --branch origin/...; a união compara com a Branch do brief | forma | destino |
+| 2026-11-06 09:21 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-3 | entrega | 3 | não cumpriu (escopo) | s | mensagem do Jarvis mandou --branch origin/...; a união compara com a Branch do brief | forma | destino |
+| 2026-11-06 09:24 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-3 | entrega | 4 | cumpriu | s | união de briefs do E8 | — | destino |
+| 2026-11-06 09:24 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-24 | entrega | 3 | cumpriu | s | união de briefs do E8 | — | destino |
+| 2026-11-06 09:24 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-10 | entrega | 3 | cumpriu | s | união de briefs do E8 | — | destino |
+| 2026-11-06 09:26 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-7 | entrega | 1 | não cumpriu (escopo) | s | teste vizinho com a assinatura nova de montarParametros | escopo | destino |
+| 2026-11-06 09:26 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-26 | entrega | 1 | cumpriu | s | hash do brief pedido ao Jarvis | — | destino |
+| 2026-11-06 09:26 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-11 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 09:27 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-4 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 09:28 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-27 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 09:28 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-7 | entrega | 2 | não cumpriu (escopo) | s | teste vizinho com linha removida fora do Entregar; precisa de brief que o nomeie | escopo | destino |
+| 2026-11-06 09:29 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-28 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 09:31 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-8 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 09:34 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-7 | entrega | 3 | cumpriu | s | conjunta com node-backend-8 | — | destino |
+| 2026-11-06 09:34 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-8 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 09:34 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-5 | brief | 1 | reprovado | n | linha 20:34 presente no brief (falso achado); conferida do E3 gravada às 09:34 | decisao | jarvis |
+| 2026-11-06 09:36 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-5 | brief | 2 | não verificável | parcial | sem --anterior; texto da primeira coleta depois do deploy ambíguo | forma | jarvis |
+| 2026-11-06 09:38 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-6 | brief | 1 | aprovado | — |  | — | jarvis |

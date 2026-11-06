@@ -780,3 +780,4 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-11-05 21:13 · K-234 · criado em Entrada (CA-8 no BusinessMap)
 - 2026-11-05 21:13 · K-235 · criado em Entrada (R1 do review 056)
 - 2026-11-06 08:25 · K-225 · Aguardando validação → Pronto (PR 240 mesclado)
+- 2026-11-06 09:40 | K-224, K-227, K-232 para QA/PR; K-234 para Em andamento (desenho E9.1) | pedido 073 | Jarvis
