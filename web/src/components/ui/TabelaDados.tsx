@@ -18,7 +18,7 @@ export interface TabelaDadosProps {
   /** Texto exibido quando não há linhas. */
   vazio?: string
   /** Id do texto de apoio visível, ligado à tabela por `aria-describedby`. */
-  descritoPor?: string
+  descritoPor?: string | undefined
 }
 
 /**
