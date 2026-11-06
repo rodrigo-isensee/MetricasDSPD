@@ -770,3 +770,13 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-11-05 18:12 · K-221 · → Pronto (pedido 070 fechado com a retrospectiva)
 - 2026-11-05 18:26 · K-232 · criado em Entrada (E8 do pedido 073)
 - 2026-11-05 19:38 · K-233 · criado em Entrada (e2e fora do format:check)
+- 2026-11-05 21:13 · K-230 · Entrada → Pronto (PR 241 mesclado)
+- 2026-11-05 21:13 · K-228 · Entrada → Pronto (triagem e aceite dos alertas)
+- 2026-11-05 21:13 · K-225 · Entrada → Aguardando validação (PR 240)
+- 2026-11-05 21:13 · K-232 · Entrada → QA
+- 2026-11-05 21:13 · K-224 · Entrada → Em andamento (desenho e decisões do dono)
+- 2026-11-05 21:13 · K-229 · Entrada → Em andamento (proposta pronta)
+- 2026-11-05 21:13 · K-227 · Entrada → Pronto para fazer (decisão do dono)
+- 2026-11-05 21:13 · K-234 · criado em Entrada (CA-8 no BusinessMap)
+- 2026-11-05 21:13 · K-235 · criado em Entrada (R1 do review 056)
+- 2026-11-06 08:25 · K-225 · Aguardando validação → Pronto (PR 240 mesclado)

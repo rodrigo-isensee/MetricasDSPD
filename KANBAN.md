@@ -19,15 +19,8 @@
 | K-233 | [técnico] O format:check da raiz não cobre o e2e/ (46 arquivos fora do estilo) | 073 | forge:tech-lead | 2026-11-05 | 2026-11-05 19:38 | Lacuna irmã do K-226, vista na análise E5.1 |
 | K-234 | [técnico] O coletor do BusinessMap não tem controle CA-8: mudança de lista em dspd_bm.ref_dominio passa sem recusa | 073 | forge:software-architect | 2026-11-05 | 2026-11-05 20:56 | Visto no desenho do E3 (docs/analises/073-e3-desenho.md §5) |
 | K-235 | [técnico] --reconhecer-mudanca libera edição direta no banco sem versão de critério (R1 do review 056) | 073 | forge:node-backend | 2026-11-05 | 2026-11-05 20:56 | Visto no desenho do E3; fica fora do K-224 |
-| K-232 | [segurança] Atualizar por patch body-parser 1.20.9, qs 6.16.1 e ip-address 10.7.4 no pnpm-lock.yaml (alertas 17, 26 e 13 da triagem) | 073 | forge:node-backend | 2026-11-05 | 2026-11-05 18:26 | Item E8 do pedido 073; parecer de segurança da dependência antes do PR |
 | K-231 | [lacuna] L2-c do 069: campo de data do quadro (data_acordada) só se o de-para P-L2-1 mostrar que ele existe; depende das pessoas (WS1) | 069 | forge:software-architect | 2026-11-05 | 2026-11-05 18:12 | Espera a resposta do P-L2-1 (docs/analises/069-desenho.md, linhas 25 e 124) |
-| K-224 | [técnico] Mudança de lista em ref_dominio passa sem a recusa do CA-8 (controle.ts só faz hash das constantes do código) | 069 | forge:node-backend | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
-| K-225 | [técnico] Regra de fronteira do eslint do server vale só para as pastas listadas; pasta nova em src/ escapa sem aviso | 069 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
 | K-226 | [técnico] format:check da raiz não cobre o server/ (o prettier acusa estilo nos arquivos do server) | 069 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
-| K-227 | [técnico] ADR 0023 ainda marcada como proposta, embora o CLAUDE.md já a trate como vigente | 069 | forge:software-architect | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
-| K-228 | [segurança] Refazer a triagem dos 6 alertas abertos do Dependabot (a triagem antiga envelheceu em branch sem PR) | 072 | forge:security-engineer | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
-| K-229 | [técnico] Seção [Não publicado] do CHANGELOG ainda lista itens da release 068, já na main pelo PR 229 | 071 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
-| K-230 | [docs] PR dos pareceres que faltam na develop: feature/069-l7-calendario (069-zz2-l7a) e feature/011-metricas-tambem-back (revalidação 011-back) | 072 | forge:tech-lead | 2026-11-05 | 2026-11-05 18:01 | Na entrada (Pronto para fazer no limite de WIP); aberto a partir dos reviews e da retrospectiva de 2026-11-05 |
 | K-193 | [feature] Aba Apontamento inteira (pedido 059): exceção formal no CLAUDE.md e no briefing, contrato, coleta do worklog, rota, front, pareceres e PRs | 059 | forge:tech-lead | 2026-11-01 | 2026-11-01 17:30 | Decisão do dono A (2026-11-01); aguarda o recibo e a pergunta de quem vê a aba; depois de 2026-11-02 |
 | K-194 | [segurança] Triagem dos 15 alertas do Dependabot (pedido 060) | 060 | forge:security-engineer | 2026-11-02 | 2026-11-02 18:20 | Modo analisar; sem mudar dependência |
 | K-195 | [urgente] Métricas só com dado real: tirar o mock da leitura e bloquear a regeração de fictícios (pedido 060, E2) | 060 | forge:software-architect | 2026-11-02 | 2026-11-02 19:30 | Discovery; base real intocada nesta etapa |
@@ -120,6 +113,7 @@
 | K-171 | [forge] Resumo de todos os problemas do Forge vividos no projeto, para o Jarvis do Forge (pedido 046) | 046 | forge:agile-coach | 2026-10-28 | 2026-10-28 13:52 | Recibo enviado ao dono |
 | K-121 | [docs] 10 documentos antigos de docs/qa e docs/architecture sem frontmatter (ADR 0004) poluem o forge-check docs e escondem achados novos | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 22:25 | Melhoria vista no review do 036 e no QA do 035 |
 | K-120 | [teste] Preview órfão de outra worktree na porta 4173 bloqueia ou serve build errado no test:perf (playwright.config.ts, reuseExistingServer) | 036 | forge:tech-lead | 2026-10-20 | 2026-10-20 21:58 | Melhoria vista do QA no reteste do FA-006 |
+| K-227 | [técnico] ADR 0023 ainda marcada como proposta, embora o CLAUDE.md já a trate como vigente | 069 | forge:software-architect | 2026-11-05 | 2026-11-05 21:13 | Dono decidiu "A": vigente desde 2026-11-04; edição da ADR numa branch de documentação a abrir |
 
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -133,6 +127,8 @@
 | K-164 | [forge] Hook `parecer` e `forge-check pr` com a mesma base; achado aceita `arquivo:linha-linha` (opção B do dono; o resto fica fora) | 047 | forge:tech-lead | 2026-10-28 | 2026-10-29 07:44 | Push feito pelo dono (2026-10-29); conferência da entrega e PR ao Forge (E3.2 a E3.5 do 047) · worktree: ~/.forge-contrib/MetricasDSPD-wt/k164 |
 | K-074 | Revisão geral de usabilidade: U1–U5, catálogo na Ajuda e topo enxuto | usabilidade | forge:react-frontend | 2026-10-14 | 2026-10-29 07:44 | Volta 2 do E4.1 (react-frontend-11): DECISÃO DO DONO 048-03 = A (barra de filtros sem fixação) · worktree: MetricasDSPD-048b |
 | K-104 | Docs da R-1 = B: ADR 0020 e plano (E3) | 011 | forge:software-architect | 2026-10-17 | 2026-10-17 10:00 | Na develop (#102). CAs da especificação (ux-designer, E3.2) pendentes |
+| K-224 | [técnico] Mudança de lista em ref_dominio passa sem a recusa do CA-8 (controle.ts só faz hash das constantes do código) | 069 | forge:node-backend | 2026-11-05 | 2026-11-05 21:13 | Desenho pronto (docs/analises/073-e3-desenho.md) e decisões P-E3-1 e P-E3-2 do dono; brief da implementação em conferência |
+| K-229 | [técnico] Seção [Não publicado] do CHANGELOG ainda lista itens da release 068, já na main pelo PR 229 | 071 | forge:tech-lead | 2026-11-05 | 2026-11-05 21:13 | Proposta pronta (docs/analises/073-changelog.md): versões 0.3.0 a 0.6.0 e combinada 0.7.0; seções entram no chore(release) da release combinada |
 
 ## Code review (WIP 2)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -143,6 +139,7 @@
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
 | K-128 | [025 review A1] COM_TAMBEM da MockFonteMetricas sem T11, T13 e T14 (no mock, T13/T14 sem vínculo e sem time); depois do 037 (arquivo agora em nucleoMock.ts) | 025 | forge:react-frontend | 2026-10-21 | 2026-10-30 08:49 | Lote 048d (K-128, K-126, K-133, K-127), feature/048-ajustes-front; volta 1: review do delta aprovado (ed5b0c2); QA atualiza o commit do parecer, brief qa-engineer-13 · worktree: MetricasDSPD-048d |
+| K-232 | [segurança] Atualizar por patch body-parser 1.20.9, qs 6.16.1 e ip-address 10.7.4 no pnpm-lock.yaml (alertas 17, 26 e 13 da triagem) | 073 | forge:node-backend | 2026-11-05 | 2026-11-05 21:13 | feature/073-deps-patch: segurança e review aprovados e conferidos (347106ef); QA com o qa-engineer |
 
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
@@ -213,6 +210,9 @@
 | K-066 | Front via API (HttpFonteMetricas, VITE_FONTE) | — | forge:react-frontend | 2026-10-13 | 2026-10-13 22:44 | #59 e #61 na homolog; segue no PR #63 |
 | K-067 | QA intensivo de filtros na main (IF-001 a 007) | qa-intensivo | forge:qa-engineer | 2026-10-13 | 2026-10-13 | Parecer em `docs/qa/intensivo-filtros.md`; os testes vão com K-069 |
 | K-068 | QA intensivo sistêmico na main (IS-001 a 007) | qa-intensivo | forge:qa-engineer | 2026-10-13 | 2026-10-13 | Aprovado com ressalvas, sem bugs críticos nem altos; os testes vão com K-069 |
+| K-230 | [docs] PR dos pareceres que faltam na develop: feature/069-l7-calendario (069-zz2-l7a) e feature/011-metricas-tambem-back (revalidação 011-back) | 072 | forge:tech-lead | 2026-11-05 | 2026-11-05 21:13 | PR 241 mesclado na develop (E7, review 33242d82 e QA ff872dc1 conferidos) |
+| K-228 | [segurança] Refazer a triagem dos 6 alertas abertos do Dependabot (a triagem antiga envelheceu em branch sem PR) | 072 | forge:security-engineer | 2026-11-05 | 2026-11-05 21:13 | Triagem 3478fcfc e aceite dos alertas 16 e 27 (d82ac9b7, revisão 2026-12-05) na branch do Jarvis; vão à develop numa branch de documentação antes da release |
+| K-225 | [técnico] Regra de fronteira do eslint do server vale só para as pastas listadas; pasta nova em src/ escapa sem aviso | 069 | forge:tech-lead | 2026-11-05 | 2026-11-06 08:25 | PR 240 mesclado na develop (f21220fe), merge conferido |
 
 ## Bloqueado
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |

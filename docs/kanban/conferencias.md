@@ -2063,3 +2063,17 @@
 | 2026-11-05 20:49 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-18 | brief | 2 | aprovado | — | PR do E7 | — | jarvis |
 | 2026-11-05 20:51 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-3 | brief | 1 | aprovado | — | desenho do E3 | — | jarvis |
 | 2026-11-05 21:01 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-19 | brief | 1 | aprovado | — | proposta do CHANGELOG (E6.1) | — | jarvis |
+| 2026-11-05 21:10 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-3 | brief | 1 | aprovado | — | QA do E8 | — | jarvis |
+| 2026-11-05 21:11 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-6 | brief | 1 | reprovado | s | P-E3-1 reduzida; NÃO tocar natureza_prefixo amplo demais | decisao | jarvis |
+| 2026-11-05 21:12 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-18 | entrega | 1 | cumpriu | — | PR 241 mesclado, E7 | — | destino |
+| 2026-11-05 21:13 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-7 | brief | 2 | aprovado | — | implementação do E3 | — | jarvis |
+| 2026-11-05 21:17 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-21 | brief | 1 | reprovado | s | CLAUDE.md da develop já traz a regra desde 2026-10-27; sem PR contra a decisão | base | jarvis |
+| 2026-11-05 21:19 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-22 | brief | 2 | aprovado | — | branch de documentação (E2.3) | — | jarvis |
+| 2026-11-06 08:23 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-3 | entrega | 1 | não cumpriu (etapa) | s | QA ok; forge-check pr reprova o formato dos achados do review e da segurança | forma | destino |
+| 2026-11-06 08:25 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-24 | brief | 1 | aprovado | — | acerto do formato do review do E8 | — | jarvis |
+| 2026-11-06 08:25 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-4 | entrega | 2 | cumpriu | — | PR 240 mesclado, E4 | — | destino |
+| 2026-11-06 08:25 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-10 | brief | 1 | aprovado | — | acerto do formato do parecer de segurança do E8 | — | jarvis |
+| 2026-11-06 08:26 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-22 | entrega | 1 | cumpriu | — | E2.3 b3dc1733 | — | destino |
+| 2026-11-06 08:27 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-4 | brief | 1 | aprovado | — | edição da ADR 0023 (E2.2) | — | jarvis |
+| 2026-11-06 08:31 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-25 | brief | 1 | aprovado | — | review da branch de docs | — | jarvis |
+| 2026-11-06 08:33 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-26 | brief | 1 | aprovado | — | review do E3 | — | jarvis |
