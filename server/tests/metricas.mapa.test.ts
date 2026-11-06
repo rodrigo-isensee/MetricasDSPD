@@ -48,6 +48,12 @@ describe('mapa: linhas do banco -> base da biblioteca', () => {
     expect(bloqueioDe({ ...b, coluna_em_que_bloqueou: null, fim: T, duracao_horas_uteis: '12.50' }, nomes, quadros)).toMatchObject({ coluna_em_que_bloqueou: '', fim: T.getTime(), duracao_horas_uteis: 12.5 });
     expect(bloqueioDe({ ...b, card_id: 'zz' }, nomes, quadros).coluna_em_que_bloqueou).toBe('c1');
   });
+  it('bloqueioDe: motivo desconhecido, vazio, nulo ou com marcador de pessoa sai "não classificado"; motivo do domínio passa', () => {
+    const b = { card_id: 'c1', motivo: 'Janela de mudança', coluna_em_que_bloqueou: null, fornecedor: null, inicio: T, fim: null, duracao_horas_uteis: null };
+    const de = (motivo: string | null) => bloqueioDe({ ...b, motivo }, new Map(), new Map()).motivo;
+    expect(de('Janela de mudança')).toBe('Janela de mudança');
+    for (const m of ['Fornecedor', '', null, 'MARCADOR-PESSOA-075']) expect(de(m)).toBe('não classificado');
+  });
   it('colunas sem tipo ou sem papel conhecido não entram (o papel não se infere)', () => {
     const r = colunasDe([col('q', 'a', 'A'), col('q', 'b', 'B', { tipo_coluna: null }), col('q', 'c', 'C', { papel: null }), col('q', 'd', 'D', { papel: 'outro' }), col('q', 'e', 'E', { tipo_coluna: 'execucao', papel: 'entrega', limite_wip: 3 })]);
     expect(r.map((c) => c.coluna)).toEqual(['A', 'E']);
