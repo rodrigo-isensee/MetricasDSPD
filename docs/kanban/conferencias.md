@@ -2039,3 +2039,27 @@
 | 2026-11-05 19:47 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-11 | brief | 1 | reprovado | n | faltou a decisão das 19:42 (CI prova os 4 testes) | decisao | jarvis |
 | 2026-11-05 19:48 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-4 | brief | 1 | aprovado | s | segurança da dependência do E8 (E8.1) | — | jarvis |
 | 2026-11-05 19:48 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-5 | entrega | 1 | não cumpriu | s | PQ-1 a PQ-5 e escopo cumpridos; o brief, aprovado às 18:28, reprova hoje só porque o pedido ganhou depois as etapas E5.1, E7.1 e E8.1 | base | destino |
+| 2026-11-05 19:51 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-12 | brief | 1 | aprovado | s | pareceres antigos (E7.1) | — | jarvis |
+| 2026-11-05 19:51 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-13 | brief | 1 | reprovado | s | texto ok; head da branch mudou com o parecer de segurança ainda não enviado; reenviar depois do push | ambiente | jarvis |
+| 2026-11-05 20:23 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-5 | entrega | 2 | não cumpriu (PQ-5) | s | PQ-5 lido no head e49e6a3c, com o parecer de segurança de outra delegação; em b9441f58 cumpre | base | jarvis |
+| 2026-11-05 20:23 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-13 | brief | 2 | reprovado | s | Entregar pede PR e envio antes do QA | etapa | jarvis |
+| 2026-11-05 20:28 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-12 | entrega | 1 | cumpriu | — | E7.1 pareceres antigos, 2bb96c3e | — | destino |
+| 2026-11-05 20:31 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-6 | brief | 1 | reprovado | s | justificativa dizia que o 27 não roda em produção; a triagem diz que roda no deploy | base | jarvis |
+| 2026-11-05 20:31 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-15 | brief | 1 | aprovado | — | review do E7.1 | — | jarvis |
+| 2026-11-05 20:32 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-14 | brief | 1 | reprovado | s | E3.2 com PR contra sem PR; push antes do QA | etapa | jarvis |
+| 2026-11-05 20:34 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-16 | brief | 2 | aprovado | — | review do E8 | — | jarvis |
+| 2026-11-05 20:36 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-15 | entrega | 1 | cumpriu | — | review do E7.1, 33242d82 | — | destino |
+| 2026-11-05 20:36 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-7 | brief | 2 | reprovado | parcial | 16 condicionado ao 27 (procede); as duas linhas de 20:27 estavam copiadas (não procede) | decisao | jarvis |
+| 2026-11-05 20:38 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-8 | brief | 3 | aprovado | — | aceite dos alertas 16 e 27 | — | jarvis |
+| 2026-11-05 20:38 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-16 | entrega | 1 | não cumpriu (escopo) | s | intervalo desde a base inclui o lock do node-backend, sem conferida da branch; mérito do review ok | base | jarvis |
+| 2026-11-05 20:39 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-17 | brief | 1 | reprovado | s | CLAUDE.md item 4: QA sem exceção e envio só com parecer do QA | decisao | jarvis |
+| 2026-11-05 20:41 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-2 | brief | 1 | reprovado | n | a linha de 20:34 está copiada na linha 23 do brief | decisao | conferente |
+| 2026-11-05 20:41 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-5 | entrega | 3 | cumpriu | — | E8 lock b9441f58, PQ-5 julgado no commit do autor; entregas paralelas | — | destino |
+| 2026-11-05 20:41 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-4 | entrega | 1 | cumpriu | — | E8.1 parecer e49e6a3c; entregas paralelas | — | destino |
+| 2026-11-05 20:41 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-16 | entrega | 2 | cumpriu | — | review do E8 347106ef; entregas paralelas | — | destino |
+| 2026-11-05 20:42 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-2 | brief | 2 | aprovado | — | QA do E7 | — | jarvis |
+| 2026-11-05 20:43 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-8 | entrega | 1 | não cumpriu (base) | s | Base-sha do brief era o HEAD da branch do Jarvis, não o merge-base com a develop (ae009a75); mérito ok | base | jarvis |
+| 2026-11-05 20:48 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-2 | entrega | 1 | cumpriu | — | QA do E7 ff872dc1 | — | destino |
+| 2026-11-05 20:49 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-18 | brief | 2 | aprovado | — | PR do E7 | — | jarvis |
+| 2026-11-05 20:51 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-3 | brief | 1 | aprovado | — | desenho do E3 | — | jarvis |
+| 2026-11-05 21:01 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-19 | brief | 1 | aprovado | — | proposta do CHANGELOG (E6.1) | — | jarvis |
