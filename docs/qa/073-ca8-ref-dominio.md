@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 073-melhorias-tecnicas-2026-11-05
 branch: feature/073-ca8-ref-dominio
-commit: a6363d2cd51fabf2e2fd6233c97cc05f32deaf62
+commit: aaa52dab2e3850063edf34a645a60117e71dc143
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -15,41 +15,35 @@ data: 2026-11-06
 
 # QA: listas de ref_dominio no CA-8 do Acelerato (E3, K-224)
 
-Links: desenho `docs/analises/073-e3-desenho.md` (§3 e §4), CT-34 em `docs/qa/056-coletor-plano-de-testes.md`, review `docs/reviews/073-ca8-ref-dominio.md` (aprovado), segurança `docs/security/073-ca8-ref-dominio.md` (aprovado).
+Links: desenho `docs/analises/073-e3-desenho.md` (§3 e §4), CT-34 em `docs/qa/056-coletor-plano-de-testes.md`, review `docs/reviews/073-ca8-ref-dominio.md` (aprovado, revalidado em 979072e8), segurança `docs/security/073-ca8-ref-dominio.md` (aprovado).
 
 ## Veredito
-**Aprovado.** A mudança de recorte ou de vocabulário em `ref_dominio` recusa a coleta com só o nome da chave, `natureza_prefixo` não recusa, o reconhecimento de recorte mudado vira releitura que só acrescenta versões, e a primeira coleta depois do deploy é recusada por falta do hash anterior e liberada pelo reconhecimento manual, sem reler. Review e segurança aprovados na ponta 2aedc573 (só pareceres depois de a6363d2c); o código testado é o de a6363d2c.
+**Aprovado.** Valem o parecer anterior (a6363d2c) e o delta da volta, 848e4320, que só mexe em teste: o falso do MySQL no teste pg passa a devolver o nome novo da equipe (antes o chamado 91 caía em fora-do-recorte, CA-11, comportamento correto do código) e um teste novo cobre o desempate do comparador de `listasSha256`. O merge aaa52dab trouxe a develop (PRs 240 a 243), conferido por conteúdo pelo review. Nenhuma asserção saiu: o delta tem 6 linhas somadas e 1 trocada (`const mysql` para `let mysql`).
 
-## Execução (ponta 2aedc573, worktree da branch, 2 workers)
+## Execução (worktree da branch, 2 workers)
 | Comando | Resultado |
 |---|---|
-| `npx vitest run --maxWorkers=2` (server) | 86 arquivos passam, 4 falham, 37 pulados; 1800 testes passam, 25 falham, 251 pulados |
-| `npx eslint .` | rc 0, sem aviso |
-| `npx tsc --noEmit` (server) | rc 0 |
-| `pnpm run docs:check` | ok (1021 páginas Markdown, 69 métricas, 2 eventos) |
+| `npx vitest run --maxWorkers=2 acelerato-ca8-listas acelerato-campos-etapa` (server) | 2 arquivos, 58 testes passam |
+| CI do push no head com código (aaa52dab, run 42233046914) | success; prova os testes pg e a cobertura de branches em 100% |
+| CI do push em 979072e8 (só parecer de review) | em andamento na leitura; sem código novo |
 
-As 25 falhas são só dos 4 arquivos de entrada que lançam tsx em processo filho (`apontamento-entradas`, `ref-sync-ac-entrada`, `ref-sync-businessmap-entrada`, `ref-sync-calendario-entrada`; 12, 3, 5 e 5): `mkdir /tmp/tsx-1000` negado no sandbox. Os 251 pulados são os testes pg, sem banco. Ambos: prova na CI do PR, não são bug. Os testes pg do E3 (`acelerato-ca8-ref-sync.pg.test.ts`, 3 casos) não rodaram aqui.
+A suíte inteira, o eslint, o tsc e o `docs:check` do parecer anterior valem para o código; o delta é só teste e a CI do push cobre a suíte completa e o banco.
 
 ## Critério → teste → resultado
 | Critério | Teste | Fronteira protegida | Resultado |
 |---|---|---|---|
-| CA-8: recorte mudou sem reconhecimento recusa só com o nome da chave, sem abrir conexão | `acelerato-ca8-listas.test.ts` CT-34 (equipe nova; rótulo trocado) | lista nova e rótulo trocado; valor nunca na mensagem | passou |
-| CA-8: vocabulário ou `cpe_*` mudou recusa com `vocabulario_sha256` | `acelerato-ca8-listas.test.ts` CT-34 e hash separado | separação recorte x vocabulário | passou |
-| Hash estável: ordem de chegada e `ordem` fora; código ou rótulo mudam; lista vazia estável | `acelerato-ca8-listas.test.ts` (3 casos do hash) | vazio, ordem | passou |
-| P-E3-1: `natureza_prefixo` não recusa e grava versão de critério | `acelerato-ca8-listas.test.ts` (natureza_prefixo não é chave); pg (versão de critério) | chave fora do hash | passou (unitário); pg, prova na CI |
-| P-E3-2: reconhecer recorte mudado relê (varredura sem marca, desde a data mínima, só acrescenta versões, grava hash novo) | `acelerato-ca8-listas.test.ts` P-E3-2 (recorte mudou e reconhecido) | releitura só aditiva | passou |
-| Só vocabulário mudou: reconhece sem reler | `acelerato-ca8-listas.test.ts` P-E3-2 | não relê além do necessário | passou |
-| Primeira coleta depois do deploy (linha sem as chaves novas): recusa; reconhecimento libera sem reler | `acelerato-ca8-listas.test.ts` (primeira coleta depois do deploy; linha sem `recorte_sha256`) | linha anterior sem hash | passou |
-| Recusa sem a opção registra a falha com a tarefa pedida | `acelerato-ca8-listas.test.ts` P-E3-2 (última) | falha sem marca d'água | passou |
-| `ac:ref-sync` fecha vigência sem apagar; coleta recusa e, reconhecida, segue | `acelerato-ca8-ref-sync.pg.test.ts` (equipe; prioridade) | histórico preservado | prova na CI |
+| CA-8: recorte ou vocabulário mudou recusa só com o nome da chave (CT-34) | `acelerato-ca8-listas.test.ts` CT-34 | valor nunca na mensagem | passou (sem mudança) |
+| Hash estável: ordem, `ordem` de exibição, lista vazia | `acelerato-ca8-listas.test.ts` (casos do hash) | vazio, ordem | passou |
+| Hash: mesmo campo e mesmo código mantém a ordem de chegada (desempate, `controle.ts:43`) | `acelerato-ca8-listas.test.ts` (caso novo de 848e4320) | empate do comparador | passou |
+| P-E3-1 e P-E3-2: `natureza_prefixo` não recusa; reconhecer relê só acrescentando versões | `acelerato-ca8-listas.test.ts` e `acelerato-ca8-ref-sync.pg.test.ts` | releitura aditiva | passou (unitário); pg passou na CI aaa52dab |
+| `ac:ref-sync` fecha vigência sem apagar; recusa e, reconhecida, segue (nome novo no falso) | `acelerato-ca8-ref-sync.pg.test.ts` | histórico preservado; chamado só no recorte se o nome casa (CA-11) | passou na CI aaa52dab |
 
-## Mutação à mão (desfeita, sem commit)
+## Mutação à mão no delta (desfeita, sem commit)
 | Mutante | Resultado |
 |---|---|
-| `coletor.ts`: `modo = 'releitura'` trocado por `modo = modo` (reconhecimento não relê) | 1 falha: "recorte mudou e reconhecido: varredura sem marca..." |
-| `controle.ts`: `equipe` fora de `CAMPOS_RECORTE` | 5 falhas (hash de recorte, 2 recusas CT-34, releitura, falha registrada) |
+| `controle.ts:43`: desempate `: 0` trocado por `: -1` | 1 falha: "mesmo campo e mesmo código ... mantém a ordem de chegada" (o teste novo mata o mutante) |
 
-Árvore conferida limpa depois de cada mutação (`git status` sem alteração).
+Árvore conferida limpa depois da mutação (`git checkout` do arquivo; `git status` sem alteração).
 
 ## Achados
 - A1 (recomendado) docs/qa/073-ca8-ref-dominio.md:1 · A primeira coleta depois do deploy reconhece sem reler (comportamento testado e igual ao A1 do parecer de segurança); o roteiro da release deve mandar rodar a coleta com releitura e reconhecimento se o recorte mudar. Dono: tech-lead.
