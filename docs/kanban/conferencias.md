@@ -2108,3 +2108,8 @@
 | 2026-11-06 10:02 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-6 | brief | 1 | aprovado | — |  | — | jarvis |
 | 2026-11-06 10:19 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-30 | brief | 1 | aprovado | — |  | — | jarvis |
 | 2026-11-06 10:23 | 074-auditoria-do-quadro | 074-auditoria-do-quadro-agile-coach-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 10:35 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 10:35 | 076-publicacao-local | 076-publicacao-local-devops-engineer-1 | brief | 1 | reprovado | n | hora da decisão no brief diferente do pedido; horas do Jarvis à frente do relógio | decisao | jarvis |
+| 2026-11-06 10:35 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-1 | brief | 1 | reprovado | n | impacto e riscos sem origem no escopo; escopo E1 ajustado | escopo | jarvis |
+| 2026-11-06 10:36 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-1 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 10:36 | 076-publicacao-local | 076-publicacao-local-devops-engineer-1 | brief | 2 | reprovado | n | recibo dizia o devops faz; brief passou a execução ao dono sem decisão | decisao | jarvis |

@@ -781,4 +781,6 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-11-05 21:13 · K-235 · criado em Entrada (R1 do review 056)
 - 2026-11-06 08:25 · K-225 · Aguardando validação → Pronto (PR 240 mesclado)
 - 2026-11-06 09:40 | K-224, K-227, K-232 para QA/PR; K-234 para Em andamento (desenho E9.1) | pedido 073 | Jarvis
-- 2026-11-06 11:20 | 21 cartões para Pronto pela auditoria 074 (K-219, K-218, K-217, K-205, K-208, K-209, K-210, K-206, K-196, K-198, K-199, K-195, K-193, K-194, K-202, K-190, K-189, K-185, K-144, K-150, K-171), prova em docs/kanban/auditoria-2026-11-06.md | pedido 074 | Jarvis
+- 2026-11-06 10:24 | 21 cartões para Pronto pela auditoria 074 (K-219, K-218, K-217, K-205, K-208, K-209, K-210, K-206, K-196, K-198, K-199, K-195, K-193, K-194, K-202, K-190, K-189, K-185, K-144, K-150, K-171), prova em docs/kanban/auditoria-2026-11-06.md | pedido 074 | Jarvis
+- 2026-11-06 10:31 | K-234 de Em andamento para Entrada (dono: A, junto com o P-L2-1) | pedido 073 | Jarvis
+- 2026-11-06 10:34 | K-204 para Empatizar e definir (pedido 075); K-216 para Em andamento (pedido 076, publicação local) | 075, 076 | Jarvis
