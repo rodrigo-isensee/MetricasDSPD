@@ -1,4 +1,4 @@
-import { TIPOS_CARD, type VersaoCriterio } from '@metricas-dspd/contratos';
+import { MOTIVO_NAO_CLASSIFICADO, MOTIVOS_BLOQUEIO, TIPOS_CARD, type VersaoCriterio } from '@metricas-dspd/contratos';
 import { CALENDARIO_PADRAO, diaDeIso, fimDoExpediente } from '@metricas-dspd/metricas/core';
 import type { BaseAC, Chamado, EtapaChamado, ExtensaoAC } from '@metricas-dspd/metricas/acelerato';
 import type {
@@ -59,9 +59,13 @@ export function transicaoDe(l: LinhaTransicao, nomes: NomesColuna, quadros: Map<
   };
 }
 
+/** Defesa de leitura (controle 2, 075): motivo fora dos 7 do domínio vira "não classificado"; o texto lido nunca sai. */
+const motivoPublicado = (v: string | null): FatoBloqueio['motivo'] =>
+  (MOTIVOS_BLOQUEIO as readonly string[]).includes(v ?? '') ? (v as FatoBloqueio['motivo']) : MOTIVO_NAO_CLASSIFICADO;
+
 export function bloqueioDe(l: LinhaBloqueio, nomes: NomesColuna, quadros: Map<string, string>): FatoBloqueio {
   return {
-    card_id: l.card_id, motivo: campo(l.motivo),
+    card_id: l.card_id, motivo: motivoPublicado(l.motivo),
     coluna_em_que_bloqueou: nome(nomes, quadros.get(l.card_id) ?? null, l.coluna_em_que_bloqueou) ?? '',
     fornecedor: l.fornecedor, inicio: l.inicio.getTime(), fim: ms(l.fim),
     duracao_horas_uteis: l.duracao_horas_uteis === null ? null : Number(l.duracao_horas_uteis),
