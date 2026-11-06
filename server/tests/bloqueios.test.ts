@@ -40,4 +40,11 @@ describe('derivarBloqueios (via A)', () => {
     const s = JSON.stringify(r);
     for (const m of ['LABEL_X', 'COMMENT_X', 'USER_X']) expect(s).not.toContain(m);
   });
+  it('coluna do evento aceita texto, número ou ausência, e is_blocked aceita 1', () => {
+    const r = derivarBloqueios([
+      v(T1, 1, 1, { columnId: 'abc' }), v(T2, false, undefined, { columnId: undefined }),
+      v(T3, true, 1, { columnId: 9 }), v(T4, 0, undefined, { columnId: { x: 1 } }),
+    ]);
+    expect(r.eventos.map((e) => e.colunaId)).toEqual(['abc', null, '9', null]);
+  });
 });
