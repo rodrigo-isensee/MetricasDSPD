@@ -9,6 +9,7 @@ import { CartaoO2 } from './components/CartaoO2'
 vi.setConfig({ testTimeout: 45000 })
 
 const NC = 'não classificado'
+const PESSOA = /autor|e-mail|respons[aá]vel|quem bloqueou/i
 type Q = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
 const item = (motivo: string, ha: number) => ({
   cardId: `K-${ha}`,
@@ -43,6 +44,7 @@ describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
     expect(apoio).toHaveTextContent('Motivo ainda sem classificação.')
     expect(tabela.querySelector('table')).toHaveAttribute('aria-describedby', 'bloqueados-apoio')
     expect(el).toHaveTextContent('pode ser posterior ao início real')
+    expect(el.textContent).not.toMatch(PESSOA)
   })
 
   it('CA-10: zero bloqueados segue "Nenhum item bloqueado hoje."', async () => {
@@ -50,11 +52,6 @@ describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
     expect(within(el).getByTestId('bloqueados-nenhum')).toHaveTextContent(
       'Nenhum item bloqueado hoje.',
     )
-  })
-
-  it('CA-5: BLOQUEADOS sem coluna nem texto de pessoa', async () => {
-    const el = await abrirBloqueados([item(NC, 1)])
-    expect(el.textContent).not.toMatch(/autor|e-mail|respons[aá]vel|quem bloqueou/i)
   })
 
   it('CA-1 e CA-5: O2 marca o motivo na coluna Bloqueado, com apoio', async () => {
@@ -124,6 +121,12 @@ describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
       expect(within(linhas[2] as HTMLElement).getAllByRole('cell')[1]).toHaveTextContent('70')
       expect(el).toHaveTextContent('Janela de mudança somou 20 dias úteis')
       expect(within(el).getByTestId('apoio-nao-classificado')).toBeInTheDocument()
+      // CA-5: nenhum cabeçalho, legenda ou rótulo com segmento de pessoa
+      const rotulos = [
+        ...el.querySelectorAll('th,figcaption,caption,legend,[class*=legenda],svg text'),
+      ]
+      expect(rotulos.length).toBeGreaterThan(0)
+      rotulos.forEach((r) => expect(r.textContent).not.toMatch(PESSOA))
     })
   })
 })
