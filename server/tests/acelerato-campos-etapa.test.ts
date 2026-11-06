@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Contadores, camposEtapa, type DominiosEtapa } from '../src/modulos/acelerato/allow-list.js';
 import { coletarAcelerato, type DepsColeta, type ResultadoColeta } from '../src/modulos/acelerato/index.js';
-import { CHAVES_COMPARADAS, fluxoSha256, montarParametros } from '../src/modulos/acelerato/controle.js';
+import { CHAVES_COMPARADAS, fluxoSha256, hashesDasListas, montarParametros } from '../src/modulos/acelerato/controle.js';
 import { CAMPOS_ETAPA_F3, NOMES_CAMPO_FATIA_F1, NOMES_ETAPA_LISTA, NOMES_ETAPA_PREENCHIDO, campoDominioEtapa } from '../src/modulos/acelerato/listas-fechadas.js';
 import { carregarDominiosEtapa, carregarOrdemFluxo } from '../src/modulos/acelerato/referencia.js';
 import { CONSULTAS, Q6_CAMPOS_ETAPA_LISTA, Q7_CAMPOS_ETAPA_PREENCHIDO, sha256Texto } from '../src/modulos/acelerato/sql.js';
@@ -13,6 +13,7 @@ import { PROIBIDOS, linhaCompleta } from './fixtures/acelerato-linha-50-colunas.
 /** L9-b do 069 (K-220): Q6 e Q7 dos campos de etapa até o staging. Casos de abuso CA-069-6 a CA-069-12 do modelo de ameaças. */
 const AGORA = new Date('2026-11-04T12:00:00Z');
 const S = montarEsquemas('');
+const HASHES_VAZIOS = hashesDasListas([], []);
 
 /** Escrita à mão, não derivada da constante (B-1 da ADR 0020): é o que o código tem de ler e nada além. */
 const NOMES_ESPERADOS_LISTA = [
@@ -50,7 +51,7 @@ describe('constante de nomes (A1)', () => {
     for (const c of CAMPOS_ETAPA_F3) expect(campoDominioEtapa(c.chave).length).toBeLessThanOrEqual(40); // ref_dominio.campo é varchar(40)
   });
   it('o hash dos nomes inclui o tratamento: trocar lista por preenchido muda campos_sha256', () => {
-    const base = montarParametros(CONFIG, null, new Map()).campos_sha256;
+    const base = montarParametros(CONFIG, null, new Map(), HASHES_VAZIOS).campos_sha256;
     expect(base).not.toBe(sha256Texto(NOMES_CAMPO_FATIA_F1.join('\n')));
     expect(base).toBe(sha256Texto([...NOMES_CAMPO_FATIA_F1, ...CAMPOS_ETAPA_F3.map((c) => `${c.nome}|${c.tratamento}`)].join('\n')));
   });
@@ -83,7 +84,7 @@ describe('estrutura das consultas Q6 e Q7', () => {
     expect(fluxoSha256(new Map([[20, 2], [10, 1]]))).toBe(fluxoSha256(new Map([[10, 1], [20, 2]])));
     expect(fluxoSha256(new Map([[10, 1], [20, 3]]))).not.toBe(fluxoSha256(new Map([[10, 1], [20, 2]])));
     expect(fluxoSha256(new Map())).toBe(sha256Texto(''));
-    expect(montarParametros(CONFIG, null, new Map([[10, 1]])).fluxo_sha256).toBe(fluxoSha256(new Map([[10, 1]])));
+    expect(montarParametros(CONFIG, null, new Map([[10, 1]]), HASHES_VAZIOS).fluxo_sha256).toBe(fluxoSha256(new Map([[10, 1]])));
     expect(CHAVES_COMPARADAS).toContain('fluxo_sha256');
   });
   it('A2: a Q7 (nomes preenchido) não projeta valor: só o booleano; a Q6 projeta valor em VARCHAR(80)', () => {
