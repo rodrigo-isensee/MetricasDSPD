@@ -8,6 +8,7 @@
   },
   "schema": "dspd_bm",
   "tabela": "ref_dominio",
-  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna",
-  "campos": []
+  "regra": "campos: lista de campos customizados, cada um com field_id (só dígitos), type (só os tipos de seleção única da lista positiva do código), coluna (enum fechado de colunas de lista de dim_card) e valores (codigo e rotulo, o rótulo é o valor exato recebido). Os fields 36 (ID Acelerato) e 42 (Responsável CR) são proibidos. Gravação em ref_dominio: campo_customizado com codigo = field_id e rotulo = coluna, e uma lista por coluna. motivo_bloqueio: mapa reason_id (codigo, só dígitos) -> um dos 7 motivos do briefing (rotulo, texto exato de MOTIVOS_BLOQUEIO); o mapa é das pessoas (P-075-3), nasce vazio e motivo sem entrada aparece como não classificado; vários reason_id podem levar ao mesmo motivo; nunca texto livre",
+  "campos": [],
+  "motivo_bloqueio": []
 }
