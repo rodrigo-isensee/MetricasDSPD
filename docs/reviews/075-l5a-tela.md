@@ -3,36 +3,53 @@ tipo: review
 contrato: 1
 pedido: 075-bloqueios-reais
 branch: feature/075-l5a-tela
-commit: 7724d087ede7b1b881899cd71d104eb51eb31abd
+commit: 6d4a392cf75ecf6c9f3c9c5589fc5ac878335991
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-06
 ---
-# Code review: 075 L5a, motivo "não classificado" em BLOQUEADOS, O2 e O19 (K-204)
+# Code review: 075 L5a, motivo "não classificado" em BLOQUEADOS, O2 e O19 (K-204), segunda volta
 
 ## Parecer
 
-Aprovado. O lote faz o que a seção "Lote 5a" de `docs/analises/075-plano.md` pede, já com a especificação ajustada (nota de 2026-11-06 de `docs/ux/075-bloqueios-reais.md`, decisão técnica de 14:20): BLOQUEADOS e a coluna "Bloqueado" do O2 marcam o motivo por texto, itálico e ícone decorativo; o O2 não ganhou distribuição por motivo; o O19 põe "não classificado" por último, com hachura e legenda própria, e soma no total. Também cobre o O19 da E4 (P-075-8) neste lote.
+Aprovado em `6d4a392c`. A segunda volta resolve o A1 deste review e os achados médio 1 e baixos 3 e 4 da revisão de interface (`docs/ux/075-revisao-l5a.md`). A exceção do médio 2 fica aceita (motivo abaixo). A especificação e a revisão de UX entraram na branch (`c65970ca`), o que fecha o A2 anterior. O parecer cobre também o O19 da E4 (P-075-8).
 
-## O que foi lido (diff `da61dbc2...7724d087`, 3 commits)
+## O que foi lido (delta `0779d528...6d4a392c`, 3 commits)
 
-- `web/src/components/ui/MotivoBloqueio.tsx` (novo): `MotivoBloqueio` (itálico, `text-texto-2`, `Icone info`), `textoMotivo` ("por motivo não classificado", CA-3), `ordenarMotivos` (decrescente, "não classificado" por último, CA-2) e `ApoioMotivoNaoClassificado` com o texto literal da UX §1. Usa `MOTIVO_NAO_CLASSIFICADO` e `MotivoBloqueioPublicado` do contrato (Lote 1a), sem tipo duplicado.
-- `TabelaDados.tsx`: `descritoPor` opcional (`string | undefined`, pelo `exactOptionalPropertyTypes`) vira `aria-describedby`; com `undefined` o atributo some, então os outros usos de `TabelaDados` não mudam (testes `ui.test.tsx` e `componentes.test.tsx` verdes).
-- `CartaoBloqueados.tsx`: motivo pelo componente, leitura pelo `textoMotivo`, apoio de precisão do início (CA-11) e de "não classificado" ligados por `aria-describedby`. O bloco só aparece com itens e o `CartaoMetrica` só renderiza filhos no estado `ok`, então não vaza para carregando, erro nem "Sem dado real". CA-10 preservado.
-- `CartaoO2.tsx`: só a coluna "Bloqueado" muda; "Sem dado real" (pedido 065, CA-12) segue com precedência.
-- `operacionais.tsx` (O19): a ordenação passa ao `ordenarMotivos` também na leitura; série `nc` separada com `padrao: 'hachura'` e `cor: 7` (neutra, não alerta); a legenda só aparece com "não classificado" presente; `totalDiasUteis` e `pctDoTotal` vêm do servidor.
-- Nenhuma contagem ou agregado calculado na tela: só ordenação, `some` e formatação de campos do DTO.
-- `server/` e `packages/`: sem diff no intervalo.
-- Teste novo `motivo-nao-classificado.test.tsx`: CA-1, CA-3, CA-4, CA-10, CA-11 no BLOQUEADOS; coluna do O2 com apoio e sem coluna nova; O19 com "não classificado" maior e mesmo assim por último, valor 70 na linha, leitura sobre o maior motivo de negócio e CA-5 por varredura de `th`, `caption`, `figcaption`, `legend`, legendas e `svg text`, com mínimo de itens afirmado (checklist 11).
-- Regras invioláveis: nenhum campo de pessoa, nenhum ranking, nenhum dado novo.
+Os arquivos fora do delta ficaram como já lidos no parecer anterior, em `7724d087`.
+
+- `CartaoO2.tsx:71`: `naoClass = !semBloqueio && ...`. Com a nota `bloqueio-sem-dado-real`, o apoio não aparece mais sob "Sem dado real". A1 resolvido.
+- `operacionais.tsx`, `leituraO19`:
+  - A leitura cita o maior motivo classificado.
+  - Quando o "não classificado" passa dele, a leitura acrescenta "Bloqueio sem motivo classificado somou N dias úteis em M bloqueios" (médio 1, CA-2).
+  - Quando só existe "não classificado", lê "Bloqueio sem motivo classificado somou N dias" (baixo 3, CA-1).
+  - Com `totalDiasUteis` 0, não há leitura.
+  - Só usa valores publicados (`diasUteis`, `bloqueios` e `pctDoTotal` do `ResultadoO19`). A tela compara dois valores do DTO para decidir se cita a lacuna, sem soma, razão nem percentual calculado (T2.5).
+- `motivo-nao-classificado.test.tsx`:
+  - Afirma o `aria-describedby` do O2 e do O19, a série hachurada (`fill` com `url(#`) e a leitura com a lacuna (baixo 4).
+  - Casos de borda novos: período sem dias bloqueados (o texto procurado existe no componente, checklist 11) e só "não classificado".
+- `docs/ux/075-bloqueios-reais.md` e `docs/ux/075-revisao-l5a.md`: só texto, commitados pelo autor da volta.
+- `server/` e `packages/`: sem diff no lote inteiro (`da61dbc2...6d4a392c`).
+
+## Exceção do médio 2 da UX (rótulo do eixo do O19 sem itálico nem ícone)
+
+Aceita. A CA-4 pede que o "não classificado" não dependa só de cor, e no O19 pede hachura ou contorno nas barras. A barra já se distingue pelo texto "não classificado" no rótulo, pela hachura e pela legenda própria, e a linha da tabela do mesmo cartão traz itálico e ícone. Para pôr itálico e ícone no eixo, seria preciso um tick próprio no `Barras` compartilhado, o que muda um componente usado por outros cartões e é outro comportamento, fora deste lote. Fica como recomendação (A3).
 
 ## Ferramentas
 
-- CI do push na ponta `7724d087`: workflow CI, evento `push`, `completed`/`success`.
-- Testes dos arquivos tocados (D-5), `vitest run --maxWorkers=2` em `web`: `motivo-nao-classificado`, `bloqueio-sem-dado`, `operacionais`, `ramos`, `ui` e `componentes`: 6 arquivos, 137 testes, todos verdes.
-- Teto M14: 275 linhas no web (258 adições e 17 remoções; código 143, teste 132). Aceito com exceção: um comportamento só (a marca do 8º motivo nos três cartões que o mostram), e dividir separaria o componente compartilhado dos seus usos ou o teste do código que ele cobre. O corpo do PR leva `teto: excedido, 275 linhas, um comportamento (marca do motivo não classificado em BLOQUEADOS, O2 e O19), metade é teste dos CA`.
+- CI do push no head `6d4a392c` (run 42273825887): workflow CI, evento `push`, `completed`/`success`.
+- Testes dos arquivos tocados (D-5), com `vitest run --maxWorkers=2` em `web` (`motivo-nao-classificado`, `operacionais` e `bloqueio-sem-dado`): 3 arquivos e 58 testes, todos verdes.
+- Teto M14: 317 linhas no web (298 adições e 19 remoções; código 155, teste 162). A exceção fica aceita:
+  - O lote tem um comportamento só, a marca do 8º motivo nos três cartões que o mostram.
+  - As 42 linhas a mais desde a primeira aprovação vêm das correções pedidas pelo review e pela UX.
+  - Mais da metade do lote é teste dos CA.
+  - Dividir separaria o componente compartilhado dos seus usos ou o teste do código que ele cobre.
+
+O corpo do PR leva esta linha:
+
+teto: excedido, 317 linhas, um comportamento (marca do motivo não classificado em BLOQUEADOS, O2 e O19), mais da metade é teste dos CA e o acréscimo veio das correções de review e UX
 
 ## Achados
 
-- A1 (recomendado) web/src/features/operacional/components/CartaoO2.tsx:71 · naoClass ignora semBloqueio; com a nota bloqueio-sem-dado-real e motivo vindo no item, o apoio apareceria sob a coluna "Sem dado real". Sugestão: naoClass = !semBloqueio && lista.some(...).
-- A2 (recomendado) docs/ux/075-bloqueios-reais.md:1 · A especificação da tela não está na branch; pela seção 8 item 10 do praticas, ela entra commitada pelo ux-designer antes do merge, e o PR (E1.9) leva a linha de exceção do teto descrita acima.
+- A3 (recomendado) web/src/features/complementares/operacionais.tsx:156 · Rótulo do eixo do O19 sem itálico nem ícone (médio 2 da UX), aceito como exceção: hachura, texto e legenda distinguem. Se o Barras ganhar tick customizável, igualar à tabela num cartão próprio.
+- A4 (recomendado) web/src/features/operacional/components/CartaoO2.tsx:71 · O apoio do motivo depende de haver "não classificado" entre os 10 itens listados (baixo 5 da UX); o QA do 5a confere o comportamento com a ordenação por "Sem mover há".
