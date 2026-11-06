@@ -17,6 +17,8 @@ export interface TabelaDadosProps {
   codigo?: string
   /** Texto exibido quando não há linhas. */
   vazio?: string
+  /** Id do texto de apoio visível, ligado à tabela por `aria-describedby`. */
+  descritoPor?: string
 }
 
 /**
@@ -29,10 +31,11 @@ export function TabelaDados({
   linhas,
   codigo,
   vazio = 'Sem dados.',
+  descritoPor,
 }: TabelaDadosProps) {
   return (
     <RegiaoRolavel rotulo={`Tabela de ${legenda}`} testid={codigo ? `tabela-${codigo}` : undefined}>
-      <table className="w-full border-collapse text-sm">
+      <table className="w-full border-collapse text-sm" aria-describedby={descritoPor}>
         <caption className="px-3 py-2 text-left text-xs text-texto-2">{legenda}</caption>
         <thead className="bg-superficie-2">
           <tr>

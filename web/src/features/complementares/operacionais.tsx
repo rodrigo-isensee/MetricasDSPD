@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   JANELA_PERCENTIS_PADRAO,
+  MOTIVO_NAO_CLASSIFICADO,
   type FiltrosFluxo,
   type ResultadoO19,
   type ResultadoO20,
@@ -11,7 +12,15 @@ import {
   type ResultadoO26,
 } from '@metricas-dspd/contratos'
 import { AreaEmpilhada, Barras } from '@/components/charts'
-import { AmostraInsuficiente, Icone, SeletorLocal, TabelaDados } from '@/components/ui'
+import {
+  AmostraInsuficiente,
+  ApoioMotivoNaoClassificado,
+  Icone,
+  MotivoBloqueio,
+  SeletorLocal,
+  TabelaDados,
+  ordenarMotivos,
+} from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtData, fmtDataCurta, fmtInteiro, fmtMes, fmtNumero, plural } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
@@ -103,7 +112,7 @@ function PorTipo({
 /* ---------------------------------------------------------------- O19 */
 
 function leituraO19(d: ResultadoO19): string | undefined {
-  const m = [...d.motivos].sort((a, b) => b.diasUteis - a.diasUteis)[0]
+  const m = ordenarMotivos(d.motivos, (x) => x.diasUteis)[0]
   if (!m || d.totalDiasUteis === 0) return undefined
   const pct = m.pctDoTotal.status === 'ok' ? `, ${fmtNumero(m.pctDoTotal.pct, 0)}% do total` : ''
   return `${m.motivo} somou ${dias(m.diasUteis)} de bloqueio no período${pct}.`
@@ -123,7 +132,8 @@ export function CartaoO19({ filtros }: P) {
       leitura={d ? leituraO19(d) : undefined}
     >
       {(r) => {
-        const motivos = [...r.motivos].sort((a, b) => b.diasUteis - a.diasUteis)
+        const motivos = ordenarMotivos(r.motivos, (x) => x.diasUteis)
+        const naoClass = motivos.some((m) => m.motivo === MOTIVO_NAO_CLASSIFICADO)
         return (
           <div className="flex flex-col gap-3">
             <Barras
@@ -131,15 +141,32 @@ export function CartaoO19({ filtros }: P) {
               orientacao="horizontal"
               unidade="dias úteis"
               larguraRotulos={220}
-              semLegenda
-              categorias={motivos.map((m) => ({
-                rotulo: `${m.motivo} · ${fmtInteiro(m.bloqueios)} ${plural(m.bloqueios, 'bloqueio', 'bloqueios')}`,
-                valores: { dias: m.diasUteis },
-              }))}
-              series={[{ chave: 'dias', rotulo: 'Dias úteis bloqueados' }]}
+              modo="empilhado"
+              categorias={motivos.map((m) => {
+                const nc = m.motivo === MOTIVO_NAO_CLASSIFICADO
+                return {
+                  rotulo: `${m.motivo} · ${fmtInteiro(m.bloqueios)} ${plural(m.bloqueios, 'bloqueio', 'bloqueios')}`,
+                  valores: { dias: nc ? null : m.diasUteis, nc: nc ? m.diasUteis : null },
+                }
+              })}
+              series={[
+                { chave: 'dias', rotulo: 'Dias úteis bloqueados', padrao: 'liso' },
+                ...(naoClass
+                  ? [
+                      {
+                        chave: 'nc',
+                        rotulo: MOTIVO_NAO_CLASSIFICADO,
+                        cor: 7,
+                        padrao: 'hachura',
+                      } as const,
+                    ]
+                  : []),
+              ]}
+              {...(naoClass ? {} : { semLegenda: true })}
             />
             <TabelaDados
               codigo="O19"
+              descritoPor={naoClass ? 'o19-apoio-motivo' : undefined}
               legenda="Bloqueios por causa: bloqueios, dias úteis, participação nos dias e duração P50 e P85"
               colunas={[
                 { chave: 'm', titulo: 'Motivo' },
@@ -149,7 +176,7 @@ export function CartaoO19({ filtros }: P) {
                 { chave: 'e', titulo: 'Duração (P50 e P85)' },
               ]}
               linhas={motivos.map((m) => ({
-                m: m.motivo,
+                m: <MotivoBloqueio motivo={m.motivo} />,
                 b: fmtInteiro(m.bloqueios),
                 d: num(m.diasUteis),
                 p:
@@ -162,6 +189,11 @@ export function CartaoO19({ filtros }: P) {
                     : SEM_AMOSTRA,
               }))}
             />
+            {naoClass && (
+              <div id="o19-apoio-motivo" className="text-xs text-texto-2">
+                <ApoioMotivoNaoClassificado />
+              </div>
+            )}
             {r.abertosForaDaSoma > 0 && (
               <AvisoInfo testid="o19-abertos">
                 {fmtInteiro(r.abertosForaDaSoma)}{' '}
