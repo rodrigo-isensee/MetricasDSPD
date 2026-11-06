@@ -65,6 +65,7 @@ describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
     const lista = within(el).getByTestId('o2-lista')
     expect(within(lista).getAllByText(NC)[0]).toHaveClass('italic')
     expect(within(lista).getByTestId('apoio-nao-classificado')).toBeInTheDocument()
+    expect(lista.querySelector('table')).toHaveAttribute('aria-describedby', 'o2-apoio-motivo')
     expect(
       within(lista)
         .getAllByRole('columnheader')
@@ -120,6 +121,12 @@ describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
       expect(within(linhas[2] as HTMLElement).getByText(NC)).toHaveClass('italic')
       expect(within(linhas[2] as HTMLElement).getAllByRole('cell')[1]).toHaveTextContent('70')
       expect(el).toHaveTextContent('Janela de mudança somou 20 dias úteis')
+      expect(el).toHaveTextContent(
+        'Bloqueio sem motivo classificado somou 70 dias úteis em 40 bloqueios.',
+      )
+      expect(el.querySelector('table')).toHaveAttribute('aria-describedby', 'o19-apoio-motivo')
+      expect(el.querySelector('[fill*="url(#"]')).not.toBeNull()
+      expect(within(el).getAllByText(NC).length).toBeGreaterThan(1)
       expect(within(el).getByTestId('apoio-nao-classificado')).toBeInTheDocument()
       // CA-5: nenhum cabeçalho, legenda ou rótulo com segmento de pessoa
       const rotulos = [
@@ -127,6 +134,18 @@ describe('motivo "não classificado" (pedido 075, lote 5a)', () => {
       ]
       expect(rotulos.length).toBeGreaterThan(0)
       rotulos.forEach((r) => expect(r.textContent).not.toMatch(PESSOA))
+    })
+
+    it('CA-1: só "não classificado" lê "bloqueio sem motivo classificado somou N dias"', async () => {
+      renderizarCartao(<CartaoO19 filtros={FILTROS_FLUXO} />, {
+        fonte: new FonteFixa({
+          O19: { ...COMUM, motivos: [m(NC, 5, 12)], abertosForaDaSoma: 0, totalDiasUteis: 12 },
+        }),
+      })
+      const el = await screen.findByTestId('metrica-O19')
+      await waitFor(() => expect(el).toHaveAttribute('data-estado', 'ok'))
+      expect(el).toHaveTextContent('Bloqueio sem motivo classificado somou 12 dias úteis.')
+      expect(el).not.toHaveTextContent('não classificado somou')
     })
   })
 })

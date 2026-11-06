@@ -68,7 +68,7 @@ export function CartaoO2({ filtros }: { filtros: FiltrosFluxo }) {
   const janela = d?.janelaPercentis
   // Pedido 065: sem bloqueios coletados, "sem motivo" quer dizer "não sabemos", não "não bloqueado".
   const semBloqueio = d?.notas?.includes('bloqueio-sem-dado-real') === true
-  const naoClass = lista.some((i) => i.bloqueioMotivo === MOTIVO_NAO_CLASSIFICADO)
+  const naoClass = !semBloqueio && lista.some((i) => i.bloqueioMotivo === MOTIVO_NAO_CLASSIFICADO)
   const leitura = d
     ? d.acimaP95 > 0 && maisAcima
       ? `${fmtInteiro(d.acimaP95)} ${plural(d.acimaP95, 'item está', 'itens estão')} acima do P95 do seu tipo. O mais velho entre eles tem ${fmtDiasUteis(maisAcima.idadeDiasUteis, 0)} e está em "${maisAcima.etapa}".`

@@ -112,10 +112,18 @@ function PorTipo({
 /* ---------------------------------------------------------------- O19 */
 
 function leituraO19(d: ResultadoO19): string | undefined {
-  const m = ordenarMotivos(d.motivos, (x) => x.diasUteis)[0]
-  if (!m || d.totalDiasUteis === 0) return undefined
+  if (d.totalDiasUteis === 0) return undefined
+  const ordem = ordenarMotivos(d.motivos, (x) => x.diasUteis)
+  const m = ordem.find((x) => x.motivo !== MOTIVO_NAO_CLASSIFICADO)
+  const nc = ordem.find((x) => x.motivo === MOTIVO_NAO_CLASSIFICADO)
+  if (!m) return nc ? `Bloqueio sem motivo classificado somou ${dias(nc.diasUteis)}.` : undefined
   const pct = m.pctDoTotal.status === 'ok' ? `, ${fmtNumero(m.pctDoTotal.pct, 0)}% do total` : ''
-  return `${m.motivo} somou ${dias(m.diasUteis)} de bloqueio no período${pct}.`
+  // CA-2: o "não classificado" dominante não fica calado; vai pelo valor publicado, sem conta na tela.
+  const lacuna =
+    nc && nc.diasUteis > m.diasUteis
+      ? ` Bloqueio sem motivo classificado somou ${dias(nc.diasUteis)} em ${fmtInteiro(nc.bloqueios)} ${plural(nc.bloqueios, 'bloqueio', 'bloqueios')}.`
+      : ''
+  return `${m.motivo} somou ${dias(m.diasUteis)} de bloqueio no período${pct}.${lacuna}`
 }
 
 /** O19: barras por motivo (ordem por dias somados, nunca por pessoa); P50/P85 só com 20 bloqueios na causa. */
