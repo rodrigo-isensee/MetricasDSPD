@@ -15,7 +15,7 @@ d('CA-8 e ac:ref-sync contra PostgreSQL (recorte, vocabulário e natureza_prefix
   const P = prefixoDeTeste(), E = montarEsquemas(P);
   let dono: pg.Pool, coletor: pg.Pool, ref: pg.Pool;
   let relogio = new Date('2026-11-05T10:00:00Z');
-  const mysql = criarMysqlFalso([linha({ ticket_key: 91 })]);
+  let mysql = criarMysqlFalso([linha({ ticket_key: 91 })]);
   const coletar = (reconhecerMudanca = false) => {
     relogio = new Date(relogio.getTime() + 3_600_000);
     return coletarAcelerato({
@@ -57,6 +57,8 @@ d('CA-8 e ac:ref-sync contra PostgreSQL (recorte, vocabulário e natureza_prefix
     const lido = arquivo({ equipe: [{ codigo: equipe.codigo, rotulo: 'Equipe renomeada' }, { codigo: '999', rotulo: 'Equipe nova' }] }, 'equipe');
     expect(await sincronizarDominio(ref, E, lido, '2026-11-06', relogio)).toMatchObject({ inseridas: 2, fechadas: 1, versaoRegistrada: true });
     expect(await versoes(lido.sha256)).toBe(1);
+    // O Acelerato passa a devolver o nome novo da equipe: o chamado só fica no recorte se o nome que ele traz casar com a lista vigente (CA-11, falha fechado).
+    mysql = criarMysqlFalso([linha({ ticket_key: 91, equipe: 'Equipe renomeada' })]);
     const linhas = (await dono.query(`SELECT codigo, rotulo, vigente_ate FROM ${E.ac}.ref_dominio WHERE campo = 'equipe' ORDER BY codigo, vigente_de`)).rows;
     expect(linhas).toHaveLength(3); // a linha antiga fica, com a vigência fechada
     expect(linhas.filter((l) => l.vigente_ate === null)).toHaveLength(2);

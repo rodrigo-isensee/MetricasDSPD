@@ -33,6 +33,9 @@ describe('hash das listas de ref_dominio (CA-8)', () => {
     expect(listasSha256([...a].reverse())).toBe(listasSha256(a));
     expect(listasSha256([])).toBe(sha256Texto(''));
   });
+  it('mesmo campo e mesmo código (não ocorre em lista vigente): a ordenação é estável e mantém a ordem de chegada', () => {
+    expect(listasSha256([L('equipe', '1', 'B'), L('equipe', '1', 'A')])).toBe(sha256Texto('equipe|1|B\nequipe|1|A'));
+  });
   it('incluir ou tirar código e trocar rótulo mudam o hash; a ordem de exibição não entra', () => {
     const base = [L('equipe', '1', 'A'), L('equipe', '2', 'B')];
     expect(listasSha256([...base, L('equipe', '3', 'C')])).not.toBe(listasSha256(base));
