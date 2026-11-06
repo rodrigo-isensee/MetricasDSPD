@@ -2102,3 +2102,9 @@
 | 2026-11-06 09:34 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-5 | brief | 1 | reprovado | n | linha 20:34 presente no brief (falso achado); conferida do E3 gravada às 09:34 | decisao | jarvis |
 | 2026-11-06 09:36 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-5 | brief | 2 | não verificável | parcial | sem --anterior; texto da primeira coleta depois do deploy ambíguo | forma | jarvis |
 | 2026-11-06 09:38 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-6 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 09:42 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 09:50 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-6 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 09:53 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-29 | brief | 1 | reprovado | n | fora de ordem: PRs do E8 e do E2 ainda abertos; reenviar depois deles | etapa | jarvis |
+| 2026-11-06 10:02 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-6 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 10:19 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-30 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 10:23 | 074-auditoria-do-quadro | 074-auditoria-do-quadro-agile-coach-1 | brief | 1 | aprovado | — |  | — | jarvis |
