@@ -3,12 +3,19 @@ tipo: review
 contrato: 1
 pedido: 073-melhorias-tecnicas-2026-11-05
 branch: feature/073-ca8-ref-dominio
-commit: a6363d2cd51fabf2e2fd6233c97cc05f32deaf62
+commit: aaa52dab2e3850063edf34a645a60117e71dc143
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-06
 ---
 # Code review: 073 E3, listas de ref_dominio no CA-8 (K-224)
+
+## Revalidação (volta do K-224, delta 848e4320)
+Delta lido: `git show 848e4320` (2 arquivos de teste, 6 inserções e 1 remoção). Já lido: o restante (a6363d2c e o desenho), conforme a rodada anterior; o merge aaa52dab trouxe a develop e foi conferido por conteúdo (diff vazio contra origin/develop, pelo Jarvis).
+- Teste pg: `mysql` passou de `const` a `let` e, depois do `ac:ref-sync` renomear a equipe, o Acelerato falso devolve `Equipe renomeada`. A closure `coletar` lê `mysql.conectar` na hora da chamada, então pega o falso novo. Nenhuma asserção saiu; a expectativa de comportamento (CA-11, fora do recorte quando o nome não casa com a lista vigente) fica como estava e o código do E3 não mudou.
+- Teste de cobertura: duas linhas com mesmo campo e código, rótulos B e A, esperam `equipe|1|B` seguido de `equipe|1|A`, o que prova o desempate do comparador (`controle.ts:43`) e a estabilidade da ordenação. Rodei `acelerato-ca8-listas`: 20 passed. O pg segue para o QA e a CI.
+- CI do push no head aaa52dab: run 42233046914, `completed success` (o run anterior, 42232411706, foi cancelado pelo push seguinte).
+- Teto M14: o delta soma 4 linhas de teste; A1 segue como estava.
 
 ## Parecer
 Aprovado. A entrega segue o desenho `docs/analises/073-e3-desenho.md` (§3 e §4) e as decisões do dono P-E3-1 "A" e P-E3-2 "A". Três recomendações, nenhuma devolve.
