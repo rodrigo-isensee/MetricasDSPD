@@ -27,5 +27,4 @@ data: 2026-11-05
 - Integridade dos hashes e varredura de dependências: instalação congelada e varredura do CI do PR (mesma lacuna do parecer de segurança).
 
 ## Achados
-Nenhum achado bloqueante.
 - A1 (recomendado) pnpm-lock.yaml:2511 · confirmar no PR a instalação congelada, a varredura de dependências e os 4 testes de entrada verdes na CI antes do merge.
