@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 075-bloqueios-reais
 branch: feature/075-l5a-tela
-commit: 6d4a392cf75ecf6c9f3c9c5589fc5ac878335991
+commit: 09a2d16c6de02f6ee6f95fba02e44de9bcf34bbc
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -75,7 +75,11 @@ Comportamento aceito; vira linha de teste só se o dono pedir.
 O O19 mostra o "não classificado" como linha da tabela e barra com os dias publicados (70 de `totalDiasUteis` 100 no caso "CA-2 e CA-4"), junto dos demais motivos; a tela não recalcula o total, usa o do contrato (T2.5). O teste não afirma uma linha de total na tela, porque ela não existe: a soma ao total é do servidor (lote 1b, QA próprio).
 
 ## Veredito revisto (volta do E1.8, 2026-11-06)
-Aprovado mantido: o axe do projeto e a regra de contraste rodaram nos três cartões com o motivo na tela, nos dois temas, com zero violações. `commit:` segue o código testado (`6d4a392c`).
+Aprovado mantido: o axe do projeto e a regra de contraste rodaram nos três cartões com o motivo na tela, nos dois temas, com zero violações. O `commit:` agora é `09a2d16c`, o head de código e teste que o review do delta aprovou (o código da tela segue o testado em `6d4a392c`; o delta `6d4a392c...09a2d16c` soma só o caso E2E do axe). Este parecer vai num commit só dele, depois do review (QA-TESTE-E-PARECER-SEPARADOS).
+
+Prova de CI do axe: vem do e2e do PR do 5a; o filtro da CI do push pulou o job e2e (run do push em `09a2d16c` verde, sem e2e). A execução local do axe está na seção "Axe".
+
+A5 do review (`import('@axe-core/playwright')` dentro do laço, `e2e/tests-api/motivo-nao-classificado-075-l5a.spec.ts:73`): estilo, sem efeito no resultado; não bloqueia.
 
 ## Bugs
 Nenhum aberto (críticos 0, altos 0, médios 0, baixos 0).
