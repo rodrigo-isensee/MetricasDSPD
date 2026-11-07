@@ -1,6 +1,6 @@
 import type { MarcacaoCriterio, ResultadoDe, Taxa } from '@metricas-dspd/contratos'
 import { META_RAZAO_MIN, MINIMO_AMOSTRA, TIPOS_CARD } from '@metricas-dspd/contratos'
-import { fmtInteiro, fmtNumero, fmtPct, plural } from '@/lib/formatar'
+import { fmtData, fmtInteiro, fmtNumero, fmtPct, plural } from '@/lib/formatar'
 import { contarAvaliadasS1, contarAvaliadasS2, contarForaS1, contarForaS2 } from '../atencao'
 
 /** Meta de aderência em texto ("90%"), derivada de `META_RAZAO_MIN` para o literal não divergir do contrato. */
@@ -203,8 +203,10 @@ export interface PontoMensal {
   valor: number | null
   /** Base do ponto (n da janela, ou o próprio valor nas contagens). */
   n: number | null
-  /** Texto do valor para a tabela e a leitura ("14", "2 de 3 avaliadas", "poucos itens (n=14)"). */
+  /** Texto do valor para a tabela e a leitura ("14", "2 de 3 avaliadas", "Poucos itens (n=14). Estatística não publicada."). */
   texto: string
+  /** Primeiro dia do histórico carregado (AAAA-MM-DD) quando a janela de 12 semanas do mês começa antes dele. */
+  janelaIncompleta?: string
 }
 
 const MESES_EXTENSO = [
@@ -228,7 +230,16 @@ const semValor = (mes: string, n: number): PontoMensal => ({
   mes,
   valor: null,
   n,
-  texto: `poucos itens (n=${fmtInteiro(n)})`,
+  texto: `Poucos itens (n=${fmtInteiro(n)}). Estatística não publicada.`,
+})
+
+/** Mês de janela incompleta: o contrato traz só a data; a tela não publica estatística nem conta nada (T2.5). */
+const janelaIncompleta = (mes: string, historicoDesde: string): PontoMensal => ({
+  mes,
+  valor: null,
+  n: null,
+  texto: `Janela incompleta: o histórico carregado começa em ${fmtData(historicoDesde)}, depois do início da janela de 12 semanas. Estatística não publicada.`,
+  janelaIncompleta: historicoDesde,
 })
 
 /** P85 do tipo escolhido em cada mês (o mesmo tipo do número): estatística por tipo, nunca entre tipos. */
@@ -237,6 +248,7 @@ export function serieP85(
   tipo: string | undefined,
 ): PontoMensal[] {
   return t.meses.map((m) => {
+    if (m.janelaIncompleta) return janelaIncompleta(m.mes, m.janelaIncompleta.historicoDesde)
     const c = m.p85PorTipo.find((x) => x.tipo === tipo)
     if (!c) return semValor(m.mes, 0)
     const e = c.estatistica
@@ -293,7 +305,7 @@ export function fraseDaSerieSla(pontos: readonly PontoMensal[]): string {
   const ultimo = pontos.at(-1)
   if (!ultimo) return ''
   const mes = mesPorExtenso(ultimo.mes)
-  if (ultimo.valor === null) return `Em ${mes}: ${ultimo.texto}. Valor não publicado.`
+  if (ultimo.valor === null) return `Em ${mes}: ${ultimo.texto}`
   if (!ultimo.n) return `Em ${mes}: nenhuma prioridade avaliada.`
   return `Em ${mes}: ${fmtInteiro(ultimo.valor)} de ${fmtInteiro(ultimo.n)} prioridades avaliadas ${ultimo.valor === 1 ? 'está' : 'estão'} abaixo de ${META_SLA_TEXTO}.`
 }
@@ -304,7 +316,7 @@ export function fraseDaSerie(pontos: readonly PontoMensal[], comparar: boolean):
   if (!ultimo) return ''
   const antes = pontos.at(-2)
   const mes = mesPorExtenso(ultimo.mes)
-  if (ultimo.valor === null) return `Em ${mes}: ${ultimo.texto}. Valor não publicado.`
+  if (ultimo.valor === null) return `Em ${mes}: ${ultimo.texto}`
   if (!comparar || !antes || antes.valor === null) return `Em ${mes}: ${ultimo.texto}.`
   // A diferença sai dos valores como aparecem na tela (arredondados), para a frase bater com os números.
   const d = Math.round(ultimo.valor) - Math.round(antes.valor)

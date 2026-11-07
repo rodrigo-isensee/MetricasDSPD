@@ -228,6 +228,48 @@ describe('SerieMensal', () => {
       'Mudança de critério em 10/05/2026: Critério A',
     )
   })
+  describe('janela incompleta (077, CA-1 a CA-7, CA-14)', () => {
+    const jan = (mes: string) => ({
+      mes,
+      valor: null,
+      n: null,
+      texto: 'janela incompleta (histórico começa em 14/08/2026)',
+      janelaIncompleta: '2026-08-14',
+    })
+    const mista = [jan('2026-04'), ...pontos(8, null, 9).slice(1)]
+    it('lista o motivo em texto, a frase no subtítulo e o resumo do gráfico', () => {
+      render(serie({ pontos: mista, subtitulo: 'Cada ponto: janela' }))
+      expect(screen.getByTestId('t-sem-valor')).toHaveTextContent(
+        'abr/2026 · Janela incompleta: o histórico começa em 14/08/2026. Estatística não publicada.',
+      )
+      expect(screen.getByTestId('t-sem-valor')).toHaveTextContent('mai/2026 · poucos itens (n=14)')
+      expect(
+        screen.getByText(/Meses cuja janela de 12 semanas começa antes da primeira carga/),
+      ).toBeInTheDocument()
+      expect(screen.getByTestId('t-grafico').closest('figure')).toHaveTextContent(
+        'abril: janela incompleta (histórico começa em 14/08/2026)',
+      )
+    })
+    it('frase do subtítulo some sem janela incompleta; sozinha quando não há subtítulo', () => {
+      const { unmount } = render(serie({ subtitulo: 'Sub' }))
+      expect(screen.queryByText(/primeira carga/)).toBeNull()
+      unmount()
+      render(serie({ pontos: mista }))
+      expect(screen.getByText(/primeira carga/)).toBeInTheDocument()
+    })
+    it('tabela mostra "—" e a situação "não publicado · janela incompleta"', async () => {
+      render(serie({ pontos: mista }))
+      await userEvent.click(screen.getByRole('button', { name: 'Ver como tabela' }))
+      const linha = within(screen.getByRole('table')).getByRole('row', { name: /abr\/2026/ })
+      expect(linha).toHaveTextContent('—')
+      expect(linha).toHaveTextContent('não publicado · janela incompleta')
+    })
+    it('tudo não publicado: vazio com a janela de 12 semanas completa, sem tabela', () => {
+      render(serie({ pontos: [jan('2026-04'), jan('2026-05')] }))
+      expect(screen.getByTestId('t-vazio')).toHaveTextContent('com a janela de 12 semanas completa')
+      expect(screen.queryByRole('button', { name: 'Ver como tabela' })).toBeNull()
+    })
+  })
   it('sem subtítulo e sem frase, só o gráfico', () => {
     render(serie({ frase: '', pontos: pontos(1, 2) }))
     expect(screen.queryByTestId('t-frase')).toBeNull()
