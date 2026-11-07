@@ -1,7 +1,9 @@
 /** Configuração recusada; `nomes` traz só os NOMES das variáveis (nunca valores), para a categoria de erro das entradas. */
 export class ErroConfiguracao extends Error {
-  constructor(message: string, readonly nomes: readonly string[]) {
+  readonly nomes: readonly string[];
+  constructor(message: string, nomes: readonly string[]) {
     super(message);
+    this.nomes = nomes;
     this.name = 'ErroConfiguracao';
   }
 }
