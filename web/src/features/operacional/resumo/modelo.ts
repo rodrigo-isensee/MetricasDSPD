@@ -1,6 +1,6 @@
 import type { MarcacaoCriterio, ResultadoDe, Taxa } from '@metricas-dspd/contratos'
 import { META_RAZAO_MIN, MINIMO_AMOSTRA, TIPOS_CARD } from '@metricas-dspd/contratos'
-import { fmtInteiro, fmtNumero, fmtPct, plural } from '@/lib/formatar'
+import { fmtData, fmtInteiro, fmtNumero, fmtPct, plural } from '@/lib/formatar'
 import { contarAvaliadasS1, contarAvaliadasS2, contarForaS1, contarForaS2 } from '../atencao'
 
 /** Meta de aderência em texto ("90%"), derivada de `META_RAZAO_MIN` para o literal não divergir do contrato. */
@@ -205,6 +205,8 @@ export interface PontoMensal {
   n: number | null
   /** Texto do valor para a tabela e a leitura ("14", "2 de 3 avaliadas", "poucos itens (n=14)"). */
   texto: string
+  /** Primeiro dia do histórico carregado (AAAA-MM-DD) quando a janela de 12 semanas do mês começa antes dele. */
+  janelaIncompleta?: string
 }
 
 const MESES_EXTENSO = [
@@ -231,12 +233,22 @@ const semValor = (mes: string, n: number): PontoMensal => ({
   texto: `poucos itens (n=${fmtInteiro(n)})`,
 })
 
+/** Mês de janela incompleta: o contrato traz só a data; a tela não publica estatística nem conta nada (T2.5). */
+const janelaIncompleta = (mes: string, historicoDesde: string): PontoMensal => ({
+  mes,
+  valor: null,
+  n: null,
+  texto: `janela incompleta (histórico começa em ${fmtData(historicoDesde)})`,
+  janelaIncompleta: historicoDesde,
+})
+
 /** P85 do tipo escolhido em cada mês (o mesmo tipo do número): estatística por tipo, nunca entre tipos. */
 export function serieP85(
   t: ResultadoDe<'TENDENCIA_FLUXO'>,
   tipo: string | undefined,
 ): PontoMensal[] {
   return t.meses.map((m) => {
+    if (m.janelaIncompleta) return janelaIncompleta(m.mes, m.janelaIncompleta.historicoDesde)
     const c = m.p85PorTipo.find((x) => x.tipo === tipo)
     if (!c) return semValor(m.mes, 0)
     const e = c.estatistica

@@ -260,6 +260,27 @@ describe('séries mensais', () => {
       [1, '1 item'],
     ])
   })
+  it('mês de janela incompleta (CA-1, CA-4): sem valor e sem base, mesmo com poucos itens ou com 30', () => {
+    const t = {
+      meses: [
+        mes('2026-08', { p85PorTipo: [], janelaIncompleta: { historicoDesde: '2026-08-14' } }),
+        mes('2026-09', {
+          p85PorTipo: [classe('Melhoria', 30)],
+          janelaIncompleta: { historicoDesde: '2026-08-14' },
+        }),
+      ],
+    } as never
+    const [a, b] = serieP85(t, 'Melhoria')
+    expect(a).toEqual({
+      mes: '2026-08',
+      valor: null,
+      n: null,
+      texto: 'janela incompleta (histórico começa em 14/08/2026)',
+      janelaIncompleta: '2026-08-14',
+    })
+    expect(b?.valor).toBeNull()
+    expect(serieConcluidos(t).map((p) => p.janelaIncompleta)).toEqual([undefined, undefined])
+  })
   it('prioridades fora do alvo em k de m avaliadas; m = 0 não publica; volume por mês', () => {
     const cel = (ok: boolean, meta: string) => ({
       taxa: ok
