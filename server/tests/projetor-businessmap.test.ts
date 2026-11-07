@@ -16,7 +16,10 @@ const REF_LINHAS: Record<string, unknown[]> = {
   ref_coluna: [
     { ...V, quadro_id: 'Q', coluna_id: '2', workflow_id: 'W', section: 2, eh_descarte: false, papel: 'compromisso', tipo_coluna: 'fila', ordem: 2 },
     { ...V, quadro_id: 'Q', coluna_id: '3', workflow_id: 'W', section: 3, eh_descarte: false, papel: 'trabalho', tipo_coluna: 'execucao', ordem: 3 },
+    { ...V, quadro_id: 'Q', coluna_id: '8', workflow_id: 'W', section: 4, eh_descarte: true, papel: null, tipo_coluna: null, ordem: 8 },
+    { ...V, quadro_id: 'Q', coluna_id: '9', workflow_id: 'W', section: 4, eh_descarte: false, papel: 'entrega', tipo_coluna: 'execucao', ordem: 9 },
   ],
+  ref_dominio: [{ campo: 'campo_customizado', codigo: '5001', rotulo: 'fornecedor' }],
   ref_workflow: [{ ...V, quadro_id: 'Q', workflow_id: 'W', nivel: 'story' }],
   ref_time_workflow: [{ ...V, workflow_id: 'W', time_id: 1, situacao: 'time' }],
   ref_time: [{ ...V, time_id: 1, nome: 'Time A' }],
@@ -36,6 +39,7 @@ interface Cenario {
   versoes?: Record<string, unknown>[];
   dimCard?: { card_id: string; responsaveis: string[] }[];
   versaoDoResponsavel?: { vigente_de: Date; responsaveis: string[] | null };
+  bloqueios?: Record<string, unknown>[];
   trava?: boolean;
 }
 function montar(c: Cenario) {
@@ -48,6 +52,7 @@ function montar(c: Cenario) {
     for (const [tabela, linhas] of Object.entries(REF_LINHAS)) if (t.includes(`FROM dspd_bm.${tabela}`)) return linhas as never[];
     if (t.startsWith('SELECT DISTINCT id_origem')) return ids.filter((i) => i > (q.valores[0] as string)).slice(0, TAMANHO_LOTE).map((id_origem) => ({ id_origem }));
     if (t.includes('SELECT DISTINCT ON (id_origem) stg_sk')) return (c.stg ?? []).filter((x) => (q.valores[0] as string[]).includes(x.id_origem));
+    if (t.includes("payload -> 'is_blocked'")) return c.bloqueios ?? [];
     if (t.includes('FROM dspd_bm.stg_revision')) return c.revisoes ?? [];
     if (t.includes("payload ->> 'type_id' AS tipo")) return c.pais ?? [];
     if (t.includes('SELECT DISTINCT ON (card_id) card_id, vigente_de')) return c.versoes ?? [];
@@ -192,6 +197,55 @@ describe('projetarBusinessMap: bordas do banco', () => {
     const r = await projetarBusinessMap({ pool: d.pool, agora: () => AGORA });
     expect(r).toMatchObject({ cards: 1, eventos: { lidos: 1, inseridos: 0 }, transicoes: { lidas: 1 } });
     expect(com(d, 'INSERT INTO dspd_bm.fato_transicao')[0]!.valores).toContain('3');
+  });
+});
+
+describe('projetarBusinessMap: evt_bloqueio (lote 4a do 075)', () => {
+  const ver = (id: string, hora: number, extra: Record<string, unknown> = {}) => ({
+    id_origem: id, coletado_em: new Date(Date.UTC(2026, 10, 1, hora)), excluido_detectado: false, is_blocked: false, block_reason_id: null, column_id: 3, archived_at: null, custom_fields: null, ...extra,
+  });
+  const gravados = (d: ReturnType<typeof montar>) => com(d, 'INSERT INTO dspd_bm.evt_bloqueio').flatMap((x) => {
+    const v = x.valores;
+    return Array.from({ length: v.length / 9 }, (_, i) => v.slice(i * 9, i * 9 + 9));
+  });
+  const BLOQ = { is_blocked: true, block_reason_id: 7, custom_fields: [{ field_id: '5001', valor: 'FORN_A' }] };
+
+  it('abre e fecha por is_blocked, grava idempotente só com os campos usados, e conta só números; nunca lê dspd_ac', async () => {
+    const d = montar({ stg: [stg('1')], bloqueios: [ver('1', 9), ver('1', 10, BLOQ), ver('1', 11)] });
+    const r = await proj(d);
+    expect(r.bloqueios).toEqual({ lidos: 2, inseridos: 0 });
+    const [inicio, fim] = gravados(d);
+    expect(inicio).toEqual(['1', expect.stringMatching(/^[0-9a-f]{32}$/), 'inicio', '7', '3', 'FORN_A', new Date(Date.UTC(2026, 10, 1, 10)), AGORA, 88]);
+    expect(fim).toEqual(['1', inicio![1], 'fim', null, '3', null, new Date(Date.UTC(2026, 10, 1, 11)), AGORA, 88]);
+    const q = com(d, 'INSERT INTO dspd_bm.evt_bloqueio')[0]!.texto;
+    expect(q).toContain('ON CONFLICT ON CONSTRAINT uq_evt_bloqueio DO NOTHING');
+    const leitura = com(d, "payload -> 'is_blocked'")[0]!.texto;
+    expect(leitura).not.toMatch(/payload\s*,|payload\s+FROM|SELECT\s+payload/);
+    expect(com(d, 'INSERT INTO dspd_bm.ctl_coleta_contagem').find((x) => x.valores[1] === 'projecao_bloqueio_evento')!.valores).toEqual([88, 'projecao_bloqueio_evento', 2, 0, 2, 0]);
+    expect(d.chamadas.some((x) => x.texto.includes('dspd_ac'))).toBe(false);
+  });
+
+  it('marcos: arquivado depois da coleta fecha na coleta (SEG-A1), arquivado antes fecha nele, entrega, descarte e excluído fecham; nota por código sem o valor', async () => {
+    const d = montar({
+      stg: [stg('1'), stg('2'), stg('3'), stg('4'), stg('5'), stg('6')],
+      bloqueios: [
+        ver('1', 10, BLOQ), ver('1', 12, { ...BLOQ, archived_at: '2099-01-01T00:00:00Z' }),
+        ver('2', 10, BLOQ), ver('2', 12, { ...BLOQ, archived_at: '2026-11-01T11:00:00Z' }),
+        ver('3', 10, BLOQ), ver('3', 11, { ...BLOQ, column_id: 9 }),
+        ver('4', 10, BLOQ), ver('4', 11, { ...BLOQ, column_id: 8 }),
+        ver('5', 10, BLOQ), ver('5', 11, { ...BLOQ, excluido_detectado: true }),
+        ver('6', 10, { ...BLOQ, block_reason_id: 'MARCADOR-PESSOA-075' }),
+      ],
+    });
+    await proj(d);
+    const fins = Object.fromEntries(gravados(d).filter((e) => e[2] === 'fim').map((e) => [e[0], (e[6] as Date).toISOString()]));
+    expect(fins).toEqual({
+      '1': '2026-11-01T12:00:00.000Z', '2': '2026-11-01T11:00:00.000Z', '3': '2026-11-01T11:00:00.000Z', '4': '2026-11-01T11:00:00.000Z', '5': '2026-11-01T11:00:00.000Z',
+    });
+    expect(gravados(d).find((e) => e[0] === '6')![3]).toBeNull();
+    const nota = com(d, 'INSERT INTO dspd_bm.ctl_coleta_contagem').find((x) => x.valores[1] === 'nota_bloqueio_motivo_codigo_invalido')!;
+    expect(nota.valores).toEqual([88, 'nota_bloqueio_motivo_codigo_invalido', 1, 1, 0, 0]);
+    expect(JSON.stringify(d.chamadas.filter((x) => x.texto.includes('ctl_coleta')))).not.toContain('MARCADOR');
   });
 });
 

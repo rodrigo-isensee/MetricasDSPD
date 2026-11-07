@@ -118,6 +118,9 @@ d('L9-c (pg): previsao_retorno booleano e projeção da F3', () => {
     await dono.query(`UPDATE ${E.ac}.ref_dominio SET vigente_ate = '2026-11-05' WHERE campo = 'etapa_fluxo' AND vigente_ate IS NULL`);
     for (const [codigo, ordem] of [['20', 0], ['10', 1]] as const)
       await dono.query(`INSERT INTO ${E.ac}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('etapa_fluxo', $1, '2026-11-05', $2, $3)`, [codigo, `Etapa ${codigo}`, ordem]);
+    // Opção C (E10): o reconhecimento exige a versão que o ac:ref-sync deixaria na data da vigência nova.
+    await dono.query(`INSERT INTO ${E.core}.ref_versao_criterio (vigente_desde, dominio, descricao, motivo, referencia, registrado_em)
+      VALUES ('2026-11-05', 'acelerato', 'Teste L9-c', 'Lista etapa_fluxo trocada', '056:ref-dominio:teste-l9c:2026-11-05', '2026-11-05T12:00:00Z')`);
     relogio = new Date('2026-11-05T12:00:00Z');
     const mesmo = [{ nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Beta', kanbanStatusKey: 20 }, { nome: 'Motivo de Encerramento', tipo: 'lista', valor: 'Alfa', kanbanStatusKey: 10 }];
     await coletar([etapa(mesmo)], true); // a lista mudou: a coleta pede o reconhecimento da mudança de critério (CA-8)

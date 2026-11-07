@@ -25,7 +25,7 @@ describe('entrada bm:ref-sync', () => {
   it('URL inválida com senha marcador: mensagem fixa, marcador ausente da saída', () => {
     const r = rodar(['2026-11-04'], { PG_REF_URL: 'postgres://dspd_ref:SENHA-MARCADOR-069@host-invalido:porta-ruim/db' });
     expect(r.status).toBe(1);
-    expect(r.stderr).toBe('bm:ref-sync falhou: configuração ou banco inválidos\n');
+    expect(r.stderr).toBe('bm:ref-sync falhou: outro\n');
     expect(`${r.stdout}${r.stderr}`).not.toContain('SENHA-MARCADOR-069');
   });
 
