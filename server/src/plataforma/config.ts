@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { urlDoPapel } from './db/pool.js';
+import { ErroConfiguracao } from './categoria-erro.js';
 
 /**
  * Configuração por variáveis de ambiente, validada na inicialização (falha rápida). Cada entrada lê só o que usa:
@@ -118,7 +119,7 @@ function validar<T extends z.ZodType>(esquema: T, env: NodeJS.ProcessEnv): z.out
   const r = esquema.safeParse(env);
   if (r.success) return r.data;
   const nomes = [...new Set(r.error.issues.map((i) => String(i.path[0] ?? '?')))];
-  throw new Error(`Configuração inválida (variáveis: ${nomes.join(', ')})`);
+  throw new ErroConfiguracao(`Configuração inválida (variáveis: ${nomes.join(', ')})`, nomes);
 }
 
 export type ConfigApi = z.output<typeof esquemaApi>;
@@ -136,7 +137,7 @@ export const VARIAVEIS_REMOVIDAS_API = ['DADOS_FONTE', 'DSPD_SCHEMA_PREFIXO_SEED
 export const carregarConfigApi = (env: NodeJS.ProcessEnv = process.env): ConfigApi => {
   const removidas = VARIAVEIS_REMOVIDAS_API.filter((nome) => env[nome] !== undefined);
   if (removidas.length > 0) {
-    throw new Error(`Configuração inválida (variáveis: ${removidas.join(', ')}): variável removida no pedido 060; a API serve só dado real. Tire a linha do ambiente`);
+    throw new ErroConfiguracao(`Configuração inválida (variáveis: ${removidas.join(', ')}): variável removida no pedido 060; a API serve só dado real. Tire a linha do ambiente`, removidas);
   }
   return validar(esquemaApi, env);
 };
