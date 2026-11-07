@@ -12,7 +12,7 @@ import type { Consultavel } from '../../plataforma/db/pool.js';
 import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
 import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
-import { semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
+import { comCorteDaSerieO1, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
@@ -318,6 +318,8 @@ export class ServicoMetricas {
     if (id === 'O3' && real && (bm as NonNullable<typeof bm>).sleDefinido !== true) resultado = { ...(resultado as object), notas: ['sle-nao-definido'] };
     // Pedido 065 (K-205): a coleta ainda não grava bloqueios; na base real a parte de bloqueio sai `null` com nota, nunca zero. Só publicação: nada é recalculado.
     if (real && !BLOQUEIOS_COM_DADO_REAL && METRICAS_COM_PARTE_DE_BLOQUEIO.includes(id)) resultado = semParteDeBloqueio(id, resultado);
+    // Pedido 075, lote 6a: com o interruptor ligado, a série do O1 não traz bloqueio antes da data da versão de critério (código escuro).
+    if (real) resultado = comCorteDaSerieO1(id, resultado, BLOQUEIOS_COM_DADO_REAL);
     // Pedido 069, L9-a (K-220): sem a fonte de `prioridade_ajustada_manualmente`, o S3 publica `null` com nota e o S2 a nota da exceção de SLA. Só publicação.
     if (real && !AJUSTE_PRIORIDADE_COM_FONTE && METRICAS_COM_AJUSTE_DE_PRIORIDADE.includes(id)) resultado = semParteDeAjusteDePrioridade(id, resultado);
     mapa.set(chave, resultado);
