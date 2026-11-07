@@ -3,53 +3,42 @@ tipo: review
 contrato: 1
 pedido: 075-bloqueios-reais
 branch: feature/075-l5a-tela
-commit: 6d4a392cf75ecf6c9f3c9c5589fc5ac878335991
+commit: 09a2d16c6de02f6ee6f95fba02e44de9bcf34bbc
 parecer: aprovado
 revisor: tech-lead
-data: 2026-11-06
+data: 2026-11-07
 ---
-# Code review: 075 L5a, motivo "não classificado" em BLOQUEADOS, O2 e O19 (K-204), segunda volta
+# Code review: 075 L5a, motivo "não classificado" em BLOQUEADOS, O2 e O19 (K-204), delta do caso E2E
 
 ## Parecer
 
-Aprovado em `6d4a392c`. A segunda volta resolve o A1 deste review e os achados médio 1 e baixos 3 e 4 da revisão de interface (`docs/ux/075-revisao-l5a.md`). A exceção do médio 2 fica aceita (motivo abaixo). A especificação e a revisão de UX entraram na branch (`c65970ca`), o que fecha o A2 anterior. O parecer cobre também o O19 da E4 (P-075-8).
+Aprovado em `09a2d16c`. O código da tela já estava aprovado em `6d4a392c` (segunda volta, A1 resolvido, exceção do médio 2 da UX aceita); o QA acrescentou depois o caso E2E do axe (`92c10424...09a2d16c`), que deixou aquele parecer desatualizado. Este parecer cobre o delta e mantém o anterior para o resto. O parecer cobre também o O19 da E4 (P-075-8).
 
-## O que foi lido (delta `0779d528...6d4a392c`, 3 commits)
+## O que foi lido (delta `92c10424...09a2d16c`, 2 arquivos)
 
-Os arquivos fora do delta ficaram como já lidos no parecer anterior, em `7724d087`.
+Os arquivos fora do delta ficam como já lidos no parecer anterior, em `6d4a392c`.
 
-- `CartaoO2.tsx:71`: `naoClass = !semBloqueio && ...`. Com a nota `bloqueio-sem-dado-real`, o apoio não aparece mais sob "Sem dado real". A1 resolvido.
-- `operacionais.tsx`, `leituraO19`:
-  - A leitura cita o maior motivo classificado.
-  - Quando o "não classificado" passa dele, a leitura acrescenta "Bloqueio sem motivo classificado somou N dias úteis em M bloqueios" (médio 1, CA-2).
-  - Quando só existe "não classificado", lê "Bloqueio sem motivo classificado somou N dias" (baixo 3, CA-1).
-  - Com `totalDiasUteis` 0, não há leitura.
-  - Só usa valores publicados (`diasUteis`, `bloqueios` e `pctDoTotal` do `ResultadoO19`). A tela compara dois valores do DTO para decidir se cita a lacuna, sem soma, razão nem percentual calculado (T2.5).
-- `motivo-nao-classificado.test.tsx`:
-  - Afirma o `aria-describedby` do O2 e do O19, a série hachurada (`fill` com `url(#`) e a leitura com a lacuna (baixo 4).
-  - Casos de borda novos: período sem dias bloqueados (o texto procurado existe no componente, checklist 11) e só "não classificado".
-- `docs/ux/075-bloqueios-reais.md` e `docs/ux/075-revisao-l5a.md`: só texto, commitados pelo autor da volta.
-- `server/` e `packages/`: sem diff no lote inteiro (`da61dbc2...6d4a392c`).
-
-## Exceção do médio 2 da UX (rótulo do eixo do O19 sem itálico nem ícone)
-
-Aceita. A CA-4 pede que o "não classificado" não dependa só de cor, e no O19 pede hachura ou contorno nas barras. A barra já se distingue pelo texto "não classificado" no rótulo, pela hachura e pela legenda própria, e a linha da tabela do mesmo cartão traz itálico e ícone. Para pôr itálico e ícone no eixo, seria preciso um tick próprio no `Barras` compartilhado, o que muda um componente usado por outros cartões e é outro comportamento, fora deste lote. Fica como recomendação (A3).
+- `e2e/tests-api/motivo-nao-classificado-075-l5a.spec.ts` (novo, 80 linhas):
+  - Só usa `page.route` do Playwright: BLOQUEADOS e O19 recebem corpo simulado no contrato; o O2 busca a resposta real do stub e troca só `notas` e `bloqueioMotivo`. Não toca `web/src` nem o servidor.
+  - Roda `rodarAxe` do projeto (tags WCAG 2.2 AA) em cada um dos três cartões (`include`), nos temas claro e escuro, e falha com qualquer violação, bloqueante ou informativa.
+  - Roda também a regra `color-contrast` isolada no cartão e exige que ela tenha sido avaliada (`passes + incomplete > 0`), então um cartão sem texto avaliado não passa em silêncio.
+  - Confere `data-estado="ok"` e o texto "não classificado" visível antes do axe; abre "Mais métricas" para o O19.
+  - Não depende de dado real nem da base: o corpo é fixo no arquivo.
+  - Fica em `e2e/tests-api/`, coberto pelo `testDir` do projeto `chromium-api` (o `testIgnore` só exclui `grafias`).
+- `docs/qa/075-l5a-tela.md`: só texto, parecer do QA; não revisado por mim.
+- `web/src`, `server/` e `packages/`: sem diff no delta.
 
 ## Ferramentas
 
-- CI do push no head `6d4a392c` (run 42273825887): workflow CI, evento `push`, `completed`/`success`.
-- Testes dos arquivos tocados (D-5), com `vitest run --maxWorkers=2` em `web` (`motivo-nao-classificado`, `operacionais` e `bloqueio-sem-dado`): 3 arquivos e 58 testes, todos verdes.
-- Teto M14: 317 linhas no web (298 adições e 19 remoções; código 155, teste 162). A exceção fica aceita:
-  - O lote tem um comportamento só, a marca do 8º motivo nos três cartões que o mostram.
-  - As 42 linhas a mais desde a primeira aprovação vêm das correções pedidas pelo review e pela UX.
-  - Mais da metade do lote é teste dos CA.
-  - Dividir separaria o componente compartilhado dos seus usos ou o teste do código que ele cobre.
+- Guardas de código de produção no delta: nenhuma (só teste e texto).
+- CI do push no head `09a2d16c` (run 42331589680): verde, mas o job e2e foi pulado pelo filtro da CI do push. O caso E2E não tem prova de CI ainda: a prova vem da CI do PR do 5a, que só mescla com o e2e verde (decisão técnica do pedido, 2026-11-07 00:02).
+- Não rodei o E2E neste review: ele exige o servidor stub e a SPA em `VITE_FONTE=api` (ambiente do CI do PR).
+- Teto M14: o delta não toca código de produção; o teste novo tem 80 linhas e, somado ao web (155 de código e 162 de teste, já aceitos), a exceção do parecer anterior fica mantida. O corpo do PR leva a linha de exceção, com o total atualizado pela contagem de `git diff --numstat --no-renames origin/develop...HEAD` no momento do PR:
 
-O corpo do PR leva esta linha:
-
-teto: excedido, 317 linhas, um comportamento (marca do motivo não classificado em BLOQUEADOS, O2 e O19), mais da metade é teste dos CA e o acréscimo veio das correções de review e UX
+teto: excedido, 317 linhas no web mais o caso E2E de 80 linhas, um comportamento (marca do motivo não classificado em BLOQUEADOS, O2 e O19), mais da metade é teste dos CA e o acréscimo veio das correções de review, UX e QA
 
 ## Achados
 
 - A3 (recomendado) web/src/features/complementares/operacionais.tsx:156 · Rótulo do eixo do O19 sem itálico nem ícone (médio 2 da UX), aceito como exceção: hachura, texto e legenda distinguem. Se o Barras ganhar tick customizável, igualar à tabela num cartão próprio.
-- A4 (recomendado) web/src/features/operacional/components/CartaoO2.tsx:71 · O apoio do motivo depende de haver "não classificado" entre os 10 itens listados (baixo 5 da UX); o QA do 5a confere o comportamento com a ordenação por "Sem mover há".
+- A4 (recomendado) web/src/features/operacional/components/CartaoO2.tsx:71 · O apoio do motivo depende de haver "não classificado" entre os 10 itens listados (baixo 5 da UX); o QA confere com a ordenação por "Sem mover há".
+- A5 (recomendado) e2e/tests-api/motivo-nao-classificado-075-l5a.spec.ts:73 · O `import('@axe-core/playwright')` dentro do laço poderia ser um import estático no topo (o `rodarAxe` já o usa); sem efeito no resultado.
