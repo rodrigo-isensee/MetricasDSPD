@@ -44655,6 +44655,18 @@
                               },
                               "concluidos": {
                                 "type": "number"
+                              },
+                              "janelaIncompleta": {
+                                "type": "object",
+                                "properties": {
+                                  "historicoDesde": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "historicoDesde"
+                                ],
+                                "additionalProperties": false
                               }
                             },
                             "required": [
@@ -45212,6 +45224,18 @@
                               },
                               "volume": {
                                 "type": "number"
+                              },
+                              "janelaIncompleta": {
+                                "type": "object",
+                                "properties": {
+                                  "historicoDesde": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "historicoDesde"
+                                ],
+                                "additionalProperties": false
                               }
                             },
                             "required": [
@@ -45222,6 +45246,16 @@
                               "volume"
                             ],
                             "additionalProperties": false
+                          }
+                        },
+                        "notas": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "ajuste-prioridade-sem-dado-real",
+                              "excecao-sla-sem-fonte"
+                            ]
                           }
                         }
                       },
