@@ -343,6 +343,18 @@
           },
           "volume": {
             "type": "number"
+          },
+          "janelaIncompleta": {
+            "type": "object",
+            "properties": {
+              "historicoDesde": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "historicoDesde"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [

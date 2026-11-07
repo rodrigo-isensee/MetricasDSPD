@@ -51,8 +51,9 @@ describe('bm:ref-sync: o arquivo versionado', () => {
       campo_customizado: [{ codigo: '7', rotulo: 'area_solicitante' }, { codigo: '8', rotulo: 'sistema' }],
       area_solicitante: [{ codigo: 'a1', rotulo: 'Area Um' }],
       sistema: [{ codigo: 's1', rotulo: 'Sistema Um' }],
+      motivo_bloqueio: [],
     });
-    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [] });
+    expect(listasDoArquivo(aceita([]).arquivo)).toEqual({ campo_customizado: [], motivo_bloqueio: [] });
   });
 
   it.each(PROIBIDOS)('CA-069-1: o field %s no arquivo recusa a carga inteira, sem valor na mensagem', (id) => {
@@ -182,7 +183,7 @@ describe('sincronizarDominioBm (dublê de PostgreSQL)', () => {
     expect(sql.join('\n')).not.toMatch(/dspd_ac|DELETE|TRUNCATE/);
     const versao = d.chamadas.find((c) => c.texto.includes('INSERT INTO dspd_core.ref_versao_criterio'))!;
     expect(versao.valores).toEqual([HOJE, 'Teste do bm:ref-sync', 'Teste', `069:ref-bm-campos:${lido.sha256}`, AGORA.toISOString()]);
-    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante']]);
+    expect(d.chamadas.find((c) => c.texto.includes('campo = ANY'))!.valores).toEqual([['campo_customizado', 'area_solicitante', 'motivo_bloqueio']]);
   });
 
   it('já vigente e igual: nada é gravado e nenhuma versão é registrada; versão já existente não duplica', async () => {

@@ -111,3 +111,8 @@ export function limitesDosMeses(baldes: readonly Balde[]): {
     fimDia: (baldes[baldes.length - 1] as Balde).fimDia,
   }
 }
+
+/** Pedido 077 (A4): a janela já calculada por `janelaMovelDia` começa antes do histórico carregado. Ausente = completa. */
+export function janelaIncompleta(janela: Intervalo, historicoDesde?: string): boolean {
+  return historicoDesde !== undefined && janela.inicio < historicoDesde
+}
