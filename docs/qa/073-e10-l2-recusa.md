@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 073-melhorias-tecnicas-2026-11-05
 branch: feature/073-e10-l2-recusa
-commit: 438ffc2c7c39663836640ed9a0d4e3b3a392b0df
+commit: a9a151d70e714b4e7e09769654ceb752a2458b35
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -15,6 +15,8 @@ data: 2026-11-07
 # QA: E10 Lote 2, recusa do reconhecimento sem versão ou com lista sobrescrita (pedido 073, E10.6, K-235)
 
 Base: develop 8a4e2dd7. Código e testes do lote: 438ffc2c (review b932c6b4 e segurança 0f69e670 aprovados, só documentação sobre ele). Spec: seção "Lote 2" de `docs/analises/073-e10-plano.md` (P-E10-1, opção C). O CT novo é o CT-69, em `docs/qa/056-coletor-plano-de-testes.md` (commit a82ded88, separado deste parecer).
+
+Renovação de a9a151d7 (delta só de documentação): o código e os testes não mudaram depois de 438ffc2c; além dos pareceres e do CT-69, o único arquivo novo é o texto de `docs/architecture/fontes/acelerato-listas.md` (a9a151d7), e o resto do parecer segue igual.
 
 ## Achados
 - A1 (recomendado) server/tests/acelerato-e10-recusa.test.ts:20 · O duplo ignora os campos do grupo: trocar 'etapa_fluxo' por outro nome em GRUPOS_DE_LISTA (controle.ts:73) sobrevive no unitário. Afirmar o conteúdo de fluxo_sha256 e recorte_sha256 no unitário (esforço P).
