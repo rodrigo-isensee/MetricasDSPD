@@ -1,5 +1,6 @@
 import { pino } from 'pino';
 import { carregarConfigRef } from '../plataforma/config.js';
+import { categoriaDoErro } from '../plataforma/categoria-erro.js';
 import { criarPool } from '../plataforma/db/pool.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
 import { opcoesLog } from '../plataforma/log.js';
@@ -23,7 +24,7 @@ try {
   const r = await sincronizarCalendario(pool, montarEsquemas(cfg.DSPD_SCHEMA_PREFIXO), lido, dia, new Date());
   process.stdout.write(`${JSON.stringify({ vigenteDesde: dia, ...r })}\n`);
 } catch (e) {
-  process.stderr.write(`ref:sync-calendario falhou: ${e instanceof ErroCalendario ? e.message : 'configuração ou banco inválidos'}\n`);
+  process.stderr.write(`ref:sync-calendario falhou: ${e instanceof ErroCalendario ? e.message : categoriaDoErro(e)}\n`);
   process.exitCode = 1;
 } finally {
   await pool?.end();
