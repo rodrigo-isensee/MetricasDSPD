@@ -329,6 +329,20 @@ describe('séries mensais', () => {
     expect(fraseDaSerieSla([{ mes: '2026-07', valor: null, n: 0, texto: 'não publicado' }])).toBe(
       'Em julho: não publicado',
     )
+    expect(
+      fraseDaSerieSla([
+        {
+          mes: '2026-07',
+          valor: null,
+          n: null,
+          texto:
+            'Janela incompleta: o histórico carregado começa em 14/08/2026. Estatística não publicada.',
+          janelaIncompleta: '2026-08-14',
+        },
+      ]),
+    ).toBe(
+      'Em julho, janela incompleta: o histórico carregado começa em 14/08/2026. Estatística não publicada.',
+    )
     expect(fraseDaSerieSla([{ mes: '2026-07', valor: 0, n: null, texto: '0' }])).toBe(
       'Em julho: nenhuma prioridade avaliada.',
     )
@@ -338,6 +352,7 @@ describe('séries mensais', () => {
         mes: '2026-09',
         valor: null,
         n: 0,
+        motivo: 'sem prioridade avaliada',
         texto: 'Nenhuma prioridade com 20 chamados ou mais. Estatística não publicada.',
       },
     ])

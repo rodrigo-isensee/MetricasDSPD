@@ -18,6 +18,8 @@ export interface DadoMensal {
   valor: number | null
   /** Primeiro dia do histórico quando o mês não publica por janela incompleta (vence os poucos itens). */
   janelaIncompleta?: string
+  /** Rótulo do eixo para o ponto sem valor por outro motivo que não poucos itens. */
+  motivo?: string
 }
 
 export interface MarcaMensal {
@@ -94,7 +96,7 @@ export function GraficoMensal({
   const semValor = new Map(
     dados
       .filter((d) => d.valor === null)
-      .map((d) => [d.mes, d.janelaIncompleta ? 'janela incompleta' : 'poucos itens']),
+      .map((d) => [d.mes, d.janelaIncompleta ? 'janela incompleta' : (d.motivo ?? 'poucos itens')]),
   )
   const linhas = dados.map((d) => ({ ...d, vazio: d.valor === null ? 0 : null }))
   return (

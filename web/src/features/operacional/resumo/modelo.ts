@@ -207,6 +207,8 @@ export interface PontoMensal {
   texto: string
   /** Primeiro dia do histórico carregado (AAAA-MM-DD) quando a janela de 12 semanas do mês começa antes dele. */
   janelaIncompleta?: string
+  /** Rótulo curto do eixo para o ponto sem valor quando o motivo não é janela incompleta nem poucos itens. */
+  motivo?: string
 }
 
 const MESES_EXTENSO = [
@@ -282,6 +284,7 @@ export function serieSla(t: ResultadoDe<'TENDENCIA_SUST'>): PontoMensal[] {
         mes: m.mes,
         valor: null,
         n: 0,
+        motivo: 'sem prioridade avaliada',
         texto: 'Nenhuma prioridade com 20 chamados ou mais. Estatística não publicada.',
       }
     return {
@@ -306,6 +309,8 @@ export function fraseDaSerieSla(pontos: readonly PontoMensal[]): string {
   const ultimo = pontos.at(-1)
   if (!ultimo) return ''
   const mes = mesPorExtenso(ultimo.mes)
+  if (ultimo.janelaIncompleta)
+    return `Em ${mes}, ${ultimo.texto.charAt(0).toLowerCase()}${ultimo.texto.slice(1)}`
   if (ultimo.valor === null) return `Em ${mes}: ${ultimo.texto}`
   if (!ultimo.n) return `Em ${mes}: nenhuma prioridade avaliada.`
   return `Em ${mes}: ${fmtInteiro(ultimo.valor)} de ${fmtInteiro(ultimo.n)} prioridades avaliadas ${ultimo.valor === 1 ? 'está' : 'estão'} abaixo de ${META_SLA_TEXTO}.`
