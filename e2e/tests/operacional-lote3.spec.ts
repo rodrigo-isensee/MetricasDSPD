@@ -6,7 +6,25 @@ import type { Page } from '@playwright/test'
 const ROTA = '/operacional?cadencia=semanal'
 const IDS = ['O19', 'O20', 'O21', 'O22', 'O24', 'O25', 'O26'] as const
 
-async function abrir(page: Page, rota: string, mock?: string) {
+// K-192: o axe lia a página ainda crescendo (cartões saindo do esqueleto) e media o alvo de toque fora de lugar.
+async function esperarAlturaEstavel(page: Page) {
+  await expect(page.locator('[data-testid^="metrica-"][aria-busy="true"]')).toHaveCount(0)
+  let anterior = -1
+  let iguais = 0
+  await expect
+    .poll(
+      async () => {
+        const h = await page.evaluate(() => document.documentElement.scrollHeight)
+        iguais = h === anterior ? iguais + 1 : 0
+        anterior = h
+        return iguais
+      },
+      { intervals: [100] },
+    )
+    .toBeGreaterThanOrEqual(5)
+}
+
+async function abrir(page: Page, rota: string, mock?: string, estavel = false) {
   const url = new URL(rota, 'http://x')
   if (mock) url.searchParams.set('mock', mock)
   await page.goto(url.pathname + url.search)
@@ -14,15 +32,18 @@ async function abrir(page: Page, rota: string, mock?: string) {
   await expect(page.getByTestId('aguardando-coleta')).toHaveCount(0)
   const mais = page.getByTestId('mais-metricas')
   await expect(mais).toBeVisible()
+  if (estavel) await esperarAlturaEstavel(page)
   if (!(await mais.evaluate((e) => (e as HTMLDetailsElement).open))) await mais.locator('summary').click()
+  if (estavel) await esperarAlturaEstavel(page)
 }
 
 test.describe('L3-01 presença e acessibilidade', () => {
   for (const largura of [1280, 375]) {
     test(`L3-01 os 7 cartões e o bloco O23 aparecem e passam no axe AA a ${largura} px`, async ({ page, painel, problemas }) => {
       await page.setViewportSize({ width: largura, height: 812 })
-      await abrir(page, ROTA)
+      await abrir(page, ROTA, undefined, true)
       await painel.esperarPronto()
+      await esperarAlturaEstavel(page)
       for (const id of IDS) {
         const c = page.getByTestId(`metrica-${id}`)
         await expect(c, id).toBeVisible()

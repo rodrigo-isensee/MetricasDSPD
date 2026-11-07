@@ -17,10 +17,10 @@ describe('entrada ref:sync-calendario: argumento de data e uso', () => {
     expect(r.stderr).toContain('uso: ref:sync-calendario [AAAA-MM-DD]');
   });
 
-  it('sem configuração do banco falha com código 1 e mensagem genérica, sem vazar detalhe', () => {
+  it('sem configuração do banco falha com código 1 e a categoria com o nome da variável, sem vazar detalhe', () => {
     const r = spawnSync(process.execPath, ['--import', 'tsx', ENTRADA, '2026-05-01'], { encoding: 'utf8', env: { PATH: process.env.PATH ?? '' }, timeout: 60_000 });
     expect(r.status).toBe(1);
-    expect(r.stderr).toContain('ref:sync-calendario falhou: configuração ou banco inválidos');
+    expect(r.stderr).toBe('ref:sync-calendario falhou: configuração: PG_REF_URL\n');
     expect(r.stdout).toBe('');
   });
 });
@@ -67,12 +67,19 @@ describe('entrada ref:sync-calendario: execução com dublês (sem banco, sem ar
     expect(process.exitCode).toBeUndefined();
   });
 
-  it('erro do banco: código 1, mensagem genérica sem o texto do erro, e fecha o pool', async () => {
+  it('erro do banco: código 1, só a categoria sem o texto do erro, e fecha o pool', async () => {
     const r = await rodar(() => Promise.reject(new Error('password authentication failed for user dspd_ref')));
     expect(process.exitCode).toBe(1);
     const texto = r.erro.mock.calls.map((c) => String(c[0])).join('');
-    expect(texto).toContain('ref:sync-calendario falhou: configuração ou banco inválidos');
+    expect(texto).toBe('ref:sync-calendario falhou: outro\n');
     expect(texto).not.toContain('password');
     expect(r.end).toHaveBeenCalledOnce();
+  });
+
+  it.each([['28P01', 'autenticação'], ['ECONNREFUSED', 'conexão']])('erro do banco com código %s imprime só a categoria %s', async (code, categoria) => {
+    const r = await rodar(() => Promise.reject(Object.assign(new Error('falha em postgres://segredo@host/db'), { code })));
+    const texto = r.erro.mock.calls.map((c) => String(c[0])).join('');
+    expect(texto).toBe(`ref:sync-calendario falhou: ${categoria}\n`);
+    expect(process.exitCode).toBe(1);
   });
 });

@@ -1,7 +1,9 @@
 #!/bin/bash
 # Roda o comando recebido sob trava exclusiva (flock): uma suíte de teste por vez, em todas as worktrees.
 # Uso: bash scripts/suite-unica.sh <comando> [argumentos...]
-# Trava ocupada: avisa no terminal e espera (não falha). Quem segura: fuser /tmp/metricas-dspd-suite.lock
+# Trava ocupada: avisa no terminal e espera (não falha). Quem segura: fuser /tmp/claude-<uid>/metricas-dspd-suite.lock
+# A trava fica em /tmp/claude-<uid> (o diretório do TMPDIR dos agentes, que o sandbox grava; o dono no terminal
+# usa o mesmo caminho, pois ele não depende da variável TMPDIR): uma trava única por estação.
 # Não aninha: se este processo (ou um ancestral) já segura a trava, roda o comando direto.
 # METRICAS_DSPD_SUITE_LOCK troca o arquivo da trava (usado só pelo teste do script).
 set -uo pipefail
@@ -15,7 +17,14 @@ fi
 
 command -v flock >/dev/null || { echo "suite-unica: flock não encontrado (util-linux)" >&2; exit 1; }
 
-TRAVA="${METRICAS_DSPD_SUITE_LOCK:-/tmp/metricas-dspd-suite.lock}"
+if [ -n "${METRICAS_DSPD_SUITE_LOCK:-}" ]; then
+  TRAVA="$METRICAS_DSPD_SUITE_LOCK"
+else
+  DIR_TRAVA="/tmp/claude-$(id -u)"
+  [ -L "$DIR_TRAVA" ] && { echo "suite-unica: $DIR_TRAVA é um link simbólico; recusado" >&2; exit 1; }
+  mkdir -p -m 700 "$DIR_TRAVA" 2>/dev/null || [ -d "$DIR_TRAVA" ] || { echo "suite-unica: não consegui criar $DIR_TRAVA" >&2; exit 1; }
+  TRAVA="$DIR_TRAVA/metricas-dspd-suite.lock"
+fi
 # Não segue link simbólico no caminho da trava.
 [ -L "$TRAVA" ] && { echo "suite-unica: $TRAVA é um link simbólico; recusado" >&2; exit 1; }
 

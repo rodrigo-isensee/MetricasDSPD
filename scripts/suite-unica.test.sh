@@ -49,5 +49,16 @@ bash scripts/suite-unica.sh bash -c 'exit 7'
 [ "$?" -eq 7 ]
 verifica "rc do comando é repassado" $?
 
+# 4) sem METRICAS_DSPD_SUITE_LOCK, a trava é a única da estação, em /tmp/claude-<uid> (gravável no sandbox).
+padrao="/tmp/claude-$(id -u)/metricas-dspd-suite.lock"
+env -u METRICAS_DSPD_SUITE_LOCK -u METRICAS_DSPD_SUITE_SEGURA bash scripts/suite-unica.sh bash -c 'echo "$$" >"$1"; sleep 2' x "$TMP/pid" 2>/dev/null &
+pP=$!
+sleep 0.5
+env -u METRICAS_DSPD_SUITE_LOCK -u METRICAS_DSPD_SUITE_SEGURA timeout 1 bash scripts/suite-unica.sh true 2>"$TMP/errP"
+grep -q "esperando a trava $padrao" "$TMP/errP"
+verifica "caminho padrão $padrao: segunda chamada espera a primeira" $?
+wait "$pP"
+verifica "caminho padrão: primeira chamada termina com rc=0" $?
+
 [ "$falhas" -eq 0 ] && echo "suite-unica.test: tudo certo" || echo "suite-unica.test: $falhas falha(s)"
 exit "$falhas"
