@@ -31,5 +31,5 @@ Veredito: aprovado. A violação de target-size que reprovou a rodada anterior n
 - O A2 anterior (375 px por tempo) não reapareceu.
 - Helper `esperarAlturaEstavel`: espera por condição (cartões sem `aria-busy="true"` e `scrollHeight` estável em leituras seguidas, `expect.poll`); sem `waitForTimeout` nem espera fixa.
 - Escopo: o diff de `e2e/` contra a base é só `e2e/tests/operacional-lote3.spec.ts`; nenhuma regra do axe, timeout, retry nem scroll ao topo mudou. `LeiaJunto.tsx` igual à base; `web/`, `server/`, `packages/` e `.github` sem diferença contra a base.
-- Fora de escopo, conforme o brief: suíte inteira, vermelho antes do verde e mutação (sem código de produção nem guarda nova); revisão de interface (E1.4) deixou de se aplicar.
+- Não rodei a suíte inteira, o vermelho antes do verde nem a mutação neste parecer: rodei só o L3-01 em repetição (E2) e reaproveitei a evidência anterior do K-173. O motivo é que a mudança é só de teste E2E (um helper de espera), sem código de produção nem guarda nova. A revisão de interface (E1.4) deixou de se aplicar.
 - O commit testado é o do código, 8784bf13; a ponta da branch tem só pareceres depois dele.
