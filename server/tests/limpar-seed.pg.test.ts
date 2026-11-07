@@ -34,6 +34,7 @@ d('limpar-seed contra PostgreSQL 17 (seed e carga real juntos no mesmo esquema)'
     await db.query(`INSERT INTO ${E.bm}.fato_transicao (card_id, quadro_id, coluna_destino_id, fonte, id_origem, ocorrido_em, coletado_em, coleta_id)
       VALUES ('9001', '77', 'c9', 'revision', 'real-1', now(), now(), $1)`, [real]);
     await db.query(`INSERT INTO ${E.bm}.fato_bloqueio (card_id, id_origem, inicio, coletado_em, atualizado_por_coleta_id) VALUES ('9001', 'real-b1', now(), now(), $1)`, [real]);
+    await db.query(`INSERT INTO ${E.bm}.evt_bloqueio (card_id, id_origem, tipo, ocorrido_em, coletado_em, coleta_id) VALUES ('9001', 'real-e1', 'inicio', now(), now(), $1)`, [real]);
     await db.query(`INSERT INTO ${E.bm}.ref_quadro (quadro_id, vigente_de, equipe, nivel) VALUES ('77', '2026-01-01', 'Equipe Real', 'time')`);
     await db.query(`INSERT INTO ${E.bm}.ref_coluna (quadro_id, coluna_id, vigente_de, nome, tipo_coluna, ordem, workflow_id, eh_folha, motivo) VALUES ('77', 'c9', '2026-01-01', 'Coluna Real', 'execucao', 0, 'w1', true, 'processo')`);
     await db.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('sistema', 'REAL', '2026-02-02', 'Real', 0)`);
@@ -123,6 +124,7 @@ d('limpar-seed contra PostgreSQL 17 (seed e carga real juntos no mesmo esquema)'
     expect(await n(`${E.bm}.dim_card`)).toBe(1);
     expect(await n(`${E.bm}.fato_transicao`)).toBe(1);
     expect(await n(`${E.bm}.fato_bloqueio`)).toBe(1);
+    expect(await n(`${E.bm}.evt_bloqueio`)).toBe(1); // 075 4a, CA-075-9: o evento real fica
     expect(await n(`${E.bm}.ctl_coleta`)).toBe(1);
     expect(await n(`${E.ac}.dim_chamado`)).toBe(1);
     expect(await n(`${E.ac}.ctl_coleta`)).toBe(1);

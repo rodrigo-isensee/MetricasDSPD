@@ -3,6 +3,7 @@ import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { comTravaDaFonte } from '../../plataforma/db/trava.js';
 import { COLUNAS_LISTA } from './allow-list.js';
+import { derivarBloqueios, type VersaoBloqueio } from './bloqueios.js';
 import { ErroColetaBm, exigirEsquemaSemSeed } from './coleta.js';
 import { CAMPO_CUSTOMIZADO, colunasDosCampos, type LinhaRefDominio } from './dominio-businessmap.js';
 import { gravarResponsaveis, COLUNAS_VERSAO } from './responsaveis.js';
@@ -17,7 +18,7 @@ import {
 // projeção refeita por card. Nunca escreve nome: `dim_responsavel` é do coletor (F3) e nem consta das tabelas que a reconstrução limpa
 // (DT-1). Não tem cliente HTTP: reprojetar nunca chama o BusinessMap (nem `/users`).
 
-export const VERSAO_PROJETOR = 'bm-f4/1';
+export const VERSAO_PROJETOR = 'bm-f4/2';
 export const TAMANHO_LOTE = 500;
 /** DT-1: a reconstrução limpa SÓ estas tabelas. As outras (evt, fato, versão) são append-only e se completam por idempotência; `dim_responsavel` nunca. */
 export const TABELAS_LIMPAS_NA_RECONSTRUCAO = ['dim_card'] as const;
@@ -43,6 +44,7 @@ export interface ResultadoProjecao {
   versoes: number;
   eventos: { lidos: number; inseridos: number };
   transicoes: { lidas: number; inseridas: number; semInstante: number };
+  bloqueios: { lidos: number; inseridos: number };
   /** Por motivo, a quantidade de cards (nunca id de card nem valor). */
   notas: Record<string, number>;
   responsaveisGravados: number;
@@ -105,6 +107,40 @@ function transicoesDoStaging(linhasRev: readonly { payload: Record<string, unkno
 
 const IGUAIS = (a: unknown, b: unknown): boolean => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
+type LinhaVersaoBloqueio = {
+  id_origem: string; coletado_em: Date; excluido_detectado: boolean; is_blocked: unknown; block_reason_id: unknown; column_id: unknown;
+  archived_at: unknown; custom_fields: unknown;
+};
+
+/** Lote 4a (075, ADR 0029): as versões do `stg_card` só com os campos usados (nunca o payload inteiro) viram `evt_bloqueio`, append-only. */
+async function gravarBloqueios(db: Consultavel, S: Esquemas, ids: readonly string[], ref: Referencia, coletaId: number, inicio: Date, acc: ResultadoProjecao): Promise<void> {
+  const versoes = await linhas<LinhaVersaoBloqueio>(db,
+    `SELECT id_origem, coletado_em, excluido_detectado, payload -> 'is_blocked' AS is_blocked, payload -> 'block_reason_id' AS block_reason_id,
+      payload -> 'column_id' AS column_id, payload -> 'archived_at' AS archived_at, payload -> 'custom_fields' AS custom_fields
+      FROM ${S.bm}.stg_card WHERE id_origem = ANY($1::text[]) ORDER BY id_origem, stg_sk`, [ids]);
+  const colunas = [...ref.colunas.values()].flat();
+  const marcos = {
+    entrega: new Set(colunas.filter((c) => c.papel === 'entrega').map((c) => c.coluna_id)), descarte: new Set(colunas.filter((c) => c.eh_descarte).map((c) => c.coluna_id)),
+  };
+  const porCard = new Map<string, VersaoBloqueio[]>();
+  for (const v of versoes) {
+    const arquivado = instanteDoBm(v.archived_at);
+    porCard.set(v.id_origem, [...(porCard.get(v.id_origem) ?? []), {
+      cardId: v.id_origem, coletadoEm: new Date(v.coletado_em).toISOString(), isBlocked: v.is_blocked, blockReasonId: v.block_reason_id, columnId: v.column_id,
+      archivedAt: arquivado === null ? undefined : new Date(arquivado).toISOString(), excluidoDetectado: v.excluido_detectado, customFields: v.custom_fields,
+    }]);
+  }
+  const registros: (readonly Valor[])[] = [];
+  for (const [cardId, vs] of porCard) {
+    const r = derivarBloqueios(vs, marcos, ref.camposLista);
+    for (const n of new Set(r.notas)) acc.notas[`bloqueio_${n}`] = (acc.notas[`bloqueio_${n}`] ?? 0) + 1;
+    for (const e of r.eventos) registros.push([cardId, e.idOrigem, e.tipo, e.motivoCodigo, e.colunaId, e.fornecedorCodigo, new Date(e.ocorridoEm), inicio, coletaId]);
+  }
+  acc.bloqueios.lidos += registros.length;
+  acc.bloqueios.inseridos += await inserir(db, `${S.bm}.evt_bloqueio`, ['card_id', 'id_origem', 'tipo', 'motivo_codigo', 'coluna_id', 'fornecedor_codigo', 'ocorrido_em', 'coletado_em', 'coleta_id'],
+    registros, 'ON CONFLICT ON CONSTRAINT uq_evt_bloqueio DO NOTHING');
+}
+
 async function projetarLote(
   db: Consultavel, S: Esquemas, ids: readonly string[], ref: Referencia, d: DepsProjecao, coletaId: number, inicio: Date,
   acc: ResultadoProjecao,
@@ -154,6 +190,7 @@ async function projetarLote(
     ['card_id', 'quadro_id', 'coluna_origem_id', 'coluna_destino_id', 'tipo_coluna', 'direcao', 'fonte', 'id_origem', 'ocorrido_em', 'coletado_em', 'coleta_id'],
     tr.map((t) => [t.card_id, t.quadro_id, t.coluna_origem_id, t.coluna_destino_id, t.tipo_coluna, t.direcao, 'revision', t.id_origem, t.ocorrido_em, inicio, coletaId]),
     'ON CONFLICT ON CONSTRAINT uq_fato_transicao DO NOTHING');
+  await gravarBloqueios(db, S, ids, ref, coletaId, inicio, acc);
   if (ok.length === 0) return;
 
   // versão vigente de cada card (SCD2): só entra versão nova se algum atributo mudou
@@ -210,7 +247,7 @@ export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoPro
       `INSERT INTO ${S.bm}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('projecao', $1, 'em_andamento', $2) RETURNING coleta_id`, [inicio, VERSAO_PROJETOR]);
     const coletaId = Number(ctl.rows[0]!.coleta_id);
     const acc: ResultadoProjecao = {
-      coletaId, cards: 0, semCriacao: 0, versoes: 0, eventos: { lidos: 0, inseridos: 0 }, transicoes: { lidas: 0, inseridas: 0, semInstante: 0 }, notas: {},
+      coletaId, cards: 0, semCriacao: 0, versoes: 0, eventos: { lidos: 0, inseridos: 0 }, transicoes: { lidas: 0, inseridas: 0, semInstante: 0 }, bloqueios: { lidos: 0, inseridos: 0 }, notas: {},
       responsaveisGravados: 0,
     };
     if (d.reconstruir === true) for (const t of TABELAS_LIMPAS_NA_RECONSTRUCAO) await db.query(`DELETE FROM ${S.bm}.${t}`);
@@ -232,6 +269,7 @@ export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoPro
     await contagem('projecao_transicao', acc.transicoes.lidas + acc.transicoes.semInstante, acc.transicoes.inseridas, acc.transicoes.semInstante);
     await contagem('projecao_evento', acc.eventos.lidos, acc.eventos.inseridos, 0);
     await contagem('projecao_versao', acc.versoes, acc.versoes, 0);
+    await contagem('projecao_bloqueio_evento', acc.bloqueios.lidos, acc.bloqueios.inseridos, 0);
     // motivo de card fora ou com ressalva (nunca id): `lidos` = quantidade de cards
     for (const [nota, n] of Object.entries(acc.notas)) await contagem(`nota_${nota}`.slice(0, 40), n, n, 0);
     await db.query(`UPDATE ${S.bm}.ctl_coleta SET status = 'sucesso', finalizado_em = $2 WHERE coleta_id = $1`, [coletaId, d.agora()]);
