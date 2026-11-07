@@ -1,6 +1,6 @@
 import { MOTIVOS_BLOQUEIO_PUBLICADOS } from '@metricas-dspd/contratos';
 import type pg from 'pg';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { projetarBusinessMap } from '../src/modulos/businessmap/projetor.js';
 import { gravarStgCard } from '../src/modulos/businessmap/staging.js';
 import { montarEsquemas, prefixoDeTeste } from '../src/plataforma/db/esquemas.js';
@@ -106,6 +106,34 @@ d('lote 4a do 075: projetor grava evt_bloqueio', () => {
     expect(await fatos()).toEqual([['Janela de mudança', H(62), 1], ['Janela de mudança', null, null], ['Janela de mudança', H(60), 0]]);
     expect((await projetar()).fatosBloqueio.inseridos).toBe(0);
     expect(Number((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.fato_bloqueio WHERE motivo <> ALL($1)`, [[...MOTIVOS_BLOQUEIO_PUBLICADOS]])).rows[0].n)).toBe(0);
+  });
+
+  it('CA-075-1 ponta a ponta (SEG-A3): label, comment e user_id do block_reason não chegam a nenhuma tabela, ao log nem à falha', async () => {
+    const id = novoId(); const saida: string[] = [];
+    const espia = [process.stdout, process.stderr].map((s) => vi.spyOn(s, 'write').mockImplementation((c: unknown) => { saida.push(String(c)); return true; }));
+    try {
+      await versao(id, 10, { is_blocked: true, block_reason: { reason_id: 7, label: MARCADOR, comment: MARCADOR, user_id: 888 } });
+      await projetar();
+    } finally { espia.forEach((e) => e.mockRestore()); }
+    const tabelas = (await dono.query<{ t: string }>(`SELECT tablename AS t FROM pg_tables WHERE schemaname = $1 AND (tablename LIKE 'stg\\_%' OR tablename IN ('evt_bloqueio', 'fato_bloqueio', 'ctl_coleta_falha', 'ctl_coleta_contagem'))`, [E.bm])).rows;
+    expect(tabelas.length).toBeGreaterThan(8);
+    for (const { t } of tabelas) expect(Number((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.${t} x WHERE x::text LIKE '%${MARCADOR}%' AND ($1::text IS NULL OR x::text LIKE '%${id}%')`, [t === 'stg_card' ? id : null])).rows[0].n), t).toBe(0);
+    expect((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.stg_card WHERE id_origem = $1 AND payload::text LIKE '%user_id%'`, [id])).rows[0].n).toBe('0');
+    expect(saida.join('')).not.toContain(MARCADOR);
+    expect((await dono.query(`SELECT motivo_codigo FROM ${E.bm}.evt_bloqueio WHERE card_id = $1`, [id])).rows).toEqual([{ motivo_codigo: '7' }]);
+  });
+
+  it('A2 do review do 4b: bloqueio aberto fecha numa projeção seguinte; atualizado_por_coleta_id muda só na linha mudada', async () => {
+    const [a, b] = [novoId(), novoId()];
+    const bloq = { is_blocked: true, block_reason: { reason_id: 7 } };
+    await versao(a, 70, bloq); await versao(b, 70, bloq);
+    const r1 = await projetar();
+    const fato = async (id: string) => (await dono.query(`SELECT fim, duracao_horas_uteis, atualizado_por_coleta_id::int AS c FROM ${E.bm}.fato_bloqueio WHERE card_id = $1`, [id])).rows[0];
+    expect(await fato(a)).toEqual({ fim: null, duracao_horas_uteis: null, c: r1.coletaId });
+    await versao(a, 72); const r2 = await projetar();
+    expect(await fato(a)).toMatchObject({ fim: H(72), c: r2.coletaId });
+    expect((await fato(a)).duracao_horas_uteis).not.toBeNull();
+    expect(await fato(b)).toEqual({ fim: null, duracao_horas_uteis: null, c: r1.coletaId });
   });
 
   it('CA-075-9: com coleta seed-mock no esquema a projeção recusa antes de escrever evento de bloqueio', async () => {
