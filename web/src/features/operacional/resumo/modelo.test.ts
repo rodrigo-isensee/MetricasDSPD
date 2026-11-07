@@ -338,10 +338,34 @@ describe('séries mensais', () => {
         mes: '2026-09',
         valor: null,
         n: 0,
-        texto: 'não publicado (nenhuma prioridade com 20 chamados)',
+        texto: 'Nenhuma prioridade com 20 chamados ou mais. Estatística não publicada.',
       },
     ])
     expect(serieVolume(t).map((p) => p.texto)).toEqual(['300 chamados', '1 chamado'])
+  })
+  it('SLA: mês de janela incompleta sai sem valor e sem base, antes de qualquer outro motivo (CA-1, CA-4)', () => {
+    const t = {
+      meses: [
+        {
+          mes: '2026-08',
+          janela: J,
+          prioridades: [],
+          volume: 7,
+          janelaIncompleta: { historicoDesde: '2026-08-14' },
+        },
+      ],
+    } as never
+    expect(serieSla(t)).toEqual([
+      {
+        mes: '2026-08',
+        valor: null,
+        n: null,
+        texto:
+          'Janela incompleta: o histórico carregado começa em 14/08/2026, depois do início da janela de 12 semanas. Estatística não publicada.',
+        janelaIncompleta: '2026-08-14',
+      },
+    ])
+    expect(serieVolume(t)).toEqual([{ mes: '2026-08', valor: 7, n: 7, texto: '7 chamados' }])
   })
 })
 

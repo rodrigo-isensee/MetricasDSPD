@@ -274,6 +274,7 @@ export const serieConcluidos = (t: ResultadoDe<'TENDENCIA_FLUXO'>): PontoMensal[
 /** "k de m avaliadas": quantas das prioridades com aderência publicada estão fora do alvo (P2). m = 0: não publicado. */
 export function serieSla(t: ResultadoDe<'TENDENCIA_SUST'>): PontoMensal[] {
   return t.meses.map((m) => {
+    if (m.janelaIncompleta) return janelaIncompleta(m.mes, m.janelaIncompleta.historicoDesde)
     const k = contarForaS2(m.prioridades)
     const av = contarAvaliadasS2(m.prioridades)
     if (av === 0)
@@ -281,7 +282,7 @@ export function serieSla(t: ResultadoDe<'TENDENCIA_SUST'>): PontoMensal[] {
         mes: m.mes,
         valor: null,
         n: 0,
-        texto: 'não publicado (nenhuma prioridade com 20 chamados)',
+        texto: 'Nenhuma prioridade com 20 chamados ou mais. Estatística não publicada.',
       }
     return {
       mes: m.mes,
