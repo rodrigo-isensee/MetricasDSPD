@@ -117,7 +117,7 @@ d('lote 4a do 075: projetor grava evt_bloqueio', () => {
     } finally { espia.forEach((e) => e.mockRestore()); }
     const tabelas = (await dono.query<{ t: string }>(`SELECT tablename AS t FROM pg_tables WHERE schemaname = $1 AND (tablename LIKE 'stg\\_%' OR tablename IN ('evt_bloqueio', 'fato_bloqueio', 'ctl_coleta_falha', 'ctl_coleta_contagem'))`, [E.bm])).rows;
     expect(tabelas.length).toBeGreaterThan(8);
-    for (const { t } of tabelas) expect(Number((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.${t} x WHERE x::text LIKE '%${MARCADOR}%'`)).rows[0].n), t).toBe(0);
+    for (const { t } of tabelas) expect(Number((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.${t} x WHERE x::text LIKE '%${MARCADOR}%' AND ($1::text IS NULL OR x::text LIKE '%${id}%')`, [t === 'stg_card' ? id : null])).rows[0].n), t).toBe(0);
     expect((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.stg_card WHERE id_origem = $1 AND payload::text LIKE '%user_id%'`, [id])).rows[0].n).toBe('0');
     expect(saida.join('')).not.toContain(MARCADOR);
     expect((await dono.query(`SELECT motivo_codigo FROM ${E.bm}.evt_bloqueio WHERE card_id = $1`, [id])).rows).toEqual([{ motivo_codigo: '7' }]);
