@@ -3,13 +3,15 @@ tipo: review
 contrato: 1
 pedido: 073-melhorias-tecnicas-2026-11-05
 branch: feature/073-e10-l2-recusa
-commit: 438ffc2c7c39663836640ed9a0d4e3b3a392b0df
+commit: a9a151d70e714b4e7e09769654ceb752a2458b35
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-07
 ---
 
 # Code review: E10 Lote 2, recusa do reconhecimento sem versão ou com lista sobrescrita (pedido 073, E10.4, K-235)
+
+Revalidação: o delta de 438ffc2c para a9a151d7 é só o texto de `docs/architecture/fontes/acelerato-listas.md` (linha 7, A2 do review e A2 da segurança); o código e os testes não mudaram, e o que está abaixo foi lido em 438ffc2c e segue valendo.
 
 ## Conferido
 - Diff lido: `8a4e2dd7...438ffc2c`, 2 commits (de03508c, 438ffc2c), 8 arquivos, +240 -21.
@@ -32,7 +34,7 @@ data: 2026-11-07
 
 ## Achados
 - A1 (recomendado) server/src/modulos/acelerato/controle.ts:89 · Conferência por grupo e data, não por linha: após um ac:ref-sync legítimo em data >= D, edição direta no mesmo grupo em outro dia, antes do reconhecimento, passa. Limite maior que o "mesmo dia" do plano. Cartão: segurança (E10.5).
-- A2 (recomendado) docs/architecture/fontes/acelerato-listas.md:7 · O texto do reconhecimento não cita `reconhecimento-sem-versao` nem `lista-sobrescrita`, nem que reconhecer exige a versão do ac:ref-sync na data. Atualizar antes do PR (E10.7).
+- A2 (recomendado) docs/architecture/fontes/acelerato-listas.md:7 · O texto do reconhecimento não cita `reconhecimento-sem-versao` nem `lista-sobrescrita`, nem que reconhecer exige a versão do ac:ref-sync na data. Atualizar antes do PR (E10.7). Resolvido em a9a151d7.
 - A3 (recomendado) server/src/modulos/acelerato/controle.ts:73 · `'etapa_fluxo'` repete em literal a constante `CAMPO_ETAPA_FLUXO` (`referencia.ts:74`). Mover a constante para `listas-fechadas.ts` e usá-la nos dois lugares evita divergência.
 
 ## Parecer
