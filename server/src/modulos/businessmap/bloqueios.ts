@@ -46,8 +46,9 @@ export function derivarBloqueios(
     const noMarco = !Number.isNaN(arquivadoMs) || v.excluidoDetectado === true
       || (colunaId !== null && (marcos.entrega?.has(colunaId) === true || marcos.descarte?.has(colunaId) === true));
     if (aberto !== null && (noMarco || !agora)) {
-      // marco fecha no instante dele (arquivado nativo) ou da coleta; antes do início observado, fim = início (P-075-9)
-      const marcoMs = Math.max(Number.isNaN(arquivadoMs) ? Date.parse(v.coletadoEm) : arquivadoMs, Date.parse(aberto.ocorridoEm));
+      // marco fecha no instante dele (arquivado nativo, nunca depois da coleta: SEG-A1) ou da coleta; antes do início observado, fim = início (P-075-9)
+      const coletaMs = Date.parse(v.coletadoEm);
+      const marcoMs = Math.max(Number.isNaN(arquivadoMs) ? coletaMs : Math.min(arquivadoMs, coletaMs), Date.parse(aberto.ocorridoEm));
       const ocorridoEm = noMarco ? new Date(marcoMs).toISOString() : v.coletadoEm;
       eventos.push({ tipo: 'fim', idOrigem: aberto.idOrigem, ocorridoEm, motivoCodigo: null, colunaId, fornecedorCodigo: null });
       aberto = null;
