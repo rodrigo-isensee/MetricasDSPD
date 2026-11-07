@@ -10,7 +10,7 @@ bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 1
 bugs_baixos: 2
-aceite_usuario: sim
+aceite_usuario: nao
 data: 2026-11-07
 ---
 # QA: 075 lote 5b, histórico parcial no O5 e na série do O1 (E1.8, K-204)
@@ -46,9 +46,10 @@ Arquivo de teste: `web/src/features/operacional/historico-parcial.test.tsx` (5 c
 - Baixo, CA-7: o gap na linha desenhada não é medido (só a tabela alternativa); confirmar visualmente com a série real no e2e do PR.
 
 ## Bugs
-Nenhum crítico ou alto. Um médio e dois baixos acima, abertos, com aceite do usuário necessário (`aceite_usuario: sim`).
+Nenhum crítico ou alto. Um médio e dois baixos acima, abertos; aceite do dono pendente (`aceite_usuario: nao`), e o merge do lote espera a decisão dele.
 
 ## Achados
 
-- A1 (recomendado) web/src/features/complementares/fluxo.tsx:58 · O5 com todos os tipos abaixo de 20 mostra um só N sem o tipo, e o CA-9 pede N por tipo; listar cada tipo com seu N sob o aviso.
-- A2 (recomendado) web/src/features/operacional/historico-parcial.test.tsx:87 · O CA-7 afirma só `length > 0`; o review já pede as 3 linhas anteriores e uma posterior sem traço, e o gap da linha desenhada fica para o e2e.
+- A1 (recomendado) web/src/features/complementares/fluxo.tsx:58 · Bug médio, origem na revisão de interface (docs/ux/075-revisao-l5b.md:27): com todos os tipos do O5 abaixo de 20 mostra um só N sem o tipo; o CA-9 pede N por tipo, listar cada tipo com seu N sob o aviso.
+- A2 (recomendado) docs/ux/075-revisao-l5b.md:28 · Bug baixo, origem na revisão de interface: o CA-6 depende da descrição do lote 6a para "histórico parcial"; o teste usa fixture, não o contrato real.
+- A3 (recomendado) docs/ux/075-revisao-l5b.md:29 · Bug baixo, origem na revisão de interface: o CA-7 não mede o gap na linha desenhada, só a tabela alternativa; confirmar com a série real no e2e do PR.
