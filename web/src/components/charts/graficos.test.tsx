@@ -200,6 +200,17 @@ describe('GraficoMensal', () => {
     )
     expect(container.querySelector('svg')).not.toBeNull()
     expect(container.querySelector('[data-testid="marcador-vazado"]')).not.toBeNull()
+    expect(container.textContent).toContain('poucos itens')
+  })
+  it('linha: o mês de janela incompleta leva "janela incompleta" no eixo, não "poucos itens" (CA-4)', () => {
+    const d = [{ mes: '2026-04', valor: null, janelaIncompleta: '2026-04-20' }]
+    const { container } = render(
+      <div style={{ width: 640, height: 160 }}>
+        <GraficoMensal dados={d} forma="linha" unidade="dias úteis" marcas={[]} />
+      </div>,
+    )
+    expect(container.textContent).toContain('janela incompleta')
+    expect(container.textContent).not.toContain('poucos itens')
   })
   it('linha com teto do eixo e linha de mudança de critério; barras sem marcador', () => {
     const a = render(
