@@ -110,16 +110,31 @@ export function CartaoO1({ filtros }: { filtros: FiltrosFluxo }) {
             </p>
           )}
           <SerieLinhas
-            descricao="WIP total por dia útil, com o limite"
+            descricao={
+              semBloqueio
+                ? 'WIP total por dia útil, com o limite'
+                : 'WIP total por dia útil, com o limite e os bloqueados'
+            }
             unidade="itens"
             formatarX={(x) => fmtDataCurta(x)}
             pontos={d.serie.map((p) => ({
               x: p.data,
-              valores: { wip: p.wip, limite: p.limite },
+              // Antes do dado real o bloqueado é null: o trecho fica sem ponto, nunca zero (CA-7).
+              valores: { wip: p.wip, limite: p.limite, bloqueados: p.bloqueados },
             }))}
             series={[
               { chave: 'wip', rotulo: 'WIP total', cor: 1, traco: 'solido' },
               { chave: 'limite', rotulo: 'Limite', cor: 7, traco: 'tracejado' },
+              ...(semBloqueio
+                ? []
+                : [
+                    {
+                      chave: 'bloqueados',
+                      rotulo: 'Bloqueados',
+                      cor: 2 as const,
+                      traco: 'pontilhado' as const,
+                    },
+                  ]),
             ]}
             faixas={[
               {
