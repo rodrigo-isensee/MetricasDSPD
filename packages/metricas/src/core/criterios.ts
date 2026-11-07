@@ -130,8 +130,7 @@ export const DATA_BLOQUEIO_COM_DADO_REAL = '2099-12-31'
 export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
   id: `criterio-${DATA_BLOQUEIO_COM_DADO_REAL}-bloqueio-com-dado-real`,
   data: DATA_BLOQUEIO_COM_DADO_REAL,
-  descricao:
-    `histórico parcial de bloqueios: só há dado a partir de ${DATA_BLOQUEIO_COM_DADO_REAL} (primeira coleta); antes disso o tempo bloqueado é desconhecido. Início e fim do bloqueio são o instante da coleta que viu a mudança, não o instante real`,
+  descricao: `histórico parcial de bloqueios: só há dado a partir de ${DATA_BLOQUEIO_COM_DADO_REAL} (primeira coleta); antes disso o tempo bloqueado é desconhecido. Início e fim do bloqueio são o instante da coleta que viu a mudança, não o instante real`,
   afeta: ['O1', 'O2', 'O5', 'O19', 'BLOQUEADOS'],
 }
 
