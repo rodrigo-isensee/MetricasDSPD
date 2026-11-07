@@ -140,13 +140,13 @@ type Linha = Record<string, unknown>;
 export type EstadoBanco = {
   stgChamado: { sk: number; id: string; anterior: number | null; sha: Buffer; payload: Linha; ausente: boolean; fora: boolean; coleta: number }[];
   stgEtapa: { sk: number; chamado: string; id: string; anterior: number | null; sha: Buffer; payload: Linha; ausente: boolean; coleta: number }[];
-  ctl: { id: number; tarefa: string; status: string; marcaAte: Date | null; parametros: Linha | null; erro: string | null }[];
+  ctl: { id: number; tarefa: string; status: string; marcaAte: Date | null; parametros: Linha | null; erro: string | null; finalizadoEm?: Date }[];
   contagens: { coleta: number; entidade: string; lidos: number; inseridos: number; jaExistentes: number }[];
   falhas: { coleta: number; entidade: string; idOrigem: string | null; tentativas: number; erro: string }[];
 };
 
 /** PostgreSQL em memória que entende só as instruções do coletor do Acelerato (a ordem dos parâmetros é a do código). */
-export function criarBancoMemoria(opcoes: { listas?: Linha[]; trava?: boolean; coletasDoSeed?: number; falharEm?: (texto: string) => Error | undefined } = {}) {
+export function criarBancoMemoria(opcoes: { listas?: Linha[]; vigencias?: (campos: string[], dia: string) => { tem_versao: boolean }[]; trava?: boolean; coletasDoSeed?: number; falharEm?: (texto: string) => Error | undefined } = {}) {
   const e: EstadoBanco = { stgChamado: [], stgEtapa: [], ctl: [], contagens: [], falhas: [] };
   let seq = 0;
   let marcador: { c: number; e: number; ctl: number; n: number; f: number } | null = null;
@@ -172,10 +172,12 @@ export function criarBancoMemoria(opcoes: { listas?: Linha[]; trava?: boolean; c
     if (t.includes('pg_advisory_xact_lock')) return []; // A1 do review do P1: a guarda toma a trava `dspd:seed` antes de contar
     if (t.includes('pg_try_advisory_lock')) return [{ ok: opcoes.trava !== false }];
     if (t.includes('pg_advisory_unlock')) return [];
+    // E10, Lote 2: vigências novas de um grupo de lista e se há versão `056:ref-dominio:` na data (padrão: uma vigência com versão, como o ac:ref-sync deixa).
+    if (t.includes('.ref_versao_criterio')) return (opcoes.vigencias ?? (() => [{ tem_versao: true }]))(v[0] as string[], v[1] as string);
     if (t.includes('.ref_dominio')) return opcoes.listas ?? LISTAS_BANCO;
     if (t.startsWith('SELECT parametros')) {
       const ult = [...e.ctl].reverse().find((x) => x.status === 'sucesso');
-      return ult ? [{ parametros: ult.parametros }] : [];
+      return ult ? [{ parametros: ult.parametros, finalizado_em: ult.finalizadoEm }] : [];
     }
     if (t.startsWith('SELECT max(marca_dagua_ate)')) {
       const marcas = e.ctl.filter((x) => x.tarefa === 'coleta_incremental' && x.status === 'sucesso' && x.marcaAte).map((x) => x.marcaAte!.getTime());
@@ -221,7 +223,7 @@ export function criarBancoMemoria(opcoes: { listas?: Linha[]; trava?: boolean; c
     if (t.includes('INSERT INTO') && t.includes('.ctl_coleta')) {
       const id = e.ctl.length + 1;
       if (t.includes("'sucesso'")) {
-        e.ctl.push({ id, tarefa: v[0] as string, status: 'sucesso', marcaAte: v[4] as Date | null, parametros: JSON.parse(v[7] as string) as Linha, erro: null });
+        e.ctl.push({ id, tarefa: v[0] as string, status: 'sucesso', finalizadoEm: v[2] as Date, marcaAte: v[4] as Date | null, parametros: JSON.parse(v[7] as string) as Linha, erro: null });
       } else {
         e.ctl.push({ id, tarefa: v[0] as string, status: 'falha', marcaAte: null, parametros: null, erro: v[4] as string });
       }
