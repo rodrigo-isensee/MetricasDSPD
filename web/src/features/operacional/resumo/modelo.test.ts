@@ -241,6 +241,7 @@ describe('séries mensais', () => {
     janelaPercentis: J,
     ...extra,
   })
+  const poucos = (n: number) => `Poucos itens (n=${n}). Estatística não publicada.`
   it('P85 do tipo escolhido; mês sem o tipo ou insuficiente fica sem valor', () => {
     const t = {
       meses: [
@@ -251,8 +252,8 @@ describe('séries mensais', () => {
     } as never
     expect(serieP85(t, 'Melhoria')).toEqual([
       { mes: '2026-08', valor: 9.4, n: 40, texto: '9 dias úteis' },
-      { mes: '2026-09', valor: null, n: 14, texto: 'poucos itens (n=14)' },
-      { mes: '2026-10', valor: null, n: 0, texto: 'poucos itens (n=0)' },
+      { mes: '2026-09', valor: null, n: 14, texto: poucos(14) },
+      { mes: '2026-10', valor: null, n: 0, texto: poucos(0) },
     ])
     expect(serieConcluidos(t).map((p) => [p.valor, p.texto])).toEqual([
       [10, '10 itens'],
@@ -275,7 +276,8 @@ describe('séries mensais', () => {
       mes: '2026-08',
       valor: null,
       n: null,
-      texto: 'janela incompleta (histórico começa em 14/08/2026)',
+      texto:
+        'Janela incompleta: o histórico carregado começa em 14/08/2026, depois do início da janela de 12 semanas. Estatística não publicada.',
       janelaIncompleta: '2026-08-14',
     })
     expect(b?.valor).toBeNull()
@@ -325,7 +327,7 @@ describe('séries mensais', () => {
     )
     expect(fraseDaSerieSla([])).toBe('')
     expect(fraseDaSerieSla([{ mes: '2026-07', valor: null, n: 0, texto: 'não publicado' }])).toBe(
-      'Em julho: não publicado. Valor não publicado.',
+      'Em julho: não publicado',
     )
     expect(fraseDaSerieSla([{ mes: '2026-07', valor: 0, n: null, texto: '0' }])).toBe(
       'Em julho: nenhuma prioridade avaliada.',
@@ -376,7 +378,7 @@ describe('frase de leitura e utilidades', () => {
   })
   it('último mês sem valor diz que não foi publicado; série vazia, nada', () => {
     expect(fraseDaSerie([p('2026-09', null, 'poucos itens (n=14)')], true)).toBe(
-      'Em setembro: poucos itens (n=14). Valor não publicado.',
+      'Em setembro: poucos itens (n=14)',
     )
     expect(fraseDaSerie([], true)).toBe('')
   })
