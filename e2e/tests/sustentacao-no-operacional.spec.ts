@@ -422,7 +422,7 @@ test.describe('Visão Resumo', () => {
     await expect(p85).toContainText('janela de 12 semanas até o fim do mês');
     await expect(page.getByTestId('tendencia-sustentacao-sla')).toContainText('janela de 12 semanas até o fim do mês');
     await expect(p85.getByTestId('marcador-vazado')).toHaveCount(1);
-    await expect(p85.getByTestId('tendencia-fluxo-p85-sem-valor')).toContainText('jun/2026 · poucos itens (n=14)');
+    await expect(p85.getByTestId('tendencia-fluxo-p85-sem-valor')).toContainText('jun/2026 · Poucos itens (n=14). Estatística não publicada.');
     await p85.getByRole('button', { name: 'Ver como tabela' }).click();
     const linhas = p85.getByRole('table').getByRole('row');
     await expect(linhas).toHaveCount(7);
