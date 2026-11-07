@@ -2113,3 +2113,204 @@
 | 2026-11-06 10:35 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-1 | brief | 1 | reprovado | n | impacto e riscos sem origem no escopo; escopo E1 ajustado | escopo | jarvis |
 | 2026-11-06 10:36 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-1 | brief | 2 | aprovado | — |  | — | jarvis |
 | 2026-11-06 10:36 | 076-publicacao-local | 076-publicacao-local-devops-engineer-1 | brief | 2 | reprovado | n | recibo dizia o devops faz; brief passou a execução ao dono sem decisão | decisao | jarvis |
+| 2026-11-06 10:43 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-30 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 10:52 | 076-publicacao-local | 076-publicacao-local-devops-engineer-2 | brief | 1 | reprovado | n | E2.1 separada sem registro; forma de carregar o .env além da decisão | decisao | jarvis |
+| 2026-11-06 10:54 | 076-publicacao-local | 076-publicacao-local-devops-engineer-3 | brief | 1 | reprovado | parcial | Decisões copia a linha das 10:50 sem a substituição; ref:sync-calendario e bm:apontamento sem script que carregue o .env | decisao | jarvis |
+| 2026-11-06 10:59 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-29 | brief | 2 | reprovado | n | E10 entrou no pedido depois do brief | escopo | jarvis |
+| 2026-11-06 11:00 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-28 | entrega | 1 | não cumpriu (etapa) | parcial | PR 243 mesclado com e2e-parte (2/2) ainda rodando; autor nega o merge | etapa | destino |
+| 2026-11-06 11:01 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-31 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:06 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-9 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:14 | 076-publicacao-local | 076-publicacao-local-devops-engineer-4 | brief | 1 | reprovado | n | carregamento estendido além da decisão; restrição de .env contraditória | decisao | jarvis |
+| 2026-11-06 11:14 | 075-bloqueios-reais | 075-bloqueios-reais-ux-designer-1 | brief | 1 | reprovado | n | faltaram as decisões do 064 e do 065 | decisao | jarvis |
+| 2026-11-06 11:15 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-2 | brief | 1 | reprovado | n | PQ só de existência; caminho origem.ts inexistente | forma | jarvis |
+| 2026-11-06 11:16 | 076-publicacao-local | 076-publicacao-local-devops-engineer-5 | brief | 1 | reprovado | n | tardio: linhas substituídas copiadas no brief; link do .env contra o NÃO tocar | decisao | jarvis |
+| 2026-11-06 11:17 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-3 | brief | 1 | reprovado | n | faltaram as decisões S8 e L6 do 064 | decisao | jarvis |
+| 2026-11-06 11:17 | 075-bloqueios-reais | 075-bloqueios-reais-ux-designer-2 | brief | 1 | reprovado | n | tardio: Entregar marcava E1 | escopo | jarvis |
+| 2026-11-06 11:18 | 076-publicacao-local | 076-publicacao-local-devops-engineer-6 | brief | 1 | reprovado | n | parte técnica da linha das 10:50 sem marca; PQ-2 sha curto | decisao | jarvis |
+| 2026-11-06 11:18 | 075-bloqueios-reais | 075-bloqueios-reais-ux-designer-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:20 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-4 | brief | 1 | reprovado | n | tardio: revisão 5 da ADR 0020 contra revisão 4 da ADR 0022 | citacao | jarvis |
+| 2026-11-06 11:20 | 076-publicacao-local | 076-publicacao-local-devops-engineer-7 | brief | 1 | reprovado | n | tardio: sem .env da linha de 10:32 sem leitura | decisao | jarvis |
+| 2026-11-06 11:21 | 076-publicacao-local | 076-publicacao-local-devops-engineer-8 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:22 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:25 | 076-publicacao-local | 076-publicacao-local-tech-lead-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:26 | 076-publicacao-local | 076-publicacao-local-devops-engineer-8 | entrega | 1 | não cumpriu (etapa) | parcial | hook barrou pnpm install para o devops no passo 1; roteiro entregue | ambiente | destino |
+| 2026-11-06 11:27 | 076-publicacao-local | 076-publicacao-local-devops-engineer-9 | brief | 1 | reprovado | n | tardio: restrições sem origem citada | escopo | jarvis |
+| 2026-11-06 11:29 | 076-publicacao-local | 076-publicacao-local-devops-engineer-10 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:30 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-1 | brief | 1 | reprovado | n | revisão 4/5 da ADR 0020 | citacao | jarvis |
+| 2026-11-06 11:31 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-2 | brief | 1 | reprovado | n | controles dos lotes 7 e 8; fonte do Ler | escopo | jarvis |
+| 2026-11-06 11:32 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-2 | brief | 1 | reprovado | n | E10 do 073 sem origem no pedido | escopo | jarvis |
+| 2026-11-06 11:33 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-9 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 11:33 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-3 | brief | 1 | reprovado | n | sem commit dito de arquivos commitados | forma | jarvis |
+| 2026-11-06 11:34 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:35 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-32 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:35 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:40 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-6 | brief | 1 | reprovado | n | A4 do tech-lead sem o motivo próprio de T10 e T12 | escopo | jarvis |
+| 2026-11-06 11:43 | 075-bloqueios-reais | 075-bloqueios-reais-software-architect-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:44 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-32 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 11:45 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:49 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:51 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-33 | brief | 1 | reprovado | n | teto 337 sem recontagem; merge sob etapa pr | etapa | jarvis |
+| 2026-11-06 11:51 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-7 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 11:53 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 11:53 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-34 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 12:01 | 077-tendencias-dado-real | 077-tendencias-dado-real-software-architect-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 12:08 | 077-tendencias-dado-real | 077-tendencias-dado-real-ux-designer-1 | brief | 1 | reprovado | n | acessibilidade e critérios de aceite fora da etapa | escopo | jarvis |
+| 2026-11-06 12:09 | 077-tendencias-dado-real | 077-tendencias-dado-real-ux-designer-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 12:12 | 077-tendencias-dado-real | 077-tendencias-dado-real-software-architect-2 | brief | 1 | reprovado | n | rótulo develop na leitura da 056d | base | jarvis |
+| 2026-11-06 12:14 | 077-tendencias-dado-real | 077-tendencias-dado-real-software-architect-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 12:17 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-1 | entrega | 1 | não verificável | parcial | plano não lido pelo conferente; estado.ts fora da lista | escopo | destino |
+| 2026-11-06 12:20 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-1 | entrega | 2 | não cumpriu (escopo) | s | estado.ts fora do Entregar | escopo | destino |
+| 2026-11-06 12:20 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-34 | entrega | 1 | não cumpriu (fidelidade) | s | teto 338 no corpo; método do brief com base antiga dá 399 por incluir o merge da develop | outra | destino |
+| 2026-11-06 12:21 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-software-architect-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 12:22 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 12:25 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-1 | entrega | 3 | cumpriu | s | conjunta com node-backend-2 | — | destino |
+| 2026-11-06 12:25 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 12:26 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 12:26 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:01 | 076-publicacao-local | 076-publicacao-local-devops-engineer-11 | brief | 1 | reprovado | — | PQ-3 espera linhas=1 contradiz o texto | forma | jarvis |
+| 2026-11-06 13:02 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:03 | 076-publicacao-local | 076-publicacao-local-devops-engineer-11 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:04 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:09 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 13:10 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-6 | brief | 1 | reprovado | — | etapa pr com merge; hora 13:12 citada | etapa | jarvis |
+| 2026-11-06 13:12 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-6 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:21 | 076-publicacao-local | 076-publicacao-local-devops-engineer-12 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:21 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-3 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 13:24 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-6 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:26 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:28 | 076-publicacao-local | 076-publicacao-local-devops-engineer-13 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:29 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-6 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 13:32 | 076-publicacao-local | 076-publicacao-local-agile-coach-1 | brief | 1 | reprovado | — | contagem do passo 4 e fonte do push preso | citacao | jarvis |
+| 2026-11-06 13:33 | 076-publicacao-local | 076-publicacao-local-agile-coach-1 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:37 | 076-publicacao-local | 076-publicacao-local-agile-coach-1 | entrega | 1 | não cumpriu | parcial | retro 7f38b044: 2 fatos divergentes do Histórico; escopo fora só pelos commits antigos da branch do Jarvis | implementacao | destino |
+| 2026-11-06 13:38 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-1 | brief | 1 | reprovado | — | etapa cita 5b e 9b; O19 do E4 cortado | escopo | jarvis |
+| 2026-11-06 13:38 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-4 | brief | 1 | reprovado | — | etapa cita todos os lotes sem restringir ao 1b | escopo | jarvis |
+| 2026-11-06 13:38 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-6 | entrega | 1 | não cumpriu | s | PR 245 MERGED, corpo e checks conferidos; escopo fora só pelo merge da develop do update-branch no intervalo | outra | destino |
+| 2026-11-06 13:40 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-1 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:40 | 076-publicacao-local | 076-publicacao-local-agile-coach-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:40 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-4 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:42 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-7 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 13:44 | 076-publicacao-local | 076-publicacao-local-agile-coach-2 | entrega | 1 | não cumpriu | s | retro 8eef6d99 corrigida (3 fatos, PQ ok); escopo fora só pelos commits antigos da branch do Jarvis | outra | destino |
+| 2026-11-06 13:44 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 13:56 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 13:56 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-8 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 14:18 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-1 | entrega | 1 | não cumpriu | parcial | O2 sem distribuição (CA-2); teto 255; CA-5 sem varredura no O19 | escopo | destino |
+| 2026-11-06 14:18 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-4 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 14:19 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 14:19 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-8 | entrega | 1 | não cumpriu | s | PR 246 MERGED, 9 arquivos do lote 3, checks verdes; escopo: união de briefs da mesma branch | outra | destino |
+| 2026-11-06 14:21 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 14:21 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-9 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 14:23 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:08 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-9 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:09 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-7 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:12 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-3 | brief | 1 | reprovado | s | fora dos 8 por fora dos 7; 2 workers atribuído ao dono | decisao | jarvis |
+| 2026-11-06 15:13 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:14 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-10 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:14 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-3 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:14 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-8 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:16 | 075-bloqueios-reais | 075-bloqueios-reais-ux-designer-4 | brief | 1 | reprovado | s | WCAG 2.2 AA sem origem no pedido nem na especificação | escopo | jarvis |
+| 2026-11-06 15:16 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-11 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:18 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-6 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:19 | 075-bloqueios-reais | 075-bloqueios-reais-ux-designer-4 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:20 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-3 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:22 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-12 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:25 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-11 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:25 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:29 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:31 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-9 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:31 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-6 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:31 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-13 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:37 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:38 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-9 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:38 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-13 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:41 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:41 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-12 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:43 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-2 | brief | 1 | reprovado | s | faltam as DECISÃO DO DONO de 064 e 073 (Depende de) | decisao | jarvis |
+| 2026-11-06 15:44 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-4 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:45 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-14 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:45 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-2 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:55 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:56 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-3 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 15:56 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-15 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 15:58 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-5 | brief | 1 | reprovado | s | review do delta ainda sem parecer no head 6d4a392c | etapa | jarvis |
+| 2026-11-06 16:02 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-15 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 16:05 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-6 | brief | 1 | reprovado | s | Objetivo descreve a revisão de UX como aprovada com ajustes; foi aprovada com ressalvas e o médio 2 virou exceção | outra | jarvis |
+| 2026-11-06 16:05 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-1 | entrega | 1 | não cumpriu | s | docs/api/openapi.json regenerado fora do Entregar; gerado do schema e exigido pela CI | escopo | destino |
+| 2026-11-06 16:07 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 16:07 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 17:12 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-3 | entrega | 1 | não cumpriu | s | arquivos gerados pelo docs:fotografar (TENDENCIA_*.md e .json) fora do Entregar nomeado | escopo | destino |
+| 2026-11-06 17:13 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-7 | entrega | 1 | não cumpriu | s | sem axe dos componentes tocados; contraste por fórmula, não pela ferramenta | prova | destino |
+| 2026-11-06 17:14 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-1 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 17:15 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-8 | brief | 1 | reprovado | s | brief manda axe por E2E; decisão de 17:13 dizia teste de componente | decisao | jarvis |
+| 2026-11-06 17:17 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-9 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-06 17:20 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-10 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 17:20 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-06 17:22 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-2 | entrega | 1 | não cumpriu | s | TENDENCIA_SUST.md regerado por docs:gerar fora do Entregar | escopo | destino |
+| 2026-11-06 22:28 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-4 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 23:54 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-5 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-06 23:58 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-5 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 00:00 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-2 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:09 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-10 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 00:10 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 00:12 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-35 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:12 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-12 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:14 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-4 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 00:15 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-9 | entrega | 1 | não cumpriu | s | parecer commitado com o teste (QA-TESTE-E-PARECER-SEPARADOS) e review desatualizado pelo caso E2E; erro do brief | etapa | destino |
+| 2026-11-07 00:16 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-6 | brief | 1 | reprovado | s | Recursos citava a regra de 15:08; vale a da noite (00:07) | decisao | jarvis |
+| 2026-11-07 00:17 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-35 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 00:18 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-7 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:19 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-16 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:20 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-12 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 00:22 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-8 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:24 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-16 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 00:26 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-10 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:26 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-8 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 00:29 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-36 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:29 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-10 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 00:31 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-18 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:34 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-17 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:39 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-7 | entrega | 1 | não cumpriu | s | TENDENCIA_SUST.md gerado (mesmo caso de 17:22); merge e checks ok | escopo | destino |
+| 2026-11-07 00:42 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-3 | brief | 1 | reprovado | s | condição no docs:gerar contra a decisão de 17:22 | decisao | jarvis |
+| 2026-11-07 00:44 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-4 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-07 00:52 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-7 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:00 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-4 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 01:02 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-8 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:05 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-7 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 01:06 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-8 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 01:07 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-19 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:08 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-3 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:12 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-17 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 01:15 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-19 | entrega | 1 | não cumpriu | n | achado A3 contado com o marcador da lista; o texto do achado tem 300 caracteres e o forge-check docs não acusa | forma | destino |
+| 2026-11-07 01:15 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-3 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 01:16 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-10 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:17 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-9 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:20 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-4 | brief | 1 | reprovado | s | 25 min de espera da CI sem registro; pare e relate x avisar e refazer | decisao | jarvis |
+| 2026-11-07 01:21 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-10 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 01:23 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-11 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:24 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-5 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:28 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-11 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 01:30 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-20 | brief | 1 | reprovado | s | pare e relate sem citar a decisão de 01:20 | decisao | jarvis |
+| 2026-11-07 01:33 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-21 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:35 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-36 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 01:37 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-11 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:42 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-5 | entrega | 1 | não cumpriu | n | O5 CA-6/CA-8 sem mudança em fluxo.tsx; os testes do comportamento passam pelos componentes compartilhados | escopo | destino |
+| 2026-11-07 01:45 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-22 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 01:51 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-22 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 01:53 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-12 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 02:01 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-13 | brief | 1 | reprovado | s | zerar bugs sem aceite do dono seria contornar o ADR 0004; a classificação é do QA | decisao | jarvis |
+| 2026-11-07 02:02 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-14 | brief | 2 | aprovado | — |  | — | jarvis |
+| 2026-11-07 05:22 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-9 | entrega | 1 | não cumpriu | n | forge-check entrega com sha no --branch acusou união de briefs e sem parecer; forge-check pr aprovado no mesmo head | outra | destino |
+| 2026-11-07 05:29 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-node-backend-11 | entrega | 1 | não cumpriu | s | acelerato-duble.ts e acelerato-estatico.test.ts com remoção fora do Entregar nomeado | escopo | destino |
+| 2026-11-07 05:31 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-37 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 05:37 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-13 | brief | 1 | aprovado | — |  | — | jarvis |
+| 2026-11-07 05:38 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-37 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 05:40 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-21 | entrega | 1 | não cumpriu | n | ADR 0004 citada no pedido depois da aprovação do brief; mérito todo cumprido | decisao | destino |
+| 2026-11-07 05:43 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-security-engineer-13 | entrega | 1 | não cumpriu | n | A1 contado com prefixo e local; texto depois do ponto tem cerca de 271 e o forge-check docs não acusa; remoto em 0f69e670 confirmado | forma | destino |
+| 2026-11-07 05:44 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-9 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 05:48 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-14 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 05:51 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 05:51 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-9 | entrega | 1 | não cumpriu | parcial | autoria do parecer sem registro (sed depois do Write) | forma | destino |
+| 2026-11-07 05:54 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 05:57 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-9 | entrega | 2 | cumpriu | s |  | — | destino |
+| 2026-11-07 05:58 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-38 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:01 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-1 | brief | 1 | aprovado | s |  | — | jarvis |

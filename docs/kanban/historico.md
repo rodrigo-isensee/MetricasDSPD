@@ -784,3 +784,14 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-11-06 10:24 | 21 cartões para Pronto pela auditoria 074 (K-219, K-218, K-217, K-205, K-208, K-209, K-210, K-206, K-196, K-198, K-199, K-195, K-193, K-194, K-202, K-190, K-189, K-185, K-144, K-150, K-171), prova em docs/kanban/auditoria-2026-11-06.md | pedido 074 | Jarvis
 - 2026-11-06 10:31 | K-234 de Em andamento para Entrada (dono: A, junto com o P-L2-1) | pedido 073 | Jarvis
 - 2026-11-06 10:34 | K-204 para Empatizar e definir (pedido 075); K-216 para Em andamento (pedido 076, publicação local) | 075, 076 | Jarvis
+- 2026-11-06 10:43 | K-232 para Pronto (PR 242 mesclado, conferido) | 073 | Jarvis
+- 2026-11-06 10:46 | K-236 a K-239 abertos na Entrada (melhorias vistas no 073 e no 075) | 073, 075 | Jarvis
+| 2026-11-06T13:03:26-03:00 | K-204 | Empatizar e definir | Em andamento | 075: QA do lote 1a (qa-engineer) e lote 3 (node-backend) em paralelo; review e segurança do 1a aprovados |
+| 2026-11-06T13:03:27-03:00 | K-216 | Em andamento | Em andamento | 076: devops retoma passos 4 a 6 depois do .env do dono |
+| 2026-11-06T15:08:53-03:00 | K-229 | Em andamento | Pronto para fazer | proposta pronta; entra no chore(release) da próxima release combinada, sem trabalho ativo |
+| 2026-11-06T15:08:53-03:00 | K-223 | Em andamento | Bloqueado | E1.4 entregue em 2026-11-05 15:06; a limpeza das branches antigas é do dono · custo do trecho: lacuna |
+| 2026-11-06T15:41:06-03:00 | K-211 | Entrada | Em andamento | Lote 1a do 077 com o node-backend (052e) |
+| 2026-11-06T17:20:27-03:00 | K-235 | Entrada | Em andamento | Lote 1 do E10 com o node-backend (052d) |
+| 2026-11-07T05:47:30-03:00 | K-242 | — | Entrada | Pedido 078 aberto; espera o E10 L2 do 073 na develop |
+| 2026-11-07T05:49:46-03:00 | K-242 | Entrada | Entrada | Suspenso: P-078-1 com o dono |
+| 2026-11-07T05:55:20-03:00 | K-243 | — | Entrada | Recomendados do E10 L2 do 073 |
