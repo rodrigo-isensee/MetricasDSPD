@@ -2314,3 +2314,46 @@
 | 2026-11-07 05:57 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-9 | entrega | 2 | cumpriu | s |  | — | destino |
 | 2026-11-07 05:58 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-38 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-07 06:01 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:05 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-38 | entrega | 1 | não cumpriu | parcial | parada esperada: QA desatualizado pelo delta de texto; escopo ok | forma | destino |
+| 2026-11-07 06:07 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-11 | brief | 1 | reprovado | s | fidelidade: delta descrito como só texto desde 438ffc2c | forma | jarvis |
+| 2026-11-07 06:10 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-12 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:14 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-qa-engineer-12 | entrega | 1 | não cumpriu | n | escopo fora só pelos commits do tech-lead-38 (a9a151d7, 5afebc16) no intervalo, já conferidos com escopo ok às 06:05 | forma | destino |
+| 2026-11-07 06:14 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 06:17 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-8 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:18 | 073-melhorias-tecnicas-2026-11-05 | 073-melhorias-tecnicas-2026-11-05-tech-lead-39 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:20 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:21 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-5 | entrega | 1 | não cumpriu | n | A14 lido pela letra (ramos de repasse alcançáveis e cobertos, não o sem-dado-real); nível warn do log fica com o review | forma | destino |
+| 2026-11-07 06:23 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:31 | 079-trava-suite-tmpdir | 079-trava-suite-tmpdir-devops-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:37 | 079-trava-suite-tmpdir | 079-trava-suite-tmpdir-devops-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 06:38 | 079-trava-suite-tmpdir | 079-trava-suite-tmpdir-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:38 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-8 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 06:40 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-11 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:43 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-11 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 06:45 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-11 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 06:45 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-2 | brief | 1 | reprovado | s | artefatos e teto sem nome; A3, A-3 e A-4 sem marca; 4b e 6b fora do Fora do escopo | forma | jarvis |
+| 2026-11-07 06:46 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-4 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:47 | 079-trava-suite-tmpdir | 079-trava-suite-tmpdir-tech-lead-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 06:48 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-3 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:50 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-23 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:52 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-4 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 06:53 | 079-trava-suite-tmpdir | 079-trava-suite-tmpdir-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:56 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-12 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 06:58 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-23 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 07:00 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-15 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:07 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-15 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 07:09 | 079-trava-suite-tmpdir | 079-trava-suite-tmpdir-qa-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 07:10 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-3 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 07:11 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-24 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:11 | 079-trava-suite-tmpdir | 079-trava-suite-tmpdir-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:12 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-13 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:17 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-13 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 07:18 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-12 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 07:19 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:19 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-5 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:27 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-5 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 07:29 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-14 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:38 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-24 | entrega | 1 | não cumpriu | parcial | PR 260 aberto e verde; merge espera o update-branch do dono, como o brief manda | forma | destino |
+| 2026-11-07 07:40 | 080-testes-instaveis-web | 080-testes-instaveis-web-react-frontend-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:42 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-6 | entrega | 1 | não cumpriu | n | servico.ts +3 -1 fora do Entregar, desvio declarado pelo autor; o review decide | forma | destino |
+| 2026-11-07 07:45 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-15 | brief | 1 | aprovado | s |  | — | jarvis |

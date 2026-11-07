@@ -795,3 +795,7 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-07T05:47:30-03:00 | K-242 | — | Entrada | Pedido 078 aberto; espera o E10 L2 do 073 na develop |
 | 2026-11-07T05:49:46-03:00 | K-242 | Entrada | Entrada | Suspenso: P-078-1 com o dono |
 | 2026-11-07T05:55:20-03:00 | K-243 | — | Entrada | Recomendados do E10 L2 do 073 |
+| 2026-11-07T06:30:17-03:00 | K-201 | Pronto para fazer | Pronto para fazer | Pedido 079 aberto; brief do devops-engineer em conferência |
+| 2026-11-07T06:31:10-03:00 | K-201 | Pronto para fazer | Em andamento | devops-engineer (052g), pedido 079 |
+| 2026-11-07T07:39:33-03:00 | K-173 | Pronto para fazer | Pronto para fazer | Pedido 080 aberto |
+| 2026-11-07T07:39:33-03:00 | K-192 | Pronto para fazer | Pronto para fazer | Pedido 080 aberto |

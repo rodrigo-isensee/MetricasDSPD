@@ -193,3 +193,25 @@
 - 2026-11-07 05:46: Push do parecer do QA do 5b refeito pelo Jarvis (o eslint do pre-push tinha morrido): origin/feature/075-l5b-historico-parcial = 7b4bb1d7c2a8068e7f69b65edb4403b4cf4e5fd5.
 - 2026-11-07 05:48: Conferência do parecer corrigido do QA do 5b (qa-engineer-14): cumpriu (aceite_usuario nao, bugs 1 médio e 2 baixos mantidos, só o parecer no commit). O forge-check pr segue barrando o PR do 5b até o aceite do dono (R-QA), como esperado. Aviso do conferente: docs/ux/075-revisao-l5b.md está só no clone principal, sem commit; entra na branch do 5b pelo tech-lead junto com o PR.
 - 2026-11-07 05:48: entrega conferida 7b4bb1d7c2a8068e7f69b65edb4403b4cf4e5fd5
+- 2026-11-07 06:10: DECISÃO TÉCNICA (Jarvis): lote 4a ao node-backend (052f, feature/075-l4a-evt-bloqueio, base develop 718d46be) com os recomendados do 2b para o 4a (segurança A1 e QA A1, corpo do PR 257); os do review do 2b ficam para o 4b, como o PR 257 aponta. Dispara quando abrir vaga (3 agentes).
+- 2026-11-07 06:17: Brief node-backend-8 (lote 4a) aprovado; delegação espera vaga (3 agentes) e o fim do 3a do 077 no node-backend (WIP 1 por agente).
+- 2026-11-07 06:20: Lote 4a delegado ao node-backend (052f) pelo brief node-backend-8 aprovado.
+- 2026-11-07 06:35: Lote 4a entregue pelo node-backend (node-backend-8): feature/075-l4a-evt-bloqueio em b44f714aa4216a02b53482b9f8f7538da52e14f2, CI do push verde (run 42359938014); gravarBloqueios no projetarLote, VERSAO_PROJETOR bm-f4/2, só campos usados (mais archived_at e excluido_detectado, que o derivador do 2b exige: desvio do plano declarado); SEG A1 e QA A1 do 2b feitos (teste 'arquivado' mudou de T3 para T2 de propósito); 2 testes de dublê e 5 .pg (CA-075-6 a 10, 12); CA-075-1 ponta a ponta vai ao 4c (teto 196 linhas, código 43). Performance local: bm:projetar 1.223 ms (11.600 eventos) e 780 ms na reprojeção com 23.200 versões; EXPLAIN da consulta nova 2,97 ms em ix_stg_card_ultima. O agente rodou os .pg locais fora do sandbox (Postgres descartável), pela aprovação da ferramenta.
+- 2026-11-07 06:38: Conferência do 4a: cumpriu.
+- 2026-11-07 06:38: entrega conferida b44f714aa4216a02b53482b9f8f7538da52e14f2
+- 2026-11-07 06:40: Brief security-engineer-11 (segurança do 4a) aprovado e delegado; o review do 4a vem depois, quando o tech-lead terminar os reviews do 077 e o do 079.
+- 2026-11-07 06:43: Segurança do 4a (security-engineer-11): aprovado, parecer docs/security/075-l4a-evt-bloqueio.md em c228cc7d (commit: b44f714a), enviado; controles conferidos, desvio archived_at/excluido_detectado aceito, CA-075-1 adiado ao 4c com risco coberto (4c antes do 6b e da prova do dono); A1 recomendado: tempo e EXPLAIN (TL-A6) no parecer: os números estão no Histórico da entrega e vão ao parecer do review do 4a.
+- 2026-11-07 06:45: Conferência da segurança do 4a: cumpriu.
+- 2026-11-07 06:45: entrega conferida c228cc7db74ad1e379520da2b04b5525c7445b9e
+- 2026-11-07 06:50: Brief tech-lead-23 (review do 4a) aprovado e delegado (052f).
+- 2026-11-07 06:54: Review do 4a (tech-lead-23): aprovado, parecer em d5d693bb (commit: b44f714a), enviado; performance no parecer (TL-A6); teto 202 linhas pela M14 (47 de código), CA-075-1 no 4c; A1 recomendado (marcos de entrega e descarte sem olhar a vigência de ref_coluna, vai ao 4b), A2 recomendado (array de versões recriado por versão, custo quadrático por card). Próximo: QA do 4a.
+- 2026-11-07 06:58: Conferência do review do 4a: cumpriu.
+- 2026-11-07 06:58: entrega conferida d5d693bb72ae4da59fb15567a34118e9baeabf58
+- 2026-11-07 07:00: Brief qa-engineer-15 (QA do 4a) aprovado e delegado (052f).
+- 2026-11-07 07:04: QA do 4a (qa-engineer-15): aprovado, sem bug, parecer em ea39e65fba7c697a24492959280cf86b0942e440 (commit: b44f714a), enviado; 41 testes, vermelho na base e 6 mutantes mortos; A1 CA-075-7 em banco sem o card descartado e A2 vigências de ref_coluna (vai ao 4b), recomendados. Observação: no sandbox o ps só vê os processos do próprio agente; a checagem de push concorrente pedida nos briefs não funciona (MELHORIA de processo, retrospectiva).
+- 2026-11-07 07:07: Conferência do QA do 4a: cumpriu; forge-check pr aprovado no head ea39e65f. Próximo: PR do 4a (E1.9), em série depois do PR do 077 3a.
+- 2026-11-07 07:07: entrega conferida ea39e65fba7c697a24492959280cf86b0942e440
+- 2026-11-07 07:11: Brief tech-lead-24 (PR do 4a) aprovado; sai quando o tech-lead terminar o PR do 077 3a (merges em série).
+- 2026-11-07 07:16: Develop em 852b9406 (PR 259 do 077 3a): o 4a fica BEHIND; o tech-lead abre o PR e para antes do merge (update-branch com o dono).
+- 2026-11-07 07:36: PR 260 do 4a aberto pelo tech-lead (tech-lead-24) no head ea39e65f, forge-check pr aprovado, checks verdes; BEHIND da develop 852b9406, parado antes do merge. AÇÃO DO DONO: update-branch do PR 260 (o classificador recusa aos agentes); depois o tech-lead mescla.
+- 2026-11-07 07:38: Conferência do PR 260: PQ-1 cumpriu (aberto, verde), PQ-2 não (BEHIND, merge espera o update-branch do dono, como o brief manda).
