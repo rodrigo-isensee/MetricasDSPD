@@ -132,6 +132,15 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
 ]
 
 /**
+ * P-077-3: a tendência herda as marcações de critério das métricas de origem (tabela única; ADR 0019: O3/O4 no fluxo,
+ * S2/S3 na sustentação). Métrica fora da tabela só vale por si.
+ */
+export const ORIGEM_DA_TENDENCIA: Readonly<Partial<Record<MetricaId, readonly MetricaId[]>>> = {
+  TENDENCIA_FLUXO: ['O3', 'O4'],
+  TENDENCIA_SUST: ['S2', 'S3'],
+}
+
+/**
  * Mudanças de critério de cálculo (T2.6). A lista vive na configuração da base; aqui só se
  * decide quais cruzam um período. Percentil tipo 7 e janela de 12 semanas são o critério v1.
  */
@@ -146,8 +155,9 @@ export function marcacoesNoPeriodo(
     ...versoes,
     ...VERSOES_DA_BIBLIOTECA.filter((l) => !versoes.some((v) => v.id === l.id)),
   ]
+  const alvos: readonly MetricaId[] = [metrica, ...(ORIGEM_DA_TENDENCIA[metrica] ?? [])]
   return todas
-    .filter((v) => v.afeta.includes(metrica))
+    .filter((v) => v.afeta.some((m) => alvos.includes(m)))
     .filter((v) => {
       const d = diaDeIso(v.data)
       return d > a && d <= b
