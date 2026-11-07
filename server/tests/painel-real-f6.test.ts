@@ -465,7 +465,13 @@ describe('pedido 069 L9-a: S3 e S2 sem zero falso na base real', () => {
     expect(a.notas).toEqual([NOTA_S3]);
     expect((semParteDeAjusteDePrioridade('S3', a) as { notas: string[] }).notas).toEqual([NOTA_S3]);
     expect((semParteDeAjusteDePrioridade('S2', { prioridades: [] }) as { notas: string[] }).notas).toEqual([NOTA_S2]);
+    // Pedido 077, L6a: a tendência de SLA traz a mesma nota e o resto do resultado fica igual; sem repetir.
+    const t = semParteDeAjusteDePrioridade('TENDENCIA_SUST', { meses: [{ mes: '2026-09', volume: 3 }] }) as { meses: unknown[]; notas: string[] };
+    expect(t.notas).toEqual([NOTA_S2]);
+    expect(t.meses).toEqual([{ mes: '2026-09', volume: 3 }]);
+    expect((semParteDeAjusteDePrioridade('TENDENCIA_SUST', t) as { notas: string[] }).notas).toEqual([NOTA_S2]);
     const fora = { a: 1 };
     expect(semParteDeAjusteDePrioridade('S4', fora)).toBe(fora);
+    expect(semParteDeAjusteDePrioridade('TENDENCIA_FLUXO', fora)).toBe(fora);
   });
 });

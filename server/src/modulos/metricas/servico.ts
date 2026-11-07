@@ -40,6 +40,8 @@ export const MAX_RESULTADOS = 500;
 const METRICAS_COM_ALVOS: readonly MetricaId[] = ['S1', 'VISAO_GERAL'];
 /** Métricas de SLA que não contam os chamados sem agente (D-9 do plano 056): a biblioteca recebe a base sem eles. */
 const METRICAS_SEM_AGENTE: readonly MetricaId[] = ['S2', 'TENDENCIA_SUST'];
+/** Pedido 069 (L9-a) e 077 (L6a): métricas que levam a parte sem dado do ajuste de prioridade. */
+const METRICAS_COM_AJUSTE_DE_PRIORIDADE: readonly MetricaId[] = ['S3', 'S2', 'TENDENCIA_SUST'];
 /** Por base carregada: a base sem os chamados sem agente (D-9) e a extensão do S8 (D-10). Só da fonte real; a base semeada tem tudo com agente. */
 const EXTRAS_AC = new WeakMap<BaseAC, ExtrasAC>();
 /**
@@ -317,7 +319,7 @@ export class ServicoMetricas {
     // Pedido 065 (K-205): a coleta ainda não grava bloqueios; na base real a parte de bloqueio sai `null` com nota, nunca zero. Só publicação: nada é recalculado.
     if (real && !BLOQUEIOS_COM_DADO_REAL && METRICAS_COM_PARTE_DE_BLOQUEIO.includes(id)) resultado = semParteDeBloqueio(id, resultado);
     // Pedido 069, L9-a (K-220): sem a fonte de `prioridade_ajustada_manualmente`, o S3 publica `null` com nota e o S2 a nota da exceção de SLA. Só publicação.
-    if (real && !AJUSTE_PRIORIDADE_COM_FONTE && (id === 'S3' || id === 'S2')) resultado = semParteDeAjusteDePrioridade(id, resultado);
+    if (real && !AJUSTE_PRIORIDADE_COM_FONTE && METRICAS_COM_AJUSTE_DE_PRIORIDADE.includes(id)) resultado = semParteDeAjusteDePrioridade(id, resultado);
     mapa.set(chave, resultado);
     if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
     return { resultado, dataReferencia, versaoCriterio, chave };
