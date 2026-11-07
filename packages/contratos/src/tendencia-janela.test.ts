@@ -68,3 +68,16 @@ describe('janelaIncompleta no contrato das tendências', () => {
     expect(s.meses[0]).not.toHaveProperty('solicitante')
   })
 })
+
+// Pedido 077, L6a: `notas` opcional na tendência de sustentação; id fora do enum é recusado.
+describe('notas no resultado da tendência de sustentação', () => {
+  it('ausente e id válido passam; id fora do enum é recusado', () => {
+    expect(resultadoTendenciaSust.safeParse(sust({})).success).toBe(true)
+    expect(
+      resultadoTendenciaSust.safeParse({ ...sust({}), notas: ['excecao-sla-sem-fonte'] }).success,
+    ).toBe(true)
+    expect(resultadoTendenciaSust.safeParse({ ...sust({}), notas: ['inventada'] }).success).toBe(
+      false,
+    )
+  })
+})
