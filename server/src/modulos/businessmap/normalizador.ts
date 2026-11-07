@@ -112,7 +112,7 @@ const COLUNAS_LISTA_NULAS = Object.fromEntries(COLUNAS_LISTA.map((c) => [c, null
  * L2-b: colunas de lista a partir de `custom_fields` do staging (`{ field_id, valor: código }`, já reduzido pela allow-list). Só preenche coluna do enum
  * e campo do mapa; `desconhecido` (ou valor que não é texto) vira `null` com a nota `campo_fora_do_dominio` (contagem, nunca o valor). Sem mapa, tudo nulo.
  */
-function colunasDeLista(card: Record<string, unknown>, mapa: ReadonlyMap<string, string>, notas: string[]): Record<(typeof COLUNAS_LISTA)[number], string | null> {
+export function colunasDeLista(card: Record<string, unknown>, mapa: ReadonlyMap<string, string>, notas: string[]): Record<(typeof COLUNAS_LISTA)[number], string | null> {
   const r: Record<(typeof COLUNAS_LISTA)[number], string | null> = { ...COLUNAS_LISTA_NULAS };
   if (mapa.size === 0 || !Array.isArray(card.custom_fields)) return r;
   for (const c of card.custom_fields as unknown[]) {
