@@ -1,3 +1,4 @@
+import { MOTIVOS_BLOQUEIO_PUBLICADOS } from '@metricas-dspd/contratos';
 import type pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { projetarBusinessMap } from '../src/modulos/businessmap/projetor.js';
@@ -9,7 +10,7 @@ import { poolDe, url } from './pg/ctx.js';
 
 // Lote 4a do 075 (K-204): `evt_bloqueio` pela projeção, contra PostgreSQL real. Cards sem `created_at` ficam só no staging e nos eventos de bloqueio.
 const d = describe.skipIf(!url);
-const Q = '9201'; const COL_ENTREGA = '92011'; const COL_TRABALHO = '92012';
+const Q = '9201'; const COL_ENTREGA = '92011'; const COL_TRABALHO = '92012'; const COL_DESCARTE = '92013';
 const MARCADOR = 'MARCADOR-PESSOA-075';
 const H = (h: number): Date => new Date(Date.UTC(2026, 10, 1, h));
 
@@ -32,6 +33,8 @@ d('lote 4a do 075: projetor grava evt_bloqueio', () => {
     coletor = criarPool(urlDoPapel(url!, 'dspd_coletor', process.env.DSPD_PWD_COLETOR ?? 'coletor_dev'), { max: 2 });
     await dono.query(`INSERT INTO ${E.bm}.ref_coluna (quadro_id, coluna_id, vigente_de, nome, tipo_coluna, papel, ordem, workflow_id, section, flow_type, eh_folha, eh_descarte)
       VALUES ($1, $2, '2020-01-01', 'Entrega', 'execucao', 'entrega', 2, '92002', 4, 1, true, false)`, [Q, COL_ENTREGA]);
+    await dono.query(`INSERT INTO ${E.bm}.ref_coluna (quadro_id, coluna_id, vigente_de, nome, tipo_coluna, papel, ordem, workflow_id, section, flow_type, eh_folha, eh_descarte)
+      VALUES ($1, $2, '2020-01-01', 'Descarte', 'execucao', NULL, 3, '92002', 4, 1, true, true)`, [Q, COL_DESCARTE]);
     await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('campo_customizado', '5001', '2020-01-01', 'fornecedor', 0)`);
     coleta = Number((await dono.query<{ coleta_id: string }>(`INSERT INTO ${E.bm}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('reconciliacao', now(), 'em_andamento', 'teste') RETURNING coleta_id`)).rows[0]!.coleta_id);
   });
@@ -58,13 +61,14 @@ d('lote 4a do 075: projetor grava evt_bloqueio', () => {
   });
 
   it('CA-075-7 e SEG-A1: card arquivado (data depois da coleta), excluído e entregue fecham o bloqueio e os eventos ficam depois de nova projeção', async () => {
-    const [a, x, e] = [novoId(), novoId(), novoId()];
+    const [a, x, e, ds] = [novoId(), novoId(), novoId(), novoId()];
     const bloq = { is_blocked: true, block_reason: { reason_id: 3 } };
     await versao(a, 10, bloq); await versao(a, 12, { ...bloq, archived_at: '2099-01-01T00:00:00Z' });
     await versao(x, 10, bloq); await versao(x, 12, { ...bloq, excluido: true });
     await versao(e, 10, bloq); await versao(e, 12, { ...bloq, column_id: Number(COL_ENTREGA) });
+    await versao(ds, 10, bloq); await versao(ds, 12, { ...bloq, column_id: Number(COL_DESCARTE) });
     await projetar();
-    for (const id of [a, x, e]) expect((await dono.query(`SELECT tipo, ocorrido_em FROM ${E.bm}.evt_bloqueio WHERE card_id = $1 ORDER BY tipo DESC`, [id])).rows).toEqual([{ tipo: 'inicio', ocorrido_em: H(10) }, { tipo: 'fim', ocorrido_em: H(12) }]);
+    for (const id of [a, x, e, ds]) expect((await dono.query(`SELECT tipo, ocorrido_em FROM ${E.bm}.evt_bloqueio WHERE card_id = $1 ORDER BY tipo DESC`, [id])).rows).toEqual([{ tipo: 'inicio', ocorrido_em: H(10) }, { tipo: 'fim', ocorrido_em: H(12) }]);
     const total = await n();
     await projetar();
     expect(await n()).toBe(total);
@@ -83,6 +87,25 @@ d('lote 4a do 075: projetor grava evt_bloqueio', () => {
     const nota = await dono.query(`SELECT lidos FROM ${E.bm}.ctl_coleta_contagem WHERE coleta_id = $1 AND entidade = 'nota_bloqueio_motivo_codigo_invalido'`, [r.coletaId]);
     expect(nota.rows.length).toBe(1);
     for (const t of ['evt_bloqueio', 'ctl_coleta_contagem', 'ctl_coleta_falha']) expect(Number((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.${t} x WHERE x::text LIKE '%${MARCADOR}%'`)).rows[0].n)).toBe(0);
+  });
+
+  it('lote 4b: mapa vazio dá "não classificado"; mapa e calendário novos reclassificam o passado com evt_bloqueio idêntico; aberto sem fim; fim = início com duração 0', async () => {
+    const [a, b, z] = [novoId(), novoId(), novoId()];
+    const bloq = { is_blocked: true, block_reason: { reason_id: 7 } };
+    await versao(a, 60, bloq); await versao(a, 62); await versao(b, 60, bloq); await versao(z, 60, bloq); await versao(z, 62, { ...bloq, archived_at: '2020-01-01T00:00:00Z' });
+    const fatos = async () => (await dono.query(`SELECT motivo, fim, duracao_horas_uteis::float AS h FROM ${E.bm}.fato_bloqueio WHERE card_id = ANY($1) ORDER BY card_id`, [[a, b, z]])).rows.map((r) => [r.motivo, r.fim, r.h]);
+    const eventos = async () => (await dono.query(`SELECT * FROM ${E.bm}.evt_bloqueio ORDER BY evt_sk`)).rows;
+    await projetar();
+    const antes = await eventos();
+    expect(await fatos()).toEqual([['não classificado', H(62), 2], ['não classificado', null, null], ['não classificado', H(60), 0]]);
+    await dono.query(`INSERT INTO ${E.bm}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('motivo_bloqueio', '7', '2020-01-01', 'Janela de mudança', 0)`);
+    await dono.query(`INSERT INTO ${E.core}.ref_calendario (nome, offset_minutos) VALUES ('4b', 0)`);
+    await dono.query(`INSERT INTO ${E.core}.ref_calendario_aplicacao (dominio, classe, vigente_de, calendario_id) SELECT 'businessmap', 'fluxo', '2020-01-01', calendario_id FROM ${E.core}.ref_calendario WHERE nome = '4b'`);
+    await projetar();
+    expect(await eventos()).toEqual(antes);
+    expect(await fatos()).toEqual([['Janela de mudança', H(62), 1], ['Janela de mudança', null, null], ['Janela de mudança', H(60), 0]]);
+    expect((await projetar()).fatosBloqueio.inseridos).toBe(0);
+    expect(Number((await dono.query(`SELECT count(*) AS n FROM ${E.bm}.fato_bloqueio WHERE motivo <> ALL($1)`, [[...MOTIVOS_BLOQUEIO_PUBLICADOS]])).rows[0].n)).toBe(0);
   });
 
   it('CA-075-9: com coleta seed-mock no esquema a projeção recusa antes de escrever evento de bloqueio', async () => {
