@@ -35,11 +35,11 @@ function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
   }
   return (
     <div
-      className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm"
+      className="mt-3 flex flex-wrap items-center gap-x-2 text-sm"
       data-testid={`leia-junto-${id}`}
     >
       <span>Leia junto:</span>
-      <ul className="m-0 flex list-none flex-wrap gap-x-3 gap-y-1 p-0">
+      <ul className="m-0 flex list-none flex-wrap gap-x-3 p-0">
         {pares.map((c) => (
           <li key={c.id}>
             <a
