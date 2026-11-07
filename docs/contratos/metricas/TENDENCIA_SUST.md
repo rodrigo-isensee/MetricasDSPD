@@ -1,6 +1,6 @@
 # Contrato da métrica TENDENCIA_SUST
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_SUST. Público: time (back-end, front-end, QA). Revisão: 2026-11-06.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_SUST. Público: time (back-end, front-end, QA). Revisão: 2026-11-07.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -208,6 +208,10 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.TENDENCIA_SUST`); a fotografia ver
         "required": ["mes","fimDoMes","janela","prioridades","volume"],
         "additionalProperties": false
       }
+    },
+    "notas": {
+      "type": "array",
+      "items": {"type":"string","enum":["ajuste-prioridade-sem-dado-real","excecao-sla-sem-fonte"]}
     }
   },
   "required": ["base","criterios","meses"],
