@@ -40,3 +40,5 @@
 - 2026-11-07 07:09: Conferência do QA: cumpriu; forge-check pr aprovado no head e63dcc6d.
 - 2026-11-07 07:09: entrega conferida e63dcc6d76e7519210cf3aeec0601d261d6f210d
 - 2026-11-07 07:11: Brief tech-lead-2 (PR) aprovado; sai em série depois dos PRs do 077 3a e do 075 4a.
+- 2026-11-07 08:23: PR do 079 delegado ao tech-lead (brief tech-lead-2): abre e para se BEHIND (a develop andou para bc78a3b8).
+- 2026-11-07 08:38: PR 263 aberto pelo tech-lead (tech-lead-2) no head e63dcc6d, forge-check pr aprovado, checks verdes salvo e2e-parte 2/2 em andamento; BEHIND da develop bc78a3b8, parado antes do merge. AÇÃO DO DONO: update-branch do PR 263.

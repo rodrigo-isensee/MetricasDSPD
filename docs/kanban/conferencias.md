@@ -2357,3 +2357,23 @@
 | 2026-11-07 07:40 | 080-testes-instaveis-web | 080-testes-instaveis-web-react-frontend-1 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-07 07:42 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-6 | entrega | 1 | não cumpriu | n | servico.ts +3 -1 fora do Entregar, desvio declarado pelo autor; o review decide | forma | destino |
 | 2026-11-07 07:45 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-15 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:51 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-15 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 07:52 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-6 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 07:57 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-14 | entrega | 1 | não cumpriu | parcial | PR 261 aberto e verde, BEHIND (merge com o dono); corpo diz A-1 a A-3 corrigidos, mas A-3 vai ao 4b | forma | destino |
+| 2026-11-07 07:58 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-6 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 07:59 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-16 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 08:03 | 080-testes-instaveis-web | 080-testes-instaveis-web-react-frontend-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 08:03 | 080-testes-instaveis-web | 080-testes-instaveis-web-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 08:05 | 081-categoria-erro-entradas | 081-categoria-erro-entradas-node-backend-1 | brief | 1 | reprovado | s | regra do push citada do 075 sem registro no 081 | forma | jarvis |
+| 2026-11-07 08:06 | 081-categoria-erro-entradas | 081-categoria-erro-entradas-node-backend-2 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-07 08:22 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-16 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 08:25 | 080-testes-instaveis-web | 080-testes-instaveis-web-tech-lead-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 08:27 | 081-categoria-erro-entradas | 081-categoria-erro-entradas-node-backend-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 08:27 | 080-testes-instaveis-web | 080-testes-instaveis-web-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 08:28 | 081-categoria-erro-entradas | 081-categoria-erro-entradas-security-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 08:34 | 081-categoria-erro-entradas | 081-categoria-erro-entradas-security-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 08:35 | 081-categoria-erro-entradas | 081-categoria-erro-entradas-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 08:40 | 080-testes-instaveis-web | 080-testes-instaveis-web-qa-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-07 08:40 | 080-testes-instaveis-web | 080-testes-instaveis-web-react-frontend-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 08:43 | 081-categoria-erro-entradas | 081-categoria-erro-entradas-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-07 08:43 | 081-categoria-erro-entradas | 081-categoria-erro-entradas-tech-lead-1 | entrega | 1 | cumpriu | s |  | — | destino |

@@ -799,3 +799,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-07T06:31:10-03:00 | K-201 | Pronto para fazer | Em andamento | devops-engineer (052g), pedido 079 |
 | 2026-11-07T07:39:33-03:00 | K-173 | Pronto para fazer | Pronto para fazer | Pedido 080 aberto |
 | 2026-11-07T07:39:33-03:00 | K-192 | Pronto para fazer | Pronto para fazer | Pedido 080 aberto |
+| 2026-11-07T08:05:00-03:00 | K-241 | Entrada | Entrada | Pedido 081 aberto |

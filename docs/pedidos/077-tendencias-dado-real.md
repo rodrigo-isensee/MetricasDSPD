@@ -133,3 +133,16 @@
 - 2026-11-07 07:42: Conferência do 6a: PQ-1 a PQ-3 cumpridos, teto ok; não cumpriu só pelo servico.ts (+3 -1) fora do Entregar, desvio já declarado pelo autor. DECISÃO TÉCNICA (Jarvis): aceito pelo mérito para seguir ao review, que decide manter a ligação no serviço (hoje sem efeito: TENDENCIA_SUST fora do mapa real responde sem-dado-real antes do cálculo) ou reverter a linha e deixá-la ao Lote 7. Head a8d3fa67 conferido.
 - 2026-11-07 07:42: entrega conferida a8d3fa67dcb31b36f0e50f72471ca912bba64ac9
 - 2026-11-07 07:45: Brief tech-lead-15 (review do 6a) aprovado e delegado (mesmo cartão K-211 do PR do 4a em curso).
+- 2026-11-07 07:49: Review do 6a (tech-lead-15): aprovado, parecer em 987231889f0fba5f1dcd8f9f4618c6856d349e80 (commit: a8d3fa67), enviado; desvio em servico.ts aceito (efeito nulo até o Lote 7); A1 recomendado (comentário de parte-sem-dado.ts cita só S3 e S2); duas faixas de linha do parecer levemente erradas, declaradas pelo revisor.
+- 2026-11-07 07:51: Conferência do review do 6a: cumpriu.
+- 2026-11-07 07:51: entrega conferida 987231889f0fba5f1dcd8f9f4618c6856d349e80
+- 2026-11-07 07:52: Brief qa-engineer-6 (QA do 6a) aprovado e delegado (052e).
+- 2026-11-07 07:54: PR 261 do 4a aberto pelo tech-lead (tech-lead-14): revisão de interface commitada em f14a582963314667aa8695d8f79eec26e6336f15, forge-check pr aprovado, checks verdes (e2e-parte 2/2 pendente na última leitura); BEHIND da develop, parado antes do merge. AÇÃO DO DONO: update-branch do PR 261.
+- 2026-11-07 07:56: QA do 6a (qa-engineer-6): aprovado, 0 bugs, parecer em fea3869a58b99868426d2634b7dfd19f627972d1 (commit: a8d3fa67), enviado; 39 testes, vermelho na base, M1 e M2 mortos; A1 recomendado (ligação em servico.ts sem teste próprio, prova no Lote 7).
+- 2026-11-07 07:57: Conferência do PR 261: PQ-1 cumpriu, PQ-2 espera o dono (BEHIND); commit f14a5829 só com docs/ux/077-revisao-l4a.md (cabe no Entregar); achado: a linha 19 do corpo diz 'A-1 a A-3 da revisão corrigidos', mas o A-3 vai ao 4b. DECISÃO TÉCNICA (Jarvis): o commit da revisão de interface vale pelo mérito (head f14a5829 conferido); a correção da linha 19 do corpo (gh pr edit) entra no passo do merge, depois do update-branch do dono.
+- 2026-11-07 07:57: entrega conferida f14a582963314667aa8695d8f79eec26e6336f15
+- 2026-11-07 07:58: Conferência do QA do 6a: cumpriu; forge-check pr aprovado no head fea3869a.
+- 2026-11-07 07:58: entrega conferida fea3869a58b99868426d2634b7dfd19f627972d1
+- 2026-11-07 07:59: Brief tech-lead-16 (PR do 6a) aprovado e delegado; a branch saiu da develop atual (852b9406).
+- 2026-11-07 08:21: E2.4 do 6a cumprida pelo tech-lead (tech-lead-16): PR 262 mesclado na develop por squash, head fea3869a, checks verdes, sem recusa.
+- 2026-11-07 08:22: Conferência do merge do PR 262 (6a): cumpriu; develop em bc78a3b859d89628e2128638f74cc0c1462be0d2. Os PRs 258, 260 e 261 seguem BEHIND (update-branch do dono).
