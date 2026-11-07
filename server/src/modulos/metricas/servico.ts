@@ -16,7 +16,7 @@ import { semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-da
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
-  lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerColunasReais, lerDominio, lerEtapas, lerFichas, lerLimiteFrentes,
+  lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerColunasReais, lerDominio, lerEtapas, lerFichas, lerHistoricoDesdeBM, lerLimiteFrentes,
   lerLimitesWip, lerSle, lerTransicoes, lerVersoesColuna,
 } from './repositorio.js';
 
@@ -56,7 +56,9 @@ const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], f
 } };
 
 type Marca = { versao: string; finalizadoEm: Date | null };
-type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null; cal: Calendario; sleDefinido?: boolean };
+type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null; cal: Calendario; sleDefinido?: boolean;
+  /** Pedido 077 (L3a): início do histórico carregado (menor `inicio_carga` das cargas iniciais do BusinessMap); ausente = sem carga inicial válida. */
+  historicoDesde?: string };
 type Entrada<B> = { lidoEm: number; carga: Promise<Carga<B>> | null; atual: Carga<B> | null };
 
 /** Fonte de dados da métrica: `fonteDaMetrica` é o ponto único (a PV1 é `pesquisa`, nunca BusinessMap nem Acelerato). */
@@ -153,7 +155,12 @@ export class ServicoMetricas {
     });
     const cal = await calendarioDaReferencia(db, S, 'businessmap', 'fluxo');
     const primeiro = cards.reduce<number | null>((a, c) => (a === null || c.criado_em.getTime() < a ? c.criado_em.getTime() : a), null);
-    return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO), cal, sleDefinido: ref.sle.length > 0 };
+    const { desde, ignoradas } = await lerHistoricoDesdeBM(db, S);
+    if (ignoradas > 0) this.deps.log?.({ cargasIgnoradas: ignoradas }, 'carga inicial com parâmetros inválidos ficou fora do início do histórico');
+    return {
+      versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO), cal, sleDefinido: ref.sle.length > 0,
+      ...(desde !== undefined ? { historicoDesde: desde } : {}),
+    };
   }
 
   private async carregarAC({ versao, finalizadoEm }: Marca): Promise<Carga<BaseAC>> {
@@ -294,7 +301,11 @@ export class ServicoMetricas {
     // S8 na fonte real (D-10): o campo dos 90 dias vira a extensão da biblioteca; com o modo mock explícito e extensões mockadas vale o mock.
     const extReal: ExtensaoAC | undefined = id === 'S8' && (real || this.deps.extensoes === undefined) ? extras?.extensao : undefined;
     const ctx: ContextosMetricas = {
-      bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, bm?.cal ?? CALENDARIO_PADRAO),
+      bm: {
+        ...businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, bm?.cal ?? CALENDARIO_PADRAO),
+        // Pedido 077 (L3a): só a fonte do BusinessMap entrega o início do histórico (só a TENDENCIA_FLUXO o lê; o contexto do Acelerato nunca o recebe).
+        ...(bm?.historicoDesde !== undefined ? { historicoDesde: bm.historicoDesde } : {}),
+      },
       ac: acelerato.criarContextoAC(baseAC, corte, ac?.cal ?? CALENDARIO_PADRAO),
       ...(extReal !== undefined ? { ext: { bm: EXTENSAO_BM_VAZIA, ac: extReal } } : {}),
       ...(COMPLEMENTARES.has(id) && this.deps.extensoes && !real ? { ext: this.deps.extensoes() } : {}),

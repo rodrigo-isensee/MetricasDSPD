@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 
@@ -165,3 +166,21 @@ export const lerAlvos = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente
   (await db.query<LinhaAlvo>(
     `SELECT prioridade, prazo_pa_horas_uteis, prazo_r_horas_uteis FROM ${S.ac}.ref_alvo_prioridade
       WHERE vigente_ate IS NULL ORDER BY prioridade`)).rows;
+
+/** Mesmo formato do `ParametrosCarga` da coleta (`businessmap/coleta.ts`): só o `inicio_carga` interessa aqui. */
+const InicioDaCarga = z.object({ inicio_carga: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
+
+/**
+ * Pedido 077 (L3a): início do histórico do BusinessMap = menor `inicio_carga` das cargas iniciais de cards com sucesso (o apontamento nunca
+ * entra: sua tarefa é outra). O `min` se toma aqui, sobre as linhas válidas; linha inválida é ignorada e só a contagem sai (nunca o conteúdo).
+ */
+export const lerHistoricoDesdeBM = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<{ desde: string | undefined; ignoradas: number }> => {
+  const linhas = (await db.query<{ parametros: unknown }>(
+    `SELECT parametros FROM ${S.bm}.ctl_coleta
+      WHERE tarefa = 'coleta_incremental' AND parametros ->> 'tipo' = 'carga_inicial' AND status = 'sucesso'`)).rows;
+  const validas = linhas.flatMap((l) => {
+    const p = InicioDaCarga.safeParse(l.parametros);
+    return p.success ? [p.data.inicio_carga] : [];
+  });
+  return { desde: validas.sort()[0], ignoradas: linhas.length - validas.length };
+};
