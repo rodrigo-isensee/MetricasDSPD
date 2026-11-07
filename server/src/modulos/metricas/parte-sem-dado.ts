@@ -42,6 +42,7 @@ export function semParteDeAjusteDePrioridade(id: MetricaId, resultado: unknown):
     const meses = (r.meses as Linha[]).map((m) => ({ ...m, ajustesManuais: null }));
     return comNotaSust({ ...r, meses }, 'ajuste-prioridade-sem-dado-real');
   }
-  if (id === 'S2') return comNotaSust(r, 'excecao-sla-sem-fonte');
+  // Pedido 077, L6a: a tendência de SLA herda a ressalva do S2, nas mesmas condições.
+  if (id === 'S2' || id === 'TENDENCIA_SUST') return comNotaSust(r, 'excecao-sla-sem-fonte');
   return resultado;
 }
