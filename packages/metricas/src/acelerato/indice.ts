@@ -48,6 +48,8 @@ export interface ContextoAC {
   hojeIso: string
   cal: Calendario
   criterios: readonly VersaoCriterio[]
+  /** Pedido 077: início do histórico carregado (ISO). Ausente = sem limite (mock e testes). Só as tendências leem. */
+  historicoDesde?: string
 }
 
 const cache = new WeakMap<BaseAC, Map<string, IndiceAC>>()
