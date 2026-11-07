@@ -13,7 +13,8 @@ import {
   somarMeses,
   dataIso,
 } from './calendario'
-import { marcacoesNoPeriodo } from './criterios'
+import type { MetricaId } from '@metricas-dspd/contratos'
+import { criteriosDe, marcacoesNoPeriodo } from './criterios'
 import { histograma, FAIXAS } from './histograma'
 import { diaDentro, janelaMovel, JANELA_POR_GRANULARIDADE } from './janela'
 import { percentil } from './percentil'
@@ -194,5 +195,21 @@ describe('versões de critério (T2.6)', () => {
     expect(
       marcacoesNoPeriodo('O3', { inicio: '2026-01-01', fim: '2026-06-01' }, versoes),
     ).toHaveLength(0)
+  })
+  it('a tendência herda as marcações das métricas de origem, nunca cruzado (P-077-3)', () => {
+    const p = { inicio: '2026-01-01', fim: '2026-06-01' }
+    const v = (afeta: MetricaId[]) => [{ id: 'c2', data: '2026-03-02', descricao: 'mudou', afeta }]
+    expect(marcacoesNoPeriodo('TENDENCIA_FLUXO', p, v(['O3']))).toHaveLength(1)
+    expect(marcacoesNoPeriodo('TENDENCIA_FLUXO', p, v(['O4']))).toHaveLength(1)
+    expect(marcacoesNoPeriodo('TENDENCIA_SUST', p, v(['S2']))).toHaveLength(1)
+    expect(marcacoesNoPeriodo('TENDENCIA_SUST', p, v(['S3']))).toHaveLength(1)
+    expect(marcacoesNoPeriodo('TENDENCIA_SUST', p, v(['O3']))).toHaveLength(0)
+    expect(marcacoesNoPeriodo('TENDENCIA_FLUXO', p, v(['S2']))).toHaveLength(0)
+    expect(marcacoesNoPeriodo('TENDENCIA_FLUXO', p, v(['O3']))).toEqual([
+      { id: 'c2', data: '2026-03-02', descricao: 'mudou' },
+    ])
+    expect(criteriosDe('TENDENCIA_SUST', p, p, v(['S2'])).serie).toEqual([
+      { id: 'c2', data: '2026-03-02', descricao: 'mudou' },
+    ])
   })
 })

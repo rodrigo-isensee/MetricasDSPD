@@ -1,5 +1,12 @@
-import type { FiltrosFluxo } from '@metricas-dspd/contratos'
-import { CartaoMetrica, Icone, TabelaDados } from '@/components/ui'
+import { MOTIVO_NAO_CLASSIFICADO, type FiltrosFluxo } from '@metricas-dspd/contratos'
+import {
+  ApoioMotivoNaoClassificado,
+  CartaoMetrica,
+  Icone,
+  MotivoBloqueio,
+  TabelaDados,
+  textoMotivo,
+} from '@/components/ui'
 import { useMetrica } from '@/data'
 import { fmtDiasUteis, fmtInteiro, plural } from '@/lib/formatar'
 import { NOTAS_OPERACIONAL } from '../notas'
@@ -16,7 +23,7 @@ export function CartaoBloqueados({ filtros }: { filtros: FiltrosFluxo }) {
   const maisAntigo = itens[0]
   const nenhum = !!d && itens.length === 0
   const leitura = maisAntigo
-    ? `${fmtInteiro(itens.length)} ${plural(itens.length, 'item está', 'itens estão')} bloqueado${itens.length === 1 ? '' : 's'}. O mais antigo está bloqueado há ${fmtDiasUteis(maisAntigo.bloqueadoHaDiasUteis, 0)} por "${maisAntigo.motivo}".`
+    ? `${fmtInteiro(itens.length)} ${plural(itens.length, 'item está', 'itens estão')} bloqueado${itens.length === 1 ? '' : 's'}. O mais antigo está bloqueado há ${fmtDiasUteis(maisAntigo.bloqueadoHaDiasUteis, 0)} ${textoMotivo(maisAntigo.motivo)}.`
     : undefined
   const props = propsCartao('BLOQUEADOS', q, NOTAS_OPERACIONAL.BLOQUEADOS)
   return (
@@ -37,6 +44,7 @@ export function CartaoBloqueados({ filtros }: { filtros: FiltrosFluxo }) {
       ) : (
         <TabelaDados
           codigo="BLOQUEADOS"
+          descritoPor="bloqueados-apoio"
           legenda="Itens bloqueados agora, do mais antigo ao mais novo"
           colunas={[
             { chave: 'card', titulo: 'Card' },
@@ -50,11 +58,21 @@ export function CartaoBloqueados({ filtros }: { filtros: FiltrosFluxo }) {
             card: `${i.cardId} ${i.titulo}`,
             tipo: i.tipo,
             etapa: i.etapa,
-            motivo: i.motivo,
+            motivo: <MotivoBloqueio motivo={i.motivo} />,
             fornecedor: i.fornecedor ?? '—',
             ha: fmtInteiro(i.bloqueadoHaDiasUteis),
           }))}
         />
+      )}
+      {!nenhum && (
+        <div id="bloqueados-apoio" className="mt-2 flex flex-col gap-1 text-xs text-texto-2">
+          {itens.some((i) => i.motivo === MOTIVO_NAO_CLASSIFICADO) && (
+            <ApoioMotivoNaoClassificado />
+          )}
+          <p>
+            O início do bloqueio é a data da coleta que o viu; pode ser posterior ao início real.
+          </p>
+        </div>
       )}
       <LeiaJunto id="bloqueados" />
     </CartaoMetrica>
