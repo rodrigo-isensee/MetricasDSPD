@@ -55,26 +55,36 @@ d('E10 Lote 2: recusa do reconhecimento contra PostgreSQL', () => {
   }, 60_000);
 
   it('INSERT direto pelo dono do schema recusa com reconhecimento-sem-versao; a contagem de staging e de ref_dominio não muda', async () => {
-    await dono.query(`INSERT INTO ${E.ac}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('equipe', '999', $1, 'Equipe injetada', 99)`, [DIA]);
-    const [stg, dom, conexoes] = [await contar('stg_chamado'), await contar('ref_dominio'), mysql.reg.conexoes];
-    await expect(coletar(true)).rejects.toMatchObject({ codigo: 'reconhecimento-sem-versao', coluna: 'recorte_sha256' });
-    expect(await ultimaFalha()).toMatchObject({ status: 'falha', marca_dagua_ate: null, erro_resumo: 'reconhecimento-sem-versao (recorte_sha256)' });
-    expect([await contar('stg_chamado'), await contar('ref_dominio'), mysql.reg.conexoes]).toEqual([stg, dom, conexoes]);
-    await dono.query(`DELETE FROM ${E.ac}.ref_dominio WHERE campo = 'equipe' AND codigo = '999'`);
+    // Data nova sem versão: o ac:ref-sync do primeiro teste deixou versão só em ${DIA} (a edição direta no mesmo dia de um ac:ref-sync passa: limite aceito no desenho).
+    await dono.query(`INSERT INTO ${E.ac}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('equipe', '999', '2026-11-07', 'Equipe injetada', 99)`);
+    try {
+      const [stg, dom, conexoes] = [await contar('stg_chamado'), await contar('ref_dominio'), mysql.reg.conexoes];
+      await expect(coletar(true)).rejects.toMatchObject({ codigo: 'reconhecimento-sem-versao', coluna: 'recorte_sha256' });
+      expect(await ultimaFalha()).toMatchObject({ status: 'falha', marca_dagua_ate: null, erro_resumo: 'reconhecimento-sem-versao (recorte_sha256)' });
+      expect([await contar('stg_chamado'), await contar('ref_dominio'), mysql.reg.conexoes]).toEqual([stg, dom, conexoes]);
+    } finally {
+      await dono.query(`DELETE FROM ${E.ac}.ref_dominio WHERE campo = 'equipe' AND codigo = '999'`);
+    }
   }, 60_000);
 
   it('UPDATE de rotulo no lugar recusa com lista-sobrescrita', async () => {
     const equipe = LISTAS_BANCO.find((l) => l.campo === 'equipe')!;
     await dono.query(`UPDATE ${E.ac}.ref_dominio SET rotulo = 'Sobrescrita' WHERE campo = 'equipe' AND codigo = $1`, [equipe.codigo]);
-    await expect(coletar(true)).rejects.toMatchObject({ codigo: 'lista-sobrescrita', coluna: 'recorte_sha256' });
-    expect(await ultimaFalha()).toMatchObject({ status: 'falha', marca_dagua_ate: null, erro_resumo: 'lista-sobrescrita (recorte_sha256)' });
-    await dono.query(`UPDATE ${E.ac}.ref_dominio SET rotulo = $2 WHERE campo = 'equipe' AND codigo = $1`, [equipe.codigo, equipe.rotulo]);
+    try {
+      await expect(coletar(true)).rejects.toMatchObject({ codigo: 'lista-sobrescrita', coluna: 'recorte_sha256' });
+      expect(await ultimaFalha()).toMatchObject({ status: 'falha', marca_dagua_ate: null, erro_resumo: 'lista-sobrescrita (recorte_sha256)' });
+    } finally {
+      await dono.query(`UPDATE ${E.ac}.ref_dominio SET rotulo = $2 WHERE campo = 'equipe' AND codigo = $1`, [equipe.codigo, equipe.rotulo]);
+    }
   }, 60_000);
 
   it('INSERT com vigente_de antigo recusa com lista-sobrescrita', async () => {
     await dono.query(`INSERT INTO ${E.ac}.ref_dominio (campo, codigo, vigente_de, rotulo, ordem) VALUES ('equipe', '998', '2026-02-01', 'Equipe antiga', 98)`);
-    await expect(coletar(true)).rejects.toMatchObject({ codigo: 'lista-sobrescrita', coluna: 'recorte_sha256' });
-    await dono.query(`DELETE FROM ${E.ac}.ref_dominio WHERE campo = 'equipe' AND codigo = '998'`);
+    try {
+      await expect(coletar(true)).rejects.toMatchObject({ codigo: 'lista-sobrescrita', coluna: 'recorte_sha256' });
+    } finally {
+      await dono.query(`DELETE FROM ${E.ac}.ref_dominio WHERE campo = 'equipe' AND codigo = '998'`);
+    }
   }, 60_000);
 
   it('lista revertida pelo ac:ref-sync (data nova, versão nova) passa', async () => {
