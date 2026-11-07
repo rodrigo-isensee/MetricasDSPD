@@ -197,7 +197,13 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.TENDENCIA_SUST`); a fotografia ver
               "additionalProperties": false
             }
           },
-          "volume": {"type":"number"}
+          "volume": {"type":"number"},
+          "janelaIncompleta": {
+            "type": "object",
+            "properties": {"historicoDesde":{"type":"string"}},
+            "required": ["historicoDesde"],
+            "additionalProperties": false
+          }
         },
         "required": ["mes","fimDoMes","janela","prioridades","volume"],
         "additionalProperties": false
