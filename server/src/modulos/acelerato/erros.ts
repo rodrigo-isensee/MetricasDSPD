@@ -9,7 +9,7 @@ import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/d
  */
 export const CODIGOS_ERRO = [
   'configuracao-invalida', 'tls-configuracao', 'tls-impressao-diferente', 'tls', 'autenticacao', 'rede', 'tempo-esgotado',
-  'erro-origem', 'dados-invalidos', 'fora-do-recorte', 'listas-vazias', 'parametros-mudaram', 'recarga-suspeita', 'esquema-com-seed', 'erro-interno',
+  'erro-origem', 'dados-invalidos', 'fora-do-recorte', 'listas-vazias', 'parametros-mudaram', 'reconhecimento-sem-versao', 'lista-sobrescrita', 'recarga-suspeita', 'esquema-com-seed', 'erro-interno',
 ] as const;
 export type CodigoErro = (typeof CODIGOS_ERRO)[number];
 
@@ -25,7 +25,9 @@ const MENSAGEM: Record<CodigoErro, string> = {
   'dados-invalidos': 'Dado da origem fora da lista fechada',
   'fora-do-recorte': 'Linha fora do recorte do DSPD',
   'listas-vazias': 'Listas fechadas do recorte vazias em ref_dominio',
-  'parametros-mudaram': 'Parâmetros da coleta mudaram sem versão de critério',
+  'parametros-mudaram': 'Parâmetros da coleta mudaram sem reconhecimento (--reconhecer-mudanca)',
+  'reconhecimento-sem-versao': 'Lista de ref_dominio mudou sem versão de critério na data: rode o ac:ref-sync',
+  'lista-sobrescrita': 'Lista de ref_dominio mudou sem vigência nova: volte a lista pelo ac:ref-sync',
   'recarga-suspeita': 'Ausentes acima do limite: recarga suspeita da origem',
   'esquema-com-seed': 'Esquema com coleta do seed (seed-mock): rode o db:limpar-seed antes da coleta real',
   'erro-interno': 'Erro interno da coleta',

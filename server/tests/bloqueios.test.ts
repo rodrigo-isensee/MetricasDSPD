@@ -62,7 +62,7 @@ describe('derivarBloqueios (via A)', () => {
     expect(derivarBloqueios([v(T1, undefined)]).eventos).toEqual([]);
   });
   it.each([
-    ['arquivado', { archivedAt: T3 }, {}, T3], ['excluído', { excluidoDetectado: true }, {}, T2],
+    ['arquivado depois da coleta (SEG-A1: nunca depois dela)', { archivedAt: T3 }, {}, T2], ['arquivado entre o início e a coleta', { archivedAt: '2026-11-01T18:00:00.000Z' }, {}, '2026-11-01T18:00:00.000Z'], ['excluído', { excluidoDetectado: true }, {}, T2],
     ['entregue', { columnId: 90 }, marcos, T2], ['descartado', { columnId: 91 }, marcos, T2],
   ])('card %s bloqueado fecha no marco (P-075-5)', (_n, extra, m, fim) => {
     const r = derivarBloqueios([v(T1, true, 1), v(T2, true, 1, extra)], m);

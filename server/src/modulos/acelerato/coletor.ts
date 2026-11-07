@@ -7,7 +7,7 @@ import {
 import { comSessaoMysql, type DepsCliente, type SessaoMysql } from './cliente-mysql.js';
 import type { ConfigAcelerato } from './config.js';
 import {
-  hashesDasListas, montarParametros, parametrosDiferentes, registrarContagens, registrarFalha, registrarSucesso, ultimoSucesso, type Contagem, type TarefaAcelerato,
+  exigirVersaoDasListas, hashesDasListas, montarParametros, parametrosDiferentes, registrarContagens, registrarFalha, registrarSucesso, ultimoSucesso, type Contagem, type TarefaAcelerato,
 } from './controle.js';
 import { ErroColeta, comoErroColeta, exigirEsquemaSemSeedNoPool, repetivel } from './erros.js';
 import { NOMES_CAMPO_FATIA_F1, NOMES_ETAPA_LISTA, NOMES_ETAPA_PREENCHIDO } from './listas-fechadas.js';
@@ -213,12 +213,16 @@ async function executar(
     if (d.reconhecerMudanca !== true) {
       const mudou = parametrosDiferentes(base, anterior.parametros);
       if (mudou.length > 0) throw new ErroColeta('parametros-mudaram', { coluna: mudou.join(',') });
-    } else if (modo === 'incremental' && anterior.parametros.recorte_sha256 !== undefined && anterior.parametros.recorte_sha256 !== base.recorte_sha256) {
-      // P-E3-2 (decisão do dono): reconhecer mudança de recorte (tipo, organização ou equipe) relê o recorte inteiro, no mesmo caminho da releitura semanal
-      // (só leitura; só acrescenta versões). Sem a chave anterior (primeira coleta após o deploy da chave) não há mudança conhecida: não relê.
-      modo = 'releitura';
-      tarefa = 'varredura';
-      anotarTarefa(tarefa);
+    } else {
+      // Opção C (E10, P-E10-1): reconhecer só vale com vigência nova e versão de critério (`ac:ref-sync`); antes de qualquer conexão MySQL e do desvio abaixo.
+      await exigirVersaoDasListas(d.pool, d.S, base, anterior.parametros, anterior.finalizadoEm);
+      if (modo === 'incremental' && anterior.parametros.recorte_sha256 !== undefined && anterior.parametros.recorte_sha256 !== base.recorte_sha256) {
+        // P-E3-2 (decisão do dono): reconhecer mudança de recorte (tipo, organização ou equipe) relê o recorte inteiro, no mesmo caminho da releitura semanal
+        // (só leitura; só acrescenta versões). Sem a chave anterior (primeira coleta após o deploy da chave) não há mudança conhecida: não relê.
+        modo = 'releitura';
+        tarefa = 'varredura';
+        anotarTarefa(tarefa);
+      }
     }
   }
 
