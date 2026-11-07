@@ -44,4 +44,4 @@ Aprovado. O lote faz o que a seção "Lote 6a" de `docs/analises/075-plano.md` p
 ## Achados
 
 - A1 (recomendado) server/src/modulos/metricas/servico.ts:322 · chamada sem teste próprio; com o interruptor desligado o semParteDeBloqueio já anula a série, então um argumento errado aqui não aparece; o 6b, que liga o corte com a data real, deve testar o O1 real pelo ServicoMetricas.
-- A2 (recomendado) server/tests/corte-serie-o1-075.test.ts:17 · o caso da data pendente quebra quando o 6b trocar a data; reescrevê-lo no 6b e somar a marcação presente no O1 e O5 com a data real dentro do período (praticas §4).
+- A2 (recomendado) server/tests/corte-serie-o1-075.test.ts:17 · o caso da data pendente quebra quando o 6b trocar a data; reescrevê-lo no 6b e somar a marcação presente no O1 e O5 com a data real dentro do período.
