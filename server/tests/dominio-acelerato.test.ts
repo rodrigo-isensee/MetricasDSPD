@@ -181,7 +181,8 @@ describe('sincronizarDominio (dublê de PostgreSQL)', () => {
     const g = gravacoes(d);
     expect(g.map((c) => c.texto.split(' (')[0])).toEqual(['INSERT INTO dspd_ac.ref_dominio', 'INSERT INTO dspd_ac.ref_dominio', 'INSERT INTO dspd_core.ref_versao_criterio']);
     expect(g[0]!.valores).toEqual(['equipe', '10', HOJE, 'SSSC TOTVS', 0]);
-    expect(g[2]!.valores[3]).toBe(referenciaDaVersao(lido.sha256));
+    expect(g[2]!.valores[3]).toBe(`056:ref-dominio:${lido.sha256}:${HOJE}`);
+    expect(referenciaDaVersao(lido.sha256, HOJE)).toBe(g[2]!.valores[3]);
     expect(g[2]!.valores[0]).toBe(HOJE);
     expect(d.chamadas[0]!.texto).toBe('BEGIN');
     expect(d.chamadas.at(-1)!.texto).toBe('COMMIT');

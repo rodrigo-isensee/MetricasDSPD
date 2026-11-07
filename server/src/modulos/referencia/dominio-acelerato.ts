@@ -150,11 +150,12 @@ export interface ResultadoDominio {
   versaoRegistrada: boolean;
 }
 
-export const referenciaDaVersao = (sha256: string): string => `056:ref-dominio:${sha256}`;
+export const referenciaDaVersao = (sha256: string, dia: string): string => `056:ref-dominio:${sha256}:${dia}`;
 
 /**
  * Lê as vigentes, planeja e grava numa transação só (tudo ou nada). Sem diferença nada é gravado (idempotente); com diferença
- * grava a vigência e registra a versão de critério (T2.6) com o hash do arquivo, uma vez por hash. A versão não marca métrica:
+ * grava a vigência e registra a versão de critério (T2.6) com o hash do arquivo e a data da carga (P-E10-4), uma por hash e dia:
+ * voltar a um arquivo já visto deixa versão nova, com data nova; repetir a mesma carga no mesmo dia não duplica. A versão não marca métrica:
  * quais métricas a mudança afeta é decisão de negócio e não se infere aqui.
  */
 export async function sincronizarDominio(
@@ -177,7 +178,7 @@ export async function sincronizarDominio(
     const mudou = plano.inserir.length + plano.fechar.length > 0;
     let versaoRegistrada = false;
     if (mudou) {
-      const referencia = referenciaDaVersao(lido.sha256);
+      const referencia = referenciaDaVersao(lido.sha256, hoje);
       const existe = await db.query(`SELECT 1 FROM ${S.core}.ref_versao_criterio WHERE dominio = 'acelerato' AND referencia = $1`, [referencia]);
       if (existe.rows.length === 0) {
         const v = lido.arquivo.versao_criterio;

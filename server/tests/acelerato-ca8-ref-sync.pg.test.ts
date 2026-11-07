@@ -27,8 +27,8 @@ d('CA-8 e ac:ref-sync contra PostgreSQL (recorte, vocabulário e natureza_prefix
     versao: 1, versao_criterio: { dominio: 'acelerato', descricao: `Teste CA-8 ${ref_}`, motivo: 'Teste do K-224', referencia: ref_ },
     schema: 'dspd_ac', tabela: 'ref_dominio', regra: 'teste', dominios,
   }));
-  const versoes = async (sha: string): Promise<number> =>
-    Number((await dono.query(`SELECT count(*) AS n FROM ${E.core}.ref_versao_criterio WHERE dominio = 'acelerato' AND referencia = $1`, [referenciaDaVersao(sha)])).rows[0].n);
+  const versoes = async (sha: string, dia: string): Promise<number> =>
+    Number((await dono.query(`SELECT count(*) AS n FROM ${E.core}.ref_versao_criterio WHERE dominio = 'acelerato' AND referencia = $1`, [referenciaDaVersao(sha, dia)])).rows[0].n);
 
   beforeAll(async () => {
     await migrar(url!, { prefixo: P });
@@ -48,7 +48,7 @@ d('CA-8 e ac:ref-sync contra PostgreSQL (recorte, vocabulário e natureza_prefix
     expect((await coletar()).estado).toBe('ok');
     const lido = arquivo({ natureza_prefixo: [{ codigo: 'SSSC-I', rotulo: 'incidente' }] }, 'natureza');
     expect(await sincronizarDominio(ref, E, lido, '2026-11-05', relogio)).toMatchObject({ inseridas: 1, fechadas: 0, versaoRegistrada: true });
-    expect(await versoes(lido.sha256)).toBe(1);
+    expect(await versoes(lido.sha256, '2026-11-05')).toBe(1);
     expect((await coletar()).estado).toBe('ok'); // sem --reconhecer-mudanca
   }, 60_000);
 
@@ -56,7 +56,7 @@ d('CA-8 e ac:ref-sync contra PostgreSQL (recorte, vocabulário e natureza_prefix
     const equipe = LISTAS_BANCO.find((l) => l.campo === 'equipe')!;
     const lido = arquivo({ equipe: [{ codigo: equipe.codigo, rotulo: 'Equipe renomeada' }, { codigo: '999', rotulo: 'Equipe nova' }] }, 'equipe');
     expect(await sincronizarDominio(ref, E, lido, '2026-11-06', relogio)).toMatchObject({ inseridas: 2, fechadas: 1, versaoRegistrada: true });
-    expect(await versoes(lido.sha256)).toBe(1);
+    expect(await versoes(lido.sha256, '2026-11-06')).toBe(1);
     // O Acelerato passa a devolver o nome novo da equipe: o chamado só fica no recorte se o nome que ele traz casar com a lista vigente (CA-11, falha fechado).
     mysql = criarMysqlFalso([linha({ ticket_key: 91, equipe: 'Equipe renomeada' })]);
     const linhas = (await dono.query(`SELECT codigo, rotulo, vigente_ate FROM ${E.ac}.ref_dominio WHERE campo = 'equipe' ORDER BY codigo, vigente_de`)).rows;
