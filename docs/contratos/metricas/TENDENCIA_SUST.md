@@ -222,7 +222,22 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
 ```json
 {
   "base": {"n":2017,"unidade":"chamados abertos","janela":{"inicio":"2026-04-01","fim":"2026-09-30"}},
-  "criterios": {"serie":[],"janela":[]},
+  "criterios": {
+    "serie": [
+      {
+        "id": "criterio-2026-06-01",
+        "data": "2026-06-01",
+        "descricao": "Novas etapas do Acelerato em produção e mapeamento dos totalizadores revisado"
+      }
+    ],
+    "janela": [
+      {
+        "id": "criterio-2026-06-01",
+        "data": "2026-06-01",
+        "descricao": "Novas etapas do Acelerato em produção e mapeamento dos totalizadores revisado"
+      }
+    ]
+  },
   "meses": [
     {
       "mes": "2026-04",
