@@ -1372,4 +1372,6 @@ export const resultadoTendenciaSust = z.object({
         message: SEM_ESTATISTICA,
       }),
   ),
+  /** Pedido 077, L6a: ressalva do S2 na tendência de SLA (os textos vivem em `origem.ts`). */
+  notas: z.array(notaSustentacaoIdSchema).optional(),
 })
