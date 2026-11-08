@@ -116,3 +116,11 @@ export function limitesDosMeses(baldes: readonly Balde[]): {
 export function janelaIncompleta(janela: Intervalo, historicoDesde?: string): boolean {
   return historicoDesde !== undefined && janela.inicio < historicoDesde
 }
+
+/**
+ * Pedido 077, L8a (A10): o mês começa antes do histórico carregado, então a contagem dele é parcial. Condição
+ * diferente da janela (`janelaIncompleta`): aqui vale o primeiro dia do mês. Ausente = falso.
+ */
+export function contagemParcial(primeiroDiaDoMesIso: string, historicoDesde?: string): boolean {
+  return historicoDesde !== undefined && primeiroDiaDoMesIso < historicoDesde
+}

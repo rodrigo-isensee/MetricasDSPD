@@ -81,3 +81,11 @@ describe('notas no resultado da tendência de sustentação', () => {
     )
   })
 })
+
+describe('contagemParcial no contrato das tendências (077 L8a)', () => {
+  it('ausente e presente são aceitos, com o número no item', () => {
+    expect(resultadoTendenciaFluxo.safeParse(fluxo({})).success).toBe(true)
+    expect(resultadoTendenciaFluxo.safeParse(fluxo({ contagemParcial: marca })).success).toBe(true)
+    expect(resultadoTendenciaSust.safeParse(sust({ contagemParcial: marca })).success).toBe(true)
+  })
+})
