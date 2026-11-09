@@ -294,30 +294,6 @@ describe('projetarBusinessMap: fato_bloqueio (lote 4b do 075)', () => {
   });
 });
 
-describe('projetarBusinessMap: fato_bloqueio (lote 4b do 075)', () => {
-  const ini = new Date(Date.UTC(2026, 10, 3, 12));
-  const ev = (id: string, motivo: string | null, fim: Date | null) => ({ card_id: '1', id_origem: id, motivo_codigo: motivo, coluna_id: '3', fornecedor_codigo: 'F', ini, fim });
-  const fatos = (d: ReturnType<typeof montar>) => com(d, 'INSERT INTO dspd_bm.fato_bloqueio').flatMap((x) => Array.from({ length: x.valores.length / 10 }, (_, i) => x.valores.slice(i * 10, i * 10 + 10)));
-  const eventos = [ev('a', '7', new Date(Date.UTC(2026, 10, 3, 14))), ev('b', null, ini), ev('c', '8', null)];
-
-  it('monta o fato dos eventos: motivo do mapa ou "não classificado", duração pelo calendário vigente, aberto sem fim e sem duração, fim = início com 0', async () => {
-    const d = montar({ stg: [stg('1')], fatos: eventos });
-    const r = await proj(d);
-    expect(fatos(d).map((f) => [f[2], f[7]])).toEqual([['Janela de mudança', 2], ['não classificado', 0], ['não classificado', null]]);
-    expect(fatos(d)[2]).toEqual(['1', 'c', 'não classificado', '3', 'F', ini, null, null, AGORA, 88]);
-    expect(r.fatosBloqueio).toEqual({ lidos: 3, inseridos: 3 });
-    expect(com(d, 'UPDATE dspd_bm.fato_bloqueio')[0]!.texto).toContain('IS DISTINCT FROM');
-    expect(com(d, 'INSERT INTO dspd_bm.fato_bloqueio')[0]!.texto).toContain('ON CONFLICT ON CONSTRAINT uq_fato_bloqueio DO NOTHING');
-    expect(com(d, 'INSERT INTO dspd_bm.ctl_coleta_contagem').find((x) => x.valores[1] === 'projecao_bloqueio_fato')!.valores).toEqual([88, 'projecao_bloqueio_fato', 3, 3, 0, 0]);
-    expect(com(d, 'DELETE FROM dspd_bm.fato_bloqueio')).toHaveLength(0);
-  });
-  it('troca de calendário recalcula a duração (offset e feriados da referência)', async () => {
-    const d = montar({ stg: [stg('1')], fatos: eventos, calendario: true });
-    await proj(d);
-    expect(fatos(d)[0]![7]).toBe(1);
-  });
-});
-
 describe('comando bm:projetar', () => {
   it('argumentos: nenhum ou --reconstruir; o resto é recusado só com a linha de uso', () => {
     expect(analisarArgumentosProjetor([])).toEqual({ reconstruir: false });
