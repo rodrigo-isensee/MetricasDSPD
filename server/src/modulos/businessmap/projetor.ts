@@ -23,7 +23,7 @@ import {
 
 export const VERSAO_PROJETOR = 'bm-f4/3';
 export const TAMANHO_LOTE = 500;
-/** DT-1: a reconstrução limpa SÓ estas tabelas. As outras (evt, fato, versão) são append-only e se completam por idempotência; `dim_responsavel` nunca. */
+/** DT-1: a reconstrução limpa SÓ estas tabelas. As outras (evt, versão, fato de transição) são append-only e se completam por idempotência; `fato_bloqueio` é atualizado (fim, duração, motivo), nunca apagado; `dim_responsavel` nunca. */
 export const TABELAS_LIMPAS_NA_RECONSTRUCAO = ['dim_card'] as const;
 
 export type ResponsaveisDoCard = ReadonlyMap<string, readonly string[] | null>;
@@ -271,7 +271,7 @@ async function projetarLote(
 
 /**
  * Projeta toda a staging do BusinessMap, numa transação, e registra a execução em `ctl_coleta` (tarefa `projecao`) com as contagens em
- * `ctl_coleta_contagem` (só números). Roda de novo sem efeito colateral: o que já está gravado não é duplicado nem alterado.
+ * `ctl_coleta_contagem` (só números). Roda de novo sem efeito colateral: o que já está gravado não é duplicado nem alterado, salvo fim, duração e motivo de `fato_bloqueio`.
  */
 export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoProjecao> {
   const S = d.S ?? esquemasDoAmbiente();

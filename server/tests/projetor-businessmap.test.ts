@@ -255,6 +255,13 @@ describe('projetarBusinessMap: evt_bloqueio (lote 4a do 075)', () => {
     expect(nota.valores).toEqual([88, 'nota_bloqueio_motivo_codigo_invalido', 1, 1, 0, 0]);
     expect(JSON.stringify(d.chamadas.filter((x) => x.texto.includes('ctl_coleta')))).not.toContain('MARCADOR');
   });
+
+  it('vigência de ref_coluna no instante da versão (A1 do QA do 4b): a coluna 10 era entrega até 2026-10-31, então a versão de 2026-10-21 nela fecha o bloqueio', async () => {
+    const em = (dia: number) => ({ coletado_em: new Date(Date.UTC(2026, 9, dia, 10)) });
+    const d = montar({ stg: [stg('1')], bloqueios: [ver('1', 0, { ...BLOQ, ...em(20) }), ver('1', 0, { ...BLOQ, column_id: 10, ...em(21) })] });
+    await proj(d);
+    expect(gravados(d).map((e) => [e[2], (e[6] as Date).toISOString()])).toEqual([['inicio', '2026-10-20T10:00:00.000Z'], ['fim', '2026-10-21T10:00:00.000Z']]);
+  });
 });
 
 describe('projetarBusinessMap: fato_bloqueio (lote 4b do 075)', () => {
@@ -273,6 +280,12 @@ describe('projetarBusinessMap: fato_bloqueio (lote 4b do 075)', () => {
     expect(com(d, 'INSERT INTO dspd_bm.fato_bloqueio')[0]!.texto).toContain('ON CONFLICT ON CONSTRAINT uq_fato_bloqueio DO NOTHING');
     expect(com(d, 'INSERT INTO dspd_bm.ctl_coleta_contagem').find((x) => x.valores[1] === 'projecao_bloqueio_fato')!.valores).toEqual([88, 'projecao_bloqueio_fato', 3, 3, 0, 0]);
     expect(com(d, 'DELETE FROM dspd_bm.fato_bloqueio')).toHaveLength(0);
+    // M5 e M13: só o evento de início vira fato, o fim vem do evento de fim, e o motivo do mapa vai ao SET do UPDATE
+    expect(com(d, 'AS ini')[0]!.texto).toMatch(/WHERE i\.tipo = 'inicio'[\s\S]*f\.tipo = 'fim'|f\.tipo = 'fim'[\s\S]*WHERE i\.tipo = 'inicio'/);
+    const up = com(d, 'UPDATE dspd_bm.fato_bloqueio')[0]!;
+    expect(up.texto).toContain('motivo = v.motivo');
+    expect(up.texto).toContain('(f.fim, f.duracao_horas_uteis, f.motivo) IS DISTINCT FROM (v.fim, v.horas, v.motivo)');
+    expect(up.valores[2]).toEqual(['Janela de mudança', 'não classificado', 'não classificado']);
   });
   it('troca de calendário recalcula a duração (offset e feriados da referência)', async () => {
     const d = montar({ stg: [stg('1')], fatos: eventos, calendario: true });
