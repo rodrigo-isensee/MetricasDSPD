@@ -212,6 +212,16 @@ describe('GraficoMensal', () => {
     expect(container.textContent).toContain('janela incompleta')
     expect(container.textContent).not.toContain('poucos itens')
   })
+  it('linha: o ponto sem prioridade avaliada leva o próprio motivo no eixo, não "poucos itens" (CA-14)', () => {
+    const d = [{ mes: '2026-04', valor: null, motivo: 'sem prioridade avaliada' }]
+    const { container } = render(
+      <div style={{ width: 640, height: 160 }}>
+        <GraficoMensal dados={d} forma="linha" unidade="chamados" marcas={[]} />
+      </div>,
+    )
+    expect(container.textContent).toContain('sem prioridade avaliada')
+    expect(container.textContent).not.toContain('poucos itens')
+  })
   it('linha com teto do eixo e linha de mudança de critério; barras sem marcador', () => {
     const a = render(
       <div style={{ width: 640, height: 160 }}>
