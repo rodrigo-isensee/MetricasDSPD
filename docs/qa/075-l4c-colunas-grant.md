@@ -3,60 +3,47 @@ tipo: qa
 contrato: 1
 pedido: 075-bloqueios-reais
 branch: feature/075-l4c-colunas-grant
-commit: ea3b51b5ad99a67e3a244395d62ef99e5200cb3a
+commit: 17b66fc8e926ee27bc692f065c1f645d17457ea6
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
 bugs_baixos: 0
-data: 2026-11-07
+data: 2026-11-09
 ---
-# QA: 075-bloqueios-reais, lote 4c (colunas e GRANT de bloqueio, K-204)
+# QA: 075-bloqueios-reais, lote 4c (colunas e GRANT de bloqueio, K-204), revalidação
 
-Diff lido: `3ae2d53d...ea3b51b5` (5 arquivos, 104 inserções, 3 remoções; código de produção só em dois comentários de `projetor.ts`). `grants.ts`, `lgpd.ts`, `allow-list.ts`, `coleta.ts`, `server/migrations` e `packages/contratos` sem diferença contra a base do lote. Segurança (d165049a) e review (e459722d) aprovados; o commit testado é o dos testes (ea3b51b5).
+Revalidação incremental depois dos merges da develop e da correção do bloco duplicado. Parecer anterior: e720eeed (e antes ea3b51b5, completo). Head testado: 17b66fc8. Review incremental aprovado.
+
+## Delta e720eeed..17b66fc8
+
+`git diff --name-only e720eeed 17b66fc8` não toca nenhum arquivo do 4c nem do 4b: sem diferença em `server/tests/bloqueio-colunas-grant*`, `projetor*`, `grants.ts`, `lgpd.ts`, `allow-list.ts`, `coleta.ts`, `server/migrations` e `packages/contratos`. Os arquivos do 4c e do 4b seguem iguais aos de e720eeed. O que mudou no servidor veio da develop (6a): `server/src/modulos/metricas/servico.ts`, `parte-sem-dado.ts`, `packages/metricas/src/core/criterios.ts` e `server/tests/corte-serie-o1-075.test.ts`; o resto é web, scripts de lint e docs de outros pedidos.
 
 ## Critério → teste → resultado
 
+Os critérios não mudaram; o mapa do parecer completo segue valendo. Evidência desta rodada:
+
 | Critério | Teste | Fronteira protegida | Resultado |
 |---|---|---|---|
-| SEG-A4 (coluna nova reprova) | `bloqueio-colunas-grant.pg.test.ts`, lista exata em ordem contra `information_schema.columns` | lista de colunas de `evt_bloqueio` e `fato_bloqueio` | CI banco verde (run 42391385262, headSha ea3b51b5) |
-| CA-075-4 (`ALTER TABLE` e texto livre) | `bloqueio-colunas-grant.test.ts`, migrações > 0006 (`up` e `down`), mínimo `> 0`, caso ruim com `bloqueado_por`, `comentario`, `observacao` (4 reprovações) e caso bom em `dim_card` | migração nova sobre as duas tabelas | verde; mutante S1 reprova |
-| CA-075-5 (GRANT fixado) | `gerarGrants` com 4 linhas literais; `dspd_api` com `42501` em `evt_bloqueio` e `stg_bloqueio` (`.pg`) | papel da API fora de evt e stg | unidade verde; `.pg` verde na CI; mutantes G1, G2 e G3 reprovam |
-| CA-075-1 ponta a ponta | `projetor-bloqueio.pg.test.ts` (label, comment, user_id; stg_*, evt, fato, ctl_coleta_falha, ctl_coleta_contagem, saída; mínimo `> 8` tabelas) | dado de pessoa e texto livre em qualquer tabela ou saída | `.pg` verde na CI |
-| DT (1) comentários de append-only | `projetor.ts:26` e `:274` | n/a | conferido no diff |
-| DT (2) bloqueio aberto fecha depois | `.pg` A2 do review do 4b (`atualizado_por_coleta_id` só na linha mudada) | linha não mudada preservada | `.pg` verde na CI |
-| DT (3) vigência de `ref_coluna` em instante passado | `projetor-businessmap.test.ts` (coluna 10, 2026-10-21) | limite de vigência 2026-10-31 | verde; mutante M6 reprova |
-| DT (4) dublê mata M5 e M13 | `projetor-businessmap.test.ts:283` (filtro `tipo = 'inicio'`, `motivo = v.motivo` no SET, motivos enviados) | filtro do evento de início e motivo reclassificado | verde; M5, M13 e M11 reprovam |
+| CA-075-4 e CA-075-5 (colunas e GRANT) | `bloqueio-colunas-grant.test.ts` | migração nova sobre `evt_bloqueio` e `fato_bloqueio`; papel da API | verde no head |
+| DT (3) e (4), projetor | `projetor-businessmap.test.ts` | vigência de `ref_coluna`; filtro `tipo = 'inicio'` e motivo | verde no head |
+| integração com a base (6a) | `corte-serie-o1-075.test.ts` | série do O1 com a marca de critério | verde no head; o 4c não quebra |
+| SEG-A4, CA-075-1, CA-075-5 no banco | `.pg` do lote | lista exata de colunas; marcador fora de `stg_*`; `42501` | CI banco verde no head |
 
-## Execução (2 workers, só os arquivos tocados)
+## Execução
 
-`npx vitest run --maxWorkers=2` em `server/` sobre os 4 arquivos do lote: 2 arquivos de unidade passam (20 testes), os 2 `.pg` ficam em skip sem banco local (12 testes), e a CI do push cobre o banco: `gh run view 42391385262 --json headSha,conclusion` devolve `ea3b51b5ad99a67e3a244395d62ef99e5200cb3a` e `success`, com o job `banco` em `success`. A suíte inteira não foi rodada (instrução da delegação).
+`npx vitest run --maxWorkers=2` em `server/` sobre `bloqueio-colunas-grant.test.ts`, `projetor-businessmap.test.ts` e `corte-serie-o1-075.test.ts`: 3 arquivos, 24 testes, todos passam. CI do head: run 42617957228, `headSha` 17b66fc8e926ee27bc692f065c1f645d17457ea6, `completed` e `success`; jobs `banco`, `testes`, `seguranca`, `build`, `openapi` e `filtro` em `success` (`e2e`, `perf` e `e2e-parte` `skipped` pela configuração do fluxo). Suíte inteira não rodada (instrução da delegação).
 
-## Vermelho antes do verde
+## Vermelho antes do verde e mutação
 
-Os testes novos são trincos de guarda: o código da base (3ae2d53d) já atende, então rodados contra ela passam (20 de 20 numa cópia em `/tmp/claude-1000/qa-engineer-075-l4c/base`). A prova de que reprovam está na mutação abaixo, feita em cópia fora da worktree. O vermelho dos `.pg` não é medível sem PostgreSQL local; vale a CI.
-
-## Mutação à mão (cópia descartável do HEAD; cada mutante restaurado)
-
-| Mutante | Reprovou |
-|---|---|
-| G1: `IMUTAVEL` sem `evt_` | sim (CA-075-5) |
-| G2: `PROJECAO` sem `fato_bloqueio` | sim (CA-075-5) |
-| G3: API passa a ler `evt_*` | sim (CA-075-5) |
-| S1: `ALTER TABLE fato_bloqueio ADD COLUMN comentario` na migração 0035 | sim (CA-075-4) |
-| M5: filtro `tipo = 'inicio'` removido | sim |
-| M6: vigência avaliada em 2099 | sim |
-| M13: `motivo` fora do SET do UPDATE | sim |
-| M11: `motivo` fora do `IS DISTINCT FROM` | sim |
-
-Não rodáveis sem banco: coluna acrescentada na lista do `.pg` e marcador vazando em `stg_*` (a CI do push cobre; o teste do catálogo compara lista exata em ordem).
+Sem teste novo nesta rodada; a prova do parecer anterior (mutantes G1, G2, G3, S1, M5, M6, M11 e M13 reprovados) vale, porque os arquivos do 4c e do 4b não mudaram.
 
 ## Bugs
 
 Nenhum.
 
 ## Achados
-- A1 (recomendado) server/tests/bloqueio-colunas-grant.test.ts:7 · a regex do CA-075-4 não pega `ALTER TABLE ONLY`, `IF EXISTS` nem lista de tabelas; só o teste do catálogo no `.pg` cobre. Ampliar a regex quando o arquivo for tocado (coincide com o A1 da segurança).
-- A2 (recomendado) server/tests/projetor-bloqueio.pg.test.ts:114 · a captura de saída do CA-075-1 espia só `process.stdout` e `process.stderr`; sob vitest `console.*` pode não passar por aí. Espiar também `console.log`, `console.warn` e `console.error` (A2 da segurança).
-- A3 (recomendado) server/tests/projetor-bloqueio.pg.test.ts:135 · o caso que fecha confere só `duracao_horas_uteis` não nulo; um valor errado passa. Fixar o valor pelo calendário do teste (A2 do review).
+- A1 (recomendado) server/tests/bloqueio-colunas-grant.test.ts:7 · a regex do CA-075-4 não pega `ALTER TABLE ONLY`, `IF EXISTS` nem lista de tabelas; só o teste do catálogo no `.pg` cobre. Ampliar a regex quando o arquivo for tocado.
+- A2 (recomendado) server/tests/projetor-bloqueio.pg.test.ts:114 · a captura de saída do CA-075-1 espia só `process.stdout` e `process.stderr`; espiar também `console.log`, `console.warn` e `console.error`.
+- A3 (recomendado) server/tests/projetor-bloqueio.pg.test.ts:135 · o caso que fecha confere só `duracao_horas_uteis` não nulo; fixar o valor pelo calendário do teste.
