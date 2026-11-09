@@ -2,6 +2,7 @@
  * Pedido 065 (K-205): na base real, a parte de bloqueio do O1 e O2 sai `null` (nunca 0) com a nota `bloqueio-sem-dado-real`,
  * porque a coleta ainda não grava os bloqueios. Não calcula nada: não soma, não refaz percentil, não muda `n`. É publicação, como a H-24.
  */
+import { DATA_BLOQUEIO_COM_DADO_REAL } from '@metricas-dspd/metricas';
 import type { MetricaId, NotaCartaoId, NotaSustentacaoId } from '@metricas-dspd/contratos';
 
 const NOTA: NotaCartaoId = 'bloqueio-sem-dado-real';
@@ -45,4 +46,15 @@ export function semParteDeAjusteDePrioridade(id: MetricaId, resultado: unknown):
   // Pedido 077, L6a: a tendência de SLA herda a ressalva do S2, nas mesmas condições.
   if (id === 'S2' || id === 'TENDENCIA_SUST') return comNotaSust(r, 'excecao-sla-sem-fonte');
   return resultado;
+}
+
+/**
+ * Pedido 075, lote 6a (CA-7, P-075-6): com o interruptor ligado, os pontos da série do O1 anteriores à data da versão de
+ * critério saem com `bloqueados: null` (lacuna, nunca zero). Desligado, devolve o resultado como veio. Só publicação.
+ */
+export function comCorteDaSerieO1(id: MetricaId, resultado: unknown, ligado: boolean, desde: string = DATA_BLOQUEIO_COM_DADO_REAL): unknown {
+  if (!ligado || id !== 'O1') return resultado;
+  const r = resultado as Linha;
+  const serie = (r.serie as Linha[]).map((p) => ((p.data as string) < desde ? { ...p, bloqueados: null } : p));
+  return { ...r, serie };
 }
