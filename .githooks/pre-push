@@ -10,7 +10,7 @@ done
 # Checagem rápida antes de enviar (lint + typecheck); o resto fica com o CI.
 # Com alterações não commitadas (ex.: outro agente trabalhando na mesma árvore), uma falha pode não ser do commit
 # enviado: nesse caso só avisa, e o CI valida o commit de verdade.
-if ! { bash scripts/lint-alterados.sh && pnpm run typecheck; } >&2; then
+if ! { bash scripts/lint-alterados.sh && bash scripts/typecheck-alterados.sh; } >&2; then
   if [ -n "$(git status --porcelain)" ]; then
     echo "pre-push: lint/typecheck falharam com a árvore suja; seguindo (o CI valida o commit enviado)." >&2
   else
