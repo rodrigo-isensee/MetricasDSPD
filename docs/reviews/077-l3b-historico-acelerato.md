@@ -3,34 +3,37 @@ tipo: review
 contrato: 1
 pedido: 077-tendencias-dado-real
 branch: feature/077-l3b-historico-acelerato
-commit: 7a107979f5abfee8941208b15079c78fbbc079c9
-parecer: reprovado
+commit: 92f2683f863efaa14c1231a1885d9460d38f8746
+parecer: aprovado
 revisor: tech-lead
-data: 2026-11-08
+data: 2026-11-09
 ---
 
-# Code review: 077, lote 3b (Acelerato sem `historicoDesde`)
+# Code review: 077, lote 3b (Acelerato sem `historicoDesde`), segunda rodada
 
-**Escopo:** 1 commit (`7a107979`) sobre `54f02c42`: um arquivo novo, `server/tests/metricas.historico-ac.test.ts`, 40 linhas. Nenhum diff fora do teste. Teto M14: 40 de 150, dentro.
-**Veredito:** reprovado por um achado. O código já cumpre a opção (a), mas metade do segundo teste não reprova o que o nome promete.
+**Escopo:** a volta `92f2683f` sobre o merge da develop `3e5f6511`: só `server/tests/metricas.historico-ac.test.ts` (27 adições, 4 remoções). Nenhum código de `server/src` mudou na volta. Teto M14: 31 de 150, dentro.
+**Veredito:** aprovado. A1, A2 e A3 estão fechados sem efeito colateral.
 
 ## Ferramentas (citadas)
-- CI do push no head `7a107979`: `gh run list`, run 42455378416, `completed success`. Não há PR aberto (esperado).
-- `vitest run tests/metricas.historico-ac.test.ts` na worktree: 2 passaram.
+- CI do push no head `92f2683f`: `gh run list`, run 42572803761, `completed success`. Não há PR aberto (esperado).
+- `vitest run tests/metricas.historico-ac.test.ts` na worktree limpa: 4 passaram.
 
-## O código já cumpre a opção (a)?
-Sim, pelo código lido. `carregarAC` (`servico.ts:168-177`) devolve `{ versao, base, finalizadoEm, inicio, cal }`, sem `historicoDesde`; só `carregarBM` o põe (`servico.ts:164`). No contexto, só `ctx.bm` recebe `bm?.historicoDesde` (`servico.ts:309`); `ctx.ac` não. A tendência do Acelerato lê `ctx.historicoDesde` (`acelerato/tendencia.ts:29`), então sem o campo nenhum ponto sai incompleto. `TENDENCIA_SUST` sem dado real cai no portão `semDadoReal` (`servico.ts:268`), regra já existente.
+## Revalidação por delta
+- Lido: o diff `3e5f6511..92f2683f` (um arquivo, o teste). O diff `7a107979..92f2683f` em `server/src` vem só do merge da develop (`3e5f6511`), já conferido pela CI; já lido e sem relação com o 3b.
+- Código do 3b (`carregarAC` sem `historicoDesde`, `ctx.ac` sem o campo) segue como no parecer anterior, sem mudança.
+
+## Fecho dos achados
+- A1: o teste 2 calcula `VISAO_GERAL` (carrega os dois domínios) e lê o `ctx` capturado: `ctx.bm.historicoDesde` é `2099-01-01` e `ctx.ac.historicoDesde` é indefinido. A mutação S2 refeita foi reprovada (S1 abaixo).
+- A2: `incompletos` afirma `meses.length > 0` antes de concluir; o teste não passa mais com série vazia.
+- A3: o nome da `TENDENCIA_FLUXO` deixou de prometer o Acelerato carregado e diz o que o teste prova.
 
 ## Sondas
-- S1 · `servico.ts` com `historicoDesde: "2099-01-01"` na `Carga` do `carregarAC` · espera: teste 1 falha · obtido: falhou (teste 1 pega a mutação).
-- S2 · `servico.ts` com `ac: { ...criarContextoAC(...), historicoDesde: bm?.historicoDesde }` · espera: teste 2 falha · obtido: 2 passaram (mutante sobrevive).
+- S1 · `servico.ts` com `ac: { ...acelerato.criarContextoAC(...), historicoDesde: bm?.historicoDesde }` (a mutação S2 do parecer anterior) · espera: o teste 2 falha · obtido: 1 falhou, 3 passaram (`expected '2099-01-01' to be undefined`, teste 2).
 
-Árvore restaurada com `git checkout` depois de cada sonda.
+Árvore restaurada com `git checkout -- server/src` depois da sonda; `git status` limpo.
 
 ## Achados
-- A1 (bloqueante) server/tests/metricas.historico-ac.test.ts:35 · `calcular('TENDENCIA_SUST')` só carrega o Acelerato (`bm` nulo), então o início do BusinessMap nunca chega ao contexto; a metade SUST do teste 2 não reprova vazamento (S2). Carregue os dois domínios na chamada ou teste pelo `ctx`.
-- A2 (recomendado) server/tests/metricas.historico-ac.test.ts:11 · `incompletos` devolve false com `meses` vazio; afirme `meses.length > 0` antes, senão o teste passa sem série.
-- A3 (recomendado) server/tests/metricas.historico-ac.test.ts:36 · o nome diz "com o Acelerato carregado", mas o cálculo da `TENDENCIA_FLUXO` só lê o BusinessMap; ajuste o nome ou carregue o AC antes.
+- Nenhum achado aberto nesta rodada.
 
 ## Revisão por regra
-Regras "leitura" que alcançam o diff: teste de comportamento sem ler a fonte (cumpre), sem `.env` nem base real (cumpre), sem guarda nova em código (não há linha de guarda; mutante declarado dispensado). Regra de ferramenta sem comando configurado: nenhuma pendente além da CI citada.
+Regras "leitura" que alcançam o diff: teste de comportamento sem ler a fonte (cumpre), sem `.env` nem base real (cumpre), sem guarda nova em código (não há linha de guarda; mutante declarado dispensado). Sem regra de ferramenta pendente além da CI citada.
