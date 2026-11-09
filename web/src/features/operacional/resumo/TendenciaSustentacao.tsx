@@ -46,6 +46,7 @@ export function TendenciaSustentacao({ q }: { q: MetricaQuery<ResultadoDe<'TENDE
           unidade="prioridades"
           forma="linha"
           vazio="Ainda não há histórico suficiente: nenhuma prioridade teve 20 chamados ou mais em nenhum dos últimos 6 meses."
+          vazioJanela="Ainda não há histórico suficiente: nenhuma prioridade teve 20 chamados ou mais, com a janela de 12 semanas completa, em nenhum dos últimos 6 meses."
           pontos={sla}
           marcacoes={marcacoesUnicas(t.criterios)}
           frase={fraseDaSerieSla(sla)}
