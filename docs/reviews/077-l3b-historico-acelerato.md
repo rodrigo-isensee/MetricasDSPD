@@ -30,10 +30,11 @@ data: 2026-11-09
 ## Sondas
 - S1 · `servico.ts` com `ac: { ...acelerato.criarContextoAC(...), historicoDesde: bm?.historicoDesde }` (a mutação S2 do parecer anterior) · espera: o teste 2 falha · obtido: 1 falhou, 3 passaram (`expected '2099-01-01' to be undefined`, teste 2).
 
-Árvore restaurada com `git checkout -- server/src` depois da sonda; `git status` limpo.
-
 ## Achados
 - Nenhum achado aberto nesta rodada.
+
+## Observações
+- Depois da sonda S1, a árvore foi restaurada com `git checkout -- server/src`; `git status` ficou limpo. Sem efeito no parecer: o código revisado é o do head `92f2683f`.
 
 ## Revisão por regra
 Regras "leitura" que alcançam o diff: teste de comportamento sem ler a fonte (cumpre), sem `.env` nem base real (cumpre), sem guarda nova em código (não há linha de guarda; mutante declarado dispensado). Sem regra de ferramenta pendente além da CI citada.
