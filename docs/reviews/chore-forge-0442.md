@@ -1,7 +1,7 @@
 ---
 tipo: review
 contrato: 1
-pedido: forge-0442
+pedido: chore-forge-0442
 branch: chore/forge-0442
 commit: 232bb85
 parecer: aprovado
