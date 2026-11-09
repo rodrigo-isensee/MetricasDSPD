@@ -370,4 +370,53 @@ describe('TendenciaFluxo e TendenciaSustentacao (sem painel de preferências)', 
     )
     expect(screen.getByTestId('marcador-criterio')).toHaveTextContent('Janela nova')
   })
+  describe('Sustentação: janela incompleta (077, CA-1, CA-2, CA-4, CA-5, CA-14)', () => {
+    const incompleto = (mes: string) => ({
+      mes,
+      fimDoMes: `${mes}-28`,
+      janela: J,
+      prioridades: [],
+      volume: 12,
+      janelaIncompleta: { historicoDesde: '2026-08-14' },
+    })
+    const celula = {
+      taxa: { status: 'ok', k: 20, n: 25, pct: 80 },
+      statusMeta: 'fora',
+    }
+    const publicada = { prioridade: 'P1', primeiroAtendimento: celula, restauracao: celula }
+    const t = (meses: object[]) => ({ criterios: { serie: [], janela: [] }, meses }) as never
+    const comPublicado = t([
+      incompleto('2026-07'),
+      { mes: '2026-08', fimDoMes: '2026-08-31', janela: J, prioridades: [publicada], volume: 3 },
+    ])
+    it('SLA: motivo na lista e na tabela, frase no subtítulo; volume sem marcador', async () => {
+      noRouter(<TendenciaSustentacao q={q('ok', comPublicado)} />)
+      const sla = screen.getByTestId('tendencia-sustentacao-sla')
+      expect(within(sla).getByTestId('tendencia-sustentacao-sla-sem-valor')).toHaveTextContent(
+        'jul/2026 · Janela incompleta: o histórico começa em 14/08/2026. Estatística não publicada.',
+      )
+      expect(sla).toHaveTextContent(
+        /Meses cuja janela de 12 semanas começa antes da primeira carga/,
+      )
+      expect(sla).toHaveTextContent('julho: Janela incompleta')
+      const volume = screen.getByTestId('tendencia-sustentacao-volume')
+      expect(volume).not.toHaveTextContent(/Janela incompleta|primeira carga/)
+      expect(within(volume).queryByTestId('tendencia-sustentacao-volume-sem-valor')).toBeNull()
+      await userEvent.click(within(sla).getByRole('button', { name: 'Ver como tabela' }))
+      const linha = within(sla).getByRole('row', { name: /jul\/2026/ })
+      expect(linha).toHaveTextContent('—')
+      expect(linha).toHaveTextContent('não publicado · janela incompleta')
+    })
+    it('todos os meses incompletos: vazio próprio da sustentação, sem tabela', () => {
+      noRouter(<TendenciaSustentacao q={q('ok', t([incompleto('2026-07')]))} />)
+      const vazio = screen.getByTestId('tendencia-sustentacao-sla-vazio')
+      expect(vazio).toHaveTextContent(
+        'Ainda não há histórico suficiente: nenhuma prioridade teve 20 chamados ou mais, com a janela de 12 semanas completa, em nenhum dos últimos 6 meses.',
+      )
+      expect(screen.queryByTestId('tendencia-sustentacao-sla-alternar')).toBeNull()
+      expect(screen.getByTestId('tendencia-sustentacao-volume-frase')).toHaveTextContent(
+        'Em julho: 12 chamados.',
+      )
+    })
+  })
 })
