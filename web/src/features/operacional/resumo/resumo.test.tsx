@@ -237,7 +237,7 @@ describe('Resumo: tendência (CA-27)', () => {
       'n=0 · não publicado',
     )
     expect(within(sla).getByTestId('tendencia-sustentacao-sla-sem-valor')).toHaveTextContent(
-      'jul/2026 · não publicado',
+      'jul/2026 · Nenhuma prioridade com 20 chamados ou mais. Estatística não publicada.',
     )
   })
 

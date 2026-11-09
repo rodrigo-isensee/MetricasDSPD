@@ -430,7 +430,7 @@ test.describe('Visão Resumo', () => {
     const meses = await p85.getByRole('table').getByRole('rowheader').allInnerTexts();
     expect(meses).toEqual(['abr/2026', 'mai/2026', 'jun/2026', 'jul/2026', 'ago/2026', 'set/2026']);
     const sla = page.getByTestId('tendencia-sustentacao-sla');
-    await expect(sla.getByTestId('tendencia-sustentacao-sla-sem-valor')).toContainText('jul/2026 · não publicado');
+    await expect(sla.getByTestId('tendencia-sustentacao-sla-sem-valor')).toContainText('jul/2026 · Nenhuma prioridade com 20 chamados ou mais. Estatística não publicada.');
   });
 
   test('CA-28 alertas por fonte, com título da fonte; cada link leva à visão dona com o cartão', async ({ page, painel }) => {
