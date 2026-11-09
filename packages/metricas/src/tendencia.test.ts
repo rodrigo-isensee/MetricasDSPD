@@ -451,3 +451,29 @@ describe('janela incompleta nas tendências (077 L1b)', () => {
     )
   })
 })
+
+describe('contagem parcial nas tendências (077 L8a)', () => {
+  const D = '2026-07-01'
+  it('fluxo: mês que começa antes do histórico leva a marca e mantém o número; o que começa nele não', () => {
+    const ctx = { ...ctxBM(umaBase(entregues(30)), '2026-10-09T18:00:00-03:00'), historicoDesde: D }
+    const r = businessmap.calcularTendenciaFluxo(ctx)
+    expect(mes(r, '2026-06').contagemParcial).toEqual({ historicoDesde: D })
+    expect(typeof mes(r, '2026-06').concluidos).toBe('number')
+    expect(mes(r, '2026-07').contagemParcial).toBeUndefined()
+    expect(SCHEMAS_RESULTADO.TENDENCIA_FLUXO.safeParse(r).success).toBe(true)
+  })
+  it('sustentação: idem', () => {
+    const ctx = { ...ctxAC(baseAC(chamados(30, '2026-08-12')), H), historicoDesde: D }
+    const r = acelerato.calcularTendenciaSust(ctx)
+    expect(r.meses.find((m) => m.mes === '2026-06')?.contagemParcial).toEqual({ historicoDesde: D })
+    expect(r.meses.find((m) => m.mes === '2026-07')?.contagemParcial).toBeUndefined()
+  })
+  it('sem historicoDesde nenhum mês leva a marca', () => {
+    const f = businessmap.calcularTendenciaFluxo(
+      ctxBM(umaBase(entregues(30)), '2026-10-09T18:00:00-03:00'),
+    )
+    const s = acelerato.calcularTendenciaSust(ctxAC(baseAC(chamados(30, '2026-08-12')), H))
+    expect(f.meses.some((m) => 'contagemParcial' in m)).toBe(false)
+    expect(s.meses.some((m) => 'contagemParcial' in m)).toBe(false)
+  })
+})
