@@ -119,6 +119,21 @@ export const VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL: VersaoCriterio = {
   afeta: ['O1', 'O2', 'O5'],
 }
 
+/**
+ * DATA PENDENTE (pedido 075, lote 6a): a data real é a da primeira coleta do BusinessMap (primeiro `coletado_em` de
+ * `stg_card`), da consulta do dono na prova do lote 6b. Até lá fica uma data futura, que não cruza nenhum período nem
+ * corta ponto algum. O 6b troca SÓ esta constante (o id e a versão a seguem).
+ */
+export const DATA_BLOQUEIO_COM_DADO_REAL = '2099-12-31'
+
+/** Pedido 075 (K-204, via A): bloqueio volta com dado real, derivado da comparação entre coletas; histórico parcial (P-075-6). */
+export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
+  id: `criterio-${DATA_BLOQUEIO_COM_DADO_REAL}-bloqueio-com-dado-real`,
+  data: DATA_BLOQUEIO_COM_DADO_REAL,
+  descricao: `histórico parcial de bloqueios: só há dado a partir de ${DATA_BLOQUEIO_COM_DADO_REAL} (primeira coleta); antes disso o tempo bloqueado é desconhecido. Início e fim do bloqueio são o instante da coleta que viu a mudança, não o instante real`,
+  afeta: ['O1', 'O2', 'O5', 'O19', 'BLOQUEADOS'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -129,6 +144,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_T10_FORNECEDOR_NORMALIZADO,
   VERSAO_CRITERIO_E7_SEM_REAIS,
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
+  VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
 ]
 
 /**
