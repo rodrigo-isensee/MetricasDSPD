@@ -1,4 +1,8 @@
-import { JANELA_PERCENTIS_PADRAO, type ResultadoDe } from '@metricas-dspd/contratos'
+import {
+  JANELA_PERCENTIS_PADRAO,
+  TEXTO_NOTA_QUALQUER,
+  type ResultadoDe,
+} from '@metricas-dspd/contratos'
 import { EstadoSemDadoReal, usePreferenciasPainel } from '@/components/ui'
 import { motivoSemDadoReal, type MetricaQuery } from '@/data'
 import { textoJanela } from '@/lib/formatar'
@@ -30,6 +34,7 @@ export function TendenciaSustentacao({ q }: { q: MetricaQuery<ResultadoDe<'TENDE
   const t = q.dados as ResultadoDe<'TENDENCIA_SUST'>
   const sla = serieSla(t)
   const volume = serieVolume(t)
+  const comNota = t.notas?.includes('excecao-sla-sem-fonte') && sla.some((p) => p.valor !== null)
   return (
     <div
       id={id}
@@ -48,6 +53,8 @@ export function TendenciaSustentacao({ q }: { q: MetricaQuery<ResultadoDe<'TENDE
           vazio="Ainda não há histórico suficiente: nenhuma prioridade teve 20 chamados ou mais em nenhum dos últimos 6 meses."
           vazioJanela="Ainda não há histórico suficiente: nenhuma prioridade teve 20 chamados ou mais, com a janela de 12 semanas completa, em nenhum dos últimos 6 meses."
           pontos={sla}
+          notas={comNota ? [TEXTO_NOTA_QUALQUER['excecao-sla-sem-fonte']] : []}
+          notasTestid="notas-tendencia-sla"
           marcacoes={marcacoesUnicas(t.criterios)}
           frase={fraseDaSerieSla(sla)}
           colunaValor="Fora do alvo (k de m avaliadas)"

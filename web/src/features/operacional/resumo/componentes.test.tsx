@@ -2,7 +2,8 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
-import { ProvedorCalibracao } from '@/components/ui'
+import { ContextoPreferenciasPainel, ProvedorCalibracao } from '@/components/ui'
+import { TEXTO_NOTA_SUSTENTACAO } from '@metricas-dspd/contratos'
 import { SemDadoRealErro, type MetricaQuery } from '@/data'
 import { NumeroChave } from './NumeroChave'
 import type { NumeroModelo } from './modelo'
@@ -369,6 +370,62 @@ describe('TendenciaFluxo e TendenciaSustentacao (sem painel de preferências)', 
       'Em agosto: 12 chamados.',
     )
     expect(screen.getByTestId('marcador-criterio')).toHaveTextContent('Janela nova')
+  })
+  describe('Sustentação: ressalva do S2 (077, CA-8 a CA-11, CA-13)', () => {
+    const celula = { taxa: { status: 'ok', k: 20, n: 25, pct: 80 }, statusMeta: 'fora' }
+    const mes = (prioridades: object[]) => ({
+      mes: '2026-08',
+      fimDoMes: '2026-08-31',
+      janela: J,
+      prioridades,
+      volume: 3,
+    })
+    const t = (prioridades: object[], notas?: string[]) =>
+      ({
+        criterios: { serie: [], janela: [] },
+        meses: [mes(prioridades)],
+        ...(notas ? { notas } : {}),
+      }) as never
+    const publicada = [{ prioridade: 'P1', primeiroAtendimento: celula, restauracao: celula }]
+    const NOTA = ['excecao-sla-sem-fonte']
+    const TEXTO = TEXTO_NOTA_SUSTENTACAO['excecao-sla-sem-fonte']
+    it('CA-8 e CA-13: com a nota e ponto publicado, o texto do contrato fica entre o subtítulo e o gráfico; CA-10: nunca no volume', () => {
+      noRouter(<TendenciaSustentacao q={q('ok', t(publicada, NOTA))} />)
+      const notas = screen.getByTestId('notas-tendencia-sla')
+      expect(notas).toHaveTextContent(TEXTO)
+      const sla = screen.getByTestId('tendencia-sustentacao-sla')
+      const ordem = [
+        within(sla).getByText(/Cada ponto: janela/),
+        notas,
+        within(sla).getByTestId('tendencia-sustentacao-sla-grafico'),
+      ]
+      expect(ordem[0]!.compareDocumentPosition(ordem[1]!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+      expect(ordem[1]!.compareDocumentPosition(ordem[2]!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+      expect(
+        within(screen.getByTestId('tendencia-sustentacao-volume')).queryByText(TEXTO),
+      ).toBeNull()
+      expect(screen.getAllByText(TEXTO)).toHaveLength(1)
+    })
+    it('CA-9: sem a nota no resultado, nada aparece', () => {
+      noRouter(<TendenciaSustentacao q={q('ok', t(publicada))} />)
+      expect(screen.queryByTestId('notas-tendencia-sla')).toBeNull()
+    })
+    it('série de SLA vazia: sem nota, só o vazio', () => {
+      noRouter(<TendenciaSustentacao q={q('ok', t([], NOTA))} />)
+      expect(screen.getByTestId('tendencia-sustentacao-sla-vazio')).toBeInTheDocument()
+      expect(screen.queryByTestId('notas-tendencia-sla')).toBeNull()
+    })
+    it('CA-11: S2 oculto nas preferências, a série e a nota somem juntas', () => {
+      const prefs = { estaOculto: (id: string) => id === 's2' } as never
+      noRouter(
+        <ContextoPreferenciasPainel.Provider value={prefs}>
+          <TendenciaSustentacao q={q('ok', t(publicada, NOTA))} />
+        </ContextoPreferenciasPainel.Provider>,
+      )
+      expect(screen.queryByTestId('tendencia-sustentacao-sla')).toBeNull()
+      expect(screen.queryByTestId('notas-tendencia-sla')).toBeNull()
+      expect(screen.getByTestId('tendencia-sustentacao-volume')).toBeInTheDocument()
+    })
   })
   describe('Sustentação: janela incompleta (077, CA-1, CA-2, CA-4, CA-5, CA-14)', () => {
     const incompleto = (mes: string) => ({
