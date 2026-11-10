@@ -32,6 +32,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S10',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real; segue fora da simulação (METRICAS_SEM_SIMULACAO).
   'TENDENCIA_FLUXO',
+  // Pedido 077 (L7, K-211): a tendência da sustentação lê só o Acelerato real; segue fora da simulação (METRICAS_SEM_SIMULACAO).
+  'TENDENCIA_SUST',
 ])
 
 export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
