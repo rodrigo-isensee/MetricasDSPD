@@ -134,6 +134,15 @@ export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
   afeta: ['O1', 'O2', 'O5', 'O19', 'BLOQUEADOS'],
 }
 
+/** Pedido 077 (L5, K-211): a tendência do fluxo passou de "Sem dado real" para o dado real do BusinessMap (data do PR; a do merge corrige se escorregar). */
+export const VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-10-tendencia-fluxo-dado-real',
+  data: '2026-11-10',
+  descricao:
+    'A tendência mensal do fluxo passou a ser calculada com o dado real do BusinessMap (antes saía como "Sem dado real")',
+  afeta: ['TENDENCIA_FLUXO'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -145,6 +154,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_E7_SEM_REAIS,
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
+  VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
 ]
 
 /**

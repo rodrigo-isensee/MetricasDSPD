@@ -33,6 +33,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10'],
+        ...['TENDENCIA_FLUXO'], // pedido 077 (L5)
       ].sort(),
     )
   })
@@ -138,9 +139,9 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     expect(motivoDaOrigemMock('PV1')).toBeNull()
   })
 
-  it('C1/C2 (pedido 065): BLOQUEADOS e O5 são mock, o mapa real tem 17 ids (eram 19) e os motivos são próprios, não o genérico', () => {
+  it('C1/C2 (pedido 065): BLOQUEADOS e O5 são mock, o mapa real não os tem e os motivos são próprios, não o genérico', () => {
     expect(origemDaMetrica('BLOQUEADOS')).toBe('mock')
-    expect(METRICAS_ORIGEM_REAL.size).toBe(17)
+    expect(METRICAS_ORIGEM_REAL.has('BLOQUEADOS') || METRICAS_ORIGEM_REAL.has('O5')).toBe(false) // lista por id, nunca tamanho fixo (077, A9)
     expect(motivoSemDadoReal('BLOQUEADOS')).toBe(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
     expect(origemDaMetrica('O5')).toBe('mock')
     expect(motivoSemDadoReal('O5')).toBe(MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS)
@@ -168,14 +169,15 @@ describe('estado sem dado real (pedido 060, P3)', () => {
 })
 
 describe('simulado por cartão (pedido 070, ADR 0028)', () => {
-  it('T-C1: a lista de exclusão não toca o mapa real e podeSimular é falso para todo id real e para os quatro excluídos', () => {
+  it('T-C1: id do mapa real nunca simulável (TENDENCIA_FLUXO) e podeSimular é falso para todo id real e para os quatro excluídos', () => {
     expect([...METRICAS_SEM_SIMULACAO].sort()).toEqual([
       'EI_SUST',
       'TENDENCIA_FLUXO',
       'TENDENCIA_SUST',
       'VISAO_GERAL',
     ])
-    for (const id of METRICAS_SEM_SIMULACAO) expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(false)
+    expect(METRICAS_ORIGEM_REAL.has('TENDENCIA_FLUXO')).toBe(true) // pedido 077 (L5): id do mapa real nunca simulável, mesmo na lista de exclusão
+    expect(METRICAS_ORIGEM_REAL.has('TENDENCIA_SUST')).toBe(false)
     for (const id of METRICAS_ORIGEM_REAL) expect(podeSimular(id), id).toBe(false)
     for (const id of METRICAS_SEM_SIMULACAO) expect(podeSimular(id), id).toBe(false)
   })
