@@ -138,7 +138,8 @@ export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
 export const VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL: VersaoCriterio = {
   id: 'criterio-2026-11-09-tendencia-fluxo-dado-real',
   data: '2026-11-09',
-  descricao: 'A tendência mensal do fluxo passou a ser calculada com o dado real do BusinessMap (antes saía como "Sem dado real")',
+  descricao:
+    'A tendência mensal do fluxo passou a ser calculada com o dado real do BusinessMap (antes saía como "Sem dado real")',
   afeta: ['TENDENCIA_FLUXO'],
 }
 
