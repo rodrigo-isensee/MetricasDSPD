@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import type { MarcacaoCriterio } from '@metricas-dspd/contratos'
 import { GraficoMensal } from '@/components/charts'
-import { Botao, TabelaDados } from '@/components/ui'
+import { Botao, Icone, TabelaDados } from '@/components/ui'
 import { fmtData, fmtInteiro, fmtMes } from '@/lib/formatar'
 import { mesPorExtenso, type PontoMensal } from './modelo'
 
@@ -23,11 +23,27 @@ export interface SerieMensalProps {
   eixoMax?: number
   /** Texto do vazio (a unidade da regra dos 20 muda por fonte). */
   vazio?: string
+  /** Texto do vazio quando algum ponto é de janela incompleta (cita a janela de 12 semanas completa). */
+  vazioJanela?: string
+  /** Ressalvas da série (textos do contrato), entre o subtítulo e o gráfico. */
+  notas?: readonly string[]
+  /** `data-testid` da lista de notas. */
+  notasTestid?: string
 }
 
 /** Posição da mudança de critério no eixo: o primeiro mês em/depois da data. */
 const mesDaMarcacao = (pontos: readonly PontoMensal[], m: MarcacaoCriterio): string | null =>
   pontos.find((p) => p.mes >= m.data.slice(0, 7))?.mes ?? null
+
+const FRASE_JANELA =
+  'Meses cuja janela de 12 semanas começa antes da primeira carga não são publicados.'
+
+const situacaoDoPonto = (p: PontoMensal): string => {
+  if (p.valor !== null) return 'publicado'
+  if (p.janelaIncompleta) return 'não publicado · janela incompleta'
+  if (p.contagemParcial) return 'não publicado · histórico incompleto'
+  return `n=${fmtInteiro(p.n ?? 0)} · não publicado`
+}
 
 /**
  * Série mensal pequena do Resumo: gráfico (`role="img"` com resumo em texto), frase de leitura, "Ver como
@@ -45,11 +61,15 @@ export function SerieMensal({
   colunaValor,
   eixoMax,
   vazio = 'Ainda não há histórico suficiente: nenhum dos últimos 6 meses atinge 20 itens.',
+  vazioJanela = 'Ainda não há histórico suficiente: nenhum dos últimos 6 meses atinge 20 itens com a janela de 12 semanas completa.',
+  notas = [],
+  notasTestid,
 }: SerieMensalProps) {
   const [tabela, setTabela] = useState(false)
   const idTitulo = useId()
   const publicados = pontos.filter((p) => p.valor !== null)
   const semHistorico = forma === 'linha' && publicados.length === 0
+  const comJanelaIncompleta = pontos.some((p) => p.janelaIncompleta !== undefined)
   const semValor = new Set(pontos.filter((p) => p.valor === null).map((p) => p.mes))
   const marcadas = marcacoes
     .map((m) => ({ m, mes: mesDaMarcacao(pontos, m) }))
@@ -62,7 +82,13 @@ export function SerieMensal({
           <h3 id={idTitulo} className="text-base font-semibold">
             {titulo}
           </h3>
-          {subtitulo && <p className="text-xs text-texto-2">{subtitulo}</p>}
+          {(subtitulo || comJanelaIncompleta) && (
+            <p className="text-xs text-texto-2">
+              {subtitulo}
+              {subtitulo && comJanelaIncompleta ? '. ' : ''}
+              {comJanelaIncompleta && FRASE_JANELA}
+            </p>
+          )}
         </div>
         {!semHistorico && pontos.length > 0 && (
           <Botao
@@ -74,9 +100,22 @@ export function SerieMensal({
           </Botao>
         )}
       </div>
+      {notas.length > 0 && (
+        <ul
+          className="m-0 flex list-none flex-col gap-0.5 p-0 text-xs text-texto-2"
+          data-testid={notasTestid}
+        >
+          {notas.map((n) => (
+            <li key={n} className="flex items-start gap-1">
+              <Icone nome="info" className="mt-0.5 size-3.5 shrink-0" />
+              {n}
+            </li>
+          ))}
+        </ul>
+      )}
       {semHistorico || pontos.length === 0 ? (
         <p className="text-sm text-texto-2" data-testid={`${id}-vazio`}>
-          {vazio}
+          {comJanelaIncompleta ? vazioJanela : vazio}
         </p>
       ) : tabela ? (
         <TabelaDados
@@ -92,7 +131,7 @@ export function SerieMensal({
             mes: fmtMes(p.mes),
             valor: p.valor === null ? '—' : p.texto,
             n: p.n === null ? '—' : fmtInteiro(p.n),
-            situacao: p.valor === null ? `n=${fmtInteiro(p.n ?? 0)} · não publicado` : 'publicado',
+            situacao: situacaoDoPonto(p),
           }))}
         />
       ) : (
@@ -126,7 +165,10 @@ export function SerieMensal({
             .map((p) => (
               <li key={p.mes}>
                 <span aria-hidden="true">○ </span>
-                {fmtMes(p.mes)} · {p.texto}
+                {fmtMes(p.mes)} ·{' '}
+                {p.janelaIncompleta
+                  ? `Janela incompleta: o histórico começa em ${fmtData(p.janelaIncompleta)}. Estatística não publicada.`
+                  : p.texto}
               </li>
             ))}
         </ul>

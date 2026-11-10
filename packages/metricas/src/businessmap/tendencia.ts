@@ -1,7 +1,13 @@
 import type { FiltrosFluxo, ResultadoTendenciaFluxo } from '@metricas-dspd/contratos'
 import { isoDeDia } from '../core/calendario'
 import { JANELA_POR_GRANULARIDADE, janelaMovelDia } from '../core/janela'
-import { MESES_TENDENCIA, limitesDosMeses, mesesFechados } from '../core/series'
+import {
+  MESES_TENDENCIA,
+  contagemParcial,
+  janelaIncompleta,
+  limitesDosMeses,
+  mesesFechados,
+} from '../core/series'
 import { baseAmostral, criterios } from './comum'
 import { concluidosDeDemanda } from './o4'
 import { classesNaJanela, entreguesPorTipo } from './o3'
@@ -24,11 +30,17 @@ export function calcularTendenciaFluxo(ctx: ContextoBM): ResultadoTendenciaFluxo
   const meses = baldes.map((b) => {
     const fimDoMes = isoDeDia(b.fimDia)
     const janelaPercentis = janelaMovelDia(b.fimDia, JANELA_POR_GRANULARIDADE.story)
+    const incompleta = janelaIncompleta(janelaPercentis, ctx.historicoDesde)
     return {
       mes: b.chave,
       fimDoMes,
       janelaPercentis,
-      p85PorTipo: classesNaJanela(porTipo, janelaPercentis).map((c) => ({
+      ...(incompleta && { janelaIncompleta: { historicoDesde: ctx.historicoDesde as string } }),
+      ...(contagemParcial(isoDeDia(b.inicioDia), ctx.historicoDesde) && {
+        contagemParcial: { historicoDesde: ctx.historicoDesde as string },
+      }),
+      // Janela incompleta não publica estatística (P-077-1); precede o "poucos itens" (CA-4).
+      p85PorTipo: (incompleta ? [] : classesNaJanela(porTipo, janelaPercentis)).map((c) => ({
         tipo: c.tipo,
         n: c.naJanela.length,
         estatistica:

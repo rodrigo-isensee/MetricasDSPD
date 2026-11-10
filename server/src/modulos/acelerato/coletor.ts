@@ -2,16 +2,16 @@ import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type PoolLike } from '../../plataforma/db/pool.js';
 import { comTravaDaFonte } from '../../plataforma/db/trava.js';
 import {
-  Contadores, camposEtapa, registroChamado, registroContagem, registroEtapas, registroSaida, reincidente90d, type ChamadoLido, type DominiosEtapa, type EtapaLida, type ListasRecorte,
+  Contadores, camposEtapa, registroChamado, registroContagem, registroEtapas, registroSaida, reincidente90d, type ChamadoLido, type DominiosEtapa, type EtapaLida, type ListasRecorte, type OrdemFluxo,
 } from './allow-list.js';
 import { comSessaoMysql, type DepsCliente, type SessaoMysql } from './cliente-mysql.js';
 import type { ConfigAcelerato } from './config.js';
 import {
-  montarParametros, parametrosDiferentes, registrarContagens, registrarFalha, registrarSucesso, ultimoSucesso, type Contagem, type TarefaAcelerato,
+  exigirVersaoDasListas, hashesDasListas, montarParametros, parametrosDiferentes, registrarContagens, registrarFalha, registrarSucesso, ultimoSucesso, type Contagem, type TarefaAcelerato,
 } from './controle.js';
 import { ErroColeta, comoErroColeta, exigirEsquemaSemSeedNoPool, repetivel } from './erros.js';
 import { NOMES_CAMPO_FATIA_F1, NOMES_ETAPA_LISTA, NOMES_ETAPA_PREENCHIDO } from './listas-fechadas.js';
-import { carregarDominiosEtapa, carregarListas } from './referencia.js';
+import { carregarDominiosEtapaLidos, carregarListasLidas, carregarOrdemFluxo } from './referencia.js';
 import { DATA_MINIMA, Q1_CHAMADOS, Q2_ETAPAS, Q3_CAMPOS, Q4_FORA_ORGANIZACOES, Q5_SAIDA, Q6_CAMPOS_ETAPA_LISTA, Q7_CAMPOS_ETAPA_PREENCHIDO, TAMANHO_PAGINA, expandir } from './sql.js';
 import {
   chamadosConhecidos, gravarChamado, gravarEtapa, ultimasDeChamados, ultimasDeEtapas, type MarcasStaging, type Registro,
@@ -95,7 +95,7 @@ const lotes = <T>(itens: readonly T[], n: number): T[][] => {
 const chaves = (m: ReadonlyMap<number, string>): number[] => [...m.keys()];
 
 type PedidoLeitura = {
-  listas: ListasRecorte; dominiosEtapa: DominiosEtapa; inicio: string; medirForaOrganizacoes: boolean; conhecidos: ReadonlyMap<string, MarcasStaging> | null;
+  listas: ListasRecorte; dominiosEtapa: DominiosEtapa; ordemFluxo: OrdemFluxo; inicio: string; medirForaOrganizacoes: boolean; conhecidos: ReadonlyMap<string, MarcasStaging> | null;
 };
 
 /** Uma passada de leitura da origem, com contadores novos (uma nova tentativa recomeça do zero). */
@@ -123,7 +123,7 @@ async function ler(s: SessaoMysql, p: PedidoLeitura): Promise<Leitura> {
       if (doChamado.length === 0) L.contadores.somar('chamado_sem_etapas');
       chamado.payload.campos = {
         reincidente_90d: reincidente90d(campos.get(chamado.idOrigem) ?? [], L.contadores),
-        ...camposEtapa(etapaLista.get(chamado.idOrigem) ?? [], etapaPreenchido.get(chamado.idOrigem) ?? [], p.dominiosEtapa, L.contadores),
+        ...camposEtapa(etapaLista.get(chamado.idOrigem) ?? [], etapaPreenchido.get(chamado.idOrigem) ?? [], p.dominiosEtapa, p.ordemFluxo, L.contadores),
       };
       L.chamados.push({ chamado, etapas: doChamado });
       L.presentes.add(chamado.idOrigem);
@@ -172,13 +172,13 @@ const somar = (a: { lidos: number; inseridos: number; jaExistentes: number }, r:
 /** Executa a coleta sob a trava da fonte. Falha vira linha de controle e é relançada como `ErroColeta`. */
 export async function coletarAcelerato(d: DepsColeta, modo: ModoColeta): Promise<ResultadoColeta> {
   const iniciadoEm = d.agora();
-  const tarefa: TarefaAcelerato = modo === 'incremental' ? 'coleta_incremental' : 'varredura';
+  let tarefa: TarefaAcelerato = modo === 'incremental' ? 'coleta_incremental' : 'varredura';
   let tentativas = 1;
   try {
     // A2 do review do P1: a guarda do seed roda dentro da trava da fonte (como a da outra fonte), antes de qualquer leitura da origem ou escrita.
     const r = await comTravaDaFonte(d.pool, 'acelerato', async () => {
       await exigirEsquemaSemSeedNoPool(d.pool, d.S);
-      return executar(d, modo, tarefa, iniciadoEm, (n) => { tentativas = n; });
+      return executar(d, modo, tarefa, iniciadoEm, (n) => { tentativas = n; }, (t) => { tarefa = t; });
     });
     if (!r.executou) return { estado: 'em-uso' };
     d.log.info({ modo, coletaId: r.valor.coletaId, chamados: r.valor.chamados, etapas: r.valor.etapas, semNovidade: r.valor.semNovidade }, 'coleta do Acelerato concluída');
@@ -196,16 +196,34 @@ export async function coletarAcelerato(d: DepsColeta, modo: ModoColeta): Promise
 }
 
 async function executar(
-  d: DepsColeta, modo: ModoColeta, tarefa: TarefaAcelerato, iniciadoEm: Date, anotarTentativas: (n: number) => void,
+  d: DepsColeta, modoPedido: ModoColeta, tarefaPedida: TarefaAcelerato, iniciadoEm: Date, anotarTentativas: (n: number) => void, anotarTarefa: (t: TarefaAcelerato) => void,
 ): Promise<Extract<ResultadoColeta, { estado: 'ok' }>> {
-  const listas = await carregarListas(d.pool, d.S);
+  let modo = modoPedido, tarefa = tarefaPedida;
+  const { listas, linhas } = await carregarListasLidas(d.pool, d.S);
   const anterior = await ultimoSucesso(d.pool, d.S);
 
-  // CA-8: mudança de origem, de lista ou de SQL sem reconhecimento recusa a coleta, antes de abrir qualquer conexão.
-  const base = montarParametros(d.config, null);
-  if (anterior.parametros !== null && d.reconhecerMudanca !== true) {
-    const mudou = parametrosDiferentes(base, anterior.parametros);
-    if (mudou.length > 0) throw new ErroColeta('parametros-mudaram', { coluna: mudou.join(',') });
+  const ordemFluxo = await carregarOrdemFluxo(d.pool, d.S);
+  // Os domínios dos campos de etapa sobem para a partida: o hash é do mesmo retrato das listas que a leitura usa (K-224).
+  const { dominios: dominiosEtapa, linhas: linhasDominiosEtapa } = await carregarDominiosEtapaLidos(d.pool, d.S);
+  const hashes = hashesDasListas(linhas, linhasDominiosEtapa);
+
+  // CA-8: mudança de origem, de lista (recorte, vocabulário, ordem das etapas do fluxo) ou de SQL sem reconhecimento recusa a coleta, antes de abrir qualquer conexão.
+  const base = montarParametros(d.config, null, ordemFluxo, hashes);
+  if (anterior.parametros !== null) {
+    if (d.reconhecerMudanca !== true) {
+      const mudou = parametrosDiferentes(base, anterior.parametros);
+      if (mudou.length > 0) throw new ErroColeta('parametros-mudaram', { coluna: mudou.join(',') });
+    } else {
+      // Opção C (E10, P-E10-1): reconhecer só vale com vigência nova e versão de critério (`ac:ref-sync`); antes de qualquer conexão MySQL e do desvio abaixo.
+      await exigirVersaoDasListas(d.pool, d.S, base, anterior.parametros, anterior.finalizadoEm);
+      if (modo === 'incremental' && anterior.parametros.recorte_sha256 !== undefined && anterior.parametros.recorte_sha256 !== base.recorte_sha256) {
+        // P-E3-2 (decisão do dono): reconhecer mudança de recorte (tipo, organização ou equipe) relê o recorte inteiro, no mesmo caminho da releitura semanal
+        // (só leitura; só acrescenta versões). Sem a chave anterior (primeira coleta após o deploy da chave) não há mudança conhecida: não relê.
+        modo = 'releitura';
+        tarefa = 'varredura';
+        anotarTarefa(tarefa);
+      }
+    }
   }
 
   const margemMs = d.config.margemHoras * 3_600_000;
@@ -213,8 +231,7 @@ async function executar(
   const inicioInstante = comMarca ? new Date(anterior.marca!.getTime() - margemMs) : null;
   const inicio = inicioInstante === null ? DATA_MINIMA : instanteParaTexto(inicioInstante);
   const conhecidos = modo === 'releitura' ? await chamadosConhecidos(d.pool, d.S) : null;
-  const dominiosEtapa = await carregarDominiosEtapa(d.pool, d.S);
-  const pedido: PedidoLeitura = { listas, dominiosEtapa, inicio, medirForaOrganizacoes: modo === 'releitura' || anterior.marca === null, conhecidos };
+  const pedido: PedidoLeitura = { listas, dominiosEtapa, ordemFluxo, inicio, medirForaOrganizacoes: modo === 'releitura' || anterior.marca === null, conhecidos };
 
   const dormir = d.dormir ?? esperar;
   let leitura: Leitura | undefined;
@@ -239,7 +256,7 @@ async function executar(
   }
   const lido = leitura;
   return emTransacao(d.pool, async (db) => {
-    const parametros = montarParametros(d.config, lido.maxSincronizado);
+    const parametros = montarParametros(d.config, lido.maxSincronizado, ordemFluxo, hashes);
     const coletaId = await registrarSucesso(db, d.S, {
       tarefa, iniciadoEm, finalizadoEm: d.agora(), marcaDe: inicioInstante, marcaAte,
       sobreposicaoS: modo === 'incremental' ? d.config.margemHoras * 3600 : 0, parametros,

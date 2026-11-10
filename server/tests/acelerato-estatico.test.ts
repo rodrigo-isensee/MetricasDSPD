@@ -97,7 +97,8 @@ describe('SQL versionado (docs/architecture/fontes/acelerato-mysql.sql)', () => 
 describe('CT-37 e fronteiras do módulo', () => {
   it('só escreve em dspd_ac: nenhuma referência a dspd_bm nem a dspd_core, nenhum import do BusinessMap', () => {
     for (const f of fontesModulo) {
-      const t = ler(f);
+      // E10, Lote 2: a única leitura permitida do core é a versão de critério do domínio acelerato (escrita no core segue barrada pelas escritas abaixo).
+      const t = ler(f).replaceAll("${S.core}.ref_versao_criterio v WHERE v.dominio = 'acelerato'", '');
       expect(t, f).not.toMatch(/S\.(bm|core)\b|dspd_bm|dspd_core|businessmap/i);
       expect(t, f).not.toMatch(/from '\.\.\/(businessmap|metricas|operacao|referencia)\//);
     }

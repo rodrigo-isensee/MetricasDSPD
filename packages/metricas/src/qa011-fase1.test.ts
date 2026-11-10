@@ -349,7 +349,7 @@ describe('O19-9: o percentual por causa nunca passa de 100% somado', () => {
     let publicados = 0
     for (const tipo of ['4s', '12s', '6m', '12m'] as const) {
       const lista = calcularO19(ctx.bm, { ...F12S, periodo: { tipo } }).motivos
-      expect(lista.length, tipo).toBe(7)
+      expect(lista.length, tipo).toBe(8)
       const soma = lista.reduce(
         (s, c) => s + (c.pctDoTotal.status === 'ok' ? c.pctDoTotal.pct : 0),
         0,

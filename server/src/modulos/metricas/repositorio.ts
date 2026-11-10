@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 
@@ -38,7 +39,7 @@ export type LinhaChamado = {
   excluido: boolean; status: Texto; impacto: Texto; urgencia: Texto; prioridade: Texto;
   prioridade_ajustada_manualmente: boolean; justificativa_informada: boolean; aberto_em: Instante; primeiro_atendimento_em: Instante;
   restaurado_em: Instante; data_finalizado: Instante; status_sla_r: Texto; status_sla_pa: Texto;
-  motivo_escalacao: Texto; motivo_pendencia_atual: Texto; previsao_retorno: Instante; motivo_encerramento: Texto;
+  motivo_escalacao: Texto; motivo_pendencia_atual: Texto; previsao_retorno: boolean | null; motivo_encerramento: Texto;
   avaliacao_problema: Texto; excecao_sla_registro_posterior: boolean; incidente_critico_coordenado: boolean;
   nivel_resolucao: Texto;
   /** F2 do Acelerato (ADR 0023): só o booleano (D-9) e o campo dos 90 dias (D-10); opcionais para a base semeada e os dublês antigos. */
@@ -165,3 +166,21 @@ export const lerAlvos = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente
   (await db.query<LinhaAlvo>(
     `SELECT prioridade, prazo_pa_horas_uteis, prazo_r_horas_uteis FROM ${S.ac}.ref_alvo_prioridade
       WHERE vigente_ate IS NULL ORDER BY prioridade`)).rows;
+
+/** Mesmo formato do `ParametrosCarga` da coleta (`businessmap/coleta.ts`): só o `inicio_carga` interessa aqui. */
+const InicioDaCarga = z.object({ inicio_carga: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) });
+
+/**
+ * Pedido 077 (L3a): início do histórico do BusinessMap = menor `inicio_carga` das cargas iniciais de cards com sucesso (o apontamento nunca
+ * entra: sua tarefa é outra). O `min` se toma aqui, sobre as linhas válidas; linha inválida é ignorada e só a contagem sai (nunca o conteúdo).
+ */
+export const lerHistoricoDesdeBM = async (db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<{ desde: string | undefined; ignoradas: number }> => {
+  const linhas = (await db.query<{ parametros: unknown }>(
+    `SELECT parametros FROM ${S.bm}.ctl_coleta
+      WHERE tarefa = 'coleta_incremental' AND parametros ->> 'tipo' = 'carga_inicial' AND status = 'sucesso'`)).rows;
+  const validas = linhas.flatMap((l) => {
+    const p = InicioDaCarga.safeParse(l.parametros);
+    return p.success ? [p.data.inicio_carga] : [];
+  });
+  return { desde: validas.sort()[0], ignoradas: linhas.length - validas.length };
+};

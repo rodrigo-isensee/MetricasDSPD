@@ -1,7 +1,13 @@
 import type { FiltrosSustentacao, ResultadoTendenciaSust } from '@metricas-dspd/contratos'
 import { diaDeIso, isoDeDia } from '../core/calendario'
 import { JANELA_POR_GRANULARIDADE, janelaMovelDia } from '../core/janela'
-import { MESES_TENDENCIA, limitesDosMeses, mesesFechados } from '../core/series'
+import {
+  MESES_TENDENCIA,
+  contagemParcial,
+  janelaIncompleta,
+  limitesDosMeses,
+  mesesFechados,
+} from '../core/series'
 import { baseAmostral, criterios } from './comum'
 import type { ContextoAC } from './indice'
 import { aderenciaPorPrioridade, apuraveisComDia } from './s2'
@@ -26,14 +32,22 @@ export function calcularTendenciaSust(ctx: ContextoAC): ResultadoTendenciaSust {
     const janela = janelaMovelDia(b.fimDia, JANELA_POR_GRANULARIDADE.chamado)
     const inicio = diaDeIso(janela.inicio)
     const naJanela = fechados.filter((c) => c.dia >= inicio && c.dia <= b.fimDia)
+    const incompleta = janelaIncompleta(janela, ctx.historicoDesde)
     return {
       mes: b.chave,
       fimDoMes,
       janela,
-      prioridades: aderenciaPorPrioridade(
-        naJanela.map((c) => c.x),
-        PADRAO,
-      ),
+      ...(incompleta && { janelaIncompleta: { historicoDesde: ctx.historicoDesde as string } }),
+      ...(contagemParcial(isoDeDia(b.inicioDia), ctx.historicoDesde) && {
+        contagemParcial: { historicoDesde: ctx.historicoDesde as string },
+      }),
+      // Janela incompleta não publica estatística (P-077-1); precede o "poucos itens" (CA-4).
+      prioridades: incompleta
+        ? []
+        : aderenciaPorPrioridade(
+            naJanela.map((c) => c.x),
+            PADRAO,
+          ),
       volume: abertos.filter((d) => d >= b.inicioDia && d <= b.fimDia).length,
     }
   })

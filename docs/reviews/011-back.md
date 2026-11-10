@@ -3,15 +3,15 @@ tipo: review
 contrato: 1
 pedido: 011-metricas-tambem-disponiveis-back
 branch: feature/011-metricas-tambem-back
-commit: 4e6b29c
+commit: 8908d92
 parecer: aprovado
 revisor: tech-lead
-data: 2026-10-15
+data: 2026-10-16
 ---
 
 # Code review: back do pedido 011 (cartões B1 a B12)
 
-Arquivo único do back do pedido 011, com uma seção por cartão, em ordem. O review é incremental, por cartão, conforme a ata `docs/alinhamentos/2026-10-14-revisao-desenho-011.md` §3. O frontmatter reflete o último cartão revisado; o review final da branch (B12) cobre a branch inteira. A última seção ("Revalidação final sobre `4e6b29c`") é a que vale para o PR.
+Arquivo único do back do pedido 011, com uma seção por cartão, em ordem. O review é incremental, por cartão, conforme a ata `docs/alinhamentos/2026-10-14-revisao-desenho-011.md` §3. O frontmatter reflete o último cartão revisado; o review final da branch (B12) cobre a branch inteira. A última seção ("Revalidação: merge do #93 (só docs)") é a que vale para o PR.
 
 ## B1: contratos da fase 1 e trava de pessoa
 
@@ -816,6 +816,30 @@ Observação sem ajuste, para o architect: depois do K-096, o modelo do mock (`F
 ## Commits
 - `d73474a`: revert padrão do git, que cita o commit revertido. `4e6b29c`: merge com mensagem em Conventional Commits. O PR vai por squash, com mensagem minha.
 
-# Estado para o PR
+# Estado para o PR (anterior, sobre `4e6b29c`)
 - Este parecer: **aprovado** sobre `4e6b29c`.
 - **O parecer do QA (`docs/qa/011-back.md`, commit `03b6176`) está desatualizado** para o portão: entre `03b6176` e o HEAD mudaram arquivos de código (o revert do a1 e o merge do #88), e o `forge-check` também não encontra o registro de autoria do papel `qa` para a versão atual do arquivo. O QA precisa regravar o parecer sobre `4e6b29c` (ou sobre um commit posterior que só mude `docs/reviews/` e `docs/qa/`). O código do 011 é o que ele já testou; a novidade é a `develop` com o #88, que tem QA próprio em `docs/qa/k096-k097.md`.
+
+---
+
+# Revalidação: merge do #93 (só docs)
+
+**Commit revisado:** `8908d92`, merge de `origin/develop` (`7a4a955`) na branch, feito sem conflito (`git show --cc` do merge sai vazio) e sem force.
+
+**Veredito:** **aprovado.** O código do 011 não mudou desde `4e6b29c`; o que entrou veio da `develop` e já tem parecer próprio.
+
+## O que entrou entre `4e6b29c` e `8908d92`
+Conferido com `git diff 4e6b29c..HEAD --stat` e `--name-only`. A premissa "só o #93" precisa de uma correção: entraram o #93 **e** o #91, mais pareceres desta branch.
+- **#93** (`7a4a955`, docs de estado e notas): só `docs/`. Entre eles, `docs/alinhamentos/2026-10-16-c4-operacional.md` (107 linhas, idêntico ao da `develop`, fora do diff do PR), `docs/architecture/adr/0021-calculo-do-mock-em-web-worker.md`, `docs/architecture/notas/c4-operacional-011.md` e `c6-011.md`, `docs/devops/homolog-2026-10-16.md`, `docs/kanban/*` e `docs/pedidos/011-metricas-tambem-disponiveis.md` (1 linha).
+- **#91** (`0b78b1e`, K-094, seed concorrente): três arquivos de código, `server/src/plataforma/db/seed.ts`, `server/tests/seed.duble.test.ts` e `server/tests/seed.pg.test.ts`. Tem review próprio (`docs/reviews/k094-seed-concorrente.md`, aprovado sobre `1c9ae5c`) e QA próprio (`docs/qa/k094-seed-concorrente.md`). O 011 não toca nesses arquivos: `git diff origin/develop..HEAD` não lista nenhum deles, e o diff deles entre `7a4a955` e `8908d92` é vazio. O código da `develop` está idêntico ao da branch.
+- Pareceres e testes desta branch entre os dois pontos: `4c7efee` (este parecer), `a4ee375` (QA) e `cf70b25` (referência do hash da base após o B11a, `docs/qa/evidencias/`).
+- Nenhum arquivo de `packages/`, `web/`, `e2e/`, migração ou contrato mudou.
+
+## Ferramentas
+- Não rodei `pnpm run pronto` de novo. O código do 011 (`packages/*`, `web/`, `server/` fora do seed) é byte a byte o de `4e6b29c`, que fechou EXIT=0 no `pronto` e no `test:pg`. A única mudança de código é o seed do #91, que vem da `develop` com a CI e o QA dele. A CI do PR roda a suíte inteira depois do push.
+
+## Segurança
+- Nenhum achado. O seed continua sem campo de pessoa, e o 011 não acrescentou coluna nem tabela.
+
+## Estado para o PR
+- Este parecer: **aprovado** sobre `8908d92`. A nota "QA desatualizado" da seção anterior fica superada pela revalidação do QA sobre o mesmo commit.

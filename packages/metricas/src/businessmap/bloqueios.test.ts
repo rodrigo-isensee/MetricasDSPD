@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { MOTIVOS_BLOQUEIO, type FiltrosFluxo, type MotivoBloqueio } from '@metricas-dspd/contratos'
+import {
+  MOTIVOS_BLOQUEIO_PUBLICADOS,
+  type FiltrosFluxo,
+  type MotivoBloqueio,
+} from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { gerarBaseMock } from '@metricas-dspd/mock'
 import { gerarBaseBusinessMap } from '@metricas-dspd/mock'
@@ -56,7 +60,7 @@ const muitos = (
   Array.from({ length: n }, () => bloq('A', motivo, fornecedor, '2026-09-21T10:00:00-03:00', dias))
 
 describe('O19: bloqueios por causa', () => {
-  it('devolve os 7 motivos na ordem do domínio, com soma e contagem sempre e P50/P85 só com 20 ou mais', () => {
+  it('devolve os 8 motivos publicados ("não classificado" por último), com soma e contagem sempre e P50/P85 só com 20 ou mais', () => {
     const r = calcularO19(
       ctxDe(
         [card('A')],
@@ -67,7 +71,9 @@ describe('O19: bloqueios por causa', () => {
       ),
       F,
     )
-    expect(r.motivos.map((m) => m.motivo)).toEqual([...MOTIVOS_BLOQUEIO])
+    expect(r.motivos.map((m) => m.motivo)).toEqual([...MOTIVOS_BLOQUEIO_PUBLICADOS])
+    expect(r.motivos).toHaveLength(8)
+    expect(r.motivos[7]!.motivo).toBe('não classificado')
     const janela = r.motivos.find((m) => m.motivo === 'Janela de mudança')
     expect(janela).toMatchObject({ bloqueios: 20, diasUteis: 40 })
     expect(janela?.duracao).toMatchObject({
@@ -185,9 +191,9 @@ describe('O19: bloqueios por causa', () => {
     expect(calcularO19(ctxDe(cards, bl), { ...F, tipo: ['Bug interno'] }).base.n).toBe(1)
   })
 
-  it('base vazia: sete motivos zerados, sem erro', () => {
+  it('base vazia: oito motivos zerados, sem erro', () => {
     const r = calcularO19(ctxDe([card('A')], []), F)
-    expect(r.motivos).toHaveLength(7)
+    expect(r.motivos).toHaveLength(8)
     expect(r.totalDiasUteis).toBe(0)
     expect(r.abertosForaDaSoma).toBe(0)
   })
@@ -339,7 +345,7 @@ describe('O19 e T10 sobre o mock (B11a: alvos da fase 1 como asserção)', () =>
     const equipe = [...new Set(ctx.idx.marcos.map((m) => m.slugEquipe))].sort().slice(0, 1)
     const r = calcularO19(ctx, { ...F, equipe })
     expect(r.base.n).toBe(30)
-    expect(r.motivos.map((m) => m.bloqueios)).toEqual([3, 3, 7, 0, 15, 0, 2])
+    expect(r.motivos.map((m) => m.bloqueios)).toEqual([3, 3, 7, 0, 15, 0, 2, 0])
     expect(r.motivos.every((m) => m.duracao.status === 'insuficiente')).toBe(true)
     // O19-pct = B: o mínimo é sobre os bloqueios da causa (nenhuma chega a 20), então o percentual não sai
     expect(r.motivos.every((m) => m.pctDoTotal.status === 'insuficiente')).toBe(true)

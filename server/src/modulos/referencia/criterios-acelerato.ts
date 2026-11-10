@@ -33,6 +33,12 @@ export const CRITERIOS_ACELERATO: readonly CriterioAcelerato[] = [
     motivo: 'Pedido 069, lote L9-b (ADR 0023, item 4): o SQL versionado ganha duas consultas e os hashes mudam. Só staging: nenhuma métrica muda neste lote.',
     metricas: [],
   },
+  {
+    referencia: '069:L9-c-ordem-fluxo',
+    descricao: 'Campo de etapa do Acelerato repetido em várias etapas: vale o valor preenchido da etapa que vem por último no desenho do fluxo; vazio não apaga',
+    motivo: 'Decisão do dono B (pedido 069, 2026-11-05): a lista de campos da etapa não é cronológica; a posição vem da lista etapa_fluxo (pessoas e dono); etapa fora da lista ou empate deixa o campo nulo com contagem. Afeta S5, S6, S7, S9 e S11.',
+    metricas: ['S5', 'S6', 'S7', 'S9', 'S11'],
+  },
 ];
 
 /** Registra as que faltam, com a data civil `vigenteDesde` (AAAA-MM-DD). Devolve as referências gravadas agora. */

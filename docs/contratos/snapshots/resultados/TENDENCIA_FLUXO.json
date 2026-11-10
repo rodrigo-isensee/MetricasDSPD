@@ -313,6 +313,30 @@
           },
           "concluidos": {
             "type": "number"
+          },
+          "janelaIncompleta": {
+            "type": "object",
+            "properties": {
+              "historicoDesde": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "historicoDesde"
+            ],
+            "additionalProperties": false
+          },
+          "contagemParcial": {
+            "type": "object",
+            "properties": {
+              "historicoDesde": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "historicoDesde"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [

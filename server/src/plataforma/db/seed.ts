@@ -140,7 +140,7 @@ export function mapearAC(base: BaseMock, coletaId: number, S: Esquemas = esquema
     primeiro_atendimento_em: dtn(c.primeiro_atendimento_em), restaurado_em: dtn(c.restaurado_em),
     data_finalizado: dtn(c.data_finalizado), status_sla_r: c.status_sla_r, status_sla_pa: c.status_sla_pa,
     motivo_escalacao: c.motivo_escalacao, motivo_pendencia_atual: c.motivo_pendencia_atual,
-    previsao_retorno: dtn(c.previsao_retorno), motivo_encerramento: c.motivo_encerramento,
+    previsao_retorno: c.previsao_retorno !== null, motivo_encerramento: c.motivo_encerramento,
     avaliacao_problema: c.avaliacao_problema, excecao_sla_registro_posterior: c.excecao_sla_registro_posterior,
     incidente_critico_coordenado: c.incidente_critico_coordenado, nivel_resolucao: c.nivel_resolucao,
     coletado_em: coletado, atualizado_por_coleta_id: coletaId,

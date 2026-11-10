@@ -241,6 +241,7 @@ describe('séries mensais', () => {
     janelaPercentis: J,
     ...extra,
   })
+  const poucos = (n: number) => `Poucos itens (n=${n}). Estatística não publicada.`
   it('P85 do tipo escolhido; mês sem o tipo ou insuficiente fica sem valor', () => {
     const t = {
       meses: [
@@ -251,14 +252,36 @@ describe('séries mensais', () => {
     } as never
     expect(serieP85(t, 'Melhoria')).toEqual([
       { mes: '2026-08', valor: 9.4, n: 40, texto: '9 dias úteis' },
-      { mes: '2026-09', valor: null, n: 14, texto: 'poucos itens (n=14)' },
-      { mes: '2026-10', valor: null, n: 0, texto: 'poucos itens (n=0)' },
+      { mes: '2026-09', valor: null, n: 14, texto: poucos(14) },
+      { mes: '2026-10', valor: null, n: 0, texto: poucos(0) },
     ])
     expect(serieConcluidos(t).map((p) => [p.valor, p.texto])).toEqual([
       [10, '10 itens'],
       [0, '0 itens'],
       [1, '1 item'],
     ])
+  })
+  it('mês de janela incompleta (CA-1, CA-4): sem valor e sem base, mesmo com poucos itens ou com 30', () => {
+    const t = {
+      meses: [
+        mes('2026-08', { p85PorTipo: [], janelaIncompleta: { historicoDesde: '2026-08-14' } }),
+        mes('2026-09', {
+          p85PorTipo: [classe('Melhoria', 30)],
+          janelaIncompleta: { historicoDesde: '2026-08-14' },
+        }),
+      ],
+    } as never
+    const [a, b] = serieP85(t, 'Melhoria')
+    expect(a).toEqual({
+      mes: '2026-08',
+      valor: null,
+      n: null,
+      texto:
+        'Janela incompleta: o histórico carregado começa em 14/08/2026, depois do início da janela de 12 semanas. Estatística não publicada.',
+      janelaIncompleta: '2026-08-14',
+    })
+    expect(b?.valor).toBeNull()
+    expect(serieConcluidos(t).map((p) => p.janelaIncompleta)).toEqual([undefined, undefined])
   })
   it('prioridades fora do alvo em k de m avaliadas; m = 0 não publica; volume por mês', () => {
     const cel = (ok: boolean, meta: string) => ({
@@ -304,7 +327,21 @@ describe('séries mensais', () => {
     )
     expect(fraseDaSerieSla([])).toBe('')
     expect(fraseDaSerieSla([{ mes: '2026-07', valor: null, n: 0, texto: 'não publicado' }])).toBe(
-      'Em julho: não publicado. Valor não publicado.',
+      'Em julho: não publicado',
+    )
+    expect(
+      fraseDaSerieSla([
+        {
+          mes: '2026-07',
+          valor: null,
+          n: null,
+          texto:
+            'Janela incompleta: o histórico carregado começa em 14/08/2026. Estatística não publicada.',
+          janelaIncompleta: '2026-08-14',
+        },
+      ]),
+    ).toBe(
+      'Em julho, janela incompleta: o histórico carregado começa em 14/08/2026. Estatística não publicada.',
     )
     expect(fraseDaSerieSla([{ mes: '2026-07', valor: 0, n: null, texto: '0' }])).toBe(
       'Em julho: nenhuma prioridade avaliada.',
@@ -315,10 +352,35 @@ describe('séries mensais', () => {
         mes: '2026-09',
         valor: null,
         n: 0,
-        texto: 'não publicado (nenhuma prioridade com 20 chamados)',
+        motivo: 'sem prioridade avaliada',
+        texto: 'Nenhuma prioridade com 20 chamados ou mais. Estatística não publicada.',
       },
     ])
     expect(serieVolume(t).map((p) => p.texto)).toEqual(['300 chamados', '1 chamado'])
+  })
+  it('SLA: mês de janela incompleta sai sem valor e sem base, antes de qualquer outro motivo (CA-1, CA-4)', () => {
+    const t = {
+      meses: [
+        {
+          mes: '2026-08',
+          janela: J,
+          prioridades: [],
+          volume: 7,
+          janelaIncompleta: { historicoDesde: '2026-08-14' },
+        },
+      ],
+    } as never
+    expect(serieSla(t)).toEqual([
+      {
+        mes: '2026-08',
+        valor: null,
+        n: null,
+        texto:
+          'Janela incompleta: o histórico carregado começa em 14/08/2026, depois do início da janela de 12 semanas. Estatística não publicada.',
+        janelaIncompleta: '2026-08-14',
+      },
+    ])
+    expect(serieVolume(t)).toEqual([{ mes: '2026-08', valor: 7, n: 7, texto: '7 chamados' }])
   })
 })
 
@@ -355,7 +417,7 @@ describe('frase de leitura e utilidades', () => {
   })
   it('último mês sem valor diz que não foi publicado; série vazia, nada', () => {
     expect(fraseDaSerie([p('2026-09', null, 'poucos itens (n=14)')], true)).toBe(
-      'Em setembro: poucos itens (n=14). Valor não publicado.',
+      'Em setembro: poucos itens (n=14)',
     )
     expect(fraseDaSerie([], true)).toBe('')
   })

@@ -16,6 +16,10 @@ export interface DadoMensal {
   mes: string
   /** `null`: não publicado (poucos itens). */
   valor: number | null
+  /** Primeiro dia do histórico quando o mês não publica por janela incompleta (vence os poucos itens). */
+  janelaIncompleta?: string
+  /** Rótulo do eixo para o ponto sem valor por outro motivo que não poucos itens. */
+  motivo?: string
 }
 
 export interface MarcaMensal {
@@ -53,7 +57,7 @@ function TickMes({
   x: string | number
   y: string | number
   payload: { value: unknown }
-  semValor: ReadonlySet<string>
+  semValor: ReadonlyMap<string, string>
 }) {
   const mes = String(payload.value)
   return (
@@ -64,7 +68,7 @@ function TickMes({
         </tspan>
         {semValor.has(mes) && (
           <tspan x={0} dy={14} fontSize={11}>
-            poucos itens
+            {semValor.get(mes)}
           </tspan>
         )}
       </text>
@@ -89,7 +93,11 @@ export function GraficoMensal({
   eixoMax?: number
   marcas: readonly MarcaMensal[]
 }) {
-  const semValor = new Set(dados.filter((d) => d.valor === null).map((d) => d.mes))
+  const semValor = new Map(
+    dados
+      .filter((d) => d.valor === null)
+      .map((d) => [d.mes, d.janelaIncompleta ? 'janela incompleta' : (d.motivo ?? 'poucos itens')]),
+  )
   const linhas = dados.map((d) => ({ ...d, vazio: d.valor === null ? 0 : null }))
   return (
     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 640, height: 160 }}>

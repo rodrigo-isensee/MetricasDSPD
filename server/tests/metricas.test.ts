@@ -198,7 +198,7 @@ describe('GET /api/v1/metricas/:id', () => {
     const o19 = await get(app, '/api/v1/metricas/O19?periodo=12m');
     expect(o19.statusCode).toBe(200);
     expect(SCHEMAS_RESULTADO.O19.safeParse(o19.json()).success).toBe(true);
-    expect(o19.json().motivos).toHaveLength(7);
+    expect(o19.json().motivos).toHaveLength(8);
     const t10 = await get(app, '/api/v1/metricas/T10?periodo=12m&tipo=melhoria');
     expect(t10.statusCode).toBe(200);
     expect(SCHEMAS_RESULTADO.T10.safeParse(t10.json()).success).toBe(true);

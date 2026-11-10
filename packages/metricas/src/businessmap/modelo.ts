@@ -8,7 +8,7 @@ import type {
   ClasseServico,
   FaseDeteccao,
   Granularidade,
-  MotivoBloqueio,
+  MotivoBloqueioPublicado,
   OrigemDemanda,
   ResponsabilidadeAtraso,
   TipoCard,
@@ -62,7 +62,7 @@ export interface FatoTransicao {
 
 export interface FatoBloqueio {
   card_id: string
-  motivo: MotivoBloqueio
+  motivo: MotivoBloqueioPublicado
   coluna_em_que_bloqueou: string
   fornecedor: string | null
   inicio: number
