@@ -42,3 +42,8 @@
 - 2026-11-07 07:11: Brief tech-lead-2 (PR) aprovado; sai em série depois dos PRs do 077 3a e do 075 4a.
 - 2026-11-07 08:23: PR do 079 delegado ao tech-lead (brief tech-lead-2): abre e para se BEHIND (a develop andou para bc78a3b8).
 - 2026-11-07 08:38: PR 263 aberto pelo tech-lead (tech-lead-2) no head e63dcc6d, forge-check pr aprovado, checks verdes salvo e2e-parte 2/2 em andamento; BEHIND da develop bc78a3b8, parado antes do merge. AÇÃO DO DONO: update-branch do PR 263.
+- 2026-11-07 09:40: DECISÃO DO DONO (pelo assistente do app, literal): "FEITO o update-branch dos PRs 258, 263 e 264 [...] Quando cada um ficar CLEAN e verde, siga com o gh pr merge --squash --match-head-commit com o sha NOVO de cada PR (o head mudou). Sempre que um PR ficar BEHIND de novo, avise aqui que eu faco o update-branch". Heads novos: 258 871d2a04112064e9709252478477e222ed69e649, 263 9401dc71408adaac936fedaf6ba3fc3ac2e8d455, 264 26bd59671def6831a30d077c88bfdaaf7d3df8da (checks rodando). DECISÃO TÉCNICA (Jarvis): merges em série, um por vez; cada merge deixa os outros BEHIND e o Jarvis avisa o dono; ordem 258, 264, 263.
+- 2026-11-07 11:43: PR 263 ficou BEHIND de novo depois do merge do 264 (head 873dc755); AÇÃO DO DONO: update-branch do PR 263; depois o tech-lead mescla.
+- 2026-11-07 12:00: PR 263 mesclado na develop pelo dono às 11:59 (squash b2105e54). Próximo: retrospectiva do 079.
+- 2026-11-07 12:07: Brief agile-coach-1 (retrospectiva, E1.5) aprovado e delegado (052e, docs/retros-2026-11-07).
+- 2026-11-07 12:08: Retrospectiva (agile-coach-1): commitada em docs/retros-2026-11-07 (052e), 344d2b895b839d95c5fba29958bc7b25de98189c, sem push; 2 linhas MELHORIA (1 projeto, 1 Forge); BEHIND repete a do 081.

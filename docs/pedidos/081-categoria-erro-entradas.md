@@ -42,3 +42,18 @@
 - 2026-11-07 08:43: Brief qa-engineer-1 (QA) aprovado e delegado (052d).
 - 2026-11-07 08:43: Conferência do review: cumpriu.
 - 2026-11-07 08:43: entrega conferida 5f906a661e60b145e4aebb755dc4d05e7e658863
+- 2026-11-07 08:47: QA da E1.4: aprovado, 0 bugs, parecer em a4e143bb05a966b9d81ed059af955b0ae956d368 (commit: 1f8a19c6), enviado; 22 testes, vermelho na base, 6 mutantes mortos; A1 recomendado (ac:ref-sync sem teste da saída nova).
+- 2026-11-07 08:48: Conferência do QA: cumpriu; forge-check pr aprovado no head a4e143bb.
+- 2026-11-07 08:48: entrega conferida a4e143bb05a966b9d81ed059af955b0ae956d368
+- 2026-11-07 08:49: Brief tech-lead-2 (PR) aprovado e delegado; o PR deve ficar BEHIND (develop em bc78a3b8) e parar antes do merge.
+- 2026-11-07 09:28: PR 264 aberto pelo tech-lead (tech-lead-2), checks verdes; o dono atualizou a branch (head c21f1747); o gh pr merge foi barrado pelo sandbox duas vezes (GraphQL), sem --admin. O merge fica para depois do PR 260 do 075 (cada merge deixa os outros BEHIND); vai precisar de update-branch do dono de novo.
+- 2026-11-07 09:40: DECISÃO DO DONO (pelo assistente do app, literal): "FEITO o update-branch dos PRs 258, 263 e 264 [...] Quando cada um ficar CLEAN e verde, siga com o gh pr merge --squash --match-head-commit com o sha NOVO de cada PR (o head mudou). Sempre que um PR ficar BEHIND de novo, avise aqui que eu faco o update-branch". Heads novos: 258 871d2a04112064e9709252478477e222ed69e649, 263 9401dc71408adaac936fedaf6ba3fc3ac2e8d455, 264 26bd59671def6831a30d077c88bfdaaf7d3df8da (checks rodando). DECISÃO TÉCNICA (Jarvis): merges em série, um por vez; cada merge deixa os outros BEHIND e o Jarvis avisa o dono; ordem 258, 264, 263.
+- 2026-11-07 10:01: AÇÃO DO DONO: o merge do PR 264 (head 26bd59671def6831a30d077c88bfdaaf7d3df8da) espera o mesmo destrave do sandbox do PR 258 (gh pr merge barrado no GraphQL); o dono mescla ou libera o sandbox.
+- 2026-11-07 11:43: PR 264 mesclado na develop pelo dono às 11:35 (squash 69225fc4c0b2921090584dbe2f4534bf92a7e2c2). Próximo: retrospectiva do 081 (E1.6).
+- 2026-11-07 11:45: Brief agile-coach-1 (retrospectiva, E1.6) aprovado e delegado.
+- 2026-11-07 11:46: Retrospectiva (agile-coach-1): não cumprida; o hook R-REVIEW recusou o commit na branch do Jarvis ("sem parecer para o pedido 073 (e mais 1)"), porque docs/jarvis-2026-10-23 está muito atrás da develop (base ae009a75, 1521 arquivos de diferença) e o hook lê os pedidos do diff. DECISÃO TÉCNICA (Jarvis): as retrospectivas de hoje saem numa branch própria a partir da develop (docs/retros-2026-11-07, worktree 052e, que está livre), com PR de documentação pelo tech-lead depois; brief agile-coach-2.
+- 2026-11-07 11:48: Brief agile-coach-2 (retrospectiva na branch docs/retros-2026-11-07, 052e) aprovado e delegado.
+- 2026-11-07 11:49: Retrospectiva (agile-coach-2): escrita e commitada em docs/retros-2026-11-07 (052e), 434120f603ed2b30beb01e26e08fb72f05f472ac, sem push; 4 linhas MELHORIA (2 ao Forge, 2 ao projeto).
+- 2026-11-07 11:51: Conferência da retrospectiva: cumpriu.
+- 2026-11-07 11:51: entrega conferida 434120f603ed2b30beb01e26e08fb72f05f472ac
+- 2026-11-07 11:51: MELHORIA da retrospectiva viradas em cartão: K-245 e K-246 (Forge, PR pela skill contribuir-com-o-forge), K-247 (ação do dono: sandbox do GraphQL), K-248 (decisão do dono: update-branch ou fila de merge). A retrospectiva está em docs/retros-2026-11-07 (052e), sem push; o PR de documentação sai com as retrospectivas do 079 e do 080. Pedido 081 fechado.

@@ -800,3 +800,12 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-07T07:39:33-03:00 | K-173 | Pronto para fazer | Pronto para fazer | Pedido 080 aberto |
 | 2026-11-07T07:39:33-03:00 | K-192 | Pronto para fazer | Pronto para fazer | Pedido 080 aberto |
 | 2026-11-07T08:05:00-03:00 | K-241 | Entrada | Entrada | Pedido 081 aberto |
+- 2026-11-07 09:38 K-204: lote 4a do 075 na develop (PR 260).
+- 2026-11-07 11:33 K-235: E10 L2 do 073 na develop (PR 258).
+- 2026-11-07 11:43 K-241: pedido 081 na develop (PR 264).
+- 2026-11-07 11:51 K-245 a K-248: cartões das linhas MELHORIA da retrospectiva do 081 (Entrada).
+- 2026-11-07 12:00 K-211: 077 lote 4a na develop (PR 261). K-201: pedido 079 na develop (PR 263). K-192: pedido 080 na develop (PR 265).
+- 2026-11-07 18:01: K-204 e K-211 atualizados (075 4c em QA aprovado, 6a pronto; 077 4b pronto para integração, 6b com review e interface aprovados; pushes em série).
+- 2026-11-07 20:40: K-204 e K-211 atualizados (075 6a e 077 6b conferidos; integração com o 4c; fila parada nas decisões do dono).
+- 2026-11-08 18:46: K-204 e K-211 atualizados (PR 267 do 6a aberto; pushes do 077 pelo dono; 4c com correção pendente).
+- 2026-11-09 10:18: K-250 aberto (Forge, prazo do hook R-REVIEW em gh pr create). 077: 8a mesclado (PR 272), 3b com PR 273 pronto, Lote 5 delegado (052g), 6b integrando a develop. 075: 4c com PR a abrir pelo dono.
