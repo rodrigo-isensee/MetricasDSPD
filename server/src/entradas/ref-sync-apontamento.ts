@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pino } from 'pino';
 import { carregarConfigRef } from '../plataforma/config.js';
+import { categoriaDoErro } from '../plataforma/categoria-erro.js';
 import { criarPool } from '../plataforma/db/pool.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
 import { opcoesLog } from '../plataforma/log.js';
@@ -11,7 +12,7 @@ import { dataCivilValida } from '../modulos/referencia/index.js';
 // Entrada `pnpm --filter @metricas-dspd/server run bm:ref-sync-apontamento [AAAA-MM-DD]` (pedido 059, E2.19 e E2.27): grava em `dspd_bm.ref_apontamento_*`
 // o dicionário de subgrupo do arquivo versionado `docs/architecture/fontes/apontamento-dicionario.json`, com versão de critério (T2.6) e o hash
 // do arquivo. Usa o papel `dspd_ref` (`PG_REF_URL`); INSERT e UPDATE de `vigente_ate`, idempotente: termo novo abre vigência, mudado fecha a antiga e abre a nova, retirado só fecha (nada é apagado). Imprime só contagens e o hash: nunca a URL, a senha nem o
-// texto do erro do banco. O `.env` da raiz é lido só aqui, pelo programa (como nos comandos `bm:*`); nada dele é impresso.
+// texto do erro do banco (na falha, só a categoria de `categoriaDoErro`). O `.env` da raiz é lido só aqui, pelo programa (como nos comandos `bm:*`); nada dele é impresso.
 const raiz = fileURLToPath(new URL('../../../', import.meta.url));
 try {
   process.loadEnvFile(join(raiz, '.env'));
@@ -35,7 +36,7 @@ try {
   const r = await sincronizarDicionario(pool, montarEsquemas(cfg.DSPD_SCHEMA_PREFIXO), lido, dia, new Date());
   process.stdout.write(`${JSON.stringify({ vigenteDesde: dia, ...r })}\n`);
 } catch (e) {
-  process.stderr.write(`bm:ref-sync-apontamento falhou: ${e instanceof ErroDicionario ? e.message : 'configuração ou banco inválidos'}\n`);
+  process.stderr.write(`bm:ref-sync-apontamento falhou: ${e instanceof ErroDicionario ? e.message : categoriaDoErro(e)}\n`);
   process.exitCode = 1;
 } finally {
   await pool?.end();
