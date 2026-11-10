@@ -416,7 +416,7 @@ describe('CT-34: mudança de origem, lista ou SQL', () => {
   });
 
   it('hash da lista de colunas, da lista de nomes ou do SQL diferente do registrado: recusa (o registrado é adulterado)', async () => {
-    for (const chave of ['colunas_sha256', 'campos_sha256', 'sql_sha256', 'tabela']) {
+    for (const chave of ['colunas_sha256', 'campos_sha256', 'sql_sha256', 'fluxo_sha256', 'tabela']) {
       const banco = criarBancoMemoria();
       const mysql = criarMysqlFalso([linha()]);
       const m = montar(banco, mysql);

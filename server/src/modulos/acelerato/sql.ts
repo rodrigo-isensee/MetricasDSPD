@@ -49,16 +49,19 @@ export const Q3_CAMPOS = [
 ].join('\n');
 
 /**
- * Q6 (F3, ADR 0023 item 4; modelo de ameaças do 069, L9-b): campos de etapa de tratamento `lista`, por nome EXATO (a lista de nomes é
- * constante do código). `valor` limitado a 80 caracteres; `tipo` sai só para a recusa (tipo texto nunca libera valor).
- * `campos_personalizados_etapa` só aparece dentro de `JSON_TABLE`, nunca inteira.
+ * Q6 (F3, ADR 0023 item 4; modelo de ameaças do 069, L9-b; volta do L9-c): campos de etapa de tratamento `lista`, por nome EXATO (a lista de nomes é
+ * constante do código). `valor` limitado a 80 caracteres; `tipo` sai só para a recusa (tipo texto nunca libera valor). `kanban_status_key` é só o
+ * inteiro da chave da etapa (`BIGINT`, texto vira nulo no MySQL): serve para achar a posição da etapa no desenho do fluxo e não é gravado. O
+ * `ORDER BY` só torna a saída repetível; a regra do campo repetido não depende dele. `campos_personalizados_etapa` só aparece dentro de `JSON_TABLE`, nunca inteira.
  */
 export const Q6_CAMPOS_ETAPA_LISTA = [
-  'SELECT c.ticket_key, f.nome, f.tipo, f.valor',
+  'SELECT c.ticket_key, f.nome, f.tipo, f.valor, f.kanban_status_key',
   'FROM ACELERATO_CHAMADOS c,',
   "     JSON_TABLE(c.campos_personalizados_etapa, '$[*]' COLUMNS (",
-  "       nome VARCHAR(255) PATH '$.nome', tipo VARCHAR(40) PATH '$.tipo', valor VARCHAR(80) PATH '$.valor')) f",
+  "       nome VARCHAR(255) PATH '$.nome', tipo VARCHAR(40) PATH '$.tipo', valor VARCHAR(80) PATH '$.valor',",
+  "       kanban_status_key BIGINT PATH '$.kanbanStatusKey' NULL ON EMPTY NULL ON ERROR)) f",
   'WHERE c.ticket_key IN (<chaves>) AND f.nome IN (<nomes>)',
+  'ORDER BY c.ticket_key, f.nome, f.kanban_status_key',
 ].join('\n');
 
 /**

@@ -222,7 +222,7 @@ describe('Resumo: tendência (CA-27)', () => {
     renderizarApp('/operacional?mock=tendencia-poucos')
     const p85 = await screen.findByTestId('tendencia-fluxo-p85', undefined, { timeout: 15000 })
     expect(within(p85).getByTestId('tendencia-fluxo-p85-sem-valor')).toHaveTextContent(
-      'jun/2026 · poucos itens (n=14)',
+      'jun/2026 · Poucos itens (n=14). Estatística não publicada.',
     )
     expect(within(p85).getByTestId('marcador-vazado')).toBeInTheDocument()
     await userEvent.click(within(p85).getByRole('button', { name: 'Ver como tabela' }))
@@ -237,7 +237,7 @@ describe('Resumo: tendência (CA-27)', () => {
       'n=0 · não publicado',
     )
     expect(within(sla).getByTestId('tendencia-sustentacao-sla-sem-valor')).toHaveTextContent(
-      'jul/2026 · não publicado',
+      'jul/2026 · Nenhuma prioridade com 20 chamados ou mais. Estatística não publicada.',
     )
   })
 

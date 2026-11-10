@@ -1,6 +1,6 @@
 # Contrato da métrica TENDENCIA_SUST
 
-Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_SUST. Público: time (back-end, front-end, QA). Revisão: 2026-10-14.
+Propósito: descrever a rota, os filtros, as regras de cálculo, o schema do resultado e um exemplo da métrica TENDENCIA_SUST. Público: time (back-end, front-end, QA). Revisão: 2026-11-08.
 
 <!-- gerado:inicio -->
 Gerado por `pnpm run docs:gerar` a partir do código e do OpenAPI; não edite entre as marcas.
@@ -197,11 +197,27 @@ JSON Schema gerado do Zod (`SCHEMAS_RESULTADO.TENDENCIA_SUST`); a fotografia ver
               "additionalProperties": false
             }
           },
-          "volume": {"type":"number"}
+          "volume": {"type":"number"},
+          "janelaIncompleta": {
+            "type": "object",
+            "properties": {"historicoDesde":{"type":"string"}},
+            "required": ["historicoDesde"],
+            "additionalProperties": false
+          },
+          "contagemParcial": {
+            "type": "object",
+            "properties": {"historicoDesde":{"type":"string"}},
+            "required": ["historicoDesde"],
+            "additionalProperties": false
+          }
         },
         "required": ["mes","fimDoMes","janela","prioridades","volume"],
         "additionalProperties": false
       }
+    },
+    "notas": {
+      "type": "array",
+      "items": {"type":"string","enum":["ajuste-prioridade-sem-dado-real","excecao-sla-sem-fonte"]}
     }
   },
   "required": ["base","criterios","meses"],
@@ -216,7 +232,22 @@ Resultado da base fictícia determinística (semente padrão), validado pelo sch
 ```json
 {
   "base": {"n":2017,"unidade":"chamados abertos","janela":{"inicio":"2026-04-01","fim":"2026-09-30"}},
-  "criterios": {"serie":[],"janela":[]},
+  "criterios": {
+    "serie": [
+      {
+        "id": "criterio-2026-06-01",
+        "data": "2026-06-01",
+        "descricao": "Novas etapas do Acelerato em produção e mapeamento dos totalizadores revisado"
+      }
+    ],
+    "janela": [
+      {
+        "id": "criterio-2026-06-01",
+        "data": "2026-06-01",
+        "descricao": "Novas etapas do Acelerato em produção e mapeamento dos totalizadores revisado"
+      }
+    ]
+  },
   "meses": [
     {
       "mes": "2026-04",

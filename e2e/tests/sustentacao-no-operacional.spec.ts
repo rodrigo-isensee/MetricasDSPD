@@ -422,7 +422,7 @@ test.describe('Visão Resumo', () => {
     await expect(p85).toContainText('janela de 12 semanas até o fim do mês');
     await expect(page.getByTestId('tendencia-sustentacao-sla')).toContainText('janela de 12 semanas até o fim do mês');
     await expect(p85.getByTestId('marcador-vazado')).toHaveCount(1);
-    await expect(p85.getByTestId('tendencia-fluxo-p85-sem-valor')).toContainText('jun/2026 · poucos itens (n=14)');
+    await expect(p85.getByTestId('tendencia-fluxo-p85-sem-valor')).toContainText('jun/2026 · Poucos itens (n=14). Estatística não publicada.');
     await p85.getByRole('button', { name: 'Ver como tabela' }).click();
     const linhas = p85.getByRole('table').getByRole('row');
     await expect(linhas).toHaveCount(7);
@@ -430,7 +430,7 @@ test.describe('Visão Resumo', () => {
     const meses = await p85.getByRole('table').getByRole('rowheader').allInnerTexts();
     expect(meses).toEqual(['abr/2026', 'mai/2026', 'jun/2026', 'jul/2026', 'ago/2026', 'set/2026']);
     const sla = page.getByTestId('tendencia-sustentacao-sla');
-    await expect(sla.getByTestId('tendencia-sustentacao-sla-sem-valor')).toContainText('jul/2026 · não publicado');
+    await expect(sla.getByTestId('tendencia-sustentacao-sla-sem-valor')).toContainText('jul/2026 · Nenhuma prioridade com 20 chamados ou mais. Estatística não publicada.');
   });
 
   test('CA-28 alertas por fonte, com título da fonte; cada link leva à visão dona com o cartão', async ({ page, painel }) => {

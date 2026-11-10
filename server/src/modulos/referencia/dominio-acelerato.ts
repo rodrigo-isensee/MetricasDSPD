@@ -14,10 +14,15 @@ export const ARQUIVO_DOMINIO = new URL('../../../../docs/architecture/fontes/ace
 
 /** Campos de `ref_dominio` que o arquivo pode trazer (conjunto fechado). */
 export const CAMPOS_DOMINIO = [
-  'tipo_recorte', 'organizacao_recorte', 'equipe', 'etapa', 'prioridade', 'categoria', 'descricao_workflow', 'natureza_prefixo', 'campo_personalizado',
+  'tipo_recorte', 'organizacao_recorte', 'equipe', 'etapa', 'prioridade', 'categoria', 'descricao_workflow', 'natureza_prefixo', 'campo_personalizado', 'etapa_fluxo',
 ] as const;
 /** Listas de chave: o código é a chave numérica em texto decimal (recorte e `categoria_key`). */
-export const CAMPOS_DE_CHAVE: readonly string[] = ['tipo_recorte', 'organizacao_recorte', 'equipe', 'categoria'];
+export const CAMPOS_DE_CHAVE: readonly string[] = ['tipo_recorte', 'organizacao_recorte', 'equipe', 'categoria', 'etapa_fluxo'];
+/**
+ * Listas em que a posição (`ordem`, o índice do item no arquivo) tem significado: `etapa_fluxo` guarda a posição de cada etapa no desenho do
+ * fluxo de atendimento (L9-c do 069; `codigo` = `kanbanStatusKey`, `rotulo` = nome da etapa). Nelas, mudar só a posição é mudança da lista.
+ */
+export const CAMPOS_COM_ORDEM: readonly string[] = ['etapa_fluxo'];
 
 /** Data civil existente no formato AAAA-MM-DD (2026-02-30 não passa). */
 export function dataCivilValida(texto: string): boolean {
@@ -92,7 +97,7 @@ export function analisarDominio(texto: string): DominioLido {
 
 export const lerDominio = (caminho: URL | string = ARQUIVO_DOMINIO): DominioLido => analisarDominio(readFileSync(caminho, 'utf8'));
 
-export interface LinhaVigente { campo: string; codigo: string; rotulo: string; vigente_de: string }
+export interface LinhaVigente { campo: string; codigo: string; rotulo: string; vigente_de: string; ordem?: number }
 export interface Insercao { campo: string; codigo: string; rotulo: string; ordem: number }
 export interface Fechamento { campo: string; codigo: string }
 /** Última data de vigência já registrada por campo (a maior entre `vigente_de` e `vigente_ate`). */
@@ -102,7 +107,7 @@ export interface PlanoDominio { inserir: Insercao[]; fechar: Fechamento[]; campo
 /**
  * Compara o arquivo com as linhas vigentes dos campos que o arquivo traz. Campo ausente do arquivo não é tocado.
  * Código novo abre vigência; rótulo diferente fecha a anterior e abre a nova; código que saiu da lista só fecha.
- * Só a ordem diferente não muda nada (a posição não altera o significado da lista).
+ * Só a ordem diferente não muda nada (a posição não altera o significado da lista), exceto nas listas de `CAMPOS_COM_ORDEM`, em que a posição é o dado.
  * Data menor que a última vigência do campo é recusada quando o campo muda: sem períodos sobrepostos nem versão T2.6 com data passada.
  */
 export function planejarDominio(
@@ -118,7 +123,7 @@ export function planejarDominio(
     for (const [ordem, item] of itens.entries()) {
       desejados.add(item.codigo);
       const atual = atuais.get(item.codigo);
-      if (atual?.rotulo === item.rotulo) continue;
+      if (atual?.rotulo === item.rotulo && (!CAMPOS_COM_ORDEM.includes(campo) || atual.ordem === ordem)) continue;
       if (atual !== undefined) fechar.push({ campo, codigo: item.codigo });
       inserir.push({ campo, codigo: item.codigo, rotulo: item.rotulo, ordem });
     }
@@ -145,11 +150,12 @@ export interface ResultadoDominio {
   versaoRegistrada: boolean;
 }
 
-export const referenciaDaVersao = (sha256: string): string => `056:ref-dominio:${sha256}`;
+export const referenciaDaVersao = (sha256: string, dia: string): string => `056:ref-dominio:${sha256}:${dia}`;
 
 /**
  * Lê as vigentes, planeja e grava numa transação só (tudo ou nada). Sem diferença nada é gravado (idempotente); com diferença
- * grava a vigência e registra a versão de critério (T2.6) com o hash do arquivo, uma vez por hash. A versão não marca métrica:
+ * grava a vigência e registra a versão de critério (T2.6) com o hash do arquivo e a data da carga (P-E10-4), uma por hash e dia:
+ * voltar a um arquivo já visto deixa versão nova, com data nova; repetir a mesma carga no mesmo dia não duplica. A versão não marca métrica:
  * quais métricas a mudança afeta é decisão de negócio e não se infere aqui.
  */
 export async function sincronizarDominio(
@@ -158,7 +164,7 @@ export async function sincronizarDominio(
   return emTransacao(pool, async (db) => {
     const campos = Object.keys(lido.arquivo.dominios);
     const vigentes = (await db.query<LinhaVigente>(
-      `SELECT campo, codigo, rotulo, vigente_de FROM ${S.ac}.ref_dominio WHERE vigente_ate IS NULL AND campo = ANY($1::text[])`, [campos])).rows;
+      `SELECT campo, codigo, rotulo, vigente_de, ordem FROM ${S.ac}.ref_dominio WHERE vigente_ate IS NULL AND campo = ANY($1::text[])`, [campos])).rows;
     const ultimas = (await db.query<{ campo: string; ultima: string }>(
       `SELECT campo, max(greatest(vigente_de, coalesce(vigente_ate, vigente_de)))::text AS ultima FROM ${S.ac}.ref_dominio WHERE campo = ANY($1::text[]) GROUP BY campo`, [campos])).rows;
     const plano = planejarDominio(lido.arquivo, vigentes, hoje, new Map(ultimas.map((u) => [u.campo, u.ultima])));
@@ -172,7 +178,7 @@ export async function sincronizarDominio(
     const mudou = plano.inserir.length + plano.fechar.length > 0;
     let versaoRegistrada = false;
     if (mudou) {
-      const referencia = referenciaDaVersao(lido.sha256);
+      const referencia = referenciaDaVersao(lido.sha256, hoje);
       const existe = await db.query(`SELECT 1 FROM ${S.core}.ref_versao_criterio WHERE dominio = 'acelerato' AND referencia = $1`, [referencia]);
       if (existe.rows.length === 0) {
         const v = lido.arquivo.versao_criterio;

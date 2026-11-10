@@ -366,3 +366,114 @@ describe.each(CENARIOS.map((b, i) => [i, b] as const))('equivalência (cenário 
       expect(depoisAC.meses.find((x) => x.mes === m.mes)).toEqual(m)
   })
 })
+
+/* Pedido 077, L1b: janela incompleta (P-077-1). Janela de agosto começa em 2026-06-09; a de setembro, em julho. */
+const DESDE = '2026-06-10'
+describe('janela incompleta nas tendências (077 L1b)', () => {
+  const fluxoCom = (n: number, historicoDesde?: string) => ({
+    ...ctxBM(umaBase(entregues(n)), '2026-10-09T18:00:00-03:00'),
+    ...(historicoDesde && { historicoDesde }),
+  })
+  const sustCom = (n: number, historicoDesde?: string) => ({
+    ...ctxAC(baseAC(chamados(n, '2026-08-12')), H),
+    ...(historicoDesde && { historicoDesde }),
+  })
+
+  it('fluxo: 30 itens e janela incompleta saem sem estatística e com a data (CA-1)', () => {
+    const r = businessmap.calcularTendenciaFluxo(fluxoCom(30, DESDE))
+    expect(mes(r, '2026-08').janelaIncompleta).toEqual({ historicoDesde: DESDE })
+    expect(mes(r, '2026-08').p85PorTipo).toEqual([])
+    expect(mes(r, '2026-08').concluidos).toBe(30 - mes(r, '2026-09').concluidos)
+    expect(mes(r, '2026-09').janelaIncompleta).toBeUndefined()
+    expect(SCHEMAS_RESULTADO.TENDENCIA_FLUXO.safeParse(r).success).toBe(true)
+  })
+
+  it('fluxo: 14 itens e janela incompleta só trazem a janela incompleta (CA-4)', () => {
+    const m = mes(businessmap.calcularTendenciaFluxo(fluxoCom(14, DESDE)), '2026-08')
+    expect(m.janelaIncompleta).toEqual({ historicoDesde: DESDE })
+    expect(m.p85PorTipo).toEqual([])
+  })
+
+  it('fluxo: janela completa com 19 itens segue insuficiente (CA-3)', () => {
+    const m = mes(businessmap.calcularTendenciaFluxo(fluxoCom(19, DESDE)), '2026-09')
+    expect(m.janelaIncompleta).toBeUndefined()
+    expect(m.p85PorTipo.find((c) => c.tipo === 'Melhoria')?.estatistica).toMatchObject({
+      status: 'insuficiente',
+      n: 19,
+    })
+  })
+
+  it('fluxo: sem historicoDesde o resultado é o de hoje', () => {
+    const base = ctxBM(umaBase(entregues(30)), '2026-10-09T18:00:00-03:00')
+    expect(businessmap.calcularTendenciaFluxo(fluxoCom(30))).toEqual(
+      businessmap.calcularTendenciaFluxo(base),
+    )
+    expect(
+      mes(businessmap.calcularTendenciaFluxo(base), '2026-08').p85PorTipo.length,
+    ).toBeGreaterThan(0)
+  })
+
+  it('sustentação: 30 chamados e janela incompleta saem sem estatística e com a data (CA-1)', () => {
+    const r = acelerato.calcularTendenciaSust(sustCom(30, DESDE))
+    const ago = r.meses.find((m) => m.mes === '2026-08')!
+    expect(ago).toMatchObject({
+      janelaIncompleta: { historicoDesde: DESDE },
+      prioridades: [],
+      volume: 30,
+    })
+    expect(r.meses.find((m) => m.mes === '2026-09')?.janelaIncompleta).toBeUndefined()
+    expect(SCHEMAS_RESULTADO.TENDENCIA_SUST.safeParse(r).success).toBe(true)
+  })
+
+  it('sustentação: 14 chamados e janela incompleta só trazem a janela incompleta (CA-4)', () => {
+    const ago = acelerato
+      .calcularTendenciaSust(sustCom(14, DESDE))
+      .meses.find((m) => m.mes === '2026-08')!
+    expect(ago.janelaIncompleta).toEqual({ historicoDesde: DESDE })
+    expect(ago.prioridades).toEqual([])
+  })
+
+  it('sustentação: janela completa com 19 chamados segue insuficiente (CA-3)', () => {
+    const set = acelerato
+      .calcularTendenciaSust(sustCom(19, DESDE))
+      .meses.find((m) => m.mes === '2026-09')!
+    expect(set.janelaIncompleta).toBeUndefined()
+    expect(set.prioridades.find((p) => p.prioridade === 'P3')?.restauracao.taxa).toMatchObject({
+      status: 'insuficiente',
+      n: 19,
+    })
+  })
+
+  it('sustentação: sem historicoDesde o resultado é o de hoje', () => {
+    const ctx = ctxAC(baseAC(chamados(30, '2026-08-12')), H)
+    expect(acelerato.calcularTendenciaSust(sustCom(30))).toEqual(
+      acelerato.calcularTendenciaSust(ctx),
+    )
+  })
+})
+
+describe('contagem parcial nas tendências (077 L8a)', () => {
+  const D = '2026-07-01'
+  it('fluxo: mês que começa antes do histórico leva a marca e mantém o número; o que começa nele não', () => {
+    const ctx = { ...ctxBM(umaBase(entregues(30)), '2026-10-09T18:00:00-03:00'), historicoDesde: D }
+    const r = businessmap.calcularTendenciaFluxo(ctx)
+    expect(mes(r, '2026-06').contagemParcial).toEqual({ historicoDesde: D })
+    expect(typeof mes(r, '2026-06').concluidos).toBe('number')
+    expect(mes(r, '2026-07').contagemParcial).toBeUndefined()
+    expect(SCHEMAS_RESULTADO.TENDENCIA_FLUXO.safeParse(r).success).toBe(true)
+  })
+  it('sustentação: idem', () => {
+    const ctx = { ...ctxAC(baseAC(chamados(30, '2026-08-12')), H), historicoDesde: D }
+    const r = acelerato.calcularTendenciaSust(ctx)
+    expect(r.meses.find((m) => m.mes === '2026-06')?.contagemParcial).toEqual({ historicoDesde: D })
+    expect(r.meses.find((m) => m.mes === '2026-07')?.contagemParcial).toBeUndefined()
+  })
+  it('sem historicoDesde nenhum mês leva a marca', () => {
+    const f = businessmap.calcularTendenciaFluxo(
+      ctxBM(umaBase(entregues(30)), '2026-10-09T18:00:00-03:00'),
+    )
+    const s = acelerato.calcularTendenciaSust(ctxAC(baseAC(chamados(30, '2026-08-12')), H))
+    expect(f.meses.some((m) => 'contagemParcial' in m)).toBe(false)
+    expect(s.meses.some((m) => 'contagemParcial' in m)).toBe(false)
+  })
+})

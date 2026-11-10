@@ -12,11 +12,11 @@ import type { Consultavel } from '../../plataforma/db/pool.js';
 import { resolverTipoDasTransicoes } from '../businessmap/index.js';
 import { lerVersoes, marcaDagua } from '../operacao/index.js';
 import { dataCivil, lerCalendarioVigente, lerEquipesBM, lerSistemasBM, lerTimesAtivos, lerVersaoCriterioVigente } from '../referencia/index.js';
-import { semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
+import { comCorteDaSerieO1, semParteDeAjusteDePrioridade, semParteDeBloqueio } from './parte-sem-dado.js';
 import type { FontePesquisa } from './fonte-pesquisa.js';
 import { extrasAC, montarBaseAC, montarBaseBM, type ExtrasAC, type RefBM } from './mapa.js';
 import {
-  lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerColunasReais, lerDominio, lerEtapas, lerFichas, lerLimiteFrentes,
+  lerAlocacao, lerAlvos, lerBloqueios, lerCards, lerChamados, lerColunas, lerColunasReais, lerDominio, lerEtapas, lerFichas, lerHistoricoDesdeBM, lerLimiteFrentes,
   lerLimitesWip, lerSle, lerTransicoes, lerVersoesColuna,
 } from './repositorio.js';
 
@@ -40,6 +40,8 @@ export const MAX_RESULTADOS = 500;
 const METRICAS_COM_ALVOS: readonly MetricaId[] = ['S1', 'VISAO_GERAL'];
 /** Métricas de SLA que não contam os chamados sem agente (D-9 do plano 056): a biblioteca recebe a base sem eles. */
 const METRICAS_SEM_AGENTE: readonly MetricaId[] = ['S2', 'TENDENCIA_SUST'];
+/** Pedido 069 (L9-a) e 077 (L6a): métricas que levam a parte sem dado do ajuste de prioridade. */
+const METRICAS_COM_AJUSTE_DE_PRIORIDADE: readonly MetricaId[] = ['S3', 'S2', 'TENDENCIA_SUST'];
 /** Por base carregada: a base sem os chamados sem agente (D-9) e a extensão do S8 (D-10). Só da fonte real; a base semeada tem tudo com agente. */
 const EXTRAS_AC = new WeakMap<BaseAC, ExtrasAC>();
 /**
@@ -56,7 +58,9 @@ const BASE_BM_VAZIA = { cards: [], transicoes: [], bloqueios: [], colunas: [], f
 } };
 
 type Marca = { versao: string; finalizadoEm: Date | null };
-type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null; cal: Calendario; sleDefinido?: boolean };
+type Carga<B> = { versao: string; base: B; finalizadoEm: Date | null; inicio: string | null; cal: Calendario; sleDefinido?: boolean;
+  /** Pedido 077 (L3a): início do histórico carregado (menor `inicio_carga` das cargas iniciais do BusinessMap); ausente = sem carga inicial válida. */
+  historicoDesde?: string };
 type Entrada<B> = { lidoEm: number; carga: Promise<Carga<B>> | null; atual: Carga<B> | null };
 
 /** Fonte de dados da métrica: `fonteDaMetrica` é o ponto único (a PV1 é `pesquisa`, nunca BusinessMap nem Acelerato). */
@@ -153,7 +157,12 @@ export class ServicoMetricas {
     });
     const cal = await calendarioDaReferencia(db, S, 'businessmap', 'fluxo');
     const primeiro = cards.reduce<number | null>((a, c) => (a === null || c.criado_em.getTime() < a ? c.criado_em.getTime() : a), null);
-    return { versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO), cal, sleDefinido: ref.sle.length > 0 };
+    const { desde, ignoradas } = await lerHistoricoDesdeBM(db, S);
+    if (ignoradas > 0) this.deps.log?.({ cargasIgnoradas: ignoradas }, 'carga inicial com parâmetros inválidos ficou fora do início do histórico');
+    return {
+      versao, base, finalizadoEm, inicio: primeiro === null ? null : dataIso(primeiro, CALENDARIO_PADRAO), cal, sleDefinido: ref.sle.length > 0,
+      ...(desde !== undefined ? { historicoDesde: desde } : {}),
+    };
   }
 
   private async carregarAC({ versao, finalizadoEm }: Marca): Promise<Carga<BaseAC>> {
@@ -256,11 +265,14 @@ export class ServicoMetricas {
     }
     // Pedido 060 (P3): o mapa de origem é um portão. Fora dele (e fora do modo mock explícito) nada é lido nem calculado: responde o estado
     // "sem dado real" com o motivo, sem número.
-    if (this.semDadoReal(id)) return { resultado: corpoSemDadoReal(id), dataReferencia: op.dataReferencia ?? hoje, versaoCriterio: '0', chave: `${id}|sem-dado-real`, semDadoReal: true };
+    const semDado = (): Calculo => ({ resultado: corpoSemDadoReal(id), dataReferencia: op.dataReferencia ?? hoje, versaoCriterio: '0', chave: `${id}|sem-dado-real`, semDadoReal: true });
+    if (this.semDadoReal(id)) return semDado();
     const real = this.real;
     if (dom === 'pesquisa') return this.calcularPesquisa(id, op.dataReferencia ?? hoje);
     const bm = dom === 'acelerato' ? null : await this.carga('businessmap', agora);
     const ac = dom === 'businessmap' ? null : await this.carga('acelerato', agora);
+    // Pedido 077 (L5, A14): a tendência do fluxo sem carga inicial com sucesso não tem início de histórico; sem ele não se publica a série.
+    if (id === 'TENDENCIA_FLUXO' && this.deps.modoMock !== true && bm?.historicoDesde === undefined) return semDado();
     if (ac !== null && ac.base.config.alvos.length === 0 && METRICAS_COM_ALVOS.includes(id)) {
       throw new AppError('REFERENCIA_AUSENTE', 'Referência não carregada: alvos de prioridade (ref_alvo_prioridade).', 503);
     }
@@ -294,7 +306,11 @@ export class ServicoMetricas {
     // S8 na fonte real (D-10): o campo dos 90 dias vira a extensão da biblioteca; com o modo mock explícito e extensões mockadas vale o mock.
     const extReal: ExtensaoAC | undefined = id === 'S8' && (real || this.deps.extensoes === undefined) ? extras?.extensao : undefined;
     const ctx: ContextosMetricas = {
-      bm: businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, bm?.cal ?? CALENDARIO_PADRAO),
+      bm: {
+        ...businessmap.criarContextoBM(bm?.base ?? BASE_BM_VAZIA, corte, bm?.cal ?? CALENDARIO_PADRAO),
+        // Pedido 077 (L3a): só a fonte do BusinessMap entrega o início do histórico (só a TENDENCIA_FLUXO o lê; o contexto do Acelerato nunca o recebe).
+        ...(bm?.historicoDesde !== undefined ? { historicoDesde: bm.historicoDesde } : {}),
+      },
       ac: acelerato.criarContextoAC(baseAC, corte, ac?.cal ?? CALENDARIO_PADRAO),
       ...(extReal !== undefined ? { ext: { bm: EXTENSAO_BM_VAZIA, ac: extReal } } : {}),
       ...(COMPLEMENTARES.has(id) && this.deps.extensoes && !real ? { ext: this.deps.extensoes() } : {}),
@@ -305,8 +321,10 @@ export class ServicoMetricas {
     if (id === 'O3' && real && (bm as NonNullable<typeof bm>).sleDefinido !== true) resultado = { ...(resultado as object), notas: ['sle-nao-definido'] };
     // Pedido 065 (K-205): a coleta ainda não grava bloqueios; na base real a parte de bloqueio sai `null` com nota, nunca zero. Só publicação: nada é recalculado.
     if (real && !BLOQUEIOS_COM_DADO_REAL && METRICAS_COM_PARTE_DE_BLOQUEIO.includes(id)) resultado = semParteDeBloqueio(id, resultado);
+    // Pedido 075, lote 6a: com o interruptor ligado, a série do O1 não traz bloqueio antes da data da versão de critério (código escuro).
+    if (real) resultado = comCorteDaSerieO1(id, resultado, BLOQUEIOS_COM_DADO_REAL);
     // Pedido 069, L9-a (K-220): sem a fonte de `prioridade_ajustada_manualmente`, o S3 publica `null` com nota e o S2 a nota da exceção de SLA. Só publicação.
-    if (real && !AJUSTE_PRIORIDADE_COM_FONTE && (id === 'S3' || id === 'S2')) resultado = semParteDeAjusteDePrioridade(id, resultado);
+    if (real && !AJUSTE_PRIORIDADE_COM_FONTE && METRICAS_COM_AJUSTE_DE_PRIORIDADE.includes(id)) resultado = semParteDeAjusteDePrioridade(id, resultado);
     mapa.set(chave, resultado);
     if (mapa.size > (this.deps.maxResultados ?? MAX_RESULTADOS)) mapa.delete(mapa.keys().next().value as string);
     return { resultado, dataReferencia, versaoCriterio, chave };

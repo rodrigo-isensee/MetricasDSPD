@@ -122,7 +122,7 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     expect((await dono.query(`SELECT tipo FROM ${E.bm}.evt_card WHERE card_id = $1`, [id])).rows).toEqual([{ tipo: 'criado' }]);
     expect(await n('dim_card_versao', 'card_id = $1', [id])).toBe(1);
     const ctl = await unico<{ status: string; tarefa: string; versao_coletor: string }>(`SELECT status, tarefa, versao_coletor FROM ${E.bm}.ctl_coleta WHERE coleta_id = $1`, [r.coletaId]);
-    expect(ctl).toEqual({ status: 'sucesso', tarefa: 'projecao', versao_coletor: 'bm-f4/1' });
+    expect(ctl).toEqual({ status: 'sucesso', tarefa: 'projecao', versao_coletor: 'bm-f4/3' });
     const entidades = (await dono.query<{ entidade: string }>(`SELECT entidade FROM ${E.bm}.ctl_coleta_contagem WHERE coleta_id = $1`, [r.coletaId])).rows.map((x) => x.entidade);
     expect(entidades).toEqual(expect.arrayContaining(['projecao_card', 'projecao_transicao', 'projecao_evento', 'projecao_versao']));
     expect(entidades.every((e) => /^[a-z_]+$/.test(e))).toBe(true);

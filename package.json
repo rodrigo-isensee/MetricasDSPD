@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "typecheck": "pnpm --filter @metricas-dspd/contratos --filter @metricas-dspd/metricas --filter @metricas-dspd/mock --filter @metricas-dspd/web --filter @metricas-dspd/server --filter @metricas-dspd/homolog run typecheck && pnpm --filter @metricas-dspd/e2e exec tsc --noEmit",
     "test": "bash scripts/suite-unica.sh pnpm -r --if-present test",
-    "test:trava": "bash scripts/suite-unica.test.sh",
+    "test:trava": "bash scripts/suite-unica.test.sh && bash scripts/lint-alterados.test.sh && bash scripts/typecheck-alterados.test.sh && bash scripts/demo-dado-real.test.sh",
     "test:e2e": "bash scripts/suite-unica.sh pnpm --filter @metricas-dspd/e2e run test:e2e",
     "format": "prettier --write web packages tools eslint.config.js tsconfig.base.json package.json",
     "format:check": "prettier --check web packages tools eslint.config.js tsconfig.base.json package.json",
@@ -32,6 +32,7 @@
     "db:migrate": "bash scripts/db.sh migrate",
     "bm:diagnostico": "bash scripts/bm-diagnostico.sh",
     "coleta": "bash scripts/coleta.sh",
+    "demo:dado-real": "bash scripts/demo-dado-real.sh",
     "test:pg": "bash scripts/suite-unica.sh bash scripts/test-pg.sh",
     "db:limpar-testes": "bash scripts/db.sh limpar-testes",
     "dev:full": "bash scripts/dev.sh",
@@ -47,16 +48,16 @@
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@types/node": "^26.6.6",
-    "@vitest/coverage-v8": "^5.0.5",
+    "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^9.39.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "fast-check": "^4.10.2",
-    "globals": "^17.13.0",
+    "globals": "^17.14.0",
     "prettier": "^3.9.9",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.1",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   },
   "packageManager": "pnpm@10.34.6"
 }

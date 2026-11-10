@@ -115,6 +115,26 @@ describe('planejarDominio', () => {
   });
 });
 
+describe('planejarDominio: etapa_fluxo (L9-c), lista em que a posição é o dado', () => {
+  const fluxo = arquivo({ etapa_fluxo: [{ codigo: '10', rotulo: 'Abertura' }, { codigo: '20', rotulo: 'Fechamento' }] });
+  const vig = (ordemDe10: number, ordemDe20: number): LinhaVigente[] => [
+    { ...vigente('etapa_fluxo', '10', 'Abertura'), ordem: ordemDe10 }, { ...vigente('etapa_fluxo', '20', 'Fechamento'), ordem: ordemDe20 },
+  ];
+  it('a posição é o índice do item no arquivo; igual em rótulo e posição: nada a fazer', () => {
+    expect(planejarDominio(fluxo, [], HOJE).inserir.map((i) => [i.codigo, i.ordem])).toEqual([['10', 0], ['20', 1]]);
+    expect(planejarDominio(fluxo, vig(0, 1), HOJE)).toMatchObject({ inserir: [], fechar: [] });
+  });
+  it('só a posição diferente é mudança da lista: fecha a vigência e abre a nova (nunca sobrescreve)', () => {
+    const p = planejarDominio(fluxo, vig(1, 0), HOJE);
+    expect(p.fechar).toEqual([{ campo: 'etapa_fluxo', codigo: '10' }, { campo: 'etapa_fluxo', codigo: '20' }]);
+    expect(p.inserir.map((i) => [i.codigo, i.ordem])).toEqual([['10', 0], ['20', 1]]);
+  });
+  it('o código é a chave numérica da etapa; texto é recusado', () => {
+    expect(() => arquivo({ etapa_fluxo: [{ codigo: 'Abertura', rotulo: 'Abertura' }] })).toThrow(ErroDominio);
+    expect(CAMPOS_DOMINIO).toContain('etapa_fluxo');
+  });
+});
+
 describe('planejarDominio: data retroativa', () => {
   const lista = arquivo({ categoria: [{ codigo: '1', rotulo: 'A novo' }] });
   const vig = [vigente('categoria', '1', 'A')];
@@ -161,7 +181,8 @@ describe('sincronizarDominio (dublê de PostgreSQL)', () => {
     const g = gravacoes(d);
     expect(g.map((c) => c.texto.split(' (')[0])).toEqual(['INSERT INTO dspd_ac.ref_dominio', 'INSERT INTO dspd_ac.ref_dominio', 'INSERT INTO dspd_core.ref_versao_criterio']);
     expect(g[0]!.valores).toEqual(['equipe', '10', HOJE, 'SSSC TOTVS', 0]);
-    expect(g[2]!.valores[3]).toBe(referenciaDaVersao(lido.sha256));
+    expect(g[2]!.valores[3]).toBe(`056:ref-dominio:${lido.sha256}:${HOJE}`);
+    expect(referenciaDaVersao(lido.sha256, HOJE)).toBe(g[2]!.valores[3]);
     expect(g[2]!.valores[0]).toBe(HOJE);
     expect(d.chamadas[0]!.texto).toBe('BEGIN');
     expect(d.chamadas.at(-1)!.texto).toBe('COMMIT');

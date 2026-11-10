@@ -4,6 +4,8 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
+# Guarda se já rodamos dentro de uma suíte que segura a trava padrão (ex.: pnpm run pronto), antes de limpar a marca.
+DENTRO_DE_SUITE="${METRICAS_DSPD_SUITE_SEGURA:-}"
 unset METRICAS_DSPD_SUITE_SEGURA
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -48,6 +50,29 @@ verifica "chamada aninhada roda direto (rc=$rc)" $?
 bash scripts/suite-unica.sh bash -c 'exit 7'
 [ "$?" -eq 7 ]
 verifica "rc do comando é repassado" $?
+
+# 4) sem METRICAS_DSPD_SUITE_LOCK, a trava é a única da estação, em /tmp/claude-<uid> (gravável no sandbox).
+# Se a trava padrão já está ocupada por quem nos chamou (ou por outra suíte), a prova do caminho padrão
+# esperaria sem fim: o caso é pulado com o motivo. Fora disso, a prova roda inteira.
+padrao="/tmp/claude-$(id -u)/metricas-dspd-suite.lock"
+padrao_ocupada=0
+if [ "$DENTRO_DE_SUITE" = "1" ]; then
+  padrao_ocupada=1
+elif [ -e "$padrao" ] && ! ( flock -n 8 ) 8>>"$padrao" 2>/dev/null; then
+  padrao_ocupada=1
+fi
+if [ "$padrao_ocupada" -eq 1 ]; then
+  echo "pulado - caminho padrão $padrao: trava já segurada por uma suíte de fora (ex.: pnpm run pronto); rode este teste sozinho para provar o caso"
+else
+  env -u METRICAS_DSPD_SUITE_LOCK -u METRICAS_DSPD_SUITE_SEGURA bash scripts/suite-unica.sh bash -c 'echo "$$" >"$1"; sleep 2' x "$TMP/pid" 2>/dev/null &
+  pP=$!
+  sleep 0.5
+  env -u METRICAS_DSPD_SUITE_LOCK -u METRICAS_DSPD_SUITE_SEGURA timeout 1 bash scripts/suite-unica.sh true 2>"$TMP/errP"
+  grep -q "esperando a trava $padrao" "$TMP/errP"
+  verifica "caminho padrão $padrao: segunda chamada espera a primeira" $?
+  wait "$pP"
+  verifica "caminho padrão: primeira chamada termina com rc=0" $?
+fi
 
 [ "$falhas" -eq 0 ] && echo "suite-unica.test: tudo certo" || echo "suite-unica.test: $falhas falha(s)"
 exit "$falhas"
