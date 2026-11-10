@@ -36,6 +36,7 @@ Este projeto é desenvolvido pela fábrica **Forge** (plugin `forge@forge`, http
 - Orçamento de performance: ADR 0003.
 - Branches: `feature/*` → `develop` → `homolog` → `main` (abaixo), em vez do fluxo padrão da fábrica.
 - Comando de pronto: `pnpm run pronto`.
+- Lint da raiz (`pnpm run lint`): roda com heap de 4 GB (`--max-old-space-size=4096` no script), porque o eslint com regras de tipo sobre web, packages, tools e e2e estoura o heap padrão do Node (bug FORGE0442-001). O server tem lint próprio.
 
 ## Fluxo de uma demanda
 **Upstream (discovery)** — `ux-designer` e `software-architect` juntos: o UX conduz Design Thinking (empatizar → definir → idear → prototipar) e o arquiteto avalia em paralelo viabilidade, dados, integrações e riscos → **validação do usuário no protótipo** (ponto de compromisso).

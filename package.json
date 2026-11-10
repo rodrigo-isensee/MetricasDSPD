@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "pnpm --filter @metricas-dspd/web dev",
     "build": "pnpm --filter @metricas-dspd/web build",
-    "lint": "eslint .",
+    "lint": "node --max-old-space-size=4096 node_modules/eslint/bin/eslint.js .",
     "typecheck": "pnpm --filter @metricas-dspd/contratos --filter @metricas-dspd/metricas --filter @metricas-dspd/mock --filter @metricas-dspd/web --filter @metricas-dspd/server --filter @metricas-dspd/homolog run typecheck && pnpm --filter @metricas-dspd/e2e exec tsc --noEmit",
     "test": "bash scripts/suite-unica.sh pnpm -r --if-present test",
     "test:trava": "bash scripts/suite-unica.test.sh && bash scripts/lint-alterados.test.sh && bash scripts/typecheck-alterados.test.sh",
