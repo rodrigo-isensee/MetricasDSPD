@@ -143,6 +143,15 @@ export const VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL: VersaoCriterio = {
   afeta: ['TENDENCIA_FLUXO'],
 }
 
+/** Pedido 077 (L7, K-211): a tendência da sustentação passou de "Sem dado real" para o dado real do Acelerato (data do PR; a do merge corrige se escorregar). */
+export const VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL: VersaoCriterio = {
+  id: 'criterio-2026-11-10-tendencia-sust-dado-real',
+  data: '2026-11-10',
+  descricao:
+    'A tendência mensal da sustentação passou a ser calculada com o dado real do Acelerato (antes saía como "Sem dado real")',
+  afeta: ['TENDENCIA_SUST'],
+}
+
 /** Versões de critério que pertencem à biblioteca (constantes únicas); somam-se às da base, sem repetir id. */
 export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_PARADOS_V1,
@@ -155,6 +164,7 @@ export const VERSOES_DA_BIBLIOTECA: readonly VersaoCriterio[] = [
   VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL,
   VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL,
   VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL,
+  VERSAO_CRITERIO_TENDENCIA_SUST_DADO_REAL,
 ]
 
 /**
