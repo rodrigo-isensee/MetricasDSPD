@@ -1,6 +1,6 @@
 import { FaixaAtencao, estadoFaixa } from '@/components/ui'
 import { SecaoPainel } from '@/features/preferencias'
-import { useMetrica } from '@/data'
+import { useMetrica, useOpcoesFiltro } from '@/data'
 import type { FiltrosSustentacao } from '@metricas-dspd/contratos'
 import {
   IndiceDeSecoes,
@@ -49,6 +49,37 @@ const SECOES: readonly SecaoDoIndice[] = [
   ['percepcao', 'Percepção de valor', ['pv1']],
 ]
 
+/** Equipes do recorte em texto: "SSSC TOTVS, SENIOR e FLUIG" (a marca comum, primeira palavra, aparece só na primeira). */
+function textoEquipes(nomes: readonly string[]): string {
+  const marca = `${nomes.join(' ').split(' ')[0]} `
+  const curtos = nomes.map((n, i) => (i > 0 && n.startsWith(marca) ? n.slice(marca.length) : n))
+  const ultimo = curtos.pop()
+  return curtos.length > 0 ? `${curtos.join(', ')} e ${ultimo}` : `${ultimo}`
+}
+
+/** Equipes de hoje, usadas enquanto a API não devolve o recorte (sem dado, o texto não muda). */
+const EQUIPES_PADRAO = 'SSSC TOTVS, SENIOR e FLUIG'
+
+/**
+ * Texto do recorte da visão. As equipes vêm das opções de filtro do Acelerato que a API devolve; sem elas (carregando,
+ * erro ou lista vazia), vale o texto de hoje. Organização e tipo ainda não são expostos pela API (ver relatório do K-215).
+ */
+function RecorteSustentacao() {
+  const { data } = useOpcoesFiltro('acelerato')
+  const nomes = data?.equipes.map((e) => e.nome) ?? []
+  const equipes = nomes.length > 0 ? textoEquipes(nomes) : EQUIPES_PADRAO
+  return (
+    <p
+      className="rounded-md border border-borda bg-superficie p-3 text-sm"
+      data-testid="recorte-sustentacao"
+    >
+      Chamados da organização DSPD Sustentação, tipo DSPD - SSSC, equipes {equipes}, excluídos os
+      removidos. Tempos e aderência usam somente chamados fechados. Chamados com exceção de SLA por
+      registro posterior ficam fora destas apurações.
+    </p>
+  )
+}
+
 /**
  * Conteúdo da visão Sustentação do Operacional (Acelerato): carregado sob demanda, em chunk próprio, só quando a
  * pessoa escolhe a visão ou chega por link (o seletor pré-carrega na intenção). O molde (cabeçalho, filtros com
@@ -57,14 +88,7 @@ const SECOES: readonly SecaoDoIndice[] = [
 export default function VisaoSustentacao({ filtros }: { filtros: FiltrosSustentacao }) {
   return (
     <>
-      <p
-        className="rounded-md border border-borda bg-superficie p-3 text-sm"
-        data-testid="recorte-sustentacao"
-      >
-        Chamados da organização DSPD Sustentação, tipo DSPD - SSSC, equipes SSSC TOTVS, SENIOR e
-        FLUIG, excluídos os removidos. Tempos e aderência usam somente chamados fechados. Chamados
-        com exceção de SLA por registro posterior ficam fora destas apurações.
-      </p>
+      <RecorteSustentacao />
       <Atencao filtros={filtros} />
       <IndiceDeSecoes secoes={SECOES} />
       <SecaoPainel
