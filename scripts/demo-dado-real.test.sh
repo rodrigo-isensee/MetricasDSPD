@@ -48,6 +48,7 @@ ordem="$(grep -o 'up -d --wait postgres\|bm:coleta carga-inicial\|bm:apontamento
 esperado='up -d --wait postgres|bm:coleta carga-inicial|bm:apontamento carga-inicial|bm:projetar|up -d --build --wait api web|psql|'
 verifica "caminho feliz: ordem banco, BM, apontamento, projecao, api/web, prova" "$([ "$ordem" = "$esperado" ] && echo 0 || echo 1)"
 verifica "caminho feliz: a prova nao traz nome, e-mail nem texto" "$(grep psql "$LOG" | grep -qi 'nome\|email\|titulo\|descricao' && echo 1 || echo 0)"
+verifica "caminho feliz: senha so pelo nome da variavel no argv do docker" "$(grep -q -e '-e PGPASSWORD ' "$LOG" && ! grep -q 'valor-secreto-falso' "$LOG" && echo 0 || echo 1)"
 
 # 5. para no primeiro erro
 : >"$LOG"

@@ -110,8 +110,9 @@ PREFIXO="${DSPD_SCHEMA_PREFIXO:-}"
 SQL="SELECT (SELECT count(*) FROM ${PREFIXO}dspd_bm.fato_bloqueio) AS fato_bloqueio,
             (SELECT count(*) FROM ${PREFIXO}dspd_bm.evt_bloqueio WHERE tipo = 'fim') AS evt_bloqueio_fim,
             (SELECT min(coletado_em) FROM ${PREFIXO}dspd_bm.stg_card) AS primeira_coleta_stg_card;"
-executar "prova" "consulta" "Consulta so de contagens pelo papel dspd_coletor." \
-  docker compose exec -T -e "PGPASSWORD=${DSPD_PWD_COLETOR}" postgres psql -X -v ON_ERROR_STOP=1 -U dspd_coletor -d metricas -c "$SQL"
+# A senha vai so pelo ambiente do comando; o argv do docker leva o nome da variavel, nunca o valor.
+PGPASSWORD="${DSPD_PWD_COLETOR}" executar "prova" "consulta" "Consulta so de contagens pelo papel dspd_coletor." \
+  docker compose exec -T -e PGPASSWORD postgres psql -X -v ON_ERROR_STOP=1 -U dspd_coletor -d metricas -c "$SQL"
 
 echo ""
 echo "Pronto. Devolva ao Jarvis a saida da etapa 10 (tres valores) e o resumo das etapas 5 a 8."
