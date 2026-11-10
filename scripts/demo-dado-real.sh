@@ -12,6 +12,7 @@ ARQUIVO_ENV="${DEMO_ENV_ARQUIVO:-.env}"
 RECONHECER=""
 for arg in "$@"; do
   case "$arg" in
+    --) ;; # pnpm 10 e 12 repassam o -- de "pnpm run demo:dado-real -- --flag"
     --reconhecer-mudanca) RECONHECER="--reconhecer-mudanca" ;;
     *) echo "uso: demo-dado-real.sh [--reconhecer-mudanca]" >&2; exit 2 ;;
   esac

@@ -39,6 +39,12 @@ verifica "variavel ausente: nenhum valor impresso" "$(grep -q 'valor-secreto-fal
 # 3. argumento invalido
 saida="$(bash "$SCRIPT" --outra 2>&1)"; rc=$?
 verifica "argumento invalido: rc 2" "$([ "$rc" -eq 2 ] && echo 0 || echo 1)"
+saida="$(bash "$SCRIPT" -- --outra 2>&1)"; rc=$?
+verifica "-- seguido de argumento desconhecido: rc 2" "$([ "$rc" -eq 2 ] && echo 0 || echo 1)"
+env_completo; : >"$LOG"
+saida="$(DEMO_ENV_ARQUIVO="$TMP/env" bash "$SCRIPT" -- --reconhecer-mudanca 2>&1)"; rc=$?
+verifica "-- --reconhecer-mudanca (chamada do pnpm): aceito, rc 0" "$([ "$rc" -eq 0 ] && echo 0 || echo 1)"
+verifica "-- --reconhecer-mudanca: a flag foi reconhecida na saida" "$(grep -q 'com --reconhecer-mudanca' <<<"$saida" && echo 0 || echo 1)"
 
 # 4. caminho feliz: ordem das etapas
 env_completo; : >"$LOG"
