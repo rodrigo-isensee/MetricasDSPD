@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: fix-forge0442-001
 branch: fix/forge0442-001
-commit: 45870cefdbb3e90a0df2132574ff4ff14c0796e9
+commit: 79e9790dd290204e0cbff2ffa614b251d66d1abf
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-10
@@ -11,7 +11,7 @@ data: 2026-11-10
 
 # Code review: FORGE0442-001, falhas preexistentes do pronto
 
-Branch `fix/forge0442-001` contra `origin/develop` (528ae77), 3 commits, 58 linhas de código e teste (teto M14: 150). Um comportamento só: destravar o `pronto`.
+Branch `fix/forge0442-001` contra `origin/develop` (528ae77), 3 commits de código (d917496, 975218e, 45870ce) e os pareceres de QA e segurança; 58 linhas de código e teste (teto M14: 150). Um comportamento só: destravar o `pronto`. Os commits posteriores a 45870ce só acrescentam pareceres.
 
 ## Lido
 - `scripts/suite-unica.sh` e `.test.sh`: `METRICAS_DSPD_SUITE_DIR` troca só o diretório da trava; o padrão `/tmp/claude-<uid>` segue (o teste confere o literal). O teste 4 usa diretório temporário e não disputa a trava que o `pronto` já segura. Rodei `bash scripts/suite-unica.test.sh`: tudo certo.
