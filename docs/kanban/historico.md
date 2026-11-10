@@ -810,3 +810,6 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-11-08 18:46: K-204 e K-211 atualizados (PR 267 do 6a aberto; pushes do 077 pelo dono; 4c com correção pendente).
 - 2026-11-09 10:18: K-250 aberto (Forge, prazo do hook R-REVIEW em gh pr create). 077: 8a mesclado (PR 272), 3b com PR 273 pronto, Lote 5 delegado (052g), 6b integrando a develop. 075: 4c com PR a abrir pelo dono.
 | 2026-11-10T08:04:24-03:00 | K-211 | Em andamento | Em andamento | 077 6b: react-frontend-9 delegado (integração da develop, 056d), retomada de 2026-11-10 |
+- 2026-11-10 09:05: K-251 a K-254 abertos (MELHORIAS da retrospectiva do 083 e o PATH do forge-check). 077: 6b integrado e conferido, review incremental em curso; Lote 5 retomado. 075 4c e 077 3b mesclados (PRs 274 e 273).
+- 2026-11-10 10:06: sessão reiniciada pelo dono (Remote Control). K-255 aberto (pedido 084, Forge 0.45.0). 077: PR 276 (6b) mesclado; PR 278 (8b) em rascunho; Lote 5 com review aprovado. PR 277 (retrospectivas) em rascunho.
+- 2026-11-10 10:09: K-254 concluído (o forge-check do PATH volta a ser o do WSL, 0.45.0, depois do reinício da sessão). PR 277 (retrospectivas) pronto e com o ato conferido: merge do dono.

@@ -2597,3 +2597,49 @@
 | 2026-11-09 10:18 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-12 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-09 10:20 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-agile-coach-1 | brief | 1 | reprovado | s | cherry-pick das retros sem citar a decisão técnica | escopo | jarvis |
 | 2026-11-09 10:25 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-agile-coach-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-10 08:59 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-10 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum); forge-check do PATH quebrado para o conferente | — | jarvis |
+| 2026-11-10 09:00 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-13 | brief | 1 | reprovado | s | exemplo de prova sem a A12 e preparação de worktree contraditória | decisao | jarvis |
+| 2026-11-10 09:00 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-agile-coach-2 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:01 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-13 | brief | 2 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:03 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-10 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:05 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-13 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:05 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-32 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:05 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-agile-coach-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:09 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-32 | entrega | 1 | não cumpriu | n | escopo medido no diff da branch inteira, não no intervalo Desde..head (só o parecer) | escopo | conferente |
+| 2026-11-10 09:10 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-32 | entrega | 2 | não cumpriu | n | tardio: nao · SerieMensal.tsx do 6b não nomeado no Entregar; brief de registro tech-lead-33 | escopo | jarvis |
+| 2026-11-10 09:11 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-14 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:11 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-33 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:13 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-34 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:20 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-11 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:21 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-11 | entrega | 1 | não cumpriu | s | git switch -c de ref remota não moveu o HEAD; sem commit | ambiente | destino |
+| 2026-11-10 09:22 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-12 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:28 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-13 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:29 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-14 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:30 | 077-tendencias-dado-real | 077-tendencias-dado-real-react-frontend-12 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:31 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-35 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:35 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-35 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:36 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-34 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:36 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-15 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:38 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-tech-lead-3 | brief | 1 | reprovado | s | review das retros sem decisão no pedido; linha Z10 conflitante | escopo | jarvis |
+| 2026-11-10 09:39 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-tech-lead-3 | brief | 2 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:42 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-tech-lead-3 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:42 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-15 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:43 | 077-tendencias-dado-real | 077-tendencias-dado-real-ux-designer-7 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:44 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-tech-lead-5 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:44 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-16 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:46 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-tech-lead-6 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:53 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-36 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:54 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-14 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 09:56 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-36 | entrega | 1 | não cumpriu | n | arquivos web herdados do 8b não nomeados; brief de registro tech-lead-39 | escopo | jarvis |
+| 2026-11-10 09:57 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-37 | brief | 1 | reprovado | s | linha Z10 do gerar contradiz o Entregar | decisao | jarvis |
+| 2026-11-10 09:57 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-38 | brief | 1 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:58 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-37 | brief | 2 | aprovado | s | hash conferido pelo Jarvis (sha256sum) | — | jarvis |
+| 2026-11-10 09:58 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-39 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 10:08 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-37 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 10:09 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-17 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 10:09 | 083-pre-push-lint-alterados | 083-pre-push-lint-alterados-tech-lead-6 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 10:24 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-15 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 10:25 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-38 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 10:26 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-17 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 10:42 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-15 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 10:43 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-40 | brief | 1 | aprovado | s |  | — | jarvis |
