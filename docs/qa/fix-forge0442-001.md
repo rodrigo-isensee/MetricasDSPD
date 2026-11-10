@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: fix-forge0442-001
 branch: fix/forge0442-001
-commit: 45870ce
+commit: 0dd4625
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -16,7 +16,7 @@ data: 2026-11-10
 
 # QA: FORGE0442-001, falhas pré-existentes do `pronto`
 
-Bug: `docs/qa/bugs/FORGE0442-001-falhas-preexistentes-do-pronto.md`. Sem UX nova; as obrigações são os três critérios do bug. Commits: d917496, 975218e, 45870ce.
+Bug: `docs/qa/bugs/FORGE0442-001-falhas-preexistentes-do-pronto.md`. Sem UX nova; as obrigações são os três critérios do bug. Commits de código: d917496, 975218e, 45870ce (os commits seguintes só trazem pareceres).
 
 ## Critério, teste e resultado
 | Critério | Teste | Fronteira protegida | Resultado |
