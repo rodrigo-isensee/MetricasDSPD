@@ -809,3 +809,4 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-11-07 20:40: K-204 e K-211 atualizados (075 6a e 077 6b conferidos; integração com o 4c; fila parada nas decisões do dono).
 - 2026-11-08 18:46: K-204 e K-211 atualizados (PR 267 do 6a aberto; pushes do 077 pelo dono; 4c com correção pendente).
 - 2026-11-09 10:18: K-250 aberto (Forge, prazo do hook R-REVIEW em gh pr create). 077: 8a mesclado (PR 272), 3b com PR 273 pronto, Lote 5 delegado (052g), 6b integrando a develop. 075: 4c com PR a abrir pelo dono.
+| 2026-11-10T08:04:24-03:00 | K-211 | Em andamento | Em andamento | 077 6b: react-frontend-9 delegado (integração da develop, 056d), retomada de 2026-11-10 |
