@@ -1323,6 +1323,8 @@ export const marcacoes = marcacaoCriterioSchema
 const mesCivil = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/) // AAAA-MM
 /** Pedido 077, L1a: a janela de 12 semanas do mês começa antes do histórico carregado (sem `.strict()`: A5). */
 const janelaIncompletaTendencia = z.object({ historicoDesde: iso }).optional()
+/** Pedido 077, L8a: o mês começa antes do histórico; o número fica no item, marcado, e só a tela o esconde (P-077-5). */
+const contagemParcialTendencia = z.object({ historicoDesde: iso }).optional()
 const SEM_ESTATISTICA = 'mês com janela incompleta não traz estatística'
 /**
  * Um ponto por mês-calendário fechado, no máximo 6. Cada ponto é a métrica de origem calculada na data de
@@ -1347,6 +1349,7 @@ export const resultadoTendenciaFluxo = z.object({
         /** Itens de demanda concluídos no mês-calendário (data de conclusão), sempre publicado. */
         concluidos: z.number(),
         janelaIncompleta: janelaIncompletaTendencia,
+        contagemParcial: contagemParcialTendencia,
       })
       .refine((m) => !m.janelaIncompleta || m.p85PorTipo.length === 0, {
         message: SEM_ESTATISTICA,
@@ -1367,6 +1370,7 @@ export const resultadoTendenciaSust = z.object({
         /** Chamados abertos no mês-calendário (data de abertura, a base do S3), sempre publicado. */
         volume: z.number(),
         janelaIncompleta: janelaIncompletaTendencia,
+        contagemParcial: contagemParcialTendencia,
       })
       .refine((m) => !m.janelaIncompleta || m.prioridades.length === 0, {
         message: SEM_ESTATISTICA,
