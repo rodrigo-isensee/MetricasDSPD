@@ -207,6 +207,8 @@ export interface PontoMensal {
   texto: string
   /** Primeiro dia do histórico carregado (AAAA-MM-DD) quando a janela de 12 semanas do mês começa antes dele. */
   janelaIncompleta?: string
+  /** Primeiro dia do histórico carregado (AAAA-MM-DD) quando o mês começa antes dele: a contagem não é publicada. */
+  contagemParcial?: string
   /** Rótulo curto do eixo para o ponto sem valor quando o motivo não é janela incompleta nem poucos itens. */
   motivo?: string
 }
@@ -244,6 +246,16 @@ const janelaIncompleta = (mes: string, historicoDesde: string): PontoMensal => (
   janelaIncompleta: historicoDesde,
 })
 
+/** Mês de contagem parcial (P-077-5 = A): o contrato traz o número e a marca; a tela mostra só o motivo. */
+const contagemIncompleta = (mes: string, historicoDesde: string): PontoMensal => ({
+  mes,
+  valor: null,
+  n: null,
+  texto: `Histórico incompleto: o histórico carregado começa em ${fmtData(historicoDesde)}, depois do início do mês. Contagem não publicada.`,
+  contagemParcial: historicoDesde,
+  motivo: 'histórico incompleto',
+})
+
 /** P85 do tipo escolhido em cada mês (o mesmo tipo do número): estatística por tipo, nunca entre tipos. */
 export function serieP85(
   t: ResultadoDe<'TENDENCIA_FLUXO'>,
@@ -266,12 +278,16 @@ export function serieP85(
 }
 
 export const serieConcluidos = (t: ResultadoDe<'TENDENCIA_FLUXO'>): PontoMensal[] =>
-  t.meses.map((m) => ({
-    mes: m.mes,
-    valor: m.concluidos,
-    n: m.concluidos,
-    texto: `${fmtInteiro(m.concluidos)} ${plural(m.concluidos, 'item', 'itens')}`,
-  }))
+  t.meses.map((m) =>
+    m.contagemParcial
+      ? contagemIncompleta(m.mes, m.contagemParcial.historicoDesde)
+      : {
+          mes: m.mes,
+          valor: m.concluidos,
+          n: m.concluidos,
+          texto: `${fmtInteiro(m.concluidos)} ${plural(m.concluidos, 'item', 'itens')}`,
+        },
+  )
 
 /** "k de m avaliadas": quantas das prioridades com aderência publicada estão fora do alvo (P2). m = 0: não publicado. */
 export function serieSla(t: ResultadoDe<'TENDENCIA_SUST'>): PontoMensal[] {
@@ -297,12 +313,16 @@ export function serieSla(t: ResultadoDe<'TENDENCIA_SUST'>): PontoMensal[] {
 }
 
 export const serieVolume = (t: ResultadoDe<'TENDENCIA_SUST'>): PontoMensal[] =>
-  t.meses.map((m) => ({
-    mes: m.mes,
-    valor: m.volume,
-    n: m.volume,
-    texto: `${fmtInteiro(m.volume)} ${plural(m.volume, 'chamado', 'chamados')}`,
-  }))
+  t.meses.map((m) =>
+    m.contagemParcial
+      ? contagemIncompleta(m.mes, m.contagemParcial.historicoDesde)
+      : {
+          mes: m.mes,
+          valor: m.volume,
+          n: m.volume,
+          texto: `${fmtInteiro(m.volume)} ${plural(m.volume, 'chamado', 'chamados')}`,
+        },
+  )
 
 /** Frase da série de SLA: diz o que foi contado (abaixo da meta), para "2 de 5" não ser lido como "2 estão bem". */
 export function fraseDaSerieSla(pontos: readonly PontoMensal[]): string {

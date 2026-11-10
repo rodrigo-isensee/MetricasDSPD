@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import type { MarcacaoCriterio } from '@metricas-dspd/contratos'
 import { GraficoMensal } from '@/components/charts'
-import { Botao, TabelaDados } from '@/components/ui'
+import { Botao, Icone, TabelaDados } from '@/components/ui'
 import { fmtData, fmtInteiro, fmtMes } from '@/lib/formatar'
 import { mesPorExtenso, type PontoMensal } from './modelo'
 
@@ -25,6 +25,10 @@ export interface SerieMensalProps {
   vazio?: string
   /** Texto do vazio quando algum ponto é de janela incompleta (cita a janela de 12 semanas completa). */
   vazioJanela?: string
+  /** Ressalvas da série (textos do contrato), entre o subtítulo e o gráfico. */
+  notas?: readonly string[]
+  /** `data-testid` da lista de notas. */
+  notasTestid?: string
 }
 
 /** Posição da mudança de critério no eixo: o primeiro mês em/depois da data. */
@@ -37,6 +41,7 @@ const FRASE_JANELA =
 const situacaoDoPonto = (p: PontoMensal): string => {
   if (p.valor !== null) return 'publicado'
   if (p.janelaIncompleta) return 'não publicado · janela incompleta'
+  if (p.contagemParcial) return 'não publicado · histórico incompleto'
   return `n=${fmtInteiro(p.n ?? 0)} · não publicado`
 }
 
@@ -57,6 +62,8 @@ export function SerieMensal({
   eixoMax,
   vazio = 'Ainda não há histórico suficiente: nenhum dos últimos 6 meses atinge 20 itens.',
   vazioJanela = 'Ainda não há histórico suficiente: nenhum dos últimos 6 meses atinge 20 itens com a janela de 12 semanas completa.',
+  notas = [],
+  notasTestid,
 }: SerieMensalProps) {
   const [tabela, setTabela] = useState(false)
   const idTitulo = useId()
@@ -93,6 +100,19 @@ export function SerieMensal({
           </Botao>
         )}
       </div>
+      {notas.length > 0 && (
+        <ul
+          className="m-0 flex list-none flex-col gap-0.5 p-0 text-xs text-texto-2"
+          data-testid={notasTestid}
+        >
+          {notas.map((n) => (
+            <li key={n} className="flex items-start gap-1">
+              <Icone nome="info" className="mt-0.5 size-3.5 shrink-0" />
+              {n}
+            </li>
+          ))}
+        </ul>
+      )}
       {semHistorico || pontos.length === 0 ? (
         <p className="text-sm text-texto-2" data-testid={`${id}-vazio`}>
           {comJanelaIncompleta ? vazioJanela : vazio}

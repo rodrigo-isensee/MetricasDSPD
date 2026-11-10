@@ -3,38 +3,32 @@ tipo: review
 contrato: 1
 pedido: 077-tendencias-dado-real
 branch: feature/077-l5-fluxo-real
-commit: e751242b53f2aaac546ec2cd016d126fe8ea726e
+commit: e980596ee86020638853237ccb3eff63e4892b77
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-10
 ---
 # Code review: 077 lote 5, TENDENCIA_FLUXO no mapa real (K-211, E2.2)
 
-Diff lido: `8e2889ba...e751242b` (6 arquivos, 144 adições e 6 remoções, em 3 commits: `96569b15`, `2e737308` só formatação e `e751242b` A14). Comparado com `## Lote 5` de `docs/analises/077-desenho.md` e com A8, A9, A11, A12 e A14 de `docs/analises/077-desenho-revisao-tech-lead.md`.
+Diff lido: `76be45ee...e980596e` (a base é a ponta atual da `develop`). Comparado com `## Lote 5` de `docs/analises/077-desenho.md` e com A8, A9, A11, A12 e A14 de `docs/analises/077-desenho-revisao-tech-lead.md`. Revisão incremental sobre o parecer anterior (`e751242b`), que este substitui.
 
 ## Parecer
 **Aprovado.** O lote faz o que o Lote 5 pede, sem nada a mais.
 
-- **Mapa real e simulação (A9):** `TENDENCIA_FLUXO` entrou em `METRICAS_ORIGEM_REAL` (`packages/contratos/src/origem.ts:33-34`) e continua em `METRICAS_SEM_SIMULACAO`. No `origem.test.ts`, o teste do 065 passou a conferir os ids, sem tamanho fixo (`:144`). O T-C1 afirma o id presente no mapa real e `podeSimular` falso para todo id real (`:179-182`). `TENDENCIA_SUST` continua fora do mapa real, o que está certo porque é do Lote 7.
-- **Constante da virada (A8, P-077-3):** `VERSAO_CRITERIO_TENDENCIA_FLUXO_DADO_REAL` usa `afeta: ['TENDENCIA_FLUXO']` e está em `VERSOES_DA_BIBLIOTECA` (`packages/metricas/src/core/criterios.ts:138-157`). Segue o precedente do 065 e do 075 6a. A data é 2026-11-09 e se corrige no merge (A1).
-- **Sem carga inicial (A14, T2.5):** o guarda em `server/src/modulos/metricas/servico.ts:275` devolve o mesmo `semDado()` do portão do 060 (`:268-269`). Não há cálculo novo, e o número sai pela biblioteca (ADR 0019). O modo mock explícito continua calculando.
-- **Prova de rota (A11, A12):** `server/tests/tendencia-fluxo-real-l5.test.ts` usa `historicoDesde = 2026-07-01` e `dataReferencia = 2026-12-01`. Junho a agosto saem com `janelaIncompleta` e sem estatística, e setembro a novembro saem publicados, no mesmo resultado e validados pelo schema. A biblioteca e o serviço são os reais; só o pg é dublê. Isso atende à "base real-like" da A11.
-- **Mínimo de 20 itens:** o tipo com 19 entregues sai `insuficiente` num mês publicado (`:89-94`).
-- **BusinessMap e Acelerato sem mistura:** `dominioDe('TENDENCIA_FLUXO')` não carrega o Acelerato (`servico.ts:273`). O teste com chamado tem o mesmo corpo do teste sem chamado (A2).
-- **Marca da virada em `criterios` (CA-12):** está provada no teste `:115-119`.
-- **8a junto:** `contagemParcial` aparece no mês que começa antes do histórico e não aparece no mês que começa nele (`:102-107`).
-- **`qa-f6-painel.test.ts`:** a única mudança é incluir o id na lista dos reais (`:98`).
+- **Delta desde `e751242b`:** dois commits. `6172e7a1` é a `develop` trazida (sem conflito; o diff da branch contra a `develop` volta a ter só os arquivos do lote). `e980596e` muda só duas linhas de `packages/metricas/src/core/criterios.ts`: o `id` passa a `criterio-2026-11-10-tendencia-fluxo-dado-real` e a `data` a `2026-11-10`. O resto da constante (`afeta: ['TENDENCIA_FLUXO']`, descrição, presença em `VERSOES_DA_BIBLIOTECA`) não mudou.
+- **Nenhum teste dependia do id antigo:** busca por `tendencia-fluxo-dado-real` e `criterio-2026-11-09` em `.ts`, `.tsx`, `.json` e `.md` do repositório só acha a própria constante. O teste da marca (`tendencia-fluxo-real-l5.test.ts:115-119`) confere `afeta`, não o id.
+- **A1 do parecer anterior: resolvido.** Id e data estão no dia da abertura do PR (2026-11-10). O comentário da constante ainda diz "data do PR; a do merge corrige se escorregar", o que continua verdadeiro.
+- **O que seguia valendo e não mudou (código idêntico ao revisado):** mapa real e simulação (A9), guarda sem carga inicial (A14, `servico.ts:275`, número pela biblioteca, ADR 0019), prova de rota com janela incompleta e publicada (A11, A12), mínimo de 20 itens, BusinessMap sem mistura com o Acelerato, `contagemParcial` do 8a e `qa-f6-painel.test.ts`.
 
 ## Ferramentas
-- **CI do push em `e751242b`:** run 42818122127 `CI` `success` (rapida, testes, filtro, seguranca, build, openapi, imagem e banco verdes; e2e e perf pulados pela regra do workflow). Lint, tipos e cobertura de ramos de 100% vêm da CI e não foram refeitos.
-- **Testes dos arquivos tocados:** `server` `tests/tendencia-fluxo-real-l5.test.ts` e `tests/qa-f6-painel.test.ts`, 12 verdes; `packages/contratos` `src/origem.test.ts`, 17 verdes.
-- **Mutações refeitas, restauradas com `git checkout HEAD -- server/src` e árvore limpa conferida:** S1 e S2.
+- **CI do push em `e751242b`:** verde (run 42818122127). A CI do novo push (`e980596e`) é a que vale para o merge; não foi refeita aqui.
+- **Testes dos arquivos tocados:** os do parecer anterior (server `tendencia-fluxo-real-l5.test.ts` e `qa-f6-painel.test.ts`, 12 verdes; contratos `origem.test.ts`, 17 verdes) cobrem código que não mudou; o delta é só dado de constante e não os afeta. Não reexecutados nesta passada incremental.
+- **Mutações e sondas:** S1 e S2 do parecer anterior valem (guarda de `servico.ts:275` intacto no delta).
 
 ## Teto M14
-150 linhas de código e teste (`origem.test.ts` 6+4, `origem.ts` 2+0, `criterios.ts` 10+0, `servico.ts` 4+1, `qa-f6-painel.test.ts` 1+1, `tendencia-fluxo-real-l5.test.ts` 121+0). O lote fica no limite e tem um comportamento só.
+Contra `origin/develop`: `origem.test.ts` 6+4, `origem.ts` 2+0, `criterios.ts` 10+0, `servico.ts` 4+1, `qa-f6-painel.test.ts` 1+1, `tendencia-fluxo-real-l5.test.ts` 121+0, ou seja 150 linhas, no limite, com um comportamento só.
 
 ## Achados
-- A1 (recomendado) packages/metricas/src/core/criterios.ts:140 · a data 2026-11-09 (e o id que a repete) é a da entrega. No merge, se o dia for outro, corrigir os dois (A8). A marca só aparece no mês fechado (R5).
 - A2 (recomendado) server/tests/tendencia-fluxo-real-l5.test.ts:96 · para `TENDENCIA_FLUXO` o serviço nem lê o Acelerato (`servico.ts:273`). O teste vale como regressão, mas não prova que o dublê foi consultado.
 - A3 (recomendado) server/src/modulos/metricas/servico.ts:275 · sem carga inicial, o motivo é o genérico "fonte real ainda não definida", que não descreve o caso (a fonte existe, falta a carga). Um texto próprio é decisão de UX e do dono, para um lote futuro.
 
