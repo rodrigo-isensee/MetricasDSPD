@@ -265,11 +265,14 @@ export class ServicoMetricas {
     }
     // Pedido 060 (P3): o mapa de origem é um portão. Fora dele (e fora do modo mock explícito) nada é lido nem calculado: responde o estado
     // "sem dado real" com o motivo, sem número.
-    if (this.semDadoReal(id)) return { resultado: corpoSemDadoReal(id), dataReferencia: op.dataReferencia ?? hoje, versaoCriterio: '0', chave: `${id}|sem-dado-real`, semDadoReal: true };
+    const semDado = (): Calculo => ({ resultado: corpoSemDadoReal(id), dataReferencia: op.dataReferencia ?? hoje, versaoCriterio: '0', chave: `${id}|sem-dado-real`, semDadoReal: true });
+    if (this.semDadoReal(id)) return semDado();
     const real = this.real;
     if (dom === 'pesquisa') return this.calcularPesquisa(id, op.dataReferencia ?? hoje);
     const bm = dom === 'acelerato' ? null : await this.carga('businessmap', agora);
     const ac = dom === 'businessmap' ? null : await this.carga('acelerato', agora);
+    // Pedido 077 (L5, A14): a tendência do fluxo sem carga inicial com sucesso não tem início de histórico; sem ele não se publica a série.
+    if (id === 'TENDENCIA_FLUXO' && this.deps.modoMock !== true && bm?.historicoDesde === undefined) return semDado();
     if (ac !== null && ac.base.config.alvos.length === 0 && METRICAS_COM_ALVOS.includes(id)) {
       throw new AppError('REFERENCIA_AUSENTE', 'Referência não carregada: alvos de prioridade (ref_alvo_prioridade).', 503);
     }
