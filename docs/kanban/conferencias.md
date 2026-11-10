@@ -2650,3 +2650,89 @@
 | 2026-11-10 11:09 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-18 | brief | 1 | aprovado | s |  | — | jarvis |
 | 2026-11-10 11:14 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-18 | entrega | 1 | cumpriu | s |  | — | destino |
 | 2026-11-10 11:15 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-16 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 11:33 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-16 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 11:33 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-41 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 11:34 | 084-forge-0450 | 084-forge-0450-qa-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 11:35 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-41 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 11:36 | 084-forge-0450 | 084-forge-0450-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 11:36 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-19 | brief | 1 | reprovado | s | item Fora do escopo do pedido ausente | escopo | jarvis |
+| 2026-11-10 11:37 | 084-forge-0450 | 084-forge-0450-tech-lead-2 | entrega | 1 | não cumpriu | s | hook R-REVIEW recusou gh pr create por prazo de 3 s | ambiente | jarvis |
+| 2026-11-10 11:38 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-19 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-10 11:41 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-19 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 11:42 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-42 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 11:48 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-devops-engineer-1 | brief | 1 | reprovado | s | parecer de devops não estava na etapa do pedido | escopo | jarvis |
+| 2026-11-10 11:48 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-devops-engineer-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-10 11:50 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-devops-engineer-1 | entrega | 1 | cumpriu | s | PQ-2 rodado pelo Jarvis (rc=0); conferente: não verificável | — | jarvis |
+| 2026-11-10 11:51 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-tech-lead-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 11:53 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-tech-lead-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 11:53 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-qa-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:05 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-qa-engineer-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 12:06 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-security-engineer-1 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:07 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-42 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 12:08 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-security-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:10 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-security-engineer-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 12:11 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-tech-lead-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:35 | 086-prontidao-dado-real-vm | 086-prontidao-dado-real-vm-software-architect-1 | brief | 1 | reprovado | s | linha genérica de commit e item fora do escopo ausente | escopo | jarvis |
+| 2026-11-10 12:36 | 086-prontidao-dado-real-vm | 086-prontidao-dado-real-vm-software-architect-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:36 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-tech-lead-2 | entrega | 1 | cumpriu | s | head mudou por update-branch do dono; forge-check pr aprovado em 0a403c3 | — | jarvis |
+| 2026-11-10 12:37 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-17 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:44 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-9 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:45 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-security-engineer-2 | brief | 1 | reprovado | n | develop com o PR 280 não registrada no pedido | decisao | jarvis |
+| 2026-11-10 12:46 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-security-engineer-2 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:47 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-9 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 12:48 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-1 | brief | 1 | reprovado | s | envio da branch pelo autor não estava na etapa | escopo | jarvis |
+| 2026-11-10 12:48 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:49 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-10 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:49 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-2 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:50 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-security-engineer-3 | brief | 1 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:52 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-security-engineer-3 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 12:52 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-qa-engineer-2 | brief | 1 | reprovado | s | item da 0035 fora do pedido | escopo | jarvis |
+| 2026-11-10 12:54 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-qa-engineer-2 | brief | 2 | reprovado | s | tardio: nao · dispensa de falha do sandbox fora do pedido | escopo | jarvis |
+| 2026-11-10 12:54 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-qa-engineer-2 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-10 12:55 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-2 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 12:58 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-1 | brief | 1 | reprovado | s | critérios de review além do E4 | escopo | jarvis |
+| 2026-11-10 12:59 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-security-engineer-1 | brief | 1 | reprovado | s | push pelo security fora da etapa | escopo | jarvis |
+| 2026-11-10 12:59 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-security-engineer-1 | brief | 2 | aprovado | s |  | — | jarvis |
+| 2026-11-10 13:00 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-1 | brief | 2 | reprovado | s | tardio: nao · commit e push do parecer não estavam na etapa | escopo | jarvis |
+| 2026-11-10 13:00 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-1 | brief | 3 | aprovado | s |  | — | jarvis |
+| 2026-11-10 13:01 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-17 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 13:03 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-1 | entrega | 1 | cumpriu | s |  | — | destino |
+| 2026-11-10 13:04 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-43 | brief | 1 | reprovado | s | modo de push sem decisão nova no pedido | decisao | jarvis |
+| 2026-11-10 13:05 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-5 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:05 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-qa-engineer-2 | entrega | 1 | aprovado | s | parecer QA 0c03702c na branch | — | jarvis |
+| 2026-11-10 13:07 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-11 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:09 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-43 | brief | 2 | aprovado | s | push em primeiro plano confere com a decisão técnica de 13:04 | — | jarvis |
+| 2026-11-10 13:09 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-software-architect-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:10 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-5 | entrega | 1 | cumpriu (push confirmado pelo Jarvis: remoto 699ad94d) | s | conteúdo ok; push não verificável pelo conferente (rede) | — | jarvis |
+| 2026-11-10 13:11 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-node-backend-1 | brief | 1 | reprovado | s | cartão K-258 em vez de K-244 | escopo | jarvis |
+| 2026-11-10 13:11 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-react-frontend-1 | brief | 1 | reprovado | s | fallback citava a 2-A do 077 | escopo | jarvis |
+| 2026-11-10 13:12 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-security-engineer-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:13 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:13 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-react-frontend-1 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:13 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-node-backend-1 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:13 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-43 | entrega | 1 | cumpriu | s | parecer 6a7ab1e4 sobre d0b7818a; remoto confirmado pelo Jarvis | — | jarvis |
+| 2026-11-10 13:16 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-2 | entrega | 1 | cumpriu | s | parecer dc7e2756; scripts no intervalo são do devops-5 | — | jarvis |
+| 2026-11-10 13:16 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-security-engineer-2 | entrega | 1 | cumpriu | s | parecer 87626ab9 | — | jarvis |
+| 2026-11-10 13:16 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-20 | brief | 1 | reprovado | s | data da virada do Acelerato não está no pedido | escopo | jarvis |
+| 2026-11-10 13:19 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-qa-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:23 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-6 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:23 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-node-backend-1 | entrega | 1 | cumpriu | s | b9802196; pronto pelo autor e CI | — | jarvis |
+| 2026-11-10 13:26 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-6 | entrega | 1 | cumpriu | s | d98db2b2 e 9fc2ac6a | — | jarvis |
+| 2026-11-10 13:27 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-3 | brief | 2 | aprovado | s | corte ok | — | jarvis |
+| 2026-11-10 13:28 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-qa-engineer-2 | brief | 3 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:31 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-qa-engineer-3 | brief | 1 | aprovado | s | aviso: review e segurança sobre 9fc2ac6a correm em paralelo; o QA commita depois deles | — | jarvis |
+| 2026-11-10 13:32 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-security-engineer-3 | brief | 1 | aprovado | s | alvo é o head 9fc2ac6a | — | jarvis |
+| 2026-11-10 13:33 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-4 | brief | 2 | aprovado | s | fidelidade ok | — | jarvis |
+| 2026-11-10 13:34 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-5 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 13:37 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-6 | brief | 1 | aprovado | s | parecer de devops em 9fc2ac6a (commit d98db2b2) | — | jarvis |
+| 2026-11-10 13:44 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-19 | brief | 1 | reprovado | s | base antes do merge da release | decisao | jarvis |
+| 2026-11-10 13:45 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-19 | brief | 2 | aprovado | s | base pela decisão de 13:44 | — | jarvis |
+| 2026-11-10 14:00 | 077-tendencias-dado-real | 077-tendencias-dado-real-node-backend-19 | entrega | 1 | cumpriu | s | 42bf48aa; diff idêntico ao do L7 revisado | — | jarvis |
+| 2026-11-10 14:03 | 077-tendencias-dado-real | 077-tendencias-dado-real-qa-engineer-21 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 14:03 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-44 | brief | 1 | reprovado | s | workers e origem dos achados | escopo | jarvis |
+| 2026-11-10 14:05 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-44 | brief | 2 | aprovado | s | fidelidade ok | — | jarvis |
+| 2026-11-10 14:09 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-45 | brief | 1 | reprovado | s | merge é do dono (decisão de 2026-11-07 21:57) | decisao | jarvis |
+| 2026-11-10 14:10 | 084-forge-0450 | 084-forge-0450-agile-coach-1 | brief | 1 | reprovado | s | cartão e commit contra NÃO tocar | escopo | jarvis |
+| 2026-11-10 14:11 | 084-forge-0450 | 084-forge-0450-agile-coach-1 | brief | 2 | aprovado | s | PR 281 na develop (7a44f941) | — | jarvis |
+| 2026-11-10 14:11 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-45 | brief | 2 | aprovado | s | merge com o dono | — | jarvis |
+| 2026-11-10 14:12 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |

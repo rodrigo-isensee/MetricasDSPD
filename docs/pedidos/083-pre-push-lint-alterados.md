@@ -70,3 +70,4 @@
 - 2026-11-10 09:44: brief selado docs/briefs/083-pre-push-lint-alterados-tech-lead-5.md 7553a21c87d86933b6371768d965513786506dc83a3af534408a6992e4e542e2
 - 2026-11-10 09:46: brief selado docs/briefs/083-pre-push-lint-alterados-tech-lead-6.md 74a0cb496dbc16ff7bfff3af7c39d3a56cf41b1d481c81c419746cd99bdb1962
 - 2026-11-10 10:09: PR 277 (retrospectivas 079 a 083) aberto e marcado como pronto (tech-lead-6, retomado depois do reinício), checks verdes, ato conferido (cumpriu). AÇÃO DO DONO: mesclar o PR 277.
+- 2026-11-10 11:33: DECISÃO DO DONO (literal): "vamos de B" (P-083-1: o pre-push e o guarda de lint ficam como estão; o push leva cerca de 15 s depois do pre-push só com os alterados). K-251 fechado sem mudança.
