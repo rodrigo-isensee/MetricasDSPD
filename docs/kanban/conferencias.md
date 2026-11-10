@@ -2736,3 +2736,8 @@
 | 2026-11-10 14:11 | 084-forge-0450 | 084-forge-0450-agile-coach-1 | brief | 2 | aprovado | s | PR 281 na develop (7a44f941) | — | jarvis |
 | 2026-11-10 14:11 | 077-tendencias-dado-real | 077-tendencias-dado-real-tech-lead-45 | brief | 2 | aprovado | s | merge com o dono | — | jarvis |
 | 2026-11-10 14:12 | 085-suite-unica-trava-no-pronto | 085-suite-unica-trava-no-pronto-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 15:00 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-12 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 15:03 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-qa-engineer-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 15:04 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-security-engineer-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 15:05 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-security-engineer-5 | brief | 1 | aprovado | s | igual ao -4, Revisar-sha recalculado | — | jarvis |
+| 2026-11-10 15:06 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-qa-engineer-4 | brief | 1 | aprovado | s | igual ao -3, Revisar-sha recalculado | — | jarvis |
