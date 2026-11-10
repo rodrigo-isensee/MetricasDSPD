@@ -357,3 +357,10 @@
 - 2026-11-10 10:42: entrega conferida 9dc0c0ef1dae57e23aad6349a86c4351fc85fca3
 - 2026-11-10 10:42: Lote 7 (node-backend-15) conferido: 9dc0c0ef sobre a ponta do Lote 5, CI verde, 109 linhas. Próximo: review (tech-lead-40) e depois QA, em série na 052f.
 - 2026-11-10 10:43: brief selado docs/briefs/077-tendencias-dado-real-tech-lead-40.md 8b238ad14a5e74a8407ac1ec47fd72fb28e462d615e0d6b2118ca6367ab85691
+- 2026-11-10 11:07: entrega conferida 20042cb6abb4cc4aed455a22cde4429867bc8aae
+- 2026-11-10 11:07: Review do Lote 7 (tech-lead-40) aprovado e conferido; o agente parou por limite de uso do Opus depois de enviar o parecer (20042cb6). Próximo: QA do Lote 7 (qa-engineer-18) na 052f; os próximos reviews vão ao Sonnet até o limite do Opus renovar (2026-11-11 16:00).
+- 2026-11-10 11:09: brief selado docs/briefs/077-tendencias-dado-real-qa-engineer-18.md e8fb5d65ae631fd153db87bdc90cc7524de1da5bf371f90c193199e8e882d027
+- 2026-11-10 11:14: entrega conferida 8e47e4e367648c001f51814a458c423f53bce9cc
+- 2026-11-10 11:14: QA do Lote 7 (qa-engineer-18) aprovado, 0 bugs, conferido; A1 (faltam 20 apuráveis exatos na rota) e A2 (primeira chamada fria acima de 300 ms; medir na homologação) recomendados. Lote 7 pronto para PR, depois do merge do PR 278 (8b) e do PR do Lote 5.
+- 2026-11-10 11:14: PR 278 (8b) e PR 277 (retrospectivas) mesclados pelo dono. DECISÃO TÉCNICA (Jarvis): o Lote 5 vai a PR; antes, o node-backend (node-backend-16) traz a develop para a branch e corrige a data da constante da virada do BusinessMap para o dia da abertura do PR (2026-11-10, A8 e A1 do review), com o id da constante; depois review e QA incrementais e o PR. O Lote 7 recebe a develop depois do merge do Lote 5.
+- 2026-11-10 11:15: brief selado docs/briefs/077-tendencias-dado-real-node-backend-16.md e212f53df46c2004b42852d6790acc59f67915dc815fd520c24551d305f43a03
