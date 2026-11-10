@@ -1,0 +1,25 @@
+# 075: revisão do plano técnico dos bloqueios reais (E3.3, tech-lead), com revalidação
+
+Revisor: tech-lead, 2026-11-06. Objeto: `docs/analises/075-plano.md` (segunda versão, E3.1, com a tabela §0), conferido contra o parecer anterior (A1 a A8), as decisões do dono de 11:11 e 11:28 e o `docs/analises/075-plano-revisao-seguranca.md` só quanto aos pontos comuns. Leitura na develop em `/home/rodrigoisensee/MetricasDSPD-056d` (f21220fe); nada executado contra API ou base; sem commit.
+
+## Veredito
+**Aprovado com ressalvas.** Os quatro bloqueantes (A1 a A4) estão resolvidos no plano. O que resta é um achado novo, recomendado (A9, no Lote 2b), e duas recomendações de margem de teto. Nenhum devolve o plano; o Lote 1a pode começar.
+
+## Revalidação
+| Achado | Gravidade antes | Situação | Onde no plano |
+|---|---|---|---|
+| A1 | bloqueante | Resolvido. Lotes 1a/1b, 2a/2b, 3, 4a/4b/4c, 5a/5b, 6a/6b, 9a/9b, cada um com um comportamento declarado e teto 150; estimativas de 60 a 150; exceção só com `teto: excedido, <n> linhas, <motivo>` (§0, 4a, 9a). Margem: ver A10. | §0; "Comportamento" e "Teto" de cada lote |
+| A2 | bloqueante | Resolvido. 1a e 9b marcados incompatíveis (`politica-de-mudanca.md:23,25`), com o fluxo do `aceitas.json` (entrada copiada do `docs:check`, fotografar, remover no mesmo PR), a linha do checklist §6 no corpo do PR e a conferência de que o `web` não tem `switch` exaustivo (0 ocorrências de `MotivoBloqueio` em `web/src`). | §6 "Classificação de contrato"; Lotes 1a e 9b |
+| A3 | bloqueante | Resolvido. `evt_bloqueio.motivo_codigo` guarda o `reason_id` numérico (`^\d{1,10}$`, nulo se fora do padrão, com nota por código); `fato_bloqueio.motivo` é o mapa aplicado na projeção e entra no `DO UPDATE`, então o mapa preenchido depois reclassifica o passado sem tocar o evento; teste de que o evento fica idêntico depois da reclassificação. | Lotes 2a, 3, 4b; §0 |
+| A4 | bloqueante | Resolvido. P-075-9 a 12 registradas como decididas; Lotes 7 e 8 fora da ordem e das tabelas; `MOTIVO_ORIGEM_MOCK` de T10 e T12 declarado fora do pedido; pendências do T10 e do T12 em seção própria; teste de que ficam fora no 6b. | §3, §4, §5, §7; Lote 6b |
+| A5 | recomendado | Resolvido na regra (reabertura abre bloqueio novo com `id_origem` da primeira versão ativa bloqueada) e no teste; falta uma delimitação, ver A9. | Lote 2b "Reabertura depois de marco" |
+| A6 | recomendado | Resolvido. E2E `*-api` provados pelo run do PR em rascunho (run id no parecer do QA); tempo do `bm:projetar` e `EXPLAIN` medidos localmente no `.pg`, no parecer, remedidos no 4b. | Lotes 4a, 4b, 6b |
+| A7 | recomendado | Resolvido. De onde roda a projeção real é confirmado com o dono antes da prova; se for a `main`, release `homolog` → `main` antes do 6b (interruptor desligado, sem validação manual). | Lote 6b "De onde roda", §7, §8 |
+| A8 | recomendado | Resolvido. Back-end em série (1a → 1b → 3 → 2a → 2b → 4a → 4b → 4c → 6a → prova → 6b → 9b); 3 antes do 2a por ser menor e independente; front em paralelo, um cartão por agente. | §7 |
+
+Regra de reabertura do TL-A5 (Lote 2b): **aceitável, não precisa de pergunta ao dono.** Decorre das duas decisões: a P-075-5 fecha o bloqueio no marco e o `fim` é append-only, então não há bloqueio aberto a continuar; um card ativo visto bloqueado sem bloqueio aberto é o caso "primeira versão já bloqueada" da P-075-2. A cláusula "se o review ou o dono discordarem, o lote para e vira pergunta" fica como está. Só falta definir o que é "voltar ativo" (A9), que é detalhe de implementação, não de negócio.
+
+## Achados
+- A9 (recomendado) Lote 2b · `075-plano.md:131` (regra de reabertura) e `:133` (testes) · A regra diz "card fechado por marco que volta ativo", mas não define o estado "ativo" nem o caso vizinho: card arquivado ou entregue que continua bloqueado nas versões seguintes sem sair do marco. Sem a definição, o derivador pode abrir um bloqueio novo a cada versão desse card, ou nunca reabrir. Correção: dizer que só reabre quando uma versão posterior ao marco está fora dele (não arquivada, fora da coluna `entrega`, não descartada) e bloqueada; versões seguintes ainda dentro do marco não abrem nada; acrescentar o teste "card arquivado e bloqueado com três versões seguintes no marco: zero evento novo".
+- A10 (recomendado) Lotes 4a, 5b e 9a · `075-plano.md:159, :201, :238` · Estimativas iguais ao teto (150 de 150) não deixam margem; um desvio de uma dezena de linhas vira `teto: excedido`, que o review só aceita com motivo. Correção: o autor mede o diff com `git diff --numstat --no-renames origin/develop...HEAD` antes do push; no 4a, se passar, o CA-075-1 ponta a ponta vai ao 4c (já previsto); no 5b, separar o texto de apoio (CA-11) do O1/O5 se estourar. Não devolve o plano.
+- A11 (recomendado) Lote 4b · `075-plano.md:152, :164` · `VERSAO_PROJETOR` sobe para `bm-f4/2` no 4a, mas o 4b muda o que a projeção grava (`fato_bloqueio`, com mapa e duração). Correção: dizer no 4b se a versão sobe de novo (`bm-f4/3`) ou se o 4a e o 4b saem na mesma versão de fato, para a reprojeção das bases já projetadas ser previsível; o teste do 4b confere a versão.

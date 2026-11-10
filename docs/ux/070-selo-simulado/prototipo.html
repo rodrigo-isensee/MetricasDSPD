@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo: selo Simulado (pedido 070)</title>
+<style>
+  body{font-family:system-ui,Arial,sans-serif;margin:0;background:#f3f4f6;color:#1f2937}
+  .proto{background:#1f2937;color:#fff;padding:8px 16px;font-size:14px}
+  main{max-width:1100px;margin:16px auto;padding:0 16px}
+  .grade{display:grid;gap:16px;grid-template-columns:1fr}
+  @media(min-width:768px){.grade{grid-template-columns:1fr 1fr}}
+  .cartao{background:#fff;border:1px solid #d1d5db;border-radius:8px;padding:16px;position:relative}
+  .cartao.sim{border:2px dashed #b45309}
+  .cab{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .cab h2{font-size:18px;margin:0;flex:1 1 auto}
+  .cod{background:#e5e7eb;border-radius:4px;padding:2px 8px;font-weight:700;font-size:13px}
+  .chip{background:#eef2ff;border:1px solid #6366f1;color:#312e81;border-radius:12px;padding:2px 8px;font-size:13px}
+  .selo{display:inline-flex;gap:4px;align-items:center;background:#fff1d6;color:#6b3a00;border:2px solid #b45309;border-radius:12px;padding:2px 10px;font-weight:700;font-size:13px}
+  .faixa{background:#fff1d6;color:#6b3a00;border-left:4px solid #b45309;padding:8px 12px;margin:12px 0;font-size:14px}
+  button{font:inherit;min-height:44px;min-width:44px;padding:4px 12px;border:1px solid #6b7280;border-radius:6px;background:#fff;cursor:pointer}
+  button:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}
+  .expl{background:#fffaf0;border:1px solid #b45309;padding:8px 12px;margin-top:8px;font-size:14px}
+  .expl[hidden]{display:none}
+  .corpo{position:relative;height:120px;display:flex;align-items:flex-end;gap:8px;padding:8px;border-bottom:1px solid #9ca3af;margin-top:8px}
+  .corpo i{display:block;width:32px;background:#4f46e5}
+  .sim .corpo i{background:#6b7280}
+  .marca{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:700;color:rgba(107,58,0,.12);transform:rotate(-12deg);pointer-events:none}
+  .rod{font-size:13px;color:#4b5563;margin-top:8px}
+  p{margin:8px 0}
+</style>
+</head>
+<body>
+<div class="proto">PROTÓTIPO descartável (pedido 070, E1.2). Dados fictícios, sem pessoas. Compare o cartão real, à esquerda, com o Simulado, à direita.</div>
+<main>
+  <h1>Painel de exemplo</h1>
+  <div class="grade">
+
+    <article class="cartao" aria-labelledby="t-real">
+      <div class="cab">
+        <span class="cod">O2</span>
+        <h2 id="t-real">Tempo de ciclo</h2>
+        <button type="button">Como ler</button>
+        <button type="button">Ver como tabela</button>
+        <span class="chip">Base: 38 itens</span>
+      </div>
+      <p>Quanto tempo as demandas levam do início à entrega.</p>
+      <p><strong>2 itens estão acima do P95.</strong></p>
+      <div class="corpo" role="img" aria-label="Gráfico de barras do tempo de ciclo"><i style="height:30%"></i><i style="height:60%"></i><i style="height:90%"></i><i style="height:50%"></i><i style="height:20%"></i></div>
+      <div class="rod">Meta: reduzir o P85 em 20% · Fonte: BusinessMap</div>
+    </article>
+
+    <article class="cartao sim" aria-labelledby="t-sim">
+      <div class="cab">
+        <span class="cod">O7</span>
+        <h2 id="t-sim">Vazão semanal</h2>
+        <button type="button">Como ler</button>
+        <button type="button">Ver como tabela</button>
+        <span class="chip">Base: 31 itens</span>
+        <span class="selo" aria-label="Dados simulados: este cartão mostra números de exemplo, não da operação."><span aria-hidden="true">&#9888;</span> Simulado</span>
+      </div>
+      <div class="faixa" role="note">
+        Dados de exemplo. Este cartão ainda não tem dado real, então os números abaixo não representam a operação.
+        <br><button type="button" id="b" aria-expanded="false" aria-controls="e">O que é simulado?</button>
+        <div class="expl" id="e" hidden>
+          Simulado quer dizer que os números e o gráfico deste cartão são inventados, só para mostrar como ele vai ficar. Não use para decidir nem para comparar. Quando o dado real da operação estiver disponível, este cartão passa a mostrá-lo sozinho e o aviso desaparece. Cada cartão muda por conta própria: um cartão real nunca traz números de exemplo misturados.
+        </div>
+      </div>
+      <p>Quantas demandas são entregues por semana.</p>
+      <p><strong>Exemplo: a vazão oscila entre 4 e 9 itens por semana.</strong></p>
+      <div class="corpo" role="img" aria-label="Exemplo: gráfico de barras da vazão semanal, dados simulados">
+        <i style="height:40%"></i><i style="height:70%"></i><i style="height:55%"></i><i style="height:90%"></i><i style="height:45%"></i>
+        <span class="marca" aria-hidden="true">SIMULADO</span>
+      </div>
+      <div class="rod">Meta: reduzir a amplitude · Fonte: BusinessMap</div>
+    </article>
+
+  </div>
+</main>
+<script>
+  var b=document.getElementById('b'),e=document.getElementById('e');
+  b.addEventListener('click',function(){
+    var a=b.getAttribute('aria-expanded')==='true';
+    b.setAttribute('aria-expanded',String(!a));
+    e.hidden=a;
+    b.textContent=a?'O que é simulado?':'Fechar explicação';
+  });
+</script>
+</body>
+</html>
