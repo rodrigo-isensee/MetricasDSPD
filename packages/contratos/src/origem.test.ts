@@ -33,7 +33,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10'],
-        ...['TENDENCIA_FLUXO'], // pedido 077 (L5)
+        ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
       ].sort(),
     )
   })
@@ -72,8 +72,8 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('O19 a O26, FL2, FL3, a Visão geral e a tendência da sustentação seguem mock, sem motivo próprio', () => {
-    for (const id of ['O19', 'O26', 'T1', 'E1', 'VISAO_GERAL', 'TENDENCIA_SUST'] as const) {
+  it('O19 a O26, FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
+    for (const id of ['O19', 'O26', 'T1', 'E1', 'VISAO_GERAL'] as const) {
       expect(origemDaMetrica(id)).toBe('mock')
       expect(motivoDaOrigemMock(id)).toBeNull()
     }
@@ -169,7 +169,7 @@ describe('estado sem dado real (pedido 060, P3)', () => {
 })
 
 describe('simulado por cartão (pedido 070, ADR 0028)', () => {
-  it('T-C1: id do mapa real nunca simulável (TENDENCIA_FLUXO) e podeSimular é falso para todo id real e para os quatro excluídos', () => {
+  it('T-C1: id do mapa real nunca simulável (as duas tendências) e podeSimular é falso para todo id real e para os quatro excluídos', () => {
     expect([...METRICAS_SEM_SIMULACAO].sort()).toEqual([
       'EI_SUST',
       'TENDENCIA_FLUXO',
@@ -177,7 +177,7 @@ describe('simulado por cartão (pedido 070, ADR 0028)', () => {
       'VISAO_GERAL',
     ])
     expect(METRICAS_ORIGEM_REAL.has('TENDENCIA_FLUXO')).toBe(true) // pedido 077 (L5): id do mapa real nunca simulável, mesmo na lista de exclusão
-    expect(METRICAS_ORIGEM_REAL.has('TENDENCIA_SUST')).toBe(false)
+    expect(METRICAS_ORIGEM_REAL.has('TENDENCIA_SUST')).toBe(true) // pedido 077 (L7)
     for (const id of METRICAS_ORIGEM_REAL) expect(podeSimular(id), id).toBe(false)
     for (const id of METRICAS_SEM_SIMULACAO) expect(podeSimular(id), id).toBe(false)
   })
