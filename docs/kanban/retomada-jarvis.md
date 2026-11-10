@@ -159,3 +159,13 @@ Este arquivo é para uma sessão nova do Jarvis que não tem a memória da anter
 - 00:20: trilha A (E2.15) pronta em commit local (052d, bde9c82). Falta B4 (rota) e C2 (front na rota); os PRs dependem da decisão do dono sobre push antes do QA.
 - Próximo passo concreto (059): as branches locais das trilhas A (feature/059-coleta-worklog), B (feature/059-contrato-biblioteca) e C (feature/059-aba-front) são visíveis em todas as worktrees do mesmo repositório; a B4 (rota, papel dspd_api_apontamento, interruptor APONTAMENTO_NOMES, 421 de Host e Origin) pode nascer da trilha A com merge local da trilha B, e a C2 (front na rota) da trilha C com merge local da B. PRs e push esperam a pergunta 1 do dono. 052: E2.145 (merge do PR 190) rodando com o tech-lead.
 - 00:35: PR 190 mesclado. Entrega de segunda (052) com o código completo na develop; falta o dono rodar a limpeza no banco dele e regenerar o mock. Limpeza das branches mescladas pendente (tech-lead).
+
+## Retomada 2026-11-10 08:30 (Jarvis na sessão do app no Windows, devolvido ao WSL)
+- Forge atualizado pelo dono para a 0.45.0 (`forge atualizar`). Branch `forge/upgrade-0.45.0` (2ec26d3c, só `.forge/versao`), sem push: falta o PR para a develop pelo processo. Ponto de retorno em ~/.local/state/forge/retorno/MetricasDSPD/.
+- Commits locais nesta branch, sem push: quadro e pedidos até 2026-11-09 10:18; registro da retomada no 077; 290 documentos do time que estavam sem commit (briefs 073 a 083, pedidos 082 e 083, análises 064 a 077, UX 070, 075 e 077, devops 076).
+- Versões locais divergentes da develop tiradas do repositório, guardadas em ~/jarvis-backup/2026-11-10/: docs/analises/065-desenho.md, docs/analises/070-desenho.md, docs/architecture/adr/0028-simulado-por-cartao.md. A develop tem as versões revisadas.
+- Marcas vazias do sandbox (0 bytes, 2026-11-02 04:20: .bashrc, .claude/agents e afins) no `.git/info/exclude` local, para o `git status` ficar limpo.
+- PRs 273 (3b) e 274 (4c) já mesclados pelo dono; nenhum PR aberto.
+- 077 6b (056d): commits do código e pareceres, parecer de UX sem push; a integração da develop não foi feita. Brief react-frontend-9 aprovado no modelo antigo: na 0.45 o brief precisa ser gerado e selado de novo.
+- 077 Lote 5 (052g): trabalho parcial do node-backend-12 sem commit (origem.ts, origem.test.ts, criterios.ts, server/tests/tendencia-fluxo-real-l5.test.ts). Precisa de brief de retomada selado que preserve o trabalho.
+- Decisões do dono abertas: P-078-1 (release), P-E10-2, P-E10-5, P-E10-6, K-248.
