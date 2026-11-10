@@ -8,7 +8,7 @@ const T1 = '2026-11-01T10:00:00.000Z', T2 = '2026-11-02T10:00:00.000Z', T3 = '20
 const T5 = '2026-11-05T10:00:00.000Z', T6 = '2026-11-06T10:00:00.000Z';
 const mapa = new Map([['F1', 'fornecedor']]);
 const campo = (valor: unknown) => ({ customFields: [{ field_id: 'F1', valor }] });
-const marcos = { entrega: new Set(['90']), descarte: new Set(['91']) };
+const marcos = { entrega: (c: string) => c === '90', descarte: (c: string) => c === '91' };
 
 describe('derivarBloqueios (via A)', () => {
   it('abre e fecha no coletado_em da versão que viu a mudança', () => {
@@ -86,6 +86,12 @@ describe('derivarBloqueios (via A)', () => {
     const r = derivarBloqueios([v(T1, true, 1, campo('A')), v(T2, true, 1, campo('B')), v(T3, false, 1, campo('C')),
       v(T4, true, 1), v(T5, false), v(T6, true, 1, campo('D'))], {}, mapa);
     expect(r.eventos.map((e) => e.fornecedorCodigo)).toEqual(['A', null, null, null, 'D']);
+  });
+  it('archivedAt como Date fecha (2b A1); coletadoEm inválido lança sem eco (2b A2); a nota é só do fornecedor (2b A3)', () => {
+    expect(derivarBloqueios([v(T1, true, 1), v(T2, true, 1, { archivedAt: new Date(T1) })]).eventos.map((e) => e.ocorridoEm)).toEqual([T1, T1]);
+    expect(() => derivarBloqueios([v('LIXO-X', false)])).toThrow(/^coletadoEm inválido$/);
+    const outro = new Map([['F1', 'fornecedor'], ['F2', 'sistema']]);
+    expect(derivarBloqueios([v(T1, true, 1, { customFields: [{ field_id: 'F2', valor: '' }] })], {}, outro).notas).not.toContain('campo_fora_do_dominio');
   });
   it('CA-075-12: fornecedor só de custom_fields mapeado, nunca de outro campo', () => {
     const r = derivarBloqueios([v(T1, true, 1, { fornecedor: 'FORA_X', label: 'FORA_Y', customFields: [{ field_id: 'F9', valor: 'FORA_Z' }] })], {}, mapa);

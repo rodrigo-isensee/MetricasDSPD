@@ -1,14 +1,17 @@
+import { MOTIVO_NAO_CLASSIFICADO } from '@metricas-dspd/contratos';
+import { CALENDARIO_PADRAO, criarCalendario, horasUteisEntre, type Calendario } from '@metricas-dspd/metricas/core';
 import type { QueryResultRow } from 'pg';
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import { emTransacao, type Consultavel, type PoolLike } from '../../plataforma/db/pool.js';
 import { comTravaDaFonte } from '../../plataforma/db/trava.js';
+import { lerCalendarioVigente } from '../referencia/index.js';
 import { COLUNAS_LISTA } from './allow-list.js';
 import { derivarBloqueios, type VersaoBloqueio } from './bloqueios.js';
 import { ErroColetaBm, exigirEsquemaSemSeed } from './coleta.js';
-import { CAMPO_CUSTOMIZADO, colunasDosCampos, type LinhaRefDominio } from './dominio-businessmap.js';
+import { CAMPO_CUSTOMIZADO, CAMPO_MOTIVO_BLOQUEIO, colunasDosCampos, motivosDeLinhas, type LinhaRefDominio } from './dominio-businessmap.js';
 import { gravarResponsaveis, COLUNAS_VERSAO } from './responsaveis.js';
 import {
-  agrupar, instanteDoBm, projetarCard, type CardProjetado, type EntradaCard, type LinhaColuna, type LinhaTime, type LinhaTimeWorkflow,
+  agrupar, diaDe, instanteDoBm, noDia, projetarCard, type CardProjetado, type EntradaCard, type LinhaColuna, type LinhaTime, type LinhaTimeWorkflow,
   type LinhaTipo, type LinhaWorkflow, type Referencia, type TransicaoStg,
 } from './normalizador.js';
 
@@ -18,7 +21,7 @@ import {
 // projeção refeita por card. Nunca escreve nome: `dim_responsavel` é do coletor (F3) e nem consta das tabelas que a reconstrução limpa
 // (DT-1). Não tem cliente HTTP: reprojetar nunca chama o BusinessMap (nem `/users`).
 
-export const VERSAO_PROJETOR = 'bm-f4/2';
+export const VERSAO_PROJETOR = 'bm-f4/3';
 export const TAMANHO_LOTE = 500;
 /** DT-1: a reconstrução limpa SÓ estas tabelas. As outras (evt, fato, versão) são append-only e se completam por idempotência; `dim_responsavel` nunca. */
 export const TABELAS_LIMPAS_NA_RECONSTRUCAO = ['dim_card'] as const;
@@ -45,6 +48,8 @@ export interface ResultadoProjecao {
   eventos: { lidos: number; inseridos: number };
   transicoes: { lidas: number; inseridas: number; semInstante: number };
   bloqueios: { lidos: number; inseridos: number };
+  /** Lote 4b: `fato_bloqueio` montado dos eventos (inseridos = novos ou com fim, duração ou motivo mudados). */
+  fatosBloqueio: { lidos: number; inseridos: number };
   /** Por motivo, a quantidade de cards (nunca id de card nem valor). */
   notas: Record<string, number>;
   responsaveisGravados: number;
@@ -118,10 +123,9 @@ async function gravarBloqueios(db: Consultavel, S: Esquemas, ids: readonly strin
     `SELECT id_origem, coletado_em, excluido_detectado, payload -> 'is_blocked' AS is_blocked, payload -> 'block_reason_id' AS block_reason_id,
       payload -> 'column_id' AS column_id, payload -> 'archived_at' AS archived_at, payload -> 'custom_fields' AS custom_fields
       FROM ${S.bm}.stg_card WHERE id_origem = ANY($1::text[]) ORDER BY id_origem, stg_sk`, [ids]);
-  const colunas = [...ref.colunas.values()].flat();
-  const marcos = {
-    entrega: new Set(colunas.filter((c) => c.papel === 'entrega').map((c) => c.coluna_id)), descarte: new Set(colunas.filter((c) => c.eh_descarte).map((c) => c.coluna_id)),
-  };
+  const porColuna = agrupar([...ref.colunas.values()].flat(), (c) => c.coluna_id);
+  const marco = (quando: (c: LinhaColuna) => boolean) => (coluna: string, em: string): boolean => { const c = noDia(porColuna.get(coluna), diaDe(Date.parse(em)), []); return c !== undefined && quando(c); };
+  const marcos = { entrega: marco((c) => c.papel === 'entrega'), descarte: marco((c) => c.eh_descarte) };
   const porCard = new Map<string, VersaoBloqueio[]>();
   for (const v of versoes) {
     const arquivado = instanteDoBm(v.archived_at);
@@ -141,9 +145,39 @@ async function gravarBloqueios(db: Consultavel, S: Esquemas, ids: readonly strin
     registros, 'ON CONFLICT ON CONSTRAINT uq_evt_bloqueio DO NOTHING');
 }
 
+type ContextoFato = { motivos: ReadonlyMap<string, string>; cal: Calendario };
+
+/** Mapa de motivos (domínio `motivo_bloqueio`, Lote 3) e calendário vigente do fluxo (ADR 0027), lidos uma vez por projeção. */
+async function contextoDoFato(db: Consultavel, S: Esquemas): Promise<ContextoFato> {
+  const motivos = motivosDeLinhas(await linhas<LinhaRefDominio>(db, `SELECT campo, codigo, rotulo FROM ${S.bm}.ref_dominio WHERE campo = $1 AND vigente_ate IS NULL`, [CAMPO_MOTIVO_BLOQUEIO]));
+  const ref = await lerCalendarioVigente(db, S, 'businessmap', 'fluxo');
+  return { motivos, cal: ref === null ? CALENDARIO_PADRAO : criarCalendario({ feriados: new Set(ref.feriados), offsetMinutos: ref.offsetMinutos }) };
+}
+
+/** Lote 4b (075): `fato_bloqueio` dos eventos já gravados (início e fim), com o mapa e o calendário vigentes; só escreve o que é novo ou mudou, sem DELETE. */
+async function montarFatosBloqueio(db: Consultavel, S: Esquemas, ids: readonly string[], ctx: ContextoFato, coletaId: number, inicio: Date, acc: ResultadoProjecao): Promise<void> {
+  const eventos = await linhas<{ card_id: string; id_origem: string; motivo_codigo: string | null; coluna_id: string | null; fornecedor_codigo: string | null; ini: Date; fim: Date | null }>(db,
+    `SELECT i.card_id, i.id_origem, i.motivo_codigo, i.coluna_id, i.fornecedor_codigo, i.ocorrido_em AS ini, f.ocorrido_em AS fim FROM ${S.bm}.evt_bloqueio i
+      LEFT JOIN ${S.bm}.evt_bloqueio f ON f.card_id = i.card_id AND f.id_origem = i.id_origem AND f.tipo = 'fim'
+      WHERE i.tipo = 'inicio' AND i.card_id = ANY($1::text[])`, [ids]);
+  const horas = (e: { ini: Date; fim: Date | null }): number | null => (e.fim === null ? null : Math.round(horasUteisEntre(new Date(e.ini).getTime(), new Date(e.fim).getTime(), ctx.cal) * 100) / 100);
+  const fatos = eventos.map((e) => [e.card_id, e.id_origem, ctx.motivos.get(e.motivo_codigo ?? '') ?? MOTIVO_NAO_CLASSIFICADO, e.coluna_id, e.fornecedor_codigo, e.ini, e.fim, horas(e), inicio, coletaId] as const);
+  acc.fatosBloqueio.lidos += fatos.length;
+  // o projeto proíbe DO UPDATE: UPDATE só do que mudou (fim, duração ou motivo), depois INSERT do que falta; nunca DELETE
+  const col = (i: number): unknown[] => fatos.map((f) => f[i]);
+  acc.fatosBloqueio.inseridos += Number((await db.query(
+    `UPDATE ${S.bm}.fato_bloqueio AS f SET fim = v.fim, duracao_horas_uteis = v.horas, motivo = v.motivo, atualizado_por_coleta_id = $6
+      FROM unnest($1::text[], $2::text[], $3::text[], $4::timestamptz[], $5::numeric[]) AS v(card_id, id_origem, motivo, fim, horas)
+      WHERE f.card_id = v.card_id AND f.id_origem = v.id_origem AND (f.fim, f.duracao_horas_uteis, f.motivo) IS DISTINCT FROM (v.fim, v.horas, v.motivo)`,
+    [col(0), col(1), col(2), col(6), col(7), coletaId])).rowCount);
+  acc.fatosBloqueio.inseridos += await inserir(db, `${S.bm}.fato_bloqueio`,
+    ['card_id', 'id_origem', 'motivo', 'coluna_em_que_bloqueou', 'fornecedor', 'inicio', 'fim', 'duracao_horas_uteis', 'coletado_em', 'atualizado_por_coleta_id'], fatos,
+    'ON CONFLICT ON CONSTRAINT uq_fato_bloqueio DO NOTHING');
+}
+
 async function projetarLote(
   db: Consultavel, S: Esquemas, ids: readonly string[], ref: Referencia, d: DepsProjecao, coletaId: number, inicio: Date,
-  acc: ResultadoProjecao,
+  acc: ResultadoProjecao, ctx: ContextoFato,
 ): Promise<void> {
   const stg = await linhas<LinhaStaging>(db,
     `SELECT DISTINCT ON (id_origem) stg_sk, id_origem, payload, excluido_detectado, coletado_em FROM ${S.bm}.stg_card
@@ -191,6 +225,7 @@ async function projetarLote(
     tr.map((t) => [t.card_id, t.quadro_id, t.coluna_origem_id, t.coluna_destino_id, t.tipo_coluna, t.direcao, 'revision', t.id_origem, t.ocorrido_em, inicio, coletaId]),
     'ON CONFLICT ON CONSTRAINT uq_fato_transicao DO NOTHING');
   await gravarBloqueios(db, S, ids, ref, coletaId, inicio, acc);
+  await montarFatosBloqueio(db, S, ids, ctx, coletaId, inicio, acc);
   if (ok.length === 0) return;
 
   // versão vigente de cada card (SCD2): só entra versão nova se algum atributo mudou
@@ -247,17 +282,18 @@ export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoPro
       `INSERT INTO ${S.bm}.ctl_coleta (tarefa, iniciado_em, status, versao_coletor) VALUES ('projecao', $1, 'em_andamento', $2) RETURNING coleta_id`, [inicio, VERSAO_PROJETOR]);
     const coletaId = Number(ctl.rows[0]!.coleta_id);
     const acc: ResultadoProjecao = {
-      coletaId, cards: 0, semCriacao: 0, versoes: 0, eventos: { lidos: 0, inseridos: 0 }, transicoes: { lidas: 0, inseridas: 0, semInstante: 0 }, bloqueios: { lidos: 0, inseridos: 0 }, notas: {},
+      coletaId, cards: 0, semCriacao: 0, versoes: 0, eventos: { lidos: 0, inseridos: 0 }, transicoes: { lidas: 0, inseridas: 0, semInstante: 0 }, bloqueios: { lidos: 0, inseridos: 0 }, fatosBloqueio: { lidos: 0, inseridos: 0 }, notas: {},
       responsaveisGravados: 0,
     };
     if (d.reconstruir === true) for (const t of TABELAS_LIMPAS_NA_RECONSTRUCAO) await db.query(`DELETE FROM ${S.bm}.${t}`);
     const ref = await carregarReferencia(db, S);
+    const ctx = await contextoDoFato(db, S);
     let depois = '';
     for (;;) {
       const ids = (await linhas<{ id_origem: string }>(db,
         `SELECT DISTINCT id_origem FROM ${S.bm}.stg_card WHERE id_origem > $1 ORDER BY id_origem LIMIT ${TAMANHO_LOTE}`, [depois])).map((l) => l.id_origem);
       if (ids.length === 0) break;
-      await projetarLote(db, S, ids, ref, d, coletaId, inicio, acc);
+      await projetarLote(db, S, ids, ref, d, coletaId, inicio, acc, ctx);
       depois = ids[ids.length - 1]!;
     }
     const contagem = async (entidade: string, lidos: number, inseridos: number, falhas: number): Promise<void> => {
@@ -270,6 +306,7 @@ export async function projetarBusinessMap(d: DepsProjecao): Promise<ResultadoPro
     await contagem('projecao_evento', acc.eventos.lidos, acc.eventos.inseridos, 0);
     await contagem('projecao_versao', acc.versoes, acc.versoes, 0);
     await contagem('projecao_bloqueio_evento', acc.bloqueios.lidos, acc.bloqueios.inseridos, 0);
+    await contagem('projecao_bloqueio_fato', acc.fatosBloqueio.lidos, acc.fatosBloqueio.inseridos, 0);
     // motivo de card fora ou com ressalva (nunca id): `lidos` = quantidade de cards
     for (const [nota, n] of Object.entries(acc.notas)) await contagem(`nota_${nota}`.slice(0, 40), n, n, 0);
     await db.query(`UPDATE ${S.bm}.ctl_coleta SET status = 'sucesso', finalizado_em = $2 WHERE coleta_id = $1`, [coletaId, d.agora()]);

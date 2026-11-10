@@ -18,8 +18,11 @@ const REF_LINHAS: Record<string, unknown[]> = {
     { ...V, quadro_id: 'Q', coluna_id: '3', workflow_id: 'W', section: 3, eh_descarte: false, papel: 'trabalho', tipo_coluna: 'execucao', ordem: 3 },
     { ...V, quadro_id: 'Q', coluna_id: '8', workflow_id: 'W', section: 4, eh_descarte: true, papel: null, tipo_coluna: null, ordem: 8 },
     { ...V, quadro_id: 'Q', coluna_id: '9', workflow_id: 'W', section: 4, eh_descarte: false, papel: 'entrega', tipo_coluna: 'execucao', ordem: 9 },
+    // vigência antiga de entrega, depois trabalho (A1 do review do 4a): o card nela hoje não está em marco de saída
+    { ...V, vigente_ate: '2026-10-31', quadro_id: 'Q', coluna_id: '10', workflow_id: 'W', section: 4, eh_descarte: false, papel: 'entrega', tipo_coluna: 'execucao', ordem: 10 },
+    { ...V, vigente_de: '2026-10-31', quadro_id: 'Q', coluna_id: '10', workflow_id: 'W', section: 3, eh_descarte: false, papel: 'trabalho', tipo_coluna: 'execucao', ordem: 10 },
   ],
-  ref_dominio: [{ campo: 'campo_customizado', codigo: '5001', rotulo: 'fornecedor' }],
+  ref_dominio: [{ campo: 'campo_customizado', codigo: '5001', rotulo: 'fornecedor' }, { campo: 'motivo_bloqueio', codigo: '7', rotulo: 'Janela de mudança' }],
   ref_workflow: [{ ...V, quadro_id: 'Q', workflow_id: 'W', nivel: 'story' }],
   ref_time_workflow: [{ ...V, workflow_id: 'W', time_id: 1, situacao: 'time' }],
   ref_time: [{ ...V, time_id: 1, nome: 'Time A' }],
@@ -40,6 +43,8 @@ interface Cenario {
   dimCard?: { card_id: string; responsaveis: string[] }[];
   versaoDoResponsavel?: { vigente_de: Date; responsaveis: string[] | null };
   bloqueios?: Record<string, unknown>[];
+  fatos?: Record<string, unknown>[];
+  calendario?: boolean;
   trava?: boolean;
 }
 function montar(c: Cenario) {
@@ -53,12 +58,14 @@ function montar(c: Cenario) {
     if (t.startsWith('SELECT DISTINCT id_origem')) return ids.filter((i) => i > (q.valores[0] as string)).slice(0, TAMANHO_LOTE).map((id_origem) => ({ id_origem }));
     if (t.includes('SELECT DISTINCT ON (id_origem) stg_sk')) return (c.stg ?? []).filter((x) => (q.valores[0] as string[]).includes(x.id_origem));
     if (t.includes("payload -> 'is_blocked'")) return c.bloqueios ?? [];
+    if (t.includes('AS ini')) return c.fatos ?? [];
+    if (t.includes('ref_calendario_aplicacao')) return c.calendario === true ? [{ calendario_id: '1', offset_minutos: 0 }] : [];
     if (t.includes('FROM dspd_bm.stg_revision')) return c.revisoes ?? [];
     if (t.includes("payload ->> 'type_id' AS tipo")) return c.pais ?? [];
     if (t.includes('SELECT DISTINCT ON (card_id) card_id, vigente_de')) return c.versoes ?? [];
     if (t.includes('SELECT card_id, responsaveis FROM dspd_bm.dim_card WHERE')) return c.dimCard ?? [];
     if (t.includes('SELECT vigente_de, responsaveis FROM dspd_bm.dim_card_versao')) return c.versaoDoResponsavel === undefined ? [] : [c.versaoDoResponsavel];
-    if (t.startsWith('INSERT INTO dspd_bm.evt_card') || t.startsWith('INSERT INTO dspd_bm.fato_transicao') || t.startsWith('INSERT INTO dspd_bm.dim_card_versao')) return { rows: [], rowCount: n };
+    if (t.startsWith('INSERT INTO dspd_bm.evt_card') || t.startsWith('INSERT INTO dspd_bm.fato_transicao') || t.startsWith('INSERT INTO dspd_bm.fato_bloqueio') || t.startsWith('INSERT INTO dspd_bm.dim_card_versao')) return { rows: [], rowCount: n };
     return [];
   };
   return criarDublePg(responder);
@@ -227,7 +234,7 @@ describe('projetarBusinessMap: evt_bloqueio (lote 4a do 075)', () => {
 
   it('marcos: arquivado depois da coleta fecha na coleta (SEG-A1), arquivado antes fecha nele, entrega, descarte e excluído fecham; nota por código sem o valor', async () => {
     const d = montar({
-      stg: [stg('1'), stg('2'), stg('3'), stg('4'), stg('5'), stg('6')],
+      stg: [stg('1'), stg('2'), stg('3'), stg('4'), stg('5'), stg('6'), stg('7'), stg('8')],
       bloqueios: [
         ver('1', 10, BLOQ), ver('1', 12, { ...BLOQ, archived_at: '2099-01-01T00:00:00Z' }),
         ver('2', 10, BLOQ), ver('2', 12, { ...BLOQ, archived_at: '2026-11-01T11:00:00Z' }),
@@ -235,6 +242,7 @@ describe('projetarBusinessMap: evt_bloqueio (lote 4a do 075)', () => {
         ver('4', 10, BLOQ), ver('4', 11, { ...BLOQ, column_id: 8 }),
         ver('5', 10, BLOQ), ver('5', 11, { ...BLOQ, excluido_detectado: true }),
         ver('6', 10, { ...BLOQ, block_reason_id: 'MARCADOR-PESSOA-075' }),
+        ver('7', 10, { ...BLOQ, column_id: 10 }), ver('7', 11, { ...BLOQ, column_id: 10 }), ver('8', 10, { ...BLOQ, column_id: 99 }), ver('8', 11, { ...BLOQ, column_id: 99 }),
       ],
     });
     await proj(d);
@@ -246,6 +254,30 @@ describe('projetarBusinessMap: evt_bloqueio (lote 4a do 075)', () => {
     const nota = com(d, 'INSERT INTO dspd_bm.ctl_coleta_contagem').find((x) => x.valores[1] === 'nota_bloqueio_motivo_codigo_invalido')!;
     expect(nota.valores).toEqual([88, 'nota_bloqueio_motivo_codigo_invalido', 1, 1, 0, 0]);
     expect(JSON.stringify(d.chamadas.filter((x) => x.texto.includes('ctl_coleta')))).not.toContain('MARCADOR');
+  });
+});
+
+describe('projetarBusinessMap: fato_bloqueio (lote 4b do 075)', () => {
+  const ini = new Date(Date.UTC(2026, 10, 3, 12));
+  const ev = (id: string, motivo: string | null, fim: Date | null) => ({ card_id: '1', id_origem: id, motivo_codigo: motivo, coluna_id: '3', fornecedor_codigo: 'F', ini, fim });
+  const fatos = (d: ReturnType<typeof montar>) => com(d, 'INSERT INTO dspd_bm.fato_bloqueio').flatMap((x) => Array.from({ length: x.valores.length / 10 }, (_, i) => x.valores.slice(i * 10, i * 10 + 10)));
+  const eventos = [ev('a', '7', new Date(Date.UTC(2026, 10, 3, 14))), ev('b', null, ini), ev('c', '8', null)];
+
+  it('monta o fato dos eventos: motivo do mapa ou "não classificado", duração pelo calendário vigente, aberto sem fim e sem duração, fim = início com 0', async () => {
+    const d = montar({ stg: [stg('1')], fatos: eventos });
+    const r = await proj(d);
+    expect(fatos(d).map((f) => [f[2], f[7]])).toEqual([['Janela de mudança', 2], ['não classificado', 0], ['não classificado', null]]);
+    expect(fatos(d)[2]).toEqual(['1', 'c', 'não classificado', '3', 'F', ini, null, null, AGORA, 88]);
+    expect(r.fatosBloqueio).toEqual({ lidos: 3, inseridos: 3 });
+    expect(com(d, 'UPDATE dspd_bm.fato_bloqueio')[0]!.texto).toContain('IS DISTINCT FROM');
+    expect(com(d, 'INSERT INTO dspd_bm.fato_bloqueio')[0]!.texto).toContain('ON CONFLICT ON CONSTRAINT uq_fato_bloqueio DO NOTHING');
+    expect(com(d, 'INSERT INTO dspd_bm.ctl_coleta_contagem').find((x) => x.valores[1] === 'projecao_bloqueio_fato')!.valores).toEqual([88, 'projecao_bloqueio_fato', 3, 3, 0, 0]);
+    expect(com(d, 'DELETE FROM dspd_bm.fato_bloqueio')).toHaveLength(0);
+  });
+  it('troca de calendário recalcula a duração (offset e feriados da referência)', async () => {
+    const d = montar({ stg: [stg('1')], fatos: eventos, calendario: true });
+    await proj(d);
+    expect(fatos(d)[0]![7]).toBe(1);
   });
 });
 

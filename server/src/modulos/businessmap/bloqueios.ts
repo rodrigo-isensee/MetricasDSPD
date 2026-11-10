@@ -8,8 +8,8 @@ export type VersaoBloqueio = {
   cardId: string; coletadoEm: string; isBlocked?: unknown; blockReasonId?: unknown; columnId?: unknown;
   archivedAt?: unknown; excluidoDetectado?: boolean; customFields?: unknown;
 };
-/** Colunas (ids) de papel `entrega` e de descarte; o card nelas, arquivado ou excluído está num marco de saída. */
-export type MarcosBloqueio = { entrega?: ReadonlySet<string>; descarte?: ReadonlySet<string> };
+/** Colunas de papel `entrega` e de descarte NA VIGÊNCIA da referência no instante da versão (A1 do review do 4a); o card nelas, arquivado ou excluído está num marco de saída. */
+export type MarcosBloqueio = { entrega?: (colunaId: string, em: string) => boolean; descarte?: (colunaId: string, em: string) => boolean };
 export type EventoBloqueio = {
   tipo: 'inicio' | 'fim'; idOrigem: string; ocorridoEm: string; motivoCodigo: string | null;
   colunaId: string | null; fornecedorCodigo: string | null;
@@ -37,14 +37,16 @@ export function derivarBloqueios(
   const eventos: EventoBloqueio[] = [];
   const notas: string[] = [];
   let aberto: EventoBloqueio | null = null;
+  const soFornecedor = new Map([...mapaCampos].filter(([, coluna]) => coluna === 'fornecedor'));
   for (const v of versoes) {
+    if (Number.isNaN(Date.parse(v.coletadoEm))) throw new RangeError('coletadoEm inválido');
     const valido = v.isBlocked === true || v.isBlocked === 1 || v.isBlocked === false || v.isBlocked === 0;
     if (!valido) notas.push('is_blocked_invalido');
     const agora = valido ? bloqueada(v.isBlocked) : aberto !== null;
     const colunaId = codigoDe(v.columnId);
-    const arquivadoMs = typeof v.archivedAt === 'string' ? Date.parse(v.archivedAt) : NaN;
+    const arquivadoMs = v.archivedAt instanceof Date ? v.archivedAt.getTime() : typeof v.archivedAt === 'string' ? Date.parse(v.archivedAt) : NaN;
     const noMarco = !Number.isNaN(arquivadoMs) || v.excluidoDetectado === true
-      || (colunaId !== null && (marcos.entrega?.has(colunaId) === true || marcos.descarte?.has(colunaId) === true));
+      || (colunaId !== null && (marcos.entrega?.(colunaId, v.coletadoEm) === true || marcos.descarte?.(colunaId, v.coletadoEm) === true));
     if (aberto !== null && (noMarco || !agora)) {
       // marco fecha no instante dele (arquivado nativo, nunca depois da coleta: SEG-A1) ou da coleta; antes do início observado, fim = início (P-075-9)
       const coletaMs = Date.parse(v.coletadoEm);
@@ -56,7 +58,7 @@ export function derivarBloqueios(
       // inclui a reabertura depois de marco (TL-A5); dentro do marco, bloqueado não abre nada (TL-A9)
       const motivoCodigo = codigoDe(v.blockReasonId);
       if (motivoCodigo === null) notas.push('motivo_codigo_invalido');
-      const fornecedorCodigo = colunasDeLista({ custom_fields: v.customFields }, mapaCampos, notas).fornecedor;
+      const fornecedorCodigo = colunasDeLista({ custom_fields: v.customFields }, soFornecedor, notas).fornecedor;
       aberto = { tipo: 'inicio', idOrigem: idOrigemDe(v.cardId, v.coletadoEm), ocorridoEm: v.coletadoEm, motivoCodigo, colunaId, fornecedorCodigo };
       eventos.push(aberto);
     }
