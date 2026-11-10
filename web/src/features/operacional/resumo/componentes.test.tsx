@@ -477,3 +477,67 @@ describe('TendenciaFluxo e TendenciaSustentacao (sem painel de preferências)', 
     })
   })
 })
+
+describe('contagem parcial (077, Lote 8b, P-077-5 = A)', () => {
+  const parcial = { historicoDesde: '2026-08-14' }
+  const fluxo = (meses: object[]) => ({ criterios: { serie: [], janela: [] }, meses }) as never
+  const mesFluxo = (mes: string, concluidos: number, extra: object = {}) => ({
+    mes,
+    fimDoMes: `${mes}-28`,
+    janelaPercentis: { ...J, unidade: 'semanas', quantidade: 12 },
+    p85PorTipo: [],
+    concluidos,
+    ...extra,
+  })
+  const mesSust = (mes: string, volume: number, extra: object = {}) => ({
+    mes,
+    fimDoMes: `${mes}-28`,
+    janela: J,
+    prioridades: [],
+    volume,
+    ...extra,
+  })
+  it('fluxo: o número do mês marcado não aparece em gráfico, tabela nem resumo; o motivo sim', async () => {
+    const t = fluxo([
+      mesFluxo('2026-07', 777, { contagemParcial: parcial }),
+      mesFluxo('2026-08', 31),
+    ])
+    noRouter(<TendenciaFluxo q={q('ok', t)} qO3={q('ok')} />)
+    const s = screen.getByTestId('tendencia-fluxo-concluidos')
+    expect(s).not.toHaveTextContent('777')
+    expect(within(s).getByTestId('tendencia-fluxo-concluidos-sem-valor')).toHaveTextContent(
+      'jul/2026 · Histórico incompleto: o histórico carregado começa em 14/08/2026',
+    )
+    expect(
+      within(s).getByTestId('tendencia-fluxo-concluidos-grafico').closest('figure'),
+    ).toHaveTextContent('julho: Histórico incompleto')
+    expect(s).toHaveTextContent('agosto: 31 itens')
+    await userEvent.click(within(s).getByRole('button', { name: 'Ver como tabela' }))
+    const linha = within(s).getByRole('row', { name: /jul\/2026/ })
+    expect(linha).not.toHaveTextContent('777')
+    expect(linha).toHaveTextContent('não publicado · histórico incompleto')
+    expect(within(s).getByRole('row', { name: /ago\/2026/ })).toHaveTextContent('31')
+  })
+  it('sustentação: o volume do mês marcado não aparece; o SLA do mesmo mês não muda', async () => {
+    const t = fluxo([mesSust('2026-07', 888, { contagemParcial: parcial }), mesSust('2026-08', 12)])
+    noRouter(<TendenciaSustentacao q={q('ok', t)} />)
+    const s = screen.getByTestId('tendencia-sustentacao-volume')
+    expect(s).not.toHaveTextContent('888')
+    expect(s).toHaveTextContent('jul/2026 · Histórico incompleto')
+    await userEvent.click(within(s).getByRole('button', { name: 'Ver como tabela' }))
+    expect(within(s).getByRole('row', { name: /jul\/2026/ })).toHaveTextContent(
+      'não publicado · histórico incompleto',
+    )
+    expect(within(s).getByRole('row', { name: /ago\/2026/ })).toHaveTextContent('12')
+    expect(screen.getByTestId('tendencia-sustentacao-sla')).not.toHaveTextContent(
+      'Histórico incompleto',
+    )
+  })
+  it('sem nenhum mês marcado a série não muda', () => {
+    noRouter(<TendenciaFluxo q={q('ok', fluxo([mesFluxo('2026-08', 31)]))} qO3={q('ok')} />)
+    const s = screen.getByTestId('tendencia-fluxo-concluidos')
+    expect(s).toHaveTextContent('Em agosto: 31 itens.')
+    expect(s).not.toHaveTextContent('Histórico incompleto')
+    expect(within(s).queryByTestId('tendencia-fluxo-concluidos-sem-valor')).toBeNull()
+  })
+})

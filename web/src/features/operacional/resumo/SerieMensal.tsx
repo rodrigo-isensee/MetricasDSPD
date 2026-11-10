@@ -41,6 +41,7 @@ const FRASE_JANELA =
 const situacaoDoPonto = (p: PontoMensal): string => {
   if (p.valor !== null) return 'publicado'
   if (p.janelaIncompleta) return 'não publicado · janela incompleta'
+  if (p.contagemParcial) return 'não publicado · histórico incompleto'
   return `n=${fmtInteiro(p.n ?? 0)} · não publicado`
 }
 
