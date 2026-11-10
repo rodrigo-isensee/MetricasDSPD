@@ -41,6 +41,10 @@ const CARDS: LinhaCard[] = [
 ];
 const CHAMADO = { chamado_id: 'X1', natureza: 'incidente', equipe: 'SSSC', organizacao: 'Org', tipo: 'Incidente', categoria_sistema: 'Protheus', excluido: false, status: 'Encerrado', prioridade: 'P3', aberto_em: new Date('2026-07-01T12:00:00Z') } as unknown as LinhaChamado;
 
+// A parte do corpo que os testes leem; o schema do contrato valida a forma inteira no primeiro teste.
+type Mes = { mes: string; janelaIncompleta?: unknown; contagemParcial?: unknown; p85PorTipo: { tipo: string; n: number; estatistica: { status: string } }[] };
+type Corpo = { meses: Mes[]; estado?: string; criterios: { serie: unknown[]; janela: unknown[] } };
+
 async function consultar(url: string, o: { desde?: string; chamados?: LinhaChamado[] } = {}) {
   const doSeed = bancoDoMock(seed);
   const d = criarDublePg((c: Chamada) => {
@@ -59,9 +63,9 @@ async function consultar(url: string, o: { desde?: string; chamados?: LinhaChama
   });
   const app = await buildApp({ db: d.pool, S: REAL, agora: () => AGORA, nivelLog: 'silent' });
   const r = await app.inject(url);
-  return { r, corpo: r.json() as Record<string, any> };
+  return { r, corpo: r.json() as Corpo };
 }
-const mes = (corpo: Record<string, any>, m: string) => (corpo.meses as Record<string, any>[]).find((x) => x.mes === m)!;
+const mes = (corpo: Corpo, m: string) => corpo.meses.find((x) => x.mes === m)!;
 
 describe('TENDENCIA_FLUXO no mapa real (pedido 077, L5)', () => {
   const U = `${URL}?dataReferencia=2026-12-01`;
@@ -79,14 +83,14 @@ describe('TENDENCIA_FLUXO no mapa real (pedido 077, L5)', () => {
     }
     for (const m of ['2026-09', '2026-10', '2026-11']) expect(mes(corpo, m).janelaIncompleta).toBeUndefined();
     const melhoria = mes(corpo, '2026-11').p85PorTipo.find((t: { tipo: string }) => t.tipo === 'Melhoria');
-    expect(melhoria.estatistica.status).toBe('ok');
+    expect(melhoria?.estatistica.status).toBe('ok');
   });
 
   it('tipo com 19 entregues sai insuficiente, mesmo no mês publicado', async () => {
     const { corpo } = await consultar(U, { desde: D });
     const incidente = mes(corpo, '2026-11').p85PorTipo.find((t: { tipo: string }) => t.tipo === 'Incidente');
-    expect(incidente.n).toBe(19);
-    expect(incidente.estatistica.status).toBe('insuficiente');
+    expect(incidente?.n).toBe(19);
+    expect(incidente?.estatistica.status).toBe('insuficiente');
   });
 
   it('dado do Acelerato não altera o resultado', async () => {
@@ -100,6 +104,13 @@ describe('TENDENCIA_FLUXO no mapa real (pedido 077, L5)', () => {
     expect(mes(corpo, '2026-07').contagemParcial).toEqual({ historicoDesde: '2026-07-15' });
     expect(mes(corpo, '2026-08').contagemParcial).toBeUndefined();
     expect(mes((await consultar(U, { desde: '2026-08-01' })).corpo, '2026-08').contagemParcial).toBeUndefined();
+  });
+
+  it('sem carga inicial com sucesso responde sem-dado-real, e com carga o resultado segue', async () => {
+    const sem = await consultar(U);
+    expect(sem.r.headers['x-estado-dado']).toBe('sem-dado-real');
+    expect(sem.corpo).toMatchObject({ estado: 'sem-dado-real', metrica: 'TENDENCIA_FLUXO' });
+    expect((await consultar(U, { desde: D })).corpo.meses).toHaveLength(6);
   });
 
   it('a marca da virada aparece em criterios', async () => {
