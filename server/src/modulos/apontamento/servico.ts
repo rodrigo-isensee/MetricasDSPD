@@ -5,7 +5,7 @@ import { calcularApontamento, LIMITE_ATIPICO_SEGUNDOS_PADRAO, ordenarPorPessoa, 
 import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { lerCalendario, lerCardsIncompletos, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerPessoasDoTime, lerRotulosSubgrupo, lerUltimasColetas, type ColetaLida, type LinhaBruta } from './repositorio.js';
+import { lerCalendario, lerCardsIncompletos, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerPessoasDoTime, lerRotulosSubgrupo, lerTiposDoHistorico, lerUltimasColetas, type ColetaLida, type LinhaBruta, type TipoDoHistorico } from './repositorio.js';
 
 // Pedido 059 (K-193), rota da aba Apontamento. Este serviço só LÊ e MONTA a moldura da resposta (período, opções, frescor, critérios); todo cálculo
 // (soma, capacidade, utilização, distribuição, qualidade, matriz, diário, achados, piso de 20) é de `calcularApontamento`, da biblioteca T2.5.
@@ -52,7 +52,7 @@ export function flagsDaMascara(mascara: number): FlagQualidade[] {
 
 /**
  * K-272: a unidade do tipo é a categoria do contrato (`dim_card.tipo`), não o `type_id` (vários `type_id` podem ter a mesma categoria).
- * O valor do filtro `tipo` continua em dígitos (contrato inalterado): o id da categoria é o MENOR `type_id` dela nas linhas lidas, e filtrar
+ * O valor do filtro `tipo` continua em dígitos (contrato inalterado): o id da categoria é o MENOR `type_id` dela em todo o histórico (não só na janela), e filtrar
  * por qualquer `type_id` da categoria cobre todos os dela (o link antigo com `tipo=<type_id>` segue valendo).
  */
 export interface CategoriasDeTipo {
@@ -62,7 +62,7 @@ export interface CategoriasDeTipo {
   typeIdsDaCategoria: ReadonlyMap<string, readonly string[]>;
 }
 
-export function categoriasDeTipo(brutas: readonly LinhaBruta[]): CategoriasDeTipo {
+export function categoriasDeTipo(brutas: readonly TipoDoHistorico[]): CategoriasDeTipo {
   const porRotulo = new Map<string, Set<string>>();
   for (const l of brutas) {
     if (l.typeId === null || l.tipo === null) continue;
@@ -132,7 +132,7 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
   const doTime = await lerPessoasDoTime(db, S, mesesAntes(d.agora(), MESES_DO_TIME));
   const brutas = agruparOutraArea(await lerLinhas(db, S, menor(periodo.de, diario.de), maior(periodo.ate, diario.ate)), doTime);
   const rotulosSubgrupo = await lerRotulosSubgrupo(db, S);
-  const categorias = categoriasDeTipo(brutas);
+  const categorias = categoriasDeTipo(await lerTiposDoHistorico(db, S));
   const linhas = brutas.map((l) => linhaDaBiblioteca(l, rotulosSubgrupo, categorias));
   const todasRefs = [...new Set(brutas.flatMap((l) => (l.pessoaRef === null ? [] : [l.pessoaRef])))];
   const refs = todasRefs.filter((r) => r !== PESSOA_OUTRA_AREA);
