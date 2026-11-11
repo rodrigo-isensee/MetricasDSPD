@@ -336,7 +336,7 @@ describe('pedido 075 6b: bloqueios com dado real na base real', () => {
   afterEach(() => { vi.doUnmock('@metricas-dspd/contratos'); vi.resetModules(); });
   const mock = async () => buildApp({ modoMock: true, db: criarDublePg(bancoDoMock(seed)).pool, agora: () => AGORA, nivelLog: 'silent' });
   const NOTA = 'bloqueio-sem-dado-real';
-  const PESSOA = /respons[aá]vel|usu[aá]rio|pessoa|autor|owner|assignee|agente|e-?mail|ranking/i; // 'equipe' fica de fora: `equipesConsideradas` é eco do filtro, não pessoa
+  const PESSOA = /respons[aá]vel|usu[aá]rio|pessoa|autor|owner|assignee|agente|e-?mail|ranking|bloquead[oa]s?[ _-]?por|blocked[ _-]?by|quem|coment[aá]rio|comment|observa[cç]|observation/i; // K-267: + "bloqueado por", "quem", "comentário" e "observação" (075, T2/T3); 'equipe' fica de fora: `equipesConsideradas` é eco do filtro, não pessoa
   const bloq = (id: string, motivo: string, inicio: string, fim: string | null, horas: string | null): LinhaBloqueio =>
     ({ card_id: id, motivo, coluna_em_que_bloqueou: '3', fornecedor: null, inicio: new Date(inicio), fim: fim === null ? null : new Date(fim), duracao_horas_uteis: horas });
   const BLOQUEIOS = [
@@ -433,6 +433,18 @@ describe('pedido 075 6b: bloqueios com dado real na base real', () => {
       expect(r.statusCode, id).toBe(200);
       expect(chaves(r.json()).filter((k) => PESSOA.test(k)), id).toEqual([]);
     }
+  });
+
+  it('S6b: K-267, a regex de pessoa pega cada termo novo numa resposta simulada e deixa passar as chaves reais', () => {
+    const termos = ['bloqueadoPor', 'bloqueado_por', 'bloqueado por', 'bloqueadaPor', 'blockedBy', 'blocked_by', 'quem', 'quemBloqueou', 'comentario', 'comentário', 'comment', 'observacao', 'observação', 'observacoes'];
+    for (const t of termos) {
+      const simulada = { itens: [{ cardId: 'B', motivo: 'x', aninhado: { [t]: 'Fulano' } }] };
+      expect(chaves(simulada).filter((k) => PESSOA.test(k)), t).toEqual([t]);
+    }
+    // o que já era pego continua pego
+    for (const t of ['responsavel', 'usuarioKey', 'assignee', 'email', 'ranking']) expect(PESSOA.test(t), t).toBe(true);
+    // chaves legítimas de hoje não são pegas
+    for (const t of ['bloqueados', 'bloqueadoHaDiasUteis', 'bloqueioMotivo', 'motivo', 'cardId']) expect(PESSOA.test(t), t).toBe(false);
   });
 
   it('S7: T10 e T12 seguem "sem dado real" mesmo com fato_bloqueio real, com o motivo genérico', async () => {
