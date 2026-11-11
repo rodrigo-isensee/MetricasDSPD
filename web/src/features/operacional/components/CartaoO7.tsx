@@ -11,7 +11,7 @@ const SITUACAO = { cresce: 'A fila cresce', estavel: 'Estável', diminui: 'A fil
 
 /** O7: entrada x saída por tipo, um pequeno múltiplo por tipo (escala própria). Saldo acumulado conforme a decisão F4 (calculado na biblioteca). */
 export function CartaoO7({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O7', filtros, { simulado: true })
+  const q = useMetrica('O7', filtros)
   const d = q.dados
   const p = filtros.periodo
   // O cartão mostra no mínimo 6 meses; avisa quando o período escolhido é menor.

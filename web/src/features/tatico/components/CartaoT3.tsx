@@ -20,7 +20,7 @@ function SeloDesvio() {
 }
 
 export function CartaoT3({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('T3', filtros, { simulado: true })
+  const q = useMetrica('T3', filtros)
   const [contagem, setContagem] = useState<Contagem>('itens')
   const d = q.dados
   const ok = d?.status === 'ok'

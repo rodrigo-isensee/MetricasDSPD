@@ -17,7 +17,7 @@ import { LeiaJunto } from '@/features/complementares/LeiaJunto'
  */
 export function CartaoO4({ filtros }: { filtros: FiltrosFluxo }) {
   const m = entradaDoCatalogo('O4')
-  const q = useMetrica('O4', filtros, { simulado: true })
+  const q = useMetrica('O4', filtros)
   const [porTipo, setPorTipo] = useState(false)
   const d = q.dados
   const faixa = d?.faixa

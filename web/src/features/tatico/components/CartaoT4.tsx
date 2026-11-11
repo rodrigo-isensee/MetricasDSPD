@@ -17,7 +17,7 @@ import { LeiaJunto } from '@/features/complementares/LeiaJunto'
 const VALORES = CLASSES_SERVICO.map(slug)
 
 export function CartaoT4({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('T4', filtros, { simulado: true })
+  const q = useMetrica('T4', filtros)
   const d = q.dados
   const [aba, setAba] = useParametroLocal('t4', VALORES, 'padrao')
   const classes = d?.classes ?? []
