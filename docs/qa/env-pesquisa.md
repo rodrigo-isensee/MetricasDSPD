@@ -1,3 +1,18 @@
+---
+tipo: qa
+contrato: 1
+pedido: env-exemplos-pesquisa
+branch: fix/env-exemplos-pesquisa
+commit: 1bcc450c32c1281d4f2da2da4513ec1ab0edca81
+parecer: aprovado
+escopo: completo
+bugs_criticos: 0
+bugs_altos: 0
+bugs_medios: 0
+bugs_baixos: 0
+data: 2026-10-13
+---
+
 # Parecer de QA - fix/env-exemplos-pesquisa
 
 Escopo: `DSPD_PWD_PESQUISA` nos exemplos de `.env`, `restauracao.yml`, remoção da exceção `AGUARDA_EXEMPLO_DO_USUARIO` e teste novo em `tools/homolog/src/artefatos.test.ts`. Sem mudança de código de produção.

@@ -1,3 +1,18 @@
+---
+tipo: qa
+contrato: 1
+pedido: sustentacao-no-operacional
+branch: feature/sustentacao-no-operacional
+commit: 7a4a95515cf7372d0e0ba9efb51f1e1f1ff8c40e
+parecer: aprovado
+escopo: completo
+bugs_criticos: 0
+bugs_altos: 0
+bugs_medios: 0
+bugs_baixos: 0
+data: 2026-10-16
+---
+
 # Plano de testes - Sustentação dentro do Operacional (K-080)
 
 Links: especificação `docs/ux/sustentacao-no-operacional/especificacao.md` (CA-1 a CA-31, seção 11); plano técnico `docs/architecture/plano-sustentacao-no-operacional.md` (contratos 4.1 a 4.5, respostas P1 a P4 na seção 10); review `docs/reviews/sustentacao-no-operacional.md` (reprovado na volta 1: B1, M1 a M3, L1 a L8). Contrato da API: `docs/api/metricas.md` (TENDENCIA_FLUXO, TENDENCIA_SUST, `S3.janela`).

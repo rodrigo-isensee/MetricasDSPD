@@ -1,3 +1,18 @@
+---
+tipo: qa
+contrato: 1
+pedido: front-via-api
+branch: feature/front-via-api
+commit: 69db636a147563088da0da4ad4b3e35db28f43fc
+parecer: aprovado
+escopo: completo
+bugs_criticos: 0
+bugs_altos: 0
+bugs_medios: 0
+bugs_baixos: 0
+data: 2026-10-13
+---
+
 # Plano de testes - front via API (FA-4 paridade, FA-5 E2E e desempenho)
 Links: plano técnico `docs/architecture/features/front-via-api.md`, contrato `docs/api/`, orçamento `docs/architecture/adr/0003-orcamento-de-performance.md` (F1 a F5, A1). Bugs: `docs/qa/bugs/FA-001` a `FA-005`.
 

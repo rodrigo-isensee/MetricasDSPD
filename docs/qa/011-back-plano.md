@@ -1,3 +1,18 @@
+---
+tipo: qa
+contrato: 1
+pedido: 011-metricas-tambem-disponiveis
+branch: feature/011-metricas-tambem-back
+commit: 83796d92b433880e60a74cef4921db9c48202ddc
+parecer: aprovado
+escopo: completo
+bugs_criticos: 0
+bugs_altos: 0
+bugs_medios: 0
+bugs_baixos: 0
+data: 2026-10-15
+---
+
 # Plano de testes - Back do pedido 011, fase 1 (K-078)
 
 Links: especificação `docs/ux/metricas-tambem-disponiveis/02-especificacao.md` (CA-1 a CA-44, regras gerais da seção 3); pedido `docs/pedidos/011-metricas-tambem-disponiveis.md` ("Decisões do usuário", inclusive 2026-10-16); review `docs/reviews/011-back.md` (lote B2 a B10 e B11a); contrato `docs/api/metricas.md` (seção "Métricas também disponíveis, fase 1") na worktree `/home/rodrigoisensee/MetricasDSPD-011-back`.

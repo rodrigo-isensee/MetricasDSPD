@@ -1,3 +1,18 @@
+---
+tipo: qa
+contrato: 1
+pedido: acabamento-ux
+branch: feature/acabamento-ux
+commit: 953e1e8284ec4ffbbab26283b3678c66e6fdbc25
+parecer: aprovado
+escopo: completo
+bugs_criticos: 0
+bugs_altos: 0
+bugs_medios: 0
+bugs_baixos: 0
+data: 2026-10-13
+---
+
 # Parecer de QA - acabamento de UX dos mocks (L-3 a L-9, M-4, M-5)
 Branch `feature/acabamento-ux` (2 commits sobre `develop`). Referências: `docs/ux/lacuna-de-valor/06-revisao.md`, `docs/ux/metricas-fora-do-nucleo/06-revisao.md`.
 

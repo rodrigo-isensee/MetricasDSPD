@@ -1,3 +1,18 @@
+---
+tipo: qa
+contrato: 1
+pedido: f4-medicao
+branch: develop
+commit: 953e1e8284ec4ffbbab26283b3678c66e6fdbc25
+parecer: aprovado
+escopo: completo
+bugs_criticos: 0
+bugs_altos: 0
+bugs_medios: 0
+bugs_baixos: 0
+data: 2026-10-13
+---
+
 # Medição do F4 antes e depois do FIL-04
 
 Pergunta: o F4 (resposta visual ao trocar filtro, limite 100 ms, ADR 0003) piorou com a correção do `FiltroMulti` (91a878d)?

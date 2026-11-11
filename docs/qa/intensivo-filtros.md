@@ -1,3 +1,18 @@
+---
+tipo: qa
+contrato: 1
+pedido: intensivo-filtros
+branch: main
+commit: 0af552a
+parecer: reprovado
+escopo: completo
+bugs_criticos: 0
+bugs_altos: 1
+bugs_medios: 4
+bugs_baixos: 2
+data: 2026-10-13
+---
+
 # QA intensivo de filtros - versão da `main`
 
 Pedido do usuário: testes intensivos de FILTROS na versão que está na `main`.
