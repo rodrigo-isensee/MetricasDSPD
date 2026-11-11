@@ -34,7 +34,7 @@ Fonte: seção 4 da especificação do dono (regra de subgrupo). Este arquivo s�
 | 9 | `desenvolvimento-correcao` | Desenvolvimento/Correção | T | `desenvolv`, `ajuste`, `correcao`, `debug`, `implement`, `criacao`, `rotina`, `fonte`, `script` |
 | 10 | `incidente-sem-detalhe` | Correção de incidente (sem detalhe) | R | tipo do card = Incidente de Produção **e** comentário vazio |
 | 11 | `execucao-tecnica` | Execução técnica (sem detalhamento no apontamento) | R | há comentário e nenhuma regra anterior casou |
-| 12 | `nao-classificado` | Não classificado | R | sem comentário (e nenhuma regra por tipo casou) |
+| 12 | `nao-classificado` | Sem comentário | R | sem comentário (e nenhuma regra por tipo casou). Rótulo "Não classificado" até a versão `2026-11-10-v3` (pedido 089, D3) |
 
 "Sem comentário" = comentário vazio ou só espaços, depois da normalização.
 
@@ -56,7 +56,7 @@ Arquivo sugerido: `server/ref/apontamento-dicionario.json` (padrão das exceçõ
     { "codigo": "desenvolvimento-correcao", "rotulo": "Desenvolvimento/Correção", "prioridade": 9 },
     { "codigo": "incidente-sem-detalhe", "rotulo": "Correção de incidente (sem detalhe)", "prioridade": 10 },
     { "codigo": "execucao-tecnica", "rotulo": "Execução técnica (sem detalhamento no apontamento)", "prioridade": 11 },
-    { "codigo": "nao-classificado", "rotulo": "Não classificado", "prioridade": 12 }
+    { "codigo": "nao-classificado", "rotulo": "Sem comentário", "prioridade": 12 }
   ],
   "termos": [
     { "subgrupo": "testes", "termos": ["teste", "homolog"] },
@@ -82,7 +82,7 @@ Arquivo sugerido: `server/ref/apontamento-dicionario.json` (padrão das exceçõ
 Notas de carga:
 - `regrasPorTipo` guarda o **rótulo** do tipo; a tabela `ref_apontamento_regra_tipo` guarda `type_id`. O `ref:sync` resolve rótulo para `type_id` contra `dim_tipo_card` (ou equivalente do 052) e **falha a carga** se o rótulo não existir (sem adivinhar). Os ids reais só se conhecem na máquina do dono (PE-6).
 - Prioridade 11 e 12 não têm termos: são as regras residuais, avaliadas pelo código (`execucao-tecnica` = comentário presente sem casamento; `nao-classificado` = sem comentário).
-- Qualidade (`sem_vinculo`) depende dos códigos `execucao-tecnica` e `nao-classificado`; o código a referencia por esses dois literais.
+- Qualidade (`sem_vinculo`) depende só do código `nao-classificado` (pedido 089, D2, decisão do dono de 2026-11-10): `execucao-tecnica` (comentário que o dicionário não reconheceu) deixou de ser falha de qualidade e aparece à parte, como insumo para ampliar o dicionário. O código referencia o literal; a mudança é a versão de critério `089:sem-vinculo-so-sem-comentario` (T2.6), com a data da primeira varredura completa que reclassifica.
 - Termos em início de palavra sem acento; o teste do `ref:sync` rejeita termo com maiúscula, acento ou espaço duplicado.
 
 ## 4. Dicionário fechado de subtarefa
