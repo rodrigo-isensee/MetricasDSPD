@@ -129,6 +129,10 @@ jobs:
     if: needs.escopo.outputs.escopo == 'codigo'
     # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
     runs-on: ubuntu-24.04
+    # Container oficial do Playwright (K-269): navegador e libs vêm na imagem, sem apt no runner (o apt do host não resolve azure.archive.ubuntu.com). Versão = playwright-core do pnpm-lock.yaml (1.64.0); ao subir o Playwright, trocar a tag e o digest.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -177,6 +181,10 @@ jobs:
     if: needs.escopo.outputs.escopo == 'codigo'
     # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
     runs-on: ubuntu-24.04
+    # Container oficial do Playwright (K-269): navegador e libs vêm na imagem, sem apt no runner (o apt do host não resolve azure.archive.ubuntu.com). Versão = playwright-core do pnpm-lock.yaml (1.64.0); ao subir o Playwright, trocar a tag e o digest.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

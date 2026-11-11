@@ -193,6 +193,10 @@ jobs:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
     runs-on: ubuntu-24.04
+    # Container oficial do Playwright (K-269): navegador e libs vêm na imagem, sem apt no runner (o apt do host não resolve azure.archive.ubuntu.com). Versão = playwright-core do pnpm-lock.yaml (1.64.0); ao subir o Playwright, trocar a tag e o digest.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -206,22 +210,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Versão do Playwright
-        id: pw
-        run: echo "v=$(pnpm --filter @metricas-dspd/e2e exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-      - name: Cache dos navegadores do Playwright
-        id: pwcache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.v }}
-      - name: Instala navegador e dependências do sistema
-        run: |
-          if [ '${{ steps.pwcache.outputs.cache-hit }}' = 'true' ]; then
-            pnpm --filter @metricas-dspd/e2e exec playwright install-deps chromium
-          else
-            pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
-          fi
+      - uses: ./.github/actions/playwright
       - name: Diagramas Mermaid renderizam (mermaid-cli com o Chromium do Playwright)
         if: matrix.parte == 1
         run: |
@@ -260,6 +249,10 @@ jobs:
       (github.event_name == 'pull_request' && (github.base_ref == 'homolog' || github.base_ref == 'main'))
     # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
     runs-on: ubuntu-24.04
+    # Container oficial do Playwright (K-269): navegador e libs vêm na imagem, sem apt no runner (o apt do host não resolve azure.archive.ubuntu.com). Versão = playwright-core do pnpm-lock.yaml (1.64.0); ao subir o Playwright, trocar a tag e o digest.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -269,22 +262,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Versão do Playwright
-        id: pw
-        run: echo "v=$(pnpm --filter @metricas-dspd/e2e exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-      - name: Cache dos navegadores do Playwright
-        id: pwcache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.v }}
-      - name: Instala navegador e dependências do sistema
-        run: |
-          if [ '${{ steps.pwcache.outputs.cache-hit }}' = 'true' ]; then
-            pnpm --filter @metricas-dspd/e2e exec playwright install-deps chromium
-          else
-            pnpm --filter @metricas-dspd/e2e exec playwright install --with-deps chromium
-          fi
+      - uses: ./.github/actions/playwright
       - run: pnpm run build
       - name: Perf (C6 com 1 rodada, runner exclusivo e estável)
         run: pnpm --filter @metricas-dspd/e2e run test:perf
