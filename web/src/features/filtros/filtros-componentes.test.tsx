@@ -507,4 +507,27 @@ describe('FiltroMulti: busca digitando (097 L1, CA-10 a CA-16)', () => {
     await u.keyboard('{Escape}')
     expect(screen.getByLabelText('Buscar')).toHaveValue('')
   })
+
+  it('CA-16: Esc com o foco numa opção limpa a busca e mantém o popover aberto', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText('Buscar'), 'beta')
+    await u.keyboard('{ArrowDown}')
+    expect(screen.getByLabelText('Beta')).toHaveFocus()
+    await u.keyboard('{Escape}')
+    expect(screen.getByLabelText('Buscar')).toHaveValue('')
+    expect(screen.getByLabelText('Avaliação')).toBeInTheDocument()
+  })
+
+  it('CA-16: na folha, Esc com o foco numa opção limpa a busca', async () => {
+    const u = userEvent.setup()
+    montar([], vi.fn(), 'lista')
+    await u.type(screen.getByLabelText('Buscar'), 'gestao')
+    await u.keyboard('{ArrowDown}')
+    expect(screen.getByLabelText('Gestão')).toHaveFocus()
+    await u.keyboard('{Escape}')
+    expect(screen.getByLabelText('Buscar')).toHaveValue('')
+    expect(screen.getByLabelText('Beta')).toBeInTheDocument()
+  })
 })
