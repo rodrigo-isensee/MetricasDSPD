@@ -7,6 +7,20 @@ export const MAX_COMMITS_HOTFIX = 10
  */
 export const EXIGIR_NOTURNA = false
 
+/** K-263: a API pode demorar a listar o sucesso do portão recém-concluído; 1 consulta + 6 tentativas de 10 s (~60 s). */
+export interface Espera {
+  /** Consultas extras depois da primeira, só quando o portão aparece sem sucesso. */
+  tentativas: number
+  intervaloMs: number
+  /** Injetável: o teste não dorme. */
+  dormir: (ms: number) => Promise<void>
+}
+export const ESPERA_PADRAO: Espera = {
+  tentativas: 6,
+  intervaloMs: 10_000,
+  dormir: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+}
+
 /** Uma execução concluída com sucesso de um workflow, como a API de Actions a descreve. */
 export interface Execucao {
   id: number
@@ -58,6 +72,7 @@ export async function decidirAprovacao(
   api: Api,
   pedido: Pedido,
   exigirNoturna: boolean = EXIGIR_NOTURNA,
+  espera: Espera = ESPERA_PADRAO,
 ): Promise<Decisao> {
   if (pedido.repoOrigem !== pedido.repoDestino)
     return { aprovada: false, motivo: `PR de fork não é aceito (origem: ${pedido.repoOrigem})` }
@@ -76,10 +91,18 @@ export async function decidirAprovacao(
       motivo: `o candidato ${curto(pedido.shaCandidato)} não é a ponta de homolog (${curto(ponta)})`,
     }
 
-  const execucoes = (await api.execucoes(ARQUIVO_HOMOLOG, { sha: ponta, agendadas: true })).filter(
-    (e) => e.caminho === ARQUIVO_HOMOLOG,
-  )
-  const portao = await temPortaoVerde(api, execucoes, ponta, ['push'])
+  const consultar = async (): Promise<Execucao[]> =>
+    (await api.execucoes(ARQUIVO_HOMOLOG, { sha: ponta, agendadas: true })).filter(
+      (e) => e.caminho === ARQUIVO_HOMOLOG,
+    )
+  // Só o "portão sem sucesso" espera e consulta de novo (K-263); a regra não muda: vermelho ou ausente segue falhando.
+  let execucoes = await consultar()
+  let portao = await temPortaoVerde(api, execucoes, ponta, ['push'])
+  for (let i = 0; !portao && i < espera.tentativas; i++) {
+    await espera.dormir(espera.intervaloMs)
+    execucoes = await consultar()
+    portao = await temPortaoVerde(api, execucoes, ponta, ['push'])
+  }
   if (!portao)
     return { aprovada: false, motivo: `portão de homolog sem sucesso em ${curto(ponta)}` }
 

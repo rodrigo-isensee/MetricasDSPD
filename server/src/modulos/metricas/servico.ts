@@ -319,9 +319,9 @@ export class ServicoMetricas {
     let resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
     // H-24: o SLE do O3 vem da governança (Q-7c); sem ele na base real o O3 sai com os percentis e a nota "SLE não definido".
     if (id === 'O3' && real && (bm as NonNullable<typeof bm>).sleDefinido !== true) resultado = { ...(resultado as object), notas: ['sle-nao-definido'] };
-    // Pedido 065 (K-205): a coleta ainda não grava bloqueios; na base real a parte de bloqueio sai `null` com nota, nunca zero. Só publicação: nada é recalculado.
+    // Pedido 065 (K-205): com o interruptor desligado a parte de bloqueio sai `null` com nota, nunca zero. Ligado no pedido 075 (lote 6b), o ramo não roda e o corte da série do O1 (abaixo) é o único que anula. Só publicação.
     if (real && !BLOQUEIOS_COM_DADO_REAL && METRICAS_COM_PARTE_DE_BLOQUEIO.includes(id)) resultado = semParteDeBloqueio(id, resultado);
-    // Pedido 075, lote 6a: com o interruptor ligado, a série do O1 não traz bloqueio antes da data da versão de critério (código escuro).
+    // Pedido 075, lotes 6a e 6b: com o interruptor ligado, a série do O1 não traz bloqueio antes da data da versão de critério (2026-11-01).
     if (real) resultado = comCorteDaSerieO1(id, resultado, BLOQUEIOS_COM_DADO_REAL);
     // Pedido 069, L9-a (K-220): sem a fonte de `prioridade_ajustada_manualmente`, o S3 publica `null` com nota e o S2 a nota da exceção de SLA. Só publicação.
     if (real && !AJUSTE_PRIORIDADE_COM_FONTE && METRICAS_COM_AJUSTE_DE_PRIORIDADE.includes(id)) resultado = semParteDeAjusteDePrioridade(id, resultado);
