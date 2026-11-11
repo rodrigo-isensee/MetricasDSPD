@@ -17,7 +17,7 @@ export interface Calendario {
   /** `corrido` = horas corridas (exceção de plantão, 4.2); não está ligado a nenhuma prioridade. */
   modo: 'expediente' | 'corrido'
   turnos: readonly Turno[]
-  /** Feriados como AAAA-MM-DD. */
+  /** Feriados como AAAA-MM-DD. Imutável depois de criado o calendário (`ehDiaUtil` guarda uma cópia em número de dia). */
   feriados: ReadonlySet<string>
   offsetMinutos: number
   horasPorDia: number
@@ -62,7 +62,7 @@ export function criarCalendario(opcoes: Partial<Calendario> = {}): Calendario {
   return {
     modo: opcoes.modo ?? 'expediente',
     turnos,
-    feriados: opcoes.feriados ?? new Set(FERIADOS_NACIONAIS),
+    feriados: new Set(opcoes.feriados ?? FERIADOS_NACIONAIS),
     offsetMinutos: opcoes.offsetMinutos ?? -180,
     horasPorDia: opcoes.horasPorDia ?? horasPorDia,
   }
@@ -189,9 +189,40 @@ export function instanteDeIso(texto: string, cal: Calendario): number {
   return dia * MS_DIA + min * MS_MINUTO + seg * 1000 - off * MS_MINUTO
 }
 
+interface FeriadosEmDia {
+  /** Feriados canônicos (AAAA-MM-DD que fazem a ida e volta exata) como número de dia. */
+  dias: ReadonlySet<number>
+  /** Textos que não fazem a ida e volta mas ainda poderiam ser o `isoDeDia` de algum dia (anos fora de 0..9999). */
+  extras: ReadonlySet<string>
+}
+
+const CANONICA = /^\d{4}-\d{2}-\d{2}$/
+const PODE_SER_ISO_DE_DIA = /^[\d-]+-\d{2}-\d{2}$/
+const FERIADOS_EM_DIA = new WeakMap<ReadonlySet<string>, FeriadosEmDia>()
+
+function feriadosEmDia(feriados: ReadonlySet<string>): FeriadosEmDia {
+  let r = FERIADOS_EM_DIA.get(feriados)
+  if (r) return r
+  const dias = new Set<number>()
+  const extras = new Set<string>()
+  for (const f of feriados) {
+    if (CANONICA.test(f)) {
+      const d = diaDeIso(f)
+      if (isoDeDia(d) === f) dias.add(d)
+    } else if (PODE_SER_ISO_DE_DIA.test(f)) extras.add(f)
+  }
+  r = { dias, extras }
+  FERIADOS_EM_DIA.set(feriados, r)
+  return r
+}
+
 export function ehDiaUtil(dia: number, cal: Calendario): boolean {
   if (cal.modo === 'corrido') return true
-  return diaDaSemana(dia) < 5 && !cal.feriados.has(isoDeDia(dia))
+  if (!(diaDaSemana(dia) < 5)) return false
+  if (!Number.isInteger(dia)) return !cal.feriados.has(isoDeDia(dia))
+  const f = feriadosEmDia(cal.feriados)
+  if (f.dias.has(dia)) return false
+  return f.extras.size === 0 || !f.extras.has(isoDeDia(dia))
 }
 
 export function proximoDiaUtil(dia: number, cal: Calendario): number {
