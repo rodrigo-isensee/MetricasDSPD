@@ -724,13 +724,7 @@ describe('A3: corpus de comentários legítimos', () => {
     ['sem acento', 'reuniao de alinhamento', TAREFA, 'reunioes-comunicacao', ['generico']],
     ['sigla e número', 'RDM 1234', TAREFA, 'gestao-mudanca', ['generico']],
     ['sigla só', 'GMUD', TAREFA, 'gestao-mudanca', ['generico']],
-    [
-      'número de chamado',
-      'Chamado 2026-004512',
-      TAREFA,
-      SUBGRUPO_EXECUCAO_TECNICA,
-      ['generico'],
-    ],
+    ['número de chamado', 'Chamado 2026-004512', TAREFA, SUBGRUPO_EXECUCAO_TECNICA, ['generico']],
     [
       'quebra de linha',
       'Análise do log\nreuniao com a equipe\najuste final',
