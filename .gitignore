@@ -30,3 +30,6 @@ ultimo-backup-ok
 
 # Evidencias gravadas pela E2E fora de execucao de QA (E2E_EVIDENCIAS=qa grava na pasta versionada)
 e2e/evidencias-local/
+
+# Saida do comando de consultas de leitura (098 e 099): fica fora do repositorio
+consultas-098-099-*.txt
