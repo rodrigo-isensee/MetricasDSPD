@@ -26,9 +26,11 @@ Testes dos arquivos tocados: `tools/homolog` com `vitest run --coverage --maxWor
 
 ## Achados
 - A1 (recomendado) docs/engineering/fluxo-homologacao.md:170 · o texto ainda diz "sem espera paga" e "em curso ou ainda não listado = falha"; agora a falha vem depois de até ~60 s de nova consulta. Atualizar a frase com a espera do K-263 (até 6 x 10 s, só no "portão sem sucesso", critério inalterado), no PR da E1.5 ou num commit do autor nesta branch.
-- A2 (recomendado) tools/homolog/src/aprovacao.ts:101 · o pedido fala em tentar de novo quando o portão "terminou há pouco"; a implementação espera em todo "portão sem sucesso", inclusive com o portão ainda em curso (o caso comum na abertura do PR de release), o que soma ~60 s de runner a uma falha que já seria resolvida pelo `homolog-reavalia`. Não afrouxa a regra e o custo é pequeno; se quiser enxugar depois, a espera pode exigir que a execução do portão do sha já esteja listada como concluída. Não bloqueia: o critério de review do brief é "só no caso portão sem sucesso", e é o que está feito.
+- A2 (recomendado) tools/homolog/src/aprovacao.ts:101 · o pedido fala em "terminou há pouco"; a espera vale em todo "portão sem sucesso", inclusive com o portão em curso (~60 s de runner a mais). Não afrouxa a regra; para enxugar depois, exigir a execução do portão do sha listada como concluída.
 
-Nenhum achado bloqueante. Itens do Entregar da E1.1 conferidos contra os commits: código e teste em `e40524fd`, parecer de devops em `d1693a72`; nenhum item sem commit.
+## Notas
+- A2: o caso comum é a abertura do PR de release com o portão ainda em curso, falha que o `homolog-reavalia` já resolve. O custo é pequeno. Não bloqueia: o critério de review do brief é "só no caso portão sem sucesso", e é o que está feito.
+- Nenhum achado bloqueante. Itens do Entregar da E1.1 conferidos contra os commits: código e teste em `e40524fd`, parecer de devops em `d1693a72`; nenhum item sem commit.
 
 ## Parecer
 Aprovado. Mudança pequena e localizada, regra de aprovação idêntica, espera injetável e testada nos dois sentidos (transitória vira verde; vermelho segue vermelho, depois das tentativas). Os pareceres de segurança e de QA são independentes deste.
