@@ -105,6 +105,8 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-278 | [web] Ressalvas da revisão de UX do L1 da busca (A1 foco que abre o teclado na folha mobile, A2 popover sem nome acessível, A3 a A8 baixos) e o A5 do review (teste com queryByLabelText exato) | 097 | forge:react-frontend | 2026-11-11 | 2026-11-11 18:31 | docs/ux/097-revisao-l1.md; depois do L1, antes do L5. |
+| K-277 | [scripts] Comando de consultas de leitura: recusar U&, UESCAPE e os prefixos pg_ e lo_ na lista de palavras (A5 da segurança) | 099 | forge:devops-engineer | 2026-11-11 | 2026-11-11 18:06 | docs/security/099-consultas-leitura.md (A5, sondas S8 a S12), branch chore/consultas-leitura-098-099. |
 | K-276 | [web] Ressalvas baixas da revisão de UX do lote 9a (anel do O2 sobre o triângulo do P95, legenda do anel sem bloqueados, apoio em text-xs, leitura do travessão, decisão do O1 só por hoje.bloqueados; série de bloqueados no O1) | 075 | forge:react-frontend | 2026-11-11 | 2026-11-11 14:30 | docs/ux/075-revisao-l9a.md, achados 2 a 7. |
 | K-275 | [pedido do dono] Nenhuma métrica simulada na web, começando pelo Operacional; guarda contra regressão | 099 | forge:software-architect | 2026-11-11 | 2026-11-11 13:55 | varredura em curso. |
 | K-272 | [bug] AP-TIPO "Horas por tipo" repete "Trabalho de produto" em várias linhas (agrupa por type_id e mostra a categoria); filtro tipo do apontamento repete opções | 097 | forge:node-backend | 2026-11-11 | 2026-11-11 13:49 | relatado pelo dono na demo; espera P-097-7 (categoria ou tipo real). |
@@ -121,7 +123,7 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-204 | [coleta] Gravar bloqueios reais (fato_bloqueio e evt_bloqueio a partir do block_reason do staging), parte B da decisão C do 064 | 075 | forge:react-frontend | 2026-11-04 | 2026-11-11 13:10 | 6b validado por delegação do dono ("A", 13:06, só pelas provas do mock); lote 9a (tela) na worktree 056, branch feature/075-9a; depois 9b (contrato, node-backend). |
+| K-204 | [coleta] Gravar bloqueios reais (fato_bloqueio e evt_bloqueio a partir do block_reason do staging), parte B da decisão C do 064 | 075 | forge:tech-lead | 2026-11-04 | 2026-11-11 18:07 | 9a e 9b na develop; release 100 (volta na branch docs/100-release-b): PR para a develop, depois homolog e o PR para a main do dono · worktree: MetricasDSPD-052h |
 | K-269 | [CI, devops] jobs com navegador falham no runner Ubuntu 26.04 (apt não resolve os espelhos do Ubuntu): fixar ubuntu-24.04 em ci.yml e homolog.yml | 095 | forge:devops-engineer | 2026-11-11 | 2026-11-11 12:22 | worktree: 052h · branch melhoria/runner-ubuntu-2404; push do workflow pelo dono. |
 | K-265 | [docs] guia-do-desenvolvedor.md:44 ainda diz "pnpm run pronto antes de cada commit"; alinhar à decisão do dono de 2026-10-21, como o K-172 fez em praticas.md | 094 | forge:tech-lead | 2026-11-11 | 2026-11-11 10:14 | worktree: 052c · branch docs/k265-guia-pronto; pedido 094, E1.1. |
 | K-267 | [teste, segurança] regex PESSOA do S6 (painel-real-f6.test.ts:339) não cobre "bloqueado por", "quem", "comentário" e "observação" do modelo de ameaças do 075 | 094 | forge:node-backend | 2026-11-11 | 2026-11-11 10:14 | worktree: 052f · branch fix/k267-regex-pessoa; pedido 094, E3.1. |

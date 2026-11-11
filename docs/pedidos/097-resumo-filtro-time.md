@@ -18,6 +18,11 @@
 - E1.1 (ux-designer): discovery da interface de E1 a E4 e protótipo para o dono validar.
 - E1.2 (software-architect): viabilidade e dados de E1 a E4 (time no apontamento, opções de filtro do dado real), em paralelo ao UX.
 - E1.3 (ux-designer): segunda rodada do protótipo com E5 (recolher cartão e os 10 maiores do AP-PROJETO) e E7 (filtro Setor), rótulo "Equipe", na branch docs/097-ux-recolher-setor, worktree /home/rodrigoisensee/MetricasDSPD-052d.
+- E1.5 (tech-lead): commit e push dos documentos da segunda rodada do UX, que o ux-designer não pode commitar, na branch docs/097-ux-recolher-setor, worktree /home/rodrigoisensee/MetricasDSPD-052d.
+- E2.1 (node-backend): L2 do plano, a equipe no apontamento (parte servidor do E2: GRANT de dim_card.equipe, filtro equipe e opcoes.equipes), na branch feature/097-l2-apontamento-equipe, worktree /home/rodrigoisensee/MetricasDSPD-056.
+- E2.2 (security-engineer): parecer de segurança do L2 (banco: permissão por coluna; recorte de pessoas por equipe).
+- E3.5 (ux-designer): revisão da interface implementada, por lote do 097, em docs/ux/097-revisao-<lote>.md.
+- E4.1 (node-backend): L6 do plano, parte servidor (opção T-A: tipos presentes nas stories, mapeados para os ids de TIPO_ID, em opcoes.tipos), na branch feature/097-l6-tipos-reais, worktree /home/rodrigoisensee/MetricasDSPD-056d.
 - E3.1 (react-frontend): L1 do plano, busca no FiltroMulti (E3), na branch feature/097-l1-busca, worktree /home/rodrigoisensee/MetricasDSPD-052c.
 - E1.4 (node-backend): L4 do plano, equipe opcional nas duas tendências (parte servidor do E1), na branch feature/097-l4-tendencia-equipe, worktree /home/rodrigoisensee/MetricasDSPD-052g.
 - E3.2 (tech-lead): review por lote do 097.
@@ -134,3 +139,22 @@
 - 2026-11-11 17:50: review do L1 reprovado (d7623585): A1 bloqueante (na folha mobile, com texto na busca de um filtro e o foco em outro, o Esc nem limpa nem fecha; sondas S1 e S2); A2 bloqueante (arquitetura-front.md seção 4 sem a busca); A3 e A4 recomendados; teto excedido (279 linhas) a declarar no PR. Volta 3 ao react-frontend (a última permitida).
 - 2026-11-11 17:48: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-7.md 5d0aea9822dc1a7b040d0ac0f4a296f7643c78aeee51762dfc0ea227e73d669b
 - 2026-11-11 17:51: DECISÃO DO DONO (literal, registrada no pedido 100): "voce pode fazer ate o merge da main, esse so eu faco o resto pode fazer". Vale para os PRs deste pedido: o tech-lead mescla na develop com os checks verdes; a main é só do dono.
+- 2026-11-11 18:11: brief selado docs/briefs/097-resumo-filtro-time-node-backend-10.md cc500f72e882c3157e501330e57433119372ab515d43a9d5fa5b56de6a4ceebb
+- 2026-11-11 18:11: E2.1 (L2, equipe no apontamento, servidor) delegado ao node-backend na worktree 056, branch feature/097-l2-apontamento-equipe, da develop 1d697d6a (a volta da release 100, PR 327, já está na develop).
+- 2026-11-11 18:14: brief selado docs/briefs/097-resumo-filtro-time-node-backend-11.md af27d258f2b75115d91649e79413f8fc568b438df8dada8751ed81bab884412b
+- 2026-11-11 18:14: E4.1 (L6 servidor, tipos reais na lista de Tipo, opção T-A) delegado a uma segunda instância de node-backend na worktree 056d, branch feature/097-l6-tipos-reais. Recado do dono pela sessão WSL ativação: computador livre, mais paralelismo (até 15 GB, no máximo 3 ou 4 testes pesados juntos).
+- 2026-11-11 18:22: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-11.md a664b9d9830522559a7d970edf8abd526a680aba6aa0e8a2a52d7029795a154a
+- 2026-11-11 18:24: E1.5 entregue pelo tech-lead: segunda rodada do UX commitada e enviada (0a3503e2, branch docs/097-ux-recolher-setor; docs:check ok; pessoas fictícias, setores sem sobrenome). Próximo: o dono valida o protótipo docs/ux/prototipos/097-filtros.html (E5 e E7).
+- 2026-11-11 18:24: entrega conferida d5083317568496c30d23815f8f36996bbe315061
+- 2026-11-11 18:25: ERRO-JARVIS: o brief do E1.5 (selado às 18:22 como docs/briefs/097-resumo-filtro-time-tech-lead-11.md, sha a664b9d9830522559a7d970edf8abd526a680aba6aa0e8a2a52d7029795a154a) foi gravado por cima do tech-lead-11 já selado às 15:06; o mesmo aconteceu com o tech-lead-10 (15:05), sobrescrito por um brief reprovado e não usado. Causa: numeração pelo fim de um ls ordenado no campo errado. Os dois originais foram restaurados do git (sha iguais aos selos); o conteúdo do E1.5, idêntico, está em docs/briefs/097-resumo-filtro-time-tech-lead-24.md. Os briefs novos de 18:02 a 18:24 dos pedidos 099 e 100 foram conferidos: nenhum sobrescreveu outro.
+- 2026-11-11 18:26: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-25.md e055bb5f7a8c1752c30da73f2f986b99b7d41bcb24672a59d9529776f0ecd245
+- 2026-11-11 18:26: volta 3 do L1 entregue (d5083317, enviada): A1 a A4 do review; filtros com 100%; a suíte completa do web teve 2 timeouts de 90 s por carga (visoes e preferencias, verdes sozinhos). Entrega conferida. Revalidação do review delegada (tech-lead-25); depois o QA com a cobertura completa.
+- 2026-11-11 18:28: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-16.md 89b83ddf0cfaa4ae653d0ffce65ad55a42fbbf37732133430f37cd67cd2c5931
+- 2026-11-11 18:28: review da volta 3 do L1 aprovado (277ff083): A1 a A4 resolvidos; A5 recomendado (teste da linha 502 com queryByLabelText exato não testa mais nada; ajuste para o lote L5). QA da volta 3 delegado (qa-engineer-16) com a cobertura completa.
+- 2026-11-11 18:29: brief selado docs/briefs/097-resumo-filtro-time-ux-designer-4.md c42eb88ab46018eb89ace4216a9745fde87840b4d1bac023f8849fe2a0ed64cd
+- 2026-11-11 18:30: revisão de UX do L1: aprovado com ressalvas (docs/ux/097-revisao-l1.md, 8 achados: A1 e A2 médios, foco que abre o teclado na folha mobile e o popover sem nome acessível; A3 a A8 baixos). DECISÃO TÉCNICA (Jarvis): o L1 segue para o PR depois do QA (aprovado com ressalvas não bloqueia, e a volta 3 era a última); os 8 achados e o A5 do review viram o cartão K-278, para o react-frontend logo depois do L1, antes do L5.
+- 2026-11-11 18:32: entrega conferida 4bae9c60c8ca32a512a215f1a525d8f254f0be4a
+- 2026-11-11 18:33: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-17.md 1bba372a843d2c42a18eb03fa7e84212892635ef2b972a2f9d9c8bd1258a79bd
+- 2026-11-11 18:33: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-26.md 7e10c926fa0d34a0970c2562b93cc810e65e75d0110a343ec564e9c916f6ff9d
+- 2026-11-11 18:33: E4.1 (L6 servidor) entregue (4bae9c60, enviado): opcoes.tipos das categorias presentes nas stories, sem Incidente; opcoes.prioridades só as presentes; entrada e forma sem mudança; pronto verde. Entrega conferida. Classe N (review e QA): QA delegado (qa-engineer-17), review em seguida (tech-lead-26, selado), em série pelo R-TETO.
+- 2026-11-11 18:35: 2026-11-11 QA do L6 servidor aprovado (docs/qa/097-l6-tipos-reais.md, 97c46f2f, em 4bae9c60), sem bug; A1 recomendado (teste de prioridades vazias do Acelerato). Review delegado (tech-lead-26).

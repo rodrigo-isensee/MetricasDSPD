@@ -17,6 +17,7 @@
 - E1.6 (tech-lead): PR de release da homolog para a main, aberto; o merge é do dono.
 - E1.7 (agile-coach): retrospectiva curta.
 - E1.8 (devops-engineer): parecer de devops da release (a release muda os workflows e a ação do Playwright), na branch docs/100-release-b.
+- E1.9 (devops-engineer): limpar a fila do GitHub Actions, cancelando só as execuções em fila já substituídas por outra mais nova da mesma branch ou de branch já mesclada, para o CI da release andar.
 - Cada portão (QA, segurança, review) commita e envia o próprio parecer na branch.
 
 ## Fora do escopo
@@ -55,3 +56,7 @@
 - 2026-11-11 17:48: DECLARAÇÃO DO DONO (literal): "estou saindo do micro as 18 vou deixar livre para voce,m pode usar bastante dos recursos". O teto de uso da máquina sobe depois das 18 h, enquanto o dono estiver fora; merges continuam com o dono.
 - 2026-11-11 17:49: brief selado docs/briefs/100-release-bloqueios-simulador-tech-lead-13.md 5e00cbadbca9916b9aa7bf886389dd7f9880dd368867667158bce05591e4f568
 - 2026-11-11 17:51: DECISÃO DO DONO (literal): "voce pode fazer ate o merge da main, esse so eu faco o resto pode fazer". O tech-lead mescla na develop e na homolog (como o CLAUDE.md já prevê), só com o portão e os checks verdes, por merge sem --admin e com --match-head-commit; o merge da main continua só do dono. Se o hook ou o sistema de permissões recusar, o tech-lead para e relata (não se contorna).
+- 2026-11-11 18:11: PR 327 (volta da release, docs/100-release-b) mesclado na develop em 1d697d6a. Próximo: develop para homolog (E1.5).
+- 2026-11-11 18:21: brief selado docs/briefs/100-release-bloqueios-simulador-devops-engineer-9.md d74c62e5ddb0e36db8958ec2bf7d94db5cea5e552e6608112cf4bc9610785d6c
+- 2026-11-11 18:21: brief selado docs/briefs/100-release-bloqueios-simulador-tech-lead-14.md 213f0b5a119e6ed9570935e73796640d63ecd3c3efa9af2f0a81094cc853cbd8
+- 2026-11-11 18:21: PR 327 mesclado pelo dono às 17:57 (1d697d6a, develop verde). Fila do Actions com cerca de 15 execuções em fila, quase todas de push já substituído, uma por vez. E1.9 (cancelar as substituídas) recusado pelo classificador de permissões (Interfere With Workloads): vira pergunta ao dono (PERGUNTA: Q-100-1). E1.5 (develop para homolog) delegado ao tech-lead, brief tech-lead-14.

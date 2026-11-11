@@ -2903,3 +2903,15 @@
 | 2026-11-11 18:02 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-security-engineer-2 | brief | 1 | aprovado | s | revalidacao | — | jarvis |
 | 2026-11-11 18:02 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-11 | brief | 1 | aprovado | s | revalidacao | — | jarvis |
 | 2026-11-11 18:02 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-6 | brief | 1 | aprovado | s | revalidacao | — | jarvis |
+| 2026-11-11 18:11 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-10 | brief | 1 | aprovado | s | L2 | — | jarvis |
+| 2026-11-11 18:14 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-11 | brief | 1 | aprovado | s | L6 | — | jarvis |
+| 2026-11-11 18:18 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-10 | brief | 1 | aprovado | s | ux | — | jarvis |
+| 2026-11-11 18:21 | 100-release-bloqueios-simulador | 100-release-bloqueios-simulador-devops-engineer-9 | brief | 1 | aprovado | s | fila | — | jarvis |
+| 2026-11-11 18:21 | 100-release-bloqueios-simulador | 100-release-bloqueios-simulador-tech-lead-14 | brief | 1 | aprovado | s | homolog | — | jarvis |
+| 2026-11-11 18:22 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-11 | brief | 1 | aprovado | s | ux | — | jarvis |
+| 2026-11-11 18:23 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-12 | brief | 1 | aprovado | s | pr | — | jarvis |
+| 2026-11-11 18:26 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-25 | brief | 1 | aprovado | s | l1rev | — | jarvis |
+| 2026-11-11 18:28 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-16 | brief | 1 | aprovado | s | l1qa | — | jarvis |
+| 2026-11-11 18:29 | 097-resumo-filtro-time | 097-resumo-filtro-time-ux-designer-4 | brief | 1 | aprovado | s | l1ux | — | jarvis |
+| 2026-11-11 18:33 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-17 | brief | 1 | aprovado | s | l6qa | — | jarvis |
+| 2026-11-11 18:33 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-26 | brief | 1 | aprovado | s | l6rev | — | jarvis |

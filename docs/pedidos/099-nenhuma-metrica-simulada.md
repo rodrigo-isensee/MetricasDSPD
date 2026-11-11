@@ -92,3 +92,7 @@
 - 2026-11-11 18:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-security-engineer-2.md 0ef97e0e26b6c4e193c55d740d3fc149f1a1fb1989faeec6381fcb8f0a817a42
 - 2026-11-11 18:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-11.md b023699d851d42315393792e43bbc7ff623a27bc447ff76e77acf68c3c9c313c
 - 2026-11-11 18:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-6.md ce93d5c7a484187bceaa009c56e009e00fda5ff2a578b12b42a8e728599942e8
+- 2026-11-11 18:06: segurança do comando revalidada no 7bf13576 (c27687f2, aprovado): A1, A3 e A4 corrigidos; A2 segue recomendado; A5 novo recomendado (lista de palavras contornável por escape Unicode e funções pg_ e lo_ fora da lista; impacto residual baixo, transação só de leitura). DECISÃO TÉCNICA (Jarvis): A5 vira o cartão K-277, depois do merge, para não abrir a quarta volta; review e QA seguem em série (R-TETO).
+- 2026-11-11 18:15: review do comando revalidado no 7bf13576 (dcb7d5a9, aprovado, sem achado aberto; 55 casos ok, três mutantes pegos). Próximo: QA, depois o PR.
+- 2026-11-11 18:24: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-12.md 83ec287edcf87fccc7d902cec7416a38fef63553c802da1e04279a3f224d8f95
+- 2026-11-11 18:24: QA do comando revalidado no 7bf13576 (d0d0c48e, aprovado, sem achados; cinco mutações mortas). E3.3 PR delegado ao tech-lead (brief tech-lead-12), sem merge até a promoção da develop para a homolog terminar.
