@@ -41,7 +41,7 @@ Ids sugeridos seguem o catálogo da E1.3 (`ap-kpis` etc.). Hipótese: ids exatos
 
 **ap-subgrupo, horas por subgrupo**
 - Pergunta: "Que tipo de atividade as horas descrevem?"
-- Como ler: "O subgrupo vem das palavras do comentário e do tipo do card, segundo o dicionário vigente. É uma estimativa, não uma verdade: 'Não classificado' mostra apontamentos que o dicionário não reconheceu. Se esse grupo for grande, o dicionário precisa de ajuste."
+- Como ler: "O subgrupo vem das palavras do comentário e do tipo do card, segundo o dicionário vigente. É uma estimativa, não uma verdade. 'Sem comentário' aqui conta só os apontamentos sem comentário que também não se encaixam em nenhum grupo por tipo de card. 'Execução técnica' mostra comentários que o dicionário não reconheceu: é um sinal para ampliar o dicionário, não uma falha de preenchimento."
 - Critério: "Dicionário revisão de {data}. Mudanças aparecem como marca no gráfico."
 
 ### Seção "Os apontamentos dizem o que foi feito?" (matriz)
@@ -81,14 +81,14 @@ O contrato entrega `codigo`, `valores` (chaves de livre escolha do back-end, hoj
 
 | Código | Frase | Chaves de `valores` (proposta) |
 |---|---|---|
-| `nao-classificado-alto` | "{pct}% das horas apontadas ({n} apontamentos) caíram em 'Não classificado'. O dicionário de subgrupos pode estar incompleto." | `pct`, `n` |
+| `nao-classificado-alto` | "{pct}% das horas apontadas ({n} apontamentos) estão em 'Sem comentário' e sem regra por tipo de card. Falta comentário no apontamento." | `pct`, `n` |
 | `sem-comentario-alto` | "{pct}% dos apontamentos ({n}) estão sem comentário. Sem texto, não dá para saber o que foi feito." | `pct`, `n` |
 | `concentracao-em-projeto` | "O projeto '{rotuloRef}' concentra {pct}% das horas apontadas no período." | `pct` (rótulo em `rotuloRef`) |
 | `dias-atipicos` | "{n} dias com mais de {limite} h apontadas por uma pessoa foram marcados como possível erro de apontamento." | `n`, `limite` |
 | `utilizacao-mensal-variou` | "A utilização da equipe passou de {pctAnterior}% em {mesAnterior} para {pct}% em {mes}." | `pctAnterior`, `pct`, `mesAnterior`, `mes` |
 
 Regras de redação:
-- Cada frase termina com um atalho quando houver: "Ver apontamentos" (aplica o filtro correspondente: Subgrupo = Não classificado, Qualidade = Sem comentário, Projeto = rótulo, o mapa diário) ou "Ver capacidade mensal".
+- Cada frase termina com um atalho quando houver: "Ver apontamentos" (aplica o filtro correspondente: Subgrupo = Sem comentário, Qualidade = Sem comentário, Projeto = rótulo, o mapa diário) ou "Ver capacidade mensal".
 - `concentracao-em-projeto`: se `rotuloRef` for nulo, usar "Um projeto". Projeto fora dos quadros coletados leva o sufixo " (fora dos quadros coletados)".
 - Percentual ausente por piso de 20: o back-end não emite achado nesse caso. Se chegar `valores` sem `pct`, o front não monta a frase e descarta o achado, sem erro visível.
 - Código desconhecido (versão nova do back-end): o front ignora o achado e não quebra a seção.
@@ -156,7 +156,10 @@ Para o C1 não improvisar; todos reaproveitam o padrão do painel.
 | Filtro Pessoa | rótulo "Pessoa que apontou" |
 | Flags de qualidade | "Sem comentário", "Comentário genérico", "Sem vínculo claro", "Card sem iniciativa", "Possível erro de apontamento", "Completo" |
 | Mudança de critério (T2.6), marca no gráfico | "Critério mudou em {data}: {descrição curta}" |
-| Não classificado, atalho | "Ver apontamentos não classificados" |
+| Sem comentário (subgrupo), explicação à vista no cartão | "Aqui, 'Sem comentário' conta só apontamentos sem comentário e sem regra por tipo de card. No cartão de Qualidade, 'Sem comentário' conta todos os apontamentos sem comentário, por isso o número lá é maior." |
+| Sem comentário (subgrupo), atalho | "Ver apontamentos do subgrupo Sem comentário" |
+| Execução técnica, nota no cartão de Qualidade | título "Execução técnica"; linha "{n} apontamento(s) ({pct}% das horas apontadas)"; "Comentário com texto que a lista de palavras-chave (dicionário) não reconheceu. Não conta como problema de qualidade: é um sinal para ampliar essa lista." |
+| Execução técnica, atalho | "Ver apontamentos de execução técnica" |
 | Exportação | não há botão de exportar nesta aba (o4); nenhum texto de exportação |
 
 ## 7. Pendências e hipóteses

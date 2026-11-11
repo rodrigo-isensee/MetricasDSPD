@@ -8,7 +8,11 @@
 import { FLAGS_QUALIDADE, type FlagQualidade } from '@metricas-dspd/contratos'
 import { ordenarNeutro } from '../core/ordenar'
 
-/** Subgrupos residuais (prioridades 11 e 12 da especificação): avaliados pelo código, não pela tabela. */
+/**
+ * Subgrupos residuais (prioridades 11 e 12 da especificação): avaliados pelo código, não pela tabela. `execucao-tecnica` é
+ * cobertura do dicionário (há comentário, mas nenhum termo o reconheceu) e NÃO é falha de preenchimento (pedido 089, D2);
+ * só `nao-classificado` (sem comentário e sem regra por tipo) conta como `sem-vinculo`.
+ */
 export const SUBGRUPO_EXECUCAO_TECNICA = 'execucao-tecnica'
 export const SUBGRUPO_NAO_CLASSIFICADO = 'nao-classificado'
 
@@ -195,8 +199,8 @@ export function classificarApontamento(
   if (semComentario) flags.push('sem-comentario')
   // genérico vale só para comentário escrito (decisão do dono, 2026-11-02): vazio fica só com sem-comentario
   if (!semComentario && qtdPalavras <= LIMITE_GENERICO_PALAVRAS) flags.push('generico')
-  if (subgrupo === SUBGRUPO_EXECUCAO_TECNICA || subgrupo === SUBGRUPO_NAO_CLASSIFICADO)
-    flags.push('sem-vinculo')
+  // pedido 089 (D2): execução técnica deixa de ser falha de qualidade; só o apontamento sem comentário e sem regra por tipo
+  if (subgrupo === SUBGRUPO_NAO_CLASSIFICADO) flags.push('sem-vinculo')
 
   return {
     subgrupo,
