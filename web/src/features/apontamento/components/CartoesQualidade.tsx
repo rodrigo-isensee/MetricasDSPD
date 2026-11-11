@@ -27,20 +27,22 @@ function NotaExecucaoTecnica({ r }: { r: RespostaApontamento }) {
   const { definirLista } = useDadosAba()
   const l = r.distribuicao.porSubgrupo.find((x) => x.id === 'execucao-tecnica')
   if (!l) return null
-  const horas =
-    l.participacao.status === 'ok'
-      ? `${fmtNumero(l.participacao.pct, 0)}% das horas`
-      : 'percentual com 20 apontamentos ou mais'
+  const contagem = EXECUCAO_TECNICA.contagem(
+    l.apontamentos,
+    fmtInteiro(l.apontamentos),
+    l.participacao.status === 'ok' ? fmtNumero(l.participacao.pct, 0) : null,
+  )
   return (
     <section
       aria-labelledby="nota-execucao-tecnica-titulo"
       data-testid="nota-execucao-tecnica"
-      className="flex flex-col gap-1 rounded border border-dashed border-neutral-300 p-2 text-sm"
+      className="flex flex-col gap-1 rounded border border-dashed border-borda-controle p-2 text-sm"
     >
       <h4 id="nota-execucao-tecnica-titulo" className="font-medium">
-        {EXECUCAO_TECNICA.titulo}: {fmtInteiro(l.apontamentos)} apontamentos ({horas})
+        {EXECUCAO_TECNICA.titulo}
       </h4>
-      <p className="text-xs">{EXECUCAO_TECNICA.explicacao}</p>
+      <p>{contagem}</p>
+      <p className="text-texto-2">{EXECUCAO_TECNICA.explicacao}</p>
       <div>
         <Botao className="text-xs" onClick={() => definirLista('subgrupo', ['execucao-tecnica'])}>
           {EXECUCAO_TECNICA.atalho}

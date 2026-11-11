@@ -592,7 +592,7 @@ describe('CA-11: achados gerados dos dados', () => {
     await cartao('AP-ACHADOS', URL_ABA, fonteCom(outra))
     const lista = screen.getByTestId('lista-achados')
     expect(lista).toHaveTextContent(
-      "41% das horas apontadas (777 apontamentos) caíram em 'Sem comentário'",
+      "41% das horas apontadas (777 apontamentos) estão em 'Sem comentário' e sem regra por tipo de card",
     )
     expect(lista).toHaveTextContent('63% dos apontamentos (555) estão sem comentário')
     expect(lista).toHaveTextContent(
@@ -634,7 +634,7 @@ describe('CA-11: achados gerados dos dados', () => {
     const { roteador } = await cartao('AP-ACHADOS')
     const achados = screen.getByTestId('lista-achados')
     await userEvent.click(
-      within(achados).getByRole('button', { name: 'Ver apontamentos sem comentário' }),
+      within(achados).getByRole('button', { name: 'Ver apontamentos do subgrupo Sem comentário' }),
     )
     await waitFor(() => expect(roteador.state.location.search).toBe('?subgrupo=nao-classificado'))
   })

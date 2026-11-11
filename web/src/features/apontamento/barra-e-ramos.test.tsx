@@ -234,7 +234,7 @@ describe('achados: atalhos', () => {
     const roteador = await pronto()
     const cartao = screen.getByTestId('metrica-AP-QUALIDADE')
     const nota = within(cartao).getByRole('region', { name: /Execução técnica/ })
-    expect(nota).toHaveTextContent('Execução técnica: 24 apontamentos (')
+    expect(nota).toHaveTextContent(/24 apontamentos \(\d+% das horas apontadas\)/)
     expect(nota).toHaveTextContent('Não conta como problema de qualidade')
     expect(within(nota).queryByText('Sem vínculo claro')).not.toBeInTheDocument()
     await userEvent.click(
@@ -268,6 +268,37 @@ describe('achados: atalhos', () => {
     expect(nota).not.toHaveTextContent('%')
   })
 
+  it('com 1 apontamento de execução técnica, a nota usa o singular', async () => {
+    const r = respostaFicticia(CONSULTA_PADRAO)
+    await pronto(
+      URL_ABA,
+      com({
+        ...r,
+        distribuicao: {
+          ...r.distribuicao,
+          porSubgrupo: r.distribuicao.porSubgrupo.map((l) =>
+            l.id === 'execucao-tecnica'
+              ? {
+                  ...l,
+                  apontamentos: 1,
+                  participacao: { status: 'insuficiente', n: 1, minimo: 20 },
+                }
+              : l,
+          ),
+        },
+      }),
+    )
+    expect(screen.getByTestId('nota-execucao-tecnica')).toHaveTextContent('1 apontamento (')
+  })
+
+  it('o cartão de subgrupo explica, à vista, a diferença para o Sem comentário da Qualidade', async () => {
+    await pronto()
+    const cartao = screen.getByTestId('metrica-AP-SUBGRUPO')
+    expect(within(cartao).getByTestId('explicacao-sem-comentario')).toHaveTextContent(
+      "No cartão de Qualidade, 'Sem comentário' conta todos os apontamentos sem comentário",
+    )
+  })
+
   it('sem execução técnica na distribuição, a nota não aparece', async () => {
     const r = respostaFicticia(CONSULTA_PADRAO)
     await pronto(
@@ -287,7 +318,7 @@ describe('achados: atalhos', () => {
     const roteador = await pronto()
     const cartao = screen.getByTestId('metrica-AP-SUBGRUPO')
     await userEvent.click(
-      within(cartao).getByRole('button', { name: 'Ver apontamentos sem comentário' }),
+      within(cartao).getByRole('button', { name: 'Ver apontamentos do subgrupo Sem comentário' }),
     )
     await waitFor(() => expect(roteador.state.location.search).toBe('?subgrupo=nao-classificado'))
   })

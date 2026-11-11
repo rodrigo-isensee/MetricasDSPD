@@ -151,7 +151,7 @@ export const CARTOES = {
   subgrupo: {
     pergunta: 'Que tipo de atividade as horas descrevem?',
     comoLer:
-      "O subgrupo vem das palavras do comentário e do tipo do card, segundo o dicionário vigente. É uma estimativa, não uma verdade. 'Sem comentário' mostra apontamentos sem comentário e sem regra por tipo de card (não é o mesmo que o problema de qualidade 'Sem comentário', que conta qualquer apontamento sem comentário). 'Execução técnica' mostra comentários que o dicionário não reconheceu: é um sinal para ampliar o dicionário, não uma falha de preenchimento.",
+      "O subgrupo vem das palavras do comentário e do tipo do card, segundo o dicionário vigente. É uma estimativa, não uma verdade. 'Sem comentário' aqui conta só os apontamentos sem comentário que também não se encaixam em nenhum grupo por tipo de card. 'Execução técnica' mostra comentários que o dicionário não reconheceu: é um sinal para ampliar o dicionário, não uma falha de preenchimento.",
     criterio: 'Dicionário de subgrupos. Mudanças aparecem como marca no gráfico.',
   },
   matriz: {
@@ -230,10 +230,10 @@ export function fraseDoAchado(a: AchadoLido, rotuloForaDoEscopo = false): FraseD
       const n = num(v.n)
       if (pct === null || n === null) return null
       return {
-        frase: `${fmtNumero(pct, 0)}% das horas apontadas (${fmtNumero(n, 0)} apontamentos) caíram em 'Sem comentário'. Falta comentário no apontamento.`,
+        frase: `${fmtNumero(pct, 0)}% das horas apontadas (${fmtNumero(n, 0)} apontamentos) estão em 'Sem comentário' e sem regra por tipo de card. Falta comentário no apontamento.`,
         atalho: {
           tipo: 'filtro',
-          rotulo: 'Ver apontamentos sem comentário',
+          rotulo: SUBGRUPO_SEM_COMENTARIO.atalho,
           chave: 'subgrupo',
           valor: 'nao-classificado',
         },
@@ -319,10 +319,24 @@ export const INCOMPLETO = {
 } as const
 export const ID_AVISO_INCOMPLETO = 'aviso-registro-incompleto'
 
+/** Subgrupo "Sem comentário" (não é a marca de qualidade de mesmo nome): explicação visível e atalho do subgrupo. */
+export const SUBGRUPO_SEM_COMENTARIO = {
+  explicacao:
+    "Aqui, 'Sem comentário' conta só apontamentos sem comentário e sem regra por tipo de card. No cartão de Qualidade, 'Sem comentário' conta todos os apontamentos sem comentário, por isso o número lá é maior.",
+  atalho: 'Ver apontamentos do subgrupo Sem comentário',
+} as const
+
 /** Nota de execução técnica no cartão de Qualidade (pedido 089, D2): sinal para ampliar o dicionário, não falha. */
 export const EXECUCAO_TECNICA = {
   titulo: 'Execução técnica',
+  /** Contagem na linha abaixo do título; singular com 1 (B-1); unidade das horas dita por extenso. */
+  contagem: (n: number, nTexto: string, pctTexto: string | null): string =>
+    `${nTexto} ${n === 1 ? 'apontamento' : 'apontamentos'} (${
+      pctTexto === null
+        ? 'percentual com 20 apontamentos ou mais'
+        : `${pctTexto}% das horas apontadas`
+    })`,
   explicacao:
-    'Comentário que o dicionário não reconheceu. Não conta como problema de qualidade: é um sinal para ampliar o dicionário.',
+    'Comentário com texto que a lista de palavras-chave (dicionário) não reconheceu. Não conta como problema de qualidade: é um sinal para ampliar essa lista.',
   atalho: 'Ver apontamentos de execução técnica',
 } as const
