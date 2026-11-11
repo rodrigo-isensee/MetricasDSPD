@@ -29,6 +29,8 @@ const fixture = (): Linha[] => [
 interface Opcoes {
   linhas?: Linha[]; falharEm?: string; nomes?: Record<string, string>; coletas?: { ultima?: boolean; ok?: boolean; ultimaFalhou?: boolean; ultimaParcial?: boolean };
   incompletos?: { card_id: string; titulo: string | null; projeto_id: string | null; projeto_titulo: string | null; fora: boolean }[];
+  /** Pares do histórico inteiro (padrão: os das próprias linhas). */
+  historicoTipos?: { tipo: string | null; type_id: string | null }[];
   feriados?: string[]; semHistorico?: boolean; S?: typeof S_PADRAO; doTime?: string[];
 }
 function banco(op: Opcoes = {}) {
@@ -38,6 +40,7 @@ function banco(op: Opcoes = {}) {
     if (t.includes('apt_pessoa_time')) return (op.doTime ?? ['1', '2', '3', '4']).map((pessoa_ref) => ({ pessoa_ref }));
     if (t.includes('ref_versao_criterio')) return [{ versao_id: '5', vigente_desde: '2026-11-01', descricao: 'Dicionário de subgrupo v1', familia: 'dicionario' }];
     if (t.includes('ctl_apontamento_cobertura')) return op.incompletos ?? [];
+    if (t.includes('fato_apontamento h')) return op.historicoTipos ?? (op.linhas ?? fixture()).map(({ tipo, type_id }) => ({ tipo, type_id }));
     if (t.includes('FROM dspd_bm.fato_apontamento f')) return op.linhas ?? fixture();
     if (t.includes('min(data_apontamento)')) return [op.semHistorico === true ? { inicio: null, fim: null } : { inicio: '2026-01-05', fim: '2026-10-30' }];
     if (t.includes('responsavel_nome')) return Object.entries(op.nomes ?? {}).map(([pessoa_ref, responsavel_nome]) => ({ pessoa_ref, responsavel_nome }));
@@ -170,6 +173,59 @@ describe('GET /api/apontamento: resposta', () => {
     expect(dois.kpis.segundos).toBe(14_400);
     const nenhum = respostaApontamentoSchema.parse((await get(app, `${base}&tipo=99`)).json());
     expect(nenhum.kpis.segundos).toBe(0);
+    await app.close();
+  });
+  it('K-272: dois type_id da mesma categoria viram uma linha no AP-TIPO e uma opção; filtrar por qualquer um cobre os dois e o banco recebe os dois', async () => {
+    const { app, db } = await montar({ linhas: [
+      linha({ type_id: '12', tipo: 'Trabalho de produto', segundos: 3600 }),
+      linha({ type_id: '9', tipo: 'Trabalho de produto', segundos: 7200, data: '2026-10-21' }),
+      linha({ type_id: '34', tipo: 'Incidente', segundos: 1800, data: '2026-10-22' }),
+      linha({ type_id: '77', tipo: null, segundos: 900, data: '2026-10-23' }),
+    ] });
+    const base = '/api/apontamento?de=2026-10-01&ate=2026-10-31';
+    const todos = respostaApontamentoSchema.parse((await get(app, base)).json());
+    expect(todos.opcoes.tipos.map((t) => [t.id, t.rotulo])).toEqual([['34', 'Incidente'], ['9', 'Trabalho de produto']]);
+    const produto = todos.distribuicao.porTipo.filter((l) => l.rotulo === 'Trabalho de produto');
+    expect(produto).toHaveLength(1);
+    expect(produto[0]!.segundos).toBe(3600 + 7200);
+    expect(produto[0]!.apontamentos).toBe(2);
+    for (const v of ['9', '12']) {
+      const r = respostaApontamentoSchema.parse((await get(app, `${base}&tipo=${v}`)).json());
+      expect(r.kpis.segundos, v).toBe(10_800);
+      expect(r.kpis.apontamentos, v).toBe(2);
+    }
+    await get(app, `${base}&tipo=12`);
+    const c = db.chamadas.filter((x) => x.texto.includes('ctl_apontamento_cobertura')).at(-1)!;
+    expect(c.valores[3]).toEqual(['9', '12']);
+    await app.close();
+  });
+  it('K-272 (A1): o id da categoria vem do histórico; link com o menor type_id numa janela sem ele não zera a categoria', async () => {
+    const { app, db } = await montar({
+      linhas: [linha({ type_id: '12', tipo: 'Trabalho de produto', segundos: 3600 }), linha({ type_id: '34', tipo: 'Incidente', segundos: 1800, data: '2026-10-22' })],
+      historicoTipos: [{ tipo: 'Trabalho de produto', type_id: '9' }, { tipo: 'Trabalho de produto', type_id: '12' }, { tipo: 'Incidente', type_id: '34' }],
+    });
+    const base = '/api/apontamento?de=2026-10-01&ate=2026-10-31';
+    const todos = respostaApontamentoSchema.parse((await get(app, base)).json());
+    expect(todos.opcoes.tipos.map((t) => [t.id, t.rotulo])).toEqual([['34', 'Incidente'], ['9', 'Trabalho de produto']]);
+    const r = respostaApontamentoSchema.parse((await get(app, `${base}&tipo=9`)).json());
+    expect(r.kpis.segundos).toBe(3600);
+    expect(r.kpis.apontamentos).toBe(1);
+    await get(app, `${base}&tipo=9`);
+    expect(db.chamadas.filter((x) => x.texto.includes('ctl_apontamento_cobertura')).at(-1)!.valores[3]).toEqual(['9', '12']);
+    const hist = db.chamadas.find((x) => x.texto.includes('fato_apontamento h'))!;
+    expect(hist.texto).not.toContain('data_apontamento');
+    await app.close();
+  });
+  it('K-272 (A2): a linha "Sem tipo" fica à parte em porTipo, sem opção', async () => {
+    const { app } = await montar({ linhas: [
+      linha({ type_id: '12', tipo: 'Melhoria', segundos: 3600 }),
+      linha({ type_id: null, tipo: null, segundos: 900, data: '2026-10-23' }),
+    ] });
+    const r = respostaApontamentoSchema.parse((await get(app, '/api/apontamento?de=2026-10-01&ate=2026-10-31')).json());
+    const sem = r.distribuicao.porTipo.filter((l) => l.rotulo === 'Sem tipo');
+    expect(sem).toHaveLength(1);
+    expect(sem[0]!.segundos).toBe(900);
+    expect(r.opcoes.tipos.map((t) => t.rotulo)).toEqual(['Melhoria']);
     await app.close();
   });
   it('type_id fora de dígitos no filtro: 400 do contrato, sem consulta ao banco', async () => {
@@ -366,7 +422,7 @@ describe('moldura da resposta: calendário, dimensões, frescor e janelas', () =
       ],
     });
     const c = respostaApontamentoSchema.parse((await get(app, '/api/apontamento?de=2026-10-01&ate=2026-10-31')).json());
-    expect(c.opcoes.tipos.map((t) => [t.id, t.rotulo]).sort()).toEqual([['12', 'Tipo Novo'], ['56', 'Sem tipo']]);
+    expect(c.opcoes.tipos.map((t) => [t.id, t.rotulo]).sort()).toEqual([['12', 'Tipo Novo']]); // K-272: "Sem tipo" (categoria nula) soma, mas não é opção
     expect(c.opcoes.projetos.map((p) => p.rotulo).sort()).toEqual(['Card 900', 'Sem iniciativa']);
     expect(c.opcoes.subgrupos.map((g) => g.rotulo).sort()).toEqual(['Execução técnica', 'codigo-sem-rotulo']);
     expect(c.qualidade.geral.porFlag.find((f) => f.flag === 'sem-iniciativa')!.apontamentos).toBe(3);
