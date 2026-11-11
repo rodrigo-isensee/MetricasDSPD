@@ -18,6 +18,7 @@
 - E1.7 (agile-coach): retrospectiva curta.
 - E1.8 (devops-engineer): parecer de devops da release (a release muda os workflows e a ação do Playwright), na branch docs/100-release-b.
 - E1.9 (devops-engineer): limpar a fila do GitHub Actions, cancelando só as execuções em fila já substituídas por outra mais nova da mesma branch ou de branch já mesclada, para o CI da release andar.
+- E1.10 (tech-lead): PR das retrospectivas do 093, 094, 095, 096 e 100 (branch docs/retros-2026-11-11c) para a develop, só documentação, e merge com os checks verdes.
 - Cada portão (QA, segurança, review) commita e envia o próprio parecer na branch.
 
 ## Fora do escopo
@@ -60,3 +61,17 @@
 - 2026-11-11 18:21: brief selado docs/briefs/100-release-bloqueios-simulador-devops-engineer-9.md d74c62e5ddb0e36db8958ec2bf7d94db5cea5e552e6608112cf4bc9610785d6c
 - 2026-11-11 18:21: brief selado docs/briefs/100-release-bloqueios-simulador-tech-lead-14.md 213f0b5a119e6ed9570935e73796640d63ecd3c3efa9af2f0a81094cc853cbd8
 - 2026-11-11 18:21: PR 327 mesclado pelo dono às 17:57 (1d697d6a, develop verde). Fila do Actions com cerca de 15 execuções em fila, quase todas de push já substituído, uma por vez. E1.9 (cancelar as substituídas) recusado pelo classificador de permissões (Interfere With Workloads): vira pergunta ao dono (PERGUNTA: Q-100-1). E1.5 (develop para homolog) delegado ao tech-lead, brief tech-lead-14.
+- 2026-11-11 18:41: PR 328 (develop para homolog) mesclado às 18:40 (21:40Z, merge 50387f96), 20 checks verdes e 3 pulados; o prompt do gh pr merge foi aprovado pela sessão WSL ativação. Próximo: E1.6, PR homolog para main aberto para o dono, quando o portão da homolog ficar verde; a develop está liberada.
+- 2026-11-11 18:43: Q-100-1 encerrada (relato da sessão WSL ativação): o dono liberou o cancelamento; as 15 execuções antigas estão presas em queued sem job e o GitHub recusa cancel e force-cancel (HTTP 409, has not been queued yet); não seguram a fila. DECISÃO DO DONO (relatada, palavras dele): "Deixar como estão". E1.9 não será executada; nada a cancelar de novo.
+- 2026-11-11 18:57: brief selado docs/briefs/100-release-bloqueios-simulador-tech-lead-15.md d47fb54af3c9963efc761c527fca3fd7acb12f427a345dfa04bf35e8a44c4a2c
+- 2026-11-11 18:57: E1.5 concluída (tech-lead-14): PR 328 mesclado, portão Homologação verde no 50387f96 (run 43105079447) e CI do push verde. E1.6 delegada (tech-lead-15): PR da homolog para a main aberto para o dono, sem merge. Melhoria vista (retro): o laço da skill esperar-estado é recusado pelo hook R-CONFORMIDADE quando cita gh run ou homolog, e o R-CONTRIB recusa gh pr merge por número.
+- 2026-11-11 18:59: E1.6 concluída: PR 332 (homolog para main) aberto para o dono, homolog-aprovada verde; a release muda a interface (coluna Bloqueado do O2, simulador desligado, AP-TIPO por categoria), então o corpo pede validação manual; dar Re-run jobs no homolog-aprovada logo antes do merge. Merge é do dono. Próximo: E1.7 retrospectiva.
+- 2026-11-11 19:01: brief selado docs/briefs/100-release-bloqueios-simulador-agile-coach-0.md 1dbd6b230decac97c3e634a85d7df9f864abcf192901fe5e72b22de76f445b0f
+- 2026-11-11 19:01: E1.7 retrospectiva delegada ao agile-coach (agile-coach-0), branch docs/retros-2026-11-11c.
+- 2026-11-11 19:03: E1.7 retrospectiva gravada (docs/retrospectivas/2026-11-11-100-release-bloqueios-simulador.md, 2e910a6b, branch docs/retros-2026-11-11c): lead time 2 h 34 min até o PR 332; 1 volta da release pelo merge do PR 325 depois dos pareceres (segunda release seguida); 6 MELHORIA, 2 vão ao Forge. Pedido fecha quando o dono mesclar o PR 332 na main.
+- 2026-11-11 19:09: brief selado docs/briefs/100-release-bloqueios-simulador-tech-lead-16.md beedd1a24279c230a3dab4f12eff96e798c90b5f297ee987562d467a1ccd7ef9
+- 2026-11-11 19:12: brief selado docs/briefs/100-release-bloqueios-simulador-tech-lead-17.md 61d9811aaa2ef944a5efef6cec8db49aaba5382c7dea51fabbce0fb4be126a11
+- 2026-11-11 19:12: E1.10: o forge-check pr da branch docs/retros-2026-11-11c pediu parecer de review (classe T) e a conferência de entrega do head; tech-lead-16 parou como manda o brief. ERRO-JARVIS: o brief do PR saiu sem o parecer e sem a conferência antes. Review das retrospectivas delegado (tech-lead-17); depois a conferência e o PR com merge.
+- 2026-11-11 19:14: entrega conferida 0a6efe56d492b52b4c48e4eb2e8e256a21ead74a
+- 2026-11-11 19:15: brief selado docs/briefs/100-release-bloqueios-simulador-tech-lead-18.md 36dbd706c55e29aa378f99db948f61ba3a6bcb0210a26d18b733a9fe712d96fe
+- 2026-11-11 19:15: Review das retrospectivas aprovado (0a6efe56, sobre 2e910a6b): A1 link para docs/devops/093-runner-ubuntu26-dns.md não versionado, A2 e A3 de texto, recomendados. Entrega conferida no 0a6efe56. PR e merge delegados (tech-lead-18). Melhoria vista (retro): retrospectivas citam docs/pedidos/ e um relatório que não existem na develop.

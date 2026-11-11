@@ -123,6 +123,7 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-279 | [server] Opções de filtro do L6 com o mesmo corte das listas: prioridades com o recorte de lerChamados (A1 do review), tipos com criado_em não nulo (A2 do review) e teste de prioridades vazias do Acelerato (A1 do QA) | 097 | forge:node-backend | 2026-11-11 | 2026-11-11 19:06 | worktree: MetricasDSPD-056d · branch fix/k279-opcoes-corte; pedido 097, E4.2. |
 | K-204 | [coleta] Gravar bloqueios reais (fato_bloqueio e evt_bloqueio a partir do block_reason do staging), parte B da decisão C do 064 | 075 | forge:tech-lead | 2026-11-04 | 2026-11-11 18:07 | 9a e 9b na develop; release 100 (volta na branch docs/100-release-b): PR para a develop, depois homolog e o PR para a main do dono · worktree: MetricasDSPD-052h |
 | K-269 | [CI, devops] jobs com navegador falham no runner Ubuntu 26.04 (apt não resolve os espelhos do Ubuntu): fixar ubuntu-24.04 em ci.yml e homolog.yml | 095 | forge:devops-engineer | 2026-11-11 | 2026-11-11 12:22 | worktree: 052h · branch melhoria/runner-ubuntu-2404; push do workflow pelo dono. |
 | K-265 | [docs] guia-do-desenvolvedor.md:44 ainda diz "pnpm run pronto antes de cada commit"; alinhar à decisão do dono de 2026-10-21, como o K-172 fez em praticas.md | 094 | forge:tech-lead | 2026-11-11 | 2026-11-11 10:14 | worktree: 052c · branch docs/k265-guia-pronto; pedido 094, E1.1. |

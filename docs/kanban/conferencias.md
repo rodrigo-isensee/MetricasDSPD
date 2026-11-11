@@ -2915,3 +2915,26 @@
 | 2026-11-11 18:29 | 097-resumo-filtro-time | 097-resumo-filtro-time-ux-designer-4 | brief | 1 | aprovado | s | l1ux | — | jarvis |
 | 2026-11-11 18:33 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-17 | brief | 1 | aprovado | s | l6qa | — | jarvis |
 | 2026-11-11 18:33 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-26 | brief | 1 | aprovado | s | l6rev | — | jarvis |
+| 2026-11-11 18:38 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-27 | brief | 1 | aprovado | s | PR do L6 servidor, sem merge | — | jarvis |
+| 2026-11-11 18:42 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-7 | brief | 1 | aprovado | s | QA do L2a | — | jarvis |
+| 2026-11-11 18:42 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-13 | brief | 1 | aprovado | s | review do L2a | — | jarvis |
+| 2026-11-11 18:46 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-14 | brief | 1 | aprovado | s | merge do PR 329 | — | jarvis |
+| 2026-11-11 18:51 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-15 | brief | 1 | aprovado | s | merge do PR 329 no head 1549e65d | — | jarvis |
+| 2026-11-11 18:52 | 097-resumo-filtro-time | 097-resumo-filtro-time-security-engineer-0 | brief | 1 | aprovado | s | portao do L2 | — | jarvis |
+| 2026-11-11 18:52 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-18 | brief | 1 | aprovado | s | portao do L2 | — | jarvis |
+| 2026-11-11 18:52 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-28 | brief | 1 | aprovado | s | portao do L2 | — | jarvis |
+| 2026-11-11 18:55 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-16 | brief | 1 | aprovado | s | PR e merge do L2a | — | jarvis |
+| 2026-11-11 18:57 | 100-release-bloqueios-simulador | 100-release-bloqueios-simulador-tech-lead-15 | brief | 1 | aprovado | s | PR homolog para main | — | jarvis |
+| 2026-11-11 18:59 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-12 | brief | 1 | aprovado | s | volta 1 do L2 | — | jarvis |
+| 2026-11-11 19:00 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-29 | brief | 1 | aprovado | s | merge do PR 330 | — | jarvis |
+| 2026-11-11 19:01 | 100-release-bloqueios-simulador | 100-release-bloqueios-simulador-agile-coach-0 | brief | 1 | aprovado | s | retro do 100 | — | jarvis |
+| 2026-11-11 19:04 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-13 | brief | 1 | aprovado | s | K-279 | — | jarvis |
+| 2026-11-11 19:09 | 100-release-bloqueios-simulador | 100-release-bloqueios-simulador-tech-lead-16 | brief | 1 | aprovado | s | PR das retros | — | jarvis |
+| 2026-11-11 19:09 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-30 | brief | 1 | aprovado | s | PR e merge do L4 | — | jarvis |
+| 2026-11-11 19:11 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-19 | brief | 1 | aprovado | s | QA volta L2 | — | jarvis |
+| 2026-11-11 19:11 | 097-resumo-filtro-time | 097-resumo-filtro-time-security-engineer-1 | brief | 1 | aprovado | s | seg volta L2 | — | jarvis |
+| 2026-11-11 19:11 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-31 | brief | 1 | aprovado | s | review L2 volta | — | jarvis |
+| 2026-11-11 19:12 | 100-release-bloqueios-simulador | 100-release-bloqueios-simulador-tech-lead-17 | brief | 1 | aprovado | s | review das retros | — | jarvis |
+| 2026-11-11 19:15 | 100-release-bloqueios-simulador | 100-release-bloqueios-simulador-tech-lead-18 | brief | 1 | aprovado | s | PR das retros | — | jarvis |
+| 2026-11-11 19:20 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-20 | brief | 1 | aprovado | s | QA K-279 | — | jarvis |
+| 2026-11-11 19:20 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-32 | brief | 1 | aprovado | s | review K-279 | — | jarvis |
