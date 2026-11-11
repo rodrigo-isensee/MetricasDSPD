@@ -32,11 +32,13 @@ const recusa = (f: () => unknown): ErroDicionario => {
 describe('arquivo versionado do dicionário (como está no discovery)', () => {
   it('o arquivo do repositório é válido: 12 subgrupos, os termos da seção 4, as duas regras por tipo e os dois códigos de subtarefa', () => {
     const { arquivo, sha256 } = lerDicionario();
-    expect(arquivo.versao).toBe('2026-11-02-v2');
+    expect(arquivo.versao).toBe('2026-11-10-v3');
     expect(arquivo.subgrupos.map((s) => [s.prioridade, s.codigo])).toEqual([
       [1, 'gestao-backlog-rituais'], [2, 'testes'], [3, 'reunioes-comunicacao'], [4, 'analise-diagnostico'], [5, 'gestao-mudanca'], [6, 'documentacao'],
       [7, 'configuracao-infra'], [8, 'apoio-areas'], [9, 'desenvolvimento-correcao'], [10, 'incidente-sem-detalhe'], [11, 'execucao-tecnica'], [12, 'nao-classificado'],
     ]);
+    // pedido 089 (D3): o rótulo do subgrupo sem comentário
+    expect(arquivo.subgrupos.find((s) => s.codigo === 'nao-classificado')!.rotulo).toBe('Sem comentário');
     expect(arquivo.termos.flatMap((t) => t.termos)).toHaveLength(2 + 4 + 5 + 3 + 1 + 3 + 1 + 10);
     expect(arquivo.regrasPorTipo).toEqual([
       { tipoRotulo: 'Kaizen', condicao: 'sempre', subgrupo: 'gestao-backlog-rituais' },
@@ -58,7 +60,7 @@ describe('arquivo versionado do dicionário (como está no discovery)', () => {
     expect(c(null, '22')).toBe('incidente-sem-detalhe');
     expect(c('algo sem termo', '22')).toBe('execucao-tecnica');
     expect(c(null, '33')).toBe('nao-classificado');
-    expect(dic.versao).toBe('2026-11-02-v2');
+    expect(dic.versao).toBe('2026-11-10-v3');
   });
 });
 
@@ -87,7 +89,7 @@ describe('termos em radicais (E2.61, A1 do QA da trilha B): o casamento por iní
     const { arquivo } = lerDicionario();
     const termos = arquivo.termos.flatMap((t) => t.termos);
     for (const [radical] of RADICAIS) expect(termos, radical).toContain(radical === 'analise' ? 'analisa' : radical);
-    expect(arquivo.versao).toBe('2026-11-02-v2');
+    expect(arquivo.versao).toBe('2026-11-10-v3');
   });
   for (const [radical, subgrupo, casam, naoCasam] of RADICAIS) {
     it(`${radical}: ${casam.join(', ')} casam em ${subgrupo}; ${naoCasam.join(', ')} não`, async () => {

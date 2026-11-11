@@ -22,12 +22,15 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Tendências (pedido 077): janela incompleta nos contratos, nas tendências e nas telas do fluxo e da sustentação (#249, #254, #261, #269); herdam as marcações de critério (#251); `historicoDesde` do BusinessMap (#259); ressalva do S2 na tendência de SLA, contrato e tela (#262, #276); contagem parcial do mês anterior ao histórico, no servidor e na tela (#272, #278); tendência do fluxo com dado real do BusinessMap (lote 5) (#279) e tendência da sustentação com dado real do Acelerato (lote 7, `TENDENCIA_SUST` no mapa real, fora da simulação) (#285).
 - Demonstração: comando único `pnpm run demo:dado-real` (pedido 087), que confere só os nomes do `.env`, sobe o banco, migra, faz a carga inicial do BusinessMap, do Acelerato e do apontamento, projeta, sobe API e web e imprime a consulta de prova do 075 (só contagens); para no primeiro erro, com etapa e categoria. Só roda com o `.env` do dono (#284).
 - Documentação: ADR 0023 vigente e pareceres de segurança do E1 (pedido 073, E2) (#243); pareceres antigos trazidos para a `develop` (#241); retrospectivas dos pedidos 079 a 083 (#277).
+- Aba Apontamento (pedido 089, D2 e D3): o subgrupo `nao-classificado` passa a se chamar "Sem comentário" (dicionário v3 `2026-11-10-v3`), com explicação visível que o separa da marca de qualidade; comentário escrito que o dicionário não reconhece vira `execucao-tecnica` e aparece numa nota própria no cartão de Qualidade, fora das flags, com contagem e percentual das horas (sem percentual abaixo de 20) (#293, #294).
+- Documentação: retrospectivas dos pedidos 078, 084 e 085 (#295).
 
 ### Corrigido
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
 - Suíte: trava em `/tmp/claude-uid` (pedido 079) (#263); teste da trava não pendura dentro do `pronto` (pedido 085) (#280); E2E L3-01 espera a altura da página estabilizar antes do axe (pedido 080) (#265).
 - Testes: regra de fronteira do eslint cobre todo `src` fora de `modulos` (pedido 073, E4) (#240); sustentação sem início de histórico do Acelerato (077, lote 3b) (#273); colunas e GRANT de `fato_bloqueio` e `evt_bloqueio` (075, lote 4c) (#274).
 - Entradas: `ref-sync-apontamento` imprime só a categoria do erro, como `ref-sync-ac` e `ref-sync-businessmap` (K-244) (#283).
+- Testes: o caso sem configuração do `ref-sync-apontamento` não lê mais o `.env` da máquina (K-261) (#297).
 - Ferramentas: pre-push com lint e typecheck só nos arquivos e pacotes alterados (pedido 083) (#268, #270).
 
 ### Desempenho
@@ -45,11 +48,12 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Lote L7: o calendário passa a vir da referência; com o arquivo inicial nenhum número muda (teste de paridade); cada mudança do arquivo aplicada pelo `ref:sync-calendario` grava versão de critério do domínio, com data e marca (ADR 0027) (#222, #232). O simulado do 070 não entra em cálculo e fica sem versão.
 - Pedido 075: versão de critério e corte da série do O1 com data pendente; sem dado real de bloqueio, BLOQUEADOS, O2, O19 e O5 seguem sem a parte de bloqueio (`BLOQUEIOS_COM_DADO_REAL` desligado) (#267).
 - Pedido 077: janela incompleta, contagem parcial e ressalva do S2 marcadas nas tendências; as marcações herdam a versão de critério (#251, #262, #272, #276). Lotes 5 e 7: versões de critério de `TENDENCIA_FLUXO` e `TENDENCIA_SUST` com data 2026-11-10, ao passarem para dado real (#279, #285).
+- Pedido 089, aba Apontamento: o bit `sem-vinculo` só liga para apontamento sem comentário e sem regra por tipo; comentário não reconhecido deixa de contar como falha de qualidade. Versão `089:sem-vinculo-so-sem-comentario`, com a data da primeira varredura completa, gravada pelo `criterios-apontamento <data>` (INSERT idempotente, sem editar as versões 059 e 067); a releitura gera versão nova na staging e não sobrescreve histórico (#293). Ordem de implantação, no mesmo dia: 1) `ref:sync` do dicionário v3; 2) `criterios-apontamento <data da primeira varredura completa>`; 3) coleta com janela de 12 meses. Rodar 1 e 2 em dias diferentes gera duas marcas T2.6 para a mesma mudança.
 
 ### Dependências e Forge
 - `zod` 4 e `ws` 8.22.0 para 8.22.1 (#218).
 - Forge 0.32.0 (#223). Sem dependência nova; `server/package.json` ganha só o script `ref:sync-calendario` (#222).
-- Forge 0.33.0, 0.34.0, 0.42.0, 0.44.2 e 0.45.2 (#239, #250, #271, #275, #281).
+- Forge 0.33.0, 0.34.0, 0.42.0, 0.44.2, 0.45.2 e 0.45.5 (#239, #250, #271, #275, #281, #296).
 - Dependências: grupos `producao` (#256) e `dev-dependencies` (#255) do Dependabot; `body-parser` 1.20.9, `qs` 6.16.1 e `ip-address` 10.7.4 no lockfile (pedido 073, E8) (#242).
 
 ## [0.2.0] - 2026-10-29
