@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: fix/k272-ap-tipo-categoria
-commit: 1d691f4e1a0d147f65d0041849395f2c0b593562
+commit: dbd120a49bfbe801f75c829d0eead0e12018d358
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -16,6 +16,8 @@ data: 2026-11-11
 # QA: K-272, AP-TIPO e filtro tipo por categoria (097, E6.3), volta 1
 
 Base develop eac38a64. Revalidação sobre o parecer anterior (ac47260b, código 59fd6ba9). Delta `59fd6ba9..1d691f4e`: `server/src/modulos/apontamento/repositorio.ts` (+17, nova `lerTiposDoHistorico`), `servico.ts` (id da categoria e conjunto de type_id vêm do histórico) e `server/tests/apontamento-rota.test.ts` (+2 testes e a dublê do histórico).
+
+Revalidação depois do merge da develop (head dbd120a4): `forge-check parecer delta` diz "nenhum arquivo do domínio mudou" (escopo sem o que veio da base); `git diff 1d691f4e dbd120a4 -- server/src/modulos/apontamento server/tests/apontamento-rota.test.ts` vazio; `npx vitest run tests/apontamento-rota.test.ts --maxWorkers=2` no head: 74 passaram. Mesmo veredito.
 
 ## Veredito
 **Aprovado.** Sem bug aberto. O A1 do review (id da categoria dependente da janela) está corrigido e provado por teste; o A2 (teste do caso do A1 e da linha "Sem tipo" em `porTipo`) está atendido. Os testes `.pg` ficam com o CI (o check-run `bateria` do mesmo sha é a prova da suíte inteira, fora desta passada local).
