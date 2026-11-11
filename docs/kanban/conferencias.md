@@ -2754,3 +2754,18 @@
 | 2026-11-10 20:40 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-qa-engineer-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-10 20:40 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-10 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-10 20:44 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-11 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 21:34 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-software-architect-1 | brief | 1 | aprovado | s | nao-classificado-alto existe na develop (packages/metricas/src/businessmap/apontamento/achados.ts:46) | — | jarvis |
+| 2026-11-10 21:39 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-react-frontend-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 21:40 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-node-backend-1 | brief | 1 | aprovado | s | Q1 a Q3 registradas no pedido como pergunta e suposição | — | jarvis |
+| 2026-11-10 21:48 | 088-forge-0455 | 088-forge-0455-qa-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 21:48 | 088-forge-0455 | 088-forge-0455-tech-lead-1 | brief | 1 | reprovado | s | cartão sem origem no pedido | escopo | jarvis |
+| 2026-11-10 21:49 | 088-forge-0455 | 088-forge-0455-tech-lead-1 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:07 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-react-frontend-2 | brief | 1 | aprovado | s | registro do arquivo de E2E | — | jarvis |
+| 2026-11-10 22:07 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-react-frontend-2 | entrega | 1 | cumpriu | s | 957e30c9 e 7a9b5055; pronto rc=0 pelo autor | — | jarvis |
+| 2026-11-10 22:08 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-ux-designer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:11 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-react-frontend-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; parecer de UX fica fora do commit | — | jarvis |
+| 2026-11-10 22:16 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-node-backend-2 | brief | 1 | aprovado | s | registro de dois arquivos | — | jarvis |
+| 2026-11-10 22:16 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-node-backend-2 | entrega | 1 | cumpriu | s | 254e12cd, 17015b67, 2ea9c636; pronto rc=0 pelo autor; desvios por GRANT registrados | — | jarvis |
+| 2026-11-10 22:18 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-tech-lead-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:18 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-qa-engineer-1 | brief | 1 | reprovado | s | envio do parecer pelo QA sem origem no pedido | escopo | jarvis |
+| 2026-11-10 22:19 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-qa-engineer-1 | brief | 2 | aprovado | s | envio do parecer com origem nas Etapas | — | jarvis |
