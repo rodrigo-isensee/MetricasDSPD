@@ -47,9 +47,9 @@ Sem `PG_TESTE_URL`, o teste de releitura em `server/tests/apontamento.pg.test.ts
 ## Nota de leitura dos números
 Depois da varredura completa, `completos` sobe (comentário com 4 ou mais palavras sem termo do dicionário deixa de ter flag), então o "95,8% com flag" da 087 muda de patamar. A leitura do painel deve citar a marca T2.6 da data.
 
+Nenhum achado bloqueante. Bugs: 0 crítico, 0 alto, 0 médio, 0 baixo.
+
 ## Achados
 - A1 (recomendado) server/tests/apontamento.pg.test.ts:1 · rodar com `PG_TESTE_URL` os `.pg` (`apontamento-rota`, `apontamento-dicionario`, `apontamento`) e escrever o teste da releitura: staging com 2 versões, fato com máscara nova, bits 8 e 16 intactos. Sem isso a prova do append-only fica só no hash.
 - A2 (recomendado) server/tests/apontamento-rota.pg.test.ts:268 · o `CASE` de família de `lerCriterios` e o `DISTINCT ON` de `lerRotulosSubgrupo` (desempate por `incluido_por_versao_id`) só têm prova de texto de SQL; exigir verde do `.pg` no CI (`bateria` do mesmo sha) antes do merge.
 - A3 (recomendado) docs/api/apontamento.md:1 · registrar a ordem de implantação (`ref:sync`, `criterios-apontamento <data>`, coleta de 12 meses, no mesmo dia) e o oráculo de término (zero linhas ativas com `execucao-tecnica` e bit 4); mesmo ponto do A1 e A3 do review.
-
-Nenhum achado bloqueante. Bugs: 0 crítico, 0 alto, 0 médio, 0 baixo.
