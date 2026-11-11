@@ -1,16 +1,5 @@
 ---
-tipo: qa
-contrato: 1
-pedido: env-exemplos-pesquisa
-branch: fix/env-exemplos-pesquisa
-commit: 1bcc450c32c1281d4f2da2da4513ec1ab0edca81
-parecer: aprovado
-escopo: completo
-bugs_criticos: 0
-bugs_altos: 0
-bugs_medios: 0
-bugs_baixos: 0
-data: 2026-10-13
+contrato: 0
 ---
 
 # Parecer de QA - fix/env-exemplos-pesquisa

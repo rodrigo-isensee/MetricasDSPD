@@ -1,16 +1,5 @@
 ---
-tipo: qa
-contrato: 1
-pedido: 011-metricas-tambem-disponiveis
-branch: feature/011-metricas-tambem-back
-commit: 83796d92b433880e60a74cef4921db9c48202ddc
-parecer: aprovado
-escopo: completo
-bugs_criticos: 0
-bugs_altos: 0
-bugs_medios: 0
-bugs_baixos: 0
-data: 2026-10-15
+contrato: 0
 ---
 
 # Plano de testes - Back do pedido 011, fase 1 (K-078)

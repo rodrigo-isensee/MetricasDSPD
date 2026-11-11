@@ -1,16 +1,5 @@
 ---
-tipo: qa
-contrato: 1
-pedido: front-via-api
-branch: feature/front-via-api
-commit: 69db636a147563088da0da4ad4b3e35db28f43fc
-parecer: aprovado
-escopo: completo
-bugs_criticos: 0
-bugs_altos: 0
-bugs_medios: 0
-bugs_baixos: 0
-data: 2026-10-13
+contrato: 0
 ---
 
 # Plano de testes - front via API (FA-4 paridade, FA-5 E2E e desempenho)

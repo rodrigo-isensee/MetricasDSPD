@@ -1,16 +1,5 @@
 ---
-tipo: qa
-contrato: 1
-pedido: sustentacao-no-operacional
-branch: feature/sustentacao-no-operacional
-commit: 7a4a95515cf7372d0e0ba9efb51f1e1f1ff8c40e
-parecer: aprovado
-escopo: completo
-bugs_criticos: 0
-bugs_altos: 0
-bugs_medios: 0
-bugs_baixos: 0
-data: 2026-10-16
+contrato: 0
 ---
 
 # Plano de testes - Sustentação dentro do Operacional (K-080)

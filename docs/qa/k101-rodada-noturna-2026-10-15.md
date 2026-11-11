@@ -1,16 +1,5 @@
 ---
-tipo: qa
-contrato: 1
-pedido: k101-rodada-noturna
-branch: homolog
-commit: 3fd233c
-parecer: aprovado
-escopo: completo
-bugs_criticos: 0
-bugs_altos: 0
-bugs_medios: 0
-bugs_baixos: 0
-data: 2026-10-15
+contrato: 0
 ---
 
 # K-101: causa da falha da rodada noturna 38718401054 (diagnóstico do QA)
