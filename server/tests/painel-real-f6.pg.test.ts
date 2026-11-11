@@ -54,8 +54,12 @@ d('F6 do plano 052 e pedido 060: base real, portão do mapa e tipo da coluna na 
     expect(o13).toBeGreaterThan(o13Antes);
     const filtrado = await get<{ base: { n: number } }>(a, '/api/v1/metricas/O3?tipo=trabalho-produto');
     expect(filtrado.base.n).toBeGreaterThan(0);
-    const filtros = await get<{ tipos: { id: string }[] }>(a, '/api/v1/filtros/businessmap');
+    const filtros = await get<{ tipos: { id: string; nome: string }[] }>(a, '/api/v1/filtros/businessmap');
     expect(filtros.tipos.map((t) => t.id)).toContain('trabalho-produto');
+    // L6 do 097: a lista vem das stories da base; "Incidente" (nenhuma story cai nele) não é opção.
+    expect(filtros.tipos.map((t) => t.id)).not.toContain('incidente');
+    const presentes = (await mig.query<{ tipo: string }>(`SELECT DISTINCT tipo FROM ${R.bm}.dim_card WHERE granularidade = 'story' AND tipo IS NOT NULL`)).rows.map((x) => x.tipo);
+    expect(filtros.tipos.map((t) => t.nome).sort()).toEqual(presentes.filter((t) => t !== 'Incidente').sort());
   }, 60_000);
 
   it('(b) correção da coluna vale para todo o período na leitura e o fato de transição não é reescrito', async () => {
