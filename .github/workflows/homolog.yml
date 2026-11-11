@@ -127,7 +127,8 @@ jobs:
     name: e2e-homolog-parte (${{ matrix.parte }}/2)
     needs: escopo
     if: needs.escopo.outputs.escopo == 'codigo'
-    runs-on: ubuntu-latest
+    # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -174,7 +175,8 @@ jobs:
     name: perf-homolog
     needs: escopo
     if: needs.escopo.outputs.escopo == 'codigo'
-    runs-on: ubuntu-latest
+    # ubuntu-24.04: no ubuntu-latest (26.04) o apt não resolve os espelhos (K-269); voltar a ubuntu-latest quando o DNS da imagem 26 resolver.
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
