@@ -16,7 +16,7 @@ export const LIMITE_ATIPICO_SEGUNDOS = LIMITE_ATIPICO_SEGUNDOS_PADRAO;
 /** Período padrão do painel (P-3 do UX): 12 semanas terminando hoje; mapa diário: 4 semanas. */
 export const DIAS_PERIODO_PADRAO = 84;
 export const DIAS_DIARIO_PADRAO = 28;
-const ROTULO_RESIDUAL: Readonly<Record<string, string>> = { 'execucao-tecnica': 'Execução técnica', 'nao-classificado': 'Não classificado' };
+const ROTULO_RESIDUAL: Readonly<Record<string, string>> = { 'execucao-tecnica': 'Execução técnica', 'nao-classificado': 'Sem comentário' };
 const FLAGS_DA_CLASSIFICACAO = FLAGS_QUALIDADE.slice(0, 3);
 const BIT_SEM_INICIATIVA = 8;
 /** Tipo sem `type_id` (linha ainda não relida pela coleta): entra nas somas, mas não é opção de filtro (o filtro só aceita `type_id` em dígitos). */
