@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Plano técnico: front lendo pela API (`HttpFonteMetricas`)
 
 - Status: proposta (discovery técnico, sem mudança de tela; sem UX)

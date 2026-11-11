@@ -41,7 +41,7 @@ Grafo permitido: `contratos ← metricas ← mock`; `web` importa `contratos`; `
 
 | Comando | Onde | O que faz |
 |---|---|---|
-| `pnpm run pronto` | raiz | lint + Prettier + `pronto` de cada workspace (typecheck, inclusive o do `e2e`, + testes; no `web`, também build e `size`). **Rode antes de cada commit.** |
+| `pnpm run pronto` | raiz | lint + Prettier + `pronto` de cada workspace (typecheck, inclusive o do `e2e`, + testes; no `web`, também build e `size`). **Durante o desenvolvimento, só os testes e o typecheck do pacote alterado; o `pronto` completo, verde, uma vez, antes do commit final da branch** (decisão do dono de 2026-10-21, pedido 026; commit só de parecer não é o commit final). |
 | `pnpm run spec:check` | raiz | conferência spec↔teste (`tools/spec-check`); também roda dentro do `pronto` e no job `testes` do CI. No-op (exit 0) enquanto não houver `docs/especificacao` e `siegard-trace.json` |
 | `pnpm run check` | raiz | lint + typecheck + testes + format:check |
 | `pnpm run gate` | `e2e/` | gate do autor: fronteiras BM x AC, hash da base mock e tamanho do bundle; termina em `GATE DO AUTOR: APROVADO\|REPROVADO`. Exige `pnpm run build` antes |

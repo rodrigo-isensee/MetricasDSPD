@@ -1,3 +1,7 @@
+---
+contrato: 0
+---
+
 # Parecer de QA - acabamento de UX dos mocks (L-3 a L-9, M-4, M-5)
 Branch `feature/acabamento-ux` (2 commits sobre `develop`). Referências: `docs/ux/lacuna-de-valor/06-revisao.md`, `docs/ux/metricas-fora-do-nucleo/06-revisao.md`.
 
