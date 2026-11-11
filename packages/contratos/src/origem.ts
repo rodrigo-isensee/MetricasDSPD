@@ -14,15 +14,18 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'O2',
   'O3',
   'O4',
+  'O5',
   'O6',
   'O7',
   'O9',
   'O10',
   'O11',
   'O13',
+  'O19',
   'EI_FL1',
   // Pedido 060 (Q2, decisão do dono de 2026-11-02): a pesquisa de percepção (mostra `sem-pesquisa` enquanto não houver carga).
-  // Pedido 065 (lacuna L1 do 064, K-205): BLOQUEADOS e o O5 saíram do mapa real, porque a coleta ainda não grava `fato_bloqueio` (voltam no K-204; O5 pela decisão B do dono, Q-065-1).
+  // Pedido 075 (lote 6b, K-204): BLOQUEADOS, O5 e O19 voltam ao mapa real com a coleta gravando `fato_bloqueio`. T10 e T12 seguem fora (P-075-11 e P-075-12, "B").
+  'BLOQUEADOS',
   'PV1',
   // Sustentação (E2.115 e E2.117, plano 056 §3): as que o plano calcula só com o dado do Acelerato já carregado (S2, S3, S4, S8, S10). S9 e S12 voltaram a mock: dependem de campo que a base real não tem.
   'S2',
@@ -48,11 +51,11 @@ export const MOTIVO_AGUARDANDO_PRAZOS_SLA = 'aguardando prazos de SLA por priori
 export const MOTIVO_CALCULO_NAO_DEFINIDO = 'cálculo ainda não definido para o Acelerato'
 /** Pedido 065 (K-205): motivo da BLOQUEADOS fora do mapa real e do "Sem dado real" na parte de bloqueio do O1 e do O2. */
 export const MOTIVO_BLOQUEIOS_NAO_COLETADOS = 'a coleta ainda não grava os bloqueios do quadro'
-/** Pedido 065: interruptor que o K-204 vira para `true` quando a coleta gravar `fato_bloqueio` com linhas reais. */
 /** Pedido 065 (Q-065-1, decisão B): motivo do O5 fora do mapa real; sem bloqueios o tempo bloqueado entraria na fila ou na execução e inflaria a eficiência. */
 export const MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS =
   'a coleta ainda não grava os bloqueios do quadro; sem eles a eficiência de fluxo sairia inflada'
-export const BLOQUEIOS_COM_DADO_REAL = false
+/** Pedido 065: interruptor da publicação real dos bloqueios; ligado no pedido 075 (lote 6b) depois da prova de `fato_bloqueio` com linhas reais. */
+export const BLOQUEIOS_COM_DADO_REAL = true
 /**
  * Pedido 069, L9-a (K-220): interruptor que vira `true`, num PR próprio com versão de critério `afeta = ['S3', 'S7']`, quando
  * `prioridade_ajustada_manualmente` vier da fonte (L9-c) e o dono vir a contagem. Falso: o S3 publica `ajustesManuais: null`.
@@ -84,8 +87,6 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   S11: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,
   S12: MOTIVO_S12_REGISTRO_POSTERIOR,
   EI_SUST: MOTIVO_CALCULO_NAO_DEFINIDO,
-  BLOQUEADOS: MOTIVO_BLOQUEIOS_NAO_COLETADOS,
-  O5: MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS,
 }
 
 /** Motivo genérico da métrica fora do mapa real que não tem motivo próprio (O19 a O26, FL2, FL3, Visão geral e a tendência da sustentação). */

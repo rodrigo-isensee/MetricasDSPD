@@ -87,11 +87,11 @@ describe('painéis com o simulado por cartão (pedido 070, T-W6)', () => {
 
   it('o mock é criado uma só vez, pelo primeiro cartão simulável (o painel só com reais não o cria: T-W1)', async () => {
     const { fonte, criarMock } = fonteApiComSimulado()
-    renderizarApp('/operacional?cadencia=diaria', fonte)
-    const o2 = await screen.findByTestId('metrica-O2')
-    await waitFor(() => expect(o2).toHaveAttribute('data-estado', 'ok'))
-    // A visão diária tem O2, O1, O3 (reais) e BLOQUEADOS (simulável): o mock só nasce por este.
-    expect(await screen.findByTestId('selo-simulado-BLOQUEADOS')).toBeInTheDocument()
+    renderizarApp('/operacional?cadencia=semanal', fonte)
+    const o3 = await screen.findByTestId('metrica-O3')
+    await waitFor(() => expect(o3).toHaveAttribute('data-estado', 'ok'))
+    // A visão semanal tem O3 (real) e O12 (simulável; BLOQUEADOS voltou ao mapa real no pedido 075, 6b): o mock só nasce por este.
+    expect(await screen.findByTestId('selo-simulado-O12')).toBeInTheDocument()
     expect(criarMock).toHaveBeenCalledTimes(1)
   })
 
