@@ -230,11 +230,39 @@ describe('achados: atalhos', () => {
     }
   })
 
-  it('o cartão de subgrupo oferece o atalho para os não classificados', async () => {
+  it('o cartão de Qualidade mostra a execução técnica à parte, lida da distribuição, e o atalho filtra por ela', async () => {
+    const roteador = await pronto()
+    const cartao = screen.getByTestId('metrica-AP-QUALIDADE')
+    const nota = within(cartao).getByRole('region', { name: /Execução técnica/ })
+    expect(nota).toHaveTextContent('Execução técnica: 24 apontamentos (')
+    expect(nota).toHaveTextContent('Não conta como problema de qualidade')
+    expect(within(nota).queryByText('Sem vínculo claro')).not.toBeInTheDocument()
+    await userEvent.click(
+      within(nota).getByRole('button', { name: 'Ver apontamentos de execução técnica' }),
+    )
+    await waitFor(() => expect(roteador.state.location.search).toBe('?subgrupo=execucao-tecnica'))
+  })
+
+  it('sem execução técnica na distribuição, a nota não aparece', async () => {
+    const r = respostaFicticia(CONSULTA_PADRAO)
+    await pronto(
+      URL_ABA,
+      com({
+        ...r,
+        distribuicao: {
+          ...r.distribuicao,
+          porSubgrupo: r.distribuicao.porSubgrupo.filter((l) => l.id !== 'execucao-tecnica'),
+        },
+      }),
+    )
+    expect(screen.queryByTestId('nota-execucao-tecnica')).not.toBeInTheDocument()
+  })
+
+  it('o cartão de subgrupo oferece o atalho para os sem comentário', async () => {
     const roteador = await pronto()
     const cartao = screen.getByTestId('metrica-AP-SUBGRUPO')
     await userEvent.click(
-      within(cartao).getByRole('button', { name: 'Ver apontamentos não classificados' }),
+      within(cartao).getByRole('button', { name: 'Ver apontamentos sem comentário' }),
     )
     await waitFor(() => expect(roteador.state.location.search).toBe('?subgrupo=nao-classificado'))
   })

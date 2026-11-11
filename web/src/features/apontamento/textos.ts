@@ -151,7 +151,7 @@ export const CARTOES = {
   subgrupo: {
     pergunta: 'Que tipo de atividade as horas descrevem?',
     comoLer:
-      "O subgrupo vem das palavras do comentário e do tipo do card, segundo o dicionário vigente. É uma estimativa, não uma verdade: 'Não classificado' mostra apontamentos que o dicionário não reconheceu. Se esse grupo for grande, o dicionário precisa de ajuste.",
+      "O subgrupo vem das palavras do comentário e do tipo do card, segundo o dicionário vigente. É uma estimativa, não uma verdade. 'Sem comentário' mostra apontamentos sem comentário e sem regra por tipo de card (não é o mesmo que o problema de qualidade 'Sem comentário', que conta qualquer apontamento sem comentário). 'Execução técnica' mostra comentários que o dicionário não reconheceu: é um sinal para ampliar o dicionário, não uma falha de preenchimento.",
     criterio: 'Dicionário de subgrupos. Mudanças aparecem como marca no gráfico.',
   },
   matriz: {
@@ -230,10 +230,10 @@ export function fraseDoAchado(a: AchadoLido, rotuloForaDoEscopo = false): FraseD
       const n = num(v.n)
       if (pct === null || n === null) return null
       return {
-        frase: `${fmtNumero(pct, 0)}% das horas apontadas (${fmtNumero(n, 0)} apontamentos) caíram em 'Não classificado'. O dicionário de subgrupos pode estar incompleto.`,
+        frase: `${fmtNumero(pct, 0)}% das horas apontadas (${fmtNumero(n, 0)} apontamentos) caíram em 'Sem comentário'. Falta comentário no apontamento.`,
         atalho: {
           tipo: 'filtro',
-          rotulo: 'Ver apontamentos não classificados',
+          rotulo: 'Ver apontamentos sem comentário',
           chave: 'subgrupo',
           valor: 'nao-classificado',
         },
@@ -318,3 +318,11 @@ export const INCOMPLETO = {
   projetosComSelo: 'Projetos com horas incompletas',
 } as const
 export const ID_AVISO_INCOMPLETO = 'aviso-registro-incompleto'
+
+/** Nota de execução técnica no cartão de Qualidade (pedido 089, D2): sinal para ampliar o dicionário, não falha. */
+export const EXECUCAO_TECNICA = {
+  titulo: 'Execução técnica',
+  explicacao:
+    'Comentário que o dicionário não reconheceu. Não conta como problema de qualidade: é um sinal para ampliar o dicionário.',
+  atalho: 'Ver apontamentos de execução técnica',
+} as const

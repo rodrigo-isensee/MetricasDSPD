@@ -1,9 +1,9 @@
 import { Barras } from '@/components/charts'
-import { AmostraInsuficiente, CelulaInsuficiente, TabelaDados } from '@/components/ui'
+import { AmostraInsuficiente, Botao, CelulaInsuficiente, TabelaDados } from '@/components/ui'
 import { fmtInteiro, fmtNumero } from '@/lib/formatar'
 import { useDadosAba, useRotulos, useTotaisPorPessoa } from '../dados'
 import { ordenarPorTotal } from '../ordem'
-import { CARTOES, FLAGS } from '../textos'
+import { CARTOES, EXECUCAO_TECNICA, FLAGS } from '../textos'
 import type { PctComPiso, QualidadePorFlag, RespostaApontamento } from '../types'
 import { CartaoApontamento } from './CartaoApontamento'
 import { NotaNaoIdentificada } from './NotaNaoIdentificada'
@@ -19,6 +19,34 @@ function ContagemEPct({ ap, pct }: { ap: number; pct: PctComPiso }) {
     <span>
       {fmtInteiro(ap)} <CelulaInsuficiente />
     </span>
+  )
+}
+
+/** Execução técnica à parte (D2): contagem e participação em horas lidas de `distribuicao.porSubgrupo`; nada é calculado aqui. */
+function NotaExecucaoTecnica({ r }: { r: RespostaApontamento }) {
+  const { definirLista } = useDadosAba()
+  const l = r.distribuicao.porSubgrupo.find((x) => x.id === 'execucao-tecnica')
+  if (!l) return null
+  const horas =
+    l.participacao.status === 'ok'
+      ? `${fmtNumero(l.participacao.pct, 0)}% das horas`
+      : 'percentual com 20 apontamentos ou mais'
+  return (
+    <section
+      aria-labelledby="nota-execucao-tecnica-titulo"
+      data-testid="nota-execucao-tecnica"
+      className="flex flex-col gap-1 rounded border border-dashed border-neutral-300 p-2 text-sm"
+    >
+      <h4 id="nota-execucao-tecnica-titulo" className="font-medium">
+        {EXECUCAO_TECNICA.titulo}: {fmtInteiro(l.apontamentos)} apontamentos ({horas})
+      </h4>
+      <p className="text-xs">{EXECUCAO_TECNICA.explicacao}</p>
+      <div>
+        <Botao className="text-xs" onClick={() => definirLista('subgrupo', ['execucao-tecnica'])}>
+          {EXECUCAO_TECNICA.atalho}
+        </Botao>
+      </div>
+    </section>
   )
 }
 
@@ -75,6 +103,7 @@ function QualidadeGeral({ r }: { r: RespostaApontamento }) {
           })),
         ]}
       />
+      <NotaExecucaoTecnica r={r} />
     </div>
   )
 }

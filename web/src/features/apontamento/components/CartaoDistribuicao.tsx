@@ -143,7 +143,7 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
                 className="text-xs"
                 onClick={() => d.definirLista('subgrupo', ['nao-classificado'])}
               >
-                Ver apontamentos não classificados
+                Ver apontamentos sem comentário
               </Botao>
             ),
           }
