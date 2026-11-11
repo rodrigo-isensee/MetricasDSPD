@@ -253,6 +253,30 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     for (const col of ['responsaveis', 'responsavel_id', 'card_pai']) expect((await falha(aba, `SELECT ${col} FROM ${S.bm}.dim_card`)).code, col).toBe('42501');
   });
 
+  it('cards incompletos filtrados por equipe ponta a ponta: o time do card, "Sem time" e slug inexistente com resultado vazio (097 L2, A1)', async () => {
+    const MAIO = 'de=2031-05-01&ate=2031-05-31&diarioDe=2031-05-01&diarioAte=2031-05-31';
+    const cobertura = await novaColeta(dono, S.bm);
+    const marcar = (estado: 'incompleto' | 'completo') =>
+      dono.query(
+        `INSERT INTO ${S.bm}.ctl_apontamento_cobertura (card_id, estado, coleta_id, detectado_em) SELECT c, $2::text, $3::bigint, now() FROM unnest($1::text[]) AS c`,
+        [[FILHO, OUTRO, SOLTO], estado, cobertura]);
+    const incompletos = async (filtro: string): Promise<string[]> => {
+      const r = await consultar(false, `${MAIO}${filtro}`);
+      expect(r.statusCode, r.body.slice(0, 300)).toBe(200);
+      return (respostaApontamentoSchema.parse(r.json()).registroIncompleto?.cards ?? []).map((c) => c.cardId).sort();
+    };
+    await marcar('incompleto');
+    try {
+      expect(await incompletos('')).toEqual([FILHO, OUTRO, SOLTO].sort());
+      expect(await incompletos('&equipe=time-alfa-teste-097')).toEqual([FILHO]); // Alfa
+      expect(await incompletos('&equipe=time-beta-teste-097')).toEqual([OUTRO]); // Beta
+      expect(await incompletos('&equipe=sem-time')).toEqual([SOLTO]); // sem time
+      expect(await incompletos('&equipe=nao-existe')).toEqual([]); // slug inexistente: vazio, nunca "todos"
+    } finally {
+      await marcar('completo'); // append-only: o estado atual volta a completo para não vazar para os outros casos
+    }
+  });
+
   it('com o interruptor ligado o nome só aparece em opcoes.pessoas[].rotulo, uma vez', async () => {
     const r = await consultar(true, JANELA);
     expect(r.statusCode).toBe(200);

@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { consultaApontamentoSchema } from '@metricas-dspd/contratos';
 import { describe, expect, it } from 'vitest';
 
 const RAIZ = new URL('../src', import.meta.url).pathname;
@@ -54,6 +55,11 @@ describe('tabela de times: só filtro, nunca comparação entre times (regra inv
     }
     const contrato = readFileSync(new URL('../../packages/contratos/src/apontamento.ts', import.meta.url).pathname, 'utf8');
     expect(contrato).not.toMatch(/porEquipe|porTime|matrizEquipe/);
-    expect(contrato.match(/equipe/gi)?.length).toBeLessThanOrEqual(6);
+    // A3 (review do L2): o recorte por time é provado pelo schema, não pela contagem de texto do contrato.
+    expect(consultaApontamentoSchema.safeParse({ equipe: 'time-alfa' }).success).toBe(true);
+    expect(consultaApontamentoSchema.safeParse({ equipe: 'time-alfa,sem-time' }).success).toBe(true);
+    expect(consultaApontamentoSchema.safeParse({ equipe: 'Time Alfa' }).success).toBe(false); // não é slug
+    expect(consultaApontamentoSchema.safeParse({ porEquipe: 'x' }).success).toBe(false); // consulta estrita: sem chave de agrupamento
+    expect(consultaApontamentoSchema.safeParse({ equipe: Array.from({ length: 51 }, (_, i) => `t${String(i)}`).join(',') }).success).toBe(false); // teto de 50
   });
 });
