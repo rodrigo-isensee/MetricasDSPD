@@ -36,63 +36,48 @@ function fonteApiComSimulado() {
   }
 }
 
-describe('painéis com o simulado por cartão (pedido 070, T-W6)', () => {
-  it('Operacional semanal: O12 mostra número com selo; O3 é real e fica sem selo; a faixa e a contagem seguem só o real', async () => {
-    const { fonte } = fonteApiComSimulado()
+describe('painéis sem a opção simulado nos cartões (pedido 099, L2a)', () => {
+  it('Operacional semanal: O12 fica "Sem dado real" e sem selo; O3 segue real; a contagem segue o mapa', async () => {
+    const { fonte, criarMock } = fonteApiComSimulado()
     renderizarApp('/operacional?cadencia=semanal', fonte)
     const o12 = await screen.findByTestId('metrica-O12')
-    await waitFor(() => expect(o12).toHaveAttribute('data-estado', 'ok'))
-    expect(within(o12).getByTestId('selo-simulado-O12')).toHaveTextContent('Simulado')
-    expect(within(o12).getByTestId('leitura-O12').textContent).toMatch(/^Exemplo: /)
-    expect(within(o12).getByTestId('motivo-simulado-O12')).toHaveTextContent(
-      'aguardando campo no quadro',
+    expect(await within(o12).findByTestId('estado-sem-dado-real-O12')).toHaveTextContent(
+      'Sem dado real',
     )
+    expect(within(o12).queryByTestId('selo-simulado-O12')).toBeNull()
     const o3 = await screen.findByTestId('metrica-O3')
     await waitFor(() => expect(o3).toHaveAttribute('data-estado', 'ok'))
-    expect(within(o3).queryByTestId('selo-simulado-O3')).toBeNull()
-    // O simulado não entra na contagem do cabeçalho: segue o mapa do contrato.
     expect(await screen.findByTestId('nota-sem-dado-real-operacional')).toHaveTextContent(
       `${contarSemDadoReal('operacional', 'api')} cartões sem dado real`,
     )
-    // Faixa "O que pede atenção": O12 está sem dado real para ela, então nunca diz "Nada pede atenção" por inteiro.
     expect(screen.queryByText(/Nada pede atenção/)).toBeNull()
+    expect(criarMock).not.toHaveBeenCalled()
   })
 
-  it('Tático: todos simulados com selo, mas a faixa de atenção continua "Sem dado real"', async () => {
-    const { fonte } = fonteApiComSimulado()
+  it('Tático: os cartões ficam "Sem dado real", sem selo, e a faixa de atenção também', async () => {
+    const { fonte, criarMock } = fonteApiComSimulado()
     renderizarApp('/tatico', fonte)
     const t2 = await screen.findByTestId('metrica-T2')
-    await waitFor(() => expect(t2).toHaveAttribute('data-estado', 'ok'))
-    expect(within(t2).getByTestId('selo-simulado-T2')).toBeInTheDocument()
+    expect(await within(t2).findByTestId('estado-sem-dado-real-T2')).toBeInTheDocument()
+    expect(within(t2).queryByTestId('selo-simulado-T2')).toBeNull()
     expect(await screen.findByTestId('faixa-atencao-sem-dado-real')).toHaveTextContent(
       'Sem dado real',
     )
+    expect(criarMock).not.toHaveBeenCalled()
   })
 
-  it('Sustentação: S1 simulado com selo, S2 real sem selo, EI_SUST sem dado real e sem número', async () => {
-    const { fonte } = fonteApiComSimulado()
+  it('Sustentação: S1 e EI_SUST ficam sem dado real e sem número; S2 segue real', async () => {
+    const { fonte, criarMock } = fonteApiComSimulado()
     renderizarApp('/sustentacao', fonte)
     const s1 = await screen.findByTestId('metrica-S1')
-    await waitFor(() => expect(s1).toHaveAttribute('data-estado', 'ok'))
-    expect(within(s1).getByTestId('selo-simulado-S1')).toBeInTheDocument()
+    expect(await within(s1).findByTestId('estado-sem-dado-real-S1')).toBeInTheDocument()
+    expect(within(s1).queryByTestId('selo-simulado-S1')).toBeNull()
     const s2 = await screen.findByTestId('metrica-S2')
     await waitFor(() => expect(s2).toHaveAttribute('data-estado', 'ok'))
-    expect(within(s2).queryByTestId('selo-simulado-S2')).toBeNull()
     const ei = await screen.findByTestId('metrica-EI-SUST')
     expect(await within(ei).findByTestId('estado-sem-dado-real-EI-SUST')).toBeInTheDocument()
-    expect(within(ei).queryByTestId('selo-simulado-EI-SUST')).toBeNull()
-    // A faixa lê só o real: com S1 sem dado real para ela, fica "parcial".
     expect(await screen.findByTestId('faixa-atencao-sem-dado-real-parcial')).toBeInTheDocument()
-  })
-
-  it('o mock é criado uma só vez, pelo primeiro cartão simulável (o painel só com reais não o cria: T-W1)', async () => {
-    const { fonte, criarMock } = fonteApiComSimulado()
-    renderizarApp('/operacional?cadencia=semanal', fonte)
-    const o3 = await screen.findByTestId('metrica-O3')
-    await waitFor(() => expect(o3).toHaveAttribute('data-estado', 'ok'))
-    // A visão semanal tem O3 (real) e O12 (simulável; BLOQUEADOS voltou ao mapa real no pedido 075, 6b): o mock só nasce por este.
-    expect(await screen.findByTestId('selo-simulado-O12')).toBeInTheDocument()
-    expect(criarMock).toHaveBeenCalledTimes(1)
+    expect(criarMock).not.toHaveBeenCalled()
   })
 
   it('Visão geral nunca é simulada: segue "Sem dado real"', async () => {

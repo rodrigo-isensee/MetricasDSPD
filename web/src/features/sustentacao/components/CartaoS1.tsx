@@ -124,7 +124,7 @@ function Bloco({ medida, linhas }: { medida: (typeof MEDIDAS)[number]; linhas: r
 
 export function CartaoS1({ filtros }: { filtros: FiltrosSustentacao }) {
   const m = entradaDoCatalogo('S1')
-  const q = useMetrica('S1', filtros, { simulado: true })
+  const q = useMetrica('S1', filtros)
   const d = q.dados
   const primeira = d?.prioridades.find((l) => l.restauracao.estatistica.status === 'ok')
   const e = primeira?.restauracao.estatistica

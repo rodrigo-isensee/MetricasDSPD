@@ -12,7 +12,7 @@ const ABAS = ['sistema', 'area'] as const
 const SERIES = ['Demanda de valor', ...ORIGENS_DEMANDA]
 
 export function CartaoT5({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('T5', filtros, { simulado: true })
+  const q = useMetrica('T5', filtros)
   const d = q.dados
   const [aba, setAba] = useParametroLocal('t5', ABAS, 'sistema')
   const grupos = d ? (aba === 'sistema' ? d.porSistema : d.porArea) : []
