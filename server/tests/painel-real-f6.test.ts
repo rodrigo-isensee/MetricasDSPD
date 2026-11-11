@@ -473,30 +473,26 @@ describe('pedido 075 6b: bloqueios com dado real na base real', () => {
     expect(o1.serie.some((l) => l.bloqueados > 0)).toBe(true);
   });
 
-  it('S9: a nota bloqueio-sem-dado-real deixa de ser emitida na base real (o id segue no enum até o 9b)', async () => {
+  it('S9: a nota bloqueio-sem-dado-real não existe mais; a base real não a emite e o O2 e o O5 passam sem mudança', async () => {
     const { semParteDeBloqueio } = await import('../src/modulos/metricas/parte-sem-dado.js');
-    const a = semParteDeBloqueio('O2', { notas: ['sem-classe'] }) as { notas: string[] };
-    expect(a.notas).toEqual(['sem-classe', NOTA]);
     const fora = { a: 1 };
-    expect(semParteDeBloqueio('O3', fora)).toBe(fora);
-    expect(semParteDeBloqueio('O5', fora)).toBe(fora);
+    for (const id of ['O2', 'O3', 'O5'] as MetricaId[]) expect(semParteDeBloqueio(id, fora), id).toBe(fora);
     const { app } = await real({ sle: true });
     for (const id of ['O1', 'O2', 'O3', 'O5', 'O19', 'BLOQUEADOS']) expect(JSON.stringify((await app.inject(`/api/v1/metricas/${id}`)).json()), id).not.toContain(NOTA);
   });
 
-  it('S9b: com o interruptor desligado (reversão) o O1 e o O2 voltam a sair com a parte de bloqueio nula e a nota; ligado, nenhuma', async () => {
+  it('S9b: CA-12, só pelo interruptor: desligado (reversão) o O1 sai com a parte de bloqueio nula, sem nota; o O2 sem nota; ligado, nenhuma nula no hoje', async () => {
     vi.resetModules();
     vi.doMock('@metricas-dspd/contratos', async (orig) => ({ ...(await orig<Record<string, unknown>>()), BLOQUEIOS_COM_DADO_REAL: false }));
     const { buildApp: buildDesligado } = await import('../src/app.js');
     const app = await buildDesligado({ db: criarDublePg(banco({ sle: true, bloqueios: BLOQUEIOS })).pool, S: REAL, agora: () => AGORA, nivelLog: 'silent' });
     const o1 = (await app.inject('/api/v1/metricas/O1')).json() as { notas?: string[]; hoje: { bloqueados: number | null }; serie: { bloqueados: number | null }[] };
-    expect(o1.notas).toContain(NOTA);
+    expect(o1.notas ?? []).not.toContain(NOTA);
     expect(o1.hoje.bloqueados).toBeNull();
     expect(o1.serie.every((l) => l.bloqueados === null)).toBe(true);
-    expect((await app.inject('/api/v1/metricas/O2')).json()).toMatchObject({ notas: expect.arrayContaining([NOTA]) });
+    expect(JSON.stringify((await app.inject('/api/v1/metricas/O2')).json())).not.toContain(NOTA);
     const { semParteDeBloqueio } = await import('../src/modulos/metricas/parte-sem-dado.js');
     expect(semParteDeBloqueio('O5', { a: 1 })).toEqual({ a: 1 });
-    expect((semParteDeBloqueio('O2', { notas: [NOTA] }) as { notas: string[] }).notas).toEqual([NOTA]); // a nota não duplica
   });
 
   it('S10: a versão de critério dos bloqueios marca O1, O2, O5, O19 e BLOQUEADOS quando a data (2026-11-01) cruza o período', async () => {

@@ -7,8 +7,6 @@ import {
   notaSustentacaoIdSchema,
   TEXTO_NOTA_QUALQUER,
   corpoSemDadoReal,
-  METRICAS_COM_PARTE_DE_BLOQUEIO,
-  MOTIVO_BLOQUEIOS_NAO_COLETADOS,
   ESTADO_SEM_DADO_REAL,
   METRICAS_ORIGEM_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
@@ -157,14 +155,13 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     }
   })
 
-  it('C3 (pedido 065, id da nota segue no enum até o 9b): O1 e O2 aceitam a nota de bloqueio, recusam id fora do contrato; O1 aceita null na parte de bloqueio; O5 segue no contrato anterior', () => {
-    expect(notaCartaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(true)
-    expect(TEXTO_NOTA_CARTAO['bloqueio-sem-dado-real']).toContain(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
-    expect(METRICAS_COM_PARTE_DE_BLOQUEIO).toEqual(['O1', 'O2'])
+  it('C3 (pedido 075, 9b): O1 e O2 recusam a nota de bloqueio e id fora do contrato; O1 aceita null na parte de bloqueio; O5 segue no contrato anterior', () => {
+    expect(notaCartaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(false)
+    expect(Object.keys(TEXTO_NOTA_CARTAO)).toEqual(['sem-classe', 'sle-nao-definido'])
     expect(BLOQUEIOS_COM_DADO_REAL).toBe(true)
     for (const r of [resultadoO1, resultadoO2]) {
       const campo = r.shape.notas
-      expect(campo.safeParse(['bloqueio-sem-dado-real']).success).toBe(true)
+      expect(campo.safeParse(['bloqueio-sem-dado-real']).success).toBe(false)
       expect(campo.safeParse(['id-inexistente']).success).toBe(false)
     }
     const o1 = resultadoO1.shape
