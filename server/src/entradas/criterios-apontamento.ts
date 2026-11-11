@@ -1,3 +1,5 @@
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { carregarConfigMigrar } from '../plataforma/config.js';
 import { criarPool } from '../plataforma/db/pool.js';
 import { montarEsquemas } from '../plataforma/db/esquemas.js';
@@ -5,6 +7,16 @@ import { registrarCriteriosApontamento } from '../modulos/referencia/index.js';
 
 // Entrada `criterios-apontamento [AAAA-MM-DD]`: registra em `ref_versao_criterio` os critérios da aba Apontamento (T2.6: limiares dos achados, limite do dia atípico e, pedido 089, o `sem-vinculo`
 // só para sem comentário) com a data de vigência (padrão: hoje, horário de Brasília). Para o 089 informe a data da primeira varredura completa (Q3). Usa o migrador (dono da referência); idempotente. Imprime só as referências gravadas.
+// O `.env` da raiz é lido só aqui, pelo programa, como em `bm:ref-sync-apontamento`; nada dele é impresso. Uso: `pnpm --filter @metricas-dspd/server run bm:criterios-apontamento <data>`.
+const raiz = fileURLToPath(new URL('../../../', import.meta.url));
+try {
+  process.loadEnvFile(join(raiz, '.env'));
+} catch (e) {
+  if ((e as NodeJS.ErrnoException).code !== 'ENOENT') {
+    process.stderr.write(`falha ao ler o .env (${(e as NodeJS.ErrnoException).code ?? 'erro'})\n`);
+    process.exit(2);
+  }
+}
 const dia = process.argv[2] ?? new Date(Date.now() - 3 * 3_600_000).toISOString().slice(0, 10);
 if (!/^\d{4}-\d{2}-\d{2}$/.test(dia)) {
   process.stderr.write('uso: criterios-apontamento.ts [AAAA-MM-DD]\n');
