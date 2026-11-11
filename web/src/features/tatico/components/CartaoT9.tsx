@@ -19,7 +19,7 @@ const ESTILOS = {
 } as const
 
 export function CartaoT9({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('T9', filtros, { simulado: true })
+  const q = useMetrica('T9', filtros)
   const d = q.dados
   // Ordem padrão da spec: maior crescimento de escopo (é por projeto, não por pessoa).
   const projetos = d

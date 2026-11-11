@@ -9,7 +9,7 @@ import { propsCartao, textoTaxa } from '@/features/painel/propsCartao'
 /** O18: entregas com e sem bug. Meses ainda dentro dos 30 dias de vínculo aparecem "em apuração", listrados. */
 export function CartaoO18({ filtros }: { filtros: FiltrosFluxo }) {
   const o4Visivel = useCartaoVisivel('o4')
-  const q = useMetrica('O18', filtros, { simulado: true })
+  const q = useMetrica('O18', filtros)
   const d = q.dados
   const t = d?.totais
   const dens = (e: { status: 'ok' | 'insuficiente'; n: number; valor?: number }) =>

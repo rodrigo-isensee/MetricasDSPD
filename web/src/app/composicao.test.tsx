@@ -1,5 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { corpoSemDadoReal, type MetricaId } from '@metricas-dspd/contratos'
+import { render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { HttpFonteMetricas } from '@/data'
 import { App, criarFontePadrao, criarQueryClient } from './App'
 
 afterEach(() => vi.unstubAllEnvs())
@@ -36,6 +38,33 @@ describe('App e composição', () => {
     vi.stubEnv('VITE_API_BASE', '/v9')
     await criarFontePadrao().criterios()
     expect(f.mock.calls.map((c) => c[0])).toStrictEqual(['/api/v1/criterios', '/v9/criterios'])
+    f.mockRestore()
+  })
+
+  it('a fonte padrão (api) é a HTTP pura, sem o decorador de simulado (pedido 099)', () => {
+    vi.stubEnv('VITE_FONTE', 'api')
+    expect(criarFontePadrao()).toBeInstanceOf(HttpFonteMetricas)
+  })
+
+  it('sem dado real, nenhum cartão do Operacional mostra o selo "Simulado", mesmo com a API marcando simulavel', async () => {
+    vi.stubEnv('VITE_FONTE', 'api')
+    const f = vi.spyOn(globalThis, 'fetch').mockImplementation((entrada: RequestInfo | URL) => {
+      const url =
+        typeof entrada === 'string' ? entrada : entrada instanceof URL ? entrada.href : entrada.url
+      const m = /\/metricas\/([A-Za-z0-9-]+)/.exec(url)
+      if (!m) return Promise.resolve(new Response('[]'))
+      const corpo = { ...corpoSemDadoReal(m[1] as MetricaId), simulavel: true }
+      return Promise.resolve(
+        new Response(JSON.stringify(corpo), { headers: { 'content-type': 'application/json' } }),
+      )
+    })
+    window.history.pushState({}, '', '/operacional')
+    render(<App />)
+    await waitFor(() => expect(screen.getAllByText(/Sem dado real/i).length).toBeGreaterThan(0), {
+      timeout: 5000,
+    })
+    expect(screen.queryByText(/Simulado/i)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(/simulado/i)).not.toBeInTheDocument()
     f.mockRestore()
   })
 

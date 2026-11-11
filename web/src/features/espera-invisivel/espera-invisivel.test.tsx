@@ -193,7 +193,6 @@ describe('Espera invisível por nível, segmentada', () => {
         q={{
           estado: 'ok',
           dados: { ...dados, nivel: 'FL3' },
-          origem: 'real',
           erro: null,
           atualizando: false,
           recarregar: () => undefined,
