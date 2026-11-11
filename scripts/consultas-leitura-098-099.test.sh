@@ -10,7 +10,6 @@ trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/bin" "$TMP/repo/scripts" "$TMP/chamada"
 cp "$RAIZ/scripts/consultas-leitura-098-099.sh" "$TMP/repo/scripts/"
 cp -r "$RAIZ/scripts/sql" "$TMP/repo/scripts/"
-SQLS="$TMP/repo/scripts/sql/consultas-098-099"
 
 # Banco falso: gera TSV a partir do "-- COLUNAS:" que chega por stdin (numero=1, data=2026-01-01, dominio=x).
 # Modos por variavel: FALSO_CABECALHO (substitui o cabecalho), FALSO_VALOR (substitui o 1o valor), FALHA=1 (rc 7).
@@ -43,7 +42,7 @@ EOF
 cat >"$TMP/bin/mysql" <<'EOF'
 #!/bin/bash
 echo "mysql $*" >>"$LOG"
-cnf="${1#--defaults-extra-file=}"
+cnf="${1#--defaults-file=}"
 echo "cnf-perm=$(stat -c %a "$cnf")" >>"$LOG"
 grep -q '^password=' "$cnf" && echo "cnf-tem-senha" >>"$LOG"
 exec "$(dirname "$0")/falso-banco" "$@"
@@ -132,8 +131,45 @@ printf -- '-- ID: X2\n-- FONTE: pg\n-- ORIGEM: teste\n-- COLUNAS: n:numero\nDELE
 : >"$LOG"
 saida="$(cd "$TMP/chamada" && CONSULTAS_SQL_DIR="$TMP/sql-ruim" DEMO_ENV_ARQUIVO="$TMP/env" bash "$SCRIPT" --so-pg 2>&1)"; rc=$?
 verifica ".sql com DELETE: recusado, rc 1 e banco nao chamado" "$([ "$rc" -eq 1 ] && grep -q 'recusada  X2' <<<"$saida" && [ ! -s "$LOG" ] && echo 0 || echo 1)"
-# nenhum .sql versionado tem palavra de escrita (a mesma regra do script, sobre a pasta real)
-verifica "os 31 .sql versionados passam na recusa de escrita" "$(sed 's/--.*$//' "$SQLS"/*.sql | grep -Eiq '\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|merge|replace|into[[:space:]]+(outfile|dumpfile))\b' && echo 1 || echo 0)"
+# sondas S1 a S7 do parecer de seguranca: cada uma deve ser recusada sem chamar o banco (lista do que e permitido)
+sonda() { # nome, texto do .sql
+  printf -- '-- ID: S\n-- FONTE: pg\n-- ORIGEM: teste\n-- COLUNAS: n:numero\n%s\n' "$2" >"$TMP/sql-ruim/01.sql"
+  : >"$LOG"
+  saida="$(cd "$TMP/chamada" && CONSULTAS_SQL_DIR="$TMP/sql-ruim" DEMO_ENV_ARQUIVO="$TMP/env" bash "$SCRIPT" --so-pg 2>&1)"; rc=$?
+  verifica "$1: recusada, rc 1 e banco nao chamado" "$([ "$rc" -eq 1 ] && grep -q 'recusada  S' <<<"$saida" && [ ! -s "$LOG" ] && echo 0 || echo 1)"
+}
+sonda "S1 literal com dois tracos e DELETE" "SELECT '--'; DELETE FROM t;"
+sonda "S2 1--1 e DELETE" "SELECT 1--1; DELETE FROM t;"
+sonda "S3 SET TRANSACTION READ WRITE" "SET TRANSACTION READ WRITE;"
+sonda "S4 gexec do psql" "SELECT 'INS'||'ERT INTO t VALUES (1)' \\gexec"
+sonda "S5 system do cliente mysql" "system id"
+sonda "S6 barra-bang do cliente" '\! id'
+sonda "S7 DO com EXECUTE" "DO \$\$BEGIN EXECUTE 'DEL'||'ETE FROM t'; END\$\$;"
+sonda "SELECT seguido de SET" "SELECT 1; SET default_transaction_read_only = off"
+sonda "SELECT INTO OUTFILE" "SELECT 1 INTO OUTFILE 'x'"
+# corpus de legitimos: os 31 .sql versionados passam na lista permitida (o caminho feliz acima ja exige 31 ok)
+verifica "os 31 .sql versionados cumprem a lista permitida" "$(roda | grep -q '^recusada  ' && echo 1 || echo 0)"
+
+# A3: certificado fixado por ssl-fp, --defaults-file, --sandbox; sem ssl-ca nem desligar verificacao
+cat >"$TMP/bin/mysql" <<'EOF'
+#!/bin/bash
+echo "mysql $*" >>"$LOG"
+cnf="${1#--defaults-file=}"
+cp "$cnf" "$CNF_COPIA"
+exec "$(dirname "$0")/falso-banco" "$@"
+EOF
+export CNF_COPIA="$TMP/cnf-copia"
+: >"$LOG"; roda --so-mysql >/dev/null
+verifica "mysql: --defaults-file e --sandbox no argv" "$(grep -q '^mysql --defaults-file=.* --sandbox ' "$LOG" && ! grep -q 'defaults-extra-file' "$LOG" && echo 0 || echo 1)"
+FIXADA_ESPERADA="$(printf '%s' "$IMP" | tr -d ':' | tr 'A-F' 'a-f')"
+verifica "mysql: ssl-fp com a impressao fixada, TLS ligado" "$(grep -qx "ssl-fp=$FIXADA_ESPERADA" "$CNF_COPIA" && grep -qx 'ssl' "$CNF_COPIA" && echo 0 || echo 1)"
+verifica "mysql: verificacao nunca desligada (sem skip-ssl nem ssl-verify desligado)" "$(grep -Eq 'skip-ssl|ssl=0|ssl-verify-server-cert=(0|off|false)|disable' "$CNF_COPIA" && echo 1 || echo 0)"
+
+# A4: chamado de dentro do repositorio, a saida vai para a pasta pessoal, nunca para o repositorio
+mkdir -p "$TMP/home"
+saida="$(cd "$TMP/repo" && HOME="$TMP/home" DEMO_ENV_ARQUIVO="$TMP/env" bash "$SCRIPT" --so-pg 2>&1)"
+verifica "dentro do repositorio: saida na pasta pessoal" "$(ls "$TMP"/home/consultas-098-099-*.txt >/dev/null 2>&1 && ! ls "$TMP"/repo/consultas-098-099-*.txt >/dev/null 2>&1 && echo 0 || echo 1)"
+verifica "gitignore cobre consultas-098-099-*.txt" "$(grep -qx 'consultas-098-099-\*.txt' "$RAIZ/.gitignore" && echo 0 || echo 1)"
 
 # 7. impressao do certificado diferente: recusa antes de conectar
 sed "s/^ACELERATO_MYSQL_TLS_SHA256=.*/ACELERATO_MYSQL_TLS_SHA256=$(printf 'AA:%.0s' {1..31})AA/" "$TMP/env" >"$TMP/env3"

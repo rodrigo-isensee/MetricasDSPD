@@ -7,12 +7,16 @@
 #     senhas vao por ambiente (PostgreSQL) ou por arquivo temporario 0600 (MySQL), nunca por argv.
 #   - PostgreSQL: papel dspd_coletor, sessao default_transaction_read_only=on e a consulta dentro de BEGIN READ ONLY ... ROLLBACK.
 #   - MySQL: a mesma conta so leitura da coleta (ADR 0023), SET SESSION TRANSACTION READ ONLY, START TRANSACTION READ ONLY,
-#     max_execution_time e ROLLBACK; TLS com o certificado fixado pela impressao SHA-256 conferida aqui antes de conectar.
+#     max_execution_time e ROLLBACK; cliente com --sandbox; --defaults-file (nunca le ~/.my.cnf); TLS obrigatorio com o
+#     certificado do servidor FIXADO por ssl-fp (impressao SHA-256 do .env, conferida tambem contra o arquivo local).
+#     A verificacao do certificado NUNCA se desliga: se o MySQL falhar por TLS, nao tire o ssl-fp; leve o caso ao time.
 #   - Cada arquivo .sql declara `-- COLUNAS: nome:tipo,...` (tipo = numero | data | dominio). A saida de cada consulta so
 #     entra no arquivo se o cabecalho for exatamente esse, nenhuma coluna estiver na lista de pessoa/texto livre e cada
 #     valor cumprir o tipo (numero so digitos; data so data; dominio curto e sem '@'). Senao a consulta e RECUSADA e
 #     o arquivo recebe so o motivo (coluna e linha), nunca o valor.
-#   - Arquivo .sql com INSERT/UPDATE/DELETE/DDL e recusado antes de rodar.
+#   - Lista do que e PERMITIDO (nao lista negra): um unico SELECT ou WITH por arquivo, um unico ponto e virgula no fim,
+#     sem barra invertida (meta-comando do cliente), sem SET, DO, EXECUTE, system etc. (ver validar_sql). psql com -X.
+#   - A saida nunca e gravada dentro do repositorio: chamado de dentro dele, o arquivo vai para a pasta pessoal.
 #   - Texto de erro de driver nunca e impresso (so o codigo de saida).
 # Teste: DEMO_ENV_ARQUIVO aponta outro .env; CONSULTAS_SQL_DIR aponta outra pasta de .sql.
 set -uo pipefail
@@ -70,11 +74,29 @@ if [[ " $FONTES " == *" mysql "* ]]; then
     echo "user=\"$(esc "$ACELERATO_MYSQL_USER")\""
     echo "password=\"$(esc "$ACELERATO_MYSQL_PASSWORD")\""
     echo "database=\"$(esc "$ACELERATO_MYSQL_DATABASE")\""
-    echo "ssl-ca=\"$(esc "$ACELERATO_MYSQL_TLS_CERT_FILE")\""
-    echo "ssl-verify-server-cert"
+    echo "ssl"
+    echo "ssl-fp=$FIXADA"
   } >"$TMP/mysql.cnf"
   chmod 600 "$TMP/mysql.cnf"
 fi
+
+# --- lista do que e permitido no .sql (sem as linhas inteiras de comentario) ---
+# rc 0 = ok; rc 3 = recusado (motivo no stdout). Palavras comparadas sem diferenca de caixa, como palavra inteira.
+PALAVRAS_PROIBIDAS='insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|merge|replace|set|reset|commit|rollback|begin|start|do|execute|prepare|lock|vacuum|analyze|cluster|reindex|refresh|listen|notify|discard|load|handler|system|source|tee|pager|outfile|dumpfile|load_file|sleep|benchmark|pg_sleep|nextval|setval|dblink|into'
+validar_sql() {
+  local corpo primeiro pontos
+  corpo="$(sed -E '/^[[:space:]]*--/d' "$1")"
+  primeiro="$(printf '%s' "$corpo" | tr -s '[:space:]' ' ' | sed -E 's/^ //' | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]')"
+  case "$primeiro" in select | with) ;; *) echo "o texto nao comeca por SELECT nem WITH"; return 3 ;; esac
+  if printf '%s' "$corpo" | grep -Fq -e "$(printf '\134')"; then echo "tem barra invertida (meta-comando do cliente)"; return 3; fi
+  pontos="$(printf '%s' "$corpo" | tr -cd ';' | wc -c)"
+  [ "$pontos" -le 1 ] || { echo "tem mais de um ponto e virgula"; return 3; }
+  if [ "$pontos" -eq 1 ]; then
+    printf '%s' "$corpo" | tr -s '[:space:]' ' ' | sed -E 's/ $//' | grep -Eq ';$' || { echo "tem texto depois do ponto e virgula"; return 3; }
+  fi
+  if printf '%s' "$corpo" | grep -Eiwq "($PALAVRAS_PROIBIDAS)"; then echo "tem palavra fora da lista permitida"; return 3; fi
+  return 0
+}
 
 # --- validador da saida (TSV com cabecalho): so numero, data e dominio; falha sem imprimir valor ---
 # Entrada: $1 = colunas declaradas "nome:tipo,...". Le a saida em stdin. rc 0 = ok; rc 3 = recusada (motivo no stderr).
@@ -117,17 +139,19 @@ rodar_pg() { # arquivo
 rodar_mysql() { # arquivo
   { echo 'SET SESSION TRANSACTION READ ONLY;'; echo "SET SESSION max_execution_time = $TETO_MS;"; echo 'START TRANSACTION READ ONLY;'
     cat "$1"; echo; echo 'ROLLBACK;'; } |
-    mysql --defaults-extra-file="$TMP/mysql.cnf" --batch --connect-timeout=10
+    mysql --defaults-file="$TMP/mysql.cnf" --sandbox --batch --connect-timeout=10
 }
 
 # --- 3. consultas, na ordem dos arquivos (B das analises do 099, C do 098, Q do 099) ---
 DATA="$(TZ=America/Sao_Paulo date +%F)"
-SAIDA="$ORIGEM/consultas-098-099-$DATA.txt"
+# A saida nunca fica dentro do repositorio (o dono a cola em analises; nao pode ir a um git add -A).
+case "$ORIGEM/" in "$RAIZ"/*) DESTINO="$HOME"; DENTRO=1 ;; *) DESTINO="$ORIGEM"; DENTRO=0 ;; esac
+SAIDA="$DESTINO/consultas-098-099-$DATA.txt"
 {
   echo "# Consultas de leitura dos pedidos 098 e 099, $DATA"
   echo "# So contagens, datas e nomes de dominio. Confira cada nome de dominio (equipe, organizacao, tag, etapa, campo) antes de colar em qualquer lugar: se trouxer nome de pessoa ou de cliente, apague."
 } >"$SAIDA" || falhar "saida" "escrita" "Nao consegui gravar $SAIDA."
-case "$ORIGEM/" in "$RAIZ"/*) echo "AVISO: a saida esta dentro do repositorio ($SAIDA); nao a inclua em commit." >&2 ;; esac
+[ "$DENTRO" -eq 0 ] || echo "AVISO: chamado de dentro do repositorio; a saida foi para a pasta pessoal ($SAIDA), fora dele." >&2
 
 TOTAL=0 OK=0 RECUSADAS=0 FALHAS=0
 shopt -s nullglob
@@ -144,10 +168,10 @@ for f in "$DIR_SQL"/*.sql; do
     echo ""
     echo "## $id ($fonte; $origem)"
   } >>"$SAIDA"
-  # Recusa qualquer escrita ou DDL (sem os comentarios) antes de tocar no banco.
-  if sed 's/--.*$//' "$f" | grep -Eiq '\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|merge|replace|into[[:space:]]+(outfile|dumpfile))\b'; then
-    echo "RECUSADA: o arquivo tem palavra de escrita ou DDL; nada foi executado." >>"$SAIDA"
-    RECUSADAS=$((RECUSADAS + 1)); echo "recusada  $id (escrita no .sql)"; continue
+  # Lista do que e permitido (um SELECT ou WITH so), antes de tocar no banco.
+  if ! motivo_sql="$(validar_sql "$f")"; then
+    echo "RECUSADA: o .sql foge da lista permitida ($motivo_sql); nada foi executado." >>"$SAIDA"
+    RECUSADAS=$((RECUSADAS + 1)); echo "recusada  $id (.sql fora da lista permitida)"; continue
   fi
   if [ "$fonte" = pg ]; then rodar_pg "$f" >"$TMP/bruta" 2>/dev/null; else rodar_mysql "$f" >"$TMP/bruta" 2>/dev/null; fi
   rc=$?
