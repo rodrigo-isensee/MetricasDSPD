@@ -177,6 +177,23 @@ const esquemaEtapaLista = z.strictObject({
 /** Linha da Q7 (campo de etapa `preenchido`): só o booleano; qualquer coluna `valor` falha fechado. */
 const esquemaEtapaPreenchido = z.strictObject({ ticket_key: chave, nome: z.enum(NOMES_ETAPA_PREENCHIDO as [string, ...string[]]), preenchido: sinal });
 
+/** Forma comparável de um nome de campo: NFD sem marcas combinantes, sem diferença de maiúscula e sem espaço nas pontas. */
+const formaDoNome = (n: string): string => n.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
+const CANONICO_POR_FORMA = new Map(CAMPOS_ETAPA_F3.map((f) => [formaDoNome(f.nome), f]));
+
+/**
+ * A consulta filtra `nome IN (...)` pela collation da conexão (ignora maiúscula, acento e espaço no fim); aqui o nome recebido volta ao nome
+ * canônico da lista fechada antes da validação exata. Grafia diferente soma `nome_variante_<chave>`; nome que não casa segue como veio e falha
+ * fechado no esquema, sem o valor.
+ */
+function nomeCanonico(linha: unknown, c: Contadores): unknown {
+  if (typeof linha !== 'object' || linha === null || !('nome' in linha) || typeof linha.nome !== 'string') return linha;
+  const campo = CANONICO_POR_FORMA.get(formaDoNome(linha.nome));
+  if (campo === undefined) return linha;
+  if (campo.nome !== linha.nome) c.somar(`nome_variante_${campo.chave}`);
+  return { ...linha, nome: campo.nome };
+}
+
 /** `tipo` só recusa, nunca libera (A2): a fonte dizendo texto para um nome `lista` anula o valor. */
 const tipoTexto = (tipo: string | null): boolean => tipo !== null && tipo.normalize('NFD').toLowerCase().includes('text');
 
@@ -213,7 +230,7 @@ export function camposEtapa(
   const candidatos = new Map<string, Preenchido[]>();
   const texto_ = new Set<string>();
   for (const linha of listaLinhas) {
-    const r = esquemaEtapaLista.safeParse(linha);
+    const r = esquemaEtapaLista.safeParse(nomeCanonico(linha, c));
     if (!r.success) return falhar(r.error, 'campo_etapa');
     const k = chaveDe.get(r.data.nome)!;
     if (tipoTexto(r.data.tipo)) { texto_.add(k); continue; }
@@ -222,7 +239,7 @@ export function camposEtapa(
   }
   const marcados = new Set<string>();
   for (const linha of preenchidoLinhas) {
-    const r = esquemaEtapaPreenchido.safeParse(linha);
+    const r = esquemaEtapaPreenchido.safeParse(nomeCanonico(linha, c));
     if (!r.success) return falhar(r.error, 'campo_etapa');
     if (r.data.preenchido) marcados.add(chaveDe.get(r.data.nome)!);
   }
