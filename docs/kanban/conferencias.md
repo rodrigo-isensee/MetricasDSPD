@@ -2900,3 +2900,6 @@
 | 2026-11-11 14:07 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-1 | brief | 1 | reprovado | s | Q-099-3 tratada como aberta depois da resposta A de 14:05; frase trocada pela sugerida no brief react-frontend-2 | decisao | jarvis |
 | 2026-11-11 14:14 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-1 | brief | 1 | reprovado | s | push do parecer pelo QA sem origem no pedido; o pedido passou a dizer que cada portão envia o próprio parecer (como no 096) | escopo | jarvis |
 | 2026-11-11 14:49 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-31 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 18:02 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-security-engineer-2 | brief | 1 | aprovado | s | revalidacao | — | jarvis |
+| 2026-11-11 18:02 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-11 | brief | 1 | aprovado | s | revalidacao | — | jarvis |
+| 2026-11-11 18:02 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-6 | brief | 1 | aprovado | s | revalidacao | — | jarvis |

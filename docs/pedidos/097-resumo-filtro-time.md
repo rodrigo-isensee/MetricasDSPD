@@ -102,3 +102,35 @@
 - 2026-11-11 15:17: PR 321 (K-272) mesclado pelo dono na develop (443c99cf). E6 concluído.
 - 2026-11-11 15:23: o PR 321 foi mesclado com o check banco vermelho: server/tests/apontamento-rota.pg.test.ts:215 (caso do filtro por tipo ponta a ponta) espera ['12','34'] e recebe ['12'], porque os dois type_id da massa caem na mesma categoria (decisão "Agrupar"). O código está certo; o teste .pg ficou com o comportamento antigo. ERRO do time (melhoria vista): QA e review do K-272 não rodaram o .pg do mesmo módulo. DECISÃO TÉCNICA (Jarvis): E6.5, correção do teste na develop já.
 - 2026-11-11 15:23: brief selado docs/briefs/097-resumo-filtro-time-node-backend-7.md 900b7e782ff24f095b7737049e80c274d7d5f396424765e480dbf37d696e322e
+- 2026-11-11 15:50: entrega conferida 6a285daa27889d150e36bdee95b4a7aa4ac05c16
+- 2026-11-11 15:50: E6.5 entregue (6a285daa): caso do filtro por tipo ajustado ao agrupamento, com um card de outra categoria para provar a separação; sem PostgreSQL de teste local (o .pg rodou skipped; a prova é o check banco do CI); pronto não ficou verde por colisão de suítes em paralelo (cobertura do web e trava da suíte única), sem relação com o arquivo. Entrega conferida. Classe T: só review e CI.
+- 2026-11-11 15:51: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-17.md 66777c68cb1e464b6d835685bca2f30401f8844616ea533b1991cfce8147cd69
+- 2026-11-11 15:58: review da correção do teste .pg aprovado (2f74f725): prova o "Agrupar", não afrouxa, massa sem vazamento; CI do push em 6a285daa com o banco verde; A1 e A2 recomendados. Próximo: PR.
+- 2026-11-11 15:59: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-19.md 6e895027c8a43f9ad85c10b5e1cc68200373c8e0500ecdcece07584aeadcb933
+- 2026-11-11 16:02: entrega conferida b3b1a6cd43a97ec5fca32f88538c06039487a6ce
+- 2026-11-11 16:02: E3.1 (L1, busca) entregue pelo react-frontend (b3b1a6cd, enviado): campo Buscar em todo FiltroMulti, CA-10 a CA-16 e Q-1, 8 testes novos; pronto verde. Entrega conferida. Classe N: QA e review; revisão de UX (muda interface). Próximo: QA.
+- 2026-11-11 16:03: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-9.md 3f6712d39e14852f6afadd59bdfab934573d724cc45f819746a0273e74102058
+- 2026-11-11 16:05: brief selado docs/briefs/097-resumo-filtro-time-node-backend-9.md c8acf653034a30d58526f8c80fa03063731c08e87a4efd22a18d4b992e97604a
+- 2026-11-11 16:06: E3.3 QA do L1 reprovado (7a41ae85): B1 médio, na folha mobile o Esc com texto fecha a folha em vez de só limpar o texto (CA-14 e CA-16); 110 testes verdes; mutação dos acentos morta. Volta 1 ao react-frontend (máx. 3 voltas).
+- 2026-11-11 16:06: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-3.md 44e4dea5b461b56eb3f494c8dbb83edbdb15f2c1ece93b84d0b46b37581792a7
+- 2026-11-11 16:09: PR 324 (correção do teste .pg do K-272) aberto pelo tech-lead e mesclado pelo dono na develop (77c208a9) antes de os checks terminarem; o CI da develop (run 43084376256) está rodando, e o banco dele é a prova de que a develop voltou ao verde.
+- 2026-11-11 16:17: CI da develop no 77c208a9 verde (run 43084376256: banco, testes, build, rapida e os demais com sucesso). A develop voltou ao verde.
+- 2026-11-11 16:39: entrega conferida 440c863f8f04ca02a353747081d92e0c3f322b78
+- 2026-11-11 16:39: E1.4 (L4) entregue (83f9feda e 440c863f, enviado): equipe opcional nas duas tendências, contratos regenerados. Entrega conferida. Próximo: QA, depois review.
+- 2026-11-11 16:40: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-11.md 11fe5f1e0e0b3b37f45abf9734c8245c08ebac55be11ccb1f4f140205247d8f0
+- 2026-11-11 16:55: QA do L4 aprovado, 0 bugs (35b99f3a): sem equipe o resultado não muda; com equipe só a equipe pedida; equipe inválida dá 400; mutação morta; A1 recomendado (a tendência da sustentação aceita qualquer slug com recorte vazio; enum por fonte no L7a). Próximo: review.
+- 2026-11-11 16:56: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-21.md bf71fb9e88b533055d8c40adcbded49ad0907906639fee60f9bb179665b5545d
+- 2026-11-11 16:57: entrega conferida 86a6c85e730dd52cd00766d9c86a96098ae44ea3
+- 2026-11-11 16:57: volta 1 do L1 entregue (86a6c85e): B1 corrigido (Esc na folha com texto só limpa; sem texto fecha e devolve o foco), teste novo, 111 testes verdes; o pronto estourou o tempo na cobertura do web e do server, sem falha (o QA fecha a cobertura do web). Entrega conferida. Próximo: QA de novo.
+- 2026-11-11 16:57: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-13.md 28761aba881b764516205acfd84969f4f3b77badbe53443ab0140f0faca86518
+- 2026-11-11 17:00: review do L4 aprovado (e7364f72): contrato compatível, fontes separadas, sem comparação entre equipes; A1 a A3 recomendados (L7a e L5). DECISÃO TÉCNICA (Jarvis): o PR do L4 só abre depois que o PR da release 100 para a main estiver aberto, para não mexer na develop durante a release (lição do 093).
+- 2026-11-11 17:19: QA da volta 1 do L1 reprovado (6b7f8730): B1 resolvido e mutação morta, mas a cobertura do web ficou em 99,98% (A1: o setBusca do Esc numa caixa de opção, FiltroMulti.tsx:101, sem teste). Volta 2 ao react-frontend (máx. 3).
+- 2026-11-11 17:20: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-5.md 4c4b945496b26df8653ee2e21a97e762a8f956da6c7c3b70914ba50f76985818
+- 2026-11-11 17:32: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-15.md ca5334dcbe40fb58bf484164627a6e9aba252641bba11af48bd046033b2b7102
+- 2026-11-11 17:32: entrega conferida b5d206efc8fe4ab6bd38b19147d26c95bcceaf28
+- 2026-11-11 17:42: QA da volta 2 do L1 aprovado, 0 bugs, sem achados (8e1edc5a): 113 testes; cobertura do web 100% nos quatro critérios; mutação no Esc numa opção morta pela folha. Próximo: review do L1 e revisão de UX; o PR espera a release 100 chegar à main.
+- 2026-11-11 17:43: entrega conferida 8e1edc5a639cab3830f64e32252a8b7d1f8e5bde
+- 2026-11-11 17:43: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-23.md ac221e884a8e1c1fc709e1fb8d6504b325bf3307c98880925f928d50e9b47f96
+- 2026-11-11 17:50: review do L1 reprovado (d7623585): A1 bloqueante (na folha mobile, com texto na busca de um filtro e o foco em outro, o Esc nem limpa nem fecha; sondas S1 e S2); A2 bloqueante (arquitetura-front.md seção 4 sem a busca); A3 e A4 recomendados; teto excedido (279 linhas) a declarar no PR. Volta 3 ao react-frontend (a última permitida).
+- 2026-11-11 17:48: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-7.md 5d0aea9822dc1a7b040d0ac0f4a296f7643c78aeee51762dfc0ea227e73d669b
+- 2026-11-11 17:51: DECISÃO DO DONO (literal, registrada no pedido 100): "voce pode fazer ate o merge da main, esse so eu faco o resto pode fazer". Vale para os PRs deste pedido: o tech-lead mescla na develop com os checks verdes; a main é só do dono.

@@ -1,0 +1,15 @@
+## Objetivo
+O dono precisa rodar as consultas só de leitura que o arquiteto escreveu para os pedidos 098 e 099, e quer um comando único. Hoje elas estão espalhadas em três análises. Worktree `/home/rodrigoisensee/Metricas/MetricasDSPD-041`, branch `chore/consultas-leitura-098-099` (a partir da develop c7c3e09289f130c159a0d3584278be427e648b17).
+
+## Ler
+- `/home/rodrigoisensee/Metricas/MetricasDSPD/docs/analises/099-revisao-campos.md` §3 (B1 a B6), `/home/rodrigoisensee/Metricas/MetricasDSPD/docs/analises/098-discovery.md` §1 (C-AC1 a C-AC5 e C-BM1 a C-BM5) e `/home/rodrigoisensee/Metricas/MetricasDSPD/docs/analises/099-dado-real-operacional.md` (Q-RO-1 a Q-RO-11 e 6b).
+- Na worktree: `scripts/lib-pg.sh`, `scripts/db.sh`, `scripts/coleta.sh` e `server/src/modulos/acelerato/cliente-mysql.ts` (como o projeto já fala com o PostgreSQL da demo e com o MySQL do Acelerato, lendo o `.env` sem imprimi-lo).
+
+## Entregar
+- "E3.1 (devops-engineer): um comando único para o dono rodar as consultas só de leitura dos pedidos 098 e 099 (PostgreSQL da demo e MySQL do Acelerato), que grava a saída num arquivo sem dado de pessoa, na branch chore/consultas-leitura-098-099, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041." (E3.1)
+- (E4) (E3.1) Um script `scripts/consultas-leitura-098-099.sh` (ou entrada `pnpm` equivalente) que o dono roda na demo dele: lê o `.env` do jeito que o projeto já lê (nada dele impresso), usa papéis e conexões só de leitura (no PostgreSQL, transação `READ ONLY`; no MySQL, só SELECT, com o usuário de leitura que a coleta já usa), roda as consultas na ordem das análises com o id de cada uma no cabeçalho, grava tudo em `consultas-098-099-<data>.txt` na pasta de onde foi chamado, e recusa ou corta qualquer coluna que não seja contagem, data ou nome de domínio (nunca nome, e-mail, `usuarioKey`, título ou descrição). As consultas ficam em arquivos `.sql` versionados em `scripts/sql/consultas-098-099/`, copiadas das análises sem mudar o sentido (ajuste de sintaxe vira nota). Teste que roda o script com bancos falsos ou só a montagem dos comandos, sem base real. Documentar em `docs/engineering/demo-dado-real.md` como rodar. Commit com `Cartão: K-275` (por `git commit -F` de arquivo gravado por Write no scratchpad, `git add` explícito); push em segundo plano, esperando o fim, com `env PATH=/home/rodrigoisensee/.nvm/versions/node/v24.22.1/bin:/usr/local/bin:/usr/bin:/bin git -C /home/rodrigoisensee/Metricas/MetricasDSPD-041 push origin HEAD:refs/heads/chore/consultas-leitura-098-099` (`github.com` em allowed_domains); commit e push em chamadas separadas; sem PR. Não rodar nada contra a base real nem abrir `.env*`.
+- (E1) (E2) (E3) Nada a entregar aqui: não nesta delegação.
+- arquivos: scripts/consultas-leitura-098-099.sh, scripts/consultas-leitura-098-099.test.sh, scripts/sql/consultas-098-099/, docs/engineering/demo-dado-real.md, package.json
+
+## Pronto quando
+- PQ-1 (cmd): `git -C /home/rodrigoisensee/Metricas/MetricasDSPD-041 log -1 --format=%B origin/chore/consultas-leitura-098-099` · espera: contém 'Cartão: K-275'

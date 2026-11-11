@@ -54,3 +54,4 @@
 - 2026-11-11 15:16: brief selado docs/briefs/095-runner-ubuntu-2404-devops-engineer-9.md 4b047f3eeee3e1d2e720a34d1365006109dd762d9090221cc8b4ae1e909ac562
 - 2026-11-11 15:17: E1.10 sem trabalho: o PR 318 entrou completo na develop (container do Playwright, ação de conferência e os pareceres); o dono enviou os commits antes de mesclar. ERRO-JARVIS: a etapa foi aberta sem conferir a develop (git diff contra origin/develop). Branch vazia removida. Pedido técnico concluído; falta só a retrospectiva (E1.6).
 - 2026-11-11 15:33: brief selado docs/briefs/095-runner-ubuntu-2404-agile-coach-1.md a54905c7a56d62079077070274cd1d404551dc96560ef7b945c257a1648ef47c
+- 2026-11-11 15:34: E1.6 retrospectiva gravada (7a37c294, branch docs/retros-2026-11-11c, enviada; PR junto com as do 093 e 094): lead time cerca de 2 h 25 min; causa nova: a correção foi planejada sem provar a causa antes de gastar os portões; 3 melhorias para o Forge. Pedido fechado.

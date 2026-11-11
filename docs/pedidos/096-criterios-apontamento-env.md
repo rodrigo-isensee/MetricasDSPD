@@ -6,6 +6,7 @@
 - **Origem:** relato da sessão "WSL ativação" ao implantar o apontamento a pedido do dono (2026-11-11 12:37).
 
 ## Escopo
+- E3. K-271: robustez da entrada criterios-apontamento (recomendados da segurança e do review do K-270) · `técnico`
 - E1. Script `bm:criterios-apontamento` no `server/package.json`, carregando o .env como os bm:* já fazem, sem ler credencial no código · `técnico`
 - E2. Roteiro de implantação do 089 passa a usar o script novo · `técnico`
 
@@ -16,6 +17,10 @@
 - Cada portão (QA, segurança, review) commita e envia o próprio parecer na branch, como nos pedidos 092 a 095; o PR continua do tech-lead (E1.4).
 - E1.4 (tech-lead): PR para a develop; o merge é do dono.
 - E1.5 (agile-coach): retrospectiva curta.
+- E2.1 (node-backend): K-271, recomendados da segurança (A1 erro do banco só pela categoria; A2 data por dataCivilValida e quantidade de argumentos) e do review (A2 uso com o nome do script; A3 teste do ramo não ENOENT) na entrada criterios-apontamento, na branch fix/k271-criterios-robustez, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
+- E2.2 (tech-lead): review do K-271.
+- E2.3 (qa-engineer): QA do K-271.
+- E2.4 (tech-lead): PR do K-271; o merge é do dono.
 - E1.6 (security-engineer): parecer de segurança (gatilho: server/package.json e leitura do .env).
 
 ## Fora do escopo
@@ -40,3 +45,14 @@
 - 2026-11-11 13:12: brief selado docs/briefs/096-criterios-apontamento-env-tech-lead-3.md 4ab79565962ccd25ce4ec4353c8419c76392dbc9604a6302e6ef364a5d30459a
 - 2026-11-11 14:14: E1.4 PR 319 aberto pelo tech-lead (head 554f3b15, em dia com a develop): todos os checks verdes, inclusive e2e-parte 1/2 e 2/2 (o DNS do runner passou nesta rodada); CLEAN. O merge é do dono.
 - 2026-11-11 14:47: DECLARAÇÃO DO DONO (literal): "mesclei tudo que tinha aberto". Na develop: PR 316 (K-174 lote 1), 317 (K-268), 318 (K-269, só o runs-on ubuntu-24.04; a correção do container 1049e819 e o parecer e5831b10 ficaram locais na 052h, sem push), 319 (K-270) e 320 (lote 9a); develop em f4c122f1.
+- 2026-11-11 15:35: brief selado docs/briefs/096-criterios-apontamento-env-agile-coach-1.md fd753b391b4767da96faf8754a36316431ba15521ef7b5d3e05e98457ceea913
+- 2026-11-11 15:36: E1.5 retrospectiva gravada (fc06440e, branch docs/retros-2026-11-11c, enviada): lead time cerca de 2 h 10 min (36 min até o último parecer, o resto foi espera do PR e da mescla); 0 devoluções; causa nova: o pedido não dizia quem envia o parecer de cada portão (vai ao Forge). Pedido fechado; os recomendados seguem no K-271.
+- 2026-11-11 15:57: brief selado docs/briefs/096-criterios-apontamento-env-node-backend-3.md 32ce7a730d5e2ff54414f32ec9337f85ff4c311550361b2492b7bba74dd1677a
+- 2026-11-11 16:16: entrega conferida 567634140ff377ac20e017ca68bd1f9e7be9df37
+- 2026-11-11 16:16: E2.1 (K-271) entregue (56763414, enviado): erro do banco só pela categoria, data por dataCivilValida, argumento a mais recusado, uso com o nome do script, teste do ramo EACCES; falta do .env agora imprime "falhou: configuração: PG_MIGRADOR_URL". Entrega conferida. Classe N: QA e review. Próximo: QA.
+- 2026-11-11 16:17: brief selado docs/briefs/096-criterios-apontamento-env-qa-engineer-4.md a4d1afe7c30cb022deb301df4dc303028c0a36c030e74b3082f5d22377cca2fb
+- 2026-11-11 16:18: E2.3 QA do K-271 aprovado, 0 bugs (d39c5624): 8 de 8; nada de pilha, host, usuário ou segredo na saída; mutação de imprimir a pilha morta. Próximo: review.
+- 2026-11-11 16:18: brief selado docs/briefs/096-criterios-apontamento-env-tech-lead-5.md 3ad6705c96b5c3314f8c983145543185da658b1917a548cbcd9599602cd86d7f
+- 2026-11-11 16:21: E2.2 review do K-271 aprovado (343270ee): mesmo tratamento do ref-sync-apontamento, pool fecha no finally, testes sem vazar segredo; A1 recomendado (declarar no corpo do PR a troca da mensagem de falta do .env). Próximo: E2.4 (PR).
+- 2026-11-11 16:21: brief selado docs/briefs/096-criterios-apontamento-env-tech-lead-7.md 05ad4a40ec54db9834925dd5861c651692f85d49e700486c3ceca7f8ca3e66fb
+- 2026-11-11 16:37: E2.4 PR 325 (K-271) aberto; o dono atualizou a branch pelo GitHub (1d2267cf) e mesclou na develop (c7c3e092) com testes e e2e-parte ainda pendentes. Pedido 096 completo no código.

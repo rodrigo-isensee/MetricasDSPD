@@ -6,6 +6,7 @@
 - **Origem:** dono, 2026-11-11 (pela sessão "WSL ativação").
 
 ## Escopo
+- E4. Comando único para o dono rodar as consultas só de leitura dos pedidos 098 e 099 · `técnico`
 - E1. Varredura completa da web (abas, cartões, textos, números fixos, uso do pacote mock, dado de exemplo, simulador do cartão) e da API, com a lista do que é simulado e de onde vem · `técnico`
 - E2. Cada item simulado passa a dado real, estado "sem dado real" ou sai da tela; o que pedir escolha entre esconder e mostrar "sem dado" vira pergunta ao dono · `confirmado`
 - E3. Teste ou guarda que impede métrica simulada fora do modo homologação · `técnico`
@@ -18,6 +19,14 @@
 - E2.4 (qa-engineer): QA do L1.
 - E2.5 (tech-lead): PR do L1 para a develop; o merge é do dono.
 - Cada portão (QA, segurança, review) commita e envia o próprio parecer na branch, como nos pedidos 092 a 097; o PR continua do tech-lead.
+- E2.6 (react-frontend): L2a, tirar a opção simulado de useMetrica e dos cartões, na branch fix/099-l2a-sem-opcao-simulado, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
+- E2.7 (tech-lead): review do L2a.
+- E2.8 (qa-engineer): QA do L2a.
+- E2.9 (tech-lead): PR do L2a; o merge é do dono.
+- E3.1 (devops-engineer): um comando único para o dono rodar as consultas só de leitura dos pedidos 098 e 099 (PostgreSQL da demo e MySQL do Acelerato), que grava a saída num arquivo sem dado de pessoa, na branch chore/consultas-leitura-098-099, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
+- E3.2 (security-engineer): parecer de segurança do comando (lê o .env e os bancos reais, só leitura).
+- E3.3 (tech-lead): review e PR do comando; o merge é do dono.
+- E3.4 (qa-engineer): QA do comando (classe N pelo gatilho do package.json).
 
 ## Fora do escopo
 - O modo homologação (seed mock em `docker-compose.homolog.yml`), que continua com dado de teste · `técnico`
@@ -59,3 +68,27 @@
 - 2026-11-11 15:15: PERGUNTA DO DONO (literal): "porque voce esta parado?". DECISÃO TÉCNICA (Jarvis), pela ordem do dono de 15:02 ("souba mais o uso, aumente o paralelismo") e dentro do teto de 15:03 (dois terços da máquina): o limite de um cartão por agente passa a ser por instância (mais de uma instância do mesmo papel, em cartões e branches diferentes); a carga é conferida antes de abrir cada frente. QA do L1 revalidado (a03dc1b3, 78 de 78). Próximo: review revalidado do L1, em paralelo ao PR do K-272.
 - 2026-11-11 15:17: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-7.md 4ecd35f3c5098d744155180cd031f20e52d1d59b3c3c2d58699bb0b9afc39511
 - 2026-11-11 15:27: E2.5 PR 322 (L1) aberto pelo tech-lead (forge-check pr aprovado com --base develop) e mesclado pelo dono na develop (00758ca1) antes de a CI terminar. O simulador está desligado na develop. Próximo: lotes L2a a L5 (remover o código do simulador e as guardas G1 a G4), e o grupo A do dado real depois das consultas.
+- 2026-11-11 16:46: brief selado docs/briefs/099-nenhuma-metrica-simulada-devops-engineer-1.md 3b5f9420ebc538adb470dd9c529780591126e360c0996f21e394bc1c262eac2b
+- 2026-11-11 16:53: entrega conferida aa8b6f20588c354d83e3eb559f9b554615afc2c7
+- 2026-11-11 16:53: E3.1 entregue pelo devops (aa8b6f20, enviado): scripts/consultas-leitura-098-099.sh (pnpm run consultas:098-099), 31 consultas versionadas, PostgreSQL e MySQL só leitura, guarda de colunas por tipo, 30 casos de teste com bancos falsos; fora do comando: B1-b, B3-a, B3-b e C-AC5. Entrega conferida. Próximo: segurança, depois review e PR.
+- 2026-11-11 16:54: brief selado docs/briefs/099-nenhuma-metrica-simulada-security-engineer-1.md 76d276440b5833de4402d6206c63dc322f247c84eef1a56ace2e99a010ca9d43
+- 2026-11-11 17:11: E3.2 segurança do comando aprovada sem bloqueante (83bf09d6): senhas fora da tela e do argv; MySQL só leitura pelo servidor; PostgreSQL só leitura pela sessão (A2: papel dspd_leitura se virar rotina). A1 (a recusa por palavras proibidas tem desvios, inclusive system e \! do cliente mysql), A3 (fixar o certificado por ssl-fp) e A4 (saída dentro do repositório, sem .gitignore) recomendados. DECISÃO TÉCNICA (Jarvis): A1, A3 e A4 entram antes de o dono rodar o comando com as credenciais reais (volta 1 ao devops).
+- 2026-11-11 17:11: brief selado docs/briefs/099-nenhuma-metrica-simulada-devops-engineer-3.md 450b145742062123bd8967bf3f08701ab6eff1bd2feb4be1ba5c71db970664c3
+- 2026-11-11 17:16: volta 1 do comando entregue (1a3d8dd1): A1 lista do permitido e mysql --sandbox, com testes das sondas S1 a S7; A3 ssl-fp e --defaults-file; A4 saída em HOME quando chamado de dentro do repositório e .gitignore. A conferência acusa o .gitignore como fora do declarado pelo corte do ponto inicial no forge-check (defeito já anotado para o Forge); o brief do review declara [.]gitignore e a conferência roda contra ele. Próximo: review.
+- 2026-11-11 17:17: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-9.md d553a18b6675050189e15a113ac042f221aac849483153303711445a74f6bf8b
+- 2026-11-11 17:17: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-10.md e48a5b286850a5d9a53e6fbc93b8a337fce74975eb3758018d1885eb42e73603
+- 2026-11-11 17:17: entrega conferida 1a3d8dd111036a4dafe4dbfcb015121641cce227
+- 2026-11-11 17:21: review do comando aprovado (2b5590e7): segue os padrões dos scripts, 31 consultas idênticas às análises, 43 casos de teste; A1 (consulta MySQL sem linha vira recusa e rc 1), A2 (sem resolver links ao checar a pasta da saída) e A3 (análises citadas fora do git) recomendados. DECISÃO TÉCNICA (Jarvis): os três entram antes de o dono rodar (volta 2 ao devops).
+- 2026-11-11 17:23: brief selado docs/briefs/099-nenhuma-metrica-simulada-devops-engineer-5.md 439e58087fd2a5087f862c273c5b488e3ae6aad1eb76091d23d6dd9665a472c0
+- 2026-11-11 17:26: entrega conferida dcfa78f307c13cbb8c95a8c2ef3c2aebafad8139
+- 2026-11-11 17:26: volta 2 do comando entregue (f5a7d442 e dcfa78f3): MySQL vazio vira "0 linhas", pwd -P, análises 098 e 099 versionadas; 46 casos de teste e shellcheck limpos. Entrega conferida. A classe pede QA também (gatilho do package.json): E3.4 acrescentada. Próximo: QA, depois revalidação de segurança e review no head novo, e o PR.
+- 2026-11-11 17:26: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-5.md 0a91bef71920bd4f6bac9f98f6ce593619cc2a22678be5c50dce9f097ef421c3
+- 2026-11-11 17:39: E3.4 QA do comando aprovado (790fb801): 43 casos, 8 mutantes mortos, senhas fora da tela e do argv. Bug baixo A1: um .env malformado faz o bash imprimir a primeira palavra da linha (pode ser parte de um segredo); A2 e A3 (testes de \gexec e de dois ;) recomendados; observação: set_config e pg_read_file passam na lista do permitido. DECISÃO TÉCNICA (Jarvis): volta 3 ao devops antes de o dono rodar, com A1 a A3 e a recusa dessas funções.
+- 2026-11-11 17:39: brief selado docs/briefs/099-nenhuma-metrica-simulada-devops-engineer-7.md 3b620ab641e721d4c4c13ba40b154d7e00156227f290a4d56aa50e79e202cb3c
+- 2026-11-11 17:42: volta 3 do comando entregue (7bf13576): .env malformado não imprime nada; testes de \gexec e de dois ;; set_config, pg_read_file, pg_read_binary_file e lo_import recusados. Próximo: revalidação curta de QA e review, depois o PR.
+- 2026-11-11 17:50: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-4.md 5e185514ddb0242b220e3bfa7879cf252fc573f3395b24e3332de84db1984826
+- 2026-11-11 17:51: DECISÃO DO DONO (literal, registrada no pedido 100): "voce pode fazer ate o merge da main, esse so eu faco o resto pode fazer". Vale para os PRs deste pedido: o tech-lead mescla na develop com os checks verdes; a main é só do dono.
+- 2026-11-11 18:01: entrega conferida 7bf135762d25c6d7e95089128e9f69c20ca1b8cd
+- 2026-11-11 18:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-security-engineer-2.md 0ef97e0e26b6c4e193c55d740d3fc149f1a1fb1989faeec6381fcb8f0a817a42
+- 2026-11-11 18:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-11.md b023699d851d42315393792e43bbc7ff623a27bc447ff76e77acf68c3c9c313c
+- 2026-11-11 18:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-6.md ce93d5c7a484187bceaa009c56e009e00fda5ff2a578b12b42a8e728599942e8
