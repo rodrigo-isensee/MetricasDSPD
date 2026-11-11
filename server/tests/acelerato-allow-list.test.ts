@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  Contadores, limpar, registroChamado, registroContagem, registroEtapas, registroSaida, reincidente90d, type ListasRecorte,
+  Contadores, camposEtapa, limpar, registroChamado, registroContagem, registroEtapas, registroSaida, reincidente90d, type ListasRecorte,
 } from '../src/modulos/acelerato/allow-list.js';
 import { carregarListas } from '../src/modulos/acelerato/referencia.js';
 import { expandir, Q1_CHAMADOS, Q3_CAMPOS } from '../src/modulos/acelerato/sql.js';
@@ -240,5 +240,52 @@ describe('referência (ref_dominio)', () => {
     }
     const { pool } = criarDublePg(() => [{ campo: 'equipe', codigo: 'SSSC TOTVS', rotulo: 'x' }]);
     await expect(carregarListas(pool, S)).rejects.toMatchObject({ codigo: 'dados-invalidos', coluna: 'equipe' });
+  });
+});
+
+describe('BUG-087-2: nome do campo de etapa devolvido pela collation da conexão', () => {
+  const dom = new Map([['motivo_escalacao', new Set(['A'])]]);
+  const lista = (nome: string) => ({ ticket_key: 1, nome, tipo: null, valor: 'A', kanban_status_key: null });
+  const preench = (nome: string) => ({ ticket_key: 1, nome, preenchido: 1 });
+  const rodar = (l: unknown[], p: unknown[], c: Contadores) => camposEtapa(l, p, dom, new Map(), c);
+  const variantesLista: [string, string][] = [
+    ['acento', 'Motivo da Escalacao'], ['maiúscula', 'MOTIVO DA ESCALAÇÃO'], ['espaço no fim', 'Motivo da Escalação  '],
+  ];
+  for (const [rotulo, recebido] of variantesLista) {
+    it(`lista: variante de ${rotulo} segue com o valor e soma o contador`, () => {
+      const c = new Contadores();
+      expect(rodar([lista(recebido)], [], c).motivo_escalacao).toBe('A');
+      expect(c.obter('nome_variante_motivo_escalacao')).toBe(1);
+    });
+  }
+  const variantesPreenchido: [string, string][] = [
+    ['acento', 'Previsao de retorno'], ['maiúscula', 'PREVISÃO DE RETORNO'], ['espaço no fim', 'Previsão de retorno '],
+  ];
+  for (const [rotulo, recebido] of variantesPreenchido) {
+    it(`preenchido: variante de ${rotulo} segue e soma o contador`, () => {
+      const c = new Contadores();
+      expect(rodar([], [preench(recebido)], c).previsao_retorno_informada).toBe(true);
+      expect(c.obter('nome_variante_previsao_retorno_informada')).toBe(1);
+    });
+  }
+  it('nome exato não soma contador', () => {
+    const c = new Contadores();
+    rodar([lista('Motivo da Escalação')], [preench('Previsão de retorno')], c);
+    expect(c.entradas().filter(([k]) => k.startsWith('nome_variante_'))).toEqual([]);
+  });
+  it('linha que não é objeto, sem nome ou com nome que não é texto segue falhando fechado', () => {
+    for (const ruim of [null, 'x', { ticket_key: 1, preenchido: 1 }, { ticket_key: 1, nome: 7, preenchido: 1 }]) {
+      expect(() => rodar([], [ruim], new Contadores())).toThrowError();
+      expect(() => rodar([ruim], [], new Contadores())).toThrowError();
+    }
+  });
+  it('nome desconhecido segue falhando fechado, sem o valor', () => {
+    const e = (() => {
+      try { rodar([lista('MARCADOR-DESCONHECIDO')], [], new Contadores()); } catch (x) { return x as { message: string }; }
+      throw new Error('não falhou');
+    })();
+    expect(e).toMatchObject({ codigo: 'dados-invalidos', entidade: 'campo_etapa', coluna: 'nome' });
+    expect(JSON.stringify(e)).not.toContain('MARCADOR-DESCONHECIDO');
+    expect(e.message).not.toContain('MARCADOR-DESCONHECIDO');
   });
 });
