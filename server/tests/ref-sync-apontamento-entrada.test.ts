@@ -1,11 +1,21 @@
 import { spawn } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:net';
-import { afterEach, describe, expect, it } from 'vitest';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterAll, afterEach, describe, expect, it } from 'vitest';
 
 const ENTRADA = new URL('../src/entradas/ref-sync-apontamento.ts', import.meta.url).pathname;
-const rodar = (args: string[], env: Record<string, string> = {}): Promise<{ status: number | null; stdout: string; stderr: string }> =>
+
+// Hermético: a entrada lê o `.env` da raiz do repositório por `process.loadEnvFile`; o filho carrega antes um módulo que torna essa chamada
+// um no-op, então nenhum `.env` da máquina entra no teste (só o `env` passado explicitamente).
+const pastaTemp = mkdtempSync(join(tmpdir(), 'ref-sync-entrada-'));
+const TSX = import.meta.resolve('tsx'); // o filho roda em outra pasta: resolve o tsx daqui
+const SEM_ENV = join(pastaTemp, 'sem-env.mjs');
+writeFileSync(SEM_ENV, 'process.loadEnvFile = () => undefined;\n');
+const rodar = (args: string[], env: Record<string, string> = {}, preludio: string[] = ['--import', SEM_ENV, '--import', TSX, ENTRADA]): Promise<{ status: number | null; stdout: string; stderr: string }> =>
   new Promise((resolve, reject) => {
-    const filho = spawn(process.execPath, ['--import', 'tsx', ENTRADA, ...args], { env: { PATH: process.env.PATH ?? '', ...env } });
+    const filho = spawn(process.execPath, [...preludio, ...args], { cwd: pastaTemp, env: { PATH: process.env.PATH ?? '', ...env } });
     let stdout = '';
     let stderr = '';
     const timer = setTimeout(() => filho.kill('SIGKILL'), 60_000);
@@ -41,6 +51,19 @@ describe('entrada bm:ref-sync-apontamento', () => {
   afterEach(() => {
     banco?.close();
     banco = undefined;
+  });
+  afterAll(() => rmSync(pastaTemp, { recursive: true, force: true }));
+
+  it('o módulo de isolamento ignora um .env de mentira que define PG_REF_URL', async () => {
+    const falso = join(pastaTemp, '.env');
+    writeFileSync(falso, 'PG_REF_URL=postgres://x:y@127.0.0.1:1/db\n');
+    const sonda = join(pastaTemp, 'sonda.mjs');
+    writeFileSync(sonda, `process.loadEnvFile(${JSON.stringify(falso)}); process.stdout.write(String(process.env.PG_REF_URL));`);
+    const sem = await rodar([], {}, ['--import', SEM_ENV, sonda]);
+    expect(sem.stdout).toBe('undefined');
+    const com = await rodar([], {}, [sonda]); // controle: sem o módulo, o .env falso é lido
+    expect(com.stdout).toBe('postgres://x:y@127.0.0.1:1/db');
+    rmSync(falso);
   });
 
   it.each(['2026-02-30', '2026-13-01', 'ontem'])('data %s é recusada com a mensagem de uso e código 2', async (data) => {
