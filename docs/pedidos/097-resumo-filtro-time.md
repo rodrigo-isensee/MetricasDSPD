@@ -12,21 +12,30 @@
 - E4. Todas as opções de filtro vêm do dado real (Tipo do Operacional sem a lista fixa; times da Sustentação junto com o pedido 098) · `confirmado`
 - E5. Botão de recolher (minimizar) em todo cartão de gráfico dos painéis, lembrando a escolha · `confirmado`
 - E6. Bug K-272: AP-TIPO e filtro tipo do Apontamento agrupam por categoria do contrato, sem linhas nem opções repetidas · `confirmado`
+- E7. Filtro Setor nos painéis do fluxo (BusinessMap), 7 setores sem o sobrenome do responsável, fora o AI Iniciatives · `confirmado`
 
 ## Etapas
 - E1.1 (ux-designer): discovery da interface de E1 a E4 e protótipo para o dono validar.
 - E1.2 (software-architect): viabilidade e dados de E1 a E4 (time no apontamento, opções de filtro do dado real), em paralelo ao UX.
+- E1.3 (ux-designer): segunda rodada do protótipo com E5 (recolher cartão e os 10 maiores do AP-PROJETO) e E7 (filtro Setor), rótulo "Equipe", na branch docs/097-ux-recolher-setor, worktree /home/rodrigoisensee/MetricasDSPD-052d.
+- E3.1 (react-frontend): L1 do plano, busca no FiltroMulti (E3), na branch feature/097-l1-busca, worktree /home/rodrigoisensee/MetricasDSPD-052c.
+- E1.4 (node-backend): L4 do plano, equipe opcional nas duas tendências (parte servidor do E1), na branch feature/097-l4-tendencia-equipe, worktree /home/rodrigoisensee/MetricasDSPD-052g.
+- E3.2 (tech-lead): review por lote do 097.
+- E3.3 (qa-engineer): QA por lote do 097.
+- E3.4 (tech-lead): PR por lote do 097; o merge é do dono.
 - E6.1 (node-backend): K-272, agrupar por categoria no AP-TIPO, no filtro tipo e em lerCardsIncompletos, na branch fix/k272-ap-tipo-categoria, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
 - E6.2 (tech-lead): review do K-272.
 - E6.3 (qa-engineer): QA do K-272.
 - E6.4 (tech-lead): PR do K-272 para a develop; o merge é do dono.
+- E6.5 (node-backend): K-272, o teste server/tests/apontamento-rota.pg.test.ts (caso do filtro por tipo ponta a ponta) ainda espera um type_id por opção; ajustar ao agrupamento por categoria, na branch fix/k272-teste-pg a partir da develop, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
+- Cada portão (QA, segurança, review) commita e envia o próprio parecer na branch, como nos pedidos 092 a 096; o PR continua do tech-lead.
 
 ## Fora do escopo
 - Comparar times lado a lado ou ranking de times (proibido pelo CLAUDE.md) · `confirmado`
 - Misturar BusinessMap e Acelerato num mesmo número · `confirmado`
 
 ## Suposições
-- O filtro reusa a lista de equipes e o comportamento do filtro que já existe nos outros painéis.
+- O filtro reusa a lista de equipes e o comportamento do filtro que já existe nos outros painéis. Muda com: o protótipo validado pedir outro comportamento. Custo de reverter: baixo (só a web).
 
 ## Perguntas na fila
 - PERGUNTA P-097-1: o filtro vale para os dois blocos do Resumo (fluxo e sustentação, cada um com a sua lista de times) ou só para o de fluxo? Recomendação: os dois, cada bloco com o time da sua fonte.
@@ -55,3 +64,41 @@
 - 2026-11-11 13:53: E1.2 análise do arquiteto entregue (docs/analises/097-filtros-plano.md, sem commit): time no Apontamento pelo card (dim_card.equipe; falta só GRANT); o front ignora opcoes.tipos e usa TIPOS_FILTRO (BarraFiltros.tsx:27, codec.ts, taticas.tsx); times da Sustentação passam a vir de dim_chamado; Resumo já aceita equipe nos cartões (tendências ganham parâmetro novo compatível); não tirar `pessoa` da API agora (front deixa de enviar); 7 lotes, gatilho de segurança só no L2; risco para o 098 E4 (renomear times sem reprojetar dim_card.equipe). Perguntas ao dono: P-097-A (time pelo card e "Sem time"), P-097-B (Tipo = categoria ou tipo nativo), P-097-C (opções da base toda ou do período), C1 a C4 (consultas só de leitura).
 - 2026-11-11 13:54: brief selado docs/briefs/097-resumo-filtro-time-node-backend-1.md d3362715dc06dfc952ff6b2b99affa515a3c4948dfe2ac50ce0b2bf6bd998671
 - 2026-11-11 13:54: DECISÃO DO DONO (literal): "A". P-097-6 respondida: no Apontamento o filtro Pessoa sai e entra o Time (como no protótipo); a busca digitando vale para todos os filtros de lista. Seguem abertas: validação do protótipo com Q-1 a Q-5, P-097-A, P-097-B e P-097-C. E6.1 (K-272) delegada ao node-backend.
+- 2026-11-11 14:05: DECISÃO DO DONO (literal): "faca suas recomendacoes". Valem as recomendações em aberto: protótipo docs/ux/prototipos/097-filtros.html aceito por delegação, sem o dono abrir; Q-1 busca também em listas curtas; Q-2 rótulo "Time" em todo o produto; Q-3 nota "Outra área" junto do cartão de capacidade; Q-5 e P-097-C opções de toda a base (não só do período); P-097-A time pelo card da hora, "Sem time" para card sem time; P-097-B Tipo = categoria do contrato, só as que têm card; E5 com os 10 projetos maiores e "ver todos" no AP-PROJETO. Próximo: segunda rodada do UX para E5 (recolher cartão) e o plano de lotes com o tech-lead.
+- 2026-11-11 14:08: DECISÃO DO DONO (literal): "troque time por equipe. Time fica muito informal." Substitui a Q-2 de 14:05: o rótulo na tela é "Equipe" em todo o produto (filtros do Resumo, do Apontamento e dos painéis, "Sem equipe" no lugar de "Sem time"). Vale também para os textos do pedido 098.
+- 2026-11-11 14:09: PEDIDO DO DONO (literal, com print do BusinessMap "Times: Desenvolvimento de Sistemas e Plataforma Digitais - SIEG"): "Tambem adicione um filtro por setor os setores sao esses da foto menos All Iniciatives". ESCOPO+: E7, filtro Setor nos painéis do fluxo (BusinessMap), com os setores Sistemas Corporativos - ISENSEE, Escritório de Processos e Projetos - AZEL, Sistemas de Vendas e Operações - PICCINI, Plataformas - BRENDON, Ciência de Dados - LUCAS, Desenv Sistemas Plataformas Digitais - Gerencial e Marketing e Vendas - ISENSEE (fora: AI Iniciatives). Leitura do Jarvis: no BusinessMap são quadros do espaço de trabalho; o Acelerato não tem setor, então o filtro vale só para o fluxo. PERGUNTA P-097-8: os nomes trazem sobrenome de pessoa; na tela mostram o nome como está ou sem o sobrenome (ex.: "Sistemas Corporativos")? Recomendação: sem o sobrenome, pela regra de nenhuma métrica servir para avaliação individual; e dois setores com "ISENSEE" ficam distintos pelo nome do setor.
+- 2026-11-11 14:09: DECISÃO DO DONO (literal): "A". P-097-8 respondida: o filtro Setor mostra os nomes sem o sobrenome do responsável (Sistemas Corporativos, Escritório de Processos e Projetos, Sistemas de Vendas e Operações, Plataformas, Ciência de Dados, Desenv Sistemas Plataformas Digitais - Gerencial, Marketing e Vendas). E7 confirmado; o arquiteto confere como o card se liga ao setor (quadro do espaço de trabalho) na próxima rodada.
+- 2026-11-11 14:13: entrega conferida 59fd6ba9b36e029eb47750f04ff08a0232a119d1
+- 2026-11-11 14:13: E6.1 (K-272) entregue pelo node-backend (59fd6ba9, enviado): AP-TIPO e opções do filtro tipo agrupados pela categoria; id da opção = menor type_id da categoria (contrato igual, links antigos válidos); "Sem tipo" fora das opções; teste com dois type_id da mesma categoria; pronto verde. Entrega conferida. Classe N: QA e review. Próximo: E6.3 (QA), depois E6.2 (review).
+- 2026-11-11 14:14: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-1.md 0739f1a1fe26475003d971d0301da26b3d23349f8b239f6ccdc57fc7acc8bab2
+- 2026-11-11 14:15: E6.3 QA do K-272 aprovado, 0 bugs, sem achados (ac47260b): 72 testes; mutação de voltar a agrupar por type_id morta. Próximo: E6.2 (review) e, aprovado, E6.4 (PR) na mesma delegação do tech-lead.
+- 2026-11-11 14:16: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-1.md e6d17122aac83a7f002fa5b63c94b620144e4b9d3bcb762ec3ef11a9fcc0b8fa
+- 2026-11-11 14:21: E6.2 review do K-272 reprovado (d4f4037f): A1 bloqueante (servico.ts:135, o id da categoria, menor type_id, sai só das linhas da janela; numa janela sem o menor type_id, um link guardado com tipo=9 zera a categoria); A2 recomendado (testes do caso do A1 e da linha "Sem tipo" em porTipo). Volta 1 ao node-backend (máx. 3 voltas); depois QA e review de novo no head novo.
+- 2026-11-11 14:21: brief selado docs/briefs/097-resumo-filtro-time-node-backend-3.md f69214d72f9928fada521b3fbaf33a1d72bd6c2170d8277eb46f6c12feae25e8
+- 2026-11-11 14:34: entrega conferida 1d691f4e1a0d147f65d0041849395f2c0b593562
+- 2026-11-11 14:34: volta 1 do K-272 entregue (1d691f4e): id da categoria e type_id de tipo= lidos do histórico (lerTiposDoHistorico), testes do caso do A1 e da linha "Sem tipo"; pronto verde. Entrega conferida. Próximo: QA e review de novo no head novo (QA primeiro).
+- 2026-11-11 14:35: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-3.md 0a1b454c8eaa386369537fc8169a6076fa2927eeda3419a1b8d33ab0beea9f69
+- 2026-11-11 14:37: QA da volta 1 do K-272 aprovado, 0 bugs (d7702b7b): 74 testes; caso do A1 e linha "Sem tipo" cobertos; mutação de voltar às linhas da janela morta. Próximo: revalidação do review.
+- 2026-11-11 14:37: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-3.md 089be553ac3b8fde1b7926d38e1a453be1f7932f6f37b9154fdd4de9a12991e7
+- 2026-11-11 14:50: revalidação do review do K-272 aprovada (9b553443): A1 e A2 resolvidos; consulta nova sem coluna de pessoa e sem GRANT novo; A3 recomendado (as duas leituras fora da mesma transação; usar fallback ou transação). Próximo: E6.4 (PR), com merge da develop (PRs 316 a 320) na branch.
+- 2026-11-11 14:50: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-5.md 505269fb9232a9e9d4e3e5c99d3e5a20d31ace5c733ab4797025c3309596a882
+- 2026-11-11 14:53: E6.4 parou na pendência do forge-check pr: a branch recebeu o merge da develop (head local dbd120a4, patch do item igual) e o forge-check pr marca review e QA como desatualizados pelo action.yml que veio da base (o forge-check parecer delta diz "nenhum arquivo do domínio mudou"); falta a entrega conferida do head novo. DECISÃO TÉCNICA (Jarvis): o bloqueio não se contorna; QA e review revalidam no head dbd120a4 (delta vazio) e depois a conferência e o PR. MELHORIA (Forge): forge-check pr e forge-check parecer delta divergem sobre o que veio da base.
+- 2026-11-11 14:52: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-5.md 65da049e8ab1f340dc74027e6031ea86417bac58e3e3199845dd18a3d0c646f8
+- 2026-11-11 14:53: QA do K-272 revalidado no head dbd120a4 (39dabe31, enviado com o merge da develop): delta do domínio vazio; 74 testes. Próximo: revalidação do review, depois conferência e PR.
+- 2026-11-11 14:54: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-7.md 0b5149c490105ed18c8da5d163e70e1d28d376347aac8922c0a8b2aace46dba1
+- 2026-11-11 14:59: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-9.md f8eb2649d83eb62f4ce38d88ea2dc924aff56a078e27fe4bb36a0bfd53e394f8
+- 2026-11-11 15:00: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-7.md eacc900bc04f35626f1c0cc74dc5bff161c6d55d11e0bb32aa547284f2b916c1
+- 2026-11-11 15:02: PEDIDO DO DONO (literal): "souba mais o uso, aumente o paralelismo". DECISÃO TÉCNICA (Jarvis): entram em paralelo o L1 (busca, react-frontend, 052c), o L4 (equipe nas tendências, node-backend, 052g) e a segunda rodada do UX (E5 e E7, 052d), cada um com o seu agente e a sua branch a partir da develop f4c122f1.
+- 2026-11-11 15:03: DECISÃO DO DONO (literal): "use dois tercos dos recursos". Teto de uso da máquina: cerca de 2/3 (8 núcleos e 17 GB: até uns 5 núcleos e 11 GB). DECISÃO TÉCNICA (Jarvis): no máximo 3 agentes que rodam testes ou o pronto ao mesmo tempo (cada um com até 2 workers), mais agentes só de leitura ou documento; o Jarvis confere a carga antes de abrir mais.
+- 2026-11-11 15:04: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-1.md 7254bd8f5bd306b3fcaae23d188015e977dc564797c27baca0c6ac96b94f7691
+- 2026-11-11 15:04: brief selado docs/briefs/097-resumo-filtro-time-node-backend-5.md df0063a5453966c93f976030face3d3fcc9db80192c4f94063b0b84a03e1e24e
+- 2026-11-11 15:04: brief selado docs/briefs/097-resumo-filtro-time-ux-designer-3.md 67de98436f4c0fad502ad7d866171e2ea48fc348c169bc811a1a1dd0f0433a7d
+- 2026-11-11 15:05: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-10.md 73fc0d3bb5d06f87679b4a0980369933033aef3ec9b9fc973f70150a192484bf
+- 2026-11-11 15:06: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-11.md ed3a0d449c7d4e7a3848fdd6e2c442a5cbf0669dc1a19c752a48195ca3fd7e34
+- 2026-11-11 15:07: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-13.md 28fba15a674d4d655f33aff5bc93cd0c084e37f4d2394a83d8526e90631a1578
+- 2026-11-11 15:08: E1.3 segunda rodada do UX entregue (worktree 052d, sem commit): especificação com "Equipe" e as seções de E5 (recolher, 10 maiores com "ver todos") e E7 (Setor), CA-24 a CA-49; protótipo com 4 abas. Perguntas Q-6 a Q-9 (cada uma com recomendação): AI Iniciatives no "Todos" do Setor, Setor no Apontamento, KPIs de número único sem recolher, "ver todos" sem memória.
+- 2026-11-11 15:10: diagnóstico do tech-lead (sem mudar arquivos): o K-272 não precisava de revalidação; o forge-check pr com --base develop aprova o head b93e012a (R-FLUXO: merge limpo da base não invalida parecer); a conferência 1d691f4e cobre o head (depois dela só a base e os pareceres). O pedido <X>-REV só serve para reescrita de parecer com remoção depois de uma conferência. MELHORIA (Forge): sem --base, o forge-check pr manda pedir parecer novo por arquivo que veio da base. Próximo: E6.4 (PR) com --base develop.
+- 2026-11-11 15:10: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-15.md d740b704e545074768ef01021dff523ef5f98d1df1fd8c0689b217a67b4fedd3
+- 2026-11-11 15:17: PR 321 (K-272) mesclado pelo dono na develop (443c99cf). E6 concluído.
+- 2026-11-11 15:23: o PR 321 foi mesclado com o check banco vermelho: server/tests/apontamento-rota.pg.test.ts:215 (caso do filtro por tipo ponta a ponta) espera ['12','34'] e recebe ['12'], porque os dois type_id da massa caem na mesma categoria (decisão "Agrupar"). O código está certo; o teste .pg ficou com o comportamento antigo. ERRO do time (melhoria vista): QA e review do K-272 não rodaram o .pg do mesmo módulo. DECISÃO TÉCNICA (Jarvis): E6.5, correção do teste na develop já.
+- 2026-11-11 15:23: brief selado docs/briefs/097-resumo-filtro-time-node-backend-7.md 900b7e782ff24f095b7737049e80c274d7d5f396424765e480dbf37d696e322e

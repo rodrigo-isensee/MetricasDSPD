@@ -105,6 +105,7 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-276 | [web] Ressalvas baixas da revisão de UX do lote 9a (anel do O2 sobre o triângulo do P95, legenda do anel sem bloqueados, apoio em text-xs, leitura do travessão, decisão do O1 só por hoje.bloqueados; série de bloqueados no O1) | 075 | forge:react-frontend | 2026-11-11 | 2026-11-11 14:30 | docs/ux/075-revisao-l9a.md, achados 2 a 7. |
 | K-275 | [pedido do dono] Nenhuma métrica simulada na web, começando pelo Operacional; guarda contra regressão | 099 | forge:software-architect | 2026-11-11 | 2026-11-11 13:55 | varredura em curso. |
 | K-272 | [bug] AP-TIPO "Horas por tipo" repete "Trabalho de produto" em várias linhas (agrupa por type_id e mostra a categoria); filtro tipo do apontamento repete opções | 097 | forge:node-backend | 2026-11-11 | 2026-11-11 13:49 | relatado pelo dono na demo; espera P-097-7 (categoria ou tipo real). |
 | K-273 | [pedido do dono] Filtros: time no Resumo e no Apontamento, busca digitando, opções do dado real, recolher cartões | 097 | forge:ux-designer | 2026-11-11 | 2026-11-11 13:49 | protótipo docs/ux/prototipos/097-filtros.html esperando a validação do dono. |

@@ -15,9 +15,10 @@
 - E1.4 (dono): push da branch.
 - E1.5 (tech-lead): PR para a develop; o merge é do dono.
 - E1.6 (agile-coach): retrospectiva curta.
-- E1.7 (devops-engineer): parecer de devops novo, em commit separado e com `commit:` do código (60bdc206), enviado pelo próprio devops (o commit só de parecer não toca workflow e não pede o escopo `workflow`, como o da segurança e o do review).
+- E1.7 (devops-engineer): parecer de devops novo, em commit separado e com `commit:` do código, enviado pelo próprio devops (o commit só de parecer não toca workflow e não pede o escopo `workflow`, como o da segurança e o do review).
 - E1.8 (qa-engineer): parecer de QA (classe C), enviado pelo próprio QA.
 - E1.9 (devops-engineer): a troca de imagem não resolveu (PR 318); diagnóstico e correção que não dependa do apt do runner na instalação do navegador (por exemplo, rodar os jobs com navegador no container oficial do Playwright, de versão fixada, ou instalar com nova tentativa e espelho alternativo), na mesma branch e worktree; commit sem push (workflow: o envio é do dono).
+- E1.10 (devops-engineer): o PR 318 entrou só com o runs-on; levar a correção do container e o parecer para uma branch nova fix/k269-container-playwright a partir da develop, na worktree /home/rodrigoisensee/MetricasDSPD-052h, sem push (workflow: o envio é do dono).
 
 ## Fora do escopo
 - Jobs sem navegador (seguem no ubuntu-latest) · `técnico`
@@ -48,3 +49,8 @@
 - 2026-11-11 13:47: DECISÃO TÉCNICA (Jarvis), para a E1.9: se a correção usar o container do Playwright, a versão dele é a mesma do Playwright travada no pnpm-lock.yaml, para o navegador do container casar com o do teste.
 - 2026-11-11 13:48: brief selado docs/briefs/095-runner-ubuntu-2404-devops-engineer-7.md bcb606e9657576df8e55df359317800cf7471c93ab7f42d40c4e863fd13dea76
 - 2026-11-11 13:51: E1.9 entregue pelo devops, sem push (1049e819 correção, e5831b10 parecer): diagnóstico novo, o apt do host não resolve azure.archive.ubuntu.com em nenhuma imagem; os 4 jobs com navegador rodam no container mcr.microsoft.com/playwright:v1.64.0-noble fixado por digest (versão do playwright-core do lock), sem apt nem download de navegador; a ação de instalação do Playwright vira conferência do Chromium; runs-on ubuntu-24.04 mantido; actionlint ausente. Pendências: push do dono (toca workflow), portões de novo no head novo (review, segurança, QA) e o rótulo afrouxa-regra que a catraca pede (decisão do dono, depois do review dizer por quê).
+- 2026-11-11 14:14: dado novo: o PR 319 (pedido 096) passou nos e2e-parte no ubuntu-latest; a falha de DNS do apt é intermitente, não permanente. A correção do container (1049e819) segue útil para não depender do apt, mas os PRs 316 e 317 podem ficar verdes só com nova execução dos jobs que falharam.
+- 2026-11-11 14:47: DECLARAÇÃO DO DONO (literal): "mesclei tudo que tinha aberto". Na develop: PR 316 (K-174 lote 1), 317 (K-268), 318 (K-269, só o runs-on ubuntu-24.04; a correção do container 1049e819 e o parecer e5831b10 ficaram locais na 052h, sem push), 319 (K-270) e 320 (lote 9a); develop em f4c122f1.
+- 2026-11-11 15:16: brief selado docs/briefs/095-runner-ubuntu-2404-devops-engineer-9.md 4b047f3eeee3e1d2e720a34d1365006109dd762d9090221cc8b4ae1e909ac562
+- 2026-11-11 15:17: E1.10 sem trabalho: o PR 318 entrou completo na develop (container do Playwright, ação de conferência e os pareceres); o dono enviou os commits antes de mesclar. ERRO-JARVIS: a etapa foi aberta sem conferir a develop (git diff contra origin/develop). Branch vazia removida. Pedido técnico concluído; falta só a retrospectiva (E1.6).
+- 2026-11-11 15:33: brief selado docs/briefs/095-runner-ubuntu-2404-agile-coach-1.md a54905c7a56d62079077070274cd1d404551dc96560ef7b945c257a1648ef47c

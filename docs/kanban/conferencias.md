@@ -2897,3 +2897,6 @@
 | 2026-11-11 13:48 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-devops-engineer-7 | brief | 2 | reprovado | s | tardio: nao · versão do Playwright igual ao lock sem origem no pedido; registrada como DECISÃO TÉCNICA às 13:47; selado sem rodada 3 (o conferente indicou só esse ajuste) | escopo | jarvis |
 | 2026-11-11 13:54 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
 | 2026-11-11 13:57 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-31 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 14:07 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-1 | brief | 1 | reprovado | s | Q-099-3 tratada como aberta depois da resposta A de 14:05; frase trocada pela sugerida no brief react-frontend-2 | decisao | jarvis |
+| 2026-11-11 14:14 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-1 | brief | 1 | reprovado | s | push do parecer pelo QA sem origem no pedido; o pedido passou a dizer que cada portão envia o próprio parecer (como no 096) | escopo | jarvis |
+| 2026-11-11 14:49 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-31 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
