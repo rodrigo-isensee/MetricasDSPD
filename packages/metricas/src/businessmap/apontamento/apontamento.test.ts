@@ -49,7 +49,7 @@ const BUG = { id: '8', rotulo: 'Correção' }
 const PROJ_A = { id: '100', rotulo: 'Projeto A', foraDoEscopo: false }
 const PROJ_B = { id: '200', rotulo: 'Projeto B', foraDoEscopo: true }
 const TESTES = { id: 'testes', rotulo: 'Testes' }
-const NAO_CLASS = { id: 'nao-classificado', rotulo: 'Não classificado' }
+const NAO_CLASS = { id: 'nao-classificado', rotulo: 'Sem comentário' }
 const DIRETO = { id: 'direto-no-card', rotulo: 'Direto no card' }
 const EM_SUB = { id: 'em-subtarefa', rotulo: 'Em subtarefa' }
 
@@ -673,7 +673,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
       base: { n: 40, unidade: 'apontamentos' as const },
       porProjeto: [linhaDist('1', 'Projeto X', 100, ok(40, 10))],
       porTipo: [],
-      porSubgrupo: [linhaDist('nao-classificado', 'Não classificado', 10, ok(40, 5))],
+      porSubgrupo: [linhaDist('nao-classificado', 'Sem comentário', 10, ok(40, 5))],
     },
     qualidade: {
       geral: {
@@ -707,7 +707,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
           linhaDist('1', 'Projeto X', 100, ok(40, 50)),
         ],
         porTipo: [],
-        porSubgrupo: [linhaDist('nao-classificado', 'Não classificado', 10, ok(40, 20))],
+        porSubgrupo: [linhaDist('nao-classificado', 'Sem comentário', 10, ok(40, 20))],
       },
       qualidade: {
         geral: {
@@ -736,7 +736,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
     expect(a[0]).toEqual({
       codigo: 'nao-classificado-alto',
       valores: { pct: 20, n: 7 },
-      rotuloRef: 'Não classificado',
+      rotuloRef: 'Sem comentário',
     })
     expect(a[1]).toEqual({
       codigo: 'sem-comentario-alto',
@@ -767,7 +767,7 @@ describe('achados gerados por regra (limiares provisórios)', () => {
         base: { n: 5, unidade: 'apontamentos' },
         porProjeto: [linhaDist('1', 'Projeto X', 100, poucos(5))],
         porTipo: [],
-        porSubgrupo: [linhaDist('nao-classificado', 'Não classificado', 10, poucos(5))],
+        porSubgrupo: [linhaDist('nao-classificado', 'Sem comentário', 10, poucos(5))],
       },
       qualidade: {
         geral: {
