@@ -1,6 +1,6 @@
 # 0028 - Dado simulado por cartão onde ainda não há dado real
 
-Estado: vigente desde 2026-11-05 (proposta em 2026-11-04). Data: 2026-11-04.
+Estado: substituída pela ADR 0030 em 2026-11-11. Data: 2026-11-04.
 Propósito: deixar cada cartão sem fonte real mostrar um dado simulado com o selo "Simulado" visível, sem misturar fictício e real, e rever o que a ADR 0026 decidiu para esses cartões. Público: node-backend, react-frontend, ux-designer, qa-engineer, tech-lead, security-engineer. Revisão: 2026-12-04.
 
 - Origem: pedido 070 (`docs/pedidos/070-simulado-por-cartao.md`), decisão do dono de 2026-11-04, confirmada com "Sim" no recibo. Desenho: `docs/analises/070-desenho.md` (E1.1, K-221).
