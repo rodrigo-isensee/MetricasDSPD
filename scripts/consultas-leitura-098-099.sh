@@ -15,7 +15,7 @@
 #     valor cumprir o tipo (numero so digitos; data so data; dominio curto e sem '@'). Senao a consulta e RECUSADA e
 #     o arquivo recebe so o motivo (coluna e linha), nunca o valor.
 #   - Lista do que e PERMITIDO (nao lista negra): um unico SELECT ou WITH por arquivo, um unico ponto e virgula no fim,
-#     sem barra invertida (meta-comando do cliente), sem SET, DO, EXECUTE, system etc. (ver validar_sql). psql com -X.
+#     sem barra invertida (meta-comando do cliente), sem SET, set_config, pg_read_file, pg_read_binary_file, lo_import, dblink, DO, EXECUTE, system etc. (ver validar_sql). psql com -X.
 #   - A saida nunca e gravada dentro do repositorio: chamado de dentro dele, o arquivo vai para a pasta pessoal.
 #   - Texto de erro de driver nunca e impresso (so o codigo de saida).
 # Teste: DEMO_ENV_ARQUIVO aponta outro .env; CONSULTAS_SQL_DIR aponta outra pasta de .sql.
@@ -57,8 +57,11 @@ for nome in "${NECESSARIAS[@]}"; do
 done
 [ "${#FALTAM[@]}" -eq 0 ] || falhar "env" "variavel-ausente" "Faltam (so os nomes): ${FALTAM[*]}"
 case "$ARQUIVO_ENV" in /*) ;; *) ARQUIVO_ENV="./$ARQUIVO_ENV" ;; esac
+# stderr silenciado: um .env malformado faria o bash imprimir a primeira palavra da linha; nada do .env chega a tela.
+set -a
 # shellcheck disable=SC1090
-set -a && . "$ARQUIVO_ENV" && set +a
+if ! . "$ARQUIVO_ENV" 2>/dev/null; then set +a; falhar "env" "env" "O .env nao pode ser lido como shell (nenhum trecho dele e impresso); confira a sintaxe."; fi
+set +a
 
 # --- 2. MySQL: certificado fixado e arquivo de opcoes 0600 (a senha nunca vai no argv) ---
 if [[ " $FONTES " == *" mysql "* ]]; then
@@ -84,7 +87,7 @@ fi
 
 # --- lista do que e permitido no .sql (sem as linhas inteiras de comentario) ---
 # rc 0 = ok; rc 3 = recusado (motivo no stdout). Palavras comparadas sem diferenca de caixa, como palavra inteira.
-PALAVRAS_PROIBIDAS='insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|merge|replace|set|reset|commit|rollback|begin|start|do|execute|prepare|lock|vacuum|analyze|cluster|reindex|refresh|listen|notify|discard|load|handler|system|source|tee|pager|outfile|dumpfile|load_file|sleep|benchmark|pg_sleep|nextval|setval|dblink|into'
+PALAVRAS_PROIBIDAS='insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|merge|replace|set|reset|commit|rollback|begin|start|do|execute|prepare|lock|vacuum|analyze|cluster|reindex|refresh|listen|notify|discard|load|handler|system|source|tee|pager|outfile|dumpfile|load_file|sleep|benchmark|pg_sleep|nextval|setval|dblink|into|set_config|pg_read_file|pg_read_binary_file|lo_import'
 validar_sql() {
   local corpo primeiro pontos
   corpo="$(sed -E '/^[[:space:]]*--/d' "$1")"

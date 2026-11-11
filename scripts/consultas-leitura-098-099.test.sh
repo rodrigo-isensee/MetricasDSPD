@@ -148,6 +148,16 @@ sonda "S6 barra-bang do cliente" '\! id'
 sonda "S7 DO com EXECUTE" "DO \$\$BEGIN EXECUTE 'DEL'||'ETE FROM t'; END\$\$;"
 sonda "SELECT seguido de SET" "SELECT 1; SET default_transaction_read_only = off"
 sonda "SELECT INTO OUTFILE" "SELECT 1 INTO OUTFILE 'x'"
+# A2: so a barra invertida pega (sem INTO e sem palavra da lista)
+sonda "A2 gexec sem INTO (guarda da barra invertida)" "SELECT 'DEL'||'ETE FROM t' \\gexec"
+# A3: so o limite de um unico ponto e virgula pega
+sonda "A3 SELECT 1; SELECT 2; (limite de um ponto e virgula)" "SELECT 1; SELECT 2;"
+# funcoes que mudam a sessao ou leem arquivo do servidor
+sonda "set_config" "SELECT set_config('default_transaction_read_only','off',false)"
+sonda "pg_read_file" "SELECT pg_read_file('/etc/passwd')"
+sonda "pg_read_binary_file" "SELECT pg_read_binary_file('/etc/passwd')"
+sonda "lo_import" "SELECT lo_import('/etc/passwd')"
+sonda "dblink" "SELECT dblink('x','y')"
 # corpus de legitimos: os 31 .sql versionados passam na lista permitida (o caminho feliz acima ja exige 31 ok)
 verifica "os 31 .sql versionados cumprem a lista permitida" "$(roda | grep -q '^recusada  ' && echo 1 || echo 0)"
 
@@ -183,6 +193,15 @@ ln -s "$TMP/repo" "$TMP/link-repo"
 rm -f "$TMP"/home/consultas-098-099-*.txt
 saida="$(cd "$TMP/chamada" && INIT_CWD="$TMP/link-repo" HOME="$TMP/home" DEMO_ENV_ARQUIVO="$TMP/env" bash "$SCRIPT" --so-pg 2>&1)"
 verifica "link para dentro do repositorio: saida na pasta pessoal, nao no repositorio" "$(ls "$TMP"/home/consultas-098-099-*.txt >/dev/null 2>&1 && ! ls "$TMP"/repo/consultas-098-099-*.txt >/dev/null 2>&1 && echo 0 || echo 1)"
+
+# A1: .env malformado nunca imprime nada dele (nem a primeira palavra da linha)
+{ cat "$TMP/env"; echo 'PALAVRAUNICA linha ruim'; } >"$TMP/env-ruim"
+saida="$(cd "$TMP/chamada" && DEMO_ENV_ARQUIVO="$TMP/env-ruim" bash "$SCRIPT" --so-pg 2>&1)"
+verifica ".env com linha ruim: nenhuma palavra dele na tela" "$(grep -q 'PALAVRAUNICA\|linha ruim' <<<"$saida" && echo 1 || echo 0)"
+{ echo 'PALAVRAUNICA "aberta sem fechar'; cat "$TMP/env"; } >"$TMP/env-ruim"
+: >"$LOG"
+saida="$(cd "$TMP/chamada" && DEMO_ENV_ARQUIVO="$TMP/env-ruim" bash "$SCRIPT" --so-pg 2>&1)"; rc=$?
+verifica ".env com erro de sintaxe: rc 1, categoria env, nada impresso e banco nao chamado" "$([ "$rc" -eq 1 ] && grep -q 'categoria: env' <<<"$saida" && ! grep -q 'PALAVRAUNICA\|aberta' <<<"$saida" && [ ! -s "$LOG" ] && echo 0 || echo 1)"
 
 # 7. impressao do certificado diferente: recusa antes de conectar
 sed "s/^ACELERATO_MYSQL_TLS_SHA256=.*/ACELERATO_MYSQL_TLS_SHA256=$(printf 'AA:%.0s' {1..31})AA/" "$TMP/env" >"$TMP/env3"
