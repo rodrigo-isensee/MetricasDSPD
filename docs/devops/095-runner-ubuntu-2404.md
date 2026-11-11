@@ -3,7 +3,7 @@ tipo: revisao-devops
 contrato: 1
 pedido: 095-runner-ubuntu-2404
 branch: melhoria/runner-ubuntu-2404
-commit: eac38a64b0b580d7c920f4b2b501287f7fb56599
+commit: 60bdc2060232fc1cd5258bec580aa53dde08dc31
 parecer: aprovado
 revisor: forge:devops-engineer
 data: 2026-11-11
@@ -28,9 +28,9 @@ Volta ao `ubuntu-latest`: quando a imagem 26 resolver o DNS do apt (validar com 
 
 Ferramentas: `actionlint` ausente do PATH (lacuna registrada; o agente não instala ferramenta). Sintaxe validada com parser YAML (`yaml.safe_load` nos dois arquivos: ok). Sem `shellcheck` nem `docker build`, que não se aplicam (nenhum script ou Dockerfile mudou).
 
-Campo `commit`: o commit de código e este parecer vão juntos num único commit, como pede o brief; o campo traz o sha da base (`eac38a64`) sobre a qual o diff foi revisado. O `tech-lead` ajusta se a revalidação exigir o sha do commit de código.
+Campo `commit`: traz o sha do commit que mudou os workflows (`60bdc206`), sobre o qual o diff foi revisado. Este parecer vai em commit separado, só do arquivo do parecer, o que acolhe o A1 do review (o campo antes apontava a base `eac38a64`).
 
-Pendências do fluxo (não são deste parecer): arquivo protegido de `.github/` pede o rótulo `afrouxa-regra` do dono no PR (catraca); o envio exige o escopo `workflow`, que é do dono.
+Pendências do fluxo (não são deste parecer): arquivo protegido de `.github/` pede o rótulo `afrouxa-regra` do dono no PR (catraca); o envio do commit de workflow exige o escopo `workflow`, que é do dono.
 
 ## Custo e rollback
 Custo zero (`R-CUSTO`): `ubuntu-24.04` é runner padrão gratuito, mesmos minutos. Rollback: reverter o commit (ou trocar os quatro `runs-on` de volta para `ubuntu-latest`), sem efeito em dados ou ambiente.
