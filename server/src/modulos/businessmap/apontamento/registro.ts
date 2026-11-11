@@ -19,7 +19,7 @@ export const FLAGS = {
   SEM_INICIATIVA: MASCARA_FLAG['sem-iniciativa'], VALOR_ATIPICO: MASCARA_FLAG['valor-atipico'],
 } as const;
 /**
- * O que a classificação pode ligar (bits 1, 2 e 4). O bit 8 (sem-iniciativa) é da hierarquia: `atualizarHierarquia` o grava no fato. O bit 16
+ * O que a classificação pode ligar (bits 1, 2 e 4; o bit 4, sem-vinculo, só para o subgrupo nao-classificado desde o pedido 089, D2). O bit 8 (sem-iniciativa) é da hierarquia: `atualizarHierarquia` o grava no fato. O bit 16
  * (valor-atipico) está RESERVADO: nada o grava, porque a soma diária é calculada na leitura (biblioteca e rota), nunca na coleta; a máscara
  * 24 do UPDATE do fato só o preserva para que um gravador futuro não seja apagado pela releitura.
  */
