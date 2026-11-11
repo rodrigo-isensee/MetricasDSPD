@@ -86,7 +86,7 @@ export const resultadoO1 = z.object({
   ),
   diasDentroDoLimite: taxaSchema,
   statusMeta: statusMetaSchema,
-  /** Pedido 065: nota `bloqueio-sem-dado-real` quando a parte de bloqueio sai `null` (base real sem bloqueios coletados). */
+  /** Notas do cartão (H-15 e H-24). Pedido 075, lote 9b: a nota de bloqueio sem dado real saiu do enum. */
   notas: z.array(notaCartaoIdSchema).optional(),
 })
 
@@ -139,7 +139,7 @@ export const resultadoO2 = z.object({
   statusMeta: statusMetaSchema,
   /** O23 (pedido 011, B2): bloco do O2; obrigatório desde que o cálculo o devolve. */
   parados: paradosSchema,
-  /** Pedido 065: nota `bloqueio-sem-dado-real` (`bloqueioMotivo` sem motivo vira "não sabemos", não "não bloqueado"). */
+  /** Notas do cartão (H-15 e H-24). Pedido 075, lote 9b: a nota de bloqueio sem dado real saiu do enum. */
   notas: z.array(notaCartaoIdSchema).optional(),
 })
 
