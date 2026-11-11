@@ -3,7 +3,7 @@ import { METRICA_IDS } from '@metricas-dspd/contratos'
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao'
 import { CATALOGO_EVENTOS, EXEMPLOS_EVENTOS } from '@metricas-dspd/server/eventos'
 import { describe, expect, it } from 'vitest'
-import { conferirFotografias, conferirGerados } from './gerador.ts'
+import { conferirFotografias, conferirGerados, type Io } from './gerador.ts'
 import { criarIo } from './fs-io.ts'
 import { z } from 'zod'
 import { carregarInsumos, descreverParametro, exigirValido, parametrosDe } from './insumos.ts'
@@ -124,7 +124,15 @@ describe('carregarInsumos (repositório real)', () => {
 })
 
 describe('contratos versionados em dia (gerado = versionado, como o openapi:verificar)', () => {
-  const io = criarIo(RAIZ)
+  // Uma só leitura do sistema de arquivos por caminho, compartilhada pelos dois casos (somente leitura)
+  const real = criarIo(RAIZ)
+  const lidos = new Map<string, string | undefined>()
+  const listados = new Map<string, string[]>()
+  const io: Io = {
+    ...real,
+    ler: (c) => (lidos.has(c) ? lidos.get(c) : lidos.set(c, real.ler(c)).get(c)),
+    listar: (p) => listados.get(p) ?? listados.set(p, real.listar(p)).get(p)!,
+  }
 
   it('as páginas geradas (métricas, índice e 03-agregados) coincidem com o código', () => {
     expect(conferirGerados(io, insumos)).toEqual([])
