@@ -2812,3 +2812,47 @@
 | 2026-11-11 03:26 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-6 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-11 07:57 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-45 | brief | 1 | reprovado | parcial | citava a decisão de 21:57 em vez da DECISÃO TÉCNICA de 00:28; push em primeiro plano contra a decisão de 17:01 | decisao | jarvis |
 | 2026-11-11 07:58 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-45 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 08:55 | 091-homolog-reavalia-nova-tentativa | 091-homolog-reavalia-nova-tentativa-devops-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:12 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-node-backend-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:13 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:13 | 091-homolog-reavalia-nova-tentativa | 091-homolog-reavalia-nova-tentativa-tech-lead-1 | brief | 1 | reprovado | parcial | critérios e commit do parecer sem texto no pedido; E1.2 ampliada | escopo | jarvis |
+| 2026-11-11 09:14 | 091-homolog-reavalia-nova-tentativa | 091-homolog-reavalia-nova-tentativa-tech-lead-1 | brief | 2 | reprovado | n | tardio: nao · limite de 2 workers sem a regra citada; é R-TETO | escopo | jarvis |
+| 2026-11-11 09:15 | 091-homolog-reavalia-nova-tentativa | 091-homolog-reavalia-nova-tentativa-tech-lead-1 | brief | 3 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:19 | 091-homolog-reavalia-nova-tentativa | 091-homolog-reavalia-nova-tentativa-security-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:20 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:22 | 091-homolog-reavalia-nova-tentativa | 091-homolog-reavalia-nova-tentativa-qa-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:24 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:25 | 091-homolog-reavalia-nova-tentativa | 091-homolog-reavalia-nova-tentativa-tech-lead-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:26 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-node-backend-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:33 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-qa-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; ADR 0004 do forge-check, não do projeto | — | jarvis |
+| 2026-11-11 09:37 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-5 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:40 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-qa-engineer-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:41 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:43 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-6 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:46 | 093-release-6b-homolog | 093-release-6b-homolog-security-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:46 | 093-release-6b-homolog | 093-release-6b-homolog-qa-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:54 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-software-architect-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:56 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-qa-engineer-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 09:59 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-7 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:00 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:01 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-8 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:04 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-9 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:16 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-node-backend-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; desvio do ajudante registrado como decisão técnica | — | jarvis |
+| 2026-11-11 10:17 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-node-backend-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:17 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-tech-lead-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:19 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-tech-lead-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:19 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-tech-lead-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:22 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-tech-lead-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:23 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-qa-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:26 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-tech-lead-5 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:33 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; Fora do escopo do pedido alinhado ao Histórico | — | jarvis |
+| 2026-11-11 10:35 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-tech-lead-6 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:36 | 093-release-6b-homolog | 093-release-6b-homolog-qa-engineer-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:36 | 093-release-6b-homolog | 093-release-6b-homolog-security-engineer-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:38 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-node-backend-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:40 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-tech-lead-7 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:43 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-qa-engineer-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:46 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-tech-lead-8 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:48 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-5 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:55 | 091-homolog-reavalia-nova-tentativa | 091-homolog-reavalia-nova-tentativa-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 10:57 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |

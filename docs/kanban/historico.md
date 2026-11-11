@@ -824,3 +824,19 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-11T03:23:47-03:00 | K-262 | Em andamento | Aguardando sua validação | PR 301 aberto, checks verdes · custo do trecho: 28643340 tokens |
 | 2026-11-11T03:24:04-03:00 | K-263 | — | Entrada | melhoria vista na E1.6 do 090 · atributos: titulo=homolog-reavalia sem nova tentativa; pedido=090; responsavel=forge:devops-engineer |
 | 2026-11-11T08:19:36-03:00 | K-262 | Aguardando sua validação | Pronto | PR 301 mesclado na main pelo dono · custo total: 48620269 tokens |
+| 2026-11-11T08:55:01-03:00 | K-263 | Entrada | Em andamento | pedido 091 aberto, trabalho que não depende do dono |
+| 2026-11-11T09:07:38-03:00 | K-192 | Pronto para fazer | Pronto | pedido 080 fechado (PR 265 e retrospectiva na develop) · custo total: 1602727607 tokens |
+| 2026-11-11T09:08:25-03:00 | K-173 | Pronto para fazer | Pronto | pedido 080 fechado (PR 265 e retrospectiva na develop) · custo total: 1602727607 tokens |
+| 2026-11-11T09:08:57-03:00 | K-242 | Pronto para fazer | Pronto | entregue (corrige o movimento de 23:31, que caiu em Pronto para fazer) · custo total: 108232116 tokens |
+| 2026-11-11T09:09:11-03:00 | K-244 | Pronto para fazer | Pronto | entregue (corrige o movimento de 23:31, que caiu em Pronto para fazer) · custo total: 108193767 tokens |
+| 2026-11-11T09:09:21-03:00 | K-255 | Pronto para fazer | Pronto | entregue (corrige o movimento de 23:31, que caiu em Pronto para fazer) · custo total: 108296288 tokens |
+| 2026-11-11T09:11:31-03:00 | K-264 | — | Entrada | visto no pronto do K-263 · atributos: titulo=testes de CLI sem TMPDIR; pedido=091; responsavel=forge:node-backend |
+| 2026-11-11T09:23:18-03:00 | K-265 | — | Entrada | A1 do review do K-172 · atributos: titulo=guia do desenvolvedor e o pronto; pedido=092; responsavel=forge:tech-lead |
+| 2026-11-11T10:14:29-03:00 | K-266 | — | Em andamento | pedido 094 · atributos: titulo=seed-recusa sem TMPDIR; pedido=094; responsavel=forge:node-backend |
+| 2026-11-11T10:14:29-03:00 | K-267 | — | Em andamento | pedido 094 · atributos: titulo=regex PESSOA do S6; pedido=094; responsavel=forge:node-backend |
+| 2026-11-11T10:14:30-03:00 | K-265 | Entrada | Em andamento | pedido 094 |
+| 2026-11-11T10:14:41-03:00 | K-204 | Em andamento | Aguardando sua validação | 6b na develop; release 093 leva à homolog para a validação do dono · custo do trecho: 2337959467 tokens |
+| 2026-11-11T10:30:31-03:00 | K-172 | Pronto para fazer | Pronto | PR 303 na develop (merge do dono). · custo total: 7827964501 tokens |
+| 2026-11-11T10:30:52-03:00 | K-263 | Em andamento | Pronto | PR 304 na develop (merge do dono). · custo total: 145820015 tokens |
+| 2026-11-11T10:31:04-03:00 | K-264 | Entrada | Pronto | PR 305 na develop (merge do dono). · custo total: 133244210 tokens |
+| 2026-11-11T10:31:15-03:00 | K-121 | Pronto para fazer | Pronto | PR 307 na develop (merge do dono). · custo total: 8053845392 tokens |

@@ -73,3 +73,4 @@
 - 2026-11-07 12:04: Brief agile-coach-1 (retrospectiva, E1.6) aprovado e delegado (052e, docs/retros-2026-11-07).
 - 2026-11-07 12:06: Retrospectiva (agile-coach-1): commitada em docs/retros-2026-11-07 (052e), faf03af55b5869af99b00c1113083a340cb0d5af, sem push; 5 linhas MELHORIA (1 projeto, 4 Forge).
 - 2026-11-07 12:07: A branch docs/retros-2026-11-07 já tinha a retrospectiva do 081, conferida no pedido 081 às 11:51 (cumpriu): entrega conferida 434120f603ed2b30beb01e26e08fb72f05f472ac (cópia da linha do 081, para o Desde desta branch).
+- 2026-11-11 09:07: retrospectiva na develop (docs/retrospectivas/2026-11-07-080-testes-instaveis-web.md); pedido 080 fechado. K-192 e K-173 em Pronto.
