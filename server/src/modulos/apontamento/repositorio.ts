@@ -1,6 +1,6 @@
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { lerCalendarioVigente, type CalendarioDaReferencia } from '../referencia/index.js';
+import { lerCalendarioVigente, METRICA_DICIONARIO_APONTAMENTO, type CalendarioDaReferencia } from '../referencia/index.js';
 
 // Pedido 059 (K-193), rota da aba Apontamento. Só leitura, com o papel `dspd_api_apontamento` (GRANT por coluna, `COLUNAS_API_APONTAMENTO`): nenhuma
 // consulta usa `SELECT *`, `logged_time_id`, `responsavel_id`, comentário ou tabela `stg_`/`evt_`. Nome de schema vem de `Esquemas` (nunca da
@@ -72,9 +72,14 @@ export async function lerPessoasDoTime(db: Consultavel, S: Esquemas, corte: Date
   return new Set(r.rows.map((l) => l.pessoa_ref));
 }
 
-/** Rótulo de cada subgrupo do dicionário vigente (os dois residuais, `execucao-tecnica` e `nao-classificado`, são do código). */
+/**
+ * Rótulo de cada subgrupo do dicionário (os dois residuais, `execucao-tecnica` e `nao-classificado`, são do código). Com a troca de rótulo (pedido 089, D3) a
+ * tabela guarda a linha fechada e a nova do mesmo `codigo`: vale a mais recente (maior `incluido_por_versao_id`, que é crescente), o mesmo que o vigente
+ * enquanto o código existe e ainda rotula o histórico de um código retirado. Não filtra por `vigente_ate`: o papel da aba não tem essa coluna no GRANT.
+ */
 export async function lerRotulosSubgrupo(db: Consultavel, S: Esquemas): Promise<Map<string, string>> {
-  const r = await db.query<{ codigo: string; rotulo: string }>(`SELECT codigo, rotulo FROM ${S.bm}.ref_apontamento_subgrupo`);
+  const r = await db.query<{ codigo: string; rotulo: string }>(
+    `SELECT DISTINCT ON (codigo) codigo, rotulo FROM ${S.bm}.ref_apontamento_subgrupo ORDER BY codigo, incluido_por_versao_id DESC`);
   return new Map(r.rows.map((l) => [l.codigo, l.rotulo]));
 }
 
@@ -97,10 +102,23 @@ export async function lerUltimasColetas(db: Consultavel, S: Esquemas): Promise<{
   return { ultima: lida(ultima.rows[0]), ultimaOk: lida(ok.rows[0]) };
 }
 
-/** Versões de critério (T2.6) do dicionário de subgrupo, do calendário de feriados e dos limiares dos achados (BusinessMap), em ordem de data. */
+/**
+ * Versões de critério (T2.6) do dicionário de subgrupo, do calendário de feriados e dos limiares dos achados (BusinessMap), em ordem de data. O `id` leva o
+ * prefixo da família que a versão alterou (`dicionario-`, `calendario-` ou `achados-`), porque o front só desenha a marca nos gráficos pelo prefixo (pedido 089,
+ * correção A): dicionário (subgrupo, termo, regra por tipo ou a métrica `apontamento-dicionario` do critério de `sem-vinculo`; `referencia` não está no GRANT da aba) > calendário (feriado) > achados (limiares).
+ */
 export async function lerCriterios(db: Consultavel, S: Esquemas): Promise<{ id: string; data: string; descricao: string }[]> {
-  const r = await db.query<{ versao_id: string; vigente_desde: string; descricao: string }>(
-    `SELECT v.versao_id, v.vigente_desde, v.descricao FROM ${S.core}.ref_versao_criterio v
+  const r = await db.query<{ versao_id: string; vigente_desde: string; descricao: string; familia: 'dicionario' | 'calendario' | 'achados' }>(
+    `SELECT v.versao_id, v.vigente_desde, v.descricao,
+       CASE
+         WHEN EXISTS (SELECT 1 FROM ${S.core}.ref_versao_criterio_metrica d WHERE d.versao_id = v.versao_id AND d.metrica_id = '${METRICA_DICIONARIO_APONTAMENTO}')
+           OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_subgrupo s WHERE s.incluido_por_versao_id = v.versao_id)
+           OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_termo t WHERE t.incluido_por_versao_id = v.versao_id)
+           OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_regra_tipo g WHERE g.incluido_por_versao_id = v.versao_id) THEN 'dicionario'
+         WHEN EXISTS (SELECT 1 FROM ${S.core}.ref_feriado h WHERE h.incluido_por_versao_id = v.versao_id) THEN 'calendario'
+         ELSE 'achados'
+       END AS familia
+     FROM ${S.core}.ref_versao_criterio v
      WHERE v.dominio = 'businessmap' AND (
        EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_subgrupo s WHERE s.incluido_por_versao_id = v.versao_id)
        OR EXISTS (SELECT 1 FROM ${S.bm}.ref_apontamento_termo t WHERE t.incluido_por_versao_id = v.versao_id)
@@ -108,7 +126,7 @@ export async function lerCriterios(db: Consultavel, S: Esquemas): Promise<{ id: 
        OR EXISTS (SELECT 1 FROM ${S.core}.ref_feriado h WHERE h.incluido_por_versao_id = v.versao_id)
        OR EXISTS (SELECT 1 FROM ${S.core}.ref_versao_criterio_metrica m WHERE m.versao_id = v.versao_id AND m.metrica_id = 'apontamento-achados'))
      ORDER BY v.vigente_desde, v.versao_id`);
-  return r.rows.map((l) => ({ id: String(l.versao_id), data: l.vigente_desde, descricao: l.descricao }));
+  return r.rows.map((l) => ({ id: `${l.familia}-${l.versao_id}`, data: l.vigente_desde, descricao: l.descricao }));
 }
 
 export interface CardIncompleto {
