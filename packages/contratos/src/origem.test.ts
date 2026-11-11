@@ -9,10 +9,10 @@ import {
   corpoSemDadoReal,
   METRICAS_COM_PARTE_DE_BLOQUEIO,
   MOTIVO_BLOQUEIOS_NAO_COLETADOS,
-  MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS,
   ESTADO_SEM_DADO_REAL,
   METRICAS_ORIGEM_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
+  MOTIVO_ORIGEM_MOCK,
   motivoDaOrigemMock,
   motivoSemDadoReal,
   METRICAS_SEM_SIMULACAO,
@@ -26,11 +26,12 @@ import {
 import { resultadoO1, resultadoO2, resultadoO3, resultadoO5 } from './schemas'
 
 describe('origemDaMetrica (H-13)', () => {
-  it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1, a PV1 (pedido 060) e as 5 da sustentação carregadas', () => {
+  it('é real exatamente para as 11 do FL1 com dado no quadro, a Espera invisível do FL1, BLOQUEADOS, O5 e O19 (pedido 075, 6b), a PV1 (pedido 060) e as 5 da sustentação carregadas', () => {
     const reais = METRICA_IDS.filter((id) => origemDaMetrica(id) === 'real')
     expect([...reais].sort()).toEqual(
       [
         ...['O1', 'O2', 'O3', 'O4', 'O6', 'O7', 'O9', 'O10', 'O11', 'O13', 'EI_FL1'],
+        ...['BLOQUEADOS', 'O5', 'O19'], // pedido 075 (lote 6b)
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10'],
         ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
@@ -72,8 +73,8 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('O19 a O26, FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
-    for (const id of ['O19', 'O26', 'T1', 'E1', 'VISAO_GERAL'] as const) {
+  it('O26, FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
+    for (const id of ['O26', 'T1', 'E1', 'VISAO_GERAL'] as const) {
       expect(origemDaMetrica(id)).toBe('mock')
       expect(motivoDaOrigemMock(id)).toBeNull()
     }
@@ -139,21 +140,28 @@ describe('estado sem dado real (pedido 060, P3)', () => {
     expect(motivoDaOrigemMock('PV1')).toBeNull()
   })
 
-  it('C1/C2 (pedido 065): BLOQUEADOS e O5 são mock, o mapa real não os tem e os motivos são próprios, não o genérico', () => {
-    expect(origemDaMetrica('BLOQUEADOS')).toBe('mock')
-    expect(METRICAS_ORIGEM_REAL.has('BLOQUEADOS') || METRICAS_ORIGEM_REAL.has('O5')).toBe(false) // lista por id, nunca tamanho fixo (077, A9)
-    expect(motivoSemDadoReal('BLOQUEADOS')).toBe(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
-    expect(origemDaMetrica('O5')).toBe('mock')
-    expect(motivoSemDadoReal('O5')).toBe(MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS)
-    expect(motivoSemDadoReal('BLOQUEADOS')).not.toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
-    expect(corpoSemDadoReal('BLOQUEADOS').motivo).toBe(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
+  it('C1/C2 (pedido 075, 6b): BLOQUEADOS, O5 e O19 são reais e sem motivo de mock; T10 e T12 seguem fora do mapa real, com o motivo genérico (SEG-A5)', () => {
+    for (const id of ['BLOQUEADOS', 'O5', 'O19'] as const) {
+      expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(true)
+      expect(origemDaMetrica(id), id).toBe('real')
+      expect(motivoDaOrigemMock(id), id).toBeNull()
+      expect(MOTIVO_ORIGEM_MOCK[id], id).toBeUndefined()
+      expect(podeSimular(id), id).toBe(false)
+    }
+    // T10 e T12 leem a mesma `fato_bloqueio`, mas esperam a WS1 (P-075-11 e P-075-12, "B"): nada muda para eles.
+    for (const id of ['T10', 'T12'] as const) {
+      expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(false)
+      expect(origemDaMetrica(id), id).toBe('mock')
+      expect(MOTIVO_ORIGEM_MOCK[id], id).toBeUndefined()
+      expect(motivoSemDadoReal(id), id).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
+    }
   })
 
-  it('C3 (pedido 065): O1 e O2 aceitam a nota de bloqueio, recusam id fora do contrato; O1 aceita null na parte de bloqueio; O5 segue no contrato anterior', () => {
+  it('C3 (pedido 065, id da nota segue no enum até o 9b): O1 e O2 aceitam a nota de bloqueio, recusam id fora do contrato; O1 aceita null na parte de bloqueio; O5 segue no contrato anterior', () => {
     expect(notaCartaoIdSchema.safeParse('bloqueio-sem-dado-real').success).toBe(true)
     expect(TEXTO_NOTA_CARTAO['bloqueio-sem-dado-real']).toContain(MOTIVO_BLOQUEIOS_NAO_COLETADOS)
     expect(METRICAS_COM_PARTE_DE_BLOQUEIO).toEqual(['O1', 'O2'])
-    expect(BLOQUEIOS_COM_DADO_REAL).toBe(false)
+    expect(BLOQUEIOS_COM_DADO_REAL).toBe(true)
     for (const r of [resultadoO1, resultadoO2]) {
       const campo = r.shape.notas
       expect(campo.safeParse(['bloqueio-sem-dado-real']).success).toBe(true)

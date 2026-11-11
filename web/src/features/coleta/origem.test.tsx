@@ -88,11 +88,19 @@ describe('origem do cartão (pedido 060)', () => {
       semDadoReal: false,
       motivo: null,
     })
-    expect(origemDoCartao('O19', 'api')).toEqual({
+    expect(origemDoCartao('O20', 'api')).toEqual({
       ficticio: false,
       semDadoReal: true,
       motivo: null,
     })
+    // pedido 075 (lote 6b): BLOQUEADOS, O5 e O19 voltaram ao mapa real
+    for (const id of ['BLOQUEADOS', 'O5', 'O19']) {
+      expect(origemDoCartao(id, 'api'), id).toEqual({
+        ficticio: false,
+        semDadoReal: false,
+        motivo: null,
+      })
+    }
     expect(origemDoCartao('T2', 'api').semDadoReal).toBe(true)
   })
 
