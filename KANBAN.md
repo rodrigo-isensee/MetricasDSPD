@@ -105,6 +105,7 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-271 | [server] entrada criterios-apontamento: tratar erro do banco só pela categoria (categoriaDoErro) e validar a data com dataCivilValida e a quantidade de argumentos (A1 e A2 da segurança do 096) | 096 | forge:node-backend | 2026-11-11 | 2026-11-11 12:59 | recomendados, não bloqueiam o K-270. |
 | K-270 | [server] passo de critérios do apontamento carrega o .env sozinho (script bm:criterios-apontamento) e roteiro do 089 corrigido | 096 | forge:node-backend | 2026-11-11 | 2026-11-11 12:37 | relato da implantação do apontamento em 2026-11-11 12:37. |
 | K-229 | [técnico] Seção [Não publicado] do CHANGELOG ainda lista itens da release 068, já na main pelo PR 229 | 071 | forge:tech-lead | 2026-11-05 | 2026-11-06 15:08 | Proposta pronta (docs/analises/073-changelog.md): versões 0.3.0 a 0.6.0 e combinada 0.7.0; seções entram no chore(release) da release combinada |
 | K-187 | [Forge] forge-check escolhe parecer e Desde pela branch (lote E1 e E2 do pedido 055) | 055 | forge:tech-lead | 2026-10-30 | 2026-10-30 13:01 | PR de proposta para a develop do Forge; destrava o PR da 048d depois da release · clone ~/.forge-contrib/MetricasDSPD |
@@ -115,6 +116,7 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-204 | [coleta] Gravar bloqueios reais (fato_bloqueio e evt_bloqueio a partir do block_reason do staging), parte B da decisão C do 064 | 075 | forge:react-frontend | 2026-11-04 | 2026-11-11 13:10 | 6b validado por delegação do dono ("A", 13:06, só pelas provas do mock); lote 9a (tela) na worktree 056, branch feature/075-9a; depois 9b (contrato, node-backend). |
 | K-269 | [CI, devops] jobs com navegador falham no runner Ubuntu 26.04 (apt não resolve os espelhos do Ubuntu): fixar ubuntu-24.04 em ci.yml e homolog.yml | 095 | forge:devops-engineer | 2026-11-11 | 2026-11-11 12:22 | worktree: 052h · branch melhoria/runner-ubuntu-2404; push do workflow pelo dono. |
 | K-265 | [docs] guia-do-desenvolvedor.md:44 ainda diz "pnpm run pronto antes de cada commit"; alinhar à decisão do dono de 2026-10-21, como o K-172 fez em praticas.md | 094 | forge:tech-lead | 2026-11-11 | 2026-11-11 10:14 | worktree: 052c · branch docs/k265-guia-pronto; pedido 094, E1.1. |
 | K-267 | [teste, segurança] regex PESSOA do S6 (painel-real-f6.test.ts:339) não cobre "bloqueado por", "quem", "comentário" e "observação" do modelo de ameaças do 075 | 094 | forge:node-backend | 2026-11-11 | 2026-11-11 10:14 | worktree: 052f · branch fix/k267-regex-pessoa; pedido 094, E3.1. |
@@ -142,7 +144,6 @@
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-204 | [coleta] Gravar bloqueios reais (fato_bloqueio e evt_bloqueio a partir do block_reason do staging), parte B da decisão C do 064 | 075 | forge:node-backend | 2026-11-04 | 2026-11-11 10:14 | Lote 6b na develop (PR 298, merge do dono 09:40); release 093 em curso; espera a validação do dono na homolog; depois 9a e 9b. |
 
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |

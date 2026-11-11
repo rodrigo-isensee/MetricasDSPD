@@ -2875,3 +2875,18 @@
 | 2026-11-11 12:32 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-12 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-11 12:35 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-qa-engineer-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-11 12:36 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-qa-engineer-5 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; 5 processos bastam para confirmar a ordem de grandeza (o autor mediu 10) | — | jarvis |
+| 2026-11-11 12:40 | 095-runner-ubuntu-2404 | docs/briefs/095-runner-ubuntu-2404-security-engineer-1.md | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 12:41 | 096-criterios-apontamento-env | docs/briefs/096-criterios-apontamento-env-node-backend-1.md | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 12:45 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-tech-lead-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 12:45 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-16 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 12:45 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-14 | brief | 1 | aprovado | s | fidelidade ok; aviso: declara 2 arquivos, o parecer de QA é do papel qa e a ferramenta barra listá-lo | — | jarvis |
+| 2026-11-11 12:48 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-tech-lead-3 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 12:54 | 096-criterios-apontamento-env | 096-criterios-apontamento-env-qa-engineer-1 | brief | 1 | reprovado | s | push do parecer pelo QA fora do pedido; o pedido passou a dizer que cada portão envia o próprio parecer | escopo | jarvis |
+| 2026-11-11 12:54 | 096-criterios-apontamento-env | 096-criterios-apontamento-env-qa-engineer-2 | brief | 2 | aprovado | s | rodada 2: fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 12:55 | 096-criterios-apontamento-env | 096-criterios-apontamento-env-security-engineer-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 12:57 | 096-criterios-apontamento-env | 096-criterios-apontamento-env-tech-lead-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:10 | 075-bloqueios-reais | 075-bloqueios-reais-react-frontend-7 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:10 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-devops-engineer-4 | brief | 2 | aprovado | s | rodada 2: fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:11 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-qa-engineer-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:12 | 096-criterios-apontamento-env | 096-criterios-apontamento-env-tech-lead-3 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:14 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-tech-lead-7 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
