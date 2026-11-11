@@ -78,8 +78,8 @@ interface Par<F, R> {
   filtros: F
   resultado: R
 }
-/** Filtros das tendências: nenhum filtro de recorte, só a data de referência opcional (ADR 0019). */
-export type SoDataReferencia = { dataReferencia?: string }
+/** Filtros das tendências: a data de referência e a `equipe` (ids/slugs da fonte da métrica), ambas opcionais (ADR 0019, pedido 097). Sem `equipe` = todas. */
+export type FiltrosTendencia = { dataReferencia?: string; equipe?: string[] }
 type Fluxo<R> = Par<FiltrosFluxo, R>
 type Sust<R> = Par<FiltrosSustentacao, R>
 
@@ -154,10 +154,10 @@ export interface ContratoMetricas {
   EI_SUST: Sust<ResultadoEI>
   /** Sem filtros: sempre os padrões de cada painel (spec 3.1). */
   VISAO_GERAL: Par<Record<string, never>, ResultadoVisaoGeral>
-  /** BusinessMap, sem filtros: sempre os padrões do fluxo (12 semanas). Só `dataReferencia`. */
-  TENDENCIA_FLUXO: Par<SoDataReferencia, ResultadoTendenciaFluxo>
-  /** Acelerato, sem filtros: sempre os padrões da sustentação. Só `dataReferencia`. */
-  TENDENCIA_SUST: Par<SoDataReferencia, ResultadoTendenciaSust>
+  /** BusinessMap: janela fixa de 12 semanas; só `dataReferencia` e `equipe` (equipes do BusinessMap). */
+  TENDENCIA_FLUXO: Par<FiltrosTendencia, ResultadoTendenciaFluxo>
+  /** Acelerato: janela fixa de 12 semanas, todas as prioridades; só `dataReferencia` e `equipe` (equipes do Acelerato). */
+  TENDENCIA_SUST: Par<FiltrosTendencia, ResultadoTendenciaSust>
 }
 
 export type FiltrosDe<K extends MetricaId> = ContratoMetricas[K]['filtros']
@@ -182,7 +182,7 @@ export const METRICAS_SUSTENTACAO: readonly MetricaId[] = [
   'TENDENCIA_SUST',
 ]
 
-/** Métricas de tendência mensal: uma fonte cada, sem filtros de recorte (só `dataReferencia`). Um id novo sem filtro entra aqui. */
+/** Métricas de tendência mensal: uma fonte cada, sem período nem tipo/prioridade (só `dataReferencia` e `equipe` opcional). Um id novo sem filtro entra aqui. */
 export const METRICAS_TENDENCIA: readonly MetricaId[] = ['TENDENCIA_FLUXO', 'TENDENCIA_SUST']
 
 /** Métricas cuja fonte é a pesquisa de percepção (nem BusinessMap, nem Acelerato). Não entram em `METRICAS_SUSTENTACAO`. */
