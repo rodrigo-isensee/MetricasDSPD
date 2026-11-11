@@ -1,3 +1,7 @@
+---
+contrato: 0
+---
+
 # Parecer de QA - fix/env-exemplos-pesquisa
 
 Escopo: `DSPD_PWD_PESQUISA` nos exemplos de `.env`, `restauracao.yml`, remoção da exceção `AGUARDA_EXEMPLO_DO_USUARIO` e teste novo em `tools/homolog/src/artefatos.test.ts`. Sem mudança de código de produção.

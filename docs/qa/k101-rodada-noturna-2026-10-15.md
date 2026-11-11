@@ -1,3 +1,7 @@
+---
+contrato: 0
+---
+
 # K-101: causa da falha da rodada noturna 38718401054 (diagnóstico do QA)
 
 Seção destinada ao parecer do devops `docs/devops/homolog-2026-10-16.md`. O hook R-CONFORMIDADE bloqueou a escrita do QA em `docs/devops/`: o devops deve colar esta seção lá (R-DECISAO, o bloqueio não foi contornado).
