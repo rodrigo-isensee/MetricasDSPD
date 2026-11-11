@@ -821,3 +821,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-10T23:33:01-03:00 | K-211 | Em andamento | Bloqueado | Sem agente em curso; o próximo passo do 077 sai de forge-check proximo e do Histórico do pedido (último: PR 285 do lote 7, já na main pela release 078). · custo do trecho: 654639574 tokens |
 | 2026-11-11T00:36:57-03:00 | K-261 | Em andamento | Pronto | PR 297 na develop (85394c5b) · custo total: 33720603 tokens |
 | 2026-11-11T01:16:58-03:00 | K-262 | — | Em andamento | cartão da release 090 aberto pelo Jarvis (achado da conferência do brief de QA) · atributos: titulo=Release 090; pedido=090; responsavel=forge:tech-lead |
+| 2026-11-11T03:23:47-03:00 | K-262 | Em andamento | Aguardando sua validação | PR 301 aberto, checks verdes · custo do trecho: 28643340 tokens |
+| 2026-11-11T03:24:04-03:00 | K-263 | — | Entrada | melhoria vista na E1.6 do 090 · atributos: titulo=homolog-reavalia sem nova tentativa; pedido=090; responsavel=forge:devops-engineer |

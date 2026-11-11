@@ -20,6 +20,7 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-263 | [devops] homolog-reavalia reexecuta o homolog-aprovada uma vez só, 12 s depois do portão verde, e a consulta ainda não vê o sucesso (run 42970095292, tentativa 2 falhou, 3 passou sem mudança): tentar de novo por uns 60 s | 090 | forge:devops-engineer | 2026-11-11 | 2026-11-11 03:23 | Melhoria vista na E1.6 do 090. |
 | K-259 | [Forge] forge-check entrega conta como "fora do declarado" os arquivos trazidos por merge da develop na branch (077 L7, 087 demo); o intervalo deveria excluir o que já está na base | 077 | forge:tech-lead | 2026-11-10 | 2026-11-10 13:15 | Fila; vai ao Forge (só propor). |
 | K-252 | [Forge] brief que toca .githooks/ deve dizer que é arquivo do usuário e que o agente entrega o diff (MELHORIA da retrospectiva do 083) | 083 | forge:tech-lead | 2026-11-10 | 2026-11-10 09:05 | Fila; vai ao Forge (só propor). |
 | K-253 | [Forge] git switch -c em worktree deixou o HEAD na branch antiga (índice na nova) em 052e, 052g e 052h; instruir worktree add ou conferir branch e status logo depois (MELHORIA da retrospectiva do 083) | 083 | forge:tech-lead | 2026-11-10 | 2026-11-10 09:05 | Fila; vai ao Forge (só propor). |
@@ -120,7 +121,6 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-262 | Release 090: develop (PRs 293 a 297) para homolog e PR de release para a main | 090 | forge:tech-lead | 2026-11-11 | 2026-11-11 01:16 | worktree: 052h · branch docs/090-release; CHANGELOG e review feitos (6e819bad); segurança em curso; depois QA, PRs e o PR de release (merge na main do dono). |
 | K-201 | [técnico, prioridade: bloqueia o pronto de todos os agentes] `scripts/suite-unica.sh` grava a trava em /tmp fixo (o tsx também usa /tmp) e o `pnpm run pronto` não roda no sandbox dos agentes; usar `$TMPDIR` (MELHORIA vista na E1.6 do 063) | 063 | forge:devops-engineer | 2026-11-03 | 2026-11-07 06:31 | Pedido 079: na develop (PR 263, 11:59, mesclado pelo dono); falta a retrospectiva · worktree: MetricasDSPD-052g |
 | K-204 | [coleta] Gravar bloqueios reais (fato_bloqueio e evt_bloqueio a partir do block_reason do staging), parte B da decisão C do 064 | 075 | forge:node-backend | 2026-11-04 | 2026-11-06 15:10 | worktree: 052d · lote 6b (feature/075-l6b-publicacao-real) com o node-backend (brief node-backend-16 selado 22:57); data 2026-11-01 confirmada pelo dono; depois 9a e 9b. |
 | K-216 | [deploy] L12 e M8: na VM, PG_APONTAMENTO_URL configurada e a migração 0034 antes da API; rerodar a Q20 depois | 076 | forge:devops-engineer | 2026-11-04 | 2026-11-06 10:34 | Pedido 076: no ambiente local até a VM (dono, 2026-11-06); roteiro do devops-engineer, o dono roda · worktree: 076 |
@@ -145,6 +145,7 @@
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-262 | Release 090: develop (PRs 293 a 297) para homolog e PR de release para a main | 090 | forge:tech-lead | 2026-11-11 | 2026-11-11 03:23 | PR de release 301 (homolog para main) aberto, checks verdes e homolog-aprovada verde; espera a validação e o merge do dono. |
 
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |

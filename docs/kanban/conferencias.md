@@ -2805,3 +2805,8 @@
 | 2026-11-11 01:17 | 090-release-2026-11-11 | 090-release-2026-11-11-qa-engineer-1 | brief | 2 | aprovado | s | cartão K-262; fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-11 01:19 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-2 | brief | 1 | reprovado | s | conferido antes do parecer de QA existir; reconferir depois da E1.2 | estado | jarvis |
 | 2026-11-11 01:27 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-2 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 01:54 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 03:00 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 03:05 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-5 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 03:25 | 090-release-2026-11-11 | 090-release-2026-11-11-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 03:26 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-6 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
