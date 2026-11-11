@@ -1,15 +1,26 @@
 import { describe, expect, it } from 'vitest'
 import {
+  ESPERA_PADRAO,
   ARQUIVO_CI,
   ARQUIVO_HOMOLOG,
   EXIGIR_NOTURNA,
   MAX_COMMITS_HOTFIX,
-  decidirAprovacao,
+  decidirAprovacao as decidirReal,
+  type Espera,
   type Api,
   type Comparacao,
   type Execucao,
   type Pedido,
 } from './aprovacao.ts'
+
+// Os testes antigos não esperam: o padrão de produção (~60 s) só vale fora daqui.
+const semEspera: Espera = { tentativas: 0, intervaloMs: 0, dormir: () => Promise.resolve() }
+const decidirAprovacao = (
+  a: Api,
+  p: Pedido,
+  noturna?: boolean,
+  espera: Espera = semEspera,
+): ReturnType<typeof decidirReal> => decidirReal(a, p, noturna, espera)
 
 const SHA = 'a'.repeat(40)
 const REPO = 'org/metricas'
@@ -55,6 +66,70 @@ const pedido = (origem: string, extra: Partial<Pedido> = {}): Pedido => ({
   repoOrigem: REPO,
   repoDestino: REPO,
   ...extra,
+})
+
+describe('decidirAprovacao: espera do portão (K-263)', () => {
+  const dorme: number[] = []
+  const espera: Espera = {
+    tentativas: 3,
+    intervaloMs: 10_000,
+    dormir: (ms) => {
+      dorme.push(ms)
+      return Promise.resolve()
+    },
+  }
+  // Cliente simulado: o sucesso do portão só aparece a partir da consulta `aPartirDe` (1 = já na primeira).
+  function apiTransitoria(aPartirDe: number): { api: Api; consultas: () => number } {
+    let n = 0
+    const base = api(verde)
+    return {
+      consultas: () => n,
+      api: {
+        ...base,
+        jobsComSucesso: (id) => {
+          if (id === 1) n++
+          return Promise.resolve(id === 1 && n < aPartirDe ? [] : [portao])
+        },
+      },
+    }
+  }
+  it('falha transitória que vira verde na segunda consulta passa, esperando uma vez', async () => {
+    dorme.length = 0
+    const { api: a } = apiTransitoria(2)
+    const d = await decidirAprovacao(a, pedido('homolog'), false, espera)
+    expect(d.aprovada).toBe(true)
+    expect(dorme).toEqual([10_000])
+  })
+  it('portão vermelho falha só depois de esgotar as tentativas', async () => {
+    dorme.length = 0
+    const { api: a, consultas } = apiTransitoria(99)
+    const d = await decidirAprovacao(a, pedido('homolog'), false, espera)
+    expect(d.aprovada).toBe(false)
+    expect(d.motivo).toContain('portão de homolog sem sucesso')
+    expect(consultas()).toBe(4)
+    expect(dorme).toEqual([10_000, 10_000, 10_000])
+  })
+  it('portão verde na primeira consulta não espera', async () => {
+    dorme.length = 0
+    const d = await decidirAprovacao(api(verde), pedido('homolog'), false, espera)
+    expect(d.aprovada).toBe(true)
+    expect(dorme).toEqual([])
+  })
+  it('o padrão de produção espera ~60 s no total e dorme de verdade', async () => {
+    expect(ESPERA_PADRAO.tentativas * ESPERA_PADRAO.intervaloMs).toBe(60_000)
+    await ESPERA_PADRAO.dormir(1)
+  })
+  it('outras falhas (origem errada, candidato fora da ponta) não esperam', async () => {
+    dorme.length = 0
+    await decidirAprovacao(api(verde), pedido('develop'), false, espera)
+    await decidirAprovacao(
+      api({ ...verde, ponta: 'b'.repeat(40) }),
+      pedido('homolog'),
+      false,
+      espera,
+    )
+    expect(dorme).toEqual([])
+  })
 })
 
 describe('decidirAprovacao: homolog → main', () => {

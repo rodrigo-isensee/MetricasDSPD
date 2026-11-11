@@ -4,6 +4,7 @@ import { createServer, type Server } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { ambienteFilho } from './ajuda-cli-filho.js';
 
 const ENTRADA = new URL('../src/entradas/ref-sync-apontamento.ts', import.meta.url).pathname;
 
@@ -15,7 +16,7 @@ const SEM_ENV = join(pastaTemp, 'sem-env.mjs');
 writeFileSync(SEM_ENV, 'process.loadEnvFile = () => undefined;\n');
 const rodar = (args: string[], env: Record<string, string> = {}, preludio: string[] = ['--import', SEM_ENV, '--import', TSX, ENTRADA]): Promise<{ status: number | null; stdout: string; stderr: string }> =>
   new Promise((resolve, reject) => {
-    const filho = spawn(process.execPath, [...preludio, ...args], { cwd: pastaTemp, env: { PATH: process.env.PATH ?? '', ...env } });
+    const filho = spawn(process.execPath, [...preludio, ...args], { cwd: pastaTemp, env: ambienteFilho(env) });
     let stdout = '';
     let stderr = '';
     const timer = setTimeout(() => filho.kill('SIGKILL'), 60_000);
