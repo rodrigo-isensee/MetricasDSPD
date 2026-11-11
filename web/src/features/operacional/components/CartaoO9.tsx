@@ -17,7 +17,7 @@ const RELOGIOS = [
 
 /** O9: os três relógios, UM tipo por vez, mesma escala. Percentis e histogramas só com 20 itens ou mais. */
 export function CartaoO9({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O9', filtros, { simulado: true })
+  const q = useMetrica('O9', filtros)
   const d = q.dados
   const maior = d ? [...d.classes].sort((a, b) => b.n - a.n)[0]?.tipo : undefined
   const [aba, setAba] = useParametroLocal('o9', VALORES, slug(maior ?? TIPOS_CARD[0]))

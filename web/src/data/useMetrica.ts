@@ -1,11 +1,5 @@
 import { useMemo } from 'react'
-import {
-  keepPreviousData,
-  skipToken,
-  useQuery,
-  useQueryClient,
-  type QueryClient,
-} from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
 import type { Dominio, MetricaId } from '@metricas-dspd/contratos'
 import type { FiltrosDe, ResultadoDe } from '@metricas-dspd/contratos'
@@ -19,7 +13,6 @@ import {
   type ModoMock,
 } from './simulacao'
 import { SemDadoRealErro } from './http/SemDadoRealErro'
-import { ehFonteSimuladora, filtrosSoPeriodo } from './simulado'
 import { ehVazio } from './vazio'
 
 /** Ids que já falharam em `erro-uma-vez`, por cliente de cache: vários cartões da mesma métrica (cartão e faixa) compartilham. */
@@ -39,8 +32,6 @@ export interface MetricaQuery<R> {
   erro: Error | null
   /** true enquanto busca novos dados com o conteúdo anterior ainda na tela (esmaecer, spec 6.1). */
   atualizando: boolean
-  /** De onde vem `dados`: `simulado` só em cartão que pediu o simulado e a API autorizou (pedido 070). Nunca os dois. */
-  origem: 'real' | 'simulado'
   /** Recarrega apenas esta métrica, mantendo os filtros ("Tentar de novo"). */
   recarregar: () => void
 }
@@ -53,7 +44,7 @@ export interface MetricaQuery<R> {
 export function useMetrica<K extends MetricaId>(
   id: K,
   filtros: FiltrosDe<K>,
-  { habilitada = true, simulado = false }: { habilitada?: boolean; simulado?: boolean } = {},
+  { habilitada = true }: { habilitada?: boolean } = {},
 ): MetricaQuery<ResultadoDe<K>> {
   const fonte = useFonte()
   const [params] = useSearchParams()
@@ -68,47 +59,16 @@ export function useMetrica<K extends MetricaId>(
     // Desabilitada (ex.: a tendência espera os números do bloco): sem dados, o estado é "carregando".
     enabled: habilitada,
   })
-  // O real sempre ganha: o simulado só é pedido depois de um `sem-dado-real` com `simulavel`, e só por quem aceita
-  // (`simulado: true`, os cartões). Faixas, Resumo e Visão geral ficam no padrão e só veem dado real (R6).
-  const semDadoReal = q.isError && q.error instanceof SemDadoRealErro ? q.error : null
-  const simuladora = simulado && ehFonteSimuladora(fonte) ? fonte : null
-  const autorizado =
-    simuladora && semDadoReal?.simulavel ? { fonte: simuladora, motivo: semDadoReal.motivo } : null
-  const simular = autorizado !== null
-  const filtrosSim = filtrosSoPeriodo(filtros)
-  const qs = useQuery({
-    queryKey: ['metrica-simulada', id, filtrosSim],
-    // Sem autorização da API (ou de quem pede), a consulta não existe: `skipToken` nunca chama o mock.
-    queryFn: autorizado
-      ? () => autorizado.fonte.obterSimulado(id, filtrosSim, autorizado.motivo)
-      : skipToken,
-    retry: false,
-    placeholderData: keepPreviousData,
-  })
+  // Só dado real (ADR 0030): sem fonte real a API responde `sem-dado-real` e o cartão mostra esse estado.
   let estado: EstadoMetrica = 'ok'
-  let dados = q.data
-  let erro = q.error
-  let origem: 'real' | 'simulado' = 'real'
-  let atualizando = q.isPlaceholderData || (q.isFetching && q.data !== undefined)
-  if (q.isError) {
-    if (!(q.error instanceof SemDadoRealErro)) estado = 'erro'
-    else if (!simular || qs.isError)
-      estado = 'sem-dado-real' // falha do simulado: volta a "Sem dado real"
-    else if (qs.data === undefined) estado = 'carregando'
-    else {
-      origem = 'simulado'
-      dados = qs.data
-      erro = null
-      estado = ehVazio(id, qs.data) ? 'vazio' : 'ok'
-      atualizando = qs.isPlaceholderData || qs.isFetching
-    }
-  } else if (q.data === undefined) estado = 'carregando'
+  if (q.isError) estado = q.error instanceof SemDadoRealErro ? 'sem-dado-real' : 'erro'
+  else if (q.data === undefined) estado = 'carregando'
   else if (ehVazio(id, q.data)) estado = 'vazio'
+  const atualizando = q.isPlaceholderData || (q.isFetching && q.data !== undefined)
   return {
     estado,
-    dados,
-    erro,
-    origem,
+    dados: q.data,
+    erro: q.error,
     atualizando,
     recarregar: () => void q.refetch(),
   }
