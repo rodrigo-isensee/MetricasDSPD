@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/097-l2-apontamento-equipe
-commit: 18424b56d70cb11bc0428f9cede542b8c4e85b62
+commit: 5f4a8f3bad853d083d9cc8c1b68d2302ee9a6043
 parecer: aprovado
 escopo: incremental
 bugs_criticos: 0
@@ -12,27 +12,26 @@ bugs_medios: 0
 bugs_baixos: 0
 data: 2026-11-11
 ---
-# QA: 097 L2, equipe no Apontamento (parte servidor), volta 1
+# QA: 097 L2, equipe no Apontamento (parte servidor), volta 2
 
-**Veredito: aprovado.** Revalidação pelo delta `bca89b99..18424b56` (só `repositorio.ts`, `servico.ts` e dois testes de rota). O A1 e o A2 da primeira passada estão corrigidos; nada mais mudou de comportamento. Os 4 arquivos de `packages/` e o `grants.ts` seguem como no commit original (já cobertos pela segurança e por este QA; a decisão de mantê-los é do review). A tabela critério → teste da primeira passada (recorte das linhas, 400 em entrada inválida, `pessoa` aceito, `opcoes.equipes`, sem bloco por time, openapi, GRANT no job banco do CI) vale sem mudança.
+**Veredito: aprovado.** Revalidação pelo delta `18424b56..5f4a8f3b`: só testes (`apontamento-rota.pg.test.ts` e `times-sem-comparacao.test.ts`); nenhum arquivo de `server/src` nem de `packages/` mudou. A tabela critério → teste da volta 1 e da primeira passada vale sem mudança. O A1 e o A3 do review estão atendidos.
 
 ## Execução (`VITEST_MAX_WORKERS=2`, sem `.env`, sem base real)
-- `server`: `tests/apontamento-rota.test.ts` + `tests/times-sem-comparacao.test.ts`: `Test Files 2 passed (2)`, `Tests 89 passed (89)` (eram 87; +2 testes novos).
-- `apontamento-rota.pg.test.ts` roda no job banco do CI; o `.verde` local não vale como prova.
+- `server`: `tests/apontamento-rota.test.ts` + `tests/times-sem-comparacao.test.ts`: `Test Files 2 passed (2)`, `Tests 89 passed (89)`.
+- `apontamento-rota.pg.test.ts` precisa de banco e roda no job `banco` do CI; o `.verde` local não vale como prova. Conferi por leitura que o caso novo é coerente com o SQL de `lerCardsIncompletos` e com as fixtures (FILHO no Time Alfa, OUTRO no Time Beta, SOLTO sem time; fatos de 2031-05-03 a 06; estado atual por `DISTINCT ON ... cobertura_sk DESC`).
 
 ## Critério → teste → resultado (delta)
 | Obrigação | Teste | Fronteira protegida | Resultado |
 |---|---|---|---|
-| A1: slug inexistente zera linhas e incompletos | "097 L2 (A1): ... lista vazia, nunca como sem filtro" (`valores` = `[..., null, null, [], false]`) | filtro ativo sem nome resolvido | passou |
-| A2: slug vazio vale `sem-time` nos dois lados | "097 L2 (A2): nome de time com slug vazio ..." (`['---']`, `true`; opção `sem-time`; 1 apontamento) | slug vazio | passou |
-| Sem `equipe`, nada muda | teste existente com `[null, null, null, false]` | sem filtro | passou |
+| A1: incompletos por equipe ponta a ponta (time existente, `sem-time`, slug inexistente) | `.pg` "cards incompletos filtrados por equipe ponta a ponta ..." (sem filtro = 3; alfa = FILHO; beta = OUTRO; `sem-time` = SOLTO; `nao-existe` = `[]`) | filtro ativo sem nome resolvido nunca vira "todos"; `sem-time` | a conferir no CI (job banco) |
+| A1: o caso limpa o que grava | mesmo teste: `finally` regrava `completo` para os 3 cards (tabela append-only, estado atual volta a completo) | vazamento entre casos | a conferir no CI |
+| A3: recorte por time provado pelo schema, não por contagem de texto | `times-sem-comparacao`: aceita `time-alfa` e `time-alfa,sem-time`; recusa `Time Alfa` (não é slug), `porEquipe` (consulta estrita) e 51 slugs (teto 50) | formato do slug, máximo 50, sem chave de agrupamento | passou |
 
-## Mutação (uma por correção, restauradas, árvore limpa)
+## Mutação (uma, restaurada, árvore limpa)
 | Mutante | Resultado |
 |---|---|
-| MA1 `repositorio.ts`: voltar a condição `nomes.length === 0 && !semTime ? null` | morto: o teste A1 caiu (1 falha, 81 passaram) |
-| MA2 `servico.ts`: voltar `slugs.includes(slug(n))`, sem o ramo do slug vazio | morto: o teste A2 caiu (1 falha, 81 passaram) |
+| `packages/contratos/src/apontamento.ts:143`: comentar o campo `equipe` da consulta | morto: `times-sem-comparacao` caiu (`expected false to be true`; 1 falha, 6 passaram) |
 
-A semântica do SQL com `ANY('{}')` (lista vazia zera) é do Postgres e só o `.pg` do CI a exerce; o teste de unidade prova o parâmetro enviado.
+Restaurado com `git checkout`; `git status` limpo.
 
 ## Achados
