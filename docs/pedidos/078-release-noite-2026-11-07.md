@@ -16,6 +16,7 @@
 - E1.5 (tech-lead): PR da develop para a homolog, merge commit com o portão verde, --match-head-commit, sem --admin.
 - E1.6 (tech-lead): PR de release da homolog para a main; o merge segue a regra da noite do dono e o CLAUDE.md (ver Histórico).
 - E1.7 (agile-coach): retrospectiva do pedido 078.
+- E1.8 (tech-lead): envio das retrospectivas do 078, 084 e 085 (worktree 052c, branch docs/retros-2026-11-10): commit, push e PR para a develop; o merge é do dono.
 
 ## Fora do escopo
 - Lotes ainda não mesclados na develop (075 5b, que espera o aceite do dono aos bugs; 075 4a, 4b, 4c e 6a; 077 3a e 6a; 073 E10 L3) · `técnico`
@@ -55,3 +56,6 @@ DECISÃO DO DONO (2026-11-07, regras da noite, pelo assistente do app): "3) o do
 - 2026-11-10 15:23: Alertas do Dependabot avisados no push (6: 2 altas, 4 médias) conferidos pelo Jarvis contra docs/security/073-dependabot-triagem.md e 073-aceite-alertas-16-27.md: abertos 13, 16, 17, 26, 27 e 29, todos já triados no 073 (16 e 27 com risco aceito pelo dono em 2026-11-05, revisão em 2026-12-05; 13, 17, 26 e 29 só desenvolvimento). Nenhum barra a release.
 - 2026-11-10 16:11: DECISÃO DO DONO (literal): "A" (a PERGUNTA de 15:16: o dono abre e mescla pelo terminal dele os três passos da release: docs/078-release-b -> develop com squash, develop -> homolog com merge commit e homolog -> main com merge commit, depois do homolog-aprovada verde). O time acompanha cada passo e conta ao dono o estado dos checks; nenhum agente mescla. (Linha refeita às 17:5x a partir do stash@{0}, que guardou o registro de 16:11 antes da troca da pasta principal para a main.)
 - 2026-11-10 17:23: Pela decisão "A" do dono: PR 286 (docs/078-release-b -> develop), PR 287 (develop -> homolog; portão da homolog verde, homolog-aprovada verde) e PR 288 (homolog -> main) mesclados pelo dono; a release 078 está na main desde 2026-11-10 16:44 (19:44 UTC). E1.4, E1.5 e E1.6 cumpridas. Falta E1.7 (retrospectiva). Pedido 087: a demo está na main; o dono roda pnpm run demo:dado-real (E6.1) e devolve os três números da prova.
+- 2026-11-10 22:56: brief selado docs/briefs/078-release-noite-2026-11-07-agile-coach-2.md 72d7e7b5b385c41bbd97c9db0f20d36d25adeafea81d3a817c115b849a87785d
+- 2026-11-10 22:59: E1.7: retrospectiva escrita pelo agile-coach (052c, docs/retrospectivas/2026-11-10-078-release.md, sem commit). Lead time 3d 10h57 (3d 6h53 de espera da decisão P-078-1; retomada até a main em 4h02); 16 briefs, 3 reprovados (19%), 3 entregas cumpriram; 6 linhas MELHORIA (3 vão ao Forge). Causa nova: a develop recebeu PR durante a release e venceu os pareceres (proposta: congelar a develop na release). ESCOPO+ (técnico): E1.8 leva as retrospectivas do 078, 084 e 085 à develop num só PR, como previsto no Histórico do 084 e do 085.
+- 2026-11-10 22:59: brief selado docs/briefs/078-release-noite-2026-11-07-tech-lead-13.md 8dd9510a94efb7c4b258294bcb53338fb994f9296e1260a2db7e20f9ce85a2d1

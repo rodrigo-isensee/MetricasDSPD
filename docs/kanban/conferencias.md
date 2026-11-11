@@ -2770,3 +2770,17 @@
 | 2026-11-10 22:18 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-qa-engineer-1 | brief | 1 | reprovado | s | envio do parecer pelo QA sem origem no pedido | escopo | jarvis |
 | 2026-11-10 22:19 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-qa-engineer-1 | brief | 2 | aprovado | s | envio do parecer com origem nas Etapas | — | jarvis |
 | 2026-11-10 22:29 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-qa-engineer-2 | brief | 1 | aprovado | s | volta de forma | — | jarvis |
+| 2026-11-10 22:39 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-tech-lead-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:39 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-tech-lead-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:42 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-react-frontend-3 | entrega | 1 | cumpriu | s | dafb325a; pronto rc=0 pelo autor; B-4 fora | — | jarvis |
+| 2026-11-10 22:42 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-tech-lead-3 | entrega | 1 | cumpriu | s | parecer de UX e6e6446c e review 1b1ecee8 | — | jarvis |
+| 2026-11-10 22:42 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-15 | brief | 1 | aprovado | s | data 2026-11-01 do Histórico 22:39 | — | jarvis |
+| 2026-11-10 22:44 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-react-frontend-4 | brief | 1 | aprovado | s | registro do parecer de UX | — | jarvis |
+| 2026-11-10 22:44 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-react-frontend-4 | entrega | 1 | cumpriu | s | dafb325a e parecer de UX e6e6446c | — | jarvis |
+| 2026-11-10 22:45 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-qa-engineer-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:53 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:56 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-agile-coach-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:56 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-tech-lead-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:57 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-16 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 22:57 | 088-forge-0455 | 088-forge-0455-node-backend-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; 2 workers segue R-TETO | — | jarvis |
+| 2026-11-10 22:59 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-13 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |

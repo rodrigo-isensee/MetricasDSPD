@@ -1,0 +1,17 @@
+## Objetivo
+Continuação do lote 6b do pedido 075 (bloqueios reais) na worktree `/home/rodrigoisensee/MetricasDSPD-052d`, branch `feature/075-l6b-publicacao-real`. A entrega anterior (brief node-backend-15) parou sem commit porque testes fora da lista afirmam o estado antigo (BLOQUEADOS, O5 e O19 como mock, data pendente). As edições dela já estão na worktree, sem commit (`git status`): origem.ts, origem.test.ts, criterios.ts ('2026-11-01'), servico.ts, painel-real-f6.test.ts, painel-real-f6.pg.test.ts, api-stub-065.ts, docs/api/metricas.md e CHANGELOG.md. Mantenha-as e complete o lote.
+
+## Ler
+- `/home/rodrigoisensee/Metricas/MetricasDSPD/docs/analises/075-plano.md`, seção "Lote 6b" e §5 (T10 e T12 fora).
+- Na worktree: `git -C /home/rodrigoisensee/MetricasDSPD-052d diff` (as edições já feitas) e `docs/qa/075-l6a-versao-criterio.md`, achado A2.
+
+## Entregar
+- "E1.4 (node-backend): implementação por lote do plano (1a, 1b, 2a, 2b, 3, 4a, 4b, 4c, 6a, 6b, 9a), cada um numa branch feature/075-<lote> a partir da develop." (E1.4) Nesta delegação, só o lote 6b.
+- (E1) (E4) (E1.4) Inverter os testes que afirmam o estado antigo, na mesma branch, sem afrouxar asserção: `server/tests/corte-serie-o1-075.test.ts` (o caso da data pendente vira o caso com a data 2026-11-01 e soma a marcação da versão de critério no O1 e no O5, achado A2 do QA do 6a); `server/tests/qa-f6-painel.test.ts` (lista de reais com BLOQUEADOS, O5 e O19); os testes do web que afirmam BLOQUEADOS, O5 ou O19 como mock (`web/src/features/operacional/bloqueio-sem-dado.test.tsx` e os outros que a suíte do web apontar; só arquivos de teste, sem mudar componente do web, que é do lote 9a); `e2e/tests-api/bloqueio-sem-dado-065.spec.ts` (Q65-01 a Q65-05 invertidos) e `e2e/fixtures/referencia-completa.ts` se depender do mapa antigo. A L1 de `docs/analises/064-lacunas-dado-real.md` fica fora (o arquivo não existe na develop). Depois, `pnpm run pronto` da raiz da worktree; commits com `Cartão: K-204` (por `git commit -F` de arquivo gravado por Write no scratchpad, `git add` explícito pelos caminhos); push em primeiro plano, timeout de 600 s, com `env PATH=/home/rodrigoisensee/.nvm/versions/node/v24.22.1/bin:/usr/local/bin:/usr/bin:/bin git -C /home/rodrigoisensee/MetricasDSPD-052d push origin HEAD:refs/heads/feature/075-l6b-publicacao-real` (`github.com` em allowed_domains); commit e push em chamadas separadas; sem PR. No relatório, a lista exata dos arquivos de teste do web alterados.
+- (E2, E3, E5) Nada a entregar aqui: não nesta delegação.
+- arquivos: packages/contratos/src/origem.ts, packages/contratos/src/origem.test.ts, packages/metricas/src/core/criterios.ts, server/src/modulos/metricas/servico.ts, server/tests/painel-real-f6.test.ts, server/tests/painel-real-f6.pg.test.ts, server/tests/pg/api-stub-065.ts, server/tests/corte-serie-o1-075.test.ts, server/tests/qa-f6-painel.test.ts, web/src/features/operacional/bloqueio-sem-dado.test.tsx, e2e/tests-api/bloqueio-sem-dado-065.spec.ts, e2e/fixtures/referencia-completa.ts, docs/api/metricas.md, docs/api/openapi.json, CHANGELOG.md
+
+## Pronto quando
+- PQ-1 (cmd): `pnpm run pronto` (da raiz de `/home/rodrigoisensee/MetricasDSPD-052d`) · espera: rc=0
+- PQ-2 (cmd): `git -C /home/rodrigoisensee/MetricasDSPD-052d grep -n "DATA_BLOQUEIO_COM_DADO_REAL = '2026-11-01'" -- packages/metricas/src/core/criterios.ts` · espera: linhas=1
+- PQ-3 (cmd): `git -C /home/rodrigoisensee/MetricasDSPD-052d log --oneline 129fc3d5ba918789e17d3dc1b663039795c4a9e6..origin/feature/075-l6b-publicacao-real` · espera: linhas>=1

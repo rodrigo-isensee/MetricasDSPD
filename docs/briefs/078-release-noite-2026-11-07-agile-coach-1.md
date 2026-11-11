@@ -8,8 +8,8 @@ Etapa: codigo   Cobre: E1.7
 Retrospectiva do pedido 078 (release da develop até a main; PRs 282, 286, 287 e 288, na main desde 2026-11-10 16:44). Worktree `/home/rodrigoisensee/MetricasDSPD-052c`, branch `docs/retros-2026-11-10` (já tem, sem commit, as retrospectivas do 084 e do 085, que não devem ser tocadas).
 
 ## Ler
-- `/home/rodrigoisensee/MetricasDSPD-052g/docs/pedidos/078-release-noite-2026-11-07.md` (inteiro).
-- `/home/rodrigoisensee/MetricasDSPD-052g/docs/kanban/conferencias.md`: só as linhas do 078.
+- `/home/rodrigoisensee/Metricas/MetricasDSPD/docs/pedidos/078-release-noite-2026-11-07.md` (inteiro).
+- `/home/rodrigoisensee/Metricas/MetricasDSPD/docs/kanban/conferencias.md`: só as linhas do 078.
 
 ## Entregar
 - "E1.7 (agile-coach): retrospectiva do pedido 078." (E1.7)
