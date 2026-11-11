@@ -172,6 +172,30 @@ describe('GET /api/apontamento: resposta', () => {
     expect(nenhum.kpis.segundos).toBe(0);
     await app.close();
   });
+  it('K-272: dois type_id da mesma categoria viram uma linha no AP-TIPO e uma opção; filtrar por qualquer um cobre os dois e o banco recebe os dois', async () => {
+    const { app, db } = await montar({ linhas: [
+      linha({ type_id: '12', tipo: 'Trabalho de produto', segundos: 3600 }),
+      linha({ type_id: '9', tipo: 'Trabalho de produto', segundos: 7200, data: '2026-10-21' }),
+      linha({ type_id: '34', tipo: 'Incidente', segundos: 1800, data: '2026-10-22' }),
+      linha({ type_id: '77', tipo: null, segundos: 900, data: '2026-10-23' }),
+    ] });
+    const base = '/api/apontamento?de=2026-10-01&ate=2026-10-31';
+    const todos = respostaApontamentoSchema.parse((await get(app, base)).json());
+    expect(todos.opcoes.tipos.map((t) => [t.id, t.rotulo])).toEqual([['34', 'Incidente'], ['9', 'Trabalho de produto']]);
+    const produto = todos.distribuicao.porTipo.filter((l) => l.rotulo === 'Trabalho de produto');
+    expect(produto).toHaveLength(1);
+    expect(produto[0]!.segundos).toBe(3600 + 7200);
+    expect(produto[0]!.apontamentos).toBe(2);
+    for (const v of ['9', '12']) {
+      const r = respostaApontamentoSchema.parse((await get(app, `${base}&tipo=${v}`)).json());
+      expect(r.kpis.segundos, v).toBe(10_800);
+      expect(r.kpis.apontamentos, v).toBe(2);
+    }
+    await get(app, `${base}&tipo=12`);
+    const c = db.chamadas.filter((x) => x.texto.includes('ctl_apontamento_cobertura')).at(-1)!;
+    expect(c.valores[3]).toEqual(['9', '12']);
+    await app.close();
+  });
   it('type_id fora de dígitos no filtro: 400 do contrato, sem consulta ao banco', async () => {
     const { app, db } = await montar();
     for (const v of ['melhoria', '1%3B2', '12a']) {
@@ -366,7 +390,7 @@ describe('moldura da resposta: calendário, dimensões, frescor e janelas', () =
       ],
     });
     const c = respostaApontamentoSchema.parse((await get(app, '/api/apontamento?de=2026-10-01&ate=2026-10-31')).json());
-    expect(c.opcoes.tipos.map((t) => [t.id, t.rotulo]).sort()).toEqual([['12', 'Tipo Novo'], ['56', 'Sem tipo']]);
+    expect(c.opcoes.tipos.map((t) => [t.id, t.rotulo]).sort()).toEqual([['12', 'Tipo Novo']]); // K-272: "Sem tipo" (categoria nula) soma, mas não é opção
     expect(c.opcoes.projetos.map((p) => p.rotulo).sort()).toEqual(['Card 900', 'Sem iniciativa']);
     expect(c.opcoes.subgrupos.map((g) => g.rotulo).sort()).toEqual(['Execução técnica', 'codigo-sem-rotulo']);
     expect(c.qualidade.geral.porFlag.find((f) => f.flag === 'sem-iniciativa')!.apontamentos).toBe(3);
