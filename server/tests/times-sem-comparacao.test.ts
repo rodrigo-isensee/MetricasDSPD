@@ -46,4 +46,14 @@ describe('tabela de times: só filtro, nunca comparação entre times (regra inv
     expect(views.length).toBeGreaterThan(0);
     for (const v of views) expect(v).not.toMatch(/ref_time/);
   });
+  it('097 L2: o apontamento usa dim_card.equipe so como recorte: sem GROUP BY, contagem, soma nem ordem por time, e sem bloco agregado por equipe no contrato', () => {
+    for (const f of ['modulos/apontamento/repositorio.ts', 'modulos/apontamento/servico.ts']) {
+      const fonte = readFileSync(join(RAIZ, f), 'utf8');
+      expect(fonte, f).not.toMatch(/GROUP BY[^`]*equipe|count\([^)]*equipe|sum\([^)]*equipe|avg\([^)]*equipe|ORDER BY[^\n`]*equipe|\.sort\([^)]*equipe|\.reduce\([^)]*equipe/i);
+      expect(fonte, f).not.toMatch(/ref_time/);
+    }
+    const contrato = readFileSync(new URL('../../packages/contratos/src/apontamento.ts', import.meta.url).pathname, 'utf8');
+    expect(contrato).not.toMatch(/porEquipe|porTime|matrizEquipe/);
+    expect(contrato.match(/equipe/gi)?.length).toBeLessThanOrEqual(6);
+  });
 });

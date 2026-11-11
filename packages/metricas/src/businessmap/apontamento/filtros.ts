@@ -51,6 +51,7 @@ export function filtrar(
     if (soPessoa) return true
     if (!passa(f.projeto, l.projeto.id)) return false
     if (!passa(f.tipo, l.tipo.id)) return false
+    if (!passa(f.equipe, l.equipe.id)) return false
     if (!passa(f.subtarefa, l.subtarefa.id)) return false
     if (!passa(f.subgrupo, l.subgrupo.id)) return false
     const flags = flagsEfetivas(l, atipicos)

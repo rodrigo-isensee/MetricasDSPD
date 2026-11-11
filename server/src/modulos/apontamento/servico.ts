@@ -2,10 +2,10 @@ import {
   FLAGS_QUALIDADE, MAX_ROTULO, PESSOA_OUTRA_AREA, ROTULO_PESSOA_NAO_IDENTIFICADA, type ConsultaApontamento, type EventoColeta, type FlagQualidade, type PessoaApontamento, type PessoaRef, type RespostaApontamento,
 } from '@metricas-dspd/contratos';
 import { calcularApontamento, LIMITE_ATIPICO_SEGUNDOS_PADRAO, ordenarPorPessoa, type LinhaApontamento } from '@metricas-dspd/metricas/businessmap';
-import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor } from '@metricas-dspd/metricas/core';
+import { CALENDARIO_PADRAO, criarCalendario, dataIso, diaDeIso, isoDeDia, isoLocal, ordenarNeutro, seloFrescor, slug } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
-import { lerCalendario, lerCardsIncompletos, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerPessoasDoTime, lerRotulosSubgrupo, lerTiposDoHistorico, lerUltimasColetas, type ColetaLida, type LinhaBruta, type TipoDoHistorico } from './repositorio.js';
+import { lerCalendario, lerCardsIncompletos, lerCriterios, lerHistorico, lerLinhas, lerNomes, lerNomesDeEquipe, lerPessoasDoTime, lerRotulosSubgrupo, lerTiposDoHistorico, lerUltimasColetas, type ColetaLida, type FiltroEquipe, type LinhaBruta, type TipoDoHistorico } from './repositorio.js';
 
 // Pedido 059 (K-193), rota da aba Apontamento. Este serviço só LÊ e MONTA a moldura da resposta (período, opções, frescor, critérios); todo cálculo
 // (soma, capacidade, utilização, distribuição, qualidade, matriz, diário, achados, piso de 20) é de `calcularApontamento`, da biblioteca T2.5.
@@ -19,6 +19,16 @@ export const DIAS_DIARIO_PADRAO = 28;
 const ROTULO_RESIDUAL: Readonly<Record<string, string>> = { 'execucao-tecnica': 'Execução técnica', 'nao-classificado': 'Sem comentário' };
 const FLAGS_DA_CLASSIFICACAO = FLAGS_QUALIDADE.slice(0, 3);
 const BIT_SEM_INICIATIVA = 8;
+/** Lançamento em card sem time (frente, projeto, fora do escopo, ainda não projetado): entra nas somas e é a opção "Sem time". */
+const EQUIPE_SEM_ID = 'sem-time';
+const equipeDe = (nome: string | null): { id: string; rotulo: string } =>
+  nome === null || slug(nome) === '' ? { id: EQUIPE_SEM_ID, rotulo: 'Sem time' } : { id: slug(nome), rotulo: nome };
+
+/** Slugs do filtro `equipe` levados aos nomes de `dim_card.equipe` (e a marca do card sem time); sem filtro, `undefined`. */
+export function filtroDeEquipe(slugs: readonly string[] | undefined, nomes: readonly string[]): FiltroEquipe | undefined {
+  if (slugs === undefined || slugs.length === 0) return undefined;
+  return { nomes: nomes.filter((n) => slugs.includes(slug(n))), semTime: slugs.includes(EQUIPE_SEM_ID) };
+}
 /** Tipo sem categoria (sem `type_id` ainda ou card fora dos tipos de item): entra nas somas, mas não é opção de filtro. */
 const TIPO_SEM_ID = 'sem-tipo';
 const RESULTADO = { sucesso: 'ok', parcial: 'parcial', falha: 'falha' } as const;
@@ -94,6 +104,7 @@ function linhaDaBiblioteca(l: LinhaBruta, rotulosSubgrupo: ReadonlyMap<string, s
     segundos: l.segundos,
     // uma entrada por categoria do card (`dim_card.tipo`); `id` = menor `type_id` da categoria, em dígitos (valor aceito pelo filtro `tipo`)
     tipo: l.typeId === null || l.tipo === null ? { id: TIPO_SEM_ID, rotulo: 'Sem tipo' } : { id: cat.idDaCategoria.get(l.typeId) as string, rotulo: l.tipo },
+    equipe: equipeDe(l.equipe),
     projeto: { id: l.projetoId ?? 'sem-projeto', rotulo: l.projetoTitulo ?? (l.projetoId === null ? 'Sem iniciativa' : `Card ${l.projetoId}`), foraDoEscopo: l.foraDoEscopo },
     subgrupo: { id: l.subgrupo, rotulo: rotulosSubgrupo.get(l.subgrupo) ?? ROTULO_RESIDUAL[l.subgrupo] ?? l.subgrupo },
     subtarefa: l.emSubtarefa ? { id: 'em-subtarefa', rotulo: 'Em subtarefa' } : { id: 'direto-no-card', rotulo: 'Direto no card' },
@@ -166,10 +177,11 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
   const calculo = calcularApontamento({
     linhas, periodo, diario, nivelMatriz: c.nivelMatriz, calendario, limiteAtipicoSegundos: LIMITE_ATIPICO_SEGUNDOS,
     ultimaColetaOk: fimOk === null ? null : dataIso(fimOk, calendario), pessoas, nomesReais: d.nomesReais,
-    filtros: { pessoa: c.pessoa, projeto: c.projeto, tipo: filtroPorCategoria(c.tipo, categorias), subtarefa: c.subtarefa, subgrupo: c.subgrupo, qualidade: c.qualidade, anomalos: c.anomalos },
+    filtros: { pessoa: c.pessoa, projeto: c.projeto, tipo: filtroPorCategoria(c.tipo, categorias), equipe: c.equipe, subtarefa: c.subtarefa, subgrupo: c.subgrupo, qualidade: c.qualidade, anomalos: c.anomalos },
   });
 
-  const incompletos = await lerCardsIncompletos(db, S, periodo.de, periodo.ate, c.projeto, typeIdsDoFiltro(c.tipo, categorias));
+  const incompletos = await lerCardsIncompletos(db, S, periodo.de, periodo.ate, c.projeto, typeIdsDoFiltro(c.tipo, categorias),
+    filtroDeEquipe(c.equipe, c.equipe === undefined ? [] : await lerNomesDeEquipe(db, S)));
   const registroIncompleto = {
     total: incompletos.length,
     cards: incompletos.map((i) => ({
@@ -192,6 +204,7 @@ export async function montarApontamento(d: DepsMontagem, c: ConsultaApontamento)
       pessoas,
       projetos: emOrdem(noRecorte.map((l) => ({ id: l.projeto.id, rotulo: l.projeto.rotulo, foraDoEscopo: l.projeto.foraDoEscopo }))),
       tipos: emOrdem(noRecorte.map((l) => l.tipo).filter((t) => t.id !== TIPO_SEM_ID)),
+      equipes: emOrdem(noRecorte.map((l) => l.equipe)),
       subtarefas: emOrdem(linhas.map((l) => l.subtarefa)),
       subgrupos: emOrdem(noRecorte.map((l) => l.subgrupo)),
       historico,
