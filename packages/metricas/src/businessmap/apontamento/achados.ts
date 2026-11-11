@@ -40,6 +40,8 @@ export function gerarAchados(
   const achados: AchadoApontamento[] = []
   const { distribuicao, qualidade, capacidade } = base
 
+  // Pedido 089 (D2, D3): o subgrupo `nao-classificado` agora se chama "Sem comentário" (sem comentário e sem regra por tipo); o código e o id
+  // seguem como contrato versionado. `execucao-tecnica` não entra aqui: deixou de ser falha de qualidade.
   const naoClass = distribuicao.porSubgrupo.find((l) => l.id === SUBGRUPO_NAO_CLASSIFICADO_ID)
   if (naoClass?.participacao.status === 'ok' && naoClass.participacao.pct >= lim.naoClassificadoPct)
     achados.push({

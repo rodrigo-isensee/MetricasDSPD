@@ -451,7 +451,7 @@ test.describe('cartões e gráficos (CA-5, CA-6, CA-7, CA-9, CA-11)', () => {
     await expect(lista.getByRole('listitem')).toHaveCount(RESPOSTA_FICTICIA.achados.length)
     await expect(lista).toContainText('20% dos apontamentos (84) estão sem comentário')
     await expect(lista).toContainText(
-      "9% das horas apontadas (29 apontamentos) caíram em 'Não classificado'",
+      "9% das horas apontadas (29 apontamentos) estão em 'Sem comentário' e sem regra por tipo de card",
     )
     await semear(page, () => ({ ...RESPOSTA_FICTICIA, achados: [] }))
     await page.reload()

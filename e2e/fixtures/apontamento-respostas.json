@@ -39,7 +39,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -151,7 +151,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -1044,7 +1044,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -1167,7 +1167,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -1679,7 +1679,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -1791,7 +1791,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -2684,7 +2684,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -2796,7 +2796,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -3690,7 +3690,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -3802,7 +3802,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -4784,7 +4784,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "historico": { "inicio": "2026-01-05", "fim": "2026-10-30" }
     },
@@ -4896,7 +4896,7 @@
         },
         {
           "id": "nao-classificado",
-          "rotulo": "Não classificado",
+          "rotulo": "Sem comentário",
           "segundos": 216000,
           "apontamentos": 29,
           "participacao": { "status": "ok", "n": 29, "pct": 8.908685968819599 }
@@ -6177,7 +6177,7 @@
         { "id": "analise", "rotulo": "Análise e especificação" },
         { "id": "teste", "rotulo": "Testes" },
         { "id": "suporte", "rotulo": "Suporte a usuários" },
-        { "id": "nao-classificado", "rotulo": "Não classificado" }
+        { "id": "nao-classificado", "rotulo": "Sem comentário" }
       ],
       "linhas": [
         {
