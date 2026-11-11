@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: fix/k272-ap-tipo-categoria
-commit: 59fd6ba9b36e029eb47750f04ff08a0232a119d1
+commit: 1d691f4e1a0d147f65d0041849395f2c0b593562
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -13,16 +13,17 @@ bugs_baixos: 0
 data: 2026-11-11
 ---
 
-# QA: K-272, AP-TIPO e filtro tipo por categoria (097, E6.3)
+# QA: K-272, AP-TIPO e filtro tipo por categoria (097, E6.3), volta 1
 
-Base develop eac38a64. Diff `eac38a64..59fd6ba9`: `server/src/modulos/apontamento/servico.ts` (+44 -8) e `server/tests/apontamento-rota.test.ts` (+25 -1).
+Base develop eac38a64. Revalidação sobre o parecer anterior (ac47260b, código 59fd6ba9). Delta `59fd6ba9..1d691f4e`: `server/src/modulos/apontamento/repositorio.ts` (+17, nova `lerTiposDoHistorico`), `servico.ts` (id da categoria e conjunto de type_id vêm do histórico) e `server/tests/apontamento-rota.test.ts` (+2 testes e a dublê do histórico).
 
 ## Veredito
-**Aprovado.** Sem bug aberto. Os testes `.pg` ficam com o CI (o check-run `bateria` do mesmo sha é a prova da suíte inteira, fora desta passada local).
+**Aprovado.** Sem bug aberto. O A1 do review (id da categoria dependente da janela) está corrigido e provado por teste; o A2 (teste do caso do A1 e da linha "Sem tipo" em `porTipo`) está atendido. Os testes `.pg` ficam com o CI (o check-run `bateria` do mesmo sha é a prova da suíte inteira, fora desta passada local).
 
 ## Execução
-- `npx vitest run tests/apontamento-rota.test.ts --maxWorkers=2` (R-TETO): 1 arquivo, 72 testes passaram, 0 pulados.
-- Mutação (voltar a agrupar por type_id: `idDaCategoria.set(t, id)` trocado por `idDaCategoria.set(t, t)`): o teste "K-272: dois type_id da mesma categoria..." falhou (opções vieram com '12' e '9' separados); 1 falhou, 71 passaram. Arquivo restaurado com `git checkout` antes do commit; árvore limpa.
+- `npx vitest run tests/apontamento-rota.test.ts --maxWorkers=2` (R-TETO), em `server/`: 1 arquivo, 74 testes passaram, 0 pulados.
+- Mutação (voltar a calcular o id pelas linhas da janela: `categoriasDeTipo(await lerTiposDoHistorico(db, S))` trocado por `categoriasDeTipo(brutas)`, servico.ts:135): o teste "K-272 (A1): o id da categoria vem do histórico..." falhou (opções deixaram de ser `[34 Incidente], [9 Trabalho de produto]`); 1 falhou, 73 passaram. Arquivo restaurado com `git checkout`; árvore limpa.
+- Leitura nova: `lerTiposDoHistorico` seleciona só `COALESCE(c.tipo, p.tipo)` e `h.type_id` de `S.bm.fato_apontamento`/`dim_card`, ativos (`excluido_em IS NULL`), sem filtro de data. Sem coluna de pessoa; só esquema BusinessMap, sem Acelerato (fontes não se misturam). O teste afirma que a consulta não contém `data_apontamento`.
 
 ## Critério → teste → resultado
 | Obrigação (decisão P-097-7, opção a) | Teste | Fronteira protegida | Resultado |
@@ -30,12 +31,13 @@ Base develop eac38a64. Diff `eac38a64..59fd6ba9`: `server/src/modulos/apontament
 | Uma linha por categoria no AP-TIPO, somando os type_id | K-272 (`porTipo` 'Trabalho de produto': 1 linha, 10 800 s, 2 apontamentos) | dois type_id na mesma categoria | passou |
 | Uma opção por categoria, id = menor type_id | K-272 (opções `[34 Incidente], [9 Trabalho de produto]`) | menor type_id (9, não 12) | passou |
 | Filtrar por qualquer type_id cobre a categoria | K-272 (`tipo=9` e `tipo=12` dão 10 800 s e 2 apontamentos) | type_id não-menor | passou |
-| lerCardsIncompletos recebe todos os type_id | K-272 (`valores[3]` = `['9','12']` na consulta `ctl_apontamento_cobertura`) | filtro no banco | passou |
-| "Sem tipo" à parte e fora das opções | teste da moldura (opções só `[12 Tipo Novo]`; "Sem tipo" soma, sem opção); K-272 inclui linha com `tipo: null` fora das opções | categoria nula | passou |
-| Link antigo `tipo=<dígitos>` segue válido | K-272 (`tipo=12` aceito) e teste existente de 400 para valor fora de dígitos | contrato do filtro | passou |
-| Nenhum rótulo repetido nas opções | K-272 (2 opções, rótulos distintos) | duplicidade | passou |
+| lerCardsIncompletos recebe todos os type_id | K-272 (`valores[3]` = `['9','12']`) | filtro no banco | passou |
+| Id da categoria estável fora da janela (A1) | K-272 (A1): janela só com type_id 12, histórico com 9 e 12; opção id '9'; `tipo=9` = 3600 s, 1 apontamento; banco recebe `['9','12']` | janela sem o menor type_id | passou (cai na mutação) |
+| "Sem tipo" à parte em `porTipo` e fora das opções (A2) | K-272 (A2): 1 linha "Sem tipo" com 900 s; opções só `['Melhoria']` | categoria nula | passou |
+| Histórico lido sem filtro de data | K-272 (A1): consulta `fato_apontamento h` sem `data_apontamento` | sem janela | passou |
+| Link antigo `tipo=<dígitos>` segue válido; fora de dígitos dá 400 | K-272 e teste existente de 400 | contrato do filtro | passou |
 
 ## Observação
-O teste K-272 não afirma a linha "Sem tipo" em `porTipo`; ela é coberta pelo teste da moldura apenas nas opções. Sem risco novo, a ordem de cálculo não mudou para esse ramo.
+O dublê do banco devolve, por padrão, os pares das próprias linhas quando `historicoTipos` não é informado; os testes de categoria que dependem da divergência janela x histórico informam `historicoTipos`. Sem risco.
 
 ## Achados
