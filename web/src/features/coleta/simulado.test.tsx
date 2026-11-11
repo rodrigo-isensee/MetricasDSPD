@@ -91,7 +91,10 @@ describe('painéis com o simulado por cartão (pedido 070, T-W6)', () => {
     const o3 = await screen.findByTestId('metrica-O3')
     await waitFor(() => expect(o3).toHaveAttribute('data-estado', 'ok'))
     // A visão semanal tem O3 (real) e O12 (simulável; BLOQUEADOS voltou ao mapa real no pedido 075, 6b): o mock só nasce por este.
-    expect(await screen.findByTestId('selo-simulado-O12')).toBeInTheDocument()
+    // Espera o cartão do O12 sair do estado de carregando (o mock nasce e responde antes disso) para só então procurar o selo.
+    const o12 = await screen.findByTestId('metrica-O12')
+    await waitFor(() => expect(o12).toHaveAttribute('data-estado', 'ok'))
+    expect(within(o12).getByTestId('selo-simulado-O12')).toBeInTheDocument()
     expect(criarMock).toHaveBeenCalledTimes(1)
   })
 
