@@ -63,6 +63,29 @@ describe('filtros', () => {
     expect(j.historico).toEqual({ inicio: '2026-10-10', fim: '2026-10-10' });
     expect(j.tipos).toEqual([]);
   });
+  it('K-279: opção que só existe fora do corte das listas não aparece (tipos e prioridades)', async () => {
+    // Dublê de banco: a categoria "Melhoria" e a prioridade P2 só existem fora do corte; o que o SQL não restringe, o dublê devolve.
+    const { app } = await montar((c) => {
+      if (c.texto.includes('SELECT DISTINCT tipo')) {
+        const cortado = c.texto.includes('criado_em IS NOT NULL');
+        return cortado ? [{ tipo: 'Bug interno' }] : [{ tipo: 'Bug interno' }, { tipo: 'Melhoria' }];
+      }
+      if (c.texto.includes('SELECT DISTINCT prioridade')) {
+        const cortado = ['aberto_em IS NOT NULL', 'equipe IS NOT NULL', 'fora_do_recorte = false'].every((p) => c.texto.includes(p));
+        return cortado ? [{ prioridade: 'P1' }] : [{ prioridade: 'P1' }, { prioridade: 'P2' }];
+      }
+      return [];
+    });
+    const bm = (await app.inject('/api/v1/filtros/businessmap')).json();
+    expect(bm.tipos).toEqual([{ id: 'bug-interno', nome: 'Bug interno' }]);
+    const ac = (await app.inject('/api/v1/filtros/acelerato')).json();
+    expect(ac.prioridades).toEqual([{ id: 'p1', nome: 'P1' }]);
+  });
+  it('acelerato com base vazia: prioridades = lista vazia', async () => {
+    const { app } = await montar(() => []);
+    const j = (await app.inject('/api/v1/filtros/acelerato')).json();
+    expect(j.prioridades).toEqual([]);
+  });
   it('domínio inválido e parâmetro de pessoa = 400 VALIDATION_ERROR', async () => {
     const { app, d } = await montar(responder);
     for (const u of ['/api/v1/filtros/outro', '/api/v1/filtros/businessmap?responsavel=ana', '/api/v1/filtros/acelerato?agente=bob']) {
