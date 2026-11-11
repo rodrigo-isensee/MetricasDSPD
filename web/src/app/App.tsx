@@ -3,7 +3,6 @@ import { useMemo } from 'react'
 import { RouterProvider, type DataRouter } from 'react-router'
 import {
   FonteMetricasProvider,
-  FonteComSimulado,
   HttpFonteMetricas,
   MockFonteMetricas,
   type FonteMetricas,
@@ -37,9 +36,8 @@ export function baseDaApi(valor: string | undefined): string {
 /** `VITE_FONTE=api|mock` (padrão `api`, pedido 060): o mock só liga com `VITE_FONTE=mock` explícito. Valor inválido falha na partida: nunca cai no mock em silêncio. */
 export function criarFontePadrao(): FonteMetricas {
   const fonte = env.VITE_FONTE ?? 'api'
-  // Pedido 070: onde a API diz que não há dado real e o cartão é simulável, o navegador mostra o simulado, com selo.
-  if (fonte === 'api')
-    return new FonteComSimulado(new HttpFonteMetricas({ base: baseDaApi(env.VITE_API_BASE) }))
+  // Pedido 099: nenhum número inventado na web de uso diário; sem dado real, o cartão mostra "Sem dado real" e o motivo.
+  if (fonte === 'api') return new HttpFonteMetricas({ base: baseDaApi(env.VITE_API_BASE) })
   if (fonte !== 'mock') throw new Error(`VITE_FONTE inválida: "${fonte}" (use "api" ou "mock")`)
   const semente = env.VITE_MOCK_SEMENTE
   return new MockFonteMetricas({
