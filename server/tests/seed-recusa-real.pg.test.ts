@@ -105,7 +105,7 @@ d('P1 do plano 060: seed e coleta real não dividem o esquema (PostgreSQL 17)', 
   });
 
   it('o CLI do seed sem PG_SEED_URL falha na partida, mesmo com PG_MIGRADOR_URL definida, sem tocar o banco', async () => {
-    const env = { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '', PG_MIGRADOR_URL: url! };
+    const env = { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '', ...(process.env.TMPDIR ? { TMPDIR: process.env.TMPDIR } : {}), PG_MIGRADOR_URL: url! };
     const r = await new Promise<{ codigo: number | null; saida: string }>((resolve) => {
       execFile('pnpm', ['exec', 'tsx', 'src/plataforma/db/seed-cli.ts'], { cwd: new URL('../', import.meta.url), env, timeout: 60_000 }, (erro, out, err) =>
         resolve({ codigo: erro === null ? 0 : (typeof erro.code === 'number' ? erro.code : null), saida: `${out}${err}` }));
