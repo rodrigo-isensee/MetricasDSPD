@@ -18,6 +18,7 @@ cat >"$TMP/bin/falso-banco" <<'EOF'
 cat >"$ENTRADA_ULTIMA"
 echo "$*" >>"$LOG"
 cp "$ENTRADA_ULTIMA" "$ENTRADA_ULTIMA.$(date +%N)"
+[ -n "${SAIDA_VAZIA:-}" ] && exit 0
 [ -n "${FALHA:-}" ] && { echo "texto de erro do driver SEGREDO-DO-DRIVER" >&2; exit 7; }
 cols="$(sed -n 's/^-- COLUNAS: //p' "$ENTRADA_ULTIMA" | head -1 | tr -d ' ')"
 IFS=',' read -ra C <<<"$cols"
@@ -170,6 +171,18 @@ mkdir -p "$TMP/home"
 saida="$(cd "$TMP/repo" && HOME="$TMP/home" DEMO_ENV_ARQUIVO="$TMP/env" bash "$SCRIPT" --so-pg 2>&1)"
 verifica "dentro do repositorio: saida na pasta pessoal" "$(ls "$TMP"/home/consultas-098-099-*.txt >/dev/null 2>&1 && ! ls "$TMP"/repo/consultas-098-099-*.txt >/dev/null 2>&1 && echo 0 || echo 1)"
 verifica "gitignore cobre consultas-098-099-*.txt" "$(grep -qx 'consultas-098-099-\*.txt' "$RAIZ/.gitignore" && echo 0 || echo 1)"
+
+# A1: MySQL sem nenhuma linha (sem cabecalho) e "0 linhas", nao recusa; PostgreSQL sem saida continua recusado
+saida="$(SAIDA_VAZIA=1 roda --so-mysql)"; rc=$?
+verifica "MySQL sem linha: rc 0, nenhuma recusa e 0 linhas no arquivo" "$([ "$rc" -eq 0 ] && grep -q 'recusadas: 0; falhas: 0' <<<"$saida" && saida_arq | grep -q '^0 linhas$' && echo 0 || echo 1)"
+saida="$(SAIDA_VAZIA=1 roda --so-pg)"; rc=$?
+verifica "PostgreSQL sem saida: continua recusado, rc 1" "$([ "$rc" -eq 1 ] && grep -q 'recusada' <<<"$saida" && echo 0 || echo 1)"
+
+# A2: chamado por um link simbolico para dentro do repositorio, a saida vai para a pasta pessoal
+ln -s "$TMP/repo" "$TMP/link-repo"
+rm -f "$TMP"/home/consultas-098-099-*.txt
+saida="$(cd "$TMP/chamada" && INIT_CWD="$TMP/link-repo" HOME="$TMP/home" DEMO_ENV_ARQUIVO="$TMP/env" bash "$SCRIPT" --so-pg 2>&1)"
+verifica "link para dentro do repositorio: saida na pasta pessoal, nao no repositorio" "$(ls "$TMP"/home/consultas-098-099-*.txt >/dev/null 2>&1 && ! ls "$TMP"/repo/consultas-098-099-*.txt >/dev/null 2>&1 && echo 0 || echo 1)"
 
 # 7. impressao do certificado diferente: recusa antes de conectar
 sed "s/^ACELERATO_MYSQL_TLS_SHA256=.*/ACELERATO_MYSQL_TLS_SHA256=$(printf 'AA:%.0s' {1..31})AA/" "$TMP/env" >"$TMP/env3"

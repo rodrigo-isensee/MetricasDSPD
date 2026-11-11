@@ -22,7 +22,9 @@
 set -uo pipefail
 # pnpm muda para a raiz do projeto e deixa a pasta de quem chamou em INIT_CWD.
 ORIGEM="${INIT_CWD:-$PWD}"
-RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
+# Caminhos fisicos (pwd -P): com link simbolico a conferencia "dentro do repositorio" ainda casa.
+ORIGEM="$(cd "$ORIGEM" 2>/dev/null && pwd -P || printf '%s' "$ORIGEM")"
+RAIZ="$(cd "$(dirname "$0")/.." && pwd -P)"
 DIR_SQL="${CONSULTAS_SQL_DIR:-$RAIZ/scripts/sql/consultas-098-099}"
 ARQUIVO_ENV="${DEMO_ENV_ARQUIVO:-$RAIZ/.env}"
 TETO_MS=120000
@@ -179,7 +181,11 @@ for f in "$DIR_SQL"/*.sql; do
     echo "FALHOU: codigo de saida $rc (o texto de erro do driver nao e impresso; rode a consulta sozinha para ver)." >>"$SAIDA"
     FALHAS=$((FALHAS + 1)); echo "falhou    $id (codigo $rc)"; continue
   fi
-  if validar "$colunas" <"$TMP/bruta" 2>"$TMP/motivo"; then
+  # O mysql --batch nao imprime cabecalho quando nao ha linha: saida vazia do MySQL e resposta legitima de 0 linhas.
+  if [ "$fonte" = mysql ] && [ ! -s "$TMP/bruta" ]; then
+    echo "0 linhas" >>"$SAIDA"
+    OK=$((OK + 1)); echo "ok        $id (0 linhas)"
+  elif validar "$colunas" <"$TMP/bruta" 2>"$TMP/motivo"; then
     cat "$TMP/bruta" >>"$SAIDA"
     OK=$((OK + 1)); echo "ok        $id"
   else
