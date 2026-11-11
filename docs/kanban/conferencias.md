@@ -2787,3 +2787,21 @@
 | 2026-11-10 23:05 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-14 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-10 23:05 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-13 | entrega | 1 | cumpriu | s | 0e0b3049: só as três retrospectivas desde 129fc3d5 (forma antiga, K-259); PR recusado pelo R-REVIEW, segue no tech-lead-14 | — | destino |
 | 2026-11-10 23:29 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 23:46 | 088-forge-0455 | 088-forge-0455-tech-lead-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 23:46 | 088-forge-0455 | 088-forge-0455-qa-engineer-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 23:52 | 088-forge-0455 | 088-forge-0455-tech-lead-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 00:18 | 075-bloqueios-reais | 075-bloqueios-reais-security-engineer-14 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 00:18 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-43 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 00:18 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-21 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 00:19 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-17 | brief | 1 | reprovado | s | T10 e T12 sem a marca Retira do escopo original | escopo | jarvis |
+| 2026-11-11 00:20 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-17 | brief | 2 | aprovado | s | brief de registro; fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 00:27 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-44 | brief | 1 | reprovado | s | merge pelo tech-lead contra a decisão de 2026-11-07 21:57 (o dono mescla cada lote) | decisao | jarvis |
+| 2026-11-11 00:28 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-44 | brief | 2 | reprovado | s | tardio: nao · linha de 00:25 do Histórico dava o merge ao tech-lead; corrigida por DECISÃO TÉCNICA às 00:28 | decisao | jarvis |
+| 2026-11-11 00:29 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-44 | brief | 3 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 00:37 | 088-forge-0455 | 088-forge-0455-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 01:12 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 01:16 | 090-release-2026-11-11 | 090-release-2026-11-11-security-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 01:16 | 090-release-2026-11-11 | 090-release-2026-11-11-qa-engineer-1 | brief | 1 | reprovado | s | cartão K-213 sem origem no pedido 090; aberto o K-262 | escopo | jarvis |
+| 2026-11-11 01:17 | 090-release-2026-11-11 | 090-release-2026-11-11-qa-engineer-1 | brief | 2 | aprovado | s | cartão K-262; fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 01:19 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-2 | brief | 1 | reprovado | s | conferido antes do parecer de QA existir; reconferir depois da E1.2 | estado | jarvis |
+| 2026-11-11 01:27 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-2 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |

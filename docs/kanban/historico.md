@@ -819,3 +819,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-10T23:31:26-03:00 | K-261 | Entrada | Em andamento | worktree: 056 · branch fix/k261-teste-hermetico; E1.7 do 088 com o node-backend (brief node-backend-1 selado 22:57). |
 | 2026-11-10T23:31:56-03:00 | K-235 | Em andamento | Bloqueado | P-E10-2, P-E10-5 e P-E10-6 com o dono; L3 do E10 (073) não anda sem elas; sem agente em curso. · custo do trecho: 1933275512 tokens |
 | 2026-11-10T23:33:01-03:00 | K-211 | Em andamento | Bloqueado | Sem agente em curso; o próximo passo do 077 sai de forge-check proximo e do Histórico do pedido (último: PR 285 do lote 7, já na main pela release 078). · custo do trecho: 654639574 tokens |
+| 2026-11-11T00:36:57-03:00 | K-261 | Em andamento | Pronto | PR 297 na develop (85394c5b) · custo total: 33720603 tokens |
+| 2026-11-11T01:16:58-03:00 | K-262 | — | Em andamento | cartão da release 090 aberto pelo Jarvis (achado da conferência do brief de QA) · atributos: titulo=Release 090; pedido=090; responsavel=forge:tech-lead |
