@@ -243,6 +243,31 @@ describe('achados: atalhos', () => {
     await waitFor(() => expect(roteador.state.location.search).toBe('?subgrupo=execucao-tecnica'))
   })
 
+  it('com menos de 20 apontamentos de execução técnica, a nota mostra a contagem sem percentual', async () => {
+    const r = respostaFicticia(CONSULTA_PADRAO)
+    await pronto(
+      URL_ABA,
+      com({
+        ...r,
+        distribuicao: {
+          ...r.distribuicao,
+          porSubgrupo: r.distribuicao.porSubgrupo.map((l) =>
+            l.id === 'execucao-tecnica'
+              ? {
+                  ...l,
+                  apontamentos: 7,
+                  participacao: { status: 'insuficiente', n: 7, minimo: 20 },
+                }
+              : l,
+          ),
+        },
+      }),
+    )
+    const nota = screen.getByTestId('nota-execucao-tecnica')
+    expect(nota).toHaveTextContent('7 apontamentos (percentual com 20 apontamentos ou mais)')
+    expect(nota).not.toHaveTextContent('%')
+  })
+
   it('sem execução técnica na distribuição, a nota não aparece', async () => {
     const r = respostaFicticia(CONSULTA_PADRAO)
     await pronto(
