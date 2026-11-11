@@ -27,7 +27,7 @@ interface Props<D extends Dto> {
   janelaPercentis?: { unidade: 'semanas' | 'meses'; quantidade: number } | undefined
   periodo?: Periodo
   acoes?: ReactNode
-  /** Notas que o resultado traz (ex.: `bloqueio-sem-dado-real`, pedido 065); os textos vivem em `contratos`. */
+  /** Notas que o resultado traz; os textos vivem em `contratos`. */
   notasDoCartao?: readonly NotaCartaoId[] | undefined
   semTabela?: boolean
   /** O campo ausente atinge só uma parte do cartão: o resto é real e continua visível (o corpo trata `campoDisponivel`). */
