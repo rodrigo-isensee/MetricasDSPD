@@ -823,3 +823,4 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-11T01:16:58-03:00 | K-262 | — | Em andamento | cartão da release 090 aberto pelo Jarvis (achado da conferência do brief de QA) · atributos: titulo=Release 090; pedido=090; responsavel=forge:tech-lead |
 | 2026-11-11T03:23:47-03:00 | K-262 | Em andamento | Aguardando sua validação | PR 301 aberto, checks verdes · custo do trecho: 28643340 tokens |
 | 2026-11-11T03:24:04-03:00 | K-263 | — | Entrada | melhoria vista na E1.6 do 090 · atributos: titulo=homolog-reavalia sem nova tentativa; pedido=090; responsavel=forge:devops-engineer |
+| 2026-11-11T08:19:36-03:00 | K-262 | Aguardando sua validação | Pronto | PR 301 mesclado na main pelo dono · custo total: 48620269 tokens |

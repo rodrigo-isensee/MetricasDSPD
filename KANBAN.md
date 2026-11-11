@@ -145,11 +145,11 @@
 ## Aguardando sua validação (WIP 2 PRs)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
-| K-262 | Release 090: develop (PRs 293 a 297) para homolog e PR de release para a main | 090 | forge:tech-lead | 2026-11-11 | 2026-11-11 03:23 | PR de release 301 (homolog para main) aberto, checks verdes e homolog-aprovada verde; espera a validação e o merge do dono. |
 
 ## Pronto
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-262 | Release 090: develop (PRs 293 a 297) para homolog e PR de release para a main | 090 | forge:tech-lead | 2026-11-11 | 2026-11-11 08:19 | Release 090 na main (PR 301, merge do dono); retrospectiva na develop (PR 302). |
 | K-261 | [bug, BUG-088-QA1] server/tests/ref-sync-apontamento-entrada.test.ts:53 não é hermético: a entrada carrega o .env da raiz (process.loadEnvFile) e o caso "sem configuração" vira "conexão" em máquina com .env; verde no CI | 088 | forge:node-backend | 2026-11-10 | 2026-11-11 00:36 | PR 297 na develop (85394c5b, 2026-11-11 00:31); vai à main na release 090. Achados A1 do review e do QA (recomendados) ficam no PR. |
 | K-232 | [segurança] Atualizar por patch body-parser 1.20.9, qs 6.16.1 e ip-address 10.7.4 no pnpm-lock.yaml (alertas 17, 26 e 13 da triagem) | 073 | forge:node-backend | 2026-11-05 | 2026-11-06 10:42 | PR 242 mesclado na develop (367ce2d0, 2026-11-06T13:40Z); vai à main na release 0.7.0; limpeza da branch e da worktree 052f pendente |
 | K-171 | [forge] Resumo de todos os problemas do Forge vividos no projeto, para o Jarvis do Forge (pedido 046) | 046 | forge:agile-coach | 2026-10-28 | 2026-11-06 10:24 | Pronto pela auditoria 074 (docs/kanban/auditoria-2026-11-06.md): Obs. "recibo enviado ao dono"; existe docs/retrospectivas/2026-10-28-problemas-para-o-forge.md |
