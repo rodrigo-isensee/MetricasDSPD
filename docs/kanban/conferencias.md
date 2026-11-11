@@ -2810,3 +2810,5 @@
 | 2026-11-11 03:05 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-5 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-11 03:25 | 090-release-2026-11-11 | 090-release-2026-11-11-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-11 03:26 | 090-release-2026-11-11 | 090-release-2026-11-11-tech-lead-6 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 07:57 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-45 | brief | 1 | reprovado | parcial | citava a decisão de 21:57 em vez da DECISÃO TÉCNICA de 00:28; push em primeiro plano contra a decisão de 17:01 | decisao | jarvis |
+| 2026-11-11 07:58 | 075-bloqueios-reais | 075-bloqueios-reais-tech-lead-45 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
