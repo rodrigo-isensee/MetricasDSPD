@@ -2741,3 +2741,16 @@
 | 2026-11-10 15:04 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-security-engineer-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-10 15:05 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-security-engineer-5 | brief | 1 | aprovado | s | igual ao -4, Revisar-sha recalculado | — | jarvis |
 | 2026-11-10 15:06 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-qa-engineer-4 | brief | 1 | aprovado | s | igual ao -3, Revisar-sha recalculado | — | jarvis |
+| 2026-11-10 20:18 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-node-backend-2 | brief | 1 | reprovado | s | espaço nas pontas vs espaço no fim | escopo | jarvis |
+| 2026-11-10 20:20 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-node-backend-2 | brief | 2 | aprovado | s | aprovado; ajuste de clareza (NFD) em seguida | — | jarvis |
+| 2026-11-10 20:21 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-node-backend-2 | brief | 3 | aprovado | s | NFD sem marcas combinantes atende à outra grafia do E4.6 | — | jarvis |
+| 2026-11-10 20:24 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-7 | brief | 3 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 20:25 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-devops-engineer-7 | entrega | 1 | cumpriu | s | 858b98b9, só a doc da demo | — | jarvis |
+| 2026-11-10 20:27 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-7 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 20:36 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-8 | brief | 1 | reprovado | s | E4.11 era o PR da correção; etapa refeita | escopo | jarvis |
+| 2026-11-10 20:37 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-9 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 20:38 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-node-backend-2 | entrega | 1 | cumpriu | s | 6dd8b682; 2 arquivos do Entregar; trim nas duas pontas, o review avalia | — | jarvis |
+| 2026-11-10 20:40 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-security-engineer-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 20:40 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-qa-engineer-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 20:40 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-10 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 20:44 | 087-paineis-dado-real-e-demo | 087-paineis-dado-real-e-demo-tech-lead-11 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
