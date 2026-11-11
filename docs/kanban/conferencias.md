@@ -2856,3 +2856,9 @@
 | 2026-11-11 10:48 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-5 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-11 10:55 | 091-homolog-reavalia-nova-tentativa | 091-homolog-reavalia-nova-tentativa-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-11 10:57 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 11:02 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-6 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; CHANGELOG da volta confirmado no Histórico | — | jarvis |
+| 2026-11-11 11:06 | 093-release-6b-homolog | 093-release-6b-homolog-qa-engineer-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 11:15 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-node-backend-3 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 11:24 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-7 | brief | 1 | reprovado | s | aviso do O1 sem origem no pedido; registrado como ESCOPO+ técnico | escopo | jarvis |
+| 2026-11-11 11:24 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-7 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 11:34 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-8 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; Fora do escopo alinhado ao Histórico | — | jarvis |
