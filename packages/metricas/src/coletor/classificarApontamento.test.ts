@@ -286,9 +286,12 @@ describe('flags de qualidade (seção 5)', () => {
     expect(classe('teste de carga').qtdPalavras).toBe(3)
   })
 
-  it('sem vínculo: subgrupo execução técnica ou não classificado', () => {
-    expect(nomes('trabalhei no item combinado ontem')).toEqual(['sem-vinculo'])
-    expect(nomes('item')).toEqual(['generico', 'sem-vinculo'])
+  it('sem vínculo: só o subgrupo não classificado (pedido 089, D2); execução técnica deixa de contar', () => {
+    // comentário com 4 ou mais palavras que o dicionário não reconheceu: execução técnica, nenhuma flag
+    expect(classe('trabalhei no item combinado ontem').subgrupo).toBe(SUBGRUPO_EXECUCAO_TECNICA)
+    expect(nomes('trabalhei no item combinado ontem')).toEqual([])
+    expect(nomes('item')).toEqual(['generico'])
+    expect(nomes('')).toEqual(['sem-comentario', 'sem-vinculo'])
   })
 
   it('sem comentário: vazio, nulo ou só espaços; a contagem de palavras é 0', () => {
@@ -721,13 +724,7 @@ describe('A3: corpus de comentários legítimos', () => {
     ['sem acento', 'reuniao de alinhamento', TAREFA, 'reunioes-comunicacao', ['generico']],
     ['sigla e número', 'RDM 1234', TAREFA, 'gestao-mudanca', ['generico']],
     ['sigla só', 'GMUD', TAREFA, 'gestao-mudanca', ['generico']],
-    [
-      'número de chamado',
-      'Chamado 2026-004512',
-      TAREFA,
-      SUBGRUPO_EXECUCAO_TECNICA,
-      ['generico', 'sem-vinculo'],
-    ],
+    ['número de chamado', 'Chamado 2026-004512', TAREFA, SUBGRUPO_EXECUCAO_TECNICA, ['generico']],
     [
       'quebra de linha',
       'Análise do log\nreuniao com a equipe\najuste final',
@@ -735,7 +732,7 @@ describe('A3: corpus de comentários legítimos', () => {
       'reunioes-comunicacao',
       [],
     ],
-    ['só número', '4512', TAREFA, SUBGRUPO_EXECUCAO_TECNICA, ['generico', 'sem-vinculo']],
+    ['só número', '4512', TAREFA, SUBGRUPO_EXECUCAO_TECNICA, ['generico']],
     ['Kaizen sem comentário', '', KAIZEN, 'gestao-backlog-rituais', ['sem-comentario']],
     ['Kaizen sem comentário (nulo)', null, KAIZEN, 'gestao-backlog-rituais', ['sem-comentario']],
     ['Incidente sem comentário', '', INCIDENTE, 'incidente-sem-detalhe', ['sem-comentario']],
@@ -751,7 +748,7 @@ describe('A3: corpus de comentários legítimos', () => {
     const r = classe(c, t)
     expect(r.subgrupo).toBe(esperado)
     expect(flagsDaMascara(r.flags).includes('sem-vinculo')).toBe(
-      esperado === SUBGRUPO_EXECUCAO_TECNICA || esperado === SUBGRUPO_NAO_CLASSIFICADO,
+      esperado === SUBGRUPO_NAO_CLASSIFICADO,
     )
     expect(flagsDaMascara(r.flags).includes('generico')).toBe(flags.includes('generico'))
     expect(flagsDaMascara(r.flags).includes('sem-comentario')).toBe(

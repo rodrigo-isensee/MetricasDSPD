@@ -36,7 +36,7 @@ function banco(op: Opcoes = {}) {
     const t = c.texto;
     if (op.falharEm !== undefined && t.includes(op.falharEm)) return new Error(`falha do banco com ${MARCADOR_NOME}`);
     if (t.includes('apt_pessoa_time')) return (op.doTime ?? ['1', '2', '3', '4']).map((pessoa_ref) => ({ pessoa_ref }));
-    if (t.includes('ref_versao_criterio')) return [{ versao_id: '5', vigente_desde: '2026-11-01', descricao: 'Dicionário de subgrupo v1' }];
+    if (t.includes('ref_versao_criterio')) return [{ versao_id: '5', vigente_desde: '2026-11-01', descricao: 'Dicionário de subgrupo v1', familia: 'dicionario' }];
     if (t.includes('ctl_apontamento_cobertura')) return op.incompletos ?? [];
     if (t.includes('FROM dspd_bm.fato_apontamento f')) return op.linhas ?? fixture();
     if (t.includes('min(data_apontamento)')) return [op.semHistorico === true ? { inicio: null, fim: null } : { inicio: '2026-01-05', fim: '2026-10-30' }];
@@ -82,9 +82,9 @@ describe('GET /api/apontamento: resposta', () => {
     expect(corpo.kpis.apontamentos).toBe(29);
     expect(corpo.kpis.pessoasAtivas).toBe(2);
     expect(corpo.frescor).toEqual({ selo: 'atual', ultimaColetaOk: '2026-11-02T06:10:00-03:00', ultimaTentativa: { resultado: 'ok', fim: '2026-11-02T06:10:00-03:00' } });
-    expect(corpo.criterios).toEqual([{ id: '5', data: '2026-11-01', descricao: 'Dicionário de subgrupo v1' }]);
+    expect(corpo.criterios).toEqual([{ id: 'dicionario-5', data: '2026-11-01', descricao: 'Dicionário de subgrupo v1' }]); // prefixo da família: é por ele que o front desenha a marca (pedido 089, A)
     expect(corpo.opcoes.historico).toEqual({ inicio: '2026-01-05', fim: '2026-10-30' });
-    expect(corpo.opcoes.subgrupos.map((s) => s.rotulo)).toEqual(['Desenvolvimento', 'Não classificado']);
+    expect(corpo.opcoes.subgrupos.map((s) => s.rotulo)).toEqual(['Desenvolvimento', 'Sem comentário']);
     await app.close();
   });
   it('sem coleta do worklog: selo "sem-coleta" e `ultimaColetaOk` nulo', async () => {
