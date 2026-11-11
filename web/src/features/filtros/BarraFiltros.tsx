@@ -209,6 +209,13 @@ export function BarraFiltros({
               <Dialog.Content
                 className="fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] overflow-auto rounded-t-xl border border-borda-controle bg-superficie p-4 shadow-xl"
                 aria-describedby={undefined}
+                onEscapeKeyDown={(e) => {
+                  // Esc com texto na busca só limpa o texto (FiltroMulti); sem texto, fecha a folha.
+                  const campos = Array.from(
+                    document.querySelectorAll<HTMLInputElement>('[data-busca-filtro]'),
+                  )
+                  if (campos.some((c) => c.value)) e.preventDefault()
+                }}
               >
                 <Dialog.Title className="mb-3 text-lg font-bold">
                   {legenda ?? 'Filtros'}

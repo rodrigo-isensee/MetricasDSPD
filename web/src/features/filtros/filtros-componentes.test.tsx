@@ -308,6 +308,21 @@ describe('BarraFiltros: folha em tela estreita e avisos', () => {
     expect(screen.getByTestId('abrir-filtros')).toHaveTextContent('Filtros (0)')
   })
 
+  it('CA-16/CA-14: na folha, Esc com texto só limpa o texto; sem texto fecha e devolve o foco', async () => {
+    renderizarBarra('/operacional')
+    const abrir = await screen.findByTestId('abrir-filtros')
+    await userEvent.click(abrir)
+    const folha = await screen.findByRole('dialog', { name: 'Filtros' })
+    const campo = within(folha).getByTestId('equipe-busca')
+    await userEvent.type(campo, 'zz')
+    await userEvent.keyboard('{Escape}')
+    expect(screen.getByRole('dialog', { name: 'Filtros' })).toBeInTheDocument()
+    expect(within(folha).getByTestId('equipe-busca')).toHaveValue('')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(abrir).toHaveFocus()
+  })
+
   it('reabrir a folha volta a empilhar uma nova entrada', async () => {
     const r = renderizarBarra('/operacional')
     await userEvent.click(await screen.findByTestId('abrir-filtros'))

@@ -93,11 +93,12 @@ function Lista({
       const unica = visiveis.length === 1 ? visiveis[0] : undefined
       if (unica) alternar(unica.id, !selecionados.includes(unica.id))
     } else if (e.key === 'Escape' && busca) {
-      e.stopPropagation()
+      // Limpa o texto; quem fecha (Popover ou Dialog) é impedido pelo `onEscapeKeyDown` do contêiner.
       setBusca('')
     }
   }
   const aoTeclarLista = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape' && busca) setBusca('')
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
     const todas = caixas(e.currentTarget.closest('ul') as HTMLElement)
     const i = todas.indexOf(e.currentTarget)
@@ -123,6 +124,7 @@ function Lista({
           onKeyDown={aoTeclarCampo}
           className="alvo w-full rounded border border-borda-controle bg-superficie px-2 py-1 text-sm"
           data-testid={`${id}-busca`}
+          data-busca-filtro=""
         />
       </div>
       <p className="sr-only" role="status" aria-live="polite">
