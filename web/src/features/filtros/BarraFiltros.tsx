@@ -7,7 +7,7 @@ import { TIPOS_FILTRO } from '@metricas-dspd/contratos'
 import { TIPO_ID } from '@metricas-dspd/contratos'
 import { AvisoFiltrosInvalidos } from './AvisoFiltrosInvalidos'
 import { ChipsFiltros } from './ChipsFiltros'
-import { FiltroMulti } from './FiltroMulti'
+import { FiltroMulti, escLimpaBuscaFocada } from './FiltroMulti'
 import { FiltroPeriodo } from './FiltroPeriodo'
 import { rotuloDoFiltro } from './paineis'
 import type { UseFiltros } from './useFiltros'
@@ -210,11 +210,8 @@ export function BarraFiltros({
                 className="fixed inset-x-0 bottom-0 z-50 max-h-[90dvh] overflow-auto rounded-t-xl border border-borda-controle bg-superficie p-4 shadow-xl"
                 aria-describedby={undefined}
                 onEscapeKeyDown={(e) => {
-                  // Esc com texto na busca só limpa o texto (FiltroMulti); sem texto, fecha a folha.
-                  const campos = Array.from(
-                    document.querySelectorAll<HTMLInputElement>('[data-busca-filtro]'),
-                  )
-                  if (campos.some((c) => c.value)) e.preventDefault()
+                  // Esc com texto no campo da lista focada só limpa o texto (FiltroMulti); senão fecha a folha.
+                  if (escLimpaBuscaFocada(e.target)) e.preventDefault()
                 }}
               >
                 <Dialog.Title className="mb-3 text-lg font-bold">

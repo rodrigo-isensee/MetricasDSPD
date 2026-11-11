@@ -36,6 +36,28 @@ export function normalizarBusca(t: string): string {
   return t.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim()
 }
 
+/**
+ * Regra única do Esc nos filtros: com texto na busca, só limpa o texto (não fecha o Popover nem a folha).
+ * Sem texto, o Esc segue e fecha.
+ */
+function escLimpaBusca(e: { preventDefault: () => void }, texto: string, limpar: () => void) {
+  if (!texto) return
+  e.preventDefault()
+  limpar()
+}
+
+/**
+ * Para a folha mobile: o campo de busca (com texto) da lista do alvo do Esc, ou `false`. Só olha a lista
+ * onde está o foco; texto em outro filtro não segura o Esc (A1 do review).
+ */
+export function escLimpaBuscaFocada(alvo: EventTarget | null): boolean {
+  // O alvo de um teclado é sempre um elemento (no mínimo o body).
+  const campo = (alvo as Element)
+    .closest('fieldset')
+    ?.querySelector<HTMLInputElement>('[data-busca-filtro]')
+  return !!campo?.value
+}
+
 function Lista({
   id,
   rotulo,
@@ -83,7 +105,12 @@ function Lista({
       : `${visiveis.length} ${visiveis.length === 1 ? 'opção encontrada' : 'opções encontradas'}.`
   const caixas = (el: Element) =>
     Array.from(el.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))
+  // Esc no campo ou numa opção: limpa o texto; quem fecha (Popover ou Dialog) é impedido pelo contêiner.
+  const aoEsc = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') escLimpaBusca(e, busca, () => setBusca(''))
+  }
   const aoTeclarCampo = (e: KeyboardEvent<HTMLInputElement>) => {
+    aoEsc(e)
     if (e.key === 'ArrowDown') {
       e.preventDefault()
       caixas(e.currentTarget.closest('fieldset') as HTMLElement)[0]?.focus()
@@ -92,13 +119,10 @@ function Lista({
       e.preventDefault()
       const unica = visiveis.length === 1 ? visiveis[0] : undefined
       if (unica) alternar(unica.id, !selecionados.includes(unica.id))
-    } else if (e.key === 'Escape' && busca) {
-      // Limpa o texto; quem fecha (Popover ou Dialog) é impedido pelo `onEscapeKeyDown` do contêiner.
-      setBusca('')
     }
   }
   const aoTeclarLista = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape' && busca) setBusca('')
+    aoEsc(e)
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
     const todas = caixas(e.currentTarget.closest('ul') as HTMLElement)
     const i = todas.indexOf(e.currentTarget)
@@ -112,7 +136,7 @@ function Lista({
       <legend className="sr-only">{rotulo}</legend>
       <div className="mb-2 flex flex-col gap-1">
         <label htmlFor={`${base}-busca`} className="text-xs font-semibold text-texto-2">
-          Buscar
+          Buscar <span className="sr-only">em {rotulo}</span>
         </label>
         <input
           ref={buscaRef}
@@ -273,10 +297,7 @@ export function FiltroMulti(props: Props) {
             }}
             onEscapeKeyDown={(e) => {
               // Esc com texto limpa o texto; sem texto fecha e devolve o foco ao botão.
-              if (busca) {
-                e.preventDefault()
-                setBusca('')
-              }
+              escLimpaBusca(e, busca, () => setBusca(''))
             }}
             className="z-50 w-64 rounded-md border border-borda-controle bg-superficie p-3 shadow-lg"
           >
