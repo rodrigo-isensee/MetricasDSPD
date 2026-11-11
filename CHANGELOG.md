@@ -26,6 +26,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Aba Apontamento (pedido 089, D2 e D3): o subgrupo `nao-classificado` passa a se chamar "Sem comentário" (dicionário v3 `2026-11-10-v3`), com explicação visível que o separa da marca de qualidade; comentário escrito que o dicionário não reconhece vira `execucao-tecnica` e aparece numa nota própria no cartão de Qualidade, fora das flags, com contagem e percentual das horas (sem percentual abaixo de 20) (#293, #294).
 - Documentação: retrospectivas dos pedidos 078, 084 e 085 (#295) e 088, 089 e 090 (#302).
 - Documentação: o pronto do autor em `praticas.md` segue a decisão do dono (só testes e typecheck do pacote durante o desenvolvimento; `pnpm run pronto` antes do commit final da branch) (K-172) (#303); `contrato: 0` no frontmatter de dez documentos antigos de `docs/qa`, `docs/reviews` e `docs/architecture`, sem mudar o corpo (K-121) (#307); o guia do desenvolvedor segue a mesma decisão para o `pnpm run pronto` (K-265) (#308).
+- Bloqueios com dado real (pedido 075, K-204): a web deixa de depender da nota `bloqueio-sem-dado-real` no O1 e no O2, e a coluna Bloqueado do O2 mostra o motivo real ou "—" (lote 9a) (#320); o id da nota sai do contrato e o servidor perde o ramo dela, com `bloqueados` nulo do O1 seguindo nulo, nunca 0 (lote 9b) (#323).
+- Documentação: retrospectivas dos pedidos 091 e 092 (#315); ADR 0030, que revoga a ADR 0028 (simulado por cartão) por decisão do dono (pedido 099) (#322).
 
 ### Corrigido
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
@@ -37,11 +39,17 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Homologação: o check `homolog-aprovada` consulta de novo o portão recém-concluído (até 6 vezes, com 10 s de intervalo) antes de falhar; a regra não muda (K-263) (#304).
 - Testes: os testes de CLI do servidor repassam `TMPDIR` ao processo filho, que no sandbox não achava pasta temporária; o `.env` real segue ignorado (K-264) (#305); o teste do CLI do seed faz o mesmo (K-266) (#309).
 - Testes: a sonda de dado de pessoa do 6b (S6) passa a pegar "bloqueado por", "quem", "comentário", "observação", `user_id` e `motivo_texto` nas respostas da API (K-267) (#310).
+- Web: o simulador de métricas está desligado; nenhum número simulado aparece na web de uso diário, e o cartão sem dado real mostra "Sem dado real" com o motivo. O código do simulador fica no repositório, parado, até os lotes L2a a L3 (pedido 099, L1; ADR 0030) (#322).
+- Aba Apontamento: o AP-TIPO e o filtro tipo agrupam por categoria (`dim_card.tipo`), uma linha e uma opção por categoria somando todos os `type_id` dela; o link antigo `tipo=<dígitos>` continua válido (decisão do dono P-097-7, K-272) (#321); o teste ponta a ponta do filtro no PostgreSQL acompanha o agrupamento (#324).
+- Entradas: o passo de critérios do apontamento lê o `.env` da raiz sozinho, pelo novo script `bm:criterios-apontamento` (K-270) (#319).
+- Testes: o caso "o mock é criado uma só vez" de `simulado.test.tsx` deixa de ser intermitente (K-268) (#317).
+- CI: os jobs com navegador (`e2e-parte`, `perf`, `e2e-homolog-parte`, `perf-homolog`) ficam em `ubuntu-24.04`, porque a imagem `ubuntu-latest` não resolve os espelhos do apt; voltam a `ubuntu-latest` quando a imagem 26 resolver (K-269) (#318).
 
 ### Desempenho
-- Nenhuma mudança nesta versão.
+- Métricas: `ehDiaUtil` consulta os feriados como número de dia, sem gerar texto por dia; nenhum resultado muda (teste de equivalência com o código antigo) (K-174, lote 1) (#316).
 
 ### Mudanças que quebram
+- Contrato (pedido 075, lote 9b): o valor `bloqueio-sem-dado-real` sai do enum de `notas` de O1, O2 e O3 e de `TEXTO_NOTA_CARTAO`; aceite de uso único em `aceitas.json`, fotografado e removido no mesmo PR, sem `/api/v2`. A API não emite a nota desde o 6b e a web não a lê desde o 9a (#323).
 - Migração 0035 (pedido 069, L9-c, decisão do dono D-L9-1): `previsao_retorno` de `dim_chamado` e `dim_chamado_versao` passa de `timestamptz` a booleano "tem previsão de retorno"; a coluna nunca foi projetada e está nula, a migração recusa a troca sem alterar nada se achar valor, e recria as três views que a leem (#238). `down` volta o tipo só com a coluna toda nula.
 - A primeira coleta do Acelerato depois do L9-c recusa com `parametros-mudaram` até o reconhecimento: rode `pnpm coleta ac --reconhecer-mudanca` uma vez (o hash `fluxo_sha256` entrou nos parâmetros comparados) (#238).
 
