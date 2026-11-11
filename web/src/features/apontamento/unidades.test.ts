@@ -110,7 +110,7 @@ describe('lerFiltros', () => {
     const ativos = filtrosAtivos(c, RESPOSTA_FICTICIA.opcoes)
     expect(ativos.map((a) => `${a.rotulo}=${a.valor}`)).toEqual([
       'Pessoa que apontou=Pessoa 3',
-      'Subgrupo=Não classificado',
+      'Subgrupo=Sem comentário',
       'Qualidade=Completo',
     ])
   })
