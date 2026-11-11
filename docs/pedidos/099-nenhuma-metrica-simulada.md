@@ -23,10 +23,21 @@
 - E2.7 (tech-lead): review do L2a.
 - E2.8 (qa-engineer): QA do L2a.
 - E2.9 (tech-lead): PR do L2a; o merge é do dono.
+- E2.10 (react-frontend): L2b, apagar FonteComSimulado.ts, simulado.ts, as exportações em data/index.ts e SemDadoRealErro.simulavel, com os testes desses arquivos, na branch fix/099-l2b-apaga-simulado, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
+- E2.11 (node-backend): L3, tirar do contrato simulavel, podeSimular e METRICAS_SEM_SIMULACAO, com testes, docs/api/metricas.md e o OpenAPI, na branch fix/099-l3-contrato-sem-simulavel, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
+- E2.15 (react-frontend): L2b e L2c juntos (o selo importa o que o L2b apaga): além do L2b, tirar o selo Simulado da interface (SeloSimulado, ramos de CartaoMetrica, OrigemCartao.simulado, OrigemDosCartoes, StatusMeta, CartaoT3, tokens.css) com os testes do selo, e o simulavel de HttpFonteMetricas, na branch fix/099-l2b-apaga-simulado, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
+- E2.16 (ux-designer): L4, texto do catálogo (WB-1) e das 8 notas (OP-21, TA-16 a TA-18, ES-11, ES-12) sem falar em simulado, em docs/ux/099-textos-sem-simulado.md, para o react-frontend aplicar depois do L2b e L2c.
+- E2.12 (tech-lead): review por lote do 099 (L2b em diante).
+- E2.13 (qa-engineer): QA por lote do 099 (L2b em diante).
+- E2.14 (tech-lead): PR e merge por lote do 099 na develop, pela autorização do dono de 17:51.
 - E3.1 (devops-engineer): um comando único para o dono rodar as consultas só de leitura dos pedidos 098 e 099 (PostgreSQL da demo e MySQL do Acelerato), que grava a saída num arquivo sem dado de pessoa, na branch chore/consultas-leitura-098-099, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
 - E3.2 (security-engineer): parecer de segurança do comando (lê o .env e os bancos reais, só leitura).
 - E3.3 (tech-lead): review e PR do comando; o merge é do dono.
 - E3.4 (qa-engineer): QA do comando (classe N pelo gatilho do package.json).
+- E3.5 (devops-engineer): K-277, o comando de consultas de leitura recusa U&, UESCAPE e os prefixos pg_ e lo_ na lista de palavras (A5 da segurança), na branch fix/k277-consultas-escape a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052g.
+- E3.6 (security-engineer): revalidação de segurança do K-277.
+- E3.7 (qa-engineer): QA do K-277.
+- E3.8 (tech-lead): review, PR e merge do K-277 na develop, pela autorização do dono de 17:51.
 
 ## Fora do escopo
 - O modo homologação (seed mock em `docker-compose.homolog.yml`), que continua com dado de teste · `técnico`
@@ -108,3 +119,19 @@
 - 2026-11-11 18:55: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-16.md d5bfde08c57c7f9867db29f66c4901865e569e1d2409ee95d41e6cb40c784b53
 - 2026-11-11 18:55: Review do L2a aprovado (190cd91b, em 78e5a2c1): A1 nome de teste desatualizado e A2 formato da linha teto, recomendados. PR e merge na develop delegados (tech-lead-16). Melhoria vista do review (retro): forge-check fora do PATH, docs/reviews/_modelo.md ausente, erros antigos no forge-check docs (042, 077-l4a, 059).
 - 2026-11-11 19:04: PR 329 (comando de consultas) mesclado na develop às 19:03 (22:03Z) pela conta do dono, no head f6f6c263 (dois updates da develop pelo GitHub; o último trouxe o L6 do 097, sem tocar o comando). tech-lead-15 parou ao ver o head mudar, como o brief manda. E3 concluída na develop; o dono roda pnpm run consultas:098-099 quando chegar à main. PR 331 (L2a) aberto pelo tech-lead-16.
+- 2026-11-11 19:42: PR 331 (L2a) mesclado na develop (995caa40, 22:05Z) depois de um update-branch pela credencial do dono, com os checks do head 190cd91b verdes; o que entrou da develop não toca web/src. CI verde na develop em 16735319, que contém o L2a. tech-lead-16 não mesclou.
+- 2026-11-11 19:43: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-5.md 2692519f2558e85961e1bb48567d2296184f988ec09d9ca665b4e7c2ebd00368
+- 2026-11-11 19:43: brief selado docs/briefs/099-nenhuma-metrica-simulada-node-backend-0.md cca67dd134d7607250bbb944e0eb0cd950ad5d38d0591c27522f5dc97517d1f2
+- 2026-11-11 19:43: E2.10 (L2b, react-frontend, worktree 041b) e E2.11 (L3, node-backend, worktree 041) delegados em paralelo, da develop 58882fcf; arquivos sem interseção (web/src contra packages, server e docs/api).
+- 2026-11-11 19:45: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-6.md 1d2040032ac14351630d7c19e6e8918d515026c0542d29579edf431a7f6e909a
+- 2026-11-11 19:45: L2b e L3 pararam antes de editar, com razão: o selo da web (OrigemDosCartoes, testes) importa o que o L2b apaga, e a web ainda lê simulavel e podeSimular, que o L3 tira do contrato. DECISÃO TÉCNICA (Jarvis): L2b e L2c juntos (E2.15, react-frontend-6, mesma branch e worktree 041b); o L3 espera o merge desse lote (branch fix/099-l3-contrato-sem-simulavel criada na 041, sem commit). Diagnóstico do node-backend: tirar simulavel é compatível (campo opcional), sem versaoContrato nova; o review do L3 confirma. ERRO-JARVIS: os briefs seguiram o 'depende de L1' da tabela da varredura sem conferir os imports; vai à retro.
+- 2026-11-11 20:14: brief selado docs/briefs/099-nenhuma-metrica-simulada-devops-engineer-8.md 49212e9849af828f536d7ab338f050213e1c589d23cd66d4906f25c3d1f1389e
+- 2026-11-11 20:14: E3.5 (K-277) delegada ao devops-engineer (devops-engineer-8), worktree 052g, branch fix/k277-consultas-escape da develop 167f3a13.
+- 2026-11-11 20:22: brief selado docs/briefs/099-nenhuma-metrica-simulada-ux-designer-0.md f971c3ea52df8ead28b7d985f085916cc4d52598fdb1949db117ba6d80e8d6b3
+- 2026-11-11 20:22: E2.16 (L4, texto do catálogo e das 8 notas) delegada ao ux-designer (ux-designer-0), em docs/ux/099-textos-sem-simulado.md, sem commit; o react-frontend aplica depois do L2b e L2c.
+- 2026-11-11 20:23: E2.16 entregue (docs/ux/099-textos-sem-simulado.md, sem commit): 8 notas e o catálogo (coluna Dados passa a Real ou Sem dado real); linhas de TA-18 e ES-12 corrigidas; catalogo.test.tsx precisa ajustar. Pergunta do UX (reversível, só texto): métrica com dado real num cartão e sem em outro mostra Sem dado real; Real só quando todos têm dado. Suposição do time pela ordem do dono de 14:05 (faca suas recomendacoes): segue a recomendação; o dono pode mudar ao ver a tela. Aplicação pelo react-frontend depois do L2b e L2c.
+- 2026-11-11 20:39: entrega conferida a73f2c4bfaee44b15b09e0003f7ce7691778a83a
+- 2026-11-11 20:41: brief selado docs/briefs/099-nenhuma-metrica-simulada-security-engineer-3.md db55b6fb55191f2825e197509a8f10d0793fcf2d7b46a7e5a0c467d388e30eda
+- 2026-11-11 20:41: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-8.md 0b813d7200b3ba321ea7ff7b79fc5b56e5410d01576f85ebbe51a44ef83bf8d3
+- 2026-11-11 20:41: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-17.md 7990802e27132d9600820af7abbf0c1e564eb56467b80a186f235f42d9c4c680
+- 2026-11-11 20:41: E3.5 (K-277) entregue (a73f2c4b, enviado): recusa U&, UESCAPE, pg_ e lo_; 8 sondas novas; teste do script e shellcheck verdes; o pronto não foi comprovado (o pnpm da worktree 052g resolve para outra worktree), fica com o CI do PR. Entrega conferida. Classe C: segurança (security-engineer-3), QA (qa-engineer-8) e review (tech-lead-17) em série, porque o R-TETO permite uma delegação por branch.

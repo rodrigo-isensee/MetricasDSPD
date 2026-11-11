@@ -2938,3 +2938,19 @@
 | 2026-11-11 19:15 | 100-release-bloqueios-simulador | 100-release-bloqueios-simulador-tech-lead-18 | brief | 1 | aprovado | s | PR das retros | — | jarvis |
 | 2026-11-11 19:20 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-20 | brief | 1 | aprovado | s | QA K-279 | — | jarvis |
 | 2026-11-11 19:20 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-32 | brief | 1 | aprovado | s | review K-279 | — | jarvis |
+| 2026-11-11 19:43 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-5 | brief | 1 | aprovado | s | L2b | — | jarvis |
+| 2026-11-11 19:43 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-node-backend-0 | brief | 1 | aprovado | s | L3 | — | jarvis |
+| 2026-11-11 19:44 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-33 | brief | 1 | aprovado | s | PR K-279 | — | jarvis |
+| 2026-11-11 19:45 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-6 | brief | 1 | aprovado | s | L2b e L2c | — | jarvis |
+| 2026-11-11 19:46 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-14 | brief | 1 | aprovado | s | volta 2 do L2 | — | jarvis |
+| 2026-11-11 20:14 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-devops-engineer-8 | brief | 1 | aprovado | s | K-277 | — | jarvis |
+| 2026-11-11 20:14 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-15 | brief | 1 | aprovado | s | K-280 | — | jarvis |
+| 2026-11-11 20:18 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-34 | brief | 1 | aprovado | s | PR do L1 | — | jarvis |
+| 2026-11-11 20:22 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-ux-designer-0 | brief | 1 | aprovado | s | L4 texto | — | jarvis |
+| 2026-11-11 20:25 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-21 | brief | 1 | aprovado | s | QA volta 2 L2 | — | jarvis |
+| 2026-11-11 20:25 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-35 | brief | 1 | aprovado | s | review volta 2 L2 | — | jarvis |
+| 2026-11-11 20:32 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-36 | brief | 1 | aprovado | s | PR do L2 | — | jarvis |
+| 2026-11-11 20:38 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-16 | brief | 1 | aprovado | s | develop vermelha depois do PR 337 | — | jarvis |
+| 2026-11-11 20:41 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-security-engineer-3 | brief | 1 | aprovado | s | portoes K-277 | — | jarvis |
+| 2026-11-11 20:41 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-8 | brief | 1 | aprovado | s | portoes K-277 | — | jarvis |
+| 2026-11-11 20:41 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-17 | brief | 1 | aprovado | s | portoes K-277 | — | jarvis |

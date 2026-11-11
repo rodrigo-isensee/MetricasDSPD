@@ -75,3 +75,6 @@
 - 2026-11-11 19:14: entrega conferida 0a6efe56d492b52b4c48e4eb2e8e256a21ead74a
 - 2026-11-11 19:15: brief selado docs/briefs/100-release-bloqueios-simulador-tech-lead-18.md 36dbd706c55e29aa378f99db948f61ba3a6bcb0210a26d18b733a9fe712d96fe
 - 2026-11-11 19:15: Review das retrospectivas aprovado (0a6efe56, sobre 2e910a6b): A1 link para docs/devops/093-runner-ubuntu26-dns.md não versionado, A2 e A3 de texto, recomendados. Entrega conferida no 0a6efe56. PR e merge delegados (tech-lead-18). Melhoria vista (retro): retrospectivas citam docs/pedidos/ e um relatório que não existem na develop.
+- 2026-11-11 19:42: E1.10 concluída: PR 334 das retrospectivas mesclado na develop (58882fcf, 22:32Z) com todos os checks do head 47a4baaa verdes; tech-lead-18 abriu e fez o update-branch, o merge saiu pela credencial do dono enquanto ele esperava.
+- 2026-11-11 20:35: PR 332 (homolog para main) mesclado na main em 2026-11-11 22:13 UTC; o dono perguntou por ele depois, então quem mesclou não está identificado (o gh usa a credencial do dono).
+- 2026-11-11 20:35: O dono confirmou que ele mesclou o PR 332 na main. Release 100 entregue.
