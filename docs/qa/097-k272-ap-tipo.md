@@ -17,7 +17,7 @@ data: 2026-11-11
 
 Base develop eac38a64. Revalidação sobre o parecer anterior (ac47260b, código 59fd6ba9). Delta `59fd6ba9..1d691f4e`: `server/src/modulos/apontamento/repositorio.ts` (+17, nova `lerTiposDoHistorico`), `servico.ts` (id da categoria e conjunto de type_id vêm do histórico) e `server/tests/apontamento-rota.test.ts` (+2 testes e a dublê do histórico).
 
-Revalidação depois do merge da develop (head dbd120a4): `forge-check parecer delta` diz "nenhum arquivo do domínio mudou" (escopo sem o que veio da base); `git diff 1d691f4e dbd120a4 -- server/src/modulos/apontamento server/tests/apontamento-rota.test.ts` vazio; `npx vitest run tests/apontamento-rota.test.ts --maxWorkers=2` no head: 74 passaram. Mesmo veredito.
+Revalidação depois do merge da develop (head dbd120a4), regravada pela ferramenta Write para constar a autoria: `forge-check parecer delta` (intervalo `dbd120a4..5fd965c5`) diz "nenhum arquivo do domínio mudou"; o que veio da base (`.github/actions/playwright/action.yml`, PR 318) não toca o item; `git diff 1d691f4e dbd120a4 -- server/src/modulos/apontamento server/tests/apontamento-rota.test.ts` vazio; `npx vitest run tests/apontamento-rota.test.ts --maxWorkers=2` em `server/`: 1 arquivo, 74 passaram. Mesmo veredito.
 
 ## Veredito
 **Aprovado.** Sem bug aberto. O A1 do review (id da categoria dependente da janela) está corrigido e provado por teste; o A2 (teste do caso do A1 e da linha "Sem tipo" em `porTipo`) está atendido. Os testes `.pg` ficam com o CI (o check-run `bateria` do mesmo sha é a prova da suíte inteira, fora desta passada local).
