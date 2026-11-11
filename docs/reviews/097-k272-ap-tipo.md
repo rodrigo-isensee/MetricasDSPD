@@ -3,34 +3,30 @@ tipo: review
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: fix/k272-ap-tipo-categoria
-commit: 59fd6ba9b36e029eb47750f04ff08a0232a119d1
-parecer: reprovado
+commit: 1d691f4e1a0d147f65d0041849395f2c0b593562
+parecer: aprovado
 revisor: tech-lead
 data: 2026-11-11
 ---
 
-# Code review: K-272, AP-TIPO e filtro tipo por categoria (097, E6.2)
+# Code review: K-272, AP-TIPO e filtro tipo por categoria (097, E6.2), revalidação da volta 1
 
-Intervalo: `eac38a64..59fd6ba9` (base develop eac38a64b0b580d7c920f4b2b501287f7fb56599). Arquivos: `server/src/modulos/apontamento/servico.ts` (+44 -8) e `server/tests/apontamento-rota.test.ts` (+25 -1); 78 linhas, dentro da orientação de 150. QA aprovado em `docs/qa/097-k272-ap-tipo.md` (ac47260b), lido e não refeito.
+Base develop eac38a64b0b580d7c920f4b2b501287f7fb56599. Rodada anterior: reprovado em 59fd6ba9 (parecer d4f4037f, A1 bloqueante, A2 recomendado). Delta lido: `59fd6ba9..1d691f4e`, só código e teste: `server/src/modulos/apontamento/repositorio.ts` (+17), `servico.ts` (+4 -4), `server/tests/apontamento-rota.test.ts` (+32). Total do item contra a base: 129 linhas de código e teste, dentro da orientação de 150. QA aprovado de novo em `docs/qa/097-k272-ap-tipo.md` (d7702b7b), lido e não refeito.
 
 ## Execução
-- `npx vitest run tests/apontamento-rota.test.ts --maxWorkers=2` (R-TETO), em `server/` no HEAD ac47260b (código igual a 59fd6ba9): 1 arquivo, 72 testes passaram.
-- Sonda S1 abaixo, por `npx tsx` sobre as funções exportadas, sem tocar a árvore.
-- `docs/engineering/praticas.md` não marca regras "decidida por"; o review seguiu o checklist da skill sobre o diff.
+- `npx vitest run tests/apontamento-rota.test.ts --maxWorkers=2` (R-TETO), em `server/` no HEAD d7702b7b (código igual a 1d691f4e; o delta d7702b7b só toca o parecer do QA): 1 arquivo, 74 testes passaram.
+- `docs/engineering/praticas.md` não marca regras "decidida por"; o review seguiu o checklist da skill sobre o delta.
 
 ## O que foi conferido
-- **Fontes não se misturam:** a categoria vem de `COALESCE(c.tipo, p.tipo)` e o `type_id` de `fato_apontamento`, ambos no esquema `S.bm`; nada do Acelerato entra. Atende.
-- **Comparação entre pessoas:** a mudança só reagrupa a dimensão tipo; não cria ranking, meta nem visão por pessoa. Atende.
-- **"Sem tipo" fora das opções:** linha com `type_id` nulo ou categoria nula vai para `sem-tipo`, soma e não vira opção; o teste da moldura foi ajustado e a mudança está declarada no corpo do commit. Atende.
-- **Agrupamento e filtro no banco:** `lerCardsIncompletos` usa só linhas do período, que está contido na janela de `lerLinhas` (menor/maior entre período e diário), então `typeIdsDoFiltro` conhece todos os `type_id` que a consulta pode achar. Atende.
-- **Estabilidade do id (menor `type_id`):** não atende, ver A1. O mapa de categorias é montado das linhas lidas na janela (`categoriasDeTipo(brutas)`, linha 135), não do histórico. Com um `type_id` novo e maior entrando na categoria, o id não muda só enquanto o menor também aparecer na janela; quando a janela não tem o menor, a opção passa a ter outro id, e um link ou seleção guardada com o id antigo deixa de cobrir a categoria.
-
-## Sondas
-- S1 · janela A com type_id 9 e 12 da mesma categoria, janela B só com 12; `filtroPorCategoria(['9'], B)` · espera: tipo=9 cobre o 12 em B · obtido: id da opção 9 em A e 12 em B; filtro e banco `['9']` em B, sem hora da categoria
+- **A1 resolvido:** `categoriasDeTipo` passa a receber `lerTiposDoHistorico` (pares distintos `type_id` x categoria de todo o histórico ativo), não as linhas da janela. O id da categoria (menor `type_id`) e o conjunto que um `tipo=` cobre deixam de depender da janela; o caso da sonda S1 (link com 9 numa janela só com 12) agora cobre a categoria.
+- **A2 resolvido:** teste "K-272 (A1)" com janela só com 12 e histórico com 9 e 12: opção com id 9, `tipo=9` soma a hora do 12 e o banco recebe `['9','12']`; a consulta do histórico não tem `data_apontamento`. Teste "K-272 (A2)": linha "Sem tipo" única em `porTipo`, 900 s, fora das opções.
+- **Sem coluna de pessoa:** a consulta nova lê só `card_id`, `parent_card_id`, `excluido_em`, `type_id` de `fato_apontamento` e `tipo` de `dim_card`; as mesmas colunas que `lerLinhas` já lê com o papel `dspd_api_apontamento`, sem GRANT novo. Nenhum `pessoa_ref`, nome nem título.
+- **Fontes não se misturam:** tudo no esquema `S.bm`; nada do Acelerato. Expressão da categoria (`COALESCE(c.tipo, p.tipo)`) igual à de `lerLinhas`, então o mapa é coerente com as linhas.
+- **Custo:** a consulta varre o `fato_apontamento` ativo inteiro (worklog de 12 meses na carga inicial) com dois joins por chave em `dim_card` e `DISTINCT`, uma vez por requisição. Não precisa de índice agora: o `DISTINCT` sobre todas as linhas ativas lê a tabela toda de qualquer forma, e um índice parcial só daria varredura só-de-índice, ganho marginal neste volume. Revisar com `EXPLAIN` se o histórico passar de algumas centenas de milhares de linhas ou se a rota sair do orçamento da ADR 0003.
+- **Comparação entre pessoas:** nada novo; a mudança só reagrupa a dimensão tipo.
 
 ## Achados
-- A1 (bloqueante) server/src/modulos/apontamento/servico.ts:135 · id da categoria depende da janela: tipo=9 (id dado numa janela com 9 e 12) zera a categoria numa janela só com 12 (S1), contra P-097-7. Sugestão: mapa tipo->type_id do histórico.
-- A2 (recomendado) server/tests/apontamento-rota.test.ts:175 · falta teste do link guardado com o menor type_id numa janela onde ele não aparece (o caso de A1), e da linha "Sem tipo" em porTipo, como o QA observou.
+- A3 (recomendado) server/src/modulos/apontamento/servico.ts:96 · `idDaCategoria.get(l.typeId) as string`: lerLinhas e lerTiposDoHistorico são leituras separadas; exclusão ou troca de tipo entre elas deixa o id indefinido. Sugestão: `?? l.typeId` ou mesma transação.
 
 ## Veredito
-**Reprovado** por A1: defeito provado contra a decisão do dono e contra o critério do brief (link guardado continua valendo). Correção de lógica volta ao autor (node-backend); a forma de ler o mapa do histórico (consulta própria em `dim_card`/`fato_apontamento`, sem filtro de data) é dele, com o teste de A2.
+**Aprovado** em 1d691f4e1a0d147f65d0041849395f2c0b593562: A1 e A2 resolvidos, sem bloqueante. A3 é janela de corrida estreita (coleta concorrente entre duas consultas da mesma requisição), sem gatilho provado; fica como recomendação ao autor, fora deste PR se o dono preferir.
