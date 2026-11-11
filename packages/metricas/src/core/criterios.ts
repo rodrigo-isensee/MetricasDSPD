@@ -120,11 +120,11 @@ export const VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL: VersaoCriterio = {
 }
 
 /**
- * DATA PENDENTE (pedido 075, lote 6a): a data real é a da primeira coleta do BusinessMap (primeiro `coletado_em` de
- * `stg_card`), da consulta do dono na prova do lote 6b. Até lá fica uma data futura, que não cruza nenhum período nem
- * corta ponto algum. O 6b troca SÓ esta constante (o id e a versão a seguem).
+ * Pedido 075, lote 6b: data da primeira coleta real do BusinessMap (primeiro `coletado_em` de `stg_card`), da consulta do dono
+ * (Histórico de 2026-11-10 22:10) e da versão de critério (2026-11-10 22:39). Ponto único: o id, a versão e o corte da série do
+ * O1 derivam desta constante.
  */
-export const DATA_BLOQUEIO_COM_DADO_REAL = '2099-12-31'
+export const DATA_BLOQUEIO_COM_DADO_REAL = '2026-11-01'
 
 /** Pedido 075 (K-204, via A): bloqueio volta com dado real, derivado da comparação entre coletas; histórico parcial (P-075-6). */
 export const VERSAO_CRITERIO_BLOQUEIO_COM_DADO_REAL: VersaoCriterio = {
