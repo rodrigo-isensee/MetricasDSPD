@@ -9,6 +9,7 @@
 - E1. K-121: os 10 documentos antigos de docs/qa e docs/architecture sem frontmatter (ADR 0004) ganham o frontmatter, para o `forge-check docs` parar de acusar erro antigo e esconder achado novo · `técnico`
 - E2. K-172: `docs/engineering/praticas.md` (seção 9, "Autores") diz "`pnpm run pronto` verde antes de cada commit"; alinhar o texto à decisão do dono de 2026-10-21 (pronto completo uma vez, antes do commit final), sem afrouxar · `técnico`
 - E5. K-264: os testes de CLI do server (apontamento-entradas e ref-sync-*-entrada) rodam o processo filho com env só com PATH; o tsx não acha pasta temporária gravável no sandbox e 31 testes falham no pronto local; passar a pasta temporária ao filho, sem afrouxar o isolamento do K-261 · `técnico`
+- E6. K-268: o caso do mock criado uma só vez em web/src/features/coleta/simulado.test.tsx é intermitente no CI (selo-simulado-O12 não aparece a tempo); estabilizar sem timeout nem retry · `técnico`
 - E3. K-174: o teste de `tools/docs-contratos` "as páginas geradas coincidem com o código" (insumos.test.ts) estoura o timeout de 5 s sob carga e derruba o pronto; deixá-lo mais barato, sem aumentar timeout nem retry · `técnico`
 
 ## Etapas
@@ -16,7 +17,7 @@
 - E1.4 (tech-lead): K-121, frontmatter em docs/reviews/front-via-api.md, na mesma branch, depois da E1.1.
 - E1.5 (software-architect): K-121, frontmatter em docs/architecture/features/front-via-api.md, na mesma branch (o tech-lead leva o arquivo ao commit).
 - E2.1 (tech-lead): K-172, na branch docs/k172-pronto-praticas, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
-- E3.1 (node-backend): K-174, na branch fix/k174-docs-contratos-carga, worktree /home/rodrigoisensee/MetricasDSPD-052g.
+- E3.1 (node-backend): K-174, na branch fix/k174-insumos-carga, worktree /home/rodrigoisensee/MetricasDSPD-052c (primeira tentativa em fix/k174-docs-contratos-carga, 052g, sem PR).
 - E1.2 (tech-lead): review do K-121.
 - E1.3 (tech-lead): PR do K-121 para a develop; o merge é do dono.
 - E2.2 (tech-lead): review do K-172.
@@ -24,11 +25,17 @@
 - E3.2 (tech-lead): review do K-174.
 - E3.3 (qa-engineer): QA do K-174 (E1 e E2 são só documentação, classe T).
 - E3.4 (tech-lead): PR do K-174 para a develop; o merge é do dono.
+- E3.5 (software-architect): plano do K-174: tornar mais barato o cálculo de tempo da biblioteca compartilhada (packages/metricas/src/core/calendario.ts: horasUteisEntre, diaDeIso, ehDiaUtil) e o gerarBaseMock, sem mudar nenhum resultado, com o efeito no servidor e a forma de provar; só leitura, parecer em docs/analises/, sem commit.
 - E5.1 (node-backend): K-264, na branch fix/k264-cli-tmpdir, worktree /home/rodrigoisensee/MetricasDSPD-052g.
 - E5.2 (tech-lead): review do K-264.
 - E5.3 (qa-engineer): QA do K-264.
 - E5.4 (tech-lead): PR do K-264 para a develop; o merge é do dono.
+- E6.1 (react-frontend): K-268, teste intermitente de simulado.test.tsx, na branch fix/k268-simulado-intermitente, worktree /home/rodrigoisensee/MetricasDSPD-052d.
+- E6.2 (tech-lead): review do K-268.
+- E6.3 (qa-engineer): QA do K-268.
+- E6.4 (tech-lead): PR do K-268; o merge é do dono.
 - E4.1 (agile-coach): retrospectiva curta.
+- E4.2 (tech-lead): review e envio das retrospectivas do 091 e do 092 (worktree 052g, branch docs/retros-2026-11-11b): parecer de review, commit, push e PR para a develop; o merge é do dono.
 
 ## Fora do escopo
 - Outros testes com orçamento de tempo sob carga (K-175, K-120) · `técnico`
@@ -75,3 +82,23 @@
 - 2026-11-11 11:14: DECISÃO TÉCNICA (Jarvis): o K-174 volta com a pista da primeira tentativa (custo no carregarInsumos, código do gerador), na branch fix/k174-insumos-carga (worktree 052c) a partir da develop 7b2325a9; o PR vem depois da release 093 (develop congelada).
 - 2026-11-11 11:15: brief selado docs/briefs/092-melhorias-tecnicas-fila-node-backend-3.md 27a5bc66cf3c7a9e8a7ea9610c3c7230552f7af46d24d4a7564b6d76c6261531
 - 2026-11-11 11:17: E3.1 (K-174, segunda tentativa) parado sem mudança: o custo (cerca de 0,9 a 1,4 s a frio) está na biblioteca compartilhada de tempo (packages/metricas/src/core/calendario.ts: horasUteisEntre, diaDeIso e ehDiaUtil, cerca de 300 ms) e no gerarBaseMock (cerca de 210 ms), não no insumos.ts. DECISÃO TÉCNICA (Jarvis): não mexer na biblioteca de tempo (T2.5, compartilhada com o servidor) só para encurtar um teste; o K-174 volta à fila com o perfil e o próximo passo é um plano do software-architect (memoização do calendário, efeito no servidor). Branch fix/k174-insumos-carga sem commit.
+- 2026-11-11 11:53: ESCOPO+ (técnico): E4.2 leva as retrospectivas do 091 e do 092 à develop num só PR, com o review no mesmo envio, depois da promoção da release 093 à homolog.
+- 2026-11-11 11:54: brief selado docs/briefs/092-melhorias-tecnicas-fila-tech-lead-10.md 1d93468325ae6237471e40e64ead555251266c7411ea33b41a8f6959020c4259
+- 2026-11-11 12:00: ESCOPO+ (técnico): E3.5, plano do arquiteto para o K-174 antes de qualquer mudança na biblioteca de tempo (T2.5).
+- 2026-11-11 12:00: brief selado docs/briefs/092-melhorias-tecnicas-fila-software-architect-2.md ae5df4d88b6dc64d43292458e595ea7ff06cc842ab960aed6130f8b0d0b661aa
+- 2026-11-11 12:04: E3.5 plano do K-174 entregue (docs/analises/092-k174-plano.md, sem commit; PQ-1 conferido pelo Jarvis, rc=0): lote 1 com feriados guardados como número de dia, lote 2 só se a medição pedir; critério de parada: reproduzir o estouro antes de mudar, ganho de 30% e estouro sumir sob carga. Sem pergunta ao dono. Próximo: implementação do lote 1 pelo node-backend, quando houver vaga.
+- 2026-11-11 12:07: DECISÃO TÉCNICA (Jarvis), substitui a de 11:17 para o K-174: com o plano do arquiteto (docs/analises/092-k174-plano.md), o lote 1 mexe na biblioteca de tempo só para ganho medido e com prova de resultado igual bit a bit; e só segue se o estouro for reproduzido antes (critério de parada do plano, mais restrito).
+- 2026-11-11 12:07: brief selado docs/briefs/092-melhorias-tecnicas-fila-node-backend-4.md a8fb06a617fc90d116cf75959dd6b84ea1b6893cda2d10386f4313478a5807d0
+- 2026-11-11 12:08: E4.2: retrospectivas do 091 e do 092 commitadas (e4826523), review aprovado (fe257e59; A1 a A3 recomendados) e PR 315 aberto; CI vermelha por instabilidade, não pela mudança: simulado.test.tsx (selo-simulado-O12, intermitente, vira K-268) e e2e-parte pelo apt do Playwright (mesma falha de DNS do runner que o devops trata na E1.9 do 093). O merge é do dono.
+- 2026-11-11 12:09: ESCOPO+ (técnico): E6 (K-268), teste intermitente visto nos PRs 311 e 315; worktree 052d na branch fix/k268-simulado-intermitente a partir da develop d8d52103.
+- 2026-11-11 12:12: brief selado docs/briefs/092-melhorias-tecnicas-fila-react-frontend-1.md cf39317485559ca5ae42030c36cdb28c15a80fe7615e845e2732d934fa5cb84d
+- 2026-11-11 12:24: E6.1 (K-268) primeira rodada parou sem commit: a mudança (esperar o cartão do O12 sair do carregando) ficou na worktree 052d; 1 falha em 30 sem caso identificado. Nova rodada para achar e tratar a falha restante.
+- 2026-11-11 12:25: brief selado docs/briefs/092-melhorias-tecnicas-fila-react-frontend-2.md 789560725046e4a2b1c4623432f88a1ede6339609fce3352123e3dd0ad422e6c
+- 2026-11-11 12:30: E3.1 (K-174, lote 1) entregue (e722029a): -34% no carregarInsumos a frio, resultados iguais bit a bit, pronto verde. O estouro reproduzido (4/6 sob carga extrema) caiu para 2/6, sem sumir; o caso que estoura é o insumos-removida.test.ts, que chama o carregarInsumos dentro do caso. DECISÃO TÉCNICA (Jarvis): o lote 1 segue para review, QA e PR pelo ganho medido; o caso do insumos-removida vira o próximo passo do K-174 (carregar uma vez fora do caso), em cartão próprio; o lote 2 do plano não entra agora.
+- 2026-11-11 12:30: brief selado docs/briefs/092-melhorias-tecnicas-fila-tech-lead-11.md ba1961aabc3ad439ada95661c7716b11864edc54914d1ac9f2699b24e6c46067
+- 2026-11-11 12:31: E6.1 (K-268) entregue (52aa703d; 30/30 verdes; a falha da rodada anterior não se reproduziu). Próximo: E6.2 (review).
+- 2026-11-11 12:32: brief selado docs/briefs/092-melhorias-tecnicas-fila-tech-lead-12.md 21713a2effce52923524a98934b3b84479e54b4b130a7852fd7b24c797f75230
+- 2026-11-11 12:34: E6.2 review do K-268 aprovado (41ce5e3d, sem achados). Próximo: E6.3 (QA).
+- 2026-11-11 12:35: E3.2 review do K-174 aprovado (3ec5fbe1, sem achados; teto excedido, 250 linhas, quase tudo teste de equivalência). Próximo: E3.3 (QA).
+- 2026-11-11 12:35: brief selado docs/briefs/092-melhorias-tecnicas-fila-qa-engineer-4.md 0a34e5612b0c3077580986e1197f6a1e6ada6e43d5d8dbe779fb95f898e52ca8
+- 2026-11-11 12:36: brief selado docs/briefs/092-melhorias-tecnicas-fila-qa-engineer-5.md 693752a43a5f9b0de785b5aa1a5d4ff880eda2e0edf50450c5d4a9a1f3b75459

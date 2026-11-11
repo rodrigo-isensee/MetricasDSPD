@@ -840,3 +840,5 @@ Append-only. Uma linha por movimento de cartão.
 | 2026-11-11T10:30:52-03:00 | K-263 | Em andamento | Pronto | PR 304 na develop (merge do dono). · custo total: 145820015 tokens |
 | 2026-11-11T10:31:04-03:00 | K-264 | Entrada | Pronto | PR 305 na develop (merge do dono). · custo total: 133244210 tokens |
 | 2026-11-11T10:31:15-03:00 | K-121 | Pronto para fazer | Pronto | PR 307 na develop (merge do dono). · custo total: 8053845392 tokens |
+| 2026-11-11T12:08:51-03:00 | K-268 | — | Entrada | teste intermitente visto nos PRs 311 e 315 · atributos: titulo=simulado.test.tsx intermitente; pedido=092; responsavel=forge:react-frontend |
+| 2026-11-11T12:22:04-03:00 | K-269 | — | Em andamento | pedido 095 · atributos: titulo=runner ubuntu-24.04; pedido=095; responsavel=forge:devops-engineer |

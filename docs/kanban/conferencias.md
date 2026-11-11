@@ -2862,3 +2862,16 @@
 | 2026-11-11 11:24 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-7 | brief | 1 | reprovado | s | aviso do O1 sem origem no pedido; registrado como ESCOPO+ técnico | escopo | jarvis |
 | 2026-11-11 11:24 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-7 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-11 11:34 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-8 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; Fora do escopo alinhado ao Histórico | — | jarvis |
+| 2026-11-11 11:52 | 093-release-6b-homolog | 093-release-6b-homolog-tech-lead-9 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 11:54 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-10 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 12:00 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-software-architect-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 12:05 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-node-backend-4 | brief | 1 | reprovado | s | E3.1 do pedido com a branch antiga; pedido e brief alinhados | escopo | jarvis |
+| 2026-11-11 12:07 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-node-backend-4 | brief | 2 | aprovado | s | fidelidade, decisões e corte ok; troca de decisão técnica anotada | — | jarvis |
+| 2026-11-11 12:08 | 093-release-6b-homolog | 093-release-6b-homolog-devops-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 12:12 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-react-frontend-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 12:23 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-devops-engineer-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 12:25 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-react-frontend-2 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 12:30 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-11 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 12:32 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-tech-lead-12 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 12:35 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-qa-engineer-4 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-11 12:36 | 092-melhorias-tecnicas-fila | 092-melhorias-tecnicas-fila-qa-engineer-5 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; 5 processos bastam para confirmar a ordem de grandeza (o autor mediu 10) | — | jarvis |

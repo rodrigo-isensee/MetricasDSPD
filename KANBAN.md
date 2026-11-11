@@ -20,6 +20,7 @@
 ## Entrada (backlog: cartões com dependência aberta)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-268 | [teste] web/src/features/coleta/simulado.test.tsx:94 é intermitente: o selo-simulado-O12 não aparece a tempo (8,3 s) e o job testes cai; passa na rodada seguinte do mesmo commit | 092 | forge:react-frontend | 2026-11-11 | 2026-11-11 12:08 | Visto no CI dos PRs 311 (run 43032347561) e 315 (run 43043273858). |
 | K-259 | [Forge] forge-check entrega conta como "fora do declarado" os arquivos trazidos por merge da develop na branch (077 L7, 087 demo); o intervalo deveria excluir o que já está na base | 077 | forge:tech-lead | 2026-11-10 | 2026-11-10 13:15 | Fila; vai ao Forge (só propor). |
 | K-252 | [Forge] brief que toca .githooks/ deve dizer que é arquivo do usuário e que o agente entrega o diff (MELHORIA da retrospectiva do 083) | 083 | forge:tech-lead | 2026-11-10 | 2026-11-10 09:05 | Fila; vai ao Forge (só propor). |
 | K-253 | [Forge] git switch -c em worktree deixou o HEAD na branch antiga (índice na nova) em 052e, 052g e 052h; instruir worktree add ou conferir branch e status logo depois (MELHORIA da retrospectiva do 083) | 083 | forge:tech-lead | 2026-11-10 | 2026-11-10 09:05 | Fila; vai ao Forge (só propor). |
@@ -104,6 +105,7 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-270 | [server] passo de critérios do apontamento carrega o .env sozinho (script bm:criterios-apontamento) e roteiro do 089 corrigido | 096 | forge:node-backend | 2026-11-11 | 2026-11-11 12:37 | relato da implantação do apontamento em 2026-11-11 12:37. |
 | K-229 | [técnico] Seção [Não publicado] do CHANGELOG ainda lista itens da release 068, já na main pelo PR 229 | 071 | forge:tech-lead | 2026-11-05 | 2026-11-06 15:08 | Proposta pronta (docs/analises/073-changelog.md): versões 0.3.0 a 0.6.0 e combinada 0.7.0; seções entram no chore(release) da release combinada |
 | K-187 | [Forge] forge-check escolhe parecer e Desde pela branch (lote E1 e E2 do pedido 055) | 055 | forge:tech-lead | 2026-10-30 | 2026-10-30 13:01 | PR de proposta para a develop do Forge; destrava o PR da 048d depois da release · clone ~/.forge-contrib/MetricasDSPD |
 | K-175 | [teste] Endurecer a trava de suíte única: A1 a A3 da segurança e A1 do review do 045 (retorno do flock, fd herdado por órfão, variável exportada, espera sem teto) | 045 | forge:node-backend | 2026-10-28 | 2026-10-28 17:58 | MELHORIA 1 da retro do 045; o Histórico de 11:35 apontou para um K-171 que é outro cartão |
@@ -113,6 +115,7 @@
 ## Em andamento (WIP 1 por agente)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-269 | [CI, devops] jobs com navegador falham no runner Ubuntu 26.04 (apt não resolve os espelhos do Ubuntu): fixar ubuntu-24.04 em ci.yml e homolog.yml | 095 | forge:devops-engineer | 2026-11-11 | 2026-11-11 12:22 | worktree: 052h · branch melhoria/runner-ubuntu-2404; push do workflow pelo dono. |
 | K-265 | [docs] guia-do-desenvolvedor.md:44 ainda diz "pnpm run pronto antes de cada commit"; alinhar à decisão do dono de 2026-10-21, como o K-172 fez em praticas.md | 094 | forge:tech-lead | 2026-11-11 | 2026-11-11 10:14 | worktree: 052c · branch docs/k265-guia-pronto; pedido 094, E1.1. |
 | K-267 | [teste, segurança] regex PESSOA do S6 (painel-real-f6.test.ts:339) não cobre "bloqueado por", "quem", "comentário" e "observação" do modelo de ameaças do 075 | 094 | forge:node-backend | 2026-11-11 | 2026-11-11 10:14 | worktree: 052f · branch fix/k267-regex-pessoa; pedido 094, E3.1. |
 | K-266 | [teste] server/tests/seed-recusa-real.pg.test.ts:108 roda o filho sem a pasta temporária (mesmo padrão do K-264); usar o ajudante ajuda-cli-filho.ts | 094 | forge:node-backend | 2026-11-11 | 2026-11-11 10:14 | worktree: 052d · branch fix/k266-seed-tmpdir; pedido 094, E2.1. |

@@ -18,6 +18,7 @@
 - E1.6 (dono): validar o 6b na homolog (painel Operacional com os bloqueios reais).
 - E1.7 (tech-lead): PR de release da homolog para a main, aberto; o merge é do dono.
 - E1.8 (agile-coach): retrospectiva curta.
+- E1.9 (devops-engineer): desbloqueio do portão da homolog (reexecução dos jobs com navegador que falharam por DNS no runner; se repetir, diagnóstico e correção do runner em PR próprio).
 
 ## Fora do escopo
 - PRs que entrarem na develop depois da segunda volta (PR 312); os PRs 303 a 310 entraram nesta release (ver Histórico) · `técnico`
@@ -58,3 +59,11 @@
 - 2026-11-11 11:24: brief selado docs/briefs/093-release-6b-homolog-tech-lead-7.md d142e4d44569891dfbcb271d7c42c603d4941e0df548144506964b9aed993f2e
 - 2026-11-11 11:32: PR 312 (segunda volta) mesclado pelo dono (develop d8d52103); o forge-check libera a E1.5. Próximo: PR da develop para a homolog.
 - 2026-11-11 11:34: brief selado docs/briefs/093-release-6b-homolog-tech-lead-8.md ffee98980165c3631a77aaa609fef92de206c97421581f54950ffc9eb5c56363
+- 2026-11-11 11:51: DECISÃO DO DONO (literal): "pronto mesclei". E1.5: PR 313 (develop d8d52103 para a homolog) mesclado pelo dono (homolog 4803081e). Próximo: E1.6 (validação do dono do 6b na homolog) e E1.7 (PR de release homolog para main, aberto).
+- 2026-11-11 11:52: o PR 313 foi mesclado com e2e-parte 1/2, 2/2 e perf pendentes (falha de DNS do runner no playwright install-deps; reexecução pedida pelo tech-lead). O portão da homolog em 4803081e é a prova antes do PR de release para a main.
+- 2026-11-11 11:53: brief selado docs/briefs/093-release-6b-homolog-tech-lead-9.md eb040f4350f56283fb845134f03053b7282ae4579f193c60244a7c9a11f04f98
+- 2026-11-11 12:06: E1.7: PR 314 (homolog 4803081e para main) aberto pelo tech-lead; homolog-aprovada vermelho porque o portão da homolog falhou só nos jobs com navegador por DNS no runner Ubuntu 26 (Failed to install browser dependencies, security.ubuntu.com). DECISÃO TÉCNICA (Jarvis): o devops reexecuta os jobs que falharam e, se repetir, diagnostica a imagem do runner (correção em PR próprio).
+- 2026-11-11 12:08: brief selado docs/briefs/093-release-6b-homolog-devops-engineer-1.md 873f49cf63421183e0512e759e68e8d5f57539b6b3603fd46ad72dbfe14b63e8
+- 2026-11-11 12:13: DECISÃO DO DONO (literal): "feito mas tive que dar bypassa veja senao subiu um erro". PR 314 (homolog para main) mesclado pelo dono com bypass da proteção (main c9354a82), com o homolog-aprovada vermelho só pela falha de DNS do runner nos jobs com navegador; rapida, testes, banco, build, openapi, imagem e seguranca tinham passado. A reexecução do portão (run 43042533708) segue com o devops como prova. PR 315 (retrospectivas 091 e 092) mesclado na develop. Falta confirmar com o dono a validação do 6b (E1.6) antes dos lotes 9a e 9b.
+- 2026-11-11 12:22: E1.9: duas reexecuções falharam pelo mesmo DNS do apt no runner Ubuntu 26.04 (diagnóstico em docs/devops/093-runner-ubuntu26-dns.md, sem commit). A correção vai no pedido 095 (K-269): jobs com navegador no ubuntu-24.04, push do workflow pelo dono. A release já está na main pelo merge do dono com bypass; a prova dos testes com navegador sobre ela fica para depois do 095.
+- 2026-11-11 12:37: apontamento (pedido 089) implantado na base local da demo (origin/main c9354a82) pela sessão "WSL ativação" a pedido do dono: versão de referência 2026-11-10-v3 vigente desde 2026-11-11, critérios 059, 067 e 089 gravados, carga inicial desde 2025-11-11 com 49.501 registros, 0 inválidos, 0 falhas; a repetição não duplicou nada. Achados: o passo de critérios não carrega o .env sozinho (vira K-270, pedido 096); api e web da demo seguem paradas depois do reinício do WSL (o Postgres foi religado).
