@@ -25,6 +25,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Bloqueios com dado real: BLOQUEADOS, O5 e O19 voltam ao mapa real, o O1 e o O2 saem com a parte de bloqueio calculada (sem a nota `bloqueio-sem-dado-real`), a data da versão de critério é 2026-11-01 e `BLOQUEIOS_COM_DADO_REAL` fica ligado; T10 e T12 seguem fora (pedido 075, lote 6b, K-204) (#298).
 - Aba Apontamento (pedido 089, D2 e D3): o subgrupo `nao-classificado` passa a se chamar "Sem comentário" (dicionário v3 `2026-11-10-v3`), com explicação visível que o separa da marca de qualidade; comentário escrito que o dicionário não reconhece vira `execucao-tecnica` e aparece numa nota própria no cartão de Qualidade, fora das flags, com contagem e percentual das horas (sem percentual abaixo de 20) (#293, #294).
 - Documentação: retrospectivas dos pedidos 078, 084 e 085 (#295) e 088, 089 e 090 (#302).
+- Documentação: o pronto do autor em `praticas.md` segue a decisão do dono (só testes e typecheck do pacote durante o desenvolvimento; `pnpm run pronto` antes do commit final da branch) (K-172) (#303); `contrato: 0` no frontmatter de dez documentos antigos de `docs/qa`, `docs/reviews` e `docs/architecture`, sem mudar o corpo (K-121) (#307).
 
 ### Corrigido
 - Painéis: gate de fronteiras do 070, sem import do pacote mock na fonte com simulado e F9 abaixo de 120 KB (#231); marca d'água SIMULADO em SVG, sem violação de contraste do axe (bug 070-001) (#233).
@@ -33,6 +34,8 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Entradas: `ref-sync-apontamento` imprime só a categoria do erro, como `ref-sync-ac` e `ref-sync-businessmap` (K-244) (#283).
 - Testes: o caso sem configuração do `ref-sync-apontamento` não lê mais o `.env` da máquina (K-261) (#297).
 - Ferramentas: pre-push com lint e typecheck só nos arquivos e pacotes alterados (pedido 083) (#268, #270).
+- Homologação: o check `homolog-aprovada` consulta de novo o portão recém-concluído (até 6 vezes, com 10 s de intervalo) antes de falhar; a regra não muda (K-263) (#304).
+- Testes: os testes de CLI do servidor repassam `TMPDIR` ao processo filho, que no sandbox não achava pasta temporária; o `.env` real segue ignorado (K-264) (#305).
 
 ### Desempenho
 - Nenhuma mudança nesta versão.
