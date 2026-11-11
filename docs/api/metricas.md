@@ -420,8 +420,11 @@ Depois da prova do dono (`fato_bloqueio` com 172 linhas e `evt_bloqueio` `fim` c
 - **T10 e T12 não mudam:** seguem fora do mapa real e respondem `sem-dado-real` com `fonte real ainda não definida` (P-075-11 e P-075-12, "B"), mesmo com `fato_bloqueio` real.
 - **O1:** `bloqueados` (em `hoje`, `porColuna`, `porTipoColuna`) volta calculado, sem `null` por falta de dado. Em `serie[].bloqueados`, os pontos com `data` anterior a `2026-11-01` (`DATA_BLOQUEIO_COM_DADO_REAL`, primeira coleta) saem `null` (lacuna, nunca 0); a partir dela saem calculados.
 - **O2:** `itens[].bloqueioMotivo` volta com o motivo do bloqueio aberto do card (`null` = não bloqueado).
-- **Nota:** `bloqueio-sem-dado-real` deixa de ser emitida (O1 e O2 sem `notas` dela). O id segue em `NOTA_CARTAO_IDS` até o lote 9b, para não quebrar a web.
+- **Nota:** `bloqueio-sem-dado-real` deixa de ser emitida (O1 e O2 sem `notas` dela). O id saiu de `NOTA_CARTAO_IDS` no lote 9b (ver abaixo).
 - **O5 e O19:** pela biblioteca, com percentil só com 20 ou mais itens (O5 por tipo; O19 por motivo, `duracao` e `pctDoTotal` `insuficiente` abaixo disso). O19 traz os 8 motivos, "não classificado" por último.
 - **T2.6:** versão de critério `criterio-2026-11-01-bloqueio-com-dado-real` (2026-11-01), `afeta: O1, O2, O5, O19, BLOQUEADOS`, histórico parcial: antes dela o tempo bloqueado é desconhecido; início e fim do bloqueio são o instante da coleta que viu a mudança.
 - **CA-075-11:** nenhuma chave de pessoa nas respostas dessas cinco métricas (nem na exportação, que leva o que a resposta traz).
 - Modo mock explícito: nada muda.
+
+## Pedido 075, lote 9b (K-204): contrato sem a nota de bloqueio
+`bloqueio-sem-dado-real` sai de `NOTA_CARTAO_IDS` e de `TEXTO_NOTA_CARTAO`: o enum de `notas` do O1, O2 e O3 fica com `sem-classe` e `sle-nao-definido`. **Incompatível** (valor de enum removido, `politica-de-mudanca.md:23`), aceito por `aceitas.json` (uso único, removido no mesmo PR); a API não emite a nota desde o 6b e o web não a consome desde o 9a. Saem de `origem.ts`: `METRICAS_COM_PARTE_DE_BLOQUEIO`, `MOTIVO_BLOQUEIOS_NAO_COLETADOS` e `MOTIVO_O5_BLOQUEIOS_NAO_COLETADOS`. `BLOQUEIOS_COM_DADO_REAL` fica como interruptor de reversão: falso, o O1 sai com a parte de bloqueio `null`, sem nota. `bloqueados` do O1 segue `number | null` no contrato por causa da lacuna da série antes de 2026-11-01 (6a). `VERSAO_CRITERIO_BLOQUEIO_SEM_DADO_REAL` fica (história, T2.6).
