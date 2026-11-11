@@ -19,6 +19,7 @@ import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import {
   APLICABILIDADE_FLUXO,
+  METRICAS_TENDENCIA,
   EQUIPES_SUSTENTACAO_ID,
   METRICA_IDS,
   MINIMO_AMOSTRA,
@@ -239,12 +240,15 @@ describe.each(CENARIOS)('QA intensivo de filtros: $nome', (c) => {
 
   it('INV-F2 filtro que não se aplica à métrica (tabela 2.2) é ignorado', () => {
     const violacoes: string[] = []
-    const comExcecao = FLUXO.filter((id) => (APLICABILIDADE_FLUXO[id] ?? []).length < 4)
+    // As tendências (pedido 097) só aceitam `equipe`; não constam na tabela 2.2 do cartão.
+    const aplicaDe = (id: (typeof FLUXO)[number]) =>
+      METRICAS_TENDENCIA.includes(id) ? (['equipe'] as const) : (APLICABILIDADE_FLUXO[id] ?? [])
+    const comExcecao = FLUXO.filter((id) => aplicaDe(id).length < 4)
     expect(comExcecao.length).toBeGreaterThan(0)
     fc.assert(
       fc.property(arbFluxo(c), subNV(c.equipes), subNV(TIPOS_FILTRO), (f, eq, tp) => {
         for (const id of comExcecao) {
-          const ap = APLICABILIDADE_FLUXO[id] ?? []
+          const ap = aplicaDe(id)
           const limpo: FF = {
             ...f,
             equipe: ap.includes('equipe') ? f.equipe : [],

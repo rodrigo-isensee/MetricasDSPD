@@ -15,7 +15,7 @@ const GRUPOS = [
 
 /** O15: onde os bugs são encontrados, fases na ordem do processo. Sem meta nem status sobre o volume (E2). */
 export function CartaoO15({ filtros }: { filtros: FiltrosFluxo }) {
-  const q = useMetrica('O15', filtros, { simulado: true })
+  const q = useMetrica('O15', filtros)
   const d = q.dados
   const leitura =
     d && d.contencao.status === 'ok' && d.escape.status === 'ok'

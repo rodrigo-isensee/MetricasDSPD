@@ -22,7 +22,7 @@ interface P {
 
 /** O17: causa raiz e concentração por sistema dos incidentes encerrados (Acelerato). */
 export function CartaoO17({ filtros }: P) {
-  const q = useMetrica('O17', filtros, { simulado: true })
+  const q = useMetrica('O17', filtros)
   const d = q.dados
   const topo = d?.porCausa.reduce((a, b) => (b.n > a.n ? b : a), { causa: '', n: -1 })
   return (
@@ -67,7 +67,7 @@ export function CartaoO17({ filtros }: P) {
 
 /** S8: taxa de reabertura de incidentes, com a referência do briefing. */
 export function CartaoS8({ filtros }: P) {
-  const q = useMetrica('S8', filtros, { simulado: true })
+  const q = useMetrica('S8', filtros)
   const d = q.dados
   return (
     <CartaoComplementar
@@ -146,7 +146,7 @@ export function CartaoS8({ filtros }: P) {
 
 /** S9: tempo em pendência por motivo (horas úteis) e cumprimento da previsão de retorno. */
 export function CartaoS9({ filtros }: P) {
-  const q = useMetrica('S9', filtros, { simulado: true })
+  const q = useMetrica('S9', filtros)
   const d = q.dados
   const ok = d?.porMotivo.filter((m) => m.estatistica.status === 'ok') ?? []
   return (
@@ -188,7 +188,7 @@ export function CartaoS9({ filtros }: P) {
 
 /** S10: fila de atribuição por prioridade (percentis, histograma e % aceito em até 15 min). */
 export function CartaoS10({ filtros }: P) {
-  const q = useMetrica('S10', filtros, { simulado: true })
+  const q = useMetrica('S10', filtros)
   const [prioridade, setPrioridade] = useState<string | null>(null)
   const d = q.dados
   const atual = d?.prioridades.find((p) => p.prioridade === prioridade) ?? d?.prioridades[0]
@@ -248,7 +248,7 @@ export function CartaoS10({ filtros }: P) {
 
 /** S11: avaliação de Problema em P1, P2 e encerrados por contorno. */
 export function CartaoS11({ filtros }: P) {
-  const q = useMetrica('S11', filtros, { simulado: true })
+  const q = useMetrica('S11', filtros)
   const d = q.dados
   const celula = (t: Parameters<typeof textoTaxa>[0]) =>
     t.status === 'ok' ? textoTaxa(t) : `${fmtInteiro(t.k)} de ${fmtInteiro(t.n)}`
@@ -304,7 +304,7 @@ const leituraS12 = (d: R12, [sistema, n]: [string, number]) =>
 
 /** S12: volume por sistema, reincidência e exceção de SLA por registro posterior. */
 export function CartaoS12({ filtros }: P) {
-  const q = useMetrica('S12', filtros, { simulado: true })
+  const q = useMetrica('S12', filtros)
   const d = q.dados
   const ordenados = d ? totaisPorSistema(d) : []
   return (
