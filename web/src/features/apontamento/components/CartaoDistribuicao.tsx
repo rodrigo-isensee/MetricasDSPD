@@ -3,7 +3,7 @@ import { AmostraInsuficiente, Botao, CelulaInsuficiente, TabelaDados } from '@/c
 import { fmtInteiro, fmtNumero } from '@/lib/formatar'
 import { useDadosAba } from '../dados'
 import { fmtApontamentos, fmtHoras } from '../formatar'
-import { CARTOES, INCOMPLETO } from '../textos'
+import { CARTOES, INCOMPLETO, SUBGRUPO_SEM_COMENTARIO } from '../textos'
 import type { LinhaDistribuicao, RespostaApontamento } from '../types'
 import { SeloHorasIncompletas, temIncompleto } from './AvisoRegistroIncompleto'
 import { CartaoApontamento } from './CartaoApontamento'
@@ -49,6 +49,11 @@ function Corpo({ bloco, r }: { bloco: Bloco; r: RespostaApontamento }) {
   const comSelo = linhas.filter((l) => incompletos.has(l.id))
   return (
     <div className="flex flex-col gap-3">
+      {bloco === 'subgrupo' && (
+        <p className="text-sm text-texto-2" data-testid="explicacao-sem-comentario">
+          {SUBGRUPO_SEM_COMENTARIO.explicacao}
+        </p>
+      )}
       <Barras
         orientacao="horizontal"
         descricao={`${cfg.titulo} (horas apontadas)`}
@@ -143,7 +148,7 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
                 className="text-xs"
                 onClick={() => d.definirLista('subgrupo', ['nao-classificado'])}
               >
-                Ver apontamentos não classificados
+                {SUBGRUPO_SEM_COMENTARIO.atalho}
               </Botao>
             ),
           }

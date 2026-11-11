@@ -180,7 +180,8 @@ const COLUNAS: Record<NivelMatriz, readonly (Opcao & { peso: number })[]> = {
     { id: 'analise', rotulo: 'Análise e especificação', peso: 2 },
     { id: 'teste', rotulo: 'Testes', peso: 1 },
     { id: 'suporte', rotulo: 'Suporte a usuários', peso: 1 },
-    { id: 'nao-classificado', rotulo: 'Não classificado', peso: 1 },
+    { id: 'nao-classificado', rotulo: 'Sem comentário', peso: 1 },
+    { id: 'execucao-tecnica', rotulo: 'Execução técnica', peso: 1 },
   ],
 }
 
@@ -339,7 +340,8 @@ export const RESPOSTA_FICTICIA: RespostaApontamento = {
       linha('analise', 'Análise e especificação', 110, 66),
       linha('reuniao', 'Reunião', 90, 80),
       linha('teste', 'Testes', 70, 45),
-      linha('nao-classificado', 'Não classificado', 60, 29),
+      linha('nao-classificado', 'Sem comentário', 60, 29),
+      linha('execucao-tecnica', 'Execução técnica', 30, 24),
       linha('suporte', 'Suporte a usuários', 43.5, 31),
     ],
   },
