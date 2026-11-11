@@ -13,44 +13,108 @@ vi.setConfig({ testTimeout: 45000 })
 
 type Qualquer = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
 
-const NOTA = 'bloqueio-sem-dado-real'
+/** Fonte da API real depois do pedido 075 (lote 6b): BLOQUEADOS, O5 e O19 são reais e a parte de bloqueio do O1 e do O2 vem calculada, sem nota. */
+const fonteApi = () =>
+  Object.create(fonteDeTeste, { tipo: { value: 'api' } }) as typeof fonteDeTeste
+
+describe('bloqueio com dado real (pedido 075, lote 6b; inverte o 065)', () => {
+  it('W0: BLOQUEADOS, O5 e O19 são reais e o motivo de mock não existe mais', () => {
+    for (const id of ['BLOQUEADOS', 'O5', 'O19'] as const)
+      expect(origemDaMetrica(id), id).toBe('real')
+  })
+
+  it('W1: o cartão BLOQUEADOS publica, sem Sem dado real nem o motivo da coleta ausente', async () => {
+    renderizarApp('/operacional?cadencia=diaria', fonteApi())
+    const c = await screen.findByTestId('metrica-BLOQUEADOS')
+    await waitFor(() => expect(c).toHaveAttribute('data-estado', 'ok'))
+    expect(within(c).queryByTestId('estado-sem-dado-real-BLOQUEADOS')).not.toBeInTheDocument()
+    expect(c.textContent).not.toContain('a coleta ainda não grava os bloqueios do quadro')
+  })
+
+  it('W2: O1 traz os bloqueados, sem "bloqueados: sem dado real" nem a nota; o WIP total fica', async () => {
+    renderizarCartao(<CartaoO1 filtros={FILTROS_FLUXO} />, { fonte: fonteApi() })
+    const c = await screen.findByTestId('metrica-O1')
+    await waitFor(() => expect(c).toHaveAttribute('data-estado', 'ok'))
+    expect(within(c).queryByTestId('o1-bloqueados-sem-dado')).not.toBeInTheDocument()
+    expect(c.textContent).not.toMatch(/bloqueados: sem dado real/)
+    expect(within(c).queryByText(/Bloqueios: sem dado real/)).not.toBeInTheDocument()
+    expect(within(c).getByTestId('o1-dias-dentro')).toBeInTheDocument()
+    expect(within(c).getByText(/Hoje há \d+/)).toBeInTheDocument()
+  })
+
+  it('W3: O2 sem "Sem dado real" na coluna Bloqueado e sem a nota; dispersão e P50/P85/P95 ficam', async () => {
+    renderizarCartao(<CartaoO2 filtros={FILTROS_FLUXO} />, { fonte: fonteApi() })
+    const c = await screen.findByTestId('metrica-O2')
+    await waitFor(() => expect(c).toHaveAttribute('data-estado', 'ok'))
+    const lista = await within(c).findByTestId('o2-lista')
+    expect(within(lista).queryByText('Sem dado real')).not.toBeInTheDocument()
+    const grafico = within(c).getByTestId('o2-grafico')
+    expect(grafico.textContent).toMatch(/P50/)
+    expect(grafico.textContent).toMatch(/P95/)
+    expect(within(c).queryByText(/Bloqueios: sem dado real/)).not.toBeInTheDocument()
+  })
+
+  it('W4: O5 publica, sem Sem dado real nem o motivo "inflada"', async () => {
+    renderizarCartao(<CartaoO5 filtros={FILTROS_FLUXO} />, { fonte: fonteApi() })
+    const c = await screen.findByTestId('metrica-O5')
+    await waitFor(() => expect(c).toHaveAttribute('data-estado', 'ok'))
+    expect(within(c).queryByTestId('estado-sem-dado-real-O5')).not.toBeInTheDocument()
+    expect(c.textContent).not.toContain('inflada')
+  })
+
+  it('W5: a faixa "Pede atenção" deixa de ser parcial por falta de dado de bloqueio', async () => {
+    renderizarApp('/operacional?cadencia=diaria', fonteApi())
+    const faixa = await screen.findByTestId('faixa-atencao')
+    await waitFor(() => expect(faixa.querySelectorAll('li').length).toBeGreaterThan(0))
+    expect(
+      within(faixa).queryByTestId('faixa-atencao-sem-dado-real-parcial'),
+    ).not.toBeInTheDocument()
+  })
+})
+
+const NOTA_065 = 'bloqueio-sem-dado-real'
 
 /** Anula a parte de bloqueio como o servidor faz na base real (pedido 065): null com a nota, nunca 0. */
-function semBloqueio(id: MetricaId, r: Qualquer): Qualquer {
+function semBloqueio065(id: MetricaId, r: Qualquer): Qualquer {
   if (id === 'O1') {
     r.hoje.bloqueados = null
     r.porColuna = r.porColuna?.map((c: Qualquer) => ({ ...c, bloqueados: null })) ?? null
     r.porTipoColuna = r.porTipoColuna.map((c: Qualquer) => ({ ...c, bloqueados: null }))
     r.serie = r.serie.map((p: Qualquer) => ({ ...p, bloqueados: null }))
-    r.notas = [NOTA]
+    r.notas = [NOTA_065]
   }
   if (id === 'O2') {
     r.itens = r.itens.map((i: Qualquer) => ({ ...i, bloqueioMotivo: null }))
-    r.notas = [NOTA]
+    r.notas = [NOTA_065]
   }
   return r
 }
 
 /** Fonte da API real: BLOQUEADOS e O5 fora do mapa respondem `sem-dado-real`; O1 e O2 vêm com a parte de bloqueio nula. */
-const fonteApi = () =>
+const fonteApiSemBloqueio = () =>
   Object.create(fonteDeTeste, {
     tipo: { value: 'api' },
     obter: {
       value: async (id: MetricaId, ...resto: unknown[]) => {
         if (id === 'BLOQUEADOS' || id === 'O5') {
+          // Motivo da época do 065, posto na própria resposta: o cliente ainda sabe mostrar um estado sem dado real com motivo.
           const c = corpoSemDadoReal(id)
-          throw new SemDadoRealErro(c.metrica, c.motivo)
+          throw new SemDadoRealErro(
+            c.metrica,
+            id === 'O5'
+              ? 'a coleta ainda não grava os bloqueios do quadro; sem eles a eficiência de fluxo sairia inflada'
+              : 'a coleta ainda não grava os bloqueios do quadro',
+          )
         }
         const r = await (fonteDeTeste.obter as (...a: unknown[]) => Promise<Qualquer>)(id, ...resto)
-        return semBloqueio(id, structuredClone(r))
+        return semBloqueio065(id, structuredClone(r))
       },
     },
   }) as typeof fonteDeTeste
 
-describe('parte de bloqueio sem dado real (pedido 065)', () => {
+describe('o cliente ainda renderiza a parte de bloqueio nula e o estado sem dado real (pedido 065; fica até o lote 9a)', () => {
   it('W1: o cartão BLOQUEADOS mostra Sem dado real com o motivo, nunca "Nenhum item bloqueado hoje"', async () => {
-    expect(origemDaMetrica('BLOQUEADOS')).toBe('mock')
-    renderizarApp('/operacional?cadencia=diaria', fonteApi())
+    renderizarApp('/operacional?cadencia=diaria', fonteApiSemBloqueio())
     const c = await screen.findByTestId('metrica-BLOQUEADOS')
     const estado = await within(c).findByTestId('estado-sem-dado-real-BLOQUEADOS')
     expect(estado).toHaveTextContent('Sem dado real')
@@ -59,7 +123,7 @@ describe('parte de bloqueio sem dado real (pedido 065)', () => {
   })
 
   it('W2: O1 diz "sem dado real" para bloqueados, sem "0 deles bloqueados" nem a série Bloqueados; o WIP total fica', async () => {
-    renderizarCartao(<CartaoO1 filtros={FILTROS_FLUXO} />, { fonte: fonteApi() })
+    renderizarCartao(<CartaoO1 filtros={FILTROS_FLUXO} />, { fonte: fonteApiSemBloqueio() })
     const c = await screen.findByTestId('metrica-O1')
     await waitFor(() => expect(c).toHaveAttribute('data-estado', 'ok'))
     expect(await within(c).findByTestId('o1-bloqueados-sem-dado')).toHaveTextContent(
@@ -74,7 +138,7 @@ describe('parte de bloqueio sem dado real (pedido 065)', () => {
   })
 
   it('W2b: com uma equipe (quebra por coluna), O1 sem bloqueio usa a descrição do gráfico sem "bloqueados dentro do total"', async () => {
-    const base = fonteApi()
+    const base = fonteApiSemBloqueio()
     const fonte = Object.create(base, {
       obter: {
         value: async (id: MetricaId, ...resto: unknown[]) => {
@@ -106,7 +170,7 @@ describe('parte de bloqueio sem dado real (pedido 065)', () => {
   })
 
   it('W3: O2 mostra "Sem dado real" na coluna Bloqueado, sem "bloqueado" na legenda; dispersão e P50/P85/P95 ficam', async () => {
-    renderizarCartao(<CartaoO2 filtros={FILTROS_FLUXO} />, { fonte: fonteApi() })
+    renderizarCartao(<CartaoO2 filtros={FILTROS_FLUXO} />, { fonte: fonteApiSemBloqueio() })
     const c = await screen.findByTestId('metrica-O2')
     await waitFor(() => expect(c).toHaveAttribute('data-estado', 'ok'))
     const lista = await within(c).findByTestId('o2-lista')
@@ -120,8 +184,7 @@ describe('parte de bloqueio sem dado real (pedido 065)', () => {
   })
 
   it('W4: O5 inteiro mostra Sem dado real com o motivo, sem barras nem percentual', async () => {
-    expect(origemDaMetrica('O5')).toBe('mock')
-    renderizarCartao(<CartaoO5 filtros={FILTROS_FLUXO} />, { fonte: fonteApi() })
+    renderizarCartao(<CartaoO5 filtros={FILTROS_FLUXO} />, { fonte: fonteApiSemBloqueio() })
     const c = await screen.findByTestId('metrica-O5')
     const estado = await within(c).findByTestId('estado-sem-dado-real-O5')
     expect(estado).toHaveTextContent('Sem dado real')
@@ -132,7 +195,7 @@ describe('parte de bloqueio sem dado real (pedido 065)', () => {
   })
 
   it('W5: a faixa "Pede atenção" fica parcial e nunca afirma que nada pede atenção', async () => {
-    renderizarApp('/operacional?cadencia=diaria', fonteApi())
+    renderizarApp('/operacional?cadencia=diaria', fonteApiSemBloqueio())
     const faixa = await screen.findByTestId('faixa-atencao')
     // Os itens do O2 e do O1 aparecem; se não houver nenhum, o texto de parcial vale. Nunca "nada pede atenção".
     await waitFor(() => {

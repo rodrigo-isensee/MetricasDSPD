@@ -1,3 +1,6 @@
+---
+contrato: 0
+---
 # Code review: front via API (FA-1 a FA-5, FA-001 a FA-005)
 
 - Revisor: tech-lead · Data: 2026-10-13 · Rodada: 1

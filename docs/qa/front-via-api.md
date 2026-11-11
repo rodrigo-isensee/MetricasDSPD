@@ -1,3 +1,7 @@
+---
+contrato: 0
+---
+
 # Plano de testes - front via API (FA-4 paridade, FA-5 E2E e desempenho)
 Links: plano técnico `docs/architecture/features/front-via-api.md`, contrato `docs/api/`, orçamento `docs/architecture/adr/0003-orcamento-de-performance.md` (F1 a F5, A1). Bugs: `docs/qa/bugs/FA-001` a `FA-005`.
 

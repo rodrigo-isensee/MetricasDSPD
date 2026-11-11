@@ -1,24 +1,25 @@
 import { spawnSync } from 'node:child_process';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ambienteFilho } from './ajuda-cli-filho.js';
 
 const ENTRADA = new URL('../src/entradas/ref-sync-calendario.ts', import.meta.url).pathname;
 
 describe('entrada ref:sync-calendario: argumento de data e uso', () => {
   it.each(['2026-02-30', '2026-13-01', 'ontem'])('data %s é recusada com a mensagem de uso e código 2, antes de ler a configuração', (data) => {
-    const r = spawnSync(process.execPath, ['--import', 'tsx', ENTRADA, data], { encoding: 'utf8', env: { PATH: process.env.PATH ?? '' }, timeout: 60_000 });
+    const r = spawnSync(process.execPath, ['--import', 'tsx', ENTRADA, data], { encoding: 'utf8', env: ambienteFilho(), timeout: 60_000 });
     expect(r.status).toBe(2);
     expect(r.stderr).toContain('uso: ref:sync-calendario [AAAA-MM-DD]');
     expect(r.stdout).toBe('');
   });
 
   it('argumento a mais também é recusado com o uso e código 2', () => {
-    const r = spawnSync(process.execPath, ['--import', 'tsx', ENTRADA, '2026-05-01', 'extra'], { encoding: 'utf8', env: { PATH: process.env.PATH ?? '' }, timeout: 60_000 });
+    const r = spawnSync(process.execPath, ['--import', 'tsx', ENTRADA, '2026-05-01', 'extra'], { encoding: 'utf8', env: ambienteFilho(), timeout: 60_000 });
     expect(r.status).toBe(2);
     expect(r.stderr).toContain('uso: ref:sync-calendario [AAAA-MM-DD]');
   });
 
   it('sem configuração do banco falha com código 1 e a categoria com o nome da variável, sem vazar detalhe', () => {
-    const r = spawnSync(process.execPath, ['--import', 'tsx', ENTRADA, '2026-05-01'], { encoding: 'utf8', env: { PATH: process.env.PATH ?? '' }, timeout: 60_000 });
+    const r = spawnSync(process.execPath, ['--import', 'tsx', ENTRADA, '2026-05-01'], { encoding: 'utf8', env: ambienteFilho(), timeout: 60_000 });
     expect(r.status).toBe(1);
     expect(r.stderr).toBe('ref:sync-calendario falhou: configuração: PG_REF_URL\n');
     expect(r.stdout).toBe('');
