@@ -198,6 +198,6 @@ export async function lerCardsIncompletos(
      LEFT JOIN ${S.bm}.dim_card pr ON pr.card_id = x.projeto_id
      ORDER BY length(cb.card_id), cb.card_id`,
     [de, ate, projetos === undefined || projetos.length === 0 ? null : projetos, tipos === undefined || tipos.length === 0 ? null : tipos,
-     equipes === undefined || equipes.nomes.length === 0 && !equipes.semTime ? null : equipes.nomes, equipes?.semTime ?? false]);
+     equipes === undefined ? null : [...equipes.nomes], equipes?.semTime ?? false]);
   return r.rows.map((l) => ({ cardId: l.card_id, titulo: l.titulo, projetoId: l.projeto_id, projetoTitulo: l.projeto_titulo, foraDoEscopo: l.fora }));
 }

@@ -565,6 +565,18 @@ describe('registroIncompleto: sinal de card com horas incompletas (063, K-200)',
     expect(c.texto).not.toMatch(/time-alfa|inexistente/);
     expect(c.texto).toMatch(/COALESCE\(ec\.equipe, ep\.equipe\)/);
   });
+  it('097 L2 (A1): filtro equipe ativo e nenhum nome resolvido (slug inexistente) vai ao banco como lista vazia, nunca como sem filtro', async () => {
+    const { db } = await ler({ incompletos: [card('9100000001')], nomesDeEquipe: ['Time Alfa'] }, '/api/apontamento?de=2026-10-01&ate=2026-10-31&equipe=nao-existe');
+    const c = db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!;
+    expect(c.valores).toEqual(['2026-10-01', '2026-10-31', null, null, [], false]);
+  });
+  it('097 L2 (A2): nome de time com slug vazio e "sem-time" nas linhas e tambem no filtro dos incompletos', async () => {
+    const { db, corpo } = await ler({ incompletos: [card('9100000001')], nomesDeEquipe: ['Time Alfa', '---'], linhas: [linha({ equipe: '---' })] }, '/api/apontamento?de=2026-10-01&ate=2026-10-31&equipe=sem-time');
+    expect(corpo.opcoes.equipes).toEqual([{ id: 'sem-time', rotulo: 'Sem time' }]);
+    expect(corpo.kpis.apontamentos).toBe(1);
+    const c = db.chamadas.find((x) => x.texto.includes('ctl_apontamento_cobertura'))!;
+    expect(c.valores).toEqual(['2026-10-01', '2026-10-31', null, null, ['---'], true]);
+  });
   it('erro do banco na leitura do sinal: 500 generico, sem a mensagem do banco', async () => {
     const { app } = await montar({ falharEm: 'ctl_apontamento_cobertura' });
     const r = await get(app, '/api/apontamento');

@@ -27,7 +27,9 @@ const equipeDe = (nome: string | null): { id: string; rotulo: string } =>
 /** Slugs do filtro `equipe` levados aos nomes de `dim_card.equipe` (e a marca do card sem time); sem filtro, `undefined`. */
 export function filtroDeEquipe(slugs: readonly string[] | undefined, nomes: readonly string[]): FiltroEquipe | undefined {
   if (slugs === undefined || slugs.length === 0) return undefined;
-  return { nomes: nomes.filter((n) => slugs.includes(slug(n))), semTime: slugs.includes(EQUIPE_SEM_ID) };
+  // mesma regra das linhas (`equipeDe`): nome cujo slug é vazio vale como "sem time"; com o filtro ativo e nada resolvido, o recorte é vazio (nunca "sem filtro")
+  const semTime = slugs.includes(EQUIPE_SEM_ID);
+  return { nomes: nomes.filter((n) => (slug(n) === '' ? semTime : slugs.includes(slug(n)))), semTime };
 }
 /** Tipo sem categoria (sem `type_id` ainda ou card fora dos tipos de item): entra nas somas, mas não é opção de filtro. */
 const TIPO_SEM_ID = 'sem-tipo';
