@@ -2769,3 +2769,4 @@
 | 2026-11-10 22:18 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-tech-lead-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-10 22:18 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-qa-engineer-1 | brief | 1 | reprovado | s | envio do parecer pelo QA sem origem no pedido | escopo | jarvis |
 | 2026-11-10 22:19 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-qa-engineer-1 | brief | 2 | aprovado | s | envio do parecer com origem nas Etapas | — | jarvis |
+| 2026-11-10 22:29 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-qa-engineer-2 | brief | 1 | aprovado | s | volta de forma | — | jarvis |
