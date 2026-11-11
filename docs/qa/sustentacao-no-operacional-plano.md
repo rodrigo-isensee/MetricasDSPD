@@ -1,3 +1,7 @@
+---
+contrato: 0
+---
+
 # Plano de testes - Sustentação dentro do Operacional (K-080)
 
 Links: especificação `docs/ux/sustentacao-no-operacional/especificacao.md` (CA-1 a CA-31, seção 11); plano técnico `docs/architecture/plano-sustentacao-no-operacional.md` (contratos 4.1 a 4.5, respostas P1 a P4 na seção 10); review `docs/reviews/sustentacao-no-operacional.md` (reprovado na volta 1: B1, M1 a M3, L1 a L8). Contrato da API: `docs/api/metricas.md` (TENDENCIA_FLUXO, TENDENCIA_SUST, `S3.janela`).

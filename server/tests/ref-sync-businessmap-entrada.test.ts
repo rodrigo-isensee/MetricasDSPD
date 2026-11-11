@@ -3,10 +3,11 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { montarEsquemas } from '../src/plataforma/db/esquemas.js';
 import { gerarGrants } from '../src/plataforma/db/grants.js';
+import { ambienteFilho } from './ajuda-cli-filho.js';
 
 const ENTRADA = new URL('../src/entradas/ref-sync-businessmap.ts', import.meta.url).pathname;
 const rodar = (args: string[], env: Record<string, string> = {}): SpawnSyncReturns<string> =>
-  spawnSync(process.execPath, ['--import', 'tsx', ENTRADA, ...args], { encoding: 'utf8', env: { PATH: process.env.PATH ?? '', ...env }, timeout: 60_000 });
+  spawnSync(process.execPath, ['--import', 'tsx', ENTRADA, ...args], { encoding: 'utf8', env: ambienteFilho(env), timeout: 60_000 });
 
 describe('entrada bm:ref-sync', () => {
   it.each(['2026-02-30', '2026-13-01', 'ontem'])('data %s é recusada com a mensagem de uso e código 2, antes de ler a configuração', (data) => {

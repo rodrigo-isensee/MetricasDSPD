@@ -1,3 +1,7 @@
+---
+contrato: 0
+---
+
 # QA intensivo de filtros - versão da `main`
 
 Pedido do usuário: testes intensivos de FILTROS na versão que está na `main`.

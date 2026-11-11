@@ -1,11 +1,12 @@
 import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
+import { ambienteFilho } from './ajuda-cli-filho.js';
 
 // Pedido 059, E2.19: as entradas de linha de comando do apontamento (`bm:apontamento`, `bm:eliminar-pessoa`, `bm:ref-sync-apontamento`). A regra
 // está nos módulos (testados com banco falso e no .pg); aqui se prova a casca: argumento inválido sai com código 2 e a linha de uso, antes de
 // ler a configuração e sem chamar banco nem API, e nunca ecoa o valor recebido.
 const entrada = (nome: string): string => new URL(`../src/entradas/${nome}.ts`, import.meta.url).pathname;
-const rodar = (nome: string, args: string[], input = '') => spawnSync(process.execPath, ['--import', 'tsx', entrada(nome), ...args], { encoding: 'utf8', env: { PATH: process.env.PATH ?? '' }, timeout: 60_000, input });
+const rodar = (nome: string, args: string[], input = '') => spawnSync(process.execPath, ['--import', 'tsx', entrada(nome), ...args], { encoding: 'utf8', env: ambienteFilho(), timeout: 60_000, input });
 
 describe('entradas do apontamento: argumento inválido', () => {
   it.each([
