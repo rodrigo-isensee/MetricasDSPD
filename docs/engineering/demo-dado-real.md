@@ -32,6 +32,15 @@ Diferenças do `pnpm run homolog:subir`, de propósito: a homologação usa outr
 ## Antes de rodar
 
 - `.env` com as variáveis de senha dos papéis (`DSPD_PWD_MIGRADOR`, `DSPD_PWD_COLETOR`, `DSPD_PWD_API`, `DSPD_PWD_REF`, `DSPD_PWD_APONTAMENTO`), do BusinessMap (`BUSINESSMAP_URL_BASE`, `BUSINESSMAP_APIKEY`, `BUSINESSMAP_QUADROS_IDS`, `PESSOA_ELIMINADA_SAL`) e do Acelerato (`ACELERATO_MYSQL_HOST`, `_PORT`, `_DATABASE`, `_USER`, `_PASSWORD`, `_TLS_SHA256`, `_TLS_CERT_FILE`). Falta alguma: o script para na etapa 1 e lista só os nomes.
+- Atenção, `.env` anterior à mudança: quem o configurou antes tem os nomes antigos das variáveis do Acelerato e precisa renomear as quatro (só o nome muda; o valor fica como está):
+
+  | Nome antigo | Nome novo |
+  | --- | --- |
+  | `ACELERATO_MYSQL_PORTA` | `ACELERATO_MYSQL_PORT` |
+  | `ACELERATO_MYSQL_BANCO` | `ACELERATO_MYSQL_DATABASE` |
+  | `ACELERATO_MYSQL_USUARIO` | `ACELERATO_MYSQL_USER` |
+  | `ACELERATO_MYSQL_SENHA` | `ACELERATO_MYSQL_PASSWORD` |
+
 - Docker com o plugin Compose; a porta do Postgres livre.
 - Dados que são de pessoas e não do código (calendário/feriados via `ref:sync-calendario`, domínios do BusinessMap e campos do Acelerato) já preenchidos; o script não os cria.
 
@@ -41,7 +50,7 @@ Não medido: o time não tem acesso às fontes. Esperar de minutos a algumas dez
 
 ## Se falhar
 
-A mensagem traz a etapa e a categoria (`env`, `docker`, `migracao`, `referencia`, `coleta`, `projecao`, `consulta`) e nunca valor de credencial. As cargas são repetíveis (marca d'água, staging idempotente, trava por fonte): corrija e rode de novo o mesmo comando; as etapas já feitas passam rápido. Não há `--force` nem passo que apague dado.
+A mensagem traz a etapa e a categoria (`env`, `docker`, `migracao`, `referencia`, `coleta`, `projecao`, `consulta`) e nunca valor de credencial. Se a etapa 1 (`env`) falhar, ela lista os nomes que faltam: com um `.env` antigo, são os quatro nomes novos da tabela acima. As cargas são repetíveis (marca d'água, staging idempotente, trava por fonte): corrija e rode de novo o mesmo comando; as etapas já feitas passam rápido. Não há `--force` nem passo que apague dado.
 
 ## O que o dono devolve ao Jarvis
 
