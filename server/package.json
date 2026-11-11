@@ -28,6 +28,7 @@
     "bm:eliminar-pessoa": "tsx src/entradas/eliminar-pessoa-apontamento.ts",
     "bm:ref-sync": "tsx src/entradas/ref-sync-businessmap.ts",
     "bm:ref-sync-apontamento": "tsx src/entradas/ref-sync-apontamento.ts",
+    "bm:criterios-apontamento": "tsx src/entradas/criterios-apontamento.ts",
     "test:pg": "vitest run --project pg",
     "checksums": "tsx src/plataforma/db/checksums-cli.ts",
     "db:limpar-testes": "tsx src/plataforma/db/limpar-testes-cli.ts",

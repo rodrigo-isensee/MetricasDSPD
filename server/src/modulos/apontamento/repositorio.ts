@@ -46,6 +46,23 @@ export async function lerLinhas(db: Consultavel, S: Esquemas, de: string, ate: s
   }));
 }
 
+/** Par (`type_id`, categoria) de um apontamento ativo, de qualquer data. */
+export interface TipoDoHistorico { typeId: string | null; tipo: string | null }
+
+/**
+ * K-272: pares distintos `type_id` x categoria (`dim_card.tipo`, do card ou do pai) em TODO o histórico ativo, sem filtro de data. É daqui que saem o id
+ * da categoria e o conjunto de `type_id` que um valor `tipo=` cobre, para não depender da janela pedida. Só dígitos e rótulo de tipo: nada de pessoa.
+ */
+export async function lerTiposDoHistorico(db: Consultavel, S: Esquemas): Promise<TipoDoHistorico[]> {
+  const r = await db.query<{ tipo: string | null; type_id: string | null }>(
+    `SELECT DISTINCT COALESCE(c.tipo, p.tipo) AS tipo, h.type_id
+     FROM ${S.bm}.fato_apontamento h
+     LEFT JOIN ${S.bm}.dim_card c ON c.card_id = h.card_id
+     LEFT JOIN ${S.bm}.dim_card p ON p.card_id = h.parent_card_id
+     WHERE h.excluido_em IS NULL AND h.type_id IS NOT NULL`);
+  return r.rows.map((l) => ({ typeId: l.type_id, tipo: l.tipo }));
+}
+
 /** Primeiro e último dia com apontamento ativo (limites do período personalizado); `null` sem apontamento algum. */
 export async function lerHistorico(db: Consultavel, S: Esquemas): Promise<{ inicio: string; fim: string } | null> {
   const r = await db.query<{ inicio: string | null; fim: string | null }>(

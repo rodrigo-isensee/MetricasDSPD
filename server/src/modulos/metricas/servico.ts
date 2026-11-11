@@ -1,5 +1,5 @@
 import {
-  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICAS_COM_PARTE_DE_BLOQUEIO, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
+  AJUSTE_PRIORIDADE_COM_FONTE, BLOQUEIOS_COM_DADO_REAL, CATALOGO_CARTOES, METRICA_IDS, corpoSemDadoReal, fonteDaMetrica, origemDaMetrica, type FiltrosFluxo, type FiltrosSustentacao, type MetricaId, type VersaoCriterio,
 } from '@metricas-dspd/contratos';
 import {
   acelerato, businessmap, calcularMetrica, CALENDARIO_PADRAO, criarCalendario, dataIso, isoLocal, pesquisa, type Calendario, type ContextosMetricas, type ExtensoesMetricas,
@@ -319,8 +319,8 @@ export class ServicoMetricas {
     let resultado = (calcularMetrica as (i: MetricaId, f: unknown, c: ContextosMetricas) => unknown)(id, filtros, ctx);
     // H-24: o SLE do O3 vem da governança (Q-7c); sem ele na base real o O3 sai com os percentis e a nota "SLE não definido".
     if (id === 'O3' && real && (bm as NonNullable<typeof bm>).sleDefinido !== true) resultado = { ...(resultado as object), notas: ['sle-nao-definido'] };
-    // Pedido 065 (K-205): com o interruptor desligado a parte de bloqueio sai `null` com nota, nunca zero. Ligado no pedido 075 (lote 6b), o ramo não roda e o corte da série do O1 (abaixo) é o único que anula. Só publicação.
-    if (real && !BLOQUEIOS_COM_DADO_REAL && METRICAS_COM_PARTE_DE_BLOQUEIO.includes(id)) resultado = semParteDeBloqueio(id, resultado);
+    // Pedido 065 (K-205): com o interruptor desligado a parte de bloqueio do O1 sai `null`, nunca zero (sem nota desde o 9b). Ligado no pedido 075 (lote 6b), o ramo não roda e o corte da série do O1 (abaixo) é o único que anula. Só publicação.
+    if (real && !BLOQUEIOS_COM_DADO_REAL) resultado = semParteDeBloqueio(id, resultado);
     // Pedido 075, lotes 6a e 6b: com o interruptor ligado, a série do O1 não traz bloqueio antes da data da versão de critério (2026-11-01).
     if (real) resultado = comCorteDaSerieO1(id, resultado, BLOQUEIOS_COM_DADO_REAL);
     // Pedido 069, L9-a (K-220): sem a fonte de `prioridade_ajustada_manualmente`, o S3 publica `null` com nota e o S2 a nota da exceção de SLA. Só publicação.
