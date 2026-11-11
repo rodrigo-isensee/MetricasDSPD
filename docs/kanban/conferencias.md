@@ -2890,3 +2890,10 @@
 | 2026-11-11 13:11 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-qa-engineer-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
 | 2026-11-11 13:12 | 096-criterios-apontamento-env | 096-criterios-apontamento-env-tech-lead-3 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
 | 2026-11-11 13:14 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-tech-lead-7 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:22 | 094-lote-testes-e-guia | 094-lote-testes-e-guia-agile-coach-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:25 | 093-release-6b-homolog | 093-release-6b-homolog-agile-coach-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:44 | 097-resumo-filtro-time | 097-resumo-filtro-time-ux-designer-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:44 | 097-resumo-filtro-time | 097-resumo-filtro-time-software-architect-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:48 | 095-runner-ubuntu-2404 | 095-runner-ubuntu-2404-devops-engineer-7 | brief | 2 | reprovado | s | tardio: nao · versão do Playwright igual ao lock sem origem no pedido; registrada como DECISÃO TÉCNICA às 13:47; selado sem rodada 3 (o conferente indicou só esse ajuste) | escopo | jarvis |
+| 2026-11-11 13:54 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-1 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |
+| 2026-11-11 13:57 | 075-bloqueios-reais | 075-bloqueios-reais-qa-engineer-31 | brief | 1 | aprovado | s | fidelidade ok, decisões ok, corte ok | — | jarvis |

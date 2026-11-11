@@ -105,6 +105,10 @@
 ## Pronto para fazer (WIP 5)
 | ID | Cartão | Pedido | Responsável | Entrou | Na coluna desde | Obs. |
 |---|---|---|---|---|---|---|
+| K-275 | [pedido do dono] Nenhuma métrica simulada na web, começando pelo Operacional; guarda contra regressão | 099 | forge:software-architect | 2026-11-11 | 2026-11-11 13:55 | varredura em curso. |
+| K-272 | [bug] AP-TIPO "Horas por tipo" repete "Trabalho de produto" em várias linhas (agrupa por type_id e mostra a categoria); filtro tipo do apontamento repete opções | 097 | forge:node-backend | 2026-11-11 | 2026-11-11 13:49 | relatado pelo dono na demo; espera P-097-7 (categoria ou tipo real). |
+| K-273 | [pedido do dono] Filtros: time no Resumo e no Apontamento, busca digitando, opções do dado real, recolher cartões | 097 | forge:ux-designer | 2026-11-11 | 2026-11-11 13:49 | protótipo docs/ux/prototipos/097-filtros.html esperando a validação do dono. |
+| K-274 | [pedido do dono] Todos os times no BusinessMap e no Acelerato; nomes reais dos 47 times "Workflow <id>" | 098 | forge:software-architect | 2026-11-11 | 2026-11-11 13:49 | discovery depois do arquiteto do 097. |
 | K-271 | [server] entrada criterios-apontamento: tratar erro do banco só pela categoria (categoriaDoErro) e validar a data com dataCivilValida e a quantidade de argumentos (A1 e A2 da segurança do 096) | 096 | forge:node-backend | 2026-11-11 | 2026-11-11 12:59 | recomendados, não bloqueiam o K-270. |
 | K-270 | [server] passo de critérios do apontamento carrega o .env sozinho (script bm:criterios-apontamento) e roteiro do 089 corrigido | 096 | forge:node-backend | 2026-11-11 | 2026-11-11 12:37 | relato da implantação do apontamento em 2026-11-11 12:37. |
 | K-229 | [técnico] Seção [Não publicado] do CHANGELOG ainda lista itens da release 068, já na main pelo PR 229 | 071 | forge:tech-lead | 2026-11-05 | 2026-11-06 15:08 | Proposta pronta (docs/analises/073-changelog.md): versões 0.3.0 a 0.6.0 e combinada 0.7.0; seções entram no chore(release) da release combinada |

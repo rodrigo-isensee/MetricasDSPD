@@ -17,6 +17,7 @@
 - E1.6 (agile-coach): retrospectiva curta.
 - E1.7 (devops-engineer): parecer de devops novo, em commit separado e com `commit:` do código (60bdc206), enviado pelo próprio devops (o commit só de parecer não toca workflow e não pede o escopo `workflow`, como o da segurança e o do review).
 - E1.8 (qa-engineer): parecer de QA (classe C), enviado pelo próprio QA.
+- E1.9 (devops-engineer): a troca de imagem não resolveu (PR 318); diagnóstico e correção que não dependa do apt do runner na instalação do navegador (por exemplo, rodar os jobs com navegador no container oficial do Playwright, de versão fixada, ou instalar com nova tentativa e espelho alternativo), na mesma branch e worktree; commit sem push (workflow: o envio é do dono).
 
 ## Fora do escopo
 - Jobs sem navegador (seguem no ubuntu-latest) · `técnico`
@@ -43,3 +44,7 @@
 - 2026-11-11 13:14: E1.8 QA aprovado, 0 bugs (4a59c880): só os 4 runs-on, todos os jobs com navegador cobertos, nenhum teste pulado; a prova de execução é o CI do PR. Próximo: entrega conferida e E1.5 (PR), com os workflows declarados como `[.]github/...` no brief por causa do corte do ponto no forge-check.
 - 2026-11-11 13:14: brief selado docs/briefs/095-runner-ubuntu-2404-tech-lead-7.md 15bb81e231ba353a1a82c58a8e002b2c2610e6774722a47842ad426e6fdb29e7
 - 2026-11-11 13:14: entrega conferida 4a59c880f1761449e55c408dbac7a09bab073e29
+- 2026-11-11 13:38: E1.5 PR 318 aberto (forge-check pr aprovado, head 4a59c880), mas e2e-parte 1/2 e 2/2 falharam também no ubuntu-24.04 (Image 20261101.360.1): "Temporary failure resolving 'azure.archive.ubuntu.com'" no playwright install-deps (run 43058313572). A troca de imagem não resolve; a falha é da rede ou do espelho do apt dos runners. Próximo: devops propõe como evitar o apt (cache ou container do Playwright) ou esperar; o PR 318 não deve ser mesclado como correção.
+- 2026-11-11 13:47: DECISÃO TÉCNICA (Jarvis), para a E1.9: se a correção usar o container do Playwright, a versão dele é a mesma do Playwright travada no pnpm-lock.yaml, para o navegador do container casar com o do teste.
+- 2026-11-11 13:48: brief selado docs/briefs/095-runner-ubuntu-2404-devops-engineer-7.md bcb606e9657576df8e55df359317800cf7471c93ab7f42d40c4e863fd13dea76
+- 2026-11-11 13:51: E1.9 entregue pelo devops, sem push (1049e819 correção, e5831b10 parecer): diagnóstico novo, o apt do host não resolve azure.archive.ubuntu.com em nenhuma imagem; os 4 jobs com navegador rodam no container mcr.microsoft.com/playwright:v1.64.0-noble fixado por digest (versão do playwright-core do lock), sem apt nem download de navegador; a ação de instalação do Playwright vira conferência do Chromium; runs-on ubuntu-24.04 mantido; actionlint ausente. Pendências: push do dono (toca workflow), portões de novo no head novo (review, segurança, QA) e o rótulo afrouxa-regra que a catraca pede (decisão do dono, depois do review dizer por quê).

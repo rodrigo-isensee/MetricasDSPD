@@ -60,3 +60,5 @@
 - 2026-11-11 10:46: E3.3 QA do K-267 aprovado (c90340ee; 0 bugs; mutação morta). Próximo: E3.4 (PR).
 - 2026-11-11 10:46: brief selado docs/briefs/094-lote-testes-e-guia-tech-lead-8.md 7a625ad274dedbff32435ac2b150e79cf3f986c8f58f92cf1978f29d00f27a59
 - 2026-11-11 10:58: E2.4: PR 309 (K-266) mesclado na develop pelo dono (ce401fd5); o check com banco rodou o arquivo (8 testes).
+- 2026-11-11 13:22: brief selado docs/briefs/094-lote-testes-e-guia-agile-coach-1.md 5e8c4525ec582cbb93dba682290f0a12ae4728cff95e029278c6491519ea003c
+- 2026-11-11 13:24: E4.1 retrospectiva gravada (9906d460, branch docs/retros-2026-11-11c, enviada; PR junto com a do 093): lead time de 27 a 43 min, retrabalho em 1 de 3 (K-267), 0 bugs, 14 conferências de brief aprovadas na 1ª rodada; causa nova: o fim do cartão não chega ao historico.md. Correções do Histórico pelo GitHub: PR 308 aberto às 10:23 e mesclado às 10:42; PR 309 mesclado às 10:57; PR 310 mesclado às 10:58. Pedido fechado.
