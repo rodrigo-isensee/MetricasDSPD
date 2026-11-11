@@ -2784,3 +2784,6 @@
 | 2026-11-10 22:57 | 075-bloqueios-reais | 075-bloqueios-reais-node-backend-16 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
 | 2026-11-10 22:57 | 088-forge-0455 | 088-forge-0455-node-backend-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok; 2 workers segue R-TETO | — | jarvis |
 | 2026-11-10 22:59 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-13 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 23:05 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-14 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |
+| 2026-11-10 23:05 | 078-release-noite-2026-11-07 | 078-release-noite-2026-11-07-tech-lead-13 | entrega | 1 | cumpriu | s | 0e0b3049: só as três retrospectivas desde 129fc3d5 (forma antiga, K-259); PR recusado pelo R-REVIEW, segue no tech-lead-14 | — | destino |
+| 2026-11-10 23:29 | 089-apontamento-qualidade-d2-d3 | 089-apontamento-qualidade-d2-d3-agile-coach-1 | brief | 1 | aprovado | s | fidelidade, decisões e corte ok | — | jarvis |

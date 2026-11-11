@@ -813,3 +813,9 @@ Append-only. Uma linha por movimento de cartão.
 - 2026-11-10 09:05: K-251 a K-254 abertos (MELHORIAS da retrospectiva do 083 e o PATH do forge-check). 077: 6b integrado e conferido, review incremental em curso; Lote 5 retomado. 075 4c e 077 3b mesclados (PRs 274 e 273).
 - 2026-11-10 10:06: sessão reiniciada pelo dono (Remote Control). K-255 aberto (pedido 084, Forge 0.45.0). 077: PR 276 (6b) mesclado; PR 278 (8b) em rascunho; Lote 5 com review aprovado. PR 277 (retrospectivas) em rascunho.
 - 2026-11-10 10:09: K-254 concluído (o forge-check do PATH volta a ser o do WSL, 0.45.0, depois do reinício da sessão). PR 277 (retrospectivas) pronto e com o ato conferido: merge do dono.
+| 2026-11-10T23:31:04-03:00 | K-242 | Pronto para fazer | Pronto | Release 078 na main (2026-11-10 16:44); retrospectiva na develop pelo PR 295 (23:27); pedido 078 fechado. · custo total: 1625859695 tokens |
+| 2026-11-10T23:31:26-03:00 | K-255 | Pronto para fazer | Pronto | Forge 0.45.5 na develop pelo PR 296 (pedido 088, merge do dono 2026-11-10 23:28); vai à main na release 090. · custo total: lacuna |
+| 2026-11-10T23:31:26-03:00 | K-244 | Pronto para fazer | Pronto | PR 283 na develop e na main (release 078). · custo total: lacuna |
+| 2026-11-10T23:31:26-03:00 | K-261 | Entrada | Em andamento | worktree: 056 · branch fix/k261-teste-hermetico; E1.7 do 088 com o node-backend (brief node-backend-1 selado 22:57). |
+| 2026-11-10T23:31:56-03:00 | K-235 | Em andamento | Bloqueado | P-E10-2, P-E10-5 e P-E10-6 com o dono; L3 do E10 (073) não anda sem elas; sem agente em curso. · custo do trecho: 1933275512 tokens |
+| 2026-11-10T23:33:01-03:00 | K-211 | Em andamento | Bloqueado | Sem agente em curso; o próximo passo do 077 sai de forge-check proximo e do Histórico do pedido (último: PR 285 do lote 7, já na main pela release 078). · custo do trecho: 654639574 tokens |
