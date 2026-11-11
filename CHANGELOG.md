@@ -41,7 +41,7 @@ Formato conforme `docs/engineering/fluxo-homologacao.md` §8; versões pelo SemV
 - Testes: a sonda de dado de pessoa do 6b (S6) passa a pegar "bloqueado por", "quem", "comentário", "observação", `user_id` e `motivo_texto` nas respostas da API (K-267) (#310).
 - Web: o simulador de métricas está desligado; nenhum número simulado aparece na web de uso diário, e o cartão sem dado real mostra "Sem dado real" com o motivo. O código do simulador fica no repositório, parado, até os lotes L2a a L3 (pedido 099, L1; ADR 0030) (#322).
 - Aba Apontamento: o AP-TIPO e o filtro tipo agrupam por categoria (`dim_card.tipo`), uma linha e uma opção por categoria somando todos os `type_id` dela; o link antigo `tipo=<dígitos>` continua válido (decisão do dono P-097-7, K-272) (#321); o teste ponta a ponta do filtro no PostgreSQL acompanha o agrupamento (#324).
-- Entradas: o passo de critérios do apontamento lê o `.env` da raiz sozinho, pelo novo script `bm:criterios-apontamento` (K-270) (#319).
+- Entradas: o passo de critérios do apontamento lê o `.env` da raiz sozinho, pelo novo script `bm:criterios-apontamento` (K-270) (#319); a falha do banco imprime só a categoria do erro, sem pilha nem dados de conexão, a data é validada como data civil e argumento a mais é recusado (K-271) (#325).
 - Testes: o caso "o mock é criado uma só vez" de `simulado.test.tsx` deixa de ser intermitente (K-268) (#317).
 - CI: os jobs com navegador (`e2e-parte`, `perf`, `e2e-homolog-parte`, `perf-homolog`) ficam em `ubuntu-24.04`, porque a imagem `ubuntu-latest` não resolve os espelhos do apt; voltam a `ubuntu-latest` quando a imagem 26 resolver (K-269) (#318).
 
