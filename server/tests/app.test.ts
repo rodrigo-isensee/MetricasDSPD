@@ -12,6 +12,8 @@ async function montar(r: Respondedor = () => [{ ok: 1 }]) {
 const responder: Respondedor = (c) => {
   if (c.texto.includes('ref_quadro')) return [{ equipe: 'Plataforma Núcleo' }];
   if (c.texto.includes("campo = 'sistema'")) return [{ codigo: 'ERP', rotulo: 'ERP Central' }];
+  if (c.texto.includes('SELECT DISTINCT tipo')) return [{ tipo: 'Melhoria' }, { tipo: 'Bug interno' }, { tipo: 'Incidente' }, { tipo: 'Categoria nova' }];
+  if (c.texto.includes('SELECT DISTINCT prioridade')) return [{ prioridade: 'P3' }, { prioridade: 'P1' }, { prioridade: 'P9' }];
   if (c.texto.includes('dim_card')) return [{ inicio: '2026-01-05' }];
   if (c.texto.includes('dim_chamado')) return [{ inicio: null }];
   if (c.texto.includes('ctl_coleta') && c.texto.includes('finalizado_em FROM')) return c.texto.includes('dspd_bm') ? [{ finalizado_em: new Date('2026-10-09T09:00:00Z') }] : [];
@@ -43,20 +45,46 @@ describe('filtros', () => {
     const j = r.json();
     expect(j.equipes).toEqual([{ id: 'plataforma-nucleo', nome: 'Plataforma Núcleo' }]);
     expect(j.sistemas).toEqual([{ id: 'erp', nome: 'ERP Central' }]);
-    expect(j.tipos.length).toBeGreaterThan(0);
+    // L6 do 097: só as categorias presentes nas stories, ids de TIPO_ID, na ordem do contrato; sem Incidente nem rótulo fora do enum.
+    expect(j.tipos).toEqual([{ id: 'melhoria', nome: 'Melhoria' }, { id: 'bug-interno', nome: 'Bug interno' }]);
     expect(j.historico).toEqual({ inicio: '2026-01-05', fim: '2026-10-10' });
   });
-  it('acelerato: equipes e prioridades fixas; base vazia usa fim como início', async () => {
+  it('acelerato: equipes fixas e prioridades presentes; base vazia usa fim como início', async () => {
     const { app } = await montar(responder);
     const j = (await app.inject('/api/v1/filtros/acelerato')).json();
     expect(j.equipes.map((e: { id: string }) => e.id)).toEqual(['totvs', 'senior', 'fluig']);
-    expect(j.prioridades[0]).toEqual({ id: 'p1', nome: 'P1' });
+    expect(j.prioridades).toEqual([{ id: 'p1', nome: 'P1' }, { id: 'p3', nome: 'P3' }]);
     expect(j.historico).toEqual({ inicio: '2026-10-10', fim: '2026-10-10' });
     expect(j.tipos).toBeUndefined();
   });
   it('businessmap com base vazia', async () => {
     const { app } = await montar((c) => (c.texto.includes('dim_card') ? [] : []));
-    expect((await app.inject('/api/v1/filtros/businessmap')).json().historico).toEqual({ inicio: '2026-10-10', fim: '2026-10-10' });
+    const j = (await app.inject('/api/v1/filtros/businessmap')).json();
+    expect(j.historico).toEqual({ inicio: '2026-10-10', fim: '2026-10-10' });
+    expect(j.tipos).toEqual([]);
+  });
+  it('K-279: opção que só existe fora do corte das listas não aparece (tipos e prioridades)', async () => {
+    // Dublê de banco: a categoria "Melhoria" e a prioridade P2 só existem fora do corte; o que o SQL não restringe, o dublê devolve.
+    const { app } = await montar((c) => {
+      if (c.texto.includes('SELECT DISTINCT tipo')) {
+        const cortado = c.texto.includes('criado_em IS NOT NULL');
+        return cortado ? [{ tipo: 'Bug interno' }] : [{ tipo: 'Bug interno' }, { tipo: 'Melhoria' }];
+      }
+      if (c.texto.includes('SELECT DISTINCT prioridade')) {
+        const cortado = ['aberto_em IS NOT NULL', 'equipe IS NOT NULL', 'fora_do_recorte = false'].every((p) => c.texto.includes(p));
+        return cortado ? [{ prioridade: 'P1' }] : [{ prioridade: 'P1' }, { prioridade: 'P2' }];
+      }
+      return [];
+    });
+    const bm = (await app.inject('/api/v1/filtros/businessmap')).json();
+    expect(bm.tipos).toEqual([{ id: 'bug-interno', nome: 'Bug interno' }]);
+    const ac = (await app.inject('/api/v1/filtros/acelerato')).json();
+    expect(ac.prioridades).toEqual([{ id: 'p1', nome: 'P1' }]);
+  });
+  it('acelerato com base vazia: prioridades = lista vazia', async () => {
+    const { app } = await montar(() => []);
+    const j = (await app.inject('/api/v1/filtros/acelerato')).json();
+    expect(j.prioridades).toEqual([]);
   });
   it('domínio inválido e parâmetro de pessoa = 400 VALIDATION_ERROR', async () => {
     const { app, d } = await montar(responder);

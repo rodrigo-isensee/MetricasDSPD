@@ -44322,6 +44322,14 @@
             "in": "query",
             "name": "dataReferencia",
             "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
+            "required": false
           }
         ],
         "responses": {
@@ -44866,6 +44874,14 @@
             },
             "in": "query",
             "name": "dataReferencia",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "equipe",
             "required": false
           }
         ],

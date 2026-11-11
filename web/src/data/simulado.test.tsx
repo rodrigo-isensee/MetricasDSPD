@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, renderHook, waitFor } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -86,80 +86,12 @@ describe('useMetrica com a fonte decoradora (pedido 070)', () => {
     const { real } = criarReal(new Map())
     const { criarMock } = criarMockEspiao()
     const fonte = new FonteComSimulado(real, { criarMock })
-    const { result } = renderHook(() => useMetrica('O3', LIMPOS, { simulado: true }), montar(fonte))
+    const { result } = renderHook(() => useMetrica('O3', LIMPOS), montar(fonte))
     await waitFor(() => expect(result.current.estado).toBe('ok'))
-    expect(result.current.origem).toBe('real')
     expect(criarMock).not.toHaveBeenCalled()
     expect(Worker).not.toHaveBeenCalled()
     expect(fonte.origensSimuladas.getSnapshot().size).toBe(0)
     vi.unstubAllGlobals()
-  })
-
-  it('T-W2: sem-dado-real simulável chama o mock com o mesmo id, só o período, a data de referência e valida o DTO', async () => {
-    const { real } = criarReal(new Map([['O12', true]]))
-    const { criarMock, obter } = criarMockEspiao()
-    const fonte = new FonteComSimulado(real, { criarMock })
-    const { result } = renderHook(
-      () => useMetrica('O12', FILTROS, { simulado: true }),
-      montar(fonte),
-    )
-    await waitFor(() => expect(result.current.estado).toBe('ok'))
-    expect(result.current.origem).toBe('simulado')
-    expect(result.current.erro).toBeNull()
-    expect(result.current.dados?.totais).toBeDefined()
-    expect(criarMock).toHaveBeenCalledTimes(1)
-    expect(criarMock).toHaveBeenCalledWith('2026-10-09')
-    expect(obter).toHaveBeenCalledTimes(1)
-    expect(obter).toHaveBeenCalledWith('O12', {
-      equipe: [],
-      tipo: [],
-      sistema: [],
-      periodo: { tipo: '12s' },
-    })
-    expect(fonte.origensSimuladas.getSnapshot().get('O12')).toEqual({ motivo: MOTIVO })
-  })
-
-  it('o simulado segue o período e não refaz a conta quando só um filtro de dimensão muda', async () => {
-    const { real } = criarReal(new Map([['O12', true]]))
-    const { criarMock, obter } = criarMockEspiao()
-    const fonte = new FonteComSimulado(real, { criarMock })
-    let filtros: typeof FILTROS | { [k: string]: unknown } = FILTROS
-    const { result, rerender } = renderHook(
-      () => useMetrica('O12', filtros as typeof FILTROS, { simulado: true }),
-      montar(fonte),
-    )
-    await waitFor(() => expect(result.current.origem).toBe('simulado'))
-    filtros = { ...FILTROS, equipe: ['beta'] }
-    rerender()
-    await waitFor(() => expect(result.current.estado).toBe('ok'))
-    expect(obter).toHaveBeenCalledTimes(1)
-    expect(criarMock).toHaveBeenCalledTimes(1)
-  })
-
-  it('trocar o período recalcula o simulado e mantém o anterior na tela (atualizando) até chegar', async () => {
-    const { real } = criarReal(new Map([['O12', true]]))
-    let solta: (v: unknown) => void = () => undefined
-    const { criarMock, obter } = criarMockEspiao((id, f) =>
-      obter.mock.calls.length === 1
-        ? (fonteDeTeste.obter as (...a: unknown[]) => Promise<unknown>)(id, f)
-        : new Promise((r) => (solta = r)),
-    )
-    const fonte = new FonteComSimulado(real, { criarMock })
-    let periodo: { tipo: '4s' | '12s' } = { tipo: '12s' }
-    const { result, rerender } = renderHook(
-      () => useMetrica('O12', { ...LIMPOS, periodo }, { simulado: true }),
-      montar(fonte),
-    )
-    await waitFor(() => expect(result.current.origem).toBe('simulado'))
-    const anterior = result.current.dados
-    periodo = { tipo: '4s' }
-    rerender()
-    await waitFor(() => expect(result.current.atualizando).toBe(true))
-    expect(result.current.origem).toBe('simulado')
-    expect(result.current.dados).toBe(anterior)
-    solta(await (fonteDeTeste.obter as (...a: unknown[]) => Promise<unknown>)('O12', LIMPOS))
-    await waitFor(() => expect(result.current.atualizando).toBe(false))
-    expect(obter).toHaveBeenCalledTimes(2)
   })
 
   it('o aviso no console sai uma vez por métrica, e erro que não é Error também volta a "Sem dado real"', async () => {
@@ -184,32 +116,21 @@ describe('useMetrica com a fonte decoradora (pedido 070)', () => {
     expect(fonte.origensSimuladas.getSnapshot().get('O12')).toEqual({ motivo: MOTIVO })
   })
 
-  it('simulado com 0 itens no recorte é "vazio" e segue simulado (o selo fica)', async () => {
-    const { real } = criarReal(new Map([['O18', true]]))
-    const { criarMock } = criarMockEspiao(async (id, f) => {
-      const d = (await (fonteDeTeste.obter as (...a: unknown[]) => Promise<unknown>)(id, f)) as {
-        base: { n: number }
-      }
-      return { ...d, base: { ...d.base, n: 0 } }
-    })
+  it('099: simulavel true também fica "Sem dado real": o hook não pede mais o simulado', async () => {
+    const { real } = criarReal(new Map([['O12', true]]))
+    const { criarMock } = criarMockEspiao()
     const fonte = new FonteComSimulado(real, { criarMock })
-    const { result } = renderHook(
-      () => useMetrica('O18', LIMPOS, { simulado: true }),
-      montar(fonte),
-    )
-    await waitFor(() => expect(result.current.estado).toBe('vazio'))
-    expect(result.current.origem).toBe('simulado')
-    expect(fonte.origensSimuladas.getSnapshot().has('O18')).toBe(true)
+    const { result } = renderHook(() => useMetrica('O12', FILTROS), montar(fonte))
+    await waitFor(() => expect(result.current.estado).toBe('sem-dado-real'))
+    expect(result.current.dados).toBeUndefined()
+    expect(criarMock).not.toHaveBeenCalled()
   })
 
   it('T-W4: simulavel false (ou ausente) fica "Sem dado real" e nunca chama o mock', async () => {
     const { real } = criarReal(new Map([['EI_SUST', false]]))
     const { criarMock } = criarMockEspiao()
     const fonte = new FonteComSimulado(real, { criarMock })
-    const { result } = renderHook(
-      () => useMetrica('EI_SUST', SUST, { simulado: true }),
-      montar(fonte),
-    )
+    const { result } = renderHook(() => useMetrica('EI_SUST', SUST), montar(fonte))
     await waitFor(() => expect(result.current.estado).toBe('sem-dado-real'))
     expect(result.current.dados).toBeUndefined()
     expect(criarMock).not.toHaveBeenCalled()
@@ -219,42 +140,70 @@ describe('useMetrica com a fonte decoradora (pedido 070)', () => {
     const { real } = criarReal(new Map([['EI_SUST', true]]))
     const { criarMock } = criarMockEspiao()
     const fonte = new FonteComSimulado(real, { criarMock })
-    const { result } = renderHook(
-      () => useMetrica('EI_SUST', SUST, { simulado: true }),
-      montar(fonte),
-    )
+    const { result } = renderHook(() => useMetrica('EI_SUST', SUST), montar(fonte))
     await waitFor(() => expect(result.current.estado).toBe('sem-dado-real'))
     expect(result.current.dados).toBeUndefined()
     expect(criarMock).not.toHaveBeenCalled()
     expect(fonte.origensSimuladas.getSnapshot().size).toBe(0)
   })
 
-  it('T-W4: falha do mock volta a "Sem dado real", sem número e sem selo', async () => {
+  it('T-W4: falha do mock não registra origem simulada', async () => {
     const { real } = criarReal(new Map([['O12', true]]))
     const criarMock = vi.fn(() => Promise.reject(new Error('Falha no Worker do mock: x')))
     const fonte = new FonteComSimulado(real, { criarMock })
-    const { result } = renderHook(
-      () => useMetrica('O12', FILTROS, { simulado: true }),
-      montar(fonte),
-    )
-    await waitFor(() => expect(result.current.estado).toBe('sem-dado-real'))
-    expect(result.current.dados).toBeUndefined()
-    expect(result.current.origem).toBe('real')
+    await expect(fonte.obterSimulado('O12', FILTROS, MOTIVO)).rejects.toBeInstanceOf(Error)
     expect(fonte.origensSimuladas.getSnapshot().size).toBe(0)
     // Só o nome do erro vai para o console, nunca o conteúdo.
     expect(console.error).toHaveBeenCalledWith('O12: simulado indisponível (Error)')
   })
 
-  it('T-W4: DTO simulado fora do schema da métrica não chega à tela', async () => {
+  it('T-W4: DTO simulado fora do schema da métrica não é registrado', async () => {
     const { real } = criarReal(new Map([['O12', true]]))
     const { criarMock } = criarMockEspiao(() => Promise.resolve({ qualquer: 'coisa' }))
     const fonte = new FonteComSimulado(real, { criarMock })
-    const { result } = renderHook(
-      () => useMetrica('O12', FILTROS, { simulado: true }),
-      montar(fonte),
+    await expect(fonte.obterSimulado('O12', FILTROS, MOTIVO)).rejects.toBeDefined()
+    expect(fonte.origensSimuladas.getSnapshot().size).toBe(0)
+  })
+
+  it('o registro segue a fonte real: dado real ou sem-dado-real não simulável solta; simulável e erro comum mantêm', async () => {
+    const semDado = new Map<string, boolean>([['O12', true]])
+    const { real } = criarReal(semDado)
+    const { criarMock } = criarMockEspiao()
+    const fonte = new FonteComSimulado(real, { criarMock })
+    const ouvinte = vi.fn()
+    const sair = fonte.origensSimuladas.subscribe(ouvinte)
+    await fonte.obterSimulado('O12', LIMPOS, MOTIVO)
+    await fonte.obterSimulado('O12', LIMPOS, MOTIVO)
+    expect(ouvinte).toHaveBeenCalledTimes(1)
+    await fonte.obterSimulado('O12', LIMPOS, 'outro motivo')
+    expect(fonte.origensSimuladas.getSnapshot().get('O12')).toEqual({ motivo: 'outro motivo' })
+    await expect(fonte.obter('O12', LIMPOS)).rejects.toBeInstanceOf(SemDadoRealErro)
+    expect(fonte.origensSimuladas.getSnapshot().has('O12')).toBe(true)
+    semDado.set('O12', false)
+    await expect(fonte.obter('O12', LIMPOS)).rejects.toBeInstanceOf(SemDadoRealErro)
+    expect(fonte.origensSimuladas.getSnapshot().has('O12')).toBe(false)
+    await fonte.obterSimulado('O12', LIMPOS, MOTIVO)
+    semDado.delete('O12')
+    await fonte.obter('O12', LIMPOS)
+    expect(fonte.origensSimuladas.getSnapshot().has('O12')).toBe(false)
+    sair()
+    const antes = ouvinte.mock.calls.length
+    await fonte.obterSimulado('O12', LIMPOS, MOTIVO)
+    expect(ouvinte).toHaveBeenCalledTimes(antes)
+    const quebrada = Object.create(real, {
+      obter: { value: () => Promise.reject(new Error('rede')) },
+    }) as FonteMetricas
+    await expect(new FonteComSimulado(quebrada).obter('O12', LIMPOS)).rejects.toThrow('rede')
+  })
+
+  it('o contrato manda mais que a resposta: métrica fora da simulação nunca é simulada', async () => {
+    const { real } = criarReal(new Map())
+    const { criarMock } = criarMockEspiao()
+    const fonte = new FonteComSimulado(real, { criarMock })
+    await expect(fonte.obterSimulado('EI_SUST', SUST, MOTIVO)).rejects.toThrow(
+      'Métrica fora da simulação',
     )
-    await waitFor(() => expect(result.current.estado).toBe('sem-dado-real'))
-    expect(result.current.dados).toBeUndefined()
+    expect(criarMock).not.toHaveBeenCalled()
     expect(fonte.origensSimuladas.getSnapshot().size).toBe(0)
   })
 
@@ -274,26 +223,6 @@ describe('useMetrica com a fonte decoradora (pedido 070)', () => {
     const fonte = new FonteComSimulado(real, { criarMock })
     await fonte.obterSimulado('O12', FILTROS, MOTIVO)
     await expect(fonte.obter('O12', FILTROS)).rejects.toBeInstanceOf(SemDadoRealErro)
-  })
-
-  it('T-W7: a mesma métrica passa de simulada para real sem recarregar a página, e o registro a solta', async () => {
-    const semDado = new Map([['O12', true]])
-    const { real } = criarReal(semDado)
-    const { criarMock } = criarMockEspiao()
-    const fonte = new FonteComSimulado(real, { criarMock })
-    const { result } = renderHook(
-      () => useMetrica('O12', LIMPOS, { simulado: true }),
-      montar(fonte),
-    )
-    await waitFor(() => expect(result.current.origem).toBe('simulado'))
-    const ouvinte = vi.fn()
-    fonte.origensSimuladas.subscribe(ouvinte)
-    semDado.delete('O12')
-    act(() => result.current.recarregar())
-    await waitFor(() => expect(result.current.origem).toBe('real'))
-    expect(result.current.estado).toBe('ok')
-    expect(fonte.origensSimuladas.getSnapshot().has('O12')).toBe(false)
-    expect(ouvinte).toHaveBeenCalled()
   })
 
   it('o decorador repassa o que não é métrica à fonte real e herda o tipo dela', async () => {

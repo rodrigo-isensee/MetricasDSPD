@@ -288,8 +288,19 @@ describe('GET /api/v1/metricas/:id', () => {
     for (const t of textos) expect(t.includes('dspd_bm') && t.includes('dspd_ac')).toBe(false);
   });
 
+  it('tendências aceitam equipe opcional (slug), na mesma forma de resposta', async () => {
+    const { app } = await montar();
+    for (const [id, eq] of [['TENDENCIA_FLUXO', 'equipe-a,equipe-b'], ['TENDENCIA_SUST', 'totvs']] as const) {
+      const r = await get(app, `/api/v1/metricas/${id}?dataReferencia=2026-10-08&equipe=${eq}`);
+      expect(r.statusCode, id).toBe(200);
+      expect(SCHEMAS_RESULTADO[id].safeParse(r.json()).success).toBe(true);
+    }
+  });
+
   it.each([
-    ['filtro em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?equipe=fluig'],
+    ['tipo em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?tipo=incidente'],
+    ['equipe fora do formato de slug em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?equipe=Fluig%20X'],
+    ['equipe fora do formato de slug em TENDENCIA_SUST', '/api/v1/metricas/TENDENCIA_SUST?equipe=a;b'],
     ['periodo em TENDENCIA_FLUXO', '/api/v1/metricas/TENDENCIA_FLUXO?periodo=6m'],
     ['prioridade em TENDENCIA_SUST', '/api/v1/metricas/TENDENCIA_SUST?prioridade=P1'],
     ['pessoa em TENDENCIA_SUST', '/api/v1/metricas/TENDENCIA_SUST?agente=ana'],

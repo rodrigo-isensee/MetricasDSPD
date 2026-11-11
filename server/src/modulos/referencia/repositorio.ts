@@ -27,6 +27,27 @@ export async function lerSistemasBM(db: Consultavel, S: Esquemas = esquemasDoAmb
   return r.rows.map((x) => ({ id: x.codigo, nome: x.rotulo }));
 }
 
+/**
+ * Cortes das listas que as opções filtram (K-279): as mesmas condições de `lerCards` e `lerChamados` em
+ * `metricas/repositorio.ts`. Mudou lá, muda aqui: opção fora do corte filtraria para vazio.
+ */
+const CORTE_CARDS = 'criado_em IS NOT NULL AND granularidade IS NOT NULL AND tipo IS NOT NULL';
+const CORTE_CHAMADOS = 'aberto_em IS NOT NULL AND equipe IS NOT NULL AND fora_do_recorte = false';
+
+/** Categorias de tipo presentes nas stories (L6 do 097, E4): o filtro de tipo só vale para story. Mesmo corte de `lerCards`. Nenhuma pessoa, nenhuma contagem. */
+export async function lerTiposBM(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
+  const r = await db.query<{ tipo: string | null }>(
+    `SELECT DISTINCT tipo FROM ${S.bm}.dim_card WHERE ${CORTE_CARDS} AND granularidade = 'story'`);
+  return r.rows.map((x) => x.tipo).filter((t): t is string => typeof t === 'string');
+}
+
+/** Prioridades presentes nos chamados do Acelerato (L6 do 097, E4). Mesmo corte de `lerChamados` (recorte, equipe e abertura). */
+export async function lerPrioridadesAC(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
+  const r = await db.query<{ prioridade: string | null }>(
+    `SELECT DISTINCT prioridade FROM ${S.ac}.dim_chamado WHERE ${CORTE_CHAMADOS} AND prioridade IS NOT NULL`);
+  return r.rows.map((x) => x.prioridade).filter((t): t is string => typeof t === 'string');
+}
+
 /** Primeira data civil (America/Sao_Paulo) com dado na base de cada fonte; `null` se a base está vazia. */
 export async function lerInicioBM(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string | null> {
   const r = await db.query<{ inicio: string | null }>(
