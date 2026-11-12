@@ -3,37 +3,34 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: fix/k284-aviso-marcada
-commit: b1481e32fc6279c9f416c205d1e9fad5dba37e5a
-parecer: reprovado
-escopo: completo
+commit: 34140469ec5b09ad5e65df00e7f498abb390bca3
+parecer: aprovado
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
-bugs_baixos: 1
+bugs_baixos: 0
 data: 2026-11-12
 ---
 
 # QA: K-284, aviso "Marcada: X." sai da região viva no clique e no Esc (097, E3.3)
 
-Base develop bbdf9976. Diff `origin/develop...b1481e32`: `web/src/features/filtros/FiltroMulti.tsx` (+7/-2) e `filtros-componentes.test.tsx` (+21). Obrigação: N1 da revisão de UX do K-278 (`docs/ux/097-revisao-k278.md`).
+Base develop bbdf9976. Diff `origin/develop...34140469`: `web/src/features/filtros/FiltroMulti.tsx` e `filtros-componentes.test.tsx`. Obrigação: N1 da revisão de UX do K-278 (`docs/ux/097-revisao-k278.md`).
 
 ## Veredito
-**Reprovado, por um item só e mecânico.** A correção funcional está certa e provada, mas o check `rapida` do CI do head falhou no passo `pnpm run format:check`: o Prettier reescreve o `if (e.key === 'Escape')` de `aoEsc` (FiltroMulti.tsx:116). Reproduzido local: `prettier src/features/filtros/FiltroMulti.tsx` difere do arquivo só nas linhas 116-117 (quebra de linha depois do `if`); o arquivo da base não tinha esse desvio. Rodar `prettier --write` nesse arquivo e reenviar resolve; o código não muda.
+**Aprovado.** A volta 1 corrige o único achado (A1, `format:check`). O delta `b1481e32..34140469` (`forge-check parecer delta`) toca só `FiltroMulti.tsx`: a quebra de linha do Prettier em `aoEsc` (`if (e.key === 'Escape')` com o `escLimpaBusca` na linha seguinte), sem mudança de lógica. O CI do head fechou verde, inclusive `rapida`.
 
 ## Critério → teste → resultado
 | Obrigação | Teste | Fronteira protegida | Resultado |
 |---|---|---|---|
-| N1: clique na caixa apaga o aviso | "K-284: o clique na caixa apaga o aviso "Marcada" da região viva" | região viva sem "Marcada" nem "Desmarcada" depois de outra ação | passa; cai com a mutação 1 |
-| N1: Esc apaga o aviso | "K-284: o Esc apaga o aviso "Marcada" da região viva" | região viva vazia depois do Esc | passa; cai com a mutação 2 |
-| K-278 A5: Enter anuncia uma vez e alterna Marcada/Desmarcada | "K-278 A5: Enter com uma opção anuncia "Marcada" e depois "Desmarcada"" (existente) | um só aviso por Enter | passa (43/43) |
+| N1: clique na caixa apaga o aviso | "K-284: o clique na caixa apaga o aviso "Marcada" da região viva" | região viva sem "Marcada" nem "Desmarcada" depois de outra ação | passa; cai com a mutação 1 (parecer anterior, código inalterado) |
+| N1: Esc apaga o aviso | "K-284: o Esc apaga o aviso "Marcada" da região viva" | região viva vazia depois do Esc | passa; cai com a mutação 2 (idem) |
+| K-278 A5: Enter anuncia uma vez e alterna Marcada/Desmarcada | "K-278 A5: Enter com uma opção anuncia "Marcada" e depois "Desmarcada"" (existente) | um só aviso por Enter | passa |
 
-## Execução
+## Execução (revalidação no head 34140469)
+- `npx prettier --check` nos dois arquivos do diff: `All matched files use Prettier code style!`.
 - `VITEST_MAX_WORKERS=2 npx vitest run src/features/filtros/filtros-componentes.test.tsx` em `web/`: 1 arquivo, 43 passaram.
-- Enter segue anunciando uma vez: em `alternar` o `setRetorno('')` roda antes e o `setRetorno('Marcada: X.')` do Enter logo depois, no mesmo lote; vale o último. O teste A5 e o novo teste do clique (que começa por Enter e vê "Marcada: Beta.") confirmam.
-- Mutação 1 (tirar `setRetorno('')` de `alternar`): `× K-284: o clique na caixa apaga o aviso "Marcada" da região viva`, 1 falhou, 42 passaram.
-- Mutação 2 (tirar `setRetorno('')` do callback do Esc): `× K-284: o Esc apaga o aviso "Marcada" da região viva`, 1 falhou, 42 passaram.
-- Os dois arquivos foram restaurados depois de cada mutação; `git status --short` limpo.
-- CI do head b1481e32 (run 43150708985): `testes`, `banco`, `build`, `openapi`, `imagem`, `seguranca`, `filtro` com sucesso; `e2e` e `perf` ignorados; `rapida` com falha (format:check). O run está `completed failure`.
+- Mutações 1 e 2 e o vermelho: já provados no parecer anterior; o delta é só quebra de linha, sem efeito sobre eles.
+- CI do head (run 43151881848, sha 34140469): `rapida`, `testes`, `banco`, `build`, `openapi`, `imagem`, `seguranca` e `filtro` com sucesso; `e2e` e `perf` ignorados; run `completed success`.
 
 ## Achados
-- A1 (bloqueante) web/src/features/filtros/FiltroMulti.tsx:116 · `format:check` falha no CI (check `rapida`): o Prettier quer quebrar a linha após `if (e.key === 'Escape')`; rodar `prettier --write` no arquivo e reenviar.
