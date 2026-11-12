@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/099-d3-ci-vermelho
-commit: 332f134a8b77d5c15932a5dd5b605b3b1cf9cf53
+commit: 931444b41f80668bab33947ab86d98ef48e26cd8
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -43,6 +43,13 @@ Delta (`forge-check parecer delta`, b4c40051..332f134a): só `server/tests/alvos
 - Cobertura do server, só o projeto unit sem `PG_TESTE_URL` (como no CI): `Statements 100% (5567/5567); Branches 100% (3698/3698); Functions 100% (1250/1250); Lines 100% (4381/4381)`, 2013 testes de 2013, limiar 100% mantido. Repetida 5 vezes (inclusive com cache do vite apagado): 100% em todas.
 - Observação: na 1ª execução da sessão saiu uma vez `Branches 99.97% (3693/3694)` (denominador diferente do 3698 das demais); não reproduziu em 5 execuções seguintes. Se o check `testes` da CI oscilar, abrir cartão de instabilidade; não bloqueia.
 - A suíte inteira e o `bateria` seguem pelo CI do PR neste sha.
+
+## Revalidação por delta (E3.48): hash do web 931444b4
+Delta (`forge-check parecer delta`, 332f134a..931444b4): só `web/src/data/mock/nucleoMock.paridade.test.ts`: `68a67741` para `de6a8953` (base, 2 asserções) e `0113e077` para `20541e9d` (Acelerato), com comentário do motivo; hash das extensões (`82329bc3`) mantido.
+- Mesma base: `docs/qa/evidencias/hash-base-fase-a.json` traz `hashBase` de6a8953 e `hashAcelerato` 20541e9d, iguais aos do teste web (semente 20261009).
+- Verde: `vitest run src/data/mock/nucleoMock.paridade.test.ts` no head: 8 de 8.
+- Vermelho: o mesmo teste na versão de 1ec3913e (hashes antigos) contra o código atual: 2 falharam, `Expected: "68a67741"  Received: "de6a8953"`, 6 passaram.
+- A suíte inteira segue pelo check-run `bateria` do CI neste sha.
 
 ## Achados
 
