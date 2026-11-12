@@ -4,6 +4,7 @@ import { Barras, Histograma } from '@/components/charts'
 import {
   AmostraInsuficiente,
   CelulaInsuficiente,
+  EstadoSemDadoReal,
   SeletorLocal,
   StatusMeta,
   TabelaDados,
@@ -24,11 +25,12 @@ interface P {
 export function CartaoO17({ filtros }: P) {
   const q = useMetrica('O17', filtros)
   const d = q.dados
-  const topo = d?.porCausa.reduce((a, b) => (b.n > a.n ? b : a), { causa: '', n: -1 })
+  const topo = d?.porCausa?.reduce((a, b) => (b.n > a.n ? b : a), { causa: '', n: -1 })
   return (
     <CartaoComplementar
       id="O17"
       q={q}
+      semFonteParcial
       leitura={
         topo && topo.n > 0
           ? `A causa raiz mais frequente é ${topo.causa}, com ${fmtInteiro(topo.n)} incidentes.`
@@ -37,15 +39,22 @@ export function CartaoO17({ filtros }: P) {
     >
       {(r) => (
         <div className="flex flex-col gap-3">
-          <Barras
-            descricao="Incidentes encerrados por causa raiz"
-            orientacao="horizontal"
-            unidade="incidentes"
-            semLegenda
-            larguraRotulos={140}
-            categorias={r.porCausa.map((c) => ({ rotulo: c.causa, valores: { n: c.n } }))}
-            series={[{ chave: 'n', rotulo: 'Incidentes' }]}
-          />
+          {r.porCausa === null ? (
+            <EstadoSemDadoReal
+              codigo="O17-causa-raiz"
+              motivo={r.motivoCausaRaiz ?? 'causa raiz sem dado real'}
+            />
+          ) : (
+            <Barras
+              descricao="Incidentes encerrados por causa raiz"
+              orientacao="horizontal"
+              unidade="incidentes"
+              semLegenda
+              larguraRotulos={140}
+              categorias={r.porCausa.map((c) => ({ rotulo: c.causa, valores: { n: c.n } }))}
+              series={[{ chave: 'n', rotulo: 'Incidentes' }]}
+            />
+          )}
           <Barras
             descricao="Incidentes encerrados por sistema"
             orientacao="horizontal"

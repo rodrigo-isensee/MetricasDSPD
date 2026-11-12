@@ -9,6 +9,7 @@ import {
   corpoSemDadoReal,
   ESTADO_SEM_DADO_REAL,
   METRICAS_ORIGEM_REAL,
+  MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
   MOTIVO_ORIGEM_MOCK,
   motivoDaOrigemMock,
@@ -31,6 +32,7 @@ describe('origemDaMetrica (H-13)', () => {
         ...['PV1'],
         ...['S2', 'S3', 'S4', 'S8', 'S10'],
         ...['TENDENCIA_FLUXO', 'TENDENCIA_SUST'], // pedido 077 (L5, L7)
+        ...['O17'], // pedido 099 (E3.20)
       ].sort(),
     )
   })
@@ -62,11 +64,17 @@ describe('origemDaMetrica (H-13)', () => {
     }
   })
 
-  it('é mock, com o motivo, para O8, O12, O14, O15, O16, O17 e O18', () => {
-    for (const id of ['O8', 'O12', 'O14', 'O15', 'O16', 'O17', 'O18'] as const) {
+  it('é mock, com o motivo, para O8, O12, O14, O15, O16 e O18', () => {
+    for (const id of ['O8', 'O12', 'O14', 'O15', 'O16', 'O18'] as const) {
       expect(origemDaMetrica(id)).toBe('mock')
       expect(motivoDaOrigemMock(id)).toBe('aguardando campo no quadro')
     }
+  })
+
+  it('O17 é real por sistema (pedido 099, B da Q-099-7) e a causa raiz tem motivo próprio', () => {
+    expect(origemDaMetrica('O17')).toBe('real')
+    expect(motivoDaOrigemMock('O17')).toBeNull()
+    expect(MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL).toContain('causa aparente')
   })
 
   it('O26, FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {

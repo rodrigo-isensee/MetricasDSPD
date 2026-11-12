@@ -33,6 +33,8 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
   'S4',
   'S8',
   'S10',
+  // Pedido 099 (E3.20, B' da Q-099-7): o O17 publica por sistema (categoria_sistema) com dado real; a causa raiz segue sem dado real.
+  'O17',
   // Pedido 077 (L5, K-211): a tendência do fluxo lê só o BusinessMap real.
   'TENDENCIA_FLUXO',
   // Pedido 077 (L7, K-211): a tendência da sustentação lê só o Acelerato real.
@@ -40,6 +42,13 @@ export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
 ])
 
 export const MOTIVO_AGUARDANDO_CAMPO = 'aguardando campo no quadro'
+
+/**
+ * Pedido 099 (B' da Q-099-7): motivo da parte por causa raiz do O17. A causa raiz é do Registro de Problemas e a base não tem o
+ * vínculo ao incidente; a causa aparente não serve no lugar dela.
+ */
+export const MOTIVO_O17_CAUSA_RAIZ_SEM_DADO_REAL =
+  'aguardando o Registro de Problemas com vínculo ao incidente (a causa aparente não é a causa raiz)'
 
 export const MOTIVO_AGUARDANDO_CAMPO_CHAMADO =
   'aguardando tipo e domínio do campo do chamado (P-DS-19)'
@@ -70,7 +79,6 @@ export const MOTIVO_ORIGEM_MOCK: Partial<Record<MetricaId, string>> = {
   O14: MOTIVO_AGUARDANDO_CAMPO,
   O15: MOTIVO_AGUARDANDO_CAMPO,
   O16: MOTIVO_AGUARDANDO_CAMPO,
-  O17: MOTIVO_AGUARDANDO_CAMPO,
   O18: MOTIVO_AGUARDANDO_CAMPO,
   S1: MOTIVO_AGUARDANDO_PRAZOS_SLA,
   S5: MOTIVO_AGUARDANDO_CAMPO_CHAMADO,

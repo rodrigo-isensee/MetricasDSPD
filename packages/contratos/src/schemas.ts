@@ -988,7 +988,12 @@ export const resultadoO17 = z.object({
   ...comum,
   /** false = o campo de origem ainda não vem de fonte (sem extensão): nada é publicado, nunca 0%. */
   campoDisponivel: z.boolean(),
-  porCausa: z.array(z.object({ causa: z.enum([...CAUSAS_RAIZ, 'Não informada']), n: z.number() })),
+  /** null = causa raiz sem dado real (pedido 099, B' da Q-099-7): nunca lista vazia nem "Não informada" inflado; o motivo vai em `motivoCausaRaiz`. */
+  porCausa: z
+    .array(z.object({ causa: z.enum([...CAUSAS_RAIZ, 'Não informada']), n: z.number() }))
+    .nullable(),
+  /** Motivo de `porCausa` nulo; null quando a causa raiz é publicada. */
+  motivoCausaRaiz: z.string().min(1).nullable(),
   porSistema: z.array(z.object({ sistema: z.string(), n: z.number() })),
 })
 
