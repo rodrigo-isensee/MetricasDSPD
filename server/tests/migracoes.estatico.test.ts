@@ -20,6 +20,8 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
   for (const s of sqls) {
     const queda = /^ALTER TABLE\s+(\S+)\s+DROP COLUMN(?: IF EXISTS)?\s+(\w+)$/.exec(s);
     if (queda) { const i = out.findIndex((c) => c.tabela === queda[1] && c.coluna === queda[2]); if (i >= 0) out.splice(i, 1); continue; }
+    const ren = /^ALTER TABLE\s+(\S+)\s+RENAME COLUMN\s+(\w+)\s+TO\s+(\w+)$/.exec(s);
+    if (ren) { const c = out.find((x) => x.tabela === ren[1] && x.coluna === ren[2]); if (c) { c.def = c.def.replace(new RegExp(`^${ren[2]}\\b`), ren[3]!); c.coluna = ren[3]!; } continue; }
     const alt = /^ALTER TABLE\s+(\S+)\s+ADD COLUMN(?: IF NOT EXISTS)?\s+(\w+)\s+(.*)$/.exec(s);
     if (alt) { out.push({ tabela: alt[1]!, coluna: alt[2]!, def: `${alt[2]} ${alt[3]}` }); continue; }
     const m = /^CREATE TABLE\s+(\S+)\s*\(/.exec(s);
@@ -43,7 +45,7 @@ function todasColunas(sqls: string[]): { tabela: string; coluna: string; def: st
 const colunas = todasColunas(todoSql);
 const tipoDe = (t: string, c: string): string => colunas.find((x) => x.tabela === t && x.coluna === c)!.def;
 /** Contagem explícita: mudou o esquema, atualize aqui conscientemente. */
-const COLUNAS_FORA_STG_ESPERADAS = 518; // 0017 do Acelerato: 5 colunas em cada uma das duas dimensões do chamado; 0018 e 0019 do BusinessMap (F0 do 052); 0020 (F3): dim_responsavel, 4 colunas; 0023 a 0028 (059, A1): evt_apontamento 10, pessoa_ref 1, cfg_pessoa_eliminada 2, ref_apontamento_* 11, dim_card_raiz 8, fato_apontamento 22; 0029 (059, E2.19): type_id em fato_apontamento, 1 (stg_apontamento fica fora da conta); 0030 (059, E2.27): vigente_de e vigente_ate em cada uma das 3 ref_apontamento_*, 6 (vigencia_id, identidade, o contador não vê); 0031 (059, E2.27): executado_por em cfg_pessoa_eliminada, 1; 0034 (063, K-200): ctl_apontamento_cobertura, 6 colunas (cobertura_sk, card_id, estado, coleta_id, detectado_em, sistema_origem)
+const COLUNAS_FORA_STG_ESPERADAS = 520; // 0017 do Acelerato: 5 colunas em cada uma das duas dimensões do chamado; 0018 e 0019 do BusinessMap (F0 do 052); 0020 (F3): dim_responsavel, 4 colunas; 0023 a 0028 (059, A1): evt_apontamento 10, pessoa_ref 1, cfg_pessoa_eliminada 2, ref_apontamento_* 11, dim_card_raiz 8, fato_apontamento 22; 0029 (059, E2.19): type_id em fato_apontamento, 1 (stg_apontamento fica fora da conta); 0030 (059, E2.27): vigente_de e vigente_ate em cada uma das 3 ref_apontamento_*, 6 (vigencia_id, identidade, o contador não vê); 0031 (059, E2.27): executado_por em cfg_pessoa_eliminada, 1; 0034 (063, K-200): ctl_apontamento_cobertura, 6 colunas (cobertura_sk, card_id, estado, coleta_id, detectado_em, sistema_origem); 0036 (099, D3): unidade_pa e unidade_r em ref_alvo_prioridade, 2 (as duas colunas de prazo só mudam de nome)
 
 const COLUNAS_F2 = ['arquivado', 'com_agente', 'reincidente_90d', 'fora_do_recorte', 'categoria_key'];
 describe('migrações e singleTransaction', () => {

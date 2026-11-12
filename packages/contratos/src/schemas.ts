@@ -617,6 +617,8 @@ export const resultadoE3 = z.object({
 /* ---------- Sustentação ---------- */
 const classeS1 = z.object({
   alvoHoras: z.number(),
+  /** Relógio em que o alvo e a estatística são medidos (Q-099-11): `corrido` (24 h por dia) ou `util` (calendário de expediente). */
+  unidade: z.enum(['corrido', 'util']),
   n: z.number(),
   estatistica: estatisticaSchema(percentisComMediaSchema),
   /** mediana / alvo (1 = no alvo). null com amostra insuficiente. */

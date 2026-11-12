@@ -72,11 +72,19 @@ export interface EtapaChamado {
   motivo_pendencia: MotivoPendencia | null
 }
 
-/** Prazos da matriz de prioridade (briefing 3.4), em horas úteis. P1 = 15 min / 4 h. */
+/** Relógio em que o prazo é medido: `corrido` (24 h por dia, sem feriado) ou `util` (calendário de expediente). */
+export type UnidadePrazo = 'corrido' | 'util'
+
+/**
+ * Prazos da matriz de prioridade (PROC 30.000.010 v002), em horas, cada um com a unidade (Q-099-11). P1 = 15 min / 4 h. Dia útil = 8 h
+ * (os prazos em dias úteis vêm já em horas).
+ */
 export interface AlvoPrioridade {
   prioridade: Prioridade
   primeiro_atendimento_horas: number
+  unidade_primeiro_atendimento: UnidadePrazo
   restauracao_horas: number
+  unidade_restauracao: UnidadePrazo
 }
 
 export interface ConfigAC {
@@ -100,13 +108,13 @@ export const MATRIZ_PRIORIDADE: Record<
   Baixo: { Alta: 'P3', Média: 'P4', Baixa: 'P5' },
 }
 
-/** 8 h úteis por dia: 1 dia útil = 8 h. */
+/** 8 h úteis por dia: 1 dia útil = 8 h. Unidades da Q-099-11: P1 (os dois prazos) e P2 (primeiro atendimento) em tempo corrido. */
 export const ALVOS_PADRAO: AlvoPrioridade[] = [
-  { prioridade: 'P1', primeiro_atendimento_horas: 0.25, restauracao_horas: 4 },
-  { prioridade: 'P2', primeiro_atendimento_horas: 0.5, restauracao_horas: 8 },
-  { prioridade: 'P3', primeiro_atendimento_horas: 2, restauracao_horas: 16 },
-  { prioridade: 'P4', primeiro_atendimento_horas: 4, restauracao_horas: 40 },
-  { prioridade: 'P5', primeiro_atendimento_horas: 8, restauracao_horas: 80 },
+  { prioridade: 'P1', primeiro_atendimento_horas: 0.25, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 4, unidade_restauracao: 'corrido' },
+  { prioridade: 'P2', primeiro_atendimento_horas: 0.5, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 8, unidade_restauracao: 'util' },
+  { prioridade: 'P3', primeiro_atendimento_horas: 2, unidade_primeiro_atendimento: 'util', restauracao_horas: 16, unidade_restauracao: 'util' },
+  { prioridade: 'P4', primeiro_atendimento_horas: 4, unidade_primeiro_atendimento: 'util', restauracao_horas: 40, unidade_restauracao: 'util' },
+  { prioridade: 'P5', primeiro_atendimento_horas: 8, unidade_primeiro_atendimento: 'util', restauracao_horas: 80, unidade_restauracao: 'util' },
 ]
 
 /** Predicado único de "justificado" (R6): campo preenchido e não vazio; texto só com espaços NÃO conta. Usado pela S7 e pelo seed/coletor. */

@@ -1,0 +1,35 @@
+{
+  "versao": 1,
+  "fonte": "PROC 30.000.010 v002",
+  "versao_criterio": {
+    "descricao": "Alvos de primeiro atendimento e restauração do Acelerato, por prioridade e por prazo, cada um na unidade do PROC",
+    "motivo": "Q-099-5a e Q-099-11 do pedido 099: a S1 passa a comparar cada prazo na unidade escrita no PROC 30.000.010 v002 (P1 e o primeiro atendimento de P2 em tempo corrido, os outros sete em tempo útil)"
+  },
+  "alvos": [
+    {
+      "prioridade": "P1",
+      "primeiro_atendimento": { "horas": 0.25, "unidade": "corrido", "texto_proc": "Até 15 minutos" },
+      "restauracao": { "horas": 4, "unidade": "corrido", "texto_proc": "Até 4 horas" }
+    },
+    {
+      "prioridade": "P2",
+      "primeiro_atendimento": { "horas": 0.5, "unidade": "corrido", "texto_proc": "Até 30 minutos" },
+      "restauracao": { "horas": 8, "unidade": "util", "texto_proc": "Até 8 horas úteis" }
+    },
+    {
+      "prioridade": "P3",
+      "primeiro_atendimento": { "horas": 2, "unidade": "util", "texto_proc": "Até 2 horas úteis" },
+      "restauracao": { "horas": 16, "unidade": "util", "texto_proc": "Até 2 dias úteis" }
+    },
+    {
+      "prioridade": "P4",
+      "primeiro_atendimento": { "horas": 4, "unidade": "util", "texto_proc": "Até 4 horas úteis" },
+      "restauracao": { "horas": 40, "unidade": "util", "texto_proc": "Até 5 dias úteis" }
+    },
+    {
+      "prioridade": "P5",
+      "primeiro_atendimento": { "horas": 8, "unidade": "util", "texto_proc": "Até 1 dia útil" },
+      "restauracao": { "horas": 80, "unidade": "util", "texto_proc": "Até 10 dias úteis" }
+    }
+  ]
+}
