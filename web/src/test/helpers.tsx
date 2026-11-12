@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
 import { BarraFiltros, useFiltros, type PainelId } from '@/features/filtros'
 import { Provedores } from '@/app/App'
 import { criarRoteadorMemoria } from '@/app/router'
-import { MockFonteMetricas } from '@/data'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import type { FontePreferencias } from '@/features/preferencias'
 
 /** Uma fonte para todos os testes: a base fictícia é gerada uma única vez; latência 0 (D7 se testa à parte). */

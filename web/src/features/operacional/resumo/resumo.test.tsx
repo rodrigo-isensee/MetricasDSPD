@@ -8,7 +8,7 @@ import {
   type MetricaId,
   type ResultadoDe,
 } from '@metricas-dspd/contratos'
-import { MockFonteMetricas } from '@/data'
+import { MockFonteMetricas } from '@/data/mock/MockFonteMetricas'
 import { FonteAjustada } from '@/features/painel/testes/fonteFixa'
 import { renderizarApp } from '@/test/helpers'
 
