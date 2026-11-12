@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/099-l2d-mock-fora-do-build
-commit: 4bbc8f94c05bfd2b63ed3ca5093d9b5181e1aeb6
+commit: ce420a8b5102a4718457667e35235d2e1762e535
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -30,6 +30,9 @@ Links: ADR 0030 (D6), pedido `docs/pedidos/099-nenhuma-metrica-simulada.md`.
 | Modo `VITE_FONTE=mock` segue valendo nos testes | `TZ=UTC VITEST_MAX_WORKERS=2 vitest run src/app src/test/lint.meta.test.ts src/data`: 13 arquivos, 206 testes passaram; `tsc -b`: rc 0 | carga assíncrona do mock, valor inválido falha na partida | passa |
 | Modo mock no E2E | `playwright test --project=chromium tests/b12-fluxo.spec.ts` (build `VITE_FONTE=mock` + preview): 39 passaram | app mock carrega após "Carregando…" e renderiza os painéis | passa |
 | Suíte inteira e cobertura | check-run `bateria`/`testes` do CI no sha do PR (não rodado aqui) | limiar de cobertura da web | a conferir no CI do PR |
+
+## Revalidação (volta 1, head ce420a8b)
+Delta: merge da develop (21e70aa5) e `equipe.test.tsx` importando `MockFonteMetricas` direto de `@/data/mock/MockFonteMetricas` (mais ajustes de teste em `taticas.test.tsx` e `resumo.test.tsx` vindos da base). Vitest de `web/src/features/operacional/resumo/`: 4 arquivos, 87 testes passaram. Build `api` (sem VITE_FONTE) em `$TMPDIR`: 0 chunks com "mock" e `sem-mock`: "G1 ok", rc 0. Nenhum import de `MockFonteMetricas` pelo `@/data` em `web/` e `e2e/` (o índice só exporta hooks como `useModoMock`). Suíte inteira: check-run `bateria` do CI no sha do PR, não rodada aqui. Parecer segue aprovado.
 
 ## Desvios do autor (lidos pelo QA)
 - Sentinela em `web/src/data/mock/` e G2 no teste: a G2 varre todos os módulos de produção de `web/src` e a mutação a derrubou; a G1 pega o mock por nome do chunk e por texto. Sem lacuna vista.
