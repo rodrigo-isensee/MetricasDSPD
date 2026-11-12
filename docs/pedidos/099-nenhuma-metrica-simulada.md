@@ -34,6 +34,7 @@
 - E2.21 (security-engineer): parecer de segurança do L2d (gatilho: web/package.json; o pronto da web ganha um passo).
 - E2.22 (ux-designer): K-297, parte de UX: o texto do parágrafo do catálogo com a contagem que bate com o (resumo).
 - E2.23 (ux-designer): revisão da interface do K-297 (parágrafo do catálogo sem número), em docs/ux/099-revisao-k297.md.
+- E2.24 (ux-designer): revisão da interface do K-285 (estado sem dado real: motivo a 14 px, faixa de selos, role=status), em docs/ux/099-revisao-k285.md.
 - E2.12 (tech-lead): review por lote do 099 (L2b em diante).
 - E2.13 (qa-engineer): QA por lote do 099 (L2b em diante).
 - E2.14 (tech-lead): PR e merge por lote do 099 na develop, pela autorização do dono de 17:51.
@@ -331,3 +332,16 @@
 - 2026-11-12 11:30: QA do K-296 aprovado (04f327cd, em 275b0aff), 0 bugs; nenhum mock de origem sobra; mutação derrubou 6 testes. Review delegado.
 - 2026-11-12 11:30: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-43.md 32642069214ad197ad691e0423a82cf5644652ffa4a6cfee7d7f11007b2bd46b
 - 2026-11-12 11:34: Review do K-296 aprovado (0ff5a776, em 275b0aff); A1 títulos de teste ainda dizem mock, A2 MOTIVO_ORIGEM_MOCK (recomendados, cartão próprio). K-296 com QA e review; merge depois da release 101.
+- 2026-11-12 11:55: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-44.md 8eb1b95c088d0778674a91fa55427ea9b3309242781880949d49b76f68093219
+- 2026-11-12 11:55: Fila de merges depois da release (a release 101 já está na homolog): K-290 primeiro (tech-lead-44); depois, um por vez, D3, K-296, K-297, K-285 (falta QA e review) e os do 097.
+- 2026-11-12 12:01: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-26.md 516145b1aad3d8dbdc17e6aac1592c2c01f304167f6989b2eb8405caa1160dd5
+- 2026-11-12 12:06: QA do K-285 aprovado (8d0f2cf3, em 5dcf0e4d), 0 bugs; mutação de cada ajuste derruba o seu teste; e2e com axe 49 passam. Review delegado.
+- 2026-11-12 12:06: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-45.md 3b78c819bcbeccf606cbdeeac91bcad71bd05b510e82fd61f16668e865c88641
+- 2026-11-12 12:09: Review do K-285 aprovado (b671e789, em 5dcf0e4d); A1 recomendado: role=status montado já preenchido pode não ser anunciado (mesmo padrão do K-300). K-285 com QA e review; falta a revisão de UX (muda interface) antes do merge.
+- 2026-11-12 12:10: brief selado docs/briefs/099-nenhuma-metrica-simulada-ux-designer-5.md 616377598d918af12b566d04243cad8edfdf461ecea9456399c179cf1239b325
+- 2026-11-12 12:10: Revisão de UX do K-285 aprovada (docs/ux/099-revisao-k285.md, sem commit), sem bloqueante nem recomendado; o A1 do review não pede ajuste (região viva por cartão faria ruído; anúncio garantido seria uma região por painel, pedido próprio). K-285 com QA, review e UX; merge na fila.
+- 2026-11-12 12:36: K-290 na develop pelo PR 361 (merge 0bcfbac8, 15:33:54Z), mesclado pela conta do dono (gh), nao pelo tech-lead; forge-check pr aprovado nos heads 383dcab e 6701c94; o e2e-parte (2/2) estava pending no merge e fechou verde depois (todos os checks pass). Melhoria vista (tech-lead): exigir os checks e2e-parte como required status check na develop.
+- 2026-11-12 12:38: brief selado docs/briefs/099-nenhuma-metrica-simulada-security-engineer-7.md b471e932ea582256a4f0643952885b57109d93e4feee95de6897b37aac24981d
+- 2026-11-12 12:39: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-46.md 722c96ca40664969ff8abae36c7d3efd6119275935c143c21dce5c93c695d93c
+- 2026-11-12 12:39: Merge do D3 recusado pelo brief gerar: o parecer de seguranca esta em 8f0d669b e a volta 2 mudou alvos-acelerato.ts (METRICAS_ALVOS com VISAO_GERAL). Revalidacao da seguranca pelo delta delegada (security-engineer-7); D3 volta a fila depois dela. Merge do K-296 delegado (tech-lead-46).
+- 2026-11-12 12:41: Seguranca do D3 revalidada na volta 2 (0d45f97a, em 70836ab6), aprovada; o delta (METRICAS_ALVOS com VISAO_GERAL) nao muda o veredito. D3 volta a fila de merges depois do K-296. Melhoria vista: o brief pediu Edit ao security-engineer, que so tem Write.

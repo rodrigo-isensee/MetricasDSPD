@@ -16,7 +16,7 @@
 
 ## Etapas
 - E1.1 (ux-designer): discovery da interface de E1 a E4 e protótipo para o dono validar.
-- E1.2 (software-architect): viabilidade e dados de E1 a E4 (time no apontamento, opções de filtro do dado real), em paralelo ao UX.
+- E1.2 (software-architect): viabilidade e dados de E1 a E4 (time no apontamento, opções de (resumo).
 - E1.3 (ux-designer): segunda rodada do protótipo com E5 (recolher cartão e os 10 maiores do AP-PROJETO) e E7 (filtro Setor), rótulo (resumo).
 - E1.5 (tech-lead): commit e push dos documentos da segunda rodada do UX, que o ux-designer não pode commitar, na branch (resumo).
 - E1.6 (react-frontend): L5, filtro Equipe em cada bloco do Resumo (feito, PR 350).
@@ -26,9 +26,9 @@
 - E5.2 (react-frontend): L9 do plano E5 e E7, os 10 maiores com ver todos no AP-PROJETO (dezMaiores com teste de propriedade, CA-33 a (resumo).
 - E5.3 (react-frontend): L8b, recolher ligado nos painéis com as ressalvas do L8a, branch feature/097-l8b-recolher-paineis a partir do L8a (resumo).
 - E7.1 (node-backend): L10a, dicionário de setores e opcoes.setores, branch feature/097-l10a-setor-dicionario, worktree (resumo).
-- E7.2 (security-engineer): parecer de segurança do L10a (fronteira do arquivo de domínio do pedido 069, guarda de sobrenome).
+- E7.2 (security-engineer): parecer de segurança do L10a (fronteira do arquivo de domínio do (resumo).
 - E2.1 (node-backend): L2, a equipe no apontamento, parte servidor (feito, PR 337).
-- E2.2 (security-engineer): parecer de segurança do L2 (banco: permissão por coluna; recorte de pessoas por equipe).
+- E2.2 (security-engineer): parecer de segurança do L2 (banco: permissão por coluna; recorte (resumo).
 - E2.3 (react-frontend): L3, Equipe no lugar de Pessoa no Apontamento (PR 345).
 - E3.5 (ux-designer): revisão da interface implementada, por lote do 097, em docs/ux/097-revisao-<lote>.md.
 - E4.1 (node-backend): L6, parte servidor, tipos reais em opcoes.tipos (feito, PR 330).
@@ -40,7 +40,9 @@
 - E4.7 (react-frontend): L7b, codec da web por slug (feito, PR 344).
 - E4.8 (react-frontend): L6 web, Tipo e prioridades do dado real (PR 353).
 - E4.9 (node-backend): K-288, nome de equipe estável por slug (PR 352).
-- E4.10 (node-backend): K-283, as demais provas de pessoa à mão nos testes .pg passam ao helper de COLUNAS_PESSOA (A1 do review do K-282), branch test/k283-provas-pessoa-helper, worktree /home/rodrigoisensee/MetricasDSPD-056d.
+- E4.10 (node-backend): K-283, as demais provas de pessoa à mão nos testes .pg passam ao (resumo).
+- E4.11 (node-backend): K-286, o mapa diário do Apontamento recortado pela Equipe (decisão do (resumo).
+- E4.12 (react-frontend): K-286, parte web: o mapa diário do Apontamento deixa de dizer Não (resumo).
 - E3.1 (react-frontend): L1, busca no FiltroMulti (feito, PR 336).
 - E3.6 (react-frontend): K-278, ressalvas da revisão de UX do L1 e o A5 do review (feito, PR 341).
 - E3.7 (react-frontend): K-284, aviso Marcada fora da região viva no clique e no Esc (feito, PR 346).
@@ -450,3 +452,27 @@
 - 2026-11-12 06:04: E4.10 (K-283) entregue em parte (df78e1a6): seis provas de 42501 à mão em quatro testes .pg passam ao provarSemPessoa, sem mudar o que afirmam; typecheck e lint verdes. Os .pg não rodam no sandbox (sem PG_TESTE_URL) e a cobertura caiu por tempo e spawnSync com a máquina carregada; a prova dos .pg e a mutação ficam para o job banco do CI e para o QA, depois da release 101. Melhoria vista (para a retro): a trava da suíte única espera sem dizer quem a segura nem ter tempo limite.
 - 2026-11-12 06:54: entrega conferida df78e1a65fe2646b5b7653b208b608679454743f
 - 2026-11-12 07:51: DECISÃO DO DONO (literal): ".5 - sim", sobre o mapa diário do Apontamento passar a ser recortado pela Equipe. Destrava o cartão K-286; desenvolvimento depois da release 101.
+- 2026-11-12 12:00: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-46.md bbb8024951dbf3866b7a71a5f050debe3c0acf8156cf78b836c303169b469d04
+- 2026-11-12 12:02: QA do K-283 aprovado (5bb4e47e, em df78e1a6), 0 bugs; seis provas iguais ou mais fortes; .pg pelo CI do PR. Review delegado.
+- 2026-11-12 12:02: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-75.md 3dba3ad504b57cb09e3ed35b2616a0028caf923bf67d4ea1f1613a4513b74eb5
+- 2026-11-12 12:05: Review do K-283 aprovado (3bac7bff, em df78e1a6); A1 recomendado: metricas.pg.test.ts:72 ainda prova dim_card.responsaveis à mão (cartão próprio). K-283 com QA e review; merge na fila pós-release (o job banco do CI decide).
+- 2026-11-12 12:14: brief selado docs/briefs/097-resumo-filtro-time-node-backend-26.md 55725a4ec4f8c1d354473c6d4748ec9aa4e1e7f95b444d2af80ea7b4db390404
+- 2026-11-12 12:14: E4.11 (K-286, mapa diário do Apontamento por Equipe, parte servidor) delegada ao node-backend (node-backend-26), worktree 052c.
+- 2026-11-12 12:16: brief selado docs/briefs/097-resumo-filtro-time-node-backend-27.md 9b00b94501fd0486bf5fa3c3f511fa9af5201c2660520f2b62fa32740d89b394
+- 2026-11-12 12:16: K-286 parado com razão: o recorte do mapa diário está na biblioteca (filtrar com soPessoa em packages/metricas/src/businessmap/apontamento), fora da lista do brief. DECISÃO TÉCNICA (Jarvis): a lista inclui a biblioteca; modo diário com pessoa e equipe, o atípico continua decidido sobre o dia inteiro. Redelegado (node-backend-27).
+- 2026-11-12 12:21: entrega conferida 7c5277e2d4ed151ac7790b8ac81e52d9c4e0d031
+- 2026-11-12 12:21: E4.11 (K-286 biblioteca) entregue (7c5277e2): modo diario em filtros.ts aplica pessoa e equipe; atípico antes; testes novos vermelhos antes do verde; metricas 1307 e apontamento 428 verdes; servidor sem mudança de código; docs/api/apontamento.md com nota. Parte web delegada (E4.12).
+- 2026-11-12 12:21: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-25.md 285bb2c70665d452a1abce11aa73d1aa9f2585bbcc06eb3b89d585426ba74e4d
+- 2026-11-12 12:25: entrega conferida dfba8a37e6a19ae527b11b81e7468bcb6bd88cad
+- 2026-11-12 12:25: E4.12 (K-286 web) entregue (dfba8a37): o AP-DIARIO passa a ter equipe como filtro aplicável; teste vermelho antes do verde; 175 testes da web do Apontamento verdes. QA delegado.
+- 2026-11-12 12:27: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-47.md 57d831a184f3ec92502095d4401636f68e76341593f51a902b0557a99bda378a
+- 2026-11-12 12:31: E3.3 QA do K-286 aprovado no head dfba8a37 (parecer docs/qa/097-k286-mapa-diario-equipe.md, commit 91cf609d): 0 bugs; A1 recomendado, falta teste que prove que o atípico do mapa não muda com a Equipe (mutante M3 sobreviveu; código correto).
+- 2026-11-12 12:31: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-76.md 74fd7f20d6e47dc9ec8c2ad7c772972b534d7577ad1993613a1f30adffef6af2
+- 2026-11-12 12:32: brief selado docs/briefs/097-resumo-filtro-time-security-engineer-3.md fcc015158cae58896f84f514762870f595c2cb9efbda7b8bd38cf0423e85d759
+- 2026-11-12 12:32: K-286 no head dfba8a37: review (tech-lead-76) e segurança (security-engineer-3, gatilho dados pessoais) delegados em paralelo; o A1 do QA vai ao review decidir se bloqueia.
+- 2026-11-12 12:35: E3.2 review do K-286 aprovado no head dfba8a37 (parecer 96c01657): modo diario só pessoa e equipe, atípico antes do filtro, sem pessoa nem comparação; A1 do QA não bloqueia, vai a cartão próprio (teste do atípico com Equipe). Resolve também o A2 do review do L3. Melhoria vista (dado para a retro): a recusa do hook R-REVIEW cita só Write, não Edit.
+- 2026-11-12 12:36: Seguranca do K-286 aprovada (a6a8cdfc, em dfba8a37), sem bloqueante; A1 (recomendado): se o dono adotar minimo de pessoas, vale tambem para o mapa diario, contado sobre o conjunto do proprio mapa; o K-286 piora um pouco a reidentificacao em equipe pequena (mesmo risco do A1 do L2). Melhoria vista: docs/security/_modelo.md citado pelo papel nao existe. Revisao de UX do K-286 a seguir.
+- 2026-11-12 12:38: brief selado docs/briefs/097-resumo-filtro-time-ux-designer-11.md a28474b18d278a3a7ede7209c9ffa0fb5dc780af1961f76ce49d52abeb9c9c15
+- 2026-11-12 12:39: Revisao de UX do K-286 delegada (ux-designer-11).
+- 2026-11-12 12:41: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-26.md 427aa603c8f32e91dff837ccf13028d9c8aefc7caf351f0032c019407d620d91
+- 2026-11-12 12:41: Revisao de UX do K-286 aprovada com ressalvas (docs/ux/097-revisao-k286.md): A1 alto, o comoLer do mapa diario ainda diz que nao responde aos filtros; A2 vazio da equipe sem mensagem; A3 hipotese, horas da celula abaixo do limite com atipico; A4 aria-label sem o recorte. Volta 1 ao react-frontend.

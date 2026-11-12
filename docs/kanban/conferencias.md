@@ -3091,3 +3091,62 @@
 | 2026-11-12 05:25 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-45 | brief | 1 | aprovado | s | QA fix/k293-resumo-equipe-a11y | — | jarvis |
 | 2026-11-12 05:25 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-20 | brief | 1 | aprovado | s | QA fix/k290-pos-l4 | — | jarvis |
 | 2026-11-12 05:27 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-2 | brief | 1 | aprovado | s | tech-lead-2 | — | jarvis |
+| 2026-11-12 05:29 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-74 | brief | 1 | aprovado | s | review fix/k293-resumo-equipe-a11y | — | jarvis |
+| 2026-11-12 05:29 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-37 | brief | 1 | aprovado | s | review fix/k290-pos-l4 | — | jarvis |
+| 2026-11-12 05:33 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-11 | brief | 1 | aprovado | s | L2d volta 1 | — | jarvis |
+| 2026-11-12 05:38 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-24 | brief | 1 | aprovado | s | K-283 | — | jarvis |
+| 2026-11-12 05:38 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-12 | brief | 1 | aprovado | s | K-285 | — | jarvis |
+| 2026-11-12 05:40 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-25 | brief | 1 | aprovado | s | K-283 | — | jarvis |
+| 2026-11-12 05:41 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-13 | brief | 1 | aprovado | s | K-285 | — | jarvis |
+| 2026-11-12 06:00 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-ux-designer-3 | brief | 1 | aprovado | s | K-297 UX | — | jarvis |
+| 2026-11-12 06:47 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-14 | brief | 1 | aprovado | s | L2d volta 1 fim | — | jarvis |
+| 2026-11-12 07:17 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-21 | brief | 1 | aprovado | s | L2d v1 qa | — | jarvis |
+| 2026-11-12 07:19 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-38 | brief | 1 | aprovado | s | L2d v1 review | — | jarvis |
+| 2026-11-12 07:22 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-39 | brief | 1 | aprovado | s | merge L2d | — | jarvis |
+| 2026-11-12 07:39 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-3 | brief | 1 | aprovado | s | release 101 E1.1 | — | jarvis |
+| 2026-11-12 07:51 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-security-engineer-0 | brief | 1 | aprovado | s | release 101 seg | — | jarvis |
+| 2026-11-12 07:56 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-qa-engineer-0 | brief | 1 | aprovado | s | release 101 qa | — | jarvis |
+| 2026-11-12 09:15 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-node-backend-2 | brief | 1 | aprovado | s | D3 | — | jarvis |
+| 2026-11-12 09:16 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-software-architect-10 | brief | 1 | aprovado | s | D3 unidade | — | jarvis |
+| 2026-11-12 09:20 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-node-backend-3 | brief | 1 | aprovado | s | D3 v2 | — | jarvis |
+| 2026-11-12 09:40 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-node-backend-4 | brief | 1 | aprovado | s | D3 v1 openapi | — | jarvis |
+| 2026-11-12 09:43 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-security-engineer-6 | brief | 1 | aprovado | s | D3 seg | — | jarvis |
+| 2026-11-12 09:48 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-40 | brief | 1 | aprovado | s | D3 review | — | jarvis |
+| 2026-11-12 10:00 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-qa-engineer-1 | brief | 1 | aprovado | s | specs e2e | — | jarvis |
+| 2026-11-12 10:05 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-4 | brief | 1 | aprovado | s | specs e2e review | — | jarvis |
+| 2026-11-12 10:08 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-5 | brief | 1 | aprovado | s | specs e2e merge | — | jarvis |
+| 2026-11-12 10:27 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-software-architect-11 | brief | 1 | aprovado | s | classe por tag | — | jarvis |
+| 2026-11-12 10:33 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-qa-engineer-2 | brief | 1 | aprovado | s | rev qa | — | jarvis |
+| 2026-11-12 10:41 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-6 | brief | 1 | aprovado | s | rev rev | — | jarvis |
+| 2026-11-12 10:43 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-security-engineer-1 | brief | 1 | aprovado | s | rev seg | — | jarvis |
+| 2026-11-12 10:46 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-7 | brief | 1 | aprovado | s | e14 | — | jarvis |
+| 2026-11-12 10:51 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-22 | brief | 1 | aprovado | s | D3 QA | — | jarvis |
+| 2026-11-12 10:56 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-node-backend-5 | brief | 1 | aprovado | s | D3 v2 | — | jarvis |
+| 2026-11-12 10:59 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-23 | brief | 1 | aprovado | s | D3 v2 qa | — | jarvis |
+| 2026-11-12 11:02 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-41 | brief | 1 | aprovado | s | D3 v2 rev | — | jarvis |
+| 2026-11-12 11:06 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-8 | brief | 1 | aprovado | s | e15 | — | jarvis |
+| 2026-11-12 11:10 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-15 | brief | 1 | aprovado | s | K-297 codigo | — | jarvis |
+| 2026-11-12 11:13 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-24 | brief | 1 | aprovado | s | 099-k297-catalogo-sem-numero qa | — | jarvis |
+| 2026-11-12 11:15 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-42 | brief | 1 | aprovado | s | 099-k297-catalogo-sem-numero rev | — | jarvis |
+| 2026-11-12 11:18 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-ux-designer-4 | brief | 1 | aprovado | s | K-297 UX | — | jarvis |
+| 2026-11-12 11:23 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-node-backend-6 | brief | 1 | aprovado | s | K-296 | — | jarvis |
+| 2026-11-12 11:28 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-25 | brief | 1 | aprovado | s | 099-k296-origem-sem-dado qa | — | jarvis |
+| 2026-11-12 11:30 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-43 | brief | 1 | aprovado | s | 099-k296-origem-sem-dado rev | — | jarvis |
+| 2026-11-12 11:34 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-9 | brief | 1 | aprovado | s | e16 | — | jarvis |
+| 2026-11-12 11:55 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-44 | brief | 1 | aprovado | s | merge fix/k290-pos-l4 | — | jarvis |
+| 2026-11-12 12:00 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-46 | brief | 1 | aprovado | s | 097-k283-provas-pessoa-helper qa | — | jarvis |
+| 2026-11-12 12:00 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-26 | brief | 1 | aprovado | s | 099-k285-sem-dado-real-ux qa | — | jarvis |
+| 2026-11-12 12:02 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-75 | brief | 1 | aprovado | s | 097-k283-provas-pessoa-helper rev | — | jarvis |
+| 2026-11-12 12:06 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-45 | brief | 1 | aprovado | s | 099-k285-sem-dado-real-ux rev | — | jarvis |
+| 2026-11-12 12:10 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-ux-designer-5 | brief | 1 | aprovado | s | K-285 UX | — | jarvis |
+| 2026-11-12 12:14 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-26 | brief | 1 | aprovado | s | K-286 | — | jarvis |
+| 2026-11-12 12:16 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-27 | brief | 1 | aprovado | s | K-286 | — | jarvis |
+| 2026-11-12 12:21 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-25 | brief | 1 | aprovado | s | K-286 web | — | jarvis |
+| 2026-11-12 12:27 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-47 | brief | 1 | aprovado | s | 097-k286-mapa-diario-equipe qa | — | jarvis |
+| 2026-11-12 12:31 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-76 | brief | 1 | aprovado | s | 097-k286-mapa-diario-equipe rev | — | jarvis |
+| 2026-11-12 12:32 | 097-resumo-filtro-time | 097-resumo-filtro-time-security-engineer-3 | brief | 1 | aprovado | s | K-286 seg | — | jarvis |
+| 2026-11-12 12:38 | 097-resumo-filtro-time | 097-resumo-filtro-time-ux-designer-11 | brief | 1 | aprovado | s | UX K-286 | — | jarvis |
+| 2026-11-12 12:38 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-security-engineer-7 | brief | 1 | aprovado | s | D3 seg reval | — | jarvis |
+| 2026-11-12 12:39 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-46 | brief | 1 | aprovado | s | merge fix/k296-origem-sem-dado | — | jarvis |
+| 2026-11-12 12:41 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-26 | brief | 1 | aprovado | s | K-286 volta UX | — | jarvis |
+| 2026-11-12 12:42 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-agile-coach-0 | brief | 1 | aprovado | s | retro 101 | — | jarvis |
