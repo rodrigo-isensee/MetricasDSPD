@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/097-l6-tipos-reais-web
-commit: 1ee4b7cc9ee03fed7b895cfae34e60b527936aaf
+commit: f335d47a0630c0d8488778c958ce10ecca45f112
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -38,7 +38,7 @@ Aprovado. `TIPOS_FILTRO` não é mais fonte em `web/src` fora do mock (`nucleoMo
 - Vermelho antes do verde (web, na cópia da árvore: `codec.ts`, `BarraFiltros.tsx`, `taticas.tsx` trazidos da base 233db432, testes do head): 4 falham, 161 passam. Caem: `codec.test.ts` "tipo do contrato que não está nas opções...", "marcar todos equivale a Todos", "colapsarTodos sem opções ... sustentação colapsa prioridade"; `k039.test.ts` "todos os tipos também colapsam". Árvore restaurada ao head (`git diff 1ee4b7cc` vazio).
 - Mutação no codec (restaurado depois): (M1) `idsTipo` ignora as opções e devolve todos os ids do contrato: caem 2 testes (tipo fora das opções; marcar todos). (M2) `todos()` sem a guarda `validos.length > 0`: cai 1 teste (colapsarTodos com opções vazias). Nenhum sobrevivente.
 - Playwright (`filtros.spec.ts`, `intensivo-filtros.spec.ts`, `intensivo-filtros-bordas.spec.ts`, chromium): não concluiu. O comando estourou o prazo de 420 s sem saída (o `webServer` faz build do web antes), morto por `timeout`. Sem veredito do E2E aqui; o diff não toca `e2e/` e a suíte inteira roda no check-run `bateria` do CI do PR (citar o do mesmo sha).
-- Fetch e `pull --rebase` na branch: já atualizada, head igual a `1ee4b7cc`.
+- Revalidação na volta 1 (head f335d47a, anterior e0a7de27): o delta é só Prettier em `BarraFiltros.tsx`, `codec.ts` e `codec.test.ts` (18 inserções, 13 remoções, quebras de linha sem mudança de lógica). `VITEST_MAX_WORKERS=2 npx vitest run src/features/filtros`: 11 arquivos, 132 testes, todos passam. Vermelho e mutação anteriores seguem válidos (lógica idêntica); A1 está em arquivo não tocado pelo delta.
 
 ## Achados
 
