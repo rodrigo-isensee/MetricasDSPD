@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/097-l10a-setor-dicionario
-commit: 86a3808ffcb19a0c2aaae420ce49ab4a51af3d01
+commit: 977d1484196e59f0a587269b027f2862ef9cd036
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -49,5 +49,12 @@ Aprovado. Os 12 casos de abuso do arquivo recusam a carga inteira sem eco do val
 ## Observações (não bloqueiam)
 - A guarda de sobrenome só pega ` - ` mais 2 ou mais maiúsculas ao fim. Sobrenome em caixa mista ("Plataformas - Silva") passa. É o desenho declarado no plano (R3) e a segurança já pediu a lista fechada dos 7 setores no lote que preencher a lista; o PR que preencher o dicionário deve levar a revisão humana dos nomes.
 - A etapa de conferir a contagem de cards por setor com o dono na tela do BusinessMap (R4 do plano) pertence ao L10b, não a este lote.
+
+## Revalidação da volta 1 (delta 86a3808f..977d1484)
+O delta toca `docs/api/openapi.json` (bloco `setores` em `opcoes`, sem campo obrigatório novo, compatível) e `server/tests/opcoes-setores.test.ts` (1 teste novo).
+- `pnpm run openapi:verificar` (server): "openapi.json em dia", rc 0.
+- `VITEST_MAX_WORKERS=2`, `dominio-businessmap.test.ts` e `opcoes-setores.test.ts`: 2 arquivos, 64 testes passaram.
+- Mutação da guarda de slug vazio (`servico.ts:49`, remove a condição de slug vazio): o teste novo "nome cujo slug é vazio..." cai (1 falha, 5 passam); arquivo restaurado por `git checkout`, árvore limpa. Vermelho provado.
+- Veredito mantido: aprovado, 0 bugs. A suíte inteira fica com o check-run `bateria` do mesmo sha.
 
 ## Achados
