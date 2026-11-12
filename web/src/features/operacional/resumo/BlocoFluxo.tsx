@@ -1,4 +1,6 @@
+import { useMemo } from 'react'
 import { FaixaAtencao, estadoFaixa } from '@/components/ui'
+import { useFiltros } from '@/features/filtros'
 import { useMetrica } from '@/data'
 import { itensDiaria, itensSemanal } from '../atencao'
 import { ROTULO_VISAO } from '@/features/navegacao/visao'
@@ -14,12 +16,17 @@ import {
   numeroVencidosInternos,
   type NumeroModelo,
 } from './modelo'
+import { FiltroEquipeBloco } from './FiltroEquipeBloco'
 import { NumeroChave } from './NumeroChave'
 import { TendenciaFluxo } from './TendenciaFluxo'
 
-const f = FILTROS_FLUXO_RESUMO
-
 function ConteudoFluxo() {
+  const uso = useFiltros('operacional')
+  // O Resumo usa os padrões; só a equipe do bloco vem da URL (a leitura é a dos outros painéis de fluxo).
+  const f = useMemo(
+    () => ({ ...FILTROS_FLUXO_RESUMO, equipe: uso.filtros.equipe }),
+    [uso.filtros.equipe],
+  )
   const destinoDe = useDestinoNaVisao()
   const destinoVisao = useDestinoDaVisao()
   const referencia = useReferenciaDasTendencias()
@@ -33,7 +40,7 @@ function ConteudoFluxo() {
   const qO10 = useMetrica('O10', f)
   const todas = [qO3, qO4, qO2, qO12, qBL, qO1, qO10]
   // A tendência só dispara depois dos números e dos alertas do bloco (resolvidos, com sucesso ou não).
-  const qT = useMetrica('TENDENCIA_FLUXO', filtrosTendencia(referencia.dataReferencia), {
+  const qT = useMetrica('TENDENCIA_FLUXO', filtrosTendencia(referencia.dataReferencia, f.equipe), {
     habilitada: referencia.pronta && todas.every((q) => q.estado !== 'carregando'),
   })
   const itens = [
@@ -88,6 +95,7 @@ function ConteudoFluxo() {
   ]
   return (
     <>
+      <FiltroEquipeBloco bloco="fluxo" uso={uso} />
       <FaixaAtencao
         nivel="h3"
         titulo="Pede atenção · Fluxo de projeto (BusinessMap)"
