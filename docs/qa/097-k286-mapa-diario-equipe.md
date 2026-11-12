@@ -3,9 +3,9 @@ tipo: qa
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/k286-mapa-diario-equipe
-commit: dfba8a37e6a19ae527b11b81e7468bcb6bd88cad
+commit: 62a622abf9abecc9813c01e3a6ca015e21d21cb4
 parecer: aprovado
-escopo: completo
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
 bugs_medios: 0
@@ -15,35 +15,38 @@ data: 2026-11-12
 
 # QA: K-286, mapa diário do Apontamento recortado pela Equipe (097, E3.3)
 
-Base develop f3dd14c3, head dfba8a37 (bibliotecas 7c5277e2, tela dfba8a37). Diff conferido: `filtros.ts` (`soPessoa` vira `modo: 'recorte' | 'diario'`, equipe aplicada antes do retorno do modo diário), `index.ts` (chamada com `'diario'`), `CartaoDiario.tsx` (`aplicaveis={['equipe']}`), `docs/api/apontamento.md` e os testes. A suíte inteira é do CI do PR (check-run `bateria` do mesmo sha); aqui só os testes tocados, sem banco.
+Revalidação da volta 1 (62a622ab), que atende à revisão de UX. O parecer anterior aprovou dfba8a37 (diff completo, mutação M1 a M3 na biblioteca, e2e e acessibilidade). A suíte inteira é do CI do PR (check-run `bateria` do mesmo sha); aqui só os testes tocados, sem banco.
 
-## Critério → teste → resultado
+## Delta
 
-| Critério | Teste | Fronteira protegida | Resultado |
+`forge-check parecer delta` do parecer anterior, `dfba8a37..62a622ab`: no domínio do QA entram 5 arquivos, todos em `web/src/features/apontamento/`: `ApontamentoPage.tsx`, `components/CartaoDiario.tsx`, `dados.tsx`, `mapa-diario-equipe.test.tsx` (novo) e `textos.ts`. Biblioteca e servidor não mudaram. O delta não muda o veredito: aprovado. O A1 do parecer anterior segue como recomendado, porque a biblioteca não mudou.
+
+## Critério → teste → resultado (delta)
+
+| Critério (revisão de UX) | Teste | Fronteira protegida | Resultado |
 |---|---|---|---|
-| Com Equipe marcada, o mapa só traz pessoas da equipe | `apontamento.test.ts` "097 K-286: modo 'diario' recorta pela equipe (e 'sem-time')..."; `apontamento-rota.test.ts` "K-286: o mapa diario e recortado pela equipe" | equipe vazia (sem filtro), `sem-time`, equipe sem linhas (soma 0), conjunto de times, equipe + pessoa | passou |
-| Mapa não olha tipo nem projeto | mesmos dois testes (`tipo=999&projeto=999`) | filtro inexistente não zera o mapa | passou |
-| O atípico não muda com o filtro (decidido sobre o dia inteiro) | "o atípico do mapa é decidido sobre o dia inteiro, antes do filtro de equipe" (nível `filtrar`/`ehAtipico`) | dia de 12 h repartido em dois times | passou, mas ver A1 |
-| Sem comparação entre equipes | `docs/api/apontamento.md` e leitura do diff: vários times valem como conjunto; nenhuma série por equipe | n/a | conferido na leitura |
-| Nota diz "Não afetado por: Tipo" | `apontamento.test.tsx` "o mapa diário é recortado pela equipe e o rodapé diz só o que não afeta (Tipo)" | n/a | passou |
+| A1: "Como ler" não diz que o cartão ignora os filtros; cita a Equipe e o dia inteiro | `mapa-diario-equipe.test.tsx` "A1" | n/a | passou |
+| A2: equipe sem ninguém na janela mostra vazio próprio e o botão Remover filtro Equipe limpa a URL e devolve o mapa | "A2: equipe sem ninguém..." | vazio (linhas = 0), botão por nome acessível | passou |
+| A2: sem Equipe, nenhum vazio da equipe | "A2: sem filtro de equipe..." | filtro ausente | passou |
+| A3: com Equipe, a dica do atípico diz que o dia é avaliado inteiro | "A3: com a Equipe ativa..." | n/a | passou |
+| A3: sem Equipe, a dica não traz a frase | "A3: sem Equipe..." | filtro ausente | passou |
+| A4: nome da grade cita a equipe (nunca pessoa) | "A4: o nome da grade..." | nome acessível | passou |
+| A4: sem Equipe, o nome da grade não cita equipe | "A4: sem Equipe..." | filtro ausente | passou |
 
 ## Execução
 
-- `packages/metricas`, `vitest run src/businessmap/apontamento`: 68 passaram.
-- `web`, `vitest run src/features/apontamento`: 11 arquivos, 175 passaram.
-- `server`, `vitest run tests/apontamento-rota.test.ts`: 83 passaram.
-- e2e `tests/apontamento-qa.spec.ts`, `--project=chromium`: 49 passaram (inclui acessibilidade WCAG 2.2 AA em 1280 e 375 px, sem violação crítica ou séria).
+- `web`, `vitest run src/features/apontamento`: 12 arquivos, 182 passaram (175 do parecer anterior + os 7 testes novos conferidos acima).
+- Árvore da worktree sem alteração minha depois das mutações (restaurada a cada uma).
 
-## Mutação no modo diário (restaurada em seguida; árvore limpa)
+## Mutação no texto do vazio (restaurada em seguida)
 
 | Mutante | Resultado |
 |---|---|
-| M1: equipe deixa de ser aplicada no modo diário (retorno antes do filtro) | morreu: falharam o teste da biblioteca e o da rota |
-| M2: `calcularApontamento` chama `filtrar` sem `'diario'` | morreu: falharam o teste do bloco da biblioteca e o da rota |
-| M3: `calcularDiario` recebe `diasAtipicos(doDiario)` (atípico decidido depois do filtro) em vez do conjunto do dia inteiro | sobreviveu: 68 e 83 testes passaram |
+| M4: `CartaoDiario.tsx`, o botão Remover filtro Equipe deixa de renderizar (`equipes.length > 0 &&` vira `false &&`) | morreu: "A2: equipe sem ninguém..." caiu |
+| M5: `CartaoDiario.tsx`, o texto do vazio com Equipe vira "Nenhum apontamento nesta janela. Troque..." | morreu: "A2: equipe sem ninguém..." caiu (1 falhou, 6 passaram) |
 
-Vermelho antes do verde: os testes novos são de regra; M1 e M2 provam que falham sem a implementação.
+Vermelho antes do verde: os testes novos são de regra e M4 e M5 provam que falham sem a implementação.
 
 ## Achados
 
-- A1 (recomendado) packages/metricas/src/businessmap/apontamento/apontamento.test.ts:350 · M3 sobreviveu: o teste do atípico para em `filtrar`+`ehAtipico`; nenhum afirma, via `calcularApontamento`/rota, que o atípico do mapa não muda com a Equipe. Código correto (index.ts:58,72); falta a guarda.
+- A1 (recomendado) packages/metricas/src/businessmap/apontamento/apontamento.test.ts:350 · M3 do parecer anterior segue sobrevivente: nenhum teste afirma, via `calcularApontamento` ou rota, que o atípico do mapa não muda com a Equipe. Código correto (index.ts:58,72); falta a guarda.
