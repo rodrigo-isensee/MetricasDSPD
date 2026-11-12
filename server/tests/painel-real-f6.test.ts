@@ -112,7 +112,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     const antes = d.chamadas.length;
     for (const id of ['T10', 'T12', 'O8', 'O12', 'O14', 'O26', 'T1', 'E1', 'S1', 'VISAO_GERAL'] as MetricaId[]) {
-      expect(origemDaMetrica(id), id).toBe('mock');
+      expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.json(), id).toMatchObject({ estado: 'sem-dado-real', metrica: id });
@@ -183,7 +183,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     expect(leituras(d.chamadas, NO_SEED)).toBe(0);
     expect(leituras(d.chamadas, NA_REAL)).toBe(0); // sustentação não lê o BusinessMap (domínios separados)
     for (const id of ['S1', 'S5', 'S6', 'S7', 'S9', 'S11', 'S12', 'EI_SUST'] as MetricaId[]) {
-      expect(origemDaMetrica(id), id).toBe('mock');
+      expect(origemDaMetrica(id), id).toBe('sem-dado');
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       expect(r.json(), id).toMatchObject({ estado: 'sem-dado-real' });

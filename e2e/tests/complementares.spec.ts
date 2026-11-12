@@ -129,7 +129,7 @@ test.describe('complementares: fluxos a 1280 px', () => {
 
   test('COMP-12 catálogo: O17 está na Sustentação (Acelerato) e a coluna Dados diz "Real" ou "Sem dado real" nas 65', async ({ page }) => {
     await page.goto('/metricas')
-    await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText(/Real|Sem dado real/)
+    await expect(page.getByRole('row', { name: /^O17 .*Sustentação.*Acelerato/ })).toContainText('Sem dado real')
     await expect(page.getByRole('row', { name: /^O5 / })).toContainText('Real')
     await expect(page.getByRole('row', { name: /^O3 / })).toContainText('Real')
     const reais = await page.getByRole('cell', { name: 'Real', exact: true }).count()

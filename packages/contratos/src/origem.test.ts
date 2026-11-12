@@ -11,7 +11,7 @@ import {
   METRICAS_ORIGEM_REAL,
   MOTIVO_FONTE_REAL_NAO_DEFINIDA,
   MOTIVO_ORIGEM_MOCK,
-  motivoDaOrigemMock,
+  motivoDaOrigemSemDado,
   motivoSemDadoReal,
   semDadoRealSchema,
   NOTAS_FIXAS_DO_CARTAO,
@@ -36,48 +36,48 @@ describe('origemDaMetrica (H-13)', () => {
   })
 
   it('sustentação: S1, S5, S6, S7, S9, S11, S12 e EI_SUST seguem mock, cada uma com o seu motivo', () => {
-    expect(motivoDaOrigemMock('S1')).toBe('aguardando prazos de SLA por prioridade')
+    expect(motivoDaOrigemSemDado('S1')).toBe('aguardando prazos de SLA por prioridade')
     for (const id of ['S5', 'S6', 'S7', 'S11'] as const) {
-      expect(origemDaMetrica(id), id).toBe('mock')
-      expect(motivoDaOrigemMock(id), id).toBe(
+      expect(origemDaMetrica(id), id).toBe('sem-dado')
+      expect(motivoDaOrigemSemDado(id), id).toBe(
         'aguardando tipo e domínio do campo do chamado (P-DS-19)',
       )
     }
-    expect(origemDaMetrica('S9')).toBe('mock')
-    expect(motivoDaOrigemMock('S9')).toBe(
+    expect(origemDaMetrica('S9')).toBe('sem-dado')
+    expect(motivoDaOrigemSemDado('S9')).toBe(
       'aguardando o motivo de pendência do chamado (tipo e domínio, P-DS-19)',
     )
-    expect(origemDaMetrica('S12')).toBe('mock')
-    expect(motivoDaOrigemMock('S12')).toBe(
+    expect(origemDaMetrica('S12')).toBe('sem-dado')
+    expect(motivoDaOrigemSemDado('S12')).toBe(
       'aguardando fonte do registro posterior de exceção de SLA',
     )
-    expect(origemDaMetrica('EI_SUST')).toBe('mock')
-    expect(motivoDaOrigemMock('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
+    expect(origemDaMetrica('EI_SUST')).toBe('sem-dado')
+    expect(motivoDaOrigemSemDado('EI_SUST')).toBe('cálculo ainda não definido para o Acelerato')
   })
 
   it('métrica de sustentação real não tem motivo de dado fictício', () => {
     for (const id of ['S2', 'S3', 'S4', 'S8', 'S10'] as const) {
       expect(origemDaMetrica(id), id).toBe('real')
-      expect(motivoDaOrigemMock(id), id).toBeNull()
+      expect(motivoDaOrigemSemDado(id), id).toBeNull()
     }
   })
 
   it('é mock, com o motivo, para O8, O12, O14, O15, O16, O17 e O18', () => {
     for (const id of ['O8', 'O12', 'O14', 'O15', 'O16', 'O17', 'O18'] as const) {
-      expect(origemDaMetrica(id)).toBe('mock')
-      expect(motivoDaOrigemMock(id)).toBe('aguardando campo no quadro')
+      expect(origemDaMetrica(id)).toBe('sem-dado')
+      expect(motivoDaOrigemSemDado(id)).toBe('aguardando campo no quadro')
     }
   })
 
   it('O26, FL2, FL3 e a Visão geral seguem mock, sem motivo próprio', () => {
     for (const id of ['O26', 'T1', 'E1', 'VISAO_GERAL'] as const) {
-      expect(origemDaMetrica(id)).toBe('mock')
-      expect(motivoDaOrigemMock(id)).toBeNull()
+      expect(origemDaMetrica(id)).toBe('sem-dado')
+      expect(motivoDaOrigemSemDado(id)).toBeNull()
     }
   })
 
   it('métrica real não tem motivo de dado fictício', () => {
-    expect(motivoDaOrigemMock('O1')).toBeNull()
+    expect(motivoDaOrigemSemDado('O1')).toBeNull()
   })
 })
 
@@ -131,20 +131,20 @@ describe('estado sem dado real (pedido 060, P3)', () => {
   })
 
   it('PV1 não tem motivo de dado fictício', () => {
-    expect(motivoDaOrigemMock('PV1')).toBeNull()
+    expect(motivoDaOrigemSemDado('PV1')).toBeNull()
   })
 
   it('C1/C2 (pedido 075, 6b): BLOQUEADOS, O5 e O19 são reais e sem motivo de mock; T10 e T12 seguem fora do mapa real, com o motivo genérico (SEG-A5)', () => {
     for (const id of ['BLOQUEADOS', 'O5', 'O19'] as const) {
       expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(true)
       expect(origemDaMetrica(id), id).toBe('real')
-      expect(motivoDaOrigemMock(id), id).toBeNull()
+      expect(motivoDaOrigemSemDado(id), id).toBeNull()
       expect(MOTIVO_ORIGEM_MOCK[id], id).toBeUndefined()
     }
     // T10 e T12 leem a mesma `fato_bloqueio`, mas esperam a WS1 (P-075-11 e P-075-12, "B"): nada muda para eles.
     for (const id of ['T10', 'T12'] as const) {
       expect(METRICAS_ORIGEM_REAL.has(id), id).toBe(false)
-      expect(origemDaMetrica(id), id).toBe('mock')
+      expect(origemDaMetrica(id), id).toBe('sem-dado')
       expect(MOTIVO_ORIGEM_MOCK[id], id).toBeUndefined()
       expect(motivoSemDadoReal(id), id).toBe(MOTIVO_FONTE_REAL_NAO_DEFINIDA)
     }

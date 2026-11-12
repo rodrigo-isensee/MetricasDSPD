@@ -36,7 +36,7 @@ const fonteApi = () =>
     tipo: { value: 'api' },
     obter: {
       value: (id: MetricaId, ...resto: unknown[]) => {
-        if (origemDaMetrica(id) === 'mock') {
+        if (origemDaMetrica(id) === 'sem-dado') {
           const c = corpoSemDadoReal(id)
           return Promise.reject(new SemDadoRealErro(c.metrica, c.motivo))
         }
