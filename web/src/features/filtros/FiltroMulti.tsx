@@ -98,11 +98,15 @@ function Lista({
     ? selecionados.filter((s) => !visiveis.some((o) => o.id === s)).length
     : 0
   const sufixo = (genero === 'f' ? 'a' : 'o') + (foraDaBusca === 1 ? '' : 's')
-  const anuncio = !termo
+  const [retorno, setRetorno] = useState('')
+  const textoFora = `${foraDaBusca} selecionad${sufixo} fora da busca (continua${foraDaBusca === 1 ? '' : 'm'} aplicad${sufixo}).`
+  const contagem = !termo
     ? ''
     : visiveis.length === 0
       ? 'Nenhuma opção encontrada.'
-      : `${visiveis.length} ${visiveis.length === 1 ? 'opção encontrada' : 'opções encontradas'}.`
+      : `${visiveis.length} ${visiveis.length === 1 ? 'opção encontrada' : 'opções encontradas'} de ${opcoes.length}.`
+  // Uma só região viva: contagem, aviso das marcações escondidas e retorno do Enter (A3, A4, A5).
+  const anuncio = [contagem, foraDaBusca > 0 ? textoFora : '', retorno].filter(Boolean).join(' ')
   const caixas = (el: Element) =>
     Array.from(el.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))
   // Esc no campo ou numa opção: limpa o texto; quem fecha (Popover ou Dialog) é impedido pelo contêiner.
@@ -118,7 +122,11 @@ function Lista({
       // Nunca envia formulário; com uma única opção visível, marca ou desmarca.
       e.preventDefault()
       const unica = visiveis.length === 1 ? visiveis[0] : undefined
-      if (unica) alternar(unica.id, !selecionados.includes(unica.id))
+      if (unica) {
+        const marcar = !selecionados.includes(unica.id)
+        alternar(unica.id, marcar)
+        setRetorno(`${marcar ? 'Marcada' : 'Desmarcada'}: ${unica.nome}.`)
+      }
     }
   }
   const aoTeclarLista = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -143,8 +151,12 @@ function Lista({
           id={`${base}-busca`}
           type="text"
           autoComplete="off"
+          placeholder="Digite para buscar"
           value={busca}
-          onChange={(e) => setBusca(e.target.value)}
+          onChange={(e) => {
+            setRetorno('')
+            setBusca(e.target.value)
+          }}
           onKeyDown={aoTeclarCampo}
           className="alvo w-full rounded border border-borda-controle bg-superficie px-2 py-1 text-sm"
           data-testid={`${id}-busca`}
@@ -154,9 +166,18 @@ function Lista({
       <p className="sr-only" role="status" aria-live="polite">
         {anuncio}
       </p>
+      {!termo && opcoes.length > 12 && (
+        <p className="mb-1 text-xs text-texto-2" aria-hidden="true">
+          {opcoes.length} opções
+        </p>
+      )}
       {foraDaBusca > 0 && (
-        <p className="mb-1 text-xs text-texto-2" data-testid={`${id}-fora-da-busca`}>
-          {foraDaBusca} selecionad{sufixo} fora da busca, mantid{sufixo}.
+        <p
+          className="mb-1 text-xs text-texto-2"
+          data-testid={`${id}-fora-da-busca`}
+          aria-hidden="true"
+        >
+          {textoFora}
         </p>
       )}
       {termo && visiveis.length === 0 && (
@@ -290,14 +311,16 @@ export function FiltroMulti(props: Props) {
         <Popover.Portal>
           <Popover.Content
             align="start"
+            aria-label={rotulo}
             sideOffset={6}
             onOpenAutoFocus={(e) => {
               e.preventDefault()
               buscaRef.current?.focus()
             }}
             onEscapeKeyDown={(e) => {
-              // Esc com texto limpa o texto; sem texto fecha e devolve o foco ao botão.
-              escLimpaBusca(e, busca, () => setBusca(''))
+              // Mesma regra da folha (A6): só limpa com o foco na lista de opções com texto digitado;
+              // fora dela (Limpar, Fechar) o Esc fecha e devolve o foco ao botão.
+              if (escLimpaBuscaFocada(e.target)) escLimpaBusca(e, busca, () => setBusca(''))
             }}
             className="z-50 w-64 rounded-md border border-borda-controle bg-superficie p-3 shadow-lg"
           >
