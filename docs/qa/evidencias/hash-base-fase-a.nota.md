@@ -21,3 +21,5 @@ Motivo: o B11a (alvos por métrica no pós-processamento `businessmap/tambem`: O
 | hashAcelerato | 0113e077 | 20541e9d |
 
 Motivo: o D3 (Q-099-11) acrescenta a unidade de cada prazo (`unidade_primeiro_atendimento`, `unidade_restauracao`) a `AlvoPrioridade`; o gerador do Acelerato copia `ALVOS_PADRAO` em `config.alvos`, então a config do mock ganha os dois campos. Chamados e BusinessMap não mudam (cards 5792 e chamados 6062 iguais). Consequência legítima do D3.
+
+Hashes da escala 0,2 (só nos testes do mock, fora da linha de base): base 824092e4 para 345c5682; `ac` 39b4b005 para 34151797. Mesmo motivo (unidade dos prazos em `config.alvos`).

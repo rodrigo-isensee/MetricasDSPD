@@ -37,4 +37,4 @@ Na base (sem a correção), `packages/mock/src/tambem.test.ts`: `Expected: "0113
 - Mutação: sem lógica nova; não aplicável.
 
 ## Achados
-Nenhum.
+
