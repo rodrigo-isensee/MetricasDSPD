@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/099-d3-ci-vermelho
-commit: 931444b41f80668bab33947ab86d98ef48e26cd8
+commit: 9dc3ea871db883465a86c795675b90febad6bbfe
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -50,6 +50,12 @@ Delta (`forge-check parecer delta`, 332f134a..931444b4): só `web/src/data/mock/
 - Verde: `vitest run src/data/mock/nucleoMock.paridade.test.ts` no head: 8 de 8.
 - Vermelho: o mesmo teste na versão de 1ec3913e (hashes antigos) contra o código atual: 2 falharam, `Expected: "68a67741"  Received: "de6a8953"`, 6 passaram.
 - A suíte inteira segue pelo check-run `bateria` do CI neste sha.
+
+## Revalidação por delta (E3.54): aceite do contrato S1 9dc3ea87
+Delta (`forge-check parecer delta`, 931444b4..9dc3ea87): só `docs/contratos/metricas/S1.md` e `docs/contratos/snapshots/resultados/S1.json` (regerados em b78199a0): campo `unidade` (`corrido|util`) em `primeiroAtendimento` e `restauracao`, em `required`, mais a data de revisão; sem código de produção.
+- Mudança incompatível aceita e registrada pelo node-backend; o único consumidor é o web deste repositório (conforme o brief).
+- Verde: `tools/docs-contratos` `vitest run src/insumos.test.ts`: 9 de 9; `pnpm run docs:check`: "ok (1310 páginas Markdown, 69 métricas, 2 eventos)".
+- Vermelho: não repetido local; o motivo da correção é o check `testes` da CI vermelho em 931444b4 por S1 sem a fotografia nova. A suíte inteira segue pelo check-run `bateria` do CI neste sha.
 
 ## Achados
 
