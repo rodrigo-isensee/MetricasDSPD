@@ -3,14 +3,14 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 101-release-filtros-sem-simulado
 branch: docs/101-release
-commit: ea826a9ca695f84e810387ff85ea86befa997d1f
+commit: 5d7fe1aac6db8b7f4a9f547719fc73cff7a887e5
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-12
 ---
-# Review de segurança: release 101 (develop ea826a9c contra homolog, PRs 329 a 356)
+# Review de segurança: release 101 (develop 5d7fe1aa contra homolog, PRs 329 a 357)
 
-Propósito: parecer de segurança da release 101 (E1.2, cartão K-273). Li `git diff origin/homolog...ea826a9c` em `server/`, `packages/`, `web/`, `e2e/`, `scripts/`, `.github/` e nos manifestos, mais a seção "Não publicado" do `CHANGELOG.md` da branch `docs/101-release` (72cc6d38, que só soma o CHANGELOG e o review a ea826a9c). Os lotes que já tiveram parecer próprio (097 L2, K-275, K-277, K-281 e 099 L2d) foram conferidos no estado final, sem refazer as sondas deles. Nada rodou contra a base real e nenhum `.env*` foi lido.
+Propósito: parecer de segurança da release 101 (E1.2, cartão K-273). Li `git diff origin/homolog...ea826a9c` em `server/`, `packages/`, `web/`, `e2e/`, `scripts/`, `.github/` e nos manifestos, mais a seção "Não publicado" do `CHANGELOG.md` da branch `docs/101-release` (72cc6d38, que só soma o CHANGELOG e o review a ea826a9c). Os lotes que já tiveram parecer próprio (097 L2, K-275, K-277, K-281 e 099 L2d) foram conferidos no estado final, sem refazer as sondas deles. Nada rodou contra a base real e nenhum `.env*` foi lido. Revalidado na develop 5d7fe1aa (PR 357), seção abaixo.
 
 ## Gatilhos
 - Dado de pessoa e GRANT por coluna: `server/src/plataforma/db/grants.ts:17` (`dim_card.equipe` no papel da aba Apontamento) e as provas de GRANT por `COLUNAS_PESSOA` (K-282).
@@ -29,6 +29,12 @@ Propósito: parecer de segurança da release 101 (E1.2, cartão K-273). Li `git 
 - **Workflows e dependências: conforme.** Nenhuma mudança em `.github/` nem no `pnpm-lock.yaml`; os manifestos só ganham scripts (`consultas:098-099`, `sem-mock`), sem dependência nova.
 - **Testes dos arquivos tocados (rodados):** `server`: `apontamento-rota.test.ts`, `metricas.test.ts`, `corte-unico.test.ts`, 156 verdes; `web`: `lint.meta.test.ts` e `filtros/codec.test.ts`, 68 verdes. As suítes de banco (`*.pg.test.ts`) ficam com o CI e o QA.
 - **Lacunas de ferramenta:** `gitleaks`, `osv-scanner`, `semgrep`, `zizmor` e `actionlint` não estão no PATH; não rodei nenhum. Sem dependência nova e sem workflow alterado, fica com o CI.
+
+## Revalidação (develop 5d7fe1aa, PR 357)
+- Delta `ea826a9c..5d7fe1aa` (PR 357, 101 E1.9): só `e2e/tests-api/api.spec.ts`, `e2e/tests-api/tatico-011-lote2.spec.ts`, `e2e/tests-api/tendencias.spec.ts` e `docs/reviews/101-specs-e2e-api.md`; nenhum arquivo de `server/`, `packages/`, `web/`, `scripts/`, `.github/` nem manifesto. `forge-check parecer delta`: "nenhum arquivo do domínio mudou".
+- **Guarda de pessoa do CT-59 não afrouxou: conforme.** `PESSOA` (`usuarioKey`, `e-mail`, `nome`, `titulo`, `assignee`, `responsavel`) e o padrão de e-mail seguem aplicados ao corpo inteiro (`e2e/tests-api/tendencias.spec.ts:30`, `:80`, `:82`). Só `"descricao"` saiu da `PESSOA` e passou a ser checada no corpo sem as subárvores `criterios` (`tendencias.spec.ts:27-29`, `:81`), onde fica o texto fixo do marco de critério (T2.6, `ref_versao_criterio`). Sonda local com o mesmo `semCriterios`: `descricao` dentro de `criterios.serie[]` passa; `descricao` em `meses[]` é pega. A isenção vale só para chaves chamadas `criterios`, que não vêm do Acelerato.
+- FA5-04 e FA5-16 (filtro `tipo=melhoria` no lugar de `incidente`) e TT-02 (sem selo fictício, ADR 0030) só acompanham a interface; o CT-58 passa a exigir 400 para `equipe` fora do slug (`A%20B`, `x_y`, `-x`) e 200 para slugs válidos, o que reforça a validação de entrada conferida acima.
+- Os specs são e2e contra a API com Postgres; não os rodei (ficam com o CI e o QA da release). Veredito mantido: aprovado; A1 continua recomendado.
 
 ## Achados
 - A1 (recomendado) .github/workflows/ci.yml:186 · a guarda G1 (web/scripts/sem-mock.mjs) não roda na CI: os jobs que fazem pnpm run build (ci.yml:186, ci.yml:266, homolog.yml:82, homolog.yml:195) não chamam sem-mock; incluir o passo após o build. Dono: devops-engineer.
