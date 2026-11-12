@@ -160,14 +160,14 @@ describe('barra de filtros', () => {
 
   it('sem resposta (erro na primeira carga) os filtros da URL aparecem como chips e podem ser removidos', async () => {
     const roteador = renderizar(
-      `${URL_ABA}?tipo=3&pessoa=p2&projeto=1042&subtarefa=em-subtarefa&subgrupo=reuniao&qualidade=generico`,
+      `${URL_ABA}?tipo=3&equipe=portal&projeto=1042&subtarefa=em-subtarefa&subgrupo=reuniao&qualidade=generico`,
       {
         buscar: () => Promise.reject(new Error('falha')),
       },
     )
     const chips = await screen.findByRole('list', { name: 'Filtros ativos' })
     expect(within(chips).getAllByRole('listitem')).toHaveLength(6)
-    expect(within(chips).getByText('Pessoa que apontou: p2')).toBeInTheDocument()
+    expect(within(chips).getByText('Equipe: portal')).toBeInTheDocument()
     await userEvent.click(within(chips).getByRole('button', { name: 'Remover filtro Tipo: 3' }))
     await waitFor(() =>
       expect(new URLSearchParams(roteador.state.location.search).has('tipo')).toBe(false),
@@ -400,23 +400,22 @@ describe('ramos de dados e de leitura', () => {
 })
 
 describe('fonte fictícia', () => {
-  it('aplica o período, o nível da matriz e o filtro de pessoa nos blocos por pessoa', () => {
+  it('aplica o período e o nível da matriz, e aceita a equipe que existe nas opções', () => {
     const r = respostaFicticia({
       ...CONSULTA_PADRAO,
       de: '2026-09-01',
       ate: '2026-09-30',
       nivelMatriz: 'subgrupo',
-      pessoa: ['p1', 'p2'],
+      equipe: ['portal'],
     })
     expect(r.periodo).toEqual({ de: '2026-09-01', ate: '2026-09-30' })
     expect(r.matriz.nivel).toBe('subgrupo')
-    expect(r.matriz.linhas.map((l) => l.pessoaRef)).toEqual(['p1', 'p2'])
-    expect(r.diario.linhas.map((l) => l.pessoaRef)).toEqual(['p1', 'p2'])
+    expect(r.kpis.apontamentos).toBeGreaterThan(0)
   })
 
   it('valor de filtro que não existe nas opções devolve o recorte vazio', () => {
     for (const c of [
-      { pessoa: ['p99'] },
+      { equipe: ['nao-existe'] },
       { projeto: ['1'] },
       { tipo: ['1'] },
       { subtarefa: ['x'] },

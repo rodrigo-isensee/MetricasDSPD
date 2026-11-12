@@ -15,6 +15,7 @@ interface Resp {
     pessoas: { pessoaRef: string; rotulo: string; identificada: boolean }[]
     projetos: { id: string; rotulo: string; foraDoEscopo: boolean }[]
     tipos: { id: string; rotulo: string }[]
+    equipes: { id: string; rotulo: string }[]
     subtarefas: { id: string }[]
     subgrupos: { id: string }[]
   }
@@ -49,10 +50,7 @@ function ficticia(url: URL, variante: Variante = 'base'): Resp {
   const existe = (ids: string[] | undefined, opcoes: readonly { id: string }[]) =>
     !ids || ids.every((id) => opcoes.some((o) => o.id === id))
   const valido =
-    existe(
-      lista('pessoa'),
-      r.opcoes.pessoas.map((x) => ({ id: x.pessoaRef })),
-    ) &&
+    existe(lista('equipe'), r.opcoes.equipes) &&
     existe(lista('projeto'), r.opcoes.projetos) &&
     existe(lista('tipo'), r.opcoes.tipos) &&
     existe(lista('subtarefa'), r.opcoes.subtarefas) &&
@@ -143,25 +141,26 @@ test.describe('seletor do Operacional e cabeçalho (CA-1)', () => {
 test.describe('filtros na URL com chave opaca (CA-4, CT-10, tipo)', () => {
   test.use({ viewport: { width: 1280, height: 900 } })
 
-  test('CT-10: pessoa vai à URL e à rota como pessoaRef; nome real nunca em URL nem em storage', async ({
+  test('CT-10: equipe vai à URL e à rota como slug; nome real nunca em URL nem em storage', async ({
     page,
   }) => {
     const chamadas = await semear(page, (u) => ficticia(u, 'nomesReais'))
     await abrir(page)
     await expect(page.getByTestId('aviso-nome-real')).toBeVisible()
-    await page.getByRole('button', { name: /Pessoa que apontou/ }).click()
-    await page.getByRole('checkbox', { name: 'Ana Exemplo' }).check()
-    await expect(page).toHaveURL(/pessoa=p1(&|$)/)
-    expect(decodeURIComponent(page.url())).not.toMatch(/Ana|Exemplo/)
-    await expect.poll(() => chamadas.some((c) => c.includes('pessoa=p1'))).toBe(true)
-    for (const c of chamadas) expect(decodeURIComponent(c)).not.toMatch(/Ana|Exemplo/)
+    await expect(page.getByRole('button', { name: /^Pessoa/ })).toHaveCount(0)
+    await page.getByRole('button', { name: /^Equipe/ }).click()
+    await page.getByRole('checkbox', { name: 'Portal' }).check()
+    await expect(page).toHaveURL(/equipe=portal(&|$)/)
+    expect(decodeURIComponent(page.url())).not.toMatch(/Ana|Exemplo|pessoa/)
+    await expect.poll(() => chamadas.some((c) => c.includes('equipe=portal'))).toBe(true)
+    for (const c of chamadas) expect(decodeURIComponent(c)).not.toMatch(/Ana|Exemplo|pessoa/)
     const guardado = await page.evaluate(CHAVES_STORAGE)
-    expect(guardado).not.toMatch(/Ana|Exemplo|p1/)
+    expect(guardado).not.toMatch(/Ana|Exemplo|p1|portal/)
     // recarregar restaura o filtro, e voltar do navegador o desfaz
     await page.reload()
     await expect(page.getByTestId('periodo-dos-dados')).toBeVisible()
-    await expect(page).toHaveURL(/pessoa=p1/)
-    await expect(page.getByRole('button', { name: /Remover filtro.*Ana Exemplo/i })).toBeVisible()
+    await expect(page).toHaveURL(/equipe=portal/)
+    await expect(page.getByRole('button', { name: /Remover filtro Equipe: Portal/i })).toBeVisible()
   })
 
   test('CT-08: tipo vai à URL com o id opaco e à rota; os outros filtros também persistem', async ({
@@ -190,6 +189,9 @@ test.describe('filtros na URL com chave opaca (CA-4, CT-10, tipo)', () => {
     const chamadas = await semear(page)
     await abrir(page, `${ABA}?pessoa=Ana%20Exemplo&tipo=%3Cscript%3E&nivelMatriz=xyz`)
     await expect(page.getByTestId('filtros-invalidos')).toBeVisible()
+    await expect(page.getByTestId('filtros-invalidos')).toContainText(
+      /em: pessoa, Tipo, Agrupar por\./,
+    )
     await expect(aba(page)).not.toContainText('Ana Exemplo')
     await expect(aba(page)).not.toContainText('<script>')
     for (const c of chamadas) {
@@ -266,12 +268,13 @@ test.describe('Outra área (decisão do dono de 2026-11-02)', () => {
     const mapa = page.getByTestId('mapa-diario')
     await expect(mapa.getByRole('rowheader', { name: /Outra área/ })).toHaveCount(0)
     await expect(mapa).not.toContainText('Outra área')
-    await expect(cartao(page, 'AP-CAPACIDADE-PESSOA')).not.toContainText('Outra área')
-    // sem nome: nenhum nome real vira rótulo de Outra área, e o filtro oferece a chave fixa
-    await page.getByRole('button', { name: /Pessoa que apontou/ }).click()
-    await expect(page.getByRole('checkbox', { name: 'Outra área' })).toBeVisible()
-    await page.getByRole('checkbox', { name: 'Outra área' }).check()
-    await expect(page).toHaveURL(/pessoa=outra-area/)
+    await expect(
+      cartao(page, 'AP-CAPACIDADE-PESSOA').getByRole('rowheader', { name: /Outra área/ }),
+    ).toHaveCount(0)
+    // a nota mora junto do cartão de capacidade (097, Q-3), não na barra de filtros, que não tem mais Pessoa
+    await expect(cartao(page, 'AP-CAPACIDADE-PESSOA')).toContainText(/Outra área: pessoas que não/)
+    await expect(page.getByTestId('barra-filtros-apontamento')).not.toContainText('Outra área')
+    await expect(page.getByRole('button', { name: /^Pessoa/ })).toHaveCount(0)
   })
 })
 
@@ -546,7 +549,7 @@ test.describe('mapa diário por teclado (CT-64)', () => {
       })
       alcancados.add(rotulo)
     }
-    expect([...alcancados].join('|')).toMatch(/Pessoa que apontou/)
+    expect([...alcancados].join('|')).toMatch(/Equipe/)
     expect([...alcancados].join('|')).toMatch(/Ver como tabela/)
   })
 })
@@ -650,7 +653,7 @@ test.describe('375 px (CA-8) e rolagem das tabelas por pessoa (R2-2: A-1 e A-2)'
     const alvos = [
       abrirBarra,
       page.getByRole('button', { name: /^Tipo/ }),
-      page.getByRole('button', { name: /Pessoa que apontou/ }),
+      page.getByRole('button', { name: /^Equipe/ }),
       page.locator('label', { hasText: 'Ocultar possíveis erros' }),
     ]
     for (const a of alvos) {
