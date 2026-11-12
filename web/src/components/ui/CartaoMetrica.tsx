@@ -235,8 +235,11 @@ function CartaoMetricaVisivel(p: CartaoMetricaProps) {
             )}
           </div>
         </div>
-        {/* Base e selos na linha do título; a altura é reservada para não saltar ao carregar. */}
-        <div className={clsx('mt-1 flex min-h-6 flex-wrap items-center gap-2', esmaece)}>
+        {/* Base e selos na linha do título; a altura só é reservada quando há base (não salta ao carregar), sem faixa vazia. */}
+        <div
+          className={clsx('mt-1 flex flex-wrap items-center gap-2', p.base && 'min-h-6', esmaece)}
+          data-testid={`selos-${p.codigo}`}
+        >
           {p.base && (
             <BadgeBase
               base={p.base}
