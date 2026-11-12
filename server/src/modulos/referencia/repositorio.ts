@@ -1,5 +1,6 @@
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
+import { CORTE_CARDS, CORTE_CHAMADOS } from './cortes.js';
 
 export type OpcaoLinha = { id: string; nome: string };
 
@@ -27,17 +28,17 @@ export async function lerSistemasBM(db: Consultavel, S: Esquemas = esquemasDoAmb
   return r.rows.map((x) => ({ id: x.codigo, nome: x.rotulo }));
 }
 
-/** Categorias de tipo presentes nas stories (L6 do 097, E4): o filtro de tipo só vale para story. Nenhuma pessoa, nenhuma contagem. */
+/** Categorias de tipo presentes nas stories (L6 do 097, E4): o filtro de tipo só vale para story. Mesmo corte de `lerCards`. Nenhuma pessoa, nenhuma contagem. */
 export async function lerTiposBM(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
   const r = await db.query<{ tipo: string | null }>(
-    `SELECT DISTINCT tipo FROM ${S.bm}.dim_card WHERE granularidade = 'story' AND tipo IS NOT NULL`);
+    `SELECT DISTINCT tipo FROM ${S.bm}.dim_card WHERE ${CORTE_CARDS} AND granularidade = 'story'`);
   return r.rows.map((x) => x.tipo).filter((t): t is string => typeof t === 'string');
 }
 
-/** Prioridades presentes nos chamados do Acelerato (L6 do 097, E4). */
+/** Prioridades presentes nos chamados do Acelerato (L6 do 097, E4). Mesmo corte de `lerChamados` (recorte, equipe e abertura). */
 export async function lerPrioridadesAC(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
   const r = await db.query<{ prioridade: string | null }>(
-    `SELECT DISTINCT prioridade FROM ${S.ac}.dim_chamado WHERE prioridade IS NOT NULL`);
+    `SELECT DISTINCT prioridade FROM ${S.ac}.dim_chamado WHERE ${CORTE_CHAMADOS} AND prioridade IS NOT NULL`);
   return r.rows.map((x) => x.prioridade).filter((t): t is string => typeof t === 'string');
 }
 

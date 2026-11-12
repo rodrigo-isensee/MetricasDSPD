@@ -14,7 +14,7 @@ export const PAPEIS = ['dspd_coletor', 'dspd_api', 'dspd_ref', 'dspd_webhook', '
 export const COLUNAS_API_APONTAMENTO: Readonly<Record<string, readonly string[]>> = {
   'bm.fato_apontamento': ['card_id', 'parent_card_id', 'subtask_id', 'data_apontamento', 'segundos', 'subgrupo_codigo', 'flags_qualidade', 'iniciativa_card_id', 'pessoa_ref', 'type_id', 'excluido_em'],
   'bm.dim_card_raiz': ['card_id', 'raiz_card_id', 'raiz_fora_do_escopo'],
-  'bm.dim_card': ['card_id', 'titulo', 'tipo'],
+  'bm.dim_card': ['card_id', 'titulo', 'tipo', 'equipe'],
   'bm.dim_responsavel': ['pessoa_ref', 'responsavel_nome'],
   'bm.apt_pessoa_time': ['pessoa_ref', 'vigencia_ate'],
   'bm.ref_apontamento_subgrupo': ['codigo', 'rotulo', 'incluido_por_versao_id'],
