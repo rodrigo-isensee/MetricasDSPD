@@ -103,10 +103,10 @@ describe('Catálogo de métricas (/metricas)', () => {
     const reais = CATALOGO.filter(
       (m) => m.id !== 'BLOQUEADOS' && origemDaMetrica(m.id) === 'real',
     ).length
-    expect(within(tabela).getAllByRole('cell', { name: 'Real', exact: true })).toHaveLength(reais)
-    expect(
-      within(tabela).getAllByRole('cell', { name: 'Sem dado real', exact: true }),
-    ).toHaveLength(65 - reais)
+    expect(within(tabela).getAllByRole('cell', { name: /^Real$/ })).toHaveLength(reais)
+    expect(within(tabela).getAllByRole('cell', { name: /^Sem dado real$/ })).toHaveLength(
+      65 - reais,
+    )
     expect(within(tabela).queryByText(/fictíci|simulad|exemplo/i)).not.toBeInTheDocument()
     expect(within(tabela).getByRole('row', { name: /^O17 / })).toHaveTextContent('Sustentação')
     expect(within(tabela).getByRole('row', { name: /^PV1 / })).toHaveTextContent(
