@@ -25,7 +25,7 @@ export interface LinhaCatalogo {
 /** BLOQUEADOS é lista, não métrica do briefing. */
 const FORA = new Set(['BLOQUEADOS'])
 
-/** As 45 métricas do briefing (28 do núcleo e 17 complementares), com a espera invisível em uma linha por nível, mais a PV1 (pesquisa de percepção, terceira fonte: a coluna Fonte a distingue do BusinessMap e do Acelerato), derivadas dos dois catálogos estáticos. */
+/** O catálogo das métricas do briefing, das complementares e da percepção, com a espera invisível em uma linha por nível. A PV1 (pesquisa de percepção) é a terceira fonte: a coluna Fonte a distingue do BusinessMap e do Acelerato. Derivado dos dois catálogos estáticos. */
 export function linhasDoCatalogo(): LinhaCatalogo[] {
   return CATALOGO.filter((m) => !FORA.has(m.id)).map((m) => {
     const cartoes = CATALOGO_CARTOES.filter((c) => c.metricas.includes(m.id))
