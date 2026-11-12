@@ -3,12 +3,12 @@ tipo: qa
 contrato: 1
 pedido: 101-release-filtros-sem-simulado
 branch: docs/101-release
-commit: ea826a9ca695f84e810387ff85ea86befa997d1f
-parecer: reprovado
-escopo: completo
+commit: 5d7fe1aac6db8b7f4a9f547719fc73cff7a887e5
+parecer: aprovado
+escopo: incremental
 bugs_criticos: 0
 bugs_altos: 0
-bugs_medios: 3
+bugs_medios: 0
 bugs_baixos: 1
 data: 2026-11-12
 ---
@@ -47,15 +47,12 @@ Nenhum dos 6 é defeito de produto: comportamento novo, previsto no contrato e n
 
 ## Achados
 
-- A1 (bloqueante) e2e/tests-api/api.spec.ts:69 · FA5-04 e FA5-16 (linha 172) clicam o tipo "Incidente", que não existe nas opções do BusinessMap desde a 097 L6. Trocar por um tipo da lista real, como "Melhoria".
-- A2 (bloqueante) e2e/tests-api/tatico-011-lote2.spec.ts:79 · TT-02 espera 1 `selo-ficticio` em T13 e T14; a 099 tirou o selo (ADR 0030). Esperar 0 em todas as métricas.
-- A3 (bloqueante) e2e/tests-api/tendencias.spec.ts:64 · CT-58 manda `equipe=x` esperando 400; `equipe` é opcional desde a 097 L4. Tirar `equipe=x` da lista e cobrir `equipe` válida (200) e slug inválido (400).
-- A4 (recomendado) e2e/tests-api/tendencias.spec.ts:26 · A regex PESSOA casa `"descricao"` do marco de critério (`criterios.serie[].descricao`) e derruba CT-59. Casar só `descricao` fora de `criterios`, ou checar chaves de `serie` de chamado.
+- A5 (recomendado) .github/workflows/ci.yml:191 · Nenhum job da CI roda o `chromium-api` (`e2e-parte` roda só `test:chromium`); foi o que deixou os 6 specs velhos passarem pelo review. Criar job com a API e o banco de teste.
 
 ## Cartões para o quadro (R-QA)
 
-Os 4 achados acima são o mesmo trabalho: atualizar 3 specs e a regex. Bugs de teste: 3 médios (A1 a A3) e 1 baixo (A4); sem bug de produto aberto.
+A1 a A4 (specs velhos) fecharam, ver Revalidação. Aberto: 1 baixo (A5, lacuna de CI do `chromium-api`), vira cartão no quadro; sem bug de produto aberto.
 
 ## Revalidação
 
-Depois de corrigir os specs, rodar de novo `chromium-api` inteiro (63 + 6 = 69 testes) com a máquina livre. Nada mais a refazer: web, servidor, G1 e `chromium` ficam como acima, desde que o código de `ea826a9c` não mude.
+Revalidação na ponta da develop `5d7fe1aa` (PR 357, E1.9, cartão K-273). O delta de código e teste é só `e2e/tests-api/{api,tatico-011-lote2,tendencias}.spec.ts`, conferido no diff contra `ea826a9c`: A1 trocou "Incidente" por "Melhoria" (FA5-04 e FA5-16); A2 passou a esperar 0 `selo-ficticio` em T10 a T14; A3 tirou `equipe=x` da lista de 400 e cobriu `equipe` válida (200) e slug inválido (400); A4 tirou `criterios` da checagem de `descricao`, que segue valendo fora do marco de critério, mantendo `usuarioKey`, e-mail, nome e título. Prova de CI: `gh pr checks 357` com `e2e-parte` 1/2 e 2/2, `e2e`, `testes`, `banco`, `rapida` e `seguranca` verdes; CI da develop em `5d7fe1aa` (run 43227913561) verde (testes, rapida, seguranca, openapi, imagem, build, banco; `e2e` e `perf` pulados no push, como antes). Limite: a CI não executa o `chromium-api` (A5), então os 69 de 69 vêm do relatório do autor, citados e não refeitos por mim (regra do dono: sem banco local). Web, servidor, G1 e `chromium` seguem como na tabela acima, pois o código de produto não mudou.
