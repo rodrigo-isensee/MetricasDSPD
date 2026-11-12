@@ -8,11 +8,6 @@ export interface OrigemCartao {
   ficticio: boolean
   /** Sem fonte real (mapa de origem do contrato): na API o cartão mostra "Sem dado real", sem número. */
   semDadoReal?: boolean
-  /**
-   * Pedido 070 (ADR 0028): o cartão mostra o dado SIMULADO do mock, com o selo "Simulado". Só a camada de dados liga isto
-   * (a fonte decoradora), nunca uma prop de cada cartão. Nunca vale com dado real, nem com a fonte mock.
-   */
-  simulado?: boolean
   motivo: string | null
 }
 
