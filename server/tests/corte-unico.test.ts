@@ -31,7 +31,4 @@ describe('K-288: ordem estável das equipes da Sustentação', () => {
     expect(a).toEqual(['SSSC', 'Time Novo', 'time-novo']);
     expect(b).toEqual(a);
   });
-  it('a consulta fixa a collation C', async () => {
-    expect(await capturar((db) => lerEquipesAC(db))).toContain('ORDER BY equipe COLLATE "C"');
-  });
 });

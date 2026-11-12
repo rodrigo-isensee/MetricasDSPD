@@ -94,7 +94,7 @@ describe('filtros', () => {
     expect(j.equipes).toEqual([{ id: 'sssc-fluig', nome: 'SSSC FLUIG' }]);
   });
   it('K-288: dois nomes de mesmo slug ficam com o primeiro em bytes, nas duas ordens do banco', async () => {
-  for (const ordem of [['time-novo', 'Time Novo'], ['Time Novo', 'time-novo']]) {
+    for (const ordem of [['time-novo', 'Time Novo'], ['Time Novo', 'time-novo']]) {
       const { app } = await montar((c) => (c.texto.includes('SELECT DISTINCT equipe') ? ordem.map((equipe) => ({ equipe })) : []));
       const j = (await app.inject('/api/v1/filtros/acelerato')).json();
       expect(j.equipes).toEqual([{ id: 'time-novo', nome: 'Time Novo' }]);

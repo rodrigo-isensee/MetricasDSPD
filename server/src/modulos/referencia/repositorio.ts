@@ -38,8 +38,8 @@ export async function lerTiposBM(db: Consultavel, S: Esquemas = esquemasDoAmbien
 /** Equipes presentes nos chamados do Acelerato (L7a do 097, E4): `DISTINCT equipe` no mesmo corte de `lerChamados`. Nenhuma pessoa, nenhuma contagem. */
 export async function lerEquipesAC(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
   const r = await db.query<{ equipe: string | null }>(
-    `SELECT DISTINCT equipe FROM ${S.ac}.dim_chamado WHERE ${CORTE_CHAMADOS} ORDER BY equipe COLLATE "C"`);
-  // K-288: ordem de bytes (UTF-8) também no código, para que dois nomes de mesmo slug resolvam sempre para o mesmo (o primeiro), sem depender da collation do banco.
+    `SELECT DISTINCT equipe FROM ${S.ac}.dim_chamado WHERE ${CORTE_CHAMADOS}`);
+  // K-288: a ordem de bytes (UTF-8) fica só aqui, sem ORDER BY no SQL (DISTINCT + ORDER BY exigiria a expressão no select e prenderia a collation), para que dois nomes de mesmo slug resolvam sempre para o mesmo (o primeiro), sem depender da collation do banco.
   return r.rows.map((x) => x.equipe).filter((t): t is string => typeof t === 'string')
     .sort((a, b) => Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8')));
 }
