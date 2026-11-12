@@ -139,14 +139,15 @@ export interface CardProjetado { dim: LinhaDimCard; transicoes: FatoTransicaoPro
 const NIVEL_PARA_GRANULARIDADE: Record<string, string> = { projeto: 'projeto', feature: 'frente', story: 'story' };
 const texto = (v: unknown): string | null => (typeof v === 'string' && v !== '' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : null);
 /**
- * Parse estrito do `deadline` (099-o12-deadline §2): só `AAAA-MM-DD` com mês e dia válidos; o dia é gravado como está (data civil, sem fuso).
+ * Parse estrito do `deadline` (099-o12-deadline §2): só `AAAA-MM-DD` com ano >= 0001 (o PostgreSQL não tem ano 0), mês e dia válidos; o dia é gravado como está (data civil, sem fuso).
  * Data e hora, texto ou número viram `null` com a nota `deadline_fora_da_forma` (contagem; o valor nunca vai a log nem a tabela). Nada se converte.
  */
 export function dataAcordada(valor: unknown, notas: string[]): string | null {
   if (valor === undefined || valor === null) return null;
   if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
     const d = new Date(`${valor}T00:00:00Z`);
-    if (!Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === valor) return valor;
+    // Ano 0000: o Date do JS aceita, o `date` do PostgreSQL não (abortaria o INSERT do lote inteiro); exige ano >= 1.
+    if (!Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === valor && !valor.startsWith('0000')) return valor;
   }
   notas.push('deadline_fora_da_forma');
   return null;
