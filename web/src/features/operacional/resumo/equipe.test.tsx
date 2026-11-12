@@ -158,19 +158,19 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     const fonte = new FonteEquipe()
     const r = renderizarApp('/operacional', fonte)
     await espera('p85')
-    expect(screen.queryByTestId('aviso-consolidado')).toBeNull()
+    expect(screen.queryByTestId('aviso-consolidado-fluxo')).toBeNull()
     const d = await abrir('resumo-fluxo')
     await userEvent.click(within(d).getByRole('checkbox', { name: bm[0]!.nome }))
-    expect(screen.queryByTestId('aviso-consolidado')).toBeNull()
+    expect(screen.queryByTestId('aviso-consolidado-fluxo')).toBeNull()
     await userEvent.click(within(d).getByRole('checkbox', { name: bm[1]!.nome }))
     await userEvent.click(within(d).getByRole('button', { name: 'Fechar' }))
     const fluxo = await bloco('resumo-fluxo')
-    expect(await within(fluxo).findByTestId('aviso-consolidado')).toHaveTextContent(
+    expect(await within(fluxo).findByTestId('aviso-consolidado-fluxo')).toHaveTextContent(
       'Resultado consolidado de 2 equipes. O sistema não compara equipes.',
     )
     // o aviso é só do bloco dela
     const sust = await bloco('resumo-sustentacao')
-    expect(within(sust).queryByTestId('aviso-consolidado')).toBeNull()
+    expect(within(sust).queryByTestId('aviso-consolidado-sustentacao')).toBeNull()
     expect(busca(r).get('equipe')).toBe(`${bm[0]!.id},${bm[1]!.id}`)
     // uma só consulta por métrica, com as duas equipes juntas
     await waitFor(() =>
@@ -209,7 +209,18 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     expect(await botao('resumo-fluxo', `Equipe: ${bm[0]!.nome}`)).toBeInTheDocument()
     const chip = await within(fluxo).findByTestId('chip-filtro-equipe')
     expect(chip).toHaveTextContent(`Equipe: ${bm[0]!.nome}`)
-    await userEvent.click(within(fluxo).getByTestId('limpar-equipe-fluxo'))
+    // o nome acessível diz o bloco (dois "Limpar filtros" na tela não se confundem)
+    const limparFluxo = within(fluxo).getByRole('button', {
+      name: 'Limpar filtros de Equipe do bloco Fluxo',
+    })
+    expect(limparFluxo).toHaveTextContent('Limpar filtros')
+    const sustBloco = await bloco('resumo-sustentacao')
+    expect(
+      await within(sustBloco).findByRole('button', {
+        name: 'Limpar filtros de Equipe do bloco Sustentação',
+      }),
+    ).toBeInTheDocument()
+    await userEvent.click(limparFluxo)
     await waitFor(() => expect(busca(r).has('equipe')).toBe(false))
     expect(busca(r).get('sust_equipe')).toBe(ac[0]!.id)
     expect(await botao('resumo-fluxo', 'Equipe: Todas')).toBeInTheDocument()
@@ -228,7 +239,7 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
       await within(fluxo).findByRole('button', { name: `Remover filtro Equipe: ${bm[0]!.nome}` }),
     )
     await waitFor(() => expect(busca(r).get('equipe')).toBe(bm[1]!.id))
-    await waitFor(() => expect(within(fluxo).queryByTestId('aviso-consolidado')).toBeNull())
+    await waitFor(() => expect(within(fluxo).queryByTestId('aviso-consolidado-fluxo')).toBeNull())
   })
 
   it('equipe do link que não existe cai em "Todas" com o aviso de valor ignorado', async () => {
@@ -256,6 +267,12 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     const fluxo = await bloco('resumo-fluxo')
     const b = await within(fluxo).findByRole('button', { name: 'Equipe: carregando…' })
     expect(b).toBeDisabled()
+    // anunciado por uma só região viva (sem anúncio duplo)
+    const status = within(fluxo)
+      .getByTestId('filtro-bloco-fluxo')
+      .querySelectorAll('[role="status"]')
+    expect(status).toHaveLength(1)
+    expect(status[0]).toContainElement(b)
   })
 
   it('vazio: botão desabilitado "sem opções" e a frase que explica', async () => {
@@ -267,6 +284,11 @@ describe('Resumo: filtro Equipe por bloco (097 L5)', () => {
     expect(sust).toHaveTextContent(
       'Ainda não há equipes na base para este período. O filtro aparece quando houver dados.',
     )
+    const status = within(sust)
+      .getByTestId('filtro-bloco-sustentacao')
+      .querySelectorAll('[role="status"]')
+    expect(status).toHaveLength(1)
+    expect(status[0]).toHaveTextContent('Ainda não há equipes na base')
     // os números do bloco continuam
     expect(await espera('s2')).toBeInTheDocument()
   })
