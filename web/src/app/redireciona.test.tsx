@@ -65,7 +65,12 @@ describe('/sustentacao: só redireciona para a visão Sustentação do Operacion
     [
       '?sust_prioridade=P3&sust_equipe=totvs',
       '',
-      '/operacional?cadencia=sustentacao&sust_prioridade=P3&sust_equipe=totvs',
+      '/operacional?cadencia=sustentacao&sust_prioridade=P3&sust_equipe=sssc-totvs',
+    ],
+    [
+      '?equipe=senior,sssc-fluig',
+      '',
+      '/operacional?cadencia=sustentacao&sust_equipe=sssc-senior,sssc-fluig',
     ],
     [
       '?sust_prioridade=P3&prioridade=P1',
@@ -98,7 +103,7 @@ describe('/sustentacao: só redireciona para a visão Sustentação do Operacion
     expect(p.get('cadencia')).toBe('sustentacao')
     expect(p.get('sust_prioridade')?.toLowerCase()).toBe('p1')
     expect(p.get('sust_periodo')).toBe('12m')
-    expect(p.get('sust_equipe')).toBe('totvs')
+    expect(p.get('sust_equipe')).toBe('sssc-totvs')
     expect(p.has('tipo')).toBe(false)
     expect(roteador.state.location.hash).toBe('#s2')
     expect(roteador.state.historyAction).toBe('REPLACE')

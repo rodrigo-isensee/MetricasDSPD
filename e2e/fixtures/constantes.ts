@@ -94,7 +94,7 @@ export const IDS_MOCK = {
 export const SLUGS = {
   equipesFluxo: ['erp-protheus', 'fluig', 'senior', 'marketing-vendas', 'dados', 'plataforma-5g'],
   sistemas: ['protheus', 'fluig', 'senior', 'crm', 'site-marketing', 'data-lake', 'core-5g', 'portal-cliente'],
-  equipesSssc: ['totvs', 'senior', 'fluig'],
+  equipesSssc: ['sssc-totvs', 'sssc-senior', 'sssc-fluig'],
   tipos: ['incidente', 'requisicao', 'melhoria', 'bug-interno', 'defeito-producao', 'divida-tecnica'],
 } as const;
 

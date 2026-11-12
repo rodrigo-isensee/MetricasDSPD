@@ -177,7 +177,7 @@ test.describe('Sustentação no Operacional: redirecionamentos, hash, preferênc
     expect(p.get('cadencia')).toBe('sustentacao');
     await expect.poll(() => busca(page).get('sust_prioridade')).toBe('p1');
     expect(p.get('sust_periodo')).toBe('12m');
-    expect(p.get('sust_equipe')).toBe('totvs');
+    expect(p.get('sust_equipe')).toBe('sssc-totvs');
     expect(p.has('tipo')).toBe(false);
     expect(new URL(page.url()).hash).toBe('#s2');
     await expect(page.getByTestId('metrica-S2')).toBeVisible();

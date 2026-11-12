@@ -14,6 +14,7 @@ const responder: Respondedor = (c) => {
   if (c.texto.includes("campo = 'sistema'")) return [{ codigo: 'ERP', rotulo: 'ERP Central' }];
   if (c.texto.includes('SELECT DISTINCT tipo')) return [{ tipo: 'Melhoria' }, { tipo: 'Bug interno' }, { tipo: 'Incidente' }, { tipo: 'Categoria nova' }];
   if (c.texto.includes('SELECT DISTINCT prioridade')) return [{ prioridade: 'P3' }, { prioridade: 'P1' }, { prioridade: 'P9' }];
+  if (c.texto.includes('SELECT DISTINCT equipe') && c.texto.includes('dim_chamado')) return [{ equipe: 'SSSC TOTVS' }, { equipe: 'Time Novo' }, { equipe: 'time-novo' }];
   if (c.texto.includes('dim_card')) return [{ inicio: '2026-01-05' }];
   if (c.texto.includes('dim_chamado')) return [{ inicio: null }];
   if (c.texto.includes('ctl_coleta') && c.texto.includes('finalizado_em FROM')) return c.texto.includes('dspd_bm') ? [{ finalizado_em: new Date('2026-10-09T09:00:00Z') }] : [];
@@ -49,10 +50,10 @@ describe('filtros', () => {
     expect(j.tipos).toEqual([{ id: 'melhoria', nome: 'Melhoria' }, { id: 'bug-interno', nome: 'Bug interno' }]);
     expect(j.historico).toEqual({ inicio: '2026-01-05', fim: '2026-10-10' });
   });
-  it('acelerato: equipes fixas e prioridades presentes; base vazia usa fim como início', async () => {
+  it('acelerato: equipes do dado real (id = slug, sem id repetido) e prioridades presentes; base vazia usa fim como início', async () => {
     const { app } = await montar(responder);
     const j = (await app.inject('/api/v1/filtros/acelerato')).json();
-    expect(j.equipes.map((e: { id: string }) => e.id)).toEqual(['totvs', 'senior', 'fluig']);
+    expect(j.equipes).toEqual([{ id: 'sssc-totvs', nome: 'SSSC TOTVS' }, { id: 'time-novo', nome: 'time-novo' }]);
     expect(j.prioridades).toEqual([{ id: 'p1', nome: 'P1' }, { id: 'p3', nome: 'P3' }]);
     expect(j.historico).toEqual({ inicio: '2026-10-10', fim: '2026-10-10' });
     expect(j.tipos).toBeUndefined();
@@ -81,9 +82,21 @@ describe('filtros', () => {
     const ac = (await app.inject('/api/v1/filtros/acelerato')).json();
     expect(ac.prioridades).toEqual([{ id: 'p1', nome: 'P1' }]);
   });
-  it('acelerato com base vazia: prioridades = lista vazia', async () => {
+  it('L7a do 097: equipes da sustentação só as do corte de lerChamados (recorte, equipe e abertura)', async () => {
+    const { app } = await montar((c) => {
+      if (c.texto.includes('SELECT DISTINCT equipe') && c.texto.includes('dim_chamado')) {
+        const cortado = ['aberto_em IS NOT NULL', 'equipe IS NOT NULL', 'fora_do_recorte = false'].every((p) => c.texto.includes(p));
+        return cortado ? [{ equipe: 'SSSC FLUIG' }] : [{ equipe: 'SSSC FLUIG' }, { equipe: 'Fora do recorte' }];
+      }
+      return [];
+    });
+    const j = (await app.inject('/api/v1/filtros/acelerato')).json();
+    expect(j.equipes).toEqual([{ id: 'sssc-fluig', nome: 'SSSC FLUIG' }]);
+  });
+  it('acelerato com base vazia: equipes e prioridades = lista vazia', async () => {
     const { app } = await montar(() => []);
     const j = (await app.inject('/api/v1/filtros/acelerato')).json();
+    expect(j.equipes).toEqual([]);
     expect(j.prioridades).toEqual([]);
   });
   it('domínio inválido e parâmetro de pessoa = 400 VALIDATION_ERROR', async () => {
