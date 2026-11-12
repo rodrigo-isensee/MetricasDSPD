@@ -5,6 +5,7 @@ import { buildApp } from '../src/app.js';
 import { lerCriterios } from '../src/modulos/apontamento/repositorio.js';
 import { analisarCalendario, sincronizarCalendario } from '../src/modulos/referencia/calendario.js';
 import { registrarCriteriosApontamento } from '../src/modulos/referencia/criterios-apontamento.js';
+import { colunasDePessoa, provarSemPessoa } from './pg/colunas-pessoa.js';
 import { novaColeta, poolDe, S, url } from './pg/ctx.js';
 
 // Pedido 059, B4 contra o PostgreSQL local: o privilégio do papel `dspd_api_apontamento` (CA-AP-1, R4-5) e a rota ponta a ponta com esse papel
@@ -152,7 +153,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
       `SELECT logged_time_id FROM ${S.bm}.fato_apontamento`,
       `SELECT registro_sha256 FROM ${S.bm}.fato_apontamento`,
       `SELECT category_id FROM ${S.bm}.fato_apontamento`,
-      `SELECT responsaveis FROM ${S.bm}.dim_card`,
+      ...colunasDePessoa('dspd_bm.dim_card').map((c) => `SELECT ${c} FROM ${S.bm}.dim_card`),
       `SELECT count(*) FROM ${S.bm}.stg_apontamento`,
       `SELECT count(*) FROM ${S.bm}.evt_apontamento`,
       `SELECT count(*) FROM ${S.bm}.stg_card`,
@@ -250,7 +251,9 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect((await ler('&equipe=time-beta-teste-097&tipo=56')).kpis.segundos).toBe(900);
     // o papel da aba le `equipe` de dim_card, mas nada de pessoa a mais
     await expect(aba.query(`SELECT equipe FROM ${S.bm}.dim_card LIMIT 1`)).resolves.toBeDefined();
-    for (const col of ['responsaveis', 'card_pai']) expect((await falha(aba, `SELECT ${col} FROM ${S.bm}.dim_card`)).code, col).toBe('42501');
+    // colunas de pessoa de dim_card vêm de COLUNAS_PESSOA (K-282); card_pai não é de pessoa, é guarda de hierarquia fora do GRANT da aba
+    await provarSemPessoa(aba, dono, 'dspd_bm.dim_card', S.bm);
+    expect((await falha(aba, `SELECT card_pai FROM ${S.bm}.dim_card`)).code, 'card_pai').toBe('42501');
   });
 
   it('cards incompletos filtrados por equipe ponta a ponta: o time do card, "Sem time" e slug inexistente com resultado vazio (097 L2, A1)', async () => {
@@ -310,7 +313,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect(por.get(refs.c)?.toISOString()).toBe('2029-06-01T00:00:00.000Z');
     expect(por.has(refs.d)).toBe(false);
     expect(por.has(refs.e)).toBe(false); // card fora do escopo nao conta
-    expect((await falha(aba, `SELECT responsaveis FROM ${S.bm}.dim_card_versao`)).code).toBe('42501');
+    await provarSemPessoa(aba, dono, 'dspd_bm.dim_card_versao', S.bm);
     expect((await falha(api, `SELECT pessoa_ref FROM ${S.bm}.apt_pessoa_time`)).code).toBe('42501');
   });
 
