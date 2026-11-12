@@ -571,6 +571,27 @@ describe('FiltroMulti: busca digitando (097 L1, CA-10 a CA-16)', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Desmarcada: Beta.')
   })
 
+  it('K-284: o clique na caixa apaga o aviso "Marcada" da região viva', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta{Enter}')
+    expect(screen.getByRole('status')).toHaveTextContent('Marcada: Beta.')
+    await u.click(screen.getByRole('checkbox', { name: 'Beta' }))
+    expect(screen.getByRole('status')).not.toHaveTextContent('Marcada')
+    expect(screen.getByRole('status')).not.toHaveTextContent('Desmarcada')
+  })
+
+  it('K-284: o Esc apaga o aviso "Marcada" da região viva', async () => {
+    const u = userEvent.setup()
+    montar()
+    await u.click(screen.getByRole('button', { name: 'Equipe: Todas' }))
+    await u.type(screen.getByLabelText(/^Buscar/), 'beta{Enter}')
+    expect(screen.getByRole('status')).toHaveTextContent('Marcada: Beta.')
+    await u.keyboard('{Escape}')
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+  })
+
   it('K-278 A6: no popover, Esc com o foco em "Fechar" fecha mesmo com texto na busca', async () => {
     const u = userEvent.setup()
     montar()
