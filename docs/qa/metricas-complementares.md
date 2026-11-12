@@ -24,7 +24,7 @@ Não cobre: a correção do conteúdo numérico das métricas (coberto pelos uni
 | COMP-09 | Ocultar O6 reduz a contagem e remove o "Leia junto" | Média | passa |
 | COMP-10 | Todas ocultas no painel: seção some | Média | passa |
 | COMP-11 | "Restaurar padrão" devolve as ocultas e abre a seção | Alta | passa |
-| COMP-12 | Catálogo: O17 na Sustentação (Acelerato); só os 6 de status mock são "Fictícios" (O17, T8, E4, S8, S11, S12) | Alta | passa |
+| COMP-12 | Catálogo: O17 na Sustentação (Acelerato) com "Sem dado real" (ADR 0030); a coluna Dados só diz "Real" ou "Sem dado real" nas 65 | Alta | passa |
 | COMP-12 (S8) | S8: reincidência pelo mês de abertura; cobertura "n de N" só quando n < N | Alta | passa após ajuste do teste (abre a seção antes de procurar o cartão) |
 
 "Campo sem fonte" (S12): coberto no unitário `web/src/features/complementares/estados.test.tsx` e `ramos.test.tsx` (709 testes do web passam); sem E2E dedicado, porque os dados mock do build de E2E não produzem esse estado.
