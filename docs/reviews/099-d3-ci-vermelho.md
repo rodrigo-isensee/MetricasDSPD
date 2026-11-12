@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/099-d3-ci-vermelho
-commit: b4c40051ad21f0b62fd2e38ce1f4def9c8fc6432
+commit: 332f134a8b77d5c15932a5dd5b605b3b1cf9cf53
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-12
@@ -24,5 +24,15 @@ Diff lido: `git diff origin/develop...b4c40051` (`d9f32012..b4c40051`, 1 commit 
 - **Regras invioláveis:** nada de pessoa, nada mistura BusinessMap e Acelerato, nenhum cálculo novo.
 - **Tamanho (M14):** 106 linhas de código e teste (formatação e hashes), dentro do teto.
 
+## Revalidação por delta (E3.37, testes de cobertura)
+Delta lido: `forge-check parecer delta docs/reviews/099-d3-ci-vermelho.md`, intervalo `b4c40051..332f134a`, no domínio só `server/tests/alvos-acelerato-sincronizar.test.ts` (novo, 95 linhas) e `server/tests/metricas.mapa.test.ts` (+7). Nenhum arquivo de `src/` mudou; sem limiar baixado nem arquivo excluído da cobertura.
+- **Testes dos arquivos tocados:** `vitest run tests/alvos-acelerato-sincronizar.test.ts tests/metricas.mapa.test.ts` em `server/`: 2 arquivos, 17 testes, passaram. A cobertura de 100% é decidida pelo check `testes` do PR 364, não refeita aqui.
+- **Comportamento, não só linha:** os casos afirmam o resultado (`inseridos`, `fechados`, `versaoRegistrada`), a ordem `BEGIN`…`COMMIT`/`ROLLBACK`, os parâmetros gravados (`['P1', '2031-01-10', 0.25, 'corrido', 4, 'corrido']`, o `UPDATE` só de `P3`), a idempotência sem escrita e as recusas com a mensagem. Em `mapa`, unidade fora de `corrido`/`util` em cada um dos dois campos dá erro, nunca padrão. Sondas manuais em `src/` (revertidas): `hoje <= ultima` trocado por `<` morre; `if (existe.rows[0] === undefined)` trocado por `if (true)` morre; ignorar o `vigente_ate` sobrevive (S1, A2).
+- **O duble de pg não esconde regra:** ele só devolve linhas por trecho do SQL e registra texto e parâmetros; toda regra (`planejarAlvos`, a data máxima por prioridade em `lerEstado`, a versão por hash, a transação de `emTransacao`) roda no código real. O que o duble não prova (predicados SQL, `CHECK`, tipos do Postgres) segue com `alvos-acelerato.pg.test.ts`, no portão da `homolog`.
+
+## Sondas
+- S1 · `server/src/modulos/referencia/alvos-acelerato.ts:120` com `const fim = l.vigente_de;` · espera: um teste falha · obtido: `Tests 7 passed (7)`
+
 ## Achados
 - A1 (recomendado) docs/qa/evidencias/hash-base-fase-a.nota.md:16 · A tabela da regravação traz só a escala 1; os hashes da escala 0,2 (`824092e4`→`345c5682`, Acelerato `39b4b005`→`34151797`) mudaram nos testes e ficam registrados só em título e comentário. Uma linha na tabela fecha a rastreabilidade.
+- A2 (recomendado) server/tests/alvos-acelerato-sincronizar.test.ts:73 · A linha aberta em 2031-03-01 já dá a data máxima; o ramo do vigente_ate não é provado (S1 sobrevive). Caso: só a vigência fechada 2030-01-01..2031-03-01, data 2031-02-01 recusada.
