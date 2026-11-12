@@ -110,11 +110,41 @@ export const MATRIZ_PRIORIDADE: Record<
 
 /** 8 h úteis por dia: 1 dia útil = 8 h. Unidades da Q-099-11: P1 (os dois prazos) e P2 (primeiro atendimento) em tempo corrido. */
 export const ALVOS_PADRAO: AlvoPrioridade[] = [
-  { prioridade: 'P1', primeiro_atendimento_horas: 0.25, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 4, unidade_restauracao: 'corrido' },
-  { prioridade: 'P2', primeiro_atendimento_horas: 0.5, unidade_primeiro_atendimento: 'corrido', restauracao_horas: 8, unidade_restauracao: 'util' },
-  { prioridade: 'P3', primeiro_atendimento_horas: 2, unidade_primeiro_atendimento: 'util', restauracao_horas: 16, unidade_restauracao: 'util' },
-  { prioridade: 'P4', primeiro_atendimento_horas: 4, unidade_primeiro_atendimento: 'util', restauracao_horas: 40, unidade_restauracao: 'util' },
-  { prioridade: 'P5', primeiro_atendimento_horas: 8, unidade_primeiro_atendimento: 'util', restauracao_horas: 80, unidade_restauracao: 'util' },
+  {
+    prioridade: 'P1',
+    primeiro_atendimento_horas: 0.25,
+    unidade_primeiro_atendimento: 'corrido',
+    restauracao_horas: 4,
+    unidade_restauracao: 'corrido',
+  },
+  {
+    prioridade: 'P2',
+    primeiro_atendimento_horas: 0.5,
+    unidade_primeiro_atendimento: 'corrido',
+    restauracao_horas: 8,
+    unidade_restauracao: 'util',
+  },
+  {
+    prioridade: 'P3',
+    primeiro_atendimento_horas: 2,
+    unidade_primeiro_atendimento: 'util',
+    restauracao_horas: 16,
+    unidade_restauracao: 'util',
+  },
+  {
+    prioridade: 'P4',
+    primeiro_atendimento_horas: 4,
+    unidade_primeiro_atendimento: 'util',
+    restauracao_horas: 40,
+    unidade_restauracao: 'util',
+  },
+  {
+    prioridade: 'P5',
+    primeiro_atendimento_horas: 8,
+    unidade_primeiro_atendimento: 'util',
+    restauracao_horas: 80,
+    unidade_restauracao: 'util',
+  },
 ]
 
 /** Predicado único de "justificado" (R6): campo preenchido e não vazio; texto só com espaços NÃO conta. Usado pela S7 e pelo seed/coletor. */
