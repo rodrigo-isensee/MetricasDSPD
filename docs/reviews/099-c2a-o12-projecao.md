@@ -3,18 +3,27 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-c2a-o12-projecao
-commit: 34ba37fc11f26e3d04fab964faf7c089b6f3abb8
-parecer: reprovado
+commit: e3212e6ec351048a8f0c13e6abc5783486a424af
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-12
 ---
-# Review: C2a do O12, o deadline nativo do card em data_acordada (E3.29)
+# Review: C2a do O12, o deadline nativo do card em data_acordada (E3.29, revalidado na E3.40)
+
+## Revalidação (volta 1, E3.40)
+Delta lido: `forge-check parecer delta docs/reviews/099-c2a-o12-projecao.md`, intervalo `34ba37fc..00bcf794`, no domínio `docs/architecture/data-model.md`, `server/src/modulos/businessmap/normalizador.ts` e `server/tests/normalizador-businessmap.test.ts` (código no commit e3212e6e; o 00bcf794 é só o parecer de segurança).
+- A1 fechado: `data-model.md:116` tira `data_acordada` da lista das colunas nulas e diz que ela vem do `deadline` nativo (decisão B da Q-099-10), com parse estrito, ano >= 0001 e a nota `deadline_fora_da_forma`.
+- A2 fechado: `normalizador.ts:150` recusa o ano 0000. `0000-01-01` e `0000-12-31` entraram em `ruins`, e há casos para 0000 recusado e 0001 aceito.
+- A3 (recomendado, novo, em `## Achados`): não bloqueia.
+- Ferramentas no head e3212e6e: `scripts/lint-alterados.sh` rc=0 (4 arquivos); `scripts/typecheck-alterados.sh` rc=0; `vitest run tests/normalizador-businessmap.test.ts`: `Tests 29 passed (29)`.
+- Parecer da volta: **aprovado** sobre e3212e6e.
 
 Diff lido: `git diff origin/develop...34ba37fc` (base d9f32012), 4 arquivos, +75 -3: `normalizador.ts`, `projetor.ts`, `normalizador-businessmap.test.ts`, `projetor-businessmap.pg.test.ts`. Desenho: `docs/analises/099-o12-deadline.md` §1, §2, §5, linha C2a do §8 e riscos C6 e C7 do §9.
 
 ## Achados
 - A1 (bloqueante) docs/architecture/data-model.md:116 · diz que `data_acordada` fica nula no dado real até a WS1; o lote passa a preenchê-la pelo `deadline`, e a linha C2a do §8 põe o data-model neste lote. Detalhe em "Notas dos achados".
 - A2 (recomendado) server/src/modulos/businessmap/normalizador.ts:147 · `0000-01-01` passa no regex e no `Date` do JS, mas o PostgreSQL não tem ano zero: abortaria o INSERT do lote. Recusar ano 0000 e pôr o caso em `ruins`.
+- A3 (recomendado) server/tests/normalizador-businessmap.test.ts:314 · a constante `SONDAS` guarda comandos de shell como texto, e o teste só afirma `toHaveLength(2)`, o que não prova nada. O registro das sondas cabe ao parecer de segurança. Sugestão: apagar a constante na próxima vez que o arquivo for tocado.
 
 ## Notas dos achados
 - A1: tirar `data_acordada` da lista da linha 116 e dizer (na linha 106 ou numa nota curta) que a coluna vem do `deadline` nativo (decisão B da Q-099-10), com parse estrito e nota `deadline_fora_da_forma`. O trecho "O12 segue do mock" sai no C3, com o O12 em `METRICAS_ORIGEM_REAL`. Runbook: nenhum cita a coluna (`grep -rln 'data_acordada\|deadline' docs/runbooks docs/engineering README.md server/README*` sem resultado), então não há nada a mudar, nem agora nem no C3.
