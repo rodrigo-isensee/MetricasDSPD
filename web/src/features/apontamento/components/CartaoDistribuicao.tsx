@@ -126,6 +126,12 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
           : ` em ${fmtApontamentos(topo.apontamentos)}`
       }.`
     : undefined
+  // Resumo do AP-PROJETO recolhido (CA-32: total de projetos e de horas, nunca por pessoa, equipe ou setor).
+  const totalSegundos = linhas.reduce((t, l) => t + l.segundos, 0)
+  const resumoRecolhido =
+    bloco === 'projeto'
+      ? `Recolhido. ${fmtInteiro(linhas.length)} ${linhas.length === 1 ? 'projeto' : 'projetos'}, ${fmtHoras(totalSegundos)} no total.`
+      : undefined
   const marcasDicionario = (r?.criterios ?? []).filter((c) => c.id.startsWith('dicionario'))
   return (
     <CartaoApontamento
@@ -153,6 +159,7 @@ export function CartaoDistribuicao({ bloco }: { bloco: Bloco }) {
             ),
           }
         : {})}
+      resumoRecolhido={resumoRecolhido}
       className={bloco === 'projeto' ? 'lg:col-span-12' : 'lg:col-span-6'}
     >
       {(r) => <Corpo bloco={bloco} r={r} />}
