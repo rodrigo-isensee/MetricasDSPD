@@ -17,8 +17,8 @@ export const ARQUIVO_ALVOS = new URL('../../../../docs/architecture/fontes/acele
 export const PRIORIDADES_ALVO = ['P1', 'P2', 'P3', 'P4', 'P5'] as const;
 export const UNIDADES_PRAZO = ['corrido', 'util'] as const;
 export type UnidadeAlvo = (typeof UNIDADES_PRAZO)[number];
-/** Métricas que mudam com a unidade do alvo: só a S1 (Q-099-11). */
-export const METRICAS_ALVOS: readonly string[] = ['S1'];
+/** Métricas que mudam com a unidade do alvo: a S1 (Q-099-11) e a Visão geral, que lê `calcularS1` (A1 do QA; T2.6). */
+export const METRICAS_ALVOS: readonly string[] = ['S1', 'VISAO_GERAL'];
 
 export class ErroAlvos extends Error {
   constructor(readonly tipo: 'arquivo' | 'vigencia', mensagem: string) {

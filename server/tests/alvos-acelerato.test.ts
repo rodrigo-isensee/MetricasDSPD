@@ -23,8 +23,8 @@ describe('arquivo acelerato-alvos.json (PROC 30.000.010 v002)', () => {
     expect(referenciaDaVersaoAlvos(sha256)).toBe(`099:alvos:${sha256}`);
     expect(arquivo.versao_criterio.motivo).toContain('Q-099-11');
   });
-  it('a versão de critério afeta só a S1 (exceção à D-3, decidida na Q-099-11)', () => {
-    expect(METRICAS_ALVOS).toEqual(['S1']);
+  it('a versão de critério afeta a S1 e a Visão geral, que lê calcularS1 (A1 do QA; T2.6)', () => {
+    expect(METRICAS_ALVOS).toEqual(['S1', 'VISAO_GERAL']);
   });
   it('o texto do PROC ao lado confere com as horas (dia útil = 8 h)', () => {
     const horasDoTexto = (t: string): number => {

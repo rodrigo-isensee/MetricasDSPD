@@ -91,7 +91,7 @@ d('0036 e o carregador de alvos contra PostgreSQL (papel dspd_ref)', () => {
         ['P1', D1, null, '0.25', 'corrido', '4.00', 'corrido'], ['P2', D1, null, '0.50', 'corrido', '8.00', 'util'], ['P3', D1, null, '2.00', 'util', '16.00', 'util'],
         ['P4', D1, null, '4.00', 'util', '40.00', 'util'], ['P5', D1, null, '8.00', 'util', '80.00', 'util'],
       ]);
-      expect(await versoes()).toEqual([{ referencia: referenciaDaVersaoAlvos(lido.sha256), vigente_desde: D1, metricas: ['S1'] }]);
+      expect(await versoes()).toEqual([{ referencia: referenciaDaVersaoAlvos(lido.sha256), vigente_desde: D1, metricas: ['S1', 'VISAO_GERAL'] }]);
       const antes = [await linhas(), await versoes()];
       for (const dia of [D1, D2]) expect(await sincronizarAlvos(ref, E, lido, dia, AGORA)).toEqual({ sha256: lido.sha256, inseridos: 0, fechados: 0, versaoRegistrada: false });
       expect([await linhas(), await versoes()]).toEqual(antes);
@@ -115,7 +115,7 @@ d('0036 e o carregador de alvos contra PostgreSQL (papel dspd_ref)', () => {
         [D1, D2, '0.50', 'corrido'], [D2, null, '0.50', 'util'],
       ]);
       expect((await linhas()).filter((l) => l.prioridade !== 'P2')).toEqual(antes);
-      expect((await versoes()).map((v) => [v.vigente_desde, v.metricas])).toEqual([[D1, ['S1']], [D2, ['S1']]]);
+      expect((await versoes()).map((v) => [v.vigente_desde, v.metricas])).toEqual([[D1, ['S1', 'VISAO_GERAL']], [D2, ['S1', 'VISAO_GERAL']]]);
       expect((await lerAlvos(ref, E)).find((a) => a.prioridade === 'P2')).toMatchObject({ unidade_pa: 'util' });
     });
 
