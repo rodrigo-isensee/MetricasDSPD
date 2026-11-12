@@ -167,6 +167,15 @@ sonda "S12 lo_create" "SELECT lo_create(0);"
 sonda "UESCAPE sozinho, caixa mista" "SELECT 1 UeScApE '!'"
 sonda "prefixo PG_ em maiuscula" "SELECT PG_backend_pid()"
 sonda "prefixo LO_ em maiuscula" "SELECT LO_unlink(1)"
+# A6 (K-281): funcoes que executam texto como SQL (sondas S13 e S14 do parecer do K-277), em qualquer caixa
+sonda "S13 query_to_xml com nome montado por ||" "SELECT query_to_xml('select p'||'g_terminate_backend(pid) from p'||'g_stat_activity',true,false,'');"
+sonda "S14 ts_stat com nome montado por ||" "SELECT ts_stat('select to_tsvector(p'||'g_sleep(5)::text)');"
+sonda "query_to_xmlschema" "SELECT query_to_xmlschema('select 1',true,false,'')"
+sonda "query_to_xml_and_xmlschema" "SELECT query_to_xml_and_xmlschema('select 1',true,false,'')"
+sonda "ts_rewrite com consulta" "SELECT ts_rewrite('a & b'::tsquery, 'select t, s from aliases')"
+sonda "query_to_xml em maiuscula" "SELECT QUERY_TO_XML('select 1',true,false,'')"
+# A1 do review do K-277: U& sem UESCAPE tambem e recusado
+sonda "U& sem UESCAPE" "SELECT U&\"x\""
 # corpus de legitimos: os 31 .sql versionados passam na lista permitida (o caminho feliz acima ja exige 31 ok)
 verifica "os 31 .sql versionados cumprem a lista permitida" "$(roda | grep -q '^recusada  ' && echo 1 || echo 0)"
 
