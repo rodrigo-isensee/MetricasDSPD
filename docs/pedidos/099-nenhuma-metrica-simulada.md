@@ -47,6 +47,7 @@
 - E3.10 (qa-engineer): L5, as guardas G3 (e2e chromium-api) e G4 (Vitest do painel sem dado real) da ADR 0030, a leitura vermelha da G1 e da G3 na develop e a troca dos specs que ainda esperam o selo (simulado-070-l3 e perf-api:181), branch test/099-l5-guardas a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-056d.
 - E3.11 (qa-engineer): diagnóstico do e2e L3-08 do PR 347 (feito: instabilidade, K-292).
 - E3.12 (react-frontend): K-292, espaçamento vertical entre os links do leia-junto do Operacional para o alvo de toque não oscilar no axe target-size (L3-08 instável), branch fix/k292-leia-junto-alvo, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
+- E3.13 (react-frontend): K-290, ajustes depois do L4 (contagem do parágrafo do catálogo, origemDaMetrica sem o estado mock, COMP-12 exige Sem dado real no O17, docs/qa sem Fictícios), branch fix/k290-pos-l4, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b; o merge espera a release 101.
 
 ## Fora do escopo
 - O modo homologação (seed mock em `docker-compose.homolog.yml`), que continua com dado de teste · `técnico`
@@ -220,3 +221,18 @@
 - 2026-11-12 03:21: QA do K-292 aprovado (ed7ea724, em 0f4eb520), 0 bugs; L3-08 10 de 10 e 66 testes dos specs do leia-junto no Playwright. Review delegado (tech-lead-33).
 - 2026-11-12 03:24: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-34.md ee931ee2d2203ea6242e4a77427f33ceb853eccd396f84d5f97c6c3ef7d69ee6
 - 2026-11-12 03:24: Review do K-292 aprovado (6a5d74f0, em 0f4eb520), sem achados. PR do K-292 delegado (tech-lead-34): abre já e só mescla depois que os PRs 345, 347, 350, 352 e 353 saírem, para não disputar a develop.
+- 2026-11-12 03:33: PR 347 (L4) mesclado pelo tech-lead com todos os checks verdes e CLEAN, sem --admin (squash 287ff9b4); CI da develop verde; a nova rodada do L3-08 passou, confirma instabilidade. Volta 1 do L5 delegada (qa-engineer-15): traz a develop, troca o it.fails por it, fecha A1 e A2.
+- 2026-11-12 03:35: entrega conferida 3319eb26c704b5781fa01a2eebda4b161222f8dd
+- 2026-11-12 03:35: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-19.md 1d129afe56c2c12ec8786d63d72c60eaa49e3cb1fd46ad0cc06e6544bc882be8
+- 2026-11-12 03:35: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-35.md b8332c9074f328b6331c1b7f53477d749a51b44dfe441fa36c17195a4ddea50c
+- 2026-11-12 03:36: Volta 1 do L5 entregue (3319eb26): develop trazida por merge, it.fails virou it, textoDaTela sem efeito de módulo; G4 6 de 6. Entrega conferida. QA de outra instância (qa-engineer-19) e review (tech-lead-35), em série.
+- 2026-11-12 03:37: QA do L5 na volta 1 aprovado (fdd00f09, em 3319eb26), 0 bugs; G4 6 de 6 e mutação morta. Review pelo delta delegado (tech-lead-35).
+- 2026-11-12 03:39: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-36.md 2bc97900d4c1a8f41d577711e0b4e76a33a28ad4547d0aca33be78269631a661
+- 2026-11-12 03:40: Review do L5 na volta 1 aprovado (dfa956f2, em 3319eb26), A1 e A2 fechados; A3 no K-291. PR do L5 delegado (tech-lead-36): abre já e mescla depois de 345, 350, 352, 353 e K-292; o L2d (PR 351, tech-lead-32) espera o L5.
+- 2026-11-12 03:44: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-10.md f24e3d2564e9414e1bf4ddc71a1453fb5204ac6edb0951d729797f8f5bb239cc
+- 2026-11-12 03:44: E3.13 (K-290, ajustes depois do L4) delegada ao react-frontend (react-frontend-10), worktree 041b; o merge espera a release 101. O item do docs/qa (Fictícios no COMP-12) saiu do brief por ser escrita do QA; vai com o QA do K-290.
+- 2026-11-12 03:47: E3.13 (K-290) entregue em parte (d476583b): (c) COMP-12 exige Sem dado real no O17, 30 testes do complementares no Playwright. (a) parou com razão: o parágrafo da especificação de UX diz 45 métricas + 1 e o código tem 62 códigos; o texto é do ux-designer, vira o cartão K-297. (b) parou com razão: o estado mock é usado no servidor e na web, fora da lista; vira o cartão K-296. ERRO-JARVIS: a lista de arquivos do brief não cobria o que o próprio Entregar pedia. O K-290 segue com o QA (inclui o Fictícios do docs/qa) e o review do item (c), merge depois da release.
+- 2026-11-12 05:18: PR 354 (K-292) mesclado pelo tech-lead com todos os checks verdes, e2e inclusive, CLEAN e sem --admin (squash 38e5c2fc); CI da develop verde. O diagnóstico docs/qa/bugs/099-e2e-l3-08-target-size.md segue só na árvore principal, sem commit: entra no PR dos documentos da noite.
+- 2026-11-12 05:24: entrega conferida d476583b87c7c821d7e3215e5adeb6f6ede9b0b7
+- 2026-11-12 05:25: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-20.md b116438af4aa95b983a6aa101a7d198b4d10e1173b6615219320988dd95061cd
+- 2026-11-12 05:26: QA do K-290 delegado (qa-engineer-20) no head d476583b, com a troca de Fictícios por Sem dado real nos casos do COMP-12 em docs/qa; o review vem depois. Merge depois da release 101.

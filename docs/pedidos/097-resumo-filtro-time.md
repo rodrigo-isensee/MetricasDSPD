@@ -17,22 +17,29 @@
 ## Etapas
 - E1.1 (ux-designer): discovery da interface de E1 a E4 e protótipo para o dono validar.
 - E1.2 (software-architect): viabilidade e dados de E1 a E4 (time no apontamento, opções de filtro do dado real), em paralelo ao UX.
-- E1.3 (ux-designer): segunda rodada do protótipo com E5 (recolher cartão e os 10 maiores do AP-PROJETO) e E7 (filtro Setor), rótulo "Equipe", na branch docs/097-ux-recolher-setor, worktree /home/rodrigoisensee/MetricasDSPD-052d.
-- E1.5 (tech-lead): commit e push dos documentos da segunda rodada do UX, que o ux-designer não pode commitar, na branch docs/097-ux-recolher-setor, worktree /home/rodrigoisensee/MetricasDSPD-052d.
-- E1.6 (react-frontend): L5 do plano, filtro Equipe dentro de cada bloco do Resumo (CA-1 a CA-6), branch feature/097-l5-resumo-equipe, worktree /home/rodrigoisensee/MetricasDSPD-052f.
+- E1.3 (ux-designer): segunda rodada do protótipo com E5 (recolher cartão e os 10 maiores do AP-PROJETO) e E7 (filtro Setor), rótulo (resumo).
+- E1.5 (tech-lead): commit e push dos documentos da segunda rodada do UX, que o ux-designer não pode commitar, na branch (resumo).
+- E1.6 (react-frontend): L5, filtro Equipe em cada bloco do Resumo (feito, PR 350).
+- E1.7 (software-architect): plano técnico de E5 (recolher todo cartão de gráfico lembrando a escolha; os 10 maiores com ver todos no (resumo).
+- E1.8 (react-frontend): K-293, ajustes do Resumo depois do L5 (data-testid por bloco, estados vazio e carregando anunciados, nome (resumo).
+- E5.1 (react-frontend): L8a do plano E5 e E7, o mecanismo de recolher cartão (CartaoMetrica e Recolhidos.tsx com a chave (resumo).
+- E5.2 (react-frontend): L9 do plano E5 e E7, os 10 maiores com ver todos no AP-PROJETO (dezMaiores com teste de propriedade, CA-33 a (resumo).
+- E5.3 (react-frontend): L8b, recolher ligado nos painéis com as ressalvas do L8a, branch feature/097-l8b-recolher-paineis a partir do L8a (resumo).
+- E7.1 (node-backend): L10a, dicionário de setores e opcoes.setores, branch feature/097-l10a-setor-dicionario, worktree (resumo).
+- E7.2 (security-engineer): parecer de segurança do L10a (fronteira do arquivo de domínio do pedido 069, guarda de sobrenome).
 - E2.1 (node-backend): L2, a equipe no apontamento, parte servidor (feito, PR 337).
 - E2.2 (security-engineer): parecer de segurança do L2 (banco: permissão por coluna; recorte de pessoas por equipe).
-- E2.3 (react-frontend): L3 do plano, Equipe no lugar de Pessoa no Apontamento (CA-7 a CA-9, Q-3), branch feature/097-l3-apontamento-equipe-web, worktree /home/rodrigoisensee/MetricasDSPD-052h.
+- E2.3 (react-frontend): L3, Equipe no lugar de Pessoa no Apontamento (PR 345).
 - E3.5 (ux-designer): revisão da interface implementada, por lote do 097, em docs/ux/097-revisao-<lote>.md.
 - E4.1 (node-backend): L6, parte servidor, tipos reais em opcoes.tipos (feito, PR 330).
-- E4.2 (node-backend): K-279, opções de filtro com o mesmo corte das listas (feito, PR 335).
-- E4.3 (node-backend): K-280, condição única do corte de cards e chamados (feito, PR 339).
-- E4.4 (node-backend): correção do teste do GRANT que deixou a develop vermelha depois do PR 337 (feito, PR 340).
+- E4.2 (node-backend): K-279 (feito, PR 335).
+- E4.3 (node-backend): K-280 (feito, PR 339).
+- E4.4 (node-backend): teste do GRANT (feito, PR 340).
 - E4.5 (node-backend): L7a, equipe da Sustentação por slug (feito, PR 344).
 - E4.6 (node-backend): K-282, provas de GRANT pela lista COLUNAS_PESSOA (feito, PR 349).
 - E4.7 (react-frontend): L7b, codec da web por slug (feito, PR 344).
-- E4.8 (react-frontend): L6 do plano, parte web: BarraFiltros, codec e táticas usam opcoes.tipos e as prioridades presentes, sem a lista fixa TIPOS_FILTRO, branch feature/097-l6-tipos-reais-web, worktree /home/rodrigoisensee/MetricasDSPD-052c.
-- E4.9 (node-backend): K-288, opções de equipe da Sustentação com dois nomes de mesmo slug ficam com o primeiro de forma estável, sem depender da collation (A5 do review do L7a), branch fix/k288-equipe-slug-estavel, worktree /home/rodrigoisensee/MetricasDSPD-056.
+- E4.8 (react-frontend): L6 web, Tipo e prioridades do dado real (PR 353).
+- E4.9 (node-backend): K-288, nome de equipe estável por slug (PR 352).
 - E3.1 (react-frontend): L1, busca no FiltroMulti (feito, PR 336).
 - E3.6 (react-frontend): K-278, ressalvas da revisão de UX do L1 e o A5 do review (feito, PR 341).
 - E3.7 (react-frontend): K-284, aviso Marcada fora da região viva no clique e no Esc (feito, PR 346).
@@ -374,3 +381,61 @@
 - 2026-11-12 03:04: PR 345 (L3) não mesclado: ficou BEHIND quatro vezes porque outros merges entraram na develop durante cada ciclo de checks (cerca de 20 min). ERRO-JARVIS: disparei vários agentes de merge ao mesmo tempo, e a regra um PR de cada vez na develop não tinha quem a garantisse entre eles. Correção: depois que os merges já em curso (347, 350, 352) terminarem, os restantes (345, 353 e o 351 do 099) vão numa fila única, com um só agente de merge mesclando em ordem. Melhoria vista para a retro: fila de merge na develop (merge queue do GitHub ou trava entre os agentes).
 - 2026-11-12 03:06: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-68.md 7073df7bf7c1d841d991a3fd6f0b57a0b49b1b1bdd2de7ff099ad8db2a809f17
 - 2026-11-12 03:06: Review do L6 web revalidado na volta 1 (fed86c84, em f335d47a), aprovado. Fila única de merge dos PRs 345 e 353 delegada a um só agente (tech-lead-68), que espera os merges já em curso (347, 350, 352) saírem antes de começar.
+- 2026-11-12 03:56: brief selado docs/briefs/097-resumo-filtro-time-software-architect-2.md b25ba0bef346c74180528171c153f992ed0f5410a71d5cce11bd3307ce370766
+- 2026-11-12 03:56: E5 (recolher cartões, 10 maiores no AP-PROJETO) e E7 (filtro Setor) ainda sem plano técnico; a segunda rodada do UX segue só na branch docs/097-ux-recolher-setor, sem PR para a develop (entra depois da release 101). E1.7 delegada ao software-architect (software-architect-2): plano em docs/analises/097-plano-e5-e7.md. Esses lotes não entram na release 101.
+- 2026-11-12 03:58: PR 350 (L5, filtro Equipe no Resumo) mesclado pelo tech-lead com todos os checks verdes e CLEAN, sem --admin (squash 41394b18); CI da develop verde (run 43171001104).
+- 2026-11-12 04:00: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-20.md 05a0239c6eaaeffffff07ee315f18be0095cf46979a92e5b2e9eb16a708d81ae
+- 2026-11-12 04:02: E1.7 entregue (docs/analises/097-plano-e5-e7.md, sem commit): o setor vem de dim_card.quadro_id já coletado, com um dicionário quadro para nome no ref_dominio (sem migração nem GRANT novo); lotes L8a, L8b, L9, L11 (react-frontend), L10a e L10b (node-backend) e L12 (misto); gatilho de segurança no L10a e no L12; E5 (recolher) pode começar sem dependência, depois da release 101. PERGUNTA: ao dono, P-097-9, qual quadro do BusinessMap é cada setor? (hipótese do arquiteto: quadro 35 é o Gerencial e os outros 6 quadros coletados, 23, 24, 25, 27, 31 e 79, são os outros 6 setores; o AI Iniciatives não é coletado; sem resposta, o filtro Setor sai pronto e vazio). PERGUNTA: ao dono, P-097-10, no painel estratégico os projetos ficam todos no quadro 35; o Setor recorta projetos? (recomendação: não, como a Equipe já não recorta; sem resposta, não recorta). ERRO-JARVIS: PQ com contém '1' sobre uma contagem do grep -c é ambígua; usar uma espera que não dependa do dígito.
+- 2026-11-12 04:12: E1.8 (K-293) entregue (3b6bc40d): testid por bloco, região viva única para carregando e vazio, Limpar com o bloco no nome; cobertura 100%; e2e 5 passaram e o CA-6 pulado de forma visível, porque a semente do mock não tem equipe com menos de 20 itens. DECISÃO TÉCNICA (Jarvis): aceito o pulo visível (o CA-6 segue provado no Vitest) e a semente com uma equipe pequena vira o cartão K-298. Portões do K-293 depois da release 101.
+- 2026-11-12 04:16: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-21.md c995763c57ec65638e6a94615883555e46f1e2ae42256e171655319e052b09fe
+- 2026-11-12 04:16: E5.1 (L8a, mecanismo de recolher cartão) delegada ao react-frontend (react-frontend-21), worktree 052d, branch feature/097-l8a-recolher; merge depois da release 101.
+- 2026-11-12 04:22: PR 352 (K-288) mesclado pelo tech-lead com todos os checks verdes e CLEAN, sem --admin (squash d01524d4); CI da develop verde (run 43173449158). K-288 pronto. A fila única (tech-lead-68) segue com 345 e 353; depois o K-292, o L5 e o L2d do 099.
+- 2026-11-12 04:26: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-22.md 0d3ec4c27e54c97f1e19c92091ae9f17014dfadfb51b15d8206bbb8e8508a498
+- 2026-11-12 04:26: E5.2 (L9, os 10 maiores com ver todos no AP-PROJETO) delegada ao react-frontend (react-frontend-22), worktree 056, branch feature/097-l9-dez-maiores; merge depois da release 101.
+- 2026-11-12 04:27: entrega conferida 78c80ecee71ea6361578bf97e9d53015bfe132b3
+- 2026-11-12 04:27: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-40.md 64f4afefad36ec9d3aa6144fb257981d6aebaa045dc700f37bb826ac5bdf5ca9
+- 2026-11-12 04:27: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-69.md 5ef8073b66976676a2d7485b0e25bd2150788e23135a5161b435b3b654210f76
+- 2026-11-12 04:28: E5.1 (L8a) entregue (78c80ece): Recolhidos.tsx (provedor por painel, chave validada, teto de 100 códigos, memória ruim descartada) e o botão Recolher e Expandir no CartaoMetrica; 18 testes; cobertura 100%. Escolhas do autor para a UX conferir: recolhido esconde selos, Como ler e rodapé; Restaurar anuncia e leva o foco. Entrega conferida. QA (qa-engineer-40) e review (tech-lead-69), em série; UX depois; merge depois da release 101.
+- 2026-11-12 04:30: QA do L8a aprovado (ce0f0648, em 78c80ece), 0 bugs; A1 recomendado (os casos de código e painel inválidos não provam os filtros). Review delegado (tech-lead-69).
+- 2026-11-12 04:35: brief selado docs/briefs/097-resumo-filtro-time-ux-designer-9.md 9cc426f22e15ff8251389b5cb3ec0e6dae17795f6bdc049714984340a6150601
+- 2026-11-12 04:35: Review do L8a aprovado (d74df87c, em 78c80ece); A1 a A3 recomendados (formato dos códigos recolhíveis, foco do Restaurar dentro do main, chave na arquitetura do front) vão ao L8b. Revisão de UX delegada (ux-designer-9). O PR do L8a espera a release 101.
+- 2026-11-12 04:36: Revisão de UX do L8a aprovada com ressalvas (docs/ux/097-revisao-l8a.md): M1 (recolhido esconde sem dado real, vazio e os selos de origem; o resumo só trata o erro) e M2 (recolhido carregando mostra só Recolhido.) médios, B1 a B3 baixos; todos entram no L8b, junto dos A1 a A3 do review. O L8a está pronto para PR depois da release 101. ERRO-JARVIS: os briefs de UX mandam ler por git show, mas o ux-designer não tem Bash; a especificação deve ser apontada por arquivo legível.
+- 2026-11-12 04:39: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-23.md 63c30b8d61e1698dff6d50de0b463b9028a4bb209d49d168a1ffb1b683d35ea2
+- 2026-11-12 04:40: E5.3 (L8b, recolher nos painéis com as ressalvas do L8a) delegada ao react-frontend (react-frontend-23), worktree 052d, branch feature/097-l8b-recolher-paineis a partir do L8a; merge depois do L8a, que espera a release 101.
+- 2026-11-12 04:41: entrega conferida 162404f913cd40839146e8070a48cef8fa52bb3e
+- 2026-11-12 04:41: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-41.md bc98d9ea54cfab663a3d6c6722abd3147237feb21527ce578320bf0c59ca52fd
+- 2026-11-12 04:41: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-70.md 04aba0c6cfddcd0a86bc82fbe8cf4eed38358750180faa057f23690946afbc2b
+- 2026-11-12 04:42: E5.2 (L9) entregue (162404f9): dezMaiores com ordem por horas e desempate alfabético, linha Demais e Ver todos com aria-expanded, selo de incompleto sobre todos, teste de propriedade com fast-check; suíte da web exit 0. Entrega conferida. QA (qa-engineer-41) e review (tech-lead-70), em série; UX depois; merge depois da release 101.
+- 2026-11-12 04:45: QA do L9 aprovado (c9e1218f, em 162404f9), 0 bugs; vermelho antes do verde e 4 mutantes mortos; A1 (CA-38 sem teste) e A2 (propriedade fraca) recomendados. Review delegado (tech-lead-70).
+- 2026-11-12 04:50: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-24.md 4fa5baebd81e57e431ac752693b7d2ff366d06c7096d112cac680dc38d5fcb50
+- 2026-11-12 04:50: Review do L9 aprovado (763c3e63, em 162404f9) com A1 (o corte ordena diferente do Ver todos num empate) e A2 (o 10 escrito à mão) recomendados. DECISÃO TÉCNICA (Jarvis): o corte usa a ordem do servidor; volta 1 delegada (react-frontend-24) com A1 e A2 do review e A1 e A2 do QA. PR 345 (L3) mesclado na develop (07:28 UTC) pela fila única.
+- 2026-11-12 04:54: brief selado docs/briefs/097-resumo-filtro-time-node-backend-22.md 44c84dfa573ac9cd984491d57d8985ec9fd63900586851bdb8aa38a590fb77ed
+- 2026-11-12 04:54: E7.1 (L10a, dicionário de setores com lista vazia até a P-097-9 e opcoes.setores) delegada ao node-backend (node-backend-22), worktree 052h, branch feature/097-l10a-setor-dicionario; tem gatilho de segurança (fronteira do 069); merge depois da release 101.
+- 2026-11-12 04:57: E5.3 (L8b) entregue (9a410853): recolher ligado em Operacional, Tático, Estratégico, Sustentação e Apontamento; KPIs sem recolher; resumo do AP-PROJETO; M1, M2, B1, B2 e A1 a A3 fechados; o Resumo ficou sem provedor porque não tem CartaoMetrica; cobertura 100%. A conferência não fecha agora: o brief foi selado com a base na develop e a branch parte do L8a (Base-sha fora da branch). Ela é refeita depois que o L8a entrar na develop e o L8b trouxer a develop; o L8b também vai conflitar com o L9 no CartaoDistribuicao.tsx. ERRO-JARVIS: brief de lote empilhado selado com base develop.
+- 2026-11-12 04:59: Fila única concluída: PR 345 (L3, squash 84001e7a) e PR 353 (L6 web, squash fcdc2491) mesclados com todos os checks verdes e CLEAN, sem --admin; CI da develop verde depois de cada um (runs 43175548286 e 43178049675). Com isso, todos os lotes L1 a L7 do 097 e os K da noite estão na develop; seguem o K-292 e o L5 e L2d do 099.
+- 2026-11-12 04:59: entrega conferida 98e3213446edf24f41ab130f1f6c46e7009fa986
+- 2026-11-12 05:00: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-42.md 816d12a3612a5294a79abedc62d791508f825a389f08406b4955ad873a5b1aa0
+- 2026-11-12 05:00: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-71.md 7148f1e8e4e040d6eae61c64b7eca8be5b6547ebe1b83498e2019f4ad24e5bf9
+- 2026-11-12 05:00: Volta 1 do L9 entregue (98e32134): o corte segue a ordem do servidor, LIMITE_MAIORES nos textos, teste do CA-38 e propriedade por linha; cobertura exit 0. Entrega conferida. QA pelo delta (qa-engineer-42), depois review (tech-lead-71); UX depois; merge depois da release 101.
+- 2026-11-12 05:00: entrega conferida 86a3808ffcb19a0c2aaae420ce49ab4a51af3d01
+- 2026-11-12 05:01: brief selado docs/briefs/097-resumo-filtro-time-security-engineer-2.md 07b721ec51c0fcc7459e61a345d059323779cc582e28f74db5f0f4b6ab30e2dd
+- 2026-11-12 05:02: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-43.md 7507f7ec3b0da8a01d5f005c440ef5eb61afe824542a3c895cab0b5d1f09c1af
+- 2026-11-12 05:02: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-72.md 1a05c64d19d1cd9e1d05f27bd82bcc8d30d5432ec324f33efc66b44c867b3c46
+- 2026-11-12 05:02: E7.1 (L10a) entregue (86a3808f): setor.ts com a guarda de sobrenome, setores no esquema fechado (lista vazia até a P-097-9), lerSetoresBM parametrizado, opcoes.setores no contrato e docs/api; 12 casos de abuso testados. O autor recusou rótulo repetido (§1.3 do plano) e não regenerou o openapi.json: decisões do review. Entrega conferida (classe N pela ferramenta; o plano marca gatilho de segurança, então segurança também). Segurança (security-engineer-2), QA (qa-engineer-43) e review (tech-lead-72), em série. Textos longos das etapas já feitas encurtados de novo para caber no teto dos briefs.
+- 2026-11-12 05:03: QA do L9 revalidado na volta 1 (b3b50478, em 98e32134), aprovado, 0 bugs; mutações mortas, inclusive a da ordenação própria. Review pelo delta delegado (tech-lead-71).
+- 2026-11-12 05:06: brief selado docs/briefs/097-resumo-filtro-time-ux-designer-10.md 5df0fe0c79cf03777f24e1da966ea670ef3bf4e82bed6385eb37599b28877203
+- 2026-11-12 05:06: Review do L9 revalidado na volta 1 (a805056f, em 98e32134), aprovado; A3 recomendado (vetor de teste com rótulos sobrando); teto excedido, 340 linhas, no PR. Revisão de UX delegada (ux-designer-10).
+- 2026-11-12 05:08: Revisão de UX do L9 aprovada com ressalvas (docs/ux/097-revisao-l9.md): M-1 e M-2 médios (anúncio do Ver todos) e B-1 a B-3 baixos viram o cartão K-299, junto do A3 do review. O L9 está pronto para PR depois da release 101.
+- 2026-11-12 05:09: Segurança do L10a aprovada (95e6499e, em 86a3808f): código do quadro só dígitos, nenhum nome de quadro ou pessoa em tabela ou resposta, lerSetoresBM parametrizado, contrato sem coluna de pessoa. A1 (a guarda de sobrenome só pega um formato; no PR que preencher a lista, prender o rótulo aos 7 nomes da decisão de 14:09) e A2 (teste de fumaça com os 7 rótulos) recomendados, para o lote que preenche a lista. QA delegado (qa-engineer-43).
+- 2026-11-12 05:12: QA do L10a aprovado (2f4fccd8, em 86a3808f), 0 bugs; 12 casos de abuso recusados sem mostrar o valor; vermelho antes do verde (8 testes na base) e 4 mutantes mortos, 1 equivalente. Review delegado (tech-lead-72). PR 354 (K-292) mesclado na develop (08:06 UTC).
+- 2026-11-12 05:15: brief selado docs/briefs/097-resumo-filtro-time-node-backend-23.md 102889230ff16c77445f988895bc899825499a0ad8fb535f3ef313bcf2316167
+- 2026-11-12 05:15: Review do L10a reprovado (0afaa091, em 86a3808f) por um bloqueante mecânico: openapi.json não regenerado (o openapi:verificar reprova). A recusa de rótulo repetido fica. A2 (teste da guarda de slug vazio) e A3 (FiltrosFluxo.setor e FiltroFluxoChave no L10b) recomendados. Volta 1 delegada (node-backend-23). Melhoria vista para a retro: incluir o openapi:verificar no pronto.
+- 2026-11-12 05:17: entrega conferida 977d1484196e59f0a587269b027f2862ef9cd036
+- 2026-11-12 05:17: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-44.md cf4a9dccfbad1526d12920f17acff1ced636af7abdf2b74f1239be06bd01bbc1
+- 2026-11-12 05:17: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-73.md dd504cdf8c8a64283c63f6998cec7548abcfb71b37e9879ea7dbb5ee1a6ba312
+- 2026-11-12 05:18: Volta 1 do L10a entregue (977d1484): openapi.json regenerado e teste da guarda de slug vazio. Conferida pela etapa seguranca (a etapa codigo acusava o parecer de segurança reescrito no intervalo). QA pelo delta (qa-engineer-44), depois review (tech-lead-73).
+- 2026-11-12 05:19: QA do L10a revalidado na volta 1 (9aed7350, em 977d1484), aprovado; openapi:verificar sai 0; mutação na guarda morta. Review pelo delta delegado (tech-lead-73).
+- 2026-11-12 05:24: Review do L10a revalidado na volta 1 (53da301f, em 977d1484), aprovado; A1 e A2 fechados. A3 (recomendado) fica para o brief do L10b: listar FiltrosFluxo.setor e a chave 'setor' de FiltroFluxoChave. L10a com todos os portões aprovados; merge depois da release 101.
+- 2026-11-12 05:24: entrega conferida 3b6bc40d3f84eef680244d29fb085675db0c116d
+- 2026-11-12 05:25: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-45.md 66760b96e103617997569bf74d82ca50a4193ccdf688fd9d9a505448c5e0a045
+- 2026-11-12 05:26: QA do K-293 delegado (qa-engineer-45) no head 3b6bc40d; o review vem depois (uma escrita por branch). Merge depois da release 101.

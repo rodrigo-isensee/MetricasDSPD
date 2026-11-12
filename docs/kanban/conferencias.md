@@ -3061,3 +3061,33 @@
 | 2026-11-12 03:17 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-18 | brief | 1 | aprovado | s | qa-engineer-18 | — | jarvis |
 | 2026-11-12 03:17 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-33 | brief | 1 | aprovado | s | tech-lead-33 | — | jarvis |
 | 2026-11-12 03:24 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-34 | brief | 1 | aprovado | s | PR K-292 | — | jarvis |
+| 2026-11-12 03:35 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-19 | brief | 1 | aprovado | s | qa-engineer-19 | — | jarvis |
+| 2026-11-12 03:35 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-35 | brief | 1 | aprovado | s | tech-lead-35 | — | jarvis |
+| 2026-11-12 03:39 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-tech-lead-36 | brief | 1 | aprovado | s | PR L5 099 | — | jarvis |
+| 2026-11-12 03:44 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-react-frontend-10 | brief | 1 | aprovado | s | K-290 | — | jarvis |
+| 2026-11-12 03:56 | 097-resumo-filtro-time | 097-resumo-filtro-time-software-architect-2 | brief | 1 | aprovado | s | plano E5 E7 | — | jarvis |
+| 2026-11-12 04:00 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-20 | brief | 1 | aprovado | s | K-293 | — | jarvis |
+| 2026-11-12 04:16 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-21 | brief | 1 | aprovado | s | L8a | — | jarvis |
+| 2026-11-12 04:26 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-22 | brief | 1 | aprovado | s | L9 | — | jarvis |
+| 2026-11-12 04:27 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-40 | brief | 1 | aprovado | s | qa-engineer-40 | — | jarvis |
+| 2026-11-12 04:27 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-69 | brief | 1 | aprovado | s | tech-lead-69 | — | jarvis |
+| 2026-11-12 04:35 | 097-resumo-filtro-time | 097-resumo-filtro-time-ux-designer-9 | brief | 1 | aprovado | s | UX L8a | — | jarvis |
+| 2026-11-12 04:39 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-23 | brief | 1 | aprovado | s | L8b | — | jarvis |
+| 2026-11-12 04:41 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-41 | brief | 1 | aprovado | s | qa-engineer-41 | — | jarvis |
+| 2026-11-12 04:41 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-70 | brief | 1 | aprovado | s | tech-lead-70 | — | jarvis |
+| 2026-11-12 04:50 | 097-resumo-filtro-time | 097-resumo-filtro-time-react-frontend-24 | brief | 1 | aprovado | s | L9 volta 1 | — | jarvis |
+| 2026-11-12 04:54 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-22 | brief | 1 | aprovado | s | L10a | — | jarvis |
+| 2026-11-12 05:00 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-42 | brief | 1 | aprovado | s | qa-engineer-42 | — | jarvis |
+| 2026-11-12 05:00 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-71 | brief | 1 | aprovado | s | tech-lead-71 | — | jarvis |
+| 2026-11-12 05:01 | 097-resumo-filtro-time | 097-resumo-filtro-time-security-engineer-2 | brief | 1 | aprovado | s | security-engineer-2 | — | jarvis |
+| 2026-11-12 05:02 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-43 | brief | 1 | aprovado | s | qa-engineer-43 | — | jarvis |
+| 2026-11-12 05:02 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-72 | brief | 1 | aprovado | s | tech-lead-72 | — | jarvis |
+| 2026-11-12 05:06 | 097-resumo-filtro-time | 097-resumo-filtro-time-ux-designer-10 | brief | 1 | aprovado | s | UX L9 | — | jarvis |
+| 2026-11-12 05:15 | 097-resumo-filtro-time | 097-resumo-filtro-time-node-backend-23 | brief | 1 | aprovado | s | L10a volta 1 | — | jarvis |
+| 2026-11-12 05:17 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-44 | brief | 1 | aprovado | s | qa-engineer-44 | — | jarvis |
+| 2026-11-12 05:17 | 097-resumo-filtro-time | 097-resumo-filtro-time-tech-lead-73 | brief | 1 | aprovado | s | tech-lead-73 | — | jarvis |
+| 2026-11-12 05:18 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-0 | brief | 1 | aprovado | s | docs da noite | — | jarvis |
+| 2026-11-12 05:22 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-1 | brief | 1 | aprovado | s | tech-lead-1 | — | jarvis |
+| 2026-11-12 05:25 | 097-resumo-filtro-time | 097-resumo-filtro-time-qa-engineer-45 | brief | 1 | aprovado | s | QA fix/k293-resumo-equipe-a11y | — | jarvis |
+| 2026-11-12 05:25 | 099-nenhuma-metrica-simulada | 099-nenhuma-metrica-simulada-qa-engineer-20 | brief | 1 | aprovado | s | QA fix/k290-pos-l4 | — | jarvis |
+| 2026-11-12 05:27 | 101-release-filtros-sem-simulado | 101-release-filtros-sem-simulado-tech-lead-2 | brief | 1 | aprovado | s | tech-lead-2 | — | jarvis |
