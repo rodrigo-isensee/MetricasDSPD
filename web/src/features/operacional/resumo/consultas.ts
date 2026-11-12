@@ -41,7 +41,14 @@ export function useReferenciaDasTendencias(): {
   return { pronta: !bm.isPending && !ac.isPending, dataReferencia: datas[0] }
 }
 
-/** Filtros das tendências: só a data de referência (o contrato não aceita filtro; `strict` na API). */
+/**
+ * Filtros das tendências: a data de referência e, só com seleção, a equipe do bloco (L4). Sem equipe a consulta
+ * é idêntica à de antes (mesma chave de cache, mesma URL).
+ */
 export const filtrosTendencia = (
   dataReferencia: string | undefined,
-): FiltrosDe<'TENDENCIA_FLUXO'> => (dataReferencia ? { dataReferencia } : {})
+  equipe: readonly string[] = [],
+): FiltrosDe<'TENDENCIA_FLUXO'> => ({
+  ...(dataReferencia ? { dataReferencia } : {}),
+  ...(equipe.length > 0 ? { equipe: [...equipe] } : {}),
+})
