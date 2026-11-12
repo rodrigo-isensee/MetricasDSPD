@@ -14,12 +14,12 @@
 ## Etapas
 - E1.1 (software-architect): varredura E1 e proposta por item (E2) e da guarda (E3), sem ler a base real.
 - E2.1 (react-frontend): L1, App.tsx sem o FonteComSimulado e testes de composição ajustados, na branch (resumo).
-- E2.2 (software-architect): L0, ADR 0030 que revoga a 0028, e o plano de dado real de cada cartão simulado do Operacional.
+- E2.2 (software-architect): L0, ADR 0030 que revoga a 0028, e o plano de dado real de cada cartão (resumo).
 - E2.3 (tech-lead): review do L1.
 - E2.4 (qa-engineer): QA do L1.
 - E2.5 (tech-lead): PR do L1 para a develop; o merge é do dono.
 - Cada portão (QA, segurança, review) commita e envia o próprio parecer na branch, como nos pedidos 092 a 097; o PR continua do tech-lead.
-- E2.6 (react-frontend): L2a, tirar a opção simulado de useMetrica e dos cartões, na branch fix/099-l2a-sem-opcao-simulado, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
+- E2.6 (react-frontend): L2a, tirar a opção simulado de useMetrica e dos cartões, na branch (resumo).
 - E2.7 (tech-lead): review do L2a.
 - E2.8 (qa-engineer): QA do L2a.
 - E2.9 (tech-lead): PR do L2a; o merge é do dono.
@@ -29,10 +29,11 @@
 - E2.16 (ux-designer): L4, texto do catálogo (WB-1) e das 8 notas (OP-21, TA-16 a TA-18, ES-11, ES-12) sem falar em (resumo).
 - E2.17 (ux-designer): revisão da interface implementada no L2b e L2c (selo Simulado removido; cartão sem dado real com (resumo).
 - E2.18 (react-frontend): L4, aplicar na web os textos de docs/ux/099-textos-sem-simulado.md (catálogo WB-1 e as 8 (resumo).
-- E2.19 (ux-designer): revisão da interface implementada no L4 (catálogo e notas sem simulado), em docs/ux/099-revisao-l4.md.
-- E2.20 (react-frontend): L2d, o mock fora do build api (App.tsx com import() só no ramo VITE_FONTE=mock) e as guardas G1 (web/scripts/sem-mock.mjs no pronto da web) e G2 (lint) da ADR 0030, branch fix/099-l2d-mock-fora-do-build a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052g.
+- E2.19 (ux-designer): revisão da interface implementada no L4 (catálogo e notas sem simulado), em (resumo).
+- E2.20 (react-frontend): L2d, o mock fora do build api (App.tsx com import() só no ramo VITE_FONTE=mock) e (resumo).
 - E2.21 (security-engineer): parecer de segurança do L2d (gatilho: web/package.json; o pronto da web ganha um passo).
-- E2.22 (ux-designer): K-297, parte de UX: o texto do parágrafo do catálogo com a contagem que bate com o código (65 linhas, 62 códigos: 60 métricas, EI e PV1), na especificação docs/ux/099-textos-sem-simulado.md; o alinhamento do código vem depois, com o react-frontend.
+- E2.22 (ux-designer): K-297, parte de UX: o texto do parágrafo do catálogo com a contagem que bate com o (resumo).
+- E2.23 (ux-designer): revisão da interface do K-297 (parágrafo do catálogo sem número), em docs/ux/099-revisao-k297.md.
 - E2.12 (tech-lead): review por lote do 099 (L2b em diante).
 - E2.13 (qa-engineer): QA por lote do 099 (L2b em diante).
 - E2.14 (tech-lead): PR e merge por lote do 099 na develop, pela autorização do dono de 17:51.
@@ -49,9 +50,12 @@
 - E3.11 (qa-engineer): diagnóstico do e2e L3-08 do PR 347 (feito: instabilidade, K-292).
 - E3.12 (react-frontend): K-292, espaçamento vertical entre os links do leia-junto do Operacional para o alvo de toque (resumo).
 - E3.13 (react-frontend): K-290, ajustes depois do L4 (contagem do parágrafo do catálogo, origemDaMetrica sem o estado (resumo).
-- E3.14 (react-frontend): K-285, estado sem dado real (motivo a 14 px no NumeroChave, faixa de selos sem espaço vazio, role=status; B-2 a B-4 da revisão de UX do L2b e L2c; o B-1 saiu, ver histórico), branch fix/k285-sem-dado-real-ux, worktree /home/rodrigoisensee/MetricasDSPD-052c.
-- E3.15 (node-backend): lote D3 do plano de dado real, o carregador versionado de ref_alvo_prioridade com os prazos da Q-099-5a e a unidade por célula da Q-099-11, branch feature/099-d3-alvo-prioridade, worktree /home/rodrigoisensee/MetricasDSPD-052g; merge depois da release 101.
-- E3.16 (software-architect): desenho de onde guardar a unidade (corrido ou útil) de cada prazo de ref_alvo_prioridade para o D3, em docs/analises/099-d3-unidade-prazo.md.
+- E3.14 (react-frontend): K-285, estado sem dado real (motivo a 14 px no NumeroChave, faixa de selos sem (resumo).
+- E3.15 (node-backend): lote D3 do plano de dado real, o carregador versionado de ref_alvo_prioridade com os (resumo).
+- E3.16 (software-architect): desenho de onde guardar a unidade (corrido ou útil) de cada prazo de (resumo).
+- E3.17 (software-architect): desenho da leitura da classe de serviço pelas tags do card do BusinessMap (resumo).
+- E3.18 (react-frontend): K-297, parte do código: o parágrafo do catálogo e os comentários de (resumo).
+- E3.19 (node-backend): K-296, o estado mock de origemDaMetrica vira sem-dado (e motivoDaOrigemSemDado) em contratos, servidor e web, com testes e o OpenAPI, branch fix/k296-origem-sem-dado, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041; merge depois da release 101.
 
 ## Fora do escopo
 - O modo homologação (seed mock em `docker-compose.homolog.yml`), que continua com dado de teste · `técnico`
@@ -293,3 +297,37 @@
 - 2026-11-12 09:48: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-40.md 89775454f52bd56805b5df6dd0ba09e41c7f354d2022b584cb7ee6297ddfd3f1
 - 2026-11-12 09:53: Review do D3 aprovado (1a7b0398, em 8f0d669b), sem bloqueante; A1 manter as duas transações no ac:ref-sync com comentário (decisão do tech-lead sobre o A1 da segurança), A2 teste do ramo de falha de unidadeDe, A3 linha de leitura na ADR 0027, A4 teste de arquivo de alvos recusado; 697 linhas, o PR leva teto: excedido. Falta o QA do D3, depois do QA da release (uma suíte local por vez); merge depois da release 101.
 - 2026-11-12 10:09: DECISÃO DO DONO (literal): "faca suas recomendacoes", sobre a Q-099-9, a regra de banco de teste e a conferência do container. Q-099-9 = A: o O24 espera o campo classe_servico (WS1) e fica sem dado real até lá; nenhum card é tratado como Padrão por padrão.
+- 2026-11-12 10:14: DECISÃO DO DONO (literal): "B" para a Q-099-10: a data acordada do O12 é o prazo nativo do card do BusinessMap (deadline), que a coleta já traz; contra a recomendação A do Jarvis. Efeitos (plano 099): o campo data_acordada sai do roteiro da WS1 (nota B de 099-campos-para-configurar.md); a escolha entra como versão de critério (T2.6, afeta O12) e o cartão diz que a data é o prazo do card, que pode mudar depois do compromisso; a consulta Q-RO-6b mostra a cobertura do deadline antes do lote. As 9 perguntas da sequência do dono estão respondidas (falta só o uso de Aguardando Equipe Interna, da Q-099-8).
+- 2026-11-12 10:23: DECISÃO DO DONO (literal): "A Classe de valor vem por tag.", sobre o campo 1 do roteiro (classe de serviço, nota A): no BusinessMap a classe vem por tag do card, não por campo novo; o campo classe_servico sai do roteiro da WS1. Visto no código: a allow-list do BusinessMap não lê tags hoje; ler tags é mudança na fronteira de coleta (allow-list, ADR 0020) e vira lote com gatilho de segurança, desenhado pelo arquiteto. PERGUNTA aberta: a grafia exata das tags de classe e se os quatro valores (Urgente, Prazo fixo, Padrão, Intangível) são esses.
+- 2026-11-12 10:23: Leitura do Jarvis: "Classe de valor" na fala do dono foi lida como a classe de serviço do campo 1 (a pergunta era sobre ela).
+- 2026-11-12 10:26: DECISÃO DO DONO (literal): "as tags sao um campo de cada card" (a classe de serviço vem do campo de tags de cada card do BusinessMap). E3.17 (desenho da leitura por tag) delegada ao software-architect.
+- 2026-11-12 10:27: brief selado docs/briefs/099-nenhuma-metrica-simulada-software-architect-11.md f2fc1bff9e9adf2cf06000e6943e1ce11bed5ee19ae346a4711e02c343a54a20
+- 2026-11-12 10:33: E3.17 entregue (docs/analises/099-classe-por-tag.md, sem commit): tag pela expand=tag_ids da listagem de /cards, comparada em memória a um dicionário fechado tag_id para classe (classe_servico_tag em businessmap-dominio.json, nasce vazio); no staging só a chave classes_tag; classe nas colunas classe_servico de dim_card e dim_card_versao, sem migração; card sem tag ou com duas classes fica sem classe (nunca Padrão); versão de critério marca O6, O24, T1, T2, T4 e T6; item 4i novo da ADR 0020 com o security-engineer antes do código. Pergunta Q-099-22 ao dono: (a) grafia exata das tags de classe; (b) qual classe vale quando a tag muda (recomendação: a da última leitura). A Q-099-12 da revisão de campos (card sem tag = Padrão) fica prejudicada pela Q-099-9 = A e sai da lista.
+- 2026-11-12 10:33: Dono (literal): "campo acho que se chama labels" (o campo de tags do card no BusinessMap). Vai ao lote T1 (diagnóstico de /tags): conferir o nome do campo na API (tag_ids ou labels) sem inferir.
+- 2026-11-12 10:51: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-22.md 4da06f33ca9c245778e4c5e2c04a58cc47df777a70ebace020274e2d4b947bde
+- 2026-11-12 10:56: QA do D3 reprovado (b40b409a, em 8f0d669b), 1 bug médio: A1, a Visão geral lê calcularS1 e o indicador S1 dela muda de número com a unidade por célula, sem marca de critério (só S1 marcado). Prazos, unidades e S1 conferem; 5 mutantes mortos. DECISÃO TÉCNICA (Jarvis): pela regra inviolável do CLAUDE.md (mudança de critério marcada nos gráficos, T2.6), a versão de critério marca também VISAO_GERAL; não vai ao dono como escolha. Volta 2 do D3 delegada.
+- 2026-11-12 10:56: brief selado docs/briefs/099-nenhuma-metrica-simulada-node-backend-5.md 421ff37745c7ffe3478129d48d3bd0d6b6aef1f9615f373eb8cfbd96064fa159
+- 2026-11-12 10:59: entrega conferida 70836ab6604b6a2fe51cf67c1f7706578c54f861
+- 2026-11-12 10:59: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-23.md c82f11e5fdb00839aa0d5fe43147dcfcbc4cbf8206b4a2a83588ca63c4ed89eb
+- 2026-11-12 10:59: D3 volta 2 entregue (70836ab6): a versão de critério dos alvos marca S1 e VISAO_GERAL, teste vermelho antes do verde. Conferida pela etapa qa. QA pelo delta delegado; review pelo delta depois.
+- 2026-11-12 11:02: QA do D3 revalidado na volta 2 (f91922f6, em 70836ab6), aprovado; A1 fechado. Review pelo delta delegado.
+- 2026-11-12 11:02: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-41.md 79d56acd1da77ae8e104adb10f4d0bf99d82a8f4b2fb736fd210656466c036aa
+- 2026-11-12 11:05: Review do D3 revalidado na volta 2 (f848f118, em 70836ab6), aprovado; A5 novo recomendado (METRICAS_ALVOS repete à mão METRICAS_COM_ALVOS). D3 com segurança, QA e review aprovados; merge depois da release 101 (PR com teto: excedido).
+- 2026-11-12 11:10: brief selado docs/briefs/099-nenhuma-metrica-simulada-react-frontend-15.md 2f5ea075ee093e35bc21c189b67f01e9a2dce08e24d69b21b4b23d1a9399f987
+- 2026-11-12 11:10: E3.18 (K-297, parágrafo do catálogo sem número no código) delegada ao react-frontend (react-frontend-15), worktree 041; merge depois da release 101.
+- 2026-11-12 11:12: entrega conferida 6fd92647e517585003be3523f1638a05bc6006e1
+- 2026-11-12 11:12: E3.18 (K-297 código) entregue (6fd92647): parágrafo pelo texto da especificação, comentários sem número, teste vermelho antes do verde. Portões (QA, review e UX) depois; merge depois da release 101.
+- 2026-11-12 11:13: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-24.md 8c98e29faf4adf2e0c7b9efbf3b6c2167b22578216ccb1eb0159a393e6b0c4f2
+- 2026-11-12 11:15: QA do K-297 (código) aprovado (ec0f46b7, em 6fd92647), 0 bugs; texto igual ao da especificação, Vitest 7 de 7, e2e COMP-03 e COMP-12 4 de 4, mutação morta. Review delegado.
+- 2026-11-12 11:15: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-42.md ad2e5d87f66be461eba6d52905598452a787825567e64afa28aded5ef5e88539
+- 2026-11-12 11:18: Review do K-297 (código) aprovado (9edc8894, em ec0f46b7, código em 6fd92647); A1 recomendado: o nome do teste em catalogo.test.tsx:10 ainda fala em 45 + PV1 + 3 níveis. A especificação nova do K-297 está só na árvore principal: entra no próximo PR de documentos, junto com o merge do código. Falta a revisão de UX (muda texto de tela). ERRO-JARVIS: o gerador de portão pôs no parecer o head da branch (com o parecer do QA) e não o head do código; corrigido no script.
+- 2026-11-12 11:18: brief selado docs/briefs/099-nenhuma-metrica-simulada-ux-designer-4.md a1409d4c4098f776150f3a4f84a4ea2fc8a67ea389fc9ab3ec40ed29b517b940
+- 2026-11-12 11:19: Revisão de UX do K-297 aprovada (docs/ux/099-revisao-k297.md, sem commit), sem bloqueante; baixos: parágrafo em um bloco só, e "N de M métricas" conta linhas (65) e não códigos (62). K-297 (código) com QA, review e UX aprovados; merge depois da release 101.
+- 2026-11-12 11:23: brief selado docs/briefs/099-nenhuma-metrica-simulada-node-backend-6.md d6e36c1a1c9c51cdf8a47754133782f518b955c194f2624de9e4ae301d027b0b
+- 2026-11-12 11:23: E3.19 (K-296, estado mock de origemDaMetrica renomeado para sem-dado) delegada ao node-backend (node-backend-6), worktree 041; merge depois da release 101.
+- 2026-11-12 11:27: entrega conferida 275b0affa5de02ea1455093445bd3a820ec42762
+- 2026-11-12 11:27: E3.19 (K-296) entregue (275b0aff): 9 arquivos, servico.ts sem mudança (compara com real), openapi sem diff; testes tocados verdes. DECISÃO TÉCNICA (Jarvis): a constante MOTIVO_ORIGEM_MOCK fica com o nome, porque está citada em ADR e docs de contrato. QA delegado.
+- 2026-11-12 11:28: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-25.md 10f4f354ec7bc3cabfcf9cf2cc46db39eea9224e42afd1aa32aa17f79d589fe2
+- 2026-11-12 11:30: QA do K-296 aprovado (04f327cd, em 275b0aff), 0 bugs; nenhum mock de origem sobra; mutação derrubou 6 testes. Review delegado.
+- 2026-11-12 11:30: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-43.md 32642069214ad197ad691e0423a82cf5644652ffa4a6cfee7d7f11007b2bd46b
+- 2026-11-12 11:34: Review do K-296 aprovado (0ff5a776, em 275b0aff); A1 títulos de teste ainda dizem mock, A2 MOTIVO_ORIGEM_MOCK (recomendados, cartão próprio). K-296 com QA e review; merge depois da release 101.
