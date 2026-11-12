@@ -13,7 +13,7 @@
 
 ## Etapas
 - E1.1 (software-architect): varredura E1 e proposta por item (E2) e da guarda (E3), sem ler a base real.
-- E2.1 (react-frontend): L1, App.tsx sem o FonteComSimulado e testes de composição ajustados, na branch fix/099-l1-sem-simulador, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
+- E2.1 (react-frontend): L1, App.tsx sem o FonteComSimulado e testes de composição ajustados, na branch (resumo).
 - E2.2 (software-architect): L0, ADR 0030 que revoga a 0028, e o plano de dado real de cada cartão simulado do Operacional.
 - E2.3 (tech-lead): review do L1.
 - E2.4 (qa-engineer): QA do L1.
@@ -24,11 +24,11 @@
 - E2.8 (qa-engineer): QA do L2a.
 - E2.9 (tech-lead): PR do L2a; o merge é do dono.
 - E2.10 (react-frontend): L2b, apagar a fonte simulada (absorvido pelo E2.15, PR 342).
-- E2.11 (node-backend): L3, tirar do contrato simulavel, podeSimular e METRICAS_SEM_SIMULACAO, com testes, docs/api/metricas.md e o OpenAPI, na branch fix/099-l3-contrato-sem-simulavel, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
+- E2.11 (node-backend): L3, tirar do contrato simulavel, podeSimular e METRICAS_SEM_SIMULACAO, com testes, (resumo).
 - E2.15 (react-frontend): L2b e L2c juntos, a web sem fonte simulada nem selo Simulado (feito, PR 342).
-- E2.16 (ux-designer): L4, texto do catálogo (WB-1) e das 8 notas (OP-21, TA-16 a TA-18, ES-11, ES-12) sem falar em simulado, em docs/ux/099-textos-sem-simulado.md, para o react-frontend aplicar depois do L2b e L2c.
-- E2.17 (ux-designer): revisão da interface implementada no L2b e L2c (selo Simulado removido; cartão sem dado real com "Sem dado real" e o motivo), em docs/ux/099-revisao-l2b-l2c.md.
-- E2.18 (react-frontend): L4, aplicar na web os textos de docs/ux/099-textos-sem-simulado.md (catálogo WB-1 e as 8 notas), branch fix/099-l4-textos-sem-simulado a partir da develop, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b.
+- E2.16 (ux-designer): L4, texto do catálogo (WB-1) e das 8 notas (OP-21, TA-16 a TA-18, ES-11, ES-12) sem falar em (resumo).
+- E2.17 (ux-designer): revisão da interface implementada no L2b e L2c (selo Simulado removido; cartão sem dado real com (resumo).
+- E2.18 (react-frontend): L4, aplicar na web os textos de docs/ux/099-textos-sem-simulado.md (catálogo WB-1 e as 8 (resumo).
 - E2.19 (ux-designer): revisão da interface implementada no L4 (catálogo e notas sem simulado), em docs/ux/099-revisao-l4.md.
 - E2.20 (react-frontend): L2d, o mock fora do build api (App.tsx com import() só no ramo VITE_FONTE=mock) e as guardas G1 (web/scripts/sem-mock.mjs no pronto da web) e G2 (lint) da ADR 0030, branch fix/099-l2d-mock-fora-do-build a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052g.
 - E2.21 (security-engineer): parecer de segurança do L2d (gatilho: web/package.json; o pronto da web ganha um passo).
@@ -45,11 +45,13 @@
 - E3.7 (qa-engineer): QA do K-277.
 - E3.8 (tech-lead): review, PR e merge do K-277 na develop, pela autorização do dono de 17:51.
 - E3.9 (devops-engineer): K-281, o comando de consultas recusa 5 funções que executam texto como SQL (feito, PR 343).
-- E3.10 (qa-engineer): L5, as guardas G3 (e2e chromium-api) e G4 (Vitest do painel sem dado real) da ADR 0030, a leitura vermelha da G1 e da G3 na develop e a troca dos specs que ainda esperam o selo (simulado-070-l3 e perf-api:181), branch test/099-l5-guardas a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-056d.
+- E3.10 (qa-engineer): L5, as guardas G3 (e2e chromium-api) e G4 (Vitest do painel sem dado real) da ADR 0030, a (resumo).
 - E3.11 (qa-engineer): diagnóstico do e2e L3-08 do PR 347 (feito: instabilidade, K-292).
-- E3.12 (react-frontend): K-292, espaçamento vertical entre os links do leia-junto do Operacional para o alvo de toque não oscilar no axe target-size (L3-08 instável), branch fix/k292-leia-junto-alvo, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
-- E3.13 (react-frontend): K-290, ajustes depois do L4 (contagem do parágrafo do catálogo, origemDaMetrica sem o estado mock, COMP-12 exige Sem dado real no O17, docs/qa sem Fictícios), branch fix/k290-pos-l4, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041b; o merge espera a release 101.
+- E3.12 (react-frontend): K-292, espaçamento vertical entre os links do leia-junto do Operacional para o alvo de toque (resumo).
+- E3.13 (react-frontend): K-290, ajustes depois do L4 (contagem do parágrafo do catálogo, origemDaMetrica sem o estado (resumo).
 - E3.14 (react-frontend): K-285, estado sem dado real (motivo a 14 px no NumeroChave, faixa de selos sem espaço vazio, role=status; B-2 a B-4 da revisão de UX do L2b e L2c; o B-1 saiu, ver histórico), branch fix/k285-sem-dado-real-ux, worktree /home/rodrigoisensee/MetricasDSPD-052c.
+- E3.15 (node-backend): lote D3 do plano de dado real, o carregador versionado de ref_alvo_prioridade com os prazos da Q-099-5a e a unidade por célula da Q-099-11, branch feature/099-d3-alvo-prioridade, worktree /home/rodrigoisensee/MetricasDSPD-052g; merge depois da release 101.
+- E3.16 (software-architect): desenho de onde guardar a unidade (corrido ou útil) de cada prazo de ref_alvo_prioridade para o D3, em docs/analises/099-d3-unidade-prazo.md.
 
 ## Fora do escopo
 - O modo homologação (seed mock em `docker-compose.homolog.yml`), que continua com dado de teste · `técnico`
@@ -258,3 +260,25 @@
 - 2026-11-12 06:47: L2d volta 1: a segunda execução do pronto local foi encerrada (exit 143). DECISÃO TÉCNICA (Jarvis): para uma troca de import de uma linha num teste, a prova local é typecheck, lint e o Vitest do arquivo; a suíte completa é a do CI do PR 351 no head novo. Fim da volta delegado (react-frontend-14).
 - 2026-11-12 06:53: E3.14 (K-285) entregue (5dcf0e4d): B-2 motivo a 14 px, B-3 min-h-6 só com base (data-testid na faixa), B-4 role=status, testes vermelhos antes do verde; o pronto local caiu só por tempo com a máquina a load 11 a 17 (os 22 arquivos caídos passam isolados). Prova completa fica para o CI do PR, depois da release 101. ERRO-JARVIS: disparei três pronto locais ao mesmo tempo (L2d, K-283, K-285) e nenhum fechou; daqui em diante, um pronto local por vez e o resto prova pelo CI.
 - 2026-11-12 06:54: entrega conferida 5dcf0e4da462c35e2f338d763980124eb40c1d5f
+- 2026-11-12 07:17: brief selado docs/briefs/099-nenhuma-metrica-simulada-qa-engineer-21.md 4f50109b0a6113bb718c9712c3001b533240687c694e73e5d9a0e38fa6e20eba
+- 2026-11-12 07:17: L2d volta 1 enviada (ce420a8b, só a linha do import; typecheck, eslint do arquivo e Vitest do arquivo verdes). A conferência pela etapa codigo acusa taticas.test.tsx e resumo.test.tsx, que vieram da develop pelo merge 21e70aa5 (L5 e L6 do 097), não do autor: a leitura desde 21e70aa5 mostra só equipe.test.tsx +1 -1. Conferência pela etapa qa depois da revalidação do QA (qa-engineer-21), com o escopo da entrega revisada; depois o review pelo delta e o merge.
+- 2026-11-12 07:19: entrega conferida dc8d90b8cb7361f3ab05f7edc6bb363df822b8fe
+- 2026-11-12 07:19: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-38.md 9f216a2e4e30f934c220c1ca642ddbaf04cc9457a9c60f89c403981a33b23139
+- 2026-11-12 07:19: QA do L2d revalidado na volta 1 (dc8d90b8, em ce420a8b), aprovado: Vitest do Resumo 87 de 87, build api sem chunk de mock e G1 ok, nenhum import do mock pelo índice. Conferência pela etapa qa gravada. Review pelo delta delegado (tech-lead-38).
+- 2026-11-12 07:22: Review do L2d revalidado na volta 1 (ddbf0571, em ce420a8b), aprovado; os três testes trazidos pelo merge só trocam o import para o caminho do mock; Vitest 120 de 120. Merge do PR 351 delegado ao tech-lead.
+- 2026-11-12 07:22: brief selado docs/briefs/099-nenhuma-metrica-simulada-tech-lead-39.md 5ac614214c8babcfbafe0712756797f313c74f432f2ed2a02e423c1540496157
+- 2026-11-12 07:55: DECISÃO DO DONO (literal): "3 e 4 me traga uma a uma para decidir" (3 = as perguntas Q-099-4 a Q-099-10, com as recomendações revistas pelo PROC em docs/analises/099-proc-sla-incidentes.md §4; 4 = o roteiro de campos docs/analises/099-campos-para-configurar.md). Jarvis traz uma por vez, começando pela Q-099-4.
+- 2026-11-12 07:55: DECISÃO DO DONO (literal): "A" para a Q-099-4: cartão com parte real e parte sem fonte publica a parte real e mostra "sem dado real" com o motivo só na parte que falta (nula, nunca 0). Vale para O8, O16, S12, S1 (exceção de registro posterior) e as extensões do O22 e do O26; S9 e S11 já seguiam a D-14 e a D-15 do 056.
+- 2026-11-12 07:55: DECISÃO DO DONO (literal): "A" para a Q-099-5a: o alvo da S1 é a matriz de prazos do briefing §3.4, igual à do PROC 30.000.010 (P1 15 min e 4 h; P2 30 min e 8 h úteis; P3 2 h úteis e 2 dias úteis; P4 4 h úteis e 5 dias úteis; P5 1 dia útil e 10 dias úteis), num arquivo versionado; divergência com o prazo gravado no chamado volta ao dono.
+- 2026-11-12 07:55: DECISÃO DO DONO (literal): "A" para a Q-099-5b revista: mantém a D-13 do 056; a S1 publica o primeiro atendimento com data_primeiro_comentario e a nota "inclui respostas automáticas; o processo pede o primeiro atendimento significativo do atendente". Reabre se a ciência de dados mostrar coluna que separe atendente de resposta automática, ou se a etapa Em triagem entrar em produção.
+- 2026-11-12 07:55: DECISÃO DO DONO (literal): "A" para a Q-099-11: cada prazo na unidade escrita no PROC 30.000.010; P1 (15 min e 4 h) e o primeiro atendimento de P2 (30 min) em tempo corrido (plantão), os outros sete em tempo útil; o arquivo de alvos guarda a unidade por célula; versão de critério T2.6 com afeta = ['S1'], exceção à D-3. Reabre se a reconciliação com sla_pa_tempo_min e sla_r_tempo_min mostrar que o Acelerato mede P1 e P2 em tempo útil.
+- 2026-11-12 07:55: DECISÃO DO DONO (literal): "A" para a Q-099-8 revista: Aguardando Solicitante = aguardando solicitante e Aguardando Suporte Terceiros = aguardando fornecedor contam como pendência (versão de critério, afeta = ['S1', 'S9']). PERGUNTA aberta: para que se usa Aguardando Equipe Interna (outra equipe = aguardando área vinculada, pendência; a própria equipe = não é pendência). Até a resposta, a etapa fica fora da S9 e do desconto da S1 (não se infere).
+- 2026-11-12 07:55: ERRO-JARVIS: de novo horas do histórico escritas à mão e adiantadas (07:57 a 08:06 nos pedidos 097, 099 e 101), corrigidas para 07:55; a regra já registrada (hora por date) não foi seguida nas linhas de decisão do dono.
+- 2026-11-12 09:12: DECISÃO DO DONO (repassada pela sessão WSL ativação, literal do dono: "mande a resposta B para ele") para a Q-099-7 revista: B' — O17 publicado por sistema com dado real; a parte por causa raiz fica "sem dado real" até o Registro de Problemas com vínculo ao incidente. A causa aparente não é usada como causa raiz. ERRO-JARVIS: contei 7 perguntas para o dono; são 9 (faltam Q-099-6, Q-099-9 e Q-099-10).
+- 2026-11-12 09:15: brief selado docs/briefs/099-nenhuma-metrica-simulada-node-backend-2.md 07eeaccb5eb4420af211164d8859437d2702f84440befe62ebea2252bb8ebb72
+- 2026-11-12 09:16: E3.15 (lote D3, carregador de ref_alvo_prioridade com os prazos da Q-099-5a e a unidade da Q-099-11) delegada ao node-backend (node-backend-2), worktree 052g; gatilho de segurança (escrita em ref_); merge depois da release 101.
+- 2026-11-12 09:16: brief selado docs/briefs/099-nenhuma-metrica-simulada-software-architect-10.md 306cdccef62a136c736adfb3e234ea41ccf0ee13aeff8422963c5bebce1fe2e5
+- 2026-11-12 09:24: D3 parado com razão antes de migração: ref_alvo_prioridade só tem prazo_pa_horas_uteis e prazo_r_horas_uteis, sem onde guardar a unidade da Q-099-11. ERRO-JARVIS: o brief não conferiu o esquema da tabela. E3.16 (desenho da unidade) delegada ao software-architect (software-architect-10); o D3 volta com a lista de arquivos do desenho.
+- 2026-11-12 09:20: brief selado docs/briefs/099-nenhuma-metrica-simulada-node-backend-3.md 9685907ce6478b9411e0f219e0ff743fbeecb4364bffc6fab0011dcfdbaf2213
+- 2026-11-12 09:24: E3.16 entregue (docs/analises/099-d3-unidade-prazo.md, sem commit): alternativa (a), migração 0036 com unidade_pa e unidade_r (CHECK corrido ou util) e colunas de prazo renomeadas para *_horas; carregador no ac:ref-sync com acelerato-alvos.json e versão de critério afeta S1; biblioteca mede também em tempo corrido; contrato do S1 ganha unidade (aditivo); gatilho de segurança (banco). Ponto aberto para o QA: se a marca do critério chega à Visão geral. D3 redelegado com o desenho (node-backend-3).
+- 2026-11-12 09:24: DECISÃO DO DONO (literal): "A" para a Q-099-6: o vínculo do bug com a entrega (O18) vem do vínculo nativo do BusinessMap que a coleta já traz (linked_cards); o tipo de vínculo que significa "bug desta entrega" fica para o dono indicar depois da consulta Q-RO-5. ERRO-JARVIS: as duas linhas anteriores ficaram com 09:27 e 09:20 escritas à mão, adiantadas.
