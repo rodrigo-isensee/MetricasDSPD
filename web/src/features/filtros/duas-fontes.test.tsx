@@ -77,10 +77,10 @@ describe('LinhaFiltrosGuardados', () => {
       'Os filtros da Sustentação (1 ativo) continuam guardados para a visão Sustentação.',
     )
   })
-  it('no Resumo diz que nenhum se aplica, só dos conjuntos com filtro', () => {
+  it('no Resumo diz que nenhum se aplica (fora a Equipe dos blocos), só dos conjuntos com filtro', () => {
     const a = ver('/operacional?equipe=x&periodo=4s&sust_prioridade=p1', 'resumo')
     expect(screen.getByTestId('filtros-guardados')).toHaveTextContent(
-      'Os filtros guardados (fluxo de projeto: 2 ativos · Sustentação: 1 ativo) não se aplicam ao Resumo.',
+      'Os filtros guardados (fluxo de projeto: 1 ativo · Sustentação: 1 ativo) não se aplicam ao Resumo.',
     )
     a.unmount()
     ver('/operacional?sust_periodo=12m', 'resumo')
