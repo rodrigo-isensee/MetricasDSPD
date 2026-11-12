@@ -1,4 +1,4 @@
-import { PRIORIDADES, TIPOS_FILTRO, type Prioridade } from '@metricas-dspd/contratos'
+import { PRIORIDADES, type Prioridade } from '@metricas-dspd/contratos'
 import {
   PERIODOS_PADRAO,
   TIPO_ID,
@@ -104,13 +104,7 @@ export function lerFluxo(
   return {
     filtros: {
       equipe: lerLista(p, 'equipe', idsDe(opcoes, 'equipes'), 'equipe', invalidos),
-      tipo: lerLista(
-        p,
-        'tipo',
-        TIPOS_FILTRO.map((t) => TIPO_ID[t]),
-        'tipo',
-        invalidos,
-      ).map((id) => TIPO_POR_ID.get(id) as TipoFiltro),
+      tipo: lerLista(p, 'tipo', idsTipo(opcoes), 'tipo', invalidos).map((id) => TIPO_POR_ID.get(id) as TipoFiltro),
       sistema: lerLista(p, 'sistema', idsDe(opcoes, 'sistemas'), 'sistema', invalidos),
       periodo: lerPeriodo(p, padrao, opcoes, invalidos, restricao),
     },
@@ -141,7 +135,7 @@ export function lerSustentacao(
       prioridade: lerLista(
         p,
         'prioridade',
-        PRIORIDADES.map((x) => x.toLowerCase()),
+        idsPrioridade(opcoes),
         'prioridade',
         invalidos,
       ).map((x) => x.toUpperCase() as Prioridade),
@@ -152,7 +146,21 @@ export function lerSustentacao(
 }
 
 /** `lerLista` só deixa passar ids válidos, então a busca sempre acha o tipo. */
-const TIPO_POR_ID = new Map<string, TipoFiltro>(TIPOS_FILTRO.map((t) => [TIPO_ID[t], t]))
+const TIPO_POR_ID = new Map<string, TipoFiltro>(
+  (Object.keys(TIPO_ID) as TipoFiltro[]).map((t) => [TIPO_ID[t], t]),
+)
+
+/** Tipos válidos: os das opções da API (dado real) que o contrato conhece; sem opções, os ids do contrato. */
+const idsTipo = (o: Opcoes): string[] =>
+  o?.dominio === 'businessmap'
+    ? o.tipos.map((x) => x.id).filter((id) => TIPO_POR_ID.has(id))
+    : [...TIPO_POR_ID.keys()]
+
+/** Prioridades válidas: as presentes nas opções; sem opções, as do vocabulário do briefing. */
+const idsPrioridade = (o: Opcoes): string[] =>
+  o?.dominio === 'acelerato'
+    ? o.prioridades.map((x) => x.id.toLowerCase())
+    : PRIORIDADES.map((x) => x.toLowerCase())
 
 /** Visão dos parâmetros com prefixo removido (usado quando um painel tem dois conjuntos de filtros). */
 function prefixar(params: URLSearchParams, prefixo: string): URLSearchParams {
@@ -240,6 +248,16 @@ export function textoBusca(p: URLSearchParams): string {
   return p.toString().replaceAll('%2C', ',')
 }
 
+/** Rótulos dos tipos presentes nas opções (null sem opções: nada a colapsar). */
+const rotulosTipo = (o: Opcoes): string[] | null =>
+  o?.dominio === 'businessmap'
+    ? o.tipos.map((x) => TIPO_POR_ID.get(x.id)).filter((t): t is TipoFiltro => t !== undefined)
+    : null
+
+/** Prioridades presentes nas opções, em maiúsculas (P1...); null sem opções. */
+const maiusculasPrioridade = (o: Opcoes): string[] | null =>
+  o?.dominio === 'acelerato' ? o.prioridades.map((x) => x.id.toUpperCase()) : null
+
 /** Marcar todos os valores de um filtro equivale ao padrão ("Todos"): a lista vira vazia (FIL-04). */
 export function colapsarTodos<F extends FiltrosFluxo | FiltrosSustentacao>(
   f: F,
@@ -251,9 +269,9 @@ export function colapsarTodos<F extends FiltrosFluxo | FiltrosSustentacao>(
   const r = { ...f } as FiltrosFluxo & FiltrosSustentacao
   if (todos(r.equipe, idsDe(opcoes, 'equipes'))) r.equipe = []
   if (sustentacao) {
-    if (todos(r.prioridade, PRIORIDADES)) r.prioridade = []
+    if (todos(r.prioridade, maiusculasPrioridade(opcoes))) r.prioridade = []
   } else {
-    if (todos(r.tipo, TIPOS_FILTRO)) r.tipo = []
+    if (todos(r.tipo, rotulosTipo(opcoes))) r.tipo = []
     if (todos(r.sistema, idsDe(opcoes, 'sistemas'))) r.sistema = []
   }
   return r as F

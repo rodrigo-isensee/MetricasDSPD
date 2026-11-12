@@ -3,7 +3,6 @@ import { useId, useRef, useState } from 'react'
 import { Botao, Dica, Icone } from '@/components/ui'
 import { useAlturaCss } from '@/lib/useAlturaCss'
 import type { FiltrosFluxo, FiltrosSustentacao, OpcaoFiltro } from '@metricas-dspd/contratos'
-import { TIPOS_FILTRO } from '@metricas-dspd/contratos'
 import { TIPO_ID } from '@metricas-dspd/contratos'
 import { AvisoFiltrosInvalidos } from './AvisoFiltrosInvalidos'
 import { ChipsFiltros } from './ChipsFiltros'
@@ -19,14 +18,18 @@ const TEXTO_ESTRATEGICO =
 const TEXTO_TIPO =
   'Aqui são cards do BusinessMap. Chamados do Acelerato estão na visão Sustentação do Operacional.'
 
+/** Ids da URL/lista viram os rótulos do contrato (o servidor só entrega ids de TIPO_ID). */
+const tiposDe = (ids: readonly string[]): FiltrosFluxo['tipo'] =>
+  (Object.keys(TIPO_ID) as FiltrosFluxo['tipo']).filter((t) => ids.includes(TIPO_ID[t]))
+
 function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' }) {
   const { config, opcoes } = uso
   const rotuloEquipe = rotuloDoFiltro('equipe', config.dominio)
   const f = uso.filtros as FiltrosFluxo & FiltrosSustentacao
   const definir = uso.definir
-  const tiposOpc: OpcaoFiltro[] = TIPOS_FILTRO.map((t) => ({ id: TIPO_ID[t], nome: t }))
   const bm = opcoes?.dominio === 'businessmap' ? opcoes : undefined
   const ac = opcoes?.dominio === 'acelerato' ? opcoes : undefined
+  const tiposOpc: OpcaoFiltro[] = bm?.tipos ?? []
   return (
     <>
       {config.filtros.includes('equipe') && (
@@ -49,7 +52,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           variante={variante}
           dica={<Dica texto={TEXTO_TIPO} rotulo="Sobre o filtro de tipo" />}
           onChange={(ids, replace) =>
-            definir({ tipo: TIPOS_FILTRO.filter((t) => ids.includes(TIPO_ID[t])) }, { replace })
+            definir({ tipo: tiposDe(ids) }, { replace })
           }
         />
       )}
