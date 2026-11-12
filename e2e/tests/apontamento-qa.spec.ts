@@ -190,7 +190,7 @@ test.describe('filtros na URL com chave opaca (CA-4, CT-10, tipo)', () => {
     await abrir(page, `${ABA}?pessoa=Ana%20Exemplo&tipo=%3Cscript%3E&nivelMatriz=xyz`)
     await expect(page.getByTestId('filtros-invalidos')).toBeVisible()
     await expect(page.getByTestId('filtros-invalidos')).toContainText(
-      /em: pessoa, Tipo, Agrupar por\./,
+      /em: Tipo, pessoa, Agrupar por\./,
     )
     await expect(aba(page)).not.toContainText('Ana Exemplo')
     await expect(aba(page)).not.toContainText('<script>')
