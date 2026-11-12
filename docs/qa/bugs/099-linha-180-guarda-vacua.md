@@ -1,5 +1,6 @@
 # 099-linha-180 - guarda dos 31 .sql nunca detecta recusa (pipefail + grep -q)
 - Severidade: baixa
+- Status: FECHADO em 2079f664 (E3.34): a guarda com grep -c cai com o DELETE somado; a antiga dava ok.
 - Responsável sugerido: devops-engineer
 - Ambiente: fix/099-q-ro-1 @ 6f3b80ee (linha pré-existente da develop, 660a7e92b), bash
 
