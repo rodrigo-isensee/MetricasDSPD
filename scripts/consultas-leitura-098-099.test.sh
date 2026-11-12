@@ -158,6 +158,15 @@ sonda "pg_read_file" "SELECT pg_read_file('/etc/passwd')"
 sonda "pg_read_binary_file" "SELECT pg_read_binary_file('/etc/passwd')"
 sonda "lo_import" "SELECT lo_import('/etc/passwd')"
 sonda "dblink" "SELECT dblink('x','y')"
+# A5 (K-277): escape U&/UESCAPE e prefixos pg_ e lo_ (sondas S8 a S12 do parecer), em qualquer caixa
+sonda "S8 U& com UESCAPE (set_config escapado)" "SELECT U&\"s!0065t!005fconfig\" UESCAPE '!'('transaction_read_only','off',false);"
+sonda "S9 U& com UESCAPE (pg_sleep escapado)" "SELECT U&\"pg!005fsleep\" UESCAPE '!'(100);"
+sonda "S10 pg_terminate_backend" "SELECT pg_terminate_backend(pid) FROM pg_stat_activity;"
+sonda "S11 pg_advisory_lock" "SELECT pg_advisory_lock(1);"
+sonda "S12 lo_create" "SELECT lo_create(0);"
+sonda "UESCAPE sozinho, caixa mista" "SELECT 1 UeScApE '!'"
+sonda "prefixo PG_ em maiuscula" "SELECT PG_backend_pid()"
+sonda "prefixo LO_ em maiuscula" "SELECT LO_unlink(1)"
 # corpus de legitimos: os 31 .sql versionados passam na lista permitida (o caminho feliz acima ja exige 31 ok)
 verifica "os 31 .sql versionados cumprem a lista permitida" "$(roda | grep -q '^recusada  ' && echo 1 || echo 0)"
 
