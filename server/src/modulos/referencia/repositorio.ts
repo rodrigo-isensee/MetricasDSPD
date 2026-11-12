@@ -1,5 +1,6 @@
 import { esquemasDoAmbiente, type Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
+import { CORTE_CARDS, CORTE_CHAMADOS } from './cortes.js';
 
 export type OpcaoLinha = { id: string; nome: string };
 
@@ -26,13 +27,6 @@ export async function lerSistemasBM(db: Consultavel, S: Esquemas = esquemasDoAmb
      WHERE campo = 'sistema' AND vigente_ate IS NULL ORDER BY ordem, codigo`);
   return r.rows.map((x) => ({ id: x.codigo, nome: x.rotulo }));
 }
-
-/**
- * Cortes das listas que as opções filtram (K-279): as mesmas condições de `lerCards` e `lerChamados` em
- * `metricas/repositorio.ts`. Mudou lá, muda aqui: opção fora do corte filtraria para vazio.
- */
-const CORTE_CARDS = 'criado_em IS NOT NULL AND granularidade IS NOT NULL AND tipo IS NOT NULL';
-const CORTE_CHAMADOS = 'aberto_em IS NOT NULL AND equipe IS NOT NULL AND fora_do_recorte = false';
 
 /** Categorias de tipo presentes nas stories (L6 do 097, E4): o filtro de tipo só vale para story. Mesmo corte de `lerCards`. Nenhuma pessoa, nenhuma contagem. */
 export async function lerTiposBM(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
