@@ -1,6 +1,5 @@
 import { useState, type CSSProperties } from 'react'
 import {
-  TIPOS_FILTRO,
   type TipoFiltro,
   type FiltrosFluxo,
   type ResultadoT10,
@@ -9,7 +8,7 @@ import {
   type ResultadoT14,
 } from '@metricas-dspd/contratos'
 import { Icone, SeletorLocal, TabelaDados } from '@/components/ui'
-import { useMetrica, type MetricaQuery } from '@/data'
+import { useMetrica, useOpcoesFiltro, type MetricaQuery } from '@/data'
 import { fmtInteiro, fmtNumero, plural } from '@/lib/formatar'
 import { textoTaxa } from '@/features/painel/propsCartao'
 import { CartaoComplementar } from './CartaoComplementar'
@@ -152,6 +151,8 @@ const LISTRADO: CSSProperties = {
 /** T11: mapa de calor mês × ano da chegada; um tipo por vez, ou todos (o tipo vira filtro da consulta). */
 export function CartaoT11({ filtros }: P) {
   const [tipo, setTipo] = useState<TipoFiltro | ''>('')
+  // Tipos do dado real (opcoes.tipos); sem as opções (carregando ou erro), só "Todos os tipos".
+  const { data: opcoes } = useOpcoesFiltro('businessmap')
   const q0 = useMetrica('T11', tipo ? { ...filtros, tipo: [tipo] } : filtros)
   // Com um tipo escolhido e sem pedidos, o seletor precisa continuar na tela: o cartão não vira "vazio".
   const q = comoOk(q0, tipo !== '')
@@ -269,7 +270,7 @@ export function CartaoT11({ filtros }: P) {
             anuncio={tipo ? `Tipo ${tipo}.` : 'Todos os tipos.'}
             itens={[
               { valor: '', rotulo: 'Todos os tipos' },
-              ...TIPOS_FILTRO.map((t) => ({ valor: t, rotulo: t })),
+              ...(opcoes?.tipos ?? []).map((t) => ({ valor: t.nome, rotulo: t.nome })),
             ]}
           >
             <div className="mt-3">{mapa}</div>

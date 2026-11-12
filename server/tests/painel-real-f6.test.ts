@@ -1,5 +1,5 @@
 import { SCHEMAS_RESULTADO } from '@metricas-dspd/contratos/validacao';
-import { METRICA_IDS, MOTIVOS_BLOQUEIO, origemDaMetrica, podeSimular, type MetricaId } from '@metricas-dspd/contratos';
+import { METRICA_IDS, MOTIVOS_BLOQUEIO, origemDaMetrica, type MetricaId } from '@metricas-dspd/contratos';
 import { gerarBaseMock } from '@metricas-dspd/mock';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../src/app.js';
@@ -97,7 +97,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     const m = await fora.app.inject('/api/v1/metricas/O8');
     expect(m.statusCode).toBe(200);
     expect(m.headers['x-estado-dado']).toBe('sem-dado-real');
-    expect(m.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O8', motivo: 'aguardando campo no quadro', simulavel: true });
+    expect(m.json()).toEqual({ estado: 'sem-dado-real', metrica: 'O8', motivo: 'aguardando campo no quadro' });
     expect(fora.d.chamadas).toHaveLength(0);
   });
 
@@ -125,17 +125,16 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
     const { app } = await montar({ chamados: [] });
     const r = await app.inject('/api/v1/metricas/VISAO_GERAL');
     expect(r.statusCode).toBe(200);
-    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'VISAO_GERAL', motivo: 'fonte real ainda não definida', simulavel: false });
+    expect(r.json()).toEqual({ estado: 'sem-dado-real', metrica: 'VISAO_GERAL', motivo: 'fonte real ainda não definida' });
   });
 
-  it('T-S1: toda métrica fora do mapa real responde 200 com simulavel igual a podeSimular e sem número; a real não tem estado nem simulavel', async () => {
+  it('T-S1: toda métrica fora do mapa real responde 200 sem número e sem simulavel; a real não tem estado nem simulavel', async () => {
     const { app } = await montar({ sle: true });
     for (const id of METRICA_IDS.filter((m) => origemDaMetrica(m) !== 'real')) {
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       const corpo = r.json();
-      expect(corpo.simulavel, id).toBe(podeSimular(id));
-      expect(Object.keys(corpo).sort(), id).toEqual(['estado', 'metrica', 'motivo', 'simulavel']);
+      expect(Object.keys(corpo).sort(), id).toEqual(['estado', 'metrica', 'motivo']);
     }
     for (const id of ['O3', 'O4'] as MetricaId[]) {
       const corpo = (await app.inject(`/api/v1/metricas/${id}`)).json();
@@ -165,7 +164,7 @@ describe('pedido 060 (P2 e P3): a API lê só a base real e o mapa de origem é 
       const r = await app.inject(`/api/v1/metricas/${id}`);
       expect(r.statusCode, id).toBe(200);
       const j = r.json() as { estado: string; motivo: string };
-      expect(Object.keys(j).sort(), id).toEqual(['estado', 'metrica', 'motivo', 'simulavel']);
+      expect(Object.keys(j).sort(), id).toEqual(['estado', 'metrica', 'motivo']);
       expect(j.motivo.length, id).toBeGreaterThan(0);
     }
     expect(d.chamadas).toHaveLength(0);

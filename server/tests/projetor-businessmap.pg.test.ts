@@ -10,6 +10,7 @@ import { migrar } from '../src/plataforma/db/migrar.js';
 import { criarPool, urlDoPapel } from '../src/plataforma/db/pool.js';
 import { criarClienteHttp } from '../src/plataforma/http.js';
 import { cenarioVazio, subirServidorBm, type Cartao } from './businessmap-coleta-duble.js';
+import { provarSemPessoa } from './pg/colunas-pessoa.js';
 import { poolDe, url } from './pg/ctx.js';
 
 // F4 do plano 052 contra PostgreSQL real, num conjunto de schemas só deste arquivo (a referência e os cards daqui não aparecem em
@@ -249,10 +250,9 @@ d('F4 do plano 052: projetor contra PostgreSQL', () => {
     const id = await staging(novo(), [transicao(COL.F, t(2))]);
     await projetar({ responsaveis: new Map([[id, ['7001', '7002']]]) });
     expect((await api.query(`SELECT card_id, tipo, granularidade, equipe FROM ${E.bm}.dim_card WHERE card_id = $1`, [id])).rows).toHaveLength(1);
-    for (const sql of [
-      `SELECT responsaveis FROM ${E.bm}.dim_card`, `SELECT * FROM ${E.bm}.dim_card`, `SELECT responsaveis FROM ${E.bm}.dim_card_versao`,
-      `SELECT * FROM ${E.bm}.dim_card_versao`, `SELECT responsavel_id FROM ${E.bm}.dim_responsavel`, `SELECT * FROM ${E.bm}.dim_responsavel`,
-    ]) expect(await falha(api, sql)).toMatchObject({ code: '42501' });
+    // colunas de pessoa vêm de COLUNAS_PESSOA (K-282): a lista acompanha o esquema e uma coluna inexistente (42703) falha a prova
+    for (const tab of ['dim_card', 'dim_card_versao', 'dim_responsavel']) await provarSemPessoa(api, dono, `dspd_bm.${tab}`, E.bm);
+    for (const sql of [`SELECT * FROM ${E.bm}.dim_card`, `SELECT * FROM ${E.bm}.dim_card_versao`, `SELECT * FROM ${E.bm}.dim_responsavel`]) expect(await falha(api, sql)).toMatchObject({ code: '42501' });
     expect(await unico<{ responsaveis: string[] }>(`SELECT responsaveis FROM ${E.bm}.dim_card WHERE card_id = $1`, [id])).toEqual({ responsaveis: ['7001', '7002'] });
     expect(await unico<{ responsaveis: string[] }>(`SELECT responsaveis FROM ${E.bm}.dim_card_versao WHERE card_id = $1`, [id])).toEqual({ responsaveis: ['7001', '7002'] });
   });

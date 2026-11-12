@@ -16,6 +16,11 @@
         { "pessoaRef": "p7", "rotulo": "Pessoa 7", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -1021,6 +1026,11 @@
         { "pessoaRef": "p7", "rotulo": "Pessoa 7", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -1143,6 +1153,11 @@
         { "pessoaRef": "p1", "rotulo": "Pessoa 1", "identificada": true },
         { "pessoaRef": "p2", "rotulo": "Pessoa 2", "identificada": true },
         { "pessoaRef": "p3", "rotulo": "Pessoa 3", "identificada": true }
+      ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
       ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
@@ -1655,6 +1670,11 @@
         { "pessoaRef": "p6", "rotulo": "Pessoa 6", "identificada": true },
         { "pessoaRef": "p7", "rotulo": "Pessoa 7", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false }
+      ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
       ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
@@ -2661,6 +2681,11 @@
         { "pessoaRef": "p7", "rotulo": "Gabriela Exemplo", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false }
       ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
+      ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
         { "id": "1077", "rotulo": "Iniciativa Integração Financeira", "foraDoEscopo": false },
@@ -3666,6 +3691,11 @@
         { "pessoaRef": "p7", "rotulo": "Pessoa 7", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false },
         { "pessoaRef": "outra-area", "rotulo": "Outra área", "identificada": true }
+      ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
       ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },
@@ -4760,6 +4790,11 @@
         { "pessoaRef": "p7", "rotulo": "Gabriela Exemplo", "identificada": true },
         { "pessoaRef": "p8", "rotulo": "Pessoa não identificada", "identificada": false },
         { "pessoaRef": "outra-area", "rotulo": "Outra área", "identificada": true }
+      ],
+      "equipes": [
+        { "id": "integracoes", "rotulo": "Integrações" },
+        { "id": "portal", "rotulo": "Portal" },
+        { "id": "sem-time", "rotulo": "Sem time" }
       ],
       "projetos": [
         { "id": "1042", "rotulo": "Iniciativa Portal do Cliente", "foraDoEscopo": false },

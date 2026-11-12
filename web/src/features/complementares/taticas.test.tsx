@@ -223,6 +223,8 @@ describe('T11 Sazonalidade da chegada', () => {
   it('um tipo por vez: a aba refaz a consulta com o tipo escolhido; "Todos os tipos" é o padrão', async () => {
     const fonte = new FonteEspia({ T11: dto(false) })
     const el = await abrir('T11', <CartaoT11 filtros={FILTROS_FLUXO} />, fonte)
+    // as abas de tipo vêm de opcoes.tipos da API (assíncrono)
+    await within(el).findByRole('tab', { name: 'Melhoria' })
     const abas = within(el).getAllByRole('tab')
     expect(abas[0]).toHaveTextContent('Todos os tipos')
     expect(abas[0]).toHaveAttribute('aria-selected', 'true')
