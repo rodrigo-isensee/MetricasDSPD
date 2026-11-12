@@ -7,6 +7,7 @@ import ApontamentoPage from './ApontamentoPage'
 import { useDadosAba } from './dados'
 import { RESPOSTA_FICTICIA, fonteFicticia, respostaFicticia, respostaVazia } from './fixture'
 import { fmtApontamentos } from './formatar'
+import { opcoesDeEquipe } from './filtros'
 import type { ConsultaApontamento, FonteApontamento, RespostaApontamento } from './types'
 
 const URL_ABA = '/operacional/apontamento'
@@ -438,5 +439,13 @@ describe('fonte fictícia', () => {
   it('a fonte entrega a fixture sem filtros', async () => {
     const r = await fonteFicticia.buscar(CONSULTA_PADRAO)
     expect(r).toEqual(RESPOSTA_FICTICIA)
+  })
+
+  it('resposta sem `equipes` (contrato opcional): lista vazia, e filtro de equipe cai no recorte vazio', () => {
+    const { equipes: _omitido, ...opcoes } = RESPOSTA_FICTICIA.opcoes
+    const antiga: RespostaApontamento = { ...RESPOSTA_FICTICIA, opcoes }
+    expect(opcoesDeEquipe(opcoes)).toEqual([])
+    const r = respostaFicticia({ ...CONSULTA_PADRAO, equipe: ['portal'] }, antiga)
+    expect(r.kpis.apontamentos).toBe(0)
   })
 })
