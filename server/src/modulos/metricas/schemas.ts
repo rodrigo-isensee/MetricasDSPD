@@ -1,5 +1,5 @@
 import {
-  EQUIPES_SUSTENTACAO_ID, PERIODOS_PADRAO, PRIORIDADES, TIPO_ID, resultadoO2, versaoCriterioSchema, type FiltrosFluxo,
+  PERIODOS_PADRAO, PRIORIDADES, TIPO_ID, resultadoO2, versaoCriterioSchema, type FiltrosFluxo,
   type FiltrosSustentacao, type TipoFiltro,
 } from '@metricas-dspd/contratos';
 import { z } from 'zod';
@@ -55,9 +55,9 @@ export const queryFluxoSchema = z.object({
   return r;
 });
 
-/** Sustentação (Acelerato): equipe (`totvs,senior,fluig`) e prioridade (`P1..P5`, aceita minúscula). */
+/** Sustentação (Acelerato): equipe (slug do nome, ex.: `sssc-totvs`; os ids antigos `totvs,senior,fluig` seguem aceitos) e prioridade (`P1..P5`, aceita minúscula). */
 export const querySustentacaoSchema = z.object({
-  equipe: lista(z.enum(EQUIPES_SUSTENTACAO_ID)),
+  equipe: lista(idSlug),
   prioridade: lista(z.string().transform((p) => p.toUpperCase()).pipe(z.enum(PRIORIDADES))),
   ...comumQuery,
 }).strict().transform((q, ctx): ConsultaCalculo<FiltrosSustentacao> => {

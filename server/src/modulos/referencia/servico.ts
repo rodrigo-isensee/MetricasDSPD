@@ -1,11 +1,11 @@
 import {
-  EQUIPES_SUSTENTACAO_ID, NOME_EQUIPE_SUSTENTACAO, PRIORIDADES, TIPOS_FILTRO, TIPO_ID, type Dominio,
+  PRIORIDADES, TIPOS_FILTRO, TIPO_ID, type Dominio,
 } from '@metricas-dspd/contratos';
 import { isoLocal, slug } from '@metricas-dspd/metricas/core';
 import type { Esquemas } from '../../plataforma/db/esquemas.js';
 import type { Consultavel } from '../../plataforma/db/pool.js';
 import { marcaDagua, ultimaColetaOk } from '../operacao/index.js';
-import { lerEquipesBM, lerPrioridadesAC, lerTiposBM, lerTimesAtivos, lerInicioAC, lerInicioBM, lerSistemasBM, lerVersaoCriterioVigente } from './repositorio.js';
+import { lerEquipesAC, lerEquipesBM, lerPrioridadesAC, lerTiposBM, lerTimesAtivos, lerInicioAC, lerInicioBM, lerSistemasBM, lerVersaoCriterioVigente } from './repositorio.js';
 import type { OpcoesFiltroDto, ReferenciaDto } from './schemas.js';
 
 /** Data civil de hoje em America/Sao_Paulo (o relógio é sempre parâmetro). */
@@ -34,7 +34,8 @@ export async function opcoesFiltro(db: Consultavel, dominio: Dominio, agora: Dat
   const prioridadesPresentes = new Set(await lerPrioridadesAC(db, S));
   return {
     dominio,
-    equipes: EQUIPES_SUSTENTACAO_ID.map((id) => ({ id, nome: NOME_EQUIPE_SUSTENTACAO[id] })),
+    // L7a do 097 (E4): equipes do dado real (corte de lerChamados); id = slug do nome, sem repetir id.
+    equipes: [...new Map((await lerEquipesAC(db, S)).map((nome) => [slug(nome), { id: slug(nome), nome }])).values()],
     prioridades: PRIORIDADES.filter((p) => prioridadesPresentes.has(p)).map((p) => ({ id: p.toLowerCase(), nome: p })),
     historico: { inicio: inicio ?? fim, fim },
   };

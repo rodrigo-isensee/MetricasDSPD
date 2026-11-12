@@ -35,6 +35,13 @@ export async function lerTiposBM(db: Consultavel, S: Esquemas = esquemasDoAmbien
   return r.rows.map((x) => x.tipo).filter((t): t is string => typeof t === 'string');
 }
 
+/** Equipes presentes nos chamados do Acelerato (L7a do 097, E4): `DISTINCT equipe` no mesmo corte de `lerChamados`. Nenhuma pessoa, nenhuma contagem. */
+export async function lerEquipesAC(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
+  const r = await db.query<{ equipe: string | null }>(
+    `SELECT DISTINCT equipe FROM ${S.ac}.dim_chamado WHERE ${CORTE_CHAMADOS} ORDER BY equipe`);
+  return r.rows.map((x) => x.equipe).filter((t): t is string => typeof t === 'string');
+}
+
 /** Prioridades presentes nos chamados do Acelerato (L6 do 097, E4). Mesmo corte de `lerChamados` (recorte, equipe e abertura). */
 export async function lerPrioridadesAC(db: Consultavel, S: Esquemas = esquemasDoAmbiente()): Promise<string[]> {
   const r = await db.query<{ prioridade: string | null }>(

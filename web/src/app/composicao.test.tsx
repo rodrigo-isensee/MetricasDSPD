@@ -46,14 +46,14 @@ describe('App e composição', () => {
     expect(criarFontePadrao()).toBeInstanceOf(HttpFonteMetricas)
   })
 
-  it('sem dado real, nenhum cartão do Operacional mostra o selo "Simulado", mesmo com a API marcando simulavel', async () => {
+  it('sem dado real, nenhum cartão do Operacional mostra o selo "Simulado" (pedido 099)', async () => {
     vi.stubEnv('VITE_FONTE', 'api')
     const f = vi.spyOn(globalThis, 'fetch').mockImplementation((entrada: RequestInfo | URL) => {
       const url =
         typeof entrada === 'string' ? entrada : entrada instanceof URL ? entrada.href : entrada.url
       const m = /\/metricas\/([A-Za-z0-9-]+)/.exec(url)
       if (!m) return Promise.resolve(new Response('[]'))
-      const corpo = { ...corpoSemDadoReal(m[1] as MetricaId), simulavel: true }
+      const corpo = corpoSemDadoReal(m[1] as MetricaId)
       return Promise.resolve(
         new Response(JSON.stringify(corpo), { headers: { 'content-type': 'application/json' } }),
       )
