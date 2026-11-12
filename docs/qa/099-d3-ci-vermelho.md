@@ -3,7 +3,7 @@ tipo: qa
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/099-d3-ci-vermelho
-commit: b4c40051ad21f0b62fd2e38ce1f4def9c8fc6432
+commit: 332f134a8b77d5c15932a5dd5b605b3b1cf9cf53
 parecer: aprovado
 escopo: completo
 bugs_criticos: 0
@@ -35,6 +35,14 @@ Na base (sem a correção), `packages/mock/src/tambem.test.ts`: `Expected: "0113
 ## Limites
 - O gate completo (`pnpm --filter e2e gate`, com tamanho do bundle) e a suíte inteira não rodaram local (ordem do dono: um teste por vez); a prova é o check-run `bateria` do CI do PR neste sha. O `lint-alterados.sh` pulou (rodou antes do commit, sem `.ts` alterado contra `origin/develop`); a CI roda o lint inteiro.
 - Mutação: sem lógica nova; não aplicável.
+
+## Revalidação por delta (E3.38): testes de cobertura 332f134a
+Delta (`forge-check parecer delta`, b4c40051..332f134a): só `server/tests/alvos-acelerato-sincronizar.test.ts` (novo, pool falso de `duble-pg`) e +1 caso em `server/tests/metricas.mapa.test.ts`; sem mudança de código de produção, de limiar nem de exclusão da cobertura.
+- Testes novos: 17 de 17 (`vitest run --project unit`, os dois arquivos).
+- Mutação (cada uma derrubou exatamente 1 teste novo; árvore restaurada): `hoje <= ultima` para `hoje < ultima` em `alvos-acelerato.ts:97` cai em "data que não é posterior à última vigência"; remover a validação de `unidadeDe` em `mapa.ts:177` cai em "unidade de prazo fora de corrido e util"; `fechar.push(a.prioridade)` para `push('X')` cai em "um prazo mudou".
+- Cobertura do server, só o projeto unit sem `PG_TESTE_URL` (como no CI): `Statements 100% (5567/5567); Branches 100% (3698/3698); Functions 100% (1250/1250); Lines 100% (4381/4381)`, 2013 testes de 2013, limiar 100% mantido. Repetida 5 vezes (inclusive com cache do vite apagado): 100% em todas.
+- Observação: na 1ª execução da sessão saiu uma vez `Branches 99.97% (3693/3694)` (denominador diferente do 3698 das demais); não reproduziu em 5 execuções seguintes. Se o check `testes` da CI oscilar, abrir cartão de instabilidade; não bloqueia.
+- A suíte inteira e o `bateria` seguem pelo CI do PR neste sha.
 
 ## Achados
 
