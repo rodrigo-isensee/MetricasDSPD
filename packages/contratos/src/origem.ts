@@ -1,12 +1,12 @@
 /**
- * Origem de cada métrica (plano 052, F6, H-13): `real` = dado da base alimentada pela coleta (BusinessMap no fluxo, Acelerato na
- * sustentação); `mock` = dado fictício (base do seed). Cada métrica vem inteira de UMA origem; nunca se misturam.
- * Fonte única do selo "Dados fictícios" por cartão, da contagem do cabeçalho e do Exportar (P-1 e P-4).
+ * Origem de cada métrica (ADR 0030): `real` = dado da base alimentada pela coleta (BusinessMap no fluxo, Acelerato na
+ * sustentação); `sem-dado` = a métrica ainda não tem dado real e o painel mostra o estado "sem dado real" com o motivo.
+ * Cada métrica vem inteira de UMA origem; nunca se misturam. Fonte única do estado por cartão, da contagem do cabeçalho e do Exportar.
  */
 import { z } from 'zod'
 import type { MetricaId } from './comum'
 
-export type OrigemDaMetrica = 'real' | 'mock'
+export type OrigemDaMetrica = 'real' | 'sem-dado'
 
 /** Métricas com dado real: o painel operacional com dado no quadro (H-13: as 11 do FL1 e a Espera invisível do FL1) e a sustentação carregada do Acelerato. */
 export const METRICAS_ORIGEM_REAL: ReadonlySet<MetricaId> = new Set<MetricaId>([
@@ -101,17 +101,17 @@ export const semDadoRealSchema = z
 export type SemDadoReal = z.infer<typeof semDadoRealSchema>
 
 export function origemDaMetrica(id: MetricaId): OrigemDaMetrica {
-  return METRICAS_ORIGEM_REAL.has(id) ? 'real' : 'mock'
+  return METRICAS_ORIGEM_REAL.has(id) ? 'real' : 'sem-dado'
 }
 
-/** Motivo do dado fictício, quando o mapa guarda um; null para métrica real ou sem motivo registrado. */
-export function motivoDaOrigemMock(id: MetricaId): string | null {
-  return origemDaMetrica(id) === 'mock' ? (MOTIVO_ORIGEM_MOCK[id] ?? null) : null
+/** Motivo da falta de dado real, quando o mapa guarda um; null para métrica real ou sem motivo registrado. */
+export function motivoDaOrigemSemDado(id: MetricaId): string | null {
+  return origemDaMetrica(id) === 'sem-dado' ? (MOTIVO_ORIGEM_MOCK[id] ?? null) : null
 }
 
 /** Motivo do estado "sem dado real": o do mapa, ou o genérico. Nunca vazio. */
 export function motivoSemDadoReal(id: MetricaId): string {
-  return motivoDaOrigemMock(id) ?? MOTIVO_FONTE_REAL_NAO_DEFINIDA
+  return motivoDaOrigemSemDado(id) ?? MOTIVO_FONTE_REAL_NAO_DEFINIDA
 }
 
 /** Corpo da resposta "sem dado real" da métrica `id` (pedido 060, P3). */
