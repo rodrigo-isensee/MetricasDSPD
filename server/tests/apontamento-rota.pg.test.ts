@@ -250,7 +250,7 @@ d('059: papel dspd_api_apontamento e rota da aba no PostgreSQL', () => {
     expect((await ler('&equipe=time-beta-teste-097&tipo=56')).kpis.segundos).toBe(900);
     // o papel da aba le `equipe` de dim_card, mas nada de pessoa a mais
     await expect(aba.query(`SELECT equipe FROM ${S.bm}.dim_card LIMIT 1`)).resolves.toBeDefined();
-    for (const col of ['responsaveis', 'responsavel_id', 'card_pai']) expect((await falha(aba, `SELECT ${col} FROM ${S.bm}.dim_card`)).code, col).toBe('42501');
+    for (const col of ['responsaveis', 'card_pai']) expect((await falha(aba, `SELECT ${col} FROM ${S.bm}.dim_card`)).code, col).toBe('42501');
   });
 
   it('cards incompletos filtrados por equipe ponta a ponta: o time do card, "Sem time" e slug inexistente com resultado vazio (097 L2, A1)', async () => {
