@@ -333,7 +333,7 @@ export function CartaoDiario() {
       titulo="Mapa de calor pessoa × dia"
       texto={CARTOES.diario}
       leitura={leitura}
-      aplicaveis={[]} // o servidor aplica ao mapa só o filtro de pessoa, que saiu da tela (097); a janela é a própria
+      aplicaveis={['equipe']} // o servidor recorta o mapa pela Equipe (K-286); os demais filtros não o afetam e a janela é a própria
       familiaCriterio="calendario"
       acoes={<SeletorJanela />}
       className="lg:col-span-12"
