@@ -1,7 +1,8 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { CHAVE_PREFERENCIAS } from '@metricas-dspd/contratos'
+import { CHAVE_PREFERENCIAS, origemDaMetrica } from '@metricas-dspd/contratos'
+import { CATALOGO } from '@/content/catalogo-metricas'
 import { renderizarApp } from '@/test/helpers'
 import { linhasDoCatalogo } from './linhas'
 
@@ -68,6 +69,19 @@ describe('Catálogo de métricas (/metricas)', () => {
     }
   })
 
+  it('o parágrafo de abertura e a legenda falam de dado real, sem dado fictício', async () => {
+    renderizarApp('/metricas')
+    await screen.findByRole('heading', { level: 1, name: 'Catálogo de métricas' })
+    expect(
+      screen.getByText(
+        /A coluna "Dados" diz se a métrica já usa dado real ou ainda está sem dado real; nenhuma mostra número de exemplo\./,
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('table', { name: /situação dos dados \(real ou sem dado real\)/ }),
+    ).toBeInTheDocument()
+  })
+
   it('mostra a tabela com status escrito e link que abre o cartão; filtros por painel e grupo', async () => {
     const u = userEvent.setup()
     renderizarApp('/metricas')
@@ -76,19 +90,24 @@ describe('Catálogo de métricas (/metricas)', () => {
     const tabela = screen.getByRole('table')
     const linha = within(tabela).getByRole('row', { name: /O5 Eficiência de fluxo/ })
     expect(linha).toHaveTextContent('Complementar')
-    // Decisão 20: todos os dados são fictícios até a coleta real, no núcleo e nos complementares.
-    expect(linha).toHaveTextContent('Fictícios')
+    // A coluna Dados diz a situação pelo mapa de origem: O5 é real.
+    expect(linha).toHaveTextContent('Real')
     expect(within(linha).getByRole('link')).toHaveAttribute(
       'href',
       '/operacional?cadencia=semanal#o5',
     )
-    expect(within(tabela).getByRole('row', { name: /O3 Tempo de ciclo/ })).toHaveTextContent(
-      'Fictícios',
-    )
+    expect(within(tabela).getByRole('row', { name: /O3 Tempo de ciclo/ })).toHaveTextContent('Real')
     expect(within(tabela).queryByText('Da coleta')).not.toBeInTheDocument()
     const linhas = within(tabela).getAllByRole('row').slice(1)
     expect(linhas).toHaveLength(65)
-    for (const l of linhas) expect(l).toHaveTextContent('Fictícios')
+    const reais = CATALOGO.filter(
+      (m) => m.id !== 'BLOQUEADOS' && origemDaMetrica(m.id) === 'real',
+    ).length
+    expect(within(tabela).getAllByRole('cell', { name: 'Real', exact: true })).toHaveLength(reais)
+    expect(
+      within(tabela).getAllByRole('cell', { name: 'Sem dado real', exact: true }),
+    ).toHaveLength(65 - reais)
+    expect(within(tabela).queryByText(/fictíci|simulad|exemplo/i)).not.toBeInTheDocument()
     expect(within(tabela).getByRole('row', { name: /^O17 / })).toHaveTextContent('Sustentação')
     expect(within(tabela).getByRole('row', { name: /^PV1 / })).toHaveTextContent(
       'Pesquisa de percepção',
