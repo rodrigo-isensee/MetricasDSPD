@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  EQUIPES_SUSTENTACAO_ID,
-  TIPOS_FILTRO,
-  type FiltrosFluxo,
-  type OpcoesFiltro,
-} from '@metricas-dspd/contratos'
+import { TIPOS_FILTRO, type FiltrosFluxo, type OpcoesFiltro } from '@metricas-dspd/contratos'
 import { colapsarTodos, textoBusca } from './codec'
 
 const opcoes = {
@@ -32,10 +27,17 @@ describe('K-039: filtros na URL (bug 004)', () => {
     expect(colapsarTodos(fl({ equipe: ['a'] }), opcoes, false).equipe).toEqual(['a'])
     expect(colapsarTodos(fl({ tipo: [...TIPOS_FILTRO] }), opcoes, false).tipo).toEqual([])
   })
-  it('sustentação: todas as equipes fixas colapsam', () => {
+  it('sustentação: todas as equipes das opções colapsam', () => {
+    const ac = {
+      dominio: 'acelerato',
+      equipes: [
+        { id: 'sssc-totvs', nome: 'SSSC TOTVS' },
+        { id: 'sssc-fluig', nome: 'SSSC FLUIG' },
+      ],
+    } as unknown as OpcoesFiltro
     const r = colapsarTodos(
-      { equipe: [...EQUIPES_SUSTENTACAO_ID], prioridade: [], periodo: { tipo: '12s' } },
-      undefined,
+      { equipe: ['sssc-totvs', 'sssc-fluig'], prioridade: [], periodo: { tipo: '12s' } },
+      ac,
       true,
     )
     expect(r.equipe).toEqual([])

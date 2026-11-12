@@ -19,7 +19,7 @@ test.use({ viewport: { width: 1280, height: 800 } });
 const EQUIPES = ['erp-protheus', 'fluig', 'senior', 'marketing-e-vendas', 'dados', 'plataforma-5g'];
 const SISTEMAS = ['protheus', 'fluig', 'senior', 'crm', 'site-marketing', 'data-lake', 'core-5g', 'portal-do-cliente'];
 const TIPOS = ['incidente', 'requisicao', 'melhoria', 'bug-interno', 'defeito-producao', 'divida-tecnica', 'trabalho-produto'];
-const SSSC = ['totvs', 'senior', 'fluig'];
+const SSSC = ['sssc-totvs', 'sssc-senior', 'sssc-fluig'];
 const PRIORIDADES = ['p1', 'p2', 'p3', 'p4', 'p5'];
 const CUSTOM = { periodo: 'custom', de: '2026-06-01', ate: '2026-08-31' };
 
@@ -114,7 +114,7 @@ const PAINEIS: { id: string; rota: string; dims: Dim[]; filtros: string[]; perio
     id: 'sustentacao',
     rota: '/operacional?cadencia=sustentacao',
     dims: [
-      { nome: 'equipe', valores: [{}, { equipe: 'totvs' }, { equipe: 'senior,fluig' }] },
+      { nome: 'equipe', valores: [{}, { equipe: 'sssc-totvs' }, { equipe: 'sssc-senior,sssc-fluig' }] },
       { nome: 'prioridade', valores: [{}, { prioridade: 'p1' }, { prioridade: 'p2,p3' }, { prioridade: 'p3,p4,p5' }] },
       { nome: 'periodo', valores: [{}, { periodo: '4s' }, { periodo: '12s' }, { periodo: '12m' }, CUSTOM] },
     ],
@@ -339,7 +339,7 @@ const SEQUENCIAS: { id: string; rota: string; passos: ((p: Page) => Promise<void
   {
     id: 'sustentacao',
     rota: '/operacional?cadencia=sustentacao',
-    passos: [(p) => marcar(p, 'prioridade', ['p1', 'p2']), (p) => marcar(p, 'equipe', ['totvs']), (p) => escolherPeriodo(p, 'Últimas 12 semanas')],
+    passos: [(p) => marcar(p, 'prioridade', ['p1', 'p2']), (p) => marcar(p, 'equipe', ['sssc-totvs']), (p) => escolherPeriodo(p, 'Últimas 12 semanas')],
   },
 ];
 
@@ -794,10 +794,10 @@ test('IF-I13 dois filtros diferentes em sequência na barra (sem esperar o paine
     await page.goto(rota);
     await retrato(page);
     const sust = rota.startsWith('/operacional?cadencia=sustentacao');
-    await marcar(page, 'equipe', [sust ? 'senior' : 'fluig']);
+    await marcar(page, 'equipe', [sust ? 'sssc-senior' : 'fluig']);
     await marcar(page, sust ? 'prioridade' : 'tipo', [sust ? 'p2' : 'incidente']);
     const esperado = new URL(rota, 'http://x').searchParams;
-    esperado.set(sust ? 'sust_equipe' : 'equipe', sust ? 'senior' : 'fluig');
+    esperado.set(sust ? 'sust_equipe' : 'equipe', sust ? 'sssc-senior' : 'fluig');
     esperado.set(sust ? 'sust_prioridade' : 'tipo', sust ? 'p2' : 'incidente');
     await expect.poll(() => paramsOrdenados(page.url()), rota).toBe(paramsOrdenados(`http://x/?${esperado.toString()}`));
   }
