@@ -22,7 +22,7 @@ const TEXTO_FICTICIO = /fictíci/i
 const cartoesNaTela = () => [...document.querySelectorAll<HTMLElement>('[data-testid^="metrica-"]')]
 
 /** Renderiza a rota, abre "Mais métricas" (onde ficam os complementares) e espera todo cartão sair do carregamento. */
-async function abrirTudo(rota: string): Promise<HTMLElement[]> {
+async function abrirTudo(rota: string): Promise<{ cartoes: HTMLElement[]; texto: string }> {
   const { unmount } = renderizarApp(rota, fonteSemNenhumDadoReal)
   try {
     await waitFor(
@@ -55,13 +55,14 @@ async function abrirTudo(rota: string): Promise<HTMLElement[]> {
       { timeout: 10_000, interval: 150 },
     )
     // o texto da tela é lido antes do desmonte; os cartões são devolvidos como texto e atributos já copiados
-    textoDaTela = document.body.textContent
-    return cartoesNaTela().map((c) => c.cloneNode(true) as HTMLElement)
+    return {
+      cartoes: cartoesNaTela().map((c) => c.cloneNode(true) as HTMLElement),
+      texto: document.body.textContent,
+    }
   } finally {
     unmount()
   }
 }
-let textoDaTela = ''
 
 const ROTAS: Record<PainelComCartoes, readonly string[]> = {
   // as duas cadências do Operacional juntas cobrem as seções do painel `operacional`
@@ -76,7 +77,7 @@ describe('G4: painel sem nenhum dado real (ADR 0030, D6)', () => {
     it(`${painel}: todo cartão do catálogo termina em "Sem dado real", sem selo nem texto de simulado`, async () => {
       const codigos = new Set<string>()
       for (const rota of rotas) {
-        const cartoes = await abrirTudo(rota)
+        const { cartoes, texto } = await abrirTudo(rota)
         for (const c of cartoes) {
           const codigo = c.dataset.testid!.replace(/^metrica-/, '')
           codigos.add(codigo)
@@ -90,7 +91,7 @@ describe('G4: painel sem nenhum dado real (ADR 0030, D6)', () => {
             `${codigo}: selo ou faixa "Simulado"`,
           ).toBeNull()
         }
-        expect(textoDaTela, `texto da tela ${rota}`).not.toMatch(TEXTO_PROIBIDO)
+        expect(texto, `texto da tela ${rota}`).not.toMatch(TEXTO_PROIBIDO)
       }
       // guarda contra suíte vazia: cada cartão do catálogo do painel foi visto (o catálogo tem 12 a 33 cartões por painel)
       const esperados = cartoesDoPainel(painel).map((c) => c.codigo)
@@ -116,22 +117,16 @@ describe('G4: painel sem nenhum dado real (ADR 0030, D6)', () => {
     }
   }, 30_000)
 
-  // ADR 0030, D7: os textos "fictício" do Catálogo e das notas (WB-1, OP-21, TA-16 a TA-18, ES-11, ES-12) saem pelo L4 (react-frontend).
-  // ESPERADO A FALHAR ATÉ O L4: `it.fails` passa enquanto algum painel ainda diz "fictíci" e FALHA quando o L4 limpar os textos,
-  // o que obriga a trocar por `it` (sem ele o CI reprova). Não é skip: o teste roda e a asserção é a mesma.
-  it.fails(
-    'L4 pendente: nenhuma tela diz "fictíci" (Tático, Estratégico, Sustentação)',
-    async () => {
-      for (const rota of [
-        '/operacional?cadencia=semanal',
-        '/operacional?cadencia=sustentacao',
-        '/tatico',
-        '/estrategico',
-      ]) {
-        await abrirTudo(rota)
-        expect(textoDaTela, `texto da tela ${rota}`).not.toMatch(TEXTO_FICTICIO)
-      }
-    },
-    60_000,
-  )
+  // ADR 0030, D7: os textos "fictício" do Catálogo e das notas saem pelo L4 (já na develop).
+  it('nenhuma tela diz "fictíci" (Operacional, Sustentação, Tático, Estratégico)', async () => {
+    for (const rota of [
+      '/operacional?cadencia=semanal',
+      '/operacional?cadencia=sustentacao',
+      '/tatico',
+      '/estrategico',
+    ]) {
+      const { texto } = await abrirTudo(rota)
+      expect(texto, `texto da tela ${rota}`).not.toMatch(TEXTO_FICTICIO)
+    }
+  }, 60_000)
 })
