@@ -611,6 +611,14 @@ describe('equipe no apontamento: filtro por time do card, so recorte (097 L2)', 
     expect((await ler('&equipe=sem-time')).corpo.kpis.segundos).toBe(1800);
     expect((await ler('&equipe=outro-time')).corpo.kpis.segundos).toBe(0);
   });
+  it('K-286: o mapa diario e recortado pela equipe (e pela pessoa), sem olhar tipo nem projeto', async () => {
+    const soma = (c: Awaited<ReturnType<typeof ler>>['corpo']) => c.diario.linhas.reduce((t, l) => t + l.segundos, 0);
+    expect(soma((await ler()).corpo)).toBe(3600 + 3600 + 7200 + 1800);
+    expect(soma((await ler('&equipe=time-alfa')).corpo)).toBe(7200);
+    expect(soma((await ler('&equipe=time-alfa,sem-time')).corpo)).toBe(9000);
+    expect(soma((await ler('&equipe=outro-time')).corpo)).toBe(0);
+    expect(soma((await ler('&equipe=time-beta&tipo=999&projeto=999')).corpo)).toBe(7200);
+  });
   it('entrada invalida ou repetida: 400 so com caminho e codigo; o parametro pessoa continua aceito', async () => {
     const { app } = await montar({ linhas: cenario() });
     for (const q of ['equipe=Time%20Alfa', 'equipe=a%27%3B--', 'equipe=time-alfa,time-alfa', `equipe=${'a'.repeat(61)}`]) {
