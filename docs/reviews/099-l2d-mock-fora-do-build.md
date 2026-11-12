@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/099-l2d-mock-fora-do-build
-commit: 4bbc8f94c05bfd2b63ed3ca5093d9b5181e1aeb6
+commit: ce420a8b5102a4718457667e35235d2e1762e535
 parecer: aprovado
 revisor: tech-lead
 data: 2026-11-12
@@ -20,6 +20,8 @@ data: 2026-11-12
 ## Sondas
 
 ## Parecer
+**Revalidação (volta 1), aprovado sobre ce420a8b.** Delta lido por `forge-check parecer delta` (4bbc8f94..dc8d90b8): o merge da develop (21e70aa5) trouxe `equipe.test.tsx`, `taticas.test.tsx` e `resumo.test.tsx`; contra `origin/develop`, a única diferença dos três é a linha de import, `@/data` trocado por `@/data/mock/MockFonteMetricas`, o mesmo padrão dos outros testes do L2d (`operacionais`, `estrategicas`, `gerar`, `helpers.tsx`); ce420a8b faz isso no `equipe.test.tsx`. Nenhum teste importa mais `MockFonteMetricas` do barrel. Vitest dos três arquivos e de `lint.meta.test.ts`: 4 arquivos, 120 testes, 120 passaram.
+
 Aprovado sobre 4bbc8f94 (base develop d4edc6d1). Diff: 22 arquivos, só `web/`, 330 linhas pelo `git diff --numstat --no-renames origin/develop...4bbc8f94` (cerca de 2/3 teste). Um comportamento só: o código do mock não entra no build `api`. O commit não traz a linha `teto:`; o PR do lote (E2.14) leva `teto: excedido, 330 linhas, G1 e G2 vêm com o corte do mock porque a ADR 0030 D6 as prende ao mesmo lote` no corpo.
 
 - **Cumpre a ADR 0030 D6 no recorte do L2d:** `App.tsx:52` testa o literal `import.meta.env.VITE_FONTE === 'mock'` e só esse ramo faz `import('@/data/mock/MockFonteMetricas')`; o `define` do `vite.config.ts:10-12` fixa o valor no build, e o ramo morto sai do bundle. `data/index.ts` deixa de reexportar `MockFonteMetricas` (os testes passam a importar do caminho direto). G1 entra no `pronto` da web entre `build` e `size`; G2 em `lint.meta.test.ts`.
