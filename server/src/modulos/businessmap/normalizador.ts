@@ -104,6 +104,8 @@ export interface LinhaDimCard {
   coluna_atual_id: string | null; excluido_em: Date | null;
   classe_servico: string | null; sistema: string | null; area_solicitante: string | null; fornecedor: string | null; objetivo_estrategico: string | null;
   tamanho_declarado: string | null; responsabilidade_atraso: string | null; origem_demanda: string | null; fase_deteccao: string | null; severidade: string | null;
+  /** Prazo nativo do card (`deadline`), dia civil `AAAA-MM-DD`; nulo se ausente ou fora da forma (099-o12-deadline §2). */
+  data_acordada: string | null;
 }
 
 const COLUNAS_LISTA_NULAS = Object.fromEntries(COLUNAS_LISTA.map((c) => [c, null])) as Record<(typeof COLUNAS_LISTA)[number], null>;
@@ -136,6 +138,19 @@ export interface CardProjetado { dim: LinhaDimCard; transicoes: FatoTransicaoPro
 
 const NIVEL_PARA_GRANULARIDADE: Record<string, string> = { projeto: 'projeto', feature: 'frente', story: 'story' };
 const texto = (v: unknown): string | null => (typeof v === 'string' && v !== '' ? v : typeof v === 'number' && Number.isFinite(v) ? String(v) : null);
+/**
+ * Parse estrito do `deadline` (099-o12-deadline §2): só `AAAA-MM-DD` com mês e dia válidos; o dia é gravado como está (data civil, sem fuso).
+ * Data e hora, texto ou número viram `null` com a nota `deadline_fora_da_forma` (contagem; o valor nunca vai a log nem a tabela). Nada se converte.
+ */
+export function dataAcordada(valor: unknown, notas: string[]): string | null {
+  if (valor === undefined || valor === null) return null;
+  if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    const d = new Date(`${valor}T00:00:00Z`);
+    if (!Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === valor) return valor;
+  }
+  notas.push('deadline_fora_da_forma');
+  return null;
+}
 const data = (ms: number | null): Date | null => (ms === null ? null : new Date(ms));
 
 function colunaDoPasso(ref: Referencia, quadro: string | null, coluna: string, dia: string, notas: string[]): { passo: ColunaDoPasso; tipo: 'fila' | 'execucao' | null } | undefined {
@@ -227,7 +242,7 @@ export function projetarCard(e: EntradaCard, ref: Referencia): CardProjetado | n
       comprometido_em: data(marcos.comprometido_em), iniciado_em: data(marcos.iniciado_em), concluido_em: data(marcos.concluido_em),
       arquivado_em: data(descartadoEm ?? arquivadoNativo), motivo_descarte: motivo, titulo: titulo === null ? null : titulo.slice(0, 500),
       granularidade: dentro ? granularidade : null, equipe: dentro ? equipe : null, quadro_id: quadro, coluna_atual_id: texto(e.card.column_id),
-      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, ...colunasDeLista(e.card, ref.camposLista, notas),
+      excluido_em: e.excluidoDetectado ? e.coletadoEm : null, data_acordada: dataAcordada(e.card.deadline, notas), ...colunasDeLista(e.card, ref.camposLista, notas),
     },
     transicoes, eventos, notas,
   };
