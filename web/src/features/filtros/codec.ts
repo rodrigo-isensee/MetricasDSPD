@@ -1,9 +1,8 @@
 import { PRIORIDADES, TIPOS_FILTRO, type Prioridade } from '@metricas-dspd/contratos'
 import {
-  EQUIPES_SUSTENTACAO_ID,
   PERIODOS_PADRAO,
   TIPO_ID,
-  type EquipeSustentacaoId,
+  idEquipeSustentacao,
   type FiltrosFluxo,
   type FiltrosSustentacao,
   type OpcoesFiltro,
@@ -35,13 +34,15 @@ function lerLista<T extends string>(
   validos: readonly T[] | null,
   rotulo: string,
   invalidos: string[],
+  apelido: (v: string) => string = (v) => v,
 ): T[] {
   const bruto = lista(params, chave)
   const ok: T[] = []
-  for (const v of bruto) {
+  for (const original of bruto) {
+    const v = apelido(original)
     if (validos === null || (validos as readonly string[]).includes(v)) {
       if (!ok.includes(v as T)) ok.push(v as T)
-    } else invalidos.push(`${rotulo} "${v}"`)
+    } else invalidos.push(`${rotulo} "${original}"`)
   }
   // selecionar todos equivale a "Todos" (URL omite o parâmetro)
   if (validos !== null && ok.length === validos.length) return []
@@ -128,12 +129,14 @@ export function lerSustentacao(
   const invalidos: string[] = []
   return {
     filtros: {
-      equipe: lerLista<EquipeSustentacaoId>(
+      // equipe por slug do dado real; os ids antigos (totvs, senior, fluig) viram o slug novo (L7a)
+      equipe: lerLista(
         p,
         'equipe',
-        EQUIPES_SUSTENTACAO_ID,
+        idsDe(opcoes, 'equipes'),
         'equipe',
         invalidos,
+        idEquipeSustentacao,
       ),
       prioridade: lerLista(
         p,
@@ -246,8 +249,7 @@ export function colapsarTodos<F extends FiltrosFluxo | FiltrosSustentacao>(
   const todos = (sel: readonly string[], validos: readonly string[] | null): boolean =>
     validos !== null && validos.length > 0 && validos.every((v) => sel.includes(v))
   const r = { ...f } as FiltrosFluxo & FiltrosSustentacao
-  if (todos(r.equipe, sustentacao ? EQUIPES_SUSTENTACAO_ID : idsDe(opcoes, 'equipes')))
-    r.equipe = []
+  if (todos(r.equipe, idsDe(opcoes, 'equipes'))) r.equipe = []
   if (sustentacao) {
     if (todos(r.prioridade, PRIORIDADES)) r.prioridade = []
   } else {
