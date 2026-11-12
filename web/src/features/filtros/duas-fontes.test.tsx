@@ -159,9 +159,9 @@ describe('os dois conjuntos de filtros na mesma URL (4.1)', () => {
       'sust_',
     )
     await waitFor(() => expect(r.result.current.uso.opcoes).toBeDefined())
-    act(() => r.result.current.uso.definir({ equipe: ['totvs'] }))
+    act(() => r.result.current.uso.definir({ equipe: ['sssc-totvs'] }))
     const b = buscaDe(r)
-    expect(b.get('sust_equipe')).toBe('totvs')
+    expect(b.get('sust_equipe')).toBe('sssc-totvs')
     expect(b.get('sust_prioridade')).toBe('p1')
     const esperado: Record<string, string> = {
       equipe: 'fluig',
@@ -195,7 +195,7 @@ describe('os dois conjuntos de filtros na mesma URL (4.1)', () => {
     ])
     act(() => r.result.current.uso.remover('prioridade'))
     expect(buscaDe(r).has('sust_prioridade')).toBe(false)
-    expect(buscaDe(r).get('sust_equipe')).toBe('totvs')
+    expect(buscaDe(r).get('sust_equipe')).toBe('sssc-totvs')
     act(() => r.result.current.uso.limpar())
     expect(buscaDe(r).has('sust_equipe')).toBe(false)
     expect(buscaDe(r).get('equipe')).toBe('fluig')

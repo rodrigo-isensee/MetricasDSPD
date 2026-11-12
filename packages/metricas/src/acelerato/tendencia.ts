@@ -27,11 +27,8 @@ export function calcularTendenciaSust(
   ctx: ContextoAC,
   equipe: readonly string[] = [],
 ): ResultadoTendenciaSust {
-  // `equipe` chega como slug validado na fronteira; o tipo estreito do contrato é da generalização L7a.
-  const filtros: FiltrosSustentacao = {
-    ...PADRAO,
-    equipe: [...equipe] as FiltrosSustentacao['equipe'],
-  }
+  // `equipe` chega como slug validado na fronteira (097 L7a: texto/slug, ids antigos como apelido).
+  const filtros: FiltrosSustentacao = { ...PADRAO, equipe: [...equipe] }
   const abertos = diasDeAbertura(ctx, filtros)
   const fechados = apuraveisComDia(ctx, filtros)
   const baldes = mesesFechados(ctx.hojeDia, MESES_TENDENCIA)

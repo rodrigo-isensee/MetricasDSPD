@@ -36,7 +36,7 @@ function Controles({ uso, variante }: { uso: Uso; variante: 'popover' | 'lista' 
           opcoes={opcoes?.equipes ?? []}
           selecionados={f.equipe}
           variante={variante}
-          onChange={(ids, replace) => definir({ equipe: ids as never }, { replace })}
+          onChange={(ids, replace) => definir({ equipe: ids }, { replace })}
         />
       )}
       {config.filtros.includes('tipo') && (
@@ -149,7 +149,7 @@ export function BarraFiltros({
     definir: envolver(uso.definir as (...a: unknown[]) => void) as Uso['definir'],
     remover: envolver(uso.remover),
     limpar: envolver(uso.limpar),
-  } as Uso
+  }
   const usoFolha: Uso = {
     ...usoA,
     definir: ((parcial: never, op: { replace: boolean }) => {
@@ -157,7 +157,7 @@ export function BarraFiltros({
       mudouNaFolha.current = true
       ;(usoA.definir as (p: never, o: { replace: boolean }) => void)(parcial, { replace })
     }) as Uso['definir'],
-  } as Uso
+  }
 
   return (
     // `contents`: a barra sticky precisa do contêiner alto do painel, não deste invólucro (bug 003).
