@@ -81,7 +81,10 @@ function Lista({
 }) {
   // `selecionados` aqui são as marcações exibidas (a última seleção do usuário), não a prop da URL.
   const base = useId()
+  const [retorno, setRetorno] = useState('')
   const alternar = (opcaoId: string, marcado: boolean) => {
+    // O retorno vale só até a próxima ação; o Enter o redefine logo depois (N1 da revisão de UX do K-278).
+    setRetorno('')
     const replace = aoMudar()
     // Parte da última seleção emitida, não da prop: cliques em sequência rápida chegam antes de a URL
     // (fonte da prop) re-renderizar, e a prop velha perderia a marcação anterior (bug 004).
@@ -98,7 +101,6 @@ function Lista({
     ? selecionados.filter((s) => !visiveis.some((o) => o.id === s)).length
     : 0
   const sufixo = (genero === 'f' ? 'a' : 'o') + (foraDaBusca === 1 ? '' : 's')
-  const [retorno, setRetorno] = useState('')
   const textoFora = `${foraDaBusca} selecionad${sufixo} fora da busca (continua${foraDaBusca === 1 ? '' : 'm'} aplicad${sufixo}).`
   const contagem = !termo
     ? ''
@@ -111,7 +113,10 @@ function Lista({
     Array.from(el.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))
   // Esc no campo ou numa opção: limpa o texto; quem fecha (Popover ou Dialog) é impedido pelo contêiner.
   const aoEsc = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') escLimpaBusca(e, busca, () => setBusca(''))
+    if (e.key === 'Escape') escLimpaBusca(e, busca, () => {
+        setRetorno('')
+        setBusca('')
+      })
   }
   const aoTeclarCampo = (e: KeyboardEvent<HTMLInputElement>) => {
     aoEsc(e)
