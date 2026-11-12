@@ -3,34 +3,30 @@ tipo: review
 contrato: 1
 pedido: 097-resumo-filtro-time
 branch: feature/097-l7a-sustentacao-equipe
-commit: ad0522d9a8515913fea2313d1ae1d0e487fe5181
-parecer: reprovado
+commit: d4ba9bf9d681082e3c899c9189c6393e4f0cdd1a
+parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-12
 ---
-# Review: L7a do 097, equipe da Sustentação do dado real em slug (E3.2, K-273)
+# Review: L7a e L7b do 097, equipe da Sustentação do dado real em slug (E3.2, K-273)
 
 ## Achados
-- A1 (bloqueante) web/src/features/filtros/codec.ts:131 · a API passa a dar opções `sssc-totvs`..., mas o codec da web só aceita `totvs|senior|fluig` (e o colapsarTodos em :249): escolher equipe na Sustentação vira "valor inválido" e some (S1). O L7a não entra na develop sem o L7b.
-- A2 (recomendado) docs/contratos/http.md:38 · ainda diz equipe da Sustentação `totvs`, `senior`, `fluig`; alinhar ao `docs/api/metricas.md:30` (slug do nome, ids antigos como apelido).
-- A3 (recomendado) packages/contratos/src/filtros.ts:12 · o apelido vale "por um ciclo de release" sem cartão nem versão de remoção; abrir cartão que remova `APELIDO_EQUIPE_SUSTENTACAO`, `EQUIPES_SUSTENTACAO_ID` e `NOME_EQUIPE_SUSTENTACAO` na release seguinte à do L7b.
-- A4 (recomendado) packages/contratos/src/filtros.ts:63 · `filtrosSustentacaoSchema.equipe` aceita qualquer texto (vazio, espaço); a fronteira do server valida com `idSlug`, mas o contrato compartilhado poderia usar a mesma regra de slug.
-- A5 (recomendado) server/src/modulos/referencia/servico.ts:38 · com dois nomes de mesmo slug, o `Map` guarda o último na ordem do `ORDER BY` (dependente de collation); preferir o primeiro, e o teste de app.test.ts:17 deixa de depender disso.
-
-## Sondas
-- S1 · `lerSustentacao(new URLSearchParams('equipe=sssc-totvs'), {dominio:'acelerato', equipes:[{id:'sssc-totvs',nome:'SSSC TOTVS'}], ...}, '6m')` no codec de ad0522d9 · espera: `equipe: ['sssc-totvs']` · obtido: `{"equipe":[],...,"invalidos":["equipe \"sssc-totvs\""]}`
+- A3 (recomendado) packages/contratos/src/filtros.ts:12 · o apelido vale "por um ciclo de release" sem cartão; virou cartão: remover `APELIDO_EQUIPE_SUSTENTACAO`, `EQUIPES_SUSTENTACAO_ID` e `NOME_EQUIPE_SUSTENTACAO` na release seguinte à que levar o L7b; fora dos testes, ninguém mais usa os dois últimos.
+- A4 (recomendado) packages/contratos/src/filtros.ts:63 · `filtrosSustentacaoSchema.equipe` aceita qualquer texto; entra no mesmo cartão do A3 (o contrato passa a usar a regra de slug quando o apelido sair).
+- A5 (recomendado) server/src/modulos/referencia/servico.ts:38 · com dois nomes de mesmo slug, o `Map` guarda o último na ordem do `ORDER BY` (depende de collation); virou cartão próprio, de servidor: ficar com o primeiro e tirar a dependência do teste app.test.ts:17.
 
 ## Parecer
-Reprovado só pelo A1, que é de integração, não do código do servidor. Diff lido: `origin/develop...ad0522d9` em `server/`, `packages/` e `docs/api/` (14 arquivos, 127 linhas de código e teste, dentro da orientação de 150), e o delta da volta `0f61133b..ad0522d9`.
+Aprovado em d4ba9bf9. Revalidação: li só o delta do L7b, `b7442810..d4ba9bf9` (16 arquivos, 85 adições e 53 remoções, em `web/`, `e2e/` e `docs/contratos/http.md`). O `ec72caae` por cima é só o parecer do QA (aprovado), que não refiz.
 
-- **A1, o defeito:** `BarraFiltros.tsx:36` monta a lista com `opcoes.equipes` da API, que agora devolve os slugs do nome (`sssc-totvs`). A URL leva `equipe=sssc-totvs`, e `lerSustentacao` valida contra `EQUIPES_SUSTENTACAO_ID` e a descarta como inválida (S1). Com o L7a sozinho na develop, e daí na homolog, o filtro de equipe da Sustentação deixa de funcionar na web. O plano (linha 110) diz "não precisa de ordem" porque a entrada fica mais ampla, mas a **saída** de `GET /filtros/acelerato` mudou de ids. Saídas possíveis (a escolha é do Jarvis): o L7b (codec com `idsDe(opcoes, 'equipes')` e o apelido) entra nesta branch e no mesmo PR, ou o PR do L7a fica em rascunho até o L7b estar pronto e os dois entram juntos, sem promoção entre um e outro. O código do servidor não precisa mudar por causa do A1.
-- **Contrato (enum para slug na entrada):** `querySustentacaoSchema.equipe` passa a `lista(idSlug)`, a mesma regra de BusinessMap e das tendências. Tudo o que era aceito antes continua aceito, e slug fora do padrão dá 400 (`metricas.test.ts`: `SSSC%20TOTVS`, `-x`, `a_b`, 61 caracteres). `openapi:verificar` diz "openapi.json em dia". Isso fecha o A1 do review do L4 (assimetria da tendência).
-- **Apelido dos ids antigos:** `idEquipeSustentacao` está num só lugar (`contratos`), e `selecionarAC` resolve o apelido antes de comparar. A tendência passa pelo mesmo caminho (teste `totvs` e `sssc-totvs` com volume 20). O prazo de remoção não tem cartão (A3).
-- **`lerEquipesAC` com a constante única do K-280:** `WHERE ${CORTE_CHAMADOS}` de `referencia/cortes.ts`, sem copiar a condição. O teste `app.test.ts` ("só as do corte de lerChamados") confere as três partes do corte no SQL emitido. `DISTINCT equipe` não traz pessoa nem contagem, e o GRANT segue o mesmo (coluna `equipe` já lida por `lerChamados`).
-- **Biblioteca:** `equipeId = slug(c.equipe)`, o mesmo `slug` das opções, de modo que opção e filtro batem e equipe nova funciona sem código novo (teste `time-novo` = 3). BusinessMap e Acelerato seguem separados, a união de equipes dá uma série só e nada é comparado entre equipes. Foi removido o cast `as FiltrosSustentacao['equipe']` da tendência (fecha o A2 do review do L4).
-- **Testes que provam algo:** a tendência por slug, por id antigo e por equipe nova, as opções do dado real com dedupe e base vazia, o corte no SQL, a matriz sistêmica com `equipe=Equipe_Outra` (inválido de verdade, a volta do A1 do QA) e os 400 da rota. Faltou o teste do codec da web, que mostraria o A1; ele vem com o L7b.
-- **`docs/api/metricas.md`:** atualizado (entrada e opções, mudança compatível na entrada). `docs/contratos/http.md` ficou para trás (A2).
-- **Verificação local (VITEST_MAX_WORKERS=2, só os testes tocados, no head 15994fde = ad0522d9 + parecer do QA):** `packages/contratos` contratos.test.ts com 17 testes, `packages/metricas` tendencia.test.ts com 39, `server` app, metricas, api.sistemico-intensivo e corte-unico com 237, todos passando. O `.pg` e a suíte completa ficam no CI.
-- **Pareceres da branch:** QA aprovado na volta 1 (15994fde, em ad0522d9). Não refiz esse trabalho.
-- **Regras de `praticas.md`:** o arquivo não marca regras com "decidida por". Li o checklist da skill sobre o diff.
-- **Commits:** `feat(sustentacao)`, o merge da develop e `fix(server)` da volta, todos em Conventional Commits em português.
+- **A1 fechado (integração com a web):** `lerSustentacao` valida a equipe contra `idsDe(opcoes, 'equipes')`, as opções da API, e não mais contra a lista fixa; `colapsarTodos` faz o mesmo (codec.ts:252). A sonda S1 do review anterior virou teste: `equipe=sssc-totvs,time-novo` lido sem inválidos (codec.test.ts:114), que falha no codec de b7442810.
+- **A2 fechado:** `docs/contratos/http.md:38` diz slug do nome (`sssc-totvs`) com os ids antigos como apelido, igual ao `docs/api/metricas.md`.
+- **Codec sem segunda tabela de ids:** o apelido entra em `lerLista` como função (`idEquipeSustentacao`, de `@metricas-dspd/contratos`); a web não tem lista própria de equipes nem de apelidos. O inválido é anotado com o valor original da URL, e o apelido é resolvido antes da deduplicação (`totvs,sssc-totvs,fluig` dá dois slugs, codec.test.ts:120).
+- **Sem opções carregadas:** `idsDe` devolve `null` e a leitura aceita qualquer slug, igual ao fluxo (`lerFluxo`), então `contarAtivos` e a exportação não perdem filtro enquanto as opções carregam. É o comportamento que o BusinessMap já tem.
+- **Tipos:** saíram os casts `as never` (BarraFiltros.tsx:39), `as Uso` (BarraFiltros.tsx:151 e :159) e `as typeof f.equipe` (useFiltros.ts:335), porque a equipe passou a ser `string`. `tsc -p tsconfig.app.json` e `tsc -p tsconfig.test.json` sem erro.
+- **Mock:** `nucleoMock.ts` passa a dar o slug do nome com `lib.slug`, a mesma função do servidor, sem a constante antiga.
+- **Testes que provam algo:** o slug novo e a equipe nova, o apelido sem duplicar e a escrita em slug, o slug fora das opções anotado como inválido, e o colapso de "todas" pelas opções (k039.test.ts:30). Os e2e (`intensivo-filtros`, `sustentacao-no-operacional`) passam a usar os slugs; rodam no CI.
+- **Verificação local (VITEST_MAX_WORKERS=2, só os 8 arquivos de teste tocados da web, em ec72caae):** 127 testes passando. A suíte da web e o e2e ficam no CI.
+- **A3, A4 e A5:** nenhum bloqueia. Decisão: A3 vira cartão (com A4 junto, porque os dois mexem no mesmo contrato quando o apelido sair) e A5 vira cartão de servidor. O Jarvis abre os dois.
+- **Tamanho:** L7a e L7b no mesmo PR, como o A1 exigia, somam 263 linhas de código e teste (`git diff --numstat --no-renames 608fd604...d4ba9bf9`, fora `.md`). O corpo do PR (E3.4) leva `teto: excedido, 263 linhas, L7a e L7b entram juntos (A1: a saída de opções mudou de ids)`.
+- **Regras de `praticas.md`:** o arquivo não marca regras com "decidida por". Li o checklist da skill sobre o delta.
+- **Commits:** `feat(web)` do L7b em Conventional Commits em português.
