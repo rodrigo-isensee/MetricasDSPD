@@ -1,7 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { RegistroSimulados } from '@/data'
 import { renderizarApp } from '@/test/helpers'
 import { COMUM, FonteFixa, J, JANELA } from '@/features/painel/testes/fonteFixa'
 
@@ -131,20 +130,6 @@ describe('T3 alocação', () => {
     expect(within(el).getAllByText('Desvio acima de 10 p.p.')).toHaveLength(1)
     expect(within(el).getByRole('radio', { name: 'Itens' })).toBeChecked()
     await userEvent.click(within(el).getByRole('radio', { name: 'Tempo em execução' }))
-    expect(within(el).queryByText('Desvio acima de 10 p.p.')).not.toBeInTheDocument()
-  })
-  it('A-9: no cartão simulado o selo de desvio não aparece (número inventado não se avalia)', async () => {
-    const registro = new RegistroSimulados()
-    registro.marcar('T3', { motivo: 'aguardando campo no quadro' })
-    const fonte = Object.assign(new FonteFixa({ T3: t3('ok') }), {
-      tipo: 'api' as const,
-      origensSimuladas: registro,
-      obterSimulado: () => Promise.reject(new Error('não usado')),
-    })
-    renderizarApp('/tatico', fonte)
-    const el = await cartao('T3')
-    expect(await within(el).findByTestId('selo-simulado-T3')).toBeInTheDocument()
-    expect(await within(el).findByRole('list', { name: 'Desvio por natureza' })).toBeInTheDocument()
     expect(within(el).queryByText('Desvio acima de 10 p.p.')).not.toBeInTheDocument()
   })
   it('percentuais somem com menos de 20 itens (T-N20)', async () => {

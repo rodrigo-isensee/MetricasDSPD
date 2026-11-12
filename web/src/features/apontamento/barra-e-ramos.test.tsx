@@ -69,10 +69,10 @@ describe('barra de filtros', () => {
     await waitFor(() => expect(roteador.state.location.search).toBe(''))
   })
 
-  it('"Limpar" dentro do filtro esvazia só aquele filtro', async () => {
+  it('"Limpar seleção" dentro do filtro esvazia só aquele filtro', async () => {
     const roteador = await pronto(`${URL_ABA}?tipo=3&projeto=1042`)
     await userEvent.click(screen.getByRole('button', { name: /^Tipo: / }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Limpar' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Limpar seleção' }))
     await waitFor(() => expect(roteador.state.location.search).toBe('?projeto=1042'))
   })
 
