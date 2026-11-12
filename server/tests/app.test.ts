@@ -53,7 +53,7 @@ describe('filtros', () => {
   it('acelerato: equipes do dado real (id = slug, sem id repetido) e prioridades presentes; base vazia usa fim como início', async () => {
     const { app } = await montar(responder);
     const j = (await app.inject('/api/v1/filtros/acelerato')).json();
-    expect(j.equipes).toEqual([{ id: 'sssc-totvs', nome: 'SSSC TOTVS' }, { id: 'time-novo', nome: 'time-novo' }]);
+    expect(j.equipes).toEqual([{ id: 'sssc-totvs', nome: 'SSSC TOTVS' }, { id: 'time-novo', nome: 'Time Novo' }]);
     expect(j.prioridades).toEqual([{ id: 'p1', nome: 'P1' }, { id: 'p3', nome: 'P3' }]);
     expect(j.historico).toEqual({ inicio: '2026-10-10', fim: '2026-10-10' });
     expect(j.tipos).toBeUndefined();
@@ -92,6 +92,13 @@ describe('filtros', () => {
     });
     const j = (await app.inject('/api/v1/filtros/acelerato')).json();
     expect(j.equipes).toEqual([{ id: 'sssc-fluig', nome: 'SSSC FLUIG' }]);
+  });
+  it('K-288: dois nomes de mesmo slug ficam com o primeiro em bytes, nas duas ordens do banco', async () => {
+    for (const ordem of [['time-novo', 'Time Novo'], ['Time Novo', 'time-novo']]) {
+      const { app } = await montar((c) => (c.texto.includes('SELECT DISTINCT equipe') ? ordem.map((equipe) => ({ equipe })) : []));
+      const j = (await app.inject('/api/v1/filtros/acelerato')).json();
+      expect(j.equipes).toEqual([{ id: 'time-novo', nome: 'Time Novo' }]);
+    }
   });
   it('acelerato com base vazia: equipes e prioridades = lista vazia', async () => {
     const { app } = await montar(() => []);

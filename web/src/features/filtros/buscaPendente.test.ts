@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { buscaVigente, limparBuscaPendente, registrarBusca } from './buscaPendente'
+import {
+  buscaVigente,
+  invalidosPendentes,
+  limparBuscaPendente,
+  registrarBusca,
+} from './buscaPendente'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -33,5 +38,18 @@ describe('buscaPendente', () => {
     registrarBusca('/operacional', '?equipe=fluig')
     vi.advanceTimersByTime(3001)
     expect(buscaVigente('/operacional', '')).toBe('')
+  })
+
+  it('os avisos da navegação pendente valem só na mesma rota e enquanto ela não expira', () => {
+    expect(invalidosPendentes('/operacional')).toEqual([])
+    registrarBusca('/operacional', '?equipe=x', ['equipe "x"'])
+    expect(invalidosPendentes('/operacional')).toEqual(['equipe "x"'])
+    expect(invalidosPendentes('/tatico')).toEqual([])
+    registrarBusca('/operacional', '?a=1')
+    expect(invalidosPendentes('/operacional')).toEqual([])
+    vi.useFakeTimers()
+    registrarBusca('/operacional', '?equipe=x', ['equipe "x"'])
+    vi.advanceTimersByTime(3001)
+    expect(invalidosPendentes('/operacional')).toEqual([])
   })
 })

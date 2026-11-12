@@ -39,7 +39,7 @@ function Pares({ id, p }: { id: string; p: PreferenciasPainel }) {
       data-testid={`leia-junto-${id}`}
     >
       <span>Leia junto:</span>
-      <ul className="m-0 flex list-none flex-wrap gap-x-3 p-0">
+      <ul className="m-0 flex list-none flex-wrap gap-x-3 gap-y-2 p-0">
         {pares.map((c) => (
           <li key={c.id}>
             <a

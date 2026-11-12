@@ -10,6 +10,8 @@ export function contarAtivos(
   params: URLSearchParams,
   dominio: DominioFiltros,
   prefixo = '',
+  /** O Resumo tem o filtro Equipe nos dois blocos: ela não é "guardada" ali. */
+  semEquipe = false,
 ): number {
   const ativos = new Set<string>()
   if (dominio === 'fluxo') {
@@ -26,5 +28,6 @@ export function contarAtivos(
     if (f.prioridade.length > 0) ativos.add('prioridade')
     if (f.periodo.tipo !== periodoPadrao) ativos.add('periodo')
   }
+  if (semEquipe) ativos.delete('equipe')
   return ativos.size
 }

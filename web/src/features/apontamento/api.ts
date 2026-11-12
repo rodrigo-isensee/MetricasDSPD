@@ -11,12 +11,12 @@ const CAMINHO = '/api/apontamento'
 
 /**
  * Query da rota `GET /api/apontamento` (docs/api/apontamento.md). A rota é estrita (chave desconhecida é 400):
- * só saem as chaves do contrato, listas em CSV, e lista vazia some. A pessoa vai só como `pessoaRef`, nunca nome.
+ * só saem as chaves do contrato, listas em CSV, e lista vazia some. A equipe vai como slug; `pessoa` não sai mais da tela (097).
  */
 export function consultaParaQuery(c: ConsultaApontamento): string {
   const q = new URLSearchParams()
   for (const chave of [
-    'pessoa',
+    'equipe',
     'projeto',
     'tipo',
     'subtarefa',
