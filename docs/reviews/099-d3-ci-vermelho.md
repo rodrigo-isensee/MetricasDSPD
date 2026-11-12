@@ -3,7 +3,7 @@ tipo: review
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: fix/099-d3-ci-vermelho
-commit: 931444b41f80668bab33947ab86d98ef48e26cd8
+commit: b78199a0d3aa9eb9099dc3040b1e0903396d47f2
 parecer: aprovado
 revisor: forge:tech-lead
 data: 2026-11-12
@@ -36,9 +36,19 @@ Delta lido: `forge-check parecer delta docs/reviews/099-d3-ci-vermelho.md`, inte
 - **Nenhum hash velho fora do comentário:** `git grep "68a67741\|0113e077" -- web packages` acha só o comentário da linha 165.
 - **Testes do arquivo tocado:** `vitest run src/data/mock/nucleoMock.paridade.test.ts` em `web/`: 1 arquivo, 8 testes, passaram. `prettier --check` no arquivo: "All matched files use Prettier code style!". Suíte inteira no check `testes` do PR 364.
 
+## Revalidação por delta (E3.53, contrato resultados/S1)
+Delta lido: `forge-check parecer delta docs/reviews/099-d3-ci-vermelho.md`, intervalo `931444b4..b78199a0`, no domínio só `docs/contratos/metricas/S1.md` (+15 -9) e `docs/contratos/snapshots/resultados/S1.json` (+16). `aceitas.json` igual ao da base (`{"aceitas": []}`); nenhum código mudou.
+- **Aceite sem v2 é a decisão certa (decisão do tech-lead).** A mudança é `unidade: 'corrido' | 'util'` obrigatória em `prioridades[].primeiroAtendimento` e `prioridades[].restauracao` (`packages/contratos/src/schemas.ts:621`, do desenho do D3, `docs/analises/099-d3-unidade-prazo.md` §37, com o arquiteto). A tabela do §2 de `docs/contratos/politica-de-mudanca.md` manda `/api/v2` para "campo obrigatório novo na resposta", mas o motivo do v2 é proteger consumidor que não sobe junto. Aqui o campo é só acrescentado à saída (o servidor sempre o envia; quem o ignora não quebra), o único consumidor é o `web` deste repositório, que tipa pelo mesmo `packages/contratos` e sai no mesmo deploy, e o S1 ainda não publica no mapa real (D4). Um v2 criaria convivência sem ninguém do outro lado, e a "Lacuna conhecida" da mesma política diz que o gerador nem fotografa `resultados/<id>.v2`. É o mesmo caso da linha "opcional que passa a obrigatório na resposta" (semanticamente compatível, passa com aceite).
+- **Registro só na mensagem do commit basta, com o PR.** A política diz que o aceite é de uso único e que "a história do aceite fica no git e no PR, não no arquivo"; o `docs:check` exige remover a entrada depois do `docs:fotografar`. O fluxo (1) a (6) foi seguido no mesmo PR: schema (D3), fotografia e remoção do aceite. Falta só o PR levar a linha (A3).
+- **Fotografia e página batem com o gerador:** `pnpm run docs:check` na worktree: "docs:check: ok (1310 páginas Markdown, 69 métricas, 2 eventos)". `pnpm run docs:gerar` de novo: árvore limpa, nada editado à mão entre as marcas. Os números do exemplo da P2 (p50 a p95, `razaoMediana`, `razaoP85`) mudam porque a página estava gerada desde 2026-10-13 e o exemplo sai da base fictícia, que o D3 alterou (unidade por célula); não é dado real nem cálculo novo.
+- **Teste do arquivo que falhava no CI:** `vitest run src/insumos.test.ts` em `tools/docs-contratos`: 1 arquivo, 9 testes, passaram ("as fotografias coincidem e nenhuma mudança incompatível está pendente de registro").
+- Nenhuma guarda mudada; nada a declarar em mutante.
+
 ## Sondas
 - S1 · `server/src/modulos/referencia/alvos-acelerato.ts:120` com `const fim = l.vigente_de;` · espera: um teste falha · obtido: `Tests 7 passed (7)`
 
 ## Achados
 - A1 (recomendado) docs/qa/evidencias/hash-base-fase-a.nota.md:16 · A tabela da regravação traz só a escala 1; os hashes da escala 0,2 (`824092e4`→`345c5682`, Acelerato `39b4b005`→`34151797`) mudaram nos testes e ficam registrados só em título e comentário. Uma linha na tabela fecha a rastreabilidade.
 - A2 (recomendado) server/tests/alvos-acelerato-sincronizar.test.ts:73 · A linha aberta em 2031-03-01 já dá a data máxima; o ramo do vigente_ate não é provado (S1 sobrevive). Caso: só a vigência fechada 2030-01-01..2031-03-01, data 2031-02-01 recusada.
+- A3 (recomendado) docs/contratos/snapshots/resultados/S1.json:178 · A mensagem do commit traz o hash da mudança truncado (`2ccf06b0...`). O corpo do PR 364 deve levar `contrato: incompatível (campo obrigatório novo na resposta, consumidor único no mesmo deploy; aceite de uso único)` com o hash inteiro, como pede o §6 da política.
+- A4 (recomendado) docs/contratos/politica-de-mudanca.md:22 · A linha "Campo obrigatório novo na resposta → `/api/v2`" não distingue o consumidor único que sobe junto; este PR a desvia por decisão do review. Cartão para o arquiteto e o tech-lead acertarem a linha (aceite quando todo consumidor está no repositório e no mesmo deploy), fora deste PR.
