@@ -19,19 +19,21 @@
 - E1.2 (software-architect): viabilidade e dados de E1 a E4 (time no apontamento, opções de filtro do dado real), em paralelo ao UX.
 - E1.3 (ux-designer): segunda rodada do protótipo com E5 (recolher cartão e os 10 maiores do AP-PROJETO) e E7 (filtro Setor), rótulo "Equipe", na branch docs/097-ux-recolher-setor, worktree /home/rodrigoisensee/MetricasDSPD-052d.
 - E1.5 (tech-lead): commit e push dos documentos da segunda rodada do UX, que o ux-designer não pode commitar, na branch docs/097-ux-recolher-setor, worktree /home/rodrigoisensee/MetricasDSPD-052d.
+- E1.6 (react-frontend): L5 do plano, filtro Equipe dentro de cada bloco do Resumo (CA-1 a CA-6), branch feature/097-l5-resumo-equipe, worktree /home/rodrigoisensee/MetricasDSPD-052f.
 - E2.1 (node-backend): L2 do plano, a equipe no apontamento (parte servidor do E2: GRANT de dim_card.equipe, filtro equipe e opcoes.equipes), na branch feature/097-l2-apontamento-equipe, worktree /home/rodrigoisensee/MetricasDSPD-056.
 - E2.2 (security-engineer): parecer de segurança do L2 (banco: permissão por coluna; recorte de pessoas por equipe).
 - E2.3 (react-frontend): L3 do plano, Equipe no lugar de Pessoa no Apontamento (CA-7 a CA-9, Q-3), branch feature/097-l3-apontamento-equipe-web, worktree /home/rodrigoisensee/MetricasDSPD-052h.
 - E3.5 (ux-designer): revisão da interface implementada, por lote do 097, em docs/ux/097-revisao-<lote>.md.
 - E4.1 (node-backend): L6 do plano, parte servidor (opção T-A: tipos presentes nas stories, mapeados para os ids de TIPO_ID, em opcoes.tipos), na branch feature/097-l6-tipos-reais, worktree /home/rodrigoisensee/MetricasDSPD-056d.
-- E4.2 (node-backend): K-279, opções de filtro do L6 com o mesmo corte das listas (prioridades com o recorte de lerChamados, tipos com criado_em não nulo, teste de prioridades vazias), na branch fix/k279-opcoes-corte a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-056d.
-- E4.3 (node-backend): K-280, condição única do corte de cards e chamados (lerTiposBM e lerPrioridadesAC reusam a condição de lerCards e lerChamados), na branch fix/k280-corte-unico a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-056d.
-- E4.4 (node-backend): develop vermelha no job banco depois do PR 337: o teste apontamento-rota.pg.test.ts:253 espera 42501 para responsavel_id em dim_card, coluna que não existe ali (42703); corrigir só o teste, na branch fix/097-l2-teste-grant a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-056.
+- E4.2 (node-backend): K-279, opções de filtro com o mesmo corte das listas (feito, PR 335).
+- E4.3 (node-backend): K-280, condição única do corte de cards e chamados (feito, PR 339).
+- E4.4 (node-backend): correção do teste do GRANT que deixou a develop vermelha depois do PR 337 (feito, PR 340).
 - E4.5 (node-backend): L7a do plano, a equipe da Sustentação vira texto/slug (contrato, biblioteca e querySustentacaoSchema com idSlug; opções do dim_chamado no mesmo corte de lerChamados), na branch feature/097-l7a-sustentacao-equipe a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052f.
 - E4.6 (node-backend): K-282, as provas de GRANT dos testes .pg geram a lista de colunas proibidas de COLUNAS_PESSOA (lgpd.ts) em vez de lista à mão, na branch fix/k282-grant-colunas-pessoa a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-056.
 - E4.7 (react-frontend): L7b do plano, na branch do L7a (feature/097-l7a-sustentacao-equipe, worktree /home/rodrigoisensee/MetricasDSPD-052f): codec da web com a equipe da Sustentação por slug e ids antigos como apelido (A1 e A2 do review do L7a).
 - E3.1 (react-frontend): L1 do plano, busca no FiltroMulti (E3), na branch feature/097-l1-busca, worktree /home/rodrigoisensee/MetricasDSPD-052c.
-- E3.6 (react-frontend): K-278, ressalvas da revisão de UX do L1 (A1 a A8 de docs/ux/097-revisao-l1.md) e o A5 do review (teste com queryByLabelText exato), na branch fix/k278-ux-busca a partir da develop, worktree /home/rodrigoisensee/MetricasDSPD-052c.
+- E3.6 (react-frontend): K-278, ressalvas da revisão de UX do L1 e o A5 do review (feito, PR 341).
+- E3.7 (react-frontend): K-284, o aviso "Marcada: X." sai da região viva também no clique e no Esc (N1 da UX do K-278), branch fix/k284-aviso-marcada, worktree /home/rodrigoisensee/MetricasDSPD-052c.
 - E1.4 (node-backend): L4 do plano, equipe opcional nas duas tendências (parte servidor do E1), na branch feature/097-l4-tendencia-equipe, worktree /home/rodrigoisensee/MetricasDSPD-052g.
 - E3.2 (tech-lead): review por lote do 097.
 - E3.3 (qa-engineer): QA por lote do 097.
@@ -40,7 +42,7 @@
 - E6.2 (tech-lead): review do K-272.
 - E6.3 (qa-engineer): QA do K-272.
 - E6.4 (tech-lead): PR do K-272 para a develop; o merge é do dono.
-- E6.5 (node-backend): K-272, o teste server/tests/apontamento-rota.pg.test.ts (caso do filtro por tipo ponta a ponta) ainda espera um type_id por opção; ajustar ao agrupamento por categoria, na branch fix/k272-teste-pg a partir da develop, worktree /home/rodrigoisensee/Metricas/MetricasDSPD-041.
+- E6.5 (node-backend): K-272, o teste pg do filtro por tipo ajustado ao agrupamento por categoria (feito).
 - Cada portão (QA, segurança, review) commita e envia o próprio parecer na branch, como nos pedidos 092 a 096; o PR continua do tech-lead.
 
 ## Fora do escopo
@@ -285,3 +287,41 @@
 - 2026-11-12 00:33: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-30.md 21ea09cfaa0208cd257613645984a257c61eb8a71f4463ef160677cc5e4f21d0
 - 2026-11-12 00:33: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-51.md 560f3339e3c4e0da90a90da4ff32d8dbc27e50d2402bddeda39b4864768a61e3
 - 2026-11-12 00:33: Volta 1 do L3 entregue (e6d98fb8): teste do ramo de opcoes.equipes ausente (o contrato o define opcional); cobertura da web 100% nas quatro medidas, 1521 testes. Entrega conferida. QA pelo delta (qa-engineer-30, etapa qa) e review (tech-lead-51, etapa review), em série; o tech-lead-48, selado para o head antigo, não será usado.
+- 2026-11-12 00:41: QA do L3 na volta 1 aprovado (f1435184, em e6d98fb8), 0 bugs; CI do head verde com a cobertura; e2e fica com o check do PR. Review delegado (tech-lead-51).
+- 2026-11-12 00:42: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-13.md a6e27242dd411b8828106f7d588cdff4e84d6f5530c7d1f106a666128ebe56c6
+- 2026-11-12 00:42: PR 341 (K-278) mesclado na develop (03:35 UTC). K-278 pronto. E3.7 (K-284) delegada (react-frontend-13), worktree 052c. Na fila do merge: PRs 342 (099 L2b e L2c), 343 (K-281) e 344 (L7a e L7b); o L6 front e o L5 esperam o 344 (mexem na BarraFiltros e no codec).
+- 2026-11-12 00:45: brief selado docs/briefs/097-resumo-filtro-time-ux-designer-6.md fe37898a22450afb5e7d9f776e312698b00dd9b6b9752560983f136fe67bb4d3
+- 2026-11-12 00:45: Review do L3 aprovado (cfabc41f, em e6d98fb8): A1 (aviso com a chave pessoa crua, que é o texto do CA-9) e A2 (teste da fonte fictícia encolhe o mapa diário) recomendados; teto excedido, 416 linhas, vai no PR. Revisão de UX delegada (ux-designer-6). Melhoria vista do review: o diff de review dos briefs deve ser de três pontos (origin/develop...sha).
+- 2026-11-12 00:46: PR 341 (K-278) mesclado pelo tech-lead com todos os checks verdes e CLEAN, sem --admin (squash bbdf9976); CI da develop verde (run 43149242530).
+- 2026-11-12 00:48: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-52.md a65f651344f1319ca6c952a1745a0d35d34136cd1d26ec61abd6e8bfbbf915e7
+- 2026-11-12 00:48: Revisão de UX do L3 aprovada com ressalvas (docs/ux/097-revisao-l3.md): A2 a A6 e o A2 do review viram o cartão K-289. PERGUNTA: ao dono, o aviso quando um link antigo traz o filtro Pessoa passa a dizer O filtro Pessoa foi retirado; use Equipe, em vez de Valor inválido ignorado em: pessoa (o texto que ele viu no protótipo)? (recomendação: sim; sem resposta, fica o texto do protótipo). PR e merge do L3 delegados (tech-lead-52).
+- 2026-11-12 00:49: entrega conferida b1481e32fc6279c9f416c205d1e9fad5dba37e5a
+- 2026-11-12 00:50: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-31.md 53232b79a8ca6642568bf9207379b4e2eb590c9ad870cf12a769a099c319f231
+- 2026-11-12 00:50: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-53.md 8b97c83f1ac1bc37a861444288cb3344111f4e6e217b7c8cd96486e5bb7e41dc
+- 2026-11-12 00:50: E3.7 (K-284) entregue (b1481e32): aviso Marcada zerado no clique e no Esc, 2 testes; cobertura da web 100%. Entrega conferida, classe N: QA (qa-engineer-31) e review (tech-lead-53), em série. Textos das etapas já feitas (E3.6, E4.2, E4.3, E4.4, E6.5) encurtados, para os briefs caberem no teto de 10 mil caracteres.
+- 2026-11-12 00:52: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-14.md 254db015ac66132e39c27224458bea4da6d716bfce4e3de1daab0ff03c8add87
+- 2026-11-12 00:52: PR 344 (L7a e L7b) aberto, forge-check pr aprovado; merge suspenso: o e2e falha de forma determinística em sustentacao-no-operacional.spec.ts:180 (CA-11: /sustentacao com equipe=totvs devolve totvs e não sssc-totvs; o redirecionamento não troca o id antigo pelo slug). QA e review aprovaram sem rodar esse spec, que só roda no CI (vai à retro). DECISÃO TÉCNICA (Jarvis): o redirecionamento grava o slug, como o codec; volta 1 do L7b delegada (react-frontend-14).
+- 2026-11-12 00:54: entrega conferida f8d4840d0fa3f0945c1240bdd85b23d64c68276c
+- 2026-11-12 00:55: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-32.md 2a25195d77a7b7486790d14990da6877947742d115aa033f9f5e634cbe68dfc8
+- 2026-11-12 00:55: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-54.md b5a4de3d46a779350788da152512b0f95841fc80e478e0978ae94d2f1e4deb4f
+- 2026-11-12 00:55: Volta 1 do L7b entregue (f8d4840d): o redirecionamento de /sustentacao grava o slug (idEquipeSustentacao), teste de unidade; e2e com o CI do PR 344. Entrega conferida. QA pelo delta, esperando o e2e do head (qa-engineer-32), depois review (tech-lead-54).
+- 2026-11-12 00:59: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-15.md d9a80952fa40a728595fae28513efefdd5bba6b0fbc7a15ad4a7ccfc0529794a
+- 2026-11-12 00:59: QA do K-284 reprovado (09fd074e, em b1481e32) só por formato: format:check do CI falha em FiltroMulti.tsx:116; a lógica está provada (2 mutações mortas). Volta 1 delegada (react-frontend-15): só o Prettier no arquivo.
+- 2026-11-12 01:00: entrega conferida 34140469ec5b09ad5e65df00e7f498abb390bca3
+- 2026-11-12 01:01: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-33.md 03329bd60c6500f6f4f1d838d1954501ec3b92f770bbd91b287e78e4dfc51951
+- 2026-11-12 01:01: QA do L7b na volta 1 aprovado (f2bd220a, em f8d4840d), condicionado ao e2e do PR 344 (CA-11), que ainda rodava; review delegado (tech-lead-54). Volta 1 do K-284 entregue (34140469, só Prettier), conferida; QA pelo delta (qa-engineer-33).
+- 2026-11-12 01:02: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-16.md f0ffc18d94af1e98c9bb67fdd71c5897253044b104a920c07b7d276ad8cd868a
+- 2026-11-12 01:02: PR 345 (L3) aberto, forge-check pr aprovado; merge suspenso: o e2e falha de forma determinística em apontamento-qa.spec.ts:192 (CT-08 espera pessoa, Tipo; a tela mostra Tipo, pessoa). Segundo escape do mesmo tipo nesta noite (spec e2e tocado no diff e aprovado sem rodar): vai à retro com a proposta de o QA rodar os specs e2e tocados. DECISÃO TÉCNICA (Jarvis): a ordem segue a da barra e o teste se ajusta; volta 2 do L3 delegada (react-frontend-16).
+- 2026-11-12 01:04: entrega conferida 662612e73fd79008dbe71cc1bd016cd0ee945666
+- 2026-11-12 01:05: brief selado docs/briefs/097-resumo-filtro-time-qa-engineer-34.md b739fcdbb819a77d95b2ba348c95bb19a56f41fe0f2dcd8f87578887a4ac7657
+- 2026-11-12 01:05: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-55.md 83ce508ce7ea7f49ce4f59ef753708409bda706d10184ab2d2158fd2ea9d8c07
+- 2026-11-12 01:11: QA do K-284 na volta 1 aprovado (57185813, em 34140469), 0 bugs; CI do head verde, format:check inclusive. Review delegado (tech-lead-53).
+- 2026-11-12 01:13: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-56.md 980a75818c89a9d142264959f8329f776205c9971dac1f0091576640b9eac195
+- 2026-11-12 01:13: Review do K-284 aprovado (acf59786, em 34140469), sem achados. ERRO-JARVIS: mandei o review com o brief selado no head antigo e uma nota para revisar o head novo, o que contradiz a PQ do brief; o próximo caso pede brief novo selado no head atual. PR e merge delegados (tech-lead-56).
+- 2026-11-12 01:22: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-58.md 6d322d8ff0672f757ac2a52992806eaf3cf046587ba5f5b92ac65c6d3953aa60
+- 2026-11-12 01:22: brief selado docs/briefs/097-resumo-filtro-time-tech-lead-57.md c971f92c276353304fede2159f0ad5c0d8d0b39048b78960a45a428c2b8b2b9e
+- 2026-11-12 01:22: QA do L3 na volta 2 aprovado (e26f5ec6, em 662612e7), 0 bugs, com o e2e do PR 345 verde (run 43152300722; CT-08 e CT-10 inclusive). Review pelo delta (tech-lead-57) e depois a retomada do merge (tech-lead-58, selado).
+- 2026-11-12 01:24: Review do L3 revalidado na volta 2 (45981673, em 662612e7), aprovado. Merge do PR 345 delegado (tech-lead-58).
+- 2026-11-12 01:37: PR 344 (L7a e L7b) mesclado pelo tech-lead com todos os checks verdes, e2e do CA-11 inclusive, CLEAN e sem --admin (squash 696ca87c); CI da develop verde. ERRO-JARVIS: os briefs de PR saíram com a restrição genérica nenhum merge ao lado do Entregar que manda mesclar; o gerador do Jarvis ganhou o modo merge para os próximos.
+- 2026-11-12 01:38: brief selado docs/briefs/097-resumo-filtro-time-react-frontend-17.md 51ecbdb6cd5912afa9d8118bfd253254d83abf7a17a83429374faf26bac81b80
+- 2026-11-12 01:38: E1.6 (L5, filtro Equipe em cada bloco do Resumo, CA-1 a CA-6) delegada ao react-frontend (react-frontend-17), worktree 052f, branch feature/097-l5-resumo-equipe da develop 696ca87c. Esperam worktree: L6 front, K-288 e o L2d do 099.
