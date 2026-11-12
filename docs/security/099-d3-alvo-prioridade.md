@@ -3,7 +3,7 @@ tipo: revisao-seguranca
 contrato: 1
 pedido: 099-nenhuma-metrica-simulada
 branch: feature/099-d3-alvo-prioridade
-commit: 8f0d669b6d65b1d1864e1b2062dae9b7b9a45acf
+commit: 70836ab6604b6a2fe51cf67c1f7706578c54f861
 parecer: aprovado
 revisor: forge:security-engineer
 data: 2026-11-12
@@ -11,6 +11,8 @@ data: 2026-11-12
 # Review de segurança: D3, migração 0036 e carregador dos alvos de prioridade (E2.21)
 
 Propósito: o D3 do 099 (Q-099-5a e Q-099-11; desenho em `docs/analises/099-d3-unidade-prazo.md`, alternativa a) no head `8f0d669b`, base `ea826a9c`. Gatilho: banco (migração em tabela lida pela API e escrita pelo `dspd_ref`). Lidos: o diff inteiro (`git diff origin/develop...8f0d669b`, 31 arquivos), `server/src/plataforma/db/grants.ts` (sem mudança no diff) e a seção Segurança do desenho. Rodados, sem banco: `vitest run` de `tests/alvos-acelerato.test.ts`, `tests/ref-sync-ac-alvos-entrada.test.ts`, `tests/migracoes.estatico.test.ts`, `tests/metricas.mapa.test.ts` e `tests/seed.estatico.test.ts` (5 arquivos, 71 testes, todos passaram). Os `.pg` não rodaram aqui (sem Postgres no sandbox); li o `tests/alvos-acelerato.pg.test.ts`. Nada rodou contra base real e nenhum `.env*` foi aberto.
+
+Revalidação (volta 2, head `70836ab6`): o delta do domínio desde `8f0d669b` (`forge-check parecer delta`) é uma linha, `server/src/modulos/referencia/alvos-acelerato.ts:21`: `METRICAS_ALVOS` passa a `['S1', 'VISAO_GERAL']`. É constante literal do código, usada só no `INSERT` parametrizado de `ref_versao_criterio_metrica` (`:147`), já coberto pelo ponto 2; sem GRANT, entrada, pessoa ou segredo novos. `vitest run tests/alvos-acelerato.test.ts`: 26 testes passaram. O veredito não muda: aprovado.
 
 ## Gatilhos
 - Banco: `server/migrations/0036_ac_alvo_prioridade_unidade.ts` (novo) e o carregador `server/src/modulos/referencia/alvos-acelerato.ts` (novo), chamado pelo `ac:ref-sync` (`server/src/entradas/ref-sync-ac.ts:29`).
