@@ -13,23 +13,19 @@ export interface DezMaiores<T> {
 
 /**
  * Corte dos 10 projetos com mais horas, feito na web (sem contrato novo). Soma inteira de `segundos` já
- * calculados no servidor: não é tempo, percentil nem previsão. Com 10 ou menos linhas devolve todas na ordem
- * recebida e `demais` zerado (CA-36). Acima disso ordena por horas decrescentes, empate em ordem alfabética
- * do rótulo (CA-33), e agrega o restante em `demais` (CA-34). Os filtros do painel já valem nas linhas
- * recebidas (CA-37).
+ * calculados no servidor: não é tempo, percentil nem previsão. Sem segunda ordenação: corta a ordem recebida
+ * (a do servidor, por horas e depois a ordem neutra), a mesma do "Ver todos", então um empate na 10ª vaga
+ * nunca troca de posição entre as duas vistas (CA-33). Com 10 ou menos linhas devolve todas e `demais`
+ * zerado (CA-36); acima disso agrega o restante em `demais` (CA-34). Os filtros do painel já valem nas
+ * linhas recebidas (CA-37).
  */
-export function dezMaiores<T extends { segundos: number; rotulo: string }>(
+export function dezMaiores<T extends { segundos: number }>(
   linhas: readonly T[],
   limite = LIMITE_MAIORES,
 ): DezMaiores<T> {
-  if (linhas.length <= limite)
-    return { visiveis: [...linhas], demais: { quantidade: 0, segundos: 0 } }
-  const ordenadas = linhas.toSorted(
-    (a, b) => b.segundos - a.segundos || a.rotulo.localeCompare(b.rotulo, 'pt-BR'),
-  )
-  const demais = ordenadas.slice(limite)
+  const demais = linhas.slice(limite)
   return {
-    visiveis: ordenadas.slice(0, limite),
+    visiveis: linhas.slice(0, limite),
     demais: { quantidade: demais.length, segundos: demais.reduce((s, l) => s + l.segundos, 0) },
   }
 }

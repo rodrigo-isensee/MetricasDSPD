@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { describe, expect, it } from 'vitest'
@@ -14,7 +14,7 @@ function projetos(qtd: number): LinhaDistribuicao[] {
     ...base,
     id: `p${i}`,
     rotulo: `Projeto ${String(i).padStart(2, '0')}`,
-    segundos: (i + 1) * 3600,
+    segundos: (qtd - i) * 3600,
     apontamentos: 25,
   }))
 }
@@ -32,7 +32,11 @@ function com(qtd: number, incompletos: string[] = []): RespostaApontamento {
               {
                 cardId: '9100000001',
                 titulo: 'Card incompleto',
-                projeto: { id: incompletos[0]!, rotulo: 'Projeto 00', foraDoEscopo: false },
+                projeto: {
+                  id: incompletos[0]!,
+                  rotulo: `Projeto ${incompletos[0]!.slice(1).padStart(2, '0')}`,
+                  foraDoEscopo: false,
+                },
               },
             ],
             projetoIds: incompletos,
@@ -69,8 +73,8 @@ describe('097 L9: os 10 maiores do AP-PROJETO', () => {
     )
     const tabela = within(cartao).getByRole('table')
     expect(within(tabela).getAllByRole('row')).toHaveLength(11)
-    expect(within(tabela).getByText('Projeto 11')).toBeInTheDocument()
-    expect(within(tabela).queryByText('Projeto 00')).toBeNull()
+    expect(within(tabela).getByText('Projeto 00')).toBeInTheDocument()
+    expect(within(tabela).queryByText('Projeto 11')).toBeNull()
     expect(
       within(cartao).getByRole('button', { name: 'Ver todos os 12 projetos' }),
     ).toHaveAttribute('aria-expanded', 'false')
@@ -99,6 +103,42 @@ describe('097 L9: os 10 maiores do AP-PROJETO', () => {
     expect(botao).toHaveAttribute('aria-expanded', 'false')
   })
 
+  it('CA-38: reabrir o cartão volta a mostrar só os 10 maiores', async () => {
+    const u = userEvent.setup()
+    const resposta = com(12)
+    const cartao = await renderizar(resposta)
+    await u.click(within(cartao).getByRole('button', { name: 'Ver todos os 12 projetos' }))
+    expect(within(cartao).getAllByRole('row')).toHaveLength(13)
+    cleanup()
+    const reaberto = await renderizar(resposta)
+    expect(within(reaberto).getAllByRole('row')).toHaveLength(11)
+    expect(within(reaberto).getByTestId('projetos-demais')).toBeInTheDocument()
+    expect(
+      within(reaberto).getByRole('button', { name: 'Ver todos os 12 projetos' }),
+    ).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('empate na 10ª vaga: o corte e o Ver todos mantêm a mesma ordem do servidor', async () => {
+    const u = userEvent.setup()
+    const resposta = com(12)
+    const ordem = ['zeta', 'Alfa', 'érico', 'Érico', 'alfa']
+    const lista = projetos(12).map((l, i) =>
+      i >= 9 && i < 12 ? { ...l, rotulo: ordem[i - 9]!, segundos: 7200 } : l,
+    )
+    resposta.distribuicao.porProjeto = lista
+    const cartao = await renderizar(resposta)
+    const rotulos = () =>
+      within(cartao)
+        .getAllByRole('row')
+        .slice(1)
+
+        .map((r) => r.textContent)
+    const dez = rotulos()
+    expect(dez[9]).toMatch(/^zeta/)
+    await u.click(within(cartao).getByRole('button', { name: 'Ver todos os 12 projetos' }))
+    expect(rotulos().slice(0, 10)).toEqual(dez)
+  })
+
   it('CA-36: com 10 projetos ou menos não há botão nem linha Demais', async () => {
     const cartao = await renderizar(com(10))
     expect(within(cartao).queryByTestId('projetos-demais')).toBeNull()
@@ -108,8 +148,8 @@ describe('097 L9: os 10 maiores do AP-PROJETO', () => {
   })
 
   it('o selo de incompleto vale para projeto fora dos 10 maiores', async () => {
-    const cartao = await renderizar(com(12, ['p0']))
+    const cartao = await renderizar(com(12, ['p11']))
     const selos = within(cartao).getByTestId('selos-projeto-incompleto')
-    expect(selos).toHaveTextContent('Projeto 00')
+    expect(selos).toHaveTextContent('Projeto 11')
   })
 })
