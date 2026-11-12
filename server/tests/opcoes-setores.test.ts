@@ -31,6 +31,11 @@ describe('opcoes.setores (097 L10a)', () => {
     expect((o as { setores: unknown }).setores).toEqual([{ id: 'ciencia-de-dados', nome: 'Ciência de Dados' }, { id: 'plataformas', nome: 'Plataformas' }]);
   });
 
+  it('nome cujo slug é vazio (só pontuação) não vira opção, e os demais seguem', async () => {
+    const o = await opcoesFiltro(db([{ codigo: '1', rotulo: '???' }, { codigo: '2', rotulo: 'Plataformas' }]), 'businessmap', AGORA);
+    expect((o as { setores: unknown }).setores).toEqual([{ id: 'plataformas', nome: 'Plataformas' }]);
+  });
+
   it('a leitura do banco ignora código não numérico, rótulo com sobrenome, com arroba ou vazio', async () => {
     const r = await lerSetoresBM(db([
       { codigo: 'x', rotulo: 'Plataformas' }, { codigo: '1', rotulo: 'Plataformas - SILVA' }, { codigo: '2', rotulo: 'a@b.com' },
